@@ -8,7 +8,7 @@ import { simLevel } from './simload.js';
 import { getGaragesForRender } from './garages.js';
 import { getHomeForRender, getHomeGarageForRender, getHomeMooringForRender, getHomeHelipadForRender } from './home.js';
 import { minimapShows } from './mapfilters.js';
-import { mapCategory, mapFillColor, FLAT_INK, haloRim, HALO_DARK, HALO_LIGHT, mapPriority, miniIconScale, iconGapPx } from './mapicons.js';
+import { GLYPH_LIGHT as GLYPH_CREAM, mapCategory, mapFillColor, FLAT_INK, haloRim, HALO_DARK, HALO_LIGHT, mapPriority, miniIconScale, iconGapPx, badgeShape, badgeGlyphColor, shadeHex, stateLook, BADGE_UNITS } from './mapicons.js';
 import { facilitiesOf } from './facilities.js';
 import { getHorecaForRender } from './horeca.js';
 import { getShopsForRender, drawShopMapIcon, drawShopGlyph, SHOP_TYPES, storyTargetShop, drawStoryShopRing } from './shops.js';
@@ -29,7 +29,8 @@ import { gearboxReadout } from './gearbox.js';
 import { drawRailsOnMap, drawTrainsOnMap } from './railway.js';
 import { drawCountryMinimap, villageLabels, syncMapPhase } from './countrymap.js';
 import { MINI_PALETTE as MINI_STYLE, EMPHASIS, seaStyle, miniRoadStyle } from './mapstyle.js';
-import { drawSea, drawOutside, regionLabels, areaNameAt, REGIONS } from './regions.js';
+import { drawSea, drawOutside, regionLabels, regionEdgeLabels, areaNameAt, REGIONS } from './regions.js';
+import { borderPlaceLabels } from './borderplaces.js';
 import { worldPlaceLabels, worldPlacesReady } from './worldplaces.js';
 import { provinceMapOn } from './provincemap.js';
 import { edgeDistance } from './countryfield.js';
@@ -56,7 +57,8 @@ import { LANDMARK_LINES } from './placelines.js';
 import { townProfile } from './stadsprofielen.js';
 import { getSettings } from './settings.js';
 import { heldBack } from './narrative.js';
-import { isPauseMenuOpen } from './pausemenu.js';
+import { isPauseMenuOpen } from './pausestate.js';
+import { isOverlayHeld } from './overlayhold.js';
 // portraits share the HUD's green (DESIGN_SYSTEM: no blue accents); speaker
 // colours stay in subtitles
 const HUD_ACCENT = '#3fc97a';
@@ -397,8 +399,13 @@ export function updateHud(dt, world) {
   // player, so a lower rate shows as stutter; the whole HUD costs ~1 ms.
   mmDt += dt;
   if (mmSkip-- > 0) return;
+  // a redraw that costs a lot (vector map of the whole province) gets at most a quarter of the time: measured on
+  // hoog the minimap took 5 to 14% of the busy main thread (docs/PERF-METING-2026-10-19.md)
+  const mmNow = performance.now();
+  if (mmNow - mmLastAt < Math.max(MM_MIN_INTERVAL_MS, mmCostMs * 4)) return;
   mmSkip = simLevel() >= 2 ? 1 : 0;
-  if (els.vis.minimap !== false) drawMinimap(mmDt, world);
+  if (els.vis.minimap !== false) { drawMinimap(mmDt, world); mmCostMs = mmCostMs * 0.7 + (performance.now() - mmNow) * 0.3; }
+  mmLastAt = mmNow;
   mmDt = 0;
 }
 
@@ -654,7 +661,7 @@ function updatePlace(dt, world) {
   const timer = !!gpsState.timer;
   if (timer || world.pigeonMode || world.heliRun || !document.body.classList.contains('game-started')) { placeState.last = c.key; return; }
   // a flyover (wijk, landmark) names its place in this card once it ends
-  if (isCinematicActive() || isBusy(world) || isDialogue()) {
+  if (isCinematicActive() || isBusy(world) || isDialogue() || isOverlayHeld('locatie')) {
     if (!placeState.pending || placeState.pending.key !== c.key) { placeState.pending = c; placeState.pendingAt = now; }
     if (now - placeState.pendingAt > DEFER_MAX) { placeState.last = c.key; placeState.pending = null; }
     return;
@@ -1325,16 +1332,29 @@ export function drawMapIcon(ctx, kind, x, y, s = 1, opts = {}) {
   ctx.lineJoin = 'round';
   switch (kind) {
     case 'player': {
+      // you: a soft green glow, a cream-edged arrow, so it stands out among the badges (#180)
+      if (!opts.raw) {
+        const gr = ctx.createRadialGradient(0, 0, 1 * s, 0, 0, 11 * s);
+        gr.addColorStop(0, 'rgba(63, 201, 122, 0.55)');
+        gr.addColorStop(1, 'rgba(63, 201, 122, 0)');
+        ctx.beginPath();
+        ctx.arc(0, 0, 11 * s, 0, Math.PI * 2);
+        ctx.fillStyle = gr;
+        ctx.fill();
+      }
       ctx.rotate(opts.angle ?? -Math.PI / 2);
       ctx.beginPath();
-      ctx.moveTo(7 * s, 0);
-      ctx.lineTo(-5 * s, 4.6 * s);
-      ctx.lineTo(-2.6 * s, 0);
-      ctx.lineTo(-5 * s, -4.6 * s);
+      ctx.moveTo(8 * s, 0);
+      ctx.lineTo(-5.6 * s, 5.2 * s);
+      ctx.lineTo(-2.8 * s, 0);
+      ctx.lineTo(-5.6 * s, -5.2 * s);
       ctx.closePath();
       ctx.fillStyle = C.greenLight;
       ctx.fill();
-      outline(ctx, s, C.dark, 1.6);
+      outline(ctx, s, C.dark, 3.4);
+      outline(ctx, s, C.cream, 1.7);
+      ctx.fillStyle = C.greenLight;
+      ctx.fill();
       break;
     }
     case 'partner': { // medespeler (samen spelen, #95): vorm en kleur van de speler, nooit alleen kleur
@@ -1693,9 +1713,9 @@ export function drawMapIcon(ctx, kind, x, y, s = 1, opts = {}) {
 // this kind keeps its own look (or there is no canvas), so the caller draws it as before.
 const flatCache = new Map();
 let flatBroken = false; // no canvas readback here: the old disc and rings take over
-function flatSprite(kind, s, a, opts) {
+function flatBlobSprite(kind, s, a, opts) {
   const { t: _t, angle: _a, raw: _r, ...rest } = opts;
-  const key = kind + '|' + s + '|' + a + '|' + JSON.stringify(rest);
+  const key = 'blob|' + kind + '|' + s + '|' + a + '|' + JSON.stringify(rest);
   if (flatCache.has(key)) return flatCache.get(key);
   let sprite = null;
   try {
@@ -1742,6 +1762,129 @@ function flatSprite(kind, s, a, opts) {
   flatCache.set(key, sprite);
   return sprite;
 }
+
+// The badge (#180, #92): a category shape in a saturated fill with a lighter rim, a soft shadow
+// and the kind's own glyph, enlarged, in cream or dark ink (mapicons.js). The glyph is what the
+// kind's own drawing shows in light pixels (its cream details); kinds without one, or whose
+// body is light, keep the flat blob above.
+function badgePath(g, shape, w) {
+  const h = w / 2;
+  g.beginPath();
+  if (shape === 'tile') g.roundRect(-h, -h, w, w, w * 0.27);
+  else if (shape === 'squircle') g.roundRect(-h * 1.05, -h * 0.88, w * 1.05, w * 0.88, w * 0.36);
+  else if (shape === 'hex') { for (let i = 0; i < 6; i++) { const an = -Math.PI / 2 + i * Math.PI / 3; g[i ? 'lineTo' : 'moveTo'](Math.cos(an) * h * 1.06, Math.sin(an) * h * 1.06); } g.closePath(); }
+  else if (shape === 'diamond') { g.save(); g.rotate(Math.PI / 4); g.roundRect(-h * 0.76, -h * 0.76, w * 0.76, w * 0.76, w * 0.14); g.restore(); }
+  else if (shape === 'shield') { g.moveTo(0, -h * 1.08); g.lineTo(h * 0.96, -h * 0.74); g.quadraticCurveTo(h * 0.94, h * 0.62, 0, h * 1.1); g.quadraticCurveTo(-h * 0.94, h * 0.62, -h * 0.96, -h * 0.74); g.closePath(); }
+  else g.arc(0, 0, h, 0, Math.PI * 2);
+}
+function flatSprite(kind, s, a, opts) {
+  const { t: _t, angle: _a, raw: _r, alpha: _al, ...rest } = opts;
+  const key = 'badge|' + kind + '|' + s + '|' + a + '|' + JSON.stringify(rest);
+  if (flatCache.has(key)) return flatCache.get(key);
+  let sprite = null;
+  try {
+    const K = 1.5;
+    const half2 = Math.ceil(13 * s * K + 6), n2 = Math.ceil(half2 * 2 * a);
+    const src = document.createElement('canvas');
+    src.width = src.height = n2;
+    const sc = src.getContext('2d', { willReadFrequently: true });
+    sc.scale(a, a);
+    drawMapIcon(sc, kind, half2, half2, s * K, { ...opts, t: 0, raw: true });
+    const d = sc.getImageData(0, 0, n2, n2).data;
+    let area = 0, light = 0, x0 = n2, y0 = n2, x1 = -1, y1 = -1;
+    const lit = new Uint8Array(n2 * n2);
+    for (let i = 0; i < n2 * n2; i++) {
+      if (d[i * 4 + 3] < 90) continue;
+      area++;
+      if (Math.min(d[i * 4], d[i * 4 + 1], d[i * 4 + 2]) > 185) {
+        lit[i] = 1; light++;
+        const x = i % n2, y = (i / n2) | 0;
+        if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y;
+      }
+    }
+    // no cream details (a pigeon-less circle, a dark glyph on a light body): the dark pixels well inside
+    // the body are the glyph (a chessboard distance from the edge keeps the outline out)
+    if (area && (light / area < 0.02 || x1 < x0)) {
+      const dist = new Uint16Array(n2 * n2);
+      const BIG = 60000;
+      for (let i = 0; i < n2 * n2; i++) dist[i] = d[i * 4 + 3] < 90 ? 0 : BIG;
+      for (let y = 0; y < n2; y++) for (let x = 0; x < n2; x++) {
+        const i = y * n2 + x; if (!dist[i]) continue;
+        let m = dist[i];
+        if (x === 0 || y === 0) m = 1; else m = Math.min(m, dist[i - 1] + 1, dist[i - n2] + 1, dist[i - n2 - 1] + 1);
+        dist[i] = m;
+      }
+      for (let y = n2 - 1; y >= 0; y--) for (let x = n2 - 1; x >= 0; x--) {
+        const i = y * n2 + x; if (!dist[i]) continue;
+        let m = dist[i];
+        if (x === n2 - 1 || y === n2 - 1) m = 1; else m = Math.min(m, dist[i + 1] + 1, dist[i + n2] + 1, dist[i + n2 + 1] + 1);
+        dist[i] = m;
+      }
+      const inner = 2.4 * s * K * a;
+      let dark = 0;
+      x0 = n2; y0 = n2; x1 = -1; y1 = -1;
+      lit.fill(0);
+      for (let i = 0; i < n2 * n2; i++) {
+        if (dist[i] < inner) continue;
+        if (Math.max(d[i * 4], d[i * 4 + 1], d[i * 4 + 2]) > 110) continue;
+        lit[i] = 1; dark++;
+        const x = i % n2, y = (i / n2) | 0;
+        if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y;
+      }
+      light = dark;
+    }
+    if (!area || light / area > 0.5 || light / area < 0.02 || x1 < x0) sprite = flatBlobSprite(kind, s, a, opts);
+    else {
+      const look = stateLook(opts.state);
+      const fill = look.gray ? '#8d9489' : mapFillColor(kind);
+      const glyphCol = badgeGlyphColor(fill);
+      const half = Math.ceil(13 * s + 6), n = Math.ceil(half * 2 * a);
+      const out = document.createElement('canvas');
+      out.width = out.height = n;
+      const oc = out.getContext('2d');
+      const W = BADGE_UNITS * s * a, shape = badgeShape(kind);
+      oc.translate(n / 2, n / 2);
+      oc.lineJoin = 'round';
+      // soft shadow under the whole badge
+      oc.save();
+      oc.shadowColor = 'rgba(0,0,0,0.55)'; oc.shadowBlur = 2.4 * s * a; oc.shadowOffsetY = 0.7 * s * a;
+      badgePath(oc, shape, W);
+      oc.fillStyle = '#000'; oc.fill();
+      oc.restore();
+      // a thin light line, a dark outline, the fill with a light top, the rim
+      badgePath(oc, shape, W);
+      oc.lineWidth = (1.0 + 2.5) * 0.5 * s * a * 1.4 + 0.6 * s * a; oc.strokeStyle = HALO_LIGHT; oc.stroke();
+      oc.lineWidth = 1.5 * 0.5 * s * a * 1.4; oc.strokeStyle = HALO_DARK; oc.stroke();
+      const grad = oc.createLinearGradient(0, -W / 2, 0, W / 2);
+      grad.addColorStop(0, shadeHex(fill, 0.22)); grad.addColorStop(0.55, fill); grad.addColorStop(1, shadeHex(fill, -0.14));
+      oc.fillStyle = grad; oc.fill();
+      oc.save();
+      badgePath(oc, shape, W * 0.9);
+      oc.lineWidth = Math.max(1, 0.45 * s * a); oc.strokeStyle = shadeHex(fill, 0.38); oc.globalAlpha = 0.55; oc.stroke();
+      oc.restore();
+      // the glyph, enlarged to about 60 % of the badge
+      const gw = x1 - x0 + 1, gh = y1 - y0 + 1;
+      const g = document.createElement('canvas');
+      g.width = gw; g.height = gh;
+      const gc = g.getContext('2d');
+      const gi = gc.createImageData(gw, gh);
+      const rgb = [parseInt(glyphCol.slice(1, 3), 16), parseInt(glyphCol.slice(3, 5), 16), parseInt(glyphCol.slice(5, 7), 16)];
+      for (let y = 0; y < gh; y++) for (let x = 0; x < gw; x++) {
+        const j = (y + y0) * n2 + x + x0;
+        if (lit[j]) { const o = (y * gw + x) * 4; gi.data[o] = rgb[0]; gi.data[o + 1] = rgb[1]; gi.data[o + 2] = rgb[2]; gi.data[o + 3] = 255; }
+      }
+      gc.putImageData(gi, 0, 0);
+      const r = (W * 0.6) / Math.max(gw, gh);
+      const dw = gw * r, dh = gh * r;
+      oc.imageSmoothingQuality = 'high';
+      if (glyphCol === GLYPH_CREAM) { oc.globalAlpha = 0.3; oc.filter = 'brightness(0)'; oc.drawImage(g, -dw / 2, -dh / 2 + 0.5 * s * a, dw, dh); oc.filter = 'none'; oc.globalAlpha = 1; }
+      oc.drawImage(g, -dw / 2, -dh / 2, dw, dh);
+      sprite = { canvas: out, size: n / a };
+    }
+  } catch (e) { sprite = flatBlobSprite(kind, s, a, opts); }
+  flatCache.set(key, sprite);
+  return sprite;
+}
 function drawFlatMapIcon(ctx, kind, x, y, s, opts) {
   if (flatBroken || typeof document === 'undefined' || !mapFillColor(kind) || !ctx.getTransform) return false;
   const a = Math.round(ctx.getTransform().a * 100) / 100 || 1;
@@ -1751,7 +1894,8 @@ function drawFlatMapIcon(ctx, kind, x, y, s, opts) {
   const sp = flatSprite(kind, sq, a, opts);
   if (!sp) return false;
   const w = sp.size * s / sq;
-  ctx.drawImage(sp.canvas, x - w / 2, y - w / 2, w, w);
+  const al = (opts.alpha ?? 1) * stateLook(opts.state).alpha;
+  if (al < 1) { ctx.save(); ctx.globalAlpha *= al; ctx.drawImage(sp.canvas, x - w / 2, y - w / 2, w, w); ctx.restore(); } else ctx.drawImage(sp.canvas, x - w / 2, y - w / 2, w, w);
   return true;
 }
 
@@ -1863,7 +2007,7 @@ function drawCrowLine(ctx, [ax, ay], [bx, by], color) {
 
 // mark: what the arrow points at, drawn small inside it (a dot for your
 // goal, a square for a klus, a ring for the story, nothing for your car)
-export function drawEdgeArrow(ctx, x, y, angle, color, s = 1, mark = '') {
+function drawEdgeArrow(ctx, x, y, angle, color, s = 1, mark = '') {
   ctx.save();
   ctx.translate(x, y);
   ctx.rotate(angle);
@@ -2053,7 +2197,7 @@ function drawMinimapPois(ctx, world, job, placed, inRange, toScreen, t) {
 // the player has moved a bit), upright over the rotating map; a name just
 // off the map keeps to the rim, towards it.
 const VILLAGE_KINDS = new Set(['town', 'village', 'hamlet', undefined]);
-let villageCache = { x: Infinity, y: Infinity, list: [], regions: [] };
+let villageCache = { x: Infinity, y: Infinity, list: [], regions: [], edge: [], neighbours: [] };
 function drawVillageNames(ctx, player, radius, toScreen) {
   if (Math.hypot(player.x - villageCache.x, player.y - villageCache.y) > 25) {
     const r = radius * 3;
@@ -2061,7 +2205,12 @@ function drawVillageNames(ctx, player, radius, toScreen) {
     const list = own
       ? worldPlaceLabels(player.x - r, player.y - r, player.x + r, player.y + r).filter((v) => v.rank < 5 && (v.rank <= 1 || (v.x - player.x) ** 2 + (v.y - player.y) ** 2 < (radius * 1.5) ** 2))
       : villageLabels(player.x - radius * 1.5, player.y - radius * 1.5, player.x + radius * 1.5, player.y + radius * 1.5).filter((v) => VILLAGE_KINDS.has(v.kind));
-    villageCache = { x: player.x, y: player.y, list, regions: provinceMapOn() ? regionLabels(player.x - radius, player.y - radius, player.x + radius, player.y + radius, 0.1).filter((q) => q.id !== 'groningen') : [] };
+    const regions = provinceMapOn() ? regionLabels(player.x - radius, player.y - radius, player.x + radius, player.y + radius, 0.1).filter((q) => q.id !== 'groningen') : [];
+    // what lies beyond the border or the coast in view (#237): the region's name just outside the line, and a few neighbour villages
+    const named = new Set(regions.map((q) => q.id));
+    const edge = provinceMapOn() ? regionEdgeLabels(player.x - radius * 0.8, player.y - radius * 0.8, player.x + radius * 0.8, player.y + radius * 0.8, radius * 0.2).filter((q) => !named.has(q.id)) : [];
+    const neighbours = provinceMapOn() ? borderPlaceLabels(player.x - radius, player.y - radius, player.x + radius, player.y + radius, [...regions, ...edge].map((q) => [q.x, q.y]), { zoom: 1, max: 3, gap: radius * 0.45 }) : [];
+    villageCache = { x: player.x, y: player.y, list, regions, edge, neighbours };
   }
   const rim = MINIMAP_SIZE / 2 - 20;
   const [cx, cy] = toScreen(player.x, player.y);
@@ -2074,6 +2223,23 @@ function drawVillageNames(ctx, player, radius, toScreen) {
     const [sx, sy] = toScreen(q.x, q.y);
     ctx.fillStyle = q.land ? 'rgba(240, 237, 228, 0.5)' : 'rgba(190, 225, 245, 0.65)';
     ctx.fillText(q.name.toUpperCase().split('').join(' '), sx, sy);
+  }
+  // the names beyond the border and the dimmed neighbour villages, kept inside the frame so nothing is cut off
+  const keep = (name, sx, sy) => {
+    const w = ctx.measureText(name).width;
+    return [Math.max(w / 2 + 6, Math.min(MINIMAP_SIZE - w / 2 - 6, sx)), Math.max(10, Math.min(MINIMAP_SIZE - 10, sy))];
+  };
+  for (const q of villageCache.edge) {
+    const name = q.name.toUpperCase().split('').join(' ');
+    const [sx, sy] = keep(name, ...toScreen(q.x, q.y));
+    ctx.fillStyle = q.land ? 'rgba(240, 237, 228, 0.42)' : 'rgba(190, 225, 245, 0.55)';
+    ctx.fillText(name, sx, sy);
+  }
+  for (const q of villageCache.neighbours) {
+    const name = q.name.toUpperCase();
+    const [sx, sy] = keep(name, ...toScreen(q.x, q.y));
+    ctx.fillStyle = 'rgba(240, 237, 228, 0.36)';
+    ctx.fillText(name, sx, sy);
   }
   ctx.font = "15px 'Bebas Neue', 'Arial Narrow', Arial, sans-serif";
   ctx.lineWidth = 3;
@@ -2095,6 +2261,9 @@ function drawVillageNames(ctx, player, radius, toScreen) {
   }
   ctx.restore();
 }
+
+const MM_MIN_INTERVAL_MS = 33;
+let mmLastAt = 0, mmCostMs = 0;
 
 function drawMinimap(dt, world) {
   syncMapPhase(world);

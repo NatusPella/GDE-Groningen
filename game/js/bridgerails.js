@@ -15,14 +15,14 @@ const OPENING_PAD = 0.4;
 const REACH = 1;
 export const RAIL_KIND = 'bridgerail';
 export const RAIL_HALF = 1;
-export const RAIL_H = 1.05;
+const RAIL_H = 1.05;
 
-export function railingOffset(r) {
+function railingOffset(r) {
   return r.cat === 'major' || r.cat === 'normal' ? (r.width || 6) / 2 + 1.7 : (r.width || 3) / 2 + 0.08;
 }
 
 // Is the railing of bridge `r` at (x, y) interrupted by another way crossing it?
-export function railingOpening(map, r, x, y) {
+function railingOpening(map, r, x, y) {
   for (const o of map.roadsNear(x, y, 8)) {
     if (o === r) continue;
     const t = (o.width || 3) / 2 + OPENING_PAD;

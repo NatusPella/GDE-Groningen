@@ -9,6 +9,13 @@ import { readSession, writeSession, toSession } from './coopsave.js';
 
 let view = null, mountedOn = null;
 
+// Samen spelen vanuit het hoofdmenu (startscreen.js zet het, main.js haalt het op zodra het spel te besturen is);
+// een gewone variabele: het wereldobject wordt bij een nieuw spel opnieuw opgebouwd
+let openOnStart = false;
+export const requestOpenSamen = () => { openOnStart = true; };
+export const takeOpenSamen = () => { const v = openOnStart; openOnStart = false; return v; };
+export const wantsOpenSamen = () => openOnStart;
+
 const store = () => { try { return localStorage; } catch (e) { return null; } };
 
 // root: .pm-inner van het onderdeel. Blijft staan als je even naar een ander onderdeel gaat.

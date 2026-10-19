@@ -137,7 +137,7 @@ export function landmarkParams(item, fit = null) {
   else if (item.k === 'tower' || item.k === 'lighthouse' || item.k === 'watertower') p = towerParams(item, t, h);
   else if (item.k === 'castle') p = borgParams(item, t, box, h);
   else if (item.k === 'farm') p = farmParams(item, t, box, h);
-  else if (item.k === 'silo' || item.k === 'factory') p = industryParams(item, t, box, h);
+  else if (item.k === 'silo' || item.k === 'factory' || item.k === 'pakhuis') p = industryParams(item, t, box, h);
   else if (item.k === 'flat') p = flatParams(item, t, box, h);
   else if (['townhall', 'station', 'school', 'museum'].includes(item.k)) p = hallParams(item, t, box, h);
   if (!p) return null;
@@ -645,6 +645,8 @@ function industryParams(item, t, box, h) {
   const n = item.n || '';
   const silo = item.k === 'silo' || t.man_made === 'silo' || t.building === 'silo' || /silo|graan/i.test(n);
   const hv = metres(t.height);
+  // a harbour warehouse: a long gabled brick hall with a hoist bay on the quay side
+  if (item.k === 'pakhuis') return { kit: 'industry', type: 'pakhuis', len: clamp(box ? box.len : 36, 14, 80), wid: clamp(box ? box.wid : 14, 8, 24), height: clamp(hv || 7 + h * 4, 6, 14), floors: 2 + Math.floor(h * 2) };
   if (silo) return { kit: 'industry', type: 'silo', len: clamp(box ? box.len : 16, 8, 30), wid: clamp(box ? box.wid : 10, 6, 20), height: clamp(hv || 18 + h * 14, 12, 45), count: 2 + Math.floor(h * 3) };
   return { kit: 'industry', type: 'factory', len: clamp(box ? box.len : 40, 16, 90), wid: clamp(box ? box.wid : 22, 10, 40), height: clamp(hv || 9 + h * 5, 7, 20), chimney: h < 0.7 || /fabriek|suiker|zout|mout/i.test(n) };
 }
@@ -663,6 +665,26 @@ function industry(B, p, lod) {
     if (lod !== LOD_SKY) B.box(0, 3 + p.height + r * 0.8, 0, L * 0.9, 1.2, 1.4, 0x6e6c68);
     B.box(-L / 2 - 1.2, (3 + p.height + 4) / 2, 0, 2.4, 3 + p.height + 4, 2.4, 0x7a7a76);
     p.top = 3 + p.height + 4;
+    return;
+  }
+  if (p.type === 'pakhuis') {
+    const he = p.height, rh = Math.min(5.5, W * 0.45);
+    B.box(0, he / 2, 0, L, he, W, 0x8f4d38);
+    gableRoof(B, -L / 2, L / 2, W / 2, he, he + rh, 0x4a4f55, 0x8f4d38);
+    // the hoist bay: a small gable that sticks out of the roof above the loading doors
+    const bx = L * 0.22;
+    B.box(bx, he + rh * 0.35, W / 2 + 0.25, 3.2, rh * 0.7, 0.5, 0x8f4d38);
+    p.top = he + rh;
+    if (lod === LOD_SKY) return;
+    B.box(bx, he + rh * 0.75, W / 2 + 0.9, 0.35, 0.35, 1.4, 0x3a2a22); // the hoist beam
+    if (lod !== LOD_FULL) return;
+    const bays = Math.max(3, Math.floor(L / 4));
+    const fh = he / p.floors;
+    for (let f = 0; f < p.floors; f++) for (let i = 0; i < bays; i++) {
+      const x = -L / 2 + (L * (i + 0.5)) / bays;
+      const door = i === Math.round((bx + L / 2) / L * bays - 0.5);
+      for (const sd of [-1, 1]) B.box(x, f * fh + fh * 0.55, sd * (W / 2 + 0.05), door ? 1.6 : 1.0, door ? 2.2 : 1.3, 0.08, door ? 0x3a2a22 : 0x1c2228, door ? undefined : G_GLASS);
+    }
     return;
   }
   // factory: a long brick hall under sawtooth roofs, a tall chimney
@@ -775,7 +797,7 @@ function hall(B, p, lod) {
 // A tile building row (type from the OSM tag, name, hm in metres from 3D BAG or
 // OSM, pts) that one of the everyday kits fits. Cheap to reject: most rows are
 // houses. Returns an item for landmarkParams, or null.
-const KIT_TYPES = new Set(['farm', 'silo', 'industrial', 'apartments', 'school', 'college', 'university', 'train_station', 'civic', 'public']);
+const KIT_TYPES = new Set(['farm', 'silo', 'industrial', 'apartments', 'school', 'college', 'university', 'train_station', 'civic', 'public', 'warehouse']);
 const FARM_NAMED = new Set(['farm', 'house', 'yes', 'industrial', 'detached', 'farm_auxiliary', 'barn', 'residential']);
 const outlineArea = (o) => { let a = 0; for (let i = 0; i < o.length; i += 2) { const j = (i + 2) % o.length; a += o[i] * o[j + 1] - o[j] * o[i + 1]; } return Math.abs(a / 2); };
 
@@ -796,6 +818,7 @@ export function kitItemFromBuilding(b, ring = null) {
     if (type === 'farm') k = area >= 80 ? 'farm' : null;
     else if (type === 'silo') k = area >= 20 ? 'silo' : null;
     else if (type === 'industrial') k = /gemaal|gemeentewerken|transformator|zendmast|zuivering/i.test(name) ? null : area >= 2500 || (name && area >= 800) ? 'factory' : null;
+    else if (type === 'warehouse') k = /pakhuis|loods|haven/i.test(name) && area >= 150 && area <= 4000 ? 'pakhuis' : null;
     else if (type === 'apartments') k = hm >= 22 && area >= 300 ? 'flat' : null;
     else if (type === 'school' || type === 'college' || type === 'university') k = area >= 500 ? 'school' : null;
     else if (type === 'train_station') k = area >= 60 ? 'station' : null;

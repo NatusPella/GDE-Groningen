@@ -6,14 +6,11 @@
 
 import { radialDeadzone } from './padlogic.js';
 
-export const SLOT_P1 = 0;
-export const SLOT_P2 = 1;
-
 // Speler 2 op het toetsenbord: IJKL lopen, U rennen. Speler 1 houdt WASD/pijlen.
-export const P2_KEYS = { up: 'i', down: 'k', left: 'j', right: 'l', run: 'u' };
+const P2_KEYS = { up: 'i', down: 'k', left: 'j', right: 'l', run: 'u' };
 export const P2_WALK = 3.0;
 export const P2_RUN = 5.6;
-export const PAD_DEADZONE = 0.25;
+const PAD_DEADZONE = 0.25;
 // Beide spelers delen één scherm: P2 mag zo ver van P1 en wordt anders teruggeleid.
 export const LEASH_DIST = 38;
 export const CAM_ZOOM_MAX = 1.6;

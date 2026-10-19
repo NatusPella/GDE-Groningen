@@ -37,5 +37,22 @@ check('dicht bij de speler blijft staan', near.length === 0);
 check('buiten de uren niets te ruimen', L.vehiclesToClear(cars, far, day, 4).length === 0);
 check('aankomsttekst noemt de naam', L.arrivalText(ev).includes(ev.naam));
 
+// fitLayout: bezette plekken schuiven op of vallen weg, vrije blijven staan
+{
+  const ev0 = AGENDA[0], items = L.propLayout(ev0);
+  check('fit: alles vrij laat alles staan', L.fitLayout(ev0, items, () => true).length === items.length);
+  check('fit: niets vrij laat niets staan', L.fitLayout(ev0, items, () => false).length === 0);
+  const half = (dx) => dx > 0; // alleen de oostkant is vrij
+  const fit = L.fitLayout(ev0, items, half);
+  check('fit: alleen vrije plekken over', fit.every((q) => q.dx > 0) && fit.length > 0);
+  check('fit: vast per evenement', JSON.stringify(fit) === JSON.stringify(L.fitLayout(ev0, items, half)));
+  check('fit: binnen de afsluiting', fit.every((q) => Math.hypot(q.dx, q.dy) <= KINDS[ev0.kind].closure));
+}
+{
+  let q = 0.3; const rand = () => (q = (q * 7.7 + 0.13) % 1);
+  const g = L.groupSpot(AGENDA[0], rand), cc = L.centreOf(AGENDA[0]);
+  check('groepsplek binnen het evenement', Math.hypot(g.x - cc.x, g.y - cc.y) <= 160 && g.n >= 2 && g.n <= 4);
+  check('menigtecap > 0', L.crowdPedCap(AGENDA[0]) > 0);
+}
 console.log(`evenementenlive_test: ${n - bad}/${n} ok`);
 process.exit(bad ? 1 : 0);

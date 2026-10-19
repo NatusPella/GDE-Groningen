@@ -31,6 +31,8 @@ const OTHER = new Set(['carbid_boom_0', 'carbid_boom_1', 'carbid_boom_2', 'carbi
 const PENDING = new Set();
 // played by audio.js for door_open/door_close events that carry wood: true (geheimen.js, the Martinitoren door)
 OTHER.add('door_wood_open'); OTHER.add('door_wood_close');
+// played by audio.js for the weapon 'firework' sub-event and the crossing_bell event
+for (const n of ['firework_burst_0', 'firework_burst_1', 'firework_burst_2', 'crossing_bell']) OTHER.add(n);
 for (const name of Object.keys(FX_INFO)) ok(linked.has(name) || OTHER.has(name) || PENDING.has(name), `${name}: has a source`);
 // no double playback: an effect is pushed by one place only
 for (const s of SELF_PUSHED) ok(!LINK_RULES.some((r) => r.fx === s.fx), `${s.fx}: not both linked and self-pushed`);
@@ -151,6 +153,22 @@ const run = (L, w, env) => L.step(w, env).map((e) => ({ ...e }));
   bus.doors.open.d1a = 0; bus.doors.open.d1b = 0; r = run(L, w, env);
   ok(r.length === 1 && r[0].name === 'bus_door_hiss', 'parts: and again when it shuts');
   ok(createLinkups().step(world(), { ...env, vehicles: undefined }).length === 0, 'parts: no vehicle source, no crash');
+}
+
+// locks: the gate groans when it starts to move, the water runs while levelling; one event per change
+{
+  const lock = { x: 5, y: 5, state: 'ready' };
+  const env = { bridges: () => [], trains: () => [], locks: () => [lock], listener: () => ({ x: 0, y: 0 }) };
+  const L = createLinkups(), w = world();
+  run(L, w, env);
+  lock.state = 'closing'; let r = run(L, w, env);
+  ok(r.length === 1 && r[0].name === 'sluis_poort', 'lock: gate closing groans');
+  ok(run(L, w, env).length === 0, 'lock: silent while the gate moves');
+  lock.state = 'levelling'; r = run(L, w, env);
+  ok(r.length === 1 && r[0].name === 'sluis_stroom', 'lock: water runs while levelling');
+  lock.state = 'opening'; r = run(L, w, env);
+  ok(r.length === 1 && r[0].name === 'sluis_poort', 'lock: other gate opening groans');
+  lock.state = 'ready'; ok(run(L, w, env).length === 0, 'lock: ready is silent');
 }
 
 console.log(`${n - fails}/${n} ok`);

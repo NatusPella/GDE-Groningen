@@ -5,7 +5,7 @@
 // scripts/helictl_test.mjs.
 
 export const RAMP = { up: 0.22, down: 0.12 };   // s van 0 naar 1 en terug
-export const EXPO = 0.35;
+const EXPO = 0.35;
 
 // zachte curve: klein bij kleine uitslag, 1 bij volle uitslag, tekenvast
 export function expo(x, e = EXPO) {

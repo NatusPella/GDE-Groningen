@@ -4,13 +4,16 @@ import { openSaveSlots, isSaveSlotsOpen } from './saveslotsui.js';
 import { VERSION } from './version.js';
 import { checkWhatsNew, markVersionSeen, compareVersions } from './whatsnew.js';
 import { pointInPolygon } from './util.js';
-import { openPauseMenu, isPauseMenuOpen } from './pausemenu.js';
+import { openPauseMenu, menuIcon } from './pausemenu.js';
+import { requestOpenSamen } from './samenpanel.js';
+import { isPauseMenuOpen } from './pausestate.js';
 import { getAchievementSummary } from './achievements.js';
 import { pendingTrailer } from './trailerstate.js';
 // trailer.js (2500 lines) is only loaded when a trailer or benchmark really runs
 import { startTheme, stopTheme } from './theme.js';
 import { COW_LOADING } from './flavourlines.js';
-import { MENU_FRAME_S, getRenderer } from './scene3d.js';
+import { MENU_FRAME_S, getRenderer, streamPending } from './scene3d.js';
+import { makeMenuGate, GATE } from './menuready.js';
 import { isAdvisorSampling, startGfxAdvisor } from './gfxprofile.js';
 import { ABOUT_HTML } from './credits.js';
 import { startLoadScreen, setLoadTips } from './loadscreen.js';
@@ -104,9 +107,10 @@ export function yieldToPaint() {
 // the benchmark) goes straight on to the menu.
 const AUTO = FLAGS.noattract || FLAGS.storytest || FLAGS.stil || FLAGS.trailer || FLAGS.preview || FLAGS.benchmark || FLAGS.perf || FLAGS.spotsonly;
 
-// Fills the bar to 100%, says "Druk op een toets" and waits for the key. The
-// boot screen stays up until the menu is there (dismissLoading), so there is
-// no black gap between them.
+// Fills the bar to 100% and goes straight on (#226): no key to press. The boot screen stays up until the
+// menu is there (dismissLoading) and runStartScreen only shows the menu when the world behind it is drawn
+// and calm (menuready.js), so there is no black gap and no frozen menu. The sound starts at the first real
+// key or click (audio.js unlockAudio), the browsers allow nothing earlier.
 export async function finishLoading() {
   progress = 1;
   shown = 1;
@@ -118,28 +122,6 @@ export async function finishLoading() {
   const status = l.querySelector('.ld-status');
   if (status) status.textContent = 'Klaar, Grunn staat te wachten';
   await new Promise((r) => setTimeout(r, 380));
-  if (AUTO) return;
-  const key = l.querySelector('.bt-key');
-  if (key) key.textContent = 'Druk op een toets';
-  l.classList.add('ready');
-  await new Promise((resolve) => {
-    const go = (e) => {
-      if (e.type === 'keydown' && (e.key === 'Shift' || e.key === 'Control' || e.key === 'Alt' || e.key === 'Meta' || e.repeat)) return;
-      window.removeEventListener('keydown', go, true);
-      window.removeEventListener('pointerdown', go, true);
-      window.removeEventListener('gamepadconnected', go, true);
-      clearInterval(pad);
-      // this press is only "go on": the menu does not see it
-      if (e.type === 'keydown') { e.preventDefault(); e.stopImmediatePropagation(); }
-      resolve();
-    };
-    window.addEventListener('keydown', go, true);
-    window.addEventListener('pointerdown', go, true);
-    const pad = setInterval(() => {
-      const pads = navigator.getGamepads ? navigator.getGamepads() : [];
-      for (const g of pads) if (g && g.buttons.some((b) => b.pressed)) { go({ type: 'pad' }); return; }
-    }, 200);
-  });
 }
 
 // The menu (or the trailer) is up: the boot screen fades away over it.
@@ -393,7 +375,7 @@ function logoIn(screen) {
 
 // Title screen over the live city, cycling through highlights. Resolves with
 // 'game' (Doorgaan / Nieuw spel).
-export function runStartScreen(world, { render, relocate, tick }) {
+export function runStartScreen(world, { render, relocate, tick, ready }) {
   return new Promise((resolve) => {
     const screen = el('start-screen');
     const menu = screen.querySelector('.ss-menu');
@@ -402,7 +384,8 @@ export function runStartScreen(world, { render, relocate, tick }) {
     const items = [];
     if (save) items.push({ act: 'continue', label: 'Doorgaan', sub: summaryText(save) });
     items.push({ act: 'new', label: 'Nieuw spel', sub: save ? 'Begin opnieuw in Grunn' : 'Moi! Stap in en rij' });
-    items.push({ act: 'saves', label: 'Spelstanden', sub: 'Kies, hernoem, exporteer of verwijder je spelstanden' });
+    items.push({ act: 'samen', label: 'Samen spelen', sub: 'Met een vriend of vriendin, tot 4 spelers' });
+    items.push({ act: 'saves', label: 'Opgeslagen spellen', sub: 'Kies, hernoem, exporteer of verwijder je spellen' });
     items.push({ act: 'news', label: 'Wat is er nieuw', sub: 'Alle versies en wijzigingen' });
     items.push({ act: 'settings', label: 'Instellingen', sub: 'Geluid, beeld en camera' });
     items.push({ act: 'about', label: 'Over', sub: 'Credits, licenties en privacy' });
@@ -413,10 +396,10 @@ export function runStartScreen(world, { render, relocate, tick }) {
     const itemHtml = (it, i) => {
       if (it.act === 'continue') {
         const prog = st && st.total ? Math.round((st.done / st.total) * 100) : null;
-        return `<button type="button" role="menuitem" class="ss-item ss-hero" data-act="continue" data-i="${i}"><span class="ss-label">${it.label}</span><small>${heroSub}</small>` +
+        return `<button type="button" role="menuitem" class="ss-item ss-hero" data-act="continue" data-i="${i}"><span class="ss-label">${menuIcon('resume', 'ss-ic big')}${it.label}</span><small>${heroSub}</small>` +
           (prog != null ? `<span class="ss-prog"><span class="m-bar"><i style="width:${prog}%"></i></span><span class="bebas">${prog}%</span></span>` : '') + '</button>';
       }
-      return `<button type="button" role="menuitem" class="ss-item" data-act="${it.act}" data-i="${i}"><span class="ss-label">${it.label}</span><small>${it.sub}</small></button>`;
+      return `<button type="button" role="menuitem" class="ss-item" data-act="${it.act}" data-i="${i}">${menuIcon(it.act === 'saves' ? 'load' : it.act === 'continue' ? 'resume' : it.act)}<span class="ss-label">${it.label}</span><small>${it.sub}</small></button>`;
     };
     menu.innerHTML = items.map(itemHtml).join('');
     // where the save picks up, right of the menu
@@ -490,7 +473,7 @@ export function runStartScreen(world, { render, relocate, tick }) {
       const b = buttons[items.findIndex((it) => it.act === 'new')];
       b.classList.toggle('confirm', on);
       b.querySelector('.ss-label').textContent = on ? 'Zeker weten?' : 'Nieuw spel';
-      b.querySelector('small').textContent = on ? 'Enter nog een keer: je spelstand wordt gewist' : items.find((it) => it.act === 'new').sub;
+      b.querySelector('small').textContent = on ? 'Enter nog een keer: je savegame wordt gewist' : items.find((it) => it.act === 'new').sub;
     };
     const restoreWorld = () => {
       world.menuCam = false;
@@ -528,6 +511,10 @@ export function runStartScreen(world, { render, relocate, tick }) {
       if (it.act !== 'news' && it.act !== 'about') news.hidden = true;
       if (it.act === 'continue') {
         continueGame();
+      } else if (it.act === 'samen') {
+        // het spel start zoals altijd (Doorgaan, of een nieuw spel zonder savegame); daarna staat de lobby klaar (main.js)
+        requestOpenSamen();
+        if (save) continueGame(); else startNew();
       } else if (it.act === 'saves') {
         openSaveSlots({ mode: 'start', onLoad: continueGame, onNew: () => startNew(), onClose: () => {
           // Doorgaan shows the save as it was when the menu opened: rebuild the menu when saves changed
@@ -681,8 +668,23 @@ export function runStartScreen(world, { render, relocate, tick }) {
         showMenu(true);
       }
     };
-    if (intro) playIntro();
-    else {
+    // The menu waits for the gate (menuready.js): the world behind it drawn, the streaming quiet, the extra
+    // work (`ready`) done. window.__menuGate tells what it saw; __menuHang the longest frame after the menu showed.
+    const gate = makeMenuGate();
+    let gateOpen = null;
+    const gateReady = new Promise((r) => { gateOpen = r; });
+    let extraDone = !ready;
+    if (ready) Promise.resolve(ready).then(() => { extraDone = true; }, () => { extraDone = true; });
+    window.__menuGate = () => gate.report();
+    const lStatus = document.querySelector('#loading .ld-status');
+    if (lStatus && !intro && !el('loading').dataset.gone) lStatus.textContent = 'De straten worden ingeladen';
+    setTimeout(() => { gate.expire(performance.now()); gateOpen(); }, GATE.timeoutMs + 2000);
+    let hangUntil = 0, hangMax = 0, lastRaf = 0;
+    window.__menuHang = () => Math.round(hangMax);
+    const openMenu = () => {
+      if (window.__loadMarks) window.__loadMarks.menu = Math.round(performance.now());
+      hangUntil = performance.now() + 4000;
+      hangMax = 0;
       showMenu(false);
       startGfxAdvisor(getRenderer().getContext());
       if (update) {
@@ -690,12 +692,19 @@ export function runStartScreen(world, { render, relocate, tick }) {
         focus(n);
         openNews();
       }
-    }
+    };
 
     let renderDt = 0;
     const loop = (now) => {
       if (done) return;
       if (trailerOn) { last = now; requestAnimationFrame(loop); return; }
+      const gap = lastRaf ? now - lastRaf : 0;
+      lastRaf = now;
+      if (hangUntil) { if (now < hangUntil) hangMax = Math.max(hangMax, gap); else hangUntil = 0; }
+      if (!gate.isReady()) {
+        const sp = streamPending();
+        if (gate.step(now, gap, sp.buildings + sp.roads, extraDone)) gateOpen();
+      }
       const dt = Math.min(0.05, (now - last) / 1000);
       last = now;
       renderDt += dt;
@@ -718,5 +727,7 @@ export function runStartScreen(world, { render, relocate, tick }) {
       requestAnimationFrame(loop);
     };
     requestAnimationFrame(loop);
+    if (intro) playIntro();
+    else gateReady.then(openMenu);
   });
 }

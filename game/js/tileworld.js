@@ -151,7 +151,9 @@ export class TileWorld extends GameMap {
         e.tiles.add(tk);
       }
     }
-    attachProfiles(tile, (gid) => { const e = this._res.roads.get(gid); return e && e.obj; });
+    // the profiles of streamed bridges and viaducts (build_province.mjs --viaducts, #235): the elevation model
+    // keeps to the pinned set, so they only count with ?viaducten, for a look at the ribbons
+    if (this.streamProfiles) attachProfiles(tile, (gid) => { const e = this._res.roads.get(gid); return e && e.obj; });
     // a road over water without a bridge tag is a culvert or a dry deck (mapdata.js markDryRoad)
     for (const r of newRoads) markDryRoad(this, r);
     for (const w of newWater) {
@@ -208,6 +210,12 @@ export class TileWorld extends GameMap {
     for (const w of rows) {
       w.bounds = polygonBounds(w.pts);
       this.waterGrid.insert(w, w.bounds);
+    }
+    // a patch lies over roads the map draws no bridge for (a link over the Eeldersingel, the Damsterdiep):
+    // they pass it on a deck like any road over water, or cars sink there (#222, #235)
+    for (const w of rows) {
+      const cx = (w.bounds[0] + w.bounds[2]) / 2, cy = (w.bounds[1] + w.bounds[3]) / 2;
+      for (const r of this.roadsNear(cx, cy, Math.hypot(w.bounds[2] - w.bounds[0], w.bounds[3] - w.bounds[1]) / 2 + 2)) markDryRoad(this, r);
     }
     this._waterVer = (this._waterVer || 0) + 1;
     return rows.length;

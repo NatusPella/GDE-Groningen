@@ -6,6 +6,7 @@ import { FLAGS } from './devflags.js';
 import { RAGE_CHOICES } from './roadragerules.js';
 import { SUBTITLE_CONTRASTS, TEXT_SIZES } from './a11ylogic.js';
 import { cleanHelpSetting } from './assist.js';
+import { deckDefaults, isSteamDeck } from './deck.js';
 
 // Player settings, persisted per browser. Modules read getSettings() and
 // subscribe with onSettingsChange() to apply changes live.
@@ -18,7 +19,7 @@ export const QUALITY_PRESETS = {
   hoog: { pixelRatio: 2, shadows: true, shadowMapSize: 2048 },
 };
 
-const DEFAULTS = {
+const BASE_DEFAULTS = {
   masterVolume: 1,
   musicVolume: 1,
   sfxVolume: 0.75,
@@ -30,6 +31,8 @@ const DEFAULTS = {
   fov: 64,
   cameraDistance: 1,
   showMinimap: true,
+  // shift+klik op de kaart verplaatst je naar die plek (kaartteleport.js)
+  mapShiftTeleport: true,
   showHints: true,
   // which glyphs every hint shows: 'auto' (what you used last), 'keys' or 'pad'
   hintSource: 'auto',
@@ -55,6 +58,8 @@ const DEFAULTS = {
   // frames are slow (gfxprofile.js)
   resolution: 1,
   autoResolution: true,
+  // zuinige modus (framecap.js): 30 beelden per seconde, voor batterij en warmte
+  zuinig: false,
   mouseSensitivity: 1,
   invertY: false,
   autoAim: true,
@@ -63,6 +68,8 @@ const DEFAULTS = {
   ruzie: 'normaal',
   // driving (gearbox.js, drift.js): 'auto' | 'manual' | 'clutch'; the arcade helps are on by default
   shiftMode: 'auto',
+  // game feel (gamefeel.js, #216): the speed FOV and the short hit-stop; also off with reduceMotion
+  speedFeel: true,
   driftAssist: true,
   bikeAssist: true,
   // controls (controls.js): rebound keyboard keys and controller buttons,
@@ -74,6 +81,8 @@ const DEFAULTS = {
   rumble: true,
   subtitleSize: 'normaal',
   subtitleBox: false,
+  // [sirene], [claxon]...: korte tekst bij belangrijke geluiden (soundcaptions.js)
+  soundCaptions: false,
   // ondertitels op wit-op-zwart met een zwaardere letter ('normaal' | 'hoog'), kaart- en meldingstekst ('normaal' | 'groot' | 'extragroot') en geen schermflitsen (a11y.js)
   subtitleContrast: 'normaal',
   textSize: 'normaal',
@@ -88,9 +97,11 @@ const DEFAULTS = {
   // settings files load unchanged
   attractSeen: false,
 };
+// on the Steam Deck the first start has bigger text and controller hints (deck.js); the player's own choices win
+const DEFAULTS = { ...BASE_DEFAULTS, ...deckDefaults(isSteamDeck()) };
 // the Besturing screen has its own "Standaard herstellen" for the bindings
 const KEEP_ON_RESET = new Set(['attractSeen', 'keyBinds', 'padBinds']);
-export const SHIFT_CHOICES = ['auto', 'manual', 'clutch'];
+const SHIFT_CHOICES = ['auto', 'manual', 'clutch'];
 export const SUBTITLE_SIZES = { klein: 0.85, normaal: 1, groot: 1.25, extragroot: 1.5 };
 export const COLOR_BLIND_MODES = ['uit', 'deuteranopie', 'protanopie', 'tritanopie'];
 const PAD_LAYOUT_CHOICES = ['auto', 'xbox', 'ps', 'switch', 'deck'];

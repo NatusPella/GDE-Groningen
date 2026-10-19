@@ -5,6 +5,7 @@
 import { getBusLines } from './vehicle.js';
 import { startAt, nearestLine } from './busroutes.js';
 import { spawnJobVehicle, pick } from './sidejobkit.js';
+import { queueHalte } from './haltefiguren.js';
 import { makeRide, planRide, startRide, updateRide, rideStop, stopPos } from './busride.js';
 
 const COACH = { name: 'bus', len: 11.5, wid: 2.55, maxSpeed: 22, accel: 2.6, brake: 9, turnRate: 1.1, color: '#2e8b6a' };
@@ -59,6 +60,7 @@ export default {
     const plan = planRide(d.line, c.vehicle.x, c.vehicle.y);
     d.ride = makeRide(d.line, { ...plan, max: MAX_STOPS });
     const first = startRide(d.ride);
+    queueHalte(c.world, c.vehicle, { board: first[0].board, alight: 0 });
     const last = d.ride.table[d.ride.table.length - 1];
     c.timeLeft = last.arrive + 120;
     c.msg(`${d.line.name}: ${first[0].board} reizigers stappen in. Naar ${last.name}.`, 3.5);
@@ -72,6 +74,7 @@ export default {
     c.timeLeft = Math.max(5, c.timeLeft);
     for (const e of updateRide(d.ride, v, dt)) {
       if (e.type === 'arrive') {
+        queueHalte(c.world, v, e);
         const txt = e.state === 'op tijd' ? 'op tijd' : e.state === 'vroeg' ? 'te vroeg' : 'te laat';
         c.msg(`${e.stop.name}: ${txt}. ${e.alight} uit, ${e.board} in.`, 3);
       } else if (e.type === 'early') c.msg('Je rijdt te vroeg weg! Wacht op de tijd.', 2.6);

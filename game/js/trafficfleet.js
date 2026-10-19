@@ -48,6 +48,25 @@ const PROFILES = {
   centrum: { car: { taxi: 0.9, delivery: 1.6, hatch: 1.8, van: 1, sedan: 1.2, wagon: 0.6, cashvan: 0.08, suv: 0.3, elektrisch: 1, tokkie: 0.2 }, colors: GREYS, bakfiets: 0.15, oldBike: 0.5 },
 };
 
+export const TRAFFIC_PROFILES = PROFILES;
+
+// Tijd van de dag (0..24): wie rijdt wanneer. Een vermenigvuldiger op het wijkgewicht van een soort.
+const between = (h, a, b) => (a <= b ? h >= a && h < b : h >= a || h < b);
+export function hourFactor(kind, hour) {
+  if (!Number.isFinite(hour)) return 1;
+  const h = ((hour % 24) + 24) % 24;
+  switch (kind) {
+    case 'delivery': return between(h, 17, 21) ? 2.2 : between(h, 9, 17) ? 1.2 : between(h, 23, 6) ? 0.2 : 1;
+    case 'taxi': return between(h, 22, 5) ? 3 : between(h, 6, 9) ? 1.3 : between(h, 10, 16) ? 0.8 : 1;
+    case 'van': case 'truck': return between(h, 6, 17) ? 1.6 : between(h, 22, 5) ? 0.25 : 0.8;
+    case 'tokkie': return between(h, 20, 3) ? 2.5 : between(h, 5, 12) ? 0.4 : 1;
+    case 'sport': return between(h, 18, 24) ? 1.5 : 1;
+    case 'cashvan': return between(h, 8, 16) ? 1 : 0.1;
+    case 'hatch': case 'wagon': return between(h, 7, 9) || between(h, 16, 18) ? 1.3 : 1;
+    default: return 1;
+  }
+}
+
 const WIJK_PROFILE = {
   Selwerd: 'student', Selwerderwijk: 'student', Paddepoel: 'student', 'Paddepoel-Noord': 'student', 'Paddepoel-Zuid': 'student',
   Studentenbuurt: 'student', Bernoullipleinbuurt: 'student', Oppenheimbuurt: 'student', Professorenbuurt: 'student', Reitdiepswaard: 'student',
@@ -91,9 +110,11 @@ function weighted(rng, table) {
 }
 
 // { kind, model } for a traffic car spawned around (x, y).
-export function pickTrafficCar(map, x, y, rng = Math.random) {
+export function pickTrafficCar(map, x, y, rng = Math.random, ctx = {}) {
   const prof = wijkProfileAt(map, x, y).def;
-  const kind = weighted(rng, prof.car);
+  const table = {};
+  for (const k in prof.car) table[k] = prof.car[k] * hourFactor(k, ctx.hour);
+  const kind = weighted(rng, table);
   return { kind, model: lookModel(carModel(kind, rng, prof.colors), MODS.look, rng) };
 }
 

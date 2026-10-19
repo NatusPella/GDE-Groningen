@@ -5,7 +5,7 @@
 import { showCard, cardsBusy } from './hudcards.js';
 import { mayStart } from './narrative.js';
 import { isCinematicActive } from './cinematics.js';
-import { isPauseMenuOpen } from './pausemenu.js';
+import { isPauseMenuOpen } from './pausestate.js';
 import { getSettings } from './settings.js';
 import { physicalKey, keyName, tokenKey } from './controls.js';
 import { glyphHtml } from './prompts.js';
@@ -28,7 +28,7 @@ function load() {
   try { return parseSeen(localStorage.getItem(KEYS.hintsGezien)); } catch (e) { return new Set(); }
 }
 
-export function resetContextHints() {
+function resetContextHints() {
   seen = new Set();
   try { localStorage.removeItem(KEYS.hintsGezien); } catch (e) { /* ignore */ }
 }

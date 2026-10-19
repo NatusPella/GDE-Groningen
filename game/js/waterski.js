@@ -6,7 +6,7 @@ import { showBanner } from './cinematics.js';
 import { unlockAchievement, recordChallengeResult, getChallengeRecord, recordStat, setStatMax, MEDALS } from './achievements.js';
 import { showCard } from './hudcards.js';
 import { spawnFxPuff } from './fx3d.js';
-import { pushAudioEvent } from './pedestrians.js';
+import { pushAudioEvent } from './pedgeom.js';
 import { WATER_Y } from './util.js';
 import { standActivity, recLine } from './standactivity.js';
 import { createBoard, key, bubble, clearBubbles, pick, stopPressed, easeCamera, geo, frame } from './minigamekit.js';

@@ -50,21 +50,23 @@ export function askTravel(beat) {
       const id = pickFromKey(beat, e.key);
       if (id) { e.preventDefault(); e.stopPropagation(); finish(id); }
       else if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); finish(pick); }
+      else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); finish(null); } // sluit: de standaardkeuze (#92)
     };
     document.addEventListener('keydown', onKey, true);
     // gamepad: d-pad up/down picks, A confirms (a button already down on opening does nothing)
     let raf = 0;
-    const held = { up: true, down: true, a: true };
+    const held = { up: true, down: true, a: true, b: true };
     const poll = () => {
       raf = requestAnimationFrame(poll);
       let pad = null;
       try { pad = (navigator.getGamepads ? [...navigator.getGamepads()] : []).find((g) => g && g.connected); } catch (e) { /* none */ }
       if (!pad) return;
-      const now = { up: pad.buttons[12]?.pressed || (pad.axes[1] || 0) < -0.6, down: pad.buttons[13]?.pressed || (pad.axes[1] || 0) > 0.6, a: pad.buttons[0]?.pressed };
+      const now = { up: pad.buttons[12]?.pressed || (pad.axes[1] || 0) < -0.6, down: pad.buttons[13]?.pressed || (pad.axes[1] || 0) > 0.6, a: pad.buttons[0]?.pressed, b: pad.buttons[1]?.pressed };
       if (now.up && !held.up) { pick = cyclePick(beat, pick, -1); p.set(panelState(beat, pick, loadSeen())); }
       if (now.down && !held.down) { pick = cyclePick(beat, pick, 1); p.set(panelState(beat, pick, loadSeen())); }
       if (now.a && !held.a) { finish(pick); return; }
-      held.up = !!now.up; held.down = !!now.down; held.a = !!now.a;
+      if (now.b && !held.b) { finish(null); return; }
+      held.up = !!now.up; held.down = !!now.down; held.a = !!now.a; held.b = !!now.b;
     };
     raf = requestAnimationFrame(poll);
     p.root.style.pointerEvents = 'auto';

@@ -75,5 +75,40 @@ for (const [mode, p] of Object.entries(PALETTES)) {
   for (const k of ['ok', 'danger', 'mission', 'missionActive']) ok(contrast(p[k], HUD_CARD_BG) >= GRAPHIC_CONTRAST, `${mode}: ${k} op de HUD-kaart`, contrast(p[k], HUD_CARD_BG));
 }
 
+
+// resultaatkaart (#250): lange waarden (Gevolg, Ontdekt) botsen niet tegen het label. Het label houdt zijn breedte,
+// de waarde mag omslaan; de kaart past in elk HUD-vlak. Invoer: de langste echte waarden uit de missiedata.
+{
+  const banner = css('hud_panel.css');
+  const rule = (sel) => {
+    const at = banner.indexOf(sel + ' {');
+    return at < 0 ? '' : banner.slice(at, banner.indexOf('}', at));
+  };
+  const row = rule('#cine .cb-stats div'), lab = rule('#cine .cb-stats span'), val = rule('#cine .cb-stats b'), col = rule('#cine .cb-col');
+  ok(/gap:\s*\d+px/.test(row), 'resultaatrij heeft een tussenruimte tussen label en waarde');
+  ok(/flex:\s*none/.test(lab) && /max-width:\s*\d+%/.test(lab), 'label houdt zijn breedte en kent een maximum');
+  ok(/min-width:\s*0/.test(val) && /overflow-wrap:\s*anywhere/.test(val), 'waarde mag krimpen en omslaan');
+  ok(/text-align:\s*right/.test(val), 'waarde rechts uitgelijnd');
+  const left = Number((col.match(/left:\s*(\d+)px/) || [])[1]), width = Number((col.match(/width:\s*(\d+)px/) || [])[1]);
+  const dir = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'game', 'js');
+  const values = [];
+  for (const f of fs.readdirSync(dir).filter((x) => /^missions.*\.js$/.test(x))) {
+    for (const m of css(f).matchAll(/costRow(?::|\s*=)\s*\['[^']*',\s*'((?:[^'\\]|\\.)*)'/g)) values.push(m[1]);
+  }
+  ok(values.length >= 8, 'echte waarden uit de missiedata gevonden', values.length);
+  const longest = values.sort((a, b) => b.length - a.length).slice(0, 5);
+  // schatting: Bebas Neue 26px met 0,04em letterruimte is ongeveer 0,43em per teken, label 20px ruim 0,5em
+  const labelW = Math.min(width * 0.4, 'Verwondingen'.length * 20 * 0.5), gap = 18, valueW = width - labelW - gap;
+  ok(valueW >= 200, 'waardekolom is minstens 200px breed', valueW);
+  for (const v of longest) {
+    const lines = Math.ceil((v.length * 26 * 0.43) / valueW);
+    ok(lines <= 4, `waarde van ${v.length} tekens past in hooguit 4 regels`, { v, lines });
+  }
+  for (const [w, h] of SIZES) {
+    const vp = hudViewport(w, h), e = hudEdge(w, h, vp.scale);
+    ok(left + width + e <= vp.w, `${w}x${h}: resultaatkaart (${left}+${width}) past in het HUD-vlak ${Math.round(vp.w)}`);
+  }
+}
+
 if (fails) { console.log(`${fails} mislukt`); process.exit(1); }
 console.log(`hud_layout_test: ok (${SIZES.length} formaten, ${Object.keys(PALETTES).length} paletten)`);

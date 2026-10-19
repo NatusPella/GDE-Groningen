@@ -32,12 +32,18 @@ import { HENGELEN } from './hengelen.js';
 import { WANDELING } from './wandeling.js';
 import { SNACKKETEN } from './snackketen.js';
 import { EVENEMENTEN } from './evenementenact.js';
+import { REGATTA_GAME } from './regatta.js';
 import { isShopOpen } from './shopui.js';
-import { isCinematicActive } from './cinematics.js';
-import { registerBusyProbe } from './busy.js';
+import { isCinematicActive, showBanner } from './cinematics.js';
+import { getScene } from './scene3d.js';
+import { showCard } from './hudcards.js';
+import { gameUi } from './minigamekit.js';
+import { registerBusyProbe, registerQuitHook } from './busy.js';
 export { activityBlock, iconDisc } from './activitykit.js';
 
-const LIST = [CARBID, KERMIS, HOOGVLIEGER, GEHEIMEN, DRIFT_ZONE, DISCGOLF, PITCHPUTT, SKATEPARK, KARTBAAN, ZWEMBAD, KLIMTOREN, WATERSKI, CARILLON_GAME, PANNENKOEK, HENGELEN, WANDELING, SNACKKETEN, EVENEMENTEN];
+Object.assign(gameUi, { getScene, showBanner, showCard });
+
+const LIST = [CARBID, KERMIS, HOOGVLIEGER, GEHEIMEN, DRIFT_ZONE, DISCGOLF, PITCHPUTT, SKATEPARK, KARTBAAN, ZWEMBAD, KLIMTOREN, WATERSKI, CARILLON_GAME, PANNENKOEK, HENGELEN, WANDELING, SNACKKETEN, EVENEMENTEN, REGATTA_GAME];
 
 export function initActivities(w) {
   for (const a of LIST) {
@@ -64,6 +70,7 @@ export function quitActivity(w) {
   for (const a of LIST) if (a.active() && a.quit) a.quit(w);
   w.activityGame = null;
 }
+registerQuitHook(quitActivity);
 
 // main.js: instead of player.update while a minigame runs
 export function updateActivityGame(dt, w) {

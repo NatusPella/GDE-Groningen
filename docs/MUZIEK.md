@@ -228,24 +228,9 @@ dagpool 41 nummers (zo'n 1 uur 50) en de nachtpool 27 (zo'n 1 uur 10). De
 no-repeat-regel houdt dan de laatste 24 nummers overdag en de laatste 16 's
 nachts buiten de keuze.
 
-## Zelfgemaakte nummers (synthmusic.js)
+## Zelfgemaakte nummers: verwijderd
 
-Naast de mp3's draait de radio zeven nummers die het spel zelf maakt, zonder
-samples (`game/js/synthmusic.js`, test: `scripts/synthmusic_test.mjs`). Elk
-nummer is patroondata met een seed: tempo, toonsoort, drum-, bas-, akkoord-
-en leadpatronen en secties. Audio.js rendert ze één voor één op de
-achtergrond (4 s tussenpozen) naar een WAV en neemt ze pas in de pool op als
-ze klaar zijn.
-
-| Nummer | Act | Genre | BPM | Toonsoort | Pool |
-|---|---|---|---|---|---|
-| Schaduw op de Ring | Lil Gracht | donkere drill | 140 | fis-klein | dag + nacht, 's nachts |
-| Grijs in de Grachten | De Grauwe Gevels | post-punk | 148 | e-klein | dag, 's nachts |
-| Razernij op de Zuidersingel | DJ Slagroom | hardstyle | 150 | f-klein | dag, 's nachts |
-| Nachtrit naar Hoogkerk | Mista Mist | phonk | 130 | cis-frygisch | dag + nacht, 's nachts |
-| Tranen om de Wierde | Marchien van de Wierde | levenslied (3/4) | 84 | d-klein | nacht + dag, 's nachts |
-| Fluweel in Helpman | Velvet Veenkoloniën | smooth R&B | 88 | Es-groot (7-akkoorden) | nacht + dag, 's nachts |
-| Vrij met een Ijsje | Zonnige Sanne | zomerhit | 120 | G-groot | dag, overdag |
-
-Nog niet beluisterd: het klopt op papier (toonsoort, lengte, geen stilte),
-maar de mix en de smaak moet iemand horen. Zie issue #66.
+De zeven nummers die het spel zelf synthetiseerde (`synthmusic.js`) zijn weg:
+de eigenaar besloot op 18 oktober 2026 (#66) dat muziek niet door Claude
+wordt gemaakt. Nieuwe muziek komt via Gemini op verzoek van de eigenaar; zie
+`docs/MUZIEK-OPRUIMING.md` en het wensenlijstje voor Gemini.

@@ -42,7 +42,7 @@ export function runMigrations(input, migrations, to, fallback = null) {
 // --- the savegame ------------------------------------------------------------------------
 
 // The step from version n to n + 1 is SAVE_MIGRATIONS[n].
-export const SAVE_MIGRATIONS = {
+const SAVE_MIGRATIONS = {
   // 0.25: the counters of 0.24's PEGI change (kills became knockouts), and the
   // story steps 0.22 retired dropped from the story save instead of at load.
   1(d) {
@@ -145,7 +145,7 @@ const OUD_STORY_KEYS = ['story', 'missions', 'kalender', 'doel', 'ctx'];
 
 // Turns a save of the old arc into one of the new arc, in place. `oudGemigreerd` makes the game
 // say so once at load (savegame.js) and is not written again.
-export function oudToNieuw(d) {
+function oudToNieuw(d) {
   for (const k of OUD_STORY_KEYS) delete d[k];
   d.arc = 'nieuw';
   d.oudGemigreerd = true;
@@ -154,6 +154,12 @@ export function oudToNieuw(d) {
 
 // The arc a (migrated) save belongs to: always the new one.
 export const savedArc = () => 'nieuw';
+
+// A saved position the world can hold (#212): finite and inside the province frame. A
+// position outside it (a hand-edited save, an unmigrated legacy one) is not placed, the
+// player stays at the start instead of being put somewhere in the open Ommeland.
+export const POS_LIMIT = 150000;
+export const plausiblePos = (p) => isObj(p) && Number.isFinite(p.x) && Number.isFinite(p.y) && Math.abs(p.x) < POS_LIMIT && Math.abs(p.y) < POS_LIMIT;
 
 // A save with no `v` never existed (every save since 0.2 had v: 1).
 export function migrateSave(d) {
@@ -171,7 +177,7 @@ export function savedStoryStep(d) {
 
 // --- the settings ------------------------------------------------------------------------
 
-export const SETTINGS_MIGRATIONS = {
+const SETTINGS_MIGRATIONS = {
   // 2: the long view distance became the default; older files stored the old
   // default without the player choosing it
   1(s) { delete s.drawDistance; return s; },

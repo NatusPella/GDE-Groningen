@@ -18,7 +18,7 @@ import { stopVillageMini } from './dorpsuitjes.js';
 import { quitActivity } from './activities.js';
 import { getGoalSave, applyGoalSave } from './goal.js';
 import { getCalendarSave, applyCalendarSave } from './calendarday.js';
-import { migrateSave, SAVE_VERSION, savedArc } from './savemigrate.js';
+import { migrateSave, SAVE_VERSION, savedArc, plausiblePos } from './savemigrate.js';
 import { getCheatSave, applyCheatSave } from './cheats.js';
 import { closeShopMenu } from './shopui.js';
 import { quitTrainDrive } from './traindrive.js';
@@ -26,7 +26,9 @@ import { statsFromSave } from './world.js';
 import { getRadioSave, applyRadioSave } from './radio.js';
 import { KEYS, slotKey } from './storagekeys.js';
 import { applyGuestEarnings } from './coopsave.js';
-import { readSlot, writeSlotRaw, activeSlot, setActive, createSlot, deleteSlot, nameOf, pickActive } from './saveslots.js';
+import { getRenderer, afterNextFrame } from './scene3d.js';
+import { readSlot, writeSlotRaw, writeThumb, activeSlot, setActive, createSlot, deleteSlot, nameOf, pickActive } from './saveslots.js';
+import { registerSaveGame } from './savehook.js';
 import { STEPS, PARTS, stepDone, stepAvailable, nextStoryStep, ARC_ID } from './storyarc.js';
 
 // Several saves (saveslots.js): slot 1 is the old single save under its old key, the version inside
@@ -72,7 +74,7 @@ const JELLE_CHALLENGES = ['bruggen', 'fierljep', 'skutsje'];
 // amount (moneyBackup) when there is one, else an estimate from what the
 // progress paid out minus what was spent in shops and garages. Owned
 // vehicles are not subtracted; at least MIN_RESTORE.
-export function estimateLostMoney(d) {
+function estimateLostMoney(d) {
   if (Number.isFinite(d.moneyBackup) && d.moneyBackup >= 0) return Math.floor(d.moneyBackup);
   let earned = START_MONEY;
   const defs = getMissionDefs() || [];
@@ -92,7 +94,7 @@ export function estimateLostMoney(d) {
 }
 
 // shown once when a save of the first version of the story is opened (#187)
-export const OUD_GEMIGREERD_TEKST = 'Het oude verhaal is vervangen door het nieuwe. Je geld, spullen, voertuigen, prestaties en instellingen zijn bewaard; het verhaal begint opnieuw bij het begin.';
+const OUD_GEMIGREERD_TEKST = 'Het oude verhaal is vervangen door het nieuwe. Je geld, spullen, voertuigen, prestaties en instellingen zijn bewaard; het verhaal begint opnieuw bij het begin.';
 
 // The save of a slot (the active one by default), migrated; null when it is empty, broken,
 // from a newer game or (readSlot). A broken slot with a recovery
@@ -131,21 +133,26 @@ export function hasSave() {
 }
 
 // Where the story of a save stands: the part, the step to play and how far the part is.
-function storySummary(d) {
+export function storySummary(d) {
   try {
     const done = new Set(d.story && Array.isArray(d.story.done) ? d.story.done : []);
     const passed = new Set(d.missions && Array.isArray(d.missions.completed) ? d.missions.completed : []);
     const isDone = (id) => done.has(id), isPassed = (i) => passed.has(i);
     const nx = nextStoryStep(isDone, isPassed);
-    const part = nx.next ? nx.next.part : nx.end;
+    // nextStoryStep gives the step itself, or { end, next } (next: null at the end)
+    const step = nx.part ? nx : nx.next || null;
+    const part = step ? step.part : nx.end;
     if (!PARTS[part]) return null;
     const inPart = STEPS.map((s, k) => [s, k]).filter(([s]) => s.part === part && stepAvailable(s));
     const n = inPart.filter(([, k]) => stepDone(k, isDone, isPassed)).length;
-    return { part: PARTS[part].title, date: PARTS[part].date || '', next: nx.next ? nx.next.title : '', done: n, total: inPart.length, ended: !nx.next };
+    return { part: PARTS[part].title, date: PARTS[part].date || '', next: step ? step.title : '', done: n, total: inPart.length, ended: !step };
   } catch (e) {
     return null;
   }
 }
+
+// The play time of this session's game in seconds (the dashboard of the pause menu)
+export const getPlaySeconds = () => Math.round(playSeconds);
 
 export function getSaveSummary() {
   const d = readSave();
@@ -154,7 +161,7 @@ export function getSaveSummary() {
   return { slot: activeSlot(), name: nameOf(null, activeSlot()), playSeconds: Math.max(0, num(d.speeltijd, 0)), arc: savedArc(d), money: num(d.money, 0), missionsDone: done, savedAt: num(d.savedAt, 0), character: d.character === 'anita' ? 'Tessa' : 'Tammo', story: storySummary(d), goal: d.doel && typeof d.doel.name === 'string' ? d.doel.name : '' };
 }
 
-export function clearSave() {
+function clearSave() {
   keepNewerSave();
   try { localStorage.removeItem(slotKey(saveTarget())); } catch (e) { /* ignore */ }
 }
@@ -178,10 +185,6 @@ export function loadSlot(w, n) {
 
 export function ensureActiveSlot() {
   return pickActive(null);
-}
-
-export function removeSlot(n) {
-  return deleteSlot(null, n);
 }
 
 function serialize(w) {
@@ -241,8 +244,41 @@ export function saveGame(w = world, { toast = true } = {}) {
   }
   dirtyIn = -1;
   lastSig = stateSignature(w);
+  keepThumb(saveTarget(), toast);
   if (toast) showToast();
   return true;
+}
+
+// The small screenshot for the savegame card, taken from the last drawn frame. A manual save always
+// takes one, the autosave at most once in 45 s; a failure only means a card without picture.
+let thumbAt = 0;
+let thumbListener = null;
+// the savegame screen wants to know when a picture arrives (fn(slot) or null)
+export function onThumbKept(fn) { thumbListener = fn; }
+function keepThumb(n, force) {
+  const now = Date.now();
+  if (!force && now - thumbAt < 45000) return;
+  thumbAt = now;
+  // the canvas holds a frame only right after it was drawn: take the picture then
+  afterNextFrame(() => {
+    const r = getRenderer();
+    const src = r && r.domElement;
+    if (!src || !src.width || !src.height) return;
+    const c = document.createElement('canvas');
+    c.width = 224; c.height = 126;
+    const g = c.getContext('2d');
+    // cover-crop to 16:9
+    const sw = src.width, sh = src.height, want = 16 / 9;
+    let cw = sw, ch = sw / want;
+    if (ch > sh) { ch = sh; cw = sh * want; }
+    g.drawImage(src, (sw - cw) / 2, (sh - ch) / 2, cw, ch, 0, 0, c.width, c.height);
+    // a blank buffer gives a flat picture: not worth keeping
+    const px = g.getImageData(0, 0, c.width, c.height).data;
+    let sum = 0, sum2 = 0, cnt = 0;
+    for (let i = 0; i < px.length; i += 160) { const v = px[i] + px[i + 1] + px[i + 2]; sum += v; sum2 += v * v; cnt++; }
+    if (!cnt || sum2 / cnt - (sum / cnt) ** 2 < 40) return;
+    if (writeThumb(null, n, c.toDataURL('image/jpeg', 0.6)) && thumbListener) thumbListener(n);
+  });
 }
 
 // Een gast: de verdiende beloningen erbij in de actieve slot, de rest van die save blijft zoals hij was.
@@ -358,7 +394,7 @@ export function applySave(w, d) {
       w.player.character = d.character;
       if (w.companion) w.companion.character = d.character === 'tammo' ? 'anita' : 'tammo';
     }
-    if (d.pos && Number.isFinite(d.pos.x) && Number.isFinite(d.pos.y)) placeAt(w, d.pos.x, d.pos.y);
+    if (plausiblePos(d.pos)) placeAt(w, d.pos.x, d.pos.y);
     w.wanted = 0;
     w.wantedDecayTimer = 0;
     w.pendingRespawn = null;
@@ -402,7 +438,7 @@ export function applySave(w, d) {
 export function loadLatestSave(w = world) {
   const d = readSave();
   if (!d || !applySave(w, d)) return false;
-  w.addMessage('Laatste spelstand geladen', 3);
+  w.addMessage('Laatste savegame geladen', 3);
   return true;
 }
 
@@ -464,3 +500,5 @@ export function updateSaveGame(dt, w) {
     }
   }
 }
+
+registerSaveGame(saveGame);

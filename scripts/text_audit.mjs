@@ -134,6 +134,25 @@ export function collectTexts() {
     };
     visit(JSON.parse(sl.join('\n')));
   }
+  // desktop shell: menu and dialog texts (not the dev harness)
+  for (const name of ['main.js', 'preload.js', 'coopcore.cjs']) {
+    const f = path.join(REPO, 'desktop', name);
+    if (!fs.existsSync(f)) continue;
+    const code = fs.readFileSync(f, 'utf8');
+    const lines = code.split(/\r?\n/);
+    for (const s of jsStrings(code)) if (!DEV_LINE.test(lines[s.line - 1] || '')) push(rel(f), s.line, s.text, 'js');
+  }
+  // spoken (Gronings) versions: the same brand/people/winter rules apply to what is said
+  const gs = path.join(REPO, 'scripts', 'gronings_spoken.json');
+  if (fs.existsSync(gs)) {
+    const spoken = JSON.parse(fs.readFileSync(gs, 'utf8'));
+    // what the shown line already triggers is judged there (and allowlisted there); only new findings count here
+    for (const [shown, v] of Object.entries(spoken)) {
+      if (typeof v !== 'string' || v === shown) continue;
+      const known = new Set(checkText(shown).map((f) => f.rule));
+      if (checkText(v).some((f) => !known.has(f.rule))) push('scripts/gronings_spoken.json', 0, v, 'gesproken');
+    }
+  }
   // player-visible changelog lines
   const cl = path.join(REPO, 'CHANGELOG.md');
   if (fs.existsSync(cl)) {
@@ -185,13 +204,14 @@ const WINTER = [
 
 // Engelse leenwoorden waar een goed Nederlands woord voor is (docs/WOORDENLIJST.md).
 // `w` is een woord of regex-bron; `nl` wat er voor in de plaats komt. Hatchback, sedan, app, camera,
-// HUD, minimap en cheats zijn ingeburgerd en staan hier bewust niet in.
+// HUD, minimap, cheats en savegame (de eigenaar koos dat woord voor de opgeslagen spelstand) zijn ingeburgerd en staan hier bewust niet in.
 const ANGLICISMEN = [
-  ['save', 'spelstand (zelfstandig), opslaan (werkwoord)'], ['saves', 'spelstanden'], ['savegame', 'spelstand'], ['savegames', 'spelstanden'], ['save slot', 'opslagplek'], ['save-slot', 'opslagplek'],
-  ['host', 'gastheer'], ['checkpoint', 'controlepunt (race) of hervatpunt (opnieuw beginnen)'], ['checkpoints', 'controlepunten'],
+  ['save', 'savegame (zelfstandig), opslaan (werkwoord)'], ['saves', 'savegames'], ['save slot', 'opslagplek'], ['save-slot', 'opslagplek'],
+  ['host', 'gastheer'], ['co-op', 'samen spelen'], ['coöp', 'samen spelen'], ['multiplayer', 'samen spelen'], ['checkpoint', 'controlepunt (race) of hervatpunt (opnieuw beginnen)'], ['checkpoints', 'controlepunten'],
   ['ghost', 'spook of spookrijder'], ['ghosts', 'spookrijders'], ['chain', 'keten'], ['run', 'ronde, rit of poging'], ['runs', 'rondes'],
   ['trick', 'kunstje of toer'], ['tricks', 'kunstjes of toeren'], ['boost', 'versnelling of stoot'], ['combo', 'reeks'], ['combo\'s', 'reeksen'],
   ['livestream', 'uitzending'], ['deadline', 'uiterste tijd'], ['shopaholic', 'winkelverslaafde'], ['total loss', 'afgeschreven'], ['lobby', 'wachtkamer of kamer'], ['loadout', 'uitrusting'],
+  ['hole', 'baan'], ['holes', 'banen'],
 ];
 // markup en selectors zijn geen tekst: attributen als data-action="save" en [data-boost] of .pm-rail-acts niet meekijken
 const stripMarkup = (t) => t.replace(/\b(?:data-[\w-]+|class|id|for|name|type|role|href|src)="[^"]*"/g, ' ').replace(/\bdata-[\w-]+/g, ' ').replace(/\[[^\]]*\]/g, ' ').replace(/(?<![\p{L}\p{N}])[.#][a-z][\w-]*/gu, ' ');

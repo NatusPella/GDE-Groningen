@@ -5,25 +5,25 @@
 // tileBudget houdt de onderdelen per cel binnen een budget, en auditLand telt per type en
 // per streek wat er herkenbaar wordt. De wereldbouwer is scripts/world/streekplekken.mjs
 // (-> game/streekplekken.json), de tekenlaag game/js/streekplekken3d.js (InstancedMesh per vorm).
-import { lineInfo, decimate, langsLijn, partsToWorld, CEL, celVan } from './waterplekken.js';
+import { lineInfo, decimate, langsLijn, partsToWorld as partsNaarWereld, CEL, celVan } from './waterplekken.js';
 import { streekAt, STREKEN } from './regioleven.js';
 
-export { lineInfo, decimate, partsToWorld, CEL, celVan };
+export { lineInfo, decimate, CEL, celVan };
 
 // type -> { prio (lager = eerst behouden), cap (onderdelen per plek), min (kleinste kit dat telt) }
 export const LAND_TYPES = {
   perron:      { prio: 0, cap: 40, label: 'perron' },
   schoorsteen: { prio: 1, cap: 12, label: 'schoorsteen' },
-  mast:        { prio: 1, cap: 16, label: 'zendmast' },
-  monument:    { prio: 2, cap: 10, label: 'monument of kruis' },
-  park:        { prio: 3, cap: 60, label: 'park' },
+  mast:        { prio: 1, cap: 22, label: 'zendmast' },
+  monument:    { prio: 2, cap: 20, label: 'monument of kruis' },
+  park:        { prio: 3, cap: 80, label: 'park' },
 };
 
 // Per cel: hoeveel onderdelen (= instanties) hooguit, en per type een bovengrens.
 export const LAND_BUDGET = { onderdelen: 700, perType: { perron: 6, schoorsteen: 4, mast: 3, monument: 8, park: 4 } };
 
 const KLEUR = {
-  beton: 0xb9b4a8, donker: 0x4a5560, hout: 0x8c6b45, steen: 0x8a8580, baksteen: 0xa5523a, rood: 0xb8362c, wit: 0xeeece4,
+  beton: 0xb9b4a8, donker: 0x4a5560, hout: 0x8c6b45, steen: 0xa8a39c, baksteen: 0xa5523a, rood: 0xb8362c, wit: 0xeeece4,
   geel: 0xd8b13a, staal: 0x6a7480, zwart: 0x24272b, blad: 0x4f7a3c, blad2: 0x6b8f43, stam: 0x6a4a2e, gras: 0x7da356, blauw: 0x2f5f8a,
 };
 
@@ -89,7 +89,7 @@ export function kitFor(plek) {
     case 'schoorsteen': {
       const h = Math.min(120, Math.max(14, plek.h || 40)), r0 = Math.max(0.9, h * 0.04);
       const n = Math.max(3, Math.min(8, Math.round(h / 8)));
-      const kl = plek.sub === 'baksteen' ? KLEUR.baksteen : KLEUR.steen;
+      const kl = plek.sub === 'baksteen' ? KLEUR.baksteen : KLEUR.beton;
       o.push(cyl(0, 0, 0, r0 * 1.5, 1.2, KLEUR.steen));
       for (let i = 0; i < n; i++) o.push(cyl(0, 1.2 + i * ((h - 1.2) / n), 0, r0 * (1.2 - 0.4 * i / n), (h - 1.2) / n, kl));
       o.push(cyl(0, h, 0, r0 * 0.9, 0.5, KLEUR.zwart));
@@ -102,39 +102,49 @@ export function kitFor(plek) {
       for (let i = 0; i < n; i++) o.push(cyl(0, i * (h / n), 0, r0 * (1.5 - i / n), h / n, i % 2 ? KLEUR.rood : KLEUR.wit));
       o.push(cyl(0, h, 0, r0 * 0.3, 4, KLEUR.staal));
       for (let k = 0; k < 3; k++) o.push(box(Math.cos(k * 2.1) * r0 * 2.6, h * (0.72 + k * 0.08), Math.sin(k * 2.1) * r0 * 2.6, 0.5, 2.2, 0.5, KLEUR.staal, k * 2.1));
-      o.push(box(0, 0, 0, 3.4, 2.2, 3.4, KLEUR.donker));   // techniekkast aan de voet
+      o.push(box(0, 0, 0, 3.4, 2.2, 3.4, KLEUR.donker), box(0, h * 0.62, 0, r0 * 5, 0.25, r0 * 5, KLEUR.staal), cyl(r0 * 2.2, h * 0.7, 0, r0 * 0.9, 0.3, KLEUR.wit));   // techniekkast aan de voet, platform en schotel
       break;
     }
     case 'monument': {
-      const h = Math.min(30, Math.max(2.5, plek.h || (plek.sub === 'kruis' ? 3 : plek.sub === 'obelisk' ? 10 : 4)));
+      const h = Math.min(30, Math.max(4, plek.h || (plek.sub === 'kruis' ? 4.5 : plek.sub === 'obelisk' ? 12 : 5.5)));
+      // een plein van klinkers met vier paaltjes, zodat het monument ook van ver als plek leest
+      o.push(box(0, 0, 0, 8, 0.12, 8, 0x9a8f80));
+      for (const sx of [-1, 1]) for (const sz of [-1, 1]) o.push(cyl(sx * 3.6, 0.12, sz * 3.6, 0.14, 0.9, KLEUR.zwart));
       if (plek.sub === 'kruis') {
-        o.push(box(0, 0, 0, 1.4, 0.5, 1.4, KLEUR.steen), box(0, 0.5, 0, 0.3, h, 0.3, KLEUR.steen), box(0, 0.5 + h * 0.62, 0, 0.3, 0.3, 1.1, KLEUR.steen, Math.PI / 2));
+        o.push(box(0, 0.12, 0, 1.8, 0.7, 1.8, KLEUR.steen), box(0, 0.82, 0, 0.45, h, 0.45, KLEUR.steen), box(0, 0.82 + h * 0.65, 0, 0.45, 0.45, 1.6, KLEUR.steen, Math.PI / 2));
       } else if (plek.sub === 'obelisk') {
-        o.push(box(0, 0, 0, 2.6, 0.8, 2.6, KLEUR.steen), box(0, 0.8, 0, 1.6, h * 0.8, 1.6, KLEUR.beton), cone(0, 0.8 + h * 0.8, 0, 1.1, h * 0.2 + 1, KLEUR.beton));
+        o.push(box(0, 0.12, 0, 3.2, 1.0, 3.2, KLEUR.steen), box(0, 1.12, 0, 2.0, h * 0.8, 2.0, KLEUR.beton), cone(0, 1.12 + h * 0.8, 0, 1.4, h * 0.2 + 1.2, KLEUR.beton));
       } else if (plek.sub === 'beeld') {
-        o.push(box(0, 0, 0, 2.2, 1.6, 2.2, KLEUR.steen), cyl(0, 1.6, 0, 0.5, 1.5, KLEUR.donker), cyl(0, 3.1, 0, 0.3, 0.5, KLEUR.donker));
+        o.push(box(0, 0.12, 0, 2.6, 2.0, 2.6, KLEUR.steen), cyl(0, 2.12, 0, 0.7, 1.9, KLEUR.donker), cyl(0, 4.0, 0, 0.42, 0.7, KLEUR.donker), cone(0, 4.7, 0, 0.5, 0.6, KLEUR.donker));
       } else {
-        o.push(box(0, 0, 0, 2.2, 0.6, 2.2, KLEUR.steen), box(0, 0.6, 0, 1.2, h - 0.6, 1.2, KLEUR.beton), box(0, h, 0, 1.5, 0.3, 1.5, KLEUR.steen));
+        o.push(box(0, 0.12, 0, 2.8, 0.8, 2.8, KLEUR.steen), box(0, 0.92, 0, 1.5, h - 0.9, 1.5, KLEUR.beton), box(0, h, 0, 2.0, 0.4, 2.0, KLEUR.steen));
       }
       break;
     }
     case 'park': {
-      // een bosje bomen, een bank en een pad in het kistje van het park; hooguit cap onderdelen
+      // heggen langs de rand, een zandpad met een kruising, een vijver, banken, lantaarns en bomen
       const len = Math.min(90, Math.max(12, L)) * 0.9, br = Math.min(70, Math.max(8, W)) * 0.9;
-      o.push(box(0, 0, 0, len, 0.04, Math.min(2.4, br * 0.3), 0xc9b98f));   // zandpad over de lengte
-      const bomen = Math.min(Math.floor((cap - 6) / 2), Math.max(3, Math.round(len * br / 260)));
+      o.push(box(0, 0, 0, len, 0.04, Math.min(2.4, br * 0.3), 0xc9b98f), box(0, 0, 0, Math.min(2.4, len * 0.3), 0.04, br * 0.9, 0xc9b98f));
+      if (len > 24 && br > 16) {
+        for (const sz of [-1, 1]) o.push(box(0, 0, sz * br / 2, len * 0.9, 1.0, 0.9, KLEUR.blad));
+        o.push(box(len * 0.22, 0, br * 0.18, Math.min(14, len * 0.25), 0.07, Math.min(9, br * 0.25), 0x5d8fb0));
+      }
+      const bomen = Math.min(Math.floor((cap - 14) / 2), Math.max(4, Math.round(len * br / 200)));
       for (let i = 0; i < bomen; i++) {
         const x = (rnd() - 0.5) * len, z = (rnd() - 0.5) * br;
-        if (Math.abs(z) < 2) continue;
-        o.push(...boom(x, z, 5 + rnd() * 5, rnd() < 0.5 ? KLEUR.blad : KLEUR.blad2));
+        if (Math.abs(z) < 2.4 || Math.abs(x) < 2.4) continue;
+        o.push(...boom(x, z, 6 + rnd() * 6, rnd() < 0.5 ? KLEUR.blad : KLEUR.blad2));
       }
-      o.push(box(-len * 0.2, 0.3, 1.8, 1.8, 0.45, 0.5, KLEUR.hout), box(len * 0.2, 0.3, -1.8, 1.8, 0.45, 0.5, KLEUR.hout));
+      for (const [sx, sz] of [[-0.2, 1], [0.2, -1], [-0.35, -1]]) o.push(box(len * sx, 0.3, sz * 2.0, 1.8, 0.45, 0.5, KLEUR.hout), cyl(len * sx + 3, 0, sz * 2.4, 0.08, 3.4, KLEUR.donker));
       break;
     }
     default: return [];
   }
   return o.slice(0, cap);
 }
+
+// Kit in wereldcoordinaten (de eigen kitFor, niet die van de waterplekken).
+export const partsToWorld = (plek, parts = kitFor(plek)) => partsNaarWereld(plek, parts);
 
 // Houdt de plekken per cel binnen het budget; de belangrijkste (prio, benoemde) blijven.
 // -> { kept, dropped: {type: n}, perCel: Map(cel -> onderdelen) }
@@ -153,6 +163,16 @@ export function tileBudget(plekken, budget = LAND_BUDGET) {
     perCel.set(k, n);
   }
   return { kept, dropped, perCel };
+}
+
+// Punt in een vlak [[x,y],...] (even-oneven), voor de controle van monumenten in gebouwen en parken in water.
+export function puntInVlak(x, y, pts) {
+  let bin = false;
+  for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) {
+    const [xi, yi] = pts[i], [xj, yj] = pts[j];
+    if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) bin = !bin;
+  }
+  return bin;
 }
 
 export const streekId = (x, y) => { const s = streekAt(x, y); return s ? s.id : 'elders'; };

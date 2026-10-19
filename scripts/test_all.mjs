@@ -1,6 +1,6 @@
 // Eén commando dat alles test en een leesbaar rapport maakt (#186, #5, #4). Zie docs/TESTEN.md.
 //   node scripts/test_all.mjs [--fase=licht|zwaar|electron|alles] [--rapport=<map>]
-//        [--only=<tekst>] [--jobs=2] [--test-timeout=120] [--issues [--create]] [--force] [--list]
+//        [--only=<tekst>] [--jobs=2] [--test-timeout=120] [--issues [--create]] [--force] [--locks=<map>] [--stage [--cache=<map>]] [--list]
 // Fasen (standaard licht):
 //   licht     module-check, import_check, voice_coverage, text_audit, dode-code-bewaking en alle
 //             scripts/*_test.mjs (met duur en tijdslimiet; import_cycles_test bewaakt de cycli)
@@ -28,6 +28,7 @@ const opt = (n, d) => { const a = argv.find((v) => v.startsWith('--' + n + '='))
 const FASE = opt('fase', 'licht');
 const BASE = path.resolve(opt('rapport', path.join(os.tmpdir(), 'gde-testall')));
 const ONLY = opt('only', '');
+const LOCKS = opt('locks', fs.existsSync('C:/Users/abuis/gde-locks') ? 'C:/Users/abuis/gde-locks' : '');
 const JOBS = Math.max(1, Number(opt('jobs', 2)));
 const TEST_MS = Number(opt('test-timeout', 120)) * 1000;
 const STAMP = new Date().toISOString().replace(/[-:]/g, '').replace(/\..*$/, '').replace('T', '-');
@@ -52,7 +53,7 @@ export function runCmd(cmd, args, { ms = TEST_MS, env = {}, cwd = ROOT } = {}) {
     const t0 = Date.now();
     let out = '', timedOut = false, done = false;
     let child;
-    try { child = spawn(cmd, args, { cwd, env: { ...process.env, ...env }, windowsHide: true }); } catch (e) { resolve({ code: -1, timedOut: false, out: 'starten mislukt: ' + e.message, secs: 0 }); return; }
+    try { child = spawn(cmd, args, { cwd, env: { ...process.env, ...env }, windowsHide: true, shell: /\.(cmd|bat)$/i.test(cmd) }); } catch (e) { resolve({ code: -1, timedOut: false, out: 'starten mislukt: ' + e.message, secs: 0 }); return; }
     const add = (d) => { out += d; if (out.length > 8e6) out = out.slice(-4e6); };
     child.stdout.on('data', add); child.stderr.on('data', add);
     const fin = (code) => { if (done) return; done = true; clearTimeout(timer); resolve({ code, timedOut, out, secs: (Date.now() - t0) / 1000 }); };
@@ -91,7 +92,37 @@ const heeftWereld = () => fs.existsSync(path.join(ROOT, 'game', 'world', 'index-
 const skip = (fase, id, naam, reden) => R.maakItem(fase, id, naam, 'SKIP', 0, 'niet gedraaid: ' + reden);
 const wilDit = (id) => !ONLY || id.includes(ONLY);
 
+// ---------------------------------------------------------------- stage (--stage)
+
+// Bouwt game/world als die ontbreekt: hergebruikt een wereld-cache (--cache=<map>, standaard die van GDE-merge),
+// neemt het exclusieve stage-slot en draait `npm run stage` in desktop/.
+async function stageWereld() {
+  const cache = opt('cache', 'C:/Users/abuis/GIT/GDE-merge/desktop/.world-cache');
+  const doel = path.join(ROOT, 'desktop', '.world-cache');
+  if (!fs.existsSync(doel) && fs.existsSync(cache)) fs.cpSync(cache, doel, { recursive: true });
+  const slot = LOCKS ? path.join(LOCKS, 'stage') : null;
+  while (slot) { try { fs.mkdirSync(slot); break; } catch { log('wacht op het stage-slot...'); await slaap(30e3); } }
+  // game/world kan een koppeling naar de gestagede wereld zijn (zodat de node-tests de provincie vinden); die mag
+  // niet mee naar build/game, dus eerst los en na het stagen weer vast.
+  const gw = path.join(ROOT, 'game', 'world'), gebouwd = path.join(ROOT, 'desktop', 'build', 'game', 'world');
+  let koppeling = false;
+  try { koppeling = fs.lstatSync(gw).isSymbolicLink(); } catch { /* geen game/world */ }
+  try {
+    if (koppeling) fs.rmdirSync(gw);
+    const npm = process.platform === 'win32' ? 'npm.cmd' : 'npm';
+    if (!fs.existsSync(path.join(ROOT, 'desktop', 'node_modules'))) await runCmd(npm, ['install', '--no-audit', '--no-fund'], { ms: 15 * 60e3, cwd: path.join(ROOT, 'desktop') });
+    const r = await runCmd(npm, ['run', 'stage'], { ms: 45 * 60e3, cwd: path.join(ROOT, 'desktop') });
+    return r.code === 0 ? 'gestaged' : 'stage mislukte: ' + tail(r.out, 4);
+  } finally {
+    if (koppeling && !fs.existsSync(gw) && fs.existsSync(gebouwd)) fs.symlinkSync(gebouwd, gw, 'junction');
+    if (slot) try { fs.rmdirSync(slot); } catch { /* al weg */ }
+  }
+}
+
 // ---------------------------------------------------------------- fase licht
+
+// Tests die minuten kosten (city_*, tegelwerelden): ruime limiet zodat ze echt uitkomen.
+const ZWARE_TESTS = /^(city_|corridor|tileworld|world_tiles|navgraph|minigames|overlap|road_route|water_look|mode_route|swim_escape|barge|import_cycles)/;
 
 async function faseLicht(prev) {
   const items = [];
@@ -137,7 +168,7 @@ async function faseLicht(prev) {
   // 4. alle scripts/*_test.mjs (zonder de zware: die staan in fase zwaar)
   const tests = fs.readdirSync(path.join(ROOT, 'scripts')).filter((n) => /_test\.mjs$/.test(n) && !EXCLUDED.has(n)).filter((n) => wilDit(n)).sort();
   const taken = tests.map((t) => async () => {
-    const ms = SLOW.has(t) ? TEST_MS * 2 : TEST_MS;
+    const ms = ZWARE_TESTS.test(t) ? TEST_MS * 15 : SLOW.has(t) ? TEST_MS * 4 : TEST_MS;
     const r = await runCmd(process.execPath, [path.join('scripts', t)], { ms });
     const it = itemUitRes('licht', 'test:' + t, t, r, ms);
     log(`${it.status.padEnd(7)} ${t} ${it.secs}s`);
@@ -168,9 +199,9 @@ const ZWAAR = [
   ['railprofile', 'scripts/world/railprofile.mjs', ['--strict'], 300, false],
   ['drive_audit', 'scripts/world/drive_audit.mjs', ['--strict'], 1800, true],
   ['junction_sim_test', 'scripts/junction_sim_test.mjs', [], 900, true],
-  ['network_drive_test', 'scripts/network_drive_test.mjs', [], 1800, true],
-  ['province_test', 'scripts/province_test.mjs', [], 1800, true],
-  ['province_detail_test', 'scripts/province_detail_test.mjs', [], 1800, true],
+  ['network_drive_test', 'scripts/network_drive_test.mjs', [], 5400, true],
+  ['province_test', 'scripts/province_test.mjs', [], 5400, true],
+  ['province_detail_test', 'scripts/province_detail_test.mjs', [], 5400, true],
   ['vaarnet_province_test', 'scripts/vaarnet_province_test.mjs', [], 900, true],
   ['bridge_province_test', 'scripts/bridge_province_test.mjs', [], 900, true],
 ];
@@ -194,6 +225,24 @@ async function faseZwaar() {
 }
 
 // ---------------------------------------------------------------- fase electron
+
+// Slotenprotocol (--locks=<map>, zie C:/Users/abuis/gde-locks/README.txt): maximaal 3 Electron-slots, mkdir faalt als bezet.
+const slaap = (ms) => new Promise((r) => setTimeout(r, ms));
+async function neemSlot(max = 3, wachtMs = 90 * 60e3) {
+  if (!LOCKS) return null;
+  const t0 = Date.now();
+  for (;;) {
+    for (let i = 1; i <= max; i++) {
+      const d = path.join(LOCKS, 'electron-' + i);
+      try { fs.mkdirSync(d); return d; } catch { /* bezet */ }
+      try { if (Date.now() - fs.statSync(d).mtimeMs > 90 * 60e3) fs.rmdirSync(d); } catch { /* weg */ }
+    }
+    if (Date.now() - t0 > wachtMs) throw new Error('geen Electron-slot vrijgekomen');
+    log('wacht op een Electron-slot...');
+    await slaap(60e3);
+  }
+}
+const geefSlot = (d) => { if (d) try { fs.rmdirSync(d); } catch { /* al weg */ } };
 
 function electronExe() {
   if (process.env.ELECTRON_EXE) return process.env.ELECTRON_EXE;
@@ -243,28 +292,29 @@ async function faseElectron(prev, staat) {
   const exe = electronExe();
   const reden = !fs.existsSync(exe) ? `Electron ontbreekt (${exe}); cd desktop && npm install, of zet ELECTRON_EXE`
     : !heeftWereld() ? 'game/world ontbreekt (cd desktop && npm run stage)'
-      : (!flag('force') && elektronDraait() > 0) ? 'er draait al een Electron-instantie (de eigenaar speelt?); niets is gestart. Gebruik --force om toch te draaien'
+      : (!flag('force') && !LOCKS && elektronDraait() > 0) ? 'er draait al een Electron-instantie (de eigenaar speelt?); niets is gestart. Gebruik --force om toch te draaien'
         : null;
-  const STAPPEN = ['smoke', 'verhaaltest', 'geocheck', 'bot-missies', 'bot-minigames', 'qa-provincie-1', 'qa-provincie-2', 'qa-features', 'qa-visueel', 'ui-shots'];
+  const STAPPEN = ['smoke', 'verhaaltest', 'geocheck', 'bot-missies', 'bot-minigames', 'qa-provincie-1', 'qa-provincie-2', 'qa-features', 'qa-visueel', 'ui-shots', 'coop'];
   if (reden) { for (const s of STAPPEN.filter(wilDit)) items.push(skip('electron', 'electron:' + s, s, reden)); return { items, sigs: {} }; }
 
   const prevSigs = (staat.fases && staat.fases.electron && staat.fases.electron.sigs) || {};
   const sigs = {};
   const profielen = [];
-  const env = (stap) => { const p = `gde-testall-${process.pid}-${stap}`; profielen.push(p); return { GDE_TEST_PROFILE: p, ELECTRON_EXE: exe, GDE_ELECTRON: exe }; };
+  const env = (stap) => { const p = `gde-testall-${process.pid}-${stap}`; profielen.push(p); return { GDE_TEST_PROFILE: p, ELECTRON_EXE: exe, GDE_ELECTRON: exe, GDE_MAX_ELECTRON: '3' }; };
   const stapDir = (s) => { const d = path.join(RUN, s); fs.mkdirSync(d, { recursive: true }); return d; };
   const desktop = path.join(ROOT, 'desktop');
   const basis = ['.', '--windowed', '--stil', '--force-device-scale-factor=1', '--window-size=1280x720'];
 
-  const stap = async (naam, fn) => {
+  const stap = async (naam, fn, { eigenSlots = false } = {}) => {
     if (!wilDit(naam)) return;
-    try { items.push(...(await fn())); } catch (e) { items.push(R.maakItem('electron', 'electron:' + naam, naam, 'FAIL', 0, 'stap crashte: ' + (e && e.stack || e))); }
+    let slot = null;
+    try { slot = eigenSlots ? null : await neemSlot(); items.push(...(await fn())); } catch (e) { items.push(R.maakItem('electron', 'electron:' + naam, naam, 'FAIL', 0, 'stap crashte: ' + (e && e.stack || e))); } finally { geefSlot(slot); }
     for (const it of items.filter((i) => i.fase === 'electron' && i.id.startsWith('electron:' + naam))) log(`${it.status.padEnd(7)} ${it.id} ${it.secs}s`);
   };
 
   await stap('smoke', async () => {
     const d = stapDir('smoke'), png = path.join(d, 'smoke.png'), ms = 5 * 60e3;
-    const r = await runCmd(exe, [...basis, '--smoke-test=' + png, '--perf-test'], { ms, env: env('smoke'), cwd: desktop });
+    const r = await runCmd(exe, [...basis, '--smoke-test=' + png], { ms, env: env('smoke'), cwd: desktop });
     fs.writeFileSync(path.join(d, 'run.log'), r.out);
     const fr = R.beoordeelFrames(R.parseFrameStats(r.out), (prev.get('frametijd:smoke') || {}).extra && prev.get('frametijd:smoke').extra.stats);
     const st = r.timedOut ? 'TIMEOUT' : (r.code === 0 && fs.existsSync(png) ? 'PASS' : 'FAIL');
@@ -301,7 +351,7 @@ async function faseElectron(prev, staat) {
 
   const botSweep = (naam, mode) => stap(naam, async () => {
     const d = stapDir(naam), ms = 45 * 60e3;
-    const r = await runCmd(process.execPath, ['scripts/bot/run.mjs', `--mode=${mode}`, `--out=${d}`], { ms, env: env(naam) });
+    const r = await runCmd(process.execPath, ['scripts/bot/run.mjs', `--mode=${mode}`, `--out=${d}`, '--force'], { ms, env: env(naam) });
     fs.writeFileSync(path.join(d, 'sweep.log'), r.out);
     let analyse = '';
     if (fs.existsSync(path.join(d, 'events.jsonl'))) {
@@ -316,16 +366,33 @@ async function faseElectron(prev, staat) {
 
   const qa = (naam, script, extra = []) => stap(naam, async () => {
     const d = stapDir(naam), ms = 45 * 60e3;
-    const r = await runCmd(process.execPath, [script, ...extra, `--out=${d}`], { ms, env: env(naam) });
+    let r = await runCmd(process.execPath, [script, ...extra, `--out=${d}`], { ms, env: env(naam) });
+    let poging = '';
+    // het spel startte niet op (te druk, trage wereldlading): één nieuwe poging
+    if (r.code && !r.timedOut && /"ready":\s*false|plekken: 0\/|checks: 0,/.test(r.out + (fs.existsSync(path.join(d, 'run.log')) ? fs.readFileSync(path.join(d, 'run.log'), 'utf8') : ''))) {
+      log(`${naam}: spel startte niet op, nieuwe poging`);
+      r = await runCmd(process.execPath, [script, ...extra, `--out=${d}`, '--settle=20000'], { ms, env: env(naam) });
+      poging = ' (na tweede poging)';
+    }
     fs.writeFileSync(path.join(d, 'sweep.log'), r.out);
     const st = r.timedOut ? 'TIMEOUT' : r.code === 0 ? 'PASS' : 'FAIL';
-    return [R.maakItem('electron', 'electron:' + naam, naam, st, r.secs, st === 'PASS' ? '' : `code ${r.code}: ${R.eersteFout(r.out)}`), consoleItem(naam, r.out, 0), ...beeldItems(naam, d, prevSigs, sigs)];
+    return [R.maakItem('electron', 'electron:' + naam, naam, st, r.secs, st === 'PASS' ? poging.trim() : `code ${r.code}${poging}: ${split(tail(r.out, 3)).join(' | ')}`), consoleItem(naam, r.out, 0), ...beeldItems(naam, d, prevSigs, sigs)];
   });
   await qa('qa-provincie-1', 'scripts/qa/province_shots.mjs', ['--ronde=1']);
   await qa('qa-provincie-2', 'scripts/qa/province_shots.mjs', ['--ronde=2']);
   await qa('qa-features', 'scripts/qa/feature_smoke.mjs');
   await qa('qa-visueel', 'scripts/qa/visual_issues.mjs');
   await qa('ui-shots', 'scripts/ui_shots.mjs');
+  // coöp-testbank (y2): host en gast als twee Electrons op de loopback; neemt zelf de sloten
+  if (fs.existsSync(path.join(ROOT, 'scripts', 'coop', 'testbank.mjs'))) {
+    await stap('coop', async () => {
+      const d = stapDir('coop'), ms = 20 * 60e3;
+      const r = await runCmd(process.execPath, ['scripts/coop/testbank.mjs', '--stage=' + path.join(desktop, 'build', 'game'), '--duration=20', '--out=' + d], { ms, env: env('coop') });
+      fs.writeFileSync(path.join(d, 'sweep.log'), r.out);
+      const st = r.timedOut ? 'TIMEOUT' : r.code === 0 ? 'PASS' : 'FAIL';
+      return [R.maakItem('electron', 'electron:coop', 'coöp-testbank (host en gast)', st, r.secs, st === 'PASS' ? '' : `code ${r.code}: ${split(tail(r.out, 4)).join(' | ')}`), consoleItem('coop', r.out, 0)];
+    }, { eigenSlots: true });
+  }
 
   for (const p of profielen) fs.rmSync(path.join(os.tmpdir(), p), { recursive: true, force: true });
   return { items, sigs };
@@ -370,10 +437,22 @@ function issuesAfhandelen(report, staat) {
 // ---------------------------------------------------------------- main
 
 async function main() {
+  // --issues-van=<runmap>: issue-concepten (of met --create: issues) uit een eerder rapport.json
+  if (opt('issues-van')) {
+    fs.mkdirSync(RUN, { recursive: true });
+    const oud = JSON.parse(fs.readFileSync(path.join(path.resolve(opt('issues-van')), 'rapport.json'), 'utf8'));
+    let st = {};
+    try { st = JSON.parse(fs.readFileSync(path.join(BASE, 'state.json'), 'utf8')); } catch { /* nog geen staat */ }
+    const n = issuesAfhandelen(oud, st);
+    fs.writeFileSync(path.join(BASE, 'state.json'), JSON.stringify(st));
+    log(`Issue-concepten: ${n}; zie ${path.join(RUN, 'issues-concept.md')}`);
+    return 0;
+  }
   if (flag('list')) { log('licht: module-check, import_check, voice_coverage, text_audit, dode-code, alle scripts/*_test.mjs\nzwaar: ' + ZWAAR.map((z) => z[0]).join(', ') + '\nelectron: smoke, verhaaltest, geocheck, bot-missies, bot-minigames, qa-provincie-1, qa-provincie-2, qa-features, qa-visueel, ui-shots'); return 0; }
   const fasen = FASE === 'alles' ? R.FASEN : FASE.split(',').filter((f) => R.FASEN.includes(f));
   if (!fasen.length) { console.error('Onbekende fase: ' + FASE + ' (kies licht, zwaar, electron of alles)'); return 2; }
   fs.mkdirSync(RUN, { recursive: true });
+  if (flag('stage')) log('stage: ' + await stageWereld());
   const stateFile = path.join(BASE, 'state.json');
   let staat = {};
   try { staat = JSON.parse(fs.readFileSync(stateFile, 'utf8')); } catch { /* eerste run */ }

@@ -42,7 +42,7 @@ export const HINTS = [
   { id: 'v-auto', kind: 'vehicle', match: 'auto', title: 'Rijden', body: 'Gas, rem en sturen met {WASD}, handrem op {SPACE}, toeteren met {H}. Achterom kijken kan met {Q}.' },
   // minigames: world.activityGame is the id of the running one (activities.js)
   { id: 'm-discgolf', kind: 'minigame', match: 'discgolf', title: 'Discgolf', body: 'Gooi de schijf in de mand met zo min mogelijk worpen. Je loopt de ronde door het Stadspark; de uitleg staat tijdens het spelen in beeld.' },
-  { id: 'm-pitchputt', kind: 'minigame', match: 'pitchputt', title: 'Pitch & putt', body: 'Zes korte holes: eerst pitchen, op de green putten. Zo min mogelijk slagen. De uitleg staat tijdens het spelen in beeld.' },
+  { id: 'm-pitchputt', kind: 'minigame', match: 'pitchputt', title: 'Pitch & putt', body: 'Zes korte banen: eerst pitchen, op de green putten. Zo min mogelijk slagen. De uitleg staat tijdens het spelen in beeld.' },
   { id: 'm-skatepark', kind: 'minigame', match: 'skatepark', title: 'Skatepark', body: 'Hellingen, leuningen en kunstjes. Ken je de toetsen niet, kijk dan naar de uitleg in beeld.' },
   { id: 'm-kartbaan', kind: 'minigame', match: 'kartbaan', title: 'Kartbaan', body: 'Drie ronden tegen drie rijders. Een schone bocht is sneller dan een harde.' },
   { id: 'm-zwembad', kind: 'minigame', match: 'zwembad', title: 'Zwembad', body: 'Baantjes zwemmen in het zwembad. De uitleg staat tijdens het zwemmen in beeld.' },

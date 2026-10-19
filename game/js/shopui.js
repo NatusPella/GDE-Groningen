@@ -1,4 +1,4 @@
-import { saveGame } from './savegame.js';
+import { saveGame } from './savehook.js';
 import { createVehiclePreview } from './vehiclepreview.js';
 import { shopIconUrl } from './shops.js';
 import { hudPixelRatio } from './uiscale.js';

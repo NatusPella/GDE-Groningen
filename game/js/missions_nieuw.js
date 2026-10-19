@@ -35,7 +35,7 @@ export function buildNieuwDefs({ map, walk, drive, models = {} }) {
       type: 'stages',
       label: 'Het Loket',
       intro: ['Het Loket bij de Grote Markt: om twaalf uur sluit de inschrijving voor de Noordelijke Snackprijs, en het loket neemt alleen contant.', 'Trek een wachtnummer, haal formulier 7B en de stempel, en schrijf in. Voor twaalf uur.'],
-      outro: 'Ingeschreven voor de Noordelijke Snackprijs. De Fjord Frituur doet mee.',
+      outro: 'Ingeschreven voor de Noordelijke Snackprijs. Jelle wil de Gouden Eierbal: pak hem eerst. Nieuw doel: naar Bert op het Stationsplein.',
       timeLimit: 180,
       costRow: ['Inschrijfgeld', '-€150, contant betaald'],
       timeUp: 'het Loket is dicht. Om twaalf uur sloot de inschrijving',
@@ -68,8 +68,9 @@ export function buildNieuwDefs({ map, walk, drive, models = {} }) {
       // M01 Nul krassen, vijftienhonderd punten: the stunt on the Grote Markt in Berend's bakkie, then the delivery (scratches count over both parts)
       type: 'deliver',
       label: 'Nul krassen, vijftienhonderd punten',
-      intro: ['Berend Bos wil zijn bakkie bij zijn zus aan het Boterdiep. Eerst een klus voor Jelmer op de Grote Markt: vijftienhonderd stuntpunten.', 'Stunt zonder krassen: parasols en kliko\'s mogen, mensen niet. Daarna het bakkie heel naar het Boterdiep.'],
-      outro: 'Berend zei goud. En moi. Tegen Tessa.',
+      triggerRadius: 6,
+      intro: ['Honderdvijftig euro voor de inschrijving van de Noordelijke Snackprijs, uiterlijk morgen. Een streamer betaalt honderdvijftig voor stunts, Berend Bos vijftig voor zijn bakkie.', 'Doel: haal vijftienhonderd stuntpunten op de Grote Markt, zonder mensen en zonder krassen. Breng het bakkie daarna heel naar het Boterdiep.'],
+      outro: 'Honderdvijftig op de pas, vijftig van Berend. Nieuw doel: morgenochtend pinnen en inschrijven bij Het Loket.',
       timeLimit: 240,
       timeUp: 'tijd op. Jelmers chat is al naar een kattenfilmpje en Berend wacht nog',
       vehicleFail: { gone: 'Berends bakkie is foetsie', wrecked: 'Berends bakkie is afgeschreven. Hij telde nul krassen, nu telt hij niks meer', left: 'je liet Berends bakkie staan. Hij telde nul krassen, geen parkeerbonnen' },
@@ -208,7 +209,7 @@ export function applyNieuw(list) {
   // what each mission leaves you with, on the success card (#147): the clue or the consequence
   if (duif) duif.costRow = ['Ontdekt', 'Bewaker twee krijgt een eierbal voor zijn koekje'];
   if (kei) kei.costRow = ['Tip van Sjoerd', 'Om twaalf uur gaan de camera\'s drie minuten uit'];
-  if (pin) pin.costRow = ['Ontdekt', 'Een baas vroeg waar het museum alarmen heeft'];
+  if (pin) pin.costRow = ['Ontdekt', 'De reuzen werken voor Jelle Terpstra'];
   const kraak = by('Het museum stond er al zo');
   if (kraak) kraak.costRow = ['Gevolg', 'De politie zoekt twee mensen in het zwart'];
   if (kei) kei.timeUp = 'tijd op. De eerstejaars zitten al aan de bar';
@@ -254,15 +255,15 @@ export function applyNieuw(list) {
     kerm.timeUp = 'tijd op. De tenten sluiten, Durk en Douwe zingen door zonder jullie';
     kerm.checkpointBonus = 25;
     kerm.drunk = 0.25;
-    kerm.crowds = [W(-30, 25), W(20, 10), W(60, 30), W(70, 10), W(25, -35)];
+    kerm.crowds = [W(-20, 25), W(20, 10), W(60, 30), W(63, 3), W(25, -45)];
     kerm.start = W(-55, 45);
     kerm.waypoints = [
       via(-20, 30),
-      tent('Tent De Gouden Aar', 5, 8, { glass: 'beer', variant: 0, lines: [['A', 'Proost!']] }),
+      tent('Tent De Gouden Aar', 15, 8, { glass: 'beer', variant: 0, lines: [['A', 'Proost!']] }),
       via(45, 28),
       tent('Tent Het Scheve Rad', 85, 40, { glass: 'wine', variant: 1, lines: [['student', 'Proost! Nog ééntje dan!'], ['A', 'Wie is dat?'], ['T', 'Een eerstejaars. Ze zijn overal.'], ['student', 'Ik hou van jullie allemaal!'], ['T', 'Dat geloof ik.']] }),
-      via(65, -5),
-      tent('Tent De Laatste Zweefmolen', 25, -55, { glass: 'jenever', variant: 2, lines: [] }),
+      via(72, -12),
+      tent('Tent De Laatste Zweefmolen', 35, -55, { glass: 'jenever', variant: 2, lines: [] }),
     ];
     kerm.costRow = ['Ontdekt', 'Durk en Douwe zijn moe genoeg voor een rit'];
   }

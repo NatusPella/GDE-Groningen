@@ -29,7 +29,7 @@ export function reducedMotion() {
 }
 
 // Plays a one-shot CSS animation class again (pop, ring, shine).
-export function replay(el, cls) {
+function replay(el, cls) {
   if (!el || reducedMotion()) return;
   el.classList.remove(cls);
   void el.offsetWidth;
@@ -39,7 +39,7 @@ export function replay(el, cls) {
 
 export const pop = (el) => replay(el, 'mo-pop');
 export const ring = (el) => replay(el, 'mo-ring');
-export const shine = (el) => replay(el, 'mo-shine');
+const shine = (el) => replay(el, 'mo-shine');
 
 // Counts a number in el.textContent from its last value to `to` (ease-out).
 export function countTo(el, to, fmt = (v) => String(Math.round(v))) {

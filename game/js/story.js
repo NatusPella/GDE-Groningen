@@ -18,7 +18,7 @@ import { queueStoryContact } from './storycontact.js';
 import { withValidity, setValidityContext } from './validity.js';
 import { isCallActive } from './phonefeed.js';
 import { SMS_SAY } from './smsvoice.js';
-import { playClueSting, playRadioSting } from './audio.js';
+import { playClueSting } from './audio.js';
 import { lineVoiceFor, NARRATOR } from './linevoice.js';
 import {
   setMissionHooks, setNextMission, isMissionActive, isMissionCompleted, markMissionCompleted, getMissionDefs,
@@ -26,7 +26,11 @@ import {
   activeMissionIndex, failActiveMission, rideFirst,
 } from './missions.js';
 import { getShopVisits, getShopsForRender, grantStoryItem } from './shops.js';
-import { getPigeonFlight } from './pigeonmode.js';
+import { getPigeonFlight, stopPigeonMode } from './pigeonmode.js';
+import { isHeliRunActive, abortHeliRun } from './helirun.js';
+import { jumpPrep, jumpSpot } from './storyjump.js';
+import { buildingAt } from './tileplace.js';
+import { waterAt } from './waterlevels.js';
 import { purchaseCount, storyBuyLabel } from './storyshop.js';
 import { getPigeonSpotsForRender } from './pigeonspots.js';
 import { getSideJobList } from './sidejobs.js';
@@ -558,7 +562,7 @@ function playRecap(part) {
     at += dur + 0.3;
     return l;
   });
-  // Rikus tells it on the radio: a station sting, his voice in the broadcast
+  // Rikus tells it on the radio: his voice in the broadcast
   // band, and the studio for the 'studio' lines (else the orbit of the first place)
   let studio = null, wasStudio = false;
   const fallback = recapPlace(P.recap.find(([p]) => p !== 'studio')[0]);
@@ -566,7 +570,7 @@ function playRecap(part) {
     id: 'story-recap', priority: 2, duration: at + 0.4, pause: true, letterbox: true, skippable: true, hideHud: true,
     kicker: P.date ? `${partNumber(part)} · ${P.date}` : `Eerder in ${SERIES}`, title: P.name || P.title, cardFor: 3.2,
     lines: lines.map(({ speaker, text, at: a, dur }) => ({ speaker, text, at: a, dur, radio: true })),
-    onStart: () => { studio = openStudio(); playRadioSting(); },
+    onStart: () => { studio = openStudio(); },
     onEnd: () => { if (studio) studio.dispose(); studio = null; },
     shot: (u, t) => {
       let k = lines.findIndex((l) => t < l.at + l.dur + 0.3);
@@ -1219,9 +1223,19 @@ export function getStoryView() {
 
 // Dev chapter select: rebuilds the progress, money and belongings a player
 // would have right before step `id` (worst case money from the timeline).
-export function devJumpTo(id) {
+// opts.start: de missie van de stap ook meteen starten (QA en spelbot: phase 'active'); zonder staat de speler
+// naast de startplek en start de missie zoals voor een speler.
+export function devJumpTo(id, opts = {}) {
   const k = STEPS.findIndex((s) => s.id === id);
-  if (k < 0 || !stepAvailable(STEPS[k]) || isMissionActive()) return false;
+  if (k < 0 || !stepAvailable(STEPS[k])) return false;
+  const p0 = world.player;
+  for (const a of jumpPrep({ missionActive: isMissionActive(), pigeon: !!world.pigeonMode, heliRun: isHeliRunActive(), inVehicle: !!p0.inVehicle })) {
+    if (a === 'abortMission') failActiveMission(world, 'Missie afgebroken', 'Afgebroken');
+    else if (a === 'stopPigeon') stopPigeonMode(world);
+    else if (a === 'abortHeli') abortHeliRun();
+    else if (a === 'exitVehicle') p0.exitVehicle(world.map, world);
+  }
+  if (isMissionActive()) return false;
   const prior = STEPS.slice(0, k);
   Object.assign(state, freshState());
   rt = freshRuntime();
@@ -1241,15 +1255,15 @@ export function devJumpTo(id) {
   refreshDayNight(world);
   enter(target);
   if (target.player) swapCharacter(world, target.player);
-  const g = world.storyGuide;
-  if (g) {
+  const idx = missionIdx(target);
+  const spot = jumpSpot(idx >= 0 ? getMissionDefs()[idx] : null, world.storyGuide, { dist: 12, vrij: (x, y) => !buildingAt(world.map, x, y, 0.5) && !waterAt(world.map, x, y) });
+  if (spot) {
     const p = world.player;
-    const a = Math.random() * Math.PI * 2;
-    const x = g.x + Math.cos(a) * 20, y = g.y + Math.sin(a) * 20;
-    const [ex, ey] = world.map.escapeBuilding ? world.map.escapeBuilding(x, y, 0.5) : [x, y];
+    const [ex, ey] = world.map.escapeBuilding ? world.map.escapeBuilding(spot.x, spot.y, 0.5) : [spot.x, spot.y];
     if (p.inVehicle) { p.inVehicle.x = ex; p.inVehicle.y = ey; p.inVehicle.speed = 0; }
     p.x = ex; p.y = ey;
   }
+  if (opts.start && idx >= 0 && !isMissionActive()) missionDebug.start(world, idx);
   return true;
 }
 
@@ -1281,7 +1295,7 @@ export const storyApi = {
   timeline: () => computeMoneyTimeline(),
   characters: () => getStoryCharacters(),
   clues: () => getStoryCluesByPart(),
-  jump: devJumpTo,
+  jump: (id, opts) => devJumpTo(id, opts),
   complete: devCompleteStep,
   skip: (force) => skipCurrent({ force: !!force }),
   canSkip: () => canSkipCurrent(),

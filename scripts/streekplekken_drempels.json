@@ -38,23 +38,23 @@
    "eemsdelta": 12,
    "veenkolonien": 13,
    "oldambt": 12,
-   "westerkwartier": 10,
+   "westerkwartier": 9,
    "hogeland": 29,
-   "westerwolde": 13,
+   "westerwolde": 12,
    "lauwerskust": 10,
    "hunsingo": 23,
-   "elders": 113
+   "elders": 109
   },
   "park": {
-   "eemsdelta": 42,
-   "veenkolonien": 17,
-   "oldambt": 23,
-   "westerkwartier": 59,
-   "hogeland": 14,
-   "westerwolde": 8,
-   "lauwerskust": 21,
-   "hunsingo": 28,
-   "elders": 120
+   "eemsdelta": 39,
+   "veenkolonien": 16,
+   "oldambt": 22,
+   "westerkwartier": 58,
+   "hogeland": 13,
+   "westerwolde": 7,
+   "lauwerskust": 20,
+   "hunsingo": 20,
+   "elders": 116
   }
  },
  "max": {
@@ -103,7 +103,7 @@
    "elders": 43
   },
   "park": {
-   "eemsdelta": 12,
+   "eemsdelta": 11,
    "veenkolonien": 0,
    "oldambt": 0,
    "westerkwartier": 5,

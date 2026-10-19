@@ -24,7 +24,7 @@ fs.writeFileSync(script, `window.__fs = ${JSON.stringify({ only: ONLY, settle: S
 const electron = process.env.ELECTRON_EXE || path.join(ROOT, 'desktop', 'node_modules', 'electron', 'dist', process.platform === 'win32' ? 'electron.exe' : 'Electron');
 const env = { ...process.env, GDE_TEST_PROFILE: profile };
 delete env.ELECTRON_RUN_AS_NODE;
-const r = spawnSync(electron, ['.', '--windowed', '--stil', '--force-device-scale-factor=1', '--window-size=1600x900',
+const r = spawnSync(electron, ['.', '--windowed', '--stil', `--force-device-scale-factor=${arg('dsf', '1')}`, `--window-size=${arg('size', '1600x900')}`,
   `--smoke-test=${path.join(OUT, 'shots.png')}`, `--perf-script=${script}`],
   { cwd: path.join(ROOT, 'desktop'), env, encoding: 'utf8', maxBuffer: 1 << 28, timeout: 45 * 60 * 1000, killSignal: 'SIGKILL' });
 if (r.error) console.error('Electron starten mislukt:', r.error.message);

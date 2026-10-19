@@ -540,6 +540,8 @@ def('pigeon', 1.3, (c, sr, R) => { let t = 0.02; for (const [dur, f] of [[0.35, 
 def('flutter', 0.75, (c, sr, R) => { for (let k = 0; k < 9; k++) addNoiseBurst(c[0], sr, k / 13, R, { f: 1100 + R() * 400, q: 0.8, tau: 0.018, amp: 1 - k * 0.08, attack: 0.006 }); });
 def('dog', 0.45, (c, sr, R) => addVoiced(c[0], sr, 0.005, 0.16, R, { f0: 430, f1: 280, formants: [900, 1800], amp: 1, attack: 0.004, release: 0.08, noise: 0.45, q: [2, 3] }), { rate: 22050 });
 def('cat', 0.95, (c, sr, R) => addVoiced(c[0], sr, 0.01, 0.85, R, { f0: 520, fMid: 760, f1: 470, formants: [600, 1800], formantsEnd: [700, 1100], amp: 1, attack: 0.07, release: 0.2, noise: 0.06, vib: 0.015, vibRate: 6, q: [3, 5] }), { rate: 22050 });
+def('heron', 0.7, (c, sr, R) => addVoiced(c[0], sr, 0.02, 0.55, R, { f0: 360, f1: 230, formants: [900, 1900], amp: 1, attack: 0.02, release: 0.2, noise: 0.5, q: [2, 3] }), { rate: 22050 });
+def('seal', 1.6, (c, sr, R) => addVoiced(c[0], sr, 0.03, 1.4, R, { f0: 150, fMid: 205, f1: 120, formants: [450, 1000], formantsEnd: [350, 800], amp: 1, attack: 0.18, release: 0.4, noise: 0.18, vib: 0.03, vibRate: 5, q: [3, 4] }), { rate: 22050 });
 for (let v = 0; v < 4; v++) def(`radio_${v}`, 1.6 + v * 0.3, radio, { rate: 22050 });
 def('airbrake', 0.9, (c, sr, R) => { addNoiseBurst(c[0], sr, 0, R, { type: 'hp', f: 2500, q: 0.7, tau: 0.25, amp: 0.8, attack: 0.008, len: 0.85 }); addNoiseBurst(c[0], sr, 0, R, { f: 5000, q: 1, tau: 0.2, amp: 0.4, len: 0.85 }); addNoiseBurst(c[0], sr, 0, R, { type: 'lp', f: 500, q: 0.7, tau: 0.06, amp: 0.6 }); });
 def('door_hiss', 0.85, (c, sr, R) => { addNoiseBurst(c[0], sr, 0, R, { type: 'hp', f: 3000, q: 0.7, tau: 0.3, amp: 0.6, attack: 0.03, len: 0.6 }); thump(c[0], sr, 0.55, 90, 0.04, 0.8); addNoiseBurst(c[0], sr, 0.55, R, { type: 'lp', f: 700, q: 0.7, tau: 0.03, amp: 0.6 }); });
@@ -802,6 +804,7 @@ export function createBank(ctx, { sync = false } = {}) {
     warm(names) { for (const n of names) request(n); },
     pending() { return pending.size; },
     size() { return cache.size; },
+    has(name) { return cache.has(name); },
     close() { if (worker) worker.terminate(); worker = null; },
   };
 }

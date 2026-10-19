@@ -11,12 +11,12 @@ import { buildProp, disposeProp, animateProp } from './ommelandprops3d.js';
 import { openGround } from './ommelandplace.js';
 import { waterGap, roadKind } from './tileplace.js';
 
-export const NEAR_M = 150; // candidate tries within this distance of the player are resolved
-export const SHOW_M = 120; // props within this are built
-export const DROP_M = 170; // and dropped beyond this
-export const SHOP_M = 9; // a board speaks within this
-export const SFEER_FIRST_S = 9;
-export const SFEER_EVERY_S = 55;
+const NEAR_M = 150; // candidate tries within this distance of the player are resolved
+const SHOW_M = 120; // props within this are built
+const DROP_M = 170; // and dropped beyond this
+const SHOP_M = 9; // a board speaks within this
+const SFEER_FIRST_S = 9;
+const SFEER_EVERY_S = 55;
 const SCAN_S = 1;
 
 const towns = new Map(); // id -> { plan, state: Map(itemId -> { tested:Set, spot|null, prop|null }) }

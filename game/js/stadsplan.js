@@ -17,13 +17,13 @@ export const PROP_BUILD = {
   brug: null, gracht: null, schuit: null, kotter: null, koets: null,
 };
 // props that only make sense next to water (harbour, quay, ditch)
-export const WATER_KINDS = new Set(['bolder', 'container', 'visnet', 'vuurtoren']);
+const WATER_KINDS = new Set(['bolder', 'container', 'visnet', 'vuurtoren']);
 
-export const SCALE = 0.3; // props per km² of the profile, thinned: a hint, not a promise
+const SCALE = 0.3; // props per km² of the profile, thinned: a hint, not a promise
 export const CAP = 14; // most of one kind per town
 export const SPACING = 10; // m between two props
 export const SHOP_SPACING = 25;
-export const SHOP_R = 0.35; // shops stand in the inner third of the reach
+const SHOP_R = 0.35; // shops stand in the inner third of the reach
 
 function hash(str) { let h = 2166136261; for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
 export function mulberry(seed) {

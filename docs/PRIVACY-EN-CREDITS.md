@@ -14,12 +14,12 @@ verstuurd. De eigenaar beslist wat waar komt te staan.
 | Foutrapport | Wordt alleen gekopieerd door de speler, niet verstuurd; bevat geen persoonsgegevens | CONTRIBUTING.md |
 | Desktopapp (Electron) | Alleen offline spelen; externe links openen in de systeembrowser | `desktop/main.js` |
 | Webversie | Haalt `three` van de jsDelivr-CDN en lettertypen van Google Fonts, tenzij de webbuild ze meelevert (`desktop/build.mjs` vendort ze). Dan ziet die dienst het IP-adres van de bezoeker | `game/index.html` |
-| Samen spelen (coöp, #95) | **Alleen na toestemming** van de speler (`net/consent.js`): het IP-adres gaat naar een openbare STUN-server, en versleutelde signalering (met de kamercode als sleutel) via openbare brokers. Er gaat geen telemetrie of account mee. Spelers die samen spelen zien elkaars IP-adres niet in het spel, maar WebRTC maakt een directe verbinding | `game/js/net/netconfig.js`, AGENTS.md punt 4 |
+| Samen spelen (#95) | **Alleen na toestemming** van de speler (`net/consent.js`): het IP-adres gaat naar een openbare STUN-server, en versleutelde signalering (met de kamercode als sleutel) via openbare brokers. Er gaat geen telemetrie of account mee. Spelers die samen spelen zien elkaars IP-adres niet in het spel, maar WebRTC maakt een directe verbinding | `game/js/net/netconfig.js`, AGENTS.md punt 4 |
 
 Openstaand (eigenaar): de SECURITY.md-zin "het spel stuurt niets naar een
-server" klopt sinds samen spelen alleen zonder coöp; die tekst is aangepast. De
+server" klopt sinds samen spelen alleen zonder samen spelen; die tekst is aangepast. De
 Steam- en IARC-antwoorden over "online contact" en "internet" moeten de
-coöp-uitzondering noemen (zie [IARC-ANTWOORDEN.md](IARC-ANTWOORDEN.md), aanvulling).
+uitzondering voor samen spelen noemen (zie [IARC-ANTWOORDEN.md](IARC-ANTWOORDEN.md), aanvulling).
 
 ## 2. Persoonsgegevens in de repo
 

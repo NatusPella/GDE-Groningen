@@ -7,22 +7,31 @@
 // plek uit het snapshot. Zonder Worker draait de kern op de hoofdthread
 // (simhost.js); de bridge merkt het verschil niet.
 import { createSimHost } from './simhost.js';
+import { FLAGS } from './devflags.js';
 import { buildSimRoads } from './simworld.js';
-import { createRoadIndex, planGiveToWorker, isAmbientPed } from './simambient.js';
+import { createRoadIndex, planGiveToWorker, planGiveCarsToWorker, isAmbientPed, isAmbientCar } from './simambient.js';
 import { handoverPlan, workerId, R_IN, R_OUT } from './simhandover.js';
 
 export const RECONCILE_EVERY = 0.5; // s tussen overdrachtsrondes
-export const MAX_OWNED = 160; // hooguit zoveel worker-agenten tegelijk
+const MAX_OWNED = 160; // hooguit zoveel worker-agenten tegelijk
+const CAR_ID_BASE = 5e5; // auto-ids liggen in hun eigen blok boven de voetgangers
+const MAX_CARS = 120; // ...en zoveel auto's
 
 // host mag een nephost zijn (tests); roads: [{ id, pts }] van buildSimRoads(map, 'ped').
-export function createSimBridge({ host, roads, seed = 1, rIn = R_IN, rOut = R_OUT } = {}) {
+// carRoads: [{ id, pts }] van buildSimRoads(map, 'car'), roadOf(id) geeft het echte wegobject, attach(v) zet een auto
+// terug op het wegennet van de hoofdthread (vehicle.js attachToNearestRoad). Zonder carRoads blijven auto's echt.
+export function createSimBridge({ host, roads, carRoads = [], roadOf = null, attach = null, seed = 1, rIn = R_IN, rOut = R_OUT } = {}) {
   const index = createRoadIndex(roads);
+  const carIndex = carRoads.length && roadOf && attach ? createRoadIndex(carRoads) : null;
+  const carLen = new Map();
+  for (const r of carRoads) { let l = 0; for (let i = 2; i < r.pts.length; i += 2) l += Math.hypot(r.pts[i] - r.pts[i - 2], r.pts[i + 1] - r.pts[i - 1]); carLen.set(r.id, l); }
+  const cars = new Map(); // worker-id -> auto
   const owned = new Map(); // worker-id -> ped
   let nextId = 1;
   let tick = 0;
   let accum = 0;
   let sinceReconcile = RECONCILE_EVERY; // meteen een eerste ronde
-  host.init(roads, seed);
+  host.init(carRoads.length ? roads.concat(carRoads) : roads, seed);
 
   function release(ped, pos) {
     if (pos) { ped.x = pos.x; ped.y = pos.y; }
@@ -76,22 +85,81 @@ export function createSimBridge({ host, roads, seed = 1, rIn = R_IN, rOut = R_OU
     return true;
   }
 
+  function releaseCar(v, a) {
+    cars.delete(v._wid);
+    host.despawn([v._wid]);
+    v._wid = 0;
+    if (a) { v.x = a.x - Math.sin(a.angle) * v._wlane; v.y = a.y + Math.cos(a.angle) * v._wlane; v.angle = a.angle; v.speed = a.speed; }
+    attach(v);
+  }
+
+  // Eén keer per frame vóór de voertuiglus: overdracht van auto's (zelfde ritme en afstanden als de voetgangers).
+  let sinceCars = RECONCILE_EVERY, carCursor = 0, nextCarId = 1;
+  function updateCars(dt, player, vehicles) {
+    if (!carIndex) return;
+    sinceCars += dt;
+    if (sinceCars < RECONCILE_EVERY) return;
+    sinceCars = 0;
+    const live = new Set(vehicles);
+    const gone = [];
+    for (const [id, v] of cars) if (!live.has(v)) gone.push(id);
+    if (gone.length) { for (const id of gone) cars.delete(id); host.despawn(gone); }
+    const view = host.positions();
+    const mine = new Map();
+    for (const [id, v] of cars) {
+      const a = view.get(id);
+      if (!a) continue;
+      // aan het eind van de weg: de echte AI kiest de volgende weg
+      if (a.s >= carLen.get(a.road) - 1.5) { releaseCar(v, a); continue; }
+      mine.set(id, a);
+    }
+    for (const a of handoverPlan(mine, [], player, { rIn, rOut }).takeOver) releaseCar(cars.get(a.id), a);
+    if (cars.size >= MAX_CARS) return;
+    // een draaiende cursor, zodat elke ronde andere auto's bekijkt
+    const cands = [];
+    const n = vehicles.length;
+    for (let k = 0; k < Math.min(n, 60); k++) {
+      const v = vehicles[(carCursor + k) % n];
+      if (!v._wid && isAmbientCar(v)) cands.push(v);
+    }
+    carCursor = n ? (carCursor + 60) % n : 0;
+    const plan = planGiveCarsToWorker(cands, player, carIndex, roadOf, workerId(CAR_ID_BASE + nextCarId), { rOut, max: 6 });
+    for (const g of plan) { g.car._wid = g.agent.id; g.car._wlane = g.lane; cars.set(g.agent.id, g.car); }
+    if (plan.length) { nextCarId += plan.length; host.spawn(plan.map((g) => g.agent)); }
+  }
+
+  // Per auto in de lus: true = de worker stuurt hem, sla AI en gebouwbotsing over.
+  function driveCar(v) {
+    if (!v._wid) return false;
+    const a = host.positions().get(v._wid);
+    if (!isAmbientCar(v) || v.waitTimer > 0) { releaseCar(v, a); return false; }
+    if (!a) return true;
+    v.x = a.x - Math.sin(a.angle) * v._wlane; v.y = a.y + Math.cos(a.angle) * v._wlane; v.angle = a.angle; v.speed = a.speed;
+    return true;
+  }
+
   function dispose() {
+    for (const v of cars.values()) v._wid = 0;
+    cars.clear();
     for (const p of owned.values()) p._wid = 0;
     owned.clear();
     host.dispose();
   }
 
-  return { update, drive, dispose, size: () => owned.size, owned, host };
+  return { update, drive, updateCars, driveCar, dispose, size: () => owned.size, carSize: () => cars.size, owned, cars, host };
 }
 
 let shared = null;
 let sharedMap = null;
 // De bridge van het spel; wordt opnieuw gebouwd als de kaart wisselt.
+let carAttach = null;
+// main.js geeft vehicle.js attachToNearestRoad mee; met ?simauto (devflags.js) gaan ook auto's naar de worker
+export function setSimCarAttach(fn) { carAttach = fn; }
 export function getSimBridge(map) {
+  const cars = FLAGS.simauto && !!carAttach;
   if (shared && sharedMap === map) return shared;
   if (shared) shared.dispose();
   sharedMap = map;
-  shared = createSimBridge({ host: createSimHost(), roads: buildSimRoads(map, 'ped') });
+  shared = createSimBridge({ host: createSimHost(), roads: buildSimRoads(map, 'ped'), carRoads: cars ? buildSimRoads(map, 'car') : [], roadOf: (id) => map.roads[id], attach: cars ? (v) => carAttach(v, map) : null });
   return shared;
 }

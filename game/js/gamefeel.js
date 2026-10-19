@@ -9,8 +9,9 @@ const clamp = (v, lo, hi) => (v < lo ? lo : v > hi ? hi : v);
 
 // --- snelheids-FOV ---------------------------------------------------------------
 export const FOV_MAX_BONUS = 8;       // graden
-export const FOV_FROM = 15, FOV_TO = 70; // m/s
-export const FOV_RATE = 2.2;           // per seconde naar het doel toe
+// de auto's halen 24-33 m/s (arcade): de toeslag moet daar al zichtbaar zijn, vliegtuigen zitten er ver boven
+const FOV_FROM = 12, FOV_TO = 36; // m/s
+const FOV_RATE = 2.2;           // per seconde naar het doel toe
 
 export function fovTarget(speed, fx = { cameraSway: 1 }) {
   if (!fx.cameraSway) return 0;
@@ -25,10 +26,10 @@ export function stepFov(cur, speed, dt, fx) {
 }
 
 // --- timescale-dip -----------------------------------------------------------------
-export const DIP_STRENGTH = 0.6;      // lastImpact.strength moet hierboven zijn
+const DIP_STRENGTH = 0.6;      // lastImpact.strength moet hierboven zijn
 export const DIP_SCALE = 0.3;
-export const DIP_MIN_MS = 60, DIP_MAX_MS = 90;
-export const DIP_GAP_S = 0.6;         // geen tweede dip meteen na de eerste
+const DIP_MIN_MS = 60, DIP_MAX_MS = 90;
+const DIP_GAP_S = 0.6;         // geen tweede dip meteen na de eerste
 
 export function makeDip() { return { until: 0, last: -99 }; }
 
@@ -69,10 +70,10 @@ export function jumpStep(a, now, pressed, grounded) {
 }
 
 // --- Rakelings ---------------------------------------------------------------------------
-export const NEAR_MIN_SPEED = 14;        // m/s (~50 km/u)
-export const NEAR_MAX_GAP = 1.2;         // m tussen de carrosserieen
+const NEAR_MIN_SPEED = 14;        // m/s (~50 km/u)
+const NEAR_MAX_GAP = 1.2;         // m tussen de carrosserieen
 export const NEAR_COOLDOWN_S = 12;       // per voertuigpaar
-export const NEAR_BONUS_MIN = 5, NEAR_BONUS_MAX = 15;
+const NEAR_BONUS_MIN = 5, NEAR_BONUS_MAX = 15;
 
 export function makeNearMiss() { return { at: new Map() }; }
 
