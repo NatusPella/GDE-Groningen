@@ -25,31 +25,38 @@ for (let i = 0; i < 25 && w.paused; i++) { await tap(' ', 'Space'); await sleep(
 out.gestart = document.body.classList.contains('game-started');
 await sleep(3000);
 
-// zeilboot in open water, de kop naar de ruimste kant, met de wind van opzij
+// zeilregatta: een zeilboot bij een jachthaven, E start, de eerste ton aanvaren
 try {
   hold = null; fix(14);
-  const GM = { x: 200.8, y: 45.4 }; let best = null;
-  const open = (x, y, a, d) => { for (let r = 10; r <= d; r += 10) { const wa = WL.waterAt(map, x + Math.cos(a) * r, y + Math.sin(a) * r); if (!(wa && wa.navigable && wa.depth > 1.5)) return r - 10; } return d; };
-  for (let r = 30; r < 1500; r += 30) for (let k = 0; k < 24; k++) {
-    const a = k / 24 * Math.PI * 2, x = GM.x + Math.cos(a) * r, y = GM.y + Math.sin(a) * r;
-    const wa = WL.waterAt(map, x, y); if (!(wa && wa.navigable && wa.depth > 1.5)) continue;
-    let bo = 0, bd = 0; for (let j = 0; j < 16; j++) { const h = j / 16 * Math.PI * 2, d = open(x, y, h, 120); if (d > bd) { bd = d; bo = h; } }
-    if (!best || bd > best.bd) best = { x, y, bd, a: bo };
-    if (best.bd >= 120) break;
+  await sleep(2500);
+  const lijst = window.__regatta.marinas(); out.havens = lijst.length;
+  const waterOk = (x, y) => { const q = WL.waterAt(map, x, y); return !!(q && q.navigable && q.depth > 1.5); };
+  const KB = await imp('regattabaan');
+  let gekozen = null;
+  for (const m of lijst) { const b = KB.kiesBaan(m.x, m.y, waterOk); if (b) { gekozen = { m, b }; break; } }
+  out.haven = gekozen && gekozen.m.name; out.baan = gekozen && gekozen.b.tonnen.map((t) => [Math.round(t.x), Math.round(t.y)]);
+  if (gekozen) {
+    const { m, b } = gekozen;
+    // begin in water naast de haven: het dichtstbijzijnde waterpunt rond het havenmidden
+    let sp = null; for (let r = 0; r < 120 && !sp; r += 6) for (let k = 0; k < 16 && !sp; k++) { const a2 = k / 16 * Math.PI * 2, x = m.x + Math.cos(a2) * r, y = m.y + Math.sin(a2) * r; if (waterOk(x, y)) sp = { x, y }; }
+    out.start = sp;
+    await go(sp.x, sp.y, 7000); hold = null;
+    const t0 = b.tonnen[0];
+    const v = new VH.Vehicle(sp.x, sp.y, Math.atan2(t0.y - sp.y, t0.x - sp.x), { ...BT.BOAT_KINDS.zeilboot }); v.isBoat = true; v.speed = 0; w.vehicles.push(v);
+    p.enterVehicle(v, w); await sleep(1200);
+    await tap('e', 'KeyE', 120); await sleep(800);
+    out.gestart = !!window.__regatta.state();
+    await snap('regatta-start');
+    // teleporteer de boot langs de tonnen (alleen de regels en de HUD controleren; het zeilen zelf staat los)
+    const trace = [];
+    for (let ronde = 0; ronde < 2; ronde++) for (let i = 0; i < b.tonnen.length; i++) {
+      v.x = b.tonnen[i].x; v.y = b.tonnen[i].y; await sleep(1100);
+      const st = window.__regatta.state(); trace.push(st ? [st.ronde, st.volgend] : null);
+      if (ronde === 0 && i === 1) await snap('regatta-onderweg');
+    }
+    out.trace = trace; await sleep(1500); out.klaar = !window.__regatta.state();
+    await snap('regatta-klaar');
+    if (p.inVehicle) p.exitVehicle(map, w);
   }
-  out.plek = best;
-  await go(best.x, best.y, 7000); hold = null;
-  const v = new VH.Vehicle(best.x, best.y, best.a, { ...BT.BOAT_KINDS.zeilboot }); v.isBoat = true; v.speed = 0; w.vehicles.push(v);
-  p.enterVehicle(v, w); await sleep(1000);
-  const SR = await imp('zeilrules');
-  const trace = [];
-  // zet de boot dwars op de wind (halve wind): de koers is windrichting + 90 graden
-  const wind0 = window.__wind || null; const dagN2 = 9;
-  key('keydown', 'w', 'KeyW');
-  for (let i = 0; i < 10; i++) { await sleep(1200); const wd = w.wind; trace.push({ v: +(v.speed || 0).toFixed(2), top: +(v.sailTop || 0).toFixed(2), hoek: wd ? Math.round(SR.windHoek(v.angle, wd) * 180 / Math.PI) : null, trim: +(v.zeilTrim || 0).toFixed(2) }); if (i === 3) await snap('zeil-vaart'); if (i === 4) await tap('q', 'KeyQ', 700); }
-  key('keyup', 'w', 'KeyW');
-  out.zeil = { trace, wijzer: !!(document.getElementById('windwijzer') || {}).hidden === false };
-  await snap('zeil-eind');
-  if (p.inVehicle) p.exitVehicle(map, w);
-} catch (e) { out.fouten.push('zeil: ' + e.message); }
+} catch (e) { out.fouten.push('regatta: ' + e.message); }
 return JSON.stringify(out);
