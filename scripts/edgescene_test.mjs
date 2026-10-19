@@ -68,7 +68,7 @@ ok(!after && Math.abs(sp.y - sy) < 800, 'sea: back by a few hundred metres, not 
 // every prop a scene asks for exists in the prop kit and builds (a canvas stub for the signs)
 await import('./node3d.mjs');
 const P = await import('../game/js/ommelandprops3d.js');
-globalThis.document = { createElement: () => ({ width: 0, height: 0, getContext: () => new Proxy({}, { get: (o, k) => (k === 'measureText' ? () => ({ width: 1 }) : () => {}), set: () => true }) }) };
+globalThis.document = { querySelector: () => null, head: { appendChild: () => {} }, createElement: () => ({ width: 0, height: 0, getContext: () => new Proxy({}, { get: (o, k) => (k === 'measureText' ? () => ({ width: 1 }) : () => {}), set: () => true }) }) };
 const used = new Set(Object.values(S.EDGE_SCENES).flatMap((sc) => sc.props.map((p) => p.kind)));
 for (const kind of used) {
   ok(P.EDGE_PROP_KINDS.includes(kind), 'prop kit has ' + kind);
@@ -77,3 +77,4 @@ for (const kind of used) {
 
 if (fails) { console.log(fails + ' failed'); process.exit(1); }
 console.log('edgescene: all passed');
+process.exit(0); // overlayhold.js start een interval bij het laden
