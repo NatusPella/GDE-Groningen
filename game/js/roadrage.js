@@ -1,4 +1,5 @@
-import { ejectDriver, lineOfSight } from './pedestrians.js';
+import { ejectDriver } from './pedestrians.js';
+import { lineOfSight } from './pedgeom.js';
 import { walkPed } from './sidejobkit.js';
 import { damagePlayer, WEAPONS } from './combat.js';
 import { knockFx } from './knockfx3d.js';

@@ -1,7 +1,7 @@
 import { dist, isInWater, closestPointOnSegment, pointInPolygon } from './util.js';
 import { findWalkPath } from './routing.js';
 import { trafficSignalsNear, pedestriansMayCross, getTrafficLights } from './trafficlights.js';
-import { isInsideBuilding, isOnRoad, setPedPose, lineOfSight } from './pedestrians.js';
+import { isInsideBuilding, isOnRoad, setPedPose, lineOfSight } from './pedgeom.js';
 import { findProps, isPropBroken } from './breakables.js';
 import { SpatialGrid } from './spatialgrid.js';
 import { markZebraUser, zebraSpeedLimit } from './trafficyield.js';

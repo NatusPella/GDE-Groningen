@@ -1,7 +1,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { fitText as sharedFitText } from './canvastex.js';
 import { buildHorseMesh } from './countryside.js';
-import { isInsideBuilding, isOnRoad } from './pedestrians.js';
+import { isInsideBuilding, isOnRoad } from './pedgeom.js';
 import { isInWater, pointInPolygon } from './util.js';
 import { BILLBOARD_SLOGANS, KROLBRUG_SIGNS, OOSTERPARK_PLAQUE } from './flavourlines.js';
 import { KROLBRUG, PLANTSOEN, GROTE_MARKT, OOSTERPARK, krolLevel } from './flavour.js';

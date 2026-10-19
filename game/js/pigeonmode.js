@@ -3,7 +3,7 @@ import { getScene } from './scene3d.js';
 import { buildBuildingMesh } from './models3d_buildings.js';
 import { onLandmarkModelLoaded } from './landmarkmodels.js';
 import { getSettings } from './settings.js';
-import { pushAudioEvent } from './pedestrians.js';
+import { pushAudioEvent } from './pedgeom.js';
 import { unlockAchievement } from './achievements.js';
 import { saveGame } from './savehook.js';
 import { pointInPolygon, isInWater, clamp, angleLerp, normalizeAngle, WATER_Y } from './util.js';

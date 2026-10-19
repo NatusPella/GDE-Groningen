@@ -1,7 +1,7 @@
 import { showBanner } from './cinematics.js';
 import { unlockAchievement, recordChallengeResult, getChallengeRecord, recordStat, setStatMax, MEDALS } from './achievements.js';
 import { showCard } from './hudcards.js';
-import { pushAudioEvent } from './pedestrians.js';
+import { pushAudioEvent } from './pedgeom.js';
 import { standActivity, recLine } from './standactivity.js';
 import { createBoard, key, bubble, clearBubbles, pick, stopPressed, geo } from './minigamekit.js';
 import { HENGEL_LINES } from './minigamelines3.js';

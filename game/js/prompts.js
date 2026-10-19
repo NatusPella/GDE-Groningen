@@ -16,7 +16,7 @@ import { isPadActive, padState } from './gamepad.js';
 import { getUiScale } from './uiscale.js';
 import { isPhoneOpen } from './phone.js';
 import { isPauseMenuOpen } from './pausestate.js';
-import { lineOfSight } from './pedestrians.js';
+import { lineOfSight } from './pedgeom.js';
 import { pigeonSpotPrompt, pigeonSpotSecondary } from './pigeonspots.js';
 import { sideJobPrompt, sideJobSecondary } from './sidejobs.js';
 import { stationPrompt, stationSecondary } from './stationtravel.js';

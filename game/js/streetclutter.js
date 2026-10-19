@@ -1,7 +1,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { fitText as sharedFitText } from './canvastex.js';
 import { GeoBuilder, composeMatrix, tubeGeometry, HABBO_PALETTE } from './pixelart3d.js';
-import { isInsideBuilding, isOnRoad } from './pedestrians.js';
+import { isInsideBuilding, isOnRoad } from './pedgeom.js';
 import { isInWater, closestPointOnSegment } from './util.js';
 import { railingItems, hasRailings, RAIL_KIND, RAIL_HALF } from './bridgerails.js';
 import { yieldArms } from './junctions.js';
