@@ -1464,7 +1464,7 @@ let facadeDetailDist = Infinity, facadeDetailCulled = false, facadeQualityDist =
 // gfxprofile.js cpuLevel (a busy machine): fewer facade details
 const CPU_FACADE_DIST = [Infinity, 100, 70];
 let shadowFrame = 0;
-let focusSpeed = 0, focusPrevX = null, focusPrevY = 0;
+let focusSpeed = 0, focusPrevX = null, focusPrevY = 0, focusDirX = 1, focusDirY = 0;
 let roadDetailR = DRAW_DIST;
 let buildingsStaged = false;
 function noteStreamJump(px, py) {
@@ -1661,14 +1661,18 @@ function syncRoads(world, px, py) {
   for (const r of view) {
     if (roadMeshes.has(r)) continue;
     const [x0, y0, x1, y1] = r.bounds || [px, py, px, py];
-    missing.push([Math.hypot(Math.max(x0 - px, 0, px - x1), Math.max(y0 - py, 0, py - y1)), r]);
+    const d = Math.hypot(Math.max(x0 - px, 0, px - x1), Math.max(y0 - py, 0, py - y1));
+    // at speed what lies ahead goes first (#247): up to 8 s of travel off the distance of a road in the heading
+    let key = d;
+    if (focusSpeed > 4 && d > 1) key -= Math.min(focusSpeed * 8, 400) * Math.max(0, ((x0 + x1) / 2 - px) * focusDirX + ((y0 + y1) / 2 - py) * focusDirY) / Math.hypot((x0 + x1) / 2 - px, (y0 + y1) / 2 - py || 1);
+    missing.push([key, r, d]);
   }
   roadDetailR = DRAW_DIST;
   if (missing.length) {
     missing.sort((a, b) => a[0] - b[0]);
     const deadline = performance.now() + (performance.now() < streamBoostUntil ? ROAD_BUILD_MS * 2 : ROAD_BUILD_MS);
     let built = 0, waiting = false;
-    for (const [d, r] of missing) {
+    for (const [, r, d] of missing) {
       // surfaces still coming from the geometry worker: the far LOD covers
       // from the nearest of them on (requested now, nearest first)
       if (!roadGeometryReady(r)) { if (!waiting) roadDetailR = Math.max(24, d); waiting = true; continue; }
@@ -2031,7 +2035,7 @@ export function update3D(dt, world) {
   syncBuildings(world, focus.x, focus.y);
   if (!NO_BATCH) {
     buildingBatcher.update({ scene, meshes: buildingMeshes, hidden: hiddenBuildings, px: focus.x, py: focus.y, detailR: buildingDetailR, drawDist: DRAW_DIST,
-      withDetail: facadeDetailDist >= DRAW_DIST, budgetMs: performance.now() < streamBoostUntil ? 1 : 2 });
+      withDetail: facadeDetailDist >= DRAW_DIST, budgetMs: performance.now() < streamBoostUntil ? 1 : 3 });
     if (facadeDetailDist < DRAW_DIST) {
       facadeBatcher.update({ scene, meshes: buildingMeshes, hidden: hiddenBuildings, px: focus.x, py: focus.y, detailR: Math.min(facadeDetailDist, buildingDetailR), drawDist: DRAW_DIST,
         withDetail: true, budgetMs: 1 });
@@ -2052,7 +2056,7 @@ export function update3D(dt, world) {
   // not lying closed is hidden and left out of the road batches
   if (getMovableBridges().length && !bridgeViews) { initMovableBridges3D(scene, world.map); bridgeViews = true; }
   openBridgeRoads(openSpans);
-  if (!NO_BATCH) roadBatcher.update({ scene, meshes: roadMeshes, hidden: openSpans.size ? openSpans : null, px: focus.x, py: focus.y, detailR: DRAW_DIST, drawDist: DRAW_DIST, withDetail: true, budgetMs: 1 });
+  if (!NO_BATCH) roadBatcher.update({ scene, meshes: roadMeshes, hidden: openSpans.size ? openSpans : null, px: focus.x, py: focus.y, detailR: DRAW_DIST, drawDist: DRAW_DIST, withDetail: true, budgetMs: 3 });
   for (const b of getMovableBridges()) { const m = roadMeshes.get(b.r); if (m) m.visible = !openSpans.has(b.r); }
   updateMovableBridges3D(focus.x, focus.y, waterNight);
   updateSluizen3D(scene, focus.x, focus.y, waterNight);
@@ -3242,7 +3246,10 @@ function updateEnvironment(dt) {
 // shadow-map texels in light space so edges don't crawl as the player moves.
 function updateSunAndSky(player, dt) {
   // how fast the focus moves: a fast one must not skip shadow passes
-  if (focusPrevX !== null && dt > 0) focusSpeed = Math.hypot(player.x - focusPrevX, player.y - focusPrevY) / dt;
+  if (focusPrevX !== null && dt > 0) {
+    focusSpeed = Math.hypot(player.x - focusPrevX, player.y - focusPrevY) / dt;
+    if (focusSpeed > 4) { focusDirX = (player.x - focusPrevX) / (focusSpeed * dt); focusDirY = (player.y - focusPrevY) / (focusSpeed * dt); }
+  }
   focusPrevX = player.x; focusPrevY = player.y;
   _lightRight.crossVectors(_yAxis, sunDir);
   if (_lightRight.lengthSq() < 1e-8) _lightRight.set(1, 0, 0);

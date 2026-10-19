@@ -74,20 +74,56 @@ function startJob(B, c, list, withDetail) {
       }
     }
   }
-  B.job = { c, list, withDetail, pieces, i: 0, buckets: new Map() };
+  B.job = { c, list, withDetail, pieces, i: 0, buckets: new Map(), bake: !!B.bake };
 }
 
 const _v = new THREE.Vector3();
 const _n = new THREE.Matrix3();
 let remap = new Int32Array(1024);
 
+// Materials that differ only in colour share one batch material: the colour
+// is baked into a vertex colour (linear, the same numbers the shader would
+// multiply), so a cell draws one mesh per kind of material instead of one per
+// colour (only for the buildings and their facade details: the road materials draw their paving through their own shader and lose it). A cell of 48 m held about six wall colours: ~6 draw calls (and as
+// many in the shadow pass) became ~2 (docs/PERF-METING-2026-10-19.md).
+function bakeSig(m) {
+  if (m.userData.bakeSig !== undefined) return m.userData.bakeSig;
+  let s = null;
+  if (m.isMeshStandardMaterial && !m.isMeshPhysicalMaterial && !m.vertexColors && !m.transparent && m.color && !m.lightMap && !m.aoMap && !m.normalMap
+    && !m.bumpMap && !m.envMap && !m.emissiveMap && !m.roughnessMap && !m.metalnessMap && !m.alphaMap && !m.userData.noBake) {
+    s = [m.map ? m.map.uuid : '', m.roughness, m.metalness, m.emissive.getHex(), m.emissiveIntensity, m.flatShading ? 1 : 0, m.side, m.shadowSide ?? '', m.opacity, m.alphaTest,
+      m.polygonOffset ? `${m.polygonOffsetFactor},${m.polygonOffsetUnits}` : '', m.depthWrite ? 1 : 0, m.depthTest ? 1 : 0, m.envMapIntensity, m.fog ? 1 : 0, m.toneMapped ? 1 : 0,
+      m.customProgramCacheKey ? m.customProgramCacheKey() : '', m.onBeforeCompile ? m.onBeforeCompile.toString().length : ''].join('|');
+  }
+  m.userData.bakeSig = s;
+  return s;
+}
+const bakedMats = new Map();
+function bakedMaterial(rep, sig) {
+  let b = bakedMats.get(sig);
+  if (!b) {
+    b = rep.clone();
+    b.color.setRGB(1, 1, 1);
+    b.vertexColors = true;
+    b.userData.shared = true;
+    b.userData.bakeSig = null;
+    b.onBeforeCompile = rep.onBeforeCompile;
+    const ck = rep.customProgramCacheKey;
+    b.customProgramCacheKey = () => (ck ? ck.call(rep) : '') + '|bakedcolor';
+    bakedMats.set(sig, b);
+  }
+  return b;
+}
+
 function addPiece(job, pc) {
   const { g, mat, part } = pc;
-  const key = `${mat.uuid}|${part.castShadow ? 1 : 0}|${attrSig(g)}`;
+  const sig = job.bake && !g.attributes.color ? bakeSig(mat) : null;
+  const key = sig ? `bake|${sig}|${part.castShadow ? 1 : 0}|${attrSig(g)}` : `${mat.uuid}|${part.castShadow ? 1 : 0}|${attrSig(g)}`;
   let bk = job.buckets.get(key);
   if (!bk) {
     const names = Object.keys(g.attributes);
-    job.buckets.set(key, bk = { mat, cast: part.castShadow, names, norm: names.map((k) => g.attributes[k].normalized), chunks: [], verts: 0, idx: 0 });
+    if (sig) names.push('color');
+    job.buckets.set(key, bk = { mat: sig ? bakedMaterial(mat, sig) : mat, cast: part.castShadow, names, norm: names.map((k) => (k === 'color' && sig ? false : g.attributes[k].normalized)), chunks: [], verts: 0, idx: 0, bake: !!sig });
   }
   const nV = g.attributes.position.count;
   const end = Math.min(pc.start + pc.count, g.index ? g.index.count : nV);
@@ -114,6 +150,12 @@ function addPiece(job, pc) {
   if (!ident) _n.getNormalMatrix(M);
   const data = {};
   for (const name of bk.names) {
+    if (bk.bake && name === 'color') {
+      const col = new Float32Array(verts.length * 3);
+      for (let j = 0; j < verts.length; j++) { col[j * 3] = mat.color.r; col[j * 3 + 1] = mat.color.g; col[j * 3 + 2] = mat.color.b; }
+      data[name] = col;
+      continue;
+    }
     const a = g.attributes[name];
     const n = a.itemSize;
     const out = new a.array.constructor(verts.length * n);
@@ -224,7 +266,7 @@ function finishJob(B) {
 // margin), how many newcomers redo a merged cell (default 3), and the
 // item's distance (default: from its bounds' centre).
 export function createStaticBatcher(opts) {
-  const B = { name: opts.name, cells: new Map(), job: null, frame: 0, root: null, stats: { cells: 0, merged: 0, builds: 0, dropped: 0 } };
+  const B = { name: opts.name, bake: !!opts.bake, cells: new Map(), job: null, frame: 0, root: null, stats: { cells: 0, merged: 0, builds: 0, dropped: 0 } };
   const cell = opts.cell || CELL, minMembers = opts.minMembers || MIN_MEMBERS;
   const memberOk = (m, ctx, dist) => ctx.meshes.get(m.b) === m.mesh && !(ctx.hidden && ctx.hidden.has(m.b)) && m.mesh.parent && verOf(m.parts) === m.ver && opts.valid(m.b, m.mesh, ctx, dist);
 
@@ -337,6 +379,7 @@ export function mergeAtOnce(list, withDetail = true) {
 // buildings: never past their detail radius (the far LOD draws them there)
 export const buildingBatcher = createStaticBatcher({
   name: 'building-batch',
+  bake: true,
   eligible: (b, mesh) => !b.landmark && mesh.position.y === 0,
   valid: (b, mesh, ctx, dist) => dist(b) <= ctx.detailR - 1,
 });
@@ -346,6 +389,7 @@ export const buildingBatcher = createStaticBatcher({
 // detailR is the facade detail radius here
 export const facadeBatcher = createStaticBatcher({
   name: 'facade-batch',
+  bake: true,
   part: (mesh) => mesh.userData.facadeDetail,
   eligible: (b, mesh) => !b.landmark && mesh.position.y === 0 && !!mesh.userData.facadeDetail,
   valid: (b, mesh, ctx, dist) => dist(b) <= ctx.detailR - 1,

@@ -50,8 +50,8 @@ try {
     // teleporteer de boot langs de tonnen (alleen de regels en de HUD controleren; het zeilen zelf staat los)
     const trace = [];
     for (let ronde = 0; ronde < 2; ronde++) for (let i = 0; i < b.tonnen.length; i++) {
-      v.x = b.tonnen[i].x; v.y = b.tonnen[i].y; await sleep(1100);
-      const st = window.__regatta.state(); trace.push(st ? [st.ronde, st.volgend] : null);
+      for (let q = 0; q < 8; q++) { v.x = b.tonnen[i].x; v.y = b.tonnen[i].y; v.speed = 0; await sleep(140); }
+      const st = window.__regatta.state(); trace.push(st ? [st.ronde, st.volgend, Math.round(v.x), Math.round(v.y), Math.round(p.x), Math.round(p.y), !!p.inVehicle, !!(p.inVehicle && p.inVehicle.model.zeil), Math.round(Math.hypot(v.x - b.tonnen[i].x, v.y - b.tonnen[i].y))] : null);
       if (ronde === 0 && i === 1) await snap('regatta-onderweg');
     }
     out.trace = trace; await sleep(1500); out.klaar = !window.__regatta.state();

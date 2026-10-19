@@ -75,13 +75,14 @@ function finish(w, { quit = false } = {}) {
   removeMeshes();
   if (board) board.hide();
   if (quit) { w.addMessage('Regatta gestopt', 2.5); return; }
-  const rr = r.reg, medal = regattaMedaille(rr);
+  // regattaMedaille: 1 = goud ... 3 = brons; MEDALS en de records tellen andersom (3 = goud)
+  const rr = r.reg, rm = regattaMedaille(rr), medal = rm ? 4 - rm : 0;
   const rec = recordChallengeResult(w, 'regatta', { value: rr.tijd, medal, lower: true });
   recordStat(w, 'regatta');
   const stats = [['Tijd', fmtTime(rr.tijd)], ['Richttijd', fmtTime(rr.richttijd)], ['Tonnen', String(rr.gerond)]];
   if (medal) stats.push(['Medaille', MEDALS[medal]]);
   if (rec && rec.newBest) stats.push(['Record', 'Nieuw!']);
-  showBanner({ kind: medal ? 'pass' : 'fail', title: medal === 1 ? 'WINNAAR VAN DE REGATTA' : medal ? 'MOOI GEVAREN' : 'UITGEVAREN', reason: medal ? 'Twee rondes langs alle tonnen' : 'Je was niet snel genoeg voor een medaille: let op de wind', reward: 0, stats });
+  showBanner({ kind: medal ? 'pass' : 'fail', title: medal === 3 ? 'WINNAAR VAN DE REGATTA' : medal ? 'MOOI GEVAREN' : 'UITGEVAREN', reason: medal ? 'Twee rondes langs alle tonnen' : 'Je was niet snel genoeg voor een medaille: let op de wind', reward: 0, stats });
 }
 
 function start(w) {
