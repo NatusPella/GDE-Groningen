@@ -24,7 +24,7 @@ Elke sessie is 45 tot 60 minuten. Een tester speelt één scenario; verdeel de s
 | E. Akte 5 en slot | Save bij M22 | 45 min | Luik, colonne, vlag, bakken, het ontzet en de epiloog. |
 | F. Vrij spelen | Nieuw spel, na M06 | 30 min | Wat doet men zonder opdracht: activiteiten, bijbanen, rondrijden, varen. |
 
-Saves voor B tot en met E maak je met de cheats of door te spelen; zet ze in het wegwerpprofiel, niet in de repo.
+Saves voor B tot en met E maak je met het F9-paneel van `?dev` (hoofdstuk kiezen springt naar een stap met het geld en de voortgang die een speler daar zou hebben), of door te spelen; dev-runs gebruiken eigen `gde-dev:`-opslag. Zet ze in het wegwerpprofiel, niet in de repo.
 
 ## Observatielijst (invullen tijdens het kijken)
 

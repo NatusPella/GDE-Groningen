@@ -4,7 +4,7 @@
 // gaat via een download-link naar de map van de speler, in de opslag staat alleen
 // een klein voorbeeld (gde-galerij-v1). Toetsen: WASD lopen, pijlen kijken,
 // Spatie/Ctrl omhoog/omlaag, Shift sneller, F filter, G raster, T weer,
-// , en . tijd, [ en ] zoom, Enter/klik foto, Esc of F8 terug.
+// , en . tijd, [ en ] zoom, Q en E kantelen, Z en X scherptediepte, Enter/klik foto, Esc of F8 terug.
 import * as F from './fotomodus.js';
 import { getRenderer } from './scene3d.js';
 import { storyDate } from './calendarday.js';
@@ -38,7 +38,7 @@ function onKey(e) {
   if (e.type === 'keyup') { keysDown.delete(k); return; }
   keysDown.add(k);
   if (k === 'escape' || k === 'f8') { stopPhotoMode(photo.world); e.stopImmediatePropagation(); e.preventDefault(); return; }
-  if (e.repeat) { if (k === ',' || k === '.' || k === '[' || k === ']') stepSetting(k); return; }
+  if (e.repeat) { if (',.[]qezx'.includes(k) && k.length === 1) stepSetting(k); return; }
   if (k === 'enter') shoot = true;
   else if (k === 'f') { F.cycleFilter(photo.p, e.shiftKey ? -1 : 1); say(F.FILTERS.find((x) => x.id === photo.p.filter).naam); }
   else if (k === 'g') photo.p.grid = !photo.p.grid;
@@ -50,6 +50,8 @@ function stepSetting(k) {
   const p = photo.p;
   if (k === ',') p.hour -= 0.25; else if (k === '.') p.hour += 0.25;
   else if (k === '[') p.fov += 3; else if (k === ']') p.fov -= 3;
+  else if (k === 'q') p.cam.roll -= 0.03; else if (k === 'e') p.cam.roll += 0.03;
+  else if (k === 'z') p.dof -= 0.1; else if (k === 'x') p.dof += 0.1;
   else return;
   F.clampPhoto(p);
   if (k === ',' || k === '.') photo.world.clock = p.hour;
@@ -95,7 +97,7 @@ export function stopPhotoMode(world) {
   if (w.weather && saved.weather) Object.assign(w.weather, saved.weather);
   document.body.classList.remove('cine-hide-hud', 'foto-actief');
   const r = getRenderer();
-  if (r) r.domElement.style.filter = '';
+  if (r) { r.domElement.style.filter = ''; r.domElement.style.transform = ''; }
   if (overlay) { overlay.remove(); overlay = null; }
   photo = null; saved = null; shoot = false; keysDown.clear(); pointers.clear(); lookDx = lookDy = 0;
 }
@@ -103,7 +105,7 @@ export function stopPhotoMode(world) {
 function buildOverlay() {
   overlay = document.createElement('div');
   overlay.id = 'foto-ui';
-  overlay.innerHTML = '<div class="foto-look"></div><div class="foto-grid" hidden></div><div class="foto-pad">' +
+  overlay.innerHTML = '<div class="foto-look"></div><div class="foto-grid" hidden></div><div class="foto-dof" hidden></div><div class="foto-pad">' +
     [['w', 'Vooruit'], ['s', 'Achteruit'], ['a', 'Links'], ['d', 'Rechts'], [' ', 'Omhoog'], ['control', 'Omlaag']].map(([k, l]) => `<button type="button" class="foto-btn foto-mv" data-foto-mv="${k}">${l}</button>`).join('') +
     '</div><div class="foto-bar"></div><div class="foto-note"></div>';
   wireTouch(overlay);
@@ -145,12 +147,24 @@ function renderBar() {
   const p = photo.p;
   const bar = overlay.querySelector('.foto-bar');
   bar.innerHTML =
-    `<span class="foto-info">${esc(F.hourLabel(p.hour))} · ${esc(F.weatherLabel(p))} · ${esc(F.FILTERS.find((f) => f.id === p.filter).naam)} · beeldhoek ${Math.round(p.fov)}°</span>` +
-    KEYBTN('Enter', 'Foto') + KEYBTN('F', 'Filter') + KEYBTN('T', 'Weer') + KEYBTN(', .', 'Tijd') + KEYBTN('[ ]', 'Inzoomen') + KEYBTN('G', 'Raster') +
+    `<span class="foto-info">${esc(F.hourLabel(p.hour))} · ${esc(F.weatherLabel(p))} · ${esc(F.FILTERS.find((f) => f.id === p.filter).naam)} · beeldhoek ${Math.round(p.fov)}°${p.cam.roll ? ` · kanteling ${Math.round(p.cam.roll * 57.3)}°` : ''}${p.dof > 0 ? ` · scherptediepte ${Math.round(p.dof * 10)}` : ''}</span>` +
+    KEYBTN('Enter', 'Foto') + KEYBTN('F', 'Filter') + KEYBTN('T', 'Weer') + KEYBTN(', .', 'Tijd') + KEYBTN('[ ]', 'Inzoomen') + KEYBTN('Q E', 'Kantelen') + KEYBTN('Z X', 'Scherptediepte') + KEYBTN('G', 'Raster') +
     '<button type="button" class="foto-btn" data-foto-shoot>Foto maken</button><button type="button" class="foto-btn" data-foto-stop>Terug</button>';
   overlay.querySelector('.foto-grid').hidden = !p.grid;
+  const dof = overlay.querySelector('.foto-dof');
+  dof.hidden = p.dof <= 0;
+  if (p.dof > 0) dof.style.setProperty('--foto-dof', `${(p.dof * 7).toFixed(1)}px`);
   const n = overlay.querySelector('.foto-note');
   n.textContent = noteT > 0 ? note : '';
+}
+
+// kanteling: de kaart draait en wordt net genoeg vergroot dat de hoeken gevuld blijven
+function rollCss(p) {
+  const a = p.cam.roll;
+  if (!a) return '';
+  const ar = (window.innerWidth || 16) / Math.max(1, window.innerHeight || 9);
+  const s = Math.cos(Math.abs(a)) + Math.sin(Math.abs(a)) * Math.max(ar, 1 / ar);
+  return `rotate(${a}rad) scale(${s.toFixed(3)})`;
 }
 
 function pose(p) {
@@ -175,10 +189,25 @@ export function updatePhotoMode(dt, world) {
   lookDx = 0; lookDy = 0;
   w.cameraOverride = pose(p);
   const r = getRenderer();
-  if (r) r.domElement.style.filter = F.filterCss(p);
+  if (r) { r.domElement.style.filter = F.filterCss(p); r.domElement.style.transform = rollCss(p); }
   if (noteT > 0) noteT -= dt;
   if (shoot) { shoot = false; takeShot(world); }
   renderBar();
+}
+
+// dezelfde waas als op het scherm: scherp in het midden, zachter naar de randen
+function blurEdges(cv, dof) {
+  const tmp = document.createElement('canvas');
+  tmp.width = cv.width; tmp.height = cv.height;
+  const t = tmp.getContext('2d');
+  t.filter = `blur(${(dof * 7 * cv.width / Math.max(1, window.innerWidth || cv.width)).toFixed(1)}px)`;
+  t.drawImage(cv, 0, 0);
+  t.filter = 'none';
+  t.globalCompositeOperation = 'destination-in';
+  const g = t.createRadialGradient(cv.width / 2, cv.height / 2, cv.height * 0.22, cv.width / 2, cv.height / 2, cv.height * 0.75);
+  g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(0,0,0,1)');
+  t.fillStyle = g; t.fillRect(0, 0, cv.width, cv.height);
+  cv.getContext('2d').drawImage(tmp, 0, 0);
 }
 
 function takeShot(world) {
@@ -189,7 +218,14 @@ function takeShot(world) {
   out.width = src.width; out.height = src.height;
   const ctx = out.getContext('2d');
   ctx.filter = F.filterCss(photo.p);
+  const a = photo.p.cam.roll;
+  if (a) {
+    const ar = out.width / out.height, sc = Math.cos(Math.abs(a)) + Math.sin(Math.abs(a)) * Math.max(ar, 1 / ar);
+    ctx.translate(out.width / 2, out.height / 2); ctx.rotate(a); ctx.scale(sc, sc); ctx.translate(-out.width / 2, -out.height / 2);
+  }
   ctx.drawImage(src, 0, 0);
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  if (photo.p.dof > 0) blurEdges(out, photo.p.dof);
   const th = document.createElement('canvas');
   th.width = 160; th.height = Math.max(1, Math.round(160 * src.height / Math.max(1, src.width)));
   th.getContext('2d').drawImage(out, 0, 0, th.width, th.height);
