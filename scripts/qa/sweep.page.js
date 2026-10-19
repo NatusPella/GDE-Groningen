@@ -120,10 +120,11 @@ async function shot(name, wait = 700) {
   await sleep(700);
 }
 async function logStop(stop, extra) {
+  // the driver reads the records from the returned JSON (a plain console.log line does not reach the run log)
   const rec = { name: stop.name, cat: stop.cat, clock: env.clock, weather: (env.weather && env.weather.kind) || 'helder', ...extra, scene: sceneChecks(), hud: hudChecks() };
   const fresh = errors.slice(errSeen); errSeen = errors.length;
   if (fresh.length) rec.errors = fresh.slice(0, 5);
-  console.log('[sweep-stop] ' + JSON.stringify(rec));
+  results.push(rec);
   return rec;
 }
 
@@ -147,7 +148,7 @@ for (const S of SW.plan) {
       const inWater = !!WL.waterAt(map, s.x, s.y), inBuilding = !!TP.buildingAt(map, s.x, s.y, 0);
       const info = { at: [Math.round(s.x), Math.round(s.y)], street: s.street, snapDist: s.d, ground: gz, pz: p.z, place: place && place.name, inWater, inBuilding };
       await shot(S.name + '-straat');
-      results.push(await logStop(S, info));
+      await logStop(S, info);
       // high shot: 28 m up, 40 m behind, looking 30 m ahead
       const cx = Math.cos(s.a), cy = Math.sin(s.a), base = gz || 0;
       const pose = { position: { x: s.x - cx * 40, y: s.y - cy * 40, z: base + 28 }, lookAt: { x: s.x + cx * 30, y: s.y + cy * 30, z: base }, cut: true };
@@ -192,11 +193,11 @@ for (const S of SW.plan) {
       if (cine.isCinematicActive()) cine.skipCinematic();
     }
   } catch (err) {
-    console.log('[sweep-stop] ' + JSON.stringify({ name: S.name, cat: S.cat, fout: String(err && err.stack || err).slice(0, 300) }));
+    results.push({ name: S.name, cat: S.cat, fout: String(err && err.stack || err).slice(0, 300) });
     skipCine = true; ownShot = false; hold = null;
     try { if (cine.isCinematicActive()) cine.skipCinematic(); if (PM.isPauseMenuOpen()) PM.closePauseMenu(); } catch (e2) { /* verder */ }
   }
 }
 hold = null; done = true; clearInterval(skipper);
 console.error = origErr;
-return JSON.stringify({ stops: results.length });
+return JSON.stringify({ stops: results });

@@ -126,11 +126,12 @@ for (const deel of PARTS) {
   if (deel === 'wereld') log = await runPart(deel, `window.__sw = ${JSON.stringify({ plan: plan.wereld, settle: SETTLE })};\n`, 'sweep.page.js');
   else if (deel === 'verhaal') log = await runPart(deel, `window.__sw = ${JSON.stringify({ plan: plan.verhaal, settle: SETTLE })};\n`, 'sweep.page.js', { GDE_NIEUW_VERHAAL: '1' });
   else if (deel === 'cut') log = await runPart(deel, `window.__cs = ${JSON.stringify({ sample: plan.cut, settle: SETTLE })};\n`, 'cutscene_shots.page.js');
-  for (const l of log.split(/\r?\n/)) {
-    let m = l.match(/\[sweep-stop\] (.*)$/);
-    if (m) { try { stops.push({ deel, ...JSON.parse(m[1]) }); } catch { /* ingekort */ } }
-    m = l.match(/^\[(cs-scene|cs-clip|cs-sample)\] (.*)$/);
-    if (m) csInfo.push(l);
+  let ret = {};
+  for (const l of log.split(/\r?\n/)) { const m = l.match(/^\[perf-script\] (.*)$/); if (m) try { ret = JSON.parse(m[1]); } catch { /* laatste regel telt */ } }
+  for (const r of ret.stops || []) stops.push({ deel, ...r });
+  for (const [id, r] of Object.entries(ret.results || {})) {
+    csInfo.push(`${id}: ${r.fout ? 'fout ' + r.fout : r.shots + ' beelden'}${r.clip ? ', camera in gebouw/grond op t=' + r.clip.slice(0, 8).join(',') : ''}`);
+    if (r.fout) stops.push({ deel, name: id, fout: r.fout });
   }
   // NaN / foutregels uit het hoofdproces
   stops.push({ deel, name: `log-${deel}`, logregels: log.split(/\r?\n/).filter((l) => /NaN|Cannot access .* before initialization|Uncaught|TypeError|ReferenceError/.test(l) && !/sweep-stop|perf-script/.test(l)).filter((l, i, a) => a.indexOf(l) === i).slice(0, 12) });
@@ -156,7 +157,7 @@ for (const s of stops) {
   if (!s.scene) continue;
   if (s.scene.nan) vlaggen.push({ naam: s.name, vlag: `NaN-geometrie in ${s.scene.nan} meshes` });
   if (s.scene.noTex) vlaggen.push({ naam: s.name, vlag: `texture ontbreekt (${s.scene.badTex.join(', ')})` });
-  if (s.scene.calls !== null && s.scene.calls < 25 && s.cat !== 'waddenzee') vlaggen.push({ naam: s.name, vlag: `bijna lege wereld (${s.scene.calls} draw calls)` });
+  if (s.scene.meshes < 300 && s.cat !== 'waddenzee') vlaggen.push({ naam: s.name, vlag: `bijna lege wereld (${s.scene.meshes} zichtbare meshes)` });
   if (s.hud && s.hud.clip.length) vlaggen.push({ naam: s.name, vlag: `HUD buiten beeld: ${s.hud.clip.map((c) => c.text).join(' | ')}` });
   if (s.hud && s.hud.overlap.length) vlaggen.push({ naam: s.name, vlag: `HUD-tekst overlapt: ${s.hud.overlap.map((o) => o.join(' / ')).join(' | ')}` });
   if (s.inWater && s.cat !== 'waddenzee') vlaggen.push({ naam: s.name, vlag: 'speler staat in water' });
@@ -165,9 +166,9 @@ for (const s of stops) {
   if (s.errors) vlaggen.push({ naam: s.name, vlag: `consolefouten: ${s.errors.join(' | ').slice(0, 300)}` });
   if (s.deel === 'verhaal' && s.jumped === false) vlaggen.push({ naam: s.name, vlag: `sprong naar ${s.step} mislukt` });
 }
-for (const l of csInfo) if (l.startsWith('[cs-clip]')) vlaggen.push({ naam: 'cutscene', vlag: l.slice(10) });
+for (const l of csInfo) if (/camera in gebouw/.test(l)) vlaggen.push({ naam: 'cutscene', vlag: l });
 fs.writeFileSync(path.join(OUT, 'bevindingen.json'), JSON.stringify({ seed: SEED, beelden, stops, vlaggen, cutscenes: csInfo }, null, 1));
 
-const md = [`# Sweep seed ${SEED}`, '', `Beelden: ${beelden.length}; plekken/stappen gelogd: ${stops.filter((s) => s.scene).length}; vlaggen: ${vlaggen.length}.`, '**Geen van deze beelden is door een mens bekeken**; de vlaggen zijn automatisch. Beeldverdicten tellen alleen zwart, leeg en ongeldig.', '', '## Vlaggen', ...vlaggen.map((v) => `- ${v.naam}: ${v.vlag}`), '', '## Logboek', ...stops.filter((s) => s.scene).map((s) => `- ${s.name} (${s.cat}) klok ${s.clock}, ${s.weather}${s.plaats || s.place ? ', bij ' + (s.place || s.plaats) : ''}${s.step ? ', stap ' + s.step : ''}${s.at ? ', op ' + s.at.join(',') : ''}`), ...csInfo.filter((l) => l.startsWith('[cs-sample]'))];
+const md = [`# Sweep seed ${SEED}`, '', `Beelden: ${beelden.length}; plekken/stappen gelogd: ${stops.filter((s) => s.scene).length}; vlaggen: ${vlaggen.length}.`, '**Geen van deze beelden is door een mens bekeken**; de vlaggen zijn automatisch. Beeldverdicten tellen alleen zwart, leeg en ongeldig.', '', '## Vlaggen', ...vlaggen.map((v) => `- ${v.naam}: ${v.vlag}`), '', '## Logboek', ...stops.filter((s) => s.scene).map((s) => `- ${s.name} (${s.cat}) klok ${s.clock}, ${s.weather}${s.plaats || s.place ? ', bij ' + (s.place || s.plaats) : ''}${s.step ? ', stap ' + s.step : ''}${s.at ? ', op ' + s.at.join(',') : ''}`), '', '## Cutscenes', ...csInfo.map((l) => `- ${l}`)];
 fs.writeFileSync(path.join(OUT, 'logboek.md'), md.join('\n') + '\n');
 console.log(`beelden: ${beelden.length}, vlaggen: ${vlaggen.length}; uitvoer: ${OUT}`);
