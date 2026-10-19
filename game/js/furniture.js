@@ -38,7 +38,7 @@ const SCREW_FROM = 231;
 const SCREWS = 8;
 const TV_RANGE = 5.5;
 
-export const FURNITURE = [
+const FURNITURE = [
   { id: 'kast', short: 'Buukenkaas', label: 'Boekenkast "Buukenkaas"', price: 49, desc: 'Plat verpakt, 238 schroefjes, 1 te weinig',
     perk: 'Elke dag 3 eierbal-tips op de kaart', stat: ['Eierbal-tips', '3 per dag'], flatpack: true,
     at: { x: 0.36, z: 2.6, rot: Math.PI / 2, fit: 'h', size: 1.9 }, solid: [0.1, 1.95, 0.66, 3.25], use: { x: 1.15, z: 2.6 } },

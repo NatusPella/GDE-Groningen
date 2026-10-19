@@ -41,7 +41,7 @@ const CREW_COOLDOWN = 4;
 const REMOUNT_RANGE = 30;
 const COMMANDEER_RANGE = 12;
 
-export function isMounted(v) {
+function isMounted(v) {
   return !!(v._mount || v._motor);
 }
 
@@ -225,7 +225,7 @@ function tickPatrol(v, dt, world) {
 }
 
 // Leaving patrol mode: the chase drives at full speed on its own route.
-export function endPatrol(v) {
+function endPatrol(v) {
   if (!v._patrol) return;
   v._patrol = null;
   v.aiOpts = null;

@@ -2,7 +2,7 @@
 // dan ruimer, en als daar nog geen weg geladen is (de streek ligt buiten de stadstegels)
 // de dichtstbijzijnde weg in de stad, zodat een baan nooit zonder voertuig blijft staan.
 export const STAD = { x: 213.81, y: 9.9 };
-export const ANKER_STRALEN = [400, 1500];
+const ANKER_STRALEN = [400, 1500];
 
 export function ankerMetWeg(map, p, drivable = true) {
   for (const r of ANKER_STRALEN) {

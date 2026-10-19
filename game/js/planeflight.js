@@ -20,7 +20,7 @@ let msgAt = -Infinity;
 const groundOf = (map) => (x, y) => (map.groundHeightAt ? map.groundHeightAt(x, y, 0) : 0);
 
 // Een vrije, vlakke strook zoeken rond de dealer: geen gebouwen, weinig hoogteverschil.
-export function findStrip(map, from = DEALER, length = 520) {
+function findStrip(map, from = DEALER, length = 520) {
   const gh = groundOf(map);
   let best = null;
   for (let h = 0; h < 16; h++) {
@@ -44,7 +44,7 @@ export function findStrip(map, from = DEALER, length = 520) {
   return best && best.bad === 0 ? best.strip : null;
 }
 
-export function initPlanes(w) {
+function initPlanes(w) {
   strip = findStrip(w.map);
   if (!strip) return;
   const gh = groundOf(w.map);
@@ -92,7 +92,7 @@ function showCard(mine) {
   h.q('st').textContent = s.state;
 }
 
-export function updatePlanes(dt, w) {
+function updatePlanes(dt, w) {
   if (!dt) return;
   const gh = groundOf(w.map);
   const pv = w.player.inVehicle;

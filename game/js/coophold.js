@@ -9,7 +9,7 @@ let overlay = null, view = null;
 
 export function isHoldOpen() { return !!overlay; }
 
-export function closeHold(world) {
+function closeHold(world) {
   if (view) { view.close(); view = null; }
   if (overlay) { overlay.remove(); overlay = null; }
   world.uiPaused = false;

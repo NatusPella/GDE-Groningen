@@ -103,7 +103,7 @@ export function capturePadButton(cb) {
 }
 
 // Short vibration if the controller has a motor and the player wants it.
-export function rumble(strong = 0.5, weak = 0.5, ms = 150) {
+function rumble(strong = 0.5, weak = 0.5, ms = 150) {
   if (!active || !getSettings().rumble) return;
   const now = performance.now();
   if (now < rumbleUntil - ms * 0.5) return;

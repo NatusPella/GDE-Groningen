@@ -6,7 +6,7 @@
 
 import { makePlane, stepPlane, PLANE } from './arcadeplane.js';
 
-export const THROTTLE_RATE = 0.45;   // gas per seconde dat je W of S ingedrukt houdt
+const THROTTLE_RATE = 0.45;   // gas per seconde dat je W of S ingedrukt houdt
 
 // isDown(key) -> bool; st = { thr } blijft tussen beelden bewaard
 export function planeInput(isDown, st, dt) {
@@ -29,7 +29,7 @@ export function attachPlane(v, x, y, z, heading) {
   return v;
 }
 
-export function syncToVehicle(v) {
+function syncToVehicle(v) {
   const p = v.plane;
   v.x = p.x; v.y = p.y; v.z = p.z; v.angle = p.heading;
   v.speed = p.speed; v.pitch = p.pitch; v.roll = p.roll; v.vz = p.vz;

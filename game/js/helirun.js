@@ -643,7 +643,7 @@ export function isHeliRunActive() {
   return !!run;
 }
 
-export function getHeliRun() {
+function getHeliRun() {
   if (!run) return null;
   const leg = run.plan.legs[run.st.leg];
   return {

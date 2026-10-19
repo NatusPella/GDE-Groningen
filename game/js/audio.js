@@ -1249,7 +1249,7 @@ function speakClip(cls, src, { pos = null, guess = 2, owner = null, onEnd = null
 // plain stereo), ducks the ambience for duck = [level, seconds] and reports
 // the clip's end through onEnd. Returns the element, or null when the channel
 // is taken or nothing can play.
-export function playVoice(src, { cls = 'react', owner = null, pos = null, dur = 2, onEnd = null, duck = null } = {}) {
+function playVoice(src, { cls = 'react', owner = null, pos = null, dur = 2, onEnd = null, duck = null } = {}) {
   const el = speakClip(cls, src, { pos, guess: dur, owner, onEnd });
   if (el && duck) duckAmbience(duck[0], duck[1]);
   return el;
@@ -1504,7 +1504,7 @@ export function playNpcPhrase(index, x, y) {
   return playNpcSpokenClip(paths[Math.floor(Math.random() * paths.length)], pos);
 }
 
-export function playPoliceBark(key, x, y) {
+function playPoliceBark(key, x, y) {
   return playRandomVariant(POLICE_BARK_AUDIO[key], x === undefined ? null : { x, y });
 }
 
@@ -1732,7 +1732,7 @@ const GMUSIC_TITLES = {
 };
 const GMUSIC_SPARE_ARTISTS = ['Oma Trijntje & de Stadjers', 'Grunn Gang', 'Lord Stoepkrijt', 'De Diepenring Boys', 'Tante Tjoedie', 'Big Bommen Berend'];
 
-export function trackArtist(title) {
+function trackArtist(title) {
   if (GMUSIC_ARTISTS[title]) return GMUSIC_ARTISTS[title];
   let h = 0;
   for (const c of String(title)) h = (h * 31 + c.charCodeAt(0)) >>> 0;

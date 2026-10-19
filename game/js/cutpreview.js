@@ -18,7 +18,7 @@ import { STEPS } from './storyarc_nieuw.js';
 
 export const STATUS = { ok: 'ok', warn: 'waarschuwing', error: 'fout' };
 export const STATUS_LABEL = { ok: 'In orde', waarschuwing: 'Let op', fout: 'Fout' };
-export const NOT_CHECKED = 'Botsing met gebouwen is niet gecontroleerd: daar is de wereld voor nodig.';
+const NOT_CHECKED = 'Botsing met gebouwen is niet gecontroleerd: daar is de wereld voor nodig.';
 
 const SPEAKER_NAME = { T: 'Tammo', A: 'Anita' };
 const MAX_STEP = 0.45; // m between two frames of 0.1 s: more is a jump
@@ -60,7 +60,7 @@ export function sceneIdsFor(key, steps = STEPS) {
 }
 
 // Pure checks on top of validateScene: timing and sampling. Returns { issues, warnings }.
-export function checkSampling(def, lines, duration) {
+function checkSampling(def, lines, duration) {
   const issues = [], warnings = [];
   let scene;
   try { scene = compileScene(def, { lines, duration }); } catch (e) { return { issues: [String(e.message || e)], warnings, scene: null }; }

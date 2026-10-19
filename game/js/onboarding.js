@@ -95,7 +95,7 @@ function quiet() {
   return Object.values(ns.since).every((s) => s >= QUIET);
 }
 
-export function resetOnboarding() {
+function resetOnboarding() {
   seen = new Set();
   try { localStorage.removeItem(STORE_KEY); } catch (e) { /* ignore */ }
 }

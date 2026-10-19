@@ -1870,7 +1870,7 @@ function drawCrowLine(ctx, [ax, ay], [bx, by], color) {
 
 // mark: what the arrow points at, drawn small inside it (a dot for your
 // goal, a square for a klus, a ring for the story, nothing for your car)
-export function drawEdgeArrow(ctx, x, y, angle, color, s = 1, mark = '') {
+function drawEdgeArrow(ctx, x, y, angle, color, s = 1, mark = '') {
   ctx.save();
   ctx.translate(x, y);
   ctx.rotate(angle);

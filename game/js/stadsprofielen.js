@@ -172,8 +172,8 @@ export const TOWN_PROFILES = [
   },
 ];
 
-export const TOWN_BY_ID = new Map(TOWN_PROFILES.map((t) => [t.id, t]));
-export const TOWN_BY_NAME = new Map(TOWN_PROFILES.map((t) => [t.name, t]));
+const TOWN_BY_ID = new Map(TOWN_PROFILES.map((t) => [t.id, t]));
+const TOWN_BY_NAME = new Map(TOWN_PROFILES.map((t) => [t.name, t]));
 export const DAYPARTS = ['ochtend', 'middag', 'avond'];
 
 // world position of a profile's centre

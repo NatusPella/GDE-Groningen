@@ -130,7 +130,7 @@ function keyCap(k) {
 }
 
 // Hold-to-interact / cooldown ring around a glyph; p in 0..1.
-export function setHoldProgress(el, p) {
+function setHoldProgress(el, p) {
   const ring = el && el.querySelector('.r-fg');
   if (!ring) return;
   const v = Math.max(0, Math.min(1, p));

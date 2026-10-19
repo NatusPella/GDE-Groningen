@@ -29,7 +29,7 @@ function churchBox(map, x, y) {
 
 // The churches without an outline of their own are fitted to a church of the
 // tiles, so their tiles must be in (updateOmmelandLandmarks).
-export function prepareLandmarks(items, map) {
+function prepareLandmarks(items, map) {
   const inside = (it) => edgeDistance(it.x, it.y) > 0;
   const churches = [], mills = [], other = [];
   for (const it of items) {

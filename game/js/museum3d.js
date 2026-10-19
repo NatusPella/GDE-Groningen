@@ -121,7 +121,7 @@ function plinth(B, r, a, c, top) {
   }
 }
 
-export function bench(B, r, a, c) {
+function bench(B, r, a, c) {
   const [x, , z] = at(r, a, c, 0);
   const rot = Math.atan2(r.uy, r.ux);
   B.box(x, 0.42, z, 2.0, 0.08, 0.5, 0x6b4a2e, G_SOLID, 0, -rot, 0);

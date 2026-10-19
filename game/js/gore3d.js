@@ -46,7 +46,7 @@ const queue = [];
 const bleeders = [];
 
 
-export function goreOn() {
+function goreOn() {
   return getSettings().gore !== false;
 }
 

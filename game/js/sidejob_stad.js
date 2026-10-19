@@ -217,10 +217,10 @@ function maakRave() {
   };
 }
 
-export const museumbus = maakRit(STAD_MISSIES[0]);
-export const suikerbieten = maakRit(STAD_MISSIES[1]);
-export const herstelploeg = maakRit(STAD_MISSIES[2]);
-export const oogtv = maakRit(STAD_MISSIES[3]);
-export const vandermeden = maakRit(STAD_MISSIES[5]);
-export const telefoonrave = maakRave();
+const museumbus = maakRit(STAD_MISSIES[0]);
+const suikerbieten = maakRit(STAD_MISSIES[1]);
+const herstelploeg = maakRit(STAD_MISSIES[2]);
+const oogtv = maakRit(STAD_MISSIES[3]);
+const vandermeden = maakRit(STAD_MISSIES[5]);
+const telefoonrave = maakRave();
 export const STAD_JOBS = [museumbus, suikerbieten, herstelploeg, oogtv, telefoonrave, vandermeden];

@@ -67,7 +67,7 @@ function applyWeather() {
   w.kind = k; w.intensity = rain; w.peak = rain; w.active = rain > 0.02; w.overcast = over; w.mist = mist;
 }
 
-export function startPhotoMode(world) {
+function startPhotoMode(world) {
   if (photo || !world || !world.player || world.player.ragdoll || world.cameraOverride || world.uiPaused) return false;
   const hour = typeof world.clock === 'number' ? world.clock : 12;
   const p = F.createPhoto({ x: world.player.x, y: world.player.y, z: (world.player.z || 0) + 1.7 }, hour);
@@ -87,7 +87,7 @@ export function startPhotoMode(world) {
   return true;
 }
 
-export function stopPhotoMode(world) {
+function stopPhotoMode(world) {
   if (!photo) return;
   const w = photo.world || world;
   for (const t of ['keydown', 'keyup']) window.removeEventListener(t, onKey, true);
