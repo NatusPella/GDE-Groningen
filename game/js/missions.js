@@ -144,6 +144,7 @@ function buildDefs(world) {
     {
       type: 'checkpoint',
       label: 'Wind tegen, beide kanten op',
+      triggerRadius: 6,
       intro: ['Sjoerd, van de Kiezelweek, praat alleen met wie op het podium komt. Zijn neef werkt \'s nachts in het museum.', 'Doel: één rondje door de binnenstad, op de fiets, tegen vier eerstejaars. Alleen het podium telt, en niet stoppen voor gratis tasjes.'],
       outro: 'Podium! Sjoerd vertelt het: om twaalf uur gaan de camera\'s drie minuten uit. Nieuw doel: vannacht om twaalf uur de bal pakken.',
       race: 'kei',
@@ -206,6 +207,8 @@ function buildDefs(world) {
     {
       type: 'stages',
       label: 'Even pinnen',
+      // a marker next to a parked car or a rack is hard to reach to 4 m (#243)
+      triggerRadius: 6,
       intro: ['Twee reuzen trokken de pinautomaat uit de muur in de Herestraat, met Tessa\'s pas erin. Zonder pas geen contant geld voor het Loket.', 'Doel: breng de automaat naar Sjabbe van Pand & Poen. Eerst de pliesie kwijt, dan een nieuwe kleur.'],
       outro: 'Sjabbe gaf Tessa haar pas terug. De reuzen werken voor Jelle Terpstra, en hij vroeg naar het museum. Nieuw doel: naar Het Loket.',
       timeLimit: null,
@@ -215,7 +218,7 @@ function buildDefs(world) {
       stages: [
         { kind: 'board', label: 'Stap in de auto: de pinautomaat ligt achterin', say: 'Instappen: de automaat ligt achterin, met mijn pas erin. Hij piept een beetje.' },
         { kind: 'garage', stars: 2, target: { garage: true }, label: 'Naar Spuit & Klaar (automaat zit achterin)', say: 'Alarm! Twee sterren. Rij een garage in: Spuit & Klaar spuit hem om en de pliesie is je kwijt.' },
-        { kind: 'goto', target: { shop: 'pand' }, mode: 'vehicle', stop: 1.2, label: 'Naar Pand & Poen: lever de automaat achterin af', say: 'Nieuwe kleur, nieuw leven. Door naar Pand & Poen, Sjabbe wacht achterom.' },
+        { kind: 'goto', target: { shop: 'pand' }, mode: 'vehicle', radius: 14, stop: 1.2, label: 'Naar Pand & Poen: lever de automaat achterin af', say: 'Nieuwe kleur, nieuw leven. Door naar Pand & Poen, Sjabbe wacht achterom.' },
       ],
     },
     {
@@ -274,7 +277,7 @@ function buildDefs(world) {
           ],
         },
         {
-          kind: 'goto', watch: { guards: 1, cameras: 2 }, target: { landmark: 'Groninger Museum', off: [-29, -38], snap: 'walk' }, mode: 'foot', radius: 3.5,
+          kind: 'goto', watch: { guards: 1, cameras: 2 }, target: { landmark: 'Groninger Museum', off: [-29, -38], snap: 'walk' }, mode: 'foot', radius: 5,
           label: 'Sluip naar de stroomkast', say: 'Eerst de stroomkast. Twee camera\'s en een bewaker: blijf uit de lichtbundels. Bukken helpt.',
         },
         { kind: 'fuse', target: { landmark: 'Groninger Museum', off: [-29, -38], snap: 'walk' }, label: 'Camera\'s op herhaling', say: 'De stroomkast. Druk op Spatie als de naald in het groen staat. Drie zekeringen, dan hebben we drie minuten.' },
