@@ -6,7 +6,7 @@
 
 export const R_IN = 110; // m: a worker agent this close becomes real
 export const R_OUT = 150; // m: a real ambient agent this far goes to the worker
-export const MAX_PER_PLAN = 6; // handovers per frame, so one frame never stalls
+const MAX_PER_PLAN = 6; // handovers per frame, so one frame never stalls
 
 // agents: Map id -> { x, y, road, s, speed } from the worker snapshot
 // real:   [{ id, x, y, road, s, speed, ambient }] on the main thread; only
@@ -26,6 +26,6 @@ export function handoverPlan(agents, real, player, { rIn = R_IN, rOut = R_OUT, m
 
 // Ids must not clash between the two sides: worker agents use a block that
 // the main thread's own ids never reach.
-export const WORKER_ID_BASE = 1e6;
+const WORKER_ID_BASE = 1e6;
 export const workerId = (n) => WORKER_ID_BASE + n;
 export const isWorkerId = (id) => id >= WORKER_ID_BASE;

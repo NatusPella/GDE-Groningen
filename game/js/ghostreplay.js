@@ -3,8 +3,8 @@
 // kartbaan.js and the drift zones feed it positions; scripts/ghost_test.mjs
 // checks it in node. A run is sampled at a fixed interval and kept as flat
 // numbers [x, y, angle, ...] (cm and centi-radians), a few KB per run.
-export const GHOST_STEP = 0.1; // seconds between samples
-export const GHOST_MAX_S = 600; // a run longer than this is not worth keeping
+const GHOST_STEP = 0.1; // seconds between samples
+const GHOST_MAX_S = 600; // a run longer than this is not worth keeping
 
 export function createRecorder(step = GHOST_STEP) {
   return { step, next: 0, s: [], last: 0 };

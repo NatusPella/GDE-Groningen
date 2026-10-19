@@ -44,8 +44,8 @@ export const EIERBAL_ALL_BONUS = 1000;
 // Replays: a mission already passed pays a klusloon (a share of its reward),
 // and each medal tier (brons, zilver, goud) pays a one-time bonus per
 // playthrough the first time it is reached for that mission.
-export const KLUSLOON_SHARE = 0.5;
-export const MEDAL_BONUS_SHARE = [0, 0.15, 0.25, 0.4];
+const KLUSLOON_SHARE = 0.5;
+const MEDAL_BONUS_SHARE = [0, 0.15, 0.25, 0.4];
 
 const round5 = (v) => Math.round(v / 5) * 5;
 

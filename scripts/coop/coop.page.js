@@ -7,6 +7,8 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const t0 = performance.now();
 const log = (type, data = {}) => console.log('[bot-log] ' + JSON.stringify({ t: Math.round(performance.now() - t0) / 1000, type, who: CFG.name, ...data }));
 window.addEventListener('error', (e) => log('jserror', { msg: String(e.message).slice(0, 160), file: String(e.filename || '').split('/js/').pop(), line: e.lineno, stack: e.error && e.error.stack ? String(e.error.stack).split(String.fromCharCode(10)).slice(0, 4).join(' | ').slice(0, 400) : '' }));
+// Spatie ingedrukt houden slaat een filmpje over; via het invoercontract van de Spelbot (net als bot.page.js holdSkip)
+const holdSkip = async (ms = 1400) => { const B = window.__bot; if (B) { B.down(' '); await sleep(ms); B.up(' '); } else { key(' ', 'Space'); await sleep(ms); } };
 const W = () => window.__debug && window.__debug.world;
 const key = (k, code) => { for (const t of [window, document]) { t.dispatchEvent(new KeyboardEvent('keydown', { key: k, code, bubbles: true })); t.dispatchEvent(new KeyboardEvent('keyup', { key: k, code, bubbles: true })); } };
 const panel = () => document.querySelector('.pm-samen');
@@ -30,14 +32,28 @@ try {
     const it = await until(() => document.querySelector('#start-screen .ss-item[data-act="samen"]'), 120000, 'hoofdmenu-ingang Samen spelen');
     log('hoofdmenu', { items: [...document.querySelectorAll('#start-screen .ss-item')].map((e) => e.dataset.act).join(',') });
     it.click();
-    await until(() => panel() && !panel().closest('[hidden]') && buttons().length, 60000, 'lobby na het hoofdmenu');
+    // de opening van een nieuw spel overslaan, zoals een speler (Spatie); daarna opent de lobby vanzelf
+    let skipping = true;
+    (async () => { // Spatie ingedrukt houden slaat een filmpje over
+      const ev = (type) => { for (const t of [window, document]) t.dispatchEvent(new KeyboardEvent(type, { key: ' ', code: 'Space', bubbles: true })); };
+      while (skipping) {
+        if (W() && (W().cameraOverride || (document.getElementById('cine') && document.getElementById('cine').classList.contains('on')))) await holdSkip();
+        log('wacht-opening', { cam: !!(W() && W().cameraOverride), cine: document.getElementById('cine') ? document.getElementById('cine').className : '-', paused: !!(W() && W().paused), step: (window.__story && window.__story.mission && window.__story.mission() || {}).phase || '' });
+        await sleep(2500);
+      }
+    })();
+    await until(() => panel() && !panel().closest('[hidden]') && buttons().length, 480000, 'lobby na het hoofdmenu (body: ' + document.body.className + ', pauzemenu: ' + !!document.querySelector('#pause-menu') + ', start-scherm: ' + !!document.querySelector('#start-screen.visible') + ', openSamen: ' + W().openSamenOnStart + ', camOverride: ' + !!W().cameraOverride + ', respawn: ' + !!W().pendingRespawn + ', cine: ' + (document.getElementById('cine') ? document.getElementById('cine').className : '-') + ', pauzemenuOpen: ' + !!document.querySelector('#pause-menu.open, #pause-menu:not([hidden])') + ', laden: ' + !!document.querySelector('#loading:not([data-gone])') + ')');
+    skipping = false;
     log('menu-lobby', { titel: title(), knoppen: buttons() });
     log('start', { role: CFG.role, route: CFG.route, viaMenu: true });
-  } else {
+    key('Escape', 'Escape'); // de lobby is gezien; verder zoals bij een speler die eerst de opening afkijkt
+    await sleep(1000);
+  }
+  {
   for (let i = 0; i < 25 && W().paused; i++) { key(' ', 'Space'); await sleep(700); }
   await sleep(1500);
   // de opening van een nieuw spel (cutscene, camera-override) houdt de gast tegen: eerst overslaan, zoals een speler
-  for (let i = 0; i < 60 && (W().cameraOverride || W().pendingRespawn || document.getElementById('cine') && document.getElementById('cine').classList.contains('on')); i++) { for (const t of [window, document]) t.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', code: 'Space', bubbles: true })); await sleep(1300); for (const t of [window, document]) t.dispatchEvent(new KeyboardEvent('keyup', { key: ' ', code: 'Space', bubbles: true })); await sleep(300); }
+  for (let i = 0; i < 60 && (W().cameraOverride || W().pendingRespawn || document.getElementById('cine') && document.getElementById('cine').classList.contains('on')); i++) { if (i > 6 && i % 4 === 0) { try { window.__story.skip(true); } catch (e) { /* geen verhaal-API */ } } await holdSkip(); await sleep(300); }
   log('speelklaar', { cameraOverride: !!W().cameraOverride, respawn: !!W().pendingRespawn, ragdoll: !!W().player.ragdoll });
   log('start', { role: CFG.role, route: CFG.route });
   // 1. het pauzemenu en 'Samen spelen' (alleen met ?coop)

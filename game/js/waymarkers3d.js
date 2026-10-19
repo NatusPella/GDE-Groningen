@@ -6,7 +6,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { WATER_Y } from './util.js';
 
-export const MODE_COLOR = { walk: 0xc068ff, bike: 0x2fb8a0, drive: 0xc068ff, boat: 0xff6a3c, ov: 0x2d5fa8, fly: 0xffd23c };
+const MODE_COLOR = { walk: 0xc068ff, bike: 0x2fb8a0, drive: 0xc068ff, boat: 0xff6a3c, ov: 0x2d5fa8, fly: 0xffd23c };
 // the ribbon's colour: a route to a mission keeps the mission colour, a bike route its own
 export const routeColor = (route, fallback) => (route && route.mode === 'bike' && route.kind === 'user' ? MODE_COLOR.bike : fallback);
 

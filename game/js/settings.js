@@ -31,6 +31,8 @@ const BASE_DEFAULTS = {
   fov: 64,
   cameraDistance: 1,
   showMinimap: true,
+  // shift+klik op de kaart verplaatst je naar die plek (kaartteleport.js)
+  mapShiftTeleport: true,
   showHints: true,
   // which glyphs every hint shows: 'auto' (what you used last), 'keys' or 'pad'
   hintSource: 'auto',
@@ -97,7 +99,7 @@ const BASE_DEFAULTS = {
 const DEFAULTS = { ...BASE_DEFAULTS, ...deckDefaults(isSteamDeck()) };
 // the Besturing screen has its own "Standaard herstellen" for the bindings
 const KEEP_ON_RESET = new Set(['attractSeen', 'keyBinds', 'padBinds']);
-export const SHIFT_CHOICES = ['auto', 'manual', 'clutch'];
+const SHIFT_CHOICES = ['auto', 'manual', 'clutch'];
 export const SUBTITLE_SIZES = { klein: 0.85, normaal: 1, groot: 1.25, extragroot: 1.5 };
 export const COLOR_BLIND_MODES = ['uit', 'deuteranopie', 'protanopie', 'tritanopie'];
 const PAD_LAYOUT_CHOICES = ['auto', 'xbox', 'ps', 'switch', 'deck'];

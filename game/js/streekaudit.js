@@ -103,7 +103,7 @@ export function tally(items, streekAt, ids) {
 
 // Gaps of the streek content: what a streek should have for its identity and does not.
 // content: { streekId: { winkel, restaurant, padel, golf, vondsten, geheimen, events, ontmoetingen, steden } }
-export const MIN_PER_STREEK = { vondsten: 3, geheimen: 1, events: 1, ontmoetingen: 3, steden: 1 };
+const MIN_PER_STREEK = { vondsten: 3, geheimen: 1, events: 1, ontmoetingen: 3, steden: 1 };
 
 export function gaps(content) {
   const out = [];
