@@ -170,7 +170,7 @@ while (true) {
     }
   }
   // a timing stage (M18, M20, M21, M26): press about once per round, a player who just times it by feel; a miss only costs the story's bonus
-  if (s.mission.active && s.mission.stage === 'timing' && !s.blocking.cinematic && !s.blocking.dialog) {
+  if (s.mission.active && s.mission.stage === 'timing' && !s.blocking.cinematic) {
     B.stick(0, 0);
     await sleep(900 + Math.floor(Math.random() * 600));
     await B.press(' ');
