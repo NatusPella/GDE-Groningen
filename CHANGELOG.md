@@ -9,6 +9,8 @@ nieuwe functies, `y` voor alleen bugfixes.
 ## [0.37.1] - 2026-10-19
 
 ### Nieuw
+- **Naamkaarten in de opening, spoor in de benchmark (nog niet in beeld bekeken):** Tessa en Tammo krijgen een naamkaart linksonder zodra ze in de keuken in beeld komen. De benchmarkroute heeft een nieuw shot langs het spoor met een eigen categorie in de resultaten. (Refs #159)
+- **Verkeer en voetgangers rond de cutscene-camera (nog niet in beeld bekeken):** tijdens een cutscene vullen auto's, fietsers en voetgangers zich rond waar de camera kijkt, niet rond de verborgen speler. (Refs #157)
 - **Sluizen-audit:** `node scripts/world/sluizen.mjs [--raster] [--write] [--strict]` controleert voor elke sluis dat het water aan beide kanten doorloopt (ook in het vaarnetraster) en schrijft `game/sluizen.json`; `scripts/sluizen_test.mjs` test de deuren per fase, de seinen, schutten in beide richtingen, een wachtrij en geen deadlock.
 - **Sluizen werken (nog niet in beeld bekeken, #236):** elk van de 62 sluizen in de provincie heeft deuren die open en dicht gaan, seinlichten (rood, geel, groen) vóór de deur en een schutcyclus. Vaar je op een sluis aan, ligt je boot stil of toeter je, dan vraagt de boot de sluis; bij groen vaar je in, de deur sluit, het water gaat omhoog of omlaag (je boot gaat mee) en de andere deur gaat open. Boten van de computer doen mee en een deur sluit nooit op een boot. Bij Lauwersoog liep een onzichtbare muur dwars door de kolk van de Robbengatsluis (een lange waterrand telde als oever); die is weg. De kolk van de Robbengatsluis en twee kolken van het Reitdiep waren geen vaarwater voor grotere boten of ontbraken in de kaart; dat is gerepareerd.
 
