@@ -76,6 +76,8 @@ const DEFAULTS = {
   rumble: true,
   subtitleSize: 'normaal',
   subtitleBox: false,
+  // [sirene], [claxon]...: korte tekst bij belangrijke geluiden (soundcaptions.js)
+  soundCaptions: false,
   // ondertitels op wit-op-zwart met een zwaardere letter ('normaal' | 'hoog'), kaart- en meldingstekst ('normaal' | 'groot' | 'extragroot') en geen schermflitsen (a11y.js)
   subtitleContrast: 'normaal',
   textSize: 'normaal',
