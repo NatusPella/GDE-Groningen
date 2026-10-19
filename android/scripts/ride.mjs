@@ -22,17 +22,18 @@ const report = [];
 const log = (ok, what, extra = '') => { const l = `${ok ? 'ok  ' : 'FOUT'} ${what}${extra ? ' - ' + extra : ''}`; console.log(l); report.push(l); };
 const adb = adbTool();
 
-if (!flag('--no-install')) {
+const HERVAT = flag('--hervat'); // verder met het draaiende spel (geen install, geen nieuw spel)
+if (!flag('--no-install') && !HERVAT) {
   adb('install', '-r', path.join(OUT, 'gde-groningen-debug.apk'));
   adb('shell', 'pm', 'clear', PKG);
 }
-adb('shell', 'am', 'start', '-n', `${PKG}/.MainActivity`);
-await sleep(8000);
+if (!HERVAT) { adb('shell', 'am', 'start', '-n', `${PKG}/.MainActivity`); await sleep(8000); }
 
-let d;
+let d = null;
 for (let i = 0; i < 60 && !d; i++) { try { d = await connect(); } catch (e) { await sleep(3000); } }
 if (!d) throw new Error('geen WebView');
 const ev = (x) => d.ev(x);
+
 const waitFor = async (expr, ms, what) => {
   const t0 = Date.now();
   while (Date.now() - t0 < ms) { try { if (await ev(expr)) return true; } catch (e) { /* trage pagina */ } await sleep(1500); }
@@ -48,21 +49,38 @@ const state = async () => JSON.parse(await ev(`(() => { const w = window.__debug
 
 // --- aanrakingen ---
 const btnId = (re) => ev(`(() => { const e = [...document.querySelectorAll('#touch-ui .t-btn, #touch-ui .t-panel .t-btn')].find((e) => ${re}.test(e.textContent)); if (!e) return false; e.id = 'tb-' + ${JSON.stringify(re.source.replace(/\W/g, ''))}; return e.id; })()`);
+// d.up laat alle vingers los en zet de rest opnieuw neer: de stick krijgt dan zijn oorsprong op de laatste plek
+let origin = { x: 150, y: 215 }, lastPos = { ...origin }, stickDown = false;
+const pedals = new Map(); // label -> vinger-id
 async function button(re, holdMs = 120) {
   const id = await btnId(re);
   if (!id) return false;
   const c = await d.center('#' + id);
   if (!c) return false;
   await d.down(7, c.x, c.y); await sleep(holdMs); await d.up(7);
+  if (stickDown) origin = { ...lastPos };
   return true;
 }
-const STICK = { x: 150, y: 215 }; // linker zone, boven de minimap
-let stickDown = false;
+// houdt een knop ingedrukt (gas, rem) tot hij losgelaten wordt
+async function pedal(re, on) {
+  const key = String(re);
+  if (on && !pedals.has(key)) {
+    const id = await btnId(re); const c = id && await d.center('#' + id);
+    if (!c) return false;
+    pedals.set(key, 20 + pedals.size); await d.down(pedals.get(key), c.x, c.y);
+  } else if (!on && pedals.has(key)) {
+    const fid = pedals.get(key); pedals.delete(key); await d.up(fid);
+    if (stickDown) origin = { ...lastPos };
+  }
+  return true;
+}
+const releasePedals = async () => { for (const k of [...pedals.keys()]) await pedal(new RegExp(k.slice(1, -1), 'i'), false); };
 async function stick(x, y) {
   const R = 50;
-  if (!x && !y) { if (stickDown) { await d.up(1); stickDown = false; } return; }
-  if (!stickDown) { await d.down(1, STICK.x, STICK.y); stickDown = true; }
-  await d.move(1, STICK.x + x * R, STICK.y + y * R);
+  if (!x && !y) { if (stickDown) { await d.up(1); stickDown = false; origin = { x: 150, y: 215 }; } return; }
+  if (!stickDown) { origin = { x: 150, y: 215 }; await d.down(1, origin.x, origin.y); stickDown = true; }
+  lastPos = { x: origin.x + x * R, y: origin.y + y * R };
+  await d.move(1, lastPos.x, lastPos.y);
 }
 async function swipeLook(dx, ms = 600) {
   const x0 = 640, y0 = 150;
@@ -74,6 +92,8 @@ const adbBin = path.join(toolEnv().sdk, 'platform-tools', process.platform === '
 // echte schermafdruk (ook de 3D-wereld; Page.captureScreenshot toont het WebGL-canvas zwart)
 const screenshot = async (name) => fs.writeFileSync(path.join(DIR, name + '.png'), execFileSync(adbBin, ['exec-out', 'screencap', '-p'], { maxBuffer: 1 << 27 }));
 
+let s;
+if (!HERVAT) {
 // --- 1. start en nieuw spel ---
 // eerst 'Tik om te beginnen' (start ook het geluid), dan het menu
 if (!(await waitFor(`/Tik om te beginnen/.test(document.body.innerText) || !!document.querySelector('.ss-item')`, 240000, 'laadscherm klaar'))) process.exit(1);
@@ -87,7 +107,6 @@ if (!(await waitFor(`document.body.classList.contains('game-started')`, 60000, '
 log(true, 'Nieuw spel gestart met een tik');
 
 // --- 2. opening overslaan (vasthouden) ---
-let s;
 for (let i = 0; i < 20; i++) {
   try { s = await state(); } catch (e) { await sleep(2000); continue; }
   if (s && s.step && s.step.id !== 'M00' && !s.cine) break;
@@ -120,6 +139,110 @@ while (Date.now() < walkUntil) {
 await stick(0, 0);
 log(moved > 20, 'lopen met de stick', `${Math.round(moved)} m`);
 await screenshot('3-lopen');
+
+}
+
+// --- 4. M01 spelen: naar de bakkie, instappen, rijden naar de markeringen, alles met aanrakingen ---
+const full = async () => JSON.parse(await ev(`(() => { const w = __debug.world, p = w.player, v = p.inVehicle, m = w.mission || {}, c = document.getElementById('cine');
+  const mk = m.phase === 'active' && m.marker ? { x: m.marker.x, y: m.marker.y } : w.storyGuide ? { x: w.storyGuide.x, y: w.storyGuide.y } : null;
+  const cand = (w.vehicles || []).filter((q) => q !== v && !q.wrecked && !q.isBoat && !q.isHeli && !q.isBike).map((q) => ({ x: q.x, y: q.y, d: Math.hypot(q.x - p.x, q.y - p.y), mc: !!q.missionCar })).sort((a, b) => (b.mc - a.mc) || (a.d - b.d));
+  const near = cand[0] || null; // de missie-auto (Berends bakkie) gaat voor
+  const dlg = document.querySelector('#hud .cw-panel:not([hidden]) .cw-opt');
+  return JSON.stringify({ x: p.x, y: p.y, cam: w.camYaw, t: w.time, money: w.money, hp: p.health, veh: v ? { x: v.x, y: v.y, angle: v.angle, speed: v.speed || 0 } : null,
+    target: mk, near, cine: !!(c && c.classList.contains('active')), dlg: !!dlg, text: (document.querySelector('#hud .hud-mission') || {}).textContent || '', ctx: document.documentElement.dataset.touchCtx,
+    step: window.__story.current(), phase: m.phase, paused: !!w.paused }); })()`));
+let last = '', ticks = 0, carTicks = 0, footTicks = 0, boarded = false;
+const playUntil = Date.now() + (Number(args[args.indexOf('--min') + 1]) || 12) * 60000;
+let driftTick = 0, awayUntil = 0;
+while (Date.now() < playUntil) {
+  let f;
+  try { f = await full(); } catch (e) { await sleep(2000); continue; }
+  const key = `${f.step && f.step.id}|${f.phase}|${f.text}|${f.ctx}`;
+  if (key !== last) { last = key; console.log(`  [${Math.round(f.t)}s] ${key} @${Math.round(f.x)},${Math.round(f.y)} -> ${f.target ? Math.round(f.target.x) + ',' + Math.round(f.target.y) : '-'}`); await screenshot(`4-${String(++ticks).padStart(2, '0')}`); }
+  if (f.step && f.step.id !== 'M01') break;
+  if (f.cine) { await stick(0, 0); await releasePedals(); await button(/overslaan/i, 2300); await sleep(1200); continue; }
+  if (f.dlg) { await stick(0, 0); await d.tapEl('#hud .cw-panel:not([hidden]) .cw-opt'); await sleep(1500); continue; }
+  // 'Stap even uit de marker en weer terug': een stukje weg en dan opnieuw erin
+  if (f.target && /uit de marker/i.test(f.text) && !awayUntil) awayUntil = Date.now() + 9000;
+  if (awayUntil && Date.now() > awayUntil + 60000) awayUntil = 0;
+  if (f.target && awayUntil && Date.now() < awayUntil) f.target = { x: f.target.x + 30, y: f.target.y + 30 };
+  const dist = f.target ? Math.hypot(f.target.x - (f.veh || f).x, f.target.y - (f.veh || f).y) : 0;
+  if (f.veh) {
+    boarded = true; carTicks++;
+    if (!f.target) { await stick(0, 0); await releasePedals(); await sleep(1500); continue; }
+    // de stunt: binnen de straal rondjes met gas, volle stuuruitslag en af en toe Handrem (driften geeft punten)
+    if (/^stunt/i.test(f.text) && dist < 45) {
+      await stick(0.9, 0); await pedal(/^gas$/i, true);
+      if (++driftTick % 3 === 0) await button(/handrem/i, 900);
+      await sleep(300);
+      continue;
+    }
+    const c = carControls({ x: f.veh.x, y: f.veh.y, angle: f.veh.angle, speed: f.veh.speed }, f.target, { stopAt: false, top: 12 });
+    await stick(c.steer, 0);
+    await pedal(/^gas$/i, c.throttle > 0);
+    await pedal(/^rem$/i, c.throttle < 0);
+    await sleep(350);
+  } else if (/stap in|instap|bakkie|auto/i.test(f.text) && f.near) {
+    footTicks++;
+    if (f.near.d < 3.2) { await stick(0, 0); await button(/instappen/i, 150); await sleep(2500); }
+    else { const [sx, sy] = footStick(headingTo(f, f.near), f.cam); await stick(sx, sy); await sleep(400); }
+  } else if (f.target) {
+    const [sx, sy] = footStick(headingTo(f, f.target), f.cam);
+    await stick(dist > 4 ? sx : 0, dist > 4 ? sy : 0); await sleep(500);
+  } else { await stick(0, 0); await sleep(1500); }
+}
+await stick(0, 0); await releasePedals();
+const fin = await full();
+log(boarded, 'ingestapt met Instappen en gereden met stick en gas', `${carTicks} rij-ticks`);
+log(!!fin.step && fin.step.id !== 'M01', 'M01 afgerond met touch', fin.step && fin.step.id);
+await screenshot('5-einde-m01');
+
+
+// --- 5. opslaan, app doden, opnieuw starten, Doorgaan; daarna dezelfde stand onder de oude sleutel (migratie) ---
+const snap = () => ev(`(() => { const w = __debug.world, p = w.player; return JSON.stringify({ x: Math.round(p.x), y: Math.round(p.y), money: w.money, step: __story.current() && __story.current().id }); })()`).then(JSON.parse);
+const saveRaw = () => ev(`localStorage.getItem('gde-save-v1') || localStorage.getItem('gde-dev:gde-save-v1') || ''`);
+await stick(0, 0); await releasePedals();
+if (await ev(`!!document.getElementById('cine')?.classList.contains('active')`)) { await button(/overslaan/i, 2300); await sleep(1500); }
+const before = await snap();
+await d.tapEl('#touch-ui .t-pause');
+log(await waitFor(`!!document.querySelector('#pause-menu.visible')`, 20000, 'pauzemenu open met II'), 'pauzemenu opent met de pauzeknop');
+await sleep(800);
+await d.tapEl('#pause-menu [data-action="save"]');
+await sleep(2500);
+const raw1 = await saveRaw();
+log(raw1.length > 100, 'Opslaan schrijft gde-save-v1', raw1.length + ' tekens');
+await screenshot('6-opgeslagen');
+async function restartApp() {
+  d.close();
+  adb('shell', 'am', 'force-stop', PKG);
+  await sleep(2000);
+  adb('shell', 'am', 'start', '-n', `${PKG}/.MainActivity`);
+  await sleep(8000);
+  d = null;
+  for (let i = 0; i < 60 && !d; i++) { try { d = await connect(); } catch (e) { await sleep(3000); } }
+  await waitFor(`/Tik om te beginnen/.test(document.body.innerText) || !!document.querySelector('.ss-item')`, 240000, 'laadscherm klaar na herstart');
+  if (!(await ev(`!!document.querySelector('.ss-item')`))) { await d.tap(433, 206); await sleep(1500); }
+  await waitFor(`!!document.querySelector('.ss-item')`, 60000, 'startmenu na herstart');
+  if (await ev(`!!document.querySelector('.ss-news:not([hidden])')`)) { await d.tapEl('.ss-news-close'); await sleep(1200); }
+}
+async function continueGame() {
+  await d.tapEl('.ss-item[data-act="continue"]');
+  return waitFor(`document.body.classList.contains('game-started')`, 90000, 'Doorgaan start het spel');
+}
+await restartApp();
+const kept = await saveRaw();
+log(kept.length === raw1.length, 'spelstand overleeft het afsluiten van de app', kept.length + ' tekens');
+log(await continueGame(), 'Doorgaan laadt de spelstand');
+await sleep(4000);
+const after = await snap();
+log(after.step === before.step && Math.abs(after.money - before.money) < 1, 'stap en geld na laden gelijk', JSON.stringify(before) + ' -> ' + JSON.stringify(after));
+await screenshot('7-geladen');
+// migratie: een stand onder de oude sleutel (gte-save-v1) moet nog steeds laden
+const key = await ev(`(() => { const k = localStorage.getItem('gde-save-v1') ? 'gde-save-v1' : 'gde-dev:gde-save-v1'; const v = localStorage.getItem(k); localStorage.setItem(k.replace('gde-', 'gte-'), v); localStorage.removeItem(k); return k; })()`);
+await restartApp();
+const migrated = await ev(`!!(localStorage.getItem('gde-save-v1') || localStorage.getItem('gde-dev:gde-save-v1'))`);
+log(migrated, 'oude sleutel gte-save-v1 migreert naar ' + key);
+log(await continueGame(), 'Doorgaan werkt na migratie');
 
 await d.ev('1'); // houdt de verbinding warm
 fs.writeFileSync(path.join(DIR, 'verslag.txt'), report.join('\n') + '\n');
