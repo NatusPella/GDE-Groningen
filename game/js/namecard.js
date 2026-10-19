@@ -22,7 +22,7 @@ function ensure() {
   if (el || typeof document === 'undefined') return el;
   const st = document.createElement('style');
   st.textContent = `
-#name-card { position: fixed; left: max(6vw, calc(340px * var(--ui, 1) + 24px)); bottom: calc(11vh + 9vh); z-index: 17; pointer-events: none; color: #f0ede4;
+#name-card { position: fixed; left: max(6vw, calc(340px * var(--ui, 1) + 24px)); bottom: calc(11vh + 24vh); z-index: 17; pointer-events: none; color: #f0ede4;
   opacity: 0; transform: translateX(-28px); transition: opacity .35s, transform .6s cubic-bezier(.2,.7,.2,1); text-shadow: 0 2px 12px rgba(0,0,0,.85); }
 #name-card.on { opacity: 1; transform: none; }
 #name-card .nc-name { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: clamp(44px, 7vw, 96px); line-height: .9; letter-spacing: 1px; text-transform: uppercase; }
