@@ -22,8 +22,8 @@ const VOICE_OF = {
   'Henk (Garage Knalpot)': 'Henk',
 };
 
-export const SMS_NEWS = 'Kiekdoar-redactie';
-export const SMS_SYSTEM = 'Ubbo';
+const SMS_NEWS = 'Kiekdoar-redactie';
+const SMS_SYSTEM = 'Ubbo';
 
 export function smsSpeaker(from) {
   const f = String(from || 'Kiekdoar').trim();

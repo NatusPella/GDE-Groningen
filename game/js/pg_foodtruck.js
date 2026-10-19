@@ -15,7 +15,7 @@ import { isToday } from './calendarday.js';
 // clock and the weather (market, lunch, a match at the Euroborg, KEI-nacht
 // in the Poelestraat). Upgrades are bought in the Ubbo app (phone.js).
 
-export const MENU = [
+const MENU = [
   { id: 'eierbal', name: 'Eierbal', price: 3.5 },
   { id: 'frikandel', name: 'Frikandel', price: 2.5 },
   { id: 'kroket', name: 'Kroket', price: 2.5 },
@@ -24,7 +24,7 @@ export const MENU = [
   { id: 'kaas', name: 'Kaassoufflé', price: 2.8 },
 ];
 
-export const UPGRADES = [
+const UPGRADES = [
   { id: 'pan', name: 'Tweede frituurpan', blurb: 'Klanten wachten een kwart langer', price: 350 },
   { id: 'mosterd', name: 'Grunneger mosterd', blurb: 'Een derde meer fooi', price: 250 },
   { id: 'bel', name: 'Bel die "moi" zegt', blurb: 'Een kwart meer klanten', price: 300 },

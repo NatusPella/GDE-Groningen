@@ -25,7 +25,7 @@ const RIDERS = ['#2f5c8a', '#7a2e2e', '#3f6b3f', '#2b2b2b', '#c9a227', '#6a2e8a'
 // the shop versions stay as they are.
 const TRAFFIC_TOP = 34;
 export const TUNED_TOP = 17; // m/s, ~61 km/h: an "opgevoerde" brommer
-export const TUNED_CHANCE = 0.14;
+const TUNED_CHANCE = 0.14;
 
 export const isMotorised = (m) => !!(m && (m.motorbike || m.geared || m.moped));
 

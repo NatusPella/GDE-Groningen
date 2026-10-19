@@ -13,9 +13,9 @@ import { createRoadIndex, planGiveToWorker, planGiveCarsToWorker, isAmbientPed, 
 import { handoverPlan, workerId, R_IN, R_OUT } from './simhandover.js';
 
 export const RECONCILE_EVERY = 0.5; // s tussen overdrachtsrondes
-export const MAX_OWNED = 160; // hooguit zoveel worker-agenten tegelijk
+const MAX_OWNED = 160; // hooguit zoveel worker-agenten tegelijk
 const CAR_ID_BASE = 5e5; // auto-ids liggen in hun eigen blok boven de voetgangers
-export const MAX_CARS = 120; // ...en zoveel auto's
+const MAX_CARS = 120; // ...en zoveel auto's
 
 // host mag een nephost zijn (tests); roads: [{ id, pts }] van buildSimRoads(map, 'ped').
 // carRoads: [{ id, pts }] van buildSimRoads(map, 'car'), roadOf(id) geeft het echte wegobject, attach(v) zet een auto

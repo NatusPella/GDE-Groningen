@@ -1,0 +1,26 @@
+// Reizigers bij de halte (#225): planning van instappers en uitstappers.
+import { haltedeuren, planHaltefiguren, figuurNu, deurNodig, MAX_FIGUREN } from '../game/js/haltefiguren.js';
+let fail = 0;
+const check = (n, ok, x = '') => { if (!ok) { fail++; console.log('FAIL', n, x); } };
+let s = 3; const rng = () => { s = (s * 16807) % 2147483647; return s / 2147483647; };
+const bus = { x: 100, y: 50, angle: 0, isBus: true, model: { name: 'bus', len: 11.2, wid: 2.5 } };
+const deuren = haltedeuren(bus);
+check('stadsbus heeft twee deuren', deuren.length === 2, deuren.length);
+check('deuren zitten aan de stoepkant', deuren.every((d) => d.z > 0));
+const mini = haltedeuren({ x: 0, y: 0, angle: 0, model: { name: 'nergens', len: 5, wid: 2 } });
+check('zonder deurdefinitie toch één plek', mini.length === 1);
+const fig = planHaltefiguren(bus, { board: 3, alight: 2 }, rng);
+check('aantal klopt', fig.length === 5 && fig.filter((f) => f.kind === 'in').length === 3);
+check('nooit meer dan het maximum', planHaltefiguren(bus, { board: 40, alight: 40 }, rng).length <= MAX_FIGUREN);
+check('niemand bij 0 reizigers', planHaltefiguren(bus, { board: 0, alight: 0 }, rng).length === 0);
+const uit = fig.find((f) => f.kind === 'uit'), inst = fig.find((f) => f.kind === 'in');
+check('uitstapper start verborgen en komt uit de deur', !figuurNu(uit, 0).zichtbaar && figuurNu(uit, uit.delay + 0.01).zichtbaar);
+check('uitstapper eindigt aan de stoep', figuurNu(uit, uit.delay + uit.duur + 0.1).y > bus.y + 4);
+check('instapper begint op de stoep', Math.abs(figuurNu(inst, 0).y - (bus.y + deuren[0].z + 4.5)) < 2.2);
+check('instapper verdwijnt bij de deur', !figuurNu(inst, inst.delay + inst.duur + 0.1).zichtbaar);
+check('klaar na afloop', fig.every((f) => figuurNu(f, 30).klaar));
+check('deur nodig tijdens het instappen', deurNodig(fig, inst.delay + 0.2) && !deurNodig(fig, 60));
+const gedraaid = planHaltefiguren({ ...bus, angle: Math.PI / 2 }, { board: 1, alight: 0 }, rng)[0];
+check('draaiing van de bus wordt gevolgd', Math.abs(gedraaid.to.x - bus.x) > 1 && Math.abs(gedraaid.to.y - bus.y) < 14);
+console.log(fail ? `haltefiguren_test: ${fail} fout` : 'haltefiguren_test ok');
+process.exit(fail ? 1 : 0);

@@ -2382,3 +2382,29 @@ export function storyReplayLines(i) {
     return { speaker, text, src: v ? VOICE_DIR + v.src : null, dur: v ? v.dur : 0 };
   });
 }
+
+// The player's own jump at the end of a `timing` stage with vaultJump (M20, the fierljep duel at the Bourtange moat):
+// the real pole vault of fierljep.js with its side camera, a landing when the duel was won and a splash when not.
+// Returns a handle { done: Promise<{ result, x, y }>, dispose() } or null when there is no crossing near (the stage goes on without).
+export function playDuelJump(w, { at, fail = false } = {}) {
+  if (!fjMod || !w || !at) return null;
+  // the water index only knows the city's canals; the moat of Bourtange is countryside water, so fall back to a plain ray search (a bridge nearby does not matter: it is a duel, nobody walks round)
+  let spot = fjMod.findVaultSpot(w.map, at.x, at.y, 95, { maxWidth: 26, bridgeNear: BRIDGE_NEAR });
+  if (!spot) {
+    const c = waterCrossing(w, at.x, at.y, 120, 26);
+    if (c && Math.hypot(c.b.x - c.a.x, c.b.y - c.a.y) >= 5) spot = { from: c.a, to: c.b };
+  }
+  if (!spot) return null;
+  const look = w.player.character === 'anita' ? ANITA_APPEARANCE : TAMMO_APPEARANCE;
+  const dx = spot.to.x - spot.from.x, dy = spot.to.y - spot.from.y, D = Math.hypot(dx, dy) || 1;
+  const npc = { x: spot.from.x - (dx / D) * 9, y: spot.from.y - (dy / D) * 9, angle: Math.atan2(dy, dx), appearance: look };
+  w.cinematicHidePlayers = true;
+  const h = fjMod.poleVault(npc, spot.from, spot.to, { camera: true, slowmo: !fail, fail, appearance: look, say: false, keepActor: true, swimTime: 2.5 });
+  const done = h.done.then((res) => {
+    w.cinematicHidePlayers = false;
+    if (res && res.result === 'landed' && Number.isFinite(res.x)) { w.player.x = res.x; w.player.y = res.y; }
+    setTimeout(() => h.dispose(), 1500);
+    return res;
+  });
+  return { done, dispose: () => { w.cinematicHidePlayers = false; h.dispose(); } };
+}

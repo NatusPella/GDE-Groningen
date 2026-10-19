@@ -9,6 +9,9 @@ import { saveGame, loadSlot, readSave, bindSlot, storySummary, onThumbKept } fro
 
 const DESKTOP = typeof window !== 'undefined' && window.gdeDesktop && window.gdeDesktop.isDesktop ? window.gdeDesktop : null;
 
+// snelle namen: hernoemen kan zo ook met alleen een controller (geen schermtoetsenbord)
+const NAME_PRESETS = ['Hoofdspel', 'Proefrit', 'Voor de missie', 'Veilig', 'Zomerrit', 'Reservekopie'];
+
 let rootEl = null;
 
 export function isSaveSlotsOpen() {
@@ -137,6 +140,7 @@ export function openSaveSlots(opts = {}) {
       ? `<p class="ssl-warn" role="alert">${esc(S.stateText(cur.state))}.${cur.state === 'hersteld' ? ' Je savegame was beschadigd; de vorige opslag is teruggezet. Sla opnieuw op om het te bevestigen.' : cur.state === 'kapot' ? ' Verwijder deze savegame, of importeer een eerder gemaakt bestand op een nieuwe plek.' : ''}</p>` : '';
     if (view === 'rename') {
       return `${head}<label class="ssl-lbl">Nieuwe naam<input class="ssl-input" data-grp="pane" data-input maxlength="${S.NAME_MAX}" value="${esc(cur.name)}" autocomplete="off"></label>` +
+        '<div class="m-acts ssl-presets" aria-label="Snelle namen (ook met de controller)">' + NAME_PRESETS.map((nm) => '<button type="button" class="m-bg" data-grp="pane" data-do="preset" data-name="' + esc(nm) + '">' + esc(nm) + '</button>').join('') + '</div>' +
         '<div class="m-acts"><button type="button" class="m-bp" data-grp="pane" data-do="rename-ok">Bewaren</button><button type="button" class="m-bt" data-grp="pane" data-do="back">Annuleren</button></div>';
     }
     if (view === 'delete') {
@@ -289,6 +293,7 @@ export function openSaveSlots(opts = {}) {
       if (p && e.detail === 0) p.focus(); // Enter / Space / A: on to the actions; a click keeps the card
       return;
     }
+    if (b.dataset.do === 'preset') { const inp = rootEl.querySelector('[data-input]'); if (inp) { inp.value = b.dataset.name || ''; doAction('rename-ok'); } return; }
     if (b.dataset.do) doAction(b.dataset.do, Number(b.dataset.want) || 0);
   });
   // focus by the arrows shows that card's details

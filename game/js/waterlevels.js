@@ -160,7 +160,11 @@ export function pointInStaticPolygon(px, py, poly) {
 // isInWater, inMapWater and the waterPoly of a boat.
 export function waterPolyAt(map, x, y) {
   if (!map.waterNear) return null;
-  for (const w of map.waterNear(x, y, 0.5)) {
+  return waterPolyIn(map.waterNear(x, y, 0.5), x, y);
+}
+// the same test over a list got once (a road's whole run: mapdata.js markDryRoad)
+export function waterPolyIn(polys, x, y) {
+  for (const w of polys) {
     const b = w.bounds || (w.bounds = boundsOf(w.pts));
     if (x < b[0] || x > b[2] || y < b[1] || y > b[3]) continue;
     if (pointInStaticPolygon(x, y, w.pts)) return w;
@@ -427,7 +431,8 @@ export const passesUnder = (air, clear) => clear >= air + 0.05;
 
 // The one water query for boats, swimmers, the heli and walkers:
 //   waterAt(map, x, y) -> null on dry land, else
-//   { level, depth, body, kind, navigable, wade, clearanceAbove }
+//   { level, depth, body, kind, navigable, wade, lock, covered, clearanceAbove }
+// covered: the water runs under a roof or road here (an aqueduct): a walker above it is dry
 // clearanceAbove: free height to a bridge deck over (x, y) (Infinity when
 // none).
 
@@ -439,6 +444,7 @@ export function waterAt(map, x, y) {
     const level = poly.lv ?? BOEZEM_Y, depth = poly.dp ?? K.depth;
     return {
       level, depth, body: poly.body ?? -1, kind, navigable: poly.nav ?? K.nav, wade: depth <= WADE_MAX, lock: !!poly.lock,
+      covered: !!(map.coveredAt && map.coveredAt(x, y)),
       clearanceAbove: clearanceOver(map, x, y, level),
     };
   }

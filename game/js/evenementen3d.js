@@ -6,7 +6,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { activeEvents, centreOf } from './evenementen.js';
 import { propLayout, crowdSpots, crowdCount, fitLayout, MAX_CROWD } from './evenementenlive.js';
 
-export const SHOW_R = 420;
+const SHOW_R = 420;
 
 const COLORS = [0xc0392b, 0xe8b02a, 0x2f7fb8, 0x4d9a55, 0xd9772b, 0xf0e6d2];
 const mat = (c) => new THREE.MeshLambertMaterial({ color: c });

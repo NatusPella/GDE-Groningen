@@ -6,11 +6,11 @@ import { DURK_LOOK, DOUWE_LOOK } from './storycast.js';
 import { isMissionActive, getActiveRace } from './missions.js';
 import { isCinematicActive, showBanner } from './cinematics.js';
 import { isShopOpen } from './shopui.js';
-import { pushAudioEvent } from './pedestrians.js';
+import { pushAudioEvent } from './pedgeom.js';
 import { unlockAchievement, recordChallengeResult, getChallengeRecord, recordStat, setStatMax, MEDALS } from './achievements.js';
 import { showCard } from './hudcards.js';
 import { banterAfter } from './banter.js';
-import { pointInPolygon, isInWater, clamp } from './util.js';
+import { pointInPolygon, isInWater, clamp, nearestOnRoadList } from './util.js';
 import { currentStep } from './story.js';
 import { PADEL_PAIR, PADEL_TWINS } from './padellines.js';
 import { bubbleVoiceFor } from './linevoice.js';
@@ -96,16 +96,10 @@ function solidAt(map, x, y) {
 }
 
 function roadAt(map, x, y) {
-  for (const r of map.roadsNear(x, y, 12)) {
-    const hw = (r.width || 5) / 2 + 0.6;
-    for (let i = 0; i < r.pts.length - 1; i++) {
-      const [x0, y0] = r.pts[i], [x1, y1] = r.pts[i + 1];
-      const dx = x1 - x0, dy = y1 - y0, l2 = dx * dx + dy * dy || 1;
-      const t = clamp(((x - x0) * dx + (y - y0) * dy) / l2, 0, 1);
-      if (Math.hypot(x0 + dx * t - x, y0 + dy * t - y) < hw) return true;
-    }
-  }
-  return false;
+  return map.roadsNear(x, y, 12).some((r) => {
+    const q = nearestOnRoadList([r], x, y);
+    return q && q.d < (r.width || 5) / 2 + 0.6;
+  });
 }
 
 // A 12 x 22 m rectangle (court + margin) free of buildings, water and roads

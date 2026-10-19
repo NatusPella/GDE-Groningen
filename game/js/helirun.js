@@ -6,7 +6,7 @@ import { helipadInfo, scriptHeli, landHeliOnPad } from './skyprops.js';
 import { isMissionActive, getActiveRace } from './missions.js';
 import { isCinematicActive } from './cinematics.js';
 import { isShopOpen } from './shopui.js';
-import { pushAudioEvent } from './pedestrians.js';
+import { pushAudioEvent } from './pedgeom.js';
 import { unlockAchievement, setStatMax, recordStat, recordChallengeResult } from './achievements.js';
 import { makeHeli, flyHeli, helipadById, HELI_MODEL } from './heliflight.js';
 import { findClearSpot } from './helispawn.js';
@@ -643,7 +643,7 @@ export function isHeliRunActive() {
   return !!run;
 }
 
-export function getHeliRun() {
+function getHeliRun() {
   if (!run) return null;
   const leg = run.plan.legs[run.st.leg];
   return {

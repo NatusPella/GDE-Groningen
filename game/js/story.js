@@ -29,6 +29,8 @@ import { getShopVisits, getShopsForRender, grantStoryItem } from './shops.js';
 import { getPigeonFlight, stopPigeonMode } from './pigeonmode.js';
 import { isHeliRunActive, abortHeliRun } from './helirun.js';
 import { jumpPrep, jumpSpot } from './storyjump.js';
+import { buildingAt } from './tileplace.js';
+import { waterAt } from './waterlevels.js';
 import { purchaseCount, storyBuyLabel } from './storyshop.js';
 import { getPigeonSpotsForRender } from './pigeonspots.js';
 import { getSideJobList } from './sidejobs.js';
@@ -1254,7 +1256,7 @@ export function devJumpTo(id, opts = {}) {
   enter(target);
   if (target.player) swapCharacter(world, target.player);
   const idx = missionIdx(target);
-  const spot = jumpSpot(idx >= 0 ? getMissionDefs()[idx] : null, world.storyGuide, { dist: 12 });
+  const spot = jumpSpot(idx >= 0 ? getMissionDefs()[idx] : null, world.storyGuide, { dist: 12, vrij: (x, y) => !buildingAt(world.map, x, y, 0.5) && !waterAt(world.map, x, y) });
   if (spot) {
     const p = world.player;
     const [ex, ey] = world.map.escapeBuilding ? world.map.escapeBuilding(spot.x, spot.y, 0.5) : [spot.x, spot.y];

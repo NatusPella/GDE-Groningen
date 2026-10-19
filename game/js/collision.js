@@ -1,7 +1,8 @@
 // Shared on-foot collision for everything that walks (player, companion,
 // pedestrians, animals): building footprints - minus the passages that
 // footways and streets cut through them - and solid street props.
-import { closestPointOnSegment, pointInPolygon } from './util.js';
+import { closestPointOnSegment, pointInPolygon, isInWater } from './util.js';
+import { buildingAt } from './tileplace.js';
 import { resolveWalkerProps } from './breakables.js';
 import { countryWeight } from './countryfield.js';
 import { pushOutOfPlan } from './countryplan.js';
@@ -119,4 +120,31 @@ export function resolveWalker(x, y, radius, map, vx = 0, vy = 0, opts = null, z 
   const hb = pushOutOfWaterObstacles(map, x, y, radius);
   if (hb) [x, y] = hb;
   return resolveBuildingCollisions(x, y, radius, map, hop, !(opts && opts.noWalls));
+}
+
+function isInsideBuilding(map, x, y) {
+  return !!buildingAt(map, x, y);
+}
+
+// Sides as multipliers of the vehicle's (-sin, cos) normal, which is its
+// right-hand side (three.z = world.y). Drivers get out on the left (NL),
+// passengers on the right.
+export const EXIT_LEFT_FIRST = [-1, 1];
+export const EXIT_RIGHT_FIRST = [1, -1];
+
+export function findExitSpot(v, radius, map, sides = EXIT_LEFT_FIRST) {
+  const nx = -Math.sin(v.angle), ny = Math.cos(v.angle);
+  const off = v.halfWid + 0.7;
+  for (const s of sides) {
+    const ex = v.x + nx * off * s, ey = v.y + ny * off * s;
+    if (isInsideBuilding(map, ex, ey) || isInWater(map, ex, ey)) continue;
+    return resolveBuildingCollisions(ex, ey, radius, map);
+  }
+  // an alley narrower than the car: out the front or the back instead
+  const hl = (v.halfLen || v.halfWid * 2) + 0.7, fx = Math.cos(v.angle), fy = Math.sin(v.angle);
+  for (const s of [1, -1]) {
+    const ex = v.x + fx * hl * s, ey = v.y + fy * hl * s;
+    if (!isInsideBuilding(map, ex, ey) && !isInWater(map, ex, ey)) return resolveBuildingCollisions(ex, ey, radius, map);
+  }
+  return map.escapeBuilding(v.x + nx * off * sides[0], v.y + ny * off * sides[0]);
 }

@@ -24,6 +24,9 @@ import { ensureCountryEdge } from './countryplan.js';
 import { warmCountryMaps } from './countrymap.js';
 import { Input } from './input.js';
 import { initGamepad } from './gamepad.js';
+import { initPadKeyboard } from './padkeyboard.js';
+import { initInputDevice } from './inputdevice.js';
+import { skipFrame } from './framecap.js';
 import { initTouch } from './touch.js';
 import { initGlyphs } from './glyphs.js';
 import { initA11y } from './a11y.js';
@@ -63,7 +66,7 @@ import { updateStreekplekken3D } from './streekplekken3d.js';
 import { loadVaarnet, vaarPrefetch } from './vaarload.js';
 import { isShopOpen } from './shopui.js';
 import { initMapView, updateMapView, isMapOpen } from './mapview.js';
-import { initAudio, updateAudio, setMenuAudio, setSfxLinks } from './audio.js';
+import { initAudio, updateAudio, setMenuAudio, setSfxLinks, setAudioCamera } from './audio.js';
 import { updateBanter } from './banter.js';
 import { updateNarrative } from './narrative.js';
 import { initStoryContact, updateStoryContact } from './storycontact.js';
@@ -85,13 +88,14 @@ import { buildMovableBridges, updateMovableBridges, getMovableBridges } from './
 import { updateSluizen, getSluizen } from './sluizen.js';
 import { updateBridgeHits, resetBridgeDamage, startBridgeCrashDemo, stepBridgeCrashDemo } from './bridgehitworld.js';
 import { geoWorkerActive } from './geojobs.js';
-import { init3D, update3D, resize3D, getScene, getRenderer, setMenuCover, MENU_FRAME_S, refreshRenderScale, terrainReady, canvasFrameCount, prewarmStreamAt } from './scene3d.js';
+import { init3D, update3D, resize3D, getScene, getRenderer, setMenuCover, MENU_FRAME_S, refreshRenderScale, terrainReady, canvasFrameCount, prewarmStreamAt, getCamera, getFollowPose } from './scene3d.js';
 import { checkFrame } from './blackframe.js';
 import { noteFrame, hideAdvice, classifyGpu, readGpu, dynamicScale, cpuLevel } from './gfxprofile.js';
 import { updateStreetSigns } from './streetsigns.js';
 import { updatePhotoMode, wireFotoKey } from './fotomodusui.js';
 import { initPauseMenu, isPauseMenuOpen, openPauseMenu, pauseMenuCover } from './pausemenu.js';
-import { initDayNight, updateDayNight } from './daynight.js';
+import { wantsOpenSamen, takeOpenSamen } from './samenpanel.js';
+import { initDayNight, updateDayNight, DAY_LENGTH_S } from './daynight.js';
 import { initCalendar, updateCalendar, today as calendarToday } from './calendarday.js';
 import { updateFx3D } from './fx3d.js';
 import { updateGore3D } from './gore3d.js';
@@ -134,7 +138,7 @@ import { updateIndicators } from './indicators.js';
 import { initAchievementTracker, updateAchievementTracker } from './achievementtracker.js';
 import { probe } from './hitchprobe.js';
 import { initSafety, updateSafety } from './safety.js';
-import { updateCinematics, isCinematicActive, sinceCinematic } from './cinematics.js';
+import { updateCinematics, isCinematicActive, sinceCinematic, setCinematicLinks } from './cinematics.js';
 import { initFlavour, updateFlavour } from './flavour.js';
 import { initFlavour3D, updateFlavour3D } from './flavour3d.js';
 import { prepareHomeMap, initHome, updateHome, updateHomeExterior, tryHomeInteract, homeSpawnPoint, parkHeroAtHome } from './home.js';
@@ -239,7 +243,7 @@ function waitForStart(world, ready) {
 let bridgeDemoT = 0, bridgeDemoDone = false; // ?brugbotsing
 let errorShown = false;
 function showFrameError(err) {
-  console.error(err);
+  console.error(err && err.stack ? err.stack : err);
   if (errorShown) return;
   errorShown = true;
   const el = document.createElement('div');
@@ -281,12 +285,14 @@ const PED_DESPAWN_DIST = 150;
 const input = new Input();
 
 function maintainPedestrians(world) {
+  // in a cutscene the street life fills round the camera's view, not round the hidden player (#157)
+  const f = world.cameraOverride && world.streamFocus ? world.streamFocus : world.player;
   world.pedestrians = world.pedestrians.filter(
-    (p) => p.state === 'dead' || dist(p.x, p.y, world.player.x, world.player.y) < PED_DESPAWN_DIST
+    (p) => p.state === 'dead' || dist(p.x, p.y, f.x, f.y) < PED_DESPAWN_DIST
   );
   if (world.pedestrians.length < PED_TARGET) {
     world.pedestrians.push(...spawnPedestriansNear(
-      world.map, world.player.x, world.player.y, PED_TARGET - world.pedestrians.length, Math.random
+      world.map, f.x, f.y, PED_TARGET - world.pedestrians.length, Math.random
     ));
   }
 }
@@ -431,6 +437,8 @@ async function boot() {
   // browser swallows that Esc keypress), which opens the pause menu instead
   const menuOpen = () => isPauseMenuOpen() || isMapOpen() || isPhoneOpen() || isShopOpen() || !!world.devPanelOpen;
   input.canLock = () => document.body.classList.contains('game-started') && !menuOpen() && !world.uiPaused;
+  initInputDevice();
+  initPadKeyboard();
   initGamepad(input, world, { menuOpen: () => menuOpen() || isPlayAheadOpen() || isHelpOfferOpen(), phoneOpen: isPhoneOpen, pauseOpen: isPauseMenuOpen, mapOpen: () => isMapOpen() });
   initTouch(input, world, { menuOpen: () => menuOpen() || isPlayAheadOpen() || isHelpOfferOpen() });
   document.addEventListener('pointerlockchange', () => {
@@ -475,6 +483,8 @@ async function boot() {
   setMenuAudio(true);
   initAudio(world);
   setNieuwsBronnen({ bridges: getMovableBridges });
+  setAudioCamera(getCamera);
+  setCinematicLinks({ getFollowPose, prewarmStreamAt });
   setSfxLinks({ bridges: getMovableBridges, trains: getTrains, vehicles: () => world.vehicles, locks: getSluizen });
   await waitForStart(world, countryPlaced);
   await countryPlaced;
@@ -492,6 +502,7 @@ async function boot() {
   const tileFollow = {};
   let pedTimer = 0;
   function frame(now) {
+    if (getSettings().zuinig && skipFrame(now - last)) { requestAnimationFrame(frame); return; }
     const frameMs = now - last;
     const dt = Math.min(0.05, frameMs / 1000);
     last = now;
@@ -516,7 +527,14 @@ async function boot() {
   }
 
   const feelDip = makeDip(), dipSeen = { imp: null, mh: null };
+  let samenSince = null;
   function frameBody(dt) {
+    // Samen spelen vanuit het hoofdmenu (#95): de lobby opent zodra het spel te besturen is (na de opening van een nieuw spel)
+    // (een paar seconden wachten: de opening van een nieuw spel begint pas even na de start en zou de lobby anders overvallen)
+    if (wantsOpenSamen()) {
+      if (samenSince == null) samenSince = world.time;
+      if (world.time - samenSince > 5 && !isCinematicActive() && sinceCinematic() > 2 && !world.cameraOverride && !world.pendingRespawn && !isPauseMenuOpen()) { takeOpenSamen(); samenSince = null; openPauseMenu('samen'); }
+    }
     updateMapView(dt, world);
     world.paused = isMapOpen() || isPauseMenuOpen() || isShopOpen() || !!world.uiPaused;
     if (document.pointerLockElement && (isMapOpen() || isPauseMenuOpen() || isPhoneOpen())) document.exitPointerLock();
@@ -699,7 +717,7 @@ async function boot() {
       setRouteClosures(routeSigDone ? (x, y) => routePenalty(x, y, n, hour) : null, routeSigDone || '');
     }
     updateZeilvaren(dt, world, calendarToday(world));
-    updateStationLife(dt, world, { routes: getRoutes(), point: routePoint, day: calendarToday(world), createBoard: createStationBoard, driving: getTrains().some((t) => t.state === 'player') });
+    updateStationLife(dt, world, { routes: getRoutes(), point: routePoint, day: calendarToday(world), createBoard: createStationBoard, trains: getTrains(), schaal: 86400 / DAY_LENGTH_S, driving: getTrains().some((t) => t.state === 'player') });
     updateMovableBridges(dt, world);
     updateSluizen(dt, world);
     // a ship against a bridge deck: the crash sound of a car contact, by how hard the deck was hit (audio.js updateContactAudio)

@@ -29,6 +29,18 @@ Het onderstaande over duur en belasting zijn schattingen op een gewone ontwikkel
 3. `electron` vóór een release en 's nachts; nooit tijdens het spelen.
 4. `alles` is `licht`, `zwaar` en `electron` achter elkaar.
 
+## Visuele sweep
+
+`node scripts/qa/sweep.mjs --seed=<n> [--part=wereld,verhaal,cut] [--wereld=45] [--verhaal=26] [--cut=14] [--slot] [--plan]` maakt met een vaste seed minstens 150 beelden op willekeurige momenten en beoordeelt ze. Met dezelfde seed krijg je hetzelfde plan (`plan.json`); een nieuwe seed geeft nieuwe plekken, tijden en weersoorten.
+
+- **Wereld:** plekken in stad, wijken, dorpen, gehuchten, Ommeland, A7, kust, Eemshaven, Delfzijl en Waddenzee, met een willekeurige tijd van de dag en een willekeurig weer. Per plek een beeld op straat (met HUD) en een hoog beeld.
+- **Verhaal:** een willekeurige stap van elke missie M01 t/m M26 via `__story.jump`, twee beelden (HUD, gesprekken, cutscenes die vanzelf starten) en om de andere stap een pauzemenu-paneel.
+- **Cutscenes:** een steekproef van de geregisseerde scènes via `cutscene_shots.page.js` (`sample`).
+- **Poort:** zwarte of lege beelden, een bijna lege wereld, een consolefout (zoals een ReferenceError per frame) of een scriptfout laten de run falen met exitcode 1 en "POORT GEFAALD" in het logboek.
+- **Automatische beoordeling** (`bevindingen.json`, `logboek.md`): zwart, leeg of ongeldig beeld, NaN-geometrie, ontbrekende textures, (bijna) lege wereld, HUD buiten beeld of overlappende HUD-tekst, speler in water of gebouw of zwevend, consolefouten, mislukte sprong. Drijvende of verzonken props en z-fighting vangt dit niet; die vind je met de Read-tool op de beelden.
+- Daarna kijkt een mens (of agent) alle beelden door, schrijft per probleem een korte vondst en maakt per unieke vondst een issue met `bug`, één impact- en één kostenlabel en `wacht-beeld` zolang geen mens het beeld zag. Beelden gaan niet naar GitHub; in het issue staan seed, beeldnaam en beschrijving.
+- Eén Electron-instantie per deel, wegwerpprofiel, `--slot` neemt een slot uit `gde-locks`. `ELECTRON_EXE` en `GAME_WORLD` wijzen een Electron en een gestagede wereld aan als de worktree er geen heeft. Het logboek zegt altijd dat niemand de beelden heeft gezien.
+
 ## Veiligheid
 
 - De Electron-stappen gebruiken een wegwerpprofiel (`GDE_TEST_PROFILE=gde-testall-<pid>-<stap>` in de tijdelijke map) en schrijven nooit naar `gde-save-v1`, `gde-settings` of `gde-prestaties-v1`. De profielen worden na afloop verwijderd.

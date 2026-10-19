@@ -8,7 +8,7 @@ export const MAX_S = 12;
 export const TIP_MAX_CHARS = 70;
 export const LINE_S = { save: 4.5, travel: 3.5, snel: 0 };
 const MIN_S = { save: 2.2, travel: 1.4, snel: 0.6 };
-export const minSeconds = (kind) => MIN_S[kind] ?? MIN_S.travel;
+const minSeconds = (kind) => MIN_S[kind] ?? MIN_S.travel;
 
 // save: loading a game; snel: a short hop (fast travel nearby, a mission
 // start across the block): small card, no tips; travel: a long jump.

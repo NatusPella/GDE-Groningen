@@ -19,7 +19,7 @@ export const PLAN_CUTS = ['teaser', 'hoofd'];
 export const SFX_KINDS = ['knal', 'tik', 'stoot', 'riser'];
 
 const BANTER = 'audio/voicelines/banter/';
-export const V = {
+const V = {
   rikus: 'audio/voicelines/trailer/rikus_augustus.mp3',
   rijden: BANTER + 'h8-pass-fierljepper_5_a_cf2581.mp3',
   bedoelde: BANTER + 'h10-pass-team_4_t_cc5cf0.mp3',

@@ -9,8 +9,8 @@ import { FullScreenQuad } from 'three/addons/postprocessing/Pass.js';
 import { getRenderer, getScene, getCamera } from './scene3d.js';
 import { KEYS } from './storagekeys.js';
 
-export const SHOT_W = 300;
-export const SHOT_H = 170;
+const SHOT_W = 300;
+const SHOT_H = 170;
 const SCALE = 2;
 const NEAR_M = 110;
 const BACK_M = 46;

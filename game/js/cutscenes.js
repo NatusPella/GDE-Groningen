@@ -87,6 +87,8 @@ const ACT_KEUKEN = {
   },
   fx: [
     { t: 0, fx: 'pulse', dur: 12 },
+    { t: 0.8, fx: 'naam', text: 'Tessa', dur: 2.6 },
+    { t: 'L2-3.0', fx: 'naam', text: 'Tammo', dur: 2.6 },
     { t: 'L2-3.6', fx: 'sfx', kind: 'door_open' },
     { t: 'L2-3.6', fx: 'door', open: 1, dur: 0.9 },
     { t: 'L2-3.6', fx: 'cups', actor: 'tammo', on: true },
