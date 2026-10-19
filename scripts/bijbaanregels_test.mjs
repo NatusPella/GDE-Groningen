@@ -98,7 +98,7 @@ const e = startRonde('balenrit', 1);
 for (let k = 0; k < 400 && !e.over; k++) stapRonde(e, { lat: 9, dist: 500 }, 0.1);
 ok(e.over === 'fail' && stapRonde(e, { dist: 0 }, 0.1).length === 0, 'na fail geen events meer');
 console.log(`bijbaanregels_test: ${n - fails}/${n} ok`);
-process.exit(fails ? 1 : 0);
+process.exitCode = fails ? 1 : 0;
 
 // adapter-gegevens: doelen per rijdende baan (sidejob_bijbaan.js gebruikt DOELEN)
 {
@@ -114,4 +114,29 @@ process.exit(fails ? 1 : 0);
   if (!/BIJBAAN_JOBS\]/.test(src) && !/\.\.\.BIJBAAN_JOBS/.test(src)) { console.log('FAIL bijbanen staan niet in SIDE_JOBS'); process.exitCode = 1; }
   const ad = (await import('node:fs')).readFileSync(new URL('../game/js/sidejob_bijbaan.js', import.meta.url), 'utf8');
   for (const id of Object.keys(DOELEN)) if (!ad.includes(`maak('${id}'`)) { console.log('FAIL adapter mist', id); process.exitCode = 1; }
+}
+
+// veerdienst-adapter (sidejob_veer.js): vaarlijn, steigerdoel en registratie
+{
+  const fs = await import('node:fs');
+  // rondvaart importeert three: de lijn tellen we uit de bron
+  const rv = fs.readFileSync(new URL('../game/js/sidejob_rondvaart.js', import.meta.url), 'utf8');
+  const LINE = (rv.match(/export const LINE = (\[\[.*?\]\]);/s) || [, '[]'])[1].match(/\[[-\d.]+, [-\d.]+\]/g) || [];
+  const v = fs.readFileSync(new URL('../game/js/sidejob_veer.js', import.meta.url), 'utf8');
+  const s = fs.readFileSync(new URL('../game/js/sidejobs.js', import.meta.url), 'utf8');
+  if (!/veerdienst/.test(s.split(/\r?\n/).find((l) => l.startsWith('export const SIDE_JOBS')))) { console.log('FAIL veerdienst niet in SIDE_JOBS'); process.exitCode = 1; }
+  const m = v.match(/VAN = (\d+), NAAR = (\d+)/);
+  if (!m || !LINE[+m[1]] || !LINE[+m[2]] || +m[1] === +m[2]) { console.log('FAIL veerdienst-lijnindices'); process.exitCode = 1; }
+  else console.log('veerdienst-adapter ok');
+}
+
+// paneel-adapter (sidejob_paneel.js): strandpost, kermisdraai, brugdienst in SIDE_JOBS
+{
+  const fs = await import('node:fs');
+  const p = fs.readFileSync(new URL('../game/js/sidejob_paneel.js', import.meta.url), 'utf8');
+  const s = fs.readFileSync(new URL('../game/js/sidejobs.js', import.meta.url), 'utf8');
+  let bad = 0;
+  for (const id of ['strandpost', 'kermisdraai', 'brugdienst']) if (!p.includes(`'${id}'`)) { console.log('FAIL paneel mist', id); bad++; }
+  if (!/PANEEL_JOBS/.test(s.split(/\r?\n/).find((l) => l.startsWith('export const SIDE_JOBS')))) { console.log('FAIL PANEEL_JOBS niet in SIDE_JOBS'); bad++; }
+  if (bad) process.exitCode = 1; else console.log('paneel-adapter ok');
 }

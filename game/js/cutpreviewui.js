@@ -35,7 +35,8 @@ function select(e) {
   const t = $('t');
   t.max = String(e.duration || 0);
   t.value = '0';
-  $('issues').innerHTML = [...e.issues.map((m) => `<li>${esc(m)}</li>`), ...e.warnings.map((m) => `<li class="w">${esc(m)}</li>`)].join('');
+  $('issues').innerHTML = [...e.issues.map((m) => `<li>${esc(m)}</li>`), ...e.warnings.map((m) => `<li class="w">${esc(m)}</li>`),
+    ...(e.rhythm ? [`<li class="w">Ritme: ${e.rhythm.shots} shots, langste stilstaande camera ${e.rhythm.longestStill.toFixed(1)} s</li>`] : [])].join('');
   show(0);
 }
 

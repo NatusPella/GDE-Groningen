@@ -128,9 +128,39 @@ export class StuckDetector {
 // The rescue ladder once stuck: first a nudge that a player would also try,
 // then the cheats of the test menu API. Every rung beyond 'nudge' is logged as
 // "had een cheat nodig". Returns the rung for the nth rescue of one step.
-export const RESCUES = ['nudge', 'teleport', 'objective', 'win'];
+// 'skip' is the last rung: a win that did not stick (stage machinery re-entered) is followed by the story skip, which
+// finishes the step whatever path the mission took (M09, M10 needed nine wins in the first run).
+export const RESCUES = ['nudge', 'teleport', 'objective', 'win', 'skip'];
 export const rescueFor = (count) => RESCUES[Math.min(count, RESCUES.length - 1)];
 export const isCheat = (rung) => rung !== 'nudge';
+
+// A stunt (jump, drift, scratch-free run) wants speed and no braking for the target: the label or a message names it.
+export function isStunt(s) {
+  const m = s.mission || {};
+  if (m.stage === 'stunt') return true;
+  const words = [m.label, m.type, ...((s.hud && s.hud.messages) || [])].join(' ');
+  return /stunt|schans|sprong|spring|driften|drift/i.test(words);
+}
+
+// How a minigame is started at its spot, in order: a key, 'interact' (the activity's own interact()) or 'jitter'
+// (step a few metres aside and wait for the prompt again). The first run flickered on the fixed e, e, f, e; the
+// per-minigame openings put the key that is known to start it first.
+const OPENING = {
+  drift: ['e', 'f', 'interact', 'jitter', 'e'],
+  hengelen: ['e', ' ', 'interact', 'jitter', 'e'],
+  wandeling: ['e', 'interact', 'jitter', 'e', 'enter'],
+  pitchputt: ['e', ' ', 'interact', 'jitter', 'e'],
+  hoogvlieger: ['e', ' ', 'interact', 'jitter', 'e'],
+  geheimen: ['e', 'interact', 'jitter', 'e', 'f'],
+  snackketen: ['e', 'f', 'interact', 'jitter', 'e'],
+};
+const GENERIC_OPENING = ['e', 'e', 'f', 'interact', 'jitter', 'e', ' ', 'interact'];
+export const startAttempts = (id) => (OPENING[id] || GENERIC_OPENING).slice();
+// the nth jitter: a spot beside the spot, round the compass (metres)
+export function jitterOffset(n, r = 3) {
+  const a = (n % 8) * (Math.PI / 4);
+  return { dx: Math.round(Math.cos(a) * r * 100) / 100, dy: Math.round(Math.sin(a) * r * 100) / 100 };
+}
 
 // --- the brain: what to do now, from a status --------------------------------------
 // Pure. `s` is a status (validateStatus), `mem` the follower's memory
@@ -153,9 +183,23 @@ export function decide(s, mem = {}) {
   const t = s.target;
   const veh = s.player.vehicle;
   const onFootOnly = !!(s.mission && s.mission.onFoot);
+  const stage = (s.mission && s.mission.stage) || '';
+  const stunt = isStunt(s);
+  // a 'board' stage wants the vehicle that is standing there: any free one close by, whatever the distance to the marker
+  if (!veh && stage === 'board' && (mem.boardTries || 0) < 4) {
+    const v = (s.nearby && s.nearby.vehicles || []).find((c) => c.free && c.drivable && c.distance < 80);
+    if (v) return { type: 'enter', vehicle: v };
+  }
+  // on foot at the marker with a prompt on screen (the loket, the pinautomaat, a counter): press the action key a few times
+  const prompt = (s.hud && s.hud.prompt) || '';
+  if (!veh && prompt && t.distance <= Math.max(4, ((s.mission && s.mission.triggerRadius) || 0) + 1) && (mem.pressTries || 0) < 4) {
+    return { type: 'press', key: 'e', why: 'handeling', interact: true };
+  }
+  // a hold stage (stand still in the ring): stop walking once inside
+  if (stage === 'hold' && t.distance <= 3.5) return { type: 'wait', why: 'vasthouden' };
   if (veh) {
     if (onFootOnly) return { type: 'press', key: 'e', why: 'uitstappen' };
-    return { type: 'goto', mode: veh.boat ? 'boat' : veh.heli ? 'fly' : 'drive' };
+    return { type: 'goto', mode: veh.boat ? 'boat' : veh.heli ? 'fly' : 'drive', ...(stunt ? { stunt: true, top: 30 } : {}) };
   }
   // on foot: a vehicle close by is worth it for a long way
   if (t.distance > 140 && !onFootOnly && (mem.boardTries || 0) < 3) {

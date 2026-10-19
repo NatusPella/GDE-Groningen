@@ -1,3 +1,4 @@
+import { FLAT_SCALE, flatWheelIndex } from './flatlook.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { HABBO_PALETTE, habboMaterial, GeoBuilder, vcMaterial, markShared, composeMatrix, tubeGeometry } from './pixelart3d.js';
 import { buildPersonMesh, PERSON_RIG, holdPhoneRiding } from './models3d_people.js';
@@ -1481,7 +1482,10 @@ function busSection(B, x0, x1, W, { front, rear, wheelXs, doorXs }) {
     B.box((inner0 + inner1) / 2, winY0 - 0.02, s * (zs + 0.004), inner1 - inner0, 0.04, 0.01, TRIM);
     if (s === 1) {
       for (const dx of doorXs) {
-        B.box(dx, (BUS_SILL + 0.1 + winY1) / 2, s * (zs + 0.008), 1.25, winY1 - BUS_SILL - 0.05, 0.012, 0x3a4550, G_GLASS);
+        // gesloten deurblad: lichtblauw glas boven een witte onderkant, dicht en dus niet door te kijken
+        // (vroeger donker doorzichtig glas voor een lege romp: een dichte bus zag er open uit)
+        B.box(dx, (BUS_SILL + 0.1 + 1.05) / 2, s * (zs + 0.008), 1.25, 1.05 - BUS_SILL - 0.1, 0.012, BUS_WHITE);
+        B.box(dx, (1.05 + winY1) / 2, s * (zs + 0.008), 1.25, winY1 - 1.05, 0.012, 0x5f8299);
         B.box(dx, (BUS_SILL + 0.1 + winY1) / 2, s * (zs + 0.014), 0.05, winY1 - BUS_SILL - 0.05, 0.01, TRIM);
         for (const e of [-0.64, 0.64]) B.box(dx + e, (BUS_SILL + 0.1 + winY1) / 2, s * (zs + 0.014), 0.06, winY1 - BUS_SILL, 0.012, TRIM);
       }
@@ -2329,6 +2333,24 @@ export function updateVehicleWheelSpin(mesh, speed, dt, steer = 0) {
     const sw = Math.sin(ud.pedalPhase) * rl.amp * moving;
     rl.legs[0].rotation.z = rl.base + sw;
     rl.legs[1].rotation.z = rl.base - sw;
+  }
+}
+
+// Lekke band (#41): het wiel aan de trekkende kant wordt kleiner en zakt in; terug naar normaal na
+// reparatie (v.flat weg). Idempotent, goedkoop genoeg om elk frame aan te roepen.
+export function applyFlatTire(mesh, v) {
+  const ud = mesh.userData, wheels = ud.wheels;
+  if (!wheels || !wheels.length) return;
+  const want = v.flat ? flatWheelIndex(wheels.map((w) => ({ x: w.position.x, z: w.position.z })), v.id) : -1;
+  if ((ud.flatIdx ?? -1) === want) return;
+  const prev = ud.flatIdx ?? -1;
+  if (prev >= 0 && wheels[prev]) { wheels[prev].scale.setScalar(1); wheels[prev].position.y = wheels[prev].userData.baseY; }
+  ud.flatIdx = want;
+  if (want >= 0) {
+    const w = wheels[want];
+    if (w.userData.baseY == null) w.userData.baseY = w.position.y;
+    w.scale.setScalar(FLAT_SCALE);
+    w.position.y = w.userData.baseY * FLAT_SCALE;
   }
 }
 

@@ -1,7 +1,0 @@
-[out:json][timeout:90];
-(
-  relation["boundary"="administrative"]["admin_level"="10"](53.15,6.45,53.28,6.65);
-  relation["place"~"^(suburb|neighbourhood|quarter)$"](53.15,6.45,53.28,6.65);
-  node["place"~"^(suburb|neighbourhood|quarter)$"](53.15,6.45,53.28,6.65);
-);
-out geom;

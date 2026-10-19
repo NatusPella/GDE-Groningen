@@ -43,7 +43,8 @@ let venue = venues[0];
 
 function setVenues(list) {
   if (game) return;
-  venues = list.map((v) => { layout(v.holes); return { ...v, holes: HOLES, stand: STAND, center: CENTER, x: STAND.x, y: STAND.y }; });
+  // the venues carry raw { tee, cup, slope, bunkers } holes (echteplekken.js): without holesFromWorld they have no heading and the stand is NaN (#229)
+  venues = list.map((v) => { layout(holesFromWorld(v.holes)); return { ...v, holes: HOLES, stand: STAND, center: CENTER, x: STAND.x, y: STAND.y }; });
   venue = null;
 }
 
@@ -546,7 +547,7 @@ export const PITCHPUTT = {
       quit: () => { if (!game) return false; end(w, { quit: true }); return true; },
     };
   },
-  spots: () => venues.map((v, i) => ({ id: i ? 'pitchputt-' + v.id : 'pitchputt', name: v.name, x: v.x, y: v.y })),
+  spots: () => venues.filter((v) => Number.isFinite(v.x) && Number.isFinite(v.y)).map((v, i) => ({ id: i ? 'pitchputt-' + v.id : 'pitchputt', name: v.name, x: v.x, y: v.y })),
   prompt,
   secondary,
   interact,

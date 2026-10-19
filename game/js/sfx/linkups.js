@@ -94,6 +94,34 @@ export const LINK_RULES = [
     },
   },
   {
+    id: 'voertuigdelen',
+    fx: 'part_rip',
+    also: ['hood_thump', 'bus_door_hiss'],
+    source: 'vehicledoors.js: v.doors.loose krijgt een deel erbij (scheurt los), kap/klep/laadklep komt dicht, een busdeur (schuif) gaat open of dicht',
+    init: () => new WeakMap(),
+    step(seen, world, env, out) {
+      if (!env.vehicles) return;
+      const L = env.listener();
+      for (const v of env.vehicles()) {
+        const st = v && v.doors;
+        if (!st || dist(v.x, v.y, L.x, L.y) > 120) continue;
+        let s = seen.get(v);
+        const loose = st.loose ? Object.keys(st.loose).length : 0;
+        const o = st.open || {};
+        const open = {};
+        for (const id of Object.keys(o)) open[id] = o[id] > 0.5;
+        if (!s) { seen.set(v, { loose, open }); continue; }
+        if (loose > s.loose) out.push(ev('part_rip', v.x, v.y));
+        for (const id of new Set([...Object.keys(open), ...Object.keys(s.open)])) {
+          if (!!open[id] === !!s.open[id]) continue;
+          if (id === 'kap' || id === 'klep') { if (!open[id]) out.push(ev('hood_thump', v.x, v.y)); }
+          else if ((v.isBus || v.isTram || v.isTrain) && /^d[0-9]a$/.test(id)) out.push(ev('bus_door_hiss', v.x, v.y));
+        }
+        seen.set(v, { loose, open });
+      }
+    },
+  },
+  {
     id: 'plons-groot',
     fx: 'splash_big',
     source: 'player.js: swimming wordt true (de speler valt in het water)',

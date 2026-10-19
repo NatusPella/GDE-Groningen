@@ -4,7 +4,7 @@ import { markerColors } from './a11y.js';
 import { speakerHtml } from './speakers.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { buildBuildingMesh, setBuildingMap, setNightFactor } from './models3d_buildings.js';
-import { buildVehicleMesh, updateVehicleWheelSpin, setBusRearAngle, updatePoliceLamps, updateIndicatorLamps, syncPoliceMount, boatHullProfile, riderSeatFor, attachHelmet } from './models3d_vehicles.js';
+import { buildVehicleMesh, updateVehicleWheelSpin, applyFlatTire, setBusRearAngle, updatePoliceLamps, updateIndicatorLamps, syncPoliceMount, boatHullProfile, riderSeatFor, attachHelmet } from './models3d_vehicles.js';
 import {
   buildVehicleImpactSparkMesh3D, updateVehicleImpactSparkMesh3D,
   vehicleNeedsFireEffect, vehicleSmokeOnly, buildVehicleFireMesh3D, updateVehicleFireMesh3D,
@@ -21,7 +21,7 @@ import { vehicleSeat, placeSeated, makeSeatTracker, trackSeat, drawTransition, s
 import { updateCarInterior } from './carinterior.js';
 import { updateSwimmers3D } from './swimmers3d.js';
 import { neutralPose, blendPose, applyPose } from './actoranim.js';
-import { sprongStand } from './bewegingrules.js';
+import { sprongStand, zwemStand, klimStand } from './bewegingrules.js';
 import { driveRagdoll, syncBikeRider } from './ragdoll.js';
 import { applyWeatherToScene3D } from './weather.js';
 import { quakeJitter } from './eventrules.js';
@@ -54,7 +54,7 @@ import { pointInPolygon, polygonBounds, WATER_Y } from './util.js';
 import { preloadLandmarkModels, onLandmarkModelLoaded } from './landmarkmodels.js';
 import { onSettingsChange, getSettings, QUALITY_PRESETS } from './settings.js';
 import { stepFov } from './gamefeel.js';
-import { effectsFor } from './a11ylogic.js';
+import { effectsFor, shakeAmount } from './a11ylogic.js';
 import { reducedMotion } from './motion.js';
 import { dynamicScale, cpuLevel } from './gfxprofile.js';
 import { VIEW_DISTANCES, viewDistanceFor, detailDistanceFor, DETAIL_BASE } from './viewdist.js';
@@ -89,6 +89,8 @@ import { railZ } from './railway.js';
 import { cameraFocus } from './tilefocus.js';
 import { initMovableBridges3D, updateMovableBridges3D, openBridgeRoads } from './movablebridges3d.js';
 import { getMovableBridges } from './movablebridges.js';
+import { sluisLiftAt } from './sluizen.js';
+import { updateSluizen3D } from './sluizen3d.js';
 import { initStreetFurniture3D, updateStreetFurniture3D } from './streetfurniture3d.js';
 import { treeDims, treeColor, SPECIES, TREE_FLAG } from './greenery.js';
 import { buildCanopies, streamCanopies } from './canopies3d.js';
@@ -231,9 +233,9 @@ const kissMeshes = new Map();
 // glossy gradient, white rim), so it reads as a heart from every angle.
 let kissHeartTex = null;
 // Over een hek of hindernis: de sprongstand uit bewegingrules.js (#207) op de botten van de speler.
-function vaultPose(mesh, u) {
+function vaultPose(mesh, u, climb, t) {
   const p = neutralPose();
-  blendPose(p, sprongStand(u), 1);
+  blendPose(p, climb ? klimStand(t) : sprongStand(u), 1);
   applyPose(mesh.userData, p);
 }
 
@@ -2052,6 +2054,7 @@ export function update3D(dt, world) {
   if (!NO_BATCH) roadBatcher.update({ scene, meshes: roadMeshes, hidden: openSpans.size ? openSpans : null, px: focus.x, py: focus.y, detailR: DRAW_DIST, drawDist: DRAW_DIST, withDetail: true, budgetMs: 1 });
   for (const b of getMovableBridges()) { const m = roadMeshes.get(b.r); if (m) m.visible = !openSpans.has(b.r); }
   updateMovableBridges3D(focus.x, focus.y, waterNight);
+  updateSluizen3D(scene, focus.x, focus.y, waterNight);
   updateStreetFurniture3D(focus.x, focus.y);
   probe.mark('3d:roads');
   syncTrees(world, focus.x, focus.y);
@@ -2086,7 +2089,7 @@ export function update3D(dt, world) {
       mesh = null;
     }
     if (mesh) {
-      mesh.position.set(v.x, v.isBoat ? WATER_Y : v.z || 0, v.y);
+      mesh.position.set(v.x, v.isBoat ? WATER_Y + sluisLiftAt(v.x, v.y) : v.z || 0, v.y);
       mesh.rotation.y = -v.angle;
       if (!v.sinking && !v.isBoat) {
         // terrain pitch/roll on the whole car, spring motion on the body only
@@ -2110,6 +2113,7 @@ export function update3D(dt, world) {
         const moved = lx == null ? 0 : (v.x - lx) * Math.cos(v.angle) + (v.y - ly) * Math.sin(v.angle);
         updateVehicleWheelSpin(mesh, dt > 0 && Math.abs(moved) < 8 ? moved / dt : 0, dt, v.steer || 0);
       } else updateVehicleWheelSpin(mesh, v.speed, animDt, v.steer || 0);
+      if (v.flat || mesh.userData.flatIdx >= 0) applyFlatTire(mesh, v);
       if (v.isBoat) {
         animateBoat(mesh, v, world, animDt);
         crewCtx.dist = Math.hypot(v.x - player.x, v.y - player.y);
@@ -2413,7 +2417,13 @@ export function update3D(dt, world) {
       playerMesh.userData.air = player.vault ? player.airPose || 0 : !player.perch && !player.swimming && player.z > 0.25 ? 0.45 : 0;
       playerMesh.userData.shadow.position.y = 0.02 - (player.z || 0) / playerMesh.scale.y;
       animatePersonWalk(playerMesh, Math.hypot(player.vx, player.vy), animDt);
-      if (player.vault && Number.isFinite(player.vaultU)) vaultPose(playerMesh, player.vaultU);
+      if (player.vault && Number.isFinite(player.vaultU)) vaultPose(playerMesh, player.vaultU, !!player.vault.climb, world.time);
+      else if (player.swimming && !player.inVehicle) {
+        // zwemmen (#207): schoolslag bij beweging, rustig watertrappelen als je stilligt
+        const p = neutralPose();
+        blendPose(p, zwemStand(world.time * (Math.hypot(player.vx, player.vy) > 0.3 ? 1 : 0.4)), 1);
+        applyPose(playerMesh.userData, p);
+      }
       if (player.sofaSeat != null) { seatPose(playerMesh); playerMesh.position.y = seatedY(playerMesh, (player.gz || 0) + player.sofaSeat); }
       if (player.carrying) carryOverlay(playerMesh);
       const gun = isRangedWeapon(world.weapon) && (world.ammo[world.weapon] || 0) > 0 ? world.weapon : null;
@@ -2637,14 +2647,14 @@ export function update3D(dt, world) {
   const imp = world.lastImpact;
   const shakeAge = imp ? world.time - imp.time : Infinity;
   if (shakeAge >= 0 && shakeAge < CAM_SHAKE_TIME) {
-    const amp = Math.min(1, imp.strength) * CAM_SHAKE_MAX * Math.exp(-shakeAge * 7);
+    const amp = shakeAmount(Math.min(1, imp.strength) * CAM_SHAKE_MAX * Math.exp(-shakeAge * 7), { reduceMotion: reducedMotion() });
     const t = world.time * 47;
     cam.position.x += Math.sin(t) * amp;
     cam.position.y += Math.sin(t * 1.31 + 1.7) * amp * 0.6;
     cam.position.z += Math.cos(t * 0.87 + 0.4) * amp;
   }
   if (world.quake && world.quake.amp > 0.002) {
-    const j = quakeJitter(world.time, world.quake.amp);
+    const j = quakeJitter(world.time, shakeAmount(world.quake.amp, { reduceMotion: reducedMotion() }));
     cam.position.x += j.x; cam.position.y += j.y; cam.position.z += j.z;
   }
   const lookUp = Math.max(0, LOOK_UP_FROM_DEG * Math.PI / 180 - followPitch) * radius * LOOK_UP_LIFT;

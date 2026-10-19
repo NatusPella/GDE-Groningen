@@ -137,7 +137,7 @@ export function buildRaster({ worldDir, city = true, fixesOn = !process.argv.inc
   // de verbindingen die een gat in het water dichten (game/vaarnet_fixes.json); met --no-fixes weggelaten
   const fixFile = fixesOn ? JSON.parse(fs.readFileSync(new URL('../../game/vaarnet_fixes.json', import.meta.url))) : { links: [], gaten: [] };
   for (const l of fixFile.links || []) fillPolygon(R, linkPolygon(l), 4 | 32);
-  if (gatenOn) for (const g of [...(fixFile.gaten || []), ...(fixFile.verbindingen || []), ...(fixFile.zee || [])]) fillPolygon(R, gatPolygon(g), g[5] | 32);
+  if (gatenOn) for (const g of [...(fixFile.gaten || []), ...(fixFile.verbindingen || []), ...(fixFile.sluisgaten || []), ...(fixFile.zee || [])]) fillPolygon(R, gatPolygon(g), g[5] | 32);
   // bruggen over water
   const roads = [...P.bridges, ...cityMap.roads.filter((r) => r && r.bridge).map((r) => ({ pts: r.pts, z: null, width: r.width || 4, movable: r.movable || '', name: r.name || '', type: r.type || '', city: true }))];
   for (const b of roads) {
@@ -184,6 +184,13 @@ export function widenWideWater(R) {
 // kaart ontbreekt, tot MAIN_GAP_M m) groeien aan elkaar. Geeft het aantal cellen.
 const AXES = [[1, 0], [0, 1], [1, 1], [1, -1]];
 export const MAIN_NEAR_M = 40, MAIN_GAP_M = 35;
+// ...but only water a barge has room in (#234): a side diep or ditch next to the canal stays class 3
+export const MAIN_ROOM_M = 8;
+function roomRound(R, cx, cy) {
+  const q = Math.ceil(MAIN_ROOM_M / CELL) - 1;
+  for (let a = -q; a <= q; a++) for (let b = -q; b <= q; b++) if (R.nav(cx + a, cy + b) < 3) return false;
+  return true;
+}
 export function widenMainWaterways(R) {
   const r = Math.ceil(MAIN_NEAR_M / CELL), up = [];
   for (let ci = 0; ci < R.chunks.length; ci++) {
@@ -193,7 +200,7 @@ export function widenMainWaterways(R) {
     for (let i = 0; i < ch.length; i++) {
       if (!(ch[i] & 32)) continue;
       const cx = bx + (i & 255), cy = by + (i >> 8);
-      for (let a = -r; a <= r; a++) for (let b = -r; b <= r; b++) if (a * a + b * b <= r * r && R.nav(cx + a, cy + b) === 3) up.push([cx + a, cy + b]);
+      for (let a = -r; a <= r; a++) for (let b = -r; b <= r; b++) if (a * a + b * b <= r * r && R.nav(cx + a, cy + b) === 3 && roomRound(R, cx + a, cy + b)) up.push([cx + a, cy + b]);
     }
   }
   for (const [x, y] of up) R.put(x, y, 4 | 32);
@@ -762,6 +769,8 @@ if (process.argv[1] && process.argv[1].endsWith('vaarnet.mjs')) {
       '  "gaten": [', gaten.map(line).join(',\n'), '  ],',
       '  "verbindingenUitleg": ' + JSON.stringify('verbindingen: kleine stukken water waar een kanaal of vaart in de kaart onderbroken lijkt (hooguit 25 m, [x, y, lengte, breedte, hoek (rad), nav]); gemaakt door scripts/world/vaarnet.mjs --fixes. Nog niet in beeld bekeken.') + ',',
       '  "verbindingen": [', verbindingen.map(line).join(',\n'), '  ],',
+      '  "sluisgatenUitleg": ' + JSON.stringify('sluisgaten: de kolk van een sluis waar de kaart geen water tekent, [x, y, lengte, breedte, hoek (rad), nav]; gemaakt met scripts/world/sluizen.mjs (#236), blijft staan bij --fixes') + ',',
+      '  "sluisgaten": [', (cur.sluisgaten || []).map(line).join(',\n'), '  ],',
       '  "zeeUitleg": ' + JSON.stringify('zee: verbinding en tong zee bij een zeetoegang zonder water aan de zeekant, [x, y, lengte, breedte, hoek (rad), nav, naam]; de tong loopt tot voorbij de omkeerlijn van het eind van de wereld (worldedge.js). Nog niet in beeld bekeken.') + ',',
       '  "zee": [', zee.map(line).join(',\n'), '  ]',
       '}', '',

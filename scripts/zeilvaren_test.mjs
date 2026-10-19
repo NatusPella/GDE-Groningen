@@ -29,5 +29,8 @@ check('sloep nog wel', boatIsMotorised({ model: BOAT_KINDS.sloep }));
 check('rompen bestaan', boatKind({ model: BOAT_KINDS.zeilboot }) === 'dinghy' && boatKind({ model: BOAT_KINDS.roeiboot }) === 'skiff');
 check('windHoek bruikbaar', Number.isFinite(windHoek(1, wind)));
 
+check('windpijl: wind van voren wijst achterwaarts', Math.abs(Z.windPijlGraden(0)) === 180);
+check('windpijl: wind van achteren wijst vooruit', Math.abs(Z.windPijlGraden(Math.PI)) < 1e-9);
+
 console.log(`zeilvaren_test: ${n - bad}/${n} ok`);
 process.exit(bad ? 1 : 0);

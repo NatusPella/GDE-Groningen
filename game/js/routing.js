@@ -342,7 +342,7 @@ function astar(fromSnap, toSnap, walkMode, nodesOut = null) {
     for (let e = adj.start[n], end = adj.start[n + 1]; e < end; e++) {
       const m = adj.to[e];
       if (G.done[m] === stamp) continue;
-      relax(m, gn + adj.len[e], n);
+      relax(m, gn + adj.len[e] + (closureFn && !walkMode ? closureFn(G.x[m], G.y[m]) : 0), n);
     }
   }
   if (!nodesOut) stats.lastSettled = settled;
@@ -400,6 +400,16 @@ export function setRoutePrefs(o = {}) {
   if ('planMode' in o && o.planMode !== prefs.planMode) { prefs.planMode = o.planMode || null; invalidateRoutes(); }
 }
 export function getRoutePrefs() { return { ...prefs }; }
+// Afsluitingen van evenementen (#203): voor wie rijdt of fietst telt een punt in een
+// afgesloten gebied extra meters, zodat de route eromheen gaat. fn(x, y) -> extra meters (0 = vrij),
+// sig wisselt als de afsluitingen wisselen (dan wordt de route opnieuw gepland).
+let closureFn = null, closureSig = '';
+export function setRouteClosures(fn, sig = '') {
+  const same = sig === closureSig;
+  closureFn = typeof fn === 'function' ? fn : null;
+  closureSig = closureFn ? String(sig) : '';
+  if (!same) invalidateRoutes();
+}
 function invalidateRoutes() { for (const k of Object.keys(slots)) { slots[k].key = ''; slots[k].route = null; } }
 
 function busyTarget(world) {
@@ -808,7 +818,7 @@ function updateSlot(world, slot, target, mode) {
   const p = world.player;
   // already there: no line left to follow (it stayed on the map, #118)
   if (Math.hypot(target.x - p.x, target.y - p.y) < REACH_M * 2) { slot.route = null; slot.key = ''; return; }
-  const key = `${target.kind}:${Math.round(target.x)}:${Math.round(target.y)}:${mode}:${prefs.avoidMotorways ? 1 : 0}`;
+  const key = `${target.kind}:${Math.round(target.x)}:${Math.round(target.y)}:${mode}:${prefs.avoidMotorways ? 1 : 0}:${closureSig}`;
   const now = performance.now() / 1000;
   if (key !== slot.key || !slot.route) {
     slot.key = key;
