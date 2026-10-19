@@ -42,7 +42,8 @@ let venue = venues[0];
 
 function setVenues(list) {
   if (game) return;
-  venues = list.map((v) => { v = { ...v, holes: holesFromWorld(v.holes) }; layout(v.holes); return { ...v, holes: HOLES, stand: STAND, center: CENTER, x: STAND.x, y: STAND.y }; });
+  // the venues carry raw { tee, cup, slope, bunkers } holes (echteplekken.js): without holesFromWorld they have no heading and the stand is NaN (#229)
+  venues = list.map((v) => { layout(holesFromWorld(v.holes)); return { ...v, holes: HOLES, stand: STAND, center: CENTER, x: STAND.x, y: STAND.y }; });
   venue = null;
 }
 

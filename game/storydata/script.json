@@ -54,7 +54,7 @@
    "voice": "Henk"
   },
   "jelmer": {
-   "name": "Jelmer",
+   "name": "Streamer",
    "voice": "Jelmer"
   },
   "geert": {
@@ -466,7 +466,7 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Een streamer betaalt voor stunts, maar de Escapade heeft een lekke band. We lenen een bakkie. Rijden, niet praten.",
+     "text": "Een streamer betaalt honderdvijftig euro voor stunts. Alleen heeft de Escapade een lekke band, dus we lenen een bakkie. Rijden, niet praten.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
@@ -606,7 +606,7 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Vijftig euro van de honderdvijftig, Tammo. Nu de rest.",
+     "text": "Vijftig euro van Berend. Met de stunts erbij is dat genoeg, Tammo.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
@@ -627,20 +627,22 @@
    ],
    "lines": [
     {
-     "speaker": "Jelmer",
+     "speaker": "Streamer",
      "key": "jelmer",
      "text": "Moi moi! Kiekdoar hier. Je reageerde op mijn oproep: stuntrijder met een bakkie. Ik wil vanavond content op de Grote Markt.",
      "tag": "NIEUW",
      "channel": "telefoon",
-     "textOnly": true
+     "textOnly": true,
+     "voice": "Jelmer"
     },
     {
-     "speaker": "Jelmer",
+     "speaker": "Streamer",
      "key": "jelmer",
      "text": "Haal vijftienhonderd stuntpunten, dan betaal ik honderdvijftig euro.",
      "tag": "NIEUW",
      "channel": "telefoon",
-     "textOnly": true
+     "textOnly": true,
+     "voice": "Jelmer"
     },
     {
      "speaker": "Tessa",
@@ -677,13 +679,14 @@
      "textOnly": true
     },
     {
-     "speaker": "Jelmer",
+     "speaker": "Streamer",
      "key": "jelmer",
      "text": "Niemand raken! Alleen spullen. Spullen zijn content.",
      "tag": "BEHOUDEN",
      "channel": "telefoon",
      "textOnly": false,
-     "rec": "lines"
+     "rec": "lines",
+     "voice": "Jelmer"
     },
     {
      "speaker": "Tessa",
@@ -719,13 +722,14 @@
      "voice": "Anita"
     },
     {
-     "speaker": "Jelmer",
+     "speaker": "Streamer",
      "key": "jelmer",
      "text": "Moi moi chat! Zomeravond op de Grote Markt! En kijk: verse content!",
      "tag": "BEHOUDEN",
      "channel": "stem",
      "textOnly": false,
-     "rec": "lines"
+     "rec": "lines",
+     "voice": "Jelmer"
     },
     {
      "speaker": "Tammo",
@@ -756,13 +760,14 @@
      "rec": "lines"
     },
     {
-     "speaker": "Jelmer",
+     "speaker": "Streamer",
      "key": "jelmer",
      "text": "Die zijn het publiek! Niemand raken, wel laten schrikken!",
      "tag": "BEHOUDEN",
      "channel": "stem",
      "textOnly": false,
-     "rec": "lines"
+     "rec": "lines",
+     "voice": "Jelmer"
     },
     {
      "speaker": "Torenwachter",
@@ -804,12 +809,13 @@
    "regie": [],
    "lines": [
     {
-     "speaker": "Jelmer",
+     "speaker": "Streamer",
      "key": "jelmer",
      "text": "Chat, kijk die parasol! Die was van het terras. Nu is hij content!",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": true,
+     "voice": "Jelmer"
     },
     {
      "speaker": "Tessa",
@@ -854,12 +860,13 @@
      "textOnly": true
     },
     {
-     "speaker": "Jelmer",
+     "speaker": "Streamer",
      "key": "jelmer",
      "text": "Chat vindt dat niet leuk! Een terrasstoel met een hoed erop! Min honderd!",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": true,
+     "voice": "Jelmer"
     },
     {
      "speaker": "Tessa",
@@ -903,21 +910,23 @@
      "rec": "lines"
     },
     {
-     "speaker": "Jelmer",
+     "speaker": "Streamer",
      "key": "jelmer",
      "text": "Tienduizend kijkers! En kijk: ene JelleWâld typt in de chat.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": true,
+     "voice": "Jelmer"
     },
     {
-     "speaker": "Jelmer",
+     "speaker": "Streamer",
      "key": "jelmer",
      "text": "\"En dat famke yn it read: sa'n leaf gesicht.\"",
      "tag": "BEHOUDEN",
      "channel": "stem",
      "textOnly": false,
-     "rec": "lines"
+     "rec": "lines",
+     "voice": "Jelmer"
     },
     {
      "speaker": "Tessa",
@@ -957,12 +966,13 @@
      "rec": "story"
     },
     {
-     "speaker": "Jelmer",
+     "speaker": "Streamer",
      "key": "jelmer",
      "text": "Honderdvijftig euro, overgemaakt op jouw pas.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": true,
+     "voice": "Jelmer"
     },
     {
      "speaker": "Tessa",
@@ -1527,7 +1537,7 @@
     {
      "speaker": "Sjabbe",
      "key": "sjabbe",
-     "text": "Dan moet je groter denken. Die twee reuzen werken voor een Fries in een blauw colbert. Jelle Terpstra.",
+     "text": "Dan moet je groter denken. Die twee reuzen, Durk en Douwe, werken voor een Fries in een blauw colbert. Jelle Terpstra.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
@@ -1880,7 +1890,7 @@
     {
      "speaker": "Mevrouw Tuinstra",
      "key": "bewaarder",
-     "text": "Mevrouw Tuinstra. Ik bewaar de Gouden Eierbal, al sinds 1998. Wie de bal bewaart, zit de jury voor. Dat is artikel 4.",
+     "text": "Mevrouw Tuinstra. Ik bewaar de Gouden Eierbal, de wisselprijs van de Snackprijs, al sinds 1998. Wie de bal bewaart, zit de jury voor. Dat is artikel 4.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
@@ -2020,7 +2030,7 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Maar Jelle kocht de rij en alle standplaatsen. Plakje één is van hem. Dat krijgen we niet meer terug.",
+     "text": "Plakje één is van Jelle: alle standplaatsen. Dat krijgen we niet meer terug.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,

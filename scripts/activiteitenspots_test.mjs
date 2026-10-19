@@ -14,7 +14,7 @@ ok(!/spots: \(\) => \[\],/.test(read('reuzenrad.js')), 'hoogvlieger heeft een st
 // snackketen: spots(true) geeft elke snackbar
 ok(/spots: \(all = false\) => spots\.filter\(\(s\) => all \|\|/.test(read('snackketen.js')), 'snackketen spots(all)');
 // pitchputt: echte banen gaan door holesFromWorld (heading) voor de startplek
-ok(/holes: holesFromWorld\(v\.holes\)/.test(read('pitchputt.js')), 'pitchputt echte holes via holesFromWorld');
+ok(/layout\(holesFromWorld\(v\.holes\)\)/.test(read('pitchputt.js')), 'pitchputt echte holes via holesFromWorld');
 // de spotcheck loopt over spots(true) van elke activiteit
 ok(/for \(const s of a\.spots\(true\)\)/.test(act), 'activitySpots gebruikt spots(true)');
 console.log(`activiteitenspots_test: ${n - fails}/${n} ok`);
