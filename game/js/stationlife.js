@@ -1,7 +1,7 @@
 // Stationsleven (#198, #14): het vertrekbord, de omroep en de perrondrukte van het station
 // bij de speler, uit dienstregeling.js. Het deel zonder wereld is puur (testbaar zonder
 // browser: scripts/stationlife_test.mjs); updateStationLife hangt het aan HUD en geluid.
-import { vertrekBord, omroep, perronDrukte, tijdLabel, VERVOERDER } from './dienstregeling.js';
+import { vertrekBord, bordUitTreinen, omroep, perronDrukte, tijdLabel, VERVOERDER } from './dienstregeling.js';
 
 export const NEAR_R = 45;      // m: zo dichtbij moet je bij het perron zijn voor bord en omroep
 export const CROWD_R = 140;    // m: zo dichtbij worden reizigers getekend
@@ -37,9 +37,12 @@ export function nearestStation(stations, x, y, r = NEAR_R) {
 }
 
 // Alles wat HUD, omroep en 3D van een station nodig hebben. clock: spelklok in uren, dag: dagnummer.
-export function stationView(station, clock, dag) {
+// treinen: de rijdende treinen (railway.getTrains()); met die lijst volgt het bord de echte treinen,
+// zonder valt het terug op het rooster. schaal: spelklokseconden per echte seconde.
+export function stationView(station, clock, dag, treinen = null, schaal = 60) {
   const nu = ((clock % 24) + 24) % 24 * 3600;
-  const bord = vertrekBord(station.lijnen, station.name, nu, dag, { aantal: 5, terug: 30 });
+  const echt = treinen ? bordUitTreinen(treinen.filter((t) => station.lijnen.includes(t.route)), station.name, nu, { aantal: 5, schaal }) : [];
+  const bord = echt.length ? echt : vertrekBord(station.lijnen, station.name, nu, dag, { aantal: 5, terug: 30 });
   const eerst = bord[0] || null;
   const wacht = eerst ? eerst.tijd - nu : Infinity;
   return {
@@ -108,7 +111,7 @@ export function updateStationLife(dt, world, opts) {
   if (!stations || sig !== routesSig) { stations = stationsFromRoutes(routes, point); routesSig = sig; }
   const p = world.player;
   const hit = nearestStation(stations, p.x, p.y, CROWD_R);
-  cur = hit ? { station: hit.station, d: hit.d, view: stationView(hit.station, world.clock || 0, day) } : null;
+  cur = hit ? { station: hit.station, d: hit.d, view: stationView(hit.station, world.clock || 0, day, opts.trains ? opts.trains.map((t) => ({ route: t.route, c: t.c, dir: t.dir, v: t.v, state: t.state, target: t.target, timer: t.timer, vmax: t.cfg && t.cfg.vmax })) : null, opts.schaal || 60) } : null;
   // een ander bord (machinist, minigame) gaat voor: het station laat zijn bord dan weg
   const other = opts.driving || (!shown && typeof document !== 'undefined' && document.body.classList.contains('mg-on'));
   const near = cur && cur.d < NEAR_R && !other;

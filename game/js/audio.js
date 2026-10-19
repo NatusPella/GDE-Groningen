@@ -865,6 +865,8 @@ function playWeaponSfx(e, x, y) {
       break;
     }
     case 'firework': {
+      // rendered shell (crack, thump, glitter) first; the synthesized one below is the fallback
+      if (playFx('firework_burst', x, y)) break;
       // a shell opening: a sharp crack, a soft low thump, then the glitter crackling down
       const out = spatialOut(x, y, e.far ? { ref: 120, rolloff: 0.5, range: 3200, h: Number.isFinite(e.z) ? e.z : undefined, prio: 2 } : { ref: 12, rolloff: 0.7, range: 300, h: Number.isFinite(e.z) ? e.z : undefined, prio: 2 });
       if (!out) return;
@@ -930,6 +932,7 @@ function playBell(x, y) {
 
 // Level-crossing bell: one hard metallic strike per event (railway.js repeats it).
 function playCrossingBell(x, y) {
+  if (playFx('crossing_bell', x, y)) return;
   const out = spatialOut(x, y, { ref: 6, rolloff: 1.1, range: 130, h: 2.5 });
   if (!out) return;
   playTone({ freq: 1480, type: 'triangle', duration: 0.28, gain: 0.32, out });
