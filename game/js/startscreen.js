@@ -10,7 +10,8 @@ import { pendingTrailer } from './trailerstate.js';
 // trailer.js (2500 lines) is only loaded when a trailer or benchmark really runs
 import { startTheme, stopTheme } from './theme.js';
 import { COW_LOADING } from './flavourlines.js';
-import { MENU_FRAME_S, getRenderer } from './scene3d.js';
+import { MENU_FRAME_S, getRenderer, streamPending } from './scene3d.js';
+import { makeMenuGate, GATE } from './menuready.js';
 import { isAdvisorSampling, startGfxAdvisor } from './gfxprofile.js';
 import { ABOUT_HTML } from './credits.js';
 import { startLoadScreen, setLoadTips } from './loadscreen.js';
@@ -104,9 +105,10 @@ export function yieldToPaint() {
 // the benchmark) goes straight on to the menu.
 const AUTO = FLAGS.noattract || FLAGS.storytest || FLAGS.stil || FLAGS.trailer || FLAGS.preview || FLAGS.benchmark || FLAGS.perf || FLAGS.spotsonly;
 
-// Fills the bar to 100%, says "Druk op een toets" and waits for the key. The
-// boot screen stays up until the menu is there (dismissLoading), so there is
-// no black gap between them.
+// Fills the bar to 100% and goes straight on (#226): no key to press. The boot screen stays up until the
+// menu is there (dismissLoading) and runStartScreen only shows the menu when the world behind it is drawn
+// and calm (menuready.js), so there is no black gap and no frozen menu. The sound starts at the first real
+// key or click (audio.js unlockAudio), the browsers allow nothing earlier.
 export async function finishLoading() {
   progress = 1;
   shown = 1;
@@ -118,28 +120,6 @@ export async function finishLoading() {
   const status = l.querySelector('.ld-status');
   if (status) status.textContent = 'Klaar, Grunn staat te wachten';
   await new Promise((r) => setTimeout(r, 380));
-  if (AUTO) return;
-  const key = l.querySelector('.bt-key');
-  if (key) key.textContent = window.matchMedia && matchMedia('(pointer: coarse)').matches ? 'Tik om te beginnen' : 'Druk op een toets';
-  l.classList.add('ready');
-  await new Promise((resolve) => {
-    const go = (e) => {
-      if (e.type === 'keydown' && (e.key === 'Shift' || e.key === 'Control' || e.key === 'Alt' || e.key === 'Meta' || e.repeat)) return;
-      window.removeEventListener('keydown', go, true);
-      window.removeEventListener('pointerdown', go, true);
-      window.removeEventListener('gamepadconnected', go, true);
-      clearInterval(pad);
-      // this press is only "go on": the menu does not see it
-      if (e.type === 'keydown') { e.preventDefault(); e.stopImmediatePropagation(); }
-      resolve();
-    };
-    window.addEventListener('keydown', go, true);
-    window.addEventListener('pointerdown', go, true);
-    const pad = setInterval(() => {
-      const pads = navigator.getGamepads ? navigator.getGamepads() : [];
-      for (const g of pads) if (g && g.buttons.some((b) => b.pressed)) { go({ type: 'pad' }); return; }
-    }, 200);
-  });
 }
 
 // The menu (or the trailer) is up: the boot screen fades away over it.
@@ -393,7 +373,7 @@ function logoIn(screen) {
 
 // Title screen over the live city, cycling through highlights. Resolves with
 // 'game' (Doorgaan / Nieuw spel).
-export function runStartScreen(world, { render, relocate, tick }) {
+export function runStartScreen(world, { render, relocate, tick, ready }) {
   return new Promise((resolve) => {
     const screen = el('start-screen');
     const menu = screen.querySelector('.ss-menu');
@@ -681,8 +661,23 @@ export function runStartScreen(world, { render, relocate, tick }) {
         showMenu(true);
       }
     };
-    if (intro) playIntro();
-    else {
+    // The menu waits for the gate (menuready.js): the world behind it drawn, the streaming quiet, the extra
+    // work (`ready`) done. window.__menuGate tells what it saw; __menuHang the longest frame after the menu showed.
+    const gate = makeMenuGate();
+    let gateOpen = null;
+    const gateReady = new Promise((r) => { gateOpen = r; });
+    let extraDone = !ready;
+    if (ready) Promise.resolve(ready).then(() => { extraDone = true; }, () => { extraDone = true; });
+    window.__menuGate = () => gate.report();
+    const lStatus = document.querySelector('#loading .ld-status');
+    if (lStatus && !intro && !el('loading').dataset.gone) lStatus.textContent = 'De straten worden ingeladen';
+    setTimeout(() => { gate.expire(performance.now()); gateOpen(); }, GATE.timeoutMs + 2000);
+    let hangUntil = 0, hangMax = 0, lastRaf = 0;
+    window.__menuHang = () => Math.round(hangMax);
+    const openMenu = () => {
+      if (window.__loadMarks) window.__loadMarks.menu = Math.round(performance.now());
+      hangUntil = performance.now() + 4000;
+      hangMax = 0;
       showMenu(false);
       startGfxAdvisor(getRenderer().getContext());
       if (update) {
@@ -690,12 +685,19 @@ export function runStartScreen(world, { render, relocate, tick }) {
         focus(n);
         openNews();
       }
-    }
+    };
 
     let renderDt = 0;
     const loop = (now) => {
       if (done) return;
       if (trailerOn) { last = now; requestAnimationFrame(loop); return; }
+      const gap = lastRaf ? now - lastRaf : 0;
+      lastRaf = now;
+      if (hangUntil) { if (now < hangUntil) hangMax = Math.max(hangMax, gap); else hangUntil = 0; }
+      if (!gate.isReady()) {
+        const sp = streamPending();
+        if (gate.step(now, gap, sp.buildings + sp.roads, extraDone)) gateOpen();
+      }
       const dt = Math.min(0.05, (now - last) / 1000);
       last = now;
       renderDt += dt;
@@ -718,5 +720,7 @@ export function runStartScreen(world, { render, relocate, tick }) {
       requestAnimationFrame(loop);
     };
     requestAnimationFrame(loop);
+    if (intro) playIntro();
+    else gateReady.then(openMenu);
   });
 }
