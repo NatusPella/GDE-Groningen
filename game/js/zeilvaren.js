@@ -22,17 +22,40 @@ export function zeilStap(v, wind, inp, dt, soort = BOOT_SOORTEN.zeilboot) {
   return v.sailTop;
 }
 
+// Windwijzer (HUD): de pijl wijst waar de wind heen waait, gezien vanaf de boot (boeg = boven).
+// hoek: windHoek (0 = wind recht van voren), in graden voor CSS rotate (kloksgewijs).
+export const windPijlGraden = (hoek) => 180 - (hoek * 180) / Math.PI;
+
+let wijzer = null;
+function toonWijzer(v, wind, hoek) {
+  if (typeof document === 'undefined') return;
+  if (!wijzer) {
+    wijzer = document.createElement('div');
+    wijzer.id = 'windwijzer';
+    wijzer.setAttribute('role', 'img');
+    wijzer.innerHTML = '<svg viewBox="-20 -20 40 40" aria-hidden="true"><circle r="18" class="ww-ring"/><path class="ww-pijl" d="M0 -13 L6 5 L0 1 L-6 5 Z"/></svg><b class="ww-snel"></b><span class="ww-trim"><i></i></span><span class="ww-keys"><span class="hud-key">Q</span> aan <span class="hud-key">Z</span> vieren</span>';
+    document.body.appendChild(wijzer);
+  }
+  wijzer.hidden = false;
+  wijzer.querySelector('.ww-pijl').style.transform = `rotate(${windPijlGraden(hoek).toFixed(0)}deg)`;
+  wijzer.querySelector('.ww-snel').textContent = `${Math.round(wind.speed)} m/s`;
+  wijzer.querySelector('.ww-trim i').style.width = `${Math.round((v.zeilTrim ?? 0.6) * 100)}%`;
+  wijzer.setAttribute('aria-label', `Wind ${Math.round(wind.speed)} meter per seconde, zeil ${Math.round((v.zeilTrim ?? 0.6) * 100)} procent aangehaald`);
+}
+function verbergWijzer() { if (wijzer) wijzer.hidden = true; }
+
 let textT = 0;
 
 export function updateZeilvaren(dt, world, dag) {
   const v = world && world.player && world.player.inVehicle;
-  if (!v || !v.isBoat || !v.model || !v.model.zeil || v.driver !== 'player') { if (v && v.model && v.model.zeil) v.sailTop = null; return; }
+  if (!v || !v.isBoat || !v.model || !v.model.zeil || v.driver !== 'player') { verbergWijzer(); if (v && v.model && v.model.zeil) v.sailTop = null; return; }
   if (world.paused) return;
   const uur = ((world.clock % 24) + 24) % 24;
   const wind = windOp(dag, uur);
   world.wind = wind;
   const inp = { trim: (world.input.isDown('q') ? 1 : 0) - (world.input.isDown('z') ? 1 : 0) };
   zeilStap(v, wind, inp, dt);
+  toonWijzer(v, wind, windHoek(v.angle, wind));
   textT -= dt;
   if (textT <= 0) {
     textT = TEKST_GAP_S;

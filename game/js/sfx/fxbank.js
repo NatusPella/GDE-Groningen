@@ -13,7 +13,7 @@ export const FX_INFO = {
   carbid_boom_0: { cat: 'explosie', label: 'Carbidknal (A)', gain: 1.0, ref: 22, range: 3000 },
   carbid_boom_1: { cat: 'explosie', label: 'Carbidknal (B)', gain: 1.0, ref: 22, range: 3000 },
   carbid_boom_2: { cat: 'explosie', label: 'Carbidknal (C)', gain: 1.0, ref: 22, range: 3000 },
-  carbid_fuse: { cat: 'wapen', label: 'Carbid: lont sist', gain: 0.35, ref: 3, range: 60 },
+  carbid_fuse: { cat: 'wapen', label: 'Carbid: lont sist', gain: 0.6, ref: 3, range: 60 },
   explosion_boom_0: { cat: 'explosie', label: 'Explosie (A)', gain: 1.0, ref: 16, range: 2500 },
   explosion_boom_1: { cat: 'explosie', label: 'Explosie (B)', gain: 1.0, ref: 16, range: 2500 },
   shop_bell: { cat: 'winkel', label: 'Winkelbel bij de deur', gain: 0.45, ref: 3, range: 40 },
@@ -193,3 +193,40 @@ defSample('tyre_screech', 1.4, (c, sr, R) => {
   nb(d, sr, 0, R, { f: 2600, q: 2, tau: 0.5, amp: 0.7, attack: 0.04, len: 1.2 });
   nb(d, sr, 0, R, { type: 'hp', f: 4000, q: 0.7, tau: 0.4, amp: 0.3, attack: 0.04, len: 1.2 });
 }, { rate: 22050, peak: 0.75 });
+
+// Vehicle parts (issues #173, #131): a door, bonnet or tailgate that tears
+// off in a crash, a bonnet or boot lid that bangs, a bus door hiss. Linked
+// in sfx/linkups.js from the door state of vehicledoors.js.
+FX_INFO.part_rip = { cat: 'voertuig', label: 'Deur of kap scheurt los', gain: 0.8, ref: 10, range: 250 };
+FX_INFO.hood_thump = { cat: 'voertuig', label: 'Kap of kofferbak slaat dicht', gain: 0.55, ref: 4, range: 60 };
+FX_INFO.bus_door_hiss = { cat: 'voertuig', label: 'Busdeur sist open of dicht', gain: 0.7, ref: 6, range: 80 };
+
+defSample('part_rip', 1.8, (c, sr, R) => {
+  const d = c[0];
+  // sheet metal tearing off its hinges, then the panel hitting the road and rattling
+  nb(d, sr, 0, R, { f: 2600, q: 1.2, tau: 0.09, amp: 1.2, attack: 0.002 });
+  addTone(d, sr, 0, 0.25, R, { f0: 420, f1: 190, amp: 0.4, attack: 0.01, release: 0.1, shape: 'saw', vib: 0.08, vibRate: 40 });
+  thump(d, sr, 0.04, 80, 0.08, 1.0);
+  for (let k = 0; k < 3; k++) {
+    const t = 0.35 + k * 0.17 + R() * 0.05, a = 1 - k * 0.3;
+    thump(d, sr, t, 95 + R() * 30, 0.06, 0.9 * a);
+    addPartials(d, sr, t, 260 + R() * 120, [[1, 0.5, 0.12], [2.76, 0.3, 0.1], [5.4, 0.15, 0.06]], 0.7 * a, R);
+    nb(d, sr, t, R, { f: 3400, q: 2, tau: 0.03, amp: 0.5 * a });
+  }
+  nb(d, sr, 0.9, R, { type: 'hp', f: 4200, q: 3, tau: 0.1, amp: 0.2, len: 0.8 });
+}, { rate: 22050, peak: 0.9 });
+
+defSample('hood_thump', 0.6, (c, sr, R) => {
+  const d = c[0];
+  thump(d, sr, 0, 110, 0.07, 1.2);
+  nb(d, sr, 0, R, { type: 'lp', f: 1200, q: 0.7, tau: 0.04, amp: 1 });
+  addPartials(d, sr, 0, 190 + R() * 40, [[1, 0.4, 0.1], [2.4, 0.25, 0.07]], 0.6, R);
+  click(d, sr, R, 0.005, 3000, 0.5);
+}, { rate: 22050, peak: 0.8 });
+
+defSample('bus_door_hiss', 1.3, (c, sr, R) => {
+  const d = c[0];
+  nb(d, sr, 0, R, { type: 'hp', f: 3800, q: 0.7, tau: 0.35, amp: 0.8, attack: 0.04, len: 1.1 });
+  nb(d, sr, 0, R, { f: 6200, q: 1.5, tau: 0.25, amp: 0.4, attack: 0.04, len: 1.0 });
+  thump(d, sr, 0.9, 90, 0.05, 0.5);
+}, { rate: 22050, peak: 0.6 });

@@ -30,8 +30,13 @@ export function stepAvailable(step) {
   return !!(step && step.built && PARTS[step.part] && PARTS[step.part].open);
 }
 
+// A def id ('pinautomaat') or the id of a mission step of the arc ('M02'): the hooks (cutscene preview, spelbot)
+// know the steps by their story code, the saves by the def id.
 export function missionIndexOf(id) {
-  return MISSION_IDS.indexOf(id);
+  const i = MISSION_IDS.indexOf(id);
+  if (i >= 0) return i;
+  const step = STEP_BY_ID.get(id);
+  return step && step.kind === 'mission' && step.mission ? MISSION_IDS.indexOf(step.mission) : -1;
 }
 
 // Is step k done? Finished or skipped (doneId), a mission the chain counts as

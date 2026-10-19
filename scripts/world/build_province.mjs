@@ -41,7 +41,7 @@ export const PROVINCE_BUILDER = 1;
 export const GID0 = 20_000_000;
 // how far past the province border tiles are built (the extract's own margin decides the rest)
 export const BUFFER_M = 3000;
-export const SRC_DIR = path.join(ROOT, 'data', 'cache', 'province');
+export const SRC_DIR = process.env.GDE_PROVINCE_SRC ? path.resolve(process.env.GDE_PROVINCE_SRC) : path.join(ROOT, 'data', 'cache', 'province'); // GDE_PROVINCE_SRC: een extract buiten de werkboom (worktrees)
 // tile flags: 1 land, 4 built from OSM by the world builder, 8 the old
 // Ommeland layers draw it too, 16 outside the province (the buffer), 32 this layer,
 // 64 an overlay: the part of a city tile the city's own data leaves empty (its key is 'o' + the tile's)

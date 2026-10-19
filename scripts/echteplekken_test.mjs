@@ -41,6 +41,7 @@ const lcg = (a) => () => { a = (a * 1664525 + 1013904223) >>> 0; return a / 4294
     check('golf: holes met par en richting', hs.every((h) => (h.par === 2 || h.par === 3) && Number.isFinite(h.heading) && h.len >= 30 && h.len <= 78), JSON.stringify(hs.map((h) => h.len)));
   }
   const tiny = [[0, 0], [40, 0], [40, 30], [0, 30]];
+  check('golf: een baan zonder rot/l/w geeft geen NaN-holes (#229)', golfVenues({ golf: [{ id: 'n', leisure: 'golf_course', x: 1000, y: 500, ha: 1.08, ring }] }).every((v) => v.holes.every((h) => [h.tee.x, h.tee.y, h.cup.x, h.cup.y].every(Number.isFinite))));
   check('golf: een te kleine baan valt af', golfVenues({ golf: [{ id: 't', leisure: 'golf_course', x: 20, y: 15, rot: 0, l: 40, w: 30, ha: 0.12, ring: tiny }] }).length === 0);
   // echte tees en greens (30-78 m) worden gebruikt
   const ring2 = [[0, 0], [400, 0], [400, 200], [0, 200]];

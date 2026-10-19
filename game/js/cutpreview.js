@@ -12,6 +12,7 @@ import { compileScene, validateScene } from './cutscript.js';
 import { missionScene, SPECS, MORE_SPECS } from './cutscenes_akte1.js';
 import './cutscenes_akte2.js';
 import './cutscenes_akte3.js';
+import './cutscenes_akte4.js';
 import { OPENING_ACTS, openingActs, END_CARD } from './cutscenes.js';
 import { STEPS } from './storyarc_nieuw.js';
 
@@ -21,6 +22,7 @@ export const NOT_CHECKED = 'Botsing met gebouwen is niet gecontroleerd: daar is 
 
 const SPEAKER_NAME = { T: 'Tammo', A: 'Anita' };
 const MAX_STEP = 0.45; // m between two frames of 0.1 s: more is a jump
+export const MAX_CAMERA_STILL = 8; // s the camera may hold still (ritme-regel, #136)
 const NEAR = 45; // m the camera may stray from the anchor
 const ANCHOR = { x: 500, y: -300, facing: 1.1, z: 0 };
 
@@ -62,7 +64,7 @@ export function checkSampling(def, lines, duration) {
   const issues = [], warnings = [];
   let scene;
   try { scene = compileScene(def, { lines, duration }); } catch (e) { return { issues: [String(e.message || e)], warnings, scene: null }; }
-  let finite = true, near = true, maxStep = 0, prev = null;
+  let finite = true, near = true, maxStep = 0, prev = null, stillFrom = 0, longestStill = 0, stillAt = 0;
   const shots = new Set();
   for (let t = 0; t <= duration; t += 0.1) {
     const s = scene.sample(t, ANCHOR);
@@ -76,19 +78,26 @@ export function checkSampling(def, lines, duration) {
       maxStep = Math.max(maxStep, Math.hypot(a.x - p.x, a.y - p.y));
     }
     shots.add(c.shotIndex);
+    if (prev) {
+      const pc = prev.camera;
+      const d = Math.hypot(c.position.x - pc.position.x, c.position.y - pc.position.y, c.position.z - pc.position.z) + Math.hypot(c.lookAt.x - pc.lookAt.x, c.lookAt.y - pc.lookAt.y, c.lookAt.z - pc.lookAt.z) + Math.abs(c.fov - pc.fov);
+      if (c.shotIndex !== pc.shotIndex || d > 0.004) { if (t - stillFrom > longestStill) { longestStill = t - stillFrom; stillAt = stillFrom; } stillFrom = t; }
+    }
     prev = s;
   }
+  if (duration - stillFrom > longestStill) { longestStill = duration - stillFrom; stillAt = stillFrom; }
+  if (longestStill > MAX_CAMERA_STILL) issues.push(`ritme: de camera staat ${longestStill.toFixed(1)} s stil (vanaf ${stillAt.toFixed(1)} s), maximaal ${MAX_CAMERA_STILL} s`);
   if (!finite) issues.push('timing: een positie of camerawaarde is geen getal');
   if (!near) issues.push(`camera: verder dan ${NEAR} m van de plek`);
   if (maxStep >= MAX_STEP) warnings.push(`timing: iemand springt ${maxStep.toFixed(2)} m in 0,1 s`);
   if (shots.size < Math.min(4, Math.max(1, lines.length))) warnings.push(`camera: maar ${shots.size} verschillende shots`);
-  return { issues, warnings, scene };
+  return { issues, warnings, scene, rhythm: { longestStill, stillAt, shots: shots.size } };
 }
 
 function entryFor({ id, group, title, def, lines, duration, missing }) {
   const issues = [], warnings = [];
   if (missing) issues.push(...missing.map((m) => `ontbrekende acteur: ${m}`));
-  let scene = null;
+  let scene = null, rhythm = null;
   if (def) {
     for (const m of validateScene(def, { lines, duration })) issues.push(m);
     if (!issues.length) {
@@ -96,10 +105,11 @@ function entryFor({ id, group, title, def, lines, duration, missing }) {
       issues.push(...r.issues);
       warnings.push(...r.warnings);
       scene = r.scene;
+      rhythm = r.rhythm || null;
     }
   } else if (!missing) issues.push('scene is niet te bouwen');
   const status = issues.length ? STATUS.error : warnings.length ? STATUS.warn : STATUS.ok;
-  return { id, group, title, status, issues, warnings, note: NOT_CHECKED, def, lines, duration, scene, shots: scene ? scene.shots || [] : [] };
+  return { id, group, title, status, issues, warnings, note: NOT_CHECKED, def, lines, duration, scene, rhythm, shots: scene ? scene.shots || [] : [] };
 }
 
 // Names in a spec's cast without a look in the NPC table: the reason missionScene gives null.

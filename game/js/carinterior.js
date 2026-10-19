@@ -1,6 +1,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { vehicleSeat } from './seating3d.js';
-import { hasCarInterior, interiorLayout } from './carinteriorlayout.js';
+import { hasCarInterior, interiorLayout, doorTrims } from './carinteriorlayout.js';
+import { doorsFor } from './vehicledoors.js';
 
 // Low-poly car interior for the "Binnenin" camera (V): dashboard, steering
 // wheel, instrument pod, two front seats, a rear bench and a mirror. Parts
@@ -23,7 +24,7 @@ function seatAt(g, x, y, z, tilt) {
   box(g, 0.08, 0.16, 0.26, x - 0.3, y + 0.62, z, GREY);
 }
 
-export function buildCarInterior(seat, len, wid) {
+export function buildCarInterior(seat, len, wid, defs = []) {
   const L = interiorLayout(seat, len, wid);
   const g = new THREE.Group();
   g.name = 'interior';
@@ -57,6 +58,23 @@ export function buildCarInterior(seat, len, wid) {
   if (L.rear) box(g, 0.5, 0.14, L.rear.w, L.rear.x, L.rear.y - 0.07, 0, SEAT), box(g, 0.1, 0.55, L.rear.w, L.rear.x - 0.27, L.rear.y + 0.27, 0, SEAT);
   const m = L.mirror;
   box(g, 0.03, 0.1, 0.34, m.x, m.y, m.z, DARK);
+  // dakhemel en A-stijlen
+  const R = L.roof;
+  box(g, R.x1 - R.x0, 0.04, R.w, (R.x0 + R.x1) / 2, R.y, 0, GREY);
+  for (const p of R.pillars) {
+    const dx = p.x1 - p.x0, dy = p.y1 - p.y0, len = Math.hypot(dx, dy);
+    const m = box(g, len, 0.07, 0.07, (p.x0 + p.x1) / 2, (p.y0 + p.y1) / 2, p.z, DARK);
+    m.rotation.z = Math.atan2(dy, dx);
+  }
+  // portierbekleding op de plek van de echte deuren; verdwijnt als de deur openstaat of los is
+  g.userData.trims = doorTrims(defs, len, wid).map((t) => {
+    const tg = new THREE.Group();
+    box(tg, t.w, t.h, 0.04, t.x, t.y, t.z, SEAT);
+    box(tg, t.arm.w, 0.05, 0.08, t.arm.x, t.arm.y, t.arm.z, GREY);
+    box(tg, 0.14, 0.03, 0.04, t.handle.x, t.handle.y, t.handle.z, TRIM);
+    g.add(tg);
+    return { id: t.id, group: tg };
+  });
   g.userData.wheel = turn;
   return g;
 }
@@ -67,13 +85,17 @@ export function updateCarInterior(mesh, v, show) {
   if (!mesh || !hasCarInterior(v)) return false;
   let g = mesh.userData.interior;
   if (!g && show) {
-    g = buildCarInterior(vehicleSeat(v, true), v.model.len, v.model.wid);
+    g = buildCarInterior(vehicleSeat(v, true), v.model.len, v.model.wid, doorsFor(v));
     mesh.userData.interior = g;
     mesh.add(g);
   }
   if (!g) return false;
   g.visible = !!show;
-  if (show) g.userData.wheel.rotation.z = -(v.steer || 0) * 2.2;
+  if (show) {
+    g.userData.wheel.rotation.z = -(v.steer || 0) * 2.2;
+    const st = v.doors;
+    for (const t of g.userData.trims) t.group.visible = !(st && ((st.open[t.id] || 0) > 0.2 || st.loose[t.id]));
+  }
   return !!show;
 }
 

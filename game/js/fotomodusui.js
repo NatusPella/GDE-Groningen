@@ -17,6 +17,9 @@ let shoot = false;
 let note = '';
 let noteT = 0;
 let counter = 0;
+let lookDx = 0, lookDy = 0; // slepen met een vinger of muis (touch), in px sinds de vorige frame
+const pointers = new Map();
+let pinch = 0;
 const keysDown = new Set();
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -94,15 +97,46 @@ export function stopPhotoMode(world) {
   const r = getRenderer();
   if (r) r.domElement.style.filter = '';
   if (overlay) { overlay.remove(); overlay = null; }
-  photo = null; saved = null; shoot = false; keysDown.clear();
+  photo = null; saved = null; shoot = false; keysDown.clear(); pointers.clear(); lookDx = lookDy = 0;
 }
 
 function buildOverlay() {
   overlay = document.createElement('div');
   overlay.id = 'foto-ui';
-  overlay.innerHTML = '<div class="foto-grid" hidden></div><div class="foto-bar"></div><div class="foto-note"></div>';
+  overlay.innerHTML = '<div class="foto-look"></div><div class="foto-grid" hidden></div><div class="foto-pad">' +
+    [['w', 'Vooruit'], ['s', 'Achteruit'], ['a', 'Links'], ['d', 'Rechts'], [' ', 'Omhoog'], ['control', 'Omlaag']].map(([k, l]) => `<button type="button" class="foto-btn foto-mv" data-foto-mv="${k}">${l}</button>`).join('') +
+    '</div><div class="foto-bar"></div><div class="foto-note"></div>';
+  wireTouch(overlay);
   overlay.addEventListener('click', (e) => { if (e.target.closest('[data-foto-stop]')) stopPhotoMode(); else if (e.target.closest('[data-foto-shoot]')) shoot = true; });
   document.body.appendChild(overlay);
+}
+
+// Touch (en muis): een vinger slepen kijkt rond, twee vingers knijpen zoomt, de knoppen onderin lopen.
+function wireTouch(el) {
+  const look = el.querySelector('.foto-look');
+  look.addEventListener('pointerdown', (e) => { look.setPointerCapture(e.pointerId); pointers.set(e.pointerId, { x: e.clientX, y: e.clientY }); pinch = 0; });
+  look.addEventListener('pointermove', (e) => {
+    const q = pointers.get(e.pointerId);
+    if (!q) return;
+    if (pointers.size >= 2) {
+      const [a, b] = [...pointers.values()];
+      q.x = e.clientX; q.y = e.clientY;
+      const d = Math.hypot(a.x - b.x, a.y - b.y);
+      if (pinch && photo) { photo.p.fov -= (d - pinch) * 0.15; F.clampPhoto(photo.p); }
+      pinch = d;
+      return;
+    }
+    lookDx += e.clientX - q.x; lookDy += e.clientY - q.y;
+    q.x = e.clientX; q.y = e.clientY;
+  });
+  const up = (e) => { pointers.delete(e.pointerId); pinch = 0; };
+  look.addEventListener('pointerup', up);
+  look.addEventListener('pointercancel', up);
+  el.querySelectorAll('[data-foto-mv]').forEach((b) => {
+    const k = b.dataset.fotoMv;
+    b.addEventListener('pointerdown', (e) => { e.preventDefault(); b.setPointerCapture(e.pointerId); keysDown.add(k); });
+    for (const t of ['pointerup', 'pointercancel', 'lostpointercapture']) b.addEventListener(t, () => keysDown.delete(k));
+  });
 }
 
 const KEYBTN = (k, label) => `<span class="foto-key"><kbd>${k}</kbd> ${label}</span>`;
@@ -135,9 +169,10 @@ export function updatePhotoMode(dt, world) {
   const d = (k) => (keysDown.has(k) ? 1 : 0);
   F.stepFreeCam(p, {
     fwd: d('w') - d('s'), right: d('d') - d('a'), up: d(' ') - d('control'),
-    yawRate: (d('arrowright') - d('arrowleft')) * 1.2, pitchRate: (d('arrowup') - d('arrowdown')) * 0.9,
+    yawRate: (d('arrowright') - d('arrowleft')) * 1.2 + lookDx * 0.004 / Math.max(0.001, Math.min(dt, 0.05)), pitchRate: (d('arrowup') - d('arrowdown')) * 0.9 - lookDy * 0.003 / Math.max(0.001, Math.min(dt, 0.05)),
     boost: keysDown.has('shift'),
   }, Math.min(dt, 0.05));
+  lookDx = 0; lookDy = 0;
   w.cameraOverride = pose(p);
   const r = getRenderer();
   if (r) r.domElement.style.filter = F.filterCss(p);

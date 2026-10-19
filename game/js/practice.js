@@ -3,12 +3,16 @@
 // and then while the step is open, a closing card at the end. No mission, no
 // stakes, no save: stopping means leaving it alone. Done is kept per device
 // (gde-oefenronde) only to say so in Hulp.
-import { showCard } from './hudcards.js';
+import { showCard, cardsBusy } from './hudcards.js';
+import { mayStart } from './narrative.js';
+import { isCinematicActive } from './cinematics.js';
+import { playerBusy } from './busy.js';
 import { isPauseMenuOpen } from './pausemenu.js';
 import { isMapOpen } from './mapview.js';
 import { getSettings } from './settings.js';
 import { physicalKey, keyName, tokenKey } from './controls.js';
 import { glyphHtml } from './prompts.js';
+import { unlockAchievement } from './achievements.js';
 import { KEYS } from './storagekeys.js';
 import { startPractice, stepPractice, currentStep, DONE } from './practicekit.js';
 
@@ -27,6 +31,21 @@ export function practiceDone() {
   try { return localStorage.getItem(KEYS.oefenronde) === '1'; } catch (e) { return false; }
 }
 
+// One-time offer (value '0' in gde-oefenronde; '1' stays 'done'): a quiet card after the first minute of play.
+const OFFER_AFTER = 60;
+let playT = 0;
+function offered() {
+  try { return localStorage.getItem(KEYS.oefenronde) !== null; } catch (e) { return true; }
+}
+function maybeOffer(dt, w) {
+  playT += dt;
+  if (playT < OFFER_AFTER || w.paused || isPauseMenuOpen() || isCinematicActive() || offered()) return;
+  if ((w.wanted || 0) > 0 || getSettings().onboardingTips === false || cardsBusy() || !mayStart('card')) return;
+  if (playerBusy(w).busy) return;
+  showCard(w, { kind: 'tip', kicker: 'Oefenronde', title: 'Even oefenen?', body: 'Wil je de basis rustig oefenen, zonder gevolgen? Open het menu en kies Besturing, dan Hulp, dan Oefenen.', key: 'oefen-aanbod', important: false, voice: false, duration: 10 });
+  try { localStorage.setItem(KEYS.oefenronde, '0'); } catch (e) { /* memory only */ }
+}
+
 export function practiceActive() { return !!st && !st.done; }
 
 export function beginPractice() {
@@ -42,7 +61,9 @@ function card(w, s, key) {
 }
 
 export function updatePractice(dt, w) {
-  if (!st || st.done || !document.body.classList.contains('game-started')) return;
+  if (!document.body.classList.contains('game-started')) return;
+  if (!st) { maybeOffer(dt, w); return; }
+  if (st.done) return;
   t += dt;
   const p = w.player;
   const inV = !!p.inVehicle;
@@ -62,6 +83,7 @@ export function updatePractice(dt, w) {
   st = r.st;
   if (st.done) {
     try { localStorage.setItem(KEYS.oefenronde, '1'); } catch (e) { /* memory only */ }
+    unlockAchievement(w, 'oefenronde_klaar');
     card(w, DONE, 'oefen-klaar');
     return;
   }

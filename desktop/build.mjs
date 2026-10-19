@@ -56,13 +56,26 @@ function resolveSpec(spec, base) {
   return null;
 }
 
+// GDE_PREBUILT_WORLD=<dir>: take the staged map tiles of an earlier build as they are (a CI runner has no
+// data/cache for the province, .github/workflows/mac-release.yml)
 function packWorld() {
+  if (process.env.GDE_PREBUILT_WORLD) {
+    const dir = path.resolve(process.env.GDE_PREBUILT_WORLD);
+    if (!fs.existsSync(path.join(dir, 'index.json'))) throw new Error('GDE_PREBUILT_WORLD has no index.json: ' + dir);
+    fs.cpSync(dir, path.join(OUT, 'world'), { recursive: true });
+    console.log('map tiles: ' + fs.readdirSync(path.join(OUT, 'world')).length + ' files (prebuilt)');
+    return;
+  }
   const root = path.join(SRC, '..');
   const packer = path.join(root, 'scripts', 'world', 'pack_tiles.mjs');
   if (!fs.existsSync(packer) || !fs.existsSync(path.join(SRC, 'js', 'gdt.js'))) { console.log('no tile packer in this checkout: JSON map only'); return; }
   const h = crypto.createHash('sha1');
   for (const f of ['citymap.json', 'mapextras.json', 'js/gdt.js', 'js/mapdata.js', 'js/elevation.js', 'js/passages.js', 'js/museumplan.js', 'js/util.js', 'js/worldbuilder.js', 'js/derive.js', 'js/spatialgrid.js']) h.update(fs.readFileSync(path.join(SRC, f)));
   h.update(fs.readFileSync(packer));
+  // STAD_LAAG (#90): de stadslagen uit de OSM-bouw maken een andere wereld
+  h.update(String(process.env.STAD_LAAG || ''));
+  const stadLaag = path.join(root, 'scripts', 'world', 'stad_laag.mjs');
+  if (fs.existsSync(stadLaag)) h.update(fs.readFileSync(stadLaag));
   // what else goes into the rows when the checkout has it: the height chain,
   // the profiles, junctions and routes, the building attributes, the 3D BAG
   // extract and fetched AHN rasters

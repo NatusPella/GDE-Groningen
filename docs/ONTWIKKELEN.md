@@ -17,11 +17,20 @@ disables caching, so edited modules are always reloaded. The browser version
 loads three.js from jsDelivr and the fonts from Google Fonts; the desktop
 and web builds vendor both (`desktop/build.mjs`).
 
-**Windows without a terminal:** double-click `start.bat`. It uses an
-installed Python if there is one; otherwise it downloads the official portable
-Python from python.org into `.python\` next to the game (once, no admin rights
-needed). It then picks a free port, starts the server on 127.0.0.1 and opens
-the game in the browser.
+**Windows without a terminal:** double-click `start.bat` (player zip: `START DE GAME.bat`). It serves `web-dist/`
+with `scripts/windows/serve.ps1` (PowerShell only, no Python or Node), picks a free port, listens on
+127.0.0.1 and opens the game in the browser.
+
+**Serve paths (#143):** there are three, each with one job.
+
+| Path | Serves | For |
+| --- | --- | --- |
+| `python3 scripts/devserver.py 8765 game` | `game/` without caching | working on the source |
+| `node web/serve.mjs` | `web-dist/` under `/gde/` | testing the web build like a static host |
+| `scripts/windows/serve.ps1` (via `start.bat`) | `web-dist/` | players on Windows; the same behaviour as `web/serve.mjs` |
+
+The player zip is built from `web-dist/` by `scripts/make_player_zip.mjs`, never from `git archive`.
+
 
 ## Scripts per platform
 
@@ -200,7 +209,7 @@ generate 3D models.
 
 All URL switches live in one register, `FLAGS` in `game/js/devflags.js` (parsed once, with a description in `FLAG_DOCS`). A module imports `FLAGS.x` and never reads `location.search` itself.
 
-Debug hooks on `window` (`window.__x`, read by scripts/perf, the story test and the dev panel; not for players): `__activities`, `__bot`, `__audio`, `__banter`, `__blackCheck`, `__blackFrames`, `__calendar`, `__carbid`, `__cards`, `__carillon`, `__contextHints`, `__countrylife`, `__countryside`, `__debug`, `__discgolf`, `__drift`, `__farprops`, `__fierljep`, `__flavour`, `__furniture`, `__gdeRespawn`, `__gdeSky`, `__geheimen`, `__gfxAdvice`, `__gfxDyn`, `__goal`, `__heist`, `__heli`, `__heliRun`, `__hengelen`, `__hitch`, `__hitchOn`, `__home`, `__hoogvlieger`, `__kartbaan`, `__kermis`, `__klimtoren`, `__landmarkKits`, `__loadMarks`, `__muggings`, `__narrative`, `__noLandmarkKits`, `__noPrepare`, `__ommeland`, `__onboarding`, `__padel`, `__pannenkoek`, `__phonefeed`, `__pitchputt`, `__postgame`, `__practice`, `__profileOverlay`, `__radio`, `__roadrage`, `__scene3d`, `__simLoad`, `__skatepark`, `__snackketen`, `__speech`, `__story`, `__storyContact`, `__storyEikea`, `__storyFun`, `__storyTestReport`, `__storytalk`, `__storytext`, `__tileWindows`, `__trailer`, `__wandeling`, `__waterski`, `__worldevents`, `__zwembad`. Find the module with `grep -rn "window.__x" game/js`. `scripts/devflags_test.mjs` fails on a hook that is not in this list. They stay separate globals: the perf scripts, the story test and the dev panel read them by name.
+Debug hooks on `window` (`window.__x`, read by scripts/perf, the story test and the dev panel; not for players): `__activities`, `__bot`, `__audio`, `__banter`, `__blackCheck`, `__blackFrames`, `__calendar`, `__carbid`, `__cards`, `__carillon`, `__contextHints`, `__countrylife`, `__countryside`, `__debug`, `__discgolf`, `__drift`, `__farprops`, `__evenementen`, `__fierljep`, `__flavour`, `__furniture`, `__gdeRespawn`, `__gdeSky`, `__geheimen`, `__gfxAdvice`, `__gfxDyn`, `__goal`, `__heist`, `__heli`, `__heliRun`, `__hengelen`, `__hitch`, `__hitchOn`, `__home`, `__hoogvlieger`, `__kartbaan`, `__kermis`, `__klimtoren`, `__landmarkKits`, `__loadMarks`, `__muggings`, `__narrative`, `__noLandmarkKits`, `__noPrepare`, `__ommeland`, `__onboarding`, `__padel`, `__pannenkoek`, `__phonefeed`, `__pitchputt`, `__postgame`, `__practice`, `__profileOverlay`, `__radio`, `__roadrage`, `__scene3d`, `__simLoad`, `__skatepark`, `__snackketen`, `__speech`, `__story`, `__storyContact`, `__storyEikea`, `__storyFun`, `__storyTestReport`, `__storytalk`, `__storytext`, `__tileWindows`, `__trailer`, `__wandeling`, `__waterski`, `__worldevents`, `__zwembad`. Find the module with `grep -rn "window.__x" game/js`. `scripts/devflags_test.mjs` fails on a hook that is not in this list. They stay separate globals: the perf scripts, the story test and the dev panel read them by name.
 
 | Switch | What it does |
 | --- | --- |

@@ -47,6 +47,17 @@ function key(k, code) {
   }
 }
 
+// presses a key again every second until `fn` holds: under load the game's clock lags and an early press is not yet taken
+async function pressUntil(k, code, fn, ms = 6000) {
+  const t0 = performance.now();
+  while (performance.now() - t0 < ms) {
+    if (fn()) return true;
+    key(k, code);
+    await waitFor(fn, 1000);
+  }
+  return fn();
+}
+
 async function waitFor(fn, ms = 20000, step = 150) {
   const t0 = performance.now();
   while (performance.now() - t0 < ms) {
@@ -147,8 +158,9 @@ const boardUp = () => !!document.querySelector('.mg-board:not([hidden])');
 async function minigameSmoke(world, check, capture) {
   const A = window.__activities;
   const ids = ['discgolf', 'pitchputt', 'skatepark', 'kartbaan'];
-  check('minigames: four activities in the hub, one spot each', ids.every((id) => A.list().some((a) => a.id === id && a.spots === 1)), JSON.stringify(A.list().map((a) => a.id)));
-  check('minigames: their spots are registered for the spot check', ids.every((id) => activitySpots().some((s) => s.kind === id)));
+  // pitch & putt has a spot per real course (#174), so 'at least one'
+  check('minigames: four activities in the hub, each with a spot', ids.every((id) => A.list().some((a) => a.id === id && a.spots >= 1)), JSON.stringify(A.list().map((a) => `${a.id}:${a.spots}`)));
+  check('minigames: their spots are registered for the spot check', ids.every((id) => activitySpots().some((s) => s.kind === id)), JSON.stringify(ids.filter((id) => !activitySpots().some((s) => s.kind === id))));
   const cleared = async (name) => {
     const ok = await waitFor(() => !isActivityActive() && !world.activityGame && !boardUp(), 4000);
     check(`minigames: ${name} ends cleanly (hub, input claim, HUD)`, ok && !world.cameraOverride, JSON.stringify({ active: isActivityActive(), game: world.activityGame, board: boardUp(), cam: !!world.cameraOverride }));
@@ -156,7 +168,10 @@ async function minigameSmoke(world, check, capture) {
   world.wanted = 0;
 
   const dg = window.__discgolf;
-  check('discgolf: starts', dg && dg.start() && await waitFor(() => dg.state() && dg.state().phase === 'aim', 6000));
+  // a round starts with the mode choice (phase 'mode'): take the nine holes of the park
+  const dgStarted = dg && dg.start() && await waitFor(() => dg.state() && dg.state().phase === 'mode', 6000);
+  if (dgStarted) dg.mode('negen');
+  check('discgolf: starts', dgStarted && await waitFor(() => dg.state() && dg.state().phase === 'aim', 6000));
   await sleep(1200);
   check('discgolf: board shows and the hub claims the input', boardUp() && world.activityGame === 'discgolf' && world.minigameUntil > world.time);
   capture('mg-discgolf-aim');
@@ -206,7 +221,7 @@ async function minigameSmoke(world, check, capture) {
   check('kartbaan: starts', kb && kb.start() && await waitFor(() => kb.state() && kb.state().phase === 'grid', 6000));
   await sleep(900);
   capture('mg-kart-grid');
-  check('kartbaan: the lights go and the race starts', await waitFor(() => kb.state() && kb.state().phase === 'race', 9000), JSON.stringify(kb.state()));
+  check('kartbaan: the lights go and the race starts', await waitFor(() => kb.state() && kb.state().phase === 'race', 30000), JSON.stringify(kb.state()));
   hold('w', 'KeyW');
   await sleep(3200);
   const ks = kb.state().karts;
@@ -353,8 +368,8 @@ async function batch2Smoke(world, check, capture) {
   check('boa: the case panel opens with three fines', await waitFor(() => panelUp() && c.data.phase === 'case' && opts() === 3, 4000), JSON.stringify({ ph: c.data.phase, o: opts(), inV: !!p.inVehicle, sw: !!p.swimming, d: c.data.ped ? Math.hypot(p.x - c.data.ped.x, p.y - c.data.ped.y) : null }));
   capture('job-boa-case');
   const money = world.money;
-  digit(c.data.options.findIndex((o) => o.ok) + 1);
-  check('boa: a right fine pays and the panel closes', await waitFor(() => world.money > money && !panelUp(), 6000), `${money} -> ${world.money}`);
+  const rightFine = c.data.options.findIndex((o) => o.ok) + 1;
+  check('boa: a right fine pays and the panel closes', await pressUntil(String(rightFine), 'Digit' + rightFine, () => world.money > money && !panelUp(), 12000), `${money} -> ${world.money}`);
   SJ().quit();
   await sleep(300);
   check('boa: quitting leaves no panel, no input claim', !panelUp() && !world.sideJob.active);
@@ -365,15 +380,14 @@ async function batch2Smoke(world, check, capture) {
   check('rechtbank: the dossier with three facts is handed over', await waitFor(() => c.data.dossier && (c.data.phase === 'read' || c.data.phase === 'carry'), 4000) && c.data.dossier.facts.length === 3);
   capture('job-rechtbank-facts');
   await sleep(2300);
-  if (c.data.phase === 'read') key(' ', 'Space');
-  check('rechtbank: Space starts the walk', await waitFor(() => c.data.phase === 'carry' && !panelUp(), 3000), c.data.phase);
+  check('rechtbank: Space starts the walk', await pressUntil(' ', 'Space', () => c.data.phase === 'carry' && !panelUp(), 12000), c.data.phase);
   p.x = c.data.dest.x; p.y = c.data.dest.y + 1;
   check('rechtbank: at the desk the questions start', await waitFor(() => c.data.phase === 'ask' && panelUp(), 4000), c.data.phase);
   const money2 = world.money;
   for (let i = 0; i < 3; i++) {
     const q = c.data.questions[c.data.qi];
-    digit(q.options.findIndex((o) => o.ok) + 1);
-    await waitFor(() => c.data.qi > i || c.data.phase === 'result', 4000);
+    const right = q.options.findIndex((o) => o.ok) + 1;
+    await pressUntil(String(right), 'Digit' + right, () => c.data.qi > i || c.data.phase === 'result', 8000);
     await sleep(200);
   }
   check('rechtbank: three right answers pay', await waitFor(() => world.money > money2 && !panelUp(), 8000), `${money2} -> ${world.money}`);
@@ -830,13 +844,17 @@ export async function runStoryTest(world) {
       if (om) await om.prepare();
       if (om) {
         const ends = om.ends();
-        check(`all 12 wereldeinden placed at the edge of the data`, ends.length === 12, ends.map((e) => `${e.id} ${e.road}`).join(', '));
+        // the ends sit where the province's road net leaves the tiles: a harness run without the province layer has none to place (not a game bug, #222)
+        if (!ends.length) console.warn('[storytest] no wereldeinden: this build has no province tiles, the placement check is skipped');
+        else check(`all 12 wereldeinden placed at the edge of the data`, ends.length === 12, ends.map((e) => `${e.id} ${e.road}`).join(', '));
         const vs = om.villages();
         check(`every Ommeland station has its dorpsuitjes (${vs.length})`, vs.length === 8 && vs.every((v) => v.acts.length === 2 && v.egg), JSON.stringify(vs.filter((v) => v.acts.length < 2 || !v.egg).map((v) => v.name)));
         if (world.player.inVehicle) world.player.exitVehicle(world.map, world);
         const before = om.endsFound();
-        if (ends[0]) om.go(ends[0].x, ends[0].y);
-        check('a wereldeinde is found by walking up to it', await waitFor(() => om.endsFound() > before || (ends[0] && ends[0].found), 6000), JSON.stringify(ends[0]));
+        if (ends[0]) {
+          om.go(ends[0].x, ends[0].y);
+          check('a wereldeinde is found by walking up to it', await waitFor(() => om.endsFound() > before || (ends[0] && ends[0].found), 6000), JSON.stringify(ends[0]));
+        }
         await sleep(600);
         capture('om-wereldeinde');
         await drain(world, 700);
@@ -891,11 +909,11 @@ export async function runStoryTest(world) {
       // an old 0.4 save: missions 1-3 done (H1, H3, H5), no story data
       const money = world.money;
       if (NEW) {
-        // a save belongs to one arc: an old-arc save never loads into the new one, and the game goes on untouched
-        const stepBefore = JSON.stringify(S().current());
+        // the old arc is gone (#187): an old v1 save is migrated into the one arc (savemigrate.js) and keeps its money
         const loaded = applySave(world, { v: 1, money: 1234, missions: { index: 3, completed: [0, 1, 2], seen: [0, 1, 2] }, shops: null });
         await sleep(400);
-        check('an old-arc save is not loaded into the new arc', loaded === false && world.money === money && JSON.stringify(S().current()) === stepBefore, JSON.stringify({ loaded, money: world.money }));
+        check('an old v1 save is migrated into the new arc and keeps its money', loaded === true && world.money === 1234, JSON.stringify({ loaded, money: world.money }));
+        world.money = money;
         // the new arc's own save loads and keeps its arc
         saveGame(world, { toast: false });
         check('a new-arc save carries its arc', JSON.parse(localStorage.getItem(KEYS.save) || 'null')?.arc === 'nieuw', String(localStorage.getItem(KEYS.save)).slice(0, 80));

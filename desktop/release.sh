@@ -9,6 +9,7 @@
 #   --linux   also build the Linux AppImage + tar.gz (Steam Deck) and upload them
 #   --web     also build the web zip (../GDE-Groningen-<version>-web.zip);
 #             only made locally, never uploaded or published
+#   --world   also upload the staged map tiles as gde-world.tgz (the input of .github/workflows/mac-release.yml)
 #   --steam   copy the builds into ../steam/content/ for SteamPipe before dist/
 #             is cleaned (nothing contacts Steam; see ../steam/README.md)
 #
@@ -18,14 +19,23 @@
 # Everything is built locally (no GitHub Actions needed).
 set -e
 cd "$(dirname "$0")"
-USAGE="usage: npm run release -- patch|minor|major|current [--linux] [--web] [--steam]"
-BUMP=""; LINUX=""; WEB=""; STEAM=""
+# Windows (Git Bash, or npm's sh): gh is often not on PATH; look in the standard install folders (#141).
+# Stop here when it is nowhere, before a version bump and a long build that cannot be published.
+if ! command -v gh >/dev/null 2>&1; then
+  for d in "/c/Program Files/GitHub CLI" "/mnt/c/Program Files/GitHub CLI" "/c/Program Files (x86)/GitHub CLI"     "$(cygpath -u "$ProgramFiles" 2>/dev/null)/GitHub CLI" "$(cygpath -u "$LOCALAPPDATA" 2>/dev/null)/Programs/GitHub CLI"; do
+    [ -x "$d/gh.exe" ] && PATH="$PATH:$d" && break
+  done
+fi
+command -v gh >/dev/null 2>&1 || { echo "gh (GitHub CLI) not found on PATH or in Program Files/GitHub CLI: install it or add it to PATH."; exit 127; }
+USAGE="usage: npm run release -- patch|minor|major|current [--linux] [--web] [--steam] [--world]"
+BUMP=""; LINUX=""; WEB=""; STEAM=""; WORLD=""
 for a in "$@"; do
   case "$a" in
     patch|minor|major|current) [ -z "$BUMP" ] || { echo "$USAGE"; exit 1; }; BUMP="$a" ;;
     --linux) LINUX=1 ;;
     --web) WEB=1 ;;
     --steam) STEAM=1 ;;
+    --world) WORLD=1 ;;
     *) echo "$USAGE"; exit 1 ;;
   esac
 done
@@ -44,11 +54,7 @@ TAG="v$VERSION"
 
 # every release needs a hand-written changelog entry in ../CHANGELOG.md:
 # a "## [X.Y.Z]" section (move the [Unreleased] notes there first)
-CHANGES="$(awk -v v="$VERSION" '
-  $0 ~ "^## \\[" v "\\]" { on = 1; next }
-  on && /^## \[/ { exit }
-  on { print }
-' ../CHANGELOG.md | sed -e '/./,$!d')"
+CHANGES="$(node scripts/changelog_section.cjs "$VERSION")"
 if [ -z "$(printf '%s' "$CHANGES" | tr -d '[:space:]')" ]; then
   echo "No changelog entry for $VERSION in CHANGELOG.md - add a '## [$VERSION] - date' section first."
   if [ "$BUMP" != "current" ]; then git checkout -- package.json package-lock.json; fi
@@ -93,6 +99,12 @@ if [ -n "$LINUX" ]; then
   TARGZ="dist/GDE-Groningen-$VERSION-linux.tar.gz"
   [ -f "$APPIMAGE" ] && [ -f "$TARGZ" ] || { echo "Linux build output missing"; exit 1; }
   UPLOADS="$UPLOADS $APPIMAGE $TARGZ"
+fi
+
+if [ -n "$WORLD" ]; then
+  # the staged map tiles for a build on another machine (GDE_PREBUILT_WORLD): the tiles are data, no secrets
+  tar czf dist/gde-world.tgz -C build/game world
+  UPLOADS="$UPLOADS dist/gde-world.tgz"
 fi
 
 WEBZIP=""

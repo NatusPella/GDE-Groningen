@@ -1,7 +1,0 @@
-[out:json][timeout:180];
-(
-  way["highway"~"^(cycleway|footway|steps|track)$"](53.204,6.538,53.235,6.592);
-  node["natural"="tree"](53.204,6.538,53.235,6.592);
-  way["natural"="tree_row"](53.204,6.538,53.235,6.592);
-);
-out geom;

@@ -72,6 +72,9 @@ import { initTrafficLights, updateTrafficLights, trafficSignalsNear, trafficLigh
 import { initRailway, updateRailway, setRailExtraWorld, getTrains, getRoutes, routePoint } from './railway.js';
 import { updateZeilvaren } from './zeilvaren.js';
 import { updateEvenementen } from './evenementenlive.js';
+import { routePenalty } from './evenementen.js';
+import { setRouteClosures } from './routing.js';
+let routeSigDone = '';
 import { updateStationLife } from './stationlife.js';
 import { createBoard as createStationBoard } from './minigamekit.js';
 import { applyCityRoutes, loadLandData } from './corridorrail.js';
@@ -79,6 +82,7 @@ import { setFarProps } from './farprops.js';
 import { initProvince } from './provinceworld.js';
 import { loadRoadNet, setRoadNet } from './roadgraph.js';
 import { buildMovableBridges, updateMovableBridges, getMovableBridges } from './movablebridges.js';
+import { updateSluizen } from './sluizen.js';
 import { updateBridgeHits, resetBridgeDamage, startBridgeCrashDemo, stepBridgeCrashDemo } from './bridgehitworld.js';
 import { geoWorkerActive } from './geojobs.js';
 import { init3D, update3D, resize3D, getScene, getRenderer, setMenuCover, MENU_FRAME_S, refreshRenderScale, terrainReady, canvasFrameCount, prewarmStreamAt } from './scene3d.js';
@@ -148,7 +152,7 @@ import { makeDip, triggerDip, dipScale } from './gamefeel.js';
 import { effectsFor } from './a11ylogic.js';
 import { reducedMotion } from './motion.js';
 import { initCheats, updateCheats } from './cheats.js';
-import { updateRegioLeven } from './regiolevenrt.js';
+import { updateRegioLeven, setNieuwsBronnen } from './regiolevenrt.js';
 import { syncLedger, getLedger } from './finance.js';
 
 // breakables.js calls these every stream interval (it does not import them)
@@ -202,6 +206,7 @@ function waitForStart(world) {
     tickBurningVehicles(world, dt);
     updateRailway(dt, world);
     updateMovableBridges(dt, world);
+    updateSluizen(dt, world);
     updatePedestrians(dt, world);
     updateWildlife(dt, world);
     // in play combat.js expires these; the title screen and trailer only add
@@ -467,7 +472,8 @@ async function boot() {
   // the title screen already sounds like the city (quieter, no music)
   setMenuAudio(true);
   initAudio(world);
-  setSfxLinks({ bridges: getMovableBridges, trains: getTrains });
+  setNieuwsBronnen({ bridges: getMovableBridges });
+  setSfxLinks({ bridges: getMovableBridges, trains: getTrains, vehicles: () => world.vehicles });
   await waitForStart(world);
   await countryPlaced;
   document.body.classList.add('game-started');
@@ -680,9 +686,16 @@ async function boot() {
     tickBurningVehicles(world, dt);
     updateRailway(dt, world);
     updateEvenementen(dt, world, calendarToday(world));
+    // de routeplanner mijdt dichte afsluitingen van evenementen (#203)
+    if (world.eventRouteSig !== routeSigDone) {
+      routeSigDone = world.eventRouteSig;
+      const n = calendarToday(world), hour = ((world.clock % 24) + 24) % 24;
+      setRouteClosures(routeSigDone ? (x, y) => routePenalty(x, y, n, hour) : null, routeSigDone || '');
+    }
     updateZeilvaren(dt, world, calendarToday(world));
     updateStationLife(dt, world, { routes: getRoutes(), point: routePoint, day: calendarToday(world), createBoard: createStationBoard, driving: getTrains().some((t) => t.state === 'player') });
     updateMovableBridges(dt, world);
+    updateSluizen(dt, world);
     // a ship against a bridge deck: the crash sound of a car contact, by how hard the deck was hit (audio.js updateContactAudio)
     for (const h of updateBridgeHits(dt, world)) recordContact(h.boat, null, h.boat.x, h.boat.y, 0, 0, 4 + h.severity * 4, 0);
     if (FLAGS.brugbotsing) {

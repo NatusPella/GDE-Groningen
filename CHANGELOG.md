@@ -1,4 +1,6 @@
-# Changelog
+# Changel-- **Sluizen-audit:** `node scripts/world/sluizen.mjs [--raster] [--write] [--strict]` controleert voor elke sluis dat het water aan beide kanten doorloopt (ook in het vaarnetraster) en schrijft `game/sluizen.json`; `scripts/sluizen_test.mjs` test de deuren per fase, de seinen, schutten in beide richtingen, een wachtrij en geen deadlock.
+ **Sluizen werken (nog niet in beeld bekeken, #236):** elk van de 62 sluizen in de provincie heeft deuren die open en dicht gaan, seinlichten (rood, geel, groen) vóór de deur en een schutcyclus. Vaar je op een sluis aan, ligt je boot stil of toeter je, dan vraagt de boot de sluis; bij groen vaar je in, de deur sluit, het water gaat omhoog of omlaag (je boot gaat mee) en de andere deur gaat open. Boten van de computer doen mee en een deur sluit nooit op een boot. De kolk van de Robbengatsluis bij Lauwersoog en twee kolken van het Reitdiep waren geen vaarwater voor grotere boten of ontbraken in de kaart; dat is gerepareerd.
+og
 
 Alle noemenswaardige wijzigingen in GDE Groningen, per versie. Nieuwste bovenaan.
 Versies volgen SemVer: `0.x.y` tot de echte release (1.0.0); `x` voor
@@ -8,6 +10,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 - Bijrijders: sommige auto's hebben een passagier naast de bestuurder; bij autodiefstal stappen zij uit en rennen weg. In een enkele geparkeerde auto wacht iemand, die bij diefstal uit de auto wordt gehaald.
 ### Nieuw
+- **Waddenzee, Eems en Dollard zijn open water voor boten (nog niet in beeld bekeken):** je botste op open zee tegen een onzichtbare wal, omdat de kaart daar alleen een kustlijn heeft en geen water. Binnen de zeegrens vaar je nu overal vrij; de kust blijft een oever.
 - **Keuzes met gevolg in akte 4 en 5 (nog niet in beeld bekeken):** in M23 kies je wie naast de Fjord Frituur rijdt (Wubbo's bus, Tinus' trekker of Geesjes scooter); dat bepaalt hoe lang Jelles limo wegblijft en keert terug in de finale, met meer tijd bij de limo en een bredere timing voor zijn straat. De intake bij Wiebelwerk (M18) heeft drie vragen: elk fout antwoord maakt de accountmanager argwanender, tot de camerahal sneller wordt en de beveiliging meeloopt. In de finale sluit de colonne van M23 eerst de straten af, daarna volgt de jacht op de limo.
 - **Verhaalteksten gevarieerd (nog niet in beeld bekeken):** replay-regels en binnenkomsten per persoon in plaats van één formule, de Krolbrug-grap krijgt een slot in de epiloog, geen gasregel meer bij Loppersum, fietsknooppunten, het Leugenbankje en Appingedam in de autogesprekken.
 ### Intern

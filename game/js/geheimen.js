@@ -440,7 +440,7 @@ function enterRoom(w) {
   const first = !found('kamer');
   if (first) discover(w, 'kamer', 'Achter een deurtje in de Martinitoren: een kamertje met een bureau, een oude computer en een plaquette. "Made with ❤ in Groningen." Op het bureau een envelop: "Bedankt voor het spelen."');
   else showCard(w, { kind: 'tip', kicker: 'Martinitoren', title: 'Het kamertje', body: 'Nog altijd hier. Nog altijd met liefde gemaakt.', duration: 5, key: 'geheim-kamer', voice: false });
-  pushAudioEvent(w, { kind: 'door_open', x: DOOR.x, y: DOOR.y });
+  pushAudioEvent(w, { kind: 'door_open', x: DOOR.x, y: DOOR.y, wood: true });
 }
 
 function dropRoom(w) {
@@ -453,7 +453,7 @@ function leaveRoom(w) {
   dropRoom(w);
   const p = w.player;
   p.x = DOOR_SPOT.x; p.y = DOOR_SPOT.y; p.angle = DOOR.a;
-  pushAudioEvent(w, { kind: 'door_close', x: DOOR.x, y: DOOR.y });
+  pushAudioEvent(w, { kind: 'door_close', x: DOOR.x, y: DOOR.y, wood: true });
 }
 
 function roomCamera(w) {
