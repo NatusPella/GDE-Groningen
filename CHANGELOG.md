@@ -7,6 +7,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 ## [Unreleased]
 
 ### Nieuw
+- **Tv verplaatsen in de flat (nog niet in beeld bekeken, #206):** de Kiekkast kan via de pc (Flat inrichten) naar drie plekken aan de noordmuur van de woonkamer; het zitpunt en de plek vanwaar je kijkt gaan mee. Bank en bedden blijven op hun plek.
 - **Wolken aan de hemel (nog niet in beeld bekeken, #194, #195):** bij helder weer hangen een paar losse wolkjes, bij bewolkt weer vult de lucht zich, bij onweer wordt de laag grijs en trekt sneller. 's Nachts zijn de wolken donker en doorzichtig, zodat sterren en maan zichtbaar blijven.
 - **Fotomodus (nog niet in beeld bekeken, #199):** kantelen met Q en E en scherptediepte met Z en X (zachte randen, scherp in het midden); beide staan ook op de opgeslagen foto.
 - **Spelstanden hernoemen met een controller (nog niet in beeld bekeken, #208):** in het hernoemscherm staan snelle namen die je met de richtingen en A kiest.
