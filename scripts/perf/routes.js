@@ -454,6 +454,140 @@ results.routes.renders = await safe('renders', async () => {
   r.render = prev;
   return { frames, by: [...by].sort((a, b) => b[1] - a[1]).slice(0, 12) };
 });
+// deterministic counts on fixed camera spots (only with PERF_ONLY=det): GL draw calls (main scene and shadow pass), triangles, program switches,
+// geometries and programs, and the CPU time of the scene render call; medians over 60 frames after the batchers have settled
+results.routes.det = await safe('det', async () => {
+  if (!ONLY.includes('det')) return null;
+  const gl = r.getContext();
+  const cnt = { draw: 0, use: 0 };
+  for (const n of ['drawElements', 'drawArrays', 'drawElementsInstanced', 'drawArraysInstanced']) { const o = gl[n].bind(gl); gl[n] = (...a) => { cnt.draw++; return o(...a); }; }
+  { const o = gl.useProgram.bind(gl); gl.useProgram = (q) => { cnt.use++; return o(q); }; }
+  let inShadow2 = false, sh = 0, rec = null;
+  const smR = r.shadowMap.render.bind(r.shadowMap);
+  r.shadowMap.render = (...a) => { const d0 = cnt.draw; inShadow2 = true; try { smR(...a); } finally { inShadow2 = false; sh += cnt.draw - d0; } };
+  const prevR = r.render;
+  r.render = function (s2, c2) {
+    if (s2 !== sc.scene || !rec) return prevR.call(r, s2, c2);
+    sh = 0; const d0 = cnt.draw, u0 = cnt.use, t0 = performance.now();
+    const out = prevR.call(r, s2, c2);
+    const ms = performance.now() - t0;
+    rec.push({ draws: cnt.draw - d0, shadow: sh, tris: r.info.render.triangles, uses: cnt.use - u0, ms });
+    return out;
+  };
+  const med = (a, k) => { const v = a.map((x) => x[k]).sort((x, y) => x - y); return +v[v.length >> 1].toFixed(2); };
+  const spots = [['stad-markt', FOOT[0][0], FOOT[0][1], 0.3], ['stad-straat', FOOT[3][0], FOOT[3][1], 1.9], ['a7-tussen', (A7[1][0] + A7[2][0]) / 2, (A7[1][1] + A7[2][1]) / 2, 0.5], ['dorp-winsum', ...placeAt('Winsum'), 2.2]];
+  const out = {};
+  for (const [name, x, y, yaw] of spots) {
+    teleport(x, y); w.camYaw = yaw; p.angle = yaw;
+    await sleep(8000); fixWorld();
+    // settled: no batch built for 3 s (at most 40 s)
+    { const builds = () => { const b = sc.batches(); return Object.values(b).reduce((a, x) => a + x.builds + x.dropped, 0); }; let last = builds(), still = 0; for (let i = 0; i < 80 && still < 6; i++) { await sleep(500); const n = builds(); still = n === last ? still + 1 : 0; last = n; } }
+    rec = []; diag.clear(); if (window.__perfDiag) H.recording = true;
+    await new Promise((res) => { const f = () => { if (rec.length >= 60) res(); else requestAnimationFrame(f); }; requestAnimationFrame(f); });
+    const rr = rec; rec = null; H.recording = false;
+    const ownersAll = [...diag].sort((a, b) => b[1] - a[1]).map(([k, v]) => [k, +(v / rr.length).toFixed(1)]); const owners = ownersAll;
+    const staticDraws = Math.round(ownersAll.filter(([k]) => !k.startsWith('u:') && !k.startsWith('[sh] u:') || k.includes('isTerrain')).reduce((a, [, v]) => a + v, 0));
+    out[name] = { staticDraws, batches: sc.batches(), actors: [w.vehicles.length, w.pedestrians.length], draws: med(rr, 'draws'), shadow: med(rr, 'shadow'), tris: med(rr, 'tris'), uses: med(rr, 'uses'), renderMs: med(rr, 'ms'), geometries: r.info.memory.geometries, programs: r.info.programs.length, owners: owners.slice(0, 60) };
+  }
+  r.render = prevR;
+  return out;
+});
+// top-level loose meshes of the scene by kind (only with PERF_ONLY=topmesh)
+results.routes.topmesh = await safe('topmesh', async () => {
+  if (!ONLY.includes('topmesh')) return null;
+  fixWorld(); teleport(FOOT[3][0], FOOT[3][1]); await sleep(15000);
+  const by = {};
+  for (const c of sc.scene.children) {
+    if (!c.isMesh && !c.isPoints && !c.isSprite && !c.isLine) continue;
+    const k = c.type + '/' + (c.geometry ? c.geometry.type : '') + '/' + (c.material && c.material.type) + '/' + Object.keys(c.userData || {}).slice(0, 3).join(',') + '/' + (c.name || '') + (c.material && c.material.transparent ? '/transp' : '');
+    const e = by[k] || (by[k] = { n: 0, vis: 0, verts: 0 }); e.n++; if (c.visible) e.vis++; e.verts = c.geometry && c.geometry.attributes.position ? c.geometry.attributes.position.count : 0;
+  }
+  return Object.entries(by).sort((x, y) => y[1].vis - x[1].vis).slice(0, 25);
+});
+// why roads stay loose (only with PERF_ONLY=roadloose)
+results.routes.roadloose = await safe('roadloose', async () => {
+  if (!ONLY.includes('roadloose')) return null;
+  fixWorld(); teleport(FOOT[3][0], FOOT[3][1]); await sleep(20000);
+  const rows = []; let total = 0, loose = 0;
+  for (const g of sc.scene.children) {
+    if (g.name !== 'road') continue;
+    total++;
+    const vis = []; g.traverse((o) => { if (o.isMesh && o.visible) vis.push(o); });
+    if (!vis.length) continue;
+    loose++;
+    const b = new Float32Array(4); let minx = Infinity, miny = Infinity, maxx = -Infinity, maxy = -Infinity;
+    for (const o of vis) { o.geometry.computeBoundingBox(); const bb = o.geometry.boundingBox; minx = Math.min(minx, bb.min.x); maxx = Math.max(maxx, bb.max.x); miny = Math.min(miny, bb.min.z); maxy = Math.max(maxy, bb.max.z); }
+    const d = Math.hypot(Math.max(minx - p.x, 0, p.x - maxx), Math.max(miny - p.y, 0, p.y - maxy));
+    rows.push([Math.round(d), Math.floor((minx + maxx) / 2 / 96) + ',' + Math.floor((miny + maxy) / 2 / 96), vis.map((o) => (o.material.type || '') + ':' + (o.material.transparent ? 'T' : '') + (o.userData.noBatch ? 'N' : '') + (o.geometry.attributes.normal ? '' : 'nonormal') + o.geometry.attributes.position.count).join(' ')]);
+  }
+  const cells = {}; for (const r of rows) cells[r[1]] = (cells[r[1]] || 0) + 1;
+  return { total, loose, drawDist: window.__scene3d ? null : null, rows: rows.sort((x, y) => x[0] - y[0]).slice(0, 40), singles: Object.values(cells).filter((n) => n === 1).length, cells: Object.keys(cells).length, batches: sc.batches().roads };
+});
+// what hangs in the water groups (only with PERF_ONLY=waterprobe)
+results.routes.waterprobe = await safe('waterprobe', async () => {
+  if (!ONLY.includes('waterprobe')) return null;
+  fixWorld(); teleport(FOOT[3][0], FOOT[3][1]); await sleep(20000);
+  const by = {}; let groups = 0;
+  for (const g of sc.scene.children) {
+    if (g.name !== 'water') continue;
+    groups++;
+    g.traverse((o) => { if (!o.isMesh) return; const k = (o.material.type || '') + (o.material.transparent ? '/T' : '') + (o.userData.noBatch ? '/N' : '') + (o.visible ? '' : '/hidden') + (o.castShadow ? '/cast' : '') + '/' + Object.keys(o.geometry.attributes).join(','); const e = by[k] || (by[k] = { n: 0, verts: 0, parentKeys: new Set() }); e.n++; e.verts += o.geometry.attributes.position.count; e.parentKeys.add(Object.keys(o.parent.userData || {}).join(',') + ':' + (o.parent.children.length)); });
+  }
+  return { groups, by: Object.entries(by).map(([k, e]) => [k, e.n, e.verts, [...e.parentKeys].slice(0, 4).join(' ')]), batches: sc.batches().shores };
+});
+// why buildings stay loose (only with PERF_ONLY=bldloose)
+results.routes.bldloose = await safe('bldloose', async () => {
+  if (!ONLY.includes('bldloose')) return null;
+  fixWorld(); teleport(FOOT[0][0], FOOT[0][1]); w.camYaw = 0.3; p.angle = 0.3; await sleep(25000);
+  const cats = {}; let total = 0;
+  const cell = (x, z) => Math.floor(x / 48) + ',' + Math.floor(z / 48);
+  for (const g of sc.scene.children) {
+    if (g.name !== 'building' && g.name !== 'landmark') continue;
+    total++;
+    const vis = []; g.traverse((o) => { if (o.isMesh && o.visible) vis.push(o); });
+    if (!vis.length) continue;
+    const o0 = vis[0]; o0.geometry.computeBoundingBox(); const bb = o0.geometry.boundingBox;
+    const cx = (bb.min.x + bb.max.x) / 2, cz = (bb.min.z + bb.max.z) / 2;
+    const d = Math.hypot(cx - p.x, cz - p.y);
+    const reasons = [];
+    if (g.name === 'landmark') reasons.push('landmark');
+    if (g.position.y !== 0) reasons.push('y!=0');
+    if (vis.some((o) => o.material.transparent)) reasons.push('transparent');
+    if (vis.some((o) => o.userData.noBatch)) reasons.push('noBatch');
+    if (vis.some((o) => !o.geometry.attributes.normal)) reasons.push('nonormal');
+    if (vis.some((o) => o.isInstancedMesh || o.isSkinnedMesh)) reasons.push('inst');
+    if (!reasons.length) reasons.push(d > 285 ? 'far>285' : d > 230 ? 'far>230' : d > 150 ? 'mid>150' : 'near<=150');
+    const k = reasons.join('+') + ' ' + vis[0].geometry.type;
+    const e = cats[k] || (cats[k] = { groups: 0, meshes: 0 }); e.groups++; e.meshes += vis.length;
+  }
+  return { total, cats: Object.entries(cats).sort((x, y) => y[1].meshes - x[1].meshes), batches: sc.batches().buildings };
+});
+// fixed viewpoints incl. water and a village (only with PERF_ONLY=vspots): one screenshot each, for before/after pixel comparisons (scripts/perf/pngdiff.mjs)
+results.routes.vspots = await safe('vspots', async () => {
+  if (!ONLY.includes('vspots')) return null;
+  fixWorld();
+  const spots = [['markt', FOOT[0][0], FOOT[0][1], 0.3], ['straat', FOOT[3][0], FOOT[3][1], 1.9], ['straat2', FOOT[3][0], FOOT[3][1], 4.2], ['kanaal', FOOT[4][0], FOOT[4][1], 2.6], ['winsum', ...placeAt('Winsum'), 2.2], ['a7', (A7[1][0] + A7[2][0]) / 2, (A7[1][1] + A7[2][1]) / 2, 0.5], ['hoogezand', ...placeAt('Hoogezand'), 1.0]];
+  // standing 6 m from the water's edge, looking at it: the nearest vertex of the nearest water polygon to a place
+  const atWater = (name, x, y) => {
+    let best = null;
+    for (const poly of map.waterNear(x, y, 400)) for (const q of poly.pts) { const d = Math.hypot(q[0] - x, q[1] - y); if (!best || d < best.d) best = { d, q }; }
+    if (!best) return null;
+    const dx = x - best.q[0], dy = y - best.q[1], l = Math.hypot(dx, dy) || 1;
+    return [name, best.q[0] + dx / l * 6, best.q[1] + dy / l * 6, Math.atan2(-dy, -dx)];
+  };
+  for (const sp of [atWater('gracht', FOOT[3][0], FOOT[3][1]), atWater('gracht2', FOOT[4][0], FOOT[4][1]), atWater('winsumwater', ...placeAt('Winsum')), atWater('hoogezandwater', ...placeAt('Hoogezand'))]) if (sp) spots.push(sp);
+  const names = [];
+  for (const [name, x, y, yaw] of spots) {
+    teleport(x, y); w.camYaw = yaw; p.angle = yaw;
+    await sleep(12000); fixWorld();
+    { const builds = () => { const b = sc.batches(); return Object.values(b).reduce((q, e) => q + e.builds + e.dropped, 0); }; let last = builds(), still = 0; for (let i = 0; i < 60 && still < 6; i++) { await sleep(500); const n = builds(); still = n === last ? still + 1 : 0; last = n; } }
+    fixWorld();
+    console.log('[capture] ' + name);
+    names.push(name);
+    await sleep(700);
+  }
+  return { names };
+});
 results.routes.pause = await run('pause', async () => { teleport(...P(100, 77)); await sleep(4000); wantMenu = true; PM.openPauseMenu('game'); return {}; }, () => {}, async () => { wantMenu = false; PM.closePauseMenu(); });
 results.routes.sheet = await run('sheet', async () => { teleport(...P(100, 77)); await sleep(4000); wantMenu = true; PM.openPauseMenu('settings'); return {}; }, () => {}, async () => { wantMenu = false; PM.closePauseMenu(); });
 

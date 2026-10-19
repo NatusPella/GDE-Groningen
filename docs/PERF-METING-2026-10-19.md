@@ -261,3 +261,19 @@ Waar de tijd zit (CPU-profiel foot, 17 s, `categories.mjs`): `renderer.render` 4
 Verder onderzocht, niet gedaan: roadInit in de worker is alleen 2,4 s op een vrije thread (`scripts/perf/roadinit_meet.mjs`); de 9 tot 14 s in het spel is wachten op andere jobs en een drukke machine. Water en losse gebouwdelen batchen vraagt eigen paden (transparant, geen normalen); #58 (auto's naar de worker) is niet verder gebracht.
 
 Hulpmiddelen: `PERF_ONLY=census` meldt nu ook welke groepen niet bewegen en `walkSoftMs`; nieuwe routes `progs` en `renders`; `scripts/perf/markdry_meet.mjs`; de batchers houden hun eigen tijd bij (`batches().*.ms`).
+
+## Vervolg 5: deterministische tellingen (s3, draw calls, geen fps)
+
+Frametijd is op een drukke machine te ruisig, dus nu tellen op vaste camerastanden: `PERF_DIAG=1 PERF_ONLY=det node scripts/perf/run.mjs <naam> <preset>` (route `det`): vier standen (stad-markt, stad-straat, a7-tussen, dorp-winsum), 8 s wachten tot de batchers 3 s niets meer bouwen, dan 60 frames: GL-draw-aanroepen (hoofdscene en schaduwpas), driehoeken, programmawissels, CPU-tijd van de scene-render en de aanroepen per eigenaar. Beperking: de aanroepen van voertuigen en personen en de toestand van de batchers verschillen van run tot run (stad-straat 775 tegen 804 bij twee runs van dezelfde code), dus alleen de eigenaar-tellingen van het gewijzigde onderdeel zijn exact; het totaal (`staticDraws`, zonder actoren) heeft ruis van ongeveer 5 procent.
+
+Gedaan:
+- **Wolken** (`cloud3d.js`): alle blobs in één `InstancedMesh`: 15 transparante draw calls minder in elke stand (alle blobs hebben dezelfde kleur en doorzichtigheid, dus de menvolgorde verandert niets).
+- **Oevers** (`staticbatch3d.js` `shoreBatcher`, `scene3d.js`): de oever- en kademeshes van alle waterpolygonen binnen de zichtafstand per materiaal en per cel van 600 m samengevoegd (het wateroppervlak is transparant en blijft los; `extras` en `glass` blijven los omdat `showExtras` ze aanzet). Eigenaar `water`: stad-markt 41 en 40 naar 20 en 19, stad-straat 175 en 181 naar 61 en 59, a7 68 en 44 naar 30 en 30, dorp-winsum 166 en 144 naar 96 en 96 (twee runs elk, hoog). Driehoeken per frame +2 procent (de samengevoegde mesh wordt minder fijn geculld).
+- Totaal zonder actoren (`staticDraws`, twee runs elk, basis tegen nu): stad-markt 499/508 tegen 480/472, stad-straat 775/804 tegen 687/660, a7 248/282 tegen 262/258, dorp-winsum 566/468 tegen 407/407. Dat is 4 tot 15 procent in de stad, niet de gevraagde 40.
+
+Onderzocht, niet gehaald:
+- Wegen: in de stad blijven ~40 losse wegen over omdat hun cel (96 m) minder dan twee wegen binnen de `inner`-afstand heeft; celgrootte 160 gaf 85 naar 70 calls, binnen de ruis, niet bewaard. Gebouwen: `MIN_MEMBERS` 3 naar 2 gaf geen verschil (de losse gebouwdelen liggen aan de rand tussen `inner` en de detailstraal van de far-LOD).
+- Actoren zijn het grootste deel van de rest: in stad-straat ~300 van ~1050 aanroepen (voertuigen met 6 tot 12 meshes per auto, personen met een skinned mesh plus een blob-vlak). Auto-onderdelen samenvoegen raakt `models3d_vehicles.js` (deuren, kap), blobs als één InstancedMesh gaf eerder een zichtbaar ander beeld (zie Vervolg 3).
+- Schaduwpas ~100 calls in stand met schaduw (facade-batch 23, building-batch 20); kleiner maken verandert schaduwen van gevelsieraad.
+
+Beeld: `scripts/perf/pngdiff.mjs` en route `vspots` (zeven plekken plus vier aan het water): twee runs van de oude code verschillen al 8 tot 64 procent van de pixels (verkeer, mensen, meldingskaarten, water, schaduw), dus een pixelvergelijking zegt weinig; de opnamen bij het water liggen te hoog achter de speler om de oever te laten zien. Geometrisch is de oever-merge identiek (zelfde vertices en materiaal, `receiveShadow` was overal waar), maar dat is niet in beeld bekeken.
