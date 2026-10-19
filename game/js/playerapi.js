@@ -14,7 +14,7 @@ import { getMissionDefs, activeStage } from './missions.js';
 import { getGoal, goalTarget } from './goal.js';
 import { isCinematicActive, isBannerUp } from './cinematics.js';
 import { talkState, talkActive } from './storytalk.js';
-import { isPauseMenuOpen } from './pausemenu.js';
+import { isPauseMenuOpen } from './pausestate.js';
 import { isShopOpen } from './shopui.js';
 import { installAudioTap } from './botaudio.js';
 

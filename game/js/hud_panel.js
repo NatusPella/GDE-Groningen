@@ -57,7 +57,7 @@ import { LANDMARK_LINES } from './placelines.js';
 import { townProfile } from './stadsprofielen.js';
 import { getSettings } from './settings.js';
 import { heldBack } from './narrative.js';
-import { isPauseMenuOpen } from './pausemenu.js';
+import { isPauseMenuOpen } from './pausestate.js';
 // portraits share the HUD's green (DESIGN_SYSTEM: no blue accents); speaker
 // colours stay in subtitles
 const HUD_ACCENT = '#3fc97a';

@@ -3,7 +3,7 @@ import { requestRespawn } from './world.js';
 import { disableVehicle, surfaceUnder } from './vehicle.js';
 import { knockDown } from './ragdoll.js';
 import { bloodSpray, bleedPed } from './gore3d.js';
-import { DEAD_DURATION } from './pedestrians.js';
+import { DEAD_DURATION } from './pedconst.js';
 import { propOnBulletPath, shootProp } from './breakables.js';
 import { reportCrime } from './crime.js';
 import { gunShotFx, gunImpactFx } from './gunfx3d.js';
