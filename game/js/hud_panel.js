@@ -398,8 +398,13 @@ export function updateHud(dt, world) {
   // player, so a lower rate shows as stutter; the whole HUD costs ~1 ms.
   mmDt += dt;
   if (mmSkip-- > 0) return;
+  // a redraw that costs a lot (vector map of the whole province) gets at most a quarter of the time: measured on
+  // hoog the minimap took 5 to 14% of the busy main thread (docs/PERF-METING-2026-10-19.md)
+  const mmNow = performance.now();
+  if (mmNow - mmLastAt < Math.max(MM_MIN_INTERVAL_MS, mmCostMs * 4)) return;
   mmSkip = simLevel() >= 2 ? 1 : 0;
-  if (els.vis.minimap !== false) drawMinimap(mmDt, world);
+  if (els.vis.minimap !== false) { drawMinimap(mmDt, world); mmCostMs = mmCostMs * 0.7 + (performance.now() - mmNow) * 0.3; }
+  mmLastAt = mmNow;
   mmDt = 0;
 }
 
@@ -2118,6 +2123,9 @@ function drawVillageNames(ctx, player, radius, toScreen) {
   }
   ctx.restore();
 }
+
+const MM_MIN_INTERVAL_MS = 33;
+let mmLastAt = 0, mmCostMs = 0;
 
 function drawMinimap(dt, world) {
   syncMapPhase(world);
