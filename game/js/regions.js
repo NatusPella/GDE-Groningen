@@ -8,7 +8,7 @@
 // setRegionData); without it a coarse fallback (regiondata.js) from the same data.
 import { worldToWgs, wgsToWorld } from './rdnew.js';
 import { FALLBACK } from './regiondata.js';
-import { MAP_PALETTE, seaStyle } from './mapstyle.js';
+import { MAP_PALETTE, INK, inkA, seaStyle } from './mapstyle.js';
 import { worldPlaceAt } from './worldplaces.js';
 import { coastKinds, borderByData } from './worldedge.js';
 import { edgeLabels } from './mapedge.js';
@@ -233,9 +233,9 @@ export function outsidePath(frame) {
   return p;
 }
 
-const BORDER_COLOR = { friesland: '#e8b04a', drenthe: '#c9a0e0', duitsland: '#e86a5a' };
+const BORDER_COLOR = { friesland: INK.borderFriesland, drenthe: INK.borderDrenthe, duitsland: INK.borderDuitsland };
 const { fill: SEA_FILL, edge: SEA_EDGE } = seaStyle(MAP_PALETTE);
-const TINT = 'rgba(4, 8, 12, 0.5)';
+const TINT = inkA('tintMap', 0.5);
 
 // Under the map's vectors, world-transformed: the sea (the land colour
 // shows round the islands) with the shore line. px(n): n screen pixels in metres.
@@ -281,10 +281,10 @@ export function drawOutside(ctx, frame, px, { tint = TINT, border = true, width 
       ctx.beginPath();
       ctx.moveTo(L.pts[0][0], L.pts[0][1]);
       for (let i = 1; i < L.pts.length; i++) ctx.lineTo(L.pts[i][0], L.pts[i][1]);
-      ctx.strokeStyle = 'rgba(12, 20, 14, 0.75)';
+      ctx.strokeStyle = inkA('dark', 0.75);
       ctx.lineWidth = px(width + 2);
       ctx.stroke();
-      ctx.strokeStyle = BORDER_COLOR[L.kind] || '#e8e4d8';
+      ctx.strokeStyle = BORDER_COLOR[L.kind] || INK.borderOther;
       ctx.setLineDash([px(width * 4), px(width * 2.2)]);
       ctx.lineWidth = px(width);
       ctx.stroke();
