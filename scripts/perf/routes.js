@@ -588,6 +588,28 @@ results.routes.vspots = await safe('vspots', async () => {
   }
   return { names };
 });
+// draw calls of the vehicles and people in view (only with PERF_ONLY=actors)
+results.routes.actors = await safe('actors', async () => {
+  if (!ONLY.includes('actors')) return null;
+  fixWorld(); teleport(FOOT[3][0], FOOT[3][1]); w.camYaw = 1.9; p.angle = 1.9; await sleep(25000);
+  const out = { vehicles: [], peds: { n: 0, meshes: 0, draws: 0 }, blobs: 0 };
+  const draws = (o) => { const g = o.geometry; if (Array.isArray(o.material)) return g.groups.filter((q) => q.count > 0).length || o.material.length; return 1; };
+  for (const g of sc.scene.children) {
+    if (!g.visible) continue;
+    const ud = g.userData || {};
+    if (ud.body && ud.loose && ud.vehicleId !== undefined) {
+      const kinds = {}; let d = 0, meshes = 0;
+      g.traverse((o) => { if (!o.isMesh || !o.visible || !o.layers.test(sc.cam.layers)) return; let a = o, anc = 'root'; while (a && a !== g) { if (a.name) { anc = a.name; break; } a = a.parent; } const k = (o.isSkinnedMesh ? 'skinned ' : o.isInstancedMesh ? 'inst ' : '') + o.geometry.type.replace('Geometry', '') + '/' + (Array.isArray(o.material) ? 'multi' + o.material.length : o.material.type.replace('Material', '')) + (o.material.transparent ? '/T' : '') + '/' + (o.castShadow ? 'cast' : 'nocast') + ' ' + (o.userData.blob ? 'blob' : ''); kinds[k] = (kinds[k] || 0) + 1; d += draws(o); meshes++; });
+      out.vehicles.push({ name: g.name || '', model: ud.kind || ud.model || '', meshes, draws: d, dist: Math.round(Math.hypot(g.position.x - p.x, g.position.z - p.y)), kinds });
+    } else if (ud.pelvis || (ud.bones && ud.head && ud.legL)) {
+      out.peds.n++; g.traverse((o) => { if (o.isMesh && o.visible && o.layers.test(sc.cam.layers)) { out.peds.meshes++; out.peds.draws += draws(o); } });
+    }
+  }
+  out.vehicles.sort((x, y) => y.draws - x.draws);
+  out.summary = { vehicles: out.vehicles.length, vehDraws: out.vehicles.reduce((q, v) => q + v.draws, 0) };
+  out.vehicles = out.vehicles.slice(0, 6);
+  return out;
+});
 results.routes.pause = await run('pause', async () => { teleport(...P(100, 77)); await sleep(4000); wantMenu = true; PM.openPauseMenu('game'); return {}; }, () => {}, async () => { wantMenu = false; PM.closePauseMenu(); });
 results.routes.sheet = await run('sheet', async () => { teleport(...P(100, 77)); await sleep(4000); wantMenu = true; PM.openPauseMenu('settings'); return {}; }, () => {}, async () => { wantMenu = false; PM.closePauseMenu(); });
 
