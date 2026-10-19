@@ -1,4 +1,4 @@
-// Scenes voor overlays, winkel en duif (#239 #250 #170 #241): node scripts/ui_shots.mjs --scenes=scripts/ui/shots_scenes_overlays.js
+// Scenes voor overlays, winkel, gevels en duif (#239 #250 #170 #156 #241): node scripts/ui_shots.mjs --scenes=scripts/ui/shots_scenes_overlays.js
 // Basis: scripts/ui/shots_scenes.js. Scenes for scripts/ui_shots.mjs (run by desktop --perf-script, one page per
 // window size). Each scene opens a screen and logs "[capture] <name>", which
 // devtools.js turns into <out>/<size>-<name>.png. Nothing here writes saves:
@@ -81,6 +81,43 @@ if (want('winkel')) {
     SHU.closeShopMenu({ save: false });
     done.push('winkel-' + type);
   }
+}
+if (want('gevels')) {
+  // #156: de winkelvoorkant per type, vanaf de deur (de speler kijkt naar de gevel)
+  const shops = SH.getShopsForRender();
+  for (const type of ['super', 'kleding', 'fietsen', 'wapens', 'snack', 'kapper']) {
+    const s = shops.find((q) => q.type === type);
+    if (!s) { info.push('gevel ' + type + ': geen'); continue; }
+    teleport(s.x, s.y);
+    for (let i = 0; i < 40 && document.querySelector('.ls.on:not(.out)'); i++) await sleep(500);
+    await sleep(2500);
+    await shot('gevel-' + type, 800);
+    done.push('gevel-' + type);
+  }
+}
+if (want('bord')) {
+  // #228: het richtingbord bij Winsum van vier kanten (voorkant leesbaar, achterkant effen)
+  clearInterval(skipper); // eigen camerastandpunt: de skipper mag het niet wegdrukken
+  const BX = -3437, BY = -12067;
+  const gh = (x, y) => (map.groundHeightAt ? map.groundHeightAt(x, y, 0) || 0 : 0);
+  w.clock = 14;
+  const hold = { x: BX, y: BY };
+  const keep = setInterval(() => { p.x = hold.x; p.y = hold.y; p.vx = p.vy = 0; }, 50);
+  teleport(BX, BY);
+  for (let i = 0; i < 40 && document.querySelector('.ls.on:not(.out)'); i++) await sleep(500);
+  await sleep(6000);
+  for (const [name, a] of [['oost', 0], ['noord', Math.PI / 2], ['west', Math.PI], ['zuid', -Math.PI / 2]]) {
+    const R = 9, g = gh(BX, BY);
+    const pose = { position: { x: BX + Math.cos(a) * R, y: BY + Math.sin(a) * R, z: g + 2.4 }, lookAt: { x: BX, y: BY, z: g + 2.2 }, cut: true };
+    if (cine.isCinematicActive()) cine.skipCinematic();
+    cine.playCinematic({ id: 'vi-bord', duration: 60, priority: 9, shot: () => pose });
+    await sleep(2200);
+    console.log('[capture] bord-' + name);
+    await sleep(500);
+    cine.skipCinematic();
+    done.push('bord-' + name);
+  }
+  clearInterval(keep);
 }
 if (want('duif')) {
   teleport(...P(100, 77));
