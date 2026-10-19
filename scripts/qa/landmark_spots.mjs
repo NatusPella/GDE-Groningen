@@ -18,7 +18,7 @@ function pick(label, rows, perStreek, max) {
     const key = Math.round(r.x / 200) + ',' + Math.round(r.y / 200);
     if (used.has(key)) continue;
     used.add(key); seen[s] = (seen[s] || 0) + 1;
-    out.push({ kind: label, name: `${label}-${out.length}-${(r.n || r.sub || '').replace(/[^A-Za-z0-9]/g, '').slice(0, 14)}`, x: r.x - (label === 'park' ? 45 : label === 'mast' || label === 'schoorsteen' ? 40 : 32), y: r.y, a: 0, snap: false, tx: r.x, ty: r.y, inst: !!r.t, ...(r.o ? {} : {}) });
+    out.push({ kind: label, name: `${label}-${out.length}-${(r.n || r.sub || '').replace(/[^A-Za-z0-9]/g, '').slice(0, 14)}`, x: r.x - (label === 'park' ? 45 : label === 'mast' || label === 'schoorsteen' ? 40 : 32), y: r.y, a: 0, snap: false, tx: r.x, ty: r.y, inst: typeof r.t === 'string', kit: typeof r.t !== 'string', ...(r.o ? {} : {}) });
   }
 }
 const named = (k) => kits.filter((i) => i.k === k && i.n).sort((a, b) => a.x - b.x);

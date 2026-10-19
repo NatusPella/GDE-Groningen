@@ -2,8 +2,8 @@
 // classificatie uit OSM-tags, kits, celbudget, audit per streek, drempels en het gebouwde bestand.
 //   node scripts/streekplekken_test.mjs
 import fs from 'node:fs';
-import { classifyLand, kitFor, partsToWorld, tileBudget, auditLand, checkDrempels, telKandidaten, streekId, LAND_TYPES, LAND_BUDGET, STREEK_IDS, celVan } from '../game/js/streekplekken.js';
-import { collectLand, dedupeLand, finishLand } from './world/streekplekken.mjs';
+import { puntInVlak, classifyLand, kitFor, partsToWorld, tileBudget, auditLand, checkDrempels, telKandidaten, streekId, LAND_TYPES, LAND_BUDGET, STREEK_IDS, celVan } from '../game/js/streekplekken.js';
+import { collectLand, dedupeLand, finishLand, filterVlakken } from './world/streekplekken.mjs';
 import { wgsToWorld } from '../game/js/rdnew.js';
 
 let fails = 0, n = 0;
@@ -86,6 +86,14 @@ ok(res.alle.filter((p) => p.t === 'perron').length === 1, 'een te kort perron va
 ok(res.alle.filter((p) => p.t === 'park').length === 1 && res.alle.find((p) => p.t === 'park').n === 'Noorderplantsoen', 'een te klein park valt af');
 ok(res.alle.every((p) => Number.isFinite(p.x) && Number.isFinite(p.y) && Number.isFinite(p.a)), 'alles eindig');
 ok(dedupeLand([{ t: 'park', x: 0, y: 0, id: 1 }, { t: 'park', x: 1, y: 0, id: 2 }]).length === 2, 'parken worden niet samengevoegd');
+
+// monument in een gebouw en park in water vallen af
+ok(puntInVlak(5, 5, [[0, 0], [10, 0], [10, 10], [0, 10]]) && !puntInVlak(15, 5, [[0, 0], [10, 0], [10, 10], [0, 10]]), 'puntInVlak');
+const [mx, my] = wgsToWorld(53.3, 6.6);
+const kand = [{ t: 'monument', x: mx, y: my }, { t: 'park', x: mx, y: my }, { t: 'monument', x: mx + 500, y: my }];
+const gg = (d) => [[53.3 - d, 6.6 - d], [53.3 - d, 6.6 + d], [53.3 + d, 6.6 + d], [53.3 + d, 6.6 - d], [53.3 - d, 6.6 - d]];
+const nweg = filterVlakken([{ type: 'way', tags: { building: 'yes' }, g: gg(0.0003) }, { type: 'way', tags: { natural: 'water' }, g: gg(0.0003) }], kand);
+ok(nweg === 2 && kand[0].weg && kand[1].weg && !kand[2].weg, 'monument in gebouw en park in water vallen af');
 
 // streken en audit per streek
 ok(streekId(...wgsToWorld(53.327, 6.89)) === 'eemsdelta' && streekId(...wgsToWorld(52.0, 5.0)) === 'elders', 'streek uit coordinaten');
