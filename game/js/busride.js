@@ -6,14 +6,14 @@
 import { STOP_RADIUS } from './busroutes.js';
 import { buildTimetable, punctuality, holdSeconds, stopExchange, tripScore, CAPACITY } from './busservice.js';
 
-export const STOP_SPEED = 1.5;     // m/s: zo langzaam moet de bus staan om te halteren
-export const BOARD_TIME = 3;       // s minimaal halteren
-export const LATE_FAIL = 75;       // s: zo ver achter dat de rit mislukt
-export const HARD_BRAKE = 6;       // m/s snelheidsverlies per stap dat als harde rem telt
+const STOP_SPEED = 1.5;     // m/s: zo langzaam moet de bus staan om te halteren
+const BOARD_TIME = 3;       // s minimaal halteren
+const LATE_FAIL = 75;       // s: zo ver achter dat de rit mislukt
+const HARD_BRAKE = 6;       // m/s snelheidsverlies per stap dat als harde rem telt
 
 // Een stuk van de lijn: ritlengte in haltes (max) vanaf halte `first` in rijrichting;
 // een lijn van 40 km hoeft niet in één bijbaanrit. De tijden beginnen weer bij 0.
-export function sliceTable(table, first = 0, max = Infinity) {
+function sliceTable(table, first = 0, max = Infinity) {
   const rows = table.slice(first, first + max);
   const t0 = rows.length ? rows[0].arrive : 0;
   return rows.map((r) => ({ ...r, arrive: r.arrive - t0, depart: r.depart - t0 }));

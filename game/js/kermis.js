@@ -3,7 +3,7 @@ import { canvasTex } from './canvastex.js';
 import { getScene } from './scene3d.js';
 import { buildPersonMesh, animatePersonWalk, seatPerson, seatedY, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
 import { showBanner } from './cinematics.js';
-import { pushAudioEvent } from './pedestrians.js';
+import { pushAudioEvent } from './pedgeom.js';
 import { unlockAchievement, recordChallengeResult, getChallengeRecord, recordStat, MEDALS } from './achievements.js';
 import { showCard } from './hudcards.js';
 import { notifyPhone } from './phonefeed.js';

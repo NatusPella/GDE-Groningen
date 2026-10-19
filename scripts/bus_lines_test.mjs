@@ -44,6 +44,7 @@ ok(narrow.length === 1 && narrow[0].from >= 290 && narrow[0].to <= 410, `smal st
 ok(B.narrowSpans(line, () => null).length === 1, 'geen weg = één smal stuk');
 
 ok(B.nearestLine([line, lus], 600, 40) === line && B.nearestLine([line], 600, 900) === null, 'nearestLine');
+ok(B.linesNear([line, lus], 600, 40, 5000).length === 2 && B.linesNear([line, lus], 600, 40, 5000)[0] === line && B.linesNear([line], 600, 900, 100).length === 0, 'linesNear: alle lijnen in bereik, dichtstbij eerst');
 
 // de echte provincielijnen (alleen als de wereld gebouwd is)
 const real = new URL('../game/world/provincie-bus.json', import.meta.url);

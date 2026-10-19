@@ -21,6 +21,10 @@ export const TOWN_PROFILES = [
     },
     props: [{ kind: 'bolder', per: 14 }, { kind: 'container', per: 6 }, { kind: 'vuurtoren', per: 0.5 }, { kind: 'vlaggenmast', per: 3 }],
     shops: [
+      { kind: 'garage', name: 'Garage Zoutkant', line: 'Een lekke band door de scheepsspijkers? Hier plakken ze alles, ook je geduld.' },
+      { kind: 'schuilplaats', name: 'Schuilplaats De Roestbak', line: 'Achter de containers is een luik. Niemand kijkt hier naar containers.' },
+      { kind: 'bijbaan', name: 'Bijbaan: bolderen op de kade', line: 'Kapitein Slaaplap zoekt iemand die touwen vastknoopt. Betaling in koffie en een dikke euro.' },
+      { kind: 'racebord', name: 'Startbord Havenrace', line: 'Van de Handelskade Oost naar de Marktstraat. De bolders tellen niet als bocht.' },
       { kind: 'bakker', name: 'Bakkerij De Kielzog', line: 'Een krentenbol voor onderweg? Dan haal je de boot nog.' },
       { kind: 'viskraam', name: 'Visboer Kuttergat', line: 'Vers van de steiger, dat zegt hij elke dag.' },
       { kind: 'cafe', name: 'Café De Zoute Steiger', line: 'Bij het raam zit de kapitein die nooit vaart.' },
@@ -37,6 +41,10 @@ export const TOWN_PROFILES = [
     },
     props: [{ kind: 'brug', per: 2 }, { kind: 'bloembak', per: 12 }, { kind: 'fietsenrek', per: 8 }, { kind: 'wasdraad', per: 3 }],
     shops: [
+      { kind: 'garage', name: 'Garage De Hangende Moer', line: 'Alles wat hier kapot gaat, hangt eerst even in de lucht.' },
+      { kind: 'schuilplaats', name: 'Schuilplaats De Keukenkast', line: 'Achter een hangende keuken is een kamertje. Zeg maar dat je de kok bent.' },
+      { kind: 'bijbaan', name: 'Bijbaan: brugwachter', line: 'De brug moet open voor één bootje. Wil jij het knopje indrukken?' },
+      { kind: 'racebord', name: 'Startbord Dijkrace', line: 'Van de Wijkstraat naar de Dijkstraat. De brug staat open als je pech hebt.' },
       { kind: 'bakker', name: 'Banketbakker De Hangende Taart', line: 'Alles wat hier wordt gebakken, hangt even boven het water.' },
       { kind: 'cadeau', name: 'Cadeauwinkel Ooievaarsnest', line: 'Voor wie de keuken niet kan meenemen.' },
       { kind: 'cafe', name: 'Eetcafé Diepe Gedachten', line: 'De soep van de dag staat op het krijtbord. Of was dat gisteren?' },
@@ -53,6 +61,10 @@ export const TOWN_PROFILES = [
     },
     props: [{ kind: 'schuit', per: 3 }, { kind: 'aardappelkist', per: 5 }, { kind: 'brug', per: 1.5 }, { kind: 'bank', per: 6 }],
     shops: [
+      { kind: 'garage', name: 'Garage Turfsteker', line: 'Hier sleutelen ze al sinds de tijd van de turfschepen.' },
+      { kind: 'schuilplaats', name: 'Schuilplaats De Kolonist', line: 'Onder de scheepsbrug is een nis. Het veen houdt geheimen goed.' },
+      { kind: 'bijbaan', name: 'Bijbaan: schippersknecht', line: 'Aan het Winschoterdiep zoeken ze iemand voor de touwen. Lange dagen, mooie uitzichten.' },
+      { kind: 'racebord', name: 'Startbord Kanaalrace', line: 'Langs het diep, zo recht dat je je stuur kunt vergeten.' },
       { kind: 'bakker', name: 'Bakkerij Het Veenbrood', line: 'Zwaar brood, goed voor de maag en voor het geweten.' },
       { kind: 'markt', name: 'Aardappelhuisje Stoofpeer', line: 'Je kunt de aardappel bij naam vragen. Hij kent er achttien.' },
       { kind: 'cafe', name: 'Café De Lange Diep', line: 'Hier zit het verhaal, de bar is maar bijzaak.' },
@@ -69,6 +81,10 @@ export const TOWN_PROFILES = [
     },
     props: [{ kind: 'molen', per: 0.4 }, { kind: 'graanbaal', per: 6 }, { kind: 'bank', per: 6 }, { kind: 'vlaggenmast', per: 2 }],
     shops: [
+      { kind: 'garage', name: 'Garage Pekelhoofd', line: 'Pekela-pech? Ze hebben een mouw vol trucs.' },
+      { kind: 'schuilplaats', name: 'Schuilplaats De Molenzolder', line: 'Boven in de molen is een zolder. Het geluid van de wieken dekt alles.' },
+      { kind: 'bijbaan', name: 'Bijbaan: molenaarshulp', line: 'De molenaar zoekt iemand voor het zakkendragen. Meel in je haar, geld in je zak.' },
+      { kind: 'racebord', name: 'Startbord Molenrace', line: 'Van de Stationsstraat naar de Molen. Je krijgt het vanzelf warm.' },
       { kind: 'bakker', name: 'Graanbakkerij De Volle Aar', line: 'Brood van het land hiernaast, zo vers als het kan.' },
       { kind: 'kermis', name: 'Zweefmolen De Oldambtster', line: 'Honderd rondjes voor een tientje. Je maag mag zelf kiezen.' },
       { kind: 'cafe', name: 'Brasserie Het Windstille Hoekje', line: 'De terrasstoelen staan altijd op de wind.' },
@@ -85,6 +101,10 @@ export const TOWN_PROFILES = [
     },
     props: [{ kind: 'brug', per: 1.5 }, { kind: 'bolder', per: 6 }, { kind: 'fietsenrek', per: 7 }, { kind: 'bank', per: 5 }],
     shops: [
+      { kind: 'garage', name: 'Garage Kanaalkroes', line: 'Een lange stad vraagt een lange sleepkabel. Die hebben ze.' },
+      { kind: 'schuilplaats', name: 'Schuilplaats De Schippersbeurs', line: 'In de kelder van de beurs zijn de oude kluisjes nog vol rommel.' },
+      { kind: 'bijbaan', name: 'Bijbaan: bruggenwachter', line: 'Er zijn veel bruggen en weinig wachters. Jij hoeft maar één knop.' },
+      { kind: 'racebord', name: 'Startbord Kanaalrace', line: 'Langs het Winschoterdiep van brug tot brug. Eén rode brug telt dubbel.' },
       { kind: 'bakker', name: 'Bakker Twee Dorpen', line: 'Tompouce met één of twee glazuurlagen: ga ze zoeken.' },
       { kind: 'sport', name: 'Sporthuis De Zwarte Piste', line: 'Voor wie wil hardlopen, maar liever eerst kijkt.' },
       { kind: 'cafe', name: 'Café De Dubbele Naam', line: 'Er hangt een bord: Hier is het Hoogezand. Of Sappemeer.' },
@@ -101,6 +121,10 @@ export const TOWN_PROFILES = [
     },
     props: [{ kind: 'koets', per: 0.5 }, { kind: 'boom', per: 20 }, { kind: 'bank', per: 6 }, { kind: 'bloembak', per: 8 }],
     shops: [
+      { kind: 'garage', name: 'Garage De Kasteeltuin', line: 'Rustig sleutelen naast het slot. Geen haast, het gras groeit toch langzamer.' },
+      { kind: 'schuilplaats', name: 'Schuilplaats De Parkschuur', line: 'Een tuinhuis achter de heg. Niemand ziet het, behalve de pauw.' },
+      { kind: 'bijbaan', name: 'Bijbaan: parktuinman', line: 'De hovenier zoekt iemand voor het gras. De pauwen controleren je werk.' },
+      { kind: 'racebord', name: 'Startbord Parkrace', line: 'Een rondje door het park, langs de bomen. Pauwen hebben voorrang.' },
       { kind: 'bakker', name: 'Banketbakkerij Het Kasteeltje', line: 'Taart voor een koets of voor een stoeltje op het gras.' },
       { kind: 'cadeau', name: 'Rijtuig & Co', line: 'Souvenirs in de vorm van een wiel.' },
       { kind: 'cafe', name: 'Theehuis De Paardenstal', line: 'Thee in een kopje dat ouder is dan jij.' },
@@ -117,6 +141,10 @@ export const TOWN_PROFILES = [
     },
     props: [{ kind: 'gracht', per: 1 }, { kind: 'schaap', per: 15 }, { kind: 'windmolen', per: 0.3 }, { kind: 'bank', per: 5 }],
     shops: [
+      { kind: 'garage', name: 'Garage Borgsteen', line: 'De sleutelaar woont achter de borg en wil niets liever dan jouw kleppen zien.' },
+      { kind: 'schuilplaats', name: 'Schuilplaats Achter de Gracht', line: 'Een brugje, een schuurtje en een eend die niets zegt.' },
+      { kind: 'bijbaan', name: 'Bijbaan: borgwachter', line: 'Kasteelheer Zwaardvis zoekt iemand om de poort te bewaken. Kan een saaie dag worden.' },
+      { kind: 'racebord', name: 'Startbord Kleiweg-race', line: 'Over de klei, tussen de akkers door. Wie in de sloot belandt, verliest.' },
       { kind: 'bakker', name: 'Bakker De Kleine Borg', line: 'Het brood is groot, het winkeltje is klein.' },
       { kind: 'markt', name: 'Boerderijwinkel Zoute Klei', line: 'Eieren, kaas en een mening over het weer.' },
       { kind: 'cafe', name: 'Dorpscafé De Zeedijk', line: 'Bij het raam zit de gids van gisteren, hij oefent.' },
@@ -133,6 +161,10 @@ export const TOWN_PROFILES = [
     },
     props: [{ kind: 'brug', per: 2 }, { kind: 'bolder', per: 6 }, { kind: 'fietsenrek', per: 7 }, { kind: 'bank', per: 6 }],
     shops: [
+      { kind: 'garage', name: 'Garage Kanaalmoer', line: 'Een recht kanaal, een rechte rekening. Dat is hun belofte.' },
+      { kind: 'schuilplaats', name: 'Schuilplaats Achter de Kade', line: 'In de loods staan oude boten. Eentje heeft een geheim luik.' },
+      { kind: 'bijbaan', name: 'Bijbaan: brugdraaier', line: 'Draai de brug open voor de boot en weer dicht voor de fiets.' },
+      { kind: 'racebord', name: 'Startbord Kanaalrace', line: 'Langs het Stadskanaal, van brug naar brug. De wind staat tegen.' },
       { kind: 'bakker', name: 'Bakkerij Lange Wijk', line: 'Het brood is net zo rechtdoor als het kanaal.' },
       { kind: 'cadeau', name: 'Kanaalkado Hoge Brug', line: 'Voor wie de brug wil meenemen. Past niet in de tas.' },
       { kind: 'cafe', name: 'Café De Bakboord', line: 'Hier hangt een stuurwiel dat nergens aan vastzit.' },
@@ -149,6 +181,10 @@ export const TOWN_PROFILES = [
     },
     props: [{ kind: 'visnet', per: 6 }, { kind: 'bolder', per: 12 }, { kind: 'kotter', per: 3 }, { kind: 'bank', per: 4 }],
     shops: [
+      { kind: 'garage', name: 'Garage Garnaalschaaf', line: 'Van zoute kou tot roest: ze snappen het hier.' },
+      { kind: 'schuilplaats', name: 'Schuilplaats De Vissersloods', line: 'Tussen de netten is een hoekje. Het ruikt er naar garnalen, dus niemand blijft hangen.' },
+      { kind: 'bijbaan', name: 'Bijbaan: garnalen pellen', line: 'De pellerij zoekt snelle vingers. Je ruikt het uren later nog.' },
+      { kind: 'racebord', name: 'Startbord Dijkrace', line: 'Over de zeedijk, met de wind in de rug. Wie remt, wordt een schaap.' },
       { kind: 'viskraam', name: 'Garnalenhuis De Pelder', line: 'Vers gepeld, vers gezegd.' },
       { kind: 'bakker', name: 'Bakkerij Zoute Lucht', line: 'Een broodje met zeezout, voor wie niet genoeg kreeg.' },
       { kind: 'cafe', name: 'Café De Reitdiepskade', line: 'Aan de bar zit de kapitein van de kotter die nooit aanmeert.' },
@@ -165,6 +201,10 @@ export const TOWN_PROFILES = [
     },
     props: [{ kind: 'molen', per: 0.5 }, { kind: 'bank', per: 6 }, { kind: 'schaap', per: 8 }, { kind: 'bloembak', per: 8 }],
     shops: [
+      { kind: 'garage', name: 'Garage Wierdevoet', line: 'Een wierde, een garage en een toeter die altijd net niet werkt.' },
+      { kind: 'schuilplaats', name: 'Schuilplaats De Wierdekerk', line: 'Achter het orgel is een luik. Koster Klok weet van niks.' },
+      { kind: 'bijbaan', name: 'Bijbaan: kosterhulp', line: 'De koster zoekt iemand om de klokken te luiden. Draag oordoppen.' },
+      { kind: 'racebord', name: 'Startbord Wierderace', line: 'Rond de wierde en terug. Het gaat omhoog, maar vooral omlaag.' },
       { kind: 'bakker', name: 'Bakkerij De Wierdekoek', line: 'Koek in de vorm van een heuvel. Daar kun je op wachten.' },
       { kind: 'markt', name: 'Kleiboer Streekwinkel', line: 'Kaas, eieren en uitleg over de bodem.' },
       { kind: 'cafe', name: 'Eetcafé Het Diepe Zuiden', line: 'Op het bord staat: soep van de dag. De dag is niet gespecificeerd.' },
@@ -172,8 +212,8 @@ export const TOWN_PROFILES = [
   },
 ];
 
-export const TOWN_BY_ID = new Map(TOWN_PROFILES.map((t) => [t.id, t]));
-export const TOWN_BY_NAME = new Map(TOWN_PROFILES.map((t) => [t.name, t]));
+const TOWN_BY_ID = new Map(TOWN_PROFILES.map((t) => [t.id, t]));
+const TOWN_BY_NAME = new Map(TOWN_PROFILES.map((t) => [t.name, t]));
 export const DAYPARTS = ['ochtend', 'middag', 'avond'];
 
 // world position of a profile's centre

@@ -18,7 +18,7 @@ import { stopVillageMini } from './dorpsuitjes.js';
 import { quitActivity } from './activities.js';
 import { getGoalSave, applyGoalSave } from './goal.js';
 import { getCalendarSave, applyCalendarSave } from './calendarday.js';
-import { migrateSave, SAVE_VERSION, savedArc } from './savemigrate.js';
+import { migrateSave, SAVE_VERSION, savedArc, plausiblePos } from './savemigrate.js';
 import { getCheatSave, applyCheatSave } from './cheats.js';
 import { closeShopMenu } from './shopui.js';
 import { quitTrainDrive } from './traindrive.js';
@@ -28,6 +28,7 @@ import { KEYS, slotKey } from './storagekeys.js';
 import { applyGuestEarnings } from './coopsave.js';
 import { getRenderer, afterNextFrame } from './scene3d.js';
 import { readSlot, writeSlotRaw, writeThumb, activeSlot, setActive, createSlot, deleteSlot, nameOf, pickActive } from './saveslots.js';
+import { registerSaveGame } from './savehook.js';
 import { STEPS, PARTS, stepDone, stepAvailable, nextStoryStep, ARC_ID } from './storyarc.js';
 
 // Several saves (saveslots.js): slot 1 is the old single save under its old key, the version inside
@@ -73,7 +74,7 @@ const JELLE_CHALLENGES = ['bruggen', 'fierljep', 'skutsje'];
 // amount (moneyBackup) when there is one, else an estimate from what the
 // progress paid out minus what was spent in shops and garages. Owned
 // vehicles are not subtracted; at least MIN_RESTORE.
-export function estimateLostMoney(d) {
+function estimateLostMoney(d) {
   if (Number.isFinite(d.moneyBackup) && d.moneyBackup >= 0) return Math.floor(d.moneyBackup);
   let earned = START_MONEY;
   const defs = getMissionDefs() || [];
@@ -93,7 +94,7 @@ export function estimateLostMoney(d) {
 }
 
 // shown once when a save of the first version of the story is opened (#187)
-export const OUD_GEMIGREERD_TEKST = 'Het oude verhaal is vervangen door het nieuwe. Je geld, spullen, voertuigen, prestaties en instellingen zijn bewaard; het verhaal begint opnieuw bij het begin.';
+const OUD_GEMIGREERD_TEKST = 'Het oude verhaal is vervangen door het nieuwe. Je geld, spullen, voertuigen, prestaties en instellingen zijn bewaard; het verhaal begint opnieuw bij het begin.';
 
 // The save of a slot (the active one by default), migrated; null when it is empty, broken,
 // from a newer game or (readSlot). A broken slot with a recovery
@@ -132,7 +133,7 @@ export function hasSave() {
 }
 
 // Where the story of a save stands: the part, the step to play and how far the part is.
-export function storySummary(d) {
+function storySummary(d) {
   try {
     const done = new Set(d.story && Array.isArray(d.story.done) ? d.story.done : []);
     const passed = new Set(d.missions && Array.isArray(d.missions.completed) ? d.missions.completed : []);
@@ -160,7 +161,7 @@ export function getSaveSummary() {
   return { slot: activeSlot(), name: nameOf(null, activeSlot()), playSeconds: Math.max(0, num(d.speeltijd, 0)), arc: savedArc(d), money: num(d.money, 0), missionsDone: done, savedAt: num(d.savedAt, 0), character: d.character === 'anita' ? 'Tessa' : 'Tammo', story: storySummary(d), goal: d.doel && typeof d.doel.name === 'string' ? d.doel.name : '' };
 }
 
-export function clearSave() {
+function clearSave() {
   keepNewerSave();
   try { localStorage.removeItem(slotKey(saveTarget())); } catch (e) { /* ignore */ }
 }
@@ -393,7 +394,7 @@ export function applySave(w, d) {
       w.player.character = d.character;
       if (w.companion) w.companion.character = d.character === 'tammo' ? 'anita' : 'tammo';
     }
-    if (d.pos && Number.isFinite(d.pos.x) && Number.isFinite(d.pos.y)) placeAt(w, d.pos.x, d.pos.y);
+    if (plausiblePos(d.pos)) placeAt(w, d.pos.x, d.pos.y);
     w.wanted = 0;
     w.wantedDecayTimer = 0;
     w.pendingRespawn = null;
@@ -499,3 +500,5 @@ export function updateSaveGame(dt, w) {
     }
   }
 }
+
+registerSaveGame(saveGame);

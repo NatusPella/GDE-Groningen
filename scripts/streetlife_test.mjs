@@ -267,5 +267,14 @@ ok(D.footCourierChance('centrum', 100, 19) > 0 && D.footCourierChance('centrum',
   ok(c > 0 && c < 1000, `couriers on foot are occasional (${c})`);
 }
 
+// Kennismakingsweek-parodie (#24): alleen domme opdrachten, niemand beschaamd of gekwetst
+{
+  const lines = [...D.LEADER_LINES, ...D.FRESHMAN_LINES];
+  ok(lines.every((l) => typeof l === 'string' && l.length > 8), 'ontgroening: alle regels zijn tekst');
+  ok(!lines.some((l) => /dwing|pijn|bloed|slaan|slag|schaam|dronken|drank|bier|verneder|pesten|naakt|slijm/i.test(l)), 'ontgroening: geen dwang, drank of vernedering');
+  ok(D.ONTGROENING_MAX === 1, 'ontgroening: hooguit een groepje tegelijk');
+  ok(D.ontgroeningChance('student', 100, 3) === 0 && D.ontgroeningChance('student', 100, 23) === 0, 'ontgroening: alleen overdag');
+  ok(D.ontgroeningChance('industrie', 100, 14) === 0, 'ontgroening: niet op het industrieterrein');
+}
 console.log(`${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);

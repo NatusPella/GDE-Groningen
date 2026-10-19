@@ -6,6 +6,7 @@ import { waterAt } from './waterlevels.js';
 import { WATER_Y } from './util.js';
 import { createRegatta, stepRegatta, regattaMedaille, regattaVoortgang, REGATTA, windHoek } from './zeilrules.js';
 import { kiesBaan, richtTijd } from './regattabaan.js';
+import { maakBots, stepBots, speelPlaats, plaatsTekst } from './regattabots.js';
 
 // Zeilregatta (#197): een activiteit die de speler NIET overneemt. Zit je in een zeilboot bij een
 // jachthaven, dan start E de regatta: vier tonnen op open water, twee rondes, in volgorde ronden.
@@ -41,7 +42,7 @@ const nearestMarina = (w) => {
   return best;
 };
 
-function buildMeshes(tonnen) {
+function buildMeshes(tonnen, bots) {
   const g = new THREE.Group();
   const list = tonnen.map((t) => {
     const m = new THREE.Mesh(new THREE.CylinderGeometry(0.7, 0.9, 2.2, 8), new THREE.MeshLambertMaterial({ color: 0xff7a1a }));
@@ -52,9 +53,19 @@ function buildMeshes(tonnen) {
     g.add(m);
     return m;
   });
+  const botList = (bots || []).map((b) => {
+    const boot = new THREE.Group();
+    const romp = new THREE.Mesh(new THREE.BoxGeometry(4.4, 0.7, 1.6), new THREE.MeshLambertMaterial({ color: 0xf2ede0 }));
+    const zeil = new THREE.Mesh(new THREE.BoxGeometry(0.1, 4.2, 2.2), new THREE.MeshLambertMaterial({ color: 0xe8453c }));
+    zeil.position.set(0, 2.6, 0);
+    boot.add(romp, zeil);
+    boot.position.set(b.x, WATER_Y + 0.3, b.y);
+    g.add(boot);
+    return boot;
+  });
   const scene = gameUi.getScene();
   if (scene) scene.add(g);
-  return { g, list };
+  return { g, list, botList };
 }
 
 function removeMeshes() {
@@ -76,7 +87,8 @@ function finish(w, { quit = false } = {}) {
   const rr = r.reg, rm = regattaMedaille(rr), medal = rm ? 4 - rm : 0;
   const rec = recordChallengeResult(w, 'regatta', { value: rr.tijd, medal, lower: true });
   recordStat(w, 'regatta');
-  const stats = [['Tijd', fmtTime(rr.tijd)], ['Richttijd', fmtTime(rr.richttijd)], ['Tonnen', String(rr.gerond)]];
+  const plaats = speelPlaats(rr, w.player.x, w.player.y, r.bots);
+  const stats = [['Plaats', plaatsTekst(plaats, r.bots.length + 1)], ['Tijd', fmtTime(rr.tijd)], ['Richttijd', fmtTime(rr.richttijd)], ['Tonnen', String(rr.gerond)]];
   if (medal) stats.push(['Medaille', MEDALS[medal]]);
   if (rec && rec.newBest) stats.push(['Record', 'Nieuw!']);
   gameUi.showBanner({ kind: medal ? 'pass' : 'fail', title: medal === 3 ? 'WINNAAR VAN DE REGATTA' : medal ? 'MOOI GEVAREN' : 'UITGEVAREN', reason: medal ? 'Twee rondes langs alle tonnen' : 'Je was niet snel genoeg voor een medaille: let op de wind', reward: 0, stats });
@@ -90,8 +102,9 @@ function start(w) {
   if (!baan) { w.addMessage('Geen vrij water voor een baan bij deze haven', 3); return false; }
   if (!board) board = createBoard('ZEILREGATTA', ACCENT);
   board.show();
-  meshes = buildMeshes(baan.tonnen);
-  run = { reg: createRegatta(baan.tonnen, { richttijd: richtTijd(baan.tonnen) }), baan, haven: near.m.name, flash: null, flashT: 0 };
+  const bots = maakBots(baan.tonnen, 3);
+  meshes = buildMeshes(baan.tonnen, bots);
+  run = { reg: createRegatta(baan.tonnen, { richttijd: richtTijd(baan.tonnen) }), bots, baan, haven: near.m.name, flash: null, flashT: 0 };
   gameUi.showCard(w, { kind: 'tip', kicker: 'Zeilregatta', title: 'Twee rondes langs de tonnen', body: 'Ronde de vier tonnen in volgorde, twee keer. Vaar niet recht tegen de wind in: kruis. [Q] haalt het zeil aan, [Z] viert het. [Backspace] stopt.', duration: 11, key: 'regatta-help', voice: false });
   return true;
 }
@@ -101,7 +114,7 @@ function updateHud(w) {
   const r = run.reg, ton = r.tonnen[r.volgend], p = w.player;
   const afstand = ton ? Math.round(Math.hypot(ton.x - p.x, ton.y - p.y)) : 0;
   const wind = w.wind;
-  const row = `<span>Tijd <b>${fmtTime(r.t)}</b></span><span>Ronde <b>${Math.min(r.ronde + 1, r.rondes)}/${r.rondes}</b></span><span>Ton <b>${r.volgend + 1}/${r.tonnen.length}</b> (${afstand} m)</span>${wind ? `<span>${windText(wind)}</span>` : ''}`;
+  const row = `<span>Tijd <b>${fmtTime(r.t)}</b></span><span>Ronde <b>${Math.min(r.ronde + 1, r.rondes)}/${r.rondes}</b></span><span>Plaats <b>${plaatsTekst(speelPlaats(r, p.x, p.y, run.bots), run.bots.length + 1)}</b></span><span>Ton <b>${r.volgend + 1}/${r.tonnen.length}</b> (${afstand} m)</span>${wind ? `<span>${windText(wind)}</span>` : ''}`;
   const cells = r.tonnen.map((_, i) => ({ t: `${i + 1}`, cls: i < r.volgend ? 'good' : i === r.volgend ? 'on' : '' }));
   board.set({ row, cells, flash: run.flash || '', bad: run.flash === STAP_IN, help: `${key('Q')} zeil aan · ${key('Z')} vieren · ${key('BACKSPACE')} stoppen` });
 }
@@ -117,6 +130,10 @@ function tick(dt, w) {
     stepRegatta(r, v.x, v.y, dt);
     if (run.flash === STAP_IN) run.flash = null;
   } else { r.t += dt; run.flash = STAP_IN; }
+  if (!r.klaar && w.wind) {
+    stepBots(run.bots, r.tonnen, w.wind, dt, r.t, r.rondes);
+    if (meshes) run.bots.forEach((b, i) => { const m = meshes.botList[i]; if (m) { m.position.set(b.x, WATER_Y + 0.3, b.y); m.rotation.y = -b.heading; } });
+  }
   if (r.gerond > was) {
     run.flash = r.klaar ? 'Over de finish!' : `Ton ${r.gerond}: goed gedaan`;
     run.flashT = 2.5;

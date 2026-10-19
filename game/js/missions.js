@@ -10,7 +10,7 @@ import { placeOwnedVehicleNear } from './ownedvehicles.js';
 import { findWalkPath } from './routing.js';
 import { setGoal } from './goal.js';
 import { playMissionIntro, playMissionFailed, isCinematicActive, playCinematic, skipCinematic } from './cinematics.js';
-import { playStoryIntro, playStoryOutro, playStoryFail, playVaultScene, playCastScene, playEyeContact, playPigeonSwarm, playToast, storySpeakerName } from './missionstory.js';
+import { playStoryIntro, playStoryOutro, playStoryFail, playVaultScene, playDuelJump, playCastScene, playEyeContact, playPigeonSwarm, playToast, storySpeakerName } from './missionstory.js';
 import { showTowerFlag, cutFlagRope, dropFlag, updateStoryProps, clearStoryProps, clearSkutsjeSail, hasTowerFlag, flagFocus, flagKnotsFocus } from './storyprops3d.js';
 import { RING_ROUTE, RING_CHECKPOINTS } from './ringroute.js';
 import { KEI_ROUTE, KEI_CHECKPOINTS } from './keiroute.js';
@@ -22,7 +22,8 @@ import { sweepAngle, inBeam, stepExposure } from './searchlightlogic.js';
 import { helipadById } from './heliflight.js';
 import { enterPlaneStage, updatePlaneStage, planeStageProgress, disposePlaneStage, releasePlaneStage, debugCompletePlaneStage } from './planestage.js';
 import { spawnFxPuff, spawnFxSpark } from './fx3d.js';
-import { Pedestrian, isInsideBuilding, setPedPose } from './pedestrians.js';
+import { Pedestrian } from './pedestrians.js';
+import { isInsideBuilding, setPedPose } from './pedgeom.js';
 import { knockDown, isKnockedDown } from './ragdoll.js';
 import { getShopsForRender, getOwnedEntries, SHOP_TYPES, repaintVehicle, storyShopState, setStoryOutfit, ownedCarTops } from './shops.js';
 import { getGaragesForRender, garageInside } from './garages.js';
@@ -3511,11 +3512,18 @@ function updateStages(dt, world, def) {
       break;
     }
     case 'timing': {
+      // after the presses a stage with vaultJump shows the real pole vault (landing when won, splash when not) before it goes on
+      if (S.duelJump) {
+        S.duelT = (S.duelT || 0) + dt;
+        if (S.duelJump.over || S.duelT > 25) { S.duelJump.dispose(); S.duelJump = null; nextStage(world, def); }
+        break;
+      }
       const r = updateTiming(dt, world, st, S);
       if (r === 'done') {
         const tag = timingTag(st, S);
         if (tag) (chain.tags = chain.tags || new Set()).add(tag);
-        nextStage(world, def);
+        const jump = st.vaultJump ? playDuelJump(world, { at: S.target || { x: p.x, y: p.y }, fail: S.hits < (st.goodAt ?? st.rounds.length) }) : null;
+        if (jump) { S.duelJump = jump; S.duelT = 0; jump.done.then(() => { jump.over = true; }); } else nextStage(world, def);
       } else if (r && r.fail) fail(world, def, r.fail);
       break;
     }

@@ -4,13 +4,13 @@
 
 import { GAME_TITLE, SERIES, SERIES_MEANING } from './logo.js';
 
-export const DISCLAIMER = `${SERIES} is een fanparodie op GTA, niet gelieerd aan of goedgekeurd door Rockstar Games of Take-Two Interactive. Namen, personages, merken en gebeurtenissen zijn verzonnen.`;
+const DISCLAIMER = `${SERIES} is een fanparodie op GTA, niet gelieerd aan of goedgekeurd door Rockstar Games of Take-Two Interactive. Namen, personages, merken en gebeurtenissen zijn verzonnen.`;
 
-export const OSM_ATTRIBUTION = '© OpenStreetMap-bijdragers';
+const OSM_ATTRIBUTION = '© OpenStreetMap-bijdragers';
 // building heights and roof shapes (scripts/world/fetch_3dbag.py; CC BY 4.0)
 // terrain heights (scripts/world/fetch_ahn.py; CC0, credit is a courtesy)
-export const AHN_ATTRIBUTION = 'Actueel Hoogtebestand Nederland (AHN) via PDOK';
-export const BAG3D_ATTRIBUTION = '3DBAG door de 3D geoinformation onderzoeksgroep (TU Delft) en 3DGI';
+const AHN_ATTRIBUTION = 'Actueel Hoogtebestand Nederland (AHN) via PDOK';
+const BAG3D_ATTRIBUTION = '3DBAG door de 3D geoinformation onderzoeksgroep (TU Delft) en 3DGI';
 
 // [title, kicker] cards for the end credits (story.js)
 export const THIRD_PARTY_CARDS = [

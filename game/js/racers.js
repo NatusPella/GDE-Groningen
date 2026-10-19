@@ -64,7 +64,7 @@ function inBuilding(map, x, y, pad) {
 // Centreline + a racing line (lateral offset per point, smoothed to cut
 // corners but kept inside the carriageway and clear of buildings) + a
 // speed profile from its curvature with braking zones propagated backwards.
-export function buildTrack(map, route, edge = EDGE) {
+function buildTrack(map, route, edge = EDGE) {
   const n = route.length;
   const x = new Float64Array(n), y = new Float64Array(n), hw = new Float64Array(n);
   for (let i = 0; i < n; i++) { x[i] = route[i][0]; y[i] = route[i][1]; hw[i] = route[i][2] || 3; }

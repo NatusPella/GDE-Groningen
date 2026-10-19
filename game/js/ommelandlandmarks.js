@@ -29,7 +29,7 @@ function churchBox(map, x, y) {
 
 // The churches without an outline of their own are fitted to a church of the
 // tiles, so their tiles must be in (updateOmmelandLandmarks).
-export function prepareLandmarks(items, map) {
+function prepareLandmarks(items, map) {
   const inside = (it) => edgeDistance(it.x, it.y) > 0;
   const churches = [], mills = [], other = [];
   for (const it of items) {
@@ -48,7 +48,7 @@ export function prepareLandmarks(items, map) {
       const twin = mills.find((m) => near(m, it, 20));
       if (twin) { if (!twin.n && it.n) twin.n = it.n; twin.t = { ...it.t, ...twin.t }; continue; }
       mills.push({ ...it, t: { ...it.t } });
-    } else if (['tower', 'castle', 'farm', 'silo', 'factory', 'flat', 'townhall', 'station', 'school', 'museum'].includes(it.k)) other.push(it);
+    } else if (['tower', 'castle', 'farm', 'silo', 'factory', 'pakhuis', 'flat', 'townhall', 'station', 'school', 'museum'].includes(it.k)) other.push(it);
   }
   const out = [];
   for (const c of churches) {

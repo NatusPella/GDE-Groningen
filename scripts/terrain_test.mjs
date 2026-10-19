@@ -72,6 +72,9 @@ ok(zf && zr && zf.every((z, i) => Math.abs(z - zr[i]) < 0.02), 'over a raised te
   ok(top > 3.5 && foot < -0.8, 'terrain on: the ground is the dyke crest and the polder', `${top} ${foot}`);
   const st = dm.surfaceAt(200, 20, { z: 3.9, ribbon: null });
   ok(Math.abs(st.z - top) < 0.01, 'surfaceAt: a walker at the crest stays on it', st.z);
+  const rb = dm.ribbonAt(200, 80, 7.7);
+  ok(rb && rb.type === 'primary', 'ribbonAt: the bridge over the dyke is found at its absolute height', rb && rb.type);
+  ok(dm.ceilingAt(200, 20, 3.9) === Infinity, 'ceilingAt: nothing above the crest');
   const under = dm.surfaceAt(200, 80, { z: 7.7, ribbon: null });
   ok(Math.abs(under.z - (3.75 - 0.3 + 4)) < 0.05 && under.kind === "road", 'a bridge with z 4 over a dyke: follows the crest (less the deadband) + 4', `${under.z} ${under.kind}`);
 }

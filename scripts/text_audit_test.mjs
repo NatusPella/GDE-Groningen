@@ -47,7 +47,8 @@ ok(has('Bonjour, merci pour tout', 'frans'), 'Frans');
 ok(!has('Wie is die man? Hier pas je op.', 'duits') && !has('Wie is die man? Hier pas je op.', 'frans'), 'Nederlandse woorden geen vals alarm');
 ok(has('Je save is weg', 'anglicisme') && has('Vraag de host om een code', 'anglicisme') && has('Rond je run af met een combo', 'anglicisme'), 'anglicisme: save, host, run, combo');
 ok(has('Bij het laatste checkpoint en total loss', 'anglicisme') && has('Mooie ghosts met tricks', 'anglicisme'), 'anglicisme: checkpoint, total loss, ghosts, tricks');
-ok(!has('Je spelstand is bewaard; de gastheer wacht, hatchback of sedan', 'anglicisme'), 'Nederlands en ingeburgerd: geen vals alarm');
+ok(has('Speel co-op of multiplayer', 'anglicisme') && has('De coöp-modus', 'anglicisme'), 'anglicisme: co-op, multiplayer, coöp');
+ok(!has('Je savegame is bewaard; de gastheer wacht, hatchback of sedan', 'anglicisme'), 'Nederlands en ingeburgerd: geen vals alarm');
 ok(!has('Hoster Hostel, de runderen en het slot', 'anglicisme') && !has('<button data-action="save">Opslaan</button> .pm-rail-acts [data-boost]', 'anglicisme'), 'woorddelen en markup geven geen vals alarm');
 
 // the allowlist: every entry has a reason, and still matches something

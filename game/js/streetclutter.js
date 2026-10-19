@@ -1,7 +1,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { fitText as sharedFitText } from './canvastex.js';
 import { GeoBuilder, composeMatrix, tubeGeometry, HABBO_PALETTE } from './pixelart3d.js';
-import { isInsideBuilding, isOnRoad } from './pedestrians.js';
+import { isInsideBuilding, isOnRoad } from './pedgeom.js';
 import { isInWater, closestPointOnSegment } from './util.js';
 import { railingItems, hasRailings, RAIL_KIND, RAIL_HALF } from './bridgerails.js';
 import { yieldArms } from './junctions.js';
@@ -15,7 +15,7 @@ import { yieldArms } from './junctions.js';
 
 const ATLAS_W = 1024, ATLAS_H = 512;
 
-export const CLUTTER_PROPS = {
+const CLUTTER_PROPS = {
   scooter: { r: 0.3, half: 0.5, h: 1.15, mass: 95, material: 'metal', breakSpeed: 1.5, breakCost: 0.4 },
   kliko: { r: 0.36, h: 1.1, mass: 25, material: 'plastic', breakSpeed: 0.3, breakCost: 0.1, burst: 'litter' },
   container: { r: 0.38, h: 1.3, mass: 450, material: 'metal', breakSpeed: 4, breakCost: 1.2, slide: true, burst: 'litter' },

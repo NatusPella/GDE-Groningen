@@ -14,7 +14,7 @@ import { iconScale, iconLift, columnWidth, columnHeight, columnOpacity, discOpac
 
 const MARKER_SOLID = FLAGS.marker === 'vorm';
 
-export const MARKER_KINDS = {
+const MARKER_KINDS = {
   start: { color: 'mission' },
   goal: { color: 'missionActive' },
   optional: { color: 'care' },

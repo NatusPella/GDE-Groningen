@@ -1,8 +1,8 @@
-// Vijf speelbare zijmissies uit #26 als pure regels, in dezelfde vorm als
+// Zes speelbare zijmissies uit #26 als pure regels, in dezelfde vorm als
 // bijbaanregels.js (init, step, result) zodat het sidejob-contract ze met een dunne
 // adapter (sidejob_stad.js) kan draaien: Museumbus (Nationaal Busmuseum), Suikerbieten
 // (Hoogkerk), Herstelploeg (Delfstof Noord in het Hogeland), Live bij Radio Noordkust
-// (OOGTV) en Rave in het Telefoonhuis. Geen THREE, geen wereld, geen Math.random.
+// (OOGTV), Rave in het Telefoonhuis en de Stille levering (Kliniek Van der Meden). Geen THREE, geen wereld, geen Math.random.
 //
 // Invoer per stap (alles optioneel): speed m/s, decel m/s^2 (positief), lat m/s^2,
 // dist m tot het huidige doel, dir -1|0|1 (rave: volume zachter, gelijk, harder).
@@ -131,6 +131,32 @@ const oogtv = {
     : pay(18 + s.at * 17, s.missed === 0 ? 24 : 0, s.missed === 0, s.missed === 0 ? 'Drie keer live, de verslaggever straalt.' : 'Twee keer live, één plek ging in de ruis.'),
 };
 
+// 6. Kliniek Van der Meden: de zachte missie. Een verzonnen rusthuis voor overspannen influencers krijgt
+// pakketten met stilte (kussens, thee, planten): rijd zo zacht dat er niets rammelt, en wacht bij de poort.
+const vandermeden = {
+  id: 'vandermeden', naam: 'Stille levering', bedrijf: 'Kliniek Van der Meden', regio: 'stad', voertuig: 'bestelbus',
+  plek: { stad: true },
+  blurb: 'Kussens en thee zo zacht naar de kliniek rijden dat niets rammelt',
+  tagline: 'Alles wat rammelt, belandt in de klachtenbrief van de kliniek.',
+  intro: ['Kliniek Van der Meden is een rusthuis voor overspannen influencers. Elke harde knal kost daar een weekend aan rust.', 'Rijd zacht en rem langzaam. Bij elke poort even stilstaan tot de portier knikt.'],
+  init: (level) => ({ stops: 2, at: 0, wait: 0, rust: 100, limit: 12 - lvlK(level) * 2 }),
+  step(s, i, dt) {
+    const ev = [];
+    if ((i.speed || 0) > s.limit) { s.rust = Math.max(0, s.rust - dt * 3); ev.push({ type: 'rammel' }); }
+    if ((i.decel || 0) > 2.2) { s.rust = Math.max(0, s.rust - dt * 7); ev.push({ type: 'knal' }); }
+    if ((i.lat || 0) > 3) { s.rust = Math.max(0, s.rust - dt * 4); ev.push({ type: 'knal' }); }
+    if (s.rust <= 0) { ev.push({ type: 'fail', why: 'de kliniek stuurt de bus terug: te veel geluid' }); return ev; }
+    if (AT(i, 5, 0.4)) {
+      s.wait += dt;
+      if (s.wait >= 3) { s.wait = 0; s.at++; ev.push({ type: 'knik', n: s.at }); if (s.at >= s.stops) ev.push({ type: 'done' }); }
+    } else s.wait = 0;
+    return ev;
+  },
+  result: (s) => s.at >= s.stops
+    ? pay(32 + s.stops * 12, s.rust > 85 ? 22 : s.rust > 60 ? 8 : 0, s.rust > 95, s.rust > 95 ? 'Muisstil afgeleverd, de portier knikt twee keer.' : 'Afgeleverd, met wat rammel.')
+    : pay(0, 0, false, 'De pakketten staan nog in de bus.', true),
+};
+
 // 5. Rave in het Telefoonhuis: te voet het volume regelen. Te zacht en de zaal loopt leeg, te hard en de buren bellen.
 export const RAVE_PHASES = [
   { name: 'binnenkomst', lo: 3, hi: 6, len: 20 },
@@ -170,9 +196,9 @@ const telefoonrave = {
     : pay(20 + s.inBand * 0.7, s.complaints === 0 && s.mood > 70 ? 24 : 0, s.complaints === 0 && s.mood > 85, s.complaints === 0 ? 'Het geluid zat goed, de buren sliepen door.' : `Feest gered, ${s.complaints} klacht${s.complaints > 1 ? 'en' : ''} van de buren.`),
 };
 
-export const STAD_MISSIES = [museumbus, suikerbieten, herstelploeg, oogtv, telefoonrave];
+export const STAD_MISSIES = [museumbus, suikerbieten, herstelploeg, oogtv, telefoonrave, vandermeden];
 export const STAD_MISSIE_IDS = STAD_MISSIES.map((m) => m.id);
-export const stadMissieById = (id) => STAD_MISSIES.find((m) => m.id === id) || null;
+const stadMissieById = (id) => STAD_MISSIES.find((m) => m.id === id) || null;
 
 export function startStadRonde(id, level = 1) {
   const rule = stadMissieById(id);
@@ -199,10 +225,12 @@ export const STAD_DOELEN = {
   suikerbieten: { total: () => 2, at: (s) => (s.phase === 'laden' ? 0 : 1) },
   herstelploeg: { total: (s) => s.stops, at: (s) => s.at },
   oogtv: { total: (s) => s.spots, at: (s) => s.at + s.missed },
+  vandermeden: { total: (s) => s.stops, at: (s) => s.at },
 };
 
 export const STAD_MELDING = {
   kras: 'Pas op de lak, rustig aan!', foto: 'Foto genomen, de bus staat er mooi op.', laden: 'De bieten rollen de kar in.', geladen: 'Kar vol. Op naar de fabriek!',
   bieten: 'Bieten rollen van de kar!', tehard: 'Rustig door het dorp, hè.', hardremmen: 'Zachter remmen, mensen kijken.', gehoord: 'Je hebt geluisterd. Er komt koffie.',
   live: 'Je staat live! De verslaggever zwaait.', gemist: 'Het venster is dicht: geen beeld.', leeg: 'De zaal wordt stil: harder!', klacht: 'De buren bellen: zachter!',
+  rammel: 'Het rammelt, rustig aan.', knal: 'Sst, de kliniek hoort alles.', knik: 'De portier knikt: door.',
 };

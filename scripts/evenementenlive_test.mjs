@@ -48,5 +48,11 @@ check('aankomsttekst noemt de naam', L.arrivalText(ev).includes(ev.naam));
   check('fit: vast per evenement', JSON.stringify(fit) === JSON.stringify(L.fitLayout(ev0, items, half)));
   check('fit: binnen de afsluiting', fit.every((q) => Math.hypot(q.dx, q.dy) <= KINDS[ev0.kind].closure));
 }
+{
+  let q = 0.3; const rand = () => (q = (q * 7.7 + 0.13) % 1);
+  const g = L.groupSpot(AGENDA[0], rand), cc = L.centreOf(AGENDA[0]);
+  check('groepsplek binnen het evenement', Math.hypot(g.x - cc.x, g.y - cc.y) <= 160 && g.n >= 2 && g.n <= 4);
+  check('menigtecap > 0', L.crowdPedCap(AGENDA[0]) > 0);
+}
 console.log(`evenementenlive_test: ${n - bad}/${n} ok`);
 process.exit(bad ? 1 : 0);

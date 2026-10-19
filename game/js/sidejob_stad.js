@@ -19,13 +19,14 @@ const MODELS = {
   bestelbus: { kind: 'car', model: { name: 'van', len: 5.4, wid: 2.1, maxSpeed: 24, accel: 6, brake: 18, turnRate: 1.9, color: '#d8a31c' } },
   camerabus: { kind: 'car', model: { name: 'van', len: 5.6, wid: 2.1, maxSpeed: 26, accel: 6.5, brake: 18, turnRate: 1.9, color: '#e8e6e0' } },
 };
-const KLEUR = { museumbus: '#b9552b', suikerbieten: '#7a8a3a', herstelploeg: '#d8a31c', oogtv: '#3b8ad0', telefoonrave: '#b04ad0' };
-const BAAS = { museumbus: 'Conservator Wielema', suikerbieten: 'Opzichter Bietenbult', herstelploeg: 'Voorman Stutter', oogtv: 'Verslaggever Wendt', telefoonrave: 'Organisator Kiepkap' };
+const KLEUR = { museumbus: '#b9552b', suikerbieten: '#7a8a3a', herstelploeg: '#d8a31c', oogtv: '#3b8ad0', telefoonrave: '#b04ad0', vandermeden: '#8fb8a8' };
+const BAAS = { museumbus: 'Conservator Wielema', suikerbieten: 'Opzichter Bietenbult', herstelploeg: 'Voorman Stutter', oogtv: 'Verslaggever Wendt', telefoonrave: 'Organisator Kiepkap', vandermeden: 'Portier Stilman' };
 const DOEL_NAAM = {
   museumbus: ['Dorpsfeest Oost', 'Tentoonstelling Zuid'],
   suikerbieten: ['de bietenhoop', 'de suikerfabriek'],
   herstelploeg: ['het eerste dorpshuis', 'het tweede dorpshuis', 'het derde dorpshuis'],
   oogtv: ['live-plek 1', 'live-plek 2', 'live-plek 3'],
+  vandermeden: ['de hoofdpoort', 'de tuinpoort'],
 };
 
 function plek(map, regel) {
@@ -216,9 +217,10 @@ function maakRave() {
   };
 }
 
-export const museumbus = maakRit(STAD_MISSIES[0]);
-export const suikerbieten = maakRit(STAD_MISSIES[1]);
-export const herstelploeg = maakRit(STAD_MISSIES[2]);
-export const oogtv = maakRit(STAD_MISSIES[3]);
-export const telefoonrave = maakRave();
-export const STAD_JOBS = [museumbus, suikerbieten, herstelploeg, oogtv, telefoonrave];
+const museumbus = maakRit(STAD_MISSIES[0]);
+const suikerbieten = maakRit(STAD_MISSIES[1]);
+const herstelploeg = maakRit(STAD_MISSIES[2]);
+const oogtv = maakRit(STAD_MISSIES[3]);
+const vandermeden = maakRit(STAD_MISSIES[5]);
+const telefoonrave = maakRave();
+export const STAD_JOBS = [museumbus, suikerbieten, herstelploeg, oogtv, telefoonrave, vandermeden];

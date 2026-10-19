@@ -396,7 +396,7 @@ const escHtml = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<':
 // A long line that differs from its translation in a word or two only gets
 // those words glossed inline ("twijduustern (de schemer)") instead of the
 // whole line a second time underneath: { pre, word, nl, post } or null.
-export function glossOf(text, nl) {
+function glossOf(text, nl) {
   if (!text || !nl) return null;
   const a = String(text).split(' '), b = String(nl).split(' ');
   if (a.length < 6) return null;

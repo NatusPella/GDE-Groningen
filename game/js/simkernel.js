@@ -8,8 +8,8 @@ import { MSG, MAX_DT, packSnapshot } from './simcontract.js';
 // player's surroundings) stays on the main thread; simhandover.js decides
 // which agents cross over. No DOM, no THREE, no Math.random: deterministic.
 
-export const ACCEL = 2.5; // m/s2
-export const BRAKE = 4; // m/s2, comfortable braking
+const ACCEL = 2.5; // m/s2
+const BRAKE = 4; // m/s2, comfortable braking
 export const MIN_GAP = 5; // m between bumper and tail, standing
 const SIGNAL_LOOK = 60; // m
 const END_STOP = 0.5; // m before the end of the road where a stopping agent (spawn `stop`) halts

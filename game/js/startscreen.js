@@ -4,7 +4,9 @@ import { openSaveSlots, isSaveSlotsOpen } from './saveslotsui.js';
 import { VERSION } from './version.js';
 import { checkWhatsNew, markVersionSeen, compareVersions } from './whatsnew.js';
 import { pointInPolygon } from './util.js';
-import { openPauseMenu, isPauseMenuOpen, menuIcon } from './pausemenu.js';
+import { openPauseMenu, menuIcon } from './pausemenu.js';
+import { requestOpenSamen } from './samenpanel.js';
+import { isPauseMenuOpen } from './pausestate.js';
 import { getAchievementSummary } from './achievements.js';
 import { pendingTrailer } from './trailerstate.js';
 // trailer.js (2500 lines) is only loaded when a trailer or benchmark really runs
@@ -382,6 +384,7 @@ export function runStartScreen(world, { render, relocate, tick, ready }) {
     const items = [];
     if (save) items.push({ act: 'continue', label: 'Doorgaan', sub: summaryText(save) });
     items.push({ act: 'new', label: 'Nieuw spel', sub: save ? 'Begin opnieuw in Grunn' : 'Moi! Stap in en rij' });
+    items.push({ act: 'samen', label: 'Samen spelen', sub: 'Met een vriend of vriendin, tot 4 spelers' });
     items.push({ act: 'saves', label: 'Opgeslagen spellen', sub: 'Kies, hernoem, exporteer of verwijder je spellen' });
     items.push({ act: 'news', label: 'Wat is er nieuw', sub: 'Alle versies en wijzigingen' });
     items.push({ act: 'settings', label: 'Instellingen', sub: 'Geluid, beeld en camera' });
@@ -508,6 +511,10 @@ export function runStartScreen(world, { render, relocate, tick, ready }) {
       if (it.act !== 'news' && it.act !== 'about') news.hidden = true;
       if (it.act === 'continue') {
         continueGame();
+      } else if (it.act === 'samen') {
+        // het spel start zoals altijd (Doorgaan, of een nieuw spel zonder savegame); daarna staat de lobby klaar (main.js)
+        requestOpenSamen();
+        if (save) continueGame(); else startNew();
       } else if (it.act === 'saves') {
         openSaveSlots({ mode: 'start', onLoad: continueGame, onNew: () => startNew(), onClose: () => {
           // Doorgaan shows the save as it was when the menu opened: rebuild the menu when saves changed

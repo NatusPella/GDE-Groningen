@@ -113,7 +113,8 @@ export const INTERIEUREN = [];
 
 // --- Der Aa-kerk: schip, koor, torenhal ------------------------------------------
 {
-  const f = frame(-170.34, 340.09, -0.3293);
+  // +a runs west (the tower of the OSM data stands at the west end), the choir lies east
+  const f = frame(-170.81, 340.25, -0.3293 + Math.PI);
   const R = (...a) => mk(f, ...a);
   const kerk = { wall: 0xe0d6bd, floor: 0x96907f, ceil: 0xf0e8d4 };
   INTERIEUREN.push({
@@ -124,15 +125,15 @@ export const INTERIEUREN = [];
       R('schip', -3, 0, 36, 24, 12, { name: 'Schip', style: kerk }),
       R('koor', -25.5, 0, 11, 11, 11, { name: 'Koor', style: { ...kerk, floor: 0x80796a } }),
       R('torenhal', 21.5, 0, 14, 12, 11, { name: 'Torenhal', style: { ...kerk, wall: 0xcfc3a5 } }),
-      R('portaalZ', 7.5, 15.25, 4.4, 8, 4.2, { deur: true, name: 'Zuidportaal', style: DOOR }),
-      R('portaalN', -12, -14.2, 4.4, 5.5, 4.2, { deur: true, name: 'Noordportaal', style: DOOR }),
+      R('portaalZ', -8, -15.25, 4.4, 8, 4.2, { deur: true, name: 'Zuidportaal', style: DOOR }),
+      R('portaalN', 11.5, 14.2, 4.4, 5.5, 4.2, { deur: true, name: 'Noordportaal', style: DOOR }),
     ],
     decor: [
       ...[-14, -9, -4, 1, 6, 11].flatMap((a) => [{ kind: 'zuil', room: 'schip', a, c: -5.5, r: 0.5, h: 11.5 }, { kind: 'zuil', room: 'schip', a, c: 5.5, r: 0.5, h: 11.5 }]),
       { kind: 'pad', room: 'schip', a: 0, c: 0, len: 34, wid: 1.4, color: 0x2f4f7a },
       ...[-12, -8, -4, 0, 4, 8].flatMap((a) => [{ kind: 'bank', room: 'schip', a, c: -2.8, len: 1.0, pew: true }, { kind: 'bank', room: 'schip', a, c: 2.8, len: 1.0, pew: true }]),
       { kind: 'altaar', room: 'koor', a: -3, c: 0 },
-      { kind: 'kansel', room: 'schip', a: -10, c: -5.6 },
+      { kind: 'kansel', room: 'schip', a: -10, c: 5.6 },
       { kind: 'vont', room: 'torenhal', a: -1, c: 0 },
       { kind: 'kaars', room: 'koor', a: -2, c: -3 },
       { kind: 'kaars', room: 'koor', a: -2, c: 3 },

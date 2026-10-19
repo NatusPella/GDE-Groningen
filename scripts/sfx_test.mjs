@@ -3,6 +3,7 @@
 //   node scripts/sfx_test.mjs
 import { renderData, bufferNames, variantsOf } from '../game/js/sfx/dsp.js';
 import { FX_INFO } from '../game/js/sfx/fxbank.js';
+import { describe } from './sfx_spectrum.mjs';
 import { CATEGORIES, categoryLevel, speechDuckFactor, distanceGain, airLowpassHz, arrivalDelay, variation, plan } from '../game/js/sfx/mixplan.js';
 import { FX_LIST } from '../game/js/sfx/sfxlist.js';
 
@@ -111,5 +112,29 @@ for (const e of FX_LIST) {
 }
 for (const name of Object.keys(FX_INFO)) ok(FX_LIST.some((e) => e.buf === name), `sfxlist lists ${name}`);
 
+
+// spectral identity (scripts/sfx_spectrum.mjs): what makes a bike bell, a firework and a crossing bell recognisable
+{
+  const bb = describe('bikebell');
+  ok(bb.peaks[0] > 2500 && bb.peaks[0] < 3300, 'bikebell: strongest partial at a thumb-bell pitch', String(bb.peaks[0]));
+  ok(bb.above1500 > 0.95, 'bikebell: all of the energy is high, nothing dull', bb.above1500.toFixed(2));
+  ok(bb.peaks.filter((f) => f > 4000).length >= 2, 'bikebell: inharmonic metal overtones above 4 kHz');
+  const cb = describe('crossing_bell');
+  ok(cb.peaks[0] > 1300 && cb.peaks[0] < 1700 && cb.peaks.some((f) => f > 3500), 'crossing_bell: steel strike, fundamental plus bright overtone', cb.peaks.join());
+  for (let v = 0; v < 3; v++) {
+    const r = renderData(`firework_burst_${v}`, SR), d = r.chs[0], sr = r.sr;
+    ok(rmsIn(d, sr, 0, 0.03) > 0.1, `firework_burst_${v}: hard crack up front`);
+    ok(lowShare(d, sr) > 0.1, `firework_burst_${v}: thump you feel`, lowShare(d, sr).toFixed(3));
+    // glitter: many separate pops after the bang, not one smooth tail
+    const win = Math.floor(0.004 * sr); let pops = 0, prevHi = false;
+    for (let i = Math.floor(0.4 * sr); i + win < Math.floor(2.4 * sr); i += win) {
+      let e = 0; for (let k = 0; k < win; k++) e += d[i + k] * d[i + k];
+      const hi = Math.sqrt(e / win) > 0.02; if (hi && !prevHi) pops++; prevHi = hi;
+    }
+    ok(pops >= 12, `firework_burst_${v}: glitter crackles on after the bang`, String(pops));
+    ok(rmsIn(d, sr, 0, 0.05) > 3 * rmsIn(d, sr, 2.6, 2.8), `firework_burst_${v}: dies away`);
+  }
+  ok(FX_INFO.firework_burst_0.range >= 3000, 'firework carries as far as the Ontzet show');
+}
 console.log(`${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);

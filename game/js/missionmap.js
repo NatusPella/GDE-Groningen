@@ -29,13 +29,13 @@ export const ROLES = {
   police: { kind: 'police', pri: 88 },
 };
 // the lines
-export const LINE_STYLES = { route: 'route', ideal: 'ideal', crow: 'crow', track: 'track' };
+const LINE_STYLES = { route: 'route', ideal: 'ideal', crow: 'crow', track: 'track' };
 
 // minimap limits
 export const MINI_MAX_ITEMS = 9;
 export const MINI_ZOOM = { minFactor: 0.3, maxFactor: 1.6, margin: 1.25, fill: 0.78 };
 // closer than this (m) a threat or low bridge is announced
-export const WARN_DIST = { threat: 70, bridge: 160 };
+const WARN_DIST = { threat: 70, bridge: 160 };
 
 const dist = (a, b) => Math.hypot(b.x - a.x, b.y - a.y);
 const ok = (p) => !!p && Number.isFinite(p.x) && Number.isFinite(p.y);
@@ -225,7 +225,7 @@ export function buildMissionLayer(s) {
 // The part of the world the minimap zooms in on: the player and everything
 // the layer marks as focus (and the discs that matter): { x, y, r } around
 // the middle of that, or null when there is only the player.
-export function focusOf(layer, player, wholeTrack = false) {
+function focusOf(layer, player, wholeTrack = false) {
   const pts = [{ x: player.x, y: player.y, r: 0 }];
   for (const i of layer.items) if (i.focus) pts.push({ x: i.x, y: i.y, r: 0 });
   for (const a of layer.areas) if (a.role === 'goal' || a.color === 'police') pts.push({ x: a.x, y: a.y, r: a.r });

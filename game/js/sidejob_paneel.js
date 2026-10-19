@@ -8,6 +8,7 @@ import { wgsToWorld } from './rdnew.js';
 import { spawnJobVehicle, randomStreetPoint, vehicleSpeed, euro } from './sidejobkit.js';
 import { createChoicePanel, keycap } from './choicepanel.js';
 import { dist } from './util.js';
+import { ankerMetWeg } from './bijbaananker.js';
 
 const STAD = { x: 213.81, y: 9.9 };
 const STAY_R = 45;
@@ -43,9 +44,7 @@ const MELD_STRAND = { oproep: 'Oproep! Een zwemmer roept om hulp, rij erheen en 
 export const strandpost = {
   ...sb, vehicleWord: 'de quad',
   anchor(map) {
-    const p = regioPunt(sb.regel.regio);
-    const rp = map.nearestRoadPoint(p.x, p.y, 400, true);
-    return rp ? { x: rp.x, y: rp.y } : p;
+    return ankerMetWeg(map, regioPunt(sb.regel.regio), true);
   },
   start(c) {
     const v = spawnJobVehicle(c.world, c.spot.x, c.spot.y, QUAD);

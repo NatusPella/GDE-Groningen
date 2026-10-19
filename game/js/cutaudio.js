@@ -13,7 +13,6 @@ export const PROP_SOUND = {
   auto: [{ name: 'car_pass' }],
   bestelbus: [{ name: 'car_pass' }],
   trekker: [{ name: 'car_pass' }],
-  aanhanger: [{ name: 'car_pass' }],
   fiets: [{ kind: 'bell', after: 0.4 }],
   duif: [{ kind: 'coo', after: 0.2 }],
 };

@@ -183,10 +183,12 @@ function attach(win, { gameDir }) {
           const body = fsSync.readFileSync(scriptArg, 'utf8');
           await win.webContents.executeJavaScript(`(async () => {
             const key = (k, code) => { for (const t of [window, document]) { t.dispatchEvent(new KeyboardEvent('keydown', { key: k, code, bubbles: true })); t.dispatchEvent(new KeyboardEvent('keyup', { key: k, code, bubbles: true })); } };
+            if (!${JSON.stringify(!!process.env.GDE_MENU_TEST)}) { // GDE_MENU_TEST=1: het script krijgt het hoofdmenu zelf (coöp-testbank --menu)
             key('Enter', 'Enter');
             await new Promise((r) => setTimeout(r, 2500));
             const w = window.__debug && window.__debug.world;
             for (let i = 0; i < 25 && w && w.paused; i++) { key(' ', 'Space'); await new Promise((r) => setTimeout(r, 700)); }
+            }
           })()`);
           const out = await win.webContents.executeJavaScript(`(async () => { ${body}\n })()`);
           console.log('[perf-script]', typeof out === 'string' ? out : JSON.stringify(out));
