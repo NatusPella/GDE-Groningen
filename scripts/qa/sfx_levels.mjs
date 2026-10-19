@@ -13,7 +13,7 @@ const OUT = path.resolve(arg('out', path.join(os.tmpdir(), 'gde-qa-sfx')));
 fs.mkdirSync(OUT, { recursive: true });
 const profile = `gde-test-sl-${process.pid}`;
 const script = path.join(OUT, '_page.js');
-fs.writeFileSync(script, `window.__sl = ${JSON.stringify({ settle: Number(arg('settle', 15000)), only: arg('only', '').split(',').filter(Boolean) })};\n` + fs.readFileSync(path.join(HERE, 'sfx_levels.page.js'), 'utf8'));
+fs.writeFileSync(script, `window.__sl = ${JSON.stringify({ settle: Number(arg('settle', 15000)), only: arg('only', '').split(',').filter(Boolean), cutscenes: arg('cutscenes', '').split(',').filter(Boolean) })};\n` + fs.readFileSync(path.join(HERE, 'sfx_levels.page.js'), 'utf8'));
 const electron = process.env.ELECTRON_EXE || path.join(ROOT, 'desktop', 'node_modules', 'electron', 'dist', 'electron.exe');
 const env = { ...process.env, GDE_TEST_PROFILE: profile };
 delete env.ELECTRON_RUN_AS_NODE;
@@ -23,7 +23,7 @@ const r = spawnSync(electron, ['.', '--windowed', '--stil', '--audio-graph', `--
 fs.writeFileSync(path.join(OUT, 'run.log'), `${r.stdout || ''}\n${r.stderr || ''}`);
 fs.rmSync(path.join(os.tmpdir(), profile), { recursive: true, force: true });
 let rows = [];
-for (const l of (r.stdout || '').split('\n')) { const m = l.match(/^\[perf-script\] (.*)$/); if (m) try { { const j = JSON.parse(m[1]); rows = j.results || rows; if (j.stats) console.log('audio-stats', JSON.stringify(j.stats)); } } catch { /* laatste regel telt */ } }
+for (const l of (r.stdout || '').split('\n')) { const m = l.match(/^\[perf-script\] (.*)$/); if (m) try { { const j = JSON.parse(m[1]); rows = j.results || rows; if (j.scenes) fs.writeFileSync(path.join(OUT, 'scenes.json'), JSON.stringify(j.scenes, null, 1)); if (j.stats) console.log('audio-stats', JSON.stringify(j.stats)); } } catch { /* laatste regel telt */ } }
 fs.writeFileSync(path.join(OUT, 'levels.json'), JSON.stringify(rows, null, 1));
 console.log(`effecten gemeten: ${rows.length}, exit ${r.status}${r.signal ? ' ' + r.signal : ''}\nuitvoer: ${OUT}`);
-process.exit(rows.length ? 0 : 1);
+process.exit(rows.length || fs.existsSync(path.join(OUT, 'scenes.json')) ? 0 : 1);
