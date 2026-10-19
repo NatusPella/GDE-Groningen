@@ -35,6 +35,8 @@ w.devInvuln = true;
 const gpu = H.enableGpu(r.getContext());
 // a lost pointer lock opens the pause menu; the open-menu routes open it themselves
 D.input.canLock = () => false;
+// the start screen (menu, since the menus of r5) stays up over a started game: hide it so the screenshots show the game
+const startScreen = document.getElementById('start-screen'); if (startScreen) startScreen.style.display = 'none';
 if (document.pointerLockElement) document.exitPointerLock();
 let wantMenu = false;
 
@@ -609,6 +611,28 @@ results.routes.actors = await safe('actors', async () => {
   out.summary = { vehicles: out.vehicles.length, vehDraws: out.vehicles.reduce((q, v) => q + v.draws, 0) };
   out.vehicles = out.vehicles.slice(0, 6);
   return out;
+});
+// page state (only with PERF_ONLY=state): which menus are up
+results.routes.state = await safe('state', async () => {
+  if (!ONLY.includes('state')) return null;
+  await sleep(8000);
+  const vis = [...document.querySelectorAll('body *')].filter((e) => e.id && /menu|start|title|pause|overlay/i.test(e.id) && e.offsetWidth > 100 && getComputedStyle(e).display !== 'none' && getComputedStyle(e).visibility !== 'hidden').map((e) => e.id + ':' + e.className).slice(0, 12);
+  return { body: document.body.className, vis, paused: w.paused, pm: PM.isPauseMenuOpen() };
+});
+// the blob pool against loose blobs on a frozen frame (only with PERF_ONLY=blobab): the two screenshots must be equal
+results.routes.blobab = await safe('blobab', async () => {
+  if (!ONLY.includes('blobab')) return null;
+  fixWorld();
+  const names = [];
+  for (const [name, x, y, yaw] of [['markt', FOOT[0][0], FOOT[0][1], 0.3], ['straat2', FOOT[3][0], FOOT[3][1], 4.2]]) {
+    teleport(x, y); w.camYaw = yaw; p.angle = yaw;
+    await sleep(15000); fixWorld();
+    w.paused = true; await sleep(1500);
+    for (const on of [true, false, true]) { sc.setBlobPool(on); await sleep(700); console.log('[capture] ' + name + (on ? '-pool' : '-loose') + (names.length % 3 === 2 ? '2' : '')); names.push(name + on); await sleep(500); }
+    w.paused = false;
+  }
+  sc.setBlobPool(true);
+  return { names };
 });
 results.routes.pause = await run('pause', async () => { teleport(...P(100, 77)); await sleep(4000); wantMenu = true; PM.openPauseMenu('game'); return {}; }, () => {}, async () => { wantMenu = false; PM.closePauseMenu(); });
 results.routes.sheet = await run('sheet', async () => { teleport(...P(100, 77)); await sleep(4000); wantMenu = true; PM.openPauseMenu('settings'); return {}; }, () => {}, async () => { wantMenu = false; PM.closePauseMenu(); });

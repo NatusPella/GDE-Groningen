@@ -636,6 +636,51 @@ function buildBlobShadowTexture() {
   return new THREE.CanvasTexture(c);
 }
 
+// The blobs are drawn as one InstancedMesh (same geometry, material, polygon offset and render order as before: they are black with
+// the same alpha, so their order among themselves does not show): every blob made here goes off the render layer and its world matrix
+// becomes an instance, filled just before the pool is drawn (the matrices are final by then). A blob that is hidden, whose actor is
+// out of the scene or beyond the pool's room is drawn on its own as before.
+const BLOB_HIDDEN_LAYER = 30;
+const BLOB_POOL_CAP = 768;
+const blobShadows = new Set();
+let blobPool = null;
+let blobPoolOn = true; // false: every blob draws on its own again (A/B checks of the pooling, window.__scene3d.setBlobPool)
+function initBlobPool() {
+  const m = new THREE.InstancedMesh(BLOB_SHADOW_GEO, BLOB_SHADOW_MAT, BLOB_POOL_CAP);
+  m.frustumCulled = false;
+  m.renderOrder = 1;
+  m.matrixAutoUpdate = false;
+  m.count = 0;
+  m.name = 'blob-instances';
+  m.userData.shared = true;
+  m.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+  m.onBeforeRender = fillBlobPool;
+  scene.add(m);
+  blobPool = m;
+}
+function fillBlobPool() {
+  if (!blobPoolOn) { blobPool.count = 0; for (const sh of blobShadows) sh.layers.set(0); return; }
+  const arr = blobPool.instanceMatrix.array;
+  let n = 0;
+  for (const sh of blobShadows) {
+    let vis = true, a = sh;
+    for (; a && a !== scene; a = a.parent) if (!a.visible) { vis = false; break; }
+    if (a !== scene && vis) {
+      // not in the scene: forget it after a long absence (a pooled actor comes back well before)
+      if ((sh.userData.away = (sh.userData.away || 0) + 1) > 900) blobShadows.delete(sh);
+      sh.layers.set(0);
+      continue;
+    }
+    sh.userData.away = 0;
+    if (!vis || n >= BLOB_POOL_CAP) { sh.layers.set(vis ? 0 : BLOB_HIDDEN_LAYER); continue; }
+    sh.layers.set(BLOB_HIDDEN_LAYER);
+    sh.matrixWorld.toArray(arr, n * 16);
+    n++;
+  }
+  blobPool.count = n;
+  blobPool.instanceMatrix.needsUpdate = true;
+}
+
 function addBlobShadow(parent, sx, sz, x = 0) {
   const shadow = new THREE.Mesh(BLOB_SHADOW_GEO, BLOB_SHADOW_MAT);
   shadow.position.set(x, 0.02, 0);
@@ -643,6 +688,7 @@ function addBlobShadow(parent, sx, sz, x = 0) {
   shadow.renderOrder = 1;
   parent.add(shadow);
   parent.userData.shadow = shadow;
+  blobShadows.add(shadow);
   return shadow;
 }
 
@@ -973,7 +1019,7 @@ export function init3D(map) {
   onSettingsChange(applyViewSettings);
   resize3D();
   window.addEventListener('resize', resize3D);
-  window.__scene3d = { scene, cam, renderer, postfx, farLod, batches: () => ({ buildings: buildingBatcher.info(), facades: facadeBatcher.info(), roads: roadBatcher.info(), shores: shoreBatcher.info() }) };
+  window.__scene3d = { scene, cam, renderer, postfx, farLod, setBlobPool: (on) => { blobPoolOn = !!on; }, batches: () => ({ buildings: buildingBatcher.info(), facades: facadeBatcher.info(), roads: roadBatcher.info(), shores: shoreBatcher.info() }) };
 }
 
 // increments each time the scene is drawn to the canvas (blackframe.js)
@@ -2070,6 +2116,7 @@ export function update3D(dt, world) {
   const focus = updateStreamFocus(world);
 
   noteStreamJump(focus.x, focus.y);
+  if (!blobPool) initBlobPool();
   stepPrewarm(world);
   syncBuildings(world, focus.x, focus.y);
   if (!NO_BATCH) {
