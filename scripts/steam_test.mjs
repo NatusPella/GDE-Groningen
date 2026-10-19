@@ -203,5 +203,18 @@ for (const must of ['Steamworks-account', 'app-id', 'Depots', 'Startopties', 'Pr
 ok(!/\b(Xbox|PlayStation|Nintendo)\b/.test(doc), 'no maker names in the checklist');
 for (const rel of ['docs/steam/winkelpagina.md', 'docs/IARC-ANTWOORDEN.md', 'docs/steam/trailer.md']) ok(exists(rel), `${rel} exists`);
 
+// docs/STEAM-CHECKLIST.md: every row has a status, the files it names exist, the numbers are right
+const list = read('docs/STEAM-CHECKLIST.md');
+const STATUS = /\|\s*(\*\*)?(klaar|open|eigenaar)\b/;
+const rows = list.split('\n').filter((l) => /^\| /.test(l) && !/^\| (Punt|---)/.test(l) && !/^\| \d/.test(l));
+ok(rows.length >= 25, 'the Steam checklist has its rows', rows.length);
+ok(rows.every((r) => STATUS.test(r)), 'every checklist row has the status klaar, open or eigenaar', rows.filter((r) => !STATUS.test(r)).map((r) => r.slice(0, 40)));
+const listFiles = [...new Set([...list.matchAll(/`((?:steam|docs|scripts|game|desktop)\/[A-Za-z0-9_./-]+)`/g)].map((m) => m[1]).filter((f) => !/^(steam\/(content|output)|desktop\/dist)/.test(f) && !f.includes('APP_ID') && !/\/$/.test(f)))];
+ok(listFiles.every(exists), 'every file the Steam checklist names exists', listFiles.filter((f) => !exists(f)));
+ok(list.includes(`${ACHIEVEMENTS.length} (${hidden} verborgen)`), 'the Steam checklist counts the prestaties right');
+for (const must of ['Steamworks-account', 'Steam Direct', 'app-id', 'Startopties', 'Privacyverklaring', 'Steam Cloud', 'echte Deck', 'Publicatiebesluit']) ok(list.includes(must), `the Steam checklist covers: ${must}`);
+ok(!/\b(Xbox|PlayStation|Nintendo|Carmageddon)\b/.test(list + read('docs/steam/winkelpagina.md')), 'no maker or game names on the store page and the checklist');
+ok(read('docs/steam/winkelpagina.md').includes(`${ACHIEVEMENTS.length} prestaties in het spel`), 'the store page counts the prestaties right');
+
 console.log(`${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);
