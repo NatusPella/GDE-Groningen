@@ -100,3 +100,10 @@ html.reduce-motion #start-screen, html.reduce-motion #start-screen * { animation
 /* Rustig hoofdmenu (#34, #92): alleen GDE Groningen en één korte regel; de slogan en de uitleg van GDE
    (Grootste Diefstal Ever) zijn weg uit het titelscherm, de versie en het credit staan in het voetregeltje. */
 #start-screen .ss-tag, #start-screen .gde-logo .gde-meaning { display: none; }
+
+/* Icons of the pause menu's set (menuIcon): quiet by default, green on the chosen item, no hover needed for touch */
+#start-screen .ss-ic { flex: none; width: 28px; height: 28px; margin-right: 8px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; opacity: 0.6; transition: opacity 0.2s, stroke 0.2s; }
+#start-screen .ss-ic.big { width: 44px; height: 44px; margin-right: 16px; vertical-align: -4px; stroke-width: 1.6; opacity: 0.85; }
+#start-screen .ss-item.sel .ss-ic, #start-screen .ss-item:hover .ss-ic, #start-screen .ss-item:focus-visible .ss-ic { stroke: var(--g); opacity: 1; }
+#start-screen .ss-item.confirm .ss-ic { stroke: var(--redtx); opacity: 1; }
+@media (max-height: 700px) { #start-screen .ss-ic { width: 22px; height: 22px; } #start-screen .ss-ic.big { width: 30px; height: 30px; } }
