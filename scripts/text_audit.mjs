@@ -207,7 +207,7 @@ const WINTER = [
 // HUD, minimap en cheats zijn ingeburgerd en staan hier bewust niet in.
 const ANGLICISMEN = [
   ['save', 'savegame (zelfstandig), opslaan (werkwoord)'], ['saves', 'savegames'], ['save slot', 'opslagplek'], ['save-slot', 'opslagplek'],
-  ['host', 'gastheer'], ['checkpoint', 'controlepunt (race) of hervatpunt (opnieuw beginnen)'], ['checkpoints', 'controlepunten'],
+  ['host', 'gastheer'], ['co-op', 'samen spelen'], ['coöp', 'samen spelen'], ['multiplayer', 'samen spelen'], ['checkpoint', 'controlepunt (race) of hervatpunt (opnieuw beginnen)'], ['checkpoints', 'controlepunten'],
   ['ghost', 'spook of spookrijder'], ['ghosts', 'spookrijders'], ['chain', 'keten'], ['run', 'ronde, rit of poging'], ['runs', 'rondes'],
   ['trick', 'kunstje of toer'], ['tricks', 'kunstjes of toeren'], ['boost', 'versnelling of stoot'], ['combo', 'reeks'], ['combo\'s', 'reeksen'],
   ['livestream', 'uitzending'], ['deadline', 'uiterste tijd'], ['shopaholic', 'winkelverslaafde'], ['total loss', 'afgeschreven'], ['lobby', 'wachtkamer of kamer'], ['loadout', 'uitrusting'],
