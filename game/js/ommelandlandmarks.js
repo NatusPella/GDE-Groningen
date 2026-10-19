@@ -48,7 +48,7 @@ export function prepareLandmarks(items, map) {
       const twin = mills.find((m) => near(m, it, 20));
       if (twin) { if (!twin.n && it.n) twin.n = it.n; twin.t = { ...it.t, ...twin.t }; continue; }
       mills.push({ ...it, t: { ...it.t } });
-    } else if (['tower', 'castle', 'farm', 'silo', 'factory', 'flat', 'townhall', 'station', 'school', 'museum'].includes(it.k)) other.push(it);
+    } else if (['tower', 'castle', 'farm', 'silo', 'factory', 'pakhuis', 'flat', 'townhall', 'station', 'school', 'museum'].includes(it.k)) other.push(it);
   }
   const out = [];
   for (const c of churches) {

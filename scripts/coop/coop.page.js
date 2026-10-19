@@ -6,6 +6,7 @@ const CFG = window.__coopCfg || {};
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const t0 = performance.now();
 const log = (type, data = {}) => console.log('[bot-log] ' + JSON.stringify({ t: Math.round(performance.now() - t0) / 1000, type, who: CFG.name, ...data }));
+window.addEventListener('error', (e) => log('jserror', { msg: String(e.message).slice(0, 160), file: String(e.filename || '').split('/js/').pop(), line: e.lineno, stack: e.error && e.error.stack ? String(e.error.stack).split(String.fromCharCode(10)).slice(0, 4).join(' | ').slice(0, 400) : '' }));
 const W = () => window.__debug && window.__debug.world;
 const key = (k, code) => { for (const t of [window, document]) { t.dispatchEvent(new KeyboardEvent('keydown', { key: k, code, bubbles: true })); t.dispatchEvent(new KeyboardEvent('keyup', { key: k, code, bubbles: true })); } };
 const panel = () => document.querySelector('.pm-samen');
@@ -24,6 +25,15 @@ async function act(name, ms = 8000) {
 
 try {
   await until(() => W() && W().player, 90000, 'world (spel geladen)');
+  // viaMenu: zoals een speler, met de ingang 'Samen spelen' in het hoofdmenu; het spel start en de lobby staat open
+  if (CFG.viaMenu) {
+    const it = await until(() => document.querySelector('#start-screen .ss-item[data-act="samen"]'), 120000, 'hoofdmenu-ingang Samen spelen');
+    log('hoofdmenu', { items: [...document.querySelectorAll('#start-screen .ss-item')].map((e) => e.dataset.act).join(',') });
+    it.click();
+    await until(() => panel() && !panel().closest('[hidden]') && buttons().length, 60000, 'lobby na het hoofdmenu');
+    log('menu-lobby', { titel: title(), knoppen: buttons() });
+    log('start', { role: CFG.role, route: CFG.route, viaMenu: true });
+  } else {
   for (let i = 0; i < 25 && W().paused; i++) { key(' ', 'Space'); await sleep(700); }
   await sleep(1500);
   // de opening van een nieuw spel (cutscene, camera-override) houdt de gast tegen: eerst overslaan, zoals een speler
@@ -35,6 +45,7 @@ try {
   await until(() => document.querySelector('.ra[data-goto="samen"]'), 8000, 'rail-knop Samen');
   document.querySelector('.ra[data-goto="samen"]').click();
   await until(() => panel() && !panel().closest('[hidden]'), 5000, 'paneel Samen');
+  }
   log('scherm', { titel: title(), knoppen: buttons() });
   if (CFG.role === 'host') {
     await act('kies-host');
