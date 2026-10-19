@@ -427,7 +427,8 @@ export const passesUnder = (air, clear) => clear >= air + 0.05;
 
 // The one water query for boats, swimmers, the heli and walkers:
 //   waterAt(map, x, y) -> null on dry land, else
-//   { level, depth, body, kind, navigable, wade, clearanceAbove }
+//   { level, depth, body, kind, navigable, wade, lock, covered, clearanceAbove }
+// covered: the water runs under a roof or road here (an aqueduct): a walker above it is dry
 // clearanceAbove: free height to a bridge deck over (x, y) (Infinity when
 // none).
 
@@ -439,6 +440,7 @@ export function waterAt(map, x, y) {
     const level = poly.lv ?? BOEZEM_Y, depth = poly.dp ?? K.depth;
     return {
       level, depth, body: poly.body ?? -1, kind, navigable: poly.nav ?? K.nav, wade: depth <= WADE_MAX, lock: !!poly.lock,
+      covered: !!(map.coveredAt && map.coveredAt(x, y)),
       clearanceAbove: clearanceOver(map, x, y, level),
     };
   }
