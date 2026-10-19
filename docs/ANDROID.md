@@ -122,3 +122,5 @@ Lessen en beperkingen van de emulator:
 - De spelfps op de emulator zegt niets over een telefoon.
 
 Nog open voor een echt toestel: fps en geheugen per profiel, geluid beluisteren (de emulator draait met `-no-audio`), gamepad via Bluetooth, tablets, notch-marges op elke uitsparing, lange sessies.
+
+Bekend probleem: het pauzemenu van een telefoon (liggend) is hoger dan het scherm; Opslaan, Spelstanden en Hoofdmenu staan onderaan de rail en je komt er alleen door te scrollen. De veeg met een aanraking scrolde op de emulator niet (programmatisch scrollen werkt wel); nog uitzoeken op een echt toestel. De spelstand wordt wel automatisch bewaard (ook zodra de app naar de achtergrond gaat).
