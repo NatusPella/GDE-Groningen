@@ -213,4 +213,28 @@ t('gedeelde camera: alleen de eerste twee delen hem; extra spelers hebben hun ei
   s.step(1, () => { s.hw.companion.x = 400; });
   assert.equal(s.hw.coopCam, null, 'te ver uit elkaar: ieder zijn eigen camera');
 });
+t('gedeelde speelklok: de tijd van de dag van de gast volgt die van de host, ook met 3 gasten', () => {
+  const s = sessie(3, { hostExtra: { clock: 9 }, gastExtra: [{ clock: 20 }, { clock: 3 }, { clock: 12 }] });
+  s.step(2, (k) => { s.hw.clock = (s.hw.clock + 0.02 / 60) % 24; s.hw.time = (s.hw.time || 0) + 1 / 60; for (const g of s.gs) g.gw.time = (g.gw.time || 0) + 1 / 60; });
+  s.step(30, (k) => { s.hw.clock = (s.hw.clock + 0.02 / 60) % 24; s.hw.time = (s.hw.time || 0) + 1 / 60; for (const g of s.gs) g.gw.time = (g.gw.time || 0) + 1 / 60; });
+  for (const g of s.gs) {
+    const d = Math.abs(((g.gw.clock - s.hw.clock + 36) % 24) - 12);
+    assert.ok(d < 0.3, 'gast binnen 0,3 uur van de host: ' + g.gw.clock + ' vs ' + s.hw.clock);
+  }
+});
+t('desync: dezelfde toestand geeft geen alarm; een afwijkend wanted leidt na drie meldingen tot een hersync', () => {
+  const s = sessie(1, { hostExtra: { clock: 9, wanted: 2, mission: { phase: 'active', index: 3 } } });
+  s.step(16);
+  const gw = s.gs[0].gw;
+  assert.equal(gw.coopDesync, undefined, 'geen afwijking zolang beide hetzelfde zien');
+  // de gast ziet door een fout iets anders: het verhaalstuk van de snapshot klopt niet met de hash van de host
+  const n = gw.coopNet; const echt = n.session.world.bind(n.session);
+  n.session.world = () => { const w = echt(); return w && { ...w, mission: { ...w.mission, stage: 9 } }; };
+  let resync = 0; const orig = n.session.requestResync.bind(n.session); n.session.requestResync = () => { resync++; orig(); };
+  gw.wanted = 0; s.hw.wanted = 4;
+  s.step(20);
+  assert.ok(gw.coopDesync && gw.coopDesync.velden.includes('stage'), 'afwijking benoemd');
+  assert.ok(resync >= 1, 'hersync gevraagd');
+  assert.equal(gw.wanted, 4, 'na de hersync heeft de gast het wanted van de host');
+});
 console.log(`coopnet_test: ${n}/${n} ok`);

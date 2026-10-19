@@ -29,6 +29,8 @@ let follower = null, followKey = '', planAt = -99, lastStep = null, lastPhase = 
 const MAX_SHOTS = CFG.shots || 80;
 const shot = (name) => { if (shots < MAX_SHOTS) { shots++; B.shot(name); } };
 world.devInvuln = !!CFG.invulnerable;
+// --speed=N: N gameplay steps per frame (playerapi speed); waiting budgets and stuck windows are in game time, so they scale along
+if (CFG.speed > 1) B.speed(CFG.speed);
 
 function plan(s, mode, tgt) {
   const kind = mode === 'drive' ? 'drive' : 'walk';
