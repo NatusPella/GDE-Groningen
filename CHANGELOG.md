@@ -6,6 +6,10 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Nieuw
+- **Fierljep-duel in Bourtange (M20, nog niet in beeld bekeken, #218):** na de drie timingrondes maak je zelf de polsstoksprong over de gracht, met de zijcamera: een landing als je het duel won, een plons als je verloor.
+- **Hulp bij schade (nog niet in beeld bekeken, #215):** de optie "minder schade" werkt nu ook bij kogels, klappen en valschade, niet alleen bij voertuigen.
+
 ## [0.37.1] - 2026-10-19
 
 ### Nieuw
