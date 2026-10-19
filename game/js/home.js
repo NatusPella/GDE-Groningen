@@ -43,7 +43,7 @@ import { getOwnedEntries, spawnOwnedEntry, wardrobeMenu } from './shops.js';
 import { openShopMenu, isShopOpen } from './shopui.js';
 import { isCinematicActive } from './cinematics.js';
 import { respawnFade } from './respawn.js';
-import { saveGame } from './savegame.js';
+import { saveGame } from './savehook.js';
 import { isMissionActive, isNight, getMissionDefs, setHomePlace } from './missions.js';
 import { refreshDayNight } from './daynight.js';
 import { recordStat, unlockAchievement } from './achievements.js';

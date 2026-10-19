@@ -345,7 +345,7 @@ function updatePending(w) {
 // Where an option is: its station, or the nearest walkable point to its spot
 // (the Noorderplantsoen's landmark lies in the pond).
 const hideoutAt = new Map();
-export function hideoutSpot(o) {
+function hideoutSpot(o) {
   if (hideoutAt.has(o.id)) return hideoutAt.get(o.id);
   let at = null;
   if (o.at === 'station') {

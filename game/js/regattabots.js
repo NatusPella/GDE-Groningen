@@ -2,8 +2,8 @@
 // (zeilrules.js) en een eigen vaardigheid; de speler krijgt een plaats in het klassement.
 import { stepBot, REGATTA, windOp } from './zeilrules.js';
 
-export const BOT_NAMEN = ['Wiebe', 'Marrit', 'Tjeerd', 'Anke']; // verzonnen zeilers
-export const BOT_VAARDIGHEID = [0.62, 0.74, 0.86];
+const BOT_NAMEN = ['Wiebe', 'Marrit', 'Tjeerd', 'Anke']; // verzonnen zeilers
+const BOT_VAARDIGHEID = [0.62, 0.74, 0.86];
 
 // n bots naast elkaar bij de eerste ton, kijkend naar de eerste ton.
 export function maakBots(tonnen, n = 3) {

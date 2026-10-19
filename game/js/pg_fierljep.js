@@ -3,7 +3,7 @@ import { buildPersonMesh, animatePersonWalk, TAMMO_APPEARANCE, ANITA_APPEARANCE 
 import { poleVault, findVaultSpot } from './fierljep.js';
 import { JELLE_LOOK } from './storycast.js';
 import { playCinematic, isCinematicActive, skipCinematic } from './cinematics.js';
-import { pushAudioEvent } from './pedestrians.js';
+import { pushAudioEvent } from './pedgeom.js';
 import { pointInPolygon as inPoly, isInWater, clamp } from './util.js';
 import { finish, jelle } from './pghost.js';
 import { rand } from './rng.js';

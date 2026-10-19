@@ -59,7 +59,7 @@ const GETAWAY_BOAT = { ...BOAT_KINDS.rubberboot, maxSpeed: 7.5, accel: 3.2, colo
 const CONE_MAT = () => new THREE.MeshBasicMaterial({ color: 0xffe3a0, transparent: true, opacity: 0.2, depthWrite: false, side: THREE.DoubleSide });
 
 // Speech bubbles of the night guards (voiced, scripts/voicelines_collect.mjs).
-export const GUARD_LINES = {
+const GUARD_LINES = {
   seen: ['Hé! Wie is daar?', 'Stop! Ik zie je wel, hoor!'],
   collega: ['Avond, collega. Wacht eens… jij bent geen collega!'],
   lost: ['Zal wel een duif zijn.'],

@@ -5,9 +5,9 @@
 
 import { DWELL } from './busroutes.js';
 
-export const CRUISE = 8.5;      // m/s gemiddeld tussen haltes, met optrekken en remmen
-export const EARLY_OK = 12;     // s: zo ver voor de tijd mag je nog net aankomen
-export const LATE_OK = 10;      // s: zo laat is nog "op tijd"
+const CRUISE = 8.5;      // m/s gemiddeld tussen haltes, met optrekken en remmen
+const EARLY_OK = 12;     // s: zo ver voor de tijd mag je nog net aankomen
+const LATE_OK = 10;      // s: zo laat is nog "op tijd"
 export const CAPACITY = 40;
 
 const STOP_NAMES = ['Kerkpad', 'Molenlaan', 'Dorpsstraat', 'Het Hoogeland', 'Zijlweg', 'Wierdeplein', 'Veenkade', 'De Pol', 'Kleiweg', 'Havenhoofd', 'Schoolstraat', 'Brugwachter', 'Marktplein', 'Oosterkade'];

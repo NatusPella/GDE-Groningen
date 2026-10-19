@@ -3,7 +3,7 @@ import { unlockAchievement, setStatMax } from './achievements.js';
 import { iconDisc } from './activitykit.js';
 import { isShopOpen } from './shopui.js';
 import { isInWater, pointInPolygon } from './util.js';
-import { pushAudioEvent } from './pedestrians.js';
+import { pushAudioEvent } from './pedgeom.js';
 import {
   STORE_KEY, CHAIN_NAME, SNACK, LEVEL_NAMES, newChain, restore, serialize, outletCount, outletCost, upgradeCost, buy, upgrade, collect, accrue,
   tillTotal, totalIncomePerMin, chainRank, counterSpot,

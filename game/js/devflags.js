@@ -98,7 +98,7 @@ export const FLAG_DOCS = Object.freeze({
   gpu: 'Doe alsof de GPU deze renderer-tekst heeft (test van het advies)',
   preset: 'Instellingen alleen voor deze sessie, bv. quality:laag,drawDistance:kort',
   pixeldebug: 'Nabewerking verft NaN/Inf-pixels magenta en negatieve HDR-waarden cyaan (issue #35)',
-  coop: 'Lokale co-op voor twee spelers: speler 2 stuurt de metgezel (coop.js, issue #95)',
+  coop: 'Lokaal samen spelen met twee spelers: speler 2 stuurt de metgezel (coop.js, issue #95)',
   marker: 'marker=vorm: de vaste 3D-vormen van de wereldmarker in plaats van het zachte glyph',
   stadlaag: 'Welke stadslagen uit de tegelbouw komen (lagen gescheiden door komma, of alle)',
   touch: 'Raakbediening aan (touch=1) of uit (touch=0), ook zonder touchscherm',

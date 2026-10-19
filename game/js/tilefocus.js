@@ -16,7 +16,7 @@
 export const LOOK_MAX = 80;
 export const FOCUS_CAP = 300;
 export const MAX_SPEED = 80;
-export const CUT_M = 150;
+const CUT_M = 150;
 
 // an aerial shot (eye high above the ground) sees further than a street shot: its reach grows with the height
 function aerialReach(o) {

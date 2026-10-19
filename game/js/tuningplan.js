@@ -99,7 +99,7 @@ export function withoutPart(t, part) {
 // Eén JSON-object { versie: 1, voertuigen: { [id]: { part: optionId } } } onder de sleutel uit storagekeys.js.
 // `store` is localStorage-achtig ({ getItem, setItem }); fouten en rommel geven een lege stand.
 export const STORE_VERSION = 1;
-export const MAX_VEHICLES = 64;
+const MAX_VEHICLES = 64;
 
 export function loadTuning(store, key) {
   try {

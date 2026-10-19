@@ -66,7 +66,7 @@ function onKey(e) {
   else if (k === 'e') typeKey({ t: 'right', kind: 'act' });
 }
 
-export function openPadKeyboard(el) {
+function openPadKeyboard(el) {
   if (root || !isText(el)) return false;
   field = el;
   before = el.value;

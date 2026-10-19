@@ -1,4 +1,4 @@
-// Scenes voor overlays, winkel, gevels en duif (#239 #250 #170 #156 #241): node scripts/ui_shots.mjs --scenes=scripts/ui/shots_scenes_overlays.js
+// Scenes voor overlays, winkel, gevels en duif (#239 #250 #170 #156 #241 #228 #115): node scripts/ui_shots.mjs --scenes=scripts/ui/shots_scenes_overlays.js
 // Basis: scripts/ui/shots_scenes.js. Scenes for scripts/ui_shots.mjs (run by desktop --perf-script, one page per
 // window size). Each scene opens a screen and logs "[capture] <name>", which
 // devtools.js turns into <out>/<size>-<name>.png. Nothing here writes saves:
@@ -105,7 +105,7 @@ if (want('bord')) {
   const keep = setInterval(() => { p.x = hold.x; p.y = hold.y; p.vx = p.vy = 0; }, 50);
   teleport(BX, BY);
   for (let i = 0; i < 40 && document.querySelector('.ls.on:not(.out)'); i++) await sleep(500);
-  await sleep(6000);
+  await sleep(9000);
   for (const [name, a] of [['oost', 0], ['noord', Math.PI / 2], ['west', Math.PI], ['zuid', -Math.PI / 2]]) {
     const R = 9, g = gh(BX, BY);
     const pose = { position: { x: BX + Math.cos(a) * R, y: BY + Math.sin(a) * R, z: g + 2.4 }, lookAt: { x: BX, y: BY, z: g + 2.2 }, cut: true };
@@ -118,6 +118,118 @@ if (want('bord')) {
     done.push('bord-' + name);
   }
   clearInterval(keep);
+}
+if (want('markers')) {
+  // #115: de missiemarker (lichtkolom met pictogram) op 30, 120 en 400 m, dag en nacht
+  clearInterval(skipper);
+  const R = await imp('routing');
+  const gh = (x, y) => (map.groundHeightAt ? map.groundHeightAt(x, y, 0) || 0 : 0);
+  const route = R.getActiveRoute() || R.getRoutes()[0];
+  info.push('route ' + (route ? Object.keys(route).join(',') : 'geen'));
+  const pts = route && (route.pts || route.points || route.path);
+  const end = route && (route.to || route.target || route.end || (pts && (Array.isArray(pts[pts.length - 1]) ? { x: pts[pts.length - 1][0], y: pts[pts.length - 1][1] } : pts[pts.length - 1])));
+  info.push('einde ' + JSON.stringify(end));
+  if (end && isFinite(end.x)) {
+    const pt = (i) => (Array.isArray(pts[i]) ? { x: pts[i][0], y: pts[i][1] } : pts[i]);
+    // het punt op de route op `dist` m voor het einde (de camera staat dus op de weg, niet in een gebouw)
+    const onRoute = (dist) => {
+      const total = route.length || route.cum[route.cum.length - 1];
+      let k = route.cum.findIndex((c) => c >= total - dist);
+      if (k < 0) k = 0;
+      return pt(Math.min(k, pts.length - 1));
+    };
+    for (const [tag, clock] of [['dag', 14], ['nacht', 23]]) {
+      for (const dist of [30, 120, 400]) {
+        const o = onRoute(dist), hx = o.x, hy = o.y;
+        w.clock = clock;
+        teleport(hx, hy);
+        for (let i = 0; i < 40 && document.querySelector('.ls.on:not(.out)'); i++) await sleep(500);
+        const keep = setInterval(() => { p.x = hx; p.y = hy; p.vx = p.vy = 0; w.clock = clock; }, 50);
+        await sleep(5000);
+        const g = gh(hx, hy);
+        const pose = { position: { x: hx, y: hy, z: g + 1.7 }, lookAt: { x: end.x, y: end.y, z: g + 8 }, cut: true };
+        if (cine.isCinematicActive()) cine.skipCinematic();
+        cine.playCinematic({ id: 'vi-mark', duration: 60, priority: 9, shot: () => pose });
+        await sleep(2200);
+        console.log('[capture] marker-' + tag + '-' + dist);
+        await sleep(500);
+        cine.skipCinematic();
+        clearInterval(keep);
+        done.push('marker-' + tag + '-' + dist);
+      }
+    }
+  }
+}
+if (want('bus')) {
+  // #160: het lijnbord op de bus (voor en zij) en de bus-HUD, bij Winsum
+  clearInterval(skipper);
+  const gh = (x, y) => (map.groundHeightAt ? map.groundHeightAt(x, y, 0) || 0 : 0);
+  const idx = await fetch('/world/index-provincie.json').then((r) => r.json()).catch(() => null);
+  const wins = idx && idx.global.places.find((q) => q.name === 'Winsum' && q.kind !== 'suburb');
+  if (wins) teleport(wins.x, wins.y);
+  for (let i = 0; i < 40 && document.querySelector('.ls.on:not(.out)'); i++) await sleep(500);
+  w.clock = 14;
+  let bus = null;
+  const VM = await imp('vehicle');
+  const lines = VM.getBusLines();
+  info.push('buslijnen ' + lines.length);
+  // een lijn bij Winsum: daar wachten tot een bus op zijn lijn (busRun) in de buurt is
+  const near = lines.length && wins ? lines.map((l) => ({ l, d: Math.min(...l.pts.map((q) => Math.hypot(q[0] - wins.x, q[1] - wins.y))) })).sort((x, y) => x.d - y.d)[0] : null;
+  if (near) { const mid = near.l.pts[Math.floor(near.l.pts.length / 2)]; teleport(mid[0], mid[1]); info.push('lijn ' + near.l.ref + ' ' + near.l.from + '-' + near.l.to); }
+  const holdP = setInterval(() => { if (near) { const mid = near.l.pts[Math.floor(near.l.pts.length / 2)]; p.x = mid[0]; p.y = mid[1]; p.vx = p.vy = 0; } }, 50);
+  for (let i = 0; i < 40 && document.querySelector('.ls.on:not(.out)'); i++) await sleep(500);
+  for (let t = 0; t < 40 && !bus; t++) { await sleep(1000); bus = w.vehicles.find((v) => v.isBus && v.busRun && Math.hypot(v.x - p.x, v.y - p.y) < 200); }
+  if (!bus) {
+    // geen bus op zijn lijn gespawnd: een gewone bus krijgt de lijn mee (alleen voor dit beeld)
+    if (wins) { teleport(wins.x, wins.y); for (let i = 0; i < 40 && document.querySelector('.ls.on:not(.out)'); i++) await sleep(500); }
+    for (let t = 0; t < 30 && !bus; t++) { await sleep(1000); bus = w.vehicles.find((v) => v.isBus && Math.hypot(v.x - p.x, v.y - p.y) < 250); }
+    const BR = await imp('busroutes');
+    if (bus && near) { bus.busRun = BR.makeRunner(near.l, BR.project(near.l, bus.x, bus.y).s, 1); info.push('busRun geforceerd'); await sleep(1500); }
+  }
+  clearInterval(holdP);
+  info.push('busRun ' + JSON.stringify(bus && bus.busRun ? { line: bus.busRun.line && (bus.busRun.line.ref || bus.busRun.line.name), dir: bus.busRun.dir } : null));
+  info.push('bus ' + (bus ? 'gevonden ' + Math.round(bus.x) + ',' + Math.round(bus.y) : 'geen'));
+  if (bus) {
+    const keep = setInterval(() => { if (bus) { bus.speed = 0; } }, 50);
+    for (const [name, rel, R, up] of [['voor', 0, 4.5, 2.4], ['zij', Math.PI / 2, 5.5, 2.2], ['schuin', Math.PI / 4, 9, 2.6]]) {
+      const a = bus.angle + rel, g = gh(bus.x, bus.y);
+      const pose = { position: { x: bus.x + Math.cos(a) * R, y: bus.y + Math.sin(a) * R, z: g + up }, lookAt: { x: bus.x + Math.cos(bus.angle) * (rel === 0 ? 2 : 1.5), y: bus.y + Math.sin(bus.angle) * (rel === 0 ? 2 : 1.5), z: g + 2.6 }, cut: true };
+      if (cine.isCinematicActive()) cine.skipCinematic();
+      cine.playCinematic({ id: 'vi-bus', duration: 60, priority: 9, shot: () => pose });
+      await sleep(2000);
+      console.log('[capture] bus-' + name);
+      await sleep(500);
+      cine.skipCinematic();
+      done.push('bus-' + name);
+    }
+    clearInterval(keep);
+    p.x = bus.x; p.y = bus.y; p.enterVehicle && p.enterVehicle(bus, w);
+    await sleep(2500);
+    await shot('bus-hud', 500);
+    done.push('bus-hud ' + JSON.stringify({ inVehicle: !!p.inVehicle }));
+    p.exitVehicle(map, w);
+  }
+}
+if (want('menus')) {
+  // #34: subtabs en schermen die de basisscenes niet vangen
+  for (const [name, tab, sub] of [['aanwijzingen', 'verhaal', 'aanwijzingen'], ['personages', 'verhaal', 'personages'], ['controller', 'controls', 'knoppen'], ['toetsenoverzicht', 'controls', 'overzicht'], ['instellingen-interface', 'settings', 'display'], ['berichten', 'telefoon', 'berichten'], ['todo-alles', 'todo', 'alles']]) {
+    teleport(...P(100, 77));
+    PM.openPauseMenu(tab, { sub });
+    await shot('menu-' + name, 1500);
+    PM.closePauseMenu();
+    done.push('menu-' + name);
+  }
+  clearInterval(skipper);
+  // de mislukt-kaart en de dood- en opgepakt-kaarten
+  cineM.showBanner({ kind: 'fail', title: 'MISLUKT', reason: 'De fiets is in het water beland, Tammo ook', stats: [['Tijd', '1:12'], ['Gevolg', 'Jelle stuurt een rekening']] });
+  await shot('kaart-mislukt', 1800);
+  cine.skipCinematic();
+  for (const [tag, busted] of [['dood', false], ['opgepakt', true]]) {
+    cine.playCinematic({ id: 'respawn-card', priority: 4, duration: 6, letterbox: false, skippable: true, tint: busted ? 'bust' : 'death', big: busted ? 'OPGEPAKT' : 'DOOD', hideHud: false });
+    await shot('kaart-' + tag, 1800);
+    cine.skipCinematic();
+    done.push('kaart-' + tag);
+  }
 }
 if (want('duif')) {
   teleport(...P(100, 77));

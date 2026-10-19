@@ -6,7 +6,8 @@ import { STATION_NAME } from './musicpick.js';
 import { isCinematicActive } from './cinematics.js';
 import { getActiveRoute } from './routing.js';
 import { getMissionDefs, isMissionCompleted } from './missions.js';
-import { Pedestrian, isInsideBuilding, isOnRoad, isSpawnHidden, CITY_CENTRE } from './pedestrians.js';
+import { Pedestrian, isSpawnHidden, CITY_CENTRE } from './pedestrians.js';
+import { isInsideBuilding, isOnRoad } from './pedgeom.js';
 import { Vehicle, makeTwoWheeler } from './vehicle.js';
 import { isInWater } from './util.js';
 import {
