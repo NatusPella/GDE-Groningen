@@ -7,6 +7,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 ## [Unreleased]
 
 ### Nieuw
+- **Roeicoach zoekt ruimer (nog niet in beeld bekeken):** als er geen rustige weg binnen 22 m langs de acht ligt, zoekt de coach tot 45 m. (Refs #28)
 - **Interceptors bij de politie (nog niet in beeld bekeken):** vanaf drie sterren is elke derde patrouillewagen een interceptor met een sterkere motor (12% sneller). (Refs #204)
 - **Eigenaar loopt terug naar zijn auto (nog niet in beeld bekeken):** laat je een gestolen auto achter, dan loopt de eigenaar die weer terugpakken als hij binnen 45 m staat en er niemand in zit. Staat de auto buiten beeld, dan rijdt hij weg. Een klap van een boze bestuurder klinkt nu ook. (Refs #49, #44)
 - **Reigers, zeehonden en vissen (nog niet in beeld bekeken):** aan het water staat soms een reiger (vliegt weg als je dichtbij komt), in de kustwateren liggen zeehonden (duiken weg) en in grachten en sloten zwemmen vissen onder het oppervlak (schieten weg). Koeien en schapen stappen opzij voor jou en voor voertuigen. Reiger, zeehond en vis hebben een eigen geluid. Aantallen volgen de streek en de kwaliteit. (Refs #193)
