@@ -83,17 +83,17 @@ export function warmLights(img) {
 export function skyObjects(img) {
   const { w, h, bpp, data } = img;
   const rows = Math.floor(h * 0.3);
-  let stars = 0, bright = 0, n = 0;
+  let stars = 0, flux = 0, bright = 0, n = 0;
   for (let y = 2; y < rows - 2; y++) for (let x = 2; x < w - 2; x++) {
     const l = luma(data, (y * w + x) * bpp);
     n++;
     if (l > 200) bright++;
     if (l > 150) {
       const around = (luma(data, (y * w + x - 2) * bpp) + luma(data, (y * w + x + 2) * bpp) + luma(data, ((y - 2) * w + x) * bpp) + luma(data, ((y + 2) * w + x) * bpp)) / 4;
-      if (around < 70) stars++;
+      if (around < 70) { stars++; flux += l; }
     }
   }
-  return { stars, brightFrac: bright / n };
+  return { stars, flux: Math.round(flux / 100), brightFrac: bright / n };
 }
 
 // Gemiddelde kleur van een horizontale band (fracties van de hoogte) als [r, g, b], voor het kleurverloop.
@@ -106,7 +106,7 @@ export function bandColor(img, y0, y1) {
 
 export function measure(img) {
   const e = exposure(img), s = skyObjects(img);
-  return { ...e, banding: skyBanding(img).perThousand, highFreq: Math.round(highFreq(img) * 10) / 10, warm: Math.round(warmLights(img) * 100000) / 1000, stars: s.stars, skyBright: Math.round(s.brightFrac * 1000) / 10, zenith: bandColor(img, 0, 0.1), horizon: bandColor(img, 0.3, 0.4) };
+  return { ...e, banding: skyBanding(img).perThousand, highFreq: Math.round(highFreq(img) * 10) / 10, warm: Math.round(warmLights(img) * 100000) / 1000, stars: s.stars, starFlux: s.flux, skyBright: Math.round(s.brightFrac * 1000) / 10, zenith: bandColor(img, 0, 0.1), horizon: bandColor(img, 0.3, 0.4) };
 }
 
 // Verschil in gemiddelde helderheid tussen opeenvolgende beelden van dezelfde plek (flikker bij vaste instellingen).
@@ -124,7 +124,7 @@ export function judge(c, m, ref = null, plekSoort = 'stad') {
   if (plekSoort === 'stad' && nachtelijk && m.warm < 0.02 && c.weer !== 'mist') f.push('geen verlichting zichtbaar op een nachtelijke stadsplek');
   if (['middag', 'ochtend'].includes(c.tijd) && m.warm > 0.8) f.push(`veel warm licht overdag (${m.warm}%)`);
   if ((c.tijd === 'nacht' || c.tijd === 'diepe-nacht') && c.weer === 'helder' && m.stars < 5) f.push('geen sterren bij heldere nacht');
-  if (['nacht', 'diepe-nacht'].includes(c.tijd) && ['bewolkt', 'regenbui', 'onweer', 'mist'].includes(c.weer) && m.stars > 60) f.push('sterren door een dichte wolkenlaag');
+  if (['nacht', 'diepe-nacht'].includes(c.tijd) && ['bewolkt', 'motregen', 'regenbui', 'onweer', 'mist'].includes(c.weer) && ref && ref.starFlux > 20 && m.starFlux > 0.6 * ref.starFlux) f.push(`sterren even helder als bij helder weer (${m.starFlux} tegen ${ref.starFlux}) onder ${c.weer}`);
   if (['middag'].includes(c.tijd) && m.mean < 55 && c.weer === 'helder') f.push(`te donker voor middag helder (gem. ${Math.round(m.mean)})`);
   if (['nacht', 'diepe-nacht'].includes(c.tijd) && m.mean > 110 && c.weer === 'helder') f.push(`te licht voor een nacht (gem. ${Math.round(m.mean)})`);
   if (ref && ['motregen', 'regenbui', 'onweer'].includes(c.weer) && m.highFreq / Math.max(ref.highFreq, 1) > 1.8 && m.highFreq - ref.highFreq > 4) f.push(`veel meer ruis in de onderste helft dan droog (${m.highFreq} tegen ${ref.highFreq}): z-fighting van natte weg of plassen?`);

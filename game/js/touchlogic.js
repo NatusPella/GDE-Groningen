@@ -180,3 +180,10 @@ export function pinchStep(prev, cur) {
     mid: { x: (cur[0].x + cur[1].x) / 2, y: (cur[0].y + cur[1].y) / 2 },
   };
 }
+
+// The left thumb's extra buttons sit in the bottom left corner, where the HUD's minimap is: they
+// start to the right of it. minimapRight: its right edge in screen px (0 when it is not shown),
+// scale: the buttons' zoom (touchLayout), base: where the cluster starts without a minimap.
+export function leftButtonX({ minimapRight = 0, scale = 1, base = 24, gap = 10 } = {}) {
+  return minimapRight > 0 ? Math.max(base, Math.ceil((minimapRight + gap) / (scale || 1))) : base;
+}

@@ -17,6 +17,7 @@ export function interiorLayout(seat, len, wid) {
   const hw = wid / 2;
   const sx = seat.x, sy = seat.y, sz = seat.z;
   const side = sz < 0 ? 1 : -1; // z of the passenger seat is the mirror image
+  const roof = roofLayout(sx, sy, sz, len, wid, hw);
   return {
     eye: { x: sx + 0.05, y: sy + 0.62, z: sz },
     dash: { x: sx + 0.85, y: sy - 0.1, w: Math.max(0.8, wid - 0.16), h: 0.44, d: 0.5 },
@@ -28,9 +29,9 @@ export function interiorLayout(seat, len, wid) {
     ],
     console: { x: sx + 0.3, y: sy - 0.02, z: (sz + (sz + side * Math.min(hw * 0.68, 0.8))) / 2, w: 0.7, h: 0.2, d: 0.2 },
     rear: len > 3.6 && len <= 6.5 ? { x: sx - 1.0, y: sy, w: wid - 0.3 } : null,
-    mirror: { x: sx + 0.72, y: sy + 0.8, z: sz + side * 0.28 },
+    mirror: { x: sx + 0.72, y: roof.y - 0.14, z: sz + side * 0.28 }, // hangt aan het dak
     // dakbekleding vanaf de voorruit tot achter de laatste stoel, met een A-stijl per kant
-    roof: roofLayout(sx, sy, sz, len, wid, hw),
+    roof,
     hw,
   };
 }
