@@ -1,9 +1,14 @@
 // Steam preparation (#64): the files of steam/ and docs/STEAM-KLAAR.md hang together.
 // Local only; nothing contacts Steam.   node scripts/steam_test.mjs
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
+import { createRequire } from 'node:module';
+import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { FILES, actionSets, SET_TITLES } from '../steam/make-steam-files.mjs';
+import { FILES, actionSets, SET_TITLES, achievementsJson, proposedApiName } from '../steam/make-steam-files.mjs';
+import { fillVdfs } from '../steam/make-build-vdf.mjs';
+const { steamSwitches } = createRequire(import.meta.url)('../desktop/steamflags.cjs');
 import { ACHIEVEMENTS } from '../game/js/achievements.js';
 import { PAD_MAPS } from '../game/js/controls.js';
 import { DECK_DEFAULTS, deckDefaults, isSteamDeck, isDeckShape } from '../game/js/deck.js';
@@ -57,6 +62,60 @@ for (const launch of ['GDE Groningen.exe', 'GDE Groningen.app', 'gde-groningen']
 }
 ok(!/steam_api|steamworks\.js|greenworks|require\(['"]steam/i.test(read('desktop/package.json') + read('desktop/main.js')), 'no Steam library in the app (nothing contacts Steam)');
 
+// the filled-in copies (make-build-vdf.mjs): ids in, no placeholder left, never live by itself
+const templates = Object.fromEntries(fs.readdirSync(path.join(ROOT, 'steam/scripts')).filter((f) => f.endsWith('.vdf')).map((f) => [f, read('steam/scripts/' + f)]));
+const fill = (o) => fillVdfs(templates, { contentRoot: '/x/content/', buildOutput: '/x/output/', ...o });
+const filled = fill({ app: '1234560', windows: '1234561', mac: '1234562', linux: '1234563' });
+ok(Object.values(filled).every((t) => !/APP_ID|DEPOT_ID/.test(t.replace(/^\s*\/\/.*$/gm, ''))), 'a filled build keeps no placeholder');
+const fApp = parseVdf(filled['app_build.vdf']).AppBuild;
+ok(fApp.AppID === '1234560' && fApp.Preview === '1' && fApp.SetLive === '', 'filled build: app id, dry run, not live');
+ok(Object.keys(fApp.Depots).join() === '1234561,1234562,1234563', 'filled build: three depots', Object.keys(fApp.Depots));
+ok(parseVdf(filled['depot_build_mac.vdf']).DepotBuildConfig.DepotID === '1234562', 'filled depot file has its id');
+ok('depot_build_windows.vdf' in fill({ app: '1', windows: '2' }) && !('depot_build_mac.vdf' in fill({ app: '1', windows: '2' })), 'an OS without a depot id is left out');
+ok(!Object.keys(parseVdf(fill({ app: '1', windows: '2' })['app_build.vdf']).AppBuild.Depots).some((d) => /DEPOT/.test(d)), 'a left-out OS leaves no placeholder in the app build');
+ok(parseVdf(fill({ app: '1', linux: '2', preview: false })['app_build.vdf']).AppBuild.Preview === '0', 'the real upload is only on request');
+ok(parseVdf(fill({ app: '1', linux: '2', beta: 'beta' })['app_build.vdf']).AppBuild.SetLive === 'beta', 'a beta branch is only set when asked');
+for (const bad of [{ windows: '2' }, { app: 'abc', windows: '2' }, { app: '1' }, { app: '1', windows: '1' }, { app: '1', windows: '0x2' }]) {
+  let threw = false; try { fill(bad); } catch (e) { threw = true; }
+  ok(threw, 'make-build-vdf refuses ' + JSON.stringify(bad));
+}
+
+// a trial run of copy-builds.mjs on a made-up dist/ in a temp folder (the real builds are 1 GB)
+{
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'gde-steam-test-'));
+  try {
+    const dist = path.join(tmp, 'dist'), content = path.join(tmp, 'content');
+    const touch = (rel) => { const f = path.join(dist, rel); fs.mkdirSync(path.dirname(f), { recursive: true }); fs.writeFileSync(f, 'x'); };
+    touch('win-unpacked/GDE Groningen.exe'); touch('win-unpacked/resources/app.asar');
+    touch('linux-unpacked/gde-groningen'); touch('linux-unpacked/chrome-sandbox');
+    touch('mac-universal/GDE Groningen.app/Contents/MacOS/GDE Groningen'); touch('mac-universal/other.txt');
+    const run = (...a) => spawnSync(process.execPath, [path.join(ROOT, 'steam/copy-builds.mjs'), ...a], { encoding: 'utf8', env: { ...process.env, GDE_STEAM_DIST: dist, GDE_STEAM_CONTENT: content } });
+    const r = run();
+    ok(r.status === 0, 'copy-builds copies a made-up dist', r.stderr);
+    ok(fs.existsSync(path.join(content, 'windows/GDE Groningen.exe')) && fs.existsSync(path.join(content, 'windows/resources/app.asar')), 'copy-builds: the windows depot holds the launch file');
+    ok(fs.existsSync(path.join(content, 'linux/gde-groningen')) && fs.existsSync(path.join(content, 'linux/chrome-sandbox')), 'copy-builds: the linux depot holds the launch file');
+    ok(fs.existsSync(path.join(content, 'mac/GDE Groningen.app/Contents/MacOS/GDE Groningen')) && !fs.existsSync(path.join(content, 'mac/other.txt')), 'copy-builds: the mac depot holds only the .app');
+    for (const f of Object.keys(templates).filter((n) => n.startsWith('depot_'))) {
+      const osName = /_(windows|mac|linux)\./.exec(f)[1];
+      ok(fs.existsSync(path.join(content, osName)), 'the ' + osName + ' depot maps a folder copy-builds made');
+    }
+    fs.writeFileSync(path.join(content, 'linux/stale.txt'), 'x');
+    run('linux');
+    ok(!fs.existsSync(path.join(content, 'linux/stale.txt')), 'copy-builds replaces the old content of a depot');
+    ok(run('beos').status !== 0, 'copy-builds refuses an unknown platform');
+    fs.rmSync(path.join(dist, 'linux-unpacked'), { recursive: true });
+    ok(run('linux').status !== 0, 'copy-builds fails when a named platform has no build');
+    const r2 = spawnSync(process.execPath, [path.join(ROOT, 'steam/copy-builds.mjs')], { encoding: 'utf8', env: { ...process.env, GDE_STEAM_DIST: path.join(tmp, 'leeg'), GDE_STEAM_CONTENT: path.join(tmp, 'c2') } });
+    ok(r2.status !== 0, 'copy-builds fails when nothing was built');
+  } finally { fs.rmSync(tmp, { recursive: true, force: true }); }
+}
+
+// the overlay switches (desktop/steamflags.cjs): off unless asked for
+ok(steamSwitches([], {}, 'win32').length === 0 && steamSwitches(['x', '--no-sandbox'], {}, 'linux').length === 0, 'no Steam switches without --steam-overlay');
+ok(steamSwitches(['--steam-overlay'], {}, 'win32').map((s) => s[0]).join() === 'in-process-gpu,disable-direct-composition', 'overlay on Windows: gpu in the main process, no DirectComposition');
+ok(steamSwitches([], { GDE_STEAM_OVERLAY: '1' }, 'linux').map((s) => s[0]).join() === 'in-process-gpu', 'overlay on Linux: gpu in the main process');
+ok(/steamSwitches\(\)/.test(read('desktop/main.js')) && /"steamflags\.cjs"/.test(read('desktop/package.json')), 'main.js applies the switches and the build ships steamflags.cjs');
+
 // --- Steam Input -----------------------------------------------------------
 const generated = Object.fromEntries(FILES().map(([f, t]) => [path.relative(ROOT, f).split(path.sep).join('/'), t]));
 for (const [rel, text] of Object.entries(generated)) ok(exists(rel) && read(rel) === text, `${rel} is up to date (node steam/make-steam-files.mjs)`);
@@ -87,6 +146,19 @@ ok(ACHIEVEMENTS.every((a, i) => ach.prestaties[i].id === a.id), 'same order as a
 ok(ach.prestaties.every((a) => a.steamApiNaam === '' || /^[A-Z0-9_]{1,128}$/.test(a.steamApiNaam)), 'API names are empty or valid');
 const named = ach.prestaties.filter((a) => a.steamApiNaam).map((a) => a.steamApiNaam);
 ok(new Set(named).size === named.length, 'API names are unique');
+const props = ach.prestaties.map((a) => a.voorstelApiNaam);
+ok(props.every((n, i) => n === proposedApiName(ach.prestaties[i].id) && /^[A-Z0-9_]{1,128}$/.test(n)) && new Set(props).size === props.length, 'every prestatie has a valid, unique proposed API name');
+ok(ach.prestaties.every((a, i) => a.titel === ACHIEVEMENTS[i].title && a.omschrijving === ACHIEVEMENTS[i].desc && a.verborgen === !!ACHIEVEMENTS[i].hidden), 'title, description and hidden flag follow achievements.js');
+ok(ach.prestaties.every((a) => a.titel.length > 0 && a.titel.length <= 100 && a.omschrijving.length > 0 && a.omschrijving.length <= 250), 'titles and descriptions fit the Steamworks fields', ach.prestaties.filter((a) => a.titel.length > 100 || a.omschrijving.length > 250).map((a) => a.id));
+ok(ach.prestaties.every((a) => !BRANDS.test(a.titel + ' ' + a.omschrijving)), 'no brand in the prestatie texts', ach.prestaties.filter((a) => BRANDS.test(a.titel + ' ' + a.omschrijving)).map((a) => a.id));
+// a regeneration keeps the API names the owner filled in
+{
+  const edited = JSON.parse(JSON.stringify(ach));
+  edited.prestaties[0].steamApiNaam = 'MIJN_EERSTE'; edited.prestaties[5].steamApiNaam = 'MIJN_ZESDE';
+  const again = JSON.parse(achievementsJson(JSON.stringify(edited))).prestaties;
+  ok(again[0].steamApiNaam === 'MIJN_EERSTE' && again[5].steamApiNaam === 'MIJN_ZESDE' && again.filter((a) => a.steamApiNaam).length === 2, 'regenerating keeps the filled-in API names');
+  ok(JSON.parse(achievementsJson('kapot')).prestaties.every((a) => a.steamApiNaam === ''), 'a broken file is regenerated empty');
+}
 
 // --- Deck ------------------------------------------------------------------
 ok(isSteamDeck({ isSteamDeck: true }) && isSteamDeck(null, { SteamDeck: '1' }) && !isSteamDeck(null, {}) && !isSteamDeck({}), 'Deck detection');
