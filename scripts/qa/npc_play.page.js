@@ -129,9 +129,9 @@ const CHECKS = [
       w.wanted = n; w.wantedDecayTimer = 0;
       const samples = [];
       for (let i = 0; i < 8; i++) {
-        await sleep(2500);
+        for (let k = 0; k < 25; k++) { await sleep(100); if (p.inVehicle && n >= 3 && Math.abs(p.inVehicle.speed) < 8) p.inVehicle.speed = 9; if (w.paused) { await tap(' ', 'Space', 40); } }
         const pol = w.police || {};
-        samples.push({ t: (i + 1) * 2.5, wanted: w.wanted, politie: w.vehicles.filter((v) => v.isPolice && !v.wrecked).length, voet: w.pedestrians.filter((q) => q.isCop).length, blok: w.vehicles.filter((v) => v._roadblock).length, zoekt: !!pol.searching, straal: pol.searchRadius && Math.round(pol.searchRadius), gezien: !!pol.seenRecently, snelheid: p.inVehicle ? +(p.inVehicle.speed || 0).toFixed(1) : null, hp: Math.round(p.health), auto: p.inVehicle ? Math.round(p.inVehicle.health) : null, berichten: (w.messages || []).slice(-2).map((m) => m.text || m) });
+        samples.push({ gt: +(w.time || 0).toFixed(1), heli: w.vehicles.filter((v) => v.isHeli && v.isPolice).length || w.vehicles.filter((v) => v.isHeli).length, spijker: ((w.shards && w.shards.fields) || []).filter((f) => f.kind === 'spijkers').length, t: (i + 1) * 2.5, wanted: w.wanted, politie: w.vehicles.filter((v) => v.isPolice && !v.wrecked).length, voet: w.pedestrians.filter((q) => q.isCop).length, blok: w.vehicles.filter((v) => v._roadblock).length, zoekt: !!pol.searching, straal: pol.searchRadius && Math.round(pol.searchRadius), gezien: !!pol.seenRecently, snelheid: p.inVehicle ? +(p.inVehicle.speed || 0).toFixed(1) : null, hp: Math.round(p.health), auto: p.inVehicle ? Math.round(p.inVehicle.health) : null, berichten: (w.messages || []).slice(-2).map((m) => m.text || m) });
         if (i === 3) await snap('wanted-' + n, 100);
       }
       out['ster' + n] = samples;
