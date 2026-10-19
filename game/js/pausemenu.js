@@ -152,6 +152,8 @@ function filterControls(q) {
       r.hidden = !hit;
       if (hit) n++;
     }
+    // de hulpblokken (tabblad Hulp) hebben geen toetsrijen: ze tellen mee op hun eigen tekst
+    if (g.classList.contains('pm-help')) { const t = g.textContent.toLowerCase(); n = words.every((w) => t.includes(w)) ? 1 : 0; }
     g.hidden = !n;
     any = any || n > 0;
   }
