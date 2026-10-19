@@ -18,6 +18,9 @@ check('meer: baan gevonden', !!b2);
 check('meer: alle tonnen in het water', b2 && b2.tonnen.every((t) => meer(t.x, t.y)));
 check('meer: omtrek vrij', b2 && baanIsVrij(b2.tonnen, meer));
 check('ton op het land maakt de baan onvrij', !baanIsVrij(b1.tonnen, (x, y) => Math.hypot(x - b1.tonnen[0].x, y - b1.tonnen[0].y) > 3));
+// een ton direct langs de kant (water alleen op de baan zelf) is geen goede baan
+const smal = (x, y) => { const q = b1.tonnen[0]; return Math.hypot(x - q.x, y - q.y) < 5; };
+check('ton zonder water eromheen is onvrij', !baanIsVrij(b1.tonnen, (x, y) => b1.tonnen.some((q) => Math.hypot(x - q.x, y - q.y) < 5) || (Math.abs(x) > 1e9)));
 const tijd = richtTijd(b1.tonnen);
 check('richttijd redelijk (2 tot 10 minuten)', tijd > 120 && tijd < 600, tijd);
 // een hele regatta langs de tonnen geeft goud bij de richttijd
