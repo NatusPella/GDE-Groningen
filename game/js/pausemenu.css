@@ -360,7 +360,7 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
 
 /* a phone held sideways (360-460 px tall, #227) */
 @media (max-height: 460px) {
-  #pause-menu .pm-rail { --ra-h: 34px; left: 16px; width: 200px; }
+  #pause-menu .pm-rail { --ra-h: 34px; left: 16px; width: 200px; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; }
   #pause-menu .pm-sheet { left: 232px; right: 16px; }
   #pause-menu .ra { font-size: 20px; }
   #pause-menu .pm-q-head { padding-bottom: 8px; }
