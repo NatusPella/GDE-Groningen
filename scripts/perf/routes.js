@@ -562,7 +562,7 @@ results.routes.bldloose = await safe('bldloose', async () => {
     const k = reasons.join('+') + ' ' + vis[0].geometry.type;
     const e = cats[k] || (cats[k] = { groups: 0, meshes: 0 }); e.groups++; e.meshes += vis.length;
   }
-  return { total, cats: Object.entries(cats).sort((x, y) => y[1].meshes - x[1].meshes), batches: sc.batches().buildings };
+  return { dists: sc.dists(), total, cats: Object.entries(cats).sort((x, y) => y[1].meshes - x[1].meshes), batches: sc.batches().buildings };
 });
 // fixed viewpoints incl. water and a village (only with PERF_ONLY=vspots): one screenshot each, for before/after pixel comparisons (scripts/perf/pngdiff.mjs)
 results.routes.vspots = await safe('vspots', async () => {

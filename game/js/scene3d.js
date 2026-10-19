@@ -1019,7 +1019,7 @@ export function init3D(map) {
   onSettingsChange(applyViewSettings);
   resize3D();
   window.addEventListener('resize', resize3D);
-  window.__scene3d = { scene, cam, renderer, postfx, farLod, setBlobPool: (on) => { blobPoolOn = !!on; }, batches: () => ({ buildings: buildingBatcher.info(), facades: facadeBatcher.info(), roads: roadBatcher.info(), shores: shoreBatcher.info() }) };
+  window.__scene3d = { scene, cam, renderer, postfx, farLod, setBlobPool: (on) => { blobPoolOn = !!on; }, dists: () => ({ DRAW_DIST, buildingDetailR, facadeDetailDist, roadDetailR, viewDist }), batches: () => ({ buildings: buildingBatcher.info(), facades: facadeBatcher.info(), roads: roadBatcher.info(), shores: shoreBatcher.info() }) };
 }
 
 // increments each time the scene is drawn to the canvas (blackframe.js)
