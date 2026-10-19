@@ -146,7 +146,7 @@ function loadPics(el) {
   }
 }
 
-export function selectCharacter(panel, id) {
+function selectCharacter(panel, id) {
   const c = CHARACTER_BY_ID.get(id);
   const box = panel.querySelector('.vh-viewer');
   if (!c || !box) return;

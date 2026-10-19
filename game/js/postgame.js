@@ -307,7 +307,7 @@ function playIntro(def, s) {
 // --- helpers for the challenges --------------------------------------------------
 
 // A voiced subtitle (lines manifest); lines never overlap and queue briefly.
-export function say(r, speaker, text, prio = false) {
+function say(r, speaker, text, prio = false) {
   if (!r || !text) return false;
   if (!prio && r.t - r.lastSay < SAY_GAP) return false;
   r.lastSay = r.t;
@@ -318,14 +318,14 @@ export function say(r, speaker, text, prio = false) {
 }
 
 // One of Jelle's lines for this challenge and moment (pg_lines.js).
-export function jelle(r, kind, prio = false) {
+function jelle(r, kind, prio = false) {
   const set = kind === 'greet' ? JELLE_LINES.greet : (JELLE_LINES[r.def.id] || {})[kind];
   if (!set || !set.length) return false;
   const k = (r.data['_' + kind] = ((r.data['_' + kind] ?? Math.floor(Math.random() * set.length)) + 1) % set.length);
   return say(r, JELLE, set[k], prio);
 }
 
-export function finish(r, res) {
+function finish(r, res) {
   if (!r || r.done) return;
   r.done = true;
   const def = r.def;
@@ -393,7 +393,7 @@ function stopRun() {
   setTarget(null);
 }
 
-export function abortChallenge(reason = '') {
+function abortChallenge(reason = '') {
   if (!run) return false;
   finish(run, { aborted: true, reason });
   return true;
@@ -401,7 +401,7 @@ export function abortChallenge(reason = '') {
 
 // The next objective: the minimap target (+ route through `path`) and a
 // beam in the world, like a mission checkpoint.
-export function setTarget(t) {
+function setTarget(t) {
   if (!world) return;
   world.challengeTarget = t ? { x: t.x, y: t.y, path: t.path || [] } : null;
   if (!t) { if (beam) beam.visible = false; return; }
@@ -484,7 +484,7 @@ function ensureUi() {
   return ui;
 }
 
-export function esc(s) {
+function esc(s) {
   return String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 }
 

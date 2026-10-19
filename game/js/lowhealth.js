@@ -4,9 +4,9 @@
 import { playHeartbeat } from './audio.js';
 import { cinematicAllowsDamageFx } from './cinematics.js';
 
-export const LOW_HEALTH = 25;
+const LOW_HEALTH = 25;
 // the share of the normal walking pace left at the very lowest health
-export const SLOWEST = 0.7;
+const SLOWEST = 0.7;
 
 let el = null;
 let k = 0;
@@ -14,12 +14,12 @@ let beat = 0;
 let pulse = 0;
 
 // 0 at the threshold and above, 1 at (almost) dead
-export function hurtLevel(health) {
+function hurtLevel(health) {
   if (!(health > 0) || health >= LOW_HEALTH) return 0;
   return Math.min(1, 1 - health / LOW_HEALTH);
 }
 
-export function walkFactor(health) {
+function walkFactor(health) {
   return 1 - (1 - SLOWEST) * hurtLevel(health);
 }
 

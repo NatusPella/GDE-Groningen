@@ -5,7 +5,7 @@
 
 export const SERIES = 'GDE';
 export const SERIES_MEANING = 'Grootste Diefstal Ever';
-export const PLACE = 'Groningen';
+const PLACE = 'Groningen';
 export const SUBTITLE = 'Zomer vol misdaad';
 export const GAME_NAME = `${SERIES} ${PLACE}`;
 export const GAME_TITLE = `${GAME_NAME} – ${SUBTITLE}`;

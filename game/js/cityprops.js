@@ -1,7 +1,8 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { PARKS, parkBankSpots } from './parkplekken.js';
 import { GeoBuilder, vcMaterial, composeMatrix, tubeGeometry, HABBO_PALETTE } from './pixelart3d.js';
-import { Pedestrian, setPedPose, isInsideBuilding, isOnRoad, CITY_CENTRE, releaseFromScene, isSpawnHidden } from './pedestrians.js';
+import { Pedestrian, CITY_CENTRE, releaseFromScene, isSpawnHidden } from './pedestrians.js';
+import { setPedPose, isInsideBuilding, isOnRoad } from './pedgeom.js';
 import { spawnVehicleOnRoad } from './vehicle.js';
 import { isInWater, dist, SeededRng, nearestOnRoadList } from './util.js';
 import { makeProp, addProp, removeProp, isPropBroken, propKey, updateBreakables } from './breakables.js';

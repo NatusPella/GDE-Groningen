@@ -3,10 +3,10 @@
 // gaan (v.flat, zie vehicle.js). Pure kant: geen scene, geen opslag; de
 // velden verdwijnen vanzelf (de gemeente veegt). scripts/roadshards_test.mjs.
 
-export const SHARD_RADIUS = 2.6; // m: grootte van het strooiveld
+const SHARD_RADIUS = 2.6; // m: grootte van het strooiveld
 export const SHARD_LIFE = 150; // s: tot de veegwagen geweest is
-export const SHARD_MIN_SPEED = 3; // m/s: stapvoets rij je er veilig doorheen
-export const SHARD_CHANCE = 0.45; // kans per veld dat je er overheen rijdt
+const SHARD_MIN_SPEED = 3; // m/s: stapvoets rij je er veilig doorheen
+const SHARD_CHANCE = 0.45; // kans per veld dat je er overheen rijdt
 const MAX_FIELDS = 24;
 
 // De spijkermat van de politie (#204): een smalle strook dwars over de weg,
@@ -16,8 +16,8 @@ const MAX_FIELDS = 24;
 export const SPIKE_LIFE = 60;
 export const SPIKE_SPAN = 7; // m dwars over de weg
 export const SPIKE_DEPTH = 0.9; // m in de rijrichting (halve breedte van de strook)
-export const SPIKE_CHANCE = 0.9;
-export const SPIKE_MIN_SPEED = 1.5;
+const SPIKE_CHANCE = 0.9;
+const SPIKE_MIN_SPEED = 1.5;
 const MAX_SPIKES = 2;
 
 export function createShards() { return { fields: [] }; }

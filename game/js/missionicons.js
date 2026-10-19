@@ -6,7 +6,7 @@
 // shapes inside a shape are holes.
 import { MISSION_IDS } from './storyarc.js';
 
-export const MISSION_ICONS = {
+const MISSION_ICONS = {
   // H1 Berend telt de krassen: his bakkie
   berend: { fill: 'M2 17v-3a1 1 0 0 1 1-1h1.6l1.6-4.6a1 1 0 0 1 .9-.4H15a1 1 0 0 1 .8.4l2.8 4.6H21a1 1 0 0 1 1 1v3h-2a3 3 0 0 0-6 0h-4a3 3 0 0 0-6 0zM7.3 9.5L6 13h5V9.5zM13 9.5V13h4.4l-2-3.5zM7 15.2a1.8 1.8 0 1 1 0 3.6 1.8 1.8 0 0 1 0-3.6zM17 15.2a1.8 1.8 0 1 1 0 3.6 1.8 1.8 0 0 1 0-3.6z' },
   // M03 Het Loket: a queue ticket
@@ -54,12 +54,12 @@ MISSION_ICONS.eieren = MISSION_ICONS.bod;
 MISSION_ICONS.wierde = MISSION_ICONS.berend;
 
 // Icon spec for a mission index (missions.js), or null.
-export function missionIcon(i) {
+function missionIcon(i) {
   return MISSION_ICONS[MISSION_IDS[i]] || null;
 }
 
 // Inline <svg> for the DOM (Te doen, phone, HUD card); '' for an unknown mission.
-export function missionIconSvg(i, cls = '') {
+function missionIconSvg(i, cls = '') {
   const ic = missionIcon(i);
   if (!ic) return '';
   return `<svg viewBox="0 0 24 24" aria-hidden="true"${cls ? ` class="${cls}"` : ''}>` +

@@ -89,8 +89,8 @@ export function refusalMessage(it, money = 0) {
 }
 
 // Expensive purchases ask once more.
-export const CONFIRM_FROM = 1000;
-export const CONFIRM_SHARE = 0.5;
+const CONFIRM_FROM = 1000;
+const CONFIRM_SHARE = 0.5;
 export function needsConfirm(it, money = 0) {
   return !!it.confirmText || it.price >= CONFIRM_FROM || (it.price >= 300 && it.price > money * CONFIRM_SHARE);
 }

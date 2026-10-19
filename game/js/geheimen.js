@@ -6,7 +6,7 @@ import { buildHorseMesh } from './countryside.js';
 import { JELLE_LOOK } from './storycast.js';
 import { showCard } from './hudcards.js';
 import { notifyPhone } from './phonefeed.js';
-import { pushAudioEvent } from './pedestrians.js';
+import { pushAudioEvent } from './pedgeom.js';
 import { addToSaveSet, getSaveSet } from './achievements.js';
 import { WATER_Y } from './util.js';
 import { advanceRoomClock, roomShouldClose } from './roomclock.js';

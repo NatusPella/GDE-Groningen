@@ -28,7 +28,7 @@ function load() {
   try { return parseSeen(localStorage.getItem(KEYS.hintsGezien)); } catch (e) { return new Set(); }
 }
 
-export function resetContextHints() {
+function resetContextHints() {
   seen = new Set();
   try { localStorage.removeItem(KEYS.hintsGezien); } catch (e) { /* ignore */ }
 }

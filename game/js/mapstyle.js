@@ -102,7 +102,7 @@ export function nightPalette(day) {
 
 // 'dag' or 'nacht' for a clock hour; dusk and dawn count as night (the
 // world's lights are on by then)
-export const NIGHT_FROM = 20.5, NIGHT_TO = 6;
+const NIGHT_FROM = 20.5, NIGHT_TO = 6;
 export function mapPhase(hour) {
   if (typeof hour !== 'number' || !Number.isFinite(hour)) return 'dag';
   const h = ((hour % 24) + 24) % 24;
@@ -112,7 +112,7 @@ export function mapPhase(hour) {
 let phase = 'dag';
 // The province base map is a pre-rendered pyramid in day colours: at night it
 // is drawn through this canvas filter instead (roughly the palette's land factor).
-export const NIGHT_BASE_FILTER = 'brightness(0.6) saturate(0.9)';
+const NIGHT_BASE_FILTER = 'brightness(0.6) saturate(0.9)';
 export function baseFilter() { return phase === 'nacht' ? NIGHT_BASE_FILTER : 'none'; }
 
 const DAY = { map: { ...MAP_PALETTE }, mini: { ...MINI_PALETTE } };
@@ -130,9 +130,9 @@ export function applyMapPhase(next) {
 // Minimum on-screen width (px) per road class, so a road stays one clean line
 // at any minimap scale instead of a hairline, and the small classes step back
 // when the map is zoomed out (fewer lines, a calmer picture).
-export const MINI_ROAD_MIN_PX = { major: 2.4, normal: 1.8, minor: 1.4, cycle: 1.3, foot: 1.0 };
+const MINI_ROAD_MIN_PX = { major: 2.4, normal: 1.8, minor: 1.4, cycle: 1.3, foot: 1.0 };
 // scale (px a metre) under which cycleways and footpaths fade out
-export const MINI_SMALL_FADE = { from: 1.0, to: 0.6 };
+const MINI_SMALL_FADE = { from: 1.0, to: 0.6 };
 
 // { widthM, alpha } of a road on the minimap at a scale (px a metre)
 export function miniRoadStyle(cat, widthM, scale) {
