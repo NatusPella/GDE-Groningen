@@ -133,7 +133,7 @@ export function hasSave() {
 }
 
 // Where the story of a save stands: the part, the step to play and how far the part is.
-function storySummary(d) {
+export function storySummary(d) {
   try {
     const done = new Set(d.story && Array.isArray(d.story.done) ? d.story.done : []);
     const passed = new Set(d.missions && Array.isArray(d.missions.completed) ? d.missions.completed : []);
