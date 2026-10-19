@@ -3,7 +3,7 @@
 // input.js the way gamepad.js does (padAxis, padHold, mouse), so every
 // action works unchanged. Does nothing on a desktop; ?touch=1 forces it on
 // and ?touch=0 off. Menus and the phone stay plain taps.
-import { detectTouch, touchMode, touchLayout, touchMore, stickVector, knobOffset, lookDelta, stickKeys, touchPlan, touchContext, stickless, touchUiActive, STICK_RADIUS } from './touchlogic.js';
+import { detectTouch, touchMode, touchLayout, touchMore, stickVector, knobOffset, lookDelta, stickKeys, touchPlacement, leftOffset, touchContext, stickless, touchUiActive, STICK_RADIUS } from './touchlogic.js';
 import { refreshGlyphs } from './glyphs.js';
 import { getSettings } from './settings.js';
 import { FLAGS } from './devflags.js';
@@ -21,26 +21,33 @@ html.touch-play #touch-ui { display: block; }
 #touch-ui .t-btn { position: absolute; pointer-events: auto; touch-action: none; min-width: 64px; height: 64px; padding: 0 8px; box-sizing: border-box; border-radius: 32px; border: 2px solid rgba(240, 237, 228, 0.55);
   background: rgba(10, 19, 13, 0.5); color: #f0ede4; font: 17px 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; letter-spacing: 1px; display: flex; align-items: center; justify-content: center; }
 #touch-ui .t-btn.on { background: rgba(63, 201, 122, 0.75); color: #0c140e; }
-#touch-ui .t-more { right: max(10px, env(safe-area-inset-right)); top: calc(max(10px, env(safe-area-inset-top)) + 58px); min-width: 48px; height: 48px; font-size: 15px; }
-#touch-ui .t-panel { position: absolute; right: calc(max(10px, env(safe-area-inset-right)) + 56px); top: max(10px, env(safe-area-inset-top)); display: none; flex-wrap: wrap; gap: 8px; max-width: 60%; justify-content: flex-end; pointer-events: auto; }
+/* pause and Meer share the top row (the Gas button sits right under it); 60 px x the lowest button scale (0.75) stays above 44 px */
+#touch-ui .t-more { right: calc(max(10px, env(safe-area-inset-right)) + 64px); top: max(10px, env(safe-area-inset-top)); min-width: 60px; height: 60px; font-size: 15px; }
+#touch-ui .t-panel { position: absolute; right: max(10px, env(safe-area-inset-right)); top: calc(max(10px, env(safe-area-inset-top)) + 64px); display: none; flex-wrap: wrap; gap: 8px; max-width: 60%; justify-content: flex-end; pointer-events: auto; }
 #touch-ui .t-panel.open { display: flex; }
 #touch-ui .t-panel .t-btn { position: static; }
 #touch-ui .t-turn { position: absolute; left: 50%; top: 12px; transform: translateX(-50%); padding: 8px 14px; border-radius: 18px; background: rgba(10, 19, 13, 0.8); color: #f0ede4; font: 15px Arial, sans-serif; display: none; pointer-events: none; text-align: center; max-width: 90%; }
 html.touch-portrait #touch-ui .t-turn { display: block; }
-#touch-ui .t-pause { top: max(10px, env(safe-area-inset-top)); right: max(10px, env(safe-area-inset-right)); min-width: 48px; height: 48px; border-radius: 24px; font-size: 20px; }
+#touch-ui .t-pause { top: max(10px, env(safe-area-inset-top)); right: max(10px, env(safe-area-inset-right)); min-width: 60px; height: 60px; border-radius: 30px; font-size: 20px; }
 
 html.touch-device, html.touch-device body { overscroll-behavior: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
 html.touch-device body { touch-action: manipulation; }
 html.touch-device button, html.touch-device [role="button"], html.touch-device select { min-height: 44px; }
 html.touch-device #touch-ui .t-btn { min-height: 0; }
+/* the HUD around the touch layer (#96): zone C (clock, stars) left of pause and Meer, the speedometer between the thumbs, the street name above the minimap */
+html.touch-device #hud .hud-top-right { right: calc(var(--hud-edge) + 128px / var(--ui, 1)); }
+html.touch-device #hud .hud-speedo, html.touch-device #hud .hud-heli { right: auto; left: 50%; transform: translateX(-50%); }
+html.touch-device #hud .hud-vehname, html.touch-device #hud .hud-race { right: calc(var(--hud-edge) + 120px / var(--ui, 1)); }
+html.touch-device #hud .hud-fcol { left: var(--hud-edge); bottom: calc(var(--mm-bottom) + var(--mm-size) + 6px); }
+/* small HUD texts stay at 11 px on screen after the phone's HUD scale (0.62-0.8) */
+html.touch-device #hud :is(small, .hud-key, .ach-kicker, .ach-desc, .ach-pct, .pf-time, .pf-more, .nl-sub, .hud-mission-progress) { font-size: max(12px, calc(11px / var(--ui, 1))); }
+/* the pause menu is a landscape layout: on a portrait phone it says so */
+html.touch-portrait #pause-menu.visible::before { content: 'Draai je toestel voor het menu'; position: absolute; left: 50%; top: 8px; transform: translateX(-50%); z-index: 5; padding: 8px 14px; border-radius: 18px; background: rgba(10, 19, 13, 0.9); color: #f0ede4; font: 15px Arial, sans-serif; white-space: nowrap; }
 #touch-ui .t-left-btns, #touch-ui .t-right-btns { position: absolute; bottom: env(safe-area-inset-bottom); }
 #touch-ui .t-left-btns { left: env(safe-area-inset-left); width: 0; height: 0; }
 #touch-ui .t-right-btns { right: env(safe-area-inset-right); width: 0; height: 0; }
 `;
 
-// button spots from the bottom right corner, in px: [right, bottom]
-const SPOTS_RIGHT = [[24, 110], [96, 40], [96, 180], [168, 110], [30, 240]];
-const SPOTS_LEFT = [[24, 40], [24, 120], [96, 40]];
 
 export function initTouch(input, world, hooks = {}) {
   if (typeof window === 'undefined' || typeof document === 'undefined') return false;
@@ -64,6 +71,7 @@ export function initTouch(input, world, hooks = {}) {
   style.textContent = CSS;
   document.head.appendChild(style);
   document.documentElement.classList.add('touch-device');
+  window.dispatchEvent(new Event('touchmode'));
 
   const root = document.createElement('div');
   root.id = 'touch-ui';
@@ -82,6 +90,9 @@ export function initTouch(input, world, hooks = {}) {
     const L = touchLayout({ width: window.innerWidth, height: window.innerHeight });
     root.style.setProperty('--t-scale', String(L.scale));
     btnHost.style.zoom = String(L.scale);
+    const off = leftOffset({ width: window.innerWidth, height: window.innerHeight });
+    root.style.setProperty('--t-lright', off.right + 'px');
+    root.style.setProperty('--t-lup', off.up + 'px');
     left.style.width = Math.round(L.leftShare * 100) + '%';
     right.style.width = Math.round((1 - L.leftShare) * 100) + '%';
     turn.textContent = L.hint;
@@ -126,8 +137,9 @@ export function initTouch(input, world, hooks = {}) {
     const el = document.createElement('div');
     el.className = 't-btn';
     el.textContent = b.label;
-    el.style[side] = spot[0] + 'px';
-    el.style.bottom = spot[1] + 'px';
+    // the left buttons keep clear of the minimap (leftOffset, set in layout())
+    el.style[side] = side === 'left' ? `calc(${spot[0]}px + var(--t-lright, 0px))` : spot[0] + 'px';
+    el.style.bottom = side === 'left' ? `calc(${spot[1]}px + var(--t-lup, 0px))` : spot[1] + 'px';
     el.addEventListener('pointerdown', (e) => {
       e.preventDefault();
       el.setPointerCapture && el.setPointerCapture(e.pointerId);
@@ -149,12 +161,7 @@ export function initTouch(input, world, hooks = {}) {
 
   function build() {
     btnHost.textContent = '';
-    const plan = touchPlan(ctx);
-    let r = 0, l = 0;
-    for (const b of plan) {
-      if (b.side === 'right') addButton(b, SPOTS_RIGHT[r++ % SPOTS_RIGHT.length], 'right');
-      else addButton(b, SPOTS_LEFT[l++ % SPOTS_LEFT.length], 'left');
-    }
+    for (const { b, spot, side } of touchPlacement(ctx)) addButton(b, spot, side);
     const more = touchMore(ctx);
     if (more.length) {
       const panel = document.createElement('div');
