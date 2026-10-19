@@ -5,6 +5,7 @@ import { VERSION } from './version.js';
 import { checkWhatsNew, markVersionSeen, compareVersions } from './whatsnew.js';
 import { pointInPolygon } from './util.js';
 import { openPauseMenu } from './pausemenu.js';
+import { requestOpenSamen } from './samenpanel.js';
 import { isPauseMenuOpen } from './pausestate.js';
 import { getAchievementSummary } from './achievements.js';
 import { pendingTrailer } from './trailerstate.js';
@@ -532,7 +533,7 @@ export function runStartScreen(world, { render, relocate, tick }) {
         continueGame();
       } else if (it.act === 'samen') {
         // het spel start zoals altijd (Doorgaan, of een nieuw spel zonder savegame); daarna staat de lobby klaar (main.js)
-        world.openSamenOnStart = true;
+        requestOpenSamen();
         if (save) continueGame(); else startNew();
       } else if (it.act === 'saves') {
         openSaveSlots({ mode: 'start', onLoad: continueGame, onNew: () => startNew(), onClose: () => {

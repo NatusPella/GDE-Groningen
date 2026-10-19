@@ -94,6 +94,7 @@ import { noteFrame, hideAdvice, classifyGpu, readGpu, dynamicScale, cpuLevel } f
 import { updateStreetSigns } from './streetsigns.js';
 import { updatePhotoMode, wireFotoKey } from './fotomodusui.js';
 import { initPauseMenu, isPauseMenuOpen, openPauseMenu, pauseMenuCover } from './pausemenu.js';
+import { wantsOpenSamen, takeOpenSamen } from './samenpanel.js';
 import { initDayNight, updateDayNight, DAY_LENGTH_S } from './daynight.js';
 import { initCalendar, updateCalendar, today as calendarToday } from './calendarday.js';
 import { updateFx3D } from './fx3d.js';
@@ -242,7 +243,7 @@ function waitForStart(world) {
 let bridgeDemoT = 0, bridgeDemoDone = false; // ?brugbotsing
 let errorShown = false;
 function showFrameError(err) {
-  console.error(err);
+  console.error(err && err.stack ? err.stack : err);
   if (errorShown) return;
   errorShown = true;
   const el = document.createElement('div');
@@ -490,8 +491,7 @@ async function boot() {
   input.tryLock();
   setMenuAudio(false);
   // a benchmark started from a game: its result waits in Instellingen > Beeld
-  if (world.openSamenOnStart) { openPauseMenu('samen'); world.openSamenOnStart = null; } // Samen spelen vanuit het hoofdmenu (#95)
-  else if (world.openSettingsOnStart) { openPauseMenu('settings', { sub: world.openSettingsOnStart }); world.openSettingsOnStart = null; }
+  if (world.openSettingsOnStart) { openPauseMenu('settings', { sub: world.openSettingsOnStart }); world.openSettingsOnStart = null; }
 
   wireFotoKey(world, () => !isMapOpen() && !isPauseMenuOpen() && !isShopOpen() && !isCinematicActive() && !world.pigeonMode);
   let last = performance.now();
@@ -525,7 +525,14 @@ async function boot() {
   }
 
   const feelDip = makeDip(), dipSeen = { imp: null, mh: null };
+  let samenSince = null;
   function frameBody(dt) {
+    // Samen spelen vanuit het hoofdmenu (#95): de lobby opent zodra het spel te besturen is (na de opening van een nieuw spel)
+    // (een paar seconden wachten: de opening van een nieuw spel begint pas even na de start en zou de lobby anders overvallen)
+    if (wantsOpenSamen()) {
+      if (samenSince == null) samenSince = world.time;
+      if (world.time - samenSince > 5 && !isCinematicActive() && sinceCinematic() > 2 && !world.cameraOverride && !world.pendingRespawn && !isPauseMenuOpen()) { takeOpenSamen(); samenSince = null; openPauseMenu('samen'); }
+    }
     updateMapView(dt, world);
     world.paused = isMapOpen() || isPauseMenuOpen() || isShopOpen() || !!world.uiPaused;
     if (document.pointerLockElement && (isMapOpen() || isPauseMenuOpen() || isPhoneOpen())) document.exitPointerLock();

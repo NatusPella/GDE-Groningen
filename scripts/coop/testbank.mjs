@@ -46,7 +46,7 @@ function start(name, cfg, seed) {
   const script = path.join(dir, '_page.js');
   fs.writeFileSync(script, `window.__coopCfg = ${JSON.stringify({ ...cfg, name, route: ROUTE, durationS: DURATION, viaMenu: MENU })};\n` + fs.readFileSync(path.join(HERE, 'coop.page.js'), 'utf8'));
   const profile = `gde-test-coop-${process.pid}-${name}`;
-  const env = { ...process.env, GDE_TEST_PROFILE: profile, GDE_GAME_DIR: STAGE, GDE_COOP_TEST: '1' };
+  const env = { ...process.env, GDE_TEST_PROFILE: profile, GDE_GAME_DIR: STAGE, GDE_COOP_TEST: '1', ...(MENU ? { GDE_MENU_TEST: '1' } : {}) };
   delete env.ELECTRON_RUN_AS_NODE;
   const child = spawn(ELECTRON, ['.', '--windowed', '--stil', '--force-device-scale-factor=1', '--window-size=1280x720', '--coop', `--autoplay=${seed}`,
     `--smoke-test=${path.join(dir, 'shots.png')}`, `--perf-script=${script}`, `--bot-events=${events}`], { cwd: path.join(ROOT, 'desktop'), env, stdio: ['ignore', 'pipe', 'pipe'] });
