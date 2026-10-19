@@ -27,9 +27,9 @@ await sleep(3000);
 
 // 1. evenement: Zomerkermis Zuidlaren
 try {
-  const ev = EV.AGENDA.find((e) => e.id === 'ev-kermis-leek'); const c = EV.centreOf(ev);
+  const ev = EV.AGENDA.find((e) => e.id === 'ev-kermis-zuidlaren'); const c = EV.centreOf(ev);
   // het verhaal begrenst de datum: de kalender krijgt een vaste dag (alleen voor deze beeldcheck)
-  const dagN = EV.AGENDA.find((e) => e.id === 'ev-optocht-winschoten').from;
+  const dagN = ev.from;
   const seen = w.calendar ? w.calendar.seen : [];
   w.calendar = { seen, get day() { return dagN; }, set day(v) {} }; fix(17); await sleep(500);
   out.dag = window.__calendar.get().info; out.bounds = window.__calendar.get().bounds;
