@@ -181,7 +181,7 @@ export function tickCoopNet(world, dt) {
     if (n.klok.last && Number.isFinite(world.clock)) world.clock = n.klok.step(world.clock, dt, n.lokaal);
     if (s.joined && !n.fixed) { // eerst weten we welke plek en figuur we hebben
       n.fixed = true; setFixedCharacters(world, s.slot, s.welcome && s.welcome.char);
-      if (s.welcome && Array.isArray(s.welcome.lijst)) world.coopRoster = s.welcome.lijst;
+      if (!n.rosterEvent && s.welcome && Array.isArray(s.welcome.lijst)) world.coopRoster = s.welcome.lijst; // een 'spelers'-bericht dat vóór het welkom aankwam is nieuwer
     }
     if (n.fixed && (s.status === 'ok' || s.status === 'lag')) {
       const sample = s.world();
@@ -236,6 +236,7 @@ export function handleEvent(world, body, van = 0) {
     case 'spelers': { // alleen de host stuurt de lijst
       if (!n || n.role !== 'client') return false;
       const l = leesLijstEvent(body); if (!l) return false;
+      n.rosterEvent = true;
       world.coopRoster = l.spelers.map((s) => ({ ...s })); return true;
     }
     case 'beloning': { // alleen de host mag de gast betalen; het geld is van de gast
