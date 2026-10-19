@@ -39,6 +39,9 @@ const lcg = (a) => () => { a = (a * 1664525 + 1013904223) >>> 0; return a / 4294
     check('golf: tees en greens binnen de omtrek', v[0].holes.every((h) => [h.tee, h.cup].every((p) => pointInPolygon(p.x, p.y, ring))));
     const hs = PP.holesFromWorld(v[0].holes);
     check('golf: holes met par en richting', hs.every((h) => (h.par === 2 || h.par === 3) && Number.isFinite(h.heading) && h.len >= 30 && h.len <= 78), JSON.stringify(hs.map((h) => h.len)));
+    const lay = PP.venueLayout(hs);
+    check('golf: venueLayout geeft een eindige startplek (pitchputt-spots() was leeg, #242)', [lay.stand.x, lay.stand.y, lay.center.x, lay.center.y].every(Number.isFinite));
+    check('golf: ruwe holes zonder holesFromWorld geven geen eindige startplek', !Number.isFinite(PP.venueLayout(v[0].holes).stand.x));
   }
   const tiny = [[0, 0], [40, 0], [40, 30], [0, 30]];
   check('golf: een baan zonder rot/l/w geeft geen NaN-holes (#229)', golfVenues({ golf: [{ id: 'n', leisure: 'golf_course', x: 1000, y: 500, ha: 1.08, ring }] }).every((v) => v.holes.every((h) => [h.tee.x, h.tee.y, h.cup.x, h.cup.y].every(Number.isFinite))));

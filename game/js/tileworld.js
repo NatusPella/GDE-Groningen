@@ -211,6 +211,12 @@ export class TileWorld extends GameMap {
       w.bounds = polygonBounds(w.pts);
       this.waterGrid.insert(w, w.bounds);
     }
+    // a patch lies over roads the map draws no bridge for (a link over the Eeldersingel, the Damsterdiep):
+    // they pass it on a deck like any road over water, or cars sink there (#222, #235)
+    for (const w of rows) {
+      const cx = (w.bounds[0] + w.bounds[2]) / 2, cy = (w.bounds[1] + w.bounds[3]) / 2;
+      for (const r of this.roadsNear(cx, cy, Math.hypot(w.bounds[2] - w.bounds[0], w.bounds[3] - w.bounds[1]) / 2 + 2)) markDryRoad(this, r);
+    }
     this._waterVer = (this._waterVer || 0) + 1;
     return rows.length;
   }

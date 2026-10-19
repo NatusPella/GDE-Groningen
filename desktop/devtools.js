@@ -45,7 +45,7 @@ const smoke = argValue('--smoke-test');
 function queryParts() {
   const silent = hasFlag('--stil');
   const trailerShot = argValue('--trailer-shot'), trailerCut = argValue('--trailer-cut'), trailerFrames = argValue('--trailer-frames');
-  return [(silent || storyTest) && 'stil', hasFlag('--audio-graph') && 'audiograf', hasFlag('--hitch') && 'hitch', hasFlag('--zwartcheck') && 'zwartcheck', hasFlag('--dev') && 'dev', findArg('--autoplay') && (argValue('--autoplay') ? `autoplay=${encodeURIComponent(argValue('--autoplay'))}` : 'autoplay'), storyTest && 'storytest', spotsOnly && 'spotsonly',
+  return [(silent || storyTest) && 'stil', hasFlag('--audio-graph') && 'audiograf', hasFlag('--coop') && 'coop', hasFlag('--hitch') && 'hitch', hasFlag('--zwartcheck') && 'zwartcheck', hasFlag('--dev') && 'dev', findArg('--autoplay') && (argValue('--autoplay') ? `autoplay=${encodeURIComponent(argValue('--autoplay'))}` : 'autoplay'), storyTest && 'storytest', spotsOnly && 'spotsonly',
     // automated runs never get the first-launch attract intro
     (smoke !== null || storyTest || hasFlag('--perf-test') || findArg('--autoplay')) && !TRAILER && 'noattract',
     TRAILER && 'trailer', TRAILER && trailerShot && `shot=${encodeURIComponent(trailerShot)}`, (TRAILER || hasFlag('--trailer-preview')) && trailerCut && `cut=${encodeURIComponent(trailerCut)}`,
@@ -137,6 +137,8 @@ function attach(win, { gameDir }) {
     win.webContents.on('did-fail-load', (e, code, desc, url) => console.log('[load failed]', code, desc, url));
     setTimeout(async () => {
       try {
+        // a loaded machine (other test runs) needs longer than the fixed delay: wait up to 90 s for the game
+        for (let i = 0; i < 90 && !(await win.webContents.executeJavaScript('!!window.__debug')); i++) await new Promise((r) => setTimeout(r, 1000));
         // --smoke-eval=<js> runs in the page first (e.g. open a menu), so the
         // screenshot shows that state
         const evalArg = argValue('--smoke-eval');
