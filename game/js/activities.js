@@ -34,7 +34,7 @@ import { SNACKKETEN } from './snackketen.js';
 import { EVENEMENTEN } from './evenementenact.js';
 import { isShopOpen } from './shopui.js';
 import { isCinematicActive } from './cinematics.js';
-import { registerBusyProbe } from './busy.js';
+import { registerBusyProbe, registerQuitHook } from './busy.js';
 export { activityBlock, iconDisc } from './activitykit.js';
 
 const LIST = [CARBID, KERMIS, HOOGVLIEGER, GEHEIMEN, DRIFT_ZONE, DISCGOLF, PITCHPUTT, SKATEPARK, KARTBAAN, ZWEMBAD, KLIMTOREN, WATERSKI, CARILLON_GAME, PANNENKOEK, HENGELEN, WANDELING, SNACKKETEN, EVENEMENTEN];
@@ -64,6 +64,7 @@ export function quitActivity(w) {
   for (const a of LIST) if (a.active() && a.quit) a.quit(w);
   w.activityGame = null;
 }
+registerQuitHook(quitActivity);
 
 // main.js: instead of player.update while a minigame runs
 export function updateActivityGame(dt, w) {
