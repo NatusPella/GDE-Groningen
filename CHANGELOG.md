@@ -35,6 +35,8 @@ nieuwe functies, `y` voor alleen bugfixes.
 - **Tuning werkt door (nog niet in beeld bekeken):** een heldere koplamp laat 's nachts verder en feller schijnen, een zachte stoel dempt de camera-schok bij een botsing, de onderdelen van de Escapade komen terug als ze verschijnt, en opvallende onderdelen (knalpijp) laten de politie je tot 40% langer zoeken. (Refs #196)
 - **Zeilregatta met tegenstanders, omslaan en roeiritme (nog niet in beeld bekeken):** in de zeilregatta varen drie verzonnen zeilers mee (Wiebe, Marrit, Tjeerd) en je ziet je plaats in het bord en in de uitslag. Een zeilboot slaat om bij storm met een strak zeil dwars op de wind: even drijven, nat maar verder niets. De roeiboot vaart op ritme: tik W ongeveer elke seconde voor een hogere topsnelheid. (Refs #197)
 - **Evenementen trekken voetgangers (nog niet in beeld bekeken):** bij een lopende kermis, markt, optocht of concert komen er groepjes voetgangers bij tot de drukte van dat evenement, buiten beeld gespawnd. (Refs #203)
+- Vuurwerk klinkt nu als een echte bom: harde tik, dreun en knetterend glitter (gerenderd, drie varianten); de overwegbel is een staalslag met nagalm. Offline gecontroleerd op spectrum, niveau en duur; nog niet gehoord.
+- Fietsen en scooters hebben kleine knipperlichtjes aan de stuuruiteinden (scooters ook achter) in plaats van grote blokken. Nog niet in beeld bekeken.
 - Als iemand praat, worden motorgeluid en omgeving nu zachtjes gedempt (eerder alleen de nieuwe effecten). Nog niet gehoord.
 - Het nieuws meldt een kermis in jouw buurt nu als eigen kop met de plaats. Nog niet in het spel gezien.
 - Veertien opgevangen gesprekken van drie regels erbij, voor elke streek twee. Nog niet in het spel gezien.
