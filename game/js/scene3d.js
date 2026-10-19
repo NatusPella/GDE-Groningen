@@ -12,7 +12,7 @@ import {
   sampleBusTrail, busTrailerPose, buildSplashMesh3D, updateSplashMesh3D, SPLASH_LIFETIME,
   spawnVehicleOnRoad, spawnBoatOnWater, spawnPoliceBoatOnWater, TRAFFIC_MODELS,
 } from './vehicle.js';
-import { DEAD_DURATION } from './pedestrians.js';
+import { DEAD_DURATION } from './pedconst.js';
 import { attachCarry, carryPose } from './streetlife3d.js';
 import { buildPersonMesh, animatePersonWalk, applyAttackPose, applyHitReaction, setHeldWeapon, seatPose, seatedY, waveOverlay, carryOverlay, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
 import { syncDoorsNear, vraagVoorAnim } from './vehicledoors3d.js';
@@ -79,6 +79,7 @@ import { noteGfxEvent, watchContext } from './blackframe.js';
 import { spawnExplosionFx, setFxCamera } from './fx3d.js';
 import { litFraction, moonPhase, STAR_SHARE } from './nightrules.js';
 import { qualityLook } from './weatherlook.js';
+import { buildCloudLayer, updateCloudLayer } from './cloud3d.js';
 import { initNightLights, setNightLightQuality, updateNightLights, isLightRigOn, setLightRigVisible } from './nightlights3d.js';
 import { createFarLOD } from './farlod.js';
 import { SECTION, TILE_M, tileOrigin } from './gdt.js';
@@ -290,6 +291,7 @@ function buildKissHeartMesh() {
 let sun = null;
 let hemi = null;
 let skyDome = null;
+let cloudLayer = null;
 let starShare = 1;
 let skyUniforms = null;
 let envUpdater = null;
@@ -866,6 +868,8 @@ export function init3D(map) {
   skyDome = buildSkyDome(skyUniforms);
   setStarShare(skyDome, starShare);
   scene.add(skyDome);
+  cloudLayer = buildCloudLayer();
+  scene.add(cloudLayer);
   envUpdater = createEnvironmentUpdater(renderer, sunDir);
   scene.environment = envUpdater.update(skyUniforms.uZenith.value, skyUniforms.uHorizon.value, new THREE.Color(0x6e6250), sunDir, skyUniforms.uSunColor.value, 0.45);
   // one water material for the canals and the tiles' water
@@ -2653,7 +2657,10 @@ export function update3D(dt, world) {
   const imp = world.lastImpact;
   const shakeAge = imp ? world.time - imp.time : Infinity;
   if (shakeAge >= 0 && shakeAge < CAM_SHAKE_TIME) {
-    const amp = shakeAmount(Math.min(1, imp.strength) * CAM_SHAKE_MAX * Math.exp(-shakeAge * 7), { reduceMotion: reducedMotion() });
+    // tuning (#196): een zachte stoel (v.tuning.comfort) dempt de schok
+    const tv = player.inVehicle && player.inVehicle.tuning;
+    const comfort = tv && tv.comfort > 0 ? tv.comfort : 1;
+    const amp = shakeAmount(Math.min(1, imp.strength) * CAM_SHAKE_MAX * Math.exp(-shakeAge * 7), { reduceMotion: reducedMotion() }) / comfort;
     const t = world.time * 47;
     cam.position.x += Math.sin(t) * amp;
     cam.position.y += Math.sin(t * 1.31 + 1.7) * amp * 0.6;
@@ -2683,7 +2690,7 @@ export function update3D(dt, world) {
   applyCameraOverride(dt, world, lookX, lookY, lookZ);
 
   probe.mark('3d:camera');
-  updateSunAndSky(focus, dt);
+  updateSunAndSky(focus, dt, world);
   limitActorShadows(pedMeshes, focus.x, focus.y);
   limitActorShadows(vehicleMeshes, focus.x, focus.y);
   limitActorShadows(wildlifeMeshes, focus.x, focus.y);
@@ -3244,7 +3251,7 @@ function updateEnvironment(dt) {
 
 // Shadow frustum centred a little ahead of the camera, snapped to whole
 // shadow-map texels in light space so edges don't crawl as the player moves.
-function updateSunAndSky(player, dt) {
+function updateSunAndSky(player, dt, world) {
   // how fast the focus moves: a fast one must not skip shadow passes
   if (focusPrevX !== null && dt > 0) {
     focusSpeed = Math.hypot(player.x - focusPrevX, player.y - focusPrevY) / dt;
@@ -3264,6 +3271,7 @@ function updateSunAndSky(player, dt) {
   sun.target.position.copy(_shadowCenter);
   sun.position.copy(_shadowCenter).addScaledVector(sunDir, SUN_DIST);
   skyDome.position.copy(cam.position);
+  updateCloudLayer(cloudLayer, cam.position, cam.far, world.weather, L.daylight, L.night, dt);
 }
 
 function buildWildlifeActor(a) {

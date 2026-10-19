@@ -1,5 +1,6 @@
 // Coöp-testbank (#95): echte Electron-instanties die met elkaar verbinden, op 127.0.0.1.
-//   node scripts/coop/testbank.mjs --stage=<gestagede game-map> [--route=direct] [--duration=20] [--out=<map>]
+//   node scripts/coop/testbank.mjs --stage=<gestagede game-map> [--route=direct] [--gasten=1|2] [--duration=20] [--out=<map>]
+// --gasten=2: host + twee gasten (drie Electron-instanties, dus alle sloten); controleert ook de derde speler (plek 2).
 // Start een host en een gast (eigen wegwerpprofielen), laat de gast de code van de host intypen via het
 // pauzemenu en vergelijkt wat beide kanten zien. Gebruikt de electron-sloten van C:/Users/abuis/gde-locks
 // (max. 3 tegelijk; een slot is een map). GDE_COOP_TEST=1: geen UPnP, localIp 127.0.0.1 (desktop/main.js).
@@ -19,6 +20,7 @@ const STAGE = path.resolve(arg('stage', process.env.GDE_GAME_DIR || ''));
 if (!STAGE || !fs.existsSync(path.join(STAGE, 'index.html'))) { console.error('--stage=<gestagede game-map> ontbreekt (scripts/coop/restage.mjs)'); process.exit(2); }
 const ROUTE = arg('route', 'direct');
 const DURATION = Number(arg('duration', 20));
+const GASTEN = Math.max(1, Math.min(2, Number(arg('gasten', 1)) || 1));
 const OUT = path.resolve(arg('out', path.join(os.tmpdir(), 'gde-coop', new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19))));
 const LOCKS = process.env.GDE_LOCKS || 'C:/Users/abuis/gde-locks';
 const ELECTRON = process.env.ELECTRON_EXE || path.join(ROOT, 'desktop', 'node_modules', 'electron', 'dist', process.platform === 'win32' ? 'electron.exe' : 'Electron');
@@ -66,8 +68,7 @@ const waitFor = async (f, type, ms) => { const end = Date.now() + ms; while (Dat
 process.on('exit', () => { for (const k of kids) { try { k.kill(); } catch (e) { /* weg */ } } });
 
 const T0 = Date.now();
-await takeSlot();
-await takeSlot();
+for (let i = 0; i < 1 + GASTEN; i++) await takeSlot();
 console.log('uitvoer:', OUT);
 const host = start('host', { role: 'host', waitS: 300 }, 11);
 const code = await waitFor(host.events, 'code', 180000);
@@ -84,16 +85,18 @@ else {
   }
 }
 if (code) guest = start('gast', { role: 'gast', code: code.code }, 22);
+let guest2 = null;
+if (code && GASTEN > 1) { await new Promise((r) => setTimeout(r, 15000)); guest2 = start('gast2', { role: 'gast', code: code.code }, 33); } // pas als de eerste gast er is: zo is de plek voorspelbaar
 // de poort van de host in de tijd: sluit hij zich ergens?
 const probeLog = [];
 const tp = code ? setInterval(() => { const m = /([0-9.]+):([0-9]+)-/.exec(code.code); const t = Math.round((Date.now() - T0) / 1000); const k = net.connect({ host: m[1], port: +m[2], timeout: 2000 }); k.once('connect', () => { probeLog.push([t, 'open']); k.destroy(); }); k.once('error', (e) => probeLog.push([t, e.code])); k.once('timeout', () => { probeLog.push([t, 'time-out']); k.destroy(); }); }, 3000) : null;
-const res = await Promise.all([host.done, guest ? guest.done : Promise.resolve({ result: 'NIET GESTART' })]);
+const res = await Promise.all([host.done, guest ? guest.done : Promise.resolve({ result: 'NIET GESTART' }), ...(GASTEN > 1 ? [guest2 ? guest2.done : Promise.resolve({ result: 'NIET GESTART' })] : [])]);
 release();
 if (tp) clearInterval(tp);
 console.log('poort in de tijd (s, uitkomst):', JSON.stringify(probeLog));
 
 // --- beoordelen
-const H = readEvents(host.events), G = guest ? readEvents(guest.events) : [];
+const H = readEvents(host.events), G = guest ? readEvents(guest.events) : [], G2 = guest2 ? readEvents(guest2.events) : [];
 const of = (E, t) => E.filter((e) => e.type === t);
 const check = (c, msg) => { if (!c) problems.push(msg); };
 check(res[0].result === 'KLAAR', `host: ${res[0].result} ${res[0].reason || ''}`);
@@ -112,7 +115,20 @@ if (hs.length && gs.length && last(gs).companion && last(hs).me) {
   const d = Math.hypot(last(gs).companion.x - last(hs).me.x, last(gs).companion.y - last(hs).me.y);
   check(d < 6, `gast ziet Tammo op ${d.toFixed(1)} m van de host`);
 }
-for (const [n, E] of [['host', H], ['gast', G]]) for (const e of E.filter((x) => x.type === 'console' && x.level === 'error')) problems.push(`${n} consolefout: ${String(e.msg).slice(0, 160)}`);
-fs.writeFileSync(path.join(OUT, 'result.json'), JSON.stringify({ route: ROUTE, problems, host: res[0], gast: res[1] }, null, 1));
+// de gedeelde speelklok en de desync-hash (net/speelklok.js, net/desync.js)
+if (hs.length && gs.length && Number.isFinite(last(hs).uur) && Number.isFinite(last(gs).uur)) {
+  const d = Math.abs(((last(gs).uur - last(hs).uur + 36) % 24) - 12);
+  check(d < 0.3, `speelklok: gast ${last(gs).uur.toFixed(2)} u, host ${last(hs).uur.toFixed(2)} u`);
+}
+check(!gs.some((x) => x.desync), 'gast meldt een desync met de host: ' + JSON.stringify((gs.find((x) => x.desync) || {}).desync));
+if (GASTEN > 1) {
+  const g2 = G2.filter((e) => e.type === 'sample');
+  check(g2.length >= DURATION / 2, `derde speler: genoeg samples (${g2.length})`);
+  check(last(g2).slot === 2, `derde speler zit op plek 2 (plek ${last(g2).slot})`);
+  check(last(hs).roster && last(hs).roster.length >= 3, 'de host heeft drie spelers in de lijst');
+  check(!g2.some((x) => x.desync), 'derde speler meldt een desync');
+}
+for (const [n, E] of [['host', H], ['gast', G], ['gast2', G2]]) for (const e of E.filter((x) => x.type === 'console' && x.level === 'error')) problems.push(`${n} consolefout: ${String(e.msg).slice(0, 160)}`);
+fs.writeFileSync(path.join(OUT, 'result.json'), JSON.stringify({ route: ROUTE, gasten: GASTEN, problems, host: res[0], gast: res[1], gast2: res[2] || null }, null, 1));
 console.log(problems.length ? 'PROBLEMEN:\n- ' + problems.join('\n- ') : 'ALLES OK');
 process.exit(problems.length ? 1 : 0);

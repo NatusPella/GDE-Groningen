@@ -2,7 +2,7 @@
 // scenes in game/js/cutscenes.js, on the real script lines of the opening:
 //   node scripts/cutscript_test.mjs
 import { readFileSync } from 'node:fs';
-import { compileScene, validateScene, resolveTime, fitCamera, fitAnchor, ACTOR_ANIMS } from '../game/js/cutscript.js';
+import { compileScene, validateScene, resolveTime, fitCamera, fitAnchor, ACTOR_ANIMS, shotPoints } from '../game/js/cutscript.js';
 import { ANIMS } from '../game/js/actoranim.js';
 import { openingActs, END_CARD, flatScene } from '../game/js/cutscenes.js';
 
@@ -208,6 +208,15 @@ ok(ACTOR_ANIMS.length === ANIMS.length && ACTOR_ANIMS.every((a) => ANIMS.include
     ok(leaked > 0, `flat ${variant}: test setup: without env the camera does leave the flat`, String(leaked));
   }
 }
+
+// shotPoints (#157, #20): the camera path gives finite, de-duplicated, capped prewarm points near the set
+for (const x of compiled) {
+  const an = x.def.set === 'keuken' ? kAnchor : anchor;
+  const pts = shotPoints(x.scene, an, x.duration);
+  ok(pts.length >= 1 && pts.length <= 24, x.def.id + ': shotPoints count', String(pts.length));
+  ok(pts.every((q) => Number.isFinite(q.x) && Number.isFinite(q.y) && Math.hypot(q.x - an.x, q.y - an.y) < 80), x.def.id + ': shotPoints near the set');
+}
+ok(shotPoints({ sample() { throw new Error('x'); } }, anchor, 10).length === 0, 'shotPoints survives a failing sample');
 
 console.log(fails ? `${fails} of ${n} checks FAILED` : `cutscript_test: ${n} checks ok`);
 process.exit(fails ? 1 : 0);

@@ -5,7 +5,7 @@
 import { showCard, cardsBusy } from './hudcards.js';
 import { mayStart } from './narrative.js';
 import { isCinematicActive } from './cinematics.js';
-import { isPauseMenuOpen } from './pausemenu.js';
+import { isPauseMenuOpen } from './pausestate.js';
 import { getSettings } from './settings.js';
 import { physicalKey, keyName, tokenKey } from './controls.js';
 import { glyphHtml } from './prompts.js';

@@ -4,7 +4,7 @@ import { setDualText } from './subtitles.js';
 import { paintSpeaker } from './speakers.js';
 import { noteSpoken } from './characters.js';
 import { getSettings } from './settings.js';
-import { isPauseMenuOpen } from './pausemenu.js';
+import { isPauseMenuOpen } from './pausestate.js';
 import { isMapOpen } from './mapview.js';
 import { respawnPlayer } from './world.js';
 import { V, W, clamp01, easeInOut, easeOut, pathShot, roofAt, clearKeys, wijkStreetShot } from './camerapath.js';

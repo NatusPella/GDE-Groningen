@@ -272,6 +272,8 @@ export class ClientSession extends Base {
   // na een vervangen transport (nieuwe handmatige code) hervatten met hetzelfde token
   reconnect(link) { this._attach(link); this.helloAt = -1; this.joined = false; this.rel.reset(); this._setStatus('verbinden'); }
   world() { return this.buf.sample(); }
+  // de gast vraagt de host om zijn toestand opnieuw (desync, net/desync.js); het antwoord komt als 'resync' bij onresync
+  requestResync() { this._emit(encodeSimple(T.RESYNC, 0, 0, 0)); }
   leave() { this._emit(encodeSimple(T.BYE, 0, 0, 0)); this.joined = false; this._setStatus('verbroken'); }
 }
 
