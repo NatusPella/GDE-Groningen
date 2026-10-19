@@ -117,4 +117,17 @@ assert.equal(statusVan({ code: 0, out: 'SKIP geen index', timedOut: false }), 'S
 assert.equal(statusVan({ code: 1, out: 'Error', timedOut: false }), 'FAIL');
 assert.equal(statusVan({ code: null, out: '', timedOut: true }), 'TIMEOUT');
 assert.equal(statusVan({ code: 1, out: "Cannot find package 'three' imported", timedOut: false }), 'SKIP');
+// poort zwarte wereld / fouten per frame
+const goed = { gestart: true, scene: true, meshes: 1500, nan: 0, tris: 90000, calls: 400, frames: 120, framesMetFout: 0, foutenTotaal: 0, voorbeeld: [] };
+assert.equal(R.beoordeelWereldpoort(goed).status, 'PASS');
+assert.equal(R.beoordeelWereldpoort(null).status, 'FAIL');
+assert.equal(R.beoordeelWereldpoort({ ...goed, meshes: 12 }).status, 'FAIL');
+assert.equal(R.beoordeelWereldpoort({ ...goed, tris: 0 }).status, 'FAIL');
+assert.equal(R.beoordeelWereldpoort({ ...goed, gestart: false }).status, 'FAIL');
+assert.equal(R.beoordeelWereldpoort({ ...goed, nan: 2 }).status, 'FAIL');
+const perFrame = R.beoordeelWereldpoort({ ...goed, framesMetFout: 120, foutenTotaal: 240, voorbeeld: ['ReferenceError: x is not defined'] });
+assert.equal(perFrame.status, 'FAIL'); assert.ok(/ReferenceError/.test(perFrame.detail));
+assert.equal(R.beoordeelWereldpoort({ ...goed, framesMetFout: 1, foutenTotaal: 1 }).status, 'PASS');
+assert.equal(R.parseWereldpoort('x\n[perf-script] ' + JSON.stringify(goed) + '\n').meshes, 1500);
+assert.equal(R.parseWereldpoort('[perf-script] {"ok":true}'), null);
 console.log('test_all_test: ok');
