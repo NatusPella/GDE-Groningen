@@ -36,7 +36,7 @@ export function onUiScaleChange(cb) {
 }
 
 function compute() {
-  return uiScaleFor(window.innerWidth, window.innerHeight, getSettings().uiScale);
+  return uiScaleFor(window.innerWidth, window.innerHeight, getSettings().uiScale, document.documentElement.classList.contains('touch-device'));
 }
 
 // The pause card (about 600 px tall) must fit between the top and the
@@ -57,5 +57,7 @@ function apply() {
 if (typeof window !== 'undefined' && typeof document !== 'undefined') {
   apply();
   window.addEventListener('resize', apply);
+  // touch.js adds html.touch-device once the game has started: a phone gets a smaller HUD
+  window.addEventListener('touchmode', apply);
   onSettingsChange((st, key) => { if (key === 'uiScale') apply(); });
 }
