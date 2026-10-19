@@ -6,6 +6,10 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+- Als iemand praat, worden motorgeluid en omgeving nu zachtjes gedempt (eerder alleen de nieuwe effecten). Nog niet gehoord.
+- Het nieuws meldt een kermis in jouw buurt nu als eigen kop met de plaats. Nog niet in het spel gezien.
+- Veertien opgevangen gesprekken van drie regels erbij, voor elke streek twee. Nog niet in het spel gezien.
+
 ## [0.37.1] - 2026-10-19
 
 ### Nieuw

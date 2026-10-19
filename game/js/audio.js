@@ -129,6 +129,8 @@ function voiceOk(prio = 1) { return activeVoices < VOICE_CAPS[prio]; }
 
 const AMB_LEVEL = 0.9;
 const duckState = { amount: 0, until: 0, level: 0 };
+// hoe sterk een uitgesproken regel nu de motor en de omgeving dempt (0..1), zacht in en uit (#173)
+let speechLevel = 0;
 
 function duckAmbience(amount, hold) {
   if (!ctx) return;
@@ -144,7 +146,9 @@ function updateDucking(dt) {
   if (t > duckState.until) duckState.amount = 0;
   const target = duckState.amount;
   duckState.level += (target - duckState.level) * Math.min(1, dt * (target > duckState.level ? 12 : 1.5));
-  ambBus.gain.value = AMB_LEVEL * (1 - duckState.level);
+  const talking = voiceBusy() ? 1 : 0;
+  speechLevel += (talking - speechLevel) * Math.min(1, dt * (talking ? 6 : 1.5));
+  ambBus.gain.value = AMB_LEVEL * (1 - duckState.level) * speechDuckFactor('omgeving', speechLevel);
 }
 
 // Street canyon vs open square: two generated impulse responses, wet levels
@@ -2451,7 +2455,7 @@ function updateEngine(dt, world) {
   engineState.gain += (targetGain - engineState.gain) * k;
   engineState.freq += (targetFreq - engineState.freq) * k;
 
-  engineBus.gain.value = engineState.gain * 0.65;
+  engineBus.gain.value = engineState.gain * 0.65 * speechDuckFactor('voertuig', speechLevel);
   engine.osc1.frequency.value = engineState.freq;
   engine.osc2.frequency.value = engineState.freq * 2 + 4;
   engine.filter.frequency.value = cutoff;
