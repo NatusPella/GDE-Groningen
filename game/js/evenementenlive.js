@@ -48,6 +48,25 @@ export function propLayout(ev) {
   return out;
 }
 
+// Zet elk item van propLayout/crowdSpots op een vrije plek: free(dx, dy) is waar als daar geen huis
+// of water staat. Een bezette plek schuift deterministisch op (tot TRIES pogingen, ring voor ring
+// groter); lukt het niet, dan valt het item weg. Het midden van het evenement blijft de maatstaf:
+// een plek verder dan de afsluiting (radius) telt niet.
+export const FIT_TRIES = 24;
+export function fitLayout(ev, items, free, radius = KINDS[ev.kind].closure) {
+  const r = rng(hash(ev.id + 'f'));
+  const out = [];
+  for (const it of items) {
+    if (free(it.dx, it.dy)) { out.push(it); continue; }
+    for (let t = 0; t < FIT_TRIES; t++) {
+      const a = r() * Math.PI * 2, d = Math.min(radius * 0.9, Math.hypot(it.dx, it.dy) + 4 + t * 3 + r() * 6);
+      const dx = Math.cos(a) * d, dy = Math.sin(a) * d;
+      if (free(dx, dy)) { out.push({ ...it, dx, dy }); break; }
+    }
+  }
+  return out;
+}
+
 // Menigte-posities (vast per evenement): n plekken, de eerste `count` worden getekend.
 export function crowdSpots(ev, n = MAX_CROWD) {
   const k = KINDS[ev.kind], r = rng(hash(ev.id + 'm'));

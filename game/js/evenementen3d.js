@@ -4,7 +4,7 @@
 // De indeling is deterministisch per evenement (propLayout, getest in evenementen3d_test.mjs).
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { activeEvents, centreOf } from './evenementen.js';
-import { propLayout, crowdSpots, crowdCount, MAX_CROWD } from './evenementenlive.js';
+import { propLayout, crowdSpots, crowdCount, fitLayout, MAX_CROWD } from './evenementenlive.js';
 
 export const SHOW_R = 420;
 
@@ -34,9 +34,10 @@ function makeProp(kind, i) {
 const built = new Map(); // id -> { group, body, head, n }
 const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), p3 = new THREE.Vector3(), s3 = new THREE.Vector3(1, 1, 1), up = new THREE.Vector3(0, 1, 0);
 
-function build(scene, ev, ground) {
+function build(scene, ev, ground, free) {
   const c = centreOf(ev), group = new THREE.Group();
-  propLayout(ev).forEach((pl, i) => {
+  // props en menigte staan niet in huizen of water (free(x, y, marge) uit scene3d.js)
+  fitLayout(ev, propLayout(ev), (dx, dy) => free(c.x + dx, c.y + dy, 3)).forEach((pl, i) => {
     const m = makeProp(pl.prop, i);
     const x = c.x + pl.dx, y = c.y + pl.dy;
     m.position.set(x, ground(x, y), y);
@@ -45,8 +46,8 @@ function build(scene, ev, ground) {
   });
   const body = new THREE.InstancedMesh(new THREE.BoxGeometry(0.5, 1.1, 0.32), mat(0xffffff), MAX_CROWD);
   const head = new THREE.InstancedMesh(new THREE.BoxGeometry(0.3, 0.3, 0.3), mat(0xd9b08c), MAX_CROWD);
-  const spots = crowdSpots(ev);
-  const n = crowdCount(ev);
+  const spots = fitLayout(ev, crowdSpots(ev), (dx, dy) => free(c.x + dx, c.y + dy, 0.8));
+  const n = Math.min(spots.length, crowdCount(ev));
   spots.slice(0, n).forEach((s, i) => {
     const x = c.x + s.dx, y = c.y + s.dy, z = ground(x, y);
     q.setFromAxisAngle(up, s.angle);
@@ -60,14 +61,14 @@ function build(scene, ev, ground) {
   return { group, n };
 }
 
-export function updateEvenementen3D(scene, world, n, ground) {
+export function updateEvenementen3D(scene, world, n, ground, free = () => true) {
   const hour = ((world.clock % 24) + 24) % 24, p = world.player;
   const live = new Set();
   for (const ev of activeEvents(n, hour)) {
     const c = centreOf(ev);
     if (Math.hypot(c.x - p.x, c.y - p.y) > SHOW_R) continue;
     live.add(ev.id);
-    if (!built.has(ev.id)) built.set(ev.id, build(scene, ev, ground || (() => 0)));
+    if (!built.has(ev.id)) built.set(ev.id, build(scene, ev, ground || (() => 0), free));
   }
   for (const [id, b] of built) {
     if (live.has(id)) continue;

@@ -28,15 +28,22 @@ await sleep(3000);
 // 1. evenement: Zomerkermis Zuidlaren
 try {
   const ev = EV.AGENDA.find((e) => e.id === 'ev-kermis-leek'); const c = EV.centreOf(ev);
-  // het verhaal begrenst de datum: spring naar een stap op 19 september
-  out.jump = window.__story.jump('O6'); await sleep(1500);
-  for (let i = 0; i < 20 && window.__calendar.get().day < 0; i++) await sleep(100);
-  window.__calendar.set(EV.AGENDA.find((e) => e.id === 'ev-optocht-winschoten').from); fix(17); await sleep(500);
+  // het verhaal begrenst de datum: de kalender krijgt een vaste dag (alleen voor deze beeldcheck)
+  const dagN = EV.AGENDA.find((e) => e.id === 'ev-optocht-winschoten').from;
+  const seen = w.calendar ? w.calendar.seen : [];
+  w.calendar = { seen, get day() { return dagN; }, set day(v) {} }; fix(17); await sleep(500);
   out.dag = window.__calendar.get().info; out.bounds = window.__calendar.get().bounds;
   await go(c.x + 25, c.y + 25);
   await sleep(4000);
+  const nn = w.calendar.day;
+  out.dbg = { clock: w.clock, nn, aktief: EV.activeEvents(nn, ((w.clock % 24) + 24) % 24).map((e) => e.id), kermisLeek: EV.isActive(ev, nn, 17), speler: [Math.round(p.x), Math.round(p.y)], paused: !!w.paused, uiPaused: !!w.uiPaused, here: !!window.__evenementen.here() };
   out.evenement = { centre: c, actief: (w.eventsNow || []).map((e) => e.id), geluid: w.eventSound, markers: EV.mapMarkers(ev.from, 17).length, routeSig: w.eventRouteSig };
   await snap('evenement-kermis');
+  const gz = map.groundHeightAt ? map.groundHeightAt(c.x, c.y, 0) || 0 : 0;
+  for (const [nm, dx, dy, h] of [['evenement-boven', 70, -70, 50], ['evenement-dichtbij', 28, -28, 7]]) {
+    window.__keepCine = true; cine.playCinematic({ id: 'y4-view', duration: 60, priority: 9, shot: () => ({ position: { x: c.x + dx, y: c.y + dy, z: gz + h }, lookAt: { x: c.x, y: c.y, z: gz + 2 }, cut: true }) });
+    await sleep(3000); console.log('[capture] ' + nm); await sleep(600); cine.skipCinematic(); window.__keepCine = false; await sleep(500);
+  }
   const act = window.__activities.get('evenementen');
   out.evenement.spots = act.spots().map((s) => s.name);
   // 2. fotomodus op dezelfde plek
