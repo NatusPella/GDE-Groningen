@@ -24,6 +24,8 @@ import { ensureCountryEdge } from './countryplan.js';
 import { warmCountryMaps } from './countrymap.js';
 import { Input } from './input.js';
 import { initGamepad } from './gamepad.js';
+import { initPadKeyboard } from './padkeyboard.js';
+import { skipFrame } from './framecap.js';
 import { initTouch } from './touch.js';
 import { initGlyphs } from './glyphs.js';
 import { initA11y } from './a11y.js';
@@ -433,6 +435,7 @@ async function boot() {
   // browser swallows that Esc keypress), which opens the pause menu instead
   const menuOpen = () => isPauseMenuOpen() || isMapOpen() || isPhoneOpen() || isShopOpen() || !!world.devPanelOpen;
   input.canLock = () => document.body.classList.contains('game-started') && !menuOpen() && !world.uiPaused;
+  initPadKeyboard();
   initGamepad(input, world, { menuOpen: () => menuOpen() || isPlayAheadOpen() || isHelpOfferOpen(), phoneOpen: isPhoneOpen, pauseOpen: isPauseMenuOpen, mapOpen: () => isMapOpen() });
   initTouch(input, world, { menuOpen: () => menuOpen() || isPlayAheadOpen() || isHelpOfferOpen() });
   document.addEventListener('pointerlockchange', () => {
@@ -494,6 +497,7 @@ async function boot() {
   const tileFollow = {};
   let pedTimer = 0;
   function frame(now) {
+    if (getSettings().zuinig && skipFrame(now - last)) { requestAnimationFrame(frame); return; }
     const frameMs = now - last;
     const dt = Math.min(0.05, frameMs / 1000);
     last = now;

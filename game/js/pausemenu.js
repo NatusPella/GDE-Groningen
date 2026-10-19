@@ -329,6 +329,7 @@ function settingsHtml() {
       ${picker('preset', 'Voorinstelling', presets, '', 'data-preset-pick')}
       ${picker('resolution', 'Resolutie', [['1', '100%'], ['0.85', '85%'], ['0.75', '75%'], ['0.6', '60%']])}
       ${toggle('autoResolution', 'Automatische resolutie', 'bij haperen')}
+      ${toggle('zuinig', 'Zuinige modus', '30 beelden per seconde, spaart batterij en warmte')}
       ${toggle('shadows', 'Schaduwen')}
       ${picker('drawDistance', 'Zichtafstand', [['kort', 'Kort'], ['normaal', 'Normaal'], ['ver', 'Ver'], ['heelver', 'Heel ver']])}
       ${DESKTOP ? '<label class="m-li pm-row"><span class="nm">Volledig scherm<span class="mut">F11 of Alt+Enter</span></span><input type="checkbox" class="m-sw" data-desktop="fullscreen"></label>' : ''}
@@ -352,7 +353,8 @@ function settingsHtml() {
       <label class="m-li pm-row">${rowName('Radio G-Music', 'Ook met N, te voet en in elk voertuig')}<input type="checkbox" class="m-sw" data-radio-switch></label>
       ${disclosure('subs', 'Ondertitels', 'Filmpjes, gesprekken, telefoon, radio en naamkaarten', `
         ${picker('subtitleSize', 'Grootte', [['klein', 'Klein'], ['normaal', 'Normaal'], ['groot', 'Groot'], ['extragroot', 'Extra groot']])}
-        ${toggle('subtitleBox', 'Donker vlak erachter', 'Een donker vlak maakt ze makkelijker te lezen')}`, true)}`, `
+        ${toggle('subtitleBox', 'Donker vlak erachter', 'Een donker vlak maakt ze makkelijker te lezen')}
+        ${toggle('soundCaptions', 'Geluiden beschrijven', 'Een korte tekst als [sirene] of [claxon] bij belangrijke geluiden')}`, true)}`, `
       <aside class="m-pane"><div class="pm-pane-top"><span class="m-eb">Zo ziet het eruit</span></div>
         <div class="pm-subprev" data-sub-preview><span class="pm-subtxt"><b>Tammo:</b> Rustig an, rustig an.</span></div>
         <p class="mut">Muziek is de radio (G-Music, 's nachts Nachtstreek) en de titelsong, stemmen zijn Tammo, Tessa, de politie, de mensen op straat en de praatjes op de radio. Kleurenblind, interfacegrootte en beweging beperken vind je onder Toegankelijkheid.</p></aside>`)}
