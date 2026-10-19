@@ -50,7 +50,7 @@ for (const name of Object.keys(FX_INFO)) {
 }
 
 // 3b. a sample that is not rendered yet is silent on first play: every bank effect must be on the warm list
-ok(audio.includes("for (const n of Object.keys(FX_INFO)) warmList.unshift(n)"), "audio.js warms every effect of fxbank.js at start");
+ok(audio.includes("for (const n of bufferNames()) if (!warmList.includes(n)) warmList.unshift(n)") && audio.includes("for (const n of Object.keys(FX_INFO)) warmList.push(n)"), "audio.js warms every sample of the bank at start, the fxbank effects first");
 
 // 4. spots that must make a noise (regression list: the thing, where, what)
 const MUST = [
