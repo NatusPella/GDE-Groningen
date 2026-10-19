@@ -1,5 +1,7 @@
 import { KEYS } from './storagekeys.js';
 import { loadTuning, tuningEffects } from './tuningplan.js';
+import { DIEREN, dierById } from './dierenregister.js';
+import { loadBezit, saveBezit, koop, upgrade, koopBlokkade, upgradeBlokkade, stemming, PLEK_MAX } from './dierenbezit.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { dist, closestPointOnSegment, isInWater, pointInPolygon, boatDryPoints } from './util.js';
 import { waterPolyAt } from './waterlevels.js';
@@ -808,13 +810,50 @@ function shopMenu(world, s, werf = false) {
   const build = {
     wapens: weaponSections, kleding: outfitSections, kapper: hairSections, tabak: tabakSections,
     fietsen: (w) => vehicleSections(w, 'fietsen', s), auto: (w) => vehicleSections(w, 'auto', s),
-    super: (w) => foodSections(w, 'Uit de schappen', SUPER_ITEMS), snack: (w) => foodSections(w, 'Uit het vet', SNACK_ITEMS),
+    super: (w) => [...foodSections(w, 'Uit de schappen', SUPER_ITEMS), ...dierenSections(w)], snack: (w) => foodSections(w, 'Uit het vet', SNACK_ITEMS),
     fietsenmaker: (w) => workshopSections(w, s, true), tuning: (w) => workshopSections(w, s, false),
     pand: (w) => pandSections(w, s), boot: (w) => (werf ? workshopSections(w, s, 'boat') : bootSections(w, s)), eikea: eikeaSections,
     heli: (w) => vehicleSections(w, 'heli', s),
   }[s.type];
   const view = () => markStoryItems(world, s.type, build(world));
   return { name: werf ? `${s.name} · werf` : s.name, type: s.type, tagline: werf ? 'Sneller over het water' : s.tagline, color: SHOP_TYPES[s.type].color, view, sections: () => view().sections, onBought: (it) => noteStoryPurchase(it.id) };
+}
+
+// De dierenhoek van de Avondwinkel (#193, dierenregister.js): dieren adopteren, verzorgen en uitrusten.
+// Wat je hebt komt in het dierenbezit (gde-dieren-v1); een dier dat niet te koop is, staat er niet in.
+const dierenStore = () => (typeof localStorage !== 'undefined' ? localStorage : null);
+function dierenSections(world) {
+  const store = dierenStore();
+  let bezit = loadBezit(store, KEYS.dieren);
+  const koopItems = DIEREN.filter((d) => d.kopen).map((d) => ({
+    id: 'dr-' + d.id, label: `${d.naam} adopteren`, desc: `${d.boek} Woont ${{ erf: 'op het erf', huis: 'bij je thuis', vijver: 'in de vijver', duiventil: 'in de duiventil' }[d.kopen.houden]}.`,
+    price: d.kopen.prijs, keepFocus: true, disabled: koopBlokkade(bezit, d.id, world.money) || '',
+    buy() {
+      const r = koop(bezit, d.id, world.money);
+      if (r.fout || !pay(world, r.prijs)) return null;
+      saveBezit(store, KEYS.dieren, r.bezit);
+      return `${r.dier.naam} is nu van jou`;
+    },
+  }));
+  const eigen = [];
+  for (const x of bezit.dieren) {
+    const d = dierById(x.id);
+    for (const u of d.upgrades) {
+      eigen.push({
+        id: `du-${x.uid}-${u.id}`, label: `${x.naam}: ${u.label}`, desc: `${u.effect} · ${stemming(x)}`, price: u.prijs, keepFocus: true,
+        disabled: upgradeBlokkade(bezit, x.uid, u.id, world.money) || '',
+        buy() {
+          const r = upgrade(bezit, x.uid, u.id, world.money);
+          if (r.fout || !pay(world, r.prijs)) return null;
+          saveBezit(store, KEYS.dieren, r.bezit);
+          return `${x.naam}: ${u.label.toLowerCase()} gedaan`;
+        },
+      });
+    }
+  }
+  const sections = [{ title: 'Dierenhoek', note: `Je houdt ${bezit.dieren.length} dieren`, items: koopItems }];
+  if (eigen.length) sections.push({ title: 'Voor je dieren', note: 'Verzorgen, trainen en uitrusten', items: eigen });
+  return sections;
 }
 
 // Food heals; at full health it is still for sale, to take away.

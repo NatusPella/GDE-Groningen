@@ -7,6 +7,8 @@ import { compileScene, fitAnchor, resolveTime } from './cutscript.js';
 import { roofAt } from './camerapath.js';
 import { animateActor } from './actoranim.js';
 import { audioPlan } from './cutaudio.js';
+import { DIEREN } from './dierenregister.js';
+import * as Wildlife from './wildlife.js';
 
 // The game side of the cutscene direction language (cutscript.js): puts the
 // sampled actors and props on meshes, feeds the camera pose to cinematics.js
@@ -115,28 +117,18 @@ const PROP_MAKERS = {
   },
   zuil: () => { const g = new THREE.Group(); g.add(box(0.4, 1.25, 0.4, 0xb23a3a, 0.62), box(0.3, 0.2, 0.02, 0xe8d98a, 1.2, 0.0, 0.21), box(0.1, 0.06, 0.02, 0xf2f0ea, 0.9, 0.0, 0.21)); return g; },
   klembord: () => { const g = new THREE.Group(); g.add(box(0.3, 0.02, 0.4, 0x8a6a46, 0.01), box(0.26, 0.012, 0.34, 0xf2f0ea, 0.026)); return g; },
-  kat: () => {
-    // a ginger cat, +x forward; the tail swings (buildScriptRun frame)
-    const g = new THREE.Group();
-    g.add(box(0.36, 0.15, 0.16, 0xc9803a, 0.15), box(0.14, 0.13, 0.14, 0xc9803a, 0.22, 0.22), box(0.04, 0.06, 0.03, 0xa8672c, 0.32, 0.22, 0.04), box(0.04, 0.06, 0.03, 0xa8672c, 0.32, 0.22, -0.04));
-    for (const x of [-0.13, 0.13]) for (const z of [-0.05, 0.05]) g.add(box(0.04, 0.1, 0.04, 0xb06f30, 0.05, x, z));
-    const tail = new THREE.Group();
-    tail.position.set(-0.18, 0.2, 0);
-    tail.add(box(0.3, 0.04, 0.04, 0xc9803a, 0.05, -0.15, 0));
-    g.add(tail);
-    g.userData.tail = tail;
-    return g;
-  },
-  duif: () => {
-    const g = new THREE.Group();
-    const body = box(0.3, 0.12, 0.14, 0x7c8088, 0);
-    const wing = new THREE.Mesh(new THREE.PlaneGeometry(0.14, 0.34), new THREE.MeshStandardMaterial({ color: 0xa3a6ab, side: THREE.DoubleSide }));
-    wing.rotation.x = Math.PI / 2;
-    g.add(body, wing);
-    g.userData.wing = wing;
-    return g;
-  },
 };
+
+// Dieren in cutscenes komen uit het dierenregister (#193): hetzelfde model als in de wereld,
+// niet een eigen kistjesversie. De prop-soort staat bij het dier (register.cutscene).
+function dierProp(d) {
+  const g = new THREE.Group();
+  const mesh = Wildlife[d.model.fn](...d.model.args);
+  g.add(mesh);
+  g.userData.dier = { mesh, a: { kind: d.kind, variant: d.variant, state: 'ground', speed: 0, stride: 0, z: 0, bobSeed: 0.3, peck: 0 } };
+  return g;
+}
+for (const d of DIEREN) if (d.cutscene && d.model.module === 'wildlife') PROP_MAKERS[d.cutscene] = () => dierProp(d);
 
 function disposeTree(o) {
   o.traverse((c) => {
@@ -220,8 +212,14 @@ export function buildScriptRun(def, scene, anchor, env = null, w = null) {
         m.visible = st.visible;
         m.position.set(st.x, st.h, st.y);
         m.rotation.y = -st.a;
-        if (m.userData.wing) m.userData.wing.rotation.x = Math.PI / 2 + Math.sin(t * 22) * 0.9;
-        if (m.userData.tail) m.userData.tail.rotation.y = Math.sin(t * 3.2) * 0.55;
+        const dier = m.userData.dier;
+        if (dier) {
+          // vliegt of loopt hij, dan volgt de animatie het pad; anders staat hij of bobt hij
+          dier.a.state = st.h > 0.6 ? 'fly' : 'ground';
+          dier.a.speed = st.speed > 0.1 ? Math.max(0.4, st.speed) : 0;
+          dier.a.stride += dier.a.speed * dt;
+          Wildlife.animateWildlifeMesh3D(dier.mesh, dier.a, t);
+        }
       }
       return s.camera;
     },
