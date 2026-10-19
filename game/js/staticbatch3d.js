@@ -343,6 +343,7 @@ export function createStaticBatcher(opts) {
       if (!best || w.d < best.d) best = w;
     }
     B.stats.cells = want.size;
+    B.lastWant = want;
     if (!best) return;
     let c = B.cells.get(best.key);
     if (!c) B.cells.set(best.key, c = { key: best.key, group: null, members: [], memberSet: null, withDetail: ctx.withDetail });
@@ -356,7 +357,8 @@ export function createStaticBatcher(opts) {
   function info() {
     let meshesN = 0;
     for (const c of B.cells.values()) if (c.group) meshesN += c.group.children.length;
-    return { ...B.stats, meshes: meshesN, job: B.job ? `${B.job.i}/${B.job.pieces.length}` : null };
+    const detail = B.lastWant ? [...B.lastWant.values()].map((w) => [w.key, w.list.length, Math.round(w.d), Math.round(w.far), B.cells.get(w.key) && B.cells.get(w.key).group ? 1 : 0]) : [];
+    return { ...B.stats, meshes: meshesN, job: B.job ? `${B.job.i}/${B.job.pieces.length}` : null, detail };
   }
 
   // every cell back to its own meshes (the batcher is switched off)
@@ -414,6 +416,24 @@ export const roadBatcher = createStaticBatcher({
   },
   inner: (ctx) => ctx.drawDist - 15,
   fresh: 2,
+  eligible: () => true,
+  valid: () => true,
+});
+
+// shores (quaywalls.js): the meshes of the banks and quay walls of the water polygons, merged per material over the cells (items are the
+// shore meshes: item { mesh, bounds } -> holder { mesh, parent, visible, userData }; scene3d.js keeps the map in step with the water in the scene). The water
+// surface is transparent and stays on its own.
+export const shoreBatcher = createStaticBatcher({
+  name: 'shore-batch',
+  cell: 600,
+  minMembers: 2,
+  dist: (it, px, py) => {
+    const b = it.bounds;
+    return Math.hypot(Math.max(b[0] - px, 0, px - b[2]), Math.max(b[1] - py, 0, py - b[3]));
+  },
+  inner: (ctx) => ctx.drawDist - 15,
+  fresh: 2,
+  part: (holder) => holder.mesh,
   eligible: () => true,
   valid: () => true,
 });
