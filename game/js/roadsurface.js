@@ -10,6 +10,7 @@ import { runGeo, geoWorkerActive } from './geojobs.js';
 import { geometryFromPlain } from './geoplain.js';
 import { planBlends, blendAttributes, linearOf } from './surfaceblend.js';
 import { laneLayout } from './lanes.js';
+import { taperLines, taperLength, taperOffset } from './lanetaper.js';
 import { isMarktFietsRoad, MARKT } from './roadaccess.js';
 
 // Street surfaces: procedural asphalt / klinkers / stoeptegels / gravel in the
@@ -1281,6 +1282,32 @@ function dashesClipped(r, rs, M, s0, s1, off, half, dash, gap) {
   }
 }
 
+// Lane lines of `lay.lines`, with the ones that have no counterpart across a
+// joint (more lanes here than there) bent over to the other way's line instead
+// of stopping dead (#130, lanetaper.js).
+function laneLineDashes(r, rs, M, a, b, lay, clipped, dash, gap, half) {
+  let t0 = [], t1 = [];
+  if (netMap && netMap.roadGrid && r.pts.length >= 2 && b - a > 20) {
+    const near = (p) => netMap.roadGrid.query(p[0] - 2, p[1] - 2, p[0] + 2, p[1] + 2);
+    t0 = taperLines(r, true, near(r.pts[0]));
+    t1 = taperLines(r, false, near(r.pts[r.pts.length - 1]));
+  }
+  const len = taperLength((b - a) / 2);
+  const run = clipped ? dashesClipped : dashes;
+  for (const o of lay.lines) {
+    const h = t0.find((q) => q.off === o), e = t1.find((q) => q.off === o);
+    const sa = h ? a + len : a, sb = e ? b - len : b;
+    run(r, rs, M, sa, sb, o, half, dash, gap);
+    for (const [t, from, to, atStart] of [[h, a, a + len, true], [e, b - len, b, false]]) {
+      if (!t) continue;
+      for (let s = from; s < to; s += dash + gap) {
+        const s1 = Math.min(s + dash, to), mid = (s + s1) / 2;
+        stripAlong(r, rs, M, s, s1, taperOffset(t, atStart ? mid - a : b - mid, len), half);
+      }
+    }
+  }
+}
+
 function decal(r, rs, M, sAlong, off, len, wid, uv) {
   const c = at(r, rs, sAlong, off, [0, 0, 0, 0]);
   const nrmv = rs.segN[Math.min(c[2], rs.segN.length - 1)];
@@ -1444,10 +1471,10 @@ function markingGeometry(r) {
         if (r.width >= 12 && r.lanesFwd == null) { stripAlong(r, rs, M, a, b, 0.12, 0.05); stripAlong(r, rs, M, a, b, -0.12, 0.05); }
         else stripAlong(r, rs, M, a, b, lay.divider || 0, 0.06);
       }
-      for (const o of lay.lines) dashesClipped(r, rs, M, a, b, o, 0.06, 3, 9);
+      laneLineDashes(r, rs, M, a, b, lay, true, 3, 9, 0.06);
     } else if (r.cat === 'normal' && r.type !== 'residential' && !r.oneway && r.width >= 5.5) {
       dashes(r, rs, M, a, b, lay.divider || 0, 0.05, 3, 6);
-      for (const o of lay.lines) dashes(r, rs, M, a, b, o, 0.05, 3, 6);
+      laneLineDashes(r, rs, M, a, b, lay, false, 3, 6, 0.05);
     }
     if (detail && (r.turnFwd || r.turnBwd) && (r.cat === 'major' || r.cat === 'normal')) turnArrows(r, rs, M, a, b);
   }
