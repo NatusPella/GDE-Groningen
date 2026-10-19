@@ -5,16 +5,16 @@ let n = 0, fails = 0;
 const ok = (c, name, info = '') => { n++; if (!c) { fails++; console.log(`FAIL ${name} ${info}`); } };
 const FX = effectsFor({}), RM = effectsFor({ reduceMotion: true });
 
-// FOV: 0 onder 15 m/s, maximaal 8 graden vanaf 70 m/s, monotoon, uit bij bewegingsreductie
-ok(fovTarget(0, FX) === 0 && fovTarget(15, FX) === 0, 'geen toeslag stilstaand');
-ok(fovTarget(70, FX) === FOV_MAX_BONUS && fovTarget(120, FX) === FOV_MAX_BONUS, 'maximaal 8 graden');
+// FOV: 0 onder 12 m/s, maximaal 8 graden vanaf 36 m/s, monotoon, uit bij bewegingsreductie
+ok(fovTarget(0, FX) === 0 && fovTarget(12, FX) === 0, 'geen toeslag stilstaand');
+ok(fovTarget(36, FX) === FOV_MAX_BONUS && fovTarget(120, FX) === FOV_MAX_BONUS, 'maximaal 8 graden');
 ok(fovTarget(-50, FX) === fovTarget(50, FX), 'achteruit telt ook');
 let prev = -1;
 for (let v = 0; v <= 80; v += 2) { const t = fovTarget(v, FX); ok(t >= prev, 'monotoon', v); prev = t; }
 ok(fovTarget(60, RM) === 0, 'FOV uit bij bewegingsreductie');
 {
   let f = 0;
-  for (let i = 0; i < 600; i++) { f = stepFov(f, 70, 1 / 60, FX); ok(f <= FOV_MAX_BONUS + 1e-9, 'geen overshoot'); }
+  for (let i = 0; i < 600; i++) { f = stepFov(f, 36, 1 / 60, FX); ok(f <= FOV_MAX_BONUS + 1e-9, 'geen overshoot'); }
   ok(Math.abs(f - FOV_MAX_BONUS) < 0.05, 'komt bij het doel', f);
   const first = stepFov(0, 70, 1 / 60, FX);
   ok(first > 0 && first < 0.5, 'gedempt, geen sprong', first);

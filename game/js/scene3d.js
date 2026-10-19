@@ -3244,7 +3244,7 @@ function applyCameraOverride(dt, world, lx, ly, lz) {
   if (fovPunch) { cam.fov -= fovPunch; fovPunch = 0; }
   // snelheids-FOV (#216): groeit zacht mee met de snelheid, uit bij bewegingsreductie en in cutscenes
   const pv = world && world.player && world.player.inVehicle;
-  speedFov = stepFov(speedFov, valid || !pv || pv.isBoat ? 0 : pv.speed || 0, dt, effectsFor({ reduceMotion: reducedMotion() }));
+  speedFov = stepFov(speedFov, valid || !pv || pv.isBoat ? 0 : pv.speed || 0, dt, effectsFor({ reduceMotion: reducedMotion() || getSettings().speedFeel === false }));
   const targetFov = valid && o.fov ? o.fov : (baseFov + speedFov) * (1 - 0.72 * scopeBlend);
   if (cam.fov !== targetFov) {
     cam.fov = Math.abs(targetFov - cam.fov) < 0.05 || (valid && o.cut) || scopeBlend > 0 ? targetFov : cam.fov + (targetFov - cam.fov) * Math.min(1, dt * 3);
