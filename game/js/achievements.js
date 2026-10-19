@@ -536,7 +536,7 @@ export function getAchievementView() {
       const unlocked = !!life.unlocked[a.id];
       const cur = progressOf(a);
       return {
-        id: a.id, unlocked, hidden: !!a.hidden && !unlocked, medal: !!a.medal,
+        id: a.id, cat: a.cat, unlocked, hidden: !!a.hidden && !unlocked, medal: !!a.medal,
         title: a.title, desc: a.desc, at: unlocked && life.unlocked[a.id] > 1 ? life.unlocked[a.id] : 0,
         progress: a.goal && a.goal > 1 && cur != null ? { cur: Math.min(cur, a.goal), goal: a.goal, unit: a.unit || '' } : null,
       };
