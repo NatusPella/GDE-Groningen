@@ -169,10 +169,19 @@ while (true) {
       continue;
     }
   }
-  // a timing stage (M18, M20, M21, M26): press about once per round, a player who just times it by feel; a miss only costs the story's bonus
+  // a timing stage (M18, M20, M21, M26)
   if (s.mission.active && s.mission.stage === 'timing' && !s.blocking.cinematic) {
     B.stick(0, 0);
-    await sleep(900 + Math.floor(Math.random() * 600));
+    // like a player: wait until the needle sits in the green zone of the meter (read from the panel), then press
+    const pct = (el, k) => parseFloat(el && el.style[k]) || 0;
+    let pressed = false;
+    for (let i = 0; i < 160 && !pressed; i++) {
+      await sleep(30);
+      const m = document.querySelector('.cw-panel .cw-meter:not([hidden])');
+      if (!m) continue;
+      const left = pct(m.querySelector('b'), 'left'), width = pct(m.querySelector('b'), 'width'), at = pct(m.querySelector('i'), 'left');
+      if (width > 0 && at >= left + 3 && at <= left + width - 3) { pressed = true; B.log('timing', { at, zone: [left, left + width] }); }
+    }
     await B.press(' ');
     detector.hold(s.t);
     continue;
