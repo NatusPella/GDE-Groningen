@@ -1,4 +1,4 @@
-import { nearestLine, project as projectOnLine, makeRunner, stepRunner, startAt } from './busroutes.js';
+import { linesNear, project as projectOnLine, makeRunner, stepRunner, startAt } from './busroutes.js';
 import { assistDamage } from './assistlive.js';
 import { closestPointOnSegment, normalizeAngle, clamp, lerp, pointInPolygon, inMapWater, WATER_Y, keepBoatOffShore, boatDryPoints } from './util.js';
 import { waterClearance, waterChannelPoints } from './waterindex.js';
@@ -1141,8 +1141,10 @@ export function manageBusPopulation(world, { target = 4, spawnMin = 90, spawnMax
   for (const v of vehicles) if (v.isBus && !v.wrecked && v.driver !== 'player') count++;
 
   // echte lijnen (busroutes.js, zodra de lijndata geladen is): een bus begint op zijn lijn en rijdt hem
-  const line = busLines.length ? nearestLine(busLines, player.x, player.y, spawnMax) : null;
+  const near = busLines.length ? linesNear(busLines, player.x, player.y, spawnMax) : [];
+  const line = near[0] || null;
   for (let tries = 0; line && count < target && tries < 4; tries++) {
+    const line = near[Math.floor(Math.random() * near.length)];
     const pr = projectOnLine(line, player.x, player.y);
     const dir = Math.random() < 0.5 ? 1 : -1;
     const at = startAt(line, Math.max(0, Math.min(line.length, pr.s + dir * (spawnMin + Math.random() * (spawnMax - spawnMin) * 0.6))), dir);
@@ -1156,6 +1158,8 @@ export function manageBusPopulation(world, { target = 4, spawnMin = 90, spawnMax
     vehicles.push(v);
     count++;
   }
+  // with a real line in reach the buses are the line's, not random ones on the main roads (#80)
+  if (line) return;
 
   const candidates = map.roadsNear(player.x, player.y, spawnMax).filter((r) => r.cat === 'major' || r.cat === 'normal' || r.busOnly);
   let guard = 0;
