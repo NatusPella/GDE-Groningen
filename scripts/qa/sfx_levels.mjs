@@ -23,7 +23,7 @@ const r = spawnSync(electron, ['.', '--windowed', '--stil', '--audio-graph', `--
 fs.writeFileSync(path.join(OUT, 'run.log'), `${r.stdout || ''}\n${r.stderr || ''}`);
 fs.rmSync(path.join(os.tmpdir(), profile), { recursive: true, force: true });
 let rows = [];
-for (const l of (r.stdout || '').split('\n')) { const m = l.match(/^\[perf-script\] (.*)$/); if (m) try { rows = JSON.parse(m[1]).results || rows; } catch { /* laatste regel telt */ } }
+for (const l of (r.stdout || '').split('\n')) { const m = l.match(/^\[perf-script\] (.*)$/); if (m) try { { const j = JSON.parse(m[1]); rows = j.results || rows; if (j.stats) console.log('audio-stats', JSON.stringify(j.stats)); } } catch { /* laatste regel telt */ } }
 fs.writeFileSync(path.join(OUT, 'levels.json'), JSON.stringify(rows, null, 1));
 console.log(`effecten gemeten: ${rows.length}, exit ${r.status}${r.signal ? ' ' + r.signal : ''}\nuitvoer: ${OUT}`);
 process.exit(rows.length ? 0 : 1);
