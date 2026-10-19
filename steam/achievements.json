@@ -501,14 +501,14 @@
     {
       "id": "discgolf_ace",
       "titel": "Ace in het Stadspark",
-      "omschrijving": "Gooi een hole in één bij discgolf",
+      "omschrijving": "Gooi de disc in één worp in de mand bij discgolf",
       "verborgen": true,
       "steamApiNaam": ""
     },
     {
       "id": "putt_klaar",
       "titel": "Korte gras",
-      "omschrijving": "Speel zes holes pitch & putt",
+      "omschrijving": "Speel zes banen pitch & putt",
       "verborgen": false,
       "steamApiNaam": ""
     },
@@ -704,7 +704,7 @@
     {
       "id": "discgolf_achttien",
       "titel": "Heen en terug",
-      "omschrijving": "Speel alle achttien holes discgolf",
+      "omschrijving": "Speel alle achttien banen discgolf",
       "verborgen": false,
       "steamApiNaam": ""
     },
