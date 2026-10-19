@@ -438,6 +438,22 @@ results.routes.progs = await safe('progs', async () => {
   mover = null;
   return { parallelCompile: !!ext, programs: r.info.programs.length, events: events.slice(0, 60), stalls: events.filter((e) => e.gap > 120).length, stallMs: events.filter((e) => e.gap > 120).reduce((a, e) => a + e.gap, 0) };
 });
+// who calls renderer.render, per frame (only with PERF_ONLY=renders)
+results.routes.renders = await safe('renders', async () => {
+  if (!ONLY.includes('renders')) return null;
+  fixWorld(); teleport(FOOT[0][0], FOOT[0][1]); await sleep(8000);
+  const by = new Map(); let frames = 0;
+  const prev = r.render;
+  r.render = function (sc2, cam2) {
+    const t = r.getRenderTarget();
+    const k = (sc2.name || sc2.type) + '/' + (cam2.name || cam2.type) + '/' + (t ? t.width + 'x' + t.height + 's' + (t.samples || 0) : 'screen') + '/' + (new Error().stack.split(String.fromCharCode(10)).slice(2, 5).map((l) => l.trim().split('/').pop()).join(' < '));
+    by.set(k, (by.get(k) || 0) + 1);
+    return prev.call(r, sc2, cam2);
+  };
+  await new Promise((res) => { const f = () => { frames++; if (frames > 120) res(); else requestAnimationFrame(f); }; requestAnimationFrame(f); });
+  r.render = prev;
+  return { frames, by: [...by].sort((a, b) => b[1] - a[1]).slice(0, 12) };
+});
 results.routes.pause = await run('pause', async () => { teleport(...P(100, 77)); await sleep(4000); wantMenu = true; PM.openPauseMenu('game'); return {}; }, () => {}, async () => { wantMenu = false; PM.closePauseMenu(); });
 results.routes.sheet = await run('sheet', async () => { teleport(...P(100, 77)); await sleep(4000); wantMenu = true; PM.openPauseMenu('settings'); return {}; }, () => {}, async () => { wantMenu = false; PM.closePauseMenu(); });
 
