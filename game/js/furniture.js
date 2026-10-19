@@ -13,7 +13,7 @@ import { getSideJobSpotsForRender } from './sidejobs.js';
 import { getGaragesForRender } from './garages.js';
 import { getStationsForRender } from './stationtravel.js';
 import { storyFlag } from './story.js';
-import { isVerplaatsbaar, schoonPlekken, plekVan, volgendePlek, opPlek, PLEKKEN } from './inrichting.js';
+import { isVerplaatsbaar, schoonPlekken, plekVan, volgendePlek, opPlek, plekInfo } from './inrichting.js';
 import { getLedger, summary } from './finance.js';
 
 // EIKEA furniture for Tammo and Tessa's flat (home.js). Bought in the EIKEA
@@ -194,10 +194,11 @@ export function furnitureSkip() {
   return new Set(FURNITURE.filter((f) => f.replaces && state.owned.has(f.id)).map((f) => f.id));
 }
 
-// The piece as it stands now: lamp and plant can be moved (inrichting.js).
+// The piece as it stands now: lamp, plant, bookcase and desk can be moved (inrichting.js).
 function eff(f) {
   const o = isVerplaatsbaar(f.id) && opPlek(f.id, plekVan(state.plek, f.id));
   if (!o) return f;
+  if (o.use) return { ...f, at: { ...f.at, x: o.x, z: o.z, rot: o.rot }, solid: o.solid, use: o.use };
   return { ...f, at: { ...f.at, x: o.x, z: o.z }, solid: o.solid, use: f.use && { x: f.use.x + o.dx, z: f.use.z + o.dz } };
 }
 
@@ -634,16 +635,16 @@ function sellStekjes(w) {
   sayOnce(w, 'plant', 'Stekkies verkocht aan de buren. Groene vingers, groen geld.');
 }
 
-// Ubbo's pc: the best job, the money book (finance.js) and moving the lamp and plant (inrichting.js).
+// Ubbo's pc: the best job, the money book (finance.js) and moving the furniture (inrichting.js).
 function pcMenu(w) {
   const euro = (v) => '€' + Math.round(v).toLocaleString('nl-NL');
   const move = FURNITURE.filter((f) => isVerplaatsbaar(f.id) && state.owned.has(f.id)).map((f) => {
     const next = volgendePlek(state.plek, state.owned, f.id);
-    const nu = PLEKKEN[plekVan(state.plek, f.id)].label;
+    const nu = plekInfo(plekVan(state.plek, f.id)).label;
     return {
-      id: 'plek-' + f.id, label: f.short, desc: next ? `Nu: ${nu}. Straks: ${PLEKKEN[next].label}` : `Nu: ${nu}. Geen andere plek vrij`, verb: 'Verplaatsen', price: 0, keepFocus: true,
+      id: 'plek-' + f.id, label: f.short, desc: next ? `Nu: ${nu}. Straks: ${plekInfo(next).label}` : `Nu: ${nu}. Geen andere plek vrij`, verb: 'Verplaatsen', price: 0, keepFocus: true,
       preview: { kind: 'product', product: f.id }, disabled: next ? '' : 'Geen plek vrij',
-      buy() { state.plek[f.id] = next; refresh3D(); return `${f.short} staat nu: ${PLEKKEN[next].label}`; },
+      buy() { state.plek[f.id] = next; refresh3D(); return `${f.short} staat nu: ${plekInfo(next).label}`; },
     };
   });
   return {

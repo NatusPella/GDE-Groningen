@@ -120,7 +120,7 @@ export async function finishLoading() {
   await new Promise((r) => setTimeout(r, 380));
   if (AUTO) return;
   const key = l.querySelector('.bt-key');
-  if (key) key.textContent = 'Druk op een toets';
+  if (key) key.textContent = window.matchMedia && matchMedia('(pointer: coarse)').matches ? 'Tik om te beginnen' : 'Druk op een toets';
   l.classList.add('ready');
   await new Promise((resolve) => {
     const go = (e) => {

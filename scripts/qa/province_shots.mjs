@@ -134,6 +134,10 @@ let res = {}, full = {};
 for (const l of lines) { const m = l.match(/^\[perf-script\] (.*)$/); if (m) try { full = JSON.parse(m[1]); res = full.spots || {}; } catch {} }
 if (RONDE === 2) fs.writeFileSync(path.join(OUT, "ronde2.json"), JSON.stringify(full, null, 1));
 fs.writeFileSync(path.join(OUT, 'spots.json'), JSON.stringify(res, null, 1));
+const geflagd = Object.entries(res).filter(([, v]) => v.check && v.check.flags.length);
+const gechecked = Object.values(res).filter((v) => v.check).length;
+if (gechecked) console.log(`automatische controle: ${gechecked} plekken, ${geflagd.length} met een vlag${geflagd.map(([k, v]) => `
+  ${k}: ${v.check.flags.join(', ')}`).join('')}`);
 const nan = lines.filter((l) => /NaN/i.test(l));
 console.log(`plekken: ${Object.keys(res).length}/${(RONDE === 2 ? SPOTS2 : SPOTS).length}, exit ${r.status}${r.signal ? ' ' + r.signal : ''}, NaN-regels in log: ${nan.length}`);
 console.log(`uitvoer: ${OUT}`);

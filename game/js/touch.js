@@ -3,7 +3,7 @@
 // input.js the way gamepad.js does (padAxis, padHold, mouse), so every
 // action works unchanged. Does nothing on a desktop; ?touch=1 forces it on
 // and ?touch=0 off. Menus and the phone stay plain taps.
-import { detectTouch, touchMode, touchLayout, touchMore, stickVector, knobOffset, lookDelta, stickKeys, touchPlan, touchContext, stickless, touchUiActive, STICK_RADIUS } from './touchlogic.js';
+import { detectTouch, touchMode, touchLayout, touchMore, stickVector, knobOffset, lookDelta, stickKeys, touchPlan, touchContext, stickless, leftButtonX, touchUiActive, STICK_RADIUS } from './touchlogic.js';
 import { refreshGlyphs } from './glyphs.js';
 import { getSettings } from './settings.js';
 import { FLAGS } from './devflags.js';
@@ -33,13 +33,18 @@ html.touch-device, html.touch-device body { overscroll-behavior: none; -webkit-t
 html.touch-device body { touch-action: manipulation; }
 html.touch-device button, html.touch-device [role="button"], html.touch-device select { min-height: 44px; }
 html.touch-device #touch-ui .t-btn { min-height: 0; }
+/* the HUD makes room: the clock column leaves the corner of the pause button, a phone has no room for the street name beside the buttons, keyboard hints mean nothing */
+html.touch-device #hud .hud-top-right { right: calc(var(--hud-edge, 24px) + 64px); }
+html.touch-device[data-touch-class="phone"] #hud .hud-fcol { display: none; }
+html.touch-device .mv-close { display: inline-flex !important; }
+html.touch-device .m-hint, html.touch-device #start-screen .ss-foot { display: none; }
 #touch-ui .t-left-btns, #touch-ui .t-right-btns { position: absolute; bottom: env(safe-area-inset-bottom); }
 #touch-ui .t-left-btns { left: env(safe-area-inset-left); width: 0; height: 0; }
 #touch-ui .t-right-btns { right: env(safe-area-inset-right); width: 0; height: 0; }
 `;
 
 // button spots from the bottom right corner, in px: [right, bottom]
-const SPOTS_RIGHT = [[24, 110], [96, 40], [96, 180], [168, 110], [30, 240]];
+const SPOTS_RIGHT = [[24, 110], [96, 40], [96, 180], [168, 110], [30, 226]];
 const SPOTS_LEFT = [[24, 40], [24, 120], [96, 40]];
 
 export function initTouch(input, world, hooks = {}) {
@@ -151,9 +156,13 @@ export function initTouch(input, world, hooks = {}) {
     btnHost.textContent = '';
     const plan = touchPlan(ctx);
     let r = 0, l = 0;
+    // the left buttons start beside the minimap, not over it
+    const mm = document.querySelector('#hud .hud-minimap-wrap');
+    const mr = mm && mm.offsetParent !== null ? mm.getBoundingClientRect().right : 0;
+    const x0 = leftButtonX({ minimapRight: mr, scale: touchLayout({ width: window.innerWidth, height: window.innerHeight }).scale });
     for (const b of plan) {
       if (b.side === 'right') addButton(b, SPOTS_RIGHT[r++ % SPOTS_RIGHT.length], 'right');
-      else addButton(b, SPOTS_LEFT[l++ % SPOTS_LEFT.length], 'left');
+      else { const s = SPOTS_LEFT[l++ % SPOTS_LEFT.length]; addButton(b, [x0 + s[0] - 24, s[1]], 'left'); }
     }
     const more = touchMore(ctx);
     if (more.length) {

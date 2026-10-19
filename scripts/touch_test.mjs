@@ -2,7 +2,7 @@
 // buttons per situation (game/js/touchlogic.js).
 import { detectTouch, stickVector, knobOffset, lookDelta, stickKeys, touchPlan, labelFor, touchUiActive, touchContext, stickless } from '../game/js/touchlogic.js';
 import { touchMode, touchLayout, touchMore, touchLabelForToken, TOUCH_CHOICES } from '../game/js/touchlogic.js';
-import { pinchStep } from '../game/js/touchlogic.js';
+import { pinchStep, leftButtonX } from '../game/js/touchlogic.js';
 import { PAD_MAPS } from '../game/js/controls.js';
 
 let fail = 0;
@@ -90,6 +90,10 @@ eq('pinch midpoint', pin.mid, { x: 100, y: 0 });
 eq('pinch zero distance is neutral', pinchStep([{ x: 5, y: 5 }, { x: 5, y: 5 }], [{ x: 0, y: 0 }, { x: 9, y: 0 }]).factor, 1);
 
 // env(safe-area-inset-*) in touch.js geeft op iOS pas iets met viewport-fit=cover
+// the left buttons start beside the minimap (360 px tall phone: the minimap is 190 px wide)
+eq('geen minimap: knoppen in de hoek', leftButtonX({ minimapRight: 0, scale: 0.9 }), 24);
+eq('minimap tot 214 px: knoppen erachter', leftButtonX({ minimapRight: 214, scale: 0.9 }), Math.ceil(224 / 0.9));
+eq('minimap smaller dan de hoek: hoek blijft', leftButtonX({ minimapRight: 6, scale: 1 }), 24);
 import { readFileSync } from 'node:fs';
 const html = readFileSync(new URL('../game/index.html', import.meta.url), 'utf8');
 if (!/name="viewport"[^>]*viewport-fit=cover/.test(html)) { fail++; console.log('FAIL viewport-fit=cover ontbreekt in index.html'); }
