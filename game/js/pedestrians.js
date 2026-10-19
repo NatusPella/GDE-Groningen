@@ -1,3 +1,5 @@
+import { DEAD_DURATION } from './pedconst.js';
+export { DEAD_DURATION };
 import { scaledTarget, farAIDist, skipFar, takeDt } from './simload.js';
 import { inClearZone } from './clearzone.js';
 import { openDriverDoor } from './vehicledoors.js';
@@ -32,7 +34,6 @@ const WANDER_SPEED = 1.3;
 const FLEE_SPEED = 3.6;
 const FLEE_TRIGGER_RADIUS = 9;
 const FLEE_SAFE_RADIUS = 34;
-export const DEAD_DURATION = 20;
 const WAYPOINT_RADIUS = 15;
 const VEHICLE_HIT_SPEED = 4;
 const KNOCK_DECAY = 3.5;

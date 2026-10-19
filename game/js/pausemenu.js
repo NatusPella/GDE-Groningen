@@ -7,6 +7,7 @@
 // Instellingen, Besturing.
 import { getSettings, setSetting, resetSettings, QUALITY_PRESETS } from './settings.js';
 import { logoHtml } from './logo.js';
+import { setPauseMenuOpen } from './pausestate.js';
 import { PRESET_ORDER, presetLabel, describePreset, describeChanges, currentPreset, applyPreset, getBenchResult, dismissBenchBanner, GEAR_SVG } from './gfxprofile.js';
 import { mountMapView, setMapActive, setMapCloseHandler, setMapView, getDiscoveredRatio, setMapTeleport } from './mapview.js';
 import { renderSamenPanel } from './samenpanel.js';
@@ -268,9 +269,7 @@ function savePref() {
   try { localStorage.setItem(PREF_KEY, JSON.stringify(pref)); } catch (e) { /* private mode: keep it in memory */ }
 }
 
-export function isPauseMenuOpen() {
-  return open;
-}
+export { isPauseMenuOpen } from './pausestate.js';
 
 // How much of the city the menu hides: 0 closed, 2 most of it (the rail
 // plus a section).
@@ -1483,6 +1482,7 @@ function setOpen(value, name = HOME, how = 'direct') {
     return;
   }
   open = value;
+  setPauseMenuOpen(value);
   if (open && isShopOpen()) closeShopMenu();
   // audio.js muffles the world and the radio behind the unfolded phone
   if (world) world.menuMuffle = open && !prestart;
