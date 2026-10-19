@@ -251,10 +251,13 @@ export function initTouch(input, world, hooks = {}) {
   right.addEventListener('pointerup', lookEnd);
   right.addEventListener('pointercancel', lookEnd);
 
+  // a cutscene (cinematics.js) owns the screen: the buttons give way to one Overslaan
+  const cineActive = () => { const c = document.getElementById('cine'); return !!c && c.classList.contains('active'); };
+
   // follows the game: shown while playing, rebuilt when the situation changes
   setInterval(() => {
     const active = touchUiActive({ started: document.body.classList.contains('game-started'), menuOpen: hooks.menuOpen ? hooks.menuOpen() : false });
-    const nctx = active ? touchContext(world, { started: true, menuOpen: false, shiftMode: getSettings().shiftMode }) : 'menu';
+    const nctx = active ? touchContext(world, { started: true, menuOpen: false, shiftMode: getSettings().shiftMode, cine: cineActive() }) : 'menu';
     if (active !== shown) {
       shown = active;
       document.documentElement.classList.toggle('touch-play', active);

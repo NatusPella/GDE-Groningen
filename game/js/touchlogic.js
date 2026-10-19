@@ -56,7 +56,7 @@ export function stickKeys(vec, held = new Set()) {
 }
 
 const LABELS = {
-  ' ': { foot: 'Spring', minigame: 'Spring', vehicle: 'Handrem', vehicleManual: 'Handrem', skutsje: 'Handrem', heli: 'Omhoog', pigeon: 'Vlieg', train: 'Fluit', foodtruck: 'OK', klokken: 'Start' },
+  ' ': { foot: 'Spring', minigame: 'Spring', vehicle: 'Handrem', vehicleManual: 'Handrem', skutsje: 'Handrem', heli: 'Omhoog', pigeon: 'Vlieg', train: 'Fluit', foodtruck: 'OK', klokken: 'Start', cutscene: 'Overslaan' },
   control: { heli: 'Omlaag', pigeon: 'Pikken', foot: 'Bukken', minigame: 'Bukken' },
   e: { _: 'Gebruik', pannenkoek: 'Appel', klokken: 'Volgend' }, f: 'Instappen', h: 'Toeter', l: 'Sirene', q: { _: 'Achterom', pannenkoek: 'Stroop', klokken: 'Vorig' }, n: 'Radio', m: 'Kaart', o: 'Overslaan', k: 'Kusje',
   shift: 'Rennen', tab: 'Doel', c: 'Koer', x: 'Mens', v: 'Film', r: { _: 'Lak', pannenkoek: 'Kaas' }, z: 'Zeil vieren', '[': 'Links', ']': 'Rechts', p: 'Alarm',
@@ -82,6 +82,8 @@ export const TOUCH_SLOTS = [...RIGHT, ...LEFT, 'rb'];
 export const stickless = (ctx) => (PAD_MAPS[ctx] || {}).stick === 'none';
 
 export function touchPlan(ctx) {
+  // a cutscene: one button, held (Space) like the hold-to-skip of the keyboard
+  if (ctx === 'cutscene') return [{ slot: 'a', action: ' ', label: 'Overslaan', side: 'right' }];
   const map = PAD_MAPS[ctx] || PAD_MAPS.foot;
   const out = [];
   const seen = new Set();
@@ -167,8 +169,9 @@ export function touchUiActive({ started, menuOpen }) {
 
 // The PAD_MAPS situation for the world right now (the same choice
 // gamepad.js makes), so touch buttons follow what the player is doing.
-export function touchContext(w, { started = true, menuOpen = false, shiftMode = 'auto' } = {}) {
+export function touchContext(w, { started = true, menuOpen = false, shiftMode = 'auto', cine = false } = {}) {
   if (!started || menuOpen) return 'menu';
+  if (cine) return 'cutscene';
   if (!w) return 'foot';
   if (w.pigeonMode) return 'pigeon';
   if (w.trainDriving) return 'train';
