@@ -127,13 +127,13 @@ for (const deel of PARTS) {
   else if (deel === 'verhaal') log = await runPart(deel, `window.__sw = ${JSON.stringify({ plan: plan.verhaal, settle: SETTLE })};\n`, 'sweep.page.js', { GDE_NIEUW_VERHAAL: '1' });
   else if (deel === 'cut') log = await runPart(deel, `window.__cs = ${JSON.stringify({ sample: plan.cut, settle: SETTLE })};\n`, 'cutscene_shots.page.js');
   for (const l of log.split(/\r?\n/)) {
-    let m = l.match(/^\[sweep-stop\] (.*)$/);
+    let m = l.match(/\[sweep-stop\] (.*)$/);
     if (m) { try { stops.push({ deel, ...JSON.parse(m[1]) }); } catch { /* ingekort */ } }
     m = l.match(/^\[(cs-scene|cs-clip|cs-sample)\] (.*)$/);
     if (m) csInfo.push(l);
   }
   // NaN / foutregels uit het hoofdproces
-  stops.push({ deel, name: `log-${deel}`, logregels: log.split(/\r?\n/).filter((l) => /NaN|Cannot access .* before initialization|Uncaught|TypeError|ReferenceError/.test(l) && !/sweep-stop|perf-script/.test(l)).slice(0, 12) });
+  stops.push({ deel, name: `log-${deel}`, logregels: log.split(/\r?\n/).filter((l) => /NaN|Cannot access .* before initialization|Uncaught|TypeError|ReferenceError/.test(l) && !/sweep-stop|perf-script/.test(l)).filter((l, i, a) => a.indexOf(l) === i).slice(0, 12) });
 }
 
 // ---- beoordeling van de PNG's ----

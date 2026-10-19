@@ -3176,12 +3176,14 @@ const lightBase = {
 const MOON_COLOR = new THREE.Color(0xdfe6f5);
 const BED_COLOR = new THREE.Color(0x1e2a2c);
 let wetness = 0;
+let lastLight = null; // the clock's lighting of the last frame, read by the cloud layer
 let envTimer = 0;
 const _envGround = new THREE.Color();
 const _envSun = new THREE.Color();
 
 function applyTimeOfDay(dt, world) {
   const L = computeLighting(typeof world.clock === 'number' ? world.clock : 12, lightState);
+  lastLight = L;
   // a cutscene's own grade on top of the clock's (intromontage.js: the dawn shot)
   if (world.lightMood) world.lightMood(L);
   const storm = world.weather ? Math.min(1, Math.max(0, world.weather.intensity)) : 0;
@@ -3271,7 +3273,7 @@ function updateSunAndSky(player, dt, world) {
   sun.target.position.copy(_shadowCenter);
   sun.position.copy(_shadowCenter).addScaledVector(sunDir, SUN_DIST);
   skyDome.position.copy(cam.position);
-  updateCloudLayer(cloudLayer, cam.position, cam.far, world.weather, L.daylight, L.night, dt);
+  if (lastLight) updateCloudLayer(cloudLayer, cam.position, cam.far, world.weather, lastLight.daylight, lastLight.night, dt);
 }
 
 function buildWildlifeActor(a) {
