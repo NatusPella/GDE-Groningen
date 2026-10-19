@@ -1,12 +1,20 @@
-# Changel-- **Sluizen-audit:** `node scripts/world/sluizen.mjs [--raster] [--write] [--strict]` controleert voor elke sluis dat het water aan beide kanten doorloopt (ook in het vaarnetraster) en schrijft `game/sluizen.json`; `scripts/sluizen_test.mjs` test de deuren per fase, de seinen, schutten in beide richtingen, een wachtrij en geen deadlock.
- **Sluizen werken (nog niet in beeld bekeken, #236):** elk van de 62 sluizen in de provincie heeft deuren die open en dicht gaan, seinlichten (rood, geel, groen) vóór de deur en een schutcyclus. Vaar je op een sluis aan, ligt je boot stil of toeter je, dan vraagt de boot de sluis; bij groen vaar je in, de deur sluit, het water gaat omhoog of omlaag (je boot gaat mee) en de andere deur gaat open. Boten van de computer doen mee en een deur sluit nooit op een boot. Bij Lauwersoog liep een onzichtbare muur dwars door de kolk van de Robbengatsluis (een lange waterrand telde als oever); die is weg. De kolk van de Robbengatsluis en twee kolken van het Reitdiep waren geen vaarwater voor grotere boten of ontbraken in de kaart; dat is gerepareerd.
-og
+# Changelog
 
 Alle noemenswaardige wijzigingen in GDE Groningen, per versie. Nieuwste bovenaan.
 Versies volgen SemVer: `0.x.y` tot de echte release (1.0.0); `x` voor
 nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
+
+## [0.37.1] - 2026-10-19
+
+### Nieuw
+- **Sluizen-audit:** `node scripts/world/sluizen.mjs [--raster] [--write] [--strict]` controleert voor elke sluis dat het water aan beide kanten doorloopt (ook in het vaarnetraster) en schrijft `game/sluizen.json`; `scripts/sluizen_test.mjs` test de deuren per fase, de seinen, schutten in beide richtingen, een wachtrij en geen deadlock.
+- **Sluizen werken (nog niet in beeld bekeken, #236):** elk van de 62 sluizen in de provincie heeft deuren die open en dicht gaan, seinlichten (rood, geel, groen) vóór de deur en een schutcyclus. Vaar je op een sluis aan, ligt je boot stil of toeter je, dan vraagt de boot de sluis; bij groen vaar je in, de deur sluit, het water gaat omhoog of omlaag (je boot gaat mee) en de andere deur gaat open. Boten van de computer doen mee en een deur sluit nooit op een boot. Bij Lauwersoog liep een onzichtbare muur dwars door de kolk van de Robbengatsluis (een lange waterrand telde als oever); die is weg. De kolk van de Robbengatsluis en twee kolken van het Reitdiep waren geen vaarwater voor grotere boten of ontbraken in de kaart; dat is gerepareerd.
+
+### Intern
+- **Spelbot, testpijplijn en prestaties (niet door een mens bekeken):** de spelbot speelt verder (akte 1 t/m 5 is nog niet achter elkaar gehaald), `node scripts/test_all.mjs` krijgt een coöp-stap, en een nieuwe test `scripts/storyallies_test.mjs` controleert de gevolgen van de M23-keuze. De 60 fps te voet in de stad is nog niet gehaald (45 tot 49 fps).
+- **Vaarnettest:** `vaarnet_province_test` hield geen rekening met de gatenpatches die binnenvaartschepen sinds #234 nodig hebben; dat is rechtgezet (26 van 26 groen).
 
 ## [0.37.0] - 2026-10-19
 
