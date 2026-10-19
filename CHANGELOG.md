@@ -6,6 +6,10 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Nieuw
+- **Samen spelen: gedeelde speelklok en desync-controle (#95):** de tijd van de dag van een gast volgt die van de host, en de host controleert om de paar seconden of de gast hetzelfde ziet (verhaalstap, opdracht, wanted, spelers); bij een afwijking vraagt de gast zijn toestand opnieuw. Alleen met pure tests en in-memory getest, nog niet getest met twee echte computers of met een telefoon.
+- **Spelbot (#186, #255):** `--speed=N` speelt tot 8 spelstappen per beeld; de minigame-ronde stopt zelf op de echte-tijdbegroting en bij een vastgelopen speltijd, en bewaart bij een onderbreking de uitvoer (`run.log`, `result.json` met de lijst minigames).
+
 ## [0.37.1] - 2026-10-19
 
 ### Nieuw
