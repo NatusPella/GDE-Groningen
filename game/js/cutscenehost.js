@@ -2,7 +2,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { getScene } from './scene3d.js';
 import { buildPersonMesh, seatPose, seatedY, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
 import { buildKitchen } from './introkitchen3d.js';
-import { playCinematic } from './cinematics.js';
+import { playCinematic, setNameCard } from './cinematics.js';
 import { compileScene, fitAnchor, resolveTime, shotPoints } from './cutscript.js';
 import { roofAt } from './camerapath.js';
 import { animateActor } from './actoranim.js';
@@ -19,7 +19,7 @@ import { audioPlan } from './cutaudio.js';
 //   lines:  [{ speaker, text, at, dur, voice? }], untouched: they stay the story's own
 //   def.set 'keuken': Tessa's kitchen (introkitchen3d.js) is built at the anchor (anchor.z = floor height) and the camera is kept inside it;
 //   def.fx: host effects on the set: buzz { dur } (the phone), door { open: 0-1, dur }, cups { actor, on, hands }, tablecups { on },
-//   sfx { kind } (a world sound), pulse { dur } (the radio)
+//   sfx { kind } (a world sound), pulse { dur } (the radio), naam { text, dur } (a name card, any set)
 
 const MATS = {};
 const mat = (c, o = {}) => (MATS[c + JSON.stringify(o)] ||= new THREE.MeshStandardMaterial({ color: c, roughness: 0.8, ...o }));
@@ -286,6 +286,9 @@ export function playScript(w, def, { lines, duration, anchor, cine = {}, env: en
   const env = envIn || (indoors ? kitchenEnv({ x: a.x, y: a.y, z: a.z || 0 }) : { solid: (x, y, z) => roofAt(w.map, x, y) > z - 0.2 });
   const at = indoors ? { ...a, facing: 0 } : fitAnchor(scene, a, env);
   let run = null, lastT = 0;
+  // name cards (fx 'naam' { text, dur }): a character is introduced at the lower left (#159)
+  const cards = (def.fx || []).filter((f) => f.fx === 'naam').map((f) => ({ text: f.text, t0: resolveTime(f.t, lines, duration) ?? 0, dur: f.dur ?? 2.4 }));
+  let cardNow = null;
   // the tiles round the camera's path are built ahead and held, so no shot cuts to the far LOD or a hole (#157, #20)
   const prewarm = cine.prewarm || shotPoints(scene, at, duration);
   const ok = playCinematic({
@@ -310,11 +313,16 @@ export function playScript(w, def, { lines, duration, anchor, cine = {}, env: en
       const dt = Math.min(0.1, Math.max(0, t - lastT));
       lastT = t;
       if (cine.frame) cine.frame(t, dt);
+      if (cards.length) {
+        const cur = cards.find((k) => t >= k.t0 && t < k.t0 + k.dur) || null;
+        if (cur !== cardNow) { cardNow = cur; setNameCard(cur ? cur.text : null); }
+      }
       return run.frame(t, dt);
     },
     onEnd(skipped, replaced) {
       if (run) { run.dispose(); run = null; }
       current = null;
+      if (cardNow) setNameCard(null);
       w.cinematicHidePlayers = false;
       w.cinematicHideNav = false;
       if (cine.onEnd) cine.onEnd(skipped, replaced);
