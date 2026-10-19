@@ -5,6 +5,10 @@
 // their node tests can import it.
 import { wgsToWorld } from './rdnew.js';
 
+// Scene, banner and card of the running game, set by activities.js: a minigame that imports them
+// itself would sit in the big import cycle through scene3d/cinematics/hudcards (#108).
+export const gameUi = { getScene: () => null, showBanner: () => {}, showCard: () => {} };
+
 export const geo = (lat, lon) => {
   const [x, y] = wgsToWorld(lat, lon);
   return { x, y };
