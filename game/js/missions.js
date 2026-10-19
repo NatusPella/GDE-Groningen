@@ -2,7 +2,7 @@ import { SMS_SAY } from './smsvoice.js';
 import { assistTime } from './assistlive.js';
 import { dist, pointInPolygon, closestPointOnSegment, boatDryPoints, clamp, isInWater } from './util.js';
 import { waterPolyAt } from './waterlevels.js';
-import { isNightAtHour } from './sunrules.js';
+import { isNight, setHomePlace, getHomePlace, registerMissionQueries } from './missionquery.js';
 import { PERFECT_VERDICT } from './flavourlines.js';
 import { spawnVehicleOnRoad, Vehicle, makeTwoWheeler, spawnHeroCarNear, attachToNearestRoad, TRACTOR_MODEL, QUAD_MODEL } from './vehicle.js';
 import { placeOwnedVehicleNear } from './ownedvehicles.js';
@@ -787,10 +787,7 @@ export function setMissionHooks(h) {
 }
 
 // night by the sun (sunrules.js): the same answer as the street lights
-export function isNight(w) {
-  const h = w.dayNight ? w.dayNight.hour : w.clock;
-  return isNightAtHour(h);
-}
+export { isNight };
 
 const reqList = (def) => (Array.isArray(def.requires) ? def.requires : def.requires ? [def.requires] : []);
 
@@ -810,14 +807,12 @@ export function requirementMet(w, key) {
 
 // Where to get requirement key: nearest shop of its type(s), or a garage.
 // home.js registers where home is: waiting for the dark happens there.
-let homePlace = null;
-export function setHomePlace(fn) {
-  homePlace = fn;
-}
+export { setHomePlace };
 
 export function requirementPlace(w, key) {
   const req = REQUIREMENTS[key];
   if (!req) return null;
+  const homePlace = getHomePlace();
   const h = req.home && homePlace && homePlace();
   if (h) return h;
   if (req.garage) {
@@ -936,6 +931,10 @@ export function isMissionActive() {
 }
 registerBusyProbe('mission', isMissionActive);
 registerBusyProbe('activeRace', () => !!getActiveRace());
+registerMissionQueries({
+  isMissionActive, getActiveRace, isMissionCompleted, getMissionDefs, getMissionProgress, missionIndexById, getMissionList,
+  payMedalBonus, setNextMission, unmetRequirement, requirementMet, requirementPlace, activeStage,
+});
 
 // Makes mission i the next one in the chain and the player's goal (goal.js).
 // Callers that offer story missions ahead of the story go through todo.js

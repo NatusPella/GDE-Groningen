@@ -10,7 +10,7 @@ import { FLAGS } from './devflags.js';
 import { sendKey } from './input.js';
 import { STATUS_VERSION, validateStatus, replayInputs } from './botlogic.js';
 import { getStoryView, storyApi } from './story.js';
-import { getMissionDefs, activeStage } from './missions.js';
+import { getMissionDefs, activeStage } from './missionquery.js';
 import { getGoal, goalTarget } from './goal.js';
 import { isCinematicActive, isBannerUp } from './cinematics.js';
 import { talkState, talkActive } from './storytalk.js';

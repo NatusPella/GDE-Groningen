@@ -5,7 +5,7 @@ import { radioIsOn } from './radio.js';
 import { STATION_NAME } from './musicpick.js';
 import { isCinematicActive } from './cinematics.js';
 import { getActiveRoute } from './routing.js';
-import { getMissionDefs, isMissionCompleted } from './missions.js';
+import { getMissionDefs, isMissionCompleted } from './missionquery.js';
 import { Pedestrian, isSpawnHidden, CITY_CENTRE } from './pedestrians.js';
 import { isInsideBuilding, isOnRoad } from './pedgeom.js';
 import { Vehicle, makeTwoWheeler } from './vehicle.js';

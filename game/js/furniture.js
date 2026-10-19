@@ -3,7 +3,7 @@ import { buildProductMesh } from './shopmodels3d.js';
 import { openShopMenu, closeShopMenu } from './shopui.js';
 import { unlockAchievement } from './achievements.js';
 import { getEierballen } from './achievementtracker.js';
-import { getMissionProgress, getMissionDefs } from './missions.js';
+import { getMissionProgress, getMissionDefs } from './missionquery.js';
 import { storyReplayLines } from './missionstory.js';
 import { playStoryVoice, stopStoryVoice } from './audio.js';
 import { requestSearchlight } from './nightlights3d.js';

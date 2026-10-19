@@ -5,7 +5,7 @@
 // bought, which the story's shop steps (goal.buy) complete on.
 
 import { currentStep, storyVoorschotInfo } from './story.js';
-import { getMissionDefs, unmetRequirement, requirementMet, requirementPlace, activeStage } from './missions.js';
+import { getMissionDefs, unmetRequirement, requirementMet, requirementPlace, activeStage } from './missionquery.js';
 import { VEHICLE_STOCK, SHOP_TYPES } from './shops.js';
 import { STEPS } from './storyarc.js';
 import { displayName } from './speakers.js';

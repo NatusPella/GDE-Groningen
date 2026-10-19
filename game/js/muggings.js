@@ -5,7 +5,7 @@ import { wijkProfileAt } from './trafficfleet.js';
 import { isInWater } from './util.js';
 import { showCard, cardsBusy } from './hudcards.js';
 import { isCinematicActive } from './cinematics.js';
-import { isMissionActive } from './missions.js';
+import { isMissionActive } from './missionquery.js';
 import { isActivityActive } from './activities.js';
 import { inHomeFlat } from './home.js';
 import { MUG, MUG_TEXT, mayMug, riskLevel, hazard, warnsOn, riskWhy, stolenAmount, caught, escaped, nightFactor } from './muggingrules.js';

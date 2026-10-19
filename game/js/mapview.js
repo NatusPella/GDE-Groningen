@@ -43,7 +43,7 @@ import { getMissionLayer } from './missionmaplive.js';
 import { selectMapItems } from './missionmap.js';
 import { drawLayerAreas, drawLayerLines, layerCaption } from './missionmapdraw.js';
 import { getTodoItems, chooseTodo, mapIconUrl } from './todo.js';
-import { getMissionList } from './missions.js';
+import { getMissionList } from './missionquery.js';
 import { MEDALS } from './achievements.js';
 import { nicknameOf, FLAVOUR_MAP_PLACES } from './flavourlines.js';
 import {

@@ -17,7 +17,8 @@ import { getHorecaForRender } from './horeca.js';
 import { initShopUi, openShopMenu, isShopOpen } from './shopui.js';
 import { isCinematicActive } from './cinematics.js';
 import { recordStat, isUnlocked } from './achievements.js';
-import { isMissionCompleted, missionIndexById } from './missions.js';
+import { isMissionCompleted, missionIndexById } from './missionquery.js';
+import { registerShopIcon } from './shopicon.js';
 import { prepareStoryShop, currentStep } from './story.js';
 import { markStoryItems, noteStoryPurchase } from './storyshop.js';
 import { jobLevel } from './sidejobs.js';
@@ -2136,6 +2137,7 @@ export function shopIconUrl(type, px = 64) {
   drawShopGlyph(g, type, px * 0.3, col);
   return (iconUrls[k] = c.toDataURL());
 }
+registerShopIcon(shopIconUrl);
 
 // --- 3D shopfront ----------------------------------------------------------------
 
