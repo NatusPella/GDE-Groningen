@@ -24,7 +24,8 @@ for (const m of TRAFFIC_MODELS()) {
   scene.add(mesh);
   const defs = doorsFor(v);
   syncVehicleDoors(mesh, v, 1 / 60, null);
-  check(m.name + ': gesloten zonder extra mesh', !mesh.userData.doorRig || visible(mesh) === 0);
+  // een bus heeft bewust een gesloten deurblad (blauw glas boven wit, a3450b80); de rest tekent niets extra
+  check(m.name + ': gesloten zonder extra mesh', !mesh.userData.doorRig || (m.name === 'bus' ? visible(mesh) >= 1 : visible(mesh) === 0), 'zichtbaar ' + visible(mesh));
   if (!defs.length) { check(m.name + ': geen deuren, geen rig', !mesh.userData.doorRig); continue; }
   const rol = defs.some((d) => d.seat === 'bestuurder') ? 'bestuurder' : 'bijrijder';
   for (let i = 0; i < 30; i++) syncVehicleDoors(mesh, v, 1 / 60, { rol, open: true });
@@ -62,3 +63,4 @@ check('reparatie: deur terug', !Object.keys(sedan.doors.loose).length);
 
 if (bad) { console.log(bad + ' mislukt'); process.exit(1); }
 console.log('vehicledoors3d_test: ok');
+process.exit(0); // overlayhold.js start een interval bij het laden
