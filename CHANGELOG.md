@@ -6,6 +6,10 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Verbeterd
+- **Shift+klik op de kaart verplaatst je weer (#180, nog niet in beeld bekeken):** op de grote kaart en de provinciekaart zet shift+klik je op begaanbare grond bij die plek, met je voertuig mee en met dezelfde bewakers als de cheat Overal en nergens (niet tijdens een missie of filmpje, niet met de politie achter je aan, niet op het water). Uit te zetten onder Instellingen › Interface; een regel staat in Hulp.
+
+
 ### Opgelost
 - **Der Aa-kerk van binnen stond verkeerd om (nog niet in beeld bekeken, #22):** de torenhal lag aan de oostkant, terwijl de toren in de kaartdata aan de westkant staat. Torenhal en koor, de portalen en de kansel zijn gespiegeld; `interieurs_test` controleert nu dat de torenhal bij de echte toren ligt (1045 checks).
 
