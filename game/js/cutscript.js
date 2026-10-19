@@ -20,6 +20,7 @@
 // below must equal its ANIMS (scripts/cutscript_test.mjs checks that).
 
 export const ACTOR_ANIMS = ['idle', 'walk', 'run', 'talk', 'wave', 'point', 'shrug', 'nod', 'shake', 'laugh', 'carry', 'lean', 'hips', 'phone', 'cheer', 'look', 'ride', 'zwem', 'klim', 'sprong'];
+import { propKindIssue } from './cutscenemodels.js';
 export const PROP_KINDS = ['doos', 'tas', 'bestelbus', 'fiets', 'duif', 'radio', 'bord', 'koffer', 'bal', 'auto', 'matras', 'bakkie', 'automaat', 'aanhanger', 'trekker', 'politie', 'duiventil', 'zuil', 'klembord', 'kat'];
 export const VERBS = ['walk', 'anim', 'face', 'gaze', 'carry', 'drop', 'move', 'path', 'spin', 'bob', 'show', 'hide', 'sit'];
 export const SHOTS = ['cut', 'dolly', 'orbit', 'follow'];
@@ -69,6 +70,7 @@ export function validateScene(def, opts = {}) {
   }
   for (const [id, p] of Object.entries(props)) {
     if (!PROP_KINDS.includes(p.kind)) err(`prop ${id}: onbekende soort ${p.kind}`);
+    else { const bad = propKindIssue(p.kind); if (bad) err(`prop ${id}: ${bad}`); }
     if (!isVec(p.at, 2)) err(`prop ${id}: at moet [f, s, h?] zijn`);
   }
   const timeOf = (spec, what) => {
