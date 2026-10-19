@@ -59,7 +59,17 @@ for (const e of cat) {
   cine.skipCinematic && cine.skipCinematic();
   run.dispose();
   w.cinematicHidePlayers = false; w.cinematicHideNav = false;
-  results[e.id] = { shots: times.length, anker: { x: +at.x.toFixed(1), y: +at.y.toFixed(1), facing: +at.facing.toFixed(2) } };
+  // camera in a wall or under a roof (the collision check of #209): sampled every 0.25 s on the fitted anchor
+  const inside = [];
+  for (let t = 0; t <= e.duration; t += 0.25) {
+    try {
+      const c = e.scene.sample(t, at).camera;
+      const gz = map.groundHeightAt ? map.groundHeightAt(c.position.x, c.position.y, 0) || 0 : 0;
+      if (cam.roofAt(map, c.position.x, c.position.y) > c.position.z - 0.2 || c.position.z < gz + 0.2) inside.push(+t.toFixed(2));
+    } catch (err) { /* sampling failed: no verdict */ }
+  }
+  if (inside.length) console.log('[cs-clip] ' + e.id + ' camera in gebouw/grond op t=' + inside.slice(0, 12).join(','));
+  results[e.id] = { shots: times.length, clip: inside.length ? inside.slice(0, 40) : undefined, anker: { x: +at.x.toFixed(1), y: +at.y.toFixed(1), facing: +at.facing.toFixed(2) } };
   console.log('[cs-scene] ' + e.id + ' ' + JSON.stringify(results[e.id]));
   await sleep(300);
 }

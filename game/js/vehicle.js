@@ -959,7 +959,8 @@ function pruneWrecks(world) {
 }
 
 export function manageTrafficPopulation(world, opts = {}) {
-  const { map, player, vehicles } = world;
+  const { map, vehicles } = world;
+  const player = world.cameraOverride && world.streamFocus ? world.streamFocus : world.player; // in a cutscene the traffic fills round the camera's view (#157)
   // ?simlagen (issue #18): doelaantal en afstanden per streek uit simlagen.js
   const lagen = FLAGS.simlagen ? verkeerOpties(wijkProfileAt(map, player.x, player.y).key, hourOf(world)) : null;
   const { target = lagen ? lagen.target : 30, spawnMin = lagen ? lagen.spawnMin : 70, spawnMax = lagen ? lagen.spawnMax : 170, despawnDist = lagen ? lagen.despawnDist : 260 } = opts;
@@ -1008,7 +1009,8 @@ export function manageTrafficPopulation(world, opts = {}) {
 // single most Groningen-defining detail of the streetscape, so they get
 // their own population target, favoring dedicated cycleways when present.
 export function manageBikePopulation(world, { target = 16, spawnMin = 40, spawnMax = 140, despawnDist = 220 } = {}) {
-  const { map, player, vehicles } = world;
+  const { map, vehicles } = world;
+  const player = world.cameraOverride && world.streamFocus ? world.streamFocus : world.player; // in a cutscene the traffic fills round the camera's view (#157)
   for (let i = vehicles.length - 1; i >= 0; i--) {
     const v = vehicles[i];
     if (!v.isBike || v.driver === 'player') continue;
