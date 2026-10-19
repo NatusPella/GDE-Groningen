@@ -7,6 +7,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 ## [Unreleased]
 
 ### Nieuw
+- **Reigers, zeehonden en vissen (nog niet in beeld bekeken):** aan het water staat soms een reiger (vliegt weg als je dichtbij komt), in de kustwateren liggen zeehonden (duiken weg) en in grachten en sloten zwemmen vissen onder het oppervlak (schieten weg). Koeien en schapen stappen opzij voor jou en voor voertuigen. Reiger, zeehond en vis hebben een eigen geluid. Aantallen volgen de streek en de kwaliteit. (Refs #193)
 - **Bijbanen buiten de stad starten altijd (nog niet in beeld bekeken):** als er bij het hart van de streek nog geen weg is geladen (strandwacht, balenrit, melkrit, bergingsdienst), zoekt de baan eerst ruimer en valt dan terug op de dichtstbijzijnde weg in de stad, zodat het voertuig er altijd staat. (Refs #192)
 - **Tuning werkt door (nog niet in beeld bekeken):** een heldere koplamp laat 's nachts verder en feller schijnen, een zachte stoel dempt de camera-schok bij een botsing, de onderdelen van de Escapade komen terug als ze verschijnt, en opvallende onderdelen (knalpijp) laten de politie je tot 40% langer zoeken. (Refs #196)
 - **Zeilregatta met tegenstanders, omslaan en roeiritme (nog niet in beeld bekeken):** in de zeilregatta varen drie verzonnen zeilers mee (Wiebe, Marrit, Tjeerd) en je ziet je plaats in het bord en in de uitslag. Een zeilboot slaat om bij storm met een strak zeil dwars op de wind: even drijven, nat maar verder niets. De roeiboot vaart op ritme: tik W ongeveer elke seconde voor een hogere topsnelheid. (Refs #197)
