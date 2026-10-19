@@ -47,6 +47,8 @@ eq('label fallback', labelFor('foot', 'zz'), '');
 eq('ui off in menu', touchUiActive({ started: true, menuOpen: true }), false);
 eq('ui on in play', touchUiActive({ started: true, menuOpen: false }), true);
 
+eq('ctx cutscene', touchContext({ player: { inVehicle: {} } }, { cine: true }), 'cutscene');
+eq('cutscene: een knop Overslaan op Spatie', touchPlan('cutscene').map((b) => b.action + b.label), [' Overslaan']);
 eq('ctx menu', touchContext({}, { menuOpen: true }), 'menu');
 eq('ctx foot', touchContext({ player: {} }), 'foot');
 eq('ctx pannenkoek', touchContext({ player: {}, activityGame: 'pannenkoek' }), 'pannenkoek');
@@ -93,8 +95,8 @@ eq('pinch zero distance is neutral', pinchStep([{ x: 5, y: 5 }, { x: 5, y: 5 }],
 const SCREENS = [[800, 360], [360, 800], [915, 412], [412, 915], [844, 390], [390, 844], [1180, 820], [820, 1180], [640, 320], [568, 320]];
 const hit = (a, b) => a.x < b.x + b.w - 0.5 && b.x < a.x + a.w - 0.5 && a.y < b.y + b.h - 0.5 && b.y < a.y + a.h - 0.5;
 let layoutBad = 0;
-for (const ctx of Object.keys(PAD_MAPS).filter((c) => c !== 'xbox' && c !== 'ps' && c !== 'switch' && c !== 'deck')) {
-  if (!['foot', 'vehicle', 'vehicleManual', 'skutsje', 'heli', 'pigeon', 'train', 'minigame', 'klokken', 'pannenkoek', 'foodtruck', 'menu'].includes(ctx)) continue;
+for (const ctx of [...Object.keys(PAD_MAPS).filter((c) => c !== 'xbox' && c !== 'ps' && c !== 'switch' && c !== 'deck'), 'cutscene']) {
+  if (!['foot', 'vehicle', 'vehicleManual', 'skutsje', 'heli', 'pigeon', 'train', 'minigame', 'klokken', 'pannenkoek', 'foodtruck', 'menu', 'cutscene'].includes(ctx)) continue;
   const want = touchPlan(ctx).length;
   if (touchPlacement(ctx).length !== want) { layoutBad++; console.log(`FAIL ${ctx}: ${want} knoppen maar ${touchPlacement(ctx).length} plekken`); }
   for (const [W, H] of SCREENS) {
