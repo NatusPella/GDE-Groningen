@@ -19,13 +19,23 @@ const PLACES = { list: [], seats: [], districts: [], signs: [], towns: [], names
 // destinationFor): a city weighs more, nothing beyond 45 km
 const SIGN_KINDS = { city: 0.12, town: 0 };
 
+// The built-up radius of a place from its population (placesigns.js entryOf, #73): the
+// area at a typical density of the kind, as a circle; none without a population.
+const DENSITY = { city: 2200, town: 2000, village: 1500, hamlet: 1200 }; // inhabitants per km2
+export function builtUp(p) {
+  const d = DENSITY[p.kind];
+  if (!d || !(p.pop > 0)) return {};
+  const r = Math.sqrt(p.pop / d / Math.PI) * 1000;
+  return { r: Math.round(Math.max(120, Math.min(3200, r))) };
+}
+
 export function setWorldPlaces(list) {
   PLACES.list = Array.isArray(list) ? list : [];
   PLACES.names = new Set(PLACES.list.map((p) => p.name));
   PLACES.seats = PLACES.list.filter((p) => REACH[p.kind] !== undefined);
   PLACES.signs = PLACES.seats.filter((p) => SIGN_KINDS[p.kind] !== undefined && p.name)
     .map((p) => ({ n: p.name, x: p.x, y: p.y, w: SIGN_KINDS[p.kind], scale: 40000, max: 45000 }));
-  PLACES.towns = PLACES.seats.filter((p) => p.name && p.kind !== 'industrial').map((p) => ({ n: p.name, x: p.x, y: p.y, kind: p.kind }));
+  PLACES.towns = PLACES.seats.filter((p) => p.name && p.kind !== 'industrial').map((p) => ({ n: p.name, x: p.x, y: p.y, kind: p.kind, ...builtUp(p) }));
   PLACES.districts = PLACES.list.filter((p) => p.of && (p.kind === 'suburb' || p.kind === 'quarter' || p.kind === 'neighbourhood'));
 }
 
