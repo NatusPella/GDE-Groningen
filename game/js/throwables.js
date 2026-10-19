@@ -7,6 +7,7 @@ import { buildVehicleExplosionMesh3D, updateVehicleExplosionMesh3D, VEHICLE_FIRE
 import { spawnExplosionFx, spawnFxPuff, spawnFxSpark } from './fx3d.js';
 import { flashMuzzleLight } from './nightlights3d.js';
 import { markShared } from './pixelart3d.js';
+import { setThrowables3D } from './gunfx3d.js';
 
 // Things the player lets fly that are not bullets: the waterpistool's spray,
 // a thrown (or, crouching, placed) carbidbus with its fuse and big bang, and
@@ -422,3 +423,5 @@ export function updateThrowables3D(dt, world, sc) {
     fireballs.splice(i, 1);
   }
 }
+
+setThrowables3D(updateThrowables3D);
