@@ -22,8 +22,9 @@ node scripts/coop/testbank.mjs --stage=<map> [--gasten=1|2] [--duration=20]
 - Neemt Electron-sloten uit `C:/Users/abuis/gde-locks` (maximaal 3 totaal; `--gasten=2` neemt ze alle drie).
 - `GDE_COOP_TEST=1`: geen UPnP, lokaal adres `127.0.0.1`. Wegwerpprofielen, poort 9000 blijft ongemoeid.
 - Route `direct` (TCP op de loopback). De route met kamercode (WebRTC en openbare brokers) vraagt een lokale mock van STUN en tracker en is in de testbank nog niet bedraad; de pure tests (`net_rtcroom_test`, `net_loopback_test`) dekken de signalering wel.
+- `--menu`: begint bij het hoofdmenu (ingang "Samen spelen", `GDE_MENU_TEST=1` laat de testharnas het menu met rust) en laat host en gast door de lobby verbinden zoals een speler. Geslaagd op 2026-10-19 met twee Electron-instanties (`ALLES OK`).
 - Beoordeelt: toestemmingsscherm, beide kanten "Je speelt samen", Tammo/Tessa, posities, speelklok binnen 0,3 uur, geen desync, bij `--gasten=2` ook de derde speler op plek 2.
 
 ## Niet getest
 
-Echte WebRTC-verbindingen, echte NAT/UPnP, openbare brokers en STUN, twee echte computers, een telefoon met aanraakbediening. Of de testbank zelf met `--gasten=2` slaagt, is nog niet gedraaid (alleen syntaxis gecontroleerd).
+Echte WebRTC-verbindingen, echte NAT/UPnP, openbare brokers en STUN, twee echte computers, een telefoon met aanraakbediening. `--gasten=2` is nog niet met Electron gedraaid.
