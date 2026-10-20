@@ -203,6 +203,8 @@ export function decide(s, mem = {}) {
   if (!veh && prompt && t.distance <= Math.max(4, ((s.mission && s.mission.triggerRadius) || 0) + 1) && (mem.pressTries || 0) < 4) {
     return { type: 'press', key: 'e', why: 'handeling', interact: true };
   }
+  // the plan panel of a heist (M06 'Kies met A of S'): take the first way in
+  if (stage === 'plan' && (mem.planTries || 0) < 3) { mem.planTries = (mem.planTries || 0) + 1; return { type: 'press', key: 'a', why: 'plan' }; }
   // a hold stage (stand still in the ring): stop walking once inside
   if (stage === 'hold' && t.distance <= 3.5) return { type: 'wait', why: 'vasthouden' };
   if (veh) {

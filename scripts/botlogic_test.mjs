@@ -141,6 +141,10 @@ const near = (a, b, e = 1e-6) => Math.abs(a - b) < e;
   ok(L.decide(onBike, { boardTries: 4 }).type === 'goto', 'board-stage op een fiets: opgeven na vier keer');
   ok(L.decide({ ...onBike, player: { ...onBike.player, vehicle: null } }).vehicle.kind === 'auto', 'board-stage te voet: motorvoertuig boven de fiets');
   ok(L.decide({ ...b(), mission: { active: true, stage: 'hold' }, target: { x: 1, y: 0, distance: 1 } }).type === 'wait', 'hold-stage: stilstaan in de ring');
+  const planS = { ...b(), mission: { active: true, stage: 'plan' }, target: { x: 1, y: 0, distance: 1 } };
+  const pm = {};
+  ok(L.decide(planS, pm).key === 'a' && pm.planTries === 1, 'plan-stage: A kiezen');
+  ok(L.decide(planS, { planTries: 3 }).type !== 'press', 'plan-stage: na drie keer niet meer drukken');
   for (const id of ['drift', 'hengelen', 'wandeling', 'pitchputt', 'hoogvlieger', 'geheimen', 'snackketen', 'onbekend']) {
     const a = L.startAttempts(id);
     ok(a.length >= 4 && a[0] === 'e' && a.includes('interact') && a.includes('jitter'), 'start-opening ' + id);
