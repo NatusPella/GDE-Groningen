@@ -193,7 +193,8 @@ export function decide(s, mem = {}) {
     if (other) { mem.boardTries = (mem.boardTries || 0) + 1; return { type: 'press', key: 'e', why: 'uitstappen' }; }
   }
   if (!veh && stage === 'board' && (mem.boardTries || 0) < 4) {
-    const near = (s.nearby && s.nearby.vehicles || []).filter((c) => c.free && c.drivable && c.distance < 80);
+    // a boat or a plane counts too: M17 starts in a sloep, M15 in a plane
+    const near = (s.nearby && s.nearby.vehicles || []).filter((c) => c.free && c.distance < 80);
     const v = near.find((c) => !light(c.kind)) || near[0];
     if (v) return { type: 'enter', vehicle: v };
   }
