@@ -19,6 +19,7 @@ export const OORZAKEN = {
   'test:facilities_test.mjs': { soort: 'verouderd', tekst: 'de test laadde de tegels rond de respawnplekken niet in zoals het spel doet; 39/50 auto\'s was ontbrekende residentie, nu 48/50.' },
   'test:ommelandplace_test.mjs': { soort: 'instabiel', tekst: 'steekproef van 12 echte horecaplekken viel met 7/12 net onder de 60% (een café zonder autoweg binnen 80 m krijgt terecht geen deur); steekproef is nu 40.' },
   'test:net_brokers_test.mjs': { soort: 'instabiel', tekst: 'de PeerJS-terugval sprong na 60 ms in als de broker onder belasting nog niet "ok" was; nu 300 ms.' },
+  'test:sunrules_test.mjs': { soort: 'verouderd', tekst: 'muggingrules.isNight is in 43ffdf95 weggehaald (ongebruikt); de test riep hem nog aan. De regel is weg, nightFactor blijft getest.' },
   'test:import_cycles_test.mjs': { soort: 'verouderd', tekst: 'groter dan de limiet door nieuwe imports; op de nieuwste main weer binnen de limiet (door andere commits, niet nader onderzocht).' },
   'test:edgescene_test.mjs': { soort: 'verouderd', tekst: 'overlayhold.js riep document.querySelector aan op de nepdocument van de tests; op de nieuwste main opgelost door andere commits (niet nader onderzocht).' },
   'test:activiteitenspots_test.mjs': { soort: 'verouderd', tekst: 'op de nieuwste main groen; de eerdere fout (19 activiteiten) was al verholpen door andere commits (niet nader onderzocht).' },
