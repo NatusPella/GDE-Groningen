@@ -408,6 +408,9 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
   #pause-menu .pm-row input[type="range"] { width: 160px; }
   #pause-menu .m-li { min-height: 48px; }
   #pause-menu .pm-sheet-sub { font-size: 16px; }
+  #pause-menu .pm-sheet-r { display: none; }
+  #pause-menu .pm-sheet .m-h2, #pause-menu .pm-sheet .m-h1 { font-size: 40px; }
+  #pause-menu .m-foot { display: none; }
 }
 
 /* Samen spelen (lobbyui.js, #95): kop, tekst, code, invoer en knoppen in de menustijl; ook in het wachtscherm (.coop-hold) */

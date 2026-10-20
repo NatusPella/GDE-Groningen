@@ -1,11 +1,12 @@
 {
-  "_uitleg": "Prestatie-ID van het spel naar de API-naam in Steamworks (Stats & Achievements). Leeg tot er een app-id is; vul steamApiNaam in zoals je hem in Steamworks aanmaakt (hoofdletters, cijfers en _, tot 128 tekens). Gegenereerd door steam/make-steam-files.mjs.",
+  "_uitleg": "Prestatie-ID van het spel naar de API-naam in Steamworks (Stats & Achievements). voorstelApiNaam is een voorstel dat bij Steamworks past (hoofdletters, cijfers en _, tot 128 tekens); steamApiNaam blijft leeg tot er een app-id is en vul je in zoals je hem in Steamworks aanmaakt. Een nieuwe run van steam/make-steam-files.mjs laat ingevulde steamApiNaam staan.",
   "prestaties": [
     {
       "id": "m1_klaar",
       "titel": "Berend telt de krassen",
       "omschrijving": "Klaar missie 1",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_M1_KLAAR",
       "steamApiNaam": ""
     },
     {
@@ -13,6 +14,7 @@
       "titel": "Berend telt de krassen: goud",
       "omschrijving": "Goud: binnen 0:55, weinig schade, hooguit 1 ster",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_M1_GOUD",
       "steamApiNaam": ""
     },
     {
@@ -20,6 +22,7 @@
       "titel": "Geen schampje",
       "omschrijving": "Lever Berends bakkie af zonder ook maar één tikje",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_M1_EXTRA",
       "steamApiNaam": ""
     },
     {
@@ -27,6 +30,7 @@
       "titel": "Iets met de Grote Markt",
       "omschrijving": "Klaar missie 2",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_M2_KLAAR",
       "steamApiNaam": ""
     },
     {
@@ -34,6 +38,7 @@
       "titel": "Iets met de Grote Markt: goud",
       "omschrijving": "Goud: binnen 0:28, weinig schade",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_M2_GOUD",
       "steamApiNaam": ""
     },
     {
@@ -41,6 +46,7 @@
       "titel": "Kijkcijferrecord",
       "omschrijving": "Haal de uitzending binnen 20 seconden: Jelmer breekt alle records",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_M2_EXTRA",
       "steamApiNaam": ""
     },
     {
@@ -48,6 +54,7 @@
       "titel": "Wind tegen, beide kanten op",
       "omschrijving": "Klaar missie 3",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_M3_KLAAR",
       "steamApiNaam": ""
     },
     {
@@ -55,6 +62,7 @@
       "titel": "Wind tegen, beide kanten op: goud",
       "omschrijving": "Goud: binnen 4:08, weinig schade, hooguit 1 ster",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_M3_GOUD",
       "steamApiNaam": ""
     },
     {
@@ -62,6 +70,7 @@
       "titel": "Achterlichten",
       "omschrijving": "Win de KEI-weekrace met minstens een minuut voorsprong op de klok",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_M3_EXTRA",
       "steamApiNaam": ""
     },
     {
@@ -69,6 +78,7 @@
       "titel": "Heel aankomen is ook een kunst",
       "omschrijving": "Klaar missie 4",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_M4_KLAAR",
       "steamApiNaam": ""
     },
     {
@@ -76,6 +86,7 @@
       "titel": "Heel aankomen is ook een kunst: goud",
       "omschrijving": "Goud: binnen 1:55, weinig schade, hooguit 1 ster",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_M4_GOUD",
       "steamApiNaam": ""
     },
     {
@@ -83,6 +94,7 @@
       "titel": "Decor in één stuk",
       "omschrijving": "Bezorg het Noorderzon-decor zonder één harde klap",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_M4_EXTRA",
       "steamApiNaam": ""
     },
     {
@@ -90,6 +102,7 @@
       "titel": "Ring Zuid, laatste fase",
       "omschrijving": "Klaar missie 5",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_M5_KLAAR",
       "steamApiNaam": ""
     },
     {
@@ -97,6 +110,7 @@
       "titel": "Ring Zuid, laatste fase: goud",
       "omschrijving": "Goud: win de race als eerste",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_M5_GOUD",
       "steamApiNaam": ""
     },
     {
@@ -104,6 +118,7 @@
       "titel": "Netjes ingehaald",
       "omschrijving": "Win de ringweg-race zonder een rivaal te raken",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_M5_EXTRA",
       "steamApiNaam": ""
     },
     {
@@ -111,6 +126,7 @@
       "titel": "Nog eentje dan",
       "omschrijving": "Klaar missie 6",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_M6_KLAAR",
       "steamApiNaam": ""
     },
     {
@@ -118,6 +134,7 @@
       "titel": "Nog eentje dan: goud",
       "omschrijving": "Goud: binnen 1:50, weinig schade, zonder politie",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_M6_GOUD",
       "steamApiNaam": ""
     },
     {
@@ -125,6 +142,7 @@
       "titel": "Laatste ronde",
       "omschrijving": "Haal alle vier de kroegen met nog een volle minuut op de klok",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_M6_EXTRA",
       "steamApiNaam": ""
     },
     {
@@ -132,6 +150,7 @@
       "titel": "Fatbikes tellen niet als fiets",
       "omschrijving": "Klaar missie 7",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_M7_KLAAR",
       "steamApiNaam": ""
     },
     {
@@ -139,6 +158,7 @@
       "titel": "Fatbikes tellen niet als fiets: goud",
       "omschrijving": "Goud: binnen 1:50, weinig schade, zonder politie",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_M7_GOUD",
       "steamApiNaam": ""
     },
     {
@@ -146,6 +166,7 @@
       "titel": "Geen bandafdruk",
       "omschrijving": "Kom van de Grote Markt tot de Noorderhaven zonder één keer geschept te worden",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_M7_EXTRA",
       "steamApiNaam": ""
     },
     {
@@ -153,6 +174,7 @@
       "titel": "Alles klopt, behalve de papieren",
       "omschrijving": "Klaar missie 8",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_M8_KLAAR",
       "steamApiNaam": ""
     },
     {
@@ -160,6 +182,7 @@
       "titel": "Alles klopt, behalve de papieren: goud",
       "omschrijving": "Goud: binnen 11:00, toeristen minstens 80% tevreden, zonder politie",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_M8_GOUD",
       "steamApiNaam": ""
     },
     {
@@ -167,6 +190,7 @@
       "titel": "Glad water",
       "omschrijving": "Vaar de hele Diepenring rond zonder één tik: geen kade, geen woonboot, en ontwijk elke ramkoers van Wiebe",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_M8_EXTRA",
       "steamApiNaam": ""
     },
     {
@@ -174,6 +198,7 @@
       "titel": "Grunn is van jou",
       "omschrijving": "Klaar alle acht missies",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_ALLE_MISSIES",
       "steamApiNaam": ""
     },
     {
@@ -181,6 +206,7 @@
       "titel": "Zilveren Stadjer",
       "omschrijving": "Minstens zilver op elke missie",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_ALLE_ZILVER",
       "steamApiNaam": ""
     },
     {
@@ -188,6 +214,7 @@
       "titel": "Gouden Eierbal",
       "omschrijving": "Goud op alle acht missies",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_ALLE_GOUD",
       "steamApiNaam": ""
     },
     {
@@ -195,6 +222,7 @@
       "titel": "Honderd op de teller",
       "omschrijving": "Rij 100 km/u",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_SNEL_100",
       "steamApiNaam": ""
     },
     {
@@ -202,6 +230,7 @@
       "titel": "Harder dan de flitspaal kan tellen",
       "omschrijving": "Rij 140 km/u",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_SNEL_140",
       "steamApiNaam": ""
     },
     {
@@ -209,6 +238,7 @@
       "titel": "Rondje Grunn",
       "omschrijving": "Rij in totaal 25 km",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_RIJDEN_25",
       "steamApiNaam": ""
     },
     {
@@ -216,6 +246,7 @@
       "titel": "Scheer-rijder",
       "omschrijving": "10 keer rakelings langs een ander voertuig",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_BIJNA_10",
       "steamApiNaam": ""
     },
     {
@@ -223,6 +254,7 @@
       "titel": "Zijspiegels ingeklapt",
       "omschrijving": "50 keer rakelings langs een ander voertuig",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_BIJNA_50",
       "steamApiNaam": ""
     },
     {
@@ -230,6 +262,7 @@
       "titel": "Sloopkampioen",
       "omschrijving": "Schrijf 25 voertuigen af",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_WRAKKEN_25",
       "steamApiNaam": ""
     },
     {
@@ -237,6 +270,7 @@
       "titel": "Even lenen",
       "omschrijving": "Jat 10 voertuigen",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_GEJAT_10",
       "steamApiNaam": ""
     },
     {
@@ -244,6 +278,7 @@
       "titel": "Autohandel Ome Stadjer",
       "omschrijving": "Jat 50 voertuigen",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_GEJAT_50",
       "steamApiNaam": ""
     },
     {
@@ -251,6 +286,7 @@
       "titel": "Lijn 5 rijdt vandaag anders",
       "omschrijving": "Jat een stadsbus",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_BUS",
       "steamApiNaam": ""
     },
     {
@@ -258,6 +294,7 @@
       "titel": "Van fiets tot rondvaartboot",
       "omschrijving": "Rij in elk soort voertuig: auto, bus, fiets, fatbike, scooter, boot en politieauto",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_ALLE_TYPEN",
       "steamApiNaam": ""
     },
     {
@@ -265,6 +302,7 @@
       "titel": "Zwaailicht erop",
       "omschrijving": "Kaap een politieauto",
       "verborgen": true,
+      "voorstelApiNaam": "ACH_POLITIEAUTO",
       "steamApiNaam": ""
     },
     {
@@ -272,6 +310,7 @@
       "titel": "Eerste slip",
       "omschrijving": "Rond een driftrun af op een rotonde",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_DRIFT_1",
       "steamApiNaam": ""
     },
     {
@@ -279,6 +318,7 @@
       "titel": "Rubber op de rotonde",
       "omschrijving": "Rond 10 driftruns af",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_DRIFT_10",
       "steamApiNaam": ""
     },
     {
@@ -286,6 +326,7 @@
       "titel": "Koning van de rotonde",
       "omschrijving": "Haal goud in een driftzone",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_DRIFT_GOUD",
       "steamApiNaam": ""
     },
     {
@@ -293,6 +334,7 @@
       "titel": "Smile!",
       "omschrijving": "Word geflitst",
       "verborgen": true,
+      "voorstelApiNaam": "ACH_GEFLITST",
       "steamApiNaam": ""
     },
     {
@@ -300,6 +342,7 @@
       "titel": "Wandelen op de Diepenring",
       "omschrijving": "Loop in totaal 5 km",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_LOPEN_5",
       "steamApiNaam": ""
     },
     {
@@ -307,6 +350,7 @@
       "titel": "Kanaalzwemmer",
       "omschrijving": "Zwem in totaal 250 meter",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_ZWEMMEN",
       "steamApiNaam": ""
     },
     {
@@ -314,6 +358,7 @@
       "titel": "Kadeklimmer",
       "omschrijving": "Klim uit de Diepenring de kade op",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_KADE_KLIM",
       "steamApiNaam": ""
     },
     {
@@ -321,6 +366,7 @@
       "titel": "Bekend bij de politie",
       "omschrijving": "Haal drie sterren",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_STER_3",
       "steamApiNaam": ""
     },
     {
@@ -328,6 +374,7 @@
       "titel": "Heel Grunn zoekt je",
       "omschrijving": "Haal vijf sterren",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_STER_5",
       "steamApiNaam": ""
     },
     {
@@ -335,6 +382,7 @@
       "titel": "Foetsie",
       "omschrijving": "Raak de politie kwijt na vijf sterren",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_ONTSNAPT_5",
       "steamApiNaam": ""
     },
     {
@@ -342,6 +390,7 @@
       "titel": "Kat en muis",
       "omschrijving": "Blijf drie minuten achter elkaar gezocht",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_GEZOCHT_3M",
       "steamApiNaam": ""
     },
     {
@@ -349,6 +398,7 @@
       "titel": "Even brommen",
       "omschrijving": "Word opgepakt",
       "verborgen": true,
+      "voorstelApiNaam": "ACH_OPGEPAKT",
       "steamApiNaam": ""
     },
     {
@@ -356,6 +406,7 @@
       "titel": "Even plat",
       "omschrijving": "Ga een keer neer",
       "verborgen": true,
+      "voorstelApiNaam": "ACH_WASTED",
       "steamApiNaam": ""
     },
     {
@@ -363,6 +414,7 @@
       "titel": "Stadjer in wording",
       "omschrijving": "Ontdek 10 wijken",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_WIJKEN_10",
       "steamApiNaam": ""
     },
     {
@@ -370,6 +422,7 @@
       "titel": "Halve Stadjer",
       "omschrijving": "Ontdek 33 wijken",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_WIJKEN_33",
       "steamApiNaam": ""
     },
     {
@@ -377,6 +430,7 @@
       "titel": "Kenner van Grunn",
       "omschrijving": "Ontdek alle 66 wijken",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_WIJKEN_ALLE",
       "steamApiNaam": ""
     },
     {
@@ -384,6 +438,7 @@
       "titel": "Toerist in eigen stad",
       "omschrijving": "Bezoek alle 14 bezienswaardigheden",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_LANDMARKS",
       "steamApiNaam": ""
     },
     {
@@ -391,6 +446,7 @@
       "titel": "Ommelander",
       "omschrijving": "Trek de stad uit, De Ommelanden in",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_OMMELANDEN",
       "steamApiNaam": ""
     },
     {
@@ -398,6 +454,7 @@
       "titel": "Traumaduif",
       "omschrijving": "Land op het helidek van het UMCG",
       "verborgen": true,
+      "voorstelApiNaam": "ACH_UMCG_HELI",
       "steamApiNaam": ""
     },
     {
@@ -405,6 +462,7 @@
       "titel": "Ballonjacht",
       "omschrijving": "Haal met de traumaheli een heteluchtballon in",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_BALLONJACHT",
       "steamApiNaam": ""
     },
     {
@@ -412,6 +470,7 @@
       "titel": "Gouden rotor",
       "omschrijving": "Haal goud bij de ballonjacht",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_BALLONJACHT_GOUD",
       "steamApiNaam": ""
     },
     {
@@ -419,6 +478,7 @@
       "titel": "Eigen vleugels",
       "omschrijving": "Stijg op met je eigen helikopter",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_EIGEN_VLEUGELS",
       "steamApiNaam": ""
     },
     {
@@ -426,6 +486,7 @@
       "titel": "Thuis op het dak",
       "omschrijving": "Parkeer je heli op het helidek van jullie flat",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_HELIDAK",
       "steamApiNaam": ""
     },
     {
@@ -433,6 +494,7 @@
       "titel": "Boer zoekt landing",
       "omschrijving": "Land je heli in een weiland in De Ommelanden",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_WEILAND",
       "steamApiNaam": ""
     },
     {
@@ -440,6 +502,7 @@
       "titel": "Glazen kooi",
       "omschrijving": "Speel een potje padel",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_PADEL_KLAAR",
       "steamApiNaam": ""
     },
     {
@@ -447,6 +510,7 @@
       "titel": "Tegen het glas",
       "omschrijving": "Win een potje padel",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_PADEL_WINST",
       "steamApiNaam": ""
     },
     {
@@ -454,6 +518,7 @@
       "titel": "Padelkoning van Grunn",
       "omschrijving": "Win een potje padel met 2-0",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_PADEL_GOUD",
       "steamApiNaam": ""
     },
     {
@@ -461,6 +526,7 @@
       "titel": "Knal in de polder",
       "omschrijving": "Schiet carbid bij boer Roelf",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_CARBID_KLAAR",
       "steamApiNaam": ""
     },
     {
@@ -468,6 +534,7 @@
       "titel": "Carbidknaller",
       "omschrijving": "Haal goud bij het carbid schieten",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_CARBID_GOUD",
       "steamApiNaam": ""
     },
     {
@@ -475,6 +542,7 @@
       "titel": "Kermisklant",
       "omschrijving": "Rij een ritje in de botsauto's op de Grote Markt",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_BOTSAUTO_KLAAR",
       "steamApiNaam": ""
     },
     {
@@ -482,6 +550,7 @@
       "titel": "Koning van de kermis",
       "omschrijving": "Haal goud in de botsauto's",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_BOTSAUTO_GOUD",
       "steamApiNaam": ""
     },
     {
@@ -489,6 +558,7 @@
       "titel": "Disc in de mand",
       "omschrijving": "Speel een ronde discgolf in het Stadspark",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_DISCGOLF_KLAAR",
       "steamApiNaam": ""
     },
     {
@@ -496,6 +566,7 @@
       "titel": "Onder par in het park",
       "omschrijving": "Haal goud bij discgolf",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_DISCGOLF_GOUD",
       "steamApiNaam": ""
     },
     {
@@ -503,6 +574,7 @@
       "titel": "Ace in het Stadspark",
       "omschrijving": "Gooi de disc in één worp in de mand bij discgolf",
       "verborgen": true,
+      "voorstelApiNaam": "ACH_DISCGOLF_ACE",
       "steamApiNaam": ""
     },
     {
@@ -510,6 +582,7 @@
       "titel": "Korte gras",
       "omschrijving": "Speel zes banen pitch & putt",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_PUTT_KLAAR",
       "steamApiNaam": ""
     },
     {
@@ -517,6 +590,7 @@
       "titel": "Groene vingers",
       "omschrijving": "Haal goud bij pitch & putt",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_PUTT_GOUD",
       "steamApiNaam": ""
     },
     {
@@ -524,6 +598,7 @@
       "titel": "Vier wielen en een plank",
       "omschrijving": "Skate een ronde in het Stadspark",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_SKATE_KLAAR",
       "steamApiNaam": ""
     },
     {
@@ -531,6 +606,7 @@
       "titel": "Koning van het skatepark",
       "omschrijving": "Haal goud in het skatepark",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_SKATE_GOUD",
       "steamApiNaam": ""
     },
     {
@@ -538,6 +614,7 @@
       "titel": "Keten van toeren",
       "omschrijving": "Sla een keten van 2.000 punten op in het skatepark",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_SKATE_COMBO",
       "steamApiNaam": ""
     },
     {
@@ -545,6 +622,7 @@
       "titel": "Ronde na ronde",
       "omschrijving": "Rij drie ronden op de kartbaan in Ulrum",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_KART_KLAAR",
       "steamApiNaam": ""
     },
     {
@@ -552,6 +630,7 @@
       "titel": "Eerst over de streep",
       "omschrijving": "Win de race op de kartbaan",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_KART_GOUD",
       "steamApiNaam": ""
     },
     {
@@ -559,6 +638,7 @@
       "titel": "Snelle ronde",
       "omschrijving": "Rijd een ronde van 31,5 seconden of sneller",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_KART_SNEL",
       "steamApiNaam": ""
     },
     {
@@ -566,6 +646,7 @@
       "titel": "Baantjes trekken",
       "omschrijving": "Zwem honderd meter in Zwembad Het Natte Papier",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_ZWEM_KLAAR",
       "steamApiNaam": ""
     },
     {
@@ -573,6 +654,7 @@
       "titel": "Snelste van het bad",
       "omschrijving": "Haal goud in het zwembad",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_ZWEM_GOUD",
       "steamApiNaam": ""
     },
     {
@@ -580,6 +662,7 @@
       "titel": "Keerpunt als een profi",
       "omschrijving": "Draai drie keer perfect om aan de muur",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_ZWEM_KEER",
       "steamApiNaam": ""
     },
     {
@@ -587,6 +670,7 @@
       "titel": "Naar de top",
       "omschrijving": "Klim naar de top van de klimtoren op Zernike",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_KLIM_KLAAR",
       "steamApiNaam": ""
     },
     {
@@ -594,6 +678,7 @@
       "titel": "Koning van de klimtoren",
       "omschrijving": "Haal goud op de klimtoren",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_KLIM_GOUD",
       "steamApiNaam": ""
     },
     {
@@ -601,6 +686,7 @@
       "titel": "Niet één keer gevallen",
       "omschrijving": "Klim de toren zonder te vallen",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_KLIM_FOUTLOOS",
       "steamApiNaam": ""
     },
     {
@@ -608,6 +694,7 @@
       "titel": "Achter de boot",
       "omschrijving": "Skie een ronde bij het Grunopark",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_SKI_KLAAR",
       "steamApiNaam": ""
     },
     {
@@ -615,6 +702,7 @@
       "titel": "Koning van het meer",
       "omschrijving": "Haal goud bij het waterskiën",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_SKI_GOUD",
       "steamApiNaam": ""
     },
     {
@@ -622,6 +710,7 @@
       "titel": "Klokkenspeler",
       "omschrijving": "Speel een deuntje op de klokken van de Martinitoren",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_CARILLON_KLAAR",
       "steamApiNaam": ""
     },
     {
@@ -629,6 +718,7 @@
       "titel": "Stadsbeiaardier",
       "omschrijving": "Haal goud op het klokkenspel",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_CARILLON_GOUD",
       "steamApiNaam": ""
     },
     {
@@ -636,6 +726,7 @@
       "titel": "Eigen snackbar",
       "omschrijving": "Koop je eerste Kroketkoning-snackbar",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_SNACKKETEN_EERSTE",
       "steamApiNaam": ""
     },
     {
@@ -643,6 +734,7 @@
       "titel": "Een keten",
       "omschrijving": "Bezit drie snackbars van Kroketkoning",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_SNACKKETEN_KETEN",
       "steamApiNaam": ""
     },
     {
@@ -650,6 +742,7 @@
       "titel": "Kroketkoning-rijk",
       "omschrijving": "Twaalf vestigingen, drie vlaggenschepen",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_SNACKKETEN_RIJK",
       "steamApiNaam": ""
     },
     {
@@ -657,6 +750,7 @@
       "titel": "Kok aan boord",
       "omschrijving": "Bak een dienst op het pannenkoekenschip",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_PANNENKOEK_KLAAR",
       "steamApiNaam": ""
     },
     {
@@ -664,6 +758,7 @@
       "titel": "Kok van het schip",
       "omschrijving": "Haal goud op het pannenkoekenschip",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_PANNENKOEK_GOUD",
       "steamApiNaam": ""
     },
     {
@@ -671,6 +766,7 @@
       "titel": "Aan de waterkant",
       "omschrijving": "Hengel een ronde aan het meer in Meerstad",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_HENGEL_KLAAR",
       "steamApiNaam": ""
     },
     {
@@ -678,6 +774,7 @@
       "titel": "De dikke karper",
       "omschrijving": "Vang een karper",
       "verborgen": true,
+      "voorstelApiNaam": "ACH_HENGEL_KARPER",
       "steamApiNaam": ""
     },
     {
@@ -685,6 +782,7 @@
       "titel": "Pieterpadganger",
       "omschrijving": "Loop alle stempelposten bij Winsum af",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_WANDEL_KLAAR",
       "steamApiNaam": ""
     },
     {
@@ -692,6 +790,7 @@
       "titel": "Snelste wandelaar",
       "omschrijving": "Haal goud op de wandeling bij Winsum",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_WANDEL_GOUD",
       "steamApiNaam": ""
     },
     {
@@ -699,6 +798,7 @@
       "titel": "Andersom",
       "omschrijving": "Speel de achterkant van de discgolfbaan",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_DISCGOLF_ACHTERKANT",
       "steamApiNaam": ""
     },
     {
@@ -706,6 +806,7 @@
       "titel": "Heen en terug",
       "omschrijving": "Speel alle achttien banen discgolf",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_DISCGOLF_ACHTTIEN",
       "steamApiNaam": ""
     },
     {
@@ -713,6 +814,7 @@
       "titel": "Recht op de mand",
       "omschrijving": "Haal goud bij discgolf dichtbij",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_DISCGOLF_DICHTBIJ_GOUD",
       "steamApiNaam": ""
     },
     {
@@ -720,6 +822,7 @@
       "titel": "Hoog en schoon",
       "omschrijving": "Land een sprong met een draai en een grab",
       "verborgen": true,
+      "voorstelApiNaam": "ACH_SKI_SPRONG",
       "steamApiNaam": ""
     },
     {
@@ -727,6 +830,7 @@
       "titel": "Stadjer met geheimen",
       "omschrijving": "Vind alle 8 geheimpjes van Grunn in één spel",
       "verborgen": true,
+      "voorstelApiNaam": "ACH_GEHEIMEN_ALLE",
       "steamApiNaam": ""
     },
     {
@@ -734,6 +838,7 @@
       "titel": "Streekverzamelaar",
       "omschrijving": "Vind alle vierentwintig streekvondsten van de provincie",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_STREEK_VERZAMELD",
       "steamApiNaam": ""
     },
     {
@@ -741,6 +846,7 @@
       "titel": "Dierenvriend",
       "omschrijving": "Zie alle dertien dieren van de provincie en schrijf ze op in je dierenboek",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_DIERENBOEK",
       "steamApiNaam": ""
     },
     {
@@ -748,6 +854,7 @@
       "titel": "Kenner van de streek",
       "omschrijving": "Vind het geheim van elke streek in de provincie",
       "verborgen": true,
+      "voorstelApiNaam": "ACH_STREEK_GEHEIMEN",
       "steamApiNaam": ""
     },
     {
@@ -755,6 +862,7 @@
       "titel": "Vroege vogel",
       "omschrijving": "Zie de zon opkomen boven Grunn",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_ZONSOPGANG",
       "steamApiNaam": ""
     },
     {
@@ -762,6 +870,7 @@
       "titel": "Rand van de kaart",
       "omschrijving": "Vind een plek waar een weg van het Ommeland ophoudt",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_WERELDEINDE_1",
       "steamApiNaam": ""
     },
     {
@@ -769,6 +878,7 @@
       "titel": "Einde van de wereld",
       "omschrijving": "Vind alle 12 plekken waar de wegen van het Ommeland ophouden",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_WERELDEINDE_ALLE",
       "steamApiNaam": ""
     },
     {
@@ -776,6 +886,7 @@
       "titel": "Ommelander in hart en nieren",
       "omschrijving": "Doe in elk van de 8 dorpen langs het spoor waar je daar voor komt",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_DORPEN_ALLE",
       "steamApiNaam": ""
     },
     {
@@ -783,6 +894,7 @@
       "titel": "Elf bruggen",
       "omschrijving": "Vaar de Elf Bruggenrace tegen Jelle uit",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_BRUGGEN_KLAAR",
       "steamApiNaam": ""
     },
     {
@@ -790,6 +902,7 @@
       "titel": "Brêgekening",
       "omschrijving": "Goud bij de Elf Bruggenrace",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_BRUGGEN_GOUD",
       "steamApiNaam": ""
     },
     {
@@ -797,6 +910,7 @@
       "titel": "Polsstokhoogte",
       "omschrijving": "Land een sprong bij het fierljep-duel",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_FIERLJEP_KLAAR",
       "steamApiNaam": ""
     },
     {
@@ -804,6 +918,7 @@
       "titel": "Fierljepkening",
       "omschrijving": "Goud bij het fierljep-duel",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_FIERLJEP_GOUD",
       "steamApiNaam": ""
     },
     {
@@ -811,6 +926,7 @@
       "titel": "Wind in de zeilen",
       "omschrijving": "Zeil de skûtsje-sprint tegen Jelle uit",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_SKUTSJE_KLAAR",
       "steamApiNaam": ""
     },
     {
@@ -818,6 +934,7 @@
       "titel": "Skûtsjekening",
       "omschrijving": "Goud bij de skûtsje-sprint",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_SKUTSJE_GOUD",
       "steamApiNaam": ""
     },
     {
@@ -825,6 +942,7 @@
       "titel": "Better as ús",
       "omschrijving": "Versla Jelle in alle drie de uitdagingen",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_JELLE_ALLES",
       "steamApiNaam": ""
     },
     {
@@ -832,6 +950,7 @@
       "titel": "Luik open",
       "omschrijving": "Draai een dienst met de Fjord Frituur",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_FJORD_KLAAR",
       "steamApiNaam": ""
     },
     {
@@ -839,6 +958,7 @@
       "titel": "Kon minder",
       "omschrijving": "Goud in een dienst van de Fjord Frituur",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_FJORD_GOUD",
       "steamApiNaam": ""
     },
     {
@@ -846,6 +966,7 @@
       "titel": "Geertje is thuis",
       "omschrijving": "Breng de prijskoe van Ome Jan terug naar zijn boerderij",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_KOE_KLAAR",
       "steamApiNaam": ""
     },
     {
@@ -853,6 +974,7 @@
       "titel": "Koeienfluisteraar",
       "omschrijving": "Goud bij De Koe van Ome Jan",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_KOE_GOUD",
       "steamApiNaam": ""
     },
     {
@@ -860,6 +982,7 @@
       "titel": "Frituurbaron",
       "omschrijving": "Verdien €1000 met de Fjord Frituur",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_FJORD_1000",
       "steamApiNaam": ""
     },
     {
@@ -867,6 +990,7 @@
       "titel": "Alle haltes af",
       "omschrijving": "Stap uit op 5 verschillende stations of haltes",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_TREIN_STATIONS",
       "steamApiNaam": ""
     },
     {
@@ -874,6 +998,7 @@
       "titel": "Dorpsstation",
       "omschrijving": "Reis met de trein naar een dorpshalte",
       "verborgen": true,
+      "voorstelApiNaam": "ACH_TREIN_DORP",
       "steamApiNaam": ""
     },
     {
@@ -881,6 +1006,7 @@
       "titel": "Treinspotter",
       "omschrijving": "Zie alle soorten treinen: stoptrein, sprinter en intercity",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_TREINEN",
       "steamApiNaam": ""
     },
     {
@@ -888,6 +1014,7 @@
       "titel": "Sneller dan de sprinter",
       "omschrijving": "Rij een rijdende trein voorbij",
       "verborgen": true,
+      "voorstelApiNaam": "ACH_TREIN_RACE",
       "steamApiNaam": ""
     },
     {
@@ -895,6 +1022,7 @@
       "titel": "Instappen, deuren sluiten",
       "omschrijving": "Reis met de trein naar een ander station",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_TREIN_1",
       "steamApiNaam": ""
     },
     {
@@ -902,6 +1030,7 @@
       "titel": "Forens",
       "omschrijving": "Reis 10 keer met de trein",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_FORENS",
       "steamApiNaam": ""
     },
     {
@@ -909,6 +1038,7 @@
       "titel": "Netjes gewacht",
       "omschrijving": "Wacht keurig voor een dichte overweg tot de trein voorbij is",
       "verborgen": true,
+      "voorstelApiNaam": "ACH_OVERWEG",
       "steamApiNaam": ""
     },
     {
@@ -916,6 +1046,7 @@
       "titel": "Code Rood",
       "omschrijving": "Rij een halve minuut door een storm",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_STORM",
       "steamApiNaam": ""
     },
     {
@@ -923,6 +1054,7 @@
       "titel": "Donder en bliksem",
       "omschrijving": "Maak een onweersbui mee",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_ONWEER",
       "steamApiNaam": ""
     },
     {
@@ -930,6 +1062,7 @@
       "titel": "Moi schat",
       "omschrijving": "Geef Tammo of Tessa een kusje",
       "verborgen": true,
+      "voorstelApiNaam": "ACH_KUSJE_1",
       "steamApiNaam": ""
     },
     {
@@ -937,6 +1070,7 @@
       "titel": "Tortelduifjes",
       "omschrijving": "Geef 25 kusjes",
       "verborgen": true,
+      "voorstelApiNaam": "ACH_KUSJE_25",
       "steamApiNaam": ""
     },
     {
@@ -944,6 +1078,7 @@
       "titel": "Kroegtijger",
       "omschrijving": "Eet of drink iets bij 5 verschillende zaken",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_HORECA_5",
       "steamApiNaam": ""
     },
     {
@@ -951,6 +1086,7 @@
       "titel": "Bitterbal-sommelier",
       "omschrijving": "Eet of drink iets bij 25 verschillende zaken",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_HORECA_25",
       "steamApiNaam": ""
     },
     {
@@ -958,6 +1094,7 @@
       "titel": "Groninger koopman",
       "omschrijving": "Heb €10.000 op zak",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_RIJK",
       "steamApiNaam": ""
     },
     {
@@ -965,6 +1102,7 @@
       "titel": "Klant is koning",
       "omschrijving": "Koop iets in een winkel",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_KOOP_1",
       "steamApiNaam": ""
     },
     {
@@ -972,6 +1110,7 @@
       "titel": "Winkelverslaafde",
       "omschrijving": "Doe 10 aankopen",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_KOOP_10",
       "steamApiNaam": ""
     },
     {
@@ -979,6 +1118,7 @@
       "titel": "Helemaal ingericht",
       "omschrijving": "Zet alle EIKEA-meubels in jullie flat",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_INGERICHT",
       "steamApiNaam": ""
     },
     {
@@ -986,6 +1126,7 @@
       "titel": "Eén schroefje te weinig",
       "omschrijving": "Zet de Buukenkaas zelf in elkaar",
       "verborgen": true,
+      "voorstelApiNaam": "ACH_SCHROEFJE",
       "steamApiNaam": ""
     },
     {
@@ -993,6 +1134,7 @@
       "titel": "Stempeltje erbij",
       "omschrijving": "Lever een volle spaarkaart in bij Rook & Geluk",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_SPAARKAART",
       "steamApiNaam": ""
     },
     {
@@ -1000,6 +1142,7 @@
       "titel": "Geld moet rollen",
       "omschrijving": "Geef in winkels in totaal €2.500 uit",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_UITGAVEN",
       "steamApiNaam": ""
     },
     {
@@ -1007,6 +1150,7 @@
       "titel": "Eerste eierbal",
       "omschrijving": "Vind een verstopte eierbal",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_EIERBAL_1",
       "steamApiNaam": ""
     },
     {
@@ -1014,6 +1158,7 @@
       "titel": "Halve portie",
       "omschrijving": "Vind 15 van de 30 eierballen",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_EIERBAL_15",
       "steamApiNaam": ""
     },
     {
@@ -1021,6 +1166,7 @@
       "titel": "Eierbalkoning",
       "omschrijving": "Vind alle 30 eierballen in één spel",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_EIERBAL_ALLE",
       "steamApiNaam": ""
     },
     {
@@ -1028,6 +1174,7 @@
       "titel": "Eierballen van het Ommeland",
       "omschrijving": "Vind de verstopte eierbal in elk van de 8 dorpen langs het spoor",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_DORPSEIERBAL_ALLE",
       "steamApiNaam": ""
     },
     {
@@ -1035,6 +1182,7 @@
       "titel": "Hoogste duif van Grunn",
       "omschrijving": "Land boven op de Martinitoren",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_DUIF_MARTINI",
       "steamApiNaam": ""
     },
     {
@@ -1042,6 +1190,7 @@
       "titel": "Uitzicht vanaf het Forum",
       "omschrijving": "Land op het dak van het Forum",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_DUIF_FORUM",
       "steamApiNaam": ""
     },
     {
@@ -1049,6 +1198,7 @@
       "titel": "Stationsduif",
       "omschrijving": "Land op het Hoofdstation",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_DUIF_STATION",
       "steamApiNaam": ""
     },
     {
@@ -1056,6 +1206,7 @@
       "titel": "Kerkduif",
       "omschrijving": "Land op de Der Aa-kerk",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_DUIF_AAKERK",
       "steamApiNaam": ""
     },
     {
@@ -1063,6 +1214,7 @@
       "titel": "Zwartrijder",
       "omschrijving": "Lift mee op een bus",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_DUIF_BUS",
       "steamApiNaam": ""
     },
     {
@@ -1070,6 +1222,7 @@
       "titel": "Grachtenduif",
       "omschrijving": "Vaar mee op een boot",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_DUIF_BOOT",
       "steamApiNaam": ""
     },
     {
@@ -1077,6 +1230,7 @@
       "titel": "Liftduif",
       "omschrijving": "Rij mee op een auto",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_DUIF_AUTO",
       "steamApiNaam": ""
     },
     {
@@ -1084,6 +1238,7 @@
       "titel": "Thuis bij de duivenmelker",
       "omschrijving": "Vind het hok van duivenmelker Harm",
       "verborgen": true,
+      "voorstelApiNaam": "ACH_DUIF_LOFT",
       "steamApiNaam": ""
     },
     {
@@ -1091,6 +1246,7 @@
       "titel": "Meeuw te slim af",
       "omschrijving": "Laat een meeuw met lege snavel achter",
       "verborgen": true,
+      "voorstelApiNaam": "ACH_DUIF_MEEUW",
       "steamApiNaam": ""
     },
     {
@@ -1098,6 +1254,7 @@
       "titel": "Eerste loonstrookje",
       "omschrijving": "Rond een klus af bij een bijbaantje",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_SJ_EERSTE",
       "steamApiNaam": ""
     },
     {
@@ -1105,6 +1262,7 @@
       "titel": "Harde werker",
       "omschrijving": "Rond 50 klussen af bij bijbaantjes",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_SJ_50",
       "steamApiNaam": ""
     },
     {
@@ -1112,6 +1270,7 @@
       "titel": "Duizendpoot",
       "omschrijving": "Rond bij alle zes bijbaantjes een klus af",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_SJ_ALLE",
       "steamApiNaam": ""
     },
     {
@@ -1119,6 +1278,7 @@
       "titel": "Eerlijk verdiend",
       "omschrijving": "Verdien in totaal €5.000 met bijbaantjes",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_SJ_GELD",
       "steamApiNaam": ""
     },
     {
@@ -1126,6 +1286,7 @@
       "titel": "Nog warm!",
       "omschrijving": "Bezorg 8 bestellingen op rij in één dienst",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_SJ_BEZORGER",
       "steamApiNaam": ""
     },
     {
@@ -1133,6 +1294,7 @@
       "titel": "Moi, waar mag het heen?",
       "omschrijving": "Rijd 6 taxiritten op rij in één dienst",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_SJ_TAXI",
       "steamApiNaam": ""
     },
     {
@@ -1140,6 +1302,7 @@
       "titel": "Keurig op tijd",
       "omschrijving": "Rijd een hele buslijn zonder één keer te laat te zijn",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_SJ_BUS",
       "steamApiNaam": ""
     },
     {
@@ -1147,6 +1310,7 @@
       "titel": "Links ziet u...",
       "omschrijving": "Vaar een rondvaart zonder één stukje uitleg te missen",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_SJ_RONDVAART",
       "steamApiNaam": ""
     },
     {
@@ -1154,6 +1318,7 @@
       "titel": "Stationsplein leeg",
       "omschrijving": "Ruim 5 rondes foutgeparkeerde fietsen op in één dienst",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_SJ_FIETSDEPOT",
       "steamApiNaam": ""
     },
     {
@@ -1161,6 +1326,7 @@
       "titel": "Niks gebroken",
       "omschrijving": "Verhuis een student zonder dat er iets sneuvelt",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_SJ_VERHUIZING",
       "steamApiNaam": ""
     },
     {
@@ -1168,6 +1334,7 @@
       "titel": "Legende van Grunn",
       "omschrijving": "Haal niveau 5 bij een bijbaantje",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_SJ_LEGENDE",
       "steamApiNaam": ""
     },
     {
@@ -1175,6 +1342,7 @@
       "titel": "Kotszakje vergeten",
       "omschrijving": "Een student kotst je taxi onder",
       "verborgen": true,
+      "voorstelApiNaam": "ACH_SJ_KOTS",
       "steamApiNaam": ""
     },
     {
@@ -1182,6 +1350,7 @@
       "titel": "Samen is beter",
       "omschrijving": "Speel een uur online samen met een tweede speler",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_COOP_UUR",
       "steamApiNaam": ""
     },
     {
@@ -1189,6 +1358,7 @@
       "titel": "Boven de kermis",
       "omschrijving": "Draai een ronde mee in het reuzenrad",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_REUZENRAD_1",
       "steamApiNaam": ""
     },
     {
@@ -1196,6 +1366,7 @@
       "titel": "Rad van avontuur",
       "omschrijving": "Draai vijf keer mee in het reuzenrad",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_REUZENRAD_5",
       "steamApiNaam": ""
     },
     {
@@ -1203,6 +1374,7 @@
       "titel": "Kermisvaste",
       "omschrijving": "Rij tien ritjes in de botsauto's",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_BOTSAUTO_10",
       "steamApiNaam": ""
     },
     {
@@ -1210,6 +1382,7 @@
       "titel": "Kartvaste",
       "omschrijving": "Rij vijf kartraces op de baan in Ulrum",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_KART_5",
       "steamApiNaam": ""
     },
     {
@@ -1217,6 +1390,7 @@
       "titel": "Dwars door de bocht",
       "omschrijving": "Rond vijf driftruns af",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_DRIFT_5",
       "steamApiNaam": ""
     },
     {
@@ -1224,6 +1398,7 @@
       "titel": "Padelvaste",
       "omschrijving": "Speel tien potjes padel",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_PADEL_10",
       "steamApiNaam": ""
     },
     {
@@ -1231,6 +1406,7 @@
       "titel": "Zeebenen",
       "omschrijving": "Vaar in totaal 5 km over het water",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_VAREN_5",
       "steamApiNaam": ""
     },
     {
@@ -1238,6 +1414,7 @@
       "titel": "Kapitein van de Diepenring",
       "omschrijving": "Vaar in totaal 25 km over het water",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_VAREN_25",
       "steamApiNaam": ""
     },
     {
@@ -1245,6 +1422,7 @@
       "titel": "Op de vlucht",
       "omschrijving": "Blijf tien minuten achter elkaar gezocht",
       "verborgen": true,
+      "voorstelApiNaam": "ACH_STER_5_LANG",
       "steamApiNaam": ""
     },
     {
@@ -1252,6 +1430,7 @@
       "titel": "Vaste klant op het spoor",
       "omschrijving": "Reis 25 keer met de trein",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_REIZEN_25",
       "steamApiNaam": ""
     },
     {
@@ -1259,6 +1438,7 @@
       "titel": "Goed uitgerust",
       "omschrijving": "Slaap vijf keer in je eigen bed",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_SLAPEN_5",
       "steamApiNaam": ""
     },
     {
@@ -1266,6 +1446,7 @@
       "titel": "Geduldige visser",
       "omschrijving": "Hengel vijf rondes in Meerstad",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_HENGEL_5",
       "steamApiNaam": ""
     },
     {
@@ -1273,6 +1454,7 @@
       "titel": "Skatepark-vaste",
       "omschrijving": "Skate tien rondes in het Stadspark",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_SKATE_10",
       "steamApiNaam": ""
     },
     {
@@ -1280,6 +1462,7 @@
       "titel": "Rookwolk",
       "omschrijving": "Haal 5000 punten in één driftronde",
       "verborgen": true,
+      "voorstelApiNaam": "ACH_DRIFT_5000",
       "steamApiNaam": ""
     },
     {
@@ -1287,6 +1470,7 @@
       "titel": "Raampje open",
       "omschrijving": "Kijk vijf treinritten helemaal uit zonder over te slaan",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_TREIN_MEERIJDEN_5",
       "steamApiNaam": ""
     },
     {
@@ -1294,6 +1478,7 @@
       "titel": "Eerst oefenen",
       "omschrijving": "Rond de oefenronde in het menu af",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_OEFENRONDE_KLAAR",
       "steamApiNaam": ""
     },
     {
@@ -1301,6 +1486,7 @@
       "titel": "Nog een keertje",
       "omschrijving": "Begin na een mislukte missie drie keer opnieuw met Enter",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_OPNIEUW_3",
       "steamApiNaam": ""
     },
     {
@@ -1308,6 +1494,7 @@
       "titel": "Piloot van Grunn",
       "omschrijving": "Maak tien helikoptervluchten",
       "verborgen": false,
+      "voorstelApiNaam": "ACH_HELI_10",
       "steamApiNaam": ""
     }
   ]

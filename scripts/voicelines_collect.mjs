@@ -27,7 +27,9 @@ const src = (f) => fs.readFileSync(path.join(JS, f), 'utf8');
 
 // Balanced literal ([...] or {...}) starting at the first bracket after `marker`.
 function literalAt(text, marker, from = 0) {
-  const m = text.indexOf(marker, from);
+  // dead_code.mjs haalt `export` weg bij tabellen die alleen intern gebruikt worden: zoek dan zonder
+  let m = text.indexOf(marker, from);
+  if (m < 0 && marker.startsWith('export ')) m = text.indexOf(marker.slice(7), from);
   if (m < 0) throw new Error(`marker not found: ${marker}`);
   let i = m;
   while (text[i] !== '[' && text[i] !== '{') i++;

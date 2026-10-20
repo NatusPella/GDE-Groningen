@@ -857,7 +857,8 @@ function drawStaticOverlay(ctx) {
     ctx.textBaseline = 'middle';
     ctx.textAlign = 'center';
     const named = new Set();
-    for (const r of regionLabels(rx0, ry0, rx1, ry1, 0.1)) {
+    // (the right edge is pulled in by 8%: a clamped name at the bottom right would sit under the zoom buttons)
+    for (const r of regionLabels(rx0, ry0, rx1 - (rx1 - rx0) * 0.08, ry1, 0.1)) {
       if (r.id === 'groningen' && z > 1.6) continue;
       const [sx, sy] = toScreen(r.x, r.y);
       const size = Math.round(r.big ? 30 : r.land ? 28 : 24);

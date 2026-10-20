@@ -174,3 +174,25 @@ export function pickBikeVariant(map, x, y, rng = Math.random, ctx = {}) {
   }
   return null;
 }
+
+// Hoeveel auto's een stuk weg aankan (#265): het doelaantal van manageTrafficPopulation is een vast getal, ook in een gehucht met
+// twee korte wegen. Dan komen er dertig auto's op één kruising samen, die in een wachtkring raken (de lus-doorbreker laat ze door
+// elkaar heen rijden). Eén auto per roadM meter begaanbare weg binnen het spawnbereik, nooit meer dan het vaste doel, minstens
+// minCars zodat een eenzame weg niet uitgestorven is. lengthM: som van de weglengtes binnen het spawnbereik.
+export function roadCapacityTarget(lengthM, target = 30, { roadM = 70, minCars = 4 } = {}) {
+  if (!Number.isFinite(lengthM) || lengthM < 0) return target;
+  return Math.max(Math.min(minCars, target), Math.min(target, Math.ceil(lengthM / roadM)));
+}
+
+// Som van de lengtes (m) van de wegsegmenten waarvan het midden binnen radius van (x, y) ligt; roads: [{ pts: [[x, y], ...] }].
+export function roadLengthWithin(roads, x, y, radius) {
+  let len = 0;
+  for (const r of roads) {
+    const P = r.pts || [];
+    for (let i = 0; i + 1 < P.length; i++) {
+      const a = P[i], b = P[i + 1];
+      if (Math.hypot((a[0] + b[0]) / 2 - x, (a[1] + b[1]) / 2 - y) <= radius) len += Math.hypot(b[0] - a[0], b[1] - a[1]);
+    }
+  }
+  return len;
+}
