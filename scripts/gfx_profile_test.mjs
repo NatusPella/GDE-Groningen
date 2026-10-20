@@ -85,6 +85,12 @@ eq('fast GPU with hitches: no steps', steps(120, (i) => (i % 40 === 0 ? [180, 17
 eq('fast GPU, a slow second now and then: no steps', steps(120, (i) => (i % 1000 < 30 ? [34, 6] : [7, 4])), []);
 eq('GPU-bound on hoog: steps after 3 s', steps(4.5, () => [35, 8]), ['0.9/0']);
 eq('CPU-bound: detail first, not resolution', steps(5, () => [35, 30]), ['1/1']);
+eq('weak machine (CPU-bound for good): level 1, 2, then 3', steps(30, () => [80, 70]), ['1/1', '1/2', '1/3']);
+eq('weak machine stays on level 3', cpuLevel(), 3);
+eq('a machine at 3 fps is not ignored: steps within 8 s', steps(8, () => [330, 300]).length >= 2, true);
+eq('far over budget steps faster than 35 ms frames', steps(4, () => [90, 80])[0], '1/1');
+eq('level 3: the shortest view', viewDistanceFor('heelver', 1, 3), 150);
+eq('level 3: the shortest view for ver too', viewDistanceFor('ver', 1, 3), 150);
 // slow for 4 s every 30 s: it settles low; each step back up waits longer
 eq('flapping: at most 9 steps in 3 min', steps(180, (i) => (i % 2350 < 115 ? [35, 8] : [12, 6])).length <= 9, true);
 resetDynamic();

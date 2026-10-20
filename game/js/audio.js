@@ -1630,6 +1630,7 @@ const radioHolds = () => !radioOn;
 export function setRadioOn(on) {
   const was = radioOn;
   radioOn = !!on;
+  if (radioOn && !was) freshPick = true;
   // off ends a break without the music; back on goes on with the next record
   if (!radioOn) { inBreak = false; breakId++; } else if (!was && gmusicStarted && !gmusicHeld && gmusicCurrentEl && gmusicCurrentEl.ended) advanceGmusicQueue();
 }
@@ -1785,9 +1786,11 @@ function randomAmbientJingleEl(chance = 1) {
 }
 
 // the next record from the programme's pool
+let freshPick = false; // radio just switched on: new records first (musicpick.js NIEUW)
 function nextTrackEl() {
   const good = gmusicTracks.filter((x) => !x.gmusicBad);
-  const t = pickTrack((good.length ? good : gmusicTracks).map((el) => el.gmusicTrack), gmusicHistory, { station: radioProg.music, hour: musicHour });
+  const t = pickTrack((good.length ? good : gmusicTracks).map((el) => el.gmusicTrack), gmusicHistory, { station: radioProg.music, hour: musicHour, fresh: freshPick });
+  freshPick = false;
   const el = gmusicTracks.find((x) => x.gmusicTrack === t) || gmusicTracks[0];
   pushHistory(gmusicHistory, el.gmusicTrack.id);
   try { localStorage.setItem(GMUSIC_HISTORY_KEY, JSON.stringify(gmusicHistory)); } catch (e) { /* private mode */ }

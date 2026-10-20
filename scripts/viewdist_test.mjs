@@ -31,6 +31,8 @@ ok(V.detailDistanceFor('laag', 900) === V.DETAIL_BASE, 'laag keeps 140 m');
 ok(V.detailDistanceFor('middel', 600) > V.DETAIL_BASE && V.detailDistanceFor('hoog', 600) > V.detailDistanceFor('middel', 600), 'middel < hoog');
 for (const q of Object.keys(V.DETAIL_DIST)) ok((V.DETAIL_DIST[q] / V.DETAIL_BASE) ** 2 <= V.DETAIL_AREA_MAX, `detail area ratio ${q}`);
 ok(V.detailDistanceFor('onbekend', 900) === V.DETAIL_BASE, 'unknown profile falls back');
+ok(V.detailDistanceFor('hoog', 900, 3) === V.DETAIL_WEAK && V.DETAIL_WEAK < V.DETAIL_BASE, 'cpuLevel 3 shrinks the ring');
+ok(V.detailDistanceFor('hoog', 900, 2) === V.detailDistanceFor('hoog', 900), 'cpuLevel 2 does not');
 
 // a cutscene camera far from the player: the streamer follows the camera's look point
 const player = { x: 0, y: 0 };

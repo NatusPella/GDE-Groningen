@@ -26,6 +26,7 @@ const cine = await imp('cinematics');
 const DN = await imp('daynight');
 const MB = await imp('movablebridges');
 const TP = await imp('tileplace');
+const WL = await imp('waterlevels');
 if (CFG.alleenLijst) {
   const lijst = MB.getMovableBridges().map((b) => ({ naam: b.name, kind: b.kind, x: Math.round(b.x), y: Math.round(b.y), len: Math.round(b.len) }));
   return JSON.stringify({ beweegbaar: lijst });
@@ -38,7 +39,7 @@ w.clock = 14;
 w.weather = { active: false, timer: 1e9, kind: 'helder', peak: 0, intensity: 0, wet: 0, overcast: 0, mist: 0, windAngle: 0.9, elapsed: 0, duration: Infinity };
 if (DN.refreshDayNight) DN.refreshDayNight(w);
 let hold = null, done = false;
-const tick = () => { if (hold) { if (p.inVehicle) p.exitVehicle(map, w); p.x = hold.x; p.y = hold.y; p.vx = p.vy = 0; p.z = 0; p.vz = 0; } if (!done) requestAnimationFrame(tick); };
+const tick = () => { w.clock = 14; if (hold) { if (p.inVehicle) p.exitVehicle(map, w); p.x = hold.x; p.y = hold.y; p.vx = p.vy = 0; p.z = 0; p.vz = 0; } if (!done) requestAnimationFrame(tick); };
 requestAnimationFrame(tick);
 // De camera staat vast: renderer.render zet hem vlak voor elke tekenbeurt op `cur` (de cinematic-camera van het spel
 // tilt zichzelf over gebouwen en duwt zich van muren, dus die staat niet stil). De speler staat op de camerapositie en
@@ -50,7 +51,8 @@ S3.renderer.render = (sc, c) => {
   if (cur && c === S3.cam) { c.position.set(cur.position.x, cur.position.z, cur.position.y); c.lookAt(cur.lookAt.x, cur.lookAt.z, cur.lookAt.y); c.updateMatrixWorld(true); }
   origRender(sc, c);
 };
-for (const el of document.querySelectorAll('body > *')) if (!el.contains(S3.renderer.domElement) && !(el.tagName === 'SCRIPT')) el.style.display = 'none';
+{ const ss = document.querySelector('#start-screen'); if (ss) ss.style.display = 'none'; } // het titelscherm blijft soms over het spel hangen
+if (!CFG.hud) for (const el of document.querySelectorAll('body > *')) if (!el.contains(S3.renderer.domElement) && !(el.tagName === 'SCRIPT')) el.style.display = 'none';
 w.cinematicHidePlayers = true;
 const grab = async (name) => { console.log('[capture] ' + name); await sleep(450); };
 const zet = (pose) => { cur = pose; hold = { x: pose.position.x, y: pose.position.y }; p.angle = Math.atan2(pose.lookAt.y - pose.position.y, pose.lookAt.x - pose.position.x); };
@@ -107,34 +109,41 @@ for (const b of CFG.bruggen) {
       let best = null;
       for (const sn of [1, -1]) for (const sa of [0.25, -0.25]) {
         const px = m[0] + nx * d * sn * 0.97 + dx * d * sa, py = m[1] + ny * d * sn * 0.97 + dy * d * sa;
-        let blok = 0;
+        let blok = (TP.buildingAt(map, px, py, 3) ? 99 : 0) + (WL.waterAt(map, px, py) ? 0 : 4); // (boven het water staan geen bomen in de weg)
         for (let k = 1; k <= 24; k++) { const t = k / 25; if (TP.buildingAt(map, px + (m[0] - px) * t, py + (m[1] - py) * t)) blok++; }
         if (!best || blok < best.blok) best = { px, py, blok, sn, sa };
       }
       rep['blok' + d] = best.blok;
       if (d === DIST[1] || !zijde) zijde = best;
-      await trio(`${tag}-schuin${d}`, { position: { x: best.px, y: best.py, z: zm + 2 + d * 0.18 }, lookAt: { x: m[0], y: m[1], z: zm }});
+      if (!CFG.alleenReeks) await trio(`${tag}-schuin${d}`, { position: { x: best.px, y: best.py, z: zm + 2 + d * 0.18 }, lookAt: { x: m[0], y: m[1], z: zm }});
     }
     // 2. bestuurdersoog: op het dek, vooruit kijkend, vijf plekken langs de brug
     const half = Math.min(L / 2, 40);
-    for (const s of [-half * 0.9, -half * 0.45, 0, half * 0.45, half * 0.9]) {
+    if (!CFG.alleenReeks) for (const s of [-half * 0.9, -half * 0.45, 0, half * 0.45, half * 0.9]) {
       const ox = m[0] + dx * s, oy = m[1] + dy * s;
       await trio(`${tag}-dek${Math.round(s)}`, { position: { x: ox, y: oy, z: zm + 1.7 }, lookAt: { x: ox + dx * 30, y: oy + dy * 30, z: zm + 0.4 }});
     }
     // 3. onder het dek, van het water of de weg eronder
-    await trio(`${tag}-onder`, { position: { x: m[0] + nx * 14, y: m[1] + ny * 14, z: 1.6 }, lookAt: { x: m[0], y: m[1], z: Math.max(zm - 0.5, 1.5) }});
+    if (!CFG.alleenReeks) await trio(`${tag}-onder`, { position: { x: m[0] + nx * 14, y: m[1] + ny * 14, z: 1.6 }, lookAt: { x: m[0], y: m[1], z: Math.max(zm - 0.5, 1.5) }});
     // 4. beweegbaar: een reeks tijdens het openen en sluiten, één vaste stand
     const mb = MB.getMovableBridges().find((q) => q.r === road);
     if (mb) {
       if (p.inVehicle) p.exitVehicle(map, w);
       hold = null;
       p.x = mb.x - mb.uy * (mb.half + 6); p.y = mb.y + mb.ux * (mb.half + 6);
-      const side = { position: { x: m[0] + nx * 36 * zijde.sn + dx * 36 * zijde.sa, y: m[1] + ny * 36 * zijde.sn + dy * 36 * zijde.sa, z: zm + 9 }, lookAt: { x: m[0], y: m[1], z: zm + 1.5 }};
+      // b.cam = { a, n, z }: een eigen stand voor een brug waar de gekozen stand door een boom of gebouw kijkt (langs het dek, opzij, hoogte)
+      const side = b.cam
+        ? { position: { x: m[0] + dx * b.cam.a + nx * b.cam.n, y: m[1] + dy * b.cam.a + ny * b.cam.n, z: zm + b.cam.z }, lookAt: { x: m[0], y: m[1], z: zm + 1 } }
+        : { position: { x: m[0] + nx * 36 * zijde.sn + dx * 36 * zijde.sa, y: m[1] + ny * 36 * zijde.sn + dy * 36 * zijde.sa, z: zm + 9 }, lookAt: { x: m[0], y: m[1], z: zm + 1.5 }};
       const reeks = [];
       await start(side);
       await grab(`${tag}-reeks0-dicht`);
       MB.requestOpening(mb, null, true, false);
       const t1 = performance.now();
+      // de hint van de brug ('Brug gaat open') staat een paar seconden op de HUD: met --hud een beeld zodra hij 'warn' is
+      for (let i = 0; i < 100 && mb.state !== 'warn' && mb.state !== 'booms'; i++) await sleep(50);
+      await sleep(600);
+      await grab(`${tag}-reeks1a-waarschuwing`);
       const gezien = new Set();
       const staat = [];
       rep.log = [];

@@ -78,5 +78,24 @@ ok(!M.programmeAt(23).jingles && M.programmeAt(13).jingles, 'no G-Music jingles 
 ok(['gmusic', 'nachtstreek', 'grunn', 'on', undefined, null, 5].every((v) => M.normalizeRadio(v) === 'on'), 'old stations and junk are on');
 ok(M.normalizeRadio('uit') === 'off' && M.normalizeRadio('off') === 'off', 'off stays off');
 
+
+// new records (#238): "nieuw": true in the manifest gets priority, then mixes in evenly
+{
+  ok(M.normalizeTrack({ file: 'n.mp3', nieuw: true }).nieuw === true && M.normalizeTrack('o.mp3').nieuw === false, 'nieuw flag is read, default off');
+  const old = tracks.filter((t) => !t.nieuw);
+  const fresh = ['nieuw_a', 'nieuw_b'].map((id) => M.normalizeTrack({ file: id + '.mp3', nieuw: true, stations: ['gmusic'] }));
+  const all = [...old, ...fresh];
+  let sd = 11; const r2 = () => ((sd = (sd * 1103515245 + 12345) % 2147483648) / 2147483648);
+  // fresh start: an unheard new record comes first, every time
+  for (let i = 0; i < 20; i++) ok(M.pickTrack(all, [], { hour: 14, rng: r2, fresh: true }).nieuw, 'fresh start plays a new record first');
+  // boost: while under NIEUW.plays they are over-represented; afterwards equal to the rest
+  const share = (hist0) => { let c = 0, hist = hist0.slice(); for (let i = 0; i < 600; i++) { const t = M.pickTrack(all, hist, { hour: 14, rng: r2 }); if (t.nieuw) c++; M.pushHistory(hist, t.id); if (!hist0.length) { hist.length = Math.min(hist.length, 3); } } return c / 600; };
+  const base = fresh.length / all.length;
+  ok(share([]) > base * 1.5, 'new records are played more than their share while unheard', share([]).toFixed(3));
+  const heard = []; for (let i = 0; i < M.NIEUW.plays; i++) heard.push('nieuw_a', 'nieuw_b');
+  ok(M.trackWeight(fresh[0], { hour: 14, ago: 5, poolSize: 10, plays: M.NIEUW.plays }) === M.trackWeight({ ...fresh[0], nieuw: false }, { hour: 14, ago: 5, poolSize: 10, plays: 0 }), 'after NIEUW.plays plays a new record weighs like any other');
+  ok(M.isFreshNew(fresh[0], []) && !M.isFreshNew(fresh[0], heard) && !M.isFreshNew(old[0], []), 'isFreshNew');
+  ok(M.NIEUW.boost > 1 && M.NIEUW.plays >= 1, 'NIEUW is tuned in one place');
+}
 console.log(`${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);

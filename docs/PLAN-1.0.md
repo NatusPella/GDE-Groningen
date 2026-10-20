@@ -1,6 +1,6 @@
 # Plan naar 1.0 (#65)
 
-Stand: 19 oktober 2026, laatste pre-release 0.35.0. Dit is een **plan**; het is
+Stand: 20 oktober 2026, laatste pre-release 0.37.1. Dit is een **plan**; het is
 niets uitgevoerd, geen tag gemaakt en niets gepubliceerd. De lijst van werk zelf
 staat op het bord (constitution 7); dit document beschrijft alleen de afspraak
 voor het eindspel: wat 1.0 betekent, in welke volgorde, en wie wat beslist.

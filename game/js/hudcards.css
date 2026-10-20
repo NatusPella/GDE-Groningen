@@ -124,7 +124,7 @@ body.pigeon-mode #hud .hud-cards { top: 300px; }
 #hud .hud-cards.hc-held { opacity: 0; transition: opacity 0.2s; }
 
 /* zone E: an achievement, left middle */
-#hud .hud-cards-e { position: absolute; top: 330px; left: var(--hud-edge, 46px); width: min(calc(30vw / var(--ui, 1)), 320px); pointer-events: none; }
+#hud .hud-cards-e { position: absolute; bottom: calc(var(--mm-bottom, 46px) + var(--mm-size, 250px) + 14px); left: var(--hud-edge, 46px); width: min(calc(30vw / var(--ui, 1)), 320px); pointer-events: none; }
 #hud .hud-cards .hud-card { border-radius: 10px; border-left: 0; box-shadow: 0 0 0 1px color-mix(in srgb, var(--hc) 45%, transparent), 0 10px 26px rgba(0, 0, 0, 0.35); background: var(--hud-card); }
 #hud .hud-cards-e .hud-card { position: relative; border-radius: 10px; border-left: 0; background: var(--hud-card); box-shadow: 0 0 0 1px rgba(232, 201, 58, 0.4); }
 body.hud-card-on #hud .hud-nowplaying { opacity: 0; }
