@@ -1,4 +1,4 @@
-// Audit van de plekken in de data (#242, #67): de stadscafés (citymap.json meta.horeca) en de vaste plekken van de
+// Audit van de plekken in de data (#242, #67): de stadscafés (stad.json meta.horeca) en de vaste plekken van de
 // provincie (streekplekken.json) liggen niet in een waterpolygoon van de stadskaart, en horeca.js zet een café dat bij
 // het uit het gebouw halen in het water belandt (De Lallende Koe) naar de dichtstbijzijnde open plek. De volledige
 // plaatscontrole (gebouw, ingesloten, bereikbaar) loopt in de verhaaltest via spotcheck.js. De drempel mag alleen dalen.
@@ -6,7 +6,8 @@
 import fs from 'node:fs';
 
 const here = (f) => new URL(f, import.meta.url);
-const map = JSON.parse(fs.readFileSync(here('../game/citymap.json')));
+const { loadStadData } = await import('./lib/loadworld.mjs');
+const map = await loadStadData();
 const inPoly = (x, y, p) => { let r = false; for (let i = 0, j = p.length - 1; i < p.length; j = i++) { if ((p[i][1] > y) !== (p[j][1] > y) && x < ((p[j][0] - p[i][0]) * (y - p[i][1])) / (p[j][1] - p[i][1]) + p[i][0]) r = !r; } return r; };
 const bb = (p) => { let a = 1e9, b = 1e9, c = -1e9, d = -1e9; for (const [x, y] of p) { a = Math.min(a, x); b = Math.min(b, y); c = Math.max(c, x); d = Math.max(d, y); } return [a, b, c, d]; };
 const water = map.water.map((w) => ({ pts: w.pts, box: bb(w.pts) }));
