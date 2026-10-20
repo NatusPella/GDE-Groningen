@@ -140,7 +140,7 @@ export function stadOf(d) {
 }
 
 // De stad als GameMap: stad.json + de lagen uit de OSM-bouw (altijd de lagen die stad.json mist, plus wat STAD_LAAG vraagt),
-// dan mapextras (patches op gebouwen en wegen). city en osm zijn voor de splitstest (stad_split_test.mjs).
+// dan mapextras (patches op gebouwen en wegen). city en osm laten tests een eigen stad en eigen OSM-lagen opgeven.
 export async function loadSourcesLaag(...args) {
   const { data, lagen, report } = await loadCityDataLaag(...args);
   return { map: new GameMap(data), lagen, report };

@@ -28,7 +28,7 @@ const targetSet = new Set(targets);
 
 // --- lezers: regels in getrackte bestanden (niet in de lijst) die een doelbestand noemen
 // (railprofile.mjs, worldbuilder_test.mjs en building_attrs.py lezen een ruwe bron alleen als hij bestaat; publish_check_test.mjs noemt er een als tekst)
-const ALLOWED = new Set(['scripts/lib/loadworld.mjs', 'scripts/world/stad_split.mjs', 'scripts/stad_split_test.mjs', 'scripts/stad_opruimen.mjs',
+const ALLOWED = new Set(['scripts/lib/loadworld.mjs', 'scripts/world/stad_split.mjs', 'scripts/stad_opruimen.mjs',
   'scripts/world/railprofile.mjs', 'scripts/worldbuilder_test.mjs', 'scripts/world/building_attrs.py', 'scripts/publish_check_test.mjs']);
 const CODE = /\.(mjs|js|cjs|json|py|sh|bat|yml|yaml|html|ps1)$/;
 const isDocLine = new Map(); // .py: regels binnen een docstring tellen als commentaar
