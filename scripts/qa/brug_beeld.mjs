@@ -29,7 +29,9 @@ const afstanden = arg('afstanden', '25,60,150,350').split(',').map(Number);
 const profile = `gde-test-bb-${process.pid}`;
 const script = path.join(OUT, '_page.js');
 fs.writeFileSync(script, boot
-  ? `window.__bt = ${JSON.stringify({ ...bruggen, settle: Number(arg('settle', 4500)) })};\n` + fs.readFileSync(path.join(HERE, 'brug_boot.page.js'), 'utf8')
+  ? (zee
+    ? `window.__zv = ${JSON.stringify(bruggen)};\n` + fs.readFileSync(path.join(HERE, 'zee_vaart.page.js'), 'utf8')
+    : `window.__bt = ${JSON.stringify({ ...bruggen, settle: Number(arg('settle', 4500)) })};\n` + fs.readFileSync(path.join(HERE, 'brug_boot.page.js'), 'utf8'))
   : `window.__bb = ${JSON.stringify({ bruggen, plekken, afstanden, alleenLijst, hud: flag('hud'), alleenReeks: flag('alleen-reeks'), settle: Number(arg('settle', 4500)) })};\n` + fs.readFileSync(path.join(HERE, 'brug_beeld.page.js'), 'utf8'));
 const electron = process.env.ELECTRON_EXE || path.join(ROOT, 'desktop', 'node_modules', 'electron', 'dist', process.platform === 'win32' ? 'electron.exe' : 'Electron');
 const env = { ...process.env, GDE_TEST_PROFILE: profile };
