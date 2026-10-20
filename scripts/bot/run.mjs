@@ -67,13 +67,8 @@ let slot = null;
 const release = () => { if (slot) { try { fs.rmdirSync(slot); } catch { /* al weg */ } slot = null; } };
 process.on('exit', release);
 if (flag('slot')) {
-<<<<<<< HEAD
-  const LOCKS = 'C:/Users/abuis/gde-locks';
-  for (let tries = 0; tries < 720 && !slot; tries++) {
-=======
   const LOCKS = process.env.GDE_LOCKS || path.join(os.homedir(), 'gde-locks');
-  for (let tries = 0; tries < 240 && !slot; tries++) {
->>>>>>> origin/main
+  for (let tries = 0; tries < 720 && !slot; tries++) {
     for (const n of [1, 2, 3]) { try { fs.mkdirSync(path.join(LOCKS, `electron-${n}`)); slot = path.join(LOCKS, `electron-${n}`); console.log(`slot electron-${n}`); break; } catch { /* bezet */ } }
     if (!slot) await new Promise((r) => setTimeout(r, 20000));
   }

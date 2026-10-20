@@ -95,9 +95,9 @@ const release = () => { if (slot) { try { fs.rmdirSync(slot); } catch { /* al we
 process.on('exit', release);
 if (flag('slot')) {
   const LOCKS = process.env.GDE_LOCKS || path.join(os.homedir(), 'gde-locks');
-  for (let tries = 0; tries < 240 && !slot; tries++) {
+  for (let tries = 0; tries < 720 && !slot; tries++) {
     for (const n of [1, 2, 3]) { try { fs.mkdirSync(path.join(LOCKS, `electron-${n}`)); slot = path.join(LOCKS, `electron-${n}`); break; } catch { /* bezet */ } }
-    if (!slot) await new Promise((r) => setTimeout(r, 60000));
+    if (!slot) await new Promise((r) => setTimeout(r, 20000));
   }
   if (!slot) { console.error('geen Electron-slot gekregen'); process.exit(4); }
 }
