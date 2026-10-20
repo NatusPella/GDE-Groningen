@@ -8,6 +8,7 @@ import * as N from '../game/js/coopnet.js';
 import * as C from '../game/js/coopclient.js';
 import { remoteP2, cameraRelative } from '../game/js/coop.js';
 import { coopStep } from '../game/js/coopglue.js';
+import { gateOn, setGate } from '../game/js/coopgate.js';
 
 let n = 0;
 const t = (name, f) => { f(); n++; };
@@ -313,5 +314,21 @@ t('filmpje van de host: de gasten zien het (na een korte tijd), staan stil en le
   assert.equal(g.coopScene, null);
   assert.equal(N.handleEvent(hw, { k: 'scene', filmpje: true }), false, 'een host luistert niet naar scène-berichten');
   N.stopCoopNet(g); assert.equal(g.coopScene, null);
+});
+t('de wachtkamer: het spel begint pas met minstens twee spelers; een gast hoort dat de gastheer nog moet starten en dat het spel begint', () => {
+  const hw = mkWorld(); setGate(true);
+  N.startHost(hw, INFO, { seed: 6 });
+  assert.equal(N.genoegSpelers(hw), false, 'alleen de gastheer: niet genoeg');
+  const link = createLink({ latency: 0.03, seed: 9 }); N.addGuest(hw, link.a);
+  const gw = mkWorld({ input: { axis: () => [1, 0], isDown: () => false } }); N.startClient(gw, link.b, INFO, {});
+  const step = (secs) => { for (let k = 0; k < 60 * secs; k++) { N.tickCoopNet(hw, 1 / 60); N.tickCoopNet(gw, 1 / 60); link.advance(1 / 60); gw.time += 1 / 60; hw.time += 1 / 60; } };
+  step(2);
+  assert.equal(N.genoegSpelers(hw), true, 'gastheer en gast: genoeg');
+  assert.equal(gw.coopHek, true, 'een nieuwe speler hoort bij het aansluiten dat het spel nog niet begonnen is');
+  assert.equal(N.genoegSpelers(gw), false, 'een gast start niet');
+  N.openHek(hw); step(1);
+  assert.equal(gateOn(), false); assert.equal(gw.coopHek, false, 'de gast hoort dat het spel begint');
+  assert.equal(N.handleEvent(hw, { k: 'hek', aan: true }), false, 'een gastheer luistert niet naar dit bericht');
+  setGate(true); N.stopCoopNet(hw); assert.equal(gateOn(), false, 'zonder samen spelen is er geen wachtkamer');
 });
 console.log(`coopnet_test: ${n}/${n} ok`);

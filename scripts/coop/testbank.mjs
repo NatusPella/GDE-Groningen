@@ -492,7 +492,12 @@ if (SUITE === 'opening') {
   // wachtkamer: de gast leest wat er bewaard wordt, de gastheer heeft Spel starten
   const gw = one(G, 'wachtkamer'), hw = one(H, 'wachtkamer');
   check(gw && /Je speelt mee in het spel van de gastheer/.test(gw.tekst) && /in je eigen spel \(.+\)/.test(gw.tekst), 'wachtkamer: de gast leest niet in welk spel hij speelt en wat er bewaard wordt: ' + JSON.stringify(gw && gw.tekst));
-  if (!flag('host-save')) check(hw && hw.gateKnop && /Spel starten/.test(hw.tekst), 'wachtkamer: de gastheer heeft geen Spel starten: ' + JSON.stringify(hw && hw.tekst));
+  check(hw && hw.gateKnop && !hw.gateKnopUit && /Spel starten/.test(hw.tekst), 'wachtkamer: met twee spelers staat Spel starten niet aan: ' + JSON.stringify(hw && hw.tekst));
+  const alleen = one(H, 'start-alleen');
+  check(alleen && alleen.knop && alleen.uit && /minstens twee spelers/.test(alleen.tekst), 'wachtkamer: alleen jij: Spel starten moet uit staan met uitleg: ' + JSON.stringify(alleen));
+  const hg = one(G, 'hek-gast'), hgo = one(G, 'hek-open-gast'), st0 = one(H, 'spel-gestart');
+  check(hg && /Wacht tot/.test(hg.tekst) && !hg.cam, 'wachtkamer: de gast leest niet dat hij wacht tot de ander start: ' + JSON.stringify(hg && hg.tekst));
+  check(hgo && st0 && hgo.wall >= st0.wall - 300 && !hgo.menu, 'wachtkamer: het menu van de gast sluit niet op het moment van starten: ' + JSON.stringify(hgo));
   const nieuw = !flag('host-save'); // met een gekozen opgeslagen spel is er geen hek en geen opening
   const gate = one(H, 'gate-wacht'), start = one(H, 'spel-gestart');
   if (nieuw) check(gate && !gate.cine && !gate.cam && gate.paused, 'hek: de opening begon al voor Spel starten: ' + JSON.stringify(gate));
@@ -511,7 +516,6 @@ if (SUITE === 'opening') {
     const hs0 = one(H, 'host-save'), lad = one(H, 'spelkeuze-laden');
     check(hs0 && hs0.ok && hs0.hasSave, 'bewaren: het opgeslagen spel van de gastheer ontbreekt: ' + JSON.stringify(hs0));
     check(lad && lad.label === 'Dit spel spelen', 'bewaren: de gastheer krijgt niet de knop Dit spel spelen: ' + JSON.stringify(lad));
-    check(hw && !hw.gateKnop && !/Spel starten/.test(hw.tekst), 'bewaren: met een geladen spel hoort er geen Spel starten te zijn: ' + JSON.stringify(hw && hw.tekst));
     check(samples('host').some((q) => q.role === 'host' && q.money === 777), 'bewaren: het geld van het gekozen spel (777) is niet geladen: ' + JSON.stringify([...new Set(samples('host').map((q) => q.money))]));
     const vs = one(G, 'voor-save'), gb = of(G, 'save').pop(), hb = of(H, 'save').pop();
     check(vs && gb && gb.saveMoney === vs.money + 250 && gb.verdiend === 0, 'bewaren: de beloning van de gast staat niet in zijn eigen spel: ' + JSON.stringify({ voor: vs, na: gb }));

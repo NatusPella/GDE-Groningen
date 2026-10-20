@@ -2,7 +2,7 @@
 // Hier komen de uitnodiging (host) en het aansluiten (gast) samen; geen keuze bij
 // Nieuw spel of Doorgaan. Dit is lijm tussen lobbyui.js en coopnet.js; niet in beeld bekeken.
 import { mountLobby } from './lobbyui.js';
-import { startHost, startClient, addGuest, stopCoopNet, handshakeInfo, canJoin, removeGuest, setMaxPlayers } from './coopnet.js';
+import { startHost, startClient, addGuest, stopCoopNet, handshakeInfo, canJoin, removeGuest, setMaxPlayers, openHek, genoegSpelers } from './coopnet.js';
 import { fadeFlash } from './coophud.js';
 import { openHold } from './coophold.js';
 import { readSession, writeSession, toSession } from './coopsave.js';
@@ -47,8 +47,13 @@ export function renderSamenPanel(root, world, sluit = () => {}) {
     canJoin: () => canJoin(world),
     joined: () => {},
     // 'Spel starten' (alleen de gastheer, in de wachtkamer van een nieuw spel): het menu sluit en de opening begint
-    startSpel: () => { setGate(false); sluit(); },
+    startSpel: () => {
+      const n = world.coopNet;
+      if (!n || n.role === 'host') { if (!genoegSpelers(world)) return; openHek(world); } // alleen met minstens twee spelers
+      else setGate(false); // een gast: de ander startte
+      sluit();
+    },
     // 'Iedereen stoppen' (host) of 'Spel verlaten' (gast); bij 'terug' is er nog geen sessie
-    disconnect: (a) => { if (a === 'verbreek') stopCoopNet(world); },
+    disconnect: (a) => { setGate(false); if (a === 'verbreek') stopCoopNet(world); }, // Stoppen of Terug: geen wachtkamer meer, je speelt weer je eigen spel
   }, { keuze, startGate: gate, spelNaam });
 }

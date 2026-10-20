@@ -17,6 +17,7 @@ import { bindCoop } from './coopglue.js';
 import { partnersInfo, createPings, addPing, tickPings, pingEvent } from './partnerhud.js';
 import { holdBeleid, leesLijstEvent, lijst } from './coopplayers.js';
 import { cameraRelative, stepSlot2, sharedCamera } from './coop.js';
+import { gateOn, setGate } from './coopgate.js';
 import { nieuwCutVerzamelaar, cutGastSpeel, cutGastStop, leesCutTijd, cutSpoor } from './coopcut.js';
 import { verzamelEntiteiten, leesEntiteiten, missieBericht, leesMissieBericht, missieTekst, sceneBericht, leesSceneBericht, sceneLeeg, FILMPJE_TEKST } from './coopworld.js';
 import { verhaalRol } from './coopplayers.js';
@@ -102,6 +103,7 @@ export function startHost(world, info, opts = {}) {
     sim: hostSim(world, () => hub.roster),
     onJoin: (slot, char) => {
       if (world.coopNet && world.coopNet.missie) hub.announce(missieBericht(null, world.mission).event || { k: 'missie', actief: false }, slot);
+      hub.announce({ k: 'hek', aan: gateOn() }, slot); // is het spel nog niet begonnen? dan wacht de nieuwe speler in de wachtkamer
       if (world.coopNet && world.coopNet.sceneNu && !sceneLeeg(world.coopNet.sceneNu)) hub.announce({ k: 'scene', ...world.coopNet.sceneNu }, slot); // wie midden in een filmpje aansluit, hoort het meteen
       if (slot >= 2) { const f = ensureFigure(world, slot, char); f.x = world.player.x + 1.5 * (slot - 1); f.y = world.player.y + 1.5; }
       if (fade) fade('in'); // de gast komt met een korte fade naast je staan
@@ -271,6 +273,11 @@ export function handleEvent(world, body, van = 0) {
       cutGastSpeel(world, p);
       return true;
     }
+    case 'hek': { // het spel is nog niet begonnen (aan) of begint nu (uit): de wachtkamer
+      if (!n || n.role !== 'client') return false;
+      world.coopHek = !!body.aan;
+      return true;
+    }
     case 'cuttijd': { // de tijd van de gastheer in zijn scène: de gast loopt mee (coopcut.js cutGastTempo)
       if (!n || n.role !== 'client') return false;
       const k = leesCutTijd(body); if (!k) return false;
@@ -345,8 +352,21 @@ export function setMaxPlayers(world, max) {
 }
 
 // Verlaten. Gast: terug naar de eigen plek en eigen toestand, saven mag weer. Host: alleen verder; alle gasten gaan eruit.
+// de gastheer start het spel: de wachtkamer is open, iedereen begint samen
+export function openHek(world) {
+  setGate(false);
+  const n = world.coopNet;
+  if (n && n.role === 'host' && n.hub) n.hub.announce({ k: 'hek', aan: false });
+}
+// genoeg spelers om te starten (de gastheer plus minstens een verbonden gast)
+export function genoegSpelers(world, min = 2) {
+  const n = world.coopNet;
+  return !!(n && n.role === 'host' && n.hub && n.hub.roster.spelers.filter((p) => p.verbinding !== 'lost').length >= min);
+}
+
 export function stopCoopNet(world) {
   const n = world.coopNet; if (!n) return;
+  setGate(false); // zonder samen spelen is er geen wachtkamer meer
   if (world.coopCutBezig != null) cutGastStop(world, null, true); // een scène van de gastheer stopt met het samen spelen
   if (n.role === 'host') { try { n.hub.announce({ k: 'weg', reden: 'gastheer gestopt' }); n.hub.closeAll(); } catch (e) { /* al weg */ } } else { try { if (n.session.status !== 'geweigerd' && n.session.status !== 'verbroken') n.session.leave(); } catch (e) { /* al weg */ } }
   world.coopNet = null;

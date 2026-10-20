@@ -205,6 +205,7 @@ async function connect() {
     const code = await until(() => { const c = panel().querySelector('.coop-code'); return c && c.textContent.trim(); }, 40000, 'code van de host');
     log('code', { code, net: netNow() });
     shot('host-code');
+    { const b0 = panel().querySelector('[data-act="start-spel"]'); log('start-alleen', { knop: !!b0, uit: !!(b0 && b0.disabled), tekst: panel().innerText.slice(0, 500) }); } // alleen jij: Spel starten staat uit
     await until(() => title() === 'Je speelt samen', CFG.waitS ? CFG.waitS * 1000 : 120000, 'een gast');
   } else {
     if (buttons().includes('kies-gast')) await act('kies-gast');
@@ -223,7 +224,13 @@ async function connect() {
   await sleep(1500); // de fade van het binnenkomen is dan voorbij
   shot('lobby-verbonden');
   const gateKnop = CFG.role === 'host' && panel().querySelector('[data-act="start-spel"]');
-  log('wachtkamer', { rol: CFG.role, gateKnop: !!gateKnop, tekst: panel().innerText.slice(0, 700) });
+  log('wachtkamer', { rol: CFG.role, gateKnop: !!gateKnop, gateKnopUit: !!(gateKnop && gateKnop.disabled), tekst: panel().innerText.slice(0, 700) });
+  if (CFG.role !== 'host' && W().coopHek) { // de gast wacht in de wachtkamer tot de ander start; het menu sluit dan vanzelf
+    log('hek-gast', { tekst: panel().innerText.slice(0, 500), paused: !!W().paused, cam: !!W().cameraOverride, cine: !!(W().cameraOverride) });
+    await until(() => !W().coopHek, 600000, 'de ander start het spel');
+    log('hek-open-gast', { paused: !!W().paused, menu: !!document.querySelector('#pause-menu.visible') });
+    await sleep(1500);
+  }
   if (CFG.watchOpening && CFG.role === 'host') return; // de fase 'opening' drukt zelf op Spel starten
   if (gateKnop) { // een nieuw spel: de gastheer start het (zoals een speler); de opening begint daarna, de anderen kijken mee (of de gastheer slaat over)
     gateKnop.click(); log('spel-gestart', {});

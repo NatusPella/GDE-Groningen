@@ -110,6 +110,9 @@ export function reduce(s, ev) {
   }
 }
 
+// Het spel begint pas met minstens twee spelers in de wachtkamer (de eigenaar, 20-10): de gastheer plus een gast
+export const MIN_SPELERS = 2;
+
 // De regel voor de gast: wat er van zijn voortgang wordt bewaard (docs/COOP-OPSLAAN.md)
 export const GAST_BEWAREN = (naam) => `Je speelt mee in het spel van de gastheer. Wat je verdient bewaren we in je eigen spel${naam ? ` (${naam})` : ''}; het verhaal en de wereld zijn van de gastheer.`;
 
@@ -147,8 +150,8 @@ export function view(s) {
       const lines = [s.route === ROUTES.DIRECT ? 'Geef dit adres of deze code aan je medespeler. Zodra die verbindt, komt Tessa naast je staan.' : 'Geef deze kamercode aan je medespeler. Zodra die hem invoert, komt Tessa naast je staan.'];
       if (s.note) lines.push(s.note);
       if (s.lanCode && s.lanCode !== s.code) lines.push('Op hetzelfde netwerk werkt ook de lokale code: ' + s.lanCode);
-      if (s.caps.startGate) lines.push("Wil je niet wachten? Druk op 'Spel starten': het spel begint dan zonder medespeler en de uitnodiging blijft staan.");
-      return V({ title: 'Iemand uitnodigen', lines, code: s.code, buttons: [...(s.caps.startGate ? [{ act: 'start-spel', label: 'Spel starten', primary: true }] : []), { act: 'kopieer', label: 'Kopieer', primary: !s.caps.startGate }, { act: 'terug', label: 'Stoppen' }] });
+      if (s.caps.startGate) lines.push('Wacht op een medespeler: je kunt het spel starten zodra er minstens twee spelers zijn.');
+      return V({ title: 'Iemand uitnodigen', lines, code: s.code, buttons: [...(s.caps.startGate ? [{ act: 'start-spel', label: 'Spel starten', primary: true, disabled: true }] : []), { act: 'kopieer', label: 'Kopieer', primary: !s.caps.startGate }, { act: 'terug', label: 'Stoppen' }] });
     }
     case 'gast-typt':
       return V({
@@ -169,7 +172,12 @@ export function view(s) {
       if (lag) lines.push('De verbinding haperde even; we wachten op de ander.');
       const tip = advies(lijst.length, host ? 'host' : 'gast'); if (tip) lines.push(tip);
       const buttons = [];
-      if (host && s.caps.startGate) { lines.push("Het spel begint pas als jij op 'Spel starten' drukt: ook de openingsscène zien jullie samen."); buttons.push({ act: 'start-spel', label: 'Spel starten', primary: true }); }
+      if (host && s.caps.startGate) { // het spel begint pas met minstens twee spelers en een druk op Spel starten
+        const genoeg = lijst.filter((p) => p.verbinding !== 'lost').length >= MIN_SPELERS;
+        lines.push(genoeg ? "Het spel begint pas als jij op 'Spel starten' drukt: ook de openingsscène zien jullie samen." : 'Wacht op een medespeler: je kunt het spel starten zodra er minstens twee spelers zijn.');
+        buttons.push({ act: 'start-spel', label: 'Spel starten', primary: true, disabled: !genoeg });
+      }
+      if (!host && s.caps.startGate) lines.push('Wacht tot de ander het spel start.');
       if (host) {
         for (const p of lijst) if (p.slot !== 0) buttons.push({ act: 'kick-' + p.slot, label: `${p.naam} verwijderen` });
         for (const m of [4, 8, 12, 16]) if (m !== s.max && m >= lijst.length) buttons.push({ act: 'max-' + m, label: `Tot ${m} spelers` });

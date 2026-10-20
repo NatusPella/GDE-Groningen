@@ -43,7 +43,7 @@ export function mountLobby(root, hooks, opts = {}) {
       (v.input ? `<input class="coop-input" type="text" spellcheck="false" autocomplete="off" placeholder="${esc(v.input.placeholder)}" value="${esc(v.input.value || '')}">` : '') +
       wensen +
       (v.error ? `<p class="coop-error" role="alert">${esc(v.error)}</p>` : '') +
-      `<div class="coop-btns">${v.buttons.map((b) => `<button type="button" class="${b.primary ? 'm-bp' : 'm-bg'} coop-btn" data-act="${b.act}"><span class="ss-label">${esc(b.label)}</span></button>`).join('')}</div>`;
+      `<div class="coop-btns">${v.buttons.map((b) => `<button type="button" class="${b.primary ? 'm-bp' : 'm-bg'} coop-btn" data-act="${b.act}"${b.disabled ? ' disabled aria-disabled="true"' : ''}><span class="ss-label">${esc(b.label)}</span></button>`).join('')}</div>`;
   }
 
   // ----- host
@@ -101,7 +101,12 @@ export function mountLobby(root, hooks, opts = {}) {
       }
     };
     const prev = sess.onevent;
-    sess.onevent = (b) => { if (b && b.k === 'spelers' && Array.isArray(b.lijst)) sess.lijstGezien = true; if (b && b.k === 'spelers' && Array.isArray(b.lijst)) set({ t: 'spelers', lijst: b.lijst.map((x) => ({ ...x, naam: nameOf(x.char) })), max: b.max }); if (prev) prev(b); };
+    sess.onevent = (b) => {
+      if (b && b.k === 'hek') { // de gastheer start het spel (of er was geen wachtkamer): de wachtkamer van de gast sluit
+        const was = state.caps.startGate; set({ t: 'gate', aan: !!b.aan });
+        if (was && !b.aan && hooks.startSpel) hooks.startSpel();
+      }
+      if (b && b.k === 'spelers' && Array.isArray(b.lijst)) sess.lijstGezien = true; if (b && b.k === 'spelers' && Array.isArray(b.lijst)) set({ t: 'spelers', lijst: b.lijst.map((x) => ({ ...x, naam: nameOf(x.char) })), max: b.max }); if (prev) prev(b); };
   }
 
   async function guestStart() {
