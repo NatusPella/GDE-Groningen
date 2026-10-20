@@ -1,4 +1,5 @@
 import { FLAGS } from './devflags.js';
+import { sfxLinks } from './latehooks.js';
 import { setDualText } from './subtitles.js';
 import { markerColors } from './a11y.js';
 import { speakerHtml } from './speakers.js';
@@ -1047,6 +1048,7 @@ export function getCamera() {
 export function getScene() {
   return scene;
 }
+sfxLinks.getScene = getScene; // sfx/ambience.js (latehooks.js)
 
 export function getRenderer() {
   return renderer;

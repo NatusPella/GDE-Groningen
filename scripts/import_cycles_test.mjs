@@ -11,7 +11,15 @@ import path from 'node:path';
 const LIMITS = { largestScc: 0, modulesInCycles: 0, mutualPairs: 0 };
 
 const dir = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'game', 'js');
-const files = readdirSync(dir).filter((f) => f.endsWith('.js'));
+// all modules, also the ones in sfx/ and net/ (names are paths relative to game/js)
+const files = [];
+(function walk(d) {
+  for (const e of readdirSync(path.join(dir, d), { withFileTypes: true })) {
+    if (e.isDirectory()) walk(path.posix.join(d, e.name));
+    else if (e.name.endsWith('.js')) files.push(path.posix.join(d, e.name));
+  }
+})('.');
+for (let i = 0; i < files.length; i++) files[i] = files[i].replace(/^\.\//, '');
 const known = new Set(files);
 
 const strip = (s) => s.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
@@ -19,10 +27,10 @@ const edges = new Map();
 for (const f of files) {
   const src = strip(readFileSync(path.join(dir, f), 'utf8'));
   const out = new Set();
-  const re = /(?:^|[;\s}])(?:import|export)\s+(?:[^'"`;()]*?\bfrom\s*)?['"]\.\/([^'"]+)['"]/g;
+  const re = /(?:^|[;\s}])(?:import|export)\s+(?:[^'"`;()]*?\bfrom\s*)?['"](\.{1,2}\/[^'"]+)['"]/g;
   let m;
   while ((m = re.exec(src))) {
-    const t = m[1].replace(/[?#].*$/, '');
+    const t = path.posix.normalize(path.posix.join(path.posix.dirname(f), m[1].replace(/[?#].*$/, '')));
     if (known.has(t) && t !== f) out.add(t);
   }
   edges.set(f, out);
