@@ -31,8 +31,10 @@ export function cutStukken(id, pakket) {
 }
 export const cutEinde = (id, overgeslagen) => ({ k: 'cutend', id, skip: !!overgeslagen });
 // Een scène loopt op de tijd van elke speler zelf (per beeld een stukje); een zware wereld loopt achter. Daarom stuurt de gastheer
-// elke halve seconde zijn tijd in de scène en schuift de gast mee (cutGastTempo): iedereen ziet dezelfde regel op hetzelfde moment.
-export const CUT_TIK = 0.5;        // seconden tussen twee tijdberichten
+// elke kwart seconde zijn tijd in de scène en schuift de gast mee (cutGastTempo): iedereen ziet dezelfde regel op hetzelfde moment.
+export const CUT_TIK = 0.25;       // seconden tussen twee tijdberichten
+export const CUT_SPRONG = 1;        // verder uit de pas dan dit (s): de gast springt naar de tijd van de gastheer (een zwaar eerste beeld kost anders seconden)
+export const CUT_ACHTER = 0.25;    // de gast mikt iets achter de gastheer: eindigt hij toch eerder, dan zie je even de wereld tussen twee scènes
 export const cutTijd = (id, t, stil) => ({ k: 'cuttijd', id, t: Math.round(t * 100) / 100, p: stil ? 1 : 0 });
 export function leesCutTijd(b) {
   if (!b || b.k !== 'cuttijd' || !Number.isInteger(b.id) || !Number.isFinite(b.t) || b.t < 0 || b.t > 600) return null;
@@ -43,10 +45,10 @@ export function leesCutTijd(b) {
 export function cutGastTempo(host, t, nu, delay = 0) {
   if (!host) return { rate: 1 };
   if (host.stil) return { rate: 0 }; // de gastheer staat in zijn pauzemenu: de scène staat stil
-  const hostNu = host.t + Math.max(0, (nu - host.at) / 1000) + delay;
+  const hostNu = host.t + Math.max(0, (nu - host.at) / 1000) + delay - CUT_ACHTER;
   const verschil = hostNu - t;
-  if (Math.abs(verschil) > 2.5) return { zet: hostNu };
-  return { rate: Math.max(0.75, Math.min(1.3, 1 + verschil * 0.8)) };
+  if (Math.abs(verschil) > CUT_SPRONG) return { zet: hostNu };
+  return { rate: Math.max(0.6, Math.min(1.6, 1 + verschil * 1.5)) };
 }
 
 export function leesCutPakket(p, id) {
@@ -121,8 +123,10 @@ export function cutGastTik(w, id, t, stel, nu = Date.now()) {
 export async function cutGastSpeel(w, p) {
   let m; try { m = await import('./cutscenehost.js'); } catch (e) { cutSpoor(w, 'gast-geen-speler', p.id, String(e && e.message)); return false; }
   if (!w.coopNet || w.coopRole !== 'client') { cutSpoor(w, 'gast-geen-gast', p.id); return false; }
-  w.coopCutBezig = p.id; w.coopCutHost = null;
-  const klaar = () => { if (w.coopCutBezig === p.id) w.coopCutBezig = null; };
+  if (w.coopCutBezig != null && w.coopCutBezig !== p.id) { try { (await import('./cinematics.js')).skipCinematic(); } catch (e) { /* al weg */ } } // de vorige scène is bij de gastheer al klaar
+  w.coopCutBezig = p.id;
+  if (!w.coopCutHost || w.coopCutHost.id !== p.id) w.coopCutHost = null; // zijn eerste tijdbericht kan al binnen zijn
+  const klaar = () => { cutSpoor(w, 'gast-klaar', p.id); if (w.coopCutBezig === p.id) w.coopCutBezig = null; };
   const ok = m.playScript(w, p.def, {
     lines: p.lines, duration: p.duration, anchor: p.anchor || undefined, replay: true,
     cine: { ...p.cine, cutId: p.id, skippable: false, onEnd: klaar },
@@ -135,7 +139,6 @@ export async function cutGastSpeel(w, p) {
 export async function cutGastStop(w, id, overgeslagen) {
   cutSpoor(w, 'gast-einde-bericht', id, !!overgeslagen, w.coopCutBezig);
   if (w.coopCutBezig == null || (id != null && w.coopCutBezig !== id)) return false;
-  if (!overgeslagen) return false; // een gewoon einde loopt vanzelf af; de gast speelt de scène even lang als de gastheer
   try { const c = await import('./cinematics.js'); c.skipCinematic(); } catch (e) { /* al weg */ }
   w.coopCutBezig = null;
   return true;
