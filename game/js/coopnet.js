@@ -17,6 +17,7 @@ import { bindCoop } from './coopglue.js';
 import { partnersInfo, createPings, addPing, tickPings, pingEvent } from './partnerhud.js';
 import { holdBeleid, leesLijstEvent, lijst } from './coopplayers.js';
 import { cameraRelative, stepSlot2, sharedCamera } from './coop.js';
+import { nieuwCutVerzamelaar, cutGastSpeel, cutGastStop, leesCutTijd, cutSpoor } from './coopcut.js';
 import { verzamelEntiteiten, leesEntiteiten, missieBericht, leesMissieBericht, missieTekst, sceneBericht, leesSceneBericht, sceneLeeg, FILMPJE_TEKST } from './coopworld.js';
 import { verhaalRol } from './coopplayers.js';
 import { KLOK_EVERY, klokEvent, leesKlokEvent, KlokVolger } from './net/speelklok.js';
@@ -259,7 +260,27 @@ export function handleEvent(world, body, van = 0) {
       const sc = leesSceneBericht(body); if (!sc) return false;
       const was = !!(world.coopScene && world.coopScene.filmpje);
       world.coopScene = sceneLeeg(sc) ? null : sc;
-      if (sc.filmpje && !was && world.addMessage) world.addMessage(FILMPJE_TEKST, 4);
+      if (sc.filmpje && !was && world.addMessage && world.coopCutBezig == null) world.addMessage(FILMPJE_TEKST, 4);
+      return true;
+    }
+    case 'cut': { // de scène van de gastheer (coopcut.js): in stukjes; compleet = meteen mee afspelen
+      if (!n || n.role !== 'client') return false;
+      const v = n.cutVerzamelaar || (n.cutVerzamelaar = nieuwCutVerzamelaar());
+      const p = v.voegToe(body); if (body.i === 0) cutSpoor(world, 'gast-stuk0', body.id, body.n); if (!p) return true;
+      cutSpoor(world, 'gast-compleet', p.id);
+      cutGastSpeel(world, p);
+      return true;
+    }
+    case 'cuttijd': { // de tijd van de gastheer in zijn scène: de gast loopt mee (coopcut.js cutGastTempo)
+      if (!n || n.role !== 'client') return false;
+      const k = leesCutTijd(body); if (!k) return false;
+      world.coopCutHost = { id: k.id, t: k.t, stil: k.stil, at: Date.now() };
+      return true;
+    }
+    case 'cutend': { // de gastheer is klaar of slaat over
+      if (!n || n.role !== 'client' || !Number.isInteger(body.id)) return false;
+      if (n.cutVerzamelaar) n.cutVerzamelaar.reset();
+      cutGastStop(world, body.id, !!body.skip);
       return true;
     }
     case 'spelers': { // alleen de host stuurt de lijst
@@ -326,6 +347,7 @@ export function setMaxPlayers(world, max) {
 // Verlaten. Gast: terug naar de eigen plek en eigen toestand, saven mag weer. Host: alleen verder; alle gasten gaan eruit.
 export function stopCoopNet(world) {
   const n = world.coopNet; if (!n) return;
+  if (world.coopCutBezig != null) cutGastStop(world, null, true); // een scène van de gastheer stopt met het samen spelen
   if (n.role === 'host') { try { n.hub.announce({ k: 'weg', reden: 'gastheer gestopt' }); n.hub.closeAll(); } catch (e) { /* al weg */ } } else { try { if (n.session.status !== 'geweigerd' && n.session.status !== 'verbroken') n.session.leave(); } catch (e) { /* al weg */ } }
   world.coopNet = null;
   if (n.role === 'client' && n.stash) {

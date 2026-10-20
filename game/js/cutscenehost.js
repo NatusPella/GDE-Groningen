@@ -2,7 +2,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { getScene } from './scene3d.js';
 import { buildPersonMesh, seatPose, seatedY, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
 import { buildKitchen } from './introkitchen3d.js';
-import { playCinematic, setNameCard } from './cinematics.js';
+import { playCinematic, setNameCard, setCinematicRate, setCinematicTime } from './cinematics.js';
 import { buildVehicleMesh } from './models3d_vehicles.js';
 import { buildWildlifeMesh3D } from './wildlife.js';
 import { HERO_CAR_MODEL, TRACTOR_MODEL, POLICE_MODEL, TRAFFIC_MODELS } from './vehicle.js';
@@ -12,6 +12,9 @@ import { compileScene, fitAnchor, resolveTime, shotPoints } from './cutscript.js
 import { roofAt } from './camerapath.js';
 import { animateActor } from './actoranim.js';
 import { audioPlan } from './cutaudio.js';
+import { cutPakket, cutHostId, cutHostStart, cutHostEnd, cutHostTik, cutGastTik } from './coopcut.js';
+
+const STEL = { tempo: setCinematicRate, tijd: setCinematicTime };
 
 // The game side of the cutscene direction language (cutscript.js): puts the
 // sampled actors and props on meshes, feeds the camera pose to cinematics.js
@@ -224,7 +227,8 @@ function kitchenEnv(at) {
 // QA-haak (scripts/qa/cutscene_shots.page.js): speelt een scène stil per tijdstip af; geen export, zodat de dode-code-telling gelijk blijft
 if (typeof window !== 'undefined') window.__cutHost = { buildScriptRun };
 
-export function playScript(w, def, { lines, duration, anchor, cine = {}, env: envIn = null } = {}) {
+// replay: een gast speelt de scène van de gastheer na (coopcut.js); die stuurt niets door en slaat niets over
+export function playScript(w, def, { lines, duration, anchor, cine = {}, env: envIn = null, replay = false } = {}) {
   if (current) return false;
   const root = getScene();
   if (!root) return false;
@@ -247,6 +251,7 @@ export function playScript(w, def, { lines, duration, anchor, cine = {}, env: en
   let cardNow = null;
   // the tiles round the camera's path are built ahead and held, so no shot cuts to the far LOD or a hole (#157, #20)
   const prewarm = cine.prewarm || shotPoints(scene, at, duration);
+  const cutId = replay ? 0 : cutHostId();
   const ok = playCinematic({
     priority: 4, pause: true, letterbox: true, skippable: true, hideHud: true, hidePlayers: true,
     prewarm,
@@ -269,6 +274,7 @@ export function playScript(w, def, { lines, duration, anchor, cine = {}, env: en
       const dt = Math.min(0.1, Math.max(0, t - lastT));
       lastT = t;
       if (cine.frame) cine.frame(t, dt);
+      if (replay) cutGastTik(w, cine.cutId, t, STEL); else cutHostTik(w, cutId, t);
       if (cards.length) {
         const cur = cards.find((k) => t >= k.t0 && t < k.t0 + k.dur) || null;
         if (cur !== cardNow) { cardNow = cur; setNameCard(cur ? cur.text : null); }
@@ -281,8 +287,11 @@ export function playScript(w, def, { lines, duration, anchor, cine = {}, env: en
       if (cardNow) setNameCard(null);
       w.cinematicHidePlayers = false;
       w.cinematicHideNav = false;
+      if (!replay) cutHostEnd(w, cutId, skipped || replaced);
       if (cine.onEnd) cine.onEnd(skipped, replaced);
     },
   });
+  // samen spelen: de gasten spelen dezelfde scène (na de start, zodat een scène die niet begint ook niet wordt doorgestuurd)
+  if (ok && !replay && w.coopNet && w.coopNet.role === 'host') cutHostStart(w, cutId, cutPakket({ def, lines, duration, anchor: a, cine }));
   return ok;
 }
