@@ -1,12 +1,12 @@
 // Vergelijkt twee mappen met schermafdrukken (shots-<naam>.png) beeld voor beeld (#90):
 //   node scripts/qa/stadverschil.mjs --a=<map> --b=<map> --out=<map> [--min=0]
-// Per paar: gemiddeld verschil in helderheid (md), aandeel pixels dat meer dan 24 (van 765) afwijkt (px), aandeel van de
+// Per paar: sg = verschil van de grove 32x18-helderheidshandtekening (0..1; robuust tegen kleine cameraverschuivingen), gemiddeld verschil in helderheid (md), aandeel pixels dat meer dan 24 (van 765) afwijkt (px), aandeel van de
 // 32x32-blokken waarvan de gemiddelde afwijking boven 18 ligt (bl), en het verschil in randen (rd: aandeel pixels dat in
 // de ene afbeelding een rand heeft en in de andere niet, na lichte vervaging). Schrijft per paar een montage
 // (A | B | verschil) en samenvatting.json / samenvatting.md (gesorteerd op verschil). Alleen lezen en schrijven in --out.
 import fs from 'node:fs';
 import path from 'node:path';
-import { decodePng, encodePng } from '../lib/pngcheck.mjs';
+import { decodePng, encodePng, signature, signatureDiff } from '../lib/pngcheck.mjs';
 
 const arg = (k, d) => { const a = process.argv.find((v) => v.startsWith(`--${k}=`)); return a ? a.slice(k.length + 3) : d; };
 const A = path.resolve(arg('a', '')), B = path.resolve(arg('b', '')), OUT = path.resolve(arg('out', path.join(B, '..', 'verschil')));
@@ -53,7 +53,7 @@ for (const [naam, fa] of sa) {
     let s = 0; for (let y = by; y < by + BS; y++) for (let x = bx; x < bx + BS; x++) s += diff[y * w + x];
     blocks++; if (s / (BS * BS) > 18) hot++;
   }
-  const row = { naam, md: +(sum / n / 3).toFixed(2), px: +(big / n).toFixed(4), bl: +(hot / blocks).toFixed(3), rd: +(ecount ? ed / ecount : 0).toFixed(3) };
+  const row = { naam, sg: +signatureDiff(signature(ia), signature(ib)).toFixed(4), md: +(sum / n / 3).toFixed(2), px: +(big / n).toFixed(4), bl: +(hot / blocks).toFixed(3), rd: +(ecount ? ed / ecount : 0).toFixed(3) };
   rows.push(row);
   // montage: A | B | verschil, op de halve grootte
   const mw = Math.floor(w / 2), mh = Math.floor(h / 2), M = new Uint8Array(mw * 3 * mh * 4);
@@ -66,11 +66,11 @@ for (const [naam, fa] of sa) {
   }
   fs.writeFileSync(path.join(OUT, `paar-${naam}.png`), encodePng(mw * 3, mh, M));
 }
-const ok = rows.filter((r) => r.md !== undefined).sort((a, b) => b.md - a.md);
+const ok = rows.filter((r) => r.md !== undefined).sort((a, b) => b.sg - a.sg);
 const mean = (k) => (ok.length ? ok.reduce((s, r) => s + r[k], 0) / ok.length : 0);
 const median = (k) => { const v = ok.map((r) => r[k]).sort((a, b) => a - b); return v.length ? v[Math.floor(v.length / 2)] : 0; };
-const summary = { a: A, b: B, paren: ok.length, ontbreekt: rows.filter((r) => r.ontbreekt || r.fout), gemiddeld: { md: +mean('md').toFixed(2), px: +mean('px').toFixed(4), bl: +mean('bl').toFixed(3), rd: +mean('rd').toFixed(3) }, mediaan: { md: median('md'), px: median('px'), bl: median('bl'), rd: median('rd') }, rows: ok };
+const summary = { a: A, b: B, paren: ok.length, ontbreekt: rows.filter((r) => r.ontbreekt || r.fout), gemiddeld: { sg: +mean('sg').toFixed(4), md: +mean('md').toFixed(2), px: +mean('px').toFixed(4), bl: +mean('bl').toFixed(3), rd: +mean('rd').toFixed(3) }, mediaan: { sg: median('sg'), md: median('md'), px: median('px'), bl: median('bl'), rd: median('rd') }, rows: ok };
 fs.writeFileSync(path.join(OUT, 'samenvatting.json'), JSON.stringify(summary, null, 1));
-const md = [`# Verschil ${path.basename(A)} -> ${path.basename(B)}`, '', `Paren: ${ok.length}. Gemiddeld md ${summary.gemiddeld.md}, px ${summary.gemiddeld.px}, bl ${summary.gemiddeld.bl}, rd ${summary.gemiddeld.rd}; mediaan md ${summary.mediaan.md}, px ${summary.mediaan.px}, bl ${summary.mediaan.bl}, rd ${summary.mediaan.rd}.`, '', '| beeld | md | px | bl | rd |', '|---|---|---|---|---|', ...ok.map((r) => `| ${r.naam} | ${r.md} | ${r.px} | ${r.bl} | ${r.rd} |`)];
+const md = [`# Verschil ${path.basename(A)} -> ${path.basename(B)}`, '', `Paren: ${ok.length}. Gemiddeld md ${summary.gemiddeld.md}, px ${summary.gemiddeld.px}, bl ${summary.gemiddeld.bl}, rd ${summary.gemiddeld.rd}; mediaan md ${summary.mediaan.md}, px ${summary.mediaan.px}, bl ${summary.mediaan.bl}, rd ${summary.mediaan.rd}.`, '', '| beeld | sg | md | px | bl | rd |', '|---|---|---|---|---|---|', ...ok.map((r) => `| ${r.naam} | ${r.sg} | ${r.md} | ${r.px} | ${r.bl} | ${r.rd} |`)];
 fs.writeFileSync(path.join(OUT, 'samenvatting.md'), md.join('\n') + '\n');
 console.log(`${ok.length} paren; gemiddeld md ${summary.gemiddeld.md} px ${summary.gemiddeld.px} bl ${summary.gemiddeld.bl} rd ${summary.gemiddeld.rd}; mediaan md ${summary.mediaan.md} px ${summary.mediaan.px}; uitvoer ${OUT}`);
