@@ -513,10 +513,10 @@ export class GameMap {
     return { x: sx, y: sy, road: first.road || null };
   }
 
-  // Open ground someone can stand on and walk away from: dry (or a bridge),
+  // Open ground someone can stand on and walk away from: dry (a bridge is dry for isInWater),
   // outside every footprint except its passages, not a closed-off courtyard.
   isOpenSpot(x, y, reach = 45) {
-    if (isInWater(this, x, y) && !this.isOnBridge(x, y)) return false;
+    if (isInWater(this, x, y)) return false;
     for (const b of this.buildingsNear(x, y, 0.5)) {
       const [minx, miny, maxx, maxy] = b.bounds;
       if (x >= minx && x <= maxx && y >= miny && y <= maxy && pointInPolygon(x, y, b.pts) && !inPassage(this, b, x, y)) return false;
