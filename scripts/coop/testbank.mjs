@@ -492,7 +492,7 @@ if (SUITE === 'opening') {
   // wachtkamer: de gast leest wat er bewaard wordt, de gastheer heeft Spel starten
   const gw = one(G, 'wachtkamer'), hw = one(H, 'wachtkamer');
   check(gw && /Je speelt mee in het spel van de gastheer/.test(gw.tekst) && /in je eigen spel \(.+\)/.test(gw.tekst), 'wachtkamer: de gast leest niet in welk spel hij speelt en wat er bewaard wordt: ' + JSON.stringify(gw && gw.tekst));
-  check(hw && hw.gateKnop && /Spel starten/.test(hw.tekst), 'wachtkamer: de gastheer heeft geen Spel starten: ' + JSON.stringify(hw && hw.tekst));
+  if (!flag('host-save')) check(hw && hw.gateKnop && /Spel starten/.test(hw.tekst), 'wachtkamer: de gastheer heeft geen Spel starten: ' + JSON.stringify(hw && hw.tekst));
   const nieuw = !flag('host-save'); // met een gekozen opgeslagen spel is er geen hek en geen opening
   const gate = one(H, 'gate-wacht'), start = one(H, 'spel-gestart');
   if (nieuw) check(gate && !gate.cine && !gate.cam && gate.paused, 'hek: de opening begon al voor Spel starten: ' + JSON.stringify(gate));
