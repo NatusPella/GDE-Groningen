@@ -70,7 +70,7 @@ function steerTowards(s, mode, tgt, stopAt, top = 24, stopR = null) {
   if (!follower || key !== followKey || s.t - planAt > 12) { followKey = key; planAt = s.t; plan(s, mode, tgt); }
   const me = { x: s.player.x, y: s.player.y };
   const direct = L.distance(me, tgt);
-  const aim = direct < 25 ? tgt : follower.next(me) || tgt;
+  const aim = direct < (mode === "walk" ? 9 : 25) ? tgt : follower.next(me) || tgt;   // on foot the planned route goes round poles and walls almost to the end
   if ((mode === 'drive' || mode === 'boat') && s.player.vehicle) {
     // a garage (M02: drive in and stand still 1.2 s) or a stage with `stop`: come to rest right there
     const stg = M.activeStage();
@@ -174,6 +174,20 @@ async function nudge(s) {
   follower = null;
 }
 
+// on foot the planned route knows no poles, bins or corners: sidestep left, right, back and round before a cheat is needed
+const detours = {};
+async function detour(s, n) {
+  const me = { x: s.player.x, y: s.player.y }, tgt = s.target || me;
+  const turn = [Math.PI / 2, -Math.PI / 2, Math.PI * 0.75, -Math.PI * 0.75][(n - 1) % 4];
+  B.log('omweg', { n, x: Math.round(me.x), y: Math.round(me.y) });
+  const [x, y] = L.footStick(L.normAngle(L.headingTo(me, tgt) + turn), s.player.camYaw);
+  B.stick(x, y);
+  await B.press(' ', 120);
+  await sleep(2200);
+  B.stick(0, 0);
+  follower = null;
+}
+
 async function rescue(s, stepKey, info) {
   // the ladder counts per story step (a failed mission restarts the detector, not the ladder); every fail is a rung higher
   const sid = s.story.id || '?';
@@ -181,6 +195,7 @@ async function rescue(s, stepKey, info) {
   B.log('stuck', { step: stepKey, x: s.player.x, y: s.player.y, idleFor: info.idleFor, goalDist: s.target ? s.target.distance : null, rung });
   shot(`${stepKey}-vast`);
   if (rung === 'nudge') { await nudge(s); detector.acknowledge(s.t); return; }
+  if (!s.player.vehicle && !s.blocking.cinematic && !s.blocking.talk && (detours[stepKey] = (detours[stepKey] || 0) + 1) <= 4) { await detour(s, detours[stepKey]); detector.acknowledge(s.t); ladder[sid]--; return; }
   const m = s.mission.active;
   let ok = false;
   if (rung === 'teleport') ok = B.cheat.teleport();
