@@ -160,11 +160,15 @@ export function closeGaps(roads) {
       const p = atEnd ? r.pts[r.pts.length - 1] : r.pts[0];
       if ([...(nodes.get(k(p)) || [])].some((o) => o !== r)) continue;
       let best = null;
+      // (de weg loopt door: de verlenging wijkt hooguit 60 graden af van de richting van het einde; anders is het een rijbaan die tegen
+      // een tegenrichting of een eigen uiteinde aan loopt en wordt het een haarspeld van 180 graden: Peizerweg, Godekenheerd)
+      const nb = atEnd ? r.pts[r.pts.length - 2] : r.pts[1];
+      const hl = Math.hypot(p[0] - nb[0], p[1] - nb[1]) || 1, hx = (p[0] - nb[0]) / hl, hy = (p[1] - nb[1]) / hl;
       for (const o of grid.get(Math.floor(p[0] / G) * 100003 + Math.floor(p[1] / G)) || []) {
         if (o === r || level(o) !== level(r)) continue;
         for (let j = 0; j < o.pts.length - 1; j++) {
           const h = proj(p, o.pts[j], o.pts[j + 1]);
-          if (h.d > GAP_MIN && h.d < GAP_MAX && h.d > o.width / 2 + 0.01 - 0.3 && (!best || h.d < best.d)) best = { ...h, o, j };
+          if (h.d > GAP_MIN && h.d < GAP_MAX && h.d > o.width / 2 + 0.01 - 0.3 && (!best || h.d < best.d) && ((h.q[0] - p[0]) * hx + (h.q[1] - p[1]) * hy) / h.d >= 0.5) best = { ...h, o, j };
         }
       }
       if (!best) continue;
@@ -189,8 +193,9 @@ const DRY_TOL = 0.1;
 const DRY_CATS = new Set(['major', 'normal', 'minor', 'service']);
 // Het stuk weg vlak bij het einde van een echte brug is de oprit op de wal: het OSM-water loopt daar tot aan de knoop, en een
 // monster op de rand (of 0,1 m ernaast) telde als "weg door water". Dat stempelde 46 opritten van grachtbruggen (Maagdenbrug,
-// Boteringebrug, Laan 1940-1945, ...) tot droog dek, naast het echte dek: dubbele dekken en z-fight. Water binnen BANK_M van een
-// brugeinde telt daarom niet mee; een weg die alleen daar nat is krijgt `noDry` (mapdata.js markDryRoad laat hem dan ook met rust).
+// Boteringebrug, Laan 1940-1945, ...) in de data tot droog dek naast het echte dek: dubbele bruggen en z-fight in de brugaudit, die op
+// de data draait. Water binnen BANK_M van een brugeinde telt daarom niet mee in de data; de GameMap legt bij het laden (mapdata.js
+// markDryRoad, exacte punten, zoals in de oude stad) alsnog een droog dek waar een oprit echt nat is.
 const BANK_M = 3;
 export function markDryRoads(d) {
   const grid = new SpatialGrid(80);
@@ -207,7 +212,7 @@ export function markDryRoads(d) {
     if (!polys.length) continue;
     const total = P.reduce((s, p, i) => (i ? s + Math.hypot(p[0] - P[i - 1][0], p[1] - P[i - 1][1]) : 0), 0);
     const bank0 = bridgeEnds.has(ck(P[0])), bank1 = bridgeEnds.has(ck(P[P.length - 1]));
-    let wet = false, wetBank = false, at = 0;
+    let wet = false, at = 0;
     for (let i = 0; i < P.length - 1 && !wet; i++) {
       const [ax, ay] = P[i], [bx, by] = P[i + 1];
       const len = Math.hypot(bx - ax, by - ay);
@@ -218,13 +223,11 @@ export function markDryRoads(d) {
         let hit = false;
         for (const [dx, dy] of [[0, 0], [DRY_TOL, 0], [-DRY_TOL, 0], [0, DRY_TOL], [0, -DRY_TOL]]) if (waterPolyIn(polys, x + dx, y + dy)) { hit = true; break; }
         if (!hit) continue;
-        if ((bank0 && s < BANK_M) || (bank1 && total - s < BANK_M)) wetBank = true;
-        else wet = true;
+        if (!((bank0 && s < BANK_M) || (bank1 && total - s < BANK_M))) wet = true;
       }
       at += len;
     }
     if (wet) { r.bridge = true; r.dryCrossing = true; n++; }
-    else if (wetBank) r.noDry = true;
   }
   return n;
 }
