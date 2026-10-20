@@ -136,7 +136,8 @@ const rect = (x0, y0, x1, y1, name = '') => ({ pts: [[x0, y0], [x1, y0], [x1, y1
 
 // 5. the map
 const root = new URL('../game/', import.meta.url);
-const data = JSON.parse(fs.readFileSync(new URL('citymap.json', root)));
+const { loadCityData } = await import('./lib/loadworld.mjs');
+const data = await loadCityData({ extras: false });
 ok(data.water.every((w) => w.kind && Number.isFinite(w.lv) && Number.isFinite(w.dp)), 'every water polygon annotated');
 const movable = data.roads.filter((r) => r.movable);
 ok(movable.length >= 19, 'movable bridges from OSM', movable.length);
@@ -149,7 +150,7 @@ ok(map.isOnBridge(mid[0], mid[1]), 'a closed movable bridge is a bridge');
 mb._open = true;
 ok(!map.isOnBridge(mid[0], mid[1]), 'an open one is not');
 mb._open = false;
-const rep = WA.audit(JSON.parse(fs.readFileSync(new URL('citymap.json', root))));
+const rep = WA.audit(await loadCityData({ extras: false }));
 ok(rep.classes[1].reached / rep.classes[1].wide > 0.95, 'a canoe reaches nearly all water wide enough', `${rep.classes[1].reached}/${rep.classes[1].wide}`);
 ok([1, 2, 3].every((c) => rep.classes[c].stops.length === 0), 'no fixed bridge too low for a canoe, sloep or tour boat');
 ok(rep.classes[3].mainKm2 > 1, 'the tour boats sail more than a square kilometre of canals', rep.classes[3].mainKm2);
