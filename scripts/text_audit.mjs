@@ -95,7 +95,7 @@ function walk(dir, out = []) {
 
 // developer-only files: test harness labels are English on purpose and never shown to a player
 const DEV_FILES = /storytest\.js$/;
-const DEV_LINE = /console\.|new Error\(|throw |assert|\.warn\(|\.error\(|debug/i;
+const DEV_LINE = /console\.|new Error\(|throw |assert|\.warn\(|\.error\(|debug|^\s*(?:import|export)\b[^=]*\bfrom\b|^\s*import\s*['"]/i;
 
 export function collectTexts() {
   const items = [];
@@ -190,6 +190,19 @@ const BRANDS = [
   ...B('overig', ['NS', 'ProRail', 'Arriva', 'Qbuzz', 'Syntus', 'GVB', 'PostNL', 'DHL', 'UPS', 'Shell', 'BP', 'Esso', 'Gasunie', 'Gazprom', 'Vattenfall', 'Eneco', 'Essent', 'Greenpeace', 'Shell', 'Fedex', 'FedEx', 'Tomtom', 'TomTom', 'Philips', 'Unilever', 'Heineken', 'ASML', 'Booking', 'KLM', 'Schiphol', 'Ryanair', 'Easyjet', 'Rijkswaterstaat'], { cs: true }),
 ];
 const PEOPLE = ['Mendini', 'Starck', 'Himmelb', 'Eurosonic', 'Lowlands', 'Pinkpop', 'Oerol', 'Sail Amsterdam', 'Koningsdag', 'Werkman', 'Rutte', 'Wilders', 'Trump', 'Obama', 'Biden', 'Putin', 'Poetin', 'Musk', 'Bezos', 'Zuckerberg', 'Willem-Alexander', 'Máxima', 'Maxima', 'Beatrix', 'Cruijff', 'Cruyff', 'Messi', 'Ronaldo', 'Van Gogh', 'Rembrandt', 'Hitler', 'Merkel', 'Klaas Dijkhoff', 'Mark Rutte', 'Geert Wilders', 'Frans Timmermans', 'Jesse Klaver', 'Thierry Baudet', 'Sinterklaas', 'André Hazes', 'Andre Hazes', 'Anouk', 'Gers Pardoel', 'Ali B', 'Marco Borsato', 'Borsato', 'Tom Waes', 'Jeroen Krabbé', 'Johan Derksen', 'René van der Gijp', 'Wilfred Genee', 'Peter R. de Vries', 'Taylor Swift', 'Beyoncé', 'Kanye', 'Elvis', 'Michael Jackson', 'Madonna', 'Eminem', 'Drake', 'Shakira', 'Rihanna'];
+// Ronde 2 (#150): meer merken en personen. Woorden die ook gewoon Nederlands of Engels zijn (Action, Plus, Score, Edge,
+// Diesel, Giant, Mars, Spa, Joe, Oranje) staan hier bewust niet in: die geven vals alarm.
+BRANDS.push(
+  ...B('auto en vervoer', ['Chevrolet', 'Cadillac', 'Chrysler', 'Lada', 'Trabant', 'Aston Martin', 'McLaren', 'Polestar', 'Dacia', 'Cupra', 'Vespa', 'Piaggio', 'Ducati', 'Husqvarna', 'Batavus', 'Gazelle', 'Sparta', 'Brompton', 'Vanmoof', 'Airbus', 'Boeing', 'Transavia', 'easyJet', 'Lufthansa', 'FlixBus', 'Blablacar', 'Groningen Airport Eelde']),
+  ...B('tech en merken', ['Xiaomi', 'Nvidia', 'Lenovo', 'Nikon', 'GoPro', 'Garmin', 'Fitbit', 'Siemens', 'Miele', 'Dyson', 'Roblox', 'Call of Duty', 'Rockstar', 'Take-Two', 'Hello Kitty', 'Gucci', 'Shein', 'Temu', 'AliExpress', 'eBay', 'Etsy', 'Vinted', 'Tripadvisor', 'Deezer', 'Tumblr', 'Yahoo', 'Firefox', 'Ubuntu', 'macOS', 'SpaceX', 'Star Wars', 'Harry Potter', 'Pikachu', 'Shrek', 'Spider-Man', 'Spiderman', 'Batman', 'Superman', 'Zalando', 'Puma']),
+  ...B('telecom en media', ['Videoland', 'Ziggo', 'Vodafone', 'T-Mobile', 'Odido', 'Tele2', 'KPN', 'Simyo', 'Lebara', 'Telfort', 'XS4ALL', 'Canal Digitaal', 'Pathé', 'Pathe', 'Kinepolis', 'Efteling', 'Walibi', 'Duinrell', 'Toverland', 'Madurodam', 'Rijksmuseum', 'Eredivisie', 'KNVB', 'FC Groningen', 'Sky Radio', 'Radio 10', 'Omroep Max', 'VPRO', 'AVROTROS', 'Wie is de Mol', 'Boer zoekt Vrouw', 'Expeditie Robinson', 'Big Brother', 'Goede Tijden', 'Flodder', 'Baantjer', 'Nijntje', 'Dikkie Dik', 'Kabouter Plop', 'Jip en Janneke', 'Zwarte Piet', 'Kerstman']),
+  ...B('eten, drank en verzorging', ['Smirnoff', 'Bacardi', 'Jägermeister', 'Jagermeister', 'Baileys', 'Johnnie Walker', 'Jack Daniels', 'Marlboro', 'Lucky Strike', 'Pall Mall', 'Senseo', 'Nespresso', 'Lipton', 'Fristi', 'Chocomel', 'Evian', 'Twix', 'Milka', 'Droste', 'Pringles', 'Cheetos', 'Knorr', 'Maggi', 'Hellmann', 'Kellogg', 'Pampers', 'Nivea', 'Gillette', 'Colgate', 'Oral-B', 'Durex', 'Viagra', 'Panadol', 'Rennie']),
+  ...B('winkels en kleding', ['Kwantum', 'Leen Bakker', 'Jysk', 'Xenos', 'Flying Tiger', 'Hunkemöller', 'Hunkemoller', 'Rituals', 'Ici Paris', 'Pearle', 'Specsavers', 'Hans Anders', 'Bijenkorf', 'V&D', 'Wibra', 'Zeeman', 'Scapino', 'Shoeby', 'Jack & Jones', 'Vero Moda', 'Lacoste', 'Ralph Lauren', "Levi's", 'G-Star', 'Superdry', 'Dr. Martens', 'Timberland', 'Poiesz', 'Hoogvliet', 'Jan Linders']),
+  ...B('bedrijven en instellingen', ['Tata Steel', 'Nederlandse Aardolie', 'Vopak', 'Nuon', 'Greenchoice', 'Enexis', 'Liander', 'Natuurmonumenten', 'Staatsbosbeheer', 'Rode Kruis', 'Anne Frank']),
+  ...B('korte namen', ['FIFA', 'WWF', 'NAM', 'Ajax', 'PSV', 'Feyenoord', 'Heracles', 'AMD', 'Intel', 'Dell', 'Canon', 'Bosch', 'EO', 'KRO', 'GTST', 'HEMA', 'NOS'], { cs: true }),
+);
+PEOPLE.push('Pechtold', 'Wiegel', 'Hugo de Jonge', 'Sigrid Kaag', 'Yeşilgöz', 'Yesilgoz', 'Omtzigt', 'Asscher', 'Ploumen', 'Balkenende', 'Fortuyn', 'Theo van Gogh', 'Femke Halsema', 'Halsema', 'Aboutaleb', 'Verstappen', 'Sven Kramer', 'Ireen Wüst', 'Epke Zonderland', 'Dafne Schippers', 'Arjen Robben', 'Van Persie', 'Sneijder', 'Frenkie de Jong', 'Virgil van Dijk', 'Memphis Depay', 'Mbappé', 'Haaland', 'Federer', 'Nadal', 'Djokovic', 'Usain Bolt', 'LeBron', 'Duncan Laurence', 'Douwe Bob', 'Ilse DeLange', 'Tiësto', 'Armin van Buuren', 'Martin Garrix', 'Afrojack', 'Kraantje Pappie', 'Ede Staal', 'Daniël Lohues', 'Wolter Kroes', 'Frans Bauer', 'André Rieu', 'Guus Meeuwis', 'Hazes', 'Linda de Mol', 'Noorderslag', 'Tomorrowland', 'Mysteryland', 'Defqon', 'Zwarte Cross', 'Sziget');
+
 // first names that, followed by a capitalised surname, suggest a real person
 const FIRST = 'Jan Piet Klaas Henk Kees Willem Hendrik Johannes Cornelis Gerrit Dirk Sjoerd Geert Harm Albert Wim Hans Peter Marco Mark Frank Bas Rob Ruud Arjen Robin Wesley Frenkie Virgil Memphis Daley Matthijs Sven Tim Tom Thomas Jeroen Johan Rene René Ronald Erik Eric Martin Maarten Wouter Wilma Maria Anna Sandra Linda Marianne Ingrid Femke Sanne Lisa Emma Sophie Julia Nina Femke Karin Marijke Joke Els Greet Trijntje Fenna Anke Aaltje'.split(/\s+/);
 
@@ -199,6 +212,7 @@ const EN_STRONG = new Set("the and you your with this that these those have has 
 
 const WINTER = [
   /\bsneeuw\w*/i, /\bwinter\w*/i, /\bkerst(?!ens?\b)\w*/i, /\bvorst\b/i, /\bijs(?:baan|banen|vrij|pret|kap|schol|beer|berg|pegel|zeil\w*)?\b/i, /\bijzel\w*/i, /\bschaats\w*/i, /\bbevroren\b/i, /\bbesneeuwd\w*/i, /\bsinterklaas\w*/i, /\boud en nieuw\b/i, /\boliebol\w*/i, /\belfsteden\w*/i, /\bgladheid\b/i, /\bstrooizout\b/i, /\bwinterbanden\b/i, /\bkachel\w*/i, /\bhagel(?!geweer)\w*/i, /\bsnow\b/i, /\bchristmas\b/i, /\bice\b/i,
+  /\bdooi\w*/i, /\bgladheid\b/i, /\bijskrabber\w*/i, /\bstrooizout\b/i, /\bgevroren\b/i, /\bvriest\b/i, /\bvriezen\b/i, /\bnatuurijs\b/i, /\bsleeën\b/i, /\bsledes?\b/i,
   /\boudjoar\w*/i, /\bnajaar\w*/i, /\bherfst\w*/i, /\bvoorjaar\w*/i, /\b(?:november|december|januari|februari)\b/i,
 ];
 
@@ -212,6 +226,8 @@ const ANGLICISMEN = [
   ['trick', 'kunstje of toer'], ['tricks', 'kunstjes of toeren'], ['boost', 'versnelling of stoot'], ['combo', 'reeks'], ['combo\'s', 'reeksen'],
   ['livestream', 'uitzending'], ['deadline', 'uiterste tijd'], ['shopaholic', 'winkelverslaafde'], ['total loss', 'afgeschreven'], ['lobby', 'wachtkamer of kamer'], ['loadout', 'uitrusting'],
   ['hole', 'baan'], ['holes', 'banen'],
+  ['respawn', 'opnieuw verschijnen of hervatten'], ['spawn', 'verschijnen'], ['loading', 'laden'], ['game over', 'einde spel'], ['highscore', 'topscore'], ['unlock', 'ontgrendel'], ['unlocked', 'ontgrendeld'],
+  ['achievement', 'prestatie'], ['achievements', 'prestaties'], ['tutorial', 'uitleg'], ['quest', 'opdracht'], ['loot', 'buit'], ['gameplay', 'spel'], ['gamer', 'speler'], ['gamers', 'spelers'],
 ];
 // markup en selectors zijn geen tekst: attributen als data-action="save" en [data-boost] of .pm-rail-acts niet meekijken
 const stripMarkup = (t) => t.replace(/\b(?:data-[\w-]+|class|id|for|name|type|role|href|src)="[^"]*"/g, ' ').replace(/\bdata-[\w-]+/g, ' ').replace(/\[[^\]]*\]/g, ' ').replace(/(?<![\p{L}\p{N}])[.#][a-z][\w-]*/gu, ' ');
@@ -265,11 +281,24 @@ export function checkText(text) {
 }
 
 
+// Persoonsgegevens en externe adressen (constitution 4): e-mailadres, telefoonnummer, IBAN, webadres. Niet alleen proza.
+const RAW_RULES = [
+  { rule: 'persoonsgegevens', re: /[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}/, note: 'e-mailadres' },
+  { rule: 'persoonsgegevens', re: /(?<![\w.])(?:\+31|0031|\(?0[1-9]\d?\)?)[\s-]?\d(?:[\s-]?\d){7,8}\b/, note: 'telefoonnummer' },
+  { rule: 'persoonsgegevens', re: /\b[A-Z]{2}\d{2}\s?[A-Z]{4}\s?\d{4}\s?\d{4}\s?\d{2}\b/, note: 'IBAN' },
+  { rule: 'url', re: /\bhttps?:\/\/[^\s'"`)]+|\bwww\.[a-z0-9-]+\.[a-z]{2,}/i, note: 'webadres in speltekst of code: externe verbinding of echte site' },
+];
+export function checkRaw(text) {
+  const found = [];
+  for (const r of RAW_RULES) { const m = r.re.exec(text); if (m) found.push({ rule: r.rule, term: m[0], note: r.note }); }
+  return found;
+}
+
 export function audit({ voiced = null } = {}) {
   const findings = [];
   for (const it of collectTexts()) {
-    if (!isProse(it.text)) continue;
-    for (const f of checkText(it.text)) {
+    const hits = [...(isProse(it.text) ? checkText(it.text) : []), ...checkRaw(it.text)];
+    for (const f of hits) {
       const full = { ...it, ...f };
       full.allowed = isAllowed(full) || null;
       full.ingesproken = voiced ? voiced(it) : false;
@@ -301,8 +330,25 @@ export async function voicedLookup() {
   return (it) => set.has(it.text);
 }
 
+// Ingeburgerde Engelse woorden die docs/WOORDENLIJST.md toestaat. `--jargon` telt ze in speltekst, zodat de eigenaar
+// kan zien wat er staat en per woord kan kiezen om het te vervangen. Informatief: geen bevinding, exit 0.
+const JARGON = ['app', 'hatchback', 'sedan', 'minimap', 'cheat', 'cheats', 'score', 'update', 'camera', 'HUD', 'savegame', 'savegames', 'minigame', 'streamer', 'skatepark', 'par', 'birdie', 'eagle', 'bogey', 'ace', 'download', 'online', 'offline', 'link', 'tip', 'bonus', 'level'];
+export function jargonCounts() {
+  const res = JARGON.map((w) => ({ w, re: wordRe(w, w === 'HUD' || w === 'ace' || w === 'par'), n: 0, first: [] }));
+  for (const it of collectTexts()) {
+    if (!isProse(it.text)) continue;
+    const kaal = stripMarkup(it.text);
+    for (const r of res) if (r.re.test(kaal)) { r.n++; if (r.first.length < 3) r.first.push(`${it.file}:${it.line}`); }
+  }
+  return res.filter((r) => r.n).sort((a, b) => b.n - a.n);
+}
+
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const args = process.argv.slice(2);
+  if (args.includes('--jargon')) {
+    for (const r of jargonCounts()) console.log(`${String(r.n).padStart(4)}x ${r.w}  (${r.first.join(', ')})`);
+    process.exit(0);
+  }
   const findings = audit({ voiced: await voicedLookup() });
   const open = findings.filter((f) => !f.allowed);
   if (args.includes('--json')) console.log(JSON.stringify(findings, null, 1));

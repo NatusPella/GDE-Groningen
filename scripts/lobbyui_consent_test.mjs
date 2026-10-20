@@ -59,5 +59,16 @@ await t('wachtscherm van een gast: komt de verbinding van zelf terug, dan sluit 
   session.onstatus('ok'); assert.equal(hervat, 1, 'terug: het scherm sluit zich');
   lobby.close();
 });
+await t('Spel verlaten (IP-route): eerst afmelden bij de anderen, dan pas de poort en de verbinding sluiten', async () => {
+  const order = [];
+  const api = { host: async () => ({ ok: true, online: false, code: 'GDE2-127.0.0.1:41000-AAAAAAAA-0000', lanCode: '' }), join: async () => ({ ok: true }), send() {}, close() {}, setMax: (n) => n, stop: () => { order.push('poort dicht'); }, onEvent: () => () => {} };
+  window.gdeDesktop = { coop: api };
+  const root = fakeRoot(); const lobby = mountLobby(root, hooks({ disconnect: (a) => order.push('afmelden ' + a) }));
+  root.click('kies-host'); root.click('route-direct'); root.click('akkoord'); await tick(60);
+  root.click('verbreek'); await tick();
+  delete window.gdeDesktop;
+  assert.deepEqual(order, ['afmelden verbreek', 'poort dicht'], 'volgorde: ' + order.join(' > '));
+  lobby.close();
+});
 console.log(`lobbyui_consent_test: ${n}/${n} ok`);
 process.exit(0); // timers van de signaler niet afwachten

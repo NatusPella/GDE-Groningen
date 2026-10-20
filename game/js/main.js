@@ -20,7 +20,7 @@ import { loadTileWorld } from './tileworld.js';
 import { tileFocus } from './tilefocus.js';
 import { setWorldPlaces } from './worldplaces.js';
 import { setRegionData } from './regions.js';
-import { tileIndexOf, tileKey } from './gdt.js';
+import { tileIndexOf, tileKey, tileOrigin } from './gdt.js';
 import { loadFacilities, initFacilities, loadShopPlaces, initShopPlaces, setExtraBuiltWorld, placeWithTiles } from './facilities.js';
 import { ensureCountryEdge } from './countryplan.js';
 import { warmCountryMaps } from './countrymap.js';
@@ -86,7 +86,7 @@ import { applyCityRoutes, loadLandData } from './corridorrail.js';
 import { setFarProps } from './farprops.js';
 import { initProvince } from './provinceworld.js';
 import { loadRoadNet, setRoadNet } from './roadgraph.js';
-import { buildMovableBridges, updateMovableBridges, getMovableBridges } from './movablebridges.js';
+import { buildMovableBridges, addMovableRoads, updateMovableBridges, getMovableBridges } from './movablebridges.js';
 import { updateSluizen, getSluizen } from './sluizen.js';
 import { updateBridgeHits, resetBridgeDamage, startBridgeCrashDemo, stepBridgeCrashDemo } from './bridgehitworld.js';
 import { geoWorkerActive } from './geojobs.js';
@@ -395,6 +395,11 @@ async function boot() {
   initTrafficLights(world);
   initRailway(world);
   buildMovableBridges(world.map);
+  // the province's movable bridges come with the streamed tiles, not with map.roads (#235)
+  if (world.map.onTiles) {
+    world.map.onTiles((kind, tile) => { if (kind === 'add' && tile) { const o = tileOrigin(tile.i, tile.j); addMovableRoads(world.map.roadsNear(o[0] + 500, o[1] + 500, 720)); } });
+    addMovableRoads(world.map.roadsNear(player.x, player.y, 2500));
+  }
   resetBridgeDamage();
   initStationTravel(world);
   initActivityKinds(world, 'early');

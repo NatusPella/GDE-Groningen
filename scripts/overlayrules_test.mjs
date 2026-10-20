@@ -16,4 +16,10 @@ assert.ok(mayStartOverlay('resultaat', ['naamkaart', 'duelbalk']), 'de resultaat
 assert.ok(!mayStartOverlay('prestatie', ['duelbalk']));
 // geen cycli: een overlay houdt alleen lagere rangen tegen
 for (const [a, list] of Object.entries(HOLDS)) for (const b of list) assert.ok(RANK[a] > RANK[b], `${a} > ${b}`);
+// de wijkkaart (#292): wacht onder resultaat, keuze en duelbalk; houdt de naamkaart tegen
+assert.deepEqual(h(['resultaat', 'wijkkaart']), ['wijkkaart']);
+assert.deepEqual(h(['keuze', 'wijkkaart']), ['wijkkaart']);
+assert.deepEqual(h(['duelbalk', 'wijkkaart']), ['wijkkaart']);
+assert.deepEqual(h(['wijkkaart', 'naamkaart']), ['naamkaart'], 'wijkkaart en naamkaart staan op dezelfde plek: één tegelijk');
+assert.deepEqual(h(['wijkkaart', 'prestatie']), [], 'een prestatie staat elders (zone E)');
 console.log('overlayrules_test ok');

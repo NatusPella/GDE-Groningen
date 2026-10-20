@@ -9,11 +9,12 @@ const SELECTORS = {
   keuze: '#hud .cw-panel:not([hidden])',
   duelbalk: '#hud .mg-board:not([hidden])',
   naamkaart: '#name-card.on',
+  wijkkaart: '#wijk-card.on',
   prestatie: '#hud .ach-toast.on',
   locatie: '#hud .hud-place.on',
 };
 // wat we kunnen verbergen
-const HIDE = { naamkaart: '#name-card', duelbalk: '#hud .mg-board', prestatie: '#hud .ach-toast', locatie: '#hud .hud-place' };
+const HIDE = { naamkaart: '#name-card', wijkkaart: '#wijk-card', duelbalk: '#hud .mg-board', prestatie: '#hud .ach-toast', locatie: '#hud .hud-place' };
 
 function activeOverlays(doc = typeof document !== 'undefined' ? document : null) {
   if (!doc) return [];

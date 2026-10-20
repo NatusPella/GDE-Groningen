@@ -228,8 +228,10 @@ zijn gemaakt met AI (Google Gemini).
 
 GDE Groningen is een gratis, niet-commercieel fanproject en een parodie.
 Het is niet gelieerd aan, gesponsord door of goedgekeurd door een
-gameontwikkelaar of -uitgever. Namen, personages, bedrijven, merken en
-gebeurtenissen in het spel zijn verzonnen; echte straten en openbare
+gameontwikkelaar of -uitgever, in het bijzonder niet door Rockstar Games of
+Take-Two Interactive, de uitgever van GTA. Namen, personages, bedrijven,
+merken en gebeurtenissen in het spel zijn verzonnen; gelijkenis met
+bestaande personen of bedrijven berust op toeval. Echte straten en openbare
 gebouwen zijn alleen het decor.
 
 Gemaakt in Groningen door [NatusPella](https://github.com/NatusPella).

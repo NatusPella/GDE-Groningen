@@ -2522,6 +2522,10 @@ function bankNear(map, x, y) {
 // from the mission start, pointing away from the player where the road allows.
 // seconds a parked chase target waits for the player to come close before it flees by itself
 export const CHASE_WAIT_MAX = 6;
+// the wait for a parked target: CHASE_WAIT_MAX s, plus the metres to its `parked` ring at an easy 10 m/s (the bot measured 13 m/s through the city, with a flat tyre on the way)
+export function chaseWaitMax(d0, st) {
+  return CHASE_WAIT_MAX + Math.max(0, (d0 || 0) - (st.parked || 0)) / 10;
+}
 
 function spawnChaseVehicle(world, def, st) {
   const from = st.from ? roadSpot(world.map, st.from[0], st.from[1], true) : null;
@@ -3435,8 +3439,10 @@ function updateStages(dt, world, def) {
       if (st.hijack && p.inVehicle === t) { hijackChase(world, def, st, t); break; }
       const d = dist(p.x, p.y, t.x, t.y);
       if (t.parkedRoad) {
-        // it does not wait for you for ever: after CHASE_WAIT_MAX s it flees on its own (a chase never waits for the player)
-        if (d > st.parked && t.health >= S.hp0 && S.t < CHASE_WAIT_MAX) break;
+        // it does not wait for you for ever: after CHASE_WAIT_MAX s it flees on its own (a chase never waits for the player),
+        // plus the time the drive to it takes (M07: the groothandel is 750 m from the start; 6 s was unwinnable)
+        if (S.d0 == null) S.d0 = d;
+        if (d > st.parked && t.health >= S.hp0 && S.t < chaseWaitMax(S.d0, st)) break;
         t.road = t.parkedRoad;
         t.aiOpts = t.parkedAi;
         t.parkedRoad = null;

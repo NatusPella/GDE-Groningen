@@ -41,6 +41,13 @@ Het onderstaande over duur en belasting zijn schattingen op een gewone ontwikkel
 - Daarna kijkt een mens (of agent) alle beelden door, schrijft per probleem een korte vondst en maakt per unieke vondst een issue met `bug`, één impact- en één kostenlabel en `wacht-beeld` zolang geen mens het beeld zag. Beelden gaan niet naar GitHub; in het issue staan seed, beeldnaam en beschrijving.
 - Eén Electron-instantie per deel, wegwerpprofiel, `--slot` neemt een slot uit `gde-locks`. `ELECTRON_EXE` en `GAME_WORLD` wijzen een Electron en een gestagede wereld aan als de worktree er geen heeft. Het logboek zegt altijd dat niemand de beelden heeft gezien.
 
+## Speelchecks per functie en de spelbot met reizen
+
+- `node scripts/qa/feature_smoke.mjs [--only=winkelen,bijbanen,voertuigen,...]` draait korte scripted checks in één Electron (wegwerpprofiel). Naast de oudere checks (kaart, wanted, bus, interieur, ...) zijn er `winkelen` (per winkeltype naar de deur, E, paneel lezen, het eerste item kopen), `bijbanen` (elke bijbaan starten, vier seconden draaien, stoppen; meldt ook bijbanen die op één plek staan of niet starten) en `voertuigen` (elk winkelvoertuig neerzetten, instappen, drie seconden gas). Uitvoer in `features.json` en `shots-*.png`.
+- `node scripts/bot/run.mjs --reizen` laat de spelbot de reisbeats (T1 tot en met T4) spelen: hij kiest Meerijden en slaat de reisscène over. `--from=<stap> --skip-from` begint een doorlopende run bij die stap en slaat de stap zelf over, zodat de reisstap erna bij jouw plek begint (een sprong van `--mode=missions` slaat reisstappen over). `--max-game=<s>` begrenst de speltijd (standaard 3600 s: bij een sweep over alle stappen op 30000 zetten).
+- Een tweede build voor een run naast een draaiende: `GDE_STAGE_OUT=<map>/game node desktop/build.mjs` en dan `GDE_GAME_DIR=<map>\game` (met backslashes op Windows) bij de run. Zo hoeft een herbouw geen lopende Electron te slopen.
+- Het titelmenu opent pas als de poort open is en negeert toetsen daarvoor; `--perf-script` drukt daarom Enter tot het menu weg is (op een drukke machine speelde het spel anders onder een blijvend menu).
+
 ## Brug-QA (#235, #9, #154)
 
 Beeld voor beeld vanaf een vaste camera; zonder de cinematic-camera van het spel, want die tilt zichzelf over gebouwen en duwt zich van muren en staat dus niet stil. Eén Electron-slot, wegwerpprofiel, `GDE_GAME_DIR` naar een gestagede map met de provinciewereld.

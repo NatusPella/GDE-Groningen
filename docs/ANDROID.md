@@ -79,13 +79,13 @@ De rooktest controleert: app draait, WebView debugbaar, canvas en touch-UI, Capa
 Alle processen (Gradle-daemon, adb, emulator) zijn gestopt; er loopt niets.
 
 Al op de machine, buiten de repo:
-- `C:\Users\abuis\android-sdk` (ca. 5,1 GB): command-line tools, platform-tools, `platforms;android-35` en `-36`, `build-tools;35.0.0` en `36.0.0`, `emulator`, systeemimage `android-35;google_apis;x86_64`. Licenties zijn geaccepteerd. De AVD `gde_phone` (Pixel 6) staat in `~\.android\avd`.
+- `%USERPROFILE%\android-sdk` (ca. 5,1 GB): command-line tools, platform-tools, `platforms;android-35` en `-36`, `build-tools;35.0.0` en `36.0.0`, `emulator`, systeemimage `android-35;google_apis;x86_64`. Licenties zijn geaccepteerd. De AVD `gde_phone` (Pixel 6) staat in `~\.android\avd`.
 - `~\.gradle` (Gradle 8.14.3 en afhankelijkheden), `android\node_modules` (28 MB) en `web-dist/` in de worktree (382 MB; gitignored, kan weg met `Remove-Item -Recurse web-dist`). De wereldcache `desktop\.world-cache` hoort bij het gewone webbuild.
-- Opruimen als Android definitief niet doorgaat: `C:\Users\abuis\android-sdk`, `~\.android`, `~\.gradle`.
+- Opruimen als Android definitief niet doorgaat: `%USERPROFILE%\android-sdk`, `~\.android`, `~\.gradle`.
 
 Volgende stappen:
 1. `cd android && npm install`, dan `npm run build` (de eerste keer bouwt dat `web-dist`; ca. 15 min).
-2. Emulator starten: `C:\Users\abuis\android-sdk\emulator\emulator.exe -avd gde_phone -gpu host` (laat hem draaien; `Start-Process`, niet in een tool die afbreekt), daarna `npm run smoke`.
+2. Emulator starten: `%USERPROFILE%\android-sdk\emulator\emulator.exe -avd gde_phone -gpu host` (laat hem draaien; `Start-Process`, niet in een tool die afbreekt), daarna `npm run smoke`.
 3. Op een echt toestel (USB-foutopsporing): `adb install -r android\out\gde-groningen-debug.apk` en spelen; `chrome://inspect` voor de console.
 4. Beoordelen: touch-layout, fps/geheugen per profiel (#96), geluid, saves, terugknop in het spel, notch-marges, startscherm in 412 px hoogte.
 5. Icoon van a1-appicoon: `node scripts/icons.mjs <icoon>`.
