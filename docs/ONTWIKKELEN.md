@@ -302,7 +302,7 @@ was pre-empted. `PERF_ONLY=ab` runs variants in turns inside one process (`PERF_
 `PERF_AB_MOVE=0|1|2` standing, walking or both, `PERF_AB_ROUNDS`, `PERF_AB_WIN` ms per window) and
 `node scripts/perf/abin.mjs <naam>.json` prints per variant the median `mcpu`, the work counts per frame (matrix
 walks, frustum tests) and the paired difference per round: the variants switch with `?perfoff=` (`window.__perfOffDyn`
-in a run) and feel the same load. `PERF_ONLY=beeld` compares the canvas of a stopped world with the steps on and off.
+in a run) and feel the same load. `PERF_ONLY=verify` checks that nothing that shows is cut (actors and groups kept out of the main pass, groups kept out of the shadow pass).
 `PERF_ONLY=wandel` walks at the game's own pace (3 m/s). `PERF_SETTLE=<ms>` lets a route settle longer first.
 
 ## Trailer mode
