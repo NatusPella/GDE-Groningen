@@ -6,6 +6,7 @@
 //   - gebouwen met een binnenplaats: de multipolygoon-gebouwen van OSM komen uit de extract zonder binnenring (extract_province.py bewaart
 //     ze alleen bij water), dus een woonhof was een massief blok met een straat erdoor. binnenplaatsen.json (fetch_binnenplaatsen.py)
 //     heeft de binnenringen van de stad; ze worden in de omtrek gesneden (cutIslands, zoals een eiland in water);
+//   - boomsoorten: de OSM-bomen die de oude stad ook had krijgen hun soort, hoogte en vlaggen terug (stad_bomen.json, stad_bomen.mjs);
 //   - bomen: een bos- of kerkhofboom (vlag fill) staat niet op een minigamebaan of -plek, niet in een rijbaan of pad, niet
 //     in of vlak bij gebouw, water of spoor (dezelfde regels als greenery.mjs plant, waar de oude stad de bomen mee vulde).
 import fs from 'node:fs';
@@ -75,6 +76,26 @@ export async function cutCourts(data, courts = JSON.parse(fs.readFileSync(path.j
   return cut;
 }
 
+// soort, hoogte en vlaggen van de bomen die de oude stad al had (stad_bomen.json, stad_bomen.mjs): de OSM-boom binnen 0,5 m krijgt ze.
+// De regels van greenery.js kiezen anders (willekeurig per plek): de Vismarkt had een rij kers, de straten lindes, en dat blijft zo.
+export async function treeSpecies(data, old = JSON.parse(fs.readFileSync(path.join(ROOT, 'scripts/world/stad_bomen.json'), 'utf8'))) {
+  const FILL = (await import('../../game/js/greenery.js')).TREE_FLAG.fill;
+  const g = new Map();
+  const key = (x, y) => Math.floor(x / 2) + ',' + Math.floor(y / 2);
+  data.trees.forEach((t) => { if (!(t[4] & FILL)) (g.get(key(t[0], t[1])) || g.set(key(t[0], t[1]), []).get(key(t[0], t[1]))).push(t); });
+  const done = new Set();
+  let n = 0;
+  for (const o of old) {
+    let best = null, bd = 0.5;
+    for (let dx = -2; dx <= 2; dx += 2) for (let dy = -2; dy <= 2; dy += 2) for (const t of g.get(key(o[0] + dx, o[1] + dy)) || []) { const d = Math.hypot(t[0] - o[0], t[1] - o[1]); if (d < bd && !done.has(t)) { bd = d; best = t; } }
+    if (!best) continue;
+    done.add(best);
+    best[2] = o[2]; best[3] = o[3]; best[4] = o[4];
+    n++;
+  }
+  return { oldTrees: n };
+}
+
 export async function treesClear(data, extras) {
   const GR = await import('../../game/js/greenery.js');
   const { createWaterIndex } = await import('../../game/js/waterindex.js');
@@ -106,13 +127,14 @@ export async function treesClear(data, extras) {
 
 // data: de stadsdata met de OSM-lagen erin (muteert); extras: mapextras.json
 export async function tidyCity(data, extras = JSON.parse(fs.readFileSync(path.join(ROOT, 'game/mapextras.json'), 'utf8'))) {
-  const stats = { extrasDup: 0, courts: 0, treesDropped: 0 };
+  const stats = { extrasDup: 0, courts: 0, oldTrees: 0, treesDropped: 0 };
   {
     const n = data.buildings.length;
     data.buildings = dropOverlapped(data.buildings, [...data.buildings.filter(isHandBuilding), ...(extras.buildings || [])]);
     stats.extrasDup = n - data.buildings.length;
   }
   stats.courts = await cutCourts(data);
+  Object.assign(stats, await treeSpecies(data));
   stats.treesDropped = await treesClear(data, extras);
   return stats;
 }
