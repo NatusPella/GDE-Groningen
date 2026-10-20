@@ -2524,9 +2524,9 @@ function bankNear(map, x, y) {
 // from the mission start, pointing away from the player where the road allows.
 // seconds a parked chase target waits for the player to come close before it flees by itself
 export const CHASE_WAIT_MAX = 6;
-// the wait for a parked target: CHASE_WAIT_MAX s, plus the metres to its `parked` ring at an easy 18 m/s
+// the wait for a parked target: CHASE_WAIT_MAX s, plus the metres to its `parked` ring at an easy 10 m/s (the bot measured 13 m/s through the city, with a flat tyre on the way)
 export function chaseWaitMax(d0, st) {
-  return CHASE_WAIT_MAX + Math.max(0, (d0 || 0) - (st.parked || 0)) / 18;
+  return CHASE_WAIT_MAX + Math.max(0, (d0 || 0) - (st.parked || 0)) / 10;
 }
 
 function spawnChaseVehicle(world, def, st) {

@@ -62,12 +62,12 @@ if (!flag('force') && !flag('slot') && process.platform === 'win32') {
   if (/electron\.exe/i.test(t.stdout || '')) { console.error('Er draait al een Electron-instantie; de bot wacht niet. Sluit hem of gebruik --force.'); process.exit(3); }
 }
 
-// --slot: een Electron-slot nemen volgens C:/Users/abuis/gde-locks/README.txt (mkdir electron-1..3) en altijd vrijgeven
+// --slot: een Electron-slot nemen volgens <GDE_LOCKS>/README.txt (mkdir electron-1..3) en altijd vrijgeven
 let slot = null;
 const release = () => { if (slot) { try { fs.rmdirSync(slot); } catch { /* al weg */ } slot = null; } };
 process.on('exit', release);
 if (flag('slot')) {
-  const LOCKS = 'C:/Users/abuis/gde-locks';
+  const LOCKS = process.env.GDE_LOCKS || path.join(os.homedir(), 'gde-locks');
   for (let tries = 0; tries < 240 && !slot; tries++) {
     for (const n of [1, 2, 3]) { try { fs.mkdirSync(path.join(LOCKS, `electron-${n}`)); slot = path.join(LOCKS, `electron-${n}`); console.log(`slot electron-${n}`); break; } catch { /* bezet */ } }
     if (!slot) await new Promise((r) => setTimeout(r, 60000));
