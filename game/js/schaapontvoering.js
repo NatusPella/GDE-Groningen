@@ -99,11 +99,11 @@ export function stap(st, dt) {
   return st;
 }
 
-// Waar de straal loopt: van de onderkant van de schotel (z - 0.9) naar het schaap (lift + 1.0), met de
+// Waar de straal loopt: van de onderkant van de schotel (z - 0.9) naar het schaap (de straal omsluit het dier: lift - 0.3), met de
 // stralen van de bovenkant en de onderkant. null als de straal uit is.
 export function straalVan(st) {
   if (!st || st.straal <= 0.001) return null;
   const top = st.ufo.z - 0.9;
-  const bodem = st.fase === 'weg' ? top - 0.5 : st.lift + 1.0;
+  const bodem = st.fase === 'weg' ? top - 0.5 : st.lift - 0.3;
   return { x: st.ufo.x, y: st.ufo.y, top, bodem, lengte: Math.max(0.1, top - bodem), rTop: STRAAL_TOP, rBodem: STRAAL_R, sterkte: st.straal };
 }

@@ -40,7 +40,28 @@ export function kleurLampjes(lights, t) {
 // Een open trechter, de punt (smalle kant) op y = 0 en de brede kant op y = -1; schalen met setStraal.
 export function buildStraal() {
   const geo = new THREE.CylinderGeometry(1, STRAAL_R / STRAAL_TOP, 1, 28, 1, true).translate(0, -0.5, 0);
-  const mat = new THREE.MeshBasicMaterial({ color: 0xb8ffd8, transparent: true, opacity: 0, depthWrite: false, side: THREE.DoubleSide, blending: THREE.AdditiveBlending, fog: true });
+  // zacht: helder langs de kern, doorzichtig aan de rand (kijkhoek) en onderaan, zodat er geen harde plaat in de lucht hangt
+  const mat = new THREE.ShaderMaterial({
+    uniforms: { uColor: { value: new THREE.Color(0xb8ffd8) }, uOpacity: { value: 0 } },
+    vertexShader: `
+      varying vec3 vN; varying vec3 vV; varying float vY;
+      void main() {
+        vY = uv.y;
+        vec4 mv = modelViewMatrix * vec4(position, 1.0);
+        vN = normalize(normalMatrix * normal);
+        vV = normalize(-mv.xyz);
+        gl_Position = projectionMatrix * mv;
+      }`,
+    fragmentShader: `
+      uniform vec3 uColor; uniform float uOpacity;
+      varying vec3 vN; varying vec3 vV; varying float vY;
+      void main() {
+        float core = pow(abs(dot(normalize(vN), normalize(vV))), 1.3);
+        float a = uOpacity * core * (0.55 + 0.45 * vY) * smoothstep(0.0, 0.12, vY);
+        gl_FragColor = vec4(uColor * a, 1.0);
+      }`,
+    transparent: true, depthWrite: false, side: THREE.DoubleSide, blending: THREE.AdditiveBlending,
+  });
   const m = new THREE.Mesh(geo, mat);
   m.visible = false;
   m.frustumCulled = false;
@@ -54,5 +75,5 @@ export function setStraal(mesh, s, t = 0) {
   mesh.visible = true;
   mesh.position.set(s.x, s.top, s.y);
   mesh.scale.set(s.rTop, s.lengte, s.rTop);
-  mesh.material.opacity = (0.08 + 0.14 * s.sterkte) * (0.9 + 0.1 * Math.sin(t * 9));
+  mesh.material.uniforms.uOpacity.value = (0.35 + 0.65 * s.sterkte) * (0.92 + 0.08 * Math.sin(t * 9));
 }
