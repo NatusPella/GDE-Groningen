@@ -712,6 +712,34 @@ results.routes.vspots = await safe('vspots', async () => {
   }
   return { names };
 });
+// picture check inside one run (only with PERF_ONLY=beeld): the world stands still (uiPaused: no time, nothing moves), and at each spot the
+// canvas is read back with the perfoff steps on, off and on again: on-against-on is the noise (it should be 0), on-against-off the change.
+// PERF_BEELD_OFF='actoren+schaduw+...' names the steps that go off. Prints the share of pixels differing more than 8 in a channel, per spot.
+results.routes.beeld = await safe('beeld', async () => {
+  if (!ONLY.includes('beeld')) return null;
+  const SCN = await imp('scene3d');
+  const off = (window.__perfBeeldOff || '').split('+').filter(Boolean);
+  const spots = [['markt', FOOT[0][0], FOOT[0][1], 0.3], ['markt2', FOOT[0][0], FOOT[0][1], 3.6], ['straat', FOOT[3][0], FOOT[3][1], 1.9], ['straat2', FOOT[3][0], FOOT[3][1], 4.2], ['kanaal', FOOT[4][0], FOOT[4][1], 2.6], ['winsum', ...placeAt('Winsum'), 2.2], ['a7', (A7[1][0] + A7[2][0]) / 2, (A7[1][1] + A7[2][1]) / 2, 0.5], ['hoogezand', ...placeAt('Hoogezand'), 1.0]];
+  const gl = r.getContext(); const W = r.domElement.width, Hh = r.domElement.height;
+  const grab = () => new Promise((res) => { SCN.afterNextFrame(() => { const b = new Uint8Array(W * Hh * 4); gl.readPixels(0, 0, W, Hh, gl.RGBA, gl.UNSIGNED_BYTE, b); res(b); }); });
+  const diff = (a, b) => { let n = 0, sum = 0, x0 = W, x1 = -1, y0 = Hh, y1 = -1; for (let i = 0; i < a.length; i += 4) { const d = Math.max(Math.abs(a[i] - b[i]), Math.abs(a[i + 1] - b[i + 1]), Math.abs(a[i + 2] - b[i + 2])); sum += d; if (d > 8) { n++; const p = i >> 2, x = p % W, y = (p / W) | 0; if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; } } return { pct: +(n / (a.length / 4) * 100).toFixed(3), mean: +(sum / (a.length / 4)).toFixed(3), box: n ? [x0, y0, x1, y1] : null }; };
+  const out = [];
+  for (const [name, x, y, yaw] of spots) {
+    w.uiPaused = false;
+    teleport(x, y); w.camYaw = yaw; p.angle = yaw;
+    await sleep(12000); fixWorld();
+    { const builds = () => { const b = sc.batches(); return Object.values(b).reduce((q, e) => q + e.builds + e.dropped, 0); }; let last = builds(), still = 0; for (let i = 0; i < 60 && still < 6; i++) { await sleep(500); const n = builds(); still = n === last ? still + 1 : 0; last = n; } }
+    fixWorld(); w.uiPaused = true; await sleep(1500);
+    const shots = [];
+    for (const dyn of [[], off, [], off]) { window.__perfOffDyn = new Set(dyn); await sleep(400); shots.push(await grab()); }
+    window.__perfOffDyn = undefined;
+    // the same, on the pixels that hold still (water, grass and leaves move even in a stopped world): both pairs of equal settings agree there
+    const still = (a, b, c, d2) => { let n = 0, bad = 0, sum = 0, worst = 0; for (let i = 0; i < a.length; i += 4) { const nz = Math.max(Math.abs(a[i] - c[i]), Math.abs(a[i + 1] - c[i + 1]), Math.abs(a[i + 2] - c[i + 2]), Math.abs(b[i] - d2[i]), Math.abs(b[i + 1] - d2[i + 1]), Math.abs(b[i + 2] - d2[i + 2])); if (nz > 1) continue; n++; const d = Math.max(Math.abs(a[i] - b[i]), Math.abs(a[i + 1] - b[i + 1]), Math.abs(a[i + 2] - b[i + 2])); sum += d; if (d > 2) bad++; if (d > worst) worst = d; } return { stillPct: +(n / (a.length / 4) * 100).toFixed(1), differ: bad, differPct: +(bad / Math.max(1, n) * 100).toFixed(4), mean: +(sum / Math.max(1, n)).toFixed(4), worst }; };
+    out.push({ spot: name, noise: diff(shots[0], shots[2]), noiseOff: diff(shots[1], shots[3]), change: diff(shots[0], shots[1]), still: still(shots[0], shots[1], shots[2], shots[3]) });
+  }
+  w.uiPaused = false;
+  return { off, spots: out };
+});
 // draw calls of the vehicles and people in view (only with PERF_ONLY=actors)
 results.routes.actors = await safe('actors', async () => {
   if (!ONLY.includes('actors')) return null;

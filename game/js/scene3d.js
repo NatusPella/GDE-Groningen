@@ -1503,7 +1503,23 @@ function ensureTreeCapacity(n) {
 
 // --- per-frame sync ------------------------------------------------------
 
+// A pass that found nothing to build (and no prefetch left) is repeated only after the focus moved a hand's breadth
+// or SYNC_IDLE_FRAMES frames: the pass walks every building within DRAW_DIST twice (~2000 hypots, a Set and
+// two Map lookups each) and asks the grid for them three times. The detail radius is as exact as before to
+// within SYNC_IDLE_MOVE metres, a few frames of walking.
+const SYNC_IDLE_MOVE = 0.15;
+const SYNC_IDLE_FRAMES = 12;
+let syncIdle = null, syncFrame = 0;
 function syncBuildings(world, px, py) {
+  syncFrame++;
+  if (syncIdle && !perfOff('bouwsync') && syncFrame - syncIdle.frame < SYNC_IDLE_FRAMES && Math.hypot(px - syncIdle.x, py - syncIdle.y) < SYNC_IDLE_MOVE
+    && syncIdle.dist === DRAW_DIST && syncIdle.view === viewDist && syncIdle.facade === facadeDetailDist && syncIdle.hidden === hiddenBuildings.size
+    && syncIdle.meshes === buildingMeshes.size && syncIdle.landmarks === landmarkBuildings.length) return;
+  syncIdle = null;
+  syncBuildingsPass(world, px, py);
+}
+
+function syncBuildingsPass(world, px, py) {
   // Detail set must be exactly "centre within detailR": farlod.js hides its
   // copy of a building by the same test, so no unload hysteresis here.
   // Missing meshes are built nearest first within a per-frame budget (a
@@ -1575,14 +1591,18 @@ function syncBuildings(world, px, py) {
   for (const [b] of prefetchedBuildings) if (centreDist(b) > DRAW_DIST + BUILDING_PREFETCH + 20 && !nearPrewarm(b)) prefetchedBuildings.delete(b);
   if (missing.length > built) return;
   const prefetchEnd = performance.now() + BUILDING_PREFETCH_MS;
+  let prefetchDone = true;
   for (const b of world.map.buildingsNear(px, py, DRAW_DIST + BUILDING_PREFETCH)) {
-    if (performance.now() > prefetchEnd) break;
+    if (performance.now() > prefetchEnd) { prefetchDone = false; break; }
     if (b.landmark || buildingMeshes.has(b) || prefetchedBuildings.has(b)) continue;
     const d = centreDist(b);
     if (d <= DRAW_DIST || d > DRAW_DIST + BUILDING_PREFETCH) continue;
     const mesh = makeBuildingMesh(b);
     precompile(mesh);
     prefetchedBuildings.set(b, mesh);
+  }
+  if (prefetchDone && missing.length === 0) {
+    syncIdle = { x: px, y: py, frame: syncFrame, dist: DRAW_DIST, view: viewDist, facade: facadeDetailDist, hidden: hiddenBuildings.size, meshes: buildingMeshes.size, landmarks: landmarkBuildings.length };
   }
 }
 
@@ -2862,8 +2882,7 @@ export function update3D(dt, world) {
   if (sizeDirty) applyRenderSize();
   cullOffscreenActors();
   skipHiddenMatrixWalk();
-  postfx.render();
-  restoreCulledActors();
+  try { postfx.render(); } finally { restoreCulledActors(); }
   if (afterFrameQ.length) { const q = afterFrameQ; afterFrameQ = []; for (const f of q) { try { f(); } catch (e) { /* no picture */ } } }
   canvasFrames++;
   renderer.shadowMap.autoUpdate = true;
@@ -2900,7 +2919,13 @@ function cullActorCache(cache, reach) {
     if (ud.cullR === undefined) ud.cullR = actorRadius(mesh);
     _cullSphere.center.copy(mesh.position);
     _cullSphere.radius = ud.cullR + reach;
-    if (_cullFrustum.intersectsSphere(_cullSphere)) { ud.offscreen = false; continue; }
+    if (_cullFrustum.intersectsSphere(_cullSphere)) {
+      ud.offscreen = false;
+      // what a seen actor keeps hidden (a driver's figure, lamps that are off, a holstered weapon) is not walked either
+      const kids = mesh.children;
+      for (let i = 0; i < kids.length; i++) kids[i].matrixWorldAutoUpdate = kids[i].visible;
+      continue;
+    }
     ud.offscreen = true;
     mesh.visible = false;
     culledActors.push(mesh);
@@ -2924,8 +2949,8 @@ function restoreCulledActors() {
   culledGroups.length = 0;
 }
 
-// The same for the static groups at the top of the scene (a building, a stretch of road, a prop: the
-// ~1000 groups hold ~70% of the nodes): a group whose nodes are all frozen (freezeStatic) and plain
+// The same for the static groups at the top of the scene (a building, a landmark, a stretch of road, a
+// water polygon: ~600 groups, a quarter of the nodes): a group whose nodes are all frozen (freezeStatic) and plain
 // meshes has a fixed bounding sphere, worked out once (again when its number of children changes, and
 // now and then), and sits the main pass out while it is outside the view. The shadow pass still walks
 // it: a building behind the camera shadows the street in front of it (hookShadowPass).
@@ -2933,6 +2958,8 @@ const groupCull = new WeakMap();
 const culledGroups = [];
 const GROUP_CULL_AGE = 300;
 const GROUP_CULL_BUDGET_MS = 1;
+// only the kinds that are final once built: a pooled effect that is frozen and moved by hand (fx3d.js) must never be cut by a stale sphere
+const GROUP_CULL_NAMES = new Set(['building', 'landmark', 'road', 'water']);
 function cullableGroup(o) {
   if (o.isLight || o.isCamera || o.isSprite || o.isPoints || o.isLine || o.isInstancedMesh || o.isSkinnedMesh || o.matrixAutoUpdate) return false;
   if (o.isMesh && (o.frustumCulled === false || !o.geometry)) return false;
@@ -2957,7 +2984,7 @@ function cullOffscreenGroups() {
   let working = true;
   for (let i = 0; i < kids.length; i++) {
     const c = kids[i];
-    if (!c.visible || c.isLight || c.isCamera || c === terrainMesh) continue;
+    if (!c.visible || !GROUP_CULL_NAMES.has(c.name)) continue;
     let k = groupCull.get(c);
     if (!k || k.n !== c.children.length || k.age > GROUP_CULL_AGE) {
       // the groups are looked through a few at a time: one that is not known yet is drawn as before
