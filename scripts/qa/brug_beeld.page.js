@@ -39,7 +39,7 @@ w.clock = 14;
 w.weather = { active: false, timer: 1e9, kind: 'helder', peak: 0, intensity: 0, wet: 0, overcast: 0, mist: 0, windAngle: 0.9, elapsed: 0, duration: Infinity };
 if (DN.refreshDayNight) DN.refreshDayNight(w);
 let hold = null, done = false;
-const tick = () => { if (hold) { if (p.inVehicle) p.exitVehicle(map, w); p.x = hold.x; p.y = hold.y; p.vx = p.vy = 0; p.z = 0; p.vz = 0; } if (!done) requestAnimationFrame(tick); };
+const tick = () => { w.clock = 14; if (hold) { if (p.inVehicle) p.exitVehicle(map, w); p.x = hold.x; p.y = hold.y; p.vx = p.vy = 0; p.z = 0; p.vz = 0; } if (!done) requestAnimationFrame(tick); };
 requestAnimationFrame(tick);
 // De camera staat vast: renderer.render zet hem vlak voor elke tekenbeurt op `cur` (de cinematic-camera van het spel
 // tilt zichzelf over gebouwen en duwt zich van muren, dus die staat niet stil). De speler staat op de camerapositie en
@@ -51,6 +51,7 @@ S3.renderer.render = (sc, c) => {
   if (cur && c === S3.cam) { c.position.set(cur.position.x, cur.position.z, cur.position.y); c.lookAt(cur.lookAt.x, cur.lookAt.z, cur.lookAt.y); c.updateMatrixWorld(true); }
   origRender(sc, c);
 };
+{ const ss = document.querySelector('#start-screen'); if (ss) ss.style.display = 'none'; } // het titelscherm blijft soms over het spel hangen
 if (!CFG.hud) for (const el of document.querySelectorAll('body > *')) if (!el.contains(S3.renderer.domElement) && !(el.tagName === 'SCRIPT')) el.style.display = 'none';
 w.cinematicHidePlayers = true;
 const grab = async (name) => { console.log('[capture] ' + name); await sleep(450); };
@@ -130,7 +131,10 @@ for (const b of CFG.bruggen) {
       if (p.inVehicle) p.exitVehicle(map, w);
       hold = null;
       p.x = mb.x - mb.uy * (mb.half + 6); p.y = mb.y + mb.ux * (mb.half + 6);
-      const side = { position: { x: m[0] + nx * 36 * zijde.sn + dx * 36 * zijde.sa, y: m[1] + ny * 36 * zijde.sn + dy * 36 * zijde.sa, z: zm + 9 }, lookAt: { x: m[0], y: m[1], z: zm + 1.5 }};
+      // b.cam = { a, n, z }: een eigen stand voor een brug waar de gekozen stand door een boom of gebouw kijkt (langs het dek, opzij, hoogte)
+      const side = b.cam
+        ? { position: { x: m[0] + dx * b.cam.a + nx * b.cam.n, y: m[1] + dy * b.cam.a + ny * b.cam.n, z: zm + b.cam.z }, lookAt: { x: m[0], y: m[1], z: zm + 1 } }
+        : { position: { x: m[0] + nx * 36 * zijde.sn + dx * 36 * zijde.sa, y: m[1] + ny * 36 * zijde.sn + dy * 36 * zijde.sa, z: zm + 9 }, lookAt: { x: m[0], y: m[1], z: zm + 1.5 }};
       const reeks = [];
       await start(side);
       await grab(`${tag}-reeks0-dicht`);
