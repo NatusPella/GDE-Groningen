@@ -477,12 +477,12 @@ The city is built like the rest of the province (#90). There is no city map file
   minutes, then about 10 seconds; `GDE_STAD_CACHE=0` turns it off).
 - **`game/stad.json` (0.2 MB, committed).** The hand layer: `meta` (landmarks, districts, neighbourhood points, garages, horeca, POIs,
   shops, hospital, police, bounds, locks), the 30 hand-made buildings (landmarks such as the Martinitoren, the Academiegebouw and
-  Paddepoel, the helipad), the mapped street furniture, the city's tiles (`tiles`) and its coverage (`cover`, a run-length mask).
+  Paddepoel, the helipad), the mapped street furniture, the city's tiles (`tiles`; they are also its coverage, `scripts/world/stad_dekking.mjs`: the city is built to the edge of its tiles, the tiles beside it leave out what the city takes).
   `game/mapextras.json` (bus roads and lanes, road patches, building patches, passages, fuel stations, padel courts) and
   `game/landmarkkits.json` stay as they were.
   See docs/ARCHITECTUUR-STAD-NAAR-TEGELS.md section 4.5 for the key table and how landmarks, POIs and names hang on tiles.
 
-The map covers the whole ringweg plus its surroundings; beyond the city's coverage the province tiles take over. Every script
+The map covers the whole ringweg plus its surroundings; beyond the city's tiles the province tiles take over. Every script
 projects lat/lon to the world frame, RD New shifted to the old origin (`scripts/world/rdnew.py`, see ARCHITECTURE.md "Units and
 coordinates").
 
