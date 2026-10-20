@@ -12,6 +12,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 
 ### Opgelost
+- **Prestaties: geen onbereikbare missie-prestaties meer (#187, nog niet in beeld bekeken):** de medailles en prestaties van de vijf missies die het verhaal niet meer speelt (Berend, Chaos, Noorderzon, Ringweg, Rondvaart) tellen niet meer mee in het totaal en staan niet meer in het overzicht, tenzij je ze in een oudere save al had verdiend. Daardoor is 100% weer haalbaar.
 - **Der Aa-kerk van binnen stond verkeerd om (nog niet in beeld bekeken, #22):** de torenhal lag aan de oostkant, terwijl de toren in de kaartdata aan de westkant staat. Torenhal en koor, de portalen en de kansel zijn gespiegeld; `interieurs_test` controleert nu dat de torenhal bij de echte toren ligt (1045 checks).
 
 ### Nieuw
