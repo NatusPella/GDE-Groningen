@@ -95,7 +95,7 @@ function coverOf({ x0, y0, w, h, cell, occ }) {
   return { inside, tileShare, mask };
 }
 
-// buildCityCover(map).mask() opgeslagen in stad.json (scripts/world/stad_split.mjs): dezelfde dekking, zonder de kaart
+// buildCityCover(map).mask() opgeslagen in stad.json: dezelfde dekking, zonder de kaart
 export function cityCoverFromMask(m) {
   const occ = new Uint8Array(m.w * m.h);
   let k = 0, v = 0;

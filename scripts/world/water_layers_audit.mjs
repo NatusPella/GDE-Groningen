@@ -1,5 +1,5 @@
 // Dubbel water (#231): waar liggen twee waterlagen over elkaar buiten de stad? Telt per streek, over de
-// tegels van de provincie (game/world) en de stadskaart (game/citymap.json):
+// tegels van de provincie (game/world) en de stad (stad.json + OSM-lagen):
 //   tiles       tegels met water
 //   rows        waterrijen
 //   flatOnly    rijen zonder nav (de oude platte laag: tekent alleen de verre LOD, geen vaarwater)

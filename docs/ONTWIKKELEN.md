@@ -231,7 +231,6 @@ Debug hooks on `window` (`window.__x`, read by scripts/perf, the story test and 
 | `?video` | Trailer: neem video op (alleen desktop) |
 | `?terrain` | Hoogtes volgen het AHN-terrein (dijken, wierden; het terrein wordt nog niet getekend) |
 | `?viaducten` | Hoogteprofielen van provinciebruggen en viaducten uit de tegels (alleen als gebouwd met --viaducts; het hoogtemodel volgt nog) |
-| `?stadlaag` | Stad per laag uit de gedeelde tegelbouw (gebouwen, wegen, water, spoor, groen, meubilair, poi, objecten, namen, of alle); #90, standaard uit |
 | `?nobatch` | Zet het samenvoegen van meshes uit (scene3d) |
 | `?shaderdebug` | Laat three.js shaderfouten controleren |
 | `?noworker` | Geometrie op de hoofdthread in plaats van in de worker |
@@ -255,10 +254,10 @@ Debug hooks on `window` (`window.__x`, read by scripts/perf, the story test and 
 | `?sfxtest` | Geluidstest: paneel met alle effecten, een afstandsschuif en een afspeelknop per effect; F8 verbergt het (#173) |
 | `?perfoff` | A/B-meting: zet prestatiestappen uit, namen gescheiden door +, bv. perfoff=schaduw+actoren (devflags.js, scripts/perf/ab.mjs) |
 
-Every switch above is **off by default**: nothing changes for a player unless the name is in the URL. Value switches (`?shot=3`, `?marker=vorm`, `?stadlaag=gebouwen,wegen`, `?touch=1`, `?preset=quality:laag`, `?gpu=<renderer>`, `?benchmark=<rounds>`) are null when absent. The ones to reach for most often:
+Every switch above is **off by default**: nothing changes for a player unless the name is in the URL. Value switches (`?shot=3`, `?marker=vorm`, `?touch=1`, `?preset=quality:laag`, `?gpu=<renderer>`, `?benchmark=<rounds>`) are null when absent. The ones to reach for most often:
 
 - Testing without touching your save: `?dev` (F9 panel) or `?storytest`; both use `gde-dev:` storage or memory.
-- Features still in trial, off by default so the game stays as it was: `?coop`, `?stadlaag`.
+- Features still in trial, off by default so the game stays as it was: `?coop`.
 - Diagnosis: `?pixeldebug` (NaN/Inf pixels magenta), `?hitch`, `?zwartcheck`, `?shaderdebug`, `?noworker`, `?nobatch`.
 - `?marker=vorm` brings back the old fixed 3D marker shapes. A new switch is added to `FLAGS` and `FLAG_DOCS` only, and to the table above; `devflags_test.mjs` fails otherwise.
 
@@ -488,8 +487,7 @@ projects lat/lon to the world frame, RD New shifted to the old origin (`scripts/
 coordinates").
 
 Then the tiles (`node scripts/world/pack_tiles.mjs [--out game/world]`; `cd desktop && npm run stage` does the whole province and
-caches it by the hash of its inputs, about 15 minutes). `python3 scripts/world/building_attrs.py` rewrites
-`data/world/building_attrs.json.gz` (building tags from the OSM caches) when the caches change. Without `data/cache/province` a stage needs
+caches it by the hash of its inputs, about 15 minutes). `data/world/building_attrs.json.gz` (building tags from the former OSM city caches) is committed data now: its generator went with the old city path. Without `data/cache/province` a stage needs
 `GDE_PREBUILT_WORLD=<a built world>`; tests that need the city skip with a SKIP line. The game reads `world/`; `scripts/devserver.py`
 answers HTTP Range requests, like the desktop app and the web build.
 

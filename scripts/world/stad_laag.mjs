@@ -33,7 +33,7 @@ const LAAG = {
 export const LAGEN_WEGEN = ['roads', 'rails'];
 export const LAGEN_UIT_OSM = [...Object.keys(LAAG), ...LAGEN_WEGEN];
 
-// de gebouwen die in citymap.json met de hand zijn gemaakt of bijgewerkt: die blijven, en geen OSM-gebouw ligt erop
+// de gebouwen die met de hand zijn gemaakt of bijgewerkt (stad.json): die blijven, en geen OSM-gebouw ligt erop
 export const isHandBuilding = (b) => !!(b.landmark || b.landmarkPart || b.parts || b.pitch || b.helipad || b.interior || b.markt || b.noPassages);
 const inPoly = (x, y, P) => { let c = false; for (let i = 0, j = P.length - 1; i < P.length; j = i++) if ((P[i][1] > y) !== (P[j][1] > y) && x < ((P[j][0] - P[i][0]) * (y - P[i][1])) / (P[j][1] - P[i][1]) + P[i][0]) c = !c; return c; };
 function withHand(rows, hand) {

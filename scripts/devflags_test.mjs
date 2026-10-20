@@ -1,7 +1,7 @@
 // The URL-switch register (game/js/devflags.js) is the only place that reads the URL:
 //   node scripts/devflags_test.mjs
 // - no other module reads location.search / URLSearchParams (the
-//   stadlaag.js test hook takes a string argument, so it is fine)
+//   test hook takes a string argument, so it is fine; the old stadlaag one is gone)
 // - every FLAGS key has a description in FLAG_DOCS and a row in docs/ONTWIKKELEN.md
 import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath, pathToFileURL } from 'node:url';
