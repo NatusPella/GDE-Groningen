@@ -205,6 +205,7 @@ release();
 if (tp) clearInterval(tp);
 for (const m of [...mocks, mockLate].filter(Boolean)) { try { await m.stop(); } catch (e) { /* al weg */ } }
 const trackerSeen = tracker ? tracker.seen.slice() : [];
+const trackerTrace = tracker ? tracker.trace.slice() : [];
 if (tracker) fs.writeFileSync(path.join(OUT, 'tracker.jsonl'), trackerSeen.map((t) => t.replace(/"sdp":"[^"]{40,}"/g, '"sdp":"…"').slice(0, 300)).join('\n'));
 if (tracker) tracker.close();
 
@@ -305,6 +306,7 @@ if (ROUTE === 'kamer') {
   check(!/(\d+\.\d+\.\d+\.\d+)/.test(wire.replace(/"interval"[^,]*/g, '')) , 'de tracker zag een IP-adres in het bericht');
   if (code) check(!wire.includes(guestCode.replace('-', '')), 'de tracker zag de kamercode');
   note(`nep-tracker: ${trackerSeen.length} berichten, geen IP-adres, geen kamercode`);
+  for (const x of trackerTrace) note('tracker: ' + x);
 }
 if (MENU) check(of(H, 'hoofdmenu').length && /samen/.test(of(H, 'hoofdmenu')[0].items) && of(G, 'hoofdmenu').length, 'het hoofdmenu heeft de ingang Samen spelen');
 check(of(H, 'verbonden').length && of(G, 'verbonden').length, 'beide kanten bereiken "Je speelt samen"');
