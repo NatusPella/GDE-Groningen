@@ -44,16 +44,23 @@ for (const lab of ['Lauwersmeer', 'zee waddenzee', 'zee eems', 'zee dollard']) {
 }
 ok(c3.labels['zee waddenzee'].near.length > 1 && /Lauwersoog|Rug/.test(c3.labels['zee waddenzee'].near + 'Rug'), 'the Wadden access is named');
 ok(c3.labels['zee eems'].near === 'Farmsum' || c3.labels['zee eems'].near === 'Delfzijl', 'the Eems access is Delfzijl', c3.labels['zee eems'].near);
-// the barge: it reaches every sea (on the raster with the gaps patched, as the game has it: since #234
-// a barge only sails the main waterways and harbours, and those pieces join through the patches), but the low fixed bridges stop it, each one named by place
+// the barge (#295): it starts in the Oosterhaven (the inner city inside the Kattenbrug is closed to barges on purpose) and reaches every
+// sea (on the raster with the gaps patched, as the game has it). The fixed bridges have their real clearance: the city's ring roads from their
+// deck profile, the province's bridges over a shipping canal from the profile the build gives them (SHIPPING_CLEAR), a movable bridge wins
+// over the fixed approach next to it. What still blocks (a low bridge on a minor way) is a located fixed bridge, and the audit names it.
 const c4 = W.audit(await W.buildRaster({ fixesOn: true }), { classes: [4], log: () => {} }).classes[4];
+ok(Math.hypot(c4.start[0] - W.BARGE_HOME[0], c4.start[1] - W.BARGE_HOME[1]) < 80, 'the barge route starts in the Oosterhaven', c4.start.map(Math.round).join(','));
 for (const lab of ['Lauwersmeer', 'zee waddenzee', 'zee eems', 'zee dollard']) {
   const r = c4.labels[lab];
   ok(!!r, `a barge route (with its obstacles) exists to ${lab}`);
   if (r) {
     const blocked = r.obstacles.filter((o) => !o.ok);
     ok(blocked.length === r.blocked && blocked.every((o) => o.kind === 'vast' && Number.isFinite(o.x) && Number.isFinite(o.y)), `every obstacle for the barge to ${lab} is a located fixed bridge`);
+    ok(r.blocked === 0, `a barge sails from the Oosterhaven to ${lab} without a bridge it does not clear`, blocked.map((o) => `${o.name} ${Math.round(o.x)},${Math.round(o.y)}`).join('; '));
   }
 }
+// the clearance of a profiled bridge is read from its deck: Plataanlaan over the Van Starkenborghkanaal clears a barge
+const [rasterObs] = [built.R.list.filter((o) => o.kind === 'vast' && o.profiled)];
+ok(rasterObs.length > 5 && rasterObs.some((o) => o.clear >= 4.25), 'bridges with a deck profile have their real clearance, some clear a barge', String(rasterObs.length));
 console.log(`${n} checks, ${fails} failed`);
 process.exit(fails ? 1 : 0);
