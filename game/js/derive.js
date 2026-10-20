@@ -258,7 +258,8 @@ export function deriveBuildings(data) {
   const all = dedupeBuildings(data.buildings.filter((b) => !bridgeParts.has(b)));
   const overRails = buildingsOverRails(all, data.rails || []);
   const onRing = buildingsOnRing(all, data.ringRoads || data.roads);
-  const isCanopy = (b) => b.type === 'roof' || overRails.has(b);
+  // (b.canopy: a roof the tile build already derived as one, put back in the city's data by stad_laag.mjs)
+  const isCanopy = (b) => b.type === 'roof' || b.canopy === true || overRails.has(b);
   const canopies = all.filter((b) => isCanopy(b) && !onRing.has(b));
   const sunkBoats = mooredHouseboats(all, data.water);
   const buildings = all.filter((b) => !isCanopy(b) && !onRing.has(b) && !sunkBoats.has(b));

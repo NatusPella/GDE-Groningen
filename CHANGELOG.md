@@ -1,5 +1,7 @@
 # Changelog
 
+- **Overkappingen terug in de stad (#90, in de wereldbouw gemeten, nog niet in beeld bekeken):** de stad uit de OSM-tegelbouw verloor 63 van de 65 open daken en overkappingen: de perronkappen van Groningen Europapark en Noord, de glazen straat boven winkelcentrum Paddepoel, marktdaken en het benzinestation. De stadsbouw las alleen de gebouwen uit de tegels en niet de overkappingen. Ze komen nu terug (75 tegenover 65 in de oude stad; 63 van de 65 oude plekken zitten erin, twee op het Hoofdstation hebben een iets andere vorm).
+- **Kerkhofbomen terug (#90, in de wereldbouw gemeten, nog niet in beeld bekeken):** de kerkhoven in de stad hadden 2,4 bomen per hectare en hebben er nu weer 21,5 (oude stad 22,6), met open plekken. De tegelbouw vult nu naast bossen ook kerkhoven (18 m tussen de bomen), ook in de provincie na een nieuwe bouw. Parken en bossen waren al gelijk of voller dan in de oude stad (bossen 105,6 tegenover 106,0 bomen per hectare).
 Alle noemenswaardige wijzigingen in GDE Groningen, per versie. Nieuwste bovenaan.
 Versies volgen SemVer: `0.x.y` tot de echte release (1.0.0); `x` voor
 nieuwe functies, `y` voor alleen bugfixes.
