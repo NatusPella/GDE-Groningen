@@ -40,10 +40,10 @@ Kaartdata © OpenStreetMap-bijdragers, beschikbaar onder de
 Zie <https://www.openstreetmap.org/copyright>.
 
 De afgeleide databases in dit project vallen ook onder de ODbL:
-`game/citymap.json`, `game/mapextras.json`, `scripts/world/cityroutes_src.json`,
+`game/stad.json`, `game/mapextras.json`, `scripts/world/cityroutes_src.json`,
 de kaarttegels (`game/world/`, bij het bouwen gemaakt) en de Overpass-extracten in `data/` (`*_raw.json`,
 `*_raw.json.gz`, `*.overpass`-resultaten). Ze zijn gemaakt met de scripts in
-`scripts/` (`fetch_osm.py`, `fetch_ommeland.py`, `build_map.py`, `add_*.py`).
+`scripts/` (`scripts/world/extract_province.py`, `fetch_ommeland.py`, de tegelbouw in `scripts/world/*.mjs`; de oude Python-keten (`build_map.py`, `add_*.py`) en de ruwe Overpass-bronnen van de stad zijn met #90 uit de repo gehaald en staan in de git-geschiedenis).
 
 Daaronder vallen ook de plekken voor padel, golf en pitch and putt
 (`game/echteplekken.json`, `data/extras_padel_raw.json`), de horeca- en
@@ -57,7 +57,7 @@ Gebouwhoogtes en dakvormen: 3DBAG door de 3D geoinformation onderzoeksgroep
 [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Gebruikt: per pand
 `b3_h_dak_max`, `b3_h_dak_50p`, `b3_h_maaiveld` en `b3_dak_type`, uit de
 officiële tegeldownloads (`scripts/world/fetch_3dbag.py`), samengevat in
-`data/world/3dbag.json.gz` en in de hoogtes van `game/citymap.json` en de
+`data/world/3dbag.json.gz` en in de hoogtes van de kaarttegels en de
 tegels. De 3DBAG is zelf gemaakt uit de BAG (Kadaster, publiek domein) en de
 AHN (CC0).
 

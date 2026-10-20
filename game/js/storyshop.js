@@ -4,9 +4,9 @@
 // the rest marked "telt niet voor je missie") and a count of every item
 // bought, which the story's shop steps (goal.buy) complete on.
 
-import { currentStep, storyVoorschotInfo } from './story.js';
-import { getMissionDefs, unmetRequirement, requirementMet, requirementPlace, activeStage } from './missions.js';
-import { VEHICLE_STOCK, SHOP_TYPES } from './shops.js';
+import { currentStep, storyVoorschotInfo } from './storyquery.js';
+import { getMissionDefs, unmetRequirement, requirementMet, requirementPlace, activeStage } from './missionquery.js';
+import { VEHICLE_STOCK, SHOP_TYPES } from './shopdata.js';
 import { STEPS } from './storyarc.js';
 import { displayName } from './speakers.js';
 

@@ -35,7 +35,6 @@ export const OPTIONS = [
   O('geluid', 'g-toeter', 'Toeter De Marne', 12, BOTH, { claxon: 'toeter' }, 'Een vrolijke toeter'),
   O('geluid', 'g-melodie', 'Melodietoeter Vlagtwedde', 38, BOTH, { claxon: 'melodie', opvallend: 0.1 }, 'Speelt drie noten van een bekend deuntje (verzonnen)'),
 ];
-export const OPTION_IDS = OPTIONS.map((o) => o.id);
 export const optionById = (id) => OPTIONS.find((o) => o.id === id) || null;
 
 // optiekeuzes voor een deel en voertuigsoort
@@ -43,9 +42,6 @@ export const optionsFor = (part, kind) => OPTIONS.filter((o) => o.part === part 
 
 // Voertuigsoort uit de vlaggen van het voertuig (v.isBike, v.isScooter).
 export const tuningKind = (v) => (v && (v.isBike || v.isScooter) ? 'tweewieler' : 'auto');
-
-// Een leeg tuningrecord: voor elk onderdeel niets.
-export const emptyTuning = () => ({});
 
 // Schoon een opgeslagen record op: onbekende of niet-passende keuzes gaan eruit.
 export function sanitizeTuning(t, kind = null) {

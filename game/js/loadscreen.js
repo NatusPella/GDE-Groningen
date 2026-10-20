@@ -5,7 +5,7 @@
 // respawn); the work it waits for is the city streaming in round the player
 // (scene3d.js streamPending). The picture is one of the game's own renders
 // (img/laad/), chosen by where you are going.
-import { getStoryView } from './story.js';
+import { getStoryView } from './storyquery.js';
 import { PARTS } from './storyarc.js';
 import { hudDate } from './hudcalendar.js';
 import { streamPending } from './scene3d.js';

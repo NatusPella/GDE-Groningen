@@ -4,3 +4,4 @@ scripts/windows/*.txt text eol=crlf
 *.sh text eol=lf
 *.mjs text eol=lf
 *.js text eol=lf
+game/stad.json text eol=lf

@@ -1,4 +1,5 @@
 import { dist, angleLerp, pointInPolygon, SeededRng, isInWater, WATER_Y } from './util.js';
+import { waterPolyAt, waterNearby, BRIDGE_DRY } from './waterlevels.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { SkinBuilder, vcMaterial, composeMatrix, tubeGeometry, loftGeometry, markShared } from './pixelart3d.js';
 import { setLeashHolder, setPeopleWeather } from './models3d_people.js';
@@ -109,13 +110,20 @@ function layerPointNear(map, layer, px, py, rng, rMin, rMax) {
     const ang = rng() * Math.PI * 2, rad = rMin + rng() * (rMax - rMin);
     const x = px + Math.cos(ang) * rad, y = py + Math.sin(ang) * rad;
     const poly = map[layer](x, y, 1).find((w) => pointInPolygon(x, y, w.pts));
-    if (poly && (layer !== 'waterNear' || !map.isOnBridge(x, y))) return { x, y, poly };
+    if (poly) return { x, y, poly };
   }
   return null;
 }
 
+// water by the water rule (waterlevels.js waterPolyAt): not under a bridge deck
 function waterPointNear(map, px, py, rng, rMin = 8, rMax = 60) {
-  return layerPointNear(map, 'waterNear', px, py, rng, rMin, rMax);
+  for (let i = 0; i < 24; i++) {
+    const ang = rng() * Math.PI * 2, rad = rMin + rng() * (rMax - rMin);
+    const x = px + Math.cos(ang) * rad, y = py + Math.sin(ang) * rad;
+    const poly = waterPolyAt(map, x, y, undefined, BRIDGE_DRY);
+    if (poly) return { x, y, poly };
+  }
+  return null;
 }
 
 function spawnDucks(map, px, py, rng) {
@@ -266,11 +274,11 @@ function maintain(world) {
   const count = { seagull: 0, grazer: 0, duck: 0, pigeon: 0, cat: 0, dog: 0, reiger: 0, zeehond: 0, vis: 0 };
   for (const a of list) count[a.kind === 'cow' || a.kind === 'sheep' || a.kind === 'gans' ? 'grazer' : a.kind]++;
   const rng = Math.random;
-  const waterPolys = map.waterNear(player.x, player.y, BIAS_SEARCH_RADIUS);
+  const waterClose = waterNearby(map, player.x, player.y, BIAS_SEARCH_RADIUS);
   const greenPolys = map.greenNear(player.x, player.y, BIAS_SEARCH_RADIUS);
 
   for (let n = count.seagull; n < LIMITS.seagull; n++) {
-    const spot = waterPolys.length ? waterPointNear(map, player.x, player.y, rng, 10, SPAWN_RADIUS) : null;
+    const spot = waterClose ? waterPointNear(map, player.x, player.y, rng, 10, SPAWN_RADIUS) : null;
     if (spot) list.push(newSeagull(spot.x, spot.y, rng));
     else if (rng() < 0.3) {
       const ang = rng() * Math.PI * 2, rad = 15 + rng() * (SPAWN_RADIUS - 15);
@@ -289,8 +297,8 @@ function maintain(world) {
     const herd = kind === 'sheep' ? 1 + Math.floor(rng() * 2) : 1;
     for (let k = 0; k < herd && count.grazer + k < LIMITS.grazer; k++) list.push(newGrazer(kind, hx + k * 1.5, hy + k * 0.8, rng));
   }
-  if (waterPolys.length) list.push(...spawnWaterLife(map, player, streekId, count, getSettings().quality, rng));
-  if (count.duck < LIMITS.duck - 1 && waterPolys.length) list.push(...spawnDucks(map, player.x, player.y, rng));
+  if (waterClose) list.push(...spawnWaterLife(map, player, streekId, count, getSettings().quality, rng));
+  if (count.duck < LIMITS.duck - 1 && waterClose) list.push(...spawnDucks(map, player.x, player.y, rng));
   if (count.pigeon < LIMITS.pigeon * MODS.pigeons - 5) list.push(...spawnPigeonFlock(map, player.x, player.y, rng));
   if (count.cat < LIMITS.cat && rng() < 0.35) list.push(...spawnCat(map, player.x, player.y, rng));
   if (count.dog < LIMITS.dog && rng() < 0.5) list.push(...spawnDog(world, rng));

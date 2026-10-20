@@ -72,10 +72,10 @@ muziekproduct niet noemen.
 
 | Onderdeel | Bron | Licentie | Wat moet |
 |---|---|---|---|
-| `game/citymap.json`, `game/mapextras.json`, `scripts/world/cityroutes_src.json`, de kaarttegels (`game/world/`) | OpenStreetMap via Overpass (`scripts/fetch_osm.py`, `fetch_ommeland.py`, `add_*.py`, `build_map.py`) | [ODbL 1.0](https://opendatacommons.org/licenses/odbl/1-0/) | naamsvermelding; deze **afgeleide databases** blijven ODbL als je ze verspreidt (share-alike) |
+| `game/stad.json`, `game/mapextras.json`, `scripts/world/cityroutes_src.json`, de kaarttegels (`game/world/`) | OpenStreetMap, Geofabrik-extract en Overpass (`scripts/world/extract_province.py`, `fetch_ommeland.py`, de tegelbouw `scripts/world/*.mjs`; de oude Python-keten staat in de git-geschiedenis) | [ODbL 1.0](https://opendatacommons.org/licenses/odbl/1-0/) | naamsvermelding; deze **afgeleide databases** blijven ODbL als je ze verspreidt (share-alike) |
 | `data/*_raw.json(.gz)`, `data/*.overpass` | Overpass-extracten van OSM | ODbL | idem |
 | Hoogtes van de ring (`add_elevation.py`) | berekend uit OSM-tags (layer, bridge, tunnel) | ODbL | idem; de terreinhoogte komt uit de AHN (volgende rij) |
-| `data/world/3dbag.json.gz`, de gebouwhoogtes (`h`, `hsrc`, `roof`) in `game/citymap.json` en de tegels | 3DBAG (TU Delft, 3DGI), officiële tegeldownloads van data.3dbag.nl (`scripts/world/fetch_3dbag.py`); de ruwe tegels staan alleen lokaal in `data/cache/` | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) | naamsvermelding: Over, aftiteling, NOTICE.md ("3DBAG door de 3D geoinformation onderzoeksgroep (TU Delft) en 3DGI") |
+| `data/world/3dbag.json.gz`, de gebouwhoogtes (`h`, `hsrc`, `roof`) in de tegels | 3DBAG (TU Delft, 3DGI), officiële tegeldownloads van data.3dbag.nl (`scripts/world/fetch_3dbag.py`); de ruwe tegels staan alleen lokaal in `data/cache/` | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) | naamsvermelding: Over, aftiteling, NOTICE.md ("3DBAG door de 3D geoinformation onderzoeksgroep (TU Delft) en 3DGI") |
 | AHN-hoogteraster (`scripts/world/fetch_ahn.py`: per kilometertegel een GeoTIFF van PDOK's AHN-WCS, ruwe bestanden lokaal in `data/cache/ahn/`, afgeleide rasters in `data/world/ahn/` en de kaarttegels; `game/js/terrainraster.js` leest ze) | Actueel Hoogtebestand Nederland (AHN, Rijkswaterstaat e.a.) via PDOK | CC0 (publiek domein) | geen verplichting; vermeld in NOTICE.md en de aftiteling |
 | Padel-, golf- en pitch-and-putt-banen (`scripts/world/echteplekken.py`, `data/extras_padel_raw.json`, `game/echteplekken.json`) en de horeca- en winkelextracten (`data/horeca_raw.json`, `data/shops_raw.json`) | Overpass-extracten van OSM | ODbL | idem als de rest van de kaartdata; namen van ketens en cafés komen niet in de speltekst (zie hieronder) |
 | Overpass-servers (overpass-api.de, kumi.systems, private.coffee, maps.mail.ru) | alleen bij het bouwen van de kaart | [gebruiksvoorwaarden](https://dev.overpass-api.de/overpass-doc/en/preface/commons.html): redelijk gebruik | niets voor de speler |
@@ -193,7 +193,7 @@ Gecontroleerd in `game/js` en `desktop/`:
   paar instellingen en de GPU-klasse. Niets wordt verstuurd; de speler kan
   het kopiëren of (desktop) als bestand opslaan en zelf meesturen.
 - Netwerk: alle `fetch()`-aanroepen gaan naar eigen bestanden
-  (`manifest.json`'s, `citymap.json`, de kaarttegels, muziek,
+  (`manifest.json`'s, `stad.json`, de kaarttegels, muziek,
   `CHANGELOG.md`). **Geen telemetrie, analytics, crashrapportage of
   update-check.** Geen `speechSynthesis` (die kan in Chrome tekst naar
   Google sturen).
@@ -263,7 +263,7 @@ De rechthebbende van de geparodieerde reeks is actief in merkenzaken
   zie `docs/PUBLICEREN.md`.
 - Huisartsenpraktijken uit OSM (bijv. "Huisarts van de Riet") waren
   respawnplekken. **Opgelost** (3 okt): ze heten nu "Huisartsenpost <wijk>"
-  (`add_police_stations.py` en `citymap.json`).
+  (`stad.json`, vroeger `add_police_stations.py` en `citymap.json`).
 - Echte horecanamen (OSM): **opgelost** voor meldingen (3 okt). Meldingen,
   de bestelprompt en de kroegentocht gebruiken verzonnen cafés (Café De
   Lallende Koe, Kroeg 't Scheve Toorntje …); de kaart en de zoekfunctie
@@ -316,7 +316,7 @@ Aanbeveling **A**, met deze indeling in een toekomstig `LICENSE`/README:
   en CC voor "verhaal, personages, dialogen en ontwerp".)
 - `game/audio/**` → "gemaakt met Google Gemini; voor zover er rechten op
   rusten: CC BY-NC 4.0".
-- `game/citymap.json`, `game/mapextras.json`, `game/ommeland.*`,
+- `game/stad.json`, `game/mapextras.json`, `game/ommeland.*`,
   `data/**` → ODbL 1.0, © OpenStreetMap-bijdragers.
 - Merknamen GTE/GDE en het logo: uitgezonderd ("niet onder deze licenties").
 - Derden: zie `NOTICE.md`.

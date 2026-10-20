@@ -316,9 +316,9 @@ export function mergeIndex(index, extra, { only = null } = {}) {
 }
 
 
-// The map at `url` (citymap.json) for code that only needs the map: the tile
-// world when the build has tiles, else the JSON files (dev server).
-export async function loadMapAuto(url = 'citymap.json', onProgress = null, { pool = true } = {}) {
+// The map at `url` (stad.json) for code that only needs the map: the tile
+// world when the build has tiles, else stad.json alone (dev server).
+export async function loadMapAuto(url = 'stad.json', onProgress = null, { pool = true } = {}) {
   // with the overlays of the city's tiles, as the game's own map has them (the worker's roads and shores must see the same neighbours)
   const t = await loadTileWorld(url.replace(/[^/]*$/, '') + 'world/', { onProgress, pool, extra: [{ name: 'index-provincie.json', only: (q) => !!q.ov }] });
   return t ? t.world : loadMap(url, onProgress);

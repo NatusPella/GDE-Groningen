@@ -12,7 +12,6 @@ let shift = false;
 let before = '';
 
 const isText = (t) => !!(t && ((t.tagName === 'INPUT' && ['text', 'search', 'tel', 'url', 'email', ''].includes(t.type)) || t.tagName === 'TEXTAREA'));
-export function isPadKeyboardOpen() { return !!root; }
 
 function draw() {
   root.querySelector('.pk-val').textContent = field.value || ' ';
@@ -97,8 +96,6 @@ function openPadKeyboard(el) {
   draw();
   return true;
 }
-
-export function closePadKeyboard() { close(); }
 
 function close() {
   if (!root) return;

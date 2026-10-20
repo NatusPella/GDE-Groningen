@@ -50,8 +50,8 @@ export function buildMarinas(map) {
 }
 
 if (process.argv[1] && process.argv[1].endsWith('marinas.mjs')) {
-  const data = JSON.parse(fs.readFileSync(new URL('citymap.json', root)));
-  applyMapExtras(data, JSON.parse(fs.readFileSync(new URL('mapextras.json', root))));
+  const { loadCityData } = await import('../lib/loadworld.mjs');
+  const data = await loadCityData();
   const list = buildMarinas(new GameMap(data));
   console.log(`${list.length} marinas, ${list.reduce((n, m) => n + m.berths.length, 0)} berths`);
   for (const m of list) console.log(`  ${m.name} at ${Math.round(m.x)},${Math.round(m.y)} (${m.kind}): ${m.berths.length} berths`);

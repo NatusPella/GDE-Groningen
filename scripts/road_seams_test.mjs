@@ -41,9 +41,10 @@ ok(count([road([[0, 0], [100, 0]]), road([[50, -30], [50, 30]], { tunnel: true }
 ok(count([road([[0, 0], [100, 0]], { tunnel: true, layer: -1 }), road([[50, -30], [50, 30]], { tunnel: true, layer: -2 })], 'crossNoNode') === 0, 'two tunnels at different depths do not cross')
 
 // the city map: today's counts are the ceiling
-const data = JSON.parse(fs.readFileSync(new URL('../game/citymap.json', import.meta.url)));
+const { loadStadData } = await import('./lib/loadworld.mjs');
+const data = await loadStadData();
 const f = auditSeams(data.roads);
-const CEIL = { laneJump: 230, widthJump: 7, gap: 24, overlap: 135, crossNoNode: 0 };
+const CEIL = { laneJump: 231, /* was 230 op de oude stad; OSM telt bij Emmabrug (3 tegen 2 stroken) en Griffeweg (1 tegen 2) een echt verschil, #90 */ widthJump: 7, gap: 17, overlap: 135, crossNoNode: 0 };
 for (const [k, max] of Object.entries(CEIL)) ok(f[k].length <= max, `map: ${k} not above ${max}`, f[k].length);
 
 console.log(`${n - fails}/${n} ok`);

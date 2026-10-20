@@ -35,7 +35,6 @@ export function decayFactor(profile, world) {
 // description (HUD feedback, #43 step 7): says what the police are looking for.
 export const MISMATCH_HINT = 'De politie zoekt je oude voertuig. Dit is een andere: blijf uit het zicht.';
 export const ON_FOOT_HINT = 'De politie zoekt je voertuig. Te voet ben je moeilijker te vinden: blijf uit het zicht.';
-export const MATCH_HINT = 'Ze zoeken je nog steeds in dit voertuig.';
 export function hintFor(profile, world, hinted) {
   if (!profile || hinted) return null;
   if (fitsProfile(profile, world)) return null;

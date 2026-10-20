@@ -136,7 +136,8 @@ const check = (name, ok, info = '') => { n++; if (!ok) { bad++; console.log('FAI
   const goal = fs.readFileSync(path.join(here, '../game/js/goal.js'), 'utf8');
   check('goal.js knows the exclusive minigames', ['carillon', 'pannenkoek', 'hengelen'].every((id) => goal.includes(id + ': (w) =>')));
   check('every achievement the new games unlock exists', used.size > 10 && !missing.length, missing.join());
-  const map = JSON.parse(fs.readFileSync(path.join(here, '../game/citymap.json'), 'utf8'));
+  const { loadStadData } = await import('./lib/loadworld.mjs');
+  const map = await loadStadData();
   const inPoly = (x, y, p) => { let r = false; for (let i = 0, j = p.length - 1; i < p.length; j = i++) { if ((p[i][1] > y) !== (p[j][1] > y) && x < ((p[j][0] - p[i][0]) * (y - p[i][1])) / (p[j][1] - p[i][1]) + p[i][0]) r = !r; } return r; };
   const s = geo(53.2188, 6.582);
   const bad2 = [[0, 0], [2, 0], [-2, 0], [0, 2], [0, -2]].some(([dx, dy]) => map.buildings.concat(map.water).some((b) => inPoly(s.x + dx, s.y + dy, b.pts)));
