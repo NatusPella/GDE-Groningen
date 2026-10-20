@@ -107,6 +107,7 @@ const near = (a, b, e = 1e-6) => Math.abs(a - b) < e;
   ok(L.decide({ ...base(), blocking: { pauseMenu: true } }).type === 'closemenu', 'pauzemenu sluiten');
   ok(L.decide({ ...base(), blocking: { dialog: { options: [{ key: '2', label: 'x' }] } } }).key === '2', 'dialoog: eerste optie');
   ok(L.decide({ ...base(), blocking: { cinematic: true } }).type === 'skip', 'cutscene overslaan');
+  ok(L.decide({ ...base(), blocking: { ride: true } }).type === 'skip', 'reisscène (meerijden) overslaan');
   ok(L.decide({ ...base(), blocking: { talk: true } }).type === 'wait', 'gesprek afwachten');
   ok(L.decide({ ...base(), target: null }).type === 'wait', 'zonder doel wachten');
   ok(L.decide(base()).mode === 'walk', 'dichtbij: lopen');
