@@ -18,7 +18,15 @@ window.addEventListener('unhandledrejection', (e) => log('jserror', { msg: 'belo
 const NET = { ws: [], rtc: 0, fetch: [] };
 {
   const WS = window.WebSocket, RTC = window.RTCPeerConnection, F = window.fetch;
-  if (WS) window.WebSocket = class extends WS { constructor(u, p) { NET.ws.push(String(u)); super(u, p); } };
+  if (WS) window.WebSocket = class extends WS {
+    constructor(u, p) {
+      NET.ws.push(String(u)); super(u, p);
+      // wat komt er van de tracker binnen? (alleen soort en grootte, niet de inhoud)
+      this.addEventListener('message', (e) => { let m = null; try { m = JSON.parse(String(e.data)); } catch (er) { /* geen JSON */ } log('ws-in', { len: String(e.data).length, action: m && m.action, offer: !!(m && m.offer), answer: !!(m && m.answer), idOk: !!(m && m.offer_id) }); });
+      this.addEventListener('close', () => log('ws-dicht', {}));
+      this.addEventListener('error', () => log('ws-fout', {}));
+    }
+  };
   if (RTC) window.RTCPeerConnection = class extends RTC {
     constructor(...a) {
       NET.rtc++; super(...a);
@@ -26,6 +34,8 @@ const NET = { ws: [], rtc: 0, fetch: [] };
       const soort = (c) => { const m = /typ (w+)/.exec(c || ''), ip = /(?:^|s)(d+.d+.d+.d+|[w-]+.local)s+d+s+typ/.exec(c || ''); const adres = ip ? (/^127./.test(ip[1]) ? 'loopback' : /^(10.|192.168.|172.(1[6-9]|2d|3[01]).)/.test(ip[1]) ? 'prive' : /.local$/.test(ip[1]) ? 'mdns' : 'overig') : '?'; return (m ? m[1] : '?') + '/' + adres; };
       this.addEventListener('icecandidate', (e) => log('rtc', { kandidaat: e.candidate ? soort(e.candidate.candidate) : 'klaar' }));
       this.addEventListener('iceconnectionstatechange', () => log('rtc', { ice: this.iceConnectionState }));
+      this.addEventListener('signalingstatechange', () => log('rtc', { signaling: this.signalingState }));
+      this.addEventListener('datachannel', () => log('rtc', { datakanaal: 'binnen' }));
       this.addEventListener('connectionstatechange', () => log('rtc', { verbinding: this.connectionState }));
     }
   };
