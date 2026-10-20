@@ -28,6 +28,10 @@ for (const kind of ['walk', 'bike']) {
   const r = R.planLandRoute(map, kind, [st.x, st.y], kerk);
   const l = r ? len(r.pts) : Infinity;
   const via = r && r.roads.some((x) => x && x.name === 'Museumeiland');
-  check(`${kind} station to the Kerk over the Museumeiland bridge`, via && l < crow * 1.7, `${l.toFixed(0)} m (crow ${crow.toFixed(0)}), via bridge ${!!via}`);
+  // (the bike starts in the pedestrian zone in front of the station, which the OSM city has joined to the cycle network: it rides
+  // round the station building over the Stadsbalkon, about 70 m more than the old city's route, which began 31 m from the
+  // station straight through the building. The Herebrug way round is 867 m on foot and 1005 m by bike, so 2.0 still tells them apart.)
+  const limit = kind === 'bike' ? 2.0 : 1.7;
+  check(`${kind} station to the Kerk over the Museumeiland bridge`, via && l < crow * limit, `${l.toFixed(0)} m (crow ${crow.toFixed(0)}), via bridge ${!!via}`);
 }
 process.exit(bad ? 1 : 0);

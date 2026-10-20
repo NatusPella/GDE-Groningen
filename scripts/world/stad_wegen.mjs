@@ -114,9 +114,17 @@ export function cutToCover(roads, inside, step = 10) {
 // oever reikt zou nu zinken. Hier geldt dezelfde regel met DRY_TOL m speling, zodat elke droge kruising van de oude kaart blijft.
 const DRY_TOL = 0.1;
 const DRY_CATS = new Set(['major', 'normal', 'minor', 'service']);
+// Het stuk weg vlak bij het einde van een echte brug is de oprit op de wal: het OSM-water loopt daar tot aan de knoop, en een
+// monster op de rand (of 0,1 m ernaast) telde als "weg door water". Dat stempelde 46 opritten van grachtbruggen (Maagdenbrug,
+// Boteringebrug, Laan 1940-1945, ...) tot droog dek, naast het echte dek: dubbele dekken en z-fight. Water binnen BANK_M van een
+// brugeinde telt daarom niet mee; een weg die alleen daar nat is krijgt `noDry` (mapdata.js markDryRoad laat hem dan ook met rust).
+const BANK_M = 3;
 export function markDryRoads(d) {
   const grid = new SpatialGrid(80);
   for (const w of d.water || []) { if (!w.pts || w.pts.length < 4) continue; w.bounds = polygonBounds(w.pts); grid.insert(w, w.bounds); }
+  const ck = (p) => `${Math.round(p[0] * 100)},${Math.round(p[1] * 100)}`;
+  const bridgeEnds = new Set();
+  for (const r of d.roads) if (r.bridge && !r.tunnel && r.pts.length > 1) { bridgeEnds.add(ck(r.pts[0])); bridgeEnds.add(ck(r.pts[r.pts.length - 1])); }
   let n = 0;
   for (const r of d.roads) {
     if (r.bridge || r.z || !DRY_CATS.has(r.cat)) continue;
@@ -124,16 +132,26 @@ export function markDryRoads(d) {
     const b = polygonBounds(P);
     const polys = grid.query(b[0] - 1, b[1] - 1, b[2] + 1, b[3] + 1);
     if (!polys.length) continue;
-    let wet = false;
+    const total = P.reduce((s, p, i) => (i ? s + Math.hypot(p[0] - P[i - 1][0], p[1] - P[i - 1][1]) : 0), 0);
+    const bank0 = bridgeEnds.has(ck(P[0])), bank1 = bridgeEnds.has(ck(P[P.length - 1]));
+    let wet = false, wetBank = false, at = 0;
     for (let i = 0; i < P.length - 1 && !wet; i++) {
       const [ax, ay] = P[i], [bx, by] = P[i + 1];
-      const steps = Math.max(1, Math.ceil(Math.hypot(bx - ax, by - ay) / 2));
+      const len = Math.hypot(bx - ax, by - ay);
+      const steps = Math.max(1, Math.ceil(len / 2));
       for (let k = 0; k <= steps && !wet; k++) {
         const x = ax + ((bx - ax) * k) / steps, y = ay + ((by - ay) * k) / steps;
-        for (const [dx, dy] of [[0, 0], [DRY_TOL, 0], [-DRY_TOL, 0], [0, DRY_TOL], [0, -DRY_TOL]]) if (waterPolyIn(polys, x + dx, y + dy)) { wet = true; break; }
+        const s = at + (len * k) / steps;
+        let hit = false;
+        for (const [dx, dy] of [[0, 0], [DRY_TOL, 0], [-DRY_TOL, 0], [0, DRY_TOL], [0, -DRY_TOL]]) if (waterPolyIn(polys, x + dx, y + dy)) { hit = true; break; }
+        if (!hit) continue;
+        if ((bank0 && s < BANK_M) || (bank1 && total - s < BANK_M)) wetBank = true;
+        else wet = true;
       }
+      at += len;
     }
     if (wet) { r.bridge = true; r.dryCrossing = true; n++; }
+    else if (wetBank) r.noDry = true;
   }
   return n;
 }
@@ -195,6 +213,7 @@ export function profileCity(d, wegen, { lagen, extras = {}, inside }) {
   }
   if (wantRails) {
     const r = cityRail({ elements, roads: d.roads, bounds });
+    anchorStations(r.stations, d.meta.landmarks);
     Object.assign(d, { rails: r.rails, stations: r.stations, levelCrossings: r.levelCrossings, railRoutes: r.railRoutes, railLifts: r.railLifts });
     rep.rails = { rails: r.rails.length, stations: r.stations.length, levelCrossings: r.levelCrossings.length, routes: r.railRoutes.length, lifts: r.railLifts.length, cut: r.cut };
     rep.railTags = RP.matchRailTags(d.rails, geomEls);
@@ -212,6 +231,25 @@ export function profileCity(d, wegen, { lagen, extras = {}, inside }) {
   if (bus.length) restoreBus(bus);
   if (wantRoads) { rep.dry = markDryRoads(d); }
   return rep;
+}
+
+// Het stationsgebouw is een landmark van het handwerk (meta.landmarks, kind 'station'); de OSM-knoop `railway=station` ligt
+// niet altijd bij het gebouw: in het extract van 15 oktober is de knoop van Groningen 50 m naar de perrons verschoven. Het
+// kaartmachientje, de wandelroutes vanaf het station en de muziek horen bij het gebouw, zoals in de oude stad. Een station
+// binnen STATION_SNAP m van zo'n landmark neemt zijn plek over (de treinroutes houden de OSM-knoop: ze rijden langs de perrons).
+const STATION_SNAP = 120;
+export function anchorStations(stations, landmarks) {
+  let moved = 0;
+  for (const st of stations) {
+    let best = null, bd = STATION_SNAP;
+    for (const l of landmarks || []) {
+      if (l.kind !== 'station') continue;
+      const dd = Math.hypot(l.x - st.x, l.y - st.y);
+      if (dd < bd) { bd = dd; best = l; }
+    }
+    if (best && bd > 0) { st.x = best.x; st.y = best.y; moved++; }
+  }
+  return moved;
 }
 
 // ------------------------------------------------------------------ handwerk
