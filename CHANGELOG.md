@@ -6,6 +6,10 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Verbeterd
+- **Spoor op de kaart krijgt het nachtpalet (#286; door Claude in beeld bekeken op de grote kaart en de minimap van de stad en het dorp, dag en nacht, niet door de eigenaar):** het spoor op de grote kaart en de minimap las een vaste dagkleur; het volgt nu het kaartpalet, dus 's nachts iets donkerder en nog leesbaar. De markerkleuren van de missie-, Ommeland- en reiskaart komen uit dezelfde kleurentabel als de rest van de kaart. Nog niet bekeken: een dag-nacht-overgang op de kaart en de minimap vlak bij het spoor.
+- **Wegen die naast elkaar liggen overlappen niet meer (#268, in de wereldbouw gemeten, nog niet in beeld bekeken):** bij dubbele rijbanen en woonstraten naast een doorgaande weg lagen de wegvlakken over elkaar (135 plekken in de stad, flikkering bij het wegdek); de wegen worden nu in de bouw smaller gemaakt tot ze elkaar net raken (nog 10 plekken waar de kaart meer rijstroken tekent dan er ruimte is) en wegeinden die naast een andere weg ophielden zijn aan elkaar geknoopt (17 gaten naar 0).
+
 ## [0.38.0] - 2026-10-20
 
 ### Nieuw
