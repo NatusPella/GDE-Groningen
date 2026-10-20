@@ -6,6 +6,9 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Opgelost
+- **Hoogvlieger:** tijdens de rit hing de camera tussen de spaken en randen van het reuzenrad, waardoor dikke buizen en lampjes het hele beeld vulden; de camera hangt nu buiten het rad en kijkt vrij uit over de Grote Markt (#344).
+
 ## [0.38.0] - 2026-10-20
 
 ### Nieuw
