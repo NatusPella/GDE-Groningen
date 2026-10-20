@@ -417,6 +417,37 @@ const CHECKS = [
     w.vehicles.splice(w.vehicles.indexOf(v), 1);
     return { venster: [innerWidth, innerHeight], schaal: getComputedStyle(document.getElementById('hud') || document.body).zoom };
   } },
+  // winkelen (speeltestlus): per winkeltype naar de deur, E, het paneel lezen, het eerste item kopen en weglopen
+  { id: 'winkelen', issues: [170], run: async () => {
+    const S = await imp('shops');
+    const SU = await imp('shopui');
+    const byType = new Map();
+    for (const sh of S.getShopsForRender()) if (!sh.country && sh.type !== 'heli' && !byType.has(sh.type)) byType.set(sh.type, sh);
+    const out = [];
+    for (const [type, sh] of byType) {
+      w.money = 5000; w.wanted = 0;
+      await go(sh.x, sh.y, 0, 3500);
+      w.wanted = 0;
+      const prompt = S.shopPrimaryPrompt(w);
+      await tap('e', 'KeyE', 120);
+      await sleep(1500);
+      const open = SU.isShopOpen();
+      const panel = document.getElementById('shop-menu');
+      const items = panel ? [...panel.querySelectorAll('.sm-item')].map((e) => (e.textContent || '').replace(/s+/g, ' ').trim().slice(0, 60)) : [];
+      await snap('winkelen-' + type, 300);
+      const m0 = w.money;
+      let gekocht = null;
+      if (open && items.length) {
+        await tap('Enter', 'Enter', 120); await sleep(500);
+        await tap('Enter', 'Enter', 120); await sleep(1200);
+        gekocht = { uitgegeven: m0 - w.money };
+        await snap('winkelen-' + type + '-gekocht', 300);
+      }
+      await tap('Escape', 'Escape', 120); await sleep(600);
+      out.push({ type, naam: sh.name, prompt: prompt && prompt.label, open, items: items.length, eerste: items[0] || null, gekocht, dichtNaEsc: !SU.isShopOpen() });
+    }
+    return { winkels: out, opmerking: 'per type de eerste winkel; het eerste item is gekocht met €5000 op zak; niet beoordeeld: prijzen, voorraad, of het gekochte voertuig of kledingstuk er goed uitziet' };
+  } },
   { id: 'titel', issues: [34], run: async () => {
     const SS = await imp('startscreen');
     SS.runStartScreen(w, { render() {}, relocate() {}, tick() {} });
