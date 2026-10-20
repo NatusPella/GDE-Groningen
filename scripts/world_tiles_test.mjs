@@ -89,6 +89,7 @@ const attrSeen = {};
 const back = Object.fromEntries(P.KINDS.map(([k]) => [k, []]));
 const heights = new Map();
 const junctionsBack = new Map();
+const poiRows = [];
 for (const [key, e] of Object.entries(index.tiles)) {
   const raw = blobOf(e);
   if (G.hash64(raw) !== e.hash) hashBad++;
@@ -100,6 +101,7 @@ for (const [key, e] of Object.entries(index.tiles)) {
   for (const s of d.sections) {
     if (s.type === G.SECTION.RASTER) continue; // the AHN terrain (fetch_ahn.py), checked by terrain_test.mjs
     if (s.type === G.SECTION.NAV) continue;
+    if (s.type === G.SECTION.POIS) { poiRows.push(s.rows); continue; } // the places of the meta, joined back below (poisections.js)
     if (s.type === G.SECTION.JUNCTIONS) { for (const row of s.rows) junctionsBack.set(row.k, row); continue; }
     if (s.type === G.SECTION.HEIGHTS) {
       for (const row of s.rows) {
@@ -173,7 +175,8 @@ ok((attrSeen.year || 0) > 10000 && (attrSeen.bag || 0) > 10000, 'BAG year and id
 {
   const d = G.decodeBlob(gRaw);
   const meta = Object.assign({}, ...d.sections.filter((s) => s.type === G.SECTION.META).map((s) => s.json));
-  ok(canon(meta.meta) === canon(src.map.meta), 'meta round trip');
+  const { joinMeta } = await import('../game/js/poisections.js');
+  ok(canon(joinMeta(meta.meta, poiRows)) === canon(src.map.meta), 'meta round trip (the places joined back from their tiles)');
   ok(!d.sections.some((s) => s.type === G.SECTION.BLOB), 'the global blob holds no blobs');
 }
 // every object in every tile it touches (the bounds rule of the packer)

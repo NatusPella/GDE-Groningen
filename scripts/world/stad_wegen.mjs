@@ -390,7 +390,7 @@ export async function profileCity(d, wegen, { lagen, extras = {}, inside }) {
     // de ringwegen openen niet voor boten: de oude kaart kende op de ring alleen vaste bruggen (de ring race en de politie rijden er overheen),
     // de nieuwere OSM tagt een paar ervan bridge:movable terwijl het dek ruim 4 m boven de weg ligt
     for (const r of d.roads) if (r.movable && RING_TYPES.has(r.type)) { delete r.movable; rep.ringBridgesFixed = (rep.ringBridgesFixed || 0) + 1; }
-    d.meta.trafficLights = wegen.lights.filter((l) => inRect(l.x, l.y)).map((l) => ({ ...l }));
+    d.meta.trafficLights = wegen.lights.filter((l) => inRect(l.x, l.y) || inside(l.x, l.y)).map((l) => ({ ...l }));
     rep.roads = d.roads.length;
   }
   const elements = wegen.elements, geomEls = withGeometry(elements);
@@ -408,12 +408,12 @@ export async function profileCity(d, wegen, { lagen, extras = {}, inside }) {
     solveAll();
   }
   if (wantRails) {
-    const r = cityRail({ elements, roads: d.roads, bounds });
+    const r = cityRail({ elements, roads: d.roads, bounds, cover: inside });
     anchorStations(r.stations, d.meta.landmarks);
     Object.assign(d, { rails: r.rails, stations: r.stations, levelCrossings: r.levelCrossings, railRoutes: r.railRoutes, railLifts: r.railLifts });
     rep.rails = { rails: r.rails.length, stations: r.stations.length, levelCrossings: r.levelCrossings.length, routes: r.railRoutes.length, lifts: r.railLifts.length, cut: r.cut };
     rep.railTags = RP.matchRailTags(d.rails, geomEls);
-    d.railPlatforms = RP.platformsFrom(geomEls).filter((p) => { const q = p.pts[Math.floor(p.pts.length / 2)]; return inRect(q[0], q[1], 150); });
+    d.railPlatforms = RP.platformsFrom(geomEls).filter((p) => { const q = p.pts[Math.floor(p.pts.length / 2)]; return inRect(q[0], q[1], 150) || inside(q[0], q[1]); });
     rep.rail1 = solveRails(d, terrain);
     solveAll();
     rep.rail2 = solveRails(d, terrain);
