@@ -85,6 +85,12 @@ for (const q of CFG.plekken || []) {
     zet({ position: { x: q.x + 16, y: q.y - 8, z: gz + 3 }, lookAt: { x: q.x, y: q.y, z: gz + 1 } });
     await sleep(1500);
     await grab(`${tag}-straat`);
+    // q.rond: vier horizonbeelden op 4 m hoogte (noord, oost, zuid, west): ligt er ergens land of een muur waar water hoort te zijn
+    if (q.rond) for (const [naam, hx, hy] of [['n', 0, -1], ['o', 1, 0], ['z', 0, 1], ['w', -1, 0]]) {
+      zet({ position: { x: q.x, y: q.y, z: 4 }, lookAt: { x: q.x + hx * 600, y: q.y + hy * 600, z: 2 } });
+      await sleep(1800);
+      await grab(`${tag}-rond-${naam}`);
+    }
   } catch (err) { rep.fout = String(err && err.stack || err).slice(0, 300); }
 }
 for (const b of CFG.bruggen) {
