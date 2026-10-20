@@ -260,7 +260,7 @@ JELLE: Een notaris gaat boven een bisschop. Om drie uur schrijf ik mij in als de
 
 ## [M26.3] Ontzet, net als in 1672: bakken en de kraam heel – Stad, Grote Markt – te voet
 (regie: Gameplay: Tammo bakt de Groningse eierbal in drie rondes volgens Oma's recept: ei koken en pellen, zout, het grove meel, in het hete vet. Tessa serveert en houdt de kraam heel. In de kraam van Us Mem Snacks wordt een gladde, gouden Friese eierbal van fijn meel gebakken.)
-OMA TRIJNTJE (telefoon): Eerst het ei. Dan het zout. Dan het meel. Niet zeuren, jong. [NIEUW]
+OMA TRIJNTJE (telefoon): Eerst het ei. Dan het zout. Dan het meel. De mosterd zit al in het deeg. Niet zeuren, jong. [NIEUW]
 TAMMO: Grof meel. Dat knispert. [NIEUW]
 TESSA: Dat is onze korrel. Zijn bal is glad. De onze niet. [NIEUW]
 DURK: Douwe. De kraam. [NIEUW]

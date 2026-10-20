@@ -128,9 +128,9 @@ export const CHARACTERS = {
   mem: keep('mem', { step: 'M07', bio: 'Eenennegentig, uit Ljouwert. Appt Tessa stiekem en noemt haar famke. Wat ze wil, laat ze nog niet weten.' }),
   klaas: keep('klaas', { step: 'M11', bio: 'Oude schipper met een rubberboot en een skûtsje die even van niemand zijn.' }),
   dijkstra: keep('dijkstra', { step: 'M11' }),
-  geesje: { name: 'Geesje', card: 'Kosteres. Eieren zijn haar vak.', step: 'M09', bio: 'Vierentachtig, buurmeisje van Oma Trijntje (acht jaar jonger), kosteres in Warffum. Haar eieren zijn bijna heilig.', quote: 'Eieren breken alleen als je haast hebt.' },
+  geesje: { name: 'Geesje', card: 'Kosteres. Eieren zijn haar vak.', step: 'M09', bio: 'Vierentachtig, kosteres in Warffum, kent Oma Trijntje van de kerk. Haar eieren zijn bijna heilig.', quote: 'Eieren breken alleen als je haast hebt.' },
   lammert: { name: 'Lammert', card: 'Havenmeester. Zijn vader danste in 1953 met Oma.', step: 'M13', bio: 'Havenmeester in Eemshaven en Delfzijl, kort en ironisch.', quote: 'De kraan piept. De bewaker kijkt bij het tweede piepje omhoog.' },
-  roelfien: { name: 'Roelfien', card: 'Graanboerin. Vliegt laag.', step: 'M15', bio: 'Graanboerin en vlieger in het Oldambt, Oma\'s nicht. Vrolijk en praktisch.', quote: 'Vlieg laag, houd de molen rechts en trek pas op na de kermis.' },
+  roelfien: { name: 'Roelfien', card: 'Graanboerin. Vliegt laag.', step: 'M15', bio: 'Graanboerin en vlieger in het Oldambt, Oma\'s oudste klant. Vrolijk en praktisch.', quote: 'Vlieg laag, houd de molen rechts en trek de neus pas omhoog na de kermis.' },
   wubbo: { name: 'Wubbo', card: 'Brugwachter. Elf bruggen, één ritme.', step: 'M17', bio: 'Brugwachter in Veendam. Rustig, praktisch, en gek op de fanfare.', quote: 'Mis je de maat, dan wacht je.' },
   tinus: { name: 'Tinus', card: 'Trekkertrekker. De modder pakt eerst de auto.', step: 'T4', bio: 'Trekkertrekker en re-enactor uit het Westerkwartier. Joviaal, met een schuur en een trekker.', quote: 'De modder pakt eerst de auto. Dan pas je plannen.' },
 };
@@ -149,7 +149,7 @@ export const PARTS = {
     card: [['Tessa', 'Dat was akte 2. De Eemshaven is van Jelle, zegt hij.'], ['Tammo', 'Akte 3 volgt: aan de Eems.']] },
   staart: { title: 'Akte 3: Aan de Eems', name: 'Aan de Eems', date: '21 augustus', open: true, end: 'Akte 3 volgt', textOnly: true,
     recap: [
-      ['Noorderhaven', 'Eerder in GDE. Oma Trijntje bakt het recept van 1953 na, met vijf ingrediënten en vijf vrienden: vet, eieren, zout, bloem en mosterd.'],
+      ['Noorderhaven', 'Eerder in GDE. Oma Trijntje bakt het recept van 1953 na, met vijf ingrediënten en vijf vrienden: vet, eieren, zout, meel en mosterd.'],
       ['Hogeland', 'De eieren en het zout zijn gered. Jelle heeft de bal in een koffer, en Mem appt Tessa in het geheim.'],
       ['Eemshaven', 'Aan de Eems. Jelle vliegt met zijn koopboek in een ballon, en zijn voorraad vaart weg met een schip.'],
     ],
@@ -165,8 +165,8 @@ export const PARTS = {
   ontzet: { title: 'Akte 5: Ontzet', name: 'Ontzet', date: '26 augustus', open: true, end: 'Einde', finale: true, textOnly: true,
     recap: [
       ['Bourtange', 'Het Beleg. De bal ging naar de moeder van Jelle, en de Escapade naar Jelle.'],
-      ['Zuidhorn', 'De Escapade is terug en de bal is weg. de vrienden van Oma twijfelen.'],
-      ['Morgen', 'Het Ontzet. Jelle schrijft zich om drie uur bij de notaris in: wij moeten eerder zijn.'],
+      ['Zuidhorn', 'De Escapade is terug en de bal is weg. De vrienden van Oma twijfelen.'],
+      ['Overmorgen', 'Het Ontzet. Om drie uur laat Jelle zich bij de notaris inschrijven als nieuwe bewaarder: dan tekent hij zelf de uitslag.'],
     ],
     card: [
       ['Rikus', "Het ruikt naar suiker. Dat komt uit Hoogkerk. De zomer is nog lang niet op."],
@@ -179,11 +179,13 @@ export const PARTS = {
       ['Rikus', "Bij de Vismarkt staat een blauwe frietwagen op een rode Escapade. De rij loopt tot de Korenbeurs."],
       ['Rikus', "In Paddepoel, op de elfde verdieping, brandt 's avonds nog maar in één slaapkamer licht. Ik zeg niks."],
       ['Rikus', "Berend stuurde een brief: hij wil volgend jaar weer de bisschop zijn. Omdat hij zo goed kan verliezen."],
-      ['Rikus', "Jelle gaf zes plakjes terug, uit eigen beweging. De standplaatsen en de molen hield hij. Hij zei dat hij het \"gezellig\" vond."],
-      ['Rikus', "Oldenhuis Bakt sluit alle eenenveertig snackbars. Het was een dekmantel van Us Mem Snacks."],
-      ['Rikus', "Mevrouw Hoving stapt in Wildervank uit de trein. Met volpension."],
+      ['Rikus', "Jelle gaf bijna alles terug, helemaal vrijwillig. De standplaatsen en de molen hield hij. Hij zei dat hij het gezellig vond."],
+      ['Rikus', "Oldenhuis Bakt sluit alle eenenveertig snackbars. Het bleek een dekmantel van Us Mem Snacks. De echte eigenaar zat erachter."],
+      ['Rikus', "Mevrouw Hoving stapt na vier weken volpension in Wildervank uit de trein."],
       ['Rikus', "De Krolbrug staat nu open. Niemand weet waarom. Dat is verdacht."],
-      ['Rikus', "De politie sloot de zaak van de twee Stadjers in het zwart. Op de band staat vooral de pas van Jelle."],
+      ['Rikus', "De politie sloot de zaak van de twee Stadjers in het zwart. Op de camerabeelden is vooral Jelles toegangspas te zien."],
+      ['Rikus', "Sjabbe bracht een horloge terug naar de Vismarkt. Hij vroeg niets."],
+      ['Rikus', "Durk en Douwe werken nu voor Jelles moeder. Ze sturen een kaartje."],
       ['Rikus', "Het jurylid met het contract eet nog steeds gratis eierballen. In Ljouwert."],
       ['Rikus', "En ik heb de tweede friet. Hij heeft betaald, zegt hij. Hij heeft niet betaald."],
       ['Rikus', "Dit is voor twee Stadjers. Ze zeggen nooit wat. Vandaag wel. Moi."],
@@ -316,7 +318,7 @@ export const WHY = {
 
 // Clues of "Wat weten we?": a clue shows once its step is done.
 export const CLUES = [
-  { step: 'M01', kind: 'taal', title: 'De complimentenladder', text: 'Een Stadjer geeft geen complimenten, hij klimt een ladder. Zes treden: Ow, Goud, Valt mie nait of, Braid noar de zin, Kon minder en bovenaan niks meer. Berend zei "Goud": trede twee.' },
+  { step: 'M01', kind: 'taal', title: 'De complimentenladder', text: 'Een Stadjer geeft geen complimenten, hij klimt een ladder. Zes treden: Goidag, Goud, Valt mie nait of, Braid noar de zin, Kon minder en bovenaan niks meer. Berend zei "Goud": trede twee.' },
   { step: 'M01', kind: 'clue', title: 'Een Fries met een klomp', text: 'Berend: een Fries in een blauw colbert wilde zijn bakkie kopen. Contant, uit een klomp. In augustus.' },
   { step: 'M01', kind: 'clue', title: 'JelleWâld', text: 'In de chat typte JelleWâld: "dat famke yn it read: sa\'n leaf gesicht" (dat meisje in het rood, zo\'n lief gezicht). Tammo vond het niet leuk.' },
   { step: 'M02', kind: 'clue', title: 'De reuzen en de klomp', text: 'Sjabbe: de reuzen werken voor Jelle Terpstra, de Fries in het blauwe colbert. Hij betaalt alles contant uit een klomp, en een klomp is snel leeg: daarom halen ze pinautomaten uit de muur. Hij vroeg ook waar het museum alarmen heeft.' },
@@ -336,10 +338,10 @@ export const CLUES = [
   { step: 'M10', kind: 'clue', title: 'De bal is echt', text: 'Jelle draagt de Gouden Eierbal in een gouden koffer: "mijn juristen willen dat ik hem bij me draag". Hij chanteert met de museumbeelden van zijn bewaker: verlaat Grunn en de Snackprijs, dan verdwijnen ze.' },
   { step: 'M10', kind: 'hart', title: 'Mem wil niks', text: 'Mem is eenennegentig, zeventig jaar tweede. Jelle: "Mem wil niks. Daarom doe ik het." Tessa: "Hij is niet dom. Hij wil dat we hem onderschatten."' },
   { step: 'M11', kind: 'clue', title: 'Een oefenbal', text: 'In de kist op het skûtsje lag een chocoladebal met het kaartje "Foar mem". Jelle oefent hoe hij hem aan zijn moeder geeft. De echte is bij hem.' },
-  { step: 'M11', kind: 'clue', title: 'Lammerts haven', text: 'Klaas: de Eemshaven is Lammerts haven, die in 1953 met Oma danste. Jelle zegt dat de haven van hem is: plakje vijf. Dokter Dijkstra heeft een heli klaarstaan.' },
+  { step: 'M11', kind: 'clue', title: 'Lammerts haven', text: 'Klaas: de Eemshaven is Lammerts haven, die in 1953 met Oma danste. Jelle zegt dat de haven van hem is. Dokter Dijkstra heeft een heli klaarstaan.' },
   { step: 'M11', kind: 'hart', title: 'De lange blik', text: 'Op de zandplaat, onder de sterren, keken ze elkaar te lang aan. Toen trilde haar telefoon. "Niks. Iemand uit Friesland." Tammo keek weg.' },
   // Akte 4
-  { step: 'M17', kind: 'clue', title: 'Plakje zeven', text: 'De grove mosterd is gered: het mosterdschip liep vast voor brug elf. Jelle kocht de fanfare weg, maar Wubbo floot.' },
+  { step: 'M17', kind: 'clue', title: 'De grove mosterd', text: 'De grove mosterd is gered: het mosterdschip liep vast voor brug elf. Jelle kocht de fanfare weg, maar Wubbo floot.' },
   { step: 'M17', kind: 'clue', title: 'Middernacht', text: 'Wubbo: een webbureau in Veendam werkt alles om middernacht bij. Ook de bruggen. Tammo: net als de museumcamera\'s.' },
   { step: 'M17', kind: 'hart', title: 'Over zaterdag', text: 'Tammo: "Over zaterdag." Tessa: "Welke zaterdag?" Geen van beiden zei er verder iets over.' },
   { step: 'M18', kind: 'clue', title: 'Twaalf augustus', text: 'In het logboek van Wiebelwerk: op 12 augustus stond de update op elf minuten, aangevraagd door Us Mem Snacks. Zijdeur om 00:03, pas van bewaker twee, gasten D en D.' },
@@ -355,6 +357,6 @@ export const CLUES = [
   { step: 'M22', kind: 'hart', title: 'Zeven plekken', text: 'Tessa woonde op zeven plekken voor haar tiende, en elke zomer in Ljouwert naast Mem. "Ik ging niet weg. Ik ben gebleven." Tammo beloofde het op het Ontzet te zeggen. Voor iedereen.' },
   { step: 'M22', kind: 'clue', title: 'Het horloge van opa', text: 'Tammo verpandde het horloge van zijn opa bij Sjabbe, voor het luik. Een thuis, zei hij.' },
   { step: 'M23', kind: 'clue', title: 'Jelles bruggenvergunningen', text: 'Jelle gaf elke brug op de route een evenementenvergunning om de colonne te splitsen. Wubbo opende ze met zijn eigen sleutel. De colonne is een evenement zonder vergunning: Jelle stuurt een rekening.' },
-  { step: 'M25', kind: 'clue', title: 'Plakje acht: de notaris', text: 'Morgen om drie uur schrijft Jelle zich in bij de notaris in de Oude Boteringestraat, met de bal. Dan is de wedstrijd nietig. Wie eerst is, heeft het.' },
+  { step: 'M25', kind: 'clue', title: 'De notaris', text: 'Morgen om drie uur laat Jelle zich bij de notaris in de Oude Boteringestraat inschrijven als nieuwe bewaarder, met de bal. Dan tekent hij zelf de uitslag. Wij houden hem tegen.' },
   { step: 'M26', kind: 'hart', title: 'Vijf woorden', text: '"Ik wil bij jou blijven." "Dat bedoelde ik ook." Het duurde twaalf jaar. Kon minder.' },
 ];

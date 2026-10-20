@@ -93,7 +93,7 @@ Dit zijn de feiten die elke scène moet delen. Wijkt een regel af, dan gaat het 
 | Feit | Waarde |
 |---|---|
 | Tammo | 34 jaar (*Ik ben vierendertig, oma*). Woont op de Escapade. |
-| Tessa en Tammo | kennen elkaar twaalf jaar. De treinreis naar Delfzijl was een jeugdherinnering, twintig jaar geleden. Ze wonen sinds 14 augustus samen (Paddepoel, Pleiadenlaan). |
+| Tessa en Tammo | kennen elkaar al twintig jaar, sinds de treinreis naar Delfzijl als kinderen. Tammo is er twaalf jaar verliefd op en zweeg twaalf jaar (M26.7). Ze wonen sinds 14 augustus samen (Paddepoel, Pleiadenlaan). |
 | Oma Trijntje | 92. Won de Snackprijs in 1953. |
 | Mem (Gerda Terpstra) | 91. Werd in 1953 tweede, tegen Trijntje. Moeder van Jelle. "Zeventig jaar" is een afronding. |
 | Geesje | kosteres in Warffum, 84. Geen schoolvriendin van Trijntje: ze kent haar van de kerk. |
@@ -101,6 +101,8 @@ Dit zijn de feiten die elke scène moet delen. Wijkt een regel af, dan gaat het 
 | Kalender | vrijdag 14 augustus (begin) tot vrijdag 28 augustus (Gronings Ontzet, Snackprijs). Epiloog vrijdag 11 september. |
 | Jelle en de bal | Jelle had de Gouden Eierbal al op 12 augustus (logboek M18). Tammo en Tessa kraken op 17 augustus een leeg museum. |
 | De jury | vijf juryleden. Drie van de vijf beslist. Het oudste jurylid (Berend) zit voor als Hoving er niet is. |
+| De bewaarder | Mevrouw Hoving bewaart de Gouden Eierbal sinds 1998. Wie de bal bewaart, zit de jury voor en tekent de uitslag. Is de bewaarder verhinderd, dan zit het oudste jurylid voor: Berend Bos, jurylid sinds 1982. Jelle wil zich op 28 augustus om drie uur bij de notaris laten inschrijven als nieuwe bewaarder, dan tekent hij zelf de uitslag. Zeg het zo, zonder artikelnummers en zonder het woord nietig. |
+| Juryleden | Vijf: Berend en vier anderen. Twee liepen weg bij de kermis, één stapte uit de trein, één heeft een contract met Jelle (en blijft zo). Alleen dat ene jurylid stemt in de finale op Us Mem Snacks met het woord contract. |
 | Plaatsen | Veendam ligt aan het Oosterdiep. De Dollard is een inham. Het Lauwersmeer heeft geen getij; de wind duwt het water. De Eemshaven heeft geen containerterminal. |
 
 ## 6. Voor je klaar bent

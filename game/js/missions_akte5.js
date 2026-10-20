@@ -32,7 +32,7 @@ export function buildAkte5Defs({ map, walk, drive }) {
       mid: 'luik',
       type: 'stages',
       label: 'Een luik erin',
-      intro: ['Tinus\' schuur bij Zuidhorn. Henk heeft een luik en een koekje. Eén.', 'Bouw een luik in de Escapade, bewijs in de modder dat de as het houdt en laat Tinus hem eruit trekken.'],
+      intro: ['Tinus\' schuur bij Zuidhorn. Henk heeft een luik en een koekje. Eén.', 'Doel: bouw een luik in de Escapade. Rij hem de modder in om te laten zien dat de achteras het houdt. Tinus trekt hem er daarna uit.'],
       outro: 'De Escapade is de Fjord Frituur. Er is een wagen, nog geen bal.',
       timeLimit: null,
       reward: 300,
@@ -55,7 +55,7 @@ export function buildAkte5Defs({ map, walk, drive }) {
         { kind: 'board', label: 'Stap in de Escapade', say: 'Instappen. Tinus wijst naar het weiland: de modder wacht.' },
         {
           kind: 'goto', target: { at: SLALOM[0], snap: 'drive', label: 'Eerste bocht' }, mode: 'vehicle', radius: 20, stop: 0, mud: true,
-          label: 'Rijproef: slalom door de modder, eerst links', say: 'Gas, sturen, niet vastlopen. Henk wil zien dat de as het houdt.',
+          label: 'Rijproef: slalom door de modder, eerst links', say: 'Gas, sturen, niet vastlopen. Henk wil zien dat de achteras het houdt.',
         },
         {
           kind: 'goto', target: { at: SLALOM[1], snap: 'drive', label: 'Tweede bocht' }, mode: 'vehicle', radius: 20, stop: 0, mud: true,
@@ -63,7 +63,7 @@ export function buildAkte5Defs({ map, walk, drive }) {
         },
         {
           kind: 'goto', target: { at: MODDER, snap: 'drive', label: 'De modder' }, mode: 'vehicle', radius: 24, stop: 0,
-          label: 'Rij de Escapade de modder in: laat zien dat de as het houdt', say: 'Rij hem de modder in. Als de as het houdt, houdt hij het ook op de Grote Markt.',
+          label: 'Rij de Escapade de modder in: laat zien dat de achteras het houdt', say: 'Rij hem de modder in. Als de achteras het houdt, houdt hij het ook op de Grote Markt.',
           talk: { ids: ['M22.3'], from: 0, to: 4, delay: 1.5 }, mud: true,
         },
         {
@@ -83,7 +83,7 @@ export function buildAkte5Defs({ map, walk, drive }) {
       mid: 'colonne',
       type: 'stages',
       label: 'De colonne',
-      intro: ['Alle vrienden van Oma staan klaar bij Tinus\' schuur: een scooter, een bus, een trekker, een bakkie en een sloep op een aanhanger.', 'Rijd voorop naar de Grote Markt en houd de colonne bij elkaar. Jelle probeert ons te splitsen.'],
+      intro: ['Alle vrienden van Oma staan klaar bij Tinus\' schuur: een scooter, een bus, een trekker, een bakkie en een rubberboot op een aanhanger.', 'Doel: rijd voorop naar de Grote Markt en houd de colonne (de rij voertuigen) bij elkaar. Jelle probeert de colonne te splitsen.'],
       outro: 'De colonne staat op de Grote Markt. Allemaal.',
       timeLimit: null,
       reward: 500,
@@ -125,7 +125,7 @@ export function buildAkte5Defs({ map, walk, drive }) {
         },
         {
           kind: 'convoy', carHint: 'Stap weer in de Fjord Frituur: de colonne volgt de wagen.', target: { at: HOOGKERK, snap: 'drive', label: 'Hoogkerk' }, radius: 45, mode: 'vehicle',
-          label: 'Rij met de colonne naar Hoogkerk: Wubbo draait de brug open', say: 'Wubbo staat bij de brug en draait hem voor de colonne open. Niet te hard, de sloep moet er ook onderdoor.', lost: 'de colonne is uiteengevallen',
+          label: 'Rij met de colonne naar Hoogkerk: Wubbo draait de brug open', say: 'Wubbo staat bij de brug en draait hem voor de colonne open. Niet te hard, de aanhanger met de rubberboot moet er ook onderdoor.', lost: 'de colonne is uiteengevallen',
         },
         {
           kind: 'convoy', carHint: 'Stap weer in de Fjord Frituur: de colonne volgt de wagen.', target: { landmark: 'Grote Markt', off: [20, -5], snap: 'drive' }, radius: 30, mode: 'vehicle',
@@ -155,7 +155,7 @@ export function applyAkte5(list) {
     // the pigeon's twist: the last rope is pulled on the wind (three gusts), so the flag lands beside the stall and not on it
     const wind = {
       kind: 'timing', kicker: 'De laatste touwen', help: 'pik op de windvlaag', goodAt: 2, tagGood: 'vlag-top', tagLow: 'vlag-raak',
-      label: 'Pik de laatste touwen door op de windvlaag', say: 'De vlag hangt aan drie touwen. Pik door als de wind meewerkt: de streep in het groen.',
+      label: 'Pik de laatste touwen door op de windvlaag', say: 'De vlag hangt nog aan drie touwen. Pik door als de wind meewerkt: de streep in het groene vak.',
       rounds: [
         { text: 'Een windvlaag uit het westen.', speed: 0.8, zone: [0.36, 0.64], ok: 'Het touw geeft mee.', bad: 'De duif slipt langs het touw.' },
         { text: 'De vlag draait naar de kraam toe.', speed: 1.0, zone: [0.4, 0.6], ok: 'De vlag draait weg van de kraam.', bad: 'De vlag zwiept richting de kraam.' },
@@ -231,14 +231,14 @@ export function applyAkte5(list) {
     ontzet.stages = [
       {
         kind: 'bake', recipe: 'contest', rounds: 3, farHint: 'Terug naar de kraam. De eierballen wachten niet.', target: stalls, radius: 40, mode: 'foot',
-        label: 'Bak de Groningse eierbal: drie rondes volgens Oma\'s recept', say: 'Oma\'s volgorde: ei, zout, grof meel, vet. Toetsen 1 tot en met 4. Pas op voor de fijne bloem: die is Fries.',
+        label: 'Bak de Groningse eierbal: drie rondes volgens Oma\'s recept', say: 'Oma\'s volgorde: ei, zout, grof meel, vet. Toetsen 1 tot en met 4. Gebruik alleen het grove meel: het fijne meel is Fries.',
         talk: { ids: ['M26.3'], from: 0, to: 5, delay: 3 },
       },
       fire,
       { kind: 'board', label: 'Stap in de Fjord Frituur', say: 'Kwart voor drie. Instappen: de limo rijdt naar de notaris.' },
       {
         kind: 'timing', kicker: 'Berts duiven', help: 'fluit op de maat', goodAt: 2, tagGood: 'duiven-top', tagLow: 'duiven-los',
-        label: 'Fluit Berts duiven op, voor de limo uit', say: 'Tammo fluit, Bert stuurt de duiven. Fluit op de maat: de streep in het groen.',
+        label: 'Fluit Berts duiven op, voor de limo uit', say: 'Tammo fluit, Bert stuurt de duiven. Fluit op de maat: de streep in het groene vak.',
         rounds: [
           { text: 'Eerste fluit: de duiven stijgen op van het dak.', speed: 0.9, zone: [0.38, 0.62], ok: 'De duiven komen als één wolk.', bad: 'Twee duiven nemen een omweg.' },
           { text: 'Tweede fluit: richting de Oude Boteringestraat.', speed: 1.1, zone: [0.41, 0.59], ok: 'De wolk draait de straat in.', bad: 'De duiven gaan een kerktoren in.' },
@@ -248,7 +248,7 @@ export function applyAkte5(list) {
       {
         // the column of M23 comes back: the bus and the tractor close the streets, the scooter takes the alleys; the ally you chose sits the surest
         kind: 'timing', kicker: 'De colonne sluit de straten', help: 'sluit op de maat', goodAt: 2, tagGood: 'straten-dicht', tagLow: 'straten-open',
-        label: 'Laat de colonne de straten afsluiten voor Jelles limo', say: 'Wubbo, Tinus en Geesje sluiten de straten. Druk als de streep in het groen is.',
+        label: 'Laat de colonne de straten afsluiten voor Jelles limo', say: 'Wubbo, Tinus en Geesje sluiten de straten. Druk als de streep in het groene vak staat.',
         rounds: [
           { text: 'Wubbo zet de bus dwars in de Herestraat.', speed: 0.9, zone: [0.4, 0.6], zoneIf: 'bond-bus', ok: 'De bus staat dwars, deuren open, Wubbo zwaait.', okIf: 'De bus staat dwars. Wubbo weet precies hoe breed hij is.', bad: 'De bus staat half. De limo glipt langs de zijspiegel.' },
           { text: 'Tinus trekt zijn trekker voor de Gedempte Zuiderdiep.', speed: 1.05, zone: [0.42, 0.58], zoneIf: 'bond-trekker', ok: 'De trekker staat. Er past geen limo meer langs.', okIf: 'De trekker staat als een muur. Tinus: "Ik trek hem weg."', bad: 'De trekker slaat af in plaats van aan. De limo wrijft langs de band.' },
@@ -275,7 +275,7 @@ export function applyAkte5(list) {
         rounds: [
           { who: 'Berend', text: 'Wat maakt deze eierbal Gronings? Eén zin, en nog niet zeuren.', options: [
             { label: 'De korrel van het grove meel.', reply: 'Berend knikt langzaam. Hij schrijft niks op, dat is een goed teken.' },
-            { label: 'De fijne bloem, heel glad.', ok: false, tag: 'fout1', reply: 'Berend: "Dat is Fries." Tessa schuift de bloem snel weg.' },
+            { label: 'Het fijne meel, heel glad.', ok: false, tag: 'fout1', reply: 'Berend: "Dat is Fries." Tessa schuift het meel snel weg.' },
             { label: 'Wij hebben een luik.', ok: false, tag: 'fout1', reply: 'Berend: "Een luik is geen smaak." Henk, achterin, knikt toch.' },
           ] },
           { who: 'Berend', text: 'En waarom moet de standplaats naar jullie?', options: [

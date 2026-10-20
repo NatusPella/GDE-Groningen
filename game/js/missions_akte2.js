@@ -20,8 +20,8 @@ function kustDef() {
   return {
     type: 'stages',
     label: 'Geleend van de Friezen',
-    intro: ['Klaas leent jullie een snelle rubberboot. Jelles skûtsje vaart het Reitdiep af, met een gouden bal in de kist.', 'Haal het skûtsje in en spring aan boord. Daarna het zout van Oma: drie kuipen van de kwelder bij Noordpolderzijl, uit het licht van de kustwacht, terug voor het water komt.'],
-    outro: 'Het zout is van Oma. Plakje vier is gered.',
+    intro: ['Klaas leent jullie een snelle rubberboot. Jelles skûtsje (een groot Fries zeilschip) vaart het Reitdiep af, met een gouden bal in de kist.', 'Haal het skûtsje in en spring aan boord. Haal daarna drie emmers zout van de kwelder bij Noordpolderzijl. Blijf uit het licht van de kustwacht en ga terug voordat het water komt.'],
+    outro: 'Het zout is van Oma.',
     timeLimit: null,
     timeUp: 'het water kwam terug. Jullie zitten vast op het wad',
     reward: 1300,
@@ -61,8 +61,8 @@ export function buildAkte2Defs({ models = {} } = {}) {
       // church cellar in Usquert. Jelle shuts the road, so the wierdepaden it is: speed breaks eggs there (eggs.rough).
       type: 'stages',
       label: 'Heel aankomen is ook een kunst',
-      intro: ['Jelle Terpstra kocht alle eieren van het Hogeland, behalve die van Geesje. Oma\'s recept van 1953 heeft er zestig nodig.', 'Breng Geesjes laatste zes kratten, zestig eieren, heel naar de kerkkelder in Usquert. Rustig rijden: Oma\'s recept heeft er zestig nodig.'],
-      outro: 'Zestig eieren, alle heel. Plakje drie is gered.',
+      intro: ['Jelle Terpstra kocht alle eieren van het Hogeland, behalve die van Geesje. Oma\'s recept van 1953 heeft er zestig nodig.', 'Breng Geesjes laatste zes kratten, zestig eieren, heel naar de kerkkelder in Usquert. Rij rustig: elk ei telt.'],
+      outro: 'Zestig eieren, alle heel.',
       timeLimit: null,
       reward: 700,
       costRow: ['Gered', 'Plakje drie: de eieren van Geesje'],
@@ -88,7 +88,7 @@ export function buildAkte2Defs({ models = {} } = {}) {
       // flee on the quad over wierdepaden, Jelle jumps a ditch near Uithuizen with a pole and ends in it.
       type: 'stages',
       label: 'Een trekker-limo op de wierde',
-      intro: ['Jelle rijdt het erf op in zijn zwarte trekker-limo, met de gouden koffer in zijn hand. Hij wil de museumbeelden ruilen tegen jullie vertrek uit Grunn.', 'Als Jelle de koffer loslaat, pakken wij hem: schud de limo af en haal de sloot bij Uithuizen.'],
+      intro: ['Jelle rijdt het erf op in zijn zwarte trekker-limo, met de gouden koffer in zijn hand. Hij wil de camerabeelden van het museum ruilen tegen jullie vertrek uit Grunn.', 'Doel: schud de limo af en rijd als eerste naar de sloot bij Uithuizen.'],
       outro: 'Jelle ligt in de sloot, de koffer droog. De bal is echt.',
       timeLimit: null,
       reward: 900,
@@ -106,7 +106,7 @@ export function buildAkte2Defs({ models = {} } = {}) {
         {
           // the ditch (OSM waterway=ditch) west of Uithuizen, on the road Bovenhuizen (53.40844 N 6.65982 E)
           kind: 'goto', target: { at: [5960.4, -21132.8], snap: 'drive', label: 'De sloot bij Uithuizen' }, mode: 'vehicle', radius: 30,
-          label: 'Schud de limo af en haal de sloot bij Uithuizen', say: 'Over het kerkenpad, door de kerktuin, langs de wierdepaden. De limo kan niet overal heen.', talk: { ids: ['M10.2'], delay: 2 },
+          label: 'Schud de limo af en rijd als eerste naar de sloot bij Uithuizen', say: 'Over het kerkenpad, door de kerktuin, langs de wierdepaden. De limo kan niet overal heen.', talk: { ids: ['M10.2'], delay: 2 },
           pursuer: { model: { name: 'trekkerlimo', len: 5.6, wid: 2.0, maxSpeed: 40, accel: 7, brake: 14, turnRate: 2.1, color: '#1b1c1f' }, name: 'Trekker-limo van Jelle', behind: 40, cruise: 15, caught: 7, caughtFor: 3, shake: 170, close: 24, fail: 'de limo haalt je in. Jelle houdt de koffer zelf wel vast', closeText: 'De trekker-limo zit op je bumper!', lostText: 'De limo raakt je kwijt, achter een wierde.' },
         },
         { kind: 'vault', label: 'Jelle', target: { bank: [5960.4, -21132.8] }, script: { ids: ['M10.3'], from: 0, to: 4 }, landing: 'Oant sjen!', fail: true },
