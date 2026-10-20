@@ -53,6 +53,31 @@ function nearLine(P, x, y, r) {
   return false;
 }
 
+// The level a canopy stands on: platform roofs over a track on an embankment or a viaduct (Groningen Noord: the rails run 5.6 m
+// up) sit on the track's level, not on the street under it, where they hung at the height of a first floor (#323). A roof by
+// the street gets 0. The rail's z at the nearest point within RAIL_REACH of the footprint's vertices and middle.
+const RAIL_REACH = 8;
+// (the city's pinned tiles have no rail grid: all its rails are looked at, there are a couple of hundred)
+const railsAround = (map, x, y) => { const g = map.railNear ? map.railNear(x, y, RAIL_REACH) : []; return g.length ? g : map.rails || []; };
+export function canopyBase(map, pts) {
+  let cx = 0, cy = 0;
+  for (const p of pts) { cx += p[0]; cy += p[1]; }
+  const probes = [[cx / pts.length, cy / pts.length], ...pts];
+  let base = 0;
+  for (const [x, y] of probes) {
+    for (const r of railsAround(map, x, y)) {
+      if (!r.z || !r.pts || r.pts.length < 2) continue;
+      for (let i = 0; i < r.pts.length - 1; i++) {
+        const q = closestPointOnSegment(x, y, r.pts[i][0], r.pts[i][1], r.pts[i + 1][0], r.pts[i + 1][1]);
+        if (q.dist2 > RAIL_REACH * RAIL_REACH) continue;
+        const z = r.z[i] + (r.z[i + 1] - r.z[i]) * (q.t ?? 0);
+        if (z > base) base = z;
+      }
+    }
+  }
+  return base > 0.6 ? base : 0;
+}
+
 function postInTheWay(map, x, y) {
   for (const r of map.roadsNear(x, y, 10)) {
     if (r.cat !== 'foot' && r.cat !== 'cycle' && nearLine(r.pts, x, y, (r.width || 5) / 2 + 0.4)) return true;
@@ -90,7 +115,8 @@ function canopyGroup(map, list, props) {
     // shape (x, y) + extrude z -> rotateX(90deg) -> (x, -z, y): map y lands on three z
     const geo = new THREE.ExtrudeGeometry(shape, { depth: SLAB, bevelEnabled: false });
     geo.rotateX(Math.PI / 2);
-    geo.translate(0, CANOPY_Y + SLAB, 0);
+    const base = canopyBase(map, pts);
+    geo.translate(0, base + CANOPY_Y + SLAB, 0);
     const big = ringArea2(pts) > BIG_CANOPY;
     const slab = new THREE.Mesh(geo, big ? solarMaterial() : slabMat);
     slab.castShadow = true;
@@ -101,7 +127,7 @@ function canopyGroup(map, list, props) {
       let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
       for (const [x, y] of pts) { x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y); }
       for (let y = y0 + GRID_POST; y < y1 && gridPosts.length < 6000; y += GRID_POST) for (let x = x0 + GRID_POST; x < x1; x += GRID_POST) {
-        if (pointInPolygon(x, y, pts) && !postInTheWay(map, x, y)) gridPosts.push([x, y]);
+        if (pointInPolygon(x, y, pts) && !postInTheWay(map, x, y)) gridPosts.push([x, y, base]);
       }
     }
     for (let i = 0; i < pts.length; i++) {
@@ -111,7 +137,7 @@ function canopyGroup(map, list, props) {
       for (let k = 0; k < n; k++) {
         const t = k / n;
         const px = ax + (bx - ax) * t, py = ay + (by - ay) * t;
-        if (!postInTheWay(map, px, py)) posts.push([px, py]);
+        if (!postInTheWay(map, px, py)) posts.push([px, py, base]);
       }
     }
   }
@@ -120,7 +146,7 @@ function canopyGroup(map, list, props) {
     geo.translate(0, CANOPY_Y / 2, 0);
     const inst = new THREE.InstancedMesh(geo, postMat, gridPosts.length);
     const m = new THREE.Matrix4();
-    gridPosts.forEach(([x, y], i) => { m.makeTranslation(x, 0, y); inst.setMatrixAt(i, m); });
+    gridPosts.forEach(([x, y, b], i) => { m.makeTranslation(x, b, y); inst.setMatrixAt(i, m); });
     inst.castShadow = true;
     group.add(inst);
   }
@@ -129,7 +155,8 @@ function canopyGroup(map, list, props) {
     geo.translate(0, CANOPY_Y / 2, 0);
     const inst = new THREE.InstancedMesh(geo, postMat, posts.length);
     const m = new THREE.Matrix4();
-    posts.forEach(([x, y], i) => { m.makeTranslation(x, 0, y); inst.setMatrixAt(i, m); solid('post', x, y, POST_W * 0.7); });
+    // (the posts of a roof up on an embankment carry no collider: it would stand in the street below)
+    posts.forEach(([x, y, b], i) => { m.makeTranslation(x, b, y); inst.setMatrixAt(i, m); if (b < 0.6) solid('post', x, y, POST_W * 0.7); });
     inst.castShadow = true;
     group.add(inst);
   }
