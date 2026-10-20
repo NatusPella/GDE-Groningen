@@ -24,8 +24,8 @@ if (!STAGE || !fs.existsSync(path.join(STAGE, 'index.html'))) { console.error('-
 const SUITE = arg('suite', 'basis');
 const DURATION = Number(arg('duration', 20));
 const MENU = flag('menu') || SUITE !== 'basis';
-const GASTEN = Math.max(1, Math.min(2, Number(arg('gasten', SUITE === 'verhaal' ? 2 : 1)) || 1));
-const MOCK = Math.max(0, Number(arg('mock', SUITE === 'net' ? (GASTEN > 1 ? 1 : 2) : 0)) || 0); // vier spelers: host + Electron-gasten + headless gasten
+const GASTEN = Math.max(0, Math.min(2, Number(arg('gasten', SUITE === 'verhaal' ? 2 : 1))));  // 0: alleen de host in Electron en headless gasten (mock) erbij
+const MOCK = Math.max(0, Number(arg('mock', SUITE === 'net' ? (GASTEN > 1 ? 1 : 2) : GASTEN === 0 ? 1 : 0)) || 0); // vier spelers: host + Electron-gasten + headless gasten
 const SECOND = GASTEN > 1 ? 'gast2' : 'gast'; // wie in de suite 'net' een slecht netwerk krijgt en later vertrekt
 const ROUTE = arg('route', SUITE === 'kamer' ? 'kamer' : 'direct');
 const OUT = path.resolve(arg('out', path.join(os.tmpdir(), 'gde-coop', new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19))));
@@ -143,14 +143,23 @@ const mocks = [];
 let mockLate = null;
 if (code && MOCK && ROUTE === 'direct') {
   const { startMockGuest } = await import('./mockclient.mjs');
-  await waitFor(host.events, 'verbonden', 240000);
+  if (GASTEN > 0) await waitFor(host.events, 'verbonden', 240000);
   if (guest) await waitFor(guest.events, 'verbonden', 240000);
   if (guest2) await waitFor(guest2.events, 'verbonden', 240000);
   const spin = (i) => (t) => ({ mx: Math.cos(t / 3 + i), my: Math.sin(t / 3 + i), run: false, yaw: 0 });
+  // een headless gast die achter Tammo aanloopt (camerahoek 0: wereld-x = -my, wereld-y = mx), zoals een speler die meespeelt
+  const volg = (m) => () => {
+    const w = m.session.world(); if (!w) return { mx: 0, my: 0, run: false, yaw: 0 };
+    const tam = w.players.find((p) => p.slot === 0), ik = w.players.find((p) => p.slot === m.session.slot);
+    if (!tam || !ik) return { mx: 0, my: 0, run: false, yaw: 0 };
+    const dx = tam.x - ik.x, dy = tam.y - ik.y, d = Math.hypot(dx, dy);
+    if (d < 4 || d > 800) return { mx: 0, my: 0, run: false, yaw: 0 };
+    return { mx: dy / d, my: -dx / d, run: d > 14, yaw: 0 };
+  };
   for (let i = 0; i < MOCK; i++) {
     try {
       const m = await startMockGuest({ stage: STAGE, code: guestCode, wens: undefined, net: SUITE === 'net' ? { latency: 0.08, jitter: 0.03, loss: 0.05 } : {}, seed: 7 + i });
-      m.input = spin(i); mocks.push(m); console.log('mockgast', i + 1, 'verbonden');
+      m.input = SUITE === 'verhaal' ? volg(m) : spin(i); mocks.push(m); console.log('mockgast', i + 1, 'verbonden');
     } catch (e) { problems.push('mockgast: ' + e.message); }
   }
 }
@@ -185,6 +194,40 @@ const last = (a) => a[a.length - 1] || {};
 const check = (c, msg) => { if (!c) problems.push(msg); };
 const note = (msg) => notes.push(msg);
 const E = { host: H, gast: G, gast2: G2 };
+if (GASTEN === 0) { // alleen de host in Electron: wat de headless gasten en de host zelf zagen
+  check(res[0].result === 'KLAAR', `host: ${res[0].result} ${res[0].reason || ''}`);
+  for (const [f, v] of Object.entries(res[0].fasen || {})) check(v === 'ok', `host: fase ${f} ${v}`);
+  const hs0 = of(H, 'sample');
+  check(hs0.length >= 10, `host: genoeg samples (${hs0.length})`);
+  check(!hs0.some((x) => x.desync), 'host: desync gemeld');
+  for (const e of H.filter((x) => x.type === 'console' && x.level === 'error')) problems.push(`host consolefout: ${String(e.msg).slice(0, 160)}`);
+  for (const e of H.filter((x) => x.type === 'jserror')) problems.push(`host jserror: ${e.msg} ${e.file}:${e.line}`);
+  for (const [i, m] of mocks.entries()) {
+    const kinds = {}; const labels = new Set();
+    for (const [, b] of m.log.events) { kinds[b.k] = (kinds[b.k] || 0) + 1; if (b.k === 'missie' && b.actief) labels.add(b.label + ' | ' + (b.stap || '')); }
+    const dist = m.log.samples.map((q) => { const t0 = q.players.find((p) => p.slot === 0), i0 = q.players.find((p) => p.slot === m.session.slot); return t0 && i0 ? Math.hypot(t0.x - i0.x, t0.y - i0.y) : null; }).filter((x) => x != null).sort((a, b) => a - b);
+    const med = dist.length ? dist[Math.floor(dist.length / 2)] : null;
+    note(`mockgast ${i + 1}: ${m.log.samples.length} samples, berichten ${JSON.stringify(kinds)}, ${labels.size} opdracht/stap-meldingen, afstand tot Tammo mediaan ${med == null ? '?' : med.toFixed(1)} m, statussen ${[...new Set(m.log.status.map((q) => q[1]))].join('/')}, hersyncs ${m.log.resync}`);
+    check(m.log.samples.length >= 20, `mockgast ${i + 1}: te weinig samples`);
+    check(kinds.klok && kinds.hash, `mockgast ${i + 1}: geen klok- en hashberichten`);
+    if (SUITE === 'verhaal') {
+      check(labels.size >= 3, `mockgast ${i + 1}: te weinig opdrachtmeldingen van de host (${labels.size})`);
+      check(med != null && med < 30, `mockgast ${i + 1}: loopt niet mee met Tammo (mediaan ${med == null ? '?' : med.toFixed(0)} m)`);
+    }
+    if (SUITE === 'verhaal' && m.log.resync > 3) note(`mockgast ${i + 1} vroeg ${m.log.resync} hersyncs`);
+  }
+  if (SUITE === 'verhaal') {
+    const steps0 = of(H, 'step').filter((e) => e.event === 'begin').map((e) => e.id);
+    note('verhaalstappen van de host: ' + steps0.join(' → '));
+    check(steps0.includes('M08') || steps0.includes('T1'), 'verhaal: de host haalde M08 niet: ' + steps0.join(','));
+    note('missies: ' + of(H, 'mission').map((e) => `${e.event}:${e.id}`).join(' '));
+    note('cheats nodig: ' + (of(H, 'cheat').map((e) => `${e.rung}@${e.step}`).join(' ') || 'geen'));
+  }
+  fs.writeFileSync(path.join(OUT, 'result.json'), JSON.stringify({ suite: SUITE, gasten: 0, mock: MOCK, problems, notes, host: res[0] }, null, 1));
+  for (const x of notes) console.log('  - ' + x);
+  console.log(problems.length ? 'PROBLEMEN:\n- ' + problems.join('\n- ') : 'ALLES OK');
+  process.exit(problems.length ? 1 : 0);
+}
 const NAMES = ['host', 'gast', ...(GASTEN > 1 ? ['gast2'] : [])];
 const samples = (n) => of(E[n], 'sample');
 const phase = (n, ph) => samples(n).filter((s) => s.ph === ph);
