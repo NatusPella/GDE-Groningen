@@ -2820,6 +2820,21 @@ function updateSuspension(v, dt) {
 // (plus friction), so a glancing scrape slides along while a head-on stops
 // dead, and an off-centre hit swings the car round. dt is unused but kept
 // for callers.
+// The buildings round a body, asked for with 3 m to spare and kept while the car stays within 1.5 m of where it
+// was asked: the probes lie within halfLen + 0.5 of the centre, and a push-out moves the car by centimetres. A car
+// asked the grid every frame (a list of arrays per car, ~250 queries a frame in a busy street).
+const BODY_NEAR_SLACK = 3;
+const BODY_NEAR_MOVE = 1.5;
+let bodyNearMap = null, bodyNearEpoch = 0;
+function buildingsAroundBody(v, map) {
+  if (map !== bodyNearMap) { bodyNearMap = map; bodyNearEpoch++; }
+  const c = v._bodyNear;
+  if (c && c.epoch === bodyNearEpoch && c.r === v.halfLen && Math.abs(v.x - c.x) < BODY_NEAR_MOVE && Math.abs(v.y - c.y) < BODY_NEAR_MOVE) return c.list;
+  const list = map.buildingsNear(v.x, v.y, v.halfLen + BODY_NEAR_SLACK);
+  v._bodyNear = { epoch: bodyNearEpoch, x: v.x, y: v.y, r: v.halfLen, list };
+  return list;
+}
+
 const _cp = { x: 0, y: 0 };
 export function resolveVehicleBuildingCollision(v, map, dt) {
   // a helicopter keeps its own height and walls (heliflight.js)
@@ -2830,8 +2845,7 @@ export function resolveVehicleBuildingCollision(v, map, dt) {
   const count = probeCount(v);
   // up on a viaduct or down in the cutting nothing at street level is in the way
   const offLevel = (v.z || 0) > 4 || (v.z || 0) < -3.5;
-  // the buildings round the body, asked once: the probes stay within its reach (a push-out moves the car by centimetres)
-  const near = offLevel ? null : map.buildingsNear(v.x, v.y, v.halfLen + 3);
+  const near = offLevel ? null : buildingsAroundBody(v, map);
   // Ommeland solids (barns, real buildings, silos, village furniture, trunks):
   // one circle round the whole body first: the corner tests only run beside one
   let country = false, rails = false;
