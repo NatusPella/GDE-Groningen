@@ -4,7 +4,7 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/
 // Real (non-procedural) 3D models for specific named landmark buildings,
 // generated externally (Claude Design) from the prompts in
 // docs/3d-model-prompts.md and dropped into game/models/. Keyed by the
-// building's own `name` field in citymap.json - buildBuildingMesh() checks
+// building's own `name` field in stad.json - buildBuildingMesh() checks
 // getLandmarkModel(b.name) before falling through to the procedural
 // addLandmarkDetail() path, so a landmark with no model here (or one that
 // hasn't finished loading yet) keeps working exactly as before.

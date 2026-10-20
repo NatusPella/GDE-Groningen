@@ -1,5 +1,5 @@
 // Dubbel water (#231): waar liggen twee waterlagen over elkaar buiten de stad? Telt per streek, over de
-// tegels van de provincie (game/world) en de stadskaart (game/citymap.json):
+// tegels van de provincie (game/world) en de stad (stad.json + OSM-lagen):
 //   tiles       tegels met water
 //   rows        waterrijen
 //   flatOnly    rijen zonder nav (de oude platte laag: tekent alleen de verre LOD, geen vaarwater)
@@ -67,13 +67,14 @@ export function overlapArea(a, b, box) {
   return n * CELL * CELL;
 }
 
-function main() {
+async function main() {
   const args = process.argv.slice(2);
   const out = path.join(ROOT, 'game/world');
   const file = path.join(out, 'index-provincie.json');
   if (!fs.existsSync(file)) { console.log('SKIP geen game/world met de provinciegegevens'); return; }
   const index = JSON.parse(fs.readFileSync(file, 'utf8'));
-  const city = JSON.parse(fs.readFileSync(path.join(ROOT, 'game/citymap.json'), 'utf8'));
+  const { loadCityData } = await import('../lib/loadworld.mjs');
+  const city = await loadCityData({ extras: false });
   const cityWater = (city.water || []).map((w) => ({ pts: w.pts, b: bounds(w.pts) }));
   const fds = new Map();
   const per = {};
@@ -111,4 +112,4 @@ function main() {
     if (bad.length) process.exit(1);
   }
 }
-if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1])) main();
+if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1])) await main();

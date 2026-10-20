@@ -4,7 +4,7 @@ import { slotFits, propBlocked, sleepingParkedCars } from './parkedcars.js';
 import { spawnPedestriansNear } from './pedestrians.js';
 import { helipadInfo, scriptHeli, landHeliOnPad } from './skyprops.js';
 import { isInWater, closestPointOnSegment, pointInPolygon } from './util.js';
-import { saveSoon } from './savegame.js';
+import { saveSoon } from './savehook.js';
 import { nearestFacility, inDoorRange } from './facilities.js';
 import { edgeDistance } from './countryfield.js';
 

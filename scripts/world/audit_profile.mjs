@@ -13,7 +13,8 @@ import { fileURLToPath } from 'node:url';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const { audit, printAudit } = await import('./profile.mjs');
 const { CAR } = await import('../../game/js/roadprofile.js');
-const data = JSON.parse(fs.readFileSync(path.join(ROOT, 'game/citymap.json'), 'utf8'));
+const { loadCityData } = await import('../lib/loadworld.mjs');
+const data = await loadCityData({ extras: false });
 const rep = audit(data);
 printAudit(rep);
 // car roads under their clearance (foot and cycle ways under a ring road are
@@ -22,7 +23,7 @@ const carLow = rep.clearance.filter((q) => CAR.has(q.loCat) || q.loCat === 'rail
 console.log(`car roads and rails under the clearance: ${carLow.length}`);
 
 const P = await import('./pack_tiles.mjs');
-const { map } = P.loadSources();
+const { map } = await P.loadSourcesLaag();
 const { probeRingSolids } = await import('../../game/js/ringcheck.js');
 await import('../../game/js/player.js');
 const hits = probeRingSolids({ map, flitspaalen: [] });

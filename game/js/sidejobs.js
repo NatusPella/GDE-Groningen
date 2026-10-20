@@ -18,7 +18,7 @@ import { SMS_SAY } from './smsvoice.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getScene } from './scene3d.js';
 import { buildWorldMarker3D, updateWorldMarker3D } from './worldmarker3d.js';
-import { isMissionActive, getActiveRace } from './missions.js';
+import { isMissionActive, getActiveRace } from './missionquery.js';
 import { isCinematicActive, playMissionIntro, showBanner } from './cinematics.js';
 import { isShopOpen } from './shopui.js';
 import { recordStat, setStatMax, recordUnique, unlockAchievement } from './achievements.js';
@@ -43,8 +43,8 @@ import { PANEEL_JOBS } from './sidejob_paneel.js';
 import { loket, studiestaat, vigilantia, kamerkoning, wolkenhal, helix, niemeyer, bernard } from './sidejob_keuze.js';
 import { STAD_JOBS } from './sidejob_stad.js';
 import { SIDEJOB_PAY_MULT, SIDEJOB_LEVEL_BONUS, SIDEJOB_ACCIDENT_FINE } from './economy.js';
-import { furnitureJobBonus } from './furniture.js';
 import { playerBusy } from './busy.js';
+import { jobBonusHook } from './latehooks.js';
 import { noteMoney } from './finance.js';
 
 export const SIDE_JOBS = [bezorger, taxi, bus, rondvaart, fietsdepot, verhuizing, rondvaarttour, boa, rechtbank, cabaret, vracht, loket, studiestaat, vigilantia, kamerkoning, wolkenhal, helix, niemeyer, bernard, lijn, ...BIJBAAN_JOBS, veerdienst, ...PANEEL_JOBS, ...STAD_JOBS];
@@ -273,7 +273,7 @@ function introLines(job) {
 function payFor(c, base) {
   const lvlMul = SIDEJOB_PAY_MULT * (1 + SIDEJOB_LEVEL_BONUS * (c.level - 1));
   const streakMul = 1 + 0.06 * Math.min(c.streak, 10);
-  return Math.max(1, Math.round(base * lvlMul * streakMul * furnitureJobBonus()));
+  return Math.max(1, Math.round(base * lvlMul * streakMul * jobBonusHook.get()));
 }
 
 function completeRound(c, res = {}) {
