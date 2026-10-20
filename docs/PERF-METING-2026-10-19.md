@@ -277,3 +277,28 @@ Onderzocht, niet gehaald:
 - Schaduwpas ~100 calls in stand met schaduw (facade-batch 23, building-batch 20); kleiner maken verandert schaduwen van gevelsieraad.
 
 Beeld: `scripts/perf/pngdiff.mjs` en route `vspots` (zeven plekken plus vier aan het water): twee runs van de oude code verschillen al 8 tot 64 procent van de pixels (verkeer, mensen, meldingskaarten, water, schaduw), dus een pixelvergelijking zegt weinig; de opnamen bij het water liggen te hoog achter de speler om de oever te laten zien. Geometrisch is de oever-merge identiek (zelfde vertices en materiaal, `receiveShadow` was overal waar), maar dat is niet in beeld bekeken.
+
+## Vervolg 6: voertuigen en personen erbij, lijst per eigenaar (s3)
+
+Extra stappen (exacte tellingen per eigenaar uit de route `det`, hoog, twee runs van de oude code 7ea959ee tegen twee van nu):
+- **Sierdoppen** op de wielen via de wielinstancing (`wheelinstances3d.js`): de cilinders op de wielen waren vier losse aanroepen per auto. Eigenaar `Cylinder`: markt 20 naar 0, straat 18 naar 0, a7 15 naar 3, winsum 8 naar 0.
+- **Blobschaduwen** als één `InstancedMesh` (`scene3d.js` `fillBlobPool`, gevuld in `onBeforeRender` van de pool, als de matrices af zijn; zelfde geometrie, materiaal, polygon offset en renderOrder; zwart met gelijke alpha, dus de volgorde onderling doet er niet toe): markt 24 en 28 naar 2, straat 27 en 52 naar 0, winsum 33 en 36 naar 0. Beeldcontrole op een bevroren frame (`PERF_ONLY=blobab`, pool tegen losse blobs tegen pool): het verschil pool-los (4,9 en 4,6 procent) is kleiner dan pool-pool (7,4 en 5,6 procent), dus niet te onderscheiden van de ruis die zelfs een gepauzeerde wereld nog geeft.
+- Samen met wolken (-16) en oevers (water -60 tot -100): markt ~-60 van ~630, straat ~-150 tot -190 van 1000 tot 1190, winsum ~-95 van ~600, a7 ~-30 van ~300: **10 tot 16 procent minder aanroepen**. De totaalcijfers (`draws`) lopen ruim 10 procent uiteen tussen runs van dezelfde code (hoeveel voertuigen en personen in beeld, hoe vaak de schaduwpas draait: 36 tegen 72), dus alleen de eigenaar-tellingen zijn te vertrouwen.
+
+Waar de rest zit, per post (FN2, aanroepen per frame) en waarom die niet verder omlaag gaat zonder grote ingreep:
+
+| post | markt | straat | a7 | winsum | waarom niet verder |
+|---|---:|---:|---:|---:|---|
+| losse gebouwen | 102 | 152 | 38 | 26 | de ring tussen `inner` (175 m) en de detailstraal (190 m) en randcellen met minder dan 3 gebouwen; `MIN_MEMBERS` 2 en een kleinere marge gaven geen meetbare winst; landmarks hebben transparante glasdelen |
+| gebouwen gebatcht | 69 | 102 | 8 | 26 | al samengevoegd per cel en materiaal (18 tot 20 materialen blijven over) |
+| voertuigen | 71 | 60 | 7 | 53 | per auto 4 meshes met 3 materiaalgroepen (body, deuren, kap, klep); samenvoegen raakt `models3d_vehicles.js` (deuren, schade) |
+| overig | 62 | 147 | 72 | 40 | de kermis in stad-straat (~70 losse dozen en bollen), vogels, lantaarnhalo's |
+| wegen los | 49 | 38 | 28 | 48 | celgrootte 160 gaf 85 naar 70, binnen de ruis |
+| terrein | 44 | 44 | 0 | 0 | één groep per zichtbare tegel, niet samen te voegen zonder de tegelculling te verliezen |
+| verre LOD | 43 | 58 | 23 | 23 | één aanroep per tegel en laag; tegel 640 in plaats van 320 gaf -13 aanroepen maar +15 tot 20 procent driehoeken en grotere bouwstappen; teruggedraaid |
+| props en landschap | 41 | 35 | 79 | 100 | al per tegel gebatcht; de rest zijn bomen, hekken en draden per soort |
+| schaduwpas | 29 | 75 | 38 | 29 | gevelsieraad en detail werpen schaduw; wegnemen verandert het beeld |
+| water en oevers | 19 | 64 | 29 | 95 | wateroppervlakken zijn transparant en blijven per polygoon los |
+| voetgangers | 15 | 29 | 3 | 10 | skinned meshes, één aanroep per persoon |
+
+Conclusie: met alleen beeldgelijke stappen is het gevraagde -40 procent niet haalbaar; de laatste grote posten (losse gebouwen aan de batchrand, voertuigdelen, schaduwpas) vragen een eigen pad per post met eigen beeldrisico. Dit is wat ik kon aantonen; niet bekeken door een mens.
