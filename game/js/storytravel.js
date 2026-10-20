@@ -46,6 +46,10 @@ export function selfArrivalMoney(a, dist) {
   return a && a.money > 0 && dist <= AT_M ? a.money : 0;
 }
 
+// tickStoryTravel calls ride(option, dest); the ride scene (reisrit.js) wants (world, option, dest): bind the world.
+// Passed bare, the ride threw on its first line and a chosen 'Met de trein' did nothing at all (speeltestlus).
+export const rideWith = (world, startRide) => (option, dest) => startRide(world, option, dest);
+
 let asking = false;
 const pendingSelf = new Map();
 
