@@ -8,8 +8,8 @@ import { auditPassages } from '../game/js/passagecheck.js';
 import { pointInPolygon } from '../game/js/util.js';
 
 const root = new URL('../game/', import.meta.url);
-const data = JSON.parse(fs.readFileSync(new URL('citymap.json', root)));
-applyMapExtras(data, JSON.parse(fs.readFileSync(new URL('mapextras.json', root))));
+const { loadCityData } = await import('./lib/loadworld.mjs');
+const data = await loadCityData();
 const map = new GameMap(data);
 const all = process.argv.includes('--all');
 // the House of Groningen: home.js prepareHomeMap reshapes its footprint and

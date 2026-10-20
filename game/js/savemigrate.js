@@ -158,7 +158,7 @@ export const savedArc = () => 'nieuw';
 // A saved position the world can hold (#212): finite and inside the province frame. A
 // position outside it (a hand-edited save, an unmigrated legacy one) is not placed, the
 // player stays at the start instead of being put somewhere in the open Ommeland.
-export const POS_LIMIT = 150000;
+const POS_LIMIT = 150000;
 export const plausiblePos = (p) => isObj(p) && Number.isFinite(p.x) && Number.isFinite(p.y) && Math.abs(p.x) < POS_LIMIT && Math.abs(p.y) < POS_LIMIT;
 
 // A save with no `v` never existed (every save since 0.2 had v: 1).

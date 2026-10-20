@@ -239,7 +239,7 @@ export function trainLines(trains, railRows, stations) {
 export const DROWNED_FRAC = 0.8;
 
 // What of a tile's features lies outside the city's data (cityCover.inside):
-// buildings, trees, furniture and areas by their middle, roads and rails cut
+// buildings, trees, furniture and areas by their middle (and the mean of their corners), roads and rails cut
 // into the runs that lie outside (sampled every 10 m).
 export function outsideCover(list, inside) {
   const out = [];
@@ -250,7 +250,10 @@ export function outsideCover(list, inside) {
     if (f.kind === 'buildings' || f.kind === 'canopies' || f.kind === 'water' || f.kind === 'green' || f.kind === 'parcels') {
       let a = Infinity, b = Infinity, c = -Infinity, d = -Infinity;
       for (const p of r.pts) { if (p[0] < a) a = p[0]; if (p[1] < b) b = p[1]; if (p[0] > c) c = p[0]; if (p[1] > d) d = p[1]; }
-      if (keep((a + c) / 2, (b + d) / 2)) out.push(f);
+      // (the middle of the outline and the mean of its corners: stad_laag.mjs takes a row for the city when either lies in the cover)
+      let mx = 0, my = 0;
+      for (const p of r.pts) { mx += p[0]; my += p[1]; }
+      if (keep((a + c) / 2, (b + d) / 2) && keep(mx / r.pts.length, my / r.pts.length)) out.push(f);
       continue;
     }
     if (f.kind === 'furniture') { if (keep(r.pts[0][0], r.pts[0][1])) out.push(f); continue; }
@@ -369,7 +372,7 @@ function fillOldExtent({ root, fill, gid, stats, blobs, roadNet, roadSeen, railR
 
 // ------------------------------------------------------------- build
 
-export function buildProvince({ root = ROOT, src = SRC_DIR, extra = bufferDirs(src), cityKeys = new Set(), buffer = BUFFER_M, onPack = null, map = true, cityCover = null, fillOld = false, bag = loadProvinceBag(), derive = true, junctions = true, terrain = null, only = null, profile = null, viaducts = false } = {}) {
+export function buildProvince({ root = ROOT, src = SRC_DIR, extra = bufferDirs(src), cityKeys = new Set(), buffer = BUFFER_M, onPack = null, map = true, cityCover = null, fillOld = false, bag = loadProvinceBag(), derive = true, junctions = true, terrain = null, only = null, profile = null, viaducts = false, collect = null } = {}) {
   const prov = gunzipJson(path.join(src, 'province.json.gz'));
   // the neighbours' strips: their places, stations and built-up cells join the province's
   const dirs = [src, ...extra];
@@ -429,6 +432,37 @@ export function buildProvince({ root = ROOT, src = SRC_DIR, extra = bufferDirs(s
   const locks = new Map();
   let waterBodies = 0;
   const packKey = (k) => { const [a, b] = k.split('_').map(Number); return a * 1000 + b; };
+  const locksOf = (els) => {
+    const out = [];
+    for (const el of els) {
+      const t = el.tags || {};
+      if (el.type === 'way' && el.g && el.g.length > 1 && (t.waterway === 'lock_gate' || t.lock === 'yes')) {
+        const m = el.g[Math.floor(el.g.length / 2)], [x, y] = wgsToWorld(m[0], m[1]);
+        out.push({ x: r1(x), y: r1(y), name: t.name || '', w: parseFloat(t.maxwidth) || 0, id: el.id });
+      }
+    }
+    return out;
+  };
+  // The city profile (#90): the water of all the packs with tiles of the city is classified at once, as the city map
+  // did (one boezem; a canal that runs from one pack into the next is still a kanaal). Pack by pack, the part of a canal
+  // beyond the pack's edge was a pond or a ditch (Schuitendiep, Turfsingel). The same rows come again in the pack loop
+  // (features() is deterministic), where the fields found here are put on them.
+  const cityWater = new Map();
+  if (profile) {
+    const cityPacks = [...byPack.keys()].filter((pk) => byPack.get(pk).some((k) => profile.has(k))).sort((a, b) => packKey(a) - packKey(b));
+    const rowsOf = new Map(), lockOf = new Map(), all = [];
+    for (const pk of cityPacks) {
+      const els = [];
+      for (const d of dirs) { const f = path.join(d, `c${pk}.json.gz`); if (fs.existsSync(f)) for (const el of gunzipJson(f).elements) els.push(el); }
+      for (const k of locksOf(els)) lockOf.set(k.id, k);
+      const rows = features(els.filter((el) => el.type === 'relation' || (el.tags && (el.tags.natural === 'water' || el.tags.waterway))), ctx).filter((f) => f.kind === 'water').map((f) => f.row);
+      rowsOf.set(pk, rows);
+      all.push(...rows);
+    }
+    const wr = annotateCityWater(all, { base: waterBodies, village: ctx.village, locks: [...lockOf.values()], focus: (x, y) => profile.has(G.tileKey(...G.tileIndexOf(x, y))) });
+    waterBodies += wr.bodies;
+    for (const [pk, rows] of rowsOf) cityWater.set(pk, rows.map((r) => { const o = { body: r.body, kind: r.kind, lv: r.lv, dp: r.dp, nav: r.nav, bank: r.bank }; if (r.lock) o.lock = true; return o; }));
+  }
   for (const pk of [...byPack.keys()].sort((a, b) => packKey(a) - packKey(b))) {
     const files = dirs.map((d) => path.join(d, `c${pk}.json.gz`)).filter((f) => fs.existsSync(f));
     const want = byPack.get(pk);
@@ -443,19 +477,18 @@ export function buildProvince({ root = ROOT, src = SRC_DIR, extra = bufferDirs(s
     // the water keeps `flat` (the far LOD draws it so) and gets the city
     // water's kind, lv, dp and nav: tileworld.js puts annotated rows in the
     // water grid, so boats, swimmers and waterAt see them
-    const packLocks = [];
-    for (const el of els) {
-      const t = el.tags || {};
-      if (el.type === 'way' && el.g && el.g.length > 1 && (t.waterway === 'lock_gate' || t.lock === 'yes')) {
-        const m = el.g[Math.floor(el.g.length / 2)], [x, y] = wgsToWorld(m[0], m[1]);
-        packLocks.push({ x: r1(x), y: r1(y), name: t.name || '', w: parseFloat(t.maxwidth) || 0, id: el.id });
-      }
-    }
+    const packLocks = locksOf(els);
     // a lock splits the water bodies (waterlevels.js annotateProvinceWater)
-    // the city profile (#90): a pack with tiles of the city's profile classifies its water as the city does
-    const annotate = profile && want.some((k) => profile.has(k)) ? annotateCityWater : annotateProvinceWater;
-    const wr = annotate(feats.filter((f) => f.kind === 'water').map((f) => { f.row.flat = true; return f.row; }), { base: waterBodies, village: ctx.village, locks: packLocks, focus: (x, y) => profile && profile.has(G.tileKey(...G.tileIndexOf(x, y))) });
-    waterBodies += wr.bodies;
+    const waterRows = feats.filter((f) => f.kind === 'water').map((f) => { f.row.flat = true; return f.row; });
+    const found = cityWater.get(pk);
+    if (found && found.length === waterRows.length) waterRows.forEach((r, i) => Object.assign(r, found[i]));
+    else {
+      if (found) console.log(`  waarschuwing: pak ${pk} heeft ${waterRows.length} waterrijen, de stadsclassificatie zag er ${found.length}`);
+      // (a pack the city profile did not see: classified on its own, the city's way when it has tiles of the profile)
+      const annotate = profile && want.some((k) => profile.has(k)) ? annotateCityWater : annotateProvinceWater;
+      const wr = annotate(waterRows, { base: waterBodies, village: ctx.village, locks: packLocks, focus: (x, y) => profile && profile.has(G.tileKey(...G.tileIndexOf(x, y))) });
+      waterBodies += wr.bodies;
+    }
     for (const k of packLocks) if (!locks.has(k.id)) locks.set(k.id, { x: k.x, y: k.y, name: k.name, w: k.w });
     WB.applyDuals(feats.filter((f) => f.kind === 'roads').map((f) => f.row));
     // what the city's map derives (derive_tiles.mjs): footprints clear of the roads, canopies, roof steps, ways cut at a wall
@@ -483,10 +516,12 @@ export function buildProvince({ root = ROOT, src = SRC_DIR, extra = bufferDirs(s
     // the traffic lights snapped onto their roads, the city's junction model over the pack's roads
     // (junction_tiles.mjs: the nodes by the tile they lie in)
     const nodesIn = new Map();
+    let lights = [];
     if (junctions) {
       const sn = snapSignals(feats);
       const jm = junctionsOf(sn.feats, sn.lights);
       feats = sn.feats.concat(jm.auto);
+      lights = sn.lights;
       stats.signals += sn.lights.length;
       stats.autoSignals += jm.auto.length;
       for (const J of jm.nodes) {
@@ -494,6 +529,8 @@ export function buildProvince({ root = ROOT, src = SRC_DIR, extra = bufferDirs(s
         (nodesIn.get(k) || nodesIn.set(k, []).get(k)).push(J);
       }
     }
+    // the whole ways of the pack for a caller that wants them uncut (stad_laag.mjs: roads and rails of the city, #90)
+    if (collect) collect(feats, { pack: pk, want, els, lights });
     // features by tile, only for this pack's tiles
     const mine = new Set(want);
     const idx = new Map();
@@ -615,16 +652,16 @@ async function cityKeysOf(arg) {
   if (arg && fs.existsSync(arg)) return new Set(Object.keys(JSON.parse(fs.readFileSync(arg, 'utf8')).tiles));
   await import('../node3d.mjs');
   const P = await import('./pack_tiles.mjs');
-  return new Set(P.build(P.loadSources()).blobs.keys());
+  return new Set(P.build(await P.loadSourcesLaag()).blobs.keys());
 }
 
-// the city map's data cover (citycover.mjs), for the overlay tiles
+// the city map's data cover (citycover.mjs, the mask in stad.json), for the overlay tiles
 async function cityCoverOf() {
   await import('../node3d.mjs');
   const P = await import('./pack_tiles.mjs');
-  const { buildCityCover } = await import('./citycover.mjs');
-  const { map } = P.loadSources();
-  return { ...buildCityCover(map), rails: (map.rails || []).map((r) => r.pts) };
+  const { cityCoverFromMask } = await import('./citycover.mjs');
+  const { data, mask } = P.readStad();
+  return { ...cityCoverFromMask(mask), rails: (data.rails || []).map((r) => r.pts) };
 }
 
 async function main() {

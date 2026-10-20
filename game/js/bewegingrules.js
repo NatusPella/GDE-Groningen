@@ -11,7 +11,7 @@
 export const WHEELIE = { minSpeed: 2.5, topShare: 0.75, pitch: 0.5, holdMax: 2.6, rise: 3.2, fall: 4.5, drag: 0.35 };
 
 // De stoppie op de gewone fiets: Ctrl vasthouden en remmen; het achterwiel komt een beetje omhoog.
-export const STOPPIE = { minSpeed: 3.5, pitch: -0.32, holdMax: 2.2 };
+const STOPPIE = { minSpeed: 3.5, pitch: -0.32, holdMax: 2.2 };
 
 export function createWheelie() {
   return { nose: false, nosed: 0, pitch: 0, held: 0, up: false, dist: 0, best: 0, lost: false };

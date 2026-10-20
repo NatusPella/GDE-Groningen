@@ -4,10 +4,10 @@
 import { doorsFor } from './vehicledoors.js';
 
 export const MAX_FIGUREN = 5;      // zoveel mensen per halte-uitwisseling in beeld
-export const LOOP_SNELHEID = 1.5;  // m/s
-export const START_AFSTAND = 4.5;  // m van de deur waar instappers beginnen
-export const WEGLOOP = 5;          // m die uitstappers van de deur weglopen
-export const GAP = 0.55;           // s tussen twee mensen bij dezelfde deur
+const LOOP_SNELHEID = 1.5;  // m/s
+const START_AFSTAND = 4.5;  // m van de deur waar instappers beginnen
+const WEGLOOP = 5;          // m die uitstappers van de deur weglopen
+const GAP = 0.55;           // s tussen twee mensen bij dezelfde deur
 
 // Deurplekken van een bus aan de stoepkant (rechts), voertuigcoördinaten: { x vooruit, z rechts }.
 export function haltedeuren(v) {

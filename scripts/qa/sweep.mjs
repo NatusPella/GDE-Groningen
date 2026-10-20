@@ -85,6 +85,9 @@ if (ONLY.length) {
   plan.verhaal = plan.verhaal.filter((s) => ONLY.some((o) => s.name === o || s.name.startsWith(o + '-')));
   if (!ONLY.includes('cut')) plan.cut.n = 0;
 }
+// --plan-file=<json>: eigen wereldplekken ({ wereld: [{ kind: 'wereld', name, cat, clock, weather, x, y, a, snap }] }), zoals
+// scripts/qa/stadvergelijk.mjs ze maakt; er zijn dan geen verhaalstappen of cutscenes
+if (arg('plan-file', '')) { const pf = JSON.parse(fs.readFileSync(path.resolve(arg('plan-file', '')), 'utf8')); plan.wereld = pf.wereld; plan.verhaal = []; plan.cut.n = 0; }
 fs.mkdirSync(OUT, { recursive: true });
 fs.writeFileSync(path.join(OUT, 'plan.json'), JSON.stringify(plan, null, 1));
 if (flag('plan')) { console.log(`plan: ${plan.wereld.length} wereldplekken, ${plan.verhaal.length} verhaalstappen, ${plan.cut.n} cutscenes -> ${path.join(OUT, 'plan.json')}`); process.exit(0); }
@@ -97,7 +100,7 @@ if (flag('slot')) {
   const LOCKS = process.env.GDE_LOCKS || path.join(os.homedir(), 'gde-locks');
   for (let tries = 0; tries < 240 && !slot; tries++) {
     for (const n of [1, 2, 3]) { try { fs.mkdirSync(path.join(LOCKS, `electron-${n}`)); slot = path.join(LOCKS, `electron-${n}`); break; } catch { /* bezet */ } }
-    if (!slot) await new Promise((r) => setTimeout(r, 60000));
+    if (!slot) await new Promise((r) => setTimeout(r, Number(process.env.SWEEP_SLOT_POLL_MS) || 60000));
   }
   if (!slot) { console.error('geen Electron-slot gekregen'); process.exit(4); }
 }
@@ -110,7 +113,7 @@ await new Promise((r) => setTimeout(r, 4000));\n`;
 async function runPart(deel, pre, pageFile, extraEnv = {}) {
   const profile = `gde-test-sweep-${process.pid}-${deel}`;
   const script = path.join(OUT, `_page-${deel}.js`);
-  fs.writeFileSync(script, WACHT + pre + fs.readFileSync(path.join(HERE, pageFile), 'utf8'));
+  fs.writeFileSync(script, WACHT + (process.env.SWEEP_PRE || "") + pre + fs.readFileSync(path.join(HERE, pageFile), "utf8")); // SWEEP_PRE: eigen code vóór de pagina (stadvergelijk: HUD verbergen)
   const env = { ...process.env, GDE_TEST_PROFILE: profile, ...extraEnv };
   delete env.ELECTRON_RUN_AS_NODE;
   const logFd = fs.openSync(path.join(OUT, `run-${deel}.log`), 'w');
