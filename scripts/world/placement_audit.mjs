@@ -1,7 +1,7 @@
 // Placement audit (issue #124): buildings that stand in water, and fences and
 // hedges that run over a road, a rail or water.
 //
-//   node scripts/world/placement_audit.mjs                 game/citymap.json (the city)
+//   node scripts/world/placement_audit.mjs                 the city (stad.json and the OSM layers)
 //   node scripts/world/placement_audit.mjs --world [dir]   the built tiles (default game/world, the province layer)
 //   node scripts/world/placement_audit.mjs --strict        exit 1 above the thresholds
 //
@@ -262,7 +262,8 @@ async function main() {
     if (!data) { console.log(`no province layer in ${path.relative(ROOT, out)}: run scripts/world/build_province.mjs (or cd desktop && npm run stage)`); return; }
     console.log(`${data.buildings.length} buildings, ${data.water.length} water rows, ${data.roads.length} roads in the tiles (fences and hedges of the tiles are the countryside's: see countryside.js)`);
   } else {
-    const city = JSON.parse(fs.readFileSync(path.join(ROOT, 'game/citymap.json'), 'utf8'));
+    const { loadCityData } = await import('../lib/loadworld.mjs');
+    const city = await loadCityData({ extras: false });
     data = { buildings: city.buildings, roads: city.roads, water: city.water, rails: city.rails, green: city.green, ...(await cityLines(city)) };
   }
   const t0 = performance.now();
