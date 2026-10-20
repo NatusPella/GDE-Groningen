@@ -1,7 +1,7 @@
 // De OSM-lagen van de stad (osmCityLayers, stad_laag.mjs) zijn het dure deel van elke stadsbouw en van elke test die de stad
 // laadt (#90). Hier staan ze in een cache in de tijdelijke map, met een sleutel uit alles wat het resultaat bepaalt:
 // de stadstegels, de dekking, de handgebouwen, de gevraagde lagen, de provincie-extracten en de bestanden van de bouwcode
-// (grootte + tijd van scripts/world/*.mjs en game/js/*.js). Verandert er iets, dan is de sleutel anders; GDE_STAD_CACHE=0 zet de cache uit.
+// (grootte + tijd van de import-sluiting van stad_laag.mjs en build_province.mjs, en van hun json-bestanden). Verandert er iets, dan is de sleutel anders; GDE_STAD_CACHE=0 zet de cache uit.
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -20,13 +20,30 @@ const stamps = (dir, test, out) => {
   }
 };
 
+// de bestanden die osmCityLayers kan laden: de import-sluiting van stad_laag.mjs en build_province.mjs (relatieve import en import())
+const IMPORT = /(?:from|import\()\s*['"](\.[^'"]+)['"]/g;
+export function codeClosure(entries) {
+  const seen = new Set(), todo = [...entries];
+  while (todo.length) {
+    const f = todo.pop();
+    if (seen.has(f) || !fs.existsSync(f)) continue;
+    seen.add(f);
+    if (!/\.m?js$/.test(f)) continue;
+    for (const m of fs.readFileSync(f, 'utf8').matchAll(IMPORT)) todo.push(path.resolve(path.dirname(f), m[1]));
+  }
+  return [...seen].sort();
+}
+
 // grootte + tijd van de bouwcode en van de bronbestanden
 export async function inputStamp() {
   const out = [];
-  stamps(path.join(ROOT, 'scripts/world'), (f) => f.endsWith('.mjs'), out);
-  stamps(path.join(ROOT, 'scripts'), (f) => f === 'node3d.mjs', out);
-  stamps(path.join(ROOT, 'game/js'), (f) => f.endsWith('.js'), out);
+  for (const f of codeClosure([path.join(ROOT, 'scripts/world/stad_laag.mjs'), path.join(ROOT, 'scripts/world/build_province.mjs')])) {
+    const s = fs.statSync(f);
+    out.push(`${path.relative(ROOT, f)}:${s.size}:${Math.floor(s.mtimeMs)}`);
+  }
   stamps(path.join(ROOT, 'data/world'), () => true, out);
+  stamps(path.join(ROOT, 'scripts/world'), (f) => f.endsWith('.json'), out);
+  stamps(path.join(ROOT, 'game'), (f) => f.endsWith('.json') && !['stad.json', 'mapextras.json'].includes(f), out);
   const { SRC_DIR, bufferDirs } = await import('./build_province.mjs');
   for (const d of [SRC_DIR, ...bufferDirs(SRC_DIR)]) stamps(d, () => true, out);
   return out.join('\n');

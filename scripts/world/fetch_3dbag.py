@@ -10,7 +10,7 @@ docs/LICENTIES.md and the game's credits).
     python3 scripts/world/fetch_3dbag.py --province         the whole province (resumable, see below)
     python3 scripts/world/fetch_3dbag.py --province --list  its tiles and sizes, no download
     options: --version v20250903 (default: the one data.3dbag.nl/latest names),
-             --bbox minx,miny,maxx,maxy (RD New, m; default: game/citymap.json meta.bounds),
+             --bbox minx,miny,maxx,maxy (RD New, m; default: game/stad.json meta.bounds),
              --max-mb 400 (stop before the downloads pass this)
 
 Uses only the official downloads of data.3dbag.nl: the tile index
@@ -510,7 +510,7 @@ def merge_province(ex_dir, tiles, rings, version):
 # --------------------------------------------------------------- main
 
 def map_bbox_rd():
-    with open(os.path.join(ROOT, "game", "citymap.json")) as f:
+    with open(os.path.join(ROOT, "game", "stad.json")) as f:
         b = json.load(f)["meta"]["bounds"]
     corners = [world_to_rd(x, y) for x in (b[0], b[2]) for y in (b[1], b[3])]
     xs, ys = [c[0] for c in corners], [c[1] for c in corners]
