@@ -33,3 +33,15 @@ export function jumpSpot(def, guide, { dist = 12, rand = Math.random, vrij = nul
   }
   return first;
 }
+
+// Ruimte rond een landingsplek (#261): de plek zelf is vrij en ook een ring op 1,5 en 4 m, zodat de speler niet tegen een gevel
+// staat en de camera erachter niet in de muur zit (een bakstenen muur vult dan het beeld en de speler is onzichtbaar).
+// free(x, y): is een punt begaanbaar (niet in een gebouw of in water)?
+export function openRond(free, x, y, radii = [1.5, 4], n = 8) {
+  if (!free(x, y)) return false;
+  for (const r of radii) for (let k = 0; k < n; k++) {
+    const a = (k / n) * Math.PI * 2;
+    if (!free(x + Math.cos(a) * r, y + Math.sin(a) * r)) return false;
+  }
+  return true;
+}
