@@ -2951,7 +2951,7 @@ function cullOffscreenActors() {
   if (!perfOff('groepen')) cullOffscreenGroups();
   if (window.__perfVerify) verifyCull();
 }
-// window.__perfVerify = { actors, groups, shadow, checked: 0, bad: [] } (route verify): what was cut is looked at again with an exact box
+// the counters of route verify (scripts/perf/routes.js, kept on window): what was cut is looked at again with an exact box
 // the box of what shows: nodes that are hidden (and what hangs on them) do not count, the root's own flag is the cull's
 const _vbox = new THREE.Box3();
 function expandVisible(o, box, root) {
