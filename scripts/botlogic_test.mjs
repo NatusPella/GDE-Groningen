@@ -116,6 +116,8 @@ const near = (a, b, e = 1e-6) => Math.abs(a - b) < e;
   ok(L.decide({ ...base(), mission: { active: true, stage: 'goto' }, blocking: { talk: true } }).type === 'goto', 'gesprek in een missie: doorlopen');
   ok(L.decide({ ...base(), target: null }).type === 'wait', 'zonder doel wachten');
   ok(L.decide(base()).mode === 'walk', 'dichtbij: lopen');
+  const inCarPlane = { ...base(), player: { ...base().player, vehicle: { kind: 'auto', speed: 0 } }, mission: { active: true, stage: 'plane' }, nearby: { vehicles: [{ x: 6, y: 0, distance: 6, free: true, drivable: false, kind: 'vliegtuig' }] } };
+  ok(L.decide(inCarPlane, {}).key === 'e', 'plane-fase vanuit een auto: eerst uitstappen');
   const far = { ...base(), target: { x: 900, y: 0, distance: 900 }, nearby: { vehicles: [{ x: 5, y: 0, distance: 5, free: true, drivable: true, kind: 'auto' }] } };
   ok(L.decide(far).type === 'enter', 'ver weg en een auto vlakbij: instappen');
   ok(L.decide(far, { boardTries: 3 }).type === 'goto', 'na drie pogingen niet meer instappen');
