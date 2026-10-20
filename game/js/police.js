@@ -15,6 +15,7 @@ import { levelOf, markSeen, stepUnseen, isInterceptorSlot, INTERCEPTOR } from '.
 import { createShards, dropSpikes } from './roadshards.js';
 import { makeBeamGeometry, makeBeamMaterial, requestSearchlight } from './nightlights3d.js';
 import { trySpawnMounts, tryDeployCrew, adoptThrownRider, holdUnit, updateCrews, ejectMountRider, maybeBolt, updateBolting } from './policemounts.js';
+import { waterNearby } from './waterlevels.js';
 
 // search area, cooldown and roadblock timing per star: wantedlevels.js
 const SEE_RANGE_CAR = 55;
@@ -536,7 +537,7 @@ function despawnFarCopPeds(world) {
 function isPlayerNearWater(world) {
   const p = world.player;
   if (p.inVehicle && p.inVehicle.isBoat) return true;
-  return world.map.waterNear(p.x, p.y, WATER_PROXIMITY).length > 0;
+  return waterNearby(world.map, p.x, p.y, WATER_PROXIMITY);
 }
 
 function trySpawnPoliceBoat(world, state) {
