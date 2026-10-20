@@ -239,6 +239,25 @@ for (const J of CFG.jobs) {
         await poseShot(J.name + '-d', { position: { x: f.x, y: f.y, z: lv + 120 }, lookAt: { x: f.x + ca * 200, y: f.y + sa * 200, z: lv }, cut: true });
       }
       hold = null;
+    } else if (J.kind === 'boatroute') {
+      // een waypoint op water, in een boot: komt er een route, en staan de kaartlijn en het baken er (#232)
+      hold = null; env.fix = true; fixWorld();
+      const RT = await imp('routing');
+      const sx = J.x, sy = J.y;
+      teleport(sx, sy); hold = { x: sx, y: sy }; await sleep(SETTLE);
+      hold = null;
+      putBoat(sx, sy, 0); await sleep(1500);
+      RT.setUserWaypoint(J.gx, J.gy, 'Waddenzee');
+      let route = null;
+      for (let i = 0; i < 40 && !(route && route.pts && route.pts.length > 2); i++) { await sleep(500); route = RT.getActiveRoute(); }
+      rec.route = route ? { punten: route.pts.length, lengteM: Math.round(route.length), modus: route.mode, net: route.net ?? null, etaS: Math.round(route.etaS || 0) } : null;
+      await sleep(2500);
+      await capture(J.name + '-hud', 300);
+      PM.openPauseMenu('map'); await sleep(3000);
+      await capture(J.name + '-kaart', 300);
+      PM.closePauseMenu(); await sleep(500);
+      rec.hudText = [...document.querySelectorAll('#hud *')].filter((e) => e.children.length === 0 && /km|m|Waddenzee/.test(e.textContent || '')).map((e) => e.textContent.trim()).slice(0, 6);
+      if (theBoat) { p.exitVehicle(map, w); const i = w.vehicles.indexOf(theBoat); if (i >= 0) w.vehicles.splice(i, 1); }
     } else if (J.kind === 'boat') {
       // open zee: vaar een sloep recht vooruit over zeewater (seaAt) en kijk of hij ergens tegenaan stopt (#233)
       hold = null; env.fix = true; fixWorld();
