@@ -58,6 +58,8 @@ Beeld voor beeld vanaf een vaste camera; zonder de cinematic-camera van het spel
 - `node scripts/qa/brug_beeld.mjs --modus=boot --lijst=<json { open: [{naam,x,y,boot}], bots: [{naam,x,y}] }>`: een binnenvaartschip vaart op een beweegbare brug aan (opent op tijd, onderdoor, weer dicht) of vaart tegen een vaste brug (aanvaring, terugduwen, dekschade).
 - `node scripts/qa/png_crop.mjs <png> <x> <y> <b> <h> [schaal]` vergroot een stuk van een beeld; `node scripts/qa/montage.mjs <map> --filter=<regex>` maakt een contactblad.
 - `node scripts/qa/brug_probe.mjs` leest het dek zonder Electron (hoogtestappen, dekverschil per brug); `scripts/qa/brug_qa.mjs` is de oudere, enkelvoudige versie.
+- `node scripts/qa/sluizen_run.mjs --game-dir=<map> --only=lauwersoog-heen` (#236, #299) laat een sloep door de Robbengatsluis varen en meet daarna de hoogte van alle watermeshes (het meer op -1,0, de rest op -2,3, het kolkwater) en de lift van de boot; `node scripts/bot/run.mjs --mode=bruggen --slot` rijdt een auto over 12 bruggen (stad en provincie) en meldt hoogtesprongen (#300).
+- Zonder Electron: `scripts/elevation_stream_test.mjs` (het hoogtemodel van streamende tegels), `scripts/province_profile_test.mjs` (profielen, bruggen over vaarwegen, geen zinkende wegen), `scripts/vaarnet_province_test.mjs` (de binnenvaartroute naar de vier zeeën, met de echte wereld), `scripts/bridge_auto_test.mjs` (brug wacht op een leeg dek, #302).
 
 ## Veiligheid
 
