@@ -63,7 +63,7 @@ export function newWind(rand = Math.random, max = 5) {
 
 const CSS = `
 #hud .mg-board[hidden] { display: none; }
-#hud .mg-board { position: absolute; top: var(--hud-top, 14px); left: 50%; transform: translateX(-50%); min-width: 360px; max-width: min(760px, calc(100vw - 32px)); padding: 8px 18px 9px 12px; color: #f0ede4; text-shadow: var(--hud-shadow); pointer-events: none; z-index: 4;
+#hud .mg-board { position: absolute; top: var(--hud-top, 14px); left: 50%; transform: translateX(-50%); min-width: 360px; max-width: min(760px, calc(100vw / var(--ui, 1) - 2 * (var(--hud-edge, 46px) + 360px)), calc(100vw - 32px)); padding: 8px 18px 9px 12px; color: #f0ede4; text-shadow: var(--hud-shadow); pointer-events: none; z-index: 4;
   background: linear-gradient(90deg, rgba(12,20,14,0.9), rgba(24,34,28,0.66) 80%, rgba(24,34,28,0.2)); border-left: 3px solid var(--mg-acc, #6cc070); }
 #hud .mg-board small { display: block; font-size: 12px; letter-spacing: 3px; color: var(--mg-acc, #6cc070); }
 #hud .mg-board .mg-row { display: flex; flex-wrap: wrap; gap: 4px 16px; align-items: baseline; font-size: 20px; letter-spacing: 1px; }
@@ -87,7 +87,9 @@ html.touch-play #hud .mg-board .mg-cells i[data-k] { pointer-events: auto; touch
 #hud .mg-board .mg-flash { font-size: 22px; letter-spacing: 1.5px; color: #5dff7a; min-height: 1em; }
 #hud .mg-board .mg-flash.bad { color: #ff9a3c; }
 body.mg-on #hud .hud-speedo, body.mg-on #hud .hud-route, body.mg-on #hud .hud-gps, body.mg-on #hud .hud-place, body.mg-on #hud .phonefeed .pf-card { display: none !important; }
-@media (max-width: 480px) { #hud .mg-board { top: 64px; min-width: 0; } }
+/* smal scherm: de spel-HUD begint rechts van de uitlegkaart (linksboven, 350 px) in plaats van eroverheen (#294) */
+@media (max-width: 1500px) { #hud .mg-board { left: calc(var(--hud-edge, 46px) + 372px); transform: none; max-width: calc(100vw / var(--ui, 1) - var(--hud-edge, 46px) - 372px - 330px); } }
+@media (max-width: 480px) { #hud .mg-board { top: 64px; left: 50%; transform: translateX(-50%); min-width: 0; max-width: calc(100vw - 32px); } }
 `;
 
 let cssDone = false;
