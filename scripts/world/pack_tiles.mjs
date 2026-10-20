@@ -15,6 +15,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import zlib from 'node:zlib';
 import { fileURLToPath } from 'node:url';
+import { LAGEN_WEGEN } from './stad_laag.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const { GameMap, applyMapExtras } = await import('../../game/js/mapdata.js');
@@ -121,10 +122,16 @@ export function joinAttrs(buildings, attrs) {
 }
 
 // swap: de lagen uit de OSM-bouw gaan erin vóór de handlaag (mapextras: patches op gebouwen en wegen)
-async function readData(game, swap = null) {
+async function readRaw(game, swap = null) {
   const data = JSON.parse(fs.readFileSync(path.join(game, 'citymap.json'), 'utf8'));
-  if (swap) await swap(data);
-  applyMapExtras(data, JSON.parse(fs.readFileSync(path.join(game, 'mapextras.json'), 'utf8')));
+  const extras = JSON.parse(fs.readFileSync(path.join(game, 'mapextras.json'), 'utf8'));
+  // (de wegenlaag legt het profiel van de busbanen in de extras terug: dezelfde extras gaan daarna op de kaart)
+  if (swap) await swap(data, extras);
+  return { data, extras };
+}
+async function readData(game, swap = null) {
+  const { data, extras } = await readRaw(game, swap);
+  applyMapExtras(data, extras);
   return data;
 }
 export function loadSources(game = path.join(ROOT, 'game')) {
@@ -135,7 +142,18 @@ export function loadSources(game = path.join(ROOT, 'game')) {
 
 // STAD_LAAG=water[,...] (#90): de genoemde lagen van de stad komen uit de gedeelde OSM-tegelbouw (stad_laag.mjs)
 export async function loadSourcesLaag(game = path.join(ROOT, 'game'), lagen = parseLagen(process.env.STAD_LAAG)) {
-  const data = await readData(game, !lagen.length ? null : async (d) => {
+  const report = {};
+  const data = await readData(game, swapper(game, lagen, report));
+  return { map: new GameMap(data), lagen, report };
+}
+// de ruwe stadsdata en mapextras met de lagen verwisseld, nog zonder applyMapExtras: voor scripts/lib/stadlaag_preload.mjs
+export async function loadRawLaag(game = path.join(ROOT, 'game'), lagen = parseLagen(process.env.STAD_LAAG)) {
+  const report = {};
+  const raw = await readRaw(game, swapper(game, lagen, report));
+  return { ...raw, report };
+}
+function swapper(game, lagen, report) {
+  return !lagen.length ? null : async (d, extras) => {
     const { osmCityLayers } = await import('./stad_laag.mjs');
     // de stadstegels: alles wat de stadsdata raakt
     const keys = new Set();
@@ -143,12 +161,16 @@ export async function loadSourcesLaag(game = path.join(ROOT, 'game'), lagen = pa
     const { buildCityCover } = await import('./citycover.mjs');
     const cover = buildCityCover(loadSources(game).map);
     const rows = await osmCityLayers(keys, (x, y) => cover.inside(x, y), lagen, d);
-    for (const l of lagen) d[l] = rows[l];
-  });
-  return { map: new GameMap(data), lagen };
+    for (const l of lagen) if (!LAGEN_WEGEN.includes(l)) d[l] = rows[l];
+    // wegen en spoor: hele wegen uit de OSM-bouw met hun hoogteprofiel (stad_wegen.mjs)
+    if (rows.wegen) {
+      const { profileCity } = await import('./stad_wegen.mjs');
+      report.wegen = profileCity(d, rows.wegen, { lagen, extras, inside: (x, y) => cover.inside(x, y) });
+    }
+  };
 }
 export function parseLagen(raw) {
-  const ok = ['water', 'green', 'trees', 'buildings'];
+  const ok = ['water', 'green', 'trees', 'buildings', ...LAGEN_WEGEN];
   return String(raw || '').split(/[,\s]+/).map((w) => w.trim().toLowerCase()).filter((w) => ok.includes(w));
 }
 
