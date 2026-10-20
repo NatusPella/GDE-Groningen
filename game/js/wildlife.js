@@ -683,6 +683,7 @@ export function updateWildlife(dt, world) {
       if (world.time - a.deadAt > CARCASS_S) a.gone = true;
       continue;
     }
+    if (a.ontvoerd) continue;   // #333: de schotel heeft dit schaap (schaapontvoeringrt.js), het loopt niet meer
     switch (a.kind) {
       case 'seagull': updateSeagull(a, dt, world); break;
       case 'duck': updateDuck(a, dt); break;
