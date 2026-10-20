@@ -552,6 +552,18 @@ AHN heeft onder viaducten geen data: daar gelden de viaducthoogteregels van #8. 
 terrein; met `?terrain` volgen `groundHeightAt`/`surfaceAt` het terrein (profielen zijn relatief aan het
 terrein, `profile.mjs --terrain`). Zonder de vlag verandert er niets. Tests: `terrain_test.mjs`, `scripts/world/fetch_ahn_test.py`.
 
+Stand 20 oktober (#269, waarom `?terrain` nog niet standaard is). Een weg die geen dek is meet het terrein op zijn eigen hoekpunten, recht
+ertussen (`deckterrain.js roadTerrainAt`, `GameMap.terrainBase`); de 54 stadstegels hebben nu ook een AHN-raster (10 m, m NAP:
+`fetch_ahn.py --province --fetch --cell 10 --tiles <stad.json tiles>`; de 16 centrale stadstegels misten er een en gaven 0 m). De
+stadsoplosser kan over het terrein rekenen met `GDE_STAD_TERRAIN=1` (`stad_wegen.mjs`; `GDE_STAD_RING=0` slaat `ringHeights` over, want dat
+plateau is vlak gerekend en telt dubbel boven een terrein dat al een dijk is). Gemeten met `network_drive_test --terrain` (2584 ritten, 418
+watersteken van de ring): vlak opgelost 437 mislukt en 118 steken; terrein-opgelost met ringplateaus 471 en 168; terrein-opgelost zonder
+`ringHeights` 342 en 6. 258 verschillende faalplekken, 234 daarvan binnen 40 m van een brug of tunnel: het zijn de kunstwerken van de ring.
+Oorzaak: AHN heeft onder een viaduct geen data en vult het gat uit de omgeving, dus de weg die onder het viaduct doorgaat (Groningerweg onder de
+Noordzeeweg) klimt in het terrein op de dijk van 5 m en het dek zelf meet vanaf die dijk. Wat ontbreekt voor standaard: een terrein dat onder
+een kunstwerk de aanloop van de onderliggende weg volgt (en niet de dijk), en een ringoplosser die in absolute hoogtes rekent. Zolang dat er niet
+is, blijft `?terrain` een vlag; zonder de vlag verandert er niets.
+
 ## Samen spelen (issue #95)
 
 Achter `?coop`; zonder die vlag verandert er niets. In het pauzemenu staat dan het onderdeel "Samen spelen" (Watch Dogs 2-achtig): **Iemand uitnodigen** (host, speelt Tammo) of **Code of adres invoeren** (gast, speelt Tessa). Er is geen keuze per save of bij het starten. Iedereen houdt zijn eigen voortgang: de gast verlaat zijn wereld, speelt in die van de host en komt terug op zijn eigen plek; zijn geld, spullen en prestaties blijven van hem (de sessie schrijft zijn save niet: `saveGame()` doet niets bij `world.coopRole === 'client'`). Er is geen coöp-save; alleen `gde-coop-sessie` onthoudt de laatste code van een gast.
