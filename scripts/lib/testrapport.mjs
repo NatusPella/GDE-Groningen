@@ -8,6 +8,8 @@ export const FASEN = ['licht', 'zwaar', 'electron'];
 export const FASE_NAAM = { licht: 'Licht (modules, audits, tests)', zwaar: 'Zwaar (wereldchecks)', electron: 'Electron (smoke, verhaal, bot, beelden)' };
 export const MENS_ZIN = 'Niemand heeft dit rapport of deze beelden met eigen ogen bekeken: een geslaagde beeldcheck zegt alleen dat een beeld niet zwart, leeg of ongeldig is en niet sterk afwijkt van de vorige run, niet dat het er goed uitziet.';
 
+import { OORZAKEN } from './testoorzaken.mjs';
+
 export const isFout = (s) => s === 'FAIL' || s === 'TIMEOUT';
 
 // Maakt een foutregel vergelijkbaar tussen runs: tijden, getallen, tijdelijke mappen en hex-ids eruit.
@@ -218,6 +220,15 @@ export function renderMarkdown(report) {
     if (slecht.length) {
       o.push('### Mislukt', '', '| Item | Status | Duur | Wat |', '|---|---|---|---|');
       for (const i of slecht) o.push(`| ${cel(i.id)} | ${i.status}${d.nieuweFouten.includes(i.id) ? ' (nieuw)' : ''} | ${sec(i.secs)} | ${cel(i.detail).slice(0, 220)} |`);
+      o.push('');
+      o.push('Oorzaak per mislukt item (register in scripts/lib/testoorzaken.mjs):', '');
+      for (const i of slecht) o.push(`- \`${i.id}\`: ${OORZAKEN[i.id] ? `${OORZAKEN[i.id].soort}, ${OORZAKEN[i.id].tekst}` : 'oorzaak nog niet onderzocht'}`);
+      o.push('');
+    }
+    const bekend = p.items.filter((i) => OORZAKEN[i.id] && !isFout(i.status));
+    if (bekend.length) {
+      o.push('### Eerder instabiel of onterecht mislukt (nu niet)', '');
+      for (const i of bekend) o.push(`- \`${i.id}\` (${i.status}): ${OORZAKEN[i.id].soort}, ${OORZAKEN[i.id].tekst}`);
       o.push('');
     }
     const overgeslagen = p.items.filter((i) => i.status === 'SKIP');
