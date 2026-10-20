@@ -32,7 +32,8 @@ ok(BH.bagKey('NL.IMBAG.Pand.0014100000012345') === BH.bagKey('14100000012345'), 
 
 // the map
 const root = new URL('../game/', import.meta.url);
-const data = JSON.parse(fs.readFileSync(new URL('citymap.json', root)));
+const { loadCityData } = await import('./lib/loadworld.mjs');
+const data = await loadCityData({ extras: false });
 const B = data.buildings;
 const from = (s) => B.filter((b) => b.hsrc === s).length;
 ok(from('3dbag') / B.length > 0.9, 'nearly every building from the 3D BAG', `${from('3dbag')} of ${B.length}`);

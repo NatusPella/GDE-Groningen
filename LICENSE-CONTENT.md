@@ -90,7 +90,7 @@ EU. Users must also respect the terms of those providers where they apply.*
   logo in de promotiebeelden): alle rechten voorbehouden. Zie
   [Naam en logo](#naam-en-logo).
 - **Werk van anderen** houdt zijn eigen licentie: de kaartdata
-  (© OpenStreetMap-bijdragers, ODbL 1.0: `game/citymap.json`,
+  (© OpenStreetMap-bijdragers, ODbL 1.0: `game/stad.json`,
   `game/mapextras.json`, de kaarttegels, `data/`), de lettertypen
   (SIL Open Font License) en three.js (MIT). Zie [NOTICE.md](NOTICE.md) en
   [licenses/](licenses/).

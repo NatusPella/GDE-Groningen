@@ -230,8 +230,7 @@ function* finishWork(job) {
   }
 }
 
-function finishJob(B) {
-  const job = B.job;
+function makeGroup(B, job) {
   const group = new THREE.Group();
   group.name = B.name;
   for (const { geo, bk } of job.geos) {
@@ -243,6 +242,12 @@ function finishJob(B) {
     group.add(mesh);
   }
   group.matrixAutoUpdate = false;
+  return group;
+}
+
+function finishJob(B) {
+  const job = B.job;
+  const group = job.group || makeGroup(B, job);
   const c = job.c;
   unmerge(B, c);
   c.group = group;
@@ -265,7 +270,7 @@ function finishJob(B) {
 // an item must be within to be merged (default: the detail radius less a
 // margin), how many newcomers redo a merged cell (default 3), and the
 // item's distance (default: from its bounds' centre).
-export function createStaticBatcher(opts) {
+function createStaticBatcher(opts) {
   const B = { name: opts.name, bake: !!opts.bake, cells: new Map(), job: null, frame: 0, root: null, stats: { cells: 0, merged: 0, builds: 0, dropped: 0, ms: 0, frames: 0 } };
   const cell = opts.cell || CELL, minMembers = opts.minMembers || MIN_MEMBERS;
   const memberOk = (m, ctx, dist) => ctx.meshes.get(m.b) === m.mesh && !(ctx.hidden && ctx.hidden.has(m.b)) && m.mesh.parent && verOf(m.parts) === m.ver && opts.valid(m.b, m.mesh, ctx, dist);
@@ -307,7 +312,14 @@ export function createStaticBatcher(opts) {
       while (performance.now() < deadline && !(done = job.fin.next().done));
       if (!done) return;
       if (stale()) B.job = null;
-      else { finishJob(B); B.kick = true; }
+      else {
+        // a merged mesh with a material whose shaders are not linked yet draws only once they are (a first draw
+        // blocked the frame for 0.3 to 1 s, #247): compile it first, in the background, and wait up to 2 s
+        if (ctx.compile && !job.group) { job.group = makeGroup(B, job); ctx.compile(job.group); job.linkSince = performance.now(); }
+        if (job.group && ctx.ready && !ctx.ready(job.group) && performance.now() - job.linkSince < 2000) return;
+        finishJob(B);
+        B.kick = true;
+      }
       return;
     }
     if (B.frame % 8 && !B.kick) return;

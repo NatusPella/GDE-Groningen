@@ -257,7 +257,7 @@ export const STEPS = [
   M('M14', 'staart', 'De dijk', 'dijk', { built: true, reward: 1000,
     story: { intro: ['M14.1'], outro: ['M14.3'], replay: ['M14.4'] }, scenes: ['M14.1', 'M14.2', 'M14.3', 'M14.4'],
     lead: ['T', 'Zonsopgang op de dijk bij Bierum. Om acht uur legt Jelles deurwaarder beslag in Delfzijl. Wij zijn eerder bij de sluis.'] }),
-  A('T3', 'staart', 'De trein naar Winschoten', { type: 'train' }, { built: true, scenes: ['T3'],
+  A('T3', 'staart', 'De trein naar Winschoten', { type: 'reis', to: 'Winschoten', at: [53.1444, 7.0356], r: 400, scene: 'T3', from: 4 }, { built: true, scenes: ['T3'],
     lead: ['A', 'Van Delfzijl met de trein naar Winschoten. Daar is een kermis.'] }),
   M('M15', 'staart', 'Laag over het graan', 'graan', { built: true, reward: 900,
     story: { intro: ['M15.1'], outro: ['M15.3'], replay: ['M15.4'] }, scenes: ['M15.1', 'M15.2', 'M15.3', 'M15.4'],

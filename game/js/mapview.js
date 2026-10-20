@@ -1,4 +1,5 @@
 import { setMapOpenState } from './pausestate.js';
+import { sfxLinks } from './latehooks.js';
 import { onPaletteChange } from './a11y.js';
 import { pinchStep } from './touchlogic.js';
 import { MODES, roadAllowed, travelModeOf } from './roadaccess.js';
@@ -10,7 +11,8 @@ import { getGaragesForRender } from './garages.js';
 import { getHomeForRender, getHomeGarageForRender, getHomeMooringForRender, getHomeHelipadForRender } from './home.js';
 import { layerOn, setLayer as storeLayer } from './mapfilters.js';
 import { getHorecaForRender } from './horeca.js';
-import { getShopsForRender, getShopsDecluttered, SHOP_TYPES, storyTargetShop, drawStoryShopRing } from './shops.js';
+import { getShopsForRender, getShopsDecluttered, storyTargetShop, drawStoryShopRing } from './shops.js';
+import { SHOP_TYPES } from './shopdata.js';
 import { getOwnedVehiclesForMap } from './ownedvehicles.js';
 import { getPigeonSpotsForRender } from './pigeonspots.js';
 import { getHeliSpotsForRender, getHeliRunMarks } from './helirun.js';
@@ -29,7 +31,7 @@ import { getEierbalTips } from './furniture.js';
 import { drawRailsOnMap } from './railway.js';
 import { drawCountryBase, drawCountryDetail, villageLabels, syncMapPhase, MAP_STYLE } from './countrymap.js';
 import { drawProvinceBase, provinceMapOn, provinceMapBounds, onProvinceMapLoad } from './provincemap.js';
-import { ROAD_ORDER, ZOOM, EMPHASIS, roadWidthPx, baseFilter } from './mapstyle.js';
+import { ROAD_ORDER, ZOOM, EMPHASIS, INK, inkA, inkCss, roadWidthPx, layersAtZoom, modeLook, baseFilter } from './mapstyle.js';
 import { drawSea, drawOutside, regionLabels, regionEdgeLabels, areaNameAt } from './regions.js';
 import { borderPlaceLabels } from './borderplaces.js';
 import { worldPlaceLabels, worldPlacesReady } from './worldplaces.js';
@@ -43,7 +45,7 @@ import { getMissionLayer } from './missionmaplive.js';
 import { selectMapItems } from './missionmap.js';
 import { drawLayerAreas, drawLayerLines, layerCaption } from './missionmapdraw.js';
 import { getTodoItems, chooseTodo, mapIconUrl } from './todo.js';
-import { getMissionList } from './missions.js';
+import { getMissionList } from './missionquery.js';
 import { MEDALS } from './achievements.js';
 import { nicknameOf, FLAVOUR_MAP_PLACES } from './flavourlines.js';
 import {
@@ -70,7 +72,6 @@ const LEVEL_COUNT = 14;
 const levelZoom = (L) => Math.SQRT2 ** (L - L_BASE);
 const MID_ZOOM = ZOOM.mid;
 const NEAR_ZOOM = ZOOM.near;
-const BUILDING_ZOOM = ZOOM.building;
 const DRAG_PX = 4;
 const HOVER_PX = 12;
 const FOG_CELL = 50;
@@ -89,20 +90,20 @@ function injectStyles() {
   if (stylesInjected) return;
   stylesInjected = true;
   const style = document.createElement('style');
-  style.textContent = `
+  style.textContent = inkCss(`
     .mapview-overlay {
       position: fixed;
       inset: 4vh 4vw;
       display: none;
       flex-direction: column;
-      background: radial-gradient(ellipse at center, #17301f 0%, #0c140e 100%);
-      border: 2px solid #1e9e56;
+      background: radial-gradient(ellipse at center, ink(panelTop) 0%, ink(dark) 100%);
+      border: 2px solid ink(green);
       border-radius: 8px;
-      box-shadow: 0 8px 40px rgba(0, 0, 0, 0.6);
+      box-shadow: 0 8px 40px ink(black 0.6);
       z-index: ${OVERLAY_Z};
       pointer-events: none;
       font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif;
-      color: #f2f2f2;
+      color: ink(textBright);
       overflow: hidden;
     }
     .mapview-overlay.open { display: flex; }
@@ -119,34 +120,34 @@ function injectStyles() {
       padding: 8px 14px;
       letter-spacing: 1px;
       font-weight: bold;
-      color: #3fc97a;
-      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
-      border-bottom: 1px solid rgba(63, 201, 122, 0.35);
+      color: ink(greenLight);
+      text-shadow: 0 1px 3px ink(black 0.9);
+      border-bottom: 1px solid ink(greenLight 0.35);
       pointer-events: auto;
     }
     .mapview-title { font-size: 20px; white-space: nowrap; }
-    .mv-modenote { color: #f0ede4 !important; font-size: 14px !important; padding: 6px 4px 8px; }
+    .mv-modenote { color: ink(cream) !important; font-size: 14px !important; padding: 6px 4px 8px; }
     .mapview-search { position: relative; flex: 1; max-width: 340px; min-width: 140px; }
     .mapview-search input {
       width: 100%;
       box-sizing: border-box;
       font: 15px 'Arial Narrow', Arial, sans-serif;
       letter-spacing: 0.3px;
-      color: #f0ede4;
-      background: rgba(12, 20, 14, 0.85);
-      border: 1px solid rgba(63, 201, 122, 0.6);
+      color: ink(cream);
+      background: ink(dark 0.85);
+      border: 1px solid ink(greenLight 0.6);
       border-radius: 4px;
       padding: 6px 10px;
       outline: none;
     }
-    .mapview-search input:focus { border-color: #3fc97a; box-shadow: 0 0 0 2px rgba(63, 201, 122, 0.3); }
-    .mapview-search input::placeholder { color: rgba(240, 237, 228, 0.5); }
+    .mapview-search input:focus { border-color: ink(greenLight); box-shadow: 0 0 0 2px ink(greenLight 0.3); }
+    .mapview-search input::placeholder { color: ink(cream 0.5); }
     .mapview-results {
       position: absolute;
       left: 0; right: 0; top: calc(100% + 4px);
       margin: 0; padding: 4px 0; list-style: none;
-      background: rgba(12, 20, 14, 0.96);
-      border: 1px solid rgba(63, 201, 122, 0.6);
+      background: ink(dark 0.96);
+      border: 1px solid ink(greenLight 0.6);
       border-radius: 4px;
       z-index: 2;
       text-shadow: none;
@@ -155,22 +156,22 @@ function injectStyles() {
     .mapview-results li {
       display: flex; justify-content: space-between; gap: 10px;
       padding: 5px 10px; cursor: pointer;
-      font: 15px 'Arial Narrow', Arial, sans-serif; color: #f0ede4; letter-spacing: 0.3px;
+      font: 15px 'Arial Narrow', Arial, sans-serif; color: ink(cream); letter-spacing: 0.3px;
     }
-    .mapview-results li[aria-selected="true"], .mapview-results li:hover { background: #0f5c30; }
-    .mapview-results .kind { color: #3fc97a; font-size: 13px; }
-    .mapview-results .empty { color: rgba(240, 237, 228, 0.6); cursor: default; }
+    .mapview-results li[aria-selected="true"], .mapview-results li:hover { background: ink(greenDark); }
+    .mapview-results .kind { color: ink(greenLight); font-size: 13px; }
+    .mapview-results .empty { color: ink(cream 0.6); cursor: default; }
     .mapview-btn {
       font: inherit; font-size: 15px; letter-spacing: 1px; white-space: nowrap;
-      color: #0c140e; background: #1e9e56; border: none; border-radius: 4px;
+      color: ink(dark); background: ink(green); border: none; border-radius: 4px;
       padding: 6px 12px; cursor: pointer;
     }
-    .mapview-btn:hover { background: #3fc97a; }
-    .mapview-btn.ghost { color: #f0ede4; background: transparent; border: 1px solid rgba(63, 201, 122, 0.6); }
-    .mapview-btn.ghost:hover { border-color: #3fc97a; color: #3fc97a; }
+    .mapview-btn:hover { background: ink(greenLight); }
+    .mapview-btn.ghost { color: ink(cream); background: transparent; border: 1px solid ink(greenLight 0.6); }
+    .mapview-btn.ghost:hover { border-color: ink(greenLight); color: ink(greenLight); }
     .mapview-btn[hidden] { display: none; }
-    .mapview-btn:focus-visible { outline: 3px solid #f0ede4; outline-offset: 2px; }
-    .mapview-route { margin-left: auto; font-size: 16px; color: #f0ede4; white-space: nowrap; }
+    .mapview-btn:focus-visible { outline: 3px solid ink(cream); outline-offset: 2px; }
+    .mapview-route { margin-left: auto; font-size: 16px; color: ink(cream); white-space: nowrap; }
     .mapview-route .user { color: var(--mk-user, ${ROUTE_COLORS.user}); }
     .mapview-route .mission { color: var(--mk-mission, ${ROUTE_COLORS.mission}); }
     .mapview-route .job { color: var(--mk-job, ${ROUTE_COLORS.job}); }
@@ -181,11 +182,11 @@ function injectStyles() {
       padding: 6px 14px;
       font: 13px 'Arial Narrow', Arial, sans-serif;
       letter-spacing: 0.3px;
-      color: rgba(240, 237, 228, 0.75);
-      border-top: 1px solid rgba(63, 201, 122, 0.35);
+      color: ink(cream 0.75);
+      border-top: 1px solid ink(greenLight 0.35);
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
-    .mapview-footer b { color: #3fc97a; font-weight: normal; }
+    .mapview-footer b { color: ink(greenLight); font-weight: normal; }
     .mapview-body { position: relative; flex: 1; min-height: 0; display: flex; }
     .mapview-canvas {
       flex: 1; min-width: 0; height: 100%; display: block;
@@ -199,42 +200,42 @@ function injectStyles() {
     }
     .mapview-zoom button {
       width: 30px; height: 30px; font: bold 20px 'Bebas Neue', 'Arial Narrow', Arial, sans-serif;
-      color: #3fc97a; background: rgba(12, 20, 14, 0.85);
-      border: 1px solid rgba(63, 201, 122, 0.6); border-radius: 4px; cursor: pointer; line-height: 1;
+      color: ink(greenLight); background: ink(dark 0.85);
+      border: 1px solid ink(greenLight 0.6); border-radius: 4px; cursor: pointer; line-height: 1;
     }
-    .mapview-zoom button:hover { border-color: #3fc97a; background: #0f5c30; }
+    .mapview-zoom button:hover { border-color: ink(greenLight); background: ink(greenDark); }
     .mapview-osm {
       position: absolute; left: 12px; bottom: 12px; pointer-events: none;
-      padding: 2px 8px; border-radius: 3px; background: rgba(12, 20, 14, 0.7);
-      font: 12px 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.2px; color: rgba(240, 237, 228, 0.7);
+      padding: 2px 8px; border-radius: 3px; background: ink(dark 0.7);
+      font: 12px 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.2px; color: ink(cream 0.7);
     }
     .mapview-tp {
       position: absolute; top: 12px; left: 50%; transform: translateX(-50%); z-index: 3; pointer-events: none;
-      padding: 7px 16px 5px; border-radius: 999px; background: linear-gradient(180deg, #3fc97a, #1e9e56); color: #0c140e;
-      font: 19px 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; letter-spacing: 1px; box-shadow: 0 4px 14px rgba(0,0,0,0.45);
+      padding: 7px 16px 5px; border-radius: 999px; background: linear-gradient(180deg, ink(greenLight), ink(green)); color: ink(dark);
+      font: 19px 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; letter-spacing: 1px; box-shadow: 0 4px 14px ink(black 0.45);
     }
     .mapview-tp[hidden] { display: none; }
     .mapview-overlay.teleporting .mapview-canvas { cursor: crosshair; }
     .mapview-tooltip {
       position: absolute; pointer-events: none;
-      background: rgba(12, 20, 14, 0.92);
-      border: 1px solid rgba(63, 201, 122, 0.6);
-      border-radius: 4px; padding: 3px 8px; font-size: 14px; letter-spacing: 0.3px; color: #f2f2f2;
+      background: ink(dark 0.92);
+      border: 1px solid ink(greenLight 0.6);
+      border-radius: 4px; padding: 3px 8px; font-size: 14px; letter-spacing: 0.3px; color: ink(textBright);
       transform: translate(12px, -50%); white-space: nowrap; display: none;
     }
-    .mapview-tooltip .sub { color: #3fc97a; margin-left: 6px; }
+    .mapview-tooltip .sub { color: ink(greenLight); margin-left: 6px; }
     .mapview-legend {
       flex: 0 0 auto; width: 280px; margin: 12px 12px 12px 0; padding: 12px;
       align-self: flex-start; max-height: calc(100% - 24px); overflow-y: auto; box-sizing: border-box;
       display: flex; flex-direction: column; gap: 8px;
-      background: rgba(12, 20, 14, 0.8);
-      border: 1px solid rgba(63, 201, 122, 0.35); border-radius: 4px; pointer-events: auto;
+      background: ink(dark 0.8);
+      border: 1px solid ink(greenLight 0.35); border-radius: 4px; pointer-events: auto;
     }
-    .mapview-legend h3 { margin: 0 2px; font-size: 24px; font-weight: normal; letter-spacing: 1px; color: #3fc97a; }
-    .mapview-legend .hint { margin: 0 2px; font: 13px 'Arial Narrow', Arial, sans-serif; color: rgba(240, 237, 228, 0.6); }
-    .mapview-legend .mv-grp { border-radius: 10px; background: rgba(255, 255, 255, 0.035); border: 1px solid rgba(255, 255, 255, 0.08); }
-    .mapview-legend .mv-grp-head { display: flex; justify-content: space-between; width: 100%; padding: 8px 12px; background: none; border: 0; cursor: pointer; font: 16px 'Bebas Neue', 'Arial Narrow', sans-serif; letter-spacing: 1px; color: rgba(240, 237, 228, 0.62); }
-    .mapview-legend .mv-grp-head:focus-visible { outline: 2px solid #f0ede4; }
+    .mapview-legend h3 { margin: 0 2px; font-size: 24px; font-weight: normal; letter-spacing: 1px; color: ink(greenLight); }
+    .mapview-legend .hint { margin: 0 2px; font: 13px 'Arial Narrow', Arial, sans-serif; color: ink(cream 0.6); }
+    .mapview-legend .mv-grp { border-radius: 10px; background: ink(white 0.035); border: 1px solid ink(white 0.08); }
+    .mapview-legend .mv-grp-head { display: flex; justify-content: space-between; width: 100%; padding: 8px 12px; background: none; border: 0; cursor: pointer; font: 16px 'Bebas Neue', 'Arial Narrow', sans-serif; letter-spacing: 1px; color: ink(cream 0.62); }
+    .mapview-legend .mv-grp-head:focus-visible { outline: 2px solid ink(cream); }
     .mapview-legend ul { list-style: none; margin: 0; padding: 0 8px 8px; }
     .mapview-legend ul[hidden] { display: none; }
     .mapview-legend li {
@@ -242,44 +243,44 @@ function injectStyles() {
       padding: 4px; border-radius: 6px; user-select: none; transition: background var(--dur-fast, 120ms);
     }
     .mapview-legend li[role="switch"] { cursor: pointer; }
-    .mapview-legend li[role="switch"]:hover { background: rgba(63, 201, 122, 0.12); }
-    .mapview-legend li[role="switch"]:focus-visible { outline: 2px solid #f0ede4; }
+    .mapview-legend li[role="switch"]:hover { background: ink(greenLight 0.12); }
+    .mapview-legend li[role="switch"]:focus-visible { outline: 2px solid ink(cream); }
     .mapview-legend li[aria-checked="false"] > canvas, .mapview-legend li[aria-checked="false"] > span:not(.chk) { opacity: 0.45; }
-    .mapview-legend .chk { position: relative; width: 38px; height: 22px; border-radius: 11px; background: rgba(255, 255, 255, 0.12); transition: background var(--dur-base, 200ms) var(--ease-out, ease); }
-    .mapview-legend .chk::after { content: ''; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; border-radius: 50%; background: #f0ede4; transition: transform var(--dur-base, 200ms) var(--ease-pop, ease); }
-    .mapview-legend li[aria-checked="true"] .chk { background: #1e9e56; }
+    .mapview-legend .chk { position: relative; width: 38px; height: 22px; border-radius: 11px; background: ink(white 0.12); transition: background var(--dur-base, 200ms) var(--ease-out, ease); }
+    .mapview-legend .chk::after { content: ''; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; border-radius: 50%; background: ink(cream); transition: transform var(--dur-base, 200ms) var(--ease-pop, ease); }
+    .mapview-legend li[aria-checked="true"] .chk { background: ink(green); }
     .mapview-legend li[aria-checked="true"] .chk::after { transform: translateX(16px); }
-    .mapview-legend .always { font: 12px 'Arial Narrow', Arial, sans-serif; color: rgba(240, 237, 228, 0.55); }
+    .mapview-legend .always { font: 12px 'Arial Narrow', Arial, sans-serif; color: ink(cream 0.55); }
     .mapview-legend canvas { width: 30px; height: 30px; }
-    .mapview-legend .note { color: rgba(240, 237, 228, 0.6); font: 12px 'Arial Narrow', Arial, sans-serif; }
+    .mapview-legend .note { color: ink(cream 0.6); font: 12px 'Arial Narrow', Arial, sans-serif; }
     .mapview-legend .note:empty { display: none; }
     .mapview-legend .always { display: none; }
     .mapview-card {
       position: absolute; z-index: 3; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 12px; width: 360px; max-width: calc(100% - 16px); box-sizing: border-box;
-      padding: 12px; border-radius: 12px; background: rgba(10, 19, 13, 0.94); border: 1px solid rgba(63, 201, 122, 0.45); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      padding: 12px; border-radius: 12px; background: ink(panelDeep 0.94); border: 1px solid ink(greenLight 0.45); box-shadow: 0 10px 30px ink(black 0.5);
       pointer-events: auto; animation: mv-card-in var(--dur-slow, 320ms) var(--ease-out, ease-out);
     }
     .mapview-card[hidden] { display: none; }
     @keyframes mv-card-in { from { opacity: 0; transform: translateX(-10px); } }
-    .mapview-card .mv-ico { width: 52px; height: 52px; border-radius: 10px; display: grid; place-items: center; background: #10261a; border: 1px solid rgba(63, 201, 122, 0.16); }
+    .mapview-card .mv-ico { width: 52px; height: 52px; border-radius: 10px; display: grid; place-items: center; background: ink(panelCard); border: 1px solid ink(greenLight 0.16); }
     .mapview-card .mv-ico img { width: 36px; height: 36px; }
     .mapview-card > div { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
     .mapview-card b { font-weight: normal; font-size: 22px; letter-spacing: 1px; line-height: 1.05; }
-    .mapview-card small, .mapview-card .mv-rec { font: 13px 'Arial Narrow', Arial, sans-serif; color: rgba(240, 237, 228, 0.65); letter-spacing: 0.2px; }
+    .mapview-card small, .mapview-card .mv-rec { font: 13px 'Arial Narrow', Arial, sans-serif; color: ink(cream 0.65); letter-spacing: 0.2px; }
     .mapview-card .mv-reis { display: flex; flex-direction: column; gap: 3px; margin: 4px 0; }
-    .mapview-card .mv-reisrij { text-align: left; font: 13px Arial, sans-serif; color: #f0ede4; background: rgba(255, 255, 255, 0.05); border: 0; border-radius: 4px; padding: 5px 8px; cursor: pointer; }
-    .mapview-card .mv-reisrij.sel { background: rgba(95, 180, 217, 0.22); }
+    .mapview-card .mv-reisrij { text-align: left; font: 13px Arial, sans-serif; color: ink(cream); background: ink(white 0.05); border: 0; border-radius: 4px; padding: 5px 8px; cursor: pointer; }
+    .mapview-card .mv-reisrij.sel { background: ink(selected 0.22); }
     .mapview-card .mv-reisrij[aria-disabled] { opacity: 0.55; }
     .mapview-card .mv-rec { display: flex; align-items: center; gap: 8px; }
     .mapview-card .mv-pips { display: inline-flex; gap: 4px; }
     .mapview-card .mv-pip { display: inline-grid; place-items: center; width: 18px; height: 18px; box-sizing: border-box; border-radius: 50%; border: 1.5px solid; font: 12px 'Bebas Neue', sans-serif; padding-top: 1px; }
-    .mapview-card .mv-pip[data-m="1"] { color: #c8834a; } .mapview-card .mv-pip[data-m="2"] { color: #cfd6dc; } .mapview-card .mv-pip[data-m="3"] { color: #e8c93a; }
-    .mapview-card .mv-pip[data-on] { color: #0c140e; border-color: transparent; }
-    .mapview-card .mv-pip[data-m="1"][data-on] { background: #c8834a; } .mapview-card .mv-pip[data-m="2"][data-on] { background: #cfd6dc; } .mapview-card .mv-pip[data-m="3"][data-on] { background: #e8c93a; }
+    .mapview-card .mv-pip[data-m="1"] { color: ink(medalBronze); } .mapview-card .mv-pip[data-m="2"] { color: ink(medalSilver); } .mapview-card .mv-pip[data-m="3"] { color: ink(yellow); }
+    .mapview-card .mv-pip[data-on] { color: ink(dark); border-color: transparent; }
+    .mapview-card .mv-pip[data-m="1"][data-on] { background: ink(medalBronze); } .mapview-card .mv-pip[data-m="2"][data-on] { background: ink(medalSilver); } .mapview-card .mv-pip[data-m="3"][data-on] { background: ink(yellow); }
     .mapview-card .mv-btns { display: flex; gap: 6px; margin-top: 4px; }
     @media (max-width: 900px) { .mapview-footer { display: none; } }
     @media (max-width: 700px) { .mapview-legend { display: none; } .mapview-title { display: none; } }
-  `;
+  `);
   document.head.appendChild(style);
 }
 
@@ -504,6 +505,7 @@ function residentRects(x0, y0, x1, y1) {
 
 function renderTile(L, tx, ty) {
   const z = levelZoom(L);
+  const lay = layersAtZoom(z); // the layer rule (mapstyle.js)
   const s = state.baseScale * z * state.tileDpr;
   const tws = TILE_PX / s;
   const [minx, miny, maxx, maxy] = state.bounds;
@@ -530,7 +532,7 @@ function renderTile(L, tx, ty) {
     c.save();
     c.filter = baseFilter(); // the pyramid is drawn in day colours
     // up close the vectors of the streamed tiles replace the base map's coarse pixels there
-    const res = z >= MID_ZOOM ? residentRects(wx0, wy0, wx0 + tws, wy0 + tws) : null;
+    const res = lay.streamedVectors ? residentRects(wx0, wy0, wx0 + tws, wy0 + tws) : null;
     if (res && res.length) {
       c.save();
       const clip = new Path2D();
@@ -545,7 +547,7 @@ function renderTile(L, tx, ty) {
 
   // the city data only exists inside the real bounds (with the province on:
   // whatever tiles streamed in, up close)
-  const wide = prov && z >= MID_ZOOM;
+  const wide = prov && lay.streamedVectors;
   const qx0 = wide ? wx0 : Math.max(wx0, rx0 - 50), qy0 = wide ? wy0 : Math.max(wy0, ry0 - 50);
   const qx1 = wide ? wx0 + tws : Math.min(wx0 + tws, rx1 + 50), qy1 = wide ? wy0 + tws : Math.min(wy0 + tws, ry1 + 50);
   const view = qx0 < qx1 && qy0 < qy1 ? state.map.queryView(qx0, qy0, qx1, qy1) : { roads: [], buildings: [], water: [], green: [], trees: [] };
@@ -556,18 +558,19 @@ function renderTile(L, tx, ty) {
   for (const g of view.green) fillPoly(c, g.pts);
 
   const mode = state.mode || 'lopen';
-  // per travel mode: the water stands out for a boat, the land steps back
-  const landA = mode === 'boot' ? 0.4 : mode === 'lucht' ? 0.55 : mode === 'ov' ? 0.6 : 1;
+  // the layer rule of this zoom and travel mode (mapstyle.js): the water stands out for a boat, the land steps back
+  const look = modeLook(mode);
+  const landA = look.land;
   c.fillStyle = MAP_STYLE.water;
   c.strokeStyle = MAP_STYLE.waterEdge;
-  c.lineWidth = px((z < MID_ZOOM ? 1.2 : 0.8) * (mode === 'boot' ? 2 : 1));
+  c.lineWidth = px(lay.waterEdgePx * look.waterEdge);
   c.lineJoin = 'round';
   for (const w of view.water) {
     fillPoly(c, w.pts);
     if (w.pts.length >= 3) c.stroke();
   }
 
-  if (z >= BUILDING_ZOOM && layerOn('buildings')) {
+  if (lay.buildings && layerOn('buildings')) {
     c.globalAlpha = landA;
     for (const b of view.buildings) {
       c.fillStyle = b.landmark ? MAP_STYLE.church : MAP_STYLE.building;
@@ -578,8 +581,7 @@ function renderTile(L, tx, ty) {
 
   const roads = view.roads.filter((r) => {
     if (r.pts.length < 2) return false;
-    if (z < MID_ZOOM) return r.cat === 'major' || r.cat === 'normal';
-    return true;
+    return lay.roads.includes(r.cat);
   }).sort((a, b) => ROAD_ORDER[a.cat] - ROAD_ORDER[b.cat]);
   c.lineCap = 'round';
   for (const r of roads) {
@@ -587,14 +589,14 @@ function renderTile(L, tx, ty) {
     c.beginPath();
     c.moveTo(r.pts[0][0], r.pts[0][1]);
     for (let i = 1; i < r.pts.length; i++) c.lineTo(r.pts[i][0], r.pts[i][1]);
-    if (r.bridge && z >= MID_ZOOM) {
+    if (r.bridge && lay.bridgeCasing) {
       c.strokeStyle = EMPHASIS.bridgeCasing;
       c.lineWidth = px(wpx + 2);
       c.stroke();
     }
     const allowed = roadAllowed(r, mode);
     // the roads for your way of travel stand out; the ones that are not for you step back
-    let a = z < MID_ZOOM && r.cat === 'normal' ? 0.6 : 1;
+    let a = r.cat === 'normal' ? lay.normalRoadAlpha : 1;
     a *= landA;
     let wpx2 = wpx, col = roadColors(r.cat);
     if (mode === 'lopen' && r.cat === 'foot') { col = EMPHASIS.foot; wpx2 = wpx * 1.4; }
@@ -616,7 +618,7 @@ function renderTile(L, tx, ty) {
     }
   }
   drawCountryDetail(c, wx0, wy0, wx0 + tws, wy0 + tws, cssPerM, MAP_STYLE);
-  drawRailsOnMap(c, state.map, wx0, wy0, wx0 + tws, wy0 + tws, px((z < MID_ZOOM ? 1.6 : 2.6) * (mode === 'ov' ? 1.8 : 1)));
+  drawRailsOnMap(c, state.map, wx0, wy0, wx0 + tws, wy0 + tws, px(lay.railPx * look.rail));
   // what lies outside the province darker, with its land borders
   if (prov) drawOutside(c, [wx0, wy0, wx0 + tws, wy0 + tws], px);
   return canvas;
@@ -754,7 +756,7 @@ function collides(boxes, b) {
 function drawLabel(ctx, text, x, y, color, align) {
   ctx.textAlign = align;
   ctx.lineWidth = 3;
-  ctx.strokeStyle = 'rgba(12, 20, 14, 0.85)';
+  ctx.strokeStyle = inkA('dark', 0.85);
   ctx.strokeText(text, x, y);
   ctx.fillStyle = color;
   ctx.fillText(text, x, y);
@@ -784,12 +786,13 @@ function roadRuns(road) {
 function drawStreetNames(ctx, boxes) {
   const [x0, y0, x1, y1] = viewRect(-20);
   const roads = state.map.queryView(x0, y0, x1, y1).roads;
-  const fontPx = state.zoom >= 8 ? 14 : 12;
+  const names = layersAtZoom(state.zoom).labels;
+  const fontPx = names.streetPx;
   ctx.font = `${fontPx}px ${FONT}`;
   const cands = [];
   for (const r of roads) {
     if (!r.name || r.cat === 'foot') continue;
-    if (r.cat === 'cycle' && state.zoom < 8) continue;
+    if (r.cat === 'cycle' && !names.cycleStreets) continue;
     if (r._labelRun === undefined) {
       let best = null;
       for (const run of roadRuns(r)) if (!best || run.len > best.len) best = run;
@@ -827,7 +830,7 @@ function drawStreetNames(ctx, boxes) {
     ctx.translate(sx, sy);
     ctx.rotate(ang);
     ctx.textBaseline = 'middle';
-    drawLabel(ctx, c.r.name, 0, 1, c.r.cat === 'major' ? '#f0ede4' : 'rgba(240, 237, 228, 0.85)', 'center');
+    drawLabel(ctx, c.r.name, 0, 1, c.r.cat === 'major' ? INK.cream : inkA('cream', 0.85), 'center');
     ctx.restore();
   }
 }
@@ -836,6 +839,7 @@ function drawStaticOverlay(ctx) {
   const hover = [];
   const boxes = [];
   const z = state.zoom;
+  const names = layersAtZoom(z).labels; // which names show at this zoom (mapstyle.js)
   const onScreen = (sx, sy, m = 20) => sx > -m && sy > -m && sx < state.cw + m && sy < state.ch + m;
 
   if (layerOn('landmark')) {
@@ -852,21 +856,21 @@ function drawStaticOverlay(ctx) {
   }
 
   // region names (Friesland, Drenthe, Duitsland, the seas) under the places
-  if (provinceMapOn() && z < 6) {
+  if (provinceMapOn() && names.regions) {
     const [rx0, ry0, rx1, ry1] = viewRect();
     ctx.textBaseline = 'middle';
     ctx.textAlign = 'center';
     const named = new Set();
     // (the right edge is pulled in by 8%: a clamped name at the bottom right would sit under the zoom buttons)
     for (const r of regionLabels(rx0, ry0, rx1 - (rx1 - rx0) * 0.08, ry1, 0.1)) {
-      if (r.id === 'groningen' && z > 1.6) continue;
+      if (r.id === 'groningen' && !names.cityRegion) continue;
       const [sx, sy] = toScreen(r.x, r.y);
       const size = Math.round(r.big ? 30 : r.land ? 28 : 24);
       ctx.font = `${size}px ${FONT}`;
       const label = r.name.toUpperCase().split('').join(' ');
       const w = ctx.measureText(label).width;
-      const a = Math.min(0.55, 0.2 + z * 0.15);
-      ctx.fillStyle = r.land ? `rgba(240, 237, 228, ${a.toFixed(2)})` : `rgba(190, 225, 245, ${(a + 0.1).toFixed(2)})`;
+      const a = names.regionAlpha;
+      ctx.fillStyle = r.land ? inkA('cream', a.toFixed(2)) : inkA('seaLabel', (a + 0.1).toFixed(2));
       ctx.fillText(label, sx, sy);
       boxes.push([sx - w / 2, sy - size / 2, sx + w / 2, sy + size / 2]);
       named.add(r.id);
@@ -883,7 +887,7 @@ function drawStaticOverlay(ctx) {
       const box = [sx - w / 2, sy - 10, sx + w / 2, sy + 10];
       if (collides(boxes, box)) continue;
       boxes.push(box);
-      ctx.fillStyle = r.land ? 'rgba(240, 237, 228, 0.4)' : 'rgba(190, 225, 245, 0.5)';
+      ctx.fillStyle = r.land ? inkA('cream', 0.4) : inkA('seaLabel', 0.5);
       ctx.fillText(label, sx, sy);
     }
   }
@@ -899,35 +903,35 @@ function drawStaticOverlay(ctx) {
         if (v.rank >= 5 && v.x > cx0 && v.x < cx1 && v.y > cy0 && v.y < cy1) continue;
         const [sx, sy] = toScreen(v.x, v.y);
         const big = v.rank <= 1;
-        ctx.font = `${big ? 16 : z < MID_ZOOM ? 12 : 14}px ${FONT}`;
+        ctx.font = `${big ? 16 : names.placePx}px ${FONT}`;
         const label = v.name.toUpperCase();
         const w = ctx.measureText(label).width;
         const box = [sx - w / 2 - 2, sy - 8, sx + w / 2 + 2, sy + 8];
         if (collides(boxes, box)) continue;
         boxes.push(box);
-        drawLabel(ctx, label, sx, sy, big ? '#f5f0e6' : 'rgba(240, 237, 228, 0.82)', 'center');
+        drawLabel(ctx, label, sx, sy, big ? INK.paper : inkA('cream', 0.82), 'center');
         hover.push({ sx, sy, name: v.name, sub: v.rank >= 5 ? 'Wijk' : v.kind === 'city' ? 'Stad' : v.kind === 'town' ? 'Plaats' : v.kind === 'hamlet' ? 'Buurtschap' : 'Dorp' });
       }
     } else {
-      ctx.font = `${z < MID_ZOOM ? 12 : 14}px ${FONT}`;
+      ctx.font = `${names.placePx}px ${FONT}`;
       for (const v of villageLabels(vx0, vy0, vx1, vy1)) {
-        if ((v.kind === 'hamlet' || v.kind === 'quarter') && z < MID_ZOOM) continue;
+        if ((v.kind === 'hamlet' || v.kind === 'quarter') && !names.hamlets) continue;
         const [sx, sy] = toScreen(v.x, v.y);
         const label = v.name.toUpperCase();
         const w = ctx.measureText(label).width;
         const box = [sx - w / 2 - 2, sy - 8, sx + w / 2 + 2, sy + 8];
         if (collides(boxes, box)) continue;
         boxes.push(box);
-        drawLabel(ctx, label, sx, sy, 'rgba(240, 237, 228, 0.8)', 'center');
+        drawLabel(ctx, label, sx, sy, inkA('cream', 0.8), 'center');
         hover.push({ sx, sy, name: v.name, sub: 'Dorp in het Ommeland' });
       }
     }
   }
 
   // the neighbour villages outside the province, dimmed and not clickable (#237)
-  if (provinceMapOn() && z < 6) {
+  if (provinceMapOn() && names.neighbours) {
     const [nx0, ny0, nx1, ny1] = viewRect(0);
-    ctx.font = `${z < MID_ZOOM ? 12 : 14}px ${FONT}`;
+    ctx.font = `${names.placePx}px ${FONT}`;
     ctx.textBaseline = 'middle';
     for (const v of borderPlaceLabels(nx0, ny0, nx1, ny1, [], { zoom: z, max: 40, gap: 70 / state.scale })) {
       const [sx, sy] = toScreen(v.x, v.y);
@@ -937,14 +941,14 @@ function drawStaticOverlay(ctx) {
       const box = [sx - w / 2 - 2, sy - 8, sx + w / 2 + 2, sy + 8];
       if (collides(boxes, box)) continue;
       boxes.push(box);
-      drawLabel(ctx, label, sx, sy, 'rgba(240, 237, 228, 0.45)', 'center');
+      drawLabel(ctx, label, sx, sy, inkA('cream', 0.45), 'center');
     }
   }
 
-  if (layerOn('wijken') && z < 6) {
-    ctx.font = `${z < MID_ZOOM ? 12 : 15}px ${FONT}`;
+  if (layerOn('wijken') && names.wijken) {
+    ctx.font = `${names.wijkPx}px ${FONT}`;
     ctx.textBaseline = 'middle';
-    const alpha = z < 3 ? 0.55 : 0.55 - (z - 3) * 0.12;
+    const alpha = names.wijkAlpha;
     for (const p of state.map.meta.neighbourhoodPoints || []) {
       const [sx, sy] = toScreen(p.x, p.y);
       if (!onScreen(sx, sy, 80)) continue;
@@ -955,18 +959,18 @@ function drawStaticOverlay(ctx) {
       boxes.push(box);
       // after dark a few wijken carry a warning (muggingrules.js): amber name and a triangle
       const warn = warnsOn(p.name, ((state.world.clock % 24) + 24) % 24);
-      drawLabel(ctx, label, sx, sy, warn ? `rgba(255, 190, 70, ${Math.max(0.85, alpha).toFixed(2)})` : `rgba(240, 237, 228, ${alpha.toFixed(2)})`, 'center');
+      drawLabel(ctx, label, sx, sy, warn ? inkA('amber', Math.max(0.85, alpha).toFixed(2)) : inkA('cream', alpha.toFixed(2)), 'center');
       if (warn) {
         const tx = sx - w / 2 - 11;
         ctx.beginPath(); ctx.moveTo(tx, sy - 6); ctx.lineTo(tx + 6, sy + 5); ctx.lineTo(tx - 6, sy + 5); ctx.closePath();
-        ctx.fillStyle = '#ffbe46'; ctx.fill(); ctx.lineWidth = 1.5; ctx.strokeStyle = 'rgba(12, 20, 14, 0.9)'; ctx.stroke();
-        ctx.fillStyle = '#1c1408'; ctx.fillRect(tx - 0.7, sy - 2.5, 1.4, 4); ctx.fillRect(tx - 0.7, sy + 2.3, 1.4, 1.4);
+        ctx.fillStyle = INK.amber; ctx.fill(); ctx.lineWidth = 1.5; ctx.strokeStyle = inkA('dark', 0.9); ctx.stroke();
+        ctx.fillStyle = INK.amberInk; ctx.fillRect(tx - 0.7, sy - 2.5, 1.4, 4); ctx.fillRect(tx - 0.7, sy + 2.3, 1.4, 1.4);
       }
       hover.push({ sx, sy, name: p.name, sub: warn ? `Wijk · 's nachts opletten: ${riskWhy(p.name)}` : 'Wijk', teleport: { x: p.x, y: p.y, name: p.name } });
     }
   }
 
-  if (layerOn('streets') && z >= NEAR_ZOOM) drawStreetNames(ctx, boxes);
+  if (layerOn('streets') && names.streets) drawStreetNames(ctx, boxes);
 
   const sc = mapIconScale(z);
   if (layerOn('horeca') && mapKindVisible('horeca', z)) {
@@ -995,14 +999,14 @@ function drawStaticOverlay(ctx) {
       const [sx, sy] = toScreen(l.x, l.y);
       if (!onScreen(sx, sy, 120)) continue;
       drawMapIcon(ctx, 'landmark', sx, sy, sc, { t: 0 });
-      drawLabel(ctx, l.name, sx + 6 + 5 * sc, sy + 1, '#f5f0e6', 'left');
+      drawLabel(ctx, l.name, sx + 6 + 5 * sc, sy + 1, INK.paper, 'left');
     }
     // nicknamed buildings and the old Oosterpark (flavourlines.js)
     ctx.font = 'italic 13px ' + FONT;
     for (const f of FLAVOUR_MAP_PLACES) {
       const [sx, sy] = toScreen(f.x, f.y);
-      if (!onScreen(sx, sy, 120) || z < MID_ZOOM) continue;
-      drawLabel(ctx, f.name, sx, sy, 'rgba(245, 226, 170, 0.9)', 'center');
+      if (!onScreen(sx, sy, 120) || !names.flavour) continue;
+      drawLabel(ctx, f.name, sx, sy, inkA('flavour', 0.9), 'center');
       hover.push({ sx, sy, name: f.name, sub: f.sub });
     }
   }
@@ -1131,10 +1135,10 @@ function drawDynamicMarkers(ctx, world) {
       ctx.beginPath();
       ctx.arc(sx, sy, Math.max(5, 11 * state.scale), 0, Math.PI * 2);
       ctx.lineWidth = r.state === 'next' ? 3 : 2;
-      ctx.strokeStyle = r.state === 'next' ? '#ffc21a' : 'rgba(255,233,160,0.8)';
+      ctx.strokeStyle = r.state === 'next' ? INK.ringNext : inkA('ringLater', 0.8);
       ctx.stroke();
     }
-    for (const [q, col] of [[hm.pad, '#1e9e56'], [hm.balloon, '#ff7ab6']]) {
+    for (const [q, col] of [[hm.pad, INK.green], [hm.balloon, INK.balloon]]) {
       if (!q) continue;
       const [sx, sy] = toScreen(q.x, q.y);
       ctx.beginPath();
@@ -1142,7 +1146,7 @@ function drawDynamicMarkers(ctx, world) {
       ctx.fillStyle = col;
       ctx.fill();
       ctx.lineWidth = 2;
-      ctx.strokeStyle = '#f0ede4';
+      ctx.strokeStyle = INK.cream;
       ctx.stroke();
     }
     ctx.restore();
@@ -1182,7 +1186,7 @@ function drawDynamicMarkers(ctx, world) {
     if (cap) {
       ctx.save();
       ctx.font = 'bold 14px sans-serif';
-      drawLabel(ctx, `${layer.title ? layer.title + ': ' : ''}${cap}`, state.cw / 2, 56, '#f0ede4', 'center');
+      drawLabel(ctx, `${layer.title ? layer.title + ': ' : ''}${cap}`, state.cw / 2, 56, INK.cream, 'center');
       ctx.restore();
     }
   }
@@ -1199,7 +1203,7 @@ function drawDynamicMarkers(ctx, world) {
       const [sx, sy] = toScreen(wp.x, wp.y);
       ctx.beginPath();
       ctx.arc(sx, sy - 8 * ICON, 6 + k * 18, 0, Math.PI * 2);
-      ctx.strokeStyle = `rgba(63, 201, 122, ${(0.6 * (1 - k)).toFixed(3)})`;
+      ctx.strokeStyle = inkA('greenLight', (0.6 * (1 - k)).toFixed(3));
       ctx.lineWidth = 2.5;
       ctx.stroke();
     }
@@ -1237,7 +1241,7 @@ function drawFullRoute(ctx, world, t, route) {
     ctx.setLineDash([2, 14]);
     ctx.lineDashOffset = -t * 18;
     ctx.lineWidth = Math.max(1.5, width * 0.35);
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.55)';
+    ctx.strokeStyle = inkA('white', 0.55);
     ctx.stroke();
     ctx.restore();
     return;
@@ -1253,7 +1257,7 @@ function drawFullRoute(ctx, world, t, route) {
   ctx.setLineDash([8, 7]);
   ctx.lineCap = 'round';
   ctx.lineWidth = 5;
-  ctx.strokeStyle = 'rgba(12, 20, 14, 0.8)';
+  ctx.strokeStyle = inkA('dark', 0.8);
   ctx.stroke();
   ctx.lineWidth = 3;
   ctx.strokeStyle = color;
@@ -1274,10 +1278,10 @@ function drawChrome(ctx) {
   ctx.translate(state.cw - 30, y + 6);
   ctx.beginPath();
   ctx.arc(0, 0, 17, 0, Math.PI * 2);
-  ctx.fillStyle = 'rgba(12, 20, 14, 0.85)';
+  ctx.fillStyle = inkA('dark', 0.85);
   ctx.fill();
   ctx.lineWidth = 1;
-  ctx.strokeStyle = 'rgba(63, 201, 122, 0.6)';
+  ctx.strokeStyle = inkA('greenLight', 0.6);
   ctx.stroke();
   ctx.beginPath();
   ctx.moveTo(0, -12);
@@ -1285,12 +1289,12 @@ function drawChrome(ctx) {
   ctx.lineTo(0, -1);
   ctx.lineTo(-5, 2);
   ctx.closePath();
-  ctx.fillStyle = '#3fc97a';
+  ctx.fillStyle = INK.greenLight;
   ctx.fill();
   ctx.font = `13px ${FONT}`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillStyle = '#f0ede4';
+  ctx.fillStyle = INK.cream;
   ctx.fillText('N', 0, 9);
   ctx.restore();
 
@@ -1298,9 +1302,9 @@ function drawChrome(ctx) {
   const w = meters * state.scale;
   const by = state.ch - 18;
   ctx.save();
-  ctx.fillStyle = 'rgba(12, 20, 14, 0.75)';
+  ctx.fillStyle = inkA('dark', 0.75);
   ctx.fillRect(x - 8 + 46, by - 18, w + 60, 26);
-  ctx.strokeStyle = '#f0ede4';
+  ctx.strokeStyle = INK.cream;
   ctx.lineWidth = 2;
   ctx.beginPath();
   ctx.moveTo(x + 46, by - 5);
@@ -1311,7 +1315,7 @@ function drawChrome(ctx) {
   ctx.font = `13px ${FONT}`;
   ctx.textAlign = 'left';
   ctx.textBaseline = 'bottom';
-  ctx.fillStyle = '#f0ede4';
+  ctx.fillStyle = INK.cream;
   ctx.fillText(meters >= 1000 ? `${meters / 1000} km` : `${meters} m`, x + 52 + w, by + 3);
   ctx.restore();
 }
@@ -1722,7 +1726,7 @@ function drawLegendIcon(ctx, kind) {
     ctx.font = `${kind === 'text-wijk' ? 11 : 13}px ${FONT}`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillStyle = kind === 'text-wijk' ? 'rgba(240, 237, 228, 0.6)' : '#f0ede4';
+    ctx.fillStyle = kind === 'text-wijk' ? inkA('cream', 0.6) : INK.cream;
     ctx.fillText(kind === 'text-wijk' ? 'WIJK' : 'Abc', 12, 13);
   } else if (kind === 'buildings') {
     ctx.fillStyle = MAP_STYLE.building;
@@ -2258,6 +2262,7 @@ export function getMapViewStats() {
   if (!state) return null;
   return { ...state.perf, zoom: state.zoom, tiles: state.tiles.size, level: levelFor(state.zoom) };
 }
+sfxLinks.mapStats = getMapViewStats; // sfx/ui.js (latehooks.js)
 
 export function setMapView(x, y, zoom) {
   if (!state) return;

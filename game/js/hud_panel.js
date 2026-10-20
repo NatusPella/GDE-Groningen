@@ -11,7 +11,8 @@ import { minimapShows } from './mapfilters.js';
 import { GLYPH_LIGHT as GLYPH_CREAM, mapCategory, mapFillColor, FLAT_INK, haloRim, HALO_DARK, HALO_LIGHT, mapPriority, miniIconScale, iconGapPx, badgeShape, badgeGlyphColor, shadeHex, stateLook, BADGE_UNITS } from './mapicons.js';
 import { facilitiesOf } from './facilities.js';
 import { getHorecaForRender } from './horeca.js';
-import { getShopsForRender, drawShopMapIcon, drawShopGlyph, SHOP_TYPES, storyTargetShop, drawStoryShopRing } from './shops.js';
+import { getShopsForRender, drawShopMapIcon, drawShopGlyph, storyTargetShop, drawStoryShopRing } from './shops.js';
+import { SHOP_TYPES } from './shopdata.js';
 import { getOwnedVehiclesForMap } from './ownedvehicles.js';
 import { getPigeonSpotsForRender, drawPigeonMapIcon } from './pigeonspots.js';
 import { getHeliSpotsForRender, drawHeliMapIcon, getHeliRunMarks } from './helirun.js';
@@ -28,7 +29,7 @@ import { isMuted, engineReadout } from './audio.js';
 import { gearboxReadout } from './gearbox.js';
 import { drawRailsOnMap, drawTrainsOnMap } from './railway.js';
 import { drawCountryMinimap, villageLabels, syncMapPhase } from './countrymap.js';
-import { MINI_PALETTE as MINI_STYLE, EMPHASIS, seaStyle, miniRoadStyle } from './mapstyle.js';
+import { MINI_PALETTE as MINI_STYLE, EMPHASIS, INK, inkA, seaStyle, miniRoadStyle, MINI_RANGE_M } from './mapstyle.js';
 import { drawSea, drawOutside, regionLabels, regionEdgeLabels, areaNameAt, REGIONS } from './regions.js';
 import { borderPlaceLabels } from './borderplaces.js';
 import { worldPlaceLabels, worldPlacesReady } from './worldplaces.js';
@@ -39,6 +40,8 @@ import { ommelandArea } from './ommelandplace.js';
 import { ommelandMapSpots, drawOmmelandMapIcon } from './ommelandmap.js';
 import { VILLAGES } from './ommelandlines.js';
 import { getActiveRoute, getRouteAhead, getRoutes, getUserWaypoint, formatDistance } from './routing.js';
+import { getClockText } from './clocktext.js';
+export { getClockText };
 import { storyWaiting, missionOnMap } from './goal.js';
 import { setGhostBar, ring, pop } from './motion.js';
 import { renderSnapshot, PORTRAIT_ANGLE } from './vehiclepreview.js';
@@ -61,7 +64,7 @@ import { isPauseMenuOpen } from './pausestate.js';
 import { isOverlayHeld } from './overlayhold.js';
 // portraits share the HUD's green (DESIGN_SYSTEM: no blue accents); speaker
 // colours stay in subtitles
-const HUD_ACCENT = '#3fc97a';
+const HUD_ACCENT = INK.greenLight;
 
 // the minimap's square, in HUD px (CSS --mm-size follows it)
 const MINIMAP_SIZE = 250;
@@ -74,7 +77,7 @@ let mmRot = null;
 // side jobs, pink for care (food when hurt, a garage for your own damaged ride)
 // filled from the palette (a11y.js: the colour-blind settings) below; kept
 // as one object so importers always read the current colours
-export const ROUTE_COLORS = { user: '#c068ff', mission: '#e8c93a', job: '#ff9a3c', care: '#ff5fb4' };
+export const ROUTE_COLORS = { user: INK.routeUser, mission: INK.yellow, job: INK.routeJob, care: INK.routeCare };
 // Each route kind also has its own pattern down the middle of the line and
 // its own mark in the minimap's edge arrow, so they never differ by colour
 // alone: verhaal/missie solid, jouw doel dashes, klus dots, opknappen dash-dot.
@@ -879,12 +882,6 @@ function updateWanted(world) {
   els.wanted.setAttribute('aria-label', `Gezocht: ${world.wanted} van 5, ${wantedPhase(world) === 'zoeken' ? 'politie zoekt je' : 'achtervolging'}`);
 }
 
-export function getClockText(world) {
-  const h = world && world.dayNight ? world.dayNight.hour : undefined;
-  if (typeof h !== 'number' || !Number.isFinite(h)) return '';
-  const total = Math.floor((((h % 24) + 24) % 24) * 60);
-  return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
-}
 
 let clockShown = null;
 let dateT = 0;
@@ -1276,19 +1273,19 @@ function escapeHtml(s) {
 }
 
 const C = {
-  green: '#1e9e56',
-  greenLight: '#3fc97a',
-  greenDark: '#0f5c30',
-  dark: '#0c140e',
-  cream: '#f0ede4',
-  landmark: '#f5f0e6',
-  red: '#d93f3f',
-  policeBlue: '#3f6fd9',
-  yellow: '#e8c93a',
-  yellowHalf: 'rgba(232, 201, 58, 0.5)',
-  horeca: '#c9622a',
-  grey: '#c7c7c2',
-  greyDark: '#2a2e28',
+  green: INK.green,
+  greenLight: INK.greenLight,
+  greenDark: INK.greenDark,
+  dark: INK.dark,
+  cream: INK.cream,
+  landmark: INK.paper,
+  red: INK.red,
+  policeBlue: INK.policeBlue,
+  yellow: INK.yellow,
+  yellowHalf: inkA('yellow', 0.5),
+  horeca: INK.horeca,
+  grey: INK.grey,
+  greyDark: INK.greyDark,
 };
 
 function hexA(hex, a) {
@@ -1335,8 +1332,8 @@ export function drawMapIcon(ctx, kind, x, y, s = 1, opts = {}) {
       // you: a soft green glow, a cream-edged arrow, so it stands out among the badges (#180)
       if (!opts.raw) {
         const gr = ctx.createRadialGradient(0, 0, 1 * s, 0, 0, 11 * s);
-        gr.addColorStop(0, 'rgba(63, 201, 122, 0.55)');
-        gr.addColorStop(1, 'rgba(63, 201, 122, 0)');
+        gr.addColorStop(0, inkA('greenLight', 0.55));
+        gr.addColorStop(1, inkA('greenLight', 0));
         ctx.beginPath();
         ctx.arc(0, 0, 11 * s, 0, Math.PI * 2);
         ctx.fillStyle = gr;
@@ -1425,7 +1422,7 @@ export function drawMapIcon(ctx, kind, x, y, s = 1, opts = {}) {
       const pulse = pulseAt(t);
       ctx.beginPath();
       ctx.arc(0, 0, (4.5 + pulse * 2) * s, 0, Math.PI * 2);
-      outline(ctx, s, 'rgba(0,0,0,0.6)', 3.4);
+      outline(ctx, s, inkA('black', 0.6), 3.4);
       ctx.globalAlpha = (opts.alpha ?? 1) * (0.65 + pulse * 0.35);
       outline(ctx, s, C.yellow, 2);
       break;
@@ -1434,7 +1431,7 @@ export function drawMapIcon(ctx, kind, x, y, s = 1, opts = {}) {
       const pulse = pulseAt(t);
       ctx.beginPath();
       ctx.arc(0, 0, (5.5 + pulse * 1.2) * s, 0, Math.PI * 2);
-      outline(ctx, s, 'rgba(0,0,0,0.6)', 3.4);
+      outline(ctx, s, inkA('black', 0.6), 3.4);
       outline(ctx, s, C.yellow, 2);
       ctx.beginPath();
       ctx.arc(0, 0, 2.6 * s, 0, Math.PI * 2);
@@ -1462,7 +1459,7 @@ export function drawMapIcon(ctx, kind, x, y, s = 1, opts = {}) {
     case 'eierbalTip': {
       ctx.beginPath();
       ctx.arc(0, 0, 4.2 * s, 0, Math.PI * 2);
-      ctx.fillStyle = '#b06a28';
+      ctx.fillStyle = INK.eierbal;
       ctx.fill();
       outline(ctx, s, C.yellow, 1.6);
       break;
@@ -1491,7 +1488,7 @@ export function drawMapIcon(ctx, kind, x, y, s = 1, opts = {}) {
       // Thuis: a cream house on a blue badge
       ctx.beginPath();
       ctx.arc(0, 0, 5.4 * s, 0, Math.PI * 2);
-      ctx.fillStyle = '#2f6fb0';
+      ctx.fillStyle = INK.homeBlue;
       ctx.fill();
       outline(ctx, s, C.dark, 1.4);
       ctx.beginPath();
@@ -1505,7 +1502,7 @@ export function drawMapIcon(ctx, kind, x, y, s = 1, opts = {}) {
       ctx.closePath();
       ctx.fillStyle = C.cream;
       ctx.fill();
-      ctx.fillStyle = '#2f6fb0';
+      ctx.fillStyle = INK.homeBlue;
       ctx.fillRect(-0.7 * s, 0.9 * s, 1.4 * s, 2 * s);
       break;
     }
@@ -1514,22 +1511,22 @@ export function drawMapIcon(ctx, kind, x, y, s = 1, opts = {}) {
       // your own jetty / helidek: a cream boat or helicopter on the blue home badge
       ctx.beginPath();
       ctx.arc(0, 0, 5.4 * s, 0, Math.PI * 2);
-      ctx.fillStyle = '#2f6fb0';
+      ctx.fillStyle = INK.homeBlue;
       ctx.fill();
       outline(ctx, s, C.dark, 1.4);
-      drawShopGlyph(ctx, kind === 'homeMooring' ? 'boot' : 'heli', 3.5 * s, '#2f6fb0');
+      drawShopGlyph(ctx, kind === 'homeMooring' ? 'boot' : 'heli', 3.5 * s, INK.homeBlue);
       break;
     }
     case 'homeGarage': {
       // your own garage: a cream roller door on the same blue badge as home
       ctx.beginPath();
       ctx.arc(0, 0, 5.4 * s, 0, Math.PI * 2);
-      ctx.fillStyle = '#2f6fb0';
+      ctx.fillStyle = INK.homeBlue;
       ctx.fill();
       outline(ctx, s, C.dark, 1.4);
       ctx.fillStyle = C.cream;
       ctx.fillRect(-3.2 * s, -2.8 * s, 6.4 * s, 5.8 * s);
-      ctx.fillStyle = '#2f6fb0';
+      ctx.fillStyle = INK.homeBlue;
       for (let i = 0; i < 4; i++) ctx.fillRect(-2.6 * s, (-1.9 + i * 1.3) * s, 5.2 * s, 0.45 * s);
       break;
     }
@@ -1589,7 +1586,7 @@ export function drawMapIcon(ctx, kind, x, y, s = 1, opts = {}) {
       ctx.arc(0.4 * s, 0.2 * s, 1.3 * s, 0, Math.PI * 2);
       ctx.fillStyle = C.greyDark;
       ctx.fill();
-      ctx.fillStyle = '#e8c93a';
+      ctx.fillStyle = INK.yellow;
       ctx.fillRect(1.6 * s, -1.4 * s, 0.9 * s, 0.9 * s);
       break;
     }
@@ -1836,7 +1833,7 @@ function flatSprite(kind, s, a, opts) {
     if (!area || light / area > 0.5 || light / area < 0.02 || x1 < x0) sprite = flatBlobSprite(kind, s, a, opts);
     else {
       const look = stateLook(opts.state);
-      const fill = look.gray ? '#8d9489' : mapFillColor(kind);
+      const fill = look.gray ? INK.locked : mapFillColor(kind);
       const glyphCol = badgeGlyphColor(fill);
       const half = Math.ceil(13 * s + 6), n = Math.ceil(half * 2 * a);
       const out = document.createElement('canvas');
@@ -1847,9 +1844,9 @@ function flatSprite(kind, s, a, opts) {
       oc.lineJoin = 'round';
       // soft shadow under the whole badge
       oc.save();
-      oc.shadowColor = 'rgba(0,0,0,0.55)'; oc.shadowBlur = 2.4 * s * a; oc.shadowOffsetY = 0.7 * s * a;
+      oc.shadowColor = inkA('black', 0.55); oc.shadowBlur = 2.4 * s * a; oc.shadowOffsetY = 0.7 * s * a;
       badgePath(oc, shape, W);
-      oc.fillStyle = '#000'; oc.fill();
+      oc.fillStyle = INK.black; oc.fill();
       oc.restore();
       // a thin light line, a dark outline, the fill with a light top, the rim
       badgePath(oc, shape, W);
@@ -1908,7 +1905,7 @@ export function drawMapIconHalo(ctx, kind, x, y, s = 1) {
   ctx.save();
   ctx.beginPath();
   ctx.arc(x, y, 6.6 * s, 0, Math.PI * 2);
-  ctx.fillStyle = 'rgba(12, 20, 14, 0.78)';
+  ctx.fillStyle = inkA('dark', 0.78);
   ctx.fill();
   // outline, ring, category rim: 3:1 on any ground (mapicons.js, #114)
   const w = Math.max(1.6, 0.7 * s);
@@ -1934,10 +1931,10 @@ function drawMissionMapIcon(ctx, kind, s, opts, t) {
   const r = (active ? 6.6 + pulse * 0.8 : 6 + pulse * 1.2) * s;
   ctx.beginPath();
   ctx.arc(0, 0, r, 0, Math.PI * 2);
-  ctx.fillStyle = 'rgba(12,20,14,0.85)';
+  ctx.fillStyle = inkA('dark', 0.85);
   ctx.globalAlpha = opts.alpha ?? 1;
   ctx.fill();
-  outline(ctx, s, 'rgba(0,0,0,0.6)', 3.4);
+  outline(ctx, s, inkA('black', 0.6), 3.4);
   ctx.globalAlpha = (opts.alpha ?? 1) * (active ? 1 : 0.65 + pulse * 0.35);
   outline(ctx, s, C.yellow, 2);
   ctx.globalAlpha = opts.alpha ?? 1;
@@ -1962,10 +1959,10 @@ export function drawSearchArea(ctx, x, y, r, t = performance.now() / 1000) {
   ctx.save();
   ctx.beginPath();
   ctx.arc(x, y, r, 0, Math.PI * 2);
-  ctx.fillStyle = blue ? 'rgba(63, 111, 217, 0.22)' : 'rgba(217, 63, 63, 0.26)';
+  ctx.fillStyle = blue ? inkA('policeBlue', 0.22) : inkA('red', 0.26);
   ctx.fill();
   ctx.lineWidth = 4.5;
-  ctx.strokeStyle = 'rgba(12, 20, 14, 0.7)';
+  ctx.strokeStyle = inkA('dark', 0.7);
   ctx.stroke();
   ctx.lineWidth = 2.5 + pulse * 1.2;
   ctx.strokeStyle = blue ? C.policeBlue : C.red;
@@ -1997,7 +1994,7 @@ function drawCrowLine(ctx, [ax, ay], [bx, by], color) {
   ctx.setLineDash([7, 6]);
   ctx.lineCap = 'round';
   ctx.lineWidth = 5;
-  ctx.strokeStyle = 'rgba(12, 20, 14, 0.75)';
+  ctx.strokeStyle = inkA('dark', 0.75);
   ctx.stroke();
   ctx.lineWidth = 3;
   ctx.strokeStyle = color;
@@ -2056,7 +2053,7 @@ export function drawRoadRoute(ctx, pts, color, width = 4, kind = null) {
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
   ctx.lineWidth = width + 3;
-  ctx.strokeStyle = 'rgba(12, 20, 14, 0.85)';
+  ctx.strokeStyle = inkA('dark', 0.85);
   ctx.stroke();
   ctx.lineWidth = width;
   ctx.strokeStyle = color;
@@ -2067,7 +2064,7 @@ export function drawRoadRoute(ctx, pts, color, width = 4, kind = null) {
     // the pattern in the line's own dark casing colour, scaled to its width
     ctx.setLineDash(dash.map((d) => d * width));
     ctx.lineWidth = Math.max(1.2, width * 0.42);
-    ctx.strokeStyle = 'rgba(12, 20, 14, 0.8)';
+    ctx.strokeStyle = inkA('dark', 0.8);
     ctx.stroke();
   }
   ctx.restore();
@@ -2115,8 +2112,8 @@ const MM_ICON = miniIconScale(MINIMAP_SIZE, true);
 // skipped where they would overlap something more important.
 const MM_POI_ICON = miniIconScale(MINIMAP_SIZE);
 const MM_POI_GAP_PX = iconGapPx(MM_POI_ICON);
-const MM_POI_NEAR_M = 150;
-const MM_POI_FAR_M = 250;
+const MM_POI_NEAR_M = MINI_RANGE_M.near; // how far the minimap looks for places: mapstyle.js, with the full map's zoom rule
+const MM_POI_FAR_M = MINI_RANGE_M.far;
 const SHOP_GROUPS = ['shopsWapens', 'shops', 'shopsVoertuigen'];
 
 function nearestWithin(list, x, y, r, max) {
@@ -2221,7 +2218,7 @@ function drawVillageNames(ctx, player, radius, toScreen) {
   ctx.font = "11px 'Bebas Neue', 'Arial Narrow', Arial, sans-serif";
   for (const q of villageCache.regions) {
     const [sx, sy] = toScreen(q.x, q.y);
-    ctx.fillStyle = q.land ? 'rgba(240, 237, 228, 0.5)' : 'rgba(190, 225, 245, 0.65)';
+    ctx.fillStyle = q.land ? inkA('cream', 0.5) : inkA('seaLabel', 0.65);
     ctx.fillText(q.name.toUpperCase().split('').join(' '), sx, sy);
   }
   // the names beyond the border and the dimmed neighbour villages, kept inside the frame so nothing is cut off
@@ -2232,19 +2229,19 @@ function drawVillageNames(ctx, player, radius, toScreen) {
   for (const q of villageCache.edge) {
     const name = q.name.toUpperCase().split('').join(' ');
     const [sx, sy] = keep(name, ...toScreen(q.x, q.y));
-    ctx.fillStyle = q.land ? 'rgba(240, 237, 228, 0.42)' : 'rgba(190, 225, 245, 0.55)';
+    ctx.fillStyle = q.land ? inkA('cream', 0.42) : inkA('seaLabel', 0.55);
     ctx.fillText(name, sx, sy);
   }
   for (const q of villageCache.neighbours) {
     const name = q.name.toUpperCase();
     const [sx, sy] = keep(name, ...toScreen(q.x, q.y));
-    ctx.fillStyle = 'rgba(240, 237, 228, 0.36)';
+    ctx.fillStyle = inkA('cream', 0.36);
     ctx.fillText(name, sx, sy);
   }
   ctx.font = "15px 'Bebas Neue', 'Arial Narrow', Arial, sans-serif";
   ctx.lineWidth = 3;
-  ctx.strokeStyle = 'rgba(12, 20, 14, 0.85)';
-  ctx.fillStyle = '#f0ede4';
+  ctx.strokeStyle = inkA('dark', 0.85);
+  ctx.fillStyle = INK.cream;
   const boxes = [];
   let n = 0;
   for (const v of villageCache.list) {
@@ -2312,30 +2309,28 @@ function drawMinimap(dt, world) {
   const province = provinceMapOn();
   if (province) drawSea(ctx, (n) => n / mmScale, seaStyle(MINI_STYLE));
 
-  const view = world.map.queryView(
-    player.x - MM_RADIUS_M, player.y - MM_RADIUS_M,
-    player.x + MM_RADIUS_M, player.y + MM_RADIUS_M
-  );
+  const view = minimapView(world.map, player.x - MM_RADIUS_M, player.y - MM_RADIUS_M, player.x + MM_RADIUS_M, player.y + MM_RADIUS_M);
 
   if (edgeDistance(player.x, player.y) < 0) drawNeighbourhoodBorders(ctx, dt, world, player, MM_RADIUS_M);
 
   ctx.fillStyle = MINI_STYLE.park;
-  for (const g of view.green) fillPoly(ctx, g.pts);
+  fillPolys(ctx, view.green);
 
   ctx.fillStyle = MINI_STYLE.water;
-  for (const w of view.water) fillPoly(ctx, w.pts);
+  fillPolys(ctx, view.water);
 
   const emph = mode.emph;
   const landAlpha = 1 - dimLand;
   for (const r of view.roads) {
     if (r.pts.length < 2) continue;
+    // the paths and styles of the roads that fade out at this zoom (foot, cycle) are not worked out at all
+    const rs = miniRoadStyle(r.cat, r.width, mmScale);
+    if (rs.alpha <= 0.02) continue;
     const allowed = roadAllowed(r, mmMode);
     ctx.beginPath();
     ctx.moveTo(r.pts[0][0], r.pts[0][1]);
     for (let i = 1; i < r.pts.length; i++) ctx.lineTo(r.pts[i][0], r.pts[i][1]);
     let color = r.cat === 'major' ? MINI_STYLE.major : r.cat === 'cycle' ? MINI_STYLE.cycle : MINI_STYLE.road;
-    const rs = miniRoadStyle(r.cat, r.width, mmScale);
-    if (rs.alpha <= 0.02) continue;
     let w = rs.widthM;
     let a = landAlpha * rs.alpha;
     if (emph === 'foot') { if (r.cat === 'foot') { color = EMPHASIS.foot; w = Math.max(w, 3.4); } }
@@ -2361,13 +2356,10 @@ function drawMinimap(dt, world) {
   drawTrainsOnMap(ctx);
 
   const MM_BUILDING_COLORS = MINI_STYLE.buildings;
-  for (const b of view.buildings) {
-    ctx.fillStyle = b.landmark ? MINI_STYLE.church : MM_BUILDING_COLORS[Math.floor(mmHash(b.pts[0][0], b.pts[0][1]) * MM_BUILDING_COLORS.length)];
-    fillPoly(ctx, b.pts);
-  }
+  fillBuildings(ctx, view.buildings, MM_BUILDING_COLORS);
   ctx.globalAlpha = 1;
   // outside the province darker, with its land borders
-  if (province) drawOutside(ctx, [player.x - MM_RADIUS_M, player.y - MM_RADIUS_M, player.x + MM_RADIUS_M, player.y + MM_RADIUS_M], (n) => n / mmScale, { tint: 'rgba(6, 12, 9, 0.34)', width: 2.6 });
+  if (province) drawOutside(ctx, [player.x - MM_RADIUS_M, player.y - MM_RADIUS_M, player.x + MM_RADIUS_M, player.y + MM_RADIUS_M], (n) => n / mmScale, { tint: inkA('tintMini', 0.34), width: 2.6 });
 
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
@@ -2497,7 +2489,7 @@ function drawMinimap(dt, world) {
     drawEdgeArrow(ctx, cx + Math.cos(missionEdge) * edgeR, cy + Math.sin(missionEdge) * edgeR, missionEdge, C.yellow, wp ? 0.8 : s, 'mission');
   }
   if (heliEdge != null) {
-    drawEdgeArrow(ctx, cx + Math.cos(heliEdge) * edgeR, cy + Math.sin(heliEdge) * edgeR, heliEdge, '#5dff7a', 1 + pulseAt(t) * 0.2, 'mission');
+    drawEdgeArrow(ctx, cx + Math.cos(heliEdge) * edgeR, cy + Math.sin(heliEdge) * edgeR, heliEdge, INK.heliDone, 1 + pulseAt(t) * 0.2, 'mission');
   }
   if (wpEdge != null) {
     const s = 1 + pulseAt(t) * 0.2;
@@ -2507,7 +2499,7 @@ function drawMinimap(dt, world) {
 
 // A heli run (helirun.js): its rings as circles where they hang, the H to land
 // on and the balloon. Drawn through toScreen, so they stay put while the map turns.
-const HELI_RING_COLORS = { next: '#ffc21a', later: 'rgba(255,233,160,0.75)', done: '#5dff7a', miss: '#ff5a3c' };
+const HELI_RING_COLORS = { next: INK.ringNext, later: inkA('ringLater', 0.75), done: INK.heliDone, miss: INK.heliMiss };
 function drawHeliRunMarks(ctx, marks, toScreen, inRange, scale, t) {
   ctx.save();
   for (const r of marks.rings) {
@@ -2523,12 +2515,12 @@ function drawHeliRunMarks(ctx, marks, toScreen, inRange, scale, t) {
     const [sx, sy] = toScreen(marks.pad.x, marks.pad.y);
     ctx.beginPath();
     ctx.arc(sx, sy, 8, 0, Math.PI * 2);
-    ctx.fillStyle = '#1e9e56';
+    ctx.fillStyle = INK.green;
     ctx.fill();
     ctx.lineWidth = 2;
-    ctx.strokeStyle = '#f0ede4';
+    ctx.strokeStyle = INK.cream;
     ctx.stroke();
-    ctx.fillStyle = '#f0ede4';
+    ctx.fillStyle = INK.cream;
     ctx.fillRect(sx - 3.5, sy - 4, 1.8, 8);
     ctx.fillRect(sx + 1.7, sy - 4, 1.8, 8);
     ctx.fillRect(sx - 3.5, sy - 0.9, 7, 1.8);
@@ -2537,10 +2529,10 @@ function drawHeliRunMarks(ctx, marks, toScreen, inRange, scale, t) {
     const [sx, sy] = toScreen(marks.balloon.x, marks.balloon.y);
     ctx.beginPath();
     ctx.arc(sx, sy, 5.5, 0, Math.PI * 2);
-    ctx.fillStyle = '#ff7ab6';
+    ctx.fillStyle = INK.balloon;
     ctx.fill();
     ctx.lineWidth = 1.5;
-    ctx.strokeStyle = '#0c140e';
+    ctx.strokeStyle = INK.dark;
     ctx.stroke();
   }
   ctx.restore();
@@ -2566,12 +2558,12 @@ function makeNorthGlyph(dpr) {
   g.scale(dpr, dpr);
   g.beginPath();
   g.arc(13, 13, 12, 0, Math.PI * 2);
-  g.fillStyle = '#0c140e';
+  g.fillStyle = INK.dark;
   g.fill();
   g.lineWidth = 1.2;
-  g.strokeStyle = '#3fc97a';
+  g.strokeStyle = INK.greenLight;
   g.stroke();
-  g.fillStyle = '#3fc97a';
+  g.fillStyle = INK.greenLight;
   g.font = '18px "Bebas Neue", "Arial Narrow", Arial, sans-serif';
   g.textAlign = 'center';
   g.textBaseline = 'middle';
@@ -2579,13 +2571,60 @@ function makeNorthGlyph(dpr) {
   return { c, dpr, font: !!(document.fonts && document.fonts.check('bold 10px "Bebas Neue"')) };
 }
 
-function fillPoly(ctx, pts) {
-  ctx.beginPath();
+// The map behind the minimap: the grids are asked for 25% more than the view needs and the answer is kept for
+// 0.4 s (the view moves a few metres in that time), cut to the view by the bounds each time: at the zoomed-out
+// scales of a train, a heli or the A7 a query was ~15% of the minimap's time. Trees are not drawn.
+let mmViewCache = null;
+const MM_VIEW_MARGIN = 0.25, MM_VIEW_KEEP_MS = 400;
+const inView = (it, x0, y0, x1, y1) => { const b = it.bounds; return !b || !(b[2] < x0 || b[0] > x1 || b[3] < y0 || b[1] > y1); };
+function minimapView(map, x0, y0, x1, y1) {
+  const now = performance.now(), c = mmViewCache;
+  if (!(c && c.map === map && now - c.at < MM_VIEW_KEEP_MS && x0 >= c.x0 && y0 >= c.y0 && x1 <= c.x1 && y1 <= c.y1)) {
+    const mx = (x1 - x0) * MM_VIEW_MARGIN, my = (y1 - y0) * MM_VIEW_MARGIN;
+    mmViewCache = { map, at: now, x0: x0 - mx, y0: y0 - my, x1: x1 + mx, y1: y1 + my, view: map.queryView(x0 - mx, y0 - my, x1 + mx, y1 + my, false) };
+    const v = mmViewCache.view;
+    return { roads: v.roads.filter((it) => inView(it, x0, y0, x1, y1)), buildings: v.buildings.filter((it) => inView(it, x0, y0, x1, y1)), water: v.water.filter((it) => inView(it, x0, y0, x1, y1)), green: v.green.filter((it) => inView(it, x0, y0, x1, y1)), trees: [] };
+  }
+  const v = c.view;
+  return { roads: v.roads.filter((it) => inView(it, x0, y0, x1, y1)), buildings: v.buildings.filter((it) => inView(it, x0, y0, x1, y1)), water: v.water.filter((it) => inView(it, x0, y0, x1, y1)), green: v.green.filter((it) => inView(it, x0, y0, x1, y1)), trees: [] };
+}
+
+// Polygons of one colour as one path per winding direction (nonzero fill: two overlapping polygons that wind
+// the other way would cancel each other out in one path), instead of a path, a fill and a fillStyle each.
+const polyWinding = (o) => {
+  if (o._mmw === undefined) { let a = 0; const p = o.pts; for (let i = 0; i < p.length - 1; i++) a += p[i][0] * p[i + 1][1] - p[i + 1][0] * p[i][1]; o._mmw = a < 0 ? 1 : 0; }
+  return o._mmw;
+};
+// no closePath: a fill closes its subpaths itself, and in a path of thousands of subpaths every closePath is slow (~1 ms each in Chromium's canvas)
+function addPoly(ctx, pts) {
   ctx.moveTo(pts[0][0], pts[0][1]);
   for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i][0], pts[i][1]);
-  ctx.closePath();
-  ctx.fill();
 }
+function fillPolys(ctx, list) {
+  for (let w = 0; w < 2; w++) {
+    let any = false;
+    ctx.beginPath();
+    for (const o of list) if (o.pts.length >= 2 && polyWinding(o) === w) { addPoly(ctx, o.pts); any = true; }
+    if (any) ctx.fill();
+  }
+}
+function fillBuildings(ctx, list, colors) {
+  const n = colors.length + 1; // the last colour index is the church (a landmark)
+  const buckets = [];
+  for (let i = 0; i < n * 2; i++) buckets.push([]);
+  for (const b of list) {
+    if (b._mmc === undefined) b._mmc = b.landmark ? n - 1 : Math.floor(mmHash(b.pts[0][0], b.pts[0][1]) * colors.length);
+    buckets[b._mmc * 2 + polyWinding(b)].push(b.pts);
+  }
+  for (let i = 0; i < buckets.length; i++) {
+    if (!buckets[i].length) continue;
+    ctx.fillStyle = (i >> 1) === n - 1 ? MINI_STYLE.church : colors[i >> 1];
+    ctx.beginPath();
+    for (const pts of buckets[i]) addPoly(ctx, pts);
+    ctx.fill();
+  }
+}
+
 
 function mmHash(x, y) {
   const h = Math.sin(x * 91.3 + y * 197.1) * 27183.6;
@@ -2633,6 +2672,6 @@ function drawNeighbourhoodBorders(ctx, dt, world, player, MM_RADIUS_M) {
     borderCache = { ox, oy, half, rects };
   }
 
-  ctx.fillStyle = 'rgba(255,255,255,0.35)';
+  ctx.fillStyle = inkA('white', 0.35);
   for (const [rx, ry] of borderCache.rects) ctx.fillRect(rx, ry, cell * 0.5, cell * 0.5);
 }

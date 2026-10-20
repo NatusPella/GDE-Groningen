@@ -1,5 +1,5 @@
 import { clamp, pointInPolygon } from '../util.js';
-import { getScene } from '../scene3d.js';
+import { sfxLinks } from '../latehooks.js';
 import { edgeDistance, parcelAt, MAAR_WATER } from '../countryfield.js';
 import { urbanWeight } from '../provinceworld.js';
 import { trunksNear } from '../countrywalls.js';
@@ -417,7 +417,7 @@ function thunder(distance) {
 }
 
 function weatherEvents(world) {
-  const sc = getScene();
+  const sc = sfxLinks.getScene();
   const flash = sc && sc.userData ? sc.userData.lightningFlash || 0 : 0;
   const t = now();
   if (flash > 0.9 && lastFlash < 0.5) {

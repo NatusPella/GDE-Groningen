@@ -1,12 +1,14 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { isInWater, WATER_Y } from './util.js';
-import { wallOnPath, wreckVehicle } from './combat.js';
+import { wallOnPath } from './wallpath.js';
+import { wreckVehicle } from './vehiclewreck.js';
 import { blastPeople, soakPed } from './pedestrians.js';
 import { propsInRadius, breakProp } from './breakables.js';
 import { buildVehicleExplosionMesh3D, updateVehicleExplosionMesh3D, VEHICLE_FIRE_HEALTH_THRESHOLD } from './vehicle.js';
 import { spawnExplosionFx, spawnFxPuff, spawnFxSpark } from './fx3d.js';
 import { flashMuzzleLight } from './nightlights3d.js';
 import { markShared } from './pixelart3d.js';
+import { throwablesHook } from './latehooks.js';
 
 // Things the player lets fly that are not bullets: the waterpistool's spray,
 // a thrown (or, crouching, placed) carbidbus with its fuse and big bang, and
@@ -422,3 +424,5 @@ export function updateThrowables3D(dt, world, sc) {
     fireballs.splice(i, 1);
   }
 }
+
+throwablesHook.update3D = updateThrowables3D; // gunfx3d.js draws them (latehooks.js)

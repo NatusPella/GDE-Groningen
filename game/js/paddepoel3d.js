@@ -1,6 +1,6 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { GeoBuilder, markShared, vcMaterial } from './pixelart3d.js';
-import { LANDMARK_MATERIALS } from './landmarks3d.js';
+import { LANDMARK_MATERIALS } from './landmarkmaterials.js';
 import { closestPointOnSegment, pointInPolygon } from './util.js';
 import { addStaticCollider } from './breakables.js';
 import { P } from './worldframe.js';

@@ -15,6 +15,7 @@
 import { GameMap, SpatialGrid, loadMap, markDryRoad } from './mapdata.js';
 import { polygonBounds, pointInPolygon } from './util.js';
 import { promoteMainWaterway } from './waterlevels.js';
+import { dropWaterDuplicates } from './waterdupes.js';
 import { SECTION, decodeBlob } from './gdt.js';
 import { TileStore, FrameQueue, HttpRangeSource, inflateRaw, makeWorkerDecoder, decodeCompressed } from './tilestore.js';
 import { TerrainField } from './terrainraster.js';
@@ -132,7 +133,10 @@ export class TileWorld extends GameMap {
       if (s.type === SECTION.RASTER && this.terrain) { this.terrain.add(tk, s.raster); continue; }
       const kind = KIND_OF.get(s.type);
       if (!kind) continue;
+      // the same lake mapped twice is drawn once (waterdupes.js, #231)
+      const twins = kind === 'water' ? dropWaterDuplicates(s.rows) : null;
       for (const { gid, obj } of rowsOf(kind, s)) {
+        if (twins && twins.size && twins.has(obj)) continue;
         let e = this._res[kind].get(gid);
         if (!e) {
           e = { obj, tiles: new Set() };
@@ -170,8 +174,8 @@ export class TileWorld extends GameMap {
   }
 
   // the maps draw the flat water too
-  queryView(minx, miny, maxx, maxy) {
-    const v = super.queryView(minx, miny, maxx, maxy);
+  queryView(minx, miny, maxx, maxy, withTrees = true) {
+    const v = super.queryView(minx, miny, maxx, maxy, withTrees);
     if (this.flatWaterGrid) v.water = v.water.concat(this.flatWaterGrid.query(minx, miny, maxx, maxy));
     return v;
   }
@@ -316,9 +320,9 @@ export function mergeIndex(index, extra, { only = null } = {}) {
 }
 
 
-// The map at `url` (citymap.json) for code that only needs the map: the tile
-// world when the build has tiles, else the JSON files (dev server).
-export async function loadMapAuto(url = 'citymap.json', onProgress = null, { pool = true } = {}) {
+// The map at `url` (stad.json) for code that only needs the map: the tile
+// world when the build has tiles, else stad.json alone (dev server).
+export async function loadMapAuto(url = 'stad.json', onProgress = null, { pool = true } = {}) {
   // with the overlays of the city's tiles, as the game's own map has them (the worker's roads and shores must see the same neighbours)
   const t = await loadTileWorld(url.replace(/[^/]*$/, '') + 'world/', { onProgress, pool, extra: [{ name: 'index-provincie.json', only: (q) => !!q.ov }] });
   return t ? t.world : loadMap(url, onProgress);

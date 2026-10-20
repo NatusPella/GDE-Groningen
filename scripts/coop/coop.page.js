@@ -18,7 +18,15 @@ window.addEventListener('unhandledrejection', (e) => log('jserror', { msg: 'belo
 const NET = { ws: [], rtc: 0, fetch: [] };
 {
   const WS = window.WebSocket, RTC = window.RTCPeerConnection, F = window.fetch;
-  if (WS) window.WebSocket = class extends WS { constructor(u, p) { NET.ws.push(String(u)); super(u, p); } };
+  if (WS) window.WebSocket = class extends WS {
+    constructor(u, p) {
+      NET.ws.push(String(u)); super(u, p);
+      // wat komt er van de tracker binnen? (alleen soort en grootte, niet de inhoud)
+      this.addEventListener('message', (e) => { let m = null; try { m = JSON.parse(String(e.data)); } catch (er) { /* geen JSON */ } log('ws-in', { len: String(e.data).length, action: m && m.action, offer: !!(m && m.offer), answer: !!(m && m.answer), idOk: !!(m && m.offer_id) }); });
+      this.addEventListener('close', () => log('ws-dicht', {}));
+      this.addEventListener('error', () => log('ws-fout', {}));
+    }
+  };
   if (RTC) window.RTCPeerConnection = class extends RTC {
     constructor(...a) {
       NET.rtc++; super(...a);
@@ -26,6 +34,8 @@ const NET = { ws: [], rtc: 0, fetch: [] };
       const soort = (c) => { const m = /typ (w+)/.exec(c || ''), ip = /(?:^|s)(d+.d+.d+.d+|[w-]+.local)s+d+s+typ/.exec(c || ''); const adres = ip ? (/^127./.test(ip[1]) ? 'loopback' : /^(10.|192.168.|172.(1[6-9]|2d|3[01]).)/.test(ip[1]) ? 'prive' : /.local$/.test(ip[1]) ? 'mdns' : 'overig') : '?'; return (m ? m[1] : '?') + '/' + adres; };
       this.addEventListener('icecandidate', (e) => log('rtc', { kandidaat: e.candidate ? soort(e.candidate.candidate) : 'klaar' }));
       this.addEventListener('iceconnectionstatechange', () => log('rtc', { ice: this.iceConnectionState }));
+      this.addEventListener('signalingstatechange', () => log('rtc', { signaling: this.signalingState }));
+      this.addEventListener('datachannel', () => log('rtc', { datakanaal: 'binnen' }));
       this.addEventListener('connectionstatechange', () => log('rtc', { verbinding: this.connectionState }));
     }
   };
@@ -153,6 +163,10 @@ async function toLobby() {
 async function connect() {
   await configureRoute();
   await toLobby();
+  if (CFG.preSave && CFG.role !== 'host') { // een speler met een eigen save: die bestaat al vóór het aansluiten
+    const sv = await imp('savegame'); let ok = null; try { ok = sv.saveGame(W(), { toast: false }); } catch (e) { ok = 'fout ' + e.message; }
+    log('voor-save', { ok, hasSave: sv.hasSave(), money: W().money });
+  }
   log('start', { role: CFG.role, route: CFG.route, viaMenu: !!CFG.viaMenu, net: netNow() });
   log('scherm', { titel: title(), knoppen: buttons() });
   if (CFG.role === 'host') {
@@ -284,9 +298,17 @@ const PHASES = {
   },
   async herverbindHost() {
     if (CFG.role !== 'host') { await sleep(28000); return; }
-    await sleep(8000);
-    log('herverbind-host', { hold: !!document.querySelector('.coop-hold'), paused: !!W().paused, roster: (W().coopRoster || []).map((r) => [r.slot, r.verbinding]) });
-    await sleep(14000);
+    // het opnieuw verbinden gaat snel: kijk elke 200 ms of het wachtscherm, de pauze en "weggevallen" voorbijkomen
+    const z = { holdGezien: false, pauzeGezien: false, lostGezien: false };
+    const end = performance.now() + 24000;
+    while (performance.now() < end) {
+      const x = W();
+      if (document.querySelector('.coop-hold')) z.holdGezien = true;
+      if (x.paused && x.coopHold) z.pauzeGezien = true;
+      if ((x.coopRoster || []).some((r) => r.slot === 1 && r.verbinding === 'lost')) z.lostGezien = true;
+      await sleep(200);
+    }
+    log('herverbind-host', { ...z, roster: (W().coopRoster || []).map((r) => [r.slot, r.verbinding]), hold: !!document.querySelector('.coop-hold'), paused: !!W().paused });
     log('herverbind-host-na', { hold: !!document.querySelector('.coop-hold'), paused: !!W().paused, roster: (W().coopRoster || []).map((r) => [r.slot, r.verbinding]) });
   },
   // een afwijking op één gast: de snapshot klopt niet met de hash van de host
@@ -347,6 +369,7 @@ const PHASES = {
     if (CFG.role !== 'host') { await sleep(s * 1000); return; }
     const w = W(), B = window.__bot;
     let via = '';
+    const voorLijst = new Set(w.vehicles || []);
     try {
       const Ch = await imp('cheats');
       const keuzes = Ch.spawnChoices(w) || [];
@@ -362,7 +385,8 @@ const PHASES = {
     await sleep(1500);
     const voor = w.player.inVehicle ? 1 : 0;
     // naast het dichtstbijzijnde voertuig gaan staan (de bezorging zet het niet altijd binnen bereik)
-    const dicht = () => (w.vehicles || []).filter((x) => x && !x.isBoat && !x.isHeli && !x.wrecked && !x.isPolice).sort((a2, b2) => Math.hypot(a2.x - w.player.x, a2.y - w.player.y) - Math.hypot(b2.x - w.player.x, b2.y - w.player.y))[0];
+    const nieuw = (w.vehicles || []).find((x) => x && !voorLijst.has(x) && !x.wrecked); // het zojuist bezorgde voertuig, anders het dichtstbijzijnde
+    const dicht = () => nieuw && (w.vehicles || []).includes(nieuw) ? nieuw : (w.vehicles || []).filter((x) => x && !x.isBoat && !x.isHeli && !x.wrecked && !x.isPolice).sort((a2, b2) => Math.hypot(a2.x - w.player.x, a2.y - w.player.y) - Math.hypot(b2.x - w.player.x, b2.y - w.player.y))[0];
     const v0 = dicht(); log('rit-voertuig', { afstand: v0 ? Math.round(Math.hypot(v0.x - w.player.x, v0.y - w.player.y)) : null, soort: v0 && v0.model ? v0.model.name || v0.model.id || '' : '' });
     for (let i = 0; i < 8 && !w.player.inVehicle; i++) {
       const v = dicht(); if (v && Math.hypot(v.x - w.player.x, v.y - w.player.y) > 3.5) { w.player.x = v.x - Math.cos(v.angle || 0) * 0; w.player.y = v.y + 2.2; }
@@ -409,6 +433,14 @@ const PHASES = {
     await sleep(2500);
     log('verlaten', { coopNet: !!net(), role: W().coopRole || null, money: W().money, pos: W().player ? [Math.round(W().player.x), Math.round(W().player.y)] : null });
     await closeMenu();
+  },
+  // het pauzemenu open terwijl je samen speelt: ligt het partnerlabel er niet overheen? (alleen een schermafbeelding en een controle)
+  async menushot() {
+    await openSamen(); await sleep(900);
+    const chip = document.querySelector('.coop-chip');
+    log('menushot', { chip: !!chip, chipZichtbaar: !!chip && getComputedStyle(chip).visibility !== 'hidden' });
+    shot('g-pauzemenu');
+    await sleep(500); await closeMenu();
   },
   // opnieuw aansluiten na het verlaten, via het pauzemenu en de lobby (dezelfde code), zoals een speler
   async opnieuw() {

@@ -56,5 +56,14 @@ for (const it of collectTexts()) {
   for (const w of tokens(it.text)) if (!dutchSide.has(w) && !reg.gronings[w] && !reg.fries[w] && !okNl.has(w)) unknown.set(w, it.file + ':' + it.line);
 }
 for (const [w, where] of unknown) ok(false, `Gronings of Fries woord '${w}' in getoonde tekst (${where}) staat niet in het register; voeg het toe aan scripts/dialect_woorden.json`);
+
+// Bewijs uit woordenboeken (scripts/dialect_bronnen.json): elk Gronings woord is opgezocht; 'bron' heeft een treffer
+const ev = JSON.parse(fs.readFileSync(path.join(REPO, 'scripts', 'dialect_bronnen.json'), 'utf8'));
+for (const [w, v] of Object.entries(reg.gronings)) {
+  if (/['’]/.test(w)) continue;
+  ok(w in ev.gronings, `Gronings '${w}' is niet opgezocht (scripts/dialect_bronnen.json)`);
+  if (v.status === 'bron' && !v.handmatig && !ev.gronings[w]) ok(false, `Gronings '${w}' heeft status bron zonder treffer`);
+}
+for (const [w, v] of Object.entries(reg.fries)) ok(typeof v.bewijs === 'string' || v.status === 'twijfel', `Fries '${w}' heeft geen bewijsregel`);
 console.log(failed ? `${failed} mislukt` : `dialect_woorden_test ok (${Object.keys(reg.gronings).length} Gronings, ${Object.keys(reg.fries).length} Fries, ${seen.size} Friese woorden en ${marked} Groningse regels in speltekst)`);
 process.exit(failed ? 1 : 0);
