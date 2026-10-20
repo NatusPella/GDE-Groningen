@@ -266,6 +266,10 @@ if (SUITE === 'net') {
   check(last(gm).verdiend === 250, `betalen: de gast heeft 250 verdiend bijgehouden (${last(gm).verdiend})`);
   check(last(samples('host')).money === (samples('host').find((s) => s.ph === 'betaal') || {}).money, 'betalen: het geld van de host bleef gelijk');
   note('save gast: ' + JSON.stringify(gb));
+  const hb = of(H, 'save')[0];
+  check(hb && hb.ok === true && hb.saveMoney === hb.money, 'save: de host bewaart zijn eigen spel niet zoals altijd: ' + JSON.stringify(hb));
+  if (gb && gb.hadSave) check(gb.ok === true && gb.saveMoney === gb.saveMoneyVoor + 250, 'save: de beloning van de gast staat niet in zijn eigen save: ' + JSON.stringify(gb));
+  else note('de gast had nog geen save: de beloning blijft in het geheugen tot zijn eigen eerstvolgende save (geen verlies, geen dubbele)');
   // een ritje: de host rijdt, Tessa (gast) is passagier, de andere gasten zien het voertuig meerijden
   const rs = of(H, 'rit-spawn')[0], ri = of(H, 'rit-in')[0], rp = of(H, 'rit-passagier')[0], rg = of(H, 'rit-gereden')[0], ru = of(H, 'rit-uit')[0];
   check(ri && ri.ingestapt, 'rit: de host kon niet instappen: ' + JSON.stringify({ rs, ri }));
