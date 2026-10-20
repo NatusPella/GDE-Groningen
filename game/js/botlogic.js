@@ -182,7 +182,8 @@ export function decide(s, mem = {}) {
   if (b.shop) return { type: 'shop', n: mem.shopN = (mem.shopN || 0) + 1 };
   if (mem.shopN) mem.shopN = 0;
   if (b.respawn || b.loading) return { type: 'wait', why: b.respawn ? 'respawn' : 'laden' };
-  if (b.talk) return { type: 'wait', why: 'gesprek' };
+  // a talk during a mission is subtitles while you play on (M08: the fatbikes keep coming); outside one it is a conversation to hear out
+  if (b.talk && !(s.mission && s.mission.active)) return { type: 'wait', why: 'gesprek' };
   if (s.player && s.player.pigeon && s.target) return { type: 'pigeon' };
   if (!s.target) return { type: 'wait', why: 'geen doel' };
   const t = s.target;
