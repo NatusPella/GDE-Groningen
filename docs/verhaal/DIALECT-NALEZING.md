@@ -27,3 +27,14 @@ Volgens de reviewer zien deze er goed uit. Eén mens met het dialect in de mond 
 ## Zelf toevoegen
 
 Nieuwe dialectregels: zet ze hier neer voor ze in het script komen. Schrijf de spelling van de bestaande regels aan, niet je eigen.
+
+## Nieuw in verhaalronde 3 (ook nakijken)
+
+| Scène | Spreker | Regel | Twijfel | Opname |
+|---|---|---|---|---|
+| R1.3 | Rikus | *'t Het nog nooit zo donker west, of 't wer altied wel weer licht.* | Nieuw Gronings spreekwoord; let op *wer* naast *weer* in één zin. Ondertitel staat in subtitles.js. | nee |
+| M12.2 | Rotor Roelf | *Nait tegen d'Olle Grieze aan, hè?* | Spelling en gebruik nakijken. | nee |
+| M08.3 | Tammo | *Foar mem. Mem is Gerda.* | Fries *foar mem*; de ondertitel zegt *Voor mem (Fries: moeder)*. | nee |
+| M20.3, M20.4, M25.4 | Mem | *jonge* (*Doe open, jonge.* / *Ik kom, jonge.*) | Fries/Gronings *jonge* voor *jongen*; bij Mem is het een koosnaam. Past het? | deels |
+| T4, M21 | Berend | *Kom mor.* | Gronings *kom maar*; ondertitel *Kom maar.* | nee |
+| M26.6 | Berend | *Goud. …Valt mie nait of.* | Complimentenladder; *Goud* is trede twee. | ja |

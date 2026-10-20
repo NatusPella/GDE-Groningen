@@ -138,7 +138,7 @@ BEWAARDER: Ik stap niet uit. Ik blijf in de trein tot na het Ontzet, dat stond o
 TESSA: Eén jurylid gered. Eén is van hem. En de bewaarder blijft in de trein. [NIEUW]
 TAMMO: Vier van de vijf staan niet meer bij hem, Berend meegerekend. [NIEUW]
 TESSA: Dat is een meerderheid, als we ze tot het Ontzet vasthouden. [NIEUW]
-TESSA: Maar op het Ontzet gaat Jelle om drie uur naar de notaris. Schrijft hij zich in als nieuwe bewaarder, dan tekent hij zelf de uitslag. [NIEUW]
+TESSA: Maar op het Ontzet gaat Jelle om drie uur naar de notaris. Schrijft hij zich in als nieuwe bewaarder, dan tekent hij zelf de uitslag. Daarom zit mevrouw Hoving in de trein: zo kan zij hem niet tegenhouden. [NIEUW]
 TAMMO: Ik heb een trein bestuurd. [NIEUW]
 TESSA: Je hebt hem in een station gezet. Dat is meer dan de machinist. [NIEUW]
 BEREND (telefoon): Goidag. Die man in dat blauwe colbert wilde mijn bakkie kopen, contant, uit een klomp. Dat vergeef ik hem niet. [NIEUW]
