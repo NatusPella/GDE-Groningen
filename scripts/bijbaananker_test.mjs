@@ -8,6 +8,7 @@ check('weg dichtbij: die wordt het', ankerMetWeg(kaart([{ x: 20100, y: -15000 }]
 check('weg verder weg: ruime straal', ankerMetWeg(kaart([{ x: 20900, y: -15000 }]), p).x === 20900);
 const stad = ankerMetWeg(kaart([{ x: STAD.x + 5, y: STAD.y }]), p);
 check('geen weg in de streek: valt terug op de stad', stad.x === STAD.x + 5);
+check('stadsfallback is gemarkeerd, een streekweg niet', stad.fallback === true && !ankerMetWeg(kaart([{ x: 20100, y: -15000 }]), p).fallback);
 const niets = ankerMetWeg(kaart([]), p);
 check('helemaal niets: het punt zelf', niets.x === p.x && niets.y === p.y);
 console.log(`bijbaananker_test: ${n - bad}/${n} ok`);

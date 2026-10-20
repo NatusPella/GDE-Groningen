@@ -559,6 +559,104 @@ const CHECKS = [
     w.vehicles.splice(w.vehicles.indexOf(v), 1);
     return { venster: [innerWidth, innerHeight], schaal: getComputedStyle(document.getElementById('hud') || document.body).zoom };
   } },
+  // bijbanen (speeltestlus): elke bijbaan naar de plek, E, vier seconden draaien, toestand lezen, stoppen
+  { id: 'bijbanen', issues: [], run: async () => {
+    const SJ = await imp('sidejobs');
+    const act = w.sideJobActions; if (!act) return { fout: 'world.sideJobActions ontbreekt (bijbanen niet gestart)' };
+    const seen = new Set(); const out = [];
+    const alle = SJ.getSideJobSpotsForRender();
+    // twee bijbanen op (vrijwel) dezelfde plek: de dichtstbijzijnde wint, de ander is niet te starten
+    const gestapeld = [];
+    for (let i = 0; i < alle.length; i++) for (let j = i + 1; j < alle.length; j++) if (Math.hypot(alle[i].x - alle[j].x, alle[i].y - alle[j].y) < 3) gestapeld.push([alle[i].job.id, alle[j].job.id, Math.round(alle[i].x), Math.round(alle[i].y)]);
+    for (const sp of alle) {
+      const id = sp.job.id; if (seen.has(id)) continue; seen.add(id);
+      w.wanted = 0; w.health = 100;
+      const i0 = issues.length;
+      await go(sp.x, sp.y, 0, 3500);
+      w.wanted = 0;
+      let pogingen = 0;
+      while (pogingen < 3 && !act.active()) { pogingen++; await tap('e', 'KeyE', 160); await sleep(1500); }
+      const gestart = act.active();
+      const melding = gestart ? null : (w.messages || []).slice(-2).map((m) => (m.text || '').slice(0, 80));
+      let staat = null;
+      if (gestart) {
+        await sleep(4000);
+        const pub = w.sideJob || {};
+        staat = { actief: act.active(), naam: act.name(), label: pub.label, voortgang: pub.progress, tijdOver: pub.timeLeft == null ? null : Math.round(pub.timeLeft) };
+        await snap('bijbaan-' + id, 200);
+        act.stop(); await sleep(4500);
+      }
+      out.push({ id, naam: sp.job.name, x: Math.round(sp.x), y: Math.round(sp.y), pogingen, gestart, melding, juisteBaan: gestart ? (staat && staat.naam === sp.job.name) : null, staat, meldingen: issues.slice(i0).map((x) => x.m) });
+    }
+    return { gestapeld, banen: out, opmerking: 'alleen starten en vier seconden meedraaien; niet gespeeld tot een klus af was, niet beoordeeld: balans, uitleg en loon' };
+  } },
+  // voertuigen (speeltestlus): elk winkelvoertuig op een weg bij de Grote Markt neerzetten, instappen, drie seconden gas, kijken of het rijdt
+  { id: 'voertuigen', issues: [], run: async () => {
+    const S = await imp('shops');
+    const road = nearestRoadHeading(200, 45, 120) || { x: 200, y: 45, a: 0 };
+    const out = [];
+    for (const [vk, spec] of Object.entries(S.VEHICLE_STOCK)) {
+      if (spec.kind === 'boat' || spec.kind === 'heli') continue;
+      const i0 = issues.length;
+      w.wanted = 0; w.health = 100;
+      await go(road.x, road.y, road.a, 2500);
+      hold = null;
+      let v = null, fout = null;
+      try { v = S.spawnStockVehicle(w, vk, road.x + 3, road.y, road.a); } catch (e) { fout = String(e && e.message || e).slice(0, 120); }
+      if (!v) { out.push({ key: vk, fout: fout || 'niet gespawnd', meldingen: issues.slice(i0).map((x) => x.m) }); continue; }
+      let moved = 0, top = 0, sp = null;
+      try {
+        teleport(v.x, v.y); p.enterVehicle(v, w);
+        driving = true; key('keydown', 'w', 'KeyW');
+        const x0 = v.x, y0 = v.y;
+        for (let i = 0; i < 12; i++) { await sleep(250); top = Math.max(top, Math.abs(v.speed || 0)); }
+        moved = Math.hypot(v.x - x0, v.y - y0);
+        await snap('voertuig-' + vk, 100);
+      } catch (e) { fout = String(e && e.message || e).slice(0, 120); }
+      finally { key('keyup', 'w', 'KeyW'); driving = false; }
+      try { if (p.inVehicle) p.exitVehicle(map, w); } catch (e) { /* ignore */ }
+      try { w.vehicles.splice(w.vehicles.indexOf(v), 1); } catch (e) { /* ignore */ }
+      out.push({ key: vk, soort: spec.kind, label: spec.label, bewogen: Math.round(moved * 10) / 10, top: Math.round(top * 10) / 10, fout, meldingen: issues.slice(i0).map((x) => x.m) });
+    }
+    return { voertuigen: out, opmerking: 'alleen: neerzetten, instappen, drie seconden gas; niet beoordeeld: besturing, geluid, uiterlijk' };
+  } },
+  // winkelen (speeltestlus): per winkeltype naar de deur, E, het paneel lezen, het eerste item kopen en weglopen
+  { id: 'winkelen', issues: [170], run: async () => {
+    const S = await imp('shops');
+    const SU = await imp('shopui');
+    const byType = new Map();
+    for (const sh of S.getShopsForRender()) if (!sh.country && sh.type !== 'heli' && !byType.has(sh.type)) byType.set(sh.type, sh);
+    const out = [];
+    for (const [type, sh] of byType) {
+      w.money = 5000; w.wanted = 0;
+      if (PM.isPauseMenuOpen()) PM.closePauseMenu();
+      await go(sh.x, sh.y, 0, 3500);
+      w.wanted = 0;
+      const prompt = S.shopPrimaryPrompt(w);
+      const dichtbij = !!S.nearestShop(w);
+      let pogingen = 0;
+      // E tot het paneel opengaat (maximaal drie keer): een eerste E dat niets doet is zelf een bevinding
+      while (pogingen < 3 && !SU.isShopOpen()) { pogingen++; await tap('e', 'KeyE', 160); await sleep(1500); }
+      const open = SU.isShopOpen();
+      const meldingen = (w.messages || []).slice(-2).map((m) => (m.text || '').slice(0, 80));
+      const panel = document.getElementById('shop-menu');
+      const items = panel ? [...panel.querySelectorAll('.sm-item')].map((e) => (e.textContent || '').replace(/s+/g, ' ').trim().slice(0, 60)) : [];
+      await snap('winkelen-' + type, 300);
+      const m0 = w.money;
+      let gekocht = null;
+      if (open && items.length) {
+        await tap('Enter', 'Enter', 120); await sleep(500);
+        await tap('Enter', 'Enter', 120); await sleep(1200);
+        gekocht = { uitgegeven: m0 - w.money };
+        await snap('winkelen-' + type + '-gekocht', 300);
+      }
+      const pauze = PM.isPauseMenuOpen();
+      if (SU.isShopOpen()) { await tap('Escape', 'Escape', 120); await sleep(600); }
+      if (PM.isPauseMenuOpen()) PM.closePauseMenu();
+      out.push({ type, naam: sh.name, pauzeNaAfloop: pauze, prompt: prompt && prompt.label, dichtbij, pogingen, wanted: w.wanted, meldingen, open, items: items.length, eerste: items[0] || null, gekocht, dichtNaEsc: !SU.isShopOpen() });
+    }
+    return { winkels: out, opmerking: 'per type de eerste winkel; het eerste item is gekocht met €5000 op zak; niet beoordeeld: prijzen, voorraad, of het gekochte voertuig of kledingstuk er goed uitziet' };
+  } },
   { id: 'titel', issues: [34], run: async () => {
     const SS = await imp('startscreen');
     SS.runStartScreen(w, { render() {}, relocate() {}, tick() {} });

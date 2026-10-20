@@ -1214,7 +1214,7 @@ function runScene(r, tl, { id, kicker = '', title = '', cardFor = 3, camera, pos
   const lines = tl.lines;
   run = r;
   const ok = playCinematic({
-    id, priority: 3, duration: tl.total, pause: true, letterbox: !live, skippable: true, hideHud: true,
+    id, priority: 3, duration: tl.total, pause: true, letterbox: !live, skippable: true, hideHud: true, hidePlayers: true,
     kicker, title, cardFor,
     lines: cineLines(lines),
     shot: (u, t) => {
@@ -1627,7 +1627,7 @@ export function playVaultScene(w, { at, lines = [], landing = 'Moai! Oant sjen, 
   };
   run = r;
   const ok = playCinematic({
-    id: 'mission-vault', priority: 3, duration: total, pause: true, letterbox: true, skippable: true, hideHud: true,
+    id: 'mission-vault', priority: 3, duration: total, pause: true, letterbox: true, skippable: true, hideHud: true, hidePlayers: true,
     kicker, title, cardFor: kicker ? 2.4 : 0,
     lines: cineLines(allLines),
     shot: (u, t) => {
@@ -1798,7 +1798,7 @@ export function playCastScene(w, { at, facing = null, lines = [], cast = [], pro
   if (ok && big) {
     let t0 = 0;
     const queued = playCinematic({
-      id: 'mission-scene', priority: 3, duration: 3.6, pause: true, letterbox: true, skippable: true, hideHud: true, big, queue: true,
+      id: 'mission-scene', priority: 3, duration: 3.6, pause: true, letterbox: true, skippable: true, hideHud: true, hidePlayers: true, big, queue: true,
       shot: (u, t) => {
         const dt = Math.max(0, Math.min(0.1, t - t0));
         t0 = t;

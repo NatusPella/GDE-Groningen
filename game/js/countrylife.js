@@ -507,6 +507,8 @@ function syncVehicle(a, world) {
   const v = a.veh;
   if (!v) {
     if (d > CONVERT_R || world.cinematicActive || !world.vehicles) return;
+    // not on top of a vehicle that is already there (#265): wait until the spot is free
+    if (world.vehicles.some((o) => Math.hypot(o.x - x, o.y - y) < 5 + (o.halfLen || 2))) return;
     const nv = a.type === 'cyclist' ? makeTwoWheeler('bike', x, y, a.yaw, null, () => a.color) : new Vehicle(x, y, a.yaw, trafficModel(a));
     nv.countryDrive = true;
     nv.speed = a.speed;

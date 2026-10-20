@@ -10,5 +10,6 @@ export function ankerMetWeg(map, p, drivable = true) {
     if (rp) return { x: rp.x, y: rp.y };
   }
   const stad = map.nearestRoadPoint(STAD.x, STAD.y, 400, drivable);
-  return stad ? { x: stad.x, y: stad.y } : p;
+  // fallback: the caller (sidejobs.js) looks again once the region's tiles are in
+  return stad ? { x: stad.x, y: stad.y, fallback: true } : p;
 }

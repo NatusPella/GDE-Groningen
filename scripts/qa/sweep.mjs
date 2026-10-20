@@ -3,7 +3,7 @@
 //   node scripts/qa/sweep.mjs [--seed=1] [--out=<map>] [--part=wereld,verhaal,cut,alles]
 //        [--wereld=45] [--verhaal=26] [--cut=14] [--settle=6000] [--only=<stops>] [--slot] [--plan]
 // --plan schrijft alleen plan.json (geen Electron). Eén Electron-instantie per deel, wegwerpprofiel,
-// nooit echte opslag. --slot neemt een Electron-slot volgens C:/Users/abuis/gde-locks/README.txt.
+// nooit echte opslag. --slot neemt een Electron-slot volgens <GDE_LOCKS>/README.txt.
 // ELECTRON_EXE=<pad> als desktop/node_modules/electron/dist ontbreekt; GAME_WORLD=<map> als de
 // gestagede wereld niet in game/world of desktop/build/game/world staat.
 // Uitvoer in <out>: plan.json, logboek.md, bevindingen.json, shots-<naam>.png, run-<deel>.log.
@@ -94,7 +94,7 @@ let slot = null;
 const release = () => { if (slot) { try { fs.rmdirSync(slot); } catch { /* al weg */ } slot = null; } };
 process.on('exit', release);
 if (flag('slot')) {
-  const LOCKS = 'C:/Users/abuis/gde-locks';
+  const LOCKS = process.env.GDE_LOCKS || path.join(os.homedir(), 'gde-locks');
   for (let tries = 0; tries < 240 && !slot; tries++) {
     for (const n of [1, 2, 3]) { try { fs.mkdirSync(path.join(LOCKS, `electron-${n}`)); slot = path.join(LOCKS, `electron-${n}`); break; } catch { /* bezet */ } }
     if (!slot) await new Promise((r) => setTimeout(r, 60000));
@@ -163,6 +163,7 @@ for (const s of stops) {
   if (s.fout) vlaggen.push({ naam: s.name, vlag: `script-fout: ${s.fout.split('\n')[0]}` });
   if (s.logregels && s.logregels.length) vlaggen.push({ naam: s.name, vlag: `logregels: ${s.logregels.join(' | ').slice(0, 300)}` });
   if (!s.scene) continue;
+  if (s.startScreen) vlaggen.push({ naam: s.name, vlag: 'logomenu (titelscherm) ligt over de wereld' });
   if (s.scene.nan) vlaggen.push({ naam: s.name, vlag: `NaN-geometrie in ${s.scene.nan} meshes` });
   if (s.scene.noTex) vlaggen.push({ naam: s.name, vlag: `texture ontbreekt (${s.scene.badTex.join(', ')})` });
   if (s.scene.meshes < 300 && s.cat !== 'waddenzee') vlaggen.push({ naam: s.name, vlag: `bijna lege wereld (${s.scene.meshes} zichtbare meshes)` });
@@ -180,7 +181,7 @@ fs.writeFileSync(path.join(OUT, 'bevindingen.json'), JSON.stringify({ seed: SEED
 const md = [`# Sweep seed ${SEED}`, '', `Beelden: ${beelden.length}; plekken/stappen gelogd: ${stops.filter((s) => s.scene).length}; vlaggen: ${vlaggen.length}.`, '**Geen van deze beelden is door een mens bekeken**; de vlaggen zijn automatisch. Beeldverdicten tellen alleen zwart, leeg en ongeldig.', '', '## Vlaggen', ...vlaggen.map((v) => `- ${v.naam}: ${v.vlag}`), '', '## Logboek', ...stops.filter((s) => s.scene).map((s) => `- ${s.name} (${s.cat}) klok ${s.clock}, ${s.weather}${s.plaats || s.place ? ', bij ' + (s.place || s.plaats) : ''}${s.step ? ', stap ' + s.step : ''}${s.at ? ', op ' + s.at.join(',') : ''}`), '', '## Cutscenes', ...csInfo.map((l) => `- ${l}`)];
 fs.writeFileSync(path.join(OUT, 'logboek.md'), md.join('\n') + '\n');
 // poort: een zwarte wereld of een fout per frame is geen vondst maar een gebroken build; de run faalt dan (exitcode 1)
-const poort = vlaggen.filter((v) => /^(logregels|bijna lege wereld|script-fout|NaN-geometrie|beeld (zwart|leeg|ongeldig))/.test(v.vlag));
+const poort = vlaggen.filter((v) => /^(logregels|logomenu|bijna lege wereld|script-fout|NaN-geometrie|beeld (zwart|leeg|ongeldig))/.test(v.vlag));
 if (poort.length) {
   fs.appendFileSync(path.join(OUT, 'logboek.md'), ['', '## POORT GEFAALD', ...poort.map((v) => `- ${v.naam}: ${v.vlag}`), ''].join('\n'));
   console.log(`POORT GEFAALD: ${poort.length} vlaggen (zwart beeld, lege wereld, consolefout of script-fout), zie logboek.md`);

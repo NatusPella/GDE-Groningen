@@ -121,7 +121,9 @@ async function shot(name, wait = 700) {
 }
 async function logStop(stop, extra) {
   // the driver reads the records from the returned JSON (a plain console.log line does not reach the run log)
-  const rec = { name: stop.name, cat: stop.cat, clock: env.clock, weather: (env.weather && env.weather.kind) || 'helder', ...extra, scene: sceneChecks(), hud: hudChecks() };
+  const ss = document.querySelector('#start-screen');
+  const startScreen = !!ss && ss.offsetParent !== null && getComputedStyle(ss).display !== 'none' && Number(getComputedStyle(ss).opacity) > 0.05;
+  const rec = { name: stop.name, cat: stop.cat, startScreen, clock: env.clock, weather: (env.weather && env.weather.kind) || 'helder', ...extra, scene: sceneChecks(), hud: hudChecks() };
   const fresh = errors.slice(errSeen); errSeen = errors.length;
   if (fresh.length) rec.errors = fresh.slice(0, 5);
   results.push(rec);

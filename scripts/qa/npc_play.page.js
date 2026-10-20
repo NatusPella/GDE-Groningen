@@ -165,7 +165,9 @@ const CHECKS = [
     await sleep(1500);
     await snap('drop-0', 100);
     const prompt = WD.weaponDropPrompt(w);
-    const ok = WD.usePickup(w);
+    const n0 = (w.weaponDrops || []).length;
+    await tap('e', 'KeyE', 120);
+    const ok = (w.weaponDrops || []).length < n0;
     await sleep(500);
     return { prompt, opgepakt: ok, wapen: w.weapon, ammo: w.ammo && { bezem: w.ammo.bezem, waterpistool: w.ammo.waterpistool }, resterend: (w.weaponDrops || []).length };
   } },
