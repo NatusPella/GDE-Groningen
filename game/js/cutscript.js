@@ -20,7 +20,7 @@
 // below must equal its ANIMS (scripts/cutscript_test.mjs checks that).
 
 export const ACTOR_ANIMS = ['idle', 'walk', 'run', 'talk', 'wave', 'point', 'shrug', 'nod', 'shake', 'laugh', 'carry', 'lean', 'hips', 'phone', 'cheer', 'look', 'ride', 'zwem', 'klim', 'sprong'];
-import { propKindIssue } from './cutscenemodels.js';
+import { propKindIssue, propFoot } from './cutscenemodels.js';
 export const PROP_KINDS = ['doos', 'tas', 'bestelbus', 'fiets', 'duif', 'radio', 'bord', 'koffer', 'bal', 'auto', 'matras', 'bakkie', 'automaat', 'aanhanger', 'trekker', 'politie', 'duiventil', 'zuil', 'klembord', 'kat'];
 export const VERBS = ['walk', 'anim', 'face', 'gaze', 'carry', 'drop', 'move', 'path', 'spin', 'bob', 'show', 'hide', 'sit'];
 export const SHOTS = ['cut', 'dolly', 'orbit', 'follow'];
@@ -358,6 +358,18 @@ export function compileScene(def, opts = {}) {
     }
     if (!def.set) for (const id of Object.keys(ptrack)) {
       const q = propState(id, t);
+      const foot = propFoot(props[id].kind);
+      if (foot && q.visible) {
+        // a vehicle is a box, not a point: the camera leaves it through the nearest face, as far as it is high
+        const c = Math.cos(q.a), sn = Math.sin(q.a), dx0 = pos.f - q.f, ds0 = pos.s - q.s;
+        const lx = dx0 * c + ds0 * sn, ls = -dx0 * sn + ds0 * c;
+        const hx = foot[0] / 2 + PROP_CLEAR, hs = foot[1] / 2 + PROP_CLEAR;
+        if (pos.h > q.h + foot[2] + 0.3 || pos.h < q.h - 0.3 || Math.abs(lx) >= hx || Math.abs(ls) >= hs) continue;
+        let nx = lx, ns = ls;
+        if (hx - Math.abs(lx) < hs - Math.abs(ls)) nx = (lx < 0 ? -1 : 1) * hx; else ns = (ls < 0 ? -1 : 1) * hs;
+        pos = { f: q.f + nx * c - ns * sn, s: q.s + nx * sn + ns * c, h: pos.h };
+        continue;
+      }
       if (!q.visible || pos.h > q.h + 1.4 || pos.h < q.h - 0.3) continue;
       let dx = pos.f - q.f, ds = pos.s - q.s, d = Math.hypot(dx, ds);
       if (d >= PROP_CLEAR) continue;
