@@ -8,6 +8,7 @@
 import './node3d.mjs';
 import fs from 'node:fs';
 
+await import('../game/js/sidejobs.js'); // laadvolgorde: eerst de takenlijst (importcyclus), anders TDZ in sidejobs.js
 const { GameMap, applyMapExtras } = await import('../game/js/mapdata.js');
 const { Vehicle, drivePlayerBoat } = await import('../game/js/vehicle.js');
 const { normalizeAngle, clamp } = await import('../game/js/util.js');

@@ -7,8 +7,6 @@ import { stopCoopNet, removeGuest } from './coopnet.js';
 
 let overlay = null, view = null;
 
-export function isHoldOpen() { return !!overlay; }
-
 function closeHold(world) {
   if (view) { view.close(); view = null; }
   if (overlay) { overlay.remove(); overlay = null; }

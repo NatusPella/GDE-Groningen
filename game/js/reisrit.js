@@ -6,8 +6,6 @@ import { ritPlan, startRit, stepRit, aankomst, skipHint, ondertitel, voortgang, 
 
 let active = null;
 
-export const isRitActive = () => !!active;
-
 function build() {
   const el = document.createElement('div');
   el.className = 'reisrit';

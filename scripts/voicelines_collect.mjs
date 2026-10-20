@@ -26,8 +26,10 @@ const VL = path.join(REPO, 'game', 'audio', 'voicelines');
 const src = (f) => fs.readFileSync(path.join(JS, f), 'utf8');
 
 // Balanced literal ([...] or {...}) starting at the first bracket after `marker`.
+// A table that is no longer exported (#103) is found without its 'export '.
 function literalAt(text, marker, from = 0) {
-  const m = text.indexOf(marker, from);
+  let m = text.indexOf(marker, from);
+  if (m < 0 && marker.startsWith('export ')) m = text.indexOf(marker.slice(7), from);
   if (m < 0) throw new Error(`marker not found: ${marker}`);
   let i = m;
   while (text[i] !== '[' && text[i] !== '{') i++;

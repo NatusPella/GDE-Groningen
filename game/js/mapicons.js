@@ -191,7 +191,6 @@ export function shadeHex(hex, k) {
 }
 // states of a place: 'aanwezig' (default), 'ontdekt' (seen before, not here now: softer),
 // 'vergrendeld' (not open yet: grey, dimmed)
-export const ICON_STATES = ['aanwezig', 'ontdekt', 'vergrendeld'];
 export function stateLook(state) {
   if (state === 'vergrendeld') return { gray: true, alpha: 0.62 };
   if (state === 'ontdekt') return { gray: false, alpha: 0.82 };
