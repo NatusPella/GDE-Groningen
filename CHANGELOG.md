@@ -6,6 +6,8 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+## [0.38.0] - 2026-10-20
+
 ### Verbeterd
 - **De stad komt nu uit dezelfde kaartbron en bouwer als de rest van de provincie (#90, #76; in beeld vergeleken met de oude stad op 67 plekken bij dag en nacht door Claude, niet door de eigenaar):** gebouwen, wegen, spoor, water, groen en bomen van Groningen komen uit de OSM-tegelbouw met dezelfde hoogteprofielen, kruispunten en rijstroken als voorheen; alleen de handgemaakte plekken (Martinitoren, Academiegebouw, Paddepoel, Museum, Euroborg, flat) staan nog in een kleine handlaag (`game/stad.json`, 0,2 MB in plaats van 17 MB). Je merkt het aan: gebouwen met de echte hoogte en daken uit 3D BAG waar de oude kaart een kale doos had, iets meer voetpaden en wegen aan de rand van de stad, meer bomen en een vol kerkhof, perronkappen en het glazen dak van Paddepoel (zoals vroeger), en het Hoofdstation-startpunt blijft bij het stationsgebouw. De binnenvaart (rondvaart, Elf Bruggenrace, skûtsje-sprint) vaart nog dezelfde Diepenring. De oude stadskaart en de Python-keten zijn uit de repo gehaald (ruim 60 MB minder).
 - **Overkappingen terug in de stad (#90, in de wereldbouw gemeten, nog niet in beeld bekeken):** de stad uit de OSM-tegelbouw verloor 63 van de 65 open daken en overkappingen: de perronkappen van Groningen Europapark en Noord, de glazen straat boven winkelcentrum Paddepoel, marktdaken en het benzinestation. De stadsbouw las alleen de gebouwen uit de tegels en niet de overkappingen. Ze komen nu terug (75 tegenover 65 in de oude stad; 63 van de 65 oude plekken zitten erin, twee op het Hoofdstation hebben een iets andere vorm).
@@ -71,7 +73,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 - **Tv verplaatsen in de flat (nog niet in beeld bekeken, #206):** de Kiekkast kan via de pc (Flat inrichten) naar drie plekken aan de noordmuur van de woonkamer; het zitpunt en de plek vanwaar je kijkt gaan mee. Bank en bedden blijven op hun plek.
 - **Wolken aan de hemel (nog niet in beeld bekeken, #194, #195):** bij helder weer hangen een paar losse wolkjes, bij bewolkt weer vult de lucht zich, bij onweer wordt de laag grijs en trekt sneller. 's Nachts zijn de wolken donker en doorzichtig, zodat sterren en maan zichtbaar blijven.
 - **Fotomodus (nog niet in beeld bekeken, #199):** kantelen met Q en E en scherptediepte met Z en X (zachte randen, scherp in het midden); beide staan ook op de opgeslagen foto.
-- **Spelstanden hernoemen met een controller (nog niet in beeld bekeken, #208):** in het hernoemscherm staan snelle namen die je met de richtingen en A kiest.
+- **Opgeslagen spellen hernoemen met een controller (nog niet in beeld bekeken, #208):** in het hernoemscherm staan snelle namen die je met de richtingen en A kiest.
 - **Bushalte met reizigers (nog niet in beeld bekeken, #225):** bij een halte van de buslijn lopen wachtende reizigers naar de deur en stappen in, en wie uitstapt komt uit de deur en loopt de stoep op. Alleen beeld; de telling van reizigers is ongewijzigd.
 - **Interieur per voertuigklasse (nog niet in beeld bekeken, #51):** in de Binnenin-camera hebben sportauto, taxi (taxameter), politie (portofoon, laptophouder, tussenschot), ambulance, bestelwagen, vrachtwagen (groot stuur, slaapbank) en bus (groot plat stuur, kaartjesautomaat) een eigen inrichting.
 - **Schade (nog niet in beeld bekeken, #205):** sierdoppen en uitlaat zijn losse delen van het model en verdwijnen bij een klap; een scheve motorkap met flinke deuken laat de motor al eerder roken.
