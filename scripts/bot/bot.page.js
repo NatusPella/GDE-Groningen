@@ -239,6 +239,22 @@ while (true) {
   }
   if (act.type === 'goto') {
     if (!s.target) continue;
+    // on foot, wedged against a stall pole or a prop: sidestep (alternating sides, longer each time), then plan again
+    if (act.mode !== 'drive' && !s.player.vehicle && !s.blocking.cinematic && s.target.distance > 5) {
+      const fp = mem.footPos;
+      if (!fp || Math.hypot(s.player.x - fp.x, s.player.y - fp.y) > 0.5) mem.footPos = { x: s.player.x, y: s.player.y, t: s.t };
+      else if (s.t - fp.t > 2) {
+        mem.footPos = null;
+        mem.sidesteps = (mem.sidesteps || 0) + 1;
+        const dir = mem.sidesteps % 2 ? 1 : -1, ms = 700 + 350 * Math.min(8, mem.sidesteps);
+        B.log('zijstap', { x: s.player.x, y: s.player.y, n: mem.sidesteps, ms });
+        B.stick(dir, -0.3);
+        await sleep(ms);
+        B.stick(0, 0);
+        follower = null;
+        continue;
+      }
+    }
     steerTowards(s, act.mode, s.target, !act.stunt && s.mission.phase !== 'active' && s.target.source === 'missiestart', act.top || 24);
     if (wedgeOut) {
       wedgeOut = false;
