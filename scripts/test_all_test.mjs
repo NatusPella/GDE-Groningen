@@ -97,6 +97,14 @@ assert.ok(md.indexOf('## Samenvatting') < md.indexOf('## Licht'));
 assert.match(md, /\*\*Niet gedraaid\*\* in deze run/);
 assert.match(md, /game\/world ontbreekt/);
 assert.match(md, /\| b \| FAIL \(nieuw\)/);
+assert.match(md, /- `b`: oorzaak nog niet onderzocht/);
+{ // oorzaak uit het register, bij een mislukt item en bij een item dat eerder instabiel was
+  const reg = [it('test:net_brokers_test.mjs', 'PASS'), it('test:paint_test.mjs', 'TIMEOUT', 'tijdslimiet')];
+  const m2 = R.renderMarkdown({ stamp: 's', fases: { licht: { gedraaid: true, items: reg, secs: 1, diff: R.diffRuns([], reg), vorige: null } } });
+  assert.match(m2, /`test:paint_test\.mjs`: bug, zelfde als bus_route_test/);
+  assert.match(m2, /Eerder instabiel/);
+  assert.match(m2, /`test:net_brokers_test\.mjs` \(PASS\): instabiel/);
+}
 assert.match(R.samenvatting({ stamp: 'x', fases: {} }).join(' '), /Er is niets gedraaid/);
 assert.ok(!R.samenvatting({ ...rapport, toon: ['licht'] }).join(' ').includes('niet gedraaid: zwaar'));
 
