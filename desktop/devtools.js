@@ -45,7 +45,7 @@ const smoke = argValue('--smoke-test');
 function queryParts() {
   const silent = hasFlag('--stil');
   const trailerShot = argValue('--trailer-shot'), trailerCut = argValue('--trailer-cut'), trailerFrames = argValue('--trailer-frames');
-  return [(silent || storyTest) && 'stil', hasFlag('--audio-graph') && 'audiograf', hasFlag('--coop') && 'coop', hasFlag('--hitch') && 'hitch', hasFlag('--zwartcheck') && 'zwartcheck', hasFlag('--dev') && 'dev', findArg('--autoplay') && (argValue('--autoplay') ? `autoplay=${encodeURIComponent(argValue('--autoplay'))}` : 'autoplay'), storyTest && 'storytest', spotsOnly && 'spotsonly',
+  return [(silent || storyTest) && 'stil', hasFlag('--audio-graph') && 'audiograf', hasFlag('--coop') && 'coop', hasFlag('--hitch') && 'hitch', hasFlag('--zwartcheck') && 'zwartcheck', hasFlag('--dev') && 'dev', hasFlag('--reizen') && 'reizen', findArg('--autoplay') && (argValue('--autoplay') ? `autoplay=${encodeURIComponent(argValue('--autoplay'))}` : 'autoplay'), storyTest && 'storytest', spotsOnly && 'spotsonly',
     // automated runs never get the first-launch attract intro
     (smoke !== null || storyTest || hasFlag('--perf-test') || findArg('--autoplay')) && !TRAILER && 'noattract',
     TRAILER && 'trailer', TRAILER && trailerShot && `shot=${encodeURIComponent(trailerShot)}`, (TRAILER || hasFlag('--trailer-preview')) && trailerCut && `cut=${encodeURIComponent(trailerCut)}`,
