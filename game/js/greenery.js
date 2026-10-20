@@ -24,7 +24,7 @@ export const SPECIES = [
   { id: 'kastanje', h: [14, 20], crown: 'round', r: [5.0, 6.4], stem: 0.25, color: 0x426c2e, trunk: 0x4a3828 },
   { id: 'populier', h: [22, 30], crown: 'columnar', r: [2.2, 3.0], stem: 0.15, color: 0x6a9352, trunk: 0x6c6a5e },
   { id: 'wilg', h: [8, 14], crown: 'weeping', r: [4.2, 6.0], stem: 0.2, color: 0x82a35e, trunk: 0x5a4a38 },
-  { id: 'berk', h: [12, 18], crown: 'oval', r: [2.6, 3.6], stem: 0.3, color: 0x78a250, trunk: 0xa9a496 },
+  { id: 'berk', h: [12, 18], crown: 'oval', r: [2.6, 3.6], stem: 0.3, color: 0x78a250, trunk: 0x8c8778 },
   { id: 'den', h: [12, 20], crown: 'conical', r: [2.4, 3.4], stem: 0.35, color: 0x2e4d2a, trunk: 0x6a4a30 },
   // Japanese ornamental cherry: late bloom in pink, kept all summer
   { id: 'kers', h: [6, 9], crown: 'round', r: [3.2, 4.4], stem: 0.3, color: 0xe58fb4, trunk: 0x4a3428 },
