@@ -29,10 +29,12 @@ fs.mkdirSync(OUT, { recursive: true });
 
 const held = [];
 async function takeSlot() {
-  for (;;) {
+  // elke 5 s kijken in plaats van elke minuut: met een stuk of vijftien sessies die om drie sloten vechten
+  // snappen de anderen anders elk vrijgekomen slot weg voordat wij weer kijken (de coöp-stap van test_all kreeg zo 110 min lang niets)
+  for (let poging = 0; ; poging++) {
     for (const n of [1, 2, 3]) { const d = path.join(LOCKS, 'electron-' + n); try { fs.mkdirSync(d); held.push(d); return d; } catch (e) { /* bezet */ } }
-    console.log('alle electron-sloten bezet, wacht 60 s');
-    await new Promise((r) => setTimeout(r, 60000));
+    if (poging % 12 === 0) console.log('alle electron-sloten bezet, wacht');
+    await new Promise((r) => setTimeout(r, 5000));
   }
 }
 const release = () => { while (held.length) { try { fs.rmdirSync(held.pop()); } catch (e) { /* weg */ } } };
