@@ -446,7 +446,7 @@ const PHASES = {
   async verhaal({ s = 1500, until = 'T1', speed = 1 }) {
     const args = { until };
     if (CFG.role === 'host') {
-      window.__botCfg = { part: 'all', until: args.until || 'T1', maxGameS: 3600, maxWallS: s, stuckS: 45, shots: 40, speed: speed || 1, waitS: 60, invulnerable: !!CFG.invuln };
+      window.__botCfg = { part: 'all', until: args.until || 'T1', maxGameS: Math.max(3600, s * Math.max(1, speed) * 1.2), maxWallS: s, stuckS: 45, shots: 40, speed: speed || 1, waitS: 60, invulnerable: !!CFG.invuln };
       log('verhaal-begin', {});
       const r = await window.__botMain();
       log('verhaal-einde', { r });
