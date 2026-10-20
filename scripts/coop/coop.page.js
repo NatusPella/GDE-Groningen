@@ -434,6 +434,14 @@ const PHASES = {
     log('verlaten', { coopNet: !!net(), role: W().coopRole || null, money: W().money, pos: W().player ? [Math.round(W().player.x), Math.round(W().player.y)] : null });
     await closeMenu();
   },
+  // het pauzemenu open terwijl je samen speelt: ligt het partnerlabel er niet overheen? (alleen een schermafbeelding en een controle)
+  async menushot() {
+    await openSamen(); await sleep(900);
+    const chip = document.querySelector('.coop-chip');
+    log('menushot', { chip: !!chip, chipZichtbaar: !!chip && getComputedStyle(chip).visibility !== 'hidden' });
+    shot('g-pauzemenu');
+    await sleep(500); await closeMenu();
+  },
   // opnieuw aansluiten na het verlaten, via het pauzemenu en de lobby (dezelfde code), zoals een speler
   async opnieuw() {
     if (net()) { log('opnieuw-al-verbonden', {}); return; }
