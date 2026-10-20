@@ -141,8 +141,8 @@ export function signalSpot(b, end, map = null) {
   const dir = end ? 1 : -1;
   const ex = end ? b.bx : b.ax, ey = end ? b.by : b.ay;
   let best = null, bestScore = Infinity;
-  for (const out of [0, 1.8, 3.6, 5.4]) {
-    for (const beyond of [1.5, 4.5, 7.5]) {
+  for (const out of [0, 1.8, 3.6, 5.4, 8, 11]) {
+    for (const beyond of [1.5, 4.5, 7.5, 11, 15, 20]) {
       const x = ex + dir * b.ux * beyond + nx * (b.half + 1.2 + out), y = ey + dir * b.uy * beyond + ny * (b.half + 1.2 + out);
       if (!map) return [x, y];
       const score = (onCarRoad(map, x, y, b.r) ? 2 : 0) + (waterAt(map, x, y) ? 1 : 0) + out * 0.01 + beyond * 0.001;
