@@ -33,7 +33,7 @@ export function buildAkte5Defs({ map, walk, drive }) {
       type: 'stages',
       label: 'Een luik erin',
       intro: ['Tinus\' schuur bij Zuidhorn. Henk heeft een luik en een koekje. Eén.', 'Bouw een luik in de Escapade, bewijs in de modder dat de as het houdt en laat Tinus hem eruit trekken.'],
-      outro: 'De Escapade is de Fjord Frituur. Er is een wagen, nog geen bal.',
+      outro: 'De Escapade is de Fjord Frituur. Nog geen bal. Mem en Oma hebben de vrienden gebeld: samen naar de Grote Markt.',
       timeLimit: null,
       reward: 300,
       costRow: ['Gevolg', 'Het luik is betaald met het horloge van Tammo\'s opa'],
@@ -63,7 +63,7 @@ export function buildAkte5Defs({ map, walk, drive }) {
         },
         {
           kind: 'goto', target: { at: MODDER, snap: 'drive', label: 'De modder' }, mode: 'vehicle', radius: 24, stop: 0,
-          label: 'Rij de Escapade de modder in: laat zien dat de as het houdt', say: 'Rij hem de modder in. Als de as het houdt, houdt hij het ook op de Grote Markt.',
+          label: 'Rij de Escapade de modder in, tot hij vastzit: de as moet het houden', say: 'Rij hem de modder in. Als de as het houdt, houdt hij het ook op de Grote Markt.',
           talk: { ids: ['M22.3'], from: 0, to: 4, delay: 1.5 }, mud: true,
         },
         {
