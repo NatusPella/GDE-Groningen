@@ -84,5 +84,9 @@ for (const { f, k } of literals(/\bmayInterrupt\('([a-z0-9]+)'/g)) ok(k in B.MOM
 for (const { f, k } of literals(/\bnoteMoment\('([a-z0-9]+)'/g)) ok(k in B.MOMENTS || k === 'scene', `${f}: noteMoment('${k}') is a moment`);
 for (const { f, k } of literals(/\bisOverlayHeld\('([a-z]+)'/g)) ok(k in B.OVERLAY_RANK, `${f}: isOverlayHeld('${k}') is an overlay`);
 
+// docs/KANALEN.md (made by scripts/hudbus_inventory.mjs --md) has a row for every surface
+const doc = fs.readFileSync(path.join(dir, '..', '..', 'docs', 'KANALEN.md'), 'utf8');
+for (const id of Object.keys(B.SURFACES)) ok(doc.includes(`| ${id} |`), `docs/KANALEN.md has a row for ${id} -- run: node scripts/hudbus_inventory.mjs --md`);
+
 console.log(`${n - bad}/${n} hudbus surfaces ok`);
 process.exit(bad ? 1 : 0);
