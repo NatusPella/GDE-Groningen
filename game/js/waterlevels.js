@@ -229,6 +229,19 @@ export function waterBodies(water, touch = 1.0, apart = null) {
   return { body, count: ids.size };
 }
 
+// The grid cells (index into g.dist) whose centre lies in the polygon P, by the same scanline as waterGrid.
+export function cellsOf(g, P, fn) {
+  const { W, H, x0, y0, cell } = g, b = boundsOf(P);
+  for (let gy = Math.max(0, Math.floor((b[1] - y0) / cell)); gy <= Math.min(H - 1, Math.ceil((b[3] - y0) / cell)); gy++) {
+    const y = y0 + (gy + 0.5) * cell, xs = [];
+    for (let k = 0, j = P.length - 1; k < P.length; j = k++) if ((P[k][1] > y) !== (P[j][1] > y)) xs.push(P[k][0] + ((P[j][0] - P[k][0]) * (y - P[k][1])) / (P[j][1] - P[k][1]));
+    xs.sort((a, c) => a - c);
+    for (let q = 0; q + 1 < xs.length; q += 2) {
+      for (let gx = Math.max(0, Math.ceil((xs[q] - x0) / cell - 0.5)); gx <= Math.min(W - 1, Math.floor((xs[q + 1] - x0) / cell - 0.5)); gx++) fn(gy * W + gx);
+    }
+  }
+}
+
 // Rasterises a set of polygons (indices into water) on a grid of `cell` m and
 // gives the distance from each water cell to the nearest dry one (chamfer
 // 3-4): { W, H, x0, y0, cell, poly (index + 1 per cell), dist (m) }.
@@ -304,17 +317,24 @@ export function annotateWater(water, cell = 2.5, apart = null, focus = null) {
     // the grid is a cell coarse: in narrow water the exact distance to the
     // body's shore (edges shared by two polygons are no shore)
     let idx = null;
-    for (let k = 0; k < g.W * g.H; k++) {
-      if (!g.poly[k]) continue;
-      const pi = g.poly[k] - 1;
+    // (a cell the grid holds for the last polygon over it is every polygon's own: a ribbon laid over a canal
+    // polygon would take the polygon's widest cells, and its width would fall to a ditch's. One distance per cell.)
+    const dOf = new Map();
+    const distAt = (k) => {
       let d = g.dist[k];
       if (d < 3 * cell) {
-        if (!idx) idx = createWaterIndex(list.map((i) => water[i]));
-        const cx = k % g.W, cy = (k - cx) / g.W;
-        d = idx.nearestShore(g.x0 + (cx + 0.5) * cell, g.y0 + (cy + 0.5) * cell, 4 * cell).d;
+        let v = dOf.get(k);
+        if (v === undefined) {
+          if (!idx) idx = createWaterIndex(list.map((i) => water[i]));
+          const cx = k % g.W, cy = (k - cx) / g.W;
+          v = idx.nearestShore(g.x0 + (cx + 0.5) * cell, g.y0 + (cy + 0.5) * cell, 4 * cell).d;
+          dOf.set(k, v);
+        }
+        d = v;
       }
-      width[pi] = Math.max(width[pi], 2 * d);
-    }
+      return d;
+    };
+    for (const i of list) cellsOf(g, water[i].pts, (k) => { const d = distAt(k); if (2 * d > width[i]) width[i] = 2 * d; });
   }
   // a polygon too thin for a cell centre: its own width
   water.forEach((w, i) => { if (!width[i]) width[i] = 2 * polyArea(w.pts) / (polyPerimeter(w.pts) || 1); });
@@ -371,10 +391,51 @@ function lockChambers(rows, locks) {
 // annotateProvinceWater; a lock chamber is flagged `lock` but does not split the body (the city has one
 // boezem); `focus(x, y)` says where the city is, so its water is the boezem and not a lake of the pack.
 // `base` offsets the body ids.
+// A strip of a mapped canal (its centre line drawn 14 m wide) that lies wholly in a shipping canal's polygon is
+// part of that canal, as it was where the city map had them as one polygon (the arms of the Diepenring: Turfsingel,
+// Schuitendiep, Spilsluizen): it takes the polygon's kind, depth and class. Only a diep or vaart strip, only
+// where OVER_CANAL of its samples lie in kanaal polygons.
+const OVER_CANAL = 0.9;
+function laidOverCanal(water) {
+  const canals = water.filter((w) => w.nav === 4 && w.kind === 'kanaal').map((w) => ({ w, b: w.bounds || (w.bounds = boundsOf(w.pts)) }));
+  if (!canals.length) return 0;
+  let n = 0;
+  for (const w of water) {
+    if (w.kind !== 'diep' && w.kind !== 'vaart') continue;
+    const A = polyArea(w.pts);
+    if (A > 60000) continue;
+    const b = w.bounds || (w.bounds = boundsOf(w.pts));
+    const near = canals.filter((c) => c.b[0] <= b[2] && c.b[2] >= b[0] && c.b[1] <= b[3] && c.b[3] >= b[1]);
+    if (!near.length) continue;
+    const step = Math.max(4, Math.sqrt(A / 60));
+    let all = 0, hit = 0;
+    for (let y = b[1] + step / 2; y < b[3]; y += step) for (let x = b[0] + step / 2; x < b[2]; x += step) {
+      if (!inPolygon(x, y, w.pts)) continue;
+      all++;
+      if (near.some((c) => x >= c.b[0] && x <= c.b[2] && y >= c.b[1] && y <= c.b[3] && pointInStaticPolygon(x, y, c.w.pts))) hit++;
+    }
+    if (all >= 3 && hit >= OVER_CANAL * all) { w.kind = 'kanaal'; w.dp = WATER_KINDS.kanaal.depth; w.nav = WATER_KINDS.kanaal.nav; n++; }
+  }
+  return n;
+}
+const polySig = (w) => { const P = w.pts, m = P[P.length >> 1], l = P[P.length - 1]; return `${P.length}|${P[0]}|${m}|${l}|${w.name || ''}`; };
 export function annotateCityWater(rows, { base = 0, village = null, locks = [], focus = null } = {}) {
   const chambers = lockChambers(rows, locks);
   rows.forEach((w, i) => { if (chambers.has(i)) w.lock = true; });
-  const bodies = annotateWater(rows, 2.5, null, focus);
+  // The same polygon comes from every pack that holds it (a canal over a pack's edge): classified once, as the
+  // old city map had it once, else the copies lay over each other and a copy could lose its widest cells to another.
+  const seen = new Map(), uniq = [], of = rows.map((w) => {
+    const k = polySig(w);
+    let u = seen.get(k);
+    if (u === undefined) { u = uniq.length; seen.set(k, u); uniq.push(w); }
+    return u;
+  });
+  const bodies = annotateWater(uniq, 2.5, null, focus);
+  laidOverCanal(uniq);
+  rows.forEach((w, i) => {
+    const u = uniq[of[i]];
+    if (w !== u) { w.body = u.body; w.kind = u.kind; w.lv = u.lv; w.dp = u.dp; w.nav = u.nav; }
+  });
   rows.forEach((w) => {
     w.body += base;
     const c = polyCentre(w.pts);
