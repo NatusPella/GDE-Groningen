@@ -526,13 +526,14 @@ const PHASES = {
       await closeMenu(); // de gast kijkt vanuit het spel mee; hij wacht tot de gastheer start (hij begint niet zelf)
       log('gate-gast', { cine: cineOn(), cam: !!W().cameraOverride, bezig: W().coopCutBezig ?? null });
     }
-    const end = performance.now() + s * 1000; let n = 0, laatsteSub = '', uitSinds = null;
+    const end = performance.now() + s * 1000; let n = 0, laatsteSub = '', uitSinds = null, keuken = 0;
     while (performance.now() < end) {
       const on = cineOn();
       const x = W();
       if (on && eerste == null) { eerste = (performance.now() - t0o) / 1000; log('opening-begin', { na: eerste, cutBezig: x.coopCutBezig ?? null, wachtte: eerste }); }
       if (CFG.role === 'gast' && !net() && eerste != null) { log('opening-weg', { net: false }); break; } // de gastheer stopte: de gast speelt weer zijn eigen spel
       if (on) gezien += 0.25;
+      if (on && x.cameraOverride && x.cameraOverride.position && x.cameraOverride.position.z > 300) { if (!keuken) keuken = performance.now(); else if (keuken > 0 && performance.now() - keuken > 4000) { keuken = -1; shot('opening-' + CFG.role + '-keuken'); } } // de keuken (tweede scène) van binnen
       const c = document.getElementById('cine'); const sub = c && c.querySelector('.cine-line') ? c.querySelector('.cine-line').textContent : '';
       if (sub && sub !== laatsteSub) { laatsteSub = sub; log('opening-regel', { sub: sub.slice(0, 60), cam: x.cameraOverride && x.cameraOverride.position ? [Math.round(x.cameraOverride.position.x), Math.round(x.cameraOverride.position.y), Math.round(x.cameraOverride.position.z ?? 0)] : null, bezig: x.coopCutBezig ?? null }); }
       if (on && gezien >= 8 && !geprobeerd) {
@@ -558,23 +559,26 @@ const PHASES = {
     // het klembord is van het hele systeem: wat erin stond zetten we na de test terug
     let oud = ''; try { oud = await window.gdeDesktop.clipboard.readText(); } catch (e) { /* geen brug */ }
     inp.focus(); inp.value = ''; inp.dispatchEvent(new Event('input', { bubbles: true }));
+    // het klembord vullen via het hoofdproces en teruglezen: het is van het hele systeem en een andere instantie kan er even tussen zitten
+    const zetKlembord = async (t) => { for (let i = 0; i < 5; i++) { console.log('[clipboard-set] ' + t); for (let j = 0; j < 8; j++) { await sleep(250); let g = ''; try { g = await window.gdeDesktop.clipboard.readText(); } catch (e) { /* geen brug */ } if (g === t) return true; } } log('klembord-niet-gezet', { gewenst: t }); return false; };
     const send = async (ev) => { console.log('[sendinput] ' + JSON.stringify(ev)); await sleep(60); };
     const typ = async (ch, code) => { await send({ type: 'keyDown', keyCode: code }); await send({ type: 'char', keyCode: ch }); await send({ type: 'keyUp', keyCode: code }); };
     for (const [ch, code] of [['w', 'W'], ['a', 'A'], ['s', 'S'], ['d', 'D'], [' ', 'Space'], ['e', 'E']]) await typ(ch, code);
-    await sleep(300);
+    for (let i = 0; i < 40 && inp.value !== 'wasd e'; i++) await sleep(250); // onder belasting komen de toetsen soms seconden later aan
     const na = inp.value, pos = W().player ? [W().player.x, W().player.y] : null;
     log('tekstveld-typen', { waarde: na, focus: document.activeElement === inp, pos });
     // plakken met Ctrl+V (het klembord zet het hoofdproces)
     inp.value = ''; inp.dispatchEvent(new Event('input', { bubbles: true }));
     for (let poging = 0; poging < 3 && inp.value !== '127.0.0.1:41234-ABC'; poging++) { // een andere instantie kan het klembord even gebruiken
-      console.log('[clipboard-set] 127.0.0.1:41234-ABC'); await sleep(400);
+      inp.value = ''; inp.dispatchEvent(new Event('input', { bubbles: true }));
+      await zetKlembord('127.0.0.1:41234-ABC');
       await send({ type: 'keyDown', keyCode: 'V', modifiers: ['control'] }); await send({ type: 'keyUp', keyCode: 'V', modifiers: ['control'] });
-      await sleep(700);
+      for (let i = 0; i < 16 && inp.value !== '127.0.0.1:41234-ABC'; i++) await sleep(250);
     }
     log('tekstveld-plakken', { waarde: inp.value });
     // rechtermuisknop-menu: Plakken
     inp.value = ''; inp.dispatchEvent(new Event('input', { bubbles: true }));
-    console.log('[clipboard-set] kamer-xyz'); await sleep(400);
+    await zetKlembord('kamer-xyz');
     const r = inp.getBoundingClientRect();
     await send({ type: 'mouseDown', x: Math.round(r.left + 20), y: Math.round(r.top + r.height / 2), button: 'right', clickCount: 1 });
     await send({ type: 'mouseUp', x: Math.round(r.left + 20), y: Math.round(r.top + r.height / 2), button: 'right', clickCount: 1 });
@@ -584,8 +588,8 @@ const PHASES = {
     shot('tekstveld-menu');
     const plak = menu && [...menu.querySelectorAll('button')].find((b) => b.textContent === 'Plakken');
     if (plak) plak.click();
-    await sleep(700);
-    if (inp.value !== 'kamer-xyz' && plak) { console.log('[clipboard-set] kamer-xyz'); await sleep(400); inp.focus(); inp.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true, clientX: r.left + 20, clientY: r.top + 10 })); await sleep(300); const p2 = [...document.querySelectorAll('.gde-tfmenu button')].find((b) => b.textContent === 'Plakken'); if (p2) p2.click(); await sleep(700); log('tekstveld-menu-opnieuw', { waarde: inp.value }); }
+    for (let i = 0; i < 16 && inp.value !== 'kamer-xyz'; i++) await sleep(250);
+    if (inp.value !== 'kamer-xyz' && plak) { await zetKlembord('kamer-xyz'); inp.focus(); inp.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true, clientX: r.left + 20, clientY: r.top + 10 })); await sleep(300); const p2 = [...document.querySelectorAll('.gde-tfmenu button')].find((b) => b.textContent === 'Plakken'); if (p2) p2.click(); await sleep(700); log('tekstveld-menu-opnieuw', { waarde: inp.value }); }
     log('tekstveld-menu-plakken', { waarde: inp.value });
     inp.value = ''; inp.dispatchEvent(new Event('input', { bubbles: true }));
     if (oud && oud.indexOf(String.fromCharCode(10)) < 0 && oud.indexOf(String.fromCharCode(13)) < 0) console.log('[clipboard-set] ' + oud); // het klembord van vóór de test terug
