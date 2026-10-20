@@ -127,7 +127,7 @@ t('de host stopt: elke gast speelt weer in zijn eigen spel (ook als het bericht 
   N.stopCoopNet(s.hw); s.step(3);
   for (const g of s.gs) { assert.equal(g.gw.coopNet, null); assert.equal(g.gw.coopRole, null, 'weer eigen save'); }
   assert.deepEqual([s.gs[0].gw.player.x, s.gs[0].gw.player.y], [77, 88]);
-  assert.match(s.gs[0].gw.messages.join(' '), /De gastheer is gestopt met samen spelen/);
+  assert.match(s.gs[0].gw.messages.join(' '), /Tammo heeft het spel gestopt/);
 });
 t('een gast die wordt afgewezen (vol) blijft geen gast: zijn eigen spel mag weer bewaard worden', () => {
   const s = sessie(4, { opts: { max: 4 } }); s.step(5);
@@ -165,7 +165,7 @@ t('host verwijdert één speler: bericht, dan verbreken; de rest speelt door', (
   assert.equal(N.removeGuest(s.hw, 2), true); assert.equal(N.removeGuest(s.hw, 9), false);
   s.step(2);
   assert.equal(b.coopNet, null); assert.equal(b.player.x, 5); assert.equal(b.coopRole, null);
-  assert.match(b.messages.join(' '), /uit het spel van de gastheer gehaald/);
+  assert.match(b.messages.join(' '), /uit het spel van Tammo gehaald/);
   assert.equal(a.coopNet.session.status, 'ok'); assert.deepEqual(s.hw.coopRoster.map((r) => r.slot), [0, 1]);
 });
 t('pings: komen bij iedereen aan met de afzender; cooldown; ongeldige of onbekende worden genegeerd', () => {
@@ -224,7 +224,7 @@ t('de wereld van de host: voertuigen en doel komen bij de gasten aan, en de opdr
   const gw = s.gs[0].gw;
   assert.deepEqual(gw.coopHost.voertuigen.map((v) => v.soort), ['bus'], 'alleen wat dicht bij een speler is');
   assert.equal(gw.coopHost.doelen.length, 1); assert.ok(Math.abs(gw.coopHost.doelen[0].x - 50) < 0.01);
-  assert.match(gw.messages.join(' '), /De gastheer speelt: Berend telt de krassen\. Doe mee waar het kan/);
+  assert.match(gw.messages.join(' '), /Tammo speelt: Berend telt de krassen\. Doe mee waar het kan/);
   assert.equal(gw.coopHostMissie.label, 'Berend telt de krassen');
   s.hw.mission = { phase: 'idle' }; s.step(1);
   assert.equal(gw.coopHostMissie.actief, false);
@@ -283,12 +283,12 @@ t('missiestappen: de gast ziet de opdracht en daarna elke volgende stap van de g
   const s = sessie(2, { hostExtra: { mission: { phase: 'active', label: 'Het Loket', type: 'stages', index: 3, progressText: 'Stap in de auto', marker: { x: 5, y: 5 } } } });
   s.step(2);
   for (const g of s.gs) {
-    assert.match(g.gw.messages.join(' '), /De gastheer speelt: Het Loket/);
+    assert.match(g.gw.messages.join(' '), /Tammo speelt: Het Loket/);
     assert.equal(g.gw.coopHostMissie.stap, 'Stap in de auto');
   }
   s.hw.mission.progressText = 'Rij naar het loket'; s.step(2);
-  for (const g of s.gs) assert.match(g.gw.messages.join(' '), /Gastheer, volgende stap: Rij naar het loket/);
-  assert.equal(s.gs[1].gw.messages.filter((m) => /De gastheer speelt/.test(m)).length, 1, 'de opdracht zelf wordt maar één keer gemeld');
+  for (const g of s.gs) assert.match(g.gw.messages.join(' '), /Tammo, volgende stap: Rij naar het loket/);
+  assert.equal(s.gs[1].gw.messages.filter((m) => /Tammo speelt/.test(m)).length, 1, 'de opdracht zelf wordt maar één keer gemeld');
 });
 t('filmpje van de host: de gasten zien het (na een korte tijd), staan stil en lezen de regel mee; wie later aansluit hoort het ook', () => {
   let sc = { filmpje: false, regel: null, keuze: null };
@@ -303,7 +303,7 @@ t('filmpje van de host: de gasten zien het (na een korte tijd), staan stil en le
   step(1);
   const g = gs[0].gw;
   assert.equal(g.coopScene.filmpje, true); assert.equal(g.coopScene.regel.tekst, 'Wacht even.');
-  assert.match(g.messages.join(' '), /De gastheer kijkt een filmpje/);
+  assert.match(g.messages.join(' '), /Tammo kijkt een filmpje/);
   assert.equal(g.coopNet.session.pendingInput.mx, 0, 'tijdens het filmpje stuurt de gast geen invoer');
   gs.push(mk()); step(2);
   assert.equal(gs[1].gw.coopScene && gs[1].gw.coopScene.filmpje, true, 'een late gast hoort het filmpje ook');

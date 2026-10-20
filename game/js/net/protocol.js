@@ -30,7 +30,7 @@ export const REASON_TEXT = {
   verhaal: 'Het verhaal is verschillend. Kies op beide kanten hetzelfde verhaal.',
   vol: 'De sessie zit al vol.',
   token: 'Deze verbinding kan niet hervat worden.',
-  gesloten: 'De gastheer heeft de verbinding gesloten. Zit de sessie vol, of is de gastheer gestopt?',
+  gesloten: 'De verbinding is gesloten. Zit het spel vol, of is het spel gestopt?',
 };
 
 // Betrouwbare gebeurtenissen: in volgorde, zonder dubbele aflevering.

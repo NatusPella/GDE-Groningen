@@ -491,7 +491,7 @@ if (SUITE === 'opening') {
   check(tmp && tmp.waarde === 'kamer-xyz', 'tekstveld: Plakken in het menu werkt niet: ' + JSON.stringify(tmp));
   // wachtkamer: de gast leest wat er bewaard wordt, de gastheer heeft Spel starten
   const gw = one(G, 'wachtkamer'), hw = one(H, 'wachtkamer');
-  check(gw && /Je speelt mee in het spel van de gastheer/.test(gw.tekst) && /in je eigen spel \(.+\)/.test(gw.tekst), 'wachtkamer: de gast leest niet in welk spel hij speelt en wat er bewaard wordt: ' + JSON.stringify(gw && gw.tekst));
+  check(gw && /Tammo heeft het spel geopend/.test(gw.tekst) && /Je speelt mee in het spel van Tammo/.test(gw.tekst) && /in je eigen spel \(.+\)/.test(gw.tekst), 'wachtkamer: de gast leest niet in welk spel hij speelt en wat er bewaard wordt: ' + JSON.stringify(gw && gw.tekst));
   check(hw && hw.gateKnop && !hw.gateKnopUit && /Spel starten/.test(hw.tekst), 'wachtkamer: met twee spelers staat Spel starten niet aan: ' + JSON.stringify(hw && hw.tekst));
   const alleen = one(H, 'start-alleen');
   check(alleen && alleen.knop && alleen.uit && /minstens twee spelers/.test(alleen.tekst), 'wachtkamer: alleen jij: Spel starten moet uit staan met uitleg: ' + JSON.stringify(alleen));

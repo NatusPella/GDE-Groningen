@@ -284,6 +284,13 @@
       "term": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/",
       "file": "index.html",
       "why": "importmap van de webversie: three.js-addons van een CDN, zie hierboven"
+    },
+    {
+      "rule": "rolnaam",
+      "term": "gastheer",
+      "file": "keuzewerk",
+      "ctx": "dankwoord aan de gastheer",
+      "why": "een speech op een feest (de gastheer van het feest in het verhaal), niets met samen spelen"
     }
   ]
 }

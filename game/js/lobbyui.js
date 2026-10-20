@@ -82,7 +82,7 @@ export function mountLobby(root, hooks, opts = {}) {
       if (stopListen) stopListen();
       stopListen = listenForGuests(api, (tr) => hooks.addGuest(tr));
       const r = await api.host(hub.roster.max);
-      if (!r.ok) return set({ t: 'fout', msg: r.text || 'De gastheer kon niet starten.' });
+      if (!r.ok) return set({ t: 'fout', msg: r.text || 'Het spel openen lukte niet.' });
       return set({ t: 'code', code: r.code, lanCode: r.lanCode, note: r.online ? '' : r.text });
     }
     await openRoom();

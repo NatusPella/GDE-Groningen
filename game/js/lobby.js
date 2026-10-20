@@ -14,7 +14,7 @@
 import { REASON_TEXT } from './net/protocol.js';
 import { parseRoom } from './net/sigcrypto.js';
 import { parseCode } from './net/pairing.js';
-import { EXTRA_CHARS, DEFAULT_MAX, MIN_MAX, ABS_MAX, advies } from './coopplayers.js';
+import { EXTRA_CHARS, DEFAULT_MAX, MIN_MAX, ABS_MAX, advies, openerNaam } from './coopplayers.js';
 
 export const ROLES = { HOST: 'host', GAST: 'gast' };
 export const ROUTES = { KAMER: 'kamer', DIRECT: 'direct' };
@@ -70,7 +70,7 @@ export function reduce(s, ev) {
     case 'invoer': { // alleen gast
       const c = classifyInput(ev.text);
       if (!c.ok) return { ...n, error: c.reason };
-      if (c.route === ROUTES.DIRECT && !s.caps.direct) return { ...n, error: 'Een adres of koppelcode van de directe route werkt alleen in de desktop-app. Vraag de gastheer om een kamercode.' };
+      if (c.route === ROUTES.DIRECT && !s.caps.direct) return { ...n, error: 'Een adres of koppelcode van de directe route werkt alleen in de desktop-app. Vraag om een kamercode.' };
       if (c.route === ROUTES.KAMER && !s.caps.rtc) return { ...n, error: 'Een kamercode werkt hier niet.' };
       n.route = c.route; n.invoer = c; n.step = 'toestemming'; return n;
     }
@@ -114,7 +114,7 @@ export function reduce(s, ev) {
 export const MIN_SPELERS = 2;
 
 // De regel voor de gast: wat er van zijn voortgang wordt bewaard (docs/COOP-OPSLAAN.md)
-export const GAST_BEWAREN = (naam) => `Je speelt mee in het spel van de gastheer. Wat je verdient bewaren we in je eigen spel${naam ? ` (${naam})` : ''}; het verhaal en de wereld zijn van de gastheer.`;
+export const GAST_BEWAREN = (naam, opener = 'de ander') => `Je speelt mee in het spel van ${opener}. Wat je verdient bewaren we in je eigen spel${naam ? ` (${naam})` : ''}; het verhaal en de wereld zijn van ${opener}.`;
 
 const PARTNER_NAME = { host: 'Tessa', gast: 'Tammo' }; // de ander van deze rol
 
@@ -124,7 +124,7 @@ export function view(s) {
   switch (s.step) {
     case 'start':
       return V({
-        lines: ['Speel samen met een vriend in de open wereld: opdrachten, minigames en het verhaal. Iedereen houdt zijn eigen voortgang. De gastheer speelt Tammo, de gast Tessa.'],
+        lines: ['Speel samen met een vriend in de open wereld: opdrachten, minigames en het verhaal. Iedereen houdt zijn eigen voortgang. Wie het spel opent speelt Tammo, wie meedoet speelt Tessa.'],
         buttons: [{ act: 'kies-host', label: 'Iemand uitnodigen', primary: true }, { act: 'kies-gast', label: 'Code of adres invoeren' }],
       });
     case 'methode': {
@@ -155,7 +155,7 @@ export function view(s) {
     }
     case 'gast-typt':
       return V({
-        title: 'Aansluiten', lines: ['Voer de kamercode of de koppelcode van de gastheer in. Als eerste gast speel je Tessa. Kom je er later bij, dan speel je een eigen figuur: kies er hieronder een, of laat het aan de gastheer.', GAST_BEWAREN(s.caps.spelNaam)],
+        title: 'Aansluiten', lines: ['Voer de kamercode of de koppelcode in die je kreeg. Als eerste gast speel je Tessa. Kom je er later bij, dan speel je een eigen figuur: kies er hieronder een, of laat het kiezen.', GAST_BEWAREN(s.caps.spelNaam)],
         input: { placeholder: 'Kamercode of GDE2-…', value: s.caps.laatsteCode || '' },
         wensen: EXTRA_CHARS.map((c) => ({ act: 'wens-' + c.id, id: c.id, naam: c.naam, kleur: c.kleur, gekozen: s.wens === c.id })),
         buttons: [{ act: 'koppel', label: 'Verder', primary: true }, { act: 'terug', label: 'Terug' }],
@@ -167,7 +167,8 @@ export function view(s) {
       const host = s.rol === ROLES.HOST;
       const lijst = s.spelers || [];
       const ik = host ? 0 : s.partner && s.partner.slot;
-      const namen = lijst.map((p) => p.naam + (p.slot === 0 ? ' (gastheer)' : '') + (p.verbinding === 'lost' ? ' · verbinding weg' : p.verbinding === 'lag' ? ' · haperend' : ''));
+      const namen = lijst.map((p) => p.naam + (p.verbinding === 'lost' ? ' · verbinding weg' : p.verbinding === 'lag' ? ' · haperend' : ''));
+      const opener = openerNaam(lijst);
       const lines = [lijst.length ? `Spelers (${lijst.length} van ${s.max}): ${namen.join(', ')}.` : `Je speelt met ${PARTNER_NAME[s.rol] || 'je medespeler'}.`];
       if (lag) lines.push('De verbinding haperde even; we wachten op de ander.');
       const tip = advies(lijst.length, host ? 'host' : 'gast'); if (tip) lines.push(tip);
@@ -177,14 +178,15 @@ export function view(s) {
         lines.push(genoeg ? "Het spel begint pas als jij op 'Spel starten' drukt: ook de openingsscène zien jullie samen." : 'Wacht op een medespeler: je kunt het spel starten zodra er minstens twee spelers zijn.');
         buttons.push({ act: 'start-spel', label: 'Spel starten', primary: true, disabled: !genoeg });
       }
-      if (!host && s.caps.startGate) lines.push('Wacht tot de ander het spel start.');
+      if (!host && s.caps.startGate) lines.push(`Wacht tot ${opener} het spel start.`);
       if (host) {
         for (const p of lijst) if (p.slot !== 0) buttons.push({ act: 'kick-' + p.slot, label: `${p.naam} verwijderen` });
         for (const m of [4, 8, 12, 16]) if (m !== s.max && m >= lijst.length) buttons.push({ act: 'max-' + m, label: `Tot ${m} spelers` });
         lines.push(s.code && lijst.length < s.max ? 'Er is nog plek: geef de code aan de volgende speler.' : 'Je kunt een speler er elk moment uit halen.');
         buttons.push({ act: 'verbreek', label: 'Iedereen stoppen' });
       } else {
-        lines.push(GAST_BEWAREN(s.caps.spelNaam));
+        lines.push(`${opener} heeft het spel geopend.`);
+        lines.push(GAST_BEWAREN(s.caps.spelNaam, opener));
         lines.push('Je kunt er elk moment uit; je komt terug waar je was.');
         buttons.push({ act: 'verbreek', label: 'Spel verlaten' });
       }
@@ -192,12 +194,12 @@ export function view(s) {
     }
     case 'verbroken': {
       const host = s.rol === ROLES.HOST;
-      const wie = host ? (s.holdNaam || 'De ander') : 'De gastheer';
+      const wie = host ? (s.holdNaam || 'De ander') : (s.holdNaam || openerNaam(s.spelers, true));
       return V({
         title: 'Verbinding weg',
         lines: [
           `${wie} is niet meer bereikbaar. Het spel staat stil tot jullie weer verbonden zijn.`,
-          host ? `Wil je niet wachten? Dan ${s.holdNaam ? 'verwijder je ' + s.holdNaam : 'speel je alleen verder'} en gaat het spel door.` : 'Voer de code van de gastheer opnieuw in, of stop met samen spelen; je komt terug waar je was.',
+          host ? `Wil je niet wachten? Dan ${s.holdNaam ? 'verwijder je ' + s.holdNaam : 'speel je alleen verder'} en gaat het spel door.` : 'Voer de code opnieuw in, of stop met samen spelen; je komt terug waar je was.',
         ],
         buttons: [{ act: 'hervat', label: 'Opnieuw verbinden', primary: true }, { act: 'verbreek', label: host ? 'Niet wachten' : 'Stoppen' }],
       });
