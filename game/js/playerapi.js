@@ -35,7 +35,7 @@ export function initPlayerApi(world, input) {
     return e;
   };
 
-  const kindOf = (v) => (v.isBoat ? 'boot' : v.isHeli ? 'heli' : v.isBike ? 'fiets' : v.isScooter ? 'scooter' : v.isBus ? 'bus' : 'auto');
+  const kindOf = (v) => (v.isBoat ? 'boot' : v.isHeli ? 'heli' : v.isPlane ? 'vliegtuig' : v.isBike ? 'fiets' : v.isScooter ? 'scooter' : v.isBus ? 'bus' : 'auto');
 
   function nearbyVehicles(max = 60) {
     const out = [];
@@ -99,7 +99,7 @@ export function initPlayerApi(world, input) {
       player: {
         x: r1(player.x), y: r1(player.y), z: r1((player.gz || 0) + (player.z || 0)), angle: Math.round(player.angle * 1000) / 1000,
         camYaw: Math.round((world.camYaw ?? player.angle) * 1000) / 1000, health: player.health, money: world.money, character: player.character || '',
-        vehicle: v ? { kind: kindOf(v), x: r1(v.x), y: r1(v.y), angle: Math.round(v.angle * 1000) / 1000, speed: r1(v.speed || 0), boat: !!v.isBoat, heli: !!v.isHeli } : null,
+        vehicle: v ? { kind: kindOf(v), x: r1(v.x), y: r1(v.y), angle: Math.round(v.angle * 1000) / 1000, speed: r1(v.speed || 0), boat: !!v.isBoat, heli: !!v.isHeli, plane: !!v.isPlane } : null,
       },
       story: view.end ? { end: true, part: view.part, title: view.title } : { end: false, id: view.id, part: view.part, kind: view.kind, title: view.title, lead: view.lead, canSkip: view.canSkip, fails: view.fails, done: view.done, total: view.total },
       mission: {

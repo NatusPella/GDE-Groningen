@@ -10,6 +10,7 @@ const sleep = (ms) => new Promise((res) => setTimeout(res, ms));
 const imp = (f) => import('/js/' + f + '.js');
 const SETTLE = (window.__fs && window.__fs.settle) || 8000;
 const ONLY = ((window.__fs && window.__fs.only) || '').split(',').filter(Boolean);
+const JOBS = (window.__fs && window.__fs.jobs) || [];
 
 // ---- errors ------------------------------------------------------------------------
 const issues = [];
@@ -570,14 +571,31 @@ const CHECKS = [
     for (let i = 0; i < alle.length; i++) for (let j = i + 1; j < alle.length; j++) if (Math.hypot(alle[i].x - alle[j].x, alle[i].y - alle[j].y) < 3) gestapeld.push([alle[i].job.id, alle[j].job.id, Math.round(alle[i].x), Math.round(alle[i].y)]);
     for (const sp of alle) {
       const id = sp.job.id; if (seen.has(id)) continue; seen.add(id);
+      if (JOBS.length && !JOBS.includes(id)) continue;
       w.wanted = 0; w.health = 100;
       const i0 = issues.length;
-      await go(sp.x, sp.y, 0, 3500);
+      await go(sp.x, sp.y, 0, JOBS.length ? 9000 : 3500);
+      // a job whose roads were not loaded steps to its road once they are (reanchor): follow it
+      for (let k = 0; k < 3 && Math.hypot(p.x - sp.x, p.y - sp.y) > 2; k++) await go(sp.x, sp.y, 0, JOBS.length ? 9000 : 3500);
       w.wanted = 0;
       let pogingen = 0;
-      while (pogingen < 3 && !act.active()) { pogingen++; await tap('e', 'KeyE', 160); await sleep(1500); }
+      const diag = [];
+      if (JOBS.length && D.sidejobs) {
+        // één E, dan elke 300 ms kijken wat er met de baan en zijn voertuig gebeurt
+        await tap('e', 'KeyE', 160);
+        for (let k = 0; k < 14; k++) {
+          const c = D.sidejobs.ctx(); const bn = document.querySelector('.cine-banner');
+          diag.push({ k, actief: !!c, voertuig: c && c.vehicle ? { x: Math.round(c.vehicle.x), y: Math.round(c.vehicle.y), sunk: !!c.vehicle.sunk, wrecked: !!c.vehicle.wrecked, inWereld: w.vehicles.includes(c.vehicle), inWater: !!(c.vehicle.inWater || c.vehicle.wet) } : null, banner: bn && !bn.hidden ? `${(bn.querySelector('.cb-title') || {}).textContent}: ${(bn.querySelector('.cb-reason') || {}).textContent}` : null, speler: [Math.round(p.x), Math.round(p.y)], inAuto: !!p.inVehicle });
+          await sleep(300);
+        }
+      }
+      while (pogingen < (JOBS.length ? 5 : 3) && !act.active()) { pogingen++; if (Math.hypot(p.x - sp.x, p.y - sp.y) > 2) await go(sp.x, sp.y, 0, 4000); await tap('e', 'KeyE', 160); await sleep(JOBS.length ? 3000 : 1500); }
       const gestart = act.active();
-      const melding = gestart ? null : (w.messages || []).slice(-2).map((m) => (m.text || '').slice(0, 80));
+      const dichtbij = Math.round(Math.hypot(p.x - sp.x, p.y - sp.y) * 10) / 10;
+      const water = !!(p.swimming || p.water);
+      const melding = gestart ? null : (w.messages || []).slice(-3).map((m) => (m.text || '').slice(0, 80));
+      const bn = document.querySelector('.cine-banner');
+      const banner = !gestart && bn && !bn.hidden ? `${(bn.querySelector('.cb-title') || {}).textContent}: ${(bn.querySelector('.cb-reason') || {}).textContent}` : null;
       let staat = null;
       if (gestart) {
         await sleep(4000);
@@ -586,7 +604,7 @@ const CHECKS = [
         await snap('bijbaan-' + id, 200);
         act.stop(); await sleep(4500);
       }
-      out.push({ id, naam: sp.job.name, x: Math.round(sp.x), y: Math.round(sp.y), pogingen, gestart, melding, juisteBaan: gestart ? (staat && staat.naam === sp.job.name) : null, staat, meldingen: issues.slice(i0).map((x) => x.m) });
+      out.push({ id, naam: sp.job.name, x: Math.round(sp.x), y: Math.round(sp.y), dichtbij, water, pogingen, gestart, melding, banner, diag, juisteBaan: gestart ? (staat && staat.naam === sp.job.name) : null, staat, meldingen: issues.slice(i0).map((x) => x.m) });
     }
     return { gestapeld, banen: out, opmerking: 'alleen starten en vier seconden meedraaien; niet gespeeld tot een klus af was, niet beoordeeld: balans, uitleg en loon' };
   } },

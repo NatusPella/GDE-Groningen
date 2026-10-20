@@ -29,6 +29,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 
 ### Opgelost
+- **Suikerbieten naar de fabriek mislukte meteen (#337, door een bot gespeeld, niet door een mens):** de plek lag buiten de geladen wegen, de vrachtwagen stond 100 m weg en de baan eindigde met 'je liet je voertuig staan'. Zonder weg bij de plek start het baantje niet meer half, en de plek verplaatst zich naar de weg zodra die geladen is.
 - **Verkeer op kruispunten in dorpen en gehuchten (nog niet in beeld bekeken):** wegen die met een provinciegebied meekomen kenden geen kruispuntregels voor het verkeer (afslaan, voorrang, route); die doen nu mee. Auto's die elkaar op een kruising kruisen worden uit elkaar geduwd in plaats van in elkaar te blijven staan. In een headless simulatie bij Wildeplaats gaan 70 in plaats van 32 auto's door het kruispunt en blijft overlap alleen kortdurend bestaan (#265).
 - **Samen spelen: een gast die het spel verlaat meldt zich nu af (#310):** de gastheer houdt de plek van Tessa niet meer vast en toont geen wachtscherm meer na een bewuste stop; bij opnieuw aansluiten krijgt de gast zijn plek terug. Alleen lokaal getest.
 - **Samen spelen met kamercode: de uitnodiging verloopt niet meer na 30 seconden (#313):** de gastheer wacht nu tot 15 minuten op een medespeler; de verbindingstijd telt pas als de vriend antwoordt. In Electron getest met een lokale nep-tracker op één computer, niet met de openbare brokers en niet over internet.

@@ -11,6 +11,7 @@ const sleep = (ms) => new Promise((res) => setTimeout(res, ms));
 const imp = (f) => import('/js/' + f + '.js');
 const L = await imp('botlogic');
 const R = await imp('routing');
+const M = await imp('missions');
 const MS = await imp('missions');
 const BK = await imp('bakeround');
 const BAKE_KEYS = { ei: '1', zout: '2', meel: '3', vet: '4', mosterd: '5' };
@@ -79,6 +80,44 @@ function steerTowards(s, mode, tgt, stopAt, top = 24, stopR = null) {
     if (direct > 40) B.down('shift'); else B.up('shift');
   }
   return direct;
+}
+
+// the plane (M15): keys from botlogic.planeKeys, applied as holds; the gates and the strip come from the mission def
+const FLY_KEYS = ['w', 's', 'a', 'd', ' ', 'control', 'shift'];
+function releaseFly() { for (const k of FLY_KEYS) if (B.input.isDown(k)) B.up(k); }
+async function flyStep(s) {
+  const v = player.inVehicle;
+  if (!v || !v.plane) { releaseFly(); return; }
+  const pl = v.plane;
+  const st = M.activeStage();
+  const def = (M.getMissionDefs() || [])[s.mission.index];
+  const gh = (x, y) => (world.map.groundHeightAt ? world.map.groundHeightAt(x, y, 0) || 0 : 0);
+  const kind = st && st.kind;
+  // a flight that takes too long (a gate it cannot make) is a finding: the ladder takes over
+  const fkey = (kind || '') + (s.story.id || '');
+  if (mem.flyKey !== fkey) { mem.flyKey = fkey; mem.flyT = s.t; }
+  if (s.t - mem.flyT > 420) { mem.flyT = s.t; releaseFly(); await rescue(s, fkey, { idleFor: 420 }); return; }
+  const stripSpec = def && (def.stages.find((q) => q.kind === 'plane') || {}).strip;
+  let o = null;
+  if (kind === 'airgates' && s.target) {
+    const gates = st.gates || [];
+    let g = gates[0], bd = Infinity;
+    for (const q of gates) { const d = L.distance(q, s.target); if (d < bd) { bd = d; g = q; } }
+    o = { agl: pl.z - gh(pl.x, pl.y), goal: { x: s.target.x, y: s.target.y }, alt: g ? (g.lo + g.hi) / 2 : 20, mode: 'fly' };
+  } else if (kind === 'landplane' && stripSpec) {
+    o = { agl: pl.z - gh(pl.x, pl.y), goal: { x: s.target ? s.target.x : stripSpec.x, y: s.target ? s.target.y : stripSpec.y }, alt: 30, mode: 'land', strip: stripSpec };
+  } else if (pl.onGround && pl.speed < 2) {
+    // the stage is over (or none): climb out
+    releaseFly();
+    await B.press('e'); await sleep(900);
+    return;
+  } else if (stripSpec) {
+    o = { agl: pl.z - gh(pl.x, pl.y), goal: { x: stripSpec.x, y: stripSpec.y }, alt: 30, mode: 'land', strip: stripSpec };
+  }
+  if (!o) { releaseFly(); return; }
+  const want = L.planeKeys({ x: pl.x, y: pl.y, z: pl.z, heading: pl.heading, speed: pl.speed, pitch: pl.pitch, roll: pl.roll, vz: pl.vz, onGround: pl.onGround, throttle: pl.throttle }, o);
+  for (const k of FLY_KEYS) { if (want.has(k)) B.down(k); else if (B.input.isDown(k)) B.up(k); }
+  if (ticks % 20 === 0) B.log('vlucht', { mode: o.mode, agl: Math.round(o.agl), v: Math.round(pl.speed), gate: o.goal && [Math.round(o.goal.x), Math.round(o.goal.y)], keys: [...want].join('') });
 }
 
 async function holdSkip() {
@@ -211,6 +250,7 @@ while (true) {
     continue;
   }
   const act = L.decide(s, mem);
+  if (act.type === 'fly') { detector.hold(s.t); await flyStep(s); continue; }
   if (act.type === 'wait' || act.type === 'skip' || act.type === 'choose' || act.type === 'closemenu') {
     detector.hold(s.t);
     // waiting is only free for a while: something that never lets go (a stuck talk, banner or loading flag) is a finding and gets the ladder
