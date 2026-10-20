@@ -12,9 +12,9 @@ import { markWreckedByPlayer, syncPlayerWrecks, disableVehicle } from './vehicle
 export { markWreckedByPlayer, syncPlayerWrecks, disableVehicle } from './vehiclewreck.js';
 import { inPassage } from './collision.js';
 import { elevWallContact } from './elevation.js';
-import { bridgeSpeedLimit, loweredBridgeBoomsNear } from './movablebridges.js';
+import { bridgeSpeedLimit, loweredBridgeBoomsNear, getMovableBridges, boatNeedsOpening, boatFrame } from './movablebridges.js';
 import { zebraSpeedLimit, sirenYield } from './trafficyield.js';
-import { lockGateStop } from './sluizen.js';
+import { lockGateStop, sluisNear } from './sluizen.js';
 import { countrySurface, countryRect, rectOutside, countryWeight, edgeDistance } from './countryfield.js';
 import { countryWater } from './countryedge.js';
 import { pushOutOfPlan, onFarmPaving, planExtraSolids } from './countryplan.js';
@@ -25,7 +25,7 @@ import { pickTrafficCar, carModel, applyFleetFlags, pickBikeVariant, wijkProfile
 import { pickWaterLife, newsVanWanted, distToCentre, hourOf } from './streetlifedata.js';
 import { vehicleHooks } from './vehiclehooks.js';
 import { pickBoatModel, BOAT_KINDS } from './boattypes.js';
-import { pickTrip } from './vaarnet.js';
+import { pickTrip, classOfKind } from './vaarnet.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { MODS } from './cheatmods.js';
 import { laneLayout } from './lanes.js';
@@ -1347,30 +1347,36 @@ function pickBoatWaypoint(v, rng, map) {
   return fallback || [v.x, v.y];
 }
 
-// The waterway network (vaarnet.js, game/vaarnet.json): a barge that lies on it sails a trip
-// to one of its hubs, over the edges it clears (no low bridge, a lock or a movable bridge
-// costs time) instead of wandering in its polygon. The trip is a list of points the boat
+// The waterway network (vaarnet.js, game/vaarnet.json): a barge or a tour boat that lies on it
+// sails a trip to one of its hubs, over the edges it clears (no low bridge, a lock or a movable
+// bridge costs time) instead of wandering in its polygon. The trip is a list of points the boat
 // follows as waypoints; a boat that gets stuck, or a net that is out of reach, falls back
-// to the wander.
+// to the wander. At a lock or a bridge it waits like the player's boat: the lock's gate stops it
+// and asks the lock (sluizen.js), a movable bridge opens for a boat that needs it (movablebridges.js).
 let vaarNet = null;
 export function setVaarNet(net) { vaarNet = net; }
 const VAAR_REACH = 150, VAAR_RETRY_S = 45, VAAR_ARRIVE = 14;
+// a tour boat sails the city, its harbours and the Reitdiep (#296), not out to the Waddenzee: trips up to this long (m)
+export const TOUR_TRIP_MAX = 12000;
+const isTour = (v) => v.model.kind === 'rondvaart';
+// the boats that follow the net, and the longest trip they pick (Infinity: any hub)
+const followsNet = (v) => isBarge(v) || isTour(v);
 
 function followVaarTrip(v, dt, rng, map) {
-  if (!vaarNet || !isBarge(v)) return false;
+  if (!vaarNet || !followsNet(v)) return false;
   v._vaarWait = Math.max(0, (v._vaarWait || 0) - dt);
   if (v.stuckCount >= 2) { v._vaar = null; v._vaarWait = VAAR_RETRY_S; }
   if (!v._vaar) {
     if (v._vaarWait > 0) return false;
-    const trip = pickTrip(vaarNet, v.x, v.y, v.angle, v, rng, VAAR_REACH);
+    const trip = pickTrip(vaarNet, v.x, v.y, v.angle, v, rng, VAAR_REACH, isTour(v) ? TOUR_TRIP_MAX : Infinity);
     if (!trip) { v._vaarWait = VAAR_RETRY_S; return false; }
     v._vaar = { pts: trip.pts, i: 0, name: trip.name };
   }
   const T = v._vaar;
   while (T.i < T.pts.length - 1 && Math.hypot(T.pts[T.i][0] - v.x, T.pts[T.i][1] - v.y) < VAAR_ARRIVE) T.i++;
-  // the next point lies in a ditch or vaart (the net is wider than the barge can sail): drop the trip (#234)
+  // the next point lies in a ditch or vaart (the net is wider than the boat can sail): drop the trip (#234)
   const nw = waterAt(map, T.pts[T.i][0], T.pts[T.i][1]);
-  if (nw && !bargeWaterAt(nw)) { v._vaar = null; v._vaarWait = VAAR_RETRY_S; return false; }
+  if (nw && (isBarge(v) ? !bargeWaterAt(nw) : nw.navigable < classOfKind(v))) { v._vaar = null; v._vaarWait = VAAR_RETRY_S; return false; }
   if (T.i >= T.pts.length - 1 && Math.hypot(T.pts[T.i][0] - v.x, T.pts[T.i][1] - v.y) < VAAR_ARRIVE * 2) { v._vaar = null; v._vaarWait = VAAR_RETRY_S; return false; }
   v.waypoint = [T.pts[T.i][0], T.pts[T.i][1]];
   v.waypointTimer = BOAT_WAYPOINT_MAX;
@@ -1414,7 +1420,26 @@ export function boatInTheWay(v, others, look) {
 const BOAT_STUCK_S = 6, BOAT_STUCK_M = 1.2, BOAT_BACK_S = 3, BOAT_STUCK_GIVEUP = 3;
 export const BOAT_SWEEP_DIST = 70;
 
+// Is the boat waiting for a lock or a movable bridge that has to open for it (#296)? That is no
+// stuck boat: it lies still on purpose, for as long as a cycle takes (WAIT_MAX_S, then the
+// watchdog is back: a bridge or lock that never answers must not hold a boat for good).
+const WAIT_MAX_S = 150;
+function boatWaitsForPassage(v) {
+  const k = sluisNear(v.x, v.y, 120);
+  if (k && k.queue.some((q) => q.who === v)) return true;
+  for (const b of getMovableBridges()) {
+    if (Math.abs(b.x - v.x) > b.len / 2 + 90 || Math.abs(b.y - v.y) > b.len / 2 + 90) continue;
+    if (b.boats.has(v)) return true;
+    if (b.state !== 'closed' && b.state !== 'closing' && b.state !== 'up' && boatNeedsOpening(v) && boatFrame(b, v).w < 70) return true;
+  }
+  return false;
+}
+
 function boatWatchdog(v, dt, rng, map, chasing) {
+  if (boatWaitsForPassage(v)) {
+    v._passWait = (v._passWait || 0) + dt;
+    if (v._passWait < WAIT_MAX_S) { v._wdT = 0; v._wdAt = [v.x, v.y]; return; }
+  } else v._passWait = 0;
   v._wdT = (v._wdT || 0) + dt;
   if (!v._wdAt) v._wdAt = [v.x, v.y];
   const moved = Math.hypot(v.x - v._wdAt[0], v.y - v._wdAt[1]);
