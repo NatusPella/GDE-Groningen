@@ -582,7 +582,7 @@ const PHASES = {
     const r = inp.getBoundingClientRect();
     await send({ type: 'mouseDown', x: Math.round(r.left + 20), y: Math.round(r.top + r.height / 2), button: 'right', clickCount: 1 });
     await send({ type: 'mouseUp', x: Math.round(r.left + 20), y: Math.round(r.top + r.height / 2), button: 'right', clickCount: 1 });
-    await sleep(400);
+    for (let i = 0; i < 20 && !document.querySelector('.gde-tfmenu'); i++) await sleep(250); // onder belasting komt een muisgebeurtenis soms seconden later
     const menu = document.querySelector('.gde-tfmenu');
     log('tekstveld-menu', { menu: !!menu, items: menu ? [...menu.querySelectorAll('button')].map((b) => b.textContent).join(',') : '' });
     shot('tekstveld-menu');
