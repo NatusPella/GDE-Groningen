@@ -248,7 +248,7 @@ export function playScript(w, def, { lines, duration, anchor, cine = {}, env: en
   // the tiles round the camera's path are built ahead and held, so no shot cuts to the far LOD or a hole (#157, #20)
   const prewarm = cine.prewarm || shotPoints(scene, at, duration);
   const ok = playCinematic({
-    priority: 4, pause: true, letterbox: true, skippable: true, hideHud: true,
+    priority: 4, pause: true, letterbox: true, skippable: true, hideHud: true, hidePlayers: true,
     prewarm,
     ...cine, id: cine.id || def.id, duration, lines,
     onStart() {
