@@ -130,7 +130,7 @@ function track(s) {
     if (lastStep) B.log('step', { event: 'end', id: lastStep, outcome: 'klaar' });
     B.log('step', { event: 'begin', id, label: s.story.title || '', part: s.story.part });
     lastStep = id; lastPhase = '';
-    mem.boardTries = 0; mem.pressTries = 0;
+    mem.boardTries = 0; mem.pressTries = 0; mem.planTries = 0;
     shot(`${id}-begin`);
   }
   const ph = s.mission.active ? 'active' : 'idle';
@@ -248,7 +248,7 @@ if (CFG.sweep && CFG.sweep.length) {
     const ok = window.__story.jump(id);
     B.log('setup', { what: 'jump', id, ok: !!ok });
     if (!ok) continue;
-    follower = null; detector.reset(B.time()); mem.boardTries = 0; mem.pressTries = 0; lastStep = null; lastPhase = '';
+    follower = null; detector.reset(B.time()); mem.boardTries = 0; mem.pressTries = 0; mem.planTries = 0; lastStep = null; lastPhase = '';
     const t0 = B.time();
     await sleep(1500);
     await loop((s) => s.story.id !== id || B.time() - t0 > (CFG.perStepS || 600));
