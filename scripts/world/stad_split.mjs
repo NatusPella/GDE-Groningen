@@ -12,6 +12,9 @@ import { fileURLToPath } from 'node:url';
 import { STAD_FORMAT, cityTileKeys } from './pack_tiles.mjs';
 import { isHandBuilding } from './stad_laag.mjs';
 import { buildCityCover } from './citycover.mjs';
+import { stringifyStad } from './stad_file.mjs';
+
+export { stringifyStad };
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 export const OSM_LAGEN = ['buildings', 'water', 'green', 'trees'];
@@ -33,20 +36,6 @@ export function splitCity(city, { omit = OSM_LAGEN } = {}) {
     else if (k === 'buildings') out[k] = city.data[k].filter(isHandBuilding);
   }
   return out;
-}
-
-// Leesbaar in git: elke sleutel op een regel, elke rij van een lijst op een eigen regel (de volgorde van de rijen is de gid van de tegels)
-export function stringifyStad(s) {
-  const lines = [];
-  for (const [k, v] of Object.entries(s)) {
-    if (Array.isArray(v) && v.length && v.every((r) => r && typeof r === 'object' && !Array.isArray(r))) {
-      lines.push(`${JSON.stringify(k)}: [`, v.map((r) => JSON.stringify(r)).join(',\n'), '],');
-    } else if (k === 'meta') {
-      lines.push(`${JSON.stringify(k)}: {`, Object.entries(v).map(([mk, mv]) => `${JSON.stringify(mk)}: ${JSON.stringify(mv)}`).join(',\n'), '},');
-    } else lines.push(`${JSON.stringify(k)}: ${JSON.stringify(v)},`);
-  }
-  lines[lines.length - 1] = lines[lines.length - 1].replace(/,$/, '');
-  return '{\n' + lines.join('\n') + '\n}\n';
 }
 
 async function main() {
