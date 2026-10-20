@@ -253,6 +253,7 @@ Debug hooks on `window` (`window.__x`, read by scripts/perf, the story test and 
 | `?testmenu` | Testmenu op F10 met alle schakelaars en snelkoppelingen; eigen opslag (gde-dev:), raakt de echte save niet |
 | `?brugbotsing` | Stuurt na een paar seconden een binnenvaartschip tegen de dichtstbijzijnde brug (#9) |
 | `?sfxtest` | Geluidstest: paneel met alle effecten, een afstandsschuif en een afspeelknop per effect; F8 verbergt het (#173) |
+| `?perfoff` | A/B-meting: zet prestatiestappen uit, namen gescheiden door +, bv. perfoff=schaduw+actoren (devflags.js, scripts/perf/ab.mjs) |
 
 Every switch above is **off by default**: nothing changes for a player unless the name is in the URL. Value switches (`?shot=3`, `?marker=vorm`, `?stadlaag=gebouwen,wegen`, `?touch=1`, `?preset=quality:laag`, `?gpu=<renderer>`, `?benchmark=<rounds>`) are null when absent. The ones to reach for most often:
 
