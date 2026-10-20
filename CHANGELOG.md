@@ -12,6 +12,8 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 
 ### Opgelost
+- **Groene stroken over open water op de tegelranden zijn weg (nog niet in beeld bekeken, #185):** een groenvlak dat bij het knippen van de wereld op een tegelrand helemaal in het water van die tegel viel, werd nog getekend als een groene streep over het water (21 plekken in de provincie, zoals bij de Lindt en de Oude AE). De wereldbouw laat die stukjes nu weg; de placement-audit controleert het. Alleen zichtbaar na een nieuwe stage.
+- **De testsuite is weer betrouwbaar (geen speleffect):** een timer in de overlay-laag hield testprocessen open, waardoor zes tests een tijdslimiet kregen; de spraakdekking, de Steam-prestaties, de vaarnet-gaten, de stoelaudit en enkele verouderde wereldtests zijn gerepareerd.
 - **Der Aa-kerk van binnen stond verkeerd om (nog niet in beeld bekeken, #22):** de torenhal lag aan de oostkant, terwijl de toren in de kaartdata aan de westkant staat. Torenhal en koor, de portalen en de kansel zijn gespiegeld; `interieurs_test` controleert nu dat de torenhal bij de echte toren ligt (1045 checks).
 
 ### Nieuw
