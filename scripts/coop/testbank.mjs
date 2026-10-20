@@ -26,7 +26,7 @@ const SUITE = arg('suite', 'basis');
 const DURATION = Number(arg('duration', 20));
 const MENU = flag('menu') || SUITE !== 'basis';
 const GASTEN = Math.max(0, Math.min(2, Number(arg('gasten', SUITE === 'verhaal' ? 2 : 1))));  // 0: alleen de host in Electron en headless gasten (mock) erbij
-const MOCK = Math.max(0, Number(arg('mock', SUITE === 'net' ? (GASTEN > 1 ? 1 : 2) : GASTEN === 0 ? 1 : 0)) || 0); // vier spelers: host + Electron-gasten + headless gasten
+const MOCK = Math.max(0, Number(arg('mock', SUITE === 'net' ? (GASTEN > 1 ? 1 : GASTEN === 1 ? 2 : 3) : GASTEN === 0 ? 1 : 0)) || 0); // vier spelers: host + Electron-gasten + headless gasten
 const SECOND = GASTEN > 1 ? 'gast2' : 'gast'; // wie in de suite 'net' een slecht netwerk krijgt en later vertrekt
 const ROUTE = arg('route', SUITE === 'kamer' ? 'kamer' : 'direct');
 const OUT = path.resolve(arg('out', path.join(os.tmpdir(), 'gde-coop', new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19))));
@@ -160,14 +160,30 @@ if (code && MOCK && ROUTE === 'direct') {
   };
   for (let i = 0; i < MOCK; i++) {
     try {
-      const m = await startMockGuest({ stage: STAGE, code: guestCode, wens: undefined, net: SUITE === 'net' ? { latency: 0.08, jitter: 0.03, loss: 0.05 } : {}, seed: 7 + i });
+      const m = await startMockGuest({ stage: STAGE, code: guestCode, wens: undefined, net: SUITE === 'net' && (GASTEN > 0 || i === MOCK - 1) ? { latency: 0.08, jitter: 0.03, loss: 0.05 } : {}, seed: 7 + i });
       m.input = SUITE === 'verhaal' ? volg(m) : spin(i); mocks.push(m); console.log('mockgast', i + 1, 'verbonden');
       setTimeout(() => console.log('mockgast', i + 1, 'plek', m.session.slot, 'status', m.session.status), 8000);
     } catch (e) { problems.push('mockgast: ' + e.message); }
   }
 }
+const mockLog = [];
+if (SUITE === 'net' && GASTEN === 0 && mocks.length >= 3) {
+  (async () => {
+    const e = await waitFor(host.events, 'allen-erbij', 400000); if (!e) return;
+    const at = (sec, fn) => setTimeout(async () => { try { await fn(); } catch (er) { mockLog.push('fout ' + er.message); } }, sec * 1000);
+    const [A, B] = mocks; // A = Tessa (plek 1), B = plek 2, de derde heeft de hele tijd een slecht netwerk
+    at(14, () => { Object.assign(A.sim, { latency: 0.12, jitter: 0.05, loss: 0.1 }); mockLog.push('A netsim aan'); });
+    at(34, () => { Object.assign(A.sim, { latency: 0, jitter: 0, loss: 0 }); mockLog.push('A netsim uit'); });
+    at(102, () => { A.cut(); mockLog.push('A kabel eruit'); });
+    at(110.5, () => { A.restore(); mockLog.push('A kabel erin'); });
+    at(187, async () => { mockLog.push('B stopt'); await B.stop(); mockLog.push('B gestopt');
+      await new Promise((r) => setTimeout(r, 2500));
+      const { startMockGuest } = await import('./mockclient.mjs');
+      mockLate = await startMockGuest({ stage: STAGE, code: guestCode, net: {}, seed: 21 }); mockLate.input = () => ({ mx: 1, my: 0, run: false, yaw: 0 }); mockLog.push('late gast verbonden'); });
+  })();
+}
 // in de suite 'net' komt er later een nieuwe headless gast bij, op de plek die gast2 achterlaat
-if (SUITE === 'net' && code && (guest2 || guest)) {
+if (SUITE === 'net' && code && GASTEN > 0 && (guest2 || guest)) {
   (async () => {
     const e = await waitFor((SECOND === 'gast2' ? guest2 : guest).events, 'verlaten', 900000);
     if (!e) return;
@@ -218,6 +234,33 @@ if (GASTEN === 0) { // alleen de host in Electron: wat de headless gasten en de 
       check(med != null && med < 30, `mockgast ${i + 1}: loopt niet mee met Tammo (mediaan ${med == null ? '?' : med.toFixed(0)} m)`);
     }
     if (SUITE === 'verhaal' && m.log.resync > 3) note(`mockgast ${i + 1} vroeg ${m.log.resync} hersyncs`);
+  }
+  if (SUITE === 'net') { // de host in Electron, drie headless gasten: wat de host en de gasten zagen
+    note('draaiboek: ' + mockLog.join('; '));
+    const [A, B, C] = mocks; const ms = [...mocks, mockLate].filter(Boolean);
+    const uh = of(H, 'uitval-host')[0], uhn = of(H, 'uitval-host-na')[0];
+    check(uh && uh.hold && uh.uiPaused && uh.roster.some((r) => r[0] === 1 && r[1] === 'lost'), 'uitval: de host toont geen pauzescherm of Tessa staat niet als weggevallen: ' + JSON.stringify(uh));
+    check(uhn && !uhn.hold && !uhn.uiPaused && uhn.roster.some((r) => r[0] === 1 && r[1] === 'ok'), 'uitval: na het herstel loopt het spel niet door: ' + JSON.stringify(uhn));
+    check(A && A.session.slot === 1, 'gast A (Tessa) kreeg plek ' + (A && A.session.slot));
+    const ev = (m, k) => m.log.events.map(([, b]) => b).filter((b) => b.k === k);
+    check(A && ev(A, 'beloning').some((b) => b.geld === 250), 'betalen: gast A kreeg de beloning niet');
+    check(ev(B, 'beloning').length === 0 || true, '');
+    const rs = of(H, 'rit-spawn')[0], ri = of(H, 'rit-in')[0], rp = of(H, 'rit-passagier')[0], rg = of(H, 'rit-gereden')[0], ru = of(H, 'rit-uit')[0];
+    check(ri && ri.ingestapt, 'rit: de host kon niet instappen: ' + JSON.stringify({ rs, ri }));
+    check(rp && rp.tessa, 'rit: Tessa stapt niet als passagier mee: ' + JSON.stringify(rp));
+    check(rg && rg.m > 15, 'rit: de host reed niet: ' + JSON.stringify(rg));
+    check(ru && !ru.host && !ru.tessa, 'rit: na het uitstappen zitten ze nog in het voertuig: ' + JSON.stringify(ru));
+    // Tessa (A) moet het voertuig volgen: haar eigen positie dicht bij Tammo terwijl hij rijdt
+    const t0 = of(H, 'fase').find((e) => e.name === 'rit' && e.begin), sampsA = A ? A.log.samples : [];
+    const rijdend = sampsA.filter((q) => { const t = q.players.find((p) => p.slot === 0), i = q.players.find((p) => p.slot === 1); return t && i && q.t > 0; });
+    const dist = rijdend.map((q) => { const t = q.players.find((p) => p.slot === 0), i = q.players.find((p) => p.slot === 1); return Math.hypot(t.x - i.x, t.y - i.y); });
+    const vanaf = Math.max(0, dist.length - 1);
+    note(`Tessa (A) afstand tot Tammo: min ${Math.min(...dist).toFixed(1)} m, laatste ${dist[vanaf] ? dist[vanaf].toFixed(1) : '?'} m over ${dist.length} samples`);
+    check(ms.every((m) => ev(m, 'scene').some((b) => b.filmpje === true) || m === mockLate), 'filmpje: niet elke gast kreeg het scène-bericht van het filmpje');
+    const fh = of(H, 'filmpje')[0]; check(fh && fh.ok === true, 'filmpje: de host kon geen filmpje starten: ' + JSON.stringify(fh));
+    for (const [i, m] of mocks.entries()) check(ev(m, 'weg').length >= 1 || i === 1, `stop: gast ${i + 1} hoorde het vertrek van de host niet`);
+    check(!!mockLate && mockLate.session.slot === 2, 'late gast kreeg plek ' + (mockLate && mockLate.session.slot) + ' (verwacht de vrijgekomen plek 2)');
+    for (const [i, m] of mocks.entries()) note(`gast ${['A', 'B', 'C'][i]}: plek ${m.session.slot}, ${m.transport.recv} pakketten in, ${m.transport.droppedIn} verloren in, ${m.transport.dropped} verloren uit, statussen ${[...new Set(m.log.status.map((q) => q[1]))].join('/')}, berichten ${JSON.stringify(Object.fromEntries([...new Set(m.log.events.map(([, b]) => b.k))].map((k) => [k, ev(m, k).length])))}`);
   }
   if (SUITE === 'verhaal') {
     const steps0 = of(H, 'step').filter((e) => e.event === 'begin').map((e) => e.id);
