@@ -419,26 +419,27 @@ const CHECKS = [
   } },
   // bijbanen (speeltestlus): elke bijbaan naar de plek, E, vier seconden draaien, toestand lezen, stoppen
   { id: 'bijbanen', issues: [], run: async () => {
-    const SJ = D.sidejobs; if (!SJ) return { fout: 'window.__debug.sidejobs ontbreekt' };
+    const SJ = await imp('sidejobs');
+    const act = w.sideJobActions; if (!act) return { fout: 'world.sideJobActions ontbreekt (bijbanen niet gestart)' };
     const seen = new Set(); const out = [];
-    for (const sp of SJ.spots()) {
+    for (const sp of SJ.getSideJobSpotsForRender()) {
       const id = sp.job.id; if (seen.has(id)) continue; seen.add(id);
       w.wanted = 0; w.health = 100;
       const i0 = issues.length;
       await go(sp.x, sp.y, 0, 3500);
       w.wanted = 0;
       let pogingen = 0;
-      while (pogingen < 3 && !SJ.ctx()) { pogingen++; await tap('e', 'KeyE', 160); await sleep(1500); }
-      const c = SJ.ctx();
+      while (pogingen < 3 && !act.active()) { pogingen++; await tap('e', 'KeyE', 160); await sleep(1500); }
+      const gestart = act.active();
       let staat = null;
-      if (c) {
+      if (gestart) {
         await sleep(4000);
-        const c2 = SJ.ctx();
-        staat = c2 ? { id: c2.job.id, tijdOver: c2.timeLeft == null ? null : Math.round(c2.timeLeft), streak: c2.streak, verdiend: c2.earned, voertuig: !!c2.vehicle } : { geeindigd: SJ.last() };
+        const pub = w.sideJob || {};
+        staat = { actief: act.active(), naam: act.name(), label: pub.label, voortgang: pub.progress, tijdOver: pub.timeLeft == null ? null : Math.round(pub.timeLeft) };
         await snap('bijbaan-' + id, 200);
-        SJ.quit(); await sleep(800);
+        act.stop(); await sleep(800);
       }
-      out.push({ id, naam: sp.job.name, pogingen, gestart: !!c, staat, meldingen: issues.slice(i0).map((x) => x.m) });
+      out.push({ id, naam: sp.job.name, pogingen, gestart, staat, meldingen: issues.slice(i0).map((x) => x.m) });
     }
     return { banen: out, opmerking: 'alleen starten en vier seconden meedraaien; niet gespeeld tot een klus af was, niet beoordeeld: balans, uitleg en loon' };
   } },
