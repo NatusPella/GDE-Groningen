@@ -29,7 +29,7 @@ import { getShopVisits, getShopsForRender, grantStoryItem } from './shops.js';
 import { getPigeonFlight, stopPigeonMode } from './pigeonmode.js';
 import { isHeliRunActive, abortHeliRun } from './helirun.js';
 import { jumpPrep, jumpSpot } from './storyjump.js';
-import { buildingAt } from './tileplace.js';
+import { buildingAt, withTiles } from './tileplace.js';
 import { waterAt } from './waterlevels.js';
 import { purchaseCount, storyBuyLabel } from './storyshop.js';
 import { getPigeonSpotsForRender } from './pigeonspots.js';
@@ -38,7 +38,7 @@ import { getGaragesForRender } from './garages.js';
 import { inHomeFlat, getHomeForRender, flatStage } from './home.js';
 import { isShopOpen } from './shopui.js';
 import { maybeOfferHelp, noteStepCleared } from './assistlive.js';
-import { playCinematic, isCinematicActive, sinceCinematic, isBannerUp } from './cinematics.js';
+import { playCinematic, isCinematicActive, skipCinematic, sinceCinematic, isBannerUp } from './cinematics.js';
 import { playScript } from './cutscenehost.js';
 import { openingActs, END_CARD, flatScene } from './cutscenes.js';
 import { refreshDayNight } from './daynight.js';
@@ -1225,6 +1225,7 @@ export function getStoryView() {
 // would have right before step `id` (worst case money from the timeline).
 // opts.start: de missie van de stap ook meteen starten (QA en spelbot: phase 'active'); zonder staat de speler
 // naast de startplek en start de missie zoals voor een speler.
+let jumpSettle = 0;
 export function devJumpTo(id, opts = {}) {
   const k = STEPS.findIndex((s) => s.id === id);
   if (k < 0 || !stepAvailable(STEPS[k])) return false;
@@ -1236,6 +1237,8 @@ export function devJumpTo(id, opts = {}) {
     else if (a === 'exitVehicle') p0.exitVehicle(world.map, world);
   }
   if (isMissionActive()) return false;
+  // a cinematic of the old place (the game-start flight, a scene) would play on over the new one: a title card over a blank view (#267)
+  if (isCinematicActive()) skipCinematic();
   const prior = STEPS.slice(0, k);
   Object.assign(state, freshState());
   rt = freshRuntime();
@@ -1256,12 +1259,27 @@ export function devJumpTo(id, opts = {}) {
   enter(target);
   if (target.player) swapCharacter(world, target.player);
   const idx = missionIdx(target);
-  const spot = jumpSpot(idx >= 0 ? getMissionDefs()[idx] : null, world.storyGuide, { dist: 12, vrij: (x, y) => !buildingAt(world.map, x, y, 0.5) && !waterAt(world.map, x, y) });
-  if (spot) {
+  const def = idx >= 0 ? getMissionDefs()[idx] : null;
+  const vrij = (x, y) => !buildingAt(world.map, x, y, 0.5) && !waterAt(world.map, x, y);
+  const landOn = (spot) => {
     const p = world.player;
     const [ex, ey] = world.map.escapeBuilding ? world.map.escapeBuilding(spot.x, spot.y, 0.5) : [spot.x, spot.y];
     if (p.inVehicle) { p.inVehicle.x = ex; p.inVehicle.y = ey; p.inVehicle.speed = 0; }
     p.x = ex; p.y = ey;
+  };
+  const spot = jumpSpot(def, world.storyGuide, { dist: 12, vrij });
+  if (spot) {
+    landOn(spot);
+    // de tegels om de landingsplek zijn na een verre sprong nog niet binnen: buildingAt ziet dan geen gebouw en de speler
+    // staat even later in een gevel (camera tegen een muur, #261). Zodra ze er zijn, kijkt dit opnieuw naar een vrije plek.
+    const token = ++jumpSettle;
+    const from = { x: world.player.x, y: world.player.y };
+    withTiles(world.map, [[spot.x, spot.y]], () => {
+      const p = world.player;
+      if (token !== jumpSettle || Math.hypot(p.x - from.x, p.y - from.y) > 8 || vrij(p.x, p.y)) return;
+      const again = jumpSpot(def, world.storyGuide, { dist: 12, vrij });
+      if (again) landOn(again);
+    }, { radius: 80, token: 'sprong' }).catch(() => {});
   }
   if (opts.start && idx >= 0 && !isMissionActive()) missionDebug.start(world, idx);
   return true;
