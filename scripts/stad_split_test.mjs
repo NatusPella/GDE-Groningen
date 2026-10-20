@@ -102,7 +102,7 @@ let checks = 0;
   for (const l of OSM_LAGEN) assert.ok(!(l in s.data) || l === 'buildings', `${l} hoort niet in stad.json`);
   assert.ok(s.data.buildings.length > 0 && s.data.buildings.every(isHandBuilding), 'alleen handgebouwen');
   assert.ok(s.tiles.length > 0 && s.mask && s.mask.rle.length > 0);
-  const text = fs.readFileSync(path.join(GAME, 'stad.json'), 'utf8');
+  const text = fs.readFileSync(path.join(GAME, 'stad.json'), 'utf8').split('\r\n').join('\n'); // autocrlf op Windows
   assert.equal(stringifyStad(JSON.parse(text)), text, 'stad.json staat in de vaste, leesbare vorm (stad_split.mjs)');
   assert.ok(text.length < 8e6, 'stad.json blijft klein');
   const cover = (await import('./world/citycover.mjs')).cityCoverFromMask(s.mask);
