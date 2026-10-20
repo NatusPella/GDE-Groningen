@@ -300,6 +300,22 @@ if (SUITE === 'net') {
   if (mockLate) check(mockLate.session.slot === 2, `late mockgast kreeg plek ${mockLate.session.slot} (verwacht de vrijgekomen plek 2)`);
 }
 
+// ----- suite 'touch'
+if (SUITE === 'touch') {
+  const tu = of(G, 'touch')[0], th = of(G, 'touch-half')[0], tv = of(G, 'touch-vol')[0], tl = of(G, 'touch-los')[0];
+  check(tu && tu.ui, 'touch: geen aanraakbediening op de gast: ' + JSON.stringify(tu));
+  check(th && th.axis && th.axis[0] > 0.25 && th.axis[0] < 0.85, 'touch: halve stick geeft geen halve as: ' + JSON.stringify(th));
+  check(tv && tv.axis && tv.axis[0] > 0.95, 'touch: volle stick geeft geen volle as: ' + JSON.stringify(tv));
+  check(tl && tl.axis && tl.axis[0] === 0 && tl.axis[1] === 0, 'touch: de as is na loslaten niet nul: ' + JSON.stringify(tl));
+  const hs2 = samples('host').filter((q) => q.ph === 'wacht');
+  const ri = hs2.map((q) => q.ri).filter(Boolean);
+  check(ri.some((r) => r[0] > 0.25 && r[0] < 0.85), 'touch: de host ontving de halve stick niet: ' + JSON.stringify(ri.slice(0, 12)));
+  check(ri.some((r) => r[0] > 0.95), 'touch: de host ontving de volle stick niet');
+  const c0 = hs2.find((q) => q.companion), c1 = [...hs2].reverse().find((q) => q.companion);
+  check(c0 && c1 && Math.hypot(c1.companion.x - c0.companion.x, c1.companion.y - c0.companion.y) > 4, 'touch: Tessa bewoog niet op de host: ' + JSON.stringify([c0 && c0.companion, c1 && c1.companion]));
+  note('aanraakbediening: ' + JSON.stringify({ knoppen: tu && tu.speelknoppen, half: th && th.axis, vol: tv && tv.axis }));
+}
+
 // ----- suite 'verhaal'
 if (SUITE === 'verhaal') {
   const steps = of(H, 'step').filter((e) => e.event === 'begin').map((e) => e.id);
