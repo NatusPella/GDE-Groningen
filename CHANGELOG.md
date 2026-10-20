@@ -6,6 +6,14 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Opgelost
+- **Bussen rijden niet meer door woonstraten, over paden of waar hun lijn niet loopt (#322; geteld op de 252 echte lijnen in een bus-simulatie, nog niet in beeld bekeken):** een bus mag nooit over een voet- of fietspad, een straat die voor bussen dicht is, een woonerf, zandweg of te smalle straat. Zonder lijn in de buurt rijdt hij alleen over het busnet (hoofdwegen, tertiaire wegen, busbanen); met een lijn ook over de woonstraten waar die lijn echt loopt, en nergens anders. Een bus begint op de weg van zijn lijn, niet op het straatje ernaast, en een bus die 200 m van zijn lijn raakt verdwijnt als niemand kijkt. In de simulatie van alle lijnen over de stadskaart stonden bussen 29.061 beelden op een weg waar ze niet horen (onder meer een dienstweg die voor bussen dicht is); nu 0. Nieuw: `node scripts/bus_audit.mjs [--sim]`.
+- **Geen koeien en schapen meer in de stad en tussen de huizen in dorpen (#330; getest op regels, nog niet in beeld bekeken):** vee kwam in elk groen vlak, ook in parken in de stad. Het dierenregister zegt nu waar vee voorkomt: op weide en dijk, niet in de bebouwde kom en niet in de stad. De schapen als dorpsversiering staan aan de rand van het dorp.
+- **Een politiepaard is geen muur meer (#331; getest met een botsingstest, nog niet in beeld bekeken):** een auto die er met een flinke klap op rijdt gooit de ruiter eraf en het paard slaat op hol, zonder wrak en zonder getoond geweld. De auto krijgt minder schade van het paard dan van een muur of een andere auto.
+
+### Nieuw
+- **Schaapontvoering (#333; getest op de toestandsmachine en de koppeling, nog niet in beeld bekeken):** de straal boven een schaap die nergens heen leidde, bestond als losse zaak niet; het is nu een echte gebeurtenis. Soms, 's nachts op het platteland, daalt een schotel neer boven een grazend schaap, een straal van de schotel tilt het omhoog en de schotel schiet weg; de boer mist een schaap (een Kiekdoar-bericht). Hoogstens een keer per nacht, alleen met een schaap binnen 150 m, en zonder getoond leed.
+
 ## [0.38.0] - 2026-10-20
 
 ### Nieuw
