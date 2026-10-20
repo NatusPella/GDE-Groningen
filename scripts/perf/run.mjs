@@ -51,7 +51,10 @@ const electron = path.join(desktop, 'node_modules', 'electron', 'dist', process.
 const args = ['.', '--windowed', '--stil', '--force-device-scale-factor=1', '--window-size=1920x1080',
   // with other windows over this one Chromium would throttle it as occluded or backgrounded: a measuring run must not be slowed by that
   '--disable-renderer-backgrounding', '--disable-backgrounding-occluded-windows', '--disable-features=CalculateNativeWinOcclusion', `--smoke-test=${path.join(OUT, name + '.png')}`,
-  `--bench-eval=${path.join(HERE, 'hook.js')}`, `--perf-script=${scriptFile}`, ...extra];
+  `--bench-eval=${path.join(HERE, 'hook.js')}`, `--perf-script=${scriptFile}`];
+// a switch in the extra arguments replaces the default one of the same name (--window-size=1280x720 for a smaller window); the shell reads the first
+for (const x of extra) { const n = x.split('=')[0]; const i = args.findIndex((q, k) => k > 0 && q.split('=')[0] === n); if (i > 0) args.splice(i, 1); }
+args.push(...extra);
 const logFile = path.join(OUT, name + '.log');
 const log = fs.createWriteStream(logFile);
 console.error(`start ${new Date().toTimeString().slice(0, 8)} load ${os.loadavg().map((x) => x.toFixed(2)).join(' ')}`);

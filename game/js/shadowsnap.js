@@ -25,7 +25,10 @@ const SHADOW_SKIP_MAX_SPEED = 2.5; // m/s
 // shadow area (`calm`): a shadow that is one frame (16 ms) behind is 5 cm off
 // at walking pace, about a texel.
 const SHADOW_CALM_MAX_SPEED = 3.5; // m/s, just over the default walking pace (3.0)
+// cpuLevel 3 (the machine cannot keep up even with level 2): the shadow map is drawn one frame in four while the focus walks or runs
+const SHADOW_WEAK_MAX_SPEED = 8; // m/s
 export function shadowPassSkipped(cpuLvl, frameCounter, focusSpeed, calm = false) {
+  if (cpuLvl >= 3) return focusSpeed < SHADOW_WEAK_MAX_SPEED && (frameCounter & 3) !== 0;
   if ((frameCounter & 1) !== 1) return false;
   return cpuLvl > 0 ? focusSpeed < SHADOW_SKIP_MAX_SPEED : calm && focusSpeed < SHADOW_CALM_MAX_SPEED;
 }

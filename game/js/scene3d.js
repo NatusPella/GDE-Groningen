@@ -1094,7 +1094,7 @@ function applyViewSettings(st) {
 // view distance, camera far plane and fog; 'heel ver' follows adaptive quality
 function applyViewDistance(st) {
   viewDist = viewDistanceFor(st.drawDistance, dynamicScale(), cpuLevel());
-  DRAW_DIST = detailDistanceFor(st.quality, viewDist);
+  DRAW_DIST = detailDistanceFor(st.quality, viewDist, cpuLevel());
   cam.far = Math.max(DRAW_DIST * 1.4, viewDist * 1.4, landmarkDist() * 1.1);
   lightBase.fogNear = DRAW_DIST * 0.45 + (viewDist - 150) * 0.25;
   lightBase.fogFar = viewDist * 1.02;
@@ -1627,7 +1627,7 @@ let buildingDetailR = DRAW_DIST;
 const FACADE_DETAIL_DIST = { laag: 80 };
 let facadeDetailDist = Infinity, facadeDetailCulled = false, facadeQualityDist = Infinity;
 // gfxprofile.js cpuLevel (a busy machine): fewer facade details
-const CPU_FACADE_DIST = [Infinity, 100, 70];
+const CPU_FACADE_DIST = [Infinity, 100, 70, 45];
 let shadowFrame = 0;
 // no vehicle faster than 4 m/s in (or just next to) the area that casts shadows
 function shadowAreaCalm(world, fx, fy) {
