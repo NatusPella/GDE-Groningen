@@ -1,7 +1,7 @@
 // De DOM-kant van overlayrules.js (#239): kijkt welke overlays in beeld zijn en houdt de rest
 // tegen (class ov-hold, onzichtbaar maar niet weg). Wie een overlay laat verschijnen kan ook
 // isOverlayHeld(naam) vragen en dan wachten (prestaties, personagenaam).
-import { heldOverlays } from './overlayrules.js';
+import { heldOverlays, mayStartOverlay } from './overlayrules.js';
 
 // hoe elke overlay in de DOM te herkennen is (zichtbaar = aanwezig)
 const SELECTORS = {
@@ -24,7 +24,7 @@ function activeOverlays(doc = typeof document !== 'undefined' ? document : null)
 // ándere overlays hem nu laten beginnen.
 export function isOverlayHeld(name) {
   const others = activeOverlays().filter((a) => a !== name);
-  return heldOverlays([...others, name]).has(name);
+  return !mayStartOverlay(name, others);
 }
 
 let started = false;

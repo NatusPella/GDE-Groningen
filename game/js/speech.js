@@ -22,8 +22,10 @@
 // - the radio (G-Music jingles, DJ lines) only talks after RADIO_QUIET s of
 //   silence; music ducks while anyone talks.
 
-export const PRIO = { radio: 0, ambient: 1, react: 2, job: 3, banter: 4, call: 5, mission: 6, story: 7 };
-const GAP = { radio: 2.5, ambient: 1.0, react: 0.5, job: 0.3, banter: 0.3, call: 0, mission: 0, story: 0 };
+import { SPEECH_PRIO, cutsHold, cutsClip, mayShow } from './hudbus.js';
+
+// the classes, the gaps and the rule of who may cut whom are in hudbus.js (mayShow('speech', ...))
+export const PRIO = SPEECH_PRIO;
 const TAIL = 0.15;
 export const RADIO_QUIET = 2.5;
 const MAX_QUEUE = 4;
@@ -72,20 +74,16 @@ function strongestHold(owner) {
   return best;
 }
 
-const cutsClip = (p, c) => p === PRIO.story || (p > c.prio && (p >= PRIO.job || c.prio === PRIO.radio) && c.prio < PRIO.call);
-const cutsHold = (p, h) => p === PRIO.story || (p > h.prio && p >= PRIO.call && h.prio <= PRIO.banter);
-
 export function canSpeak(cls, owner = null) {
-  const p = PRIO[cls] ?? PRIO.ambient;
-  if (p === PRIO.story) return true;
+  if ((PRIO[cls] ?? PRIO.ambient) === PRIO.story) return true;
   const now = clock();
   const c = active(now);
-  if (c && !(owner && c.owner === owner) && !cutsClip(p, c)) return false;
-  const h = strongestHold(owner);
-  if (h && h.prio >= p) return false;
-  if (h && !cutsHold(p, h) && h.prio >= PRIO.call) return false;
-  if (!c && now - lastEnd < (GAP[cls] ?? 1)) return false;
-  return true;
+  return mayShow('speech', {
+    cls,
+    clip: c ? { prio: c.prio, own: !!(owner && c.owner === owner) } : null,
+    hold: strongestHold(owner),
+    silentFor: now - lastEnd,
+  });
 }
 
 // Grants the channel for `dur` seconds (a guess is fine; `extend` corrects
