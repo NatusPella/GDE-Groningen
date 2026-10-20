@@ -753,7 +753,7 @@ export async function loadMap(url = 'stad.json', onProgress = null) {
   // every map file is in the RD New world frame (rdnew.js); a file from an
   // older build would put the whole map tens of metres off
   for (const [name, f] of [['stad.json', data.meta && data.meta.frame], ['mapextras.json', ex ? ex.frame : 'rd-new']]) {
-    if (f !== 'rd-new') console.error(`${name} is not in the rd-new frame (scripts/world/rebase_data.py)`);
+    if (f !== 'rd-new') console.error(`${name} is not in the rd-new frame (scripts/world/rdnew.py)`);
   }
   applyMapExtras(data, ex);
   return new GameMap(data);
