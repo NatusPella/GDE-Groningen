@@ -2659,11 +2659,16 @@ function resolveTrailerContacts(a, vehicles, world) {
   }
 }
 
-function collisionProbes(v) {
-  const pts = v.halfLen > 3 ? [[v.halfLen, v.halfWid], [v.halfLen, -v.halfWid], [0, -v.halfWid], [-v.halfLen, -v.halfWid], [-v.halfLen, v.halfWid], [0, v.halfWid]] : null;
-  if (!pts) return vehicleCorners(v);
+// The probes of a body in order: the four corners, and for a long one (a bus, a truck) the sides' middle as well.
+// Multiples of (halfLen, halfWid); probe k is worked out on its own, from where the car is now.
+const PROBES_LONG = [[1, 1], [1, -1], [0, -1], [-1, -1], [-1, 1], [0, 1]];
+const PROBES_SHORT = [[1, 1], [1, -1], [-1, -1], [-1, 1]];
+const probeCount = (v) => (v.halfLen > 3 ? 6 : 4);
+function collisionProbe(v, k) {
+  const m = (v.halfLen > 3 ? PROBES_LONG : PROBES_SHORT)[k];
+  const lx = m[0] * v.halfLen, ly = m[1] * v.halfWid;
   const cos = Math.cos(v.angle), sin = Math.sin(v.angle);
-  return pts.map(([lx, ly]) => [v.x + lx * cos - ly * sin, v.y + lx * sin + ly * cos]);
+  return [v.x + lx * cos - ly * sin, v.y + lx * sin + ly * cos];
 }
 
 const FALL_G = 9.8;
@@ -2822,9 +2827,11 @@ export function resolveVehicleBuildingCollision(v, map, dt) {
   settleVehicleHeight(v, map, dt);
   let hit = false, worst = 0, hx = 0, hy = 0;
   const light = v.isBike || v.isScooter;
-  const count = collisionProbes(v).length;
+  const count = probeCount(v);
   // up on a viaduct or down in the cutting nothing at street level is in the way
   const offLevel = (v.z || 0) > 4 || (v.z || 0) < -3.5;
+  // the buildings round the body, asked once: the probes stay within its reach (a push-out moves the car by centimetres)
+  const near = offLevel ? null : map.buildingsNear(v.x, v.y, v.halfLen + 3);
   // Ommeland solids (barns, real buildings, silos, village furniture, trunks):
   // one circle round the whole body first: the corner tests only run beside one
   let country = false, rails = false;
@@ -2836,7 +2843,7 @@ export function resolveVehicleBuildingCollision(v, map, dt) {
     rails = countryRailsNear(v.x, v.y, reach + 1).length > 0;
   }
   for (let k = 0; k < count; k++) {
-    const c = collisionProbes(v)[k];
+    const c = collisionProbe(v, k);
     if (rails) {
       // a bridge railing: the corner stays on the deck side, where the body's centre is
       _cp.x = c[0]; _cp.y = c[1];
@@ -2867,7 +2874,7 @@ export function resolveVehicleBuildingCollision(v, map, dt) {
         hit = true;
       }
     }
-    for (const b of offLevel ? [] : map.buildingsNear(c[0], c[1], 1)) {
+    for (const b of near || []) {
       const [minx, miny, maxx, maxy] = b.bounds;
       if (c[0] < minx || c[0] > maxx || c[1] < miny || c[1] > maxy) continue;
       // building passages (passages.js) are open, the rest of the footprint is wall
