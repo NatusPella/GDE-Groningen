@@ -435,15 +435,16 @@ const CHECKS = [
       let pogingen = 0;
       while (pogingen < 3 && !act.active()) { pogingen++; await tap('e', 'KeyE', 160); await sleep(1500); }
       const gestart = act.active();
+      const melding = gestart ? null : (w.messages || []).slice(-2).map((m) => (m.text || '').slice(0, 80));
       let staat = null;
       if (gestart) {
         await sleep(4000);
         const pub = w.sideJob || {};
         staat = { actief: act.active(), naam: act.name(), label: pub.label, voortgang: pub.progress, tijdOver: pub.timeLeft == null ? null : Math.round(pub.timeLeft) };
         await snap('bijbaan-' + id, 200);
-        act.stop(); await sleep(800);
+        act.stop(); await sleep(4500);
       }
-      out.push({ id, naam: sp.job.name, x: Math.round(sp.x), y: Math.round(sp.y), pogingen, gestart, juisteBaan: gestart ? (staat && staat.naam === sp.job.name) : null, staat, meldingen: issues.slice(i0).map((x) => x.m) });
+      out.push({ id, naam: sp.job.name, x: Math.round(sp.x), y: Math.round(sp.y), pogingen, gestart, melding, juisteBaan: gestart ? (staat && staat.naam === sp.job.name) : null, staat, meldingen: issues.slice(i0).map((x) => x.m) });
     }
     return { gestapeld, banen: out, opmerking: 'alleen starten en vier seconden meedraaien; niet gespeeld tot een klus af was, niet beoordeeld: balans, uitleg en loon' };
   } },

@@ -120,12 +120,13 @@ export function getSideJobOffers(w) {
 // Two jobs on one spot: only the first could be started, the nearest wins (speeltestlus: eight regional jobs whose
 // region was not loaded yet all stood on one road point in the city, and the city jobs share their centre). The next
 // one steps aside to another road point at least 10 m from every job already placed.
-const SPREAD = [[0, 0], [26, 0], [-26, 0], [0, 26], [0, -26], [26, 26], [-26, 26], [26, -26], [-26, -26], [52, 0], [-52, 0], [0, 52], [0, -52]];
+const SPREAD = [[0, 0]];
+for (const r of [30, 60, 90, 120]) for (let k = 0; k < 8; k++) SPREAD.push([Math.round(Math.cos(k * Math.PI / 4) * r), Math.round(Math.sin(k * Math.PI / 4) * r)]);
 function spreadSpot(map, x, y, taken) {
   for (const [dx, dy] of SPREAD) {
-    const rp = map.nearestRoadPoint ? map.nearestRoadPoint(x + dx, y + dy, 30, true) : null;
-    const q = rp ? { x: rp.x, y: rp.y } : { x: x + dx, y: y + dy };
-    if (!taken.some((t) => dist(t.x, t.y, q.x, q.y) < 10)) return q;
+    const rp = map.nearestRoadPoint ? map.nearestRoadPoint(x + dx, y + dy, 20, true) : null;
+    if (!rp) continue;
+    if (!taken.some((t) => dist(t.x, t.y, rp.x, rp.y) < 10)) return { x: rp.x, y: rp.y };
   }
   return { x, y };
 }
