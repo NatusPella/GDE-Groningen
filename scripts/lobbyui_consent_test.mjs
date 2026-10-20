@@ -50,5 +50,14 @@ await t('na akkoord gaat de signalering via de brokers en het STUN-pad van de co
   for (const c of log.pc) assert.ok(c.iceServers.every((s) => /^stun:/.test(s.urls)), 'alleen STUN, geen TURN-relay');
   lobby.close();
 });
+await t('wachtscherm van een gast: komt de verbinding van zelf terug, dan sluit het scherm (anders bleef het spel voor altijd op pauze)', async () => {
+  const root = fakeRoot(); let hervat = 0;
+  const session = { slot: 1, onstatus: null, onevent: null, welcome: null, rejected: null };
+  const lobby = mountLobby(root, { resumed: () => { hervat++; }, disconnect() {} }, { start: 'verbroken', rol: 'gast', route: 'direct', session });
+  assert.equal(typeof session.onstatus, 'function', 'het wachtscherm luistert naar de sessie');
+  session.onstatus('lost'); assert.equal(lobby.state().step, 'verbroken'); assert.equal(hervat, 0);
+  session.onstatus('ok'); assert.equal(hervat, 1, 'terug: het scherm sluit zich');
+  lobby.close();
+});
 console.log(`lobbyui_consent_test: ${n}/${n} ok`);
 process.exit(0); // timers van de signaler niet afwachten

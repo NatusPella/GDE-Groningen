@@ -408,4 +408,23 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
   #pause-menu .pm-row input[type="range"] { width: 160px; }
   #pause-menu .m-li { min-height: 48px; }
   #pause-menu .pm-sheet-sub { font-size: 16px; }
+  #pause-menu .pm-sheet-r { display: none; }
+  #pause-menu .pm-sheet .m-h2, #pause-menu .pm-sheet .m-h1 { font-size: 40px; }
+  #pause-menu .m-foot { display: none; }
 }
+
+/* Samen spelen (lobbyui.js, #95): kop, tekst, code, invoer en knoppen in de menustijl; ook in het wachtscherm (.coop-hold) */
+#pause-menu .pm-samen { display: flex; flex-direction: column; gap: 12px; max-width: 760px; padding: 8px 8px 24px 24px; }
+.pm-samen, .coop-hold { font-family: 'Arial Narrow', Arial, sans-serif; color: var(--ink, #f0ede4); }
+.pm-samen .coop-title, .coop-hold .coop-title { margin: 0 0 4px; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-weight: normal; font-size: 40px; letter-spacing: 0.04em; }
+.pm-samen p, .coop-hold p { margin: 0; max-width: 640px; font-size: 22px; line-height: 1.35; }
+.pm-samen .coop-code, .coop-hold .coop-code { width: fit-content; max-width: 100%; margin: 4px 0; padding: 14px 18px; border-radius: 8px; background: rgba(240, 237, 228, 0.08); box-shadow: inset 0 0 0 1px rgba(240, 237, 228, 0.24); font-family: Consolas, 'Courier New', monospace; font-size: 26px; letter-spacing: 0.06em; user-select: all; overflow-wrap: anywhere; }
+.pm-samen .coop-input, .coop-hold .coop-input { box-sizing: border-box; width: 100%; max-width: 520px; height: 56px; padding: 0 16px; border-radius: 8px; border: 1px solid rgba(240, 237, 228, 0.3); background: rgba(0, 0, 0, 0.35); color: inherit; font-family: Consolas, 'Courier New', monospace; font-size: 24px; }
+.pm-samen .coop-input:focus-visible, .coop-hold .coop-input:focus-visible { outline: 2px solid var(--ink, #f0ede4); outline-offset: 2px; }
+.pm-samen .coop-error, .coop-hold .coop-error { color: #ff9a8f; }
+.pm-samen .coop-btns, .pm-samen .coop-wensen, .coop-hold .coop-btns { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 12px; }
+.coop-hold .coop-btn, .pm-samen .coop-btn, .pm-samen .coop-wens { cursor: pointer; border: 0; }
+.coop-hold .m-bg, .coop-hold .m-bp, .pm-samen .m-bg, .pm-samen .m-bp { white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; height: 56px; padding: 0 24px; border-radius: 8px; font-size: 24px; letter-spacing: 0.06em; background: transparent; color: var(--ink, #f0ede4); box-shadow: inset 0 0 0 1px rgba(240, 237, 228, 0.24); }
+.coop-hold .m-bp, .pm-samen .m-bp { background: var(--g, #3fc97a); color: #0c140e; box-shadow: none; }
+.pm-samen .coop-wens[aria-pressed="true"] { background: rgba(63, 201, 122, 0.18); box-shadow: inset 0 0 0 1px var(--g, #3fc97a); }
+.pm-samen .coop-btn:focus-visible, .coop-hold .coop-btn:focus-visible, .pm-samen .coop-wens:focus-visible { outline: 2px solid var(--ink, #f0ede4); outline-offset: 2px; }

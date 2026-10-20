@@ -63,8 +63,8 @@ const timers = {}; // echte timers; elke test sluit zijn signaler
 async function exchange(net, room = 'K3J9D8F2MN', opts = {}) {
   const topic = await topicFor(room);
   const env = { socket: net.socket, rand: makeRng(7) };
-  const h = new B.MultiSignaler(CFG, env, { fallbackAfter: 60, brokerTimeout: 200, ...opts });
-  const g = new B.MultiSignaler(CFG, { ...env, rand: makeRng(9) }, { fallbackAfter: 60, brokerTimeout: 200, ...opts });
+  const h = new B.MultiSignaler(CFG, env, { fallbackAfter: 300, brokerTimeout: 200, ...opts });
+  const g = new B.MultiSignaler(CFG, { ...env, rand: makeRng(9) }, { fallbackAfter: 300, brokerTimeout: 200, ...opts });
   const offerBlob = await encryptBlob(room, JSON.stringify({ type: 'offer', sdp: 'v=0 a=candidate:1 1 udp 1 192.168.1.5 5000 typ host' }));
   let answerGot = null, offerGot = null;
   h.host(topic, offerBlob, (b) => { answerGot = b; });
@@ -121,11 +121,11 @@ await t('PeerJS wordt niet gebruikt als een broker werkt', async () => {
 });
 await t('verkeerde kamercode: de gast vindt het aanbod niet en kan het niet ontsleutelen', async () => {
   const net = fakeNet(); const room = 'K3J9D8F2MN';
-  const h = new B.MultiSignaler(CFG, { socket: net.socket, rand: makeRng(1) }, { fallbackAfter: 60, brokerTimeout: 200 });
+  const h = new B.MultiSignaler(CFG, { socket: net.socket, rand: makeRng(1) }, { fallbackAfter: 300, brokerTimeout: 200 });
   h.host(await topicFor(room), await encryptBlob(room, 'aanbod'), () => {});
   await tick(20);
   let got = null;
-  const g = new B.MultiSignaler(CFG, { socket: net.socket, rand: makeRng(2) }, { fallbackAfter: 60, brokerTimeout: 200 });
+  const g = new B.MultiSignaler(CFG, { socket: net.socket, rand: makeRng(2) }, { fallbackAfter: 300, brokerTimeout: 200 });
   g.join(await topicFor('ZZZZZZZZZZ'), (b) => { got = b; });
   await tick(150);
   assert.equal(got, null, 'ander onderwerp, geen aanbod');
