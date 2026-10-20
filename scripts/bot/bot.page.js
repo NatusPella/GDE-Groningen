@@ -43,10 +43,19 @@ function plan(s, mode, tgt) {
     const r = R.planLandRoute(world.map, kind, [me.x, me.y], [tgt.x, tgt.y]);
     pts = r && r.pts && r.pts.length ? r.pts : null;
   } catch (e) { B.log('routefout', { msg: String(e && e.message || e).slice(0, 200) }); }
+  // outside the city graph (the Ommeland) planLandRoute finds nothing: follow the line the game itself shows the player, when it leads to this goal
+  let src = pts ? 'plan' : 'recht';
+  if (!pts) {
+    try {
+      const gps = R.getActiveRoute();
+      const e = gps && gps.pts && gps.pts.length > 1 ? gps.pts[gps.pts.length - 1] : null;
+      if (e && L.distance({ x: e[0], y: e[1] }, tgt) < 80) { pts = R.getRouteAhead(1e9); src = 'gps'; }
+    } catch (e) { /* geen route */ }
+  }
   const line = pts || [[me.x, me.y]];
   line.push([tgt.x, tgt.y]);
   follower = new L.PathFollower(line, { reach: mode === 'drive' ? 7 : 2.5 });
-  B.log('route', { mode, planned: !!pts, points: line.length, to: [Math.round(tgt.x), Math.round(tgt.y)] });
+  B.log('route', { mode, planned: !!pts, src, points: line.length, to: [Math.round(tgt.x), Math.round(tgt.y)] });
 }
 
 // aim for the target over the planned route; returns the distance left
@@ -238,7 +247,7 @@ if (CFG.sweep && CFG.sweep.length) {
     const ok = window.__story.jump(id);
     B.log('setup', { what: 'jump', id, ok: !!ok });
     if (!ok) continue;
-    follower = null; detector.reset(B.time()); mem.boardTries = 0; lastStep = null; lastPhase = '';
+    follower = null; detector.reset(B.time()); mem.boardTries = 0; mem.pressTries = 0; lastStep = null; lastPhase = '';
     const t0 = B.time();
     await sleep(1500);
     await loop((s) => s.story.id !== id || B.time() - t0 > (CFG.perStepS || 600));
