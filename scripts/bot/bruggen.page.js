@@ -18,7 +18,7 @@ world.devInvuln = true;
 let shots = 0;
 const shot = (n) => { if (shots < (CFG.shots || 80)) { shots++; B.shot(n); } };
 
-// [naam, x, y, soort]: stad (vlak, profiel, beweegbaar) en provincie (viaducten; alleen met --viaducten zichtbaar)
+// [naam, x, y, soort]: stad (vlak, profiel, beweegbaar) en provincie (viaducten, met hoogteprofiel)
 const TARGETS = [
   ['Gerrit Krolbrug', 0, 0, 'beweegbaar', 'Gerrit Krolbrug'],
   ['Herebrug', 353, 755, 'beweegbaar'],

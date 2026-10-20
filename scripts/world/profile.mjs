@@ -246,7 +246,11 @@ const knotAt = (x, y) => KNOWN_KNOTS.find(([kx, ky, r]) => Math.hypot(x - kx, y 
 // opts.paths: foot and cycle ways that cross a raised or sunken road get a
 // profile too (a cycle bridge over a trunk road, a path through a tunnel).
 // Returns { roads: Map(road -> z[]), pts: Map(road -> densified pts), stats }.
-export function solve(data, { terrain = flatTerrain, iters = 600, pullPrior = 0.05, paths = false, protect = new Set(), couple = true, coupleAll = false, clear = true } = {}) {
+// opts.pins: [{ road, x, y, reach, minZ }]: a vertex of `road` within `reach` m of (x, y) lies at least `minZ` over
+// the terrain (a bridge over a shipping canal clears the barges: province_profile.mjs); the road rises, and the roads
+// it joins ramp with it. opts.noSink: nothing is sunk under the terrain (a tunnel under a road stays at street level and
+// the road over it rises instead; a road under a rail stays flat): the province has no cut-away ground to show a trench.
+export function solve(data, { terrain = flatTerrain, iters = 600, pullPrior = 0.05, paths = false, protect = new Set(), couple = true, coupleAll = false, clear = true, pins = [], noSink = false } = {}) {
   const roads = data.roads;
   const rails = railItems(data);
   const water = data.water || [];
@@ -273,7 +277,8 @@ export function solve(data, { terrain = flatTerrain, iters = 600, pullPrior = 0.
   for (const c of crossings) {
     const s = separation(c);
     if (!s || knotAt(c.x, c.y)) continue;
-    const m = mover(s);
+    let m = mover(s);
+    if (noSink && m === 'lo') m = s.up.rail || s.lo.rail ? null : 'up';
     if (!m) continue;
     // (a foot or cycle path that should move but may not, without
     // opts.paths, stays as it is: a trunk road does not hump over it)
@@ -282,6 +287,18 @@ export function solve(data, { terrain = flatTerrain, iters = 600, pullPrior = 0.
     movers.push({ c, m });
     active.add(road);
   }
+  // the pins act like a mover that rises over a fixed height
+  const moverInfo = ({ c, m, pin }) => {
+    if (pin) return { road: pin.road, other: null, zo: pin.minZ, need: 0, reach: pin.reach };
+    const s = separation(c);
+    const road = m === 'up' ? s.up : s.lo, other = m === 'up' ? s.lo : s.up;
+    return { road, other, s, zo: m === 'up' ? s.zLo : s.zUp, need: s.need, reach: overlapReach(c, road, other) };
+  };
+  for (const pin of pins) {
+    if (!roads.includes(pin.road)) continue;
+    active.add(pin.road);
+    movers.push({ c: { x: pin.x, y: pin.y }, m: 'up', pin });
+  }
   // a ramp may need more room than the road that moves has: the roads it
   // runs on into (a side street dipping under a flyover, the cycle path on
   // from a cycle bridge) join in where the grade envelope from the
@@ -289,16 +306,14 @@ export function solve(data, { terrain = flatTerrain, iters = 600, pullPrior = 0.
   for (let round = 0; round < 16; round++) {
     const g0 = buildNetwork(roads);
     const lo0 = new Float64Array(g0.ids.length).fill(-Infinity), hi0 = new Float64Array(g0.ids.length).fill(Infinity);
-    for (const { c, m } of movers) {
-      const s = separation(c);
-      const road = m === 'up' ? s.up : s.lo, other = m === 'up' ? s.lo : s.up;
-      const zo = m === 'up' ? s.zLo : s.zUp;
-      const reach = overlapReach(c, road, other);
+    for (const mv of movers) {
+      const { c, m } = mv;
+      const { road, zo, need, reach } = moverInfo(mv);
       const a = g0.of.get(road);
       road.pts.forEach((p, i) => {
         if (Math.hypot(p[0] - c.x, p[1] - c.y) > reach + STEP) return;
-        if (m === 'up') lo0[a[i]] = Math.max(lo0[a[i]], zo + s.need);
-        else hi0[a[i]] = Math.min(hi0[a[i]], zo - s.need);
+        if (m === 'up') lo0[a[i]] = Math.max(lo0[a[i]], zo + need);
+        else hi0[a[i]] = Math.min(hi0[a[i]], zo - need);
       });
     }
     const envLo = envelope(roads, g0, lo0, 1), envHi = envelope(roads, g0, hi0, -1);
@@ -407,12 +422,12 @@ export function solve(data, { terrain = flatTerrain, iters = 600, pullPrior = 0.
     }
     return [a[bi], a[bi + 1], bt];
   };
-  const binds = !clear ? [] : movers.map(({ c, m }) => {
-    const s = separation(c);
-    const road = m === 'up' ? s.up : s.lo, other = m === 'up' ? s.lo : s.up;
-    const near = nearOf(road, c, overlapReach(c, road, other));
-    const keep = other.rail ? [] : nearOf(other, c, overlapReach(c, other, road));
-    return { m, near, keep, seg: segAt(road, c), oseg: other.rail ? null : segAt(other, c), zo: m === 'up' ? s.zLo : s.zUp, need: s.need };
+  const binds = !clear ? [] : movers.map((mv) => {
+    const { c, m } = mv;
+    const { road, other, zo, need, reach } = moverInfo(mv);
+    const near = nearOf(road, c, reach);
+    const keep = !other || other.rail ? [] : nearOf(other, c, overlapReach(c, other, road));
+    return { m, near, keep, seg: segAt(road, c), oseg: !other || other.rail ? null : segAt(other, c), zo, need };
   });
   // the height at the crossing point itself: (1 - t) z_a + t z_b >= (or <=) target
   const lin = [];

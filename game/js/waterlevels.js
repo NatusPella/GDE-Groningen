@@ -124,6 +124,10 @@ export const bargeWater = (poly) => { const c = waterwayClass(poly); return c ==
 export const bargeWaterAt = (w) => !!w && w.kind !== 'sloot' && w.kind !== 'vaart' && w.navigable >= 3;
 // the deck of a city bridge: its top at the road, its soffit this far below
 export const BRIDGE_DECK_T = 0.5;
+// The clearance (m above the water) of a fixed bridge over a shipping waterway of the province (MAIN_WATERWAYS: the Eemskanaal,
+// the Van Starkenborghkanaal ...). AANNAME (#295): the map holds no deck heights for the province's bridges; CEMT class IV asks for
+// 5,25 m and the barge of the game (4,2 m) clears that with room to spare. province_profile.mjs gives such a bridge a deck this high.
+export const SHIPPING_CLEAR = 5.25;
 
 // --------------------------------------------------------------- geometry
 

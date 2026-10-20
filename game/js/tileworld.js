@@ -19,6 +19,7 @@ import { dropWaterDuplicates } from './waterdupes.js';
 import { SECTION, decodeBlob } from './gdt.js';
 import { TileStore, FrameQueue, HttpRangeSource, inflateRaw, makeWorkerDecoder, decodeCompressed } from './tilestore.js';
 import { TerrainField } from './terrainraster.js';
+import { extendElevation, shrinkElevation } from './elevation.js';
 
 const KIND_OF = new Map([
   [SECTION.BUILDINGS, 'buildings'], [SECTION.ROADS, 'roads'], [SECTION.WATER, 'water'], [SECTION.GREEN, 'green'],
@@ -155,9 +156,12 @@ export class TileWorld extends GameMap {
         e.tiles.add(tk);
       }
     }
-    // the profiles of streamed bridges and viaducts (build_province.mjs --viaducts, #235): the elevation model
-    // keeps to the pinned set, so they only count with ?viaducten, for a look at the ribbons
-    if (this.streamProfiles) attachProfiles(tile, (gid) => { const e = this._res.roads.get(gid); return e && e.obj; });
+    // the profiles of streamed bridges and viaducts (build_province.mjs, #235): the roads of the tile join the elevation
+    // model with them (surfaceAt, embankments, walls, a deck a boat sails under: #300). ?vlakbruggen leaves them flat.
+    if (this.streamProfiles !== false) {
+      attachProfiles(tile, (gid) => { const e = this._res.roads.get(gid); return e && e.obj; });
+      if (newRoads.length && tile.sections.some((s) => s.type === SECTION.HEIGHTS)) this.elevAdded = (this.elevAdded || 0) + extendElevation(this, newRoads);
+    }
     // a road over water without a bridge tag is a culvert or a dry deck (mapdata.js markDryRoad)
     for (const r of newRoads) markDryRoad(this, r);
     for (const w of newWater) {
@@ -229,10 +233,12 @@ export class TileWorld extends GameMap {
     if (!this.resident.delete(tk)) return false;
     for (const fn of this._tileListeners || []) fn('drop', null, tk);
     if (this.terrain) this.terrain.drop(tk);
+    const goneRoads = [];
     for (const kind of Object.keys(this._res)) {
       for (const [gid, e] of this._res[kind]) {
         if (!e.tiles.delete(tk) || e.tiles.size) continue;
         this._res[kind].delete(gid);
+        if (kind === 'roads' && e.obj.z) goneRoads.push(e.obj);
         if (kind === 'water') this._waterVer = (this._waterVer || 0) + 1;
         const grid = gridOf(kind, e.obj);
         if (grid && this[grid]) this[grid].remove(e.obj, boundsOfObj(kind, e.obj));
@@ -240,6 +246,7 @@ export class TileWorld extends GameMap {
         if (kind === 'furniture' && e.obj.k === 'hedge' && e.obj.pts && this.hedgeGrid) this.hedgeGrid.remove(e.obj, polygonBounds(e.obj.pts));
       }
     }
+    if (goneRoads.length) shrinkElevation(this, goneRoads);
     return true;
   }
 

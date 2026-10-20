@@ -60,8 +60,8 @@ function queryParts() {
     hasFlag('--touch') && 'touch=1',
     // --url-flags=simauto,zonderworker: extra ?-switches of devflags.js for this run (A/B metingen, scripts/perf/run.mjs)
     ...(argValue('--url-flags') || '').split(',').filter(Boolean),
-    // --viaducten: the bridge and viaduct profiles of streamed tiles (#235)
-    hasFlag('--viaducten') && 'viaducten',
+    // --vlakbruggen: the bridges and viaducts of streamed tiles flat on the street, as before #300
+    hasFlag('--vlakbruggen') && 'vlakbruggen',
     argValue('--gfx-advice') && `gpu=${encodeURIComponent(argValue('--gfx-advice'))}`].filter(Boolean);
 }
 
