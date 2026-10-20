@@ -17,7 +17,7 @@ import { bindCoop } from './coopglue.js';
 import { partnersInfo, createPings, addPing, tickPings, pingEvent } from './partnerhud.js';
 import { holdBeleid, leesLijstEvent, lijst } from './coopplayers.js';
 import { cameraRelative, stepSlot2, sharedCamera } from './coop.js';
-import { verzamelEntiteiten, leesEntiteiten, missieBericht, leesMissieBericht, missieTekst } from './coopworld.js';
+import { verzamelEntiteiten, leesEntiteiten, missieBericht, leesMissieBericht, missieTekst, sceneBericht, leesSceneBericht, sceneLeeg, FILMPJE_TEKST } from './coopworld.js';
 import { verhaalRol } from './coopplayers.js';
 import { KLOK_EVERY, klokEvent, leesKlokEvent, KlokVolger } from './net/speelklok.js';
 import { HASH_EVERY, viewOf, hashEvent, leesHashEvent, DesyncMonitor } from './net/desync.js';
@@ -72,7 +72,7 @@ function prepareCoop(world) {
 }
 function endCoop(world) {
   if (world.coop) { world.coop.remote = false; world.coop.remoteInput = null; world.coop.fixedChars = false; if (world.coop.prevLocal !== undefined) { world.coop.local = world.coop.prevLocal; world.coop.prevLocal = undefined; } }
-  world.coopPartner = null; world.coopPartners = []; world.coopRoster = null; world.coopFigures = {}; world.coopHost = null; world.coopHostMissie = null; world.coopCam = null;
+  world.coopPartner = null; world.coopPartners = []; world.coopRoster = null; world.coopFigures = {}; world.coopHost = null; world.coopHostMissie = null; world.coopCam = null; world.coopScene = null;
 }
 const now = (world) => (Number.isFinite(world.time) ? world.time : Date.now() / 1000);
 
@@ -87,17 +87,18 @@ export function guestView(sample, info) {
 }
 
 // ---------------------------------------------------------------- host
-// opts: { seed, max (4 tot 8), onHold(rol, slot, reden), fade, route, onChange(roster) }
+// opts: { seed, max (4 tot 8), onHold(rol, slot, reden), fade, route, onChange(roster), scene() -> { filmpje, regel, keuze } (wat de host op het scherm heeft, coopscene.js) }
 export function startHost(world, info, opts = {}) {
   prepareCoop(world);
   world.coop.prevLocal = world.coop.local !== false; world.coop.local = false; // in een sessie sturen de gasten, niet het toetsenbord
-  const { onHold = null, fade = null, route = null, onChange = null } = opts;
+  const { onHold = null, fade = null, route = null, onChange = null, scene = null } = opts;
   let hub;
   hub = new HostHub({
     info, seed: opts.seed ?? 1, max: opts.max, caps: CAPS, rand: opts.rand,
     sim: hostSim(world, () => hub.roster),
     onJoin: (slot, char) => {
       if (world.coopNet && world.coopNet.missie) hub.announce(missieBericht(null, world.mission).event || { k: 'missie', actief: false }, slot);
+      if (world.coopNet && world.coopNet.sceneNu && !sceneLeeg(world.coopNet.sceneNu)) hub.announce({ k: 'scene', ...world.coopNet.sceneNu }, slot); // wie midden in een filmpje aansluit, hoort het meteen
       if (slot >= 2) { const f = ensureFigure(world, slot, char); f.x = world.player.x + 1.5 * (slot - 1); f.y = world.player.y + 1.5; }
       if (fade) fade('in'); // de gast komt met een korte fade naast je staan
     },
@@ -121,7 +122,7 @@ export function startHost(world, info, opts = {}) {
   setFixedCharacters(world, 0);
   world.coopRole = 'host';
   world.coopRoster = lijst(hub.roster);
-  world.coopNet = { role: 'host', hub, fade, route, removing: {}, info, tKlok: 0, tHash: 0, hashN: 0 };
+  world.coopNet = { role: 'host', hub, fade, route, removing: {}, info, tKlok: 0, tHash: 0, hashN: 0, scene, tScene: 0, filmpjeT: 0, sceneNu: null };
   return hub;
 }
 
@@ -174,7 +175,8 @@ export function tickCoopNet(world, dt) {
     const s = n.session;
     const inp = world.input;
     const m = makeClientInput(inp && inp.axis ? inp.axis() : [0, 0], !!(inp && inp.isDown && inp.isDown('shift')), world.camYaw);
-    s.setInput(m.mx, m.my, m.buttons, m.yaw);
+    if (world.coopScene && world.coopScene.filmpje) s.setInput(0, 0, 0, m.yaw); // de gastheer kijkt een filmpje: Tessa staat stil
+    else s.setInput(m.mx, m.my, m.buttons, m.yaw);
     s.tick(dt);
     n.lokaal += dt;
     // de gedeelde speelklok: de tijd van de dag volgt de host (net/speelklok.js)
@@ -187,7 +189,7 @@ export function tickCoopNet(world, dt) {
       const sample = s.world();
       if (sample && !n.joined) { n.joined = true; if (n.fade) n.fade('in'); }
       applyHostState(world, s.slot, sample, world.coopRoster, dt);
-      world.coopHost = sample ? leesEntiteiten(sample.entities) : { voertuigen: [], doelen: [] };
+      world.coopHost = sample ? leesEntiteiten(sample.entities) : { voertuigen: [], doelen: [], voetgangers: [] };
       world.coopPartners = partnersInfo(s.slot, sample ? sample.players : [], world.coopRoster || []);
       world.coopPartner = world.coopPartners[0] || null;
       world.coopCam = s.slot === 1 ? sharedCamera(world.player, world.companion) : null; // alleen Tessa deelt de camera met Tammo
@@ -200,6 +202,15 @@ export function tickCoopNet(world, dt) {
   n.tKlok += dt; n.tHash += dt;
   if (n.tKlok >= KLOK_EVERY) { n.tKlok = 0; n.hub.announce(klokEvent(world)); }
   if (n.tHash >= HASH_EVERY) { n.tHash = 0; n.hub.announce(hashEvent(++n.hashN, hostView(world, n.info, n.hub.roster))); }
+  n.tScene += dt;
+  if (n.scene && n.tScene >= 0.25) { // een filmpje, een regel, een keuze: voor de gasten
+    const tScene = n.tScene; n.tScene = 0;
+    let sc = null; try { sc = n.scene(); } catch (e) { sc = null; }
+    n.filmpjeT = sc && sc.filmpje ? n.filmpjeT + tScene : 0;
+    if (sc && sc.filmpje && n.filmpjeT < 0.7) sc = { ...sc, filmpje: false }; // een kort kaartje (zoals bij dood) is geen filmpje
+    const r = sceneBericht(n.sceneNu, sc); n.sceneNu = r.huidig;
+    if (r.event) n.hub.announce(r.event);
+  }
   const mb = missieBericht(n.missie || null, world.mission); // wat de host speelt, voor de gasten
   if (mb.event) { n.hub.announce(mb.event); } n.missie = mb.huidig;
   const c = world.companion;
@@ -231,6 +242,14 @@ export function handleEvent(world, body, van = 0) {
       // een nieuwe opdracht: wat de gastheer speelt; daarna alleen nog de volgende stap
       const tekst = nieuweOpdracht ? missieTekst(m, verhaalRol(slot) === 'wereld' ? 'wereld' : 'hoofdrol') : (m.actief && m.stap ? `Gastheer, volgende stap: ${m.stap}` : '');
       if (tekst && world.addMessage) world.addMessage(tekst, 6);
+      return true;
+    }
+    case 'scene': { // wat de host op het scherm heeft: filmpje, regel, keuze (alleen kijken)
+      if (!n || n.role !== 'client') return false;
+      const sc = leesSceneBericht(body); if (!sc) return false;
+      const was = !!(world.coopScene && world.coopScene.filmpje);
+      world.coopScene = sceneLeeg(sc) ? null : sc;
+      if (sc.filmpje && !was && world.addMessage) world.addMessage(FILMPJE_TEKST, 4);
       return true;
     }
     case 'spelers': { // alleen de host stuurt de lijst

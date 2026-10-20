@@ -69,7 +69,7 @@ function sampleNow(n) {
     roster: x.coopRoster ? x.coopRoster.map((s) => [s.slot, s.char, s.verbinding]) : null, figuren: Object.keys(x.coopFigures || {}).length,
     verdiend: x.coopVerdiend || 0, ri: x.coop && x.coop.remoteInput ? [Math.round(x.coop.remoteInput.mx * 100) / 100, Math.round(x.coop.remoteInput.my * 100) / 100, x.coop.remoteInput.buttons | 0] : null,
     hm: hm ? (hm.actief ? hm.label + ' | ' + (hm.stap || '') : '-') : null,
-    hostEnt: x.coopHost ? [x.coopHost.voertuigen.length, x.coopHost.doelen.length] : null,
+    hostEnt: x.coopHost ? [x.coopHost.voertuigen.length, x.coopHost.doelen.length, (x.coopHost.voetgangers || []).length] : null,
     veh: x.player && x.player.inVehicle ? 1 : 0, vehC: x.companion && x.companion.inVehicle ? 1 : 0, nVeh: (x.vehicles || []).length,
     cutscene: !!(cine && cine.classList.contains('on')), camOver: !!x.cameraOverride,
     story: window.__story && window.__story.mission ? (() => { try { const m = window.__story.mission(); return m && (m.phase || '') + ':' + (m.stage || ''); } catch (e) { return ''; } })() : '',
