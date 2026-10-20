@@ -12,6 +12,9 @@ for (let i = 0; i < 40 && !document.body.classList.contains('game-started'); i++
     await sleep(700);
   }
 }
+// the start screen stays up over the live world in this harness (also in shots_scenes.js): take it away for the pictures
+const ss = document.getElementById('start-screen');
+if (ss) ss.style.display = 'none';
 const D = window.__debug; const w = D.world; const p = w.player; const map = w.map;
 const cine = await imp('cinematics');
 const PF = await imp('phonefeed');
@@ -24,7 +27,7 @@ w.devInvuln = true;
 D.input.canLock = () => false;
 if (document.pointerLockElement) document.exitPointerLock();
 const shot = async (name, wait = 1200) => { await sleep(wait); console.log('[capture] ' + name); await sleep(600); };
-const done = [`viewport ${innerWidth}x${innerHeight} dpr ${devicePixelRatio}`];
+const done = [`viewport ${innerWidth}x${innerHeight} dpr ${devicePixelRatio}`, 'body: ' + document.body.className];
 const [x, y] = P(100, 77);
 p.x = x; p.y = y; p.vx = 0; p.vy = 0; p.z = 0; p.vz = 0;
 p.gz = map.groundHeightAt ? map.groundHeightAt(x, y, 0) || 0 : 0;
