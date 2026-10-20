@@ -55,8 +55,8 @@ export const FIRE_HEALTH = 30; // en hieronder staat hij in brand (vehicle.js VE
 const DENT_FROM = 0.4; // vanaf deze totale klapsterkte telt hij als gedeukt
 
 // Een scheve of losse motorkap laat de motor eerder roken: vanaf deze klapsterkte vóór en deze gezondheid.
-export const KAP_ROOK_VANAF = 0.7; // gelijk aan scheefAt van de kap in vehicledoors.js
-export const KAP_ROOK_HEALTH = 78;
+const KAP_ROOK_VANAF = 0.7; // gelijk aan scheefAt van de kap in vehicledoors.js
+const KAP_ROOK_HEALTH = 78;
 export function kapRookt(v, len, wid) {
   if (!v || v.wrecked) return false;
   const h = Number.isFinite(v.health) ? v.health : 100;
