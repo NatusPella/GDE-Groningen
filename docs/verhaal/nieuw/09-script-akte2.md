@@ -117,7 +117,8 @@ TESSA: Jij zei dat de zee achter de dijk lag. Ik heb het twintig jaar geloofd. [
 TAMMO: Hij ligt er ook. Een beetje. [BEHOUDEN]
 TESSA: We stappen uit in Warffum. Daar begint het Hogeland, en Geesje woont in de pastorie. [NIEUW]
 TAMMO: Warffum. Is dat nog Grunn? [NIEUW]
-TESSA: Dat is het Hogeland, Tammo. Dat is groter dan je denkt. [NIEUW]
+TESSA: Joa. Dat is het Hogeland, Tammo. Dat is groter dan je denkt. [NIEUW]
+TAMMO: Je zegt joa als een vraag. [NIEUW]
 APP TAMMO→RIKUS (stil): Iedereen kijkt naar Kiekdoar. Niemand naar ons. [BEHOUDEN]
 
 ## [M09.1] Heel aankomen is ook een kunst: intro – Hogeland, Warffum, Geesjes pastorie – trekker
@@ -141,7 +142,9 @@ TESSA: Dan nemen we de wierdepaden. Vol gaten. Zes kratten, Tammo, en we hebben 
 
 ## [M09.3] Heel aankomen is ook een kunst: onderweg – Hogeland, wierdepaden – trekker
 TAMMO: Die koe kijkt naar me. [NIEUW]
-TESSA: Koeien kijken altijd. Dat is hun hobby. [NIEUW]
+TESSA: Koeien kieken altijd. Dat is hun hobby. [NIEUW]
+TAMMO: Altied. [NIEUW]
+TESSA: Altied. Dat is hun hobby. [NIEUW]
 TAMMO: In Grunn kijkt niemand zo lang. [NIEUW]
 TESSA: In Grunn kijkt niemand omhoog. Dit is een wierde, Tammo. Mensen bouwden hem zelf, tegen het water. [NIEUW]
 TAMMO: Zelf gebouwd? Met de hand? [NIEUW]

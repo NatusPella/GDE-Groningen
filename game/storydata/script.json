@@ -4588,11 +4588,19 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Dat is het Hogeland, Tammo. Dat is groter dan je denkt.",
+     "text": "Joa. Dat is het Hogeland, Tammo. Dat is groter dan je denkt.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
      "voice": "Anita"
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Je zegt joa als een vraag.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
     },
     {
      "speaker": "Tammo",
@@ -4764,7 +4772,24 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Koeien kijken altijd. Dat is hun hobby.",
+     "text": "Koeien kieken altijd. Dat is hun hobby.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Altied.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Altied. Dat is hun hobby.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
