@@ -140,7 +140,7 @@ body.hide-minimap #hud .hud-minimap-wrap { display: none; }
 #hud .hud-mission {
   --obj: #3fc97a;
   position: absolute; bottom: calc(var(--hud-edge) + 56px); left: 50%; transform: translateX(-50%);
-  display: flex; align-items: center; gap: 12px; max-width: min(calc(58vw / var(--ui, 1)), calc(100vw / var(--ui, 1) - 2 * (var(--hud-edge) + var(--mm-size) + 130px))); padding: 8px 24px; border-radius: 8px;
+  display: flex; align-items: center; gap: 12px; max-width: min(calc(58vw / var(--ui, 1)), calc(100vw / var(--ui, 1) - 2 * (var(--hud-edge) + var(--mm-size) + 160px))); padding: 8px 24px; border-radius: 8px;
   color: #f0ede4; text-shadow: var(--hud-shadow);
   background: linear-gradient(90deg, rgba(12, 20, 14, 0), rgba(12, 20, 14, 0.78) 18%, rgba(12, 20, 14, 0.78) 82%, rgba(12, 20, 14, 0));
   pointer-events: none; transition: opacity 0.4s ease;
