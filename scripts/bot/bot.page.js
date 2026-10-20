@@ -193,7 +193,7 @@ async function rescue(s, stepKey, info) {
   // the ladder counts per story step (a failed mission restarts the detector, not the ladder); every fail is a rung higher
   const sid = s.story.id || '?';
   const rung = L.rescueFor((ladder[sid] = (ladder[sid] || 0) + 1) - 1 + (fails[sid] || 0));
-  B.log('stuck', { step: stepKey, x: s.player.x, y: s.player.y, idleFor: info.idleFor, goalDist: s.target ? s.target.distance : null, rung });
+  B.log('stuck', { step: stepKey, x: s.player.x, y: s.player.y, idleFor: info.idleFor, goalDist: s.target ? s.target.distance : null, rung, doel: s.target && { x: s.target.x, y: s.target.y, vehicle: !!s.target.vehicle, source: s.target.source }, prompt: s.hud.prompt || undefined, dichtbij: (s.nearby.vehicles || []).slice(0, 3).map((c) => [c.kind, c.distance, c.free]) });
   shot(`${stepKey}-vast`);
   if (rung === 'nudge') { await nudge(s); detector.acknowledge(s.t); return; }
   if (!s.player.vehicle && !s.blocking.cinematic && !s.blocking.talk && (detours[stepKey] = (detours[stepKey] || 0) + 1) <= 4) { await detour(s, detours[stepKey]); detector.acknowledge(s.t); ladder[sid]--; return; }
@@ -262,7 +262,7 @@ while (true) {
   track(s);
   const stepKey = (s.story.id || '?') + (s.mission.active ? ':' + (s.mission.stage || 'm') : '');
   // each stage of a mission gets its own few tries at boarding and at a prompt
-  if (stepKey !== mem.stageKey) { mem.stageKey = stepKey; mem.pressTries = 0; mem.boardTries = 0; mem.planTries = 0; }
+  if (stepKey !== mem.stageKey) { mem.stageKey = stepKey; mem.pressTries = 0; mem.boardTries = 0; mem.planTries = 0; mem.vehTries = 0; }
   if (ticks++ % 100 === 0) B.log('status', { x: s.player.x, y: s.player.y, step: stepKey, dist: s.target ? s.target.distance : null, veh: s.player.vehicle ? s.player.vehicle.kind : 'te voet', wanted: s.wanted, money: s.player.money, msgs: s.hud.messages.slice(0, 2), sub: s.hud.subtitle && s.hud.subtitle.text });
   // a mission that asks for it ('Uitstappen, jong. Fatbikes ontwijk je te voet.'): out of the vehicle
   if (s.hud.messages.some((m) => /uitstappen|te voet/i.test(m))) mem.onFootUntil = s.t + 60;
@@ -384,7 +384,7 @@ while (true) {
     const d = steerTowards(s, 'walk', v, false, 24, big ? 0.4 : 2.2);
     // the game's own test: this is what lights the prompt and lets E in
     const near = vObj ? V.findEnterableVehicle(player.x, player.y, world.vehicles) === vObj : d < 3.5;
-    if (d < 3.5 || near) { B.stick(0, 0); mem.boardTries++; await keyTap('e', 240); await sleep(700); B.log('instappen', { kind: v.kind, toegestaan: near, binnen: !!player.inVehicle }); follower = null; }
+    if (d < 3.5 || near) { B.stick(0, 0); mem.boardTries++; await keyTap('e', 240); await sleep(700); const fe = V.findEnterableVehicle(player.x, player.y, world.vehicles); B.log('instappen', { kind: v.kind, toegestaan: near, binnen: !!player.inVehicle, doel: vObj && { x: Math.round(vObj.x * 10) / 10, y: Math.round(vObj.y * 10) / 10, hl: vObj.halfLen, hw: vObj.halfWid, naam: vObj.name || vObj.label || '', hero: !!vObj.isHeroCar, wrak: !!vObj.wrecked, slot: !!(vObj.locked || vObj.disabled) }, kan: fe && { x: Math.round(fe.x * 10) / 10, y: Math.round(fe.y * 10) / 10, naam: fe.name || fe.label || '' }, ik: [Math.round(player.x * 10) / 10, Math.round(player.y * 10) / 10] }); follower = null; }
     continue;
   }
   if (act.type === 'goto') {
