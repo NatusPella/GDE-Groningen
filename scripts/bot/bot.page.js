@@ -91,6 +91,14 @@ function steerTowards(s, mode, tgt, stopAt, top = 24, stopR = null) {
 
 // the plane (M15): keys from botlogic.planeKeys, applied as holds; the gates and the strip come from the mission def
 const FLY_KEYS = ['w', 's', 'a', 'd', ' ', 'control', 'shift'];
+// keys for plane and pigeon: the stick (a leftover steering axis outranks the keys) goes to zero, and a key the game lost
+// (a jump clears its input) is released and pressed again so bot and game agree
+function applyFlyKeys(want) {
+  B.stick(0, 0);
+  for (const k of FLY_KEYS) {
+    if (want.has(k)) { if (!B.input.isDown(k)) { B.up(k); B.down(k); } } else if (B.input.isDown(k)) B.up(k);
+  }
+}
 function releaseFly() { for (const k of FLY_KEYS) if (B.input.isDown(k)) B.up(k); }
 async function flyStep(s) {
   const v = player.inVehicle;
@@ -127,7 +135,7 @@ async function flyStep(s) {
   }
   if (!o) { releaseFly(); return; }
   const want = L.planeKeys({ x: pl.x, y: pl.y, z: pl.z, heading: pl.heading, speed: pl.speed, pitch: pl.pitch, roll: pl.roll, vz: pl.vz, onGround: pl.onGround, throttle: pl.throttle }, o);
-  for (const k of FLY_KEYS) { if (want.has(k)) B.down(k); else if (B.input.isDown(k)) B.up(k); }
+  applyFlyKeys(want);
   if (ticks % 20 === 0) {
     const rel = o.strip ? (() => { const c = Math.cos(o.strip.heading), sn = Math.sin(o.strip.heading), dx = pl.x - o.strip.x, dy = pl.y - o.strip.y; return { along: Math.round(dx * c + dy * sn), across: Math.round(-dx * sn + dy * c), hdg: Math.round(L.normAngle(pl.heading - o.strip.heading) * 100) / 100 }; })() : null;
     B.log('vlucht', { mode: o.mode, agl: Math.round(o.agl), v: Math.round(pl.speed), vz: Math.round(pl.vz * 10) / 10, gate: o.goal && [Math.round(o.goal.x), Math.round(o.goal.y)], rel, keys: [...want].join('') });
@@ -251,7 +259,7 @@ while (true) {
       B.log('bak', { recipe: bst.recipe, rounds: bst.rounds || 1 });
       for (let r = 0; r < (bst.rounds || 1); r++) for (const id of order) { await B.press(BAKE_KEYS[id], 110); await sleep(350); }
       await sleep(1200);
-      detector.hold(s.t);
+      detector.hold(s.t); heldSince = null;
       continue;
     }
   }
@@ -269,10 +277,11 @@ while (true) {
       if (width > 0 && at >= left + 3 && at <= left + width - 3) { pressed = true; B.log('timing', { at, zone: [left, left + width] }); }
     }
     await B.press(' ');
-    detector.hold(s.t);
+    detector.hold(s.t); heldSince = null;
     continue;
   }
   const act = L.decide(s, mem);
+  if (act.type !== 'wait' && act.type !== 'skip' && act.type !== 'choose' && act.type !== 'closemenu') heldSince = null;   // playing is not waiting: the wait clock starts over
   if (act.type === 'shop') {
     // the first two goes: Enter selects the highlighted (story) item, Enter buys; then Escape
     detector.hold(s.t);
@@ -290,7 +299,7 @@ while (true) {
     if (!f || f.intro) { releaseFly(); await sleep(200); continue; }
     if (f.mode !== 'fly') { releaseFly(); await B.press(' ', 120); await sleep(500); continue; }   // on the ground: take off
     const want = L.pigeonKeys(f, s.target);
-    for (const k of FLY_KEYS) { if (want.has(k)) B.down(k); else if (B.input.isDown(k)) B.up(k); }
+    applyFlyKeys(want);
     if (ticks % 20 === 0) B.log('duif', { x: Math.round(f.x), y: Math.round(f.y), z: Math.round(f.z), doel: [s.target.x, s.target.y], keys: [...want].join('') });
     continue;
   }
