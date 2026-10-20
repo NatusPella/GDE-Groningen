@@ -1,8 +1,8 @@
-// Zes speelbare zijmissies uit #26 als pure regels, in dezelfde vorm als
+// Acht speelbare zijmissies uit #26 als pure regels, in dezelfde vorm als
 // bijbaanregels.js (init, step, result) zodat het sidejob-contract ze met een dunne
 // adapter (sidejob_stad.js) kan draaien: Museumbus (Nationaal Busmuseum), Suikerbieten
 // (Hoogkerk), Herstelploeg (Delfstof Noord in het Hogeland), Live bij Radio Noordkust
-// (OOGTV), Rave in het Telefoonhuis en de Stille levering (Kliniek Van der Meden). Geen THREE, geen wereld, geen Math.random.
+// (OOGTV), Rave in het Telefoonhuis en de Stille levering (Kliniek Van der Meden), Cabaretgeluid bij de Schouwburg en Bernhards karretje. Geen THREE, geen wereld, geen Math.random.
 //
 // Invoer per stap (alles optioneel): speed m/s, decel m/s^2 (positief), lat m/s^2,
 // dist m tot het huidige doel, dir -1|0|1 (rave: volume zachter, gelijk, harder).
@@ -157,6 +157,58 @@ const vandermeden = {
     : pay(0, 0, false, 'De pakketten staan nog in de bus.', true),
 };
 
+// 7. Cabaretgeluid bij de Schouwburg: een geluidswagen langs drie hoeken van het plein, waar de Friese cabaretier
+// zijn eigen geluid laat horen. Pas op voor de portier: te hard door de straat en hij kijkt op. Geen ruzie, alleen een klacht.
+const schouwburg = {
+  id: 'schouwburg', naam: 'Cabaretgeluid bij de Schouwburg', bedrijf: 'Cabaret Noordhoek', regio: 'stad', voertuig: 'bestelbus',
+  plek: { stad: true },
+  blurb: 'Een geluidswagen op drie plekken rond de Schouwburg laten klinken',
+  tagline: 'Een Friese grap moet je laten landen: stilstaan, wachten en dan pas het volume.',
+  intro: ['Cabaret Noordhoek wil dat de Friese avond in de Schouwburg al op het plein te horen is. Jij rijdt de geluidswagen.', 'Sta bij elke hoek even stil tot de grap geland is. Rij rustig: de portier kijkt mee en noteert elke klacht.'],
+  init: (level) => ({ stops: 3, at: 0, wait: 0, klacht: 0, hard: 0, limit: 13 - lvlK(level) * 2 }),
+  step(s, i, dt) {
+    const ev = [];
+    if ((i.speed || 0) > s.limit) {
+      s.hard += dt;
+      if (s.hard >= 4) { s.hard = 0; s.klacht++; ev.push({ type: 'portier', n: s.klacht }); }
+    } else s.hard = Math.max(0, s.hard - dt);
+    if (s.klacht >= 3) { ev.push({ type: 'fail', why: 'drie klachten van de portier: de wagen mag niet meer op het plein' }); return ev; }
+    if (AT(i, 5, 0.5)) {
+      s.wait += dt;
+      if (s.wait >= 3) { s.wait = 0; s.at++; ev.push({ type: 'grap', n: s.at }); if (s.at >= s.stops) ev.push({ type: 'done' }); }
+    } else s.wait = 0;
+    return ev;
+  },
+  result: (s) => s.at >= s.stops
+    ? pay(30 + s.stops * 13, s.klacht === 0 ? 22 : 0, s.klacht === 0, s.klacht === 0 ? 'Drie keer raak, de portier lacht mee.' : `Drie grappen geland, ${s.klacht} klacht${s.klacht > 1 ? 'en' : ''} van de portier.`)
+    : pay(0, 0, false, 'Het plein bleef stil.', true),
+};
+
+// 8. Bernhards karretje: Bernhard (verzonnen, zie keuzewerk.js) laat zijn karretje met verhalen naar twee bankjes rijden.
+// Rustig rijden, bij elk bankje even luisteren: hij vraagt weinig, maar hij vraagt het vriendelijk.
+const bernardrit = {
+  id: 'bernardrit', naam: 'Bernhards karretje', bedrijf: 'Karretje van Bernhard', regio: 'stad', voertuig: 'bestelbus',
+  plek: { stad: true },
+  blurb: 'Bernhards karretje met verhalen rustig naar twee bankjes rijden',
+  tagline: 'Een karretje vol verhalen: wie te hard rijdt, mist de helft.',
+  intro: ['Bernhard, de verzonnen man met het karretje en de ene grote paraplu, heeft een lift nodig naar twee bankjes in de schaduw.', 'Rij zacht, de verhalen vallen er zo af. Bij elk bankje even blijven staan en luisteren.'],
+  init: (level) => ({ stops: 2, at: 0, wait: 0, verhalen: 100, limit: 10 - lvlK(level) * 2 }),
+  step(s, i, dt) {
+    const ev = [];
+    if ((i.speed || 0) > s.limit) { s.verhalen = Math.max(0, s.verhalen - dt * 3); ev.push({ type: 'verhaal' }); }
+    if ((i.decel || 0) > 2.6) { s.verhalen = Math.max(0, s.verhalen - dt * 6); ev.push({ type: 'verhaal' }); }
+    if (s.verhalen <= 0) { ev.push({ type: 'fail', why: 'alle verhalen vielen van het karretje' }); return ev; }
+    if (AT(i, 5, 0.4)) {
+      s.wait += dt;
+      if (s.wait >= 4) { s.wait = 0; s.at++; ev.push({ type: 'luister', n: s.at }); if (s.at >= s.stops) ev.push({ type: 'done' }); }
+    } else s.wait = 0;
+    return ev;
+  },
+  result: (s) => s.at >= s.stops
+    ? pay(28 + s.stops * 12, s.verhalen > 85 ? 20 : s.verhalen > 60 ? 8 : 0, s.verhalen > 95, s.verhalen > 95 ? 'Alle verhalen heelhuids aangekomen, de paraplu gaat open.' : 'Bij de bankjes, met een paar verhalen minder.')
+    : pay(0, 0, false, 'Het karretje staat nog bij de gracht.', true),
+};
+
 // 5. Rave in het Telefoonhuis: te voet het volume regelen. Te zacht en de zaal loopt leeg, te hard en de buren bellen.
 export const RAVE_PHASES = [
   { name: 'binnenkomst', lo: 3, hi: 6, len: 20 },
@@ -196,7 +248,7 @@ const telefoonrave = {
     : pay(20 + s.inBand * 0.7, s.complaints === 0 && s.mood > 70 ? 24 : 0, s.complaints === 0 && s.mood > 85, s.complaints === 0 ? 'Het geluid zat goed, de buren sliepen door.' : `Feest gered, ${s.complaints} klacht${s.complaints > 1 ? 'en' : ''} van de buren.`),
 };
 
-export const STAD_MISSIES = [museumbus, suikerbieten, herstelploeg, oogtv, telefoonrave, vandermeden];
+export const STAD_MISSIES = [museumbus, suikerbieten, herstelploeg, oogtv, telefoonrave, vandermeden, schouwburg, bernardrit];
 export const STAD_MISSIE_IDS = STAD_MISSIES.map((m) => m.id);
 const stadMissieById = (id) => STAD_MISSIES.find((m) => m.id === id) || null;
 
@@ -226,6 +278,8 @@ export const STAD_DOELEN = {
   herstelploeg: { total: (s) => s.stops, at: (s) => s.at },
   oogtv: { total: (s) => s.spots, at: (s) => s.at + s.missed },
   vandermeden: { total: (s) => s.stops, at: (s) => s.at },
+  schouwburg: { total: (s) => s.stops, at: (s) => s.at },
+  bernardrit: { total: (s) => s.stops, at: (s) => s.at },
 };
 
 export const STAD_MELDING = {
@@ -233,4 +287,5 @@ export const STAD_MELDING = {
   bieten: 'Bieten rollen van de kar!', tehard: 'Rustig door het dorp, hè.', hardremmen: 'Zachter remmen, mensen kijken.', gehoord: 'Je hebt geluisterd. Er komt koffie.',
   live: 'Je staat live! De verslaggever zwaait.', gemist: 'Het venster is dicht: geen beeld.', leeg: 'De zaal wordt stil: harder!', klacht: 'De buren bellen: zachter!',
   rammel: 'Het rammelt, rustig aan.', knal: 'Sst, de kliniek hoort alles.', knik: 'De portier knikt: door.',
+  portier: 'De portier noteert een klacht.', grap: 'De grap is geland.', verhaal: 'Een verhaal valt van het karretje!', luister: 'Bernhard knikt: dat was een goed verhaal.',
 };
