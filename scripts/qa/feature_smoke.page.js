@@ -452,15 +452,15 @@ const CHECKS = [
     const S = await imp('shops');
     const road = nearestRoadHeading(200, 45, 120) || { x: 200, y: 45, a: 0 };
     const out = [];
-    for (const [key, spec] of Object.entries(S.VEHICLE_STOCK)) {
+    for (const [vk, spec] of Object.entries(S.VEHICLE_STOCK)) {
       if (spec.kind === 'boat' || spec.kind === 'heli') continue;
       const i0 = issues.length;
       w.wanted = 0; w.health = 100;
       await go(road.x, road.y, road.a, 2500);
       hold = null;
       let v = null, fout = null;
-      try { v = S.spawnStockVehicle(w, key, road.x + 3, road.y, road.a); } catch (e) { fout = String(e && e.message || e).slice(0, 120); }
-      if (!v) { out.push({ key, fout: fout || 'niet gespawnd', meldingen: issues.slice(i0).map((x) => x.m) }); continue; }
+      try { v = S.spawnStockVehicle(w, vk, road.x + 3, road.y, road.a); } catch (e) { fout = String(e && e.message || e).slice(0, 120); }
+      if (!v) { out.push({ key: vk, fout: fout || 'niet gespawnd', meldingen: issues.slice(i0).map((x) => x.m) }); continue; }
       let moved = 0, top = 0, sp = null;
       try {
         teleport(v.x, v.y); p.enterVehicle(v, w);
@@ -468,12 +468,12 @@ const CHECKS = [
         const x0 = v.x, y0 = v.y;
         for (let i = 0; i < 12; i++) { await sleep(250); top = Math.max(top, Math.abs(v.speed || 0)); }
         moved = Math.hypot(v.x - x0, v.y - y0);
-        await snap('voertuig-' + key, 100);
+        await snap('voertuig-' + vk, 100);
       } catch (e) { fout = String(e && e.message || e).slice(0, 120); }
       finally { key('keyup', 'w', 'KeyW'); driving = false; }
       try { if (p.inVehicle) p.exitVehicle(map, w); } catch (e) { /* ignore */ }
       try { w.vehicles.splice(w.vehicles.indexOf(v), 1); } catch (e) { /* ignore */ }
-      out.push({ key, soort: spec.kind, label: spec.label, bewogen: Math.round(moved * 10) / 10, top: Math.round(top * 10) / 10, fout, meldingen: issues.slice(i0).map((x) => x.m) });
+      out.push({ key: vk, soort: spec.kind, label: spec.label, bewogen: Math.round(moved * 10) / 10, top: Math.round(top * 10) / 10, fout, meldingen: issues.slice(i0).map((x) => x.m) });
     }
     return { voertuigen: out, opmerking: 'alleen: neerzetten, instappen, drie seconden gas; niet beoordeeld: besturing, geluid, uiterlijk' };
   } },
