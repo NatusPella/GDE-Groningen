@@ -5,11 +5,7 @@ import { getVehicleMesh } from './models3d_vehicles.js';
 import { flashMuzzleLight } from './nightlights3d.js';
 import { markShared } from './pixelart3d.js';
 import { rand } from './rng.js';
-
-// throwables.js (which needs combat and pedestrians) registers its drawing at load, so this
-// module stays a leaf for that import cycle (#108)
-let updateThrowables3D = () => {};
-export function setThrowables3D(fn) { updateThrowables3D = fn; }
+import { throwablesHook } from './latehooks.js';
 
 // Gunfire effects: muzzle flashes (with a light pop), tracers, impacts that
 // depend on what was hit (brick dust, glass, sparks, dirt, splashes) and
@@ -471,5 +467,5 @@ export function updateGunFx3D(dt, world, sc) {
     const e = carHoles[i];
     if (!e.d.parent || !e.d.parent.parent) dropCarDecal(e.d);
   }
-  updateThrowables3D(dt, world, sc);
+  throwablesHook.update3D(dt, world, sc);
 }

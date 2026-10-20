@@ -8,9 +8,10 @@ import { storyReplayLines } from './missionstory.js';
 import { playStoryVoice, stopStoryVoice } from './audio.js';
 import { requestSearchlight } from './nightlights3d.js';
 import { setUserWaypoint, formatDistance } from './routing.js';
-import { getShopsForRender, setFurnitureShop } from './shops.js';
+import { getShopsForRender } from './shops.js';
+import { furnitureShopHook, jobBonusHook } from './latehooks.js';
 import { SHOP_TYPES } from './shopdata.js';
-import { getSideJobSpotsForRender, setJobBonusSource } from './sidejobs.js';
+import { getSideJobSpotsForRender } from './sidejobs.js';
 import { getGaragesForRender } from './garages.js';
 import { getStationsForRender } from './stationtravel.js';
 import { storyFlag } from './storyquery.js';
@@ -725,5 +726,7 @@ window.__furniture = {
   tv: () => (tv ? { title: tv.title, i: tv.i, n: tv.lines.length } : null),
 };
 
-setFurnitureShop({ items: furnitureShopItems, note: furnitureShopNote });
-setJobBonusSource(furnitureJobBonus);
+// shops.js (Woonafdeling) and sidejobs.js (the Bureau pays more) use these through latehooks.js
+furnitureShopHook.items = furnitureShopItems;
+furnitureShopHook.note = furnitureShopNote;
+jobBonusHook.get = furnitureJobBonus;

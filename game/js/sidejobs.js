@@ -44,11 +44,8 @@ import { loket, studiestaat, vigilantia, kamerkoning, wolkenhal, helix, niemeyer
 import { STAD_JOBS } from './sidejob_stad.js';
 import { SIDEJOB_PAY_MULT, SIDEJOB_LEVEL_BONUS, SIDEJOB_ACCIDENT_FINE } from './economy.js';
 import { playerBusy } from './busy.js';
+import { jobBonusHook } from './latehooks.js';
 import { noteMoney } from './finance.js';
-
-// furniture.js (the Bureau pays more) registers its bonus at load, so this module does not import it (import cycle, #108)
-let furnitureJobBonus = () => 1;
-export function setJobBonusSource(fn) { furnitureJobBonus = fn; }
 
 export const SIDE_JOBS = [bezorger, taxi, bus, rondvaart, fietsdepot, verhuizing, rondvaarttour, boa, rechtbank, cabaret, vracht, loket, studiestaat, vigilantia, kamerkoning, wolkenhal, helix, niemeyer, bernard, lijn, ...BIJBAAN_JOBS, veerdienst, ...PANEEL_JOBS, ...STAD_JOBS];
 const BY_ID = new Map(SIDE_JOBS.map((j) => [j.id, j]));
@@ -237,7 +234,7 @@ function introLines(job) {
 function payFor(c, base) {
   const lvlMul = SIDEJOB_PAY_MULT * (1 + SIDEJOB_LEVEL_BONUS * (c.level - 1));
   const streakMul = 1 + 0.06 * Math.min(c.streak, 10);
-  return Math.max(1, Math.round(base * lvlMul * streakMul * furnitureJobBonus()));
+  return Math.max(1, Math.round(base * lvlMul * streakMul * jobBonusHook.get()));
 }
 
 function completeRound(c, res = {}) {
