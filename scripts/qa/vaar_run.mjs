@@ -17,7 +17,7 @@ const OUT = path.resolve(arg('out', path.join(os.tmpdir(), 'gde-qa-vaar')));
 fs.mkdirSync(OUT, { recursive: true });
 const profile = `gde-test-va-${process.pid}`;
 const script = path.join(OUT, '_page.js');
-fs.writeFileSync(script, `window.__va = ${JSON.stringify({ settle: Number(arg("settle", 6000)), leg: Number(arg("leg", 14)), sea: Number(arg("sea", 30)) })};\n` + fs.readFileSync(path.join(HERE, 'vaar.page.js'), 'utf8'));
+fs.writeFileSync(script, `window.__va = ${JSON.stringify({ settle: Number(arg("settle", 6000)), leg: Number(arg("leg", 14)), sea: Number(arg("sea", 30)), wait: Number(arg("wait", 30)) })};\n` + fs.readFileSync(path.join(HERE, 'vaar.page.js'), 'utf8'));
 const electron = process.env.ELECTRON_EXE || path.join(ROOT, 'desktop', 'node_modules', 'electron', 'dist', process.platform === 'win32' ? 'electron.exe' : 'Electron');
 const env = { ...process.env, GDE_TEST_PROFILE: profile };
 if (arg('game-dir')) env.GDE_GAME_DIR = path.resolve(arg('game-dir'));

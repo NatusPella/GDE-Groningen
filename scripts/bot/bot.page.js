@@ -12,6 +12,7 @@ const imp = (f) => import('/js/' + f + '.js');
 const L = await imp('botlogic');
 const R = await imp('routing');
 const M = await imp('missions');
+const V = await imp('vehicle');
 const MS = await imp('missions');
 const BK = await imp('bakeround');
 const BAKE_KEYS = { ei: '1', zout: '2', meel: '3', vet: '4', mosterd: '5' };
@@ -106,10 +107,14 @@ async function flyStep(s) {
     o = { agl: pl.z - gh(pl.x, pl.y), goal: { x: s.target.x, y: s.target.y }, alt: g ? (g.lo + g.hi) / 2 : 20, mode: 'fly' };
   } else if (kind === 'landplane' && stripSpec) {
     o = { agl: pl.z - gh(pl.x, pl.y), goal: { x: s.target ? s.target.x : stripSpec.x, y: s.target ? s.target.y : stripSpec.y }, alt: 30, mode: 'land', strip: stripSpec };
+  } else if (kind === 'plane') {
+    // just boarded: the stage moves on by itself
+    releaseFly();
+    return;
   } else if (pl.onGround && pl.speed < 2) {
     // the stage is over (or none): climb out
     releaseFly();
-    await B.press('e'); await sleep(900);
+    await keyTap('e'); await sleep(900);
     return;
   } else if (stripSpec) {
     o = { agl: pl.z - gh(pl.x, pl.y), goal: { x: stripSpec.x, y: stripSpec.y }, alt: 30, mode: 'land', strip: stripSpec };
@@ -117,7 +122,19 @@ async function flyStep(s) {
   if (!o) { releaseFly(); return; }
   const want = L.planeKeys({ x: pl.x, y: pl.y, z: pl.z, heading: pl.heading, speed: pl.speed, pitch: pl.pitch, roll: pl.roll, vz: pl.vz, onGround: pl.onGround, throttle: pl.throttle }, o);
   for (const k of FLY_KEYS) { if (want.has(k)) B.down(k); else if (B.input.isDown(k)) B.up(k); }
-  if (ticks % 20 === 0) B.log('vlucht', { mode: o.mode, agl: Math.round(o.agl), v: Math.round(pl.speed), gate: o.goal && [Math.round(o.goal.x), Math.round(o.goal.y)], keys: [...want].join('') });
+  if (ticks % 20 === 0) {
+    const rel = o.strip ? (() => { const c = Math.cos(o.strip.heading), sn = Math.sin(o.strip.heading), dx = pl.x - o.strip.x, dy = pl.y - o.strip.y; return { along: Math.round(dx * c + dy * sn), across: Math.round(-dx * sn + dy * c), hdg: Math.round(L.normAngle(pl.heading - o.strip.heading) * 100) / 100 }; })() : null;
+    B.log('vlucht', { mode: o.mode, agl: Math.round(o.agl), v: Math.round(pl.speed), vz: Math.round(pl.vz * 10) / 10, gate: o.goal && [Math.round(o.goal.x), Math.round(o.goal.y)], rel, keys: [...want].join('') });
+  }
+}
+
+// E (and F) is read once per frame, but at --speed=N a frame runs N gameplay steps: the first step boards, the second sees the same press
+// and gets out again (a plane, a car at random). One step per frame for the length of an interaction key.
+async function keyTap(key, ms = 90) {
+  const fast = (CFG.speed || 1) > 1 && (key === 'e' || key === 'f');
+  if (fast) B.speed(1);
+  await B.press(key, ms);
+  if (fast) { await sleep(150); B.speed(CFG.speed); }
 }
 
 async function holdSkip() {
@@ -270,11 +287,16 @@ while (true) {
   const gd = s.target ? s.target.distance : null;
   const st = detector.update(s.t, { x: s.player.x, y: s.player.y, goalDist: gd, key: stepKey });
   if (st.stuck) { await rescue(s, stepKey, st); continue; }
-  if (act.type === 'press') { B.stick(0, 0); if (act.interact) { mem.pressTries++; B.log('handeling', { key: act.key, prompt: s.hud.prompt }); } await B.press(act.key); await sleep(act.interact ? 900 : 0); continue; }
+  if (act.type === 'press') { B.stick(0, 0); if (act.interact) { mem.pressTries++; B.log('handeling', { key: act.key, prompt: s.hud.prompt }); } await keyTap(act.key); await sleep(act.interact ? 900 : 0); continue; }
   if (act.type === 'enter') {
     const v = act.vehicle;
-    const d = steerTowards(s, 'walk', v, false, 24, 2.2);
-    if (d < 3.5) { B.stick(0, 0); mem.boardTries++; B.log('instappen', { kind: v.kind }); await B.press('e'); await sleep(700); follower = null; }
+    // the game lets you in when the body outline is within ENTER_REACH: a plane (5 m wide) is far from its centre by then
+    const vObj = world.vehicles.find((q) => Math.hypot(q.x - v.x, q.y - v.y) < 0.6);
+    const big = vObj && Math.max(vObj.halfLen || 0, vObj.halfWid || 0) > 3;
+    const d = steerTowards(s, 'walk', v, false, 24, big ? 0.4 : 2.2);
+    // the game's own test: this is what lights the prompt and lets E in
+    const near = vObj ? V.findEnterableVehicle(player.x, player.y, world.vehicles) === vObj : d < 3.5;
+    if (d < 3.5 || near) { B.stick(0, 0); mem.boardTries++; await keyTap('e', 240); await sleep(700); B.log('instappen', { kind: v.kind, toegestaan: near, binnen: !!player.inVehicle }); follower = null; }
     continue;
   }
   if (act.type === 'goto') {
