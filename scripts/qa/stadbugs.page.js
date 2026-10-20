@@ -66,7 +66,7 @@ for (const S of CFG.spots) {
     }
     if (S.eval) {
       const fn = new Function('w', 'map', 'imp', 'sleep', 'go', 'shot', 'release', 'return (' + S.eval + ')(w, map, imp, sleep, go, shot, release);');
-      info.eval = await fn(w, map, imp, sleep, go, shot);
+      info.eval = await fn(w, map, imp, sleep, go, shot, release);
     }
   } catch (err) { info.error = String(err && err.stack || err).slice(0, 400); }
   results[S.naam] = info;
