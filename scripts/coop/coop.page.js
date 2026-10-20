@@ -340,12 +340,14 @@ const PHASES = {
     log('gestopt', { coopNet: !!net(), role: W().coopRole || null });
     await closeMenu();
   },
-  // wat staat er in de eigen save? (wegwerpprofiel)
+  // wat gebeurt er met de eigen save tijdens een sessie? Een host bewaart zoals altijd; een gast bewaart alleen zijn beloningen (savegame.js)
   async opgeslagen() {
-    let raw = null; try { raw = localStorage.getItem('gde-save-v1'); } catch (e) { /* geen opslag */ }
-    const sv = await imp('savegame');
-    let slotInfo = null; try { slotInfo = typeof sv.listSlots === 'function' ? sv.listSlots() : null; } catch (e) { /* geen */ }
-    log('save', { heeft: !!raw, bytes: raw ? raw.length : 0, money: W().money, verdiend: W().coopVerdiend || 0, slots: slotInfo ? JSON.stringify(slotInfo).slice(0, 400) : null });
+    const sv = await imp('savegame'); const w = W();
+    const hadSave = sv.hasSave(), voor = hadSave ? (sv.readSave() || {}).money : null;
+    let ok = null; try { ok = sv.saveGame(w, { toast: false }); } catch (e) { ok = 'fout: ' + e.message; }
+    await sleep(300);
+    const d = sv.readSave();
+    log('save', { role: w.coopRole || null, hadSave, ok, money: w.money, verdiend: w.coopVerdiend || 0, saveMoneyVoor: voor, saveMoney: d ? d.money : null, saveChar: d ? d.character : null });
   },
   // de spelbot speelt het verhaal (alleen de host); de gasten lopen mee
   async verhaal({ s = 1500, until = 'T1' }) {
