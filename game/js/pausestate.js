@@ -11,3 +11,9 @@ export function isPauseMenuOpen() { return open; }
 let tabName = null;
 export function setPauseMenuTabState(name) { tabName = name; }
 export function isPhoneOpen() { return open && tabName === 'telefoon'; }
+// Open and close the menu from a module the menu itself imports (the phone): pausemenu.js registers
+// its openPauseMenu and closePauseMenu here when it loads.
+const controls = { openPauseMenu: () => {}, closePauseMenu: () => {} };
+export function setPauseMenuControls(c) { Object.assign(controls, c); }
+export function openPauseMenu(...args) { return controls.openPauseMenu(...args); }
+export function closePauseMenu(...args) { return controls.closePauseMenu(...args); }
