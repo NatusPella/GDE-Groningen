@@ -738,6 +738,12 @@ function buildWalls(elev, map) {
           kind: cut ? 'cut' : 'barrier', seg: s,
           low: !joined, fence: false, covered: s.covered,
         };
+        // a crash barrier on a ramp that runs under the edge of a higher deck (a slip road leaving a viaduct, still inside its footprint for
+        // a while): whoever drives on that deck is above it, however near the 2 m window of wallSide it is
+        if (!cut && !s.rail) {
+          const over = surfaceZ(elev, mx, my, s.r, zr + 2.0, 1.3);
+          if (over !== null && over > zr + 0.7) piece.over = over;
+        }
         if (cut) {
           // no fence where the other carriageway of the cutting continues beyond this wall
           piece.fence = !s.covered && !joined && !onFlatRoad(map, mx, my) &&
@@ -832,7 +838,7 @@ function wallSide(w, z) {
     return w.fence && z < w.top + 1.5 ? -1 : 0;
   }
   // a crash barrier is under a metre tall: a deck two metres above it clears it
-  return w.low && z > w.z - 1.2 && z < w.z + 2 ? 1 : 0;
+  return w.low && z > w.z - 1.2 && z < (w.over !== undefined ? Math.min(w.z + 2, w.over - 0.6) : w.z + 2) ? 1 : 0;
 }
 
 // Knocked-out barrier and fence sections (breakables.js registers the test)
