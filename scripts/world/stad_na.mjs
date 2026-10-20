@@ -3,6 +3,9 @@
 // loadCityDataLaag (pack_tiles.mjs) roept tidyCity aan na de OSM-lagen (de cache van stad_cache.mjs bewaart de ruwe lagen):
 //   - gebouwen: mapextras.json voegt eigen gebouwen toe (UMCG, scholen); dezelfde gebouwen komen nu ook uit OSM, dus elk
 //     OSM-gebouw dat een extras-gebouw raakt vervalt (de extras hebben de deuren en de bedoelde hoogte);
+//   - gebouwen met een binnenplaats: de multipolygoon-gebouwen van OSM komen uit de extract zonder binnenring (extract_province.py bewaart
+//     ze alleen bij water), dus een woonhof was een massief blok met een straat erdoor. binnenplaatsen.json (fetch_binnenplaatsen.py)
+//     heeft de binnenringen van de stad; ze worden in de omtrek gesneden (cutIslands, zoals een eiland in water);
 //   - bomen: een bos- of kerkhofboom (vlag fill) staat niet op een minigamebaan of -plek, niet in een rijbaan of pad, niet
 //     in of vlak bij gebouw, water of spoor (dezelfde regels als greenery.mjs plant, waar de oude stad de bomen mee vulde).
 import fs from 'node:fs';
@@ -59,6 +62,19 @@ export function dropOverlapped(rows, hand) {
   });
 }
 
+// de binnenringen van binnenplaatsen.json in de OSM-gebouwen van de relaties (rij.osm = relatie-id)
+export async function cutCourts(data, courts = JSON.parse(fs.readFileSync(path.join(ROOT, 'scripts/world/binnenplaatsen.json'), 'utf8'))) {
+  const { cutIslands } = await import('./build_corridor.mjs');
+  let cut = 0;
+  for (const b of data.buildings) {
+    const rings = b.osm !== undefined && !isHandBuilding(b) ? courts[String(b.osm)] : null;
+    if (!rings) continue;
+    const pts = cutIslands(b.pts, rings);
+    if (pts.length !== b.pts.length) { b.pts = pts; cut++; }
+  }
+  return cut;
+}
+
 export async function treesClear(data, extras) {
   const GR = await import('../../game/js/greenery.js');
   const { createWaterIndex } = await import('../../game/js/waterindex.js');
@@ -90,12 +106,13 @@ export async function treesClear(data, extras) {
 
 // data: de stadsdata met de OSM-lagen erin (muteert); extras: mapextras.json
 export async function tidyCity(data, extras = JSON.parse(fs.readFileSync(path.join(ROOT, 'game/mapextras.json'), 'utf8'))) {
-  const stats = { extrasDup: 0, treesDropped: 0 };
+  const stats = { extrasDup: 0, courts: 0, treesDropped: 0 };
   {
     const n = data.buildings.length;
     data.buildings = dropOverlapped(data.buildings, [...data.buildings.filter(isHandBuilding), ...(extras.buildings || [])]);
     stats.extrasDup = n - data.buildings.length;
   }
+  stats.courts = await cutCourts(data);
   stats.treesDropped = await treesClear(data, extras);
   return stats;
 }

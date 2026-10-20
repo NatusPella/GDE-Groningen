@@ -239,7 +239,7 @@ export function trainLines(trains, railRows, stations) {
 export const DROWNED_FRAC = 0.8;
 
 // What of a tile's features lies outside the city's data (cityCover.inside):
-// buildings, trees, furniture and areas by their middle, roads and rails cut
+// buildings, trees, furniture and areas by their middle (and the mean of their corners), roads and rails cut
 // into the runs that lie outside (sampled every 10 m).
 export function outsideCover(list, inside) {
   const out = [];
@@ -250,7 +250,10 @@ export function outsideCover(list, inside) {
     if (f.kind === 'buildings' || f.kind === 'canopies' || f.kind === 'water' || f.kind === 'green' || f.kind === 'parcels') {
       let a = Infinity, b = Infinity, c = -Infinity, d = -Infinity;
       for (const p of r.pts) { if (p[0] < a) a = p[0]; if (p[1] < b) b = p[1]; if (p[0] > c) c = p[0]; if (p[1] > d) d = p[1]; }
-      if (keep((a + c) / 2, (b + d) / 2)) out.push(f);
+      // (the middle of the outline and the mean of its corners: stad_laag.mjs takes a row for the city when either lies in the cover)
+      let mx = 0, my = 0;
+      for (const p of r.pts) { mx += p[0]; my += p[1]; }
+      if (keep((a + c) / 2, (b + d) / 2) && keep(mx / r.pts.length, my / r.pts.length)) out.push(f);
       continue;
     }
     if (f.kind === 'furniture') { if (keep(r.pts[0][0], r.pts[0][1])) out.push(f); continue; }
