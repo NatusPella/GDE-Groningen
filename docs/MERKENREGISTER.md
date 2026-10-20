@@ -113,20 +113,20 @@ met een echt merk; bewuste parodie, op de allowlist, de eigenaar kan kiezen te h
 
 | Naam | Soort | Bron | Lijkt op | Beoordeling |
 |---|---|---|---|---|
-| Pang & Zo | winkelketen, wapens | `game/js/shops.js` | niets | ok |
-| Pand & Poen | winkelketen, pandjeshuis | `game/js/shops.js` | niets | ok |
-| Stoer & Stads | winkelketen, kleding | `game/js/shops.js` | niets | ok |
-| Knip & Kuif | winkelketen, kapper | `game/js/shops.js` | niets | ok |
-| Rook & Geluk | winkelketen, tabak en loterij | `game/js/shops.js` | niets | ok |
-| Nait Duur | winkelketen, avondwinkel | `game/js/shops.js` | niets | ok |
-| Frituur Vet & Lekker | winkelketen, snackbar | `game/js/shops.js` | niets | ok |
-| Trap & Toeter | winkelketen, fietsen | `game/js/shops.js` | niets | ok |
-| Spaak & Band | winkelketen, fietsenmaker | `game/js/shops.js` | niets | ok |
-| Ome Harm Occasions | autodealer | `game/js/shops.js` | niets | ok |
-| Knal & Kolder Tuning | tuningwinkel | `game/js/shops.js` | niets | ok |
-| Bootje Huren | botenverhuur | `game/js/shops.js` | niets | ok |
-| Spuit & Klaar | spuiterij | `game/js/shops.js` | niets | ok |
-| EIKEA | woonwarenhuis ("Zweeds? Nee, Gronings") | `game/js/shops.js` | IKEA (één letter erbij, bewuste woordgrap) | let op |
+| Pang & Zo | winkelketen, wapens | `game/js/shopdata.js` | niets | ok |
+| Pand & Poen | winkelketen, pandjeshuis | `game/js/shopdata.js` | niets | ok |
+| Stoer & Stads | winkelketen, kleding | `game/js/shopdata.js` | niets | ok |
+| Knip & Kuif | winkelketen, kapper | `game/js/shopdata.js` | niets | ok |
+| Rook & Geluk | winkelketen, tabak en loterij | `game/js/shopdata.js` | niets | ok |
+| Nait Duur | winkelketen, avondwinkel | `game/js/shopdata.js` | niets | ok |
+| Frituur Vet & Lekker | winkelketen, snackbar | `game/js/shopdata.js` | niets | ok |
+| Trap & Toeter | winkelketen, fietsen | `game/js/shopdata.js` | niets | ok |
+| Spaak & Band | winkelketen, fietsenmaker | `game/js/shopdata.js` | niets | ok |
+| Ome Harm Occasions | autodealer | `game/js/shopdata.js` | niets | ok |
+| Knal & Kolder Tuning | tuningwinkel | `game/js/shopdata.js` | niets | ok |
+| Bootje Huren | botenverhuur | `game/js/shopdata.js` | niets | ok |
+| Spuit & Klaar | spuiterij | `game/js/shopdata.js` | niets | ok |
+| EIKEA | woonwarenhuis ("Zweeds? Nee, Gronings") | `game/js/shopdata.js` | IKEA (één letter erbij, bewuste woordgrap) | let op |
 | Rotor Roelf | helikopterdealer | `game/js/shops.js` | niets | ok |
 | Poen Express | waardetransport (kluiswagen) | `game/js/cashvan.js` | niets | ok |
 | Pakkie Nou | pakketdienst | `game/js/vehiclenames.js` | pakketbezorgers in het algemeen | ok |

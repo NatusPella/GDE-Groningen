@@ -35,6 +35,7 @@ Daarnaast: de kaartenwachtrij (`enqueueCard`, `hudcards.js`) en de zonelayout (`
 | banner | cinematics.js | 17 modules, 27 aanroepen | P0 | D | ja: overlay (resultaat), narrative (scene) | Blijft de ene resultaatkaart. Veel minigame- en bijbaanmodules roepen hem apart aan; één gedeeld resultaat via minigamekit scheelt herhaling. |
 | naamkaart | namecard.js | 2 modules, 3 aanroepen | n.v.t. | - | ja: overlay (naamkaart) | Samen met ondertitel: de naam staat al als sprekerlabel in de regel; de grote kaart alleen voor het eerste ontmoeten. |
 | plaatsnaam | hud_panel.js | beslist zelf | P3 | B | ja: overlay (locatie) | Samen met moment (wijk, landmark) en opgeslagen: een plaatsblok. |
+| wijkkaart | cinematics.js | beslist zelf | P3 | B | ja: overlay (wijkkaart) |  |
 | keuze | choicepanel.js | 9 modules, 9 aanroepen | P1 | B | ja: overlay (keuze) | Samen met bord en activiteit: een activiteitenpaneel bovenaan (kop, regels, toetsen). Het keuzepaneel en het minigamebord zijn dezelfde familie. |
 | bord | minigamekit.js | 13 modules, 13 aanroepen | P1 | B | ja: overlay (duelbalk) | Samen met keuze en activiteit (zie daar). |
 | ballon | scene3d.js | 13 modules, 24 aanroepen | P3 | - | ja: speech (ambient) | Samen met opmerking en autopraat (zie daar). Achtergrondballonnen van voorbijgangers blijven eigen, ze zijn sfeer. |
@@ -65,6 +66,7 @@ Daarnaast: de kaartenwachtrij (`enqueueCard`, `hudcards.js`) en de zonelayout (`
 - **banner**: De resultaatkaart midden (Missie geslaagd / mislukt, bijbaan, minigame), met stats. Houdt personagenaam, plaatsnaam, prestatie en duelbalk tegen.
 - **naamkaart**: De naamkaart bij het eerste ontmoeten van een personage (groot, links onder, boven de ondertitel).
 - **plaatsnaam**: De naam van de plek waar je binnenkomt (zone B, bovenaan midden), met het Opgeslagen-vinkje ernaast.
+- **wijkkaart**: 
 - **keuze**: Het keuzepaneel van een tekstbijbaan of verhaalkeuze (bovenaan midden, antwoorden met nummertoetsen).
 - **bord**: Het minigamebord (bovenaan midden): titel, stand, toetsen. Houdt prestatietoast en plaatsnaam tegen.
 - **ballon**: Spraakballonnen boven voetgangers, bemanning, zwemmers en de metgezel; spreken een opname uit op de ambient-klasse.

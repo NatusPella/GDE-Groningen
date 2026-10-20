@@ -1,5 +1,7 @@
 # Changelog
 
+- **Overkappingen terug in de stad (#90, in de wereldbouw gemeten, nog niet in beeld bekeken):** de stad uit de OSM-tegelbouw verloor 63 van de 65 open daken en overkappingen: de perronkappen van Groningen Europapark en Noord, de glazen straat boven winkelcentrum Paddepoel, marktdaken en het benzinestation. De stadsbouw las alleen de gebouwen uit de tegels en niet de overkappingen. Ze komen nu terug (75 tegenover 65 in de oude stad; 63 van de 65 oude plekken zitten erin, twee op het Hoofdstation hebben een iets andere vorm).
+- **Kerkhofbomen terug (#90, in de wereldbouw gemeten, nog niet in beeld bekeken):** de kerkhoven in de stad hadden 2,4 bomen per hectare en hebben er nu weer 21,5 (oude stad 22,6), met open plekken. De tegelbouw vult nu naast bossen ook kerkhoven (18 m tussen de bomen), ook in de provincie na een nieuwe bouw. Parken en bossen waren al gelijk of voller dan in de oude stad (bossen 105,6 tegenover 106,0 bomen per hectare).
 Alle noemenswaardige wijzigingen in GDE Groningen, per versie. Nieuwste bovenaan.
 Versies volgen SemVer: `0.x.y` tot de echte release (1.0.0); `x` voor
 nieuwe functies, `y` voor alleen bugfixes.
@@ -18,6 +20,10 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 
 ### Opgelost
+<<<<<<< HEAD
+=======
+- **Binnenvaart kan weer door de stad (#90, in de bouw gemeten, nog niet in beeld bekeken):** met het water uit de OSM-bouw werden de Diepenring, de havens en de kanalen 'diep' in plaats van 'kanaal', waardoor een spits of kempenaar vanuit de binnenstad nergens kwam (84 cellen bereikbaar). Een kanaalpolygoon die uit meer packs komt lag meermaals over zichzelf en een lint van een kanaallijn nam hem zijn breedste cellen af; nu telt elke polygoon één keer, een lint dat geheel in een kanaal ligt hoort erbij, en de vaarwegen zijn weer klasse 4. Klasse-4-water in de stad 4,80 miljoen cellen (oude stad 4,80), het stuk van de binnenstad 2,48 miljoen (oud 2,45); `vaarnet.json`, `vaarnet_fixes.json` en `marinas.json` opnieuw gemaakt.
+>>>>>>> claude/r24-technisch
 - **Bijbanen die op elkaar stonden zijn weer te starten (#309, door een bot gespeeld, niet door een mens, nog niet in beeld bekeken):** acht regionale en stadsbanen (Balenrit, Bergingsdienst, Schoolbus, Melkrijder, Strandwacht, Nachttaxi, Live bij Radio Noordkust, Stille levering) stonden op één punt in de stad en alleen de eerste startte. Elke baan schuift nu naar een eigen wegpunt, en een regionale baan verhuist naar zijn streek zodra de tegels daar geladen zijn.
 - **'Met de trein' bij een lange reis deed niets (#307, door een bot gespeeld, niet door een mens):** het reispaneel (T1 tot en met T4) sloot bij keuze 1 zonder reisscène of aankomst; de ride-functie kreeg haar argumenten in de verkeerde volgorde. De speler komt nu aan bij Meerijden (de scène zelf nog niet door een mens gezien).
 - **M07 Al het vet van Grunn was niet te winnen (#288, door een bot gespeeld, niet door een mens):** de tankwagen vluchtte na 6 s terwijl hij 750 m van de start stond, dus de missie mislukte altijd met 'ontsnapt'. Hij wacht nu 6 s plus de rijtijd naar de 60-metercirkel.
