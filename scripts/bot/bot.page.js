@@ -251,10 +251,15 @@ while (true) {
         B.stick(dir, -0.3);
         await sleep(ms);
         B.stick(0, 0);
+        // then a detour: a point to the side of the line to the goal, walked to first (the plan from there goes round the obstacle, not back into it)
+        const hx = s.target.x - s.player.x, hy = s.target.y - s.player.y, hl = Math.hypot(hx, hy) || 1;
+        const off = 7 + 3 * Math.min(6, mem.sidesteps);
+        mem.detour = { x: s.player.x + (-hy / hl) * off * dir + (hx / hl) * 4, y: s.player.y + (hx / hl) * off * dir + (hy / hl) * 4, until: s.t + 12 };
         follower = null;
         continue;
       }
     }
+    if (act.mode !== 'drive' && !s.player.vehicle && mem.detour && s.t < mem.detour.until && Math.hypot(mem.detour.x - s.player.x, mem.detour.y - s.player.y) > 3) { steerTowards(s, 'walk', mem.detour, false, 24, 2.5); continue; }
     steerTowards(s, act.mode, s.target, !act.stunt && s.mission.phase !== 'active' && s.target.source === 'missiestart', act.top || 24);
     if (wedgeOut) {
       wedgeOut = false;
