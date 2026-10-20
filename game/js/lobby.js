@@ -40,13 +40,14 @@ export function classifyInput(text) {
   return r.ok ? { ok: true, route: ROUTES.KAMER, room: r.room } : { ok: false, reason: 'Dit is geen kamercode en geen koppelcode van dit spel.' };
 }
 
-// caps: { direct (desktop-app), rtc (WebRTC beschikbaar), laatsteCode, start?: 'verbroken', rol? }
+// caps: { direct (desktop-app), rtc (WebRTC beschikbaar), laatsteCode, start?: 'verbroken', rol?, startGate (de wachtkamer van een nieuw of geladen spel: het spel begint pas als de gastheer start), spelNaam (het opgeslagen spel van deze speler) }
 export function createLobby(caps = {}) {
   return {
-    step: caps.start || 'start', rol: caps.rol || null, route: null, invoer: null,
+    // keuze: de rol die al in het hoofdmenu is gekozen (Gastheer worden / Meedoen): dan slaat de lobby de rolkeuze over
+    step: caps.start || (caps.keuze ? (caps.keuze === ROLES.HOST ? 'methode' : 'gast-typt') : 'start'), rol: caps.rol || caps.keuze || null, route: null, invoer: null,
     code: '', lanCode: '', note: '', error: '', reason: null, status: null, partner: null,
     spelers: [], max: DEFAULT_MAX, wens: null, holdSlot: null, holdNaam: caps.holdNaam || '',
-    caps: { direct: !!caps.direct, rtc: caps.rtc !== false, laatsteCode: caps.laatsteCode || '' },
+    caps: { direct: !!caps.direct, rtc: caps.rtc !== false, laatsteCode: caps.laatsteCode || '', startGate: !!caps.startGate, spelNaam: String(caps.spelNaam || '') },
   };
 }
 const fresh = (s) => createLobby(s.caps);
@@ -54,7 +55,7 @@ const fresh = (s) => createLobby(s.caps);
 // Gebeurtenissen:
 //  kies{rol}  route{route}  invoer{text}  akkoord  code{code, lanCode?, note?}  fout{msg}
 //  status{status, reason, partner?}  terug  verbreek  hervat
-//  spelers{lijst, max}  wens{char}  hold{slot, naam}
+//  spelers{lijst, max}  wens{char}  hold{slot, naam}  gate{aan}
 export function reduce(s, ev) {
   const n = { ...s, error: '' };
   switch (ev.t) {
@@ -81,6 +82,7 @@ export function reduce(s, ev) {
     case 'fout': n.error = ev.msg || 'Er ging iets mis.'; return n;
     case 'wens': // alleen gast: gewenste figuur voor plek 2 en hoger
       n.wens = EXTRA_CHARS.some((c) => c.id === ev.char) ? ev.char : null; return n;
+    case 'gate': n.caps = { ...s.caps, startGate: !!ev.aan }; return n;
     case 'hold': n.holdSlot = ev.slot ?? null; n.holdNaam = ev.naam || ''; return n;
     case 'spelers': { // de lijst met spelers is veranderd (host: uit de hub; gast: van de host)
       n.spelers = Array.isArray(ev.lijst) ? ev.lijst : []; n.max = Math.min(ABS_MAX, Math.max(MIN_MAX, ev.max | 0 || DEFAULT_MAX));
@@ -107,6 +109,9 @@ export function reduce(s, ev) {
     default: return s;
   }
 }
+
+// De regel voor de gast: wat er van zijn voortgang wordt bewaard (docs/COOP-OPSLAAN.md)
+export const GAST_BEWAREN = (naam) => `Je speelt mee in het spel van de gastheer. Wat je verdient bewaren we in je eigen spel${naam ? ` (${naam})` : ''}; het verhaal en de wereld zijn van de gastheer.`;
 
 const PARTNER_NAME = { host: 'Tessa', gast: 'Tammo' }; // de ander van deze rol
 
@@ -142,11 +147,12 @@ export function view(s) {
       const lines = [s.route === ROUTES.DIRECT ? 'Geef dit adres of deze code aan je medespeler. Zodra die verbindt, komt Tessa naast je staan.' : 'Geef deze kamercode aan je medespeler. Zodra die hem invoert, komt Tessa naast je staan.'];
       if (s.note) lines.push(s.note);
       if (s.lanCode && s.lanCode !== s.code) lines.push('Op hetzelfde netwerk werkt ook de lokale code: ' + s.lanCode);
-      return V({ title: 'Iemand uitnodigen', lines, code: s.code, buttons: [{ act: 'kopieer', label: 'Kopieer', primary: true }, { act: 'terug', label: 'Stoppen' }] });
+      if (s.caps.startGate) lines.push("Wil je niet wachten? Druk op 'Spel starten': het spel begint dan zonder medespeler en de uitnodiging blijft staan.");
+      return V({ title: 'Iemand uitnodigen', lines, code: s.code, buttons: [...(s.caps.startGate ? [{ act: 'start-spel', label: 'Spel starten', primary: true }] : []), { act: 'kopieer', label: 'Kopieer', primary: !s.caps.startGate }, { act: 'terug', label: 'Stoppen' }] });
     }
     case 'gast-typt':
       return V({
-        title: 'Aansluiten', lines: ['Voer de kamercode of de koppelcode van de gastheer in. Als eerste gast speel je Tessa. Kom je er later bij, dan speel je een eigen figuur: kies er hieronder een, of laat het aan de gastheer. Je voortgang blijft van jou.'],
+        title: 'Aansluiten', lines: ['Voer de kamercode of de koppelcode van de gastheer in. Als eerste gast speel je Tessa. Kom je er later bij, dan speel je een eigen figuur: kies er hieronder een, of laat het aan de gastheer.', GAST_BEWAREN(s.caps.spelNaam)],
         input: { placeholder: 'Kamercode of GDE2-…', value: s.caps.laatsteCode || '' },
         wensen: EXTRA_CHARS.map((c) => ({ act: 'wens-' + c.id, id: c.id, naam: c.naam, kleur: c.kleur, gekozen: s.wens === c.id })),
         buttons: [{ act: 'koppel', label: 'Verder', primary: true }, { act: 'terug', label: 'Terug' }],
@@ -163,13 +169,15 @@ export function view(s) {
       if (lag) lines.push('De verbinding haperde even; we wachten op de ander.');
       const tip = advies(lijst.length, host ? 'host' : 'gast'); if (tip) lines.push(tip);
       const buttons = [];
+      if (host && s.caps.startGate) { lines.push("Het spel begint pas als jij op 'Spel starten' drukt: ook de openingsscène zien jullie samen."); buttons.push({ act: 'start-spel', label: 'Spel starten', primary: true }); }
       if (host) {
         for (const p of lijst) if (p.slot !== 0) buttons.push({ act: 'kick-' + p.slot, label: `${p.naam} verwijderen` });
         for (const m of [4, 8, 12, 16]) if (m !== s.max && m >= lijst.length) buttons.push({ act: 'max-' + m, label: `Tot ${m} spelers` });
         lines.push(s.code && lijst.length < s.max ? 'Er is nog plek: geef de code aan de volgende speler.' : 'Je kunt een speler er elk moment uit halen.');
         buttons.push({ act: 'verbreek', label: 'Iedereen stoppen' });
       } else {
-        lines.push('Je kunt er elk moment uit; je komt terug waar je was, met jouw voortgang.');
+        lines.push(GAST_BEWAREN(s.caps.spelNaam));
+        lines.push('Je kunt er elk moment uit; je komt terug waar je was.');
         buttons.push({ act: 'verbreek', label: 'Spel verlaten' });
       }
       return V({ title: 'Je speelt samen', lines, code: host && s.code && lijst.length < s.max ? s.code : null, spelers: lijst, ik, buttons });

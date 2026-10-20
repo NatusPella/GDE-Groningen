@@ -27,6 +27,7 @@ import { warmCountryMaps } from './countrymap.js';
 import { Input } from './input.js';
 import { initGamepad } from './gamepad.js';
 import { initPadKeyboard } from './padkeyboard.js';
+import { initTextFields } from './textfield.js';
 import { initInputDevice } from './inputdevice.js';
 import { skipFrame } from './framecap.js';
 import { initTouch } from './touch.js';
@@ -97,8 +98,8 @@ import { noteFrame, hideAdvice, classifyGpu, readGpu, dynamicScale, cpuLevel } f
 import { updateStreetSigns } from './streetsigns.js';
 import { updatePhotoMode, wireFotoKey } from './fotomodusui.js';
 import { initPauseMenu, isPauseMenuOpen, openPauseMenu, pauseMenuCover } from './pausemenu.js';
-import { initTextFields } from './textfield.js';
-import { wantsOpenSamen, takeOpenSamen } from './samenpanel.js';
+import { wantsOpenSamen, takeOpenSamen, samenGate } from './samenpanel.js';
+import { gateOn, setGate } from './coopgate.js';
 import { initDayNight, updateDayNight, DAY_LENGTH_S } from './daynight.js';
 import { initCalendar, updateCalendar, today as calendarToday } from './calendarday.js';
 import { updateFx3D } from './fx3d.js';
@@ -538,14 +539,19 @@ async function boot() {
   }
 
   const feelDip = makeDip(), dipSeen = { imp: null, mh: null };
-  let samenSince = null;
+  let samenSince = null, gateMenu = false;
   function frameBody(dt) {
     // Samen spelen vanuit het hoofdmenu (#95): de lobby opent zodra het spel te besturen is (na de opening van een nieuw spel)
     // (een paar seconden wachten: de opening van een nieuw spel begint pas even na de start en zou de lobby anders overvallen)
     if (wantsOpenSamen()) {
       if (samenSince == null) samenSince = world.time;
-      if (world.time - samenSince > 5 && !isCinematicActive() && sinceCinematic() > 2 && !world.cameraOverride && !world.pendingRespawn && !isPauseMenuOpen()) { takeOpenSamen(); samenSince = null; openPauseMenu('samen'); }
+      // met het wachtkamer-hek (nieuw spel samen) opent de lobby meteen, voordat de opening begint
+      const klaar = samenGate() ? world.time - samenSince > 1.5 && document.body.classList.contains('game-started') && !isPauseMenuOpen() : world.time - samenSince > 5 && !isCinematicActive() && sinceCinematic() > 2 && !world.cameraOverride && !world.pendingRespawn && !isPauseMenuOpen();
+      if (klaar) { gateMenu = samenGate(); takeOpenSamen(); samenSince = null; openPauseMenu('samen'); }
     }
+    // het hek gaat open als de gastheer 'Spel starten' drukt, het menu sluit of er een gastspel binnenkomt
+    if (gateOn() && gateMenu && !isPauseMenuOpen()) { setGate(false); gateMenu = false; }
+    if (gateOn() && world.coopRole === 'client') { setGate(false); gateMenu = false; }
     updateMapView(dt, world);
     world.paused = isMapOpen() || isPauseMenuOpen() || isShopOpen() || !!world.uiPaused || !!world.coopHold; // coopHold: wachtscherm bij een weggevallen speler (coophold.js)
     if (document.pointerLockElement && (isMapOpen() || isPauseMenuOpen() || isPhoneOpen())) document.exitPointerLock();
