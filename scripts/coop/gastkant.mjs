@@ -129,14 +129,14 @@ const tc = traces.companion.filter(([t]) => t >= 120 && t <= 134); check(tc.leng
 const hh = of('herverbind-hold')[0], hk = of('herverbind-klaar')[0], hc = of('herverbind-code')[0];
 check(hh && hh.hold && hh.paused && hh.coopHold, 'herverbinden: geen wachtscherm met pauze bij de gast: ' + JSON.stringify(hh));
 check(hk && !hk.hold && !hk.paused && hk.slot === 1 && ['ok', 'lag'].includes(hk.status), 'herverbinden: de gast is niet terug op plek 1: ' + JSON.stringify(hk));
-check(traces.roster.some(([t, r]) => t > 134 && t < 170 && !/[1,"ok"]/.test(r)), 'herverbinden: de host zag Tessa niet haperen of wegvallen: ' + JSON.stringify(traces.roster.filter(([t]) => t > 134 && t < 170).map(([t, r]) => t + ':' + r).slice(0, 6)));
+check(traces.roster.some(([t, r]) => t > 134 && t < 170 && !r.includes('[1,"ok"]')), 'herverbinden: de host zag Tessa niet haperen of wegvallen: ' + JSON.stringify(traces.roster.filter(([t]) => t > 134 && t < 170).map(([t, r]) => t + ':' + r).slice(0, 6)));
 note(notes, 'herverbinden: code ' + (hc && hc.voorgevuld ? 'voorgevuld' : 'moest worden ingevoerd'));
 // de gast verlaat het spel via het menu en sluit later opnieuw aan
 const vl = of('verlaten')[0], on = of('opnieuw-klaar')[0];
 const eerste = S.find((s) => s.me && s.role == null && s.me.x < -1000); const posVoor = eerste && eerste.me;
 check(vl && vl.coopNet === false && vl.role === null, 'verlaten: de gast zit nog in de sessie: ' + JSON.stringify(vl));
 check(vl && vl.pos && posVoor && Math.hypot(vl.pos[0] - posVoor.x, vl.pos[1] - posVoor.y) < 6, 'verlaten: de gast staat niet terug op zijn eigen plek: ' + JSON.stringify([vl && vl.pos, posVoor]));
-check(host.log.some((l) => /na vertrek [[0,"ok"]]/.test(l)), 'verlaten: de lijst van de host klopt niet: ' + host.log.join('; '));
+check(host.log.some((l) => l === 'na vertrek [[0,"ok"]]'), 'verlaten: de lijst van de host klopt niet: ' + host.log.join('; '));
 check(on && on.role === 'client' && on.slot === 1 && !on.paused, 'opnieuw aansluiten: ' + JSON.stringify(on));
 // het einde: de gastheer stopt, de gast speelt weer in zijn eigen spel
 const last = S[S.length - 1] || {};

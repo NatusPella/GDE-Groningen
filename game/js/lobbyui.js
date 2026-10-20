@@ -153,8 +153,9 @@ export function mountLobby(root, hooks, opts = {}) {
         if (api && state.route === ROUTES.DIRECT) api.setMax(gekozen);
         if (hub && state.route === ROUTES.KAMER) onRoster(hub.roster);
       } else if (a === 'terug' || a === 'verbreek') {
-        cleanup();
+        // eerst netjes afmelden (BYE naar de anderen), dan pas de verbinding en de poort sluiten: andersom komt het afmelden nooit aan en houdt de host de plek nog tot de pauze
         if (hooks.disconnect) hooks.disconnect(a, state.rol, opts.holdSlot);
+        cleanup();
         set({ t: a === 'terug' ? 'terug' : 'verbreek' });
       } else if (a === 'hervat') {
         set({ t: 'hervat' }); // opnieuw uitwisselen; de terugkerende speler vindt zijn plek via zijn token
