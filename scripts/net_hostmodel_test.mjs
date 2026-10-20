@@ -89,6 +89,16 @@ t('verbreken: host zet NPC-metgezel in, client meldt verlies; hervatten met toke
   assert.equal(resync.money, 777, 'volledige toestand na hervatten');
   assert.equal(lost, 1, 'geen tweede verlies');
 });
+t('de host ziet de gast als weggevallen terwijl de gast de host nog hoort: zodra de invoer weer aankomt, hervat de host zonder hello', () => {
+  const s = setup(); s.join(); s.client.setInput(1, 0, 0, 0); s.step(1);
+  const echt = s.link.b.send; let lost = 0; s.host.onlost = () => { lost++; };
+  s.link.b.send = () => true; // alleen de richting gast -> host valt weg
+  s.step(LOST_AFTER + 1);
+  assert.equal(s.host.status, 'lost'); assert.equal(lost, 1); assert.notEqual(s.client.status, 'lost', 'de gast hoort de host nog');
+  s.link.b.send = echt; s.step(2);
+  assert.equal(s.host.status, 'ok', 'de host hervat op de eerstvolgende invoer'); assert.equal(s.host.guest.token, s.client.token);
+  const n0 = s.sim.inputs.length; s.step(1); assert.ok(s.sim.inputs.length > n0, 'invoer komt weer aan');
+});
 t('hervatten met een nieuw transport (nieuwe handmatige code)', () => {
   const s = setup(); s.step(1.5);
   s.link.cut(); s.step(LOST_AFTER + 1);
