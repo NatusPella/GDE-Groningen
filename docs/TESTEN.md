@@ -59,6 +59,17 @@ Beeld voor beeld vanaf een vaste camera; zonder de cinematic-camera van het spel
 - `node scripts/qa/png_crop.mjs <png> <x> <y> <b> <h> [schaal]` vergroot een stuk van een beeld; `node scripts/qa/montage.mjs <map> --filter=<regex>` maakt een contactblad.
 - `node scripts/qa/brug_probe.mjs` leest het dek zonder Electron (hoogtestappen, dekverschil per brug); `scripts/qa/brug_qa.mjs` is de oudere, enkelvoudige versie.
 
+## Meetronde voor meldingen van testers (#321, #326, #328, #329)
+
+`node scripts/qa/tester_bugs.mjs --check=intro|audio|caption|lock [--out=<map>] [--max=<s>] [--opts='{"missions":"M01,M02"}']` draait één Electron (slot uit `gde-locks`, wegwerpprofiel, BelowNormal) en laat een page-script van `scripts/qa/tester_<check>.page.js` het hoofdmenu zelf bedienen: het kiest Nieuw spel, meet en geeft één JSON terug (`result.json`), met beelden `shots-*.png`. `GDE_GAME_DIR=<map>game` (met backslashes) en `ELECTRON_EXE=<pad>` als de worktree geen eigen build heeft; een eigen build zonder wereldbouw: `GDE_PREBUILT_WORLD=<map met index.json> GDE_STAGE_OUT=<map>game node desktop/build.mjs`.
+
+- **intro:** de camera van Nieuw spel tot het eind van de opening, elk frame: plek, kijkrichting, camera onder een dak (in een gebouw), draai per frame zonder geplande cut (een flip) en welke cinematic en ondertitel loopt. `frames.json` is `[t, x, y, h, dx, dy, dz, fov, dak, cine, override, cut, cinematic, ondertitel]` per frame.
+- **audio:** per ondertitelregel van de opening en van de introductie en afloop van M01 t/m M03 (via `playStoryIntro`/`playStoryOutro`): start de opname, wordt hij afgekapt of geweigerd, en klopt dat met `textOnly` in `game/storydata/script.json`.
+- **caption:** de eerste-bezoek-cinematic bij grote gebouwen (Forum, Martinitoren, Museum, Euroborg, station, kerken): cameraplek ten opzichte van het gebouw, welke tekst waar in beeld staat en de plaatskaart erna.
+- **lock:** wat `Input.tryLock` doet in een echt Electron-venster (vergrendeld, terugval naar de vrije cursor, reden van een geweigerde aanvraag).
+
+`node scripts/opnamelijst.mjs` schrijft `docs/verhaal/OPNAMELIJST.md`: elke verhaalregel zonder opname (de ondertitel is dan de terugval, het spel speelt niets). `--check` faalt als de lijst achterloopt op `script.json`.
+
 ## Veiligheid
 
 - De Electron-stappen gebruiken een wegwerpprofiel (`GDE_TEST_PROFILE=gde-testall-<pid>-<stap>` in de tijdelijke map) en schrijven nooit naar `gde-save-v1`, `gde-settings` of `gde-prestaties-v1`. De profielen worden na afloop verwijderd.
