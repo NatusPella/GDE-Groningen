@@ -420,6 +420,9 @@ export function updateCinematics(dt, w) {
   if (started && w.input.wasPressed('v') && !active) cycleCinemaCam(w);
   if (camMode && !w.player.inVehicle) setCamMode(0);
 
+  // a scene that films its own cast (hidePlayers): the real players stay hidden for the whole scene, also when another run
+  // cleans up in between and clears the flag (two identical Tammos next to Tessa, #264)
+  if (active && active.hidePlayers) { w.cinematicHidePlayers = true; w.cinematicHideNav = true; }
   let pose = null;
   if (active && active.shot) {
     try {
