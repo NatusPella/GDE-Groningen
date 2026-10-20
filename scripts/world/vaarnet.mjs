@@ -8,7 +8,7 @@
 //   node scripts/world/vaarnet.mjs --class 2,3,4   andere klassen
 //
 // Bron: de waterpolygonen en bruggen van de provincietegels (game/world, niet
-// in git: `npm run stage`) plus de stad uit game/citymap.json. Het water wordt
+// in git: `npm run stage`) plus de stad uit de OSM-tegelbouw (loadworld.mjs). Het water wordt
 // op een raster van CELL m gezet; een cel is open voor een klasse waar de
 // polygon breed en diep genoeg is (nav, waterlevels.js). Obstakels per cel:
 // vaste bruggen (doorvaarthoogte tegen de hoogte van de boot), beweegbare
@@ -116,9 +116,9 @@ function fillObs(R, pts, n) {
 
 // ------------------------------------------------------------------ data
 
-export function buildRaster({ worldDir, city = true, fixesOn = !process.argv.includes('--no-fixes'), gatenOn = !process.argv.includes('--fixes') } = {}) {
+export async function buildRaster({ worldDir, city = true, fixesOn = !process.argv.includes('--no-fixes'), gatenOn = !process.argv.includes('--fixes') } = {}) {
   const P = loadProvinceVaar(worldDir);
-  const cityMap = city ? JSON.parse(fs.readFileSync(new URL('../../game/citymap.json', import.meta.url))) : { water: [], roads: [], meta: {} };
+  const cityMap = city ? await (await import('../lib/loadworld.mjs')).loadCityData({ extras: false }) : { water: [], roads: [], meta: {} };
   const water = [...P.water, ...cityMap.water.map((w) => ({ ...w, tile: 'stad', lock: false }))];
   // de oppervlakte per naam (een groot meer is vaak in stukken getekend)
   const byName = new Map();
@@ -748,7 +748,7 @@ if (process.argv[1] && process.argv[1].endsWith('vaarnet.mjs')) {
   const arg = (n, d) => { const i = process.argv.indexOf(n); return i >= 0 ? process.argv[i + 1] : d; };
   const classes = arg('--class', '3,4').split(',').map(Number);
   const t = Date.now();
-  const built = buildRaster();
+  const built = await buildRaster();
   const open = [2, 3, 4].map((c) => { let n = 0; for (const ch of built.R.chunks) if (ch) for (let i = 0; i < ch.length; i++) if ((ch[i] & 7) >= c) n++; return n; });
   console.log(`raster: ${built.water.length} waterpolygonen, ${built.R.list.length} obstakels, open cellen klasse 2/3/4: ${open.join('/')} (${((Date.now() - t) / 1000).toFixed(1)} s)`);
   if (process.argv.includes('--fixes')) {

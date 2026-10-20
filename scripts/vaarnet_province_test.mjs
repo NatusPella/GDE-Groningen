@@ -15,7 +15,7 @@ let n = 0, fails = 0;
 const ok = (c, m, info = '') => { n++; if (!c) { fails++; console.log(`FAIL ${m}${info ? ' (' + info + ')' : ''}`); } };
 
 // the raster without the gaps' patches: closeGaps closes them again, the same cells the file lists
-const built = W.buildRaster({ fixesOn: true, gatenOn: false });
+const built = await W.buildRaster({ fixesOn: true, gatenOn: false });
 const { R } = built;
 ok(R.list.some((o) => o.kind === 'vast') && R.list.some((o) => o.kind === 'beweegbaar') && R.list.some((o) => o.kind === 'sluis'), 'the data has fixed and movable bridges and locks');
 ok(built.locks.length > 100, 'the province has its locks', String(built.locks.length));
@@ -46,7 +46,7 @@ ok(c3.labels['zee waddenzee'].near.length > 1 && /Lauwersoog|Rug/.test(c3.labels
 ok(c3.labels['zee eems'].near === 'Farmsum' || c3.labels['zee eems'].near === 'Delfzijl', 'the Eems access is Delfzijl', c3.labels['zee eems'].near);
 // the barge: it reaches every sea (on the raster with the gaps patched, as the game has it: since #234
 // a barge only sails the main waterways and harbours, and those pieces join through the patches), but the low fixed bridges stop it, each one named by place
-const c4 = W.audit(W.buildRaster({ fixesOn: true }), { classes: [4], log: () => {} }).classes[4];
+const c4 = W.audit(await W.buildRaster({ fixesOn: true }), { classes: [4], log: () => {} }).classes[4];
 for (const lab of ['Lauwersmeer', 'zee waddenzee', 'zee eems', 'zee dollard']) {
   const r = c4.labels[lab];
   ok(!!r, `a barge route (with its obstacles) exists to ${lab}`);
