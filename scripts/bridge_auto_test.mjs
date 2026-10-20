@@ -127,5 +127,14 @@ ok(b.state === 'closed', `a hornblower that lies still does not keep it open (${
   ok(!roads[2].movable && !roads[3].movable, 'a far footway and a car road beside it stay as they are');
 }
 
+// 9. a barge that lies still and drifts a hair backwards (speed -0.001) is not "turned back": the bridge does not cycle open-closed-open (#235)
+b = mkBridge(); MB.resetMovableBridges();
+const drift = boat('binnenvaart', -30, -0.001);
+world.vehicles = [drift];
+let opens = 0, was = b.state;
+step(150, () => { if (b.state === 'opening' && was !== 'opening') opens++; was = b.state; });
+ok(opens === 1, `a drifting barge makes the bridge open once, not again and again (${opens})`);
+ok(b.state === 'closed', `and it ends closed (${b.state})`);
+
 console.log(fails ? `${fails} of ${n} FAILED` : `${n} automatic bridge checks passed`);
 process.exit(fails ? 1 : 0);
