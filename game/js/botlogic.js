@@ -186,8 +186,15 @@ export function decide(s, mem = {}) {
   const stage = (s.mission && s.mission.stage) || '';
   const stunt = isStunt(s);
   // a 'board' stage wants the vehicle that is standing there: any free one close by, whatever the distance to the marker
+  // on a bike or scooter the board stage's vehicle (a tractor, a quad) is another one: get off first, and pick a motor vehicle over the bike just left
+  const light = (k) => k === 'fiets' || k === 'scooter';
+  if (veh && light(veh.kind) && stage === 'board' && (mem.boardTries || 0) < 4) {
+    const other = (s.nearby && s.nearby.vehicles || []).find((c) => c.free && c.drivable && !light(c.kind) && c.distance < 80);
+    if (other) { mem.boardTries = (mem.boardTries || 0) + 1; return { type: 'press', key: 'e', why: 'uitstappen' }; }
+  }
   if (!veh && stage === 'board' && (mem.boardTries || 0) < 4) {
-    const v = (s.nearby && s.nearby.vehicles || []).find((c) => c.free && c.drivable && c.distance < 80);
+    const near = (s.nearby && s.nearby.vehicles || []).filter((c) => c.free && c.drivable && c.distance < 80);
+    const v = near.find((c) => !light(c.kind)) || near[0];
     if (v) return { type: 'enter', vehicle: v };
   }
   // on foot at the marker with a prompt on screen (the loket, the pinautomaat, a counter): press the action key a few times
