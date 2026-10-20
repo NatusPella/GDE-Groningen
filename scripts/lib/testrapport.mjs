@@ -149,7 +149,7 @@ export function beoordeelWereldpoort(rep, { minMeshes = 300, maxFramesMetFout = 
   if (rep.nan > 0) f.push(`NaN-geometrie in ${rep.nan} meshes`);
   if (rep.framesMetFout > maxFramesMetFout) f.push(`fouten in ${rep.framesMetFout} van ${rep.frames} frames (${rep.foutenTotaal} in totaal): ${(rep.voorbeeld || []).join(' | ').slice(0, 300)}`);
   if (f.length) return { status: 'FAIL', detail: f.join('; ') };
-  return { status: 'PASS', detail: `${rep.meshes} meshes, ${rep.tris} driehoeken, ${rep.calls} drawcalls, fouten in ${rep.framesMetFout} van ${rep.frames} frames` };
+  return { status: 'PASS', detail: `${rep.meshes} zichtbare meshes (de laatste renderpas telt ${rep.tris} driehoek en ${rep.calls} aanroep: de nabewerking), fouten in ${rep.framesMetFout} van ${rep.frames} frames` };
 }
 
 // ---------------------------------------------------------------- beelden
