@@ -252,6 +252,7 @@ export const SURFACES = {
   banner: { files: ['cinematics.js'], zone: 'D', p: P0, gates: [['overlay', 'resultaat'], ['narrative', 'scene']] },
   naamkaart: { files: ['namecard.js'], gates: [['overlay', 'naamkaart']] },
   plaatsnaam: { files: ['hud_panel.js'], zone: 'B', p: P3, gates: [['overlay', 'locatie']] },
+  wijkkaart: { files: ['cinematics.js'], zone: 'B', p: P3, gates: [['overlay', 'wijkkaart']] },
   keuze: { files: ['choicepanel.js'], zone: 'B', p: P1, gates: [['overlay', 'keuze']] },
   bord: { files: ['minigamekit.js'], zone: 'B', p: P1, gates: [['overlay', 'duelbalk']] },
   ballon: { files: ['scene3d.js'], p: P3, gates: [['speech', 'ambient']] },
