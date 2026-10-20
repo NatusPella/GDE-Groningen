@@ -129,7 +129,8 @@ try {
     const a = pts[marks[m]], b = pts[Math.min(pts.length - 1, marks[m] + 8)];
     // eerst naar het punt (de tegels stromen binnen), dan pas kijken of het nat is
     holdPos = { x: a[0], y: a[1] }; await sleep(3500);
-    if (!wetAt(a[0], a[1])) { await sleep(3000); }
+    // tiles stream in slowly on a busy machine: wait until the point is wet, at most 60 s, before calling it dry
+    for (let t = 0; t < 30 && !wetAt(a[0], a[1]); t++) await sleep(2000);
     holdPos = null;
     if (!wetAt(a[0], a[1])) { results.checkpoints.push({ n: m, op: [Math.round(a[0]), Math.round(a[1])], fout: 'punt op de route is niet nat' }); continue; }
     placeBoat(a[0], a[1], Math.atan2(b[1] - a[1], b[0] - a[0]));
