@@ -568,6 +568,9 @@ Oorzaak: AHN heeft onder een viaduct geen data en vult het gat uit de omgeving, 
 Noordzeeweg) klimt in het terrein op de dijk van 5 m en het dek zelf meet vanaf die dijk. Wat ontbreekt voor standaard: een terrein dat onder
 een kunstwerk de aanloop van de onderliggende weg volgt (en niet de dijk), en een ringoplosser die in absolute hoogtes rekent. Zolang dat er niet
 is, blijft `?terrain` een vlag; zonder de vlag verandert er niets.
+Geprobeerd en weggehaald (21 oktober): het terrein onder een dek vervangen door wat naast het dek ligt (de lagere van beide kanten over de richting van het dek). Dat
+maakte het erger (477 mislukte ritten vlak opgelost, 534 terrein-opgelost): de straat onder een viaduct loopt door de hele aanloopdijk, niet alleen onder het dek,
+dus die straat heeft een eigen profiel nodig (zoals een dek: de lijn tussen zijn uiteinden buiten de dijk), in de oplosser en in het spel. Dat is de volgende stap.
 
 ## Samen spelen (issue #95)
 
