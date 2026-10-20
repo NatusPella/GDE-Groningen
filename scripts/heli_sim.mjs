@@ -11,8 +11,8 @@ const P = await import('../game/js/heliplan.js');
 const { helipadInfo } = await import('../game/js/skyprops.js');
 
 const root = new URL('../game/', import.meta.url);
-const data = JSON.parse(fs.readFileSync(new URL('citymap.json', root)));
-applyMapExtras(data, JSON.parse(fs.readFileSync(new URL('mapextras.json', root))));
+const { loadCityData } = await import('./lib/loadworld.mjs');
+const data = await loadCityData();
 const map = new GameMap(data);
 const u = helipadInfo(map);
 const pads = { umcg: { x: u.x, y: u.y, deck: u.deck, r: u.r }, lauwersoog: { id: 'lauwersoog', x: P.ROOSTER.lauwersoog.x, y: P.ROOSTER.lauwersoog.y, deck: 0, r: 6, angle: 0 } };
