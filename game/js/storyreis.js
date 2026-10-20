@@ -32,3 +32,5 @@ export function makeReisGoals({ getWorld, busy, playLines }) {
     },
   };
 }
+
+export { placeOf as reisPlace };
