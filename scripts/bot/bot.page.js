@@ -278,6 +278,40 @@ while (true) {
       continue;
     }
   }
+  // the heist panels (M06): the needle of the fuse box, the pins of the back door and the dial of the case, read from the panel like a player's eyes
+  const hx = s.mission.active && !s.blocking.cinematic && document.querySelector('.hx-panel.on');
+  if (hx) {
+    B.stick(0, 0);
+    const pct = (el, k) => parseFloat(el && el.style[k]) || 0;
+    const z = hx.querySelector('[data-z]'), nd = hx.querySelector('[data-n]');
+    let hit = false;
+    if (z && nd) {
+      const zl = pct(z, 'left'), zw = pct(z, 'width'), at = pct(nd, 'left');
+      hit = Math.abs(at - (zl + zw / 2)) <= Math.max(1.5, zw / 2 - 4);
+      if (hit) B.log('zekering', { at: Math.round(at), zone: [Math.round(zl), Math.round(zl + zw)] });
+    } else if (hx.querySelector('.hx-chamber')) {
+      const ch = hx.querySelector('.hx-chamber.cur'), pin = ch && ch.querySelector('.hx-pin');
+      const zone = parseFloat(ch && ch.style.getPropertyValue('--zone')) / 100 || 0.18;
+      hit = !!pin && (parseFloat(pin.style.top) - 2) / 44 <= Math.max(0.02, zone - 0.05);
+      if (hit) B.log('slotje', { zone });
+    } else if (hx.querySelector('.hx-dial')) {
+      const dial = hx.querySelector('.hx-dial');
+      const m = /rotate\((-?[\d.]+)/.exec((hx.querySelector('[data-rot]').getAttribute('transform')) || '');
+      const v = m ? ((-parseFloat(m[1]) / 9) % 40 + 40) % 40 : 0;
+      const cur = [...hx.querySelectorAll('.hx-digit')].findIndex((d) => d.classList.contains('cur'));
+      const want = [19, 5, 3][Math.max(0, cur)] ?? 0;
+      if (dial.classList.contains('hot')) hit = true;
+      else {
+        const diff = ((want - Math.round(v)) % 40 + 40) % 40;
+        await B.press(diff <= 20 ? 'd' : 'a', 70);
+        await sleep(120);
+      }
+    }
+    if (hit) { await keyTap(' ', 90); await sleep(450); }
+    else await sleep(25);
+    detector.hold(s.t); heldSince = null;
+    continue;
+  }
   // a timing stage (M18, M20, M21, M26)
   if (s.mission.active && s.mission.stage === 'timing' && !s.blocking.cinematic) {
     B.stick(0, 0);
@@ -363,7 +397,7 @@ while (true) {
       }
       if (best) { aim = { x: best.x, y: best.y, distance: bd }; top = 14; }
     }
-    steerTowards(s, act.mode, aim, !act.stunt && s.mission.phase !== 'active' && s.target.source === 'missiestart', top);
+    steerTowards(s, act.mode, aim, !act.stunt && s.mission.phase !== 'active' && s.target.source === 'missiestart', top, s.mission.stage === 'lock' || s.mission.stage === 'crack' ? 1 : null);
     if (wedgeOut) {
       wedgeOut = false;
       B.log('klem', { x: s.player.x, y: s.player.y });
