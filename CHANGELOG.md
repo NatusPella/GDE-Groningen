@@ -6,6 +6,9 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Opgelost
+- **De sloep blijft op de vaarroute niet meer hangen bij woonboten en naden in het water (#343, met de echte bootfysica over de echte tegels gemeten en door een bot in Electron gevaren, niet door een mens bekeken):** de speelcheck van de route Stad-Lauwersoog liet de sloep stilstaan terwijl de route-audit doorvaren zei. Er waren drie oorzaken. (1) De bot stuurde in een rechte lijn naar het punt acht routepunten verder en sneed zo over de wal; hij volgt nu de route zelf. (2) De route liep door woonboten: 50 van de 206 woonboten in de provincie lagen op de lijn van een tak van het vaarnet, en een woonboot van een streamtegel was geen obstakel voor de romp (alleen die van de stad), dus de boot botste tegen de gebouwmuur. Een woonboot is nu een afgemeerd obstakel zolang zijn tegel er is, en het vaarnet loopt er niet door of binnen 1,5 m langs (0 van 206). (3) Een gatenstuk van de vaarweg-fixes sloot niet aan op het kanaal: tussen een stuk en het kanaal lag een strook land van enkele decimeters tot 4 m, en elke romp die erin viel telde als droog, een muur dwars door het kanaal. Haarlijnen zijn nu water en een strook tot 4 m na een gatenstuk wordt dichtgelast voor de romp (het beeld blijft zoals het was). Het vaarnet laat de route ook het midden van de vaargeul houden en splitst een lijn die over land of een woonboot zou lopen. Gemeten met `scripts/hull_route_audit.mjs` op de route Stad-Lauwersoog (45 tot 48 km, nieuwste wereld): in een strook van 40 m om de lijn 14 plekken waar de romp niet door kan voor, 5 erna; in een strook van 120 m 17 voor (een stuk van 160 m in de havenmond van Lauwersoog) en 4 erna, alle in die havenmond (een smalle hals in de kaart, apart te bekijken). `vaarnet.json` en `vaarnet_fixes.json` zijn opnieuw gemaakt op de nieuwste wereld.
+
 ## [0.38.0] - 2026-10-20
 
 ### Nieuw
