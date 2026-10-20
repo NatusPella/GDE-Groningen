@@ -426,6 +426,7 @@ const CHECKS = [
     const out = [];
     for (const [type, sh] of byType) {
       w.money = 5000; w.wanted = 0;
+      if (PM.isPauseMenuOpen()) PM.closePauseMenu();
       await go(sh.x, sh.y, 0, 3500);
       w.wanted = 0;
       const prompt = S.shopPrimaryPrompt(w);
@@ -446,8 +447,10 @@ const CHECKS = [
         gekocht = { uitgegeven: m0 - w.money };
         await snap('winkelen-' + type + '-gekocht', 300);
       }
-      await tap('Escape', 'Escape', 120); await sleep(600);
-      out.push({ type, naam: sh.name, prompt: prompt && prompt.label, dichtbij, pogingen, wanted: w.wanted, meldingen, open, items: items.length, eerste: items[0] || null, gekocht, dichtNaEsc: !SU.isShopOpen() });
+      const pauze = PM.isPauseMenuOpen();
+      if (SU.isShopOpen()) { await tap('Escape', 'Escape', 120); await sleep(600); }
+      if (PM.isPauseMenuOpen()) PM.closePauseMenu();
+      out.push({ type, naam: sh.name, pauzeNaAfloop: pauze, prompt: prompt && prompt.label, dichtbij, pogingen, wanted: w.wanted, meldingen, open, items: items.length, eerste: items[0] || null, gekocht, dichtNaEsc: !SU.isShopOpen() });
     }
     return { winkels: out, opmerking: 'per type de eerste winkel; het eerste item is gekocht met €5000 op zak; niet beoordeeld: prijzen, voorraad, of het gekochte voertuig of kledingstuk er goed uitziet' };
   } },
