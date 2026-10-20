@@ -490,6 +490,55 @@ const CHECKS = [
     w.vehicles.splice(w.vehicles.indexOf(bus), 1);
     return { deuren: JSON.stringify(bus.doors && bus.doors.open) };
   } },
+  { id: 'hudmotor', issues: [33], run: async () => {
+    const SH = await imp('shops');
+    const rd = nearestRoadHeading(GM.x, GM.y, 250);
+    await go(rd.x, rd.y, rd.a, SETTLE);
+    const out = {};
+    for (const naam of ['stormvogel', 'knetter', 'wervelwind']) {
+      const spec = SH.VEHICLE_STOCK[naam];
+      const v = new VH.Vehicle(rd.x, rd.y, rd.a, { ...spec.model, color: spec.color });
+      Object.assign(v, spec.flags || {});
+      if (spec.kind === 'scooter') v.isScooter = true;
+      w.vehicles.push(v);
+      await sleep(500);
+      teleport(v.x, v.y);
+      p.enterVehicle(v, w);
+      hold = null; driving = true;
+      key('keydown', 'w', 'KeyW');
+      await sleep(3500);
+      await snap('hudmotor-' + naam, 300);
+      key('keyup', 'w', 'KeyW');
+      p.exitVehicle(map, w);
+      driving = false;
+      w.vehicles.splice(w.vehicles.indexOf(v), 1);
+      out[naam] = { snelheid: Math.round(v.speed * 3.6) };
+    }
+    return out;
+  } },
+  { id: 'schade', issues: [205, 225], run: async () => {
+    const rd = nearestRoadHeading(GM.x, GM.y, 250);
+    await go(rd.x, rd.y, rd.a, SETTLE);
+    const out = {};
+    const stand = [['heel', 100, []], ['gedeukt', 80, [[1.9, 0.2, 0.9], [0.2, 0.9, 0.8]]], ['rook', 50, [[1.9, 0.1, 1.2], [-1.9, 0.3, 1.3], [0.4, -0.9, 1.7]]], ['brand', 25, [[1.9, 0, 2], [-1.9, 0.2, 1.7], [0.3, 0.9, 2], [0.2, -0.9, 2]]]];
+    const model = VH.TRAFFIC_MODELS().find((m) => m.name === 'sedan');
+    let i = 0;
+    for (const [naam, health, dents] of stand) {
+      const v = new VH.Vehicle(rd.x + Math.cos(rd.a) * (6 + i * 7), rd.y + Math.sin(rd.a) * (6 + i * 7), rd.a, { ...model });
+      v.health = health; v.dentLog = dents; v.speed = 0; v.parked = true;
+      w.vehicles.push(v);
+      i++; out[naam] = health;
+    }
+    await sleep(3500);
+    const bx = rd.x + Math.cos(rd.a) * 16, by = rd.y + Math.sin(rd.a) * 16;
+    const side = [-Math.sin(rd.a), Math.cos(rd.a)];
+    const pose = { position: { x: bx + side[0] * 13, y: by + side[1] * 13, z: gh(bx, by) + 4 }, lookAt: { x: bx, y: by, z: gh(bx, by) + 0.8 }, fov: 62, cut: true };
+    await shotAt('schade-rij', pose, 3000);
+    const pose2 = { position: { x: bx - Math.cos(rd.a) * 3 + side[0] * 6, y: by - Math.sin(rd.a) * 3 + side[1] * 6, z: gh(bx, by) + 2.2 }, lookAt: { x: bx + Math.cos(rd.a) * 8, y: by + Math.sin(rd.a) * 8, z: gh(bx, by) + 0.9 }, fov: 60, cut: true };
+    await shotAt('schade-rook', pose2, 2500);
+    for (const v of w.vehicles.slice(-4)) w.vehicles.splice(w.vehicles.indexOf(v), 1);
+    return out;
+  } },
   { id: 'hud', issues: [33], run: async () => {
     const rd = nearestRoadHeading(GM.x, GM.y, 250);
     await go(rd.x, rd.y, rd.a, SETTLE);
