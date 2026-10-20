@@ -308,17 +308,18 @@ const PHASES = {
     const voor = w.player.inVehicle ? 1 : 0;
     for (let i = 0; i < 4 && !w.player.inVehicle; i++) { await B.press('e', 150); await sleep(900); }
     log('rit-in', { via, ingestapt: !!w.player.inVehicle, voor, tessa: !!w.companion.inVehicle });
-    await sleep(2500);
-    log('rit-passagier', { tessa: !!w.companion.inVehicle, host: !!w.player.inVehicle });
+    const tw = performance.now();
+    for (let i = 0; i < 40 && !w.companion.inVehicle; i++) await sleep(300); // Tessa loopt via de volg-AI naar het voertuig
+    log('rit-passagier', { tessa: !!w.companion.inVehicle, host: !!w.player.inVehicle, wachtS: Math.round((performance.now() - tw) / 100) / 10 });
     shot('rit-host');
     if (w.player.inVehicle) {
       const x0 = w.player.x, y0 = w.player.y;
-      B.stick(0, -1); await sleep((s - 10) * 1000); B.stick(0, 0); await sleep(1200);
+      B.stick(0, -1); await sleep(6000); B.stick(0, 0); await sleep(1200);
       log('rit-gereden', { m: Math.round(Math.hypot(w.player.x - x0, w.player.y - y0)), tessa: !!w.companion.inVehicle });
       shot('rit-host-onderweg');
       await B.press('e', 150); await sleep(2500);
       log('rit-uit', { host: !!w.player.inVehicle, tessa: !!w.companion.inVehicle });
-    } else await sleep((s - 10) * 1000);
+    } else await sleep(6000);
   },
   // de gast verlaat het spel via het menu (zoals een speler)
   async verlaat({ wie = 'gast2' }) {

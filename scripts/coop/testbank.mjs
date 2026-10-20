@@ -37,9 +37,9 @@ const EXPECT = 2 + (GASTEN - 1) + MOCK; // aantal spelers in totaal
 const P = {
   basis: { host: [[0, 'wacht', { s: DURATION }]], gast: [[0, 'wacht', { s: DURATION }]], gast2: [[0, 'wacht', { s: DURATION }]] },
   net: {
-    host: [[0, 'wacht', { s: 12 }], [14, 'netsim', { s: 20, wie: ['gast2'] }], [38, 'desync', { s: 25, wie: 'gast' }], [78, 'loop', { s: 8 }], [90, 'uitvalHost', { s: 8 }], [122, 'betaal', { geld: 250 }], [128, 'opgeslagen', {}], [134, 'rit', { s: 24 }], [166, 'wacht', { s: 22 }], [192, 'stopHost', {}]],
-    gast: [[0, 'wacht', { s: 12 }], [14, 'netsim', { s: 20, wie: ['gast2'] }], [38, 'desync', { s: 25, wie: 'gast' }], [78, 'loop', { s: 8 }], [90, 'uitval', { s: 8, wie: 'gast' }], [122, 'betaal', {}], [128, 'opgeslagen', {}], [134, 'rit', { s: 24 }], [166, 'wacht', { s: 22 }], [192, 'stopHost', {}]],
-    gast2: [[0, 'wacht', { s: 12 }], [14, 'netsim', { s: 20, wie: ['gast2'] }], [38, 'desync', { s: 25, wie: 'gast' }], [78, 'loop', { s: 8 }], [90, 'wacht', { s: 28 }], [122, 'betaal', {}], [128, 'opgeslagen', {}], [134, 'rit', { s: 24 }], [166, 'verlaat', { wie: 'gast2' }], [192, 'stopHost', {}]],
+    host: [[0, 'wacht', { s: 12 }], [14, 'netsim', { s: 20, wie: ['gast2'] }], [38, 'desync', { s: 25, wie: 'gast' }], [78, 'loop', { s: 8 }], [90, 'uitvalHost', { s: 8 }], [122, 'betaal', { geld: 250 }], [128, 'opgeslagen', {}], [134, 'rit', { s: 30 }], [170, 'wacht', { s: 22 }], [196, 'stopHost', {}]],
+    gast: [[0, 'wacht', { s: 12 }], [14, 'netsim', { s: 20, wie: ['gast2'] }], [38, 'desync', { s: 25, wie: 'gast' }], [78, 'loop', { s: 8 }], [90, 'uitval', { s: 8, wie: 'gast' }], [122, 'betaal', {}], [128, 'opgeslagen', {}], [134, 'rit', { s: 30 }], [170, 'wacht', { s: 22 }], [196, 'stopHost', {}]],
+    gast2: [[0, 'wacht', { s: 12 }], [14, 'netsim', { s: 20, wie: ['gast2'] }], [38, 'desync', { s: 25, wie: 'gast' }], [78, 'loop', { s: 8 }], [90, 'wacht', { s: 28 }], [122, 'betaal', {}], [128, 'opgeslagen', {}], [134, 'rit', { s: 30 }], [170, 'verlaat', { wie: 'gast2' }], [196, 'stopHost', {}]],
   },
   kamer: { host: [[0, 'wacht', { s: DURATION }]], gast: [[0, 'wacht', { s: DURATION }]], gast2: [[0, 'wacht', { s: DURATION }]] },
   verhaal: { host: [[0, 'verhaal', { s: Number(arg('verhaal-s', 1500)) }]], gast: [[0, 'verhaal', { s: Number(arg('verhaal-s', 1500)) }]], gast2: [[0, 'verhaal', { s: Number(arg('verhaal-s', 1500)) }]] },
