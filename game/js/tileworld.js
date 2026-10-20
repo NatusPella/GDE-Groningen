@@ -15,6 +15,7 @@
 import { GameMap, SpatialGrid, loadMap, markDryRoad } from './mapdata.js';
 import { polygonBounds, pointInPolygon } from './util.js';
 import { promoteMainWaterway } from './waterlevels.js';
+import { dropWaterDuplicates } from './waterdupes.js';
 import { SECTION, decodeBlob } from './gdt.js';
 import { TileStore, FrameQueue, HttpRangeSource, inflateRaw, makeWorkerDecoder, decodeCompressed } from './tilestore.js';
 import { TerrainField } from './terrainraster.js';
@@ -132,7 +133,10 @@ export class TileWorld extends GameMap {
       if (s.type === SECTION.RASTER && this.terrain) { this.terrain.add(tk, s.raster); continue; }
       const kind = KIND_OF.get(s.type);
       if (!kind) continue;
+      // the same lake mapped twice is drawn once (waterdupes.js, #231)
+      const twins = kind === 'water' ? dropWaterDuplicates(s.rows) : null;
       for (const { gid, obj } of rowsOf(kind, s)) {
+        if (twins && twins.size && twins.has(obj)) continue;
         let e = this._res[kind].get(gid);
         if (!e) {
           e = { obj, tiles: new Set() };
