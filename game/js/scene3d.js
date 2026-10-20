@@ -1358,7 +1358,8 @@ function hookShadowPass(shadowMap) {
 // 0.3 to 1 s for a building style, a landmark kit or a depth program that was not seen before, #247). A draw of
 // the game scene (or a shadow caster) whose material has no linked program yet is left out instead and its
 // object is compiled after the frame, in the background (KHR_parallel_shader_compile); it shows a few frames
-// later. Fullscreen passes are never skipped, and without the extension nothing changes.
+// later. Fullscreen passes are never skipped, nor are depth materials (compiling the object does not compile the
+// shadow pass's own material, so a skipped caster would never come back), and without the extension nothing changes.
 const linkPending = new Set();
 const LINK_GUARD_AFTER = 600;
 function hookLinkGuard(r) {
@@ -1367,7 +1368,7 @@ function hookLinkGuard(r) {
   r.renderBufferDirect = function (camera, sc, geometry, material, object, group) {
     if (guard === null) guard = r.extensions.has('KHR_parallel_shader_compile');
     // not in the first seconds: the load screen, the title and the first shots wait for the prewarm, which draws the materials once
-    if (guard && canvasFrames > LINK_GUARD_AFTER && (sc === null || sc === scene) && !perfOff('linkwacht')) {
+    if (guard && canvasFrames > LINK_GUARD_AFTER && (sc === null || sc === scene) && !material.isMeshDepthMaterial && !material.isMeshDistanceMaterial && !perfOff('linkwacht')) {
       const programs = r.properties.get(material).programs;
       let ready = !!programs;
       if (programs) for (const p of programs.values()) if (!p.isReady()) { ready = false; break; }
