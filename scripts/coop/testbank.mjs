@@ -89,7 +89,7 @@ function start(name, cfg, seed, extraArgs = []) {
   const env = { ...process.env, GDE_TEST_PROFILE: profile, GDE_GAME_DIR: STAGE, GDE_COOP_TEST: '1', ...(MENU ? { GDE_MENU_TEST: '1' } : {}) };
   delete env.ELECTRON_RUN_AS_NODE;
   const extra = [...extraArgs];
-  if (ROUTE === 'kamer') extra.push('--disable-features=WebRtcHideLocalIpsWithMdns'); // loopback-kandidaten zonder mDNS-naam
+  if (ROUTE === 'kamer') extra.push('--disable-features=WebRtcHideLocalIpsWithMdns', '--allow-loopback-in-peer-connection'); // kandidaten op de loopback, zonder mDNS-naam en zonder firewall
   const child = spawn(ELECTRON, ['.', '--windowed', '--stil', '--force-device-scale-factor=1', '--window-size=1280x720', '--coop', `--autoplay=${seed}`,
     `--smoke-test=${path.join(dir, 'shots.png')}`, `--perf-script=${script}`, `--bot-events=${events}`, ...extra], { cwd: path.join(ROOT, 'desktop'), env, stdio: ['ignore', 'pipe', 'pipe'] });
   try { os.setPriority(child.pid, os.constants.priority.PRIORITY_BELOW_NORMAL); } catch (e) { /* geen rechten: gewone prioriteit */ }
@@ -205,6 +205,7 @@ release();
 if (tp) clearInterval(tp);
 for (const m of [...mocks, mockLate].filter(Boolean)) { try { await m.stop(); } catch (e) { /* al weg */ } }
 const trackerSeen = tracker ? tracker.seen.slice() : [];
+if (tracker) fs.writeFileSync(path.join(OUT, 'tracker.jsonl'), trackerSeen.map((t) => t.replace(/"sdp":"[^"]{40,}"/g, '"sdp":"…"').slice(0, 300)).join('\n'));
 if (tracker) tracker.close();
 
 // ---------------------------------------------------------------- beoordelen
