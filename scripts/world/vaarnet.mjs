@@ -19,7 +19,7 @@ import fs from 'node:fs';
 import '../node3d.mjs';
 import { loadProvinceVaar } from './vaarnet_data.mjs';
 import { effectiveNav, linkPolygon, gatPolygon, passBridge, classOfKind, airOfKind, lockPassage, STREET_CLEAR, LAKE_BARGE_AREA } from '../../game/js/vaarnet.js';
-import { polyArea, MAIN_WATERWAYS } from '../../game/js/waterlevels.js';
+import { polyArea, MAIN_WATERWAYS, BRIDGE_DECK_T, BOEZEM_Y } from '../../game/js/waterlevels.js';
 import { worldToWgs } from '../../game/js/rdnew.js';
 import { outsideDist } from '../../game/js/worldedge.js';
 
@@ -73,10 +73,24 @@ export function fillPolygon(R, pts, v) {
   }
 }
 
-// een obstakel op de open cellen binnen r m van de punten
-function stamp(R, pts, r, ob) {
+// De hoogte van het dek (z langs de weg, zoals de stad ze heeft) op het punt van de weg het dichtst bij (x, y); null zonder profiel.
+export function deckZAt(pts, z, x, y) {
+  if (!z || z.length !== pts.length) return null;
+  let best = Infinity, bz = null;
+  for (let i = 0; i + 1 < pts.length; i++) {
+    const ax = pts[i][0], ay = pts[i][1], dx = pts[i + 1][0] - ax, dy = pts[i + 1][1] - ay, L2 = dx * dx + dy * dy || 1e-9;
+    const t = Math.max(0, Math.min(1, ((x - ax) * dx + (y - ay) * dy) / L2)), d = Math.hypot(ax + dx * t - x, ay + dy * t - y);
+    if (d < best) { best = d; bz = z[i] + (z[i + 1] - z[i]) * t; }
+  }
+  return bz;
+}
+
+// een obstakel op de open cellen binnen r m van de punten; met `zAt` onthoudt het de dekhoogte per cel (clearOf)
+function stamp(R, pts, r, ob, zAt = null) {
   const n = R.list.length;
   R.list.push({ id: n, ...ob });
+  const cells = zAt ? [] : null;
+  if (cells) R.list[n].cells = cells;
   const step = CELL / 2, rc = Math.ceil(r / CELL);
   let any = false;
   const seen = new Set();
@@ -89,7 +103,9 @@ function stamp(R, pts, r, ob) {
       const k = id(gx, gy);
       if (seen.has(k)) continue;
       seen.add(k);
-      if (!R.obs.has(k) || ob.kind === 'sluis') R.obs.set(k, n);
+      // een beweegbare brug wint van een vaste in dezelfde cel: de opritten en het fietspad van een beweegbare brug zijn in OSM soms een aparte, vaste brug
+      if (!R.obs.has(k) || ob.kind === 'sluis' || (ob.kind === 'beweegbaar' && R.list[R.obs.get(k)].kind === 'vast')) R.obs.set(k, n);
+      if (cells) cells.push([k, zAt(px, py)]);
       if (R.nav(gx, gy) >= 2) any = true;
     }
   };
@@ -139,11 +155,12 @@ export async function buildRaster({ worldDir, city = true, fixesOn = !process.ar
   for (const l of fixFile.links || []) fillPolygon(R, linkPolygon(l), 4 | 32);
   if (gatenOn) for (const g of [...(fixFile.gaten || []), ...(fixFile.verbindingen || []), ...(fixFile.sluisgaten || []), ...(fixFile.zee || [])]) fillPolygon(R, gatPolygon(g), g[5] | 32);
   // bruggen over water
-  const roads = [...P.bridges, ...cityMap.roads.filter((r) => r && r.bridge).map((r) => ({ pts: r.pts, z: null, width: r.width || 4, movable: r.movable || '', name: r.name || '', type: r.type || '', city: true }))];
+  const roads = [...P.bridges, ...cityMap.roads.filter((r) => r && r.bridge).map((r) => ({ pts: r.pts, z: r.z || null, width: r.width || 4, movable: r.movable || '', name: r.name || '', type: r.type || '', city: true }))];
   for (const b of roads) {
     const half = (b.width || 4) / 2 + 1.5;
     const ob = { kind: b.movable ? 'beweegbaar' : 'vast', movable: b.movable || '', name: b.name || '', type: b.type, clear: b.movable ? Infinity : STREET_CLEAR, x: b.pts[0][0], y: b.pts[0][1] };
-    stamp(R, b.pts, half, ob);
+    // een vaste brug met een dekprofiel (de stad: ringwegen en viaducten) krijgt zijn echte doorvaarthoogte (clearOf, na closeGaps)
+    stamp(R, b.pts, half, ob, !b.movable && b.z && b.z.some((q) => Math.abs(q) > 0.05) ? (x, y) => deckZAt(b.pts, b.z, x, y) : null);
   }
   // sluizen: de sluispoorten (OSM) en de kolken (waterpolygonen met `lock`)
   const locks = [...P.locks, ...(cityMap.meta.locks || [])];
@@ -151,6 +168,7 @@ export async function buildRaster({ worldDir, city = true, fixesOn = !process.ar
   const wide = widenWideWater(R);
   const mains = widenMainWaterways(R);
   const closed = closeGaps(R);
+  const heights = setClearances(R);
   return { R, P, cityMap, water, locks, closed, mains, wide, places: P.idx.global.places || [] };
 }
 
@@ -226,6 +244,29 @@ export function widenMainWaterways(R) {
   }
   for (const [x, y] of fill) R.put(x, y, 4 | 32);
   return up.length + fill.length;
+}
+
+// De doorvaarthoogte van een vaste brug met dekprofiel: het water onder het dek is er pas na closeGaps, en
+// de oprit boven de oever is lager dan het dek midden over het water. De boot vaart in de vaargeul: het 80e
+// percentiel van de dekhoogte boven de watercellen van de brug (het dek zonder profiel blijft STREET_CLEAR).
+export const CLEAR_PERCENTILE = 0.8;
+export function clearOf(zs) {
+  if (!zs.length) return null;
+  zs = zs.slice().sort((a, b) => a - b);
+  const z = zs[Math.min(zs.length - 1, Math.floor(zs.length * CLEAR_PERCENTILE))];
+  return Math.round((z - BRIDGE_DECK_T - BOEZEM_Y) * 100) / 100;
+}
+export function setClearances(R) {
+  let n = 0;
+  for (const ob of R.list) {
+    if (!ob.cells) continue;
+    const zs = [];
+    for (const [k, z] of ob.cells) { const cx = k % GW, cy = (k - cx) / GW; if (R.nav(cx, cy) >= 2 && z !== null) zs.push(z); }
+    delete ob.cells;
+    const c = clearOf(zs);
+    if (c !== null) { ob.clear = Math.max(STREET_CLEAR, c); ob.profiled = true; n++; }
+  }
+  return n;
 }
 
 // De waterpolygonen zijn bij een brug en een sluis doorgesneden (OSM tekent het
@@ -622,7 +663,12 @@ export function seaTongues({ R, P }) {
 
 // ------------------------------------------------------------------ audit
 
-export function audit({ R, P, places }, { classes = [3, 4], start = [0, -350], log = console.log } = {}) {
+// De binnenvaarthaven van de stad (#295): de Oosterhaven aan de Eemskanaal- en Winschoterdiepkant. De binnenstad
+// binnen de Kattenbrug (Schuitendiep, Diepenring, Noorderhaven) is voor binnenvaart bewust dicht: de bruggen
+// daar zijn laag en vast, en de Kattenbrug (564,208) is de poort naar het net. Een binnenvaartschip meert in de
+// Oosterhaven, en de route van klasse 4 begint daar.
+export const BARGE_HOME = [720, 330];
+export function audit({ R, P, places }, { classes = [3, 4], start = [0, -350], bargeStart = BARGE_HOME, log = console.log } = {}) {
   const coast = coastIndex(P.edge);
   const seaCache = new Map();
   const seaOf = (cx, cy) => {
@@ -643,7 +689,8 @@ export function audit({ R, P, places }, { classes = [3, 4], start = [0, -350], l
   const report = { classes: {}, start };
   for (const cls of classes) {
     const kind = CLASS_KIND[cls];
-    const s = nearestOpen(start[0], start[1], cls);
+    const from = cls >= 4 && bargeStart ? bargeStart : start;
+    const s = nearestOpen(from[0], from[1], cls);
     if (!s) { log(`klasse ${cls}: geen water bij de start`); continue; }
     const t0 = Date.now();
     const targets = (cx, cy) => {
