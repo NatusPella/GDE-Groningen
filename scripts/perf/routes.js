@@ -721,7 +721,7 @@ results.routes.vspots = await safe('vspots', async () => {
 // against the camera's frustum, and at every group kept out of the shadow pass for a caster; turns on the spot and walks a little at a few places, counting the misses
 results.routes.verify = await safe('verify', async () => {
   if (!ONLY.includes('verify')) return null;
-  const V = window.__perfVerify = { actors: 0, groups: 0, shadow: 0, checked: 0, shadowChecked: 0, frames: 0, bad: [] };
+  const V = window.__perfVerify = { actors: 0, groups: 0, shadow: 0, checked: 0, shadowChecked: 0, frames: 0, bad: [], kinds: {} };
   const spots = [['markt', FOOT[0][0], FOOT[0][1]], ['straat', FOOT[3][0], FOOT[3][1]], ['kanaal', FOOT[4][0], FOOT[4][1]], ['winsum', ...placeAt('Winsum')], ['hoogezand', ...placeAt('Hoogezand')]];
   const perSpot = [];
   for (const [name, x, y] of spots) {
@@ -734,7 +734,7 @@ results.routes.verify = await safe('verify', async () => {
     perSpot.push({ spot: name, actors: V.actors - before.actors, groups: V.groups - before.groups, shadow: V.shadow - before.shadow, checked: V.checked - before.checked });
   }
   window.__perfVerify = undefined;
-  return { total: { actors: V.actors, groups: V.groups, shadow: V.shadow, checked: V.checked, shadowChecked: V.shadowChecked, frames: V.frames }, perSpot, bad: V.bad };
+  return { kinds: V.kinds, total: { actors: V.actors, groups: V.groups, shadow: V.shadow, checked: V.checked, shadowChecked: V.shadowChecked, frames: V.frames }, perSpot, bad: V.bad };
 });
 // picture check inside one run (only with PERF_ONLY=beeld): the world stands still (uiPaused: no time, nothing moves), and at each spot the
 // canvas is read back with the perfoff steps on, off and on again: on-against-on is the noise (it should be 0), on-against-off the change.

@@ -2918,11 +2918,12 @@ function actorRadius(mesh) {
   const dz = Math.max(Math.abs(b.min.z - p.z), Math.abs(b.max.z - p.z));
   return Math.hypot(dx, dy, dz) + 1.5;
 }
-function cullActorCache(cache, reach) {
+function cullActorCache(cache, reach, kind) {
   for (const mesh of cache.values()) {
     if (!mesh.visible || mesh.parent !== scene) continue;
     const ud = mesh.userData;
     if (ud.cullR === undefined) ud.cullR = actorRadius(mesh);
+    ud.cullKind = kind;
     _cullSphere.center.copy(mesh.position);
     _cullSphere.radius = ud.cullR + reach;
     if (_cullFrustum.intersectsSphere(_cullSphere)) {
@@ -2943,27 +2944,53 @@ function cullOffscreenActors() {
   _cullProj.multiplyMatrices(cam.projectionMatrix, cam.matrixWorldInverse);
   _cullFrustum.setFromProjectionMatrix(_cullProj);
   const reach = actorShadowReach(sunDir);
-  cullActorCache(vehicleMeshes, reach);
-  cullActorCache(pedMeshes, reach);
-  cullActorCache(wildlifeMeshes, reach);
+  cullActorCache(vehicleMeshes, reach, 'voertuig');
+  cullActorCache(pedMeshes, reach, 'persoon');
+  cullActorCache(wildlifeMeshes, reach, 'dier');
   if (!perfOff('groepen')) cullOffscreenGroups();
   if (window.__perfVerify) verifyCull();
 }
 // window.__perfVerify = { actors, groups, shadow, checked: 0, bad: [] } (route verify): what was cut is looked at again with an exact box
+// the box of what shows: nodes that are hidden (and what hangs on them) do not count, the root's own flag is the cull's
+const _vbox = new THREE.Box3();
+function expandVisible(o, box, root) {
+  if (!root && !o.visible) return;
+  o.updateWorldMatrix(false, false);
+  const g = o.geometry;
+  if (g && o.isMesh && o.layers.test(cam.layers)) {
+    if (!g.boundingBox) g.computeBoundingBox();
+    _vbox.copy(g.boundingBox).applyMatrix4(o.matrixWorld);
+    box.union(_vbox);
+  }
+  for (let i = 0; i < o.children.length; i++) expandVisible(o.children[i], box, false);
+}
 function verifyCull() {
   const V = window.__perfVerify;
   if (!V) return;
   const sphere = new THREE.Sphere();
   for (const m of culledActors) {
     V.checked++;
-    _cullBox.setFromObject(m);
+    _cullBox.makeEmpty();
+    expandVisible(m, _cullBox, true);
+    if (_cullBox.isEmpty()) continue;
     // an exact box against the camera's frustum, with no margin: nothing that shows may be cut
-    if (_cullFrustum.intersectsBox(_cullBox)) { V.actors++; if (V.bad.length < 12) V.bad.push(['actor', m.name || m.type, Math.round(m.position.x), Math.round(m.position.z)]); }
+    if (_cullFrustum.intersectsBox(_cullBox)) {
+      V.actors++;
+      const k = m.userData.cullKind || '?';
+      V.kinds[k] = (V.kinds[k] || 0) + 1;
+      if (V.bad.length < 24) {
+        const b = _cullBox, p = m.position;
+        const r = Math.hypot(Math.max(Math.abs(b.min.x - p.x), Math.abs(b.max.x - p.x)), Math.max(Math.abs(b.min.y - p.y), Math.abs(b.max.y - p.y)), Math.max(Math.abs(b.min.z - p.z), Math.abs(b.max.z - p.z)));
+        let n = 0, hid = 0; m.traverse((o) => { n++; if (!o.visible) hid++; });
+        V.bad.push(['actor', k, Math.round(p.x), Math.round(p.z), 'r', +r.toFixed(1), 'cullR', +m.userData.cullR.toFixed(1), 'schaal', +m.scale.x.toFixed(2), 'knopen', n, 'verborgen', hid, 'doos', [b.max.x - b.min.x, b.max.y - b.min.y, b.max.z - b.min.z].map((q) => +q.toFixed(1)).join('x'), Object.keys(m.userData).slice(0, 5).join('/')]);
+      }
+    }
   }
   for (const g of culledGroups) {
     V.checked++;
-    _cullBox.setFromObject(g);
-    if (_cullFrustum.intersectsBox(_cullBox)) { V.groups++; if (V.bad.length < 12) V.bad.push(['group', g.name || g.type, Math.round(g.position.x), Math.round(g.position.z)]); }
+    _cullBox.makeEmpty();
+    expandVisible(g, _cullBox, true);
+    if (!_cullBox.isEmpty() && _cullFrustum.intersectsBox(_cullBox)) { V.groups++; if (V.bad.length < 12) V.bad.push(['group', g.name || g.type, Math.round(g.position.x), Math.round(g.position.z)]); }
   }
   void sphere;
 }
