@@ -14,7 +14,8 @@ const { MUSEUM_ROOMS, rectCorners, attachMuseumPlan } = await import('../game/js
 const { resolveBuildingCollisions } = await import('../game/js/collision.js');
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const city = JSON.parse(fs.readFileSync(path.join(ROOT, 'game/citymap.json'), 'utf8'));
+const { loadStadData } = await import('./lib/loadworld.mjs');
+const city = await loadStadData();
 let n = 0, fails = 0;
 const ok = (cond, name, info = '') => { n++; if (!cond) { fails++; console.log(`FAIL ${name}${info ? ' (' + info + ')' : ''}`); } };
 const bb = (pts) => [Math.min(...pts.map((p) => p[0])), Math.min(...pts.map((p) => p[1])), Math.max(...pts.map((p) => p[0])), Math.max(...pts.map((p) => p[1]))];
