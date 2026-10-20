@@ -124,6 +124,19 @@ function capsulePen(a, b) {
   const m = Math.min(d2(A.ax, A.ay, B), d2(A.bx, A.by, B), d2(B.ax, B.ay, A), d2(B.bx, B.by, A));
   return Math.max(0, A.r + B.r - Math.sqrt(m));
 }
+const RG = await imp('regions');
+const VH = await imp('vehicle');
+const BT = await imp('boattypes');
+const kb = (type, k, code) => { for (const t of [window, document]) t.dispatchEvent(new KeyboardEvent(type, { key: k, code, bubbles: true })); };
+let theBoat = null;
+const putBoat = (x, y, angle) => {
+  if (p.inVehicle) p.exitVehicle(map, w);
+  if (theBoat) { const i = w.vehicles.indexOf(theBoat); if (i >= 0) w.vehicles.splice(i, 1); }
+  p.x = x; p.y = y; p.vx = p.vy = 0; p.z = 0; p.vz = 0;
+  theBoat = new VH.Vehicle(x, y, angle, { ...BT.BOAT_KINDS.sloep });
+  theBoat.isBoat = true; theBoat.speed = 0; w.vehicles.push(theBoat);
+  p.enterVehicle(theBoat, w);
+};
 const results = [];
 for (const J of CFG.jobs) {
   if (PM.isPauseMenuOpen()) PM.closePauseMenu();
