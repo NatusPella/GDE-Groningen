@@ -24,7 +24,7 @@ const files = new Proxy({}, { get: (o, f) => (typeof f === 'string' ? (o[f] || (
 const T = await TW.loadTileWorld('world/', { source: new S.MemorySource(files), pool: false, extra: ['index-provincie.json'] });
 if (!T) { console.log('SKIP no tile index'); process.exit(0); }
 const map = T.world;
-const keys = Object.keys(T.index.tiles).filter((k) => !T.index.tiles[k].ov);
+const keys = Object.keys(T.index.tiles);
 const roads = new Set();
 for (const k of keys) {
   await T.store.request(k, { priority: -1 });
