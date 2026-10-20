@@ -6,7 +6,8 @@ import { landmarkGeometry, LOD_FULL, LOD_MASS, LOD_SKY } from './landmarkkit.js'
 // parameter sets: full detail within R0 of the focus, one at a time as
 // they come near (own mesh, shadows, turning sails); the masses merged per
 // CELL out to R1; past that one merged skyline mesh for all of them, its
-// haze capped so towers and mills stay on the horizon. The merged layers
+// haze capped so towers and mills stay on the horizon (in rain and mist the cap rises, so they
+// fade with the ground and do not hang over the haze, #259). The merged layers
 // hide an item's vertices by its distance in the vertex shader, so the
 // three levels never draw the same landmark twice. Night: churches,
 // towers and borgen floodlit warm from below (until midnight), clock faces
@@ -14,7 +15,7 @@ import { landmarkGeometry, LOD_FULL, LOD_MASS, LOD_SKY } from './landmarkkit.js'
 // Nothing here knows the city or the countryside.
 
 const R0 = 320, R1 = 1100, CELL = 1000, PREFETCH = 60;
-const U = { uLkP: { value: new THREE.Vector2() }, uLkR0: { value: R0 }, uLkR1: { value: R1 }, uLkFlood: { value: 0 }, uLkNight: { value: 0 } };
+const U = { uLkP: { value: new THREE.Vector2() }, uLkR0: { value: R0 }, uLkR1: { value: R1 }, uLkFlood: { value: 0 }, uLkNight: { value: 0 }, uLkHaze: { value: 0 } };
 
 // One program per material for all three levels: aMode says which level a
 // vertex belongs to (0 near: always drawn, 1 masses: R0..R1, 2 skyline: past R1).
@@ -32,11 +33,12 @@ if ((aC.z > 0.5 && aC.z < 1.5 && (lkD < uLkR0 || lkD > uLkR1)) || (aC.z > 1.5 &&
 vLkY = (modelMatrix * vec4(transformed, 1.0)).y;`);
     sh.fragmentShader = sh.fragmentShader
       .replace('#include <common>', `#include <common>
-uniform float uLkFlood, uLkNight;
+uniform float uLkFlood, uLkNight, uLkHaze;
 varying float vLkY;`)
       .replace('#include <fog_fragment>', `#ifdef USE_FOG
   float lkF = smoothstep(fogNear, fogFar, vFogDepth);
-  lkF = min(lkF, 0.55 + 0.45 * smoothstep(fogFar, fogFar * 3.0, vFogDepth));
+  float lkCap = 0.55 + 0.4 * uLkHaze;
+  lkF = min(lkF, lkCap + (1.0 - lkCap) * smoothstep(fogFar, fogFar * 3.0, vFogDepth));
   if (lkF > 0.995) discard;
   gl_FragColor.rgb = mix(gl_FragColor.rgb, fogColor, lkF);
 #endif`);
@@ -188,8 +190,9 @@ export function createLandmarkLayer(scene, list) {
   let sky = null, skyAt = 0;
   const L = { group, items, cells, built: 0 };
 
-  L.update = (px, py, night, flood, time) => {
+  L.update = (px, py, night, flood, time, haze = 0) => {
     U.uLkP.value.set(px, py);
+    U.uLkHaze.value = haze;
     applyNight(night, flood);
     // the skyline: once, after the first frames (a few hundred small meshes)
     if (!sky && ++skyAt > 30) { sky = mergedMesh(items.map((it) => it.p), LOD_SKY, 2); sky.name = 'landmarkkits:sky'; group.add(sky); }

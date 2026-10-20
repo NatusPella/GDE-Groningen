@@ -107,6 +107,7 @@ const near = (a, b, e = 1e-6) => Math.abs(a - b) < e;
   ok(L.decide({ ...base(), blocking: { pauseMenu: true } }).type === 'closemenu', 'pauzemenu sluiten');
   ok(L.decide({ ...base(), blocking: { dialog: { options: [{ key: '2', label: 'x' }] } } }).key === '2', 'dialoog: eerste optie');
   ok(L.decide({ ...base(), blocking: { cinematic: true } }).type === 'skip', 'cutscene overslaan');
+  ok(L.decide({ ...base(), blocking: { ride: true } }).type === 'skip', 'reisscène (meerijden) overslaan');
   ok(L.decide({ ...base(), blocking: { talk: true } }).type === 'wait', 'gesprek afwachten');
   ok(L.decide({ ...base(), target: null }).type === 'wait', 'zonder doel wachten');
   ok(L.decide(base()).mode === 'walk', 'dichtbij: lopen');
@@ -134,7 +135,17 @@ const near = (a, b, e = 1e-6) => Math.abs(a - b) < e;
   const board = { ...b(), mission: { active: true, stage: 'board' }, target: { x: 300, y: 0, distance: 300 }, nearby: { vehicles: [{ x: 20, y: 0, distance: 20, free: true, drivable: true, kind: 'auto' }] } };
   ok(L.decide(board).type === 'enter', 'board-stage: instappen, ook ver van het doel');
   ok(L.decide(board, { boardTries: 4 }).type === 'goto', 'board-stage: opgeven na vier keer');
+  // op een fiets bij de board-stage: eerst uitstappen, dan een motorvoertuig boven de fiets die je net verliet
+  const onBike = { ...board, player: { ...board.player, vehicle: { kind: 'fiets', speed: 0, angle: 0 } }, nearby: { vehicles: [{ x: 5, y: 0, distance: 5, free: true, drivable: true, kind: 'fiets' }, { x: 20, y: 0, distance: 20, free: true, drivable: true, kind: 'auto' }] } };
+  const mb = {};
+  ok(L.decide(onBike, mb).key === 'e' && mb.boardTries === 1, 'board-stage op een fiets: uitstappen');
+  ok(L.decide(onBike, { boardTries: 4 }).type === 'goto', 'board-stage op een fiets: opgeven na vier keer');
+  ok(L.decide({ ...onBike, player: { ...onBike.player, vehicle: null } }).vehicle.kind === 'auto', 'board-stage te voet: motorvoertuig boven de fiets');
   ok(L.decide({ ...b(), mission: { active: true, stage: 'hold' }, target: { x: 1, y: 0, distance: 1 } }).type === 'wait', 'hold-stage: stilstaan in de ring');
+  const planS = { ...b(), mission: { active: true, stage: 'plan' }, target: { x: 1, y: 0, distance: 1 } };
+  const pm = {};
+  ok(L.decide(planS, pm).key === 'a' && pm.planTries === 1, 'plan-stage: A kiezen');
+  ok(L.decide(planS, { planTries: 3 }).type !== 'press', 'plan-stage: na drie keer niet meer drukken');
   for (const id of ['drift', 'hengelen', 'wandeling', 'pitchputt', 'hoogvlieger', 'geheimen', 'snackketen', 'onbekend']) {
     const a = L.startAttempts(id);
     ok(a.length >= 4 && a[0] === 'e' && a.includes('interact') && a.includes('jitter'), 'start-opening ' + id);

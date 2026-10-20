@@ -104,6 +104,36 @@ t('een beloning wordt ook bijgehouden voor de eigen save van de gast', () => {
   s.step(2); N.payGuest(s.hw, 100, 1); s.step(1); N.payGuest(s.hw, 20, 1); s.step(1);
   assert.equal(s.gs[0].gw.coopVerdiend, 120); assert.equal(s.hw.coopVerdiend, undefined, 'de host krijgt zijn geld gewoon in zijn save');
 });
+t('na het vertrek staat de bijgehouden beloning op nul (het geld zit in world.money), zodat een volgende sessie het niet nog eens in de save zet', () => {
+  const s = sessie(1, { gastExtra: [{ money: 40 }] }); s.step(2);
+  N.payGuest(s.hw, 100, 1); s.step(1);
+  const g = s.gs[0].gw; assert.equal(g.coopVerdiend, 100); assert.equal(g.money, 140);
+  N.stopCoopNet(g);
+  assert.equal(g.coopVerdiend, 0); assert.equal(g.money, 140);
+});
+t('een passagier staat bij de gasten op het voertuig, niet op zijn oude plek (de camera van de gast volgt de rit)', () => {
+  const car = { x: 100, y: 50, angle: 1 };
+  const s = sessie(1, { hostExtra: {} }); s.step(2);
+  s.hw.companion.inVehicle = car; s.hw.companion.x = 1; s.hw.companion.y = 1; // Tessa zit in de auto; haar eigen x en y zijn van vóór het instappen
+  s.hw.player.inVehicle = car; s.hw.player.x = 100; s.hw.player.y = 50;
+  s.step(2);
+  const g = s.gs[0].gw;
+  assert.ok(Math.hypot(g.player.x - 100, g.player.y - 50) < 2, 'de gast (Tessa) staat bij het voertuig: ' + g.player.x + ',' + g.player.y);
+  assert.ok(s.hw.coopPartner && Math.hypot(s.hw.coopPartner.x - 100, s.hw.coopPartner.y - 50) < 2, 'ook voor de host staat Tessa bij het voertuig');
+});
+t('de host stopt: elke gast speelt weer in zijn eigen spel (ook als het bericht verloren gaat), met een melding', () => {
+  const s = sessie(2, { gastExtra: [{ player: { x: 77, y: 88, angle: 0, character: 'anita', vx: 0, vy: 0 } }, {}] }); s.step(2);
+  N.stopCoopNet(s.hw); s.step(3);
+  for (const g of s.gs) { assert.equal(g.gw.coopNet, null); assert.equal(g.gw.coopRole, null, 'weer eigen save'); }
+  assert.deepEqual([s.gs[0].gw.player.x, s.gs[0].gw.player.y], [77, 88]);
+  assert.match(s.gs[0].gw.messages.join(' '), /De gastheer is gestopt met samen spelen/);
+});
+t('een gast die wordt afgewezen (vol) blijft geen gast: zijn eigen spel mag weer bewaard worden', () => {
+  const s = sessie(4, { opts: { max: 4 } }); s.step(5);
+  const vol = s.gs[3].gw;
+  assert.equal(vol.coopNet, null); assert.equal(vol.coopRole, null, 'geen coopRole meer: saveGame bewaart zijn spel weer');
+  assert.equal(s.gs[2].gw.coopRole, 'client', 'de gasten die wel binnen zijn blijven gast');
+});
 t('beloningen worden begrensd en alleen gasten ontvangen ze', () => {
   const s = sessie(1); s.step(1);
   const gw = s.gs[0].gw;
@@ -163,7 +193,7 @@ t('pauze per speler: Tessa houdt het spel op; een extra speler niet, tenzij de o
 });
 t('maximum: instelbaar (hier 4); de vijfde moet wachten tot het maximum omhoog gaat', () => {
   const s = sessie(4, { opts: { max: 4 } }); s.step(3);
-  assert.equal(s.gs[3].gw.coopNet.session.status, 'geweigerd'); assert.equal(s.gs[3].gw.coopNet.session.rejected, 'vol');
+  assert.equal(s.gs[3].gw.coopWeigering, 'vol'); assert.equal(s.gs[3].gw.coopNet, null, 'de afgewezen gast is geen gast meer');
   assert.equal(N.setMaxPlayers(s.hw, 8), 8);
   const hw = s.hw, link = createLink({ latency: 0.03, seed: 50 }); N.addGuest(hw, link.a);
   const gw = mkWorld(); N.startClient(gw, link.b, INFO);
@@ -258,5 +288,30 @@ t('missiestappen: de gast ziet de opdracht en daarna elke volgende stap van de g
   s.hw.mission.progressText = 'Rij naar het loket'; s.step(2);
   for (const g of s.gs) assert.match(g.gw.messages.join(' '), /Gastheer, volgende stap: Rij naar het loket/);
   assert.equal(s.gs[1].gw.messages.filter((m) => /De gastheer speelt/.test(m)).length, 1, 'de opdracht zelf wordt maar één keer gemeld');
+});
+t('filmpje van de host: de gasten zien het (na een korte tijd), staan stil en lezen de regel mee; wie later aansluit hoort het ook', () => {
+  let sc = { filmpje: false, regel: null, keuze: null };
+  const hw = mkWorld(), fades = [];
+  N.startHost(hw, INFO, { seed: 5, scene: () => sc });
+  const mk = () => { const link = createLink({ latency: 0.03, seed: 4 + Math.floor(Math.random() * 50) }); N.addGuest(hw, link.a); const gw = mkWorld({ input: { axis: () => [1, 0], isDown: () => false } }); N.startClient(gw, link.b, INFO, {}); return { gw, link }; };
+  const gs = [mk()];
+  const step = (secs) => { for (let k = 0; k < 60 * secs; k++) { N.tickCoopNet(hw, 1 / 60); for (const g of gs) { N.tickCoopNet(g.gw, 1 / 60); g.link.advance(1 / 60); g.gw.time += 1 / 60; } hw.time += 1 / 60; } };
+  step(2);
+  sc = { filmpje: true, regel: { wie: 'Tessa', tekst: 'Wacht even.' }, keuze: null }; step(0.4);
+  assert.equal(gs[0].gw.coopScene && gs[0].gw.coopScene.filmpje, false, 'een kort kaartje (minder dan 0,7 s) is geen filmpje');
+  step(1);
+  const g = gs[0].gw;
+  assert.equal(g.coopScene.filmpje, true); assert.equal(g.coopScene.regel.tekst, 'Wacht even.');
+  assert.match(g.messages.join(' '), /De gastheer kijkt een filmpje/);
+  assert.equal(g.coopNet.session.pendingInput.mx, 0, 'tijdens het filmpje stuurt de gast geen invoer');
+  gs.push(mk()); step(2);
+  assert.equal(gs[1].gw.coopScene && gs[1].gw.coopScene.filmpje, true, 'een late gast hoort het filmpje ook');
+  sc = { filmpje: false, regel: null, keuze: { tekst: 'Wat doe je?', opties: ['Rijden', 'Lopen'] } }; step(1);
+  assert.equal(g.coopScene.filmpje, false); assert.deepEqual(g.coopScene.keuze.opties, ['Rijden', 'Lopen']);
+  assert.equal(g.coopNet.session.pendingInput.mx, 1, 'na het filmpje stuurt de gast weer');
+  sc = { filmpje: false, regel: null, keuze: null }; step(1);
+  assert.equal(g.coopScene, null);
+  assert.equal(N.handleEvent(hw, { k: 'scene', filmpje: true }), false, 'een host luistert niet naar scène-berichten');
+  N.stopCoopNet(g); assert.equal(g.coopScene, null);
 });
 console.log(`coopnet_test: ${n}/${n} ok`);

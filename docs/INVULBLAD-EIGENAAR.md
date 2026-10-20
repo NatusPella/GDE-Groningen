@@ -47,15 +47,6 @@ Zoek met de hand (ca. 15 minuten) in EUIPO (eSearch plus), TMview en BOIP op
 [MERKENCHECK.md](MERKENCHECK.md) in. Het register van namen in het spel staat in
 [MERKENREGISTER.md](MERKENREGISTER.md).
 
-## 5. Gronings en Fries laten nalezen (#13)
+## 5. Gronings en Fries (#13)
 
-1. Genereer de lijst opnieuw als de teksten zijn veranderd: `node scripts/nalezerlijst.mjs`.
-2. Geef [NALEZEN-GRONINGS-FRIES.md](NALEZEN-GRONINGS-FRIES.md) aan een spreker (de kolom *Oordeel* is leeg). Het zijn 2145 Groningse regels (gesproken spelling) en 10 Friese kandidaat-regels.
-3. Spreek met de nalezer af of aanpassingen vergoed worden en of de naam in de credits mag. In de repo komt **geen echte naam**; gebruik NatusPella (constitution 4).
-4. Wat aangepast wordt aan **ingesproken** regels vraagt opnieuw inspreken (TTS-kosten): bepaal eerst welke wijzigingen dat waard zijn.
-
-| Vraag | Antwoord |
-|---|---|
-| Nalezer(s) | _… _ (niet in de repo) |
-| Alleen Gronings, of ook Fries? | _… _ |
-| Budget voor opnieuw inspreken | _… _ |
+Besloten: geen echte nalezer; de woorden zijn zelf gecontroleerd. Zie [DIALECT-CONTROLE.md](DIALECT-CONTROLE.md) (methode, bronnen, twijfelgevallen) en `scripts/dialect_woorden_test.mjs`. De lijst [NALEZEN-GRONINGS-FRIES.md](NALEZEN-GRONINGS-FRIES.md) blijft beschikbaar als een speler of kennis zelf wil meelezen. Voor de opgesomde twijfelgevallen in ingesproken regels is opnieuw inspreken nodig (jouw akkoord).

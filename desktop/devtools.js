@@ -45,7 +45,7 @@ const smoke = argValue('--smoke-test');
 function queryParts() {
   const silent = hasFlag('--stil');
   const trailerShot = argValue('--trailer-shot'), trailerCut = argValue('--trailer-cut'), trailerFrames = argValue('--trailer-frames');
-  return [(silent || storyTest) && 'stil', hasFlag('--audio-graph') && 'audiograf', hasFlag('--coop') && 'coop', hasFlag('--hitch') && 'hitch', hasFlag('--zwartcheck') && 'zwartcheck', hasFlag('--dev') && 'dev', findArg('--autoplay') && (argValue('--autoplay') ? `autoplay=${encodeURIComponent(argValue('--autoplay'))}` : 'autoplay'), storyTest && 'storytest', spotsOnly && 'spotsonly',
+  return [(silent || storyTest) && 'stil', hasFlag('--audio-graph') && 'audiograf', hasFlag('--coop') && 'coop', hasFlag('--hitch') && 'hitch', hasFlag('--zwartcheck') && 'zwartcheck', hasFlag('--dev') && 'dev', hasFlag('--reizen') && 'reizen', findArg('--autoplay') && (argValue('--autoplay') ? `autoplay=${encodeURIComponent(argValue('--autoplay'))}` : 'autoplay'), storyTest && 'storytest', spotsOnly && 'spotsonly',
     // automated runs never get the first-launch attract intro
     (smoke !== null || storyTest || hasFlag('--perf-test') || findArg('--autoplay')) && !TRAILER && 'noattract',
     TRAILER && 'trailer', TRAILER && trailerShot && `shot=${encodeURIComponent(trailerShot)}`, (TRAILER || hasFlag('--trailer-preview')) && trailerCut && `cut=${encodeURIComponent(trailerCut)}`,
@@ -184,8 +184,16 @@ function attach(win, { gameDir }) {
           await win.webContents.executeJavaScript(`(async () => {
             const key = (k, code) => { for (const t of [window, document]) { t.dispatchEvent(new KeyboardEvent('keydown', { key: k, code, bubbles: true })); t.dispatchEvent(new KeyboardEvent('keyup', { key: k, code, bubbles: true })); } };
             if (!${JSON.stringify(!!process.env.GDE_MENU_TEST)}) { // GDE_MENU_TEST=1: het script krijgt het hoofdmenu zelf (coöp-testbank --menu)
-            key('Enter', 'Enter');
-            await new Promise((r) => setTimeout(r, 2500));
+            // the menu waits for its gate (world drawn, streaming quiet) and ignores keys before: press Enter until the title screen is gone
+            // (on a loaded machine the game ran under a menu that stayed)
+            const ss = document.getElementById('start-screen');
+            let seen = false;
+            for (let i = 0; i < 60; i++) {
+              const up = !!ss && ss.classList.contains('visible');
+              if (up) { seen = true; key('Enter', 'Enter'); }
+              await new Promise((r) => setTimeout(r, up ? 2500 : 1000));
+              if (seen && !ss.classList.contains('visible')) break;
+            }
             const w = window.__debug && window.__debug.world;
             for (let i = 0; i < 25 && w && w.paused; i++) { key(' ', 'Space'); await new Promise((r) => setTimeout(r, 700)); }
             }

@@ -16,9 +16,9 @@ const t = async (name, f) => { await f(); n++; };
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 const until = async (f, ms = 3000) => { const t0 = Date.now(); while (!f()) { if (Date.now() - t0 > ms) throw new Error('time-out'); await wait(10); } };
 
-function mkHost() {
+function mkHost(extra = {}) {
   const ev = { msgs: [], states: [], conns: [] };
-  const host = createCoopCore({ gameDir, localIp: '127.0.0.1', upnp: false, emit: (k, p) => { if (k === 'msg') ev.msgs.push([p.id, [...p.data]]); else if (k === 'state') ev.states.push([p.id, p.state]); else if (k === 'conn') ev.conns.push(p.id); } });
+  const host = createCoopCore({ gameDir, localIp: '127.0.0.1', upnp: false, ...extra, emit: (k, p) => { if (k === 'msg') ev.msgs.push([p.id, [...p.data]]); else if (k === 'state') ev.states.push([p.id, p.state]); else if (k === 'conn') ev.conns.push(p.id); } });
   return { host, ev };
 }
 function mkGuest() {
@@ -71,6 +71,29 @@ await t('vol: de vijfde verbinding wordt geweigerd; met een hoger maximum kan he
   const achtste = mkGuest(); await achtste.guest.join(h8.code); await wait(200);
   assert.equal(host.count(), 7);
   for (const g of [...gs, ...acht, extra, achtste]) await g.guest.stop();
+  await host.stop();
+});
+await t('vol, maar één verbinding is dood (kabel eruit, geen FIN): de terugkerende gast krijgt die plek; een vijfde nieuwe nog steeds niet', async () => {
+  const { host, ev } = mkHost({ staleMs: 400 }); const h = await host.host({ max: 3 });
+  const a = mkGuest(), b = mkGuest(); await a.guest.join(h.code); await b.guest.join(h.code);
+  await until(() => host.count() === 2);
+  const nieuw = mkGuest(); await nieuw.guest.join(h.code); await wait(150);
+  assert.equal(host.count(), 2, 'vol en alle verbindingen zijn nog vers: geweigerd');
+  // a zegt niets meer; b blijft praten
+  for (let i = 0; i < 6; i++) { b.guest.send(0, Uint8Array.from([1])); await wait(100); }
+  const terug = mkGuest(); await terug.guest.join(h.code);
+  await until(() => ev.states.some((x) => x[1] === 'closed'), 2000);
+  assert.equal(host.count(), 2, 'de stille verbinding van a maakte plek voor de terugkerende gast');
+  assert.equal(terug.guest.isConnected(), true);
+  for (const g of [a, b, nieuw, terug]) await g.guest.stop();
+  await host.stop();
+});
+await t('netjes sluiten: het afmelden vlak voor stop() komt nog bij de host aan', async () => {
+  const { host, ev } = mkHost(); const h = await host.host();
+  const { guest } = mkGuest(); await guest.join(h.code);
+  await until(() => ev.conns.length === 1);
+  guest.send(0, Uint8Array.from([9, 9, 9])); await guest.stop(); // direct erachter: zoals bij 'Spel verlaten'
+  await until(() => ev.msgs.some((m) => m[1].join() === '9,9,9') && ev.states.some((s) => s[1] === 'closed'));
   await host.stop();
 });
 await t('een gast valt weg: de anderen blijven; de host kan één gast sluiten', async () => {

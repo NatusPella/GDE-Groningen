@@ -5,7 +5,7 @@
 // for more than 0.3 s), no sink (into water) or fall (off a deck), no push off
 // the road, no standstill. Each drive runs on 25 m into the ways that carry
 // on at both ends, so the joints are driven too.
-//   node scripts/world/drive_audit.mjs [--all] [--solids] [--limit=N] [--strict] [--json=out.json]
+//   node scripts/world/drive_audit.mjs [--all] [--solids] [--limit=N] [--name=Straat] [--strict] [--json=out.json]
 // Default: the main and normal roads (secondary and up, tertiary, residential,
 // unclassified, their links); --all adds the minor ones (service, living
 // streets). --solids also probes every lane of those roads for anything solid
@@ -32,14 +32,12 @@ const world = { map, flitspaalen: [], player: { x: 0, y: 0 }, vehicles: [], prop
 // the signal poles stand in the world as in the game (props a car can hit)
 (await import('../../game/js/trafficlights.js')).initTrafficLights(world);
 
-// real alleys that are narrower than the width the map gives them (a house stands 1.48 m from the centreline of a 6.5 m
-// road): a car on the path scrapes the house. Listed apart like the bends, until the map has their real width (the issue is named in the register)
-const NARROW_ALLEYS = new Set(['Rijstebrijgang']);
 const CLASSES = args.includes('--all') ? new Set(['major', 'normal', 'minor']) : new Set(['major', 'normal']);
 const len = (P) => P.slice(1).reduce((a, q, i) => a + Math.hypot(q[0] - P[i][0], q[1] - P[i][1]), 0);
 let roads = map.roads.filter((r) => CLASSES.has(r.cat) && r.type !== 'track' && !r.busOnly && len(r.pts) >= 8);
 const limit = +(opt('limit') || 0);
 if (limit) roads = roads.slice(0, limit);
+if (opt('name')) roads = roads.filter((r) => r.name === opt('name'));
 
 const t0 = performance.now();
 const fails = [];
@@ -65,7 +63,6 @@ for (const r of roads) {
         bends.push({ road: `${r.ref || ''} ${r.name || r.type}`.trim(), type: r.type, dir: dir > 0 ? 'mee' : 'tegen', ...res });
         continue;
       }
-      if (res && res.what.startsWith('botst') && NARROW_ALLEYS.has(r.name)) { bends.push({ road: `${r.name} (smalle steeg)`, type: r.type, dir: dir > 0 ? 'mee' : 'tegen', ...res }); continue; }
       if (res) fails.push({ road: `${r.ref || ''} ${r.name || r.type}`.trim(), type: r.type, dir: dir > 0 ? 'mee' : 'tegen', ...res });
     }
   }
