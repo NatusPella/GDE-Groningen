@@ -67,10 +67,15 @@ export function buildAkte5Defs({ map, walk, drive }) {
           talk: { ids: ['M22.3'], from: 0, to: 4, delay: 1.5 }, mud: true,
         },
         {
-          kind: 'hold', target: { at: MODDER, snap: 'drive' }, radius: 40, time: 9, mode: 'vehicle', mud: true,
-          label: 'Zit vast: wacht tot Tinus hem eruit trekt', say: 'Vast. Tinus komt met de trekker: aan de trekhaak.',
+          // stuck in the mud: not a wait but a rocking rhythm; Tinus pulls on the beat (the tags only colour the mission's own report)
+          kind: 'timing', kicker: 'Los uit de modder', help: 'wip op het ritme', goodAt: 2, tagGood: 'modder-los', tagLow: 'modder-traag',
+          label: 'Zit vast: wip de wagen los terwijl Tinus trekt', say: 'Vast. Tinus haakt de trekker aan: wip mee op het ritme, druk als de streep in het groen is.',
           talk: { ids: ['M22.3'], from: 4, delay: 1.5 },
-          ticks: ['Tinus haakt de trekker aan.', 'De trekker trekt. De Escapade komt los.'],
+          rounds: [
+            { text: 'Gas, terug, gas: de trekker trekt mee.', speed: 0.7, zone: [0.34, 0.66], ok: 'De wielen pakken even.', bad: 'De wielen slippen door.' },
+            { text: 'Nog een keer, harder.', speed: 0.85, zone: [0.38, 0.62], ok: 'De Escapade komt een stuk los.', bad: 'Hij zakt weer weg.' },
+            { text: 'De laatste ruk.', speed: 1.0, zone: [0.4, 0.6], ok: 'Los! De as houdt het.', bad: 'Net niet. Tinus trekt hem er toch uit.' },
+          ],
         },
         {
           kind: 'scene', label: 'De schuur, \'s avonds', target: { at: SCHUUR, snap: 'walk' }, kicker: 'Tinus\' schuur', title: 'Een thuis met wielen',
