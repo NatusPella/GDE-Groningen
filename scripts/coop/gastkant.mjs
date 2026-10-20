@@ -37,9 +37,9 @@ for (const s of ['SIGINT', 'SIGTERM']) process.on(s, () => { release(); process.
 // ---- het programma van de gast (seconden na "verbonden") en het draaiboek van de host, op dezelfde tijdlijn
 const PROGRAM = [
   [0, 'wacht', { s: 12 }], [22, 'shot', { name: 'g-filmpje' }], [34, 'shot', { name: 'g-keuze' }], [42, 'shot', { name: 'g-pauze' }], [54, 'shot', { name: 'g-passagier' }],
-  [66, 'shot', { name: 'g-wanted' }], [76, 'opgeslagen', {}], [80, 'desync', { s: 25, wie: 'gast' }], [120, 'touch', { s: 12 }], [136, 'herverbind', { wie: 'gast' }], [172, 'verlaat', { wie: 'gast' }], [186, 'opnieuw', {}], [206, 'wacht', { s: 40 }],
+  [66, 'shot', { name: 'g-wanted' }], [76, 'opgeslagen', {}], [80, 'desync', { s: 25, wie: 'gast' }], [120, 'touch', { s: 12 }], [134, 'menushot', {}], [142, 'herverbind', { wie: 'gast' }], [178, 'verlaat', { wie: 'gast' }], [192, 'opnieuw', {}], [212, 'wacht', { s: 40 }],
 ];
-const HOST_STOP = 236;
+const HOST_STOP = 242;
 const code = {};
 const started = Date.now();
 await takeSlot();
@@ -47,7 +47,7 @@ console.log('uitvoer:', OUT);
 const host = await startNodeHost({ stage: STAGE });
 const events = path.join(OUT, 'events.jsonl'); fs.writeFileSync(events, '');
 const script = path.join(OUT, '_page.js');
-fs.writeFileSync(script, `window.__coopCfg = ${JSON.stringify({ name: 'gast', role: 'gast', route: 'direct', code: host.code, viaMenu: true, expect: 2, program: PROGRAM })};\n` + fs.readFileSync(path.join(HERE, 'coop.page.js'), 'utf8'));
+fs.writeFileSync(script, `window.__coopCfg = ${JSON.stringify({ name: 'gast', role: 'gast', route: 'direct', code: host.code, viaMenu: true, expect: 2, preSave: true, program: PROGRAM })};\n` + fs.readFileSync(path.join(HERE, 'coop.page.js'), 'utf8'));
 const profile = `gde-test-gastkant-${process.pid}`;
 const env = { ...process.env, GDE_TEST_PROFILE: profile, GDE_GAME_DIR: STAGE, GDE_COOP_TEST: '1', GDE_MENU_TEST: '1' };
 delete env.ELECTRON_RUN_AS_NODE;
@@ -75,7 +75,7 @@ const traces = { companion: [], roster: [], wanted: [] };
   host.at(62, (h) => h.rit(false));
   host.at(64, (h) => { h.world.wanted = 3; });
   host.at(70, (h) => { h.world.wanted = 0; h.log.push('betaald ' + h.pay(250, 1)); });
-  host.at(176.5, (h) => h.log.push('na vertrek ' + JSON.stringify(h.roster())));
+  host.at(182.5, (h) => h.log.push('na vertrek ' + JSON.stringify(h.roster())));
   host.at(HOST_STOP, async (h) => { clearInterval(tr); h.log.push('host stopt'); await h.stop(); });
   host.T0 = t0;
 })();
@@ -115,7 +115,7 @@ check(r1.some((s) => s.partners.some((p) => p[0] === 0 && p[2] !== 'voet')), 'ri
 check(win(66, 69).every((s) => s.wanted === 3) && win(66, 69).length > 0, 'wanted: de gast ziet het wanted van de gastheer niet: ' + JSON.stringify(win(66, 69).slice(-1).map((s) => s.wanted)));
 const sv = of('save')[0]; const m0 = (win(1, 5)[0] || {}).money, m1 = (win(74, 76).slice(-1)[0] || {}).money;
 check(m1 === m0 + 250, `betalen: het geld van de gast steeg niet met 250 (${m0} → ${m1})`);
-check(sv && sv.verdiend >= 0, 'save: geen logregel'); note(notes, 'save gast: ' + JSON.stringify(sv));
+const vsv = of('voor-save')[0]; check(sv && sv.hadSave && vsv && sv.saveMoney === vsv.money + 250 && sv.verdiend === 0, 'save: de beloning van de gast staat niet in zijn eigen save (hij had er al een): ' + JSON.stringify({ voor: vsv, na: sv }));
 // desync
 const di = of('desync-ingebracht')[0], du = of('desync-uitkomst')[0];
 check(di && du && du.hersync >= 1 && du.desync && du.desync.includes('stage'), 'desync: niet herkend of geen hersync gevraagd: ' + JSON.stringify(du));
@@ -125,11 +125,13 @@ check(tu && tu.ui, 'touch: geen aanraakbediening: ' + JSON.stringify(tu));
 check(th && th.axis && th.axis[0] > 0.25 && th.axis[0] < 0.85, 'touch: halve stick: ' + JSON.stringify(th)); check(tv && tv.axis && tv.axis[0] > 0.95, 'touch: volle stick: ' + JSON.stringify(tv)); check(tl && tl.axis && tl.axis[0] === 0 && tl.axis[1] === 0, 'touch: los: ' + JSON.stringify(tl));
 note(notes, 'touch: ' + JSON.stringify({ knoppen: tu && tu.speelknoppen, half: th && th.axis, vol: tv && tv.axis }));
 const tc = traces.companion.filter(([t]) => t >= 120 && t <= 134); check(tc.length > 4 && Math.hypot(tc[tc.length - 1][1] - tc[0][1], tc[tc.length - 1][2] - tc[0][2]) > 4, 'touch: Tessa bewoog niet in de wereld van de host: ' + JSON.stringify([tc[0], tc[tc.length - 1]]));
+const ms = of('menushot')[0];
+check(ms && ms.chip && ms.chipZichtbaar === false, 'pauzemenu: het partnerlabel ligt nog over het menu: ' + JSON.stringify(ms));
 // opnieuw verbinden via het wachtscherm
 const hh = of('herverbind-hold')[0], hk = of('herverbind-klaar')[0], hc = of('herverbind-code')[0];
 check(hh && hh.hold && hh.paused && hh.coopHold, 'herverbinden: geen wachtscherm met pauze bij de gast: ' + JSON.stringify(hh));
 check(hk && !hk.hold && !hk.paused && hk.slot === 1 && ['ok', 'lag'].includes(hk.status), 'herverbinden: de gast is niet terug op plek 1: ' + JSON.stringify(hk));
-check(traces.roster.some(([t, r]) => t > 134 && t < 170 && !r.includes('[1,"ok"]')), 'herverbinden: de host zag Tessa niet haperen of wegvallen: ' + JSON.stringify(traces.roster.filter(([t]) => t > 134 && t < 170).map(([t, r]) => t + ':' + r).slice(0, 6)));
+check(traces.roster.some(([t, r]) => t > 142 && t < 176 && !r.includes('[1,"ok"]')), 'herverbinden: de host zag Tessa niet haperen of wegvallen: ' + JSON.stringify(traces.roster.filter(([t]) => t > 142 && t < 176).map(([t, r]) => t + ':' + r).slice(0, 6)));
 note(notes, 'herverbinden: code ' + (hc && hc.voorgevuld ? 'voorgevuld' : 'moest worden ingevoerd'));
 // de gast verlaat het spel via het menu en sluit later opnieuw aan
 const vl = of('verlaten')[0], on = of('opnieuw-klaar')[0];
