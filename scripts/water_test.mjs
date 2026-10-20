@@ -180,5 +180,17 @@ console.log(`waterways: canoe ${rep.classes[1].reached}/${rep.classes[1].wide}, 
   ok(L.waterAt(m, 200, 70) === null, 'dry land between');
 }
 
+// 9. a body at its own peil is drawn there (#299)
+{
+  const poly = (o) => ({ pts: [[0, 0], [100, 0], [100, 100], [0, 100]], kind: 'meer', name: 'Lauwersmeer', lv: -1, ...o });
+  ok(Math.abs(L.surfaceLift(poly()) - (-1 - L.BOEZEM_Y)) < 1e-9 && L.surfaceLift(poly()) > 1.2, 'the Lauwersmeer lies 1,3 m above the boezem');
+  ok(L.surfaceLift(poly({ name: 'Zuidlaardermeer' })) === 0, 'every other lake is drawn at the one surface of the world, whatever its lv says');
+  ok(L.surfaceLift(poly({ kind: 'diep' })) === 0 && L.surfaceLift(poly({ lv: L.BOEZEM_Y })) === 0 && L.surfaceLift(null) === 0, 'a canal of that name, or a lake at the boezem, no lift');
+  // the creek polygons inside the lake: the lake's surface wins at any point it covers
+  const lake = poly(), creek = poly({ name: 'Vlinderbalg', lv: L.BOEZEM_Y, pts: [[20, 20], [80, 20], [80, 80], [20, 80]] });
+  const map = { waterNear: () => [creek, lake] };
+  ok(L.surfaceLiftAt(map, 50, 50) === L.surfaceLift(lake) && L.surfaceLiftAt(map, 150, 50) === 0, 'surfaceLiftAt: the lake over a creek inside it, nothing off it');
+}
+
 console.log(`${n - fails}/${n} water checks passed`);
 process.exit(fails ? 1 : 0);

@@ -21,6 +21,31 @@ import { pointInPolygon as inPolygon } from './polygon.js';
 export const BOEZEM_Y = -2.3;
 export const BOEZEM_NAP = -0.93;
 
+// The water of a body that lies at its own peil is drawn there (#299): the Lauwersmeer, held at
+// its lake level behind the locks of Lauwersoog and Zoutkamp, lies 1,3 m above the Wadden and the
+// Reitdiep. Every other water is drawn at WATER_Y whatever its `lv` says (their `lv` is a guess of
+// the build: a lake that touches no boezem polygon in the data is not a lake with a peil of its own).
+export const OWN_SURFACE = /^Lauwersmeer$/;
+// metres the polygon's surface lies above WATER_Y
+export function surfaceLift(poly) {
+  if (!poly) return 0;
+  if (poly._lift === undefined) poly._lift = poly.kind === 'meer' && poly.lv !== undefined && poly.name && OWN_SURFACE.test(poly.name) ? Math.max(0, poly.lv - BOEZEM_Y) : 0;
+  return poly._lift;
+}
+// the highest surface at (x, y): the lake over the creek polygons the data lays inside it
+export function surfaceLiftAt(map, x, y) {
+  if (!map || !map.waterNear) return 0;
+  let best = 0;
+  for (const w of map.waterNear(x, y, 0.5)) {
+    const l = surfaceLift(w);
+    if (l <= best) continue;
+    const b = w.bounds || (w.bounds = boundsOf(w.pts));
+    if (x < b[0] || x > b[2] || y < b[1] || y > b[3]) continue;
+    if (pointInStaticPolygon(x, y, w.pts)) best = l;
+  }
+  return best;
+}
+
 // per kind: depth below the level, the largest boat class, the level relative
 // to street level where the kind has its own (a polder ditch)
 export const WATER_KINDS = {

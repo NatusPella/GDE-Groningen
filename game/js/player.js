@@ -4,7 +4,7 @@ import { waterClearance, pushOutOfWaterObstacles, insideWaterObstacle, swimmerCa
 import { findEnterableVehicle, distToVehicleBody, resolveBoomCollisions, resolveVehicleBuildingCollision, drivePlayerBoat, pushCircleOutOfVehicle, reportImpact, tickSinkingVehicles, speedCap } from './vehicle.js';
 import { hornAt } from './movablebridges.js';
 import { hornSluis } from './sluizen.js';
-import { waterAt } from './waterlevels.js';
+import { waterAt, surfaceLiftAt } from './waterlevels.js';
 import { MOPED_LEGAL_SPEED } from './motomodels.js';
 import { findRideableProp, rideProp } from './rideprops.js';
 import { playAutoGejatLine } from './audio.js';
@@ -508,8 +508,9 @@ export class Player {
       if (inMapWater(world.map, ex, ey)) { this.x = ex; this.y = ey; break; }
     }
     this.angle = v.angle;
-    this.z = v.sinking ? v.sinking.z : WATER_Y;
-    this.enterSwim(WATER_Y);
+    const top = WATER_Y + surfaceLiftAt(world.map, this.x, this.y);
+    this.z = v.sinking ? v.sinking.z : top;
+    this.enterSwim(top);
   }
 
   updateWater(dt, world) {
@@ -521,10 +522,12 @@ export class Player {
       this.z += this.vz * dt;
       const nx = this.x + this.vx * dt, ny = this.y + this.vy * dt;
       if (inMapWater(map, nx, ny) && !insideWaterObstacle(map, nx, ny)) { this.x = nx; this.y = ny; } else { this.vx = 0; this.vy = 0; }
-      if (this.z <= WATER_Y) {
+      // (a lake at its own peil, the Lauwersmeer, lies above the boezem's water: #299)
+      const top = WATER_Y + surfaceLiftAt(map, this.x, this.y);
+      if (this.z <= top) {
         world.particles.push({ kind: 'splash', x: this.x, y: this.y, until: world.time + SPLASH_LIFE });
         const keepZ = this.z;
-        this.enterSwim(WATER_Y);
+        this.enterSwim(top);
         this.z = keepZ;
       }
       this.canClimbOut = false;
@@ -582,7 +585,7 @@ export class Player {
 
     const tiltTarget = this.moving ? SWIM_TILT_MOVING : SWIM_TILT_IDLE;
     this.swimTilt += (tiltTarget - this.swimTilt) * Math.min(1, dt * 4);
-    this.z += (swimDepth(this.swimTilt, world.time) - this.z) * Math.min(1, dt * 5);
+    this.z += (swimDepth(this.swimTilt, world.time, 0, surfaceLiftAt(map, this.x, this.y)) - this.z) * Math.min(1, dt * 5);
 
     if (world.time >= this.climbScanAt) {
       this.climbScanAt = world.time + CLIMB_SCAN_INTERVAL;
@@ -963,8 +966,8 @@ export function stopVehicle(v) {
 
 // Mesh-origin height that keeps the head just above the surface at a given
 // forward lean, with a gentle bob.
-export function swimDepth(tilt, time, phase = 0) {
-  return WATER_Y + 0.1 - 1.6 * Math.cos(tilt) + Math.sin(time * 2.4 + phase) * 0.04;
+export function swimDepth(tilt, time, phase = 0, lift = 0) {
+  return WATER_Y + lift + 0.1 - 1.6 * Math.cos(tilt) + Math.sin(time * 2.4 + phase) * 0.04;
 }
 
 const CLIMB_DIRS = 16;

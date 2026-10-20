@@ -195,7 +195,7 @@ function dispose(scene, w) {
 function writeRibbon(w, r, count, row, light) {
   const g = w.trail.geometry;
   const P = g.attributes.position.array, C = g.attributes.color.array, U = g.attributes.uv.array;
-  const y = WATER_Y + LIFT + r * 0.004;
+  const y = WATER_Y + (w.lift || 0) + LIFT + r * 0.004;
   let last = null;
   for (let i = 0; i <= MAX_SAMPLES; i++) {
     const vi = r * VERTS + i * 2;
@@ -234,6 +234,8 @@ function updateWake(w, v, map, time, light) {
     ? [{ x: ex, y: ey, nx: -hy, ny: hx, t: time, spd, d: w.dist + (S[0] ? Math.hypot(ex - S[0].x, ey - S[0].y) : 0), limL: S[0] ? S[0].limL : 4, limR: S[0] ? S[0].limR : 4 }, ...S]
     : S;
   const count = Math.min(pts.length, MAX_SAMPLES + 1);
+  // on the water at its own peil (a lake above the boezem, a lock's kolk) the wake lies with the surface (#299)
+  w.lift = v._lift || 0;
   // paddle and pedal craft leave a faint wake and no propeller churn
   const soft = v.model.kind === 'kano' || v.model.kind === 'kajak' || v.model.kind === 'waterfiets' || v.model.kind === 'sup' || v.model.kind === 'skiff' || v.model.kind === 'acht';
   const strength = (s) => Math.min(1, s / 3.5) * (soft ? 0.45 : 1);
@@ -282,7 +284,7 @@ function updateWake(w, v, map, time, light) {
   if (bowOn) {
     const seed = (v.id || 0) * 1.7;
     const heave = v._buoyY != null ? v._buoyY : Math.sin(time * 1.6 + seed) * 0.03;
-    w.bow.position.set(v.x, WATER_Y + LIFT + 0.015 + heave * 0.8, v.y);
+    w.bow.position.set(v.x, WATER_Y + w.lift + LIFT + 0.015 + heave * 0.8, v.y);
     w.bow.rotation.y = -v.angle;
     updateBow(w.bow, v, time, light, spd);
   }
