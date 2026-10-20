@@ -234,7 +234,7 @@ for (const J of CFG.jobs) {
         rec.water = { at: [Math.round(f.x), Math.round(f.y)], kind: f.wa.kind, level: f.wa.level, open: best.run };
         // alle vlakken recht onder een punt boven het water (twee watervlakken op bijna dezelfde hoogte = dubbel water, #231)
         const downAt = (x, y) => {
-          const ray = new THREE.Raycaster(new THREE.Vector3(x, 400, y), new THREE.Vector3(0, -1, 0), 0, 800);
+          const ray = new THREE.Raycaster(new THREE.Vector3(x, 400, y), new THREE.Vector3(0, -1, 0), 0, 800); ray.camera = sc.cam;
           return ray.intersectObject(sc.scene, true).filter((h) => h.object.visible).slice(0, 8).map((h) => { const o = h.object, chain = []; for (let q = o; q && chain.length < 3; q = q.parent) chain.push(q.name || q.type); const m = Array.isArray(o.material) ? o.material[0] : o.material; return { y: +h.point.y.toFixed(2), chain: chain.join('<'), mat: m && (m.name || m.type), verts: o.geometry && o.geometry.attributes.position && o.geometry.attributes.position.count }; });
         };
         rec.down = [];
