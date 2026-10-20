@@ -59,6 +59,14 @@ Beeld voor beeld vanaf een vaste camera; zonder de cinematic-camera van het spel
 - `node scripts/qa/png_crop.mjs <png> <x> <y> <b> <h> [schaal]` vergroot een stuk van een beeld; `node scripts/qa/montage.mjs <map> --filter=<regex>` maakt een contactblad.
 - `node scripts/qa/brug_probe.mjs` leest het dek zonder Electron (hoogtestappen, dekverschil per brug); `scripts/qa/brug_qa.mjs` is de oudere, enkelvoudige versie.
 
+## Vaarroute-QA (#343, #184, #233)
+
+Komt een romp door de route van het vaarnet? Twee kanten, de eerste zonder Electron:
+
+- `node scripts/hull_route_audit.mjs [x0 y0 x1 y1] [--kind=sloep] [--half=40] [--kaart] [--max=0]`: de route van `game/vaarnet.json` (standaard van de binnenstad naar het zeewater bij Lauwersoog) gemeten met wat het spel zelf weet: een rooster van 2,5 m in een strook van `--half` m aan weerszijden van de lijn, open waar `waterClearance` (de oeverafstand die de romp tegenhoudt) minstens 1,5 m is. Van het begin af wordt het open water uitgebreid; stokt het, dan staat de plek in de uitvoer (`--kaart` tekent haar: . open, o bereikt, # dicht, * de route) en wordt ze overbrugd om verder te zoeken. Voor de wijziging van #343 gaf dit in een strook van 40 m 14 plekken en in een van 120 m 17 (een stuk van 160 m in de havenmond van Lauwersoog); erna 5 en 4, alle in die havenmond. Heeft `game/world` met de provinciewereld nodig; zonder dat SKIP.
+- `node scripts/qa/vaar_run.mjs --game-dir=<gestagede game-map> [--wait=40] [--leg=30]`: de sloep wordt per ~2,5 km op de route gezet en vaart 8 routepunten verder, nu langs de route zelf (het verste punt tot 45 m vooruit waar de koers vrij water houdt, gestuurd met de stuurinvoer, anderhalve seconde achteruit als hij twee seconden blijft hangen) in plaats van in een rechte lijn over de wal. `--wait` is de tijd die een ver punt krijgt om zijn tegels te laden. Een Electron-slot, wegwerpprofiel; `GDE_DESKTOP` en `ELECTRON_EXE` als de map geen `node_modules` heeft.
+- Het vaarnet maak je met `node scripts/world/vaarnet.mjs --fixes` (de gaten, de zee en de verbindingen) en dan `node scripts/world/vaarnet_graph.mjs --write` (`--spelwater`: alleen water waar het spel water heeft, voor een audit); allebei op dezelfde, nieuwste `game/world`, anders wijkt `vaarnet_province_test` af.
+
 ## Veiligheid
 
 - De Electron-stappen gebruiken een wegwerpprofiel (`GDE_TEST_PROFILE=gde-testall-<pid>-<stap>` in de tijdelijke map) en schrijven nooit naar `gde-save-v1`, `gde-settings` of `gde-prestaties-v1`. De profielen worden na afloop verwijderd.
