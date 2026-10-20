@@ -97,7 +97,7 @@ export function getSideJobList() {
 }
 
 // Rough pay per round for the phone's job app until the player has own figures.
-const PAY_GUESS = { lijn: [60, 120], bezorger: [27, 55], taxi: [25, 60], bus: [90, 140], rondvaart: [55, 105], rondvaarttour: [40, 80], fietsdepot: [45, 90], verhuizing: [80, 180], boa: [38, 60], rechtbank: [60, 105], cabaret: [25, 85], vracht: [70, 130], loket: [52, 90], studiestaat: [62, 110], vigilantia: [56, 98], kamerkoning: [52, 92], wolkenhal: [58, 100], helix: [54, 92], niemeyer: [54, 94], bernard: [48, 84], museumbus: [48, 86], suikerbieten: [50, 90], herstelploeg: [66, 96], oogtv: [69, 93], telefoonrave: [40, 85], vandermeden: [56, 90] };
+const PAY_GUESS = { lijn: [60, 120], bezorger: [27, 55], taxi: [25, 60], bus: [90, 140], rondvaart: [55, 105], rondvaarttour: [40, 80], fietsdepot: [45, 90], verhuizing: [80, 180], boa: [38, 60], rechtbank: [60, 105], cabaret: [25, 85], vracht: [70, 130], loket: [52, 90], studiestaat: [62, 110], vigilantia: [56, 98], kamerkoning: [52, 92], wolkenhal: [58, 100], helix: [54, 92], niemeyer: [54, 94], bernard: [48, 84], museumbus: [48, 86], suikerbieten: [50, 90], herstelploeg: [66, 96], oogtv: [69, 93], telefoonrave: [40, 85], vandermeden: [56, 90], schouwburg: [56, 92], bernardrit: [52, 84] };
 
 // Phone job app: every job with pay, distance and why it can't start now.
 export function getSideJobOffers(w) {
@@ -817,6 +817,17 @@ export function drawJobGlyph(g, glyph, r, bg) {
       g.beginPath(); g.moveTo(0.4, -0.05); g.lineTo(0.85, -0.35); g.lineTo(0.85, 0.45); g.lineTo(0.4, 0.15); g.closePath(); g.fill();
       g.fillStyle = bg;
       g.beginPath(); g.arc(-0.25, 0.05, 0.2, 0, Math.PI * 2); g.fill();
+      break;
+    case 'schouwburg':
+      g.arc(0, 0, 0.62, 0, Math.PI);
+      g.fill();
+      g.fillRect(-0.62, 0.0, 1.24, 0.12);
+      break;
+    case 'bernardrit':
+      g.roundRect(-0.5, -0.1, 1.0, 0.55, 0.1);
+      g.fill();
+      g.beginPath(); g.arc(-0.3, 0.55, 0.15, 0, Math.PI * 2); g.arc(0.3, 0.55, 0.15, 0, Math.PI * 2); g.fill();
+      g.beginPath(); g.moveTo(0, -0.1); g.lineTo(0, -0.7); g.stroke();
       break;
     case 'vandermeden':
       g.arc(0, 0, 0.6, 0, Math.PI * 2);
