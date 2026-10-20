@@ -1,6 +1,6 @@
 import { saveGame } from './savehook.js';
 import { createVehiclePreview } from './vehiclepreview.js';
-import { shopIconUrl } from './shops.js';
+import { shopIconUrl } from './shopicon.js';
 import { hudPixelRatio } from './uiscale.js';
 import { isPadActive, onPadChange } from './gamepad.js';
 import { padGlyphInner } from './glyphs.js';

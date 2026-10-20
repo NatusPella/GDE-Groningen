@@ -58,6 +58,13 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     }
     fs.writeFileSync(REG, JSON.stringify(reg, null, 1) + '\n');
     console.log(`geschreven: ${added} nieuwe woorden, ${Object.keys(reg.gronings).length} totaal`);
+  } else if (process.argv.includes('--markdown')) {
+    const esc = (x) => String(x || '').replace(/[|]/g, '/');
+    const rows = (o) => Object.entries(o).filter(([, v]) => v.status === 'twijfel').sort((a, b) => (b[1].n || 0) - (a[1].n || 0));
+    console.log(['### Gronings', '', '| Woord | Keer | Betekenis bij ons | Wat Woordwaark of de controle zegt | Voorstel |', '|---|---|---|---|---|'].join(String.fromCharCode(10)));
+    for (const [w, v] of rows(reg.gronings)) console.log(`| ${esc(w)} | ${v.n || ''} | ${esc(v.nl)} | ${esc(v.opm)} | ${esc(v.voorstel)} |`);
+    console.log(['', '### Fries', '', '| Woord | Betekenis | Opmerking |', '|---|---|---|'].join(String.fromCharCode(10)));
+    for (const [w, v] of rows(reg.fries)) console.log(`| ${esc(w)} | ${esc(v.nl)} | ${esc(v.opm)} |`);
   } else if (process.argv.includes('--lijst')) {
     for (const [w, v] of Object.entries(reg.gronings)) if (v.status === 'twijfel') console.log(`twijfel  ${w} (${v.nl}): ${v.opm}`);
     for (const [w, v] of Object.entries(reg.fries)) if (v.status === 'twijfel') console.log(`twijfel  ${w} (${v.nl}): ${v.opm}`);

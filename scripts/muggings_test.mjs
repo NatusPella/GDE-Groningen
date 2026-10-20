@@ -81,7 +81,8 @@ const check = (name, ok, info = '') => { n++; if (!ok) { bad++; console.log('FAI
 // --- the wijken exist on the city map
 {
   const here = path.dirname(fileURLToPath(import.meta.url));
-  const map = JSON.parse(fs.readFileSync(path.join(here, '../game/citymap.json'), 'utf8'));
+  const { loadStadData } = await import('./lib/loadworld.mjs');
+  const map = await loadStadData();
   const names = new Set((map.meta.neighbourhoodPoints || []).map((p) => p.name));
   const missing = Object.keys(M.RISKY).filter((w) => !names.has(w));
   check('every risky wijk is a named wijk on the map', missing.length === 0, missing.join(', '));

@@ -78,7 +78,7 @@ import { initRailway, updateRailway, setRailExtraWorld, getTrains, getRoutes, ro
 import { updateZeilvaren } from './zeilvaren.js';
 import { updateEvenementen } from './evenementenlive.js';
 import { routePenalty } from './evenementen.js';
-import { setRouteClosures } from './routing.js';
+import { setRouteClosures, getActiveRoute, getRouteAhead, getUserWaypoint } from './routing.js';
 let routeSigDone = '';
 import { updateStationLife } from './stationlife.js';
 import { createBoard as createStationBoard } from './minigamekit.js';
@@ -86,11 +86,12 @@ import { applyCityRoutes, loadLandData } from './corridorrail.js';
 import { setFarProps } from './farprops.js';
 import { initProvince } from './provinceworld.js';
 import { loadRoadNet, setRoadNet } from './roadgraph.js';
+import { ensureSeaRows } from './seatiles.js';
 import { buildMovableBridges, addMovableRoads, updateMovableBridges, getMovableBridges } from './movablebridges.js';
 import { updateSluizen, getSluizen } from './sluizen.js';
 import { updateBridgeHits, resetBridgeDamage, startBridgeCrashDemo, stepBridgeCrashDemo } from './bridgehitworld.js';
 import { geoWorkerActive } from './geojobs.js';
-import { init3D, update3D, resize3D, getScene, getRenderer, setMenuCover, MENU_FRAME_S, refreshRenderScale, terrainReady, canvasFrameCount, prewarmStreamAt, getCamera, getFollowPose } from './scene3d.js';
+import { init3D, update3D, resize3D, getScene, getRenderer, setMenuCover, MENU_FRAME_S, refreshRenderScale, terrainReady, canvasFrameCount, prewarmStreamAt, getCamera, getFollowPose, setRouteLinks } from './scene3d.js';
 import { checkFrame } from './blackframe.js';
 import { noteFrame, hideAdvice, classifyGpu, readGpu, dynamicScale, cpuLevel } from './gfxprofile.js';
 import { updateStreetSigns } from './streetsigns.js';
@@ -312,13 +313,13 @@ async function boot() {
   initGlyphs();
   initTheme();
   // the map comes from .gdt tiles (world/, js/tileworld.js); a build without
-  // them, or ?legacymap, reads the JSON files as before
+  // them (the dev server) gets stad.json alone: roads, rails, the hand-made buildings
   const onMapProgress = (f) => setLoadProgress(0.05 + f * 0.45);
   // the province's layer (index-provincie.json, F2) and the proefstrook's
   // (index-corridor.json) name the places and stream their tiles in
   // (provinceworld.js). The province's tiles win.
   const extra = [{ name: 'index-provincie.json' }, { name: 'index-corridor.json' }];
-  const tiles = FLAGS.legacymap ? null : await loadTileWorld('world/', { onProgress: onMapProgress, extra });
+  const tiles = await loadTileWorld('world/', { onProgress: onMapProgress, extra });
   const corridor = !!tiles;
   if (tiles && FLAGS.terrain) tiles.world.terrainOn = true;
   if (tiles && FLAGS.viaducten) tiles.world.streamProfiles = true;
@@ -337,9 +338,9 @@ async function boot() {
   if (tiles && busFile) loadBusLines('world/', busFile).then(setBusLines);
   // the city's train routes on over the layer's track, the countryside's rails, turbines and pylons (corridorrail.js)
   const landData = corLayer && corLayer.global ? loadLandData('world/', corLayer.global.landFile) : null;
-  const facilities = loadFacilities('citymap.json');
-  const shopPlaces = loadShopPlaces('citymap.json');
-  const map = tiles ? tiles.world : await loadMap('citymap.json', onMapProgress);
+  const facilities = loadFacilities('stad.json');
+  const shopPlaces = loadShopPlaces('stad.json');
+  const map = tiles ? tiles.world : await loadMap('stad.json', onMapProgress);
   tileWorldStats = tiles ? tiles.store : null;
   markLoad('map');
   // the waterway network's fixes and route graph (#184), small files read while the rest loads
@@ -491,6 +492,7 @@ async function boot() {
   initAudio(world);
   setNieuwsBronnen({ bridges: getMovableBridges });
   setAudioCamera(getCamera);
+  setRouteLinks({ getActiveRoute, getRouteAhead, getUserWaypoint });
   setCinematicLinks({ getFollowPose, prewarmStreamAt });
   setSfxLinks({ bridges: getMovableBridges, trains: getTrains, vehicles: () => world.vehicles, locks: getSluizen });
   await waitForStart(world, countryPlaced);
@@ -563,6 +565,8 @@ async function boot() {
       // a boat on the waterway network: the tiles of its route ahead come early (#184)
       if (tf && world.player.inVehicle && world.player.inVehicle.isBoat && !world.cameraOverride) tf.opts = vaarPrefetch(tf.opts, tf.x, tf.y);
       if (tf) world.map.follow(tf.x, tf.y, tf.opts, 1.5);
+      // the open sea as water rows round the player (#233)
+      if (tf && world.map.addWaterPatches) ensureSeaRows(world.map, world.player.x, world.player.y);
     }
     updateAudio(dt, world);
     updateNarrative();

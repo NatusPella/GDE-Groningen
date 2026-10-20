@@ -61,7 +61,8 @@ const road = (pts, o = {}) => ({ pts, type: 'secondary', cat: 'major', width: 8,
 }
 // de stadskaart: geen sprongen, geen te steile bruggen, hooguit het ene bekende paar
 {
-  const data = JSON.parse(fs.readFileSync(new URL('../game/citymap.json', import.meta.url), 'utf8'));
+  const { loadCityData } = await import('./lib/loadworld.mjs');
+  const data = await loadCityData({ extras: false });
   const r = auditBridges(data);
   ok(r.bridges.length > 300, 'de stad heeft bruggen', String(r.bridges.length));
   ok(r.findings.step.length === 0, 'stad: geen hoogtesprong bij een brug', String(r.findings.step.length));

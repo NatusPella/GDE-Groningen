@@ -13,7 +13,7 @@ import { vehicleContacts } from './vehicle.js';
 import { getTrains, getLevelCrossings, TRAIN_TYPES } from './railway.js';
 import { countryWeight } from './countryfield.js';
 import { EIERBAL_FIND_PAY, EIERBAL_ALL_BONUS } from './economy.js';
-import { getMissionList, payMedalBonus } from './missions.js';
+import { getMissionList, payMedalBonus } from './missionquery.js';
 import { getScene } from './scene3d.js';
 import { makeNearMiss, nearMissBonus } from './gamefeel.js';
 import { chipPopup } from './stunthud.js';

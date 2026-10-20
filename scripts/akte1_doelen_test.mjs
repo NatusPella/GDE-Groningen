@@ -1,7 +1,7 @@
 // Every mission goal of act 1 of the new story exists on the map (#120):
 //   node scripts/akte1_doelen_test.mjs
 // - the new defs (missions_nieuw.js): start and destination are on a road, the stunt square is open ground
-// - the landmarks and shop types that the act's defs point at (missions.js) exist in citymap.json
+// - the landmarks and shop types that the act's defs point at (missions.js) exist in stad.json
 // - every act-1 mission step names a def, and a def with a scene list has its scenes in script.json
 import './node3d.mjs';
 import fs from 'node:fs';
@@ -11,8 +11,8 @@ const { buildNieuwDefs } = await import('../game/js/missions_nieuw.js');
 const { STEPS, NEW_MISSION_IDS } = await import('../game/js/storyarc_nieuw.js');
 const { MISSION_IDS } = await import('../game/js/storyarc.js');
 const root = new URL('../game/', import.meta.url);
-const data = JSON.parse(fs.readFileSync(new URL('citymap.json', root), 'utf8'));
-applyMapExtras(data, JSON.parse(fs.readFileSync(new URL('mapextras.json', root), 'utf8')));
+const { loadStadData } = await import('./lib/loadworld.mjs');
+const data = await loadStadData({ extras: true });
 const map = new GameMap(data);
 let n = 0, fails = 0;
 const ok = (c, name, info = '') => { n++; if (!c) { fails++; console.log(`FAIL ${name}${info ? ' (' + info + ')' : ''}`); } };

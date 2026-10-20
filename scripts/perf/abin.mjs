@@ -30,3 +30,15 @@ for (const n of names) {
   }
   console.log(`${n} min ${base}: mcpu per ronde ${dm.join(', ')} ms; mediaan ${med(dm)} ms (${med(pct) != null ? med(pct).toFixed(1) : '-'}%), lager in ${dm.filter((x) => x < 0).length} van ${dm.length}; cpu avg mediaan ${med(dc)} ms`);
 }
+
+// PERF_DIAG=1: draw calls per owner (median over the windows) of each variant against the first one of its mode
+if (rows.some((x) => x.owners)) {
+  const own = (n) => { const m = new Map(); const r = rows.filter((x) => x.name === n && x.owners); for (const x of r) for (const [k, v] of x.owners) (m.get(k) || m.set(k, []).get(k)).push(v); return new Map([...m].map(([k, v]) => [k, med(v.concat(Array(Math.max(0, r.length - v.length)).fill(0)))])); };
+  for (const n of names) {
+    const base = baseOf(n); if (n === base) continue;
+    const a = own(base), b = own(n), keys = new Set([...a.keys(), ...b.keys()]);
+    const diff = [...keys].map((k) => [k, a.get(k) || 0, b.get(k) || 0]).filter(([, x, y]) => Math.abs(y - x) >= 2).sort((p, q) => Math.abs(q[2] - q[1]) - Math.abs(p[2] - p[1])).slice(0, 14);
+    console.log('draw calls per owner, ' + base + ' -> ' + n + ':');
+    for (const [k, x, y] of diff) console.log('  ' + String(x).padStart(6) + ' -> ' + String(y).padStart(6) + '  ' + k.slice(0, 90));
+  }
+}

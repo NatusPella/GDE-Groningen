@@ -10,7 +10,6 @@ export const MENU_SKIP = new Set(['testmenu', 'dev', 'storytest', 'autoplay', 's
 
 // Switches that take a value, with a few useful values to offer.
 export const VALUE_FLAGS = {
-  stadlaag: ['alle', 'gebouwen', 'wegen', 'water', 'spoor', 'groen'],
   marker: ['vorm'],
   gpu: ['Intel UHD'],
   touch: ['1', '0'],

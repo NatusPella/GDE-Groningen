@@ -1,5 +1,5 @@
 import { waterClearance } from './waterindex.js';
-import { waterPolyAt } from './waterlevels.js';
+import { waterPolyAt, BRIDGE_DRY } from './waterlevels.js';
 import { pointInPolygon } from './polygon.js';
 // Uploads only the first `count` instances of an instanced attribute: a
 // pool sized for thousands would otherwise send its whole array each time.
@@ -61,18 +61,13 @@ export function segDist(px, py, ax, ay, bx, by) {
 // Ray-casting point-in-polygon. poly: [[x,y],...] (closed or open, ok either way).
 export { pointInPolygon };
 
-export { pointInStaticPolygon } from './waterlevels.js';
-
-// On-foot water test shared by player/companion/peds. The polygon
-// test runs first because map.isOnBridge scans nearby roads and is only
-// needed to veto a hit.
+// On-foot water test shared by player/companion/peds: the water rule (waterlevels.js waterPolyAt)
+// with its height and bridge vetoes. The polygon test runs first because map.isOnBridge scans
+// nearby roads and is only needed to veto a hit.
 // z (absolute height, optional): below the canal in an aqueduct is dry.
 
 export function isInWater(map, x, y, z = 0) {
-  if (!waterPolyAt(map, x, y)) return false;
-  if (z < -3 && map.coveredAt && map.coveredAt(x, y)) return false;
-  if (z > 1.5) return false;
-  return !map.isOnBridge(x, y);
+  return !!waterPolyAt(map, x, y, z, BRIDGE_DRY);
 }
 
 // Canal surface: real Groningen canals lie 2-2.5 m below the quays, which
@@ -80,8 +75,7 @@ export function isInWater(map, x, y, z = 0) {
 export const WATER_Y = -2.3;
 
 // Raw water-polygon test without the bridge veto: a swimmer under a bridge
-// is still in the water.
-// inside one of the map's own water polygons
+// is still in the water. Inside one of the map's own water polygons.
 export function inMapWater(map, x, y) {
   return !!waterPolyAt(map, x, y);
 }

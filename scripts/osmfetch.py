@@ -1,5 +1,5 @@
 """Shared Overpass access for the add_*.py scripts: the query box follows
-game/citymap.json's meta.bounds, responses are cached in data/ together with
+the city's meta.bounds (game/stad.json), responses are cached in data/ together with
 the box they cover and refetched when the map grows (or with --refresh)."""
 import json
 import os

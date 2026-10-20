@@ -11,8 +11,8 @@ const root = new URL('../game/', import.meta.url);
 const { GameMap, applyMapExtras } = await import('../game/js/mapdata.js');
 const MB = await import('../game/js/models3d_buildings.js');
 const MG = await import('../game/js/marktgebouwen.js').catch(() => null);
-const data = JSON.parse(fs.readFileSync(new URL('citymap.json', root)));
-applyMapExtras(data, JSON.parse(fs.readFileSync(new URL('mapextras.json', root))));
+const { loadCityData } = await import('./lib/loadworld.mjs');
+const data = await loadCityData();
 const map = new GameMap(data);
 MB.setBuildingMap(map);
 

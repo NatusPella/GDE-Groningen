@@ -2,7 +2,7 @@ import { linesNear, project as projectOnLine, makeRunner, stepRunner, startAt } 
 import { assistDamage } from './assistlive.js';
 import { closestPointOnSegment, normalizeAngle, clamp, lerp, pointInPolygon, inMapWater, WATER_Y, keepBoatOffShore, boatDryPoints } from './util.js';
 import { waterClearance, waterChannelPoints } from './waterindex.js';
-import { shallowWater, waterAt, airDraftOf, passesUnder, bargeWater, bargeWaterAt, meanWidth, BARGE_MIN_CLEAR } from './waterlevels.js';
+import { shallowWater, waterAt, waterPolyAt, BRIDGE_DRY, airDraftOf, passesUnder, bargeWater, bargeWaterAt, meanWidth, BARGE_MIN_CLEAR } from './waterlevels.js';
 import { trafficSignalsNear, trafficLightPhaseMove } from './trafficlights.js';
 import { resolvePropCollisions, setSpeedCap } from './breakables.js';
 import { shardPuncture } from './roadshards.js';
@@ -1601,21 +1601,43 @@ export function findNearestVehicle(x, y, vehicles, maxDist = 2.5) {
 const graphCache = new WeakMap();
 const nodeKey = (p) => Math.round(p[0] * 10) + ',' + Math.round(p[1] * 10);
 
-function roadGraph(map) {
-  let g = graphCache.get(map);
-  if (g) return g;
-  const nodes = new Map();
-  const nodeOf = new Map();
-  const drivable = map.roads.filter((r) => r.cat !== 'foot' && r.pts.length > 1);
-  for (const r of drivable) {
-    nodeOf.set(r, r.pts.map((p, idx) => {
+// The nodes (shared vertices) of the roads by road. The city's roads are indexed at once; a road that
+// streamed in with a province tile (it lives in the map's road grid, not in map.roads) is indexed the
+// first time it is asked for, together with every road that touches one of its vertices, so junctions
+// on the tiles have their arms: turns, routes and the priority rules (#265).
+class LazyNodeMap extends Map {
+  constructor(map, nodes) { super(); this.map = map; this.nodes = nodes; this.expanded = new Set(); }
+  register(r) {
+    if (super.has(r)) return;
+    super.set(r, r.pts.map((p, idx) => {
       const k = nodeKey(p);
-      let n = nodes.get(k);
-      if (!n) { n = []; nodes.set(k, n); }
+      let n = this.nodes.get(k);
+      if (!n) { n = []; this.nodes.set(k, n); }
       n.push({ road: r, idx });
       return n;
     }));
   }
+  get(r) {
+    if (!super.has(r)) {
+      if (!r || !r.pts || r.pts.length < 2 || r.cat === 'foot' || !this.map.roadsNear) return undefined;
+      this.register(r);
+    }
+    if (!this.expanded.has(r)) {
+      this.expanded.add(r);
+      for (const p of r.pts) for (const o of this.map.roadsNear(p[0], p[1], 3)) if (o.cat !== 'foot' && o.pts.length > 1) this.register(o);
+    }
+    return super.get(r);
+  }
+}
+
+function roadGraph(map) {
+  let g = graphCache.get(map);
+  if (g) return g;
+  const nodes = new Map();
+  const nodeOf = new LazyNodeMap(map, nodes);
+  const drivable = map.roads.filter((r) => r.cat !== 'foot' && r.pts.length > 1);
+  for (const r of drivable) nodeOf.register(r);
+  nodeOf.expanded = new Set(drivable);
   // OSM ways that should meet sometimes stop a metre or two short
   for (const r of drivable) {
     const arr = nodeOf.get(r);
@@ -2372,6 +2394,20 @@ function vehicleCapsule(v) {
 // when the segments don't cross, and a good approximation for the shallow
 // crossing angles two cars on a road actually produce.
 function closestPointsBetweenSegments(s1, s2) {
+  // two bodies that cross each other (two cars through the same junction): the endpoint
+  // distances below say "a metre apart" and push them along a made-up normal, so they stayed
+  // stuck in each other; crossing segments are at distance zero, the caller then pushes them
+  // apart along the line between the centres (#265)
+  const d1x = s1.bx - s1.ax, d1y = s1.by - s1.ay, d2x = s2.bx - s2.ax, d2y = s2.by - s2.ay;
+  const den = d1x * d2y - d1y * d2x;
+  if (Math.abs(den) > 1e-6) {
+    const t = ((s2.ax - s1.ax) * d2y - (s2.ay - s1.ay) * d2x) / den;
+    const u = ((s2.ax - s1.ax) * d1y - (s2.ay - s1.ay) * d1x) / den;
+    if (t > 0 && t < 1 && u > 0 && u < 1) {
+      const x = s1.ax + d1x * t, y = s1.ay + d1y * t;
+      return { p1x: x, p1y: y, p2x: x, p2y: y, dist2: 0 };
+    }
+  }
   let p1x = s1.ax, p1y = s1.ay, p2x = s2.ax, p2y = s2.ay;
   let bestD2 = Infinity;
   let c = closestPointOnSegment(s1.ax, s1.ay, s2.ax, s2.ay, s2.bx, s2.by);
@@ -3328,9 +3364,9 @@ function onCarRoad(map, x, y) {
 }
 
 export function overOpenWater(map, x, y, z) {
-  if (!inMapWater(map, x, y) || map.isOnBridge(x, y)) return false;
-  // over the canal on a viaduct, or under it through the aqueduct
-  if (z > 1.5 || (z < -3 && map.coveredAt && map.coveredAt(x, y))) return false;
+  // the water rule with its walker/car vetoes: dry on a bridge, over the canal on a viaduct,
+  // or under it through the aqueduct (waterlevels.js waterPolyAt)
+  if (!waterPolyAt(map, x, y, z, BRIDGE_DRY)) return false;
   // water reaching over the edge of a dry road (a polygon's corner, the countryside's water field) is its embankment
   if (onCarRoad(map, x, y)) return false;
   // a ditch or shallows with a peil of their own are driven through, not sunk in

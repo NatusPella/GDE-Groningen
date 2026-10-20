@@ -106,7 +106,7 @@ for (const [x, y] of SPOTS) {
 const RS = await import('/js/roadsurface.js');
 const map = w.map;
 RS.setRoadNetwork(map);
-const init = await inWorker('roadInit', { url: new URL('citymap.json', location.href).href, keys: map.roads.map(RS.roadKey) });
+const init = await inWorker('roadInit', { url: new URL('stad.json', location.href).href, keys: map.roads.map(RS.roadKey) });
 report.roads.workerMap = init;
 const cmpPlain = (geo, p) => {
   if (!geo || !p) return !geo && !p;

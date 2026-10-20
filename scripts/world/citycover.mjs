@@ -3,7 +3,8 @@
 // buildMask, which the ground shader uses for the edge of the city's data).
 // build_province.mjs fills the city tiles' empty parts from the province's own
 // data: only what lies outside this cover goes into those overlay tiles.
-//   buildCityCover(map) -> { inside(x, y), tileShare(i, j) }
+//   buildCityCover(map) -> { inside(x, y), tileShare(i, j), mask() }
+//   cityCoverFromMask(mask) -> hetzelfde, uit het masker in stad.json (de kaartlagen zelf zijn er dan niet meer)
 import * as G from '../../game/js/gdt.js';
 
 const CELL = 40, MARGIN = 520, R = 3;
@@ -67,8 +68,13 @@ export function buildCityCover(map) {
     if (j < h - 1) stack.push(k + w);
   }
   for (let k = 0; k < w * h; k++) if (!seen[k]) occ[k] = 1;
+  return coverOf({ x0, y0, w, h, cell: CELL, occ });
+}
+
+// De dekking uit een grid (x0, y0, w, h, cell, occ) of uit het opgeslagen masker (stad.json: cover).
+function coverOf({ x0, y0, w, h, cell, occ }) {
   const inside = (x, y) => {
-    const i = Math.floor((x - x0) / CELL), j = Math.floor((y - y0) / CELL);
+    const i = Math.floor((x - x0) / cell), j = Math.floor((y - y0) / cell);
     return i >= 0 && j >= 0 && i < w && j < h && occ[j * w + i] === 1;
   };
   // the share of tile (i, j) the cover holds (a 25 x 25 sample)
@@ -78,5 +84,21 @@ export function buildCityCover(map) {
     for (let a = 0; a < 25; a++) for (let b = 0; b < 25; b++) if (inside(ox + (a + 0.5) * 40, oy + (b + 0.5) * 40)) n++;
     return n / 625;
   };
-  return { inside, tileShare };
+  // het masker als run-lengtes (om en om 0 en 1, te beginnen met 0): klein genoeg voor stad.json
+  const mask = () => {
+    const rle = [];
+    let cur = 0, run = 0;
+    for (let k = 0; k < occ.length; k++) { if (occ[k] === cur) run++; else { rle.push(run); cur = occ[k]; run = 1; } }
+    rle.push(run);
+    return { x0, y0, w, h, cell, rle };
+  };
+  return { inside, tileShare, mask };
+}
+
+// buildCityCover(map).mask() opgeslagen in stad.json: dezelfde dekking, zonder de kaart
+export function cityCoverFromMask(m) {
+  const occ = new Uint8Array(m.w * m.h);
+  let k = 0, v = 0;
+  for (const n of m.rle) { if (v) occ.fill(1, k, k + n); k += n; v ^= 1; }
+  return coverOf({ x0: m.x0, y0: m.y0, w: m.w, h: m.h, cell: m.cell, occ });
 }

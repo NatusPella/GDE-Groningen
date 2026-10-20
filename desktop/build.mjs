@@ -7,6 +7,7 @@ import { spawnSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { BUILD_ONLY } from '../scripts/lib/buildonly.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 import { createRequire } from 'module';
@@ -70,12 +71,17 @@ function packWorld() {
   const packer = path.join(root, 'scripts', 'world', 'pack_tiles.mjs');
   if (!fs.existsSync(packer) || !fs.existsSync(path.join(SRC, 'js', 'gdt.js'))) { console.log('no tile packer in this checkout: JSON map only'); return; }
   const h = crypto.createHash('sha1');
-  for (const f of ['citymap.json', 'mapextras.json', 'js/gdt.js', 'js/mapdata.js', 'js/elevation.js', 'js/passages.js', 'js/museumplan.js', 'js/util.js', 'js/worldbuilder.js', 'js/derive.js', 'js/spatialgrid.js']) h.update(fs.readFileSync(path.join(SRC, f)));
+  for (const f of ['stad.json', 'mapextras.json', 'js/gdt.js', 'js/mapdata.js', 'js/elevation.js', 'js/passages.js', 'js/museumplan.js', 'js/util.js', 'js/worldbuilder.js', 'js/derive.js', 'js/spatialgrid.js']) h.update(fs.readFileSync(path.join(SRC, f)));
   h.update(fs.readFileSync(packer));
   // STAD_LAAG (#90): de stadslagen uit de OSM-bouw maken een andere wereld
   h.update(String(process.env.STAD_LAAG || ''));
   const stadLaag = path.join(root, 'scripts', 'world', 'stad_laag.mjs');
   if (fs.existsSync(stadLaag)) h.update(fs.readFileSync(stadLaag));
+  // wegen en spoor van de stad uit OSM (stad_wegen.mjs en wat het aanroept): de oplossers en het ringprofiel bepalen de stadswegen
+  for (const f of ['stad_wegen.mjs', 'stad_spoor.mjs', 'ring_elevation.mjs', 'profile.mjs', 'railprofile.mjs', 'stad_cache.mjs', 'stad_na.mjs', 'stad_bomen.mjs', 'stad_bomen.json', 'binnenplaatsen.json']) { const q = path.join(root, 'scripts', 'world', f); if (fs.existsSync(q)) h.update(fs.readFileSync(q)); }
+  // de dekking van de stadskaart (stad.json): bepaalt welke OSM-rijen de stad krijgt
+  const stadCover = path.join(root, 'scripts', 'world', 'citycover.mjs');
+  if (fs.existsSync(stadCover)) h.update(fs.readFileSync(stadCover));
   // what else goes into the rows when the checkout has it: the height chain,
   // the profiles, junctions and routes, the building attributes, the 3D BAG
   // extract and fetched AHN rasters
@@ -102,7 +108,7 @@ function packWorld() {
     h.update(VIADUCTS ? 'viaducts' : 'flat');
     // what the province build runs besides (derive_tiles.mjs: the city's derivation; bag3d.mjs: 3D BAG)
     for (const f of ['derive_tiles.mjs', 'junction_tiles.mjs', 'building_clearance.mjs', 'bag3d.mjs', 'province_profile.mjs', 'bridgededupe.mjs', 'bridge_audit.mjs', 'profile.mjs']) h.update(fs.readFileSync(path.join(root, 'scripts', 'world', f)));
-    for (const f of ['builderhooks.js', 'greenery.js', 'streetfurniture.js', 'junctions.js']) h.update(fs.readFileSync(path.join(SRC, 'js', f)));
+    for (const f of ['builderhooks.js', 'greenery.js', 'streetfurniture.js', 'junctions.js', 'waterlevels.js']) h.update(fs.readFileSync(path.join(SRC, 'js', f)));
     const bagP = path.join(root, 'data', 'world', '3dbag_province.json.gz');
     if (fs.existsSync(bagP)) h.update(fs.readFileSync(bagP));
     for (const d of provDirs) for (const f of fs.readdirSync(d).filter((q) => q.endsWith('.json.gz')).sort()) { h.update(f); h.update(fs.readFileSync(path.join(d, f))); }
@@ -111,6 +117,8 @@ function packWorld() {
   const cache = path.join(WCACHE, 'world-' + h.digest('hex').slice(0, 16));
   if (!fs.existsSync(path.join(cache, 'index.json'))) {
     fs.rmSync(cache, { recursive: true, force: true });
+    // stad.json is de handlaag: water, groen, bomen en gebouwen van de stad komen uit de OSM-tegelbouw (data/cache/province)
+    if (!provDirs.length) throw new Error('the city layers come from the OSM tile build: run scripts/world/extract_province.py (data/cache/province), or set GDE_PREBUILT_WORLD');
     const t = Date.now();
     const r = spawnSync(process.execPath, [packer, '--game', SRC, '--out', cache], { stdio: 'inherit', cwd: root });
     if (r.status !== 0) { fs.rmSync(cache, { recursive: true, force: true }); throw new Error('packing the map tiles failed'); }
@@ -133,7 +141,9 @@ async function main() {
   console.log(`staging GDE Groningen ${version}`);
   fs.rmSync(process.env.GDE_STAGE_OUT ? OUT : path.join(HERE, 'build'), { recursive: true, force: true });
   // tts.json records how each voice clip was made; the game never reads it
-  fs.cpSync(SRC, OUT, { recursive: true, filter: (p) => path.basename(p) !== 'tts.json' });
+  // build-only modules of game/js (scripts/lib/buildonly.mjs) stay out of the app
+  const skipJs = new Set(BUILD_ONLY.map((f) => path.join(SRC, 'js', f)));
+  fs.cpSync(SRC, OUT, { recursive: true, filter: (p) => path.basename(p) !== 'tts.json' && !skipJs.has(p) });
   // the start screen's "Wat is er nieuw" panel reads the changelog
   fs.copyFileSync(path.join(HERE, '..', 'CHANGELOG.md'), path.join(OUT, 'CHANGELOG.md'));
   // the vendored three.js and fonts must ship with their licence texts

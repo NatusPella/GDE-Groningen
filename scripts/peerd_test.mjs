@@ -17,7 +17,8 @@ const place = /function placePeerd\(\) \{([\s\S]*?)\n\}/.exec(src);
 check(place && !/F\.night|Math\.random|islands|list\[/.test(place[1]), 'placePeerd hangt niet van nacht, toeval of tegels af');
 
 // de plek is het midden van een echte rotonde (zoals de kaart ze kent)
-const map = JSON.parse(fs.readFileSync(new URL('../game/citymap.json', import.meta.url)));
+const { loadStadData } = await import('./lib/loadworld.mjs');
+const map = await loadStadData();
 let best = Infinity, ring = null;
 for (const r of map.roads) {
   if (!r.roundabout || r.z) continue;

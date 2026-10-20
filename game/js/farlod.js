@@ -42,6 +42,29 @@ if (distance(lodCenter, uLodPlayer) <= uLodDetailR) gl_Position = vec4(0.0, 0.0,
 uniform float uNightGlow, uLitFrac;
 varying vec3 vFarW;
 varying float vFarSeed;`)
+      .replace('#include <color_fragment>', `#include <color_fragment>
+{
+  // flat roofs: panel seams every 24 m and a slightly different tone per panel, so a big hall is no empty grey plane (#260)
+  vec3 rn = normalize(cross(dFdx(vFarW), dFdy(vFarW)));
+  if (abs(rn.y) > 0.9) {
+    vec2 rg = vFarW.xz / 24.0;
+    vec2 rfw = max(fwidth(rg), vec2(1e-5));
+    vec2 rf = abs(fract(rg - 0.5) - 0.5) / rfw;
+    float seam = 1.0 - min(min(rf.x, rf.y), 1.0);
+    float fade = 1.0 - smoothstep(0.15, 0.45, max(rfw.x, rfw.y));
+    float tone = fract(sin(dot(floor(rg), vec2(12.9898, 78.233))) * 43758.5453);
+    diffuseColor.rgb *= (0.93 + 0.14 * tone * fade + 0.07 * (1.0 - fade)) * (1.0 - 0.16 * seam * fade);
+  } else if (abs(rn.y) < 0.3) {
+    // walls: a grid of dark windows by day too (same grid as the night glow), so a far block reads as a building and not as a grey slab (#259)
+    vec2 wt = normalize(vec2(-rn.z, rn.x));
+    vec2 wg = vec2(dot(vFarW.xz, wt) / 2.6, vFarW.y / 3.1);
+    vec2 wf = fract(wg);
+    float wwin = step(0.3, wf.x) * step(wf.x, 0.7) * step(0.32, wf.y) * step(wf.y, 0.78);
+    float wblur = smoothstep(0.3, 0.9, max(fwidth(wg.x), fwidth(wg.y)));
+    diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.13, 0.17, 0.22), wwin * (1.0 - wblur) * 0.62);
+    diffuseColor.rgb *= mix(1.0, 0.9, wblur);
+  }
+}`)
       .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
 if (uNightGlow > 0.0) {
   vec3 wn = normalize(cross(dFdx(vFarW), dFdy(vFarW)));

@@ -80,13 +80,14 @@ Newer helpers and tests worth knowing:
 
 | Script | What it is |
 | --- | --- |
-| `scripts/lib/loadworld.mjs` | The city map for tests and audits. `WORLD_SRC=json` (default) loads `citymap.json`; `WORLD_SRC=tiles` builds the same city from tiles in memory (#90). `loadworld_test.mjs` |
+| `scripts/lib/loadworld.mjs` | The city for tests and audits: `loadCityData()` (the map data: stad.json + the OSM layers + mapextras), `loadCityWorld()` (a GameMap, or with `WORLD_SRC=tiles` the tiles built in memory, #90). Without `data/cache/province` the test ends with SKIP. `loadworld_test.mjs` |
 | `scripts/devflags_test.mjs` | Guards the `FLAGS` register: every switch has a description and is listed here |
 | `scripts/storage_migration_test.mjs`, `save_migration_test.mjs` | Old keys and old saves keep loading; run these after adding any `gde-*` key (register it in `storagekeys.js`) |
-| `scripts/busy_test.mjs`, `activityhub_test.mjs`, `hudbus_test.mjs`, `hud_test.mjs` | The player-busy gate, the activity registry, the attention planner and the HUD rules |
+| `scripts/busy_test.mjs`, `activityhub_test.mjs`, `hudbus_test.mjs`, `hudbus_surfaces_test.mjs`, `hud_test.mjs` | The player-busy gate, the activity registry, the attention planner and the HUD rules |
 | `scripts/cutscript_test.mjs`, `actoranim_test.mjs` | The cutscene language (validator, sampler) and the actor animation layer |
 | `scripts/spatialgrid_test.mjs`, `nearest_road_test.mjs` | The shared grid and the nearest-road query |
-| `scripts/mapstyle_test.mjs`, `regions_test.mjs`, `loadlogic_test.mjs` | Map style table, regions and load-screen logic |
+| `scripts/mapstyle_test.mjs`, `regions_test.mjs`, `loadlogic_test.mjs` | Map style table (palettes, `INK`, icon colours, the zoom/layer rule; no loose colour literals in the map renderers), regions and load-screen logic |
+| `scripts/qa/kaartstijl_shots.mjs` | Minimap and full map, day and night, at fixed spots and zooms, for a before/after run on two staged games (`--game-dir=voor=<map>,na=<map> --slot`) |
 | `scripts/simlagen_test.mjs`, `simworker_test.mjs` | Simulation layers and the simulation worker kernel |
 | `scripts/padlogic_test.mjs`, `touch_test.mjs` | Controller and touch logic without hardware |
 | `scripts/akte1_doelen_test.mjs`, `reisbeats_test.mjs`, `reisaudit_test.mjs` (elke sprong >6,5 km tussen opeenvolgende stappen heeft een reisbeat), `reiskeuze_test.mjs`, `reistijd_test.mjs` | Every act-1 mission goal exists on the map; travel beats |
@@ -228,10 +229,8 @@ Debug hooks on `window` (`window.__x`, read by scripts/perf, the story test and 
 | `?cut` | Trailer: montagevariant (vol, kort, ...) |
 | `?frames` | Trailer: sla beeld voor beeld op |
 | `?video` | Trailer: neem video op (alleen desktop) |
-| `?legacymap` | Laad de oude kaart in plaats van de tegelwereld |
 | `?terrain` | Hoogtes volgen het AHN-terrein (dijken, wierden; het terrein wordt nog niet getekend) |
 | `?viaducten` | Hoogteprofielen van provinciebruggen en viaducten uit de tegels (alleen als gebouwd met --viaducts; het hoogtemodel volgt nog) |
-| `?stadlaag` | Stad per laag uit de gedeelde tegelbouw (gebouwen, wegen, water, spoor, groen, meubilair, poi, objecten, namen, of alle); #90, standaard uit |
 | `?nobatch` | Zet het samenvoegen van meshes uit (scene3d) |
 | `?shaderdebug` | Laat three.js shaderfouten controleren |
 | `?noworker` | Geometrie op de hoofdthread in plaats van in de worker |
@@ -255,10 +254,10 @@ Debug hooks on `window` (`window.__x`, read by scripts/perf, the story test and 
 | `?sfxtest` | Geluidstest: paneel met alle effecten, een afstandsschuif en een afspeelknop per effect; F8 verbergt het (#173) |
 | `?perfoff` | A/B-meting: zet prestatiestappen uit, namen gescheiden door +, bv. perfoff=schaduw+actoren (devflags.js, scripts/perf/ab.mjs) |
 
-Every switch above is **off by default**: nothing changes for a player unless the name is in the URL. Value switches (`?shot=3`, `?marker=vorm`, `?stadlaag=gebouwen,wegen`, `?touch=1`, `?preset=quality:laag`, `?gpu=<renderer>`, `?benchmark=<rounds>`) are null when absent. The ones to reach for most often:
+Every switch above is **off by default**: nothing changes for a player unless the name is in the URL. Value switches (`?shot=3`, `?marker=vorm`, `?touch=1`, `?preset=quality:laag`, `?gpu=<renderer>`, `?benchmark=<rounds>`) are null when absent. The ones to reach for most often:
 
 - Testing without touching your save: `?dev` (F9 panel) or `?storytest`; both use `gde-dev:` storage or memory.
-- Features still in trial, off by default so the game stays as it was: `?coop`, `?stadlaag`.
+- Features still in trial, off by default so the game stays as it was: `?coop`.
 - Diagnosis: `?pixeldebug` (NaN/Inf pixels magenta), `?hitch`, `?zwartcheck`, `?shaderdebug`, `?noworker`, `?nobatch`.
 - `?marker=vorm` brings back the old fixed 3D marker shapes. A new switch is added to `FLAGS` and `FLAG_DOCS` only, and to the table above; `devflags_test.mjs` fails otherwise.
 
@@ -437,7 +436,7 @@ What the web build (`web/build.mjs`) adds on top of `desktop/build.mjs`:
   whole pack once. Music (G-Music, race/chase, theme) stays one file per
   track. Nothing is fetched before `play()`, so the 14 G-Music elements the
   game makes at boot stay empty.
-- **Loading screen**: the map data (citymap, mapextras, ommeland: 15 MB) shows
+- **Loading screen**: the map data (the world tiles, stad.json, mapextras) shows
   "Grunn downloaden… x / 15,1 MB"; the game starts when the code and the map
   are in, audio follows when it plays.
 - **Service worker** (`sw.js`, only in the web build; `?nosw` skips it): each
@@ -458,71 +457,46 @@ already 48 kbps mono mp3). `web-dist/` holds both formats: 521 files,
 258 MB; the zip is ~242 MB. A browser with Opus downloads ~23 MB before the
 title screen (code 7 MB, map 15 MB) and at most ~108 MB if every clip
 plays. itch.io HTML5 limits (1000 files, 200 MB per file, 500 MB unpacked):
-it fits, with the largest file at 11.7 MB (`citymap.json`).
+it fits, with the largest file at 17.3 MB (an audio pack).
 
 
 ## Map data
 
-`game/citymap.json` is built from OpenStreetMap data in one go:
+The city is built like the rest of the province (#90). There is no city map file any more: `game/citymap.json`,
+`data/groningen_raw.json`, the `data/*_raw.json` hand sources and the Python chain (`build_map.py`, `process_osm.py`,
+`add_*.py`, ...) are gone. What the city needs comes from two places:
 
-```
-python3 scripts/build_map.py            # from the caches in data/ (fetches what is missing)
-python3 scripts/build_map.py --refresh  # refetch every Overpass cache first
-```
+- **OpenStreetMap, through the province build.** The extract in `data/cache/province` (made by
+  `scripts/world/extract_province.py`, not in git) feeds `buildProvince` (`scripts/world/build_province.mjs`). For the city's 58
+  tiles `scripts/world/stad_laag.mjs` takes the buildings, water, green and trees from that build, and
+  `scripts/world/stad_wegen.mjs` + `stad_spoor.mjs` make the roads and rails with their height profiles: the same solvers as
+  before (`profile.mjs`, `railprofile.mjs`), the ring heights in `ring_elevation.mjs` (a JS port of `add_elevation.py`), lanes,
+  junctions and traffic lights from the OSM tags. `stad_na.mjs` applies the city's own rules to those rows (no trees on minigame
+  courses, lanes and paths; courtyards cut out of buildings from `scripts/world/binnenplaatsen.json`); `stad_bomen.json` keeps the old
+  species of the city's trees. `scripts/world/stad_cache.mjs` caches the result in the temp directory (a cold build takes 4-5
+  minutes, then about 10 seconds; `GDE_STAD_CACHE=0` turns it off).
+- **`game/stad.json` (0.2 MB, committed).** The hand layer: `meta` (landmarks, districts, neighbourhood points, garages, horeca, POIs,
+  shops, hospital, police, bounds, locks), the 30 hand-made buildings (landmarks such as the Martinitoren, the Academiegebouw and
+  Paddepoel, the helipad), the mapped street furniture, the city's tiles (`tiles`) and its coverage (`cover`, a run-length mask).
+  `game/mapextras.json` (bus roads and lanes, road patches, building patches, passages, fuel stations, padel courts) and
+  `game/landmarkkits.json` stay as they were.
+  See docs/ARCHITECTUUR-STAD-NAAR-TEGELS.md section 4.5 for the key table and how landmarks, POIs and names hang on tiles.
 
-The map covers the whole ringweg (Westelijke, Noordelijke, Oostelijke and
-Zuidelijke Ringweg with Julianaplein, Europaplein, Euvelgunne and
-Noorderhoogebrug) plus ~300 m around it; beyond that the Ommelanden take
-over: real roads, rails, water and villages in low detail for ~12 km, with
-the procedural fields, ditches, farms and animals in between, and fully
-procedural polders further out. Every script projects lat/lon to the world
-frame, RD New shifted to the old origin (`scripts/world/rdnew.py`, see
-ARCHITECTURE.md "Units and coordinates"); hand-placed points in the scripts
-(ring waypoints, train exits, building patches) are written in the old frame
-inside `P(...)`. The caches stay keyed on the lat/lon box they were fetched
-for (`meta.wgsBox`), so nothing is refetched. The data in the repo was moved
-to RD once with `scripts/world/rebase_data.py` (it was not exactly
-reproducible from the caches); a fresh build agrees with it to the
-decimetre inside the map (only the cut at the outer rectangle differs). The
-steps, in order:
+The map covers the whole ringweg plus its surroundings; beyond the city's coverage the province tiles take over. Every script
+projects lat/lon to the world frame, RD New shifted to the old origin (`scripts/world/rdnew.py`, see ARCHITECTURE.md "Units and
+coordinates").
 
-1. `fetch_osm.py`: the ways around the city core into `data/ring_raw.json.gz`
-   and `data/ring_extra.json.gz` (only if missing). The core itself comes
-   from `data/groningen_raw.json` and `data/groningen_extra.json`.
-2. `process_osm.py`: roads (with their grade tags: layer, tunnel, viaduct),
-   buildings, water, green and trees, cropped to the ring and its margin
-   (`ringloop.py` finds the ring loop on the road graph).
-3. `add_elevation.py`: heights for the ring and its grade-separated
-   junctions (`road.z` per vertex): sunken Zuidelijke Ringweg, viaducts,
-   ramps at most ~5%, everything else flat.
-4. `add_landmarks.py`, `add_districts.py`, `add_garages.py`, `add_horeca.py`,
-   `add_traffic_lights.py`, `add_pois.py` (health, money, weapons and armor
-   spots; the health ones are pedestrian destinations).
-5. `add_railways.py`: rails, stations, level crossings, train routes and the
-   rail lifts (not where the ring already passes over or under the track).
-6. `add_helipad.py`, `add_landmark_footprints.py`, `add_shops.py`.
-7. `gen_ringroute.py`: writes `game/js/ringroute.js`, the ring race lap.
-
-8. `fetch_ommeland.py` + `add_ommeland.py`: the real Ommelanden round the
-   city (Zuidhorn to Ten Boer, Winsum to Eelde and the Zuidlaardermeer) into
-   `game/ommeland.json` (narrow waterways, rails, places, churches,
-   stations and the train routes carried on to Haren, Zuidhorn, Sauwerd,
-   Winsum, Bedum, Kropswolde and Martenshoek) and `game/ommeland.bin`
-   (gzip: the water distance field and the building boxes, which are only read for
-   the built-up mask: the tiles are the buildings and roads). `citymap.json` is not
-   touched. Needs numpy and Pillow. The cache `data/ommeland_raw.json.gz`
-   keeps only trimmed tags and building boxes.
-
-Then the tiles (`node scripts/world/pack_tiles.mjs [--out game/world]`, about
-20 s; `cd desktop && npm run stage` does it for the staged game and caches it
-by the hash of its inputs). `python3 scripts/world/building_attrs.py` rewrites
-`data/world/building_attrs.json.gz` (building tags from the OSM caches) when
-the caches change. The game reads `world/` when it is there and the JSON
-files when it is not (`?legacymap` forces the JSON files). `scripts/devserver.py`
+Then the tiles (`node scripts/world/pack_tiles.mjs [--out game/world]`; `cd desktop && npm run stage` does the whole province and
+caches it by the hash of its inputs, about 15 minutes). `data/world/building_attrs.json.gz` (building tags from the former OSM city caches) is committed data now: its generator went with the old city path. Without `data/cache/province` a stage needs
+`GDE_PREBUILT_WORLD=<a built world>`; tests that need the city skip with a SKIP line. The game reads `world/`; `scripts/devserver.py`
 answers HTTP Range requests, like the desktop app and the web build.
 
-Building heights and roofs of the whole province come from 3D BAG (TU Delft
-and 3DGI, CC BY 4.0, credited in the game's credits):
+Pictures say more than numbers when the city changes: `node scripts/qa/stadvergelijk.mjs --game-dir=A=<stage>,B=<stage> --out=<dir> --slot`
+photographs 67 fixed places (day, and night for a part) in two staged games, `scripts/qa/stadverschil.mjs` measures the difference
+per picture (a coarse signature `sg`, pixels, edges, blocks) with the noise level of a second run of the same game, and
+`scripts/qa/stadblad.mjs` makes contact sheets with the pairs side by side.
+
+Building heights and roofs of the whole province come from 3D BAG (TU Delft and 3DGI, CC BY 4.0, credited in the game's credits):
 
 ```
 python3 scripts/world/fetch_3dbag.py --province --list   # tiles and sizes, no download
@@ -543,9 +517,7 @@ with a pause. The merge, `data/world/3dbag_province.json.gz` (rows under
 footprint with an area within 25 %) and uses the height chain 3D BAG > OSM
 height > OSM levels > default; every building keeps its `hsrc`.
 
-Overpass responses are cached in `data/` together with the box they cover
-(`osmfetch.py`) and refetched when the map outgrows them. Keys another tool
-added to `citymap.json` are carried over by `build_map.py`.
+Overpass responses that are still cached in `data/` together with the box they cover (`osmfetch.py`) are used by the corridor tools.
 
 ## Known limits
 
@@ -561,8 +533,7 @@ added to `citymap.json` are carried over by `build_map.py`.
   `countryedge.js` `countryWater`); the ground is flat where there is no
   AHN raster.
 - Squares mapped as OSM multipolygon relations (such as the Grote Markt
-  paving) and some named canals are not in the data yet, because
-  `process_osm.py` only fetches ways.
+  paving) are only in the data as far as the province extract carries them.
 
 ## AHN-hoogtes (issue #78)
 

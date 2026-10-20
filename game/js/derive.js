@@ -4,7 +4,8 @@
 // ring carriageway. The GameMap constructor (mapdata.js) runs it on the
 // city; the province tile build (scripts/world/build_province.mjs) runs the
 // same code per pack, so a village gets what the city gets.
-import { polygonBounds, pointInPolygon, pointInStaticPolygon } from './util.js';
+import { polygonBounds, pointInPolygon } from './util.js';
+import { waterPolyIn } from './waterlevels.js';
 
 // OSM sometimes has the same footprint twice (e.g. Forum Groningen). Two
 // identical extrusions z-fight over their whole roof, so keep one - the
@@ -94,10 +95,7 @@ function buildingsOverRails(buildings, rails) {
 function bridgeStructures(buildings, roads, water) {
   const crossed = buildingsCrossedBy(buildings, roads.filter((r) => r.bridge).map((r) => r.pts), 1);
   const out = new Set();
-  const wet = (x, y) => water.some((w) => {
-    const [minx, miny, maxx, maxy] = w.bounds || (w.bounds = polygonBounds(w.pts));
-    return x >= minx && x <= maxx && y >= miny && y <= maxy && pointInStaticPolygon(x, y, w.pts);
-  });
+  const wet = (x, y) => !!waterPolyIn(water, x, y);
   for (const b of crossed) {
     if (b.h > 4 || b.name || b.landmark || b.type === 'houseboat') continue;
     if (b.pts.some(([x, y]) => [[0, 0], [3, 0], [-3, 0], [0, 3], [0, -3]].some(([dx, dy]) => wet(x + dx, y + dy)))) out.add(b);
@@ -143,7 +141,7 @@ function mooredHouseboats(buildings, water) {
       const wb = w.bounds || (w.bounds = polygonBounds(w.pts));
       return wb[0] < maxx + R && wb[2] > minx - R && wb[1] < maxy + R && wb[3] > miny - R;
     });
-    const wet = (x, y) => pools.some((w) => x >= w.bounds[0] && x <= w.bounds[2] && y >= w.bounds[1] && y <= w.bounds[3] && pointInStaticPolygon(x, y, w.pts));
+    const wet = (x, y) => !!waterPolyIn(pools, x, y);
     const cx = (minx + maxx) / 2, cy = (miny + maxy) / 2;
     const samples = b.pts.map(([x, y]) => {
       const dx = cx - x, dy = cy - y, l = Math.hypot(dx, dy) || 1, k = Math.min(0.3, l / 2) / l;
@@ -260,7 +258,8 @@ export function deriveBuildings(data) {
   const all = dedupeBuildings(data.buildings.filter((b) => !bridgeParts.has(b)));
   const overRails = buildingsOverRails(all, data.rails || []);
   const onRing = buildingsOnRing(all, data.ringRoads || data.roads);
-  const isCanopy = (b) => b.type === 'roof' || overRails.has(b);
+  // (b.canopy: a roof the tile build already derived as one, put back in the city's data by stad_laag.mjs)
+  const isCanopy = (b) => b.type === 'roof' || b.canopy === true || overRails.has(b);
   const canopies = all.filter((b) => isCanopy(b) && !onRing.has(b));
   const sunkBoats = mooredHouseboats(all, data.water);
   const buildings = all.filter((b) => !isCanopy(b) && !onRing.has(b) && !sunkBoats.has(b));

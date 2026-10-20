@@ -6,7 +6,7 @@ import { knockFx } from './knockfx3d.js';
 import { getSettings } from './settings.js';
 import { dropWeapon } from './weapondrops.js';
 import { isCinematicActive } from './cinematics.js';
-import { isMissionActive } from './missions.js';
+import { isMissionActive } from './missionquery.js';
 import { isActivityActive } from './activities.js';
 import { inHomeFlat } from './home.js';
 import { RAGE, RAGE_TEXT, levelOf, rageChance, mayRage, rollWeapon, hitDamage, yields, givesUp } from './roadragerules.js';

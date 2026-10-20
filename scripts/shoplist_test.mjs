@@ -34,9 +34,9 @@ is(itemIcon({ id: 'x', label: 'Mysterie' }, 'kleding'), 'kleding', 'shop fallbac
 is(itemIcon({ id: 'x', label: 'Mysterie' }, 'onbekend'), 'standaard', 'last fallback');
 is(itemIcon({ id: 'x', label: 'Mysterie' }, '', 'Eten & drinken'), 'eten', 'section fallback');
 // every real item of the stock lands on a drawn icon, and all shop types have one
-// shops.js pulls in three.js from a CDN, so the stock is read as text from its source
+// shops.js pulls in three.js from a CDN, so the stock is read as text from its source (the shop types are in shopdata.js)
 import fs from 'node:fs';
-const src = fs.readFileSync(new URL('../game/js/shops.js', import.meta.url), 'utf8').split(/\r?\n/);
+const src = ['shops.js', 'shopdata.js'].flatMap((f) => fs.readFileSync(new URL('../game/js/' + f, import.meta.url), 'utf8').split(/\r?\n/));
 const labels = (re) => src.map((l) => (l.match(re) || [])[1]).filter(Boolean);
 const shopTypes = labels(/^  (\w+): \{ color: '#/);
 ok(shopTypes.length >= 15, 'found the shop types', String(shopTypes.length));

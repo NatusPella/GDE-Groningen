@@ -1,17 +1,9 @@
-// The wereldbouwer (game/js/worldbuilder.js, docs/PROVINCIE-PLAN.md 2.5):
-//  1. the OSM adapter, run over the city's own raw OSM cache, gives the
-//     city's road rows (class, lanes, width, speed, access) and building
-//     rows (type, levels) as process_osm.py built them: the audit that lets
-//     the city go through the same entry point;
-//  2. the height evidence order, the lane model and the hooks.
+// The wereldbouwer (game/js/worldbuilder.js, docs/PROVINCIE-PLAN.md 2.5): the height evidence order, the lane model, the hooks,
+// ditches and parcels. (The check of the OSM adapter against process_osm.py's city rows went with the old city path, #90.)
 //   node scripts/worldbuilder_test.mjs
 import './node3d.mjs';
-import fs from 'node:fs';
-import zlib from 'node:zlib';
 
-const root = new URL('../game/', import.meta.url);
 const WB = await import('../game/js/worldbuilder.js');
-const { capBuilding } = await import('../game/js/buildingcap.js');
 let fails = 0;
 const fail = (m) => { fails++; console.log('FAIL ' + m); };
 const eq = (a, b) => JSON.stringify(a) === JSON.stringify(b);
@@ -45,74 +37,6 @@ const eq = (a, b) => JSON.stringify(a) === JSON.stringify(b);
   if (tall.hsrc !== 'osm_height' || tall.hm !== 21) fail('OSM height: ' + JSON.stringify(tall));
   WB.registerHook('furniture', (tile) => tile.roads.map((q) => ({ kind: 'bench', x: q.pts[0][0], y: q.pts[0][1] })));
   if (WB.runHooks('furniture', { roads: [r] }).length !== 1) fail('furniture hook');
-}
-
-// --- 1. the city: the OSM adapter against process_osm.py's rows -------------------
-{
-  // process_osm.py's sources, first copy of each element wins
-  const els = [], seen = new Set();
-  for (const f of ['groningen_raw.json', 'groningen_extra.json', 'ring_raw.json.gz', 'ring_extra.json.gz']) {
-    let b = fs.readFileSync(new URL('../data/' + f, import.meta.url));
-    if (f.endsWith('.gz')) b = zlib.gunzipSync(b);
-    for (const el of JSON.parse(b).elements) { const k = el.type + el.id; if (!seen.has(k)) { seen.add(k); els.push(el); } }
-  }
-  const raw = { elements: els };
-  const city = JSON.parse(fs.readFileSync(new URL('citymap.json', root)));
-  const t0 = performance.now();
-  const rows = { roads: [], buildings: [] };
-  for (const el of raw.elements) for (const f of WB.fromOsm(el)) if (rows[f.kind]) rows[f.kind].push(f.row);
-  const duals = WB.applyDuals(rows.roads);
-  const ms = performance.now() - t0;
-  // roads: by OSM id (the car roads carry it)
-  const byOsm = new Map();
-  for (const r of rows.roads) if (r.osm !== undefined) byOsm.set(r.osm, r);
-  const FIELDS = ['type', 'cat', 'speed', 'oneway', 'roundabout', 'lanesFwd', 'lanesBwd', 'lanes', 'laneW', 'width', 'widthSrc'];
-  const miss = Object.fromEntries(FIELDS.map((k) => [k, 0]));
-  let n = 0, found = 0;
-  const ex = {};
-  for (const c of city.roads) {
-    if (c.osm === undefined) continue;
-    n++;
-    const r = byOsm.get(c.osm);
-    if (!r) continue;
-    found++;
-    for (const k of FIELDS) if (c[k] !== r[k] && !(k === 'width' && Math.abs(c[k] - r[k]) < 0.011)) { miss[k]++; if (!ex[k]) ex[k] = `${c.osm} ${c.type}: ${c[k]} vs ${r[k]}`; }
-  }
-  const worst = Math.max(...Object.values(miss));
-  console.log(`city roads: ${found}/${n} car ways found in the raw cache, ${duals} dual carriageways; differing per field ${JSON.stringify(miss)} (${(ms / 1000).toFixed(1)} s for ${raw.elements.length} elements)`);
-  for (const [k, v] of Object.entries(ex)) console.log(`  e.g. ${k}: ${v}`);
-  if (found < n * 0.97) fail(`only ${found}/${n} city car roads found by OSM id`);
-  if (worst > found * 0.01) fail(`more than 1% of the city's car roads differ in a field (${worst})`);
-  // buildings: the city row whose first vertex the adapter's row shares
-  // the same outline: vertex mean within 0.3 m and the same vertex count, or (a footprint
-  // building_clearance.mjs pushed off a road, with the extra vertices that adds) within 2.5 m
-  const cen = (P) => P.reduce((a, p) => [a[0] + p[0] / P.length, a[1] + p[1] / P.length], [0, 0]);
-  const byCell = new Map();
-  for (const b of rows.buildings) { const c = cen(b.pts); const k = `${Math.round(c[0])},${Math.round(c[1])}`; (byCell.get(k) || byCell.set(k, []).get(k)).push([c, b]); }
-  const lookup = (P) => {
-    const c = cen(P);
-    for (let dx = -3; dx <= 3; dx++) for (let dy = -3; dy <= 3; dy++) for (const [q, b] of byCell.get(`${Math.round(c[0]) + dx},${Math.round(c[1]) + dy}`) || []) { const d = Math.hypot(q[0] - c[0], q[1] - c[1]); if ((b.pts.length === P.length && d < 0.3) || (b.pts.length !== P.length && d < 2.5)) return b; }
-    return null;
-  };
-  let nb = 0, fb = 0, dt = 0, dh = 0;
-  const tdiff = {}, hdiff = {};
-  for (const b of city.buildings) {
-    if (b.landmark || b.landmarkPart) continue;
-    nb++;
-    const o = lookup(b.pts);
-    if (!o) continue;
-    fb++;
-    if (o.type !== b.type) { dt++; const k = b.type + '>' + o.type; tdiff[k] = (tdiff[k] || 0) + 1; }
-    // (the city's measured heights come from the 3D BAG, which this run of the adapter does not read)
-    // (buildingcap.js trims what a footprint cannot carry on purpose, #179: expect the old row through the same cap)
-    if (o.h !== b.h && b.hsrc !== '3dbag' && o.h !== capBuilding({ ...b }).h) { dh++; const k = b.h + '>' + o.h; hdiff[k] = (hdiff[k] || 0) + 1; }
-  }
-  console.log(`city buildings: ${fb}/${nb} matched by outline, type differs ${dt}, levels differ ${dh}`);
-  const top = (o) => Object.entries(o).sort((a, b) => b[1] - a[1]).slice(0, 8).map(([k, v]) => `${k} ${v}`).join(', ');
-  console.log(`  type (city>builder): ${top(tdiff)}\n  levels: ${top(hdiff)}`);
-  if (fb < nb * 0.99) fail(`only ${fb}/${nb} city buildings matched`);
-  if (dt > fb * 0.005) fail(`${dt} city building types differ`);
-  if (dh > fb * 0.005) fail(`${dh} city building levels differ (only height-tagged ones should)`);
 }
 
 // the real ditches, drains and brooks become waterway lines (#124); a culvert does not
