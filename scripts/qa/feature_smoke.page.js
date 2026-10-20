@@ -429,9 +429,12 @@ const CHECKS = [
       await go(sh.x, sh.y, 0, 3500);
       w.wanted = 0;
       const prompt = S.shopPrimaryPrompt(w);
-      await tap('e', 'KeyE', 120);
-      await sleep(1500);
+      const dichtbij = !!S.nearestShop(w);
+      let pogingen = 0;
+      // E tot het paneel opengaat (maximaal drie keer): een eerste E dat niets doet is zelf een bevinding
+      while (pogingen < 3 && !SU.isShopOpen()) { pogingen++; await tap('e', 'KeyE', 160); await sleep(1500); }
       const open = SU.isShopOpen();
+      const meldingen = (w.messages || []).slice(-2).map((m) => (m.text || '').slice(0, 80));
       const panel = document.getElementById('shop-menu');
       const items = panel ? [...panel.querySelectorAll('.sm-item')].map((e) => (e.textContent || '').replace(/s+/g, ' ').trim().slice(0, 60)) : [];
       await snap('winkelen-' + type, 300);
@@ -444,7 +447,7 @@ const CHECKS = [
         await snap('winkelen-' + type + '-gekocht', 300);
       }
       await tap('Escape', 'Escape', 120); await sleep(600);
-      out.push({ type, naam: sh.name, prompt: prompt && prompt.label, open, items: items.length, eerste: items[0] || null, gekocht, dichtNaEsc: !SU.isShopOpen() });
+      out.push({ type, naam: sh.name, prompt: prompt && prompt.label, dichtbij, pogingen, wanted: w.wanted, meldingen, open, items: items.length, eerste: items[0] || null, gekocht, dichtNaEsc: !SU.isShopOpen() });
     }
     return { winkels: out, opmerking: 'per type de eerste winkel; het eerste item is gekocht met €5000 op zak; niet beoordeeld: prijzen, voorraad, of het gekochte voertuig of kledingstuk er goed uitziet' };
   } },
