@@ -48,7 +48,7 @@ const loaded = async () => { for (let i = 0; i < 60 && document.querySelector('.
 const ov = () => [...document.querySelectorAll('#cine .cine-banner:not([hidden]), #name-card.on, #wijk-card.on, #hud .hud-card.on, #hud .hud-cards-e .hud-card, #hud .cw-panel:not([hidden]), #hud .hud-place.on')].map((e) => (e.id || e.className.split(' ')[0]) + (e.classList.contains('ov-hold') ? '(wacht)' : ''));
 // rects van alles wat de speler kan zien, en welke elkaar raken (in px van het venster)
 const hits = () => {
-  const sels = ['#hud .hud-minimap, #hud .hud-map', '#hud .hud-location', '#name-card.on', '#wijk-card.on', '#hud .hud-cards .hud-card.on', '#hud .hud-cards-e .hud-card.on', '#hud .cw-panel:not([hidden])', '#hud .hud-mission', '#hud .hud-clock', '#hud .hud-place.on', '#hud .phonefeed .pf-card'];
+  const sels = ['#hud .hud-minimap, #hud .hud-map', '#hud .mg-board:not([hidden])', '#hud .hud-location', '#name-card.on', '#wijk-card.on', '#hud .hud-cards .hud-card.on', '#hud .hud-cards-e .hud-card.on', '#hud .cw-panel:not([hidden])', '#hud .hud-mission', '#hud .hud-clock', '#hud .hud-place.on', '#hud .phonefeed .pf-card'];
   const boxes = [];
   for (const s of sels) for (const e of document.querySelectorAll(s)) { const r = e.getBoundingClientRect(); const cs = getComputedStyle(e); if (r.width > 4 && r.height > 4 && cs.visibility !== 'hidden' && cs.display !== 'none' && Number(cs.opacity) > 0.2) boxes.push({ s: s.split(' ').pop(), x: Math.round(r.x), y: Math.round(r.y), w: Math.round(r.width), h: Math.round(r.height) }); }
   const out = [];
@@ -86,6 +86,27 @@ if (want('titel')) {
   info.push('banner+wijk ' + JSON.stringify(ov()));
   await shot('titel-banner', 400);
   done.push('titel');
+}
+if (want('minigames')) {
+  // #294: de uitlegkaart, een geheimpje (zone E) en de spel-HUD tegelijk, per minigame
+  for (const id of ['carillon', 'discgolf', 'hengelen', 'pannenkoek', 'zwembad', 'klimtoren']) {
+    const a = window.__activities && window.__activities.get(id);
+    const sp = a && a.spots && a.spots()[0];
+    if (!sp) { info.push(id + ': geen plek'); continue; }
+    teleport(sp.x, sp.y);
+    await loaded();
+    p.x = sp.x; p.y = sp.y; p.vx = p.vy = 0;
+    CARDS.show({ kind: 'prestatie', kicker: 'Geheimpje 2/8', title: 'Het paard op de Martinitoren', body: 'Wat een vondst.', duration: 12, key: 'qa-e-' + id });
+    CARDS.show({ kind: 'tip', kicker: 'Uitleg', title: id, body: 'De uitleg staat tijdens het spel in beeld.', duration: 12, key: 'qa-a-' + id });
+    let ok = false;
+    try { ok = a.interact(w); } catch (e) { info.push(id + ' fout ' + e.message); }
+    await sleep(2500);
+    info.push(id + ' start ' + ok + ' raakt ' + JSON.stringify(hits()));
+    await shot('mg-' + id, 300);
+    try { a.quit && a.quit(w); } catch (e) { /* ok */ }
+    w.activityGame = null;
+    done.push('mg-' + id);
+  }
 }
 clearInterval(skipper);
 return done.concat(info);
