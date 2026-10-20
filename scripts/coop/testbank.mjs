@@ -532,7 +532,7 @@ if (SUITE === 'opening') {
       check(eh && eg && eg[0] - eh[0] > -500 && eg[0] - eh[0] < 1500, `opening: scène ${id} eindigt bij de gast ${eh && eg ? ((eg[0] - eh[0]) / 1000).toFixed(1) : '?'} s na het einde bij de gastheer`);
     }
     const ob = one(G, 'opening-begin');
-    check(ob && ob.wachtte >= 5, 'hek: de gast zag de opening al na ' + (ob && ob.wachtte && ob.wachtte.toFixed(1)) + ' s, vóór Spel starten');
+    check(ob && start && ob.wall >= start.wall - 300, 'hek: de gast zag de opening ' + (ob && start ? ((start.wall - ob.wall) / 1000).toFixed(1) : '?') + ' s vóór Spel starten');
   }
   const pg = one(G, 'gast-probeert-over');
   if (nieuw) check(pg && pg.nogActief === true, 'opening: een gast kon de opening overslaan: ' + JSON.stringify(pg));
