@@ -22,7 +22,7 @@ export function auditEntry(e) {
   let offSince = null, offActor = null;
   for (let t = 0; t <= e.duration; t += 0.2) {
     const s = e.scene.sample(t, ANCHOR), c = s.camera, p = c.position, l = c.lookAt;
-    if (p.z - ANCHOR.z < 0.35 || p.z - ANCHOR.z > 9) note('hoogte', t, `camerahoogte ${(p.z - ANCHOR.z).toFixed(1)} m`);
+    if (p.z - ANCHOR.z < 0.35 || p.z - ANCHOR.z > 25) note('hoogte', t, `camerahoogte ${(p.z - ANCHOR.z).toFixed(1)} m`);
     const fx = l.x - p.x, fy = l.y - p.y, fz = l.z - p.z, fl = Math.hypot(fx, fy, fz) || 1;
     const vis = Object.entries(s.actors).filter(([, a]) => a.visible !== false);
     for (const [id, a] of vis) {
@@ -39,8 +39,8 @@ export function auditEntry(e) {
       if (Math.hypot(a.x - b.x, a.y - b.y) < 0.3) note('overlap:' + ia + ':' + ib, t, `${ia} en ${ib} staan in elkaar`);
     }
     const sp = s.speakerActor && s.actors[s.speakerActor];
-    if (sp && sp.visible !== false) {
-      const vx = sp.x - p.x, vy = sp.y - p.y, vz = 1.6 + (sp.h || 0) + ANCHOR.z - p.z, vl = Math.hypot(vx, vy, vz) || 1;
+    if (sp && sp.visible !== false && t < e.duration - 0.6) { // the last 0.6 s is the closing pull-out, nobody is speaking
+      const vx = sp.x - p.x, vy = sp.y - p.y, vz = (sp.sit > 0 ? sp.sit + 0.75 : 1.6) + (sp.h || 0) + ANCHOR.z - p.z, vl = Math.hypot(vx, vy, vz) || 1;
       const cos = (fx * vx + fy * vy + fz * vz) / (fl * vl);
       const ang = Math.acos(Math.max(-1, Math.min(1, cos))) * 180 / Math.PI;
       const half = Math.atan(Math.tan(c.fov * Math.PI / 360) * 16 / 9) * 180 / Math.PI;

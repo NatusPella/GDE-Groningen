@@ -9,7 +9,7 @@ import {
 let n = 0, fails = 0;
 const ok = (c, name, info = '') => { n++; if (!c) { fails++; console.log(`FAIL ${name} ${info}`); } };
 
-ok(STAD_MISSIES.length === 6 && new Set(STAD_MISSIE_IDS).size === 6, 'zes unieke missies');
+ok(STAD_MISSIES.length === 8 && new Set(STAD_MISSIE_IDS).size === 8, 'acht unieke missies');
 const bestaand = ['loket', 'studiestaat', 'vigilantia', 'kamerkoning', 'wolkenhal', 'helix', 'niemeyer', 'bernard', 'rechtbank', 'boa', 'cabaret', 'bus', 'fietssoep', 'taxinacht', 'balenrit', 'berging', 'schoolrit', 'melkrit'];
 ok(STAD_MISSIE_IDS.every((id) => !bestaand.includes(id)), 'geen botsing met bestaande ids');
 
@@ -24,7 +24,7 @@ for (const m of STAD_MISSIES) {
   ok(ronde && ronde.rule === m, 'startStadRonde', m.id);
 }
 ok(startStadRonde('bestaatniet') === null, 'onbekend id geeft null');
-ok(new Set(STAD_MISSIES.map((m) => m.bedrijf)).size === 6, 'zes eigen organisaties');
+ok(new Set(STAD_MISSIES.map((m) => m.bedrijf)).size === 8, 'acht eigen organisaties');
 ok(new Set(STAD_MISSIES.map((m) => m.regio)).size >= 3, 'spreiding over streken');
 
 // Een speler spelen: input(t, r) geeft de invoer; stopt bij done/fail.
@@ -56,6 +56,15 @@ g = speel('vandermeden', () => ({ speed: 14, decel: 5, lat: 6, dist: 50 }));
 ok(g.r.over === 'fail' && g.res.failed, 'vandermeden: knallen is mislukt');
 g = speel('vandermeden', () => ({ speed: 5, decel: 0, lat: 0, dist: 90 }));
 ok(g.r.over === null, 'vandermeden: nooit stilstaan telt niet als klaar');
+
+for (const id of ['schouwburg', 'bernardrit']) {
+  g = speel(id, () => dichtbij());
+  ok(g.r.over === 'done' && !g.res.failed && g.res.flawless, id + ': rustig is vlekkeloos', JSON.stringify(g.res));
+  g = speel(id, () => ({ speed: 16, decel: 6, lat: 6, dist: 50 }));
+  ok(g.r.over === 'fail' && g.res.failed, id + ': hard rijden is mislukt');
+  g = speel(id, () => ({ speed: 5, decel: 0, lat: 0, dist: 90 }));
+  ok(g.r.over === null, id + ': nooit stilstaan telt niet als klaar');
+}
 
 // 2. suikerbieten: laden, dan rustig bezorgen
 g = speel('suikerbieten', (t, s) => (s.phase === 'laden' ? { speed: 0.1, dist: 2 } : { speed: 0.2, decel: 0.2, lat: 0.4, dist: 2 }));
@@ -126,7 +135,7 @@ for (const id of STAD_MISSIE_IDS) {
   ok(new RegExp(`${id}: \\[\\d+, \\d+\\]`).test(jobs), 'betaalschatting', id);
   ok(new RegExp(`case '${id}':`).test(jobs), 'kaartpictogram (glyph)', id);
 }
-ok(/export const STAD_JOBS = \[museumbus, suikerbieten, herstelploeg, oogtv, telefoonrave, vandermeden\]/.test(adapter), 'adapter exporteert zes banen');
+ok(/export const STAD_JOBS = \[museumbus, suikerbieten, herstelploeg, oogtv, telefoonrave, vandermeden, schouwburg, bernardrit\]/.test(adapter), 'adapter exporteert acht banen');
 
 console.log(`${n - fails}/${n} stadmissies_test`);
 process.exit(fails ? 1 : 0);

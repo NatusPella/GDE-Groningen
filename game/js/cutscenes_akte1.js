@@ -154,7 +154,7 @@ Object.assign(SPECS, SPECS_AKTE2);
       ...life.cues,
     ],
     beats: [
-      { on: 0, dt: 0.1, actor: 'tessa', walk: [[2.4, 1.6]], speed: 2.4 },
+      { on: 0, dt: 0.1, actor: 'tessa', walk: [[2.4, 0.8]], speed: 2.4 },
       { on: 'Douwe. Hij is los', actor: 'tessa', face: 'prop:automaat' },
       { on: 'Moi. Wat is er', dt: -0.6, actor: 'tammo', walk: [[0.2, 1.0]], speed: 3 },
       { on: 'Moi. Wat is er', actor: 'tessa', face: 'actor:tammo' },
@@ -251,7 +251,7 @@ Object.assign(SPECS, SPECS_AKTE2);
       { on: 'Tessa. Sjabbe', actor: 'tammo', face: 'actor:tessa' },
     ],
     shots: [{ on: 'Nummer 4117', shot: 'cut', at: [1.0, -1.8, 1.7], look: 'scherm@1.7', fov: 34 }],
-    wide: { from: [-4, 4.6, 3.6], to: [-1.8, 3.2, 2.9], look: 'mid:loketbediende,zuil@1.2', fov: 52, until: 1 },
+    wide: { from: [-4, 4.6, 3.6], to: [-1.8, 3.2, 2.9], look: 'mid:tessa,loketbediende@1.2', fov: 52, until: 1 },
   };
 
   SPECS['M03.outro'] = {
@@ -465,8 +465,8 @@ Object.assign(SPECS, SPECS_AKTE2);
       { on: 'Het is de Grote Markt', actor: 'tammo', face: 'actor:gast1' },
       { on: 'Ik meld alleen', actor: 'tammo', anim: 'shrug' },
     ],
-    shots: [{ on: 'Die zijn het publiek', dt: 0.3, shot: 'cut', at: [1.0, 3.4, 2.1], look: 'gast1@1.2', fov: 42 }],
-    wide: { from: [-4.6, 5.6, 3.8], to: [-2.6, 4.0, 3.0], look: 'mid:jelmer,gast1@1.4', fov: 50, until: 1 },
+    shots: [{ on: 'Die zijn het publiek', dt: 0.3, shot: 'cut', at: [1.0, 3.4, 2.1], look: 'mid:jelmer,gast1@1.3', fov: 46 }],
+    wide: { from: [-4.6, 5.6, 3.8], to: [-2.6, 4.0, 3.0], look: 'mid:tessa,jelmer@1.4', fov: 50, until: 1 },
   };
 
   // M01.5: the stunt is over, the terrace applauds
@@ -619,7 +619,7 @@ export function missionScene(key, lines, { looks = {} } = {}) {
     if (!forced && i === first && w && first === 0) return;
     // short exchanges stay in the shot; a new speaker or a long speech gets a new frame
     const same = me === lastSpeaker && me != null;
-    if (!forced && l.at - lastT < 2.0 && i > 0) return;
+    if (!forced && l.at - lastT < (me != null && me !== lastSpeaker ? 1.0 : 2.0) && i > 0) return; // a new speaker gets a frame at once (cutscenes_audit)
     if (!forced && same && l.dur < 4.5 && i - lastIdx < 3) return;
     const duoSide = me === 'tammo' ? 1 : me === 'tessa' ? -1 : (i % 2 ? 1 : -1);
     let shot;

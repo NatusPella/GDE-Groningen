@@ -230,12 +230,17 @@ export class Input {
 
   axis() {
     if (this.typing) return [0, 0];
-    if (this.padAxis[0] || this.padAxis[1]) return [this.padAxis[0], this.padAxis[1]];
-    let x = 0, y = 0;
-    if (this.isDown('a') || this.isDown('arrowleft')) x -= 1;
-    if (this.isDown('d') || this.isDown('arrowright')) x += 1;
-    if (this.isDown('w') || this.isDown('arrowup')) y -= 1;
-    if (this.isDown('s') || this.isDown('arrowdown')) y += 1;
+    // per axis: a pad stick (or the touch steering, sideways only) wins on its own axis; the other axis still
+    // follows the keys, so touch steering plus the gas button (W) drives (#227)
+    let x = this.padAxis[0], y = this.padAxis[1];
+    if (!x) {
+      if (this.isDown('a') || this.isDown('arrowleft')) x -= 1;
+      if (this.isDown('d') || this.isDown('arrowright')) x += 1;
+    }
+    if (!y) {
+      if (this.isDown('w') || this.isDown('arrowup')) y -= 1;
+      if (this.isDown('s') || this.isDown('arrowdown')) y += 1;
+    }
     return [x, y];
   }
 }
