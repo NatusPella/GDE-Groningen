@@ -69,6 +69,22 @@ const trio = async (name, pose) => {
 const lenOf = (r) => r.pts.slice(1).reduce((a, q, i) => a + Math.hypot(q[0] - r.pts[i][0], q[1] - r.pts[i][1]), 0);
 const results = [];
 await sleep(3000);
+// losse plekken (geen brug): een schuin luchtbeeld op 70 m en een straatbeeld op 18 m, voor controles van water, gebouwen en hekken
+for (const q of CFG.plekken || []) {
+  const rep = { naam: q.naam, x: q.x, y: q.y };
+  results.push(rep);
+  try {
+    hold = { x: q.x, y: q.y };
+    await sleep(SETTLE);
+    const gz = map.groundHeightAt ? map.groundHeightAt(q.x, q.y, 0) || 0 : 0;
+    const tag = `bb-plek-${(q.naam || 'plek').replace(/[^\w]+/g, '_')}`;
+    await start({ position: { x: q.x + 45, y: q.y - 45, z: gz + 55 }, lookAt: { x: q.x, y: q.y, z: gz } });
+    await grab(`${tag}-hoog`);
+    zet({ position: { x: q.x + 16, y: q.y - 8, z: gz + 3 }, lookAt: { x: q.x, y: q.y, z: gz + 1 } });
+    await sleep(1500);
+    await grab(`${tag}-straat`);
+  } catch (err) { rep.fout = String(err && err.stack || err).slice(0, 300); }
+}
 for (const b of CFG.bruggen) {
   const rep = { naam: b.naam, x: b.x, y: b.y };
   results.push(rep);
