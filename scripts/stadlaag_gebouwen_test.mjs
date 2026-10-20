@@ -25,6 +25,12 @@ const pct = (a, d) => (d ? (100 * a / d).toFixed(1) : '-') + '%';
 console.log(`gebouwen: punten ${r.n}, beide ${r.both}, alleen oud ${r.onlyA}, alleen tegels ${r.onlyC}; hoogte binnen 1 m ${pct(r.h1, r.both)}, 3 m ${pct(r.h3, r.both)}`);
 console.log(`rijen oud ${A.buildings.length}, tegels ${C.buildings.length}; landmarks ${lm(A)}/${lm(C)}; hoogtebron oud ${src(A)}, tegels ${src(C)}`);
 assert.equal(lm(A), lm(C), 'landmarks behouden');
+// open overkappingen (perronkappen, marktdaken, de glazen straat van Paddepoel): de tegelbouw leidt ze af en stad_laag.mjs geeft ze terug
+const cn = (w) => (w.canopies || []).length;
+const padRoof = (w) => (w.canopies || []).filter((c) => c.pts.length >= 20 && Math.hypot(c.pts.reduce((s, p) => s + p[0], 0) / c.pts.length + 1386.55, c.pts.reduce((s, p) => s + p[1], 0) / c.pts.length + 1153.97) < 25).length;
+console.log(`overkappingen: oud ${cn(A)}, tegels ${cn(C)}; glazen straat van Paddepoel ${padRoof(A)}/${padRoof(C)}`);
+assert.ok(cn(C) >= 0.9 * cn(A), 'overkappingen (perronkappen, daken) ontbreken in de stad uit OSM');
+assert.equal(padRoof(C), padRoof(A), 'de glazen straat van Paddepoel');
 assert.ok(r.onlyA / Math.max(1, r.both + r.onlyA) <= 0.05, 'gebouwen van de stad ontbreken in de tegels');
 assert.ok(r.h1 / Math.max(1, r.both) >= 0.8, 'hoogtes');
 console.log('stadlaag_gebouwen_test: ok');

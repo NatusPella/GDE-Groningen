@@ -57,7 +57,7 @@ export function dropOverlapped(rows, hand) {
   const g = gridOf(hand, (h) => boundsOfPts(h.pts), 4);
   const near = (r) => { const b = boundsOfPts(r.pts), seen = new Set(); for (let x = b[0]; x <= b[2] + CELL; x += CELL) for (let y = b[1]; y <= b[3] + CELL; y += CELL) for (const h of g.at(Math.min(x, b[2]), Math.min(y, b[3]))) seen.add(h); return seen; };
   return rows.filter((r) => {
-    if (isHandBuilding(r)) return true;
+    if (isHandBuilding(r) || r.canopy) return true;
     const [x, y] = centroid(r.pts);
     return ![...near(r)].some((h) => inPoly(x, y, h.pts) || inPoly(...centroid(h.pts), r.pts) || coveredBy(r, h));
   });
