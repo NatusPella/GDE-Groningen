@@ -1,0 +1,3527 @@
+{
+ "gronings": {
+  "bieno": {
+   "nl": "bijna",
+   "status": "afgeleid",
+   "n": 21
+  },
+  "nuim": {
+   "nl": "neem",
+   "status": "twijfel",
+   "n": 7,
+   "opm": "noemen: \"nuim-\" naast \"nuum-\" (nuumt, nuumde, nuumst); twee vormen",
+   "voorstel": "een vorm kiezen"
+  },
+  "moeke": {
+   "nl": "moeder",
+   "status": "bron",
+   "n": 17,
+   "opm": "nds-nl Wikipedia (Grunnegs): \"mem\" = moeke/mouder"
+  },
+  "stroat": {
+   "nl": "straat",
+   "status": "afgeleid",
+   "n": 8
+  },
+  "stun": {
+   "nl": "stond",
+   "status": "afgeleid",
+   "n": 24
+  },
+  "fryslân": {
+   "nl": "friesland",
+   "status": "afgeleid",
+   "n": 15
+  },
+  "lèste": {
+   "nl": "laatste",
+   "status": "afgeleid",
+   "n": 16
+  },
+  "kin": {
+   "nl": "kan",
+   "status": "afgeleid",
+   "n": 31
+  },
+  "ains": {
+   "nl": "eens",
+   "status": "afgeleid",
+   "n": 27
+  },
+  "doarmit": {
+   "nl": "daarmee",
+   "status": "afgeleid",
+   "n": 3
+  },
+  "aals": {
+   "nl": "alles",
+   "status": "afgeleid",
+   "n": 44
+  },
+  "wust": {
+   "nl": "weet",
+   "status": "afgeleid",
+   "n": 7
+  },
+  "old": {
+   "nl": "oud",
+   "status": "afgeleid",
+   "n": 5
+  },
+  "woater": {
+   "nl": "water",
+   "status": "afgeleid",
+   "n": 27
+  },
+  "kaai": {
+   "nl": "kade",
+   "status": "afgeleid",
+   "n": 7
+  },
+  "eefkes": {
+   "nl": "even",
+   "status": "afgeleid",
+   "n": 40
+  },
+  "vroag": {
+   "nl": "vraag",
+   "status": "afgeleid",
+   "n": 8
+  },
+  "kaant": {
+   "nl": "kant",
+   "status": "afgeleid",
+   "n": 10
+  },
+  "goat": {
+   "nl": "gaat",
+   "status": "afgeleid",
+   "n": 27
+  },
+  "veurdeur": {
+   "nl": "voordeur",
+   "status": "afgeleid",
+   "n": 3
+  },
+  "aanhollen": {
+   "nl": "aanhouden",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "aaltied": {
+   "nl": "altijd",
+   "status": "afgeleid",
+   "n": 47
+  },
+  "opnij": {
+   "nl": "opnieuw",
+   "status": "afgeleid",
+   "n": 3
+  },
+  "weggong": {
+   "nl": "wegging",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "hol": {
+   "nl": "hou",
+   "status": "afgeleid",
+   "n": 22
+  },
+  "butendeur": {
+   "nl": "buiten",
+   "status": "afgeleid",
+   "n": 3
+  },
+  "komst": {
+   "nl": "kom",
+   "status": "afgeleid",
+   "n": 4
+  },
+  "wiek": {
+   "nl": "wijk",
+   "status": "afgeleid",
+   "n": 3
+  },
+  "stilstait": {
+   "nl": "stilstaat",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "veurdat": {
+   "nl": "voordat",
+   "status": "afgeleid",
+   "n": 7
+  },
+  "achteran": {
+   "nl": "achterin",
+   "status": "afgeleid",
+   "n": 8
+  },
+  "hat": {
+   "nl": "gehad",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "roai": {
+   "nl": "raad",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "aleen": {
+   "nl": "alleen",
+   "status": "afgeleid",
+   "n": 48
+  },
+  "aarst": {
+   "nl": "eerst",
+   "status": "afgeleid",
+   "n": 26
+  },
+  "woard": {
+   "nl": "waard",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "raakt": {
+   "nl": "geraakt",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "tiedens": {
+   "nl": "tijdens",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "pien": {
+   "nl": "pijn",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "vaarst": {
+   "nl": "vaart",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "aal": {
+   "nl": "al",
+   "status": "afgeleid",
+   "n": 14
+  },
+  "opkocht": {
+   "nl": "opgekocht",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "joaren": {
+   "nl": "jaren",
+   "status": "afgeleid",
+   "n": 8
+  },
+  "wol": {
+   "nl": "wilde",
+   "status": "afgeleid",
+   "n": 5
+  },
+  "blieven": {
+   "nl": "blijven",
+   "status": "afgeleid",
+   "n": 5
+  },
+  "ieder": {
+   "nl": "iedereen",
+   "status": "afgeleid",
+   "n": 28
+  },
+  "rie": {
+   "nl": "rij",
+   "status": "afgeleid",
+   "n": 24
+  },
+  "kwiet": {
+   "nl": "kwijt",
+   "status": "afgeleid",
+   "n": 6
+  },
+  "vismark": {
+   "nl": "vismarkt",
+   "status": "afgeleid",
+   "n": 7
+  },
+  "voortoan": {
+   "nl": "voortaan",
+   "status": "afgeleid",
+   "n": 3
+  },
+  "doarover": {
+   "nl": "daarover",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "betoalen": {
+   "nl": "betalen",
+   "status": "afgeleid",
+   "n": 6
+  },
+  "allemoal": {
+   "nl": "allemaal",
+   "status": "afgeleid",
+   "n": 5
+  },
+  "veurzichtig": {
+   "nl": "voorzichtig",
+   "status": "afgeleid",
+   "n": 7
+  },
+  "doan": {
+   "nl": "gedaan",
+   "status": "afgeleid",
+   "n": 11
+  },
+  "dien": {
+   "nl": "je",
+   "status": "afgeleid",
+   "n": 66
+  },
+  "zulfs": {
+   "nl": "zelfs",
+   "status": "afgeleid",
+   "n": 9
+  },
+  "grötter": {
+   "nl": "groter",
+   "status": "afgeleid",
+   "n": 3
+  },
+  "duvenkeuning": {
+   "nl": "duivenkoning",
+   "status": "afgeleid",
+   "n": 7
+  },
+  "zwoarder": {
+   "nl": "zwaarder",
+   "status": "afgeleid",
+   "n": 3
+  },
+  "holt": {
+   "nl": "houdt",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "gaauwer": {
+   "nl": "sneller",
+   "status": "afgeleid",
+   "n": 7
+  },
+  "oetziet": {
+   "nl": "eruitziet",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "hiele": {
+   "nl": "hele",
+   "status": "afgeleid",
+   "n": 15
+  },
+  "slait": {
+   "nl": "slaat",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "kriegen": {
+   "nl": "krijgen",
+   "status": "afgeleid",
+   "n": 3
+  },
+  "nuimen": {
+   "nl": "noemen",
+   "status": "twijfel",
+   "n": 8,
+   "opm": "noemen: \"nuim-\" naast \"nuum-\"; twee vormen",
+   "voorstel": "een vorm kiezen"
+  },
+  "aans": {
+   "nl": "anders",
+   "status": "afgeleid",
+   "n": 11
+  },
+  "hait": {
+   "nl": "heet",
+   "status": "afgeleid",
+   "n": 14
+  },
+  "verbieusterd": {
+   "nl": "verbijsterd",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "aovend": {
+   "nl": "avond",
+   "status": "afgeleid",
+   "n": 5
+  },
+  "bannen": {
+   "nl": "banden",
+   "status": "afgeleid",
+   "n": 7
+  },
+  "speult": {
+   "nl": "speelt",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "zulfde": {
+   "nl": "?",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "bleven": {
+   "nl": "gebleven",
+   "status": "afgeleid",
+   "n": 4
+  },
+  "riedt": {
+   "nl": "rijdt",
+   "status": "afgeleid",
+   "n": 21
+  },
+  "verlezen": {
+   "nl": "kan",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "bewiesmateriaal": {
+   "nl": "bewijsmateriaal",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "noa": {
+   "nl": "na",
+   "status": "afgeleid",
+   "n": 12
+  },
+  "wedstried": {
+   "nl": "wedstrijd",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "aarste": {
+   "nl": "eerste",
+   "status": "afgeleid",
+   "n": 9
+  },
+  "duvenmelker": {
+   "nl": "duivenmelker",
+   "status": "afgeleid",
+   "n": 3
+  },
+  "aindelk": {
+   "nl": "eindelijk",
+   "status": "afgeleid",
+   "n": 11
+  },
+  "biehollen": {
+   "nl": "bijhouden",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "thoes": {
+   "nl": "thuis",
+   "status": "afgeleid",
+   "n": 14
+  },
+  "buten": {
+   "nl": "buiten",
+   "status": "afgeleid",
+   "n": 7
+  },
+  "groden": {
+   "nl": "graden",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "betje": {
+   "nl": "beetje",
+   "status": "afgeleid",
+   "n": 19
+  },
+  "bloemetjesmark": {
+   "nl": "bloemetjesmarkt",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "oetzicht": {
+   "nl": "uitzicht",
+   "status": "afgeleid",
+   "n": 5
+  },
+  "bluust": {
+   "nl": "geblust",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "buslien": {
+   "nl": "buslijn",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "nèt": {
+   "nl": "net",
+   "status": "afgeleid",
+   "n": 12
+  },
+  "bliede": {
+   "nl": "blij",
+   "status": "afgeleid",
+   "n": 5
+  },
+  "vief": {
+   "nl": "vijf",
+   "status": "afgeleid",
+   "n": 12
+  },
+  "vandoage": {
+   "nl": "vandaag",
+   "status": "afgeleid",
+   "n": 18
+  },
+  "kriegst": {
+   "nl": "krijgt",
+   "status": "afgeleid",
+   "n": 3
+  },
+  "goie": {
+   "nl": "goede",
+   "status": "afgeleid",
+   "n": 9
+  },
+  "aflevert": {
+   "nl": "afgeleverd",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "kaapt": {
+   "nl": "gekaapt",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "betoalt": {
+   "nl": "betaalt",
+   "status": "afgeleid",
+   "n": 3
+  },
+  "dié": {
+   "nl": "?",
+   "status": "twijfel",
+   "n": 1,
+   "opm": "accentteken; elders heet \"die\" gewoon \"dij\"",
+   "voorstel": "dij"
+  },
+  "leerd": {
+   "nl": "leren",
+   "status": "afgeleid",
+   "n": 3
+  },
+  "vaailig": {
+   "nl": "veilig",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "hailve": {
+   "nl": "halve",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "mouten": {
+   "nl": "moeten",
+   "status": "afgeleid",
+   "n": 12
+  },
+  "vaaren": {
+   "nl": "varen",
+   "status": "afgeleid",
+   "n": 12
+  },
+  "doarachter": {
+   "nl": "daarachter",
+   "status": "afgeleid",
+   "n": 3
+  },
+  "studeerd": {
+   "nl": "gestudeerd",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "winst": {
+   "nl": "win",
+   "status": "afgeleid",
+   "n": 5
+  },
+  "gaauwste": {
+   "nl": "snelste",
+   "status": "afgeleid",
+   "n": 5
+  },
+  "doarom": {
+   "nl": "daarom",
+   "status": "afgeleid",
+   "n": 11
+  },
+  "moakt": {
+   "nl": "maakt",
+   "status": "afgeleid",
+   "n": 7
+  },
+  "juust": {
+   "nl": "juist",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "vaailige": {
+   "nl": "veilige",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "wait": {
+   "nl": "weet",
+   "status": "afgeleid",
+   "n": 41
+  },
+  "stoalen": {
+   "nl": "gestolen",
+   "status": "afgeleid",
+   "n": 6
+  },
+  "et": {
+   "nl": "eet",
+   "status": "afgeleid",
+   "n": 4
+  },
+  "leuf": {
+   "nl": "geloof",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "har": {
+   "nl": "had",
+   "status": "afgeleid",
+   "n": 23
+  },
+  "nije": {
+   "nl": "nieuwe",
+   "status": "afgeleid",
+   "n": 14
+  },
+  "zuken": {
+   "nl": "zoeken",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "verleden": {
+   "nl": "vorig",
+   "status": "afgeleid",
+   "n": 3
+  },
+  "zai": {
+   "nl": "ze",
+   "status": "afgeleid",
+   "n": 41
+  },
+  "moaken": {
+   "nl": "maken",
+   "status": "afgeleid",
+   "n": 3
+  },
+  "nauwelks": {
+   "nl": "nauwelijks",
+   "status": "afgeleid",
+   "n": 8
+  },
+  "mörn": {
+   "nl": "morgen",
+   "status": "afgeleid",
+   "n": 10
+  },
+  "eerlk": {
+   "nl": "eerlijk",
+   "status": "afgeleid",
+   "n": 9
+  },
+  "older": {
+   "nl": "ouder",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "gong": {
+   "nl": "ging",
+   "status": "afgeleid",
+   "n": 4
+  },
+  "zied": {
+   "nl": "sinds",
+   "status": "afgeleid",
+   "n": 15
+  },
+  "vrogger": {
+   "nl": "vroeger",
+   "status": "afgeleid",
+   "n": 11
+  },
+  "dartig": {
+   "nl": "dertig",
+   "status": "afgeleid",
+   "n": 8
+  },
+  "nuumst": {
+   "nl": "noemt",
+   "status": "twijfel",
+   "n": 2,
+   "opm": "noemt: \"nuum-\" naast \"nuim-\"; twee vormen",
+   "voorstel": "een vorm kiezen"
+  },
+  "ainrichtingsverkeer": {
+   "nl": "eenrichtingsverkeer",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "eigenlk": {
+   "nl": "eigenlijk",
+   "status": "twijfel",
+   "n": 2,
+   "opm": "eigenlijk: naast \"aigenlk\" (19x); twee vormen",
+   "voorstel": "aigenlk"
+  },
+  "belegering": {
+   "nl": "beleg",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "oetnoodiging": {
+   "nl": "uitnodiging",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "menselk": {
+   "nl": "menselijk",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "luusteren": {
+   "nl": "luisteren",
+   "status": "afgeleid",
+   "n": 8
+  },
+  "wark": {
+   "nl": "werk",
+   "status": "afgeleid",
+   "n": 17
+  },
+  "loodzwoar": {
+   "nl": "loodzwaar",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "loaten": {
+   "nl": "laten",
+   "status": "afgeleid",
+   "n": 6
+  },
+  "plend": {
+   "nl": "gepland",
+   "status": "afgeleid",
+   "n": 3
+  },
+  "jo": {
+   "nl": "ja",
+   "status": "afgeleid",
+   "n": 19
+  },
+  "mekoar": {
+   "nl": "elkaar",
+   "status": "afgeleid",
+   "n": 6
+  },
+  "hoeren": {
+   "nl": "horen",
+   "status": "twijfel",
+   "n": 1,
+   "opm": "elders \"heur-\" (heurde, heurd, heurst) voor horen; variant",
+   "voorstel": "heuren"
+  },
+  "doarnet": {
+   "nl": "daarnet",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "slimste": {
+   "nl": "ergste",
+   "status": "afgeleid",
+   "n": 3
+  },
+  "kold": {
+   "nl": "koud",
+   "status": "afgeleid",
+   "n": 11
+  },
+  "zegst": {
+   "nl": "zegt",
+   "status": "afgeleid",
+   "n": 5
+  },
+  "bedoelen": {
+   "nl": "bedoelt",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "stroatjes": {
+   "nl": "straatjes",
+   "status": "afgeleid",
+   "n": 4
+  },
+  "huzen": {
+   "nl": "huizen",
+   "status": "afgeleid",
+   "n": 9
+  },
+  "inzakt": {
+   "nl": "ingestort",
+   "status": "afgeleid",
+   "n": 3
+  },
+  "nuimd": {
+   "nl": "vernoemd",
+   "status": "twijfel",
+   "n": 8,
+   "opm": "genoemd: \"nuim-\" naast \"nuum-\"; twee vormen",
+   "voorstel": "een vorm kiezen"
+  },
+  "keuningin": {
+   "nl": "koningin",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "omlaiding": {
+   "nl": "omleiding",
+   "status": "afgeleid",
+   "n": 7
+  },
+  "bliedt": {
+   "nl": "blijft",
+   "status": "afgeleid",
+   "n": 8
+  },
+  "lèst": {
+   "nl": "laatst",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "zichzulf": {
+   "nl": "zichzelf",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "stoaring": {
+   "nl": "storing",
+   "status": "afgeleid",
+   "n": 6
+  },
+  "woarom": {
+   "nl": "waarom",
+   "status": "afgeleid",
+   "n": 21
+  },
+  "nammen": {
+   "nl": "namen",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "aigenlk": {
+   "nl": "eigenlijk",
+   "status": "afgeleid",
+   "n": 19
+  },
+  "sticht": {
+   "nl": "gesticht",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "zol": {
+   "nl": "zou",
+   "status": "afgeleid",
+   "n": 6
+  },
+  "zuden": {
+   "nl": "zuiden",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "dwaars": {
+   "nl": "dwars",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "deurhen": {
+   "nl": "doorheen",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "pakhuzen": {
+   "nl": "pakhuizen",
+   "status": "afgeleid",
+   "n": 3
+  },
+  "bruggies": {
+   "nl": "bruggetjes",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "volkswiek": {
+   "nl": "volkswijk",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "aallang": {
+   "nl": "allang",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "stroatnammen": {
+   "nl": "straatnamen",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "jatstroat": {
+   "nl": "jatstraat",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "korrewegwiek": {
+   "nl": "korrewegwijk",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "woar": {
+   "nl": "waar",
+   "status": "afgeleid",
+   "n": 30
+  },
+  "ideë": {
+   "nl": "idee",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "zailschepen": {
+   "nl": "zeilschepen",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "veurheen": {
+   "nl": "vroeger",
+   "status": "afgeleid",
+   "n": 6
+  },
+  "drokke": {
+   "nl": "drukke",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "tuunen": {
+   "nl": "tuinen",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "metbewegen": {
+   "nl": "meebewegen",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "aend": {
+   "nl": "eend",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "oosterparkwiek": {
+   "nl": "oosterparkwijk",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "oranjewiek": {
+   "nl": "oranjewijk",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "herenhuzen": {
+   "nl": "herenhuizen",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "drok": {
+   "nl": "druk",
+   "status": "afgeleid",
+   "n": 6
+  },
+  "bruken": {
+   "nl": "gebruiken",
+   "status": "afgeleid",
+   "n": 3
+  },
+  "vroagd": {
+   "nl": "gevraagd",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "schreven": {
+   "nl": "geschreven",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "selwerderwiek": {
+   "nl": "selwerderwijk",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "rijtjeshuzen": {
+   "nl": "rijtjeshuizen",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "still": {
+   "nl": "stil",
+   "status": "afgeleid",
+   "n": 8
+  },
+  "tiedelke": {
+   "nl": "tijdelijke",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "dichtstbiezunde": {
+   "nl": "dichtstbijzijnde",
+   "status": "afgeleid",
+   "n": 3
+  },
+  "vake": {
+   "nl": "vaak",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "allerlèste": {
+   "nl": "allerlaatste",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "mogst": {
+   "nl": "mag",
+   "status": "afgeleid",
+   "n": 3
+  },
+  "riedst": {
+   "nl": "rijdt",
+   "status": "afgeleid",
+   "n": 3
+  },
+  "stoa": {
+   "nl": "sta",
+   "status": "afgeleid",
+   "n": 4
+  },
+  "veuraan": {
+   "nl": "vooraan",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "opbouwd": {
+   "nl": "opgebouwd",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "lait": {
+   "nl": "laat",
+   "status": "afgeleid",
+   "n": 3
+  },
+  "aind": {
+   "nl": "einde",
+   "status": "afgeleid",
+   "n": 6
+  },
+  "stuurd": {
+   "nl": "gestuurd",
+   "status": "afgeleid",
+   "n": 3
+  },
+  "oostkaant": {
+   "nl": "oostkant",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "moestuunen": {
+   "nl": "moestuinen",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "rukt": {
+   "nl": "ruikt",
+   "status": "afgeleid",
+   "n": 7
+  },
+  "suker": {
+   "nl": "suiker",
+   "status": "afgeleid",
+   "n": 4
+  },
+  "vliegst": {
+   "nl": "vliegt",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "lantaarnpoalen": {
+   "nl": "lantaarnpalen",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "menuten": {
+   "nl": "minuten",
+   "status": "afgeleid",
+   "n": 16
+  },
+  "dee": {
+   "nl": "deed",
+   "status": "afgeleid",
+   "n": 6
+  },
+  "weerzain": {
+   "nl": "terugzien",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "loskoppen": {
+   "nl": "losgepikt",
+   "status": "twijfel",
+   "n": 1,
+   "opm": "NL \"losgepikt\"; betekenis wijkt af",
+   "voorstel": "loskoppen laten staan of \"lospikt\""
+  },
+  "disse": {
+   "nl": "deze",
+   "status": "afgeleid",
+   "n": 11
+  },
+  "kunstenoar": {
+   "nl": "kunstenaar",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "fusilleerd": {
+   "nl": "gefusilleerd",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "peer": {
+   "nl": "paar",
+   "status": "afgeleid",
+   "n": 7
+  },
+  "kij": {
+   "nl": "koeien",
+   "status": "afgeleid",
+   "n": 5
+  },
+  "nuumde": {
+   "nl": "noemde",
+   "status": "twijfel",
+   "n": 1,
+   "opm": "noemde: \"nuum-\" naast \"nuim-\"; twee vormen",
+   "voorstel": "een vorm kiezen"
+  },
+  "reup": {
+   "nl": "riep",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "aaloverst": {
+   "nl": "overal",
+   "status": "afgeleid",
+   "n": 11
+  },
+  "kiekte": {
+   "nl": "keek",
+   "status": "afgeleid",
+   "n": 3
+  },
+  "roar": {
+   "nl": "raar",
+   "status": "afgeleid",
+   "n": 4
+  },
+  "natgoan": {
+   "nl": "natgaan",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "sluten": {
+   "nl": "sluiten",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "aigenoar": {
+   "nl": "eigenaar",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "jatte": {
+   "nl": "gejatte",
+   "status": "afgeleid",
+   "n": 4
+  },
+  "oetgang": {
+   "nl": "uitgang",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "deurlopen": {
+   "nl": "doorlopen",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "wegjaagd": {
+   "nl": "weggejaagd",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "snackkeuning": {
+   "nl": "snackkoning",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "nim": {
+   "nl": "neem",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "poal": {
+   "nl": "paal",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "rieden": {
+   "nl": "rijden",
+   "status": "bron",
+   "n": 22,
+   "opm": "nds-nl Wikipedia (Grunnegs): \"voaren\" -> \"rieden\""
+  },
+  "sluut": {
+   "nl": "sluit",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "klain": {
+   "nl": "klein",
+   "status": "afgeleid",
+   "n": 5
+  },
+  "betoald": {
+   "nl": "betaald",
+   "status": "afgeleid",
+   "n": 5
+  },
+  "oefend": {
+   "nl": "geoefend",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "oetstapt": {
+   "nl": "uitstapt",
+   "status": "afgeleid",
+   "n": 3
+  },
+  "deup": {
+   "nl": "diep",
+   "status": "afgeleid",
+   "n": 3
+  },
+  "slimmer": {
+   "nl": "erger",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "schuten": {
+   "nl": "schuiten",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "drokste": {
+   "nl": "drukste",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "veurbie": {
+   "nl": "voorbij",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "hielemoal": {
+   "nl": "helemaal",
+   "status": "afgeleid",
+   "n": 3
+  },
+  "ruum": {
+   "nl": "ruim",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "aaien": {
+   "nl": "eieren",
+   "status": "afgeleid",
+   "n": 9
+  },
+  "volkstuun": {
+   "nl": "volkstuin",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "aailand": {
+   "nl": "eiland",
+   "status": "afgeleid",
+   "n": 3
+  },
+  "kört": {
+   "nl": "kort",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "duven": {
+   "nl": "duiven",
+   "status": "afgeleid",
+   "n": 18
+  },
+  "woonen": {
+   "nl": "wonen",
+   "status": "afgeleid",
+   "n": 8
+  },
+  "luustern": {
+   "nl": "luisteren",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "vuurwark": {
+   "nl": "vuurwerk",
+   "status": "afgeleid",
+   "n": 6
+  },
+  "tegelieke": {
+   "nl": "tegelijk",
+   "status": "afgeleid",
+   "n": 5
+  },
+  "opzied": {
+   "nl": "opzij",
+   "status": "afgeleid",
+   "n": 4
+  },
+  "aindigen": {
+   "nl": "eindigen",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "gelieke": {
+   "nl": "gelijk",
+   "status": "afgeleid",
+   "n": 5
+  },
+  "rde": {
+   "nl": "?",
+   "status": "twijfel",
+   "n": 2,
+   "opm": "geen woord: tokenisatie van \"Dúúrde\" (klemtoontekens); niet in de tekst corrigeren"
+  },
+  "begraffenis": {
+   "nl": "begrafenis",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "rieke": {
+   "nl": "rijke",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "normoal": {
+   "nl": "normaal",
+   "status": "afgeleid",
+   "n": 6
+  },
+  "duuzenden": {
+   "nl": "duizenden",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "groaf": {
+   "nl": "graf",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "buurjong": {
+   "nl": "buurjongen",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "loater": {
+   "nl": "later",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "kiekst": {
+   "nl": "kijkt",
+   "status": "afgeleid",
+   "n": 3
+  },
+  "kriegt": {
+   "nl": "krijgt",
+   "status": "afgeleid",
+   "n": 5
+  },
+  "noteerd": {
+   "nl": "genoteerd",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "luusteraar": {
+   "nl": "luisteraar",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "mörns": {
+   "nl": "ochtends",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "geft": {
+   "nl": "geeft",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "stuurst": {
+   "nl": "stuurt",
+   "status": "afgeleid",
+   "n": 4
+  },
+  "stuntaovend": {
+   "nl": "stuntavond",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "terwiel": {
+   "nl": "terwijl",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "diekken": {
+   "nl": "dijken",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "gongen": {
+   "nl": "gingen",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "peild": {
+   "nl": "gepeild",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "aarder": {
+   "nl": "eerder",
+   "status": "afgeleid",
+   "n": 4
+  },
+  "oetstappen": {
+   "nl": "uitstappen",
+   "status": "afgeleid",
+   "n": 6
+  },
+  "afmoaken": {
+   "nl": "afmaken",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "achterkaant": {
+   "nl": "achterkant",
+   "status": "afgeleid",
+   "n": 5
+  },
+  "muus": {
+   "nl": "muis",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "eerlke": {
+   "nl": "eerlijke",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "samenwarking": {
+   "nl": "samenwerking",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "riek": {
+   "nl": "rijk",
+   "status": "afgeleid",
+   "n": 3
+  },
+  "aanpast": {
+   "nl": "aangepast",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "metmoakt": {
+   "nl": "meegemaakt",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "butenkomen": {
+   "nl": "buitenkomen",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "leufden": {
+   "nl": "geloofden",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "drokte": {
+   "nl": "drukte",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "filmd": {
+   "nl": "gefilmd",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "vlaggies": {
+   "nl": "vlaggetjes",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "bladen": {
+   "nl": "blaadjes",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "verlaus": {
+   "nl": "verliest",
+   "status": "afgeleid",
+   "n": 3
+  },
+  "vreug": {
+   "nl": "vroeg",
+   "status": "afgeleid",
+   "n": 3
+  },
+  "zitst": {
+   "nl": "zit",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "zeden": {
+   "nl": "zeiden",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "olders": {
+   "nl": "ouders",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "vanoet": {
+   "nl": "vanuit",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "duutslaand": {
+   "nl": "duitsland",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "kinst": {
+   "nl": "kunt",
+   "status": "afgeleid",
+   "n": 8
+  },
+  "schient": {
+   "nl": "schijnt",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "diek": {
+   "nl": "dijk",
+   "status": "afgeleid",
+   "n": 4
+  },
+  "veurzorg": {
+   "nl": "voorzorg",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "voetbald": {
+   "nl": "gevoetbald",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "stilstoan": {
+   "nl": "stilstaan",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "woarhen": {
+   "nl": "waarheen",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "vanoavend": {
+   "nl": "vanavond",
+   "status": "afgeleid",
+   "n": 7
+  },
+  "hiel": {
+   "nl": "heel",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "wiezen": {
+   "nl": "wijzen",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "goaten": {
+   "nl": "gaten",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "zunnetje": {
+   "nl": "zonnetje",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "gisteravend": {
+   "nl": "gisteravond",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "bouwd": {
+   "nl": "gebouwd",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "oetverkocht": {
+   "nl": "uitverkocht",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "vasthollen": {
+   "nl": "vasthouden",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "wegrieden": {
+   "nl": "wegrijden",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "duuster": {
+   "nl": "donker",
+   "status": "afgeleid",
+   "n": 8
+  },
+  "doarbinnen": {
+   "nl": "daarbinnen",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "leden": {
+   "nl": "geleden",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "bekieken": {
+   "nl": "bekijken",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "mos": {
+   "nl": "moest",
+   "status": "afgeleid",
+   "n": 3
+  },
+  "flitspoal": {
+   "nl": "flitspaal",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "flitst": {
+   "nl": "geflitst",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "huurd": {
+   "nl": "gehuurd",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "duukt": {
+   "nl": "duikt",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "aander": {
+   "nl": "andere",
+   "status": "afgeleid",
+   "n": 8
+  },
+  "leende": {
+   "nl": "geleende",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "warkt": {
+   "nl": "gewerkt",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "mins": {
+   "nl": "niemand",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "mouilker": {
+   "nl": "moeilijker",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "hakken": {
+   "nl": "hielen",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "goedenaovend": {
+   "nl": "goedenavond",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "goeiemörn": {
+   "nl": "goeiemorgen",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "draaid": {
+   "nl": "gedraaid",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "bestait": {
+   "nl": "bestaat",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "dissels": {
+   "nl": "jezelf",
+   "status": "afgeleid",
+   "n": 4
+  },
+  "sluitingstied": {
+   "nl": "sluitingstijd",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "wus": {
+   "nl": "wist",
+   "status": "afgeleid",
+   "n": 3
+  },
+  "zeun": {
+   "nl": "zoon",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "zegd": {
+   "nl": "gezegd",
+   "status": "afgeleid",
+   "n": 3
+  },
+  "haald": {
+   "nl": "gehaald",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "menuut": {
+   "nl": "minuut",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "ruumt": {
+   "nl": "ruimt",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "onderduken": {
+   "nl": "onderduiken",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "vanoaf": {
+   "nl": "vanaf",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "zunsondergang": {
+   "nl": "zonsondergang",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "heurd": {
+   "nl": "gehoord",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "heerlk": {
+   "nl": "heerlijk",
+   "status": "afgeleid",
+   "n": 5
+  },
+  "kloarzet": {
+   "nl": "klaargezet",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "sloopt": {
+   "nl": "gesloopt",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "nij": {
+   "nl": "nieuw",
+   "status": "afgeleid",
+   "n": 7
+  },
+  "mog": {
+   "nl": "mocht",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "gemainte": {
+   "nl": "gemeente",
+   "status": "afgeleid",
+   "n": 4
+  },
+  "aindigt": {
+   "nl": "eindigt",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "vaiver": {
+   "nl": "vijver",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "vinst": {
+   "nl": "vindt",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "hete": {
+   "nl": "heette",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "warken": {
+   "nl": "werken",
+   "status": "afgeleid",
+   "n": 4
+  },
+  "verhoest": {
+   "nl": "verhuist",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "verdwoalen": {
+   "nl": "verdwalen",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "bedrief": {
+   "nl": "bedrijf",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "ai": {
+   "nl": "ei",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "wied": {
+   "nl": "?",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "tussendeur": {
+   "nl": "tussendoor",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "neudig": {
+   "nl": "nodig",
+   "status": "afgeleid",
+   "n": 3
+  },
+  "theehoes": {
+   "nl": "theehuis",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "vroage": {
+   "nl": "vraag",
+   "status": "afgeleid",
+   "n": 3
+  },
+  "slopen": {
+   "nl": "geslapen",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "oetzag": {
+   "nl": "eruitzag",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "dreug": {
+   "nl": "droog",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "hold": {
+   "nl": "houdt",
+   "status": "twijfel",
+   "n": 1,
+   "opm": "houdt: naast \"holt\"; twee vormen",
+   "voorstel": "holt"
+  },
+  "zundag": {
+   "nl": "zondag",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "heurde": {
+   "nl": "hoorde",
+   "status": "afgeleid",
+   "n": 4
+  },
+  "aanleggd": {
+   "nl": "aangelegd",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "luusteraars": {
+   "nl": "luisteraars",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "zwoar": {
+   "nl": "zwaar",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "smeult": {
+   "nl": "smelt",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "teld": {
+   "nl": "geteld",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "overhin": {
+   "nl": "overheen",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "luusterde": {
+   "nl": "luisterde",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "schraift": {
+   "nl": "schrijft",
+   "status": "afgeleid",
+   "n": 4
+  },
+  "slim": {
+   "nl": "erg",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "veurgang": {
+   "nl": "voorrang",
+   "status": "afgeleid",
+   "n": 3
+  },
+  "hoeveul": {
+   "nl": "hoeveel",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "moanden": {
+   "nl": "maanden",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "moag": {
+   "nl": "maag",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "ambtenoar": {
+   "nl": "ambtenaar",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "menutjes": {
+   "nl": "minuutjes",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "vroagt": {
+   "nl": "vraagt",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "nuumt": {
+   "nl": "noemt",
+   "status": "twijfel",
+   "n": 3,
+   "opm": "noemt: \"nuum-\" naast \"nuim-\"; twee vormen",
+   "voorstel": "een vorm kiezen"
+  },
+  "heurst": {
+   "nl": "hoor",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "zwiegend": {
+   "nl": "zwijgend",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "veurtvluchtig": {
+   "nl": "voortvluchtig",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "achternoa": {
+   "nl": "achteraan",
+   "status": "afgeleid",
+   "n": 4
+  },
+  "zist": {
+   "nl": "zie",
+   "status": "twijfel",
+   "n": 4,
+   "opm": "ziet/zie: vorm wisselt (zist, ziest, zut, ziet)",
+   "voorstel": "ziest"
+  },
+  "voader": {
+   "nl": "vader",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "vaarbewies": {
+   "nl": "vaarbewijs",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "panneerd": {
+   "nl": "gepaneerd",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "duvenfluisteraar": {
+   "nl": "duivenfluisteraar",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "luusterst": {
+   "nl": "luistert",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "aanvroagd": {
+   "nl": "aangevraagd",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "schilderd": {
+   "nl": "geschilderd",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "hong": {
+   "nl": "hing",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "wichtje": {
+   "nl": "meisje",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "mark": {
+   "nl": "markt",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "luuster": {
+   "nl": "luister",
+   "status": "afgeleid",
+   "n": 3
+  },
+  "persoonlk": {
+   "nl": "persoonlijk",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "langzoam": {
+   "nl": "langzaam",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "holst": {
+   "nl": "houdt",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "lieske": {
+   "nl": "lijstje",
+   "status": "afgeleid",
+   "n": 3
+  },
+  "ruk": {
+   "nl": "ruik",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "schraif": {
+   "nl": "schrijf",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "zeild": {
+   "nl": "gezeild",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "moust": {
+   "nl": "moet",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "wilst": {
+   "nl": "wil",
+   "status": "afgeleid",
+   "n": 3
+  },
+  "valst": {
+   "nl": "valt",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "vanof": {
+   "nl": "vanaf",
+   "status": "afgeleid",
+   "n": 3
+  },
+  "tiedelk": {
+   "nl": "tijdelijk",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "aovends": {
+   "nl": "avonds",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "wiest": {
+   "nl": "wijst",
+   "status": "afgeleid",
+   "n": 3
+  },
+  "oetdaging": {
+   "nl": "uitdaging",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "zetst": {
+   "nl": "?",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "appst": {
+   "nl": "appt",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "brocht": {
+   "nl": "gebracht",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "aandersom": {
+   "nl": "andersom",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "biedst": {
+   "nl": "biedt",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "zeten": {
+   "nl": "gezeten",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "haddest": {
+   "nl": "had",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "opeten": {
+   "nl": "opgegeten",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "voetbalwedstried": {
+   "nl": "voetbalwedstrijd",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "proatst": {
+   "nl": "praat",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "proatte": {
+   "nl": "praatte",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "rukst": {
+   "nl": "ruikt",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "woonst": {
+   "nl": "woont",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "gaauwe": {
+   "nl": "snelle",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "hollen": {
+   "nl": "houden",
+   "status": "afgeleid",
+   "n": 4
+  },
+  "hongen": {
+   "nl": "gehangen",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "aanderen": {
+   "nl": "anderen",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "goast": {
+   "nl": "gaat",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "oetgeven": {
+   "nl": "uitgeven",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "sjouwst": {
+   "nl": "sjouwt",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "veurzichtige": {
+   "nl": "voorzichtige",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "stoast": {
+   "nl": "staat",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "leufd": {
+   "nl": "geloofd",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "viskt": {
+   "nl": "gevist",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "duuve": {
+   "nl": "duif",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "schit": {
+   "nl": "poept",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "ies": {
+   "nl": "ijs",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "zomeraovend": {
+   "nl": "zomeravond",
+   "status": "afgeleid",
+   "n": 3
+  },
+  "warkers": {
+   "nl": "werkers",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "dudelke": {
+   "nl": "duidelijke",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "stroatnaam": {
+   "nl": "straatnaam",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "klemrieden": {
+   "nl": "?",
+   "status": "twijfel",
+   "n": 1,
+   "opm": "voltooid deelwoord van \"klemgereden\": hoort een voltooide vorm te zijn, staat in de onbepaalde wijs",
+   "voorstel": "klemreden"
+  },
+  "overaind": {
+   "nl": "overeind",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "koopaovend": {
+   "nl": "koopavond",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "laanhuzen": {
+   "nl": "laanhuizen",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "verjoardag": {
+   "nl": "verjaardag",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "lien": {
+   "nl": "lijn",
+   "status": "afgeleid",
+   "n": 5
+  },
+  "grunnegers": {
+   "nl": "groningers",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "openderd": {
+   "nl": "geopend",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "ontwarpen": {
+   "nl": "ontworpen",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "veenen": {
+   "nl": "venen",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "aanvoerd": {
+   "nl": "werd",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "schept": {
+   "nl": "geschept",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "blieft": {
+   "nl": "blijft",
+   "status": "twijfel",
+   "n": 1,
+   "opm": "blijft: naast \"bliedt\"; twee vormen",
+   "voorstel": "bliedt"
+  },
+  "hielhuids": {
+   "nl": "heelhuids",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "moaaaat": {
+   "nl": "maaaaat",
+   "status": "twijfel",
+   "n": 1,
+   "opm": "uitgerekt \"maat\" als uitroep; bewust"
+  },
+  "metnomen": {
+   "nl": "meegenomen",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "woaterwagen": {
+   "nl": "waterwagen",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "filmpie": {
+   "nl": "filmpje",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "zomeravend": {
+   "nl": "zomeravond",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "zoveul": {
+   "nl": "zoveel",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "aanstoan": {
+   "nl": "?",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "vleermuus": {
+   "nl": "vleermuis",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "twijduuster": {
+   "nl": "twijduustern",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "botst": {
+   "nl": "gebotst",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "elkenain": {
+   "nl": "iedereen",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "aovendlicht": {
+   "nl": "avondlicht",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "bedocht": {
+   "nl": "bedacht",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "vroagst": {
+   "nl": "vraagt",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "morst": {
+   "nl": "gemorst",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "aine": {
+   "nl": "ééntje",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "regeld": {
+   "nl": "geregeld",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "duventil": {
+   "nl": "?",
+   "status": "twijfel",
+   "n": 1,
+   "opm": "duiventil: elders \"duuf/duven\"; samenstelling nagaan",
+   "voorstel": "duuventil"
+  },
+  "bepoal": {
+   "nl": "bepaal",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "wolst": {
+   "nl": "wilde",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "leend": {
+   "nl": "geleend",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "overaal": {
+   "nl": "overal",
+   "status": "twijfel",
+   "n": 1,
+   "opm": "naast \"aaloverst\" voor overal; twee vormen",
+   "voorstel": "aaloverst"
+  },
+  "stroaten": {
+   "nl": "straten",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "overdrief": {
+   "nl": "overdrijf",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "ruggegraat": {
+   "nl": "ruggengraat",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "rechtdeur": {
+   "nl": "rechtdoor",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "datzulfde": {
+   "nl": "datzelfde",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "hudige": {
+   "nl": "huidige",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "ossenmark": {
+   "nl": "ossenmarkt",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "kruden": {
+   "nl": "kruiden",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "zonnewiezer": {
+   "nl": "zonnewijzer",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "oprocht": {
+   "nl": "werd",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "repareern": {
+   "nl": "repareren",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "rieweze": {
+   "nl": "rijstijl",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "proatje": {
+   "nl": "praatje",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "kommen": {
+   "nl": "komen",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "deurtrappen": {
+   "nl": "doortrappen",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "veurtuuntje": {
+   "nl": "voortuintje",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "zaoterdag": {
+   "nl": "zaterdag",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "zut": {
+   "nl": "ziet",
+   "status": "twijfel",
+   "n": 1,
+   "opm": "ziet: elders \"ziet\", ook \"zist\"/\"ziest\"; vorm wisselt",
+   "voorstel": "ziet"
+  },
+  "wegwarker": {
+   "nl": "wegwerker",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "roare": {
+   "nl": "rare",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "boksteen": {
+   "nl": "baksteen",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "ondertied": {
+   "nl": "onderweg",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "wedstriedsdagen": {
+   "nl": "wedstrijddagen",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "spiet": {
+   "nl": "spijt",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "völ": {
+   "nl": "veel",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "riebaan": {
+   "nl": "rijbaan",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "leerzoam": {
+   "nl": "leerzaam",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "fluusteren": {
+   "nl": "fluisteren",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "stoaringsbericht": {
+   "nl": "storingsbericht",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "dreugt": {
+   "nl": "droogt",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "wachtlieste": {
+   "nl": "wachtlijst",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "iesboan": {
+   "nl": "ijsbaan",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "veurruit": {
+   "nl": "voorruit",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "denkst": {
+   "nl": "denkt",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "normoale": {
+   "nl": "normale",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "tienduuzend": {
+   "nl": "tienduizend",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "kiekers": {
+   "nl": "kijkers",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "oetvinden": {
+   "nl": "uitvinden",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "ruken": {
+   "nl": "ruiken",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "broken": {
+   "nl": "gebroken",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "ooggetuuge": {
+   "nl": "ooggetuige",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "betoalst": {
+   "nl": "betaalt",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "apels": {
+   "nl": "appels",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "misdoad": {
+   "nl": "misdaad",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "twij-nul": {
+   "nl": "twee-nul",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "ontwiek": {
+   "nl": "ontwijk",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "langszied": {
+   "nl": "langszij",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "veurtuug": {
+   "nl": "voertuig",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "aindheden": {
+   "nl": "eenheden",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "verhoezer": {
+   "nl": "verhuizer",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "scharpe": {
+   "nl": "scherpe",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "vieftig": {
+   "nl": "vijftig",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "tuunman": {
+   "nl": "tuinman",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "veurjoar": {
+   "nl": "voorjaar",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "ziest": {
+   "nl": "?",
+   "status": "twijfel",
+   "n": 2,
+   "opm": "ziet: vorm wisselt (zist, ziest, zut, ziet)",
+   "voorstel": "ziest"
+  },
+  "vanzulf": {
+   "nl": "vanzelf",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "volhollen": {
+   "nl": "volhouden",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "veurschot": {
+   "nl": "voorschot",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "vooroetgang": {
+   "nl": "vooruitgang",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "veurlèste": {
+   "nl": "voorlaatste",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "binnenkomen": {
+   "nl": "binnenkomt",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "weggoan": {
+   "nl": "weggaat",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "zolst": {
+   "nl": "zou",
+   "status": "afgeleid",
+   "n": 4
+  },
+  "woarover": {
+   "nl": "waarover",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "weghaald": {
+   "nl": "weggehaald",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "openstaait": {
+   "nl": "openstaat",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "verhoesdoos": {
+   "nl": "verhuisdoos",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "nedocht": {
+   "nl": "nagedacht",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "zatten": {
+   "nl": "zaten",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "rieker": {
+   "nl": "rijker",
+   "status": "afgeleid",
+   "n": 2
+  },
+  "kepot": {
+   "nl": "kapot",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "peerden": {
+   "nl": "paarden",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "test": {
+   "nl": "getest",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "kroakt": {
+   "nl": "gekraakt",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "groeven": {
+   "nl": "gegraven",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "oetbreid": {
+   "nl": "werd",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "spierpien": {
+   "nl": "spierpijn",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "neerleg": {
+   "nl": "neergelegd",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "kokte": {
+   "nl": "kookte",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "tuun": {
+   "nl": "tuin",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "metbeweegt": {
+   "nl": "meebeweegt",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "inschrieven": {
+   "nl": "inschrijven",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "honderdvieftig": {
+   "nl": "honderdvijftig",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "wrieven": {
+   "nl": "wrijven",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "hanen": {
+   "nl": "handen",
+   "status": "twijfel",
+   "n": 1,
+   "opm": "handen: \"hanen\" betekent ook kippenmannetjes; Gronings voor handen nagaan (\"haanden\")",
+   "voorstel": "haanden"
+  },
+  "wollen": {
+   "nl": "wilden",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "metmoak": {
+   "nl": "meemaak",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "traanen": {
+   "nl": "tranen",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "dar": {
+   "nl": "?",
+   "status": "twijfel",
+   "n": 1,
+   "opm": "elders \"doar\" (daar); variant",
+   "voorstel": "doar"
+  },
+  "zunsopgang": {
+   "nl": "zonsopgang",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "woarveur": {
+   "nl": "waarvoor",
+   "status": "afgeleid",
+   "n": 1
+  },
+  "bin'k": {
+   "nl": "ben ik",
+   "status": "afgeleid",
+   "n": 0,
+   "opm": "samentrekking zoals \"Woar Bin'k\""
+  },
+  "luuster'n": {
+   "nl": "luisteren",
+   "status": "twijfel",
+   "n": 0,
+   "opm": "afkorting met weglatingsteken; elders \"luusteren\" of \"luustern\" (twee vormen)"
+  },
+  "inreden": {
+   "nl": "ingereden",
+   "status": "afgeleid",
+   "n": 0,
+   "opm": "voltooid deelwoord zonder ge-; consistent met \"reden\""
+  },
+  "stug": {
+   "nl": "stug",
+   "status": "afgeleid",
+   "n": 0,
+   "opm": "ook gewoon Nederlands"
+  }
+ },
+ "fries": {
+  "moai": {
+   "nl": "mooi",
+   "status": "bron",
+   "opm": "en.wiktionary.org/wiki/moai: West-Fries, bijvoeglijk naamwoord"
+  },
+  "tige": {
+   "nl": "zeer, erg",
+   "status": "bron",
+   "opm": "en.wiktionary.org/wiki/tige; voorbeeld \"Tige tank!\""
+  },
+  "tank": {
+   "nl": "dank",
+   "status": "kennis",
+   "opm": "\"tige tank\" = hartelijk dank; geen aparte bron"
+  },
+  "sjoch": {
+   "nl": "zie (ik zie)",
+   "status": "bron",
+   "opm": "en.wiktionary.org/wiki/sjen: 1e persoon enkelvoud tegenwoordig"
+  },
+  "neat": {
+   "nl": "niets",
+   "status": "bron",
+   "opm": "en.wiktionary.org/wiki/neat (West-Fries)"
+  },
+  "hjir": {
+   "nl": "hier",
+   "status": "bron",
+   "opm": "en.wiktionary.org/wiki/hjir"
+  },
+  "drok": {
+   "nl": "druk",
+   "status": "bron",
+   "opm": "en.wiktionary.org/wiki/drok"
+  },
+  "gjin": {
+   "nl": "geen",
+   "status": "bron",
+   "opm": "en.wiktionary.org/wiki/gjin"
+  },
+  "dyn": {
+   "nl": "jouw",
+   "status": "bron",
+   "opm": "en.wiktionary.org/wiki/dyn"
+  },
+  "myn": {
+   "nl": "mijn",
+   "status": "kennis",
+   "opm": "bekend Fries bezittelijk voornaamwoord; niet apart nagezocht"
+  },
+  "foar": {
+   "nl": "voor",
+   "status": "kennis",
+   "opm": "bekend Fries; niet apart nagezocht"
+  },
+  "mem": {
+   "nl": "moeder",
+   "status": "kennis",
+   "opm": "Fries \"mem\"; staat ook in de verzonnen namen (Us Mem Vet)"
+  },
+  "wykein": {
+   "nl": "weekend",
+   "status": "kennis",
+   "opm": "Fries \"wykein\"; Wiktionary-pagina bestaat niet, niet bevestigd in een bron"
+  },
+  "fakmanskip": {
+   "nl": "vakmanschap",
+   "status": "kennis",
+   "opm": "Fries \"fakmanskip\"; Wiktionary-pagina bestaat niet, niet bevestigd in een bron"
+  },
+  "nedich": {
+   "nl": "nodig",
+   "status": "kennis",
+   "opm": "Fries \"nedich\"; en.wiktionary heeft alleen een Hunsrik-pagina, niet bevestigd in een bron"
+  },
+  "skûtsje": {
+   "nl": "Fries platbodemschip",
+   "status": "bron",
+   "opm": "en.wiktionary.org/wiki/skûtsje (verkleinwoord van skûte)"
+  },
+  "publyk": {
+   "nl": "publiek",
+   "status": "kennis",
+   "opm": "Fries \"publyk\"; Wiktionary-pagina bestaat niet, niet bevestigd in een bron"
+  },
+  "wiene": {
+   "nl": "waren",
+   "status": "kennis",
+   "opm": "Fries verleden tijd meervoud van \"wêze\""
+  },
+  "jimme": {
+   "nl": "jullie",
+   "status": "kennis",
+   "opm": "standaardvorm; de tekst had \"jim\" en is aangepast naar \"jimme\" (casework.js)"
+  },
+  "Grins": {
+   "nl": "Groningen",
+   "status": "kennis",
+   "opm": "Friese naam van de stad/provincie"
+  },
+  "it": {
+   "nl": "het",
+   "status": "kennis",
+   "opm": "Fries lidwoord"
+  },
+  "in": {
+   "nl": "een",
+   "status": "kennis",
+   "opm": "Fries onbepaald lidwoord"
+  },
+  "wâld": {
+   "nl": "bos",
+   "status": "twijfel",
+   "opm": "\"JelleWâld\" is een verzonnen kanaalnaam (woordspeling); \"wâld\" = bos/woud, niet in een bron bevestigd"
+  },
+  "weach": {
+   "nl": "golf (hekweach = hekgolf van een boot)",
+   "status": "bron",
+   "opm": "en.wiktionary.org/wiki/weach: golf"
+  },
+  "hjoed": {
+   "nl": "vandaag",
+   "status": "bron",
+   "opm": "en.wiktionary.org/wiki/hjoed"
+  },
+  "brêgekening": {
+   "nl": "brugkoning (prestatienaam)",
+   "status": "kennis",
+   "opm": "bekend Fries; niet in een online bron nagezocht"
+  },
+  "skûtsjekening": {
+   "nl": "skûtsjekoning (prestatienaam)",
+   "status": "kennis",
+   "opm": "bekend Fries; niet in een online bron nagezocht"
+  },
+  "kening": {
+   "nl": "koning",
+   "status": "kennis",
+   "opm": "bekend Fries; niet in een online bron nagezocht"
+  },
+  "skûtsje-sprint": {
+   "nl": "skûtsje-sprint (samenstelling met Nederlandse \"sprint\")",
+   "status": "kennis",
+   "opm": "bekend Fries; niet in een online bron nagezocht"
+  },
+  "skûtsjes": {
+   "nl": "skûtsjes (meervoud)",
+   "status": "kennis",
+   "opm": "bekend Fries; niet in een online bron nagezocht"
+  },
+  "skûtsjesiler": {
+   "nl": "skûtsjezeiler (silen = zeilen)",
+   "status": "kennis",
+   "opm": "bekend Fries; niet in een online bron nagezocht"
+  },
+  "seil": {
+   "nl": "zeil",
+   "status": "kennis",
+   "opm": "bekend Fries; niet in een online bron nagezocht"
+  },
+  "trapfyts": {
+   "nl": "trapfiets",
+   "status": "kennis",
+   "opm": "bekend Fries; niet in een online bron nagezocht"
+  },
+  "jûn": {
+   "nl": "avond",
+   "status": "kennis",
+   "opm": "bekend Fries; niet in een online bron nagezocht"
+  },
+  "út": {
+   "nl": "uit",
+   "status": "kennis",
+   "opm": "bekend Fries; niet in een online bron nagezocht"
+  },
+  "ús": {
+   "nl": "ons",
+   "status": "kennis",
+   "opm": "bekend Fries; niet in een online bron nagezocht"
+  },
+  "hûs": {
+   "nl": "huis",
+   "status": "twijfel",
+   "opm": "bekend Fries; niet in een online bron nagezocht; in \"naar hûs\" staat Nederlands \"naar\" bij Fries \"hûs\" (Fries: \"nei hûs\")"
+  },
+  "tún": {
+   "nl": "tuin",
+   "status": "kennis",
+   "opm": "bekend Fries; niet in een online bron nagezocht"
+  },
+  "genôch": {
+   "nl": "genoeg",
+   "status": "kennis",
+   "opm": "bekend Fries; niet in een online bron nagezocht"
+  },
+  "jild": {
+   "nl": "geld",
+   "status": "kennis",
+   "opm": "bekend Fries; niet in een online bron nagezocht"
+  },
+  "sûkelade": {
+   "nl": "chocolade",
+   "status": "kennis",
+   "opm": "bekend Fries; niet in een online bron nagezocht"
+  },
+  "útslach": {
+   "nl": "uitslag",
+   "status": "kennis",
+   "opm": "bekend Fries; niet in een online bron nagezocht"
+  },
+  "wêr": {
+   "nl": "waar",
+   "status": "kennis",
+   "opm": "bekend Fries; niet in een online bron nagezocht"
+  },
+  "pompeblêden": {
+   "nl": "waterlelieblad (meervoud)",
+   "status": "kennis",
+   "opm": "bekend Fries; niet in een online bron nagezocht"
+  },
+  "ien": {
+   "nl": "een (telwoord)",
+   "status": "kennis",
+   "opm": "bekend Fries; niet in een online bron nagezocht"
+  },
+  "twa": {
+   "nl": "twee",
+   "status": "kennis",
+   "opm": "bekend Fries; niet in een online bron nagezocht"
+  },
+  "trije": {
+   "nl": "drie",
+   "status": "kennis",
+   "opm": "bekend Fries; niet in een online bron nagezocht"
+  },
+  "fuort": {
+   "nl": "weg, vooruit",
+   "status": "kennis",
+   "opm": "bekend Fries; niet in een online bron nagezocht"
+  },
+  "efkes": {
+   "nl": "even",
+   "status": "kennis",
+   "opm": "bekend Fries; niet in een online bron nagezocht"
+  },
+  "betiid": {
+   "nl": "vroeg",
+   "status": "kennis",
+   "opm": "bekend Fries; niet in een online bron nagezocht"
+  },
+  "werom": {
+   "nl": "terug",
+   "status": "kennis",
+   "opm": "bekend Fries; niet in een online bron nagezocht"
+  },
+  "bytsje": {
+   "nl": "beetje",
+   "status": "kennis",
+   "opm": "bekend Fries; niet in een online bron nagezocht"
+  },
+  "gelok": {
+   "nl": "geluk",
+   "status": "kennis",
+   "opm": "bekend Fries; niet in een online bron nagezocht"
+  },
+  "teminsten": {
+   "nl": "tenminste",
+   "status": "kennis",
+   "opm": "bekend Fries; niet in een online bron nagezocht"
+  },
+  "mjitte": {
+   "nl": "maat",
+   "status": "kennis",
+   "opm": "bekend Fries; niet in een online bron nagezocht"
+  },
+  "wiet": {
+   "nl": "nat",
+   "status": "kennis",
+   "opm": "bekend Fries; niet in een online bron nagezocht"
+  },
+  "wrachtich": {
+   "nl": "waarachtig",
+   "status": "kennis",
+   "opm": "bekend Fries; niet in een online bron nagezocht"
+  },
+  "hearen": {
+   "nl": "heren",
+   "status": "kennis",
+   "opm": "bekend Fries; niet in een online bron nagezocht"
+  },
+  "hear": {
+   "nl": "heer",
+   "status": "kennis",
+   "opm": "bekend Fries; niet in een online bron nagezocht"
+  },
+  "oant": {
+   "nl": "tot",
+   "status": "kennis",
+   "opm": "bekend Fries; niet in een online bron nagezocht"
+  },
+  "sjen": {
+   "nl": "zien",
+   "status": "kennis",
+   "opm": "bekend Fries; niet in een online bron nagezocht"
+  },
+  "ek": {
+   "nl": "ook",
+   "status": "kennis",
+   "opm": "bekend Fries; niet in een online bron nagezocht"
+  },
+  "mear": {
+   "nl": "meer",
+   "status": "kennis",
+   "opm": "bekend Fries; niet in een online bron nagezocht"
+  },
+  "folle": {
+   "nl": "veel",
+   "status": "kennis",
+   "opm": "bekend Fries; niet in een online bron nagezocht"
+  },
+  "sizze": {
+   "nl": "zeggen",
+   "status": "kennis",
+   "opm": "bekend Fries; niet in een online bron nagezocht"
+  },
+  "fertelle": {
+   "nl": "vertellen",
+   "status": "kennis",
+   "opm": "bekend Fries; niet in een online bron nagezocht"
+  },
+  "allinnich": {
+   "nl": "alleen",
+   "status": "kennis",
+   "opm": "bekend Fries; niet in een online bron nagezocht"
+  },
+  "woe": {
+   "nl": "wilde",
+   "status": "kennis",
+   "opm": "bekend Fries; niet in een online bron nagezocht"
+  },
+  "jaan": {
+   "nl": "geven",
+   "status": "kennis",
+   "opm": "bekend Fries; niet in een online bron nagezocht"
+  },
+  "oan": {
+   "nl": "aan",
+   "status": "kennis",
+   "opm": "bekend Fries; niet in een online bron nagezocht"
+  },
+  "lear": {
+   "nl": "leer",
+   "status": "kennis",
+   "opm": "bekend Fries; niet in een online bron nagezocht"
+  },
+  "stipkes": {
+   "nl": "streepjes/stippen",
+   "status": "kennis",
+   "opm": "bekend Fries; niet in een online bron nagezocht"
+  },
+  "potsje": {
+   "nl": "potje",
+   "status": "kennis",
+   "opm": "bekend Fries; niet in een online bron nagezocht"
+  },
+  "grinzers": {
+   "nl": "Groningers",
+   "status": "kennis",
+   "opm": "bekend Fries; niet in een online bron nagezocht"
+  },
+  "grinzer": {
+   "nl": "Groninger",
+   "status": "kennis",
+   "opm": "bekend Fries; niet in een online bron nagezocht"
+  },
+  "fryske": {
+   "nl": "Friese",
+   "status": "kennis",
+   "opm": "bekend Fries; niet in een online bron nagezocht"
+  },
+  "frysk": {
+   "nl": "Fries",
+   "status": "kennis",
+   "opm": "bekend Fries; niet in een online bron nagezocht"
+  },
+  "fryslân": {
+   "nl": "Friesland",
+   "status": "kennis",
+   "opm": "bekend Fries; niet in een online bron nagezocht"
+  },
+  "wy": {
+   "nl": "wij",
+   "status": "kennis",
+   "opm": "bekend Fries; niet in een online bron nagezocht"
+  },
+  "net": {
+   "nl": "niet",
+   "status": "kennis",
+   "opm": "bekend Fries; niet in een online bron nagezocht"
+  },
+  "snits": {
+   "nl": "Sneek",
+   "status": "kennis",
+   "opm": "bekend Fries; niet in een online bron nagezocht"
+  },
+  "better": {
+   "nl": "beter",
+   "status": "kennis",
+   "opm": "bekend Fries; niet in een online bron nagezocht"
+  },
+  "as": {
+   "nl": "dan",
+   "status": "kennis",
+   "opm": "bekend Fries; niet in een online bron nagezocht"
+  },
+  "noch": {
+   "nl": "nog",
+   "status": "kennis",
+   "opm": "bekend Fries; niet in een online bron nagezocht"
+  },
+  "ferhip": {
+   "nl": "uitroep (onbekend)",
+   "status": "twijfel",
+   "opm": "niet bevestigd in een bron; betekenis onzeker, controleren of het een bestaand Fries woord is"
+  },
+  "fan'e": {
+   "nl": "van de (fan 'e)",
+   "status": "twijfel",
+   "opm": "Fries schrijft \"fan 'e\" met een spatie; de tekst heeft \"fan'e\" (missions.js, subtitles.js)"
+  },
+  "skûtsjezeiler": {
+   "nl": "skûtsjezeiler (Nederlands \"zeiler\")",
+   "status": "twijfel",
+   "opm": "samenstelling met Nederlands \"zeiler\"; in de Friese tekst staat \"skûtsjesiler\" (dit is de Nederlandse ondertitel, subtitles.js)"
+  },
+  "hekweach": {
+   "nl": "hekgolf (zog achter een boot)",
+   "status": "kennis",
+   "opm": "hek = achtersteven; weach = golf (en.wiktionary.org/wiki/weach); de samenstelling is niet in een bron gevonden"
+  },
+  "skûtsjekoning": {
+   "nl": "skûtsjekoning (Nederlandse ondertitel van Skûtsjekening)",
+   "status": "kennis",
+   "opm": "gemengd; staat in de Nederlandse ondertitel (subtitles.js:169)"
+  }
+ },
+ "nl_ok": [
+  "wandkaart",
+  "spuiten",
+  "kniepertje",
+  "zakt",
+  "gokje",
+  "to",
+  "heup",
+  "tip",
+  "schat",
+  "mc",
+  "crew",
+  "grond",
+  "ondertitels",
+  "leest",
+  "goedendag",
+  "sleutelen",
+  "eetcafé",
+  "manden",
+  "briesje",
+  "holes",
+  "korte",
+  "grassprietjes",
+  "talud",
+  "green",
+  "banen",
+  "vijfentwintig",
+  "duiken",
+  "klokken",
+  "sla",
+  "lichtgevende",
+  "toppings",
+  "goudbruin",
+  "dobbertje",
+  "stempelposten",
+  "toeter",
+  "tutteltje",
+  "tikt",
+  "meesters",
+  "café",
+  "kerkpad",
+  "appen",
+  "zeshonderd",
+  "beloning",
+  "specialiteit",
+  "vriendschap",
+  "kwebbelkrant",
+  "kraskaart",
+  "koek",
+  "goeienavond",
+  "akte",
+  "complimenten",
+  "klimt",
+  "ladder",
+  "bernhard",
+  "karretje",
+  "pijltjes",
+  "trailerparodie",
+  "flamingo's",
+  "werkboot",
+  "vist",
+  "stilstaand",
+  "naamkaart",
+  "titelkaart",
+  "ochtend",
+  "camera",
+  "zolderraam",
+  "lekke",
+  "keukentafel",
+  "tafel",
+  "reageerde",
+  "oproep",
+  "stuntrijder",
+  "want",
+  "kiezelcommissie",
+  "umcg-dak",
+  "tenten",
+  "intro",
+  "outro",
+  "zeuren",
+  "enige",
+  "tekening"
+ ]
+}
