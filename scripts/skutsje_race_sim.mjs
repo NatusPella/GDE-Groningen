@@ -16,8 +16,8 @@ const { routeAt, prepareDiepenringRoute, diepenringProgress } = await import('..
 const { sailPolar, idealTrim, sailSpeed, jelleSpeed } = await import('../game/js/pg_skutsje.js');
 
 const root = new URL('../game/', import.meta.url);
-const data = JSON.parse(fs.readFileSync(new URL('citymap.json', root)));
-applyMapExtras(data, JSON.parse(fs.readFileSync(new URL('mapextras.json', root))));
+const { loadCityData } = await import('./lib/loadworld.mjs');
+const data = await loadCityData();
 const map = new GameMap(data);
 prepareDiepenringRoute(map);
 const s0 = diepenringProgress(751.16, 380.57).s, s1 = diepenringProgress(-373.03, 288.27).s;

@@ -7,8 +7,8 @@ import { VIEW_DISTANCES, propRadius } from '../game/js/viewdist.js';
 
 const { GameMap, applyMapExtras } = await import('../game/js/mapdata.js');
 const root = new URL('../game/', import.meta.url);
-const data = JSON.parse(fs.readFileSync(new URL('citymap.json', root)));
-applyMapExtras(data, JSON.parse(fs.readFileSync(new URL('mapextras.json', root))));
+const { loadCityData } = await import('./lib/loadworld.mjs');
+const data = await loadCityData();
 const map = new GameMap(data);
 
 let bx0 = 1e9, by0 = 1e9, bx1 = -1e9, by1 = -1e9;
