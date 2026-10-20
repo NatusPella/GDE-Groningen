@@ -4,7 +4,7 @@
 // a footprint inside another of the same height steps up 0.4 m, a footway
 // through a solid block ends at its facade; and the result is deterministic.
 import assert from 'node:assert/strict';
-import { deriveFeatures, trimWaterways, slideOutOfWater, FAR_SLIDE, cutDitches, ribbon, DITCH } from './world/derive_tiles.mjs';
+import { deriveFeatures, trimWaterways, slideOutOfWater, floatStuckSheds, cutDitches, ribbon, DITCH } from './world/derive_tiles.mjs';
 
 const rect = (x, y, w, h) => [[x, y], [x + w, y], [x + w, y + h], [x, y + h], [x, y]];
 const bld = (pts, o = {}) => ({ kind: 'buildings', row: { pts, h: 2, type: 'house', name: null, ...o } });
@@ -68,16 +68,33 @@ assert.equal(slideOutOfWater(sl), 1, 'one footprint slid');
 assert.ok(onBank.row.pts.every(([, y]) => y <= 300.01 || y >= 399.99 || Math.abs(y - 300) < 0.01 || y < 300.5), 'it stands on the bank');
 assert.ok(Math.max(...onBank.row.pts.map((p) => p[1])) <= 300.01 || Math.min(...onBank.row.pts.map((p) => p[1])) >= 399.99, 'wholly on dry land');
 assert.equal(farOut.row.pts[0][1], 340, 'one 40 m out stays where it is');
-// 12-20 m in: too far for the first pass (12 m), found by the far pass (25 m) (#297)
-{
-  const lake = { kind: 'water', row: { pts: rect(0, 500, 100, 100) } };
-  const inner = bld(rect(40, 512, 10, 8)); // 12 to 20 m in from the north shore (y 500)
-  assert.equal(slideOutOfWater([lake, inner]), 0, 'the first pass leaves one that is 20 m in');
-  assert.equal(slideOutOfWater([lake, inner], FAR_SLIDE), 1, 'the far pass slides it');
-  assert.ok(Math.max(...inner.row.pts.map((p) => p[1])) <= 500.05, 'onto dry land');
-}
 assert.equal(floats.row.pts[0][1], 310, 'the houseboat floats on');
 assert.equal(pier.row.pts[0][1], 297, 'the landing stage stays');
+// a footprint 20 m inside slides 20 m (the limit is 25 m since 2026-10-20), but beyond 12 m not onto a road or a rail (#297)
+{
+  const lake = { kind: 'water', row: { pts: rect(0, 500, 200, 100) } };
+  const deep = bld(rect(40, 512, 10, 8)); // wholly inside, 20 m from the north shore at y 500
+  assert.equal(slideOutOfWater([lake, deep]), 1, 'a footprint 20 m in slides');
+  assert.ok(Math.max(...deep.row.pts.map((p) => p[1])) <= 500.01, 'and ends on dry land');
+  const blocked = bld(rect(40, 512, 10, 8));
+  const was = JSON.stringify(blocked.row.pts);
+  assert.equal(slideOutOfWater([lake, blocked, road([[0, 496], [200, 496]])]), 0, 'a street along the bank (4 m off) stops a long slide');
+  assert.equal(JSON.stringify(blocked.row.pts), was, 'and the footprint stays');
+  const railed = bld(rect(40, 512, 10, 8));
+  assert.equal(slideOutOfWater([lake, railed, { kind: 'rails', row: { pts: [[0, 497], [200, 497]] } }]), 0, 'so does a rail');
+}
+// what cannot slide and is a small low shed wholly in the water floats on as a houseboat; a named, tall or large one stays (#297)
+{
+  const sea = { kind: 'water', row: { pts: rect(0, 700, 400, 400) } };
+  const shed = bld(rect(100, 800, 6, 5), { h: 0.8, type: 'yes' });
+  const named = bld(rect(120, 800, 6, 5), { h: 0.8, type: 'yes', name: 'Visschuur' });
+  const tall = bld(rect(140, 800, 6, 5), { h: 3, type: 'yes' });
+  const large = bld(rect(160, 800, 30, 20), { h: 0.8, type: 'yes' });
+  const onLand = bld(rect(10, 10, 6, 5), { h: 0.8, type: 'yes' });
+  assert.equal(floatStuckSheds([sea, shed, named, tall, large, onLand]), 1, 'one shed turned into a houseboat');
+  assert.equal(shed.row.type, 'houseboat', 'the small low one in the water floats');
+  assert.ok(named.row.type === 'yes' && tall.row.type === 'yes' && large.row.type === 'yes' && onLand.row.type === 'yes', 'a named, tall, large or dry one stays');
+}
 // the real ditches against the track, roads and other water (#124)
 {
   const hw = 1.2;

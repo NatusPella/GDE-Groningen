@@ -1,7 +1,7 @@
 // Gebouwen in het water (#124): in de provinciegegevens ligt geen gebouw (boerderij, huis, schuur) met zijn midden
 // of de meerderheid van zijn hoeken in een waterpolygoon van dezelfde tegel; woonboten (ook type houseboat: die liggen er bedoeld), steigers en bruggen tellen niet.
 // Grens 0,02 % sinds #297: 204 van de 240 meldingen waren afgemeerde woonboten; de rest zat ver in het water
-// en schuift nu in een tweede ronde (derive_tiles FAR_SLIDE, 25 m).
+// en wordt aangepakt in derive_tiles (branch r25-water-bruggen).
 // Heeft game/world met de provinciegegevens nodig (desktop stage).
 //   node scripts/house_water_audit_test.mjs
 import './node3d.mjs';

@@ -14,8 +14,9 @@
 //               (issue #124: farms in the water)
 //   afloat      a footprint 20 % or more in the water (the compact boxes of the
 //               Ommeland sit a few metres off the bank, OSM's water areas run
-//               under quays) slides at most 12 m to dry land, as the houseboats
-//               slide onto water; further in it stays and the audit counts it
+//               under quays) slides at most 25 m to dry land (beyond 12 m clear of roads and rails), as the houseboats
+//               slide onto water; what cannot slide and is a small low
+//               shed wholly in the water floats on as a houseboat; the rest stays and the audit counts it
 //   clipped     footways and cycleways through a solid block end at its
 //               facade (passages.js clipWaysInBuildings)
 //
@@ -43,13 +44,14 @@ const inRing = (x, y, P) => {
   return c;
 };
 
-const MAX_SLIDE = 12;
-export const FAR_SLIDE = 25; // the second pass for the few that are further in (#297)
+const MAX_SLIDE = 25; // (12 until 2026-10-20: 27 more of the 69 footprints in the water of the built province reach land within 25 m)
+const SAFE_SLIDE = 12; // up to here a footprint slides without a look at the ways; further it keeps off roads and rails
+const CAR_WAYS = new Set(['major', 'normal', 'minor']);
 
 
-// Footprints in the water slid the shortest way onto dry land (12 m at most, steps of 0.5 m
-// over 16 directions), clear of other footprints; none is dropped. Houseboats and landmarks stay.
-// -> the number moved
+// Footprints in the water slid the shortest way onto dry land (25 m at most, steps of 0.5 m
+// over 16 directions), clear of other footprints, and beyond 12 m also clear of the car roads and rails;
+// none is dropped. Houseboats and landmarks stay. -> the number moved
 export function slideOutOfWater(feats, maxSlide = MAX_SLIDE) {
   const water = feats.filter((f) => f.kind === 'water').map((f) => f.row);
   const blds = feats.filter((f) => f.kind === 'buildings').map((f) => f.row);
@@ -59,6 +61,34 @@ export function slideOutOfWater(feats, maxSlide = MAX_SLIDE) {
   const box = new Map();
   const boundsOf = (b) => box.get(b) || box.set(b, polygonBounds(b.pts)).get(b);
   for (const b of blds) grid.insert(b, boundsOf(b));
+  // the car roads at street level and the rails: a footprint that has to slide far does not land on one
+  const WAYCELL = 40, segs = new Map();
+  for (const f of feats) {
+    const r = f.row;
+    const rail = f.kind === 'rails', road = f.kind === 'roads' && CAR_WAYS.has(r.cat) && !r.bridge && !r.tunnel && !(r.z && r.z.some((z) => Math.abs(z) > 1));
+    if (!rail && !road || !r.pts || r.pts.length < 2) continue;
+    const reach = rail ? 3 : (r.width || 6) / 2 + 1.5;
+    for (let i = 0; i < r.pts.length - 1; i++) {
+      const a = r.pts[i], c = r.pts[i + 1];
+      for (let gx = Math.floor((Math.min(a[0], c[0]) - reach) / WAYCELL); gx <= Math.floor((Math.max(a[0], c[0]) + reach) / WAYCELL); gx++) {
+        for (let gy = Math.floor((Math.min(a[1], c[1]) - reach) / WAYCELL); gy <= Math.floor((Math.max(a[1], c[1]) + reach) / WAYCELL); gy++) {
+          const k = gx + ',' + gy;
+          if (!segs.has(k)) segs.set(k, []);
+          segs.get(k).push([a, c, reach * reach]);
+        }
+      }
+    }
+  }
+  const nearWay = (x, y) => (segs.get(Math.floor(x / WAYCELL) + ',' + Math.floor(y / WAYCELL)) || []).some(([a, c, r2]) => segDist2(x, y, a, c) < r2);
+  // (the outline every 1.5 m: a way that runs across the middle crosses its edges)
+  const onWay = (P) => P.some(([x, y], i) => {
+    if (nearWay(x, y)) return true;
+    const n = P[i + 1];
+    if (!n) return false;
+    const k = Math.ceil(Math.hypot(n[0] - x, n[1] - y) / 1.5);
+    for (let j = 1; j < k; j++) if (nearWay(x + ((n[0] - x) * j) / k, y + ((n[1] - y) * j) / k)) return true;
+    return false;
+  });
   let moved = 0;
   for (const b of blds) {
     if (b.type === 'houseboat' || b.landmark || b.landmarkKind || b.landmarkPart || b.helipad || b.parts || landingStage(b.pts)) continue;
@@ -75,7 +105,7 @@ export function slideOutOfWater(feats, maxSlide = MAX_SLIDE) {
       for (let a = 0; a < 16 && !best; a++) {
         const ox = Math.cos((a * Math.PI) / 8) * d, oy = Math.sin((a * Math.PI) / 8) * d;
         const P = b.pts.map(([x, y]) => [Math.round((x + ox) * 100) / 100, Math.round((y + oy) * 100) / 100]);
-        if (wetFraction(P, wet) < 0.03 && clear(ox, oy)) best = P;
+        if (wetFraction(P, wet) < 0.03 && clear(ox, oy) && (d <= SAFE_SLIDE || !onWay(P))) best = P;
       }
     }
     if (!best) continue;
@@ -86,6 +116,29 @@ export function slideOutOfWater(feats, maxSlide = MAX_SLIDE) {
     moved++;
   }
   return moved;
+}
+
+// What cannot slide to land and is small, low and wholly in the water is a floating cabin, a boat shed or a mooring
+// platform mapped as building=yes (the marina at 9900,8770 has 38 of 31-40 m2 and 0.8 m): it becomes a houseboat,
+// which floats on purpose (derive.js mooredHouseboats, the audits). A named or tall or large footprint stays as it is
+// and the audit counts it. -> the number turned into houseboats
+export const FLOAT_MIN_WET = 0.75, FLOAT_MAX_AREA = 120, FLOAT_MAX_H = 1.5;
+export function floatStuckSheds(feats) {
+  const water = feats.filter((f) => f.kind === 'water').map((f) => f.row);
+  const blds = feats.filter((f) => f.kind === 'buildings').map((f) => f.row);
+  if (!water.length || !blds.length) return 0;
+  const wet = waterIndex(water);
+  let n = 0;
+  for (const b of blds) {
+    if (b.type === 'houseboat' || b.name || b.landmark || b.landmarkKind || b.landmarkPart || b.helipad || b.parts || !b.pts || b.pts.length < 3) continue;
+    if ((b.h || 3) > FLOAT_MAX_H) continue;
+    let A = 0;
+    for (let i = 0, j = b.pts.length - 1; i < b.pts.length; j = i++) A += (b.pts[j][0] + b.pts[i][0]) * (b.pts[j][1] - b.pts[i][1]);
+    if (Math.abs(A / 2) > FLOAT_MAX_AREA || wetFraction(b.pts, wet) < FLOAT_MIN_WET) continue;
+    b.type = 'houseboat';
+    n++;
+  }
+  return n;
 }
 
 // Water features that came from a waterway line (f.line) without a mapped width
@@ -264,12 +317,13 @@ export function deriveFeatures(feats, { clear = true, clip = true } = {}) {
   const bFeats = of('buildings'), rFeats = of('roads');
   const buildings = bFeats.map((f) => f.row);
   const roads = rFeats.map((f) => f.row);
-  const stats = { buildings: buildings.length, moved: 0, merged: 0, canopies: 0, lifted: 0, clipped: 0, trimmed: 0, afloat: 0 };
+  const stats = { buildings: buildings.length, moved: 0, merged: 0, canopies: 0, lifted: 0, clipped: 0, trimmed: 0, afloat: 0, floated: 0 };
   // (before the clearance: the footprints settle on dry land first, then keep off the roads)
   stats.trimmed = trimWaterways(feats);
   Object.assign(stats, { ditchCut: 0, ditchJoined: 0, ditchDropped: 0 });
   { const c = cutDitches(feats); stats.ditchCut = c.cut; stats.ditchJoined = c.joined; stats.ditchDropped = c.dropped; }
-  stats.afloat = slideOutOfWater(feats) + slideOutOfWater(feats, FAR_SLIDE);
+  stats.afloat = slideOutOfWater(feats);
+  stats.floated = floatStuckSheds(feats);
   if (clear && buildings.length && roads.length) {
     const was = buildings.map((b) => b.pts);
     clearFootprints({ roads, buildings });
