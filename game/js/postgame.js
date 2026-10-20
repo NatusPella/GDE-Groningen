@@ -5,7 +5,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { getScene } from './scene3d.js';
 import { buildPersonMesh, animatePersonWalk } from './models3d_people.js';
 import { JELLE_LOOK } from './storycast.js';
-import { currentStep, getStorySave } from './story.js';
+import { currentStep, getStorySave } from './storyquery.js';
 import { isMissionActive, getActiveRace } from './missionquery.js';
 import { buildWorldMarker3D, updateWorldMarker3D } from './worldmarker3d.js';
 import { isCinematicActive, playCinematic, showBanner } from './cinematics.js';

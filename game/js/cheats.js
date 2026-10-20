@@ -16,7 +16,7 @@ import { CHEATS, CHEAT_BY_ID, storyCheatUnlocks, cheatUnlocksFromSave } from './
 import { MODS } from './cheatmods.js';
 import { targetMix, stepMix } from './streekverkeer.js';
 import { setAchievementGate, isUnlocked, hasUnique, markLifetime } from './achievements.js';
-import { getStorySave } from './story.js';
+import { getStorySave } from './storyquery.js';
 import { getMissionProgress, isMissionActive } from './missionquery.js';
 import { isCinematicActive } from './cinematics.js';
 import { isActivityActive } from './activities.js';

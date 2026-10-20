@@ -12,7 +12,7 @@ import { getShopsForRender, SHOP_TYPES } from './shops.js';
 import { getSideJobSpotsForRender } from './sidejobs.js';
 import { getGaragesForRender } from './garages.js';
 import { getStationsForRender } from './stationtravel.js';
-import { storyFlag } from './story.js';
+import { storyFlag } from './storyquery.js';
 import { isVerplaatsbaar, schoonPlekken, plekVan, volgendePlek, opPlek, plekInfo } from './inrichting.js';
 import { getLedger, summary } from './finance.js';
 

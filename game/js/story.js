@@ -57,7 +57,7 @@ import { storyLines, talkLines, radioContacts, appsAt, storyDataReady, readingTi
 import { updateStoryTalk, stopTalk, playTalk } from './storytalk.js';
 import { makeReisGoals } from './storyreis.js';
 import { plakjesState } from './plakjes.js';
-import { setStoryViewSource } from './calendarday.js';
+import { registerStoryQueries } from './storyquery.js';
 
 // Rikus' Radio Nachtstreek studio (radiostudio.js, three.js from the CDN) for the
 // recaps and the epilogue; loaded lazily so Node checks can import this file.
@@ -1221,7 +1221,7 @@ export function getStoryView() {
     done, total: avail.length,
   };
 }
-setStoryViewSource(getStoryView);
+registerStoryQueries({ currentStep, storyFlag, getStoryView, storyVoorschotInfo, prepareStoryShop, getStorySave });
 
 // Dev chapter select: rebuilds the progress, money and belongings a player
 // would have right before step `id` (worst case money from the timeline).
