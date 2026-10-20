@@ -528,10 +528,10 @@ Overpass responses that are still cached in `data/` together with the box they c
   corner its OSM extract does not reach from `data/ommeland_raw.json.gz`, as
   boxes and wings instead of the real footprints). The churches, mills,
   towers and borgen are landmark kits from OSM (`landmarkkit.js`). What is
-  still lower than in the city: the water outside the city still partly
-  comes from the old Ommeland water layer (`countrywater.js`,
-  `countryedge.js` `countryWater`); the ground is flat where there is no
-  AHN raster.
+  still lower than in the city: the ground is flat where there is no AHN
+  raster. The water is the tiles' water everywhere (the old Ommeland water
+  layer `countrywater.js` is gone, #1/#298); `countryedge.js` `countryWater`
+  only answers for the procedural polder ditches out past the tiles.
 - Squares mapped as OSM multipolygon relations (such as the Grote Markt
   paving) are only in the data as far as the province extract carries them.
 
