@@ -337,6 +337,24 @@ const PHASES = {
       log('rit-uit', { host: !!w.player.inVehicle, tessa: !!w.companion.inVehicle });
     } else await sleep(6000);
   },
+  // een filmpje op de host (een korte cutscene): de gast hoort het, ziet de laag met balken en tekst, wacht en loopt daarna weer
+  async filmpje({ s = 8 }) {
+    if (CFG.role === 'host') {
+      const C = await imp('cinematics');
+      let ok = null; try { ok = C.playCinematic({ id: 'coop-test', priority: 5, duration: s - 1, letterbox: true, skippable: false, lines: [{ speaker: 'Tammo', text: 'Dit is een proeffilmpje, kijk even mee.' }] }); } catch (e) { ok = 'fout ' + e.message; }
+      log('filmpje', { ok, actief: C.isCinematicActive() });
+      await sleep(3000); shot('filmpje-host');
+      await sleep((s - 3) * 1000);
+      log('filmpje-na', { actief: C.isCinematicActive() });
+    } else {
+      await sleep(3500);
+      const x = W();
+      log('filmpje-gast', { sc: x.coopScene || null, sceneEl: !!document.getElementById('coop-scene'), input: x.coopNet && x.coopNet.session ? [x.coopNet.session.pendingInput.mx, x.coopNet.session.pendingInput.my] : null });
+      shot('filmpje-gast');
+      await sleep((s - 3.5) * 1000 + 2500);
+      log('filmpje-gast-na', { sc: W().coopScene || null, sceneEl: !!document.getElementById('coop-scene') });
+    }
+  },
   // de gast verlaat het spel via het menu (zoals een speler)
   async verlaat({ wie = 'gast2' }) {
     if (CFG.name !== wie) { await sleep(6000); return; }
