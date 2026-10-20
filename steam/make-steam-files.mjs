@@ -1,7 +1,8 @@
 // Generates the two Steam files that follow the game's own data (#64):
 //   steam/steam_input/game_actions_APP_ID.vdf   the Steam Input action sets, one per controller
 //                                                situation (controls.js PAD_MAPS), with Dutch names
-//   steam/achievements.json                      every prestatie id with an empty Steam API name
+//   steam/achievements.json                      every prestatie id with a proposed Steam API name and the
+//                                                one the owner enters (steamApiNaam, kept on every run)
 // Local only: nothing here contacts Steam. Run it again after the controls or the
 // prestaties change; scripts/steam_test.mjs fails when the files are out of date.
 //   node steam/make-steam-files.mjs          write the files
@@ -84,17 +85,24 @@ export function inputVdf() {
   return L.join('\n');
 }
 
-export function achievementsJson() {
-  const rows = ACHIEVEMENTS.map((a) => ({ id: a.id, titel: a.title, omschrijving: a.desc, verborgen: !!a.hidden, steamApiNaam: '' }));
+// the API name proposed for a prestatie id: ACH_ + the id in capitals (Steamworks: capitals, digits and _, up to 128)
+export const proposedApiName = (id) => 'ACH_' + String(id).toUpperCase().replace(/[^A-Z0-9]+/g, '_');
+
+// existing: the current achievements.json text; the steamApiNaam values the owner filled in survive a regeneration
+export function achievementsJson(existing = '') {
+  let kept = {};
+  try { kept = Object.fromEntries(JSON.parse(existing).prestaties.map((a) => [a.id, a.steamApiNaam || ''])); } catch (e) { /* no file yet */ }
+  const rows = ACHIEVEMENTS.map((a) => ({ id: a.id, titel: a.title, omschrijving: a.desc, verborgen: !!a.hidden, voorstelApiNaam: proposedApiName(a.id), steamApiNaam: kept[a.id] || '' }));
   return JSON.stringify({
-    _uitleg: 'Prestatie-ID van het spel naar de API-naam in Steamworks (Stats & Achievements). Leeg tot er een app-id is; vul steamApiNaam in zoals je hem in Steamworks aanmaakt (hoofdletters, cijfers en _, tot 128 tekens). Gegenereerd door steam/make-steam-files.mjs.',
+    _uitleg: 'Prestatie-ID van het spel naar de API-naam in Steamworks (Stats & Achievements). voorstelApiNaam is een voorstel dat bij Steamworks past (hoofdletters, cijfers en _, tot 128 tekens); steamApiNaam blijft leeg tot er een app-id is en vul je in zoals je hem in Steamworks aanmaakt. Een nieuwe run van steam/make-steam-files.mjs laat ingevulde steamApiNaam staan.',
     prestaties: rows,
   }, null, 2) + '\n';
 }
 
+const ACH_FILE = path.join(HERE, 'achievements.json');
 export const FILES = () => [
   [path.join(HERE, 'steam_input', 'game_actions_APP_ID.vdf'), inputVdf()],
-  [path.join(HERE, 'achievements.json'), achievementsJson()],
+  [ACH_FILE, achievementsJson(fs.existsSync(ACH_FILE) ? fs.readFileSync(ACH_FILE, 'utf8') : '')],
 ];
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
