@@ -123,10 +123,15 @@ export function getSideJobOffers(w) {
 const SPREAD = [[0, 0]];
 for (const r of [30, 60, 90, 120]) for (let k = 0; k < 8; k++) SPREAD.push([Math.round(Math.cos(k * Math.PI / 4) * r), Math.round(Math.sin(k * Math.PI / 4) * r)]);
 function spreadSpot(map, x, y, taken) {
+  const free = (q) => !taken.some((t) => dist(t.x, t.y, q.x, q.y) < 10);
+  // first another road point (the drivable roads near a pedestrian centre are few), then simply open ground
   for (const [dx, dy] of SPREAD) {
-    const rp = map.nearestRoadPoint ? map.nearestRoadPoint(x + dx, y + dy, 20, true) : null;
-    if (!rp) continue;
-    if (!taken.some((t) => dist(t.x, t.y, rp.x, rp.y) < 10)) return { x: rp.x, y: rp.y };
+    const rp = map.nearestRoadPoint ? map.nearestRoadPoint(x + dx, y + dy, 60, true) : null;
+    if (rp && free(rp)) return { x: rp.x, y: rp.y };
+  }
+  for (const [dx, dy] of SPREAD) {
+    const q = { x: x + dx, y: y + dy };
+    if (free(q) && !isInWater(map, q.x, q.y)) return q;
   }
   return { x, y };
 }
