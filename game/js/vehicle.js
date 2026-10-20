@@ -1005,7 +1005,9 @@ export function manageTrafficPopulation(world, opts = {}) {
     // reach the distance despawn, silently eating the traffic quota. A
     // vehicle stuck bouncing off the same dead end (isolated stub with no
     // real connection) is cleared the same way rather than left oscillating.
-    if ((!v.wrecked && ((v.deadEndBounces || 0) > 2 || (v.stuckFor || 0) > 25 || ((v.waitFor || 0) > 45 && Math.hypot(v.x - player.x, v.y - player.y) > 70))) || Math.hypot(v.x - player.x, v.y - player.y) > despawnDist) vehicles.splice(i, 1);
+    // een bus die ver van zijn lijn is geraakt (een omweg zonder einde) verdwijnt als niemand kijkt (#322)
+    const verdwaald = !!v.busRun && Math.hypot(v.x - player.x, v.y - player.y) > 60 && projectOnLine(v.busRun.line, v.x, v.y).d > BUS_VERDWAALD_M;
+    if ((!v.wrecked && ((v.deadEndBounces || 0) > 2 || (v.stuckFor || 0) > 25 || ((v.waitFor || 0) > 45 && Math.hypot(v.x - player.x, v.y - player.y) > 70))) || verdwaald || Math.hypot(v.x - player.x, v.y - player.y) > despawnDist) vehicles.splice(i, 1);
   }
 
   let count = 0;
@@ -1144,6 +1146,8 @@ function busSpawnPoint(map, line, x, y, reach = 25) {
   }
   return best;
 }
+
+const BUS_VERDWAALD_M = 200; // m van zijn lijn: de bus is de weg kwijt
 
 export function manageBusPopulation(world, { target = 4, spawnMin = 90, spawnMax = 220, despawnDist = 300 } = {}) {
   const { map, player, vehicles } = world;
