@@ -4,7 +4,7 @@
 //   node scripts/qa/brug_beeld.mjs --game-dir=<gestaged game-map> [--lijst=<json [{naam,x,y}]>] [--afstanden=25,60,150,350] [--out=<map>] [--alleen-lijst] [--hud] [--alleen-reeks]
 //   node scripts/qa/brug_beeld.mjs --modus=boot --lijst=<json { open: [{naam,x,y,boot}], bots: [{naam,x,y}] }> ...  (boten bij bruggen: brug_boot.page.js)
 // GDE_DESKTOP=<map> voor een desktop-map met node_modules; ELECTRON_EXE=<pad> als desktop/node_modules/electron/dist ontbreekt.
-// Neemt zelf een Electron-slot uit C:/Users/abuis/gde-locks als die map bestaat (--geen-slot slaat dat over).
+// Neemt zelf een Electron-slot uit de slotenmap (GDE_LOCKS, standaard ~/gde-locks) als die map bestaat (--geen-slot slaat dat over).
 // Uitvoer: <out>/shots-bb-*.png, brug_beeld.json, run.log.
 import fs from 'node:fs';
 import os from 'node:os';
@@ -34,7 +34,7 @@ const electron = process.env.ELECTRON_EXE || path.join(ROOT, 'desktop', 'node_mo
 const env = { ...process.env, GDE_TEST_PROFILE: profile };
 if (arg('game-dir')) env.GDE_GAME_DIR = path.resolve(arg('game-dir')); // path.resolve: met schuine strepen serveert de app niets
 delete env.ELECTRON_RUN_AS_NODE;
-const LOCKS = process.env.GDE_LOCKS || 'C:/Users/abuis/gde-locks';
+const LOCKS = process.env.GDE_LOCKS || path.join(os.homedir(), 'gde-locks');
 let slot = null;
 if (!flag('geen-slot') && !process.env.GDE_SLOT_VAST && fs.existsSync(LOCKS)) {
   for (let poging = 0; poging < 720 && !slot; poging++) {

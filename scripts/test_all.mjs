@@ -28,7 +28,8 @@ const opt = (n, d) => { const a = argv.find((v) => v.startsWith('--' + n + '='))
 const FASE = opt('fase', 'licht');
 const BASE = path.resolve(opt('rapport', path.join(os.tmpdir(), 'gde-testall')));
 const ONLY = opt('only', '');
-const LOCKS = opt('locks', fs.existsSync('C:/Users/abuis/gde-locks') ? 'C:/Users/abuis/gde-locks' : '');
+const DEFAULT_LOCKS = process.env.GDE_LOCKS || path.join(os.homedir(), 'gde-locks');
+const LOCKS = opt('locks', fs.existsSync(DEFAULT_LOCKS) ? DEFAULT_LOCKS : '');
 const JOBS = Math.max(1, Number(opt('jobs', 2)));
 const TEST_MS = Number(opt('test-timeout', 120)) * 1000;
 const STAMP = new Date().toISOString().replace(/[-:]/g, '').replace(/\..*$/, '').replace('T', '-');
@@ -94,10 +95,10 @@ const wilDit = (id) => !ONLY || id.includes(ONLY);
 
 // ---------------------------------------------------------------- stage (--stage)
 
-// Bouwt game/world als die ontbreekt: hergebruikt een wereld-cache (--cache=<map>, standaard die van GDE-merge),
+// Bouwt game/world als die ontbreekt: hergebruikt een wereld-cache (--cache=<map>, standaard $GDE_WORLD_CACHE of ../GDE-merge),
 // neemt het exclusieve stage-slot en draait `npm run stage` in desktop/.
 async function stageWereld() {
-  const cache = opt('cache', 'C:/Users/abuis/GIT/GDE-merge/desktop/.world-cache');
+  const cache = opt('cache', process.env.GDE_WORLD_CACHE || path.join(ROOT, '..', 'GDE-merge', 'desktop', '.world-cache'));
   const doel = path.join(ROOT, 'desktop', '.world-cache');
   if (!fs.existsSync(doel) && fs.existsSync(cache)) fs.cpSync(cache, doel, { recursive: true });
   const slot = LOCKS ? path.join(LOCKS, 'stage') : null;
@@ -228,7 +229,7 @@ async function faseZwaar() {
 
 // ---------------------------------------------------------------- fase electron
 
-// Slotenprotocol (--locks=<map>, zie C:/Users/abuis/gde-locks/README.txt): maximaal 3 Electron-slots, mkdir faalt als bezet.
+// Slotenprotocol (--locks=<map>, zie <GDE_LOCKS>/README.txt): maximaal 3 Electron-slots, mkdir faalt als bezet.
 const slaap = (ms) => new Promise((r) => setTimeout(r, ms));
 async function neemSlot(max = 3, wachtMs = 90 * 60e3) {
   if (!LOCKS) return null;
