@@ -176,7 +176,7 @@ export function decide(s, mem = {}) {
   const b = s.blocking || {};
   if (b.pauseMenu) return { type: 'closemenu' };
   if (b.dialog && b.dialog.options && b.dialog.options.length) return { type: 'choose', key: b.dialog.options[0].key };
-  if (b.cinematic || b.banner) return { type: 'skip' };
+  if (b.cinematic || b.banner || b.ride) return { type: 'skip' };
   if (b.respawn || b.loading) return { type: 'wait', why: b.respawn ? 'respawn' : 'laden' };
   if (b.talk) return { type: 'wait', why: 'gesprek' };
   if (!s.target) return { type: 'wait', why: 'geen doel' };
