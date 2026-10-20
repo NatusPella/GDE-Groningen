@@ -1304,10 +1304,13 @@ const SIDEWALK_COLOR = 0x7b776d;
 // - the terrain (~500 meshes), the loose roads, the far LOD, the road and
 //   shore batches, the flavour props: groups without a single caster, found
 //   by looking through each once (shadowKinds), again when its number of
-//   children changes and every SHADOW_KIND_AGE passes anyway.
+//   children changes, and every SHADOW_KIND_AGE passes anyway (staggered: a
+//   group that only gets casters later, like the countryside's trees that
+//   cast from a distance on, is back in the pass within a second).
 const shadowHidden = [];
 const shadowKinds = new WeakMap();
-const SHADOW_KIND_AGE = 180;
+const SHADOW_KIND_AGE = 45;
+let shadowKindSeq = 0; // no Math.random here: the spelbot seeds it and a render step must not move that sequence
 function nodeCasts(o) {
   if (o.castShadow) return true;
   const kids = o.children;
@@ -1316,8 +1319,8 @@ function nodeCasts(o) {
 }
 function groupCastsShadow(c) {
   let k = shadowKinds.get(c);
-  if (!k) shadowKinds.set(c, k = { n: -1, casts: true, age: 0 });
-  if (k.n !== c.children.length || ++k.age > SHADOW_KIND_AGE) { k.n = c.children.length; k.age = 0; k.casts = nodeCasts(c); }
+  if (!k) shadowKinds.set(c, k = { n: -1, casts: true, age: (shadowKindSeq++ * 7) % SHADOW_KIND_AGE });
+  if (k.n !== c.children.length || ++k.age > (k.casts ? SHADOW_KIND_AGE * 6 : SHADOW_KIND_AGE)) { k.n = c.children.length; k.age = 0; k.casts = nodeCasts(c); }
   return k.casts;
 }
 function hookShadowPass(shadowMap) {
