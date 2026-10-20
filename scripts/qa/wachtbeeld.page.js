@@ -1,0 +1,241 @@
+// Page half of scripts/qa/wachtbeeld.mjs (desktop --perf-script body): gerichte scène-opnames voor de
+// issues met het label wacht-beeld. window.__wb = { jobs, settle } staat ervoor. Elke job:
+//   { kind: 'spot',  name, x, y, a?, clock?, weather?, snapR?, road?, views: [{ n, back, up, ahead, lookUp, side }] }
+//   { kind: 'jump',  name, step, reps, waits: [ms, ...], clock? }     (dev-sprong naar een verhaalstap, spelcamera)
+//   { kind: 'menu',  name, x, y, menu, clock? }                       (pauzemenu-paneel op een plek)
+//   { kind: 'mini',  name, x, y, a?, clock? }                         (spelbeeld met minimap op een plek)
+// Per opname: '[capture] <naam>'. Resultaten (gemeten waarden) komen in de JSON die het script teruggeeft.
+const D = window.__debug; const w = D.world; const p = w.player; const map = w.map;
+const sc = window.__scene3d;
+const sleep = (ms) => new Promise((res) => setTimeout(res, ms));
+const imp = (f) => import('/js/' + f + '.js');
+const cine = await imp('cinematics');
+const PM = await imp('pausemenu');
+const DN = await imp('daynight');
+const WL = await imp('waterlevels');
+const TP = await imp('tileplace');
+const CAM = await imp('camerapath');
+const CFG = window.__wb;
+const SETTLE = CFG.settle || 7000;
+let ownShot = false, skipCine = true;
+const skipper = setInterval(() => { if (skipCine && !ownShot && cine.isCinematicActive()) cine.skipCinematic(); }, 100);
+w.devInvuln = true;
+D.input.canLock = () => false;
+if (document.pointerLockElement) document.exitPointerLock();
+const errors = [];
+const origErr = console.error;
+console.error = (...a) => { errors.push(a.map(String).join(' ').slice(0, 200)); origErr.apply(console, a); };
+window.addEventListener('error', (e) => errors.push(String(e.message).slice(0, 200)));
+
+const teleport = (x, y) => {
+  if (p.inVehicle) p.exitVehicle(map, w);
+  p.x = x; p.y = y; p.vx = 0; p.vy = 0; p.z = 0; p.vz = 0;
+  p.gz = map.groundHeightAt ? map.groundHeightAt(x, y, 0) || 0 : 0;
+};
+let hold = null, env = { clock: 14, weather: null, fix: false }, done = false;
+const setWeather = () => {
+  const W = env.weather || { kind: 'helder' };
+  w.weather = { active: W.kind !== 'helder', timer: 1e9, kind: W.kind, peak: W.intensity || 0, intensity: W.intensity || 0, wet: W.wet || 0, overcast: W.overcast || 0, mist: W.mist || 0, windAngle: 0.9, elapsed: 0, duration: Infinity };
+};
+const fixWorld = () => { w.clock = env.clock; setWeather(); if (DN.refreshDayNight) DN.refreshDayNight(w); };
+const tick = () => {
+  if (hold) { p.x = hold.x; p.y = hold.y; p.vx = p.vy = 0; if (hold.a !== undefined) { p.angle = hold.a; w.camYaw = hold.a; } }
+  if (env.fix) w.clock = env.clock;
+  if (!done) requestAnimationFrame(tick);
+};
+requestAnimationFrame(tick);
+const gh = (x, y) => (map.groundHeightAt ? map.groundHeightAt(x, y, 0) || 0 : 0);
+function snapRoad(x, y, R, road) {
+  let best = null;
+  for (const rd of (map.roadsNear ? map.roadsNear(x, y, R) : []) || []) {
+    if (road && rd.name !== road && rd.ref !== road) continue;
+    for (let i = 0; i < rd.pts.length - 1; i++) {
+      const a = rd.pts[i], b = rd.pts[i + 1];
+      if (Math.hypot(b[0] - a[0], b[1] - a[1]) < 6) continue;
+      const mx = (a[0] + b[0]) / 2, my = (a[1] + b[1]) / 2, d = Math.hypot(mx - x, my - y);
+      if (!best || d < best.d) best = { d, x: mx, y: my, a: Math.atan2(b[1] - a[1], b[0] - a[0]), street: rd.name || rd.ref || '' };
+    }
+  }
+  return best;
+}
+const capture = async (name, wait = 600) => { await sleep(wait); console.log('[capture] ' + name); await sleep(600); };
+const poseShot = async (name, pose, wait = 2200) => {
+  if (cine.isCinematicActive()) cine.skipCinematic();
+  ownShot = true;
+  cine.playCinematic({ id: 'wb-view', duration: 60, priority: 9, shot: () => pose });
+  await sleep(wait);
+  console.log('[capture] ' + name);
+  await sleep(600);
+  cine.skipCinematic();
+  ownShot = false;
+};
+const THREE = await import('https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js');
+// kijkstraal door pixel (px, py) van het 1600x900-beeld: welke mesh zit daar (naam, ouderketen, materiaal)
+const probeAt = (px, py) => {
+  const ray = new THREE.Raycaster();
+  ray.setFromCamera(new THREE.Vector2(px / innerWidth * 2 - 1, -(py / innerHeight * 2 - 1)), sc.cam);
+  const out = [];
+  for (const h of ray.intersectObject(sc.scene, true).slice(0, 6)) {
+    const o = h.object, chain = [];
+    for (let q = o; q && chain.length < 5; q = q.parent) chain.push((q.name || q.type) + (q.userData && Object.keys(q.userData).length ? ':' + JSON.stringify(q.userData).slice(0, 80) : ''));
+    const m = Array.isArray(o.material) ? o.material[0] : o.material;
+    out.push({ d: +h.distance.toFixed(1), at: [h.point.x, h.point.z, h.point.y].map((v) => +v.toFixed(1)), type: o.type, chain, mat: m && { name: m.name, color: m.color && m.color.getHexString(), type: m.type }, inst: h.instanceId, instCol: o.instanceColor && h.instanceId !== undefined ? '#' + new THREE.Color().fromBufferAttribute(o.instanceColor, h.instanceId).getHexString() : undefined, bsph: o.geometry && o.geometry.boundingSphere ? [o.geometry.boundingSphere.radius | 0] : undefined, pos: [o.position.x, o.position.z, o.position.y].map((v) => +v.toFixed(1)), vis: o.visible, verts: o.geometry && o.geometry.attributes.position && o.geometry.attributes.position.count });
+  }
+  return out;
+};
+const camInfo = () => {
+  const c = sc.cam; if (!c) return null;
+  const cx = c.position.x, cy = c.position.y, cz = c.position.z;
+  // scene3d: x,z are the world x,y (z up = y in three); try both conventions
+  return { pos: [cx, cz, cy].map((v) => Math.round(v * 10) / 10) };
+};
+// vehicles near (x, y): overlap pairs (centre distance below half the summed lengths)
+function vehicleOverlap(x, y, R) {
+  const vs = (w.vehicles || []).filter((v) => v && Number.isFinite(v.x) && Math.hypot(v.x - x, v.y - y) < R);
+  const pairs = [];
+  for (let i = 0; i < vs.length; i++) for (let j = i + 1; j < vs.length; j++) {
+    const a = vs[i], b = vs[j], d = Math.hypot(a.x - b.x, a.y - b.y);
+    const ra = ((a.len || (a.spec && a.spec.len) || 4) + (b.len || (b.spec && b.spec.len) || 4)) / 2 * 0.6;
+    if (d < ra) pairs.push([a.kind || a.name || '?', b.kind || b.name || '?', +d.toFixed(2)]);
+  }
+  return { n: vs.length, moving: vs.filter((v) => Math.abs(v.speed || 0) > 0.5).length, overlap: pairs };
+}
+
+// oriented-box overlap (SAT) of two vehicles: how deep they overlap (m), 0 = free
+function obbOverlap(a, b) {
+  const box = (v) => { const L = ((v.model && v.model.len) || 4.2) / 2, W = ((v.model && v.model.wid) || 1.8) / 2, c = Math.cos(v.angle), s = Math.sin(v.angle); return { x: v.x, y: v.y, ax: [c, s], ay: [-s, c], L, W }; };
+  const A = box(a), B = box(b);
+  let min = Infinity;
+  for (const ax of [A.ax, A.ay, B.ax, B.ay]) {
+    const proj = (q) => { const c = q.x * ax[0] + q.y * ax[1]; const r = q.L * Math.abs(q.ax[0] * ax[0] + q.ax[1] * ax[1]) + q.W * Math.abs(q.ay[0] * ax[0] + q.ay[1] * ax[1]); return [c - r, c + r]; };
+    const pa = proj(A), pb = proj(B);
+    const o = Math.min(pa[1], pb[1]) - Math.max(pa[0], pb[0]);
+    if (o <= 0) return 0;
+    min = Math.min(min, o);
+  }
+  return min;
+}
+const ssInfo = () => { const e = document.querySelector('#start-screen'); if (!e) return null; const c = getComputedStyle(e); return { cls: e.className, display: c.display, opacity: c.opacity, vis: c.visibility, top: !!e.offsetParent, paused: !!w.paused, mode: w.mode || w.state || null }; };
+const results = [];
+for (const J of CFG.jobs) {
+  if (PM.isPauseMenuOpen()) PM.closePauseMenu();
+  env = { clock: J.clock !== undefined ? J.clock : 14, weather: J.weather || null, fix: true };
+  const rec = { name: J.name, kind: J.kind };
+  try {
+    if (J.kind === 'spot' || J.kind === 'mini' || J.kind === 'menu') {
+      let s = { x: J.x, y: J.y, a: J.a || 0 };
+      w.wanted = 0;
+      fixWorld(); teleport(s.x, s.y); hold = s;
+      await sleep(SETTLE * 0.6);
+      if (J.snapR !== 0) {
+        const sn = snapRoad(J.x, J.y, J.snapR || 300, J.road);
+        if (sn) s = { x: sn.x, y: sn.y, a: J.a !== undefined ? J.a : sn.a, street: sn.street, d: Math.round(sn.d) };
+      }
+      teleport(s.x, s.y); hold = s; fixWorld();
+      await sleep(SETTLE);
+      rec.at = [Math.round(s.x), Math.round(s.y)]; rec.street = s.street; rec.ground = gh(s.x, s.y);
+      rec.inBuilding = !!TP.buildingAt(map, s.x, s.y, 0);
+      if (J.bld) { rec.buildings = (map.buildingsNear(s.x, s.y, J.bld) || []).map((b) => { const o = {}; for (const k of Object.keys(b)) { const v = b[k]; if (typeof v === 'number' || typeof v === 'string' || typeof v === 'boolean') o[k] = v; else if (Array.isArray(v) && v.length <= 6 && v.every((q) => typeof q === 'number')) o[k] = v.map((q) => Math.round(q * 10) / 10); else if (Array.isArray(v)) o[k] = 'arr' + v.length; } return o; }).filter((o) => (o.bounds ? true : true)).slice(0, 40); }
+      if (J.kind === 'spot') {
+        const cx = Math.cos(s.a), cy = Math.sin(s.a), base = gh(s.x, s.y);
+        for (const v of J.views || []) {
+          const side = v.side || 0, sx = -cy * side, sy = cx * side;
+          const pose = { position: { x: s.x - cx * (v.back || 0) + sx, y: s.y - cy * (v.back || 0) + sy, z: base + (v.up || 3) }, lookAt: { x: s.x + cx * (v.ahead || 20), y: s.y + cy * (v.ahead || 20), z: base + (v.lookUp || 1) }, cut: true };
+          await poseShot(J.name + '-' + v.n, pose);
+        }
+        rec.verkeer = vehicleOverlap(s.x, s.y, J.verkeerR || 60);
+        if (J.probe) { rec.probe = []; for (const pr of J.probe) { const v = pr.view; const cx = Math.cos(s.a), cy = Math.sin(s.a), base = gh(s.x, s.y); const pose = { position: { x: s.x - cx * v.back, y: s.y - cy * v.back, z: base + v.up }, lookAt: { x: s.x + cx * v.ahead, y: s.y + cy * v.ahead, z: base + (v.lookUp || 0) }, cut: true }; ownShot = true; cine.playCinematic({ id: 'wb-probe', duration: 30, priority: 9, shot: () => pose }); await sleep(1500); rec.probe.push({ px: pr.px, py: pr.py, hits: probeAt(pr.px, pr.py) }); cine.skipCinematic(); ownShot = false; } }
+      } else if (J.kind === 'mini') {
+        await capture(J.name + '-spel');
+        await sleep(800);
+        await capture(J.name + '-spel2');
+        rec.verkeer = vehicleOverlap(s.x, s.y, J.verkeerR || 60);
+      } else if (J.kind === 'menu') {
+        PM.openPauseMenu(J.menu || 'map');
+        await sleep(2500);
+        await capture(J.name + '-' + (J.menu || 'map'));
+        await sleep(1500);
+        await capture(J.name + '-' + (J.menu || 'map') + '2');
+        PM.closePauseMenu();
+      }
+    } else if (J.kind === 'traffic') {
+      // blijf op de plek en meet elke seconde hoeveel voertuigparen elkaar overlappen (SAT)
+      let s = { x: J.x, y: J.y, a: J.a || 0 };
+      fixWorld(); teleport(s.x, s.y); hold = s;
+      await sleep(SETTLE * 0.6);
+      const sn = snapRoad(J.x, J.y, J.snapR || 300, J.road);
+      if (sn) s = { x: sn.x, y: sn.y, a: sn.a, street: sn.street };
+      teleport(s.x, s.y); hold = s; fixWorld();
+      await sleep(SETTLE * 0.5);
+      rec.at = [Math.round(s.x), Math.round(s.y)]; rec.samples = [];
+      const R = J.R || 90, t0 = performance.now();
+      let worst = { depth: 0 }, shotAt = 0, shots = 0, maxN = 0;
+      while (performance.now() - t0 < (J.dur || 90) * 1000) {
+        const vs = (w.vehicles || []).filter((v) => v && Number.isFinite(v.x) && !v.isBike && !v.isScooter && Math.hypot(v.x - s.x, v.y - s.y) < R);
+        const pr = [];
+        for (let i = 0; i < vs.length; i++) for (let j = i + 1; j < vs.length; j++) {
+          if (Math.abs((vs[i].z || 0) - (vs[j].z || 0)) > 2) continue;
+          const d = obbOverlap(vs[i], vs[j]);
+          if (d > 0.15) pr.push({ a: (vs[i].model && vs[i].model.name) || '?', b: (vs[j].model && vs[j].model.name) || '?', depth: +d.toFixed(2), at: [Math.round(vs[i].x), Math.round(vs[i].y)], sp: [+(vs[i].speed || 0).toFixed(1), +(vs[j].speed || 0).toFixed(1)] });
+        }
+        maxN = Math.max(maxN, vs.length);
+        rec.samples.push([Math.round(performance.now() - t0), vs.length, pr.length]);
+        for (const q of pr) if (q.depth > worst.depth) worst = { ...q, t: Math.round(performance.now() - t0) };
+        if (pr.length && shots < 2 && performance.now() - shotAt > 15000) {
+          shotAt = performance.now(); shots++;
+          const q = pr[0], cx = Math.cos(s.a), cy = Math.sin(s.a), base = gh(q.at[0], q.at[1]);
+          await poseShot(J.name + '-overlap' + shots, { position: { x: q.at[0] - 14, y: q.at[1] - 14, z: base + 14 }, lookAt: { x: q.at[0], y: q.at[1], z: base + 0.5 }, cut: true }, 1500);
+          void cx; void cy;
+        }
+        await sleep(1000);
+      }
+      rec.maxVehicles = maxN; rec.worst = worst; rec.overlapSamples = rec.samples.filter((q) => q[2] > 0).length; rec.nSamples = rec.samples.length;
+      const cx = Math.cos(s.a), cy = Math.sin(s.a), base = gh(s.x, s.y);
+      await poseShot(J.name + '-eind-hoog', { position: { x: s.x - cx * 30, y: s.y - cy * 30, z: base + 30 }, lookAt: { x: s.x, y: s.y, z: base }, cut: true });
+      await capture(J.name + '-eind-straat');
+    } else if (J.kind === 'jump') {
+      hold = null; env.fix = false; setWeather();
+      const S2 = window.__story;
+      skipCine = false;
+      rec.reps = [];
+      for (let r = 0; r < (J.reps || 1); r++) {
+        const rr = { r };
+        const ok = S2.jump(J.step, J.start ? { start: true } : {});
+        w.clock = env.clock; rr.ok = !!ok;
+        rr.player = [Math.round(p.x * 10) / 10, Math.round(p.y * 10) / 10];
+        rr.inBuilding = !!TP.buildingAt(map, p.x, p.y, 0.5);
+        let t0 = 0;
+        const frames = [];
+        for (let k = 0; k < J.waits.length; k++) {
+          await sleep(J.waits[k] - t0); t0 = J.waits[k];
+          const c = sc.cam;
+          const f = { t: J.waits[k], cine: cine.isCinematicActive(), cam: c ? [c.position.x, c.position.z, c.position.y].map((v) => Math.round(v * 10) / 10) : null };
+          console.log('[capture] ' + J.name + '-r' + r + '-t' + k);
+          await sleep(500); t0 += 500;
+          frames.push(f);
+        }
+        rr.frames = frames;
+        const pos = sc.cam && sc.cam.position;
+        rr.pos = pos ? [pos.x, pos.z, pos.y].map((v) => Math.round(v * 10) / 10) : null;
+        rr.step = (S2.current() || {}).id;
+        rr.player2 = [Math.round(p.x * 10) / 10, Math.round(p.y * 10) / 10];
+        rr.inBuilding2 = !!TP.buildingAt(map, p.x, p.y, 0.5);
+        rr.roof = CAM.roofAt ? CAM.roofAt(map, p.x, p.y) : null;
+        if (cine.isCinematicActive()) cine.skipCinematic();
+        rec.reps.push(rr);
+      }
+      skipCine = true;
+    }
+  } catch (err) {
+    rec.fout = String(err && err.stack || err).slice(0, 400);
+    skipCine = true; ownShot = false; hold = null;
+    try { if (cine.isCinematicActive()) cine.skipCinematic(); if (PM.isPauseMenuOpen()) PM.closePauseMenu(); } catch (e2) { /* verder */ }
+  }
+  rec.ss = ssInfo();
+  const fresh = errors.splice(0);
+  if (fresh.length) rec.errors = fresh.slice(0, 6);
+  results.push(rec);
+}
+hold = null; done = true; clearInterval(skipper);
+console.error = origErr;
+return JSON.stringify({ jobs: results });
