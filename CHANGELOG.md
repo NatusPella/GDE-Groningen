@@ -1,7 +1,5 @@
 # Changelog
 
-- **Overkappingen terug in de stad (#90, in de wereldbouw gemeten, nog niet in beeld bekeken):** de stad uit de OSM-tegelbouw verloor 63 van de 65 open daken en overkappingen: de perronkappen van Groningen Europapark en Noord, de glazen straat boven winkelcentrum Paddepoel, marktdaken en het benzinestation. De stadsbouw las alleen de gebouwen uit de tegels en niet de overkappingen. Ze komen nu terug (75 tegenover 65 in de oude stad; 63 van de 65 oude plekken zitten erin, twee op het Hoofdstation hebben een iets andere vorm).
-- **Kerkhofbomen terug (#90, in de wereldbouw gemeten, nog niet in beeld bekeken):** de kerkhoven in de stad hadden 2,4 bomen per hectare en hebben er nu weer 21,5 (oude stad 22,6), met open plekken. De tegelbouw vult nu naast bossen ook kerkhoven (18 m tussen de bomen), ook in de provincie na een nieuwe bouw. Parken en bossen waren al gelijk of voller dan in de oude stad (bossen 105,6 tegenover 106,0 bomen per hectare).
 Alle noemenswaardige wijzigingen in GDE Groningen, per versie. Nieuwste bovenaan.
 Versies volgen SemVer: `0.x.y` tot de echte release (1.0.0); `x` voor
 nieuwe functies, `y` voor alleen bugfixes.
@@ -9,6 +7,8 @@ nieuwe functies, `y` voor alleen bugfixes.
 ## [Unreleased]
 
 ### Verbeterd
+- **Overkappingen terug in de stad (#90, in de wereldbouw gemeten, nog niet in beeld bekeken):** de stad uit de OSM-tegelbouw verloor 63 van de 65 open daken en overkappingen: de perronkappen van Groningen Europapark en Noord, de glazen straat boven winkelcentrum Paddepoel, marktdaken en het benzinestation. De stadsbouw las alleen de gebouwen uit de tegels en niet de overkappingen. Ze komen nu terug (75 tegenover 65 in de oude stad; 63 van de 65 oude plekken zitten erin, twee op het Hoofdstation hebben een iets andere vorm).
+- **Kerkhofbomen terug (#90, in de wereldbouw gemeten, nog niet in beeld bekeken):** de kerkhoven in de stad hadden 2,4 bomen per hectare en hebben er nu weer 21,5 (oude stad 22,6), met open plekken. De tegelbouw vult nu naast bossen ook kerkhoven (18 m tussen de bomen), ook in de provincie na een nieuwe bouw. Parken en bossen waren al gelijk of voller dan in de oude stad (bossen 105,6 tegenover 106,0 bomen per hectare).
 - **Doeltekst in het HUD op twee regels (#293, door een bot gespeeld op 1280x720, nog niet door een mens bekeken):** op 720p werd bijna elk doel afgekapt met een puntje ('Stap in de auto: de pinautomaat ligt a…'); het label mag nu twee regels vullen voor de ellipsis komt.
 - **Eén disclaimer in het Over-scherm (#72, nog niet in beeld bekeken):** de tekst is zorgvuldiger geformuleerd en gelijk aan README en NOTICE; de aftiteling zegt nu alleen "Fanparodie: alles verzonnen".
 - **Minder tekenaanroepen in stad en dorp (nog niet door een mens in beeld bekeken, #246):** wolken, blobschaduwen onder mensen, auto's en dieren, de sierdoppen op de wielen en de oevers van het water worden samengevoegd of geinstanced; verborgen groepen doen niet mee aan de matrixberekening en de shaderwarm-scan loopt na twee stille rondes op een tiende van de snelheid. Samen 10 tot 16 procent minder tekenaanroepen (water in de straatstand 175 en 181 naar 61 en 59); een frametijdwinst is niet aangetoond en de 60 fps te voet in de stad is niet gehaald. Zie docs/PERF-METING-2026-10-19.md.
