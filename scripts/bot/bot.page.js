@@ -392,6 +392,10 @@ while (true) {
     if (!s.target) continue;
     // the stunt evening (M01): knock the props over, the nearest one that is still standing; people are left alone by the circle of the square
     let aim = s.target, top = act.top || 24;
+    // eggs break on a rough road above 8.5 m/s (M09) and a convoy falls apart when the lead car runs away (M23)
+    const mdef = (M.getMissionDefs() || [])[s.mission.index];
+    if (mdef && mdef.eggs) top = Math.min(top, 7);
+    if (s.mission.stage === 'convoy') top = Math.min(top, 11);
     if (act.stunt && s.player.vehicle) {
       let best = null, bd = Infinity;
       for (const q of Br.propsInRadius(s.player.x, s.player.y, 90)) {
