@@ -5,7 +5,7 @@ import { execFileSync } from 'child_process';
 import { toolEnv } from './common.mjs';
 
 const args = process.argv.slice(2);
-const expr = args.find((a) => !a.startsWith('--') && a !== args[args.indexOf('--serial') + 1]);
+const expr = args.find((a, i) => !a.startsWith('--') && args[i - 1] !== '--serial');
 const serial = args.includes('--serial') ? args[args.indexOf('--serial') + 1] : null;
 const { sdk } = toolEnv();
 const adbBin = path.join(sdk, 'platform-tools', process.platform === 'win32' ? 'adb.exe' : 'adb');
