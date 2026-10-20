@@ -16,8 +16,14 @@ import { isNightAtHour } from './sunrules.js';
 //   the same act as the last record less;
 // - 'night' records weigh more from 22:00 to 06:00 and less by day, 'day'
 //   records the other way round;
-// - `weight` in the manifest scales all of it (2 = twice as often).
+// - `weight` in the manifest scales all of it (2 = twice as often);
+// - a record with "nieuw": true in the manifest is a new one: until it has
+//   played NIEUW.plays times in the history it weighs NIEUW.boost times as
+//   much, and on a fresh start (radio switched on) one of the still-unheard
+//   new records is taken first. After that it mixes in like any other.
 
+// The one place to tune how hard new records are pushed (#238).
+export const NIEUW = { plays: 3, boost: 4, firstOnFreshStart: true };
 export const MUSIC_STATIONS = ['gmusic', 'nachtstreek'];
 // below this many own records a pool borrows the rest, at a lower weight
 export const MIN_POOL = 6;
@@ -42,6 +48,7 @@ export function normalizeTrack(entry) {
     time: e.time === 'day' || e.time === 'night' ? e.time : 'any',
     weight: Number.isFinite(w) && w > 0 ? w : 1,
     artist: typeof e.artist === 'string' ? e.artist : '',
+    nieuw: e.nieuw === true,
   };
 }
 
@@ -57,8 +64,13 @@ export function stationPool(tracks, station) {
   return [...own.map((t) => ({ t, borrowed: false })), ...tracks.filter((t) => !own.includes(t)).map((t) => ({ t, borrowed: true }))];
 }
 
-export function trackWeight(t, { hour, ago, poolSize, lastArtist, borrowed = false }) {
+// how often a record has played according to the history
+export const playsOf = (history, id) => history.reduce((n, h) => n + (h === id ? 1 : 0), 0);
+export const isFreshNew = (t, history) => !!t.nieuw && playsOf(history, t.id) < NIEUW.plays;
+
+export function trackWeight(t, { hour, ago, poolSize, lastArtist, borrowed = false, plays = NIEUW.plays }) {
   let w = t.weight;
+  if (t.nieuw && plays < NIEUW.plays) w *= NIEUW.boost;
   if (borrowed) w *= BORROWED;
   if (t.time !== 'any' && Number.isFinite(hour)) w *= (t.time === 'night') === isNight(hour) ? 2 : 0.5;
   w *= 1 + Math.min(ago, poolSize) / poolSize;
@@ -67,7 +79,7 @@ export function trackWeight(t, { hour, ago, poolSize, lastArtist, borrowed = fal
 }
 
 // history: track ids, newest last. Returns a track (or null for no tracks).
-export function pickTrack(tracks, history, { station = 'gmusic', hour = NaN, rng = Math.random } = {}) {
+export function pickTrack(tracks, history, { station = 'gmusic', hour = NaN, rng = Math.random, fresh = false } = {}) {
   const pool = stationPool(tracks, station);
   if (!pool.length) return null;
   if (pool.length === 1) return pool[0].t;
@@ -77,11 +89,15 @@ export function pickTrack(tracks, history, { station = 'gmusic', hour = NaN, rng
   let cands = pool.filter((p) => !recent.has(p.t.id));
   if (!cands.length) cands = pool.filter((p) => p.t.id !== history[history.length - 1]);
   const lastId = history[history.length - 1];
+  if (fresh && NIEUW.firstOnFreshStart) {
+    const unheard = pool.filter((p) => p.t.nieuw && !history.includes(p.t.id) && !p.borrowed);
+    if (unheard.length) return unheard[Math.floor(rng() * unheard.length) % unheard.length].t;
+  }
   const last = tracks.find((t) => t.id === lastId);
   const weights = cands.map((p) => {
     const i = history.lastIndexOf(p.t.id);
     const ago = i < 0 ? n : history.length - 1 - i;
-    return trackWeight(p.t, { hour, ago, poolSize: n, lastArtist: last && last.artist, borrowed: p.borrowed });
+    return trackWeight(p.t, { hour, ago, poolSize: n, lastArtist: last && last.artist, borrowed: p.borrowed, plays: playsOf(history, p.t.id) });
   });
   let r = rng() * weights.reduce((a, b) => a + b, 0);
   for (let i = 0; i < cands.length; i++) {
