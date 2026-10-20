@@ -180,6 +180,8 @@ function pose(p) {
 export function updatePhotoMode(dt, world) {
   if (!photo) return;
   const p = photo.p, w = world;
+  // een cutscene of banner die eindigt haalt de HUD-klasse weg: in de fotomodus blijft de HUD verborgen
+  if (!document.body.classList.contains('cine-hide-hud')) document.body.classList.add('cine-hide-hud');
   const d = (k) => (keysDown.has(k) ? 1 : 0);
   F.stepFreeCam(p, {
     fwd: d('w') - d('s'), right: d('d') - d('a'), up: d(' ') - d('control'),
