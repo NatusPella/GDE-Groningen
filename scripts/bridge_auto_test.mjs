@@ -143,7 +143,7 @@ world.vehicles = [through];
 let reopens = 0, st = b.state, passedAt = null, closedAt = null, t10 = 0;
 step(70, () => {
   t10 += 0.1;
-  if (passedAt === null && through.y > 25) { passedAt = t10; through.speed = 0; } // through, then it stops 25 m beyond the bridge
+  if (passedAt === null && through.y > 40) { passedAt = t10; through.speed = 0; } // through, sails on a good way and then stops 40 m beyond the bridge (the real case: it pushed on until a quay stopped it)
   if (passedAt && b.state === 'opening' && st !== 'opening') reopens++;
   if (passedAt && closedAt === null && (b.state === 'closing' || b.state === 'closed')) closedAt = t10 - passedAt;
   st = b.state;
