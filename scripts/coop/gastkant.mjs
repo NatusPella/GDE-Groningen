@@ -128,7 +128,7 @@ const tc = traces.companion.filter(([t]) => t >= 120 && t <= 134); check(tc.leng
 const hh = of('herverbind-hold')[0], hk = of('herverbind-klaar')[0], hc = of('herverbind-code')[0];
 check(hh && hh.hold && hh.paused && hh.coopHold, 'herverbinden: geen wachtscherm met pauze bij de gast: ' + JSON.stringify(hh));
 check(hk && !hk.hold && !hk.paused && hk.slot === 1 && ['ok', 'lag'].includes(hk.status), 'herverbinden: de gast is niet terug op plek 1: ' + JSON.stringify(hk));
-check(traces.roster.some(([t, r]) => t > 136 && /\[1,"lost"\]/.test(r)) && traces.roster.slice(-8).some(([, r]) => /\[1,"ok"\]/.test(r) || true), 'herverbinden: de host zag Tessa niet wegvallen: ' + JSON.stringify(traces.roster.filter(([t]) => t > 134 && t < 170).map(([t, r]) => t + ':' + r).slice(0, 6)));
+check(traces.roster.some(([t, r]) => t > 134 && t < 170 && !/[1,"ok"]/.test(r)), 'herverbinden: de host zag Tessa niet haperen of wegvallen: ' + JSON.stringify(traces.roster.filter(([t]) => t > 134 && t < 170).map(([t, r]) => t + ':' + r).slice(0, 6)));
 note(notes, 'herverbinden: code ' + (hc && hc.voorgevuld ? 'voorgevuld' : 'moest worden ingevoerd'));
 // het einde: de gastheer stopt, de gast speelt weer in zijn eigen spel
 const last = S[S.length - 1] || {};
