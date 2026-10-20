@@ -34,7 +34,7 @@ export function footStick(heading, camYaw) {
 
 // Steering and pedals for a car at `car` ({x, y, angle, speed}) heading for `target`.
 // steer: -1..1 (positive turns right, like D); throttle: 1 gas, -1 brake/reverse, 0 coast.
-// opts.stopAt: true to come to rest at the target; opts.top: speed limit in m/s.
+// opts.stopAt: true to come to rest at the target (opts.rest: from that many metres the wanted speed is 0); opts.top: speed limit in m/s.
 export function carControls(car, target, opts = {}) {
   const top = opts.top ?? 22;
   const err = normAngle(headingTo(car, target) - car.angle);
@@ -42,13 +42,14 @@ export function carControls(car, target, opts = {}) {
   const steer = clamp(err * 1.6, -1, 1);
   // slow for sharp turns and for the end of the route
   let want = top * clamp(1.15 - Math.abs(err) * 0.9, 0.18, 1);
-  if (opts.stopAt) want = Math.min(want, Math.max(2, d * 0.5));
+  if (opts.stopAt) want = d < (opts.rest ?? 0) ? 0 : Math.min(want, Math.max(2, d * 0.5));
   const speed = car.speed || 0;
   // the target is behind us and we are slow: back up with the wheel turned the other way, so the nose swings round
   if (Math.abs(err) > 2.0 && Math.abs(speed) < 6 && d > 8) return { steer: -steer, throttle: -1, err, dist: d, want: -3, reverse: true };
   let throttle = 0;
   if (speed < want - 1) throttle = 1;
   else if (speed > want + 3) throttle = -1;
+  else if (want === 0 && speed > 0.8) throttle = -1;
   return { steer, throttle, err, dist: d, want };
 }
 
@@ -182,6 +183,7 @@ export function decide(s, mem = {}) {
   if (mem.shopN) mem.shopN = 0;
   if (b.respawn || b.loading) return { type: 'wait', why: b.respawn ? 'respawn' : 'laden' };
   if (b.talk) return { type: 'wait', why: 'gesprek' };
+  if (s.player && s.player.pigeon && s.target) return { type: 'pigeon' };
   if (!s.target) return { type: 'wait', why: 'geen doel' };
   const t = s.target;
   const veh = s.player.vehicle;
@@ -266,6 +268,18 @@ export function planeKeys(p, o) {
     if (p.vz < (low ? -1.2 : vzWant) - 0.8) keys.add(' '); else if (p.vz > (low ? -1.2 : vzWant) + 0.8) keys.add('control');
     if (low && o.agl < 2.5) keys.add('s');
   }
+  return keys;
+}
+
+// --- pigeon autopilot (M04 Kieken van boven, M24 touwen): pure ------------------------------------------------------
+// The pigeon turns with A/D, climbs with Space and dives with Shift (pigeonmode.js updateFly). f = { x, y, z, ground, yaw },
+// tgt = { x, y, z? } (z absent: stay within ~40 m above the ground, the stage wants under 80). Returns the keys to hold.
+export function pigeonKeys(f, tgt) {
+  const keys = new Set();
+  const e = normAngle(headingTo(f, tgt) - f.yaw);
+  if (e > 0.06) keys.add('d'); else if (e < -0.06) keys.add('a');
+  const want = Number.isFinite(tgt.z) ? tgt.z : f.ground + 38;
+  if (f.z < want - 3) keys.add(' '); else if (f.z > want + 7) keys.add('shift');
   return keys;
 }
 

@@ -46,6 +46,8 @@ const near = (a, b, e = 1e-6) => Math.abs(a - b) < e;
   const rev = L.carControls({ ...car, speed: 0 }, { x: -50, y: 20 });
   ok(rev.reverse && rev.throttle === -1 && rev.steer < 0, 'doel achter ons: achteruit met omgekeerd stuur');
   ok(!L.carControls({ ...car, speed: 15 }, { x: -50, y: 20 }).reverse, 'met vaart niet in de achteruit');
+  const rest = L.carControls({ ...car, speed: 4 }, { x: 2, y: 0 }, { stopAt: true, rest: 3.5 });
+  ok(rest.want === 0 && rest.throttle === -1, 'binnen de rustafstand: remmen tot stilstand');
   const stop = L.carControls({ ...car, speed: 12 }, { x: 8, y: 0 }, { stopAt: true });
   ok(stop.throttle === -1, 'bij het doel afremmen');
 }
@@ -221,6 +223,20 @@ const near = (a, b, e = 1e-6) => Math.abs(a - b) < e;
   const md = L.buildReport(ev, { title: 'test', seed: 1, result: 'KLAAR' });
   for (const part of ['# Spelbot-rapport: test', '## Tijd per missie', '| M01 | Eerste klus | 1:50 | klaar | 1 | 1 | teleport |', '## Vastzitten', '## Had een cheat nodig', '- 1:41 bij M01: teleport', '## Consolefouten', 'boem', '**1** (computeBoundingSphere)', '**Toetsen zonder keyup:** e', 'shots-M01-vast.png', 'Niet beoordeeld door de bot']) ok(md.includes(part), `rapport bevat: ${part}`);
   ok(L.buildReport([], {}).includes('Geen cheats nodig.'), 'leeg rapport werkt');
+}
+
+// --- duif-autopilot ---------------------------------------------------------------------------
+{
+  const f = { x: 0, y: 0, z: 30, ground: 0, yaw: 0 };
+  ok(L.pigeonKeys(f, { x: 100, y: 50 }).has('d'), 'duif: doel rechts: D');
+  ok(L.pigeonKeys(f, { x: 100, y: -50 }).has('a'), 'duif: doel links: A');
+  const straight = L.pigeonKeys(f, { x: 100, y: 0 });
+  ok(!straight.has('a') && !straight.has('d'), 'duif: recht vooruit: niet draaien');
+  ok(L.pigeonKeys({ ...f, z: 5 }, { x: 100, y: 0 }).has(' '), 'duif: te laag: Spatie');
+  ok(L.pigeonKeys({ ...f, z: 90 }, { x: 100, y: 0 }).has('shift'), 'duif: te hoog: Shift');
+  ok(L.pigeonKeys({ ...f, z: 30 }, { x: 100, y: 0, z: 60 }).has(' '), 'duif: doelhoogte 60: omhoog');
+  const bs = { v: 1, t: 1, player: { x: 0, y: 0, angle: 0, camYaw: 0, vehicle: null, pigeon: true }, story: {}, mission: { active: true }, hud: { messages: [] }, blocking: {}, nearby: { vehicles: [] }, target: { x: 50, y: 0, distance: 50, source: 'missie' } };
+  ok(L.decide(bs).type === 'pigeon', 'duifstand: duif vliegen');
 }
 
 console.log(`${n - fails}/${n} ok`);

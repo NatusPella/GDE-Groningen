@@ -17,6 +17,7 @@ import { talkState, talkActive } from './storytalk.js';
 import { isPauseMenuOpen } from './pausestate.js';
 import { isShopOpen } from './shopui.js';
 import { isRitActive } from './reisrit.js';
+import { isPigeonActive } from './pigeonmode.js';
 import { installAudioTap } from './botaudio.js';
 
 const r1 = (v) => Math.round(v * 10) / 10;
@@ -70,7 +71,7 @@ export function initPlayerApi(world, input) {
     const view = getStoryView();
     const x = player.x, y = player.y;
     let t = null, source = '';
-    if (m && m.phase === 'active' && m.marker) { t = { x: m.marker.x, y: m.marker.y, name: m.label }; source = 'missie'; }
+    if (m && m.phase === 'active' && m.marker) { t = { x: m.marker.x, y: m.marker.y, z: Number.isFinite(m.marker.z) ? m.marker.z : null, name: m.label }; source = 'missie'; }
     else if (!view.end && view.kind === 'mission' && m && m.marker) { t = { x: m.marker.x, y: m.marker.y, name: view.title }; source = 'missiestart'; }
     else if (world.storyGuide) { t = { x: world.storyGuide.x, y: world.storyGuide.y, name: world.storyGuide.name || view.title }; source = 'verhaal'; }
     else {
@@ -78,7 +79,7 @@ export function initPlayerApi(world, input) {
       if (g) { t = { x: g.x, y: g.y, name: g.name }; source = 'doel'; }
     }
     if (!t) return null;
-    return { x: r1(t.x), y: r1(t.y), name: t.name || '', source, distance: r1(Math.hypot(t.x - x, t.y - y)) };
+    return { x: r1(t.x), y: r1(t.y), z: t.z ?? null, name: t.name || '', source, distance: r1(Math.hypot(t.x - x, t.y - y)) };
   }
 
   function status() {
@@ -98,7 +99,7 @@ export function initPlayerApi(world, input) {
       v: STATUS_VERSION, t: r1(T()), wall: Math.round(performance.now()), arc: 'nieuw',
       player: {
         x: r1(player.x), y: r1(player.y), z: r1((player.gz || 0) + (player.z || 0)), angle: Math.round(player.angle * 1000) / 1000,
-        camYaw: Math.round((world.camYaw ?? player.angle) * 1000) / 1000, health: player.health, money: world.money, character: player.character || '',
+        camYaw: Math.round((world.camYaw ?? player.angle) * 1000) / 1000, pigeon: !!isPigeonActive(), health: player.health, money: world.money, character: player.character || '',
         vehicle: v ? { kind: kindOf(v), x: r1(v.x), y: r1(v.y), angle: Math.round(v.angle * 1000) / 1000, speed: r1(v.speed || 0), boat: !!v.isBoat, heli: !!v.isHeli, plane: !!v.isPlane } : null,
       },
       story: view.end ? { end: true, part: view.part, title: view.title } : { end: false, id: view.id, part: view.part, kind: view.kind, title: view.title, lead: view.lead, canSkip: view.canSkip, fails: view.fails, done: view.done, total: view.total },
