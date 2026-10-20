@@ -7,6 +7,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 ## [Unreleased]
 
 ### Nieuw
+- **Gerepareerd: tabblad Hulp en prestatiepictogrammen (#201, #191, in beeld bekeken in Electron):** Besturing › Hulp was leeg en toont nu de oefenronde en de uitleg. In Prestaties had elke prestatie dezelfde trofee; nu hebben ze het pictogram van hun categorie. Het pauzemenu op een staande telefoon is een balk bovenaan met het blad eronder (in beeld bekeken op 390x844, niet op een echt toestel).
 - **Hints volgen wat je gebruikt (#151, #200, nog niet met een echte controller of toestel getest):** het spel merkt zelf of je toetsenbord en muis, een controller of aanraking gebruikt en wisselt tussen toetsletters en knopsymbolen, zonder instelling. Ook bij gemengd gebruik wint de laatste echte invoer; een muisrimpel of een toets die de controller zelf maakt telt niet. Met een controller verdwijnt de muiscursor tot je de muis beweegt.
 - **Geluiden beschrijven (#200, nog niet in beeld bekeken):** onder Instellingen › Geluid › Ondertitels staat 'Geluiden beschrijven' (standaard uit). Aan: bij belangrijke geluiden staat kort wat het is, bijvoorbeeld [sirene], [claxon], [explosie] of [alarm, in de verte]. Zelfde geluid niet vaker dan eens per ruim twee seconden, hooguit drie tegelijk.
 - **Zuinige modus en notch (#96, niet op een echt toestel getest):** Instellingen › Beeld heeft 'Zuinige modus': 30 beelden per seconde in plaats van het maximum, voor minder batterijgebruik en warmte. De HUD-hoeken (speler, tijd en geld, minimap) blijven buiten de uitsparing van een telefoonscherm.
