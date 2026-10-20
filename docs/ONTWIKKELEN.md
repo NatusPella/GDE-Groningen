@@ -228,7 +228,6 @@ Debug hooks on `window` (`window.__x`, read by scripts/perf, the story test and 
 | `?cut` | Trailer: montagevariant (vol, kort, ...) |
 | `?frames` | Trailer: sla beeld voor beeld op |
 | `?video` | Trailer: neem video op (alleen desktop) |
-| `?legacymap` | Laad de oude kaart in plaats van de tegelwereld |
 | `?terrain` | Hoogtes volgen het AHN-terrein (dijken, wierden; het terrein wordt nog niet getekend) |
 | `?viaducten` | Hoogteprofielen van provinciebruggen en viaducten uit de tegels (alleen als gebouwd met --viaducts; het hoogtemodel volgt nog) |
 | `?stadlaag` | Stad per laag uit de gedeelde tegelbouw (gebouwen, wegen, water, spoor, groen, meubilair, poi, objecten, namen, of alle); #90, standaard uit |
@@ -514,7 +513,7 @@ Then the tiles (`node scripts/world/pack_tiles.mjs [--out game/world]`, about
 by the hash of its inputs). `python3 scripts/world/building_attrs.py` rewrites
 `data/world/building_attrs.json.gz` (building tags from the OSM caches) when
 the caches change. The game reads `world/` when it is there and the JSON
-files when it is not (`?legacymap` forces the JSON files). `scripts/devserver.py`
+files when it is not (stad.json alone: roads, rails and the hand-made buildings). `scripts/devserver.py`
 answers HTTP Range requests, like the desktop app and the web build.
 
 Building heights and roofs of the whole province come from 3D BAG (TU Delft
