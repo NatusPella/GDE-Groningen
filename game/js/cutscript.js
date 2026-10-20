@@ -22,13 +22,13 @@
 export const ACTOR_ANIMS = ['idle', 'walk', 'run', 'talk', 'wave', 'point', 'shrug', 'nod', 'shake', 'laugh', 'carry', 'lean', 'hips', 'phone', 'cheer', 'look', 'ride', 'zwem', 'klim', 'sprong'];
 import { propKindIssue } from './cutscenemodels.js';
 export const PROP_KINDS = ['doos', 'tas', 'bestelbus', 'fiets', 'duif', 'radio', 'bord', 'koffer', 'bal', 'auto', 'matras', 'bakkie', 'automaat', 'aanhanger', 'trekker', 'politie', 'duiventil', 'zuil', 'klembord', 'kat'];
-export const VERBS = ['walk', 'anim', 'face', 'gaze', 'carry', 'drop', 'move', 'path', 'spin', 'bob', 'show', 'hide', 'sit'];
-export const SHOTS = ['cut', 'dolly', 'orbit', 'follow'];
+const VERBS = ['walk', 'anim', 'face', 'gaze', 'carry', 'drop', 'move', 'path', 'spin', 'bob', 'show', 'hide', 'sit'];
+const SHOTS = ['cut', 'dolly', 'orbit', 'follow'];
 // The host can scale or remove camera shake (a11y.js: Beweging beperken).
 let shakeFilter = (a) => a;
 export function setShakeFilter(fn) { shakeFilter = typeof fn === 'function' ? fn : (a) => a; }
-export const WALK_SPEED = 1.4;
-export const EYE_H = 1.55;
+const WALK_SPEED = 1.4;
+const EYE_H = 1.55;
 
 const clamp01 = (t) => (t < 0 ? 0 : t > 1 ? 1 : t);
 const lerp = (a, b, t) => a + (b - a) * t;
