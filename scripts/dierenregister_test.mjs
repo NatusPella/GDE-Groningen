@@ -156,5 +156,28 @@ for (const d of R.DIEREN.filter((x) => x.cutscene)) {
 }
 for (const d of R.DIEREN.filter((x) => x.cutscene)) check(`cutscene-dier ${d.id} heeft een wildlife-model`, d.model.module === 'wildlife');
 
+// --- 7. vee hoort niet in de stad (#330) ---
+{
+  const UREN = [6, 12, 18, 22];
+  let stadVee = 0, landVee = 0;
+  for (const streek of P.STREKEN_PLAN) for (const uur of UREN) for (let r = 0; r < 1; r += 0.05) {
+    const inKom = R.veeVoorPlek(streek, R.biotoopVanPlek(streek, 0.9), uur, r);
+    if (inKom) stadVee++;
+    const stad = R.veeVoorPlek('stad', R.biotoopVanPlek('stad', 0), uur, r);
+    if (stad) stadVee++;
+    if (R.veeVoorPlek(streek, R.biotoopVanPlek(streek, 0), uur, r)) landVee++;
+  }
+  check('in de bebouwde kom spawnt geen koe, schaap of gans (elke streek, uur en worp)', stadVee === 0, String(stadVee));
+  check('op open land spawnt wel vee', landVee > 100, String(landVee));
+  check('de stad-streek zelf heeft geen vee', R.BOERDERIJ_IDS.every((id) => R.dierenHier('stad', 12).every((x) => x.id !== id)));
+  check('biotoop: stad-streek, geen streek en bebouwing zijn stad', R.biotoopVanPlek('stad', 0) === 'stad' && R.biotoopVanPlek(null, 0) === 'stad' && R.biotoopVanPlek('hogeland', 0.5) === 'stad' && R.biotoopVanPlek('hogeland', 0.1) === 'weide');
+  check('de koe-sleutel van veeVoorPlek volgt de streek', R.veeVoorPlek('westerkwartier', 'weide', 12, 0.99) === 'cow' || R.veeVoorPlek('westerkwartier', 'weide', 12, 0.99) === 'sheep');
+  check('s nachts geen vee op nieuwe weides', R.veeVoorPlek('hogeland', 'weide', 2, 0.5) === null);
+  check('hogeland: meer schapen dan koeien', (() => { let c = 0, sh = 0; for (let r = 0; r < 1; r += 0.01) { const v = R.veeVoorPlek('hogeland', 'weide', 12, r); if (v === 'cow') c++; else if (v === 'sheep') sh++; } return sh > c; })());
+  const wl = read('game/js/wildlife.js');
+  check('wildlife.js kiest vee via het register (veeVoorPlek, biotoopVanPlek)', /veeVoorPlek\(/.test(wl) && /biotoopVanPlek\(/.test(wl) && !/grazerPick\(/.test(wl));
+  check('wildlife.js laat vee in de bebouwde kom verdwijnen', /urbanWeight\(a\.x, a\.y\)/.test(wl));
+}
+
 console.log(`dierenregister_test: ${n - bad}/${n} ok`);
 process.exit(bad ? 1 : 0);
