@@ -22,7 +22,7 @@ const fake = () => {
   ];
   return {
     roads, water,
-    waterGrid: { insert: (w) => water.push(w) },
+    waterGrid: { insert: (w) => water.push(w), query: (x0, y0, x1, y1) => water.filter((w) => w.bounds[0] <= x1 && w.bounds[2] >= x0 && w.bounds[1] <= y1 && w.bounds[3] >= y0) },
     waterNear: (x, y, r) => water.filter((w) => inside(w.bounds, x, y, r)),
     roadsNear: (x, y, r) => roads.filter((q) => q.pts.some((p) => Math.hypot(p[0] - x, p[1] - y) <= r + 70)),
     addWaterPatches: TileWorld.prototype.addWaterPatches,
