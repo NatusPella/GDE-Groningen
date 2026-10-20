@@ -19,7 +19,16 @@ const NET = { ws: [], rtc: 0, fetch: [] };
 {
   const WS = window.WebSocket, RTC = window.RTCPeerConnection, F = window.fetch;
   if (WS) window.WebSocket = class extends WS { constructor(u, p) { NET.ws.push(String(u)); super(u, p); } };
-  if (RTC) window.RTCPeerConnection = class extends RTC { constructor(...a) { NET.rtc++; super(...a); } };
+  if (RTC) window.RTCPeerConnection = class extends RTC {
+    constructor(...a) {
+      NET.rtc++; super(...a);
+      // wat gebeurt er met de verbinding? (geen adressen in het log: alleen het soort kandidaat)
+      const soort = (c) => { const m = /typ (w+)/.exec(c || ''), ip = /(?:^|s)(d+.d+.d+.d+|[w-]+.local)s+d+s+typ/.exec(c || ''); const adres = ip ? (/^127./.test(ip[1]) ? 'loopback' : /^(10.|192.168.|172.(1[6-9]|2d|3[01]).)/.test(ip[1]) ? 'prive' : /.local$/.test(ip[1]) ? 'mdns' : 'overig') : '?'; return (m ? m[1] : '?') + '/' + adres; };
+      this.addEventListener('icecandidate', (e) => log('rtc', { kandidaat: e.candidate ? soort(e.candidate.candidate) : 'klaar' }));
+      this.addEventListener('iceconnectionstatechange', () => log('rtc', { ice: this.iceConnectionState }));
+      this.addEventListener('connectionstatechange', () => log('rtc', { verbinding: this.connectionState }));
+    }
+  };
   if (F) window.fetch = function (u, ...a) { const s = String(u && u.url || u); if (/^https?:\/\//i.test(s) && !s.startsWith(location.origin)) NET.fetch.push(s.slice(0, 120)); return F.call(this, u, ...a); };
 }
 const netNow = () => ({ ws: NET.ws.length, rtc: NET.rtc, fetch: NET.fetch.length });
