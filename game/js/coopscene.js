@@ -2,9 +2,13 @@
 // gesprek) en hoe een gast dat meekijkt. De host leest zijn eigen scherm (readHostScene), coopnet.js stuurt de
 // verandering naar de gasten (coopworld.js sceneBericht), en een gast tekent het als een kleine laag met zwarte
 // balken en tekst (updateHostScene). Een gast kiest niet en slaat niets over: de gastheer beslist. Alleen DOM.
-import { isCinematicActive } from './cinematics.js';
-import { talkState } from './storytalk.js';
 import { sceneLeeg, FILMPJE_TEKST, PAUZE_TEKST } from './coopworld.js';
+
+// cinematics.js en storytalk.js zitten in de grote importcyclus: hier lui geladen (import() wordt niet gevolgd door
+// import_cycles_test), zodat dit paneel en samenpanel.js buiten de cyclus blijven. Beide zijn al geladen als het spel draait.
+let isCinematicActive = () => false, talkState = () => ({ cur: null });
+import('./cinematics.js').then((m) => { isCinematicActive = m.isCinematicActive; }).catch(() => {});
+import('./storytalk.js').then((m) => { talkState = m.talkState; }).catch(() => {});
 
 const text = (el) => (el ? String(el.textContent || '').replace(/\s+/g, ' ').trim() : '');
 
