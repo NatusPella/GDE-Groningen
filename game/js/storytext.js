@@ -149,7 +149,7 @@ export function appTexts(id) {
 const EMBEDDED_AT = { 'M21.2': 'start' };
 const APP_SCHEDULE = {
   'A1.1': [['M02', 'after'], ['M03', 'after'], ['M05', 'start'], ['M06', 'start'], ['M03', 'start']],
-  'A2.1': [['M07', 'after'], ['M10', 'after'], ['M11', 'after'], ['M11', 'after'], ['M08', 'start']],
+  'A2.1': [['M07', 'after'], ['M10', 'after'], ['M10', 'after'], ['M11', 'after'], ['M11', 'after'], ['M08', 'start']],
   'A3.1': [['M15', 'after'], ['M15', 'after'], ['M16', 'after'], ['M16', 'after'], ['M16', 'after']],
   'A4.1': [['M19', 'after'], ['M19', 'after'], ['M19', 'after'], ['M19', 'after']],
 };

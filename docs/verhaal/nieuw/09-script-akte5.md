@@ -85,9 +85,9 @@ WUBBO (telefoon): Brug open. Ga maar. [NIEUW]
 TINUS: Ik trek hem weg. [NIEUW]
 
 ## [B5] Autogesprek in de colonne (donderdag 27 augustus, onderweg van Zuidhorn naar Stad; samen, zonder het dieptepunt te herhalen) – Westerkwartier, Stad – Fjord Frituur
-TESSA: Dat is Zuidhorn. Daar begint het Westerkwartier. [NIEUW]
+TESSA: Dat is Aduard. Hier houdt het Westerkwartier op. [NIEUW]
 TAMMO: Waar zie je dat aan? [NIEUW]
-TESSA: Minder fietsers, meer trekkers. Dat leer je als je vaak verhuist. [NIEUW]
+TESSA: Meer fietsers, minder trekkers. Dat leer je als je vaak verhuist. [NIEUW]
 TESSA: Ik heb nooit zo lang ergens gewoond. [NIEUW]
 TAMMO: Ik heb nooit ergens anders gewoond. [NIEUW]
 TESSA: Dan is dit een goed begin. [NIEUW]
@@ -109,7 +109,7 @@ DURK: En hier is je jas. Met een strikje. [NIEUW]
 (regie: afloop van de keuze voor Wubbo. De bus rijdt naast de Fjord Frituur. Wubbo hangt uit het raam.)
 WUBBO: Ik rijd naast jullie. Een bus is breed. Ik zet elke zijstraat dicht waar Jelle langs wil. [NIEUW]
 TESSA: En de bruggen? [NIEUW]
-WUBBO: Die draai ik zelf. Open of dicht, nooit allebei. [NIEUW]
+WUBBO: Die open ik op afstand, met mijn sleutel. Open of dicht, nooit allebei. [NIEUW]
 TAMMO: En Jelle? [NIEUW]
 WUBBO: Die komt een minuut later. Zijn vergunningen hebben een loket. Mijn brug niet. [NIEUW]
 
@@ -180,14 +180,14 @@ APP TESSA→TAMMO (stil): Ik wacht. [NIEUW]
 ## [M25.1] Het bod viel tegen: intro – Stad, Oma's keuken aan de Noorderhaven – Fjord Frituur
 (regie: donderdagnacht. Oma's keuken met deeg, mosterd, eieren, zout, grof meel en een pan met vet. Gameplay: een oefenronde eierballen bakken met alle vijf ingrediënten, daarna Jelles bod afwijzen.)
 TESSA: Morgen is het Ontzet. Vannacht bakken we een proefronde, met alle vijf de ingrediënten van Oma's recept. [NIEUW]
-OMA TRIJNTJE: Mosterd van Wubbo, eieren van Geesje, zout van Klaas, meel van Roelfien en vet uit de tankwagen. Alles grof, zoals vroeger. [NIEUW]
+OMA TRIJNTJE: Mosterd van Wubbo, eieren van Geesje, zout van Klaas, meel van Roelfien en vet van Lammert. Alles grof, zoals vroeger. [NIEUW]
 TAMMO: Oma… hoe zei opa het eigenlijk? Tegen jou. [BEHOUDEN]
 OMA TRIJNTJE: Niet. Hij zei: "Woist ja wel." [BEHOUDEN]
 TAMMO: En wist je het? [BEHOUDEN]
 OMA TRIJNTJE: Al jaren. Maar ik wilde het één keer hóren, jong. Eén keer is genoeg. [BEHOUDEN]
 MEM: Ik zit hier ook, Trijntje. [NIEUW]
 OMA TRIJNTJE: Dat weet ik, Gerda. [NIEUW]
-SJABBE (telefoon): Morgen om drie uur laat Jelle zich bij de notaris in de Oude Boteringestraat inschrijven als nieuwe bewaarder, met de bal. Dan tekent hij zelf de uitslag. Een notaris is ook maar een loket, met een stempel. [NIEUW]
+SJABBE (telefoon): De notaris zit in de Oude Boteringestraat. Morgen om drie uur laat Jelle zich daar inschrijven als nieuwe bewaarder, met de bal. Dan tekent hij zelf de uitslag. Een notaris is ook maar een loket, met een stempel. [NIEUW]
 TESSA: Dan houden wij Jelle tegen. [NIEUW]
 SJABBE (telefoon): Ik zeg alleen: breder dan een straat, dat is een frietwagen. [NIEUW]
 
@@ -293,15 +293,15 @@ TORENWACHTER (telefoon): Tammo. De klok staat op drie uur. De limo staat vast. I
 
 ## [M26.14] Ontzet, net als in 1672: de straten dicht, de bus – Stad, rond de Oude Boteringestraat – Fjord Frituur
 (regie: de colonne van donderdag komt terug. Wubbo zet de bus dwars; over de portofoon klinkt hij door de Fjord Frituur.)
-WUBBO (telefoon): Herestraat dicht. Bus dwars. De deuren heb ik open gelaten, voor de sfeer. [NIEUW]
+WUBBO (telefoon): Poelestraat dicht. Bus dwars. De deuren heb ik open gelaten, voor de sfeer. [NIEUW]
 TESSA: Dank je, Wubbo. [NIEUW]
 WUBBO (telefoon): Open of dicht, Tessa. Vandaag allebei. [NIEUW]
 TESSA: Dat mag niet. [NIEUW]
 TAMMO: Zijn bus, zijn regels. [NIEUW]
 
 ## [M26.15] Ontzet, net als in 1672: de straten dicht, de trekker – Stad, rond de Oude Boteringestraat – Fjord Frituur
-(regie: Tinus trekt zijn trekker dwars voor de Gedempte Zuiderdiep, midden tussen de terrassen.)
-TINUS (telefoon): Zuiderdiep dicht. Trekker dwars. Wie er langs wil, moet eerst met mij praten. [NIEUW]
+(regie: Tinus trekt zijn trekker dwars voor de Gelkingestraat, midden tussen de fietsen.)
+TINUS (telefoon): Gelkingestraat dicht. Trekker dwars. Wie er langs wil, moet eerst met mij praten. [NIEUW]
 TESSA: Je trekker past er net in. [NIEUW]
 TINUS (telefoon): Ik trek hem weg. De limo, niet de trekker. [NIEUW]
 TAMMO: In de stad ziet hij er nog groter uit. [NIEUW]

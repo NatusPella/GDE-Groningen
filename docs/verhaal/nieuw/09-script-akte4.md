@@ -165,7 +165,7 @@ TAMMO: Welkom in de bus, Tinus. [NIEUW]
 BEREND: Je kijkt vaker naar die telefoon dan naar de weg. Hij komt wel. [NIEUW]
 TESSA: Wie? [NIEUW]
 BEREND: Wie het ook is. [NIEUW]
-TAMMO: Er zijn veertig stoelen. [NIEUW]
+TAMMO: Er zijn genoeg stoelen. [NIEUW]
 TESSA: Dat zie ik. [NIEUW]
 TAMMO: Ik zit hier. [NIEUW]
 TESSA: Dat zie ik ook. [NIEUW]
@@ -179,6 +179,7 @@ TESSA: De Escapade staat op de parkeerplaats bij de poort. Henk reed hem erheen,
 BEREND: Op tijd. Dat is één minuut te vroeg. [NIEUW]
 TAMMO: Jij telde ze? [NIEUW]
 BEREND: Ik tel alles. [NIEUW]
+BEREND: Mijn bakkie staat al bij de poort. Eerst Oma en Gerda, toen de bus. [NIEUW]
 
 ## [T4.4] De bus naar Bourtange: herhaling – Westerwolde, Ter Apel-bos – bus
 BEREND: Weer veertig man? Kom mor. [NIEUW]
@@ -287,7 +288,7 @@ TESSA: …Dat is een bijzondere troost, Berend. [NIEUW]
 (regie: de Escapade staat op een wagon van een goederentrein, die vanaf Zuidhorn naar Ljouwert gaat. Het piepje van Henks zender bevestigt het. Tessa springt over, de bal in haar rugzak.)
 APP MEM→TESSA (stil): De trein met de rode auto stopt om middernacht bij de overweg in Zuidhorn. Hij gaat daarna richting Ljouwert. – M. [NIEUW]
 APP TESSA→MEM (stil): Dank u, mevrouw Terpstra. [NIEUW]
-APP MEM→TESSA (stil): Zeg maar Mem. [NIEUW]
+APP MEM→TESSA (stil): Zeg maar weer Mem. [NIEUW]
 BEREND: Ik wacht bij de overweg. [NIEUW]
 (regie: twee beleggers in blauwe colberts staan op de wagon. De wagon koppelt los en rolt naar de brug.)
 JELLE (telefoon): Mevrouw. U kunt de auto redden of de bal houden. Beide tegelijk is juridisch niet mogelijk. [NIEUW]

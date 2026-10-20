@@ -201,7 +201,7 @@ export const FY = {
   'Jij kende Mem.': 'Jij kende Mem. (Mem is Fries voor mama: de moeder van Jelle)',
   'Mem. Dit is nog niet voorbij. Mijn juristen noemen het een geschil.': 'Moeder. Dit is nog niet voorbij. Mijn juristen noemen het een geschil.',
   'Ik wist niet waar de bal lag. Ik wist wel dat Mem iets voor Jelle verborgen hield. Dat had ik tegen jou moeten zeggen.': 'Ik wist niet waar de bal lag. Ik wist wel dat Mem (Jelles moeder) iets voor Jelle verborgen hield. Dat had ik tegen jou moeten zeggen.',
-  'Zeg maar Mem.': 'Zeg maar Mem. (Fries voor mama)',
+  'Zeg maar weer Mem.': 'Zeg maar weer Mem. (Fries voor mama)',
   '"Tige tank foar de bal. – J."': '"Hartelijk bedankt voor de bal. – J."',
   'En nu zijn wij de bezigheid van mem.': 'En nu zijn wij de bezigheid van zijn moeder.',
   'Van Jelles mem?': 'Van Jelles moeder?',
