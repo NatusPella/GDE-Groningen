@@ -530,7 +530,8 @@ const PHASES = {
     while (performance.now() < end) {
       const on = cineOn();
       const x = W();
-      if (on && eerste == null) { eerste = (performance.now() - t0o) / 1000; log('opening-begin', { na: eerste, cutBezig: x.coopCutBezig ?? null, wachtte: eerste }); }
+      // de gast telt alleen de scène van de gastheer (zijn eigen start-filmpje telt niet)
+      if (on && eerste == null && (CFG.role === 'host' || x.coopCutBezig != null)) { eerste = (performance.now() - t0o) / 1000; log('opening-begin', { na: eerste, cutBezig: x.coopCutBezig ?? null, wachtte: eerste }); }
       if (CFG.role === 'gast' && !net() && eerste != null) { log('opening-weg', { net: false }); break; } // de gastheer stopte: de gast speelt weer zijn eigen spel
       if (on) gezien += 0.25;
       if (on && x.cameraOverride && x.cameraOverride.position && x.cameraOverride.position.z > 300) { if (!keuken) keuken = performance.now(); else if (keuken > 0 && performance.now() - keuken > 4000) { keuken = -1; shot('opening-' + CFG.role + '-keuken'); } } // de keuken (tweede scène) van binnen
