@@ -1,7 +1,7 @@
 # YouTube-uploadpakket (#63)
 
 Het complete pakket voor de eerste YouTube-upload staat lokaal klaar, buiten git, in
-`C:\Users\abuis\GIT\GDE-uploadpakket` (video's van 100 MB horen niet in de repo; `trailervideo.js`
+`~/GIT/GDE-uploadpakket` (video's van 100 MB horen niet in de repo; `trailervideo.js`
 weigert dat ook). **Niets is geüpload of aangemaakt**; kanaal, uploads en publicatie doet de
 eigenaar zelf (constitution 8). Het stappenplan voor de eigenaar staat in
 `LEES-MIJ-EERST.md` in die map. De teksten (titels, beschrijvingen, tags, kanaaltekst), het stappenplan
