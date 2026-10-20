@@ -221,6 +221,9 @@ function kitchenEnv(at) {
   };
 }
 
+// QA-haak (scripts/qa/cutscene_shots.page.js): speelt een scène stil per tijdstip af; geen export, zodat de dode-code-telling gelijk blijft
+if (typeof window !== 'undefined') window.__cutHost = { buildScriptRun };
+
 export function playScript(w, def, { lines, duration, anchor, cine = {}, env: envIn = null } = {}) {
   if (current) return false;
   const root = getScene();
@@ -245,7 +248,7 @@ export function playScript(w, def, { lines, duration, anchor, cine = {}, env: en
   // the tiles round the camera's path are built ahead and held, so no shot cuts to the far LOD or a hole (#157, #20)
   const prewarm = cine.prewarm || shotPoints(scene, at, duration);
   const ok = playCinematic({
-    priority: 4, pause: true, letterbox: true, skippable: true, hideHud: true,
+    priority: 4, pause: true, letterbox: true, skippable: true, hideHud: true, hidePlayers: true,
     prewarm,
     ...cine, id: cine.id || def.id, duration, lines,
     onStart() {

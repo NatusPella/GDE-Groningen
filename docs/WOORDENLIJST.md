@@ -30,6 +30,16 @@ Code-identifiers, bestandsnamen en opslagsleutels (`gde-save-v1`, `saveslots.js`
 | shopaholic | **winkelverslaafde** | |
 | total loss | **afgeschreven** | "de auto is afgeschreven" |
 | hole(s) (discgolf, pitch & putt) | **baan**, **banen** | "Baan 3/9"; de mand blijft de mand |
+| respawn, spawn | **opnieuw verschijnen**, **hervatten**; **verschijnen** | |
+| loading | **laden** | |
+| game over | **einde spel** | |
+| highscore | **topscore** | |
+| unlock(ed) | **ontgrendel(d)** | |
+| achievement(s) | **prestatie(s)** | zo heet het scherm al |
+| tutorial | **uitleg** | |
+| quest | **opdracht** | |
+| loot | **buit** | |
+| gameplay, gamer(s) | **spel**, **speler(s)** | in regieaanwijzingen van `script.json` (niet getoond) toegestaan |
 
 ## Ingeburgerd, dus toegestaan
 

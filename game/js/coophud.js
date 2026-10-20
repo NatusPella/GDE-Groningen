@@ -36,6 +36,8 @@ export function updatePartnerChip(world) {
     });
     document.body.appendChild(chip);
   }
+  const menu = document.getElementById('pause-menu'); // het label hoort niet over de items van het pauzemenu te staan
+  chip.style.visibility = menu && menu.classList.contains('visible') ? 'hidden' : '';
   const key = lijst.map((p) => `${p.slot}|${p.naam}|${p.tekst}|${p.kleur}`).join(';');
   if (key === last) return;
   last = key;

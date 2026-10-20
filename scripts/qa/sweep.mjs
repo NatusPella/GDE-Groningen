@@ -3,7 +3,7 @@
 //   node scripts/qa/sweep.mjs [--seed=1] [--out=<map>] [--part=wereld,verhaal,cut,alles]
 //        [--wereld=45] [--verhaal=26] [--cut=14] [--settle=6000] [--only=<stops>] [--slot] [--plan]
 // --plan schrijft alleen plan.json (geen Electron). Eén Electron-instantie per deel, wegwerpprofiel,
-// nooit echte opslag. --slot neemt een Electron-slot volgens C:/Users/abuis/gde-locks/README.txt.
+// nooit echte opslag. --slot neemt een Electron-slot volgens <GDE_LOCKS>/README.txt.
 // ELECTRON_EXE=<pad> als desktop/node_modules/electron/dist ontbreekt; GAME_WORLD=<map> als de
 // gestagede wereld niet in game/world of desktop/build/game/world staat.
 // Uitvoer in <out>: plan.json, logboek.md, bevindingen.json, shots-<naam>.png, run-<deel>.log.
@@ -94,7 +94,7 @@ let slot = null;
 const release = () => { if (slot) { try { fs.rmdirSync(slot); } catch { /* al weg */ } slot = null; } };
 process.on('exit', release);
 if (flag('slot')) {
-  const LOCKS = 'C:/Users/abuis/gde-locks';
+  const LOCKS = process.env.GDE_LOCKS || path.join(os.homedir(), 'gde-locks');
   for (let tries = 0; tries < 240 && !slot; tries++) {
     for (const n of [1, 2, 3]) { try { fs.mkdirSync(path.join(LOCKS, `electron-${n}`)); slot = path.join(LOCKS, `electron-${n}`); break; } catch { /* bezet */ } }
     if (!slot) await new Promise((r) => setTimeout(r, 60000));
@@ -104,7 +104,7 @@ if (flag('slot')) {
 const electron = process.env.ELECTRON_EXE || path.join(ROOT, 'desktop', 'node_modules', 'electron', 'dist', process.platform === 'win32' ? 'electron.exe' : 'Electron');
 const WACHT = 'for (let i = 0; i < 240 && !(window.__debug && window.__debug.world); i++) await new Promise((r) => setTimeout(r, 500));\n'
   + `const kEnter = () => { for (const t of [window, document]) { t.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', bubbles: true })); t.dispatchEvent(new KeyboardEvent('keyup', { key: 'Enter', code: 'Enter', bubbles: true })); } };
-for (let i = 0; i < 40; i++) { const s = document.querySelector('#start-screen'); if (!s || s.offsetParent === null || getComputedStyle(s).display === 'none' || getComputedStyle(s).opacity === '0') break; kEnter(); await new Promise((r) => setTimeout(r, 3000)); }
+for (let i = 0; i < 40; i++) { const s = document.querySelector('#start-screen'); if (!s || !s.classList.contains('visible')) break; const it = [...s.querySelectorAll('.ss-item')].find((e) => /nieuw spel/i.test(e.textContent)); if (it) it.click(); else kEnter(); await new Promise((r) => setTimeout(r, 3000)); }
 await new Promise((r) => setTimeout(r, 4000));\n`;
 
 async function runPart(deel, pre, pageFile, extraEnv = {}) {

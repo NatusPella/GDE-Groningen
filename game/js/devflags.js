@@ -67,7 +67,13 @@ export const FLAGS = Object.freeze({
   testmenu: has('testmenu'),
   brugbotsing: has('brugbotsing'),
   sfxtest: has('sfxtest'),
+  perfoff: val('perfoff'),
 });
+
+// Prestatiestappen die voor een A/B-meting uit kunnen: ?perfoff=schaduw+actoren (scripts/perf/ab.mjs). Alles staat standaard aan.
+const PERF_OFF = new Set((FLAGS.perfoff || '').split(/[+ ]/).filter(Boolean));
+// window.__perfOffDyn (a Set, scripts/perf/routes.js route ab) switches steps within one run: the A and B windows of a measurement then feel the same load
+export const perfOff = (name) => PERF_OFF.has(name) || (typeof window !== 'undefined' && window.__perfOffDyn !== undefined && window.__perfOffDyn.has(name));
 
 export const FLAG_DOCS = Object.freeze({
   dev: 'Verhaalpaneel op F9; eigen opslag (gde-dev:), raakt je echte savegame niet',
@@ -111,6 +117,7 @@ export const FLAG_DOCS = Object.freeze({
   brugbotsing: 'Stuurt na een paar seconden een binnenvaartschip tegen de dichtstbijzijnde brug (#9)',
   reizen: 'Reisbeats in het nieuwe verhaal: keuze Meerijden, Zelf rijden of Overslaan bij een sprong (#97); staat standaard aan, uit met zonderreizen en in de testmodi',
   zonderreizen: 'Zet de reisbeats uit (zie reizen)',
+  perfoff: 'A/B-meting: zet prestatiestappen uit, namen gescheiden door +, bv. perfoff=schaduw+actoren (devflags.js, scripts/perf/ab.mjs)',
 });
 
 

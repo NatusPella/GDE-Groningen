@@ -13,7 +13,7 @@ const idx = JSON.parse(fs.readFileSync(new URL('index-provincie.json', root), 'u
 const files = {};
 const get = (f) => files[f] || (files[f] = new Uint8Array(fs.readFileSync(new URL(f, root))));
 const inP = (q, x, y) => { let c = false; for (let i = 0, j = q.length - 1; i < q.length; j = i++) if ((q[i][1] > y) !== (q[j][1] > y) && x < ((q[j][0] - q[i][0]) * (y - q[i][1])) / (q[j][1] - q[i][1]) + q[i][0]) c = !c; return c; };
-const LIMIT = Number(process.env.HOUSE_WATER_MAX ?? 0.001); // aandeel gebouwen in water
+const LIMIT = Number(process.env.HOUSE_WATER_MAX ?? 0.00015); // (0.063 % before type houseboat was left out: most of the 240 were real woonboten; 36 are not, 5-10 after a rebuild with derive_tiles slideOutOfWater 25 m) // aandeel gebouwen in water
 let nb = 0, bad = 0, tiles = 0; const ex = [];
 for (const [key, t] of Object.entries(idx.tiles)) {
   if (!t.n || !t.n.water || !t.n.buildings) continue;
@@ -24,7 +24,7 @@ for (const [key, t] of Object.entries(idx.tiles)) {
   if (!water.length) continue;
   tiles++;
   for (const b of bl) {
-    if (!b.pts || b.pts.length < 3 || b.houseboat || b.boat || b.pier) continue;
+    if (!b.pts || b.pts.length < 3 || b.houseboat || b.boat || b.pier || b.type === 'houseboat') continue; // (type houseboat: OSM's woonboten and the cabins derive_tiles floatStuckSheds moors; they float on purpose)
     nb++;
     let cx = 0, cy = 0; for (const q of b.pts) { cx += q[0]; cy += q[1]; } cx /= b.pts.length; cy /= b.pts.length;
     const wet = (x, y) => water.some((w) => inP(w.pts, x, y));

@@ -10,15 +10,17 @@ import { setErrorContext } from './errorlog.js';
 import { DEV, STORY_TEST, FLAGS } from './devflags.js';
 import { bindCoop } from './coopglue.js';
 import { tickCoopNet } from './coopnet.js';
+import { isHoldOpen, checkHold } from './coophold.js';
 import { updatePartnerChip } from './coophud.js';
 import { syncFigures, hasFigureMeshes } from './coopfigures3d.js';
 import { syncHostEntities, hasHostEntities, clearHostEntities } from './coopentities3d.js';
+import { updateHostScene, hasHostScene } from './coopscene.js';
 import { loadMap } from './mapdata.js';
 import { loadTileWorld } from './tileworld.js';
 import { tileFocus } from './tilefocus.js';
 import { setWorldPlaces } from './worldplaces.js';
 import { setRegionData } from './regions.js';
-import { tileIndexOf, tileKey } from './gdt.js';
+import { tileIndexOf, tileKey, tileOrigin } from './gdt.js';
 import { loadFacilities, initFacilities, loadShopPlaces, initShopPlaces, setExtraBuiltWorld, placeWithTiles } from './facilities.js';
 import { ensureCountryEdge } from './countryplan.js';
 import { warmCountryMaps } from './countrymap.js';
@@ -84,7 +86,7 @@ import { applyCityRoutes, loadLandData } from './corridorrail.js';
 import { setFarProps } from './farprops.js';
 import { initProvince } from './provinceworld.js';
 import { loadRoadNet, setRoadNet } from './roadgraph.js';
-import { buildMovableBridges, updateMovableBridges, getMovableBridges } from './movablebridges.js';
+import { buildMovableBridges, addMovableRoads, updateMovableBridges, getMovableBridges } from './movablebridges.js';
 import { updateSluizen, getSluizen } from './sluizen.js';
 import { updateBridgeHits, resetBridgeDamage, startBridgeCrashDemo, stepBridgeCrashDemo } from './bridgehitworld.js';
 import { geoWorkerActive } from './geojobs.js';
@@ -116,7 +118,7 @@ import { initWildlife, updateWildlife } from './wildlife.js';
 import { initSkyProps, updateSkyProps } from './skyprops.js';
 import { initSikkomFeed, updateSikkomFeed } from './sikkomfeed.js';
 import { initPhoneFeed, updatePhoneFeed } from './phonefeed.js';
-import { watchJumps, resetJumpWatch } from './loadscreen.js';
+import { watchJumps, resetJumpWatch, startLoadScreen } from './loadscreen.js';
 import { initLoading, setLoadProgress, finishLoading, showLoadError, runStartScreen, yieldToPaint } from './startscreen.js';
 import { initPigeonMode, updatePigeonMode, updatePigeonCamera, updatePigeonAfterglow } from './pigeonmode.js';
 import { initPigeonSpots, updatePigeonSpots, tryPigeonSpotInteract } from './pigeonspots.js';
@@ -393,6 +395,11 @@ async function boot() {
   initTrafficLights(world);
   initRailway(world);
   buildMovableBridges(world.map);
+  // the province's movable bridges come with the streamed tiles, not with map.roads (#235)
+  if (world.map.onTiles) {
+    world.map.onTiles((kind, tile) => { if (kind === 'add' && tile) { const o = tileOrigin(tile.i, tile.j); addMovableRoads(world.map.roadsNear(o[0] + 500, o[1] + 500, 720)); } });
+    addMovableRoads(world.map.roadsNear(player.x, player.y, 2500));
+  }
   resetBridgeDamage();
   initStationTravel(world);
   initActivityKinds(world, 'early');
@@ -536,7 +543,7 @@ async function boot() {
       if (world.time - samenSince > 5 && !isCinematicActive() && sinceCinematic() > 2 && !world.cameraOverride && !world.pendingRespawn && !isPauseMenuOpen()) { takeOpenSamen(); samenSince = null; openPauseMenu('samen'); }
     }
     updateMapView(dt, world);
-    world.paused = isMapOpen() || isPauseMenuOpen() || isShopOpen() || !!world.uiPaused;
+    world.paused = isMapOpen() || isPauseMenuOpen() || isShopOpen() || !!world.uiPaused || !!world.coopHold; // coopHold: wachtscherm bij een weggevallen speler (coophold.js)
     if (document.pointerLockElement && (isMapOpen() || isPauseMenuOpen() || isPhoneOpen())) document.exitPointerLock();
     // world.timeScale: slow-motion for cinematic moments (1 = normal)
     // hit-stop (#216): 60-90 ms dip bij een zware klap of een melee-raak
@@ -583,9 +590,11 @@ async function boot() {
       updateSaveGame(dt, world);
     }
     if (world.coopNet) tickCoopNet(world, dt); // samen spelen (#95), alleen na een bewuste uitnodiging
+    if (isHoldOpen()) checkHold(world);
     if (world.coopNet || world.coopPartner !== undefined) updatePartnerChip(world);
     if (world.coopNet || hasFigureMeshes()) syncFigures(world, dt); // de figuren van de andere spelers (#95)
     if (world.coopRole === 'client') syncHostEntities(world); else if (hasHostEntities()) clearHostEntities(); // voertuigen en doel van de host bij een gast
+    if (world.coopScene || hasHostScene()) updateHostScene(world); // filmpje, regel en keuze van de host bij een gast
     probe.mark('phone+save');
     updateSafety(dt, world);
     // a padel match owns the camera (cinematics.js resets cameraOverride each frame)
@@ -602,6 +611,7 @@ async function boot() {
     updatePhotoMode(dt, world);
     updateHud(dt, world);
     // a long jump (fast travel, teleport): the load screen while the city streams in
+    if (world.devJumpLoad) { world.devJumpLoad = false; resetJumpWatch(); startLoadScreen(world, { kind: 'travel', x: world.player.x, y: world.player.y, mission: world.loadMission }); }
     watchJumps(world, { swallow: world.pigeonMode || !!world.pendingRespawn || isCinematicActive() || sinceCinematic() < 2 || !!world.cameraOverride, hold: world.paused && !world.uiPaused });
     probe.mark('hud');
   }
