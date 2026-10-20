@@ -37,6 +37,7 @@ export const AUTO = {
   STILL_REACH: 45,    // a boat lying still this close asks for it (like a horn)
   PASS_PAD: 8,        // the boat has passed when this far beyond the deck's edge
   MIN_OPEN_S: 5,      // an automatic opening stays open at least this long (a horn: HOLD_S)
+  MAX_OPEN_S: 90,     // however many boats ask: after this long open (s) the bridge lets them all go and closes (they ask again if they still need it)
   IGNORE_FREE_M: 15,  // a boat let go (moored, or through and lying still beyond) is looked at again once it has sailed this far (m)
   STILL_PATIENCE_S: 20, // a boat that lies still this long (s) with the span open is let go: it is moored, not waiting
 };
@@ -247,6 +248,7 @@ export function stepBridge(b, dt, world = null) {
         const idle = (b.still.get(boat) || 0) + dt;
         if (idle >= AUTO.STILL_PATIENCE_S) { b.boats.delete(boat); b.still.delete(boat); b.ignored.set(boat, [boat.x, boat.y]); if (b.waitFor === boat) b.waitFor = null; } else b.still.set(boat, idle);
       }
+      if (b.t >= AUTO.MAX_OPEN_S) { for (const boat of b.boats.keys()) if (boat.x !== undefined) b.ignored.set(boat, [boat.x, boat.y]); b.boats.clear(); b.still.clear(); b.waitFor = null; b.manual = false; }
       const waiting = b.boats.size > 0 || (b.manual && near);
       if (b.t >= (b.manual ? T.HOLD_S : AUTO.MIN_OPEN_S) && !waiting) { b.state = 'closing'; b.t = 0; b.waitFor = null; b.manual = false; }
       break;
