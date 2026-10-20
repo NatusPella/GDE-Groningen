@@ -6,6 +6,10 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Nieuw
+- **M22: vastzitten in de modder is een ritme (nog niet in beeld bekeken, #218):** in plaats van negen seconden wachten wip je de wagen los op het ritme terwijl Tinus trekt, drie rondes zoals de andere timing-stappen.
+- **Duidelijkere kaartregels en intro's in akte 2-5 (#93):** een koude lezer per akte las alle teksten; 23 stille teksten (kaartregels, intro's, outro's en stap-labels van o.a. M07, M09, M10, M11, M12, M13, M14, M16, M17, M18, M19, M20, M22, M24, M25 en M26) zijn aangescherpt. Ingesproken scènes zijn niet aangeraakt.
+
 ## [0.38.0] - 2026-10-20
 
 ### Nieuw
