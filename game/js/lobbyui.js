@@ -166,6 +166,7 @@ export function mountLobby(root, hooks, opts = {}) {
   }
 
   if (hub && opts.start) { const prev = hub.onchange; hub.onchange = (r) => { if (prev) prev(r); onRoster(r); }; }
+  if (session && opts.start) watch(session); // wachtscherm van een gast: zodra de verbinding van zelf terugkomt (zelfde token), sluit het scherm
   root.addEventListener('click', (e) => {
     const b = e.target.closest && e.target.closest('[data-act]');
     if (b && root.contains(b)) act(b.dataset.act);
