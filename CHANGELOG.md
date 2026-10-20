@@ -13,6 +13,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 
 ### Opgelost
+- **'Met de trein' bij een lange reis deed niets (#307, door een bot gespeeld, niet door een mens):** het reispaneel (T1 tot en met T4) sloot bij keuze 1 zonder reisscène of aankomst; de ride-functie kreeg haar argumenten in de verkeerde volgorde. De speler komt nu aan bij Meerijden (de scène zelf nog niet door een mens gezien).
 - **M07 Al het vet van Grunn was niet te winnen (#288, door een bot gespeeld, niet door een mens):** de tankwagen vluchtte na 6 s terwijl hij 750 m van de start stond, dus de missie mislukte altijd met 'ontsnapt'. Hij wacht nu 6 s plus de rijtijd naar de 60-metercirkel.
 - **Der Aa-kerk van binnen stond verkeerd om (nog niet in beeld bekeken, #22):** de torenhal lag aan de oostkant, terwijl de toren in de kaartdata aan de westkant staat. Torenhal en koor, de portalen en de kansel zijn gespiegeld; `interieurs_test` controleert nu dat de torenhal bij de echte toren ligt (1045 checks).
 

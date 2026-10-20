@@ -64,6 +64,15 @@ const step = { id: 'T1' };
   await tick();
   ok(w.player.x === 0 && flags.size === 0, 'no beat / end step: nothing');
 }
+// the ride that story.js passes is startMeerijden(world, option, dest): rideWith binds the world, so tickStoryTravel's ride(option, dest) reaches it right
+{
+  const w = mkWorld(0), flags = new Set();
+  let got = null;
+  const fake = async (world, o, d) => { got = { world, o, d }; world.player.x = d.x; return { aangekomen: true }; };
+  S.tickStoryTravel({ on: true, step, flags, world: w, busy: false, script: lookup, ask: async () => 'meerijden', ride: S.rideWith(w, fake) });
+  await tick(); await tick();
+  ok(got && got.world === w && got.o.id === 'trein' && got.d.name === 'Warffum' && w.player.x === 17000, 'rideWith: de wereld gaat mee als eerste argument', JSON.stringify(got && { o: got.o.id, d: got.d }));
+}
 // meerijden: the ride scene gets the option and the goal; skip/overslaan bring the vehicle along
 {
   const w = mkWorld(0), flags = new Set();
