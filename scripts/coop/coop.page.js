@@ -80,6 +80,7 @@ function sampleNow(n) {
     me: b(x.player), companion: b(x.companion), cam: x.coopCam ? 1 : 0,
     partners: (x.coopPartners || []).map((p) => [p.slot, p.naam, p.status, Math.round(p.x), Math.round(p.y)]),
     roster: x.coopRoster ? x.coopRoster.map((s) => [s.slot, s.char, s.verbinding]) : null, figuren: Object.keys(x.coopFigures || {}).length,
+    sc: x.coopScene ? [x.coopScene.filmpje ? 1 : 0, x.coopScene.pauze ? 1 : 0, x.coopScene.regel ? x.coopScene.regel.tekst.slice(0, 40) : '', x.coopScene.keuze ? x.coopScene.keuze.opties.length : 0] : null, sceneEl: !!document.getElementById('coop-scene'),
     verdiend: x.coopVerdiend || 0, ri: x.coop && x.coop.remoteInput ? [Math.round(x.coop.remoteInput.mx * 100) / 100, Math.round(x.coop.remoteInput.my * 100) / 100, x.coop.remoteInput.buttons | 0] : null,
     hm: hm ? (hm.actief ? hm.label + ' | ' + (hm.stap || '') : '-') : null,
     hostEnt: x.coopHost ? [x.coopHost.voertuigen.length, x.coopHost.doelen.length, (x.coopHost.voetgangers || []).length] : null,
