@@ -2326,13 +2326,14 @@ function drawMinimap(dt, world) {
   const landAlpha = 1 - dimLand;
   for (const r of view.roads) {
     if (r.pts.length < 2) continue;
+    // the paths and styles of the roads that fade out at this zoom (foot, cycle) are not worked out at all
+    const rs = miniRoadStyle(r.cat, r.width, mmScale);
+    if (rs.alpha <= 0.02) continue;
     const allowed = roadAllowed(r, mmMode);
     ctx.beginPath();
     ctx.moveTo(r.pts[0][0], r.pts[0][1]);
     for (let i = 1; i < r.pts.length; i++) ctx.lineTo(r.pts[i][0], r.pts[i][1]);
     let color = r.cat === 'major' ? MINI_STYLE.major : r.cat === 'cycle' ? MINI_STYLE.cycle : MINI_STYLE.road;
-    const rs = miniRoadStyle(r.cat, r.width, mmScale);
-    if (rs.alpha <= 0.02) continue;
     let w = rs.widthM;
     let a = landAlpha * rs.alpha;
     if (emph === 'foot') { if (r.cat === 'foot') { color = EMPHASIS.foot; w = Math.max(w, 3.4); } }
