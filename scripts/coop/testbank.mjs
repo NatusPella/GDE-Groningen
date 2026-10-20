@@ -24,8 +24,9 @@ if (!STAGE || !fs.existsSync(path.join(STAGE, 'index.html'))) { console.error('-
 const SUITE = arg('suite', 'basis');
 const DURATION = Number(arg('duration', 20));
 const MENU = flag('menu') || SUITE !== 'basis';
-const GASTEN = Math.max(1, Math.min(2, Number(arg('gasten', SUITE === 'net' || SUITE === 'verhaal' ? 2 : 1)) || 1));
-const MOCK = Math.max(0, Number(arg('mock', SUITE === 'net' ? 1 : 0)) || 0);
+const GASTEN = Math.max(1, Math.min(2, Number(arg('gasten', SUITE === 'verhaal' ? 2 : 1)) || 1));
+const MOCK = Math.max(0, Number(arg('mock', SUITE === 'net' ? (GASTEN > 1 ? 1 : 2) : 0)) || 0); // vier spelers: host + Electron-gasten + headless gasten
+const SECOND = GASTEN > 1 ? 'gast2' : 'gast'; // wie in de suite 'net' een slecht netwerk krijgt en later vertrekt
 const ROUTE = arg('route', SUITE === 'kamer' ? 'kamer' : 'direct');
 const OUT = path.resolve(arg('out', path.join(os.tmpdir(), 'gde-coop', new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19))));
 const LOCKS = process.env.GDE_LOCKS || 'C:/Users/abuis/gde-locks';
@@ -36,11 +37,12 @@ const EXPECT = 2 + (GASTEN - 1) + MOCK; // aantal spelers in totaal
 // ---------------------------------------------------------------- programma per instantie (seconden na "iedereen erbij")
 const P = {
   basis: { host: [[0, 'wacht', { s: DURATION }]], gast: [[0, 'wacht', { s: DURATION }]], gast2: [[0, 'wacht', { s: DURATION }]] },
-  net: {
-    host: [[0, 'wacht', { s: 12 }], [14, 'netsim', { s: 20, wie: ['gast2'] }], [38, 'desync', { s: 25, wie: 'gast' }], [78, 'loop', { s: 8 }], [90, 'uitvalHost', { s: 8 }], [122, 'betaal', { geld: 250 }], [128, 'opgeslagen', {}], [134, 'rit', { s: 30 }], [170, 'wacht', { s: 22 }], [196, 'stopHost', {}]],
-    gast: [[0, 'wacht', { s: 12 }], [14, 'netsim', { s: 20, wie: ['gast2'] }], [38, 'desync', { s: 25, wie: 'gast' }], [78, 'loop', { s: 8 }], [90, 'uitval', { s: 8, wie: 'gast' }], [122, 'betaal', {}], [128, 'opgeslagen', {}], [134, 'rit', { s: 30 }], [170, 'wacht', { s: 22 }], [196, 'stopHost', {}]],
-    gast2: [[0, 'wacht', { s: 12 }], [14, 'netsim', { s: 20, wie: ['gast2'] }], [38, 'desync', { s: 25, wie: 'gast' }], [78, 'loop', { s: 8 }], [90, 'wacht', { s: 28 }], [122, 'betaal', {}], [128, 'opgeslagen', {}], [134, 'rit', { s: 30 }], [170, 'verlaat', { wie: 'gast2' }], [196, 'stopHost', {}]],
-  },
+  net: Object.fromEntries(['host', 'gast', 'gast2'].map((me) => [me, [
+    [0, 'wacht', { s: 12 }], [14, 'netsim', { s: 20, wie: [SECOND] }], [38, 'desync', { s: 25, wie: 'gast' }], [78, 'loop', { s: 8 }],
+    me === 'host' ? [90, 'uitvalHost', { s: 8 }] : me === 'gast' ? [90, 'uitval', { s: 8, wie: 'gast' }] : [90, 'wacht', { s: 28 }],
+    [122, 'betaal', me === 'host' ? { geld: 250 } : {}], [128, 'opgeslagen', {}], [134, 'rit', { s: 30 }],
+    me === SECOND ? [170, 'verlaat', { wie: SECOND }] : [170, 'wacht', { s: 22 }], [196, 'stopHost', {}],
+  ]])),
   kamer: { host: [[0, 'wacht', { s: DURATION }]], gast: [[0, 'wacht', { s: DURATION }]], gast2: [[0, 'wacht', { s: DURATION }]] },
   verhaal: { host: [[0, 'verhaal', { s: Number(arg('verhaal-s', 1500)) }]], gast: [[0, 'verhaal', { s: Number(arg('verhaal-s', 1500)) }]], gast2: [[0, 'verhaal', { s: Number(arg('verhaal-s', 1500)) }]] },
   touch: { host: [[0, 'wacht', { s: 16 }]], gast: [[0, 'touch', { s: 12 }]], gast2: [[0, 'wacht', { s: 16 }]] },
@@ -134,6 +136,7 @@ let mockLate = null;
 if (code && MOCK && ROUTE === 'direct') {
   const { startMockGuest } = await import('./mockclient.mjs');
   await waitFor(host.events, 'verbonden', 240000);
+  if (guest) await waitFor(guest.events, 'verbonden', 240000);
   if (guest2) await waitFor(guest2.events, 'verbonden', 240000);
   const spin = (i) => (t) => ({ mx: Math.cos(t / 3 + i), my: Math.sin(t / 3 + i), run: false, yaw: 0 });
   for (let i = 0; i < MOCK; i++) {
@@ -144,9 +147,9 @@ if (code && MOCK && ROUTE === 'direct') {
   }
 }
 // in de suite 'net' komt er later een nieuwe headless gast bij, op de plek die gast2 achterlaat
-if (SUITE === 'net' && code && guest2) {
+if (SUITE === 'net' && code && (guest2 || guest)) {
   (async () => {
-    const e = await waitFor(guest2.events, 'verlaten', 600000);
+    const e = await waitFor((SECOND === 'gast2' ? guest2 : guest).events, 'verlaten', 900000);
     if (!e) return;
     try {
       const { startMockGuest } = await import('./mockclient.mjs');
@@ -239,11 +242,11 @@ for (const g of NAMES.filter((x) => x !== 'host')) {
 if (SUITE === 'net') {
   const ph = (n, name, begin = true) => of(E[n], 'fase').find((e) => e.name === name && e.begin === begin);
   // slecht netwerk op gast2
-  const ns = of(G2, 'netsim');
-  check(ns.length >= 2 && ns[1].drops && ns[1].drops[0] && (ns[1].drops[0].in + ns[1].drops[0].out) > 0, 'netsim op gast2 liet pakketten vallen: ' + JSON.stringify(ns[1] && ns[1].drops));
-  const s2 = phase('gast2', 'netsim');
-  check(s2.length >= 10 && !s2.some((s) => s.status === 'lost'), 'gast2 viel niet weg tijdens 10% verlies en 120 ms: ' + JSON.stringify(s2.map((s) => s.status).filter((x, i, a) => a.indexOf(x) === i)));
-  note(`gast2 tijdens het slechte netwerk: status ${[...new Set(s2.map((s) => s.status))].join('/')}, rtt max ${Math.max(0, ...s2.map((s) => s.rtt || 0))} ms`);
+  const ns = of(E[SECOND], 'netsim');
+  check(ns.length >= 2 && ns[1].drops && ns[1].drops[0] && (ns[1].drops[0].in + ns[1].drops[0].out) > 0, `netsim op ${SECOND} liet pakketten vallen: ` + JSON.stringify(ns[1] && ns[1].drops));
+  const s2 = phase(SECOND, 'netsim');
+  check(s2.length >= 10 && !s2.some((s) => s.status === 'lost'), `${SECOND} viel niet weg tijdens 10% verlies en 120 ms: ` + JSON.stringify(s2.map((s) => s.status).filter((x, i, a) => a.indexOf(x) === i)));
+  note(`${SECOND} tijdens het slechte netwerk: status ${[...new Set(s2.map((s) => s.status))].join('/')}, rtt max ${Math.max(0, ...s2.map((s) => s.rtt || 0))} ms`);
   // desync
   const di = of(G, 'desync-ingebracht')[0], du = of(G, 'desync-uitkomst')[0], dr = of(G, 'desync-rust')[0];
   check(di && du && du.hersync >= 1 && du.desync && du.desync.includes('stage'), 'desync: niet herkend of geen hersync gevraagd: ' + JSON.stringify(du));
@@ -276,7 +279,7 @@ if (SUITE === 'net') {
   check(rp && rp.tessa, 'rit: Tessa stapt niet als passagier mee: ' + JSON.stringify(rp));
   check(rg && rg.m > 15, 'rit: de host reed niet: ' + JSON.stringify(rg));
   check(ru && !ru.host && !ru.tessa, 'rit: na het uitstappen zitten ze nog in het voertuig: ' + JSON.stringify(ru));
-  for (const n of ['gast', 'gast2']) {
+  for (const n of NAMES.filter((x) => x !== 'host')) {
     const rr = phase(n, 'rit'); const t0 = rr.find((q) => q.partners.some((p) => p[0] === 0)), t1 = [...rr].reverse().find((q) => q.partners.some((p) => p[0] === 0));
     const a = t0 && t0.partners.find((p) => p[0] === 0), b = t1 && t1.partners.find((p) => p[0] === 0);
     check(rr.some((q) => q.hostEnt && q.hostEnt[0] > 0), `rit: ${n} ziet geen voertuigen van de host`);
@@ -284,8 +287,8 @@ if (SUITE === 'net') {
     check(a && b && Math.hypot(a[3] - b[3], a[4] - b[4]) > 15, `rit: ${n} ziet Tammo niet rijden (${JSON.stringify(a)} → ${JSON.stringify(b)})`);
   }
   // gast2 verlaat het spel; een nieuwe gast neemt de plek
-  const vl = of(G2, 'verlaten')[0];
-  check(vl && vl.coopNet === false && vl.role === null, 'vertrek: gast2 staat nog in de sessie: ' + JSON.stringify(vl));
+  const vl = of(E[SECOND], 'verlaten')[0];
+  check(vl && vl.coopNet === false && vl.role === null, `vertrek: ${SECOND} staat nog in de sessie: ` + JSON.stringify(vl));
   const afterLeave = samples('host').filter((s) => s.clock > (vl ? 0 : 1e9)).slice(-5);
   check(last(samples('host')).roster && last(samples('host')).roster.length >= 2, 'vertrek: de lijst van de host klopt niet: ' + JSON.stringify(last(samples('host')).roster));
   // host stopt
@@ -301,7 +304,9 @@ if (SUITE === 'net') {
     note(`mockgast ${i + 1} (${m.sim.latency ? '80 ms, 5% verlies' : 'goed netwerk'}): ${m.log.samples.length} samples, ${m.transport.recv} pakketten, ${JSON.stringify(kinds)}, statussen ${[...new Set(m.log.status.map((s) => s[1]))].join('/')}`);
     check(Object.keys(kinds).includes('klok') && Object.keys(kinds).includes('hash'), `mockgast ${i + 1} kreeg geen klok- en hashberichten van de host`);
   }
-  if (mockLate) check(mockLate.session.slot === 2, `late mockgast kreeg plek ${mockLate.session.slot} (verwacht de vrijgekomen plek 2)`);
+  const leaverSlot = SECOND === 'gast2' ? 2 : 1;
+  if (mockLate) check(mockLate.session.slot === leaverSlot, `late mockgast kreeg plek ${mockLate.session.slot} (verwacht de vrijgekomen plek ${leaverSlot})`);
+  else problems.push('de late mockgast is niet verbonden');
 }
 
 // ----- suite 'touch'
