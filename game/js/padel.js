@@ -11,7 +11,7 @@ import { unlockAchievement, recordChallengeResult, getChallengeRecord, recordSta
 import { showCard } from './hudcards.js';
 import { banterAfter } from './banter.js';
 import { pointInPolygon, isInWater, clamp, nearestOnRoadList } from './util.js';
-import { currentStep } from './story.js';
+import { currentStep } from './storyquery.js';
 import { PADEL_PAIR, PADEL_TWINS } from './padellines.js';
 import { bubbleVoiceFor } from './linevoice.js';
 import { playLineVoice } from './audio.js';

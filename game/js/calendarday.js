@@ -4,6 +4,7 @@
 // progress moves the date on and holds it (calendar.js storyBounds). Saved
 // as `kalender` (savegame.js). Sets the sun's declination for the day, and
 // shows the "Vandaag in Grunn" card on the first morning of a special day.
+import { getStoryView } from './storyquery.js';
 import { formatDay, specialsOn, specialDay, cardFor, clampDay, storyBounds, sunDeclinationDeg, isSpecial, upcomingSpecials, STEP_DAY } from './calendar.js';
 import { setSunDeclination } from './daynight.js';
 import { showCard, cardsBusy } from './hudcards.js';
@@ -21,10 +22,6 @@ let world = null;
 let prevClock = null;
 let graceUntil = 0;
 let lastDecl = null;
-
-// story.js registers its progress view at load, so this module does not import it (import cycle, #108)
-let getStoryView = () => ({ end: false });
-export function setStoryViewSource(fn) { getStoryView = fn; }
 
 function state(w) {
   if (!w.calendar) w.calendar = { day: 1, seen: [] };

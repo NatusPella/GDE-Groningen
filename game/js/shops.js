@@ -19,7 +19,7 @@ import { isCinematicActive } from './cinematics.js';
 import { recordStat, isUnlocked } from './achievements.js';
 import { isMissionCompleted, missionIndexById } from './missionquery.js';
 import { registerShopIcon } from './shopicon.js';
-import { prepareStoryShop, currentStep } from './story.js';
+import { prepareStoryShop, currentStep } from './storyquery.js';
 import { markStoryItems, noteStoryPurchase } from './storyshop.js';
 import { jobLevel } from './sidejobs.js';
 import { WEAPONS } from './combat.js';

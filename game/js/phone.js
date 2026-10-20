@@ -17,7 +17,7 @@ import { openPauseMenu, closePauseMenu } from './pausemenu.js';
 import { isPauseMenuOpen, isPhoneOpen } from './pausestate.js';
 export { isPhoneOpen };
 import { setUserWaypoint } from './routing.js';
-import { storyFlag } from './story.js';
+import { storyFlag } from './storyquery.js';
 import { getHeroCar } from './hud_panel.js';
 import { getGarageList, deliverOwnedVehicle } from './ownedvehicles.js';
 import { initGarageStyles } from './garageui.js';
