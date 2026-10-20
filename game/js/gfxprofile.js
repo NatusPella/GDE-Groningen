@@ -261,8 +261,10 @@ export function startGfxAdvisor(gl) {
 // down to 60%. CPU-bound: cpuLevel 1-2, fewer facade details and a shadow
 // map every other frame (scene3d.js). A step back up that has to be undone
 // again soon makes the next step up wait twice as long (15 s up to 2 min).
-const DYN_MIN = 0.6;
+const DYN_MIN = 0.5;
 const SLOW_MS = 27, GOOD_MS = 19;
+// cpuLevel 3: no shadow map but one frame in four, the shortest view and detail ring, fewer facade details and a thinner city
+const CPU_LEVEL_MAX = 3;
 const COOL_MS = 2500, UP_WAIT_MS = 15000, UP_WAIT_MAX = 120000;
 const dyn = { scale: 1, cpuLevel: 0, ms: [], cpu: [], sum: 0, slowGpu: 0, slowCpu: 0, good: 0, cool: 0, upWait: UP_WAIT_MS, upAt: 0, lastUp: -1e9, now: 0 };
 export const dynamicScale = () => dyn.scale;
@@ -286,7 +288,10 @@ export function noteFrame(ms, cpuMs) {
     dyn.scale = 1; dyn.cpuLevel = 0;
     return true;
   }
-  if (!(ms > 0) || ms > 250) return false;
+  if (!(ms > 0)) return false;
+  // a frame past 250 ms is a hitch (or a hidden window) to the judgement, but a machine that only manages 3 fps must still be seen as slow:
+  // it counts as 250 (each second is judged by its median, so single hitches do not move it)
+  ms = Math.min(ms, 250); cpuMs = Math.min(cpuMs, 250);
   dyn.now += ms;
   if (dyn.cool > 0) { dyn.cool -= ms; return false; }
   dyn.ms.push(ms); dyn.cpu.push(cpuMs); dyn.sum += ms;
@@ -298,11 +303,13 @@ export function noteFrame(ms, cpuMs) {
   const hoog = getSettings().quality === 'hoog';
   if (med > SLOW_MS) {
     dyn.good = 0;
-    if (gpuBound) { dyn.slowGpu++; dyn.slowCpu = 0; } else { dyn.slowCpu++; dyn.slowGpu = 0; }
+    // far over budget (a weak machine): each such second counts double, so the steps come twice as fast
+    const sev = med > SLOW_MS * 2.5 ? 2 : 1;
+    if (gpuBound) { dyn.slowGpu += sev; dyn.slowCpu = 0; } else { dyn.slowCpu += sev; dyn.slowGpu = 0; }
     if (dyn.slowGpu >= (hoog ? 3 : 2) && dyn.scale > DYN_MIN) {
       dyn.scale = Math.max(DYN_MIN, dyn.scale - 0.1);
       dyn.slowGpu = 0;
-    } else if (dyn.slowCpu >= 2 && dyn.cpuLevel < 2) {
+    } else if (dyn.slowCpu >= 2 && dyn.cpuLevel < CPU_LEVEL_MAX) {
       dyn.cpuLevel++;
       dyn.slowCpu = 0;
     }

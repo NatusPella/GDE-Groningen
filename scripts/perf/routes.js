@@ -153,7 +153,7 @@ async function run(name, setup, move, teardown, opts = {}) {
 }
 
 const gl0 = r.getContext(); const dbg0 = gl0.getExtension('WEBGL_debug_renderer_info');
-const results = { gl: { renderer: dbg0 ? gl0.getParameter(dbg0.UNMASKED_RENDERER_WEBGL) : gl0.getParameter(gl0.RENDERER), vendor: dbg0 ? gl0.getParameter(dbg0.UNMASKED_VENDOR_WEBGL) : null, version: gl0.getParameter(gl0.VERSION), maxTex: gl0.getParameter(gl0.MAX_TEXTURE_SIZE) }, gpu, longTasks: H.longTaskState || 'on', dpr: devicePixelRatio, css: [innerWidth, innerHeight], settings: JSON.parse(localStorage.getItem('gde-settings') || '{}'), routes: {} };
+const results = { gl: { renderer: dbg0 ? gl0.getParameter(dbg0.UNMASKED_RENDERER_WEBGL) : gl0.getParameter(gl0.RENDERER), vendor: dbg0 ? gl0.getParameter(dbg0.UNMASKED_VENDOR_WEBGL) : null, version: gl0.getParameter(gl0.VERSION), maxTex: gl0.getParameter(gl0.MAX_TEXTURE_SIZE) }, gpu, longTasks: H.longTaskState || 'on', loadMarks: { ...(window.__loadMarks || {}) }, sinceNavMs: Math.round(performance.now()), cores: navigator.hardwareConcurrency, dpr: devicePixelRatio, css: [innerWidth, innerHeight], settings: JSON.parse(localStorage.getItem('gde-settings') || '{}'), routes: {} };
 const FOOT = PL([[167, 283], [121, 193], [105, 161], [100, 77], [124, 7], [134, 36]]);
 results.routes.foot = await run('foot', async () => { teleport(FOOT[0][0], FOOT[0][1]); return {}; }, (c, t) => {
   const q = at(FOOT, Math.max(0, t) * 6);
