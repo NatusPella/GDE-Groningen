@@ -6,6 +6,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+- De radio draait nieuwe nummers eerst: een nummer met "nieuw": true in het muziekmanifest komt vaker langs tot het drie keer is gespeeld, en na het aanzetten van de radio begint een nog niet gehoord nieuw nummer. Instellen in één plek (NIEUW in musicpick.js). Nog niet gehoord.
 - Vuurwerk klinkt nu als een echte bom: harde tik, dreun en knetterend glitter (gerenderd, drie varianten); de overwegbel is een staalslag met nagalm. Offline gecontroleerd op spectrum, niveau en duur; nog niet gehoord.
 - Fietsen en scooters hebben kleine knipperlichtjes aan de stuuruiteinden (scooters ook achter) in plaats van grote blokken. Nog niet in beeld bekeken.
 - Als iemand praat, worden motorgeluid en omgeving nu zachtjes gedempt (eerder alleen de nieuwe effecten). Nog niet gehoord.
