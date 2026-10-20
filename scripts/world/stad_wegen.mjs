@@ -186,6 +186,116 @@ export function closeGaps(roads) {
   return closed;
 }
 
+// Twee autowegen op hetzelfde niveau die naast elkaar lopen zonder knoop te delen (de twee rijbanen van een dubbele weg, een woonstraat of
+// servicestrook naast een doorgaande weg) hebben lintvlakken die over elkaar liggen: twee coplanaire linten met elk hun eigen patroon
+// flikkeren waar ze overlappen (road_seams.mjs overlap, #268). roadsurface.js ribbonClip knipt dat bij het tekenen bij, maar alleen
+// halverwege en niet overal; hier krijgt de data zelf de juiste breedte. Een lint is de rijstroken plus een marge van een halve meter per
+// kant (lanes.js: de rijstrookbreedte volgt de lintbreedte), dus de linten mogen een meter overlappen. Wat meer overlapt, wordt smaller
+// gemaakt tot de linten elkaar net raken: beide evenveel, en de weg die niet kan (een strook is nooit smaller dan de rijstroken
+// en een breedtetag blijft staan) laat de andere meer afstaan. Draait vóór de hoogtes. Geeft { pairs, narrowed, left }.
+export const RIBBON_MARGIN = 1; // m die linten mogen overlappen (road_seams.mjs trekt dezelfde marge af)
+const MIN_LANE_W = 2.75, HARD_LANE_W = 2.6, MIN_WIDTH = 2.5, SEP_MIN = 2, STEP_MAX = 1.4; // zachte en harde stroken-ondergrens; de smalste weg; dichterbij is een dubbele weg; stap tussen twee stukken (road_seams.mjs: 1,5)
+const laneCount = (r) => Math.max(1, (r.lanesFwd || 0) + (r.lanesBwd || 0) + (r.lanesBoth || 0));
+const laneFloor = (r, lane) => Math.min(r.width, Math.max(MIN_WIDTH, laneCount(r) * lane + 0.4));
+// de ondergrens: een breedtetag blijft staan zolang het kan (zacht), een strook is nooit smaller dan de harde ondergrens
+const floorWidth = (r, hard) => (hard ? laneFloor(r, HARD_LANE_W) : r.widthSrc === 'tag' ? r.width : laneFloor(r, MIN_LANE_W));
+// verdeel `total` m smaller maken over twee wegen: gelijk, en wat de ene niet kan neemt de andere
+function allocate(a, b, total, hard) {
+  const roomA = Math.max(0, a.width - floorWidth(a, hard)), roomB = Math.max(0, b.width - floorWidth(b, hard));
+  let ca = Math.min(roomA, total / 2), cb = Math.min(roomB, total / 2);
+  if (ca < total / 2) cb = Math.min(roomB, total - ca); else if (cb < total / 2) ca = Math.min(roomA, total - cb);
+  return [ca, cb];
+}
+export function separateRibbons(roads) {
+  const car = roads.filter((r) => CAR_CATS.has(r.cat) && r.pts.length > 1);
+  const level = (r) => r.layer ?? (r.tunnel ? -1 : r.bridge ? 1 : 0);
+  const k = (p) => `${Math.round(p[0] * 100)},${Math.round(p[1] * 100)}`;
+  const nodes = new Map();
+  car.forEach((r, ri) => { for (const p of r.pts) { const key = k(p); let l = nodes.get(key); if (!l) nodes.set(key, l = new Set()); l.add(ri); } });
+  const G = 30, grid = new Map();
+  const cells = (a, b, f) => { for (let gx = Math.floor((Math.min(a[0], b[0]) - 8) / G); gx <= Math.floor((Math.max(a[0], b[0]) + 8) / G); gx++) for (let gy = Math.floor((Math.min(a[1], b[1]) - 8) / G); gy <= Math.floor((Math.max(a[1], b[1]) + 8) / G); gy++) f(gx + ',' + gy); };
+  car.forEach((r, ri) => { for (let i = 0; i < r.pts.length - 1; i++) cells(r.pts[i], r.pts[i + 1], (c) => { let l = grid.get(c); if (!l) grid.set(c, l = []); l.push([ri, i]); }); });
+  const segDist = (px, py, a, b) => { const dx = b[0] - a[0], dy = b[1] - a[1], L2 = dx * dx + dy * dy || 1e-9; const t = Math.max(0, Math.min(1, ((px - a[0]) * dx + (py - a[1]) * dy) / L2)); return Math.hypot(a[0] + dx * t - px, a[1] + dy * t - py); };
+  const shares = (ra, rb) => car[ra].pts.some((p) => nodes.get(k(p)).has(rb));
+  const pairs = new Map();
+  for (const bucket of grid.values()) {
+    for (let x = 0; x < bucket.length; x++) for (let y = x + 1; y < bucket.length; y++) {
+      const [ra, ia] = bucket[x], [rb, ib] = bucket[y];
+      if (ra === rb) continue;
+      const A = car[ra], B = car[rb];
+      if (level(A) !== level(B)) continue;
+      const a0 = A.pts[ia], a1 = A.pts[ia + 1], b0 = B.pts[ib], b1 = B.pts[ib + 1];
+      const L = Math.hypot(a1[0] - a0[0], a1[1] - a0[1]);
+      const dax = (a1[0] - a0[0]) / (L || 1), day = (a1[1] - a0[1]) / (L || 1);
+      const Lb = Math.hypot(b1[0] - b0[0], b1[1] - b0[1]) || 1;
+      if (Math.abs(dax * (b1[0] - b0[0]) / Lb + day * (b1[1] - b0[1]) / Lb) < 0.9) continue;
+      const lim = (A.width + B.width) / 2 - RIBBON_MARGIN;
+      const pk = ra < rb ? ra + ':' + rb : rb + ':' + ra;
+      for (let t = 0; t <= L; t += 1) {
+        const px = a0[0] + dax * t, py = a0[1] + day * t, d = segDist(px, py, b0, b1);
+        if (d >= lim) continue;
+        let st = pairs.get(pk);
+        if (!st) pairs.set(pk, st = { a: A, b: B, ra, rb, dmin: Infinity, seen: new Set() });
+        st.dmin = Math.min(st.dmin, d);
+        st.seen.add(Math.round(px) + ',' + Math.round(py));
+      }
+    }
+  }
+  const rep = { pairs: 0, narrowed: 0, left: 0, smoothed: 0 };
+  const todo = [...pairs.values()].filter((st) => st.seen.size >= 6 && !shares(st.ra, st.rb));
+  rep.pairs = todo.length;
+  const need = (st) => (st.a.width + st.b.width) / 2 - (st.dmin + RIBBON_MARGIN - 0.05);
+  todo.sort((p, q) => need(q) - need(p));
+  const touched = new Set();
+  for (const st of todo) {
+    const e = need(st);
+    if (e <= 0) continue;
+    if (st.dmin < SEP_MIN) { rep.left++; continue; }
+    let [ca, cb] = allocate(st.a, st.b, 2 * e, false);
+    if (ca + cb < 2 * e - 0.01) { // de rest ook van de tags en tot de harde ondergrens
+      const wa = st.a.width, wb = st.b.width;
+      st.a.width = wa - ca; st.b.width = wb - cb;
+      const [da, db] = allocate(st.a, st.b, 2 * e - ca - cb, true);
+      st.a.width = wa; st.b.width = wb;
+      ca += da; cb += db;
+    }
+    if (ca < 0.005 && cb < 0.005) { rep.left++; continue; }
+    st.a.width = Math.round((st.a.width - ca) * 100) / 100;
+    st.b.width = Math.round((st.b.width - cb) * 100) / 100;
+    touched.add(st.a); touched.add(st.b);
+    if (ca + cb < 2 * e - 0.01) rep.left++;
+  }
+  rep.narrowed = touched.size;
+  // een smaller stuk laat een stap in de stoeprand achter waar het aansluit op zijn buur (road_seams.mjs widthJump): het bredere stuk
+  // zakt tot STEP_MAX boven het smallere, voort langs de keten
+  const dir = (r, atStart) => { const P = r.pts, a = atStart ? P[0] : P[P.length - 1], b = atStart ? P[1] : P[P.length - 2], l = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1; return [(b[0] - a[0]) / l, (b[1] - a[1]) / l]; };
+  const joints = [];
+  for (const set of nodes.values()) {
+    if (set.size !== 2) continue;
+    const [ra, rb] = [...set], A = car[ra], B = car[rb];
+    const ea = k(A.pts[0]) === k(A.pts[A.pts.length - 1]) ? null : k(A.pts[0]), eb = k(B.pts[0]) === k(B.pts[B.pts.length - 1]) ? null : k(B.pts[0]);
+    for (const aStart of [true, false]) for (const bStart of [true, false]) {
+      const pa = aStart ? A.pts[0] : A.pts[A.pts.length - 1], pb = bStart ? B.pts[0] : B.pts[B.pts.length - 1];
+      if (k(pa) !== k(pb) || ea === undefined || eb === undefined) continue;
+      const da = dir(A, aStart), db = dir(B, bStart);
+      if (da[0] * db[0] + da[1] * db[1] > -0.8) continue;
+      if (A.cat !== B.cat || level(A) !== level(B) || A.roundabout || B.roundabout || laneCount(A) !== laneCount(B)) continue;
+      joints.push([A, B]);
+    }
+  }
+  for (let pass = 0; pass < 10; pass++) {
+    let changed = 0;
+    for (const [A, B] of joints) {
+      const [lo, hi] = A.width <= B.width ? [A, B] : [B, A];
+      if (hi.width - lo.width <= STEP_MAX || hi.widthSrc === 'tag') continue;
+      const w = Math.max(Math.round((lo.width + STEP_MAX) * 100) / 100, floorWidth(hi, true));
+      if (w < hi.width - 0.005) { hi.width = w; changed++; rep.smoothed++; }
+    }
+    if (!changed) break;
+  }
+  return rep;
+}
+
 // Een autoweg door water zonder brugtag en zonder profiel is een duiker onder een dijk: droog dek, als een brug
 // (mapdata.js markDryRoad). De OSM-wegen liggen enkele cm anders dan die van de oude kaart: een weg die precies tot de
 // oever reikt zou nu zinken. Hier geldt dezelfde regel met DRY_TOL m speling, zodat elke droge kruising van de oude kaart blijft.
@@ -269,6 +379,9 @@ export function profileCity(d, wegen, { lagen, extras = {}, inside }) {
     const cut = cutToCover(wegen.roads.map(cityRoadRow), inside);
     rep.chainDuals = chainDuals(cut);
     rep.gaps = closeGaps(cut);
+    // (smallere linten laten meer wegeinden net naast een andere weg liggen: nog eens)
+    rep.ribbons = separateRibbons(cut);
+    rep.gaps += closeGaps(cut);
     d.roads = dropDuplicateBridges(cut.map((row) => ({ kind: 'roads', row }))).map((f) => f.row);
     // de ringwegen openen niet voor boten: de oude kaart kende op de ring alleen vaste bruggen (de ring race en de politie rijden er overheen),
     // de nieuwere OSM tagt een paar ervan bridge:movable terwijl het dek ruim 4 m boven de weg ligt
