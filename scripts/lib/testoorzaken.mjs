@@ -27,7 +27,7 @@ export const OORZAKEN = {
   'seat_audit': { soort: 'verouderd', tekst: 'de sierdoppen op de wielen (cilinder met drie materiaalgroepen) telden als voorruit-glas (groep 1), waardoor de sport-stoelcheck de wielen als voorruit zag; de audit slaat meshes op de wielen nu over.' },
   'vaarnet_province_test': { soort: 'verouderd', tekst: 'game/vaarnet_fixes.json week op drie gatenclusters af van de audit op de huidige wereld; opnieuw gegenereerd met vaarnet.mjs --fixes.' },
   'terrain_audit': { soort: 'omgeving', tekst: 'er zijn geen AHN-rasters op deze machine (python scripts/world/fetch_ahn.py --province --fetch haalt open data op); de audit meldt SKIP, geen fout.' },
-  'test:import_cycles_test.mjs': { soort: 'verouderd', tekst: 'groter dan de limiet door nieuwe imports; op de nieuwste main weer binnen de limiet (door andere commits, niet nader onderzocht).' },
+  'test:import_cycles_test.mjs': { soort: 'bug', tekst: 'coopscene.js importeerde cinematics.js en storytalk.js (beide in de grote cyclus) en trok zichzelf en samenpanel.js de cyclus in (125 tegen limiet 123). Die twee worden nu lui geladen via import(); de limiet bleef 123.' },
   'test:edgescene_test.mjs': { soort: 'verouderd', tekst: 'overlayhold.js riep document.querySelector aan op de nepdocument van de tests; op de nieuwste main opgelost door andere commits (niet nader onderzocht).' },
   'test:activiteitenspots_test.mjs': { soort: 'verouderd', tekst: 'op de nieuwste main groen; de eerdere fout (19 activiteiten) was al verholpen door andere commits (niet nader onderzocht).' },
   'test:vehicledoors3d_test.mjs': { soort: 'verouderd', tekst: 'op de nieuwste main groen (andere commits; niet nader onderzocht).' },
