@@ -273,4 +273,4 @@ async function main() {
   if (args.includes('--strict') && problems(rep, args.includes('--world'))) process.exit(1);
 }
 
-if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1])) await main();
+if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1])) main().catch((e) => { console.error(e); process.exit(1); }); // niet awaiten: loadworld.mjs laadt build_province.mjs, dat dit bestand weer importeert (een lus met top-level await blijft hangen)
