@@ -2,6 +2,7 @@
 // itself, timed so the leaf is up as the boat arrives; it stays open until the
 // boat is through (several in a row) and then closes. A horn still works.
 //   node scripts/bridge_auto_test.mjs
+import assert from 'node:assert/strict';
 import * as MB from '../game/js/movablebridges.js';
 
 let n = 0, fails = 0;
@@ -158,6 +159,26 @@ world.vehicles = [nose];
 let maxOpen = 0, openFor = 0;
 for (let t = 0; t < 300; t += 0.1) { nose.y = -12 + Math.sin(t); MB.updateMovableBridges(0.1, world); if (b.state === 'open') { openFor += 0.1; maxOpen = Math.max(maxOpen, openFor); } else openFor = 0; }
 ok(maxOpen <= MB.AUTO.MAX_OPEN_S + 1, `the bridge never stays open longer than the cap (${maxOpen.toFixed(0)} s)`);
+
+// 12. the province's movable bridges join with the streamed tiles and leave with them (#235: they never opened before)
+{
+  const city = { movable: 'bascule', bridge: true, pts: [[0, 0], [20, 0]], width: 6, cat: 'normal' };
+  const list = MB.buildMovableBridges({ roads: [city] });
+  const v0 = MB.movableBridgesVersion();
+  const tileRoad = { movable: 'lift', bridge: true, pts: [[5000, 0], [5030, 0]], width: 6, cat: 'normal' };
+  const side = { bridge: true, cat: 'foot', width: 1.8, pts: [[5003, 6], [5027, 6]] };
+  assert.ok(MB.addMovableRoads([tileRoad, side, city]) === 2 && list.length === 3, 'a streamed movable bridge (and its footway) is added once, the city one is not doubled');
+  ok(MB.getMovableBridges() === list && MB.movableBridgesVersion() > v0, 'the same array, a new version');
+  ok(MB.addMovableRoads([tileRoad]) === 0, 'adding it again changes nothing');
+  const resident = new Set([city, tileRoad, side]);
+  const map = { roadsNear: (x, y) => [...resident].filter((r) => r.pts.some((p) => Math.hypot(p[0] - x, p[1] - y) < 30 || Math.hypot((r.pts[0][0] + r.pts[1][0]) / 2 - x, (r.pts[0][1] + r.pts[1][1]) / 2 - y) < 5)) };
+  resident.delete(tileRoad); resident.delete(side); tileRoad._open = true;
+  ok(MB.pruneMovableBridges(map) === 2 && list.length === 1 && list[0].r === city && !tileRoad._open, 'a bridge whose tile left is dropped (and its road no longer counts as open), the city one stays');
+  // a lift bridge opens and closes for a boat like the others
+  const lift = MB.addMovableRoads([tileRoad]);
+  const lb = list.find((q) => q.r === tileRoad);
+  ok(lift === 1 && lb.kind === 'lift', 'a lift bridge is a bridge');
+}
 
 console.log(fails ? `${fails} of ${n} FAILED` : `${n} automatic bridge checks passed`);
 process.exit(fails ? 1 : 0);
