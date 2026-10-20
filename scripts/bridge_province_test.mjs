@@ -72,7 +72,8 @@ for (const v of views) {
 }
 console.log(`leaves with a road surface: ${painted} (${noPaint} flat-coloured); signal posts: ${onWater} over water, ${onLand} on land, ${onRoad} on another road`);
 ok(painted === views.length, 'every leaf wears its road');
-ok(onRoad < 0.25 * views.length * 2, `most posts stand clear of other roads (${onRoad} of ${views.length * 2} do not; junctions at the abutments)`);
+ok(onRoad <= 0.03 * views.length * 2, `almost all posts stand clear of other roads (${onRoad} of ${views.length * 2} do not; junctions at the abutments)`);
+ok(onWater <= 0.05 * views.length * 2, `almost all posts stand on the bank, not in the water (${onWater} of ${views.length * 2} do not)`);
 // the auto-opening rule on real spans: a tall boat on the water axis, 150 m out, heading for the deck
 let triggers = 0;
 for (const b of bridges) {
