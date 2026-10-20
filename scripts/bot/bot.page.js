@@ -43,14 +43,24 @@ function plan(s, mode, tgt) {
     const r = R.planLandRoute(world.map, kind, [me.x, me.y], [tgt.x, tgt.y]);
     pts = r && r.pts && r.pts.length ? r.pts : null;
   } catch (e) { B.log('routefout', { msg: String(e && e.message || e).slice(0, 200) }); }
+  // outside the city graph (the Ommeland) planLandRoute finds nothing: follow the line the game itself shows the player, when it leads to this goal
+  let src = pts ? 'plan' : 'recht';
+  if (!pts) {
+    try {
+      const gps = R.getActiveRoute();
+      const e = gps && gps.pts && gps.pts.length > 1 ? gps.pts[gps.pts.length - 1] : null;
+      if (e && L.distance({ x: e[0], y: e[1] }, tgt) < 80) { pts = R.getRouteAhead(1e9); src = 'gps'; }
+    } catch (e) { /* geen route */ }
+  }
   const line = pts || [[me.x, me.y]];
   line.push([tgt.x, tgt.y]);
   follower = new L.PathFollower(line, { reach: mode === 'drive' ? 7 : 2.5 });
-  B.log('route', { mode, planned: !!pts, points: line.length, to: [Math.round(tgt.x), Math.round(tgt.y)] });
+  B.log('route', { mode, planned: !!pts, src, points: line.length, to: [Math.round(tgt.x), Math.round(tgt.y)] });
 }
 
 // aim for the target over the planned route; returns the distance left
-function steerTowards(s, mode, tgt, stopAt, top = 24) {
+// stopR: how close on foot (default 0.6 of the marker radius; a vehicle to board needs the bot right next to it, not 5 m away)
+function steerTowards(s, mode, tgt, stopAt, top = 24, stopR = null) {
   const key = mode + ':' + Math.round(tgt.x / 5) + ',' + Math.round(tgt.y / 5);
   if (!follower || key !== followKey || s.t - planAt > 12) { followKey = key; planAt = s.t; plan(s, mode, tgt); }
   const me = { x: s.player.x, y: s.player.y };
@@ -62,7 +72,7 @@ function steerTowards(s, mode, tgt, stopAt, top = 24) {
     if (!c.reverse && wedge.update(s.t, s.player.vehicle.speed, c.throttle)) wedge.reset(), wedgeOut = true;
     if (B.input.isDown('shift')) B.up('shift');
   } else {
-    const radius = (s.mission.triggerRadius || 8) * 0.6;
+    const radius = stopR != null ? stopR : (s.mission.triggerRadius || 8) * 0.6;
     if (direct < radius) { B.stick(0, 0); B.up('shift'); return direct; }
     const [x, y] = L.footStick(L.headingTo(me, aim), s.player.camYaw);
     B.stick(x, y);
@@ -120,7 +130,7 @@ function track(s) {
     if (lastStep) B.log('step', { event: 'end', id: lastStep, outcome: 'klaar' });
     B.log('step', { event: 'begin', id, label: s.story.title || '', part: s.story.part });
     lastStep = id; lastPhase = '';
-    mem.boardTries = 0; mem.pressTries = 0;
+    mem.boardTries = 0; mem.pressTries = 0; mem.planTries = 0;
     shot(`${id}-begin`);
   }
   const ph = s.mission.active ? 'active' : 'idle';
@@ -141,6 +151,19 @@ let ticks = 0;
 const problems = B.validate();
 if (problems.length) B.log('schema', { problems });
 B.log('start', { part: PART, maxGameS: MAX_GAME });
+// --from=<stap>: de run begint bij die stap en speelt vanaf daar door (continu, dus met reisbeats en overgangen)
+if (CFG.from) {
+  const okFrom = window.__story.jump(CFG.from);
+  B.log('setup', { what: 'from', id: CFG.from, ok: !!okFrom });
+  await sleep(1500);
+  if (CFG.skipFrom) {
+    // the intro scene first, then skip the step itself: the next one (a travel step) starts where the player stands
+    for (let i = 0; i < 12 && B.status().blocking.cinematic; i++) { await holdSkip(); await sleep(400); }
+    const okSkip = B.cheat.skip();
+    B.log('setup', { what: 'skip', id: CFG.from, ok: !!okSkip });
+    await sleep(2500);
+  }
+}
 
 async function loop(stopFn) {
 while (true) {
@@ -210,7 +233,7 @@ while (true) {
   if (act.type === 'press') { B.stick(0, 0); if (act.interact) { mem.pressTries++; B.log('handeling', { key: act.key, prompt: s.hud.prompt }); } await B.press(act.key); await sleep(act.interact ? 900 : 0); continue; }
   if (act.type === 'enter') {
     const v = act.vehicle;
-    const d = steerTowards(s, 'walk', v, false);
+    const d = steerTowards(s, 'walk', v, false, 24, 2.2);
     if (d < 3.5) { B.stick(0, 0); mem.boardTries++; B.log('instappen', { kind: v.kind }); await B.press('e'); await sleep(700); follower = null; }
     continue;
   }
@@ -239,7 +262,7 @@ if (CFG.sweep && CFG.sweep.length) {
     const ok = window.__story.jump(id);
     B.log('setup', { what: 'jump', id, ok: !!ok });
     if (!ok) continue;
-    follower = null; detector.reset(B.time()); mem.boardTries = 0; lastStep = null; lastPhase = '';
+    follower = null; detector.reset(B.time()); mem.boardTries = 0; mem.pressTries = 0; mem.planTries = 0; lastStep = null; lastPhase = '';
     const t0 = B.time();
     await sleep(1500);
     await loop((s) => s.story.id !== id || B.time() - t0 > (CFG.perStepS || 600));
