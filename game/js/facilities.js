@@ -24,7 +24,7 @@ export const FAC = { ready: false, all: [], byKind: new Map(), lanes: [] };
 let grids = new Map();
 let meta = null;
 
-export async function loadFacilities(mapUrl = 'citymap.json') {
+export async function loadFacilities(mapUrl = 'stad.json') {
   const base = mapUrl.replace(/[^/]*$/, '');
   try {
     const r = await fetch(base + 'facilities.json');
@@ -126,7 +126,7 @@ export function initFacilities(map, raw) {
   FAC.ready = true;
 }
 
-export async function loadShopPlaces(mapUrl = 'citymap.json') {
+export async function loadShopPlaces(mapUrl = 'stad.json') {
   const base = mapUrl.replace(/[^/]*$/, '');
   try {
     const r = await fetch(base + 'shopplaces.json');

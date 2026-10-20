@@ -623,7 +623,7 @@ async function cityKeysOf(arg) {
   if (arg && fs.existsSync(arg)) return new Set(Object.keys(JSON.parse(fs.readFileSync(arg, 'utf8')).tiles));
   await import('../node3d.mjs');
   const P = await import('./pack_tiles.mjs');
-  const built = P.build(P.loadSources());
+  const built = P.build(await P.loadSourcesLaag());
   return new Set(built.blobs.keys());
 }
 

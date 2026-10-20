@@ -2,14 +2,15 @@
 // twee vaste stadswerelden, dezelfde vragen op een raster over de stad. Slaat over zonder provincie-extract.
 import assert from 'node:assert/strict';
 import { haveProvince } from './world/build_province.mjs';
+import { loadLegacySources } from './lib/loadworld.mjs';
 if (!haveProvince()) { console.log('SKIP stadlaag_water_test: geen data/cache/province'); process.exit(0); }
 const P = await import('./world/pack_tiles.mjs');
 const { worldOf } = await import('./lib/cityparity.mjs');
-const src = P.loadSources();
+const src = await loadLegacySources();
 const base = P.build(src);
 const { buildCityCover } = await import('./world/citycover.mjs');
 const cover = buildCityCover(src.map);
-const swapped = P.build(await P.loadSourcesLaag(undefined, ['water']));
+const swapped = P.build(await loadLegacySources(['water']));
 const A = await worldOf(base, base.blobs), C = await worldOf(swapped, swapped.blobs);
 const b = A.meta.bounds, step = Number(process.env.STEP) || 30;
 const r = { n: 0, outside: 0, edge: 0, both: 0, onlyA: 0, onlyC: 0, kind: 0, lv: 0, extra: {}, ex: [] };

@@ -451,7 +451,7 @@ function keiCrowd(p, here) {
 // The statue stands on one fixed island, the roundabout of the H.W. Mesdagplein
 // (the middle of its ring in the map): the same spot every night, in every build,
 // whatever tiles are loaded (issue #172). scripts/peerd_test.mjs checks it is
-// still the middle of a roundabout of citymap.json.
+// still the middle of a roundabout of stad.json.
 export const PEERD_SPOT = { x: -944.1, y: 377.6, angle: 0.6 };
 
 function placePeerd() {

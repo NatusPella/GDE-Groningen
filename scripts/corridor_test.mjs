@@ -24,7 +24,7 @@ const fail = (m) => { fails++; console.log('FAIL ' + m); };
 const M = {};
 
 // --- 1. build
-const city = P.build(P.loadSources());
+const city = P.build(await P.loadSourcesLaag());
 const cityKeys = new Set(city.blobs.keys());
 const t0 = performance.now();
 const built = C.buildCorridor({ cityKeys });

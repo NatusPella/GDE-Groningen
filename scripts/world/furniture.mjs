@@ -1,8 +1,7 @@
 // Street furniture: the mapped objects into the map, and the audit of
 // every tile's furniture (docs/PROVINCIE-PLAN.md 2.14).
 //
-//   node scripts/world/furniture.mjs           audit (rules over game/citymap.json)
-//   node scripts/world/furniture.mjs --write   put the mapped OSM furniture in citymap.json (furniture), then audit
+//   node scripts/world/furniture.mjs           audit (rules over game/stad.json and the OSM layers)
 //   node scripts/world/furniture.mjs --strict  exit 1 when the audit finds a problem
 //
 // The mapped objects come from the OSM caches in data/ (barrier=guard_rail,
@@ -30,21 +29,8 @@ import { furnitureForTile, mappedFromOsm } from '../../game/js/streetfurniture.j
 import { TILE_M, GRID_X0, GRID_Y0, tileIndexOf, tileKey } from '../../game/js/gdt.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
-const OSM_FILES = ['data/groningen_raw.json', 'data/groningen_extra.json', 'data/extras_bus_raw.json', 'data/facilities_raw.json.gz', 'data/pois_raw.json',
-  'data/landmark_kits_raw.json', 'data/extras_padel_raw.json', 'data/railways_raw.json', 'data/ring_raw.json.gz', 'data/ring_extra.json.gz'];
 // what the game draws itself: lamps (nightlights3d.js), path bollards (streetclutter.js)
 export const GAME_OPTS = { lamps: false, bollards: false, livingBumps: false };
-
-export function loadOsmFurniture(root = ROOT) {
-  const seen = new Set(), els = [];
-  for (const rel of OSM_FILES) {
-    const f = path.join(root, rel);
-    if (!fs.existsSync(f)) continue;
-    const raw = f.endsWith('.gz') ? zlib.gunzipSync(fs.readFileSync(f)).toString('utf8') : fs.readFileSync(f, 'utf8');
-    for (const e of JSON.parse(raw).elements || []) { const k = e.type + e.id; if (!seen.has(k)) { seen.add(k); els.push(e); } }
-  }
-  return mappedFromOsm(els);
-}
 
 // tiles the map's roads touch, each with its roads and mapped rows
 export function tilesOf(data) {
@@ -158,18 +144,10 @@ export const problems = (rep) => rep.onRoad.length + rep.dup + (rep.determinism 
 
 async function main() {
   const args = process.argv.slice(2);
-  const file = path.join(ROOT, 'game/citymap.json');
-  const data = JSON.parse(fs.readFileSync(file, 'utf8'));
-  if (args.includes('--write')) {
-    // (within the map: the caches reach further than the city)
-    const [bx0, by0, bx1, by1] = data.meta.bounds;
-    data.furniture = loadOsmFurniture().filter((m) => m.pts.every((p) => p[0] >= bx0 && p[0] <= bx1 && p[1] >= by0 && p[1] <= by1));
-    const c = {};
-    for (const m of data.furniture) c[m.k] = (c[m.k] || 0) + 1;
-    console.log(`mapped furniture: ${data.furniture.length} (${Object.entries(c).map(([k, v]) => `${k} ${v}`).join(', ')})`);
-    fs.writeFileSync(file, JSON.stringify(data));
-    console.log(`wrote ${path.relative(ROOT, file)}`);
-  }
+  const { loadCityData } = await import('../lib/loadworld.mjs');
+  const data = await loadCityData({ extras: false });
+  // --write is gone: the OSM caches (data/*_raw.json) it read are removed; the 12 mapped rows are in stad.json (furniture), edit them there
+  if (args.includes('--write')) { console.log('--write bestaat niet meer: het gemapte meubilair staat in game/stad.json (furniture)'); process.exit(1); }
   const t0 = performance.now();
   const rep = audit(data);
   printAudit(rep);

@@ -226,7 +226,7 @@ export function encodeGraph(g) {
 }
 
 if (process.argv[1] && process.argv[1].endsWith('vaarnet_graph.mjs')) {
-  const built = buildRaster();
+  const built = await buildRaster();
   const g = buildGraph(built, { log: (m) => console.log(m) });
   const json = JSON.stringify(encodeGraph(g));
   const km = (f) => Math.round(g.edges.filter(f).reduce((n, e) => n + e.len, 0) / 1000);

@@ -25,8 +25,8 @@ const { GameMap, applyMapExtras } = await import('../../game/js/mapdata.js');
 await import('../../game/js/player.js');
 const RC = await import('../../game/js/ringcheck.js');
 
-const data = JSON.parse(fs.readFileSync(path.join(ROOT, 'game/citymap.json'), 'utf8'));
-applyMapExtras(data, JSON.parse(fs.readFileSync(path.join(ROOT, 'game/mapextras.json'), 'utf8')));
+const { loadCityData } = await import('../lib/loadworld.mjs');
+const data = await loadCityData();
 const map = new GameMap(data);
 const world = { map, flitspaalen: [], player: { x: 0, y: 0 }, vehicles: [], props: [], particles: [], stats: {}, time: 0, addMessage() {}, audioEvents: [] };
 // the signal poles stand in the world as in the game (props a car can hit)

@@ -14,7 +14,7 @@ const { NavGraph } = await import('./lib/navgraph_check.mjs');
 let n = 0, fails = 0;
 const ok = (cond, name, info = '') => { n++; if (!cond) { fails++; console.log(`FAIL ${name}${info ? ' (' + info + ')' : ''}`); } };
 
-const src = P.loadSources();
+const src = await P.loadSourcesLaag();
 const built = P.build(src);
 const whole = NavGraph.from(N.edgeRows(src.map.roads));
 

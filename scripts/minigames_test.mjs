@@ -400,7 +400,8 @@ const gauss = (rng) => (rng() + rng() + rng() + rng() - 2) / 0.58;
 
 {
   const here = path.dirname(fileURLToPath(import.meta.url));
-  const map = JSON.parse(fs.readFileSync(path.join(here, '../game/citymap.json'), 'utf8'));
+  const { loadStadData } = await import('./lib/loadworld.mjs');
+  const map = await loadStadData();
   const inPoly = (x, y, p) => { let r = false; for (let i = 0, j = p.length - 1; i < p.length; j = i++) { if ((p[i][1] > y) !== (p[j][1] > y) && x < ((p[j][0] - p[i][0]) * (y - p[i][1])) / (p[j][1] - p[i][1]) + p[i][0]) r = !r; } return r; };
   const bounds = (p) => { let a = 1e9, b = 1e9, c = -1e9, d = -1e9; for (const q of p) { a = Math.min(a, q[0]); b = Math.min(b, q[1]); c = Math.max(c, q[0]); d = Math.max(d, q[1]); } return [a, b, c, d]; };
   const bb = map.buildings.map((b) => ({ b: bounds(b.pts), p: b.pts }));

@@ -1,6 +1,6 @@
 // De ruwe vaargegevens voor de vaarnetwerkgraaf (#184): de waterpolygonen,
 // de bruggen over water (met dekhoogte) en de sluizen van de provincietegels,
-// plus de stad uit game/citymap.json (de provinciegegevens laten de stad leeg).
+// plus de stad uit de OSM-tegelbouw (loadworld.mjs) (de provinciegegevens laten de stad leeg).
 // Alleen lezen; node-only. Geen Three.js.
 import fs from 'node:fs';
 import zlib from 'node:zlib';
