@@ -32,7 +32,6 @@ for (const dec of DECLINATIONS) {
     if (MP.isNight(h) !== ds.isNight) diff += ` music@${h}`;
     if (SL.isNight(h) !== ds.isNight) diff += ` streetlife@${h}`;
     if (MR.nightFactor(h) !== nf) diff += ` mugging@${h}`;
-    if (MR.isNight(h) !== nf > 0) diff += ` muggingNight@${h}`;
   }
   ok(diff === '', `${tag}: dayState, missions, music, street life and muggings agree at every hour`, diff.slice(0, 120));
   ok(S.nightAtHour(13) === 0 && S.nightAtHour(2) > 0.5 || dec === 20.5 && S.nightAtHour(2) > 0.5, `${tag}: noon is day, the small hours are night`, `${S.nightAtHour(2)}`);

@@ -35,7 +35,7 @@ for (const id of JOBS) {
   intro.forEach((text, n) => out.push({ file: `${id}/intro_${n}.mp3`, speaker: boss, cast: id, text, tag: INTRO_TAGS[id][n] }));
 }
 const v = fs.readFileSync(ROOT + 'sidejobvoice.js', 'utf8');
-const grab = (name) => { const i = v.indexOf(`export const ${name} = {`); return eval('(' + v.slice(v.indexOf('{', i), v.indexOf('\n};', i) + 2) + ')'); };
+const grab = (name) => { const i = v.indexOf(`const ${name} = {`); return eval('(' + v.slice(v.indexOf('{', i), v.indexOf('\n};', i) + 2) + ')'); };
 const JOB_LINES = grab('JOB_LINES'), DUO = grab('DUO_JOB_LINES');
 for (const id of JOBS) {
   const src = fs.readFileSync(`${ROOT}sidejob_${id}.js`, 'utf8');

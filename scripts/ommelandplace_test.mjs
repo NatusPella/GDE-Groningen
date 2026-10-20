@@ -52,7 +52,7 @@ ok((await Koe.prepareKoeSites(map)) === s, 'preparing twice gives the same sites
 const world = { map, vehicles: [] };
 const country = Fac.countryFacilities(['horeca', 'supermarket', 'snack']);
 ok(country.length > 20, `there are real facilities out in the Ommelanden (${country.length})`);
-const far = country.filter((f) => !TP.tilesIn(map, [[f.x, f.y]], 160)).slice(0, 12);
+const far = country.filter((f) => !TP.tilesIn(map, [[f.x, f.y]], 160)).slice(0, 40);
 ok(far.length >= 5, `most of them lie on tiles that are not in (${far.length} tested)`);
 const t1 = performance.now();
 const doors = await TP.withTiles(map, far.map((f) => [f.x, f.y]), () => far.map((f) => Fac.countryDoor(map, f.x, f.y)), { radius: 160 });
