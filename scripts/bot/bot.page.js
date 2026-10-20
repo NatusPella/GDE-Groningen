@@ -265,8 +265,11 @@ while (true) {
       wedgeOut = false;
       B.log('klem', { x: s.player.x, y: s.player.y });
       wedgeDir = -wedgeDir;
-      B.stick(0.6 * wedgeDir, 1);
-      await sleep(1300);
+      // a car nose-first against a wall or kerb (M26: the Fjord Frituur on the pavement): back out longer and steer harder each time, then a forward arc the other way
+      mem.wedges = (s.t - (mem.wedgeAt || -99) < 25 ? (mem.wedges || 0) : 0) + 1; mem.wedgeAt = s.t;
+      B.stick(0.9 * wedgeDir, 1);
+      await sleep(1300 + 600 * Math.min(5, mem.wedges));
+      if (mem.wedges >= 2) { B.stick(-0.9 * wedgeDir, -1); await sleep(900); }
       B.stick(0, 0);
       follower = null;
     }
