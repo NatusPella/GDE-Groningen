@@ -70,6 +70,8 @@ for (const e of cat) {
   T = 0;
   cine.playCinematic({ id: 'cs-shots', duration: 3600, priority: 9, letterbox: false, hideHud: true, pause: true, skippable: false, shot: () => run.frame(T, 0.05) });
   await sleep(500);
+  // het afsluiten van een vorige cinematic (de start van het spel) zet deze vlaggen weer uit: opnieuw aanzetten, anders staat de speler zelf naast de acteurs (#264)
+  w.cinematicHidePlayers = true; w.cinematicHideNav = true;
   let times = prev.stillTimes(e);
   // CS.dense = { 'M02.intro': { shot: 6, n: 5 } }: n extra stills spread over one shot (is er camerabeweging, #224)
   const dn = CS.dense && CS.dense[e.id];

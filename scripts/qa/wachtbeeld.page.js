@@ -128,10 +128,10 @@ const results = [];
 for (const J of CFG.jobs) {
   if (PM.isPauseMenuOpen()) PM.closePauseMenu();
   env = { clock: J.clock !== undefined ? J.clock : 14, weather: J.weather || null, fix: true };
-  if (J === CFG.jobs[0]) rec.ss0 = ssInfo();
   // een hardnekkig startscherm (de Enter-wachtlus van de driver haalt het soms niet weg) valt over elk beeld: verbergen
   { const ss0 = document.querySelector('#start-screen'); if (ss0) ss0.style.display = 'none'; }
   const rec = { name: J.name, kind: J.kind };
+  if (J === CFG.jobs[0]) rec.ss0 = ssInfo();
   try {
     if (J.kind === 'spot' || J.kind === 'mini' || J.kind === 'menu') {
       let s = { x: J.x, y: J.y, a: J.a || 0 };
