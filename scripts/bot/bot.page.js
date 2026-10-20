@@ -156,6 +156,13 @@ if (CFG.from) {
   const okFrom = window.__story.jump(CFG.from);
   B.log('setup', { what: 'from', id: CFG.from, ok: !!okFrom });
   await sleep(1500);
+  if (CFG.skipFrom) {
+    // the intro scene first, then skip the step itself: the next one (a travel step) starts where the player stands
+    for (let i = 0; i < 12 && B.status().blocking.cinematic; i++) { await holdSkip(); await sleep(400); }
+    const okSkip = B.cheat.skip();
+    B.log('setup', { what: 'skip', id: CFG.from, ok: !!okSkip });
+    await sleep(2500);
+  }
 }
 
 async function loop(stopFn) {
