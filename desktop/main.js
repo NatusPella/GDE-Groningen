@@ -7,6 +7,7 @@ const path = require('path');
 const fs = require('fs/promises');
 const fsSync = require('fs');
 const { argValue, hasFlag } = require('./args.cjs');
+const { steamSwitches } = require('./steamflags.cjs');
 
 // window mode survives restarts; fullscreen unless the player chose windowed
 const STATE_FILE = () => path.join(app.getPath('userData'), 'window-state.json');
@@ -61,6 +62,8 @@ protocol.registerSchemesAsPrivileged([
 app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
 // laptops with an integrated and a separate GPU: render on the separate one
 app.commandLine.appendSwitch('force_high_performance_gpu');
+// the Steam overlay (only with --steam-overlay in the launch option, steamflags.cjs)
+for (const [name, value] of steamSwitches()) app.commandLine.appendSwitch(name, value);
 
 async function serve(request) {
   const url = new URL(request.url);

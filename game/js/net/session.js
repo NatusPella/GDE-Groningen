@@ -72,7 +72,13 @@ export class HostSession extends Base {
     const h = readHeader(buf); if (!h) return;
     if (h.type === T.HELLO) return this._hello(buf);
     if (!this.guest) return; // eerst een geldige hello
-    if (this.status === 'lost') { if (h.type === T.BYE) this._release('weg'); return; } // alleen een hello met token hervat
+    if (this.status === 'lost') {
+      if (h.type === T.BYE) { this._release('weg'); return; }
+      // alleen een hello met token hervat, of invoer van de gast zelf: de gast merkte de stilte niet (hij hoorde de pings van de host nog),
+      // dus hij stuurt nooit een hello. Zonder dit bleef de host hem voor altijd als weggevallen zien (en negeerde zijn invoer).
+      if (h.type !== T.INPUT) return;
+      this.lastRecv = this.now; this.lostAt = null; this._setStatus('ok'); this._sendResync();
+    }
     this.lastRecv = this.now;
     if (this.status === 'lag') this._setStatus('ok');
     if (this._common(h, buf)) return;
@@ -268,6 +274,17 @@ export class ClientSession extends Base {
       this.inputSeq = (this.inputSeq + 1) & 0xffff;
       this._emit(encodeInput(this.inputSeq, this.tickN, 0, this.pendingInput));
     }
+  }
+  // het transport zegt dat de verbinding dicht is (TCP, kanaal): een gast die nog geen welkom had, hoort dat meteen (sessie vol of gastheer weg)
+  // in plaats van eindeloos te wachten; een gast die al meespeelde, telt als weggevallen zonder de 5 s te wachten
+  _linkState(s) {
+    if (s !== 'closed') return;
+    if (this.status === 'verbinden' && !this.joined) { this.rejected = 'gesloten'; this._setStatus('geweigerd'); }
+    else if (this.joined && (this.status === 'ok' || this.status === 'lag')) { this._setStatus('lost'); if (this.onlost) this.onlost(); }
+  }
+  _attach(link) {
+    super._attach(link);
+    if ('onstate' in link) { const prev = link.onstate; link.onstate = (s) => { if (prev) prev(s); this._linkState(s); }; } // ketenen: rtcroom zet er zelf ook een
   }
   // na een vervangen transport (nieuwe handmatige code) hervatten met hetzelfde token
   reconnect(link) { this._attach(link); this.helloAt = -1; this.joined = false; this.rel.reset(); this._setStatus('verbinden'); }

@@ -48,6 +48,16 @@ Het onderstaande over duur en belasting zijn schattingen op een gewone ontwikkel
 - Een tweede build voor een run naast een draaiende: `GDE_STAGE_OUT=<map>/game node desktop/build.mjs` en dan `GDE_GAME_DIR=<map>game` (met backslashes op Windows) bij de run. Zo hoeft een herbouw geen lopende Electron te slopen.
 - Het titelmenu opent pas als de poort open is en negeert toetsen daarvoor; `--perf-script` drukt daarom Enter tot het menu weg is (op een drukke machine speelde het spel anders onder een blijvend menu).
 
+## Brug-QA (#235, #9, #154)
+
+Beeld voor beeld vanaf een vaste camera; zonder de cinematic-camera van het spel, want die tilt zichzelf over gebouwen en duwt zich van muren en staat dus niet stil. Eén Electron-slot, wegwerpprofiel, `GDE_GAME_DIR` naar een gestagede map met de provinciewereld.
+
+- `node scripts/qa/brug_beeld.mjs --game-dir=<map> --lijst=<json [{naam,x,y}]>`: per brug drie beelden per stand (a, b = 4 cm verschoven, c = a) schuin langs het water, op het dek en eronder, en bij een beweegbare brug een reeks tijdens het openen en sluiten met een toestandslog (`rep.log`). `--plekken=<json>` maakt een luchtbeeld en een straatbeeld van losse plekken (water, gebouwen, hekken). `--alleen-lijst` toont de beweegbare bruggen van de geladen kaart.
+- `node scripts/qa/brug_beeld_analyse.mjs <map>`: telt per stand de pixels in vlakke delen die a-b meer verschillen dan a-c (ruis van water en verkeer) en schrijft heatmaps naar `heat/`. Het is een hulpmiddel: dichtbij geeft textuur en bewegende mensen veel ruis, dus kijk de beelden zelf door.
+- `node scripts/qa/brug_beeld.mjs --modus=boot --lijst=<json { open: [{naam,x,y,boot}], bots: [{naam,x,y}] }>`: een binnenvaartschip vaart op een beweegbare brug aan (opent op tijd, onderdoor, weer dicht) of vaart tegen een vaste brug (aanvaring, terugduwen, dekschade).
+- `node scripts/qa/png_crop.mjs <png> <x> <y> <b> <h> [schaal]` vergroot een stuk van een beeld; `node scripts/qa/montage.mjs <map> --filter=<regex>` maakt een contactblad.
+- `node scripts/qa/brug_probe.mjs` leest het dek zonder Electron (hoogtestappen, dekverschil per brug); `scripts/qa/brug_qa.mjs` is de oudere, enkelvoudige versie.
+
 ## Veiligheid
 
 - De Electron-stappen gebruiken een wegwerpprofiel (`GDE_TEST_PROFILE=gde-testall-<pid>-<stap>` in de tijdelijke map) en schrijven nooit naar `gde-save-v1`, `gde-settings` of `gde-prestaties-v1`. De profielen worden na afloop verwijderd.
