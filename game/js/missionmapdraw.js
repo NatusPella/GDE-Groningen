@@ -8,7 +8,7 @@ const AREA_COLORS = {
   danger: { fill: inkA('red', 0.16), edge: ICON_RIM.gevaar },
   police: { fill: inkA('policeBlue', 0.18), edge: ICON_RIM.politiebureau },
   safe: { fill: inkA('greenLight', 0.16), edge: INK.greenLight },
-  mission: { fill: inkA('halte', 0.12), edge: ICON_RIM.halte },
+  mission: { fill: inkA('missionArea', 0.12), edge: ICON_RIM.halte },
 };
 const LINE_COLORS = { route: INK.routeLine, ideal: ICON_RIM.halte, crow: INK.cream, track: inkA('cream', 0.55) };
 
