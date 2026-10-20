@@ -437,3 +437,39 @@ Nog niet gedaan: de runtime leest `citymap.json` nog (main.js, facilities.js, ro
 ### Lezers van citymap.json in de runtime (18 oktober, grep op `game/js`)
 
 In een build met tegels leest de runtime `citymap.json` niet meer: `main.js` neemt `tiles.world` (alleen `?legacymap` of een dev-server zonder tegels valt terug op `loadMap`), `tileworld.js loadMapAuto` (ook voor de `roadInit`-worker in `geokernels.js`) probeert eerst de tegels, en `loadFacilities`/`loadShopPlaces` gebruiken de naam alleen als basispad voor `facilities.json` en `shopplaces.json`. Wat `citymap.json` nog echt nodig heeft: de productiebouw van de stadstegels (`scripts/world/pack_tiles.mjs`), de bouwhash (`desktop/build.mjs`), `web/build.mjs ESSENTIALS`, de terugvalpaden hierboven en ~39 scripts. Een runtimemodule omzetten is dus niet meer het knelpunt: dat is de stad uit de tegelbouw halen (OSM-bouw met stadsprofiel, gestreamd in plaats van de vaste set), wat een provincie-extract en een stagebouw vraagt. Niet gedaan in deze sessie (geen stage, geen Electron).
+
+## Stand B3/B4: wegen en spoor uit de OSM-bouw (`STAD_LAAG=roads,rails`, 20 oktober)
+
+`STAD_LAAG=roads,rails node scripts/world/pack_tiles.mjs --out <map>` maakt stadstegels met OSM-wegen en -spoor (en alle lagen samen: `STAD_LAAG=water,green,trees,buildings,roads,rails`). `wegen` en `spoor` gelden als alias. De stad is niet in tegels geknipt maar als hele wegen: `buildProvince({ collect })` geeft de wegen van elk pack ná de afleiding (`derive_tiles`) en het koppelen van de verkeerslichten, `scripts/world/stad_wegen.mjs` doet daarna wat `build_map.py` deed:
+
+| Stap | Was | Nu |
+|---|---|---|
+| wegen knippen op de dekking, stadssnelheid (geen dorpssnelheid), dubbele punten en dubbele bruggen weg | `process_osm.py` | `stad_wegen.mjs cutToCover` (de overlaytegels dekken de rest) |
+| plateaus en hellingen van de ring en wat ze kruist | `add_elevation.py` | `ring_elevation.mjs ringHeights` (zelfde uitkomst als het Python-script op dezelfde OSM-wegen: 343 van 423 ringwegen identiek, de rest binnen 0,2 m; rondingsverschillen in de punten) |
+| de hoogteoplosser | `profile.mjs --write` (3 rondes, 2 keer) | idem, in `profileCity`; busbanen en beschermde wegen uit `mapextras` gaan mee |
+| sporen, stations, overwegen, routes, liften, paden afknippen bij het spoor | `add_railways.py` | `stad_spoor.mjs cityRail` |
+| spoorprofiel | `railprofile.mjs --write` | idem (tags en perrons uit de OSM-elementen van de packs) |
+| verkeerslichten (`meta.trafficLights`) | `add_traffic_lights.py` | de gekoppelde lichten uit `junction_tiles.mjs` (`snapSignals`) |
+| droge kruisingen | `GameMap` | ook in de laag met 0,1 m speling (de OSM-punten liggen enkele cm anders) |
+| `busRoads`, `busLanes`, `roadZ` | op coördinaat | de punten gaan eerst naar het dichtstbijzijnde OSM-hoekpunt (`snapExtras`); zonder dat werden 794 van 1.540 punten niet gevonden en kregen straten een extra busweg |
+
+`junctionRows`, `heights` (pnet, st, ly) en `nav` komen daarna vanzelf uit `pack_tiles.build()`. De ringroute (`ringroute.js`) is niet opnieuw gemaakt: 99,5 % van de punten ligt binnen 1,5 m van een ringweg van de nieuwe stad.
+
+Meten: `node scripts/world/city_roads_diff.mjs [--lagen roads,rails]` (oud tegenover nieuw, JSON met `--json`), `scripts/stadlaag_wegen_test.mjs` (drempels), en `node --import ./scripts/lib/stadlaag_preload.mjs <test of audit>` met `STAD_LAAG` laat elk bestaand testbestand de nieuwe stad zien (de voorlader legt `citymap.json` en `mapextras.json` voor `fs.readFileSync` om; let op: een script dat de bouwketen zelf importeert, zoals `bridge_audit.mjs` of `profile.mjs`, draait zijn eigen hoofdprogramma dan vóór de omlegging). `STAD_LAAG_CACHE=<bestand>` bewaart de OSM-bouw (4 minuten) voor audits; wis het bestand na een codewijziging. `GDE_PROVINCE_SRC` wijst naar `data/cache/province` buiten de werkboom.
+
+### Pariteit (stad 18 oktober tegenover extract 15 oktober, binnen de dekking van de stad)
+
+| Maat | Uitkomst |
+|---|---|
+| wegen per klasse (aantal / km) oud > nieuw | major 1.311 / 110 > 1.306 / 112; normal 2.666 / 277 > 2.912 / 300; minor 2.056 / 130 > 2.314 / 152; voet 3.684 / 202 > 4.055 / 231; fiets 1.251 / 101 > 1.390 / 112 (het nieuwe extract kent meer wegen; 10 % van de nieuwe wegen ligt waar de oude kaart niets had) |
+| geometrie: oude wegen binnen 1 m van een nieuwe weg | 99,8 % (auto 99,8, voet 99,6, fiets 99,9) |
+| hoogte langs de wegen met profiel (3.609 monsters) binnen 0,25 / 0,5 / 1 m | 88,8 / 93,8 / 97,3 %; alle wegen 98,9 / 99,3 / 99,7 %; ring 92,1 / 95,4 / 97,7 %; raster van 25 m (`groundHeightAt`) 99,7 / 99,8 / 99,9 % |
+| kunstwerken per stuk (op OSM-id) | bruggen 198 van 204, tunnels 59 van 60, viaducten 43 van 43, beweegbaar 19 van 19, taluds 7 van 7, kuilen 2 van 2 |
+| rijstroken (5.725 paren) | `lanes` 100 %, vooruit 99,8, terug 99,9, breedte binnen 0,5 m 99,0, eenrichting 100 % |
+| kruispunten (`junctionModel`) | 4.178 oud, 4.574 nieuw; 4.169 gekoppeld; besturing gelijk 99,2 %, armen 99,9 %, regels 99,0 %; lichten 422 oud (alle terug binnen 8 m), 490 nieuw |
+| spoor | 34,6 > 36,7 km; 4 routes (lengte binnen 4 m); 3 stations; overwegen 3 van 3 (+1); liften 16 van 16 (+3); spoorhoogte binnen 0,5 m 93,4 % |
+| handwerk | busOnly 206 / 206, buslanen 103 > 107 |
+
+Audits oud tegenover nieuw (alle lagen aan): `drive_audit` 0 > 2 van 7.650 ritten (Bekemaheerd haarspeld, N46 afrit bij 2537,-1812), `junction_sim_test` 17/17 > 17/17, `network_drive_test` 2/2 > 1/2 (dezelfde afrit), `ring_probe` 0 > 1 keerwand (afrit naast het viaduct bij -1304,987), `bridge_audit_test` 18/18 > 16/18 (dubbele bruggen 4 tegenover 1, z-fight-kandidaten 12 tegenover 8, bij 447 bruggen tegenover 347), `surface_blend_test` 13/13 > 12/13 (nieuwe straat Atensheerd), en `lanes_test`, `road_route_test`, `bus_route_test`, `mode_route_test`, `train_ride_test`, `railprofile_test`, `surface_test`, `seat_audit`, `net_pairing_test`, `ring_hoop_test`, `lanetaper_test` onveranderd groen.
+
+Waar het nu anders is dan de oude stad, en waarom (bron, niet de bouw): het extract (15 oktober) is nieuwer dan de oude cache; ringbruggen zijn daarin soms `bridge:movable` (de laag laat ringwegen niet openen); de Beneluxweg onder de Kardingerweg (ongeveer 1950,-1935) ligt in de oude kaart 5,6 m verdiept (zonder tunnel- of laagtag in de rij; waarschijnlijk week de ring voor het korte viaduct van de Kardingerweg), de nieuwe bouw laat het viaduct (5,0 tot 5,7 m) boven de vlakke ring staan; het Hoofdstation ligt 50 m zuidelijker (nu bij de perrons); de oude namen met `Ã«` zijn goed; Winschoten rijdt over het spoor van Zwolle (de aftakking Wunderline bestond in de oude cache niet; een eindpunt daar liet de trein rechtdoor het niets in rijden). De drempels van `bridge_audit_test` en `junction_sim_test` zijn op de oude kaart afgesteld; zie het verslag voor de losse gevallen.

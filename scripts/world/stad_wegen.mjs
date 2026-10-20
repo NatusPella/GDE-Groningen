@@ -60,6 +60,8 @@ export function collector() {
 export function cityRoadRow(row) {
   const out = {};
   for (const k of Object.keys(row)) if (k[0] !== '_' && row[k] !== undefined) out[k] = k === 'pts' ? row[k].map((p) => p.slice()) : row[k];
+  // (OSM kent ways met een knoop die twee keer achter elkaar staat: een lijnstuk van nul meter geeft het kruispuntmodel een extra arm)
+  out.pts = out.pts.filter((p, i) => i === 0 || p[0] !== out.pts[i - 1][0] || p[1] !== out.pts[i - 1][1]);
   const spec = ROAD_SPEC[row.type];
   if (spec) out.speed = spec.speed;
   return out;

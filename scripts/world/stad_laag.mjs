@@ -1,4 +1,5 @@
-// De stad per laag uit de gedeelde OSM-tegelbouw (#90 fase B, `STAD_LAAG=water,green,trees` bij het bouwen).
+// De stad per laag uit de gedeelde OSM-tegelbouw (#90 fase B, `STAD_LAAG=water,green,trees,buildings,roads,rails` bij het bouwen).
+// Wegen en spoor (roads, rails) zijn hele wegen met hoogteprofiel en gaan via stad_wegen.mjs (collect-haak in buildProvince).
 // loadSources (pack_tiles.mjs) vervangt de laag in de stadsdata vóór de GameMap, zodat de
 // afleiding (droge kruisingen, woonboten, ...) en de gids van de vaste stadsset vanzelf kloppen.
 // Alleen rijen met hun zwaartepunt binnen de dekking van de stadskaart (citycover.mjs): daarbuiten dekken de
