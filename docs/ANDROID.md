@@ -44,6 +44,8 @@ Emulator: `emulator -avd gde_phone -gpu host -no-audio -no-snapshot -no-window -
 
 Gemeten op de emulator (zegt niets over een telefoon): 47-60 fps met profiel `telefoonZwak`/`telefoon` op een RTX-GPU van de host; laden tot het startscherm ca. 50 s.
 
+Zonder toestel of emulator: `scripts/mobile_shots.mjs` (Electron met Chromium-apparaatemulatie, `--emulate-mobile --touch`) meet knoppen en HUD per schermformaat en maakt schermafdrukken; bevindingen staan in `docs/MOBIEL-RAPPORT.md`. Hij vraagt een volledig gestaged `desktop/build` (`cd desktop && npm run stage`); met een oudere build uit een andere werkboom faalt de smoketest (`__debug.world`). In deze sessie is hij daarom niet opnieuw gedraaid; de layouts zijn wel op de emulator (866x412) bekeken.
+
 ## Niet getest of niet gelukt
 
 - Geen echt toestel; geen fps, geheugen of warmte op een telefoon; geen Bluetooth-gamepad; geen tablet.
