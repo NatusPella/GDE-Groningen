@@ -34,6 +34,10 @@ export const EDGE_SCENES = {
   friesland: { props: [{ kind: 'rand_wegversperring', out: 8, along: 0 }, { kind: 'rand_neef', out: 10, along: 3 }, { kind: 'rand_neef', out: 10, along: -3 }], lines: ['Twee neven staan naast een hek met een schaap.'] },
   drenthe: { props: [{ kind: 'rand_hunebed', out: 8, along: 0 }, { kind: 'rand_bord', out: 12, along: 5 }], lines: ['Een hunebed ligt dwars over de weg.'] },
   lucht: { props: [{ kind: 'rand_mistbank', out: 80, along: 0 }], lines: ['De radio kraakt. De autopiloot pakt de knuppel.'] },
+  // the land borders over water (worldedge.js friesland_water ...): a boat across the channel and two buoys
+  friesland_water: { props: [{ kind: 'rand_kustwachtboot', out: 30, along: 0 }, { kind: 'rand_boei', out: 15, along: -12 }, { kind: 'rand_boei', out: 15, along: 12 }], lines: ['Een boot van de Friese vaarwacht ligt dwars op de vaargeul.'] },
+  drenthe_water: { props: [{ kind: 'rand_boei', out: 12, along: 0 }, { kind: 'rand_boei', out: 15, along: -10 }, { kind: 'rand_boei', out: 15, along: 10 }, { kind: 'rand_mistbank', out: 60, along: 0 }], lines: ['Een boei met een bord ligt dwars op het water.'] },
+  duitsland_water: { props: [{ kind: 'rand_grenswachtboot', out: 25, along: 0 }, { kind: 'rand_boei', out: 15, along: -12 }, { kind: 'rand_boei', out: 15, along: 12 }], lines: ['De Grenswacht ligt dwars op de vaargeul.'] },
 };
 
 // The plan for a turn-back at (x, y): world positions of the props, the lines

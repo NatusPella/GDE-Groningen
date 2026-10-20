@@ -29,6 +29,11 @@ export const EDGE_GAGS = {
   rottum: { warn: 'Een bord in het water: "Rottum is verboden natuur. Alleen kijken."', back: 'De plaat is van de zeehonden. Een natuurwachter wuift je vriendelijk terug.' },
   drenthe: { warn: 'Er ligt een hunebed op de weg.', back: 'Drenthe is dicht. Probeer het morgen nog eens.' },
   lucht: { warn: 'Radio: u verlaat het luchtruim van de provincie.', back: 'De autopiloot draait je zachtjes terug.' },
+  // the land borders over water (a boat or a swimmer where a border line crosses the Wadden Sea or a canal): a road barrier and two
+  // cousins on open water were a landmass that is not there (#233); here a boat and buoys
+  friesland_water: { warn: 'In de verte ligt een boot dwars op de vaargeul: de Friese grens.', back: 'De Friese vaarwacht loodst je terug naar Grunn. "Hjir net, jong."' },
+  drenthe_water: { warn: 'Een boei met een bord: "Vaargeul Drenthe: dicht wegens hunebed."', back: 'Het water houdt hier op. Drenthe is dicht; probeer het morgen nog eens.' },
+  duitsland_water: { warn: 'Een boot van de Grenswacht komt naast je varen. "Even stoppen graag."', back: 'De Grenswacht loodst je vriendelijk terug naar het Nederlandse water.' },
 };
 
 function segInfo(px, py, a, b) {
@@ -83,7 +88,9 @@ export function edgeRule(x, y, edge, ctx = {}) {
   if (!b || b.d <= 0) return null;
   // the border-bridge rule: on a deck, a ramp or near a bridge end it waits
   if (ctx.onDeck || (ctx.bridgeDist !== undefined && ctx.bridgeDist < BRIDGE_M)) return null;
-  const kind = b.line.kind || 'duitsland';
+  const land = b.line.kind || 'duitsland';
+  // on the water the gag of the land beyond is a boat and buoys, not a road barrier on the sea
+  const kind = (mode === 'boat' || mode === 'swim') && EDGE_GAGS[land + '_water'] ? land + '_water' : land;
   const buf = b.line.bufferM !== undefined ? b.line.bufferM : 300;
   if (b.d > buf) return { action: 'back', edge: kind, text: (EDGE_GAGS[kind] || EDGE_GAGS.duitsland).back, face: face(b), at: { x: b.x, y: b.y }, d: b.d, warnAt: buf - WARN_M };
   if (b.d > buf - WARN_M) return { action: 'warn', edge: kind, text: (EDGE_GAGS[kind] || EDGE_GAGS.duitsland).warn, face: face(b), at: { x: b.x, y: b.y }, d: b.d, warnAt: buf - WARN_M };
