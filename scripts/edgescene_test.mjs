@@ -65,6 +65,17 @@ const sp = S.scenePlan(sr, 0, sy).spot;
 const after = E.edgeRule(sp.x, sp.y, sea, { mode: 'boat' });
 ok(!after && Math.abs(sp.y - sy) < 800, 'sea: back by a few hundred metres, not teleported to the coast');
 
+// a boat or a swimmer across a land border gets a boat and buoys, not a road barrier on the sea (#233); on land nothing changed
+{
+  const border = { coast: [], border: [{ kind: 'friesland', out: 1, bufferM: 300, pts: [[-5000, 0], [5000, 0]] }], seaM: 3000, airM: 3000 };
+  const y = [500, -500].find((yy) => E.edgeRule(0, yy, border, { mode: 'boat' }));
+  const wr = E.edgeRule(0, y, border, { mode: 'boat' }), lr = E.edgeRule(0, y, border, { mode: 'car' });
+  ok(wr && wr.edge === 'friesland_water' && lr && lr.edge === 'friesland', 'the Frisian border: a boat gets the water gag, a car the road one');
+  const kinds = S.scenePlan(wr, 0, y).props.map((p) => p.kind);
+  ok(kinds.length > 0 && kinds.every((k) => /boot|boei|mist/.test(k)), 'the water scene is boats and buoys: ' + kinds.join(','));
+  ok(E.edgeRule(0, y, border, { mode: 'swim' }).edge === 'friesland_water', 'and a swimmer too');
+}
+
 // every prop a scene asks for exists in the prop kit and builds (a canvas stub for the signs)
 await import('./node3d.mjs');
 const P = await import('../game/js/ommelandprops3d.js');
