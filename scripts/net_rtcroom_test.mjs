@@ -69,6 +69,17 @@ await t('host en gast verbinden via de kamercode; het kanaal is onbetrouwbaar en
   await waitFor(() => got.length);
   assert.deepEqual(got[0], [1, 2, 3]);
 });
+await t('de uitnodiging wacht langer dan de verbindingstijd: de vriend heeft tijd om de code over te nemen', async () => {
+  const h = hub(), pcs = [], states = [];
+  const TW = { ...TO, connect: 150, wait: 1500 };
+  const host = await hostRoom('K3J9D8F2MN', { pcFactory: (ice) => makePc(ice, pcs), signaler: h.signaler(), timeouts: TW, onstate: (s, i) => states.push([s, i]) });
+  await new Promise((r) => setTimeout(r, 400)); // langer dan connect: bij één timer was de uitnodiging nu verlopen
+  assert.ok(!states.some((s) => s[0] === 'fout'), 'nog geen foutmelding terwijl de vriend de code overneemt');
+  const guest = await joinRoom('K3J9D8F2MN', { pcFactory: (ice) => makePc(ice, pcs), signaler: h.signaler(), timeouts: TW });
+  const gt = await guest.opened;
+  await waitFor(() => host.transport.isOpen() && gt.isOpen());
+  assert.ok(states.some((s) => s[0] === 'open'));
+});
 await t('de openbare STUN-servers uit de configuratie gaan naar WebRTC', async () => {
   const h = hub(), pcs = [];
   await hostRoom('K3J9D8F2MN', { pcFactory: (ice) => makePc(ice, pcs), signaler: h.signaler(), timeouts: TO });
