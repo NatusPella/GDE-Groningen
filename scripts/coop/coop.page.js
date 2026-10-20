@@ -19,7 +19,16 @@ const NET = { ws: [], rtc: 0, fetch: [] };
 {
   const WS = window.WebSocket, RTC = window.RTCPeerConnection, F = window.fetch;
   if (WS) window.WebSocket = class extends WS { constructor(u, p) { NET.ws.push(String(u)); super(u, p); } };
-  if (RTC) window.RTCPeerConnection = class extends RTC { constructor(...a) { NET.rtc++; super(...a); } };
+  if (RTC) window.RTCPeerConnection = class extends RTC {
+    constructor(...a) {
+      NET.rtc++; super(...a);
+      // wat gebeurt er met de verbinding? (geen adressen in het log: alleen het soort kandidaat)
+      const soort = (c) => { const m = /typ (w+)/.exec(c || ''), ip = /(?:^|s)(d+.d+.d+.d+|[w-]+.local)s+d+s+typ/.exec(c || ''); const adres = ip ? (/^127./.test(ip[1]) ? 'loopback' : /^(10.|192.168.|172.(1[6-9]|2d|3[01]).)/.test(ip[1]) ? 'prive' : /.local$/.test(ip[1]) ? 'mdns' : 'overig') : '?'; return (m ? m[1] : '?') + '/' + adres; };
+      this.addEventListener('icecandidate', (e) => log('rtc', { kandidaat: e.candidate ? soort(e.candidate.candidate) : 'klaar' }));
+      this.addEventListener('iceconnectionstatechange', () => log('rtc', { ice: this.iceConnectionState }));
+      this.addEventListener('connectionstatechange', () => log('rtc', { verbinding: this.connectionState }));
+    }
+  };
   if (F) window.fetch = function (u, ...a) { const s = String(u && u.url || u); if (/^https?:\/\//i.test(s) && !s.startsWith(location.origin)) NET.fetch.push(s.slice(0, 120)); return F.call(this, u, ...a); };
 }
 const netNow = () => ({ ws: NET.ws.length, rtc: NET.rtc, fetch: NET.fetch.length });
@@ -74,6 +83,7 @@ function sampleNow(n) {
   return {
     n, ph: state.phase, paused: !!x.paused, uiPaused: !!x.uiPaused, coopHold: !!x.coopHold, hold: !!document.querySelector('.coop-hold'), clock: x.time, uur: x.clock, slot: ses ? ses.slot : (net && net.role === 'host' ? 0 : -1),
     status: ses ? ses.status : (net && net.hub ? [...net.hub.sessions.entries()].map(([s, v]) => s + ':' + v.status).join(',') : null),
+    inp: ses && ses.pendingInput ? [Math.round(ses.pendingInput.mx * 100) / 100, Math.round(ses.pendingInput.my * 100) / 100] : null,
     ids: net && net.hub ? [...net.hub.sessions.entries()].map(([s, v]) => s + ':' + (v.link && v.link.id)).join(',') : null,
     rtt: ses ? Math.round(ses.rtt * 1000) : (net && net.hub ? Math.round(Math.max(0, ...[...net.hub.sessions.values()].map((v) => v.rtt)) * 1000) : null),
     desync: x.coopDesync ? x.coopDesync.velden : null, desyncN: x.coopDesync ? x.coopDesync.n : 0, money: x.money, wanted: x.wanted | 0, role: x.coopRole || null,
@@ -400,6 +410,19 @@ const PHASES = {
     log('verlaten', { coopNet: !!net(), role: W().coopRole || null, money: W().money, pos: W().player ? [Math.round(W().player.x), Math.round(W().player.y)] : null });
     await closeMenu();
   },
+  // opnieuw aansluiten na het verlaten, via het pauzemenu en de lobby (dezelfde code), zoals een speler
+  async opnieuw() {
+    if (net()) { log('opnieuw-al-verbonden', {}); return; }
+    await openSamen();
+    await act('kies-gast');
+    const input = await until(() => panel().querySelector('.coop-input'), 5000, 'invoerveld');
+    input.value = CFG.code; input.dispatchEvent(new Event('input', { bubbles: true }));
+    await act('koppel'); await act('akkoord');
+    await until(() => title() === 'Je speelt samen', 60000, 'opnieuw verbonden met de host');
+    await sleep(1500);
+    await closeMenu();
+    log('opnieuw-klaar', { role: W().coopRole || null, slot: net() && net().session ? net().session.slot : null, paused: !!W().paused });
+  },
   // de host stopt de sessie via het menu ('Iedereen stoppen')
   async stopHost() {
     if (CFG.role !== 'host') { await sleep(6000); return; }
@@ -423,7 +446,7 @@ const PHASES = {
   async verhaal({ s = 1500, until = 'T1', speed = 1 }) {
     const args = { until };
     if (CFG.role === 'host') {
-      window.__botCfg = { part: 'all', until: args.until || 'T1', maxGameS: 3600, maxWallS: s, stuckS: 45, shots: 40, speed: speed || 1, waitS: 60, invulnerable: !!CFG.invuln };
+      window.__botCfg = { part: 'all', until: args.until || 'T1', maxGameS: Math.max(3600, s * Math.max(1, speed) * 1.2), maxWallS: s, stuckS: 45, shots: 40, speed: speed || 1, waitS: 60, invulnerable: !!CFG.invuln };
       log('verhaal-begin', {});
       const r = await window.__botMain();
       log('verhaal-einde', { r });
