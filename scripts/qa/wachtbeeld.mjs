@@ -18,7 +18,7 @@ fs.mkdirSync(OUT, { recursive: true });
 // zoals de sweep: wachten op de wereld, het startscherm weg (Enter), even rust
 const WACHT = 'for (let i = 0; i < 240 && !(window.__debug && window.__debug.world); i++) await new Promise((r) => setTimeout(r, 500));\n'
   + `const kEnter = () => { for (const t of [window, document]) { t.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', bubbles: true })); t.dispatchEvent(new KeyboardEvent('keyup', { key: 'Enter', code: 'Enter', bubbles: true })); } };
-for (let i = 0; i < 40; i++) { const s = document.querySelector('#start-screen'); if (!s || !s.classList.contains('visible')) break; kEnter(); await new Promise((r) => setTimeout(r, 3000)); }
+for (let i = 0; i < 40; i++) { const s = document.querySelector('#start-screen'); if (!s || !s.classList.contains('visible')) break; const it = [...s.querySelectorAll('.ss-item')].find((e) => /nieuw spel/i.test(e.textContent)); if (it) it.click(); else kEnter(); await new Promise((r) => setTimeout(r, 3000)); }
 await new Promise((r) => setTimeout(r, 4000));\n`;
 const profile = `gde-test-wb-${process.pid}`;
 const script = path.join(OUT, '_page.js');
