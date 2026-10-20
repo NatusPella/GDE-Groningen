@@ -215,7 +215,7 @@ Debug hooks on `window` (`window.__x`, read by scripts/perf, the story test and 
 | --- | --- |
 | `?dev` | Verhaalpaneel op F9; eigen opslag (gde-dev:), raakt de echte save niet |
 | `?storytest` | Geautomatiseerde verhaaltest; opslag alleen in het geheugen |
-| `?autoplay` | Spelbot (#186; `window.__bot.speed(1..8)` of `run.mjs --speed=N` versnelt de speltijd): window.__bot (playerapi.js) levert de spelstatus en neemt acties aan; vaste seed (autoplay=seed), opslag alleen in het geheugen |
+| `?autoplay` | Spelbot (#186; `window.__bot.speed(1..8)` of `run.mjs --speed=N` versnelt de speltijd; `run.mjs --reizen` zet de reisbeats aan, de bot kiest dan Meerijden): window.__bot (playerapi.js) levert de spelstatus en neemt acties aan; vaste seed (autoplay=seed), opslag alleen in het geheugen |
 | `?stil` | Geen audio en geen pauze bij verborgen tabblad (testsessies) |
 | `?audiograf` | Met stil: de audiograaf draait wel, maar eindigt in een gedempte uitgang |
 | `?noattract` | Geen aantrekkingsfilmpje op het titelscherm; door naar het menu |
@@ -302,7 +302,7 @@ was pre-empted. `PERF_ONLY=ab` runs variants in turns inside one process (`PERF_
 `PERF_AB_MOVE=0|1|2` standing, walking or both, `PERF_AB_ROUNDS`, `PERF_AB_WIN` ms per window) and
 `node scripts/perf/abin.mjs <naam>.json` prints per variant the median `mcpu`, the work counts per frame (matrix
 walks, frustum tests) and the paired difference per round: the variants switch with `?perfoff=` (`window.__perfOffDyn`
-in a run) and feel the same load. `PERF_ONLY=beeld` compares the canvas of a stopped world with the steps on and off.
+in a run) and feel the same load. `PERF_ONLY=verify` checks that nothing that shows is cut (actors and groups kept out of the main pass, groups kept out of the shadow pass).
 `PERF_ONLY=wandel` walks at the game's own pace (3 m/s). `PERF_SETTLE=<ms>` lets a route settle longer first.
 
 ## Trailer mode
@@ -355,9 +355,13 @@ from the end of the radio intro. Used three ways:
   printed per second of video, e.g.
   `cd desktop && npm run stage && npx electron . --trailer-video`
   (with `--trailer-cut=kort` for the short cut).
-- **Teaser en hoofdtrailer opnemen** (#63): `node scripts/record_trailer.mjs` toont de
+- **Trailers opnemen voor YouTube** (#63): `node scripts/record_trailer.mjs` toont de
   commando's, `--run` neemt `teaser` en `hoofd` op in 1080p en 4K in een scratchmap
-  buiten de repo (`--cut=`, `--res=`, `--out=`). Zie `docs/youtube/trailers.md`.
+  buiten de repo (`--cut=` ook `gameplay`, `verhaal`, `kort`, `vol`; `--res=`, `--out=`,
+  `--slot` voor het Electron-slot, `--game-dir=` voor een bestaande staged build).
+  `scripts/video_check.mjs` maakt contactbladen en meet zwart, stilte en luidheid,
+  `scripts/youtube_thumbnails.mjs` maakt de thumbnails. Zie `docs/youtube/pakket.md` en
+  `docs/youtube/trailers.md`.
 
 ## Desktop builds and releases
 
@@ -592,7 +596,7 @@ Achter `?coop`; zonder die vlag verandert er niets. In het pauzemenu staat dan h
 
 **De wereld van de host bij een gast.** Een gast draait de wereld van de host niet zelf: `updateGameplay` (main.js) doet niets zolang `world.coopRole === 'client'` en de verbinding staat; de gast tekent wat de host stuurt. Dat zijn de posities van alle spelers, wanted, voertuigen binnen 150 m van een speler (als blokken in maat en kleur, `coopentities3d.js`, `coopworld.js`), het doel van de lopende opdracht (lichtzuil) en een melding van wat de host speelt (`missie`-bericht). Tot 20 voetgangers en agenten binnen 70 m van een speler gaan ook mee (soort 12 en 13, eigen id-bereik vanaf 0x8000, getekend als eenvoudige poppetjes); verkeer verder weg, weer en schade blijven lokaal. Een passagier staat in de snapshot op de plek van het voertuig (`posOf`). Wat de host op het scherm heeft, gaat als `scene`-bericht naar de gasten (`coopscene.js`, `readHostScene`): een filmpje (na 0,7 s, zodat een kort kaartje bij dood geen filmpje is), de regel die iemand zegt, de opties van een keuze en of de host op pauze staat. Een gast tekent daar een laag met zwarte balken en tekst van (`updateHostScene`), stuurt tijdens een filmpje geen invoer en kiest niet: de gastheer beslist. Een gast kan alleen lopen en rennen (#291). De figuren van andere spelers zijn echte persoonsmodellen met eigen uiterlijk, naamlabel en loopanimatie (`coopfigures3d.js`, `coopfigures.js`). Medespelers staan met eigen vorm en kleur op de kaart (`mapview.js`, soort `partner` in `mapicons.js`/`hud_panel.js`) en op de minimap (pijl aan de rand als ze buiten beeld zijn). De eerste twee spelers delen een camera op het midden tussen hen zolang ze te voet en binnen 60 m van elkaar zijn (`coop.sharedCamera`, `world.coopCam`, een kleine aanpassing in `scene3d.js`); extra spelers volgen hun eigen figuur.
 
-**Testbank.** `docs/COOP-TESTBANK.md`: pure scenario's met een slecht netwerk (`coop_scenarios_test`), vier headless gasten over echte TCP (`coop_tcp_test`) en `scripts/coop/testbank.mjs` met echte Electron-instanties (suites `basis`, `net`, `kamer`, `verhaal`, `touch`). Een Electron-run in een worktree vraagt `ELECTRON_EXE` en een gestagede map (`scripts/coop/restage.mjs`), en neemt de sloten van `C:/Users/abuis/gde-locks`.
+**Testbank.** `docs/COOP-TESTBANK.md`: pure scenario's met een slecht netwerk (`coop_scenarios_test`), vier headless gasten over echte TCP (`coop_tcp_test`) en `scripts/coop/testbank.mjs` met echte Electron-instanties (suites `basis`, `net`, `kamer`, `verhaal`, `touch`). Een Electron-run in een worktree vraagt `ELECTRON_EXE` en een gestagede map (`scripts/coop/restage.mjs`), en neemt de sloten van de slotenmap (`$GDE_LOCKS`, standaard `~/gde-locks`).
 
 **Tests** gebruiken nooit echte brokers, STUN of routers: `net_codec_test`, `net_protocol_test`, `net_hostmodel_test` (in-memory transport met verlies en jitter), `net_hub_test` (4 tot 8 spelers), `net_ipctransport_test`, `coopplayers_test`, `coopfigures_test`, `coopworld_test`, `net_sigcrypto_test`, `net_brokers_test` (nepbrokers voor tracker, MQTT en PeerJS), `net_rtcroom_test` (nep-RTCPeerConnection), `net_upnp_test` (nepper-router), `net_pairing_test`, `coopcore_test` (alleen 127.0.0.1), `coopnet_test`, `lobby_test`, `partnerhud_test`, `coopactivities_test`, `cooproles_test`, `coopstate_test`, `coopsave_test`, `coop_test`. Niet getest: een echte verbinding, echte STUN/brokers/UPnP, de schermen in beeld.
 

@@ -1,10 +1,13 @@
 // De Spelbot-driver (#186): start één Electron-instantie met wegwerpprofiel, laat
 // bot.page.js de game spelen en bouwt uit de gebeurtenissen het rapport.
 //   node scripts/bot/run.mjs [--out=<map>] [--part=kop|all] [--seed=1] [--stuck=30]
-//        [--until=<stap-id>] [--max-game=3600] [--max-wall=1800] [--shots=80] [--invuln] [--speed=1..8] [--wait=45] [--audio] [--force] [--slot]
+//        [--until=<stap-id>] [--max-game=3600] [--max-wall=1800] [--shots=80] [--invuln] [--speed=1..8] [--wait=45] [--audio] [--reizen] [--force] [--slot]
 //   --part=all speelt akte 1 t/m 5 achter elkaar; --wait=<s> is het wachtbudget (een gesprek, banner of laadscherm dat zo lang blijft staan is een bevinding en krijgt de ladder)
 //   node scripts/bot/run.mjs --mode=minigames [--only=kartbaan,duif] [--play=40]   (fase 3: elke minigame kort spelen)
 //   node scripts/bot/run.mjs --mode=missions --only=M03,M04 [--per-step=600]   (elke stap los, via een sprong)
+//   --reizen zet de reisbeats aan (standaard uit in de bot; de bot kiest dan de eerste optie, Meerijden)
+//   --from=T1 springt eerst naar die stap en speelt dan door (de sprong van een sweep slaat reisstappen over, dit niet)
+//   --skip-from slaat die stap na de sprong over (cheat): de volgende stap, bv. een reisstap, begint dan bij jouw plek
 //   node scripts/bot/run.mjs --report=<map>           (rapport opnieuw uit events.jsonl)
 //   node scripts/bot/run.mjs --replay=<events.jsonl> [--out=<map>]   (invoer terugspelen)
 // ELECTRON_EXE=<pad> als desktop/node_modules/electron/dist ontbreekt. Vereist
@@ -59,12 +62,12 @@ if (!flag('force') && !flag('slot') && process.platform === 'win32') {
   if (/electron\.exe/i.test(t.stdout || '')) { console.error('Er draait al een Electron-instantie; de bot wacht niet. Sluit hem of gebruik --force.'); process.exit(3); }
 }
 
-// --slot: een Electron-slot nemen volgens C:/Users/abuis/gde-locks/README.txt (mkdir electron-1..3) en altijd vrijgeven
+// --slot: een Electron-slot nemen volgens <GDE_LOCKS>/README.txt (mkdir electron-1..3) en altijd vrijgeven
 let slot = null;
 const release = () => { if (slot) { try { fs.rmdirSync(slot); } catch { /* al weg */ } slot = null; } };
 process.on('exit', release);
 if (flag('slot')) {
-  const LOCKS = 'C:/Users/abuis/gde-locks';
+  const LOCKS = process.env.GDE_LOCKS || path.join(os.homedir(), 'gde-locks');
   for (let tries = 0; tries < 240 && !slot; tries++) {
     for (const n of [1, 2, 3]) { try { fs.mkdirSync(path.join(LOCKS, `electron-${n}`)); slot = path.join(LOCKS, `electron-${n}`); console.log(`slot electron-${n}`); break; } catch { /* bezet */ } }
     if (!slot) await new Promise((r) => setTimeout(r, 60000));
@@ -76,7 +79,7 @@ const seed = Number(arg('seed', 1)) || 1;
 const replayFile = arg('replay');
 const profile = `gde-test-spelbot-${process.pid}`;
 const script = path.join(OUT, '_page.js');
-const cfg = { part: arg('part', 'kop'), maxGameS: Number(arg('max-game', 3600)), maxWallS: Number(arg('max-wall', 1800)), stuckS: Number(arg('stuck', 30)), only: arg('only', ''), playS: Number(arg('play', 40)), perS: Number(arg('per', 60)), mode: arg('mode', 'story'), sweep: arg('mode') === 'missions' ? arg('only', '').split(',').filter(Boolean) : [], perStepS: Number(arg('per-step', 600)), shots: Number(arg('shots', 80)), speed: Number(arg('speed', 1)) || 1, waitS: Number(arg('wait', 45)) || 45, until: arg('until', ''), invulnerable: flag('invuln') };
+const cfg = { part: arg('part', 'kop'), maxGameS: Number(arg('max-game', 3600)), maxWallS: Number(arg('max-wall', 1800)), stuckS: Number(arg('stuck', 30)), only: arg('only', ''), from: arg('from', ''), skipFrom: flag('skip-from'), playS: Number(arg('play', 40)), perS: Number(arg('per', 60)), mode: arg('mode', 'story'), sweep: arg('mode') === 'missions' ? arg('only', '').split(',').filter(Boolean) : [], perStepS: Number(arg('per-step', 600)), shots: Number(arg('shots', 80)), speed: Number(arg('speed', 1)) || 1, waitS: Number(arg('wait', 45)) || 45, until: arg('until', ''), invulnerable: flag('invuln') };
 let pre = `window.__botCfg = ${JSON.stringify(cfg)};\n`;
 if (replayFile) {
   const rl = L.RunLog.parse(fs.readFileSync(path.resolve(replayFile), 'utf8'));
@@ -92,7 +95,7 @@ delete env.ELECTRON_RUN_AS_NODE;
 const t0 = Date.now();
 // uitvoer rechtstreeks naar run.log: wordt de run afgebroken (time-out, kill, de testrun zelf onderbroken), dan blijven de details staan (#255)
 const logFd = fs.openSync(path.join(OUT, 'run.log'), 'w');
-const r = spawnSync(electron, ['.', '--windowed', '--stil', '--force-device-scale-factor=1', '--window-size=1280x720', `--autoplay=${seed}`, ...(flag('audio') ? ['--audio-graph'] : []),
+const r = spawnSync(electron, ['.', '--windowed', '--stil', '--force-device-scale-factor=1', '--window-size=1280x720', `--autoplay=${seed}`, ...(flag('audio') ? ['--audio-graph'] : []), ...(flag('reizen') ? ['--reizen'] : []),
   `--smoke-test=${path.join(OUT, 'shots.png')}`, `--perf-script=${script}`, `--bot-events=${events}`],
 { cwd: path.join(ROOT, 'desktop'), env, stdio: ['ignore', logFd, logFd], timeout: (cfg.maxWallS + 240) * 1000, killSignal: 'SIGKILL' });
 fs.closeSync(logFd);

@@ -123,27 +123,62 @@ export function adoptSideSpans(roads) {
 
 // The bridges of a map: one per movable road. Span along the road from its
 // first to its last vertex; `half` the deck's half width.
+function makeBridge(r, pinned) {
+  if (!r.movable || !r.bridge || r.pts.length < 2) return null;
+  const a = r.pts[0], b = r.pts[r.pts.length - 1];
+  const len = Math.hypot(b[0] - a[0], b[1] - a[1]);
+  if (len < 3) return null;
+  const ux = (b[0] - a[0]) / len, uy = (b[1] - a[1]) / len;
+  const wide = r.cat === 'major' || r.cat === 'normal' || r.cat === 'minor';
+  return {
+    r, kind: r.movable, ax: a[0], ay: a[1], bx: b[0], by: b[1], len, ux, uy,
+    x: (a[0] + b[0]) / 2, y: (a[1] + b[1]) / 2,
+    half: (r.width || 4) / 2 + (wide ? 1.8 : 0.15),
+    name: r.name || '', pinned,
+    state: 'closed', t: 0, open: 0, boom: 0, flash: 0, warn: false, requests: 0, waitFor: null,
+    snapped: null, _booms: null, boats: new Map(), manual: false, still: new Map(), ignored: new Map(), passed: new Set(),
+  };
+}
+
+// The bridges of a map: one per movable road. Span along the road from its
+// first to its last vertex; `half` the deck's half width.
 export function buildMovableBridges(map) {
   bridges = [];
   adoptSideSpans(map.roads || []);
-  for (const r of map.roads || []) {
-    if (!r.movable || !r.bridge || r.pts.length < 2) continue;
-    const a = r.pts[0], b = r.pts[r.pts.length - 1];
-    const len = Math.hypot(b[0] - a[0], b[1] - a[1]);
-    if (len < 3) continue;
-    const ux = (b[0] - a[0]) / len, uy = (b[1] - a[1]) / len;
-    const wide = r.cat === 'major' || r.cat === 'normal' || r.cat === 'minor';
-    bridges.push({
-      r, kind: r.movable, ax: a[0], ay: a[1], bx: b[0], by: b[1], len, ux, uy,
-      x: (a[0] + b[0]) / 2, y: (a[1] + b[1]) / 2,
-      half: (r.width || 4) / 2 + (wide ? 1.8 : 0.15),
-      name: r.name || '',
-      state: 'closed', t: 0, open: 0, boom: 0, flash: 0, warn: false, requests: 0, waitFor: null,
-      snapped: null, _booms: null, boats: new Map(), manual: false, still: new Map(), ignored: new Map(), passed: new Set(),
-    });
-  }
+  for (const r of map.roads || []) { const b = makeBridge(r, true); if (b) bridges.push(b); }
   ready = true;
+  version++;
   return bridges;
+}
+
+// The movable bridges of the province come with the tiles that stream in, not with map.roads (#235: they never opened,
+// had no barriers, signals or boat passage): the tile world hands the roads near a new tile to addMovableRoads, and
+// pruneMovableBridges drops the ones whose road has left the grids. The array stays the same one (other modules hold it).
+let version = 0, pruneClock = 0;
+export const movableBridgesVersion = () => version;
+export function addMovableRoads(roads) {
+  adoptSideSpans(roads);
+  let n = 0;
+  for (const r of roads) {
+    if (!r.movable || !r.bridge || bridges.some((q) => q.r === r)) continue;
+    const b = makeBridge(r, false);
+    if (b) { bridges.push(b); n++; }
+  }
+  if (n) { ready = true; version++; }
+  return n;
+}
+// map: anything with roadsNear(x, y, r). A bridge of a city road (pinned) stays.
+export function pruneMovableBridges(map) {
+  let n = 0;
+  for (let i = bridges.length - 1; i >= 0; i--) {
+    const b = bridges[i];
+    if (b.pinned || map.roadsNear(b.x, b.y, 3).includes(b.r)) continue;
+    b.r._open = false;
+    bridges.splice(i, 1);
+    n++;
+  }
+  if (n) version++;
+  return n;
 }
 
 export function resetMovableBridges() {
@@ -302,6 +337,8 @@ function hintNear(b, world) {
 
 export function updateMovableBridges(dt, world) {
   if (!ready || dt <= 0) return;
+  pruneClock += dt;
+  if (pruneClock > 2 && world && world.map && world.map.roadsNear) { pruneClock = 0; pruneMovableBridges(world.map); }
   for (const b of bridges) {
     // a boat that does not fit under the closed bridge makes it open, timed to
     // arrive as the leaf is up (a horn, hornAt, still works by hand)

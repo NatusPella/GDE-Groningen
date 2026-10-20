@@ -5,7 +5,7 @@
 // quaywalls) stand for the bridge while it is closed; while it moves the road
 // is hidden (scene3d.js passes openBridgeRoads() to the road batcher).
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-import { getMovableBridges, boomsOf, boatSignal } from './movablebridges.js';
+import { getMovableBridges, boomsOf, boatSignal, movableBridgesVersion } from './movablebridges.js';
 import { mergeGeometries, tint } from './geomerge.js';
 import { waterAt } from './waterlevels.js';
 import { roadSurfaceGeometries, roadSurfaceMaterials, getMarkingMaterial } from './roadsurface.js';
@@ -141,8 +141,8 @@ export function signalSpot(b, end, map = null) {
   const dir = end ? 1 : -1;
   const ex = end ? b.bx : b.ax, ey = end ? b.by : b.ay;
   let best = null, bestScore = Infinity;
-  for (const out of [0, 1.8, 3.6, 5.4]) {
-    for (const beyond of [1.5, 4.5, 7.5]) {
+  for (const out of [0, 1.8, 3.6, 5.4, 8, 11]) {
+    for (const beyond of [1.5, 4.5, 7.5, 11, 15, 20]) {
       const x = ex + dir * b.ux * beyond + nx * (b.half + 1.2 + out), y = ey + dir * b.uy * beyond + ny * (b.half + 1.2 + out);
       if (!map) return [x, y];
       const score = (onCarRoad(map, x, y, b.r) ? 2 : 0) + (waterAt(map, x, y) ? 1 : 0) + out * 0.01 + beyond * 0.001;
@@ -200,40 +200,62 @@ function buildBoom(bm) {
   return { root, lamps, pivot };
 }
 
+function buildView(b, map) {
+  const group = new THREE.Group();
+  group.visible = false;
+  const wide = b.r.cat === 'major' || b.r.cat === 'normal' || b.r.cat === 'minor';
+  const yaw = -Math.atan2(b.uy, b.ux);
+  const leaves = [];
+  const double = b.kind === 'bascule' && b.len > 26;
+  let surf;
+  const pieces = double ? [[0, b.len / 2, 1], [b.len, b.len / 2, -1]] : [[0, b.len, 1]];
+  for (const [s0, L, dir] of pieces) {
+    const pivot = new THREE.Group();
+    const ex = b.ax + b.ux * s0, ey = b.ay + b.uy * s0;
+    pivot.position.set(ex, 0, ey);
+    pivot.rotation.y = dir > 0 ? yaw : yaw + Math.PI;
+    // the road's surface, pavements and paint ride on the leaf with the
+    // road's own materials, so the deck looks the same open and closed (#153)
+    if (surf === undefined) { try { surf = { geo: roadSurfaceGeometries(b.r), mats: roadSurfaceMaterials(b.r) }; } catch { surf = null; } }
+    const worn = surf ? surfaceMeshes(b, s0, L, dir, surf.geo, surf.mats) : [];
+    const leaf = buildLeaf(L, b.half, wide, !worn.length);
+    for (const m of worn) leaf.add(m);
+    pivot.add(leaf);
+    group.add(pivot);
+    leaves.push({ pivot, leaf, L, dir, base: pivot.rotation.y, ex, ey });
+  }
+  const booms = boomsOf(b).map((bm) => { const v = buildBoom(bm); group.add(v.root); return v; });
+  const signals = [0, 1].map((end) => { const s = buildSignal(b, end, map); group.add(s.root); return s; });
+  scene.add(group);
+  return { b, group, leaves, booms, signals };
+}
+
 export function initMovableBridges3D(sceneRef, map = null) {
   scene = sceneRef;
   if (!BOOM_MAT) { const t = stripeTexture(); BOOM_MAT = new THREE.MeshLambertMaterial(t ? { map: t } : { color: 0xd42020 }); }
   for (const v of views) scene.remove(v.group);
   views.length = 0;
-  for (const b of getMovableBridges()) {
-    const group = new THREE.Group();
-    group.visible = false;
-    const wide = b.r.cat === 'major' || b.r.cat === 'normal' || b.r.cat === 'minor';
-    const yaw = -Math.atan2(b.uy, b.ux);
-    const leaves = [];
-    const double = b.kind === 'bascule' && b.len > 26;
-    let surf;
-    const pieces = double ? [[0, b.len / 2, 1], [b.len, b.len / 2, -1]] : [[0, b.len, 1]];
-    for (const [s0, L, dir] of pieces) {
-      const pivot = new THREE.Group();
-      const ex = b.ax + b.ux * s0, ey = b.ay + b.uy * s0;
-      pivot.position.set(ex, 0, ey);
-      pivot.rotation.y = dir > 0 ? yaw : yaw + Math.PI;
-      // the road's surface, pavements and paint ride on the leaf with the
-      // road's own materials, so the deck looks the same open and closed (#153)
-      if (surf === undefined) { try { surf = { geo: roadSurfaceGeometries(b.r), mats: roadSurfaceMaterials(b.r) }; } catch { surf = null; } }
-      const worn = surf ? surfaceMeshes(b, s0, L, dir, surf.geo, surf.mats) : [];
-      const leaf = buildLeaf(L, b.half, wide, !worn.length);
-      for (const m of worn) leaf.add(m);
-      pivot.add(leaf);
-      group.add(pivot);
-      leaves.push({ pivot, leaf, L, dir, base: pivot.rotation.y, ex, ey });
-    }
-    const booms = boomsOf(b).map((bm) => { const v = buildBoom(bm); group.add(v.root); return v; });
-    const signals = [0, 1].map((end) => { const s = buildSignal(b, end, map); group.add(s.root); return s; });
-    scene.add(group);
-    views.push({ b, group, leaves, booms, signals });
+  for (const b of getMovableBridges()) views.push(buildView(b, map));
+  viewsVersion = movableBridgesVersion();
+}
+
+// The bridges of streamed tiles (movablebridges.js addMovableRoads) get their view when the player comes near (one per
+// call: the leaf's road surfaces are built here), and a bridge that has left the list loses it.
+let viewsVersion = -1;
+export function syncMovableBridges3D(px, py, map = null) {
+  if (!scene) return;
+  const list = getMovableBridges();
+  if (viewsVersion === movableBridgesVersion() && views.length === list.length) return;
+  for (let i = views.length - 1; i >= 0; i--) if (!list.includes(views[i].b)) { scene.remove(views[i].group); views.splice(i, 1); }
+  const have = new Set(views.map((v) => v.b));
+  let built = false, pending = false;
+  for (const b of list) {
+    if (have.has(b)) continue;
+    if (built || Math.abs(b.x - px) > VIEW + 60 || Math.abs(b.y - py) > VIEW + 60) { pending = true; continue; }
+    views.push(buildView(b, map));
+    built = true;
   }
+  if (!pending) viewsVersion = movableBridgesVersion();
 }
 
 // the roads of the bridges that are not lying closed (scene3d hides their static road)

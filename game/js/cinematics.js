@@ -1,4 +1,5 @@
 import { screenFx } from './postfx3d.js';
+import { isOverlayHeld } from './overlayhold.js';
 import { cutsceneTakesSpace } from './spacegate.js';
 import { setDualText } from './subtitles.js';
 import { paintSpeaker } from './speakers.js';
@@ -419,6 +420,9 @@ export function updateCinematics(dt, w) {
   if (started && w.input.wasPressed('v') && !active) cycleCinemaCam(w);
   if (camMode && !w.player.inVehicle) setCamMode(0);
 
+  // a scene that films its own cast (hidePlayers): the real players stay hidden for the whole scene, also when another run
+  // cleans up in between and clears the flag (two identical Tammos next to Tessa, #264)
+  if (active && active.hidePlayers) { w.cinematicHidePlayers = true; w.cinematicHideNav = true; }
   let pose = null;
   if (active && active.shot) {
     try {
@@ -814,12 +818,12 @@ export function wijkHighlights(w, name, max = 3) {
 // the wijk's highlights listed; the flyover is the optional film (Instellingen).
 let wijkCardEl = null;
 let wijkCardT = 0;
-function showWijkCard(w, wijk) {
+function showWijkCard(w, wijk, left = 30) {
   if (typeof document === 'undefined') return false;
   if (!wijkCardEl) {
     const st = document.createElement('style');
     st.textContent = `
-#wijk-card { position: fixed; left: 6vw; bottom: 22vh; z-index: 17; pointer-events: none; color: #f0ede4; max-width: 44ch;
+#wijk-card { position: fixed; left: max(6vw, calc((46px + 250px + 190px) * var(--ui, 1))); bottom: calc(11vh + 12vh); z-index: 17; pointer-events: none; color: #f0ede4; max-width: 44ch;
   opacity: 0; transform: translateX(-28px); transition: opacity .35s, transform .6s cubic-bezier(.2,.7,.2,1); text-shadow: 0 2px 12px rgba(0,0,0,.85); }
 #wijk-card.on { opacity: 1; transform: none; }
 #wijk-card .wc-kick { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 18px; letter-spacing: .2em; color: #3fc97a; }
@@ -836,6 +840,8 @@ function showWijkCard(w, wijk) {
     wijkCardEl.innerHTML = '<div class="wc-kick">Nieuwe wijk</div><div class="wc-name"></div><div class="wc-line"></div><div class="wc-hi"></div>';
     document.body.appendChild(wijkCardEl);
   }
+  // onder de resultaatkaart of een keuzepaneel wacht de wijkkaart (#292), hooguit 12 s
+  if (left > 0 && isOverlayHeld('wijkkaart')) { clearTimeout(wijkCardT); wijkCardT = setTimeout(() => showWijkCard(w, wijk, left - 1), 400); return true; }
   const text = wijkLine(wijk.name);
   const hi = wijkHighlights(w, wijk.name);
   wijkCardEl.querySelector('.wc-name').textContent = wijk.name;
@@ -851,7 +857,7 @@ function showWijkCard(w, wijk) {
   return true;
 }
 
-export { pathShot, roofAt, clearKeys };
+export { pathShot, roofAt, clearKeys, showWijkCard };
 
 // The flyover's camera path, its pose samples prewarmed (the path is pure:
 // pathShot keyframes). Reused by playWijk while the player is still about

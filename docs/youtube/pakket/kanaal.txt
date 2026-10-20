@@ -1,0 +1,50 @@
+KANAAL: GDE Groningen
+=====================
+(Plakken in YouTube Studio › Aanpassen › Basisinformatie / Branding. Niets hiervan is al ingevuld.)
+
+NAAM
+  GDE Groningen
+  (handle: @GDEGroningen, controleer of die vrij is; anders @GDEGroningenGame)
+  Gebruik een Merkaccount (Brand Account), niet je persoonlijke kanaal.
+
+BESCHRIJVING (max. 1000 tekens; deze tekst is ongeveer 930)
+------------------------------------------------------------
+GDE Groningen – Zomer vol misdaad is een gratis open-wereldgame in een low-poly Groningen, gebouwd op echte kaartdata: de Martinitoren, de Vismarkt, de Diepenring, de ringweg en het Ommeland. Tammo en Tessa hebben geen geld, wel een droom: een frietwagen. Daarvoor moet half Grunn mee, en een Fries met een trekker-limo zit ze op de hielen.
+
+Rijden, varen, vliegen, bijbaantjes, een kermis, radio en een verhaal met 18 missies. Alles in het Nederlands, ingesproken met een flinke scheut Gronings.
+
+Hier staan de trailers, gameplay en nieuws over updates.
+
+18+: bevat geweld (met bloed, uit te zetten in de instellingen), alcohol en gesimuleerd gokken met spelgeld. Gratis, geen aankopen, geen advertenties.
+
+Stemmen en muziek zijn vooraf gemaakt met Google Gemini; verhaal, personages en dialogen zijn van de maker. GDE staat voor Grootste Diefstal Ever. Een gratis, niet-commerciële parodie; alle namen, personages en bedrijven zijn verzonnen.
+------------------------------------------------------------
+
+BESCHRIJVING IN HET ENGELS (optioneel, onder de Nederlandse tekst)
+  A free open-world comedy crime game in the real streets of Groningen. Dutch only, rated 18+, dry as toast.
+
+LINKS (Aanpassen › Basisinformatie › Links)
+  Steam:   (invullen zodra de pagina live is)
+  Website: (invullen als de repo openbaar is, besluit van de eigenaar)
+  Laat de links leeg tot er een echte URL is. Toon maximaal 1 link op de banner.
+
+CONTACT (zakelijk e-mailadres): zelf invullen, of leeg laten.
+
+LAND: Nederland. TAAL KANAAL: Nederlands. TREFWOORDEN KANAAL (Geavanceerde instellingen):
+  GDE Groningen, Zomer vol misdaad, Groningen, Grunn, open wereld game, Nederlandse game, gratis game, indie game
+
+BANNERTEKST
+-----------
+De bannerafbeelding (kanaal/banner.jpg, 2560×1440) bevat de tekst al, binnen de veilige zone van 1546×423 in het midden:
+  GDE GRONINGEN (woordmerk)
+  Zomer vol misdaad
+  GRATIS · NEDERLANDS
+Controleer na het uploaden de voorvertoning voor tv, computer en mobiel (YouTube toont dat in het uploadvenster).
+Wil je een andere regel? Voorstellen (kort genoeg voor de veilige zone):
+  "Een zomer in Grunn"  /  "Gratis · Nederlands · 18+"  /  "Rijden, varen, vliegen door Groningen"
+
+PROFIELFOTO: kanaal/profielfoto.png (800×800, "GDE"; YouTube knipt rond, alles staat binnen de cirkel)
+VIDEOWATERMERK: kanaal/watermerk.png (150×150, transparant; instelling "Einde van video" of "Hele video")
+
+KANAALTRAILER (voor niet-abonnees, Aanpassen › Indeling): de verhaaltrailer.
+AFSPEELLIJST "Trailers": gameplaytrailer eerst, verhaaltrailer tweede (zelfde volgorde als op Steam).
