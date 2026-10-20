@@ -19,6 +19,7 @@
 // carries on across a tile edge without a seam.
 import { wgsToWorld } from './rdnew.js';
 import { pointInPolygon, polygonBounds, nearestOnRoadList } from './util.js';
+import { waterPolyIn } from './waterlevels.js';
 import { hash2 as hash } from './rng.js';
 import { placeSignItems } from './placesigns.js';
 
@@ -268,13 +269,7 @@ export function furnitureForTile({ x0, y0, size = 1000, roads = [], mapped = [],
   };
 
   // water polygons (with .bounds or not) holding a point
-  const wet = (x, y) => {
-    for (const w of water) {
-      const q = w.bounds || (w.bounds = polygonBounds(w.pts));
-      if (x >= q[0] && x <= q[2] && y >= q[1] && y <= q[3] && pointInPolygon(x, y, w.pts)) return true;
-    }
-    return false;
-  };
+  const wet = (x, y) => !!waterPolyIn(water, x, y);
   // the track (its ballast is 4.2 m wide), a footway's own width and a house: a fence or hedge is not drawn through them (#124)
   const segNear = (P, x, y, d) => {
     for (let i = 0; i < P.length - 1; i++) {
