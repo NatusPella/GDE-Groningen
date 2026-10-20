@@ -121,6 +121,19 @@ t('een passagier staat bij de gasten op het voertuig, niet op zijn oude plek (de
   assert.ok(Math.hypot(g.player.x - 100, g.player.y - 50) < 2, 'de gast (Tessa) staat bij het voertuig: ' + g.player.x + ',' + g.player.y);
   assert.ok(s.hw.coopPartner && Math.hypot(s.hw.coopPartner.x - 100, s.hw.coopPartner.y - 50) < 2, 'ook voor de host staat Tessa bij het voertuig');
 });
+t('de host stopt: elke gast speelt weer in zijn eigen spel (ook als het bericht verloren gaat), met een melding', () => {
+  const s = sessie(2, { gastExtra: [{ player: { x: 77, y: 88, angle: 0, character: 'anita', vx: 0, vy: 0 } }, {}] }); s.step(2);
+  N.stopCoopNet(s.hw); s.step(3);
+  for (const g of s.gs) { assert.equal(g.gw.coopNet, null); assert.equal(g.gw.coopRole, null, 'weer eigen save'); }
+  assert.deepEqual([s.gs[0].gw.player.x, s.gs[0].gw.player.y], [77, 88]);
+  assert.match(s.gs[0].gw.messages.join(' '), /De gastheer is gestopt met samen spelen/);
+});
+t('een gast die wordt afgewezen (vol) blijft geen gast: zijn eigen spel mag weer bewaard worden', () => {
+  const s = sessie(4, { opts: { max: 4 } }); s.step(5);
+  const vol = s.gs[3].gw;
+  assert.equal(vol.coopNet, null); assert.equal(vol.coopRole, null, 'geen coopRole meer: saveGame bewaart zijn spel weer');
+  assert.equal(s.gs[2].gw.coopRole, 'client', 'de gasten die wel binnen zijn blijven gast');
+});
 t('beloningen worden begrensd en alleen gasten ontvangen ze', () => {
   const s = sessie(1); s.step(1);
   const gw = s.gs[0].gw;
@@ -180,7 +193,7 @@ t('pauze per speler: Tessa houdt het spel op; een extra speler niet, tenzij de o
 });
 t('maximum: instelbaar (hier 4); de vijfde moet wachten tot het maximum omhoog gaat', () => {
   const s = sessie(4, { opts: { max: 4 } }); s.step(3);
-  assert.equal(s.gs[3].gw.coopNet.session.status, 'geweigerd'); assert.equal(s.gs[3].gw.coopNet.session.rejected, 'vol');
+  assert.equal(s.gs[3].gw.coopWeigering, 'vol'); assert.equal(s.gs[3].gw.coopNet, null, 'de afgewezen gast is geen gast meer');
   assert.equal(N.setMaxPlayers(s.hw, 8), 8);
   const hw = s.hw, link = createLink({ latency: 0.03, seed: 50 }); N.addGuest(hw, link.a);
   const gw = mkWorld(); N.startClient(gw, link.b, INFO);

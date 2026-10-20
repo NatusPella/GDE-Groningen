@@ -239,7 +239,7 @@ if (GASTEN === 0) { // alleen de host in Electron: wat de headless gasten en de 
     note('draaiboek: ' + mockLog.join('; '));
     const [A, B, C] = mocks; const ms = [...mocks, mockLate].filter(Boolean);
     const uh = of(H, 'uitval-host')[0], uhn = of(H, 'uitval-host-na')[0];
-    check(uh && uh.hold && uh.uiPaused && uh.roster.some((r) => r[0] === 1 && r[1] === 'lost'), 'uitval: de host toont geen pauzescherm of Tessa staat niet als weggevallen: ' + JSON.stringify(uh));
+    check(uh && uh.hold && uh.uiPaused && uh.paused && uh.roster.some((r) => r[0] === 1 && r[1] === 'lost'), 'uitval: de host toont geen pauzescherm of Tessa staat niet als weggevallen: ' + JSON.stringify(uh));
     check(uhn && !uhn.hold && !uhn.uiPaused && uhn.roster.some((r) => r[0] === 1 && r[1] === 'ok'), 'uitval: na het herstel loopt het spel niet door: ' + JSON.stringify(uhn));
     check(A && A.session.slot === 1, 'gast A (Tessa) kreeg plek ' + (A && A.session.slot));
     const ev = (m, k) => m.log.events.map(([, b]) => b).filter((b) => b.k === k);
@@ -258,7 +258,7 @@ if (GASTEN === 0) { // alleen de host in Electron: wat de headless gasten en de 
     note(`Tessa (A) afstand tot Tammo: min ${Math.min(...dist).toFixed(1)} m, laatste ${dist[vanaf] ? dist[vanaf].toFixed(1) : '?'} m over ${dist.length} samples`);
     check(ms.every((m) => ev(m, 'scene').some((b) => b.filmpje === true) || m === mockLate), 'filmpje: niet elke gast kreeg het scène-bericht van het filmpje');
     const fh = of(H, 'filmpje')[0]; check(fh && fh.ok === true, 'filmpje: de host kon geen filmpje starten: ' + JSON.stringify(fh));
-    for (const [i, m] of mocks.entries()) check(ev(m, 'weg').length >= 1 || i === 1, `stop: gast ${i + 1} hoorde het vertrek van de host niet`);
+    for (const [i, m] of mocks.entries()) check(i === 1 || ev(m, 'weg').length >= 1 || m.session.status === 'verbroken' || m.log.status.some((q) => q[1] === 'verbroken'), `stop: gast ${i + 1} hoorde het vertrek van de host niet (statussen ${[...new Set(m.log.status.map((q) => q[1]))].join('/')})`);
     check(!!mockLate && mockLate.session.slot === 2, 'late gast kreeg plek ' + (mockLate && mockLate.session.slot) + ' (verwacht de vrijgekomen plek 2)');
     for (const [i, m] of mocks.entries()) note(`gast ${['A', 'B', 'C'][i]}: plek ${m.session.slot}, ${m.transport.recv} pakketten in, ${m.transport.droppedIn} verloren in, ${m.transport.dropped} verloren uit, statussen ${[...new Set(m.log.status.map((q) => q[1]))].join('/')}, berichten ${JSON.stringify(Object.fromEntries([...new Set(m.log.events.map(([, b]) => b.k))].map((k) => [k, ev(m, k).length])))}`);
   }
@@ -354,9 +354,9 @@ if (SUITE === 'net') {
   check(lg && hc0 && hc1 && Math.hypot(hc1.x - hc0.x, hc1.y - hc0.y) > 3, `Tessa loopt: de host ziet haar niet bewegen (${JSON.stringify(hc0)} → ${JSON.stringify(hc1)})`);
   // uitval van de gast: pauze aan beide kanten, daarna hervat
   const uh = of(H, 'uitval-host')[0], uhn = of(H, 'uitval-host-na')[0], ug = of(G, 'uitval-midden')[0];
-  check(uh && uh.hold && uh.uiPaused, 'uitval: de host krijgt geen pauzescherm: ' + JSON.stringify(uh));
+  check(uh && uh.hold && uh.uiPaused && uh.paused, 'uitval: de host krijgt geen pauzescherm: ' + JSON.stringify(uh));
   check(uh && uh.roster.some((r) => r[0] === 1 && r[1] === 'lost'), 'uitval: Tessa staat niet als weggevallen in de lijst van de host: ' + JSON.stringify(uh && uh.roster));
-  check(ug && ug.hold && ug.uiPaused, 'uitval: de gast krijgt geen pauzescherm: ' + JSON.stringify(ug));
+  check(ug && ug.hold && ug.uiPaused && ug.paused, 'uitval: de gast krijgt geen pauzescherm: ' + JSON.stringify(ug));
   check(uhn && !uhn.hold && !uhn.uiPaused && uhn.roster.some((r) => r[0] === 1 && r[1] === 'ok'), 'uitval: na het herstel loopt het spel bij de host niet door: ' + JSON.stringify(uhn));
   const gEnd = samples('gast').filter((s) => s.ph === 'betaal' || s.ph === 'opgeslagen' || s.ph === 'wacht');
   check(gEnd.length && !last(gEnd).hold && !last(gEnd).uiPaused && ['ok', 'lag'].includes(last(gEnd).status), 'uitval: na het herstel loopt het spel bij de gast niet door: ' + JSON.stringify({ hold: last(gEnd).hold, ui: last(gEnd).uiPaused, st: last(gEnd).status }));
