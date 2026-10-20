@@ -251,7 +251,30 @@ for (const J of CFG.jobs) {
       hold = null; env.fix = false; setWeather(); skipCine = false;
       const S2 = window.__story;
       rec.ok = !!S2.jump(J.step, { start: true });
-      await sleep(5000);
+      // de intro speelt eerst uit (de speler grijpt pas daarna in); tel intussen de figuren
+      rec.intro = [];
+      let idle = 0, tt = 0;
+      const countFigs = () => {
+        const found = [];
+        sc.scene.traverse((o) => {
+          if (!o.userData || !o.userData.shadow || !o.visible) return;
+          for (let q = o.parent; q; q = q.parent) if (!q.visible) return;
+          const wp = o.getWorldPosition(new o.position.constructor());
+          if (Math.hypot(wp.x - p.x, wp.z - p.y) > 20) return;
+          let owner = ''; for (let q = o.parent; q; q = q.parent) if (q.name && /^cutscript/.test(q.name)) owner = q.name;
+          found.push({ owner, at: [wp.x, wp.z].map((v) => +v.toFixed(1)) });
+        });
+        return found;
+      };
+      await sleep(3000);
+      for (; tt < (J.introMax || 150); tt++) {
+        await sleep(1000);
+        if (cine.isCinematicActive()) {
+          idle = 0;
+          if (tt % 10 === 5 && rec.intro.length < 6) { const fg = countFigs(); rec.intro.push({ t: tt, hidePlayers: !!w.cinematicHidePlayers, figures: fg.length, eigen: fg.filter((q) => !q.owner).length }); console.log('[capture] ' + J.name + '-intro-t' + String(tt).padStart(3, '0')); await sleep(600); }
+        } else if (++idle >= 4) break;
+      }
+      rec.introDuur = tt;
       rec.complete = !!S2.complete();
       rec.cines = [];
       let shots = 0, lastShot = 0;
