@@ -13,7 +13,8 @@ import { fileURLToPath } from 'node:url';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const { audit, printAudit } = await import('./profile.mjs');
 const { CAR } = await import('../../game/js/roadprofile.js');
-const data = JSON.parse(fs.readFileSync(path.join(ROOT, 'game/citymap.json'), 'utf8'));
+const { loadCityData } = await import('../lib/loadworld.mjs');
+const data = await loadCityData({ extras: false });
 const rep = audit(data);
 printAudit(rep);
 // car roads under their clearance (foot and cycle ways under a ring road are
