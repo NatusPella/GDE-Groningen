@@ -59,7 +59,8 @@ function plan(s, mode, tgt) {
 }
 
 // aim for the target over the planned route; returns the distance left
-function steerTowards(s, mode, tgt, stopAt, top = 24) {
+// stopR: how close on foot (default 0.6 of the marker radius; a vehicle to board needs the bot right next to it, not 5 m away)
+function steerTowards(s, mode, tgt, stopAt, top = 24, stopR = null) {
   const key = mode + ':' + Math.round(tgt.x / 5) + ',' + Math.round(tgt.y / 5);
   if (!follower || key !== followKey || s.t - planAt > 12) { followKey = key; planAt = s.t; plan(s, mode, tgt); }
   const me = { x: s.player.x, y: s.player.y };
@@ -71,7 +72,7 @@ function steerTowards(s, mode, tgt, stopAt, top = 24) {
     if (!c.reverse && wedge.update(s.t, s.player.vehicle.speed, c.throttle)) wedge.reset(), wedgeOut = true;
     if (B.input.isDown('shift')) B.up('shift');
   } else {
-    const radius = (s.mission.triggerRadius || 8) * 0.6;
+    const radius = stopR != null ? stopR : (s.mission.triggerRadius || 8) * 0.6;
     if (direct < radius) { B.stick(0, 0); B.up('shift'); return direct; }
     const [x, y] = L.footStick(L.headingTo(me, aim), s.player.camYaw);
     B.stick(x, y);
@@ -218,7 +219,7 @@ while (true) {
   if (act.type === 'press') { B.stick(0, 0); if (act.interact) { mem.pressTries++; B.log('handeling', { key: act.key, prompt: s.hud.prompt }); } await B.press(act.key); await sleep(act.interact ? 900 : 0); continue; }
   if (act.type === 'enter') {
     const v = act.vehicle;
-    const d = steerTowards(s, 'walk', v, false);
+    const d = steerTowards(s, 'walk', v, false, 24, 2.2);
     if (d < 3.5) { B.stick(0, 0); mem.boardTries++; B.log('instappen', { kind: v.kind }); await B.press('e'); await sleep(700); follower = null; }
     continue;
   }
