@@ -549,9 +549,9 @@ async function boot() {
       const klaar = samenGate() ? world.time - samenSince > 1.5 && document.body.classList.contains('game-started') && !isPauseMenuOpen() : world.time - samenSince > 5 && !isCinematicActive() && sinceCinematic() > 2 && !world.cameraOverride && !world.pendingRespawn && !isPauseMenuOpen();
       if (klaar) { gateMenu = samenGate(); takeOpenSamen(); samenSince = null; openPauseMenu('samen'); }
     }
-    // het hek gaat open als de gastheer 'Spel starten' drukt, het menu sluit of er een gastspel binnenkomt
-    if (gateOn() && gateMenu && !isPauseMenuOpen()) { setGate(false); gateMenu = false; }
-    if (gateOn() && world.coopRole === 'client') { setGate(false); gateMenu = false; }
+    // het hek gaat pas open met minstens twee spelers en een druk op Spel starten (samenpanel.js); tot dan blijft iedereen in de wachtkamer
+    if (gateOn() && gateMenu && !isPauseMenuOpen()) openPauseMenu('samen');
+    if (!gateOn()) gateMenu = false;
     updateMapView(dt, world);
     world.paused = isMapOpen() || isPauseMenuOpen() || isShopOpen() || !!world.uiPaused || !!world.coopHold; // coopHold: wachtscherm bij een weggevallen speler (coophold.js)
     if (document.pointerLockElement && (isMapOpen() || isPauseMenuOpen() || isPhoneOpen())) document.exitPointerLock();

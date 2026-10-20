@@ -41,11 +41,21 @@ spel dat zo ontstaat is een gewone nieuwe save.
 
 De gastheer bewaart zoals altijd in zijn actieve opgeslagen spel; wat hij in het scherm *Opgeslagen spellen* koos is dat spel.
 
+## De wachtkamer: het spel begint met minstens twee spelers
+
+Kiest iemand in het hoofdmenu Samen spelen (een nieuw spel of een bestaand opgeslagen spel), dan begint het spel **niet**: de wachtkamer
+staat open (`coopgate.js`; een gewone variabele, zodat een nieuw spel hem niet wist) en het verhaal wacht (`story.js` stap `opening`). De wereld is geladen,
+maar niemand speelt: het pauzemenu met de wachtkamer blijft staan (sluit je het, dan komt het terug, `main.js`), er loopt geen tijd en geen verkeer.
+
+- **Spel starten** is voor degene die het spel opende uitgeschakeld zolang je alleen bent, met de uitleg "Wacht op een medespeler: je kunt het spel starten zodra er minstens twee spelers zijn" (`MIN_SPELERS` in `lobby.js`; een speler met een weggevallen verbinding telt niet mee). Met twee of meer staat de knop aan.
+- Een gast leest "Wacht tot de ander het spel start." (de gastheer stuurt het bericht `hek`, `coopnet.js`; een gast die later aansluit hoort het bij het aansluiten).
+- Bij het starten (`openHek`) sluit het menu van iedereen tegelijk, het bericht `hek` (uit) gaat naar de gasten en de opening begint bij iedereen samen (zie hieronder).
+- Wie stopt (Stoppen, Iedereen stoppen, Spel verlaten) of terugkeert naar het hoofdmenu, heeft geen wachtkamer meer en speelt weer zijn eigen spel.
+- Valt iemand tijdens het spel weg, dan geldt de bestaande pauzeregel (het wachtscherm, `coophold.js`); wie later aansluit volgt de gewone aansluitregel: hij hoort dat het spel al begonnen is en speelt mee.
+
 ## De opening van een nieuw spel samen
 
-Kies de gastheer in het hoofdmenu een lege plek (een nieuw spel), dan begint het spel **niet** meteen met de openingsscène: de
-wachtkamer staat open (`coopgate.js`, `world`-onafhankelijk, zodat een nieuw spel het niet wist) en het verhaal wacht (`story.js` stap `opening`).
-De gastheer drukt op **Spel starten** (of sluit het menu; dan begint het ook, ook zonder medespeler). Dan speelt de opening, en iedereen kijkt mee:
+Na **Spel starten** speelt de opening (alleen bij een nieuw spel), en iedereen kijkt mee:
 
 - De gastheer speelt een scène met `playScript` (`cutscenehost.js`). Elke scène die zo gespeeld wordt (de drie openingsscènes, de eindkaart
   van een deel, scènes in missies en bij Eikea) stuurt hij als data mee (`coopcut.js`: de beschrijving, de regels met stemmen, het anker en

@@ -521,7 +521,7 @@ export function runStartScreen(world, { render, relocate, tick, ready }) {
             openSaveSlots({
               mode: 'start', eyebrow: 'Samen spelen', titel: 'Kies jullie spel', loadLabel: 'Dit spel spelen',
               hint: 'Je bent gastheer: de anderen spelen mee in het spel dat je hier kiest. Kies een lege plek voor een nieuw spel.',
-              onLoad: () => { requestOpenSamen({ rol: 'host', gate: false }); continueGame(); },
+              onLoad: () => { requestOpenSamen({ rol: 'host', gate: true }); continueGame(); },
               onNew: () => { requestOpenSamen({ rol: 'host', gate: true }); startNew(); },
               onClose: () => focus(sel),
             });
