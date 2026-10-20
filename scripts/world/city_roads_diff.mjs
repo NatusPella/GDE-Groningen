@@ -13,6 +13,7 @@ import * as P from './pack_tiles.mjs';
 import { buildCityCover } from './citycover.mjs';
 import { junctionModel } from '../../game/js/junctions.js';
 import { isRingRoad } from '../../game/js/derive.js';
+import { RING_ROUTE } from '../../game/js/ringroute.js';
 import { haveProvince } from './build_province.mjs';
 
 const hyp = Math.hypot;
@@ -161,6 +162,18 @@ export function compare(A, B, { step = 8, cover = buildCityCover(A) } = {}) {
   const jInA = jA.filter((j) => cover.inside(j.x, j.y)).length, jInB = jB.filter((j) => cover.inside(j.x, j.y)).length;
   const sig = (m) => m.meta.trafficLights.length;
   rep.kruispunten = { A: jInA, B: jInB, gekoppeld: matched, ontbreektInB: lost, besturingGelijk: pct(control, matched), armenGelijk: pct(arms, matched), regelsGelijk: pct(rules, matched), lichtenA: sig(A), lichtenB: sig(B), besturing: ctl };
+  // 5b. de ring: de vaste ringroute (ringroute.js, gemaakt uit de oude kaart) moet op de ringwegen van B liggen, en B heeft evenveel ring
+  const ringKm = (m) => Math.round(m.roads.filter((r) => isRingRoad(r) && r.cat === 'major').reduce((s, r) => s + len(r.pts), 0) / 100) / 10;
+  const R3 = { n: 0, w1: 0, w3: 0, zOk: 0, zN: 0 };
+  for (const [x, y] of RING_ROUTE) {
+    R3.n++;
+    let d = Infinity, rr = null;
+    for (const q of near(B, x, y, 6, 'car')) { if (!isRingRoad(q)) continue; const e = distToRoad(q, x, y); if (e < d) { d = e; rr = q; } }
+    if (d <= 1.5) R3.w1++;
+    if (d <= 4) R3.w3++;
+    if (rr) { R3.zN++; if (Math.abs(A.groundHeightAt(x, y) - B.groundHeightAt(x, y)) <= 0.5) R3.zOk++; }
+  }
+  rep.ring = { km: { A: ringKm(A), B: ringKm(B) }, route: { punten: R3.n, binnen15: pct(R3.w1, R3.n), binnen4: pct(R3.w3, R3.n), hoogteBinnen05: pct(R3.zOk, R3.zN) } };
   // 6. spoor
   const railKm = (m) => Math.round(m.rails.reduce((s, r) => s + len(r.pts), 0) / 100) / 10;
   const lc = (m) => m.levelCrossings.map((c) => [c.x, c.y]);

@@ -82,6 +82,8 @@ export function cutToCover(roads, inside, step = 10) {
     if (allIn) { out.push(r); continue; }
     let run = null;
     const flush = () => { if (run && run.length > 1) out.push({ ...r, pts: run }); run = null; };
+    // (nooit twee gelijke punten achter elkaar: een wisselpunt kan op een hoekpunt vallen)
+    const add = (q) => { if (!run) run = []; const l = run[run.length - 1]; if (!l || l[0] !== q[0] || l[1] !== q[1]) run.push(q); };
     for (let i = 0; i < P.length; i++) {
       if (i > 0) {
         // binnen het stuk i-1 -> i: waar de status wisselt, het wisselpunt (op `step` m)
@@ -93,12 +95,12 @@ export function cutToCover(roads, inside, step = 10) {
           const s = t === n ? ins[i] : inside(x, y);
           if (s === state) continue;
           const q = [Math.round(x * 100) / 100, Math.round(y * 100) / 100];
-          if (state) { (run || (run = [P[i - 1]])).push(q); flush(); } else run = [q];
+          if (state) { if (!run) add(P[i - 1]); add(q); flush(); } else { run = null; add(q); }
           state = s;
         }
-        if (state) (run || (run = [P[i - 1]])).push(P[i]);
+        if (state) { if (!run) add(P[i - 1]); add(P[i]); }
         else run = null;
-      } else if (ins[0]) run = [P[0]];
+      } else if (ins[0]) add(P[0]);
     }
     flush();
   }
@@ -206,7 +208,7 @@ export function profileCity(d, wegen, { lagen, extras = {}, inside }) {
     solveAll();
   } else if (wantRails) rep.skipped = true;
   if (bus.length) restoreBus(bus);
-  if (wantRoads) rep.dry = markDryRoads(d);
+  if (wantRoads) { rep.dry = markDryRoads(d); }
   return rep;
 }
 
