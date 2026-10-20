@@ -10,7 +10,8 @@ const src = fs.readFileSync(new URL('../game/js/geheimen.js', import.meta.url), 
 const DOOR = Function(`return ${/export const DOOR = (\{[^}]*\});/.exec(src)[1].replace(/Math\.PI/g, '3.141592653589793')}`)();
 const DOOR_SPOT = Function(`return ${/export const DOOR_OUT = (\{[^}]*\});/.exec(src)[1]}`)();
 const here = (f) => new URL(f, import.meta.url);
-const map = JSON.parse(fs.readFileSync(here('../game/citymap.json')));
+const { loadStadData } = await import('./lib/loadworld.mjs');
+const map = await loadStadData();
 const b = map.buildings.find((q) => q.name === 'Martinitoren');
 const xs = b.pts.map((p) => p[0]), ys = b.pts.map((p) => p[1]);
 const cx = (Math.min(...xs) + Math.max(...xs)) / 2, cy = (Math.min(...ys) + Math.max(...ys)) / 2;
