@@ -175,14 +175,19 @@ try {
   if (marks[marks.length - 1] !== pts.length - 1) marks.push(pts.length - 1);
   for (let m = 0; m < marks.length - 1; m++) {
     const i0 = marks[m], i1 = Math.min(pts.length - 1, i0 + 8), a = pts[i0], b = pts[i1], poly = pts.slice(i0, i1 + 1);
-    // eerst naar het punt (de tegels stromen binnen), dan pas kijken of het nat is
-    holdPos = { x: a[0], y: a[1] }; await sleep(3500);
+    // eerst naar het punt (de tegels stromen binnen), dan pas kijken of het nat is: de speler stapt uit de boot (die houdt de tegels
+    // bij het vorige punt vast) en de tegels rond het punt en het stuk erna worden vastgezet (registerShots)
+    if (p.inVehicle) p.exitVehicle(map, w);
+    holdPos = { x: a[0], y: a[1] };
+    if (map.registerShots) await Promise.race([map.registerShots([{ at: [a[0], a[1]], look: [b[0], b[1]] }], { radius: 400, token: 'vaar' }), sleep(WAIT)]);
+    await sleep(1500);
     for (let t = 0; t < WAIT && !wetAt(a[0], a[1]); t += 500) await sleep(500);
     holdPos = null;
-    if (!wetAt(a[0], a[1])) { results.checkpoints.push({ n: m, op: [Math.round(a[0]), Math.round(a[1])], fout: 'punt op de route is niet nat' }); continue; }
+    if (!wetAt(a[0], a[1])) { results.checkpoints.push({ n: m, op: [Math.round(a[0]), Math.round(a[1])], fout: 'punt op de route is niet nat' }); if (map.releaseShots) map.releaseShots(); continue; }
     placeBoat(a[0], a[1], Math.atan2(b[1] - a[1], b[0] - a[0]));
     await sleep(600);
     const r = await sail(b[0], b[1], LEG, poly);
+    if (map.releaseShots) map.releaseShots();
     const leg = Math.hypot(b[0] - a[0], b[1] - a[1]);
     results.checkpoints.push({ n: m, van: [Math.round(a[0]), Math.round(a[1])], naar: [Math.round(b[0]), Math.round(b[1])], afstand: Math.round(leg), ...r, vast: r.stuck >= 4 && r.moved < Math.min(leg, 30) });
     if (m % 2 === 0) await shot(`va-1-route-${m}`, { position: { x: boat.x - Math.cos(boat.angle) * 18, y: boat.y - Math.sin(boat.angle) * 18, z: 7 }, lookAt: { x: boat.x + Math.cos(boat.angle) * 20, y: boat.y + Math.sin(boat.angle) * 20, z: 0 }, cut: true });
@@ -194,7 +199,14 @@ try {
       const x = lau.x + dx * r, y = lau.y + dy * r;
       const q = WL.waterAt(map, x, y);
       if (q && q.kind === 'zee') {
-        holdPos = { x, y }; await sleep(2500); holdPos = null;
+        if (p.inVehicle) p.exitVehicle(map, w);
+        holdPos = { x, y };
+        if (map.registerShots) await Promise.race([map.registerShots([{ at: [x, y], look: [x + dx * 600, y + dy * 600] }], { radius: 700, token: 'vaar' }), sleep(WAIT)]);
+        await sleep(2500); holdPos = null;
+        // land binnen 600 m op die koers (een dijk, de kust): dan is de koers geen open zee en telt een stilstand niet
+        let land = null;
+        for (let d = 20; d <= 600 && !land; d += 10) if (WI.waterClearance(map, x + dx * d, y + dy * d, 4) < 0) land = [Math.round(x + dx * d), Math.round(y + dy * d)];
+        if (land) { results.zee.push({ koers: naam, start: [Math.round(x), Math.round(y)], fout: 'land binnen 600 m op die koers (kust of dijk)', land }); if (map.releaseShots) map.releaseShots(); ok = true; break; }
         placeBoat(x, y, Math.atan2(dy, dx)); await sleep(600);
         const t = await sail(x + dx * 2000, y + dy * 2000, SEA);
         results.zee.push({ koers: naam, start: [Math.round(x), Math.round(y)], ...t, vast: t.stuck >= 4 && t.moved < 200 });
