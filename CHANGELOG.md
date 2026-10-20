@@ -6,6 +6,9 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Verbeterd
+- **De garage toont van elk voertuig een plaatje in plaats van een icoon (#196, #170; in Electron bekeken op 1080p door Claude, niet door de eigenaar):** elke kaart laat het echte model zien (dezelfde bouwer als de wereld en de cutscenes) schuin van voren, in de eigen lak, met een zachte schaduw op de grond; op slot staat grijs. Met de muis erop, met de toetsen of de controller erop gericht, of (aanraking) aangetikt draait het voertuig rond; bij weggaan, bij 'Beweging beperken' en bij het sluiten van het menu stopt dat. De plaatjes worden een voor een in rustige momenten gemaakt; zonder WebGL blijft het oude silhouet staan. Tuningonderdelen zijn nog niet te zien: die veranderen alleen de cijfers, het model heeft er geen onderdelen voor. Op een echt touchscherm en met een echte controller nog niet geprobeerd.
+
 ## [0.38.0] - 2026-10-20
 
 ### Nieuw
