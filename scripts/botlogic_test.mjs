@@ -135,6 +135,11 @@ const near = (a, b, e = 1e-6) => Math.abs(a - b) < e;
   const board = { ...b(), mission: { active: true, stage: 'board' }, target: { x: 300, y: 0, distance: 300 }, nearby: { vehicles: [{ x: 20, y: 0, distance: 20, free: true, drivable: true, kind: 'auto' }] } };
   ok(L.decide(board).type === 'enter', 'board-stage: instappen, ook ver van het doel');
   ok(L.decide(board, { boardTries: 4 }).type === 'goto', 'board-stage: opgeven na vier keer');
+  // the mission's own car wins over the nearest one (M22: the Escapade stands among other cars; a stolen one brings the police)
+  const two = { ...board, nearby: { vehicles: [{ x: 5, y: 0, distance: 5, free: true, drivable: true, kind: 'auto', mission: false }, { x: 30, y: 0, distance: 30, free: true, drivable: true, kind: 'auto', mission: true }] } };
+  ok(L.decide(two).type === 'enter' && L.decide(two).vehicle.mission === true, 'board-stage: de missiewagen boven de dichtstbijzijnde');
+  const wrongCar = { ...two, player: { ...two.player, vehicle: { kind: 'auto', speed: 0, angle: 0, mission: false } } };
+  ok(L.decide(wrongCar).type === 'press' && L.decide(wrongCar).why === 'uitstappen', 'board-stage: in een verkeerde auto: uitstappen als de missiewagen vlakbij staat');
   // op een fiets bij de board-stage: eerst uitstappen, dan een motorvoertuig boven de fiets die je net verliet
   const onBike = { ...board, player: { ...board.player, vehicle: { kind: 'fiets', speed: 0, angle: 0 } }, nearby: { vehicles: [{ x: 5, y: 0, distance: 5, free: true, drivable: true, kind: 'fiets' }, { x: 20, y: 0, distance: 20, free: true, drivable: true, kind: 'auto' }] } };
   const mb = {};
