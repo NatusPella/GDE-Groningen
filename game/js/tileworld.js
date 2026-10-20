@@ -69,8 +69,9 @@ function boundsOfObj(kind, o) {
   return polygonBounds(o.pts);
 }
 
-// The key a tile is resident under: its place.
-const residentKey = (i, j) => `${i},${j}`;
+// The key a tile is resident under: its place, or for an overlay (the part of
+// a city tile the city's data leaves empty, store key 'o' + the tile's) 'o' + its place.
+const residentKey = (i, j, key) => (key && key[0] === 'o' ? 'o' : '') + `${i},${j}`;
 
 export class TileWorld extends GameMap {
   // global: decoded global blob; tiles: decoded tiles of the pinned set
@@ -120,14 +121,14 @@ export class TileWorld extends GameMap {
 
   attachStore(store) {
     this.store = store;
-    store.on('tile', (tile, key) => this.tileQueue.add(() => this.addTile(tile, key), 1, `add:${residentKey(tile.i, tile.j)}`));
-    store.on('drop', (key) => { const e = store.index.tiles[key]; if (e) this.tileQueue.add(() => this.dropTile(residentKey(e.i, e.j)), 0, `drop:${residentKey(e.i, e.j)}`); });
+    store.on('tile', (tile, key) => this.tileQueue.add(() => this.addTile(tile, key), 1, `add:${residentKey(tile.i, tile.j, key)}`));
+    store.on('drop', (key) => { const e = store.index.tiles[key]; if (e) this.tileQueue.add(() => this.dropTile(residentKey(e.i, e.j, key)), 0, `drop:${residentKey(e.i, e.j, key)}`); });
     return this;
   }
 
   // tiles that came in by streaming (not the pinned city) go into the grids
   addTile(tile, key) {
-    const tk = residentKey(tile.i, tile.j);
+    const tk = residentKey(tile.i, tile.j, key);
     if (this.resident.has(tk)) return false;
     this.resident.add(tk);
     const newRoads = [], newWater = [];
@@ -297,6 +298,10 @@ export async function loadTileWorld(base = 'world/', { source = new HttpRangeSou
   const tiles = await Promise.all(keys.map((k) => store.request(k, { priority: 0 }).then((t) => { if (onProgress) onProgress(++done / keys.length); return t; })));
   const world = TileWorld.fromTiles(globalBlob, tiles).attachStore(store);
   world.tileIndex = index;
+  // the overlays of the city's tiles (scripts/world/build_province.mjs): few and small, held for good
+  const overlays = Object.keys(index.tiles).filter((k) => index.tiles[k].ov);
+  for (const k of overlays) store.pin(k);
+  await Promise.all(overlays.map((k) => store.request(k, { priority: 0 })));
   world.tileQueue.run(1e9);
   return { world, store, index, global: globalBlob, source };
 }
@@ -321,6 +326,7 @@ export function mergeIndex(index, extra, { only = null } = {}) {
 // The map at `url` (stad.json) for code that only needs the map: the tile
 // world when the build has tiles, else stad.json alone (dev server).
 export async function loadMapAuto(url = 'stad.json', onProgress = null, { pool = true } = {}) {
-  const t = await loadTileWorld(url.replace(/[^/]*$/, '') + 'world/', { onProgress, pool });
+  // with the overlays of the city's tiles, as the game's own map has them (the worker's roads and shores must see the same neighbours)
+  const t = await loadTileWorld(url.replace(/[^/]*$/, '') + 'world/', { onProgress, pool, extra: [{ name: 'index-provincie.json', only: (q) => !!q.ov }] });
   return t ? t.world : loadMap(url, onProgress);
 }

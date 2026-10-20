@@ -159,10 +159,9 @@ class MinHeap {
   }
 }
 
-// cover(x, y): de dekking van de stad (stad_dekking.mjs: de stadstegels zelf); zonder dekking de kaartrand plus CLIP_MARGIN
-export function cityRail({ elements, roads, bounds, cover = null, project = wgsToWorld }) {
+export function cityRail({ elements, roads, bounds, project = wgsToWorld }) {
   const [bx0, by0, bx1, by1] = bounds;
-  const inside = cover ? (p) => cover(p[0], p[1]) : (p, margin = CLIP_MARGIN) => bx0 - margin <= p[0] && p[0] <= bx1 + margin && by0 - margin <= p[1] && p[1] <= by1 + margin;
+  const inside = (p, margin = CLIP_MARGIN) => bx0 - margin <= p[0] && p[0] <= bx1 + margin && by0 - margin <= p[1] && p[1] <= by1 + margin;
   const geomOf = (e) => e.g || (e.geometry || []).map((q) => [q.lat, q.lon]);
   const ways = elements.filter((e) => e.type === 'way' && (e.tags || {}).railway === 'rail' && geomOf(e).length >= 2);
 
