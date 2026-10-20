@@ -81,15 +81,14 @@ if (want('doel')) {
   const HP = await imp('hud_panel');
   const longTxt = ['Stap in de auto: de pinautomaat ligt aan de overkant van het kanaal', "Houd Oma's vrienden bij elkaar, anders rijdt Jelle weg met de limo", 'Wees eerder bij de sluis van Dorkwerd dan de andere boot'];
   for (const [n, t] of longTxt.entries()) {
+    GL.setGoal({ kind: 'place', name: t, x: p.x + 300, y: p.y + 200 });
+    await sleep(3500);
     const el = document.querySelector('#hud .hud-mission-label');
     const box = document.querySelector('#hud .hud-mission');
     if (!el || !box) { info.push('geen doelblok'); break; }
-    box.hidden = false; box.classList.add('in-mission'); box.style.opacity = 1; box.style.display = 'flex';
-    el.textContent = t;
-    await sleep(600);
-    const r = el.getBoundingClientRect(), mm = document.querySelector('#hud .hud-minimap, #hud .hud-map');
+    const r = el.getBoundingClientRect(), br = box.getBoundingClientRect(), mm = document.querySelector('#hud .hud-minimap, #hud .hud-map');
     const m = mm && mm.getBoundingClientRect();
-    info.push('doel' + n + ' h=' + Math.round(r.height) + ' regels=' + Math.round(r.height / 24) + ' afgekapt=' + (el.scrollHeight > el.clientHeight + 1) + ' naastmini=' + (m ? !(r.left < m.right && r.right > m.left && r.top < m.bottom && r.bottom > m.top) : '?'));
+    info.push('doel' + n + ' tekst=' + el.textContent.slice(0, 30) + ' h=' + Math.round(r.height) + ' regels=' + Math.round(r.height / 24) + ' afgekapt=' + (el.scrollHeight > el.clientHeight + 1) + ' blok=' + Math.round(br.left) + '-' + Math.round(br.right) + 'x' + Math.round(br.top) + '-' + Math.round(br.bottom) + ' raaktMinimap=' + (m ? (br.left < m.right && br.right > m.left && br.top < m.bottom && br.bottom > m.top) : '?'));
     await shot('doel-' + n, 300);
   }
   done.push('doel');

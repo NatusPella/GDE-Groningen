@@ -9,7 +9,7 @@ for (let d = 0; d <= 400; d += 10) { const s = M.iconScale(d); ok(s >= prev, 'ic
 // about constant on screen between 40 m and the cap: size / distance stays within a factor 1
 ok(Math.abs(M.iconScale(100) / 100 - M.iconScale(160) / 160) < 0.01 || M.iconScale(160) === 4, 'on-screen size roughly constant');
 ok(M.iconLift(10) === 0 && M.iconLift(1e6) > 0, 'lift only far away');
-ok(M.columnWidth(0) === 1 && M.columnWidth(1e6) === 8, 'column width 1..8');
+ok(M.columnWidth(0) === 1 && M.columnWidth(1e6) === 14, 'column width 1..14');
 ok(M.columnWidth(400) * 0.07 * 2 / 400 > 0.002, 'op 400 m is de kolom minstens 0,1 graad breed');
 ok(M.columnHeight(0) === 28 && M.columnHeight(400) > 100 && M.columnHeight(1e6) === 140, 'kolom wordt hoger met afstand, begrensd');
 
