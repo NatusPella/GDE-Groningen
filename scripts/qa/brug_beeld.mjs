@@ -22,11 +22,14 @@ const alleenLijst = flag('alleen-lijst');
 const boot = arg('modus', 'beeld') === 'boot'; // boten bij bruggen (brug_boot.page.js): --lijst is dan { open: [...], bots: [...] }
 let bruggen = boot ? {} : [];
 if (arg('lijst')) bruggen = JSON.parse(fs.readFileSync(path.resolve(arg('lijst')), 'utf8'));
-if (!(boot ? Object.keys(bruggen).length : bruggen.length) && !alleenLijst) { console.error('geen bruggen: geef --lijst of --alleen-lijst'); process.exit(2); }
+const plekken = arg('plekken') ? JSON.parse(fs.readFileSync(path.resolve(arg('plekken')), 'utf8')) : []; // [{ naam, x, y }]: luchtbeeld en straatbeeld zonder brug
+if (!(boot ? Object.keys(bruggen).length : bruggen.length) && !plekken.length && !alleenLijst) { console.error('geen bruggen: geef --lijst of --alleen-lijst'); process.exit(2); }
 const afstanden = arg('afstanden', '25,60,150,350').split(',').map(Number);
 const profile = `gde-test-bb-${process.pid}`;
 const script = path.join(OUT, '_page.js');
-fs.writeFileSync(script, `window.__bb = ${JSON.stringify({ bruggen, afstanden, alleenLijst, settle: Number(arg('settle', 4500)) })};\n` + fs.readFileSync(path.join(HERE, 'brug_beeld.page.js'), 'utf8'));
+fs.writeFileSync(script, boot
+  ? `window.__bt = ${JSON.stringify({ ...bruggen, settle: Number(arg('settle', 4500)) })};\n` + fs.readFileSync(path.join(HERE, 'brug_boot.page.js'), 'utf8')
+  : `window.__bb = ${JSON.stringify({ bruggen, plekken, afstanden, alleenLijst, settle: Number(arg('settle', 4500)) })};\n` + fs.readFileSync(path.join(HERE, 'brug_beeld.page.js'), 'utf8'));
 const electron = process.env.ELECTRON_EXE || path.join(ROOT, 'desktop', 'node_modules', 'electron', 'dist', process.platform === 'win32' ? 'electron.exe' : 'Electron');
 const env = { ...process.env, GDE_TEST_PROFILE: profile };
 if (arg('game-dir')) env.GDE_GAME_DIR = path.resolve(arg('game-dir')); // path.resolve: met schuine strepen serveert de app niets
