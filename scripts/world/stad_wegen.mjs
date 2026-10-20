@@ -10,7 +10,7 @@
 //   handwerk   mapextras (busRoads, busLanes, roadZ) komt via applyMapExtras op de OSM-wegen, op coördinaat;
 //              de busbanen en beschermde wegen gaan mee in de oplosser zoals bij de oude keten
 //   lichten    meta.trafficLights uit de OSM-knopen (junction_tiles.mjs snapSignals)
-import { ROAD_SPEC } from '../../game/js/worldbuilder.js';
+import { ROAD_SPEC, LANE_W } from '../../game/js/worldbuilder.js';
 import { SpatialGrid } from '../../game/js/spatialgrid.js';
 import { waterPolyIn } from '../../game/js/waterlevels.js';
 import { polygonBounds } from '../../game/js/util.js';
@@ -109,6 +109,79 @@ export function cutToCover(roads, inside, step = 10) {
   return out;
 }
 
+// Een eenrichtingsweg (secondary, tertiary) is een rijbaan van een dubbele weg als een parallelle weg de andere kant op loopt
+// (worldbuilder.js dualCarriageways), maar dat wordt op het midden van elk stuk getest: een straat in stukken had stukken met de
+// breedte van zijn rijstroken (5 m voor een strook) en stukken met de klassebreedte (8 m), een stap in de stoeprand waar ze
+// samenkomen (road_seams.mjs widthJump, #130). Een stuk dat met dezelfde naam aansluit op een stuk met de gemodelleerde breedte
+// krijgt die breedte ook, tenzij een breedtetag het anders zegt. lanes.py chain_duals; geeft het aantal gewijzigde wegen.
+const CAR_CATS = new Set(['major', 'normal', 'minor']);
+const modelledWidth = (r) => Math.round((r.lanesFwd * (r.laneW !== undefined ? r.laneW : LANE_W[r.type] !== undefined ? LANE_W[r.type] : 3.0) + ONEWAY_EXTRA[r.type]) * 100) / 100;
+const ONEWAY_EXTRA = { secondary: 2.0, tertiary: 2.0 };
+export function chainDuals(roads) {
+  const cand = roads.filter((r) => r.oneway && !r.roundabout && CAR_CATS.has(r.cat) && (r.type === 'secondary' || r.type === 'tertiary') && r.name && r.lanesFwd);
+  const k = (p) => `${Math.round(p[0] * 100)},${Math.round(p[1] * 100)}`;
+  const ends = new Map();
+  cand.forEach((r, i) => { for (const p of [r.pts[0], r.pts[r.pts.length - 1]]) { const key = k(p); if (!ends.has(key)) ends.set(key, []); ends.get(key).push(i); } });
+  const parent = cand.map((_, i) => i);
+  const find = (a) => { while (parent[a] !== a) { parent[a] = parent[parent[a]]; a = parent[a]; } return a; };
+  for (const ids of ends.values()) if (ids.length === 2 && ids[0] !== ids[1] && cand[ids[0]].name === cand[ids[1]].name) parent[find(ids[0])] = find(ids[1]);
+  const model = new Map();
+  cand.forEach((r, i) => { if (r.widthSrc === 'lanes' && Math.abs(r.width - modelledWidth(r)) < 0.01) { const g = find(i); if (!model.has(g)) model.set(g, new Set()); model.get(g).add(i); } });
+  let n = 0;
+  cand.forEach((r, i) => {
+    const g = find(i);
+    if (!model.has(g) || model.get(g).has(i) || r.widthSrc === 'tag') return;
+    const w = modelledWidth(r);
+    if (Math.abs(r.width - w) > 0.01) { r.width = w; r.widthSrc = 'lanes'; n++; }
+  });
+  return n;
+}
+
+// Een wegeinde dat 0,3 tot 4 m naast de lijn van een andere weg op hetzelfde niveau ophoudt, zonder die te raken, laat een reep gras
+// tussen beide (road_seams.mjs gap): OSM heeft de twee niet aan elkaar geknoopt (de twee rijbanen van de Peizerweg, een zandpad dat bij
+// de Godekenheerd net naast de straat eindigt). Het einde loopt door tot op die lijn en de aansluiting wordt een gedeeld hoekpunt van
+// beide wegen (een T-kruising); het snijpunt valt binnen een halve meter van een bestaand hoekpunt: dan dat hoekpunt. Draait vóór de
+// hoogtes (de wegen hebben dan nog geen profiel). Geeft het aantal gesloten gaten.
+const GAP_MAX = 4, GAP_MIN = 0.3;
+export function closeGaps(roads) {
+  const car = roads.filter((r) => CAR_CATS.has(r.cat) && r.pts.length > 1);
+  const level = (r) => r.layer ?? (r.tunnel ? -1 : r.bridge ? 1 : 0);
+  const k = (p) => `${Math.round(p[0] * 100)},${Math.round(p[1] * 100)}`;
+  const nodes = new Map();
+  const note = (r, p) => { const key = k(p); let l = nodes.get(key); if (!l) nodes.set(key, l = new Set()); l.add(r); };
+  for (const r of car) for (const p of r.pts) note(r, p);
+  const G = 16, grid = new Map();
+  const cellsOf = (a, b) => { const out = []; for (let gx = Math.floor((Math.min(a[0], b[0]) - GAP_MAX) / G); gx <= Math.floor((Math.max(a[0], b[0]) + GAP_MAX) / G); gx++) for (let gy = Math.floor((Math.min(a[1], b[1]) - GAP_MAX) / G); gy <= Math.floor((Math.max(a[1], b[1]) + GAP_MAX) / G); gy++) out.push(gx * 100003 + gy); return out; };
+  for (const r of car) for (let i = 0; i < r.pts.length - 1; i++) for (const c of cellsOf(r.pts[i], r.pts[i + 1])) { let l = grid.get(c); if (!l) grid.set(c, l = []); l.push(r); }
+  const proj = (p, a, b) => { const dx = b[0] - a[0], dy = b[1] - a[1], l2 = dx * dx + dy * dy || 1e-9, t = Math.max(0, Math.min(1, ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / l2)); const q = [a[0] + dx * t, a[1] + dy * t]; return { q, d: Math.hypot(q[0] - p[0], q[1] - p[1]) }; };
+  let closed = 0;
+  for (const r of car) {
+    for (const atEnd of [false, true]) {
+      const p = atEnd ? r.pts[r.pts.length - 1] : r.pts[0];
+      if ([...(nodes.get(k(p)) || [])].some((o) => o !== r)) continue;
+      let best = null;
+      for (const o of grid.get(Math.floor(p[0] / G) * 100003 + Math.floor(p[1] / G)) || []) {
+        if (o === r || level(o) !== level(r)) continue;
+        for (let j = 0; j < o.pts.length - 1; j++) {
+          const h = proj(p, o.pts[j], o.pts[j + 1]);
+          if (h.d > GAP_MIN && h.d < GAP_MAX && h.d > o.width / 2 + 0.01 - 0.3 && (!best || h.d < best.d)) best = { ...h, o, j };
+        }
+      }
+      if (!best) continue;
+      const { o, j } = best;
+      let q = best.q;
+      // (een bestaand hoekpunt van de andere weg, als dat binnen een halve meter ligt)
+      for (const v of [o.pts[j], o.pts[j + 1]]) if (Math.hypot(v[0] - q[0], v[1] - q[1]) < 0.5) { q = v; break; }
+      q = [Math.round(q[0] * 100) / 100, Math.round(q[1] * 100) / 100];
+      if (q !== o.pts[j] && q !== o.pts[j + 1] && !(k(q) === k(o.pts[j]) || k(q) === k(o.pts[j + 1]))) o.pts.splice(j + 1, 0, q);
+      if (atEnd) r.pts.push(q.slice()); else r.pts.unshift(q.slice());
+      note(r, q); note(o, q);
+      closed++;
+    }
+  }
+  return closed;
+}
+
 // Een autoweg door water zonder brugtag en zonder profiel is een duiker onder een dijk: droog dek, als een brug
 // (mapdata.js markDryRoad). De OSM-wegen liggen enkele cm anders dan die van de oude kaart: een weg die precies tot de
 // oever reikt zou nu zinken. Hier geldt dezelfde regel met DRY_TOL m speling, zodat elke droge kruising van de oude kaart blijft.
@@ -190,7 +263,10 @@ export function profileCity(d, wegen, { lagen, extras = {}, inside }) {
   const inRect = (x, y, m = 0) => x >= bounds[0] - m && x <= bounds[2] + m && y >= bounds[1] - m && y <= bounds[3] + m;
   if (wantRoads) {
     // (na het knippen nog eens: een brug die OSM twee keer tekent blijft één dek)
-    d.roads = dropDuplicateBridges(cutToCover(wegen.roads.map(cityRoadRow), inside).map((row) => ({ kind: 'roads', row }))).map((f) => f.row);
+    const cut = cutToCover(wegen.roads.map(cityRoadRow), inside);
+    rep.chainDuals = chainDuals(cut);
+    rep.gaps = closeGaps(cut);
+    d.roads = dropDuplicateBridges(cut.map((row) => ({ kind: 'roads', row }))).map((f) => f.row);
     // de ringwegen openen niet voor boten: de oude kaart kende op de ring alleen vaste bruggen (de ring race en de politie rijden er overheen),
     // de nieuwere OSM tagt een paar ervan bridge:movable terwijl het dek ruim 4 m boven de weg ligt
     for (const r of d.roads) if (r.movable && RING_TYPES.has(r.type)) { delete r.movable; rep.ringBridgesFixed = (rep.ringBridgesFixed || 0) + 1; }

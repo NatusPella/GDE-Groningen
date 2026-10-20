@@ -44,7 +44,7 @@ ok(count([road([[0, 0], [100, 0]], { tunnel: true, layer: -1 }), road([[50, -30]
 const { loadStadData } = await import('./lib/loadworld.mjs');
 const data = await loadStadData();
 const f = auditSeams(data.roads);
-const CEIL = { laneJump: 230, widthJump: 7, gap: 24, overlap: 135, crossNoNode: 0 };
+const CEIL = { laneJump: 230, widthJump: 7, gap: 0, overlap: 135, crossNoNode: 0 };
 for (const [k, max] of Object.entries(CEIL)) ok(f[k].length <= max, `map: ${k} not above ${max}`, f[k].length);
 
 console.log(`${n - fails}/${n} ok`);
