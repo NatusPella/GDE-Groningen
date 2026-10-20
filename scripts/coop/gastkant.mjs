@@ -47,7 +47,7 @@ console.log('uitvoer:', OUT);
 const host = await startNodeHost({ stage: STAGE });
 const events = path.join(OUT, 'events.jsonl'); fs.writeFileSync(events, '');
 const script = path.join(OUT, '_page.js');
-fs.writeFileSync(script, `window.__coopCfg = ${JSON.stringify({ name: 'gast', role: 'gast', route: 'direct', code: host.code, viaMenu: true, expect: 2, program: PROGRAM })};\n` + fs.readFileSync(path.join(HERE, 'coop.page.js'), 'utf8'));
+fs.writeFileSync(script, `window.__coopCfg = ${JSON.stringify({ name: 'gast', role: 'gast', route: 'direct', code: host.code, viaMenu: true, expect: 2, preSave: true, program: PROGRAM })};\n` + fs.readFileSync(path.join(HERE, 'coop.page.js'), 'utf8'));
 const profile = `gde-test-gastkant-${process.pid}`;
 const env = { ...process.env, GDE_TEST_PROFILE: profile, GDE_GAME_DIR: STAGE, GDE_COOP_TEST: '1', GDE_MENU_TEST: '1' };
 delete env.ELECTRON_RUN_AS_NODE;
@@ -115,7 +115,7 @@ check(r1.some((s) => s.partners.some((p) => p[0] === 0 && p[2] !== 'voet')), 'ri
 check(win(66, 69).every((s) => s.wanted === 3) && win(66, 69).length > 0, 'wanted: de gast ziet het wanted van de gastheer niet: ' + JSON.stringify(win(66, 69).slice(-1).map((s) => s.wanted)));
 const sv = of('save')[0]; const m0 = (win(1, 5)[0] || {}).money, m1 = (win(74, 76).slice(-1)[0] || {}).money;
 check(m1 === m0 + 250, `betalen: het geld van de gast steeg niet met 250 (${m0} → ${m1})`);
-check(sv && sv.verdiend >= 0, 'save: geen logregel'); note(notes, 'save gast: ' + JSON.stringify(sv));
+check(sv && sv.hadSave && sv.ok === true && sv.saveMoney === sv.saveMoneyVoor + 250 && sv.verdiend === 0, 'save: de beloning van de gast staat niet in zijn eigen save (hij had er al een): ' + JSON.stringify(sv)); note(notes, 'save gast: ' + JSON.stringify(sv));
 // desync
 const di = of('desync-ingebracht')[0], du = of('desync-uitkomst')[0];
 check(di && du && du.hersync >= 1 && du.desync && du.desync.includes('stage'), 'desync: niet herkend of geen hersync gevraagd: ' + JSON.stringify(du));
