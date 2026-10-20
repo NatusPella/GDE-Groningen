@@ -59,6 +59,12 @@ Beeld voor beeld vanaf een vaste camera; zonder de cinematic-camera van het spel
 - `node scripts/qa/png_crop.mjs <png> <x> <y> <b> <h> [schaal]` vergroot een stuk van een beeld; `node scripts/qa/montage.mjs <map> --filter=<regex>` maakt een contactblad.
 - `node scripts/qa/brug_probe.mjs` leest het dek zonder Electron (hoogtestappen, dekverschil per brug); `scripts/qa/brug_qa.mjs` is de oudere, enkelvoudige versie.
 
+## Stadsplekken en straatregels (#323 t/m #335)
+
+- `node scripts/qa/stadbugs.mjs --spots=<json> [--out=<map>] [--game-dir=<gestaged game-map>]`: één Electron (slot, wegwerpprofiel, BelowNormal) maakt per plek beelden op vaste camerastanden (`views`: `{ n, p: [x, y, hoogte boven de grond], l: [x, y, hoogte] }`, spelcoördinaten) en voert een `eval` uit in de pagina (een async functie `(w, map, imp, sleep, go, shot) => json`: bijvoorbeeld alle heginstanties van de scene tegen de wegen, of een lijst van alles wat bij een brug in de scene staat). De pagina-helft is `scripts/qa/stadbugs.page.js`.
+- `node scripts/world/tegelprobe.mjs <x> <y> [--r=60] [--kind=roads,furniture,trees,water,buildings,rails,green,canopies,passages] [--naam=tekst]` leest de tegels rond een plek zonder Electron: wat de tegelbouw daar heeft.
+- `scripts/lib/stadtegels.mjs` (`laadStadTegels`) geeft de stad als TileWorld uit een gebouwde wereld (`game/world` of `GAME_WORLD`), in seconden in plaats van de OSM-bouw van 7 minuten van `loadworld.mjs`. Tests die erop draaien sluiten met SKIP af zonder wereld: `garage_zone_test` (garage-ingangen vrij van bomen, geparkeerde auto's en props), `wildlife_road_test` (geen grondbeest op een rijbaan of kruispunt, de echte `wildlife.js` bij de 12 drukste kruispunten), `canopy_base_test` (perronkappen op de hoogte van het spoor), `kermis_solid_test` (kraampjes en reuzenrad zijn alleen vast als de kermis er staat).
+
 ## Veiligheid
 
 - De Electron-stappen gebruiken een wegwerpprofiel (`GDE_TEST_PROFILE=gde-testall-<pid>-<stap>` in de tijdelijke map) en schrijven nooit naar `gde-save-v1`, `gde-settings` of `gde-prestaties-v1`. De profielen worden na afloop verwijderd.
