@@ -8,6 +8,10 @@ Er zijn in deze ronde **geen nieuwe opnames gemaakt** en geen TTS aangeroepen. A
 - M08.2 Tammo: "Wat?" had een opname; de regel is vervangen en is nu stil.
 Terug naar de oorspronkelijke tekst kan, maar dan is de fout van het oude script (Tammo vroeg "Wat?" naar iets wat Sjabbe al vertelde) terug. Aanbeveling: laat het stil.
 
+## 1b. Tessa-opnames met Gronings accent
+
+Besluit van de eigenaar: Tessa spreekt standaard Nederlands. De opgenomen Tessa-regels (zie [TESSA-NEDERLANDS.md](TESSA-NEDERLANDS.md): ca. 95 van 106 in het nieuwe verhaal) zijn met een Gronings accent gesproken en moeten bij een heropname met een Nederlands accent. De geschreven tekst is al standaard Nederlands; er is niets aan het script veranderd voor dit punt.
+
 ## 2. Eerst inspreken (verhaaldragende regels, 20)
 
 De regels waar de bewaarder, de notaris, de uitslag, de jury, Mem en de ladder worden uitgelegd of herinnerd. Spreker en kanaal staan erbij.
