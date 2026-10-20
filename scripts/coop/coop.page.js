@@ -351,7 +351,13 @@ const PHASES = {
     }
     await sleep(1500);
     const voor = w.player.inVehicle ? 1 : 0;
-    for (let i = 0; i < 4 && !w.player.inVehicle; i++) { await B.press('e', 150); await sleep(900); }
+    // naast het dichtstbijzijnde voertuig gaan staan (de bezorging zet het niet altijd binnen bereik)
+    const dicht = () => (w.vehicles || []).filter((x) => x && !x.isBoat && !x.isHeli && !x.wrecked && !x.isPolice).sort((a2, b2) => Math.hypot(a2.x - w.player.x, a2.y - w.player.y) - Math.hypot(b2.x - w.player.x, b2.y - w.player.y))[0];
+    const v0 = dicht(); log('rit-voertuig', { afstand: v0 ? Math.round(Math.hypot(v0.x - w.player.x, v0.y - w.player.y)) : null, soort: v0 && v0.model ? v0.model.name || v0.model.id || '' : '' });
+    for (let i = 0; i < 8 && !w.player.inVehicle; i++) {
+      const v = dicht(); if (v && Math.hypot(v.x - w.player.x, v.y - w.player.y) > 3.5) { w.player.x = v.x - Math.cos(v.angle || 0) * 0; w.player.y = v.y + 2.2; }
+      await B.press('e', 150); await sleep(900);
+    }
     log('rit-in', { via, ingestapt: !!w.player.inVehicle, voor, tessa: !!w.companion.inVehicle });
     const tw = performance.now();
     for (let i = 0; i < 40 && !w.companion.inVehicle; i++) await sleep(300); // Tessa loopt via de volg-AI naar het voertuig
