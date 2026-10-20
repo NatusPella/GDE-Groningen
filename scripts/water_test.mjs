@@ -144,7 +144,9 @@ ok(movable.length >= 19, 'movable bridges from OSM', movable.length);
 const { GameMap, applyMapExtras } = await import('../game/js/mapdata.js');
 applyMapExtras(data, JSON.parse(fs.readFileSync(new URL('mapextras.json', root))));
 const map = new GameMap(data);
-const mb = map.roads.find((r) => r.movable && r.cat === 'normal');
+// (een brug waar geen ander brugdek bij ligt: de kanaaloevers uit OSM geven een weg die er schuin langs loopt soms een eigen dek, dat telt niet voor deze brug)
+const alone = (r) => { const m = r.pts[Math.floor(r.pts.length / 2)]; return !map.roadsNear(m[0], m[1], 8).some((q) => q !== r && q.bridge && !q._open && !q.movable); };
+const mb = map.roads.find((r) => r.movable && r.cat === 'normal' && alone(r));
 const mid = mb.pts[Math.floor(mb.pts.length / 2)];
 ok(map.isOnBridge(mid[0], mid[1]), 'a closed movable bridge is a bridge');
 mb._open = true;
