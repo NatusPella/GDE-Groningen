@@ -6,6 +6,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { withEllipsisAliases } from '../game/js/voicebank.js';
 import { JELLE, JELLE_LINES, INTROS, FJORD_BUBBLES, FJORD_DUO } from '../game/js/pg_lines.js';
 import { CARD_LINES, COMPANION_CARDS } from '../game/js/cardlines.js';
 import { STEPS, PARTS, SPEAKERS } from '../game/js/storyarc.js';
@@ -72,7 +73,7 @@ export function manifest(name) {
   }
   if (!manifests[name]) {
     const p = path.join(VL, name, 'manifest.json');
-    manifests[name] = fs.existsSync(p) ? JSON.parse(fs.readFileSync(p, 'utf8')) : {};
+    manifests[name] = fs.existsSync(p) ? withEllipsisAliases(JSON.parse(fs.readFileSync(p, 'utf8'))) : {};
   }
   return manifests[name];
 }

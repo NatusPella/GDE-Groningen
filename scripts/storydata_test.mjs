@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 import { build } from './build_story_data.mjs';
 import { STEPS, SPEAKERS, PARTS, NEW_MISSION_IDS } from '../game/js/storyarc_nieuw.js';
 import { dutchFor, looksFrisian } from '../game/js/subtitles.js';
+import { withEllipsisAliases } from '../game/js/voicebank.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const file = path.join(ROOT, 'game/storydata/script.json');
@@ -22,7 +23,7 @@ const lines = scenes.flatMap((s) => s.lines.map((l) => ({ ...l, scene: s })));
 const CHANNELS = new Set(['stem', 'radio', 'telefoon', 'app-stil']);
 const KINDS = new Set(['opening', 'intro', 'outro', 'replay', 'key', 'banter', 'radio', 'app', 'side', 'travel', 'epilogue']);
 const manifests = {};
-const manifest = (m) => manifests[m] || (manifests[m] = JSON.parse(fs.readFileSync(path.join(ROOT, 'game/audio/voicelines', m, 'manifest.json'), 'utf8')));
+const manifest = (m) => manifests[m] || (manifests[m] = withEllipsisAliases(JSON.parse(fs.readFileSync(path.join(ROOT, 'game/audio/voicelines', m, 'manifest.json'), 'utf8'))));
 
 // format
 ok(scenes.length >= 150, 'scenes in the script', String(scenes.length));

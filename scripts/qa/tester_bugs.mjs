@@ -3,6 +3,7 @@
 //   node scripts/qa/tester_bugs.mjs --check=intro|audio|caption|lock [--out=<map>] [--max=150] [--seed=<n>]
 // Omgeving: GDE_GAME_DIR=<map>\game (met backslashes) voor een gestagede build, ELECTRON_EXE=<pad> als
 // desktop/node_modules ontbreekt. Het slot wordt altijd vrijgegeven. De page-scripts heten tester_<check>.page.js.
+// Bij --check=audio draait het spel met --stil --audio-graph: de hele geluidsgraaf loopt, maar in een gedempte uitgang (niets te horen).
 // Uitvoer: <out>/run.log, <out>/result.json (de [perf-script]-regel), <out>/frames.json (intro: [t,x,y,h,dx,dy,dz,fov,dak,cine,ov,cut]), beelden <out>/shots-*.png.
 import fs from 'node:fs';
 import os from 'node:os';
@@ -46,7 +47,7 @@ await takeSlot();
 let out = '';
 try {
   const child = spawn(electron, ['.', '--windowed', '--stil', '--force-device-scale-factor=1', '--window-size=1600x900',
-    `--smoke-test=${path.join(OUT, 'shots.png')}`, `--perf-script=${script}`], { cwd: path.join(ROOT, 'desktop'), env, windowsHide: false });
+    `--smoke-test=${path.join(OUT, 'shots.png')}`, `--perf-script=${script}`, ...(CHECK === 'audio' ? ['--audio-graph'] : [])], { cwd: path.join(ROOT, 'desktop'), env, windowsHide: false });
   try { os.setPriority(child.pid, os.constants.priority.PRIORITY_BELOW_NORMAL); } catch { /* geen rechten */ }
   child.stdout.on('data', (d) => { out += d; });
   child.stderr.on('data', (d) => { out += d; });
