@@ -171,7 +171,9 @@ function swapper(game, lagen, report) {
 }
 export function parseLagen(raw) {
   const ok = ['water', 'green', 'trees', 'buildings', ...LAGEN_WEGEN];
-  return String(raw || '').split(/[,\s]+/).map((w) => w.trim().toLowerCase()).filter((w) => ok.includes(w));
+  // (de runtimevlag ?stadlaag kent de Nederlandse namen wegen en spoor, de bouw de laagnamen roads en rails)
+  const alias = { wegen: 'roads', spoor: 'rails', groen: 'green', gebouwen: 'buildings' };
+  return [...new Set(String(raw || '').split(/[,\s]+/).map((w) => w.trim().toLowerCase()).map((w) => alias[w] || w).filter((w) => ok.includes(w)))];
 }
 
 // the per-tile kinds, in the order the GameMap keeps them
