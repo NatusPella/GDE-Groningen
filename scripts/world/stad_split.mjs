@@ -18,6 +18,9 @@ export { stringifyStad };
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 export const OSM_LAGEN = ['buildings', 'water', 'green', 'trees'];
+// productie: ook wegen en spoor komen uit de OSM-bouw (stad_wegen.mjs); met het spoor vervallen de bijbehorende lijsten
+export const OSM_LAGEN_ALLE = [...OSM_LAGEN, 'roads', 'rails'];
+const LAAG_SLEUTELS = { rails: ['rails', 'stations', 'levelCrossings', 'railRoutes', 'railPlatforms', 'railLifts'] };
 
 // citymap.json zoals de oude stadsbouw hem las: { data, fromOsm: [], tiles, mask }; de dekking komt uit de kaart na mapextras
 export async function readCitymap(game = path.join(ROOT, 'game')) {
@@ -29,10 +32,11 @@ export async function readCitymap(game = path.join(ROOT, 'game')) {
 }
 
 // De handlaag uit de stadsdata van citymap.json; omit: de lagen die uit OSM komen (de rest blijft heel).
-export function splitCity(city, { omit = OSM_LAGEN } = {}) {
-  const out = { format: STAD_FORMAT, fromOsm: OSM_LAGEN.filter((l) => omit.includes(l)), tiles: city.tiles, cover: city.mask };
+export function splitCity(city, { omit = OSM_LAGEN_ALLE } = {}) {
+  const out = { format: STAD_FORMAT, fromOsm: OSM_LAGEN_ALLE.filter((l) => omit.includes(l)), tiles: city.tiles, cover: city.mask };
+  const weg = new Set(omit.flatMap((l) => LAAG_SLEUTELS[l] || [l]));
   for (const k of Object.keys(city.data)) {
-    if (!omit.includes(k)) out[k] = city.data[k];
+    if (!weg.has(k)) out[k] = city.data[k];
     else if (k === 'buildings') out[k] = city.data[k].filter(isHandBuilding);
   }
   return out;
@@ -43,7 +47,7 @@ async function main() {
   const opt = (k) => (args.includes(k) ? args[args.indexOf(k) + 1] : null);
   const game = path.resolve(ROOT, opt('--game') || 'game');
   const out = path.resolve(ROOT, opt('--out') || path.join(game, 'stad.json'));
-  const omit = opt('--omit') ? opt('--omit').split(',') : OSM_LAGEN;
+  const omit = opt('--omit') ? opt('--omit').split(',') : OSM_LAGEN_ALLE;
   const stad = splitCity(await readCitymap(game), { omit });
   const text = stringifyStad(stad);
   JSON.parse(text);
