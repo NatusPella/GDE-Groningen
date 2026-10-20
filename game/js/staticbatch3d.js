@@ -230,8 +230,7 @@ function* finishWork(job) {
   }
 }
 
-function finishJob(B) {
-  const job = B.job;
+function makeGroup(B, job) {
   const group = new THREE.Group();
   group.name = B.name;
   for (const { geo, bk } of job.geos) {
@@ -243,6 +242,12 @@ function finishJob(B) {
     group.add(mesh);
   }
   group.matrixAutoUpdate = false;
+  return group;
+}
+
+function finishJob(B) {
+  const job = B.job;
+  const group = job.group || makeGroup(B, job);
   const c = job.c;
   unmerge(B, c);
   c.group = group;
@@ -307,7 +312,14 @@ function createStaticBatcher(opts) {
       while (performance.now() < deadline && !(done = job.fin.next().done));
       if (!done) return;
       if (stale()) B.job = null;
-      else { finishJob(B); B.kick = true; }
+      else {
+        // a merged mesh with a material whose shaders are not linked yet draws only once they are (a first draw
+        // blocked the frame for 0.3 to 1 s, #247): compile it first, in the background, and wait up to 2 s
+        if (ctx.compile && !job.group) { job.group = makeGroup(B, job); ctx.compile(job.group); job.linkSince = performance.now(); }
+        if (job.group && ctx.ready && !ctx.ready(job.group) && performance.now() - job.linkSince < 2000) return;
+        finishJob(B);
+        B.kick = true;
+      }
       return;
     }
     if (B.frame % 8 && !B.kick) return;
