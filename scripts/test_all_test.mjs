@@ -97,6 +97,14 @@ assert.ok(md.indexOf('## Samenvatting') < md.indexOf('## Licht'));
 assert.match(md, /\*\*Niet gedraaid\*\* in deze run/);
 assert.match(md, /game\/world ontbreekt/);
 assert.match(md, /\| b \| FAIL \(nieuw\)/);
+assert.match(md, /- `b`: oorzaak nog niet onderzocht/);
+{ // oorzaak uit het register, bij een mislukt item en bij een item dat eerder instabiel was
+  const reg = [it('test:net_brokers_test.mjs', 'PASS'), it('test:paint_test.mjs', 'TIMEOUT', 'tijdslimiet')];
+  const m2 = R.renderMarkdown({ stamp: 's', fases: { licht: { gedraaid: true, items: reg, secs: 1, diff: R.diffRuns([], reg), vorige: null } } });
+  assert.match(m2, /`test:paint_test\.mjs`: bug, zelfde als bus_route_test/);
+  assert.match(m2, /Eerder instabiel/);
+  assert.match(m2, /`test:net_brokers_test\.mjs` \(PASS\): instabiel/);
+}
 assert.match(R.samenvatting({ stamp: 'x', fases: {} }).join(' '), /Er is niets gedraaid/);
 assert.ok(!R.samenvatting({ ...rapport, toon: ['licht'] }).join(' ').includes('niet gedraaid: zwaar'));
 
@@ -117,4 +125,17 @@ assert.equal(statusVan({ code: 0, out: 'SKIP geen index', timedOut: false }), 'S
 assert.equal(statusVan({ code: 1, out: 'Error', timedOut: false }), 'FAIL');
 assert.equal(statusVan({ code: null, out: '', timedOut: true }), 'TIMEOUT');
 assert.equal(statusVan({ code: 1, out: "Cannot find package 'three' imported", timedOut: false }), 'SKIP');
+// poort zwarte wereld / fouten per frame
+const goed = { gestart: true, scene: true, meshes: 1500, nan: 0, tris: 90000, calls: 400, frames: 120, framesMetFout: 0, foutenTotaal: 0, voorbeeld: [] };
+assert.equal(R.beoordeelWereldpoort(goed).status, 'PASS');
+assert.equal(R.beoordeelWereldpoort(null).status, 'FAIL');
+assert.equal(R.beoordeelWereldpoort({ ...goed, meshes: 12 }).status, 'FAIL');
+assert.equal(R.beoordeelWereldpoort({ ...goed, tris: 0 }).status, 'FAIL');
+assert.equal(R.beoordeelWereldpoort({ ...goed, gestart: false }).status, 'FAIL');
+assert.equal(R.beoordeelWereldpoort({ ...goed, nan: 2 }).status, 'FAIL');
+const perFrame = R.beoordeelWereldpoort({ ...goed, framesMetFout: 120, foutenTotaal: 240, voorbeeld: ['ReferenceError: x is not defined'] });
+assert.equal(perFrame.status, 'FAIL'); assert.ok(/ReferenceError/.test(perFrame.detail));
+assert.equal(R.beoordeelWereldpoort({ ...goed, framesMetFout: 1, foutenTotaal: 1 }).status, 'PASS');
+assert.equal(R.parseWereldpoort('x\n[perf-script] ' + JSON.stringify(goed) + '\n').meshes, 1500);
+assert.equal(R.parseWereldpoort('[perf-script] {"ok":true}'), null);
 console.log('test_all_test: ok');
