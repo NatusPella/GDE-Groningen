@@ -72,7 +72,17 @@ for (const [tab] of TABS) {
     PM.closePauseMenu();
   }
 }
-const MAXW = 120; // woorden zichtbaar per scherm (zonder rail en voet)
-for (const r of rows) info.push(`${r.tab}${r.sub ? '/' + r.sub : ''}: woorden ${r.words}, pictogrammen ${r.icons}, kleinste letter ${r.minFont}px ${r.words > MAXW ? 'TE VEEL TEKST' : 'ok'}`);
+// criteria (DESIGN_SYSTEM.md, Menurust): een keuzescherm toont hooguit 125 woorden in het venster, een naslagscherm
+// (lijsten en uitleg) hooguit 270; toetsplaatjes (toetsen en knoppen) tellen niet mee voor de lettergrootte
+const REF = new Set(['todo/verhaal', 'todo/alles', 'verhaal/personages', 'controls/toetsen', 'controls/knoppen', 'controls/overzicht', 'controls/hulp']);
+let fails = 0;
+for (const r of rows) {
+  const id = r.tab + (r.sub ? '/' + r.sub : '');
+  const max = REF.has(id) ? 270 : 125;
+  const bad = r.words > max;
+  if (bad) fails++;
+  info.push(`${id}: woorden ${r.words}/${max}, pictogrammen ${r.icons}, kleinste letter ${r.minFont}px ${bad ? 'TE VEEL TEKST' : 'ok'}`);
+}
+info.push('menumeting: ' + (fails ? fails + ' schermen te druk' : 'alle ' + rows.length + ' schermen binnen de criteria'));
 clearInterval(skipper);
 return done.concat(info);
