@@ -1,4 +1,4 @@
-import { FLAGS } from './devflags.js';
+import { FLAGS, perfOff } from './devflags.js';
 import { setDualText } from './subtitles.js';
 import { markerColors } from './a11y.js';
 import { speakerHtml } from './speakers.js';
@@ -49,7 +49,7 @@ import { applyCutMask, initCutMask, setCutMaskCenter } from './cutmask3d.js';
 import { updatePortals } from './portalcut3d.js';
 import { inPassage } from './passages.js';
 import { buildRailDecks } from './roadstructures3d.js';
-import { snapShadowCenter, shadowPassSkipped } from './shadowsnap.js';
+import { snapShadowCenter, shadowPassSkipped, actorShadowReach } from './shadowsnap.js';
 import { buildPoliceHeliMesh3D, updatePoliceHeliMesh3D } from './police.js';
 import { updateSkyProps3D, buildBalloonWarmup } from './skyprops3d.js';
 import { pointInPolygon, polygonBounds, WATER_Y, isInWater } from './util.js';
@@ -900,6 +900,7 @@ export function init3D(map) {
   renderer.toneMappingExposure = 1.05;
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFShadowMap;
+  hookShadowPass(renderer.shadowMap);
   pinShaderPrograms(renderer);
   // Fetching shader info logs after a link is a sync point that costs tens of
   // ms per program on a busy GPU; ?shaderdebug brings the error checks back.
@@ -965,9 +966,13 @@ export function init3D(map) {
       if (T) terrainGroup(T, group);
       else terrainGroup(terrainArrays(map.meta.bounds, map.water), group);
       freezeStatic(group);
+      group.matrixWorldAutoUpdate = false; // final: the ~500 tile meshes need no matrix walk any more
       done();
     }));
-  } else terrainMesh = buildTerrainMesh3D(map.meta.bounds, map.water);
+  } else {
+    terrainMesh = buildTerrainMesh3D(map.meta.bounds, map.water);
+    freezeStatic(terrainMesh).matrixWorldAutoUpdate = false;
+  }
   scene.add(freezeStatic(terrainMesh));
 
   // Opaque canal bed under the whole map: terrain holes are cut per grid
@@ -1019,7 +1024,7 @@ export function init3D(map) {
   onSettingsChange(applyViewSettings);
   resize3D();
   window.addEventListener('resize', resize3D);
-  window.__scene3d = { scene, cam, renderer, postfx, farLod, setBlobPool: (on) => { blobPoolOn = !!on; }, dists: () => ({ DRAW_DIST, buildingDetailR, facadeDetailDist, roadDetailR, viewDist }), batches: () => ({ buildings: buildingBatcher.info(), facades: facadeBatcher.info(), roads: roadBatcher.info(), shores: shoreBatcher.info() }) };
+  window.__scene3d = { scene, cam, renderer, postfx, farLod, actors: () => ({ vehicles: vehicleMeshes, peds: pedMeshes, wildlife: wildlifeMeshes, culled: culledActors }), setBlobPool: (on) => { blobPoolOn = !!on; }, dists: () => ({ DRAW_DIST, buildingDetailR, facadeDetailDist, roadDetailR, viewDist }), batches: () => ({ buildings: buildingBatcher.info(), facades: facadeBatcher.info(), roads: roadBatcher.info(), shores: shoreBatcher.info() }) };
 }
 
 // increments each time the scene is drawn to the canvas (blackframe.js)
@@ -1291,6 +1296,27 @@ const ROAD_COLORS3D = { cycle: 0x94412f, foot: 0x837d71, major: 0x57595c, normal
 const GREEN_COLOR = 0x5c8a4d;
 const SIDEWALK_COLOR = 0x7b776d;
 
+// three's shadow pass recurses through every node of the scene (~0.5 us each,
+// about a millisecond for the ~6000 of this one) and asks each mesh whether it
+// casts. The terrain (~500 meshes) never does, and people, vehicles and animals
+// beyond ACTOR_SHADOW_DIST have their casters switched off (limitActorShadows):
+// those sit this pass out as hidden groups and are back right after it.
+const shadowHidden = [];
+function hookShadowPass(shadowMap) {
+  const run = shadowMap.render.bind(shadowMap);
+  shadowMap.render = (lights, sc, camera) => {
+    if (perfOff('schaduwpas')) { run(lights, sc, camera); return; }
+    if (terrainMesh && terrainMesh.visible) { terrainMesh.visible = false; shadowHidden.push(terrainMesh); }
+    for (const cache of [vehicleMeshes, pedMeshes, wildlifeMeshes]) {
+      for (const mesh of cache.values()) if (mesh.visible && mesh.userData.castNear === false) { mesh.visible = false; shadowHidden.push(mesh); }
+    }
+    try { run(lights, sc, camera); } finally {
+      for (let i = 0; i < shadowHidden.length; i++) shadowHidden[i].visible = true;
+      shadowHidden.length = 0;
+    }
+  };
+}
+
 // Static world geometry (buildings, roads, water): matrices are computed once
 // here instead of being recomposed for thousands of objects every frame.
 function freezeStatic(root) {
@@ -1547,6 +1573,12 @@ let facadeDetailDist = Infinity, facadeDetailCulled = false, facadeQualityDist =
 // gfxprofile.js cpuLevel (a busy machine): fewer facade details
 const CPU_FACADE_DIST = [Infinity, 100, 70];
 let shadowFrame = 0;
+// no vehicle faster than 4 m/s in (or just next to) the area that casts shadows
+function shadowAreaCalm(world, fx, fy) {
+  const reach = ACTOR_SHADOW_DIST + 6;
+  for (const v of world.vehicles) if (Math.abs(v.speed) > 4 && Math.abs(v.x - fx) < reach && Math.abs(v.y - fy) < reach) return false;
+  return true;
+}
 let focusSpeed = 0, focusPrevX = null, focusPrevY = 0, focusDirX = 1, focusDirY = 0;
 let roadDetailR = DRAW_DIST;
 let buildingsStaged = false;
@@ -2007,6 +2039,8 @@ function syncPedestrianMeshes(world, player, animDt) {
     }
     mesh.position.set(p.x, p.gz || 0, p.y);
     mesh.rotation.y = -p.angle;
+    // a plain walker out of the frame (last frame's cull, scene3d.js cullOffscreenActors) is not posed: its walk phase waits
+    if (ud.offscreen && !p.ragdoll && !p.pose && !p.carry && !p.heldWeapon && !p.attackFx && !p.hitReact && !(p.greetUntil > world.time) && !perfOff('actoren')) continue;
     // far walkers animate at half rate on a CPU-bound machine (simload.js)
     if (simLevel() && !p.ragdoll && Math.abs(p.x - player.x) + Math.abs(p.y - player.y) > 45) {
       ud.animAcc = (ud.animAcc || 0) + animDt;
@@ -2793,16 +2827,68 @@ export function update3D(dt, world) {
   // behind a menu the world stands still: the shadow map from the first
   // frame is reused
   // a busy CPU (cpuLevel 1+) renders the shadow map every other frame
-  renderer.shadowMap.autoUpdate = !(menuCover && menuShadowDone) && !shadowPassSkipped(cpuLevel(), shadowFrame++, focusSpeed);
+  renderer.shadowMap.autoUpdate = !(menuCover && menuShadowDone) && !shadowPassSkipped(cpuLevel(), shadowFrame++, focusSpeed, !perfOff('schaduw') && shadowAreaCalm(world, focus.x, focus.y));
   if (menuCover) menuShadowDone = true;
   if (sizeDirty) applyRenderSize();
+  cullOffscreenActors();
   skipHiddenMatrixWalk();
   postfx.render();
+  restoreCulledActors();
   if (afterFrameQ.length) { const q = afterFrameQ; afterFrameQ = []; for (const f of q) { try { f(); } catch (e) { /* no picture */ } } }
   canvasFrames++;
   renderer.shadowMap.autoUpdate = true;
   probe.mark('3d:render');
   probe.identify(scene);
+}
+
+// Vehicles, people and animals are ~55% of the scene's nodes (each ~30 to 60),
+// and three walks all of them every frame: the matrices, then the frustum test
+// of every mesh, in the main pass and again in the shadow pass. Most of them
+// are behind or beside the camera. Those out of the view (plus the reach of
+// their shadow) sit the frame out as hidden groups, so skipHiddenMatrixWalk
+// leaves their matrices alone too; they are shown again right after the render.
+const _cullFrustum = new THREE.Frustum();
+const _cullProj = new THREE.Matrix4();
+const _cullSphere = new THREE.Sphere();
+const _cullBox = new THREE.Box3();
+const _cullPos = new THREE.Vector3();
+const culledActors = [];
+function actorRadius(mesh) {
+  // the farthest corner of the box at build time from the group's origin; cached
+  _cullBox.setFromObject(mesh);
+  _cullPos.copy(mesh.position);
+  const b = _cullBox, p = _cullPos;
+  const dx = Math.max(Math.abs(b.min.x - p.x), Math.abs(b.max.x - p.x));
+  const dy = Math.max(Math.abs(b.min.y - p.y), Math.abs(b.max.y - p.y));
+  const dz = Math.max(Math.abs(b.min.z - p.z), Math.abs(b.max.z - p.z));
+  return Math.hypot(dx, dy, dz) + 1.5;
+}
+function cullActorCache(cache, reach) {
+  for (const mesh of cache.values()) {
+    if (!mesh.visible || mesh.parent !== scene) continue;
+    const ud = mesh.userData;
+    if (ud.cullR === undefined) ud.cullR = actorRadius(mesh);
+    _cullSphere.center.copy(mesh.position);
+    _cullSphere.radius = ud.cullR + reach;
+    if (_cullFrustum.intersectsSphere(_cullSphere)) { ud.offscreen = false; continue; }
+    ud.offscreen = true;
+    mesh.visible = false;
+    culledActors.push(mesh);
+  }
+}
+function cullOffscreenActors() {
+  if (perfOff('actoren')) return;
+  cam.updateMatrixWorld();
+  _cullProj.multiplyMatrices(cam.projectionMatrix, cam.matrixWorldInverse);
+  _cullFrustum.setFromProjectionMatrix(_cullProj);
+  const reach = actorShadowReach(sunDir);
+  cullActorCache(vehicleMeshes, reach);
+  cullActorCache(pedMeshes, reach);
+  cullActorCache(wildlifeMeshes, reach);
+}
+function restoreCulledActors() {
+  for (let i = 0; i < culledActors.length; i++) culledActors[i].visible = true;
+  culledActors.length = 0;
 }
 
 // three walks the matrices of hidden objects too: the pooled vehicles and

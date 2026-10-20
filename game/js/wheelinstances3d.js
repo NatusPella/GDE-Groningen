@@ -71,7 +71,8 @@ export function addVehicleWheels(group, frustum = null) {
   const wheels = group.userData.wheels;
   if (!wheels || !wheels.length) return;
   const ok = group.visible && !!group.parent && !(frustum && !frustum.intersectsSphere(_sphere.set(group.position, 8)));
-  group.updateMatrixWorld(true);
+  // only a vehicle whose wheels are drawn needs its matrices now (the rest of the street is not walked twice)
+  if (ok) group.updateMatrixWorld(true);
   for (const w of wheels) {
     const m = w.material;
     if (!w.isMesh || Array.isArray(m) || m.transparent || !w.parent) { w.layers.set(0); continue; }
