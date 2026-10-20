@@ -6,7 +6,7 @@
 // and Space from switching weapons.
 const CSS = `
 #hud .cw-panel[hidden] { display: none; }
-#hud .cw-panel { position: absolute; top: 14px; left: 50%; transform: translateX(-50%); width: min(640px, calc(100vw - 32px)); padding: 10px 18px 12px 14px; color: #f0ede4; text-shadow: var(--hud-shadow); pointer-events: none; z-index: 4;
+#hud .cw-panel { position: absolute; top: 14px; left: 50%; transform: translateX(-50%); width: min(640px, calc(100vw / var(--ui, 1) - 2 * (var(--hud-edge, 46px) + 300px)), calc(100vw - 32px)); min-width: min(440px, calc(100vw - 32px)); padding: 10px 18px 12px 14px; color: #f0ede4; text-shadow: var(--hud-shadow); pointer-events: none; z-index: 4;
   background: linear-gradient(90deg, rgba(12,20,14,0.92), rgba(24,34,28,0.74) 80%, rgba(24,34,28,0.3)); border-left: 3px solid var(--cw-acc, #d9a441); }
 #hud .cw-panel small { display: block; font-size: 12px; letter-spacing: 3px; color: var(--cw-acc, #d9a441); }
 #hud .cw-panel .cw-text { font-size: 19px; line-height: 1.3; margin: 4px 0 2px; }
