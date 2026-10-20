@@ -49,7 +49,7 @@ const P = {
   ]])),
   kamer: { host: [[0, 'wacht', { s: DURATION }]], gast: [[0, 'wacht', { s: DURATION }]], gast2: [[0, 'wacht', { s: DURATION }]] },
   verhaal: Object.fromEntries(['host', 'gast', 'gast2'].map((me) => [me, [[0, 'verhaal', { s: Number(arg('verhaal-s', 1500)), until: arg('until', 'T1'), speed: Number(arg('speed', 1)) || 1 }], ...(me === 'host' ? [[0, 'stopHost', {}]] : [])]])), // de host stopt als het verhaal klaar is: de gasten lopen tot dan mee
-  opening: Object.fromEntries(['host', 'gast', 'gast2'].map((me) => [me, [[0, 'opening', { s: Number(arg('opening-s', 170)), skip: flag('skip') }], ...(me === 'host' ? [[0, 'stopHost', {}]] : [])]])), // nieuw spel samen: het hek, de opening, overslaan (alleen de gastheer)
+  opening: flag('host-save') ? Object.fromEntries(['host', 'gast', 'gast2'].map((me) => [me, [[0, 'wacht', { s: 8 }], [9, 'betaal', me === 'host' ? { geld: 250 } : {}], [16, 'opgeslagen', {}], [20, 'wacht', { s: 3 }], ...(me === 'host' ? [[24, 'stopHost', {}]] : [])]])) : Object.fromEntries(['host', 'gast', 'gast2'].map((me) => [me, [[0, 'opening', { s: Number(arg('opening-s', 170)), skip: flag('skip') }], ...(me === 'host' ? [[0, 'stopHost', {}]] : [])]])), // nieuw spel samen: het hek, de opening, overslaan (alleen de gastheer)
   touch: { host: [[0, 'kijk', { s: 16 }]], gast: [[0, 'touch', { s: 12 }]], gast2: [[0, 'wacht', { s: 16 }]] },
 }[SUITE];
 if (!P) { console.error('onbekende suite: ' + SUITE); process.exit(2); }
@@ -83,7 +83,7 @@ function start(name, cfg, seed, extraArgs = []) {
   const dir = path.join(OUT, name); fs.mkdirSync(dir, { recursive: true });
   const events = path.join(dir, 'events.jsonl'); fs.writeFileSync(events, '');
   const script = path.join(dir, '_page.js');
-  const pcfg = { ...cfg, name, route: ROUTE, preSave: SUITE === 'net' || SUITE === 'basis', durationS: DURATION, viaMenu: MENU, expect: EXPECT, trackerPort, program: P[name] || [], invuln: flag('invuln'), watchOpening: SUITE === 'opening', tekstTest: SUITE === 'opening' };
+  const pcfg = { ...cfg, name, route: ROUTE, preSave: SUITE === 'net' || SUITE === 'basis' || (SUITE === 'opening' && flag('host-save')), durationS: DURATION, viaMenu: MENU, expect: EXPECT, trackerPort, program: P[name] || [], invuln: flag('invuln'), watchOpening: SUITE === 'opening' && !flag('host-save'), tekstTest: SUITE === 'opening', hostSave: flag('host-save') };
   // de spelbot (bot.page.js) als functie, voor de host die het verhaal speelt
   const bot = `window.__botMain = async () => {\n${botCode}\n};\n`;
   fs.writeFileSync(script, `window.__coopCfg = ${JSON.stringify(pcfg)};\n${bot}` + fs.readFileSync(path.join(HERE, 'coop.page.js'), 'utf8'));
@@ -474,6 +474,73 @@ if (SUITE === 'verhaal') {
   // wat zagen de gasten van de opdrachten van de host
   const seenBy = (n) => [...new Set(samples(n).map((s) => s.hm).filter((x) => x && x !== '-'))];
   for (const n of NAMES.filter((x) => x !== 'host')) { const l = seenBy(n); note(`${n} zag ${l.length} opdracht/stap-meldingen`); check(l.length >= 3, `${n}: te weinig opdrachtmeldingen van de host gezien (${l.length})`); }
+}
+
+// ----- suite 'opening': de menustroom, het tekstveld, de wachtkamer, het hek en de opening samen (#315-#318)
+if (SUITE === 'opening') {
+  const one = (Ev, t) => of(Ev, t)[0];
+  const sk = one(H, 'samenkeuze'), sp = one(H, 'spelkeuze'), gsk = one(G, 'samenkeuze');
+  check(sk && sk.knoppen === 'host,gast,terug', 'menu: Samen spelen opent niet de keuze Gastheer worden / Meedoen: ' + JSON.stringify(sk && sk.knoppen));
+  check(gsk && gsk.knoppen === 'host,gast,terug', 'menu: de gast ziet de keuze niet');
+  check(sp && sp.titel === 'Kies jullie spel' && /Lege plek/.test(sp.kaarten || ''), 'spelkeuze: de gastheer krijgt niet het scherm Opgeslagen spellen met lege plekken: ' + JSON.stringify(sp));
+  // tekstveld (de gast): echte toetsen, plakken, het menu op de rechtermuisknop
+  const tt = one(G, 'tekstveld-typen'), tp = one(G, 'tekstveld-plakken'), tm = one(G, 'tekstveld-menu'), tmp = one(G, 'tekstveld-menu-plakken');
+  check(tt && tt.waarde === 'wasd e' && tt.focus, 'tekstveld: W, A, S, D en spatie komen niet in het veld: ' + JSON.stringify(tt));
+  check(tp && tp.waarde === '127.0.0.1:41234-ABC', 'tekstveld: Ctrl+V plakt niet: ' + JSON.stringify(tp));
+  check(tm && tm.menu && /Plakken/.test(tm.items) && /Kopi/.test(tm.items), 'tekstveld: geen menu op de rechtermuisknop: ' + JSON.stringify(tm));
+  check(tmp && tmp.waarde === 'kamer-xyz', 'tekstveld: Plakken in het menu werkt niet: ' + JSON.stringify(tmp));
+  // wachtkamer: de gast leest wat er bewaard wordt, de gastheer heeft Spel starten
+  const gw = one(G, 'wachtkamer'), hw = one(H, 'wachtkamer');
+  check(gw && /Je speelt mee in het spel van de gastheer/.test(gw.tekst) && /in je eigen spel \(.+\)/.test(gw.tekst), 'wachtkamer: de gast leest niet in welk spel hij speelt en wat er bewaard wordt: ' + JSON.stringify(gw && gw.tekst));
+  check(hw && hw.gateKnop && /Spel starten/.test(hw.tekst), 'wachtkamer: de gastheer heeft geen Spel starten: ' + JSON.stringify(hw && hw.tekst));
+  const nieuw = !flag('host-save'); // met een gekozen opgeslagen spel is er geen hek en geen opening
+  const gate = one(H, 'gate-wacht'), start = one(H, 'spel-gestart');
+  if (nieuw) check(gate && !gate.cine && !gate.cam && gate.paused, 'hek: de opening begon al voor Spel starten: ' + JSON.stringify(gate));
+  const voor = (Ev) => { const w0 = (one(Ev, 'wachtkamer') || {}).wall; return of(Ev, 'sample').filter((q) => start && w0 && q.wall > w0 && q.wall < start.wall - 500 && (q.camOver || q.cam3)); }; // vanaf de wachtkamer: het hoofdmenu zelf heeft een camera
+  if (nieuw) check(start && voor(H).length === 0 && voor(G).length === 0, `hek: er was een filmpje voor Spel starten (host ${voor(H).length}, gast ${voor(G).length} samples)`);
+  // de opening: zelfde regels op hetzelfde moment, alle drie de scènes
+  const regels = (Ev) => { const m = new Map(); const b0 = (of(Ev, 'opening-begin')[0] || {}).wall || 0; for (const e of of(Ev, 'opening-regel')) if (e.wall >= b0 && !m.has(e.sub)) m.set(e.sub, e.wall); return m; }; // vanaf het begin van de scène (de regel van de titelkaart staat al in beeld)
+  const rh = regels(H), rg = regels(G);
+  const gemeen = [...rh.keys()].filter((k) => rg.has(k));
+  const diffs = gemeen.map((k) => (rg.get(k) - rh.get(k)) / 1000);
+  note(`opening: ${rh.size} regels bij de host, ${rg.size} bij de gast, ${gemeen.length} gelijk; verschil in seconden (gast min host): ${diffs.map((d) => d.toFixed(1)).join(' ')}`);
+  const spG = of(G, 'cut-spoor').pop(), spH = of(H, 'cut-spoor').pop();
+  if (spH && spG) note('scènes: host ' + JSON.stringify(spH.spoor.filter((r) => /start|einde/.test(r[1])).map((r) => r[1] + r[2])) + ', gast ' + JSON.stringify(spG.spoor.filter((r) => /gast-start/.test(r[1])).map((r) => r[1] + r[2] + (r[3] ? '' : '!'))));
+  if (nieuw) check(rh.size >= 3 && gemeen.length >= Math.max(3, Math.floor(rh.size * 0.8)), `opening: de gast zag maar ${gemeen.length} van de ${rh.size} regels van de host`);
+  if (flag('host-save')) { // de gastheer kiest een bestaand opgeslagen spel: geen hek, zijn spel wordt geladen; de gast bewaart zijn verdiensten in zijn eigen spel
+    const hs0 = one(H, 'host-save'), lad = one(H, 'spelkeuze-laden');
+    check(hs0 && hs0.ok && hs0.hasSave, 'bewaren: het opgeslagen spel van de gastheer ontbreekt: ' + JSON.stringify(hs0));
+    check(lad && lad.label === 'Dit spel spelen', 'bewaren: de gastheer krijgt niet de knop Dit spel spelen: ' + JSON.stringify(lad));
+    check(hw && !hw.gateKnop && !/Spel starten/.test(hw.tekst), 'bewaren: met een geladen spel hoort er geen Spel starten te zijn: ' + JSON.stringify(hw && hw.tekst));
+    check(samples('host').some((q) => q.role === 'host' && q.money === 777), 'bewaren: het geld van het gekozen spel (777) is niet geladen: ' + JSON.stringify([...new Set(samples('host').map((q) => q.money))]));
+    const vs = one(G, 'voor-save'), gb = of(G, 'save').pop(), hb = of(H, 'save').pop();
+    check(vs && gb && gb.saveMoney === vs.money + 250 && gb.verdiend === 0, 'bewaren: de beloning van de gast staat niet in zijn eigen spel: ' + JSON.stringify({ voor: vs, na: gb }));
+    check(hb && hb.saveMoney === 777 && hb.role === 'host', 'bewaren: de gastheer bewaart niet in het gekozen spel: ' + JSON.stringify(hb));
+  }
+  if (!flag('skip') && !flag('host-save')) {
+    const startenG = spG ? spG.spoor.filter((r) => r[1] === 'gast-start' && r[3]).map((r) => r[2]) : [];
+    check(startenG.length >= 3, 'opening: de gast speelde maar ' + startenG.length + ' scènes na (verwacht 3): ' + JSON.stringify(startenG));
+    const abs = diffs.map(Math.abs).sort((a, b) => a - b), med = abs[Math.floor(abs.length / 2)];
+    note(`opening: mediaan ${med.toFixed(2)} s, grootste ${abs[abs.length - 1].toFixed(1)} s verschil tussen host en gast`);
+    check(abs.length > 10 && med < 0.5, 'opening: de regels lopen gemiddeld meer dan 0,5 s uit de pas (mediaan ' + med.toFixed(2) + ' s)');
+    check(abs.filter((d) => d < 1.0).length >= abs.length * 0.85, 'opening: meer dan 15% van de regels loopt meer dan 1 s uit de pas');
+    check(abs[abs.length - 1] < 2.0, 'opening: een regel loopt ' + abs[abs.length - 1].toFixed(1) + ' s uit de pas');
+    // elke scène eindigt bij de gast binnen 1,5 s na het einde bij de gastheer (en niet eerder dan 0,5 s ervoor)
+    for (const id of [1, 2, 3]) {
+      const eh = spH && spH.spoor.find((r) => r[1] === 'host-einde' && r[2] === id), eg = spG && spG.spoor.find((r) => r[1] === 'gast-klaar' && r[2] === id);
+      check(eh && eg && eg[0] - eh[0] > -500 && eg[0] - eh[0] < 1500, `opening: scène ${id} eindigt bij de gast ${eh && eg ? ((eg[0] - eh[0]) / 1000).toFixed(1) : '?'} s na het einde bij de gastheer`);
+    }
+    const ob = one(G, 'opening-begin');
+    check(ob && ob.wachtte >= 5, 'hek: de gast zag de opening al na ' + (ob && ob.wachtte && ob.wachtte.toFixed(1)) + ' s, vóór Spel starten');
+  }
+  const pg = one(G, 'gast-probeert-over');
+  if (nieuw) check(pg && pg.nogActief === true, 'opening: een gast kon de opening overslaan: ' + JSON.stringify(pg));
+  if (flag('skip') && nieuw) {
+    const hs = one(H, 'host-slaat-over'), gn = one(G, 'na-overslaan');
+    check(hs && gn && gn.wall - hs.wall < 5000 && gn.wall >= hs.wall, 'overslaan: de opening stopt niet binnen 5 s bij de gast: ' + (hs && gn ? ((gn.wall - hs.wall) / 1000).toFixed(1) + ' s' : 'geen na-overslaan'));
+    const na = one(H, 'na-overslaan');
+    check(na && !na.cine && !na.cam, 'overslaan: de gastheer zit nog in een filmpje: ' + JSON.stringify(na));
+  }
 }
 
 for (const [n, Ev] of Object.entries(E)) for (const e of Ev.filter((x) => x.type === 'console' && x.level === 'error')) problems.push(`${n} consolefout: ${String(e.msg).slice(0, 160)}`);
