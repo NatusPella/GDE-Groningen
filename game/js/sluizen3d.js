@@ -3,8 +3,9 @@
 // opengaat) vóór elke deur. Alleen de sluizen vlak bij de camera worden getekend; de
 // vaste sluisprops (waterplekken3d.js) hebben zelf geen deuren meer.
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-import { getSluizen } from './sluizen.js';
+import { getSluizen, liftOf } from './sluizen.js';
 import { WATER_Y } from './util.js';
+import { buildWaterGeometry, sharedWaterMaterial } from './water3d.js';
 
 const VIEW = 260;
 const GATE_H = 3.4;       // m hoog, 0,6 m onder water
@@ -17,7 +18,8 @@ const OFF_G = new THREE.MeshBasicMaterial({ color: 0x0f2a14 }), ON_G = new THREE
 const OFF_A = new THREE.MeshBasicMaterial({ color: 0x3a2a08 }), ON_A = new THREE.MeshBasicMaterial({ color: 0xffb020 });
 
 let scene = null;
-const views = new Map();   // sluis -> { group, gates: [[leaf, leaf], [leaf, leaf]], lamps: [{r, a, g}, {r, a, g}] }
+const LIFT_MIN = 0.02;     // m: onder dit verschil ligt het kolkwater in het watervlak van de wereld en blijft het plat
+const views = new Map();   // sluis -> { group, water, gates: [[leaf, leaf], [leaf, leaf]], lamps: [{r, a, g}, {r, a, g}] }
 
 function lamp(y, dx) {
   const m = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.34, 0.34), OFF_R);
@@ -58,8 +60,18 @@ function build(k) {
     group.add(post);
     lamps.push({ r, a, g });
   }
+  // het water in de kolk: het stijgt en daalt met de schutcyclus (liftOf), de boot ligt erop
+  let water = null;
+  if (k.own) {
+    const hl = k.half, hw = k.width / 2 - 0.1;
+    const poly = { pts: [[-hl, -hw], [hl, -hw], [hl, hw], [-hl, hw]], kind: 'diep', bank: 'kade' };
+    water = new THREE.Mesh(buildWaterGeometry(poly, null), sharedWaterMaterial());
+    water.name = 'water';
+    water.visible = false;
+    group.add(water);
+  }
   scene.add(group);
-  return { group, gates, lamps };
+  return { group, water, gates, lamps };
 }
 
 export function updateSluizen3D(sc, px, py, night = 0) {
@@ -76,6 +88,11 @@ export function updateSluizen3D(sc, px, py, night = 0) {
     if (!near) { if (v) v.group.visible = false; continue; }
     if (!v) { v = build(k); views.set(k, v); }
     v.group.visible = true;
+    if (v.water) {
+      const lift = liftOf(k);
+      v.water.visible = Math.abs(lift) >= LIFT_MIN;
+      v.water.position.y = lift;
+    }
     for (const s of [0, 1]) {
       const g = k.gate[s], ease = g * g * (3 - 2 * g), phi = ease * (Math.PI / 2) * 0.97;
       for (const { pivot, sd, e } of v.gates[s]) pivot.rotation.y = -sd * e * phi;

@@ -93,7 +93,8 @@ import { railZ } from './railway.js';
 import { cameraFocus } from './tilefocus.js';
 import { initMovableBridges3D, syncMovableBridges3D, updateMovableBridges3D, openBridgeRoads } from './movablebridges3d.js';
 import { getMovableBridges } from './movablebridges.js';
-import { sluisLiftAt } from './sluizen.js';
+import { chamberLiftAt } from './sluizen.js';
+import { surfaceLift, surfaceLiftAt } from './waterlevels.js';
 import { updateSluizen3D } from './sluizen3d.js';
 import { initStreetFurniture3D, updateStreetFurniture3D } from './streetfurniture3d.js';
 import { treeDims, treeColor, SPECIES, TREE_FLAG } from './greenery.js';
@@ -1274,6 +1275,8 @@ function buildWaterMesh(poly, y, map) {
   if (!poly._geoWater) poly._geoWater = buildWaterGeometry(poly, getWaterIndex(map, poly), null);
   const group = new THREE.Group();
   const mesh = new THREE.Mesh(poly._geoWater, waterMaterial);
+  // a body at its own peil (the Lauwersmeer, #299) lies above the boezem's water; the shore follows it
+  y += surfaceLift(poly);
   mesh.position.y = y;
   group.add(mesh);
   // from the geometry worker the banks and quays join the surface a few frames later
@@ -2338,7 +2341,12 @@ export function update3D(dt, world) {
       mesh = null;
     }
     if (mesh) {
-      mesh.position.set(v.x, v.isBoat ? WATER_Y + sluisLiftAt(v.x, v.y) : v.z || 0, v.y);
+      if (v.isBoat) {
+        // the water under the hull: the kolk of a lock lifts it, a lake at its own peil lies above the boezem
+        const cl = chamberLiftAt(v.x, v.y);
+        v._lift = cl !== null ? cl : surfaceLiftAt(world.map, v.x, v.y);
+        mesh.position.set(v.x, WATER_Y + v._lift, v.y);
+      } else mesh.position.set(v.x, v.z || 0, v.y);
       mesh.rotation.y = -v.angle;
       if (!v.sinking && !v.isBoat) {
         // terrain pitch/roll on the whole car, spring motion on the body only
@@ -3778,10 +3786,11 @@ function animateBoat(mesh, v, world, dt) {
     0,
   );
   mesh.rotation.order = 'YZX';
-  mesh.position.y = WATER_Y + st.heave + deficit;
+  const base = WATER_Y + (v._lift || 0);
+  mesh.position.y = base + st.heave + deficit;
   mesh.rotation.z = st.pitch;
   mesh.rotation.x = st.roll;
-  v._buoyY = mesh.position.y - WATER_Y;
+  v._buoyY = mesh.position.y - base;
 }
 
 function syncBoatWakes(world) {

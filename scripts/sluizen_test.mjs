@@ -214,6 +214,33 @@ for (const [side, label] of [[0, 'zijde 0 naar zijde 1'], [1, 'zijde 1 naar zijd
   ok(S.sluisLiftAt(0, 0) === 0, 'sluisLiftAt in rust is 0');
 }
 
+// ---------------------------------------------------------------- een kant op eigen peil (Lauwersmeer, #299)
+{
+  const { BOEZEM_Y } = await import('../game/js/waterlevels.js');
+  // zijde 0: het meer (peil -1, 1,3 m boven de boezem getekend), zijde 1: de zee op boezempeil
+  const k = S.makeSluis(row({ own: [1, 0] }));
+  S._setSluizenForTest([k]);
+  ok(k.own && k.own[0] && !k.own[1], 'own komt uit de rij');
+  ok(Math.abs(S.liftOf(k) - (k.levels[0] - BOEZEM_Y)) < 1e-9 && S.liftOf(k) > 1.2, 'in rust aan de meerkant ligt de kolk op meerpeil: de boot staat 1,3 m boven de boezem');
+  ok(Math.abs(S.chamberLiftAt(0, 0) - S.liftOf(k)) < 1e-9, 'chamberLiftAt geeft die lift in de kolk, ook in rust');
+  ok(S.chamberLiftAt(0, 30) === null && S.chamberLiftAt(60, 0) === null, 'buiten de kolk is er geen kolklift (daar tekent de wereld het eigen peil van het water)');
+  // het schutten naar de zeekant: de lift zakt met het peil tot de boezem en blijft daar na het openen van de deur
+  const b = boat(-90, 1);
+  let min = Infinity, max = -Infinity, jump = 0, last = null;
+  run(k, [{ b, goal: 90 }], 400, 0.1, () => {
+    const l = S.liftOf(k);
+    if (last !== null) jump = Math.max(jump, Math.abs(l - last));
+    last = l; min = Math.min(min, l); max = Math.max(max, l);
+  });
+  ok(Math.abs(max - (k.levels[0] - BOEZEM_Y)) < 0.01 && Math.abs(min) < 0.01, 'de lift loopt van 1,3 m naar 0', `${max.toFixed(2)} / ${min.toFixed(2)}`);
+  ok(jump < 0.05, 'zonder sprong: bij het openen van de deur zakt er niets meer (buiten ligt het water even hoog)', jump.toFixed(3));
+  ok(Math.abs(S.liftOf(k)) < 0.01 && k.at === 1, 'aan de zeekant ligt de kolk op boezempeil');
+  // een sluis zonder eigen peil tilt de boot niet: de wereld heeft daar één watervlak
+  const g = S.makeSluis(row());
+  S._setSluizenForTest([g]);
+  ok(S.chamberLiftAt(0, 0) === null && S.sluisLiftAt(0, 0) === 0, 'zonder eigen peil geen kolklift');
+}
+
 // ---------------------------------------------------------------- de gegevens: elke sluis van de provincie
 {
   const file = JSON.parse(fs.readFileSync(new URL('../game/sluizen.json', import.meta.url), 'utf8'));
@@ -225,6 +252,8 @@ for (const [side, label] of [[0, 'zijde 0 naar zijde 1'], [1, 'zijde 1 naar zijd
   const robbengat = file.sluizen.find((r) => /Robbengat/.test(r.n)), zee = file.sluizen.find((r) => r.n === 'Zeesluis');
   ok(robbengat && Math.abs(robbengat.lv[0] - robbengat.lv[1]) >= 0.4, 'de Robbengatsluis (Lauwersoog) schut een merkbaar peilverschil', robbengat && robbengat.lv.join('/'));
   ok(zee && Math.abs(zee.lv[0] - zee.lv[1]) >= 0.4, 'de Zeesluis (Delfzijl) ook', zee && zee.lv.join('/'));
+  ok(robbengat && robbengat.own && robbengat.own[0] === 1 && robbengat.own[1] === 0 && robbengat.lv[0] === -1, 'de Robbengatsluis heeft het Lauwersmeer (zijde 0, peil -1) op eigen peil en de zee op boezempeil');
+  ok(file.sluizen.filter((r) => r.own).length >= 1 && file.sluizen.every((r) => !r.own || (r.own.length === 2 && r.own.some((q) => q === 1))), 'own staat alleen bij een sluis met een kant op eigen peil');
   const nopassage = [];
   let tmax = 0;
   for (const r of file.sluizen) {
