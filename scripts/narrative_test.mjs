@@ -71,5 +71,46 @@ on.contact = true; step(0.1);
 ok(N.heldBack(), 'cards step aside for the radio');
 on.contact = false; step(0);
 
+// channel cases (#104): every narrative gate of a surface in hudbus.js is a kind the scheduler knows, and the
+// surface gives the same answer as mayStart
+{
+  const B = await import('../game/js/hudbus.js');
+  const kinds = [...new Set(Object.values(B.SURFACES).flatMap((s) => s.gates || []).filter(([c]) => c === 'narrative').map(([, k]) => k))];
+  N.noteToast();
+  const noted = t;
+  // the view the scheduler builds, read back from its own state
+  const view = () => {
+    const st = N.narrativeState();
+    const since = (k) => st.since[k] ?? Infinity;
+    return {
+      isOn: (k) => st.active.includes(k), pending: (k) => st.pending.includes(k),
+      since, sinceAny: (ks) => Math.min(...ks.map(since)),
+      subtitle: st.active.some((k) => k.startsWith('sub-')), toastAgo: t - noted,
+    };
+  };
+  const agree = (label) => {
+    for (const k of kinds) {
+      for (const urgent of [false, true]) {
+        const surface = Object.entries(B.SURFACES).find(([, s]) => (s.gates || []).some(([c, kk]) => c === 'narrative' && kk === k))[0];
+        ok(B.mayShowSurface(surface, { narrative: { view: view(), urgent } }, k) === N.mayStart(k, { urgent }), `${label}: ${k}${urgent ? ' (urgent)' : ''} surface and mayStart agree`);
+      }
+    }
+  };
+  for (const k of Object.keys(on)) on[k] = false;
+  for (const k of Object.keys(wait)) wait[k] = false;
+  step(100);
+  ok(kinds.every((k) => N.mayStart(k)), 'quiet: every surface kind may start');
+  agree('quiet');
+  on.scene = true; step(0.1); agree('scene'); ok(kinds.filter((k) => k !== 'scene').every((k) => !N.mayStart(k)), 'a scene holds every surface kind');
+  on.scene = false; step(10); step(10);
+  on.call = true; step(0.1); agree('call'); ok(!N.mayStart('banter') && !N.mayStart('award') && N.mayStart('award', { urgent: true }), 'a call holds banter and toasts, an urgent card still shows');
+  on.call = false; step(10);
+  on['sub-banter'] = true; step(0.1); agree('subtitle'); ok(!N.mayStart('award') && !N.mayStart('card'), 'a subtitle holds toasts');
+  on['sub-banter'] = false; step(10);
+  wait.contact = true; step(0.1); agree('contact waits'); ok(!N.mayStart('banter') && !N.mayStart('text'), 'a waiting contact holds banter and the story text');
+  wait.contact = false; step(0);
+  ok(B.NARRATIVE.KINDS.every((k) => k === 'scene' || kinds.includes(k)), 'every narrative kind belongs to a surface');
+}
+
 console.log(`${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);

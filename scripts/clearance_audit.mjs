@@ -20,8 +20,8 @@ const MIN_PATH = pathArg >= 0 ? Number(args[pathArg + 1]) : 2.4;
 const all = args.includes('--all');
 
 const root = new URL('../game/', import.meta.url);
-const data = JSON.parse(fs.readFileSync(new URL('citymap.json', root)));
-applyMapExtras(data, JSON.parse(fs.readFileSync(new URL('mapextras.json', root))));
+const { loadCityData } = await import('./lib/loadworld.mjs');
+const data = await loadCityData();
 const map = new GameMap(data);
 const elev = buildElevation(map);
 

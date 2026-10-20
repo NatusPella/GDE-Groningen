@@ -1,4 +1,5 @@
 import { FLAGS, perfOff } from './devflags.js';
+import { sfxLinks } from './latehooks.js';
 import { setDualText } from './subtitles.js';
 import { markerColors } from './a11y.js';
 import { speakerHtml } from './speakers.js';
@@ -29,7 +30,7 @@ import { quakeJitter } from './eventrules.js';
 import { buildFlitspaalMesh3D } from './flitspaal.js';
 import { getHorecaForRender, horecaBadges3D, horecaPads3D, updateHorecaPads3D } from './horeca.js';
 import { buildWildlifeMesh3D, wildlifeShadowSize, animateWildlifeMesh3D } from './wildlife.js';
-import { buildMissionMarker3D, updateMissionMarker3D, buildWaypointDotMesh3D } from './missions.js';
+import { buildMissionMarker3D, updateMissionMarker3D, buildWaypointDotMesh3D } from './missionmarker3d.js';
 import { syncTrafficLights3D, setTrafficLightGlow } from './trafficlights.js';
 import { isRangedWeapon } from './weapons.js';
 import { getCombatEffect } from './combateffect.js';
@@ -70,7 +71,6 @@ const NO_BATCH = FLAGS.nobatch;
 const NO_WHEEL_INSTANCES = NO_BATCH;
 const wheelFrustum = new THREE.Frustum(), wheelProj = new THREE.Matrix4();
 import { getUiScale } from './uiscale.js';
-import { getActiveRoute, getRouteAhead, getUserWaypoint } from './routing.js';
 import { updateWaymarkers3D, hideWaymarkers3D, routeColor } from './waymarkers3d.js';
 import { buildWorldMarker3D, updateWorldMarker3D, setMarkerCamera, setMarkerEnv } from './worldmarker3d.js';
 import { OUTLINE_MAT } from './pixelart3d.js';
@@ -1052,6 +1052,7 @@ export function getCamera() {
 export function getScene() {
   return scene;
 }
+sfxLinks.getScene = getScene; // sfx/ambience.js (latehooks.js)
 
 export function getRenderer() {
   return renderer;
@@ -3856,8 +3857,12 @@ function keepRight(pts, map) {
   return out;
 }
 
+// routing.js (shops, goal, ...) comes in through main.js (setRouteLinks), so scene3d.js does not import it (#108)
+const routeLinks = { getActiveRoute: () => null, getRouteAhead: () => null, getUserWaypoint: () => null };
+export function setRouteLinks(l) { Object.assign(routeLinks, l); }
+
 function updateRouteRibbon3D(dt, world) {
-  const wp = gameBusy(world) ? null : getUserWaypoint();
+  const wp = gameBusy(world) ? null : routeLinks.getUserWaypoint();
   if (wp) {
     if (!waypointBeacon) {
       waypointBeacon = buildWorldMarker3D('user');
@@ -3870,9 +3875,9 @@ function updateRouteRibbon3D(dt, world) {
     waypointBeacon.visible = false;
   }
 
-  const route = getActiveRoute();
+  const route = routeLinks.getActiveRoute();
   // buoys, station signs, air rings: the markers of the boat, the train and the air
-  updateWaymarkers3D(scene, performance.now() / 1000, route, route && route.remaining > 10 ? getRouteAhead(260) : null, cam);
+  updateWaymarkers3D(scene, performance.now() / 1000, route, route && route.remaining > 10 ? routeLinks.getRouteAhead(260) : null, cam);
   if (!routeRibbonMesh) {
     routeRibbonMesh = new THREE.Mesh(new THREE.BufferGeometry(), new THREE.MeshBasicMaterial({
       map: buildChevronTexture(), vertexColors: true, transparent: true, opacity: 0.85, depthWrite: false,
@@ -3883,7 +3888,7 @@ function updateRouteRibbon3D(dt, world) {
     routeRibbonMesh.frustumCulled = false;
     scene.add(routeRibbonMesh);
   }
-  const ahead = route && route.remaining > 10 && route.mode !== 'boat' && route.mode !== 'fly' ? getRouteAhead(RIBBON_AHEAD_M) : null;
+  const ahead = route && route.remaining > 10 && route.mode !== 'boat' && route.mode !== 'fly' ? routeLinks.getRouteAhead(RIBBON_AHEAD_M) : null;
   if (!ahead || ahead.length < 2) {
     routeRibbonMesh.visible = false;
     routeRibbonKey = '';

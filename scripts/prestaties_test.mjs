@@ -1,7 +1,7 @@
 // Prestaties: vorm van de lijst en de haken voor drift en meerijden (#30).
 //   node scripts/prestaties_test.mjs
 import fs from 'node:fs';
-import { ACHIEVEMENTS, CATEGORIES } from '../game/js/achievements.js';
+import { ACHIEVEMENTS, CATEGORIES, getAchievementSummary, getAchievementView, isRetiredMission, MISSION_GOALS } from '../game/js/achievements.js';
 
 let fail = 0;
 const check = (name, ok, extra = '') => { if (!ok) fail++; console.log(`${ok ? 'ok  ' : 'FAIL'} ${name}${extra ? ' ' + extra : ''}`); };
@@ -24,4 +24,9 @@ check('stationtravel: aankomst telt halte en dorp', /recordUnique\(w, 'trainStat
 
 const nl = /[a-z]/i;
 check('geen Engelse restwoorden in de nieuwe teksten', ['drift_1', 'drift_10', 'drift_goud', 'trein_stations', 'trein_dorp'].every((i) => nl.test(by.get(i).desc) && !/\b(the|and|win)\b/i.test(by.get(i).desc)));
+// missies die het verhaal niet meer speelt (#187): hun prestaties zijn onbereikbaar en tellen niet mee in het totaal
+const retired = ACHIEVEMENTS.filter((a) => a.retired);
+check('15 prestaties van 5 vervallen missies zijn retired', retired.length === 15 && MISSION_GOALS.filter((g, i) => isRetiredMission(i)).length === 5, String(retired.length));
+check('totaal telt de vervallen prestaties niet', getAchievementSummary().total === ACHIEVEMENTS.length - retired.length);
+check('overzicht verbergt ze', getAchievementView().flatMap((c) => c.items).every((i) => !retired.some((a) => a.id === i.id)));
 process.exit(fail ? 1 : 0);

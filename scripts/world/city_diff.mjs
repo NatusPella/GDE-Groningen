@@ -7,6 +7,7 @@ import '../node3d.mjs';
 import * as G from '../../game/js/gdt.js';
 import * as P from './pack_tiles.mjs';
 import { buildProvince, haveProvince } from './build_province.mjs';
+import { loadLegacySources } from '../lib/loadworld.mjs';
 
 const NAMES = { [G.SECTION.BUILDINGS]: 'gebouwen', [G.SECTION.ROADS]: 'wegen', [G.SECTION.WATER]: 'water', [G.SECTION.GREEN]: 'groen', [G.SECTION.TREES]: 'bomen', [G.SECTION.RAILS]: 'spoor', [G.SECTION.FURNITURE]: 'meubilair', [G.SECTION.CANOPIES]: 'canopies', [G.SECTION.JUNCTIONS]: 'kruispunten' };
 export const CORE_BUILDINGS = 800;
@@ -39,7 +40,7 @@ async function main() {
   const args = process.argv.slice(2);
   const top = args.includes('--top') ? Number(args[args.indexOf('--top') + 1]) : 15;
   if (!haveProvince()) { console.log('geen provincie-extract in data/cache/province'); return; }
-  const city = P.build(P.loadSources());
+  const city = P.build(await loadLegacySources());
   const keys = new Set(city.blobs.keys());
   const shadow = buildProvince({ cityKeys: new Set(), only: keys, map: false, fillOld: false });
   const { perTile, total } = diffTiles(city.blobs, shadow.blobs);

@@ -26,7 +26,7 @@ function seatAt(g, x, y, z, tilt, color = null) {
   box(g, 0.08, 0.16, 0.26, x - 0.3, y + 0.62, z, GREY);
 }
 
-export function buildCarInterior(seat, len, wid, defs = [], klasse = 'auto') {
+function buildCarInterior(seat, len, wid, defs = [], klasse = 'auto') {
   const L = interiorLayout(seat, len, wid);
   const K = klasseStijl(klasse, L, seat);
   if (K.rear !== undefined) L.rear = K.rear;

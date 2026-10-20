@@ -14,7 +14,7 @@ The code is the source of truth; this file is the map.
   Grid north is 0.94° off true north round Stad (`GRID_CONVERGENCE`, used
   by the sun in `daynight.js`). Up to 0.28 the frame was equirectangular
   ("legacy"); `legacyToWorld` converts from it.
-- Map files carry `frame: 'rd-new'` (`citymap.json` meta, `mapextras.json`);
+- Map files carry `frame: 'rd-new'` (`stad.json` meta, `mapextras.json`);
   the loaders log an error otherwise. Hand-placed
   positions in code are written in the legacy frame through the helpers in
   `js/worldframe.js` (`P(x, y)`, `{ ...PO(x, y) }`, `P3`, `PA` for headings,
@@ -103,8 +103,18 @@ frame then runs, in order:
 
 ### Import cycles (#108)
 
-`node scripts/import_cycles_test.mjs` guards the static import graph of `game/js`: the largest group of modules that import each other, the modules in cycles and the mutual pairs may only go down (lower the limits when you break a cycle). The way to break one is a **leaf module** that holds the shared state or helper, or a **link** that the other side registers at load: `pausestate.js` (pause menu and map open), `pedconst.js` and `pedgeom.js` (pedestrian constants and geometry helpers), `weapons.js` and `combateffect.js` (weapon table, the effect of the moment), `savehook.js` (`saveGame` for modules that only trigger a save; `savegame.js` registers it), `cinematics.js` `setCinematicLinks` (respawn and scene3d), `audio.js` `setAudioCamera` (main.js hands over the camera). Dynamic `import()` is not followed.
+`node scripts/import_cycles_test.mjs` guards the static import graph of `game/js`: the largest group of modules that import each other, the modules in cycles and the mutual pairs. All three limits are **0**: the graph is a DAG and a new cycle fails the test. Dynamic `import()` is not followed (lazy loading breaks a cycle on purpose; `missions.js` loads `story.js` and `story.js` loads `scene3d.js` that way). When a new import would close a cycle, break it in one of three ways, in this order:
 
+1. **A leaf module** that holds the shared state, constant or helper: `pausestate.js` (pause menu open, map open, the phone's tab, `openPauseMenu`/`closePauseMenu` proxies), `pedconst.js` and `pedgeom.js` (pedestrian constants and geometry), `weapons.js` and `combateffect.js`, `vehiclewreck.js` (`disableVehicle`, `wreckVehicle`), `vehicleimpact.js`, `trafficyield.js`, `wallpath.js` (`wallOnPath`), `clocktext.js` (`getClockText`), `missionmarker3d.js` (the 3D mission markers), `shopdata.js` (`SHOP_TYPES`, `VEHICLE_STOCK`), `landmarkmaterials.js`.
+2. **A query facade** for modules that only ask: `missionquery.js` (`isMissionActive`, `getActiveRace`, `getMissionDefs`, `isNight` ...; `missions.js` registers the real functions with `registerMissionQueries`) and `storyquery.js` (`currentStep`, `storyFlag`, `getStorySave`, `getStoryView` ...; `story.js` registers with `registerStoryQueries`). Without the provider they answer as an empty chain or a story that has not started.
+3. **A link the other side registers at load**, so the lower module never imports the higher one: `savehook.js` (`saveGame`, `markDirty`, `saveSoon`; `savegame.js` registers), `shopicon.js` (`registerShopIcon`), `vehiclehooks.js`, `latehooks.js` (slots for `walkPathHook` routing.js -> pedroutes.js, `throwablesHook` throwables.js -> gunfx3d.js, `furnitureShopHook` and `jobBonusHook` furniture.js -> shops.js and sidejobs.js, `cinematicLinks` respawn.js/main.js -> cinematics.js), `scene3d.js` `setRouteLinks` and `audio.js` `setAudioCamera` (`main.js` hands over the route getters and the camera). Keep the slot in a leaf (not in the module that uses it): a provider can then fill it whatever order the modules evaluate in, without a temporal-dead-zone error.
+
+A link that is never registered does nothing (or answers with an empty value), so check that the registering module is part of the game's import graph from `main.js`. The geometry worker (`geoworker.js`, `geokernels.js`, `geojobs.js`, `quaywalls.js`, `roadsurface.js`) is acyclic too: `geojobs.js` does not import the kernels, `geokernels.js` registers them. The test also follows the subfolders `sfx/` and `net/` (`sfx/ui.js`, `sfx/foley.js` and `sfx/ambience.js` take the pause state, weapon and combat-effect leaves, `goal.js` and the `sfxLinks` slots of `latehooks.js` for the scene and the map statistics).
+
+
+### Dead code and build-only modules (#103)
+
+`node scripts/dead_code.mjs [--list|--json]` reports, from the import graph, the modules of `game/js` that no game code loads (build-only: only scripts, tests or the tile build use them) and the exports nobody imports. Build-only modules that the player never needs are listed in `scripts/lib/buildonly.mjs` and left out of the app and web build by `desktop/build.mjs` (`scripts/buildonly_test.mjs` keeps the list equal to the graph; a module that is build-only on purpose but still ships goes in that test's `KEEP` with a reason). A new export that only its own file uses should not be exported.
 
 ## Modules since 0.35
 
@@ -117,7 +127,7 @@ Short notes on what was added after 0.35.0 (all in `game/js/` unless stated). "P
 - `storagekeys.js`: every storage key, with the `gte-` to `gde-` migration at boot (see "Saves and versions").
 
 **Attention, HUD, voice**
-- `hudbus.js`: the planner for everything that asks for the player's eyes (#104). Priority tables, `decideStart` (narrative.js) and `decideMoment` (attention.js), the HUD queue and `mayShow` (hudrules.js). Owners keep their own state; this module owns the tables. Test: `hudbus_test.mjs`.
+- `hudbus.js`: the planner for everything that asks for the player's eyes (#104). Priority tables, `decideStart` (narrative.js), `decideMoment` (attention.js), the overlay rules (overlayrules.js), `decideSpeak` (speech.js), the HUD queue and `mayShow` (hudrules.js). Owners keep their own state; this module owns the tables and the one question `mayShow(channel, ctx)`. `SURFACES` lists every channel that asks for eyes or ears (module, gate, zone, P); a new module that puts its own overlay on screen has to be listed there. The inventory for #92 is `docs/KANALEN.md` (made by `node scripts/hudbus_inventory.mjs --md`). Tests: `hudbus_test.mjs`, `hudbus_surfaces_test.mjs`.
 - `hudlook.js`: the HUD's visual language (#92): what a vehicle shows, meters with shape next to colour (colour-blind palette), edges from 720p to 4K, single owner of numbers shown twice. `hud_panel.js` applies the answers as classes. Test: `hud_test.mjs`.
 - `voicebank.js`: the one loader for voice manifests (`audio/voicelines/<map>/manifest.json`). One fetch and cache per map, keys `speaker|text`; `linevoice`, `sidejobvoice`, `smsvoice`, `banter`, `storytext` and the intro/mission story modules go through it. A missing fetch gives an empty bank, so scripts can import it. Playing a clip goes through `audio.js` `playVoice`/`playExclusive`.
 - `glyphs.js` and `padlogic.js`: key hints follow the controls; with a controller they switch to button symbols. `padlogic.js` is the pure part of `gamepad.js` (dead zone, which pad is player 1, direction navigation for menus). Test: `padlogic_test.mjs`.
@@ -135,7 +145,7 @@ Short notes on what was added after 0.35.0 (all in `game/js/` unless stated). "P
 **Map, regions, water, placement**
 - `mapstyle.js`: one style table (palettes `map` and `mini`, road order, widths, zoom rule, night palette). The minimap, the full map (`countrymap.js`), `regions.js` and `scripts/world/province_map.mjs` import it. Test: `mapstyle_test.mjs`.
 - `regions.js` and `regiondata.js`: which region a point lies in (Groningen, Friesland, Drenthe, Duitsland, Waddenzee, Eems, Dollard, Noordzee), the sea polygon, borders and the name to show. `regiondata.js` is the coarse fallback. Test: `regions_test.mjs`.
-- `waterlevels.js`: `waterPolyAt` is the one polygon lookup; `waterAt`, `isInWater` and `inMapWater` use it. Do not add local water lookups.
+- `waterlevels.js`: `waterPolyAt(map, x, y, z?, opts?)` is the one "is there water here" rule and `waterAt` the one answer with kind, depth, level and covered; `isInWater`, `inMapWater`, `overOpenWater`, `shallowWater`, `waterNearby` and the wildlife water points are wrappers. Do not add local water lookups; what stays apart on purpose is listed under "The water rule" in the water section below.
 - `tileplace.js`: `nearestOnRoads` and the building queries over the streamed tiles; shops, uitjes, houses and sidejobs place themselves through it.
 - `vaarnet.js` (pure, #184): the waterway network. Rules: `effectiveNav` (the shipping waterways by name, `waterlevels.js MAIN_WATERWAYS`, and big lakes are class 4 whatever the strip's width says; `tileworld.js` applies the same promotion to the tiles' rows), `passBridge(kind, bridge)` (a fixed bridge by clearance against the boat's air draft, a movable one opens by itself after its time), `lockPassage` (a lock's gates and level from `locks.js`), the fixes (`patchRows`, `linkPolygon`, `gatPolygon`) and the route graph (`createVaarNet`, `routeVaar` per boat kind, `pickTrip`, `routeAhead`). `scripts/world/vaarnet.mjs` rasterises the province's water (5 m cells, the city from citymap.json), joins the gaps under bridges and locks, audits that a boat sails from the inner city to the Waddenzee, Eems, Dollard and Lauwersmeer and names what stops it (`node scripts/world/vaarnet.mjs [--class 3,4] [--links] [--gaps]`); `--fixes` writes `game/vaarnet_fixes.json` (links over missing canal, `gaten` of water under bridges and locks, `zee` tongues off the coast up to the turn-back line of `worldedge.js`), `scripts/world/vaarnet_graph.mjs --write` writes `game/vaarnet.json`. The net covers ALL navigable water (class 2 and up: vaarten of 4 m, canals, lakes, the sea tongues; one shortest-path tree per water piece, wide water cheaper than narrow, so barges and tour boats keep to wide water where it exists; `MIN_WIDTH` per boat kind in `vaarnet.js`); class 1 (ditches, ponds) and pieces under 200 cells are left out on purpose, `vaarnet.mjs --components` reports every piece (size, place, share of class 3 and 4), the ditches, the towns without net water and the biggest gaps between pieces, and `--fixes` also writes `verbindingen` (gaps of 25 m or less in a canal, closed with small links). `planVaarRoute` (A*) plans a route between two points for a boat kind: the player's GPS (`routing.js`, boat mode) and the boats use it; `getSharedNet`/`setSharedNet` hold the loaded net. `vaarload.js` loads both at start: `TileWorld.addWaterPatches` puts the fixes in the water grid (boats, swimmers and the ground's water mask see them), `vehicle.js setVaarNet` lets a barge sail a trip over the net (`followVaarTrip`), and `vaarPrefetch` adds the tiles of the route ahead to the streamer's focus when the player sails. Tests: `vaarnet_test.mjs` (rules, router, the real graph, a barge on a trip), `vaarnet_province_test.mjs` (real province data, about 90 s, not in `run_tests`).
 - `marinas.js` (pure planner) with `scripts/world/marinas.mjs` (build) and `marinas.json`; inland vessels (`barge`) stay in front of bridges they cannot pass.
@@ -798,12 +808,14 @@ is the stadsboezem (NAP -0.93 m, drawn at `util.js WATER_Y` -2.3); a body
 that does not touch it keeps its own peil (a polder ditch -0.8 m), drawn at the
 boezem height until the water renderer takes a level per polygon (F2).
 
-- `waterAt(map, x, y)` -> `{ level, depth, body, kind, navigable, wade,
-  clearanceAbove }` or null: the water polygons of the map, the city's and
+- `waterAt(map, x, y, z?, opts?)` -> `{ level, depth, kind, covered, body,
+  navigable, wade, lock, clearanceAbove }` or null: the water polygons of the map, the city's and
   the streamed tiles' alike (there is no other water source). `wade` is
   depth <= `WADE_MAX` 1.2 m. The
   walker wades through ditches and the shallow edge of open water (slower,
   standing in it: `player.wade`), the heli lands on the level the query gives.
+- **The water rule (#101).** One finder, `waterPolyAt(map, x, y, z?, opts?)`: the water polygon holding the point (the map's own water grid, the city's and the tiles' alike); `waterAt` builds the answer from it. The two vetoes that used to be written out at every caller are arguments of the rule, not second finders: `z` (the absolute height of whoever asks: over the water on a viaduct, z > 1.5, or below it in an aqueduct, z < -3 where `map.coveredAt`, is dry; no z, no height rule) and `opts.bridgeDry` (a bridge deck at the point makes it dry: the walker's and the car's rule; a swimmer under a bridge, a boat and the plain polygon test leave it off). `opts.shallow` on `waterAt` is the vehicle's wade rule: only water of at most `WADE_MAX` with a peil of its own above the boezem's (a polder ditch, the shallows of a lake), dry under a deck. The wrappers: `util.isInWater(map, x, y, z = 0)` is `bridgeDry` (59 modules); `util.inMapWater` and `map.inWaterRaw` are the plain polygon test; `vehicle.overOpenWater` is `bridgeDry` with z, minus a road's embankment and minus `shallowWater`; `shallowWater` is `waterAt` with `shallow`; `waterNearby(map, x, y, r)` asks whether the water grid has water in the cells within r (a gull, a police boat or a pigeon looking for water round the player); `waterPolyIn(list, x, y)` is the same test over a list got once (a road's whole run in `mapdata.markDryRoad`, the footprint and furniture builders `derive.js` and `streetfurniture.js`). Test: `scripts/water_rule_test.mjs` (a made-up map, and the whole city grid against the formulas as they were written before; 0 differences).
+  What stays apart, and why. (1) `waterindex.js` `inWater`, `waterClearance`, `waterIndexAt`, `insideWaterObstacle`: an index over the same polygons for bulk work (terrain holes, quay walls, grass, the shore edge flags) and a different question, the distance to the shore and to moored hulls, not "is this wet"; the test checks the index against the rule on the city (0 differences off the outlines; a point exactly on an outline is a coin toss in both). (2) `regions.seaAt`: OSM has no polygon for the open sea; `seaAt` is the coast chain and the islands of the province's edge layer, which also drive the land mask, the region names and the boats' clearance at sea (`setSeaClearance`). The sea has no water row (but the Eems and Dollard patches of `vaarnet.js`), so `waterAt` is null on most of it; letting it ask `seaAt` would change who swims or sinks out there. (3) `tilewatermask.js`, `scene3d` `syncWater`, `water3d.js`, `terrain3d.js`, `greenwater.js`: rasters and meshes of the same polygons for the GPU; the look is #87, the mask is checked against `waterAt` in `tilewater_test.mjs`. (4) `vehicle.updateOpenWater`, `tileplace.waterGap`, the `provinceworld` and `streetfurniture3d` water lists (the flat water of far tiles too), `shops.placeJetty`, `cityprops.findQuaySpot`: a distance to a shore or a polygon list to choose from, not a wet test. (5) The polygon a creature is bound to (`wildlife` ducks, seals and fish stay in their own polygon) and the candidate lists boats spawn from (`vehicle`, `police`). (6) The polder grid out past the tiles, `countryedge.countryWater`, goes with #3.
 - Boats: `BOAT_CLASS` (1 paddled, 2 small motor boats, 3 tour boats and the
   city's barges, 4 inland shipping), `AIR_DRAFT` and `DRAFT` per kind;
   `bridgeClearance(road, zDeck, level)` (deck top minus 0.5 m minus the
@@ -1262,7 +1274,7 @@ under the player (`profileoverlay.js`).
   bounding sphere come back. The cell's breakable props register when the
   buffers arrive (`buildToken` drops a stale result).
 - City road surfaces (`roadsurface.js`): on the first `syncRoads` the worker
-  loads its own copy of the map (`citymap.json` + extras, the same
+  loads its own copy of the map (`stad.json` + extras, the same
   `GameMap`) and drops the roads the main thread no longer has (`home.js`);
   `slimWorkerMap` then drops what the worker never reads (buildings keep
   only their bounds in the grid; canopies, trees), which takes the copy from
@@ -1308,9 +1320,9 @@ under the player (`profileoverlay.js`).
 ## World tiles (`.gdt`, F0 of docs/PROVINCIE-PLAN.md)
 
 The map reaches the game as tiles, one code path in the browser, Electron and
-Node; the JSON files (`citymap.json`, `mapextras.json`) are the
-source the packer reads and the fallback for a build without `world/` (the dev
-server, `?legacymap`).
+Node; the packer reads `game/stad.json` (the hand layer of the city: meta, roads, rails, hand-made buildings; see docs/ARCHITECTUUR-STAD-NAAR-TEGELS.md 4.5), the OSM tile build's water, green, trees and buildings for the city (`stad_laag.mjs`) and `mapextras.json`. A
+build without `world/` (the dev server) gets stad.json alone: roads, rails and the hand-made buildings.
+
 
 - **Format (`js/gdt.js`).** Tile grid on the RD kilometre lines (key = RD km of
   the south-west corner, `234_581`; in the world frame x = 330 + 1000 i,

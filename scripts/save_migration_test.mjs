@@ -22,7 +22,7 @@ const src = (f) => fs.readFileSync(path.join(ROOT, 'game/js', f), 'utf8');
 // ids the game accepts, read from the sources (those modules need a browser)
 const shops = src('shops.js');
 const block = (text, start) => text.slice(text.indexOf(start), text.indexOf('\n};', text.indexOf(start)));
-const VEHICLES = new Set([...block(shops, 'export const VEHICLE_STOCK').matchAll(/^ {2}(\w+): \{ kind:/gm)].map((m) => m[1]));
+const VEHICLES = new Set([...block(src('shopdata.js'), 'export const VEHICLE_STOCK').matchAll(/^ {2}(\w+): \{ kind:/gm)].map((m) => m[1]));
 const OUTFIT_IDS = new Set([...block(shops, 'export const OUTFITS').matchAll(/id: '([\w-]+)'/g)].map((m) => m[1]));
 const UPGRADES = new Set([...shops.slice(shops.indexOf('export const CAR_UPGRADES'), shops.indexOf('];', shops.indexOf('export const CAR_UPGRADES'))).matchAll(/id: '([\w-]+)'/g)].map((m) => m[1]));
 const STATS = new Set(Object.keys(STAT_DEFAULTS));

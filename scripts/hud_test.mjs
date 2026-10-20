@@ -204,5 +204,22 @@ ok(A.planModeFor('ov', 'lopen') === 'ov' && A.planModeFor('boot', 'auto') === 'b
   ok(RV.panelState(beat).rule === '9,0 km', 'travel rule is the distance');
 }
 
+// channel cases (#104): the surfaces of hudbus.js sit in the HUD's zones, and a card asked through the surface
+// or through hudrules.js gets the same answer
+{
+  const B = await import('../game/js/hudbus.js');
+  for (const [id] of Object.entries(B.SURFACES)) { const z = B.surfaceZone(id); ok(z === null || z in R.ZONES, `surface ${id}: zone ${z} is a HUD zone`); }
+  for (const k of Object.keys(B.KINDS)) ok(B.cardZone(k) in R.ZONES && R.cardPrio(k) === B.cardPrio(k) && R.cardZone(k) === B.cardZone(k), `card kind ${k}: P and zone shared with hudrules.js`);
+  for (const [k, v] of Object.entries(B.KINDS)) {
+    for (const ctx of [{}, { busy: true }, { dialogue: true }, { busy: true, dialogue: true }]) {
+      ok(R.mayShow(v.p, { ...ctx, zone: v.zone }) === B.mayShow('hud', { p: v.p, zone: v.zone, ...ctx }), `card ${k}: hudrules and hudbus agree ${JSON.stringify(ctx)}`);
+    }
+  }
+  // a chase holds a tip and a money card in zone A, not the police and not a mission card
+  const held = (kind, ctx) => !R.mayShow(R.cardPrio(kind), { ...ctx, zone: R.cardZone(kind) });
+  ok(held('tip', { busy: true }) && held('geld', { busy: true }) && !held('politie', { busy: true }) && !held('missie', { busy: true }), 'busy: tips and money cards wait, the police and missions do not');
+  ok(held('tip', { dialogue: true }) && !held('geld', { dialogue: true }) && held('prestatie', { dialogue: true }), 'a call holds tips and the achievement card (zone E), not money');
+}
+
 console.log(`${n} checks, ${fails} failed`);
 process.exit(fails ? 1 : 0);
