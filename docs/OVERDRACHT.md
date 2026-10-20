@@ -3,7 +3,7 @@
 Voor wie het project overneemt (een andere AI of machine). Lees dit eerst, daarna `AGENTS.md` (regels en werkwijze), `README.md` en `ARCHITECTURE.md`.
 
 ## 1. Wat je krijgt met `git clone` en wat niet
-**In git:** alle code, de data die versiebeheer nodig heeft (`game/citymap.json`, `data/world/3dbag*.json.gz`, facilities enz.), alle documenten (`docs/`), de scripts, de tests, het nieuwe verhaal (`docs/verhaal/nieuw/`, het script in `game/storydata/script.json`), `AGENTS.md`.
+**In git:** alle code, de data die versiebeheer nodig heeft (`game/stad.json`, `data/world/3dbag*.json.gz`, facilities enz.), alle documenten (`docs/`), de scripts, de tests, het nieuwe verhaal (`docs/verhaal/nieuw/`, het script in `game/storydata/script.json`), `AGENTS.md`.
 **Op GitHub, niet in git:** de issues, het bord (project 5 van NatusPella, kolommen Bugs, Wensen, Bezig, Review, Klaar), de milestones (de epics) en de releases met de builds. Daarvoor heb je `gh` nodig, ingelogd met de rechten `repo`, `project` en `read:project`.
 **Niet in git en dus op de nieuwe machine opnieuw te maken:**
 - `desktop/node_modules`: `cd desktop && npm install`.
@@ -32,7 +32,7 @@ Voor wie het project overneemt (een andere AI of machine). Lees dit eerst, daarn
 - Subagents: eigen worktree en branch, kleine commits, alleen eigen tests; de coördinator test en merget bij het release. Houd de schijf vrij.
 
 ## 4. Waar het project staat
-- **Spel:** de hele provincie draait op tegels (de Ommeland-laag is weg); de stad draait nog op `game/citymap.json` (issue #90: stad via het tegelpad, plan in `docs/ARCHITECTUUR-STAD-NAAR-TEGELS.md`, met de besluiten van de eigenaar onderaan).
+- **Spel:** de hele provincie draait op tegels (de Ommeland-laag is weg); ook de stad komt uit het tegelpad (issue #90): `game/stad.json` (0,2 MB handlaag) plus wegen, spoor, gebouwen, water, groen en bomen uit de OSM-tegelbouw; `citymap.json` en de Python-keten zijn weg (plan en stand in `docs/ARCHITECTUUR-STAD-NAAR-TEGELS.md`).
 - **Verhaal:** het nieuwe verhaal (vijf akten, 26 missies) staat in `docs/verhaal/nieuw/` (begin met `HET-VERHAAL.md` en `00-OVERZICHT.md`). Het is het enige verhaal: het oude verhaal en de keuze ertussen zijn verwijderd (#187). Wat gebouwd is staat in `game/js/storyarc_nieuw.js` (`built`). Implementatieplan: `docs/verhaal/nieuw/08-IMPLEMENTATIE.md`. Het script wordt omgezet door `scripts/build_story_data.mjs`.
 - **Trailer:** `docs/verhaal/nieuw/TRAILER-SCRIPT.md` (spoilervrij; nog niet in de game gebouwd).
 - **Issues:** bekijk de milestones: Tegelwereld werkt, Levende open wereld, Verhaal Deel 4 en missies, Provincie leeft, Publiceren en 1.0, Afwerking en menu's. Open vragen aan de eigenaar: #92 (UI-smaakvragen), #81 (teleport-fout bij het Lauwersmeer: retest in 0.35.0), #93 (verhaal).

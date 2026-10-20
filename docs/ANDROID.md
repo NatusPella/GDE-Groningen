@@ -19,7 +19,7 @@ Opzet: `android/` (buiten `desktop/`, Electron ongemoeid). `android/scripts/stag
 | `game/world` (tegels `.gdp`, provincie, basiskaart) | 103 |
 | Geluid Opus: korte clips (packs) | 41 |
 | Muziek Opus (`.webm`, 23 tracks) | 50 |
-| `citymap.json` en overige json | ca. 25 |
+| `stad.json` en overige json | ca. 10 |
 | js, modellen, beelden, fonts | ca. 15 |
 | **`android/www`** | **227** |
 | Debug-APK | **208** (Opus en `.gdp` zijn al gecomprimeerd; `noCompress` staat aan) |
