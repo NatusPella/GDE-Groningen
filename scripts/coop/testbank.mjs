@@ -42,8 +42,8 @@ const P = {
     [0, 'wacht', { s: 12 }], [14, 'netsim', { s: 20, wie: [SECOND] }], [38, 'desync', { s: 25, wie: 'gast' }], [78, 'loop', { s: 8 }],
     me === 'gast' ? [88, 'touch', { s: 12 }] : [88, 'kijk', { s: 12 }],   // de Electron-gast 'gast' heeft aanraakbediening (touch=1)
     me === 'host' ? [102, 'uitvalHost', { s: 8 }] : me === 'gast' ? [102, 'uitval', { s: 8, wie: 'gast' }] : [102, 'wacht', { s: 28 }],
-    [134, 'betaal', me === 'host' ? { geld: 250 } : {}], [140, 'opgeslagen', {}], [146, 'rit', { s: 30 }],
-    me === SECOND ? [184, 'verlaat', { wie: SECOND }] : [184, 'wacht', { s: 22 }], [210, 'stopHost', {}],
+    [134, 'betaal', me === 'host' ? { geld: 250 } : {}], [140, 'opgeslagen', {}], [146, 'rit', { s: 30 }], [177, 'filmpje', { s: 8 }],
+    me === SECOND ? [187, 'verlaat', { wie: SECOND }] : [187, 'wacht', { s: 22 }], [214, 'stopHost', {}],
   ]])),
   kamer: { host: [[0, 'wacht', { s: DURATION }]], gast: [[0, 'wacht', { s: DURATION }]], gast2: [[0, 'wacht', { s: DURATION }]] },
   verhaal: Object.fromEntries(['host', 'gast', 'gast2'].map((me) => [me, [[0, 'verhaal', { s: Number(arg('verhaal-s', 1500)), until: arg('until', 'T1'), speed: Number(arg('speed', 1)) || 1 }], ...(me === 'host' ? [[0, 'stopHost', {}]] : [])]])), // de host stopt als het verhaal klaar is: de gasten lopen tot dan mee
@@ -327,6 +327,15 @@ if (SUITE === 'net') {
   check(hb && hb.ok === true && hb.saveMoney === hb.money, 'save: de host bewaart zijn eigen spel niet zoals altijd: ' + JSON.stringify(hb));
   if (gb && gb.hadSave) check(gb.ok === true && gb.saveMoney === gb.saveMoneyVoor + 250, 'save: de beloning van de gast staat niet in zijn eigen save: ' + JSON.stringify(gb));
   else note('de gast had nog geen save: de beloning blijft in het geheugen tot zijn eigen eerstvolgende save (geen verlies, geen dubbele)');
+  // een filmpje op de host: de gast ziet de laag, wacht, en loopt daarna weer
+  const fh = of(H, 'filmpje')[0], fhn = of(H, 'filmpje-na')[0];
+  check(fh && fh.ok === true, 'filmpje: de host kon geen filmpje starten: ' + JSON.stringify(fh));
+  for (const n of NAMES.filter((x) => x !== 'host')) {
+    const fg = of(E[n], 'filmpje-gast')[0], fgn = of(E[n], 'filmpje-gast-na')[0];
+    check(fg && fg.sc && fg.sc.filmpje === true && fg.sceneEl === true, `filmpje: ${n} ziet de laag van het filmpje niet: ${JSON.stringify(fg)}`);
+    check(fg && fg.input && fg.input[0] === 0 && fg.input[1] === 0, `filmpje: ${n} stuurt tijdens het filmpje invoer: ${JSON.stringify(fg && fg.input)}`);
+    check(fgn && !fgn.sceneEl, `filmpje: ${n} heeft de laag na het filmpje nog: ${JSON.stringify(fgn)}`);
+  }
   // een ritje: de host rijdt, Tessa (gast) is passagier, de andere gasten zien het voertuig meerijden
   const rs = of(H, 'rit-spawn')[0], ri = of(H, 'rit-in')[0], rp = of(H, 'rit-passagier')[0], rg = of(H, 'rit-gereden')[0], ru = of(H, 'rit-uit')[0];
   check(ri && ri.ingestapt, 'rit: de host kon niet instappen: ' + JSON.stringify({ rs, ri }));
