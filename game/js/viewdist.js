@@ -9,6 +9,8 @@ export const DRAW_DISTANCE_LABELS = { kort: 'kort', normaal: 'normaal', ver: 've
 // quality has stepped down (render scale under 90% or cpuLevel > 0), so a
 // machine that cannot carry it loses the extra distance before more detail.
 export function viewDistanceFor(setting, scale = 1, cpuLvl = 0) {
+  // cpuLevel 3 (a machine that cannot even carry level 2, scripts/perf/zwak.mjs): the shortest view
+  if (cpuLvl >= 3) return VIEW_DISTANCES.kort;
   if (setting === 'heelver' && (scale < 0.9 || cpuLvl > 0)) setting = 'ver';
   return VIEW_DISTANCES[setting] || VIEW_DISTANCES.normaal;
 }
@@ -22,7 +24,10 @@ export function viewDistanceFor(setting, scale = 1, cpuLvl = 0) {
 export const DETAIL_BASE = 140;
 export const DETAIL_DIST = { laag: 140, middel: 160, hoog: 190 };
 export const DETAIL_AREA_MAX = 2;
-export function detailDistanceFor(quality, viewDist) {
+// cpuLevel 3 (viewdist.js viewDistanceFor) also shrinks the ring to DETAIL_WEAK m: a third of the meshes
+export const DETAIL_WEAK = 100;
+export function detailDistanceFor(quality, viewDist, cpuLvl = 0) {
+  if (cpuLvl >= 3) return DETAIL_WEAK;
   if (!(viewDist >= 350)) return DETAIL_BASE;
   return DETAIL_DIST[quality] || DETAIL_BASE;
 }

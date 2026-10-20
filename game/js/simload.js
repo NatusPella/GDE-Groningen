@@ -7,9 +7,9 @@ import { cpuLevel } from './gfxprofile.js';
 // Back to normal as soon as cpuLevel drops. Mission, story, police and
 // player vehicles and scripted people are never thinned.
 
-const POP = [1, 0.75, 0.55];
-const STRIDE = [1, 2, 3];
-const FAR_AI = [Infinity, 90, 60];
+const POP = [1, 0.75, 0.55, 0.4];
+const STRIDE = [1, 2, 3, 4];
+const FAR_AI = [Infinity, 90, 60, 40];
 
 let frameNo = 0;
 let forced = null;
@@ -39,4 +39,4 @@ export function takeDt(o, dt) {
 // a vehicle the thinning must never touch
 export const keepVehicle = (v) => v.driver === 'player' || v.missionCar || v.isHeroCar || v.isPolice || v.storyCar || v.scripted || v.isFoodtruck || v.racer || v.cineTemp || v.perfTemp || v.hijacked;
 
-if (typeof window !== 'undefined') window.__simLoad = { level: simLevel, force(l) { forced = l === null || l === undefined ? null : Math.max(0, Math.min(2, l)); } };
+if (typeof window !== 'undefined') window.__simLoad = { level: simLevel, force(l) { forced = l === null || l === undefined ? null : Math.max(0, Math.min(3, l)); } };

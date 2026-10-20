@@ -3,7 +3,7 @@
 //   node scripts/qa/sweep.mjs [--seed=1] [--out=<map>] [--part=wereld,verhaal,cut,alles]
 //        [--wereld=45] [--verhaal=26] [--cut=14] [--settle=6000] [--only=<stops>] [--slot] [--plan]
 // --plan schrijft alleen plan.json (geen Electron). Eén Electron-instantie per deel, wegwerpprofiel,
-// nooit echte opslag. --slot neemt een Electron-slot volgens C:/Users/abuis/gde-locks/README.txt.
+// nooit echte opslag. --slot neemt een Electron-slot volgens <GDE_LOCKS>/README.txt.
 // ELECTRON_EXE=<pad> als desktop/node_modules/electron/dist ontbreekt; GAME_WORLD=<map> als de
 // gestagede wereld niet in game/world of desktop/build/game/world staat.
 // Uitvoer in <out>: plan.json, logboek.md, bevindingen.json, shots-<naam>.png, run-<deel>.log.
@@ -94,7 +94,7 @@ let slot = null;
 const release = () => { if (slot) { try { fs.rmdirSync(slot); } catch { /* al weg */ } slot = null; } };
 process.on('exit', release);
 if (flag('slot')) {
-  const LOCKS = 'C:/Users/abuis/gde-locks';
+  const LOCKS = process.env.GDE_LOCKS || path.join(os.homedir(), 'gde-locks');
   for (let tries = 0; tries < 240 && !slot; tries++) {
     for (const n of [1, 2, 3]) { try { fs.mkdirSync(path.join(LOCKS, `electron-${n}`)); slot = path.join(LOCKS, `electron-${n}`); break; } catch { /* bezet */ } }
     if (!slot) await new Promise((r) => setTimeout(r, 60000));
