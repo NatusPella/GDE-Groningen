@@ -52,8 +52,8 @@ const held = [];
 async function takeSlot() {
   for (;;) {
     for (const n of [1, 2, 3]) { const d = path.join(LOCKS, 'electron-' + n); try { fs.mkdirSync(d); held.push(d); return d; } catch (e) { /* bezet */ } }
-    console.log('alle electron-sloten bezet, wacht 60 s');
-    await new Promise((r) => setTimeout(r, 60000));
+    console.log('alle electron-sloten bezet, wacht 10 s');
+    await new Promise((r) => setTimeout(r, 10000));
   }
 }
 const release = () => { while (held.length) { try { fs.rmdirSync(held.pop()); } catch (e) { /* weg */ } } };
