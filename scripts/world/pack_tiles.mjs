@@ -140,7 +140,12 @@ export function stadOf(d) {
 
 // De stad als GameMap: stad.json + de lagen uit de OSM-bouw (altijd de lagen die stad.json mist, plus wat STAD_LAAG vraagt),
 // dan mapextras (patches op gebouwen en wegen). city en osm zijn voor de splitstest (stad_split_test.mjs).
-export async function loadSourcesLaag(game = path.join(ROOT, 'game'), lagen = parseLagen(process.env.STAD_LAAG), { city = readStad(game), osm = null } = {}) {
+export async function loadSourcesLaag(...args) {
+  const { data, lagen } = await loadCityDataLaag(...args);
+  return { map: new GameMap(data), lagen };
+}
+// dezelfde stad als de ruwe kaartdata (voor tests die zelf in de lijsten kijken), mapextras erin
+export async function loadCityDataLaag(game = path.join(ROOT, 'game'), lagen = parseLagen(process.env.STAD_LAAG), { city = readStad(game), osm = null } = {}) {
   const data = city.data;
   const all = [...new Set([...lagen, ...city.fromOsm])];
   if (all.length) {
@@ -150,7 +155,7 @@ export async function loadSourcesLaag(game = path.join(ROOT, 'game'), lagen = pa
     for (const l of all) data[l] = rows[l];
   }
   applyMapExtras(data, JSON.parse(fs.readFileSync(path.join(game, 'mapextras.json'), 'utf8')));
-  return { map: new GameMap(data), lagen: all };
+  return { data, lagen: all };
 }
 export function parseLagen(raw) {
   const ok = ['water', 'green', 'trees', 'buildings'];

@@ -615,16 +615,16 @@ async function cityKeysOf(arg) {
   if (arg && fs.existsSync(arg)) return new Set(Object.keys(JSON.parse(fs.readFileSync(arg, 'utf8')).tiles));
   await import('../node3d.mjs');
   const P = await import('./pack_tiles.mjs');
-  return new Set(P.build(P.loadSources()).blobs.keys());
+  return new Set(P.build(await P.loadSourcesLaag()).blobs.keys());
 }
 
-// the city map's data cover (citycover.mjs), for the overlay tiles
+// the city map's data cover (citycover.mjs, the mask in stad.json), for the overlay tiles
 async function cityCoverOf() {
   await import('../node3d.mjs');
   const P = await import('./pack_tiles.mjs');
-  const { buildCityCover } = await import('./citycover.mjs');
-  const { map } = P.loadSources();
-  return { ...buildCityCover(map), rails: (map.rails || []).map((r) => r.pts) };
+  const { cityCoverFromMask } = await import('./citycover.mjs');
+  const { data, mask } = P.readStad();
+  return { ...cityCoverFromMask(mask), rails: (data.rails || []).map((r) => r.pts) };
 }
 
 async function main() {

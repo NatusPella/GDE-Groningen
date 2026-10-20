@@ -5,9 +5,10 @@ import '../scripts/node3d.mjs';
 import * as P from './world/pack_tiles.mjs';
 import { buildProvince, haveProvince } from './world/build_province.mjs';
 import { diffTiles, CORE_BUILDINGS } from './world/city_diff.mjs';
+import { loadLegacySources } from './lib/loadworld.mjs';
 
 if (!haveProvince()) { console.log('SKIP city_diff_test: geen data/cache/province'); process.exit(0); }
-const city = P.build(P.loadSources());
+const city = P.build(await loadLegacySources());
 const shadow = buildProvince({ cityKeys: new Set(), only: new Set(city.blobs.keys()), map: false, fillOld: false });
 assert.equal(shadow.blobs.size, city.blobs.size, 'elke stadstegel heeft een schaduw');
 const { perTile } = diffTiles(city.blobs, shadow.blobs);

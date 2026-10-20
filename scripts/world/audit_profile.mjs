@@ -22,7 +22,7 @@ const carLow = rep.clearance.filter((q) => CAR.has(q.loCat) || q.loCat === 'rail
 console.log(`car roads and rails under the clearance: ${carLow.length}`);
 
 const P = await import('./pack_tiles.mjs');
-const { map } = P.loadSources();
+const { map } = await P.loadSourcesLaag();
 const { probeRingSolids } = await import('../../game/js/ringcheck.js');
 await import('../../game/js/player.js');
 const hits = probeRingSolids({ map, flitspaalen: [] });
