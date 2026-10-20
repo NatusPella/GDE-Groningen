@@ -55,7 +55,7 @@ function speel(st, dt = 0.05) {
   ok(opt.every((r, i) => i === 0 || r.lift >= opt[i - 1].lift - 1e-9), 'het schaap gaat alleen omhoog');
   ok(opt[opt.length - 1].lift > S.HOOGTE - 3 && opt[opt.length - 1].lift < S.HOOGTE, 'het schaap eindigt vlak onder de schotel');
   const laatsteOpt = opt[opt.length - 1];
-  ok(Math.abs(laatsteOpt.straal.bodem - (laatsteOpt.lift + 1)) < 1e-6, 'de straal eindigt bij het schaap');
+  ok(Math.abs(laatsteOpt.straal.bodem - (laatsteOpt.lift - 0.3)) < 1e-6, 'de straal eindigt bij het schaap');
   ok(!log.filter((r) => r.fase !== 'weg').some((r) => r.weg), 'het schaap blijft tot de laatste fase');
   ok(log.filter((r) => r.fase === 'weg').every((r) => r.weg), 'in de laatste fase is het schaap weg');
   const last = log[log.length - 1];

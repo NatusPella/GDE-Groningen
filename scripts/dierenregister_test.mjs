@@ -174,9 +174,17 @@ for (const d of R.DIEREN.filter((x) => x.cutscene)) check(`cutscene-dier ${d.id}
   check('de koe-sleutel van veeVoorPlek volgt de streek', R.veeVoorPlek('westerkwartier', 'weide', 12, 0.99) === 'cow' || R.veeVoorPlek('westerkwartier', 'weide', 12, 0.99) === 'sheep');
   check('s nachts geen vee op nieuwe weides', R.veeVoorPlek('hogeland', 'weide', 2, 0.5) === null);
   check('hogeland: meer schapen dan koeien', (() => { let c = 0, sh = 0; for (let r = 0; r < 1; r += 0.01) { const v = R.veeVoorPlek('hogeland', 'weide', 12, r); if (v === 'cow') c++; else if (v === 'sheep') sh++; } return sh > c; })());
+  // de bebouwde kom van een plaats (worldplaces.js): de stad reikt tot de parken aan de rand, een dorp tot de laatste huizen
+  const WP = await import('../game/js/worldplaces.js');
+  WP.setWorldPlaces([{ name: 'Grunn', kind: 'city', x: 200, y: 50, pop: 200000 }, { name: 'Dorp', kind: 'town', x: -3400, y: -12000, pop: 7500 }, { name: 'Gehucht', kind: 'hamlet', x: 5000, y: 5000, pop: 0 }]);
+  check('de stad heeft een bebouwde kom van 3 km, ook de parken aan de rand', WP.inBebouwdeKom(-1229, 1530) && WP.inBebouwdeKom(200, 2500) && !WP.inBebouwdeKom(200, 3400));
+  check('een dorp van 7500 inwoners: bijna 800 m, daarbuiten weide', WP.inBebouwdeKom(-3400 + 500, -12000) && !WP.inBebouwdeKom(-3400 + 1800, -12000 + 1200));
+  check('een gehucht zonder bevolkingscijfer heeft geen kom', !WP.inBebouwdeKom(5000, 5000));
+  check('in de kom is het stad, ook in een streek met vee', R.biotoopVanPlek('westerkwartier', 0, true) === 'stad' && R.biotoopVanPlek('westerkwartier', 0, false) === 'weide' && R.veeVoorPlek('westerkwartier', R.biotoopVanPlek('westerkwartier', 0, true), 12, 0.5) === null);
+  WP.setWorldPlaces([]);
   const wl = read('game/js/wildlife.js');
   check('wildlife.js kiest vee via het register (veeVoorPlek, biotoopVanPlek)', /veeVoorPlek\(/.test(wl) && /biotoopVanPlek\(/.test(wl) && !/grazerPick\(/.test(wl));
-  check('wildlife.js laat vee in de bebouwde kom verdwijnen', /urbanWeight\(a\.x, a\.y\)/.test(wl));
+  check('wildlife.js laat vee in de bebouwde kom verdwijnen', /urbanWeight\(a\.x, a\.y\), inBebouwdeKom\(a\.x, a\.y\)/.test(wl));
 }
 
 console.log(`dierenregister_test: ${n - bad}/${n} ok`);

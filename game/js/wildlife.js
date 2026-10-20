@@ -13,6 +13,7 @@ import { wildlifeLimits, fleeFrom, STREEK_MIX } from './dierenplan.js';
 import { getSettings } from './settings.js';
 import { dierVanKind, ONTDEK_M, SET_DIEREN, biotoopVanPlek, veeVoorPlek } from './dierenregister.js';
 import { urbanWeight } from './provinceworld.js';
+import { inBebouwdeKom } from './worldplaces.js';
 import { recordUnique } from './achievements.js';
 
 // Ambient trailer-parody wildlife: seagulls over the Diepenring,
@@ -274,7 +275,7 @@ function maintain(world) {
   // #330: vee hoort op weide en dijk. Wie de bebouwde kom in komt (of de stad in rijdt), laat het achter.
   for (let i = list.length - 1; i >= 0; i--) {
     const a = list[i];
-    if ((a.kind === 'cow' || a.kind === 'sheep' || a.kind === 'gans') && biotoopVanPlek(streekId, urbanWeight(a.x, a.y)) === 'stad') list.splice(i, 1);
+    if ((a.kind === 'cow' || a.kind === 'sheep' || a.kind === 'gans') && biotoopVanPlek(streekId, urbanWeight(a.x, a.y), inBebouwdeKom(a.x, a.y)) === 'stad') list.splice(i, 1);
   }
   const LIMITS = wildlifeLimits(streekId, getSettings().quality, BASE_LIMITS);   // #193
   const count = { seagull: 0, grazer: 0, duck: 0, pigeon: 0, cat: 0, dog: 0, reiger: 0, zeehond: 0, vis: 0 };
@@ -292,7 +293,7 @@ function maintain(world) {
     }
   }
   const green = greenPolys.length && count.grazer < LIMITS.grazer && rng() < 0.3 ? layerPointNear(map, 'greenNear', player.x, player.y, rng, 15, SPAWN_RADIUS) : null;
-  const biotoop = green ? biotoopVanPlek(streekId, urbanWeight(green.x, green.y)) : null;
+  const biotoop = green ? biotoopVanPlek(streekId, urbanWeight(green.x, green.y), inBebouwdeKom(green.x, green.y)) : null;
   const vee = green ? veeVoorPlek(streekId, biotoop, ((world.clock % 24) + 24) % 24, rng()) : null;   // #330: nooit in de bebouwde kom
   if (vee === 'gans') {
     const n = 3 + Math.floor(rng() * 3);

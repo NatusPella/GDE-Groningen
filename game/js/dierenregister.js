@@ -165,7 +165,8 @@ export function spawnWeight(id, streek, uur, biotoop = null) {
 // is), anders 'weide'. De stad heeft eenden, meeuwen, duiven, katten en honden; vee hoort daar niet.
 export const BOERDERIJ_IDS = ['koe', 'schaap', 'gans'];
 export const BEBOUWD_VANAF = 0.3;   // urbanWeight (provinceworld.js) waarboven een plek bebouwd heet
-export const biotoopVanPlek = (streek, urban) => (!streek || streek === 'stad' || urban > BEBOUWD_VANAF ? 'stad' : 'weide');
+// urban: urbanWeight (provinceworld.js) rond de plek; kom: ligt de plek in de bebouwde kom van een plaats (worldplaces.js inBebouwdeKom)
+export const biotoopVanPlek = (streek, urban, kom = false) => (!streek || streek === 'stad' || kom || urban > BEBOUWD_VANAF ? 'stad' : 'weide');
 
 // Welk vee mag hier op een nieuwe weide? roll: 0..1. Geeft 'cow' | 'sheep' | 'gans' of null (niets).
 export function veeVoorPlek(streek, biotoop, uur, roll) {
