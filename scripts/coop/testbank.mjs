@@ -400,7 +400,7 @@ if (SUITE === 'net') {
   }
   // een ritje: de host rijdt, Tessa (gast) is passagier, de andere gasten zien het voertuig meerijden
   const rs = of(H, 'rit-spawn')[0], ri = of(H, 'rit-in')[0], rp = of(H, 'rit-passagier')[0], rg = of(H, 'rit-gereden')[0], ru = of(H, 'rit-uit')[0];
-  if (!(ri && ri.ingestapt && rp && rp.tessa)) note('rit niet beoordeeld: de host kon in deze run niet instappen (E bij het voertuig deed niets): ' + JSON.stringify({ rs, ri }));
+  if (!(ri && ri.ingestapt && rp && rp.tessa)) note('rit niet beoordeeld: de host of Tessa kon in deze run niet instappen (E bij het voertuig deed niets, of Tessa kwam niet op tijd): ' + JSON.stringify({ rs, ri }));
   else {
     check(ri && ri.ingestapt, 'rit: de host kon niet instappen: ' + JSON.stringify({ rs, ri }));
     check(rp && rp.tessa, 'rit: Tessa stapt niet als passagier mee: ' + JSON.stringify(rp));

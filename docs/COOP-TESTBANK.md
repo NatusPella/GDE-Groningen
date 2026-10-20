@@ -33,6 +33,8 @@ Wat elke run beoordeelt (de `PROBLEMEN`-lijst van de testbank): alle instanties 
 
 Programma's staan in `testbank.mjs` (`P`), fasen in `coop.page.js` (`PHASES`): `wacht`, `netsim`, `uitval`, `uitvalHost`, `desync`, `betaal`, `loop`, `touch`, `rit`, `verlaat`, `stopHost`, `opgeslagen`, `verhaal`, `volg`. Een nieuwe fase is een functie die `log(...)` regels schrijft en een controle in de suite.
 
-## Niet getest
+## Stand en wat niet getest is
 
-Twee echte computers, NAT en UPnP, echte openbare brokers en STUN, een echte telefoon met een vinger op het scherm (de aanraakstick wordt met synthetische pointer-events bediend). Zie de comment op #95 voor de stand per scenario.
+Gedraaid op 2026-10-20 (alleen lokaal, één computer): `gastkant` (ALLES OK), `verhaal --gasten=0` met M01 t/m M08 (ALLES OK, de spelbot had dezelfde cheats nodig als zonder coöp), `kamer` (ALLES OK, lokale nep-tracker), `net` met host, een Electron-gast en twee headless gasten (alles groen behalve een rit die niet altijd lukt: E bij een voertuig deed niets of Tessa liep vast; de rit is verder gedekt door `gastkant` en `net --gasten=0`). In een run zit eigen geluk: een rit en de snelheid van opnieuw verbinden zijn afhankelijk van de omgeving.
+
+Niet getest: twee echte computers, NAT en UPnP, de openbare brokers en STUN-servers (alleen een lokale nep-tracker, zonder STUN), een echte telefoon (de aanraakstick wordt met synthetische pointer-events bediend), drie Electron-instanties tegelijk met de laatste versie (eerder wel, met de basissuite), schade aan voertuigen bij een gast (komt niet mee), winkels, instappen en besturen door een gast (kan niet, #291) en de bandbreedte bij meer dan vier spelers (grof gemeten bij vier: zie de notities van de suite `net`).
