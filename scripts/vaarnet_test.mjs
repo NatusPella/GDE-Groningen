@@ -206,5 +206,51 @@ function canal(len, wid) {
   VH.setVaarNet(null);
 }
 
+// ---------------------------------------------------------------- a tour boat follows the net too (#296)
+
+{
+  const SL = await import('../game/js/sluizen.js');
+  const m = canal(1600, 50);
+  const net = V.createVaarNet({
+    nodes: [[60, 0, 'haven', 'West'], [800, 0, 'sluis', 'Proefsluis'], [1540, 0, 'haven', 'Oost'], [1560, 0, 'haven', 'Ver']],
+    edges: [[0, 1, 740, 4, -1, [600, 0, 7400, 0]], [1, 2, 740, 4, -1, [8000, 0, 7400, 0]], [2, 3, 20000, 4, -1, [7400, 0, 200, 0]]],
+    hubs: { Oost: 2, Ver: 3 },
+  });
+  // a tour boat stays within TOUR_TRIP_MAX of home; a barge takes any hub
+  const far = V.createVaarNet({ nodes: [[0, 0, 'haven', 'A'], [100, 0, 'haven', 'B'], [200, 0, 'haven', 'Ver']], edges: [[0, 1, 100, 4, -1, [0, 0, 1000, 0]], [1, 2, 30000, 4, -1, [1000, 0, 1000, 0]]], hubs: { Ver: 2 } });
+  ok(V.pickTrip(far, 5, 0, 0, 'rondvaart', () => 0.5, 150, VH.TOUR_TRIP_MAX) === null, 'a tour boat picks no hub 30 km away');
+  ok(V.pickTrip(far, 5, 0, 0, 'rondvaart', () => 0.5) !== null, '...but would with no limit (the barge)');
+  VH.setVaarNet(net);
+  const lockRow = { id: 7, n: 'Proefsluis', x: 800, y: 0, a: 0, l: 40, w: 8, lv: [-1, -2.3] };
+  SL.buildSluizen([lockRow]);
+  // the lock stands open on the far side: the boat has to wait for it
+  const lk = SL.getSluizen()[0];
+  lk.at = 1; lk.gate = [0, 1]; lk.level = lk.levels[1];
+  const v = new VH.Vehicle(300, 3, 0, B.BOAT_KINDS.rondvaart);
+  v.isBoat = true; v.waterPoly = m.poly;
+  const world = { player: { x: 800, y: 120 }, wanted: 0, vehicles: [v], time: 0, particles: [] };
+  const rng = seeded(5);
+  let maxX = 0, trip = null, waited = 0, levelled = false;
+  for (let i = 0; i < 24000; i++) {
+    VH.updateBoatAI(v, 0.1, m, world, rng);
+    SL.updateSluizen(0.1, world);
+    const k = SL.getSluizen()[0];
+    if (k.state === 'levelling') levelled = true;
+    // in front of the gate (closed on its side) and lying still: it waits for the lock like the player's boat
+    if (v.x > 700 && v.x < 780 && Math.abs(v.speed) < 0.3) waited += 0.1;
+    maxX = Math.max(maxX, v.x);
+    if (v._vaar && !trip) trip = v._vaar.name;
+    if (maxX > 1400) break;
+  }
+  ok(Number.isFinite(v.x) && Number.isFinite(v.y), 'the tour boat stays finite');
+  ok(trip === 'Oost', 'the tour boat took a trip on the net, to the hub within reach', String(trip));
+  ok(levelled, 'it asked the lock, which went through its cycle for it');
+  ok(maxX > 1400, 'it sailed through the lock to the far node', `x ${Math.round(maxX)}`);
+  ok(waited > 3, 'and waited in front of the gate until the lock was ready', `${waited.toFixed(1)} s`);
+  ok(Math.abs(v.y) < 25, 'and stayed in the canal');
+  SL.resetSluizen();
+  VH.setVaarNet(null);
+}
+
 console.log(`${n} checks, ${fails} failed`);
 process.exit(fails ? 1 : 0);

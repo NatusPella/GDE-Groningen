@@ -208,8 +208,8 @@ export function routePoints(net, route) {
 // A trip for a boat at (x, y) heading `angle`: it joins the net at the edge end it points to
 // and sails to a hub it can reach (a lock or a movable bridge costs time, a low fixed bridge
 // shuts the edge for a boat that does not clear it). null when the net is out of reach or
-// every hub is shut. rng() picks the hub.
-export function pickTrip(net, x, y, angle, kind, rng = Math.random, maxD = 150) {
+// every hub is shut or further than maxLength m (a tour boat stays near home). rng() picks the hub.
+export function pickTrip(net, x, y, angle, kind, rng = Math.random, maxD = 150, maxLength = Infinity) {
   const at = nearestOnNet(net, x, y, maxD);
   if (!at || !edgeOpen(at.edge, kind)) return null;
   const e = at.edge, i = at.i;
@@ -224,7 +224,7 @@ export function pickTrip(net, x, y, angle, kind, rng = Math.random, maxD = 150) 
     const to = net.hubs[name];
     if (to === startNode) continue;
     const r = routeVaar(net, startNode, to, kind);
-    if (!r || r.nodes.length < 2) continue;
+    if (!r || r.nodes.length < 2 || r.length > maxLength) continue;
     return { name, length: r.length, wait: r.wait, pts: rest.concat(routePoints(net, r)) };
   }
   return null;
