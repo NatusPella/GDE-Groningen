@@ -125,7 +125,7 @@ export function buildAkte5Defs({ map, walk, drive }) {
         },
         {
           kind: 'convoy', carHint: 'Stap weer in de Fjord Frituur: de colonne volgt de wagen.', target: { at: HOOGKERK, snap: 'drive', label: 'Hoogkerk' }, radius: 45, mode: 'vehicle',
-          label: 'Rij met de colonne naar Hoogkerk: Wubbo draait de brug open', say: 'Wubbo staat bij de brug en draait hem voor de colonne open. Niet te hard, de aanhanger met de rubberboot moet er ook onderdoor.', lost: 'de colonne is uiteengevallen',
+          label: 'Rij met de colonne naar Hoogkerk: Wubbo draait de brug open', say: 'Wubbo opent de brug op afstand, met zijn sleutel, voor de colonne. Niet te hard, de aanhanger met de rubberboot moet er ook onderdoor.', lost: 'de colonne is uiteengevallen',
         },
         {
           kind: 'convoy', carHint: 'Stap weer in de Fjord Frituur: de colonne volgt de wagen.', target: { landmark: 'Grote Markt', off: [20, -5], snap: 'drive' }, radius: 30, mode: 'vehicle',

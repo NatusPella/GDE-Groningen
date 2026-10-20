@@ -213,12 +213,12 @@ TAMMO: Klopt. [NIEUW]
 SJABBE (telefoon): Loket C heeft een zijdeur bij de kopieermachine. [NIEUW]
 
 ## [M03.2] Het Loket: Jelle – Stad, Het Loket – te voet
-(regie: een man in een blauw colbert staat vooraan en telt contant geld uit een klomp. Naamkaart: JELLE TERPSTRA. Het scherm springt van 4093 naar 4140.)
+(regie: een man in een blauw colbert staat vooraan en telt contant geld uit een klomp. Naamkaart: JELLE TERPSTRA. Het scherm springt van 4093 naar 4139.)
 JELLE: Goedemorgen. Jelle Terpstra, Us Mem Snacks. Mijn juristen hebben dit loket vanochtend vooruit betaald. [NIEUW]
 TESSA: Jelle Terpstra. Meneer Klomp. [NIEUW]
 JELLE: Ik heb de rij gekocht. U staat nu helemaal achteraan, nummer 4140. Dat staat in de overeenkomst. [NIEUW]
 TAMMO: Hij kocht onze plek. [NIEUW]
-JELLE: Verder koop ik alle vrije standplaatsen van Grunn. Contant, uit een klomp, definitief. [NIEUW]
+JELLE: Verder koop ik alle standplaatsen van Grunn die vrijkomen. Contant, uit een klomp, definitief. [NIEUW]
 TESSA: Alle? De standplaats van de winnaar is niet te koop. [NIEUW]
 JELLE: Nee. Die win ik. [NIEUW]
 TESSA: Salamitactiek. Plakje voor plakje, tot hij alles heeft. [NIEUW]

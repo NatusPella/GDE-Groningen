@@ -259,7 +259,7 @@ S['M25.intro'] = {
     { on: 'Niet. Hij zei', actor: 'trijntje', anim: 'talk' },
     { on: 'Ik zit hier ook, Trijntje', actor: 'mem', anim: 'hips' },
     { on: 'Dan houden wij Jelle tegen', actor: 'tessa', anim: 'nod' },
-    { on: 'Morgen om drie uur laat Jelle zich', actor: 'tessa', anim: 'phone' },
+    { on: 'De notaris zit in de Oude Boteringestraat', actor: 'tessa', anim: 'phone' },
   ],
   shots: [],
   wide: WIDE([-5, 4.2, 3.2], [-3, 3, 2.4], 'mid:trijntje,mem@1'),
@@ -648,7 +648,7 @@ S['M23.6'] = {
   beats: [
     { on: 'Ik rijd naast jullie', actor: 'wubbo', anim: 'point' },
     { on: 'En de bruggen', actor: 'tessa', anim: 'look' },
-    { on: 'Die draai ik zelf', actor: 'wubbo', anim: 'hips' },
+    { on: 'Die open ik op afstand', actor: 'wubbo', anim: 'hips' },
     { on: 'Die komt een minuut later', actor: 'wubbo', anim: 'talk' },
   ],
   shots: [], wide: friendWide('wubbo'),
@@ -678,13 +678,13 @@ const streets = (key, x, beats) => ({
   props: {}, open: friendOpen(key), beats, shots: [], wide: friendWide(key),
 });
 S['M26.14'] = streets('wubbo', 5.0, [
-  { on: 'Herestraat dicht', actor: 'wubbo', anim: 'point' },
+  { on: 'Poelestraat dicht', actor: 'wubbo', anim: 'point' },
   { on: 'Dank je, Wubbo', actor: 'tessa', anim: 'nod' },
   { on: 'Dat mag niet', actor: 'tessa', anim: 'shake' },
   { on: 'Zijn bus, zijn regels', actor: 'tammo', anim: 'shrug' },
 ]);
 S['M26.15'] = streets('tinus', 5.0, [
-  { on: 'Zuiderdiep dicht', actor: 'tinus', anim: 'point' },
+  { on: 'Gelkingestraat dicht', actor: 'tinus', anim: 'point' },
   { on: 'Je trekker past er net in', actor: 'tessa', anim: 'look' },
   { on: 'Ik trek hem weg', actor: 'tinus', anim: 'hips' },
   { on: 'In de stad ziet hij', actor: 'tammo', anim: 'shrug' },

@@ -79,7 +79,8 @@ TESSA: Hij loopt weg. Nu. [NIEUW]
 ## [M13.3] Het containerlabyrint: outro – Waddenkust, Eemshaven, kade – te voet
 LAMMERT: Het schip vaart leeg weg. Jelle krijgt zijn lading nooit. [NIEUW]
 LAMMERT: Mijn vrachtwagen brengt alles wat jullie hebben gered vannacht naar mijn woonschip in Delfzijl. [NIEUW]
-LAMMERT: Morgen om acht uur tekent Trijntje op de sluis de overdracht van mijn woonschip. Dan mag de deurwaarder er niet meer bij. [NIEUW]
+LAMMERT: Dit vat is van mijn vader: het vet van 1953. Voor Oma. [NIEUW]
+LAMMERT: Vanochtend om acht uur tekent Trijntje op de sluis de overdracht van mijn woonschip. Dan mag de deurwaarder er niet meer bij. [NIEUW]
 LAMMERT: Jullie slapen in mijn havenkantoor. [NIEUW]
 TAMMO: Een kantoor? [NIEUW]
 LAMMERT: Met een bed. Twee bedden. [NIEUW]
@@ -94,7 +95,7 @@ LAMMERT: De bewaker kijkt nog steeds omhoog. Hij wacht al een uur. [NIEUW]
 ## [M14.1] De dijk: intro – Eemsdelta, Bierum, de dijk – auto van Lammert
 (regie: zaterdag 22 augustus, vroege ochtend. Jelles trekker-limo staat naast de auto van Lammert, op de dijk bij Bierum. Jelle is droog en keurig, naast hem zit een deurwaarder met een map. Gameplay: een race over de dijk naar de sluis van Delfzijl, met zijwind en schapen.)
 JELLE: Goedemorgen. Mijn deurwaarder neemt om acht uur het woonschip van meneer Lammert in beslag. Ik heb gisteren zijn huurschuld gekocht. [NIEUW]
-TESSA: In beslag nemen: dan neemt hij alles mee wat Lammert voor Oma bewaart. Trijntje tekent om acht uur de overdracht op de sluis, als wij er eerder zijn. [NIEUW]
+TESSA: In beslag nemen: dan neemt hij alles mee wat Lammert voor Oma bewaart. Trijntje wacht op de sluis met de pen. Tekent ze eerst, dan komt de deurwaarder te laat. [NIEUW]
 JELLE: Dan raad ik u aan eerder aan de sluis te zijn dan mijn deurwaarder. Wie wint, mag famke een eierbal geven. [NIEUW]
 TESSA: Famke koopt haar eigen eierbal. [BEHOUDEN]
 TAMMO: Dat neem ik je kwalijk. [BEHOUDEN]
@@ -236,7 +237,7 @@ TAMMO: Dan pakken we hem in Veendam. [NIEUW]
 DURK: Net fertelle, hè? [NIEUW]
 
 ## [M16.6] Nog eentje dan: de dijk – Oldambt, dijk van het Oldambtmeer bij Blauwestad – te voet
-(regie: zonsondergang boven het land, het licht op het water van het Oldambtmeer, een rood-oranje lucht, de kermis ver weg. Ze lopen naast elkaar.)
+(regie: zonsondergang boven het land, het licht op het water van het Oldambtmeer, een rood-oranje lucht, de kermis ver weg. Ze namen de laatste bus naar Blauwestad en lopen het laatste stuk over de dijk.)
 TAMMO: In de botsauto mocht ik niet sturen. [NIEUW]
 TESSA: Mag je nog steeds niet. [BEHOUDEN]
 TAMMO: Nee. Maar ik zit wel naast je. [BEHOUDEN]
