@@ -97,5 +97,14 @@ const step = { id: 'T1' };
   await tick(); await tick();
   ok(w.player.inVehicle.x === 17000 && w.player.inVehicle.speed === 0, 'vehicle comes along');
 }
+// #311: the trip ends at the step's own place, not where the guide points for a moment ("first to your garage")
+const { STEPS } = await import('../game/js/storyarc_nieuw.js');
+{
+  const t3 = STEPS.find((q) => q.id === 'T3');
+  const d = S.destOf(t3, { x: -1291, y: -1062, name: 'garage' });
+  ok(t3.goal.type === 'reis' && d.name === 'Winschoten' && Math.hypot(d.x + 1291, d.y + 1062) > 20000, 'T3: the ride ends in Winschoten', JSON.stringify(d));
+  const g = { x: 1, y: 2 };
+  ok(S.destOf({ goal: { type: 'goto' } }, g) === g, 'other goals keep the guide');
+}
 console.log(`${n - fails}/${n} storytravel`);
 process.exit(fails ? 1 : 0);
