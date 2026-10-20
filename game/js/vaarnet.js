@@ -100,7 +100,7 @@ export function patchRows(fixes) {
   // the chamber of a lock the map draws no water in (scripts/world/sluizen.mjs finds them)
   for (const g of (fixes && fixes.sluisgaten) || []) rows.push(row(gatPolygon(g), g[5] || 3, ''));
   // the sea off a coast the map draws no water at: the open water of the Wadden and the Eems
-  for (const g of (fixes && fixes.zee) || []) { const r = row(gatPolygon(g), 4, SEA_NAMES[g[6]] || 'Zee'); r.kind = 'zee'; r.dp = WATER_KINDS.zee.depth; rows.push(r); }
+  for (const g of (fixes && fixes.zee) || []) { const r = row(gatPolygon(g), 4, SEA_NAMES[g[6]] || 'Zee'); r.kind = 'zee'; r.dp = WATER_KINDS.zee.depth; r.strip = g[2] > 1000; rows.push(r); }
   return rows;
 }
 
