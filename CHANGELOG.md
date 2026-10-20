@@ -12,6 +12,10 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 
 ### Opgelost
+- **Minder verkeersknopen in gehuchten (#265, door Claude in een beeldrun bekeken, niet door een mens):** het aantal auto's om je heen volgt nu de lengte weg in de buurt; bij Wildeplaats stonden dertig auto's op één kruising en reden ze door elkaar. In de stad blijft het aantal gelijk.
+- **Eemshaven: geen blinde grijze plaat meer (#260, door Claude in een beeldrun bekeken, niet door een mens):** de grote dakplaat is een zonnepanelendak met palen eronder, een groot bouwterrein is een zandvlakte met containers, hopen zand en lampen, en grote platte daken hebben daklichten, naden en meer luchtunits.
+- **Cutscenes: de camera zit niet meer in de auto (#263, door Claude in een beeldrun bekeken, niet door een mens):** in M22.4 (en M22.2, M02.intro en M01.intro) stond de camera in de Escapade of de bakkie; een rode band en een blauwe ruit liepen dwars door het beeld.
+- **Verre kerken en molens vervagen mee in regen en mist (#259, door Claude in een beeldrun bekeken, niet door een mens):** bij Delfzijl hingen losse grijze vormen in de lucht; de horizonlaag van torens en molens neemt nu de nevel van het weer over.
 - **Der Aa-kerk van binnen stond verkeerd om (nog niet in beeld bekeken, #22):** de torenhal lag aan de oostkant, terwijl de toren in de kaartdata aan de westkant staat. Torenhal en koor, de portalen en de kansel zijn gespiegeld; `interieurs_test` controleert nu dat de torenhal bij de echte toren ligt (1045 checks).
 
 ### Nieuw
