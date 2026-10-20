@@ -6,6 +6,9 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Verbeterd
+- **De GPS-route maakt geen grote omwegen meer (#320; op de minimap en de grote kaart in Electron bekeken door Claude, niet door de eigenaar of de tester):** van het Goudkantoor naar de Eemskanaal-zone ging de gele/paarse lijn eerst 5,0 km via het station terug naar het oosten, nu 1,3 km (hemelsbreed 1,1 km); van het station naar de Hereweg 3,0 km tegen 0,9 km. De oorzaak: stadsstraten die ook in het provincienet staan telden als land, waardoor de route eerst naar een poort aan de rand van de stad liep; verder koos de route bij een kruispunt altijd één wegstuk, en soms een afrit die de verkeerde kant op leidde. De planner neemt nu de kortste van de stads- en de landroute, start en eindigt op elk wegstuk dat bij het punt hoort, probeert het provincienet voordat hij tegen een eenrichtingsweg in rijdt, en rijdt voor een autovrij doel (een plein) niet meer ver om om dichterbij te komen. Dit geldt ook voor lopen en fietsen. Een nieuwe test (`route_quality_test`) vergelijkt 311 vaste paren met de kortste weg in de graaf: voor de fix 59 autoroutes meer dan 1,3 keer zo lang (de langste 22,6 keer), nu twee (1,33 en 1,38 keer, waar de stadsgraaf een gat heeft en alleen het provincienet de weg kent; de mediaan is 1,00).
+
 ## [0.38.0] - 2026-10-20
 
 ### Nieuw
