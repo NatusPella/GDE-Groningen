@@ -5,20 +5,22 @@
 //
 //   warn      WARN_S    red lights flash, a bell: stop if you still can
 //   booms     BOOMS_S   the half barriers come down (cars stop at them)
-//   clear               until nobody is on the span (at most CLEAR_MAX_S)
+//   clear               until nobody is on the span; nobody is dropped in the canal (#302): CLEAR_HINT_S
+//                       after the barriers the player on the span is told to leave, after CLEAR_ABORT_S
+//                       the opening is called off (barriers up, a boat asks again after RETRY_S)
 //   opening   MOVE_S    the leaf rises (bascule), turns (swing) or lifts
 //   open      HOLD_S    at least; longer while a boat that asked waits near
 //   closing   MOVE_S
 //   up        BOOMS_S   the barriers go up; then closed
 //
-// While a bridge is not closed its span is no bridge (road._open: map.isOnBridge
-// is false there, so a car that gets on it ends up in the canal and boats
-// pass with no deck over them). No scene here: movablebridges3d.js draws the
+// While a bridge is open or moving its span is no bridge (road._open: map.isOnBridge
+// is false there, so a car on it would end up in the canal and boats
+// pass with no deck over them): which is why the leaf only rises when the span is empty. No scene here: movablebridges3d.js draws the
 // leaves, barriers and lights from the state exported below.
 
 import { airDraftOf, passesUnder, BRIDGE_DECK_T, BOEZEM_Y } from './waterlevels.js';
 
-export const BRIDGE_TIMING = { WARN_S: 4, BOOMS_S: 4, CLEAR_MAX_S: 12, MOVE_S: 9, HOLD_S: 14 };
+export const BRIDGE_TIMING = { WARN_S: 4, BOOMS_S: 4, CLEAR_HINT_S: 6, CLEAR_ABORT_S: 40, RETRY_S: 25, MOVE_S: 9, HOLD_S: 14 };
 // how far in front of the bridge a skipper's horn counts, and a boat that
 // asked keeps it open
 const HORN_REACH = 45;
@@ -135,7 +137,7 @@ function makeBridge(r, pinned) {
     x: (a[0] + b[0]) / 2, y: (a[1] + b[1]) / 2,
     half: (r.width || 4) / 2 + (wide ? 1.8 : 0.15),
     name: r.name || '', pinned,
-    state: 'closed', t: 0, open: 0, boom: 0, flash: 0, warn: false, requests: 0, waitFor: null,
+    state: 'closed', t: 0, open: 0, boom: 0, flash: 0, warn: false, requests: 0, waitFor: null, cool: 0, aborted: 0,
     snapped: null, _booms: null, boats: new Map(), manual: false, still: new Map(), ignored: new Map(), passed: new Set(),
   };
 }
@@ -182,7 +184,7 @@ export function pruneMovableBridges(map) {
 }
 
 export function resetMovableBridges() {
-  for (const b of bridges) { b.state = 'closed'; b.t = 0; b.open = 0; b.boom = 0; b.warn = false; b.waitFor = null; b.boats.clear(); b.still.clear(); b.ignored.clear(); b.passed.clear(); b.manual = false; b.snapped = null; b._hinted = null; b.r._open = false; }
+  for (const b of bridges) { b.state = 'closed'; b.t = 0; b.open = 0; b.boom = 0; b.warn = false; b.waitFor = null; b.boats.clear(); b.still.clear(); b.ignored.clear(); b.passed.clear(); b.manual = false; b.snapped = null; b._hinted = null; b.cool = 0; b.aborted = 0; b.r._open = false; }
 }
 
 // Ask bridge `b` to open (a boat in front of it). `who`: the boat, kept as
@@ -191,6 +193,8 @@ export function requestOpening(b, who = null, twins = true, auto = false) {
   // a bridge beside it over the same water (the cycle bridge next to the
   // road bridge) opens with it
   if (twins) for (const o of bridges) if (o !== b && Math.hypot(o.x - b.x, o.y - b.y) < 30) requestOpening(o, who, false, auto);
+  // an opening that was called off because the span stayed busy: a boat's automatic request waits a while
+  if (auto && b.cool > 0) return;
   b.requests++;
   if (!auto) b.manual = true;
   if (who) {
@@ -199,9 +203,13 @@ export function requestOpening(b, who = null, twins = true, auto = false) {
     if (!b.boats.has(who)) b.boats.set(who, who.x !== undefined ? boatFrame(b, who).side : 1);
   }
   if (b.state === 'closed') { b.state = 'warn'; b.t = 0; }
-  else if (b.state === 'closing' || b.state === 'up') {
-    // it opens again from where it is
+  else if (b.state === 'closing') {
+    // the leaf rises again from where it is (the span is no bridge, so nobody is on it)
     b.state = 'opening'; b.t = BRIDGE_TIMING.MOVE_S * (1 - b.open);
+  } else if (b.state === 'up') {
+    // the barriers come down again and the span is looked at once more before the leaf rises (#302: traffic
+    // that drove on while they went up must not be on it)
+    b.state = 'booms'; b.t = BRIDGE_TIMING.BOOMS_S * b.boom;
   }
 }
 
@@ -248,6 +256,7 @@ export function stepBridge(b, dt, world = null) {
   const T = BRIDGE_TIMING;
   b.t += dt;
   b.flash += dt;
+  if (b.cool > 0) b.cool = Math.max(0, b.cool - dt);
   switch (b.state) {
     case 'closed': b.boom = 0; b.open = 0; break;
     case 'warn':
@@ -259,7 +268,13 @@ export function stepBridge(b, dt, world = null) {
       break;
     case 'clear':
       b.boom = 1;
-      if (!spanBusy(b, world) || b.t >= T.CLEAR_MAX_S) { b.state = 'opening'; b.t = 0; }
+      if (!spanBusy(b, world)) { b.state = 'opening'; b.t = 0; }
+      else if (b.t >= T.CLEAR_ABORT_S) {
+        // somebody stays on the span (a parked car, a wreck, the player): the leaf does not rise over them. The
+        // barriers go up again and the boat that asked is not answered for a while
+        b.state = 'up'; b.t = 0; b.cool = T.RETRY_S; b.aborted++;
+        b.boats.clear(); b.still.clear(); b.waitFor = null; b.manual = false;
+      }
       break;
     case 'opening':
       b.open = Math.min(1, b.t / T.MOVE_S);
@@ -325,6 +340,19 @@ export function bridgeHint(state, onWater) {
   return null;
 }
 
+// The player is on the span while the barriers are down and the leaf waits for the span to empty (#302)
+function clearHint(b, world) {
+  const p = world && world.player;
+  if (!p || !world.addMessage || b.t < BRIDGE_TIMING.CLEAR_HINT_S) return;
+  const v = p.inVehicle;
+  if (v ? v.isBoat || !onSpan(b, v.x, v.y, v.halfLen || 2) : (p.water || !onSpan(b, p.x, p.y))) return;
+  // once every 6 s of waiting
+  const n = Math.floor((b.t - BRIDGE_TIMING.CLEAR_HINT_S) / 6);
+  if (b._clearHint === n) return;
+  b._clearHint = n;
+  world.addMessage('Van de brug af: hij moet open', 3, { kind: 'tip' });
+}
+
 function hintNear(b, world) {
   const p = world && world.player;
   if (!p || !world.addMessage) return;
@@ -357,6 +385,8 @@ export function updateMovableBridges(dt, world) {
       }
     }
     stepBridge(b, dt, world);
+    if (b.state === 'clear') clearHint(b, world);
+    else b._clearHint = -1;
     // one hint per bridge per change (a request may have set `warn` before this step)
     if (b._hinted !== b.state) {
       b._hinted = b.state;

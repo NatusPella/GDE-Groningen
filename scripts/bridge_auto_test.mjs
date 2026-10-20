@@ -180,5 +180,55 @@ ok(maxOpen <= MB.AUTO.MAX_OPEN_S + 1, `the bridge never stays open longer than t
   ok(lift === 1 && lb.kind === 'lift', 'a lift bridge is a bridge');
 }
 
+// 12. nobody is on the span when the leaf rises (#302): a car or the player on the deck holds the opening; it is
+// called off after CLEAR_ABORT_S instead of dropping them in the canal; the barriers come back down before it rises again
+{
+  b = mkBridge();
+  const road = b.r;
+  const msgs = [];
+  const w2 = { vehicles: [], pedestrians: [], player: { x: 900, y: 900 }, time: 0, addMessage: (t) => msgs.push(t) };
+  const run = (secs) => { for (let t = 0; t < secs - 1e-9; t += 0.1) { w2.time += 0.1; MB.updateMovableBridges(0.1, w2); } };
+  const car = { x: 10, y: 0, halfLen: 2, speed: 0, angle: 0, sinking: false };
+  w2.vehicles = [car];
+  MB.requestOpening(b);
+  let opened = false;
+  const watch = (secs) => { for (let t = 0; t < secs - 1e-9; t += 0.1) { run(0.1); if (road._open) opened = true; } };
+  watch(T.WARN_S + T.BOOMS_S + T.CLEAR_ABORT_S - 1);
+  ok(b.state === 'clear' && !opened, 'a stalled car on the span: the barriers are down and the leaf does not rise');
+  watch(2);
+  ok(!opened && (b.state === 'up' || b.state === 'closed') && b.aborted === 1, 'after CLEAR_ABORT_S the opening is called off, the car never fell in the canal');
+  ok(b.cool > 0, 'and a boat is not answered at once');
+  // a boat that asks automatically during the cool-down is ignored; the horn is not
+  const sk = boat('skutsje', -30, 0);
+  w2.vehicles = [car, sk];
+  run(1);
+  ok(b.state !== 'warn' && b.state !== 'booms', 'during the cool-down a boat does not start a new cycle');
+  run(T.RETRY_S + T.BOOMS_S + 1);
+  // the car drives off in the meantime
+  car.x = 300;
+  run(0.2);
+  // cool-down over: the boat asks again, the cycle goes through warn and the barriers, then opens (the span is empty now)
+  let states = new Set();
+  for (let t = 0; t < 40; t += 0.1) { run(0.1); states.add(b.state); }
+  ok(states.has('booms') && states.has('clear'), 'after the cool-down the boat gets its bridge, through the barriers and the look at the span: ' + [...states].join(','));
+  ok(states.has('opening') || states.has('open'), 'it opens now the span is empty');
+  // the player on foot on the span is told to get off
+  b = mkBridge();
+  const w3 = { vehicles: [], pedestrians: [], player: { x: 10, y: 0 }, time: 0, addMessage: (t) => msgs.push(t) };
+  msgs.length = 0;
+  MB.requestOpening(b);
+  for (let t = 0; t < T.WARN_S + T.BOOMS_S + T.CLEAR_HINT_S + 1; t += 0.1) { w3.time += 0.1; MB.updateMovableBridges(0.1, w3); }
+  ok(b.state === 'clear' && msgs.some((m) => /brug af/i.test(m)), 'the player on the deck is told to leave the bridge: ' + msgs.join('|'));
+  ok(!b.r._open, 'and is not dropped in the canal');
+  w3.player = { x: 400, y: 400 };
+  for (let t = 0; t < 0.5; t += 0.1) { w3.time += 0.1; MB.updateMovableBridges(0.1, w3); }
+  ok(b.state === 'opening', 'it opens as soon as the player is off the span');
+  // a request in the 'up' phase (barriers going up) puts the barriers down again before the leaf rises
+  b = mkBridge();
+  b.state = 'up'; b.t = 1; b.boom = 0.75;
+  MB.requestOpening(b, null, false);
+  ok(b.state === 'booms', 'a new request while the barriers go up lowers them again first');
+}
+
 console.log(fails ? `${fails} of ${n} FAILED` : `${n} automatic bridge checks passed`);
 process.exit(fails ? 1 : 0);
