@@ -200,11 +200,11 @@ for (const J of CFG.jobs) {
         for (let i = 0; i < vs.length; i++) for (let j = i + 1; j < vs.length; j++) {
           if (Math.abs((vs[i].z || 0) - (vs[j].z || 0)) > 2) continue;
           const d = obbOverlap(vs[i], vs[j]), cp = capsulePen(vs[i], vs[j]);
-          if (d > 0.15) pr.push({ a: (vs[i].model && vs[i].model.name) || '?', b: (vs[j].model && vs[j].model.name) || '?', depth: +d.toFixed(2), cap: +cp.toFixed(2), at: [Math.round(vs[i].x), Math.round(vs[i].y)], sp: [+(vs[i].speed || 0).toFixed(1), +(vs[j].speed || 0).toFixed(1)] });
+          if (d > 0.15) pr.push({ da: [vs[i], vs[j]].map((v) => ({ id: v.id, wid: !!v._wid, driver: v.driver, dist: Math.round(Math.hypot(v.x - p.x, v.y - p.y)), ign: v.ignoreId ? Math.round(v.ignoreUntil - w.time) : null, why: v._why || null, blocked: +(v.blockedFor || 0).toFixed(1), creep: v.creepUntil ? Math.round(v.creepUntil - w.time) : null, stuck: +(v.stuckFor || 0).toFixed(1), sp: +(v.speed || 0).toFixed(1), road: v.road && (v.road.name || v.road.kind) || null })), a: (vs[i].model && vs[i].model.name) || '?', b: (vs[j].model && vs[j].model.name) || '?', depth: +d.toFixed(2), cap: +cp.toFixed(2), at: [Math.round(vs[i].x), Math.round(vs[i].y)], sp: [+(vs[i].speed || 0).toFixed(1), +(vs[j].speed || 0).toFixed(1)] });
         }
         maxN = Math.max(maxN, vs.length);
         rec.samples.push([Math.round(performance.now() - t0), vs.length, pr.length]);
-        for (const q of pr) if (q.depth > worst.depth) worst = { ...q, t: Math.round(performance.now() - t0) };
+        for (const q of pr) { if (q.depth > worst.depth) worst = { ...q, t: Math.round(performance.now() - t0) }; if (q.cap > 0.3 && !(rec.diag || (rec.diag = [])).some((d) => d.da[0].id === q.da[0].id && d.da[1].id === q.da[1].id) && rec.diag.length < 8) rec.diag.push(q); }
         if (pr.length && shots < 2 && performance.now() - shotAt > 15000) {
           shotAt = performance.now(); shots++;
           const q = pr[0], cx = Math.cos(s.a), cy = Math.sin(s.a), base = gh(q.at[0], q.at[1]);

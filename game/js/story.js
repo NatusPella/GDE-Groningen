@@ -28,7 +28,7 @@ import {
 import { getShopVisits, getShopsForRender, grantStoryItem } from './shops.js';
 import { getPigeonFlight, stopPigeonMode } from './pigeonmode.js';
 import { isHeliRunActive, abortHeliRun } from './helirun.js';
-import { jumpPrep, jumpSpot } from './storyjump.js';
+import { jumpPrep, jumpSpot, openRond } from './storyjump.js';
 import { JUMP_M } from './loadlogic.js';
 import { buildingAt, withTiles } from './tileplace.js';
 import { waterAt } from './waterlevels.js';
@@ -1262,14 +1262,17 @@ export function devJumpTo(id, opts = {}) {
   if (target.player) swapCharacter(world, target.player);
   const idx = missionIdx(target);
   const def = idx >= 0 ? getMissionDefs()[idx] : null;
-  const vrij = (x, y) => !buildingAt(world.map, x, y, 0.5) && !waterAt(world.map, x, y);
+  const vrij1 = (x, y) => !buildingAt(world.map, x, y, 0.5) && !waterAt(world.map, x, y);
+  // een ruime plek eerst; is die er niet (een smalle steeg), dan volstaat een vrij punt
+  const vrijRuim = (x, y) => openRond(vrij1, x, y);
+  const vrij = vrij1;
   const landOn = (spot) => {
     const p = world.player;
     const [ex, ey] = world.map.escapeBuilding ? world.map.escapeBuilding(spot.x, spot.y, 0.5) : [spot.x, spot.y];
     if (p.inVehicle) { p.inVehicle.x = ex; p.inVehicle.y = ey; p.inVehicle.speed = 0; }
     p.x = ex; p.y = ey;
   };
-  const spot = jumpSpot(def, world.storyGuide, { dist: 12, vrij });
+  const spot = jumpSpot(def, world.storyGuide, { dist: 12, vrij: vrijRuim }) || jumpSpot(def, world.storyGuide, { dist: 12, vrij });
   if (spot) {
     landOn(spot);
     // a far jump hides the view behind the load screen while the streets stream in: the game's own watch swallows it right
@@ -1281,8 +1284,8 @@ export function devJumpTo(id, opts = {}) {
     const from = { x: world.player.x, y: world.player.y };
     withTiles(world.map, [[spot.x, spot.y]], () => {
       const p = world.player;
-      if (token !== jumpSettle || Math.hypot(p.x - from.x, p.y - from.y) > 8 || vrij(p.x, p.y)) return;
-      const again = jumpSpot(def, world.storyGuide, { dist: 12, vrij });
+      if (token !== jumpSettle || Math.hypot(p.x - from.x, p.y - from.y) > 8 || vrijRuim(p.x, p.y)) return;
+      const again = jumpSpot(def, world.storyGuide, { dist: 12, vrij: vrijRuim }) || jumpSpot(def, world.storyGuide, { dist: 12, vrij });
       if (again) landOn(again);
     }, { radius: 400, token: 'sprong' }).catch(() => {});
   }
