@@ -4,7 +4,7 @@
 // balken en tekst (updateHostScene). Een gast kiest niet en slaat niets over: de gastheer beslist. Alleen DOM.
 import { isCinematicActive } from './cinematics.js';
 import { talkState } from './storytalk.js';
-import { sceneLeeg, FILMPJE_TEKST } from './coopworld.js';
+import { sceneLeeg, FILMPJE_TEKST, PAUZE_TEKST } from './coopworld.js';
 
 const text = (el) => (el ? String(el.textContent || '').replace(/\s+/g, ' ').trim() : '');
 
@@ -21,7 +21,9 @@ export function readHostScene(world) {
   let keuze = null;
   const panel = document.querySelector('#hud .cw-panel:not([hidden])');
   if (panel) keuze = { tekst: text(panel.querySelector('.cw-text')), opties: [...panel.querySelectorAll('.cw-opt')].map((o) => text(o.querySelector('span:last-child'))) };
-  return { filmpje, regel, keuze };
+  // de host in zijn pauzemenu, kaart of winkel: zijn wereld staat stil (het wachtscherm bij wegvallen is geen pauze van de host)
+  const pauze = !!(world && world.paused && !world.uiPaused);
+  return { filmpje, pauze, regel, keuze };
 }
 
 // De gast: de laag met de scène van de host. Alleen de DOM aanraken als de inhoud verandert.
@@ -43,8 +45,9 @@ export function updateHostScene(world) {
   }
   const bar = 'position:absolute;left:0;right:0;background:#000;';
   const balken = sc.filmpje ? `<div style="${bar}top:0;height:11%"></div><div style="${bar}bottom:0;height:11%"></div>` : '';
+  const pauze = sc.pauze && !sc.filmpje ? `<div style="position:absolute;left:0;right:0;top:12%;text-align:center;font-size:24px;text-shadow:0 1px 3px #000,0 0 2px #000">${esc(PAUZE_TEKST)}</div>` : '';
   const kop = sc.filmpje ? `<div style="position:absolute;left:0;right:0;top:12.5%;text-align:center;font-size:22px;text-shadow:0 1px 3px #000">${esc(FILMPJE_TEKST)}</div>` : '';
   const regel = sc.regel ? `<div style="position:absolute;left:10%;right:10%;bottom:${sc.filmpje ? '13' : '16'}%;text-align:center;font-size:26px;line-height:1.3;text-shadow:0 1px 3px #000,0 0 2px #000"><b style="color:#3fc97a">${esc(sc.regel.wie)}</b>${sc.regel.wie ? ': ' : ''}${esc(sc.regel.tekst)}</div>` : '';
   const keuze = sc.keuze ? `<div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);max-width:620px;padding:18px 24px;border-radius:8px;background:rgba(12,20,14,0.88);box-shadow:inset 0 0 0 1px rgba(240,237,228,0.24)"><div style="font-size:24px;line-height:1.3">${esc(sc.keuze.tekst)}</div><div style="margin-top:10px;font-size:20px;opacity:.85">De gastheer kiest:</div><ul style="margin:6px 0 0;padding-left:22px;font-size:22px">${sc.keuze.opties.map((o) => `<li>${esc(o)}</li>`).join('')}</ul></div>` : '';
-  el.innerHTML = balken + kop + regel + keuze;
+  el.innerHTML = balken + kop + pauze + regel + keuze;
 }

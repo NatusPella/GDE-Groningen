@@ -117,10 +117,10 @@ export function missieTekst(m, rol = 'wereld') {
 // 'scene'-bericht (alleen als het verandert): zij zien dat de gastheer een filmpje kijkt, lezen de tekst mee en zien
 // welke keuze de gastheer krijgt. De gastheer beslist; een gast kiest niet.
 const tekst = (v, n) => (typeof v === 'string' ? v.slice(0, n) : '');
-export const SCENE_LEEG = Object.freeze({ filmpje: false, regel: null, keuze: null });
+export const SCENE_LEEG = Object.freeze({ filmpje: false, pauze: false, regel: null, keuze: null });
 export function schoonScene(sc) {
   if (!sc || typeof sc !== 'object') return { ...SCENE_LEEG };
-  const out = { filmpje: !!sc.filmpje, regel: null, keuze: null };
+  const out = { filmpje: !!sc.filmpje, pauze: !!sc.pauze, regel: null, keuze: null };
   if (sc.regel && typeof sc.regel === 'object' && tekst(sc.regel.tekst, 1)) out.regel = { wie: tekst(sc.regel.wie, 40), tekst: tekst(sc.regel.tekst, 240) };
   if (sc.keuze && typeof sc.keuze === 'object' && Array.isArray(sc.keuze.opties)) {
     const opties = sc.keuze.opties.slice(0, 6).map((o) => tekst(o, 80)).filter(Boolean);
@@ -128,7 +128,7 @@ export function schoonScene(sc) {
   }
   return out;
 }
-export const sceneLeeg = (sc) => !sc || (!sc.filmpje && !sc.regel && !sc.keuze);
+export const sceneLeeg = (sc) => !sc || (!sc.filmpje && !sc.pauze && !sc.regel && !sc.keuze);
 // prev = wat de gasten het laatst kregen; geeft het bericht dat nu nodig is (of null) en de nieuwe stand
 export function sceneBericht(prev, sc) {
   const nu = schoonScene(sc), was = prev ? schoonScene(prev) : { ...SCENE_LEEG };
@@ -138,3 +138,4 @@ export function sceneBericht(prev, sc) {
 export function leesSceneBericht(b) { return b && b.k === 'scene' ? schoonScene(b) : null; }
 // Tekst voor de gast bij een filmpje
 export const FILMPJE_TEKST = 'De gastheer kijkt een filmpje. Je wacht even.';
+export const PAUZE_TEKST = 'De gastheer heeft het spel op pauze.';

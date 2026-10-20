@@ -91,7 +91,8 @@ t('scène van de host: filmpje, regel en keuze worden gereinigd en alleen bij ve
   assert.equal(W.sceneBericht(a.huidig, sc).event, null, 'zelfde stand: geen bericht');
   const b = W.sceneBericht(a.huidig, { filmpje: false }); assert.equal(b.event.filmpje, false); assert.ok(W.sceneLeeg(b.huidig));
   assert.equal(W.sceneBericht(null, null).event, null, 'leeg naar leeg: niets');
-  assert.deepEqual(W.leesSceneBericht({ k: 'scene', filmpje: true }), { filmpje: true, regel: null, keuze: null }); assert.equal(W.leesSceneBericht({ k: 'x' }), null);
+  assert.deepEqual(W.leesSceneBericht({ k: 'scene', filmpje: true }), { filmpje: true, pauze: false, regel: null, keuze: null });
+  assert.equal(W.sceneLeeg(W.schoonScene({ pauze: true })), false, 'een pauze van de host is ook iets om te melden'); assert.equal(W.sceneBericht(null, { pauze: true }).event.pauze, true); assert.equal(W.leesSceneBericht({ k: 'x' }), null);
   assert.ok(JSON.stringify(W.schoonScene({ filmpje: true, regel: { wie: 'w'.repeat(99), tekst: 't'.repeat(999) }, keuze: { tekst: 'k'.repeat(999), opties: Array(9).fill('o'.repeat(99)) } })).length < 1500, 'past ruim in een bericht');
 });
 console.log(`coopworld_test: ${n}/${n} ok`);
