@@ -123,10 +123,20 @@ if (process.argv.includes('--echt')) {
   if (!fs.existsSync(path.join(GAME, 'citymap.json')) || !haveProvince()) console.log('SKIP echt: geen game/citymap.json of geen data/cache/province (GDE_PROVINCE_SRC)');
   else {
     const L = process.env.STAD_LAAG ? P.parseLagen(process.env.STAD_LAAG) : OSM_LAGEN;
+    // de echte OSM-bouw draait één keer (de tweede route krijgt een kopie, na een controle dat hij dezelfde vraag stelt)
+    const { osmCityLayers } = await import('./world/stad_laag.mjs');
+    let first = null;
+    const osm = async (keys, inside, lagen, data) => {
+      const probe = []; for (let x = -3500; x < 4500; x += 97) for (let y = -4300; y < 3000; y += 97) probe.push(inside(x, y) ? 1 : 0);
+      const ask = JSON.stringify({ keys: [...keys], lagen: [...lagen].sort(), hand: data.buildings.filter(isHandBuilding), probe: probe.join('') });
+      if (!first) return (first = { ask, rows: JSON.stringify(await osmCityLayers(keys, inside, lagen, data)) }, JSON.parse(first.rows));
+      assert.equal(ask, first.ask, 'de OSM-bouw krijgt in de tweede route een andere vraag');
+      return JSON.parse(first.rows);
+    };
     const t0 = performance.now();
-    const a = P.build(await P.loadSourcesLaag(GAME, L, { city: await readCitymap(GAME) }));
+    const a = P.build(await P.loadSourcesLaag(GAME, L, { city: await readCitymap(GAME), osm }));
     const t1 = performance.now();
-    const b = P.build(await P.loadSourcesLaag(GAME, []));
+    const b = P.build(await P.loadSourcesLaag(GAME, [], { osm }));
     const n = sameBuild(a, b, 'echte stad');
     checks += n;
     console.log(`  echte stad (STAD_LAAG=${L.join(',')}): ${a.blobs.size} tegels + globale laag: sha256 gelijk (${n} vingerafdrukken, ${((t1 - t0) / 1000).toFixed(0)} s + ${((performance.now() - t1) / 1000).toFixed(0)} s)`);

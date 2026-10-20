@@ -48,7 +48,8 @@ export async function readWorldTiles(dir, indexFile = 'index-provincie.json') {
 const KIND = { buildings: G.SECTION.BUILDINGS, roads: G.SECTION.ROADS, water: G.SECTION.WATER };
 
 // near: { x, y, r } beperkt tot een gebied (m); standaard de hele stad
-export async function findOverlaps({ world = 'game/world', near = null, map = P.loadSources().map } = {}) {
+export async function findOverlaps({ world = 'game/world', near = null, map = null } = {}) {
+  map = map || (await P.loadSourcesLaag()).map;
   const { index, tile } = await readWorldTiles(world);
   const cb = indexPolys(map.buildings), cw = indexPolys(map.water), cr = roadProbe(map.roads);
   const inside = (x, y) => !near || Math.hypot(x - near.x, y - near.y) <= near.r;

@@ -67,7 +67,7 @@ const sameBytes = (a, b) => a.length === b.length && a.every((v, i) => v === b[i
 }
 
 // --- the packed world
-const src = P.loadSources();
+const src = await P.loadSourcesLaag();
 const built = P.build(src);
 // packed into a throwaway folder (game/world is a build artifact, not committed)
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'gde-world-test-'));
