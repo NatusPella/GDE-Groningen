@@ -9,10 +9,13 @@ import { FLAGS } from './devflags.js';
 export const GFX_PRESETS = {
   laag: { quality: 'laag', shadows: false, drawDistance: 'kort', resolution: 0.75, autoResolution: true },
   middel: { quality: 'middel', shadows: true, drawDistance: 'normaal', resolution: 1, autoResolution: true },
+  // Hoog's look with the view distance of Laag: no far LOD, no far terrain and countryside, ~400 draw calls fewer per frame
+  // in the city. On the RTX 3060 test machine 4 to 5 ms less CPU time per frame than Hoog (docs/PERF-METING-2026-10-19.md Vervolg 8): the 60 fps preset.
+  vlot: { quality: 'hoog', shadows: true, drawDistance: 'kort', resolution: 1, autoResolution: true },
   hoog: { quality: 'hoog', shadows: true, drawDistance: 'heelver', resolution: 1, autoResolution: true },
 };
-export const PRESET_ORDER = ['laag', 'middel', 'hoog'];
-const LABELS = { laag: 'Laag', middel: 'Gemiddeld', hoog: 'Hoog' };
+export const PRESET_ORDER = ['laag', 'middel', 'vlot', 'hoog'];
+const LABELS = { laag: 'Laag', middel: 'Gemiddeld', vlot: 'Vlot', hoog: 'Hoog' };
 export const presetLabel = (name) => LABELS[name] || name;
 
 // "schaduwen uit · resolutie 75%, automatisch · zichtafstand kort"
@@ -150,7 +153,8 @@ export function classifyGpu({ renderer = '', maxTexture = 0, cores = 0, memory =
 // Pure: what a few seconds of frame times say (median ms at the current
 // settings) combined with the GPU's own tier.
 export function adviseFromSample(gpuTier, medianMs, current) {
-  const measured = medianMs > 30 ? 'laag' : medianMs > 20 ? 'middel' : 'hoog';
+  // 17.5 ms is just over 60 fps: a machine that stays under it keeps Hoog, one between 17.5 and 22 ms gets Vlot (Hoog's look, a short view)
+  const measured = medianMs > 30 ? 'laag' : medianMs > 22 ? 'middel' : medianMs > 17.5 ? 'vlot' : 'hoog';
   let pick = lower(gpuTier, measured);
   // a weak GPU that still renders smoothly here only drops one step
   if (measured === 'hoog' && pick === 'laag') pick = 'middel';
