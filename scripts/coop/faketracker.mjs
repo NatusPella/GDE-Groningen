@@ -29,7 +29,7 @@ function readFrames(buf) {
 }
 
 export async function startFakeTracker() {
-  const offers = new Map(), peers = new Map(), seen = [];
+  const offers = new Map(), peers = new Map(), seen = [], trace = [];
   const sockets = new Set();
   const server = http.createServer();
   server.on('upgrade', (req, sock) => {
@@ -50,12 +50,12 @@ export async function startFakeTracker() {
         seen.push(f.text);
         peers.set(m.peer_id, sock);
         sock.write(frame(JSON.stringify({ action: 'announce', info_hash: m.info_hash, interval: 120, complete: 0, incomplete: 1 })));
-        if (m.answer) { const to = peers.get(m.to_peer_id); if (to) to.write(frame(JSON.stringify({ action: 'announce', info_hash: m.info_hash, peer_id: m.peer_id, offer_id: m.offer_id, answer: m.answer }))); }
+        if (m.answer) { const to = peers.get(m.to_peer_id); trace.push(`antwoord van ${String(m.peer_id).slice(0, 4)} voor ${String(m.to_peer_id).slice(0, 4)}: ontvanger ${to ? (to.destroyed ? 'dicht' : 'open') : 'onbekend'}, bekende peers ${[...peers.keys()].map((k) => k.slice(0, 4)).join(',')}`); if (to) to.write(frame(JSON.stringify({ action: 'announce', info_hash: m.info_hash, peer_id: m.peer_id, offer_id: m.offer_id, answer: m.answer }))); }
         else if (m.offers && m.offers.length) offers.set(m.info_hash, { peer_id: m.peer_id, o: m.offers[0] });
         else if (offers.has(m.info_hash)) { const o = offers.get(m.info_hash); sock.write(frame(JSON.stringify({ action: 'announce', info_hash: m.info_hash, peer_id: o.peer_id, offer_id: o.o.offer_id, offer: o.o.offer }))); }
       }
     });
   });
   await new Promise((r) => server.listen(0, '127.0.0.1', r));
-  return { port: server.address().port, seen, close: () => { for (const s of sockets) { try { s.destroy(); } catch (e) { /* weg */ } } server.close(); } };
+  return { port: server.address().port, seen, trace, close: () => { for (const s of sockets) { try { s.destroy(); } catch (e) { /* weg */ } } server.close(); } };
 }
