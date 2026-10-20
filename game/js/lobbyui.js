@@ -26,7 +26,7 @@ const newSignaler = () => new MultiSignaler(CONFIG, { socket: (url) => { const w
 export function mountLobby(root, hooks, opts = {}) {
   const direct = onlineSupported();
   const api = direct ? window.gdeDesktop.coop : null;
-  let state = createLobby({ direct, rtc: rtcSupported(), laatsteCode: hooks.laatsteCode, start: opts.start, rol: opts.rol, holdNaam: opts.holdNaam });
+  let state = createLobby({ direct, rtc: rtcSupported(), laatsteCode: hooks.laatsteCode, start: opts.start, rol: opts.rol, keuze: opts.keuze, holdNaam: opts.holdNaam, startGate: opts.startGate, spelNaam: opts.spelNaam });
   state.route = opts.route || null;
   if (opts.holdSlot != null) state = reduce(state, { t: 'hold', slot: opts.holdSlot, naam: opts.holdNaam });
   let hub = opts.hub || null, session = opts.session || null, handle = null, room = null, stopListen = null, joinedOnce = false, wacht = false;
@@ -134,7 +134,8 @@ export function mountLobby(root, hooks, opts = {}) {
   async function act(a) {
     const input = root.querySelector('.coop-input');
     try {
-      if (a === 'kies-host') set({ t: 'kies', rol: ROLES.HOST });
+      if (a === 'start-spel') { if (hooks.startSpel) hooks.startSpel(); }
+      else if (a === 'kies-host') set({ t: 'kies', rol: ROLES.HOST });
       else if (a === 'kies-gast') set({ t: 'kies', rol: ROLES.GAST });
       else if (a === 'route-kamer') set({ t: 'route', route: ROUTES.KAMER });
       else if (a === 'route-direct') set({ t: 'route', route: ROUTES.DIRECT });
