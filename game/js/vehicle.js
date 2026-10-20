@@ -1,4 +1,4 @@
-import { linesNear, project as projectOnLine, makeRunner, stepRunner, startAt } from './busroutes.js';
+import { linesNear, project as projectOnLine, makeRunner, stepRunner, startAt, busMagWeg } from './busroutes.js';
 import { assistDamage } from './assistlive.js';
 import { closestPointOnSegment, normalizeAngle, clamp, lerp, pointInPolygon, inMapWater, WATER_Y, keepBoatOffShore, boatDryPoints } from './util.js';
 import { waterClearance, waterChannelPoints } from './waterindex.js';
@@ -1131,6 +1131,20 @@ let busLines = [];
 export function setBusLines(lines) { busLines = lines || []; }
 export function getBusLines() { return busLines; }
 
+// Het dichtstbijzijnde punt op een weg waar de bus van deze lijn mag rijden (#322), of null.
+// nearestRoadPoint pakt de dichtstbijzijnde weg, en dat is naast een lijn vaak een smal parallel straatje.
+function busSpawnPoint(map, line, x, y, reach = 25) {
+  let best = null;
+  for (const road of map.roadsNear(x, y, reach)) {
+    if (road.pts.length < 2 || !busMagWeg(road, line)) continue;
+    for (let i = 0; i < road.pts.length - 1; i++) {
+      const cp = closestPointOnSegment(x, y, road.pts[i][0], road.pts[i][1], road.pts[i + 1][0], road.pts[i + 1][1]);
+      if (cp.dist2 < reach * reach && (!best || cp.dist2 < best.dist2)) best = { x: cp.x, y: cp.y, road, dist2: cp.dist2 };
+    }
+  }
+  return best;
+}
+
 export function manageBusPopulation(world, { target = 4, spawnMin = 90, spawnMax = 220, despawnDist = 300 } = {}) {
   const { map, player, vehicles } = world;
   for (let i = vehicles.length - 1; i >= 0; i--) {
@@ -1150,8 +1164,8 @@ export function manageBusPopulation(world, { target = 4, spawnMin = 90, spawnMax
     const pr = projectOnLine(line, player.x, player.y);
     const dir = Math.random() < 0.5 ? 1 : -1;
     const at = startAt(line, Math.max(0, Math.min(line.length, pr.s + dir * (spawnMin + Math.random() * (spawnMax - spawnMin) * 0.6))), dir);
-    const rp = map.nearestRoadPoint(at.x, at.y, 25, true);
-    if (!rp || rp.road.cat === 'foot' || rp.road.width < 2.55 + 1.1) continue;
+    const rp = busSpawnPoint(map, line, at.x, at.y);
+    if (!rp) continue;
     const v = spawnVehicleOnRoad(map, rp.road, false, Math.random, false, true, rp);
     if (Math.abs(normalizeAngle(v.angle - at.angle)) > Math.PI / 2) continue;
     const d = Math.hypot(v.x - player.x, v.y - player.y);
@@ -1163,7 +1177,7 @@ export function manageBusPopulation(world, { target = 4, spawnMin = 90, spawnMax
   // with a real line in reach the buses are the line's, not random ones on the main roads (#80)
   if (line) return;
 
-  const candidates = map.roadsNear(player.x, player.y, spawnMax).filter((r) => r.cat === 'major' || r.cat === 'normal' || r.busOnly);
+  const candidates = map.roadsNear(player.x, player.y, spawnMax).filter((r) => (r.cat === 'major' || r.cat === 'normal' || r.busOnly) && busMagWeg(r, null));   // #322: geen woonstraten, paden of smalle wegen
   let guard = 0;
   while (count < target && candidates.length && guard++ < target * 6) {
     const road = candidates[Math.floor(Math.random() * candidates.length)];
@@ -1678,6 +1692,7 @@ function canUseRoad(v, r) {
   if (r.cat === 'cycle' && !small) return false;
   if (v.isMotor && !motorRoadAllowed(v.model, r)) return false; // brommers and motors keep off the fietspad
   if (r.busOnly && !busLaneUser(v)) return false;
+  if (v.isBus && !busMagWeg(r, v.busRun ? v.busRun.line : null, v.model.wid)) return false;   // #322: een bus blijft op zijn lijn of het busnet
   return small || r.width >= v.model.wid + 1.1;
 }
 
@@ -1749,7 +1764,8 @@ function nextTurn(v, map, rng, goal, k, road, at, dir) {
 const ROUTE_MAX_EXPANSIONS = 6000;
 
 function findRoute(v, map, gx, gy) {
-  const target = map.nearestRoadPoint(gx, gy, 300, true);
+  // een bus mikt op de dichtstbijzijnde weg waar hij mag rijden, niet op het parallelle straatje naast zijn lijn (#322)
+  const target = (v.isBus && busSpawnPoint(map, v.busRun ? v.busRun.line : null, gx, gy, 60)) || map.nearestRoadPoint(gx, gy, 300, true);
   if (!target || !canUseRoad(v, target.road)) return false;
   const tp = target.road.pts;
   let ti = 0, tBest = Infinity;
