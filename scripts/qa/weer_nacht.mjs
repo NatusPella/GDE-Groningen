@@ -3,7 +3,7 @@
 //   node scripts/qa/weer_nacht.mjs [--out=<map>] [--only=naam,naam] [--settle=<ms>] [--perf-only] [--tijd=nacht,avond] [--weer=helder,mist] [--index=<index-provincie.json>] [--slot]
 //   node scripts/qa/weer_nacht_analyse.mjs <map>          (beeldcontroles, contactbladen, rapport)
 // ELECTRON_EXE=<pad naar electron.exe> als desktop/node_modules/electron/dist ontbreekt. Vereist een gestagede game/.
-// --slot: neemt een Electron-slot volgens C:/Users/abuis/gde-locks/README.txt (mkdir electron-1..3) en geeft het vrij.
+// --slot: neemt een Electron-slot volgens <GDE_LOCKS>/README.txt (mkdir electron-1..3) en geeft het vrij.
 // Plekken: Grote Markt, station, A7, kust, weilanden, dorp, water (coordinaten uit index-provincie.json).
 import fs from 'node:fs';
 import os from 'node:os';
@@ -18,9 +18,9 @@ const arg = (k, d) => { const a = process.argv.find((v) => v.startsWith(`--${k}=
 const OUT = path.resolve(arg('out', path.join(os.tmpdir(), 'gde-weer-nacht')));
 const ONLY = arg('only', '').split(',').filter(Boolean);
 const SETTLE = Number(arg('settle', 9000));
-const LOCKS = 'C:/Users/abuis/gde-locks';
+const LOCKS = process.env.GDE_LOCKS || path.join(os.homedir(), 'gde-locks');
 
-const idxFile = [arg('index'), path.join(ROOT, 'game', 'world', 'index-provincie.json'), 'C:/Users/abuis/GIT/GDE-Groningen/game/world/index-provincie.json'].filter(Boolean).find((f) => fs.existsSync(f));
+const idxFile = [arg('index'), path.join(ROOT, 'game', 'world', 'index-provincie.json')].filter(Boolean).find((f) => fs.existsSync(f));
 if (!idxFile) { console.error('index-provincie.json niet gevonden (geef --index=)'); process.exit(2); }
 const index = JSON.parse(fs.readFileSync(idxFile, 'utf8')).global;
 const place = (name, kind) => { const q = index.places.find((x) => x.name === name && (!kind || x.kind === kind)); if (!q) throw new Error(`plaats niet gevonden: ${name}`); return q; };

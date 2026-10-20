@@ -18,7 +18,7 @@ node scripts/coop/restage.mjs --base=<desktop/build/game van een volledige stage
 ELECTRON_EXE=<electron.exe> node scripts/coop/testbank.mjs --stage=<map> --suite=<naam> [--out=<map>]
 ```
 
-Een worktree heeft geen `node_modules`: wijs `ELECTRON_EXE` naar de Electron van de hoofdmap. Neemt Electron-sloten uit `C:/Users/abuis/gde-locks` (maximaal 3 totaal, elke 10 s opnieuw proberen, altijd vrijgeven), draait op BelowNormal, met wegwerpprofielen en `GDE_COOP_TEST=1` (geen UPnP, adres `127.0.0.1`). Poort 9000 en de geïnstalleerde app blijven ongemoeid. Per instantie komt een map met `events.jsonl` (elke seconde een `sample`, plus fasen en uitkomsten), `run.log` en `shots-*.png`.
+Een worktree heeft geen `node_modules`: wijs `ELECTRON_EXE` naar de Electron van de hoofdmap. Neemt Electron-sloten uit de slotenmap (`$GDE_LOCKS`, standaard `~/gde-locks`) (maximaal 3 totaal, elke 10 s opnieuw proberen, altijd vrijgeven), draait op BelowNormal, met wegwerpprofielen en `GDE_COOP_TEST=1` (geen UPnP, adres `127.0.0.1`). Poort 9000 en de geïnstalleerde app blijven ongemoeid. Per instantie komt een map met `events.jsonl` (elke seconde een `sample`, plus fasen en uitkomsten), `run.log` en `shots-*.png`.
 
 | suite | wat | Electron |
 |---|---|---|

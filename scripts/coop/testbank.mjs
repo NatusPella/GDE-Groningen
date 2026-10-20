@@ -5,7 +5,7 @@
 //           M01 t/m M08 als host, de gasten lopen mee), touch (gast met aanraakbediening)
 //   --gasten=1|2 (Electron-gasten, host + gasten <= 3 sloten), --mock=N (extra headless gasten in dit proces, voor de 4e speler)
 //   --menu: begin bij het hoofdmenu (ingang Samen spelen), --duration=20, --invuln
-// Neemt Electron-sloten uit C:/Users/abuis/gde-locks (max. 3 totaal) en geeft ze altijd vrij. GDE_COOP_TEST=1: geen UPnP,
+// Neemt Electron-sloten uit de slotenmap (GDE_LOCKS, standaard ~/gde-locks) (max. 3 totaal) en geeft ze altijd vrij. GDE_COOP_TEST=1: geen UPnP,
 // lokaal adres 127.0.0.1, wegwerpprofielen. De route 'direct' is TCP op de loopback; 'kamer' gebruikt WebRTC met een
 // nep-tracker op 127.0.0.1 en zonder STUN: er verlaat niets deze machine.
 import fs from 'node:fs';
@@ -30,7 +30,7 @@ const MOCK = Math.max(0, Number(arg('mock', SUITE === 'net' ? (GASTEN > 1 ? 1 : 
 const SECOND = GASTEN > 1 ? 'gast2' : 'gast'; // wie in de suite 'net' een slecht netwerk krijgt en later vertrekt
 const ROUTE = arg('route', SUITE === 'kamer' ? 'kamer' : 'direct');
 const OUT = path.resolve(arg('out', path.join(os.tmpdir(), 'gde-coop', new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19))));
-const LOCKS = process.env.GDE_LOCKS || 'C:/Users/abuis/gde-locks';
+const LOCKS = process.env.GDE_LOCKS || path.join(os.homedir(), 'gde-locks');
 const ELECTRON = process.env.ELECTRON_EXE || path.join(ROOT, 'desktop', 'node_modules', 'electron', 'dist', process.platform === 'win32' ? 'electron.exe' : 'Electron');
 fs.mkdirSync(OUT, { recursive: true });
 const EXPECT = 2 + (GASTEN - 1) + MOCK; // aantal spelers in totaal

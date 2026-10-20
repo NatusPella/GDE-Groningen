@@ -119,11 +119,25 @@ export function scanRequired(files, gitignoreText) {
   return out;
 }
 
+/** Alleen met de hand te starten (workflow_dispatch, geen push/pull_request/schedule)? Dan publiceert het niet vanzelf. */
+export function isManualOnly(text) {
+  const on = text.match(/^on:[ \t]*\r?\n((?:[ \t]+.*\r?\n?|[ \t]*\r?\n)*)/m);
+  if (!on) return false;
+  const keys = [...on[1].matchAll(/^ {2}([A-Za-z_]+):/gm)].map((m) => m[1]);
+  return keys.length > 0 && keys.every((k) => k === 'workflow_dispatch');
+}
+
 export function scanWorkflow(file, text) {
   const out = [];
+  const manual = isManualOnly(text);
   text.split(/\r?\n/).forEach((l, i) => {
     if (/^\s*#/.test(l)) return;
-    for (const r of WORKFLOW_RISK) if (r.re.test(l)) out.push({ level: 'FAIL', rule: 'workflow-publiceert', file, line: i + 1, detail: r.name });
+    for (const r of WORKFLOW_RISK) {
+      if (!r.re.test(l)) continue;
+      out.push(manual
+        ? { level: 'WARN', rule: 'workflow-handmatig', file, line: i + 1, detail: r.name + ' (alleen workflow_dispatch: start niet vanzelf; eigenaar beslist, #83)' }
+        : { level: 'FAIL', rule: 'workflow-publiceert', file, line: i + 1, detail: r.name });
+    }
   });
   return out;
 }

@@ -1,6 +1,6 @@
 // Gerichte scène-opnames voor de issues met het label wacht-beeld (headless Electron, wegwerpprofiel).
 //   node scripts/qa/wachtbeeld.mjs --jobs=<jobs.json> [--out=<map>] [--settle=7000]
-// Neem eerst een Electron-slot (C:/Users/abuis/gde-locks/README.txt). Vereist een gestagede wereld
+// Neem eerst een Electron-slot (<GDE_LOCKS>/README.txt, standaard ~/gde-locks). Vereist een gestagede wereld
 // (cd desktop && npm run stage); ELECTRON_EXE=<pad> als desktop/node_modules/electron/dist ontbreekt.
 // Uitvoer: <out>/shots-<naam>.png, wachtbeeld.json, run.log. De jobs staan in wachtbeeld.page.js beschreven.
 import fs from 'node:fs';
