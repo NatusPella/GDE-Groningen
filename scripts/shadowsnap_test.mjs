@@ -36,6 +36,8 @@ ok('skips every other frame when standing still', shadowPassSkipped(1, 1, 0) && 
 ok('calm street: skips at walking pace on an odd frame', shadowPassSkipped(0, 1, 3.0, true) && !shadowPassSkipped(0, 2, 3.0, true));
 ok('no skipping when something fast moves nearby', !shadowPassSkipped(0, 1, 3.0, false));
 ok('no calm skipping when sprinting', !shadowPassSkipped(0, 1, 6.8, true));
+ok('weak machine (level 3): one pass in four while walking', !shadowPassSkipped(3, 0, 3) && shadowPassSkipped(3, 1, 3) && shadowPassSkipped(3, 2, 3) && shadowPassSkipped(3, 3, 3) && !shadowPassSkipped(3, 4, 3));
+ok('weak machine: a fast car still gets every pass', !shadowPassSkipped(3, 1, 20));
 ok('cpu pressure keeps its old limit', !shadowPassSkipped(1, 1, 3.0, true) && shadowPassSkipped(1, 1, 2.0));
 
 // actors outside the view still matter while their shadow can fall into it
