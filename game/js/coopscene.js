@@ -22,7 +22,7 @@ export function readHostScene(world) {
   const panel = document.querySelector('#hud .cw-panel:not([hidden])');
   if (panel) keuze = { tekst: text(panel.querySelector('.cw-text')), opties: [...panel.querySelectorAll('.cw-opt')].map((o) => text(o.querySelector('span:last-child'))) };
   // de host in zijn pauzemenu, kaart of winkel: zijn wereld staat stil (het wachtscherm bij wegvallen is geen pauze van de host)
-  const pauze = !!(world && world.paused && !world.uiPaused);
+  const pauze = !!(world && world.paused && !world.uiPaused && !world.coopHold);
   return { filmpje, pauze, regel, keuze };
 }
 

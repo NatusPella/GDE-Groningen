@@ -176,6 +176,13 @@ export function tickCoopNet(world, dt) {
   if (world.coopPings) tickPings(world.coopPings, now(world));
   if (n.role === 'client') {
     const s = n.session;
+    // afgewezen (sessie vol, andere versie) of de gastheer stopte (BYE): de gast speelt weer in zijn eigen spel. Zonder dit bleef hij 'gast' (zijn spel werd niet meer bewaard)
+    // of stond zijn wereld stil op de laatste plek van de gastheer.
+    if (s.status === 'geweigerd' || s.status === 'verbroken') {
+      if (s.status === 'verbroken' && n.joined && world.addMessage) world.addMessage('De gastheer is gestopt met samen spelen. Je speelt weer in je eigen spel.', 5);
+      if (s.status === 'geweigerd') world.coopWeigering = s.rejected || 'gesloten'; // wat de lobby al liet zien; ook voor tests
+      stopCoopNet(world); return;
+    }
     const inp = world.input;
     const m = makeClientInput(inp && inp.axis ? inp.axis() : [0, 0], !!(inp && inp.isDown && inp.isDown('shift')), world.camYaw);
     if (world.coopScene && world.coopScene.filmpje) s.setInput(0, 0, 0, m.yaw); // de gastheer kijkt een filmpje: Tessa staat stil
@@ -289,7 +296,7 @@ export function handleEvent(world, body, van = 0) {
     }
     case 'weg': // de host heeft deze speler verwijderd
       if (!n || n.role !== 'client') return false;
-      if (world.addMessage) world.addMessage('Je bent uit het spel van de gastheer gehaald.', 4);
+      if (world.addMessage) world.addMessage(body.reden === 'gastheer gestopt' ? 'De gastheer is gestopt met samen spelen. Je speelt weer in je eigen spel.' : 'Je bent uit het spel van de gastheer gehaald.', 4);
       stopCoopNet(world);
       return true;
     default: return false;
@@ -319,7 +326,7 @@ export function setMaxPlayers(world, max) {
 // Verlaten. Gast: terug naar de eigen plek en eigen toestand, saven mag weer. Host: alleen verder; alle gasten gaan eruit.
 export function stopCoopNet(world) {
   const n = world.coopNet; if (!n) return;
-  if (n.role === 'host') { try { n.hub.announce({ k: 'weg', reden: 'gastheer gestopt' }); n.hub.closeAll(); } catch (e) { /* al weg */ } } else { try { n.session.leave(); } catch (e) { /* al weg */ } }
+  if (n.role === 'host') { try { n.hub.announce({ k: 'weg', reden: 'gastheer gestopt' }); n.hub.closeAll(); } catch (e) { /* al weg */ } } else { try { if (n.session.status !== 'geweigerd' && n.session.status !== 'verbroken') n.session.leave(); } catch (e) { /* al weg */ } }
   world.coopNet = null;
   if (n.role === 'client' && n.stash) {
     const s = n.stash, p = world.player;
@@ -329,7 +336,7 @@ export function stopCoopNet(world) {
     world.coopVerdiend = 0; // het geld zit al in world.money en gaat met de gewone save mee; bleef dit staan, dan kwam het bij een volgende sessie nogmaals in de save
     if (world.companion && s.companion) { world.companion.x = s.companion.x; world.companion.y = s.companion.y; world.companion.character = s.companion.character; }
     if (world.coop) world.coop.prevLocal = s.prevLocal;
-    if (n.fade) n.fade('uit');
+    if (n.fade && n.joined) n.fade('uit');
   }
   endCoop(world);
   world.coopRole = null; // eigen save mag weer (gast: met zijn eigen voortgang)

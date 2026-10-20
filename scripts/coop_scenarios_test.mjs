@@ -167,7 +167,7 @@ t('de gedeelde klok springt mee als de host slaapt (grote sprong) en loopt ander
 
 t('het maximum: een vijfde gast bij maximum 4 wordt netjes geweigerd; na een vrije plek lukt het wel', () => {
   const s = sessie(4, { max: 4 }); s.step(4);
-  assert.equal(s.gs[3].gw.coopNet.session.rejected, 'vol');
+  assert.equal(s.gs[3].gw.coopWeigering, 'vol'); assert.equal(s.gs[3].gw.coopRole, null);
   N.stopCoopNet(s.gs[1].gw); s.step(3);
   const nieuw = s.voegToe(); s.step(5);
   assert.equal(nieuw.gw.coopNet.session.status, 'ok');

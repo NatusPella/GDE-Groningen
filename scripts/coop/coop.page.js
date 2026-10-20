@@ -72,7 +72,7 @@ function sampleNow(n) {
   const hm = x.coopHostMissie;
   const cine = document.getElementById('cine');
   return {
-    n, ph: state.phase, paused: !!x.paused, uiPaused: !!x.uiPaused, hold: !!document.querySelector('.coop-hold'), clock: x.time, uur: x.clock, slot: ses ? ses.slot : (net && net.role === 'host' ? 0 : -1),
+    n, ph: state.phase, paused: !!x.paused, uiPaused: !!x.uiPaused, coopHold: !!x.coopHold, hold: !!document.querySelector('.coop-hold'), clock: x.time, uur: x.clock, slot: ses ? ses.slot : (net && net.role === 'host' ? 0 : -1),
     status: ses ? ses.status : (net && net.hub ? [...net.hub.sessions.entries()].map(([s, v]) => s + ':' + v.status).join(',') : null),
     ids: net && net.hub ? [...net.hub.sessions.entries()].map(([s, v]) => s + ':' + (v.link && v.link.id)).join(',') : null,
     rtt: ses ? Math.round(ses.rtt * 1000) : (net && net.hub ? Math.round(Math.max(0, ...[...net.hub.sessions.values()].map((v) => v.rtt)) * 1000) : null),
@@ -234,7 +234,7 @@ const PHASES = {
     simulate({ cut: true });
     log('uitval', { begin: true, s });
     await sleep(s * 1000);
-    log('uitval-midden', { hold: !!document.querySelector('.coop-hold'), uiPaused: !!(W() || {}).uiPaused, status: net() && net().session ? net().session.status : null });
+    log('uitval-midden', { hold: !!document.querySelector('.coop-hold'), uiPaused: !!(W() || {}).coopHold, paused: !!(W() || {}).paused, status: net() && net().session ? net().session.status : null });
     shot('uitval-hold');
     simulate({});
     log('uitval', { begin: false });
@@ -245,10 +245,10 @@ const PHASES = {
   async uitvalHost({ s = 8, wie = 'gast' }) {
     if (CFG.role !== 'host') { await sleep((s + 20) * 1000); return; }
     await sleep((s - 1) * 1000);
-    log('uitval-host', { hold: !!document.querySelector('.coop-hold'), uiPaused: !!W().uiPaused, roster: (W().coopRoster || []).map((r) => [r.slot, r.verbinding]) });
+    log('uitval-host', { hold: !!document.querySelector('.coop-hold'), uiPaused: !!W().coopHold, paused: !!W().paused, roster: (W().coopRoster || []).map((r) => [r.slot, r.verbinding]) });
     shot('uitval-host-hold');
     await sleep(21000);
-    log('uitval-host-na', { hold: !!document.querySelector('.coop-hold'), uiPaused: !!W().uiPaused, roster: (W().coopRoster || []).map((r) => [r.slot, r.verbinding]) });
+    log('uitval-host-na', { hold: !!document.querySelector('.coop-hold'), uiPaused: !!W().coopHold, paused: !!W().paused, roster: (W().coopRoster || []).map((r) => [r.slot, r.verbinding]) });
   },
   // een afwijking op één gast: de snapshot klopt niet met de hash van de host
   async desync({ s = 25, wie = 'gast' }) {
