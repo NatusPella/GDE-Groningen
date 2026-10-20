@@ -11,11 +11,17 @@
 //              de busbanen en beschermde wegen gaan mee in de oplosser zoals bij de oude keten
 //   lichten    meta.trafficLights uit de OSM-knopen (junction_tiles.mjs snapSignals)
 import { ROAD_SPEC } from '../../game/js/worldbuilder.js';
+import { SpatialGrid } from '../../game/js/spatialgrid.js';
+import { waterPolyIn } from '../../game/js/waterlevels.js';
+import { polygonBounds } from '../../game/js/util.js';
 import { wgsToWorld } from '../../game/js/rdnew.js';
 import { ringHeights, railItemsFrom } from './ring_elevation.mjs';
 import { cityRail, cutPathsAtRails } from './stad_spoor.mjs';
+import { dropDuplicateBridges } from './bridgededupe.mjs';
 import * as PR from './profile.mjs';
 import * as RP from './railprofile.mjs';
+
+const RING_TYPES = new Set(['motorway', 'motorway_link', 'trunk', 'trunk_link', 'primary', 'primary_link']);
 
 // ------------------------------------------------------------------ verzamelen
 
@@ -99,6 +105,35 @@ export function cutToCover(roads, inside, step = 10) {
   return out;
 }
 
+// Een autoweg door water zonder brugtag en zonder profiel is een duiker onder een dijk: droog dek, als een brug
+// (mapdata.js markDryRoad). De OSM-wegen liggen enkele cm anders dan die van de oude kaart: een weg die precies tot de
+// oever reikt zou nu zinken. Hier geldt dezelfde regel met DRY_TOL m speling, zodat elke droge kruising van de oude kaart blijft.
+const DRY_TOL = 0.1;
+const DRY_CATS = new Set(['major', 'normal', 'minor', 'service']);
+export function markDryRoads(d) {
+  const grid = new SpatialGrid(80);
+  for (const w of d.water || []) { if (!w.pts || w.pts.length < 4) continue; w.bounds = polygonBounds(w.pts); grid.insert(w, w.bounds); }
+  let n = 0;
+  for (const r of d.roads) {
+    if (r.bridge || r.z || !DRY_CATS.has(r.cat)) continue;
+    const P = r.pts;
+    const b = polygonBounds(P);
+    const polys = grid.query(b[0] - 1, b[1] - 1, b[2] + 1, b[3] + 1);
+    if (!polys.length) continue;
+    let wet = false;
+    for (let i = 0; i < P.length - 1 && !wet; i++) {
+      const [ax, ay] = P[i], [bx, by] = P[i + 1];
+      const steps = Math.max(1, Math.ceil(Math.hypot(bx - ax, by - ay) / 2));
+      for (let k = 0; k <= steps && !wet; k++) {
+        const x = ax + ((bx - ax) * k) / steps, y = ay + ((by - ay) * k) / steps;
+        for (const [dx, dy] of [[0, 0], [DRY_TOL, 0], [-DRY_TOL, 0], [0, DRY_TOL], [0, -DRY_TOL]]) if (waterPolyIn(polys, x + dx, y + dy)) { wet = true; break; }
+      }
+    }
+    if (wet) { r.bridge = true; r.dryCrossing = true; n++; }
+  }
+  return n;
+}
+
 // ------------------------------------------------------------------ hoogtes
 
 const noTerrain = () => 0;
@@ -132,13 +167,18 @@ export function profileCity(d, wegen, { lagen, extras = {}, inside }) {
   const bounds = d.meta.bounds;
   const inRect = (x, y, m = 0) => x >= bounds[0] - m && x <= bounds[2] + m && y >= bounds[1] - m && y <= bounds[3] + m;
   if (wantRoads) {
-    d.roads = cutToCover(wegen.roads.map(cityRoadRow), inside);
+    // (na het knippen nog eens: een brug die OSM twee keer tekent blijft één dek)
+    d.roads = dropDuplicateBridges(cutToCover(wegen.roads.map(cityRoadRow), inside).map((row) => ({ kind: 'roads', row }))).map((f) => f.row);
+    // de ringwegen openen niet voor boten: de oude kaart kende op de ring alleen vaste bruggen (de ring race en de politie rijden er overheen),
+    // de nieuwere OSM tagt een paar ervan bridge:movable terwijl het dek ruim 4 m boven de weg ligt
+    for (const r of d.roads) if (r.movable && RING_TYPES.has(r.type)) { delete r.movable; rep.ringBridgesFixed = (rep.ringBridgesFixed || 0) + 1; }
     d.meta.trafficLights = wegen.lights.filter((l) => inRect(l.x, l.y)).map((l) => ({ ...l }));
     rep.roads = d.roads.length;
   }
   const elements = wegen.elements, geomEls = withGeometry(elements);
   const railsRaw = railItemsFrom(elements.filter((e) => e.type === 'way'), wgsToWorld);
   // de busbanen en beschermde wegen van het handwerk gaan mee (profile.mjs main)
+  if (wantRoads) rep.snapped = snapExtras(extras, d.roads);
   const bus = busWays(d, extras);
   const protect = PR.protectedRoads(d, extras);
   const solveAll = () => { for (const { road } of bus) d.roads.push(road); rep.passes += solveRoads(d, protect); d.roads = d.roads.filter((r) => !bus.some((b) => b.road === r)); };
@@ -166,10 +206,31 @@ export function profileCity(d, wegen, { lagen, extras = {}, inside }) {
     solveAll();
   } else if (wantRails) rep.skipped = true;
   if (bus.length) restoreBus(bus);
+  if (wantRoads) rep.dry = markDryRoads(d);
   return rep;
 }
 
 // ------------------------------------------------------------------ handwerk
+
+// De busbanen en hoogtecorrecties van mapextras.json noemen hun punten op de cm van de oude kaart; de OSM-wegen van de tegelbouw
+// liggen enkele cm anders (andere afronding van dezelfde knopen). applyMapExtras zoekt op de cm, dus elk punt van het handwerk gaat
+// naar het dichtstbijzijnde hoekpunt van een weg binnen SNAP m, zodat busbaan, buslaan en roadZ weer op hun weg vallen.
+const SNAP = 0.15;
+export function snapExtras(extras, roads) {
+  const CELL = 2, grid = new Map();
+  for (const r of roads) for (const p of r.pts) { const k = `${Math.floor(p[0] / CELL)},${Math.floor(p[1] / CELL)}`; let c = grid.get(k); if (!c) grid.set(k, c = []); c.push(p); }
+  const near = (p) => {
+    let best = null, bd = SNAP;
+    const cx = Math.floor(p[0] / CELL), cy = Math.floor(p[1] / CELL);
+    for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j++) for (const q of grid.get(`${cx + i},${cy + j}`) || []) { const d = Math.hypot(q[0] - p[0], q[1] - p[1]); if (d <= bd) { bd = d; best = q; } }
+    return best;
+  };
+  let moved = 0, total = 0;
+  const snapPts = (list) => { for (let i = 0; i < list.length; i++) { total++; const q = near(list[i]); if (q && (q[0] !== list[i][0] || q[1] !== list[i][1])) { list[i] = [q[0], q[1]]; moved++; } } };
+  for (const b of [...(extras.busRoads || []), ...(extras.busLanes || [])]) if (b.pts) snapPts(b.pts);
+  for (const z of extras.roadZ || []) if (z.at) { total++; const q = near(z.at); if (q) { z.at = [q[0], q[1]]; moved++; } }
+  return { moved, total };
+}
 
 function busWays(d, extras) { return extras.busRoads ? PR.busRoadsOf(d, extras) : []; }
 function restoreBus(bus) { return PR.restoreBusRoads(bus); }

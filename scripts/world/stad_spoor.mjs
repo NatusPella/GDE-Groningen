@@ -19,7 +19,8 @@ const STATION_NAMES = { Groningen: 'Groningen Hoofdstation' };
 const ROUTES = [
   ['Stoptrein Roodeschool', 'gtw', ['Groningen Hoofdstation', 'Groningen Noord', ['exit', ...legacyToWorld(-1000, -4400), 'Roodeschool']]],
   ['Intercity Zwolle', 'virm', ['Groningen Hoofdstation', 'Groningen Europapark', ['exit', ...legacyToWorld(2254, 2320), 'Zwolle']]],
-  ['Stoptrein Winschoten', 'wink', ['Groningen Hoofdstation', 'Groningen Europapark', ['exit', ...legacyToWorld(2261, 2311), 'Winschoten']]],
+  // (Winschoten rijdt over het spoor van Zwolle tot de rand van de kaart: de oude kaart kende het aftakkende spoor nog niet en een eigen eindpunt op de aftakking laat de lijn rechtdoor het niets in rijden)
+  ['Stoptrein Winschoten', 'wink', null, { like: 'Intercity Zwolle', exit: 'Winschoten' }],
   ['Stoptrein Leeuwarden', 'gtw', ['Groningen Hoofdstation', ['exit', ...legacyToWorld(-3600, 910), 'Leeuwarden']]],
 ];
 const EXIT_RUN = 800.0;
@@ -269,10 +270,22 @@ export function cityRail({ elements, roads, bounds, project = wgsToWorld }) {
     }
     return s;
   };
-  const nearestNode = (x, y) => { let bk = null, bd = Infinity; for (const [k, p] of nodesXY) { const d = hyp(p[0] - x, p[1] - y); if (d < bd) { bd = d; bk = k; } } return bk; };
+  // (het uitgangspunt ligt op de hoofd- of aftakspoor: een opstelspoor of wissel ernaast is een doodlopende bestemming)
+  const mainNodes = new Set();
+  ways.forEach((w, wi) => { if (w.tags.service === undefined) for (const k of wayNodes[wi]) mainNodes.add(k); });
+  const nearestNode = (x, y) => {
+    let bk = null, bd = Infinity;
+    for (const [k, p] of nodesXY) { if (!mainNodes.has(k)) continue; const d = hyp(p[0] - x, p[1] - y); if (d < bd) { bd = d; bk = k; } }
+    return bk;
+  };
 
   const railRoutes = [];
-  for (const [name, train, waypoints] of ROUTES) {
+  for (const [name, train, waypoints, share] of ROUTES) {
+    if (share) {
+      const like = railRoutes.find((r) => r.name === share.like);
+      if (like) railRoutes.push({ name, train, pts: like.pts.map((p) => p.slice()), stops: like.stops.map((st) => (st.offmap ? { ...st, name: share.exit } : { ...st })) });
+      continue;
+    }
     const first = byName.get(waypoints[0]);
     if (!first) continue;
     let path = null, exitName = null, ok = true;
