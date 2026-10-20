@@ -179,7 +179,7 @@ export function pickBikeVariant(map, x, y, rng = Math.random, ctx = {}) {
 // twee korte wegen. Dan komen er dertig auto's op één kruising samen, die in een wachtkring raken (de lus-doorbreker laat ze door
 // elkaar heen rijden). Eén auto per roadM meter begaanbare weg binnen het spawnbereik, nooit meer dan het vaste doel, minstens
 // minCars zodat een eenzame weg niet uitgestorven is. lengthM: som van de weglengtes binnen het spawnbereik.
-export function roadCapacityTarget(lengthM, target = 30, { roadM = 45, minCars = 4 } = {}) {
+export function roadCapacityTarget(lengthM, target = 30, { roadM = 70, minCars = 4 } = {}) {
   if (!Number.isFinite(lengthM) || lengthM < 0) return target;
   return Math.max(Math.min(minCars, target), Math.min(target, Math.ceil(lengthM / roadM)));
 }
