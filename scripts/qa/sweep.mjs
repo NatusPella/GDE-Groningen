@@ -1,7 +1,7 @@
 // Visuele kwaliteitssweep (#sweep): screenshots op willekeurige plekken, tijden, weersoorten en
 // verhaalstappen, met een vaste seed en een logboek, plus automatische beoordeling van elk beeld.
 //   node scripts/qa/sweep.mjs [--seed=1] [--out=<map>] [--part=wereld,verhaal,cut,alles]
-//        [--wereld=45] [--verhaal=26] [--cut=14] [--settle=6000] [--only=<stops>] [--slot] [--plan]
+//        [--wereld=45] [--verhaal=26] [--cut=14] [--settle=6000] [--only=<stops>] [--preset=laag|middel|vlot|hoog] [--slot] [--plan]
 // --plan schrijft alleen plan.json (geen Electron). Eén Electron-instantie per deel, wegwerpprofiel,
 // nooit echte opslag. --slot neemt een Electron-slot volgens <GDE_LOCKS>/README.txt.
 // ELECTRON_EXE=<pad> als desktop/node_modules/electron/dist ontbreekt; GAME_WORLD=<map> als de
@@ -135,8 +135,8 @@ const csInfo = [];
 for (const deel of PARTS) {
   let log = '';
   if ((deel === 'wereld' && !plan.wereld.length) || (deel === 'verhaal' && !plan.verhaal.length) || (deel === 'cut' && !plan.cut.n)) continue;
-  if (deel === 'wereld') log = await runPart(deel, `window.__sw = ${JSON.stringify({ plan: plan.wereld, settle: SETTLE })};\n`, 'sweep.page.js');
-  else if (deel === 'verhaal') log = await runPart(deel, `window.__sw = ${JSON.stringify({ plan: plan.verhaal, settle: SETTLE })};\n`, 'sweep.page.js', { GDE_NIEUW_VERHAAL: '1' });
+  if (deel === 'wereld') log = await runPart(deel, `window.__sw = ${JSON.stringify({ plan: plan.wereld, settle: SETTLE, preset: arg('preset', '') })};\n`, 'sweep.page.js');
+  else if (deel === 'verhaal') log = await runPart(deel, `window.__sw = ${JSON.stringify({ plan: plan.verhaal, settle: SETTLE, preset: arg('preset', '') })};\n`, 'sweep.page.js', { GDE_NIEUW_VERHAAL: '1' });
   else if (deel === 'cut') log = await runPart(deel, `window.__cs = ${JSON.stringify({ sample: plan.cut, settle: SETTLE })};\n`, 'cutscene_shots.page.js');
   let ret = {};
   for (const l of log.split(/\r?\n/)) { const m = l.match(/^\[perf-script\] (.*)$/); if (m) try { ret = JSON.parse(m[1]); } catch { /* laatste regel telt */ } }

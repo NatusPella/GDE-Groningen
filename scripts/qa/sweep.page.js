@@ -130,6 +130,13 @@ async function logStop(stop, extra) {
   return rec;
 }
 
+// SW.preset: a graphics preset of gfxprofile.js ('laag', 'middel', 'vlot', 'hoog') applied as session settings
+if (SW.preset) {
+  const GP = await imp('gfxprofile'); const ST = await imp('settings');
+  const pr = (GP.GFX_PRESETS || {})[SW.preset];
+  if (pr) for (const [k, v] of Object.entries(pr)) ST.setSetting(k, v);
+  console.log('[sweep] preset ' + SW.preset + ' ' + JSON.stringify(pr || null));
+}
 const results = [];
 for (const S of SW.plan) {
   if (PM.isPauseMenuOpen()) PM.closePauseMenu();
