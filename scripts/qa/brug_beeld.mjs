@@ -19,7 +19,8 @@ const flag = (k) => process.argv.includes(`--${k}`);
 const OUT = path.resolve(arg('out', path.join(os.tmpdir(), 'gde-qa-brugbeeld')));
 fs.mkdirSync(OUT, { recursive: true });
 const alleenLijst = flag('alleen-lijst');
-const boot = arg('modus', 'beeld') === 'boot'; // boten bij bruggen (brug_boot.page.js): --lijst is dan { open: [...], bots: [...] }
+const zee = arg('modus', 'beeld') === 'zee'; // vaartest over open zee (zee_vaart.page.js): --lijst is { zeeen: [{ naam, x, y, hoek, af }], secs }
+const boot = arg('modus', 'beeld') === 'boot' || zee; // boten bij bruggen (brug_boot.page.js): --lijst is dan { open: [...], bots: [...] }
 let bruggen = boot ? {} : [];
 if (arg('lijst')) bruggen = JSON.parse(fs.readFileSync(path.resolve(arg('lijst')), 'utf8'));
 const plekken = arg('plekken') ? JSON.parse(fs.readFileSync(path.resolve(arg('plekken')), 'utf8')) : []; // [{ naam, x, y }]: luchtbeeld en straatbeeld zonder brug
@@ -58,7 +59,8 @@ let full = {};
 for (const l of (r.stdout || '').split('\n')) { const m = l.match(/^\[perf-script\] (.*)$/); if (m) try { full = JSON.parse(m[1]); } catch { /* laatste regel telt */ } }
 fs.writeFileSync(path.join(OUT, 'brug_beeld.json'), JSON.stringify(full, null, 1));
 if (full.beweegbaar) for (const b of full.beweegbaar) console.log(`${b.kind}\t${b.naam}\t${b.x}\t${b.y}\t${b.len} m`);
+for (const b of full.zeeen || []) console.log(`zee ${b.naam}: ${b.fout ? 'FOUT ' + b.fout : `afgelegd ${b.afgelegd} m, langste stilstand ${b.maxStil} s, eind ${b.eind}`}`);
 for (const k of ['open', 'bots']) for (const b of full[k] || []) console.log(`${k} ${b.naam}: ${b.fout ? 'FOUT ' + b.fout : JSON.stringify({ ...b, log: undefined })}`);
 for (const b of full.bruggen || []) console.log(`${b.naam} (${b.x}, ${b.y}): ${b.fout ? 'FOUT ' + b.fout : `${b.lengte} m, dek ${b.zMidden} m, ${b.klasse}${b.beweegbaar ? `, ${b.beweegbaar}, open ${b.open}, weer dicht ${b.dichtGegaan}` : ''}`}`);
 console.log(`uitvoer: ${OUT}, exit ${r.status}${r.signal ? ' ' + r.signal : ''}`);
-process.exit(r.status === 0 && ((full.bruggen || []).length || full.beweegbaar || (full.open || []).length || (full.bots || []).length) ? 0 : 1);
+process.exit(r.status === 0 && ((full.bruggen || []).length || full.beweegbaar || (full.open || []).length || (full.bots || []).length || (full.zeeen || []).length) ? 0 : 1);
