@@ -21,7 +21,7 @@ import { pushOutOfPlan, onFarmPaving, planExtraSolids } from './countryplan.js';
 import { pushOutOfTrunks } from './countrywalls.js';
 import { countryRailsNear, pushOutOfRails } from './countryrails.js';
 import { roadPriority, junctionArm } from './junctions.js';
-import { pickTrafficCar, carModel, applyFleetFlags, pickBikeVariant, wijkProfileAt, MIDIBUS_MODEL } from './trafficfleet.js';
+import { pickTrafficCar, carModel, applyFleetFlags, pickBikeVariant, wijkProfileAt, MIDIBUS_MODEL, roadCapacityTarget, roadLengthWithin } from './trafficfleet.js';
 import { pickWaterLife, newsVanWanted, distToCentre, hourOf } from './streetlifedata.js';
 import { vehicleHooks } from './vehiclehooks.js';
 import { pickBoatModel, BOAT_KINDS } from './boattypes.js';
@@ -994,7 +994,7 @@ export function manageTrafficPopulation(world, opts = {}) {
   dedupeVehicles(vehicles);
   // ?simlagen (issue #18): doelaantal en afstanden per streek uit simlagen.js
   const lagen = FLAGS.simlagen ? verkeerOpties(wijkProfileAt(map, player.x, player.y).key, hourOf(world)) : null;
-  const { target = lagen ? lagen.target : 30, spawnMin = lagen ? lagen.spawnMin : 70, spawnMax = lagen ? lagen.spawnMax : 170, despawnDist = lagen ? lagen.despawnDist : 260 } = opts;
+  const { target: targetOpt = lagen ? lagen.target : 30, spawnMin = lagen ? lagen.spawnMin : 70, spawnMax = lagen ? lagen.spawnMax : 170, despawnDist = lagen ? lagen.despawnDist : 260 } = opts;
   pruneWrecks(world);
   vehicleHooks.manageParkedCars(world);
   for (let i = vehicles.length - 1; i >= 0; i--) {
@@ -1012,6 +1012,8 @@ export function manageTrafficPopulation(world, opts = {}) {
   for (const v of vehicles) if (!v.wrecked && !v.isPolice && !v.isHeroCar && !v.isBike && !v.isBus && !v.isScooter && !v.isBoat && !v.parked && v.driver !== 'player') count++;
 
   const candidates = map.roadsNear(player.x, player.y, spawnMax).filter((r) => r.cat !== 'foot' && r.cat !== 'cycle' && r.width >= 3 && !r.busOnly);
+  // a hamlet with two short roads takes fewer cars than a city street grid (#265): the target follows the road length in range
+  const target = opts.target !== undefined ? targetOpt : roadCapacityTarget(roadLengthWithin(candidates, player.x, player.y, spawnMax), targetOpt);
   // ambulances, taxis and a cash-transport van are part of the everyday
   // traffic, not one-offs: keep a few of them around
   const have = { ambulance: 0, taxi: 0, cashvan: 0, newsvan: 0 };
