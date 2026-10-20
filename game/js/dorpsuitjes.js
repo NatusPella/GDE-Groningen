@@ -1,10 +1,10 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getScene } from './scene3d.js';
 import { getStationsForRender, getTrainTripCount } from './stationtravel.js';
-import { isMissionActive, getActiveRace } from './missions.js';
+import { isMissionActive, getActiveRace } from './missionquery.js';
 import { isCinematicActive, playCinematic } from './cinematics.js';
 import { isShopOpen, openShopMenu, closeShopMenu } from './shopui.js';
-import { shopIconUrl } from './shops.js';
+import { shopIconUrl } from './shopicon.js';
 import { showCard } from './hudcards.js';
 import { recordUnique, hasUnique, recordStat } from './achievements.js';
 import { makeTwoWheeler } from './vehicle.js';

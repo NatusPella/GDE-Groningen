@@ -1,6 +1,9 @@
-import { normalizeAngle, pointInPolygon, isInWater, WATER_Y, closestPointOnSegment } from './util.js';
+import { normalizeAngle, isInWater, WATER_Y, closestPointOnSegment } from './util.js';
 import { requestRespawn } from './world.js';
-import { disableVehicle, surfaceUnder } from './vehicle.js';
+import { surfaceUnder } from './vehicle.js';
+import { wallOnPath } from './wallpath.js';
+import { wreckVehicle } from './vehiclewreck.js';
+export { wallOnPath, wreckVehicle };
 import { knockDown } from './ragdoll.js';
 import { bloodSpray, bleedPed } from './gore3d.js';
 import { DEAD_DURATION } from './pedconst.js';
@@ -284,35 +287,6 @@ function sound(world, x, y, material, strength = 0.5) {
   if (q.length < 64) q.push({ kind: 'bullet_hit', x, y, material, strength });
 }
 
-// First building edge crossed between (x0, y0) and (x1, y1): { t, x, y, nx, ny, b }.
-// Buildings the bullet starts inside (fired from a passage) are ignored.
-export function wallOnPath(map, x0, y0, x1, y1) {
-  const dx = x1 - x0, dy = y1 - y0;
-  let best = null;
-  for (const bld of map.buildingsNear((x0 + x1) / 2, (y0 + y1) / 2, Math.hypot(dx, dy) / 2 + 1)) {
-    const [minx, miny, maxx, maxy] = bld.bounds;
-    if (Math.max(x0, x1) < minx || Math.min(x0, x1) > maxx || Math.max(y0, y1) < miny || Math.min(y0, y1) > maxy) continue;
-    const pts = bld.pts;
-    let hit = null;
-    for (let i = 0; i < pts.length - 1; i++) {
-      const ax = pts[i][0], ay = pts[i][1], ex = pts[i + 1][0] - ax, ey = pts[i + 1][1] - ay;
-      const den = dx * ey - dy * ex;
-      if (Math.abs(den) < 1e-9) continue;
-      const wx = ax - x0, wy = ay - y0;
-      const t = (wx * ey - wy * ex) / den;
-      const u = (wx * dy - wy * dx) / den;
-      if (t < 0 || t > 1 || u < 0 || u > 1 || (hit && t >= hit.t)) continue;
-      const el = Math.hypot(ex, ey) || 1;
-      let nx = -ey / el, ny = ex / el;
-      if (nx * dx + ny * dy > 0) { nx = -nx; ny = -ny; }
-      hit = { t, x: x0 + dx * t, y: y0 + dy * t, nx, ny, b: bld };
-    }
-    if (!hit || (best && hit.t >= best.t) || pointInPolygon(x0, y0, pts)) continue;
-    best = hit;
-  }
-  return best;
-}
-
 // Window or wall: a stable per-building share of the facade is glass, and
 // the building is either brick or plaster.
 function wallImpact(world, b, w) {
@@ -401,19 +375,6 @@ function vehicleImpact(world, b, h) {
   if (v.health <= 0) wreckVehicle(world, v, b.owner === 'player');
   gunImpactFx({ surface: h.glass ? 'carglass' : 'metal', x: h.x, y: h.y, z: b.z, nx: h.nx, ny: h.ny, vehicle: v.wrecked ? null : v, pellet: b.pellet });
   sound(world, h.x, h.y, h.glass ? 'glass' : 'metal', b.pellet ? 0.3 : 0.6);
-}
-
-export function wreckVehicle(world, v, byPlayer) {
-  // already burning: every hit brings the explosion closer
-  if (v.disabled) { v.burnLeft -= 0.7; return; }
-  if (v.wrecked) return;
-  disableVehicle(v, byPlayer, world);
-  if (!byPlayer) return;
-  if (v.isPolice && !v.hijacked) {
-    world.stats.kills++;
-    world.stats.copKills++;
-    world.wanted = Math.min(5, world.wanted + 2);
-  }
 }
 
 // Swept along this step (a bullet moves ~1 m per frame, more than a body is wide).
