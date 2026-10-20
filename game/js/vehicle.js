@@ -2815,11 +2815,6 @@ function updateSuspension(v, dt) {
   }
 }
 
-// A body corner that has penetrated a footprint is pushed out along the
-// nearest wall's normal; the impulse removes only the into-wall velocity
-// (plus friction), so a glancing scrape slides along while a head-on stops
-// dead, and an off-centre hit swings the car round. dt is unused but kept
-// for callers.
 // The buildings round a body, asked for with 3 m to spare and kept while the car stays within 1.5 m of where it
 // was asked: the probes lie within halfLen + 0.5 of the centre, and a push-out moves the car by centimetres. A car
 // asked the grid every frame (a list of arrays per car, ~250 queries a frame in a busy street).
@@ -2835,6 +2830,11 @@ function buildingsAroundBody(v, map) {
   return list;
 }
 
+// A body corner that has penetrated a footprint is pushed out along the
+// nearest wall's normal; the impulse removes only the into-wall velocity
+// (plus friction), so a glancing scrape slides along while a head-on stops
+// dead, and an off-centre hit swings the car round. dt is unused but kept
+// for callers.
 const _cp = { x: 0, y: 0 };
 export function resolveVehicleBuildingCollision(v, map, dt) {
   // a helicopter keeps its own height and walls (heliflight.js)
