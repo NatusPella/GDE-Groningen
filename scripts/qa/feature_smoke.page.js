@@ -397,6 +397,99 @@ const CHECKS = [
     }
     return out;
   } },
+  { id: 'interieurklasse', issues: [51], run: async () => {
+    const CI = await imp('carinterior');
+    const SH = await imp('shops');
+    const rd = nearestRoadHeading(GM.x, GM.y, 250);
+    if (!rd) return { fout: 'geen weg bij de Grote Markt' };
+    await go(rd.x, rd.y, rd.a, SETTLE);
+    const out = {};
+    for (const key of ['wervelwind', 'taxi', 'politie', 'ambulance', 'klusbus', 'bakwagen', 'stadsbus']) {
+      const spec = SH.VEHICLE_STOCK[key];
+      const v = new VH.Vehicle(rd.x, rd.y, rd.a, { ...spec.model, color: spec.color });
+      Object.assign(v, spec.flags || {});
+      w.vehicles.push(v);
+      await sleep(600);
+      teleport(v.x, v.y);
+      p.enterVehicle(v, w);
+      hold = null; driving = true;
+      v.speed = 0;
+      await sleep(3000);
+      const e = CI.interiorEyePose(v);
+      if (!e) { out[key] = 'geen interieur'; p.exitVehicle(map, w); driving = false; continue; }
+      const L = [e.fx, e.fy], R = [e.fy, -e.fx];
+      const pose = (dx, dy, dz) => ({ position: { x: e.x, y: e.y, z: e.z }, lookAt: { x: e.x + dx, y: e.y + dy, z: e.z + dz }, fov: 74, cut: true, interior: true });
+      await shotAt('ikl-' + key + '-voor', pose(L[0] * 30, L[1] * 30, -0.4), 1500);
+      await shotAt('ikl-' + key + '-opzij', pose(R[0] * 5 + L[0] * 1.2, R[1] * 5 + L[1] * 1.2, -1.5), 1500);
+      await shotAt('ikl-' + key + '-achter', pose(-L[0] * 5 + R[0] * 1, -L[1] * 5 + R[1] * 1, -1.5), 1500);
+      p.exitVehicle(map, w);
+      driving = false;
+      out[key] = { klasse: (await imp('carinteriorlayout')).interiorKlasse(v) };
+      w.vehicles.splice(w.vehicles.indexOf(v), 1);
+    }
+    return out;
+  } },
+  { id: 'fotomodus', issues: [199], run: async () => {
+    const FM = await imp('fotomodusui');
+    const rd = nearestRoadHeading(GM.x, GM.y, 250);
+    await go(rd.x, rd.y, rd.a, SETTLE);
+    const voor = { ui: !!w.uiPaused, cam: !!w.cameraOverride, cine: cine.isCinematicActive(), pauze: PM.isPauseMenuOpen(), pigeon: !!w.pigeonMode, ragdoll: !!p.ragdoll };
+    key('keydown', 'F8', 'F8'); await sleep(80); key('keyup', 'F8', 'F8');
+    await sleep(800);
+    if (!FM.isPhotoMode()) { PM.openPauseMenu('fotos'); await sleep(700); await snap('foto-galerij', 200); const b = document.querySelector('[data-foto-start]'); if (b) b.click(); await sleep(1200); }
+    const ok = FM.isPhotoMode();
+    if (!ok) return { gestart: false, voor };
+    await sleep(1500);
+    await snap('foto-start', 300);
+    for (let i = 0; i < 8; i++) { key('keydown', 'e', 'KeyE'); await sleep(60); key('keyup', 'e', 'KeyE'); await sleep(30); }
+    await sleep(600);
+    await snap('foto-kantel', 300);
+    for (let i = 0; i < 6; i++) { key('keydown', 'x', 'KeyX'); await sleep(60); key('keyup', 'x', 'KeyX'); await sleep(30); }
+    await sleep(600);
+    await snap('foto-dof', 300);
+    key('keydown', 'f', 'KeyF'); await sleep(60); key('keyup', 'f', 'KeyF');
+    await sleep(600);
+    await snap('foto-filter', 300);
+    key('keydown', 'Escape', 'Escape'); await sleep(80); key('keyup', 'Escape', 'Escape'); await sleep(500);
+    return { gestart: ok, daarna: FM.isPhotoMode() };
+  } },
+  { id: 'savescherm', issues: [208], run: async () => {
+    const SG = await imp('savegame');
+    const SU = await imp('saveslotsui');
+    const rd = nearestRoadHeading(GM.x, GM.y, 250);
+    await go(rd.x, rd.y, rd.a, SETTLE);
+    hold = null;
+    let saved = false;
+    try { saved = !!SG.saveGame(w, { toast: false }); } catch (e) { note('saveGame: ' + e.message); }
+    SU.openSaveSlots({ mode: 'game', world: w });
+    await sleep(1200);
+    await snap('saves-lijst', 200);
+    const btn = (d) => [...document.querySelectorAll('#saveslots [data-do]')].find((b) => b.dataset.do === d);
+    const r = btn('rename'); if (r) { r.click(); await sleep(500); await snap('saves-hernoemen', 200); }
+    const x = btn('back'); if (x) { x.click(); await sleep(300); }
+    key('keydown', 'Escape', 'Escape'); await sleep(60); key('keyup', 'Escape', 'Escape'); await sleep(400);
+    return { opgeslagen: saved, knoppen: [...document.querySelectorAll('#saveslots [data-do]')].map((b) => b.dataset.do) };
+  } },
+  { id: 'halte', issues: [225], run: async () => {
+    const HF = await imp('haltefiguren');
+    const SH = await imp('shops');
+    const rd = nearestRoadHeading(GM.x, GM.y, 250);
+    await go(rd.x, rd.y, rd.a, SETTLE);
+    const spec = SH.VEHICLE_STOCK.stadsbus;
+    const bus = new VH.Vehicle(rd.x + Math.cos(rd.a) * 12, rd.y + Math.sin(rd.a) * 12, rd.a, { ...spec.model, color: spec.color });
+    Object.assign(bus, spec.flags || {});
+    w.vehicles.push(bus);
+    await sleep(1500);
+    HF.queueHalte(w, bus, { board: 3, alight: 2 });
+    const side = [-Math.sin(rd.a), Math.cos(rd.a)]; // rechts van de bus: de kant van de deuren
+    const pose = { position: { x: bus.x + side[0] * 9 - Math.cos(rd.a) * 3, y: bus.y + side[1] * 9 - Math.sin(rd.a) * 3, z: gh(bus.x, bus.y) + 2.2 }, lookAt: { x: bus.x, y: bus.y, z: gh(bus.x, bus.y) + 1.2 }, fov: 60, cut: true };
+    ownShot = true;
+    cine.playCinematic({ id: 'fs-view', duration: 60, priority: 9, shot: () => pose });
+    for (const t of [900, 1500, 1500, 2000]) { await sleep(t); console.log('[capture] halte-' + t + '-' + Math.round(performance.now() % 100000)); await sleep(400); }
+    cine.skipCinematic(); ownShot = false;
+    w.vehicles.splice(w.vehicles.indexOf(bus), 1);
+    return { deuren: JSON.stringify(bus.doors && bus.doors.open) };
+  } },
   { id: 'hud', issues: [33], run: async () => {
     const rd = nearestRoadHeading(GM.x, GM.y, 250);
     await go(rd.x, rd.y, rd.a, SETTLE);
