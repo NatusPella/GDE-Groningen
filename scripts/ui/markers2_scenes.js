@@ -77,6 +77,7 @@ if (want('doel')) {
   // #293: een lang doel in de onderste HUD-regel op dit venster
   teleport(...P(100, 77));
   await loaded();
+  await sleep(6000);
   const HP = await imp('hud_panel');
   const longTxt = ['Stap in de auto: de pinautomaat ligt aan de overkant van het kanaal', "Houd Oma's vrienden bij elkaar, anders rijdt Jelle weg met de limo", 'Wees eerder bij de sluis van Dorkwerd dan de andere boot'];
   for (const [n, t] of longTxt.entries()) {
