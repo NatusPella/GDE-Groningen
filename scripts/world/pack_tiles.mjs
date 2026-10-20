@@ -15,6 +15,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import zlib from 'node:zlib';
 import { fileURLToPath } from 'node:url';
+import { LAGEN_WEGEN } from './stad_laag.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const { GameMap, applyMapExtras } = await import('../../game/js/mapdata.js');
@@ -141,27 +142,36 @@ export function stadOf(d) {
 // De stad als GameMap: stad.json + de lagen uit de OSM-bouw (altijd de lagen die stad.json mist, plus wat STAD_LAAG vraagt),
 // dan mapextras (patches op gebouwen en wegen). city en osm zijn voor de splitstest (stad_split_test.mjs).
 export async function loadSourcesLaag(...args) {
-  const { data, lagen } = await loadCityDataLaag(...args);
-  return { map: new GameMap(data), lagen };
+  const { data, lagen, report } = await loadCityDataLaag(...args);
+  return { map: new GameMap(data), lagen, report };
 }
 // dezelfde stad als de ruwe kaartdata (voor tests die zelf in de lijsten kijken), mapextras erin
 export async function loadCityDataLaag(game = path.join(ROOT, 'game'), lagen = parseLagen(process.env.STAD_LAAG), { city = readStad(game), osm = null, extras = true } = {}) {
   const data = city.data;
   const all = [...new Set([...lagen, ...city.fromOsm])];
+  const extrasData = JSON.parse(fs.readFileSync(path.join(game, 'mapextras.json'), 'utf8'));
+  const report = {};
   if (all.length) {
     const cover = (await import('./citycover.mjs')).cityCoverFromMask(city.mask);
     const run = osm || (await import('./stad_cache.mjs')).osmCityLayersCached;
     const rows = await run(new Set(city.tiles), (x, y) => cover.inside(x, y), all, data, city.mask);
-    for (const l of all) data[l] = rows[l];
+    for (const l of all) if (!LAGEN_WEGEN.includes(l)) data[l] = rows[l];
+    // wegen en spoor: hele wegen uit de OSM-bouw met hun hoogteprofiel (stad_wegen.mjs); legt ook het profiel van de busbanen in de extras terug
+    if (rows.wegen) {
+      const { profileCity } = await import('./stad_wegen.mjs');
+      report.wegen = profileCity(data, rows.wegen, { lagen: all, extras: extrasData, inside: (x, y) => cover.inside(x, y) });
+    }
     // wat de provinciebouw per tegel niet weet: extras-gebouwen gaan voor OSM, geen bos op baan, weg of gebouw (stad_na.mjs)
-    if (!osm) { const na = await (await import('./stad_na.mjs')).tidyCity(data, JSON.parse(fs.readFileSync(path.join(game, 'mapextras.json'), 'utf8'))); if (process.env.GDE_STAD_LOG) console.log('stad_na', JSON.stringify(na)); }
+    if (!osm) { const na = await (await import('./stad_na.mjs')).tidyCity(data, extrasData); if (process.env.GDE_STAD_LOG) console.log('stad_na', JSON.stringify(na)); }
   }
-  if (extras) applyMapExtras(data, JSON.parse(fs.readFileSync(path.join(game, 'mapextras.json'), 'utf8')));
-  return { data, lagen: all };
+  if (extras) applyMapExtras(data, extrasData);
+  return { data, lagen: all, report };
 }
 export function parseLagen(raw) {
-  const ok = ['water', 'green', 'trees', 'buildings'];
-  return String(raw || '').split(/[,\s]+/).map((w) => w.trim().toLowerCase()).filter((w) => ok.includes(w));
+  const ok = ['water', 'green', 'trees', 'buildings', ...LAGEN_WEGEN];
+  // (de runtimevlag ?stadlaag kent de Nederlandse namen wegen en spoor, de bouw de laagnamen roads en rails)
+  const alias = { wegen: 'roads', spoor: 'rails', groen: 'green', gebouwen: 'buildings' };
+  return [...new Set(String(raw || '').split(/[,\s]+/).map((w) => w.trim().toLowerCase()).map((w) => alias[w] || w).filter((w) => ok.includes(w)))];
 }
 
 // the per-tile kinds, in the order the GameMap keeps them
