@@ -14,7 +14,7 @@ import { createRequire } from 'module';
 createRequire(import.meta.url)('./envcompat.js'); // GTE_* -> GDE_*
 // GDE_STAGE_SRC / GDE_STAGE_OUT stage another checkout (perf runs against main)
 const SRC = process.env.GDE_STAGE_SRC || path.join(HERE, '..', 'game');
-const VIADUCTS = process.env.GDE_VIADUCTS === '1'; // province tiles with height profiles for bridges and viaducts (#235)
+const VIADUCTS = process.env.GDE_VIADUCTS !== '0'; // province tiles with height profiles for bridges and viaducts (#235, #300); GDE_VIADUCTS=0 builds them flat
 const OUT = process.env.GDE_STAGE_OUT || path.join(HERE, 'build', 'game');
 const CACHE = path.join(HERE, 'vendor-cache');
 const CDN = 'https://cdn.jsdelivr.net/npm/';
@@ -127,7 +127,7 @@ function packWorld() {
       if (c.status !== 0) { fs.rmSync(cache, { recursive: true, force: true }); throw new Error('building the corridor tiles failed'); }
     }
     if (provDirs.length) {
-      const c = spawnSync(process.execPath, [province, '--out', cache, '--city', path.join(cache, 'index.json'), ...(VIADUCTS ? ['--viaducts'] : [])], { stdio: 'inherit', cwd: root });
+      const c = spawnSync(process.execPath, [province, '--out', cache, '--city', path.join(cache, 'index.json'), ...(VIADUCTS ? [] : ['--flat'])], { stdio: 'inherit', cwd: root });
       if (c.status !== 0) { fs.rmSync(cache, { recursive: true, force: true }); throw new Error('building the province tiles failed'); }
     }
     for (const d of fs.readdirSync(WCACHE)) if (path.join(WCACHE, d) !== cache) fs.rmSync(path.join(WCACHE, d), { recursive: true, force: true });

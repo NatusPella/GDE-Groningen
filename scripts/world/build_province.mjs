@@ -505,8 +505,8 @@ export function buildProvince({ root = ROOT, src = SRC_DIR, extra = bufferDirs(s
       stats.derived.drowned += feats.length - dry.length;
       feats = dry;
     }
-    // the height profiles of the bridges and viaducts (province_profile.mjs, #235): opt-in, the game
-    // does not carry profiles of streamed tiles into its elevation model yet
+    // the height profiles of the bridges and viaducts (province_profile.mjs, #235): in by default since the game
+    // carries them into its elevation model (tileworld.js, #300); --flat leaves them out
     if (viaducts) {
       const pr = profileFeats(feats);
       stats.viaducts = stats.viaducts || { packs: 0, profiled: 0, densified: 0, clearanceBefore: 0, clearanceAfter: 0 };
@@ -674,7 +674,7 @@ async function main() {
   const cityKeys = await cityKeysOf(opt('--city') || path.join(out, 'index.json'));
   const t1 = performance.now();
   const cityCover = args.includes('--no-overlay') ? null : await cityCoverOf();
-  const built = buildProvince({ src, cityKeys, cityCover, fillOld: !args.includes('--no-fill'), viaducts: args.includes('--viaducts'), terrain: args.includes('--terrain') ? (await import('./terrain.mjs')).loadTerrainRasters() : null, onPack: args.includes('--verbose') ? (pk, s) => console.log(`  pack ${pk}: ${s.tiles} tiles so far`) : null });
+  const built = buildProvince({ src, cityKeys, cityCover, fillOld: !args.includes('--no-fill'), viaducts: !args.includes('--flat'), terrain: args.includes('--terrain') ? (await import('./terrain.mjs')).loadTerrainRasters() : null, onPack: args.includes('--verbose') ? (pk, s) => console.log(`  pack ${pk}: ${s.tiles} tiles so far`) : null });
   const t2 = performance.now();
   const { index, size } = writeProvince(out, built);
   const raw = Object.values(index.tiles).reduce((a, t) => a + t.raw, 0);
