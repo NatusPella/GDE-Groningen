@@ -16,6 +16,7 @@ import { isCinematicActive, isBannerUp } from './cinematics.js';
 import { talkState, talkActive } from './storytalk.js';
 import { isPauseMenuOpen } from './pausestate.js';
 import { isShopOpen } from './shopui.js';
+import { isRitActive } from './reisrit.js';
 import { installAudioTap } from './botaudio.js';
 
 const r1 = (v) => Math.round(v * 10) / 10;
@@ -91,7 +92,7 @@ export function initPlayerApi(world, input) {
     const b = {
       cinematic: !!isCinematicActive(), banner: !!isBannerUp(), talk: !!talkActive(), pauseMenu: !!isPauseMenuOpen(),
       paused: !!world.paused, respawn: !!world.pendingRespawn, loading: !document.body.classList.contains('game-started'),
-      shop: !!isShopOpen(), dialog: dlg,
+      shop: !!isShopOpen(), ride: !!isRitActive(), dialog: dlg,
     };
     const s = {
       v: STATUS_VERSION, t: r1(T()), wall: Math.round(performance.now()), arc: 'nieuw',

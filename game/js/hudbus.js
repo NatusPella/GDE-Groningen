@@ -144,11 +144,13 @@ export function decideVoice(kind, now, voicedAt) {
 // A full-screen card (the mission result, the choice panel) and a duel bar hold
 // back the small things that would lie under or over them. Higher rank wins;
 // equal ranks never hold each other.
-export const OVERLAY_RANK = { resultaat: 5, keuze: 4, duelbalk: 3, prestatie: 2, naamkaart: 1, locatie: 1 };
+export const OVERLAY_RANK = { resultaat: 5, keuze: 4, duelbalk: 3, prestatie: 2, wijkkaart: 1.5, naamkaart: 1, locatie: 1 };
 export const OVERLAY_HOLDS = {
-  resultaat: ['naamkaart', 'locatie', 'prestatie', 'duelbalk'],
-  keuze: ['naamkaart', 'locatie', 'prestatie'],
-  duelbalk: ['prestatie', 'locatie'],
+  resultaat: ['wijkkaart', 'naamkaart', 'locatie', 'prestatie', 'duelbalk'],
+  keuze: ['wijkkaart', 'naamkaart', 'locatie', 'prestatie'],
+  duelbalk: ['prestatie', 'locatie', 'wijkkaart'],
+  // de wijkkaart (grote wijknaam linksonder) en de naamkaart staan op dezelfde plek: één tegelijk (#292)
+  wijkkaart: ['naamkaart', 'locatie'],
 };
 
 // active: a list or Set of the overlays on screen. Returns the Set that must wait.

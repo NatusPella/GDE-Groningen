@@ -46,8 +46,11 @@ schrijft niemand een echte naam in credits: gebruik NatusPella.
 - **Muziek en stemmen:** gemaakt met AI (Google Gemini), aangeboden voor zover er
   rechten op rusten
 - **Martinitoren-model:** gemaakt met Claude Design (Anthropic)
-- **Disclaimer:** GDE is een gratis fanparodie en niet gelieerd aan of goedgekeurd
-  door enige uitgever; alle personages en bedrijven zijn verzonnen.
+- **Disclaimer:** één tekst, gelijk in README, NOTICE.md en `game/js/credits.js`: gratis
+  fanparodie, niet gelieerd aan, gesponsord door of goedgekeurd door een gameontwikkelaar
+  of -uitgever, in het bijzonder niet door Rockstar Games of Take-Two Interactive (de
+  uitgever van GTA); alles verzonnen, gelijkenis berust op toeval. De uitgever wordt in het
+  spel alleen hier genoemd (Over); de aftiteling zegt "Fanparodie: alles verzonnen".
 
 Volledige herkomst en risico's: [LICENTIES.md](LICENTIES.md). AI-melding voor
 Steam staat in [steam/winkelpagina.md](steam/winkelpagina.md).

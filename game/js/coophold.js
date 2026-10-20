@@ -4,6 +4,7 @@
 // kan opnieuw verbinden; de host kan kiezen niet te wachten (die speler wordt verwijderd).
 // Tekst en keuzes komen uit lobby.js (stap 'verbroken'); tekenen via lobbyui.js.
 import { stopCoopNet, removeGuest } from './coopnet.js';
+import { readSession } from './coopsave.js';
 
 let overlay = null, view = null;
 
@@ -33,7 +34,9 @@ export async function openHold(world, role, slot = 1, reden = '') {
   const { mountLobby } = await import('./lobbyui.js');
   const host = role === 'host';
   const naam = host ? ((world.coopRoster || []).find((r) => r.slot === slot) || {}).naam || '' : '';
+  let ls = null; try { ls = localStorage; } catch (e) { /* geen opslag */ }
   view = mountLobby(panel, {
+    laatsteCode: ls ? readSession(ls).laatsteCode : '', // de gast hoeft de code van de gastheer niet opnieuw te typen
     resumed: () => closeHold(world),
     disconnect: (a) => {
       if (a !== 'verbreek') return; // 'Niet wachten' (host) of 'Stoppen' (gast)

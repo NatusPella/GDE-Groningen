@@ -91,7 +91,7 @@ import { updateEvenementen3D } from './evenementen3d.js';
 import { today as calendarTodayEv } from './calendarday.js';
 import { railZ } from './railway.js';
 import { cameraFocus } from './tilefocus.js';
-import { initMovableBridges3D, updateMovableBridges3D, openBridgeRoads } from './movablebridges3d.js';
+import { initMovableBridges3D, syncMovableBridges3D, updateMovableBridges3D, openBridgeRoads } from './movablebridges3d.js';
 import { getMovableBridges } from './movablebridges.js';
 import { sluisLiftAt } from './sluizen.js';
 import { updateSluizen3D } from './sluizen3d.js';
@@ -1095,7 +1095,7 @@ function applyViewSettings(st) {
 // view distance, camera far plane and fog; 'heel ver' follows adaptive quality
 function applyViewDistance(st) {
   viewDist = viewDistanceFor(st.drawDistance, dynamicScale(), cpuLevel());
-  DRAW_DIST = detailDistanceFor(st.quality, viewDist);
+  DRAW_DIST = detailDistanceFor(st.quality, viewDist, cpuLevel());
   cam.far = Math.max(DRAW_DIST * 1.4, viewDist * 1.4, landmarkDist() * 1.1);
   lightBase.fogNear = DRAW_DIST * 0.45 + (viewDist - 150) * 0.25;
   lightBase.fogFar = viewDist * 1.02;
@@ -1628,7 +1628,7 @@ let buildingDetailR = DRAW_DIST;
 const FACADE_DETAIL_DIST = { laag: 80 };
 let facadeDetailDist = Infinity, facadeDetailCulled = false, facadeQualityDist = Infinity;
 // gfxprofile.js cpuLevel (a busy machine): fewer facade details
-const CPU_FACADE_DIST = [Infinity, 100, 70];
+const CPU_FACADE_DIST = [Infinity, 100, 70, 45];
 let shadowFrame = 0;
 // no vehicle faster than 4 m/s in (or just next to) the area that casts shadows
 function shadowAreaCalm(world, fx, fy) {
@@ -2232,7 +2232,8 @@ export function update3D(dt, world) {
   syncRoads(world, focus.x, focus.y);
   // movable bridges (movablebridges3d.js): the static road of a span that is
   // not lying closed is hidden and left out of the road batches
-  if (getMovableBridges().length && !bridgeViews) { initMovableBridges3D(scene, world.map); bridgeViews = true; }
+  if (!bridgeViews) { initMovableBridges3D(scene, world.map); bridgeViews = true; }
+  syncMovableBridges3D(focus.x, focus.y, world.map);
   openBridgeRoads(openSpans);
   if (!NO_BATCH) roadBatcher.update({ scene, meshes: roadMeshes, hidden: openSpans.size ? openSpans : null, px: focus.x, py: focus.y, detailR: DRAW_DIST, drawDist: DRAW_DIST, withDetail: true, budgetMs: 3 });
   for (const b of getMovableBridges()) { const m = roadMeshes.get(b.r); if (m) m.visible = !openSpans.has(b.r); }
@@ -2951,7 +2952,7 @@ function cullOffscreenActors() {
   if (!perfOff('groepen')) cullOffscreenGroups();
   if (window.__perfVerify) verifyCull();
 }
-// window.__perfVerify = { actors, groups, shadow, checked: 0, bad: [] } (route verify): what was cut is looked at again with an exact box
+// the counters of route verify (scripts/perf/routes.js, kept on window): what was cut is looked at again with an exact box
 // the box of what shows: nodes that are hidden (and what hangs on them) do not count, the root's own flag is the cull's
 const _vbox = new THREE.Box3();
 function expandVisible(o, box, root) {

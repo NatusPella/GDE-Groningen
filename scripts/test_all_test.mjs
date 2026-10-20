@@ -8,7 +8,7 @@ import { statusVan } from './test_all.mjs';
 const it = (id, status, detail = '', secs = 1, extra = {}) => R.maakItem('licht', id, id, status, secs, detail, extra);
 
 // normalizeFoutregel: getallen, paden en hex-ids vallen weg
-assert.equal(R.normalizeFoutregel('Fout op regel 42 in C:\\Users\\x\\a.js na 3.5s'), 'Fout op regel # in <pad> na #s');
+assert.equal(R.normalizeFoutregel('Fout op regel 42 in C:\\Users\\user\\a.js na 3.5s'), 'Fout op regel # in <pad> na #s');
 assert.equal(R.normalizeFoutregel('\n\nAssertionError: 12 !== 13\nstack'), 'AssertionError: # !== #');
 assert.equal(R.eersteFout('ok\nregel\nAssertionError: x\nlaatste'), 'AssertionError: x');
 
