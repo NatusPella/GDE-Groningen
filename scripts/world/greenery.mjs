@@ -1,6 +1,6 @@
 // Trees and green at their real place (docs/PROVINCIE-PLAN.md 2.15).
 //
-//   node scripts/world/greenery.mjs           audit game/citymap.json
+//   node scripts/world/greenery.mjs           audit the city (stad.json and the OSM layers)
 //   node scripts/world/greenery.mjs --write   species and heights for every tree, woods and parks filled, then audit
 //   node scripts/world/greenery.mjs --strict  exit 1 when the audit finds a problem
 //
@@ -28,18 +28,6 @@ const GR = await import('../../game/js/greenery.js');
 const { GameMap, applyMapExtras } = await import('../../game/js/mapdata.js');
 const { createWaterIndex } = await import('../../game/js/waterindex.js');
 const { wgsToWorld } = await import('../../game/js/rdnew.js');
-
-const TREE_FILES = ['data/groningen_extra.json', 'data/ring_extra.json.gz', 'data/groningen_raw.json', 'data/landmark_kits_raw.json'];
-function loadElements(files) {
-  const out = [];
-  for (const rel of files) {
-    const f = path.join(ROOT, rel);
-    if (!fs.existsSync(f)) continue;
-    const raw = f.endsWith('.gz') ? zlib.gunzipSync(fs.readFileSync(f)).toString('utf8') : fs.readFileSync(f, 'utf8');
-    for (const e of JSON.parse(raw).elements || []) out.push(e);
-  }
-  return out;
-}
 
 const FILL = GR.TREE_FLAG.fill, ROW = GR.TREE_FLAG.row;
 // (parks are left as OSM maps them: the city's parks hold the minigames,
@@ -225,22 +213,12 @@ export function audit(map, trees) {
 
 async function main() {
   const args = process.argv.slice(2);
-  const file = path.join(ROOT, 'game/citymap.json');
-  const data = JSON.parse(fs.readFileSync(file, 'utf8'));
-  const t0 = performance.now();
+  const { loadCityData } = await import('../lib/loadworld.mjs');
+  const data = await loadCityData({ extras: false });
   if (args.includes('--write')) {
-    const extras = JSON.parse(fs.readFileSync(path.join(ROOT, 'game/mapextras.json'), 'utf8'));
-    const view = JSON.parse(JSON.stringify(data));
-    applyMapExtras(view, extras);
-    const map = new GameMap(view);
-    const els = loadElements(TREE_FILES.concat(['data/extras_padel_raw.json']));
-    const res = plant(data, map, els, await gameplayClearings(data));
-    data.trees = res.trees;
-    const hedges = hedgesFrom(els, data.meta.bounds);
-    data.furniture = (data.furniture || []).filter((m) => m.k !== 'hedge').concat(hedges);
-    console.log(`trees: ${res.stats.mapped} mapped (species from OSM ${res.stats.osmSpecies}, height from OSM ${res.stats.osmHeight}, in rows ${res.stats.rows}), filled ${JSON.stringify(res.stats.filled)}; hedges ${hedges.length} (${((performance.now() - t0) / 1000).toFixed(1)} s)`);
-    fs.writeFileSync(file, JSON.stringify(data));
-    console.log(`wrote ${path.relative(ROOT, file)}`);
+    // de bomen van de stad komen uit de OSM-tegelbouw (stad_laag.mjs, trees); de heggen zijn meubilair van de tegelbouw
+    console.log('--write bestaat niet meer: de lagen van de stad komen uit de OSM-tegelbouw (game/stad.json heeft alleen de handlaag)');
+    process.exit(1);
   }
   const extras = JSON.parse(fs.readFileSync(path.join(ROOT, 'game/mapextras.json'), 'utf8'));
   applyMapExtras(data, extras);
