@@ -177,6 +177,9 @@ export function decide(s, mem = {}) {
   if (b.pauseMenu) return { type: 'closemenu' };
   if (b.dialog && b.dialog.options && b.dialog.options.length) return { type: 'choose', key: b.dialog.options[0].key };
   if (b.cinematic || b.banner || b.ride) return { type: 'skip' };
+  // an open shop (the story's item is the one highlighted): Enter selects, Enter buys, Escape walks out again
+  if (b.shop) return { type: 'shop', n: mem.shopN = (mem.shopN || 0) + 1 };
+  if (mem.shopN) mem.shopN = 0;
   if (b.respawn || b.loading) return { type: 'wait', why: b.respawn ? 'respawn' : 'laden' };
   if (b.talk) return { type: 'wait', why: 'gesprek' };
   if (!s.target) return { type: 'wait', why: 'geen doel' };
@@ -188,9 +191,10 @@ export function decide(s, mem = {}) {
   // a 'board' stage wants the vehicle that is standing there: any free one close by, whatever the distance to the marker
   // on a bike or scooter the board stage's vehicle (a tractor, a quad) is another one: get off first, and pick a motor vehicle over the bike just left
   const light = (k) => k === 'fiets' || k === 'scooter';
-  if (veh && light(veh.kind) && stage === 'board' && (mem.boardTries || 0) < 4) {
-    const other = (s.nearby && s.nearby.vehicles || []).find((c) => c.free && c.drivable && !light(c.kind) && c.distance < 80);
-    if (other) { mem.boardTries = (mem.boardTries || 0) + 1; return { type: 'press', key: 'e', why: 'uitstappen' }; }
+  // in some other vehicle at a 'board' stage (a bike, or last mission's car): get out, then take the one that is standing there
+  if (veh && !veh.plane && stage === 'board' && (mem.boardTries || 0) < 4) {
+    const other = (s.nearby && s.nearby.vehicles || []).find((c) => c.free && c.drivable && c.distance < 40 && (light(veh.kind) ? !light(c.kind) : true));
+    if (other && (veh.speed || 0) < 3) { mem.boardTries = (mem.boardTries || 0) + 1; return { type: 'press', key: 'e', why: 'uitstappen' }; }
   }
   if (!veh && (stage === 'board' || stage === 'plane') && (mem.boardTries || 0) < 4) {
     // a boat or a plane counts too: M17 starts in a sloep, M15 in a plane
