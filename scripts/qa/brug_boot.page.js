@@ -128,13 +128,16 @@ for (const b of CFG.bots || []) {
     const t0 = performance.now();
     let hit = null, n = 0;
     const drive = setInterval(() => boat.applyControls(1 / 60, 1, 0, false), 16); // zoals stepBridgeCrashDemo: elke beeldjeslus vol vooruit
-    while (performance.now() - t0 < 14000) {
-      await sleep(250);
+    // de headless run haalt maar een deel van de echte tijd aan spelklok: wacht tot de botsing of het schip voorbij het dek is (max 150 s muurtijd)
+    while (performance.now() - t0 < 150000 && n < 40) {
+      await sleep(1200);
       const t = (performance.now() - t0) / 1000;
       const along = (boat.x - F.m[0]) * F.nx + (boat.y - F.m[1]) * F.ny;
       rep.log.push(`${t.toFixed(1)}s w=${along.toFixed(1)} v=${(boat.speed || 0).toFixed(1)} dents=${boat.bridgeDents || 0} hp=${boat.health ?? '-'} dek=${road._open ? 'weg' : 'ok'}`);
       n++; await grab(`${tag}-${String(n).padStart(2, '0')}`);
       if (boat.bridgeDents && !hit) hit = t;
+      if (boat.bridgeDents && n > 0 && hit && t - hit > 5) break; // de botsing is gezien, nog even de nasleep
+      if (along > 12) break;
     }
     clearInterval(drive);
     w.addMessage = addMsg;

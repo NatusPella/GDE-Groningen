@@ -38,6 +38,7 @@ export const AUTO = {
   PASS_PAD: 8,        // the boat has passed when this far beyond the deck's edge
   MIN_OPEN_S: 5,      // an automatic opening stays open at least this long (a horn: HOLD_S)
   MAX_OPEN_S: 90,     // however many boats ask: after this long open (s) the bridge lets them all go and closes (they ask again if they still need it)
+  PASSED_FREE_M: 30,  // a boat that has passed counts as a new boat again once it is this much further than STILL_REACH away (m)
   IGNORE_FREE_M: 15,  // a boat let go (moored, or through and lying still beyond) is looked at again once it has sailed this far (m)
   STILL_PATIENCE_S: 20, // a boat that lies still this long (s) with the span open is let go: it is moored, not waiting
 };
@@ -138,7 +139,7 @@ export function buildMovableBridges(map) {
       half: (r.width || 4) / 2 + (wide ? 1.8 : 0.15),
       name: r.name || '',
       state: 'closed', t: 0, open: 0, boom: 0, flash: 0, warn: false, requests: 0, waitFor: null,
-      snapped: null, _booms: null, boats: new Map(), manual: false, still: new Map(), ignored: new Map(),
+      snapped: null, _booms: null, boats: new Map(), manual: false, still: new Map(), ignored: new Map(), passed: new Set(),
     });
   }
   ready = true;
@@ -146,7 +147,7 @@ export function buildMovableBridges(map) {
 }
 
 export function resetMovableBridges() {
-  for (const b of bridges) { b.state = 'closed'; b.t = 0; b.open = 0; b.boom = 0; b.warn = false; b.waitFor = null; b.boats.clear(); b.still.clear(); b.ignored.clear(); b.manual = false; b.snapped = null; b._hinted = null; b.r._open = false; }
+  for (const b of bridges) { b.state = 'closed'; b.t = 0; b.open = 0; b.boom = 0; b.warn = false; b.waitFor = null; b.boats.clear(); b.still.clear(); b.ignored.clear(); b.passed.clear(); b.manual = false; b.snapped = null; b._hinted = null; b.r._open = false; }
 }
 
 // Ask bridge `b` to open (a boat in front of it). `who`: the boat, kept as
@@ -238,8 +239,9 @@ export function stepBridge(b, dt, world = null) {
         const gone = !boat || boat.wrecked || boat.sinking || (world && world.vehicles && !world.vehicles.includes(boat));
         if (!gone && !boatPassed(b, boat, from)) continue;
         b.boats.delete(boat); b.still.delete(boat);
-        // a boat that has sailed through and lies still beyond the bridge does not ask for it again
-        if (!gone && boat.x !== undefined) b.ignored.set(boat, [boat.x, boat.y]);
+        // a boat that has sailed through and then lies still beyond the bridge does not ask for it again (a boat
+        // that comes back under way still does: the moving rule of boatTriggers)
+        if (!gone && boat.x !== undefined) b.passed.add(boat);
       }
       // a boat that lies still with the span open is moored, not waiting: after the patience it no longer holds the bridge
       // open (nor makes it open again) until it sails off
@@ -306,6 +308,10 @@ export function updateMovableBridges(dt, world) {
     if (world) {
       for (const v of world.vehicles || []) {
         if (!v.isBoat || v.wrecked || v.sinking || (v.needsOpening ? !v.needsOpening(b) : !boatNeedsOpening(v))) continue;
+        if (b.passed.size && b.passed.has(v)) {
+          if (Math.hypot(v.x - b.x, v.y - b.y) > AUTO.STILL_REACH + AUTO.PASSED_FREE_M) b.passed.delete(v);
+          else if (Math.abs(v.speed || 0) < AUTO.MIN_SPEED) continue;
+        }
         if (b.ignored.size && b.ignored.has(v)) { const q = b.ignored.get(v); if (Math.hypot(v.x - q[0], v.y - q[1]) > AUTO.IGNORE_FREE_M) b.ignored.delete(v); else continue; }
         if (!boatTriggers(b, v)) continue;
         if (b.state === 'open' || b.state === 'opening' || b.state === 'warn' || b.state === 'booms' || b.state === 'clear') {
