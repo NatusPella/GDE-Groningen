@@ -67,7 +67,7 @@ export function boatFrame(b, v) {
 // side), or turned back (beyond the pad, heading away)? `from`: the side it came from.
 export function boatPassed(b, v, from) {
   const f = boatFrame(b, v);
-  return f.w > AUTO.PASS_PAD && (f.side !== from || f.vw < 0);
+  return f.w > AUTO.PASS_PAD && (f.side !== from || (f.vw < 0 && Math.abs(v.speed || 0) >= AUTO.MIN_SPEED)); // (drift at a standstill is not turning back)
 }
 // Should boat v make bridge b open now? Pure: the boat's time to the deck is
 // no more than the opening lead plus a margin, it is heading for the deck in

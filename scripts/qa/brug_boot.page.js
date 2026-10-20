@@ -75,15 +75,16 @@ for (const b of CFG.open || []) {
     const mb = MB.getMovableBridges().find((q) => q.r === road);
     const F = frame(road), tag = `bt-open-${(b.naam || 'brug').replace(/[^\w]+/g, '_')}`;
     // het schip komt langs het water aan (loodrecht op de brug), 120 m voor het dek, en vaart 120 m erachter
-    const model = BT.BOAT_KINDS[b.boot || 'spits'];
+    const model = BT.BOAT_KINDS[b.boot || 'rondvaart']; // (passt in een gracht; needsOpening dwingt het openen af, het is niet te hoog voor de brug)
     const S = 120;
     const sx = F.m[0] - F.nx * S, sy = F.m[1] - F.ny * S, tx = F.m[0] + F.nx * S, ty = F.m[1] + F.ny * S;
     hold = { x: sx, y: sy };
     await sleep(3500);
     hold = null;
     putBoat(sx, sy, Math.atan2(F.ny, F.nx), model);
+    boat.needsOpening = () => true;
     p.enterVehicle(boat, w);
-    cur = { position: { x: F.m[0] + F.dx * 40 + F.nx * 30, y: F.m[1] + F.dy * 40 + F.ny * 30, z: 12 }, lookAt: { x: F.m[0], y: F.m[1], z: 2 } };
+    cur = { position: { x: F.m[0] + F.dx * 30 - F.nx * 45, y: F.m[1] + F.dy * 30 - F.ny * 45, z: 13 }, lookAt: { x: F.m[0] - F.nx * 12, y: F.m[1] - F.ny * 12, z: 1 } };
     key('keydown', 'w', 'KeyW');
     const assist = setInterval(() => {
       const want = Math.atan2(ty - boat.y, tx - boat.x);
@@ -119,7 +120,7 @@ for (const b of CFG.bots || []) {
     const road = (map.roadsNear(b.x, b.y, 8) || []).find((q) => q.bridge && !q.movable && q.pts.length >= 2);
     if (!road) { rep.fout = 'geen vaste brug'; continue; }
     const F = frame(road), tag = `bt-bots-${(b.naam || 'brug').replace(/[^\w]+/g, '_')}`;
-    putBoat(F.m[0] - F.nx * 45, F.m[1] - F.ny * 45, Math.atan2(F.ny, F.nx), BT.BOAT_KINDS.spits);
+    putBoat(F.m[0] - F.nx * 45, F.m[1] - F.ny * 45, Math.atan2(F.ny, F.nx), BT.BOAT_KINDS[b.boot || 'sloep']); // de aanvaringsdemo maakt van het dichtstbijzijnde vaartuig een schip van 280 t
     boat.bridgeMassT = 280; boat.bridgeAir = 4.2; boat.speed = 5; boat.scripted = true;
     cur = { position: { x: F.m[0] + F.dx * 30 - F.nx * 12, y: F.m[1] + F.dy * 30 - F.ny * 12, z: 9 }, lookAt: { x: F.m[0] - F.nx * 6, y: F.m[1] - F.ny * 6, z: 1 } };
     const msgs = [];
