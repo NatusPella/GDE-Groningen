@@ -287,6 +287,60 @@ een bostegel, 2.28) en de stad hetzelfde pad gebruiken. Het gedeelde budget is e
 Winstmaatregelen die het gedeelde pad ook voor de stad moet houden: `staticbatch3d.js` (cel van 48 m, een draw
 per materiaal), `farlod.js` (tegel x laag, een draw), `interiorglass.js` (gevelglas), instancing voor bomen en meubilair.
 
+### 4.5 `game/stad.json`: de handlaag van de stad (ingecheckt, stap C3)
+
+`game/stad.json` (3,3 MB, `"format": "stad-1"`) vervangt `citymap.json` (17,3 MB) als de ingecheckte stadsbron. Wat uit OSM komt
+(water, groen, bomen en alle gebouwen die niet met de hand zijn gemaakt) staat er niet meer in: dat komt uit de OSM-tegelbouw
+(`stad_laag.mjs`). `stad.json` bewaart het handwerk en de twee dingen die de stadsbouw vroeger uit de OSM-lagen van `citymap.json` las.
+Het bestand heeft één sleutel per regel en één rij per regel (leesbare diffs); de volgorde van de rijen is de `gid` in de tegels en blijft staan.
+
+| Sleutel | Inhoud | Hoe het aan tegels hangt |
+|---|---|---|
+| `format`, `fromOsm` | `"stad-1"`; de lagen die uit de OSM-bouw komen: `buildings, water, green, trees` (zodra `roads`/`rails` ook uit OSM komen, gaan ze erbij en uit het bestand) | `pack_tiles.mjs loadSourcesLaag` haalt `fromOsm` altijd uit OSM, `STAD_LAAG` kan er nog lagen aan toevoegen |
+| `tiles` | de 54 stadstegels (`235_581`, ...) in de volgorde van de stadsbouw | de tegels die de OSM-bouw voor de stad bouwt (`osmCityLayers(keys, ...)`); de volgorde bepaalt de rijvolgorde dus de bytes |
+| `cover` | de dekking van de stadskaart: een masker van 208 x 189 cellen van 40 m, run-length (`x0, y0, w, h, cell, rle`) | `citycover.mjs cityCoverFromMask`: alleen OSM-rijen met hun zwaartepunt in de dekking komen in de stad; daarbuiten dekken de overlaytegels van `build_province.mjs` |
+| `roads` | 10.785 wegen met `cat`, `type`, `width`, `lanes*`, `osm`, hoogteprofiel `z`, tunnels, bruggen, beweegbare bruggen | `pack_tiles.build`: in elke tegel die de wegband raakt, plus de secties `heights`, `junctions`, `nav` |
+| `rails`, `stations`, `levelCrossings`, `railRoutes`, `railLifts`, `railPlatforms` | 193 spoorstukken met profiel, 3 stations, 3 overwegen, 4 spoorroutes, 16 liften, 22 perrons | `rails` per tegel; de rest in de globale laag (`stations`, `levelCrossings`, `railRoutes`, `railLifts`) |
+| `furniture` | 12 gemapt straatmeubilair (hekken); de regelmeubilair wordt per tegel gemaakt (`streetfurniture.js`) | `FURNITURE`-sectie per tegel |
+| `buildings` | alleen de 30 handgebouwen (`isHandBuilding` in `stad_laag.mjs`): 29 `landmark`-rijen (Martinitoren, Martinikerk, Der Aa-kerk, Hoofdstation, Forum, Academiegebouw, Goudkantoor, Groninger Museum, Euroborg x4, Winkelcentrum Paddepoel x17) en de helikopterpleisterplaats (`helipad`); velden `landmark`, `landmarkKind`, `landmarkPart`, `parts`, `pitch`, `helipad` | een rij in elke tegel die de footprint raakt; de OSM-gebouwen die op een handgebouw liggen vervallen (`withHand`) |
+| `meta` | zie hieronder | de globale laag van het pakket (`META`-sectie), niet per tegel |
+
+**Landmarks.** Twee lagen die op *naam* aan elkaar hangen. (1) `meta.landmarks` (14 punten: `name`, `x`, `y`, `kind`, `buildingMatched`):
+de lijst die missies, verhaal, HUD, kaart en intro lezen (`map.meta.landmarks`); een RD-punt, geen tegelrij. (2) Het gebouw zelf: een rij in
+`buildings` met `landmark: <naam>`; de tekencode (`landmarks3d.js`, `landmarkmodels.js`, `models3d_buildings.js`, `paddepoel3d.js`) kiest op
+`b.landmark`/`b.name`. De tegel waarin een landmark staat volgt uit zijn footprint; zoek hem met `tileIndexOf(x, y)` of `buildingsNear`.
+Aanvullingen en correcties op OSM-gebouwen staan niet hier maar in `game/mapextras.json` (20 extra gebouwen, 142 patches op `osm`-id of
+positie, doorgangen, busbanen); `applyMapExtras` legt ze na de OSM-lagen over de kaart. In het doelmodel van 4.3 (stap B7) worden de
+landmark-rijen `objects` met de osm-/BAG-id als sleutel; tot dan is de naam de sleutel.
+
+**POI's en namen** (`meta`, alle als RD-punten `x`, `y`, nooit per tegel; de globale laag draagt ze naar de runtime):
+
+| `meta.*` | Aantal | Vorm | Lezers |
+|---|---|---|---|
+| `districts` | 2 | `{ name, rings }` (wijkgrenzen) | `hud_panel.js` |
+| `neighbourhoodPoints` | 66 | `{ name, x, y, kind }` | 14 modules, o.a. `ownedvehicles.js`, `shops.js`, `flavour.js`, `hud_panel.js`, `mapview.js`, `banter.js` |
+| `garages` | 48 | `{ name, x, y }` | `garages.js` |
+| `horeca` | 470 | `{ name, x, y }` (verzonnen namen) | `horeca.js`, `pedestrians.js`, `pedroutes.js`, `cityprops.js` |
+| `shops` | 54 | `{ t, x, y, wijk, street }` | `shops.js`, `facilities.js` |
+| `pois` | object per soort (`health`, `money`, `weapons`, ...) | `{ x, y, kind, name }` | `pedroutes.js` |
+| `trafficLights` | 422 | `{ x, y }` | `junctions.js`, `streetfurniture.js` |
+| `hospital`, `careSites`, `policeStations`, `helipad` | 1, 7, 2, 1 | `{ name, x, y }` (`helipad`: `{ x, y, r, angle }`) | `emergency.js`, `respawn.js`, `spotcheck.js`, `routing.js`, `streetlife.js`, `skyprops.js` |
+| `bounds`, `frame`, `rdOrigin`, `wgsBox`, `locks` | | kader van de stadskaart (RD) | `scene3d`, `terrain3d`, `heliflight`, `mapview` |
+
+Stappen B6 (poi) en B8 (namen) halen deze lijsten uit `meta` en zetten ze als rijen op de tegel van hun punt (`placeIndex`);
+tot dan is `stad.json` hun enige bron, en verandert een naam of POI daar (een rij per regel).
+
+**Bouwen en testen.** `loadSourcesLaag()` (pack_tiles.mjs) leest `stad.json`, haalt de lagen van `fromOsm` uit de OSM-bouw
+(`stad_cache.mjs` bewaart het resultaat in de tijdelijke map, met een sleutel uit de invoer en de bouwcode), legt `mapextras.json` erover
+en geeft de `GameMap`. `scripts/lib/loadworld.mjs` is de ene laadhulp voor tests: `loadStadData()` (alleen de handlaag, snel),
+`loadCityData()` en `loadCityWorld()` (met de OSM-lagen; zonder `data/cache/province` eindigt een test met SKIP). `scripts/stad_split_test.mjs`
+bewijst dat de splitsing verliesloos is: voor elke keuze van OSM-lagen zijn de stadstegels (sha256 per tegel, de globale laag en de
+tellingen) uit `[stad.json + OSM-lagen]` gelijk aan die uit `[citymap.json + dezelfde OSM-lagen]` (fixture: alle zes gekozen
+combinaties; `--echt`: de echte stad, 57 tegels + globale laag, 60 vingerafdrukken gelijk). Wijzigen kan met de hand, of met
+`profile.mjs --write` (wegen), `railprofile.mjs --write` (spoor) en `furniture.mjs --write` (meubilair), die terugschrijven in `stad.json`.
+`node scripts/stad_opruimen.mjs` controleert dat niets meer `citymap.json`, `data/*_raw.json` of de python-keten leest en toont dan de
+lijst van te verwijderen bestanden (het verwijdert zelf niets).
+
 ## 5. Stappenplan
 
 Regels: elke stap klein, afzonderlijk testbaar, het spel werkt na elke stap, vlag per stap,

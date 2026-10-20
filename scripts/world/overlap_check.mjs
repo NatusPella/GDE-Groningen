@@ -1,5 +1,5 @@
 // Dubbele stad en land (#90, testerfeedback Corpus den Hoorn): ligt wat de provinciebouw (overlays en
-// gewone tegels) in de buurt van de stad levert óók in de stad van citymap.json? Telt gebouwen,
+// gewone tegels) in de buurt van de stad levert óók in de stadskaart (stad.json en de OSM-lagen)? Telt gebouwen,
 // wegen en water die op elkaar liggen. Alleen lezen.
 //   node scripts/world/overlap_check.mjs [--world game/world] [--near x,y,straal]
 import fs from 'node:fs';
@@ -96,6 +96,6 @@ async function main() {
   const near = a.includes('--near') ? (([x, y, r]) => ({ x, y, r }))(a[a.indexOf('--near') + 1].split(',').map(Number)) : null;
   const r = await findOverlaps({ world, near });
   console.log(`tegels gelezen: ${r.tiles}`);
-  for (const k of ['buildings', 'roads', 'water']) console.log(`${k.padEnd(9)} ${r[k].n} in de provinciebouw, ${r[k].dup} dubbel met citymap.json`, r[k].ex.length ? JSON.stringify(r[k].ex.slice(0, 4)) : '');
+  for (const k of ['buildings', 'roads', 'water']) console.log(`${k.padEnd(9)} ${r[k].n} in de provinciebouw, ${r[k].dup} dubbel met de stadskaart`, r[k].ex.length ? JSON.stringify(r[k].ex.slice(0, 4)) : '');
 }
 if (process.argv[1] && import.meta.url.endsWith(path.basename(process.argv[1]))) await main();
