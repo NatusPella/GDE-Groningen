@@ -113,6 +113,7 @@ const near = (a, b, e = 1e-6) => Math.abs(a - b) < e;
   const shopA = L.decide({ ...base(), blocking: { shop: true } }, {});
   ok(shopA.type === 'shop' && shopA.n === 1, 'open winkel: kopen');
   ok(L.decide({ ...base(), blocking: { talk: true } }).type === 'wait', 'gesprek afwachten');
+  ok(L.decide({ ...base(), mission: { active: true, stage: 'goto' }, blocking: { talk: true } }).type === 'goto', 'gesprek in een missie: doorlopen');
   ok(L.decide({ ...base(), target: null }).type === 'wait', 'zonder doel wachten');
   ok(L.decide(base()).mode === 'walk', 'dichtbij: lopen');
   const far = { ...base(), target: { x: 900, y: 0, distance: 900 }, nearby: { vehicles: [{ x: 5, y: 0, distance: 5, free: true, drivable: true, kind: 'auto' }] } };
