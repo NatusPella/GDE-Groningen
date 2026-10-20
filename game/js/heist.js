@@ -137,7 +137,7 @@ function solid(map, x, y) {
 }
 
 function walkable(map, x, y) {
-  return (!isInWater(map, x, y) || map.isOnBridge(x, y)) && !solid(map, x, y);
+  return !isInWater(map, x, y) && !solid(map, x, y);
 }
 
 function losClear(map, ax, ay, bx, by) {
@@ -1166,7 +1166,7 @@ function boatMooring(map) {
     for (let k = 0; k < n; k++) {
       const a0 = (k / n) * Math.PI * 2;
       const x = anchor.x + Math.cos(a0) * r, y = anchor.y + Math.sin(a0) * r;
-      if (!isInWater(map, x, y) || map.isOnBridge(x, y)) continue;
+      if (!isInWater(map, x, y)) continue;
       for (let j = 0; j < 12; j++) {
         const a = (j / 12) * Math.PI * 2;
         if (boatDryPoints(map, probe, x, y, a) > 0) continue;
