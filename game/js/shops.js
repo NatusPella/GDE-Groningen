@@ -20,6 +20,7 @@ import { isCinematicActive } from './cinematics.js';
 import { recordStat, isUnlocked } from './achievements.js';
 import { isMissionCompleted, missionIndexById } from './missionquery.js';
 import { registerShopIcon } from './shopicon.js';
+import { furnitureShopHook as furnitureShop } from './latehooks.js';
 import { prepareStoryShop, currentStep } from './storyquery.js';
 import { markStoryItems, noteStoryPurchase } from './storyshop.js';
 import { jobLevel } from './sidejobs.js';
@@ -32,10 +33,6 @@ import { noteMoney } from './finance.js';
 export const SHOP_USE_RADIUS = 2.6;
 const OUTFIT_WANTED_COOLDOWN = 60;
 export const REDELIVERY_FEE = 10;
-
-// furniture.js (which needs shops.js) registers the Woonafdeling's items and note at load (import cycle, #108)
-const furnitureShop = { items: () => [], note: () => '' };
-export function setFurnitureShop(h) { Object.assign(furnitureShop, h); }
 
 
 // Rotor Roelf, the one helicopter dealer: on Groningen Airport Eelde, by the
