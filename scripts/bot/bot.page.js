@@ -384,7 +384,8 @@ while (true) {
     const d = steerTowards(s, 'walk', v, false, 24, big ? 0.4 : 2.2);
     // the game's own test: this is what lights the prompt and lets E in
     const near = vObj ? V.findEnterableVehicle(player.x, player.y, world.vehicles) === vObj : d < 3.5;
-    if (d < 3.5 || near) { B.stick(0, 0); mem.boardTries++; await keyTap('e', 240); await sleep(700); const fe = V.findEnterableVehicle(player.x, player.y, world.vehicles); B.log('instappen', { kind: v.kind, toegestaan: near, binnen: !!player.inVehicle, doel: vObj && { x: Math.round(vObj.x * 10) / 10, y: Math.round(vObj.y * 10) / 10, hl: vObj.halfLen, hw: vObj.halfWid, naam: vObj.name || vObj.label || '', hero: !!vObj.isHeroCar, wrak: !!vObj.wrecked, slot: !!(vObj.locked || vObj.disabled) }, kan: fe && { x: Math.round(fe.x * 10) / 10, y: Math.round(fe.y * 10) / 10, naam: fe.name || fe.label || '' }, ik: [Math.round(player.x * 10) / 10, Math.round(player.y * 10) / 10] }); follower = null; }
+    // only the game's own test lets E in: from further off keep walking (stopping to press E there was a deadlock)
+    if (near || (!vObj && d < 3.5)) { B.stick(0, 0); mem.boardTries++; await keyTap('e', 240); await sleep(700); const fe = V.findEnterableVehicle(player.x, player.y, world.vehicles); B.log('instappen', { kind: v.kind, toegestaan: near, binnen: !!player.inVehicle, doel: vObj && { x: Math.round(vObj.x * 10) / 10, y: Math.round(vObj.y * 10) / 10, hl: vObj.halfLen, hw: vObj.halfWid, naam: vObj.name || vObj.label || '', hero: !!vObj.isHeroCar, wrak: !!vObj.wrecked, slot: !!(vObj.locked || vObj.disabled) }, kan: fe && { x: Math.round(fe.x * 10) / 10, y: Math.round(fe.y * 10) / 10, naam: fe.name || fe.label || '' }, ik: [Math.round(player.x * 10) / 10, Math.round(player.y * 10) / 10] }); follower = null; }
     continue;
   }
   if (act.type === 'goto') {
