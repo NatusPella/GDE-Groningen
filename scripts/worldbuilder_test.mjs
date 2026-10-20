@@ -57,7 +57,8 @@ const eq = (a, b) => JSON.stringify(a) === JSON.stringify(b);
     for (const el of JSON.parse(b).elements) { const k = el.type + el.id; if (!seen.has(k)) { seen.add(k); els.push(el); } }
   }
   const raw = { elements: els };
-  const city = JSON.parse(fs.readFileSync(new URL('citymap.json', root)));
+  const { loadCityData } = await import('./lib/loadworld.mjs');
+  const city = await loadCityData({ extras: false });
   const t0 = performance.now();
   const rows = { roads: [], buildings: [] };
   for (const el of raw.elements) for (const f of WB.fromOsm(el)) if (rows[f.kind]) rows[f.kind].push(f.row);
