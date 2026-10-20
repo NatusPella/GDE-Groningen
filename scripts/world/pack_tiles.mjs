@@ -153,6 +153,8 @@ export async function loadCityDataLaag(game = path.join(ROOT, 'game'), lagen = p
     const run = osm || (await import('./stad_cache.mjs')).osmCityLayersCached;
     const rows = await run(new Set(city.tiles), (x, y) => cover.inside(x, y), all, data, city.mask);
     for (const l of all) data[l] = rows[l];
+    // wat de provinciebouw per tegel niet weet: extras-gebouwen gaan voor OSM, geen bos op baan, weg of gebouw (stad_na.mjs)
+    if (!osm) { const na = await (await import('./stad_na.mjs')).tidyCity(data, JSON.parse(fs.readFileSync(path.join(game, 'mapextras.json'), 'utf8'))); if (process.env.GDE_STAD_LOG) console.log('stad_na', JSON.stringify(na)); }
   }
   if (extras) applyMapExtras(data, JSON.parse(fs.readFileSync(path.join(game, 'mapextras.json'), 'utf8')));
   return { data, lagen: all };
