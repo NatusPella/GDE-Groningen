@@ -76,6 +76,14 @@ ok(rows[0] >= 0 && rows.slice(0, 6).every((r) => r === rows[0]) && rows[6] === -
   const again = { ...rows, trees: [{ gid: 7, 0: 100, 1: 100 }] };
   BHK.greeneryHook(again);
   ok(JSON.stringify(again.trees.map((t) => [t[0], t[1], t[2], t.gid])) === JSON.stringify(rows.trees.map((t) => [t[0], t[1], t[2], t.gid])), 'hook: the same tile twice, the same trees');
+  // a cemetery: 18 m apart with glades, as the old city filled it (#90); the glades do not depend on the tile
+  const yard = { tile: { i: 3, j: -2, x0: 0, y0: 0, size: 1000 }, trees: [], green: [{ kind: 'cemetery', pts: [[300, 300], [700, 300], [700, 500], [300, 500]] }], water: [], roads: [], rails: [], buildings: [] };
+  BHK.greeneryHook(yard);
+  const per = yard.trees.length / (400 * 200 / 1e4);
+  ok(per > 10 && per < 35 && yard.trees.every((t) => (t[4] & GR.TREE_FLAG.fill) && t[2] !== S.kers), 'hook: a cemetery filled, about 18 m apart with glades', per.toFixed(1) + '/ha');
+  const yard2 = { ...yard, tile: { i: 4, j: -2, x0: 1000, y0: 0, size: 1000 }, trees: [] };
+  BHK.greeneryHook(yard2);
+  ok(yard2.trees.length === yard.trees.length && yard2.trees.every((t, i) => t[0] === yard.trees[i][0]), 'hook: the cemetery trees do not depend on the tile index');
 }
 
 // the map
@@ -93,6 +101,15 @@ ok(!rep.onRoad && !rep.inBuilding && !rep.inWater, 'no filled tree on a way, in 
 ok(Object.keys(rep.species).length === GR.SPECIES.length, 'every species in the city', Object.keys(rep.species).join(','));
 const cl = await GM.gameplayClearings(data);
 ok(cl.lines.length >= 15 && !map.trees.some((t) => (t[4] & GR.TREE_FLAG.fill) && GM.inClearing(cl, t[0], t[1])), 'the minigame courses and spots stay clear');
+// the cemeteries of the city are filled as the old city had them (22.6 trees per hectare over 10 yards, measured; now 21.5)
+{
+  const area = (P) => { let a = 0; for (let i = 0; i < P.length; i++) { const p = P[i], q = P[(i + 1) % P.length]; a += p[0] * q[1] - q[0] * p[1]; } return Math.abs(a / 2); };
+  const inP = (x, y, P) => { let c = false; for (let i = 0, j = P.length - 1; i < P.length; j = i++) if ((P[i][1] > y) !== (P[j][1] > y) && x < ((P[j][0] - P[i][0]) * (y - P[i][1])) / (P[j][1] - P[i][1]) + P[i][0]) c = !c; return c; };
+  const yards = map.green.filter((g) => g.kind === 'cemetery');
+  const ha = yards.reduce((s, g) => s + area(g.pts) / 1e4, 0);
+  const trees = yards.reduce((s, g) => s + map.trees.filter((t) => inP(t[0], t[1], g.pts)).length, 0);
+  ok(ha > 20 && trees / ha > 15 && trees / ha < 30, 'the cemeteries have trees (old city 22.6 per ha)', (trees / ha).toFixed(1) + '/ha over ' + ha.toFixed(1) + ' ha');
+}
 // trunk props
 const cherry = map.trees.find((t) => t[2] === S.kers), plane2 = map.trees.find((t) => t[2] === S.plataan && t[3] > 180);
 ok(cherry && plane2 && GR.treeDims(cherry).tr < GR.treeDims(plane2).tr, 'a cherry has a thinner trunk than a big plane');
