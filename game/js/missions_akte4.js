@@ -45,8 +45,8 @@ export function buildAkte4Defs() {
       // M17 Open, dicht: eleven bridges on the Oosterdiep in a sloep, ahead of Jelle's mustard ship. The horn opens a bridge (movablebridges.js).
       type: 'stages',
       label: 'Open, dicht',
-      intro: ['Wubbo bedient elf bruggen in Veendam, op het ritme van de fanfare. Jelles mosterdschip moet er ook door.', 'Vaar door alle elf de bruggen, voor het mosterdschip uit. Toeter bij een gesloten brug, dan opent Wubbo hem.'],
-      outro: 'Het mosterdschip zit vast. De grove mosterd is van Oma, niet van Jelle. Plakje zeven is gered.',
+      intro: ['Wubbo bedient elf bruggen in Veendam, op het ritme van de fanfare. Jelles mosterdschip moet er ook door.', 'Vaar door alle elf de bruggen, vóór het mosterdschip uit. Toeter bij een gesloten brug; dan opent Wubbo hem.'],
+      outro: 'Het mosterdschip zit vast. De grove mosterd is van Oma, niet van Jelle.',
       timeLimit: 420,
       timeUp: 'tijd op. Jelles mosterdschip is al door alle elf de bruggen',
       costRow: ['Gered', 'Plakje zeven: de grove mosterd gaat naar Oma'],
@@ -60,10 +60,10 @@ export function buildAkte4Defs() {
         { kind: 'goto', target: ll('veendamA', { label: 'Brug 1 tot en met 4' }), mode: 'boat', radius: 45, limit: 105, late: 'de bruggen draaiden te laat open. Het mosterdschip was eerder',
           label: 'Vaar door de eerste vier bruggen', say: 'Toeter bij een gesloten brug, Wubbo opent op het ritme van de fanfare.' },
         { kind: 'goto', target: ll('veendamB', { label: 'Brug 5 tot en met 7' }), mode: 'boat', radius: 45, limit: 105, late: 'zonder fanfare miste je de maat. Het mosterdschip was eerder',
-          label: 'Vaar door brug 5 tot en met 7 op de fluit van Wubbo', say: 'De fanfare is weg: Jelle kocht haar voor zijn optocht. Wubbo fluit: één keer is open, twee keer is dicht.',
+          label: 'Vaar door brug 5, 6 en 7 op de fluit van Wubbo', say: 'De fanfare is weg: Jelle kocht haar voor zijn optocht. Wubbo fluit: één keer is open, twee keer is dicht.',
           talk: { ids: ['M17.2'], delay: 1.5 } },
         { kind: 'goto', target: ll('veendamC', { label: 'Brug 8 tot en met 10' }), mode: 'boat', radius: 45, limit: 105, late: 'brug negen bleef dicht. Het mosterdschip was eerder',
-          label: 'Vaar door brug 8 tot en met 10', say: 'Brug acht, negen en tien. Niet te vroeg: een dichte brug is dicht.' },
+          label: 'Vaar door brug 8, 9 en 10', say: 'Brug acht, negen en tien. Niet te vroeg: een dichte brug is dicht.' },
         { kind: 'goto', target: ll('veendamD', { label: 'Brug elf' }), mode: 'boat', radius: 35, stop: 0.8, limit: 90, late: 'brug elf draaide niet op tijd. Jelles mosterdschip was erdoor',
           label: 'Vaar tot brug elf: de limo staat aan de overkant', say: 'Brug elf. Aan de overkant staat de limo met de gouden koffer. De brug draait niet voor een limo.' },
       ],
@@ -72,7 +72,7 @@ export function buildAkte4Defs() {
       // M18 Wie draaide de camera's uit?: an intake at Wiebelwerk (a conversation puzzle), the server room, the logbook of 12 August
       type: 'stages',
       label: 'Wie draaide de camera\'s uit?',
-      intro: ['Wiebelwerk in Veendam doet elke nacht om middernacht de update van het museum, ook van de camera\'s.', 'Ga naar binnen als klant, overtuig de accountmanager en kijk in het logboek van 12 augustus.'],
+      intro: ['Wiebelwerk in Veendam werkt elke nacht om middernacht de camera\'s van het museum bij.', 'Doel: ga naar binnen als klant en beantwoord de vragen van de accountmanager. Lees daarna in de serverkamer het logboek van 12 augustus.'],
       outro: 'Het logboek bewijst het: Jelle had de bal op 12 augustus al. Tessa print het.',
       reward: 600,
       onFoot: true,
@@ -123,7 +123,7 @@ export function buildAkte4Defs() {
         },
         {
           kind: 'timing', unlessTag: 'argwaan1', kicker: 'De gang naar de serverkamer', help: 'druk als de camera wegdraait', failAt: 2, failText: 'de camera zag je: de beveiliging komt eraan', goodAt: 3, tagGood: 'sluip-top',
-          label: 'Glip langs de camera\'s: druk als de camera wegdraait', say: 'Drie camera\'s in de gang. Wacht tot de streep in het groen is, dan sluip je door.',
+          label: 'Glip langs de camera\'s: druk als de camera wegdraait', say: 'Drie camera\'s in de gang. Wacht tot de streep in het groene vak staat, dan sluip je door.',
           rounds: [
             { text: 'Camera één kijkt naar de koffieautomaat.', speed: 0.7, zone: [0.36, 0.64], ok: 'Door, achter de plant.', bad: 'Camera één piept. Terug achter de plant.' },
             { text: 'Camera twee draait langzaam over de deuren.', speed: 0.85, zone: [0.4, 0.6], ok: 'Door, onder de camera.', bad: 'Camera twee zwenkt je kant op.' },
@@ -142,8 +142,8 @@ export function buildAkte4Defs() {
       // M19 Stoom: Tammo drives the stopped museum steam train to the next platform (gas and brake only), Tessa frees the jury in the carriages (the script's scene)
       type: 'stages',
       label: 'Stoom',
-      intro: ['Jelle kocht de machinist van de museumstoomtrein. De trein staat stil, en de laatste juryleden zitten er vier uur in vast.', 'Rij de trein van Veendam naar het perron van Wildervank, zodat de juryleden kunnen uitstappen.'],
-      outro: 'Eén jurylid stapt uit. Eén blijft bij Jelle. De voorzitter weigert: artikel 9, Berend neemt het over.',
+      intro: ['Jelle heeft de machinist van de museumstoomtrein omgekocht. De trein staat stil, en de laatste juryleden zitten er vier uur in vast.', 'Doel: rij de trein van Veendam naar het perron van Wildervank, zodat de juryleden kunnen uitstappen.'],
+      outro: 'Eén jurylid stapt uit. Eén blijft bij Jelle. De bewaarder blijft zitten: het oudste jurylid, Berend, zit voor.',
       reward: 800,
       onFoot: true,
       costRow: ['Gevolg', 'Eén jurylid bevrijd, één blijft bij Jelle, de voorzitter is verhinderd'],
@@ -163,8 +163,8 @@ export function buildAkte4Defs() {
       // M20 Het beleg van Bourtange: defend the walls, the fierljep challenge, the powder cellar where Mem takes the ball, then keep the cellar and carry the ball to the bakkie
       type: 'stages',
       label: 'Het beleg van Bourtange',
-      intro: ['Het Beleg van Bourtange: veertig re-enactors, vijftien kanonnen van karton en een vesting. Jelle komt met zijn beleggers.', 'Verdedig de wallen, spring over de gracht, houd de kruitkelder en breng de bal naar het bakkie bij de poort.'],
-      outro: 'De bal ligt in het bakkie. Mem nam hem af van Jelle, en Jelle nam de Escapade.',
+      intro: ['Het Beleg van Bourtange: veertig mensen in kostuum, vijftien kanonnen van karton en een vesting. Jelle komt met zijn mannen in blauwe colberts.', 'Doel: verdedig de wallen en spring over de gracht.'],
+      outro: 'De bal ligt in het bakkie. Jelle gaf de bal aan Mem en nam daarna de Escapade.',
       reward: 1200,
       onFoot: true,
       costRow: ['Gevolg', 'Mem nam de bal van Jelle af; de Escapade is weg'],
@@ -188,7 +188,7 @@ export function buildAkte4Defs() {
         { kind: 'goto', target: ll('bourtangeGracht', { label: 'De gracht' }), mode: 'foot', radius: 12, label: 'Naar de gracht: Durk en Douwe dagen je uit', say: 'Durk en Douwe houden je bezig. Naar de gracht.' },
         {
           kind: 'timing', vaultJump: true, kicker: 'Fierljep-duel in Bourtange', help: 'druk op het goede moment', goodAt: 2, tagGood: 'duel-won', tagLow: 'duel-lost',
-          label: 'Fierljep-duel: spring verder dan Durk en Douwe', say: 'Durk en Douwe springen mee. Aanloop, polsstok, klimmen: druk als de streep in het groen is.',
+          label: 'Fierljep-duel: spring verder dan Durk en Douwe', say: 'Durk en Douwe springen mee. Aanloop, polsstok, klimmen: druk als de streep in het groene vak staat.',
           rounds: [
             { text: '1. De aanloop: vol gas naar de gracht.', speed: 0.8, zone: [0.36, 0.64], ok: 'Een strakke aanloop. Durk kijkt jaloers.', bad: 'Je struikelt over een kartonnen kanon.' },
             { text: '2. Pak de polsstok.', speed: 1.0, zone: [0.4, 0.6], ok: 'De stok zit. Douwe zegt: …wauw.', bad: 'De stok glijdt weg. Douwe zegt: …oei.' },
@@ -207,21 +207,21 @@ export function buildAkte4Defs() {
           script: { ids: ['M20.3'] }, cast: [{ key: 'mem', pose: 'hold', at: [2.4, 0.6] }, { key: 'trijntje', pose: 'hips', at: [2.6, -0.8] }, { key: 'jelle', pose: 'hips', at: [4.2, 0] }, { key: 'berend', pose: 'arms', at: [3.6, 2.0] }],
         },
         {
-          kind: 'hold', target: ll('bourtangeKruit', { label: 'De kruitkelder' }), mode: 'foot', radius: 7, time: 12, ticks: ['Jelles beleggers storten zich op de deur. Hou vol.'],
+          kind: 'hold', target: ll('bourtangeKruit', { label: 'De kruitkelder' }), mode: 'foot', radius: 7, time: 12, ticks: ['Jelles mannen storten zich op de deur. Hou vol.'],
           fireworks: { every: [2.0, 3.5], hit: 1.9, cost: 3, hitText: 'Een blauwe colbert duwt je opzij. Even liggen, dan terug in de deur.' },
-          label: 'Houd de eerste deur van de kruitkelder tegen de beleggers', say: 'Hou de deur van de kruitkelder met de kartonnen kanonnen. De beleggers komen in colberts.',
+          label: 'Houd de eerste deur van de kruitkelder tegen Jelles mannen', say: 'Houd de deur van de kruitkelder met de kartonnen kanonnen. Jelles mannen komen in colberts.',
           talk: { ids: ['M20.4'], delay: 1.5 },
         },
         { kind: 'goto', target: ll('bourtangeKruitB', { label: 'De tweede deur' }), mode: 'foot', radius: 6, label: 'Ren naar de tweede deur: die begint te bezwijken', say: 'De tweede deur geeft mee. Rennen.' },
         {
           kind: 'hold', target: ll('bourtangeKruitB', { label: 'De tweede deur' }), mode: 'foot', radius: 7, time: 12, ticks: ['Nog een deur. Hou vol.'],
           fireworks: { every: [1.8, 3.2], hit: 1.9, cost: 3, hitText: 'Een colbert met een aktetas. Even liggen, dan terug in de deur.' },
-          label: 'Houd de tweede deur tegen', say: 'Hou ook de tweede deur. Daarna de derde.',
+          label: 'Houd de tweede deur tegen', say: 'Houd ook de tweede deur. Daarna de derde.',
         },
         { kind: 'goto', target: ll('bourtangeKruitC', { label: 'De derde deur' }), mode: 'foot', radius: 6, label: 'Ren naar de derde deur: de laatste', say: 'De derde deur. De bal blijft hier.' },
         {
           kind: 'hold', target: ll('bourtangeKruitC', { label: 'De derde deur' }), mode: 'foot', radius: 7, time: 12, ticks: ['Nog even. De bal blijft hier.'],
-          fireworks: { every: [1.6, 3.0], hit: 1.9, cost: 3, hitText: 'De beleggers duwen allemaal tegelijk. Even liggen, dan terug in de deur.' },
+          fireworks: { every: [1.6, 3.0], hit: 1.9, cost: 3, hitText: 'Jelles mannen duwen allemaal tegelijk. Even liggen, dan terug in de deur.' },
           label: 'Houd de derde deur tegen', say: 'De laatste deur. Daarna naar de poort.',
         },
         { kind: 'goto', target: ll('bourtangePoort', { label: 'Berends bakkie' }), mode: 'foot', radius: 9, stop: 1, label: 'Draag de bal naar het bakkie bij de poort', say: 'Links is vrij. Naar de poort, Berends bakkie staat klaar.' },
@@ -250,18 +250,18 @@ export function applyAkte4(list) {
     { kind: 'goto', target: ll('zuidhornOverweg', { label: 'De overweg bij Zuidhorn' }), mode: 'any', radius: 30, label: 'Naar de overweg bij Zuidhorn: daar stopt de trein om middernacht', say: 'Mems appje: de trein met de rode auto stopt om middernacht bij de overweg in Zuidhorn.', talk: { ids: ['M21.2'], delay: 3 } },
     {
       kind: 'timing', kicker: 'Over de wagons', help: 'spring op het goede moment', goodAt: 2, tagGood: 'sprint-goed', tagLow: 'sprint-slecht',
-      label: 'Spring van wagon naar wagon naar de Escapade', say: 'De trein rijdt. Druk als de streep in het groen is om naar de volgende wagon te springen.',
+      label: 'Spring van wagon naar wagon naar de Escapade', say: 'De trein rijdt. Druk als de streep in het groene vak staat om naar de volgende wagon te springen.',
       rounds: [
         { text: 'Wagon één naar twee: de koppeling schudt.', speed: 0.9, zone: [0.38, 0.62], ok: 'Over de koppeling.', bad: 'Je glijdt, maar grijpt de reling.' },
-        { text: 'Wagon twee naar drie: de beleggers kijken om.', speed: 1.1, zone: [0.41, 0.59], ok: 'Drie. Zij zien je nog niet.', bad: 'Je valt op je rugzak. Au.' },
+        { text: 'Wagon twee naar drie: Jelles mannen kijken om.', speed: 1.1, zone: [0.41, 0.59], ok: 'Drie. Zij zien je nog niet.', bad: 'Je valt op je rugzak. Au.' },
         { text: 'Wagon drie naar de Escapade: hij staat los.', speed: 1.25, zone: [0.43, 0.57], ok: 'Je landt op de motorkap.', bad: 'Je landt op je knieën, naast de motorkap.' },
       ],
     },
     {
-      kind: 'choice', kicker: 'Op de wagon', label: 'Kies: de auto of de bal', say: 'De beleggers staan op de wagon. Jelle belt: de auto redden of de bal houden. Niet allebei.',
+      kind: 'choice', kicker: 'Op de wagon', label: 'Kies: de auto of de bal', say: 'Jelles mannen staan op de wagon. Jelle belt: de auto redden of de bal houden. Niet allebei.',
       rounds: [
         { who: 'Jelle', time: 6, timeoutPick: 2, rule: 'Beslis snel', text: 'U kunt de auto redden of de bal houden. Beide tegelijk is juridisch niet mogelijk.', options: [
-          { label: 'De auto: de Escapade redden', tag: 'auto', reply: 'Tessa laat de rugzak vallen. De beleggers springen met de bal naar een limo.' },
+          { label: 'De auto: de Escapade redden', tag: 'auto', reply: 'Tessa laat de rugzak vallen. Jelles mannen springen met de bal naar een limo.' },
           { label: 'De bal: de rugzak vasthouden', ok: false, tag: 'bal', reply: 'Tessa houdt de bal tot een belegger hem uit haar handen trekt. Dan springt ze terug naar de Escapade: de wagon rolt, maar ze haalt hem in.' },
         ] },
       ],
