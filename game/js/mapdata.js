@@ -561,13 +561,14 @@ export class GameMap {
     return false;
   }
 
-  queryView(minx, miny, maxx, maxy) {
+  // withTrees false: the minimap does not draw them
+  queryView(minx, miny, maxx, maxy, withTrees = true) {
     return {
       roads: this.roadGrid.query(minx, miny, maxx, maxy),
       buildings: this.buildingGrid.query(minx, miny, maxx, maxy),
       water: this.waterGrid.query(minx, miny, maxx, maxy),
       green: this.greenGrid.query(minx, miny, maxx, maxy),
-      trees: this.treeGrid.query(minx, miny, maxx, maxy),
+      trees: withTrees ? this.treeGrid.query(minx, miny, maxx, maxy) : [],
     };
   }
 }

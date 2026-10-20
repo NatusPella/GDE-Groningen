@@ -39,6 +39,9 @@ eq('weak GPU, slow frames', adviseFromSample('laag', 45, 'hoog'), 'laag');
 eq('weak GPU, smooth frames', adviseFromSample('laag', 15, 'hoog'), 'middel');
 eq('strong GPU, smooth', adviseFromSample('hoog', 16, 'hoog'), null);
 eq('strong GPU, busy machine', adviseFromSample('hoog', 25, 'hoog'), 'middel');
+eq('strong GPU, just short of 60 fps', adviseFromSample('hoog', 19, 'hoog'), 'vlot');
+eq('vlot stays on vlot', adviseFromSample('hoog', 19, 'vlot'), null);
+eq('describe vlot', describePreset('vlot'), 'schaduwen aan · resolutie 100%, automatisch · zichtafstand kort');
 eq('already laag', adviseFromSample('laag', 45, 'laag'), null);
 
 eq('rec: hoog smooth', recommendPreset({ hoog: 60, middel: 61, laag: 62 }, 'hoog'), null);

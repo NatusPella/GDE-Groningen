@@ -901,6 +901,7 @@ export function init3D(map) {
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFShadowMap;
   hookShadowPass(renderer.shadowMap);
+  hookLinkGuard(renderer);
   pinShaderPrograms(renderer);
   // Fetching shader info logs after a link is a sync point that costs tens of
   // ms per program on a busy GPU; ?shaderdebug brings the error checks back.
@@ -1354,6 +1355,35 @@ function hookShadowPass(shadowMap) {
   };
 }
 
+// A shader that is not linked yet blocks the frame at its first draw (getProgramParameter waits for the link,
+// 0.3 to 1 s for a building style, a landmark kit or a depth program that was not seen before, #247). A draw of
+// the game scene (or a shadow caster) whose material has no linked program yet is left out instead and its
+// object is compiled after the frame, in the background (KHR_parallel_shader_compile); it shows a few frames
+// later. Fullscreen passes are never skipped, nor are depth materials (compiling the object does not compile the
+// shadow pass's own material, so a skipped caster would never come back), and without the extension nothing changes.
+const linkPending = new Set();
+const LINK_GUARD_AFTER = 600;
+function hookLinkGuard(r) {
+  const draw = r.renderBufferDirect.bind(r);
+  let guard = null;
+  r.renderBufferDirect = function (camera, sc, geometry, material, object, group) {
+    if (guard === null) guard = r.extensions.has('KHR_parallel_shader_compile');
+    // not in the first seconds: the load screen, the title and the first shots wait for the prewarm, which draws the materials once
+    if (guard && canvasFrames > LINK_GUARD_AFTER && (sc === null || sc === scene) && !material.isMeshDepthMaterial && !material.isMeshDistanceMaterial && !perfOff('linkwacht')) {
+      const programs = r.properties.get(material).programs;
+      let ready = !!programs;
+      if (programs) for (const p of programs.values()) if (!p.isReady()) { ready = false; break; }
+      if (!ready) { linkPending.add(object); return undefined; }
+    }
+    return draw(camera, sc, geometry, material, object, group);
+  };
+}
+function compilePending() {
+  if (!linkPending.size) return;
+  for (const o of linkPending) if (o.parent) precompile(o);
+  linkPending.clear();
+}
+
 // Static world geometry (buildings, roads, water): matrices are computed once
 // here instead of being recomposed for thousands of objects every frame.
 function freezeStatic(root) {
@@ -1564,6 +1594,20 @@ function syncBuildingsPass(world, px, py) {
       }
       mesh = makeBuildingMesh(b);
       built++;
+      precompile(mesh);
+    }
+    // a mesh whose shaders are not linked yet waits (the far LOD covers it): drawn at once it blocks the frame
+    // for the link, 0.3 to 1 s for a style that has not been seen before (#247)
+    if (!mesh.userData.progReady && !perfOff('bouwklaar')) {
+      if (meshProgramsReady(mesh)) mesh.userData.progReady = true;
+      else {
+        const t = mesh.userData.heldAt || (mesh.userData.heldAt = performance.now());
+        if (performance.now() - t < BUILDING_LINK_WAIT_MS) {
+          prefetchedBuildings.set(b, mesh);
+          if (lod) buildingDetailR = Math.min(buildingDetailR, d - 0.01);
+          continue;
+        }
+      }
     }
     prefetchedBuildings.delete(b);
     mesh.visible = !hiddenBuildings.has(b);
@@ -1611,6 +1655,22 @@ function syncBuildingsPass(world, px, py) {
   if (prefetchDone && missing.length === 0) {
     syncIdle = { x: px, y: py, frame: syncFrame, dist: DRAW_DIST, view: viewDist, facade: facadeDetailDist, hidden: hiddenBuildings.size, meshes: buildingMeshes.size, landmarks: landmarkBuildings.length };
   }
+}
+
+const BUILDING_LINK_WAIT_MS = 2000;
+const batchCompile = (group) => { if (!perfOff('bouwklaar')) precompile(group); };
+const batchReady = (group) => perfOff('bouwklaar') || meshProgramsReady(group);
+function meshProgramsReady(mesh) {
+  let ready = true;
+  mesh.traverse((o) => {
+    if (!ready || !o.material) return;
+    for (const m of Array.isArray(o.material) ? o.material : [o.material]) {
+      const programs = renderer.properties.get(m).programs;
+      if (!programs) { ready = false; return; }
+      for (const p of programs.values()) if (!p.isReady()) { ready = false; return; }
+    }
+  });
+  return ready;
 }
 
 // Streaming budgets (ms per frame) for buildings and roads; a jump of the
@@ -1959,6 +2019,7 @@ const PED_BUILD_BUDGET_MS = 2.5;
 // a jump builds the people round the player at once, up to this much more
 const PED_INSTANT_EXTRA_MS = 6;
 const PED_JUMP_DIST = 40;
+const PED_RANGE_FAST = 90, PED_RANGE_FROM = 12, PED_RANGE_SLOPE = 6;
 const pedFadingOut = [];
 const fadeVariants = new Map();
 let pedClock = 0;
@@ -2048,11 +2109,14 @@ function syncPedestrianMeshes(world, player, animDt) {
   pedLastY = player.y;
   const instant = pedClock < pedInstantUntil || world.cinematicHidePlayers;
 
+  // fast travel (a car on the A7, the heli, a train): people beyond ~90 m go by in a second and their meshes (~3 ms
+  // each to build) were a turnover of dozens a second; the range closes from 14 m/s on and opens again when it slows
+  const pedRange = perfOff('persoonsbereik') ? DRAW_DIST : Math.max(Math.min(DRAW_DIST, PED_RANGE_FAST), DRAW_DIST - Math.max(0, focusSpeed - PED_RANGE_FROM) * PED_RANGE_SLOPE);
   const seen = new Set();
   const deadline = performance.now() + PED_BUILD_BUDGET_MS;
   let built = 0;
   for (const p of world.pedestrians) {
-    if (Math.hypot(p.x - player.x, p.y - player.y) >= DRAW_DIST) continue;
+    if (Math.hypot(p.x - player.x, p.y - player.y) >= pedRange) continue;
     seen.add(p);
     if (pedMeshes.has(p)) continue;
     const over = built > 0 && performance.now() > deadline;
@@ -2080,7 +2144,7 @@ function syncPedestrianMeshes(world, player, animDt) {
     if (!mesh) continue;
     const ud = mesh.userData;
     ud.fade = Math.min(1, ud.fade + animDt / PED_FADE_TIME);
-    const edge = (DRAW_DIST - Math.hypot(p.x - player.x, p.y - player.y)) / PED_EDGE_FADE;
+    const edge = (pedRange - Math.hypot(p.x - player.x, p.y - player.y)) / PED_EDGE_FADE;
     applyPedFade(mesh, warm ? (FADE_STEPS - 1) / FADE_STEPS : Math.min(ud.fade, edge));
     if (p.gibbed) { mesh.visible = false; continue; }
     if (p.hideMesh) { mesh.visible = false; ud.fadeLevel = -1; continue; } // fierljep.js draws its own actor
@@ -2212,10 +2276,10 @@ export function update3D(dt, world) {
   syncBuildings(world, focus.x, focus.y);
   if (!NO_BATCH) {
     buildingBatcher.update({ scene, meshes: buildingMeshes, hidden: hiddenBuildings, px: focus.x, py: focus.y, detailR: buildingDetailR, drawDist: DRAW_DIST,
-      withDetail: facadeDetailDist >= DRAW_DIST, budgetMs: performance.now() < streamBoostUntil ? 1 : 3 });
+      withDetail: facadeDetailDist >= DRAW_DIST, compile: batchCompile, ready: batchReady, budgetMs: performance.now() < streamBoostUntil ? 1 : 3 });
     if (facadeDetailDist < DRAW_DIST) {
       facadeBatcher.update({ scene, meshes: buildingMeshes, hidden: hiddenBuildings, px: focus.x, py: focus.y, detailR: Math.min(facadeDetailDist, buildingDetailR), drawDist: DRAW_DIST,
-        withDetail: true, budgetMs: 1 });
+        withDetail: true, compile: batchCompile, ready: batchReady, budgetMs: 1 });
     } else facadeBatcher.clear();
   }
   probe.mark('3d:buildings');
@@ -2227,7 +2291,7 @@ export function update3D(dt, world) {
   const waterNight = world.dayNight ? world.dayNight.night : 0;
   updateWaterMaterial(waterMaterial, world.time, world.weather ? world.weather.intensity : 0, waterNight);
   updateShore(waterNight, cam);
-  if (!NO_BATCH) shoreBatcher.update({ scene, meshes: shoreItems, hidden: null, px: focus.x, py: focus.y, detailR: Math.max(DRAW_DIST, viewDist), drawDist: Math.max(DRAW_DIST, viewDist), withDetail: true, budgetMs: 2 });
+  if (!NO_BATCH) shoreBatcher.update({ scene, meshes: shoreItems, hidden: null, px: focus.x, py: focus.y, detailR: Math.max(DRAW_DIST, viewDist), drawDist: Math.max(DRAW_DIST, viewDist), withDetail: true, compile: batchCompile, ready: batchReady, budgetMs: 2 });
   probe.mark('3d:water');
   syncRoads(world, focus.x, focus.y);
   // movable bridges (movablebridges3d.js): the static road of a span that is
@@ -2235,7 +2299,7 @@ export function update3D(dt, world) {
   if (!bridgeViews) { initMovableBridges3D(scene, world.map); bridgeViews = true; }
   syncMovableBridges3D(focus.x, focus.y, world.map);
   openBridgeRoads(openSpans);
-  if (!NO_BATCH) roadBatcher.update({ scene, meshes: roadMeshes, hidden: openSpans.size ? openSpans : null, px: focus.x, py: focus.y, detailR: DRAW_DIST, drawDist: DRAW_DIST, withDetail: true, budgetMs: 3 });
+  if (!NO_BATCH) roadBatcher.update({ scene, meshes: roadMeshes, hidden: openSpans.size ? openSpans : null, px: focus.x, py: focus.y, detailR: DRAW_DIST, drawDist: DRAW_DIST, withDetail: true, compile: batchCompile, ready: batchReady, budgetMs: 3 });
   for (const b of getMovableBridges()) { const m = roadMeshes.get(b.r); if (m) m.visible = !openSpans.has(b.r); }
   updateMovableBridges3D(focus.x, focus.y, waterNight);
   updateSluizen3D(scene, focus.x, focus.y, waterNight);
@@ -2891,6 +2955,7 @@ export function update3D(dt, world) {
   cullOffscreenActors();
   skipHiddenMatrixWalk();
   try { postfx.render(); } finally { restoreCulledActors(); }
+  compilePending();
   if (afterFrameQ.length) { const q = afterFrameQ; afterFrameQ = []; for (const f of q) { try { f(); } catch (e) { /* no picture */ } } }
   canvasFrames++;
   renderer.shadowMap.autoUpdate = true;
@@ -3303,7 +3368,26 @@ function prewarmLightVariants() {
 function precompile(obj) {
   const prev = renderer.getRenderTarget();
   renderer.setRenderTarget(postfx.sceneTarget);
-  try { renderer.compile(obj, cam, scene); } finally { renderer.setRenderTarget(prev); }
+  try { renderer.compile(obj, cam, perfOff('compileklein') ? scene : compileScene()); } finally { renderer.setRenderTarget(prev); }
+}
+
+// renderer.compile walks the whole target scene (all ~9000 nodes) to find the lights, once per call: for every
+// building built that was 0.3 to 1 ms and ~6% of the main thread while flying. The programs only depend on the
+// lights, the fog and the environment, so it gets a scene that holds just those (the lights are looked up again
+// every 1.5 s; the light rig's on/off is the lights' own visible flag, which compile reads).
+let compileSceneObj = null, compileLightsAt = -1e9;
+function compileScene() {
+  const now = performance.now();
+  if (!compileSceneObj) { compileSceneObj = new THREE.Scene(); compileSceneObj.matrixAutoUpdate = false; compileSceneObj.children = []; }
+  if (now - compileLightsAt > 1500) {
+    compileLightsAt = now;
+    const lights = [];
+    scene.traverse((o) => { if (o.isLight) lights.push(o); });
+    compileSceneObj.children = lights;
+  }
+  compileSceneObj.fog = scene.fog;
+  compileSceneObj.environment = scene.environment;
+  return compileSceneObj;
 }
 
 // Load-time warm-up for objects that are not in the scene yet (actors and
