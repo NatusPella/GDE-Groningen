@@ -28,6 +28,18 @@ export const PLACEHOLDER_KINDS = ['aanhanger'];
 export const VEHICLE_MODEL_NAMES = ['escort', 'van', 'tractor', 'police', 'bike'];
 export const ANIMAL_KINDS = DIEREN.filter((d) => d.cutscene).map((d) => d.kind);
 
+// De grondafmetingen van een voertuig-prop [lengte, breedte, hoogte] in m, met +x naar voren: een camera blijft eruit (cutscript.js,
+// #263: de camera stond in de Escapade, een rode band en een blauwe ruit dwars door het beeld)
+export const PROP_FOOT = {
+  auto: [4.7, 1.95, 1.75],
+  bestelbus: [5.4, 2.1, 2.5],
+  bakkie: [5.4, 2.1, 2.5],
+  trekker: [4.5, 2.4, 3.0],
+  politie: [4.8, 1.95, 1.75],
+  fiets: [1.9, 0.7, 1.15],
+};
+export const propFoot = (kind) => PROP_FOOT[kind] || null;
+
 export const propSource = (kind) => PROP_SOURCES[kind] || null;
 export const isDecor = (kind) => DECOR_KINDS.includes(kind);
 

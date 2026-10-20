@@ -88,6 +88,9 @@ export function updateOmmelandLandmarks(world, scene, focus) {
   const h = typeof world.clock === 'number' ? world.clock : 12;
   // floodlights from dusk until midnight
   const flood = h >= 12 ? night : 0;
-  S.layer.update(focus.x, focus.y, night, flood, world.time || 0);
+  // rain, mist and overcast: the skyline fades into the haze with the ground (#259)
+  const wx = world.weather || {};
+  const haze = Math.max(0, Math.min(1, Math.max(wx.intensity || 0, wx.mist || 0, (wx.overcast || 0) * 0.7)));
+  S.layer.update(focus.x, focus.y, night, flood, world.time || 0, haze);
 }
 
