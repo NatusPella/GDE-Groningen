@@ -298,9 +298,17 @@ const PHASES = {
   },
   async herverbindHost() {
     if (CFG.role !== 'host') { await sleep(28000); return; }
-    await sleep(8000);
-    log('herverbind-host', { hold: !!document.querySelector('.coop-hold'), paused: !!W().paused, roster: (W().coopRoster || []).map((r) => [r.slot, r.verbinding]) });
-    await sleep(14000);
+    // het opnieuw verbinden gaat snel: kijk elke 200 ms of het wachtscherm, de pauze en "weggevallen" voorbijkomen
+    const z = { holdGezien: false, pauzeGezien: false, lostGezien: false };
+    const end = performance.now() + 24000;
+    while (performance.now() < end) {
+      const x = W();
+      if (document.querySelector('.coop-hold')) z.holdGezien = true;
+      if (x.paused && x.coopHold) z.pauzeGezien = true;
+      if ((x.coopRoster || []).some((r) => r.slot === 1 && r.verbinding === 'lost')) z.lostGezien = true;
+      await sleep(200);
+    }
+    log('herverbind-host', { ...z, roster: (W().coopRoster || []).map((r) => [r.slot, r.verbinding]), hold: !!document.querySelector('.coop-hold'), paused: !!W().paused });
     log('herverbind-host-na', { hold: !!document.querySelector('.coop-hold'), paused: !!W().paused, roster: (W().coopRoster || []).map((r) => [r.slot, r.verbinding]) });
   },
   // een afwijking op één gast: de snapshot klopt niet met de hash van de host
@@ -361,6 +369,7 @@ const PHASES = {
     if (CFG.role !== 'host') { await sleep(s * 1000); return; }
     const w = W(), B = window.__bot;
     let via = '';
+    const voorLijst = new Set(w.vehicles || []);
     try {
       const Ch = await imp('cheats');
       const keuzes = Ch.spawnChoices(w) || [];
@@ -376,7 +385,8 @@ const PHASES = {
     await sleep(1500);
     const voor = w.player.inVehicle ? 1 : 0;
     // naast het dichtstbijzijnde voertuig gaan staan (de bezorging zet het niet altijd binnen bereik)
-    const dicht = () => (w.vehicles || []).filter((x) => x && !x.isBoat && !x.isHeli && !x.wrecked && !x.isPolice).sort((a2, b2) => Math.hypot(a2.x - w.player.x, a2.y - w.player.y) - Math.hypot(b2.x - w.player.x, b2.y - w.player.y))[0];
+    const nieuw = (w.vehicles || []).find((x) => x && !voorLijst.has(x) && !x.wrecked); // het zojuist bezorgde voertuig, anders het dichtstbijzijnde
+    const dicht = () => nieuw && (w.vehicles || []).includes(nieuw) ? nieuw : (w.vehicles || []).filter((x) => x && !x.isBoat && !x.isHeli && !x.wrecked && !x.isPolice).sort((a2, b2) => Math.hypot(a2.x - w.player.x, a2.y - w.player.y) - Math.hypot(b2.x - w.player.x, b2.y - w.player.y))[0];
     const v0 = dicht(); log('rit-voertuig', { afstand: v0 ? Math.round(Math.hypot(v0.x - w.player.x, v0.y - w.player.y)) : null, soort: v0 && v0.model ? v0.model.name || v0.model.id || '' : '' });
     for (let i = 0; i < 8 && !w.player.inVehicle; i++) {
       const v = dicht(); if (v && Math.hypot(v.x - w.player.x, v.y - w.player.y) > 3.5) { w.player.x = v.x - Math.cos(v.angle || 0) * 0; w.player.y = v.y + 2.2; }
