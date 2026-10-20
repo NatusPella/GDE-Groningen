@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { closestPointOnSegment } from './util.js';
+import { closestPointOnSegment, pointInPolygon } from './util.js';
 import { addStaticCollider, removeProp } from './breakables.js';
 import { SECTION } from './gdt.js';
 import { isPaddepoelRoof, buildPaddepoelRoof } from './paddepoel3d.js';
@@ -16,6 +16,35 @@ const POST_SPACING = 7;
 
 const slabMat = new THREE.MeshStandardMaterial({ color: 0x5c6166, roughness: 0.7, metalness: 0.3, flatShading: true, side: THREE.DoubleSide });
 const postMat = new THREE.MeshStandardMaterial({ color: 0x3a3d40, roughness: 0.6, metalness: 0.5, flatShading: true });
+
+// A canopy of thousands of m2 (the roof over a car park or a plant, as at the Eemshaven) is a solar roof, not one blank dark
+// plate: solar-panel cells on the slab, and posts under it in a grid, so it does not hang on its rim alone (#260).
+const BIG_CANOPY = 1500, GRID_POST = 11;
+let pvMat = null;
+function solarMaterial() {
+  if (pvMat) return pvMat;
+  if (typeof document === 'undefined') return (pvMat = slabMat);
+  const S = 256, cells = 4, c = S / cells;
+  const cv = document.createElement('canvas');
+  cv.width = cv.height = S;
+  const g = cv.getContext('2d');
+  g.fillStyle = '#26364f';
+  g.fillRect(0, 0, S, S);
+  for (let i = 0; i < cells; i++) for (let j = 0; j < cells; j++) {
+    const v = 0.9 + ((i * 7 + j * 13) % 5) * 0.03;
+    g.fillStyle = 'rgb(' + Math.round(34 * v) + ',' + Math.round(52 * v) + ',' + Math.round(84 * v) + ')';
+    g.fillRect(i * c + 2, j * c + 2, c - 4, c - 4);
+  }
+  g.fillStyle = 'rgba(190,200,215,0.55)';
+  for (let i = 0; i < cells; i++) { g.fillRect(i * c, 0, 2, S); g.fillRect(0, i * c, S, 2); }
+  const tex = new THREE.CanvasTexture(cv);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(1 / 8, 1 / 8); // the slab's uv are metres: one texture is 8 m (4x4 cells of 2 m)
+  tex.colorSpace = THREE.SRGBColorSpace;
+  pvMat = new THREE.MeshStandardMaterial({ map: tex, roughness: 0.45, metalness: 0.35, flatShading: true, side: THREE.DoubleSide });
+  return pvMat;
+}
+const ringArea2 = (P) => { let a = 0; for (let i = 0; i < P.length; i++) { const p = P[i], q = P[(i + 1) % P.length]; a += p[0] * q[1] - q[0] * p[1]; } return Math.abs(a / 2); };
 
 function nearLine(P, x, y, r) {
   for (let i = 0; i < P.length - 1; i++) {
@@ -43,7 +72,7 @@ export function buildCanopies(map) {
 // colliders so a streamed tile can take them away again.
 function canopyGroup(map, list, props) {
   const group = new THREE.Group();
-  const posts = [];
+  const posts = [], gridPosts = [];
   const solid = (kind, ...args) => { const p = addStaticCollider(kind, ...args); if (props) props.push(p); return p; };
   for (const c of list) {
     if (isPaddepoelRoof(c)) { group.add(buildPaddepoelRoof(map)); continue; }
@@ -62,10 +91,19 @@ function canopyGroup(map, list, props) {
     const geo = new THREE.ExtrudeGeometry(shape, { depth: SLAB, bevelEnabled: false });
     geo.rotateX(Math.PI / 2);
     geo.translate(0, CANOPY_Y + SLAB, 0);
-    const slab = new THREE.Mesh(geo, slabMat);
+    const big = ringArea2(pts) > BIG_CANOPY;
+    const slab = new THREE.Mesh(geo, big ? solarMaterial() : slabMat);
     slab.castShadow = true;
     slab.receiveShadow = true;
     group.add(slab);
+    if (big) {
+      // visual posts in a grid under the slab (the rim posts below are the solid ones)
+      let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+      for (const [x, y] of pts) { x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y); }
+      for (let y = y0 + GRID_POST; y < y1 && gridPosts.length < 6000; y += GRID_POST) for (let x = x0 + GRID_POST; x < x1; x += GRID_POST) {
+        if (pointInPolygon(x, y, pts) && !postInTheWay(map, x, y)) gridPosts.push([x, y]);
+      }
+    }
     for (let i = 0; i < pts.length; i++) {
       const [ax, ay] = pts[i], [bx, by] = pts[(i + 1) % pts.length];
       const len = Math.hypot(bx - ax, by - ay);
@@ -76,6 +114,15 @@ function canopyGroup(map, list, props) {
         if (!postInTheWay(map, px, py)) posts.push([px, py]);
       }
     }
+  }
+  if (gridPosts.length) {
+    const geo = new THREE.BoxGeometry(POST_W, CANOPY_Y, POST_W);
+    geo.translate(0, CANOPY_Y / 2, 0);
+    const inst = new THREE.InstancedMesh(geo, postMat, gridPosts.length);
+    const m = new THREE.Matrix4();
+    gridPosts.forEach(([x, y], i) => { m.makeTranslation(x, 0, y); inst.setMatrixAt(i, m); });
+    inst.castShadow = true;
+    group.add(inst);
   }
   if (posts.length) {
     const geo = new THREE.BoxGeometry(POST_W, CANOPY_Y, POST_W);

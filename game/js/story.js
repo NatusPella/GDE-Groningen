@@ -1279,7 +1279,7 @@ export function devJumpTo(id, opts = {}) {
       if (token !== jumpSettle || Math.hypot(p.x - from.x, p.y - from.y) > 8 || vrij(p.x, p.y)) return;
       const again = jumpSpot(def, world.storyGuide, { dist: 12, vrij });
       if (again) landOn(again);
-    }, { radius: 80, token: 'sprong' }).catch(() => {});
+    }, { radius: 400, token: 'sprong' }).catch(() => {});
   }
   if (opts.start && idx >= 0 && !isMissionActive()) missionDebug.start(world, idx);
   return true;
