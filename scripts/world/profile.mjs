@@ -1,6 +1,6 @@
 // Road height solver and profile audit (docs/PROVINCIE-PLAN.md 2.11).
 //
-//   node scripts/world/profile.mjs            audit game/citymap.json
+//   node scripts/world/profile.mjs            audit game/stad.json
 //   node scripts/world/profile.mjs --solve    solve, audit the result (dry run)
 //   node scripts/world/profile.mjs --write    solve and write road.z back
 //   node scripts/world/profile.mjs --strict   exit 1 when the audit finds a problem
@@ -644,8 +644,8 @@ export function apply(data, sol) {
 
 async function main() {
   const args = process.argv.slice(2);
-  const file = path.join(ROOT, 'game/citymap.json');
-  const data = JSON.parse(fs.readFileSync(file, 'utf8'));
+  const { loadCityData } = await import('../lib/loadworld.mjs');
+  const data = await loadCityData({ extras: false });
   if (args.includes('--solve') || args.includes('--write')) {
     console.log('before:');
     printAudit(audit(data), 4);
@@ -669,7 +669,8 @@ async function main() {
     const busChanged = restoreBusRoads(bus);
     if (args.includes('--write')) {
       if (busChanged) { fs.writeFileSync(extrasFile, JSON.stringify(extras)); console.log(`wrote ${busChanged} busways into ${path.relative(ROOT, extrasFile)}`); }
-      fs.writeFileSync(file, JSON.stringify(data));
+      const { writeStadFrom } = await import('./stad_file.mjs');
+      const file = writeStadFrom(data, ['roads']);
       console.log(`wrote ${path.relative(ROOT, file)}`);
     }
     console.log('after:');
