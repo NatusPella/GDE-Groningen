@@ -42,6 +42,20 @@ if (distance(lodCenter, uLodPlayer) <= uLodDetailR) gl_Position = vec4(0.0, 0.0,
 uniform float uNightGlow, uLitFrac;
 varying vec3 vFarW;
 varying float vFarSeed;`)
+      .replace('#include <color_fragment>', `#include <color_fragment>
+{
+  // flat roofs: panel seams every 24 m and a slightly different tone per panel, so a big hall is no empty grey plane (#260)
+  vec3 rn = normalize(cross(dFdx(vFarW), dFdy(vFarW)));
+  if (abs(rn.y) > 0.9) {
+    vec2 rg = vFarW.xz / 24.0;
+    vec2 rfw = max(fwidth(rg), vec2(1e-5));
+    vec2 rf = abs(fract(rg - 0.5) - 0.5) / rfw;
+    float seam = 1.0 - min(min(rf.x, rf.y), 1.0);
+    float fade = 1.0 - smoothstep(0.15, 0.45, max(rfw.x, rfw.y));
+    float tone = fract(sin(dot(floor(rg), vec2(12.9898, 78.233))) * 43758.5453);
+    diffuseColor.rgb *= (0.93 + 0.14 * tone * fade + 0.07 * (1.0 - fade)) * (1.0 - 0.16 * seam * fade);
+  }
+}`)
       .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
 if (uNightGlow > 0.0) {
   vec3 wn = normalize(cross(dFdx(vFarW), dFdy(vFarW)));
