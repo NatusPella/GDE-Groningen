@@ -98,6 +98,8 @@ for (const S of CFG.stad) {
     await sleep(500);
     const c = { cow: 0, sheep: 0, gans: 0 };
     for (const q of w.wildlife || []) if (q.kind in c) c[q.kind]++;
+    // ook de kudden van het platteland (countryside.js) binnen 200 m
+    for (const q of w.countryAudible || []) if (q && q.kind in c && Math.hypot(q.x - p.x, q.y - p.y) < 200) c[q.kind]++;
     for (const k of Object.keys(max)) max[k] = Math.max(max[k], c[k]);
     totaal++;
   }
