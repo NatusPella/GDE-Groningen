@@ -509,7 +509,7 @@ results.routes.det = await safe('det', async () => {
 results.routes.ab = await safe('ab', async () => {
   if (!ONLY.includes('ab')) return null;
   const variants = window.__perfAb; const WIN = window.__perfAbWin || 5000; const ROUNDS = window.__perfAbRounds || 6;
-  const SET = await imp('settings');
+  const SET = await imp('settings'); const SCN = await imp('scene3d');
   // PERF_AB_MOVE: 0 standing, 1 walking, 2 both (standing first)
   const modes = window.__perfAbMove === 2 ? ['staan', 'lopen'] : [window.__perfAbMove ? 'lopen' : 'staan'];
   // deterministic work counts per frame, next to the times: nodes whose matrix is walked, meshes tested against a frustum
@@ -526,10 +526,13 @@ results.routes.ab = await safe('ab', async () => {
       for (const [name, off] of order) {
         // 'set:drawDistance:ver' among the steps puts that setting for this window only (settings.js withTempSettings)
         const sets = {}; for (const o of off) if (o.startsWith('set:')) { const [, k, v] = o.split(':'); sets[k] = v; }
+        const detail = off.find((o) => o.startsWith('detail:'));
+        window.__perfDetail = detail ? Number(detail.slice(7)) : 0;
+        if (detail || window.__perfDetailWas) { window.__perfDetailWas = !!detail; SCN.refreshRenderScale(); }
         const undo = Object.keys(sets).length ? SET.withTempSettings(sets) : null;
-        window.__perfOffDyn = new Set(off.filter((o) => !o.startsWith('set:')));
+        window.__perfOffDyn = new Set(off.filter((o) => !o.startsWith('set:') && !o.startsWith('detail:')));
         await sleep(undo ? (window.__perfAbPre || 6000) : 1200);
-        calls = 0; renders = 0; cnt.umw = 0; cnt.fto = 0;
+        calls = 0; renders = 0; cnt.umw = 0; cnt.fto = 0; diag.clear();
         H.start();
         const key = name + '@' + mode + ':' + round;
         console.error('[perf-mark] start ab:' + key + ' ' + Date.now());
@@ -537,7 +540,8 @@ results.routes.ab = await safe('ab', async () => {
         const res = H.stop();
         console.error('[perf-mark] end ab:' + key + ' ' + Date.now() + ' ' + res.frames);
         if (undo) undo();
-        out.push({ name: name + '@' + mode, round, frames: res.frames, avg: res.avg, p50: res.p50, p95: res.p95, cpuAvg: res.cpuAvg, cpuP50: res.cpuP50, calls: Math.round(calls / Math.max(1, res.frames)), umw: Math.round(cnt.umw / Math.max(1, res.frames)), fto: Math.round(cnt.fto / Math.max(1, res.frames)), key });
+        if (detail) { window.__perfDetail = 0; SCN.refreshRenderScale(); window.__perfDetailWas = false; }
+        out.push({ name: name + '@' + mode, round, frames: res.frames, avg: res.avg, p50: res.p50, p95: res.p95, cpuAvg: res.cpuAvg, cpuP50: res.cpuP50, owners: window.__perfDiag ? [...diag].sort((a, b) => b[1] - a[1]).slice(0, 60).map(([k, n]) => [k, +(n / Math.max(1, res.frames)).toFixed(1)]) : null, calls: Math.round(calls / Math.max(1, res.frames)), umw: Math.round(cnt.umw / Math.max(1, res.frames)), fto: Math.round(cnt.fto / Math.max(1, res.frames)), key });
       }
     }
     mover = null;
