@@ -54,19 +54,19 @@ if (!P) { console.error('onbekende suite: ' + SUITE); process.exit(2); }
 
 // ---------------------------------------------------------------- sloten
 const held = [];
-// n sloten tegelijk. Wie er een paar heeft en op de rest wacht, houdt ze hooguit 4 minuten vast en probeert het daarna opnieuw,
+// n sloten tegelijk. Wie er een paar heeft en op de rest wacht, houdt ze hooguit 12 minuten vast en probeert het daarna opnieuw,
 // zodat andere sessies (die ook sloten nodig hebben) niet vastlopen.
 async function takeSlots(n) {
   for (;;) {
     const t0 = Date.now(), mine = [];
-    while (Date.now() - t0 < 240000) {
+    while (Date.now() - t0 < 720000) {
       for (const k of [1, 2, 3]) { if (mine.length >= n) break; const d = path.join(LOCKS, 'electron-' + k); try { fs.mkdirSync(d); mine.push(d); } catch (e) { /* bezet */ } }
       if (mine.length >= n) { held.push(...mine); return; }
       console.log(`sloten bezet (${mine.length} van ${n}), wacht 10 s`);
       await new Promise((r) => setTimeout(r, 10000));
     }
     for (const d of mine) { try { fs.rmdirSync(d); } catch (e) { /* weg */ } }
-    console.log('sloten losgelaten voor anderen, over 30 s opnieuw'); await new Promise((r) => setTimeout(r, 30000));
+    console.log('sloten losgelaten voor anderen, over 15 s opnieuw'); await new Promise((r) => setTimeout(r, 15000));
   }
 }
 const release = () => { while (held.length) { try { fs.rmdirSync(held.pop()); } catch (e) { /* weg */ } } };
@@ -89,7 +89,7 @@ function start(name, cfg, seed, extraArgs = []) {
   const env = { ...process.env, GDE_TEST_PROFILE: profile, GDE_GAME_DIR: STAGE, GDE_COOP_TEST: '1', ...(MENU ? { GDE_MENU_TEST: '1' } : {}) };
   delete env.ELECTRON_RUN_AS_NODE;
   const extra = [...extraArgs];
-  if (ROUTE === 'kamer') extra.push('--disable-features=WebRtcHideLocalIpsWithMdns'); // loopback-kandidaten zonder mDNS-naam
+  if (ROUTE === 'kamer') extra.push('--disable-features=WebRtcHideLocalIpsWithMdns', '--allow-loopback-in-peer-connection'); // kandidaten op de loopback, zonder mDNS-naam en zonder firewall
   const child = spawn(ELECTRON, ['.', '--windowed', '--stil', '--force-device-scale-factor=1', '--window-size=1280x720', '--coop', `--autoplay=${seed}`,
     `--smoke-test=${path.join(dir, 'shots.png')}`, `--perf-script=${script}`, `--bot-events=${events}`, ...extra], { cwd: path.join(ROOT, 'desktop'), env, stdio: ['ignore', 'pipe', 'pipe'] });
   try { os.setPriority(child.pid, os.constants.priority.PRIORITY_BELOW_NORMAL); } catch (e) { /* geen rechten: gewone prioriteit */ }
@@ -205,6 +205,7 @@ release();
 if (tp) clearInterval(tp);
 for (const m of [...mocks, mockLate].filter(Boolean)) { try { await m.stop(); } catch (e) { /* al weg */ } }
 const trackerSeen = tracker ? tracker.seen.slice() : [];
+if (tracker) fs.writeFileSync(path.join(OUT, 'tracker.jsonl'), trackerSeen.map((t) => t.replace(/"sdp":"[^"]{40,}"/g, '"sdp":"…"').slice(0, 300)).join('\n'));
 if (tracker) tracker.close();
 
 // ---------------------------------------------------------------- beoordelen

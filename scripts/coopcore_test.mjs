@@ -88,6 +88,14 @@ await t('vol, maar één verbinding is dood (kabel eruit, geen FIN): de terugker
   for (const g of [a, b, nieuw, terug]) await g.guest.stop();
   await host.stop();
 });
+await t('netjes sluiten: het afmelden vlak voor stop() komt nog bij de host aan', async () => {
+  const { host, ev } = mkHost(); const h = await host.host();
+  const { guest } = mkGuest(); await guest.join(h.code);
+  await until(() => ev.conns.length === 1);
+  guest.send(0, Uint8Array.from([9, 9, 9])); await guest.stop(); // direct erachter: zoals bij 'Spel verlaten'
+  await until(() => ev.msgs.some((m) => m[1].join() === '9,9,9') && ev.states.some((s) => s[1] === 'closed'));
+  await host.stop();
+});
 await t('een gast valt weg: de anderen blijven; de host kan één gast sluiten', async () => {
   const { host, ev } = mkHost(); const h = await host.host();
   const a = mkGuest(), b = mkGuest(); await a.guest.join(h.code); await b.guest.join(h.code);
