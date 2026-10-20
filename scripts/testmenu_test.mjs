@@ -21,7 +21,7 @@ ok(Object.keys(L.VALUE_FLAGS).every((k) => k in FLAG_DOCS), 'value switches exis
 ok(L.withFlag('?testmenu', 'coop', true) === '?testmenu&coop', 'turn on');
 ok(L.withFlag('?testmenu&coop', 'coop', false) === '?testmenu', 'turn off');
 ok(L.withFlag('', 'reizen', true) === '?reizen&testmenu', 'testmenu stays');
-ok(L.withFlag('?testmenu&stadlaag=wegen', 'stadlaag', true, 'alle') === '?testmenu&stadlaag=alle', 'value replaced');
+ok(L.withFlag('?testmenu&marker=vorm', 'marker', true, 'andere') === '?testmenu&marker=andere', 'value replaced');
 ok(L.clearedSearch() === '?testmenu', 'cleared');
 
 const ids = L.SHORTCUTS.map((s) => s.id);

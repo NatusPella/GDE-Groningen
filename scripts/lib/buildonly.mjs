@@ -9,6 +9,5 @@ export const BUILD_ONLY = [
   'marinas.js', // jachthavenplanner; het spel leest alleen marinas.json
   'padscreens.js',
   'randaudit.js', 'streekaudit.js', 'terrainaudit.js', // wereldaudits (scripts/world)
-  'stadlaag.js', // ?stadlaag-schakelaar van de bouw (#90)
   'vehicleregister.js', // register dat alleen een test en cutscene-audit lezen
 ];

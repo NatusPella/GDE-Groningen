@@ -134,7 +134,7 @@ export function cityTileKeys(d) {
 // { data, fromOsm, tiles, mask }: data is de kaart zonder de lagen die uit OSM komen (fromOsm), tiles de stadstegels, mask de dekking
 export const readStad = (game = path.join(ROOT, 'game')) => stadOf(JSON.parse(fs.readFileSync(path.join(game, 'stad.json'), 'utf8')));
 export function stadOf(d) {
-  if (d.format !== STAD_FORMAT) throw new Error(`stad.json heeft formaat ${d.format}, verwacht ${STAD_FORMAT} (scripts/world/stad_split.mjs)`);
+  if (d.format !== STAD_FORMAT) throw new Error(`stad.json heeft formaat ${d.format}, verwacht ${STAD_FORMAT}`);
   const { format, fromOsm, tiles, cover, ...data } = d;
   return { data, fromOsm, tiles, mask: cover };
 }
@@ -169,7 +169,6 @@ export async function loadCityDataLaag(game = path.join(ROOT, 'game'), lagen = p
 }
 export function parseLagen(raw) {
   const ok = ['water', 'green', 'trees', 'buildings', ...LAGEN_WEGEN];
-  // (de runtimevlag ?stadlaag kent de Nederlandse namen wegen en spoor, de bouw de laagnamen roads en rails)
   const alias = { wegen: 'roads', spoor: 'rails', groen: 'green', gebouwen: 'buildings' };
   return [...new Set(String(raw || '').split(/[,\s]+/).map((w) => w.trim().toLowerCase()).map((w) => alias[w] || w).filter((w) => ok.includes(w)))];
 }
