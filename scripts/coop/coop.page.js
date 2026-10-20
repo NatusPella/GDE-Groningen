@@ -24,6 +24,8 @@ const NET = { ws: [], rtc: 0, fetch: [] };
 }
 const netNow = () => ({ ws: NET.ws.length, rtc: NET.rtc, fetch: NET.fetch.length });
 
+// de IP-route: welke verbindingen meldt het main-proces? (voor het nazoeken van dubbele of verdwenen gasten)
+try { if (window.gdeDesktop && window.gdeDesktop.coop) window.gdeDesktop.coop.onEvent((k, pl) => { if (k !== 'msg') log('ipc', { k, id: pl && pl.id, state: pl && pl.state }); }); } catch (e) { /* geen brug */ }
 const holdSkip = async (ms = 1400) => { const B = window.__bot; if (B) { B.down(' '); await sleep(ms); B.up(' '); } else { key(' ', 'Space'); await sleep(ms); } };
 const W = () => window.__debug && window.__debug.world;
 const key = (k, code) => { for (const t of [window, document]) { t.dispatchEvent(new KeyboardEvent('keydown', { key: k, code, bubbles: true })); t.dispatchEvent(new KeyboardEvent('keyup', { key: k, code, bubbles: true })); } };
