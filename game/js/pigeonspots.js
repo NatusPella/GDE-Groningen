@@ -1,7 +1,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getScene } from './scene3d.js';
 import { buildPersonMesh } from './models3d_people.js';
-import { isMissionActive, getActiveRace } from './missions.js';
+import { isMissionActive, getActiveRace } from './missionquery.js';
 import { isCinematicActive } from './cinematics.js';
 import { isShopOpen } from './shopui.js';
 import { startPigeonMode, isPigeonActive, addPigeonLoft, buildPigeonBird, posePigeonBird } from './pigeonmode.js';

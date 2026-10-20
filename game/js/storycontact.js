@@ -25,7 +25,7 @@ import { isCallActive } from './phonefeed.js';
 import { isCinematicActive } from './cinematics.js';
 import { readingSeconds } from './world.js';
 import { PORTRAITS } from './storycast.js';
-import { getClockText } from './hud_panel.js';
+import { getClockText } from './clocktext.js';
 import { dualHtml, dutchFor } from './subtitles.js';
 import { speakerHtml } from './speakers.js';
 import { noteSpoken } from './characters.js';

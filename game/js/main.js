@@ -76,7 +76,7 @@ import { initRailway, updateRailway, setRailExtraWorld, getTrains, getRoutes, ro
 import { updateZeilvaren } from './zeilvaren.js';
 import { updateEvenementen } from './evenementenlive.js';
 import { routePenalty } from './evenementen.js';
-import { setRouteClosures } from './routing.js';
+import { setRouteClosures, getActiveRoute, getRouteAhead, getUserWaypoint } from './routing.js';
 let routeSigDone = '';
 import { updateStationLife } from './stationlife.js';
 import { createBoard as createStationBoard } from './minigamekit.js';
@@ -88,7 +88,7 @@ import { buildMovableBridges, updateMovableBridges, getMovableBridges } from './
 import { updateSluizen, getSluizen } from './sluizen.js';
 import { updateBridgeHits, resetBridgeDamage, startBridgeCrashDemo, stepBridgeCrashDemo } from './bridgehitworld.js';
 import { geoWorkerActive } from './geojobs.js';
-import { init3D, update3D, resize3D, getScene, getRenderer, setMenuCover, MENU_FRAME_S, refreshRenderScale, terrainReady, canvasFrameCount, prewarmStreamAt, getCamera, getFollowPose } from './scene3d.js';
+import { init3D, update3D, resize3D, getScene, getRenderer, setMenuCover, MENU_FRAME_S, refreshRenderScale, terrainReady, canvasFrameCount, prewarmStreamAt, getCamera, getFollowPose, setRouteLinks } from './scene3d.js';
 import { checkFrame } from './blackframe.js';
 import { noteFrame, hideAdvice, classifyGpu, readGpu, dynamicScale, cpuLevel } from './gfxprofile.js';
 import { updateStreetSigns } from './streetsigns.js';
@@ -484,6 +484,7 @@ async function boot() {
   initAudio(world);
   setNieuwsBronnen({ bridges: getMovableBridges });
   setAudioCamera(getCamera);
+  setRouteLinks({ getActiveRoute, getRouteAhead, getUserWaypoint });
   setCinematicLinks({ getFollowPose, prewarmStreamAt });
   setSfxLinks({ bridges: getMovableBridges, trains: getTrains, vehicles: () => world.vehicles, locks: getSluizen });
   await waitForStart(world, countryPlaced);

@@ -10,7 +10,8 @@ import { getGaragesForRender } from './garages.js';
 import { getHomeForRender, getHomeGarageForRender, getHomeMooringForRender, getHomeHelipadForRender } from './home.js';
 import { layerOn, setLayer as storeLayer } from './mapfilters.js';
 import { getHorecaForRender } from './horeca.js';
-import { getShopsForRender, getShopsDecluttered, SHOP_TYPES, storyTargetShop, drawStoryShopRing } from './shops.js';
+import { getShopsForRender, getShopsDecluttered, storyTargetShop, drawStoryShopRing } from './shops.js';
+import { SHOP_TYPES } from './shopdata.js';
 import { getOwnedVehiclesForMap } from './ownedvehicles.js';
 import { getPigeonSpotsForRender } from './pigeonspots.js';
 import { getHeliSpotsForRender, getHeliRunMarks } from './helirun.js';
@@ -43,7 +44,7 @@ import { getMissionLayer } from './missionmaplive.js';
 import { selectMapItems } from './missionmap.js';
 import { drawLayerAreas, drawLayerLines, layerCaption } from './missionmapdraw.js';
 import { getTodoItems, chooseTodo, mapIconUrl } from './todo.js';
-import { getMissionList } from './missions.js';
+import { getMissionList } from './missionquery.js';
 import { MEDALS } from './achievements.js';
 import { nicknameOf, FLAVOUR_MAP_PLACES } from './flavourlines.js';
 import {

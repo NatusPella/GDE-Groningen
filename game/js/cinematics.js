@@ -15,7 +15,7 @@ import { registerNarrative } from './narrative.js';
 import { lineVoiceFor } from './linevoice.js';
 // What cinematics.js asks of respawn.js and scene3d.js comes in through setCinematicLinks
 // (respawn.js and main.js call it), so it imports neither (#108).
-const links = { startRespawnScene: () => false, respawnFade: () => {}, getFollowPose: () => null, prewarmStreamAt: () => {} };
+import { cinematicLinks as links } from './latehooks.js';
 export function setCinematicLinks(l) { Object.assign(links, l); }
 import { KEYS } from './storagekeys.js';
 import { registerBusyProbe } from './busy.js';

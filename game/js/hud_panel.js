@@ -11,7 +11,8 @@ import { minimapShows } from './mapfilters.js';
 import { GLYPH_LIGHT as GLYPH_CREAM, mapCategory, mapFillColor, FLAT_INK, haloRim, HALO_DARK, HALO_LIGHT, mapPriority, miniIconScale, iconGapPx, badgeShape, badgeGlyphColor, shadeHex, stateLook, BADGE_UNITS } from './mapicons.js';
 import { facilitiesOf } from './facilities.js';
 import { getHorecaForRender } from './horeca.js';
-import { getShopsForRender, drawShopMapIcon, drawShopGlyph, SHOP_TYPES, storyTargetShop, drawStoryShopRing } from './shops.js';
+import { getShopsForRender, drawShopMapIcon, drawShopGlyph, storyTargetShop, drawStoryShopRing } from './shops.js';
+import { SHOP_TYPES } from './shopdata.js';
 import { getOwnedVehiclesForMap } from './ownedvehicles.js';
 import { getPigeonSpotsForRender, drawPigeonMapIcon } from './pigeonspots.js';
 import { getHeliSpotsForRender, drawHeliMapIcon, getHeliRunMarks } from './helirun.js';
@@ -39,6 +40,8 @@ import { ommelandArea } from './ommelandplace.js';
 import { ommelandMapSpots, drawOmmelandMapIcon } from './ommelandmap.js';
 import { VILLAGES } from './ommelandlines.js';
 import { getActiveRoute, getRouteAhead, getRoutes, getUserWaypoint, formatDistance } from './routing.js';
+import { getClockText } from './clocktext.js';
+export { getClockText };
 import { storyWaiting, missionOnMap } from './goal.js';
 import { setGhostBar, ring, pop } from './motion.js';
 import { renderSnapshot, PORTRAIT_ANGLE } from './vehiclepreview.js';
@@ -879,12 +882,6 @@ function updateWanted(world) {
   els.wanted.setAttribute('aria-label', `Gezocht: ${world.wanted} van 5, ${wantedPhase(world) === 'zoeken' ? 'politie zoekt je' : 'achtervolging'}`);
 }
 
-export function getClockText(world) {
-  const h = world && world.dayNight ? world.dayNight.hour : undefined;
-  if (typeof h !== 'number' || !Number.isFinite(h)) return '';
-  const total = Math.floor((((h % 24) + 24) % 24) * 60);
-  return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
-}
 
 let clockShown = null;
 let dateT = 0;

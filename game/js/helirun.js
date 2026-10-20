@@ -3,7 +3,7 @@ import { getScene, prewarmStreamAt } from './scene3d.js';
 import { basketRiderPose } from './basketrider.js';
 import { buildPersonMesh, animatePersonWalk, TAMMO_APPEARANCE } from './models3d_people.js';
 import { helipadInfo, scriptHeli, landHeliOnPad } from './skyprops.js';
-import { isMissionActive, getActiveRace } from './missions.js';
+import { isMissionActive, getActiveRace } from './missionquery.js';
 import { isCinematicActive } from './cinematics.js';
 import { isShopOpen } from './shopui.js';
 import { pushAudioEvent } from './pedgeom.js';

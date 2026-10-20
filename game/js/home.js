@@ -44,7 +44,7 @@ import { openShopMenu, isShopOpen } from './shopui.js';
 import { isCinematicActive } from './cinematics.js';
 import { respawnFade } from './respawn.js';
 import { saveGame } from './savehook.js';
-import { isMissionActive, isNight, getMissionDefs, setHomePlace } from './missions.js';
+import { isMissionActive, isNight, getMissionDefs, setHomePlace } from './missionquery.js';
 import { refreshDayNight } from './daynight.js';
 import { recordStat, unlockAchievement } from './achievements.js';
 import { clearDrunk } from './drunk.js';

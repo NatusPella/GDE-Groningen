@@ -9,7 +9,7 @@ import { KEYS } from './storagekeys.js';
 import { vehicleUpgradeItems, paintItems, getOwnedEntries, spawnOwnedEntry, replacementFee, getHeroLook, vehiclePreviewOf } from './shops.js';
 import { repairCost, platesCost, HERO_REPLACE_FEE } from './economy.js';
 import { spawnHeroCarNear } from './vehicle.js';
-import { markDirty } from './savegame.js';
+import { markDirty } from './savehook.js';
 import { recordStat } from './achievements.js';
 import { startCall } from './phonefeed.js';
 import { facilitiesOf, countryFacilities } from './facilities.js';
