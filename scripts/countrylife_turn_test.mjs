@@ -31,7 +31,7 @@ if (fs.existsSync(new URL('index-provincie.json', root))) {
   const T = await TW.loadTileWorld('world/', { source: new S.MemorySource(files), pool: false, extra: ['index-provincie.json'] });
   if (T) {
     const stride = Number(process.argv[2]) || 20;
-    const keys = Object.keys(T.index.tiles).filter((k, i) => i % stride === 0 && !T.index.tiles[k].ov);
+    const keys = Object.keys(T.index.tiles).filter((k, i) => i % stride === 0);
     let ends = 0, straight = 0, turn = 0, dead = 0;
     const seen = new Set();
     for (const k of keys) {

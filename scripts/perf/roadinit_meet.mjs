@@ -15,7 +15,7 @@ const source = {
 };
 const T = (label, t0) => console.log(label.padEnd(28), (performance.now() - t0).toFixed(0), 'ms');
 let t = performance.now();
-const tw = await TW.loadTileWorld('world/', { source, pool: false, extra: [{ name: 'index-provincie.json', only: (q) => !!q.ov }] });
+const tw = await TW.loadTileWorld('world/', { source, pool: false });
 T('loadTileWorld', t);
 const map = tw.world;
 console.log('roads', map.roads.length, 'buildings', map.buildings.length);

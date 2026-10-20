@@ -11,7 +11,7 @@ const source = {
   async read(file, off, len) { const fd = fs.openSync(path.join(dir, file), 'r'); const b = new Uint8Array(len); fs.readSync(fd, b, 0, len, off); fs.closeSync(fd); return b; },
   async readAll(file) { return new Uint8Array(fs.readFileSync(path.join(dir, file))); },
 };
-const tw = await TW.loadTileWorld('world/', { source, pool: false, extra: [{ name: 'index-provincie.json', only: (q) => !!q.ov }] });
+const tw = await TW.loadTileWorld('world/', { source, pool: false });
 const map = tw.world;
 const DRY = new Set(['major', 'normal', 'minor', 'service']);
 function oldMark(map, r) {

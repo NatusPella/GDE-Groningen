@@ -23,7 +23,7 @@ if (!T) { console.log('SKIP no tile index'); process.exit(0); }
 const map = T.world, idx = T.index;
 V.setGroundMap && V.setGroundMap(map);
 const stride = Number(process.argv[2]) || 40;
-const keys = Object.keys(idx.tiles).filter((k, i) => i % stride === 0 && !idx.tiles[k].ov);
+const keys = Object.keys(idx.tiles).filter((k, i) => i % stride === 0);
 let roads = 0, samples = 0, bad = 0, legacy = 0;
 const blind = Object.create(map);
 blind.roadsNear = () => [];

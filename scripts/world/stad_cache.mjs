@@ -49,14 +49,14 @@ export async function inputStamp() {
   return out.join('\n');
 }
 
-// zelfde argumenten als osmCityLayers (stad_laag.mjs), plus de dekkingsmasker voor de sleutel
-export async function osmCityLayersCached(keys, inside, lagen, data, mask) {
+// zelfde argumenten als osmCityLayers (stad_laag.mjs); de dekking zijn de tegels zelf (in de sleutel via keys)
+export async function osmCityLayersCached(keys, inside, lagen, data) {
   const { osmCityLayers } = await import('./stad_laag.mjs');
   if (process.env.GDE_STAD_CACHE === '0') return osmCityLayers(keys, inside, lagen, data);
   const { isHandBuilding } = await import('./stad_laag.mjs');
   const h = crypto.createHash('sha256');
   h.update(await inputStamp());
-  h.update(JSON.stringify([[...keys], mask, [...lagen].sort(), (data.buildings || []).filter(isHandBuilding)]));
+  h.update(JSON.stringify([[...keys], [...lagen].sort(), (data.buildings || []).filter(isHandBuilding)]));
   const file = path.join(cacheDir(), h.digest('hex').slice(0, 32) + '.json');
   try { return JSON.parse(fs.readFileSync(file, 'utf8')); } catch { /* geen cache: bouwen */ }
   const rows = await osmCityLayers(keys, inside, lagen, data);
