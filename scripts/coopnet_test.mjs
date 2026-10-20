@@ -104,6 +104,13 @@ t('een beloning wordt ook bijgehouden voor de eigen save van de gast', () => {
   s.step(2); N.payGuest(s.hw, 100, 1); s.step(1); N.payGuest(s.hw, 20, 1); s.step(1);
   assert.equal(s.gs[0].gw.coopVerdiend, 120); assert.equal(s.hw.coopVerdiend, undefined, 'de host krijgt zijn geld gewoon in zijn save');
 });
+t('na het vertrek staat de bijgehouden beloning op nul (het geld zit in world.money), zodat een volgende sessie het niet nog eens in de save zet', () => {
+  const s = sessie(1, { gastExtra: [{ money: 40 }] }); s.step(2);
+  N.payGuest(s.hw, 100, 1); s.step(1);
+  const g = s.gs[0].gw; assert.equal(g.coopVerdiend, 100); assert.equal(g.money, 140);
+  N.stopCoopNet(g);
+  assert.equal(g.coopVerdiend, 0); assert.equal(g.money, 140);
+});
 t('beloningen worden begrensd en alleen gasten ontvangen ze', () => {
   const s = sessie(1); s.step(1);
   const gw = s.gs[0].gw;
