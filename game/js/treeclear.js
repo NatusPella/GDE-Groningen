@@ -1,8 +1,9 @@
 // Trees on or at the edge of a carriageway (#324, #334). The OSM tree points of the city lie a few metres off the road, but
 // some sit on the kerb or inside the half width (the old GameMap constructor dropped only those further than 0.3 m in); with a
 // crown of two metres and more they hang over the traffic and their trunk stands in the lane. A tree on the road, or closer
-// than TREE_KERB to its edge, is set beside it (the verge or the pavement, the way the tree row was meant); where there is no
-// room for that (a building, another road, water, the middle of the road) it goes. Pure: map.roadsNear, buildingsNear, isInWater.
+// than TREE_KERB to its edge, is set beside it (the verge or the pavement, the way the tree row was meant). Where there is no
+// room for that (a building, another road, water) a tree that stands beside the road (not on it) stays, as in a narrow median;
+// one on the carriageway goes, as does one on the middle line (no side to put it on). Pure: map.roadsNear, buildingsNear, isInWater.
 
 import { closestPointOnSegment, pointInPolygon, isInWater } from './util.js';
 
@@ -37,9 +38,10 @@ export function treeBesideRoad(map, x, y) {
   const out = e.hw + TREE_KERB + 0.05;
   const nx = x + ((x - e.cp.x) / e.d) * (out - e.d), ny = y + ((y - e.cp.y) / e.d) * (out - e.d);
   const again = nearestEdge(map, nx, ny);
-  if (again && again.m < TREE_KERB - 0.15) return null; // another road (or a bend of this one) is in the way
-  for (const b of map.buildingsNear(nx, ny, 1)) if (pointInPolygon(nx, ny, b.pts)) return null;
-  if (isInWater(map, nx, ny)) return null;
+  const stay = e.m >= 0.05 ? [x, y] : null; // (no room: a tree beside the road keeps its place)
+  if (again && again.m < TREE_KERB - 0.15) return stay; // another road (or a bend of this one) is in the way
+  for (const b of map.buildingsNear(nx, ny, 1)) if (pointInPolygon(nx, ny, b.pts)) return stay;
+  if (isInWater(map, nx, ny)) return stay;
   return [nx, ny];
 }
 
