@@ -72,12 +72,11 @@ const byOsm = (id) => roads().find((r) => r.osm === id);
 // de echte extract (alleen als die er is): onder de drempel
 {
   const dir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../data/cache/province');
-  const main = 'C:/Users/abuis/GIT/GDE-Groningen/data/cache/province';
   const use = fs.existsSync(dir) ? dir : null;
   if (use && process.env.GDE_VIADUCT_FULL) {
     const r = auditProvince(use, {});
     ok(r.open.length <= LIMIT, 'provincie: onscheiden viaducten onder de drempel', `${r.open.length} > ${LIMIT}`);
-  } else console.log(`SKIP provincie-extract (zet GDE_VIADUCT_FULL=1 en data/cache/province; ${main} bestaat alleen in de hoofdmap)`);
+  } else console.log(`SKIP provincie-extract (zet GDE_VIADUCT_FULL=1 en data/cache/province; die map bestaat alleen in de hoofdmap)`);
 }
 console.log(`${n - bad}/${n} ok`);
 process.exit(bad ? 1 : 0);

@@ -154,7 +154,8 @@ body.pigeon-mode #hud .hud-mission.in-mission:not([hidden]) { display: flex !imp
 #hud .hud-mission[data-kind="police"] { --obj: #ff9a9a; }
 #hud .hud-obj-icon { flex: 0 0 16px; width: 16px; height: 16px; fill: var(--obj); filter: drop-shadow(0 0 6px var(--obj)); }
 #hud .hud-obj-text { display: flex; flex-direction: column; align-items: flex-start; min-width: 0; line-height: 1.1; }
-#hud .hud-mission-label { font-family: 'Arial Narrow', Arial, sans-serif; font-size: 20px; letter-spacing: 0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+/* two lines before the ellipsis: at 1280x720 the block is about 300 px wide and most goals ('Stap in de auto: de pinautomaat ligt achterin') were cut off */
+#hud .hud-mission-label { font-family: 'Arial Narrow', Arial, sans-serif; font-size: 20px; letter-spacing: 0.01em; overflow: hidden; text-overflow: ellipsis; max-width: 100%; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; }
 #hud .hud-mission-label:empty { display: none; }
 #hud .hud-mission-progress { margin-top: 2px; font-family: 'Arial Narrow', Arial, sans-serif; font-size: 14px; color: rgba(240, 237, 228, 0.8); white-space: nowrap; }
 #hud .hud-mission-progress:empty { display: none; }

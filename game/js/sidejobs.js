@@ -117,6 +117,44 @@ export function getSideJobOffers(w) {
 
 // --- init -------------------------------------------------------------------
 
+// Two jobs on one spot: only the first could be started, the nearest wins (speeltestlus: eight regional jobs whose
+// region was not loaded yet all stood on one road point in the city, and the city jobs share their centre). The next
+// one steps aside to another road point at least 10 m from every job already placed.
+const SPREAD = [[0, 0]];
+for (const r of [30, 60, 90, 120]) for (let k = 0; k < 8; k++) SPREAD.push([Math.round(Math.cos(k * Math.PI / 4) * r), Math.round(Math.sin(k * Math.PI / 4) * r)]);
+function spreadSpot(map, x, y, taken) {
+  const free = (q) => !taken.some((t) => dist(t.x, t.y, q.x, q.y) < 10);
+  // first another road point (the drivable roads near a pedestrian centre are few), then simply open ground
+  for (const [dx, dy] of SPREAD) {
+    const rp = map.nearestRoadPoint ? map.nearestRoadPoint(x + dx, y + dy, 60, true) : null;
+    if (rp && free(rp)) return { x: rp.x, y: rp.y };
+  }
+  for (const [dx, dy] of SPREAD) {
+    const q = { x: x + dx, y: y + dy };
+    if (free(q) && !isInWater(map, q.x, q.y)) return q;
+  }
+  return { x, y };
+}
+
+// A job whose region had no road at init stands in the city; once the region's tiles are in, it moves home.
+let reanchorIn = 5;
+function reanchor(w, dt) {
+  if (ctx || (reanchorIn -= dt) > 0) return;
+  reanchorIn = 5;
+  for (const s of spots) {
+    if (!s.fallback) continue;
+    let at = null;
+    try { at = s.job.anchor(w.map); } catch (e) { continue; }
+    if (!at || at.fallback) continue;
+    const open = isInWater(w.map, at.x, at.y) ? w.map.findOpenSpawn(at.x, at.y, 60) : { x: at.x, y: at.y };
+    if (!open) continue;
+    const free = spreadSpot(w.map, open.x, open.y, spots.filter((o) => o !== s));
+    const [x, y] = w.map.escapeBuilding(free.x, free.y, 0.5);
+    s.x = x; s.y = y; s.fallback = false;
+    if (s.mesh) s.mesh.position.set(x, 0, y);
+  }
+}
+
 export function initSideJobs(w) {
   world = w;
   const scene = getScene();
@@ -127,8 +165,9 @@ export function initSideJobs(w) {
     if (!at) continue;
     const open = isInWater(w.map, at.x, at.y) ? w.map.findOpenSpawn(at.x, at.y, 60) : { x: at.x, y: at.y };
     if (!open) continue;
-    const [x, y] = w.map.escapeBuilding(open.x, open.y, 0.5);
-    const spot = { job, x, y, mesh: null };
+    const free = spreadSpot(w.map, open.x, open.y, spots);
+    const [x, y] = w.map.escapeBuilding(free.x, free.y, 0.5);
+    const spot = { job, x, y, mesh: null, fallback: !!at.fallback };
     if (scene) { spot.mesh = buildBadge3D(job, x, y); scene.add(spot.mesh); }
     spots.push(spot);
   }
@@ -353,6 +392,7 @@ export function updateSideJobs(dt, w) {
   world = w;
   if (window.__debug && !window.__debug.sidejobs) window.__debug.sidejobs = debugApi;
   animateBadges(w);
+  reanchor(w, dt);
   const c = ctx;
   if (!c) { publish(); updateBeacon(w); return; }
   if (w.pigeonMode) { endShift('quit', 'Een duif kan geen dienst draaien'); return; }

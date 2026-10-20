@@ -12,6 +12,7 @@ import { inProvinceData } from './provinceworld.js';
 import { pushOutOfPlan } from './countryplan.js';
 import { buildingAt, boxOf, pushOutOfBuildings, roadNear, roadKind, withTiles, waterGap } from './tileplace.js';
 import { isInWater } from './util.js';
+import { regionAt } from './regions.js';
 import { SpatialGrid } from './spatialgrid.js';
 import { FACILITY_KIND, REPLACED_KINDS } from './shopbind.js';
 
@@ -219,12 +220,16 @@ function nearestIn(key, list, x, y, maxD) {
   return best || nearestPlain(list, x, y, maxD);
 }
 
+// A respawn site lies in the province: past the edge (Paterswolde, De Punt in Drenthe) the tiles
+// have no road to park the car on and the player would arrive at the edge of the world (#285).
+const inProvince = (f) => f.city || regionAt(f.x, f.y).id === 'groningen';
+
 let emergencyList = null, anyMedList = null;
 function medical() {
   if (!emergencyList || emergencyList.v !== FAC.all) {
-    emergencyList = facilitiesOf(['hospital', 'gppost']).filter((f) => f.emergency);
+    emergencyList = facilitiesOf(['hospital', 'gppost']).filter((f) => f.emergency && inProvince(f));
     emergencyList.v = FAC.all;
-    anyMedList = facilitiesOf(['hospital', 'gppost', 'doctors', 'ambulance']);
+    anyMedList = facilitiesOf(['hospital', 'gppost', 'doctors', 'ambulance']).filter(inProvince);
   }
   return [emergencyList, anyMedList];
 }
@@ -249,7 +254,7 @@ export function nearestFacility(kind, x, y, { maxD = Infinity } = {}) {
     return nearestPlain(list, x, y, maxD);
   }
   if (kind === 'police') {
-    const f = FAC.ready ? nearestIn('police', facilitiesOf('police'), x, y, maxD) : null;
+    const f = FAC.ready ? nearestIn('police', facilitiesOf('police').filter(inProvince), x, y, maxD) : null;
     if (f) return f;
     return nearestPlain(((meta || {}).policeStations || []).map((s) => ({ ...s, kind: 'police' })), x, y, maxD);
   }

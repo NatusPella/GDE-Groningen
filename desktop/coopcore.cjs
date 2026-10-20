@@ -173,10 +173,12 @@ function createCoopCore(opts) {
     if (!s || s.destroyed || !mods) return false;
     try { s.write(Buffer.from(mods.pairing.frame(bytes))); return true; } catch (e) { return false; }
   }
-  function close(id) { const s = socks.get(id); if (s) { try { s.destroy(); } catch (e) { /* weg */ } } }
+  // netjes sluiten: wat nog verstuurd moet worden (het afmelden van een gast) gaat eerst weg; daarna is het dicht
+  const sluit = (s) => { try { s.end(); const t = setTimeout(() => { try { s.destroy(); } catch (e) { /* weg */ } }, 400); if (t.unref) t.unref(); } catch (e) { try { s.destroy(); } catch (e2) { /* weg */ } } };
+  function close(id) { const s = socks.get(id); if (s) sluit(s); }
 
   async function stop() {
-    for (const s of [...socks.values()]) { try { s.destroy(); } catch (e) { /* weg */ } }
+    for (const s of [...socks.values()]) sluit(s);
     socks.clear();
     if (server) { try { server.close(); } catch (e) { /* weg */ } server = null; }
     if (mapping) { const mp = mapping; mapping = null; try { await mp.close(); } catch (e) { /* router weg */ } }

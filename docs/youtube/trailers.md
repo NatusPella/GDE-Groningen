@@ -62,7 +62,7 @@ GDE Groningen – Zomer vol misdaad is een gratis open-wereldgame in een low-pol
 
 Gratis · Windows en Mac · Nederlands · singleplayer · offline.
 
-Credits: gemaakt door NatusPella. Muziek en beeld zijn zelfgemaakt; de gesproken regels komen uit de game en zijn vooraf gemaakt met Google Gemini (geen AI tijdens het spelen).
+Credits: gemaakt door NatusPella. Alle beelden zijn opgenomen in de game; muziek en gesproken regels zijn vooraf gemaakt met Google Gemini (geen AI tijdens het spelen), verhaal en dialogen zijn van de maker.
 Bronnen: kaartdata © OpenStreetMap-bijdragers (ODbL); gebouwhoogtes uit 3D BAG (TU Delft/3DGI; BAG van het Kadaster en AHN, CC0); three.js (MIT).
 
 GDE staat voor Grootste Diefstal Ever. Een gratis, niet-commerciële parodie, niet gelieerd aan of goedgekeurd door een andere uitgever. Namen, personages, bedrijven en gebeurtenissen zijn verzonnen; echte straten en openbare gebouwen zijn alleen het decor.

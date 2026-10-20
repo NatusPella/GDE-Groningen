@@ -5,13 +5,15 @@
 // scripts/overlayrules_test.mjs.
 
 // Rang: hoger wint. Zelfde rang houdt elkaar niet tegen.
-export const RANK = { resultaat: 5, keuze: 4, duelbalk: 3, prestatie: 2, naamkaart: 1, locatie: 1 };
+export const RANK = { resultaat: 5, keuze: 4, duelbalk: 3, prestatie: 2, wijkkaart: 1.5, naamkaart: 1, locatie: 1 };
 
 // Wat een actieve overlay tegenhoudt.
 export const HOLDS = {
-  resultaat: ['naamkaart', 'locatie', 'prestatie', 'duelbalk'],
-  keuze: ['naamkaart', 'locatie', 'prestatie'],
-  duelbalk: ['prestatie', 'locatie'],
+  resultaat: ['wijkkaart', 'naamkaart', 'locatie', 'prestatie', 'duelbalk'],
+  keuze: ['wijkkaart', 'naamkaart', 'locatie', 'prestatie'],
+  duelbalk: ['prestatie', 'locatie', 'wijkkaart'],
+  // de wijkkaart (grote wijknaam linksonder) en de naamkaart staan op dezelfde plek: één tegelijk (#292)
+  wijkkaart: ['naamkaart', 'locatie'],
 };
 
 // active: een lijst of Set met namen van wat nu in beeld is. Geeft de Set van wat moet wachten.

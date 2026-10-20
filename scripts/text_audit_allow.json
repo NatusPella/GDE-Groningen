@@ -211,6 +211,79 @@
       "term": "Trijntje het Rikus",
       "file": "gronings_spoken.json",
       "why": "Gronings 'het' = heeft; geen persoonsnaam (Oma Trijntje en Rikus zijn verzonnen), alleen de gesproken versie"
+    },
+    {
+      "rule": "merk",
+      "term": "vero moda",
+      "file": "shopbind.js",
+      "why": "blokkadelijst: ketens die juist NIET in beeld mogen komen (CHAINS wordt herkend en vervangen door een verzonnen naam)"
+    },
+    {
+      "rule": "merk",
+      "term": "jack & jones",
+      "file": "shopbind.js",
+      "why": "blokkadelijst: ketens die juist NIET in beeld mogen komen (CHAINS wordt herkend en vervangen door een verzonnen naam)"
+    },
+    {
+      "rule": "merk",
+      "term": "ici paris",
+      "file": "shopbind.js",
+      "why": "blokkadelijst: ketens die juist NIET in beeld mogen komen (CHAINS wordt herkend en vervangen door een verzonnen naam)"
+    },
+    {
+      "rule": "merk",
+      "term": "leen bakker",
+      "file": "shopbind.js",
+      "why": "blokkadelijst: ketens die juist NIET in beeld mogen komen (CHAINS wordt herkend en vervangen door een verzonnen naam)"
+    },
+    {
+      "rule": "merk",
+      "term": "Rockstar",
+      "file": "credits.js",
+      "why": "de parodie-disclaimer noemt de uitgever bewust, om te zeggen dat er geen verband is"
+    },
+    {
+      "rule": "merk",
+      "term": "Take-Two",
+      "file": "credits.js",
+      "why": "de parodie-disclaimer noemt de uitgever bewust, om te zeggen dat er geen verband is"
+    },
+    {
+      "rule": "merk",
+      "term": "Intel",
+      "file": "testmenulogic.js",
+      "why": "waarde van de testvlag gpu=Intel UHD (profiel van zwakke videokaarten); alleen in het ontwikkelaarsmenu, nooit in het spel"
+    },
+    {
+      "rule": "anglicisme",
+      "term": "gameplay",
+      "file": "devflags.js",
+      "why": "waarde van de ontwikkelvlag cut=gameplay (montagevariant van de trailer); alleen in de ontwikkelaarsuitleg"
+    },
+    {
+      "rule": "anglicisme",
+      "term": "Gameplay",
+      "file": "script.json",
+      "ctx": "Gameplay:",
+      "why": "regieaanwijzing voor de schrijvers in `regie`; wordt alleen gelezen voor naamkaarten (storytext.js cardKeys) en nooit getoond of ingesproken"
+    },
+    {
+      "rule": "url",
+      "term": "http://schemas.xmlsoap.org/soap/envelope/",
+      "file": "upnp.js",
+      "why": "XML-naamruimte van het UPnP-protocol (samen spelen, poort openen); geen verbinding en geen tekst voor de speler"
+    },
+    {
+      "rule": "url",
+      "term": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+      "file": "index.html",
+      "why": "importmap van de webversie: three.js van een CDN (bekend privacypunt, docs/PRIVACY-EN-CREDITS.md en IARC-ANTWOORDEN.md); de Electron-versie bundelt het"
+    },
+    {
+      "rule": "url",
+      "term": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/",
+      "file": "index.html",
+      "why": "importmap van de webversie: three.js-addons van een CDN, zie hierboven"
     }
   ]
 }
