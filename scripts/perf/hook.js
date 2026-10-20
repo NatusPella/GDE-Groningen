@@ -62,7 +62,7 @@
     const avg = (a) => a.length ? +(a.reduce((x, y) => x + y, 0) / a.length).toFixed(2) : 0;
     return {
       frames: dts.length, avg: avg(dts), p95: pct(dts, 0.95), p99: pct(dts, 0.99), max: pct(dts, 1),
-      cpuAvg: avg(cpus), cpuP95: pct(cpus, 0.95), cpuP99: pct(cpus, 0.99),
+      p25: pct(dts, 0.25), p50: pct(dts, 0.5), cpuP25: pct(cpus, 0.25), cpuP50: pct(cpus, 0.5), cpuAvg: avg(cpus), cpuP95: pct(cpus, 0.95), cpuP99: pct(cpus, 0.99),
       gpuAvg: H.ext ? +(H.gpuSum / Math.max(1, dts.length)).toFixed(2) : null,
       longTasks: H.longTasks.length, longMax: H.longTasks.length ? Math.max(...H.longTasks) : 0,
       over50: dts.filter((d) => d > 50).length, over100: dts.filter((d) => d > 100).length,

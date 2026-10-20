@@ -76,14 +76,14 @@ De stad is gebouwd uit OpenStreetMap: de echte straten, grachten, bruggen en geb
 [*]Alles ingesproken in het Nederlands, met een flinke scheut Gronings. "Bist betoeterd?"
 [*]De complimentenladder: Ow, Goud, Valt mie nait of. Hoger kom je zelden.
 [*]Twee radiozenders, het nieuws van Kiekdoar, en een torenwachter die "alleen meldt".
-[*]Niemand gaat dood in Grunn: wie geraakt wordt, ligt even met sterretjes en scheldt daarna.
+[*]Satire met een rauwe rand: burgers en agenten kunnen sneuvelen, met bloed en rondvliegende ledematen. Dat is in de instellingen uit te zetten ("Bloed en ledematen"). Het spel is 18+.
 [/list]
 
 [h2]Gratis, offline, zonder gedoe[/h2]
 [list]
 [*]Helemaal gratis. Geen aankopen in de game, geen lootboxes, geen advertenties.
-[*]Singleplayer en offline. Geen account, geen tracking.
-[*]Toetsenbord en muis of controller (Xbox, PlayStation, Steam Deck), alles opnieuw in te delen.
+[*]Singleplayer en offline te spelen. Geen account, geen tracking. Samen spelen met een kamercode kan ook (internet nodig; het spel vraagt eerst toestemming; geen tekstchat).
+[*]Toetsenbord en muis of controller, ook op de Steam Deck; alles opnieuw in te delen.
 [*]Ondertitels in vier maten, kleurenblinde paletten, en een benchmark die zegt welke instelling bij je pc past.
 [/list]
 
@@ -118,14 +118,14 @@ The city is built from OpenStreetMap: the real streets, canals, bridges and buil
 [*]Fully voiced in Dutch with a generous splash of Gronings dialect. [b]The game is in Dutch only[/b], with Dutch subtitles.
 [*]The Groningen compliment ladder: "Ow", "Goud", "Valt mie nait of". It rarely goes higher.
 [*]Two radio stations, the Kiekdoar news, and a tower warden who "just reports".
-[*]Nobody dies in Grunn: whoever gets hit lies down for a moment, sees stars, then swears at you.
+[*]Satire with a raw edge: bystanders and police can be killed, with blood and flying body parts. You can turn this off in the settings ("Blood and limbs"). The game is rated 18+.
 [/list]
 
 [h2]Free, offline, no fuss[/h2]
 [list]
 [*]Completely free. No in-game purchases, no loot boxes, no ads.
-[*]Single-player and offline. No account, no tracking.
-[*]Keyboard and mouse or controller (Xbox, PlayStation, Steam Deck), fully rebindable.
+[*]Playable single-player and offline. No account, no tracking. Playing together with a room code is optional (needs internet; the game asks permission first; no text chat).
+[*]Keyboard and mouse or controller, also on the Steam Deck; fully rebindable.
 [*]Four subtitle sizes, colour-blind palettes, and a benchmark that suggests the right settings for your PC.
 [/list]
 
@@ -145,13 +145,13 @@ The city is built from OpenStreetMap: the real streets, canals, bridges and buil
 | Auto, brommer, fiets, boot, skûtsje, trein, helikopter en duif | Car, moped, bike, boat, sailing barge, train, helicopter and pigeon |
 | Zes bijbaantjes en minigames op de kermis | Six side jobs and fairground minigames |
 | De stad en het Ommeland, met dag, nacht en zomerweer | The city and the countryside, with day, night and summer weather |
-| 102 prestaties | 102 achievements |
+| 187 prestaties in het spel | 187 in-game achievements |
 | Controller, Steam Deck, vrij in te delen toetsen | Controller and Steam Deck support, rebindable controls |
 | Gratis, offline, geen aankopen, geen data | Free, offline, no purchases, no data collected |
 
-(De 102 prestaties zitten in de game; Steam-achievements zijn een aparte
-ROADMAP-optie via steamworks.js. Noem "Steam Achievements" pas als die er
-zijn.)
+(De 187 prestaties zitten in de game; Steam-achievements zijn er nog niet:
+de tabel staat klaar in `steam/achievements.json`, maar het spel heeft geen
+Steam-koppeling. Noem "Steam Achievements" pas als die er zijn.)
 
 ---
 
@@ -272,11 +272,11 @@ Uit [`docs/LEEFTIJD.md`](../LEEFTIJD.md). De game is **18+**: verwacht
 
 NL:
 
-> Grof geweld met bloed en rondvliegende ledematen (Carmageddon-stijl, uit te zetten in de instellingen): vuurwapens, vechtpartijen en explosies tegen politie en voorbijgangers, die daarbij doodgaan. Auto's stelen en mensen aanrijden. Gesimuleerd gokken met kraskaarten en loten, alleen met geld uit de game. Alcohol in kroegen, met een dronken effect. Licht grof taalgebruik in het Gronings en wat grove humor. Geen tabak, geen drugs, geen aankopen met echt geld.
+> Grof geweld met bloed en rondvliegende ledematen (uit te zetten in de instellingen): vuurwapens, vechtpartijen en explosies tegen politie en voorbijgangers, die daarbij doodgaan. Auto's stelen en mensen aanrijden. Gesimuleerd gokken met kraskaarten en loten, alleen met geld uit de game. Alcohol in kroegen, met een dronken effect. Licht grof taalgebruik in het Gronings en wat grove humor. Geen tabak, geen drugs, geen aankopen met echt geld.
 
 EN:
 
-> Intense violence with blood and flying body parts (Carmageddon-style, can be turned off in the settings): firearms, fist fights and explosions against police and bystanders, who can be killed. Car theft and running people over. Simulated gambling with scratch cards and lottery tickets, using in-game money only. Alcohol in pubs, with a drunk effect. Mild language in Gronings dialect and some crude humour. No tobacco, no drugs, no real-money purchases.
+> Intense violence with blood and flying body parts (can be turned off in the settings): firearms, fist fights and explosions against police and bystanders, who can be killed. Car theft and running people over. Simulated gambling with scratch cards and lottery tickets, using in-game money only. Alcohol in pubs, with a drunk effect. Mild language in Gronings dialect and some crude humour. No tobacco, no drugs, no real-money purchases.
 
 **Verwachte labels:** PEGI 18 (Geweld, Gokken, Alcohol), USK 18 (Gewalt,
 Glücksspielelemente, Alkohol), IARC/ESRB-stijl Blood and Gore, Intense

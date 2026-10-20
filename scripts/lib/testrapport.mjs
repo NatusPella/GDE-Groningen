@@ -8,6 +8,8 @@ export const FASEN = ['licht', 'zwaar', 'electron'];
 export const FASE_NAAM = { licht: 'Licht (modules, audits, tests)', zwaar: 'Zwaar (wereldchecks)', electron: 'Electron (smoke, verhaal, bot, beelden)' };
 export const MENS_ZIN = 'Niemand heeft dit rapport of deze beelden met eigen ogen bekeken: een geslaagde beeldcheck zegt alleen dat een beeld niet zwart, leeg of ongeldig is en niet sterk afwijkt van de vorige run, niet dat het er goed uitziet.';
 
+import { OORZAKEN } from './testoorzaken.mjs';
+
 export const isFout = (s) => s === 'FAIL' || s === 'TIMEOUT';
 
 // Maakt een foutregel vergelijkbaar tussen runs: tijden, getallen, tijdelijke mappen en hex-ids eruit.
@@ -125,6 +127,31 @@ export function beoordeelFrames(stats, prevStats, { minFps = 3, traagFactor = 1.
   return { status: 'PASS', detail: tekst + (warn ? ` (vorige run ${prevStats.fps} fps)` : ''), warn };
 }
 
+// Poort zwarte wereld / consolefouten per frame: de JSON van scripts/perf/wereldpoort.js ('[perf-script] {...}').
+export function parseWereldpoort(text) {
+  for (const l of String(text || '').split(/\r?\n/)) {
+    const m = /^\[perf-script\]\s*(\{.*\})\s*$/.exec(l.trim());
+    if (!m) continue;
+    try { const o = JSON.parse(m[1]); if (o && typeof o.meshes === 'number') return o; } catch { /* volgende regel */ }
+  }
+  return null;
+}
+
+// -> { status, detail }: FAIL bij geen spel, geen scène, een bijna lege of niet getekende wereld, NaN-meshes of een
+// fout in meer dan een paar frames (een fout per frame is een gebroken build, geen vondst).
+export function beoordeelWereldpoort(rep, { minMeshes = 300, maxFramesMetFout = 3 } = {}) {
+  if (!rep) return { status: 'FAIL', detail: 'geen uitslag van het poortscript in de uitvoer' };
+  const f = [];
+  if (!rep.gestart) f.push('het spel startte niet');
+  if (!rep.scene) f.push('geen scène');
+  if (rep.meshes < minMeshes) f.push(`bijna lege wereld (${rep.meshes} zichtbare meshes, minimaal ${minMeshes})`);
+  if (rep.tris === 0 || rep.calls === 0) f.push(`er wordt niets getekend (${rep.tris} driehoeken, ${rep.calls} drawcalls)`);
+  if (rep.nan > 0) f.push(`NaN-geometrie in ${rep.nan} meshes`);
+  if (rep.framesMetFout > maxFramesMetFout) f.push(`fouten in ${rep.framesMetFout} van ${rep.frames} frames (${rep.foutenTotaal} in totaal): ${(rep.voorbeeld || []).join(' | ').slice(0, 300)}`);
+  if (f.length) return { status: 'FAIL', detail: f.join('; ') };
+  return { status: 'PASS', detail: `${rep.meshes} zichtbare meshes (de laatste renderpas telt ${rep.tris} driehoek en ${rep.calls} aanroep: de nabewerking), fouten in ${rep.framesMetFout} van ${rep.frames} frames` };
+}
+
 // ---------------------------------------------------------------- beelden
 
 // Combineert de analyse van één beeld met de vorige handtekening. -> { status, detail, warn, diff }
@@ -193,6 +220,15 @@ export function renderMarkdown(report) {
     if (slecht.length) {
       o.push('### Mislukt', '', '| Item | Status | Duur | Wat |', '|---|---|---|---|');
       for (const i of slecht) o.push(`| ${cel(i.id)} | ${i.status}${d.nieuweFouten.includes(i.id) ? ' (nieuw)' : ''} | ${sec(i.secs)} | ${cel(i.detail).slice(0, 220)} |`);
+      o.push('');
+      o.push('Oorzaak per mislukt item (register in scripts/lib/testoorzaken.mjs):', '');
+      for (const i of slecht) o.push(`- \`${i.id}\`: ${OORZAKEN[i.id] ? `${OORZAKEN[i.id].soort}, ${OORZAKEN[i.id].tekst}` : 'oorzaak nog niet onderzocht'}`);
+      o.push('');
+    }
+    const bekend = p.items.filter((i) => OORZAKEN[i.id] && !isFout(i.status));
+    if (bekend.length) {
+      o.push('### Eerder instabiel of onterecht mislukt (nu niet)', '');
+      for (const i of bekend) o.push(`- \`${i.id}\` (${i.status}): ${OORZAKEN[i.id].soort}, ${OORZAKEN[i.id].tekst}`);
       o.push('');
     }
     const overgeslagen = p.items.filter((i) => i.status === 'SKIP');

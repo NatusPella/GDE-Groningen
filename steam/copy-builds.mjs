@@ -5,13 +5,16 @@
 //
 //   node steam/copy-builds.mjs            every platform that was built
 //   node steam/copy-builds.mjs linux mac  only these
+//
+// GDE_STEAM_DIST / GDE_STEAM_CONTENT point at another dist/ and content/ folder
+// (steam_test.mjs does a trial run in a temp folder with them).
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
-const DIST = path.join(HERE, '..', 'desktop', 'dist');
-const CONTENT = path.join(HERE, 'content');
+const DIST = process.env.GDE_STEAM_DIST ? path.resolve(process.env.GDE_STEAM_DIST) : path.join(HERE, '..', 'desktop', 'dist');
+const CONTENT = process.env.GDE_STEAM_CONTENT ? path.resolve(process.env.GDE_STEAM_CONTENT) : path.join(HERE, 'content');
 const APP = 'GDE Groningen';
 
 // Steam installs the unpacked app, not the installer/portable/AppImage
@@ -41,6 +44,9 @@ for (const name of platforms) {
   // keep the symlinks inside the .app (Electron frameworks) and the file modes
   fs.cpSync(src, only ? path.join(dest, only) : dest, { recursive: true, verbatimSymlinks: true });
   console.log(`${name}: ${path.relative(process.cwd(), dest)} (launch: ${launch})`);
+  // a Windows disk keeps no Unix file modes: Electron's helpers and the launch file of a mac or linux
+  // depot then arrive without the executable bit. Build and upload those two depots on that OS.
+  if (process.platform === 'win32' && name !== 'windows') console.log(`  let op: ${name} is op Windows gekopieerd; de uitvoerbare bestanden missen dan hun mode. Kopieer en upload dit depot vanaf ${name === 'mac' ? 'de Mac' : 'Linux of de Mac'} (steam/README.md).`);
   copied++;
 }
 if (!copied) { console.error('Nothing copied: build first (desktop: npm run dist:mac / dist:win / dist:linux).'); process.exit(1); }

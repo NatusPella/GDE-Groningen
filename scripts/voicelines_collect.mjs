@@ -28,6 +28,7 @@ const src = (f) => fs.readFileSync(path.join(JS, f), 'utf8');
 // Balanced literal ([...] or {...}) starting at the first bracket after `marker`.
 // A table that is no longer exported (#103) is found without its 'export '.
 function literalAt(text, marker, from = 0) {
+  // dead_code.mjs haalt `export` weg bij tabellen die alleen intern gebruikt worden: zoek dan zonder
   let m = text.indexOf(marker, from);
   if (m < 0 && marker.startsWith('export ')) m = text.indexOf(marker.slice(7), from);
   if (m < 0) throw new Error(`marker not found: ${marker}`);

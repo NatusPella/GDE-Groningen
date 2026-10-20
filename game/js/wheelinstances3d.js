@@ -1,4 +1,5 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import { perfOff } from './devflags.js';
 
 // Vehicle wheels as instances: every car and bike keeps its own wheel meshes
 // (spin, steer, skid marks read them) but they are taken off the render
@@ -71,7 +72,8 @@ export function addVehicleWheels(group, frustum = null) {
   const wheels = group.userData.wheels;
   if (!wheels || !wheels.length) return;
   const ok = group.visible && !!group.parent && !(frustum && !frustum.intersectsSphere(_sphere.set(group.position, 8)));
-  group.updateMatrixWorld(true);
+  // only a vehicle whose wheels are drawn needs its matrices now (the rest of the street is not walked twice)
+  if (ok || perfOff('wielen')) group.updateMatrixWorld(true);
   for (const w of wheels) {
     const m = w.material;
     if (!w.isMesh || Array.isArray(m) || m.transparent || !w.parent) { w.layers.set(0); continue; }
