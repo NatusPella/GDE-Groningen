@@ -1,6 +1,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { isInWater, WATER_Y } from './util.js';
-import { wallOnPath, wreckVehicle } from './combat.js';
+import { wallOnPath } from './wallpath.js';
+import { wreckVehicle } from './vehiclewreck.js';
 import { blastPeople, soakPed } from './pedestrians.js';
 import { propsInRadius, breakProp } from './breakables.js';
 import { buildVehicleExplosionMesh3D, updateVehicleExplosionMesh3D, VEHICLE_FIRE_HEALTH_THRESHOLD } from './vehicle.js';

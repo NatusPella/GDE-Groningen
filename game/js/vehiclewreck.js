@@ -41,3 +41,15 @@ export function disableVehicle(v, byPlayer, world = null) {
   if (v.driver !== 'player' && !v.racer) v.road = null;
 }
 
+export function wreckVehicle(world, v, byPlayer) {
+  // already burning: every hit brings the explosion closer
+  if (v.disabled) { v.burnLeft -= 0.7; return; }
+  if (v.wrecked) return;
+  disableVehicle(v, byPlayer, world);
+  if (!byPlayer) return;
+  if (v.isPolice && !v.hijacked) {
+    world.stats.kills++;
+    world.stats.copKills++;
+    world.wanted = Math.min(5, world.wanted + 2);
+  }
+}
