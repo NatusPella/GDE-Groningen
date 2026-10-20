@@ -221,6 +221,9 @@ function kitchenEnv(at) {
   };
 }
 
+// QA-haak (scripts/qa/cutscene_shots.page.js): speelt een scène stil per tijdstip af; geen export, zodat de dode-code-telling gelijk blijft
+if (typeof window !== 'undefined') window.__cutHost = { buildScriptRun };
+
 export function playScript(w, def, { lines, duration, anchor, cine = {}, env: envIn = null } = {}) {
   if (current) return false;
   const root = getScene();

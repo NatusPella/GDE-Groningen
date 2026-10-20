@@ -24,7 +24,10 @@ const TALL_OK = new Set(['apartments', 'church', 'chapel', 'cathedral', 'tower',
 const HALLISH = new Set(['house', 'detached', 'bungalow', 'farm', 'farmhouse', 'farm_auxiliary', 'barn', 'stable', 'cowshed', 'livestock', 'outbuilding', 'yes', 'industrial', 'warehouse', 'shed', 'service']);
 function outliers(b, area) {
   const kinds = [];
-  if (b.hm > 8 && b.hm / Math.sqrt(Math.max(area, 1)) > 2.2 && !['tower', 'chimney', 'silo', 'storage_tank', 'mast', 'windmill'].includes(b.type) && !(b.hsrc === '3dbag' && b.hm / Math.sqrt(area) > 8)) kinds.push('slender');
+  // a height a mapper wrote down or the 3D BAG measured is a statement about that building, not a guess (buildingcap.js
+  // heightLimits, #179): the audit looks for guessed heights that the cap should have trimmed
+  if (b.hsrc === 'osm_height' || b.hsrc === 'osm_levels' || b.hsrc === '3dbag') return kinds;
+  if (b.hm > 8 && b.hm / Math.sqrt(Math.max(area, 1)) > 2.2 && !['tower', 'chimney', 'silo', 'storage_tank', 'mast', 'windmill', 'church', 'chapel', 'cathedral', 'water_tower', 'lighthouse', 'castle', 'apartments'].includes(b.type) && !(b.hsrc === '3dbag' && b.hm / Math.sqrt(area) > 8)) kinds.push('slender');
   if (HALLISH.has(b.type) && area >= 500 && b.h > 3) kinds.push('hall-with-many-storeys');
   if (b.hm > 16 && !TALL_OK.has(b.type) && !(b.type === 'yes' && b.name)) kinds.push('tall-low-class');
   return kinds;
