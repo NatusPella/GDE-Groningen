@@ -41,13 +41,15 @@ async function act(name, ms = 8000) {
   await sleep(250);
 }
 const shot = (name) => { console.log('[capture] ' + name); };
+// Escape zoals een speler (één toets via het invoercontract van de spelbot; key() zou window én document raken en dubbel tellen)
+const esc = async () => { if (window.__bot) await window.__bot.press('escape', 120); else key('Escape', 'Escape'); };
 const openSamen = async () => { // het pauzemenu, onderdeel Samen (zoals een speler)
-  key('Escape', 'Escape');
+  await esc();
   await until(() => document.querySelector('.ra[data-goto="samen"]'), 8000, 'rail-knop Samen');
   document.querySelector('.ra[data-goto="samen"]').click();
   await until(() => panel() && !panel().closest('[hidden]'), 5000, 'paneel Samen');
 };
-const closeMenu = async () => { for (let i = 0; i < 4; i++) { key('Escape', 'Escape'); await sleep(900); if (!(W() || {}).paused) break; } };
+const closeMenu = async () => { for (let i = 0; i < 5; i++) { if (!(W() || {}).paused) break; await esc(); await sleep(900); } };
 
 // ---- wat deze instantie ziet (elke seconde)
 let state = { allIn: false, phase: '' };
@@ -283,6 +285,40 @@ const PHASES = {
     ev('pointermove', 150, 450 - R); await sleep(s * 250);
     ev('pointerup', 150, 450); await sleep(s * 250);
     log('touch-los', { axis: W().input && W().input.padAxis ? W().input.padAxis.slice() : null });
+  },
+  // een ritje: de host zet een voertuig naast zich neer (cheat 'voertuig hier' of een voertuig in de buurt), stapt in en rijdt; Tessa (de gast)
+  // stapt via de volg-AI als passagier mee. De gasten kijken: staat Tessa als passagier, rijdt het voertuig mee, stapt ze weer uit?
+  async rit({ s = 24 }) {
+    if (CFG.role !== 'host') { await sleep(s * 1000); return; }
+    const w = W(), B = window.__bot;
+    let via = '';
+    try {
+      const Ch = await imp('cheats');
+      const keuzes = Ch.spawnChoices(w) || [];
+      const kies = keuzes.find((c) => c.kind === 'car') || keuzes[0];
+      const res = kies ? Ch.spawnVehicleHere(kies.id, w) : { ok: false, text: 'geen keuze' };
+      log('rit-spawn', { keuzes: keuzes.length, kies: kies && kies.id, res: { ok: res.ok, text: res.text } });
+      if (res.ok) via = 'cheat';
+    } catch (e) { log('rit-spawn', { fout: String(e.message || e) }); }
+    if (!via) {
+      const v = (w.vehicles || []).filter((x) => x && !x.isBoat && !x.isHeli && !x.wrecked).sort((a, b) => Math.hypot(a.x - w.player.x, a.y - w.player.y) - Math.hypot(b.x - w.player.x, b.y - w.player.y))[0];
+      if (v) { w.player.x = v.x - 2.5; w.player.y = v.y; via = 'dichtstbij'; }
+    }
+    await sleep(1500);
+    const voor = w.player.inVehicle ? 1 : 0;
+    for (let i = 0; i < 4 && !w.player.inVehicle; i++) { await B.press('e', 150); await sleep(900); }
+    log('rit-in', { via, ingestapt: !!w.player.inVehicle, voor, tessa: !!w.companion.inVehicle });
+    await sleep(2500);
+    log('rit-passagier', { tessa: !!w.companion.inVehicle, host: !!w.player.inVehicle });
+    shot('rit-host');
+    if (w.player.inVehicle) {
+      const x0 = w.player.x, y0 = w.player.y;
+      B.stick(0, -1); await sleep((s - 10) * 1000); B.stick(0, 0); await sleep(1200);
+      log('rit-gereden', { m: Math.round(Math.hypot(w.player.x - x0, w.player.y - y0)), tessa: !!w.companion.inVehicle });
+      shot('rit-host-onderweg');
+      await B.press('e', 150); await sleep(2500);
+      log('rit-uit', { host: !!w.player.inVehicle, tessa: !!w.companion.inVehicle });
+    } else await sleep((s - 10) * 1000);
   },
   // de gast verlaat het spel via het menu (zoals een speler)
   async verlaat({ wie = 'gast2' }) {

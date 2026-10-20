@@ -35,7 +35,7 @@ export function mountLobby(root, hooks, opts = {}) {
 
   function draw() {
     const v = view(state);
-    const wensen = v.wensen ? `<div class="coop-wensen" role="group" aria-label="Kies een figuur">${v.wensen.map((w) => `<button type="button" class="ss-item" data-act="${w.act}" aria-pressed="${w.gekozen}"><span class="ss-label"><span style="color:${w.kleur}" aria-hidden="true">●</span> ${esc(w.naam)}${w.gekozen ? ' ✓' : ''}</span></button>`).join('')}</div>` : '';
+    const wensen = v.wensen ? `<div class="coop-wensen" role="group" aria-label="Kies een figuur">${v.wensen.map((w) => `<button type="button" class="m-bg coop-wens" data-act="${w.act}" aria-pressed="${w.gekozen}"><span class="ss-label"><span style="color:${w.kleur}" aria-hidden="true">●</span> ${esc(w.naam)}${w.gekozen ? ' ✓' : ''}</span></button>`).join('')}</div>` : '';
     root.innerHTML =
       `<h3 class="coop-title">${esc(v.title)}</h3>` +
       v.lines.map((l) => `<p>${esc(l)}</p>`).join('') +
@@ -43,7 +43,7 @@ export function mountLobby(root, hooks, opts = {}) {
       (v.input ? `<input class="coop-input" type="text" spellcheck="false" autocomplete="off" placeholder="${esc(v.input.placeholder)}" value="${esc(v.input.value || '')}">` : '') +
       wensen +
       (v.error ? `<p class="coop-error" role="alert">${esc(v.error)}</p>` : '') +
-      `<div class="coop-btns">${v.buttons.map((b) => `<button type="button" class="ss-item${b.primary ? ' ss-hero' : ''}" data-act="${b.act}"><span class="ss-label">${esc(b.label)}</span></button>`).join('')}</div>`;
+      `<div class="coop-btns">${v.buttons.map((b) => `<button type="button" class="${b.primary ? 'm-bp' : 'm-bg'} coop-btn" data-act="${b.act}"><span class="ss-label">${esc(b.label)}</span></button>`).join('')}</div>`;
   }
 
   // ----- host
