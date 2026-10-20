@@ -503,6 +503,100 @@ results.routes.det = await safe('det', async () => {
   r.render = prevR;
   return out;
 });
+// A/B inside one run (only with PERF_ONLY=ab): window.__perfAb = [[name, [perfoff steps...]], ...] (PERF_AB='aan=;uit=actoren+schaduw'); the variants take
+// turns in short windows (window.__perfAbWin ms, window.__perfAbRounds rounds, the order swaps every round), so they feel the same load.
+// Every window is a perf-mark pair 'ab:<name>:<round>' for the thread sampler of run.mjs; PERF_AB_MOVE=1 walks (3 m/s) instead of standing.
+results.routes.ab = await safe('ab', async () => {
+  if (!ONLY.includes('ab')) return null;
+  const variants = window.__perfAb; const WIN = window.__perfAbWin || 5000; const ROUNDS = window.__perfAbRounds || 6;
+  // PERF_AB_MOVE: 0 standing, 1 walking, 2 both (standing first)
+  const modes = window.__perfAbMove === 2 ? ['staan', 'lopen'] : [window.__perfAbMove ? 'lopen' : 'staan'];
+  // deterministic work counts per frame, next to the times: nodes whose matrix is walked, meshes tested against a frustum
+  const T = sc.THREE, cnt = { umw: 0, fto: 0 };
+  const oU = T.Object3D.prototype.updateMatrixWorld; T.Object3D.prototype.updateMatrixWorld = function (f) { cnt.umw++; return oU.call(this, f); };
+  const oF = T.Frustum.prototype.intersectsObject; T.Frustum.prototype.intersectsObject = function (o) { cnt.fto++; return oF.call(this, o); };
+  const out = [];
+  for (const mode of modes) {
+    fixWorld(); teleport(FOOT[0][0], FOOT[0][1]); await sleep(window.__perfSettle || 12000);
+    const tStart = performance.now();
+    if (mode === 'lopen') mover = (now) => walkFoot(null, (now - tStart) / 1000 * 0.5);
+    for (let round = 0; round < ROUNDS; round++) {
+      const order = round % 2 ? [...variants].reverse() : variants;
+      for (const [name, off] of order) {
+        window.__perfOffDyn = new Set(off);
+        await sleep(1200);
+        calls = 0; renders = 0; cnt.umw = 0; cnt.fto = 0;
+        H.start();
+        const key = name + '@' + mode + ':' + round;
+        console.error('[perf-mark] start ab:' + key + ' ' + Date.now());
+        await sleep(WIN);
+        const res = H.stop();
+        console.error('[perf-mark] end ab:' + key + ' ' + Date.now() + ' ' + res.frames);
+        out.push({ name: name + '@' + mode, round, frames: res.frames, avg: res.avg, p50: res.p50, p95: res.p95, cpuAvg: res.cpuAvg, cpuP50: res.cpuP50, calls: Math.round(calls / Math.max(1, res.frames)), umw: Math.round(cnt.umw / Math.max(1, res.frames)), fto: Math.round(cnt.fto / Math.max(1, res.frames)), key });
+      }
+    }
+    mover = null;
+  }
+  window.__perfOffDyn = undefined; T.Object3D.prototype.updateMatrixWorld = oU; T.Frustum.prototype.intersectsObject = oF;
+  return { windows: out };
+});
+// which top-level groups of the scene hold shadow casters (only with PERF_ONLY=casters): the shadow pass walks every node, casters or not
+results.routes.casters = await safe('casters', async () => {
+  if (!ONLY.includes('casters')) return null;
+  fixWorld(); teleport(FOOT[0][0], FOOT[0][1]); await sleep(window.__perfSettle || 12000);
+  const rows = []; let total = 0, totalCast = 0, noCastNodes = 0;
+  const A = sc.actors(); const actorSet = new Set([...A.vehicles.values(), ...A.peds.values(), ...A.wildlife.values()]);
+  for (const c of sc.scene.children) {
+    let n = 0, cast = 0, meshes = 0, vis = c.visible;
+    c.traverse((o) => { n++; if (o.isMesh) meshes++; if (o.castShadow) cast++; });
+    total += n; totalCast += cast; if (!cast) noCastNodes += n;
+    rows.push({ name: c.name || c.type, n, meshes, cast, vis, actor: actorSet.has(c), near: c.userData && c.userData.castNear, kid: c.children[0] ? (c.children[0].name || c.children[0].type) : '' });
+  }
+  const group = {};
+  for (const x of rows) { const k = (x.actor ? 'actor' : x.name) + '|' + (x.cast ? 'cast' : 'nocast'); const e = group[k] || (group[k] = { groups: 0, nodes: 0, cast: 0 }); e.groups++; e.nodes += x.n; e.cast += x.cast; }
+  // frozen (matrixAutoUpdate false everywhere) plain-mesh groups: what a group-level view cull could take out of the main pass
+  const cullable = (o) => !(o.isLight || o.isCamera || o.isSprite || o.isPoints || o.isLine || o.isInstancedMesh || o.isSkinnedMesh || o.matrixAutoUpdate) && !(o.isMesh && o.frustumCulled === false) && o.children.every(cullable);
+  let cullG = 0, cullN = 0, autoG = 0, autoN = 0; const autoKinds = {};
+  for (const c of sc.scene.children) { let n = 0; c.traverse(() => n++); if (cullable(c)) { cullG++; cullN += n; } else if (!actorSet.has(c) && !c.isLight) { autoG++; autoN += n; const k = (c.name || c.type) + (c.userData && Object.keys(c.userData).length ? '{' + Object.keys(c.userData).slice(0, 3).join('/') + '}' : ''); const e = autoKinds[k] || (autoKinds[k] = [0, 0]); e[0]++; e[1] += n; } }
+  // the unnamed groups that cannot be culled: do they ever move (local transform of every node 3 s apart), and what are they
+  const sig = (o) => { const m = []; o.traverse((q) => m.push(q.position.x, q.position.y, q.position.z, q.quaternion.x, q.quaternion.y, q.quaternion.w, q.scale.x, q.visible ? 1 : 0)); return m; };
+  const plain = sc.scene.children.filter((c) => !actorSet.has(c) && !c.isLight && (c.name || c.type) === 'Group' && !cullable(c));
+  const s0 = plain.map(sig); await sleep(3000); const s1 = plain.map(sig);
+  const unnamed = { groups: plain.length, moved: 0, movedNodes: 0, still: 0, stillNodes: 0, sample: [] };
+  plain.forEach((c, i) => { const same = s0[i].length === s1[i].length && s0[i].every((v, j) => v === s1[i][j]); let n = 0; c.traverse(() => n++); if (same) { unnamed.still++; unnamed.stillNodes += n; } else { unnamed.moved++; unnamed.movedNodes += n; }
+    if (unnamed.sample.length < 24 && (i % 9 === 0)) { const ms = []; c.traverse((q) => { if (q.isMesh && ms.length < 3) ms.push((q.geometry.type || '').replace('Geometry', '') + '/' + (q.material.type || '').replace('Material', '') + (q.castShadow ? '/cast' : '')); }); unnamed.sample.push([same ? 'still' : 'moves', n, Object.keys(c.userData || {}).slice(0, 4).join('/'), c.matrixAutoUpdate ? 'auto' : 'frozen', ms.join(' ')]); } });
+  return { unnamed, cullG, cullN, autoG, autoN, autoKinds: Object.entries(autoKinds).sort((a, b) => b[1][1] - a[1][1]).slice(0, 14), total, totalCast, noCastNodes, topLevel: rows.length, group: Object.entries(group).sort((a, b) => b[1].nodes - a[1].nodes).slice(0, 30), biggestNoCast: rows.filter((x) => !x.cast && !x.actor).sort((a, b) => b.n - a.n).slice(0, 15).map((x) => [x.name, x.n, x.kid]) };
+});
+// who sets material.needsUpdate while playing (only with PERF_ONLY=matver): every set re-runs getProgram for that material in the next draw
+results.routes.matver = await safe('matver', async () => {
+  if (!ONLY.includes('matver')) return null;
+  fixWorld(); teleport(FOOT[0][0], FOOT[0][1]); await sleep(window.__perfSettle || 12000);
+  mover = (now) => walkFoot(null, (now - tStart) / 1000 * 0.5);
+  const tStart = performance.now();
+  let proto = null; sc.scene.traverse((o) => { if (!proto && o.material && !Array.isArray(o.material)) { let p = Object.getPrototypeOf(o.material); while (p && !Object.getOwnPropertyDescriptor(p, 'needsUpdate')) p = Object.getPrototypeOf(p); proto = p; } });
+  const desc = Object.getOwnPropertyDescriptor(proto, 'needsUpdate'); const sites = new Map(); let total = 0;
+  Object.defineProperty(proto, 'needsUpdate', { configurable: true, set(v) { if (v === true) { total++; const st = (new Error().stack || '').split(String.fromCharCode(10)).slice(2, 5).map((l) => l.trim().replace('at ', '').split('/').pop()).join(' < '); const k = (this.type || '') + ' #' + (this.color ? this.color.getHexString() : '') + ' a' + (this.opacity != null ? this.opacity.toFixed(2) : '') + ' side' + this.side + ' ' + (this.name || '') + ' ' + Object.keys(this.userData || {}).slice(0, 3).join('/') + (this.map ? ' map' : '') + ' | ' + st; sites.set(k, (sites.get(k) || 0) + 1); } desc.set.call(this, v); }, get: desc.get });
+  let frames = 0;
+  await new Promise((res) => { const f = () => { frames++; if (frames > 300) res(); else requestAnimationFrame(f); }; requestAnimationFrame(f); });
+  Object.defineProperty(proto, 'needsUpdate', desc); mover = null;
+  return { frames, total, perFrame: +(total / frames).toFixed(2), top: [...sites].sort((a, b) => b[1] - a[1]).slice(0, 24) };
+});
+// where the render time of a frame goes (only with PERF_ONLY=postcost): the CPU time of renderer.render for the game scene, for
+// everything else (bloom blurs, grade, resolve quads: one-quad scenes) and the shadow pass inside the game scene render
+results.routes.postcost = await safe('postcost', async () => {
+  if (!ONLY.includes('postcost')) return null;
+  fixWorld(); teleport(FOOT[0][0], FOOT[0][1]); await sleep(window.__perfSettle || 10000);
+  mover = (now) => walkFoot(null, (now - tStart) / 1000 * 0.5);
+  const tStart = performance.now();
+  const prev = r.render; const acc = { scene: 0, other: 0, otherN: 0, shadow: 0, frames: 0, sceneN: 0 };
+  const smRender = r.shadowMap.render;
+  r.shadowMap.render = function (...a) { const t = performance.now(); smRender.apply(this, a); acc.shadow += performance.now() - t; };
+  r.render = function (s2, c2) { const t = performance.now(); const o = prev.call(r, s2, c2); const d = performance.now() - t; if (s2 === sc.scene) { acc.scene += d; acc.sceneN++; } else { acc.other += d; acc.otherN++; } return o; };
+  await new Promise((res) => { const f = () => { acc.frames++; if (acc.frames > 240) res(); else requestAnimationFrame(f); }; requestAnimationFrame(f); });
+  r.render = prev; r.shadowMap.render = smRender; mover = null;
+  const n = acc.frames;
+  return { frames: n, sceneMs: +(acc.scene / n).toFixed(2), shadowMs: +(acc.shadow / n).toFixed(2), otherMs: +(acc.other / n).toFixed(2), otherRendersPerFrame: +(acc.otherN / n).toFixed(1), sceneRendersPerFrame: +(acc.sceneN / n).toFixed(2) };
+});
 // the actors' scene nodes (only with PERF_ONLY=actors): nodes per vehicle / person / animal, hidden ones, what the children are
 results.routes.actors = await safe('actors', async () => {
   if (!ONLY.includes('actors')) return null;

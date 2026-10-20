@@ -72,7 +72,8 @@ export const FLAGS = Object.freeze({
 
 // Prestatiestappen die voor een A/B-meting uit kunnen: ?perfoff=schaduw+actoren (scripts/perf/ab.mjs). Alles staat standaard aan.
 const PERF_OFF = new Set((FLAGS.perfoff || '').split(/[+ ]/).filter(Boolean));
-export const perfOff = (name) => PERF_OFF.has(name);
+// window.__perfOffDyn (a Set, scripts/perf/routes.js route ab) switches steps within one run: the A and B windows of a measurement then feel the same load
+export const perfOff = (name) => PERF_OFF.has(name) || (typeof window !== 'undefined' && window.__perfOffDyn !== undefined && window.__perfOffDyn.has(name));
 
 export const FLAG_DOCS = Object.freeze({
   dev: 'Verhaalpaneel op F9; eigen opslag (gde-dev:), raakt je echte savegame niet',
