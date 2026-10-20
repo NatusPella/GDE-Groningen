@@ -12,6 +12,8 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 
 ### Opgelost
+- **Geen dubbele figuren meer in de slotscène van M08 (#264, door Claude in een beeldrun bekeken, niet door een mens):** tijdens een scène met eigen cast blijven de echte spelers verborgen; bij M08 stonden twee Tammo's en twee Tessa's naast Oma Trijntje.
+- **Sprong naar een verhaalstap (dev-cheat) landt op een ruime plek (#261, #267, door Claude in een beeldrun bekeken, niet door een mens):** de landingsplek is vrij van gebouwen en water in een ring van 4 m, een lopende cinematic stopt, de tegels worden ruim geladen en bij een verre sprong staat het laadscherm over de wereld tot de straten er zijn.
 - **Minder verkeersknopen in gehuchten (#265, door Claude in een beeldrun bekeken, niet door een mens):** het aantal auto's om je heen volgt nu de lengte weg in de buurt; bij Wildeplaats stonden dertig auto's op één kruising en reden ze door elkaar. In de stad blijft het aantal gelijk.
 - **Eemshaven: geen blinde grijze plaat meer (#260, door Claude in een beeldrun bekeken, niet door een mens):** de grote dakplaat is een zonnepanelendak met palen eronder, een groot bouwterrein is een zandvlakte met containers, hopen zand en lampen, en grote platte daken hebben daklichten, naden en meer luchtunits.
 - **Cutscenes: de camera zit niet meer in de auto (#263, door Claude in een beeldrun bekeken, niet door een mens):** in M22.4 (en M22.2, M02.intro en M01.intro) stond de camera in de Escapade of de bakkie; een rode band en een blauwe ruit liepen dwars door het beeld.
