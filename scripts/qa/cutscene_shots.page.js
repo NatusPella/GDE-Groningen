@@ -7,7 +7,8 @@ const sleep = (ms) => new Promise((res) => setTimeout(res, ms));
 const imp = (f) => import('/js/' + f + '.js');
 const CS = window.__cs || {};
 const cine = await imp('cinematics');
-const host = await imp('cutscenehost');
+await imp('cutscenehost');
+const host = window.__cutHost; // de QA-haak van cutscenehost.js
 const scr = await imp('cutscript');
 const prev = await imp('cutpreview');
 const cam = await imp('camerapath');
