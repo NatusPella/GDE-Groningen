@@ -1,7 +1,7 @@
 // TileWorld and the tile streamer (game/js/tileworld.js, tilestore.js):
 //   node scripts/tileworld_test.mjs
 // 1. equivalence: the map loaded from tiles answers every GameMap query the
-//    way the map built from citymap.json does (arrays, grids, nearest road
+//    way the map built from stad.json and the OSM layers does (arrays, grids, nearest road
 //    point, escapeBuilding, isOnBridge, heights, ...)
 // 2. streaming: LRU budget, pins, cancellation, priority by heading, prefetch
 //    hysteresis, the frame queue budget, a drive and a heli flight over the

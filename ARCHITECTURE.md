@@ -14,7 +14,7 @@ The code is the source of truth; this file is the map.
   Grid north is 0.94° off true north round Stad (`GRID_CONVERGENCE`, used
   by the sun in `daynight.js`). Up to 0.28 the frame was equirectangular
   ("legacy"); `legacyToWorld` converts from it.
-- Map files carry `frame: 'rd-new'` (`citymap.json` meta, `mapextras.json`);
+- Map files carry `frame: 'rd-new'` (`stad.json` meta, `mapextras.json`);
   the loaders log an error otherwise. Hand-placed
   positions in code are written in the legacy frame through the helpers in
   `js/worldframe.js` (`P(x, y)`, `{ ...PO(x, y) }`, `P3`, `PA` for headings,
@@ -1262,7 +1262,7 @@ under the player (`profileoverlay.js`).
   bounding sphere come back. The cell's breakable props register when the
   buffers arrive (`buildToken` drops a stale result).
 - City road surfaces (`roadsurface.js`): on the first `syncRoads` the worker
-  loads its own copy of the map (`citymap.json` + extras, the same
+  loads its own copy of the map (`stad.json` + extras, the same
   `GameMap`) and drops the roads the main thread no longer has (`home.js`);
   `slimWorkerMap` then drops what the worker never reads (buildings keep
   only their bounds in the grid; canopies, trees), which takes the copy from
@@ -1308,9 +1308,9 @@ under the player (`profileoverlay.js`).
 ## World tiles (`.gdt`, F0 of docs/PROVINCIE-PLAN.md)
 
 The map reaches the game as tiles, one code path in the browser, Electron and
-Node; the JSON files (`citymap.json`, `mapextras.json`) are the
-source the packer reads and the fallback for a build without `world/` (the dev
-server, `?legacymap`).
+Node; the packer reads `game/stad.json` (the hand layer of the city: meta, roads, rails, hand-made buildings; see docs/ARCHITECTUUR-STAD-NAAR-TEGELS.md 4.5), the OSM tile build's water, green, trees and buildings for the city (`stad_laag.mjs`) and `mapextras.json`. A
+build without `world/` (the dev server) gets stad.json alone: roads, rails and the hand-made buildings.
+
 
 - **Format (`js/gdt.js`).** Tile grid on the RD kilometre lines (key = RD km of
   the south-west corner, `234_581`; in the world frame x = 330 + 1000 i,

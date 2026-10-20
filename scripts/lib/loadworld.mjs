@@ -41,10 +41,11 @@ export async function loadStadData({ extras = false } = {}) {
   return data;
 }
 
-export async function loadCityData() {
+// extras: false laat mapextras weg (voor tests die ze zelf nog aanzetten)
+export async function loadCityData({ extras = true } = {}) {
   await skipUnlessCity();
   const P = await import('../world/pack_tiles.mjs');
-  return (await P.loadCityDataLaag()).data;
+  return (await P.loadCityDataLaag(undefined, undefined, { extras })).data;
 }
 
 export async function loadCityWorld({ src = worldSrc() } = {}) {

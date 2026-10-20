@@ -48,7 +48,8 @@ const eq = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 }
 
 // --- 1. the city: the OSM adapter against process_osm.py's rows -------------------
-{
+if (!fs.existsSync(new URL('../data/groningen_raw.json', import.meta.url))) console.log('SKIP 1. the city adapter against process_osm.py: no data/groningen_raw.json (the old city path is cleaned up)');
+else {
   // process_osm.py's sources, first copy of each element wins
   const els = [], seen = new Set();
   for (const f of ['groningen_raw.json', 'groningen_extra.json', 'ring_raw.json.gz', 'ring_extra.json.gz']) {

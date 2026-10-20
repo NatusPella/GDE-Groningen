@@ -1,7 +1,7 @@
 // Packs the current map into .gdt tiles (F0, docs/PROVINCIE-PLAN.md 2.1).
 //   node scripts/world/pack_tiles.mjs [--out game/world] [--check]
 //
-// In: game/citymap.json + mapextras.json (through the same GameMap the game
+// In: game/stad.json + the OSM layers + mapextras.json (through the same GameMap the game
 // uses, so everything it works out at load - doubled footprints, canopies,
 // moored houseboats, roof steps, ways cut at a wall, dry crossings, trees off
 // the carriageway - is done here once).
@@ -145,7 +145,7 @@ export async function loadSourcesLaag(...args) {
   return { map: new GameMap(data), lagen };
 }
 // dezelfde stad als de ruwe kaartdata (voor tests die zelf in de lijsten kijken), mapextras erin
-export async function loadCityDataLaag(game = path.join(ROOT, 'game'), lagen = parseLagen(process.env.STAD_LAAG), { city = readStad(game), osm = null } = {}) {
+export async function loadCityDataLaag(game = path.join(ROOT, 'game'), lagen = parseLagen(process.env.STAD_LAAG), { city = readStad(game), osm = null, extras = true } = {}) {
   const data = city.data;
   const all = [...new Set([...lagen, ...city.fromOsm])];
   if (all.length) {
@@ -154,7 +154,7 @@ export async function loadCityDataLaag(game = path.join(ROOT, 'game'), lagen = p
     const rows = await run(new Set(city.tiles), (x, y) => cover.inside(x, y), all, data, city.mask);
     for (const l of all) data[l] = rows[l];
   }
-  applyMapExtras(data, JSON.parse(fs.readFileSync(path.join(game, 'mapextras.json'), 'utf8')));
+  if (extras) applyMapExtras(data, JSON.parse(fs.readFileSync(path.join(game, 'mapextras.json'), 'utf8')));
   return { data, lagen: all };
 }
 export function parseLagen(raw) {
