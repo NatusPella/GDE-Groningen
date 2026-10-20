@@ -40,6 +40,40 @@ export function roofAt(map, x, y) {
   return top;
 }
 
+function edgeDistance(x, y, pts) {
+  let best = Infinity;
+  for (let i = 0; i < pts.length; i++) {
+    const a = pts[i], b = pts[(i + 1) % pts.length];
+    const dx = b[0] - a[0], dy = b[1] - a[1], l2 = dx * dx + dy * dy;
+    const t = l2 > 0 ? Math.max(0, Math.min(1, ((x - a[0]) * dx + (y - a[1]) * dy) / l2)) : 0;
+    best = Math.min(best, Math.hypot(x - (a[0] + t * dx), y - (a[1] + t * dy)));
+  }
+  return best;
+}
+
+// How far the building at (x, y) reaches from that point (the farthest corner of its bounds) and how high its roof
+// is. A landmark orbit has to start outside this reach: the Forum is 85 m wide, so an orbit of 28 m around its
+// point runs through the building (#329). Only the buildings that hold the point count; a landmark point beside its building (within `pad` m) takes the
+// closest landmark building instead, not every big neighbour.
+export function buildingReach(map, x, y, pad = 12) {
+  let near = null, nearD = pad;
+  const hold = [];
+  const corners = (b) => { let r = 0; const [x0, y0, x1, y1] = b.bounds; for (const cx of [x0, x1]) for (const cy of [y0, y1]) r = Math.max(r, Math.hypot(cx - x, cy - y)); return r; };
+  for (const b of map.buildingsNear(x, y, 80)) {
+    const [x0, y0, x1, y1] = b.bounds;
+    if (x < x0 - pad || x > x1 + pad || y < y0 - pad || y > y1 + pad) continue;
+    if (pointInPolygon(x, y, b.pts)) { hold.push({ r: corners(b), t: (b.h || 3) * LEVEL_H + 3.5 }); continue; }
+    // a landmark point just beside its building: the closest such building, not every big neighbour
+    const d = b.landmark ? edgeDistance(x, y, b.pts) : Infinity;
+    if (d <= nearD) { near = b; nearD = d; }
+  }
+  // of the buildings that hold the point the tall ones count: a low plinth or hall under a tower does not set the orbit
+  const top = Math.max(0, ...hold.map((q) => q.t));
+  const reach = Math.max(0, ...hold.filter((q) => q.t >= top * 0.6).map((q) => q.r));
+  if (!hold.length && near) return { reach: corners(near), top: (near.h || 3) * LEVEL_H + 3.5 };
+  return { reach, top };
+}
+
 // Lifts any keyframe that would sit inside a building up over its roof.
 export function clearKeys(w, keys) {
   const lift = keys.map((k) => roofAt(w.map, k.pos.x, k.pos.y));
