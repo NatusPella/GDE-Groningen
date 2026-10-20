@@ -422,7 +422,11 @@ const CHECKS = [
     const SJ = await imp('sidejobs');
     const act = w.sideJobActions; if (!act) return { fout: 'world.sideJobActions ontbreekt (bijbanen niet gestart)' };
     const seen = new Set(); const out = [];
-    for (const sp of SJ.getSideJobSpotsForRender()) {
+    const alle = SJ.getSideJobSpotsForRender();
+    // twee bijbanen op (vrijwel) dezelfde plek: de dichtstbijzijnde wint, de ander is niet te starten
+    const gestapeld = [];
+    for (let i = 0; i < alle.length; i++) for (let j = i + 1; j < alle.length; j++) if (Math.hypot(alle[i].x - alle[j].x, alle[i].y - alle[j].y) < 3) gestapeld.push([alle[i].job.id, alle[j].job.id, Math.round(alle[i].x), Math.round(alle[i].y)]);
+    for (const sp of alle) {
       const id = sp.job.id; if (seen.has(id)) continue; seen.add(id);
       w.wanted = 0; w.health = 100;
       const i0 = issues.length;
@@ -439,9 +443,9 @@ const CHECKS = [
         await snap('bijbaan-' + id, 200);
         act.stop(); await sleep(800);
       }
-      out.push({ id, naam: sp.job.name, pogingen, gestart, staat, meldingen: issues.slice(i0).map((x) => x.m) });
+      out.push({ id, naam: sp.job.name, x: Math.round(sp.x), y: Math.round(sp.y), pogingen, gestart, juisteBaan: gestart ? (staat && staat.naam === sp.job.name) : null, staat, meldingen: issues.slice(i0).map((x) => x.m) });
     }
-    return { banen: out, opmerking: 'alleen starten en vier seconden meedraaien; niet gespeeld tot een klus af was, niet beoordeeld: balans, uitleg en loon' };
+    return { gestapeld, banen: out, opmerking: 'alleen starten en vier seconden meedraaien; niet gespeeld tot een klus af was, niet beoordeeld: balans, uitleg en loon' };
   } },
   // winkelen (speeltestlus): per winkeltype naar de deur, E, het paneel lezen, het eerste item kopen en weglopen
   { id: 'winkelen', issues: [170], run: async () => {
