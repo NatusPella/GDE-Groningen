@@ -218,7 +218,9 @@ function densify(pts, step) {
     const a = pts[q], b = pts[q + 1];
     const L = hyp(b[0] - a[0], b[1] - a[1]);
     const n = Math.max(1, Math.ceil(L / step));
-    for (let i = 1; i <= n; i++) out.push([Math.round((a[0] + (b[0] - a[0]) * i / n) * 10) / 10, Math.round((a[1] + (b[1] - a[1]) * i / n) * 10) / 10]);
+    // (de oorspronkelijke hoekpunten blijven zoals ze zijn: een knoop die twee wegen delen mag niet op 0,1 m uiteenvallen,
+    // want profile.mjs zoekt knopen op de cm)
+    for (let i = 1; i <= n; i++) out.push(i === n ? b : [Math.round((a[0] + (b[0] - a[0]) * i / n) * 10) / 10, Math.round((a[1] + (b[1] - a[1]) * i / n) * 10) / 10]);
   }
   const ded = [out[0]];
   for (const p of out.slice(1)) { const l = ded[ded.length - 1]; if (p[0] !== l[0] || p[1] !== l[1]) ded.push(p); }

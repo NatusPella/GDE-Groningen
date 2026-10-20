@@ -116,6 +116,9 @@ export function compare(A, B, { step = 8, cover = buildCityCover(A) } = {}) {
   const ids = (m) => new Set([...m.keys()]);
   const iA = ids(mA), iB = ids(mB);
   rep.osmIds = { A: iA.size, B: iB.size, beide: [...iA].filter((i) => iB.has(i)).length, alleenA: [...iA].filter((i) => !iB.has(i)).length };
+  // 3b. het handwerk van mapextras (busbanen, buslanen) en de wegen die er bij komen
+  const hand = (m) => ({ busOnly: m.roads.filter((r) => r.busOnly).length, busway: m.roads.filter((r) => r.type === 'busway').length, busLane: m.roads.filter((r) => r.busLane).length, busContra: m.roads.filter((r) => r.busContra).length });
+  rep.handwerk = { A: hand(A), B: hand(B) };
   // 4. hoogte: langs de wegen van A (op het dek van A) en op een raster
   const hz = (zs) => { const n = zs.length; const w = (t) => zs.filter((d) => d <= t).length; return { n, w25: pct(w(0.25), n), w50: pct(w(0.5), n), w100: pct(w(1), n), max: Math.round(Math.max(0, ...zs) * 100) / 100 }; };
   const dzAll = [], dzRing = [], dzProf = [], worst = [];
