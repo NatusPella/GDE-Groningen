@@ -155,7 +155,7 @@ export const CABARET = {
     { text: 'Ik kom út Fryslân. Wy sizze net folle, mar wy sizze it goed. (Ik kom uit Friesland. Wij zeggen niet veel, maar wij zeggen het goed.)', cue: 2.8 },
     { text: 'Yn Grunn is alles in bytsje tichterby. Ek de kroegen. (In Groningen is alles een beetje dichterbij. Ook de kroegen.)', cue: 2.6 },
     { text: 'Ja, ja, ik wit it. Jim wolle in gouden grap. (Ja, ja, ik weet het. Jullie willen een gouden grap.)', cue: 2.4 },
-    { text: 'Tige tank, Grins. Jim wiene in moai publyk. (Hartelijk dank, Groningen. Jullie waren een mooi publiek.)', cue: 0 },
+    { text: 'Tige tank, Grins. Jimme wiene in moai publyk. (Hartelijk dank, Groningen. Jullie waren een mooi publiek.)', cue: 0 },
   ],
   heckles: ['Doe maar gewoon!', 'Is dat alles?', 'Hé, grapjas!', 'Nog een keer!', 'Wat zegt hij nou?'],
   reply: {
