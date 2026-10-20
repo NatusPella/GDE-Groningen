@@ -57,6 +57,7 @@ function queryParts() {
     hasFlag('--gfx-advice') && 'gfxadvies',
     // --nobatch: city buildings drawn one by one (A/B of buildingbatch3d.js)
     hasFlag('--nobatch') && 'nobatch',
+    hasFlag('--touch') && 'touch=1',
     // --url-flags=simauto,zonderworker: extra ?-switches of devflags.js for this run (A/B metingen, scripts/perf/run.mjs)
     ...(argValue('--url-flags') || '').split(',').filter(Boolean),
     // --viaducten: the bridge and viaduct profiles of streamed tiles (#235)
@@ -120,11 +121,13 @@ function attach(win, { gameDir }) {
       return true;
     });
   }
+  // --emulate-mobile with it: a phone (touch events, viewport meta, like Chrome's device mode);
+  // --touch forces the touch controls on (?touch=1)
   // --emulate-view=WxH[@scale]: the page lays out in a WxH viewport (a 4K layout on a smaller screen),
   // shown at `scale` (default 0.5) in the window; for the screenshot script (scripts/ui_shots.mjs)
   const emu = /^(\d+)x(\d+)(?:@([\d.]+))?$/.exec(argValue('--emulate-view') || '');
   if (emu) {
-    const apply = () => win.webContents.enableDeviceEmulation({ screenPosition: 'desktop', screenSize: { width: +emu[1], height: +emu[2] }, viewPosition: { x: 0, y: 0 }, viewSize: { width: +emu[1], height: +emu[2] }, deviceScaleFactor: 1, scale: Number(emu[3]) || 0.5 });
+    const apply = () => win.webContents.enableDeviceEmulation({ screenPosition: hasFlag('--emulate-mobile') ? 'mobile' : 'desktop', screenSize: { width: +emu[1], height: +emu[2] }, viewPosition: { x: 0, y: 0 }, viewSize: { width: +emu[1], height: +emu[2] }, deviceScaleFactor: 1, scale: Number(emu[3]) || 0.5 });
     win.webContents.on('did-finish-load', apply);
   }
   if (storyTest) runStoryTest(win, storyTest.includes('=') ? storyTest.slice(storyTest.indexOf('=') + 1) : path.join(require('os').tmpdir(), 'gde-story-test'));
