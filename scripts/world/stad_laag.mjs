@@ -19,6 +19,9 @@ const places = (pts) => [middle(pts), centroid(pts)];
 const polyRow = ({ gid, g, ...row }) => row;
 // gebouwen: de OSM-rij zonder gid en passages; het handwerk van de stad (landmarks, interieurs, markt, dakvormen) blijft, zie handBuildings
 const buildingRow = ({ gid, g, passages, ...row }) => row;
+// open overkappingen (de tegelbouw leidt ze af in de CANOPIES-sectie: building=roof, perronkappen, de glazen straat van Paddepoel):
+// ze gaan als gebouwrij met `canopy` terug in de stadsdata, waar de GameMap (derive.js) ze weer als canopy afleidt (#90)
+const canopyRow = ({ gid, g, passages, ...row }) => ({ ...row, canopy: true });
 const LAAG = {
   buildings: { section: () => G.SECTION.BUILDINGS, object: buildingRow, at: (r) => places(r.pts) },
   water: { section: () => G.SECTION.WATER, object: polyRow, at: (r) => places(r.pts) },
@@ -52,8 +55,13 @@ export async function osmCityLayers(keys, inside, lagen, data = null) {
   const out = {};
   for (const l of lagen) out[l] = [];
   if (wegen) out.wegen = wegen.result();
+  const canopies = [];
   for (const [, b] of built.blobs) {
     for (const s of G.decodeBlob(b.bytes).sections) {
+      if (s.type === G.SECTION.CANOPIES && s.rows && lagen.includes('buildings')) {
+        for (const r of s.rows) if (r.pts && r.pts.length > 2 && places(r.pts).some(([cx, cy]) => inside(cx, cy))) canopies.push(canopyRow(r));
+        continue;
+      }
       for (const l of lagen) {
         const L = LAAG[l];
         if (!L || s.type !== L.section() || !s.rows) continue;
@@ -65,6 +73,11 @@ export async function osmCityLayers(keys, inside, lagen, data = null) {
     }
   }
   if (out.buildings && data) out.buildings = withHand(out.buildings, data.buildings.filter(isHandBuilding));
+  // de overkappingen komen er altijd bij (ook over een handgebouw, zoals de glazen straat tussen de blokken van Paddepoel), zonder dubbele osm-rij
+  if (out.buildings) {
+    const seen = new Set(out.buildings.filter((b) => b.osm !== undefined).map((b) => b.osm));
+    for (const c of canopies) if (c.osm === undefined || !seen.has(c.osm)) out.buildings.push(c);
+  }
   cacheWrite(keys, lagen, out);
   return out;
 }
