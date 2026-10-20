@@ -2,8 +2,11 @@
  "gronings": {
   "bieno": {
    "nl": "bijna",
-   "status": "afgeleid",
-   "n": 21
+   "status": "twijfel",
+   "n": 21,
+   "opm": "Woordwaark (Nederlands -> Gronings, trefwoord \"bijna\"): host, hoast, benoasten, glad; \"bieno\" komt niet voor",
+   "voorstel": "hoast",
+   "handmatig": true
   },
   "nuim": {
    "nl": "neem",
@@ -16,12 +19,13 @@
    "nl": "moeder",
    "status": "bron",
    "n": 17,
-   "opm": "nds-nl Wikipedia (Grunnegs): \"mem\" = moeke/mouder"
+   "opm": "Woordwaark (S.H. Abels, Westerkwartier, S.J.H. Reker, K. ter Laan, H. Molema): bok ⋅ moeder; moeder ⋅ stad; moeder; moeke"
   },
   "stroat": {
    "nl": "straat",
-   "status": "afgeleid",
-   "n": 8
+   "status": "bron",
+   "n": 8,
+   "opm": "Woordwaark (S.J.H. Reker, K. ter Laan): straat"
   },
   "stun": {
    "nl": "stond",
@@ -40,23 +44,27 @@
   },
   "kin": {
    "nl": "kan",
-   "status": "afgeleid",
-   "n": 31
+   "status": "bron",
+   "n": 31,
+   "opm": "Woordwaark (K. ter Laan): komt voor als trefwoord; vertaling niet uitgelezen"
   },
   "ains": {
    "nl": "eens",
-   "status": "afgeleid",
-   "n": 27
+   "status": "bron",
+   "n": 27,
+   "opm": "Woordwaark (S.J.H. Reker, K. ter Laan, H. Molema): eens ⋅ eensgezind; iemands; eens"
   },
   "doarmit": {
    "nl": "daarmee",
-   "status": "afgeleid",
-   "n": 3
+   "status": "bron",
+   "n": 3,
+   "opm": "Woordwaark (K. ter Laan): komt voor als trefwoord; vertaling niet uitgelezen"
   },
   "aals": {
    "nl": "alles",
-   "status": "afgeleid",
-   "n": 44
+   "status": "bron",
+   "n": 44,
+   "opm": "Woordwaark (S.J.H. Reker, K. ter Laan, H. Molema): veel; alles; als"
   },
   "wust": {
    "nl": "weet",
@@ -65,33 +73,39 @@
   },
   "old": {
    "nl": "oud",
-   "status": "afgeleid",
-   "n": 5
+   "status": "bron",
+   "n": 5,
+   "opm": "Woordwaark (S.H. Abels, S.J.H. Reker, A.A. Ganderheyden, P. Boeles): jong ⋅ oud; oud ⋅ vervelend; oud; langdurig ⋅ vervelend"
   },
   "woater": {
    "nl": "water",
-   "status": "afgeleid",
-   "n": 27
+   "status": "bron",
+   "n": 27,
+   "opm": "Woordwaark (S.H. Abels, S.J.H. Reker, H. Molema, K. ter Laan): knie ⋅ water; ondiep ⋅ water; urine ⋅ water; water"
   },
   "kaai": {
    "nl": "kade",
-   "status": "afgeleid",
-   "n": 7
+   "status": "bron",
+   "n": 7,
+   "opm": "Woordwaark (K. ter Laan): komt voor als trefwoord; vertaling niet uitgelezen"
   },
   "eefkes": {
    "nl": "even",
-   "status": "afgeleid",
-   "n": 40
+   "status": "bron",
+   "n": 40,
+   "opm": "Woordwaark (S.J.H. Reker, K. ter Laan, H. Molema): eventjes"
   },
   "vroag": {
    "nl": "vraag",
-   "status": "afgeleid",
-   "n": 8
+   "status": "bron",
+   "n": 8,
+   "opm": "Woordwaark (S.J.H. Reker): vraag"
   },
   "kaant": {
    "nl": "kant",
-   "status": "afgeleid",
-   "n": 10
+   "status": "bron",
+   "n": 10,
+   "opm": "Woordwaark (Westerkwartier, S.J.H. Reker, F.H. Steenhuis 1, K. ter Laan): helemaal, bijna -; kant; klaar; netheid"
   },
   "goat": {
    "nl": "gaat",
@@ -105,18 +119,23 @@
   },
   "aanhollen": {
    "nl": "aanhouden",
-   "status": "afgeleid",
-   "n": 2
+   "status": "bron",
+   "n": 2,
+   "opm": "Woordwaark (K. ter Laan): aanhouden; aanspreken"
   },
   "aaltied": {
    "nl": "altijd",
-   "status": "afgeleid",
-   "n": 47
+   "status": "bron",
+   "n": 47,
+   "opm": "Woordwaark (S.J.H. Reker, K. ter Laan): altijd"
   },
   "opnij": {
    "nl": "opnieuw",
-   "status": "afgeleid",
-   "n": 3
+   "status": "twijfel",
+   "n": 3,
+   "opm": "Woordwaark (Nederlands -> Gronings, trefwoord \"opnieuw\"): vannijs, vannais, veur nijs; \"opnij\" komt niet voor",
+   "voorstel": "vannijs",
+   "handmatig": true
   },
   "weggong": {
    "nl": "wegging",
@@ -126,7 +145,8 @@
   "hol": {
    "nl": "hou",
    "status": "afgeleid",
-   "n": 22
+   "n": 22,
+   "opm": "Woordwaark (K. ter Laan, H. Molema) kent het trefwoord als \"hol; bol\"; de gebruikte betekenis \"hou\" is een andere vorm of een homoniem en niet apart bevestigd"
   },
   "butendeur": {
    "nl": "buiten",
@@ -136,12 +156,14 @@
   "komst": {
    "nl": "kom",
    "status": "afgeleid",
-   "n": 4
+   "n": 4,
+   "opm": "Woordwaark (K. ter Laan) kent het trefwoord als \"komst\"; de gebruikte betekenis \"kom\" is een andere vorm of een homoniem en niet apart bevestigd"
   },
   "wiek": {
    "nl": "wijk",
-   "status": "afgeleid",
-   "n": 3
+   "status": "bron",
+   "n": 3,
+   "opm": "Woordwaark (S.J.H. Reker, F.H. Steenhuis 1, K. ter Laan, H. Molema): vaart II (water); wijk; bat; week"
   },
   "stilstait": {
    "nl": "stilstaat",
@@ -150,8 +172,9 @@
   },
   "veurdat": {
    "nl": "voordat",
-   "status": "afgeleid",
-   "n": 7
+   "status": "bron",
+   "n": 7,
+   "opm": "Woordwaark (S.J.H. Reker, K. ter Laan): voordat"
   },
   "achteran": {
    "nl": "achterin",
@@ -165,23 +188,33 @@
   },
   "roai": {
    "nl": "raad",
-   "status": "afgeleid",
-   "n": 2
+   "status": "twijfel",
+   "n": 2,
+   "opm": "Woordwaark (Nederlands -> Gronings, trefwoord \"raad\"): road; \"roai\" is bij Molema \"raai\" (gok)",
+   "voorstel": "road",
+   "handmatig": true
   },
   "aleen": {
    "nl": "alleen",
-   "status": "afgeleid",
-   "n": 48
+   "status": "twijfel",
+   "n": 48,
+   "opm": "Woordwaark (Nederlands -> Gronings, trefwoord \"alleen\"): allain, allaint, allinneg, allènt, bloots; \"aleen\" komt niet voor",
+   "voorstel": "allain",
+   "handmatig": true
   },
   "aarst": {
    "nl": "eerst",
-   "status": "afgeleid",
-   "n": 26
+   "status": "twijfel",
+   "n": 26,
+   "opm": "Woordwaark (Nederlands -> Gronings, trefwoord \"eerste\"): geen \"aarst\"; ter Laan en Steenhuis geven \"aarst\" = \"arks\"; de vorm voor eerst is niet bevestigd",
+   "voorstel": "navragen",
+   "handmatig": true
   },
   "woard": {
    "nl": "waard",
-   "status": "afgeleid",
-   "n": 1
+   "status": "bron",
+   "n": 1,
+   "opm": "Woordwaark (K. ter Laan): komt voor als trefwoord; vertaling niet uitgelezen"
   },
   "raakt": {
    "nl": "geraakt",
@@ -190,13 +223,15 @@
   },
   "tiedens": {
    "nl": "tijdens",
-   "status": "afgeleid",
-   "n": 1
+   "status": "bron",
+   "n": 1,
+   "opm": "Woordwaark (S.J.H. Reker, K. ter Laan): tijdens"
   },
   "pien": {
    "nl": "pijn",
-   "status": "afgeleid",
-   "n": 2
+   "status": "bron",
+   "n": 2,
+   "opm": "Woordwaark (S.J.H. Reker, K. ter Laan, H. Molema): pijn; gebrek ⋅ pijn"
   },
   "vaarst": {
    "nl": "vaart",
@@ -205,8 +240,9 @@
   },
   "aal": {
    "nl": "al",
-   "status": "afgeleid",
-   "n": 14
+   "status": "bron",
+   "n": 14,
+   "opm": "Woordwaark (S.H. Abels, S.J.H. Reker, F.H. Steenhuis 1, K. ter Laan): mogelijk; voortdurend ⋅ wèl; al ⋅ alles ⋅ ieder ⋅ iedereen; al, het -"
   },
   "opkocht": {
    "nl": "opgekocht",
@@ -216,22 +252,28 @@
   "joaren": {
    "nl": "jaren",
    "status": "afgeleid",
-   "n": 8
+   "n": 8,
+   "opm": "Woordwaark (H. Molema) kent het trefwoord als \"jaar\"; de gebruikte betekenis \"jaren\" is een andere vorm of een homoniem en niet apart bevestigd"
   },
   "wol": {
    "nl": "wilde",
    "status": "afgeleid",
-   "n": 5
+   "n": 5,
+   "opm": "Woordwaark (S.J.H. Reker, F.H. Steenhuis 1, K. ter Laan, H. Molema) kent het trefwoord als \"wèl; wel; wol\"; de gebruikte betekenis \"wilde\" is een andere vorm of een homoniem en niet apart bevestigd"
   },
   "blieven": {
    "nl": "blijven",
-   "status": "afgeleid",
-   "n": 5
+   "status": "bron",
+   "n": 5,
+   "opm": "Woordwaark (S.J.H. Reker, K. ter Laan): believen ⋅ blijven; believen"
   },
   "ieder": {
    "nl": "iedereen",
-   "status": "afgeleid",
-   "n": 28
+   "status": "twijfel",
+   "n": 28,
+   "opm": "Woordwaark kent \"ieder\" alleen als \"ijzer\" (Reker, ter Laan); voor \"iedereen\" staan daar \"aal\", \"elkenain\", \"elkain\"",
+   "voorstel": "elkenain",
+   "handmatig": true
   },
   "rie": {
    "nl": "rij",
@@ -240,8 +282,9 @@
   },
   "kwiet": {
    "nl": "kwijt",
-   "status": "afgeleid",
-   "n": 6
+   "status": "bron",
+   "n": 6,
+   "opm": "Woordwaark (S.J.H. Reker, K. ter Laan): kwijt"
   },
   "vismark": {
    "nl": "vismarkt",
@@ -250,43 +293,55 @@
   },
   "voortoan": {
    "nl": "voortaan",
-   "status": "afgeleid",
-   "n": 3
+   "status": "twijfel",
+   "n": 3,
+   "opm": "Woordwaark (Nederlands -> Gronings, trefwoord \"voortaan\"): veurdan, vandan, vedan; \"voortoan\" komt niet voor",
+   "voorstel": "veurdan",
+   "handmatig": true
   },
   "doarover": {
    "nl": "daarover",
-   "status": "afgeleid",
-   "n": 1
+   "status": "bron",
+   "n": 1,
+   "opm": "Woordwaark (K. ter Laan): komt voor als trefwoord; vertaling niet uitgelezen"
   },
   "betoalen": {
    "nl": "betalen",
-   "status": "afgeleid",
-   "n": 6
+   "status": "bron",
+   "n": 6,
+   "opm": "Woordwaark (S.J.H. Reker, K. ter Laan, H. Molema): betalen"
   },
   "allemoal": {
    "nl": "allemaal",
-   "status": "afgeleid",
-   "n": 5
+   "status": "bron",
+   "n": 5,
+   "opm": "Woordwaark (K. ter Laan): komt voor als trefwoord; vertaling niet uitgelezen"
   },
   "veurzichtig": {
    "nl": "voorzichtig",
-   "status": "afgeleid",
-   "n": 7
+   "status": "bron",
+   "n": 7,
+   "opm": "Woordwaark (H. Molema): voorzichtig"
   },
   "doan": {
    "nl": "gedaan",
    "status": "afgeleid",
-   "n": 11
+   "n": 11,
+   "opm": "Woordwaark (S.J.H. Reker, K. ter Laan, A.A. Ganderheyden) kent het trefwoord als \"af ⋅ afgelopen; doen; af ⋅ verloren\"; de gebruikte betekenis \"gedaan\" is een andere vorm of een homoniem en niet apart bevestigd"
   },
   "dien": {
    "nl": "je",
-   "status": "afgeleid",
-   "n": 66
+   "status": "bron",
+   "n": 66,
+   "opm": "Woordwaark (S.J.H. Reker, F.H. Steenhuis 1, K. ter Laan, H. Molema): jouw; dijn; -tje; -je"
   },
   "zulfs": {
    "nl": "zelfs",
-   "status": "afgeleid",
-   "n": 9
+   "status": "twijfel",
+   "n": 9,
+   "opm": "Woordwaark (Nederlands -> Gronings, trefwoord \"zelfs\"): zölfs, zuls, zöls, zulf; \"zulfs\" komt niet voor",
+   "voorstel": "zölfs",
+   "handmatig": true
   },
   "grötter": {
    "nl": "groter",
@@ -295,8 +350,11 @@
   },
   "duvenkeuning": {
    "nl": "duivenkoning",
-   "status": "afgeleid",
-   "n": 7
+   "status": "twijfel",
+   "n": 7,
+   "opm": "Woordwaark (Nederlands -> Gronings, trefwoord \"duif\"): doef, doeve; \"duuv-/duven\" komt niet voor, ook doevemelker voor duivenmelker",
+   "voorstel": "doeve/doef",
+   "handmatig": true
   },
   "zwoarder": {
    "nl": "zwaarder",
@@ -306,7 +364,8 @@
   "holt": {
    "nl": "houdt",
    "status": "afgeleid",
-   "n": 2
+   "n": 2,
+   "opm": "Woordwaark (S.H. Abels, A.A. Ganderheyden, H. Molema, P. Boeles) kent het trefwoord als \"Klaas ⋅ hout; hout; huis\"; de gebruikte betekenis \"houdt\" is een andere vorm of een homoniem en niet apart bevestigd"
   },
   "gaauwer": {
    "nl": "sneller",
@@ -320,8 +379,11 @@
   },
   "hiele": {
    "nl": "hele",
-   "status": "afgeleid",
-   "n": 15
+   "status": "twijfel",
+   "n": 15,
+   "opm": "Woordwaark (Nederlands -> Gronings, trefwoord \"heel\"): hail, hiel, hijl, gehail; \"hiele\" komt niet voor",
+   "voorstel": "hiele navragen",
+   "handmatig": true
   },
   "slait": {
    "nl": "slaat",
@@ -330,8 +392,9 @@
   },
   "kriegen": {
    "nl": "krijgen",
-   "status": "afgeleid",
-   "n": 3
+   "status": "bron",
+   "n": 3,
+   "opm": "Woordwaark (S.J.H. Reker, K. ter Laan, A.A. Ganderheyden, H. Molema): krijgen ⋅ pakken; krijgen; krijgen ⋅ vangen; over"
   },
   "nuimen": {
    "nl": "noemen",
@@ -342,13 +405,15 @@
   },
   "aans": {
    "nl": "anders",
-   "status": "afgeleid",
-   "n": 11
+   "status": "bron",
+   "n": 11,
+   "opm": "Woordwaark (S.J.H. Reker, F.H. Steenhuis 1, K. ter Laan): anders; als; anders ⋅ echter; als ⋅ behalve ⋅ dan ⋅ indien ⋅ of"
   },
   "hait": {
    "nl": "heet",
-   "status": "afgeleid",
-   "n": 14
+   "status": "bron",
+   "n": 14,
+   "opm": "Woordwaark (S.H. Abels, S.J.H. Reker, F.H. Steenhuis 1, K. ter Laan, H. Molema): warm, erg - ⋅ zuchten; driftig ⋅ heet ⋅ warmbloedig; heet; heit"
   },
   "verbieusterd": {
    "nl": "verbijsterd",
@@ -357,13 +422,17 @@
   },
   "aovend": {
    "nl": "avond",
-   "status": "afgeleid",
-   "n": 5
+   "status": "twijfel",
+   "n": 5,
+   "opm": "Woordwaark (Nederlands -> Gronings, trefwoord \"avond\"): oavend, toavend, oavens; \"aovend\" komt niet voor",
+   "voorstel": "oavend",
+   "handmatig": true
   },
   "bannen": {
    "nl": "banden",
-   "status": "afgeleid",
-   "n": 7
+   "status": "bron",
+   "n": 7,
+   "opm": "Woordwaark (K. ter Laan): komt voor als trefwoord; vertaling niet uitgelezen"
   },
   "speult": {
    "nl": "speelt",
@@ -372,13 +441,15 @@
   },
   "zulfde": {
    "nl": "?",
-   "status": "afgeleid",
-   "n": 2
+   "status": "bron",
+   "n": 2,
+   "opm": "Woordwaark (S.J.H. Reker, K. ter Laan, H. Molema): zelfde"
   },
   "bleven": {
    "nl": "gebleven",
    "status": "afgeleid",
-   "n": 4
+   "n": 4,
+   "opm": "Woordwaark (K. ter Laan, H. Molema) kent het trefwoord als \"ge; bleven; blijven\"; de gebruikte betekenis \"gebleven\" is een andere vorm of een homoniem en niet apart bevestigd"
   },
   "riedt": {
    "nl": "rijdt",
@@ -397,8 +468,9 @@
   },
   "noa": {
    "nl": "na",
-   "status": "afgeleid",
-   "n": 12
+   "status": "bron",
+   "n": 12,
+   "opm": "Woordwaark (S.J.H. Reker, K. ter Laan, A.A. Ganderheyden, H. Molema): na ⋅ naar; naar; na; na ⋅ op ⋅ te (bij sommige plaatsn.)"
   },
   "wedstried": {
    "nl": "wedstrijd",
@@ -407,18 +479,27 @@
   },
   "aarste": {
    "nl": "eerste",
-   "status": "afgeleid",
-   "n": 9
+   "status": "twijfel",
+   "n": 9,
+   "opm": "zie \"aarst\": \"aarste\" (eerste) is niet bevestigd",
+   "voorstel": "navragen",
+   "handmatig": true
   },
   "duvenmelker": {
    "nl": "duivenmelker",
-   "status": "afgeleid",
-   "n": 3
+   "status": "twijfel",
+   "n": 3,
+   "opm": "Woordwaark (Nederlands -> Gronings, trefwoord \"duif\"): doef, doeve; \"duuv-/duven\" komt niet voor, ook doevemelker voor duivenmelker",
+   "voorstel": "doeve/doef",
+   "handmatig": true
   },
   "aindelk": {
    "nl": "eindelijk",
-   "status": "afgeleid",
-   "n": 11
+   "status": "twijfel",
+   "n": 11,
+   "opm": "Woordwaark (Nederlands -> Gronings, trefwoord \"eindelijk\"): endelk, ìndelk, eindeling; \"aindelk\" komt niet voor",
+   "voorstel": "endelk",
+   "handmatig": true
   },
   "biehollen": {
    "nl": "bijhouden",
@@ -427,13 +508,15 @@
   },
   "thoes": {
    "nl": "thuis",
-   "status": "afgeleid",
-   "n": 14
+   "status": "bron",
+   "n": 14,
+   "opm": "Woordwaark (S.J.H. Reker, K. ter Laan, A.A. Ganderheyden, H. Molema): thuis; tehuis"
   },
   "buten": {
    "nl": "buiten",
-   "status": "afgeleid",
-   "n": 7
+   "status": "bron",
+   "n": 7,
+   "opm": "Woordwaark (Westerkwartier, S.J.H. Reker, F.H. Steenhuis 1, K. ter Laan, H. Molema, P. Boeles): buiten; ruilen; handelen (handel drijven) ⋅ ruilen ⋅ sjacheren"
   },
   "groden": {
    "nl": "graden",
@@ -442,8 +525,11 @@
   },
   "betje": {
    "nl": "beetje",
-   "status": "afgeleid",
-   "n": 19
+   "status": "twijfel",
+   "n": 19,
+   "opm": "Woordwaark (Nederlands -> Gronings, trefwoord \"beetje\"): beetken, bietje, bedie; \"betje\" komt niet voor",
+   "voorstel": "bietje",
+   "handmatig": true
   },
   "bloemetjesmark": {
    "nl": "bloemetjesmarkt",
@@ -452,8 +538,9 @@
   },
   "oetzicht": {
    "nl": "uitzicht",
-   "status": "afgeleid",
-   "n": 5
+   "status": "bron",
+   "n": 5,
+   "opm": "Woordwaark (K. ter Laan): komt voor als trefwoord; vertaling niet uitgelezen"
   },
   "bluust": {
    "nl": "geblust",
@@ -472,18 +559,21 @@
   },
   "bliede": {
    "nl": "blij",
-   "status": "afgeleid",
-   "n": 5
+   "status": "bron",
+   "n": 5,
+   "opm": "Woordwaark (S.J.H. Reker, K. ter Laan): blij"
   },
   "vief": {
    "nl": "vijf",
-   "status": "afgeleid",
-   "n": 12
+   "status": "bron",
+   "n": 12,
+   "opm": "Woordwaark (S.J.H. Reker, K. ter Laan, A.A. Ganderheyden, H. Molema): vijf"
   },
   "vandoage": {
    "nl": "vandaag",
-   "status": "afgeleid",
-   "n": 18
+   "status": "bron",
+   "n": 18,
+   "opm": "Woordwaark (S.J.H. Reker): vandaag"
   },
   "kriegst": {
    "nl": "krijgt",
@@ -492,8 +582,9 @@
   },
   "goie": {
    "nl": "goede",
-   "status": "afgeleid",
-   "n": 9
+   "status": "bron",
+   "n": 9,
+   "opm": "Woordwaark (S.J.H. Reker): komt voor als trefwoord; vertaling niet uitgelezen"
   },
   "aflevert": {
    "nl": "afgeleverd",
@@ -534,13 +625,17 @@
   },
   "mouten": {
    "nl": "moeten",
-   "status": "afgeleid",
-   "n": 12
+   "status": "bron",
+   "n": 12,
+   "opm": "Woordwaark (S.H. Abels, S.J.H. Reker, K. ter Laan, A.A. Ganderheyden, H. Molema): moeten ⋅ niet ⋅ willen; moeten; moest; moetwerk"
   },
   "vaaren": {
    "nl": "varen",
-   "status": "afgeleid",
-   "n": 12
+   "status": "twijfel",
+   "n": 12,
+   "opm": "Woordwaark (Nederlands -> Gronings, trefwoord \"varen\"): voaren, rieden; \"vaaren\" komt niet voor (ook nds-nl Wikipedia: voaren)",
+   "voorstel": "voaren",
+   "handmatig": true
   },
   "doarachter": {
    "nl": "daarachter",
@@ -554,8 +649,9 @@
   },
   "winst": {
    "nl": "win",
-   "status": "afgeleid",
-   "n": 5
+   "status": "bron",
+   "n": 5,
+   "opm": "Woordwaark (K. ter Laan): komt voor als trefwoord; vertaling niet uitgelezen"
   },
   "gaauwste": {
    "nl": "snelste",
@@ -564,8 +660,9 @@
   },
   "doarom": {
    "nl": "daarom",
-   "status": "afgeleid",
-   "n": 11
+   "status": "bron",
+   "n": 11,
+   "opm": "Woordwaark (S.J.H. Reker, K. ter Laan, H. Molema): daarom ⋅ desalniettemin; daarom"
   },
   "moakt": {
    "nl": "maakt",
@@ -574,8 +671,9 @@
   },
   "juust": {
    "nl": "juist",
-   "status": "afgeleid",
-   "n": 2
+   "status": "bron",
+   "n": 2,
+   "opm": "Woordwaark (S.J.H. Reker, K. ter Laan, H. Molema): juist ⋅ trouwens; juist; juist ⋅ net"
   },
   "vaailige": {
    "nl": "veilige",
@@ -585,17 +683,20 @@
   "wait": {
    "nl": "weet",
    "status": "afgeleid",
-   "n": 41
+   "n": 41,
+   "opm": "Woordwaark (K. ter Laan, P. Boeles) kent het trefwoord als \"tarwe\"; de gebruikte betekenis \"weet\" is een andere vorm of een homoniem en niet apart bevestigd"
   },
   "stoalen": {
    "nl": "gestolen",
-   "status": "afgeleid",
-   "n": 6
+   "status": "bron",
+   "n": 6,
+   "opm": "Woordwaark (K. ter Laan): komt voor als trefwoord; vertaling niet uitgelezen"
   },
   "et": {
    "nl": "eet",
    "status": "afgeleid",
-   "n": 4
+   "n": 4,
+   "opm": "Woordwaark (P. Boeles) kent het trefwoord als \"h; et\"; de gebruikte betekenis \"eet\" is een andere vorm of een homoniem en niet apart bevestigd"
   },
   "leuf": {
    "nl": "geloof",
@@ -609,28 +710,33 @@
   },
   "nije": {
    "nl": "nieuwe",
-   "status": "afgeleid",
-   "n": 14
+   "status": "bron",
+   "n": 14,
+   "opm": "Woordwaark (P. Boeles): nieuw"
   },
   "zuken": {
    "nl": "zoeken",
-   "status": "afgeleid",
-   "n": 1
+   "status": "bron",
+   "n": 1,
+   "opm": "Woordwaark (S.J.H. Reker): zoeken"
   },
   "verleden": {
    "nl": "vorig",
    "status": "afgeleid",
-   "n": 3
+   "n": 3,
+   "opm": "Woordwaark (S.J.H. Reker, K. ter Laan, A.A. Ganderheyden, H. Molema) kent het trefwoord als \"verleden; lijden\"; de gebruikte betekenis \"vorig\" is een andere vorm of een homoniem en niet apart bevestigd"
   },
   "zai": {
    "nl": "ze",
    "status": "afgeleid",
-   "n": 41
+   "n": 41,
+   "opm": "Woordwaark (S.J.H. Reker, K. ter Laan, A.A. Ganderheyden) kent het trefwoord als \"zij; zaai\"; de gebruikte betekenis \"ze\" is een andere vorm of een homoniem en niet apart bevestigd"
   },
   "moaken": {
    "nl": "maken",
-   "status": "afgeleid",
-   "n": 3
+   "status": "bron",
+   "n": 3,
+   "opm": "Woordwaark (S.J.H. Reker, A.A. Ganderheyden, H. Molema): maken ⋅ opbrengen; maken; doen ⋅ geven ⋅ opbrengen; opbrengen ⋅ opvoeden"
   },
   "nauwelks": {
    "nl": "nauwelijks",
@@ -639,18 +745,21 @@
   },
   "mörn": {
    "nl": "morgen",
-   "status": "afgeleid",
-   "n": 10
+   "status": "bron",
+   "n": 10,
+   "opm": "Woordwaark (S.J.H. Reker, K. ter Laan, A.A. Ganderheyden): morgen"
   },
   "eerlk": {
    "nl": "eerlijk",
-   "status": "afgeleid",
-   "n": 9
+   "status": "bron",
+   "n": 9,
+   "opm": "Woordwaark (K. ter Laan): komt voor als trefwoord; vertaling niet uitgelezen"
   },
   "older": {
    "nl": "ouder",
-   "status": "afgeleid",
-   "n": 2
+   "status": "bron",
+   "n": 2,
+   "opm": "Woordwaark (S.J.H. Reker, F.H. Steenhuis 1, A.A. Ganderheyden, H. Molema): leeftijd, (hoge -); ouder"
   },
   "gong": {
    "nl": "ging",
@@ -659,25 +768,35 @@
   },
   "zied": {
    "nl": "sinds",
-   "status": "afgeleid",
-   "n": 15
+   "status": "twijfel",
+   "n": 15,
+   "opm": "Woordwaark (Nederlands -> Gronings, trefwoord \"sinds\"): \"sunt\", \"van dat\"; \"zied\" betekent daar zijde/kant, niet sinds",
+   "voorstel": "sunt",
+   "handmatig": true
   },
   "vrogger": {
    "nl": "vroeger",
-   "status": "afgeleid",
-   "n": 11
+   "status": "twijfel",
+   "n": 11,
+   "opm": "Woordwaark (Nederlands -> Gronings, trefwoord \"vroeger\"): vrouger, veurheer, veurtied; \"vrogger\" komt niet voor",
+   "voorstel": "vrouger",
+   "handmatig": true
   },
   "dartig": {
    "nl": "dertig",
-   "status": "afgeleid",
-   "n": 8
+   "status": "twijfel",
+   "n": 8,
+   "opm": "Woordwaark (Nederlands -> Gronings, trefwoord \"dertig\"): daarteg, dareg, datteg; \"dartig\" komt niet voor",
+   "voorstel": "daarteg",
+   "handmatig": true
   },
   "nuumst": {
    "nl": "noemt",
    "status": "twijfel",
    "n": 2,
-   "opm": "noemt: \"nuum-\" naast \"nuim-\"; twee vormen",
-   "voorstel": "een vorm kiezen"
+   "opm": "Woordwaark (nuimen): neumen, nuimen, numen, nummen; geen \"nuum-\"",
+   "voorstel": "nuim-",
+   "handmatig": true
   },
   "ainrichtingsverkeer": {
    "nl": "eenrichtingsverkeer",
@@ -708,13 +827,17 @@
   },
   "luusteren": {
    "nl": "luisteren",
-   "status": "afgeleid",
-   "n": 8
+   "status": "twijfel",
+   "n": 8,
+   "opm": "Woordwaark (Nederlands -> Gronings, trefwoord \"luisteren\"): luustern, lustern, heuren; \"luusteren\" komt niet voor",
+   "voorstel": "luustern",
+   "handmatig": true
   },
   "wark": {
    "nl": "werk",
-   "status": "afgeleid",
-   "n": 17
+   "status": "bron",
+   "n": 17,
+   "opm": "Woordwaark (H. Molema, P. Boeles): werk; honingraten ⋅ werk; jongewijvenwerk"
   },
   "loodzwoar": {
    "nl": "loodzwaar",
@@ -723,8 +846,9 @@
   },
   "loaten": {
    "nl": "laten",
-   "status": "afgeleid",
-   "n": 6
+   "status": "bron",
+   "n": 6,
+   "opm": "Woordwaark (S.J.H. Reker, K. ter Laan, H. Molema): laten; bestellen; toelaten; eels"
   },
   "plend": {
    "nl": "gepland",
@@ -733,13 +857,15 @@
   },
   "jo": {
    "nl": "ja",
-   "status": "afgeleid",
-   "n": 19
+   "status": "bron",
+   "n": 19,
+   "opm": "Woordwaark (F.H. Steenhuis 1): ja"
   },
   "mekoar": {
    "nl": "elkaar",
-   "status": "afgeleid",
-   "n": 6
+   "status": "bron",
+   "n": 6,
+   "opm": "Woordwaark (K. ter Laan, H. Molema): elkaar; wambuis"
   },
   "hoeren": {
    "nl": "horen",
@@ -756,12 +882,14 @@
   "slimste": {
    "nl": "ergste",
    "status": "afgeleid",
-   "n": 3
+   "n": 3,
+   "opm": "Woordwaark (K. ter Laan, H. Molema) kent het trefwoord als \"slimste\"; de gebruikte betekenis \"ergste\" is een andere vorm of een homoniem en niet apart bevestigd"
   },
   "kold": {
    "nl": "koud",
-   "status": "afgeleid",
-   "n": 11
+   "status": "bron",
+   "n": 11,
+   "opm": "Woordwaark (S.H. Abels, H. Molema): gootsteen ⋅ wintervoet; drukte ⋅ koud; koud ⋅ vuur; koud"
   },
   "zegst": {
    "nl": "zegt",
@@ -780,8 +908,11 @@
   },
   "huzen": {
    "nl": "huizen",
-   "status": "afgeleid",
-   "n": 9
+   "status": "twijfel",
+   "n": 9,
+   "opm": "Woordwaark (Nederlands -> Gronings, trefwoord \"huis\"): hoes, huus (Stad), pakhoes; \"-huzen\" komt niet voor; nds-nl Wikipedia heeft \"hoes\"",
+   "voorstel": "hoezen/huzen navragen",
+   "handmatig": true
   },
   "inzakt": {
    "nl": "ingestort",
@@ -827,8 +958,9 @@
   },
   "woarom": {
    "nl": "waarom",
-   "status": "afgeleid",
-   "n": 21
+   "status": "bron",
+   "n": 21,
+   "opm": "Woordwaark (H. Molema): waarom; daarom"
   },
   "nammen": {
    "nl": "namen",
@@ -843,32 +975,40 @@
   "sticht": {
    "nl": "gesticht",
    "status": "afgeleid",
-   "n": 2
+   "n": 2,
+   "opm": "Woordwaark (S.J.H. Reker, F.H. Steenhuis 1, H. Molema) kent het trefwoord als \"hek, soort -; sticht\"; de gebruikte betekenis \"gesticht\" is een andere vorm of een homoniem en niet apart bevestigd"
   },
   "zol": {
    "nl": "zou",
-   "status": "afgeleid",
-   "n": 6
+   "status": "bron",
+   "n": 6,
+   "opm": "Woordwaark (K. ter Laan): komt voor als trefwoord; vertaling niet uitgelezen"
   },
   "zuden": {
    "nl": "zuiden",
-   "status": "afgeleid",
-   "n": 1
+   "status": "bron",
+   "n": 1,
+   "opm": "Woordwaark (S.J.H. Reker, K. ter Laan): zuiden"
   },
   "dwaars": {
    "nl": "dwars",
-   "status": "afgeleid",
-   "n": 1
+   "status": "bron",
+   "n": 1,
+   "opm": "Woordwaark (S.J.H. Reker, K. ter Laan): dwars ⋅ onvriendelijk; onvriendelijk"
   },
   "deurhen": {
    "nl": "doorheen",
-   "status": "afgeleid",
-   "n": 1
+   "status": "bron",
+   "n": 1,
+   "opm": "Woordwaark (A.A. Ganderheyden, H. Molema): doorheen; door"
   },
   "pakhuzen": {
    "nl": "pakhuizen",
-   "status": "afgeleid",
-   "n": 3
+   "status": "twijfel",
+   "n": 3,
+   "opm": "Woordwaark (Nederlands -> Gronings, trefwoord \"huis\"): hoes, huus (Stad), pakhoes; \"-huzen\" komt niet voor; nds-nl Wikipedia heeft \"hoes\"",
+   "voorstel": "hoezen/huzen navragen",
+   "handmatig": true
   },
   "bruggies": {
    "nl": "bruggetjes",
@@ -902,8 +1042,9 @@
   },
   "woar": {
    "nl": "waar",
-   "status": "afgeleid",
-   "n": 30
+   "status": "bron",
+   "n": 30,
+   "opm": "Woordwaark (S.J.H. Reker, K. ter Laan, A.A. Ganderheyden, H. Molema): waar ⋅ werkelijk; misschien; ergens; waar"
   },
   "ideë": {
    "nl": "idee",
@@ -937,8 +1078,11 @@
   },
   "aend": {
    "nl": "eend",
-   "status": "afgeleid",
-   "n": 2
+   "status": "twijfel",
+   "n": 2,
+   "opm": "Woordwaark (Nederlands -> Gronings, trefwoord \"eend\"): aind, ijn, ijnd; \"aend\" komt niet voor; let op: \"aind\" wordt bij ons ook voor \"einde\" gebruikt",
+   "voorstel": "aind",
+   "handmatig": true
   },
   "oosterparkwiek": {
    "nl": "oosterparkwijk",
@@ -952,18 +1096,23 @@
   },
   "herenhuzen": {
    "nl": "herenhuizen",
-   "status": "afgeleid",
-   "n": 1
+   "status": "twijfel",
+   "n": 1,
+   "opm": "Woordwaark (Nederlands -> Gronings, trefwoord \"huis\"): hoes, huus (Stad), pakhoes; \"-huzen\" komt niet voor; nds-nl Wikipedia heeft \"hoes\"",
+   "voorstel": "hoezen/huzen navragen",
+   "handmatig": true
   },
   "drok": {
    "nl": "druk",
-   "status": "afgeleid",
-   "n": 6
+   "status": "bron",
+   "n": 6,
+   "opm": "Woordwaark (K. ter Laan, A.A. Ganderheyden, H. Molema): druk"
   },
   "bruken": {
    "nl": "gebruiken",
-   "status": "afgeleid",
-   "n": 3
+   "status": "bron",
+   "n": 3,
+   "opm": "Woordwaark (S.J.H. Reker, F.H. Steenhuis 1, K. ter Laan, H. Molema): gebruiken; gebruiken ⋅ nuttigen"
   },
   "vroagd": {
    "nl": "gevraagd",
@@ -982,13 +1131,19 @@
   },
   "rijtjeshuzen": {
    "nl": "rijtjeshuizen",
-   "status": "afgeleid",
-   "n": 2
+   "status": "twijfel",
+   "n": 2,
+   "opm": "Woordwaark (Nederlands -> Gronings, trefwoord \"huis\"): hoes, huus (Stad), pakhoes; \"-huzen\" komt niet voor; nds-nl Wikipedia heeft \"hoes\"",
+   "voorstel": "hoezen/huzen navragen",
+   "handmatig": true
   },
   "still": {
    "nl": "stil",
-   "status": "afgeleid",
-   "n": 8
+   "status": "twijfel",
+   "n": 8,
+   "opm": "Woordwaark (Nederlands -> Gronings, trefwoord \"stil\"): stil; de dubbele l is niet bevestigd",
+   "voorstel": "stil",
+   "handmatig": true
   },
   "tiedelke": {
    "nl": "tijdelijke",
@@ -1027,8 +1182,9 @@
   },
   "veuraan": {
    "nl": "vooraan",
-   "status": "afgeleid",
-   "n": 2
+   "status": "bron",
+   "n": 2,
+   "opm": "Woordwaark (K. ter Laan): komt voor als trefwoord; vertaling niet uitgelezen"
   },
   "opbouwd": {
    "nl": "opgebouwd",
@@ -1037,13 +1193,19 @@
   },
   "lait": {
    "nl": "laat",
-   "status": "afgeleid",
-   "n": 3
+   "status": "twijfel",
+   "n": 3,
+   "opm": "Woordwaark (Nederlands -> Gronings, trefwoord \"laten\"): loaten, loat stoan; \"lait\" komt niet voor",
+   "voorstel": "loat",
+   "handmatig": true
   },
   "aind": {
    "nl": "einde",
-   "status": "afgeleid",
-   "n": 6
+   "status": "twijfel",
+   "n": 6,
+   "opm": "\"aind\" is bij Woordwaark \"eend\"; wij gebruiken het (ook) voor \"einde\" (aindelk, aindigen): dubbelzinnig",
+   "voorstel": "navragen",
+   "handmatig": true
   },
   "stuurd": {
    "nl": "gestuurd",
@@ -1067,8 +1229,9 @@
   },
   "suker": {
    "nl": "suiker",
-   "status": "afgeleid",
-   "n": 4
+   "status": "bron",
+   "n": 4,
+   "opm": "Woordwaark (S.J.H. Reker, F.H. Steenhuis 1, H. Molema, K. ter Laan): suiker"
   },
   "vliegst": {
    "nl": "vliegt",
@@ -1104,13 +1267,15 @@
   },
   "disse": {
    "nl": "deze",
-   "status": "afgeleid",
-   "n": 11
+   "status": "bron",
+   "n": 11,
+   "opm": "Woordwaark (H. Molema): deze; dit is; fris; handvol"
   },
   "kunstenoar": {
    "nl": "kunstenaar",
-   "status": "afgeleid",
-   "n": 1
+   "status": "bron",
+   "n": 1,
+   "opm": "Woordwaark (K. ter Laan): kunstenaar"
   },
   "fusilleerd": {
    "nl": "gefusilleerd",
@@ -1120,29 +1285,36 @@
   "peer": {
    "nl": "paar",
    "status": "afgeleid",
-   "n": 7
+   "n": 7,
+   "opm": "Woordwaark (S.J.H. Reker, K. ter Laan, H. Molema) kent het trefwoord als \"peer; muil; ⋅\"; de gebruikte betekenis \"paar\" is een andere vorm of een homoniem en niet apart bevestigd"
   },
   "kij": {
    "nl": "koeien",
-   "status": "afgeleid",
-   "n": 5
+   "status": "bron",
+   "n": 5,
+   "opm": "Woordwaark (K. ter Laan): komt voor als trefwoord; vertaling niet uitgelezen"
   },
   "nuumde": {
    "nl": "noemde",
    "status": "twijfel",
    "n": 1,
-   "opm": "noemde: \"nuum-\" naast \"nuim-\"; twee vormen",
-   "voorstel": "een vorm kiezen"
+   "opm": "Woordwaark (nuimen): neumen, nuimen, numen, nummen; geen \"nuum-\"",
+   "voorstel": "nuim-",
+   "handmatig": true
   },
   "reup": {
    "nl": "riep",
    "status": "afgeleid",
-   "n": 1
+   "n": 1,
+   "opm": "Woordwaark (H. Molema) kent het trefwoord als \"ruif\"; de gebruikte betekenis \"riep\" is een andere vorm of een homoniem en niet apart bevestigd"
   },
   "aaloverst": {
    "nl": "overal",
-   "status": "afgeleid",
-   "n": 11
+   "status": "twijfel",
+   "n": 11,
+   "opm": "Woordwaark (Nederlands -> Gronings, trefwoord \"overal\"): overaal, alderwegens, overal; \"aaloverst\" komt niet voor",
+   "voorstel": "overaal",
+   "handmatig": true
   },
   "kiekte": {
    "nl": "keek",
@@ -1151,8 +1323,9 @@
   },
   "roar": {
    "nl": "raar",
-   "status": "afgeleid",
-   "n": 4
+   "status": "bron",
+   "n": 4,
+   "opm": "Woordwaark (S.J.H. Reker, K. ter Laan, A.A. Ganderheyden, H. Molema): raar ⋅ vreemd; raar; dol ⋅ vreemd"
   },
   "natgoan": {
    "nl": "natgaan",
@@ -1161,13 +1334,15 @@
   },
   "sluten": {
    "nl": "sluiten",
-   "status": "afgeleid",
-   "n": 1
+   "status": "bron",
+   "n": 1,
+   "opm": "Woordwaark (S.J.H. Reker, K. ter Laan, H. Molema): sluiten; sluiting"
   },
   "aigenoar": {
    "nl": "eigenaar",
-   "status": "afgeleid",
-   "n": 2
+   "status": "bron",
+   "n": 2,
+   "opm": "Woordwaark (H. Molema): eigenaar"
   },
   "jatte": {
    "nl": "gejatte",
@@ -1176,13 +1351,15 @@
   },
   "oetgang": {
    "nl": "uitgang",
-   "status": "afgeleid",
-   "n": 1
+   "status": "bron",
+   "n": 1,
+   "opm": "Woordwaark (K. ter Laan): uitgang"
   },
   "deurlopen": {
    "nl": "doorlopen",
-   "status": "afgeleid",
-   "n": 1
+   "status": "bron",
+   "n": 1,
+   "opm": "Woordwaark (K. ter Laan): doorlopen"
   },
   "wegjaagd": {
    "nl": "weggejaagd",
@@ -1201,14 +1378,15 @@
   },
   "poal": {
    "nl": "paal",
-   "status": "afgeleid",
-   "n": 1
+   "status": "bron",
+   "n": 1,
+   "opm": "Woordwaark (S.J.H. Reker, K. ter Laan, H. Molema): paal; listig"
   },
   "rieden": {
    "nl": "rijden",
    "status": "bron",
    "n": 22,
-   "opm": "nds-nl Wikipedia (Grunnegs): \"voaren\" -> \"rieden\""
+   "opm": "Woordwaark (S.J.H. Reker, K. ter Laan, H. Molema): rijden; rijden ⋅ varen"
   },
   "sluut": {
    "nl": "sluit",
@@ -1217,8 +1395,9 @@
   },
   "klain": {
    "nl": "klein",
-   "status": "afgeleid",
-   "n": 5
+   "status": "bron",
+   "n": 5,
+   "opm": "Woordwaark (S.J.H. Reker, F.H. Steenhuis 1, K. ter Laan): veen; klein; klijn"
   },
   "betoald": {
    "nl": "betaald",
@@ -1238,12 +1417,14 @@
   "deup": {
    "nl": "diep",
    "status": "afgeleid",
-   "n": 3
+   "n": 3,
+   "opm": "Woordwaark (S.J.H. Reker, K. ter Laan, A.A. Ganderheyden) kent het trefwoord als \"doop; dreumes; dreumes ⋅ keutel\"; de gebruikte betekenis \"diep\" is een andere vorm of een homoniem en niet apart bevestigd"
   },
   "slimmer": {
    "nl": "erger",
-   "status": "afgeleid",
-   "n": 2
+   "status": "bron",
+   "n": 2,
+   "opm": "Woordwaark (K. ter Laan): komt voor als trefwoord; vertaling niet uitgelezen"
   },
   "schuten": {
    "nl": "schuiten",
@@ -1257,13 +1438,15 @@
   },
   "veurbie": {
    "nl": "voorbij",
-   "status": "afgeleid",
-   "n": 1
+   "status": "bron",
+   "n": 1,
+   "opm": "Woordwaark (S.J.H. Reker, K. ter Laan): voorbij; geleden ⋅ voorbij"
   },
   "hielemoal": {
    "nl": "helemaal",
-   "status": "afgeleid",
-   "n": 3
+   "status": "bron",
+   "n": 3,
+   "opm": "Woordwaark (S.J.H. Reker): helemaal; bijna ⋅ helemaal; geheel ⋅ helemaal"
   },
   "ruum": {
    "nl": "ruim",
@@ -1273,7 +1456,8 @@
   "aaien": {
    "nl": "eieren",
    "status": "afgeleid",
-   "n": 9
+   "n": 9,
+   "opm": "Woordwaark (Westerkwartier, S.J.H. Reker, K. ter Laan) kent het trefwoord als \"eggen; aaien; ⋅ besmeuren ⋅ klikken ⋅ slaan\"; de gebruikte betekenis \"eieren\" is een andere vorm of een homoniem en niet apart bevestigd"
   },
   "volkstuun": {
    "nl": "volkstuin",
@@ -1287,18 +1471,25 @@
   },
   "kört": {
    "nl": "kort",
-   "status": "afgeleid",
-   "n": 2
+   "status": "bron",
+   "n": 2,
+   "opm": "Woordwaark (S.J.H. Reker, A.A. Ganderheyden, H. Molema, K. ter Laan): kort ⋅ plank; kort ⋅ stuk; kort; kapot ⋅ stuk"
   },
   "duven": {
    "nl": "duiven",
-   "status": "afgeleid",
-   "n": 18
+   "status": "twijfel",
+   "n": 18,
+   "opm": "Woordwaark (Nederlands -> Gronings, trefwoord \"duif\"): doef, doeve; \"duuv-/duven\" komt niet voor, ook doevemelker voor duivenmelker",
+   "voorstel": "doeve/doef",
+   "handmatig": true
   },
   "woonen": {
    "nl": "wonen",
-   "status": "afgeleid",
-   "n": 8
+   "status": "twijfel",
+   "n": 8,
+   "opm": "Woordwaark (Nederlands -> Gronings, trefwoord \"wonen\"): wonen, wonên; de dubbele o is niet bevestigd",
+   "voorstel": "wonen",
+   "handmatig": true
   },
   "luustern": {
    "nl": "luisteren",
@@ -1312,13 +1503,17 @@
   },
   "tegelieke": {
    "nl": "tegelijk",
-   "status": "afgeleid",
-   "n": 5
+   "status": "twijfel",
+   "n": 5,
+   "opm": "Woordwaark (Nederlands -> Gronings, trefwoord \"tegelijk\"): tougelieks, toegelieks; \"tegelieke\" komt niet voor",
+   "voorstel": "tougelieks",
+   "handmatig": true
   },
   "opzied": {
    "nl": "opzij",
-   "status": "afgeleid",
-   "n": 4
+   "status": "bron",
+   "n": 4,
+   "opm": "Woordwaark (K. ter Laan): komt voor als trefwoord; vertaling niet uitgelezen"
   },
   "aindigen": {
    "nl": "eindigen",
@@ -1327,8 +1522,9 @@
   },
   "gelieke": {
    "nl": "gelijk",
-   "status": "afgeleid",
-   "n": 5
+   "status": "bron",
+   "n": 5,
+   "opm": "Woordwaark (S.J.H. Reker, K. ter Laan, A.A. Ganderheyden, H. Molema): even; gelijk"
   },
   "rde": {
    "nl": "?",
@@ -1338,8 +1534,9 @@
   },
   "begraffenis": {
    "nl": "begrafenis",
-   "status": "afgeleid",
-   "n": 1
+   "status": "bron",
+   "n": 1,
+   "opm": "Woordwaark (S.J.H. Reker, H. Molema): begrafenis"
   },
   "rieke": {
    "nl": "rijke",
@@ -1348,8 +1545,9 @@
   },
   "normoal": {
    "nl": "normaal",
-   "status": "afgeleid",
-   "n": 6
+   "status": "bron",
+   "n": 6,
+   "opm": "Woordwaark (K. ter Laan): komt voor als trefwoord; vertaling niet uitgelezen"
   },
   "duuzenden": {
    "nl": "duizenden",
@@ -1358,8 +1556,11 @@
   },
   "groaf": {
    "nl": "graf",
-   "status": "afgeleid",
-   "n": 1
+   "status": "twijfel",
+   "n": 1,
+   "opm": "Woordwaark (Nederlands -> Gronings, trefwoord \"graf\"): graf; \"groaf\" komt niet voor (Molema: groaf = graaf)",
+   "voorstel": "graf",
+   "handmatig": true
   },
   "buurjong": {
    "nl": "buurjongen",
@@ -1368,8 +1569,9 @@
   },
   "loater": {
    "nl": "later",
-   "status": "afgeleid",
-   "n": 1
+   "status": "bron",
+   "n": 1,
+   "opm": "Woordwaark (S.H. Abels): kwartier ⋅ later; avond ⋅ later ⋅ schoon ⋅ volk"
   },
   "kiekst": {
    "nl": "kijkt",
@@ -1394,7 +1596,8 @@
   "mörns": {
    "nl": "ochtends",
    "status": "afgeleid",
-   "n": 1
+   "n": 1,
+   "opm": "Woordwaark (A.A. Ganderheyden) kent het trefwoord als \"morgen\"; de gebruikte betekenis \"ochtends\" is een andere vorm of een homoniem en niet apart bevestigd"
   },
   "geft": {
    "nl": "geeft",
@@ -1408,8 +1611,11 @@
   },
   "stuntaovend": {
    "nl": "stuntavond",
-   "status": "afgeleid",
-   "n": 1
+   "status": "twijfel",
+   "n": 1,
+   "opm": "Woordwaark (Nederlands -> Gronings, trefwoord \"avond\"): oavend, toavend, oavens; \"aovend\" komt niet voor",
+   "voorstel": "oavend",
+   "handmatig": true
   },
   "terwiel": {
    "nl": "terwijl",
@@ -1433,13 +1639,17 @@
   },
   "aarder": {
    "nl": "eerder",
-   "status": "afgeleid",
-   "n": 4
+   "status": "twijfel",
+   "n": 4,
+   "opm": "zie \"aarst\": \"aarder\" (eerder) is niet bevestigd; Woordwaark geeft \"eder\", \"eer\"",
+   "voorstel": "eder",
+   "handmatig": true
   },
   "oetstappen": {
    "nl": "uitstappen",
-   "status": "afgeleid",
-   "n": 6
+   "status": "bron",
+   "n": 6,
+   "opm": "Woordwaark (K. ter Laan): uitstappen"
   },
   "afmoaken": {
    "nl": "afmaken",
@@ -1453,8 +1663,9 @@
   },
   "muus": {
    "nl": "muis",
-   "status": "afgeleid",
-   "n": 1
+   "status": "bron",
+   "n": 1,
+   "opm": "Woordwaark (H. Molema): muis"
   },
   "eerlke": {
    "nl": "eerlijke",
@@ -1468,8 +1679,9 @@
   },
   "riek": {
    "nl": "rijk",
-   "status": "afgeleid",
-   "n": 3
+   "status": "bron",
+   "n": 3,
+   "opm": "Woordwaark (S.J.H. Reker, K. ter Laan, A.A. Ganderheyden, H. Molema): rijk; riek; rijk ⋅ sterk"
   },
   "aanpast": {
    "nl": "aangepast",
@@ -1493,8 +1705,9 @@
   },
   "drokte": {
    "nl": "drukte",
-   "status": "afgeleid",
-   "n": 2
+   "status": "bron",
+   "n": 2,
+   "opm": "Woordwaark (S.J.H. Reker, H. Molema): drukte ⋅ koud; drukte ⋅ ruzie; drukte; fratsen ⋅ ruzie"
   },
   "filmd": {
    "nl": "gefilmd",
@@ -1518,8 +1731,11 @@
   },
   "vreug": {
    "nl": "vroeg",
-   "status": "afgeleid",
-   "n": 3
+   "status": "twijfel",
+   "n": 3,
+   "opm": "Woordwaark (Nederlands -> Gronings, trefwoord \"vroeg\"): vroug, vro, bietieds; \"vreug\" komt niet voor",
+   "voorstel": "vroug",
+   "handmatig": true
   },
   "zitst": {
    "nl": "zit",
@@ -1528,13 +1744,15 @@
   },
   "zeden": {
    "nl": "zeiden",
-   "status": "afgeleid",
-   "n": 2
+   "status": "bron",
+   "n": 2,
+   "opm": "Woordwaark (K. ter Laan): komt voor als trefwoord; vertaling niet uitgelezen"
   },
   "olders": {
    "nl": "ouders",
-   "status": "afgeleid",
-   "n": 1
+   "status": "bron",
+   "n": 1,
+   "opm": "Woordwaark (S.J.H. Reker, H. Molema): ouders; ouder; voorouder"
   },
   "vanoet": {
    "nl": "vanuit",
@@ -1553,13 +1771,15 @@
   },
   "schient": {
    "nl": "schijnt",
-   "status": "afgeleid",
-   "n": 2
+   "status": "bron",
+   "n": 2,
+   "opm": "Woordwaark (H. Molema): schijnen"
   },
   "diek": {
    "nl": "dijk",
-   "status": "afgeleid",
-   "n": 4
+   "status": "bron",
+   "n": 4,
+   "opm": "Woordwaark (S.J.H. Reker, K. ter Laan, H. Molema): dijk"
   },
   "veurzorg": {
    "nl": "voorzorg",
@@ -1578,8 +1798,9 @@
   },
   "woarhen": {
    "nl": "waarheen",
-   "status": "afgeleid",
-   "n": 1
+   "status": "bron",
+   "n": 1,
+   "opm": "Woordwaark (H. Molema): waarheen"
   },
   "vanoavend": {
    "nl": "vanavond",
@@ -1588,18 +1809,21 @@
   },
   "hiel": {
    "nl": "heel",
-   "status": "afgeleid",
-   "n": 1
+   "status": "bron",
+   "n": 1,
+   "opm": "Woordwaark (S.J.H. Reker, A.A. Ganderheyden): heel; halen; houden; geheel ⋅ heel"
   },
   "wiezen": {
    "nl": "wijzen",
-   "status": "afgeleid",
-   "n": 2
+   "status": "bron",
+   "n": 2,
+   "opm": "Woordwaark (S.J.H. Reker, K. ter Laan): wijzen"
   },
   "goaten": {
    "nl": "gaten",
    "status": "afgeleid",
-   "n": 1
+   "n": 1,
+   "opm": "Woordwaark (A.A. Ganderheyden) kent het trefwoord als \"gat; buisgat; loer\"; de gebruikte betekenis \"gaten\" is een andere vorm of een homoniem en niet apart bevestigd"
   },
   "zunnetje": {
    "nl": "zonnetje",
@@ -1634,7 +1858,8 @@
   "duuster": {
    "nl": "donker",
    "status": "afgeleid",
-   "n": 8
+   "n": 8,
+   "opm": "Woordwaark (S.J.H. Reker, K. ter Laan, H. Molema) kent het trefwoord als \"boos ⋅ duister; duister; boos ⋅ schor\"; de gebruikte betekenis \"donker\" is een andere vorm of een homoniem en niet apart bevestigd"
   },
   "doarbinnen": {
    "nl": "daarbinnen",
@@ -1644,7 +1869,8 @@
   "leden": {
    "nl": "geleden",
    "status": "afgeleid",
-   "n": 2
+   "n": 2,
+   "opm": "Woordwaark (S.J.H. Reker, K. ter Laan, A.A. Ganderheyden, H. Molema) kent het trefwoord als \"ge; leden; ⋅ voorbij\"; de gebruikte betekenis \"geleden\" is een andere vorm of een homoniem en niet apart bevestigd"
   },
   "bekieken": {
    "nl": "bekijken",
@@ -1653,8 +1879,9 @@
   },
   "mos": {
    "nl": "moest",
-   "status": "afgeleid",
-   "n": 3
+   "status": "bron",
+   "n": 3,
+   "opm": "Woordwaark (K. ter Laan, H. Molema): moest; mos; sel"
   },
   "flitspoal": {
    "nl": "flitspaal",
@@ -1678,8 +1905,9 @@
   },
   "aander": {
    "nl": "andere",
-   "status": "afgeleid",
-   "n": 8
+   "status": "bron",
+   "n": 8,
+   "opm": "Woordwaark (S.J.H. Reker, K. ter Laan): ander ⋅ tweede ⋅ volgend; ander; toekomstig ⋅ volgend; tweede"
   },
   "leende": {
    "nl": "geleende",
@@ -1694,7 +1922,8 @@
   "mins": {
    "nl": "niemand",
    "status": "afgeleid",
-   "n": 1
+   "n": 1,
+   "opm": "Woordwaark (A.A. Ganderheyden) kent het trefwoord als \"mens\"; de gebruikte betekenis \"niemand\" is een andere vorm of een homoniem en niet apart bevestigd"
   },
   "mouilker": {
    "nl": "moeilijker",
@@ -1704,12 +1933,16 @@
   "hakken": {
    "nl": "hielen",
    "status": "afgeleid",
-   "n": 1
+   "n": 1,
+   "opm": "Woordwaark (K. ter Laan, A.A. Ganderheyden, P. Boeles) kent het trefwoord als \"hak; uitsteken\"; de gebruikte betekenis \"hielen\" is een andere vorm of een homoniem en niet apart bevestigd"
   },
   "goedenaovend": {
    "nl": "goedenavond",
-   "status": "afgeleid",
-   "n": 1
+   "status": "twijfel",
+   "n": 1,
+   "opm": "Woordwaark (Nederlands -> Gronings, trefwoord \"avond\"): oavend, toavend, oavens; \"aovend\" komt niet voor",
+   "voorstel": "oavend",
+   "handmatig": true
   },
   "goeiemörn": {
    "nl": "goeiemorgen",
@@ -1743,13 +1976,15 @@
   },
   "zeun": {
    "nl": "zoon",
-   "status": "afgeleid",
-   "n": 1
+   "status": "bron",
+   "n": 1,
+   "opm": "Woordwaark (S.J.H. Reker, K. ter Laan, P. Boeles): zoon"
   },
   "zegd": {
    "nl": "gezegd",
    "status": "afgeleid",
-   "n": 3
+   "n": 3,
+   "opm": "Woordwaark (K. ter Laan, H. Molema) kent het trefwoord als \"ge; zegd\"; de gebruikte betekenis \"gezegd\" is een andere vorm of een homoniem en niet apart bevestigd"
   },
   "haald": {
    "nl": "gehaald",
@@ -1788,8 +2023,9 @@
   },
   "heerlk": {
    "nl": "heerlijk",
-   "status": "afgeleid",
-   "n": 5
+   "status": "bron",
+   "n": 5,
+   "opm": "Woordwaark (K. ter Laan): komt voor als trefwoord; vertaling niet uitgelezen"
   },
   "kloarzet": {
    "nl": "klaargezet",
@@ -1803,8 +2039,9 @@
   },
   "nij": {
    "nl": "nieuw",
-   "status": "afgeleid",
-   "n": 7
+   "status": "bron",
+   "n": 7,
+   "opm": "Woordwaark (S.J.H. Reker, K. ter Laan, A.A. Ganderheyden, H. Molema, P. Boeles): benieuwd ⋅ nieuw; nieuw; niet; benieuwd"
   },
   "mog": {
    "nl": "mocht",
@@ -1813,8 +2050,9 @@
   },
   "gemainte": {
    "nl": "gemeente",
-   "status": "afgeleid",
-   "n": 4
+   "status": "bron",
+   "n": 4,
+   "opm": "Woordwaark (S.J.H. Reker, K. ter Laan): gemeente"
   },
   "aindigt": {
    "nl": "eindigt",
@@ -1848,23 +2086,27 @@
   },
   "verdwoalen": {
    "nl": "verdwalen",
-   "status": "afgeleid",
-   "n": 1
+   "status": "bron",
+   "n": 1,
+   "opm": "Woordwaark (S.J.H. Reker, K. ter Laan): verdwalen"
   },
   "bedrief": {
    "nl": "bedrijf",
-   "status": "afgeleid",
-   "n": 1
+   "status": "bron",
+   "n": 1,
+   "opm": "Woordwaark (S.J.H. Reker, K. ter Laan, H. Molema): bedrijf; bedrijf ⋅ hoeveelheid ⋅ inboedel ⋅ rommel; drijven"
   },
   "ai": {
    "nl": "ei",
-   "status": "afgeleid",
-   "n": 1
+   "status": "bron",
+   "n": 1,
+   "opm": "Woordwaark (K. ter Laan, H. Molema): a; ai; als jij; ei"
   },
   "wied": {
    "nl": "?",
-   "status": "afgeleid",
-   "n": 1
+   "status": "bron",
+   "n": 1,
+   "opm": "Woordwaark (S.J.H. Reker, K. ter Laan, H. Molema): ver ⋅ wijd; wijd; wijd genoeg; wijd weg"
   },
   "tussendeur": {
    "nl": "tussendoor",
@@ -1873,8 +2115,9 @@
   },
   "neudig": {
    "nl": "nodig",
-   "status": "afgeleid",
-   "n": 3
+   "status": "bron",
+   "n": 3,
+   "opm": "Woordwaark (P. Boeles): nodig"
   },
   "theehoes": {
    "nl": "theehuis",
@@ -1883,13 +2126,15 @@
   },
   "vroage": {
    "nl": "vraag",
-   "status": "afgeleid",
-   "n": 3
+   "status": "bron",
+   "n": 3,
+   "opm": "Woordwaark (S.J.H. Reker): vraag"
   },
   "slopen": {
    "nl": "geslapen",
    "status": "afgeleid",
-   "n": 1
+   "n": 1,
+   "opm": "Woordwaark (S.J.H. Reker, K. ter Laan) kent het trefwoord als \"slopen\"; de gebruikte betekenis \"geslapen\" is een andere vorm of een homoniem en niet apart bevestigd"
   },
   "oetzag": {
    "nl": "eruitzag",
@@ -1898,8 +2143,9 @@
   },
   "dreug": {
    "nl": "droog",
-   "status": "afgeleid",
-   "n": 1
+   "status": "bron",
+   "n": 1,
+   "opm": "Woordwaark (S.J.H. Reker, K. ter Laan, A.A. Ganderheyden, H. Molema, P. Boeles): droog; vrij"
   },
   "hold": {
    "nl": "houdt",
@@ -1910,8 +2156,9 @@
   },
   "zundag": {
    "nl": "zondag",
-   "status": "afgeleid",
-   "n": 1
+   "status": "bron",
+   "n": 1,
+   "opm": "Woordwaark (S.J.H. Reker, K. ter Laan): zondag; zomer"
   },
   "heurde": {
    "nl": "hoorde",
@@ -1960,8 +2207,9 @@
   },
   "slim": {
    "nl": "erg",
-   "status": "afgeleid",
-   "n": 1
+   "status": "bron",
+   "n": 1,
+   "opm": "Woordwaark (Westerkwartier, S.J.H. Reker, F.H. Steenhuis 1, K. ter Laan, A.A. Ganderheyden, H. Molema, P. Boeles): erg; erg ⋅ zeer; slim; vals (munt)"
   },
   "veurgang": {
    "nl": "voorrang",
@@ -1980,13 +2228,15 @@
   },
   "moag": {
    "nl": "maag",
-   "status": "afgeleid",
-   "n": 1
+   "status": "bron",
+   "n": 1,
+   "opm": "Woordwaark (A.A. Ganderheyden, H. Molema): maag"
   },
   "ambtenoar": {
    "nl": "ambtenaar",
-   "status": "afgeleid",
-   "n": 1
+   "status": "bron",
+   "n": 1,
+   "opm": "Woordwaark (K. ter Laan): ambtenaar"
   },
   "menutjes": {
    "nl": "minuutjes",
@@ -2002,8 +2252,9 @@
    "nl": "noemt",
    "status": "twijfel",
    "n": 3,
-   "opm": "noemt: \"nuum-\" naast \"nuim-\"; twee vormen",
-   "voorstel": "een vorm kiezen"
+   "opm": "Woordwaark (nuimen): neumen, nuimen, numen, nummen; geen \"nuum-\"",
+   "voorstel": "nuim-",
+   "handmatig": true
   },
   "heurst": {
    "nl": "hoor",
@@ -2023,7 +2274,8 @@
   "achternoa": {
    "nl": "achteraan",
    "status": "afgeleid",
-   "n": 4
+   "n": 4,
+   "opm": "Woordwaark (K. ter Laan) kent het trefwoord als \"hoenders\"; de gebruikte betekenis \"achteraan\" is een andere vorm of een homoniem en niet apart bevestigd"
   },
   "zist": {
    "nl": "zie",
@@ -2034,8 +2286,9 @@
   },
   "voader": {
    "nl": "vader",
-   "status": "afgeleid",
-   "n": 2
+   "status": "bron",
+   "n": 2,
+   "opm": "Woordwaark (S.J.H. Reker, K. ter Laan): vader; papa ⋅ vader"
   },
   "vaarbewies": {
    "nl": "vaarbewijs",
@@ -2049,8 +2302,11 @@
   },
   "duvenfluisteraar": {
    "nl": "duivenfluisteraar",
-   "status": "afgeleid",
-   "n": 2
+   "status": "twijfel",
+   "n": 2,
+   "opm": "Woordwaark (Nederlands -> Gronings, trefwoord \"duif\"): doef, doeve; \"duuv-/duven\" komt niet voor, ook doevemelker voor duivenmelker",
+   "voorstel": "doeve/doef",
+   "handmatig": true
   },
   "luusterst": {
    "nl": "luistert",
@@ -2075,17 +2331,20 @@
   "wichtje": {
    "nl": "meisje",
    "status": "afgeleid",
-   "n": 1
+   "n": 1,
+   "opm": "Woordwaark (K. ter Laan) kent het trefwoord als \"ge; wichtje\"; de gebruikte betekenis \"meisje\" is een andere vorm of een homoniem en niet apart bevestigd"
   },
   "mark": {
    "nl": "markt",
-   "status": "afgeleid",
-   "n": 2
+   "status": "bron",
+   "n": 2,
+   "opm": "Woordwaark (A.A. Ganderheyden, H. Molema, P. Boeles): mark; t; merk; merg"
   },
   "luuster": {
    "nl": "luister",
    "status": "afgeleid",
-   "n": 3
+   "n": 3,
+   "opm": "Woordwaark (K. ter Laan, H. Molema) kent het trefwoord als \"lustre\"; de gebruikte betekenis \"luister\" is een andere vorm of een homoniem en niet apart bevestigd"
   },
   "persoonlk": {
    "nl": "persoonlijk",
@@ -2094,8 +2353,9 @@
   },
   "langzoam": {
    "nl": "langzaam",
-   "status": "afgeleid",
-   "n": 1
+   "status": "bron",
+   "n": 1,
+   "opm": "Woordwaark (S.J.H. Reker): langzaam"
   },
   "holst": {
    "nl": "houdt",
@@ -2110,7 +2370,8 @@
   "ruk": {
    "nl": "ruik",
    "status": "afgeleid",
-   "n": 2
+   "n": 2,
+   "opm": "Woordwaark (K. ter Laan) kent het trefwoord als \"ruk\"; de gebruikte betekenis \"ruik\" is een andere vorm of een homoniem en niet apart bevestigd"
   },
   "schraif": {
    "nl": "schrijf",
@@ -2144,13 +2405,17 @@
   },
   "tiedelk": {
    "nl": "tijdelijk",
-   "status": "afgeleid",
-   "n": 1
+   "status": "bron",
+   "n": 1,
+   "opm": "Woordwaark (S.J.H. Reker, K. ter Laan): tijdelijk"
   },
   "aovends": {
    "nl": "avonds",
-   "status": "afgeleid",
-   "n": 1
+   "status": "twijfel",
+   "n": 1,
+   "opm": "Woordwaark (Nederlands -> Gronings, trefwoord \"avond\"): oavend, toavend, oavens; \"aovend\" komt niet voor",
+   "voorstel": "oavend",
+   "handmatig": true
   },
   "wiest": {
    "nl": "wijst",
@@ -2179,8 +2444,9 @@
   },
   "aandersom": {
    "nl": "andersom",
-   "status": "afgeleid",
-   "n": 1
+   "status": "bron",
+   "n": 1,
+   "opm": "Woordwaark (K. ter Laan): komt voor als trefwoord; vertaling niet uitgelezen"
   },
   "biedst": {
    "nl": "biedt",
@@ -2200,7 +2466,8 @@
   "opeten": {
    "nl": "opgegeten",
    "status": "afgeleid",
-   "n": 1
+   "n": 1,
+   "opm": "Woordwaark (K. ter Laan, H. Molema) kent het trefwoord als \"opeten\"; de gebruikte betekenis \"opgegeten\" is een andere vorm of een homoniem en niet apart bevestigd"
   },
   "voetbalwedstried": {
    "nl": "voetbalwedstrijd",
@@ -2234,8 +2501,9 @@
   },
   "hollen": {
    "nl": "houden",
-   "status": "afgeleid",
-   "n": 4
+   "status": "bron",
+   "n": 4,
+   "opm": "Woordwaark (K. ter Laan, A.A. Ganderheyden, H. Molema): houden; stoppen; hilt"
   },
   "hongen": {
    "nl": "gehangen",
@@ -2254,8 +2522,9 @@
   },
   "oetgeven": {
    "nl": "uitgeven",
-   "status": "afgeleid",
-   "n": 1
+   "status": "bron",
+   "n": 1,
+   "opm": "Woordwaark (H. Molema): uitgeven"
   },
   "sjouwst": {
    "nl": "sjouwt",
@@ -2284,8 +2553,11 @@
   },
   "duuve": {
    "nl": "duif",
-   "status": "afgeleid",
-   "n": 1
+   "status": "twijfel",
+   "n": 1,
+   "opm": "Woordwaark (Nederlands -> Gronings, trefwoord \"duif\"): doef, doeve; \"duuv-/duven\" komt niet voor, ook doevemelker voor duivenmelker",
+   "voorstel": "doeve/doef",
+   "handmatig": true
   },
   "schit": {
    "nl": "poept",
@@ -2294,13 +2566,17 @@
   },
   "ies": {
    "nl": "ijs",
-   "status": "afgeleid",
-   "n": 1
+   "status": "bron",
+   "n": 1,
+   "opm": "Woordwaark (S.J.H. Reker, K. ter Laan, A.A. Ganderheyden, H. Molema): eens; ijs I (niet voor consumptie); ijs; ereis"
   },
   "zomeraovend": {
    "nl": "zomeravond",
-   "status": "afgeleid",
-   "n": 3
+   "status": "twijfel",
+   "n": 3,
+   "opm": "Woordwaark (Nederlands -> Gronings, trefwoord \"avond\"): oavend, toavend, oavens; \"aovend\" komt niet voor",
+   "voorstel": "oavend",
+   "handmatig": true
   },
   "warkers": {
    "nl": "werkers",
@@ -2331,23 +2607,31 @@
   },
   "koopaovend": {
    "nl": "koopavond",
-   "status": "afgeleid",
-   "n": 1
+   "status": "twijfel",
+   "n": 1,
+   "opm": "Woordwaark (Nederlands -> Gronings, trefwoord \"avond\"): oavend, toavend, oavens; \"aovend\" komt niet voor",
+   "voorstel": "oavend",
+   "handmatig": true
   },
   "laanhuzen": {
    "nl": "laanhuizen",
-   "status": "afgeleid",
-   "n": 1
+   "status": "twijfel",
+   "n": 1,
+   "opm": "Woordwaark (Nederlands -> Gronings, trefwoord \"huis\"): hoes, huus (Stad), pakhoes; \"-huzen\" komt niet voor; nds-nl Wikipedia heeft \"hoes\"",
+   "voorstel": "hoezen/huzen navragen",
+   "handmatig": true
   },
   "verjoardag": {
    "nl": "verjaardag",
-   "status": "afgeleid",
-   "n": 1
+   "status": "bron",
+   "n": 1,
+   "opm": "Woordwaark (K. ter Laan): komt voor als trefwoord; vertaling niet uitgelezen"
   },
   "lien": {
    "nl": "lijn",
-   "status": "afgeleid",
-   "n": 5
+   "status": "bron",
+   "n": 5,
+   "opm": "Woordwaark (S.J.H. Reker, H. Molema): lijn ⋅ touw; lijn; touw; lijntje"
   },
   "grunnegers": {
    "nl": "groningers",
@@ -2419,13 +2703,15 @@
   },
   "zoveul": {
    "nl": "zoveel",
-   "status": "afgeleid",
-   "n": 2
+   "status": "bron",
+   "n": 2,
+   "opm": "Woordwaark (K. ter Laan): komt voor als trefwoord; vertaling niet uitgelezen"
   },
   "aanstoan": {
    "nl": "?",
-   "status": "afgeleid",
-   "n": 1
+   "status": "bron",
+   "n": 1,
+   "opm": "Woordwaark (K. ter Laan): aanstaan"
   },
   "vleermuus": {
    "nl": "vleermuis",
@@ -2444,18 +2730,23 @@
   },
   "elkenain": {
    "nl": "iedereen",
-   "status": "afgeleid",
-   "n": 1
+   "status": "bron",
+   "n": 1,
+   "opm": "Woordwaark (S.J.H. Reker): iedereen; al ⋅ alles ⋅ ieder ⋅ iedereen"
   },
   "aovendlicht": {
    "nl": "avondlicht",
-   "status": "afgeleid",
-   "n": 1
+   "status": "twijfel",
+   "n": 1,
+   "opm": "Woordwaark (Nederlands -> Gronings, trefwoord \"avond\"): oavend, toavend, oavens; \"aovend\" komt niet voor",
+   "voorstel": "oavend",
+   "handmatig": true
   },
   "bedocht": {
    "nl": "bedacht",
-   "status": "afgeleid",
-   "n": 1
+   "status": "bron",
+   "n": 1,
+   "opm": "Woordwaark (P. Boeles): komt voor als trefwoord; vertaling niet uitgelezen"
   },
   "vroagst": {
    "nl": "vraagt",
@@ -2470,7 +2761,8 @@
   "aine": {
    "nl": "ééntje",
    "status": "afgeleid",
-   "n": 1
+   "n": 1,
+   "opm": "Woordwaark (S.J.H. Reker, F.H. Steenhuis 1, K. ter Laan) kent het trefwoord als \"één; iemand; een\"; de gebruikte betekenis \"ééntje\" is een andere vorm of een homoniem en niet apart bevestigd"
   },
   "regeld": {
    "nl": "geregeld",
@@ -2481,8 +2773,9 @@
    "nl": "?",
    "status": "twijfel",
    "n": 1,
-   "opm": "duiventil: elders \"duuf/duven\"; samenstelling nagaan",
-   "voorstel": "duuventil"
+   "opm": "Woordwaark (Nederlands -> Gronings, trefwoord \"duif\"): doef, doeve; \"duuv-/duven\" komt niet voor, ook doevemelker voor duivenmelker",
+   "voorstel": "doeve/doef",
+   "handmatig": true
   },
   "bepoal": {
    "nl": "bepaal",
@@ -2543,8 +2836,9 @@
   },
   "kruden": {
    "nl": "kruiden",
-   "status": "afgeleid",
-   "n": 1
+   "status": "bron",
+   "n": 1,
+   "opm": "Woordwaark (H. Molema): kruid"
   },
   "zonnewiezer": {
    "nl": "zonnewijzer",
@@ -2568,13 +2862,15 @@
   },
   "proatje": {
    "nl": "praatje",
-   "status": "afgeleid",
-   "n": 1
+   "status": "bron",
+   "n": 1,
+   "opm": "Woordwaark (K. ter Laan, H. Molema): praatje"
   },
   "kommen": {
    "nl": "komen",
-   "status": "afgeleid",
-   "n": 1
+   "status": "bron",
+   "n": 1,
+   "opm": "Woordwaark (S.J.H. Reker, K. ter Laan): komen"
   },
   "deurtrappen": {
    "nl": "doortrappen",
@@ -2605,8 +2901,9 @@
   },
   "roare": {
    "nl": "rare",
-   "status": "afgeleid",
-   "n": 1
+   "status": "bron",
+   "n": 1,
+   "opm": "Woordwaark (K. ter Laan): komt voor als trefwoord; vertaling niet uitgelezen"
   },
   "boksteen": {
    "nl": "baksteen",
@@ -2615,8 +2912,9 @@
   },
   "ondertied": {
    "nl": "onderweg",
-   "status": "afgeleid",
-   "n": 1
+   "status": "bron",
+   "n": 1,
+   "opm": "Woordwaark (S.J.H. Reker, K. ter Laan, A.A. Ganderheyden, H. Molema): inmiddels; ondertijd"
   },
   "wedstriedsdagen": {
    "nl": "wedstrijddagen",
@@ -2625,8 +2923,9 @@
   },
   "spiet": {
    "nl": "spijt",
-   "status": "afgeleid",
-   "n": 2
+   "status": "bron",
+   "n": 2,
+   "opm": "Woordwaark (K. ter Laan): komt voor als trefwoord; vertaling niet uitgelezen"
   },
   "völ": {
    "nl": "veel",
@@ -2640,8 +2939,9 @@
   },
   "leerzoam": {
    "nl": "leerzaam",
-   "status": "afgeleid",
-   "n": 1
+   "status": "bron",
+   "n": 1,
+   "opm": "Woordwaark (K. ter Laan): leerzaam"
   },
   "fluusteren": {
    "nl": "fluisteren",
@@ -2665,8 +2965,9 @@
   },
   "iesboan": {
    "nl": "ijsbaan",
-   "status": "afgeleid",
-   "n": 1
+   "status": "bron",
+   "n": 1,
+   "opm": "Woordwaark (Westerkwartier): ijsbaan"
   },
   "veurruit": {
    "nl": "voorruit",
@@ -2700,13 +3001,15 @@
   },
   "ruken": {
    "nl": "ruiken",
-   "status": "afgeleid",
-   "n": 1
+   "status": "bron",
+   "n": 1,
+   "opm": "Woordwaark (S.J.H. Reker): ruiken; ruiken ⋅ stinken"
   },
   "broken": {
    "nl": "gebroken",
    "status": "afgeleid",
-   "n": 1
+   "n": 1,
+   "opm": "Woordwaark (K. ter Laan, H. Molema) kent het trefwoord als \"ge; broken\"; de gebruikte betekenis \"gebroken\" is een andere vorm of een homoniem en niet apart bevestigd"
   },
   "ooggetuuge": {
    "nl": "ooggetuige",
@@ -2725,8 +3028,9 @@
   },
   "misdoad": {
    "nl": "misdaad",
-   "status": "afgeleid",
-   "n": 1
+   "status": "bron",
+   "n": 1,
+   "opm": "Woordwaark (K. ter Laan): komt voor als trefwoord; vertaling niet uitgelezen"
   },
   "twij-nul": {
    "nl": "twee-nul",
@@ -2775,8 +3079,9 @@
   },
   "veurjoar": {
    "nl": "voorjaar",
-   "status": "afgeleid",
-   "n": 1
+   "status": "bron",
+   "n": 1,
+   "opm": "Woordwaark (S.J.H. Reker): voorjaar"
   },
   "ziest": {
    "nl": "?",
@@ -2787,8 +3092,9 @@
   },
   "vanzulf": {
    "nl": "vanzelf",
-   "status": "afgeleid",
-   "n": 1
+   "status": "bron",
+   "n": 1,
+   "opm": "Woordwaark (S.J.H. Reker, K. ter Laan): natuurlijk ⋅ vanzelf ⋅ vanzelfsprekend; natuurlijk; vanzelf ⋅ vanzelfsprekend"
   },
   "volhollen": {
    "nl": "volhouden",
@@ -2817,8 +3123,9 @@
   },
   "weggoan": {
    "nl": "weggaat",
-   "status": "afgeleid",
-   "n": 1
+   "status": "bron",
+   "n": 1,
+   "opm": "Woordwaark (K. ter Laan, H. Molema): weggaan"
   },
   "zolst": {
    "nl": "zou",
@@ -2853,7 +3160,8 @@
   "zatten": {
    "nl": "zaten",
    "status": "afgeleid",
-   "n": 1
+   "n": 1,
+   "opm": "Woordwaark (S.J.H. Reker, K. ter Laan) kent het trefwoord als \"verzadigen; voedzaam\"; de gebruikte betekenis \"zaten\" is een andere vorm of een homoniem en niet apart bevestigd"
   },
   "rieker": {
    "nl": "rijker",
@@ -2862,8 +3170,9 @@
   },
   "kepot": {
    "nl": "kapot",
-   "status": "afgeleid",
-   "n": 1
+   "status": "bron",
+   "n": 1,
+   "opm": "Woordwaark (S.J.H. Reker, A.A. Ganderheyden, H. Molema): kapot ⋅ ziek; kapot; ziek; bedorven ⋅ gemeen ⋅ ziek"
   },
   "peerden": {
    "nl": "paarden",
@@ -2907,8 +3216,9 @@
   },
   "tuun": {
    "nl": "tuin",
-   "status": "afgeleid",
-   "n": 1
+   "status": "bron",
+   "n": 1,
+   "opm": "Woordwaark (S.J.H. Reker, K. ter Laan, H. Molema, P. Boeles): tuin; omheining ⋅ tuin"
   },
   "metbeweegt": {
    "nl": "meebeweegt",
@@ -2939,8 +3249,9 @@
   },
   "wollen": {
    "nl": "wilden",
-   "status": "afgeleid",
-   "n": 1
+   "status": "bron",
+   "n": 1,
+   "opm": "Woordwaark (K. ter Laan): komt voor als trefwoord; vertaling niet uitgelezen"
   },
   "metmoak": {
    "nl": "meemaak",
@@ -2998,427 +3309,512 @@
   "moai": {
    "nl": "mooi",
    "status": "bron",
-   "opm": "en.wiktionary.org/wiki/moai: West-Fries, bijvoeglijk naamwoord"
+   "opm": "en.wiktionary.org/wiki/moai: West-Fries, bijvoeglijk naamwoord",
+   "bewijs": "woordenboek: beautiful, pretty, nice; fy.wikipedia: 608 artikelen"
   },
   "tige": {
    "nl": "zeer, erg",
    "status": "bron",
-   "opm": "en.wiktionary.org/wiki/tige; voorbeeld \"Tige tank!\""
+   "opm": "en.wiktionary.org/wiki/tige; voorbeeld \"Tige tank!\"",
+   "bewijs": "woordenboek: much, many; much, very (\"Tige tank!\"); fy.wikipedia: 6861 artikelen"
   },
   "tank": {
    "nl": "dank",
    "status": "kennis",
-   "opm": "\"tige tank\" = hartelijk dank; geen aparte bron"
+   "opm": "\"tige tank\" = hartelijk dank; geen aparte bron",
+   "bewijs": "fy.wikipedia: 341 artikelen"
   },
   "sjoch": {
    "nl": "zie (ik zie)",
    "status": "bron",
-   "opm": "en.wiktionary.org/wiki/sjen: 1e persoon enkelvoud tegenwoordig"
+   "opm": "en.wiktionary.org/wiki/sjen: 1e persoon enkelvoud tegenwoordig",
+   "bewijs": "woordenboek: I see; look! (sjen); fy.wikipedia: 13203 artikelen"
   },
   "neat": {
    "nl": "niets",
    "status": "bron",
-   "opm": "en.wiktionary.org/wiki/neat (West-Fries)"
+   "opm": "en.wiktionary.org/wiki/neat (West-Fries)",
+   "bewijs": "woordenboek: nothing; fy.wikipedia: 3645 artikelen"
   },
   "hjir": {
    "nl": "hier",
    "status": "bron",
-   "opm": "en.wiktionary.org/wiki/hjir"
+   "opm": "en.wiktionary.org/wiki/hjir",
+   "bewijs": "woordenboek: here; fy.wikipedia: 8237 artikelen"
   },
   "drok": {
    "nl": "druk",
    "status": "bron",
-   "opm": "en.wiktionary.org/wiki/drok"
+   "opm": "en.wiktionary.org/wiki/drok",
+   "bewijs": "woordenboek: crowded, busy; zealous, driven; fy.wikipedia: 304 artikelen"
   },
   "gjin": {
    "nl": "geen",
    "status": "bron",
-   "opm": "en.wiktionary.org/wiki/gjin"
+   "opm": "en.wiktionary.org/wiki/gjin",
+   "bewijs": "woordenboek: no, none; fy.wikipedia: 10571 artikelen"
   },
   "dyn": {
    "nl": "jouw",
    "status": "bron",
-   "opm": "en.wiktionary.org/wiki/dyn"
+   "opm": "en.wiktionary.org/wiki/dyn",
+   "bewijs": "woordenboek: your (informal singular); fy.wikipedia: 173 artikelen"
   },
   "myn": {
    "nl": "mijn",
-   "status": "kennis",
-   "opm": "bekend Fries bezittelijk voornaamwoord; niet apart nagezocht"
+   "status": "bron",
+   "opm": "bekend Fries bezittelijk voornaamwoord; niet apart nagezocht",
+   "bewijs": "woordenboek: my; fy.wikipedia: 710 artikelen"
   },
   "foar": {
    "nl": "voor",
-   "status": "kennis",
-   "opm": "bekend Fries; niet apart nagezocht"
+   "status": "bron",
+   "opm": "bekend Fries; niet apart nagezocht",
+   "bewijs": "woordenboek: for; before; fy.wikipedia: 41918 artikelen"
   },
   "mem": {
    "nl": "moeder",
-   "status": "kennis",
-   "opm": "Fries \"mem\"; staat ook in de verzonnen namen (Us Mem Vet)"
+   "status": "bron",
+   "opm": "Fries \"mem\"; staat ook in de verzonnen namen (Us Mem Vet)",
+   "bewijs": "woordenboek: mother, mom; fy.wikipedia: 3362 artikelen"
   },
   "wykein": {
    "nl": "weekend",
    "status": "kennis",
-   "opm": "Fries \"wykein\"; Wiktionary-pagina bestaat niet, niet bevestigd in een bron"
+   "opm": "Fries \"wykein\"; Wiktionary-pagina bestaat niet, niet bevestigd in een bron",
+   "bewijs": "fy.wikipedia: 275 artikelen"
   },
   "fakmanskip": {
    "nl": "vakmanschap",
    "status": "kennis",
-   "opm": "Fries \"fakmanskip\"; Wiktionary-pagina bestaat niet, niet bevestigd in een bron"
+   "opm": "Fries \"fakmanskip\"; Wiktionary-pagina bestaat niet, niet bevestigd in een bron",
+   "bewijs": "fy.wikipedia: 37 artikelen"
   },
   "nedich": {
    "nl": "nodig",
    "status": "kennis",
-   "opm": "Fries \"nedich\"; en.wiktionary heeft alleen een Hunsrik-pagina, niet bevestigd in een bron"
+   "opm": "Fries \"nedich\"; en.wiktionary heeft alleen een Hunsrik-pagina, niet bevestigd in een bron",
+   "bewijs": "fy.wikipedia: 1653 artikelen"
   },
   "skûtsje": {
    "nl": "Fries platbodemschip",
    "status": "bron",
-   "opm": "en.wiktionary.org/wiki/skûtsje (verkleinwoord van skûte)"
+   "opm": "en.wiktionary.org/wiki/skûtsje (verkleinwoord van skûte)",
+   "bewijs": "fy.wikipedia: 121 artikelen"
   },
   "publyk": {
    "nl": "publiek",
    "status": "kennis",
-   "opm": "Fries \"publyk\"; Wiktionary-pagina bestaat niet, niet bevestigd in een bron"
+   "opm": "Fries \"publyk\"; Wiktionary-pagina bestaat niet, niet bevestigd in een bron",
+   "bewijs": "fy.wikipedia: 1576 artikelen"
   },
   "wiene": {
    "nl": "waren",
-   "status": "kennis",
-   "opm": "Fries verleden tijd meervoud van \"wêze\""
+   "status": "bron",
+   "opm": "Fries verleden tijd meervoud van \"wêze\"",
+   "bewijs": "woordenboek: verleden tijd van wêze (fy.wiktionary); fy.wikipedia: 9443 artikelen"
   },
   "jimme": {
    "nl": "jullie",
-   "status": "kennis",
-   "opm": "standaardvorm; de tekst had \"jim\" en is aangepast naar \"jimme\" (casework.js)"
+   "status": "bron",
+   "opm": "standaardvorm; de tekst had \"jim\" en is aangepast naar \"jimme\" (casework.js)",
+   "bewijs": "woordenboek: 2e persoon meervoud (fy.wiktionary); fy.wikipedia: 114 artikelen"
   },
   "Grins": {
    "nl": "Groningen",
    "status": "kennis",
-   "opm": "Friese naam van de stad/provincie"
+   "opm": "Friese naam van de stad/provincie",
+   "bewijs": "fy.wikipedia: 4865 artikelen"
   },
   "it": {
    "nl": "het",
-   "status": "kennis",
-   "opm": "Fries lidwoord"
+   "status": "bron",
+   "opm": "Fries lidwoord",
+   "bewijs": "woordenboek: it"
   },
   "in": {
    "nl": "een",
-   "status": "kennis",
-   "opm": "Fries onbepaald lidwoord"
+   "status": "bron",
+   "opm": "Fries onbepaald lidwoord",
+   "bewijs": "woordenboek: a, an"
   },
   "wâld": {
    "nl": "bos",
    "status": "twijfel",
-   "opm": "\"JelleWâld\" is een verzonnen kanaalnaam (woordspeling); \"wâld\" = bos/woud, niet in een bron bevestigd"
+   "opm": "\"JelleWâld\" is een verzonnen kanaalnaam (woordspeling); \"wâld\" = bos/woud, niet in een bron bevestigd",
+   "bewijs": "woordenboek: forest; fy.wikipedia: 621 artikelen"
   },
   "weach": {
    "nl": "golf (hekweach = hekgolf van een boot)",
    "status": "bron",
-   "opm": "en.wiktionary.org/wiki/weach: golf"
+   "opm": "en.wiktionary.org/wiki/weach: golf",
+   "bewijs": "woordenboek: wave; fy.wikipedia: 205 artikelen"
   },
   "hjoed": {
    "nl": "vandaag",
    "status": "bron",
-   "opm": "en.wiktionary.org/wiki/hjoed"
+   "opm": "en.wiktionary.org/wiki/hjoed",
+   "bewijs": "woordenboek: today; fy.wikipedia: 3692 artikelen"
   },
   "brêgekening": {
    "nl": "brugkoning (prestatienaam)",
    "status": "kennis",
-   "opm": "bekend Fries; niet in een online bron nagezocht"
+   "opm": "samenstelling van \"brêge\" (brug) en \"kening\" (koning, Wiktionary); de samenstelling zelf bestaat niet in fy.wikipedia (0) en is een verzonnen prestatienaam",
+   "bewijs": "fy.wikipedia: 0 artikelen"
   },
   "skûtsjekening": {
    "nl": "skûtsjekoning (prestatienaam)",
    "status": "kennis",
-   "opm": "bekend Fries; niet in een online bron nagezocht"
+   "opm": "verzonnen prestatienaam: \"skûtsje\" (bron) + \"kening\" (bron); samenstelling 0 artikelen op fy.wikipedia",
+   "bewijs": "fy.wikipedia: 0 artikelen"
   },
   "kening": {
    "nl": "koning",
-   "status": "kennis",
-   "opm": "bekend Fries; niet in een online bron nagezocht"
+   "status": "bron",
+   "opm": "bekend Fries; niet in een online bron nagezocht",
+   "bewijs": "woordenboek: king; fy.wikipedia: 5090 artikelen"
   },
   "skûtsje-sprint": {
    "nl": "skûtsje-sprint (samenstelling met Nederlandse \"sprint\")",
    "status": "kennis",
-   "opm": "bekend Fries; niet in een online bron nagezocht"
+   "opm": "verzonnen samenstelling met Nederlands \"sprint\"; \"skûtsje\" is bevestigd",
+   "bewijs": "fy.wikipedia: 0 artikelen"
   },
   "skûtsjes": {
    "nl": "skûtsjes (meervoud)",
    "status": "kennis",
-   "opm": "bekend Fries; niet in een online bron nagezocht"
+   "opm": "bekend Fries; niet in een online bron nagezocht",
+   "bewijs": "fy.wikipedia: 67 artikelen"
   },
   "skûtsjesiler": {
    "nl": "skûtsjezeiler (silen = zeilen)",
    "status": "kennis",
-   "opm": "bekend Fries; niet in een online bron nagezocht"
+   "opm": "4 artikelen op fy.wikipedia; \"skûtsjesilen\" (104) is de gewone vorm; samenstelling met -siler is niet apart bevestigd",
+   "bewijs": "fy.wikipedia: 4 artikelen"
   },
   "seil": {
    "nl": "zeil",
    "status": "kennis",
-   "opm": "bekend Fries; niet in een online bron nagezocht"
+   "opm": "bekend Fries; niet in een online bron nagezocht",
+   "bewijs": "fy.wikipedia: 95 artikelen"
   },
   "trapfyts": {
    "nl": "trapfiets",
-   "status": "kennis",
-   "opm": "bekend Fries; niet in een online bron nagezocht"
+   "status": "twijfel",
+   "opm": "0 artikelen op fy.wikipedia en niet in Wiktionary; \"fyts\" = fiets is gewoon Fries, \"trapfyts\" is niet bevestigd (Jelle: \"Is dat in trapfyts?\")",
+   "bewijs": "fy.wikipedia: 0 artikelen"
   },
   "jûn": {
    "nl": "avond",
-   "status": "kennis",
-   "opm": "bekend Fries; niet in een online bron nagezocht"
+   "status": "bron",
+   "opm": "bekend Fries; niet in een online bron nagezocht",
+   "bewijs": "woordenboek: evening; tonight; fy.wikipedia: 2746 artikelen"
   },
   "út": {
    "nl": "uit",
-   "status": "kennis",
-   "opm": "bekend Fries; niet in een online bron nagezocht"
+   "status": "bron",
+   "opm": "bekend Fries; niet in een online bron nagezocht",
+   "bewijs": "woordenboek: out of; out; fy.wikipedia: 35598 artikelen"
   },
   "ús": {
    "nl": "ons",
-   "status": "kennis",
-   "opm": "bekend Fries; niet in een online bron nagezocht"
+   "status": "bron",
+   "opm": "bekend Fries; niet in een online bron nagezocht",
+   "bewijs": "woordenboek: our; my (family members); fy.wikipedia: 839 artikelen"
   },
   "hûs": {
    "nl": "huis",
    "status": "twijfel",
-   "opm": "bekend Fries; niet in een online bron nagezocht; in \"naar hûs\" staat Nederlands \"naar\" bij Fries \"hûs\" (Fries: \"nei hûs\")"
+   "opm": "bekend Fries; niet in een online bron nagezocht; in \"naar hûs\" staat Nederlands \"naar\" bij Fries \"hûs\" (Fries: \"nei hûs\")",
+   "bewijs": "woordenboek: house; fy.wikipedia: 4343 artikelen"
   },
   "tún": {
    "nl": "tuin",
-   "status": "kennis",
-   "opm": "bekend Fries; niet in een online bron nagezocht"
+   "status": "bron",
+   "opm": "bekend Fries; niet in een online bron nagezocht",
+   "bewijs": "woordenboek: garden; fy.wikipedia: 672 artikelen"
   },
   "genôch": {
    "nl": "genoeg",
-   "status": "kennis",
-   "opm": "bekend Fries; niet in een online bron nagezocht"
+   "status": "bron",
+   "opm": "bekend Fries; niet in een online bron nagezocht",
+   "bewijs": "woordenboek: enough; fy.wikipedia: 2106 artikelen"
   },
   "jild": {
    "nl": "geld",
-   "status": "kennis",
-   "opm": "bekend Fries; niet in een online bron nagezocht"
+   "status": "bron",
+   "opm": "bekend Fries; niet in een online bron nagezocht",
+   "bewijs": "woordenboek: money; fy.wikipedia: 2035 artikelen"
   },
   "sûkelade": {
    "nl": "chocolade",
-   "status": "kennis",
-   "opm": "bekend Fries; niet in een online bron nagezocht"
+   "status": "bron",
+   "opm": "bekend Fries; niet in een online bron nagezocht",
+   "bewijs": "woordenboek: chocolate; fy.wikipedia: 9 artikelen"
   },
   "útslach": {
    "nl": "uitslag",
    "status": "kennis",
-   "opm": "bekend Fries; niet in een online bron nagezocht"
+   "opm": "bekend Fries; niet in een online bron nagezocht",
+   "bewijs": "fy.wikipedia: 348 artikelen"
   },
   "wêr": {
    "nl": "waar",
-   "status": "kennis",
-   "opm": "bekend Fries; niet in een online bron nagezocht"
+   "status": "bron",
+   "opm": "bekend Fries; niet in een online bron nagezocht",
+   "bewijs": "woordenboek: where (interrogative); fy.wikipedia: 302 artikelen"
   },
   "pompeblêden": {
    "nl": "waterlelieblad (meervoud)",
    "status": "kennis",
-   "opm": "bekend Fries; niet in een online bron nagezocht"
+   "opm": "bekend Fries; niet in een online bron nagezocht",
+   "bewijs": "fy.wikipedia: 44 artikelen"
   },
   "ien": {
    "nl": "een (telwoord)",
-   "status": "kennis",
-   "opm": "bekend Fries; niet in een online bron nagezocht"
+   "status": "bron",
+   "opm": "bekend Fries; niet in een online bron nagezocht",
+   "bewijs": "woordenboek: one; fy.wikipedia: 17440 artikelen"
   },
   "twa": {
    "nl": "twee",
-   "status": "kennis",
-   "opm": "bekend Fries; niet in een online bron nagezocht"
+   "status": "bron",
+   "opm": "bekend Fries; niet in een online bron nagezocht",
+   "bewijs": "woordenboek: two; fy.wikipedia: 15027 artikelen"
   },
   "trije": {
    "nl": "drie",
-   "status": "kennis",
-   "opm": "bekend Fries; niet in een online bron nagezocht"
+   "status": "bron",
+   "opm": "bekend Fries; niet in een online bron nagezocht",
+   "bewijs": "woordenboek: three; fy.wikipedia: 10535 artikelen"
   },
   "fuort": {
    "nl": "weg, vooruit",
-   "status": "kennis",
-   "opm": "bekend Fries; niet in een online bron nagezocht"
+   "status": "bron",
+   "opm": "bekend Fries; niet in een online bron nagezocht",
+   "bewijs": "woordenboek: away, gone; fy.wikipedia: 6107 artikelen"
   },
   "efkes": {
    "nl": "even",
    "status": "kennis",
-   "opm": "bekend Fries; niet in een online bron nagezocht"
+   "opm": "bekend Fries; niet in een online bron nagezocht",
+   "bewijs": "fy.wikipedia: 248 artikelen"
   },
   "betiid": {
    "nl": "vroeg",
    "status": "kennis",
-   "opm": "bekend Fries; niet in een online bron nagezocht"
+   "opm": "bekend Fries; niet in een online bron nagezocht",
+   "bewijs": "fy.wikipedia: 273 artikelen"
   },
   "werom": {
    "nl": "terug",
    "status": "kennis",
-   "opm": "bekend Fries; niet in een online bron nagezocht"
+   "opm": "bekend Fries; niet in een online bron nagezocht",
+   "bewijs": "fy.wikipedia: 7897 artikelen"
   },
   "bytsje": {
    "nl": "beetje",
    "status": "kennis",
-   "opm": "bekend Fries; niet in een online bron nagezocht"
+   "opm": "bekend Fries; niet in een online bron nagezocht",
+   "bewijs": "fy.wikipedia: 1090 artikelen"
   },
   "gelok": {
    "nl": "geluk",
-   "status": "kennis",
-   "opm": "bekend Fries; niet in een online bron nagezocht"
+   "status": "bron",
+   "opm": "bekend Fries; niet in een online bron nagezocht",
+   "bewijs": "woordenboek: luck, fortune; fy.wikipedia: 95 artikelen"
   },
   "teminsten": {
    "nl": "tenminste",
    "status": "kennis",
-   "opm": "bekend Fries; niet in een online bron nagezocht"
+   "opm": "bekend Fries; niet in een online bron nagezocht",
+   "bewijs": "fy.wikipedia: 1126 artikelen"
   },
   "mjitte": {
    "nl": "maat",
    "status": "kennis",
-   "opm": "bekend Fries; niet in een online bron nagezocht"
+   "opm": "bekend Fries; niet in een online bron nagezocht",
+   "bewijs": "fy.wikipedia: 796 artikelen"
   },
   "wiet": {
    "nl": "nat",
-   "status": "kennis",
-   "opm": "bekend Fries; niet in een online bron nagezocht"
+   "status": "bron",
+   "opm": "bekend Fries; niet in een online bron nagezocht",
+   "bewijs": "woordenboek: wet; fy.wikipedia: 247 artikelen"
   },
   "wrachtich": {
    "nl": "waarachtig",
-   "status": "kennis",
-   "opm": "bekend Fries; niet in een online bron nagezocht"
+   "status": "twijfel",
+   "opm": "maar 6 artikelen op fy.wikipedia en niet in Wiktionary: waarschijnlijk \"wrachtich\" = waarachtig, maar zeldzaam; navragen",
+   "bewijs": "fy.wikipedia: 6 artikelen"
   },
   "hearen": {
    "nl": "heren",
-   "status": "kennis",
-   "opm": "bekend Fries; niet in een online bron nagezocht"
+   "status": "bron",
+   "opm": "bekend Fries; niet in een online bron nagezocht",
+   "bewijs": "woordenboek: (meervoud van hear); fy.wikipedia: 344 artikelen"
   },
   "hear": {
    "nl": "heer",
-   "status": "kennis",
-   "opm": "bekend Fries; niet in een online bron nagezocht"
+   "status": "bron",
+   "opm": "bekend Fries; niet in een online bron nagezocht",
+   "bewijs": "woordenboek: lord; the Lord, God; fy.wikipedia: 1090 artikelen"
   },
   "oant": {
    "nl": "tot",
-   "status": "kennis",
-   "opm": "bekend Fries; niet in een online bron nagezocht"
+   "status": "bron",
+   "opm": "bekend Fries; niet in een online bron nagezocht",
+   "bewijs": "woordenboek: till, until; fy.wikipedia: 21412 artikelen"
   },
   "sjen": {
    "nl": "zien",
-   "status": "kennis",
-   "opm": "bekend Fries; niet in een online bron nagezocht"
+   "status": "bron",
+   "opm": "bekend Fries; niet in een online bron nagezocht",
+   "bewijs": "woordenboek: to see; fy.wikipedia: 6215 artikelen"
   },
   "ek": {
    "nl": "ook",
-   "status": "kennis",
-   "opm": "bekend Fries; niet in een online bron nagezocht"
+   "status": "bron",
+   "opm": "bekend Fries; niet in een online bron nagezocht",
+   "bewijs": "woordenboek: also, too; fy.wikipedia: 32380 artikelen"
   },
   "mear": {
    "nl": "meer",
-   "status": "kennis",
-   "opm": "bekend Fries; niet in een online bron nagezocht"
+   "status": "bron",
+   "opm": "bekend Fries; niet in een online bron nagezocht",
+   "bewijs": "woordenboek: more; fy.wikipedia: 14704 artikelen"
   },
   "folle": {
    "nl": "veel",
-   "status": "kennis",
-   "opm": "bekend Fries; niet in een online bron nagezocht"
+   "status": "bron",
+   "opm": "bekend Fries; niet in een online bron nagezocht",
+   "bewijs": "woordenboek: many, much; fy.wikipedia: 5275 artikelen"
   },
   "sizze": {
    "nl": "zeggen",
-   "status": "kennis",
-   "opm": "bekend Fries; niet in een online bron nagezocht"
+   "status": "bron",
+   "opm": "bekend Fries; niet in een online bron nagezocht",
+   "bewijs": "woordenboek: to say; fy.wikipedia: 1112 artikelen"
   },
   "fertelle": {
    "nl": "vertellen",
-   "status": "kennis",
-   "opm": "bekend Fries; niet in een online bron nagezocht"
+   "status": "bron",
+   "opm": "bekend Fries; niet in een online bron nagezocht",
+   "bewijs": "woordenboek: to tell; fy.wikipedia: 324 artikelen"
   },
   "allinnich": {
    "nl": "alleen",
    "status": "kennis",
-   "opm": "bekend Fries; niet in een online bron nagezocht"
+   "opm": "bekend Fries; niet in een online bron nagezocht",
+   "bewijs": "fy.wikipedia: 4703 artikelen"
   },
   "woe": {
    "nl": "wilde",
-   "status": "kennis",
-   "opm": "bekend Fries; niet in een online bron nagezocht"
+   "status": "bron",
+   "opm": "bekend Fries; niet in een online bron nagezocht",
+   "bewijs": "woordenboek: verleden tijd van wolle (fy.wiktionary); fy.wikipedia: 2896 artikelen"
   },
   "jaan": {
    "nl": "geven",
-   "status": "kennis",
-   "opm": "bekend Fries; niet in een online bron nagezocht"
+   "status": "bron",
+   "opm": "bekend Fries; niet in een online bron nagezocht",
+   "bewijs": "woordenboek: to give; fy.wikipedia: 3228 artikelen"
   },
   "oan": {
    "nl": "aan",
-   "status": "kennis",
-   "opm": "bekend Fries; niet in een online bron nagezocht"
+   "status": "bron",
+   "opm": "bekend Fries; niet in een online bron nagezocht",
+   "bewijs": "woordenboek: on; fy.wikipedia: 35392 artikelen"
   },
   "lear": {
    "nl": "leer",
    "status": "kennis",
-   "opm": "bekend Fries; niet in een online bron nagezocht"
+   "opm": "bekend Fries; niet in een online bron nagezocht",
+   "bewijs": "fy.wikipedia: 671 artikelen"
   },
   "stipkes": {
    "nl": "streepjes/stippen",
    "status": "kennis",
-   "opm": "bekend Fries; niet in een online bron nagezocht"
+   "opm": "bekend Fries; niet in een online bron nagezocht",
+   "bewijs": "fy.wikipedia: 38 artikelen"
   },
   "potsje": {
    "nl": "potje",
    "status": "kennis",
-   "opm": "bekend Fries; niet in een online bron nagezocht"
+   "opm": "bekend Fries; niet in een online bron nagezocht",
+   "bewijs": "fy.wikipedia: 81 artikelen"
   },
   "grinzers": {
    "nl": "Groningers",
    "status": "kennis",
-   "opm": "bekend Fries; niet in een online bron nagezocht"
+   "opm": "bekend Fries; niet in een online bron nagezocht",
+   "bewijs": "fy.wikipedia: 27 artikelen"
   },
   "grinzer": {
    "nl": "Groninger",
    "status": "kennis",
-   "opm": "bekend Fries; niet in een online bron nagezocht"
+   "opm": "bekend Fries; niet in een online bron nagezocht",
+   "bewijs": "fy.wikipedia: 497 artikelen"
   },
   "fryske": {
    "nl": "Friese",
    "status": "kennis",
-   "opm": "bekend Fries; niet in een online bron nagezocht"
+   "opm": "bekend Fries; niet in een online bron nagezocht",
+   "bewijs": "fy.wikipedia: 9809 artikelen"
   },
   "frysk": {
    "nl": "Fries",
    "status": "kennis",
-   "opm": "bekend Fries; niet in een online bron nagezocht"
+   "opm": "bekend Fries; niet in een online bron nagezocht",
+   "bewijs": "fy.wikipedia: 8264 artikelen"
   },
   "fryslân": {
    "nl": "Friesland",
    "status": "kennis",
-   "opm": "bekend Fries; niet in een online bron nagezocht"
+   "opm": "bekend Fries; niet in een online bron nagezocht",
+   "bewijs": "fy.wikipedia: 11339 artikelen"
   },
   "wy": {
    "nl": "wij",
-   "status": "kennis",
-   "opm": "bekend Fries; niet in een online bron nagezocht"
+   "status": "bron",
+   "opm": "bekend Fries; niet in een online bron nagezocht",
+   "bewijs": "woordenboek: we; fy.wikipedia: 764 artikelen"
   },
   "net": {
    "nl": "niet",
-   "status": "kennis",
-   "opm": "bekend Fries; niet in een online bron nagezocht"
+   "status": "bron",
+   "opm": "bekend Fries; niet in een online bron nagezocht",
+   "bewijs": "woordenboek: not; fy.wikipedia: 22847 artikelen"
   },
   "snits": {
    "nl": "Sneek",
    "status": "kennis",
-   "opm": "bekend Fries; niet in een online bron nagezocht"
+   "opm": "bekend Fries; niet in een online bron nagezocht",
+   "bewijs": "fy.wikipedia: 1796 artikelen"
   },
   "better": {
    "nl": "beter",
    "status": "kennis",
-   "opm": "bekend Fries; niet in een online bron nagezocht"
+   "opm": "bekend Fries; niet in een online bron nagezocht",
+   "bewijs": "fy.wikipedia: 3004 artikelen"
   },
   "as": {
    "nl": "dan",
-   "status": "kennis",
-   "opm": "bekend Fries; niet in een online bron nagezocht"
+   "status": "bron",
+   "opm": "bekend Fries; niet in een online bron nagezocht",
+   "bewijs": "woordenboek: if; as, like"
   },
   "noch": {
    "nl": "nog",
-   "status": "kennis",
-   "opm": "bekend Fries; niet in een online bron nagezocht"
+   "status": "bron",
+   "opm": "bekend Fries; niet in een online bron nagezocht",
+   "bewijs": "woordenboek: still; fy.wikipedia: 17796 artikelen"
   },
   "ferhip": {
    "nl": "uitroep (onbekend)",
    "status": "twijfel",
-   "opm": "niet bevestigd in een bron; betekenis onzeker, controleren of het een bestaand Fries woord is"
+   "opm": "0 artikelen op fy.wikipedia, niet in Wiktionary (en, fy): onbekend woord, betekenis onzeker; vervangen of laten nalezen",
+   "bewijs": "fy.wikipedia: 0 artikelen"
   },
   "fan'e": {
    "nl": "van de (fan 'e)",
@@ -3428,17 +3824,20 @@
   "skûtsjezeiler": {
    "nl": "skûtsjezeiler (Nederlands \"zeiler\")",
    "status": "twijfel",
-   "opm": "samenstelling met Nederlands \"zeiler\"; in de Friese tekst staat \"skûtsjesiler\" (dit is de Nederlandse ondertitel, subtitles.js)"
+   "opm": "samenstelling met Nederlands \"zeiler\"; in de Friese tekst staat \"skûtsjesiler\" (dit is de Nederlandse ondertitel, subtitles.js)",
+   "bewijs": "fy.wikipedia: 0 artikelen"
   },
   "hekweach": {
    "nl": "hekgolf (zog achter een boot)",
-   "status": "kennis",
-   "opm": "hek = achtersteven; weach = golf (en.wiktionary.org/wiki/weach); de samenstelling is niet in een bron gevonden"
+   "status": "twijfel",
+   "opm": "0 artikelen op fy.wikipedia; \"weach\" = golf is bevestigd (Wiktionary), maar \"hekweach\" (golf achter een boot) niet; het Nederlandse \"hek\" betekent ook in het Fries \"hek\"",
+   "bewijs": "fy.wikipedia: 0 artikelen"
   },
   "skûtsjekoning": {
    "nl": "skûtsjekoning (Nederlandse ondertitel van Skûtsjekening)",
    "status": "kennis",
-   "opm": "gemengd; staat in de Nederlandse ondertitel (subtitles.js:169)"
+   "opm": "gemengd; staat in de Nederlandse ondertitel (subtitles.js:169)",
+   "bewijs": "fy.wikipedia: 0 artikelen"
   }
  },
  "nl_ok": [
