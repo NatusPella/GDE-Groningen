@@ -59,6 +59,12 @@ export function getGoal() {
   return goal;
 }
 
+// The goal's spot (any kind of goal), for the pin on the maps and in 3D (routing.js re-exports it).
+export function getUserWaypoint() {
+  const g = getGoal();
+  return g ? { x: g.x, y: g.y, name: g.name } : null;
+}
+
 function stepLabel(step) {
   return step.kind === 'mission' ? `${step.id} · ${step.title}` : step.title;
 }

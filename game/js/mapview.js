@@ -1,4 +1,5 @@
 import { setMapOpenState } from './pausestate.js';
+import { sfxLinks } from './latehooks.js';
 import { onPaletteChange } from './a11y.js';
 import { pinchStep } from './touchlogic.js';
 import { MODES, roadAllowed, travelModeOf } from './roadaccess.js';
@@ -2260,6 +2261,7 @@ export function getMapViewStats() {
   if (!state) return null;
   return { ...state.perf, zoom: state.zoom, tiles: state.tiles.size, level: levelFor(state.zoom) };
 }
+sfxLinks.mapStats = getMapViewStats; // sfx/ui.js (latehooks.js)
 
 export function setMapView(x, y, zoom) {
   if (!state) return;

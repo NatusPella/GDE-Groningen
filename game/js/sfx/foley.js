@@ -1,5 +1,6 @@
 import { clamp } from '../util.js';
-import { getCombatEffect, isGunWeapon, isRangedWeapon } from '../combat.js';
+import { getCombatEffect } from '../combateffect.js';
+import { isGunWeapon, isRangedWeapon } from '../weapons.js';
 import { surfaceUnder } from '../vehicle.js';
 import { getPlace } from './ambience.js';
 import { stepNames, stepSurface, tickFoot, STEP_SURFACES, STEP_VARIANTS } from './steps.js';

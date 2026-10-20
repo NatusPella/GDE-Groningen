@@ -8,3 +8,5 @@ export const furnitureShopHook = { items: () => [], note: () => '' }; // furnitu
 export const jobBonusHook = { get: () => 1 };                  // furniture.js -> sidejobs.js (Bureau bonus)
 // cinematics.js asks respawn.js and scene3d.js through this (respawn.js and main.js fill it via setCinematicLinks)
 export const cinematicLinks = { startRespawnScene: () => false, respawnFade: () => {}, getFollowPose: () => null, prewarmStreamAt: () => {} };
+// sfx/ambience.js and sfx/ui.js ask scene3d.js and mapview.js through this (they fill it when they load)
+export const sfxLinks = { getScene: () => null, mapStats: () => null };

@@ -898,11 +898,7 @@ export function clearUserWaypoint() {
   clearGoal();
 }
 
-// The goal's spot (any kind of goal), for the pin on the maps and in 3D.
-export function getUserWaypoint() {
-  const g = getGoal();
-  return g ? { x: g.x, y: g.y, name: g.name } : null;
-}
+export { getUserWaypoint } from './goal.js';
 
 export function getRoutingStats() {
   return { ...stats };
