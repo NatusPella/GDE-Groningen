@@ -348,9 +348,10 @@ const PHASES = {
     log('save', { heeft: !!raw, bytes: raw ? raw.length : 0, money: W().money, verdiend: W().coopVerdiend || 0, slots: slotInfo ? JSON.stringify(slotInfo).slice(0, 400) : null });
   },
   // de spelbot speelt het verhaal (alleen de host); de gasten lopen mee
-  async verhaal({ s = 1500 }) {
+  async verhaal({ s = 1500, until = 'T1' }) {
+    const args = { until };
     if (CFG.role === 'host') {
-      window.__botCfg = { part: 'kop', maxGameS: 3600, maxWallS: s, stuckS: 45, shots: 40, speed: 1, waitS: 60, invulnerable: !!CFG.invuln };
+      window.__botCfg = { part: 'all', until: args.until || 'T1', maxGameS: 3600, maxWallS: s, stuckS: 45, shots: 40, speed: 1, waitS: 60, invulnerable: !!CFG.invuln };
       log('verhaal-begin', {});
       const r = await window.__botMain();
       log('verhaal-einde', { r });
