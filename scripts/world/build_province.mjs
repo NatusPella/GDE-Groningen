@@ -429,6 +429,37 @@ export function buildProvince({ root = ROOT, src = SRC_DIR, extra = bufferDirs(s
   const locks = new Map();
   let waterBodies = 0;
   const packKey = (k) => { const [a, b] = k.split('_').map(Number); return a * 1000 + b; };
+  const locksOf = (els) => {
+    const out = [];
+    for (const el of els) {
+      const t = el.tags || {};
+      if (el.type === 'way' && el.g && el.g.length > 1 && (t.waterway === 'lock_gate' || t.lock === 'yes')) {
+        const m = el.g[Math.floor(el.g.length / 2)], [x, y] = wgsToWorld(m[0], m[1]);
+        out.push({ x: r1(x), y: r1(y), name: t.name || '', w: parseFloat(t.maxwidth) || 0, id: el.id });
+      }
+    }
+    return out;
+  };
+  // The city profile (#90): the water of all the packs with tiles of the city is classified at once, as the city map
+  // did (one boezem; a canal that runs from one pack into the next is still a kanaal). Pack by pack, the part of a canal
+  // beyond the pack's edge was a pond or a ditch (Schuitendiep, Turfsingel). The same rows come again in the pack loop
+  // (features() is deterministic), where the fields found here are put on them.
+  const cityWater = new Map();
+  if (profile) {
+    const cityPacks = [...byPack.keys()].filter((pk) => byPack.get(pk).some((k) => profile.has(k))).sort((a, b) => packKey(a) - packKey(b));
+    const rowsOf = new Map(), lockOf = new Map(), all = [];
+    for (const pk of cityPacks) {
+      const els = [];
+      for (const d of dirs) { const f = path.join(d, `c${pk}.json.gz`); if (fs.existsSync(f)) for (const el of gunzipJson(f).elements) els.push(el); }
+      for (const k of locksOf(els)) lockOf.set(k.id, k);
+      const rows = features(els.filter((el) => el.type === 'relation' || (el.tags && (el.tags.natural === 'water' || el.tags.waterway))), ctx).filter((f) => f.kind === 'water').map((f) => f.row);
+      rowsOf.set(pk, rows);
+      all.push(...rows);
+    }
+    const wr = annotateCityWater(all, { base: waterBodies, village: ctx.village, locks: [...lockOf.values()], focus: (x, y) => profile.has(G.tileKey(...G.tileIndexOf(x, y))) });
+    waterBodies += wr.bodies;
+    for (const [pk, rows] of rowsOf) cityWater.set(pk, rows.map((r) => { const o = { body: r.body, kind: r.kind, lv: r.lv, dp: r.dp, nav: r.nav, bank: r.bank }; if (r.lock) o.lock = true; return o; }));
+  }
   for (const pk of [...byPack.keys()].sort((a, b) => packKey(a) - packKey(b))) {
     const files = dirs.map((d) => path.join(d, `c${pk}.json.gz`)).filter((f) => fs.existsSync(f));
     const want = byPack.get(pk);
@@ -443,19 +474,18 @@ export function buildProvince({ root = ROOT, src = SRC_DIR, extra = bufferDirs(s
     // the water keeps `flat` (the far LOD draws it so) and gets the city
     // water's kind, lv, dp and nav: tileworld.js puts annotated rows in the
     // water grid, so boats, swimmers and waterAt see them
-    const packLocks = [];
-    for (const el of els) {
-      const t = el.tags || {};
-      if (el.type === 'way' && el.g && el.g.length > 1 && (t.waterway === 'lock_gate' || t.lock === 'yes')) {
-        const m = el.g[Math.floor(el.g.length / 2)], [x, y] = wgsToWorld(m[0], m[1]);
-        packLocks.push({ x: r1(x), y: r1(y), name: t.name || '', w: parseFloat(t.maxwidth) || 0, id: el.id });
-      }
-    }
+    const packLocks = locksOf(els);
     // a lock splits the water bodies (waterlevels.js annotateProvinceWater)
-    // the city profile (#90): a pack with tiles of the city's profile classifies its water as the city does
-    const annotate = profile && want.some((k) => profile.has(k)) ? annotateCityWater : annotateProvinceWater;
-    const wr = annotate(feats.filter((f) => f.kind === 'water').map((f) => { f.row.flat = true; return f.row; }), { base: waterBodies, village: ctx.village, locks: packLocks, focus: (x, y) => profile && profile.has(G.tileKey(...G.tileIndexOf(x, y))) });
-    waterBodies += wr.bodies;
+    const waterRows = feats.filter((f) => f.kind === 'water').map((f) => { f.row.flat = true; return f.row; });
+    const found = cityWater.get(pk);
+    if (found && found.length === waterRows.length) waterRows.forEach((r, i) => Object.assign(r, found[i]));
+    else {
+      if (found) console.log(`  waarschuwing: pak ${pk} heeft ${waterRows.length} waterrijen, de stadsclassificatie zag er ${found.length}`);
+      // (a pack the city profile did not see: classified on its own, the city's way when it has tiles of the profile)
+      const annotate = profile && want.some((k) => profile.has(k)) ? annotateCityWater : annotateProvinceWater;
+      const wr = annotate(waterRows, { base: waterBodies, village: ctx.village, locks: packLocks, focus: (x, y) => profile && profile.has(G.tileKey(...G.tileIndexOf(x, y))) });
+      waterBodies += wr.bodies;
+    }
     for (const k of packLocks) if (!locks.has(k.id)) locks.set(k.id, { x: k.x, y: k.y, name: k.name, w: k.w });
     WB.applyDuals(feats.filter((f) => f.kind === 'roads').map((f) => f.row));
     // what the city's map derives (derive_tiles.mjs): footprints clear of the roads, canopies, roof steps, ways cut at a wall
