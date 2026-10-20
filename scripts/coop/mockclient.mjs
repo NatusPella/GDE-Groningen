@@ -19,13 +19,13 @@ const { makeRng } = await import(pathToFileURL(path.join(ROOT, 'game', 'js', 'ne
 
 // Een transport bovenop de coopcore van deze checkout, met netwerksimulatie. De simulatie zit tussen de socket en de sessie.
 function makeTransport(core, hook, sim, rng) {
-  const tr = { onmessage: null, onstate: null, open: false, id: 0, sent: 0, dropped: 0, recv: 0, droppedIn: 0 };
+  const tr = { onmessage: null, onstate: null, open: false, id: 0, sent: 0, dropped: 0, recv: 0, droppedIn: 0, bytesIn: 0, bytesOut: 0 };
   const later = (f, delay) => (delay > 0 ? setTimeout(f, delay * 1000) : f());
   const delayOf = () => (sim.latency || 0) + rng() * (sim.jitter || 0);
   tr.isOpen = () => tr.open;
   tr.send = (bytes) => {
     if (!tr.open || sim.cut) return false;
-    tr.sent++;
+    tr.sent++; tr.bytesOut += bytes.length;
     if (rng() < (sim.loss || 0)) { tr.dropped++; return true; }
     later(() => { if (tr.open && !sim.cut) core.send(0, bytes); }, delayOf());
     return true;
@@ -35,7 +35,7 @@ function makeTransport(core, hook, sim, rng) {
     if (!payload || payload.id !== 0) return;
     if (kind === 'state') { tr.open = payload.state === 'open'; if (tr.onstate) tr.onstate(payload.state); }
     else if (kind === 'msg') {
-      tr.recv++;
+      tr.recv++; tr.bytesIn += (payload.data && payload.data.length) || 0;
       if (sim.cut) return;
       if (rng() < (sim.loss || 0)) { tr.droppedIn++; return; }
       const data = new Uint8Array(payload.data);
