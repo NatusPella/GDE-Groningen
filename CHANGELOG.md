@@ -13,6 +13,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 
 ### Opgelost
+- **Herstel na een val of arrestatie (nog niet in beeld bekeken):** je wordt niet meer naar een huisarts of politiebureau over de provinciegrens in Drenthe gestuurd (Paterswolde, De Punt), waar geen weg is voor je auto (#285). De Rijstebrijgang is een echte smalle steeg (3,6 m) met huizen op 1,9 m van het midden (#284).
 - **Samen spelen: het wachtscherm bij wegvallen pauzeert nu echt (#304):** het scherm "Verbinding weg" stond er wel, maar het spel liep door omdat een andere vlag de pauze steeds terugzette. Nu pauzeert het spel voor de gastheer en de gast zolang het scherm openstaat, en het scherm sluit zodra de verbinding terug is, ook bij een gast (#281). Alleen lokaal getest met Electron-instanties op één computer.
 - **Samen spelen: een gast speelt weer in zijn eigen spel na een stop van de gastheer of een afwijzing (#305):** daarvoor bleef hij in de gastrol hangen (stilstaande wereld, zijn spel werd niet meer bewaard). Een beloning komt niet meer dubbel in zijn savegame (#278). Alleen lokaal getest.
 - **Samen spelen: een gast die als passagier meerijdt ziet zijn auto rijden (#287):** de snapshot stuurde de oude plek van de passagier, waardoor de camera van de gast bleef staan terwijl de auto wegreed. Alleen lokaal getest.
