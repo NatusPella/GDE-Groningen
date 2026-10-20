@@ -64,6 +64,8 @@ for (const z of CFG.zeeen) {
     const tag = `zv-${z.naam}`;
     while (performance.now() - t0 < CFG.secs * 1000) {
       await sleep(2000);
+      // (een terugzet-scene van de wereldrand laat de toetsen los: de gasknop weer indrukken, anders staat de boot stil zonder dat er een muur is)
+      if (!D.input.isDown || !D.input.isDown('w')) { rep.toetsLos = (rep.toetsLos || 0) + 1; key('keydown', 'w', 'KeyW'); }
       const afgelegd = Math.hypot(boat.x - sx, boat.y - sy);
       if (Math.hypot(boat.x - lx, boat.y - ly) < 0.8 && (boat.speed || 0) < 0.5) stuck += 2; else stuck = 0;
       maxStuck = Math.max(maxStuck, stuck); lx = boat.x; ly = boat.y;
