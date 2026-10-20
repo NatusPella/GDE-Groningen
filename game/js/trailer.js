@@ -240,7 +240,7 @@ function ensureUi() {
     '<div class="tr-freeze"></div><div class="tr-card"></div><div class="tr-name"></div><div class="tr-sub"></div><div class="tr-bar top"></div><div class="tr-bar bottom"></div>' +
     '<div class="tr-skip"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle class="fill" cx="12" cy="12" r="10"/></svg>' +
     '<span>Houd</span><span class="key">SPATIE</span><span>ingedrukt om over te slaan</span></div>' +
-    '<div class="tr-cancel"><span class="key">ESC</span><span>Benchmark stoppen</span></div>' +
+    '<div class="tr-cancel"><span class="key">ESC</span><span>Benchmark stoppen (controller: B)</span></div>' +
     '<div class="tr-fps"></div>';
   document.body.appendChild(root);
   const q = (s) => root.querySelector(s);
@@ -2030,6 +2030,14 @@ function enterShot(r, i) {
   r.stats[i] = r.stats[i] || { label: s.label, id: s.id, ms: [] };
 }
 
+// B (1) or Start (9) on any connected pad: the controller's way to stop the benchmark (#159)
+function padCancelPressed() {
+  try {
+    for (const p of (navigator.getGamepads ? navigator.getGamepads() : [])) if (p && p.connected && ((p.buttons[1] && p.buttons[1].pressed) || (p.buttons[9] && p.buttons[9].pressed))) return true;
+  } catch (e) { /* no pad API */ }
+  return false;
+}
+
 // ?benchmark: one line per shot with its fps, draw calls and GPU memory
 function logShot(r, i) {
   const st = r.stats[i], ren = window.__scene3d && window.__scene3d.renderer;
@@ -2349,6 +2357,8 @@ export function runTrailer(world, { mode = 'opname', cut = 'vol', shot = null, f
       try { frame(r, hold ? 0 : dt, realMs); } catch (e) { console.error('trailer', r.shots[r.idx] && r.shots[r.idx].label, e && e.stack); }
       probe.end();
       if (hold) { requestAnimationFrame(loop); return; }
+      // the benchmark stops on a controller too: B or Start (the ESC hint in the corner)
+      if (mode === 'benchmark' && padCancelPressed()) { end(true, true); return; }
       if (holdSince != null) {
         const k = Math.min(1, (now - holdSince) / (SKIP_HOLD_S * 1000));
         ui.skip.style.setProperty('--hold', String(k));

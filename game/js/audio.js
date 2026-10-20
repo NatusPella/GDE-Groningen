@@ -2079,6 +2079,8 @@ function ensureCtx() {
   if (ctx.state === 'suspended') ctx.resume().catch(() => {});
   window.addEventListener('pointerdown', unlockAudio, true);
   window.addEventListener('keydown', unlockAudio, true);
+  // touch: Chrome grants the user activation on the release (touchend, pointerup, click), not on the press (#227)
+  window.addEventListener('pointerup', unlockAudio, true);
   window.addEventListener('touchend', unlockAudio, true);
   document.addEventListener('visibilitychange', onVisibilityChange);
   for (const ev of ['focus', 'pageshow']) window.addEventListener(ev, () => resumeCtx(ev));

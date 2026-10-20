@@ -99,6 +99,9 @@ eq('flapping: at most 9 steps in 3 min', steps(180, (i) => (i % 2350 < 115 ? [35
 resetDynamic();
 eq('mobile: phone', mobileProfileFor({ width: 390, height: 844 }), 'telefoon');
 eq('mobile: phone landscape', mobileProfileFor({ width: 844, height: 390 }), 'telefoon');
+eq('mobile: weak phone (memory)', mobileProfileFor({ width: 844, height: 390, cores: 8, memory: 2 }), 'telefoonZwak');
+eq('mobile: weak phone (cores)', mobileProfileFor({ width: 844, height: 390, cores: 4, memory: 6 }), 'telefoonZwak');
+eq('mobile: good phone', mobileProfileFor({ width: 844, height: 390, cores: 8, memory: 8 }), 'telefoon');
 eq('mobile: tablet', mobileProfileFor({ width: 820, height: 1180, cores: 6, memory: 4 }), 'tablet');
 eq('mobile: strong tablet', mobileProfileFor({ width: 1024, height: 1366, cores: 8, memory: 8 }), 'tabletKrachtig');
 eq('mobile: unknown screen', mobileProfileFor({}), 'tablet');
