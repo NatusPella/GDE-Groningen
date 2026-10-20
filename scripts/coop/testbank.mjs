@@ -54,19 +54,19 @@ if (!P) { console.error('onbekende suite: ' + SUITE); process.exit(2); }
 
 // ---------------------------------------------------------------- sloten
 const held = [];
-// n sloten tegelijk. Wie er een paar heeft en op de rest wacht, houdt ze hooguit 4 minuten vast en probeert het daarna opnieuw,
+// n sloten tegelijk. Wie er een paar heeft en op de rest wacht, houdt ze hooguit 12 minuten vast en probeert het daarna opnieuw,
 // zodat andere sessies (die ook sloten nodig hebben) niet vastlopen.
 async function takeSlots(n) {
   for (;;) {
     const t0 = Date.now(), mine = [];
-    while (Date.now() - t0 < 240000) {
+    while (Date.now() - t0 < 720000) {
       for (const k of [1, 2, 3]) { if (mine.length >= n) break; const d = path.join(LOCKS, 'electron-' + k); try { fs.mkdirSync(d); mine.push(d); } catch (e) { /* bezet */ } }
       if (mine.length >= n) { held.push(...mine); return; }
       console.log(`sloten bezet (${mine.length} van ${n}), wacht 10 s`);
       await new Promise((r) => setTimeout(r, 10000));
     }
     for (const d of mine) { try { fs.rmdirSync(d); } catch (e) { /* weg */ } }
-    console.log('sloten losgelaten voor anderen, over 30 s opnieuw'); await new Promise((r) => setTimeout(r, 30000));
+    console.log('sloten losgelaten voor anderen, over 15 s opnieuw'); await new Promise((r) => setTimeout(r, 15000));
   }
 }
 const release = () => { while (held.length) { try { fs.rmdirSync(held.pop()); } catch (e) { /* weg */ } } };
