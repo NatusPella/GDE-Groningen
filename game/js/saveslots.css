@@ -1,78 +1,94 @@
-/* The savegame screen (saveslotsui.js), on the shared menu language (menu.css): cards with a small screenshot. */
+/* The Opgeslagen spellen screen (saveslotsui.js), on the shared menu language (menu.css): a calm grid of equal
+   cards; the same icon + text buttons as the pause menu's rail. Fixed margins: 56px left and right. */
 #saveslots { position: fixed; inset: 0; z-index: 10000; background: rgba(6, 12, 8, 0.72); backdrop-filter: blur(6px); }
-#saveslots .ssl-panel { left: 6%; right: 6%; top: 5%; bottom: 5%; }
-#saveslots .m-head { padding: 36px 56px 0; }
-#saveslots .m-h2 { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 48px; line-height: 1; letter-spacing: 0.02em; }
+#saveslots .ssl-panel { left: 6%; right: 6%; top: 4%; bottom: 4%; }
+#saveslots .m-head { padding: 28px 56px 0; }
+#saveslots .one { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#saveslots button:disabled { opacity: 0.45; }
 
-/* the grid of cards */
-#saveslots .ssl-scroll { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; padding: 24px 56px 20px; }
+/* the grid */
+#saveslots .ssl-scroll { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; padding: 20px 56px 8px; }
 #saveslots .ssl-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 24px; }
-#saveslots .ssl-card { display: flex; flex-direction: column; border-radius: 12px; overflow: hidden; background: rgba(240, 237, 228, 0.05); box-shadow: inset 0 0 0 1px var(--line); text-align: left; transition: background 0.2s, box-shadow 0.2s, transform 0.2s; }
+#saveslots .ssl-card { position: relative; display: flex; flex-direction: column; border-radius: 12px; overflow: hidden; background: rgba(240, 237, 228, 0.05); box-shadow: inset 0 0 0 1px var(--line); transition: background 0.2s, box-shadow 0.2s; }
 #saveslots .ssl-card:hover { background: rgba(240, 237, 228, 0.09); }
-#saveslots .ssl-card.sel { background: rgba(63, 201, 122, 0.12); box-shadow: inset 0 0 0 2px var(--g); }
-#saveslots .ssl-card.off { opacity: 0.7; }
-#saveslots .ssl-card.empty { background: none; box-shadow: inset 0 0 0 1px var(--line2); border-style: dashed; }
-#saveslots .ssl-card.empty .ssl-pic { background: rgba(240, 237, 228, 0.03); }
-#saveslots .ssl-card:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+#saveslots .ssl-card.sel { box-shadow: inset 0 0 0 2px var(--g); }
+#saveslots .ssl-card.empty { background: none; box-shadow: inset 0 0 0 1px var(--line2); }
+#saveslots .ssl-card.bad .ssl-pic { filter: grayscale(0.8) brightness(0.7); }
+#saveslots .ssl-main { display: flex; flex-direction: column; width: 100%; text-align: left; border-radius: 12px; }
+#saveslots .ssl-main:focus-visible { outline: 2px solid var(--ink); outline-offset: -2px; }
+#saveslots .ssl-main:disabled { opacity: 1; }
 #saveslots .ssl-pic { position: relative; display: block; aspect-ratio: 16 / 9; background: linear-gradient(160deg, rgba(30, 62, 42, 0.9), rgba(12, 20, 14, 0.95)); }
 #saveslots .ssl-pic img { width: 100%; height: 100%; object-fit: cover; display: block; }
 #saveslots .ssl-nopic { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
-#saveslots .ssl-nopic-ic { width: 56px; height: 56px; fill: none; stroke: var(--mut); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; opacity: 0.6; }
-#saveslots .ssl-chips { position: absolute; left: 10px; top: 10px; right: 10px; display: flex; flex-wrap: wrap; gap: 6px; }
+#saveslots .ssl-nopic-ic { width: 48px; height: 48px; fill: none; stroke: var(--mut); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; opacity: 0.55; }
+#saveslots .ssl-chips { position: absolute; left: 10px; top: 10px; display: flex; gap: 6px; }
 #saveslots .ssl-chip { height: 26px; padding: 0 10px; display: inline-flex; align-items: center; border-radius: 13px; font-size: 16px; background: rgba(6, 12, 8, 0.78); color: var(--ink); }
 #saveslots .ssl-chip.on { background: var(--g2); color: #fff; }
 #saveslots .ssl-chip.warn { background: rgba(217, 63, 63, 0.85); color: #fff; }
-#saveslots .ssl-body { display: flex; flex-direction: column; gap: 6px; padding: 14px 16px 16px; min-width: 0; }
-#saveslots .ssl-nm { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 32px; line-height: 1; letter-spacing: 0.04em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-#saveslots .ssl-part { font-size: 19px; }
-#saveslots .one { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-#saveslots .ssl-bar { width: 100%; margin: 2px 0; }
-#saveslots .ssl-card.sel .ssl-bar i { background: var(--g); }
-#saveslots .ssl-facts { display: flex; align-items: center; gap: 6px; font-size: 18px; }
-#saveslots .ssl-facts .ssl-ic:not(:first-child) { margin-left: 12px; }
-#saveslots .ssl-ic { width: 18px; height: 18px; flex: none; fill: none; stroke: var(--mut); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-#saveslots .ssl-when { font-size: 16px; }
+/* the one action of the card shows on the chosen card (always on touch) */
+#saveslots .ssl-go { position: absolute; right: 10px; bottom: 10px; height: 36px; padding: 0 16px; display: none; align-items: center; border-radius: 8px; background: var(--g); color: #0c140e; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 22px; letter-spacing: 0.05em; }
+#saveslots .ssl-card.sel .ssl-main:not(:disabled) .ssl-go, #saveslots .ssl-main:hover:not(:disabled) .ssl-go { display: inline-flex; }
+#saveslots .ssl-body { display: flex; flex-direction: column; gap: 4px; padding: 12px 16px 14px; min-width: 0; }
+#saveslots .ssl-nm { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 32px; line-height: 1.05; letter-spacing: 0.04em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#saveslots .ssl-part { font-size: 20px; line-height: 1.25; }
+#saveslots .ssl-meta { font-size: 18px; line-height: 1.25; }
+/* the '…' button: top right of the card, visible on the chosen card, on hover and on touch */
+#saveslots .ssl-more { position: absolute; top: 8px; right: 8px; width: 44px; height: 44px; display: grid; place-items: center; border-radius: 22px; background: rgba(6, 12, 8, 0.78); color: var(--ink); opacity: 0; transition: opacity 0.2s, background 0.2s; }
+#saveslots .ssl-card:hover .ssl-more, #saveslots .ssl-card.sel .ssl-more, #saveslots .ssl-more:focus-visible { opacity: 1; }
+#saveslots .ssl-more:hover { background: rgba(240, 237, 228, 0.2); }
+#saveslots .ssl-more:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+#saveslots .ssl-more .ssl-ic { fill: currentColor; stroke: none; width: 24px; height: 24px; }
+#saveslots .ssl-ic { width: 24px; height: 24px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; opacity: 0.8; }
 
-/* the details of the chosen card */
-#saveslots .ssl-detail { flex: none; display: flex; flex-direction: column; gap: 14px; padding: 18px 56px; box-shadow: inset 0 1px 0 var(--line); background: rgba(6, 12, 8, 0.28); }
-#saveslots .ssl-dhead { display: flex; align-items: baseline; gap: 28px; flex-wrap: wrap; }
-#saveslots .ssl-dmeta { display: flex; flex-wrap: wrap; gap: 4px 24px; }
-#saveslots .ssl-goal { display: inline-flex; align-items: center; gap: 6px; font-size: 18px; }
-#saveslots .ssl-acts, #saveslots .m-acts { display: flex; flex-wrap: wrap; gap: 12px; }
-#saveslots .ssl-warn { color: var(--redtx); }
-#saveslots .ssl-msg { flex: none; min-height: 1.4em; padding: 8px 56px 0; color: var(--g); }
-#saveslots .ssl-confirm { display: flex; flex-direction: column; gap: 14px; padding: 14px 20px; border-radius: 12px; background: rgba(12, 20, 14, 0.7); box-shadow: inset 0 0 0 1px var(--line2); }
+/* the layer over a card: the '…' menu or one question */
+#saveslots .ssl-over { position: absolute; inset: 0; z-index: 2; display: flex; flex-direction: column; justify-content: center; gap: 4px; padding: 12px 16px; background: #0b130d; }
+#saveslots .ssl-x { position: absolute; top: 8px; right: 8px; width: 44px; height: 44px; display: grid; place-items: center; border-radius: 22px; color: var(--mut); }
+#saveslots .ssl-x:hover, #saveslots .ssl-x:focus-visible { color: var(--ink); background: rgba(240, 237, 228, 0.12); }
+#saveslots .ssl-x:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+#saveslots .ssl-mi { display: flex; align-items: center; gap: 16px; width: 100%; height: 48px; padding: 0 12px; border-radius: 8px; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 26px; letter-spacing: 0.05em; color: rgba(240, 237, 228, 0.78); text-align: left; transition: background 0.2s, color 0.2s; }
+#saveslots .ssl-mi:hover, #saveslots .ssl-mi:focus-visible { background: rgba(240, 237, 228, 0.09); color: var(--ink); }
+#saveslots .ssl-mi:focus-visible .ssl-ic, #saveslots .ssl-mi:hover .ssl-ic { stroke: var(--g); opacity: 1; }
+#saveslots .ssl-mi:focus-visible { outline: 2px solid var(--ink); outline-offset: -2px; }
+#saveslots .ssl-mi.danger { color: var(--redtx); }
+#saveslots .ssl-mi.danger:hover .ssl-ic, #saveslots .ssl-mi.danger:focus-visible .ssl-ic { stroke: var(--redtx); }
+#saveslots .ssl-q { gap: 14px; }
+#saveslots .ssl-q p { font-size: 19px; line-height: 1.35; color: rgba(240, 237, 228, 0.9); }
+#saveslots .ssl-qacts { display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
+#saveslots .ssl-qacts button { height: 48px; padding: 0 16px; font-size: 22px; }
 #saveslots .m-bg.danger { color: var(--redtx); box-shadow: inset 0 0 0 1px rgba(217, 63, 63, 0.7); }
 #saveslots .m-bg.danger:hover { background: rgba(217, 63, 63, 0.14); }
-#saveslots button:disabled { opacity: 0.45; }
-#saveslots .ssl-lbl { display: flex; flex-direction: column; gap: 6px; color: var(--mut); }
-#saveslots .ssl-input { height: 56px; padding: 0 16px; border-radius: 8px; color: var(--ink); background: rgba(240, 237, 228, 0.06); box-shadow: inset 0 0 0 1px var(--line2); cursor: text; font-size: 24px; }
+#saveslots .ssl-lbl { display: flex; flex-direction: column; gap: 4px; font-size: 17px; color: var(--mut); }
+#saveslots .ssl-input { height: 48px; padding: 0 12px; border-radius: 8px; color: var(--ink); background: rgba(240, 237, 228, 0.06); box-shadow: inset 0 0 0 1px var(--line2); cursor: text; font-size: 22px; }
 #saveslots .ssl-input:focus { box-shadow: inset 0 0 0 2px var(--g); }
-#saveslots .ssl-foot { flex: none; display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 8px 56px 24px; font-size: 17px; }
-#saveslots .ssl-footbtns { display: flex; gap: 12px; flex: none; }
+#saveslots .ssl-presets { display: flex; flex-wrap: wrap; gap: 6px; }
+#saveslots .ssl-chipbtn { height: 30px; padding: 0 10px; border-radius: 15px; font-size: 16px; color: var(--mut); box-shadow: inset 0 0 0 1px var(--line2); }
+#saveslots .ssl-chipbtn:hover, #saveslots .ssl-chipbtn:focus-visible { color: var(--ink); background: rgba(240, 237, 228, 0.09); }
+#saveslots .ssl-chipbtn:focus-visible { outline: 2px solid var(--ink); outline-offset: 1px; }
 
-/* motion: only when it is allowed (the setting Beweging beperken and the system setting) */
+/* the status line and the small row at the bottom */
+#saveslots .ssl-msg { flex: none; height: 28px; padding: 0 56px; line-height: 28px; font-size: 18px; color: var(--g); }
+#saveslots .ssl-foot { flex: none; display: flex; align-items: center; gap: 12px; padding: 0 56px 16px; }
+#saveslots .ssl-fgrow { flex: 1; }
+#saveslots .ssl-fb { display: inline-flex; align-items: center; gap: 12px; height: 48px; padding: 0 16px; border-radius: 8px; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 24px; letter-spacing: 0.05em; color: rgba(240, 237, 228, 0.78); transition: background 0.2s, color 0.2s; }
+#saveslots .ssl-fb:hover:not(:disabled), #saveslots .ssl-fb:focus-visible { background: rgba(240, 237, 228, 0.09); color: var(--ink); }
+#saveslots .ssl-fb:focus-visible { outline: 2px solid var(--ink); outline-offset: -2px; }
+
+/* motion only when it is allowed (the setting Beweging beperken and the system setting) */
 @media (prefers-reduced-motion: no-preference) {
   html:not(.reduce-motion) #saveslots .ssl-card { animation: m-up 0.35s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
-  html:not(.reduce-motion) #saveslots .ssl-card.sel { transform: translateY(-2px); }
 }
-@media (prefers-reduced-motion: reduce) {
-  #saveslots .ssl-card, #saveslots .ssl-card.sel { animation: none; transition: none; transform: none; }
-}
-html.reduce-motion #saveslots .ssl-card, html.reduce-motion #saveslots .m-panel { animation: none; transition: none; transform: none; }
+@media (prefers-reduced-motion: reduce) { #saveslots .ssl-card, #saveslots .ssl-more, #saveslots .ssl-mi { animation: none; transition: none; } }
+html.reduce-motion #saveslots .ssl-card, html.reduce-motion #saveslots .ssl-more, html.reduce-motion #saveslots .ssl-mi, html.reduce-motion #saveslots .m-panel { animation: none; transition: none; }
 
-/* touch: bigger targets */
-@media (pointer: coarse) {
-  #saveslots .ssl-acts .m-bg, #saveslots .ssl-acts .m-bp, #saveslots .ssl-foot button, #saveslots .m-acts button { min-height: 56px; }
-}
-@media (max-width: 1500px) {
-  #saveslots .ssl-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+/* touch: no hover, so the '…' and the action stay visible; bigger targets */
+@media (hover: none) {
+  #saveslots .ssl-more { opacity: 1; width: 48px; height: 48px; }
+  #saveslots .ssl-main:not(:disabled) .ssl-go { display: inline-flex; }
+  #saveslots .ssl-mi, #saveslots .ssl-fb { min-height: 56px; }
 }
 @media (max-width: 1100px) {
   #saveslots .ssl-panel { left: 2%; right: 2%; top: 3%; bottom: 3%; }
   #saveslots .ssl-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
-  #saveslots .m-head, #saveslots .ssl-detail, #saveslots .ssl-foot, #saveslots .ssl-msg { padding-left: 20px; padding-right: 20px; }
-  #saveslots .ssl-scroll { padding: 16px 20px; }
-  #saveslots .ssl-foot { flex-direction: column; align-items: stretch; gap: 8px; }
-  #saveslots .ssl-keys { display: none; }
+  #saveslots .m-head, #saveslots .ssl-msg, #saveslots .ssl-foot { padding-left: 20px; padding-right: 20px; }
+  #saveslots .ssl-scroll { padding: 16px 20px 8px; }
 }
