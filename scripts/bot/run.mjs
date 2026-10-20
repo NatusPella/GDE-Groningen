@@ -5,6 +5,7 @@
 //   --part=all speelt akte 1 t/m 5 achter elkaar; --wait=<s> is het wachtbudget (een gesprek, banner of laadscherm dat zo lang blijft staan is een bevinding en krijgt de ladder)
 //   node scripts/bot/run.mjs --mode=minigames [--only=kartbaan,duif] [--play=40]   (fase 3: elke minigame kort spelen)
 //   node scripts/bot/run.mjs --mode=missions --only=M03,M04 [--per-step=600]   (elke stap los, via een sprong)
+//   --from=T1 springt eerst naar die stap en speelt dan door (de sprong van een sweep slaat reisstappen over, dit niet)
 //   --reizen zet de reisbeats aan (standaard uit in de bot; de bot kiest dan de eerste optie, Meerijden)
 //   node scripts/bot/run.mjs --report=<map>           (rapport opnieuw uit events.jsonl)
 //   node scripts/bot/run.mjs --replay=<events.jsonl> [--out=<map>]   (invoer terugspelen)
@@ -77,7 +78,7 @@ const seed = Number(arg('seed', 1)) || 1;
 const replayFile = arg('replay');
 const profile = `gde-test-spelbot-${process.pid}`;
 const script = path.join(OUT, '_page.js');
-const cfg = { part: arg('part', 'kop'), maxGameS: Number(arg('max-game', 3600)), maxWallS: Number(arg('max-wall', 1800)), stuckS: Number(arg('stuck', 30)), only: arg('only', ''), playS: Number(arg('play', 40)), perS: Number(arg('per', 60)), mode: arg('mode', 'story'), sweep: arg('mode') === 'missions' ? arg('only', '').split(',').filter(Boolean) : [], perStepS: Number(arg('per-step', 600)), shots: Number(arg('shots', 80)), speed: Number(arg('speed', 1)) || 1, waitS: Number(arg('wait', 45)) || 45, invulnerable: flag('invuln') };
+const cfg = { part: arg('part', 'kop'), maxGameS: Number(arg('max-game', 3600)), maxWallS: Number(arg('max-wall', 1800)), stuckS: Number(arg('stuck', 30)), only: arg('only', ''), from: arg('from', ''), playS: Number(arg('play', 40)), perS: Number(arg('per', 60)), mode: arg('mode', 'story'), sweep: arg('mode') === 'missions' ? arg('only', '').split(',').filter(Boolean) : [], perStepS: Number(arg('per-step', 600)), shots: Number(arg('shots', 80)), speed: Number(arg('speed', 1)) || 1, waitS: Number(arg('wait', 45)) || 45, invulnerable: flag('invuln') };
 let pre = `window.__botCfg = ${JSON.stringify(cfg)};\n`;
 if (replayFile) {
   const rl = L.RunLog.parse(fs.readFileSync(path.resolve(replayFile), 'utf8'));

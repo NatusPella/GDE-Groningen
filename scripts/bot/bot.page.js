@@ -151,6 +151,12 @@ let ticks = 0;
 const problems = B.validate();
 if (problems.length) B.log('schema', { problems });
 B.log('start', { part: PART, maxGameS: MAX_GAME });
+// --from=<stap>: de run begint bij die stap en speelt vanaf daar door (continu, dus met reisbeats en overgangen)
+if (CFG.from) {
+  const okFrom = window.__story.jump(CFG.from);
+  B.log('setup', { what: 'from', id: CFG.from, ok: !!okFrom });
+  await sleep(1500);
+}
 
 async function loop(stopFn) {
 while (true) {
