@@ -2522,9 +2522,22 @@ function applyImpactDamage(v, dmg, playerInvolved, world) {
 // becomes a wreck. Two-wheelers and boats still wreck straight away.
 const BLAST_REACH = 9;
 
+// Een politiepaard (#331) gaat niet kapot en blijft ook niet staan: een klap van deze schade (een auto
+// van ~5 m/s tegen het paard) gooit de ruiter eraf en het paard slaat op hol. Dat doet policemounts.js
+// maybeBolt zodra de gezondheid onder HORSE_BOLT_HEALTH (40) komt; hier komt hij er in één klap onder.
+const HORSE_KNOCK_DAMAGE = 10;
+const HORSE_KNOCKED_HEALTH = 30;
+const HORSE_SOFT = 0.35; // een paard is zacht: de auto die het raakt krijgt zoveel van de schade
+const isMountHorse = (v) => v._mount === 'horse' && v.driver !== 'player';
+
 export function tickBurningVehicles(world, dt) {
   for (const v of world.vehicles) {
     if (world.shards && v.driver === 'player' && shardPuncture(world.shards, v, world.time || 0)) {
+  if (isMountHorse(v)) {
+    v.health = Math.max(1, v.health - dmg * CRASH_DAMAGE_SCALE);
+    if (dmg >= HORSE_KNOCK_DAMAGE) v.health = Math.min(v.health, HORSE_KNOCKED_HEALTH);
+    return;
+  }
       v.flat = true;
       world.addMessage(world.shards.lastKind === 'spijkers' ? 'Spijkermat van de politie! Lekke band' : 'Door de glasscherven! Lekke band', 3);
     }
@@ -2651,8 +2664,8 @@ export function resolveVehicleVehicleCollisions(vehicles, world = null) {
       reportImpact(world, hx, hy, relN, playerInvolved);
       if (relN > HARD_HIT_CLOSING_SPEED) {
         const base = (relN - HARD_HIT_CLOSING_SPEED) * IMPACT_DAMAGE_PER_MPS;
-        applyImpactDamage(a, clamp(base * clamp(2 * mB / (mA + mB), 0.25, 1.6), 0, MAX_IMPACT_DAMAGE), playerInvolved, world);
-        applyImpactDamage(b, clamp(base * clamp(2 * mA / (mA + mB), 0.25, 1.6), 0, MAX_IMPACT_DAMAGE), playerInvolved, world);
+        applyImpactDamage(a, clamp(base * clamp(2 * mB / (mA + mB), 0.25, 1.6), 0, MAX_IMPACT_DAMAGE) * (isMountHorse(b) ? HORSE_SOFT : 1), playerInvolved, world);
+        applyImpactDamage(b, clamp(base * clamp(2 * mA / (mA + mB), 0.25, 1.6), 0, MAX_IMPACT_DAMAGE) * (isMountHorse(a) ? HORSE_SOFT : 1), playerInvolved, world);
         a.hitThisFrame = true; a.hitX = hx; a.hitY = hy; a.hitImpactSpeed = relN;
         b.hitThisFrame = true; b.hitX = hx; b.hitY = hy; b.hitImpactSpeed = relN;
       }
