@@ -13,6 +13,7 @@ const L = await imp('botlogic');
 const R = await imp('routing');
 const M = await imp('missions');
 const V = await imp('vehicle');
+const Br = await imp('breakables');
 const MS = await imp('missions');
 const BK = await imp('bakeround');
 const BAKE_KEYS = { ei: '1', zout: '2', meel: '3', vet: '4', mosterd: '5' };
@@ -42,7 +43,8 @@ function plan(s, mode, tgt) {
   const me = { x: s.player.x, y: s.player.y };
   let pts = null;
   try {
-    const r = R.planLandRoute(world.map, kind, [me.x, me.y], [tgt.x, tgt.y]);
+    // a boat sails the waterway net (planBoatTrip), the land graph knows nothing of water
+    const r = mode === 'boat' ? R.planBoatTrip(world.map, [me.x, me.y], [tgt.x, tgt.y], 'sloep') : R.planLandRoute(world.map, kind, [me.x, me.y], [tgt.x, tgt.y]);
     pts = r && r.pts && r.pts.length ? r.pts : null;
   } catch (e) { B.log('routefout', { msg: String(e && e.message || e).slice(0, 200) }); }
   // outside the city graph (the Ommeland) planLandRoute finds nothing: follow the line the game itself shows the player, when it leads to this goal
@@ -68,8 +70,8 @@ function steerTowards(s, mode, tgt, stopAt, top = 24, stopR = null) {
   const me = { x: s.player.x, y: s.player.y };
   const direct = L.distance(me, tgt);
   const aim = direct < 25 ? tgt : follower.next(me) || tgt;
-  if (mode === 'drive' && s.player.vehicle) {
-    const c = L.carControls({ x: me.x, y: me.y, angle: s.player.vehicle.angle, speed: s.player.vehicle.speed }, aim, { stopAt, top });
+  if ((mode === 'drive' || mode === 'boat') && s.player.vehicle) {
+    const c = L.carControls({ x: me.x, y: me.y, angle: s.player.vehicle.angle, speed: s.player.vehicle.speed }, aim, { stopAt, top: mode === 'boat' ? Math.min(top, 9) : top });
     B.stick(c.steer, c.throttle > 0 ? -1 : c.throttle < 0 ? 1 : 0);
     if (!c.reverse && wedge.update(s.t, s.player.vehicle.speed, c.throttle)) wedge.reset(), wedgeOut = true;
     if (B.input.isDown('shift')) B.up('shift');
@@ -267,6 +269,16 @@ while (true) {
     continue;
   }
   const act = L.decide(s, mem);
+  if (act.type === 'shop') {
+    // the first two goes: Enter selects the highlighted (story) item, Enter buys; then Escape
+    detector.hold(s.t);
+    B.stick(0, 0);
+    const m0 = player.money ?? world.money;
+    if (act.n <= 2) { await B.press('enter', 150); await sleep(600); if (act.n === 2) B.log('winkel', { gekocht: m0 - world.money, geld: Math.round(world.money) }); }
+    else await B.press('escape', 150);
+    await sleep(300);
+    continue;
+  }
   if (act.type === 'fly') { detector.hold(s.t); await flyStep(s); continue; }
   if (act.type === 'wait' || act.type === 'skip' || act.type === 'choose' || act.type === 'closemenu') {
     detector.hold(s.t);
@@ -301,7 +313,18 @@ while (true) {
   }
   if (act.type === 'goto') {
     if (!s.target) continue;
-    steerTowards(s, act.mode, s.target, !act.stunt && s.mission.phase !== 'active' && s.target.source === 'missiestart', act.top || 24);
+    // the stunt evening (M01): knock the props over, the nearest one that is still standing; people are left alone by the circle of the square
+    let aim = s.target, top = act.top || 24;
+    if (act.stunt && s.player.vehicle) {
+      let best = null, bd = Infinity;
+      for (const q of Br.propsInRadius(s.player.x, s.player.y, 90)) {
+        if (!String(q.key).startsWith('stunt')) continue;
+        const d = Math.hypot(q.x - s.player.x, q.y - s.player.y);
+        if (d < bd) { bd = d; best = q; }
+      }
+      if (best) { aim = { x: best.x, y: best.y, distance: bd }; top = 14; }
+    }
+    steerTowards(s, act.mode, aim, !act.stunt && s.mission.phase !== 'active' && s.target.source === 'missiestart', top);
     if (wedgeOut) {
       wedgeOut = false;
       B.log('klem', { x: s.player.x, y: s.player.y });
