@@ -116,18 +116,21 @@ async function run(name, setup, move, teardown, opts = {}) {
   const DURR = opts.dur || DUR;
   fixWorld();
   const ctx = await setup();
-  let t0 = performance.now() + 6000;
+  const SETTLE = window.__perfSettle || 6000;
+  let t0 = performance.now() + SETTLE;
   mover = (now) => move(ctx, (now - t0) / 1000);
-  await sleep(6000);
+  await sleep(SETTLE);
   t0 = performance.now();
   fixWorld();
   calls = 0; tris = 0; renders = 0; EJECTS = 0;
   const f0 = frameCount();
   H.start();
+  console.error('[perf-mark] start ' + name + ' ' + Date.now());
   if (window.__hitch) window.__hitch.reset();
   if ((window.__perfProfile || '').split(',').includes(name)) console.log('[profile] ' + Math.min(DURR - 2000, 15000));
   await sleep(DURR);
   const res = H.stop();
+  console.error('[perf-mark] end ' + name + ' ' + Date.now() + ' ' + res.frames);
   const frames = Math.max(1, res.frames);
   mover = null;
   const out = { ...res, callsPerFrame: Math.round(calls / frames), trisPerFrame: Math.round(tris / frames), rendersPerFrame: +(renders / frames).toFixed(2),
@@ -288,6 +291,12 @@ results.routes.varen = await safe('varen', () => run('varen', async () => {
 }, async (c) => leave(c.v), { dur: 40000 }));
 // the busy city on foot (the foot route's path at rush hour), at night, and in the rain
 const walkFoot = (c, t) => { const q = at(FOOT, Math.max(0, t) * 6); p.x = q.x; p.y = q.y; p.angle = q.ang; w.camYaw = q.ang; };
+// the default walking pace of the game (3 m/s, player.js WALK_SPEED) along the same path: a player strolling through the centre
+results.routes.wandel = await safe('wandel', () => run('wandel', async () => { teleport(FOOT[0][0], FOOT[0][1]); return {}; }, (c, t) => {
+  const q = at(FOOT, Math.max(0, t) * 3);
+  p.x = q.x; p.y = q.y; p.angle = q.ang; w.camYaw = q.ang;
+}, null, {}));
+
 // standing still in the centre (the batchers have time to merge everything)
 results.routes.staan = await safe('staan', () => run('staan', async () => { teleport(FOOT[0][0], FOOT[0][1]); return {}; }, () => {}, null, { dur: 25000 }));
 results.routes.druk = await safe('druk', () => run('druk', async () => { teleport(FOOT[0][0], FOOT[0][1]); return {}; }, walkFoot, null, { clock: 17.5 }));
@@ -492,6 +501,25 @@ results.routes.det = await safe('det', async () => {
     out[name] = { staticDraws, batches: sc.batches(), actors: [w.vehicles.length, w.pedestrians.length], draws: med(rr, 'draws'), shadow: med(rr, 'shadow'), tris: med(rr, 'tris'), uses: med(rr, 'uses'), renderMs: med(rr, 'ms'), geometries: r.info.memory.geometries, programs: r.info.programs.length, owners: owners.slice(0, 60) };
   }
   r.render = prevR;
+  return out;
+});
+// the actors' scene nodes (only with PERF_ONLY=actors): nodes per vehicle / person / animal, hidden ones, what the children are
+results.routes.actors = await safe('actors', async () => {
+  if (!ONLY.includes('actors')) return null;
+  fixWorld(); teleport(FOOT[0][0], FOOT[0][1]); await sleep(10000);
+  const A = sc.actors(), out = {};
+  for (const [kind, map] of Object.entries({ vehicles: A.vehicles, peds: A.peds, wildlife: A.wildlife })) {
+    let meshesN = 0, nodes = 0, hiddenNodes = 0, meshN = 0, skinned = 0, inst = 0, culled = 0, vis = 0; const kids = {};
+    for (const m of map.values()) {
+      meshesN++; if (m.visible) vis++;
+      m.traverse((o) => { nodes++; if (!o.visible) hiddenNodes++; if (o.isMesh) meshN++; if (o.isSkinnedMesh) skinned++; if (o.isInstancedMesh) inst++; });
+      for (const c of m.children) { let n = 0, h = 0; c.traverse((o) => { n++; if (!o.visible) h++; }); const k = (c.name || c.type) + (c.userData && c.userData.driverFigure ? '' : ''); const e = kids[k] || (kids[k] = { n: 0, h: 0, c: 0 }); e.n += n; e.h += h; e.c++; }
+    }
+    out[kind] = { actors: meshesN, visible: vis, nodes, hiddenNodes, meshes: meshN, skinned, inst, kids: Object.entries(kids).sort((a, b) => b[1].n - a[1].n).slice(0, 14) };
+  }
+  out.sceneNodes = (() => { let n = 0; sc.scene.traverse(() => n++); return n; })();
+  // cull test: how many actors a frustum test would drop right now
+  const THREE_ = sc.cam.constructor; void THREE_;
   return out;
 });
 // top-level loose meshes of the scene by kind (only with PERF_ONLY=topmesh)
