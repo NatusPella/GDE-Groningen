@@ -14,6 +14,7 @@ const R = await imp('routing');
 const M = await imp('missions');
 const V = await imp('vehicle');
 const Br = await imp('breakables');
+const Pg = await imp('pigeonmode');
 const MS = await imp('missions');
 const BK = await imp('bakeround');
 const BAKE_KEYS = { ei: '1', zout: '2', meel: '3', vet: '4', mosterd: '5' };
@@ -71,7 +72,10 @@ function steerTowards(s, mode, tgt, stopAt, top = 24, stopR = null) {
   const direct = L.distance(me, tgt);
   const aim = direct < 25 ? tgt : follower.next(me) || tgt;
   if ((mode === 'drive' || mode === 'boat') && s.player.vehicle) {
-    const c = L.carControls({ x: me.x, y: me.y, angle: s.player.vehicle.angle, speed: s.player.vehicle.speed }, aim, { stopAt, top: mode === 'boat' ? Math.min(top, 9) : top });
+    // a garage (M02: drive in and stand still 1.2 s) or a stage with `stop`: come to rest right there
+    const stg = M.activeStage();
+    const rest = stg && (stg.kind === 'garage' ? 3.5 : stg.stop ? Math.max(3, stg.stop + 2) : 0);
+    const c = L.carControls({ x: me.x, y: me.y, angle: s.player.vehicle.angle, speed: s.player.vehicle.speed }, aim, { stopAt: stopAt || !!rest, rest, top: mode === 'boat' ? Math.min(top, 9) : top });
     B.stick(c.steer, c.throttle > 0 ? -1 : c.throttle < 0 ? 1 : 0);
     if (!c.reverse && wedge.update(s.t, s.player.vehicle.speed, c.throttle)) wedge.reset(), wedgeOut = true;
     if (B.input.isDown('shift')) B.up('shift');
@@ -277,6 +281,17 @@ while (true) {
     if (act.n <= 2) { await B.press('enter', 150); await sleep(600); if (act.n === 2) B.log('winkel', { gekocht: m0 - world.money, geld: Math.round(world.money) }); }
     else await B.press('escape', 150);
     await sleep(300);
+    continue;
+  }
+  if (act.type === 'pigeon') {
+    // a pigeon: fly to the next target of the stage; releaseFly is shared (A, D, Space, Shift)
+    detector.hold(s.t);
+    const f = Pg.getPigeonFlight();
+    if (!f || f.intro) { releaseFly(); await sleep(200); continue; }
+    if (f.mode !== 'fly') { releaseFly(); await B.press(' ', 120); await sleep(500); continue; }   // on the ground: take off
+    const want = L.pigeonKeys(f, s.target);
+    for (const k of FLY_KEYS) { if (want.has(k)) B.down(k); else if (B.input.isDown(k)) B.up(k); }
+    if (ticks % 20 === 0) B.log('duif', { x: Math.round(f.x), y: Math.round(f.y), z: Math.round(f.z), doel: [s.target.x, s.target.y], keys: [...want].join('') });
     continue;
   }
   if (act.type === 'fly') { detector.hold(s.t); await flyStep(s); continue; }
