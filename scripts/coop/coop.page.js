@@ -51,7 +51,17 @@ const openSamen = async () => { // het pauzemenu, onderdeel Samen (zoals een spe
   document.querySelector('.ra[data-goto="samen"]').click();
   await until(() => panel() && !panel().closest('[hidden]'), 5000, 'paneel Samen');
 };
-const closeMenu = async () => { for (let i = 0; i < 5; i++) { if (!(W() || {}).paused) break; await esc(); await sleep(900); } };
+// terug het spel in zoals een speler: de knop Doorgaan van het overzicht (Escape in het pauzemenu gaat een stap terug)
+const closeMenu = async () => {
+  for (let i = 0; i < 6; i++) {
+    if (!(W() || {}).paused) break;
+    const resume = [...document.querySelectorAll('#pause-menu [data-action="resume"]')].find((b) => b.offsetParent);
+    if (resume) resume.click();
+    else { const ov = document.querySelector('#pause-menu .ra[data-goto="overzicht"]'); if (ov && ov.getAttribute('aria-current') !== 'true') ov.click(); else await esc(); }
+    await sleep(900);
+  }
+  log('menu-dicht', { paused: !!(W() || {}).paused, startScherm: !!document.querySelector('#start-screen.visible'), pauzemenu: !!document.querySelector('#pause-menu.visible'), body: document.body.className });
+};
 
 // ---- wat deze instantie ziet (elke seconde)
 let state = { allIn: false, phase: '' };
@@ -161,7 +171,6 @@ async function connect() {
   await sleep(1500); // de fade van het binnenkomen is dan voorbij
   shot('lobby-verbonden');
   await closeMenu(); // terug het spel in
-  log('menu-dicht', { paused: !!W().paused });
   await sleep(1500);
   shot('spel-samen');
 }
