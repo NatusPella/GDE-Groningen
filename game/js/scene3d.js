@@ -1,4 +1,4 @@
-import { FLAGS } from './devflags.js';
+import { FLAGS, perfOff } from './devflags.js';
 import { sfxLinks } from './latehooks.js';
 import { setDualText } from './subtitles.js';
 import { markerColors } from './a11y.js';
@@ -50,7 +50,7 @@ import { applyCutMask, initCutMask, setCutMaskCenter } from './cutmask3d.js';
 import { updatePortals } from './portalcut3d.js';
 import { inPassage } from './passages.js';
 import { buildRailDecks } from './roadstructures3d.js';
-import { snapShadowCenter, shadowPassSkipped } from './shadowsnap.js';
+import { snapShadowCenter, shadowPassSkipped, actorShadowReach } from './shadowsnap.js';
 import { buildPoliceHeliMesh3D, updatePoliceHeliMesh3D } from './police.js';
 import { updateSkyProps3D, buildBalloonWarmup } from './skyprops3d.js';
 import { pointInPolygon, polygonBounds, WATER_Y, isInWater } from './util.js';
@@ -900,6 +900,7 @@ export function init3D(map) {
   renderer.toneMappingExposure = 1.05;
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFShadowMap;
+  hookShadowPass(renderer.shadowMap);
   pinShaderPrograms(renderer);
   // Fetching shader info logs after a link is a sync point that costs tens of
   // ms per program on a busy GPU; ?shaderdebug brings the error checks back.
@@ -967,7 +968,10 @@ export function init3D(map) {
       freezeStatic(group);
       done();
     }));
-  } else terrainMesh = buildTerrainMesh3D(map.meta.bounds, map.water);
+  } else {
+    terrainMesh = buildTerrainMesh3D(map.meta.bounds, map.water);
+    freezeStatic(terrainMesh);
+  }
   scene.add(freezeStatic(terrainMesh));
 
   // Opaque canal bed under the whole map: terrain holes are cut per grid
@@ -1019,7 +1023,7 @@ export function init3D(map) {
   onSettingsChange(applyViewSettings);
   resize3D();
   window.addEventListener('resize', resize3D);
-  window.__scene3d = { scene, cam, renderer, postfx, farLod, setBlobPool: (on) => { blobPoolOn = !!on; }, dists: () => ({ DRAW_DIST, buildingDetailR, facadeDetailDist, roadDetailR, viewDist }), batches: () => ({ buildings: buildingBatcher.info(), facades: facadeBatcher.info(), roads: roadBatcher.info(), shores: shoreBatcher.info() }) };
+  window.__scene3d = { THREE, scene, cam, renderer, postfx, farLod, actors: () => ({ vehicles: vehicleMeshes, peds: pedMeshes, wildlife: wildlifeMeshes, culled: culledActors }), setBlobPool: (on) => { blobPoolOn = !!on; }, dists: () => ({ DRAW_DIST, buildingDetailR, facadeDetailDist, roadDetailR, viewDist }), batches: () => ({ buildings: buildingBatcher.info(), facades: facadeBatcher.info(), roads: roadBatcher.info(), shores: shoreBatcher.info() }) };
 }
 
 // increments each time the scene is drawn to the canvas (blackframe.js)
@@ -1292,6 +1296,64 @@ const ROAD_COLORS3D = { cycle: 0x94412f, foot: 0x837d71, major: 0x57595c, normal
 const GREEN_COLOR = 0x5c8a4d;
 const SIDEWALK_COLOR = 0x7b776d;
 
+// three's shadow pass recurses through every node of the scene (~0.5 to 1 us
+// each: 2 to 3 ms for the ~9000 of this one) and asks each mesh whether it
+// casts. Groups at the top of the scene that cast nothing sit this pass out as
+// hidden groups, and are back right after it:
+// - people, vehicles and animals beyond ACTOR_SHADOW_DIST (limitActorShadows
+//   switches their casters off; castNear tells), about 1600 nodes;
+// - the terrain (~500 meshes), the loose roads, the far LOD, the road and
+//   shore batches, the flavour props: groups without a single caster, found
+//   by looking through each once (shadowKinds), again when its number of
+//   children changes, and every SHADOW_KIND_AGE passes anyway (staggered: a
+//   group that only gets casters later, like the countryside's trees that
+//   cast from a distance on, is back in the pass within a second).
+const shadowHidden = [];
+const shadowKinds = new WeakMap();
+const SHADOW_KIND_AGE = 45;
+let shadowKindSeq = 0; // no Math.random here: the spelbot seeds it and a render step must not move that sequence
+function nodeCasts(o) {
+  if (o.castShadow) return true;
+  const kids = o.children;
+  for (let i = 0; i < kids.length; i++) if (nodeCasts(kids[i])) return true;
+  return false;
+}
+function groupCastsShadow(c) {
+  let k = shadowKinds.get(c);
+  if (!k) shadowKinds.set(c, k = { n: -1, casts: true, age: (shadowKindSeq++ * 7) % SHADOW_KIND_AGE });
+  if (k.n !== c.children.length || ++k.age > (k.casts ? SHADOW_KIND_AGE * 6 : SHADOW_KIND_AGE)) { k.n = c.children.length; k.age = 0; k.casts = nodeCasts(c); }
+  return k.casts;
+}
+function hookShadowPass(shadowMap) {
+  const run = shadowMap.render.bind(shadowMap);
+  shadowMap.render = (lights, sc, camera) => {
+    // the groups cut from the main pass shadow the view too: back in for this pass
+    for (let i = 0; i < culledGroups.length; i++) culledGroups[i].visible = true;
+    if (perfOff('schaduwpas')) {
+      try { run(lights, sc, camera); } finally { for (let i = 0; i < culledGroups.length; i++) culledGroups[i].visible = false; }
+      return;
+    }
+    const kids = scene.children;
+    const groups = !perfOff('schaduwgroepen');
+    for (let i = 0; i < kids.length; i++) {
+      const c = kids[i];
+      if (!c.visible || c.isLight || c.isCamera) continue;
+      const ud = c.userData;
+      // an actor: its casters follow the distance (castNear), so that is looked at every pass
+      if (ud.shadowCasters !== undefined) { if (ud.castNear === false) { c.visible = false; shadowHidden.push(c); } continue; }
+      if (c === terrainMesh || (groups && !groupCastsShadow(c))) {
+        if (window.__perfVerify && c !== terrainMesh) { window.__perfVerify.shadowChecked++; if (nodeCasts(c)) { window.__perfVerify.shadow++; if (window.__perfVerify.bad.length < 12) window.__perfVerify.bad.push(['schaduwgroep', c.name || c.type, Math.round(c.position.x), Math.round(c.position.z)]); } }
+        c.visible = false; shadowHidden.push(c);
+      }
+    }
+    try { run(lights, sc, camera); } finally {
+      for (let i = 0; i < shadowHidden.length; i++) shadowHidden[i].visible = true;
+      shadowHidden.length = 0;
+      for (let i = 0; i < culledGroups.length; i++) culledGroups[i].visible = false;
+    }
+  };
+}
+
 // Static world geometry (buildings, roads, water): matrices are computed once
 // here instead of being recomposed for thousands of objects every frame.
 function freezeStatic(root) {
@@ -1448,7 +1510,23 @@ function ensureTreeCapacity(n) {
 
 // --- per-frame sync ------------------------------------------------------
 
+// A pass that found nothing to build (and no prefetch left) is repeated only after the focus moved a hand's breadth
+// or SYNC_IDLE_FRAMES frames: the pass walks every building within DRAW_DIST twice (~2000 hypots, a Set and
+// two Map lookups each) and asks the grid for them three times. The detail radius is as exact as before to
+// within SYNC_IDLE_MOVE metres, a few frames of walking.
+const SYNC_IDLE_MOVE = 0.15;
+const SYNC_IDLE_FRAMES = 12;
+let syncIdle = null, syncFrame = 0;
 function syncBuildings(world, px, py) {
+  syncFrame++;
+  if (syncIdle && !perfOff('bouwsync') && syncFrame - syncIdle.frame < SYNC_IDLE_FRAMES && Math.hypot(px - syncIdle.x, py - syncIdle.y) < SYNC_IDLE_MOVE
+    && syncIdle.dist === DRAW_DIST && syncIdle.view === viewDist && syncIdle.facade === facadeDetailDist && syncIdle.hidden === hiddenBuildings.size
+    && syncIdle.meshes === buildingMeshes.size && syncIdle.landmarks === landmarkBuildings.length) return;
+  syncIdle = null;
+  syncBuildingsPass(world, px, py);
+}
+
+function syncBuildingsPass(world, px, py) {
   // Detail set must be exactly "centre within detailR": farlod.js hides its
   // copy of a building by the same test, so no unload hysteresis here.
   // Missing meshes are built nearest first within a per-frame budget (a
@@ -1520,14 +1598,18 @@ function syncBuildings(world, px, py) {
   for (const [b] of prefetchedBuildings) if (centreDist(b) > DRAW_DIST + BUILDING_PREFETCH + 20 && !nearPrewarm(b)) prefetchedBuildings.delete(b);
   if (missing.length > built) return;
   const prefetchEnd = performance.now() + BUILDING_PREFETCH_MS;
+  let prefetchDone = true;
   for (const b of world.map.buildingsNear(px, py, DRAW_DIST + BUILDING_PREFETCH)) {
-    if (performance.now() > prefetchEnd) break;
+    if (performance.now() > prefetchEnd) { prefetchDone = false; break; }
     if (b.landmark || buildingMeshes.has(b) || prefetchedBuildings.has(b)) continue;
     const d = centreDist(b);
     if (d <= DRAW_DIST || d > DRAW_DIST + BUILDING_PREFETCH) continue;
     const mesh = makeBuildingMesh(b);
     precompile(mesh);
     prefetchedBuildings.set(b, mesh);
+  }
+  if (prefetchDone && missing.length === 0) {
+    syncIdle = { x: px, y: py, frame: syncFrame, dist: DRAW_DIST, view: viewDist, facade: facadeDetailDist, hidden: hiddenBuildings.size, meshes: buildingMeshes.size, landmarks: landmarkBuildings.length };
   }
 }
 
@@ -1548,6 +1630,12 @@ let facadeDetailDist = Infinity, facadeDetailCulled = false, facadeQualityDist =
 // gfxprofile.js cpuLevel (a busy machine): fewer facade details
 const CPU_FACADE_DIST = [Infinity, 100, 70];
 let shadowFrame = 0;
+// no vehicle faster than 4 m/s in (or just next to) the area that casts shadows
+function shadowAreaCalm(world, fx, fy) {
+  const reach = ACTOR_SHADOW_DIST + 6;
+  for (const v of world.vehicles) if (Math.abs(v.speed) > 4 && Math.abs(v.x - fx) < reach && Math.abs(v.y - fy) < reach) return false;
+  return true;
+}
 let focusSpeed = 0, focusPrevX = null, focusPrevY = 0, focusDirX = 1, focusDirY = 0;
 let roadDetailR = DRAW_DIST;
 let buildingsStaged = false;
@@ -2008,6 +2096,8 @@ function syncPedestrianMeshes(world, player, animDt) {
     }
     mesh.position.set(p.x, p.gz || 0, p.y);
     mesh.rotation.y = -p.angle;
+    // a plain walker out of the frame (last frame's cull, scene3d.js cullOffscreenActors) is not posed: its walk phase waits
+    if (ud.offscreen && !p.ragdoll && !p.pose && !p.carry && !p.heldWeapon && !p.attackFx && !p.hitReact && !(p.greetUntil > world.time) && !perfOff('actoren')) continue;
     // far walkers animate at half rate on a CPU-bound machine (simload.js)
     if (simLevel() && !p.ragdoll && Math.abs(p.x - player.x) + Math.abs(p.y - player.y) > 45) {
       ud.animAcc = (ud.animAcc || 0) + animDt;
@@ -2794,16 +2884,167 @@ export function update3D(dt, world) {
   // behind a menu the world stands still: the shadow map from the first
   // frame is reused
   // a busy CPU (cpuLevel 1+) renders the shadow map every other frame
-  renderer.shadowMap.autoUpdate = !(menuCover && menuShadowDone) && !shadowPassSkipped(cpuLevel(), shadowFrame++, focusSpeed);
+  renderer.shadowMap.autoUpdate = !(menuCover && menuShadowDone) && !shadowPassSkipped(cpuLevel(), shadowFrame++, focusSpeed, !perfOff('schaduw') && shadowAreaCalm(world, focus.x, focus.y));
   if (menuCover) menuShadowDone = true;
   if (sizeDirty) applyRenderSize();
+  cullOffscreenActors();
   skipHiddenMatrixWalk();
-  postfx.render();
+  try { postfx.render(); } finally { restoreCulledActors(); }
   if (afterFrameQ.length) { const q = afterFrameQ; afterFrameQ = []; for (const f of q) { try { f(); } catch (e) { /* no picture */ } } }
   canvasFrames++;
   renderer.shadowMap.autoUpdate = true;
   probe.mark('3d:render');
   probe.identify(scene);
+}
+
+// Vehicles, people and animals are ~55% of the scene's nodes (each ~30 to 60),
+// and three walks all of them every frame: the matrices, then the frustum test
+// of every mesh, in the main pass and again in the shadow pass. Most of them
+// are behind or beside the camera. Those out of the view (plus the reach of
+// their shadow) sit the frame out as hidden groups, so skipHiddenMatrixWalk
+// leaves their matrices alone too; they are shown again right after the render.
+const _cullFrustum = new THREE.Frustum();
+const _cullProj = new THREE.Matrix4();
+const _cullSphere = new THREE.Sphere();
+const _cullBox = new THREE.Box3();
+const _cullPos = new THREE.Vector3();
+const culledActors = [];
+function actorRadius(mesh) {
+  // the farthest corner of the box at build time from the group's origin; cached
+  _cullBox.setFromObject(mesh);
+  _cullPos.copy(mesh.position);
+  const b = _cullBox, p = _cullPos;
+  const dx = Math.max(Math.abs(b.min.x - p.x), Math.abs(b.max.x - p.x));
+  const dy = Math.max(Math.abs(b.min.y - p.y), Math.abs(b.max.y - p.y));
+  const dz = Math.max(Math.abs(b.min.z - p.z), Math.abs(b.max.z - p.z));
+  return Math.hypot(dx, dy, dz) + 1.5;
+}
+function cullActorCache(cache, reach, kind) {
+  for (const mesh of cache.values()) {
+    if (!mesh.visible || mesh.parent !== scene) continue;
+    const ud = mesh.userData;
+    if (ud.cullR === undefined) ud.cullR = actorRadius(mesh);
+    ud.cullKind = kind;
+    _cullSphere.center.copy(mesh.position);
+    _cullSphere.radius = ud.cullR + reach;
+    if (_cullFrustum.intersectsSphere(_cullSphere)) {
+      ud.offscreen = false;
+      // what a seen actor keeps hidden (a driver's figure, lamps that are off, a holstered weapon) is not walked either
+      const kids = mesh.children;
+      for (let i = 0; i < kids.length; i++) kids[i].matrixWorldAutoUpdate = kids[i].visible;
+      continue;
+    }
+    ud.offscreen = true;
+    mesh.visible = false;
+    culledActors.push(mesh);
+  }
+}
+function cullOffscreenActors() {
+  if (perfOff('actoren')) return;
+  cam.updateMatrixWorld();
+  _cullProj.multiplyMatrices(cam.projectionMatrix, cam.matrixWorldInverse);
+  _cullFrustum.setFromProjectionMatrix(_cullProj);
+  const reach = actorShadowReach(sunDir);
+  cullActorCache(vehicleMeshes, reach, 'voertuig');
+  cullActorCache(pedMeshes, reach, 'persoon');
+  cullActorCache(wildlifeMeshes, reach, 'dier');
+  if (!perfOff('groepen')) cullOffscreenGroups();
+  if (window.__perfVerify) verifyCull();
+}
+// window.__perfVerify = { actors, groups, shadow, checked: 0, bad: [] } (route verify): what was cut is looked at again with an exact box
+// the box of what shows: nodes that are hidden (and what hangs on them) do not count, the root's own flag is the cull's
+const _vbox = new THREE.Box3();
+function expandVisible(o, box, root) {
+  if (!root && !o.visible) return;
+  o.updateWorldMatrix(false, false);
+  const g = o.geometry;
+  if (g && o.isMesh && o.layers.test(cam.layers)) {
+    if (!g.boundingBox) g.computeBoundingBox();
+    _vbox.copy(g.boundingBox).applyMatrix4(o.matrixWorld);
+    box.union(_vbox);
+  }
+  for (let i = 0; i < o.children.length; i++) expandVisible(o.children[i], box, false);
+}
+function verifyCull() {
+  const V = window.__perfVerify;
+  if (!V) return;
+  const sphere = new THREE.Sphere();
+  for (const m of culledActors) {
+    V.checked++;
+    _cullBox.makeEmpty();
+    expandVisible(m, _cullBox, true);
+    if (_cullBox.isEmpty()) continue;
+    // an exact box against the camera's frustum, with no margin: nothing that shows may be cut
+    if (_cullFrustum.intersectsBox(_cullBox)) {
+      V.actors++;
+      const k = m.userData.cullKind || '?';
+      V.kinds[k] = (V.kinds[k] || 0) + 1;
+      if (V.bad.length < 24) {
+        const b = _cullBox, p = m.position;
+        const r = Math.hypot(Math.max(Math.abs(b.min.x - p.x), Math.abs(b.max.x - p.x)), Math.max(Math.abs(b.min.y - p.y), Math.abs(b.max.y - p.y)), Math.max(Math.abs(b.min.z - p.z), Math.abs(b.max.z - p.z)));
+        let n = 0, hid = 0; m.traverse((o) => { n++; if (!o.visible) hid++; });
+        V.bad.push(['actor', k, Math.round(p.x), Math.round(p.z), 'r', +r.toFixed(1), 'cullR', +m.userData.cullR.toFixed(1), 'schaal', +m.scale.x.toFixed(2), 'knopen', n, 'verborgen', hid, 'doos', [b.max.x - b.min.x, b.max.y - b.min.y, b.max.z - b.min.z].map((q) => +q.toFixed(1)).join('x'), Object.keys(m.userData).slice(0, 5).join('/')]);
+      }
+    }
+  }
+  for (const g of culledGroups) {
+    V.checked++;
+    _cullBox.makeEmpty();
+    expandVisible(g, _cullBox, true);
+    if (!_cullBox.isEmpty() && _cullFrustum.intersectsBox(_cullBox)) { V.groups++; if (V.bad.length < 12) V.bad.push(['group', g.name || g.type, Math.round(g.position.x), Math.round(g.position.z)]); }
+  }
+  void sphere;
+}
+function restoreCulledActors() {
+  for (let i = 0; i < culledActors.length; i++) culledActors[i].visible = true;
+  culledActors.length = 0;
+  for (let i = 0; i < culledGroups.length; i++) culledGroups[i].visible = true;
+  culledGroups.length = 0;
+}
+
+// The same for the static groups at the top of the scene (a building, a landmark, a stretch of road, a
+// water polygon: ~600 groups, a quarter of the nodes): a group whose nodes are all frozen (freezeStatic) and plain
+// meshes has a fixed bounding sphere, worked out once (again when its number of children changes, and
+// now and then), and sits the main pass out while it is outside the view. The shadow pass still walks
+// it: a building behind the camera shadows the street in front of it (hookShadowPass).
+const groupCull = new WeakMap();
+const culledGroups = [];
+const GROUP_CULL_AGE = 300;
+const GROUP_CULL_BUDGET_MS = 1;
+// only the kinds that are final once built: a pooled effect that is frozen and moved by hand (fx3d.js) must never be cut by a stale sphere
+const GROUP_CULL_NAMES = new Set(['building', 'landmark', 'road', 'water']);
+function cullableGroup(o) {
+  if (o.isLight || o.isCamera || o.isSprite || o.isPoints || o.isLine || o.isInstancedMesh || o.isSkinnedMesh || o.matrixAutoUpdate) return false;
+  if (o.isMesh && (o.frustumCulled === false || !o.geometry)) return false;
+  for (let i = 0; i < o.children.length; i++) if (!cullableGroup(o.children[i])) return false;
+  return true;
+}
+function groupCullInfo(c) {
+  let k = groupCull.get(c);
+  if (k && k.n === c.children.length && ++k.age <= GROUP_CULL_AGE) return k;
+  if (!k) groupCull.set(c, k = { n: -1, age: 0, sphere: null });
+  k.n = c.children.length; k.age = 0; k.sphere = null;
+  if (c.children.length && !c.userData.shadowCasters && cullableGroup(c)) {
+    _cullBox.makeEmpty();
+    _cullBox.setFromObject(c);
+    if (!_cullBox.isEmpty()) { k.sphere = _cullBox.getBoundingSphere(new THREE.Sphere()); k.sphere.radius += 1; }
+  }
+  return k;
+}
+function cullOffscreenGroups() {
+  const kids = scene.children;
+  const deadline = performance.now() + GROUP_CULL_BUDGET_MS;
+  let working = true;
+  for (let i = 0; i < kids.length; i++) {
+    const c = kids[i];
+    if (!c.visible || !GROUP_CULL_NAMES.has(c.name)) continue;
+    let k = groupCull.get(c);
+    if (!k || k.n !== c.children.length || k.age > GROUP_CULL_AGE) {
+      // the groups are looked through a few at a time: one that is not known yet is drawn as before
+      if (working && performance.now() < deadline) k = groupCullInfo(c); else { if (performance.now() >= deadline) working = false; continue; }
+    } else k.age++;
+    if (k.sphere && !_cullFrustum.intersectsSphere(k.sphere)) { c.visible = false; culledGroups.push(c); }
+  }
 }
 
 // three walks the matrices of hidden objects too: the pooled vehicles and
@@ -2818,6 +3059,8 @@ function skipHiddenMatrixWalk() {
     if (c.isLight || c.isCamera) continue;
     c.matrixWorldAutoUpdate = c.visible;
   }
+  // the terrain's ~500 tile meshes are final (freezeStatic): no walk through them either
+  if (terrainMesh && !perfOff('terreinvast')) terrainMesh.matrixWorldAutoUpdate = false;
 }
 
 // Every lit material has two program variants: with the night-light rig and

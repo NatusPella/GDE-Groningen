@@ -21,7 +21,7 @@ import { pushOutOfPlan, onFarmPaving, planExtraSolids } from './countryplan.js';
 import { pushOutOfTrunks } from './countrywalls.js';
 import { countryRailsNear, pushOutOfRails } from './countryrails.js';
 import { roadPriority, junctionArm } from './junctions.js';
-import { pickTrafficCar, carModel, applyFleetFlags, pickBikeVariant, wijkProfileAt, MIDIBUS_MODEL } from './trafficfleet.js';
+import { pickTrafficCar, carModel, applyFleetFlags, pickBikeVariant, wijkProfileAt, MIDIBUS_MODEL, roadCapacityTarget, roadLengthWithin } from './trafficfleet.js';
 import { pickWaterLife, newsVanWanted, distToCentre, hourOf } from './streetlifedata.js';
 import { vehicleHooks } from './vehiclehooks.js';
 import { pickBoatModel, BOAT_KINDS } from './boattypes.js';
@@ -994,7 +994,7 @@ export function manageTrafficPopulation(world, opts = {}) {
   dedupeVehicles(vehicles);
   // ?simlagen (issue #18): doelaantal en afstanden per streek uit simlagen.js
   const lagen = FLAGS.simlagen ? verkeerOpties(wijkProfileAt(map, player.x, player.y).key, hourOf(world)) : null;
-  const { target = lagen ? lagen.target : 30, spawnMin = lagen ? lagen.spawnMin : 70, spawnMax = lagen ? lagen.spawnMax : 170, despawnDist = lagen ? lagen.despawnDist : 260 } = opts;
+  const { target: targetOpt = lagen ? lagen.target : 30, spawnMin = lagen ? lagen.spawnMin : 70, spawnMax = lagen ? lagen.spawnMax : 170, despawnDist = lagen ? lagen.despawnDist : 260 } = opts;
   pruneWrecks(world);
   vehicleHooks.manageParkedCars(world);
   for (let i = vehicles.length - 1; i >= 0; i--) {
@@ -1012,6 +1012,8 @@ export function manageTrafficPopulation(world, opts = {}) {
   for (const v of vehicles) if (!v.wrecked && !v.isPolice && !v.isHeroCar && !v.isBike && !v.isBus && !v.isScooter && !v.isBoat && !v.parked && v.driver !== 'player') count++;
 
   const candidates = map.roadsNear(player.x, player.y, spawnMax).filter((r) => r.cat !== 'foot' && r.cat !== 'cycle' && r.width >= 3 && !r.busOnly);
+  // a hamlet with two short roads takes fewer cars than a city street grid (#265): the target follows the road length in range
+  const target = opts.target !== undefined ? targetOpt : roadCapacityTarget(roadLengthWithin(candidates, player.x, player.y, spawnMax), targetOpt);
   // ambulances, taxis and a cash-transport van are part of the everyday
   // traffic, not one-offs: keep a few of them around
   const have = { ambulance: 0, taxi: 0, cashvan: 0, newsvan: 0 };
@@ -2659,11 +2661,16 @@ function resolveTrailerContacts(a, vehicles, world) {
   }
 }
 
-function collisionProbes(v) {
-  const pts = v.halfLen > 3 ? [[v.halfLen, v.halfWid], [v.halfLen, -v.halfWid], [0, -v.halfWid], [-v.halfLen, -v.halfWid], [-v.halfLen, v.halfWid], [0, v.halfWid]] : null;
-  if (!pts) return vehicleCorners(v);
+// The probes of a body in order: the four corners, and for a long one (a bus, a truck) the sides' middle as well.
+// Multiples of (halfLen, halfWid); probe k is worked out on its own, from where the car is now.
+const PROBES_LONG = [[1, 1], [1, -1], [0, -1], [-1, -1], [-1, 1], [0, 1]];
+const PROBES_SHORT = [[1, 1], [1, -1], [-1, -1], [-1, 1]];
+const probeCount = (v) => (v.halfLen > 3 ? 6 : 4);
+function collisionProbe(v, k) {
+  const m = (v.halfLen > 3 ? PROBES_LONG : PROBES_SHORT)[k];
+  const lx = m[0] * v.halfLen, ly = m[1] * v.halfWid;
   const cos = Math.cos(v.angle), sin = Math.sin(v.angle);
-  return pts.map(([lx, ly]) => [v.x + lx * cos - ly * sin, v.y + lx * sin + ly * cos]);
+  return [v.x + lx * cos - ly * sin, v.y + lx * sin + ly * cos];
 }
 
 const FALL_G = 9.8;
@@ -2810,6 +2817,21 @@ function updateSuspension(v, dt) {
   }
 }
 
+// The buildings round a body, asked for with 3 m to spare and kept while the car stays within 1.5 m of where it
+// was asked: the probes lie within halfLen + 0.5 of the centre, and a push-out moves the car by centimetres. A car
+// asked the grid every frame (a list of arrays per car, ~250 queries a frame in a busy street).
+const BODY_NEAR_SLACK = 3;
+const BODY_NEAR_MOVE = 1.5;
+let bodyNearMap = null, bodyNearEpoch = 0;
+function buildingsAroundBody(v, map) {
+  if (map !== bodyNearMap) { bodyNearMap = map; bodyNearEpoch++; }
+  const c = v._bodyNear;
+  if (c && c.epoch === bodyNearEpoch && c.r === v.halfLen && Math.abs(v.x - c.x) < BODY_NEAR_MOVE && Math.abs(v.y - c.y) < BODY_NEAR_MOVE) return c.list;
+  const list = map.buildingsNear(v.x, v.y, v.halfLen + BODY_NEAR_SLACK);
+  v._bodyNear = { epoch: bodyNearEpoch, x: v.x, y: v.y, r: v.halfLen, list };
+  return list;
+}
+
 // A body corner that has penetrated a footprint is pushed out along the
 // nearest wall's normal; the impulse removes only the into-wall velocity
 // (plus friction), so a glancing scrape slides along while a head-on stops
@@ -2822,9 +2844,10 @@ export function resolveVehicleBuildingCollision(v, map, dt) {
   settleVehicleHeight(v, map, dt);
   let hit = false, worst = 0, hx = 0, hy = 0;
   const light = v.isBike || v.isScooter;
-  const count = collisionProbes(v).length;
+  const count = probeCount(v);
   // up on a viaduct or down in the cutting nothing at street level is in the way
   const offLevel = (v.z || 0) > 4 || (v.z || 0) < -3.5;
+  const near = offLevel ? null : buildingsAroundBody(v, map);
   // Ommeland solids (barns, real buildings, silos, village furniture, trunks):
   // one circle round the whole body first: the corner tests only run beside one
   let country = false, rails = false;
@@ -2836,7 +2859,7 @@ export function resolveVehicleBuildingCollision(v, map, dt) {
     rails = countryRailsNear(v.x, v.y, reach + 1).length > 0;
   }
   for (let k = 0; k < count; k++) {
-    const c = collisionProbes(v)[k];
+    const c = collisionProbe(v, k);
     if (rails) {
       // a bridge railing: the corner stays on the deck side, where the body's centre is
       _cp.x = c[0]; _cp.y = c[1];
@@ -2867,7 +2890,7 @@ export function resolveVehicleBuildingCollision(v, map, dt) {
         hit = true;
       }
     }
-    for (const b of offLevel ? [] : map.buildingsNear(c[0], c[1], 1)) {
+    for (const b of near || []) {
       const [minx, miny, maxx, maxy] = b.bounds;
       if (c[0] < minx || c[0] > maxx || c[1] < miny || c[1] > maxy) continue;
       // building passages (passages.js) are open, the rest of the footprint is wall

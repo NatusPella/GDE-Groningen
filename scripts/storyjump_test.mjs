@@ -40,5 +40,15 @@ const fn = story.slice(story.indexOf('export function devJumpTo'), story.indexOf
 for (const part of ['jumpPrep(', 'jumpSpot(', 'buildingAt(', 'waterAt(', 'failActiveMission(', 'stopPigeonMode(', 'abortHeliRun(', 'exitVehicle(', 'opts.start']) ok(fn.includes(part), 'devJumpTo gebruikt ' + part);
 ok(fn.indexOf('failActiveMission(') < fn.indexOf('if (isMissionActive()) return false'), 'de missie wordt afgebroken vóór de controle');
 
+// #261: de ring rond de landingsplek
+{
+  const wall = (x) => x > 12.9; // een gevel op 3 m ten oosten van de plek (10, 0)
+  ok(J.openRond(() => true, 0, 0), 'openRond: vrij veld is ruim');
+  ok(!J.openRond(() => false, 0, 0), 'openRond: een geblokkeerd punt is niet ruim');
+  ok(!J.openRond((x) => !wall(x), 10, 0), 'openRond: een gevel op 3 m binnen de ring van 4 m is niet ruim');
+  ok(J.openRond((x) => !wall(x), 0, 0), 'openRond: een gevel op 13 m is ver genoeg');
+  const s5 = J.jumpSpot({ start: { x: 0, y: 0 } }, null, { dist: 12, rand: () => 0, vrij: (x, y) => J.openRond((px) => px < 13.5, x, y) });
+  ok(s5 && s5.x < 9.5, 'jumpSpot met een ring-eis kiest een plek met ruimte tot de gevel');
+}
 console.log(`${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);
