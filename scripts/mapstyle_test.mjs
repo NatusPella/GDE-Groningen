@@ -3,6 +3,7 @@
 import fs from 'node:fs';
 import { mapPhase, applyMapPhase, currentMapPhase, nightPalette, shade, miniRoadStyle, MAP_PALETTE, MINI_PALETTE, ROAD_ORDER, ROAD_WIDTH_PX, ZOOM, layersAtZoom, roadWidthPx, roadColor, seaStyle, toRgba, baseFilter, INK, inkA, inkCss, ICON_RIM, ICON_FILL, ICON_GLYPH_LIGHT, ICON_MIN_ZOOM, modeLook, MINI_RANGE_M } from '../game/js/mapstyle.js';
 import * as mapicons from '../game/js/mapicons.js';
+import * as mapstyle from '../game/js/mapstyle.js';
 
 let n = 0, fails = 0;
 const ok = (c, m) => { n++; if (!c) { fails++; console.log('FAIL', m); } };
@@ -129,6 +130,15 @@ for (const f of RENDERERS) {
     loose.push(`${i + 1}: ${line.trim().slice(0, 80)}`);
   });
   ok(loose.length === 0, f + ' has no loose colour literals (use mapstyle.js): ' + loose.join(' | '));
+}
+// every mapstyle name a renderer uses is imported there (node does not run the browser-only code paths: a missing import shows up at runtime only)
+for (const f of RENDERERS) {
+  const text = stripComments(src(f));
+  const imp = /import\s*\{([^}]*)\}\s*from\s*'\.\/mapstyle\.js'/.exec(text);
+  const imported = new Set(imp ? imp[1].split(',').map((s) => s.trim().split(/\s+as\s+/)[0]).filter(Boolean) : []);
+  const body = text.replace(/import[^;]*;/g, '');
+  const missing = Object.keys(mapstyle).filter((name) => !imported.has(name) && new RegExp(`(?<![\\w.])${name}(?![\\w])`).test(body));
+  ok(missing.length === 0, f + ' uses mapstyle names it does not import: ' + missing.join());
 }
 for (const a of ALLOW) ok(a.why && src(a.file).split('\n').some((l) => a.line.test(l)), 'allowlist entry still needed: ' + a.why);
 for (const f of ['game/js/mapview.js', 'game/js/hud_panel.js', 'game/js/regions.js', 'game/js/mapicons.js']) ok(/\b(INK|inkA|ICON_RIM)\b/.test(src(f)) && /mapstyle\.js/.test(src(f)), f + ' reads the ink table');
