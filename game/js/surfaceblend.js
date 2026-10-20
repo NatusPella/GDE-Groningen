@@ -47,7 +47,9 @@ export function planBlends(nodeIndex, nodeKey, roads, surfOf, J = () => 0, same 
         const o = list[k], oi = list[k + 1];
         if (o === r || o.pts.length < 2 || !same(r, o)) continue;
         const s = surfOf(o);
-        if (!s || s.id === mine.id && colourJump(mine.colour, s.colour) < MIN_DELTA) continue;
+        // (een buur met dezelfde kleur laat niets te mengen over, ook niet met een ander dek-id of andere klasse; hij mag een buur met een
+        // andere kleur op dezelfde knoop niet verbergen: Atensheerd, twee rode klinkerwegen en een grijze)
+        if (!s || colourJump(mine.colour, s.colour) < MIN_DELTA) continue;
         if (!best || s.rank > best.rank) best = { ...s, through: oi > 0 && oi < o.pts.length - 1 };
       }
       if (!best) return null;

@@ -658,6 +658,11 @@ export function applyMapExtras(data, ex) {
     if (best) Object.assign(best, p.set);
   }
   data.buildings = data.buildings.filter((b) => !b.remove);
+  // roadPatches [{ osm, set }]: fields of the way with that OSM id (the real width of an alley, #284)
+  if (ex.roadPatches && ex.roadPatches.length) {
+    const by = new Map(ex.roadPatches.map((p) => [p.osm, p.set]));
+    for (const r of data.roads) { const set = by.get(r.osm); if (set) Object.assign(r, set); }
+  }
 
   const at = new Map();
   for (const r of data.roads) {

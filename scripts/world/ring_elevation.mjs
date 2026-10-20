@@ -31,6 +31,7 @@ const COUPLE_TOL = 0.1;
 const COUPLE_ANGLE = 35.0;
 const COUPLE_OVERLAP = 0.5;
 const COUPLE_ROUNDS = 3;
+const KUIL_MAX = 4;     // een dal van hooguit zoveel punten (24 m) wordt opgevuld
 const RANK = { motorway: 0, trunk: 1, primary: 2, motorway_link: 3, trunk_link: 4, primary_link: 5 };
 const CAT_CAR = CAR;
 const hyp = Math.hypot;
@@ -95,8 +96,10 @@ function crossings(roads, rails) {
         const rb = items[ib];
         if (!(isRing(ra) || isRing(rb))) continue;
         if (ra.rail && rb.rail) continue;
-        // voet- en fietspaden tellen alleen onder/over een ringweg mee, ze bepalen nooit hoogtes
-        if (ra.cat === 'cycle' || ra.cat === 'foot' || rb.cat === 'cycle' || rb.cat === 'foot') continue;
+        // voet- en fietspaden bepalen nooit hoogtes van de ringweg; alleen een pad op een brug (laag of brugtag) over een ringweg stijgt
+        // mee (de ring ligt waar OSM hem legt, het pad moet er dan echt overheen: Beneluxweg bij de Kardingerweg, N46 bij de Hereweg)
+        const path = (r) => r.cat === 'cycle' || r.cat === 'foot';
+        if ((path(ra) || path(rb)) && !((path(ra) && isUp(ra) && !isUp(rb) && isRing(rb)) || (path(rb) && isUp(rb) && !isUp(ra) && isRing(ra)))) continue;
         const k = `${Math.min(ia, ib)}:${Math.max(ia, ib)}:${ia < ib ? sa : sb}:${ia < ib ? sb : sa}`;
         if (seen.has(k)) continue;
         seen.add(k);
@@ -454,6 +457,32 @@ export function ringHeights(data, rails = []) {
     for (const [k, v] of nxt) zmap.set(k, v);
   }
 
+  // kuilen: het veld is de omhullende van de ondergrenzen (elk punt de laagste hoogte die de hoge bronnen met MAX_GRADE toelaten). Waar
+  // twee bronnen elkaar op een weg ontmoeten (een afrit tussen een knoop die door het ene viaduct wordt gedragen en een stuk dat de
+  // koppeling met de naastgelegen rijbaan volgt) ligt een stuk van de weg lager dan de punten ervoor en erna: een dal van enkele cm dat
+  // auto's op 50 km/h aan de afrit laat springen (drive_audit, N46 bij 2537,-1812). Zo'n stuk (hooguit KUIL_MAX punten die geen grens
+  // vasthoudt, op een weg zonder zijtakken) komt op de lagere van de twee buren, niet boven de bovenomhullende van wat eronder door moet.
+  let filled = 0;
+  for (const r of roads) {
+    const P = r.pts, n = P.length;
+    if (n < 3) continue;
+    const zAt = (i) => get(zmap, key(P[i]), 0.0);
+    const free = (i) => { const k = key(P[i]); return !fixed.has(k) && (adj.get(k) || []).length === 2; };
+    for (let q = 1; q < n - 1; q++) {
+      const zq = zAt(q);
+      if (!free(q) || zq > zAt(q - 1) + 1e-9 || zq > zAt(q + 1) + 1e-9 || (zq > zAt(q - 1) - 0.005 && zq > zAt(q + 1) - 0.005)) continue;
+      // de randen van het dal: omhoog lopen tot de hoogte niet meer stijgt, hooguit KUIL_MAX punten ver
+      let L = q - 1, R = q + 1;
+      while (L > 0 && q - L < KUIL_MAX && zAt(L - 1) > zAt(L) + 1e-9) L--;
+      while (R < n - 1 && R - q < KUIL_MAX && zAt(R + 1) > zAt(R) + 1e-9) R++;
+      const m = Math.min(zAt(L), zAt(R));
+      let ok = true;
+      for (let i = L + 1; i < R; i++) if (!free(i)) { ok = false; break; }
+      if (!ok) continue;
+      for (let i = L + 1; i < R; i++) if (zAt(i) < m - 0.005) { const k = key(P[i]); zmap.set(k, Math.min(m, get(envHi, k, 1e9))); filled++; }
+    }
+  }
+
   let nRoads = 0;
   for (const r of roads) {
     let zs = r.pts.map((p) => Math.round(get(zmap, key(p), 0.0) * 100) / 100);
@@ -476,5 +505,5 @@ export function ringHeights(data, rails = []) {
   }
   let bad = 0;
   for (const [up, lo, x, y] of cross) if (zOn(up, zmap, x, y) - zOn(lo, zmap, x, y) < CLEAR - 0.6 && mover(up, lo, 0, 0) !== null) bad++;
-  return { roads: nRoads, crossings: cross.length, fallbacks, lowClearance: bad };
+  return { roads: nRoads, crossings: cross.length, fallbacks, lowClearance: bad, filled };
 }
