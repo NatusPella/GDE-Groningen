@@ -106,6 +106,10 @@ frame then runs, in order:
 `node scripts/import_cycles_test.mjs` guards the static import graph of `game/js`: the largest group of modules that import each other, the modules in cycles and the mutual pairs may only go down (lower the limits when you break a cycle). The way to break one is a **leaf module** that holds the shared state or helper, or a **link** that the other side registers at load: `pausestate.js` (pause menu and map open), `pedconst.js` and `pedgeom.js` (pedestrian constants and geometry helpers), `weapons.js` and `combateffect.js` (weapon table, the effect of the moment), `savehook.js` (`saveGame` for modules that only trigger a save; `savegame.js` registers it), `cinematics.js` `setCinematicLinks` (respawn and scene3d), `audio.js` `setAudioCamera` (main.js hands over the camera). Dynamic `import()` is not followed.
 
 
+### Dead code and build-only modules (#103)
+
+`node scripts/dead_code.mjs [--list|--json]` reports, from the import graph, the modules of `game/js` that no game code loads (build-only: only scripts, tests or the tile build use them) and the exports nobody imports. Build-only modules that the player never needs are listed in `scripts/lib/buildonly.mjs` and left out of the app and web build by `desktop/build.mjs` (`scripts/buildonly_test.mjs` keeps the list equal to the graph; a module that is build-only on purpose but still ships goes in that test's `KEEP` with a reason). A new export that only its own file uses should not be exported.
+
 ## Modules since 0.35
 
 Short notes on what was added after 0.35.0 (all in `game/js/` unless stated). "Pure" means no THREE, no DOM and no clock, so Node tests load it directly; the glue module is named where there is one.
