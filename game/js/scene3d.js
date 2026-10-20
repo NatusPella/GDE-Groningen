@@ -966,12 +966,11 @@ export function init3D(map) {
       if (T) terrainGroup(T, group);
       else terrainGroup(terrainArrays(map.meta.bounds, map.water), group);
       freezeStatic(group);
-      group.matrixWorldAutoUpdate = false; // final: the ~500 tile meshes need no matrix walk any more
       done();
     }));
   } else {
     terrainMesh = buildTerrainMesh3D(map.meta.bounds, map.water);
-    freezeStatic(terrainMesh).matrixWorldAutoUpdate = false;
+    freezeStatic(terrainMesh);
   }
   scene.add(freezeStatic(terrainMesh));
 
@@ -1024,7 +1023,7 @@ export function init3D(map) {
   onSettingsChange(applyViewSettings);
   resize3D();
   window.addEventListener('resize', resize3D);
-  window.__scene3d = { scene, cam, renderer, postfx, farLod, actors: () => ({ vehicles: vehicleMeshes, peds: pedMeshes, wildlife: wildlifeMeshes, culled: culledActors }), setBlobPool: (on) => { blobPoolOn = !!on; }, dists: () => ({ DRAW_DIST, buildingDetailR, facadeDetailDist, roadDetailR, viewDist }), batches: () => ({ buildings: buildingBatcher.info(), facades: facadeBatcher.info(), roads: roadBatcher.info(), shores: shoreBatcher.info() }) };
+  window.__scene3d = { THREE, scene, cam, renderer, postfx, farLod, actors: () => ({ vehicles: vehicleMeshes, peds: pedMeshes, wildlife: wildlifeMeshes, culled: culledActors }), setBlobPool: (on) => { blobPoolOn = !!on; }, dists: () => ({ DRAW_DIST, buildingDetailR, facadeDetailDist, roadDetailR, viewDist }), batches: () => ({ buildings: buildingBatcher.info(), facades: facadeBatcher.info(), roads: roadBatcher.info(), shores: shoreBatcher.info() }) };
 }
 
 // increments each time the scene is drawn to the canvas (blackframe.js)
@@ -1296,23 +1295,54 @@ const ROAD_COLORS3D = { cycle: 0x94412f, foot: 0x837d71, major: 0x57595c, normal
 const GREEN_COLOR = 0x5c8a4d;
 const SIDEWALK_COLOR = 0x7b776d;
 
-// three's shadow pass recurses through every node of the scene (~0.5 us each,
-// about a millisecond for the ~6000 of this one) and asks each mesh whether it
-// casts. The terrain (~500 meshes) never does, and people, vehicles and animals
-// beyond ACTOR_SHADOW_DIST have their casters switched off (limitActorShadows):
-// those sit this pass out as hidden groups and are back right after it.
+// three's shadow pass recurses through every node of the scene (~0.5 to 1 us
+// each: 2 to 3 ms for the ~9000 of this one) and asks each mesh whether it
+// casts. Groups at the top of the scene that cast nothing sit this pass out as
+// hidden groups, and are back right after it:
+// - people, vehicles and animals beyond ACTOR_SHADOW_DIST (limitActorShadows
+//   switches their casters off; castNear tells), about 1600 nodes;
+// - the terrain (~500 meshes), the loose roads, the far LOD, the road and
+//   shore batches, the flavour props: groups without a single caster, found
+//   by looking through each once (shadowKinds), again when its number of
+//   children changes and every SHADOW_KIND_AGE passes anyway.
 const shadowHidden = [];
+const shadowKinds = new WeakMap();
+const SHADOW_KIND_AGE = 180;
+function nodeCasts(o) {
+  if (o.castShadow) return true;
+  const kids = o.children;
+  for (let i = 0; i < kids.length; i++) if (nodeCasts(kids[i])) return true;
+  return false;
+}
+function groupCastsShadow(c) {
+  let k = shadowKinds.get(c);
+  if (!k) shadowKinds.set(c, k = { n: -1, casts: true, age: 0 });
+  if (k.n !== c.children.length || ++k.age > SHADOW_KIND_AGE) { k.n = c.children.length; k.age = 0; k.casts = nodeCasts(c); }
+  return k.casts;
+}
 function hookShadowPass(shadowMap) {
   const run = shadowMap.render.bind(shadowMap);
   shadowMap.render = (lights, sc, camera) => {
-    if (perfOff('schaduwpas')) { run(lights, sc, camera); return; }
-    if (terrainMesh && terrainMesh.visible) { terrainMesh.visible = false; shadowHidden.push(terrainMesh); }
-    for (const cache of [vehicleMeshes, pedMeshes, wildlifeMeshes]) {
-      for (const mesh of cache.values()) if (mesh.visible && mesh.userData.castNear === false) { mesh.visible = false; shadowHidden.push(mesh); }
+    // the groups cut from the main pass shadow the view too: back in for this pass
+    for (let i = 0; i < culledGroups.length; i++) culledGroups[i].visible = true;
+    if (perfOff('schaduwpas')) {
+      try { run(lights, sc, camera); } finally { for (let i = 0; i < culledGroups.length; i++) culledGroups[i].visible = false; }
+      return;
+    }
+    const kids = scene.children;
+    const groups = !perfOff('schaduwgroepen');
+    for (let i = 0; i < kids.length; i++) {
+      const c = kids[i];
+      if (!c.visible || c.isLight || c.isCamera) continue;
+      const ud = c.userData;
+      // an actor: its casters follow the distance (castNear), so that is looked at every pass
+      if (ud.shadowCasters !== undefined) { if (ud.castNear === false) { c.visible = false; shadowHidden.push(c); } continue; }
+      if (c === terrainMesh || (groups && !groupCastsShadow(c))) { c.visible = false; shadowHidden.push(c); }
     }
     try { run(lights, sc, camera); } finally {
       for (let i = 0; i < shadowHidden.length; i++) shadowHidden[i].visible = true;
       shadowHidden.length = 0;
+      for (let i = 0; i < culledGroups.length; i++) culledGroups[i].visible = false;
     }
   };
 }
@@ -2885,10 +2915,56 @@ function cullOffscreenActors() {
   cullActorCache(vehicleMeshes, reach);
   cullActorCache(pedMeshes, reach);
   cullActorCache(wildlifeMeshes, reach);
+  if (!perfOff('groepen')) cullOffscreenGroups();
 }
 function restoreCulledActors() {
   for (let i = 0; i < culledActors.length; i++) culledActors[i].visible = true;
   culledActors.length = 0;
+  for (let i = 0; i < culledGroups.length; i++) culledGroups[i].visible = true;
+  culledGroups.length = 0;
+}
+
+// The same for the static groups at the top of the scene (a building, a stretch of road, a prop: the
+// ~1000 groups hold ~70% of the nodes): a group whose nodes are all frozen (freezeStatic) and plain
+// meshes has a fixed bounding sphere, worked out once (again when its number of children changes, and
+// now and then), and sits the main pass out while it is outside the view. The shadow pass still walks
+// it: a building behind the camera shadows the street in front of it (hookShadowPass).
+const groupCull = new WeakMap();
+const culledGroups = [];
+const GROUP_CULL_AGE = 300;
+const GROUP_CULL_BUDGET_MS = 1;
+function cullableGroup(o) {
+  if (o.isLight || o.isCamera || o.isSprite || o.isPoints || o.isLine || o.isInstancedMesh || o.isSkinnedMesh || o.matrixAutoUpdate) return false;
+  if (o.isMesh && (o.frustumCulled === false || !o.geometry)) return false;
+  for (let i = 0; i < o.children.length; i++) if (!cullableGroup(o.children[i])) return false;
+  return true;
+}
+function groupCullInfo(c) {
+  let k = groupCull.get(c);
+  if (k && k.n === c.children.length && ++k.age <= GROUP_CULL_AGE) return k;
+  if (!k) groupCull.set(c, k = { n: -1, age: 0, sphere: null });
+  k.n = c.children.length; k.age = 0; k.sphere = null;
+  if (c.children.length && !c.userData.shadowCasters && cullableGroup(c)) {
+    _cullBox.makeEmpty();
+    _cullBox.setFromObject(c);
+    if (!_cullBox.isEmpty()) { k.sphere = _cullBox.getBoundingSphere(new THREE.Sphere()); k.sphere.radius += 1; }
+  }
+  return k;
+}
+function cullOffscreenGroups() {
+  const kids = scene.children;
+  const deadline = performance.now() + GROUP_CULL_BUDGET_MS;
+  let working = true;
+  for (let i = 0; i < kids.length; i++) {
+    const c = kids[i];
+    if (!c.visible || c.isLight || c.isCamera || c === terrainMesh) continue;
+    let k = groupCull.get(c);
+    if (!k || k.n !== c.children.length || k.age > GROUP_CULL_AGE) {
+      // the groups are looked through a few at a time: one that is not known yet is drawn as before
+      if (working && performance.now() < deadline) k = groupCullInfo(c); else { if (performance.now() >= deadline) working = false; continue; }
+    } else k.age++;
+    if (k.sphere && !_cullFrustum.intersectsSphere(k.sphere)) { c.visible = false; culledGroups.push(c); }
+  }
 }
 
 // three walks the matrices of hidden objects too: the pooled vehicles and
@@ -2903,6 +2979,8 @@ function skipHiddenMatrixWalk() {
     if (c.isLight || c.isCamera) continue;
     c.matrixWorldAutoUpdate = c.visible;
   }
+  // the terrain's ~500 tile meshes are final (freezeStatic): no walk through them either
+  if (terrainMesh && !perfOff('terreinvast')) terrainMesh.matrixWorldAutoUpdate = false;
 }
 
 // Every lit material has two program variants: with the night-light rig and
