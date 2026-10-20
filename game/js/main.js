@@ -97,6 +97,7 @@ import { noteFrame, hideAdvice, classifyGpu, readGpu, dynamicScale, cpuLevel } f
 import { updateStreetSigns } from './streetsigns.js';
 import { updatePhotoMode, wireFotoKey } from './fotomodusui.js';
 import { initPauseMenu, isPauseMenuOpen, openPauseMenu, pauseMenuCover } from './pausemenu.js';
+import { initTextFields } from './textfield.js';
 import { wantsOpenSamen, takeOpenSamen } from './samenpanel.js';
 import { initDayNight, updateDayNight, DAY_LENGTH_S } from './daynight.js';
 import { initCalendar, updateCalendar, today as calendarToday } from './calendarday.js';
@@ -447,6 +448,7 @@ async function boot() {
   input.canLock = () => document.body.classList.contains('game-started') && !menuOpen() && !world.uiPaused;
   initInputDevice();
   initPadKeyboard();
+  initTextFields(); // alle toetsen, plakken en een rechtermuismenu in tekstvelden (#95)
   initGamepad(input, world, { menuOpen: () => menuOpen() || isPlayAheadOpen() || isHelpOfferOpen(), phoneOpen: isPhoneOpen, pauseOpen: isPauseMenuOpen, mapOpen: () => isMapOpen() });
   initTouch(input, world, { menuOpen: () => menuOpen() || isPlayAheadOpen() || isHelpOfferOpen() });
   document.addEventListener('pointerlockchange', () => {
