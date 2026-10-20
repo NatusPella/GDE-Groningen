@@ -6,6 +6,7 @@ import { startHost, startClient, addGuest, stopCoopNet, handshakeInfo, canJoin, 
 import { fadeFlash } from './coophud.js';
 import { openHold } from './coophold.js';
 import { readSession, writeSession, toSession } from './coopsave.js';
+import { readHostScene } from './coopscene.js';
 
 let view = null, mountedOn = null;
 
@@ -27,7 +28,7 @@ export function renderSamenPanel(root, world) {
   const info = () => handshakeInfo({ tiles: '-', story: 'nieuw' });
   view = mountLobby(root, {
     laatsteCode: ls ? readSession(ls).laatsteCode : '',
-    startHost: (route, onChange) => startHost(world, info(), { fade: fadeFlash, route, onChange, onHold: (rol, slot, reden) => openHold(world, rol, slot, reden) }),
+    startHost: (route, onChange) => startHost(world, info(), { fade: fadeFlash, route, onChange, scene: () => readHostScene(world), onHold: (rol, slot, reden) => openHold(world, rol, slot, reden) }),
     addGuest: (tr) => addGuest(world, tr),
     startClient: (tr, route, wens) => startClient(world, tr, info(), { fade: fadeFlash, route, wens, onHold: (rol, slot, reden) => openHold(world, rol, slot, reden) }),
     setMax: (n) => setMaxPlayers(world, n),

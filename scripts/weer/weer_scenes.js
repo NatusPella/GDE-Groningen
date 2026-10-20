@@ -35,7 +35,7 @@ const setWeather = (kind, intensity, overcast, mist) => {
 };
 const SPOTS = { stad: P(100, 77) };
 const MOMENTEN = [['dag', 13], ['zonsopgang', 5.3], ['zonsondergang', 20.9], ['nacht', 1]];
-const WEER = [['droog', 'helder', 0, 0, 0], ['regen', 'regenbui', 0.6, 0.75, 0], ['mist', 'mist', 0, 0.3, 0.6], ['onweer', 'onweer', 0.85, 0.95, 0]];
+const WEER = [['droog', 'helder', 0, 0, 0], ['bewolkt', 'bewolkt', 0, 0.8, 0], ['regen', 'regenbui', 0.6, 0.75, 0], ['mist', 'mist', 0, 0.3, 0.6], ['onweer', 'onweer', 0.85, 0.95, 0]];
 const shot = async (name, wait) => { await sleep(wait); console.log('[capture] ' + name); await sleep(600); };
 const done = [];
 for (const [plek, [x, y]] of Object.entries(SPOTS)) {

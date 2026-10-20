@@ -80,6 +80,8 @@ function createCoopCore(opts) {
   const emit = opts.emit || (() => {});
   let mods = null, server = null, mapping = null, key = null, hostSide = false, nextId = 1, max = 8;
   const socks = new Map(); // id -> socket
+  const seen = new Map();  // id -> laatste keer dat er iets binnenkwam (een dode verbinding zonder FIN blijft anders staan en neemt een plek in)
+  const STALE_MS = opts.staleMs || 8000;
 
   async function load() {
     if (mods) return mods;
@@ -89,20 +91,33 @@ function createCoopCore(opts) {
   }
 
   function attach(id, s, needKey) {
-    socks.set(id, s); s.setNoDelay(true);
+    socks.set(id, s); seen.set(id, Date.now()); s.setNoDelay(true);
     const decoder = new mods.pairing.FrameDecoder();
     let authed = !needKey;
     const timer = needKey ? setTimeout(() => { if (!authed) s.destroy(); }, KEY_TIMEOUT_MS) : null;
     s.on('data', (chunk) => {
+      seen.set(id, Date.now());
       for (const f of decoder.push(new Uint8Array(chunk))) {
         if (!authed) {
-          if (mods.pairing.checkKeyFrame(f, key)) { authed = true; clearTimeout(timer); emit('conn', { id }); emit('state', { id, state: 'open' }); } else { s.destroy(); return; }
+          if (mods.pairing.checkKeyFrame(f, key)) { authed = true; clearTimeout(timer); if (process.env.GDE_COOP_TEST) console.log('[coop] verbinding', id, 'van poort', s.remotePort); emit('conn', { id }); emit('state', { id, state: 'open' }); } else { s.destroy(); return; }
         } else emit('msg', { id, data: f });
       }
       if (decoder.broken) s.destroy();
     });
-    s.on('close', () => { clearTimeout(timer); if (socks.get(id) === s) { socks.delete(id); if (authed) emit('state', { id, state: 'closed' }); } });
+    s.on('close', () => { clearTimeout(timer); if (socks.get(id) === s) { socks.delete(id); seen.delete(id); if (authed) emit('state', { id, state: 'closed' }); } });
     s.on('error', () => { /* close volgt */ });
+  }
+
+  // Vol: een gast die terugkomt na een kabel eruit heeft nog zijn oude, dode verbinding in de lijst staan. Die oudste stille verbinding
+  // (niets gehoord sinds STALE_MS; een gast pingt elke seconde) maakt plek, zodat hij met zijn token kan hervatten.
+  function freeStale() {
+    const now = Date.now(); let pick = null, oldest = Infinity;
+    for (const [id] of socks) { const t = seen.get(id) || 0; if (now - t > STALE_MS && t < oldest) { oldest = t; pick = id; } }
+    if (pick == null) return false;
+    const dead = socks.get(pick); socks.delete(pick); seen.delete(pick);
+    try { dead.destroy(); } catch (e) { /* weg */ }
+    emit('state', { id: pick, state: 'closed' });
+    return true;
   }
 
   async function host(o = {}) {
@@ -113,7 +128,7 @@ function createCoopCore(opts) {
     hostSide = true; nextId = 1;
     let port = 0;
     server = net.createServer((s) => {
-      if (socks.size >= max - 1) { s.destroy(); return; } // vol
+      if (socks.size >= max - 1 && !freeStale()) { s.destroy(); return; } // vol, en geen stille verbinding om te vervangen
       attach(nextId++, s, true);
     });
     for (let p = PORT_MIN; p <= PORT_MAX && !port; p += Math.floor(Math.random() * 7) + 1) {
@@ -143,6 +158,7 @@ function createCoopCore(opts) {
       let settled = false;
       s.once('connect', () => {
         s.setTimeout(0); settled = true;
+        if (process.env.GDE_COOP_TEST) console.log('[coop] gast verbonden vanaf poort', s.localPort);
         attach(0, s, false);
         s.write(Buffer.from(m.pairing.frame(m.pairing.encodeKeyFrame(key))));
         emit('conn', { id: 0 }); emit('state', { id: 0, state: 'open' }); resolve({ ok: true });
