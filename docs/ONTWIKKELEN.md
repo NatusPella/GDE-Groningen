@@ -83,7 +83,7 @@ Newer helpers and tests worth knowing:
 | `scripts/lib/loadworld.mjs` | The city map for tests and audits. `WORLD_SRC=json` (default) loads `citymap.json`; `WORLD_SRC=tiles` builds the same city from tiles in memory (#90). `loadworld_test.mjs` |
 | `scripts/devflags_test.mjs` | Guards the `FLAGS` register: every switch has a description and is listed here |
 | `scripts/storage_migration_test.mjs`, `save_migration_test.mjs` | Old keys and old saves keep loading; run these after adding any `gde-*` key (register it in `storagekeys.js`) |
-| `scripts/busy_test.mjs`, `activityhub_test.mjs`, `hudbus_test.mjs`, `hud_test.mjs` | The player-busy gate, the activity registry, the attention planner and the HUD rules |
+| `scripts/busy_test.mjs`, `activityhub_test.mjs`, `hudbus_test.mjs`, `hudbus_surfaces_test.mjs`, `hud_test.mjs` | The player-busy gate, the activity registry, the attention planner and the HUD rules |
 | `scripts/cutscript_test.mjs`, `actoranim_test.mjs` | The cutscene language (validator, sampler) and the actor animation layer |
 | `scripts/spatialgrid_test.mjs`, `nearest_road_test.mjs` | The shared grid and the nearest-road query |
 | `scripts/mapstyle_test.mjs`, `regions_test.mjs`, `loadlogic_test.mjs` | Map style table, regions and load-screen logic |
