@@ -1,5 +1,6 @@
 // The shared map style (game/js/mapstyle.js): both palettes complete, zoom
 // rules, and the three renderers reading it. Run: node scripts/mapstyle_test.mjs
+import './node3d.mjs';
 import fs from 'node:fs';
 import { mapPhase, applyMapPhase, currentMapPhase, nightPalette, shade, miniRoadStyle, MAP_PALETTE, MINI_PALETTE, ROAD_ORDER, ROAD_WIDTH_PX, ZOOM, layersAtZoom, roadWidthPx, roadColor, seaStyle, toRgba, baseFilter, INK, inkA, inkCss, ICON_RIM, ICON_FILL, ICON_GLYPH_LIGHT, ICON_MIN_ZOOM, modeLook, MINI_RANGE_M } from '../game/js/mapstyle.js';
 import * as mapicons from '../game/js/mapicons.js';
@@ -61,6 +62,7 @@ const INK_WAS = {
   routeUser: '#c068ff', routeJob: '#ff9a3c', routeCare: '#ff5fb4',
   tintMini: 'rgb(6,12,9)', tintMap: 'rgb(4,8,12)',
   borderFriesland: '#e8b04a', borderDrenthe: '#c9a0e0', borderDuitsland: '#e86a5a', borderOther: '#e8e4d8', railBed: '#1b1d22',
+  routeLine: '#3fd0ff', worldEnd: '#1f2a3a',
 };
 const rgbOf = (c) => toRgba(c).slice(0, 3).join();
 const rgbWas = (c) => (c[0] === '#' ? toRgba(c) : c.match(/\d+/g).map(Number)).slice(0, 3).join();
@@ -120,7 +122,7 @@ const ALLOW = [
 ];
 const COLOUR_LITERAL = /#[0-9a-fA-F]{3,8}\b|\brgba?\(|\bhsla?\(/g;
 const stripComments = (s) => s.replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, '')).split('\n').map((l) => l.replace(/^\s*\/\/.*$/, '').replace(/\s\/\/ .*$/, '')).join('\n');
-const RENDERERS = ['game/js/mapview.js', 'game/js/hud_panel.js', 'game/js/countrymap.js', 'game/js/regions.js', 'game/js/mapicons.js'];
+const RENDERERS = ['game/js/mapview.js', 'game/js/hud_panel.js', 'game/js/countrymap.js', 'game/js/regions.js', 'game/js/mapicons.js', 'game/js/missionmapdraw.js', 'game/js/ommelandmap.js', 'game/js/reiskaart.js'];
 for (const f of RENDERERS) {
   const loose = [];
   stripComments(src(f)).split('\n').forEach((line, i) => {
@@ -142,6 +144,20 @@ for (const f of RENDERERS) {
 }
 for (const a of ALLOW) ok(a.why && src(a.file).split('\n').some((l) => a.line.test(l)), 'allowlist entry still needed: ' + a.why);
 for (const f of ['game/js/mapview.js', 'game/js/hud_panel.js', 'game/js/regions.js', 'game/js/mapicons.js']) ok(/\b(INK|inkA|ICON_RIM)\b/.test(src(f)) && /mapstyle\.js/.test(src(f)), f + ' reads the ink table');
+
+const DAYMAP = { ...MAP_PALETTE };
+// the rails on the maps read the palette (issue #286): the night palette reaches them
+const { drawRailsOnMap } = await import('../game/js/railway.js');
+const railCols = (pal) => {
+  const cols = [], ctx = { save() {}, restore() {}, setLineDash() {}, beginPath() {}, moveTo() {}, lineTo() {}, stroke() { cols.push(this.strokeStyle); } };
+  drawRailsOnMap(ctx, { rails: [{ pts: [[0, 0], [10, 10]] }] }, -5, -5, 20, 20, 3, pal);
+  return cols;
+};
+ok(railCols(MAP_PALETTE).join() === MAP_PALETTE.rail + ',' + MAP_PALETTE.railTie, 'rails draw in the map palette');
+ok(railCols(MINI_PALETTE).join() === MINI_PALETTE.rail + ',' + MINI_PALETTE.railTie, 'and in the minimap palette');
+applyMapPhase('nacht');
+ok(railCols(MAP_PALETTE)[0] === nightPalette(DAYMAP).rail && railCols(MAP_PALETTE)[0] !== '#55524c' && railCols(MINI_PALETTE)[1] !== '#d8d4c8', 'at night the rails follow the night palette');
+applyMapPhase('dag');
 
 console.log(fails ? `${fails} of ${n} FAILED` : `ok: ${n} checks`);
 process.exit(fails ? 1 : 0);
