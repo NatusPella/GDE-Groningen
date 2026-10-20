@@ -365,3 +365,49 @@ Vijf onafhankelijke runs van dezelfde vergelijking geven 3,1 ms (staand, de eers
 - **Statische groepen die niet bevroren zijn** (232 naamloze groepen, 3719 knopen, 4001 van de ~4771 niet-actorknopen bewegen drie seconden niet): zouden ook kunnen worden afgekapt, maar zonder bevroren matrix is de bol niet vast. Kandidaat voor een volgende ronde: de makers (kermis, straatmeubilair) hun groepen laten bevriezen of per groep samenvoegen.
 - **Bouwen tijdens het lopen** (`3d:buildings`, tot 4 ms per frame zolang er iets ontbreekt) verschuift werk, het haalt het niet weg; een budget dat alleen de rest van de frame gebruikt zou de uitschieters (p95) verlagen. Geen gemiddelde winst, niet gedaan.
 - **60 fps blijft buiten bereik:** rond 19 ms (schatting op een rustige machine) zit nog `3d:render` ~8 tot 9 ms, simulatie ~5 ms, bouwen en HUD ~3 ms. De volgende stap is het aantal knopen en meshes zelf omlaag (kermis en straatmeubilair samenvoegen, de voertuigdelen per auto) of de simulatie naar de worker (#58).
+
+## Vervolg 8: snel reizen (A7, heli langs het spoor) en een 60 fps-voorinstelling (r8b, #247 en #246)
+
+Gemeten met de gereedschappen van Vervolg 7 (`mcpu`, `PERF_ONLY=ab`, `abin.mjs`), op de echte RTX 3060, hoog en heelver, autoResolution uit, de machine niet leeg (de runs van dezelfde code verschillen onderling 20 tot 40%; lees de verhoudingen en de pieken, niet één getal).
+
+### #247: wat er bij snel reizen mis was
+
+Routes `a7` (auto, 33 m/s, 60 s) en `spoor` (heli langs het spoor, 39 m/s, 45 s) met `--hitch`, voor de wijzigingen (`s247a`, `s247b`) en na (`s247e` tot `s247j`):
+
+| | voor | na |
+|---|---|---|
+| a7: gem. frame, p99, frames >100 ms | 51 en 34 ms, 300 en 117 ms, 54 en 20 | 28 tot 38 ms, 67 tot 100 ms, 9 tot 12 |
+| a7: `gl:getProgramParameter` per frame | 0,5 tot 1,0 ms (3 stallen van 335 tot 406 ms, een frame van 2,1 s) | 0,0 tot 0,01 ms (met de linkwacht; 0,6 tot 1,2 ms zonder) |
+| a7: `3d:buildings` per frame | 2,3 tot 3,4 ms | 1,4 tot 2,1 ms |
+| spoor: gem. frame, p99, frames >100 ms | 67 en 89 ms, 167 en 533 ms, 21 en 70 | 35 tot 62 ms, 67 tot 200 ms, 3 tot 52 |
+| spoor: HUD per frame | 12,7 tot 14,6 ms | 5,6 tot 13 ms (meer bij meer last) |
+
+Bevindingen uit de CPU-profielen (14 s bezette hoofdthread):
+- **De minimap** was op de A7 12% en in de heli 18% van de hoofdthread: bij de uitgezoomde schalen (0,24 tot 0,55 px/m, straal 360 tot 830 m) een pad, een fill en een `fillStyle` per gebouw en een rasterquery van alle vijf lagen per tekenbeurt. Nu een pad per kleur en wikkelrichting (zonder `closePath`: in een pad van duizenden subpaden kost die ~1 ms per stuk, een eerste versie met `closePath` gaf 18 ms HUD), het raster 25% ruimer gevraagd en 0,4 s bewaard, geen bomenlaag, en de weg-lus rekent niets uit voor wegen die op die zoom wegvallen.
+- **Shaders die voor het eerst worden getekend** blokkeerden het frame 0,3 tot 1 s (`getProgramParameter` wacht op de link): een nieuwe gebouwstijl, een nieuw batchmateriaal, een landmark-kit. Nu compileert een nieuw gebouw of nieuwe batchmesh eerst in de achtergrond en wacht tot 2 s tot zijn programma's klaar zijn (`?perfoff=bouwklaar`), en een tekenaanroep van de spelscene waarvan het materiaal nog geen gelinkt programma heeft blijft een paar frames uit en het object wordt na het frame gecompileerd (`?perfoff=linkwacht`; pas na 600 getekende frames, zodat het laadscherm en de eerste beelden niet op een lege scene wachten; alleen met `KHR_parallel_shader_compile`).
+- **`renderer.compile` liep per aanroep door de hele scene** (~9000 knopen) om de lampen te vinden: 6% van de hoofdthread in de heli-run, omdat het voor elk nieuw gebouw werd aangeroepen. Nu een scene met alleen de lampen, fog en omgeving (`?perfoff=compileklein`).
+- **Personen**: `buildPersonMesh` kostte 3,5 tot 6% van de hoofdthread (93% daarvan is de geometrie, die per persoon uniek is door zijn look). Bij snelheden boven 12 m/s krijgen mensen op meer dan 90 m (6 m per m/s erboven) geen mesh meer (`?perfoff=persoonsbereik`).
+- **De geometrie-worker** liep niet 11 tot 26 s achter, afgezien van het opstarten: per taak 40 tot 70 ms gemiddeld (`geo.byKind`), `roadGeo` hoogstens 1,3 tot 2,5 s met ten hoogste 8 open (het plafond van x2), `cityMerge` 0,6 tot 1,4 s. Het getal in het issue is `roadInit`: 9 tot 13 s eenmalig bij het starten, waarachter alles in dezelfde worker moest wachten. Nu twee workers: wegen en oevers (`roadInit`, `roadGeo`, `shoreInit`, `shore`) in de een, `cityMerge` en `terrain` in de ander (`?perfoff=eenworker` zet het terug). `roadInit` zelf blijft 9 tot 13 s (2,4 s op een vrije thread); een kortere start vraagt een worker die de gebouwtegels niet decodeert.
+- Tegels vooruit: `tilefocus.js` en `syncRoads` (x2) sorteren al op rijrichting tot 8 s vooruit; `tiles.late` bleef 0 op beide routes.
+
+### #246: een 60 fps-voorinstelling
+
+De zichtafstand is de grootste enkele hefboom in de stad, niet de detailstraal. In één proces afwisselend gemeten (6 vensters per variant, `mcpu`, hoog):
+
+| variant | staand | lopend (3 m/s) | draw calls |
+|---|---:|---:|---:|
+| hoog (heel ver, 900 m) | 26,1 ms | 24,1 ms | 779 |
+| zichtafstand ver (600 m, de standaard van het spel) | 23,6 ms | 24,8 ms | 737 |
+| **zichtafstand kort (150 m)** | **20,2 ms** | **21,3 ms** | 432 |
+| verschil kort tegen heel ver (mediaan per paar) | **-3,7 ms (-16%), 6 van 6** | **-3,0 ms (-13%), 6 van 6** | -347 |
+
+Eerdere reeksen (`s247f`, `s247g`, `s247h`, `s247i`): kort scheelt 3,4 tot 10 ms (-15 tot -30%, alle ronden), normaal (350 m) 1,5 tot 1,7 ms, ver 2,0 ms, Gemiddeld (kwaliteit middel, normaal) 3,3 ms, de schaduwen uit 0,5 ms, een detailstraal van 160 of 140 m bij dezelfde zichtafstand niets (de gebouwen verhuizen naar de verre LOD). Draw calls per eigenaar, hoog tegen kort (`s247i`): verre LOD 60 tegen 0, landmarks 14 tegen 0, water en oevers ~33 tegen 0, terrein 15 tegen 3, en door de detailstraal van 140 m gebouwbatches 148 tegen 82, losse wegen 39 tegen 11, gebouwdetails 44 tegen 18, losse gebouwen 44 tegen 24. De standaard 'ver' is dus bijna even zwaar als 'heel ver'; 'normaal' pas lichter.
+
+Daarom is er een nieuwe voorinstelling **Vlot** (`gfxprofile.js`): kwaliteit hoog, schaduwen aan, resolutie 100% met automatische bijsturing, zichtafstand kort. De volgorde is Laag, Gemiddeld, Vlot, Hoog; de beeldadvisor op het titelscherm stelt Vlot voor als de mediaan van de frametijd tussen 17,5 en 22 ms ligt (boven 22 ms Gemiddeld, boven 30 ms Laag), zodat een machine als deze (47 fps op Hoog) een kaartje krijgt. Op deze machine: 20,2 ms staand en 21,3 ms lopend op een belaste machine; op een rustige (Hoog 21 ms) is Vlot ruwweg 16 tot 17 ms, dus rond de 60 fps (afgeleid, niet gemeten). De 60 fps zijn met beeld-gelijke stappen dus niet gehaald en alleen met een korte zichtafstand bereikt of benaderd: wie ver wil kijken blijft op 47 tot 52 fps.
+
+Gereedschap erbij: `PERF_ONLY=ab` neemt tokens `set:<instelling>:<waarde>` (instellingen voor dat venster) en `detail:<m>` (andere detailstraal) en met `PERF_DIAG=1` de draw calls per eigenaar per venster; `abin.mjs` toont het verschil per eigenaar. `PERF_AB_PRE=<ms>` laat een variant eerst inlopen.
+
+### Niet gedaan
+- **Personen cachen:** de geometrie is per persoon uniek (kleren, huid, look); een cache per sleutel haalt weinig en kost veel geheugen; zonder per-persoon geometrie in een worker is het bereik de goedkope winst.
+- **Een snelheidsafhankelijke gebouwdetailstraal:** kleiner dan 190 m scheelt niets zolang de verre LOD de rest tekent (zie de tabel); het zou alleen het bouwen vermindren, en dat is nu al ruim binnen het budget.
+- **De eerste 11 s `roadInit` verkorten:** vraagt een andere opbouw van de worker-kaart (geen gebouwtegels decoderen).
