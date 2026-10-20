@@ -99,7 +99,7 @@ function createCoopCore(opts) {
       seen.set(id, Date.now());
       for (const f of decoder.push(new Uint8Array(chunk))) {
         if (!authed) {
-          if (mods.pairing.checkKeyFrame(f, key)) { authed = true; clearTimeout(timer); emit('conn', { id }); emit('state', { id, state: 'open' }); } else { s.destroy(); return; }
+          if (mods.pairing.checkKeyFrame(f, key)) { authed = true; clearTimeout(timer); if (process.env.GDE_COOP_TEST) console.log('[coop] verbinding', id, 'van poort', s.remotePort); emit('conn', { id }); emit('state', { id, state: 'open' }); } else { s.destroy(); return; }
         } else emit('msg', { id, data: f });
       }
       if (decoder.broken) s.destroy();
@@ -158,6 +158,7 @@ function createCoopCore(opts) {
       let settled = false;
       s.once('connect', () => {
         s.setTimeout(0); settled = true;
+        if (process.env.GDE_COOP_TEST) console.log('[coop] gast verbonden vanaf poort', s.localPort);
         attach(0, s, false);
         s.write(Buffer.from(m.pairing.frame(m.pairing.encodeKeyFrame(key))));
         emit('conn', { id: 0 }); emit('state', { id: 0, state: 'open' }); resolve({ ok: true });

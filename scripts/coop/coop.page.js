@@ -112,7 +112,9 @@ async function toLobby() {
   await until(() => W() && W().player, 90000, 'world (spel geladen)');
   if (CFG.viaMenu) {
     // viaMenu: zoals een speler, met de ingang 'Samen spelen' in het hoofdmenu; het spel start en de lobby staat open
-    const it = await until(() => document.querySelector('#start-screen .ss-item[data-act="samen"]'), 120000, 'hoofdmenu-ingang Samen spelen');
+    // pas klikken als het menu zichtbaar is (zoals een speler): wie eerder klikt, krijgt het hoofdmenu later alsnog over het spel heen
+    const it = await until(() => document.querySelector('#start-screen.visible .ss-item[data-act="samen"]'), 120000, 'hoofdmenu-ingang Samen spelen');
+    await sleep(800);
     log('hoofdmenu', { items: [...document.querySelectorAll('#start-screen .ss-item')].map((e) => e.dataset.act).join(',') });
     shot('hoofdmenu');
     it.click();
