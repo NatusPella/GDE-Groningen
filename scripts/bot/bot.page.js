@@ -29,6 +29,7 @@ const wall0 = performance.now();
 const detector = new L.StuckDetector({ windowS: CFG.stuckS || 30 });
 const wedge = new L.WedgeDetector();
 const mem = { boardTries: 0, pressTries: 0 };
+const detours = {};   // per stage: the sidesteps tried on foot before a cheat
 const ladder = {}, fails = {}, scenes = {};
 let lastCine = false;
 let wedgeOut = false, wedgeDir = 1;
@@ -48,13 +49,14 @@ function plan(s, mode, tgt) {
     const r = mode === 'boat' ? R.planBoatTrip(world.map, [me.x, me.y], [tgt.x, tgt.y], 'sloep') : R.planLandRoute(world.map, kind, [me.x, me.y], [tgt.x, tgt.y]);
     pts = r && r.pts && r.pts.length ? r.pts : null;
   } catch (e) { B.log('routefout', { msg: String(e && e.message || e).slice(0, 200) }); }
-  // outside the city graph (the Ommeland) planLandRoute finds nothing: follow the line the game itself shows the player, when it leads to this goal
+  // outside the city graph (the Ommeland) planLandRoute finds nothing, and where the own route ran into a wall (a detour was needed)
+  // the line the game itself shows the player is the better one, when it leads to this goal
   let src = pts ? 'plan' : 'recht';
-  if (!pts) {
+  if (!pts || (kind === 'walk' && detours[mem.stageKey] > 0)) {
     try {
       const gps = R.getActiveRoute();
       const e = gps && gps.pts && gps.pts.length > 1 ? gps.pts[gps.pts.length - 1] : null;
-      if (e && L.distance({ x: e[0], y: e[1] }, tgt) < 80) { pts = R.getRouteAhead(1e9); src = 'gps'; }
+      if (e && L.distance({ x: e[0], y: e[1] }, tgt) < 80) { pts = R.getRouteAhead(1e9) || pts; src = pts ? 'gps' : src; }
     } catch (e) { /* geen route */ }
   }
   const line = pts || [[me.x, me.y]];
@@ -175,7 +177,6 @@ async function nudge(s) {
 }
 
 // on foot the planned route knows no poles, bins or corners: sidestep left, right, back and round before a cheat is needed
-const detours = {};
 async function detour(s, n) {
   const me = { x: s.player.x, y: s.player.y }, tgt = s.target || me;
   const turn = [Math.PI / 2, -Math.PI / 2, Math.PI * 0.75, -Math.PI * 0.75][(n - 1) % 4];
