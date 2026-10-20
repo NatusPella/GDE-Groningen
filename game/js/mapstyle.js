@@ -51,8 +51,8 @@ export const INK = {
   tintMini: '#060c09', tintMap: '#04080c',
   borderFriesland: '#e8b04a', borderDrenthe: '#c9a0e0', borderDuitsland: '#e86a5a', borderOther: '#e8e4d8',
   railBed: '#1b1d22',
-  // the mission layer's route line and the Ommeland's world-end disc
-  routeLine: '#3fd0ff', worldEnd: '#1f2a3a',
+  // the mission layer's route line and mission areas, the Ommeland's world-end disc
+  routeLine: '#3fd0ff', missionArea: '#ffd84a', worldEnd: '#1f2a3a',
 };
 const inkRgb = {};
 // the ink as 'rgba(r, g, b, alpha)'; alpha is a number or a ready string

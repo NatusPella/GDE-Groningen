@@ -62,7 +62,7 @@ const INK_WAS = {
   routeUser: '#c068ff', routeJob: '#ff9a3c', routeCare: '#ff5fb4',
   tintMini: 'rgb(6,12,9)', tintMap: 'rgb(4,8,12)',
   borderFriesland: '#e8b04a', borderDrenthe: '#c9a0e0', borderDuitsland: '#e86a5a', borderOther: '#e8e4d8', railBed: '#1b1d22',
-  routeLine: '#3fd0ff', worldEnd: '#1f2a3a',
+  routeLine: '#3fd0ff', missionArea: '#ffd84a', worldEnd: '#1f2a3a',
 };
 const rgbOf = (c) => toRgba(c).slice(0, 3).join();
 const rgbWas = (c) => (c[0] === '#' ? toRgba(c) : c.match(/\d+/g).map(Number)).slice(0, 3).join();
@@ -146,6 +146,8 @@ for (const a of ALLOW) ok(a.why && src(a.file).split('\n').some((l) => a.line.te
 for (const f of ['game/js/mapview.js', 'game/js/hud_panel.js', 'game/js/regions.js', 'game/js/mapicons.js']) ok(/\b(INK|inkA|ICON_RIM)\b/.test(src(f)) && /mapstyle\.js/.test(src(f)), f + ' reads the ink table');
 
 const DAYMAP = { ...MAP_PALETTE };
+// the map modules build their colour tables when they load: one that names an ink that is not there throws at import
+for (const m of ['missionmapdraw', 'ommelandmap', 'reiskaart']) { let err = ''; try { await import(`../game/js/${m}.js`); } catch (e) { err = String(e); } ok(!err, m + ' loads', err); }
 // the rails on the maps read the palette (issue #286): the night palette reaches them
 const { drawRailsOnMap } = await import('../game/js/railway.js');
 const railCols = (pal) => {
