@@ -148,6 +148,23 @@ for (const q of want) {
     }
     key('keyup', 'w', 'KeyW');
     clearInterval(assist);
+    // het watervlak van het meer, de kolk en de boot boven en onder de sluis (#299): de hoogte van alle watermeshes
+    {
+      const sc = (await imp('scene3d')).getScene(), ys = {}, kolk = [];
+      sc.updateMatrixWorld(true);
+      sc.traverse((o) => {
+        if (!o.isMesh) return;
+        const y = +o.matrixWorld.elements[13].toFixed(2);
+        if (o.parent && o.parent.name === 'water') ys[y] = (ys[y] || 0) + 1;
+        else if (o.name === 'water') kolk.push(y);
+      });
+      results[q.id + '-watervlakken'] = { poly: ys, kolk, bootLift: +(b._lift || 0).toFixed(2), meerLift: +WL.surfaceLiftAt(map, k.x + c * (k.half + 30), k.y + s * (k.half + 30)).toFixed(2), zeeLift: +WL.surfaceLiftAt(map, k.x - c * (k.half + 30), k.y - s * (k.half + 30)).toFixed(2) };
+      // laag over de deuren heen, aan beide kanten: de trede tussen het meer en de zee
+      for (const e of [1, -1]) {
+        const gx3 = k.x + c * k.half * e, gy3 = k.y + s * k.half * e;
+        await shot(q.id + '-5-trede' + (e > 0 ? 'a' : 'b'), { position: { x: gx3 + c * e * 22 - s * 14, y: gy3 + s * e * 22 + c * 14, z: 3.2 }, lookAt: { x: k.x, y: k.y, z: 0 }, cut: true });
+      }
+    }
     results[q.id] = { sluis: k.name, positie: [Math.round(k.x), Math.round(k.y)], peil: k.levels, boot: wa ? { water: wa.kind || null } : null, doorgekomen: exited, fasen: phases, minLift: +minLift.toFixed(2), maxLift: +maxLift.toFixed(2), screenshots: [...shots], log };
     if (p.inVehicle) p.exitVehicle(map, w);
     w.vehicles.splice(w.vehicles.indexOf(b), 1);
