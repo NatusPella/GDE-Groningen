@@ -95,7 +95,7 @@ export function getMovableBridges() { return bridges; }
 // world, but OSM tags only the carriageway: left alone it stays a closed deck beside the open one. Such a way
 // (parallel, at most 12 m beside the span) takes over the kind of the carriageway.
 const SIDE_CATS = new Set(['foot', 'cycle']);
-function adoptSideSpans(roads) {
+export function adoptSideSpans(roads) {
   const spans = [];
   for (const r of roads) {
     if (!r.movable || !r.bridge || r.pts.length < 2) continue;
