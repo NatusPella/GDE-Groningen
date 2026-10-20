@@ -372,7 +372,7 @@ function fillOldExtent({ root, fill, gid, stats, blobs, roadNet, roadSeen, railR
 
 // ------------------------------------------------------------- build
 
-export function buildProvince({ root = ROOT, src = SRC_DIR, extra = bufferDirs(src), cityKeys = new Set(), buffer = BUFFER_M, onPack = null, map = true, cityCover = null, fillOld = false, bag = loadProvinceBag(), derive = true, junctions = true, terrain = null, only = null, profile = null, viaducts = false } = {}) {
+export function buildProvince({ root = ROOT, src = SRC_DIR, extra = bufferDirs(src), cityKeys = new Set(), buffer = BUFFER_M, onPack = null, map = true, cityCover = null, fillOld = false, bag = loadProvinceBag(), derive = true, junctions = true, terrain = null, only = null, profile = null, viaducts = false, collect = null } = {}) {
   const prov = gunzipJson(path.join(src, 'province.json.gz'));
   // the neighbours' strips: their places, stations and built-up cells join the province's
   const dirs = [src, ...extra];
@@ -516,10 +516,12 @@ export function buildProvince({ root = ROOT, src = SRC_DIR, extra = bufferDirs(s
     // the traffic lights snapped onto their roads, the city's junction model over the pack's roads
     // (junction_tiles.mjs: the nodes by the tile they lie in)
     const nodesIn = new Map();
+    let lights = [];
     if (junctions) {
       const sn = snapSignals(feats);
       const jm = junctionsOf(sn.feats, sn.lights);
       feats = sn.feats.concat(jm.auto);
+      lights = sn.lights;
       stats.signals += sn.lights.length;
       stats.autoSignals += jm.auto.length;
       for (const J of jm.nodes) {
@@ -527,6 +529,8 @@ export function buildProvince({ root = ROOT, src = SRC_DIR, extra = bufferDirs(s
         (nodesIn.get(k) || nodesIn.set(k, []).get(k)).push(J);
       }
     }
+    // the whole ways of the pack for a caller that wants them uncut (stad_laag.mjs: roads and rails of the city, #90)
+    if (collect) collect(feats, { pack: pk, want, els, lights });
     // features by tile, only for this pack's tiles
     const mine = new Set(want);
     const idx = new Map();
