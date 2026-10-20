@@ -90,5 +90,29 @@ tb.speed = -4;
 step(T.WARN_S + T.BOOMS_S + T.MOVE_S + MB.AUTO.MIN_OPEN_S + T.MOVE_S + T.BOOMS_S + 14);
 ok(b.state === 'closed', `it closes when the boat turns back (${b.state})`);
 
+// 7. a moored barge near the bridge (lying still for good) does not hold it open for ever or make it open again (#235)
+b = mkBridge(); MB.resetMovableBridges();
+const moored = boat('binnenvaart', 30, 0);
+world.vehicles = [moored];
+step(T.WARN_S + T.BOOMS_S + T.MOVE_S + 2);
+ok(b.state === 'open', 'a moored barge in front of it still opens it once');
+step(MB.AUTO.STILL_PATIENCE_S + T.MOVE_S + T.BOOMS_S + 6);
+ok(b.state === 'closed', `it closes on its own once the barge has stayed put (${b.state})`);
+step(120);
+ok(b.state === 'closed' && b.ignored.has(moored), 'and does not open again for the barge lying there');
+moored.speed = 1.5; moored.angle = -Math.PI / 2; // the barge sails off (away from the bridge), then comes back lying still
+step(2);
+ok(!b.ignored.has(moored), 'a barge that sails off is looked at again');
+moored.speed = 0; moored.y = 20;
+step(0.5);
+ok(b.state === 'warn', 'and asks again when it lies still in front of the bridge afterwards');
+// a horn from a boat that then stays put holds the bridge no longer than the patience either
+b = mkBridge(); MB.resetMovableBridges();
+const horn = boat('skutsje', -20, 0);
+world.vehicles = [horn];
+MB.hornAt(10, -20, horn);
+step(T.WARN_S + T.BOOMS_S + T.MOVE_S + MB.AUTO.STILL_PATIENCE_S + T.MOVE_S + T.BOOMS_S + 12);
+ok(b.state === 'closed', `a hornblower that lies still does not keep it open (${b.state})`);
+
 console.log(fails ? `${fails} of ${n} FAILED` : `${n} automatic bridge checks passed`);
 process.exit(fails ? 1 : 0);
