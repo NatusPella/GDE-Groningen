@@ -37,9 +37,9 @@ const EXPECT = 2 + (GASTEN - 1) + MOCK; // aantal spelers in totaal
 const P = {
   basis: { host: [[0, 'wacht', { s: DURATION }]], gast: [[0, 'wacht', { s: DURATION }]], gast2: [[0, 'wacht', { s: DURATION }]] },
   net: {
-    host: [[0, 'wacht', { s: 12 }], [14, 'netsim', { s: 20, wie: ['gast2'] }], [38, 'desync', { s: 25, wie: 'gast' }], [70, 'loop', { s: 8 }], [80, 'uitvalHost', { s: 8 }], [112, 'betaal', { geld: 250 }], [118, 'opgeslagen', {}], [124, 'wacht', { s: 22 }], [150, 'stopHost', {}]],
-    gast: [[0, 'wacht', { s: 12 }], [14, 'netsim', { s: 20, wie: ['gast2'] }], [38, 'desync', { s: 25, wie: 'gast' }], [70, 'loop', { s: 8 }], [80, 'uitval', { s: 8, wie: 'gast' }], [112, 'betaal', {}], [118, 'opgeslagen', {}], [124, 'wacht', { s: 22 }], [150, 'stopHost', {}]],
-    gast2: [[0, 'wacht', { s: 12 }], [14, 'netsim', { s: 20, wie: ['gast2'] }], [38, 'desync', { s: 25, wie: 'gast' }], [70, 'loop', { s: 8 }], [80, 'wacht', { s: 28 }], [112, 'betaal', {}], [118, 'opgeslagen', {}], [124, 'verlaat', { wie: 'gast2' }], [150, 'stopHost', {}]],
+    host: [[0, 'wacht', { s: 12 }], [14, 'netsim', { s: 20, wie: ['gast2'] }], [38, 'desync', { s: 25, wie: 'gast' }], [78, 'loop', { s: 8 }], [90, 'uitvalHost', { s: 8 }], [122, 'betaal', { geld: 250 }], [128, 'opgeslagen', {}], [134, 'rit', { s: 24 }], [166, 'wacht', { s: 22 }], [192, 'stopHost', {}]],
+    gast: [[0, 'wacht', { s: 12 }], [14, 'netsim', { s: 20, wie: ['gast2'] }], [38, 'desync', { s: 25, wie: 'gast' }], [78, 'loop', { s: 8 }], [90, 'uitval', { s: 8, wie: 'gast' }], [122, 'betaal', {}], [128, 'opgeslagen', {}], [134, 'rit', { s: 24 }], [166, 'wacht', { s: 22 }], [192, 'stopHost', {}]],
+    gast2: [[0, 'wacht', { s: 12 }], [14, 'netsim', { s: 20, wie: ['gast2'] }], [38, 'desync', { s: 25, wie: 'gast' }], [78, 'loop', { s: 8 }], [90, 'wacht', { s: 28 }], [122, 'betaal', {}], [128, 'opgeslagen', {}], [134, 'rit', { s: 24 }], [166, 'verlaat', { wie: 'gast2' }], [192, 'stopHost', {}]],
   },
   kamer: { host: [[0, 'wacht', { s: DURATION }]], gast: [[0, 'wacht', { s: DURATION }]], gast2: [[0, 'wacht', { s: DURATION }]] },
   verhaal: { host: [[0, 'verhaal', { s: Number(arg('verhaal-s', 1500)) }]], gast: [[0, 'verhaal', { s: Number(arg('verhaal-s', 1500)) }]], gast2: [[0, 'verhaal', { s: Number(arg('verhaal-s', 1500)) }]] },
@@ -266,6 +266,19 @@ if (SUITE === 'net') {
   check(last(gm).verdiend === 250, `betalen: de gast heeft 250 verdiend bijgehouden (${last(gm).verdiend})`);
   check(last(samples('host')).money === (samples('host').find((s) => s.ph === 'betaal') || {}).money, 'betalen: het geld van de host bleef gelijk');
   note('save gast: ' + JSON.stringify(gb));
+  // een ritje: de host rijdt, Tessa (gast) is passagier, de andere gasten zien het voertuig meerijden
+  const rs = of(H, 'rit-spawn')[0], ri = of(H, 'rit-in')[0], rp = of(H, 'rit-passagier')[0], rg = of(H, 'rit-gereden')[0], ru = of(H, 'rit-uit')[0];
+  check(ri && ri.ingestapt, 'rit: de host kon niet instappen: ' + JSON.stringify({ rs, ri }));
+  check(rp && rp.tessa, 'rit: Tessa stapt niet als passagier mee: ' + JSON.stringify(rp));
+  check(rg && rg.m > 15, 'rit: de host reed niet: ' + JSON.stringify(rg));
+  check(ru && !ru.host && !ru.tessa, 'rit: na het uitstappen zitten ze nog in het voertuig: ' + JSON.stringify(ru));
+  for (const n of ['gast', 'gast2']) {
+    const rr = phase(n, 'rit'); const t0 = rr.find((q) => q.partners.some((p) => p[0] === 0)), t1 = [...rr].reverse().find((q) => q.partners.some((p) => p[0] === 0));
+    const a = t0 && t0.partners.find((p) => p[0] === 0), b = t1 && t1.partners.find((p) => p[0] === 0);
+    check(rr.some((q) => q.hostEnt && q.hostEnt[0] > 0), `rit: ${n} ziet geen voertuigen van de host`);
+    check(rr.some((q) => q.partners.some((p) => p[0] === 0 && p[2] !== 'voet')), `rit: ${n} ziet Tammo niet in het voertuig (statussen ${[...new Set(rr.flatMap((q) => q.partners.filter((p) => p[0] === 0).map((p) => p[2])))].join('/')})`);
+    check(a && b && Math.hypot(a[3] - b[3], a[4] - b[4]) > 15, `rit: ${n} ziet Tammo niet rijden (${JSON.stringify(a)} → ${JSON.stringify(b)})`);
+  }
   // gast2 verlaat het spel; een nieuwe gast neemt de plek
   const vl = of(G2, 'verlaten')[0];
   check(vl && vl.coopNet === false && vl.role === null, 'vertrek: gast2 staat nog in de sessie: ' + JSON.stringify(vl));
