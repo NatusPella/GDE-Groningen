@@ -114,5 +114,18 @@ MB.hornAt(10, -20, horn);
 step(T.WARN_S + T.BOOMS_S + T.MOVE_S + MB.AUTO.STILL_PATIENCE_S + T.MOVE_S + T.BOOMS_S + 12);
 ok(b.state === 'closed', `a hornblower that lies still does not keep it open (${b.state})`);
 
+// 8. a footway beside a movable carriageway opens with it (OSM tags only the carriageway; the Herebrug case, #235)
+{
+  const roads = [
+    { movable: 'bascule', bridge: true, cat: 'normal', width: 9.9, pts: [[353, 755], [364, 778], [365, 780]] },
+    { bridge: true, cat: 'foot', width: 1.8, pts: [[357, 784], [345, 759]] },
+    { bridge: true, cat: 'foot', width: 1.8, pts: [[500, 500], [510, 520]] },
+    { bridge: true, cat: 'normal', width: 6, pts: [[357, 784], [345, 759]] },
+  ];
+  const bs = MB.buildMovableBridges({ roads });
+  ok(roads[1].movable === 'bascule' && bs.length === 2, 'a parallel footway beside the span becomes part of the movable bridge');
+  ok(!roads[2].movable && !roads[3].movable, 'a far footway and a car road beside it stay as they are');
+}
+
 console.log(fails ? `${fails} of ${n} FAILED` : `${n} automatic bridge checks passed`);
 process.exit(fails ? 1 : 0);
