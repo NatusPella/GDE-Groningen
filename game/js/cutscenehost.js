@@ -97,7 +97,8 @@ function disposeTree(o) {
   });
 }
 
-function buildScriptRun(def, scene, anchor, env = null, w = null) {
+// geëxporteerd voor scripts/qa/cutscene_shots.page.js (laadt de module dynamisch, dus dead_code.mjs ziet het gebruik niet)
+export function buildScriptRun(def, scene, anchor, env = null, w = null) {
   const group = new THREE.Group();
   group.name = 'cutscript-' + def.id;
   const actors = {}, props = {};

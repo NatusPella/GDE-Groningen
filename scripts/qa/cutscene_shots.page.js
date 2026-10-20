@@ -56,7 +56,18 @@ for (const e of cat) {
   T = 0;
   cine.playCinematic({ id: 'cs-shots', duration: 3600, priority: 9, letterbox: false, hideHud: true, pause: true, skippable: false, shot: () => run.frame(T, 0.05) });
   await sleep(500);
-  const times = prev.stillTimes(e);
+  let times = prev.stillTimes(e);
+  // CS.dense = { 'M02.intro': { shot: 6, n: 5 } }: n extra stills spread over one shot (is er camerabeweging, #224)
+  const dn = CS.dense && CS.dense[e.id];
+  if (dn) {
+    const ST = [];
+    let last = -1;
+    for (let t = 0; t <= e.duration; t += 0.1) { const si = e.scene.sample(t, anchor0).camera.shotIndex; if (si !== last) { ST.push(t); last = si; } }
+    const t0 = ST[dn.shot] ?? 0, t1 = ST[dn.shot + 1] ?? e.duration;
+    times = [];
+    for (let k = 0; k < dn.n; k++) times.push(Math.round((t0 + 0.2 + (t1 - t0 - 0.4) * (k / (dn.n - 1))) * 10) / 10);
+    console.log('[cs-dense] ' + e.id + ' shot ' + dn.shot + ' van ' + t0.toFixed(1) + ' tot ' + t1.toFixed(1) + ' s');
+  }
   let k = 0;
   for (const t of times) {
     T = t;
