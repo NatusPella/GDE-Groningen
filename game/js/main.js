@@ -499,7 +499,7 @@ async function boot() {
   await countryPlaced;
   document.body.classList.add('game-started');
   hideAdvice();
-  input.tryLock();
+  input.tryLock(false); // the game itself asks here, long after the click that started it: refusing is no sign of a browser without lock (#328)
   setMenuAudio(false);
   // a benchmark started from a game: its result waits in Instellingen > Beeld
   if (world.openSettingsOnStart) { openPauseMenu('settings', { sub: world.openSettingsOnStart }); world.openSettingsOnStart = null; }
