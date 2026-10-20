@@ -82,7 +82,14 @@ niet), tekst en attributen in `game/index.html`, alle strings in
 `game/storydata/script.json` en het `[Unreleased]`-deel van het CHANGELOG, en
 controleert op echte merken, echte personen, Engels, winter en "de Grunn".
 
-Stand 18 oktober 2026: **0 bevindingen**, 57 toegestane gevallen, elk met een
+Stand 20 oktober 2026 (ronde 2, #150): de lijsten zijn uitgebreid met ruim 200 extra merken
+(telecom, winkels, kleding, drank, merken van elektronica, jeugdreeksen en tv-programma's),
+sporters, politici, artiesten en festivals, extra winterwoorden (dooi, gladheid, gevroren, sleeën),
+meer Engelse leenwoorden (respawn, achievements, tutorial, quest) en een nieuwe regel voor
+**persoonsgegevens en webadressen** (e-mail, telefoonnummer, IBAN, `http(s)://`, `www.`), ook
+in teksten die geen proza zijn. **0 bevindingen**, 105 toegestane gevallen met reden.
+
+Oudere stand 18 oktober 2026: 0 bevindingen, 57 toegestane gevallen, elk met een
 reden in `scripts/text_audit_allow.json`. Dertien eerdere bevindingen waren
 detectielijsten (de lijst met merken die het script zelf zoekt, `CHAINS` en
 `BRANDS` in de code), de platformnaam in de trailerkaart en een kermiskraam
