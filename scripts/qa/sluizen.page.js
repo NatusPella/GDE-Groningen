@@ -12,6 +12,7 @@ for (let i = 0; i < 40; i++) {
   if (item) item.click(); else tapKey('Enter', 'Enter');
   await sleep(3000);
 }
+{ const ss = document.querySelector('#start-screen'); if (ss) ss.style.display = 'none'; } // het titelscherm blijft soms over het spel hangen in de beelden
 for (let i = 0; i < 25 && window.__debug && window.__debug.world && window.__debug.world.paused; i++) { tapKey(' ', 'Space'); await sleep(700); }
 const D = window.__debug; const w = D.world; const p = w.player; const map = w.map;
 const imp = (f) => import('/js/' + f + '.js');
