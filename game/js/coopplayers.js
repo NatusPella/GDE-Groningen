@@ -43,6 +43,12 @@ export function figuurLook(id) {
 }
 const ALL = [...MAIN_CHARS, ...EXTRA_CHARS];
 export const charInfo = (id) => ALL.find((c) => c.id === id) || null;
+// Wie het spel opende (plek 0), met zijn naam: de teksten gebruiken geen rolnaam (docs/WOORDENLIJST.md). begin: aan het begin van een zin ("De ander").
+export function openerNaam(lijst, begin = false) {
+  const p = (lijst || []).find((x) => x && x.slot === 0);
+  const naam = p && (p.naam || (charInfo(p.char) || {}).naam);
+  return naam || (begin ? 'De ander' : 'de ander');
+}
 export const slotChar = (slot) => (slot < MAIN_CHARS.length ? MAIN_CHARS[slot].id : null);
 
 export const clampMax = (n) => Math.min(ABS_MAX, Math.max(MIN_MAX, Number.isInteger(n) ? n : DEFAULT_MAX));
@@ -51,7 +57,7 @@ export const clampMax = (n) => Math.min(ABS_MAX, Math.max(MIN_MAX, Number.isInte
 export function advies(aantal, rol = 'host') {
   if (aantal <= ADVIES_VANAF) return '';
   const basis = `Met ${aantal} spelers kan het spel trager worden, vooral op wat oudere computers.`;
-  return rol === 'host' ? `${basis} Als gastheer stuur je alles naar iedereen; een trage internetverbinding (uploaden) kan het spel laten haperen.` : basis;
+  return rol === 'host' ? `${basis} Als je het spel hebt geopend stuur je alles naar iedereen; een trage internetverbinding (uploaden) kan het spel laten haperen.` : basis;
 }
 
 export function createRoster(max = DEFAULT_MAX) {

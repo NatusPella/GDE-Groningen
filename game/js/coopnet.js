@@ -19,8 +19,8 @@ import { holdBeleid, leesLijstEvent, lijst } from './coopplayers.js';
 import { cameraRelative, stepSlot2, sharedCamera } from './coop.js';
 import { gateOn, setGate } from './coopgate.js';
 import { nieuwCutVerzamelaar, cutGastSpeel, cutGastStop, leesCutTijd, cutSpoor } from './coopcut.js';
-import { verzamelEntiteiten, leesEntiteiten, missieBericht, leesMissieBericht, missieTekst, sceneBericht, leesSceneBericht, sceneLeeg, FILMPJE_TEKST } from './coopworld.js';
-import { verhaalRol } from './coopplayers.js';
+import { verzamelEntiteiten, leesEntiteiten, missieBericht, leesMissieBericht, missieTekst, sceneBericht, leesSceneBericht, sceneLeeg, filmpjeTekst } from './coopworld.js';
+import { verhaalRol, openerNaam } from './coopplayers.js';
 import { KLOK_EVERY, klokEvent, leesKlokEvent, KlokVolger } from './net/speelklok.js';
 import { HASH_EVERY, viewOf, hashEvent, leesHashEvent, DesyncMonitor } from './net/desync.js';
 
@@ -150,7 +150,7 @@ export function startClient(world, transport, info, opts = {}) {
   // eigen toestand bewaren: bij vertrek komt de gast hier weer terug
   const stash = { x: p.x, y: p.y, angle: p.angle, wanted: world.wanted | 0, character: p.character, coopChar: p.coopChar, companion: world.companion ? { x: world.companion.x, y: world.companion.y, character: world.companion.character } : null, prevLocal: world.coop.local !== false };
   world.coop.local = false;
-  session.onlost = () => { if (onHold) onHold('client', session.slot, 'De verbinding met de gastheer is weg.'); };
+  session.onlost = () => { if (onHold) onHold('client', session.slot, `Verbinding met ${openerNaam(world.coopRoster)} is weg.`); };
   session.onevent = (b) => handleEvent(world, b, 0);
   // de host is de baas: bij een desync (net/desync.js) zet de gast zijn wanted weer gelijk aan dat van de host
   session.onresync = (st) => { if (st && Number.isFinite(st.wanted)) world.wanted = st.wanted | 0; };
@@ -182,7 +182,7 @@ export function tickCoopNet(world, dt) {
     // afgewezen (sessie vol, andere versie) of de gastheer stopte (BYE): de gast speelt weer in zijn eigen spel. Zonder dit bleef hij 'gast' (zijn spel werd niet meer bewaard)
     // of stond zijn wereld stil op de laatste plek van de gastheer.
     if (s.status === 'geweigerd' || s.status === 'verbroken') {
-      if (s.status === 'verbroken' && n.joined && world.addMessage) world.addMessage('De gastheer is gestopt met samen spelen. Je speelt weer in je eigen spel.', 5);
+      if (s.status === 'verbroken' && n.joined && world.addMessage) world.addMessage(`${openerNaam(world.coopRoster, true)} heeft het spel gestopt. Je speelt weer in je eigen spel.`, 5);
       if (s.status === 'geweigerd') world.coopWeigering = s.rejected || 'gesloten'; // wat de lobby al liet zien; ook voor tests
       stopCoopNet(world); return;
     }
@@ -253,7 +253,7 @@ export function handleEvent(world, body, van = 0) {
       world.coopHostMissie = m;
       const nieuweOpdracht = !vorige || !vorige.actief || vorige.index !== m.index || vorige.label !== m.label;
       // een nieuwe opdracht: wat de gastheer speelt; daarna alleen nog de volgende stap
-      const tekst = nieuweOpdracht ? missieTekst(m, verhaalRol(slot) === 'wereld' ? 'wereld' : 'hoofdrol') : (m.actief && m.stap ? `Gastheer, volgende stap: ${m.stap}` : '');
+      const tekst = nieuweOpdracht ? missieTekst(m, verhaalRol(slot) === 'wereld' ? 'wereld' : 'hoofdrol', openerNaam(world.coopRoster, true)) : (m.actief && m.stap ? `${openerNaam(world.coopRoster, true)}, volgende stap: ${m.stap}` : '');
       if (tekst && world.addMessage) world.addMessage(tekst, 6);
       return true;
     }
@@ -262,7 +262,7 @@ export function handleEvent(world, body, van = 0) {
       const sc = leesSceneBericht(body); if (!sc) return false;
       const was = !!(world.coopScene && world.coopScene.filmpje);
       world.coopScene = sceneLeeg(sc) ? null : sc;
-      if (sc.filmpje && !was && world.addMessage && world.coopCutBezig == null) world.addMessage(FILMPJE_TEKST, 4);
+      if (sc.filmpje && !was && world.addMessage && world.coopCutBezig == null) world.addMessage(filmpjeTekst(openerNaam(world.coopRoster, true)), 4);
       return true;
     }
     case 'cut': { // de scène van de gastheer (coopcut.js): in stukjes; compleet = meteen mee afspelen
@@ -324,7 +324,7 @@ export function handleEvent(world, body, van = 0) {
     }
     case 'weg': // de host heeft deze speler verwijderd
       if (!n || n.role !== 'client') return false;
-      if (world.addMessage) world.addMessage(body.reden === 'gastheer gestopt' ? 'De gastheer is gestopt met samen spelen. Je speelt weer in je eigen spel.' : 'Je bent uit het spel van de gastheer gehaald.', 4);
+      if (world.addMessage) world.addMessage(body.reden === 'spel gestopt' ? `${openerNaam(world.coopRoster, true)} heeft het spel gestopt. Je speelt weer in je eigen spel.` : `Je bent uit het spel van ${openerNaam(world.coopRoster)} gehaald.`, 4);
       stopCoopNet(world);
       return true;
     default: return false;
@@ -368,7 +368,7 @@ export function stopCoopNet(world) {
   const n = world.coopNet; if (!n) return;
   setGate(false); // zonder samen spelen is er geen wachtkamer meer
   if (world.coopCutBezig != null) cutGastStop(world, null, true); // een scène van de gastheer stopt met het samen spelen
-  if (n.role === 'host') { try { n.hub.announce({ k: 'weg', reden: 'gastheer gestopt' }); n.hub.closeAll(); } catch (e) { /* al weg */ } } else { try { if (n.session.status !== 'geweigerd' && n.session.status !== 'verbroken') n.session.leave(); } catch (e) { /* al weg */ } }
+  if (n.role === 'host') { try { n.hub.announce({ k: 'weg', reden: 'spel gestopt' }); n.hub.closeAll(); } catch (e) { /* al weg */ } } else { try { if (n.session.status !== 'geweigerd' && n.session.status !== 'verbroken') n.session.leave(); } catch (e) { /* al weg */ } }
   world.coopNet = null;
   if (n.role === 'client' && n.stash) {
     const s = n.stash, p = world.player;
