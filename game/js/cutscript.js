@@ -4,7 +4,7 @@
 //
 //   const scene = compileScene(def, { lines, duration });   // throws on a broken scene
 //   const s = scene.sample(t, anchor, env);                 // { actors, props, camera, speaker }
-//   const a = fitAnchor(scene, anchor, env);                // the anchor (turned) where nothing stands in a wall
+//   const a = fitAnchor(scene, anchor, env, { radii });     // the anchor (turned, or moved when radii are given) where nothing stands in a wall
 //
 // A scene def (all coordinates are LOCAL to the anchor: f = forward, s = left, h = up in m):
 //   id, actors: { <id>: { look, at: [f, s], face: deg | 'actor:<id>', anim, speaker, gaze, sit: seat height in m } }
@@ -485,25 +485,51 @@ export function fitCamera(pos, look, env) {
 
 // The anchor, turned in steps of 30 degrees (the smallest turn that is clean), so that no actor, prop or
 // camera of the scene stands inside a building. Without env.solid the anchor stays.
-export function fitAnchor(scene, anchor, env) {
+// opts.radii (metres, closest first) is for a scene that may play anywhere (the opening: nobody stands in it, #321):
+// when no turn is clean, the anchor moves to the closest free ground (opts.ground(x, y) -> true) where one is, turned
+// in 60-degree steps. The camera guard lifts a camera inside a building over its roof (scene3d.js), which looks like
+// a flip: straight up 70 m and down at the street. A scene that starts beside a tower has no clean turn.
+function anchorScore(scene, a, env, step = 0.6) {
+  let bad = 0;
+  for (let t = 0; t <= scene.duration; t += step) {
+    const s = scene.sample(t, a);
+    for (const o of Object.values(s.actors)) if (o.visible !== false && env.solid(o.x, o.y, (a.z || 0) + 0.9)) bad += 2;
+    for (const o of Object.values(s.props)) if (o.visible && env.solid(o.x, o.y, o.h + 0.4)) bad += 1;
+    const c = s.camera.position;
+    if (env.solid(c.x, c.y, c.z)) bad += 1;
+  }
+  return bad;
+}
+
+export function fitAnchor(scene, anchor, env, opts = {}) {
   if (!env || !env.solid || env.clamp) return anchor;
-  const score = (a) => {
-    let bad = 0;
-    for (let t = 0; t <= scene.duration; t += 0.6) {
-      const s = scene.sample(t, a);
-      for (const o of Object.values(s.actors)) if (o.visible !== false && env.solid(o.x, o.y, (a.z || 0) + 0.9)) bad += 2;
-      for (const o of Object.values(s.props)) if (o.visible && env.solid(o.x, o.y, o.h + 0.4)) bad += 1;
-      const c = s.camera.position;
-      if (env.solid(c.x, c.y, c.z)) bad += 1;
-    }
-    return bad;
-  };
+  const score = (a, step) => anchorScore(scene, a, env, step);
   let best = anchor, bestScore = score(anchor);
   for (const k of [1, -1, 2, -2, 3, -3, 4, -4, 5, -5, 6]) {
     if (bestScore === 0) break;
     const a = { ...anchor, facing: anchor.facing + k * Math.PI / 6 };
     const sc = score(a) + Math.abs(k) * 0.01;
     if (sc < bestScore) { best = a; bestScore = sc; }
+  }
+  if (bestScore < 1 || !opts.radii || !opts.radii.length) return best;
+  // no clean turn: the closest free ground that has one (a coarser time step keeps the search cheap)
+  const dirs = opts.dirs || 8;
+  for (const r of opts.radii) {
+    let ring = null, ringScore = Infinity;
+    for (let d = 0; d < dirs; d++) {
+      const ang = d / dirs * Math.PI * 2;
+      const x = anchor.x + Math.cos(ang) * r, y = anchor.y + Math.sin(ang) * r;
+      if (opts.ground && !opts.ground(x, y)) continue;
+      for (const k of [0, 2, -2, 4, -4, 6]) {
+        const a = { ...anchor, x, y, facing: anchor.facing + k * Math.PI / 6 };
+        const sc = score(a, 1) + Math.abs(k) * 0.01;
+        if (sc < ringScore) { ring = a; ringScore = sc; }
+        if (sc < 0.1) break;
+      }
+      if (ringScore < 0.1) break;
+    }
+    if (ring && ringScore < bestScore) { best = ring; bestScore = ringScore; }
+    if (bestScore < 1) break;
   }
   return best;
 }
