@@ -1,7 +1,7 @@
 // Brug-beeld (#235): één headless Electron (wegwerpprofiel) maakt per brug drie beelden (a, b = 4 cm verschoven, c = a) op
 // vaste camerastanden (schuin op vier afstanden, op het dek op vijf plekken, onder het dek) en bij een beweegbare brug
 // een reeks tijdens het openen en sluiten. brug_beeld_analyse.mjs vergelijkt de beelden (flikkering = a-b boven de ruis a-c).
-//   node scripts/qa/brug_beeld.mjs --game-dir=<gestaged game-map> [--lijst=<json [{naam,x,y}]>] [--afstanden=25,60,150,350] [--out=<map>] [--alleen-lijst]
+//   node scripts/qa/brug_beeld.mjs --game-dir=<gestaged game-map> [--lijst=<json [{naam,x,y}]>] [--afstanden=25,60,150,350] [--out=<map>] [--alleen-lijst] [--hud] [--alleen-reeks]
 //   node scripts/qa/brug_beeld.mjs --modus=boot --lijst=<json { open: [{naam,x,y,boot}], bots: [{naam,x,y}] }> ...  (boten bij bruggen: brug_boot.page.js)
 // GDE_DESKTOP=<map> voor een desktop-map met node_modules; ELECTRON_EXE=<pad> als desktop/node_modules/electron/dist ontbreekt.
 // Neemt zelf een Electron-slot uit C:/Users/abuis/gde-locks als die map bestaat (--geen-slot slaat dat over).
@@ -29,7 +29,7 @@ const profile = `gde-test-bb-${process.pid}`;
 const script = path.join(OUT, '_page.js');
 fs.writeFileSync(script, boot
   ? `window.__bt = ${JSON.stringify({ ...bruggen, settle: Number(arg('settle', 4500)) })};\n` + fs.readFileSync(path.join(HERE, 'brug_boot.page.js'), 'utf8')
-  : `window.__bb = ${JSON.stringify({ bruggen, plekken, afstanden, alleenLijst, settle: Number(arg('settle', 4500)) })};\n` + fs.readFileSync(path.join(HERE, 'brug_beeld.page.js'), 'utf8'));
+  : `window.__bb = ${JSON.stringify({ bruggen, plekken, afstanden, alleenLijst, hud: flag('hud'), alleenReeks: flag('alleen-reeks'), settle: Number(arg('settle', 4500)) })};\n` + fs.readFileSync(path.join(HERE, 'brug_beeld.page.js'), 'utf8'));
 const electron = process.env.ELECTRON_EXE || path.join(ROOT, 'desktop', 'node_modules', 'electron', 'dist', process.platform === 'win32' ? 'electron.exe' : 'Electron');
 const env = { ...process.env, GDE_TEST_PROFILE: profile };
 if (arg('game-dir')) env.GDE_GAME_DIR = path.resolve(arg('game-dir')); // path.resolve: met schuine strepen serveert de app niets
