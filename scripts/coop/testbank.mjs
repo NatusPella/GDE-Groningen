@@ -161,6 +161,7 @@ if (code && MOCK && ROUTE === 'direct') {
     try {
       const m = await startMockGuest({ stage: STAGE, code: guestCode, wens: undefined, net: SUITE === 'net' ? { latency: 0.08, jitter: 0.03, loss: 0.05 } : {}, seed: 7 + i });
       m.input = SUITE === 'verhaal' ? volg(m) : spin(i); mocks.push(m); console.log('mockgast', i + 1, 'verbonden');
+      setTimeout(() => console.log('mockgast', i + 1, 'plek', m.session.slot, 'status', m.session.status), 8000);
     } catch (e) { problems.push('mockgast: ' + e.message); }
   }
 }
