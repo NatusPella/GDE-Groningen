@@ -83,10 +83,11 @@ Newer helpers and tests worth knowing:
 | `scripts/lib/loadworld.mjs` | The city map for tests and audits. `WORLD_SRC=json` (default) loads `citymap.json`; `WORLD_SRC=tiles` builds the same city from tiles in memory (#90). `loadworld_test.mjs` |
 | `scripts/devflags_test.mjs` | Guards the `FLAGS` register: every switch has a description and is listed here |
 | `scripts/storage_migration_test.mjs`, `save_migration_test.mjs` | Old keys and old saves keep loading; run these after adding any `gde-*` key (register it in `storagekeys.js`) |
-| `scripts/busy_test.mjs`, `activityhub_test.mjs`, `hudbus_test.mjs`, `hud_test.mjs` | The player-busy gate, the activity registry, the attention planner and the HUD rules |
+| `scripts/busy_test.mjs`, `activityhub_test.mjs`, `hudbus_test.mjs`, `hudbus_surfaces_test.mjs`, `hud_test.mjs` | The player-busy gate, the activity registry, the attention planner and the HUD rules |
 | `scripts/cutscript_test.mjs`, `actoranim_test.mjs` | The cutscene language (validator, sampler) and the actor animation layer |
 | `scripts/spatialgrid_test.mjs`, `nearest_road_test.mjs` | The shared grid and the nearest-road query |
-| `scripts/mapstyle_test.mjs`, `regions_test.mjs`, `loadlogic_test.mjs` | Map style table, regions and load-screen logic |
+| `scripts/mapstyle_test.mjs`, `regions_test.mjs`, `loadlogic_test.mjs` | Map style table (palettes, `INK`, icon colours, the zoom/layer rule; no loose colour literals in the map renderers), regions and load-screen logic |
+| `scripts/qa/kaartstijl_shots.mjs` | Minimap and full map, day and night, at fixed spots and zooms, for a before/after run on two staged games (`--game-dir=voor=<map>,na=<map> --slot`) |
 | `scripts/simlagen_test.mjs`, `simworker_test.mjs` | Simulation layers and the simulation worker kernel |
 | `scripts/padlogic_test.mjs`, `touch_test.mjs` | Controller and touch logic without hardware |
 | `scripts/akte1_doelen_test.mjs`, `reisbeats_test.mjs`, `reisaudit_test.mjs` (elke sprong >6,5 km tussen opeenvolgende stappen heeft een reisbeat), `reiskeuze_test.mjs`, `reistijd_test.mjs` | Every act-1 mission goal exists on the map; travel beats |
@@ -228,7 +229,6 @@ Debug hooks on `window` (`window.__x`, read by scripts/perf, the story test and 
 | `?cut` | Trailer: montagevariant (vol, kort, ...) |
 | `?frames` | Trailer: sla beeld voor beeld op |
 | `?video` | Trailer: neem video op (alleen desktop) |
-| `?legacymap` | Laad de oude kaart in plaats van de tegelwereld |
 | `?terrain` | Hoogtes volgen het AHN-terrein (dijken, wierden; het terrein wordt nog niet getekend) |
 | `?viaducten` | Hoogteprofielen van provinciebruggen en viaducten uit de tegels (alleen als gebouwd met --viaducts; het hoogtemodel volgt nog) |
 | `?stadlaag` | Stad per laag uit de gedeelde tegelbouw (gebouwen, wegen, water, spoor, groen, meubilair, poi, objecten, namen, of alle); #90, standaard uit |
@@ -518,7 +518,7 @@ Then the tiles (`node scripts/world/pack_tiles.mjs [--out game/world]`, about
 by the hash of its inputs). `python3 scripts/world/building_attrs.py` rewrites
 `data/world/building_attrs.json.gz` (building tags from the OSM caches) when
 the caches change. The game reads `world/` when it is there and the JSON
-files when it is not (`?legacymap` forces the JSON files). `scripts/devserver.py`
+files when it is not (stad.json alone: roads, rails and the hand-made buildings). `scripts/devserver.py`
 answers HTTP Range requests, like the desktop app and the web build.
 
 Building heights and roofs of the whole province come from 3D BAG (TU Delft

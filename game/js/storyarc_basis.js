@@ -49,6 +49,10 @@ export const MISSION_IDS = [
   'skutsje', 'traumaduif', 'fjord', 'bod', 'ontzet',
 ];
 
+// Missions of the first version of the story that the current one does not play: missions.js keeps an empty (retired)
+// slot for each, and their medal goals / prestaties are hidden unless the player already earned them (achievements.js).
+export const RETIRED_MISSIONS = ['berend', 'chaos', 'noorderzon', 'ringweg', 'rondvaart'];
+
 // Steps removed in 0.22 (the definitive script): a save that had them done
 // simply drops them (story.js applyStorySave); their purchases stay owned.
 export const RETIRED_STEPS = ['k-eierbal', 'k-wapen', 'k-bijbaan', 'r-uzi', 'r-auto', 'r-bijbaan', 'r-eierbal', 'r-bank'];

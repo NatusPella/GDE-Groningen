@@ -180,7 +180,7 @@ def read_tiff(buf):
 # --------------------------------------------------------------- main
 
 def map_tiles():
-    with open(os.path.join(ROOT, "game", "citymap.json")) as f:
+    with open(os.path.join(ROOT, "game", "stad.json")) as f:
         data = json.load(f)
     x0, y0, x1, y1 = data["meta"]["bounds"]
     i0, j0 = math.floor((x0 - GRID_X0) / TILE_M), math.floor((y0 - GRID_Y0) / TILE_M)

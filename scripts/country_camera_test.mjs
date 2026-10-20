@@ -9,8 +9,8 @@ import fs from 'node:fs';
 
 const root = new URL('../game/', import.meta.url);
 const { GameMap, applyMapExtras } = await import('../game/js/mapdata.js');
-const data = JSON.parse(fs.readFileSync(new URL('citymap.json', root)));
-applyMapExtras(data, JSON.parse(fs.readFileSync(new URL('mapextras.json', root))));
+const { loadCityData } = await import('./lib/loadworld.mjs');
+const data = await loadCityData();
 const map = new GameMap(data);
 const F = await import('../game/js/countryfield.js');
 const { ensureCountryEdge, blockPlan, pushOutOfPlan } = await import('../game/js/countryplan.js');

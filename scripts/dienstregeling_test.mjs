@@ -70,10 +70,11 @@ check('overweg buiten de lijn geeft niets', D.doorgangenOverweg(lijn, 99999, 3).
 const mid = door.find((t) => t > 9 * 3600);
 check('boom is dicht als er om 9 uur een trein komt', D.boomStand(door, mid - 3).dicht === 1);
 
-// echte lijnen uit citymap.json (4 stoplijnen; de rest komt uit de provinciedata)
-const map = JSON.parse(fs.readFileSync(new URL('../game/citymap.json', import.meta.url), 'utf8'));
+// echte lijnen uit stad.json (4 stoplijnen; de rest komt uit de provinciedata)
+const { loadStadData } = await import('./lib/loadworld.mjs');
+const map = await loadStadData();
 const echte = (map.railRoutes || []).filter((r) => r.stops && r.stops.length >= 2);
-check('citymap heeft spoorlijnen met stations', echte.length >= 1);
+check('stad.json heeft spoorlijnen met stations', echte.length >= 1);
 for (const r of echte) {
   const steden = r.stops.map((s) => s.name);
   check(`${r.name}: unieke stationsnamen en oplopende afstand`, new Set(steden).size === steden.length && r.stops.every((s, i, a) => i === 0 || s.s >= a[i - 1].s));

@@ -1,4 +1,4 @@
-// Railway simulation: shuttle trains on the routes baked into citymap.json
+// Railway simulation: shuttle trains on the routes baked into stad.json
 // (scripts/add_railways.py), level crossings that warn/close ahead of them,
 // and what happens to anything standing on the track. Rendering lives in
 // railway3d.js, which only reads the state exported here.

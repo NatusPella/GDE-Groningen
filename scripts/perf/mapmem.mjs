@@ -9,13 +9,13 @@ import { GameMap, applyMapExtras, slimWorkerMap } from '../../game/js/mapdata.js
 const GAME = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..', 'game');
 const MB = (n) => Math.round(n / 1048576 * 10) / 10;
 const heap = () => { for (let i = 0; i < 4; i++) global.gc(); return process.memoryUsage().heapUsed; };
+const { loadCityData } = await import('../lib/loadworld.mjs');
 const read = (f) => JSON.parse(fs.readFileSync(path.join(GAME, f), 'utf8'));
 
 const out = { fullMB: [], slimMB: [] };
 for (let k = 0; k < 3; k++) {
   const h0 = heap();
-  let data = read('citymap.json');
-  applyMapExtras(data, read('mapextras.json'));
+  let data = await loadCityData();
   let map = new GameMap(data);
   data = null;
   out.fullMB.push(MB(heap() - h0));

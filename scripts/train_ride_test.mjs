@@ -24,8 +24,8 @@ document.createElement = mk;
 
 const root = new URL('../game/', import.meta.url);
 const { GameMap, applyMapExtras } = await import('../game/js/mapdata.js');
-const data = JSON.parse(fs.readFileSync(new URL('citymap.json', root)));
-applyMapExtras(data, JSON.parse(fs.readFileSync(new URL('mapextras.json', root))));
+const { loadStadData } = await import('./lib/loadworld.mjs');
+const data = await loadStadData({ extras: true });
 const map = new GameMap(data);
 const F = await import('../game/js/countryfield.js');
 F.setCountryBounds(map.meta.bounds);

@@ -43,8 +43,3 @@ export function syncHaltefiguren(world, scene, bouw, dt, rng = Math.random) {
     }
   }
 }
-
-export function wisHaltefiguren(scene) {
-  for (const gr of groepen) for (const fg of gr.figuren) if (fg.mesh) scene.remove(fg.mesh);
-  groepen.length = 0;
-}

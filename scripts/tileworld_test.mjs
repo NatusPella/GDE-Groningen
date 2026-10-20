@@ -1,7 +1,7 @@
 // TileWorld and the tile streamer (game/js/tileworld.js, tilestore.js):
 //   node scripts/tileworld_test.mjs
 // 1. equivalence: the map loaded from tiles answers every GameMap query the
-//    way the map built from citymap.json does (arrays, grids, nearest road
+//    way the map built from stad.json and the OSM layers does (arrays, grids, nearest road
 //    point, escapeBuilding, isOnBridge, heights, ...)
 // 2. streaming: LRU budget, pins, cancellation, priority by heading, prefetch
 //    hysteresis, the frame queue budget, a drive and a heli flight over the
@@ -23,7 +23,7 @@ const ok = (cond, name, info = '') => { n++; if (!cond) { fails++; console.log(`
 const canon = (v) => JSON.stringify(v, (k, x) => (x && typeof x === 'object' && !Array.isArray(x) ? Object.fromEntries(Object.keys(x).filter((q) => q !== 'bounds' && !P.PROFILE_KEYS.includes(q)).sort().map((q) => [q, x[q]])) : x));
 
 const stripA = (o) => { const c = { ...o }; for (const k of P.ATTR_KEYS) delete c[k]; return c; };
-const src = P.loadSources();
+const src = await P.loadSourcesLaag();
 const legacy = src.map;
 const built = P.build(src);
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'gde-tileworld-test-'));

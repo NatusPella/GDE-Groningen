@@ -1,7 +1,7 @@
 // Real building heights and roof shapes into the map (docs/PROVINCIE-PLAN.md 0.1).
 //
 //   node scripts/world/building_heights.mjs           report the height sources
-//   node scripts/world/building_heights.mjs --write   set h, hm, hsrc and rk on game/citymap.json's buildings
+//   (--write is gone: the city's buildings come from the OSM tile build, stad.json holds the hand-made ones)
 //
 // Joins the 3D BAG extract (data/world/3dbag.json.gz, scripts/world/fetch_3dbag.py;
 // CC BY 4.0) and the OSM attributes (data/world/building_attrs.json.gz,
@@ -52,8 +52,8 @@ export function applyHeights(buildings, attrs) {
 
 async function main() {
   const args = process.argv.slice(2);
-  const file = path.join(ROOT, 'game/citymap.json');
-  const data = JSON.parse(fs.readFileSync(file, 'utf8'));
+  const { loadCityData } = await import('../lib/loadworld.mjs');
+  const data = await loadCityData({ extras: false });
   const attrs = P.loadAttrs();
   console.log(`3D BAG records: ${attrs.bag.length}; OSM attribute records: ${attrs.osm.length}`);
   const res = applyHeights(data.buildings, attrs);
@@ -64,10 +64,8 @@ async function main() {
   console.log(`built-up tiles with more than 30 % default heights: ${res.busy.length}${res.busy.length ? ': ' + res.busy.map((t) => `${t.tile} ${t.def} %`).join(', ') : ''}`);
   const tall = data.buildings.filter((b) => b.hm).sort((a, b) => b.hm - a.hm).slice(0, 6);
   console.log(`tallest: ${tall.map((b) => `${b.name || b.type} ${b.hm} m`).join(', ')}`);
-  if (args.includes('--write')) {
-    fs.writeFileSync(file, JSON.stringify(data));
-    console.log(`wrote ${path.relative(ROOT, file)}`);
-  }
+  // --write bestaat niet meer: de hoogtes van de stad komen uit de OSM-tegelbouw (pack_tiles.mjs joinAttrs)
+  if (args.includes('--write')) { console.log('--write bestaat niet meer: game/stad.json heeft alleen de handgebouwen'); process.exit(1); }
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1])) await main();
