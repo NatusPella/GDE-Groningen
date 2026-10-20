@@ -250,6 +250,35 @@ const PHASES = {
     await sleep(21000);
     log('uitval-host-na', { hold: !!document.querySelector('.coop-hold'), uiPaused: !!W().coopHold, paused: !!W().paused, roster: (W().coopRoster || []).map((r) => [r.slot, r.verbinding]) });
   },
+  // de verbinding van de gast gaat dicht (TCP weg): wachtscherm, 'Opnieuw verbinden', de code opnieuw invoeren, akkoord: zoals een speler
+  async herverbind({ wie = 'gast' }) {
+    if (CFG.name !== wie) { await sleep(28000); return; }
+    const ses = net() && net().session;
+    if (!ses) { log('herverbind-geen-sessie', {}); return; }
+    ses.link.close();
+    const hold = () => document.querySelector('.coop-hold');
+    await until(hold, 20000, 'wachtscherm na het sluiten van de verbinding');
+    log('herverbind-hold', { hold: true, paused: !!W().paused, coopHold: !!W().coopHold, status: ses.status });
+    shot('herverbind-hold');
+    const knop = (act) => hold() && hold().querySelector('[data-act="' + act + '"]');
+    await until(() => knop('hervat'), 5000, 'knop Opnieuw verbinden'); knop('hervat').click(); await sleep(400);
+    const veld = await until(() => hold().querySelector('.coop-input'), 5000, 'invoerveld voor de code');
+    log('herverbind-code', { voorgevuld: veld.value === CFG.code });
+    veld.value = CFG.code; veld.dispatchEvent(new Event('input', { bubbles: true }));
+    await until(() => knop('koppel'), 5000, 'knop koppel'); knop('koppel').click(); await sleep(400);
+    await until(() => knop('akkoord'), 5000, 'toestemming bij het opnieuw verbinden'); shot('herverbind-toestemming'); knop('akkoord').click();
+    await until(() => !hold(), 30000, 'wachtscherm sluit na het opnieuw verbinden');
+    await sleep(1500);
+    log('herverbind-klaar', { hold: !!hold(), paused: !!W().paused, status: ses.status, slot: ses.slot, coopNet: !!net() });
+    shot('herverbind-klaar');
+  },
+  async herverbindHost() {
+    if (CFG.role !== 'host') { await sleep(28000); return; }
+    await sleep(8000);
+    log('herverbind-host', { hold: !!document.querySelector('.coop-hold'), paused: !!W().paused, roster: (W().coopRoster || []).map((r) => [r.slot, r.verbinding]) });
+    await sleep(14000);
+    log('herverbind-host-na', { hold: !!document.querySelector('.coop-hold'), paused: !!W().paused, roster: (W().coopRoster || []).map((r) => [r.slot, r.verbinding]) });
+  },
   // een afwijking op één gast: de snapshot klopt niet met de hash van de host
   async desync({ s = 25, wie = 'gast' }) {
     if (CFG.name !== wie || !net() || net().role !== 'client') { await sleep(s * 1000); return; }

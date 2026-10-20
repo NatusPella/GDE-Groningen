@@ -42,8 +42,9 @@ const P = {
     [0, 'wacht', { s: 12 }], [14, 'netsim', { s: 20, wie: [SECOND] }], [38, 'desync', { s: 25, wie: 'gast' }], [78, 'loop', { s: 8 }],
     me === 'gast' ? [88, 'touch', { s: 12 }] : [88, 'kijk', { s: 12 }],   // de Electron-gast 'gast' heeft aanraakbediening (touch=1)
     me === 'host' ? [102, 'uitvalHost', { s: 8 }] : me === 'gast' ? [102, 'uitval', { s: 8, wie: 'gast' }] : [102, 'wacht', { s: 28 }],
-    [134, 'betaal', me === 'host' ? { geld: 250 } : {}], [140, 'opgeslagen', {}], [146, 'rit', { s: 30 }], [177, 'filmpje', { s: 8 }],
-    me === SECOND ? [187, 'verlaat', { wie: SECOND }] : [187, 'wacht', { s: 22 }], [214, 'stopHost', {}],
+    me === 'host' ? [134, 'herverbindHost', {}] : me === 'gast' ? [134, 'herverbind', { wie: 'gast' }] : [134, 'wacht', { s: 28 }],
+    [166, 'betaal', me === 'host' ? { geld: 250 } : {}], [172, 'opgeslagen', {}], [178, 'rit', { s: 30 }], [209, 'filmpje', { s: 8 }],
+    me === SECOND ? [219, 'verlaat', { wie: SECOND }] : [219, 'wacht', { s: 22 }], [246, 'stopHost', {}],
   ]])),
   kamer: { host: [[0, 'wacht', { s: DURATION }]], gast: [[0, 'wacht', { s: DURATION }]], gast2: [[0, 'wacht', { s: DURATION }]] },
   verhaal: Object.fromEntries(['host', 'gast', 'gast2'].map((me) => [me, [[0, 'verhaal', { s: Number(arg('verhaal-s', 1500)), until: arg('until', 'T1'), speed: Number(arg('speed', 1)) || 1 }], ...(me === 'host' ? [[0, 'stopHost', {}]] : [])]])), // de host stopt als het verhaal klaar is: de gasten lopen tot dan mee
@@ -370,6 +371,15 @@ if (SUITE === 'net') {
   check(hb && hb.ok === true && hb.saveMoney === hb.money, 'save: de host bewaart zijn eigen spel niet zoals altijd: ' + JSON.stringify(hb));
   if (gb && gb.hadSave) check(gb.ok === true && gb.saveMoney === gb.saveMoneyVoor + 250, 'save: de beloning van de gast staat niet in zijn eigen save: ' + JSON.stringify(gb));
   else note('de gast had nog geen save: de beloning blijft in het geheugen tot zijn eigen eerstvolgende save (geen verlies, geen dubbele)');
+  // de verbinding gaat dicht en de gast verbindt opnieuw via het wachtscherm (alleen met een Electron-gast)
+  if (GASTEN > 0) {
+    const hh = of(G, 'herverbind-hold')[0], hk = of(G, 'herverbind-klaar')[0], hc = of(G, 'herverbind-code')[0], hhh = of(H, 'herverbind-host')[0], hhn = of(H, 'herverbind-host-na')[0];
+    check(hh && hh.hold && hh.paused && hh.coopHold, 'herverbinden: de gast krijgt geen wachtscherm met pauze: ' + JSON.stringify(hh));
+    check(hk && !hk.hold && !hk.paused && hk.slot === 1 && ['ok', 'lag'].includes(hk.status), 'herverbinden: de gast is na "Opnieuw verbinden" niet terug op plek 1: ' + JSON.stringify(hk));
+    check(hhh && hhh.hold && hhh.paused && hhh.roster.some((r) => r[0] === 1 && r[1] === 'lost'), 'herverbinden: de host krijgt geen wachtscherm met pauze: ' + JSON.stringify(hhh));
+    check(hhn && !hhn.hold && !hhn.paused && hhn.roster.some((r) => r[0] === 1 && r[1] === 'ok'), 'herverbinden: de host speelt na het terugkomen niet door: ' + JSON.stringify(hhn));
+    note('herverbinden: code ' + (hc && hc.voorgevuld ? 'voorgevuld' : 'moest worden ingevoerd'));
+  }
   // een filmpje op de host: de gast ziet de laag, wacht, en loopt daarna weer
   const fh = of(H, 'filmpje')[0], fhn = of(H, 'filmpje-na')[0];
   check(fh && fh.ok === true, 'filmpje: de host kon geen filmpje starten: ' + JSON.stringify(fh));
