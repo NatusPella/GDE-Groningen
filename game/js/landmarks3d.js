@@ -1,5 +1,6 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-import { GeoBuilder, vcMaterial, createBrickDetailTexture, createRoofTileTexture } from './pixelart3d.js';
+import { GeoBuilder } from './pixelart3d.js';
+import { LANDMARK_MATERIALS, glassMat } from './landmarkmaterials.js';
 import { pointInPolygon, closestPointOnSegment } from './util.js';
 import { MUSEUM_ROOMS, rectCorners } from './museumplan.js';
 import { paddepoelBlock, setPaddepoelNight } from './paddepoel3d.js';
@@ -14,18 +15,7 @@ import { kitItemFromBuilding, landmarkParams, landmarkGeometry, LOD_FULL } from 
 
 const G_PLAIN = 0, G_BRICK = 1, G_GLASS = 2, G_METAL = 3, G_TILE = 4;
 
-const brickTex = createBrickDetailTexture();
-brickTex.repeat.set(2, 2);
-const tileTex = createRoofTileTexture();
-const glassMat = vcMaterial({ side: THREE.DoubleSide, roughness: 0.3, metalness: 0.25, emissive: 0xffc27a, emissiveIntensity: 0 });
-export const LANDMARK_MATERIALS = [
-  vcMaterial({ side: THREE.DoubleSide }),
-  vcMaterial({ side: THREE.DoubleSide, map: brickTex }),
-  glassMat,
-  vcMaterial({ side: THREE.DoubleSide, roughness: 0.45, metalness: 0.3 }),
-  vcMaterial({ side: THREE.DoubleSide, map: tileTex }),
-];
-for (const m of LANDMARK_MATERIALS) m.userData.shared = true;
+export { LANDMARK_MATERIALS };
 
 // Night: landmark glazing gets a faint warm glow (the lit-window shader
 // used by ordinary buildings needs per-pane UVs these models don't have).

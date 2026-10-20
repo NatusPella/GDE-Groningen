@@ -10,8 +10,8 @@ const { STEPS, NEW_MISSION_IDS, CLUES } = await import('../game/js/storyarc_nieu
 const { wgsToWorld } = await import('../game/js/rdnew.js');
 const L = await import('../game/js/searchlightlogic.js');
 const root = new URL('../game/', import.meta.url);
-const data = JSON.parse(fs.readFileSync(new URL('citymap.json', root), 'utf8'));
-applyMapExtras(data, JSON.parse(fs.readFileSync(new URL('mapextras.json', root), 'utf8')));
+const { loadStadData } = await import('./lib/loadworld.mjs');
+const data = await loadStadData({ extras: true });
 const map = new GameMap(data);
 let n = 0, fails = 0;
 const ok = (c, name, info = '') => { n++; if (!c) { fails++; console.log(`FAIL ${name}${info ? ' (' + info + ')' : ''}`); } };

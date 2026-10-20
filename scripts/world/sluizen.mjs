@@ -128,8 +128,8 @@ export function levelsFor(m) {
 if (process.argv[1] && import.meta.url.endsWith(path.basename(process.argv[1]))) {
   const P = loadProvinceVaar(worldDir());
   const plekken = JSON.parse(fs.readFileSync(new URL('game/waterplekken.json', root))).plekken;
-  // de stad staat in game/citymap.json; de gaten en verbindingen van vaarnet_fixes.json maakt de wereldbouwer water
-  const city = JSON.parse(fs.readFileSync(new URL('game/citymap.json', root))).water.map((w) => ({ ...w, lock: false }));
+  // het stadswater komt uit de OSM-tegelbouw (loadworld.mjs); de gaten en verbindingen van vaarnet_fixes.json maakt de wereldbouwer water
+  const city = (await (await import('../lib/loadworld.mjs')).loadCityData({ extras: false })).water.map((w) => ({ ...w, lock: false }));
   const list = measure(plekken, P.water.concat(city, fixWater()));
   let bad = 0;
   for (const m of list.sort((p, q) => (p.n || '').localeCompare(q.n || ''))) {
@@ -142,7 +142,7 @@ if (process.argv[1] && import.meta.url.endsWith(path.basename(process.argv[1])))
   if (process.argv.includes('--raster')) {
     // het vaarnetraster (vaarnet.mjs): liggen de twee kanten in hetzelfde waterstuk, voor klasse 2 en 3?
     const { buildRaster, components, cellOf, nearestOpenCell } = await import('./vaarnet.mjs');
-    const built = buildRaster({ worldDir: worldDir() });
+    const built = await buildRaster({ worldDir: worldDir() });
     let apart = 0;
     for (const cls of [2, 3]) {
       const comp = components(built.R, cls);

@@ -420,7 +420,7 @@ function convexHull(points) {
   return hull.length >= 3 ? hull : pts.slice(0, Math.min(3, pts.length));
 }
 
-// Exported so a Node harness can verify this pipeline against citymap.json.
+// Exported so a Node harness can verify this pipeline against the city map.
 export function sanitizeFootprint(pts) {
   const open = stripClosingDuplicate(pts);
   const deduped = dedupeInterior(open);

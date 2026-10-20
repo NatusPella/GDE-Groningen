@@ -41,9 +41,19 @@ import { inProvinceData } from './provinceworld.js';
 import { pushOutOfPlan } from './countryplan.js';
 import { vehicleDisplayName } from './vehiclenames.js';
 import {
-  getOwnedEntries, getHeroLook, spawnOwnedEntry, spawnStockVehicle, replacementFee, getShopsForRender,
-  VEHICLE_STOCK, VEHICLE_UNLOCKS, unlockMet, PAINTS, upgradeListForStock, REDELIVERY_FEE,
+  getOwnedEntries,
+  getHeroLook,
+  spawnOwnedEntry,
+  spawnStockVehicle,
+  replacementFee,
+  getShopsForRender,
+  VEHICLE_UNLOCKS,
+  unlockMet,
+  PAINTS,
+  upgradeListForStock,
+  REDELIVERY_FEE,
 } from './shops.js';
+import { VEHICLE_STOCK } from './shopdata.js';
 
 import { HERO_REPLACE_FEE } from './economy.js';
 import { getHomeForRender, getHomeMooringForRender, getHomePad, homeWhereLabel } from './home.js';

@@ -1,6 +1,6 @@
 // Vaarwegklasse (#234): binnenvaart hoort alleen op hoofdvaarwegen en havens, nooit op diepen,
 // vaarten, sloten of vijvers. Zuivere regels (waterlevels.js) plus de echte data: de wateren van
-// game/citymap.json en het vaarnet (game/vaarnet.json).
+// de stadskaart (stad.json en de OSM-lagen) en het vaarnet (game/vaarnet.json).
 //   node scripts/vaarwegklasse_test.mjs
 import fs from 'node:fs';
 import * as L from '../game/js/waterlevels.js';
@@ -26,7 +26,8 @@ ok(L.bargeWaterAt({ navigable: 4, kind: 'kanaal' }) && !L.bargeWaterAt({ navigab
 ok(V.classOfKind('sloep') < V.classOfKind('binnenvaart'), 'sloepen zijn kleinere klasse dan binnenvaart');
 
 // de echte stad: elk water waar binnenvaart mag spawnen is breed, diep en geen sloot
-const city = JSON.parse(fs.readFileSync(new URL('../game/citymap.json', import.meta.url)));
+const { loadCityData } = await import('./lib/loadworld.mjs');
+const city = await loadCityData({ extras: false });
 let eligible = 0;
 for (const w of city.water || []) {
   if (!w.pts || w.pts.length < 3) continue;

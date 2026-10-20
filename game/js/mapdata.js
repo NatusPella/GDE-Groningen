@@ -513,10 +513,10 @@ export class GameMap {
     return { x: sx, y: sy, road: first.road || null };
   }
 
-  // Open ground someone can stand on and walk away from: dry (or a bridge),
+  // Open ground someone can stand on and walk away from: dry (a bridge is dry for isInWater),
   // outside every footprint except its passages, not a closed-off courtyard.
   isOpenSpot(x, y, reach = 45) {
-    if (isInWater(this, x, y) && !this.isOnBridge(x, y)) return false;
+    if (isInWater(this, x, y)) return false;
     for (const b of this.buildingsNear(x, y, 0.5)) {
       const [minx, miny, maxx, maxy] = b.bounds;
       if (x >= minx && x <= maxx && y >= miny && y <= maxy && pointInPolygon(x, y, b.pts) && !inPassage(this, b, x, y)) return false;
@@ -596,7 +596,7 @@ export function slimWorkerMap(map) {
 
 // onProgress(0..1) reports download progress when the size is known.
 // game/mapextras.json (scripts/add_map_extras.py): data kept next to
-// citymap.json and merged here - extra footprints, per-building patches
+// stad.json and merged here - extra footprints, per-building patches
 // (heights, names, landmark models), bus-only roads and bus lanes.
 async function fetchExtras(url) {
   try {
@@ -721,7 +721,9 @@ export function applyMapExtras(data, ex) {
   }
 }
 
-export async function loadMap(url = 'map.json', onProgress = null) {
+// The map from stad.json (the hand layer, docs/ARCHITECTUUR-STAD-NAAR-TEGELS.md): without the layers the OSM tile build
+// brings (water, green, trees, buildings other than the hand-made ones), so only for a build without world/ tiles.
+export async function loadMap(url = 'stad.json', onProgress = null) {
   const extras = fetchExtras(url);
   const res = await fetch(url);
   if (!res.ok) throw new Error('failed to load map data: ' + res.status);
@@ -746,10 +748,12 @@ export async function loadMap(url = 'map.json', onProgress = null) {
     data = await res.json();
   }
   const ex = await extras;
+  for (const l of data.fromOsm || []) if (!data[l]) data[l] = [];
+  for (const k of ['format', 'fromOsm', 'tiles', 'cover']) delete data[k];
   // every map file is in the RD New world frame (rdnew.js); a file from an
   // older build would put the whole map tens of metres off
-  for (const [name, f] of [['citymap.json', data.meta && data.meta.frame], ['mapextras.json', ex ? ex.frame : 'rd-new']]) {
-    if (f !== 'rd-new') console.error(`${name} is not in the rd-new frame (scripts/world/rebase_data.py)`);
+  for (const [name, f] of [['stad.json', data.meta && data.meta.frame], ['mapextras.json', ex ? ex.frame : 'rd-new']]) {
+    if (f !== 'rd-new') console.error(`${name} is not in the rd-new frame (scripts/world/rdnew.py)`);
   }
   applyMapExtras(data, ex);
   return new GameMap(data);

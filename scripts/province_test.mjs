@@ -112,7 +112,7 @@ if (!B.haveProvince()) {
   console.log('province: no extract in data/cache/province (scripts/world/extract_province.py), real build skipped');
 } else {
   const P = await import('./world/pack_tiles.mjs');
-  const city = P.build(P.loadSources());
+  const city = P.build(await P.loadSourcesLaag());
   const cityKeys = new Set(city.blobs.keys());
   const t0 = performance.now();
   const built = B.buildProvince({ cityKeys });

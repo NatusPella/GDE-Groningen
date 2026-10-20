@@ -1564,7 +1564,7 @@ const RW = { state: 0 };
 function roadWorkerReady() {
   if (RW.state === 0 && netMap && geoWorkerActive() && typeof location !== 'undefined') {
     RW.state = 1;
-    runGeo('roadInit', { url: new URL('citymap.json', location.href).href, keys: netMap.roads.map(roadKey) }, (res) => {
+    runGeo('roadInit', { url: new URL('stad.json', location.href).href, keys: netMap.roads.map(roadKey) }, (res) => {
       RW.state = res && !res.missing ? 2 : -1;
     });
   }

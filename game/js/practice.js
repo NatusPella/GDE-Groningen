@@ -26,10 +26,6 @@ let last = null;
 let shownAt = -Infinity;
 let t = 0;
 
-export function practiceDone() {
-  try { return localStorage.getItem(KEYS.oefenronde) === '1'; } catch (e) { return false; }
-}
-
 // One-time offer (value '0' in gde-oefenronde; '1' stays 'done'): a quiet card after the first minute of play.
 const OFFER_AFTER = 60;
 let playT = 0;

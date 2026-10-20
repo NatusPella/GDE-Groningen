@@ -28,7 +28,7 @@ import { KEYS, slotKey } from './storagekeys.js';
 import { applyGuestEarnings } from './coopsave.js';
 import { getRenderer, afterNextFrame } from './scene3d.js';
 import { readSlot, writeSlotRaw, writeThumb, activeSlot, setActive, createSlot, deleteSlot, nameOf, pickActive } from './saveslots.js';
-import { registerSaveGame } from './savehook.js';
+import { registerSaveGame, registerSaveTimers } from './savehook.js';
 import { STEPS, PARTS, stepDone, stepAvailable, nextStoryStep, ARC_ID } from './storyarc.js';
 
 // Several saves (saveslots.js): slot 1 is the old single save under its old key, the version inside
@@ -502,3 +502,4 @@ export function updateSaveGame(dt, w) {
 }
 
 registerSaveGame(saveGame);
+registerSaveTimers(markDirty, saveSoon);

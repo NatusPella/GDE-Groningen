@@ -89,9 +89,10 @@ const zOf = (data, x, y) => R.railHeightAt(R.railHeightIndex(data.rails), x, y);
 
 // 4. the map
 const root = new URL('../game/', import.meta.url);
-const data = JSON.parse(fs.readFileSync(new URL('citymap.json', root)));
+const { loadStadData } = await import('./lib/loadworld.mjs');
+const data = await loadStadData();
 const rep = RP.audit(data);
-ok(rep.profiled, 'citymap rails carry a solved profile');
+ok(rep.profiled, 'stad.json rails carry a solved profile');
 ok(rep.lines.length >= 4, 'every line audited', rep.lines.map((l) => l.name).join(', '));
 ok(!rep.jumps.length, 'no jumps along any line', rep.jumps.slice(0, 3).map((q) => `${q.line} ${q.at}`).join('; '));
 ok(!rep.steep.length, 'no grade over 2.5 % on any line', rep.steep.slice(0, 3).map((q) => `${q.line} ${(q.g * 100).toFixed(1)} % ${q.at}`).join('; '));

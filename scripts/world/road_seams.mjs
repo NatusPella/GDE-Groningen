@@ -1,6 +1,6 @@
 // Seams where roads meet and where lane counts change (issue #130).
 //   node scripts/world/road_seams.mjs [--json out.json]
-// Pure functions over a roads array (game/citymap.json rows); the test
+// Pure functions over a roads array (game/stad.json rows); the test
 // (scripts/road_seams_test.mjs) runs them on made-up junctions and on the map.
 //   laneJump     two car ways meet end to end (nothing else at the node) and
 //                the lanes per direction differ: the lane lines stop dead
@@ -119,7 +119,8 @@ export function auditSeams(roads) {
 
 if (import.meta.url === new URL(process.argv[1], 'file:///').href || process.argv[1]?.endsWith('road_seams.mjs')) {
   const fs = await import('node:fs');
-  const data = JSON.parse(fs.readFileSync(new URL('../../game/citymap.json', import.meta.url)));
+  const { loadStadData } = await import('../lib/loadworld.mjs');
+  const data = await loadStadData();
   const f = auditSeams(data.roads);
   for (const [k, v] of Object.entries(f)) { console.log(k.padEnd(12), v.length); for (const q of v.slice(0, 5)) console.log('   ', JSON.stringify(q)); }
   const j = process.argv.indexOf('--json');

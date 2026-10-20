@@ -157,10 +157,25 @@ export function pointInStaticPolygon(px, py, poly) {
 }
 
 // The water polygon holding (x, y), or null: the one lookup behind waterAt,
-// isInWater, inMapWater and the waterPoly of a boat.
-export function waterPolyAt(map, x, y) {
+// isInWater, inMapWater, overOpenWater and the waterPoly of a boat (the water rule, #101).
+//   z (absolute height of whoever asks, optional): over the water on a viaduct (z > 1.5) or
+//     below it in an aqueduct (z < -3 where map.coveredAt) is dry. Without z there is no height rule.
+//   opts.bridgeDry: a bridge deck at (x, y) makes it dry (map.isOnBridge). The walker's and the
+//     car's rule; a swimmer under a bridge, a boat and the plain polygon test leave it off.
+export const BRIDGE_DRY = Object.freeze({ bridgeDry: true });
+export function waterPolyAt(map, x, y, z, opts) {
   if (!map.waterNear) return null;
-  return waterPolyIn(map.waterNear(x, y, 0.5), x, y);
+  const poly = waterPolyIn(map.waterNear(x, y, 0.5), x, y);
+  if (!poly) return null;
+  if (z < -3 && map.coveredAt && map.coveredAt(x, y)) return null;
+  if (z > 1.5) return null;
+  if (opts && opts.bridgeDry && map.isOnBridge && map.isOnBridge(x, y)) return null;
+  return poly;
+}
+// Is there water within r of (x, y), in the map's water grid (cells, not an exact distance): a gull,
+// a police boat or a pigeon looks for water round the player; not "is this point wet" (waterAt).
+export function waterNearby(map, x, y, r) {
+  return !!map.waterNear && map.waterNear(x, y, r).length > 0;
 }
 // the same test over a list got once (a road's whole run: mapdata.js markDryRoad)
 export function waterPolyIn(polys, x, y) {
@@ -429,36 +444,40 @@ export const passesUnder = (air, clear) => clear >= air + 0.05;
 
 // --------------------------------------------------------------- the query
 
-// The one water query for boats, swimmers, the heli and walkers:
-//   waterAt(map, x, y) -> null on dry land, else
-//   { level, depth, body, kind, navigable, wade, lock, covered, clearanceAbove }
-// covered: the water runs under a roof or road here (an aqueduct): a walker above it is dry
-// clearanceAbove: free height to a bridge deck over (x, y) (Infinity when
-// none).
-
-export function waterAt(map, x, y) {
-  const poly = waterPolyAt(map, x, y);
-  if (poly) {
-    const kind = poly.kind || 'diep';
-    const K = WATER_KINDS[kind] || WATER_KINDS.diep;
-    const level = poly.lv ?? BOEZEM_Y, depth = poly.dp ?? K.depth;
-    return {
-      level, depth, body: poly.body ?? -1, kind, navigable: poly.nav ?? K.nav, wade: depth <= WADE_MAX, lock: !!poly.lock,
-      covered: !!(map.coveredAt && map.coveredAt(x, y)),
-      clearanceAbove: clearanceOver(map, x, y, level),
-    };
-  }
-  return null;
+// The one water query for boats, swimmers, the heli, walkers and vehicles (#101):
+//   waterAt(map, x, y, z?, opts?) -> null on dry land, else
+//   { level, depth, kind, covered, ...: body, navigable, wade, lock, clearanceAbove }
+// level: the peil (m relative to street level); depth: below it; kind: WATER_KINDS;
+// covered: the water runs under a roof or road here (an aqueduct): a walker above it is dry;
+// clearanceAbove: free height to a bridge deck over (x, y) (Infinity when none).
+// The rule is waterPolyAt's, which gives the polygon itself (z and opts.bridgeDry, see there); the
+// other question a caller has is an option, not a second finder:
+//   opts.bridgeDry  a bridge deck over the water makes it dry (walkers, cars; isInWater is this)
+//   opts.shallow    only water a vehicle drives through: wadeable, with a peil of its own above the
+//                   boezem's (a polder ditch, the shallows of a lake), and dry under a bridge deck
+//                   (shallowWater is this)
+// Plain waterAt(map, x, y) is the water as it lies: a swimmer under a bridge is in it, a boat sails it.
+export function waterAt(map, x, y, z, opts) {
+  const shallow = !!(opts && opts.shallow);
+  const poly = waterPolyAt(map, x, y, z, shallow ? BRIDGE_DRY : opts);
+  if (!poly) return null;
+  const kind = poly.kind || 'diep';
+  const K = WATER_KINDS[kind] || WATER_KINDS.diep;
+  const level = poly.lv ?? BOEZEM_Y, depth = poly.dp ?? K.depth;
+  const wade = depth <= WADE_MAX;
+  if (shallow && (!wade || level <= BOEZEM_Y)) return null;
+  return {
+    level, depth, body: poly.body ?? -1, kind, navigable: poly.nav ?? K.nav, wade, lock: !!poly.lock,
+    covered: !!(map.coveredAt && map.coveredAt(x, y)),
+    clearanceAbove: clearanceOver(map, x, y, level),
+  };
 }
 
 // Water a vehicle drives through: waded depth and a peil of its own above the
 // boezem's (a polder ditch, a shallow of a lake). Deep water sinks it (vehicle.js
 // overOpenWater); on a bridge it is dry. null elsewhere.
-export function shallowWater(map, x, y) {
-  const w = waterAt(map, x, y);
-  if (!w || !w.wade || w.level <= BOEZEM_Y || (map.isOnBridge && map.isOnBridge(x, y))) return null;
-  return w;
-}
+const SHALLOW = Object.freeze({ shallow: true });
+export const shallowWater = (map, x, y) => waterAt(map, x, y, undefined, SHALLOW);
 
 // free height from the level to the nearest bridge deck over (x, y)
 export function clearanceOver(map, x, y, level = BOEZEM_Y) {

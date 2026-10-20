@@ -233,15 +233,6 @@ function endPatrol(v) {
   v.model.maxSpeed = v._baseTop;
 }
 
-// Devtools helper: a unit on the nearest path 15-30 m away, in plain view.
-export function spawnPoliceMountNear(world, kind = 'bike', patrol = false) {
-  const rp = findMountSpawn(world, 15, 30, false, patrol ? PATROL_CATS : MOUNT_ROAD_CATS);
-  if (!rp) return null;
-  const v = spawnMount(world, rp, kind);
-  if (patrol) makePatrol(v, world, patrolZoneAt(v.x, v.y) || PATROL_ZONES[0]);
-  return v;
-}
-
 // --- crew out / back in ------------------------------------------------------
 
 function freeSpot(map, x, y) {

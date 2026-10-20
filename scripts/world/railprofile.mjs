@@ -1,6 +1,6 @@
 // Track height solver and line audit (docs/PROVINCIE-PLAN.md 2.11, "Spoor").
 //
-//   node scripts/world/railprofile.mjs            audit game/citymap.json
+//   node scripts/world/railprofile.mjs            audit game/stad.json
 //   node scripts/world/railprofile.mjs --solve    solve, audit the result (dry run)
 //   node scripts/world/railprofile.mjs --write    solve and write rail.z (+ densified pts)
 //   node scripts/world/railprofile.mjs --strict   exit 1 when the audit finds a problem
@@ -580,8 +580,8 @@ export function printAudit(rep, limit = 8) {
 
 async function main() {
   const args = process.argv.slice(2);
-  const file = path.join(ROOT, 'game/citymap.json');
-  const data = JSON.parse(fs.readFileSync(file, 'utf8'));
+  const { loadCityData } = await import('../lib/loadworld.mjs');
+  const data = await loadCityData({ extras: false });
   if (args.includes('--solve') || args.includes('--write')) {
     console.log('before:');
     printAudit(audit(data), 4);
@@ -604,7 +604,8 @@ async function main() {
       for (const q of [...worst.values()].slice(0, 12)) console.log(`  at (${q.x}, ${q.y}): ${q.z.toFixed(2)} of ${q.need.toFixed(2)} m`);
     }
     if (args.includes('--write')) {
-      fs.writeFileSync(file, JSON.stringify(data));
+      const { writeStadFrom } = await import('./stad_file.mjs');
+      const file = writeStadFrom(data, ['rails', 'railPlatforms']);
       console.log(`wrote ${path.relative(ROOT, file)}`);
     }
     console.log('after:');
@@ -614,4 +615,4 @@ async function main() {
   if (args.includes('--strict') && problems(rep)) process.exit(1);
 }
 
-if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1])) await main();
+if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1])) main().catch((e) => { console.error(e); process.exit(1); }); // niet awaiten: loadworld.mjs laadt build_province.mjs, dat dit bestand weer importeert (een lus met top-level await blijft hangen)

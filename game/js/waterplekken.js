@@ -281,5 +281,3 @@ export function auditPlekken(plekken, ruw = {}, budgetResult = null) {
   }
   return rows;
 }
-
-export const WATERPLEK_TYPES_LIJST = Object.keys(PLEK_TYPES);
