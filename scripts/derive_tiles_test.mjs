@@ -4,7 +4,7 @@
 // a footprint inside another of the same height steps up 0.4 m, a footway
 // through a solid block ends at its facade; and the result is deterministic.
 import assert from 'node:assert/strict';
-import { deriveFeatures, trimWaterways, slideOutOfWater, cutDitches, ribbon, DITCH } from './world/derive_tiles.mjs';
+import { deriveFeatures, trimWaterways, slideOutOfWater, FAR_SLIDE, cutDitches, ribbon, DITCH } from './world/derive_tiles.mjs';
 
 const rect = (x, y, w, h) => [[x, y], [x + w, y], [x + w, y + h], [x, y + h], [x, y]];
 const bld = (pts, o = {}) => ({ kind: 'buildings', row: { pts, h: 2, type: 'house', name: null, ...o } });
@@ -68,6 +68,14 @@ assert.equal(slideOutOfWater(sl), 1, 'one footprint slid');
 assert.ok(onBank.row.pts.every(([, y]) => y <= 300.01 || y >= 399.99 || Math.abs(y - 300) < 0.01 || y < 300.5), 'it stands on the bank');
 assert.ok(Math.max(...onBank.row.pts.map((p) => p[1])) <= 300.01 || Math.min(...onBank.row.pts.map((p) => p[1])) >= 399.99, 'wholly on dry land');
 assert.equal(farOut.row.pts[0][1], 340, 'one 40 m out stays where it is');
+// 12-20 m in: too far for the first pass (12 m), found by the far pass (25 m) (#297)
+{
+  const lake = { kind: 'water', row: { pts: rect(0, 500, 100, 100) } };
+  const inner = bld(rect(40, 512, 10, 8)); // 12 to 20 m in from the north shore (y 500)
+  assert.equal(slideOutOfWater([lake, inner]), 0, 'the first pass leaves one that is 20 m in');
+  assert.equal(slideOutOfWater([lake, inner], FAR_SLIDE), 1, 'the far pass slides it');
+  assert.ok(Math.max(...inner.row.pts.map((p) => p[1])) <= 500.05, 'onto dry land');
+}
 assert.equal(floats.row.pts[0][1], 310, 'the houseboat floats on');
 assert.equal(pier.row.pts[0][1], 297, 'the landing stage stays');
 // the real ditches against the track, roads and other water (#124)

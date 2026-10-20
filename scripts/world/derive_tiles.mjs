@@ -44,12 +44,13 @@ const inRing = (x, y, P) => {
 };
 
 const MAX_SLIDE = 12;
+export const FAR_SLIDE = 25; // the second pass for the few that are further in (#297)
 
 
 // Footprints in the water slid the shortest way onto dry land (12 m at most, steps of 0.5 m
 // over 16 directions), clear of other footprints; none is dropped. Houseboats and landmarks stay.
 // -> the number moved
-export function slideOutOfWater(feats) {
+export function slideOutOfWater(feats, maxSlide = MAX_SLIDE) {
   const water = feats.filter((f) => f.kind === 'water').map((f) => f.row);
   const blds = feats.filter((f) => f.kind === 'buildings').map((f) => f.row);
   if (!water.length || !blds.length) return 0;
@@ -63,14 +64,14 @@ export function slideOutOfWater(feats) {
     if (b.type === 'houseboat' || b.landmark || b.landmarkKind || b.landmarkPart || b.helipad || b.parts || landingStage(b.pts)) continue;
     if (wetFraction(b.pts, wet) < WET_FRAC) continue;
     const q = boundsOf(b);
-    const others = grid.query(q[0] - MAX_SLIDE, q[1] - MAX_SLIDE, q[2] + MAX_SLIDE, q[3] + MAX_SLIDE).filter((o) => o !== b);
+    const others = grid.query(q[0] - maxSlide, q[1] - maxSlide, q[2] + maxSlide, q[3] + maxSlide).filter((o) => o !== b);
     const clear = (ox, oy) => !others.some((o) => {
       const ob = boundsOf(o);
       if (ob[0] > q[2] + ox || ob[2] < q[0] + ox || ob[1] > q[3] + oy || ob[3] < q[1] + oy) return false;
       return b.pts.some(([x, y]) => inRing(x + ox, y + oy, o.pts)) || o.pts.some(([x, y]) => inRing(x - ox, y - oy, b.pts));
     });
     let best = null;
-    for (let d = 0.5; d <= MAX_SLIDE && !best; d += 0.5) {
+    for (let d = 0.5; d <= maxSlide && !best; d += 0.5) {
       for (let a = 0; a < 16 && !best; a++) {
         const ox = Math.cos((a * Math.PI) / 8) * d, oy = Math.sin((a * Math.PI) / 8) * d;
         const P = b.pts.map(([x, y]) => [Math.round((x + ox) * 100) / 100, Math.round((y + oy) * 100) / 100]);
@@ -268,7 +269,7 @@ export function deriveFeatures(feats, { clear = true, clip = true } = {}) {
   stats.trimmed = trimWaterways(feats);
   Object.assign(stats, { ditchCut: 0, ditchJoined: 0, ditchDropped: 0 });
   { const c = cutDitches(feats); stats.ditchCut = c.cut; stats.ditchJoined = c.joined; stats.ditchDropped = c.dropped; }
-  stats.afloat = slideOutOfWater(feats);
+  stats.afloat = slideOutOfWater(feats) + slideOutOfWater(feats, FAR_SLIDE);
   if (clear && buildings.length && roads.length) {
     const was = buildings.map((b) => b.pts);
     clearFootprints({ roads, buildings });
