@@ -23,12 +23,14 @@ onSettingsChange((st) => {
 const VERTEX_SHADER = `
 attribute float aEdge;
 attribute vec2 aFlow;
+attribute float aFacade;
 uniform float uTime;
 uniform float uWave;
 
 varying vec3 vWorldPos;
 varying float vEdge;
 varying vec2 vFlow;
+varying float vFacade;
 
 #include <fog_pars_vertex>
 
@@ -49,6 +51,7 @@ void main() {
   vWorldPos = worldPosition.xyz;
   vEdge = aEdge;
   vFlow = aFlow;
+  vFacade = aFacade;
   vec4 mvPosition = viewMatrix * worldPosition;
   gl_Position = projectionMatrix * mvPosition;
   #include <fog_vertex>
@@ -77,6 +80,7 @@ uniform float uNight;
 varying vec3 vWorldPos;
 varying float vEdge;
 varying vec2 vFlow;
+varying float vFacade;
 
 #include <fog_pars_fragment>
 
@@ -114,6 +118,7 @@ void main() {
   float bin = floor(th * 38.0);
   float roof = 0.1 + 0.16 * hash2(vec2(bin, 1.3));
   float fac = 1.0 - smoothstep(roof - 0.015, roof + 0.015, ry);
+  fac *= vFacade; // the quay houses mirror only where there are quays: a walled canal, not a lake, a river or the open sea (#231)
   vec3 facade = uFacadeColor * (0.55 + 0.45 * hash2(vec2(bin, 8.1))) * uLight;
   sky = mix(sky, facade, fac * 0.85);
 
@@ -318,6 +323,13 @@ function jitterHash(x, y) {
 // Sutherland-Hodgman box clips - robust for the Diepenring's slit ring).
 // shoreFix(x, y, d): optional correction of the distance to shore, for water
 // that carries on past the polygon (the map edge).
+// How much the quay houses of the fake skyline mirror in a polygon: a province polygon says whether its shore is a quay
+// ('kade') or a natural bank ('oever'); the city's and the fixes' (no bank) are canals, except lakes and the open sea
+export function facadeOf(poly) {
+  if (poly.bank !== undefined) return poly.bank === 'kade' ? 1 : 0;
+  return poly.kind === 'zee' || poly.kind === 'meer' ? 0 : 1;
+}
+
 export function buildWaterGeometry(poly, index, shoreFix = null) {
   const src = [];
   for (const [x, y] of poly.pts) src.push(x, y);
@@ -405,6 +417,7 @@ export function buildWaterGeometry(poly, index, shoreFix = null) {
   geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
   geo.setAttribute('aEdge', new THREE.BufferAttribute(edge, 1));
   geo.setAttribute('aFlow', new THREE.BufferAttribute(flow, 2));
+  geo.setAttribute('aFacade', new THREE.BufferAttribute(new Float32Array(nv).fill(facadeOf(poly)), 1));
   geo.setIndex(new THREE.BufferAttribute(new Uint32Array(idx), 1));
   geo.computeBoundingSphere();
   return geo;
