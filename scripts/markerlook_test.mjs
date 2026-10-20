@@ -31,5 +31,9 @@ ok(M.glyphPulse(-1) === 1 && M.glyphPulse(1) <= 1.07, 'glyph breathes by at most
 
 ok(!M.showLabel(14) && M.showLabel(15), 'label from 14 m');
 ok(M.labelText(42.4) === '42 m' && M.labelText(347) === '350 m' && M.labelText(1500) === '1,5 km', 'label text');
+// by day a normally blended, darker, more opaque column (the additive one vanished on the sky)
+ok(M.columnNormalBlend({ night: 0, rain: 0 }) && !M.columnNormalBlend({ night: 1 }) && !M.columnNormalBlend({ night: 0, rain: 1 }), 'normal blend by day, additive at night and in heavy rain');
+ok(M.dayColumnOpacity(0) === 0.5 && M.dayColumnOpacity(1e6) === 0.8 && M.dayColumnOpacity(120) > M.dayColumnOpacity(60), 'day column 0.5..0.8, stronger far off');
+ok(M.DAY_COLUMN_DARKEN > 0.5 && M.DAY_COLUMN_DARKEN < 1, 'day column slightly darker');
 console.log(`${n - fails}/${n} markerlook`);
 process.exit(fails ? 1 : 0);
