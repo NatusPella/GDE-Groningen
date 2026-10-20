@@ -170,8 +170,8 @@ export class TileWorld extends GameMap {
   }
 
   // the maps draw the flat water too
-  queryView(minx, miny, maxx, maxy) {
-    const v = super.queryView(minx, miny, maxx, maxy);
+  queryView(minx, miny, maxx, maxy, withTrees = true) {
+    const v = super.queryView(minx, miny, maxx, maxy, withTrees);
     if (this.flatWaterGrid) v.water = v.water.concat(this.flatWaterGrid.query(minx, miny, maxx, maxy));
     return v;
   }

@@ -2312,18 +2312,15 @@ function drawMinimap(dt, world) {
   const province = provinceMapOn();
   if (province) drawSea(ctx, (n) => n / mmScale, seaStyle(MINI_STYLE));
 
-  const view = world.map.queryView(
-    player.x - MM_RADIUS_M, player.y - MM_RADIUS_M,
-    player.x + MM_RADIUS_M, player.y + MM_RADIUS_M
-  );
+  const view = minimapView(world.map, player.x - MM_RADIUS_M, player.y - MM_RADIUS_M, player.x + MM_RADIUS_M, player.y + MM_RADIUS_M);
 
   if (edgeDistance(player.x, player.y) < 0) drawNeighbourhoodBorders(ctx, dt, world, player, MM_RADIUS_M);
 
   ctx.fillStyle = MINI_STYLE.park;
-  for (const g of view.green) fillPoly(ctx, g.pts);
+  fillPolys(ctx, view.green);
 
   ctx.fillStyle = MINI_STYLE.water;
-  for (const w of view.water) fillPoly(ctx, w.pts);
+  fillPolys(ctx, view.water);
 
   const emph = mode.emph;
   const landAlpha = 1 - dimLand;
@@ -2361,10 +2358,7 @@ function drawMinimap(dt, world) {
   drawTrainsOnMap(ctx);
 
   const MM_BUILDING_COLORS = MINI_STYLE.buildings;
-  for (const b of view.buildings) {
-    ctx.fillStyle = b.landmark ? MINI_STYLE.church : MM_BUILDING_COLORS[Math.floor(mmHash(b.pts[0][0], b.pts[0][1]) * MM_BUILDING_COLORS.length)];
-    fillPoly(ctx, b.pts);
-  }
+  fillBuildings(ctx, view.buildings, MM_BUILDING_COLORS);
   ctx.globalAlpha = 1;
   // outside the province darker, with its land borders
   if (province) drawOutside(ctx, [player.x - MM_RADIUS_M, player.y - MM_RADIUS_M, player.x + MM_RADIUS_M, player.y + MM_RADIUS_M], (n) => n / mmScale, { tint: 'rgba(6, 12, 9, 0.34)', width: 2.6 });
@@ -2579,13 +2573,60 @@ function makeNorthGlyph(dpr) {
   return { c, dpr, font: !!(document.fonts && document.fonts.check('bold 10px "Bebas Neue"')) };
 }
 
-function fillPoly(ctx, pts) {
-  ctx.beginPath();
+// The map behind the minimap: the grids are asked for 25% more than the view needs and the answer is kept for
+// 0.4 s (the view moves a few metres in that time), cut to the view by the bounds each time: at the zoomed-out
+// scales of a train, a heli or the A7 a query was ~15% of the minimap's time. Trees are not drawn.
+let mmViewCache = null;
+const MM_VIEW_MARGIN = 0.25, MM_VIEW_KEEP_MS = 400;
+const inView = (it, x0, y0, x1, y1) => { const b = it.bounds; return !b || !(b[2] < x0 || b[0] > x1 || b[3] < y0 || b[1] > y1); };
+function minimapView(map, x0, y0, x1, y1) {
+  const now = performance.now(), c = mmViewCache;
+  if (!(c && c.map === map && now - c.at < MM_VIEW_KEEP_MS && x0 >= c.x0 && y0 >= c.y0 && x1 <= c.x1 && y1 <= c.y1)) {
+    const mx = (x1 - x0) * MM_VIEW_MARGIN, my = (y1 - y0) * MM_VIEW_MARGIN;
+    mmViewCache = { map, at: now, x0: x0 - mx, y0: y0 - my, x1: x1 + mx, y1: y1 + my, view: map.queryView(x0 - mx, y0 - my, x1 + mx, y1 + my, false) };
+    const v = mmViewCache.view;
+    return { roads: v.roads.filter((it) => inView(it, x0, y0, x1, y1)), buildings: v.buildings.filter((it) => inView(it, x0, y0, x1, y1)), water: v.water.filter((it) => inView(it, x0, y0, x1, y1)), green: v.green.filter((it) => inView(it, x0, y0, x1, y1)), trees: [] };
+  }
+  const v = c.view;
+  return { roads: v.roads.filter((it) => inView(it, x0, y0, x1, y1)), buildings: v.buildings.filter((it) => inView(it, x0, y0, x1, y1)), water: v.water.filter((it) => inView(it, x0, y0, x1, y1)), green: v.green.filter((it) => inView(it, x0, y0, x1, y1)), trees: [] };
+}
+
+// Polygons of one colour as one path per winding direction (nonzero fill: two overlapping polygons that wind
+// the other way would cancel each other out in one path), instead of a path, a fill and a fillStyle each.
+const polyWinding = (o) => {
+  if (o._mmw === undefined) { let a = 0; const p = o.pts; for (let i = 0; i < p.length - 1; i++) a += p[i][0] * p[i + 1][1] - p[i + 1][0] * p[i][1]; o._mmw = a < 0 ? 1 : 0; }
+  return o._mmw;
+};
+// no closePath: a fill closes its subpaths itself, and in a path of thousands of subpaths every closePath is slow (~1 ms each in Chromium's canvas)
+function addPoly(ctx, pts) {
   ctx.moveTo(pts[0][0], pts[0][1]);
   for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i][0], pts[i][1]);
-  ctx.closePath();
-  ctx.fill();
 }
+function fillPolys(ctx, list) {
+  for (let w = 0; w < 2; w++) {
+    let any = false;
+    ctx.beginPath();
+    for (const o of list) if (o.pts.length >= 2 && polyWinding(o) === w) { addPoly(ctx, o.pts); any = true; }
+    if (any) ctx.fill();
+  }
+}
+function fillBuildings(ctx, list, colors) {
+  const n = colors.length + 1; // the last colour index is the church (a landmark)
+  const buckets = [];
+  for (let i = 0; i < n * 2; i++) buckets.push([]);
+  for (const b of list) {
+    if (b._mmc === undefined) b._mmc = b.landmark ? n - 1 : Math.floor(mmHash(b.pts[0][0], b.pts[0][1]) * colors.length);
+    buckets[b._mmc * 2 + polyWinding(b)].push(b.pts);
+  }
+  for (let i = 0; i < buckets.length; i++) {
+    if (!buckets[i].length) continue;
+    ctx.fillStyle = (i >> 1) === n - 1 ? MINI_STYLE.church : colors[i >> 1];
+    ctx.beginPath();
+    for (const pts of buckets[i]) addPoly(ctx, pts);
+    ctx.fill();
+  }
+}
+
 
 function mmHash(x, y) {
   const h = Math.sin(x * 91.3 + y * 197.1) * 27183.6;
