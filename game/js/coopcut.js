@@ -34,6 +34,7 @@ export const cutEinde = (id, overgeslagen) => ({ k: 'cutend', id, skip: !!overge
 // elke kwart seconde zijn tijd in de scène en schuift de gast mee (cutGastTempo): iedereen ziet dezelfde regel op hetzelfde moment.
 export const CUT_TIK = 0.25;       // seconden tussen twee tijdberichten
 export const CUT_SPRONG = 1;        // verder uit de pas dan dit (s): de gast springt naar de tijd van de gastheer (een zwaar eerste beeld kost anders seconden)
+export const CUT_EXTRA = 0.35;      // hoeveel de gast de tijd van de gastheer doortelt sinds zijn laatste bericht (s): een gastheer die haperen heeft, telt zelf niet door
 export const CUT_ACHTER = 0.25;    // de gast mikt iets achter de gastheer: eindigt hij toch eerder, dan zie je even de wereld tussen twee scènes
 export const cutTijd = (id, t, stil) => ({ k: 'cuttijd', id, t: Math.round(t * 100) / 100, p: stil ? 1 : 0 });
 export function leesCutTijd(b) {
@@ -45,10 +46,10 @@ export function leesCutTijd(b) {
 export function cutGastTempo(host, t, nu, delay = 0) {
   if (!host) return { rate: 1 };
   if (host.stil) return { rate: 0 }; // de gastheer staat in zijn pauzemenu: de scène staat stil
-  const hostNu = host.t + Math.max(0, (nu - host.at) / 1000) + delay - CUT_ACHTER;
+  const hostNu = host.t + Math.min(CUT_EXTRA, Math.max(0, (nu - host.at) / 1000)) + delay - CUT_ACHTER;
   const verschil = hostNu - t;
   if (Math.abs(verschil) > CUT_SPRONG) return { zet: hostNu };
-  return { rate: Math.max(0.6, Math.min(1.6, 1 + verschil * 1.5)) };
+  return { rate: Math.max(0, Math.min(1.6, 1 + verschil * 1.5)) }; // verder dan 0,67 s voor: even stilstaan tot de gastheer er is
 }
 
 export function leesCutPakket(p, id) {

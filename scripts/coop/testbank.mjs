@@ -49,7 +49,7 @@ const P = {
   ]])),
   kamer: { host: [[0, 'wacht', { s: DURATION }]], gast: [[0, 'wacht', { s: DURATION }]], gast2: [[0, 'wacht', { s: DURATION }]] },
   verhaal: Object.fromEntries(['host', 'gast', 'gast2'].map((me) => [me, [[0, 'verhaal', { s: Number(arg('verhaal-s', 1500)), until: arg('until', 'T1'), speed: Number(arg('speed', 1)) || 1 }], ...(me === 'host' ? [[0, 'stopHost', {}]] : [])]])), // de host stopt als het verhaal klaar is: de gasten lopen tot dan mee
-  opening: flag('host-save') ? Object.fromEntries(['host', 'gast', 'gast2'].map((me) => [me, [[0, 'wacht', { s: 8 }], [9, 'betaal', me === 'host' ? { geld: 250 } : {}], [16, 'opgeslagen', {}], [20, 'wacht', { s: 3 }], ...(me === 'host' ? [[24, 'stopHost', {}]] : [])]])) : Object.fromEntries(['host', 'gast', 'gast2'].map((me) => [me, [[0, 'opening', { s: Number(arg('opening-s', 170)), skip: flag('skip') }], ...(me === 'host' ? [[0, 'stopHost', {}]] : [])]])), // nieuw spel samen: het hek, de opening, overslaan (alleen de gastheer)
+  opening: flag('host-save') ? Object.fromEntries(['host', 'gast', 'gast2'].map((me) => [me, [[0, 'wacht', { s: 8 }], [9, 'betaal', me === 'host' ? { geld: 250 } : {}], [16, 'opgeslagen', {}], [20, 'wacht', { s: 3 }], ...(me === 'host' ? [[24, 'stopHost', {}]] : [])]])) : Object.fromEntries(['host', 'gast', 'gast2'].map((me) => [me, [[0, 'opening', { s: Number(arg('opening-s', 400)), skip: flag('skip') }], ...(me === 'host' ? [[0, 'stopHost', {}]] : [])]])), // nieuw spel samen: het hek, de opening, overslaan (alleen de gastheer)
   touch: { host: [[0, 'kijk', { s: 16 }]], gast: [[0, 'touch', { s: 12 }]], gast2: [[0, 'wacht', { s: 16 }]] },
 }[SUITE];
 if (!P) { console.error('onbekende suite: ' + SUITE); process.exit(2); }

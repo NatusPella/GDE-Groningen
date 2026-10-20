@@ -87,8 +87,8 @@ for (const [i, act] of acts.entries()) {
   const h = { t: 10, stil: false, at: 1000 };
   ok(cutGastTempo(h, 9.75, 1000).rate === 1, 'gelijk (de gast mikt een kwart seconde achter de gastheer): gewone snelheid');
   ok(cutGastTempo(h, 9.2, 1000).rate > 1.1 && cutGastTempo(h, 9.2, 1000).rate <= 1.6, 'achter: sneller');
-  ok(cutGastTempo(h, 10.3, 1000).rate < 0.9 && cutGastTempo(h, 10.3, 1000).rate >= 0.6, 'voor: langzamer');
-  ok(cutGastTempo(h, 10.75, 2000).rate === 1, 'de tijd van de gastheer loopt door sinds het bericht');
+  ok(cutGastTempo(h, 10.3, 1000).rate < 0.9 && cutGastTempo(h, 10.3, 1000).rate > 0 && cutGastTempo(h, 10.6, 1000).rate === 0, 'voor: langzamer, ver voor: stil');
+  ok(cutGastTempo(h, 9.95, 1200).rate === 1 && cutGastTempo(h, 10.1, 6000).rate === 1 && cutGastTempo(h, 10.1, 60000).rate === 1, 'de tijd van de gastheer loopt maximaal 0,35 s door sinds zijn bericht (een gastheer die hapert, telt zelf niet door)');
   ok(cutGastTempo(h, 8.5, 1000).zet === 9.75 && cutGastTempo(h, 5, 1000).zet === 9.75 && cutGastTempo(h, 16, 1000).zet === 9.75, 'te ver uit elkaar: een sprong');
   ok(cutGastTempo({ ...h, stil: true }, 10, 5000).rate === 0 && cutGastTempo(null, 3, 0).rate === 1, 'de gastheer staat stil / geen bericht');
   ok(cutGastTempo(h, 9.9, 1000, 0.05).rate > cutGastTempo(h, 9.9, 1000, 0).rate, 'reistijd van het bericht telt mee');
