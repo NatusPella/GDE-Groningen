@@ -43,7 +43,7 @@ if (!heeftWereld()) { console.log('treeclear_test: ok (alleen de kleine kaart; g
 const city = (await laadStadTegels()).world;
 assert.ok(city.treeClearStats.moved > 100 && city.treeClearStats.moved < 1500, 'verschoven: ' + city.treeClearStats.moved);
 assert.ok(city.treeClearStats.removed < 200, 'verwijderd: ' + city.treeClearStats.removed);
-let bad = 0, n = 0;
+let bad = 0, narrow = 0, n = 0;
 const seen = new Set();
 for (const arr of city.treeGrid.map.values()) {
   for (const t of arr) {
@@ -57,9 +57,12 @@ for (const arr of city.treeGrid.map.values()) {
         const u = Math.max(0, Math.min(1, ((t[0] - a[0]) * dx + (t[1] - a[1]) * dy) / L2));
         d = Math.min(d, Math.hypot(a[0] + dx * u - t[0], a[1] + dy * u - t[1]));
       }
-      if (d - r.width / 2 < TREE_KERB - 0.15) { bad++; break; }
+      // (een boom naast de weg waar geen berm voor is, zoals in een smalle middenberm, blijft staan: die telt als 'smal')
+      if (d - r.width / 2 < 0.05) { bad++; break; }
+      if (d - r.width / 2 < TREE_KERB - 0.15) { narrow++; break; }
     }
   }
 }
-assert.equal(bad, 0, `${bad} van ${n} bomen staan nog op of tegen een rijbaan`);
-console.log(`treeclear_test: ok (${n} bomen in de stad, ${city.treeClearStats.moved} naast de weg gezet, ${city.treeClearStats.removed} verwijderd, geen boom meer op de rijbaan)`);
+assert.equal(bad, 0, `${bad} van ${n} bomen staan nog op een rijbaan`);
+assert.ok(narrow < n * 0.002, `${narrow} bomen staan tegen een rijbaan zonder dat er een berm voor is`);
+console.log(`treeclear_test: ok (${n} bomen in de stad, ${city.treeClearStats.moved} naast de weg gezet, ${city.treeClearStats.removed} verwijderd, geen boom meer op de rijbaan, ${narrow} in een smalle berm)`);

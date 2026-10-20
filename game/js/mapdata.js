@@ -159,6 +159,9 @@ export class GameMap {
     markDryCrossings(this);
     this.elev = buildElevation(this);
     this.trees = this.trees.filter((t) => !onCarriageway(this, t[0], t[1]) && !this.offStreetLevel(t[0], t[1]));
+    // (and one on the kerb or close to the carriageway is set beside the road, or goes: treeclear.js, #324; the same as fromParts does for tiles of an older build)
+    this.treeClearStats = { moved: 0, removed: 0 };
+    this.trees = clearTreesFromRoads(this, this.trees, this.treeClearStats);
 
     this.treeGrid = new SpatialGrid(CELL * 2);
     for (const t of this.trees) {
