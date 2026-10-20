@@ -232,6 +232,13 @@ for (const J of CFG.jobs) {
         for (let k = 0; k < 16; k++) { const a = (k / 16) * Math.PI * 2; let run = 0; for (let d = 10; d <= 600; d += 10) { if (!WL.waterAt(map, f.x + Math.cos(a) * d, f.y + Math.sin(a) * d)) break; run = d; } if (run > best.run) best = { run, a }; }
         teleport(f.x, f.y); hold = { x: f.x, y: f.y, a: best.a }; await sleep(SETTLE * 0.6);
         rec.water = { at: [Math.round(f.x), Math.round(f.y)], kind: f.wa.kind, level: f.wa.level, open: best.run };
+        // alle vlakken recht onder een punt boven het water (twee watervlakken op bijna dezelfde hoogte = dubbel water, #231)
+        const downAt = (x, y) => {
+          const ray = new THREE.Raycaster(new THREE.Vector3(x, 400, y), new THREE.Vector3(0, -1, 0), 0, 800);
+          return ray.intersectObject(sc.scene, true).filter((h) => h.object.visible).slice(0, 8).map((h) => { const o = h.object, chain = []; for (let q = o; q && chain.length < 3; q = q.parent) chain.push(q.name || q.type); const m = Array.isArray(o.material) ? o.material[0] : o.material; return { y: +h.point.y.toFixed(2), chain: chain.join('<'), mat: m && (m.name || m.type), verts: o.geometry && o.geometry.attributes.position && o.geometry.attributes.position.count }; });
+        };
+        rec.down = [];
+        for (const [dx, dy] of [[0, 0], [8, 0], [0, 8], [-8, 0], [0, -8]]) rec.down.push({ dx, dy, hits: downAt(f.x + dx, f.y + dy) });
         const lv = f.wa.level, ca = Math.cos(best.a), sa = Math.sin(best.a);
         await poseShot(J.name + '-a', { position: { x: f.x - ca * 25, y: f.y - sa * 25, z: lv + 9 }, lookAt: { x: f.x + ca * 160, y: f.y + sa * 160, z: lv }, cut: true });
         await poseShot(J.name + '-b', { position: { x: f.x - Math.cos(best.a + 1.57) * 45, y: f.y - Math.sin(best.a + 1.57) * 45, z: lv + 22 }, lookAt: { x: f.x, y: f.y, z: lv }, cut: true });
