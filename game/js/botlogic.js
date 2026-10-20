@@ -195,6 +195,14 @@ export function decide(s, mem = {}) {
   // on a bike or scooter the board stage's vehicle (a tractor, a quad) is another one: get off first, and pick a motor vehicle over the bike just left
   const light = (k) => k === 'fiets' || k === 'scooter';
   // in some other vehicle at a 'board' stage (a bike, or last mission's car): get out, then take the one that is standing there
+  // the marker is a vehicle (the tractor of the mission) and the bot sits in another one: out of it, then into the right one
+  if (t.vehicle && !(veh && veh.plane) && (mem.boardTries || 0) < 4) {
+    if (veh) { if ((veh.speed || 0) < 3) { mem.boardTries = (mem.boardTries || 0) + 1; return { type: 'press', key: 'e', why: 'uitstappen' }; } }
+    else {
+      const v = (s.nearby && s.nearby.vehicles || []).find((c) => Math.hypot(c.x - t.x, c.y - t.y) < 1.5);
+      if (v) return { type: 'enter', vehicle: v };
+    }
+  }
   if (veh && !veh.plane && (stage === 'board' || stage === 'plane') && (mem.boardTries || 0) < 4) {
     const other = (s.nearby && s.nearby.vehicles || []).find((c) => c.free && c.distance < 40 && (stage === 'plane' ? c.kind === 'vliegtuig' : c.drivable && (light(veh.kind) ? !light(c.kind) : true)));
     if (other && (veh.speed || 0) < 3) { mem.boardTries = (mem.boardTries || 0) + 1; return { type: 'press', key: 'e', why: 'uitstappen' }; }

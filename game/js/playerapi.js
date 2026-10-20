@@ -79,7 +79,9 @@ export function initPlayerApi(world, input) {
       if (g) { t = { x: g.x, y: g.y, name: g.name }; source = 'doel'; }
     }
     if (!t) return null;
-    return { x: r1(t.x), y: r1(t.y), z: t.z ?? null, name: t.name || '', source, distance: r1(Math.hypot(t.x - x, t.y - y)) };
+    // the marker is a vehicle the player is not in (a mission that wants its own tractor, bike or boat back)
+    const mv = source === 'missie' && (world.vehicles || []).find((q) => Math.hypot(q.x - t.x, q.y - t.y) < 0.6);
+    return { x: r1(t.x), y: r1(t.y), z: t.z ?? null, name: t.name || '', source, distance: r1(Math.hypot(t.x - x, t.y - y)), ...(mv && player.inVehicle !== mv ? { vehicle: true } : {}) };
   }
 
   function status() {
