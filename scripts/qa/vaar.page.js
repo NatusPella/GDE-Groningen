@@ -130,9 +130,15 @@ try {
     // eerst naar het punt (de tegels stromen binnen), dan pas kijken of het nat is
     holdPos = { x: a[0], y: a[1] }; await sleep(3500);
     // tiles stream in slowly on a busy machine: wait until the point is wet, at most 60 s, before calling it dry
-    for (let t = 0; t < 30 && !wetAt(a[0], a[1]); t++) await sleep(2000);
+    for (let t = 0; t < (window.__va.wait || 30) && !wetAt(a[0], a[1]); t++) await sleep(2000);
     holdPos = null;
-    if (!wetAt(a[0], a[1])) { results.checkpoints.push({ n: m, op: [Math.round(a[0]), Math.round(a[1])], fout: 'punt op de route is niet nat' }); continue; }
+    if (!wetAt(a[0], a[1])) {
+      // how far is the nearest water? a few metres: the route node sits just beside the polygon; far: the route runs over land
+      let near = null;
+      for (let r = 4; r <= 120 && near === null; r += 4) for (let k = 0; k < 12 && near === null; k++) { const t = k * Math.PI / 6; if (wetAt(a[0] + Math.cos(t) * r, a[1] + Math.sin(t) * r)) near = r; }
+      results.checkpoints.push({ n: m, op: [Math.round(a[0]), Math.round(a[1])], fout: 'punt op de route is niet nat', dichtstbijzijndWater: near, opGrond: map.groundHeightAt ? Math.round(map.groundHeightAt(a[0], a[1], 0) * 10) / 10 : null, wegenBij: map.roadsNear ? map.roadsNear(a[0], a[1], 40).length : null });
+      continue;
+    }
     placeBoat(a[0], a[1], Math.atan2(b[1] - a[1], b[0] - a[0]));
     await sleep(600);
     const r = await sail(b[0], b[1], LEG);
