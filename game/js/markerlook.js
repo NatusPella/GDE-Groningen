@@ -24,6 +24,12 @@ export function glowBoost({ night = 0, rain = 0 } = {}) {
 const farBoost = (d) => 1 + 0.5 * clamp((d - 60) / 240, 0, 1);
 
 export const COLUMN_MIN = 0.22, COLUMN_MAX = 0.8;
+// By day an additive column all but vanishes on the bright sky (the 120 m shot of #115): from the
+// day side of dusk the column is drawn normally, a little darker than the marker colour, and gets
+// more opaque the further away it is. night: 0..1.
+export const columnNormalBlend = (env = {}) => (env.night || 0) < 0.4 && (env.rain || 0) < 0.6;
+export const DAY_COLUMN_DARKEN = 0.78;
+export const dayColumnOpacity = (d) => clamp(0.5 + 0.3 * clamp((d - 40) / 260, 0, 1), 0.5, 0.8);
 // breath: -1..1 from the slow pulse
 export function columnOpacity(breath, d, env) {
   return clamp((0.3 + 0.07 * breath) * farBoost(d) * glowBoost(env), COLUMN_MIN, COLUMN_MAX);

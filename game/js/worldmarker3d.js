@@ -10,7 +10,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { markerColors } from './a11y.js';
 import { FLAGS } from './devflags.js';
-import { iconScale, iconLift, columnWidth, columnHeight, columnOpacity, discOpacity, glyphPulse, showLabel, labelText } from './markerlook.js';
+import { iconScale, iconLift, columnWidth, columnHeight, columnOpacity, discOpacity, glyphPulse, showLabel, labelText, columnNormalBlend, DAY_COLUMN_DARKEN, dayColumnOpacity } from './markerlook.js';
 
 const MARKER_SOLID = FLAGS.marker === 'vorm';
 
@@ -206,6 +206,14 @@ export function updateWorldMarker3D(group, time) {
     ic.scale.setScalar(glyphPulse(br));
     wm.column.material.opacity = columnOpacity(br, d, markerEnv);
     wm.disc.material.opacity = discOpacity(br, markerEnv);
+    // by day: a normally blended, darker column that stays visible on the bright sky (#115)
+    const day = columnNormalBlend(markerEnv);
+    const want = day ? THREE.NormalBlending : THREE.AdditiveBlending;
+    if (wm.column.material.blending !== want) { wm.column.material.blending = want; wm.column.material.needsUpdate = true; }
+    if (day) {
+      wm.column.material.color.multiplyScalar(DAY_COLUMN_DARKEN);
+      wm.column.material.opacity = dayColumnOpacity(d) * (0.9 + 0.1 * br);
+    }
   }
   wm.label.visible = showLabel(d);
   if (wm.label.visible) {
