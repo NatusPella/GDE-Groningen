@@ -9,6 +9,6 @@ assert.equal(chaseWaitMax(50, { parked: 60 }), CHASE_WAIT_MAX, 'al binnen de rin
 // M07: start 750 m van de tankwagen, ring 60 m: genoeg tijd voor 690 m rijden
 const w = chaseWaitMax(750, { parked: 60 });
 assert.ok(w > CHASE_WAIT_MAX + 30 && w < 80, `wachttijd M07 ${w}`);
-assert.ok(690 / (w - CHASE_WAIT_MAX) <= 20, 'rij-eis blijft onder 20 m/s');
+assert.ok(690 / (w - CHASE_WAIT_MAX) <= 12, 'rij-eis blijft onder 12 m/s');
 console.log('chasewait_test: 5 checks ok');
 process.exit(0);
