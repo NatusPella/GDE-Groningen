@@ -19,5 +19,7 @@ for (const id of ['coop_uur', 'reuzenrad_1', 'varen_5', 'reizen_25', 'kart_5', '
 ok(iconName({ id: 'x', cat: 'rijden', hidden: true }) === 'vraag', 'verborgen = vraagteken');
 ok(iconSvg({ id: 'coop_uur', cat: 'sociaal' }).includes('<path'), 'svg');
 for (const m of src.matchAll(/id: '(?:coop|reuzenrad|varen)[a-z0-9_]*'[^}]*desc: '([^']*)'/g)) ok(!/[A-Z]{3,}\b(?!-)/.test(m[1].replace(/NS|UMCG/g, '')), 'tekst: ' + m[1]);
+// het overzicht geeft de categorie mee, anders valt elk pictogram terug op de trofee (#191)
+ok(/id: a\.id, cat: a\.cat,/.test(src), 'getAchievementView geeft cat mee aan de pictogrammen');
 console.log(fails ? `${fails} mislukt` : 'prestatiedefinities ok');
 process.exit(fails ? 1 : 0);

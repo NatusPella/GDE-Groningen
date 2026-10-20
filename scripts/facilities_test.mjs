@@ -91,6 +91,8 @@ const sites = [...Fac.reachableFacilities('medical'), ...Fac.reachableFacilities
 let cars = 0;
 const t0 = performance.now();
 for (const s of sites) {
+  // the game streams the tiles round the arrival in; the placement reads them
+  await map.prefetchPoints([[s.x, s.y]], { radius: 300 });
   const plan = respawnArrival(world, s);
   const p = plan.player;
   const why = spotProblem(map, { x: p.x, y: p.y, mode: 'walk' });

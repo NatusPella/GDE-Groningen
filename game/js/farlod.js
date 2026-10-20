@@ -1,5 +1,6 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { buildingLodStyle } from './models3d_buildings.js';
+import { perfOff } from './devflags.js';
 
 // Far LOD layer: plain extruded buildings and flat ground (green, paths,
 // roads) merged per TILE x TILE metre tile, one draw call per tile and layer.
@@ -240,6 +241,7 @@ export function createFarLOD(scene, map, opts) {
   const tintCache = new Map();
 
   const tiles = new Map();
+  let tilesVersion = 0, lastPass = null, passFrame = 0; // idle-pass bookkeeping of update()
   const tileOf = (x, y) => {
     const i = Math.floor(x / TILE), j = Math.floor(y / TILE);
     const key = i + ',' + j;
@@ -247,6 +249,7 @@ export function createFarLOD(scene, map, opts) {
     if (!t) {
       t = { key, x0: i * TILE, y0: j * TILE, x1: (i + 1) * TILE, y1: (j + 1) * TILE, buildings: [], segs: [], green: [], meshes: null, job: null };
       tiles.set(key, t);
+      tilesVersion++;
     }
     return t;
   };
@@ -347,12 +350,19 @@ export function createFarLOD(scene, map, opts) {
     return Math.hypot(dx, dy);
   }
 
+  // A pass that left nothing queued is repeated after the focus moved a metre, a setting changed, a tile came or
+  // went, or FAR_IDLE_FRAMES frames: the pass walks every tile of the world with a hypot each and sorts the queue.
+  const FAR_IDLE_FRAMES = 30;
   function update(px, py, viewDist, visibleDist, detailR) {
     shared.uLodPlayer.value.set(px, py);
     shared.uLodDetailR.value = detailR;
     shared.uLodInnerR.value = detailR - 8;
     const on = viewDist > detailR + 20;
     if (on !== enabled) { enabled = on; root.visible = on; }
+    passFrame++;
+    if (lastPass && !queue.length && !perfOff('verresync') && passFrame - lastPass.frame < FAR_IDLE_FRAMES && Math.abs(px - lastPass.x) < 1 && Math.abs(py - lastPass.y) < 1
+      && lastPass.view === viewDist && lastPass.visible === visibleDist && lastPass.detail === detailR && lastPass.version === tilesVersion) return;
+    lastPass = null;
     stats.tiles = stats.visible = stats.triangles = 0;
     if (!on) {
       for (const t of tiles.values()) if (t.meshes || t.job) disposeTile(t);
@@ -380,6 +390,7 @@ export function createFarLOD(scene, map, opts) {
     }
     for (let i = queue.length - 1; i >= 0; i--) if (!queue[i].job) queue.splice(i, 1);
     queue.sort((a, b) => a.dist - b.dist);
+    const hadQueue = queue.length > 0;
     const t0 = performance.now();
     const deadline = t0 + BUDGET_MS;
     while (queue.length && performance.now() < deadline) {
@@ -387,6 +398,8 @@ export function createFarLOD(scene, map, opts) {
     }
     stats.queued = queue.length;
     stats.lastBuildMs = performance.now() - t0;
+    // a pass that built something shows the new meshes with the next one
+    if (!hadQueue) lastPass = { frame: passFrame, x: px, y: py, view: viewDist, visible: visibleDist, detail: detailR, version: tilesVersion };
   }
 
   // A streamed tile (tileworld.js onTiles: the province's and the
@@ -401,12 +414,14 @@ export function createFarLOD(scene, map, opts) {
     for (const g of green) if (g.bounds && g.pts.length >= 3) t.green.push(g);
     if (colors.greenRank) t.green.sort((x, y) => colors.greenRank(x) - colors.greenRank(y));
     tiles.set(k, t);
+    tilesVersion++;
   }
   function dropStreamTile(key) {
     const t = tiles.get('s:' + key);
     if (!t) return;
     disposeTile(t);
     tiles.delete(t.key);
+    tilesVersion++;
   }
 
   function setNight(glow, litFrac) {

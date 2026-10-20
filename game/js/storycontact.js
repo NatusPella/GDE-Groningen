@@ -94,18 +94,18 @@ body.hide-minimap #hud .sc-phone { max-height: calc(100vh / var(--ui, 1) - var(-
 #hud .sc-livebar, #sc-live .sc-livebar { display: flex; align-items: center; gap: 6px; padding: 7px 9px; font-size: 12px; }
 #hud .sc-dot, #sc-live .sc-dot { background: #e0262f; color: #fff; font-weight: bold; border-radius: 4px; padding: 1px 5px; letter-spacing: 1px; }
 #hud .sc-livecanvas { width: 100%; height: 170px; image-rendering: pixelated; display: block; }
-#hud .sc-chat, #sc-live .sc-chat { font-size: 11px; line-height: 1.35; padding: 4px 9px; color: rgba(255,255,255,.85); height: 44px; overflow: hidden; }
+#hud .sc-chat, #sc-live .sc-chat { font-size: 12px; line-height: 1.35; padding: 4px 9px; color: rgba(255,255,255,.85); height: 48px; overflow: hidden; }
 #hud .sc-chat b, #sc-live .sc-chat b { color: #3fc97a; margin-right: 4px; }
 #hud .sc-post { padding: 8px; }
 #hud .sc-posthead { display: flex; align-items: center; gap: 7px; font-size: 13px; }
 #hud .sc-posthead canvas { width: 28px; height: 28px; border-radius: 50%; image-rendering: pixelated; }
 #hud .sc-postimg { width: 100%; height: 150px; border-radius: 10px; margin-top: 7px; image-rendering: pixelated; display: block; }
-#hud .sc-likes { font-size: 11px; color: rgba(255,255,255,.55); margin-top: 4px; }
+#hud .sc-likes { font-size: 12px; color: rgba(255,255,255,.55); margin-top: 4px; }
 #sc-card { position: fixed; left: 50%; top: 44%; z-index: 14; width: min(420px, 82vw); transform: translate(-50%, -40%) rotate(-3deg); opacity: 0;
   transition: transform .45s ease, opacity .35s ease; pointer-events: none; background: #f6efdc; color: #2b2418; border-radius: 4px;
   padding: 22px 26px 18px; box-shadow: 0 18px 40px rgba(0,0,0,.55); font-family: 'Segoe Print', 'Bradley Hand', 'Comic Sans MS', cursive; }
 #sc-card.show { opacity: 1; transform: translate(-50%, -50%) rotate(-2deg); }
-#sc-card .sc-cardkick { font-family: 'Arial Narrow', Arial, sans-serif; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: #8a6f3c; }
+#sc-card .sc-cardkick { font-family: 'Arial Narrow', Arial, sans-serif; font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: #8a6f3c; }
 #sc-card .sc-cardtext { font-size: 21px; line-height: 1.35; margin-top: 8px; }
 #sc-card .nl-sub { color: #6d5d44; font-family: 'Arial Narrow', Arial, sans-serif; }
 #sc-card .sc-sign { text-align: right; margin-top: 10px; font-size: 18px; }
@@ -192,7 +192,7 @@ function renderPhone(c) {
     body = `<div class="sc-livebar"><span class="sc-dot">LIVE</span><b>${esc(c.handle || 'JelleWâld')}</b><span style="margin-left:auto">&#128065; ${(c.viewers || 1953).toLocaleString('nl-NL')}</span></div>` +
       '<canvas class="sc-livecanvas"></canvas><div class="sc-chat"></div><div class="sc-bubble"></div>';
   } else if (c.via === 'post') {
-    body = `<div class="sc-post"><div class="sc-posthead"><canvas></canvas><b>${esc(c.handle || 'JelleWâld')}</b><span style="margin-left:auto;color:#3fc97a;font-size:11px">KIEKDOAR</span></div>` +
+    body = `<div class="sc-post"><div class="sc-posthead"><canvas></canvas><b>${esc(c.handle || 'JelleWâld')}</b><span style="margin-left:auto;color:#3fc97a;font-size:12px">KIEKDOAR</span></div>` +
       `<canvas class="sc-postimg"></canvas><div class="sc-likes">&#9829; ${esc(c.likes || '4.012')} · ${esc(c.caption || 'video')}</div></div><div class="sc-bubble"></div>`;
   } else if (c.via === 'radio') {
     body = `<div class="sc-head"><div class="sc-state">Radio Nachtstreek · live</div><canvas class="sc-portrait"></canvas><div class="sc-name">${esc(c.caller ? 'Bel Rikus' : 'Nachtstreek')}</div>` +
