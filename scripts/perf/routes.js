@@ -717,6 +717,25 @@ results.routes.vspots = await safe('vspots', async () => {
   }
   return { names };
 });
+// is anything that shows cut? (only with PERF_ONLY=verify): scene3d.js verifyCull looks at every actor and group that sat out the main pass with an exact box
+// against the camera's frustum, and at every group kept out of the shadow pass for a caster; turns on the spot and walks a little at a few places, counting the misses
+results.routes.verify = await safe('verify', async () => {
+  if (!ONLY.includes('verify')) return null;
+  const V = window.__perfVerify = { actors: 0, groups: 0, shadow: 0, checked: 0, shadowChecked: 0, frames: 0, bad: [] };
+  const spots = [['markt', FOOT[0][0], FOOT[0][1]], ['straat', FOOT[3][0], FOOT[3][1]], ['kanaal', FOOT[4][0], FOOT[4][1]], ['winsum', ...placeAt('Winsum')], ['hoogezand', ...placeAt('Hoogezand')]];
+  const perSpot = [];
+  for (const [name, x, y] of spots) {
+    teleport(x, y); await sleep(window.__perfSettle || 10000); fixWorld();
+    const before = { actors: V.actors, groups: V.groups, shadow: V.shadow, checked: V.checked };
+    const t0 = performance.now();
+    mover = (now) => { const t = (now - t0) / 1000; w.camYaw = t * 0.52; p.angle = w.camYaw; if (t > 12) { p.x += Math.cos(p.angle) * 0.05; p.y += Math.sin(p.angle) * 0.05; } };
+    await new Promise((res) => { const f = () => { V.frames++; if (performance.now() - t0 > 18000) res(); else requestAnimationFrame(f); }; requestAnimationFrame(f); });
+    mover = null;
+    perSpot.push({ spot: name, actors: V.actors - before.actors, groups: V.groups - before.groups, shadow: V.shadow - before.shadow, checked: V.checked - before.checked });
+  }
+  window.__perfVerify = undefined;
+  return { total: { actors: V.actors, groups: V.groups, shadow: V.shadow, checked: V.checked, shadowChecked: V.shadowChecked, frames: V.frames }, perSpot, bad: V.bad };
+});
 // picture check inside one run (only with PERF_ONLY=beeld): the world stands still (uiPaused: no time, nothing moves), and at each spot the
 // canvas is read back with the perfoff steps on, off and on again: on-against-on is the noise (it should be 0), on-against-off the change.
 // PERF_BEELD_OFF='actoren+schaduw+...' names the steps that go off. Prints the share of pixels differing more than 8 in a channel, per spot.

@@ -1340,7 +1340,10 @@ function hookShadowPass(shadowMap) {
       const ud = c.userData;
       // an actor: its casters follow the distance (castNear), so that is looked at every pass
       if (ud.shadowCasters !== undefined) { if (ud.castNear === false) { c.visible = false; shadowHidden.push(c); } continue; }
-      if (c === terrainMesh || (groups && !groupCastsShadow(c))) { c.visible = false; shadowHidden.push(c); }
+      if (c === terrainMesh || (groups && !groupCastsShadow(c))) {
+        if (window.__perfVerify && c !== terrainMesh) { window.__perfVerify.shadowChecked++; if (nodeCasts(c)) { window.__perfVerify.shadow++; if (window.__perfVerify.bad.length < 12) window.__perfVerify.bad.push(['schaduwgroep', c.name || c.type, Math.round(c.position.x), Math.round(c.position.z)]); } }
+        c.visible = false; shadowHidden.push(c);
+      }
     }
     try { run(lights, sc, camera); } finally {
       for (let i = 0; i < shadowHidden.length; i++) shadowHidden[i].visible = true;
@@ -2944,6 +2947,25 @@ function cullOffscreenActors() {
   cullActorCache(pedMeshes, reach);
   cullActorCache(wildlifeMeshes, reach);
   if (!perfOff('groepen')) cullOffscreenGroups();
+  if (window.__perfVerify) verifyCull();
+}
+// window.__perfVerify = { actors, groups, shadow, checked: 0, bad: [] } (route verify): what was cut is looked at again with an exact box
+function verifyCull() {
+  const V = window.__perfVerify;
+  if (!V) return;
+  const sphere = new THREE.Sphere();
+  for (const m of culledActors) {
+    V.checked++;
+    _cullBox.setFromObject(m);
+    // an exact box against the camera's frustum, with no margin: nothing that shows may be cut
+    if (_cullFrustum.intersectsBox(_cullBox)) { V.actors++; if (V.bad.length < 12) V.bad.push(['actor', m.name || m.type, Math.round(m.position.x), Math.round(m.position.z)]); }
+  }
+  for (const g of culledGroups) {
+    V.checked++;
+    _cullBox.setFromObject(g);
+    if (_cullFrustum.intersectsBox(_cullBox)) { V.groups++; if (V.bad.length < 12) V.bad.push(['group', g.name || g.type, Math.round(g.position.x), Math.round(g.position.z)]); }
+  }
+  void sphere;
 }
 function restoreCulledActors() {
   for (let i = 0; i < culledActors.length; i++) culledActors[i].visible = true;
