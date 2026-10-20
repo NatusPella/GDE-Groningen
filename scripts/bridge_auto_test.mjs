@@ -151,5 +151,13 @@ step(70, () => {
 ok(passedAt !== null && reopens === 0, `a boat lying still beyond the bridge after passing does not call it back (${reopens})`);
 ok(closedAt !== null && closedAt < MB.AUTO.MIN_OPEN_S + 3, `the bridge starts to close within seconds of the boat being through, not after the patience (${closedAt && closedAt.toFixed(1)} s)`);
 
+// 11. a boat that keeps nosing at the bridge (never lies still, never gets through) cannot hold it open for ever (#235)
+b = mkBridge(); MB.resetMovableBridges();
+const nose = boat('skutsje', -30, 0.8);
+world.vehicles = [nose];
+let maxOpen = 0, openFor = 0;
+for (let t = 0; t < 300; t += 0.1) { nose.y = -30 + Math.sin(t) * 2; MB.updateMovableBridges(0.1, world); if (b.state === 'open') { openFor += 0.1; maxOpen = Math.max(maxOpen, openFor); } else openFor = 0; }
+ok(maxOpen <= MB.AUTO.MAX_OPEN_S + 1, `the bridge never stays open longer than the cap (${maxOpen.toFixed(0)} s)`);
+
 console.log(fails ? `${fails} of ${n} FAILED` : `${n} automatic bridge checks passed`);
 process.exit(fails ? 1 : 0);
