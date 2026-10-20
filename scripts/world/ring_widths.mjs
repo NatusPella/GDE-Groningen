@@ -10,7 +10,8 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const FILE = path.join(ROOT, 'game/js/ringroute.js');
-const data = JSON.parse(fs.readFileSync(path.join(ROOT, 'game/citymap.json'), 'utf8'));
+const { loadCityData } = await import('../lib/loadworld.mjs');
+const data = await loadCityData({ extras: false });
 const CAR = new Set(['major', 'normal', 'minor']);
 const G = 40, grid = new Map();
 for (const r of data.roads) {

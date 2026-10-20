@@ -37,7 +37,8 @@ check('texts are bubble-length', texts.every((t) => t.length > 1 && t.length < 2
 check('no winter in the text', !/sneeuw|winter|ijs\b/i.test(texts.join(' ')));
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const map = JSON.parse(fs.readFileSync(path.join(here, '../game/citymap.json'), 'utf8'));
+const { loadCityData } = await import('./lib/loadworld.mjs');
+const map = await loadCityData({ extras: false });
 const ex = JSON.parse(fs.readFileSync(path.join(here, '../game/mapextras.json'), 'utf8'));
 const names = new Set([...map.buildings.map((b) => b.name), ...(ex.buildingPatches || []).map((p) => p.set && p.set.name)].filter(Boolean));
 for (const id of K.KEUZE_IDS) check(`${K.KEUZE_JOBS[id].building} exists on the city map`, names.has(K.KEUZE_JOBS[id].building));

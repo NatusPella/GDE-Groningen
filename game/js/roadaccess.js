@@ -2,7 +2,7 @@
 // adapt to the travel mode (zoom, what is emphasised, "niet voor jou"), so
 // both ask here. Pure: scripts/hud_test.mjs checks the table.
 //
-// Access comes from the OSM highway type the map keeps (citymap.json has no
+// Access comes from the OSM highway type the map keeps (stad.json has no
 // access tags yet): walkers and cyclists stay off the trunk roads (the ring,
 // autowegen), cars off footways, cycleways, pedestrian streets and steps,
 // cyclists off footways and steps. Real access tags (foot/bicycle/

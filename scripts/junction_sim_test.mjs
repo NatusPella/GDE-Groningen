@@ -32,8 +32,8 @@ let n = 0, fails = 0;
 const ok = (cond, name, info = '') => { n++; if (!cond) { fails++; console.log(`FAIL ${name}${info ? ' (' + info + ')' : ''}`); } else if (verbose) console.log(`ok   ${name}${info ? ' (' + info + ')' : ''}`); };
 
 const root = new URL('../game/', import.meta.url);
-const data = JSON.parse(fs.readFileSync(new URL('citymap.json', root)));
-applyMapExtras(data, JSON.parse(fs.readFileSync(new URL('mapextras.json', root))));
+const { loadCityData } = await import('./lib/loadworld.mjs');
+const data = await loadCityData();
 const map = new GameMap(data);
 
 // --- 1. the model

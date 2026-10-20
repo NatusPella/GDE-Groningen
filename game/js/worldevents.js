@@ -8,7 +8,7 @@ import { isInsideBuilding, pushAudioEvent } from './pedgeom.js';
 import { spawnFxPuff, spawnFxSpark } from './fx3d.js';
 import { today, isToday } from './calendarday.js';
 import { isCinematicActive } from './cinematics.js';
-import { isMissionActive } from './missions.js';
+import { isMissionActive } from './missionquery.js';
 import { isActivityActive } from './activities.js';
 import { inHomeFlat } from './home.js';
 import { GROTE_MARKT } from './flavour.js';

@@ -135,9 +135,9 @@ const bld = (pts, o = {}) => ({ pts, type: 'house', ...o });
 
 // --- the city map
 {
-  const f = new URL('../game/citymap.json', import.meta.url);
-  if (fs.existsSync(f)) {
-    const city = JSON.parse(fs.readFileSync(f, 'utf8'));
+  {
+    const { loadCityData } = await import('./lib/loadworld.mjs');
+    const city = await loadCityData({ extras: false });
     const F = await import('./world/furniture.mjs');
     const placed = [];
     for (const t of F.generateAll(city)) {
@@ -150,7 +150,7 @@ const bld = (pts, o = {}) => ({ pts, type: 'house', ...o });
     const rep = A.auditPlacement({ buildings: city.buildings, roads: city.roads, water: city.water, rails: city.rails, placed });
     assert.equal(rep.placed.over.length, 0, `no placed fence or hedge over a way or water (${JSON.stringify(rep.placed.over.slice(0, 3))})`);
     assert.ok(rep.buildingsInWater.length <= A.THRESHOLDS.city, `buildings in water within the baseline (${rep.buildingsInWater.length})`);
-  } else console.log('SKIP the city map is not there');
+  }
 }
 // --- green outlines in open water and the countryside's props, on the built province tiles
 {

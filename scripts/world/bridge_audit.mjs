@@ -1,6 +1,6 @@
 // Brugaudit (#235, #9): per brug de dekhoogte tegen de weg aan beide kanten,
 // helling, einden in het water, dubbele bruggen en z-fighting-kandidaten.
-// Puur op de kaartdata (game/citymap.json, of een ander bestand als argument).
+// Puur op de kaartdata (game/stad.json, of een ander bestand als argument).
 //
 //   node scripts/world/bridge_audit.mjs [kaart.json] [--list] [--strict]
 //
@@ -222,8 +222,9 @@ export function printAudit(res, list = false) {
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  const file = process.argv.slice(2).find((a) => !a.startsWith('--')) || path.join(ROOT, 'game/citymap.json');
-  const res = auditBridges(JSON.parse(fs.readFileSync(file, 'utf8')));
+  const file = process.argv.slice(2).find((a) => !a.startsWith('--'));
+  const data = file ? JSON.parse(fs.readFileSync(file, 'utf8')) : await (await import('../lib/loadworld.mjs')).loadStadData();
+  const res = auditBridges(data);
   printAudit(res, process.argv.includes('--list'));
   if (process.argv.includes('--strict') && (res.findings.step.length || res.findings.steep.length || res.findings.duplicate.length)) process.exit(1);
 }

@@ -80,7 +80,8 @@ ok(rows[0] >= 0 && rows.slice(0, 6).every((r) => r === rows[0]) && rows[6] === -
 
 // the map
 const root = new URL('../game/', import.meta.url);
-const data = JSON.parse(fs.readFileSync(new URL('citymap.json', root)));
+const { loadCityData } = await import('./lib/loadworld.mjs');
+const data = await loadCityData({ extras: false });
 ok(data.trees.every((t) => t.length === 5 && GR.SPECIES[t[2]] && t[3] > 30), 'every tree has a species and a height');
 const filled = data.trees.filter((t) => t[4] & GR.TREE_FLAG.fill).length;
 ok(filled > 5000, 'woods filled', filled);
