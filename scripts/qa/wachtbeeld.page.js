@@ -217,6 +217,28 @@ for (const J of CFG.jobs) {
       const cx = Math.cos(s.a), cy = Math.sin(s.a), base = gh(s.x, s.y);
       await poseShot(J.name + '-eind-hoog', { position: { x: s.x - cx * 30, y: s.y - cy * 30, z: base + 30 }, lookAt: { x: s.x, y: s.y, z: base }, cut: true });
       await capture(J.name + '-eind-straat');
+    } else if (J.kind === 'water') {
+      // het dichtstbijzijnde diepe water rond (x, y): drie standen over het water (dubbele waterlaag, #231)
+      hold = null; env.fix = true; fixWorld();
+      teleport(J.x, J.y); hold = { x: J.x, y: J.y }; await sleep(SETTLE * 0.6);
+      let f = null;
+      for (let r = 0; r <= (J.R || 1500) && !f; r += 25) {
+        const n = r === 0 ? 1 : Math.max(8, Math.round(r / 12));
+        for (let k = 0; k < n && !f; k++) { const t = (k / n) * Math.PI * 2, x = J.x + Math.cos(t) * r, y = J.y + Math.sin(t) * r; const wa = WL.waterAt(map, x, y); if (wa && wa.depth > 0.8) f = { x, y, wa }; }
+      }
+      if (!f) { rec.fout = 'geen water binnen ' + (J.R || 1500) + ' m'; }
+      else {
+        let best = { run: -1, a: 0 };
+        for (let k = 0; k < 16; k++) { const a = (k / 16) * Math.PI * 2; let run = 0; for (let d = 10; d <= 600; d += 10) { if (!WL.waterAt(map, f.x + Math.cos(a) * d, f.y + Math.sin(a) * d)) break; run = d; } if (run > best.run) best = { run, a }; }
+        teleport(f.x, f.y); hold = { x: f.x, y: f.y, a: best.a }; await sleep(SETTLE * 0.6);
+        rec.water = { at: [Math.round(f.x), Math.round(f.y)], kind: f.wa.kind, level: f.wa.level, open: best.run };
+        const lv = f.wa.level, ca = Math.cos(best.a), sa = Math.sin(best.a);
+        await poseShot(J.name + '-a', { position: { x: f.x - ca * 25, y: f.y - sa * 25, z: lv + 9 }, lookAt: { x: f.x + ca * 160, y: f.y + sa * 160, z: lv }, cut: true });
+        await poseShot(J.name + '-b', { position: { x: f.x - Math.cos(best.a + 1.57) * 45, y: f.y - Math.sin(best.a + 1.57) * 45, z: lv + 22 }, lookAt: { x: f.x, y: f.y, z: lv }, cut: true });
+        await poseShot(J.name + '-c', { position: { x: f.x, y: f.y, z: lv + 2.5 }, lookAt: { x: f.x - ca * 120, y: f.y - sa * 120, z: lv + 1 }, cut: true });
+        await poseShot(J.name + '-d', { position: { x: f.x, y: f.y, z: lv + 120 }, lookAt: { x: f.x + ca * 200, y: f.y + sa * 200, z: lv }, cut: true });
+      }
+      hold = null;
     } else if (J.kind === 'boat') {
       // open zee: vaar een sloep recht vooruit over zeewater (seaAt) en kijk of hij ergens tegenaan stopt (#233)
       hold = null; env.fix = true; fixWorld();

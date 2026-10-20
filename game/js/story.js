@@ -29,6 +29,7 @@ import { getShopVisits, getShopsForRender, grantStoryItem } from './shops.js';
 import { getPigeonFlight, stopPigeonMode } from './pigeonmode.js';
 import { isHeliRunActive, abortHeliRun } from './helirun.js';
 import { jumpPrep, jumpSpot } from './storyjump.js';
+import { JUMP_M } from './loadlogic.js';
 import { buildingAt, withTiles } from './tileplace.js';
 import { waterAt } from './waterlevels.js';
 import { purchaseCount, storyBuyLabel } from './storyshop.js';
@@ -1230,6 +1231,7 @@ export function devJumpTo(id, opts = {}) {
   const k = STEPS.findIndex((s) => s.id === id);
   if (k < 0 || !stepAvailable(STEPS[k])) return false;
   const p0 = world.player;
+  const fromX = p0.x, fromY = p0.y;
   for (const a of jumpPrep({ missionActive: isMissionActive(), pigeon: !!world.pigeonMode, heliRun: isHeliRunActive(), inVehicle: !!p0.inVehicle })) {
     if (a === 'abortMission') failActiveMission(world, 'Missie afgebroken', 'Afgebroken');
     else if (a === 'stopPigeon') stopPigeonMode(world);
@@ -1270,6 +1272,9 @@ export function devJumpTo(id, opts = {}) {
   const spot = jumpSpot(def, world.storyGuide, { dist: 12, vrij });
   if (spot) {
     landOn(spot);
+    // a far jump hides the view behind the load screen while the streets stream in: the game's own watch swallows it right
+    // after a cinematic, and the world would show bare for a few seconds (#267)
+    if (Math.hypot(world.player.x - fromX, world.player.y - fromY) >= JUMP_M) world.devJumpLoad = true;
     // de tegels om de landingsplek zijn na een verre sprong nog niet binnen: buildingAt ziet dan geen gebouw en de speler
     // staat even later in een gevel (camera tegen een muur, #261). Zodra ze er zijn, kijkt dit opnieuw naar een vrije plek.
     const token = ++jumpSettle;
