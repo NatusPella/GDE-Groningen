@@ -81,7 +81,7 @@ function start(name, cfg, seed, extraArgs = []) {
   const dir = path.join(OUT, name); fs.mkdirSync(dir, { recursive: true });
   const events = path.join(dir, 'events.jsonl'); fs.writeFileSync(events, '');
   const script = path.join(dir, '_page.js');
-  const pcfg = { ...cfg, name, route: ROUTE, durationS: DURATION, viaMenu: MENU, expect: EXPECT, trackerPort, program: P[name] || [], invuln: flag('invuln') };
+  const pcfg = { ...cfg, name, route: ROUTE, preSave: SUITE === 'net' || SUITE === 'basis', durationS: DURATION, viaMenu: MENU, expect: EXPECT, trackerPort, program: P[name] || [], invuln: flag('invuln') };
   // de spelbot (bot.page.js) als functie, voor de host die het verhaal speelt
   const bot = `window.__botMain = async () => {\n${botCode}\n};\n`;
   fs.writeFileSync(script, `window.__coopCfg = ${JSON.stringify(pcfg)};\n${bot}` + fs.readFileSync(path.join(HERE, 'coop.page.js'), 'utf8'));

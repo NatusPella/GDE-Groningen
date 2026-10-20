@@ -163,6 +163,10 @@ async function toLobby() {
 async function connect() {
   await configureRoute();
   await toLobby();
+  if (CFG.preSave && CFG.role !== 'host') { // een speler met een eigen save: die bestaat al vóór het aansluiten
+    const sv = await imp('savegame'); let ok = null; try { ok = sv.saveGame(W(), { toast: false }); } catch (e) { ok = 'fout ' + e.message; }
+    log('voor-save', { ok, hasSave: sv.hasSave(), money: W().money });
+  }
   log('start', { role: CFG.role, route: CFG.route, viaMenu: !!CFG.viaMenu, net: netNow() });
   log('scherm', { titel: title(), knoppen: buttons() });
   if (CFG.role === 'host') {
