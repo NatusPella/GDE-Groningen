@@ -91,10 +91,38 @@ export function setDamagedBridgeBarriers(list) { extra = list; }
 
 export function getMovableBridges() { return bridges; }
 
+// A footway or cycle path that runs beside a movable road over the same water is part of the same leaf in the real
+// world, but OSM tags only the carriageway: left alone it stays a closed deck beside the open one. Such a way
+// (parallel, at most 12 m beside the span) takes over the kind of the carriageway.
+const SIDE_CATS = new Set(['foot', 'cycle']);
+function adoptSideSpans(roads) {
+  const spans = [];
+  for (const r of roads) {
+    if (!r.movable || !r.bridge || r.pts.length < 2) continue;
+    const a = r.pts[0], b = r.pts[r.pts.length - 1], len = Math.hypot(b[0] - a[0], b[1] - a[1]);
+    if (len >= 3) spans.push({ r, a, len, ux: (b[0] - a[0]) / len, uy: (b[1] - a[1]) / len });
+  }
+  if (!spans.length) return;
+  for (const r of roads) {
+    if (r.movable || !r.bridge || !SIDE_CATS.has(r.cat) || r.pts.length < 2) continue;
+    const a = r.pts[0], b = r.pts[r.pts.length - 1], len = Math.hypot(b[0] - a[0], b[1] - a[1]);
+    if (len < 3) continue;
+    const mx = (a[0] + b[0]) / 2, my = (a[1] + b[1]) / 2, ux = (b[0] - a[0]) / len, uy = (b[1] - a[1]) / len;
+    for (const q of spans) {
+      if (Math.abs(ux * q.uy - uy * q.ux) > 0.26) continue; // not parallel
+      const s = (mx - q.a[0]) * q.ux + (my - q.a[1]) * q.uy, o = -(mx - q.a[0]) * q.uy + (my - q.a[1]) * q.ux;
+      if (s < 0 || s > q.len || Math.abs(o) > 12) continue;
+      r.movable = q.r.movable;
+      break;
+    }
+  }
+}
+
 // The bridges of a map: one per movable road. Span along the road from its
 // first to its last vertex; `half` the deck's half width.
 export function buildMovableBridges(map) {
   bridges = [];
+  adoptSideSpans(map.roads || []);
   for (const r of map.roads || []) {
     if (!r.movable || !r.bridge || r.pts.length < 2) continue;
     const a = r.pts[0], b = r.pts[r.pts.length - 1];
