@@ -127,8 +127,8 @@ for (const b of CFG.bots || []) {
     const addMsg = w.addMessage; w.addMessage = (t, ...r) => { msgs.push(String(t)); return addMsg.call(w, t, ...r); };
     const t0 = performance.now();
     let hit = null, n = 0;
+    const drive = setInterval(() => boat.applyControls(1 / 60, 1, 0, false), 16); // zoals stepBridgeCrashDemo: elke beeldjeslus vol vooruit
     while (performance.now() - t0 < 14000) {
-      boat.applyControls(0.05, 1, 0, false);
       await sleep(250);
       const t = (performance.now() - t0) / 1000;
       const along = (boat.x - F.m[0]) * F.nx + (boat.y - F.m[1]) * F.ny;
@@ -136,6 +136,7 @@ for (const b of CFG.bots || []) {
       n++; await grab(`${tag}-${String(n).padStart(2, '0')}`);
       if (boat.bridgeDents && !hit) hit = t;
     }
+    clearInterval(drive);
     w.addMessage = addMsg;
     rep.geraakt = hit; rep.meldingen = msgs.slice(0, 6);
     rep.dents = boat.bridgeDents || 0;
