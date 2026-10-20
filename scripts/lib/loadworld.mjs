@@ -30,15 +30,10 @@ export async function loadLegacySources(lagen = [], name = path.basename(process
   return P.loadSourcesLaag(undefined, lagen, { city: await readCitymap() });
 }
 
+// de stadsdata zoals de bouw ze maakt: stad.json (handlaag) + de OSM-lagen (wegen, spoor, gebouwen, water, groen, bomen);
+// extras: true legt ook mapextras erover. Zonder provincie-extract sluit de test af met SKIP.
 export async function loadStadData({ extras = false } = {}) {
-  const P = await import('../world/pack_tiles.mjs');
-  const { data, fromOsm } = P.readStad(fileURLToPath(game));
-  for (const l of fromOsm) if (!data[l]) data[l] = [];
-  if (extras) {
-    const { applyMapExtras } = await import('../../game/js/mapdata.js');
-    applyMapExtras(data, JSON.parse(fs.readFileSync(new URL('mapextras.json', game))));
-  }
-  return data;
+  return loadCityData({ extras });
 }
 
 // extras: false laat mapextras weg (voor tests die ze zelf nog aanzetten)
