@@ -6,7 +6,7 @@
 // controleert dat elk dier spawnt, te ontdekken is en een echt model heeft.
 //
 // Een nieuw dier hoort eerst hier en pas daarna in de wereld.
-import { STREEK_MIX, SPECIES } from './dierenplan.js';
+import { STREEK_MIX, SPECIES, gansKans } from './dierenplan.js';
 
 // soort: 'wild' | 'vee' | 'huisdier'. plan: de sleutel in dierenplan.SPECIES (streekmix en vluchtgedrag),
 // of eigen `mix`. uren: [van, tot) op de 24-uursklok (van > tot loopt door middernacht).
@@ -158,6 +158,25 @@ export function spawnWeight(id, streek, uur, biotoop = null) {
   if (biotoop && !d.biotoop.includes(biotoop)) return 0;
   if (!opUur(d, uur)) return 0;
   return mixVan(d, streek);
+}
+
+// Boerderijdieren (#330): koe, schaap en gans staan op weide en dijk, nooit in de bebouwde kom.
+// biotoop van een groenvlak: 'stad' als er in de buurt veel bebouwing staat (of de streek 'stad'
+// is), anders 'weide'. De stad heeft eenden, meeuwen, duiven, katten en honden; vee hoort daar niet.
+export const BOERDERIJ_IDS = ['koe', 'schaap', 'gans'];
+export const BEBOUWD_VANAF = 0.3;   // urbanWeight (provinceworld.js) waarboven een plek bebouwd heet
+export const biotoopVanPlek = (streek, urban) => (!streek || streek === 'stad' || urban > BEBOUWD_VANAF ? 'stad' : 'weide');
+
+// Welk vee mag hier op een nieuwe weide? roll: 0..1. Geeft 'cow' | 'sheep' | 'gans' of null (niets).
+export function veeVoorPlek(streek, biotoop, uur, roll) {
+  const w = (id) => spawnWeight(id, streek, uur, biotoop);
+  const koe = w('koe'), schaap = w('schaap');
+  const ganzen = biotoop === 'stad' || w('gans') <= 0 ? 0 : gansKans(streek);
+  if (koe + schaap + ganzen <= 0) return null;
+  if (roll < ganzen) return 'gans';
+  const r = (roll - ganzen) / (1 - ganzen || 1);
+  if (koe + schaap <= 0) return null;
+  return r < koe / (koe + schaap) ? 'cow' : 'sheep';
 }
 
 export const STREKEN_ALLE = Object.keys(STREEK_MIX);
