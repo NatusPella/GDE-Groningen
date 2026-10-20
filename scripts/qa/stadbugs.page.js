@@ -1,7 +1,8 @@
 // Page half of scripts/qa/stadbugs.mjs (desktop --perf-script body): beelden en metingen op losse plekken van de stad
 // voor de door een tester gemelde bugs (#323 t/m #335). window.__sb = { settle, spots: [{ naam, x, y, a, views, eval }] }.
 //   views: [{ n, p: [x, y, hoogte boven de grond], l: [x, y, hoogte boven de grond] }] (absolute spelcoordinaten)
-//   eval: een async functietekst (w, map, imp) => json, uitgevoerd nadat de plek geladen is; het resultaat gaat in de uitvoer.
+//   eval: een async functietekst (w, map, imp, sleep, go, shot, release) => json, uitgevoerd nadat de plek geladen is; het resultaat gaat in de uitvoer
+//   (release() laat de speler los, voor een rit of wandeling).
 // Elke keydown wordt gevolgd door een keyup (er worden hier geen toetsen gedrukt).
 const D = window.__debug; const w = D.world; const p = w.player; const map = w.map;
 const sleep = (ms) => new Promise((res) => setTimeout(res, ms));
@@ -52,6 +53,7 @@ const shot = async (name, pose, wait = 2200) => {
   cine.skipCinematic();
   ownShot = false;
 };
+const release = () => { hold = null; }; // (the player stays where the run puts them: a drive, a walk)
 const results = {};
 for (const S of CFG.spots) {
   const info = {};
@@ -63,7 +65,7 @@ for (const S of CFG.spots) {
       await shot(S.naam + '-' + v.n, { position: { x: v.p[0], y: v.p[1], z: g + v.p[2] }, lookAt: { x: v.l[0], y: v.l[1], z: gl + v.l[2] }, cut: true }, v.wait || 2200);
     }
     if (S.eval) {
-      const fn = new Function('w', 'map', 'imp', 'sleep', 'go', 'shot', 'return (' + S.eval + ')(w, map, imp, sleep, go, shot);');
+      const fn = new Function('w', 'map', 'imp', 'sleep', 'go', 'shot', 'release', 'return (' + S.eval + ')(w, map, imp, sleep, go, shot, release);');
       info.eval = await fn(w, map, imp, sleep, go, shot);
     }
   } catch (err) { info.error = String(err && err.stack || err).slice(0, 400); }
