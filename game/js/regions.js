@@ -132,6 +132,8 @@ export const regionVersion = () => dataVersion;
 // region whose border is in view, `off` m outside it (mapedge.js)
 export const regionEdgeLabels = (x0, y0, x1, y1, off) => edgeLabels({ border: S.border, coast: S.coast }, [x0, y0, x1, y1], regionAt, off);
 export const seaRing = () => S.sea;
+// the rings of the islands (land inside the sea ring)
+export const seaIslandRings = () => S.islands;
 
 export function seaAt(x, y) {
   if (!S.sea || !inRing(x, y, S.sea, S.seaBox)) return false;

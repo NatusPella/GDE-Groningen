@@ -86,6 +86,7 @@ import { applyCityRoutes, loadLandData } from './corridorrail.js';
 import { setFarProps } from './farprops.js';
 import { initProvince } from './provinceworld.js';
 import { loadRoadNet, setRoadNet } from './roadgraph.js';
+import { ensureSeaRows } from './seatiles.js';
 import { buildMovableBridges, addMovableRoads, updateMovableBridges, getMovableBridges } from './movablebridges.js';
 import { updateSluizen, getSluizen } from './sluizen.js';
 import { updateBridgeHits, resetBridgeDamage, startBridgeCrashDemo, stepBridgeCrashDemo } from './bridgehitworld.js';
@@ -564,6 +565,8 @@ async function boot() {
       // a boat on the waterway network: the tiles of its route ahead come early (#184)
       if (tf && world.player.inVehicle && world.player.inVehicle.isBoat && !world.cameraOverride) tf.opts = vaarPrefetch(tf.opts, tf.x, tf.y);
       if (tf) world.map.follow(tf.x, tf.y, tf.opts, 1.5);
+      // the open sea as water rows round the player (#233)
+      if (tf && world.map.addWaterPatches) ensureSeaRows(world.map, world.player.x, world.player.y);
     }
     updateAudio(dt, world);
     updateNarrative();
