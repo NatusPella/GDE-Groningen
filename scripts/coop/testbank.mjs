@@ -329,8 +329,9 @@ for (const n of NAMES) {
   check(full.length > 3, `${n}: ziet niet alle ${EXPECT - 1} medespelers (max ${Math.max(0, ...samples(n).map((s) => (s.partners || []).length))})`);
 }
 // positie van Tammo bij de gast, speelklok, desync
-if (hs.length && gs.length && last(gs).companion && last(hs).me) {
-  const d = Math.hypot(last(gs).companion.x - last(hs).me.x, last(gs).companion.y - last(hs).me.y);
+const gW = [...gs].filter((q) => q.role === 'client' && q.companion && (q.ph === 'wacht' || q.ph === '')).pop(), hW = gW && hs.filter((q) => q.me && Math.abs(q.t - gW.t) < 1.5)[0]; // aan het begin, terwijl beiden stilstaan
+if (gW && hW) {
+  const d = Math.hypot(gW.companion.x - hW.me.x, gW.companion.y - hW.me.y);
   check(d < 6, `gast ziet Tammo op ${d.toFixed(1)} m van de host`);
 }
 const klokVerschil = (g) => { const h = samples('host').filter((s) => Number.isFinite(s.uur)), q = samples(g).filter((s) => Number.isFinite(s.uur)); if (!h.length || !q.length) return null; return Math.abs(((last(q).uur - last(h).uur + 36) % 24) - 12); };
@@ -399,7 +400,7 @@ if (SUITE === 'net') {
   }
   // een ritje: de host rijdt, Tessa (gast) is passagier, de andere gasten zien het voertuig meerijden
   const rs = of(H, 'rit-spawn')[0], ri = of(H, 'rit-in')[0], rp = of(H, 'rit-passagier')[0], rg = of(H, 'rit-gereden')[0], ru = of(H, 'rit-uit')[0];
-  if (!(ri && ri.ingestapt)) note('rit niet beoordeeld: de host kon in deze run niet instappen (E bij het voertuig deed niets): ' + JSON.stringify({ rs, ri }));
+  if (!(ri && ri.ingestapt && rp && rp.tessa)) note('rit niet beoordeeld: de host kon in deze run niet instappen (E bij het voertuig deed niets): ' + JSON.stringify({ rs, ri }));
   else {
     check(ri && ri.ingestapt, 'rit: de host kon niet instappen: ' + JSON.stringify({ rs, ri }));
     check(rp && rp.tessa, 'rit: Tessa stapt niet als passagier mee: ' + JSON.stringify(rp));
