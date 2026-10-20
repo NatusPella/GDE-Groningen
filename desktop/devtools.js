@@ -176,6 +176,9 @@ function attach(win, { gameDir }) {
             }
             // console.log('[profile] 8000') from the script: a CPU profile of that many ms
             if (message.startsWith('[profile] ')) { runProfile(win, Number(message.slice(10)) || 6000).catch((err) => console.log('[profile]', err.message)); return; }
+            // testharnas (#95, tekstvelden): echte toetsen en een klembord, zoals een speler ze heeft
+            if (message.startsWith('[sendinput] ')) { try { win.webContents.sendInputEvent(JSON.parse(message.slice(12))); } catch (er) { /* geen geldig invoerbericht */ } return; }
+            if (message.startsWith('[clipboard-set] ')) { try { require('electron').clipboard.writeText(message.slice(16)); } catch (er) { /* geen klembord */ } return; }
             if (!message.startsWith('[capture] ')) return;
             const img = await win.webContents.capturePage();
             fsSync.writeFileSync(smoke.replace(/\.png$/, `-${message.slice(10).trim()}.png`), img.toPNG());

@@ -58,6 +58,8 @@ export class Input {
 
     target.addEventListener('keydown', (e) => {
       const k = e.key.toLowerCase();
+      // een tekstveld (kamercode, naam, zoekveld) krijgt alle toetsen, ook WASD, spatie en pijlen: geen speltoets, geen preventDefault
+      if (isTextField(e.target) && e.__gde !== 'pad') return;
       if (e.__gde === 'pad') {
         if (!this.padKeys.has(k) && !this.keys.has(k)) this._justPressed.add(k);
         this.padKeys.add(k);
@@ -198,8 +200,10 @@ export class Input {
     return this.mouse.locked || ((!!this.lookFallback || this.padLook) && !!this.canLock && this.canLock());
   }
 
-  isDown(k) { return this.keys.has(k) || this.padKeys.has(k); }
-  wasPressed(k) { return this._justPressed.has(k); }
+  // zolang een tekstveld focus heeft, staat de spelbesturing stil (ook een controller of een toets die al ingedrukt was)
+  get typing() { return typeof document !== 'undefined' && isTextField(document.activeElement); }
+  isDown(k) { return !this.typing && (this.keys.has(k) || this.padKeys.has(k)); }
+  wasPressed(k) { return !this.typing && this._justPressed.has(k); }
   // swallow a key press so later handlers this frame don't act on it too
   consume(k) { this._justPressed.delete(k); }
 
@@ -225,6 +229,7 @@ export class Input {
   }
 
   axis() {
+    if (this.typing) return [0, 0];
     if (this.padAxis[0] || this.padAxis[1]) return [this.padAxis[0], this.padAxis[1]];
     let x = 0, y = 0;
     if (this.isDown('a') || this.isDown('arrowleft')) x -= 1;
