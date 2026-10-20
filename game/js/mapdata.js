@@ -596,7 +596,7 @@ export function slimWorkerMap(map) {
 
 // onProgress(0..1) reports download progress when the size is known.
 // game/mapextras.json (scripts/add_map_extras.py): data kept next to
-// citymap.json and merged here - extra footprints, per-building patches
+// stad.json and merged here - extra footprints, per-building patches
 // (heights, names, landmark models), bus-only roads and bus lanes.
 async function fetchExtras(url) {
   try {
@@ -721,7 +721,9 @@ export function applyMapExtras(data, ex) {
   }
 }
 
-export async function loadMap(url = 'map.json', onProgress = null) {
+// The map from stad.json (the hand layer, docs/ARCHITECTUUR-STAD-NAAR-TEGELS.md): without the layers the OSM tile build
+// brings (water, green, trees, buildings other than the hand-made ones), so only for a build without world/ tiles.
+export async function loadMap(url = 'stad.json', onProgress = null) {
   const extras = fetchExtras(url);
   const res = await fetch(url);
   if (!res.ok) throw new Error('failed to load map data: ' + res.status);
@@ -746,10 +748,12 @@ export async function loadMap(url = 'map.json', onProgress = null) {
     data = await res.json();
   }
   const ex = await extras;
+  for (const l of data.fromOsm || []) if (!data[l]) data[l] = [];
+  for (const k of ['format', 'fromOsm', 'tiles', 'cover']) delete data[k];
   // every map file is in the RD New world frame (rdnew.js); a file from an
   // older build would put the whole map tens of metres off
-  for (const [name, f] of [['citymap.json', data.meta && data.meta.frame], ['mapextras.json', ex ? ex.frame : 'rd-new']]) {
-    if (f !== 'rd-new') console.error(`${name} is not in the rd-new frame (scripts/world/rebase_data.py)`);
+  for (const [name, f] of [['stad.json', data.meta && data.meta.frame], ['mapextras.json', ex ? ex.frame : 'rd-new']]) {
+    if (f !== 'rd-new') console.error(`${name} is not in the rd-new frame (scripts/world/rdnew.py)`);
   }
   applyMapExtras(data, ex);
   return new GameMap(data);

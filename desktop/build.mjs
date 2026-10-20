@@ -71,12 +71,15 @@ function packWorld() {
   const packer = path.join(root, 'scripts', 'world', 'pack_tiles.mjs');
   if (!fs.existsSync(packer) || !fs.existsSync(path.join(SRC, 'js', 'gdt.js'))) { console.log('no tile packer in this checkout: JSON map only'); return; }
   const h = crypto.createHash('sha1');
-  for (const f of ['citymap.json', 'mapextras.json', 'js/gdt.js', 'js/mapdata.js', 'js/elevation.js', 'js/passages.js', 'js/museumplan.js', 'js/util.js', 'js/worldbuilder.js', 'js/derive.js', 'js/spatialgrid.js']) h.update(fs.readFileSync(path.join(SRC, f)));
+  for (const f of ['stad.json', 'mapextras.json', 'js/gdt.js', 'js/mapdata.js', 'js/elevation.js', 'js/passages.js', 'js/museumplan.js', 'js/util.js', 'js/worldbuilder.js', 'js/derive.js', 'js/spatialgrid.js']) h.update(fs.readFileSync(path.join(SRC, f)));
   h.update(fs.readFileSync(packer));
   // STAD_LAAG (#90): de stadslagen uit de OSM-bouw maken een andere wereld
   h.update(String(process.env.STAD_LAAG || ''));
   const stadLaag = path.join(root, 'scripts', 'world', 'stad_laag.mjs');
   if (fs.existsSync(stadLaag)) h.update(fs.readFileSync(stadLaag));
+  // de dekking van de stadskaart (stad.json): bepaalt welke OSM-rijen de stad krijgt
+  const stadCover = path.join(root, 'scripts', 'world', 'citycover.mjs');
+  if (fs.existsSync(stadCover)) h.update(fs.readFileSync(stadCover));
   // what else goes into the rows when the checkout has it: the height chain,
   // the profiles, junctions and routes, the building attributes, the 3D BAG
   // extract and fetched AHN rasters
@@ -112,6 +115,8 @@ function packWorld() {
   const cache = path.join(WCACHE, 'world-' + h.digest('hex').slice(0, 16));
   if (!fs.existsSync(path.join(cache, 'index.json'))) {
     fs.rmSync(cache, { recursive: true, force: true });
+    // stad.json is de handlaag: water, groen, bomen en gebouwen van de stad komen uit de OSM-tegelbouw (data/cache/province)
+    if (!provDirs.length) throw new Error('the city layers come from the OSM tile build: run scripts/world/extract_province.py (data/cache/province), or set GDE_PREBUILT_WORLD');
     const t = Date.now();
     const r = spawnSync(process.execPath, [packer, '--game', SRC, '--out', cache], { stdio: 'inherit', cwd: root });
     if (r.status !== 0) { fs.rmSync(cache, { recursive: true, force: true }); throw new Error('packing the map tiles failed'); }

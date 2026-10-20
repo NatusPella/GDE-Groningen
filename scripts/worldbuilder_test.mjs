@@ -48,7 +48,8 @@ const eq = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 }
 
 // --- 1. the city: the OSM adapter against process_osm.py's rows -------------------
-{
+if (!fs.existsSync(new URL('../data/groningen_raw.json', import.meta.url))) console.log('SKIP 1. the city adapter against process_osm.py: no data/groningen_raw.json (the old city path is cleaned up)');
+else {
   // process_osm.py's sources, first copy of each element wins
   const els = [], seen = new Set();
   for (const f of ['groningen_raw.json', 'groningen_extra.json', 'ring_raw.json.gz', 'ring_extra.json.gz']) {
@@ -57,7 +58,8 @@ const eq = (a, b) => JSON.stringify(a) === JSON.stringify(b);
     for (const el of JSON.parse(b).elements) { const k = el.type + el.id; if (!seen.has(k)) { seen.add(k); els.push(el); } }
   }
   const raw = { elements: els };
-  const city = JSON.parse(fs.readFileSync(new URL('citymap.json', root)));
+  const { loadCityData } = await import('./lib/loadworld.mjs');
+  const city = await loadCityData({ extras: false });
   const t0 = performance.now();
   const rows = { roads: [], buildings: [] };
   for (const el of raw.elements) for (const f of WB.fromOsm(el)) if (rows[f.kind]) rows[f.kind].push(f.row);

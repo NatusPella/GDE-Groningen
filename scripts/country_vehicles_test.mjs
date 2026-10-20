@@ -13,8 +13,8 @@ const { GameMap, applyMapExtras } = await import('../game/js/mapdata.js');
 await import('../game/js/player.js');
 // the city's own map for what needs no tiles (water rule, meadow drag, police) and
 // the tile world, with the tiles round the spots in, for the rest
-const data = JSON.parse(fs.readFileSync(new URL('citymap.json', root)));
-applyMapExtras(data, JSON.parse(fs.readFileSync(new URL('mapextras.json', root))));
+const { loadCityData } = await import('./lib/loadworld.mjs');
+const data = await loadCityData();
 const cityMap = new GameMap(data);
 const { loadGameWorld, loadArea } = await import('./worldload.mjs');
 const T = await loadGameWorld();

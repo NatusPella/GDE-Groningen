@@ -3,11 +3,12 @@
 // Twee vaste stadswerelden, dezelfde vragen op een raster. Slaat over zonder provincie-extract.
 import assert from 'node:assert/strict';
 import { haveProvince } from './world/build_province.mjs';
+import { loadLegacySources } from './lib/loadworld.mjs';
 if (!haveProvince()) { console.log('SKIP stadlaag_gebouwen_test: geen data/cache/province'); process.exit(0); }
 const P = await import('./world/pack_tiles.mjs');
 const { worldOf } = await import('./lib/cityparity.mjs');
-const base = P.build(P.loadSources());
-const swapped = P.build(await P.loadSourcesLaag(undefined, ['buildings']));
+const base = P.build(await loadLegacySources());
+const swapped = P.build(await loadLegacySources(['buildings']));
 const A = await worldOf(base, base.blobs), C = await worldOf(swapped, swapped.blobs);
 const b = A.meta.bounds, step = Number(process.env.STEP) || 25;
 const inside = (x, y, q) => { let c = false; for (let i = 0, j = q.length - 1; i < q.length; j = i++) if ((q[i][1] > y) !== (q[j][1] > y) && x < ((q[j][0] - q[i][0]) * (y - q[i][1])) / (q[j][1] - q[i][1]) + q[i][0]) c = !c; return c; };

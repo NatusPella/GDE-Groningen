@@ -214,7 +214,7 @@ Zie ook de [gedragscode](CODE_OF_CONDUCT.md) en, voor beveiligingsproblemen,
 | De programmacode | [GPL-3.0-or-later](LICENSE) |
 | Eigen inhoud: stemmen, muziek, verhaal en dialogen, het Martinitoren-model, schermafbeeldingen | [CC BY-NC-SA 4.0](LICENSE-CONTENT.md) |
 | De naam GDE / "GDE Groningen – Zomer vol misdaad" en het logo | alle rechten voorbehouden: een fork krijgt een eigen naam en logo |
-| Kaartdata (`game/citymap.json`, `game/mapextras.json`, de kaarttegels, `data/`) | © OpenStreetMap-bijdragers, [Open Database License](https://www.openstreetmap.org/copyright) |
+| Kaartdata (`game/stad.json`, `game/mapextras.json`, de kaarttegels, `data/`) | © OpenStreetMap-bijdragers, [Open Database License](https://www.openstreetmap.org/copyright) |
 | three.js | MIT ([licenses/MIT-three.js.txt](licenses/MIT-three.js.txt)) |
 | Lettertypen Bebas Neue en Big Shoulders Display | SIL Open Font License 1.1 ([licenses/](licenses/)) |
 | Electron (alleen de desktopapp) | MIT, met Chromium en Node.js onder hun eigen licenties |

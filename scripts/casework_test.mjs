@@ -103,7 +103,8 @@ const check = (name, ok, info = '') => { n++; if (!ok) { bad++; console.log('FAI
   check('the BOA satire is about rules, not people', !/(neger|homo|moslim|jood)/i.test(all.join(' ')));
 
   const here = path.dirname(fileURLToPath(import.meta.url));
-  const map = JSON.parse(fs.readFileSync(path.join(here, '../game/citymap.json'), 'utf8'));
+  const { loadCityData } = await import('./lib/loadworld.mjs');
+  const map = await loadCityData({ extras: false });
   const ex = JSON.parse(fs.readFileSync(path.join(here, '../game/mapextras.json'), 'utf8'));
   const names = new Set([...map.buildings.map((b) => b.name), ...(ex.buildingPatches || []).map((p) => p.set && p.set.name)].filter(Boolean));
   for (const nm of ['Gerechtsgebouw', 'Stadsschouwburg', 'Stadhuis']) check(`${nm} exists on the city map`, names.has(nm));
