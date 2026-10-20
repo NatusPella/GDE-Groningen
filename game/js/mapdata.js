@@ -20,7 +20,8 @@ export { SpatialGrid };
 const DRY_CATS = new Set(['major', 'normal', 'minor', 'service']);
 export function markDryRoad(map, r) {
   // roads with a height profile pass over/under the water for real
-  if (r.bridge || r.z || !DRY_CATS.has(r.cat)) return false;
+  // (noDry: the approach on the bank of a real bridge, where the water only touches the bridge's end: scripts/world/stad_wegen.mjs)
+  if (r.bridge || r.z || r.noDry || !DRY_CATS.has(r.cat)) return false;
   const pts = r.pts;
   if (!map.waterNear) return false;
   // the water near the whole road, got once: most roads have none, the rest test only these
