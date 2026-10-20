@@ -10,7 +10,6 @@
 export const PREFIX = 'gde-';
 // ?dev runs keep their own copy of every key under this prefix (devflags.js)
 export const DEV_PREFIX = 'gde-dev:';
-export const LEGACY_PREFIX = 'gte-';
 const LEGACY_DEV_PREFIX = 'gte-dev:';
 
 // The story keeps its progress under keys with a '-nieuw' suffix: the keys of the first version of

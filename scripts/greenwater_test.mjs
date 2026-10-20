@@ -15,7 +15,8 @@ const pos = [0, 0, 0, 10, 0, 0, 0, 0, 10, 20, 0, 20, 30, 0, 20, 20, 0, 30];
 const kept = dryIndices(pos, [0, 1, 2, 3, 4, 5], (x) => x > 15);
 ok(kept.length === 3 && kept[0] === 0, 'helper keeps the dry triangle, drops the wet one', String(kept));
 
-const map = JSON.parse(fs.readFileSync(new URL('../game/citymap.json', import.meta.url)));
+const { loadCityData } = await import('./lib/loadworld.mjs');
+const map = await loadCityData({ extras: false });
 const wi = createWaterIndex(map.water);
 let overlaps = 0, dropped = 0, wet = 0;
 for (const g of map.green) {

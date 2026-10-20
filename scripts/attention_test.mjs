@@ -45,5 +45,26 @@ ok(A.mayVoiceText('system'), 'the app voice has its own gap');
 t += 30;
 ok(A.mayVoiceText('news'), 'Kiekdoar news is read aloud again after the gap');
 
+// channel cases (#104): the cinematic moments, the tip ration and the read-aloud texts are surfaces of
+// hudbus.js; asking the surface gives the same answer as asking attention.js
+const B = await import('../game/js/hudbus.js');
+const momentKinds = B.SURFACES.moment.gates.map(([, k]) => k);
+ok(momentKinds.length === Object.keys(B.MOMENTS).length && momentKinds.every((k) => k in B.MOMENTS), 'the moment surface lists every moment');
+const asSurface = (kind, w) => B.mayShowSurface('moment', {
+  moment: { now: t, busy: false, callOn: false, narrativeBusy: false, speed: w.player.inVehicle ? w.player.inVehicle.speed : 0, last: A.attentionState() },
+}, kind);
+A.resetAttention(); t += 1000;
+const fast = { player: { inVehicle: { speed: 20 } } };
+for (const w of [idle, fast]) for (const k of momentKinds) ok(asSurface(k, w) === A.mayInterrupt(k, w), `moment ${k}: surface and attention.js agree (quiet)`);
+A.noteMoment('crash'); t += 30;
+for (const w of [idle, fast]) for (const k of momentKinds) ok(asSurface(k, w) === A.mayInterrupt(k, w), `moment ${k}: surface and attention.js agree (after a crash)`);
+t += 100;
+ok(A.mayShowTip() === B.mayShowSurface('kaart', { tip: { now: t, last: A.attentionState().tip } }), 'tip ration: surface and attention.js agree (free)');
+A.noteTip(); t += 5;
+ok(!A.mayShowTip() && !B.mayShowSurface('kaart', { tip: { now: t, last: A.attentionState().tip } }), 'tip ration: both wait');
+A.noteVoiceText('news'); t += 5;
+ok(!A.mayVoiceText('news') && !B.mayShowSurface('bericht', { voice: { kind: 'news', now: t, voicedAt: { news: t - 5 } } }), 'read aloud: both wait for the news gap');
+ok(A.mayVoiceText('character') && B.mayShowSurface('bericht', { voice: { kind: 'character', now: t, voicedAt: { character: t - 1 } } }), 'read aloud: a character is always read');
+
 console.log(`${n - fails}/${n} attention rules ok`);
 process.exit(fails ? 1 : 0);

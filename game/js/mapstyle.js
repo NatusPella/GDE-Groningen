@@ -28,6 +28,60 @@ export const MINI_PALETTE = {
 // travel-mode highlights, the same on every map (the two that draw them)
 export const EMPHASIS = { foot: '#d9d4c4', cycle: '#ff8a5c', forbidden: '#d93f3f', bridgeCasing: '#0c140e' };
 
+// The ink of everything the maps draw on top of the land: label text and
+// halos, the full map's panel chrome, markers, route and ring colours, region
+// borders. One table for the full map, the minimap and the province map, named
+// by role; the same in day and night (it is not part of the palette above).
+// A transparent variant is inkA(name, alpha).
+export const INK = {
+  cream: '#f0ede4', paper: '#f5f0e6', textBright: '#f2f2f2', dark: '#0c140e', black: '#000000', white: '#ffffff',
+  green: '#1e9e56', greenLight: '#3fc97a', greenDark: '#0f5c30',
+  red: '#d93f3f', policeBlue: '#3f6fd9', yellow: '#e8c93a', horeca: '#c9622a', grey: '#c7c7c2', greyDark: '#2a2e28',
+  // labels and warnings
+  seaLabel: '#bee1f5', flavour: '#f5e2aa', amber: '#ffbe46', amberInk: '#1c1408',
+  // the full map's panel and card chrome
+  panelTop: '#17301f', panelCard: '#10261a', panelDeep: '#0a130d', selected: '#5fb4d9',
+  medalBronze: '#c8834a', medalSilver: '#cfd6dc',
+  // markers drawn by hand (hud_panel.js): home badges, a locked place, the heli run
+  homeBlue: '#2f6fb0', eierbal: '#b06a28', locked: '#8d9489',
+  ringNext: '#ffc21a', ringLater: '#ffe9a0', heliDone: '#5dff7a', heliMiss: '#ff5a3c', balloon: '#ff7ab6',
+  // the default route colours (a11y.js swaps them for the colour-blind palettes)
+  routeUser: '#c068ff', routeJob: '#ff9a3c', routeCare: '#ff5fb4',
+  // what lies outside the province: the tint on the maps and the land borders
+  tintMini: '#060c09', tintMap: '#04080c',
+  borderFriesland: '#e8b04a', borderDrenthe: '#c9a0e0', borderDuitsland: '#e86a5a', borderOther: '#e8e4d8',
+  railBed: '#1b1d22',
+};
+const inkRgb = {};
+// the ink as 'rgba(r, g, b, alpha)'; alpha is a number or a ready string
+export function inkA(name, alpha) {
+  const c = inkRgb[name] || (inkRgb[name] = toRgba(INK[name]).slice(0, 3).join(', '));
+  return `rgba(${c}, ${alpha})`;
+}
+
+// For a stylesheet kept as plain text: `ink(name)` and `ink(name alpha)` become the
+// ink's colour, so the CSS names its colours from the table without script in it.
+export function inkCss(css) {
+  return css.replace(/\bink\((\w+)(?: ([0-9.]+))?\)/g, (m, name, alpha) => {
+    if (!INK[name]) throw new Error('unknown ink in css: ' + name);
+    return alpha === undefined ? INK[name] : inkA(name, alpha);
+  });
+}
+
+// The icon colours of the maps (mapicons.js and hud_panel.js draw them): the
+// rim of a category's disc, the flat badge fill per category and the light
+// glyph on it. The icon design lives in mapicons.js, only the colours are here.
+export const ICON_RIM = {
+  zorg: '#ff5a5a', politiebureau: '#5a8bff', garage: '#ffb23f', station: '#9a7bff', job: '#4fd6c4',
+  shop: '#ff8ad0', gevaar: '#ff5a5a', rival: '#ffb23f', halte: '#ffd84a', subdoel: '#4fd6c4', fun: '#a6e04f', horeca: '#ff9a4f', own: '#f5e04f', ommeland: '#7fd0ff',
+};
+export const ICON_FILL = {
+  zorg: '#ef4444', politiebureau: '#3b82f6', garage: '#f59e0b', station: '#8b5cf6', job: '#14b8a6',
+  shop: '#ec4899', fun: '#3fae49', horeca: '#f97316', ommeland: '#38bdf8',
+  flitspaal: '#facc15', tip: '#d6a05a', other: '#f5f0e6',
+};
+export const ICON_GLYPH_LIGHT = '#fff8ea';
+
 // the sea outside the coast: the map's water, or the minimap's
 export function seaStyle(palette = MAP_PALETTE) { return { fill: palette.water, edge: palette.waterEdge }; }
 
@@ -36,25 +90,53 @@ export const ROAD_ORDER = { foot: 0, cycle: 1, minor: 2, normal: 3, major: 4 };
 // base width in css px on the full map
 export const ROAD_WIDTH_PX = { major: 2.4, normal: 1.4, minor: 1.0, cycle: 0.9, foot: 0.6 };
 
-// zoom thresholds of the full map
-export const ZOOM = { mid: 2, near: 4, building: 2.8 };
+// zoom thresholds of the full map (1 = the city's extent)
+export const ZOOM = { mid: 2, near: 4, building: 2.8, fade: 3, wide: 6, close: 8, cityName: 1.6 };
+
+// From which zoom a place category shows on the full map (mapicons.js adds the
+// collision priority). The minimap has no zoom: it shows the places near you
+// (MINI_RANGE_M), the same categories, through the same switches (mapfilters.js).
+export const ICON_MIN_ZOOM = {
+  player: 0, partner: 0, goal: 0, mission: 0, police: 0, gevaar: 0, rival: 0, halte: 0, subdoel: 0, home: 0, own: 0.6, station: 0,
+  zorg: 0.9, politiebureau: 0.9, garage: 1.1, job: 1.1, fun: 1.6, shop: 2, ommeland: 0.34, companion: 1.6, tip: 4, horeca: 6, flitspaal: 4, other: 2,
+};
+export const iconMinZoom = (cat) => ICON_MIN_ZOOM[cat];
+export const iconVisibleAtZoom = (cat, z) => z >= ICON_MIN_ZOOM[cat];
+// how far from you the minimap looks for places: near for most, far for the ones worth a longer look (metres)
+export const MINI_RANGE_M = { near: 150, far: 250 };
+// what the travel mode does to the full map: how much the land steps back, the
+// width of the water edge and of the rails (a boat sees water, the train rails)
+const MODE_LOOK = { boot: { land: 0.4, waterEdge: 2 }, lucht: { land: 0.55 }, ov: { land: 0.6, rail: 1.8 } };
+export function modeLook(mode) { return { land: 1, waterEdge: 1, rail: 1, ...MODE_LOOK[mode] }; }
 
 export function roadColor(cat, palette = MAP_PALETTE) {
   return cat === 'normal' ? palette.road : palette[cat] || palette.road;
 }
 
-// What the full map draws at a zoom: the one layer rule. Roads below "mid"
-// are only the main and normal classes; buildings from "building"; real road
-// widths from "near".
+// What the full map draws at a zoom: the one layer rule (the full map reads
+// it per tile and per label pass). Roads below "mid" are only the main and
+// normal classes; buildings from "building"; real road widths from "near";
+// `labels` says which names show and how big; `icons` the place categories.
 export function layersAtZoom(z) {
   return {
     roads: z < ZOOM.mid ? ['major', 'normal'] : ['major', 'normal', 'minor', 'cycle', 'foot'],
     buildings: z >= ZOOM.building,
     bridgeCasing: z >= ZOOM.mid,
+    streamedVectors: z >= ZOOM.mid, // up close the streamed vectors replace the province base map's coarse pixels
     realRoadWidth: z >= ZOOM.near,
     waterEdgePx: z < ZOOM.mid ? 1.2 : 0.8,
     railPx: z < ZOOM.mid ? 1.6 : 2.6,
     normalRoadAlpha: z < ZOOM.mid ? 0.6 : 1,
+    labels: {
+      regions: z < ZOOM.wide, neighbours: z < ZOOM.wide, wijken: z < ZOOM.wide,
+      cityRegion: z <= ZOOM.cityName, // the province's own name only zoomed far out
+      hamlets: z >= ZOOM.mid, flavour: z >= ZOOM.mid,
+      streets: z >= ZOOM.near, cycleStreets: z >= ZOOM.close,
+      placePx: z < ZOOM.mid ? 12 : 14, wijkPx: z < ZOOM.mid ? 12 : 15, streetPx: z >= ZOOM.close ? 14 : 12,
+      regionAlpha: Math.min(0.55, 0.2 + z * 0.15),
+      wijkAlpha: z < ZOOM.fade ? 0.55 : 0.55 - (z - ZOOM.fade) * 0.12,
+    },
+    icons: Object.keys(ICON_MIN_ZOOM).filter((cat) => iconVisibleAtZoom(cat, z)),
   };
 }
 

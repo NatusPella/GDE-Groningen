@@ -3,16 +3,18 @@ import { buildProductMesh } from './shopmodels3d.js';
 import { openShopMenu, closeShopMenu } from './shopui.js';
 import { unlockAchievement } from './achievements.js';
 import { getEierballen } from './achievementtracker.js';
-import { getMissionProgress, getMissionDefs } from './missions.js';
+import { getMissionProgress, getMissionDefs } from './missionquery.js';
 import { storyReplayLines } from './missionstory.js';
 import { playStoryVoice, stopStoryVoice } from './audio.js';
 import { requestSearchlight } from './nightlights3d.js';
 import { setUserWaypoint, formatDistance } from './routing.js';
-import { getShopsForRender, SHOP_TYPES } from './shops.js';
+import { getShopsForRender } from './shops.js';
+import { furnitureShopHook, jobBonusHook } from './latehooks.js';
+import { SHOP_TYPES } from './shopdata.js';
 import { getSideJobSpotsForRender } from './sidejobs.js';
 import { getGaragesForRender } from './garages.js';
 import { getStationsForRender } from './stationtravel.js';
-import { storyFlag } from './story.js';
+import { storyFlag } from './storyquery.js';
 import { isVerplaatsbaar, schoonPlekken, plekVan, volgendePlek, opPlek, plekInfo } from './inrichting.js';
 import { getLedger, summary } from './finance.js';
 
@@ -723,3 +725,8 @@ window.__furniture = {
   seated: () => !!seat,
   tv: () => (tv ? { title: tv.title, i: tv.i, n: tv.lines.length } : null),
 };
+
+// shops.js (Woonafdeling) and sidejobs.js (the Bureau pays more) use these through latehooks.js
+furnitureShopHook.items = furnitureShopItems;
+furnitureShopHook.note = furnitureShopNote;
+jobBonusHook.get = furnitureJobBonus;

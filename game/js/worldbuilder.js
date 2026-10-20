@@ -278,7 +278,7 @@ export function heightFields(bag3d, osm, levels, hasRoof = false) {
     if (hh.roof) f.rk = hh.roof;
     return f;
   }
-  if (osm && osm.h) return { hm: osm.h, hsrc: 'osm_height' };
+  if (osm && osm.h) return { hm: osm.h, hsrc: 'osm_height', eave: osm.h };
   if (osm && osm.lv) return { hm: r2(osm.lv * LEVEL_M + (osm.rl || 0) * LEVEL_M), hsrc: 'osm_levels' };
   return { hm: r2((levels || 1) * LEVEL_M), hsrc: 'default' };
 }

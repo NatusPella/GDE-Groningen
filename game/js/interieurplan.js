@@ -239,7 +239,7 @@ export const INTERIEUREN = [];
       R('koor', -19, -6, 12, 12, 13, { name: 'Koor', style: { ...kerk, floor: 0x77716a } }),
       R('schip', -4, -4.5, 22, 17, 15, { name: 'Schip', style: kerk }),
       R('dwarsschip', 12, 0, 12, 26, 14, { name: 'Dwarsschip', style: kerk }),
-      R('torenhal', 19.5, 8, 5, 6, 12, { name: 'Torenhal', style: { ...kerk, wall: 0xc9bd9f } }),
+      R('torenhal', 19.5, 8, 5, 5.8, 12, { name: 'Torenhal', style: { ...kerk, wall: 0xc9bd9f } }),
       R('portaalZ', 12, 14.8, 4.4, 4.6, 4.6, { deur: true, name: 'Zuidportaal', style: DOOR }),
       R('portaalN', 0, -14.8, 4.4, 4.6, 4.6, { deur: true, name: 'Noordportaal', style: DOOR }),
     ],

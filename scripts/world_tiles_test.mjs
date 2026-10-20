@@ -3,7 +3,7 @@
 // - the codec: every value kind, exact doubles, centimetre points, float64
 //   exceptions, -0 and odd numbers, strings, json, rasters, blobs
 // - the packed world in game/world equals what the packer makes now from
-//   citymap.json + mapextras.json (so it is not stale)
+//   stad.json + the OSM layers + mapextras.json (so it is not stale)
 // - semantic round trip: decoding every tile and putting the objects back by
 //   gid gives the GameMap's arrays exactly (same doubles, same keys)
 // - byte round trip: decode + encode gives the same blob bytes, and the
@@ -67,7 +67,7 @@ const sameBytes = (a, b) => a.length === b.length && a.every((v, i) => v === b[i
 }
 
 // --- the packed world
-const src = P.loadSources();
+const src = await P.loadSourcesLaag();
 const built = P.build(src);
 // packed into a throwaway folder (game/world is a build artifact, not committed)
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'gde-world-test-'));

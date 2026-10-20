@@ -9,6 +9,7 @@ import * as G from '../../game/js/gdt.js';
 import * as P from '../world/pack_tiles.mjs';
 import { buildProvince } from '../world/build_province.mjs';
 import { diffTiles, CORE_BUILDINGS } from '../world/city_diff.mjs';
+import { loadLegacySources } from './loadworld.mjs';
 
 // de globale laag zonder de dichte stads-gids: geen vaste set, alles komt gestreamd (gids van de provincie)
 export function streamedGlobal(bytes) {
@@ -36,7 +37,7 @@ export async function worldOf(built, blobs, { pinned = true } = {}) {
 
 // { A, B, core: [key], city }: B is alleen de kerntegels uit de OSM-bouw, gestreamd zoals de provincie
 export async function buildPair() {
-  const city = P.build(P.loadSources());
+  const city = P.build(await loadLegacySources());
   const probe = buildProvince({ cityKeys: new Set(), only: new Set(city.blobs.keys()), profile: new Set(city.blobs.keys()), map: false, fillOld: false });
   const { perTile } = diffTiles(city.blobs, probe.blobs);
   const core = [...perTile].filter(([, t]) => t.schaduw && t.stad.gebouwen >= CORE_BUILDINGS).map(([k]) => k);

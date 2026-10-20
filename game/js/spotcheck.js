@@ -76,7 +76,7 @@ export function spotProblem(map, s) {
   if (mode === 'air') return null;
   // (a canal's water polygons often stop under a bridge: the boat sails on through)
   if (mode === 'boat') return isInWater(map, x, y) || map.isOnBridge(x, y) || map.inWaterRaw(x, y) ? null : 'niet op het water';
-  const wet = isInWater(map, x, y) && !map.isOnBridge(x, y);
+  const wet = isInWater(map, x, y);
   if (wet) return 'in het water';
   const b = buildingAt(map, x, y);
   if (b) return `in een gebouw${b.name ? ' (' + b.name + ')' : ''}`;
