@@ -1089,7 +1089,8 @@ function pushIn(p, k) {
   return { ...p, position: P(lerp(p.position.x, p.lookAt.x, q), lerp(p.position.y, p.lookAt.y, q), lerp(p.position.z, p.lookAt.z, q)), fov: p.fov * (1 - 0.1 * k) };
 }
 
-const cineLines = (lines) => lines.map((l) => ({ speaker: l.speaker, text: l.text, at: l.at, dur: l.dur, clue: l.clue || undefined }));
+// own: the scene plays the voices itself (its shot callback), so cinematics.js must not look them up and start them a second time (#326)
+const cineLines = (lines) => lines.map((l) => ({ speaker: l.speaker, text: l.text, at: l.at, dur: l.dur, clue: l.clue || undefined, own: true }));
 
 // Runs a staged scene: voices, gestures, clue push-ins and the camera
 // (camera(t, cur) returns a pose). keep: the caller cleans up (a queued card).

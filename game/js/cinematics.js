@@ -262,13 +262,13 @@ export function skipCinematic() {
 }
 
 // Subtitles without their own recording get one from the lines manifest
-// (narration without a speaker is Rikus, the narrator). Voiced lines then stay up
+// (narration without a speaker is Rikus, the narrator); a line marked `own` is voiced by its scene. Voiced lines then stay up
 // until their recording has finished, pushing the rest (and the scene) later.
 function attachVoices(a) {
   if (!a.lines || !a.lines.length) return;
   let found = false;
   const lines = a.lines.map((l) => {
-    const v = !l.voice && lineVoiceFor(l.speaker, l.text);
+    const v = !l.voice && !l.own && lineVoiceFor(l.speaker, l.text);
     if (!v) return l;
     found = true;
     return { ...l, voice: v.src, vdur: v.dur };
