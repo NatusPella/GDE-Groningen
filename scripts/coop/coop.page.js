@@ -201,6 +201,7 @@ const simStats = () => links().map((l) => ({ in: l.__sim ? l.__sim.dropIn || 0 :
 const PHASES = {
   // kijken: elke seconde een sample staat al; hier alleen wachten
   async wacht({ s = 10 }) { await sleep(s * 1000); },
+  async kijk({ s = 10 }) { await sleep(s * 1000); }, // zelfde als wacht, onder een eigen fasenaam (de testbank leest er de invoer van een andere speler in)
   async shot({ name }) { shot(name); await sleep(600); },
   // bij een slecht netwerk spelen: alleen op de aangegeven instanties (args.wie)
   async netsim({ s = 20, latency = 0.12, jitter = 0.05, loss = 0.1, wie = null }) {

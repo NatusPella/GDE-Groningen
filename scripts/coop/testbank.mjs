@@ -39,13 +39,14 @@ const P = {
   basis: { host: [[0, 'wacht', { s: DURATION }]], gast: [[0, 'wacht', { s: DURATION }]], gast2: [[0, 'wacht', { s: DURATION }]] },
   net: Object.fromEntries(['host', 'gast', 'gast2'].map((me) => [me, [
     [0, 'wacht', { s: 12 }], [14, 'netsim', { s: 20, wie: [SECOND] }], [38, 'desync', { s: 25, wie: 'gast' }], [78, 'loop', { s: 8 }],
-    me === 'host' ? [90, 'uitvalHost', { s: 8 }] : me === 'gast' ? [90, 'uitval', { s: 8, wie: 'gast' }] : [90, 'wacht', { s: 28 }],
-    [122, 'betaal', me === 'host' ? { geld: 250 } : {}], [128, 'opgeslagen', {}], [134, 'rit', { s: 30 }],
-    me === SECOND ? [170, 'verlaat', { wie: SECOND }] : [170, 'wacht', { s: 22 }], [196, 'stopHost', {}],
+    me === 'gast' ? [88, 'touch', { s: 12 }] : [88, 'kijk', { s: 12 }],   // de Electron-gast 'gast' heeft aanraakbediening (touch=1)
+    me === 'host' ? [102, 'uitvalHost', { s: 8 }] : me === 'gast' ? [102, 'uitval', { s: 8, wie: 'gast' }] : [102, 'wacht', { s: 28 }],
+    [134, 'betaal', me === 'host' ? { geld: 250 } : {}], [140, 'opgeslagen', {}], [146, 'rit', { s: 30 }],
+    me === SECOND ? [184, 'verlaat', { wie: SECOND }] : [184, 'wacht', { s: 22 }], [210, 'stopHost', {}],
   ]])),
   kamer: { host: [[0, 'wacht', { s: DURATION }]], gast: [[0, 'wacht', { s: DURATION }]], gast2: [[0, 'wacht', { s: DURATION }]] },
   verhaal: { host: [[0, 'verhaal', { s: Number(arg('verhaal-s', 1500)) }]], gast: [[0, 'verhaal', { s: Number(arg('verhaal-s', 1500)) }]], gast2: [[0, 'verhaal', { s: Number(arg('verhaal-s', 1500)) }]] },
-  touch: { host: [[0, 'wacht', { s: 16 }]], gast: [[0, 'touch', { s: 12 }]], gast2: [[0, 'wacht', { s: 16 }]] },
+  touch: { host: [[0, 'kijk', { s: 16 }]], gast: [[0, 'touch', { s: 12 }]], gast2: [[0, 'wacht', { s: 16 }]] },
 }[SUITE];
 if (!P) { console.error('onbekende suite: ' + SUITE); process.exit(2); }
 
@@ -134,7 +135,7 @@ else if (ROUTE === 'direct') {
   }
 }
 const guestCode = code ? code.code : '';
-const guestArgs = SUITE === 'touch' ? ['--url-flags=touch=1'] : [];
+const guestArgs = SUITE === 'touch' || SUITE === 'net' ? ['--url-flags=touch=1'] : []; // de eerste Electron-gast bedient met aanraking
 if (code) guest = start('gast', { role: 'gast', code: guestCode }, 22, guestArgs);
 if (code && GASTEN > 1) { await new Promise((r) => setTimeout(r, 15000)); guest2 = start('gast2', { role: 'gast', code: guestCode }, 33); } // pas als de eerste gast er is: zo is de plek voorspelbaar
 
@@ -360,14 +361,14 @@ if (SUITE === 'net') {
   else problems.push('de late mockgast is niet verbonden');
 }
 
-// ----- suite 'touch'
-if (SUITE === 'touch') {
+// ----- aanraakbediening (suite 'touch' en de gast van 'net')
+if (SUITE === 'touch' || SUITE === 'net') {
   const tu = of(G, 'touch')[0], th = of(G, 'touch-half')[0], tv = of(G, 'touch-vol')[0], tl = of(G, 'touch-los')[0];
   check(tu && tu.ui, 'touch: geen aanraakbediening op de gast: ' + JSON.stringify(tu));
   check(th && th.axis && th.axis[0] > 0.25 && th.axis[0] < 0.85, 'touch: halve stick geeft geen halve as: ' + JSON.stringify(th));
   check(tv && tv.axis && tv.axis[0] > 0.95, 'touch: volle stick geeft geen volle as: ' + JSON.stringify(tv));
   check(tl && tl.axis && tl.axis[0] === 0 && tl.axis[1] === 0, 'touch: de as is na loslaten niet nul: ' + JSON.stringify(tl));
-  const hs2 = samples('host').filter((q) => q.ph === 'wacht');
+  const hs2 = samples('host').filter((q) => q.ph === 'kijk');
   const ri = hs2.map((q) => q.ri).filter(Boolean);
   check(ri.some((r) => r[0] > 0.25 && r[0] < 0.85), 'touch: de host ontving de halve stick niet: ' + JSON.stringify(ri.slice(0, 12)));
   check(ri.some((r) => r[0] > 0.95), 'touch: de host ontving de volle stick niet');
