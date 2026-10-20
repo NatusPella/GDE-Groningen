@@ -295,6 +295,16 @@ string>]` shows the first-run graphics advice in a test run.
 buffers as the main thread, byte for byte (`?noworker` keeps it all on the
 main thread).
 
+On a machine other work runs on, frame times say little (the same route gives 21 to 60 ms depending on the
+minute). `scripts/perf/run.mjs` (Windows, macOS, Linux; replaces `run.sh`) therefore also reports `mcpu`: the CPU
+time of the renderer's main thread per frame, from `scripts/perf/threadcpu.ps1`, which leaves out the time the thread
+was pre-empted. `PERF_ONLY=ab` runs variants in turns inside one process (`PERF_AB='aan=;uit=actoren+schaduw'`,
+`PERF_AB_MOVE=0|1|2` standing, walking or both, `PERF_AB_ROUNDS`, `PERF_AB_WIN` ms per window) and
+`node scripts/perf/abin.mjs <naam>.json` prints per variant the median `mcpu`, the work counts per frame (matrix
+walks, frustum tests) and the paired difference per round: the variants switch with `?perfoff=` (`window.__perfOffDyn`
+in a run) and feel the same load. `PERF_ONLY=beeld` compares the canvas of a stopped world with the steps on and off.
+`PERF_ONLY=wandel` walks at the game's own pace (3 m/s). `PERF_SETTLE=<ms>` lets a route settle longer first.
+
 ## Trailer mode
 
 "GDE Groningen — Een zomer in Grunn": one scripted sequence of 24 shots through

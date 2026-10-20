@@ -509,6 +509,7 @@ results.routes.det = await safe('det', async () => {
 results.routes.ab = await safe('ab', async () => {
   if (!ONLY.includes('ab')) return null;
   const variants = window.__perfAb; const WIN = window.__perfAbWin || 5000; const ROUNDS = window.__perfAbRounds || 6;
+  const SET = await imp('settings');
   // PERF_AB_MOVE: 0 standing, 1 walking, 2 both (standing first)
   const modes = window.__perfAbMove === 2 ? ['staan', 'lopen'] : [window.__perfAbMove ? 'lopen' : 'staan'];
   // deterministic work counts per frame, next to the times: nodes whose matrix is walked, meshes tested against a frustum
@@ -523,8 +524,11 @@ results.routes.ab = await safe('ab', async () => {
     for (let round = 0; round < ROUNDS; round++) {
       const order = round % 2 ? [...variants].reverse() : variants;
       for (const [name, off] of order) {
-        window.__perfOffDyn = new Set(off);
-        await sleep(1200);
+        // 'set:drawDistance:ver' among the steps puts that setting for this window only (settings.js withTempSettings)
+        const sets = {}; for (const o of off) if (o.startsWith('set:')) { const [, k, v] = o.split(':'); sets[k] = v; }
+        const undo = Object.keys(sets).length ? SET.withTempSettings(sets) : null;
+        window.__perfOffDyn = new Set(off.filter((o) => !o.startsWith('set:')));
+        await sleep(undo ? (window.__perfAbPre || 6000) : 1200);
         calls = 0; renders = 0; cnt.umw = 0; cnt.fto = 0;
         H.start();
         const key = name + '@' + mode + ':' + round;
@@ -532,6 +536,7 @@ results.routes.ab = await safe('ab', async () => {
         await sleep(WIN);
         const res = H.stop();
         console.error('[perf-mark] end ab:' + key + ' ' + Date.now() + ' ' + res.frames);
+        if (undo) undo();
         out.push({ name: name + '@' + mode, round, frames: res.frames, avg: res.avg, p50: res.p50, p95: res.p95, cpuAvg: res.cpuAvg, cpuP50: res.cpuP50, calls: Math.round(calls / Math.max(1, res.frames)), umw: Math.round(cnt.umw / Math.max(1, res.frames)), fto: Math.round(cnt.fto / Math.max(1, res.frames)), key });
       }
     }
@@ -718,11 +723,13 @@ results.routes.vspots = await safe('vspots', async () => {
 results.routes.beeld = await safe('beeld', async () => {
   if (!ONLY.includes('beeld')) return null;
   const SCN = await imp('scene3d');
-  const off = (window.__perfBeeldOff || '').split('+').filter(Boolean);
+  // PERF_BEELD_OFF='a+b;c;d': sets of steps, each against all steps on
+  const sets = (window.__perfBeeldOff || '').split(';').filter(Boolean).map((s) => s.split('+').filter(Boolean));
   const spots = [['markt', FOOT[0][0], FOOT[0][1], 0.3], ['markt2', FOOT[0][0], FOOT[0][1], 3.6], ['straat', FOOT[3][0], FOOT[3][1], 1.9], ['straat2', FOOT[3][0], FOOT[3][1], 4.2], ['kanaal', FOOT[4][0], FOOT[4][1], 2.6], ['winsum', ...placeAt('Winsum'), 2.2], ['a7', (A7[1][0] + A7[2][0]) / 2, (A7[1][1] + A7[2][1]) / 2, 0.5], ['hoogezand', ...placeAt('Hoogezand'), 1.0]];
   const gl = r.getContext(); const W = r.domElement.width, Hh = r.domElement.height;
   const grab = () => new Promise((res) => { SCN.afterNextFrame(() => { const b = new Uint8Array(W * Hh * 4); gl.readPixels(0, 0, W, Hh, gl.RGBA, gl.UNSIGNED_BYTE, b); res(b); }); });
-  const diff = (a, b) => { let n = 0, sum = 0, x0 = W, x1 = -1, y0 = Hh, y1 = -1; for (let i = 0; i < a.length; i += 4) { const d = Math.max(Math.abs(a[i] - b[i]), Math.abs(a[i + 1] - b[i + 1]), Math.abs(a[i + 2] - b[i + 2])); sum += d; if (d > 8) { n++; const p = i >> 2, x = p % W, y = (p / W) | 0; if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; } } return { pct: +(n / (a.length / 4) * 100).toFixed(3), mean: +(sum / (a.length / 4)).toFixed(3), box: n ? [x0, y0, x1, y1] : null }; };
+  // pixels that hold still: both pairs of equal settings agree there (water, grass and leaves move even in a stopped world)
+  const cmp = (a, b, a2, b2) => { let n = 0, bad = 0, worst = 0, x0 = W, x1 = -1, y0 = Hh, y1 = -1; for (let i = 0; i < a.length; i += 4) { const nz = Math.max(Math.abs(a[i] - a2[i]), Math.abs(a[i + 1] - a2[i + 1]), Math.abs(a[i + 2] - a2[i + 2]), Math.abs(b[i] - b2[i]), Math.abs(b[i + 1] - b2[i + 1]), Math.abs(b[i + 2] - b2[i + 2])); if (nz > 1) continue; n++; const d = Math.max(Math.abs(a[i] - b[i]), Math.abs(a[i + 1] - b[i + 1]), Math.abs(a[i + 2] - b[i + 2])); if (d > worst) worst = d; if (d > 2) { bad++; const p = i >> 2, x = p % W, y = (p / W) | 0; if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; } } return { stillPct: +(n / (a.length / 4) * 100).toFixed(1), differ: bad, worst, box: bad ? [x0, y0, x1, y1] : null }; };
   const out = [];
   for (const [name, x, y, yaw] of spots) {
     w.uiPaused = false;
@@ -730,15 +737,23 @@ results.routes.beeld = await safe('beeld', async () => {
     await sleep(12000); fixWorld();
     { const builds = () => { const b = sc.batches(); return Object.values(b).reduce((q, e) => q + e.builds + e.dropped, 0); }; let last = builds(), still = 0; for (let i = 0; i < 60 && still < 6; i++) { await sleep(500); const n = builds(); still = n === last ? still + 1 : 0; last = n; } }
     fixWorld(); w.uiPaused = true; await sleep(1500);
-    const shots = [];
-    for (const dyn of [[], off, [], off]) { window.__perfOffDyn = new Set(dyn); await sleep(400); shots.push(await grab()); }
+    const take = async (off) => { window.__perfOffDyn = new Set(off); await sleep(400); return grab(); };
+    const on1 = await take([]);
+    const shots = []; for (const s of sets) shots.push(await take(s));
+    const on2 = await take([]);
+    const row = { spot: name, noise: cmp(on1, on1, on2, on2).stillPct, sets: [] };
+    for (let k = 0; k < sets.length; k++) {
+      // the set's own repeat is the noise of that setting: one more picture with it
+      const rep = await take(sets[k]);
+      const c = cmp(on1, shots[k], on2, rep);
+      row.sets.push({ off: sets[k].join('+'), ...c });
+      if (c.differ > 300) { window.__perfOffDyn = new Set([]); await sleep(400); console.log('[capture] bl-' + name + '-aan'); await sleep(900); window.__perfOffDyn = new Set(sets[k]); await sleep(400); console.log('[capture] bl-' + name + '-' + k); await sleep(900); }
+    }
     window.__perfOffDyn = undefined;
-    // the same, on the pixels that hold still (water, grass and leaves move even in a stopped world): both pairs of equal settings agree there
-    const still = (a, b, c, d2) => { let n = 0, bad = 0, sum = 0, worst = 0; for (let i = 0; i < a.length; i += 4) { const nz = Math.max(Math.abs(a[i] - c[i]), Math.abs(a[i + 1] - c[i + 1]), Math.abs(a[i + 2] - c[i + 2]), Math.abs(b[i] - d2[i]), Math.abs(b[i + 1] - d2[i + 1]), Math.abs(b[i + 2] - d2[i + 2])); if (nz > 1) continue; n++; const d = Math.max(Math.abs(a[i] - b[i]), Math.abs(a[i + 1] - b[i + 1]), Math.abs(a[i + 2] - b[i + 2])); sum += d; if (d > 2) bad++; if (d > worst) worst = d; } return { stillPct: +(n / (a.length / 4) * 100).toFixed(1), differ: bad, differPct: +(bad / Math.max(1, n) * 100).toFixed(4), mean: +(sum / Math.max(1, n)).toFixed(4), worst }; };
-    out.push({ spot: name, noise: diff(shots[0], shots[2]), noiseOff: diff(shots[1], shots[3]), change: diff(shots[0], shots[1]), still: still(shots[0], shots[1], shots[2], shots[3]) });
+    out.push(row);
   }
   w.uiPaused = false;
-  return { off, spots: out };
+  return { sets: sets.map((s) => s.join('+')), spots: out };
 });
 // draw calls of the vehicles and people in view (only with PERF_ONLY=actors)
 results.routes.actors = await safe('actors', async () => {
