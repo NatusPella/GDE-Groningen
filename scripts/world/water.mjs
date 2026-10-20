@@ -1,7 +1,7 @@
 // Water bodies, movable bridges and the waterway audit (docs/PROVINCIE-PLAN.md
 // 2.11, "Water").
 //
-//   node scripts/world/water.mjs           audit game/citymap.json
+//   node scripts/world/water.mjs           audit the city (stad.json and the OSM layers)
 //   node scripts/world/water.mjs --write   annotate the water and the movable bridges, then audit
 //   node scripts/world/water.mjs --strict  exit 1 when a navigable waterway is cut off
 //
@@ -33,18 +33,6 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 export const CLASS_BOAT = { 1: 'kano', 2: 'sloep', 3: 'rondvaart', 4: 'binnenvaart' };
 // beam (m): boattypes.js widths; a small barge (spits) 5.05 m
 const BEAM = { kano: 0.8, sloep: 2.0, rondvaart: 3.3, binnenvaart: 5.1 };
-
-const OSM_FILES = ['data/groningen_raw.json', 'data/groningen_extra.json', 'data/extras_bus_raw.json', 'data/ring_raw.json.gz', 'data/ring_extra.json.gz', 'data/facilities_raw.json.gz'];
-function loadElements(root = ROOT) {
-  const out = [];
-  for (const rel of OSM_FILES) {
-    const f = path.join(root, rel);
-    if (!fs.existsSync(f)) continue;
-    const raw = f.endsWith('.gz') ? zlib.gunzipSync(fs.readFileSync(f)).toString('utf8') : fs.readFileSync(f, 'utf8');
-    for (const e of JSON.parse(raw).elements || []) out.push(e);
-  }
-  return out;
-}
 
 // roads that OSM tags bridge:movable: by OSM id, else by geometry (the way's
 // outline within 1.5 m of the road along most of the road's length)
@@ -245,22 +233,12 @@ export const problems = (rep) => [1, 2, 3].reduce((s, c) => s + rep.classes[c].c
 
 async function main() {
   const args = process.argv.slice(2);
-  const file = path.join(ROOT, 'game/citymap.json');
-  const data = JSON.parse(fs.readFileSync(file, 'utf8'));
+  const { loadCityData } = await import('../lib/loadworld.mjs');
+  const data = await loadCityData({ extras: false });
   if (args.includes('--write')) {
-    const t0 = performance.now();
-    const bodies = annotateWater(data.water);
-    const els = loadElements();
-    const mv = matchMovable(data.roads, els);
-    data.meta.locks = findLocks(data.water, els);
-    const kinds = {};
-    for (const w of data.water) kinds[w.kind] = (kinds[w.kind] || 0) + 1;
-    console.log(`${bodies.length} water bodies (boezem: ${bodies.find((b) => b.boezem).polys.length} polygons), kinds ${JSON.stringify(kinds)}; movable bridges ${mv.matched} of ${mv.tagged} OSM ways; locks ${data.meta.locks.length} (${((performance.now() - t0) / 1000).toFixed(1)} s)`);
-    fs.writeFileSync(file, JSON.stringify(data));
-    console.log(`wrote ${path.relative(ROOT, file)}`);
-  } else if (!data.water.some((w) => w.kind)) {
-    annotateWater(data.water);
-    matchMovable(data.roads, loadElements());
+    // het water van de stad komt uit de OSM-tegelbouw (stad_laag.mjs) met zijn eigen soort en peil; er is niets meer om weg te schrijven
+    console.log('--write bestaat niet meer: de lagen van de stad komen uit de OSM-tegelbouw (game/stad.json heeft alleen de handlaag)');
+    process.exit(1);
   }
   const rep = audit(data);
   printAudit(rep);

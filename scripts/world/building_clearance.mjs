@@ -1,5 +1,5 @@
 // Footprint clearance along the car roads (issue #77).
-//   node scripts/world/building_clearance.mjs [--write]
+//   node scripts/world/building_clearance.mjs   (report; --write is gone, the OSM tile build derives this itself)
 // OSM footprints and street centrelines are traced independently, so in old
 // streets a house corner may sit 0.6 m from the centreline: the car drives
 // into a wall that is not there on the photo (drive_audit.mjs 'botst').
@@ -122,12 +122,9 @@ export function clearFootprints(data, clear = CLEAR) {
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  const file = path.join(ROOT, 'game/citymap.json');
-  const data = JSON.parse(fs.readFileSync(file, 'utf8'));
+  const { loadCityData } = await import('../lib/loadworld.mjs');
+  const data = await loadCityData({ extras: false });
   const rep = clearFootprints(data);
   console.log(`footprints pushed back to ${CLEAR} m from a car road's centreline: ${rep.fixed} (${rep.moved} vertices); left alone, a road runs through: ${rep.skipped}`);
-  if (process.argv.includes('--write')) {
-    fs.writeFileSync(file, JSON.stringify(data));
-    console.log(`${file} written`);
-  }
+  // --write bestaat niet meer: de gebouwen van de stad komen uit de OSM-tegelbouw, die dit zelf afleidt (derive_tiles.mjs)
 }
