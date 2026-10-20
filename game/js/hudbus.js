@@ -252,6 +252,7 @@ export const SURFACES = {
   plaatsnaam: { files: ['hud_panel.js'], zone: 'B', p: P3, gates: [['overlay', 'locatie']] },
   keuze: { files: ['choicepanel.js'], zone: 'B', p: P1, gates: [['overlay', 'keuze']] },
   bord: { files: ['minigamekit.js'], zone: 'B', p: P1, gates: [['overlay', 'duelbalk']] },
+  ballon: { files: ['scene3d.js'], p: P3, gates: [['speech', 'ambient']] },
   spraak: { files: ['speech.js'], gates: [['speech']] },
   // own planning, no gate: the HUD's layout (decideHud, hudrules.js) or a panel the player or the activity owns
   status: { files: ['hud_panel.js', 'hudgps.js', 'lowhealth.js'], p: P2, own: 'decideHud (hudrules.js) zet sterren, geld, kaart, voertuig, doel en balken neer' },
