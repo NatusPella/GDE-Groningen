@@ -159,7 +159,7 @@ export async function loadCityDataLaag(game = path.join(ROOT, 'game'), lagen = p
     // wegen en spoor: hele wegen uit de OSM-bouw met hun hoogteprofiel (stad_wegen.mjs); legt ook het profiel van de busbanen in de extras terug
     if (rows.wegen) {
       const { profileCity } = await import('./stad_wegen.mjs');
-      report.wegen = profileCity(data, rows.wegen, { lagen: all, extras: extrasData, inside: (x, y) => cover.inside(x, y) });
+      report.wegen = await profileCity(data, rows.wegen, { lagen: all, extras: extrasData, inside: (x, y) => cover.inside(x, y) });
     }
     // wat de provinciebouw per tegel niet weet: extras-gebouwen gaan voor OSM, geen bos op baan, weg of gebouw (stad_na.mjs)
     if (!osm) { const na = await (await import('./stad_na.mjs')).tidyCity(data, extrasData); if (process.env.GDE_STAD_LOG) console.log('stad_na', JSON.stringify(na)); }

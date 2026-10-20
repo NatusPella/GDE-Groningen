@@ -345,21 +345,24 @@ export function markDryRoads(d) {
 // ------------------------------------------------------------------ hoogtes
 
 const noTerrain = () => 0;
+// GDE_STAD_TERRAIN=1: de oplossers rekenen over het AHN-terrein (data/world/ahn, terrain.mjs), #269
+let terrainFn = null;
+const cityTerrain = async () => { if (terrainFn) return terrainFn; if (process.env.GDE_STAD_TERRAIN !== '1') return noTerrain; terrainFn = (await import('./terrain.mjs')).loadTerrainField().at; return terrainFn; };
 const lcPoints = (d) => (d.levelCrossings || []).map((c) => [c.x, c.y]);
 
 // profile.mjs main(): de oplosser tot niets meer verandert, hoogstens drie rondes
-function solveRoads(d, protect) {
+function solveRoads(d, protect, terrain = noTerrain) {
   let passes = 0;
   for (let pass = 0; pass < 3; pass++) {
-    const sol = PR.solve(d, { terrain: noTerrain, protect });
+    const sol = PR.solve(d, { terrain, protect });
     const res = PR.apply(d, sol);
     passes++;
     if (!res.changed && !res.cleared && !sol.pts.size) break;
   }
   return passes;
 }
-function solveRails(d) {
-  const sol = RP.solve(d, {});
+function solveRails(d, terrain = noTerrain) {
+  const sol = RP.solve(d, { terrain });
   const res = RP.apply(d, sol);
   return { changed: res.changed, shortfall: sol.shortfall.length };
 }
@@ -369,9 +372,10 @@ const withGeometry = (els) => els.filter((e) => e.type === 'way').map((e) => ({ 
 
 // d: de stadsdata (GameMap-invoer vóór de mapextras); wegen: collector().result(); extras: mapextras.json (geladen)
 // lagen: 'roads' en/of 'rails'; inside(x, y): de dekking van de stad. Geeft een verslag.
-export function profileCity(d, wegen, { lagen, extras = {}, inside }) {
+export async function profileCity(d, wegen, { lagen, extras = {}, inside }) {
   const wantRoads = lagen.includes('roads'), wantRails = lagen.includes('rails');
   const rep = { roads: 0, passes: 0 };
+  const terrain = await cityTerrain();
   const bounds = d.meta.bounds;
   const inRect = (x, y, m = 0) => x >= bounds[0] - m && x <= bounds[2] + m && y >= bounds[1] - m && y <= bounds[3] + m;
   if (wantRoads) {
@@ -395,10 +399,10 @@ export function profileCity(d, wegen, { lagen, extras = {}, inside }) {
   if (wantRoads) rep.snapped = snapExtras(extras, d.roads);
   const bus = busWays(d, extras);
   const protect = PR.protectedRoads(d, extras);
-  const solveAll = () => { for (const { road } of bus) d.roads.push(road); rep.passes += solveRoads(d, protect); d.roads = d.roads.filter((r) => !bus.some((b) => b.road === r)); };
+  const solveAll = () => { for (const { road } of bus) d.roads.push(road); rep.passes += solveRoads(d, protect, terrain); d.roads = d.roads.filter((r) => !bus.some((b) => b.road === r)); };
   const saved = { rails: d.rails, levelCrossings: d.levelCrossings, railLifts: d.railLifts, railPlatforms: d.railPlatforms };
   if (wantRoads) {
-    rep.ring = ringHeights(d, railsRaw);
+    rep.ring = process.env.GDE_STAD_RING === '0' ? null : ringHeights(d, railsRaw);
     // (de volgorde van build_map.py: de eerste ronde zonder spoor)
     if (wantRails) Object.assign(d, { rails: [], levelCrossings: [], railLifts: [], railPlatforms: [] });
     solveAll();
@@ -410,9 +414,9 @@ export function profileCity(d, wegen, { lagen, extras = {}, inside }) {
     rep.rails = { rails: r.rails.length, stations: r.stations.length, levelCrossings: r.levelCrossings.length, routes: r.railRoutes.length, lifts: r.railLifts.length, cut: r.cut };
     rep.railTags = RP.matchRailTags(d.rails, geomEls);
     d.railPlatforms = RP.platformsFrom(geomEls).filter((p) => { const q = p.pts[Math.floor(p.pts.length / 2)]; return inRect(q[0], q[1], 150); });
-    rep.rail1 = solveRails(d);
+    rep.rail1 = solveRails(d, terrain);
     solveAll();
-    rep.rail2 = solveRails(d);
+    rep.rail2 = solveRails(d, terrain);
   } else if (wantRoads) {
     // de oude sporen blijven: de paden bij het spoor afknippen en de wegen er nog eens tegen oplossen
     Object.assign(d, saved);
