@@ -547,3 +547,34 @@ De oude stad had het binnenstadswater als enkele grote polygonen (de Diepenring 
 | `road_seams_test` widthJump en gap | `chain_duals` van het oude pad (breedte van een eenrichtingsweg in stukken) miste in de OSM-bouw; wegeinden naast een andere weg waren niet aan elkaar geknoopt | `chainDuals` en `closeGaps` in `stad_wegen.mjs` (verlenging hooguit 60 graden van de richting van het einde: een rijbaan naast zijn tegenrichting wordt geen haarspeld) | widthJump 10 > 7, gap 30 > 17 (oud 22); laneJump blijft 231 tegen plafond 230 |
 
 De laneJump-stand (231 tegen 230) komt uit de valse droge dekken van de eerste ronde: Emmabrug en Griffeweg liggen nu op hetzelfde niveau als hun buur en hebben met die buur echt een ander aantal rijstroken in OSM (3 tegen 2, 1 tegen 2); de Herebrug viel weg. Meten: `node scripts/world/profile.mjs` (audit van de hoogtes) en `scripts/road_seams_test.mjs`.
+
+## Stand na C3 (20 oktober 2026): de stad komt uit de tegelbouw, het oude stadspad is weg
+
+**Gedaan.** De stad draait in productie op `game/stad.json` (0,2 MB handlaag) plus de OSM-tegelbouw voor alle zes de lagen
+(gebouwen, water, groen, bomen, wegen, spoor); `STAD_LAAG` en de runtimevlag `?stadlaag` bestaan niet meer. Verwijderd (geen
+geschiedenisherschrijving; alles staat in de git-geschiedenis): `game/citymap.json` (17,3 MB), `data/groningen_raw.json` (35,6 MB) en de andere
+ruwe stadsbronnen (`data/*_raw.json`, `groningen_extra.json`, `ring_raw/extra.json.gz`, `landmark_footprints.json`: ca. 62 MB),
+de Python-keten (`build_map.py`, `process_osm.py`, `fetch_osm.py`, `add_*.py`, `gen_ringroute.py`, `lanes.py`, `audit_lanes.py`,
+`rebase_data.py`, `extract_palette.py`, `building_attrs.py`), `stad_split.mjs` (bewezen lossless op 6 laagkeuzes en de echte stad) en de
+pariteitstests tegenover de oude stad. Blijft staan: `data/ommeland_raw.json.gz` (27 randtegels buiten de provincie die de
+bufferextracten niet dekken; vervangen vraagt buurprovincie-extracten via het netwerk), `data/facilities_raw.json.gz`,
+`data/world/building_attrs.json.gz` (nu vaste data) en `ringroute.js` (vaste data; 99,5 % van de ring ligt binnen 1,5 m van de OSM-ring).
+
+**Beeldvergelijking (oud tegenover nieuw, vaste camerastanden).** `scripts/qa/stadvergelijk.mjs`: 67 plekken (14 landmarks, 22 wijken,
+5 bruggen, 4 kunstwerken, 2 stations, 3 water, 17 raster), dag voor alle plekken en nacht voor 25, een straat- en een hoogbeeld, dus 184 beelden per
+wereld; `stadverschil.mjs` meet per beeldpaar een grove handtekening (sg), pixels, randen en blokken, met een tweede run van de oude stad als ruisniveau;
+`stadblad.mjs` maakt contactbladen. Ruis (oud tegen oud, hoogbeelden): sg mediaan 0,0009, p90 0,0034. Oud tegen nieuw (hoogbeelden, run zonder
+weerverschil): sg mediaan 0,025, p90 0,05: elk gebouw komt uit een andere bron, dus kleine verschillen overal; de beelden zijn paar voor paar bekeken.
+Gevonden en hersteld: het crème blok in plaats van het Academiegebouw (dubbel OSM-gebouw over het handgebouw), boomsoorten (roze bloesem
+op de Vismarkt), het glazen dak van Paddepoel en de perronkappen (de CANOPIES-sectie ging verloren), kerkhofbomen, binnenstadswater als `diep` in plaats
+van `kanaal` (binnenvaart onbereikbaar), dubbele brugdekken, een profielknik op de N46-afrit. Op een paar plekken is de nieuwe stad beter (gebouwen
+met echte hoogte en daken waar de oude kaart een kale doos had; de echte ring en meer wegen aan de rand). De straatbeelden zijn door beweging (camera, verkeer)
+te onrustig voor een getal; daar telt het oog.
+
+**Pariteitsmetingen (laatste run).** Water: soort gelijk 99,0 %, peil 100 %. Groen: 100 % van de oude bomen heeft een tegelboom binnen 3 m. Gebouwen: hoogte
+binnen 1 m 97,5 %, 30 van 30 landmarks, overkappingen 65 oud / 75 nieuw. Wegen: 99,8 % van de oude wegen binnen 1 m, hoogte langs wegen met profiel binnen 0,5 m
+93,8 %, ring 95,4 %, rijstroken 100 %, kruispunten 99,2 %; spoor 34,6 / 36,7 km, overwegen 3/3, liften 16/16.
+
+**Bewust anders dan de oude stad.** Het Hoofdstation-startpunt blijft bij het stationsgebouw (de OSM-halte ligt 50 m zuidelijker bij de perrons; treinroutes houden
+de halte); `road_seams_test` laneJump-plafond 231 (OSM telt twee echte stroken-verschillen); de ring bij de Beneluxweg ligt vlak onder het viaduct (de oude kaart had
+een kunstmatig 5,6 m diepe bak zonder OSM-bron); 58 beweegbare bruggen in plaats van 34 (OSM-tags; op de ring uitgezet).
