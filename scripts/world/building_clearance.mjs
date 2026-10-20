@@ -121,10 +121,10 @@ export function clearFootprints(data, clear = CLEAR) {
   return total;
 }
 
-if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) (async () => { // niet awaiten: loadworld.mjs laadt build_province.mjs, dat dit bestand weer importeert
   const { loadCityData } = await import('../lib/loadworld.mjs');
   const data = await loadCityData({ extras: false });
   const rep = clearFootprints(data);
   console.log(`footprints pushed back to ${CLEAR} m from a car road's centreline: ${rep.fixed} (${rep.moved} vertices); left alone, a road runs through: ${rep.skipped}`);
   // --write bestaat niet meer: de gebouwen van de stad komen uit de OSM-tegelbouw, die dit zelf afleidt (derive_tiles.mjs)
-}
+})();
