@@ -366,10 +366,10 @@ const PHASES = {
     log('save', { role: w.coopRole || null, hadSave, ok, money: w.money, verdiend: w.coopVerdiend || 0, saveMoneyVoor: voor, saveMoney: d ? d.money : null, saveChar: d ? d.character : null });
   },
   // de spelbot speelt het verhaal (alleen de host); de gasten lopen mee
-  async verhaal({ s = 1500, until = 'T1' }) {
+  async verhaal({ s = 1500, until = 'T1', speed = 1 }) {
     const args = { until };
     if (CFG.role === 'host') {
-      window.__botCfg = { part: 'all', until: args.until || 'T1', maxGameS: 3600, maxWallS: s, stuckS: 45, shots: 40, speed: 1, waitS: 60, invulnerable: !!CFG.invuln };
+      window.__botCfg = { part: 'all', until: args.until || 'T1', maxGameS: 3600, maxWallS: s, stuckS: 45, shots: 40, speed: speed || 1, waitS: 60, invulnerable: !!CFG.invuln };
       log('verhaal-begin', {});
       const r = await window.__botMain();
       log('verhaal-einde', { r });
@@ -391,6 +391,7 @@ const PHASES = {
         } else { B.stick(0, 0); B.up('shift'); }
         ver = Math.max(ver, d);
       }
+      if (n % 160 === 159 && (CFG.shotsN = (CFG.shotsN || 0) + 1) <= 14) shot('volg-' + CFG.shotsN); // om de ~40 s: wat ziet de gast?
       if (++n % 40 === 0) log('volg', { d: tam && me ? Math.round(Math.hypot(tam.x - me.x, tam.y - me.y)) : null, stap: W().coopHostMissie ? W().coopHostMissie.label : null });
       await sleep(250);
     }
