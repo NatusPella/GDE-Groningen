@@ -7,7 +7,7 @@
 // Instellingen, Besturing.
 import { getSettings, setSetting, resetSettings, QUALITY_PRESETS } from './settings.js';
 import { logoHtml } from './logo.js';
-import { setPauseMenuOpen, setPauseMenuTabState } from './pausestate.js';
+import { setPauseMenuOpen, setPauseMenuTabState, setPauseMenuControls } from './pausestate.js';
 import { PRESET_ORDER, presetLabel, describePreset, describeChanges, currentPreset, applyPreset, getBenchResult, dismissBenchBanner, GEAR_SVG } from './gfxprofile.js';
 import { mountMapView, setMapActive, setMapCloseHandler, setMapView, getDiscoveredRatio, setMapTeleport } from './mapview.js';
 import { renderSamenPanel } from './samenpanel.js';
@@ -1486,6 +1486,7 @@ export function openPauseMenu(name = HOME, opts = {}) {
 export function closePauseMenu() {
   setOpen(false);
 }
+setPauseMenuControls({ openPauseMenu, closePauseMenu });
 
 function setOpen(value, name = HOME, how = 'direct') {
   if (!root) return;
