@@ -37,9 +37,9 @@ for (const s of ['SIGINT', 'SIGTERM']) process.on(s, () => { release(); process.
 // ---- het programma van de gast (seconden na "verbonden") en het draaiboek van de host, op dezelfde tijdlijn
 const PROGRAM = [
   [0, 'wacht', { s: 12 }], [22, 'shot', { name: 'g-filmpje' }], [34, 'shot', { name: 'g-keuze' }], [42, 'shot', { name: 'g-pauze' }], [54, 'shot', { name: 'g-passagier' }],
-  [66, 'shot', { name: 'g-wanted' }], [76, 'opgeslagen', {}], [80, 'desync', { s: 25, wie: 'gast' }], [120, 'touch', { s: 12 }], [136, 'herverbind', { wie: 'gast' }], [172, 'wacht', { s: 32 }],
+  [66, 'shot', { name: 'g-wanted' }], [76, 'opgeslagen', {}], [80, 'desync', { s: 25, wie: 'gast' }], [120, 'touch', { s: 12 }], [136, 'herverbind', { wie: 'gast' }], [172, 'verlaat', { wie: 'gast' }], [186, 'opnieuw', {}], [206, 'wacht', { s: 40 }],
 ];
-const HOST_STOP = 196;
+const HOST_STOP = 236;
 const code = {};
 const started = Date.now();
 await takeSlot();
@@ -75,6 +75,7 @@ const traces = { companion: [], roster: [], wanted: [] };
   host.at(62, (h) => h.rit(false));
   host.at(64, (h) => { h.world.wanted = 3; });
   host.at(70, (h) => { h.world.wanted = 0; h.log.push('betaald ' + h.pay(250, 1)); });
+  host.at(176.5, (h) => h.log.push('na vertrek ' + JSON.stringify(h.roster())));
   host.at(HOST_STOP, async (h) => { clearInterval(tr); h.log.push('host stopt'); await h.stop(); });
   host.T0 = t0;
 })();
@@ -130,6 +131,13 @@ check(hh && hh.hold && hh.paused && hh.coopHold, 'herverbinden: geen wachtscherm
 check(hk && !hk.hold && !hk.paused && hk.slot === 1 && ['ok', 'lag'].includes(hk.status), 'herverbinden: de gast is niet terug op plek 1: ' + JSON.stringify(hk));
 check(traces.roster.some(([t, r]) => t > 134 && t < 170 && !/[1,"ok"]/.test(r)), 'herverbinden: de host zag Tessa niet haperen of wegvallen: ' + JSON.stringify(traces.roster.filter(([t]) => t > 134 && t < 170).map(([t, r]) => t + ':' + r).slice(0, 6)));
 note(notes, 'herverbinden: code ' + (hc && hc.voorgevuld ? 'voorgevuld' : 'moest worden ingevoerd'));
+// de gast verlaat het spel via het menu en sluit later opnieuw aan
+const vl = of('verlaten')[0], on = of('opnieuw-klaar')[0];
+const eerste = S.find((s) => s.me && s.role == null && s.me.x < -1000); const posVoor = eerste && eerste.me;
+check(vl && vl.coopNet === false && vl.role === null, 'verlaten: de gast zit nog in de sessie: ' + JSON.stringify(vl));
+check(vl && vl.pos && posVoor && Math.hypot(vl.pos[0] - posVoor.x, vl.pos[1] - posVoor.y) < 6, 'verlaten: de gast staat niet terug op zijn eigen plek: ' + JSON.stringify([vl && vl.pos, posVoor]));
+check(host.log.some((l) => /na vertrek [[0,"ok"]]/.test(l)), 'verlaten: de lijst van de host klopt niet: ' + host.log.join('; '));
+check(on && on.role === 'client' && on.slot === 1 && !on.paused, 'opnieuw aansluiten: ' + JSON.stringify(on));
 // het einde: de gastheer stopt, de gast speelt weer in zijn eigen spel
 const last = S[S.length - 1] || {};
 check(last.role === null || last.role === undefined, 'einde: de gast zit na het stoppen van de gastheer nog in de sessie: ' + JSON.stringify({ role: last.role, status: last.status }));
