@@ -12,7 +12,21 @@ const scr = await imp('cutscript');
 const prev = await imp('cutpreview');
 const cam = await imp('camerapath');
 const sc3 = await imp('scene3d');
+const THREE = await import('https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js');
+// kijkstraal door pixel (px, py): welke meshes zitten daar (naam, ouderketen, kleur), voor CS.probe = { id, t, px: [[x, y], ...] }
+const probeAt = (px, py) => {
+  const ray = new THREE.Raycaster();
+  const cam = window.__scene3d.cam;
+  ray.setFromCamera(new THREE.Vector2(px / innerWidth * 2 - 1, -(py / innerHeight * 2 - 1)), cam);
+  return ray.intersectObject(window.__scene3d.scene, true).slice(0, 5).map((h) => {
+    const o = h.object, chain = [];
+    for (let q = o; q && chain.length < 5; q = q.parent) chain.push((q.name || q.type) + (q.userData && Object.keys(q.userData).length ? ':' + JSON.stringify(q.userData).slice(0, 60) : ''));
+    const m = Array.isArray(o.material) ? o.material[0] : o.material;
+    return { d: +h.distance.toFixed(2), at: [h.point.x, h.point.z, h.point.y].map((v) => +v.toFixed(1)), chain, color: m && m.color && m.color.getHexString(), verts: o.geometry && o.geometry.attributes.position && o.geometry.attributes.position.count };
+  });
+};
 D.input.canLock = () => false;
+{ const ss0 = document.querySelector('#start-screen'); if (ss0) ss0.style.display = 'none'; } // een hardnekkig startscherm valt over elk beeld
 if (document.pointerLockElement) document.exitPointerLock();
 w.devInvuln = true;
 w.clock = 14;
@@ -68,6 +82,24 @@ for (const e of cat) {
     for (let k = 0; k < dn.n; k++) times.push(Math.round((t0 + 0.2 + (t1 - t0 - 0.4) * (k / (dn.n - 1))) * 10) / 10);
     console.log('[cs-dense] ' + e.id + ' shot ' + dn.shot + ' van ' + t0.toFixed(1) + ' tot ' + t1.toFixed(1) + ' s');
   }
+  let persons = null; const probes = [];
+  // wie staat er in beeld: alle zichtbare figuren (met een eigen schaduwcirkel) bij het anker, met hun ouderketen (#264)
+  {
+    T = times[0] || 0.2;
+    await sleep(900);
+    const found = [];
+    root.traverse((o) => {
+      if (!o.userData || !o.userData.shadow || !o.visible) return;
+      let vis = true;
+      for (let q = o.parent; q; q = q.parent) if (!q.visible) vis = false;
+      if (!vis) return;
+      const wp = o.getWorldPosition(new o.position.constructor());
+      if (Math.hypot(wp.x - spot.x, wp.z - spot.y) > 14) return;
+      const chain = []; for (let q = o; q && chain.length < 4; q = q.parent) chain.push(q.name || q.type);
+      found.push({ at: [wp.x, wp.z].map((v) => +v.toFixed(1)), chain: chain.join('<'), kids: o.children.length });
+    });
+    persons = found;
+  }
   let k = 0;
   for (const t of times) {
     T = t;
@@ -75,6 +107,7 @@ for (const e of cat) {
     await sleep(380);
     const name = prev.stillName(e.id, k, t).replace(/\.png$/, '').replace(/[^\w.-]/g, '_');
     console.log('[capture] ' + name);
+    if (CS.probe && CS.probe.id === e.id && Math.abs(t - CS.probe.t) < 0.06) probes.push({ t, hits: CS.probe.px.map(([x, y]) => ({ x, y, hits: probeAt(x, y) })) });
     await sleep(450);
     k++;
   }
@@ -91,7 +124,7 @@ for (const e of cat) {
     } catch (err) { /* sampling failed: no verdict */ }
   }
   if (inside.length) console.log('[cs-clip] ' + e.id + ' camera in gebouw/grond op t=' + inside.slice(0, 12).join(','));
-  results[e.id] = { shots: times.length, clip: inside.length ? inside.slice(0, 40) : undefined, anker: { x: +at.x.toFixed(1), y: +at.y.toFixed(1), facing: +at.facing.toFixed(2) } };
+  results[e.id] = { persons, probes, shots: times.length, clip: inside.length ? inside.slice(0, 40) : undefined, anker: { x: +at.x.toFixed(1), y: +at.y.toFixed(1), facing: +at.facing.toFixed(2) } };
   console.log('[cs-scene] ' + e.id + ' ' + JSON.stringify(results[e.id]));
   await sleep(300);
 }

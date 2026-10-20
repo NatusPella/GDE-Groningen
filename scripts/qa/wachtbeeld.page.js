@@ -115,11 +115,22 @@ function obbOverlap(a, b) {
   }
   return min;
 }
-const ssInfo = () => { const e = document.querySelector('#start-screen'); if (!e) return null; const c = getComputedStyle(e); return { cls: e.className, display: c.display, opacity: c.opacity, vis: c.visibility, top: !!e.offsetParent, paused: !!w.paused, mode: w.mode || w.state || null }; };
+const ssInfo = () => { const e = document.querySelector('#start-screen'); if (!e) return null; const c = getComputedStyle(e); return { cls: e.className, display: c.display, opacity: c.opacity, vis: c.visibility, top: !!e.offsetParent, paused: !!w.paused, menuCam: !!w.menuCam, body: document.body.className, mode: w.mode || w.state || null }; };
+// de botsvorm van het spel (vehicle.js vehicleCapsule): hoe diep twee capsules in elkaar zitten (m), 0 = vrij
+function capsulePen(a, b) {
+  const cap = (v) => { const sh = Math.max(0, v.halfLen - v.halfWid), dx = Math.cos(v.angle) * sh, dy = Math.sin(v.angle) * sh; return { ax: v.x - dx, ay: v.y - dy, bx: v.x + dx, by: v.y + dy, r: v.halfWid + 0.05 }; };
+  const A = cap(a), B = cap(b);
+  const d2 = (px, py, s) => { const vx = s.bx - s.ax, vy = s.by - s.ay, L = vx * vx + vy * vy || 1e-9; let t = ((px - s.ax) * vx + (py - s.ay) * vy) / L; t = Math.max(0, Math.min(1, t)); const qx = s.ax + vx * t - px, qy = s.ay + vy * t - py; return qx * qx + qy * qy; };
+  const m = Math.min(d2(A.ax, A.ay, B), d2(A.bx, A.by, B), d2(B.ax, B.ay, A), d2(B.bx, B.by, A));
+  return Math.max(0, A.r + B.r - Math.sqrt(m));
+}
 const results = [];
 for (const J of CFG.jobs) {
   if (PM.isPauseMenuOpen()) PM.closePauseMenu();
   env = { clock: J.clock !== undefined ? J.clock : 14, weather: J.weather || null, fix: true };
+  if (J === CFG.jobs[0]) rec.ss0 = ssInfo();
+  // een hardnekkig startscherm (de Enter-wachtlus van de driver haalt het soms niet weg) valt over elk beeld: verbergen
+  { const ss0 = document.querySelector('#start-screen'); if (ss0) ss0.style.display = 'none'; }
   const rec = { name: J.name, kind: J.kind };
   try {
     if (J.kind === 'spot' || J.kind === 'mini' || J.kind === 'menu') {
@@ -135,7 +146,7 @@ for (const J of CFG.jobs) {
       await sleep(SETTLE);
       rec.at = [Math.round(s.x), Math.round(s.y)]; rec.street = s.street; rec.ground = gh(s.x, s.y);
       rec.inBuilding = !!TP.buildingAt(map, s.x, s.y, 0);
-      if (J.bld) { rec.buildings = (map.buildingsNear(s.x, s.y, J.bld) || []).map((b) => { const o = {}; for (const k of Object.keys(b)) { const v = b[k]; if (typeof v === 'number' || typeof v === 'string' || typeof v === 'boolean') o[k] = v; else if (Array.isArray(v) && v.length <= 6 && v.every((q) => typeof q === 'number')) o[k] = v.map((q) => Math.round(q * 10) / 10); else if (Array.isArray(v)) o[k] = 'arr' + v.length; } return o; }).filter((o) => (o.bounds ? true : true)).slice(0, 40); }
+      if (J.bld) { rec.buildings = (map.buildingsNear(s.x, s.y, J.bld) || []).map((b) => { const o = {}; for (const k of Object.keys(b)) { const v = b[k]; if (typeof v === 'number' || typeof v === 'string' || typeof v === 'boolean') o[k] = v; else if (Array.isArray(v) && v.length <= 6 && v.every((q) => typeof q === 'number')) o[k] = v.map((q) => Math.round(q * 10) / 10); else if (Array.isArray(v)) o[k] = 'arr' + v.length; } return o; }).filter((o) => !J.bldMin || (o.bounds && (o.bounds[2] - o.bounds[0] >= J.bldMin || o.bounds[3] - o.bounds[1] >= J.bldMin))).slice(0, 40); }
       if (J.kind === 'spot') {
         const cx = Math.cos(s.a), cy = Math.sin(s.a), base = gh(s.x, s.y);
         for (const v of J.views || []) {
@@ -175,8 +186,8 @@ for (const J of CFG.jobs) {
         const pr = [];
         for (let i = 0; i < vs.length; i++) for (let j = i + 1; j < vs.length; j++) {
           if (Math.abs((vs[i].z || 0) - (vs[j].z || 0)) > 2) continue;
-          const d = obbOverlap(vs[i], vs[j]);
-          if (d > 0.15) pr.push({ a: (vs[i].model && vs[i].model.name) || '?', b: (vs[j].model && vs[j].model.name) || '?', depth: +d.toFixed(2), at: [Math.round(vs[i].x), Math.round(vs[i].y)], sp: [+(vs[i].speed || 0).toFixed(1), +(vs[j].speed || 0).toFixed(1)] });
+          const d = obbOverlap(vs[i], vs[j]), cp = capsulePen(vs[i], vs[j]);
+          if (d > 0.15) pr.push({ a: (vs[i].model && vs[i].model.name) || '?', b: (vs[j].model && vs[j].model.name) || '?', depth: +d.toFixed(2), cap: +cp.toFixed(2), at: [Math.round(vs[i].x), Math.round(vs[i].y)], sp: [+(vs[i].speed || 0).toFixed(1), +(vs[j].speed || 0).toFixed(1)] });
         }
         maxN = Math.max(maxN, vs.length);
         rec.samples.push([Math.round(performance.now() - t0), vs.length, pr.length]);
@@ -193,6 +204,40 @@ for (const J of CFG.jobs) {
       const cx = Math.cos(s.a), cy = Math.sin(s.a), base = gh(s.x, s.y);
       await poseShot(J.name + '-eind-hoog', { position: { x: s.x - cx * 30, y: s.y - cy * 30, z: base + 30 }, lookAt: { x: s.x, y: s.y, z: base }, cut: true });
       await capture(J.name + '-eind-straat');
+    } else if (J.kind === 'boat') {
+      // open zee: vaar een sloep recht vooruit over zeewater (seaAt) en kijk of hij ergens tegenaan stopt (#233)
+      hold = null; env.fix = true; fixWorld();
+      const starts = [];
+      for (let y = J.y0; y <= J.y1 && starts.length < 60; y += J.step || 600) for (let x = J.x0; x <= J.x1; x += J.step || 600) {
+        if (!RG.seaAt(x, y)) continue;
+        let free = 0; for (let k = 0; k < 8; k++) { const a = k * Math.PI / 4; if (RG.seaAt(x + Math.cos(a) * 900, y + Math.sin(a) * 900)) free++; }
+        if (free >= 8) starts.push({ x, y });
+      }
+      rec.kandidaten = starts.length; rec.runs = [];
+      const pick = []; const stride = Math.max(1, Math.floor(starts.length / (J.n || 4)));
+      for (let i = 0; i < starts.length && pick.length < (J.n || 4); i += stride) pick.push(starts[i]);
+      for (const st of pick) {
+        // de koers met de langste doorgaande zee
+        let best = { run: -1, a: 0 };
+        for (let k = 0; k < 16; k++) { const a = k * Math.PI / 8; let run = 0; for (let d = 100; d <= 4000; d += 100) { if (!RG.seaAt(st.x + Math.cos(a) * d, st.y + Math.sin(a) * d)) break; run = d; } if (run > best.run) best = { run, a }; }
+        teleport(st.x, st.y); hold = { x: st.x, y: st.y }; await sleep(3500); hold = null;
+        putBoat(st.x, st.y, best.a); await sleep(800);
+        kb('keydown', 'w', 'KeyW');
+        let stuck = 0, lastX = theBoat.x, lastY = theBoat.y, maxStuck = 0; const x0 = theBoat.x, y0 = theBoat.y;
+        for (let t = 0; t < (J.secs || 40); t += 0.5) {
+          await sleep(500);
+          if (Math.hypot(theBoat.x - lastX, theBoat.y - lastY) < 0.4) stuck += 0.5; else stuck = 0;
+          maxStuck = Math.max(maxStuck, stuck);
+          lastX = theBoat.x; lastY = theBoat.y;
+          if (Math.hypot(theBoat.x - x0, theBoat.y - y0) > best.run - 120) break;
+          if (t === 10) await capture(J.name + '-run' + pick.indexOf(st) + '-mid', 200);
+        }
+        kb('keyup', 'w', 'KeyW');
+        const moved = Math.hypot(theBoat.x - x0, theBoat.y - y0);
+        rec.runs.push({ van: [Math.round(st.x), Math.round(st.y)], koers: +best.a.toFixed(2), zeeRun: best.run, moved: Math.round(moved), speed: +(theBoat.speed || 0).toFixed(1), maxStuck, naarEnd: [Math.round(theBoat.x), Math.round(theBoat.y)], nogOpZee: !!RG.seaAt(theBoat.x, theBoat.y), vast: maxStuck >= 3 && moved < best.run - 200 });
+        await capture(J.name + '-run' + pick.indexOf(st) + '-eind', 200);
+      }
+      if (theBoat) { p.exitVehicle(map, w); const i = w.vehicles.indexOf(theBoat); if (i >= 0) w.vehicles.splice(i, 1); }
     } else if (J.kind === 'jump') {
       hold = null; env.fix = false; setWeather();
       const S2 = window.__story;
