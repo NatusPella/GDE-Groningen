@@ -398,7 +398,8 @@ async function faseElectron(prev, staat) {
   // coöp-testbank (y2): host en gast als twee Electrons op de loopback; neemt zelf de sloten
   if (fs.existsSync(path.join(ROOT, 'scripts', 'coop', 'testbank.mjs'))) {
     await stap('coop', async () => {
-      const d = stapDir('coop'), ms = 20 * 60e3;
+      // de testbank neemt zelf twee sloten en wacht daarop tot 90 min als andere sessies ze bezet houden: de limiet is 20 min testen plus die wachttijd
+      const d = stapDir('coop'), ms = (20 + 90) * 60e3;
       const r = await runCmd(process.execPath, ['scripts/coop/testbank.mjs', '--stage=' + path.join(desktop, 'build', 'game'), '--duration=20', '--out=' + d], { ms, env: env('coop') });
       fs.writeFileSync(path.join(d, 'sweep.log'), r.out);
       const st = r.timedOut ? 'TIMEOUT' : r.code === 0 ? 'PASS' : 'FAIL';
