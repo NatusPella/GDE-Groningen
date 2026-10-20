@@ -59,8 +59,3 @@ export function syncFigures(world, dt) {
   }
 }
 
-export function clearFigures() {
-  const scene = getScene();
-  for (const e of meshes.values()) if (scene) dispose(scene, e);
-  meshes.clear();
-}

@@ -7,6 +7,7 @@ import { spawnSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { BUILD_ONLY } from '../scripts/lib/buildonly.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 import { createRequire } from 'module';
@@ -133,7 +134,9 @@ async function main() {
   console.log(`staging GDE Groningen ${version}`);
   fs.rmSync(process.env.GDE_STAGE_OUT ? OUT : path.join(HERE, 'build'), { recursive: true, force: true });
   // tts.json records how each voice clip was made; the game never reads it
-  fs.cpSync(SRC, OUT, { recursive: true, filter: (p) => path.basename(p) !== 'tts.json' });
+  // build-only modules of game/js (scripts/lib/buildonly.mjs) stay out of the app
+  const skipJs = new Set(BUILD_ONLY.map((f) => path.join(SRC, 'js', f)));
+  fs.cpSync(SRC, OUT, { recursive: true, filter: (p) => path.basename(p) !== 'tts.json' && !skipJs.has(p) });
   // the start screen's "Wat is er nieuw" panel reads the changelog
   fs.copyFileSync(path.join(HERE, '..', 'CHANGELOG.md'), path.join(OUT, 'CHANGELOG.md'));
   // the vendored three.js and fonts must ship with their licence texts

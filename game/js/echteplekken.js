@@ -19,7 +19,6 @@ export async function loadEchtePlekken() {
   return cache;
 }
 
-export function setEchtePlekken(data) { cache = data || null; }
 function echtePlekken() { return cache || { padel: [], golf: [] }; }
 
 const hash = (n) => { let h = (n * 2654435761) >>> 0; h ^= h >>> 15; h = Math.imul(h, 2246822519) >>> 0; return (h >>> 0) / 4294967296; };
