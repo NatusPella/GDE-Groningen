@@ -28,7 +28,7 @@ const MB = await imp('movablebridges');
 const VH = await imp('vehicle');
 const BT = await imp('boattypes');
 const WL = await imp('waterlevels');
-const BH = await imp('bridgehitworld');
+const TP = await imp('tileplace');
 const skipper = setInterval(() => { if (cine.isCinematicActive()) cine.skipCinematic(); }, 100);
 w.devInvuln = true;
 D.input.canLock = () => false;
@@ -62,6 +62,18 @@ const putBoat = (x, y, angle, model, extra = {}) => {
 };
 const lenOf = (r) => r.pts.slice(1).reduce((a, q, i) => a + Math.hypot(q[0] - r.pts[i][0], q[1] - r.pts[i][1]), 0);
 const frame = (b) => { const P = b.pts, a = P[0], e = P[P.length - 1], m = P[Math.floor(P.length / 2)], L = Math.hypot(e[0] - a[0], e[1] - a[1]) || 1; const dx = (e[0] - a[0]) / L, dy = (e[1] - a[1]) / L; return { a, e, m, dx, dy, nx: -dy, ny: dx, L }; };
+// de camera: van de acht standen (twee kanten langs het water, vier afstanden langs het dek) die met de minste gebouwen in de zichtlijn,
+// nooit in een gebouw
+const kiesCam = (F, tx, ty, hoog) => {
+  let best = null;
+  for (const sn of [1, -1]) for (const sa of [0.3, 0.7, -0.3, -0.7]) {
+    const px = F.m[0] + F.nx * 45 * sn + F.dx * 45 * sa, py = F.m[1] + F.ny * 45 * sn + F.dy * 45 * sa;
+    let blok = TP.buildingAt(map, px, py, 3) ? 99 : 0;
+    for (let k = 1; k <= 24; k++) { const t = k / 25; if (TP.buildingAt(map, px + (tx - px) * t, py + (ty - py) * t)) blok++; }
+    if (!best || blok < best.blok) best = { px, py, blok };
+  }
+  return { position: { x: best.px, y: best.py, z: hoog }, lookAt: { x: tx, y: ty, z: 1 }, blok: best.blok };
+};
 const results = { open: [], bots: [] };
 
 for (const b of CFG.open || []) {
@@ -84,7 +96,7 @@ for (const b of CFG.open || []) {
     putBoat(sx, sy, Math.atan2(F.ny, F.nx), model);
     boat.needsOpening = () => true;
     p.enterVehicle(boat, w);
-    cur = { position: { x: F.m[0] + F.dx * 30 - F.nx * 45, y: F.m[1] + F.dy * 30 - F.ny * 45, z: 13 }, lookAt: { x: F.m[0] - F.nx * 12, y: F.m[1] - F.ny * 12, z: 1 } };
+    cur = kiesCam(F, F.m[0] - F.nx * 12, F.m[1] - F.ny * 12, 14); rep.blok = cur.blok;
     key('keydown', 'w', 'KeyW');
     const assist = setInterval(() => {
       const want = Math.atan2(ty - boat.y, tx - boat.x);
@@ -122,7 +134,7 @@ for (const b of CFG.bots || []) {
     const F = frame(road), tag = `bt-bots-${(b.naam || 'brug').replace(/[^\w]+/g, '_')}`;
     putBoat(F.m[0] - F.nx * 45, F.m[1] - F.ny * 45, Math.atan2(F.ny, F.nx), BT.BOAT_KINDS[b.boot || 'sloep']); // de aanvaringsdemo maakt van het dichtstbijzijnde vaartuig een schip van 280 t
     boat.bridgeMassT = 280; boat.bridgeAir = 4.2; boat.speed = 5; boat.scripted = true;
-    cur = { position: { x: F.m[0] + F.dx * 30 - F.nx * 12, y: F.m[1] + F.dy * 30 - F.ny * 12, z: 9 }, lookAt: { x: F.m[0] - F.nx * 6, y: F.m[1] - F.ny * 6, z: 1 } };
+    cur = kiesCam(F, F.m[0] - F.nx * 8, F.m[1] - F.ny * 8, 11); rep.blok = cur.blok;
     const msgs = [];
     const addMsg = w.addMessage; w.addMessage = (t, ...r) => { msgs.push(String(t)); return addMsg.call(w, t, ...r); };
     const t0 = performance.now();
