@@ -2,7 +2,7 @@ import { linesNear, project as projectOnLine, makeRunner, stepRunner, startAt } 
 import { assistDamage } from './assistlive.js';
 import { closestPointOnSegment, normalizeAngle, clamp, lerp, pointInPolygon, inMapWater, WATER_Y, keepBoatOffShore, boatDryPoints } from './util.js';
 import { waterClearance, waterChannelPoints } from './waterindex.js';
-import { shallowWater, waterAt, airDraftOf, passesUnder, bargeWater, bargeWaterAt, meanWidth, BARGE_MIN_CLEAR } from './waterlevels.js';
+import { shallowWater, waterAt, waterPolyAt, BRIDGE_DRY, airDraftOf, passesUnder, bargeWater, bargeWaterAt, meanWidth, BARGE_MIN_CLEAR } from './waterlevels.js';
 import { trafficSignalsNear, trafficLightPhaseMove } from './trafficlights.js';
 import { resolvePropCollisions, setSpeedCap } from './breakables.js';
 import { shardPuncture } from './roadshards.js';
@@ -3305,9 +3305,9 @@ function onCarRoad(map, x, y) {
 }
 
 export function overOpenWater(map, x, y, z) {
-  if (!inMapWater(map, x, y) || map.isOnBridge(x, y)) return false;
-  // over the canal on a viaduct, or under it through the aqueduct
-  if (z > 1.5 || (z < -3 && map.coveredAt && map.coveredAt(x, y))) return false;
+  // the water rule with its walker/car vetoes: dry on a bridge, over the canal on a viaduct,
+  // or under it through the aqueduct (waterlevels.js waterPolyAt)
+  if (!waterPolyAt(map, x, y, z, BRIDGE_DRY)) return false;
   // water reaching over the edge of a dry road (a polygon's corner, the countryside's water field) is its embankment
   if (onCarRoad(map, x, y)) return false;
   // a ditch or shallows with a peil of their own are driven through, not sunk in
