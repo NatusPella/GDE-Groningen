@@ -101,9 +101,9 @@ ok(b.state === 'closed', `it closes on its own once the barge has stayed put (${
 step(120);
 ok(b.state === 'closed' && b.ignored.has(moored), 'and does not open again for the barge lying there');
 moored.speed = 1.5; moored.angle = -Math.PI / 2; // the barge sails off (away from the bridge), then comes back lying still
-step(2);
+step(12);
 ok(!b.ignored.has(moored), 'a barge that sails off is looked at again');
-moored.speed = 0; moored.y = 20;
+moored.speed = 0; moored.y = 20; // (the loop moved it; put it back in front of the bridge)
 step(0.5);
 ok(b.state === 'warn', 'and asks again when it lies still in front of the bridge afterwards');
 // a horn from a boat that then stays put holds the bridge no longer than the patience either
@@ -135,6 +135,19 @@ let opens = 0, was = b.state;
 step(150, () => { if (b.state === 'opening' && was !== 'opening') opens++; was = b.state; });
 ok(opens === 1, `a drifting barge makes the bridge open once, not again and again (${opens})`);
 ok(b.state === 'closed', `and it ends closed (${b.state})`);
+
+// 10. a boat that has sailed through and then lies still just beyond the bridge does not make it open again (#235)
+b = mkBridge(); MB.resetMovableBridges();
+const through = boat('skutsje', -60, 4);
+world.vehicles = [through];
+let reopens = 0, st = b.state, passedAt = null;
+step(80, () => {
+  if (passedAt === null && through.y > 25) { passedAt = true; through.speed = 0; } // through, then it stops 25 m beyond the bridge
+  if (passedAt && b.state === 'opening' && st !== 'opening') reopens++;
+  st = b.state;
+});
+ok(passedAt === true && reopens === 0, `a boat lying still beyond the bridge after passing does not call it back (${reopens})`);
+ok(b.state === 'closed', `and the bridge closes (${b.state})`);
 
 console.log(fails ? `${fails} of ${n} FAILED` : `${n} automatic bridge checks passed`);
 process.exit(fails ? 1 : 0);
