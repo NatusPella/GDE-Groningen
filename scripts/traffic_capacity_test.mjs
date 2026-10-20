@@ -10,9 +10,9 @@ const ok = (c, name) => { n++; if (!c) { fails++; console.log('FAIL', name); } }
 
 ok(F.roadCapacityTarget(100000, 30) === 30, 'een stad met kilometers weg houdt het vaste doel');
 ok(F.roadCapacityTarget(0, 30) === 4, 'zonder weg blijft een minimum over');
-ok(F.roadCapacityTarget(450, 30) === 10, 'een gehucht met 450 m weg: 10 auto\'s');
-ok(F.roadCapacityTarget(1000, 30) === 23, '1 km weg: 23 auto\'s');
-ok(F.roadCapacityTarget(1350, 30) === 30 && F.roadCapacityTarget(5000, 30) === 30, 'vanaf 1,35 km het volle doel');
+ok(F.roadCapacityTarget(450, 30) === 7, 'een gehucht met 450 m weg: 7 auto\'s');
+ok(F.roadCapacityTarget(1000, 30) === 15, '1 km weg: 15 auto\'s');
+ok(F.roadCapacityTarget(2100, 30) === 30 && F.roadCapacityTarget(5000, 30) === 30, 'vanaf 2,1 km het volle doel');
 ok(F.roadCapacityTarget(200, 3) === 3, 'het doel zelf is de bovengrens, ook onder het minimum');
 ok(F.roadCapacityTarget(NaN, 30) === 30 && F.roadCapacityTarget(-5, 30) === 30, 'een onbekende lengte laat het doel ongemoeid');
 let prev = 0, mono = true;

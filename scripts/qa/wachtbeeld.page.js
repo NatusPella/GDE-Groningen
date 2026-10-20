@@ -246,6 +246,36 @@ for (const J of CFG.jobs) {
         await poseShot(J.name + '-d', { position: { x: f.x, y: f.y, z: lv + 120 }, lookAt: { x: f.x + ca * 200, y: f.y + sa * 200, z: lv }, cut: true });
       }
       hold = null;
+    } else if (J.kind === 'outro') {
+      // de echte spelweg (#264): spring naar een missie, start hem, rond hem af (de outro start zelf) en tel de figuren
+      hold = null; env.fix = false; setWeather(); skipCine = false;
+      const S2 = window.__story;
+      rec.ok = !!S2.jump(J.step, { start: true });
+      await sleep(5000);
+      rec.complete = !!S2.complete();
+      rec.cines = [];
+      let shots = 0, lastShot = 0;
+      for (let t = 0; t < (J.secs || 90); t += 1) {
+        await sleep(1000);
+        if (!cine.isCinematicActive()) { if (rec.cines.length && t > 20) break; continue; }
+        if (t - lastShot >= (J.every || 6) && shots < (J.max || 10)) {
+          lastShot = t; shots++;
+          const found = [];
+          sc.scene.traverse((o) => {
+            if (!o.userData || !o.userData.shadow || !o.visible) return;
+            for (let q = o.parent; q; q = q.parent) if (!q.visible) return;
+            const wp = o.getWorldPosition(new o.position.constructor());
+            if (Math.hypot(wp.x - p.x, wp.z - p.y) > 20) return;
+            let owner = ''; for (let q = o.parent; q; q = q.parent) if (q.name && /^cutscript/.test(q.name)) owner = q.name;
+            found.push({ owner, at: [wp.x, wp.z].map((v) => +v.toFixed(1)) });
+          });
+          rec.cines.push({ t, hidePlayers: !!w.cinematicHidePlayers, figures: found.length, eigen: found.filter((q) => !q.owner).length });
+          console.log('[capture] ' + J.name + '-t' + String(t).padStart(2, '0'));
+          await sleep(600);
+        }
+      }
+      skipCine = true;
+      if (cine.isCinematicActive()) cine.skipCinematic();
     } else if (J.kind === 'boatroute') {
       // een waypoint op water, in een boot: komt er een route, en staan de kaartlijn en het baken er (#232)
       hold = null; env.fix = true; fixWorld();
