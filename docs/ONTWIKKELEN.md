@@ -253,6 +253,7 @@ Debug hooks on `window` (`window.__x`, read by scripts/perf, the story test and 
 | `?testmenu` | Testmenu op F10 met alle schakelaars en snelkoppelingen; eigen opslag (gde-dev:), raakt de echte save niet |
 | `?brugbotsing` | Stuurt na een paar seconden een binnenvaartschip tegen de dichtstbijzijnde brug (#9) |
 | `?sfxtest` | Geluidstest: paneel met alle effecten, een afstandsschuif en een afspeelknop per effect; F8 verbergt het (#173) |
+| `?perfoff` | A/B-meting: zet prestatiestappen uit, namen gescheiden door +, bv. perfoff=schaduw+actoren (devflags.js, scripts/perf/ab.mjs) |
 
 Every switch above is **off by default**: nothing changes for a player unless the name is in the URL. Value switches (`?shot=3`, `?marker=vorm`, `?stadlaag=gebouwen,wegen`, `?touch=1`, `?preset=quality:laag`, `?gpu=<renderer>`, `?benchmark=<rounds>`) are null when absent. The ones to reach for most often:
 
@@ -293,6 +294,16 @@ string>]` shows the first-run graphics advice in a test run.
 `scripts/perf/geocheck.sh` checks that the geometry worker builds the same
 buffers as the main thread, byte for byte (`?noworker` keeps it all on the
 main thread).
+
+On a machine other work runs on, frame times say little (the same route gives 21 to 60 ms depending on the
+minute). `scripts/perf/run.mjs` (Windows, macOS, Linux; replaces `run.sh`) therefore also reports `mcpu`: the CPU
+time of the renderer's main thread per frame, from `scripts/perf/threadcpu.ps1`, which leaves out the time the thread
+was pre-empted. `PERF_ONLY=ab` runs variants in turns inside one process (`PERF_AB='aan=;uit=actoren+schaduw'`,
+`PERF_AB_MOVE=0|1|2` standing, walking or both, `PERF_AB_ROUNDS`, `PERF_AB_WIN` ms per window) and
+`node scripts/perf/abin.mjs <naam>.json` prints per variant the median `mcpu`, the work counts per frame (matrix
+walks, frustum tests) and the paired difference per round: the variants switch with `?perfoff=` (`window.__perfOffDyn`
+in a run) and feel the same load. `PERF_ONLY=beeld` compares the canvas of a stopped world with the steps on and off.
+`PERF_ONLY=wandel` walks at the game's own pace (3 m/s). `PERF_SETTLE=<ms>` lets a route settle longer first.
 
 ## Trailer mode
 
