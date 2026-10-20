@@ -6,7 +6,7 @@
 
 import { currentStep, storyVoorschotInfo } from './storyquery.js';
 import { getMissionDefs, unmetRequirement, requirementMet, requirementPlace, activeStage } from './missionquery.js';
-import { VEHICLE_STOCK, SHOP_TYPES } from './shops.js';
+import { VEHICLE_STOCK, SHOP_TYPES } from './shopdata.js';
 import { STEPS } from './storyarc.js';
 import { displayName } from './speakers.js';
 

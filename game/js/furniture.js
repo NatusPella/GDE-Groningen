@@ -8,8 +8,9 @@ import { storyReplayLines } from './missionstory.js';
 import { playStoryVoice, stopStoryVoice } from './audio.js';
 import { requestSearchlight } from './nightlights3d.js';
 import { setUserWaypoint, formatDistance } from './routing.js';
-import { getShopsForRender, SHOP_TYPES } from './shops.js';
-import { getSideJobSpotsForRender } from './sidejobs.js';
+import { getShopsForRender, setFurnitureShop } from './shops.js';
+import { SHOP_TYPES } from './shopdata.js';
+import { getSideJobSpotsForRender, setJobBonusSource } from './sidejobs.js';
 import { getGaragesForRender } from './garages.js';
 import { getStationsForRender } from './stationtravel.js';
 import { storyFlag } from './storyquery.js';
@@ -723,3 +724,6 @@ window.__furniture = {
   seated: () => !!seat,
   tv: () => (tv ? { title: tv.title, i: tv.i, n: tv.lines.length } : null),
 };
+
+setFurnitureShop({ items: furnitureShopItems, note: furnitureShopNote });
+setJobBonusSource(furnitureJobBonus);
