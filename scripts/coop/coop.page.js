@@ -401,6 +401,19 @@ const PHASES = {
     log('verlaten', { coopNet: !!net(), role: W().coopRole || null, money: W().money, pos: W().player ? [Math.round(W().player.x), Math.round(W().player.y)] : null });
     await closeMenu();
   },
+  // opnieuw aansluiten na het verlaten, via het pauzemenu en de lobby (dezelfde code), zoals een speler
+  async opnieuw() {
+    if (net()) { log('opnieuw-al-verbonden', {}); return; }
+    await openSamen();
+    await act('kies-gast');
+    const input = await until(() => panel().querySelector('.coop-input'), 5000, 'invoerveld');
+    input.value = CFG.code; input.dispatchEvent(new Event('input', { bubbles: true }));
+    await act('koppel'); await act('akkoord');
+    await until(() => title() === 'Je speelt samen', 60000, 'opnieuw verbonden met de host');
+    await sleep(1500);
+    await closeMenu();
+    log('opnieuw-klaar', { role: W().coopRole || null, slot: net() && net().session ? net().session.slot : null, paused: !!W().paused });
+  },
   // de host stopt de sessie via het menu ('Iedereen stoppen')
   async stopHost() {
     if (CFG.role !== 'host') { await sleep(6000); return; }
