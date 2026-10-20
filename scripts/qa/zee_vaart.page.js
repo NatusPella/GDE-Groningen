@@ -20,6 +20,8 @@ const cine = await imp('cinematics');
 const VH = await imp('vehicle');
 const BT = await imp('boattypes');
 const WL = await imp('waterlevels');
+const WI = await imp('waterindex');
+const UT = await imp('util');
 const skipper = setInterval(() => { if (cine.isCinematicActive()) cine.skipCinematic(); }, 100);
 w.devInvuln = true;
 D.input.canLock = () => false;
@@ -43,7 +45,7 @@ for (const z of CFG.zeeen) {
   results.push(rep);
   try {
     const dx = Math.cos(z.hoek), dy = Math.sin(z.hoek);
-    const sx = z.x - dx * z.af, sy = z.y - dy * z.af, tx = z.x + dx * z.af, ty = z.y + dy * z.af;
+    const sx = z.x - dx * z.af, sy = z.y - dy * z.af, tx = z.x + dx * (z.ziel || z.af), ty = z.y + dy * (z.ziel || z.af);
     hold = { x: sx, y: sy };
     await sleep(6000);
     hold = null;
@@ -65,11 +67,16 @@ for (const z of CFG.zeeen) {
       const afgelegd = Math.hypot(boat.x - sx, boat.y - sy);
       if (Math.hypot(boat.x - lx, boat.y - ly) < 0.8 && (boat.speed || 0) < 0.5) stuck += 2; else stuck = 0;
       maxStuck = Math.max(maxStuck, stuck); lx = boat.x; ly = boat.y;
+      if (stuck === 6 && !rep.diag) {
+        // waarom staat de boot stil: wat zegt de oeverproef, wat staat er in de buurt
+        const probe = { model: boat.model };
+        rep.diag = { x: Math.round(boat.x), y: Math.round(boat.y), angle: +boat.angle.toFixed(2), clearance: +WI.waterClearance(map, boat.x, boat.y, 40).toFixed(1), dryPoints: UT.boatDryPoints(map, probe, boat.x, boat.y, boat.angle), water: !!WL.waterAt(map, boat.x, boat.y), buildings: (map.buildingsNear(boat.x, boat.y, 40) || []).length, roads: (map.roadsNear(boat.x, boat.y, 40) || []).length, vehicles: w.vehicles.filter((q) => q !== boat && Math.hypot(q.x - boat.x, q.y - boat.y) < 30).length, ahead: [10, 20, 40, 80].map((d) => +WI.waterClearance(map, boat.x + Math.cos(boat.angle) * d, boat.y + Math.sin(boat.angle) * d, 40).toFixed(1)), cooling: !!(w.edgeWatch || w.edge) };
+      }
       rep.log.push(`${Math.round((performance.now() - t0) / 1000)}s (${Math.round(boat.x)},${Math.round(boat.y)}) v=${(boat.speed || 0).toFixed(1)} af=${Math.round(afgelegd)} stuck=${stuck}`);
       cur = { position: { x: boat.x - Math.cos(boat.angle) * 22, y: boat.y - Math.sin(boat.angle) * 22, z: 6 }, lookAt: { x: boat.x + Math.cos(boat.angle) * 120, y: boat.y + Math.sin(boat.angle) * 120, z: 1 } };
       if (n % 4 === 0) { console.log(`[capture] ${tag}-${String(n).padStart(2, '0')}`); await sleep(500); }
       n++;
-      if (afgelegd > 2 * z.af - 30) break;
+      if (afgelegd > (z.ziel ? z.ziel + z.af : 2 * z.af) - 30) break;
     }
     clearInterval(assist);
     key('keyup', 'w', 'KeyW');
