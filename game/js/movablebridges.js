@@ -37,6 +37,10 @@ export const AUTO = {
   STILL_REACH: 45,    // a boat lying still this close asks for it (like a horn)
   PASS_PAD: 8,        // the boat has passed when this far beyond the deck's edge
   MIN_OPEN_S: 5,      // an automatic opening stays open at least this long (a horn: HOLD_S)
+  MAX_OPEN_S: 90,     // however many boats ask: after this long open (s) the bridge lets them all go and closes (they ask again if they still need it)
+  PASSED_FREE_M: 30,  // a boat that has passed counts as a new boat again once it is this much further than STILL_REACH away (m)
+  IGNORE_FREE_M: 15,  // a boat let go (moored, or through and lying still beyond) is looked at again once it has sailed this far (m)
+  STILL_PATIENCE_S: 20, // a boat that lies still this long (s) with the span open is let go: it is moored, not waiting
 };
 // the clearance under a closed city bridge, as waterlevels.bridgeClearance gives it
 const STREET_CLEAR = 0 - BRIDGE_DECK_T - BOEZEM_Y;
@@ -66,7 +70,7 @@ export function boatFrame(b, v) {
 // side), or turned back (beyond the pad, heading away)? `from`: the side it came from.
 export function boatPassed(b, v, from) {
   const f = boatFrame(b, v);
-  return f.w > AUTO.PASS_PAD && (f.side !== from || f.vw < 0);
+  return f.w > AUTO.PASS_PAD && (f.side !== from || (f.vw < 0 && Math.abs(v.speed || 0) >= AUTO.MIN_SPEED)); // (drift at a standstill is not turning back)
 }
 // Should boat v make bridge b open now? Pure: the boat's time to the deck is
 // no more than the opening lead plus a margin, it is heading for the deck in
@@ -90,10 +94,38 @@ export function setDamagedBridgeBarriers(list) { extra = list; }
 
 export function getMovableBridges() { return bridges; }
 
+// A footway or cycle path that runs beside a movable road over the same water is part of the same leaf in the real
+// world, but OSM tags only the carriageway: left alone it stays a closed deck beside the open one. Such a way
+// (parallel, at most 12 m beside the span) takes over the kind of the carriageway.
+const SIDE_CATS = new Set(['foot', 'cycle']);
+export function adoptSideSpans(roads) {
+  const spans = [];
+  for (const r of roads) {
+    if (!r.movable || !r.bridge || r.pts.length < 2) continue;
+    const a = r.pts[0], b = r.pts[r.pts.length - 1], len = Math.hypot(b[0] - a[0], b[1] - a[1]);
+    if (len >= 3) spans.push({ r, a, len, ux: (b[0] - a[0]) / len, uy: (b[1] - a[1]) / len });
+  }
+  if (!spans.length) return;
+  for (const r of roads) {
+    if (r.movable || !r.bridge || !SIDE_CATS.has(r.cat) || r.pts.length < 2) continue;
+    const a = r.pts[0], b = r.pts[r.pts.length - 1], len = Math.hypot(b[0] - a[0], b[1] - a[1]);
+    if (len < 3) continue;
+    const mx = (a[0] + b[0]) / 2, my = (a[1] + b[1]) / 2, ux = (b[0] - a[0]) / len, uy = (b[1] - a[1]) / len;
+    for (const q of spans) {
+      if (Math.abs(ux * q.uy - uy * q.ux) > 0.26) continue; // not parallel
+      const s = (mx - q.a[0]) * q.ux + (my - q.a[1]) * q.uy, o = -(mx - q.a[0]) * q.uy + (my - q.a[1]) * q.ux;
+      if (s < 0 || s > q.len || Math.abs(o) > 12) continue;
+      r.movable = q.r.movable;
+      break;
+    }
+  }
+}
+
 // The bridges of a map: one per movable road. Span along the road from its
 // first to its last vertex; `half` the deck's half width.
 export function buildMovableBridges(map) {
   bridges = [];
+  adoptSideSpans(map.roads || []);
   for (const r of map.roads || []) {
     if (!r.movable || !r.bridge || r.pts.length < 2) continue;
     const a = r.pts[0], b = r.pts[r.pts.length - 1];
@@ -107,7 +139,7 @@ export function buildMovableBridges(map) {
       half: (r.width || 4) / 2 + (wide ? 1.8 : 0.15),
       name: r.name || '',
       state: 'closed', t: 0, open: 0, boom: 0, flash: 0, warn: false, requests: 0, waitFor: null,
-      snapped: null, _booms: null, boats: new Map(), manual: false,
+      snapped: null, _booms: null, boats: new Map(), manual: false, still: new Map(), ignored: new Map(), passed: new Set(),
     });
   }
   ready = true;
@@ -115,7 +147,7 @@ export function buildMovableBridges(map) {
 }
 
 export function resetMovableBridges() {
-  for (const b of bridges) { b.state = 'closed'; b.t = 0; b.open = 0; b.boom = 0; b.warn = false; b.waitFor = null; b.boats.clear(); b.manual = false; b.snapped = null; b._hinted = null; b.r._open = false; }
+  for (const b of bridges) { b.state = 'closed'; b.t = 0; b.open = 0; b.boom = 0; b.warn = false; b.waitFor = null; b.boats.clear(); b.still.clear(); b.ignored.clear(); b.passed.clear(); b.manual = false; b.snapped = null; b._hinted = null; b.r._open = false; }
 }
 
 // Ask bridge `b` to open (a boat in front of it). `who`: the boat, kept as
@@ -203,7 +235,22 @@ export function stepBridge(b, dt, world = null) {
       const w = b.waitFor;
       const near = w && !w.wrecked && !w.sinking && Math.hypot(w.x - b.x, w.y - b.y) < WAIT_REACH;
       // boats that asked and have not yet sailed through hold it open (several in a row)
-      for (const [boat, from] of b.boats) if (!boat || boat.wrecked || boat.sinking || (world && world.vehicles && !world.vehicles.includes(boat)) || boatPassed(b, boat, from)) b.boats.delete(boat);
+      for (const [boat, from] of b.boats) {
+        const gone = !boat || boat.wrecked || boat.sinking || (world && world.vehicles && !world.vehicles.includes(boat));
+        if (!gone && !boatPassed(b, boat, from)) continue;
+        b.boats.delete(boat); b.still.delete(boat);
+        // a boat that has sailed through and then lies still beyond the bridge does not ask for it again (a boat
+        // that comes back under way still does: the moving rule of boatTriggers)
+        if (!gone && boat.x !== undefined) b.passed.add(boat);
+      }
+      // a boat that lies still with the span open is moored, not waiting: after the patience it no longer holds the bridge
+      // open (nor makes it open again) until it sails off
+      for (const boat of [...b.boats.keys()]) {
+        if (Math.abs(boat.speed || 0) >= AUTO.MIN_SPEED) { b.still.delete(boat); continue; }
+        const idle = (b.still.get(boat) || 0) + dt;
+        if (idle >= AUTO.STILL_PATIENCE_S) { b.boats.delete(boat); b.still.delete(boat); b.ignored.set(boat, [boat.x, boat.y]); if (b.waitFor === boat) b.waitFor = null; } else b.still.set(boat, idle);
+      }
+      if (b.t >= AUTO.MAX_OPEN_S) { for (const boat of b.boats.keys()) if (boat.x !== undefined) b.ignored.set(boat, [boat.x, boat.y]); b.boats.clear(); b.still.clear(); b.waitFor = null; b.manual = false; }
       const waiting = b.boats.size > 0 || (b.manual && near);
       if (b.t >= (b.manual ? T.HOLD_S : AUTO.MIN_OPEN_S) && !waiting) { b.state = 'closing'; b.t = 0; b.waitFor = null; b.manual = false; }
       break;
@@ -261,6 +308,11 @@ export function updateMovableBridges(dt, world) {
     if (world) {
       for (const v of world.vehicles || []) {
         if (!v.isBoat || v.wrecked || v.sinking || (v.needsOpening ? !v.needsOpening(b) : !boatNeedsOpening(v))) continue;
+        if (b.passed.size && b.passed.has(v)) {
+          if (Math.hypot(v.x - b.x, v.y - b.y) > AUTO.STILL_REACH + AUTO.PASSED_FREE_M) b.passed.delete(v);
+          else if (Math.abs(v.speed || 0) < AUTO.MIN_SPEED) continue;
+        }
+        if (b.ignored.size && b.ignored.has(v)) { const q = b.ignored.get(v); if (Math.hypot(v.x - q[0], v.y - q[1]) > AUTO.IGNORE_FREE_M) b.ignored.delete(v); else continue; }
         if (!boatTriggers(b, v)) continue;
         if (b.state === 'open' || b.state === 'opening' || b.state === 'warn' || b.state === 'booms' || b.state === 'clear') {
           if (!b.boats.has(v)) b.boats.set(v, boatFrame(b, v).side);
