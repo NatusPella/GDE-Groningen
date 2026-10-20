@@ -137,7 +137,7 @@ else if (ROUTE === 'direct') {
 }
 const guestCode = code ? code.code : '';
 const guestArgs = SUITE === 'touch' || SUITE === 'net' ? ['--url-flags=touch=1'] : []; // de eerste Electron-gast bedient met aanraking
-if (code) guest = start('gast', { role: 'gast', code: guestCode }, 22, guestArgs);
+if (code && GASTEN >= 1) guest = start('gast', { role: 'gast', code: guestCode }, 22, guestArgs);
 if (code && GASTEN > 1) { await new Promise((r) => setTimeout(r, 15000)); guest2 = start('gast2', { role: 'gast', code: guestCode }, 33); } // pas als de eerste gast er is: zo is de plek voorspelbaar
 
 // headless gasten (de vierde speler): komen erbij zodra de twee Electron-gasten er zijn; in de suite 'net' met een slecht netwerk
