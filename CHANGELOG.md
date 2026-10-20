@@ -6,6 +6,10 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Verbeterd
+- **Samen spelen: een echte menustroom, een gekozen spel en de opening samen (#316, #317, #318; alleen lokaal getest met twee Electron-vensters op één computer, niet op twee computers of via een echte router):** Samen spelen in het hoofdmenu opent een eigen scherm met 'Gastheer worden' en 'Meedoen'. De gastheer kiest daarna in 'Opgeslagen spellen' het spel waarin jullie spelen, of een lege plek voor een nieuw spel; de gast leest in de wachtkamer in één korte regel dat hij meespeelt in het spel van de gastheer en dat wat hij verdient in zijn eigen opgeslagen spel wordt bewaard (docs/COOP-OPSLAAN.md; had hij nog geen spel, dan maken we er een). Bij een nieuw spel samen begint het spel pas als de gastheer op 'Spel starten' drukt, en alle spelers zien de openingsscène en de andere scènes (de eindkaart van een deel, scènes in missies) samen op hun eigen scherm; overslaan kan alleen de gastheer. Filmpjes met een eigen camerabaan (rondvluchten, de dood) blijven voor de gast een laag met balken en tekst.
+- **Tekstvelden in de wachtkamer nemen alle toetsen en plakken aan (#315; in twee Electron-vensters gecontroleerd met echte toetsaanslagen, niet op macOS):** de kamercode of het IP-adres typen met W, A, S, D en spatie werkte niet omdat de spelbesturing de toetsen opving; plakken (Ctrl+V of Cmd+V, Shift+Invoegen, het contextmenu op de rechtermuisknop met Knippen, Kopiëren, Plakken en Alles selecteren) deed niets omdat het venster geen menu heeft. De spelbesturing valt stil zolang een invoerveld de focus heeft, ook bij een controller of het schermtoetsenbord. Het hoofdmenu op macOS heeft een Bewerken-menu gekregen.
+
 ## [0.38.0] - 2026-10-20
 
 ### Verbeterd
