@@ -111,6 +111,16 @@ t('na het vertrek staat de bijgehouden beloning op nul (het geld zit in world.mo
   N.stopCoopNet(g);
   assert.equal(g.coopVerdiend, 0); assert.equal(g.money, 140);
 });
+t('een passagier staat bij de gasten op het voertuig, niet op zijn oude plek (de camera van de gast volgt de rit)', () => {
+  const car = { x: 100, y: 50, angle: 1 };
+  const s = sessie(1, { hostExtra: {} }); s.step(2);
+  s.hw.companion.inVehicle = car; s.hw.companion.x = 1; s.hw.companion.y = 1; // Tessa zit in de auto; haar eigen x en y zijn van vóór het instappen
+  s.hw.player.inVehicle = car; s.hw.player.x = 100; s.hw.player.y = 50;
+  s.step(2);
+  const g = s.gs[0].gw;
+  assert.ok(Math.hypot(g.player.x - 100, g.player.y - 50) < 2, 'de gast (Tessa) staat bij het voertuig: ' + g.player.x + ',' + g.player.y);
+  assert.ok(s.hw.coopPartner && Math.hypot(s.hw.coopPartner.x - 100, s.hw.coopPartner.y - 50) < 2, 'ook voor de host staat Tessa bij het voertuig');
+});
 t('beloningen worden begrensd en alleen gasten ontvangen ze', () => {
   const s = sessie(1); s.step(1);
   const gw = s.gs[0].gw;

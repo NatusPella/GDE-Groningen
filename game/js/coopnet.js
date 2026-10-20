@@ -41,6 +41,9 @@ export function canJoin(world) {
   return { ok: true };
 }
 
+// Een passagier (de metgezel in het voertuig van de host) behoudt zijn eigen x en y van vóór het instappen; zijn plek is die van het voertuig.
+const posOf = (b) => (b && b.inVehicle && Number.isFinite(b.inVehicle.x) && Number.isFinite(b.inVehicle.y) ? b.inVehicle : b);
+
 // sim-adapter voor de host: plek 0 = world.player, plek 1 = world.companion, plek 2+ = figuren
 export function hostSim(world, roster) {
   return {
@@ -51,7 +54,7 @@ export function hostSim(world, roster) {
     },
     snapshot() {
       const p = world.player, c = world.companion;
-      const body = (b, slot) => b && ({ slot, x: b.x, y: b.y, z: b.z || 0, angle: b.angle || 0, alive: true, inVeh: !!b.inVehicle, driver: false, run: false, health: 100, vehicle: null });
+      const body = (b, slot) => { const q = posOf(b); return b && ({ slot, x: q.x, y: q.y, z: b.z || 0, angle: q.angle || 0, alive: true, inVeh: !!b.inVehicle, driver: false, run: false, health: 100, vehicle: null }); };
       const players = [body(p, 0), body(c, 1)];
       for (const s of roster().spelers) if (s.slot >= 2) players.push(body(figures(world)[s.slot], s.slot));
       return {
@@ -214,7 +217,7 @@ export function tickCoopNet(world, dt) {
   const mb = missieBericht(n.missie || null, world.mission); // wat de host speelt, voor de gasten
   if (mb.event) { n.hub.announce(mb.event); } n.missie = mb.huidig;
   const c = world.companion;
-  const players = [c ? { slot: 1, x: c.x, y: c.y, angle: c.angle, alive: true, inVeh: !!c.inVehicle } : null, ...Object.values(figures(world)).map((f) => ({ slot: f.slot, x: f.x, y: f.y, angle: f.angle, alive: true }))].filter(Boolean);
+  const players = [c ? { slot: 1, x: posOf(c).x, y: posOf(c).y, angle: posOf(c).angle, alive: true, inVeh: !!c.inVehicle } : null, ...Object.values(figures(world)).map((f) => ({ slot: f.slot, x: f.x, y: f.y, angle: f.angle, alive: true }))].filter(Boolean);
   world.coopPartners = partnersInfo(0, players, world.coopRoster || []);
   world.coopPartner = world.coopPartners[0] || null;
   // gedeelde camera met Tessa (plek 1) zolang zij echt meespeelt; extra spelers hebben hun eigen camera

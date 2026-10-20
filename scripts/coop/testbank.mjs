@@ -336,6 +336,11 @@ if (SUITE === 'net') {
     const a = t0 && t0.partners.find((p) => p[0] === 0), b = t1 && t1.partners.find((p) => p[0] === 0);
     check(rr.some((q) => q.hostEnt && q.hostEnt[0] > 0), `rit: ${n} ziet geen voertuigen van de host`);
     check(rr.some((q) => q.partners.some((p) => p[0] === 0 && p[2] !== 'voet')), `rit: ${n} ziet Tammo niet in het voertuig (statussen ${[...new Set(rr.flatMap((q) => q.partners.filter((p) => p[0] === 0).map((p) => p[2])))].join('/')})`);
+    if (n === 'gast') { // Tessa is passagier: haar eigen camera (haar lichaam) moet het voertuig volgen
+      const rijdend = rr.filter((q) => q.me && q.partners.some((p) => p[0] === 0 && p[2] !== 'voet'));
+      const ver = rijdend.map((q) => { const t = q.partners.find((p) => p[0] === 0); return Math.hypot(q.me.x - t[3], q.me.y - t[4]); });
+      check(rijdend.length >= 3 && Math.min(...ver) < 15, `rit: Tessa (gast) blijft achter terwijl Tammo rijdt (kleinste afstand ${ver.length ? Math.min(...ver).toFixed(0) : '?'} m, ${rijdend.length} samples)`);
+    }
     check(a && b && Math.hypot(a[3] - b[3], a[4] - b[4]) > 15, `rit: ${n} ziet Tammo niet rijden (${JSON.stringify(a)} → ${JSON.stringify(b)})`);
   }
   // gast2 verlaat het spel; een nieuwe gast neemt de plek
