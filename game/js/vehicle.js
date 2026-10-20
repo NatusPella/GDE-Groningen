@@ -2522,9 +2522,22 @@ function tangentialSpeed(a, b, nx, ny) {
   return Math.abs(-vx * ny + vy * nx);
 }
 
+// Een politiepaard (#331) gaat niet kapot en blijft ook niet staan: een klap van deze schade (een auto
+// van ~5 m/s tegen het paard) gooit de ruiter eraf en het paard slaat op hol. Dat doet policemounts.js
+// maybeBolt zodra de gezondheid onder HORSE_BOLT_HEALTH (40) komt; hier komt hij er in één klap onder.
+const HORSE_KNOCK_DAMAGE = 10;
+const HORSE_KNOCKED_HEALTH = 30;
+const HORSE_SOFT = 0.35; // een paard is zacht: de auto die het raakt krijgt zoveel van de schade
+const isMountHorse = (v) => v._mount === 'horse' && v.driver !== 'player';
+
 function applyImpactDamage(v, dmg, playerInvolved, world) {
   if (dmg <= 0 || v.wrecked) return;
   if (v.disabled) { v.burnLeft -= dmg * 0.06; return; }
+  if (isMountHorse(v)) {
+    v.health = Math.max(1, v.health - dmg * CRASH_DAMAGE_SCALE);
+    if (dmg >= HORSE_KNOCK_DAMAGE) v.health = Math.min(v.health, HORSE_KNOCKED_HEALTH);
+    return;
+  }
   if (v.driver === 'player') dmg = assistDamage(dmg);
   v.health = Math.max(0, v.health - dmg * CRASH_DAMAGE_SCALE);
   if (playerInvolved && v.driver === 'player' && !v.flat && !v.isBoat && !v.isHeli && !v.isBus && dmg >= FLAT_MIN_DAMAGE && v.health > 0 && Math.random() < Math.min(FLAT_MAX_CHANCE, dmg / 60)) v.flat = true;
@@ -2538,22 +2551,9 @@ function applyImpactDamage(v, dmg, playerInvolved, world) {
 // becomes a wreck. Two-wheelers and boats still wreck straight away.
 const BLAST_REACH = 9;
 
-// Een politiepaard (#331) gaat niet kapot en blijft ook niet staan: een klap van deze schade (een auto
-// van ~5 m/s tegen het paard) gooit de ruiter eraf en het paard slaat op hol. Dat doet policemounts.js
-// maybeBolt zodra de gezondheid onder HORSE_BOLT_HEALTH (40) komt; hier komt hij er in één klap onder.
-const HORSE_KNOCK_DAMAGE = 10;
-const HORSE_KNOCKED_HEALTH = 30;
-const HORSE_SOFT = 0.35; // een paard is zacht: de auto die het raakt krijgt zoveel van de schade
-const isMountHorse = (v) => v._mount === 'horse' && v.driver !== 'player';
-
 export function tickBurningVehicles(world, dt) {
   for (const v of world.vehicles) {
     if (world.shards && v.driver === 'player' && shardPuncture(world.shards, v, world.time || 0)) {
-  if (isMountHorse(v)) {
-    v.health = Math.max(1, v.health - dmg * CRASH_DAMAGE_SCALE);
-    if (dmg >= HORSE_KNOCK_DAMAGE) v.health = Math.min(v.health, HORSE_KNOCKED_HEALTH);
-    return;
-  }
       v.flat = true;
       world.addMessage(world.shards.lastKind === 'spijkers' ? 'Spijkermat van de politie! Lekke band' : 'Door de glasscherven! Lekke band', 3);
     }
