@@ -7,7 +7,7 @@
 //   cityOverM2  oppervlak waar de stadskaart en de tegels van de provincie beide water hebben
 // Daarnaast de lagen die water tekenen en op welke hoogte (zie de kop van waterlagen hieronder), want
 // de oorzaak van #231 zat daar: de platte water van de verre LOD lag op de grond over het echte water.
-//   node scripts/world/water_layers_audit.mjs [--strict] [--json]
+//   node scripts/world/water_layers_audit.mjs [--strict] [--json] [--dedupe]
 import fs from 'node:fs';
 import path from 'node:path';
 import zlib from 'node:zlib';
@@ -17,6 +17,7 @@ import '../node3d.mjs';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const G = await import('../../game/js/gdt.js');
 const { streekOf } = await import('./prop_conflict_audit.mjs');
+const { dropWaterDuplicates } = await import('../../game/js/waterdupes.js');
 
 const CELL = 4;
 // wat --strict toestaat: alleen dalen (gemeten op de tegels van 18 oktober)
@@ -77,6 +78,7 @@ function main() {
   const cityWater = (city.water || []).map((w) => ({ pts: w.pts, b: bounds(w.pts) }));
   const fds = new Map();
   const per = {};
+  let dropped = 0;
   for (const [key, t] of Object.entries(index.tiles)) {
     if (!t.n || !t.n.water || key[0] === 'o') continue;
     const p = index.packs[t.pack];
@@ -84,8 +86,10 @@ function main() {
     const buf = Buffer.alloc(t.len);
     fs.readSync(fds.get(p.file), buf, 0, t.len, t.off);
     const blob = G.decodeBlob(new Uint8Array(zlib.inflateRawSync(buf)));
-    const rows = ((blob.sections.find((s) => s.type === G.SECTION.WATER) || { rows: [] }).rows).filter((r) => r.pts && r.pts.length > 3);
+    let rows = ((blob.sections.find((s) => s.type === G.SECTION.WATER) || { rows: [] }).rows).filter((r) => r.pts && r.pts.length > 3);
     if (!rows.length) continue;
+    // --dedupe: as the game loads them (TileWorld.addTile leaves the twins out, game/js/waterdupes.js)
+    if (args.includes('--dedupe')) { const gone = dropWaterDuplicates(rows); dropped += gone.size; rows = rows.filter((r) => !gone.has(r)); }
     const [ox, oy] = G.tileOrigin(t.i, t.j);
     const box = [ox, oy, ox + 1000, oy + 1000];
     const s = per[streekOf(ox + 500, oy + 500)] || (per[streekOf(ox + 500, oy + 500)] = { tiles: 0, rows: 0, flatOnly: 0, doubleM2: 0, coveredM2: 0, cityOverM2: 0 });
@@ -104,6 +108,7 @@ function main() {
   for (const l of LAYERS) console.log(`  ${l.id.padEnd(12)} ${l.file}  y: ${l.y}\n               ${l.note}`);
   console.log('\nstreek'.padEnd(18) + ['tegels', 'rijen', 'platOnly', 'dubbel ha', 'dekking ha', 'stad+tegel ha'].map((x) => x.padStart(14)).join(''));
   for (const [n, s] of Object.entries(per)) console.log(n.padEnd(17) + [s.tiles, s.rows, s.flatOnly, Math.round(s.doubleM2 / 1e4), Math.round(s.coveredM2 / 1e4), Math.round(s.cityOverM2 / 1e4)].map((x) => String(x).padStart(14)).join(''));
+  if (args.includes('--dedupe')) console.log(`(na het weglaten van ${dropped} dubbele rijen)`);
   console.log(`totaal: dubbel ${(total.doubleShare * 100).toFixed(2)} % van het water, stadskaart over tegels ${(total.cityOverShare * 100).toFixed(2)} %`);
   if (args.includes('--strict')) {
     const bad = Object.entries(LIMITS).filter(([k, v]) => total[k] > v);
