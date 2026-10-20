@@ -123,7 +123,7 @@ export function buildAkte4Defs() {
         },
         {
           kind: 'timing', unlessTag: 'argwaan1', kicker: 'De gang naar de serverkamer', help: 'druk als de camera wegdraait', failAt: 2, failText: 'de camera zag je: de beveiliging komt eraan', goodAt: 3, tagGood: 'sluip-top',
-          label: 'Glip langs de camera\'s: druk als de camera wegdraait', say: 'Drie camera\'s in de gang. Wacht tot de streep in het groene vak staat, dan sluip je door.',
+          label: 'Glip langs de camera\'s: druk als de camera wegdraait', say: 'Drie camera\'s in de gang. Wacht tot de streep in het vak staat, dan sluip je door.',
           rounds: [
             { text: 'Camera één kijkt naar de koffieautomaat.', speed: 0.7, zone: [0.36, 0.64], ok: 'Door, achter de plant.', bad: 'Camera één piept. Terug achter de plant.' },
             { text: 'Camera twee draait langzaam over de deuren.', speed: 0.85, zone: [0.4, 0.6], ok: 'Door, onder de camera.', bad: 'Camera twee zwenkt je kant op.' },
@@ -143,7 +143,7 @@ export function buildAkte4Defs() {
       type: 'stages',
       label: 'Stoom',
       intro: ['Jelle heeft de machinist van de museumstoomtrein omgekocht. De trein staat stil, en de laatste juryleden zitten er vier uur in vast.', 'Doel: rij de trein van Veendam naar het perron van Wildervank, zodat de juryleden kunnen uitstappen.'],
-      outro: 'Eén jurylid stapt uit. Eén blijft bij Jelle. De bewaarder blijft zitten: het oudste jurylid, Berend, zit voor.',
+      outro: 'Eén jurylid stapt uit. Eén blijft bij Jelle. De bewaarder blijft zitten, dus het oudste jurylid, Berend, zit voor.',
       reward: 800,
       onFoot: true,
       costRow: ['Gevolg', 'Eén jurylid bevrijd, één blijft bij Jelle, de voorzitter is verhinderd'],
@@ -188,7 +188,7 @@ export function buildAkte4Defs() {
         { kind: 'goto', target: ll('bourtangeGracht', { label: 'De gracht' }), mode: 'foot', radius: 12, label: 'Naar de gracht: Durk en Douwe dagen je uit', say: 'Durk en Douwe houden je bezig. Naar de gracht.' },
         {
           kind: 'timing', vaultJump: true, kicker: 'Fierljep-duel in Bourtange', help: 'druk op het goede moment', goodAt: 2, tagGood: 'duel-won', tagLow: 'duel-lost',
-          label: 'Fierljep-duel: spring verder dan Durk en Douwe', say: 'Durk en Douwe springen mee. Aanloop, polsstok, klimmen: druk als de streep in het groene vak staat.',
+          label: 'Fierljep-duel: spring verder dan Durk en Douwe', say: 'Durk en Douwe springen mee. Aanloop, polsstok, klimmen: druk als de streep in het vak staat.',
           rounds: [
             { text: '1. De aanloop: vol gas naar de gracht.', speed: 0.8, zone: [0.36, 0.64], ok: 'Een strakke aanloop. Durk kijkt jaloers.', bad: 'Je struikelt over een kartonnen kanon.' },
             { text: '2. Pak de polsstok.', speed: 1.0, zone: [0.4, 0.6], ok: 'De stok zit. Douwe zegt: …wauw.', bad: 'De stok glijdt weg. Douwe zegt: …oei.' },
@@ -236,7 +236,7 @@ export function buildAkte4Defs() {
 export function applyAkte4(list) {
   const fj = list.find((d) => d.label === 'Iedereen heeft een rode auto gezien');
   if (!fj) return;
-  fj.intro = ['De Escapade staat op een wagon van een goederentrein, op weg naar Ljouwert. Mem appte waar hij stopt: de overweg bij Zuidhorn.', 'Haal hem terug, alleen. En daarna houdt Tammo Oma\'s vrienden bij elkaar bij Tinus\' schuur.'];
+  fj.intro = ['De Escapade staat op een wagon van een goederentrein, op weg naar Ljouwert. Mem appte waar hij stopt: de overweg bij Zuidhorn.', 'Doel (Tessa): haal de Escapade terug van de trein. Daarna zoekt Tammo bij Tinus\' schuur de woorden om Oma\'s vrienden te laten blijven.'];
   fj.outro = 'De Escapade is terug. De bal is weg. En de vrienden zijn weg.';
   fj.costRow = ['Gevolg', 'De bal is van Jelle; de vrienden gingen weg'];
   // the wagon choice has a consequence: the car saves a scratch, the ball costs one (Berend counts)
@@ -250,7 +250,7 @@ export function applyAkte4(list) {
     { kind: 'goto', target: ll('zuidhornOverweg', { label: 'De overweg bij Zuidhorn' }), mode: 'any', radius: 30, label: 'Naar de overweg bij Zuidhorn: daar stopt de trein om middernacht', say: 'Mems appje: de trein met de rode auto stopt om middernacht bij de overweg in Zuidhorn.', talk: { ids: ['M21.2'], delay: 3 } },
     {
       kind: 'timing', kicker: 'Over de wagons', help: 'spring op het goede moment', goodAt: 2, tagGood: 'sprint-goed', tagLow: 'sprint-slecht',
-      label: 'Spring van wagon naar wagon naar de Escapade', say: 'De trein rijdt. Druk als de streep in het groene vak staat om naar de volgende wagon te springen.',
+      label: 'Spring van wagon naar wagon naar de Escapade', say: 'De trein rijdt. Druk als de streep in het vak staat om naar de volgende wagon te springen.',
       rounds: [
         { text: 'Wagon één naar twee: de koppeling schudt.', speed: 0.9, zone: [0.38, 0.62], ok: 'Over de koppeling.', bad: 'Je glijdt, maar grijpt de reling.' },
         { text: 'Wagon twee naar drie: Jelles mannen kijken om.', speed: 1.1, zone: [0.41, 0.59], ok: 'Drie. Zij zien je nog niet.', bad: 'Je valt op je rugzak. Au.' },

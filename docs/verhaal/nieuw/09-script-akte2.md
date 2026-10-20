@@ -121,10 +121,11 @@ TESSA: Dat is het Hogeland, Tammo. Dat is groter dan je denkt. [NIEUW]
 APP TAMMO→RIKUS (stil): Iedereen kijkt naar Kiekdoar. Niemand naar ons. [BEHOUDEN]
 
 ## [M09.1] Heel aankomen is ook een kunst: intro – Hogeland, Warffum, Geesjes pastorie – trekker
-(regie: woensdag 19 augustus, ochtend. Een pastorie bij een wierdekerk. Geesje, 84, in een schort. Naamkaart: GEESJE. Gameplay: breekbare eieren heel naar de kerkkelder brengen, over wierdepaden.)
+(regie: woensdag 19 augustus, vroege ochtend, de eerste trein. Een pastorie bij een wierdekerk. Geesje, 84, in een schort. Naamkaart: GEESJE. Gameplay: breekbare eieren heel naar de kerkkelder brengen, over wierdepaden.)
 GEESJE: Jullie zijn van Trijntje. Het zijn eieren, geen relikwieën. Maar ik ben kosteres, dus ik behandel ze zo. [NIEUW]
 TESSA: Moi. …Goedemorgen, bedoel ik. Het recept van 1953 heeft er zestig nodig. [NIEUW]
 GEESJE: Jelle Terpstra heeft alle eieren van het Hogeland gekocht, behalve de mijne. Mijn kippen hebben geen contract. [NIEUW]
+GEESJE: Zijn moeder, Gerda, belt Trijntje elk jaar op haar verjaardag. Ze zeggen dan allebei niks. [NIEUW]
 GEESJE: Jullie brengen ze heel naar de kerkkelder in Usquert. Daar is het koel, en daar komt Jelle niet. [NIEUW]
 TESSA: Heel, Tammo. Niet rap. Heel. [NIEUW]
 TAMMO: Ik rij nooit rap. [NIEUW]
@@ -134,11 +135,9 @@ GEESJE: De trekker staat bij de schuur. Hij trekt hard. [NIEUW]
 
 ## [M09.2] Heel aankomen is ook een kunst: de afgesloten weg – Hogeland, Dorpsweg – trekker
 (regie: de Dorpsweg is afgezet met hekken. Op de weg staat een boer met zijn trekker dwars. Een bord: DORPSFEEST, WEG AFGESLOTEN.)
-JELLE (telefoon): Goedemorgen. De Dorpsweg is tot vier uur van mij. Een dorpsfeest. Ook deze heer heeft een overeenkomst met ons, dus hij mag niet weg. [NIEUW]
+JELLE (telefoon): De Dorpsweg is tot vier uur van mij. Een dorpsfeest. Ook deze heer heeft een overeenkomst met ons, dus hij mag niet weg. [NIEUW]
 BOER: Een eierkoek per week, levenslang. Daar zeg je geen nee tegen. [NIEUW]
 TESSA: Dan nemen we de wierdepaden. Vol gaten. Zes kratten, Tammo, en we hebben zestig eieren nodig. [NIEUW]
-TAMMO: Alle zestig. [NIEUW]
-TESSA: Alle zestig. [NIEUW]
 
 ## [M09.3] Heel aankomen is ook een kunst: onderweg – Hogeland, wierdepaden – trekker
 TAMMO: Die koe kijkt naar me. [NIEUW]
@@ -176,7 +175,7 @@ TESSA: En de bal? [NIEUW]
 JELLE: Die is hier. In deze koffer. Mijn juristen willen dat ik hem bij me draag. [NIEUW]
 TAMMO: Je hebt hem dus echt. [NIEUW]
 JELLE: Juridisch gezegd: ja. Durk, Douwe, pak ze. [NIEUW]
-TESSA: Uithuizen heeft een sloot en een limo heeft geen vleugels. Wij zijn daar eerder. Op de quad. Nu. [NIEUW]
+TESSA: Uithuizen heeft een sloot en een limo heeft geen vleugels. Wij zijn daar eerder. Dan moet hij uit zijn limo, en dan zien we wat er in die koffer zit. Op de quad. Nu. [NIEUW]
 
 ## [M10.2] Een trekker-limo op de wierde: de achtervolging – Hogeland, Usquert naar Uithuizen – quad
 TESSA: Links, over het kerkenpad. [NIEUW]
@@ -204,7 +203,8 @@ TAMMO: Dat is een prioriteit. [NIEUW]
 TESSA: Dat is liefde of een contract. [NIEUW]
 TAMMO: Bij hem is dat hetzelfde. [NIEUW]
 TAMMO: Of hij is dom. [NIEUW]
-TESSA: Hij heeft de bal. Wij hebben de eieren. Zoutkamp heeft een Kapitein Klaas, zegt Oma. [NIEUW]
+TESSA: Hij heeft de bal. Wij hebben de eieren. [NIEUW]
+APP OMA→TESSA (stil): Zoutkamp. Kapitein Klaas. Zeg dat ik je stuur. [NIEUW]
 APP MEM→TESSA (stil): Is mijn jongen droog? Zeg niks tegen Tammo. – M. [NIEUW]
 
 ## [T2] De streekbus naar Zoutkamp – Hogeland, Uithuizen naar Zoutkamp – bus (meerijden)
@@ -246,9 +246,9 @@ JELLE (telefoon): Die twee mogen de chocola houden. De echte is bij mij, en daar
 TESSA: Dus de bal is hier niet. Dan halen we het zout voor Oma's recept. [NIEUW]
 
 ## [M11.4] Geleend van de Friezen: het zout – Lauwersmeer en Waddenkust – rubberboot
-KAPITEIN KLAAS: Het zout van Oma ligt bij Noordpolderzijl, op de kwelder langs de Waddenkust. Een zijl is een sluis die denkt dat hij een dorp is. Je moet het halen als het wad droog ligt. Jelle kocht de zoutstekers. [NIEUW]
-TESSA: Dus we wachten tot het water weg is en lopen over de kwelder. [NIEUW]
-KAPITEIN KLAAS: Eerst zit je op de zandplaat een uur vast: de wind duwt het water hier uit het meer. Daarna rijdt mijn neef jullie langs de dijk naar de kwelder. [NIEUW]
+KAPITEIN KLAAS: Het zout van Oma ligt bij Noordpolderzijl, op de kwelder. Dat is grasland aan zee, dat bij eb droog ligt. [NIEUW]
+KAPITEIN KLAAS: Een zijl is een sluis die denkt dat hij een dorp is. Jelle kocht al het zout. [NIEUW]
+KAPITEIN KLAAS: Eerst zit je een uur vast op een zandplaat: de wind duwt het water uit het meer. Daarna rijdt mijn neef jullie langs de dijk naar de kwelder. [NIEUW]
 TAMMO: Waarom zout? [NIEUW]
 KAPITEIN KLAAS: Oma's eierbal van 1953 had zout dat nog naar zee smaakte. [NIEUW]
 
@@ -291,8 +291,8 @@ TESSA: Rennen, Tammo. [NIEUW]
 
 ## [M11.8] Geleend van de Friezen: outro – Waddenkust, Lauwersoog – rubberboot
 (regie: de rubberboot ligt weer aan de steiger. Plakje vier, het zout, is van hen.)
-KAPITEIN KLAAS: Dat zout is van Oma. Jelle kocht de zoutstekers, maar de zee is niet te koop. Nog niet. [NIEUW]
-DOKTER DIJKSTRA (telefoon): Dijkstra, UMCG. Trijntje kookte vroeger voor mijn afdeling, dus ik help. [NIEUW]
+KAPITEIN KLAAS: Dat zout is van Oma. Jelle kocht al het zout, maar de zee is niet te koop. Nog niet. [NIEUW]
+DOKTER DIJKSTRA (telefoon): Dijkstra, van het UMCG, het ziekenhuis. Trijntje kookte vroeger voor mijn afdeling, dus ik help. [NIEUW]
 DOKTER DIJKSTRA (telefoon): Morgen vliegt Jelle met zijn koopboek in een ballon boven de Dollard. Hij boekte de ballon via mijn zwager. [NIEUW]
 DOKTER DIJKSTRA (telefoon): Ik heb een heli en ik haal jullie op. Dit stond niet in het rooster. [NIEUW]
 TESSA: Een koopboek met alles wat hij wil kopen. Dat moeten we hebben. [NIEUW]

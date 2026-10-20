@@ -13,7 +13,7 @@ import { MODS, grunnify } from './cheatmods.js';
 export const FY = {
   // the definitive script (docs/verhaal/D-definitief.md)
   'Ljouwert': 'Leeuwarden',
-  'pompeblêden': 'pompeblêden (de Friese plompenbladeren)',
+  'pompeblêden': 'pompeblêden (rode blaadjes uit de Friese vlag)',
   'iets wat van mem is': 'iets wat van mijn moeder is',
   'dan ziet mem hem': 'dan ziet mijn moeder hem',
   '…Tige tank.': '…Bedankt.',
@@ -35,7 +35,7 @@ export const FY = {
   'As dat jild der is.': 'Als dat geld er is.',
   'Better as ús. Net fertelle.': 'Beter dan de onze. Niet doorvertellen.',
   'Net fertelle, hè': 'Niet doorvertellen, hè',
-  'Foar mem': 'Voor mem (mijn moeder)',
+  'Foar mem': 'Voor mem (Fries: moeder)',
   'foar mem': 'voor mem',
   'FOAR MEM': 'VOOR MEM',
   'Famke koopt haar eigen eierbal.': 'Dat meisje koopt haar eigen eierbal.',
@@ -82,7 +82,7 @@ export const FY = {
   '"Tige tank."': '"Hartelijk dank."',
   '"tige tank"': '"hartelijk dank"',
   'Foar in wykein.': 'Voor een weekend.',
-  'Pompeblêden': 'Plompenbladeren',
+  'Pompeblêden': 'Pompeblêden (rode blaadjes uit de Friese vlag)',
   'Fryske meeuw': 'Friese meeuw',
   'Operaasje Aaibal': 'Operatie Eierbal',
   '"fakmanskip"': '"vakmanschap"',
@@ -190,7 +190,6 @@ export const FY = {
   'Ze wilden mij toch nog iets laten winnen. De keuring in Ljouwert, met een Grinzer koe. Ik skamje my dea.': 'Ze wilden mij toch nog iets laten winnen. De keuring in Leeuwarden, met een Groninger koe. Ik schaam me dood.',
   // the new story (docs/verhaal/nieuw, game/storydata/script.json): lines where 'mem' is a Dutch word or a Frisian one
   'Dat noemen wij ondernemen. Oant sjen.': 'Dat noemen wij ondernemen. Tot ziens.',
-  '"Voor mem." Voor zijn moeder.': '"Voor mijn moeder." Voor zijn moeder.',
   'Mem is eenennegentig. Zeventig jaar heeft ze tweede gestaan, Grinzers.': 'Mijn moeder is eenennegentig. Zeventig jaar is ze tweede geweest, Groningers.',
   'Wil je mem dat wel?': 'Wil je moeder dat wel?',
   'Mem wil niks. Daarom doe ik het.': 'Mijn moeder wil niks. Daarom doe ik het.',
@@ -211,7 +210,7 @@ export const FY = {
   'Mem. De notaris sluit…': 'Moeder. De notaris sluit…',
   '…Ja, mem.': '…Ja, moeder.',
   'Ja, mem.': 'Ja, moeder.',
-  'Dank u, Mem.': 'Dank u, mevrouw.',
+  'Dank u, Mem.': 'Dank u, Mem. (Fries voor mama)',
 };
 
 export const GRO = {
@@ -329,7 +328,13 @@ export const GRO = {
   'Kom op, mien jong, ik heb honger as n peerd.': 'Kom op, jongen, ik heb honger als een paard.',
   'Dat is goud spul, mien wicht!': 'Dat is goed spul, meisje!',
   'Ik goa wel noar hoes. Stoet eten.': 'Ik ga wel naar huis. Brood eten.',
-  'Kon minder!': 'Prima! (Gronings: kon minder)',
+  'Kon minder!': 'Kon minder! (Gronings: heel goed)',
+  'Kon minder, jong.': 'Kon minder (= heel goed), jongen.',
+  'Kon minder, hè?': 'Kon minder (= heel goed), hè?',
+  'Goud. …Valt mie nait of.': 'Goed. …Dat valt me niet tegen.',
+  'geen Grinzer aan de start': 'geen Groninger aan de start',
+  'Er is geen overeenkomst, jonge.': 'Er is geen overeenkomst, jongen.',
+  'Ik kom, jonge.': 'Ik kom, jongen.',
   '"Dat heb ik van mien laven nog nait zain. Ze zwommen synchroon!"': '"Dat heb ik van mijn leven nog niet gezien. Ze zwommen synchroon!"',
   '"Twee reuzen op ain fatbike kochten alles op. Contant, oet n klomp. Kon minder, veur ons."': '"Twee reuzen op één fatbike kochten alles op. Contant, uit een klomp. Prima, voor ons."',
   // carbid schieten, the botsauto's and Radio Proat (funlines.js)
@@ -341,7 +346,7 @@ export const GRO = {
   'Kiek uut, hai gaait!': 'Kijk uit, hij gaat!',
   'Raak! Dat heurt ze in Winsum.': 'Raak! Dat horen ze in Winsum.',
   'Mis. Mor t geluud was goud.': 'Mis. Maar het geluid was goed.',
-  'Kon minder.': 'Prima. (Gronings: kon minder, het hoogste compliment)',
+  'Kon minder.': 'Kon minder. (Gronings: heel goed)',
   'Volgend joar beter. Of t joar doarnoa.': 'Volgend jaar beter. Of het jaar daarna.',
   'Doe mor normaal, den dousto al gek genog.': 'Doe maar normaal, dan doe je al gek genoeg.',
   'Wacht nou ais even op t gas!': 'Wacht nou eens even op het gas!',

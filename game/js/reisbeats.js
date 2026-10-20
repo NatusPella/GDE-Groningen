@@ -24,7 +24,7 @@ export const REISBEATS = {
   // Wildervank to Bourtange by way of Ter Apel (about 45 km): the beat sits on the step that ends at Bourtange
   T4: { act: 4, from: 'Wildervank', to: 'Bourtange', length: 45000, ride: 'bus', scene: 'T4.1' },
   M21: { act: 4, from: 'Bourtange', to: 'Zuidhorn', length: 65000, ride: 'lift' },
-  M23: { act: 5, from: "Tinus' schuur", to: 'Zuidhorn', length: 25000, ride: 'lift', selfMode: 'auto' },
+  M23: { act: 5, from: "Tinus' schuur", to: 'Grote Markt', length: 25000, ride: 'lift', selfMode: 'auto' },
 };
 
 // the beat in front of a step, as reiskeuze.js wants it (lines from the script:

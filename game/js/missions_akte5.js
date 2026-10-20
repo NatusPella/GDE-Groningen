@@ -155,7 +155,7 @@ export function applyAkte5(list) {
     // the pigeon's twist: the last rope is pulled on the wind (three gusts), so the flag lands beside the stall and not on it
     const wind = {
       kind: 'timing', kicker: 'De laatste touwen', help: 'pik op de windvlaag', goodAt: 2, tagGood: 'vlag-top', tagLow: 'vlag-raak',
-      label: 'Pik de laatste touwen door op de windvlaag', say: 'De vlag hangt nog aan drie touwen. Pik door als de wind meewerkt: de streep in het groene vak.',
+      label: 'Pik de laatste touwen door op de windvlaag', say: 'De vlag hangt nog aan drie touwen. Pik door als de wind meewerkt: de streep in het vak.',
       rounds: [
         { text: 'Een windvlaag uit het westen.', speed: 0.8, zone: [0.36, 0.64], ok: 'Het touw geeft mee.', bad: 'De duif slipt langs het touw.' },
         { text: 'De vlag draait naar de kraam toe.', speed: 1.0, zone: [0.4, 0.6], ok: 'De vlag draait weg van de kraam.', bad: 'De vlag zwiept richting de kraam.' },
@@ -166,7 +166,7 @@ export function applyAkte5(list) {
     vlag.tagAdjust = { 'vlag-top': 100 };
     vlag.tagRows = { 'vlag-top': ['Wind', 'De vlag viel naast de kraam'], 'vlag-raak': ['Wind', 'De vlag raakte de rand van de kraam: Jelle zag het'] };
     vlag.timeLimit = null;
-    vlag.intro = ['Er hangt een reuzenvlag aan de Martinitoren, precies boven de plek van de Fjord Frituur.', 'Fluit een duif bij de toren en pik de vijf touwen los.'];
+    vlag.intro = ['Er hangt een reuzenvlag aan de Martinitoren, precies boven de plek van de Fjord Frituur.', 'Doel: pik als duif de vijf touwen van de vlag door.'];
     vlag.outro = 'De vlag ligt op de keien. Heel Grunn klapte voor een duif.';
     vlag.costRow = ['Gevolg', 'Tammo is Stads held. Jelle zag het vanuit de menigte'];
   }
@@ -177,7 +177,7 @@ export function applyAkte5(list) {
     delete bod.eggs;
     bod.start = { ...bod.start, x: KEUKEN[0], y: KEUKEN[1], road: null };
     bod.timeLimit = null;
-    bod.intro = ['Oma\'s keuken aan de Noorderhaven. Morgen is het Ontzet.', 'Bak een oefenronde eierballen met alle vijf ingrediënten, en wijs Jelles bod af.'];
+    bod.intro = ['Oma\'s keuken aan de Noorderhaven. Morgen is het Ontzet.', 'Doel: bak een oefenronde eierballen met alle vijf ingrediënten. Daarna komt Jelle met een bod.'];
     bod.outro = 'Jelles bod is afgewezen. Morgen bakken we op het Ontzet.';
     bod.costRow = ['Tip van Sjabbe', 'Morgen om drie uur schrijft Jelle zich in bij de notaris'];
     bod.say = 'Bak in Oma\'s keuken: ei, zout, grof meel, vet en mosterd.';
@@ -199,7 +199,7 @@ export function applyAkte5(list) {
     const stalls = { landmark: 'Grote Markt', off: [20, -5], snap: 'walk' };
     const fire = ontzet.stages.find((q) => q.kind === 'hold');
     const chase = ontzet.stages.find((q) => q.kind === 'chase');
-    ontzet.intro = ['Gronings Ontzet, vrijdag 28 augustus. De beste eierbal wint de standplaats; de Gouden Eierbal gaat terug naar het museum.', 'Bak de Groningse eierbal, houd de kraam heel, stop Jelles laatste plakje bij de notaris en laat de jury kiezen.'];
+    ontzet.intro = ['Gronings Ontzet, vrijdag 28 augustus. De beste eierbal wint de standplaats; de Gouden Eierbal gaat terug naar het museum.', 'Doel: bak de Groningse eierbal en houd de kraam heel. Stop daarna Jelles limo voor drie uur bij de notaris. Laat dan de jury proeven.'];
     ontzet.outro = 'De jury koos de Groningse eierbal: vier tegen één. De Fjord Frituur krijgt de standplaats.';
     ontzet.costRow = ['Gewonnen', 'De standplaats op de Vismarkt, en Gerda Terpstra op het bordje'];
     ontzet.heroCar = true;
@@ -238,7 +238,7 @@ export function applyAkte5(list) {
       { kind: 'board', label: 'Stap in de Fjord Frituur', say: 'Kwart voor drie. Instappen: de limo rijdt naar de notaris.' },
       {
         kind: 'timing', kicker: 'Berts duiven', help: 'fluit op de maat', goodAt: 2, tagGood: 'duiven-top', tagLow: 'duiven-los',
-        label: 'Fluit Berts duiven op, voor de limo uit', say: 'Tammo fluit, Bert stuurt de duiven. Fluit op de maat: de streep in het groene vak.',
+        label: 'Fluit Berts duiven op, voor de limo uit', say: 'Tammo fluit, Bert stuurt de duiven. Fluit op de maat: de streep in het vak.',
         rounds: [
           { text: 'Eerste fluit: de duiven stijgen op van het dak.', speed: 0.9, zone: [0.38, 0.62], ok: 'De duiven komen als één wolk.', bad: 'Twee duiven nemen een omweg.' },
           { text: 'Tweede fluit: richting de Oude Boteringestraat.', speed: 1.1, zone: [0.41, 0.59], ok: 'De wolk draait de straat in.', bad: 'De duiven gaan een kerktoren in.' },
@@ -248,7 +248,7 @@ export function applyAkte5(list) {
       {
         // the column of M23 comes back: the bus and the tractor close the streets, the scooter takes the alleys; the ally you chose sits the surest
         kind: 'timing', kicker: 'De colonne sluit de straten', help: 'sluit op de maat', goodAt: 2, tagGood: 'straten-dicht', tagLow: 'straten-open',
-        label: 'Laat de colonne de straten afsluiten voor Jelles limo', say: 'Wubbo, Tinus en Geesje sluiten de straten. Druk als de streep in het groene vak staat.',
+        label: 'Laat de colonne de straten afsluiten voor Jelles limo', say: 'Wubbo, Tinus en Geesje sluiten de straten. Druk als de streep in het vak staat.',
         rounds: [
           { text: 'Wubbo zet de bus dwars in de Herestraat.', speed: 0.9, zone: [0.4, 0.6], zoneIf: 'bond-bus', ok: 'De bus staat dwars, deuren open, Wubbo zwaait.', okIf: 'De bus staat dwars. Wubbo weet precies hoe breed hij is.', bad: 'De bus staat half. De limo glipt langs de zijspiegel.' },
           { text: 'Tinus trekt zijn trekker voor de Gedempte Zuiderdiep.', speed: 1.05, zone: [0.42, 0.58], zoneIf: 'bond-trekker', ok: 'De trekker staat. Er past geen limo meer langs.', okIf: 'De trekker staat als een muur. Tinus: "Ik trek hem weg."', bad: 'De trekker slaat af in plaats van aan. De limo wrijft langs de band.' },
