@@ -330,8 +330,25 @@ export async function voicedLookup() {
   return (it) => set.has(it.text);
 }
 
+// Ingeburgerde Engelse woorden die docs/WOORDENLIJST.md toestaat. `--jargon` telt ze in speltekst, zodat de eigenaar
+// kan zien wat er staat en per woord kan kiezen om het te vervangen. Informatief: geen bevinding, exit 0.
+const JARGON = ['app', 'hatchback', 'sedan', 'minimap', 'cheat', 'cheats', 'score', 'update', 'camera', 'HUD', 'savegame', 'savegames', 'minigame', 'streamer', 'skatepark', 'par', 'birdie', 'eagle', 'bogey', 'ace', 'download', 'online', 'offline', 'link', 'tip', 'bonus', 'level'];
+export function jargonCounts() {
+  const res = JARGON.map((w) => ({ w, re: wordRe(w, w === 'HUD' || w === 'ace' || w === 'par'), n: 0, first: [] }));
+  for (const it of collectTexts()) {
+    if (!isProse(it.text)) continue;
+    const kaal = stripMarkup(it.text);
+    for (const r of res) if (r.re.test(kaal)) { r.n++; if (r.first.length < 3) r.first.push(`${it.file}:${it.line}`); }
+  }
+  return res.filter((r) => r.n).sort((a, b) => b.n - a.n);
+}
+
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const args = process.argv.slice(2);
+  if (args.includes('--jargon')) {
+    for (const r of jargonCounts()) console.log(`${String(r.n).padStart(4)}x ${r.w}  (${r.first.join(', ')})`);
+    process.exit(0);
+  }
   const findings = audit({ voiced: await voicedLookup() });
   const open = findings.filter((f) => !f.allowed);
   if (args.includes('--json')) console.log(JSON.stringify(findings, null, 1));
