@@ -66,9 +66,10 @@ const frame = (b) => { const P = b.pts, a = P[0], e = P[P.length - 1], m = P[Mat
 // nooit in een gebouw
 const kiesCam = (F, tx, ty, hoog) => {
   let best = null;
-  for (const sn of [1, -1]) for (const sa of [0.3, 0.7, -0.3, -0.7]) {
-    const px = F.m[0] + F.nx * 45 * sn + F.dx * 45 * sa, py = F.m[1] + F.ny * 45 * sn + F.dy * 45 * sa;
-    let blok = TP.buildingAt(map, px, py, 3) ? 99 : 0;
+  // boven het water langs de vaarweg staan geen bomen of gebouwen in de weg: eerst daar zoeken, dichtbij en hoog
+  for (const d of [26, 34, 44]) for (const sn of [1, -1]) for (const sa of [0, 0.25, -0.25, 0.5, -0.5]) {
+    const px = F.m[0] + F.nx * d * sn + F.dx * d * sa, py = F.m[1] + F.ny * d * sn + F.dy * d * sa;
+    let blok = (TP.buildingAt(map, px, py, 3) ? 99 : 0) + (WL.waterAt(map, px, py) ? 0 : 6);
     for (let k = 1; k <= 24; k++) { const t = k / 25; if (TP.buildingAt(map, px + (tx - px) * t, py + (ty - py) * t)) blok++; }
     if (!best || blok < best.blok) best = { px, py, blok };
   }
@@ -134,7 +135,7 @@ for (const b of CFG.bots || []) {
     const F = frame(road), tag = `bt-bots-${(b.naam || 'brug').replace(/[^\w]+/g, '_')}`;
     putBoat(F.m[0] - F.nx * 45, F.m[1] - F.ny * 45, Math.atan2(F.ny, F.nx), BT.BOAT_KINDS[b.boot || 'sloep']); // de aanvaringsdemo maakt van het dichtstbijzijnde vaartuig een schip van 280 t
     boat.bridgeMassT = 280; boat.bridgeAir = 4.2; boat.speed = 5; boat.scripted = true;
-    cur = kiesCam(F, F.m[0] - F.nx * 8, F.m[1] - F.ny * 8, 11); rep.blok = cur.blok;
+    cur = kiesCam(F, F.m[0] - F.nx * 8, F.m[1] - F.ny * 8, 16); rep.blok = cur.blok;
     const msgs = [];
     const addMsg = w.addMessage; w.addMessage = (t, ...r) => { msgs.push(String(t)); return addMsg.call(w, t, ...r); };
     const t0 = performance.now();
