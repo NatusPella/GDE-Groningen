@@ -77,7 +77,7 @@ met het doel van de missie bovenin, `hudcards.js`, `stunthud.js`, de HUD van
 | 18 | 0:37 | 2,2 | `gH18` | **HUD**: *Achter de trekker-limo aan* | H18 |
 | 19 | 0:39 | 2,2 | `kermis` | de kermis. Kaart: *Botsauto's. Padel. Ballonjacht.* | minigames |
 | 20 | 0:41 | 1,8 | `gTwins` | Durk & Douwe in een botsauto | botsauto's |
-| 21 | 0:43 | 2,4 | `ommeland` | het Ommeland, de carbidbus knalt | carbid, Ommeland |
+| 21 | 0:43 | 2,4 | `trauma` | de traumaheli stijgt op van het UMCG. Kaart: *Het staat niet in het rooster.* | heli (het donkere veld van de Ommeland-shot toonde niets) |
 | 22 | 0:45 | 2,2 | `hudJob` | **HUD**: Hap & Rap bezorgen, de klok loopt | bijbaantjes |
 | 23 | 0:47 | 2,4 | `hudPhone` | **HUD**: de telefoon op Ubbo: verhaal, dichtbij, bijbaantjes | telefoon, Te doen |
 | 24 | 0:50 | 2,2 | `timelapse` | een dag boven Stad. Kaart: *Dag en nacht.* | dag en nacht |
