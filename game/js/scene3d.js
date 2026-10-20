@@ -901,6 +901,7 @@ export function init3D(map) {
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFShadowMap;
   hookShadowPass(renderer.shadowMap);
+  hookLinkGuard(renderer);
   pinShaderPrograms(renderer);
   // Fetching shader info logs after a link is a sync point that costs tens of
   // ms per program on a busy GPU; ?shaderdebug brings the error checks back.
@@ -1351,6 +1352,34 @@ function hookShadowPass(shadowMap) {
       for (let i = 0; i < culledGroups.length; i++) culledGroups[i].visible = false;
     }
   };
+}
+
+// A shader that is not linked yet blocks the frame at its first draw (getProgramParameter waits for the link,
+// 0.3 to 1 s for a building style, a landmark kit or a depth program that was not seen before, #247). A draw of
+// the game scene (or a shadow caster) whose material has no linked program yet is left out instead and its
+// object is compiled after the frame, in the background (KHR_parallel_shader_compile); it shows a few frames
+// later. Fullscreen passes are never skipped, and without the extension nothing changes.
+const linkPending = new Set();
+const LINK_GUARD_AFTER = 600;
+function hookLinkGuard(r) {
+  const draw = r.renderBufferDirect.bind(r);
+  let guard = null;
+  r.renderBufferDirect = function (camera, sc, geometry, material, object, group) {
+    if (guard === null) guard = r.extensions.has('KHR_parallel_shader_compile');
+    // not in the first seconds: the load screen, the title and the first shots wait for the prewarm, which draws the materials once
+    if (guard && canvasFrames > LINK_GUARD_AFTER && (sc === null || sc === scene) && !perfOff('linkwacht')) {
+      const programs = r.properties.get(material).programs;
+      let ready = !!programs;
+      if (programs) for (const p of programs.values()) if (!p.isReady()) { ready = false; break; }
+      if (!ready) { linkPending.add(object); return undefined; }
+    }
+    return draw(camera, sc, geometry, material, object, group);
+  };
+}
+function compilePending() {
+  if (!linkPending.size) return;
+  for (const o of linkPending) if (o.parent) precompile(o);
+  linkPending.clear();
 }
 
 // Static world geometry (buildings, roads, water): matrices are computed once
@@ -2924,6 +2953,7 @@ export function update3D(dt, world) {
   cullOffscreenActors();
   skipHiddenMatrixWalk();
   try { postfx.render(); } finally { restoreCulledActors(); }
+  compilePending();
   if (afterFrameQ.length) { const q = afterFrameQ; afterFrameQ = []; for (const f of q) { try { f(); } catch (e) { /* no picture */ } } }
   canvasFrames++;
   renderer.shadowMap.autoUpdate = true;
