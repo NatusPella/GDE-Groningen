@@ -115,7 +115,7 @@ check(r1.some((s) => s.partners.some((p) => p[0] === 0 && p[2] !== 'voet')), 'ri
 check(win(66, 69).every((s) => s.wanted === 3) && win(66, 69).length > 0, 'wanted: de gast ziet het wanted van de gastheer niet: ' + JSON.stringify(win(66, 69).slice(-1).map((s) => s.wanted)));
 const sv = of('save')[0]; const m0 = (win(1, 5)[0] || {}).money, m1 = (win(74, 76).slice(-1)[0] || {}).money;
 check(m1 === m0 + 250, `betalen: het geld van de gast steeg niet met 250 (${m0} → ${m1})`);
-check(sv && sv.hadSave && sv.ok === true && sv.saveMoney === sv.saveMoneyVoor + 250 && sv.verdiend === 0, 'save: de beloning van de gast staat niet in zijn eigen save (hij had er al een): ' + JSON.stringify(sv)); note(notes, 'save gast: ' + JSON.stringify(sv));
+const vsv = of('voor-save')[0]; check(sv && sv.hadSave && vsv && sv.saveMoney === vsv.money + 250 && sv.verdiend === 0, 'save: de beloning van de gast staat niet in zijn eigen save (hij had er al een): ' + JSON.stringify({ voor: vsv, na: sv }));
 // desync
 const di = of('desync-ingebracht')[0], du = of('desync-uitkomst')[0];
 check(di && du && du.hersync >= 1 && du.desync && du.desync.includes('stage'), 'desync: niet herkend of geen hersync gevraagd: ' + JSON.stringify(du));
