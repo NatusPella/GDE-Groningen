@@ -10,11 +10,16 @@
 
 export const WHEELIE = { minSpeed: 2.5, topShare: 0.75, pitch: 0.5, holdMax: 2.6, rise: 3.2, fall: 4.5, drag: 0.35 };
 
+// Het sprongetje (bunny hop) op de gewone fiets: Ctrl vasthouden en de rem (Spatie) kort aantikken (korter dan `tap`
+// seconden) bij minstens `minSpeed` m/s; beide wielen komen van de grond (`vz` m/s omhoog, ruim een halve
+// meter hoog, de landing is zacht). Een lange rem blijft een stoppie. Daarna `cooldown` seconden rust.
+export const HOP = { minSpeed: 2.5, tap: 0.22, vz: 3.1, cooldown: 0.6 };
+
 // De stoppie op de gewone fiets: Ctrl vasthouden en remmen; het achterwiel komt een beetje omhoog.
 const STOPPIE = { minSpeed: 3.5, pitch: -0.32, holdMax: 2.2 };
 
 export function createWheelie() {
-  return { nose: false, nosed: 0, pitch: 0, held: 0, up: false, dist: 0, best: 0, lost: false };
+  return { nose: false, nosed: 0, pitch: 0, held: 0, up: false, dist: 0, best: 0, lost: false, brakeT: 0, hop: false, hopCool: 0, hops: 0 };
 }
 
 // Eén stap. i: { trick, throttle, speed, top, dt }. Geeft de bijgewerkte staat terug (dezelfde
@@ -25,6 +30,14 @@ export function stepWheelie(s, i) {
   const top = Number.isFinite(i.top) && i.top > 0 ? i.top : 7;
   const ok = !!i.trick && i.throttle > 0 && speed >= WHEELIE.minSpeed && speed <= top * WHEELIE.topShare;
   if (!i.trick) s.lost = false;
+  // het sprongetje: de rem kort aantikken met de trucknop ingedrukt; s.hop is één beeld lang waar
+  s.hop = false;
+  s.hopCool = Math.max(0, (s.hopCool || 0) - dt);
+  if (i.trick && (i.brake || 0) > 0.5) s.brakeT = (s.brakeT || 0) + dt;
+  else {
+    if (i.trick && s.brakeT > 0 && s.brakeT < HOP.tap && speed >= HOP.minSpeed && s.hopCool <= 0 && !i.airborne) { s.hop = true; s.hopCool = HOP.cooldown; s.hops = (s.hops || 0) + 1; }
+    s.brakeT = 0;
+  }
   let want = 0;
   const nose = !!i.trick && (i.brake || 0) > 0.5 && speed >= STOPPIE.minSpeed && !s.lost && !ok;
   s.nose = nose;
