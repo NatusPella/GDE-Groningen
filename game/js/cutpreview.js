@@ -15,6 +15,7 @@ import './cutscenes_akte3.js';
 import './cutscenes_akte4.js';
 import { OPENING_ACTS, openingActs, END_CARD } from './cutscenes.js';
 import { STEPS } from './storyarc_nieuw.js';
+import { propFoot } from './cutscenemodels.js';
 
 export const STATUS = { ok: 'ok', warn: 'waarschuwing', error: 'fout' };
 export const STATUS_LABEL = { ok: 'In orde', waarschuwing: 'Let op', fout: 'Fout' };
@@ -195,4 +196,53 @@ export function sceneBounds(entry, step = 0.5) {
   }
   const pad = 3;
   return { x0: x0 - pad, y0: y0 - pad, x1: x1 + pad, y1: y1 + pad };
+}
+
+// What the camera sees, without a renderer (the preview's camera view): every actor (a 1.75 m column) and prop (its footprint box
+// or a small block) in normalised screen coordinates (-1..1, y up) for the camera of `frame`, nearest last so the caller can paint
+// back to front. Pure perspective, no occlusion and no buildings. `speakerInFrame` is true when the speaker's column is on screen.
+const ACTOR_H = 1.75, ACTOR_W = 0.5;
+export function projectFrame(entry, frame, aspect = 16 / 9) {
+  if (!frame) return null;
+  const c = frame.camera;
+  // three space: X = x, Y = z (up), Z = y
+  const P = [c.position.x, c.position.z, c.position.y];
+  let f = [c.lookAt.x - P[0], c.lookAt.z - P[1], c.lookAt.y - P[2]];
+  const fl = Math.hypot(...f) || 1;
+  f = f.map((v) => v / fl);
+  let r = [-f[2], 0, f[0]]; // cross(forward, up)
+  const rl = Math.hypot(...r) || 1;
+  r = r.map((v) => v / rl);
+  const u = [r[1] * f[2] - r[2] * f[1], r[2] * f[0] - r[0] * f[2], r[0] * f[1] - r[1] * f[0]];
+  const th = Math.tan((c.fov * Math.PI) / 360);
+  const dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+  const pt = (x, y, z) => {
+    const v = [x - P[0], z - P[1], y - P[2]];
+    const zc = dot(v, f);
+    if (zc < 0.1) return null;
+    return { x: dot(v, r) / (zc * th * aspect), y: dot(v, u) / (zc * th), d: zc };
+  };
+  const figures = [];
+  const add = (id, kind, x, y, z0, z1, hw, speaking) => {
+    const a = pt(x, y, z0), b = pt(x, y, z1), l = pt(x, y, (z0 + z1) / 2);
+    if (!a || !b || !l) return;
+    const w = (hw / (l.d * th * aspect));
+    const out = Math.abs(l.x) - w > 1 || Math.max(a.y, b.y) < -1 || Math.min(a.y, b.y) > 1;
+    figures.push({ id, kind, x: l.x, w, yBottom: a.y, yTop: b.y, d: l.d, speaking: !!speaking, inFrame: !out });
+  };
+  const def = (entry && entry.def) || {};
+  for (const [id, p] of Object.entries(frame.props || {})) {
+    if (p.visible === false) continue;
+    const kind = def.props && def.props[id] ? def.props[id].kind : '';
+    const foot = propFoot(kind);
+    add(id, 'prop', p.x, p.y, p.h || 0, (p.h || 0) + (foot ? foot[2] : 0.6), foot ? Math.max(foot[0], foot[1]) / 2 : 0.3, false);
+  }
+  for (const [id, a] of Object.entries(frame.actors || {})) {
+    if (a.visible === false) continue;
+    const speaking = frame.speaker && def.actors && def.actors[id] && [].concat(def.actors[id].speaker || []).includes(frame.speaker);
+    add(id, 'actor', a.x, a.y, 0, ACTOR_H, ACTOR_W / 2, speaking);
+  }
+  figures.sort((p, q) => q.d - p.d);
+  const speakers = figures.filter((q) => q.speaking);
+  return { figures, horizon: Math.tan(Math.asin(Math.max(-1, Math.min(1, f[1])))) / th, speakerInFrame: speakers.length ? speakers.some((q) => q.inFrame) : null };
 }

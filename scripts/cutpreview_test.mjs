@@ -4,7 +4,7 @@
 // scrubbing returns finite frames, and the stills cover every shot.
 import { readFileSync } from 'node:fs';
 import { buildCatalog, frameAt, stillTimes, stillName, sceneBounds, summary, linesOf, sceneIdsFor, npcNamesFromSource, STATUS } from '../game/js/cutpreview.js';
-import { MAX_CAMERA_STILL } from '../game/js/cutpreview.js';
+import { MAX_CAMERA_STILL, projectFrame } from '../game/js/cutpreview.js';
 import { STEPS } from '../game/js/storyarc_nieuw.js';
 import { SPECS, MORE_SPECS } from '../game/js/cutscenes_akte1.js';
 
@@ -59,6 +59,30 @@ ok(stillName('M01.intro', 3, 12.44) === 'M01.intro-shot03-t12.4.png', 'still fil
   ok(broken.length > 0, 'without NPC looks the scenes with a cast fail');
   ok(broken.every((e) => e.issues.length > 0 && e.issues.some((m) => /ontbrekende acteur|geen/.test(m))), 'the reason names the missing actor', broken.map((e) => e.issues[0]).join(' / '));
   ok(frameAt(broken[0], 1) === null && stillTimes(broken[0]).length === 0, 'a broken scene has no frames');
+}
+
+// camera view (projectFrame): a known frame, then every scene sampled once a second
+{
+  const fr = (actors, cam) => ({ camera: { position: { x: 0, y: 0, z: 1.6 }, lookAt: { x: 10, y: 0, z: 1.6 }, fov: 46, ...cam }, actors, props: {}, speaker: 'Tammo' });
+  const ent = { def: { actors: { a: { speaker: 'Tammo' }, b: { speaker: 'Anita' } }, props: {} } };
+  const v = projectFrame(ent, fr({ a: { x: 5, y: 0, a: 0, visible: true }, b: { x: 5, y: 2, a: 0, visible: true } }));
+  const a = v.figures.find((q) => q.id === 'a'), b = v.figures.find((q) => q.id === 'b');
+  ok(a && Math.abs(a.x) < 1e-6, 'camera view: een acteur recht voor de camera staat in het midden');
+  ok(b && b.x > 0.2, 'camera view: wie ten zuiden staat bij een blik naar het oosten staat rechts');
+  ok(a.yTop > 0 && a.yBottom < 0 && a.yTop - a.yBottom > 0.2, 'camera view: de acteur beslaat de horizon');
+  ok(v.speakerInFrame === true, 'camera view: de spreker is in beeld');
+  const weg = projectFrame(ent, fr({ a: { x: -5, y: 0, a: 0, visible: true } }));
+  ok(weg.figures.length === 0 && weg.speakerInFrame === null, 'camera view: wat achter de camera staat telt niet');
+  const zij = projectFrame(ent, fr({ a: { x: 3, y: 30, a: 0, visible: true } }));
+  ok(zij.speakerInFrame === false, 'camera view: een spreker ver naast het beeld is niet in beeld');
+  let n2 = 0, speaking = 0, inFrame = 0;
+  for (const e of cat) if (e.scene) for (let t = 0; t < e.duration; t += 1) {
+    const p = projectFrame(e, frameAt(e, t));
+    n2++;
+    ok(p && p.figures.every((q) => Number.isFinite(q.x) && Number.isFinite(q.yTop) && Number.isFinite(q.w)), e.id + ' camera view finite op ' + t);
+    if (p.speakerInFrame !== null) { speaking++; if (p.speakerInFrame) inFrame++; }
+  }
+  console.log(`camera view: ${n2} beelden, spreker in beeld bij ${inFrame} van ${speaking} spreekmomenten`);
 }
 
 console.log(fails ? `${fails} of ${n} failed` : `cutpreview_test: ${n} checks ok`);

@@ -37,6 +37,11 @@ export const PROP_FOOT = {
   trekker: [4.5, 2.4, 3.0],
   politie: [4.8, 1.95, 1.75],
   fiets: [1.9, 0.7, 1.15],
+  // hoge losse voorwerpen: op ooghoogte vult een bord of automaat anders het beeld (M01.3: het witte bord vlak voor de lens, #136)
+  bord: [0.9, 0.9, 1.7],
+  automaat: [0.9, 0.8, 1.6],
+  zuil: [0.6, 0.6, 1.4],
+  duiventil: [1.6, 1.1, 2.2],
 };
 export const propFoot = (kind) => PROP_FOOT[kind] || null;
 
