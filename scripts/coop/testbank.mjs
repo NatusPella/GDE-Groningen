@@ -240,6 +240,9 @@ if (GASTEN === 0) { // alleen de host in Electron: wat de headless gasten en de 
     if (SUITE === 'verhaal') {
       check(labels.size >= 3, `mockgast ${i + 1}: te weinig opdrachtmeldingen van de host (${labels.size})`);
       check(med != null && med < 30, `mockgast ${i + 1}: loopt niet mee met Tammo (mediaan ${med == null ? '?' : med.toFixed(0)} m)`);
+      check((kinds.weer || 0) >= 2, `mockgast ${i + 1}: geen weerberichten van de host (#364)`);
+      check((kinds.beloning || 0) >= 1 && (kinds.uitslag || 0) >= 1, `mockgast ${i + 1}: geen beloning of uitslag na een geslaagde opdracht (#365, #371): ${kinds.beloning || 0}/${kinds.uitslag || 0}`);
+      { const dur = Math.max(1, (Date.now() - T0) / 1000); note(`mockgast ${i + 1}: ontvangt ${(m.transport.bytesIn / 1024 / dur).toFixed(1)} kB/s en stuurt ${(m.transport.bytesOut / 1024 / dur).toFixed(2)} kB/s`); }
     }
     if (SUITE === 'verhaal' && m.log.resync > 3) note(`mockgast ${i + 1} vroeg ${m.log.resync} hersyncs`);
   }

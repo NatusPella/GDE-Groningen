@@ -20,7 +20,7 @@ export const GAST_REGELS = [
   { actie: 'winkelen', mag: 'ja', regel: 'Winkels met spullen voor jezelf (kleding, kapper, tabak en loterij, avondwinkel, snackbar, woonwarenhuis) en automaten: op je eigen scherm, met je eigen geld; wat je koopt is van jou en gaat in je eigen opgeslagen spel.' },
   { actie: 'eten', mag: 'ja', regel: 'Eten en drinken bij een horecaplek en de muurkroket: met je eigen geld en je eigen gezondheid.' },
   { actie: 'voertuig-kopen', mag: 'nee', regel: 'Voertuigen, boten, helikopters, wapens, tuning en lak kopen kan alleen in je eigen spel: ze zouden in de wereld van de ander verschijnen.' },
-  { actie: 'bijrijden', mag: 'ja', regel: 'De eerste gast (Tessa) rijdt mee als wie het spel opende in een voertuig zit en dicht bij is; met E stap je uit (als het voertuig bijna stilstaat) en weer in.' },
+  { actie: 'bijrijden', mag: 'ja', regel: 'De eerste gast (Tessa) rijdt mee als wie het spel opende in een voertuig zit en dicht bij is; met E stap je uit (als het voertuig bijna stilstaat) en weer in. De derde en vierde speler stappen ook met E in (auto: drie extra plekken, bus: zes) en zijn dan niet meer te zien; fietsen, scooters en helikopters hebben geen plek.' },
   { actie: 'sturen', mag: 'deels', regel: 'Met Y geeft de bestuurder het stuur aan zijn bijrijder (en neemt het terug); de bijrijder kan met Y om het stuur vragen. De bestuurder blijft de bestuurder: schade en politie zijn van hem.' },
   { actie: 'eigen-voertuig', mag: 'nee', regel: 'Zelf een voertuig nemen en ermee rijden kan alleen in je eigen spel.' },
   { actie: 'gesprekken', mag: 'nee', regel: 'Praten met voorbijgangers en personages kan alleen in je eigen spel; wat de ander zegt zie je als ondertitel.' },

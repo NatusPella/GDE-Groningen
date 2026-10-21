@@ -60,6 +60,7 @@ export function applyHostState(world, me, sample, roster = null, dt = 0) {
     const vx = dt > 0 && Number.isFinite(b.x) ? (p.x - b.x) / dt : 0, vy = dt > 0 && Number.isFinite(b.y) ? (p.y - b.y) / dt : 0;
     const ok = Math.hypot(vx, vy) < 40; // een sprong (teleport) is geen rennen
     b.x = p.x; b.y = p.y; b.angle = p.angle;
+    if (b !== world.player) b.coopVoertuig = !!p.inVeh; // wie in een voertuig zit, tekenen we niet (het voertuig is een blok, #372)
     if (b.vx !== undefined) { b.vx = ok ? vx : 0; b.vy = ok ? vy : 0; }
     n++;
   }

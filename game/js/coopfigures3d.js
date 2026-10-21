@@ -52,6 +52,7 @@ export function syncFigures(world, dt) {
     if (needsRebuild(e.char, f)) { dispose(scene, e); e = build(scene, f); meshes.set(f.slot, e); }
     const map = world.map;
     if (map && map.elev && map.elev.has && map.groundHeightAt) { try { f.gz = map.groundHeightAt(f.x, f.y); } catch (er) { /* hoogte onbekend: vlak */ } }
+    e.mesh.visible = !f.coopVoertuig; // wie meerijdt zit in het voertuig (#372)
     e.mesh.position.set(f.x, (f.gz || 0) + (f.z || 0), f.y);
     e.mesh.rotation.y = -(f.angle || 0);
     animatePersonWalk(e.mesh, walkSpeed(e.prev, f, dt), dt);
