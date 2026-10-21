@@ -2451,6 +2451,9 @@ function drawMinimap(dt, world) {
     const kind = missionMapKind(m.index, m.phase === 'active');
     if (!icon(kind, m.marker.x, m.marker.y)) missionEdge = edgeAngle(m.marker.x, m.marker.y);
   }
+  // samen spelen: het doel van de opdracht van de gastheer staat ook op de minimap van een gast (#368)
+  const gastDoel = world.coopRole === 'client' && !showMission && !job && world.coopHost && world.coopHost.doelen && world.coopHost.doelen[0];
+  if (gastDoel && !icon(missionMapKind(-1, true), gastDoel.x, gastDoel.y)) missionEdge = edgeAngle(gastDoel.x, gastDoel.y);
 
   let wpEdge = null;
   if (wp && !busyGame && !icon('userWaypoint', wp.x, wp.y)) wpEdge = edgeAngle(wp.x, wp.y);
@@ -2467,6 +2470,9 @@ function drawMinimap(dt, world) {
   // medespelers (samen spelen, #95): buiten beeld blijven ze als gekleurde pijl aan de rand staan
   const partnerEdges = [];
   for (const p of world.coopPartners || []) if (p.zichtbaar && !icon('partner', p.x, p.y, { kleur: p.kleur, vorm: p.vorm, angle: p.heading + mapRotation })) partnerEdges.push({ a: edgeAngle(p.x, p.y), kleur: p.kleur });
+
+  // roepjes van de medespelers (samen spelen, #367): een ster of kruis in de kleur van wie riep
+  for (const m of world.coopPingMarks || []) if (!icon('partner', m.x, m.y, { kleur: m.kleur, vorm: m.vorm, angle: 0 })) partnerEdges.push({ a: edgeAngle(m.x, m.y), kleur: m.kleur });
 
   forEachPoliceUnit(world, (x, y, kind) => icon(kind, x, y));
   forEachCashTarget(world, (x, y) => icon('cash', x, y));

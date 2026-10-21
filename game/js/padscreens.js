@@ -7,8 +7,8 @@ import { PAD_MAPS } from './controls.js';
 // from -> to, ctx = de PAD_MAPS-situatie die op `from` geldt, key = de toets die het nodig heeft
 export const PAD_SCREEN_EDGES = [
   // titelscherm (menusituatie: A is Enter, B gaat terug)
-  { from: 'titel', to: 'voet', ctx: 'menu', key: 'enter', note: 'Doorgaan of nieuw spel' },
-  { from: 'titel', to: 'saveslots', ctx: 'menu', key: 'enter', note: 'Spellen beheren' },
+  { from: 'titel', to: 'saveslots', ctx: 'menu', key: 'enter', note: 'Alleen spelen: Opgeslagen spellen' },
+  { from: 'saveslots', to: 'voet', ctx: 'menu', key: 'enter', note: 'Doorgaan, Nieuw spel of een opgeslagen spel laden' },
   { from: 'titel', to: 'nieuws', ctx: 'menu', key: 'enter', note: 'Wat is er nieuw' },
   { from: 'nieuws', to: 'titel', ctx: 'menu', key: 'escape' },
   { from: 'saveslots', to: 'titel', ctx: 'menu', key: 'escape' },
@@ -72,6 +72,21 @@ export const PAD_SCREEN_EDGES = [
   { from: 'kaart', to: 'toetsenbord', ctx: 'menu', key: 'enter' },
   { from: 'pauze', to: 'toetsenbord', ctx: 'menu', key: 'enter' },
   { from: 'toetsenbord', to: 'pauze', ctx: 'menu', key: 'escape' },
+  // Samen spelen: vanaf de titel en in het pauzemenu, met de wachtkamer ertussen
+  { from: 'titel', to: 'samenkeuze', ctx: 'menu', key: 'enter' },
+  { from: 'samenkeuze', to: 'titel', ctx: 'menu', key: 'escape' },
+  { from: 'samenkeuze', to: 'wachtkamer', ctx: 'menu', key: 'enter', note: 'spel openen of aansluiten met een kamercode' },
+  { from: 'wachtkamer', to: 'samenkeuze', ctx: 'menu', key: 'escape' },
+  { from: 'wachtkamer', to: 'toetsenbord', ctx: 'menu', key: 'enter', note: 'de kamercode of het adres typen' },
+  { from: 'pauze', to: 'samen', ctx: 'menu', key: 'enter' },
+  { from: 'samen', to: 'pauze', ctx: 'menu', key: 'escape' },
+  // garage met voertuigvoorbeelden: de lijst met pijlen, de soorten met Q en E, A laat afleveren
+  { from: 'pauze', to: 'garage', ctx: 'menu', key: 'enter' },
+  { from: 'garage', to: 'garage', ctx: 'menu', key: 'e', note: 'volgende soort' },
+  { from: 'garage', to: 'pauze', ctx: 'menu', key: 'escape' },
+  // Controller testen en de indeling kiezen (Instellingen > Camera & controller)
+  { from: 'instellingen', to: 'padtest', ctx: 'menu', key: 'enter' },
+  { from: 'padtest', to: 'instellingen', ctx: 'menu', key: 'escape' },
 ];
 
 // Kan deze situatie de toets met alleen de controller maken? Eerst knoppen,

@@ -10,9 +10,9 @@ gelezen. Lees de bronnen zelf vlak voor publicatie.
 
 ## Situatie
 
-- ~3.400 stemclips: `google/gemini-3.8-flash-tts` via OpenRouter, vaste
+- ~3.100 stemclips (3.123 op 21 okt, elk in een `tts.json`; `node scripts/audio_herkomst.mjs` controleert dat): `google/gemini-3.8-flash-tts` via OpenRouter, vaste
   prebuilt stemmen (geen kloon van een echt persoon).
-- Muziek (14 G-Music-nummers, 2 loops, titelnummer): Google Gemini; welk
+- Muziek (20 G-Music-nummers, 2 loops, titelnummer): Google Gemini; welk
   product en abonnement is nog niet vastgelegd.
 - Het spel speelt vooraf gemaakte bestanden af; er wordt tijdens het spelen
   niets gegenereerd.

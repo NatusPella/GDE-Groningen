@@ -1,6 +1,6 @@
 // The pause menu: one overlay over the game (the city keeps rendering behind
 // it). A fixed rail on the left (Doorgaan, the sections, Opslaan/Laden,
-// Hoofdmenu) never changes shape; the sheet beside it shows one section.
+// Naar het hoofdmenu) never changes shape; the sheet beside it shows one section.
 // Esc opens on Overzicht; from another section Esc/Backspace go back to it,
 // then close. Sections: Overzicht, Te doen (todoui.js), Verhaal
 // (verhaalui.js), Kaart, Garage, Prestaties, Cheats (cheatsui.js),
@@ -67,7 +67,7 @@ const CONTROL_GROUPS = [
     [['.', ','], 'Handmatig schakelen: hoger, lager (Instellingen › Schakelen)'],
     [['J'], 'Handmatig met koppeling: koppeling indrukken bij het schakelen'],
     [['SHIFT'], 'Op de fiets: even flink doortrappen; op een motor: wheelie met gas, stoppie met remmen'],
-    [['CTRL'], 'Op de fiets: wheelie (vasthouden en trappen) of stoppie (vasthouden en remmen)'],
+    [['CTRL'], 'Op de fiets: wheelie (vasthouden en trappen), stoppie (vasthouden en remmen) of een sprongetje (vasthouden en de rem kort aantikken)'],
     [['E', 'F'], 'Uitstappen'],
     [['Q', 'WHEEL'], 'Achterom kijken (vasthouden; middelste muisknop)'],
     [['H'], 'Toeteren'],
@@ -188,6 +188,7 @@ const ICONS = {
   spullen: '<path d="M7 8V6a5 5 0 0 1 10 0v2"/><rect x="4" y="8" width="16" height="13" rx="3"/><path d="M4 13h16M10 13v2h4v-2"/>',
   telefoon: '<rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18.5h2"/>',
   // the main menu's items (startscreen.js), in the same line style
+  solo: '<circle cx="12" cy="8" r="3.8"/><path d="M5 20.5c.6-4.2 3.5-6.4 7-6.4s6.4 2.2 7 6.4"/>',
   new: '<path d="M12 4v16M4 12h16"/>',
   news: '<path d="M5 4h11l3 3v13H5z"/><path d="M8 10h8M8 14h8M8 17h5"/>',
   about: '<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5h0"/>',
@@ -452,7 +453,7 @@ export function initPauseMenu(w) {
           <div class="pm-rail-acts pm-ingame">
             <button type="button" class="m-bt" data-action="save">Spel opslaan</button>
             <button type="button" class="m-bt" data-action="saves" title="Opgeslagen spellen kiezen, laden, hernoemen, exporteren en verwijderen">Opgeslagen spellen</button>
-            <button type="button" class="m-bt" data-action="menu" title="Opslaan en terug naar het titelscherm">Hoofdmenu</button>
+            <button type="button" class="m-bt" data-action="menu" title="Opslaan en terug naar het hoofdmenu">Naar het hoofdmenu</button>
             ${DESKTOP ? '<button type="button" class="m-bt" data-action="exit" title="Opslaan en het spel sluiten">Afsluiten</button>' : ''}
           </div>
           <p class="pm-ver">${versionLabel(VERSION)}</p>
@@ -462,7 +463,7 @@ export function initPauseMenu(w) {
             <div class="pm-confirm" hidden>
               <p>Opnieuw beginnen? Alles sinds je laatste savegame gaat verloren. Je andere savegames blijven staan.</p>
               <button type="button" class="m-bg" data-action="load">Laatste spel laden</button>
-              <button type="button" class="m-bg danger" data-action="new">Nieuw spel (nieuw slot)</button>
+              <button type="button" class="m-bg danger" data-action="new">Nieuw spel (nieuwe plek)</button>
               <button type="button" class="m-bt" data-action="cancel">Annuleren</button>
             </div>
           </div>
@@ -1058,7 +1059,7 @@ function runAction(a) {
     confirmEl.hidden = true;
     root.querySelector('[data-action="restart"]').focus();
   } else if (a === 'menu' || a === 'exit') {
-    // save, then back to the title screen (Doorgaan) or close the app; a
+    // save, then back to the main menu (Alleen spelen) or close the app; a
     // pigeon first turns back into Tammo/Tessa so the save has a street spot
     if (world && world.pigeonMode && world.pigeonActions) world.pigeonActions.stop();
     if (world) saveGame(world);

@@ -1,0 +1,1511 @@
+{
+  "gemaakt": "2026-10-21T15:16:38.859Z",
+  "commit": "79ad6188",
+  "let_op": "Elk cijfer is gemeten uit de repo, GitHub of de gebouwde wereld, met zijn bron. Geen van deze cijfers is een schatting van werk of kosten; die staan apart in SCHATTING.md.",
+  "cijfers": {
+    "git.commits": {
+      "groep": "git",
+      "label": "Commits",
+      "waarde": 3575,
+      "eenheid": "commits",
+      "bron": "git rev-list --count HEAD"
+    },
+    "git.eerste": {
+      "groep": "git",
+      "label": "Eerste commit",
+      "waarde": "2026-09-18",
+      "eenheid": "datum",
+      "bron": "git log (--format=%cI)"
+    },
+    "git.laatste": {
+      "groep": "git",
+      "label": "Laatste commit (op deze checkout)",
+      "waarde": "2026-10-21",
+      "eenheid": "datum",
+      "bron": "git log (--format=%cI)"
+    },
+    "git.kalenderdagen": {
+      "groep": "git",
+      "label": "Kalenderdagen van eerste tot laatste commit",
+      "waarde": 34,
+      "eenheid": "dagen",
+      "bron": "git log (--format=%cI)"
+    },
+    "git.actieve_dagen": {
+      "groep": "git",
+      "label": "Dagen met minstens één commit",
+      "waarde": 19,
+      "eenheid": "dagen",
+      "bron": "git log (--format=%cI)"
+    },
+    "git.commits_per_actieve_dag": {
+      "groep": "git",
+      "label": "Gemiddeld aantal commits per actieve dag",
+      "waarde": 188.2,
+      "eenheid": "commits",
+      "bron": "commits / actieve dagen"
+    },
+    "git.piekdag": {
+      "groep": "git",
+      "label": "Drukste dag (2026-10-18)",
+      "waarde": 1101,
+      "eenheid": "commits",
+      "bron": "git log (--format=%cI)"
+    },
+    "git.nachtcommits": {
+      "groep": "git",
+      "label": "Commits tussen 00:00 en 06:00 (lokale tijd van de commit)",
+      "waarde": 593,
+      "eenheid": "commits",
+      "bron": "git log (--format=%cI)",
+      "let_op": "de tijdstippen zijn de commit-tijden van de auteur; zegt niets over wie er wakker was"
+    },
+    "git.merges": {
+      "groep": "git",
+      "label": "Merge-commits",
+      "waarde": 909,
+      "eenheid": "commits",
+      "bron": "git log --merges"
+    },
+    "git.git_identiteiten": {
+      "groep": "git",
+      "label": "Verschillende git-identiteiten als auteur",
+      "waarde": 2,
+      "eenheid": "identiteiten",
+      "bron": "git log (--format=%cI)",
+      "let_op": "namen worden bewust niet bewaard"
+    },
+    "git.commits_met_ai_medeauteur": {
+      "groep": "git",
+      "label": "Commits met een AI als medeauteur in de voetregel",
+      "waarde": 2709,
+      "eenheid": "commits",
+      "bron": "Co-Authored-By: Claude in de commitberichten"
+    },
+    "git.ai_modelnamen": {
+      "groep": "git",
+      "label": "Verschillende AI-modelnamen in die voetregels",
+      "waarde": 3,
+      "eenheid": "modellen",
+      "bron": "idem",
+      "let_op": "per naam: Claude Sonnet 5.5 1829; Claude Opus 5.5 850; Claude Sonnet 5 30"
+    },
+    "git.commits_met_issue": {
+      "groep": "git",
+      "label": "Commits die een issue noemen (Closes/Refs #n)",
+      "waarde": 1594,
+      "eenheid": "commits",
+      "bron": "regex op de commitberichten"
+    },
+    "git.issues_genoemd": {
+      "groep": "git",
+      "label": "Verschillende issues genoemd in commitberichten",
+      "waarde": 331,
+      "eenheid": "issues",
+      "bron": "idem"
+    },
+    "sessies.branches_sessies": {
+      "groep": "sessies",
+      "label": "Verschillende sessie-branches (claude/… en worktree-agent-…) die ooit bestonden of zijn gemerged",
+      "waarde": 389,
+      "eenheid": "branches",
+      "bron": "git for-each-ref + kopteksten van merge-commits",
+      "let_op": "ondergrens: een sessie die op een bestaande branch werkte, een opgeruimde en nooit gemergede branch of een oude branchnaam telt niet mee"
+    },
+    "sessies.gemerged": {
+      "groep": "sessies",
+      "label": "Daarvan gemerged in de hoofdlijn",
+      "waarde": 354,
+      "eenheid": "branches",
+      "bron": "git log --merges"
+    },
+    "sessies.branches_totaal": {
+      "groep": "sessies",
+      "label": "Branches in deze checkout (lokaal en op afstand)",
+      "waarde": 249,
+      "eenheid": "branches",
+      "bron": "git for-each-ref"
+    },
+    "sessies.werkbomen": {
+      "groep": "sessies",
+      "label": "Git-werkbomen (parallelle werkmappen) nu",
+      "waarde": 71,
+      "eenheid": "werkbomen",
+      "bron": "git worktree list",
+      "let_op": "momentopname; opgeruimde werkbomen zijn weg"
+    },
+    "sessies.tags": {
+      "groep": "sessies",
+      "label": "Git-tags (releases)",
+      "waarde": 48,
+      "eenheid": "tags",
+      "bron": "git tag"
+    },
+    "code.bestanden_in_git": {
+      "groep": "code",
+      "label": "Bestanden in git",
+      "waarde": 4974,
+      "eenheid": "bestanden",
+      "bron": "git ls-files"
+    },
+    "code.js_bestanden": {
+      "groep": "code",
+      "label": "JavaScript-bestanden (.js, .mjs, .cjs)",
+      "waarde": 1425,
+      "eenheid": "bestanden",
+      "bron": "git ls-files"
+    },
+    "code.spelmodules": {
+      "groep": "code",
+      "label": "JavaScript-modules van het spel zelf (game/js/*.js)",
+      "waarde": 709,
+      "eenheid": "modules",
+      "bron": "git ls-files game/js"
+    },
+    "code.js_regels": {
+      "groep": "code",
+      "label": "Regels JavaScript (alles)",
+      "waarde": 271496,
+      "eenheid": "regels",
+      "bron": "regels van alle .js/.mjs/.cjs in git (incl. lege regels en commentaar)"
+    },
+    "code.regels_code": {
+      "groep": "code",
+      "label": "Regels programmacode (JS, Python, HTML, CSS, shell, Java, Gradle)",
+      "waarde": 279491,
+      "eenheid": "regels",
+      "bron": "som van de talen hieronder, zonder Markdown en data"
+    },
+    "code.regels_docs": {
+      "groep": "code",
+      "label": "Regels documentatie (Markdown)",
+      "waarde": 44149,
+      "eenheid": "regels",
+      "bron": "git ls-files *.md"
+    },
+    "code.regels_data_json": {
+      "groep": "code",
+      "label": "Regels JSON-data in git",
+      "waarde": 90726,
+      "eenheid": "regels",
+      "bron": "git ls-files *.json",
+      "let_op": "gegenereerde en handgemaakte data; geen programmacode"
+    },
+    "code_per_taal.javascript": {
+      "groep": "code_per_taal",
+      "label": "JavaScript: 1425 bestanden",
+      "waarde": 271496,
+      "eenheid": "regels",
+      "bron": "git ls-files + regels tellen",
+      "let_op": "254079 niet-lege regels"
+    },
+    "code_per_taal.json_data_": {
+      "groep": "code_per_taal",
+      "label": "JSON (data): 88 bestanden",
+      "waarde": 90726,
+      "eenheid": "regels",
+      "bron": "git ls-files + regels tellen",
+      "let_op": "90726 niet-lege regels"
+    },
+    "code_per_taal.markdown": {
+      "groep": "code_per_taal",
+      "label": "Markdown: 106 bestanden",
+      "waarde": 44149,
+      "eenheid": "regels",
+      "bron": "git ls-files + regels tellen",
+      "let_op": "36891 niet-lege regels"
+    },
+    "code_per_taal.python": {
+      "groep": "code_per_taal",
+      "label": "Python: 30 bestanden",
+      "waarde": 4333,
+      "eenheid": "regels",
+      "bron": "git ls-files + regels tellen",
+      "let_op": "3816 niet-lege regels"
+    },
+    "code_per_taal.css": {
+      "groep": "code_per_taal",
+      "label": "CSS: 12 bestanden",
+      "waarde": 2479,
+      "eenheid": "regels",
+      "bron": "git ls-files + regels tellen",
+      "let_op": "2354 niet-lege regels"
+    },
+    "code_per_taal.tekst": {
+      "groep": "code_per_taal",
+      "label": "Tekst: 8 bestanden",
+      "waarde": 440,
+      "eenheid": "regels",
+      "bron": "git ls-files + regels tellen",
+      "let_op": "351 niet-lege regels"
+    },
+    "code_per_taal.shell": {
+      "groep": "code_per_taal",
+      "label": "Shell: 10 bestanden",
+      "waarde": 410,
+      "eenheid": "regels",
+      "bron": "git ls-files + regels tellen",
+      "let_op": "391 niet-lege regels"
+    },
+    "code_per_taal.xml": {
+      "groep": "code_per_taal",
+      "label": "XML: 10 bestanden",
+      "waarde": 314,
+      "eenheid": "regels",
+      "bron": "git ls-files + regels tellen",
+      "let_op": "304 niet-lege regels"
+    },
+    "code_per_taal.yaml": {
+      "groep": "code_per_taal",
+      "label": "YAML: 7 bestanden",
+      "waarde": 257,
+      "eenheid": "regels",
+      "bron": "git ls-files + regels tellen",
+      "let_op": "238 niet-lege regels"
+    },
+    "code_per_taal.html": {
+      "groep": "code_per_taal",
+      "label": "HTML: 2 bestanden",
+      "waarde": 232,
+      "eenheid": "regels",
+      "bron": "git ls-files + regels tellen",
+      "let_op": "225 niet-lege regels"
+    },
+    "code_per_soort.spelcode_game_js_": {
+      "groep": "code_per_soort",
+      "label": "Spelcode (game/js): 709 bestanden",
+      "waarde": 195559,
+      "eenheid": "regels",
+      "bron": "git ls-files + regels tellen",
+      "let_op": "182174 niet-lege regels"
+    },
+    "code_per_soort.gereedschap_en_audits_scripts_rest_": {
+      "groep": "code_per_soort",
+      "label": "Gereedschap en audits (scripts/, rest): 276 bestanden",
+      "waarde": 38937,
+      "eenheid": "regels",
+      "bron": "git ls-files + regels tellen",
+      "let_op": "37407 niet-lege regels"
+    },
+    "code_per_soort.testcode__test_mjs_": {
+      "groep": "code_per_soort",
+      "label": "Testcode (*_test.mjs): 409 bestanden",
+      "waarde": 33903,
+      "eenheid": "regels",
+      "bron": "git ls-files + regels tellen",
+      "let_op": "31579 niet-lege regels"
+    },
+    "code_per_soort.desktop_app_electron_": {
+      "groep": "code_per_soort",
+      "label": "Desktop-app (Electron): 14 bestanden",
+      "waarde": 1501,
+      "eenheid": "regels",
+      "bron": "git ls-files + regels tellen",
+      "let_op": "1417 niet-lege regels"
+    },
+    "code_per_soort.android": {
+      "groep": "code_per_soort",
+      "label": "Android: 10 bestanden",
+      "waarde": 876,
+      "eenheid": "regels",
+      "bron": "git ls-files + regels tellen",
+      "let_op": "830 niet-lege regels"
+    },
+    "code_per_soort.webbouw": {
+      "groep": "code_per_soort",
+      "label": "Webbouw: 4 bestanden",
+      "waarde": 473,
+      "eenheid": "regels",
+      "bron": "git ls-files + regels tellen",
+      "let_op": "442 niet-lege regels"
+    },
+    "code_per_soort.overig_javascript": {
+      "groep": "code_per_soort",
+      "label": "Overig JavaScript: 3 bestanden",
+      "waarde": 247,
+      "eenheid": "regels",
+      "bron": "git ls-files + regels tellen",
+      "let_op": "230 niet-lege regels"
+    },
+    "tests.testscripts": {
+      "groep": "tests",
+      "label": "Testscripts (scripts/**/*_test.mjs)",
+      "waarde": 409,
+      "eenheid": "scripts",
+      "bron": "git ls-files"
+    },
+    "tests.auditscripts": {
+      "groep": "tests",
+      "label": "Audit- en probe-scripts (*_audit.mjs en scripts in een audits-map)",
+      "waarde": 34,
+      "eenheid": "scripts",
+      "bron": "git ls-files"
+    },
+    "git.regels_toegevoegd": {
+      "groep": "git",
+      "label": "Regels programmacode ooit toegevoegd (over alle commits)",
+      "waarde": 346197,
+      "eenheid": "regels",
+      "bron": "git log --numstat, alleen code-extensies",
+      "let_op": "bruto: een regel die vaak is herschreven telt elke keer mee"
+    },
+    "git.regels_verwijderd": {
+      "groep": "git",
+      "label": "Regels programmacode ooit verwijderd",
+      "waarde": 67047,
+      "eenheid": "regels",
+      "bron": "idem",
+      "let_op": "zie hierboven"
+    },
+    "git.bestandswijzigingen": {
+      "groep": "git",
+      "label": "Bestandswijzigingen in programmacode (som over commits)",
+      "waarde": 9366,
+      "eenheid": "wijzigingen",
+      "bron": "idem"
+    },
+    "tests.assert_aanroepen": {
+      "groep": "tests",
+      "label": "Controle-aanroepen in de testscripts (ok(, assert(, check(, eq(, expect()",
+      "waarde": 8841,
+      "eenheid": "aanroepen",
+      "bron": "regex op de bronregels van de *_test.mjs",
+      "let_op": "statische telling van aanroepen in de code, geen uitgevoerde controles: een controle in een lus draait vaker"
+    },
+    "tests.testrondes": {
+      "groep": "tests",
+      "label": "Volledige testrondes (test_all) met rapport op deze machine",
+      "waarde": 2,
+      "eenheid": "rondes",
+      "bron": "tijdelijke map gde-testall",
+      "let_op": "alleen wat nog op schijf staat; het tijdelijke rapportmapje wordt niet bewaard"
+    },
+    "tests.rapport_items": {
+      "groep": "tests",
+      "label": "Items in het laatste testrapport (20261021-142258)",
+      "waarde": 408,
+      "eenheid": "items",
+      "bron": "gde-testall/20261021-142258/rapport.json"
+    },
+    "tests.rapport_pass": {
+      "groep": "tests",
+      "label": "Status PASS (20261021-142258)",
+      "waarde": 374,
+      "eenheid": "items",
+      "bron": "idem"
+    },
+    "tests.rapport_timeout": {
+      "groep": "tests",
+      "label": "Status TIMEOUT (20261021-142258)",
+      "waarde": 4,
+      "eenheid": "items",
+      "bron": "idem"
+    },
+    "tests.rapport_skip": {
+      "groep": "tests",
+      "label": "Status SKIP (20261021-142258)",
+      "waarde": 29,
+      "eenheid": "items",
+      "bron": "idem"
+    },
+    "tests.rapport_fail": {
+      "groep": "tests",
+      "label": "Status FAIL (20261021-142258)",
+      "waarde": 1,
+      "eenheid": "items",
+      "bron": "idem"
+    },
+    "tests.rapport_duur_min": {
+      "groep": "tests",
+      "label": "Duur van die ronde (20261021-142258)",
+      "waarde": 20,
+      "eenheid": "minuten",
+      "bron": "gde-testall/20261021-142258/rapport.json"
+    },
+    "issues.totaal": {
+      "groep": "issues",
+      "label": "Issues (geopend, open en gesloten)",
+      "waarde": 360,
+      "eenheid": "issues",
+      "bron": "gh issue list --state all",
+      "let_op": "pull requests zijn hier niet bij"
+    },
+    "issues.gesloten": {
+      "groep": "issues",
+      "label": "Gesloten",
+      "waarde": 322,
+      "eenheid": "issues",
+      "bron": "gh issue list --state all"
+    },
+    "issues.open": {
+      "groep": "issues",
+      "label": "Nog open",
+      "waarde": 38,
+      "eenheid": "issues",
+      "bron": "gh issue list --state all"
+    },
+    "issues.bugs": {
+      "groep": "issues",
+      "label": "Bugs (label bug)",
+      "waarde": 173,
+      "eenheid": "issues",
+      "bron": "gh issue list --state all"
+    },
+    "issues.bugs_gesloten": {
+      "groep": "issues",
+      "label": "Bugs die gesloten zijn",
+      "waarde": 169,
+      "eenheid": "issues",
+      "bron": "gh issue list --state all"
+    },
+    "issues.wensen": {
+      "groep": "issues",
+      "label": "Wensen (label wens)",
+      "waarde": 187,
+      "eenheid": "issues",
+      "bron": "gh issue list --state all"
+    },
+    "issues.wensen_gesloten": {
+      "groep": "issues",
+      "label": "Wensen die gesloten zijn",
+      "waarde": 153,
+      "eenheid": "issues",
+      "bron": "gh issue list --state all"
+    },
+    "issues.impact_zeer_hoog": {
+      "groep": "issues",
+      "label": "Label impact-zeer-hoog",
+      "waarde": 16,
+      "eenheid": "issues",
+      "bron": "gh issue list --state all"
+    },
+    "issues.impact_hoog": {
+      "groep": "issues",
+      "label": "Label impact-hoog",
+      "waarde": 107,
+      "eenheid": "issues",
+      "bron": "gh issue list --state all"
+    },
+    "issues.impact_midden": {
+      "groep": "issues",
+      "label": "Label impact-midden",
+      "waarde": 156,
+      "eenheid": "issues",
+      "bron": "gh issue list --state all"
+    },
+    "issues.impact_laag": {
+      "groep": "issues",
+      "label": "Label impact-laag",
+      "waarde": 81,
+      "eenheid": "issues",
+      "bron": "gh issue list --state all"
+    },
+    "issues.kosten_s": {
+      "groep": "issues",
+      "label": "Label kosten-S",
+      "waarde": 177,
+      "eenheid": "issues",
+      "bron": "gh issue list --state all"
+    },
+    "issues.kosten_m": {
+      "groep": "issues",
+      "label": "Label kosten-M",
+      "waarde": 124,
+      "eenheid": "issues",
+      "bron": "gh issue list --state all"
+    },
+    "issues.kosten_l": {
+      "groep": "issues",
+      "label": "Label kosten-L",
+      "waarde": 59,
+      "eenheid": "issues",
+      "bron": "gh issue list --state all"
+    },
+    "issues.eigenaar": {
+      "groep": "issues",
+      "label": "Wachten op de eigenaar (label eigenaar)",
+      "waarde": 21,
+      "eenheid": "issues",
+      "bron": "gh issue list --state all"
+    },
+    "issues.mediaan_uren_tot_sluiten": {
+      "groep": "issues",
+      "label": "Mediane tijd van openen tot sluiten",
+      "waarde": 19.6,
+      "eenheid": "uur",
+      "bron": "gh issue list --state all"
+    },
+    "releases.aantal": {
+      "groep": "releases",
+      "label": "Releases op GitHub",
+      "waarde": 48,
+      "eenheid": "releases",
+      "bron": "gh release list"
+    },
+    "releases.pre": {
+      "groep": "releases",
+      "label": "Daarvan pre-releases",
+      "waarde": 48,
+      "eenheid": "releases",
+      "bron": "gh release list"
+    },
+    "releases.eerste": {
+      "groep": "releases",
+      "label": "Eerste release",
+      "waarde": "v0.0.0 op 2026-09-25",
+      "eenheid": "tag",
+      "bron": "gh release list"
+    },
+    "releases.laatste": {
+      "groep": "releases",
+      "label": "Laatste release",
+      "waarde": "v0.38.1 op 2026-10-21",
+      "eenheid": "tag",
+      "bron": "gh release list"
+    },
+    "releases.vanaf_035": {
+      "groep": "releases",
+      "label": "Releases van 0.35.0 tot en met de laatste",
+      "waarde": 6,
+      "eenheid": "releases",
+      "bron": "gh release list"
+    },
+    "releases.dagen_eerste_tot_laatste": {
+      "groep": "releases",
+      "label": "Dagen tussen eerste en laatste release",
+      "waarde": 26,
+      "eenheid": "dagen",
+      "bron": "gh release list"
+    },
+    "issues.mijlpalen": {
+      "groep": "issues",
+      "label": "Mijlpalen (epics)",
+      "waarde": 7,
+      "eenheid": "mijlpalen",
+      "bron": "gh api milestones"
+    },
+    "issues.pull_requests": {
+      "groep": "issues",
+      "label": "Pull requests",
+      "waarde": 1,
+      "eenheid": "pull requests",
+      "bron": "gh pr list --state all",
+      "let_op": "het project merget vooral direct via branches; weinig PR's is normaal"
+    },
+    "releases.changelog_secties": {
+      "groep": "releases",
+      "label": "Versiesecties in CHANGELOG.md",
+      "waarde": 48,
+      "eenheid": "secties",
+      "bron": "CHANGELOG.md"
+    },
+    "wereld.gebouwd_op": {
+      "groep": "wereld",
+      "label": "Wereldbouw waaruit dit komt",
+      "waarde": "2026-10-18",
+      "eenheid": "datum",
+      "bron": "game/world/index-provincie.json (tijdstempel)",
+      "let_op": "een bouw van de dag genoemd; latere wijzigingen aan de wereldbouw zitten er niet in"
+    },
+    "wereld.tegels": {
+      "groep": "wereld",
+      "label": "Kaarttegels van 1 × 1 km",
+      "waarde": 2901,
+      "eenheid": "tegels",
+      "bron": "game/world/index-provincie.json + tegels (.gdp)"
+    },
+    "wereld.tegelpakketten": {
+      "groep": "wereld",
+      "label": "Tegelpakketten (.gdp)",
+      "waarde": 69,
+      "eenheid": "bestanden",
+      "bron": "game/world/index-provincie.json + tegels (.gdp)"
+    },
+    "wereld.tegelgrootte_mb": {
+      "groep": "wereld",
+      "label": "Grootte van alle tegelpakketten",
+      "waarde": 44.1,
+      "eenheid": "MB",
+      "bron": "game/world/index-provincie.json + tegels (.gdp)"
+    },
+    "wereld.oppervlak_km2": {
+      "groep": "wereld",
+      "label": "Speelgebied: oppervlak van de provinciegrens (spelcoördinaten, meters)",
+      "waarde": 2955,
+      "eenheid": "km²",
+      "bron": "oppervlakte (formule van Gauss) van global.outline in index-provincie.json",
+      "let_op": "het gebied binnen de grens, dus ook water; docs/PROVINCIE-PLAN.md noemt ~2.960 km² totaal en ~2.330 km² land"
+    },
+    "wereld.gebouwen": {
+      "groep": "wereld",
+      "label": "Gebouwen (unieke objecten in de tegels)",
+      "waarde": 387530,
+      "eenheid": "gebouwen",
+      "bron": "game/world/index-provincie.json + tegels (.gdp)",
+      "let_op": "unieke gid; gelijk aan index stats.buildings"
+    },
+    "wereld.gebouwen_bag": {
+      "groep": "wereld",
+      "label": "Daarvan met hoogte uit de BAG/3D BAG (hsrc = 3dbag)",
+      "waarde": 346058,
+      "eenheid": "gebouwen",
+      "bron": "game/world/index-provincie.json + tegels (.gdp)"
+    },
+    "wereld.wegen": {
+      "groep": "wereld",
+      "label": "Wegen- en padstukken (unieke OSM-ways met eigen gid)",
+      "waarde": 97839,
+      "eenheid": "stukken",
+      "bron": "game/world/index-provincie.json + tegels (.gdp)"
+    },
+    "wereld.wegen_km": {
+      "groep": "wereld",
+      "label": "Wegen, fiets- en voetpaden bij elkaar",
+      "waarde": 12344,
+      "eenheid": "km",
+      "bron": "game/world/index-provincie.json + tegels (.gdp)",
+      "let_op": "som van de lengte van de polylijnen; een weg met twee rijbanen telt per rijbaan"
+    },
+    "wereld.wegen_auto_km": {
+      "groep": "wereld",
+      "label": "Daarvan wegen waar een auto op mag (normal, minor, major)",
+      "waarde": 9643,
+      "eenheid": "km",
+      "bron": "game/world/index-provincie.json + tegels (.gdp)",
+      "let_op": "categorienamen van de tegelbouw"
+    },
+    "wereld_wegen.normal": {
+      "groep": "wereld_wegen",
+      "label": "Wegcategorie normal",
+      "waarde": 5107,
+      "eenheid": "km",
+      "bron": "game/world/index-provincie.json + tegels (.gdp)"
+    },
+    "wereld_wegen.minor": {
+      "groep": "wereld_wegen",
+      "label": "Wegcategorie minor",
+      "waarde": 3378,
+      "eenheid": "km",
+      "bron": "game/world/index-provincie.json + tegels (.gdp)"
+    },
+    "wereld_wegen.cycle": {
+      "groep": "wereld_wegen",
+      "label": "Wegcategorie cycle",
+      "waarde": 1614,
+      "eenheid": "km",
+      "bron": "game/world/index-provincie.json + tegels (.gdp)"
+    },
+    "wereld_wegen.major": {
+      "groep": "wereld_wegen",
+      "label": "Wegcategorie major",
+      "waarde": 1159,
+      "eenheid": "km",
+      "bron": "game/world/index-provincie.json + tegels (.gdp)"
+    },
+    "wereld_wegen.foot": {
+      "groep": "wereld_wegen",
+      "label": "Wegcategorie foot",
+      "waarde": 1087,
+      "eenheid": "km",
+      "bron": "game/world/index-provincie.json + tegels (.gdp)"
+    },
+    "wereld.bruggen": {
+      "groep": "wereld",
+      "label": "Brugstukken (wegen met bridge = true)",
+      "waarde": 2687,
+      "eenheid": "stukken",
+      "bron": "game/world/index-provincie.json + tegels (.gdp)",
+      "let_op": "OSM-ways met het brugkenmerk; een brug kan uit meerdere stukken bestaan"
+    },
+    "wereld.bruggen_km": {
+      "groep": "wereld",
+      "label": "Totale lengte van die brugstukken",
+      "waarde": 56.9,
+      "eenheid": "km",
+      "bron": "game/world/index-provincie.json + tegels (.gdp)"
+    },
+    "wereld.water": {
+      "groep": "wereld",
+      "label": "Wateroppervlakken en waterlopen (polygonen)",
+      "waarde": 22160,
+      "eenheid": "objecten",
+      "bron": "game/world/index-provincie.json + tegels (.gdp)"
+    },
+    "wereld.groen": {
+      "groep": "wereld",
+      "label": "Groenvlakken (park, bos, weide)",
+      "waarde": 103479,
+      "eenheid": "vlakken",
+      "bron": "game/world/index-provincie.json + tegels (.gdp)"
+    },
+    "wereld.bomen": {
+      "groep": "wereld",
+      "label": "Bomen",
+      "waarde": 956141,
+      "eenheid": "bomen",
+      "bron": "game/world/index-provincie.json + tegels (.gdp)",
+      "let_op": "rijen in de tegels; een rij kan een boom of een groepje zijn"
+    },
+    "wereld.spoor_km": {
+      "groep": "wereld",
+      "label": "Spoor",
+      "waarde": 344,
+      "eenheid": "km",
+      "bron": "game/world/index-provincie.json + tegels (.gdp)"
+    },
+    "wereld.straatmeubilair": {
+      "groep": "wereld",
+      "label": "Straatmeubilair (lantaarns, bankjes, borden, verkeerslichten, ...)",
+      "waarde": 26794,
+      "eenheid": "objecten",
+      "bron": "game/world/index-provincie.json + tegels (.gdp)"
+    },
+    "wereld.stations": {
+      "groep": "wereld",
+      "label": "Treinstations",
+      "waarde": 30,
+      "eenheid": "stations",
+      "bron": "index-provincie.json global.stations"
+    },
+    "wereld.treinlijnen": {
+      "groep": "wereld",
+      "label": "Treinlijnen (met de stad als beginpunt)",
+      "waarde": 10,
+      "eenheid": "lijnen",
+      "bron": "index-provincie.json global.routes"
+    },
+    "wereld.sluizen": {
+      "groep": "wereld",
+      "label": "Sluizen en keersluizen (OSM, in de tegelindex)",
+      "waarde": 122,
+      "eenheid": "sluizen",
+      "bron": "index-provincie.json global.locks",
+      "let_op": "inclusief kleine sluisjes en gemalen met een sluisfunctie in OSM"
+    },
+    "wereld.plaatsen": {
+      "groep": "wereld",
+      "label": "Benoemde plaatsen (index global.places)",
+      "waarde": 802,
+      "eenheid": "plaatsen",
+      "bron": "index-provincie.json global.places"
+    },
+    "wereld.stad": {
+      "groep": "wereld",
+      "label": "Steden",
+      "waarde": 1,
+      "eenheid": "plaatsen",
+      "bron": "places kind city"
+    },
+    "wereld.plaatsen_stadjes": {
+      "groep": "wereld",
+      "label": "Stadjes en kleine steden (kind town)",
+      "waarde": 14,
+      "eenheid": "plaatsen",
+      "bron": "places kind town"
+    },
+    "wereld.dorpen": {
+      "groep": "wereld",
+      "label": "Dorpen (kind village)",
+      "waarde": 190,
+      "eenheid": "plaatsen",
+      "bron": "places kind village"
+    },
+    "wereld.gehuchten": {
+      "groep": "wereld",
+      "label": "Gehuchten (kind hamlet)",
+      "waarde": 399,
+      "eenheid": "plaatsen",
+      "bron": "places kind hamlet"
+    },
+    "wereld.wijken": {
+      "groep": "wereld",
+      "label": "Wijken en buurten (kind neighbourhood, quarter, suburb)",
+      "waarde": 143,
+      "eenheid": "plaatsen",
+      "bron": "places"
+    },
+    "wereld.buslijnroutes": {
+      "groep": "wereld",
+      "label": "Buslijn-routes (OSM-relaties, per richting)",
+      "waarde": 252,
+      "eenheid": "routes",
+      "bron": "game/world/provincie-bus.json"
+    },
+    "wereld.buslijnen": {
+      "groep": "wereld",
+      "label": "Verschillende buslijnnummers",
+      "waarde": 98,
+      "eenheid": "lijnnummers",
+      "bron": "game/world/provincie-bus.json (ref)"
+    },
+    "wereld.sluizen_bediend": {
+      "groep": "wereld",
+      "label": "Sluizen met eigen bediening in het spel (game/sluizen.json)",
+      "waarde": 62,
+      "eenheid": "sluizen",
+      "bron": "game/sluizen.json"
+    },
+    "inhoud.verhaalmissies": {
+      "groep": "inhoud",
+      "label": "Verhaalmissies (MISSION_IDS)",
+      "waarde": 31,
+      "eenheid": "missies",
+      "bron": "game/js/storyarc.js"
+    },
+    "inhoud.aktes": {
+      "groep": "inhoud",
+      "label": "Aktes van het verhaal (PARTS)",
+      "waarde": 5,
+      "eenheid": "aktes",
+      "bron": "game/js/storyarc.js"
+    },
+    "inhoud.verhaalstappen": {
+      "groep": "inhoud",
+      "label": "Stappen in het verhaal (STEPS)",
+      "waarde": 32,
+      "eenheid": "stappen",
+      "bron": "game/js/storyarc.js"
+    },
+    "inhoud.scenes": {
+      "groep": "inhoud",
+      "label": "Scènes in het verhaalscript",
+      "waarde": 185,
+      "eenheid": "scènes",
+      "bron": "game/storydata/script.json"
+    },
+    "inhoud.sprekers": {
+      "groep": "inhoud",
+      "label": "Sprekende personages in het script",
+      "waarde": 37,
+      "eenheid": "sprekers",
+      "bron": "game/storydata/script.json"
+    },
+    "inhoud.dialoogregels": {
+      "groep": "inhoud",
+      "label": "Regels dialoog in het verhaalscript",
+      "waarde": 1320,
+      "eenheid": "regels",
+      "bron": "game/storydata/script.json (scenes[].lines)"
+    },
+    "inhoud.dialoogwoorden": {
+      "groep": "inhoud",
+      "label": "Woorden dialoog in het verhaalscript",
+      "waarde": 11088,
+      "eenheid": "woorden",
+      "bron": "idem",
+      "let_op": "splitsen op spaties"
+    },
+    "inhoud.regie_aanwijzingen": {
+      "groep": "inhoud",
+      "label": "Regie-aanwijzingen in het script",
+      "waarde": 137,
+      "eenheid": "aanwijzingen",
+      "bron": "idem"
+    },
+    "inhoud.cutscenes": {
+      "groep": "inhoud",
+      "label": "Geregisseerde cutscenes (SPECS + MORE_SPECS, na het laden van akte 1 t/m 4)",
+      "waarde": 72,
+      "eenheid": "cutscenes",
+      "bron": "game/js/cutscenes_akte1..4.js"
+    },
+    "inhoud.bijbanen": {
+      "groep": "inhoud",
+      "label": "Bijbanen en zijmissies (SIDE_JOBS)",
+      "waarde": 38,
+      "eenheid": "bijbanen",
+      "bron": "game/js/sidejobs.js"
+    },
+    "inhoud.activiteiten": {
+      "groep": "inhoud",
+      "label": "Vrijetijdsactiviteiten en minigames (legenda van activities.js)",
+      "waarde": 17,
+      "eenheid": "activiteiten",
+      "bron": "game/js/activities.js",
+      "let_op": "zonder de pg_*-minigames van de verhaalmissies"
+    },
+    "inhoud.prestaties": {
+      "groep": "inhoud",
+      "label": "Prestaties (trofeeën)",
+      "waarde": 187,
+      "eenheid": "prestaties",
+      "bron": "game/js/achievements.js"
+    },
+    "inhoud.voertuigmodellen": {
+      "groep": "inhoud",
+      "label": "Voertuigmodellen in het voertuigregister",
+      "waarde": 28,
+      "eenheid": "modellen",
+      "bron": "game/js/vehicleregister.js",
+      "let_op": "per klasse: auto 19, tweewieler 3, boot 1, lucht 1, attractie 2, dier 1, ov 1"
+    },
+    "inhoud.diersoorten": {
+      "groep": "inhoud",
+      "label": "Diersoorten in het dierenregister",
+      "waarde": 13,
+      "eenheid": "soorten",
+      "bron": "game/js/dierenregister.js",
+      "let_op": "koe, schaap, paard, gans, eend, zwaan, meeuw, reiger, vis, zeehond, duif, kat, hond"
+    },
+    "inhoud.verhaalminigames": {
+      "groep": "inhoud",
+      "label": "Minigames in de verhaalmissies (bestanden pg_*.js)",
+      "waarde": 6,
+      "eenheid": "minigames",
+      "bron": "game/js/pg_*.js"
+    },
+    "inhoud.bijbaanmodules": {
+      "groep": "inhoud",
+      "label": "Bijbaanmodules (bestanden sidejob_*.js)",
+      "waarde": 17,
+      "eenheid": "modules",
+      "bron": "game/js/sidejob_*.js"
+    },
+    "inhoud.stemopnames": {
+      "groep": "inhoud",
+      "label": "Stemopnames (game/audio/voicelines)",
+      "waarde": 3057,
+      "eenheid": "bestanden",
+      "bron": "game/audio/voicelines",
+      "let_op": "bestanden, geen zinnen; alle stemmen zijn met AI gemaakt (README)"
+    },
+    "inhoud.audio_bestanden": {
+      "groep": "inhoud",
+      "label": "Geluidsbestanden in game/audio (stemmen, muziek, radio, nieuws)",
+      "waarde": 3146,
+      "eenheid": "bestanden",
+      "bron": "game/audio"
+    },
+    "inhoud.audio_mb": {
+      "groep": "inhoud",
+      "label": "Grootte van game/audio",
+      "waarde": 148,
+      "eenheid": "MB",
+      "bron": "game/audio"
+    },
+    "inhoud_audio.gmusic": {
+      "groep": "inhoud_audio",
+      "label": "game/audio/gmusic",
+      "waarde": 24,
+      "eenheid": "bestanden",
+      "bron": "game/audio/gmusic"
+    },
+    "inhoud_audio.nieuws": {
+      "groep": "inhoud_audio",
+      "label": "game/audio/nieuws",
+      "waarde": 20,
+      "eenheid": "bestanden",
+      "bron": "game/audio/nieuws"
+    },
+    "inhoud_audio.npc": {
+      "groep": "inhoud_audio",
+      "label": "game/audio/npc",
+      "waarde": 30,
+      "eenheid": "bestanden",
+      "bron": "game/audio/npc"
+    },
+    "inhoud_audio.police": {
+      "groep": "inhoud_audio",
+      "label": "game/audio/police",
+      "waarde": 12,
+      "eenheid": "bestanden",
+      "bron": "game/audio/police"
+    },
+    "inhoud_audio.scenario": {
+      "groep": "inhoud_audio",
+      "label": "game/audio/scenario",
+      "waarde": 2,
+      "eenheid": "bestanden",
+      "bron": "game/audio/scenario"
+    },
+    "inhoud_audio.theme": {
+      "groep": "inhoud_audio",
+      "label": "game/audio/theme",
+      "waarde": 1,
+      "eenheid": "bestanden",
+      "bron": "game/audio/theme"
+    },
+    "inhoud.muziektracks": {
+      "groep": "inhoud",
+      "label": "Muziektracks in de radiolijst (gmusic/manifest.json)",
+      "waarde": 20,
+      "eenheid": "tracks",
+      "bron": "game/audio/gmusic/manifest.json",
+      "let_op": "tracks met AI gemaakt (README); meer dan 3 minuten per track is niet gemeten"
+    },
+    "inhoud.muziekbestanden": {
+      "groep": "inhoud",
+      "label": "Muziekbestanden (gmusic + scenario + theme)",
+      "waarde": 27,
+      "eenheid": "bestanden",
+      "bron": "game/audio/{gmusic,scenario,theme}"
+    },
+    "inhoud.talen": {
+      "groep": "inhoud",
+      "label": "Talen van het spel (tekst)",
+      "waarde": 1,
+      "eenheid": "taal",
+      "bron": "AGENTS.md (constitution punt 1)",
+      "let_op": "alleen Nederlands; de stemmen praten Gronings, de ondertitels zijn Nederlands"
+    },
+    "inhoud.glb_modellen": {
+      "groep": "inhoud",
+      "label": "Los 3D-model als bestand (.glb)",
+      "waarde": 1,
+      "eenheid": "modellen",
+      "bron": "game/models",
+      "let_op": "bijna alle voertuigen, gebouwen en figuren worden met code gegenereerd (procedureel), niet gemodelleerd"
+    },
+    "inhoud.platformen": {
+      "groep": "inhoud",
+      "label": "Doelplatformen met eigen map (desktop, web, android)",
+      "waarde": 3,
+      "eenheid": "platformen",
+      "bron": "desktop, web, android",
+      "let_op": "builds: macOS, Windows en (soms) Linux; webversie en Android in ontwikkeling (README)"
+    }
+  },
+  "tijdlijnen": {
+    "commitsPerDag": [
+      {
+        "dag": "2026-09-18",
+        "commits": 30
+      },
+      {
+        "dag": "2026-09-23",
+        "commits": 6
+      },
+      {
+        "dag": "2026-09-24",
+        "commits": 17
+      },
+      {
+        "dag": "2026-09-25",
+        "commits": 33
+      },
+      {
+        "dag": "2026-09-26",
+        "commits": 46
+      },
+      {
+        "dag": "2026-09-27",
+        "commits": 187
+      },
+      {
+        "dag": "2026-09-30",
+        "commits": 19
+      },
+      {
+        "dag": "2026-10-01",
+        "commits": 64
+      },
+      {
+        "dag": "2026-10-02",
+        "commits": 94
+      },
+      {
+        "dag": "2026-10-03",
+        "commits": 287
+      },
+      {
+        "dag": "2026-10-04",
+        "commits": 179
+      },
+      {
+        "dag": "2026-10-05",
+        "commits": 52
+      },
+      {
+        "dag": "2026-10-15",
+        "commits": 163
+      },
+      {
+        "dag": "2026-10-16",
+        "commits": 89
+      },
+      {
+        "dag": "2026-10-17",
+        "commits": 130
+      },
+      {
+        "dag": "2026-10-18",
+        "commits": 1101
+      },
+      {
+        "dag": "2026-10-19",
+        "commits": 393
+      },
+      {
+        "dag": "2026-10-20",
+        "commits": 519
+      },
+      {
+        "dag": "2026-10-21",
+        "commits": 166
+      }
+    ],
+    "issuesPerDag": [
+      {
+        "dag": "2026-10-16",
+        "geopend": 77,
+        "gesloten": 9
+      },
+      {
+        "dag": "2026-10-17",
+        "geopend": 39,
+        "gesloten": 17
+      },
+      {
+        "dag": "2026-10-18",
+        "geopend": 128,
+        "gesloten": 76
+      },
+      {
+        "dag": "2026-10-19",
+        "geopend": 27,
+        "gesloten": 68
+      },
+      {
+        "dag": "2026-10-20",
+        "geopend": 77,
+        "gesloten": 116
+      },
+      {
+        "dag": "2026-10-21",
+        "geopend": 12,
+        "gesloten": 36
+      }
+    ],
+    "releasesPerDag": [
+      {
+        "dag": "2026-09-25",
+        "releases": 4
+      },
+      {
+        "dag": "2026-09-26",
+        "releases": 3
+      },
+      {
+        "dag": "2026-09-27",
+        "releases": 15
+      },
+      {
+        "dag": "2026-09-30",
+        "releases": 1
+      },
+      {
+        "dag": "2026-10-01",
+        "releases": 3
+      },
+      {
+        "dag": "2026-10-03",
+        "releases": 3
+      },
+      {
+        "dag": "2026-10-04",
+        "releases": 4
+      },
+      {
+        "dag": "2026-10-05",
+        "releases": 2
+      },
+      {
+        "dag": "2026-10-15",
+        "releases": 4
+      },
+      {
+        "dag": "2026-10-16",
+        "releases": 2
+      },
+      {
+        "dag": "2026-10-17",
+        "releases": 2
+      },
+      {
+        "dag": "2026-10-18",
+        "releases": 1
+      },
+      {
+        "dag": "2026-10-19",
+        "releases": 2
+      },
+      {
+        "dag": "2026-10-20",
+        "releases": 1
+      },
+      {
+        "dag": "2026-10-21",
+        "releases": 1
+      }
+    ],
+    "gebouwTypen": [
+      {
+        "type": "yes",
+        "n": 178083
+      },
+      {
+        "type": "house",
+        "n": 164785
+      },
+      {
+        "type": "shed",
+        "n": 9094
+      },
+      {
+        "type": "detached",
+        "n": 7468
+      },
+      {
+        "type": "industrial",
+        "n": 5561
+      },
+      {
+        "type": "semidetached_house",
+        "n": 4811
+      },
+      {
+        "type": "apartments",
+        "n": 4667
+      },
+      {
+        "type": "garage",
+        "n": 4396
+      },
+      {
+        "type": "construction",
+        "n": 4358
+      },
+      {
+        "type": "retail",
+        "n": 1230
+      },
+      {
+        "type": "commercial",
+        "n": 788
+      },
+      {
+        "type": "static_caravan",
+        "n": 314
+      }
+    ]
+  },
+  "niet_gemeten": [],
+  "overlays": [
+    {
+      "id": "git.commits",
+      "waarde": 3575,
+      "tekst": "3.575",
+      "label": "commits",
+      "bron": "git rev-list --count HEAD",
+      "let_op": null
+    },
+    {
+      "id": "git.kalenderdagen",
+      "waarde": 34,
+      "tekst": "34",
+      "label": "dagen van eerste commit tot nu",
+      "bron": "git log (--format=%cI)",
+      "let_op": null
+    },
+    {
+      "id": "sessies.branches_sessies",
+      "waarde": 389,
+      "tekst": "389",
+      "label": "AI-sessies met eigen branch",
+      "bron": "git for-each-ref + kopteksten van merge-commits",
+      "let_op": "ondergrens: een sessie die op een bestaande branch werkte, een opgeruimde en nooit gemergede branch of een oude branchnaam telt niet mee"
+    },
+    {
+      "id": "code.regels_code",
+      "waarde": 279491,
+      "tekst": "279.491",
+      "label": "regels code",
+      "bron": "som van de talen hieronder, zonder Markdown en data",
+      "let_op": null
+    },
+    {
+      "id": "code.spelmodules",
+      "waarde": 709,
+      "tekst": "709",
+      "label": "JavaScript-modules in het spel",
+      "bron": "git ls-files game/js",
+      "let_op": null
+    },
+    {
+      "id": "issues.totaal",
+      "waarde": 360,
+      "tekst": "360",
+      "label": "issues op het bord",
+      "bron": "gh issue list --state all",
+      "let_op": "pull requests zijn hier niet bij"
+    },
+    {
+      "id": "issues.bugs_gesloten",
+      "waarde": 169,
+      "tekst": "169",
+      "label": "bugs opgelost",
+      "bron": "gh issue list --state all",
+      "let_op": null
+    },
+    {
+      "id": "releases.aantal",
+      "waarde": 48,
+      "tekst": "48",
+      "label": "releases",
+      "bron": "gh release list",
+      "let_op": null
+    },
+    {
+      "id": "wereld.oppervlak_km2",
+      "waarde": 2955,
+      "tekst": "2.955",
+      "label": "km² speelgebied",
+      "bron": "oppervlakte (formule van Gauss) van global.outline in index-provincie.json",
+      "let_op": "het gebied binnen de grens, dus ook water; docs/PROVINCIE-PLAN.md noemt ~2.960 km² totaal en ~2.330 km² land"
+    },
+    {
+      "id": "wereld.tegels",
+      "waarde": 2901,
+      "tekst": "2.901",
+      "label": "kaarttegels",
+      "bron": "game/world/index-provincie.json + tegels (.gdp)",
+      "let_op": null
+    },
+    {
+      "id": "wereld.gebouwen",
+      "waarde": 387530,
+      "tekst": "387.530",
+      "label": "gebouwen",
+      "bron": "game/world/index-provincie.json + tegels (.gdp)",
+      "let_op": "unieke gid; gelijk aan index stats.buildings"
+    },
+    {
+      "id": "wereld.wegen_km",
+      "waarde": 12344,
+      "tekst": "12.344",
+      "label": "km weg en pad",
+      "bron": "game/world/index-provincie.json + tegels (.gdp)",
+      "let_op": "som van de lengte van de polylijnen; een weg met twee rijbanen telt per rijbaan"
+    },
+    {
+      "id": "wereld.bruggen",
+      "waarde": 2687,
+      "tekst": "2.687",
+      "label": "brugstukken",
+      "bron": "game/world/index-provincie.json + tegels (.gdp)",
+      "let_op": "OSM-ways met het brugkenmerk; een brug kan uit meerdere stukken bestaan"
+    },
+    {
+      "id": "wereld.stations",
+      "waarde": 30,
+      "tekst": "30",
+      "label": "treinstations",
+      "bron": "index-provincie.json global.stations",
+      "let_op": null
+    },
+    {
+      "id": "wereld.buslijnen",
+      "waarde": 98,
+      "tekst": "98",
+      "label": "buslijnnummers",
+      "bron": "game/world/provincie-bus.json (ref)",
+      "let_op": null
+    },
+    {
+      "id": "wereld.dorpen",
+      "waarde": 190,
+      "tekst": "190",
+      "label": "dorpen",
+      "bron": "places kind village",
+      "let_op": null
+    },
+    {
+      "id": "wereld.bomen",
+      "waarde": 956141,
+      "tekst": "956.141",
+      "label": "bomen",
+      "bron": "game/world/index-provincie.json + tegels (.gdp)",
+      "let_op": "rijen in de tegels; een rij kan een boom of een groepje zijn"
+    },
+    {
+      "id": "inhoud.verhaalmissies",
+      "waarde": 31,
+      "tekst": "31",
+      "label": "verhaalmissies",
+      "bron": "game/js/storyarc.js",
+      "let_op": null
+    },
+    {
+      "id": "inhoud.cutscenes",
+      "waarde": 72,
+      "tekst": "72",
+      "label": "cutscenes",
+      "bron": "game/js/cutscenes_akte1..4.js",
+      "let_op": null
+    },
+    {
+      "id": "inhoud.dialoogregels",
+      "waarde": 1320,
+      "tekst": "1.320",
+      "label": "regels dialoog",
+      "bron": "game/storydata/script.json (scenes[].lines)",
+      "let_op": null
+    },
+    {
+      "id": "inhoud.stemopnames",
+      "waarde": 3057,
+      "tekst": "3.057",
+      "label": "stemopnames",
+      "bron": "game/audio/voicelines",
+      "let_op": "bestanden, geen zinnen; alle stemmen zijn met AI gemaakt (README)"
+    },
+    {
+      "id": "inhoud.muziektracks",
+      "waarde": 20,
+      "tekst": "20",
+      "label": "muziektracks",
+      "bron": "game/audio/gmusic/manifest.json",
+      "let_op": "tracks met AI gemaakt (README); meer dan 3 minuten per track is niet gemeten"
+    },
+    {
+      "id": "inhoud.voertuigmodellen",
+      "waarde": 28,
+      "tekst": "28",
+      "label": "voertuigmodellen",
+      "bron": "game/js/vehicleregister.js",
+      "let_op": "per klasse: auto 19, tweewieler 3, boot 1, lucht 1, attractie 2, dier 1, ov 1"
+    },
+    {
+      "id": "inhoud.diersoorten",
+      "waarde": 13,
+      "tekst": "13",
+      "label": "diersoorten",
+      "bron": "game/js/dierenregister.js",
+      "let_op": "koe, schaap, paard, gans, eend, zwaan, meeuw, reiger, vis, zeehond, duif, kat, hond"
+    },
+    {
+      "id": "inhoud.bijbanen",
+      "waarde": 38,
+      "tekst": "38",
+      "label": "bijbanen",
+      "bron": "game/js/sidejobs.js",
+      "let_op": null
+    },
+    {
+      "id": "inhoud.activiteiten",
+      "waarde": 17,
+      "tekst": "17",
+      "label": "minigames en activiteiten",
+      "bron": "game/js/activities.js",
+      "let_op": "zonder de pg_*-minigames van de verhaalmissies"
+    },
+    {
+      "id": "inhoud.prestaties",
+      "waarde": 187,
+      "tekst": "187",
+      "label": "prestaties",
+      "bron": "game/js/achievements.js",
+      "let_op": null
+    }
+  ]
+}

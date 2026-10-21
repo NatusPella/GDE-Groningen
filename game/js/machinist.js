@@ -89,7 +89,7 @@ export function updateMachinist(dt, world, t) {
     if (!svc.paid) {
       svc.paid = true;
       const pay = payFor(r, svc.abandoned);
-      if (pay > 0) { world.money += pay; world.addMessage(`Dienst betaald: €${pay}`, 3); }
+      if (pay > 0) { world.money += pay; if (world.coopDeel) world.coopDeel(pay); world.addMessage(`Dienst betaald: €${pay}`, 3); }
     }
     board.set({
       row: `<b>${MEDAL_NAMES[r.medal]}</b> &middot; ${r.score} punten`,

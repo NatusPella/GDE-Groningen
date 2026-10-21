@@ -92,7 +92,7 @@ if (!TB.skipOpening) {
   for (let i = 0; i < 120; i++) {
     const up = !!ss && ss.classList.contains('visible');
     if (up) {
-      const it = [...ss.querySelectorAll('.ss-item')].find((q) => /nieuw spel/i.test(q.textContent));
+      const it = (window.__menuStart ? { click: () => window.__menuStart('nieuw') } : null);
       if (it) it.click(); else key('Enter', 'Enter');
       await sleep(2500);
       if (!ss.classList.contains('visible')) break;
@@ -111,7 +111,7 @@ if (!TB.skipOpening) {
 } else {
   for (let i = 0; i < 120 && !document.body.classList.contains('game-started'); i++) {
     const up = !!ss && ss.classList.contains('visible');
-    if (up) { const it = [...ss.querySelectorAll('.ss-item')].find((q) => /nieuw spel/i.test(q.textContent)); if (it) it.click(); }
+    if (up) { const it = (window.__menuStart ? { click: () => window.__menuStart('nieuw') } : null); if (it) it.click(); }
     await sleep(2000);
   }
 }

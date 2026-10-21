@@ -3,6 +3,7 @@ import { recordChallengeResult, getChallengeRecord, recordStat, MEDALS } from '.
 import { iconDisc, activityBlock } from './activitykit.js';
 import { createBoard, key, fmtTime, stopPressed, windText, gameUi } from './minigamekit.js';
 import { waterAt } from './waterlevels.js';
+import { buildingAt } from './tileplace.js';
 import { WATER_Y } from './util.js';
 import { createRegatta, stepRegatta, regattaMedaille, regattaVoortgang, REGATTA, windHoek } from './zeilrules.js';
 import { kiesBaan, richtTijd } from './regattabaan.js';
@@ -22,7 +23,8 @@ let meshes = null;
 let hudT = 0;
 
 const isZeil = (v) => !!(v && v.isBoat && v.model && v.model.zeil);
-const waterOk = (map) => (x, y) => { const w = waterAt(map, x, y); return !!(w && w.navigable && w.depth > 1.5); };
+// (a vaarnet patch over a block of houses is water for waterAt, but no ton belongs on a roof: #362)
+const waterOk = (map) => (x, y) => { const w = waterAt(map, x, y); return !!(w && w.navigable && w.depth > 1.5) && !buildingAt(map, x, y); };
 
 function loadMarinas() {
   if (marinas || typeof fetch === 'undefined') return;
