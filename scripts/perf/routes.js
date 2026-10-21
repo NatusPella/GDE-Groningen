@@ -66,6 +66,7 @@ if (window.__perfDiag) {
       ' ud=' + Object.keys(o.userData || {}).slice(0, 3).join('/') + ' geo=' + (g.type || '') + (g.userData && Object.keys(g.userData).length ? '[' + Object.keys(g.userData).slice(0, 2).join('/') + ']' : '') +
       ' v' + (g.attributes && g.attributes.position ? (g.attributes.position.count < 100 ? '<100' : g.attributes.position.count < 1000 ? '<1k' : '>1k') : '?');
   };
+  window.__ownerOf = ownerOf;
   const smRender = r.shadowMap.render.bind(r.shadowMap);
   r.shadowMap.render = (...a) => { inShadow = true; try { smRender(...a); } finally { inShadow = false; } };
   r.renderBufferDirect = function (camera, scene, geometry, material, object, group) {
@@ -639,14 +640,16 @@ results.routes.glcalls = await safe('glcalls', async () => {
     let d; try { d = proto[name]; } catch (e) { continue; }
     if (typeof d !== 'function' || name === 'constructor') continue;
     const o = d; origs.push([name, o]);
-    gl[name] = function (...a) { const m = cnt[phase]; m.set(name, (m.get(name) || 0) + 1); return o.apply(gl, a); };
+    gl[name] = function (...a) { const m = cnt[phase]; m.set(name, (m.get(name) || 0) + 1); if (owner !== null && phase === 'main') { let q = byOwner.get(owner); if (!q) byOwner.set(owner, q = new Map()); q.set(name, (q.get(name) || 0) + 1); } return o.apply(gl, a); };
   }
   const smR = r.shadowMap.render.bind(r.shadowMap);
   r.shadowMap.render = (...a) => { const was = phase; phase = 'shadow'; try { smR(...a); } finally { phase = was; } };
   const prevR = r.render; let frames = 0;
+  // with PERF_DIAG=1 the GL calls of the main pass are attributed to the owner of the draw they belong to (the diag owner names), per function
+  let owner = null; const byOwner = new Map();
   // the program of each draw of the main pass in order: the distinct programs and the runs of the same program (a switch re-uploads the lights, fog and shadow uniforms)
   const rbd = r.renderBufferDirect; let seq = [], seqs = [];
-  r.renderBufferDirect = function (camera, scene2, geometry, material, object, group) { const out = rbd.call(r, camera, scene2, geometry, material, object, group); if (phase === 'main') { const pr = r.properties.get(material).currentProgram; seq.push(pr ? pr.id : -1); } return out; };
+  r.renderBufferDirect = function (camera, scene2, geometry, material, object, group) { if (window.__ownerOf && phase === 'main') owner = window.__ownerOf(object).replace(/ (Buffer|Extrude|Box|Cylinder|Plane|Circle|Sphere|Shape)[^ ]*.*$/, '').slice(0, 60); const out = rbd.call(r, camera, scene2, geometry, material, object, group); owner = null; if (phase === 'main') { const pr = r.properties.get(material).currentProgram; seq.push(pr ? pr.id : -1); } return out; };
   r.render = function (s2, c2) { if (s2 !== sc.scene) return prevR.call(r, s2, c2); const was = phase; phase = 'main'; frames++; seq = []; try { return prevR.call(r, s2, c2); } finally { phase = was; seqs.push(seq); } };
   const f0 = frameCount();
   await new Promise((res) => { const f = () => { if (frames >= 90) res(); else requestAnimationFrame(f); }; requestAnimationFrame(f); });
@@ -657,7 +660,8 @@ results.routes.glcalls = await safe('glcalls', async () => {
   const top = (m, n = 28) => [...m].sort((a, b) => b[1] - a[1]).slice(0, n).map(([k, v]) => [k, +(v / frames).toFixed(1)]);
   const sum = (m) => +([...m.values()].reduce((a, b) => a + b, 0) / frames).toFixed(1);
   void f0;
-  outAll[vname || 'basis'] = { frames, programs: { draws: medP('draws'), distinct: medP('distinct'), runs: medP('runs') }, mainTotal: sum(cnt.main), shadowTotal: sum(cnt.shadow), otherTotal: sum(cnt.other), main: top(cnt.main), shadow: top(cnt.shadow, 12), other: top(cnt.other, 12), calls: r.info.render.calls };
+  const owners = [...byOwner].map(([k, m]) => [k, +([...m.values()].reduce((a, b) => a + b, 0) / frames).toFixed(1), [...m].sort((a, b) => b[1] - a[1]).slice(0, 6).map(([n, v]) => n + '=' + +(v / frames).toFixed(1)).join(' ')]).sort((a, b) => b[1] - a[1]).slice(0, 24);
+  outAll[vname || 'basis'] = { owners, frames, programs: { draws: medP('draws'), distinct: medP('distinct'), runs: medP('runs') }, mainTotal: sum(cnt.main), shadowTotal: sum(cnt.shadow), otherTotal: sum(cnt.other), main: top(cnt.main), shadow: top(cnt.shadow, 12), other: top(cnt.other, 12), calls: r.info.render.calls };
   }
   window.__perfOffDyn = undefined;
   return outAll;
