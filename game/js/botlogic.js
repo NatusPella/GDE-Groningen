@@ -232,6 +232,8 @@ export function decide(s, mem = {}) {
   if (stage === 'plan' && (mem.planTries || 0) < 3) { mem.planTries = (mem.planTries || 0) + 1; return { type: 'press', key: 'a', why: 'plan' }; }
   // a hold stage (stand still in the ring): stop walking once inside
   if (stage === 'hold' && t.distance <= 3.5) return { type: 'wait', why: 'vasthouden' };
+  // at the shop the story sent us to: a shop opens for someone on foot, so get off the bike or out of the car at the door
+  if (veh && !veh.plane && t.source === 'winkel' && t.distance < 25 && Math.abs(veh.speed || 0) < 3 && (mem.vehTries || 0) < 6) { mem.vehTries = (mem.vehTries || 0) + 1; return { type: 'press', key: 'e', why: 'uitstappen' }; }
   if (veh && veh.plane) return { type: 'fly' };
   if (veh) {
     if (onFootOnly) return { type: 'press', key: 'e', why: 'uitstappen' };
