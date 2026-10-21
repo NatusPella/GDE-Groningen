@@ -13,7 +13,7 @@
 //   kind 'challenge'  id = postgame.js challenge id; done when it ends
 // Saved in the savegame under `doel`; world.goal mirrors it for the HUD and maps.
 import { STEP_BY_ID, missionIndexOf } from './storyarc.js';
-import { setNextMission, getMissionDefs, unmetRequirement, requirementPlace, isMissionActive } from './missions.js';
+import { setNextMission, getMissionDefs, unmetRequirement, requirementPlace, isMissionActive } from './missionquery.js';
 
 const REACH_M = 8;
 const TARGET_EVERY = 2;
@@ -57,6 +57,12 @@ export function initGoal(w) {
 
 export function getGoal() {
   return goal;
+}
+
+// The goal's spot (any kind of goal), for the pin on the maps and in 3D (routing.js re-exports it).
+export function getUserWaypoint() {
+  const g = getGoal();
+  return g ? { x: g.x, y: g.y, name: g.name } : null;
 }
 
 function stepLabel(step) {

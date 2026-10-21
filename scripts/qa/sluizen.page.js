@@ -12,6 +12,7 @@ for (let i = 0; i < 40; i++) {
   if (item) item.click(); else tapKey('Enter', 'Enter');
   await sleep(3000);
 }
+{ const ss = document.querySelector('#start-screen'); if (ss) ss.style.display = 'none'; } // het titelscherm blijft soms over het spel hangen in de beelden
 for (let i = 0; i < 25 && window.__debug && window.__debug.world && window.__debug.world.paused; i++) { tapKey(' ', 'Space'); await sleep(700); }
 const D = window.__debug; const w = D.world; const p = w.player; const map = w.map;
 const imp = (f) => import('/js/' + f + '.js');
@@ -117,11 +118,13 @@ for (const q of want) {
       if (!phases.length || phases[phases.length - 1] !== k.state) phases.push(k.state);
       log.push([+t.toFixed(1), k.state, k.gate.map((g) => +g.toFixed(2)), k.sig.join('/'), Math.round(f.u), +(b.speed || 0).toFixed(1), +lift.toFixed(2), k.queue.length, +f.lat.toFixed(1), +((b.angle - aim + 3 * Math.PI) % (2 * Math.PI) - Math.PI).toFixed(2), UT.boatDryPoints(map, b, b.x, b.y, b.angle), UT.boatDryPoints(map, b, b.x + Math.cos(b.angle) * 1.2, b.y + Math.sin(b.angle) * 1.2, b.angle), SL.lockGateStop(b, b.x - Math.cos(b.angle) * 0.6, b.y - Math.sin(b.angle) * 0.6, b.angle) ? 1 : 0, (() => { const wf = WL.waterAt(map, b.x + Math.cos(b.angle) * 4, b.y + Math.sin(b.angle) * 4); return wf ? wf.kind + ':' + (wf.lock ? 'L' : '') : 'DROOG'; })(), Math.round(b.x), Math.round(b.y)]);
       const centre = { x: k.x, y: k.y };
+      const lampAt = async (nm) => { for (const [gi, e] of (q.side ? [['a', 1], ['b', -1]] : [['b', -1], ['a', 1]])) { (results[q.id + '-lampen'] ||= []).push({ nm, lamp: gi, sig: k.sig.join('/'), gate: k.gate.map((g2) => +g2.toFixed(2)).join('/'), state: k.state }); const lx = e * (k.half + 3), lz = k.width / 2 + 1.8; const Px = k.x + lx * c - lz * s, Py = k.y + lx * s + lz * c; await shot(q.id + '-' + nm + '-lamp' + gi, { position: { x: Px + s * 6 - e * c * 3, y: Py - c * 6 - e * s * 3, z: 1.6 }, lookAt: { x: Px, y: Py, z: 0.9 }, cut: true }); } };
+      const closeAt = async (nm) => { for (const [gi, gu] of [['a', k.half], ['b', -k.half]]) { const gx2 = k.x + c * gu, gy2 = k.y + s * gu; await shot(q.id + '-' + nm + '-gate' + gi, { position: { x: gx2 - s * 9 - c * Math.sign(gu) * 3, y: gy2 + c * 9 - s * Math.sign(gu) * 3, z: 5 }, lookAt: { x: gx2, y: gy2, z: 1.5 }, cut: true }); } };
       const nx = -s, ny = c;
       const pose = { position: { x: k.x + nx * 28 - dir * c * 10, y: k.y + ny * 28 - dir * s * 10, z: 11 }, lookAt: { x: k.x, y: k.y, z: 1 }, cut: true };
-      if (!shots.has('rood') && b.speed < 0.3 && t > 4 && k.sig[sideOfBoat()] === 'red' && Math.abs(f.u) > k.half) { shots.add('rood'); await shot(q.id + '-1-wacht-rood', pose); }
-      else if (!shots.has('deuropen') && k.sig[q.side] === 'green' && t > 6) { shots.add('deuropen'); await shot(q.id + '-2-groen-deur-open', pose); }
-      else if (!shots.has('schutten') && k.state === 'levelling' && SL.inChamber(k, b.x, b.y)) { shots.add('schutten'); await shot(q.id + '-3-schutten', pose); }
+      if (!shots.has('rood') && b.speed < 0.3 && t > 4 && k.sig[sideOfBoat()] === 'red' && Math.abs(f.u) > k.half) { shots.add('rood'); await lampAt('1-rood'); await shot(q.id + '-1-wacht-rood', pose); await closeAt('1-rood'); }
+      else if (!shots.has('deuropen') && k.sig[q.side] === 'green' && t > 6) { shots.add('deuropen'); await lampAt('2-groen'); await shot(q.id + '-2-groen-deur-open', pose); await closeAt('2-groen'); }
+      else if (!shots.has('schutten') && k.state === 'levelling' && SL.inChamber(k, b.x, b.y)) { shots.add('schutten'); await shot(q.id + '-3-schutten', pose); await closeAt('3-schutten'); }
       else if (!shots.has('uit') && shots.has('schutten') && k.state === 'ready' && Math.abs(f.u) > k.half - 5 && sideOfBoat() !== q.side) { shots.add('uit'); await shot(q.id + '-4-uitvaren', pose); }
       if (!results.diag && t > 12 && b.speed < 0.3 && Math.abs(f.u) < k.half - 8 && k.gate[1] === 0 && k.gate[0] === 0) {
         // raster van de waterruimte rond de plek waar de boot stilstaat
@@ -145,6 +148,23 @@ for (const q of want) {
     }
     key('keyup', 'w', 'KeyW');
     clearInterval(assist);
+    // het watervlak van het meer, de kolk en de boot boven en onder de sluis (#299): de hoogte van alle watermeshes
+    {
+      const sc = (await imp('scene3d')).getScene(), ys = {}, kolk = [];
+      sc.updateMatrixWorld(true);
+      sc.traverse((o) => {
+        if (!o.isMesh) return;
+        const y = +o.matrixWorld.elements[13].toFixed(2);
+        if (o.parent && o.parent.name === 'water') ys[y] = (ys[y] || 0) + 1;
+        else if (o.name === 'water') kolk.push(y);
+      });
+      results[q.id + '-watervlakken'] = { poly: ys, kolk, bootLift: +(b._lift || 0).toFixed(2), meerLift: +WL.surfaceLiftAt(map, k.x + c * (k.half + 30), k.y + s * (k.half + 30)).toFixed(2), zeeLift: +WL.surfaceLiftAt(map, k.x - c * (k.half + 30), k.y - s * (k.half + 30)).toFixed(2) };
+      // laag over de deuren heen, aan beide kanten: de trede tussen het meer en de zee
+      for (const e of [1, -1]) {
+        const gx3 = k.x + c * k.half * e, gy3 = k.y + s * k.half * e;
+        await shot(q.id + '-5-trede' + (e > 0 ? 'a' : 'b'), { position: { x: gx3 + c * e * 22 - s * 14, y: gy3 + s * e * 22 + c * 14, z: 3.2 }, lookAt: { x: k.x, y: k.y, z: 0 }, cut: true });
+      }
+    }
     results[q.id] = { sluis: k.name, positie: [Math.round(k.x), Math.round(k.y)], peil: k.levels, boot: wa ? { water: wa.kind || null } : null, doorgekomen: exited, fasen: phases, minLift: +minLift.toFixed(2), maxLift: +maxLift.toFixed(2), screenshots: [...shots], log };
     if (p.inVehicle) p.exitVehicle(map, w);
     w.vehicles.splice(w.vehicles.indexOf(b), 1);

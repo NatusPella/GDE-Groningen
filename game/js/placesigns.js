@@ -18,6 +18,8 @@
 // where a place's built-up area starts, from its node (m), and the weight of a
 // kind (a bigger place hides a smaller one inside its own circle)
 export const ENTRY = { city: 2600, town: 900, village: 420, hamlet: 190 };
+// a place with its own measured built-up radius (`r`, m, from the data) uses that instead of its kind's guess
+export const entryOf = (t) => (t.r > 50 && t.r < 6000 ? t.r : ENTRY[t.kind]);
 const RANK = { city: 0, town: 1, village: 2, hamlet: 3 };
 // what a signpost points to: reach (m) from a junction and weight by kind
 const POINT = { city: { max: 40000, w: 0.15 }, town: { max: 22000, w: 0.06 }, village: { max: 9000, w: 0 }, hamlet: { max: 3500, w: -0.05 } };
@@ -60,7 +62,7 @@ const placeName = (t) => t.n || t.name || '';
 function placeBoards(roads, towns, add, blocked) {
   const circles = towns.filter((t) => ENTRY[t.kind] && placeName(t));
   for (const t of circles) {
-    const R = ENTRY[t.kind], rank = RANK[t.kind];
+    const R = entryOf(t), rank = RANK[t.kind];
     const seen = [];
     for (const r of roads) {
       if (!r.pts || r.pts.length < 2 || !LOCAL.has(r.cat) || FAST.has(r.type) || r.bridge || r.tunnel) continue;
@@ -71,7 +73,7 @@ function placeBoards(roads, towns, add, blocked) {
       for (const e0 of entries(r, t.x, t.y, R)) {
         if (Math.abs(zAt(r, e0.i, e0.t)) > 1.5) continue;
         // inside a bigger place's own circle the board would be a second one
-        if (circles.some((o) => RANK[o.kind] < rank && Math.hypot(o.x - e0.x, o.y - e0.y) < ENTRY[o.kind])) continue;
+        if (circles.some((o) => RANK[o.kind] < rank && Math.hypot(o.x - e0.x, o.y - e0.y) < entryOf(o))) continue;
         // in: the way into the place; out: the same spot the other way, the
         // "einde bebouwde kom" board (the name struck through)
         for (const out of [false, true]) {

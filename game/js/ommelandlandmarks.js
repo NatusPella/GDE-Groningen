@@ -29,7 +29,7 @@ function churchBox(map, x, y) {
 
 // The churches without an outline of their own are fitted to a church of the
 // tiles, so their tiles must be in (updateOmmelandLandmarks).
-export function prepareLandmarks(items, map) {
+function prepareLandmarks(items, map) {
   const inside = (it) => edgeDistance(it.x, it.y) > 0;
   const churches = [], mills = [], other = [];
   for (const it of items) {
@@ -48,7 +48,7 @@ export function prepareLandmarks(items, map) {
       const twin = mills.find((m) => near(m, it, 20));
       if (twin) { if (!twin.n && it.n) twin.n = it.n; twin.t = { ...it.t, ...twin.t }; continue; }
       mills.push({ ...it, t: { ...it.t } });
-    } else if (['tower', 'castle', 'farm', 'silo', 'factory', 'flat', 'townhall', 'station', 'school', 'museum'].includes(it.k)) other.push(it);
+    } else if (['tower', 'castle', 'farm', 'silo', 'factory', 'pakhuis', 'flat', 'townhall', 'station', 'school', 'museum'].includes(it.k)) other.push(it);
   }
   const out = [];
   for (const c of churches) {
@@ -88,6 +88,9 @@ export function updateOmmelandLandmarks(world, scene, focus) {
   const h = typeof world.clock === 'number' ? world.clock : 12;
   // floodlights from dusk until midnight
   const flood = h >= 12 ? night : 0;
-  S.layer.update(focus.x, focus.y, night, flood, world.time || 0);
+  // rain, mist and overcast: the skyline fades into the haze with the ground (#259)
+  const wx = world.weather || {};
+  const haze = Math.max(0, Math.min(1, Math.max(wx.intensity || 0, wx.mist || 0, (wx.overcast || 0) * 0.7)));
+  S.layer.update(focus.x, focus.y, night, flood, world.time || 0, haze);
 }
 

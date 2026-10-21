@@ -1,7 +1,7 @@
 // Every mission goal of act 1 of the new story exists on the map (#120):
 //   node scripts/akte1_doelen_test.mjs
 // - the new defs (missions_nieuw.js): start and destination are on a road, the stunt square is open ground
-// - the landmarks and shop types that the act's defs point at (missions.js) exist in citymap.json
+// - the landmarks and shop types that the act's defs point at (missions.js) exist in stad.json
 // - every act-1 mission step names a def, and a def with a scene list has its scenes in script.json
 import './node3d.mjs';
 import fs from 'node:fs';
@@ -11,8 +11,8 @@ const { buildNieuwDefs } = await import('../game/js/missions_nieuw.js');
 const { STEPS, NEW_MISSION_IDS } = await import('../game/js/storyarc_nieuw.js');
 const { MISSION_IDS } = await import('../game/js/storyarc.js');
 const root = new URL('../game/', import.meta.url);
-const data = JSON.parse(fs.readFileSync(new URL('citymap.json', root), 'utf8'));
-applyMapExtras(data, JSON.parse(fs.readFileSync(new URL('mapextras.json', root), 'utf8')));
+const { loadStadData } = await import('./lib/loadworld.mjs');
+const data = await loadStadData({ extras: true });
 const map = new GameMap(data);
 let n = 0, fails = 0;
 const ok = (c, name, info = '') => { n++; if (!c) { fails++; console.log(`FAIL ${name}${info ? ' (' + info + ')' : ''}`); } };
@@ -64,6 +64,18 @@ for (const q of loket.stages) ok(!!q.label, `loket: stage ${q.kind} has a label`
 const hold = loket.stages.find((q) => q.kind === 'hold');
 ok(hold.time > 0 && hold.ticks.length === 2, 'loket: the wait has a time and two ticks');
 ok(loket.timeLimit > hold.time * 3 + 60, 'loket: enough time left after the wait with the clock at x3');
+// M03 (#335): the counters stand at the Stadhuis, a real office, and not at the Goudkantoor (a restaurant): every stage target is open ground
+// within 25 m of the Stadhuis footprint
+const stadhuis = map.buildingsNear(131, 108, 40).find((b) => b.name === 'Stadhuis');
+ok(!!stadhuis, 'loket: the Stadhuis is a building on the map');
+const polyDist = (x, y, P) => { let d = Infinity; for (let i = 0; i < P.length - 1; i++) { const dx = P[i + 1][0] - P[i][0], dy = P[i + 1][1] - P[i][1], L2 = dx * dx + dy * dy || 1e-9, t = Math.max(0, Math.min(1, ((x - P[i][0]) * dx + (y - P[i][1]) * dy) / L2)); d = Math.min(d, Math.hypot(P[i][0] + dx * t - x, P[i][1] + dy * t - y)); } return d; };
+for (const q of loket.stages.filter((q) => q.target)) {
+  ok(!q.target.landmark, `loket: stage "${q.label}" is not tied to a landmark (the Goudkantoor is a restaurant)`);
+  const [tx, ty] = q.target.at || [NaN, NaN];
+  ok(Number.isFinite(tx) && map.isOpenSpot(tx, ty), `loket: "${q.label}" is open ground`, `${tx}, ${ty}`);
+  ok(stadhuis && polyDist(tx, ty, stadhuis.pts) <= 25, `loket: "${q.label}" is within 25 m of the Stadhuis`);
+}
+ok(/Stadhuis/.test(loket.intro.join(' ')), 'loket: the intro names the Stadhuis');
 // M02: the garage and delivery steps name the goal (#93)
 const msrc = fs.readFileSync(new URL('js/missions_nieuw.js', root), 'utf8');
 ok(/Schud de politie af/.test(msrc) && /Breng de automaat naar Sjabbe/.test(msrc), 'pinautomaat: goal labels say what to do');

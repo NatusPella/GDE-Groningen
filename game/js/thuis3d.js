@@ -253,7 +253,7 @@ function fasciaTexture() {
 
 // The canopy over the pumps (a building=roof footprint, drawn instead of the
 // plain canopy slab): returns the mesh and where its columns and islands stand.
-export function buildPeutCanopy(c, map) {
+function buildPeutCanopy(c, map) {
   kitReady();
   const ring = c.pts[0][0] === c.pts[c.pts.length - 1][0] && c.pts[0][1] === c.pts[c.pts.length - 1][1] ? c.pts.slice(0, -1) : c.pts;
   const F = K.minAreaFrame(ring);

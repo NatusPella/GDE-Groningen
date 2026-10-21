@@ -10,20 +10,26 @@ import { setErrorContext } from './errorlog.js';
 import { DEV, STORY_TEST, FLAGS } from './devflags.js';
 import { bindCoop } from './coopglue.js';
 import { tickCoopNet } from './coopnet.js';
+import { isHoldOpen, checkHold } from './coophold.js';
 import { updatePartnerChip } from './coophud.js';
 import { syncFigures, hasFigureMeshes } from './coopfigures3d.js';
 import { syncHostEntities, hasHostEntities, clearHostEntities } from './coopentities3d.js';
+import { updateHostScene, hasHostScene } from './coopscene.js';
 import { loadMap } from './mapdata.js';
 import { loadTileWorld } from './tileworld.js';
 import { tileFocus } from './tilefocus.js';
 import { setWorldPlaces } from './worldplaces.js';
 import { setRegionData } from './regions.js';
-import { tileIndexOf, tileKey } from './gdt.js';
+import { tileIndexOf, tileKey, tileOrigin } from './gdt.js';
 import { loadFacilities, initFacilities, loadShopPlaces, initShopPlaces, setExtraBuiltWorld, placeWithTiles } from './facilities.js';
 import { ensureCountryEdge } from './countryplan.js';
 import { warmCountryMaps } from './countrymap.js';
 import { Input } from './input.js';
 import { initGamepad } from './gamepad.js';
+import { initPadKeyboard } from './padkeyboard.js';
+import { initTextFields } from './textfield.js';
+import { initInputDevice } from './inputdevice.js';
+import { skipFrame } from './framecap.js';
 import { initTouch } from './touch.js';
 import { initGlyphs } from './glyphs.js';
 import { initA11y } from './a11y.js';
@@ -63,7 +69,7 @@ import { updateStreekplekken3D } from './streekplekken3d.js';
 import { loadVaarnet, vaarPrefetch } from './vaarload.js';
 import { isShopOpen } from './shopui.js';
 import { initMapView, updateMapView, isMapOpen } from './mapview.js';
-import { initAudio, updateAudio, setMenuAudio, setSfxLinks } from './audio.js';
+import { initAudio, updateAudio, setMenuAudio, setSfxLinks, setAudioCamera } from './audio.js';
 import { updateBanter } from './banter.js';
 import { updateNarrative } from './narrative.js';
 import { initStoryContact, updateStoryContact } from './storycontact.js';
@@ -73,7 +79,7 @@ import { initRailway, updateRailway, setRailExtraWorld, getTrains, getRoutes, ro
 import { updateZeilvaren } from './zeilvaren.js';
 import { updateEvenementen } from './evenementenlive.js';
 import { routePenalty } from './evenementen.js';
-import { setRouteClosures } from './routing.js';
+import { setRouteClosures, getActiveRoute, getRouteAhead, getUserWaypoint } from './routing.js';
 let routeSigDone = '';
 import { updateStationLife } from './stationlife.js';
 import { createBoard as createStationBoard } from './minigamekit.js';
@@ -81,17 +87,20 @@ import { applyCityRoutes, loadLandData } from './corridorrail.js';
 import { setFarProps } from './farprops.js';
 import { initProvince } from './provinceworld.js';
 import { loadRoadNet, setRoadNet } from './roadgraph.js';
-import { buildMovableBridges, updateMovableBridges, getMovableBridges } from './movablebridges.js';
+import { ensureSeaRows } from './seatiles.js';
+import { buildMovableBridges, addMovableRoads, updateMovableBridges, getMovableBridges } from './movablebridges.js';
 import { updateSluizen, getSluizen } from './sluizen.js';
 import { updateBridgeHits, resetBridgeDamage, startBridgeCrashDemo, stepBridgeCrashDemo } from './bridgehitworld.js';
 import { geoWorkerActive } from './geojobs.js';
-import { init3D, update3D, resize3D, getScene, getRenderer, setMenuCover, MENU_FRAME_S, refreshRenderScale, terrainReady, canvasFrameCount, prewarmStreamAt } from './scene3d.js';
+import { init3D, update3D, resize3D, getScene, getRenderer, setMenuCover, MENU_FRAME_S, refreshRenderScale, terrainReady, canvasFrameCount, prewarmStreamAt, getCamera, getFollowPose, setRouteLinks } from './scene3d.js';
 import { checkFrame } from './blackframe.js';
 import { noteFrame, hideAdvice, classifyGpu, readGpu, dynamicScale, cpuLevel } from './gfxprofile.js';
 import { updateStreetSigns } from './streetsigns.js';
 import { updatePhotoMode, wireFotoKey } from './fotomodusui.js';
 import { initPauseMenu, isPauseMenuOpen, openPauseMenu, pauseMenuCover } from './pausemenu.js';
-import { initDayNight, updateDayNight } from './daynight.js';
+import { wantsOpenSamen, takeOpenSamen, samenGate } from './samenpanel.js';
+import { gateOn, setGate } from './coopgate.js';
+import { initDayNight, updateDayNight, DAY_LENGTH_S } from './daynight.js';
 import { initCalendar, updateCalendar, today as calendarToday } from './calendarday.js';
 import { updateFx3D } from './fx3d.js';
 import { updateGore3D } from './gore3d.js';
@@ -109,10 +118,11 @@ import { updateSpikeStrips3D } from './spikestrips3d.js';
 import { tryWeaponDropInteract, updateWeaponDrops3D } from './weapondrops.js';
 import { initFlitspaal, updateFlitspaal } from './flitspaal.js';
 import { initWildlife, updateWildlife } from './wildlife.js';
+import { tickSchaapontvoering } from './schaapontvoeringrt.js';
 import { initSkyProps, updateSkyProps } from './skyprops.js';
 import { initSikkomFeed, updateSikkomFeed } from './sikkomfeed.js';
 import { initPhoneFeed, updatePhoneFeed } from './phonefeed.js';
-import { watchJumps, resetJumpWatch } from './loadscreen.js';
+import { watchJumps, resetJumpWatch, startLoadScreen } from './loadscreen.js';
 import { initLoading, setLoadProgress, finishLoading, showLoadError, runStartScreen, yieldToPaint } from './startscreen.js';
 import { initPigeonMode, updatePigeonMode, updatePigeonCamera, updatePigeonAfterglow } from './pigeonmode.js';
 import { initPigeonSpots, updatePigeonSpots, tryPigeonSpotInteract } from './pigeonspots.js';
@@ -134,7 +144,7 @@ import { updateIndicators } from './indicators.js';
 import { initAchievementTracker, updateAchievementTracker } from './achievementtracker.js';
 import { probe } from './hitchprobe.js';
 import { initSafety, updateSafety } from './safety.js';
-import { updateCinematics, isCinematicActive, sinceCinematic } from './cinematics.js';
+import { updateCinematics, isCinematicActive, sinceCinematic, setCinematicLinks } from './cinematics.js';
 import { initFlavour, updateFlavour } from './flavour.js';
 import { initFlavour3D, updateFlavour3D } from './flavour3d.js';
 import { prepareHomeMap, initHome, updateHome, updateHomeExterior, tryHomeInteract, homeSpawnPoint, parkHeroAtHome } from './home.js';
@@ -180,7 +190,7 @@ const boatTarget = () => scaledTarget(getSettings().quality === 'laag' ? 5 : 7);
 // every system that used to have a 2D-only draw path now also has a 3D one.
 initLoading();
 
-function waitForStart(world) {
+function waitForStart(world, ready) {
   const relocate = (x, y) => {
     world.player.x = x;
     world.player.y = y;
@@ -233,13 +243,13 @@ function waitForStart(world) {
     updateGunFx3D(fxDt, world, getScene());
     update3D(dt, world);
   };
-  return runStartScreen(world, { render, relocate, tick });
+  return runStartScreen(world, { render, relocate, tick, ready });
 }
 
 let bridgeDemoT = 0, bridgeDemoDone = false; // ?brugbotsing
 let errorShown = false;
 function showFrameError(err) {
-  console.error(err);
+  console.error(err && err.stack ? err.stack : err);
   if (errorShown) return;
   errorShown = true;
   const el = document.createElement('div');
@@ -306,16 +316,16 @@ async function boot() {
   initGlyphs();
   initTheme();
   // the map comes from .gdt tiles (world/, js/tileworld.js); a build without
-  // them, or ?legacymap, reads the JSON files as before
+  // them (the dev server) gets stad.json alone: roads, rails, the hand-made buildings
   const onMapProgress = (f) => setLoadProgress(0.05 + f * 0.45);
   // the province's layer (index-provincie.json, F2) and the proefstrook's
   // (index-corridor.json) name the places and stream their tiles in
   // (provinceworld.js). The province's tiles win.
   const extra = [{ name: 'index-provincie.json' }, { name: 'index-corridor.json' }];
-  const tiles = FLAGS.legacymap ? null : await loadTileWorld('world/', { onProgress: onMapProgress, extra });
+  const tiles = await loadTileWorld('world/', { onProgress: onMapProgress, extra });
   const corridor = !!tiles;
   if (tiles && FLAGS.terrain) tiles.world.terrainOn = true;
-  if (tiles && FLAGS.viaducten) tiles.world.streamProfiles = true;
+  if (tiles && FLAGS.vlakbruggen) tiles.world.streamProfiles = false;
   const layers = (tiles && tiles.index.layers) || {};
   const corLayer = (layers.provincie && layers.provincie.global ? layers.provincie : null) || layers.corridor;
   if (corLayer && corLayer.global) setWorldPlaces(corLayer.global.places);
@@ -331,9 +341,9 @@ async function boot() {
   if (tiles && busFile) loadBusLines('world/', busFile).then(setBusLines);
   // the city's train routes on over the layer's track, the countryside's rails, turbines and pylons (corridorrail.js)
   const landData = corLayer && corLayer.global ? loadLandData('world/', corLayer.global.landFile) : null;
-  const facilities = loadFacilities('citymap.json');
-  const shopPlaces = loadShopPlaces('citymap.json');
-  const map = tiles ? tiles.world : await loadMap('citymap.json', onMapProgress);
+  const facilities = loadFacilities('stad.json');
+  const shopPlaces = loadShopPlaces('stad.json');
+  const map = tiles ? tiles.world : await loadMap('stad.json', onMapProgress);
   tileWorldStats = tiles ? tiles.store : null;
   markLoad('map');
   // the waterway network's fixes and route graph (#184), small files read while the rest loads
@@ -389,6 +399,11 @@ async function boot() {
   initTrafficLights(world);
   initRailway(world);
   buildMovableBridges(world.map);
+  // the province's movable bridges come with the streamed tiles, not with map.roads (#235)
+  if (world.map.onTiles) {
+    world.map.onTiles((kind, tile) => { if (kind === 'add' && tile) { const o = tileOrigin(tile.i, tile.j); addMovableRoads(world.map.roadsNear(o[0] + 500, o[1] + 500, 720)); } });
+    addMovableRoads(world.map.roadsNear(player.x, player.y, 2500));
+  }
   resetBridgeDamage();
   initStationTravel(world);
   initActivityKinds(world, 'early');
@@ -433,6 +448,9 @@ async function boot() {
   // browser swallows that Esc keypress), which opens the pause menu instead
   const menuOpen = () => isPauseMenuOpen() || isMapOpen() || isPhoneOpen() || isShopOpen() || !!world.devPanelOpen;
   input.canLock = () => document.body.classList.contains('game-started') && !menuOpen() && !world.uiPaused;
+  initInputDevice();
+  initPadKeyboard();
+  initTextFields(); // alle toetsen, plakken en een rechtermuismenu in tekstvelden (#95)
   initGamepad(input, world, { menuOpen: () => menuOpen() || isPlayAheadOpen() || isHelpOfferOpen(), phoneOpen: isPhoneOpen, pauseOpen: isPauseMenuOpen, mapOpen: () => isMapOpen() });
   initTouch(input, world, { menuOpen: () => menuOpen() || isPlayAheadOpen() || isHelpOfferOpen() });
   document.addEventListener('pointerlockchange', () => {
@@ -477,12 +495,15 @@ async function boot() {
   setMenuAudio(true);
   initAudio(world);
   setNieuwsBronnen({ bridges: getMovableBridges });
+  setAudioCamera(getCamera);
+  setRouteLinks({ getActiveRoute, getRouteAhead, getUserWaypoint });
+  setCinematicLinks({ getFollowPose, prewarmStreamAt });
   setSfxLinks({ bridges: getMovableBridges, trains: getTrains, vehicles: () => world.vehicles, locks: getSluizen });
-  await waitForStart(world);
+  await waitForStart(world, countryPlaced);
   await countryPlaced;
   document.body.classList.add('game-started');
   hideAdvice();
-  input.tryLock();
+  input.tryLock(false); // the game itself asks here, long after the click that started it: refusing is no sign of a browser without lock (#328)
   setMenuAudio(false);
   // a benchmark started from a game: its result waits in Instellingen > Beeld
   if (world.openSettingsOnStart) { openPauseMenu('settings', { sub: world.openSettingsOnStart }); world.openSettingsOnStart = null; }
@@ -494,6 +515,7 @@ async function boot() {
   const tileFollow = {};
   let pedTimer = 0;
   function frame(now) {
+    if (getSettings().zuinig && skipFrame(now - last)) { requestAnimationFrame(frame); return; }
     const frameMs = now - last;
     const dt = Math.min(0.05, frameMs / 1000);
     last = now;
@@ -518,16 +540,28 @@ async function boot() {
   }
 
   const feelDip = makeDip(), dipSeen = { imp: null, mh: null };
+  let samenSince = null, gateMenu = false;
   function frameBody(dt) {
+    // Samen spelen vanuit het hoofdmenu (#95): de lobby opent zodra het spel te besturen is (na de opening van een nieuw spel)
+    // (een paar seconden wachten: de opening van een nieuw spel begint pas even na de start en zou de lobby anders overvallen)
+    if (wantsOpenSamen()) {
+      if (samenSince == null) samenSince = world.time;
+      // met het wachtkamer-hek (nieuw spel samen) opent de lobby meteen, voordat de opening begint
+      const klaar = samenGate() ? world.time - samenSince > 1.5 && document.body.classList.contains('game-started') && !isPauseMenuOpen() : world.time - samenSince > 5 && !isCinematicActive() && sinceCinematic() > 2 && !world.cameraOverride && !world.pendingRespawn && !isPauseMenuOpen();
+      if (klaar) { gateMenu = samenGate(); takeOpenSamen(); samenSince = null; openPauseMenu('samen'); }
+    }
+    // het hek gaat pas open met minstens twee spelers en een druk op Spel starten (samenpanel.js); tot dan blijft iedereen in de wachtkamer
+    if (gateOn() && gateMenu && !isPauseMenuOpen()) openPauseMenu('samen');
+    if (!gateOn()) gateMenu = false;
     updateMapView(dt, world);
-    world.paused = isMapOpen() || isPauseMenuOpen() || isShopOpen() || !!world.uiPaused;
+    world.paused = isMapOpen() || isPauseMenuOpen() || isShopOpen() || !!world.uiPaused || !!world.coopHold; // coopHold: wachtscherm bij een weggevallen speler (coophold.js)
     if (document.pointerLockElement && (isMapOpen() || isPauseMenuOpen() || isPhoneOpen())) document.exitPointerLock();
     // world.timeScale: slow-motion for cinematic moments (1 = normal)
     // hit-stop (#216): 60-90 ms dip bij een zware klap of een melee-raak
     const nowS = performance.now() / 1000;
     const imp = world.lastImpact, mh = world.lastMeleeHit;
     if ((imp && imp !== dipSeen.imp) || (mh && mh !== dipSeen.mh)) {
-      triggerDip(feelDip, nowS, { strength: imp && imp !== dipSeen.imp ? imp.strength : 0, melee: !!(mh && mh !== dipSeen.mh) }, effectsFor({ reduceMotion: reducedMotion() }));
+      triggerDip(feelDip, nowS, { strength: imp && imp !== dipSeen.imp ? imp.strength : 0, melee: !!(mh && mh !== dipSeen.mh) }, effectsFor({ reduceMotion: reducedMotion() || getSettings().speedFeel === false }));
       dipSeen.imp = imp; dipSeen.mh = mh;
     }
     const gameDt = dt * Math.max(0, Math.min(1, world.timeScale ?? 1)) * MODS.slow * dipScale(feelDip, nowS);
@@ -540,6 +574,8 @@ async function boot() {
       // a boat on the waterway network: the tiles of its route ahead come early (#184)
       if (tf && world.player.inVehicle && world.player.inVehicle.isBoat && !world.cameraOverride) tf.opts = vaarPrefetch(tf.opts, tf.x, tf.y);
       if (tf) world.map.follow(tf.x, tf.y, tf.opts, 1.5);
+      // the open sea as water rows round the player (#233)
+      if (tf && world.map.addWaterPatches) ensureSeaRows(world.map, world.player.x, world.player.y);
     }
     updateAudio(dt, world);
     updateNarrative();
@@ -567,9 +603,11 @@ async function boot() {
       updateSaveGame(dt, world);
     }
     if (world.coopNet) tickCoopNet(world, dt); // samen spelen (#95), alleen na een bewuste uitnodiging
+    if (isHoldOpen()) checkHold(world);
     if (world.coopNet || world.coopPartner !== undefined) updatePartnerChip(world);
     if (world.coopNet || hasFigureMeshes()) syncFigures(world, dt); // de figuren van de andere spelers (#95)
     if (world.coopRole === 'client') syncHostEntities(world); else if (hasHostEntities()) clearHostEntities(); // voertuigen en doel van de host bij een gast
+    if (world.coopScene || hasHostScene()) updateHostScene(world); // filmpje, regel en keuze van de host bij een gast
     probe.mark('phone+save');
     updateSafety(dt, world);
     // a padel match owns the camera (cinematics.js resets cameraOverride each frame)
@@ -586,6 +624,7 @@ async function boot() {
     updatePhotoMode(dt, world);
     updateHud(dt, world);
     // a long jump (fast travel, teleport): the load screen while the city streams in
+    if (world.devJumpLoad) { world.devJumpLoad = false; resetJumpWatch(); startLoadScreen(world, { kind: 'travel', x: world.player.x, y: world.player.y, mission: world.loadMission }); }
     watchJumps(world, { swallow: world.pigeonMode || !!world.pendingRespawn || isCinematicActive() || sinceCinematic() < 2 || !!world.cameraOverride, hold: world.paused && !world.uiPaused });
     probe.mark('hud');
   }
@@ -701,7 +740,7 @@ async function boot() {
       setRouteClosures(routeSigDone ? (x, y) => routePenalty(x, y, n, hour) : null, routeSigDone || '');
     }
     updateZeilvaren(dt, world, calendarToday(world));
-    updateStationLife(dt, world, { routes: getRoutes(), point: routePoint, day: calendarToday(world), createBoard: createStationBoard, driving: getTrains().some((t) => t.state === 'player') });
+    updateStationLife(dt, world, { routes: getRoutes(), point: routePoint, day: calendarToday(world), createBoard: createStationBoard, trains: getTrains(), schaal: 86400 / DAY_LENGTH_S, driving: getTrains().some((t) => t.state === 'player') });
     updateMovableBridges(dt, world);
     updateSluizen(dt, world);
     // a ship against a bridge deck: the crash sound of a car contact, by how hard the deck was hit (audio.js updateContactAudio)
@@ -725,6 +764,7 @@ async function boot() {
     updatePedestrians(dt, world);
     probe.mark('peds');
     updateWildlife(dt, world);
+    tickSchaapontvoering(dt, world);
     updateStreetLife(dt, world);
     updateSkyProps(dt, world);
     updatePigeonSpots(dt, world);

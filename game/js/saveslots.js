@@ -8,11 +8,11 @@
 // - Export and import are a plain file (a JSON envelope round the save): local, no network.
 // - Pure (no DOM, no three.js): the storage is passed in, scripts/saveslots_test.mjs runs it.
 //   savegame.js does the world <-> save part.
-import { KEYS, MAX_SLOTS, slotKey, slotRecoveryKey } from './storagekeys.js';
+import { KEYS, MAX_SLOTS, slotKey, slotRecoveryKey, slotThumbKey } from './storagekeys.js';
 import { migrateSave, savedArc, SAVE_VERSION } from './savemigrate.js';
 import { ARC_ID } from './storyarc.js';
 
-export const NAME_MAX = 24;
+export const NAME_MAX = 28;
 export const FILE_KIND = 'GDE-save';
 // a save of this size or more is not ours (a real one is some tens of kB)
 export const MAX_IMPORT_CHARS = 2_000_000;
@@ -30,7 +30,7 @@ export function cleanName(s, fallback = '') {
   return t || fallback;
 }
 
-export const defaultName = (n) => `Spel ${n}`;
+export const defaultName = (n) => `Opgeslagen spel ${n}`;
 
 // 3725 -> '1 u 02 min', 540 -> '9 min', 0 -> 'net begonnen'
 export function formatPlaytime(sec) {
@@ -106,6 +106,8 @@ export function summarize(d) {
     missionsDone: done,
     playSeconds: Math.max(0, num(d.speeltijd)),
     character: d.character === 'anita' ? 'Tessa' : 'Tammo',
+    goal: isObj(d.doel) && typeof d.doel.name === 'string' ? cleanName(d.doel.name, '') : '',
+    storyDone: isObj(d.story) && Array.isArray(d.story.done) ? d.story.done.length : 0,
   };
 }
 
@@ -193,8 +195,8 @@ export function writeSlot(ls, n, save) {
 }
 
 // A new empty slot (named), made the active one. Returns its number or 0 when all are in use.
-export function createSlot(ls, name) {
-  const n = freeSlot(ls);
+export function createSlot(ls, name, want = 0) {
+  const n = want >= 1 && want <= MAX_SLOTS && getRaw(ls, slotKey(want)) == null && getRaw(ls, slotRecoveryKey(want)) == null ? want : freeSlot(ls);
   if (!n) return 0;
   const idx = readIndex(ls);
   const nm = cleanName(name);
@@ -207,7 +209,7 @@ export function createSlot(ls, name) {
 // (or 1) becomes the active one.
 export function deleteSlot(ls, n) {
   const s = ls0(ls);
-  try { s.removeItem(slotKey(n)); s.removeItem(slotRecoveryKey(n)); } catch (e) { return false; }
+  try { s.removeItem(slotKey(n)); s.removeItem(slotRecoveryKey(n)); s.removeItem(slotThumbKey(n)); } catch (e) { return false; }
   const idx = readIndex(ls);
   delete idx.names[n];
   if (idx.active === n) {
@@ -215,6 +217,54 @@ export function deleteSlot(ls, n) {
     idx.active = left.length ? left[0].n : 1;
   }
   return writeIndex(ls, idx);
+}
+
+// --- thumbnails, copies, time words ------------------------------------------------------
+
+// A thumbnail is a small 'data:image/jpeg' text; anything else is not kept.
+const THUMB_MAX = 40_000;
+const isThumb = (t) => typeof t === 'string' && t.length > 64 && t.length <= THUMB_MAX && /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(t);
+
+export function readThumb(ls, n) {
+  const t = getRaw(ls, slotThumbKey(n));
+  return isThumb(t) ? t : '';
+}
+
+export function writeThumb(ls, n, url) {
+  if (!isThumb(url)) return false;
+  try { ls0(ls).setItem(slotThumbKey(n), url); return true; } catch (e) { return false; } // full: no thumbnail, the savegame is what counts
+}
+
+// A copy of a slot in the first free place: the same save, the name + ' (kopie)', the thumbnail.
+// Returns { ok, n, name } or { ok: false, why: 'leeg' | 'vol' | 'opslaan' }. Never changes the original.
+export function copySlot(ls, n) {
+  const r = readSlot(ls, n);
+  if (!r.data) return { ok: false, why: 'leeg' };
+  const to = freeSlot(ls);
+  if (!to) return { ok: false, why: 'vol' };
+  if (!writeSlot(ls, to, r.data)) return { ok: false, why: 'opslaan' };
+  const name = cleanName(`${nameOf(ls, n).slice(0, NAME_MAX - 8)} (kopie)`);
+  const idx = readIndex(ls);
+  idx.names[to] = name;
+  writeIndex(ls, idx);
+  const th = readThumb(ls, n);
+  if (th) writeThumb(ls, to, th);
+  return { ok: true, n: to, name };
+}
+
+// 'zojuist', '12 min geleden', '3 u geleden', 'gisteren', '5 dagen geleden', else ''
+export function agoText(ms, now = Date.now()) {
+  if (!ms || !Number.isFinite(ms)) return '';
+  const s = Math.max(0, Math.floor((now - ms) / 1000));
+  if (s < 60) return 'zojuist';
+  const m = Math.floor(s / 60);
+  if (m < 60) return `${m} min geleden`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h} u geleden`;
+  const d = Math.floor(h / 24);
+  if (d === 1) return 'gisteren';
+  if (d < 14) return `${d} dagen geleden`;
+  return '';
 }
 
 // --- export / import --------------------------------------------------------------------
@@ -282,12 +332,12 @@ export function stateText(state) {
 
 export function importErrorText(why) {
   switch (why) {
-    case 'groot': return 'Dit bestand is te groot voor een spelstand.';
-    case 'nieuwer': return 'Deze spelstand komt uit een nieuwere versie van het spel.';
-    case 'ander-verhaal': return 'Deze spelstand hoort bij het andere verhaal.';
-    case 'vol': return `Alle ${MAX_SLOTS} plekken zijn in gebruik. Verwijder eerst een spelstand.`;
+    case 'groot': return 'Dit bestand is te groot voor een savegame.';
+    case 'nieuwer': return 'Deze savegame komt uit een nieuwere versie van het spel.';
+    case 'ander-verhaal': return 'Deze savegame hoort bij het andere verhaal.';
+    case 'vol': return `Alle ${MAX_SLOTS} plekken zijn in gebruik. Verwijder eerst een savegame.`;
     case 'opslaan': return 'Opslaan mislukt: er is geen ruimte meer.';
-    case 'geen-save': return 'Dit bestand is geen GDE-spelstand.';
+    case 'geen-save': return 'Dit bestand is geen GDE-savegame.';
     default: return 'Dit bestand is kapot en kan niet gelezen worden.';
   }
 }

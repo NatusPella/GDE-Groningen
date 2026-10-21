@@ -136,7 +136,7 @@ export function pointAlongRoad(road, p, offset) {
 
 // --- job vehicles -------------------------------------------------------------
 
-export function riderShirt(world) {
+function riderShirt(world) {
   const a = world.player.character === 'anita' ? ANITA_APPEARANCE : TAMMO_APPEARANCE;
   return '#' + a.shirt.toString(16).padStart(6, '0');
 }
@@ -147,7 +147,8 @@ export function spawnJobVehicle(world, x, y, { model, kind = 'car', angle = null
   const map = world.map;
   const car = kind !== 'bike';
   const rp = map.nearestRoadPoint(x, y, 150, car);
-  if (!rp) return null;
+  // a road only far from the spot means the roads there are not loaded yet: the truck would stand 100 m away and the job fail at once ('je liet je voertuig staan')
+  if (!rp || Math.hypot(rp.x - x, rp.y - y) > 40) return null;
   const v = spawnVehicleOnRoad(map, rp.road, false, Math.random, kind === 'bike', kind === 'bus', rp);
   if (model) v.model = { ...v.model, ...model };
   if (kind === 'bike') v.model = { ...v.model, rider: riderShirt(world) };

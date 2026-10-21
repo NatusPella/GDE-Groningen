@@ -4,12 +4,13 @@
 // ring carriageway. The GameMap constructor (mapdata.js) runs it on the
 // city; the province tile build (scripts/world/build_province.mjs) runs the
 // same code per pack, so a village gets what the city gets.
-import { polygonBounds, pointInPolygon, pointInStaticPolygon } from './util.js';
+import { polygonBounds, pointInPolygon } from './util.js';
+import { waterPolyIn } from './waterlevels.js';
 
 // OSM sometimes has the same footprint twice (e.g. Forum Groningen). Two
 // identical extrusions z-fight over their whole roof, so keep one - the
 // landmark-tagged copy if there is one.
-export function dedupeBuildings(list) {
+function dedupeBuildings(list) {
   const byKey = new Map();
   const out = [];
   for (const b of list) {
@@ -84,20 +85,17 @@ export function liftNestedRoofs(list, grid) {
   for (const b of new Set(steps)) b.lift = (b.lift || 0) + 0.4;
 }
 
-export function buildingsOverRails(buildings, rails) {
+function buildingsOverRails(buildings, rails) {
   return buildingsCrossedBy(buildings, rails.map((r) => r.pts || r), 4);
 }
 
 // Low footprints a bridge deck runs through at the waterside are bridge
 // machinery / abutments mapped as buildings; extruded they become a solid
 // wall straight across the carriageway, so they are dropped.
-export function bridgeStructures(buildings, roads, water) {
+function bridgeStructures(buildings, roads, water) {
   const crossed = buildingsCrossedBy(buildings, roads.filter((r) => r.bridge).map((r) => r.pts), 1);
   const out = new Set();
-  const wet = (x, y) => water.some((w) => {
-    const [minx, miny, maxx, maxy] = w.bounds || (w.bounds = polygonBounds(w.pts));
-    return x >= minx && x <= maxx && y >= miny && y <= maxy && pointInStaticPolygon(x, y, w.pts);
-  });
+  const wet = (x, y) => !!waterPolyIn(water, x, y);
   for (const b of crossed) {
     if (b.h > 4 || b.name || b.landmark || b.type === 'houseboat') continue;
     if (b.pts.some(([x, y]) => [[0, 0], [3, 0], [-3, 0], [0, 3], [0, -3]].some(([dx, dy]) => wet(x + dx, y + dy)))) out.add(b);
@@ -107,7 +105,7 @@ export function bridgeStructures(buildings, roads, water) {
 
 // Houseboats OSM draws (partly) over the bank: slid the shortest way out onto
 // open water, clear of other footprints; one that cannot float is dropped.
-export function mooredHouseboats(buildings, water) {
+function mooredHouseboats(buildings, water) {
   const boats = buildings.filter((b) => b.type === 'houseboat');
   if (!boats.length) return new Set();
   const dropped = new Set();
@@ -143,7 +141,7 @@ export function mooredHouseboats(buildings, water) {
       const wb = w.bounds || (w.bounds = polygonBounds(w.pts));
       return wb[0] < maxx + R && wb[2] > minx - R && wb[1] < maxy + R && wb[3] > miny - R;
     });
-    const wet = (x, y) => pools.some((w) => x >= w.bounds[0] && x <= w.bounds[2] && y >= w.bounds[1] && y <= w.bounds[3] && pointInStaticPolygon(x, y, w.pts));
+    const wet = (x, y) => !!waterPolyIn(pools, x, y);
     const cx = (minx + maxx) / 2, cy = (miny + maxy) / 2;
     const samples = b.pts.map(([x, y]) => {
       const dx = cx - x, dy = cy - y, l = Math.hypot(dx, dy) || 1, k = Math.min(0.3, l / 2) / l;
@@ -175,12 +173,12 @@ export function mooredHouseboats(buildings, water) {
   return dropped;
 }
 
-export const RING_TYPES = new Set(['motorway', 'motorway_link', 'trunk', 'trunk_link']);
+const RING_TYPES = new Set(['motorway', 'motorway_link', 'trunk', 'trunk_link']);
 export const isRingRoad = (r) => RING_TYPES.has(r.type) || (!!r.z && r.cat === 'major');
 
 // Footprints on a ring carriageway that the road would run into: at street
 // level or sunken below it, or a deck too low to clear the roof.
-export function buildingsOnRing(buildings, roads) {
+function buildingsOnRing(buildings, roads) {
   const lines = [], zs = [];
   for (const r of roads) {
     if (!isRingRoad(r)) continue;
@@ -207,7 +205,7 @@ export function buildingsOnRing(buildings, roads) {
   return out;
 }
 
-export function buildingsCrossedBy(buildings, lines, step, zs = null) {
+function buildingsCrossedBy(buildings, lines, step, zs = null) {
   // with zs (a height per line vertex): a Map building -> lowest height hit
   const out = zs ? new Map() : new Set();
   if (!lines.length) return out;
@@ -260,7 +258,8 @@ export function deriveBuildings(data) {
   const all = dedupeBuildings(data.buildings.filter((b) => !bridgeParts.has(b)));
   const overRails = buildingsOverRails(all, data.rails || []);
   const onRing = buildingsOnRing(all, data.ringRoads || data.roads);
-  const isCanopy = (b) => b.type === 'roof' || overRails.has(b);
+  // (b.canopy: a roof the tile build already derived as one, put back in the city's data by stad_laag.mjs)
+  const isCanopy = (b) => b.type === 'roof' || b.canopy === true || overRails.has(b);
   const canopies = all.filter((b) => isCanopy(b) && !onRing.has(b));
   const sunkBoats = mooredHouseboats(all, data.water);
   const buildings = all.filter((b) => !isCanopy(b) && !onRing.has(b) && !sunkBoats.has(b));

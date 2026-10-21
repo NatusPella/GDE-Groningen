@@ -112,5 +112,5 @@ Alleen bestanden en checklists; niets openbaar gemaakt, geüpload of gepost.
 - Automatische publicatiecheck: `scripts/publish_check.mjs` (+ test).
 - Checklist met beslissingen voor de eigenaar: [PUBLICATIECHECKLIST.md](PUBLICATIECHECKLIST.md).
 - Privacy en credits: [PRIVACY-EN-CREDITS.md](PRIVACY-EN-CREDITS.md); social preview en
-  websitetekst: [SOCIAL-EN-WEBSITE.md](SOCIAL-EN-WEBSITE.md); IARC-aanvulling voor coöp in
+  websitetekst: [SOCIAL-EN-WEBSITE.md](SOCIAL-EN-WEBSITE.md); IARC-aanvulling voor samen spelen in
   [IARC-ANTWOORDEN.md](IARC-ANTWOORDEN.md).

@@ -1,5 +1,5 @@
 import { clamp, pointInPolygon } from '../util.js';
-import { getScene } from '../scene3d.js';
+import { sfxLinks } from '../latehooks.js';
 import { edgeDistance, parcelAt, MAAR_WATER } from '../countryfield.js';
 import { urbanWeight } from '../provinceworld.js';
 import { trunksNear } from '../countrywalls.js';
@@ -417,7 +417,7 @@ function thunder(distance) {
 }
 
 function weatherEvents(world) {
-  const sc = getScene();
+  const sc = sfxLinks.getScene();
   const flash = sc && sc.userData ? sc.userData.lightningFlash || 0 : 0;
   const t = now();
   if (flash > 0.9 && lastFlash < 0.5) {
@@ -439,11 +439,14 @@ const ANIMALS = {
   sheep: { buf: 'sheep', gap: [6, 18], gain: 0.22, rate: [0.9, 1.15], h: 0.8, range: 60 },
   seagull: { buf: 'gull', gap: [7, 20], gain: 0.18, rate: [0.92, 1.1], h: 8, range: 90 },
   duck: { buf: 'duck', gap: [4, 12], gain: 0.16, rate: [0.9, 1.1], h: 0.2, range: 45 },
+  heron: { buf: 'heron', gap: [14, 40], gain: 0.2, rate: [0.9, 1.1], h: 0.8, range: 70 },
+  seal: { buf: 'seal', gap: [12, 30], gain: 0.2, rate: [0.9, 1.1], h: 0.2, range: 60 },
+  fish: { buf: 'imp_water', gap: [8, 20], gain: 0.07, rate: [1.6, 2.1], h: 0, range: 18 },
   pigeon: { buf: 'pigeon', gap: [5, 14], gain: 0.1, rate: [0.92, 1.08], h: 0.3, range: 30 },
   dog: { buf: 'dog', gap: [4, 14], gain: 0.22, rate: [0.8, 1.25], h: 0.5, range: 70, double: true },
   cat: { buf: 'cat', gap: [10, 30], gain: 0.14, rate: [0.9, 1.15], h: 0.3, range: 35 },
 };
-const ALIASES = { gans: 'duck', gull: 'seagull', meeuw: 'seagull', eend: 'duck', duif: 'pigeon', hond: 'dog', kat: 'cat', koe: 'cow', schaap: 'sheep' };
+const ALIASES = { gans: 'duck', gull: 'seagull', meeuw: 'seagull', eend: 'duck', duif: 'pigeon', hond: 'dog', kat: 'cat', koe: 'cow', schaap: 'sheep', reiger: 'heron', zeehond: 'seal', vis: 'fish' };
 
 function animalDef(kind) {
   if (typeof kind !== 'string') return null;

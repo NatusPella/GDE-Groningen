@@ -43,8 +43,8 @@ import { getOwnedEntries, spawnOwnedEntry, wardrobeMenu } from './shops.js';
 import { openShopMenu, isShopOpen } from './shopui.js';
 import { isCinematicActive } from './cinematics.js';
 import { respawnFade } from './respawn.js';
-import { saveGame } from './savegame.js';
-import { isMissionActive, isNight, getMissionDefs, setHomePlace } from './missions.js';
+import { saveGame } from './savehook.js';
+import { isMissionActive, isNight, getMissionDefs, setHomePlace } from './missionquery.js';
 import { refreshDayNight } from './daynight.js';
 import { recordStat, unlockAchievement } from './achievements.js';
 import { clearDrunk } from './drunk.js';
@@ -212,7 +212,7 @@ function buildLayout() {
   };
   // furniture as solid boxes for walking [x0, z0, x1, z1]
   flat.solids = [
-    [2.4, 3.35, 5.0, 4.55], [3.0, 2.1, 4.4, 2.9], [2.8, 0.2, 4.6, 1.35], [0.2, 0.2, 0.9, 0.9],
+    [2.4, 3.35, 5.0, 4.55], [3.0, 2.1, 4.4, 2.9], [0.2, 0.2, 0.9, 0.9],
     [7.1, 0.2, 10.9, 0.9], [10.1, 1.2, 10.9, 2.0], [7.6, 2.9, 8.8, 3.9],
     [6.1, 6.9, 7.1, 8.95], [7.3, 6.9, 8.3, 8.95], [3.85, 8.25, 5.55, 8.95], [10.3, 5.35, 10.95, 7.05],
   ];

@@ -39,6 +39,9 @@ eq('weak GPU, slow frames', adviseFromSample('laag', 45, 'hoog'), 'laag');
 eq('weak GPU, smooth frames', adviseFromSample('laag', 15, 'hoog'), 'middel');
 eq('strong GPU, smooth', adviseFromSample('hoog', 16, 'hoog'), null);
 eq('strong GPU, busy machine', adviseFromSample('hoog', 25, 'hoog'), 'middel');
+eq('strong GPU, just short of 60 fps', adviseFromSample('hoog', 19, 'hoog'), 'vlot');
+eq('vlot stays on vlot', adviseFromSample('hoog', 19, 'vlot'), null);
+eq('describe vlot', describePreset('vlot'), 'schaduwen aan · resolutie 100%, automatisch · zichtafstand kort');
 eq('already laag', adviseFromSample('laag', 45, 'laag'), null);
 
 eq('rec: hoog smooth', recommendPreset({ hoog: 60, middel: 61, laag: 62 }, 'hoog'), null);
@@ -85,11 +88,20 @@ eq('fast GPU with hitches: no steps', steps(120, (i) => (i % 40 === 0 ? [180, 17
 eq('fast GPU, a slow second now and then: no steps', steps(120, (i) => (i % 1000 < 30 ? [34, 6] : [7, 4])), []);
 eq('GPU-bound on hoog: steps after 3 s', steps(4.5, () => [35, 8]), ['0.9/0']);
 eq('CPU-bound: detail first, not resolution', steps(5, () => [35, 30]), ['1/1']);
+eq('weak machine (CPU-bound for good): level 1, 2, then 3', steps(30, () => [80, 70]), ['1/1', '1/2', '1/3']);
+eq('weak machine stays on level 3', cpuLevel(), 3);
+eq('a machine at 3 fps is not ignored: steps within 8 s', steps(8, () => [330, 300]).length >= 2, true);
+eq('far over budget steps faster than 35 ms frames', steps(4, () => [90, 80])[0], '1/1');
+eq('level 3: the shortest view', viewDistanceFor('heelver', 1, 3), 150);
+eq('level 3: the shortest view for ver too', viewDistanceFor('ver', 1, 3), 150);
 // slow for 4 s every 30 s: it settles low; each step back up waits longer
 eq('flapping: at most 9 steps in 3 min', steps(180, (i) => (i % 2350 < 115 ? [35, 8] : [12, 6])).length <= 9, true);
 resetDynamic();
 eq('mobile: phone', mobileProfileFor({ width: 390, height: 844 }), 'telefoon');
 eq('mobile: phone landscape', mobileProfileFor({ width: 844, height: 390 }), 'telefoon');
+eq('mobile: weak phone (memory)', mobileProfileFor({ width: 844, height: 390, cores: 8, memory: 2 }), 'telefoonZwak');
+eq('mobile: weak phone (cores)', mobileProfileFor({ width: 844, height: 390, cores: 4, memory: 6 }), 'telefoonZwak');
+eq('mobile: good phone', mobileProfileFor({ width: 844, height: 390, cores: 8, memory: 8 }), 'telefoon');
 eq('mobile: tablet', mobileProfileFor({ width: 820, height: 1180, cores: 6, memory: 4 }), 'tablet');
 eq('mobile: strong tablet', mobileProfileFor({ width: 1024, height: 1366, cores: 8, memory: 8 }), 'tabletKrachtig');
 eq('mobile: unknown screen', mobileProfileFor({}), 'tablet');

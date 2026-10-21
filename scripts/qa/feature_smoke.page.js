@@ -10,6 +10,7 @@ const sleep = (ms) => new Promise((res) => setTimeout(res, ms));
 const imp = (f) => import('/js/' + f + '.js');
 const SETTLE = (window.__fs && window.__fs.settle) || 8000;
 const ONLY = ((window.__fs && window.__fs.only) || '').split(',').filter(Boolean);
+const JOBS = (window.__fs && window.__fs.jobs) || [];
 
 // ---- errors ------------------------------------------------------------------------
 const issues = [];
@@ -397,6 +398,148 @@ const CHECKS = [
     }
     return out;
   } },
+  { id: 'interieurklasse', issues: [51], run: async () => {
+    const CI = await imp('carinterior');
+    const SH = await imp('shops');
+    const rd = nearestRoadHeading(GM.x, GM.y, 250);
+    if (!rd) return { fout: 'geen weg bij de Grote Markt' };
+    await go(rd.x, rd.y, rd.a, SETTLE);
+    const out = {};
+    for (const key of ['wervelwind', 'taxi', 'politie', 'ambulance', 'klusbus', 'bakwagen', 'stadsbus']) {
+      const spec = SH.VEHICLE_STOCK[key];
+      const v = new VH.Vehicle(rd.x, rd.y, rd.a, { ...spec.model, color: spec.color });
+      Object.assign(v, spec.flags || {});
+      w.vehicles.push(v);
+      await sleep(600);
+      teleport(v.x, v.y);
+      p.enterVehicle(v, w);
+      hold = null; driving = true;
+      v.speed = 0;
+      await sleep(3000);
+      const e = CI.interiorEyePose(v);
+      if (!e) { out[key] = 'geen interieur'; p.exitVehicle(map, w); driving = false; continue; }
+      const L = [e.fx, e.fy], R = [e.fy, -e.fx];
+      const pose = (dx, dy, dz) => ({ position: { x: e.x, y: e.y, z: e.z }, lookAt: { x: e.x + dx, y: e.y + dy, z: e.z + dz }, fov: 74, cut: true, interior: true });
+      await shotAt('ikl-' + key + '-voor', pose(L[0] * 30, L[1] * 30, -0.4), 1500);
+      await shotAt('ikl-' + key + '-opzij', pose(R[0] * 5 + L[0] * 1.2, R[1] * 5 + L[1] * 1.2, -1.5), 1500);
+      await shotAt('ikl-' + key + '-achter', pose(-L[0] * 5 + R[0] * 1, -L[1] * 5 + R[1] * 1, -1.5), 1500);
+      p.exitVehicle(map, w);
+      driving = false;
+      out[key] = { klasse: (await imp('carinteriorlayout')).interiorKlasse(v) };
+      w.vehicles.splice(w.vehicles.indexOf(v), 1);
+    }
+    return out;
+  } },
+  { id: 'fotomodus', issues: [199], run: async () => {
+    const FM = await imp('fotomodusui');
+    const rd = nearestRoadHeading(GM.x, GM.y, 250);
+    await go(rd.x, rd.y, rd.a, SETTLE);
+    const voor = { ui: !!w.uiPaused, cam: !!w.cameraOverride, cine: cine.isCinematicActive(), pauze: PM.isPauseMenuOpen(), pigeon: !!w.pigeonMode, ragdoll: !!p.ragdoll };
+    key('keydown', 'F8', 'F8'); await sleep(80); key('keyup', 'F8', 'F8');
+    await sleep(800);
+    if (!FM.isPhotoMode()) { PM.openPauseMenu('fotos'); await sleep(700); await snap('foto-galerij', 200); const b = document.querySelector('[data-foto-start]'); if (b) b.click(); await sleep(1200); }
+    const ok = FM.isPhotoMode();
+    if (!ok) return { gestart: false, voor };
+    await sleep(1500);
+    await snap('foto-start', 300);
+    for (let i = 0; i < 8; i++) { key('keydown', 'e', 'KeyE'); await sleep(60); key('keyup', 'e', 'KeyE'); await sleep(30); }
+    await sleep(600);
+    await snap('foto-kantel', 300);
+    for (let i = 0; i < 6; i++) { key('keydown', 'x', 'KeyX'); await sleep(60); key('keyup', 'x', 'KeyX'); await sleep(30); }
+    await sleep(600);
+    await snap('foto-dof', 300);
+    key('keydown', 'f', 'KeyF'); await sleep(60); key('keyup', 'f', 'KeyF');
+    await sleep(600);
+    await snap('foto-filter', 300);
+    key('keydown', 'Escape', 'Escape'); await sleep(80); key('keyup', 'Escape', 'Escape'); await sleep(500);
+    return { gestart: ok, daarna: FM.isPhotoMode() };
+  } },
+  { id: 'savescherm', issues: [208], run: async () => {
+    const SG = await imp('savegame');
+    const SU = await imp('saveslotsui');
+    const rd = nearestRoadHeading(GM.x, GM.y, 250);
+    await go(rd.x, rd.y, rd.a, SETTLE);
+    hold = null;
+    let saved = false;
+    try { saved = !!SG.saveGame(w, { toast: false }); } catch (e) { note('saveGame: ' + e.message); }
+    SU.openSaveSlots({ mode: 'game', world: w });
+    await sleep(1200);
+    await snap('saves-lijst', 200);
+    const btn = (d) => [...document.querySelectorAll('#saveslots [data-do]')].find((b) => b.dataset.do === d);
+    const r = btn('rename'); if (r) { r.click(); await sleep(500); await snap('saves-hernoemen', 200); }
+    const x = btn('back'); if (x) { x.click(); await sleep(300); }
+    key('keydown', 'Escape', 'Escape'); await sleep(60); key('keyup', 'Escape', 'Escape'); await sleep(400);
+    return { opgeslagen: saved, knoppen: [...document.querySelectorAll('#saveslots [data-do]')].map((b) => b.dataset.do) };
+  } },
+  { id: 'halte', issues: [225], run: async () => {
+    const HF = await imp('haltefiguren');
+    const SH = await imp('shops');
+    const rd = nearestRoadHeading(GM.x, GM.y, 250);
+    await go(rd.x, rd.y, rd.a, SETTLE);
+    const spec = SH.VEHICLE_STOCK.stadsbus;
+    const bus = new VH.Vehicle(rd.x + Math.cos(rd.a) * 12, rd.y + Math.sin(rd.a) * 12, rd.a, { ...spec.model, color: spec.color });
+    Object.assign(bus, spec.flags || {});
+    w.vehicles.push(bus);
+    await sleep(1500);
+    HF.queueHalte(w, bus, { board: 3, alight: 2 });
+    const side = [-Math.sin(rd.a), Math.cos(rd.a)]; // rechts van de bus: de kant van de deuren
+    const pose = { position: { x: bus.x + side[0] * 9 - Math.cos(rd.a) * 3, y: bus.y + side[1] * 9 - Math.sin(rd.a) * 3, z: gh(bus.x, bus.y) + 2.2 }, lookAt: { x: bus.x, y: bus.y, z: gh(bus.x, bus.y) + 1.2 }, fov: 60, cut: true };
+    ownShot = true;
+    cine.playCinematic({ id: 'fs-view', duration: 60, priority: 9, shot: () => pose });
+    for (const t of [900, 1500, 1500, 2000]) { await sleep(t); console.log('[capture] halte-' + t + '-' + Math.round(performance.now() % 100000)); await sleep(400); }
+    cine.skipCinematic(); ownShot = false;
+    w.vehicles.splice(w.vehicles.indexOf(bus), 1);
+    return { deuren: JSON.stringify(bus.doors && bus.doors.open) };
+  } },
+  { id: 'hudmotor', issues: [33], run: async () => {
+    const SH = await imp('shops');
+    const rd = nearestRoadHeading(GM.x, GM.y, 250);
+    await go(rd.x, rd.y, rd.a, SETTLE);
+    const out = {};
+    for (const naam of ['stormvogel', 'knetter', 'wervelwind']) {
+      const spec = SH.VEHICLE_STOCK[naam];
+      const v = new VH.Vehicle(rd.x, rd.y, rd.a, { ...spec.model, color: spec.color });
+      Object.assign(v, spec.flags || {});
+      if (spec.kind === 'scooter') v.isScooter = true;
+      w.vehicles.push(v);
+      await sleep(500);
+      teleport(v.x, v.y);
+      p.enterVehicle(v, w);
+      hold = null; driving = true;
+      key('keydown', 'w', 'KeyW');
+      await sleep(3500);
+      await snap('hudmotor-' + naam, 300);
+      key('keyup', 'w', 'KeyW');
+      p.exitVehicle(map, w);
+      driving = false;
+      w.vehicles.splice(w.vehicles.indexOf(v), 1);
+      out[naam] = { snelheid: Math.round(v.speed * 3.6) };
+    }
+    return out;
+  } },
+  { id: 'schade', issues: [205, 225], run: async () => {
+    const rd = nearestRoadHeading(GM.x, GM.y, 250);
+    await go(rd.x, rd.y, rd.a, SETTLE);
+    const out = {};
+    const stand = [['heel', 100, []], ['gedeukt', 80, [[1.9, 0.2, 0.9], [0.2, 0.9, 0.8]]], ['rook', 50, [[1.9, 0.1, 1.2], [-1.9, 0.3, 1.3], [0.4, -0.9, 1.7]]], ['brand', 25, [[1.9, 0, 2], [-1.9, 0.2, 1.7], [0.3, 0.9, 2], [0.2, -0.9, 2]]]];
+    const model = VH.TRAFFIC_MODELS().find((m) => m.name === 'sedan');
+    let i = 0;
+    for (const [naam, health, dents] of stand) {
+      const v = new VH.Vehicle(rd.x + Math.cos(rd.a) * (6 + i * 7), rd.y + Math.sin(rd.a) * (6 + i * 7), rd.a, { ...model });
+      v.health = health; v.dentLog = dents; v.speed = 0; v.parked = true;
+      w.vehicles.push(v);
+      i++; out[naam] = health;
+    }
+    await sleep(3500);
+    const bx = rd.x + Math.cos(rd.a) * 16, by = rd.y + Math.sin(rd.a) * 16;
+    const side = [-Math.sin(rd.a), Math.cos(rd.a)];
+    const pose = { position: { x: bx + side[0] * 13, y: by + side[1] * 13, z: gh(bx, by) + 4 }, lookAt: { x: bx, y: by, z: gh(bx, by) + 0.8 }, fov: 62, cut: true };
+    await shotAt('schade-rij', pose, 3000);
+    const pose2 = { position: { x: bx - Math.cos(rd.a) * 3 + side[0] * 6, y: by - Math.sin(rd.a) * 3 + side[1] * 6, z: gh(bx, by) + 2.2 }, lookAt: { x: bx + Math.cos(rd.a) * 8, y: by + Math.sin(rd.a) * 8, z: gh(bx, by) + 0.9 }, fov: 60, cut: true };
+    await shotAt('schade-rook', pose2, 2500);
+    for (const v of w.vehicles.slice(-4)) w.vehicles.splice(w.vehicles.indexOf(v), 1);
+    return out;
+  } },
   { id: 'hud', issues: [33], run: async () => {
     const rd = nearestRoadHeading(GM.x, GM.y, 250);
     await go(rd.x, rd.y, rd.a, SETTLE);
@@ -416,6 +559,121 @@ const CHECKS = [
     driving = false;
     w.vehicles.splice(w.vehicles.indexOf(v), 1);
     return { venster: [innerWidth, innerHeight], schaal: getComputedStyle(document.getElementById('hud') || document.body).zoom };
+  } },
+  // bijbanen (speeltestlus): elke bijbaan naar de plek, E, vier seconden draaien, toestand lezen, stoppen
+  { id: 'bijbanen', issues: [], run: async () => {
+    const SJ = await imp('sidejobs');
+    const act = w.sideJobActions; if (!act) return { fout: 'world.sideJobActions ontbreekt (bijbanen niet gestart)' };
+    const seen = new Set(); const out = [];
+    const alle = SJ.getSideJobSpotsForRender();
+    // twee bijbanen op (vrijwel) dezelfde plek: de dichtstbijzijnde wint, de ander is niet te starten
+    const gestapeld = [];
+    for (let i = 0; i < alle.length; i++) for (let j = i + 1; j < alle.length; j++) if (Math.hypot(alle[i].x - alle[j].x, alle[i].y - alle[j].y) < 3) gestapeld.push([alle[i].job.id, alle[j].job.id, Math.round(alle[i].x), Math.round(alle[i].y)]);
+    for (const sp of alle) {
+      const id = sp.job.id; if (seen.has(id)) continue; seen.add(id);
+      if (JOBS.length && !JOBS.includes(id)) continue;
+      w.wanted = 0; w.health = 100;
+      const i0 = issues.length;
+      await go(sp.x, sp.y, 0, JOBS.length ? 9000 : 3500);
+      // a job whose roads were not loaded steps to its road once they are (reanchor): follow it
+      for (let k = 0; k < 3 && Math.hypot(p.x - sp.x, p.y - sp.y) > 2; k++) await go(sp.x, sp.y, 0, JOBS.length ? 9000 : 3500);
+      w.wanted = 0;
+      let pogingen = 0;
+      const diag = [];
+      if (JOBS.length && D.sidejobs) {
+        // één E, dan elke 300 ms kijken wat er met de baan en zijn voertuig gebeurt
+        await tap('e', 'KeyE', 160);
+        for (let k = 0; k < 14; k++) {
+          const c = D.sidejobs.ctx(); const bn = document.querySelector('.cine-banner');
+          diag.push({ k, actief: !!c, voertuig: c && c.vehicle ? { x: Math.round(c.vehicle.x), y: Math.round(c.vehicle.y), sunk: !!c.vehicle.sunk, wrecked: !!c.vehicle.wrecked, inWereld: w.vehicles.includes(c.vehicle), inWater: !!(c.vehicle.inWater || c.vehicle.wet) } : null, banner: bn && !bn.hidden ? `${(bn.querySelector('.cb-title') || {}).textContent}: ${(bn.querySelector('.cb-reason') || {}).textContent}` : null, speler: [Math.round(p.x), Math.round(p.y)], inAuto: !!p.inVehicle });
+          await sleep(300);
+        }
+      }
+      while (pogingen < (JOBS.length ? 5 : 3) && !act.active()) { pogingen++; if (Math.hypot(p.x - sp.x, p.y - sp.y) > 2) await go(sp.x, sp.y, 0, 4000); await tap('e', 'KeyE', 160); await sleep(JOBS.length ? 3000 : 1500); }
+      const gestart = act.active();
+      const dichtbij = Math.round(Math.hypot(p.x - sp.x, p.y - sp.y) * 10) / 10;
+      const water = !!(p.swimming || p.water);
+      const melding = gestart ? null : (w.messages || []).slice(-3).map((m) => (m.text || '').slice(0, 80));
+      const bn = document.querySelector('.cine-banner');
+      const banner = !gestart && bn && !bn.hidden ? `${(bn.querySelector('.cb-title') || {}).textContent}: ${(bn.querySelector('.cb-reason') || {}).textContent}` : null;
+      let staat = null;
+      if (gestart) {
+        await sleep(4000);
+        const pub = w.sideJob || {};
+        staat = { actief: act.active(), naam: act.name(), label: pub.label, voortgang: pub.progress, tijdOver: pub.timeLeft == null ? null : Math.round(pub.timeLeft) };
+        await snap('bijbaan-' + id, 200);
+        act.stop(); await sleep(4500);
+      }
+      out.push({ id, naam: sp.job.name, x: Math.round(sp.x), y: Math.round(sp.y), dichtbij, water, pogingen, gestart, melding, banner, diag, juisteBaan: gestart ? (staat && staat.naam === sp.job.name) : null, staat, meldingen: issues.slice(i0).map((x) => x.m) });
+    }
+    return { gestapeld, banen: out, opmerking: 'alleen starten en vier seconden meedraaien; niet gespeeld tot een klus af was, niet beoordeeld: balans, uitleg en loon' };
+  } },
+  // voertuigen (speeltestlus): elk winkelvoertuig op een weg bij de Grote Markt neerzetten, instappen, drie seconden gas, kijken of het rijdt
+  { id: 'voertuigen', issues: [], run: async () => {
+    const S = await imp('shops');
+    const road = nearestRoadHeading(200, 45, 120) || { x: 200, y: 45, a: 0 };
+    const out = [];
+    for (const [vk, spec] of Object.entries(S.VEHICLE_STOCK)) {
+      if (spec.kind === 'boat' || spec.kind === 'heli') continue;
+      const i0 = issues.length;
+      w.wanted = 0; w.health = 100;
+      await go(road.x, road.y, road.a, 2500);
+      hold = null;
+      let v = null, fout = null;
+      try { v = S.spawnStockVehicle(w, vk, road.x + 3, road.y, road.a); } catch (e) { fout = String(e && e.message || e).slice(0, 120); }
+      if (!v) { out.push({ key: vk, fout: fout || 'niet gespawnd', meldingen: issues.slice(i0).map((x) => x.m) }); continue; }
+      let moved = 0, top = 0, sp = null;
+      try {
+        teleport(v.x, v.y); p.enterVehicle(v, w);
+        driving = true; key('keydown', 'w', 'KeyW');
+        const x0 = v.x, y0 = v.y;
+        for (let i = 0; i < 12; i++) { await sleep(250); top = Math.max(top, Math.abs(v.speed || 0)); }
+        moved = Math.hypot(v.x - x0, v.y - y0);
+        await snap('voertuig-' + vk, 100);
+      } catch (e) { fout = String(e && e.message || e).slice(0, 120); }
+      finally { key('keyup', 'w', 'KeyW'); driving = false; }
+      try { if (p.inVehicle) p.exitVehicle(map, w); } catch (e) { /* ignore */ }
+      try { w.vehicles.splice(w.vehicles.indexOf(v), 1); } catch (e) { /* ignore */ }
+      out.push({ key: vk, soort: spec.kind, label: spec.label, bewogen: Math.round(moved * 10) / 10, top: Math.round(top * 10) / 10, fout, meldingen: issues.slice(i0).map((x) => x.m) });
+    }
+    return { voertuigen: out, opmerking: 'alleen: neerzetten, instappen, drie seconden gas; niet beoordeeld: besturing, geluid, uiterlijk' };
+  } },
+  // winkelen (speeltestlus): per winkeltype naar de deur, E, het paneel lezen, het eerste item kopen en weglopen
+  { id: 'winkelen', issues: [170], run: async () => {
+    const S = await imp('shops');
+    const SU = await imp('shopui');
+    const byType = new Map();
+    for (const sh of S.getShopsForRender()) if (!sh.country && sh.type !== 'heli' && !byType.has(sh.type)) byType.set(sh.type, sh);
+    const out = [];
+    for (const [type, sh] of byType) {
+      w.money = 5000; w.wanted = 0;
+      if (PM.isPauseMenuOpen()) PM.closePauseMenu();
+      await go(sh.x, sh.y, 0, 3500);
+      w.wanted = 0;
+      const prompt = S.shopPrimaryPrompt(w);
+      const dichtbij = !!S.nearestShop(w);
+      let pogingen = 0;
+      // E tot het paneel opengaat (maximaal drie keer): een eerste E dat niets doet is zelf een bevinding
+      while (pogingen < 3 && !SU.isShopOpen()) { pogingen++; await tap('e', 'KeyE', 160); await sleep(1500); }
+      const open = SU.isShopOpen();
+      const meldingen = (w.messages || []).slice(-2).map((m) => (m.text || '').slice(0, 80));
+      const panel = document.getElementById('shop-menu');
+      const items = panel ? [...panel.querySelectorAll('.sm-item')].map((e) => (e.textContent || '').replace(/s+/g, ' ').trim().slice(0, 60)) : [];
+      await snap('winkelen-' + type, 300);
+      const m0 = w.money;
+      let gekocht = null;
+      if (open && items.length) {
+        await tap('Enter', 'Enter', 120); await sleep(500);
+        await tap('Enter', 'Enter', 120); await sleep(1200);
+        gekocht = { uitgegeven: m0 - w.money };
+        await snap('winkelen-' + type + '-gekocht', 300);
+      }
+      const pauze = PM.isPauseMenuOpen();
+      if (SU.isShopOpen()) { await tap('Escape', 'Escape', 120); await sleep(600); }
+      if (PM.isPauseMenuOpen()) PM.closePauseMenu();
+      out.push({ type, naam: sh.name, pauzeNaAfloop: pauze, prompt: prompt && prompt.label, dichtbij, pogingen, wanted: w.wanted, meldingen, open, items: items.length, eerste: items[0] || null, gekocht, dichtNaEsc: !SU.isShopOpen() });
+    }
+    return { winkels: out, opmerking: 'per type de eerste winkel; het eerste item is gekocht met €5000 op zak; niet beoordeeld: prijzen, voorraad, of het gekochte voertuig of kledingstuk er goed uitziet' };
   } },
   { id: 'titel', issues: [34], run: async () => {
     const SS = await imp('startscreen');

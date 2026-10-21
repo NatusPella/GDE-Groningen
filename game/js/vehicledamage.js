@@ -7,7 +7,7 @@
 // reparatie (dentLog leeg) zet alles in één keer terug. Bloedloos: alleen plaatwerk, glas,
 // rook en vuur; een bestuurder wordt hier nooit getoond of geraakt.
 
-export const ZONES = ['voor', 'achter', 'zijkant'];
+const ZONES = ['voor', 'achter', 'zijkant'];
 
 // Welke zone een klap raakte; len en wid zijn de maten van het model.
 export function zoneOf(lx, lz, len, wid) {
@@ -52,7 +52,16 @@ export const onderdelenPrijs = (ids) => ids.reduce((s, id) => s + (ONDERDELEN[id
 // De fases van een voertuig, van heel tot wrak.
 export const SMOKE_HEALTH = 55; // vanaf hier rookt de motorkap
 export const FIRE_HEALTH = 30; // en hieronder staat hij in brand (vehicle.js VEHICLE_FIRE_HEALTH_THRESHOLD)
-export const DENT_FROM = 0.4; // vanaf deze totale klapsterkte telt hij als gedeukt
+const DENT_FROM = 0.4; // vanaf deze totale klapsterkte telt hij als gedeukt
+
+// Een scheve of losse motorkap laat de motor eerder roken: vanaf deze klapsterkte vóór en deze gezondheid.
+const KAP_ROOK_VANAF = 0.7; // gelijk aan scheefAt van de kap in vehicledoors.js
+const KAP_ROOK_HEALTH = 78;
+export function kapRookt(v, len, wid) {
+  if (!v || v.wrecked) return false;
+  const h = Number.isFinite(v.health) ? v.health : 100;
+  return h <= KAP_ROOK_HEALTH && zoneTotals(v.dentLog, len, wid).voor >= KAP_ROOK_VANAF;
+}
 
 // v: { health, wrecked, disabled, dentLog }
 export function schadeFase(v, len, wid) {
@@ -60,7 +69,7 @@ export function schadeFase(v, len, wid) {
   if (v.wrecked) return 'wrak';
   const h = Number.isFinite(v.health) ? v.health : 100;
   if (v.disabled || h <= FIRE_HEALTH) return 'brand';
-  if (h <= SMOKE_HEALTH) return 'rook';
+  if (h <= SMOKE_HEALTH || kapRookt(v, len, wid)) return 'rook';
   const t = zoneTotals(v.dentLog, len, wid);
   return h < 90 || t.voor + t.achter + t.zijkant >= DENT_FROM ? 'gedeukt' : 'heel';
 }
@@ -76,7 +85,7 @@ export function faseEffect(fase) {
 }
 
 const FASE_TEKST = { heel: 'Heel', gedeukt: 'Gedeukt', rook: 'Rookt', brand: 'Staat in brand', wrak: 'Wrak' };
-export const faseTekst = (f) => FASE_TEKST[f] || FASE_TEKST.heel;
+const faseTekst = (f) => FASE_TEKST[f] || FASE_TEKST.heel;
 
 // Een zin voor het garagemenu: "Gedeukt: voor en zijkant. Los: spiegels".
 export function schadeTekst(v, len, wid) {

@@ -21,6 +21,31 @@ import { pointInPolygon as inPolygon } from './polygon.js';
 export const BOEZEM_Y = -2.3;
 export const BOEZEM_NAP = -0.93;
 
+// The water of a body that lies at its own peil is drawn there (#299): the Lauwersmeer, held at
+// its lake level behind the locks of Lauwersoog and Zoutkamp, lies 1,3 m above the Wadden and the
+// Reitdiep. Every other water is drawn at WATER_Y whatever its `lv` says (their `lv` is a guess of
+// the build: a lake that touches no boezem polygon in the data is not a lake with a peil of its own).
+export const OWN_SURFACE = /^Lauwersmeer$/;
+// metres the polygon's surface lies above WATER_Y
+export function surfaceLift(poly) {
+  if (!poly) return 0;
+  if (poly._lift === undefined) poly._lift = poly.kind === 'meer' && poly.lv !== undefined && poly.name && OWN_SURFACE.test(poly.name) ? Math.max(0, poly.lv - BOEZEM_Y) : 0;
+  return poly._lift;
+}
+// the highest surface at (x, y): the lake over the creek polygons the data lays inside it
+export function surfaceLiftAt(map, x, y) {
+  if (!map || !map.waterNear) return 0;
+  let best = 0;
+  for (const w of map.waterNear(x, y, 0.5)) {
+    const l = surfaceLift(w);
+    if (l <= best) continue;
+    const b = w.bounds || (w.bounds = boundsOf(w.pts));
+    if (x < b[0] || x > b[2] || y < b[1] || y > b[3]) continue;
+    if (pointInStaticPolygon(x, y, w.pts)) best = l;
+  }
+  return best;
+}
+
 // per kind: depth below the level, the largest boat class, the level relative
 // to street level where the kind has its own (a polder ditch)
 export const WATER_KINDS = {
@@ -99,6 +124,10 @@ export const bargeWater = (poly) => { const c = waterwayClass(poly); return c ==
 export const bargeWaterAt = (w) => !!w && w.kind !== 'sloot' && w.kind !== 'vaart' && w.navigable >= 3;
 // the deck of a city bridge: its top at the road, its soffit this far below
 export const BRIDGE_DECK_T = 0.5;
+// The clearance (m above the water) of a fixed bridge over a shipping waterway of the province (MAIN_WATERWAYS: the Eemskanaal,
+// the Van Starkenborghkanaal ...). AANNAME (#295): the map holds no deck heights for the province's bridges; CEMT class IV asks for
+// 5,25 m and the barge of the game (4,2 m) clears that with room to spare. province_profile.mjs gives such a bridge a deck this high.
+export const SHIPPING_CLEAR = 5.25;
 
 // --------------------------------------------------------------- geometry
 
@@ -157,10 +186,29 @@ export function pointInStaticPolygon(px, py, poly) {
 }
 
 // The water polygon holding (x, y), or null: the one lookup behind waterAt,
-// isInWater, inMapWater and the waterPoly of a boat.
-export function waterPolyAt(map, x, y) {
+// isInWater, inMapWater, overOpenWater and the waterPoly of a boat (the water rule, #101).
+//   z (absolute height of whoever asks, optional): over the water on a viaduct (z > 1.5) or
+//     below it in an aqueduct (z < -3 where map.coveredAt) is dry. Without z there is no height rule.
+//   opts.bridgeDry: a bridge deck at (x, y) makes it dry (map.isOnBridge). The walker's and the
+//     car's rule; a swimmer under a bridge, a boat and the plain polygon test leave it off.
+export const BRIDGE_DRY = Object.freeze({ bridgeDry: true });
+export function waterPolyAt(map, x, y, z, opts) {
   if (!map.waterNear) return null;
-  for (const w of map.waterNear(x, y, 0.5)) {
+  const poly = waterPolyIn(map.waterNear(x, y, 0.5), x, y);
+  if (!poly) return null;
+  if (z < -3 && map.coveredAt && map.coveredAt(x, y)) return null;
+  if (z > 1.5) return null;
+  if (opts && opts.bridgeDry && map.isOnBridge && map.isOnBridge(x, y)) return null;
+  return poly;
+}
+// Is there water within r of (x, y), in the map's water grid (cells, not an exact distance): a gull,
+// a police boat or a pigeon looks for water round the player; not "is this point wet" (waterAt).
+export function waterNearby(map, x, y, r) {
+  return !!map.waterNear && map.waterNear(x, y, r).length > 0;
+}
+// the same test over a list got once (a road's whole run: mapdata.js markDryRoad)
+export function waterPolyIn(polys, x, y) {
+  for (const w of polys) {
     const b = w.bounds || (w.bounds = boundsOf(w.pts));
     if (x < b[0] || x > b[2] || y < b[1] || y > b[3]) continue;
     if (pointInStaticPolygon(x, y, w.pts)) return w;
@@ -208,6 +256,19 @@ export function waterBodies(water, touch = 1.0, apart = null) {
   const ids = new Map(), body = new Int32Array(n);
   for (let i = 0; i < n; i++) { const r = find(i); if (!ids.has(r)) ids.set(r, ids.size); body[i] = ids.get(r); }
   return { body, count: ids.size };
+}
+
+// The grid cells (index into g.dist) whose centre lies in the polygon P, by the same scanline as waterGrid.
+export function cellsOf(g, P, fn) {
+  const { W, H, x0, y0, cell } = g, b = boundsOf(P);
+  for (let gy = Math.max(0, Math.floor((b[1] - y0) / cell)); gy <= Math.min(H - 1, Math.ceil((b[3] - y0) / cell)); gy++) {
+    const y = y0 + (gy + 0.5) * cell, xs = [];
+    for (let k = 0, j = P.length - 1; k < P.length; j = k++) if ((P[k][1] > y) !== (P[j][1] > y)) xs.push(P[k][0] + ((P[j][0] - P[k][0]) * (y - P[k][1])) / (P[j][1] - P[k][1]));
+    xs.sort((a, c) => a - c);
+    for (let q = 0; q + 1 < xs.length; q += 2) {
+      for (let gx = Math.max(0, Math.ceil((xs[q] - x0) / cell - 0.5)); gx <= Math.min(W - 1, Math.floor((xs[q + 1] - x0) / cell - 0.5)); gx++) fn(gy * W + gx);
+    }
+  }
 }
 
 // Rasterises a set of polygons (indices into water) on a grid of `cell` m and
@@ -285,17 +346,24 @@ export function annotateWater(water, cell = 2.5, apart = null, focus = null) {
     // the grid is a cell coarse: in narrow water the exact distance to the
     // body's shore (edges shared by two polygons are no shore)
     let idx = null;
-    for (let k = 0; k < g.W * g.H; k++) {
-      if (!g.poly[k]) continue;
-      const pi = g.poly[k] - 1;
+    // (a cell the grid holds for the last polygon over it is every polygon's own: a ribbon laid over a canal
+    // polygon would take the polygon's widest cells, and its width would fall to a ditch's. One distance per cell.)
+    const dOf = new Map();
+    const distAt = (k) => {
       let d = g.dist[k];
       if (d < 3 * cell) {
-        if (!idx) idx = createWaterIndex(list.map((i) => water[i]));
-        const cx = k % g.W, cy = (k - cx) / g.W;
-        d = idx.nearestShore(g.x0 + (cx + 0.5) * cell, g.y0 + (cy + 0.5) * cell, 4 * cell).d;
+        let v = dOf.get(k);
+        if (v === undefined) {
+          if (!idx) idx = createWaterIndex(list.map((i) => water[i]));
+          const cx = k % g.W, cy = (k - cx) / g.W;
+          v = idx.nearestShore(g.x0 + (cx + 0.5) * cell, g.y0 + (cy + 0.5) * cell, 4 * cell).d;
+          dOf.set(k, v);
+        }
+        d = v;
       }
-      width[pi] = Math.max(width[pi], 2 * d);
-    }
+      return d;
+    };
+    for (const i of list) cellsOf(g, water[i].pts, (k) => { const d = distAt(k); if (2 * d > width[i]) width[i] = 2 * d; });
   }
   // a polygon too thin for a cell centre: its own width
   water.forEach((w, i) => { if (!width[i]) width[i] = 2 * polyArea(w.pts) / (polyPerimeter(w.pts) || 1); });
@@ -352,10 +420,51 @@ function lockChambers(rows, locks) {
 // annotateProvinceWater; a lock chamber is flagged `lock` but does not split the body (the city has one
 // boezem); `focus(x, y)` says where the city is, so its water is the boezem and not a lake of the pack.
 // `base` offsets the body ids.
+// A strip of a mapped canal (its centre line drawn 14 m wide) that lies wholly in a shipping canal's polygon is
+// part of that canal, as it was where the city map had them as one polygon (the arms of the Diepenring: Turfsingel,
+// Schuitendiep, Spilsluizen): it takes the polygon's kind, depth and class. Only a diep or vaart strip, only
+// where OVER_CANAL of its samples lie in kanaal polygons.
+const OVER_CANAL = 0.9;
+function laidOverCanal(water) {
+  const canals = water.filter((w) => w.nav === 4 && w.kind === 'kanaal').map((w) => ({ w, b: w.bounds || (w.bounds = boundsOf(w.pts)) }));
+  if (!canals.length) return 0;
+  let n = 0;
+  for (const w of water) {
+    if (w.kind !== 'diep' && w.kind !== 'vaart') continue;
+    const A = polyArea(w.pts);
+    if (A > 60000) continue;
+    const b = w.bounds || (w.bounds = boundsOf(w.pts));
+    const near = canals.filter((c) => c.b[0] <= b[2] && c.b[2] >= b[0] && c.b[1] <= b[3] && c.b[3] >= b[1]);
+    if (!near.length) continue;
+    const step = Math.max(4, Math.sqrt(A / 60));
+    let all = 0, hit = 0;
+    for (let y = b[1] + step / 2; y < b[3]; y += step) for (let x = b[0] + step / 2; x < b[2]; x += step) {
+      if (!inPolygon(x, y, w.pts)) continue;
+      all++;
+      if (near.some((c) => x >= c.b[0] && x <= c.b[2] && y >= c.b[1] && y <= c.b[3] && pointInStaticPolygon(x, y, c.w.pts))) hit++;
+    }
+    if (all >= 3 && hit >= OVER_CANAL * all) { w.kind = 'kanaal'; w.dp = WATER_KINDS.kanaal.depth; w.nav = WATER_KINDS.kanaal.nav; n++; }
+  }
+  return n;
+}
+const polySig = (w) => { const P = w.pts, m = P[P.length >> 1], l = P[P.length - 1]; return `${P.length}|${P[0]}|${m}|${l}|${w.name || ''}`; };
 export function annotateCityWater(rows, { base = 0, village = null, locks = [], focus = null } = {}) {
   const chambers = lockChambers(rows, locks);
   rows.forEach((w, i) => { if (chambers.has(i)) w.lock = true; });
-  const bodies = annotateWater(rows, 2.5, null, focus);
+  // The same polygon comes from every pack that holds it (a canal over a pack's edge): classified once, as the
+  // old city map had it once, else the copies lay over each other and a copy could lose its widest cells to another.
+  const seen = new Map(), uniq = [], of = rows.map((w) => {
+    const k = polySig(w);
+    let u = seen.get(k);
+    if (u === undefined) { u = uniq.length; seen.set(k, u); uniq.push(w); }
+    return u;
+  });
+  const bodies = annotateWater(uniq, 2.5, null, focus);
+  laidOverCanal(uniq);
+  rows.forEach((w, i) => {
+    const u = uniq[of[i]];
+    if (w !== u) { w.body = u.body; w.kind = u.kind; w.lv = u.lv; w.dp = u.dp; w.nav = u.nav; }
+  });
   rows.forEach((w) => {
     w.body += base;
     const c = polyCentre(w.pts);
@@ -425,34 +534,40 @@ export const passesUnder = (air, clear) => clear >= air + 0.05;
 
 // --------------------------------------------------------------- the query
 
-// The one water query for boats, swimmers, the heli and walkers:
-//   waterAt(map, x, y) -> null on dry land, else
-//   { level, depth, body, kind, navigable, wade, clearanceAbove }
-// clearanceAbove: free height to a bridge deck over (x, y) (Infinity when
-// none).
-
-export function waterAt(map, x, y) {
-  const poly = waterPolyAt(map, x, y);
-  if (poly) {
-    const kind = poly.kind || 'diep';
-    const K = WATER_KINDS[kind] || WATER_KINDS.diep;
-    const level = poly.lv ?? BOEZEM_Y, depth = poly.dp ?? K.depth;
-    return {
-      level, depth, body: poly.body ?? -1, kind, navigable: poly.nav ?? K.nav, wade: depth <= WADE_MAX, lock: !!poly.lock,
-      clearanceAbove: clearanceOver(map, x, y, level),
-    };
-  }
-  return null;
+// The one water query for boats, swimmers, the heli, walkers and vehicles (#101):
+//   waterAt(map, x, y, z?, opts?) -> null on dry land, else
+//   { level, depth, kind, covered, ...: body, navigable, wade, lock, clearanceAbove }
+// level: the peil (m relative to street level); depth: below it; kind: WATER_KINDS;
+// covered: the water runs under a roof or road here (an aqueduct): a walker above it is dry;
+// clearanceAbove: free height to a bridge deck over (x, y) (Infinity when none).
+// The rule is waterPolyAt's, which gives the polygon itself (z and opts.bridgeDry, see there); the
+// other question a caller has is an option, not a second finder:
+//   opts.bridgeDry  a bridge deck over the water makes it dry (walkers, cars; isInWater is this)
+//   opts.shallow    only water a vehicle drives through: wadeable, with a peil of its own above the
+//                   boezem's (a polder ditch, the shallows of a lake), and dry under a bridge deck
+//                   (shallowWater is this)
+// Plain waterAt(map, x, y) is the water as it lies: a swimmer under a bridge is in it, a boat sails it.
+export function waterAt(map, x, y, z, opts) {
+  const shallow = !!(opts && opts.shallow);
+  const poly = waterPolyAt(map, x, y, z, shallow ? BRIDGE_DRY : opts);
+  if (!poly) return null;
+  const kind = poly.kind || 'diep';
+  const K = WATER_KINDS[kind] || WATER_KINDS.diep;
+  const level = poly.lv ?? BOEZEM_Y, depth = poly.dp ?? K.depth;
+  const wade = depth <= WADE_MAX;
+  if (shallow && (!wade || level <= BOEZEM_Y)) return null;
+  return {
+    level, depth, body: poly.body ?? -1, kind, navigable: poly.nav ?? K.nav, wade, lock: !!poly.lock,
+    covered: !!(map.coveredAt && map.coveredAt(x, y)),
+    clearanceAbove: clearanceOver(map, x, y, level),
+  };
 }
 
 // Water a vehicle drives through: waded depth and a peil of its own above the
 // boezem's (a polder ditch, a shallow of a lake). Deep water sinks it (vehicle.js
 // overOpenWater); on a bridge it is dry. null elsewhere.
-export function shallowWater(map, x, y) {
-  const w = waterAt(map, x, y);
-  if (!w || !w.wade || w.level <= BOEZEM_Y || (map.isOnBridge && map.isOnBridge(x, y))) return null;
-  return w;
-}
+const SHALLOW = Object.freeze({ shallow: true });
+export const shallowWater = (map, x, y) => waterAt(map, x, y, undefined, SHALLOW);
 
 // free height from the level to the nearest bridge deck over (x, y)
 export function clearanceOver(map, x, y, level = BOEZEM_Y) {

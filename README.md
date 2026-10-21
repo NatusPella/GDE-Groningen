@@ -101,12 +101,12 @@ De builds staan bij de [Releases](../../releases) van deze repo, per versie:
   en start `gde-groningen`. Op de Steam Deck: download in de
   bureaubladmodus en voeg hem toe met **Aan Steam toevoegen**.
 
-### Spelstanden en privacy
+### Opgeslagen spellen en privacy
 
 Het spel slaat vanzelf op (en met **Opslaan** in het menu), op je eigen
-apparaat. Vanaf versie 1.0 blijft een spelstand werken in elke latere versie:
-oudere spelstanden worden bij het laden bijgewerkt (`game/js/savemigrate.js`).
-Een spelstand van het oude verhaal (dat niet meer bestaat) gaat door in het nieuwe verhaal: geld, spullen, voertuigen, prestaties en instellingen blijven, het verhaal begint opnieuw. Je oude spelstand blijft ongemoeid op je apparaat staan.
+apparaat. Vanaf versie 1.0 blijft een savegame werken in elke latere versie:
+oudere savegames worden bij het laden bijgewerkt (`game/js/savemigrate.js`).
+Een savegame van het oude verhaal (dat niet meer bestaat) gaat door in het nieuwe verhaal: geld, spullen, voertuigen, prestaties en instellingen blijven, het verhaal begint opnieuw. Je oude savegame blijft ongemoeid op je apparaat staan.
 
 Er is geen account, geen tracking en geen statistiek; de desktopapp
 gebruikt geen internet. Fouten komen in een logboek op je eigen apparaat
@@ -214,7 +214,7 @@ Zie ook de [gedragscode](CODE_OF_CONDUCT.md) en, voor beveiligingsproblemen,
 | De programmacode | [GPL-3.0-or-later](LICENSE) |
 | Eigen inhoud: stemmen, muziek, verhaal en dialogen, het Martinitoren-model, schermafbeeldingen | [CC BY-NC-SA 4.0](LICENSE-CONTENT.md) |
 | De naam GDE / "GDE Groningen – Zomer vol misdaad" en het logo | alle rechten voorbehouden: een fork krijgt een eigen naam en logo |
-| Kaartdata (`game/citymap.json`, `game/mapextras.json`, de kaarttegels, `data/`) | © OpenStreetMap-bijdragers, [Open Database License](https://www.openstreetmap.org/copyright) |
+| Kaartdata (`game/stad.json`, `game/mapextras.json`, de kaarttegels, `data/`) | © OpenStreetMap-bijdragers, [Open Database License](https://www.openstreetmap.org/copyright) |
 | three.js | MIT ([licenses/MIT-three.js.txt](licenses/MIT-three.js.txt)) |
 | Lettertypen Bebas Neue en Big Shoulders Display | SIL Open Font License 1.1 ([licenses/](licenses/)) |
 | Electron (alleen de desktopapp) | MIT, met Chromium en Node.js onder hun eigen licenties |
@@ -228,8 +228,10 @@ zijn gemaakt met AI (Google Gemini).
 
 GDE Groningen is een gratis, niet-commercieel fanproject en een parodie.
 Het is niet gelieerd aan, gesponsord door of goedgekeurd door een
-gameontwikkelaar of -uitgever. Namen, personages, bedrijven, merken en
-gebeurtenissen in het spel zijn verzonnen; echte straten en openbare
+gameontwikkelaar of -uitgever, in het bijzonder niet door Rockstar Games of
+Take-Two Interactive, de uitgever van GTA. Namen, personages, bedrijven,
+merken en gebeurtenissen in het spel zijn verzonnen; gelijkenis met
+bestaande personen of bedrijven berust op toeval. Echte straten en openbare
 gebouwen zijn alleen het decor.
 
 Gemaakt in Groningen door [NatusPella](https://github.com/NatusPella).

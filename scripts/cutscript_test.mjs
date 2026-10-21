@@ -169,11 +169,22 @@ ok(ACTOR_ANIMS.length === ANIMS.length && ACTOR_ANIMS.every((a) => ANIMS.include
   const sc = moving.scene;
   const duration = moving.duration;
   const a0 = { x: 0, y: 0, facing: 0, z: 0 };
+  const count2 = (a, sol) => { let bad = 0; for (let t = 0; t <= duration; t += 1) { const s2 = sc.sample(t, a); for (const o of Object.values(s2.actors)) if (sol(o.x, o.y, 0.9)) bad++; for (const o of Object.values(s2.props)) if (o.visible && sol(o.x, o.y, o.h + 0.4)) bad++; const c = s2.camera.position; if (sol(c.x, c.y, c.z)) bad++; } return bad; };
   const count = (a) => { let bad = 0; for (let t = 0; t <= duration; t += 0.6) { const s2 = sc.sample(t, a); for (const o of Object.values(s2.actors)) if (solid(o.x, o.y, 0.9)) bad++; } return bad; };
   const a1 = fitAnchor(sc, a0, env);
   ok(count(a0) > 0, 'test setup: the unturned opening stands in the building', String(count(a0)));
   ok(count(a1) < count(a0) && a1.facing !== a0.facing, 'fitAnchor turns the scene away from the building', count(a1) + ' vs ' + count(a0));
   ok(fitAnchor(sc, a1, { solid: () => false }).facing === a1.facing, 'a clean anchor is left alone');
+  // a tower all round (#321: the new home's tower beside the spawn): no clean turn, so the anchor moves to open ground
+  const ring = (x, y, z) => Math.hypot(x, y) < 16 && z < 75; // open only beyond 16 m from the anchor
+  const wall = { solid: (x, y, z) => ring(x, y, z) && Math.hypot(x, y) > 1.2 };
+  const turned = fitAnchor(sc, a0, wall);
+  ok(count2(turned, wall.solid) > 0 || turned.x === a0.x, 'test setup: no turn of the anchor helps inside the tower', String(count2(turned, wall.solid)));
+  const moved = fitAnchor(sc, a0, wall, { radii: [10, 24, 40], ground: (x, y) => !wall.solid(x, y, 0.5) });
+  ok(count2(moved, wall.solid) === 0, 'fitAnchor with radii moves the scene to free ground', String(count2(moved, wall.solid)));
+  ok(Math.hypot(moved.x, moved.y) >= 16, 'the free ground is outside the tower', JSON.stringify(moved));
+  const stay = fitAnchor(sc, a1, env, { radii: [10, 24, 40], ground: () => true });
+  ok(stay.x === a1.x && stay.y === a1.y, 'a turn that is clean keeps the anchor in place');
   // every sampled camera is outside the building once the env is passed
   let clipped = 0;
   for (let t = 0; t <= duration; t += 0.2) { const c2 = sc.sample(t, a0, env).camera.position; if (solid(c2.x, c2.y, c2.z)) clipped++; }

@@ -18,8 +18,8 @@ const { Vehicle, MODELS } = await import('../game/js/vehicle.js');
 const { RING_ROUTE } = await import('../game/js/ringroute.js');
 
 const root = new URL('../game/', import.meta.url);
-const data = JSON.parse(fs.readFileSync(new URL('citymap.json', root)));
-applyMapExtras(data, JSON.parse(fs.readFileSync(new URL('mapextras.json', root))));
+const { loadCityData } = await import('./lib/loadworld.mjs');
+const data = await loadCityData();
 const map = new GameMap(data);
 
 const ring = ringViaduct(map);

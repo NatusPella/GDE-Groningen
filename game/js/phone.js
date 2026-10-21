@@ -8,13 +8,15 @@ import { dualHtml } from './subtitles.js';
 import { speakerHtml } from './speakers.js';
 import { noteSpoken } from './characters.js';
 import { initCinematics, updateCinematics, cinematicPausesGameplay } from './cinematics.js';
-import { getMissionList, getNextMission } from './missions.js';
+import { getNextMission } from './missions.js';
+import { getMissionList } from './missionquery.js';
 import { playMission, isPlayAheadOpen } from './todo.js';
 import { isHelpOfferOpen } from './assistlive.js';
 import { checkPhoneWhileMoving } from './trafficlaw.js';
-import { openPauseMenu, closePauseMenu, isPauseMenuOpen, pauseMenuTab } from './pausemenu.js';
+import { isPauseMenuOpen, isPhoneOpen, openPauseMenu, closePauseMenu } from './pausestate.js';
+export { isPhoneOpen };
 import { setUserWaypoint } from './routing.js';
-import { storyFlag } from './story.js';
+import { storyFlag } from './storyquery.js';
 import { getHeroCar } from './hud_panel.js';
 import { getGarageList, deliverOwnedVehicle } from './ownedvehicles.js';
 import { initGarageStyles } from './garageui.js';
@@ -39,11 +41,6 @@ let api = null;
 const pick = (list) => list[Math.floor(Math.random() * list.length)];
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const initials = (name) => String(name).replace(/\(.*\)/, '').trim().split(/\s+/).map((s) => s[0]).slice(0, 2).join('').toUpperCase();
-
-// The unfolded phone is the pause menu on its Telefoon section.
-export function isPhoneOpen() {
-  return isPauseMenuOpen() && pauseMenuTab() === 'telefoon';
-}
 
 function buddyName(w) {
   return w.companion && w.companion.character === 'anita' ? 'Tessa' : w.companion ? 'Tammo' : w.player.character === 'tammo' ? 'Tessa' : 'Tammo';
@@ -204,7 +201,7 @@ function bodyOf(e) {
   return m ? m[1] : String(e.text || '');
 }
 
-export function phoneThreads(w = world) {
+function phoneThreads(w = world) {
   const by = new Map();
   for (const e of (w && w.phoneHistory) || []) {
     const from = senderOf(e);

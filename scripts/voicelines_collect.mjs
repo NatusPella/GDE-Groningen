@@ -6,6 +6,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { withEllipsisAliases } from '../game/js/voicebank.js';
 import { JELLE, JELLE_LINES, INTROS, FJORD_BUBBLES, FJORD_DUO } from '../game/js/pg_lines.js';
 import { CARD_LINES, COMPANION_CARDS } from '../game/js/cardlines.js';
 import { STEPS, PARTS, SPEAKERS } from '../game/js/storyarc.js';
@@ -26,8 +27,11 @@ const VL = path.join(REPO, 'game', 'audio', 'voicelines');
 const src = (f) => fs.readFileSync(path.join(JS, f), 'utf8');
 
 // Balanced literal ([...] or {...}) starting at the first bracket after `marker`.
+// A table that is no longer exported (#103) is found without its 'export '.
 function literalAt(text, marker, from = 0) {
-  const m = text.indexOf(marker, from);
+  // dead_code.mjs haalt `export` weg bij tabellen die alleen intern gebruikt worden: zoek dan zonder
+  let m = text.indexOf(marker, from);
+  if (m < 0 && marker.startsWith('export ')) m = text.indexOf(marker.slice(7), from);
   if (m < 0) throw new Error(`marker not found: ${marker}`);
   let i = m;
   while (text[i] !== '[' && text[i] !== '{') i++;
@@ -69,7 +73,7 @@ export function manifest(name) {
   }
   if (!manifests[name]) {
     const p = path.join(VL, name, 'manifest.json');
-    manifests[name] = fs.existsSync(p) ? JSON.parse(fs.readFileSync(p, 'utf8')) : {};
+    manifests[name] = fs.existsSync(p) ? withEllipsisAliases(JSON.parse(fs.readFileSync(p, 'utf8'))) : {};
   }
   return manifests[name];
 }
@@ -90,7 +94,7 @@ export function collect() {
   const nm = (k, npc) => (k === 'T' ? 'Tammo' : k === 'A' ? 'Anita' : k === 'V' ? NARRATOR : k !== 'N' && NPC[k] ? NPC[k].name : NPC[npc].name);
   STORY.forEach((s, i) => {
     // the new story's entries (textOnly): their lines come from script.json, which voice_coverage checks itself
-    if (s.textOnly) return;
+    if (!s || s.textOnly) return; // null: a retired mission (#187)
     // the outro (and its replay version) may have its own NPC (outroNpcKey)
     for (const kind of ['intro', 'outro', 'replay', 'fail']) for (const [k, t] of s[kind] || []) add('Missie-cutscenes', 'story', [nm(k, kind === 'outro' || kind === 'replay' ? s.outroNpcKey || s.npc : s.npc)], t, { mission: i, kind });
   });

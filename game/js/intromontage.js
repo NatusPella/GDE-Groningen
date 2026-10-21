@@ -555,7 +555,7 @@ function buildShots(w) {
   const tower = landmark(w, 'Martinitoren', { x: 213.81, y: 9.9 });
   const vismarkt = landmark(w, 'Vismarkt', { x: 16.36, y: 255.74 });
   const museum = landmark(w, 'Groninger Museum', { x: 83.35, y: 802.56 });
-  // the Oosterpark itself (the park polygon in citymap.json) and Tammo's
+  // the Oosterpark itself (the park polygon in the city tiles) and Tammo's
   // street on its south-east edge: the Korenbloemstraat
   const park = { x: 1142.19, y: -942.61 };
   const homeSt = { x: 1308.82, y: -805.45 }, homeDoor = { x: 1309.06, y: -791.36 };

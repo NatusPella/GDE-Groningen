@@ -246,3 +246,168 @@ Samen komt dat op de 4 ms, maar elk onderdeel is een eigen stap met eigen risico
 Alle blob-schaduwen (onder personen, vogels en voertuigen) als quads van één dynamische mesh getekend, de losse blobs op laag 1 gezet. Draw calls: 714/734/721 naar 694/716/699 lopend, 717/761/751 naar 686/672/708 stilstaand (ongeveer 20 tot 90 minder). Frametijd (3 afwisselende paren, hoog, vsync uit): foot 27,0/24,2/24,1 ms voor tegen 26,3/24,5/24,4 na, stilstaan 22,9/22,0/22,5 tegen 22,9/24,2/22,1: geen meetbaar verschil (20 calls is ongeveer 0,3 ms). In de screenshot op één plek (spot 2) tekende de blob onder de speler nu wel zichtbaar op de gele markering waar hij eerder niet zichtbaar was: een beeldverandering zonder meetbare winst. Teruggedraaid (`6c1ff3c4`).
 
 **Conclusie van de draw-call-ronde:** met de rustige machine is de frametijd 20 tot 22 ms en elke losse stap (bakken, blob-batch, budgetten) levert minder dan 0,5 ms op, onder de run-tot-run-ruis van ongeveer 1 ms. De resterende 4 ms voor 60 fps zit verspreid over tientallen posten (render 11 ms voor 700 calls, HUD 2, gebouwen 3 tot 4, verkeer en simulatie 5). Een volgende winst vraagt een structurele stap: de simulatie naar de worker (#58, bezig bij x2), een minder dure render per call (instancing/GPU-gedreven tekenen) of lagere kwaliteit op de zwakkere profielen. Meer losse micro-optimalisaties zijn met deze meetnauwkeurigheid niet aan te tonen.
+
+## Vervolg 4: s3 (verborgen groepen, prewarm-scan, markDryRoad)
+
+Gedaan, in de code (branch `claude/s3-perf-draws`):
+- **Verborgen groepen bovenaan de scene doen niet meer mee aan `updateMatrixWorld`** (`scene3d.js` `skipHiddenMatrixWalk`, vlak voor de render). De census (`PERF_ONLY=census`) vond ~1100 van ~5000 auto-update-nodes in verborgen groepen (gepoolde voertuigen en voetgangers, verre dieren), die three toch doorloopt. Gemeten in hetzelfde proces, zonder geforceerde update (`walkSoftMs`): 5,1 en 2,9 ms voor tegen 2,35 en 0,62 ms na (twee paren, machine niet leeg, het aantal nodes verschilt per run).
+- **Prewarm-scan** (`prewarmLightVariants`): na twee ronden zonder nieuwe materialen scant hij 12 in plaats van 120 groepen per frame (hij liep elke ~3 frames over alle nodes). Sectie `3d:prewarm`: 0,7 tot 0,9 ms (3,2 in een zeer drukke run) voor, 0,2 tot 0,8 na (een rustige run 0,21).
+- **`markDryRoad`** haalt het water van een hele weg één keer op in plaats van per punt van 2 m: dezelfde 30 droge kruisingen op 10616 wegen, 54 tegen 30 ms. In een CPU-profiel van foot was dit 2% (`addTile`, tegelhitches).
+
+Gemeten maar **niet bewezen sneller in frametijd**: vijf afwisselende paren foot hoog (basis 0d83967c tegen deze branch, machine met 8 andere Electron-processen): gem. frame 24,5 / 45,2 / 36,5 / 27,2 / 26,4 ms voor tegen 24,6 / 41,0 / 29,1 / 25,3 / 32,0 na. Mediaan 27,2 tegen 29,1; de run-tot-run-ruis (25 tot 45 ms) is veel groter dan de winst van een paar tienden ms tot ~2 ms. De drie stappen verminderen aantoonbaar werk (zie boven), maar de 60 fps is niet gehaald.
+
+Waar de tijd zit (CPU-profiel foot, 17 s, `categories.mjs`): `renderer.render` 46%, native 17%, streaming 8%, simulatie 7%. Binnen de render: `updateMatrixWorld` 3%, `renderObject` 3%, `projectObject` 2,4%, `setProgram` 1,2%, `intersectsObject` 1%. Eén run had een stal van 3,3 s in `gl.getProgramParameter` (programma's linken bij het eerste gebruik) en de `progs`-route (`PERF_ONLY=progs`) vond in een andere run drie stallen van 120 ms of meer (500 ms in 25 s); een programma voor een gevelstijl (`zandsteen_donker`) linkt pas bij het eerste zicht. De 16 `render()`-aanroepen per frame in `rendersPerFrame` zijn de bloom-blurs van de hoog-preset, geen dubbele scene-render.
+
+Verder onderzocht, niet gedaan: roadInit in de worker is alleen 2,4 s op een vrije thread (`scripts/perf/roadinit_meet.mjs`); de 9 tot 14 s in het spel is wachten op andere jobs en een drukke machine. Water en losse gebouwdelen batchen vraagt eigen paden (transparant, geen normalen); #58 (auto's naar de worker) is niet verder gebracht.
+
+Hulpmiddelen: `PERF_ONLY=census` meldt nu ook welke groepen niet bewegen en `walkSoftMs`; nieuwe routes `progs` en `renders`; `scripts/perf/markdry_meet.mjs`; de batchers houden hun eigen tijd bij (`batches().*.ms`).
+
+## Vervolg 5: deterministische tellingen (s3, draw calls, geen fps)
+
+Frametijd is op een drukke machine te ruisig, dus nu tellen op vaste camerastanden: `PERF_DIAG=1 PERF_ONLY=det node scripts/perf/run.mjs <naam> <preset>` (route `det`): vier standen (stad-markt, stad-straat, a7-tussen, dorp-winsum), 8 s wachten tot de batchers 3 s niets meer bouwen, dan 60 frames: GL-draw-aanroepen (hoofdscene en schaduwpas), driehoeken, programmawissels, CPU-tijd van de scene-render en de aanroepen per eigenaar. Beperking: de aanroepen van voertuigen en personen en de toestand van de batchers verschillen van run tot run (stad-straat 775 tegen 804 bij twee runs van dezelfde code), dus alleen de eigenaar-tellingen van het gewijzigde onderdeel zijn exact; het totaal (`staticDraws`, zonder actoren) heeft ruis van ongeveer 5 procent.
+
+Gedaan:
+- **Wolken** (`cloud3d.js`): alle blobs in één `InstancedMesh`: 15 transparante draw calls minder in elke stand (alle blobs hebben dezelfde kleur en doorzichtigheid, dus de menvolgorde verandert niets).
+- **Oevers** (`staticbatch3d.js` `shoreBatcher`, `scene3d.js`): de oever- en kademeshes van alle waterpolygonen binnen de zichtafstand per materiaal en per cel van 600 m samengevoegd (het wateroppervlak is transparant en blijft los; `extras` en `glass` blijven los omdat `showExtras` ze aanzet). Eigenaar `water`: stad-markt 41 en 40 naar 20 en 19, stad-straat 175 en 181 naar 61 en 59, a7 68 en 44 naar 30 en 30, dorp-winsum 166 en 144 naar 96 en 96 (twee runs elk, hoog). Driehoeken per frame +2 procent (de samengevoegde mesh wordt minder fijn geculld).
+- Totaal zonder actoren (`staticDraws`, twee runs elk, basis tegen nu): stad-markt 499/508 tegen 480/472, stad-straat 775/804 tegen 687/660, a7 248/282 tegen 262/258, dorp-winsum 566/468 tegen 407/407. Dat is 4 tot 15 procent in de stad, niet de gevraagde 40.
+
+Onderzocht, niet gehaald:
+- Wegen: in de stad blijven ~40 losse wegen over omdat hun cel (96 m) minder dan twee wegen binnen de `inner`-afstand heeft; celgrootte 160 gaf 85 naar 70 calls, binnen de ruis, niet bewaard. Gebouwen: `MIN_MEMBERS` 3 naar 2 gaf geen verschil (de losse gebouwdelen liggen aan de rand tussen `inner` en de detailstraal van de far-LOD).
+- Actoren zijn het grootste deel van de rest: in stad-straat ~300 van ~1050 aanroepen (voertuigen met 6 tot 12 meshes per auto, personen met een skinned mesh plus een blob-vlak). Auto-onderdelen samenvoegen raakt `models3d_vehicles.js` (deuren, kap), blobs als één InstancedMesh gaf eerder een zichtbaar ander beeld (zie Vervolg 3).
+- Schaduwpas ~100 calls in stand met schaduw (facade-batch 23, building-batch 20); kleiner maken verandert schaduwen van gevelsieraad.
+
+Beeld: `scripts/perf/pngdiff.mjs` en route `vspots` (zeven plekken plus vier aan het water): twee runs van de oude code verschillen al 8 tot 64 procent van de pixels (verkeer, mensen, meldingskaarten, water, schaduw), dus een pixelvergelijking zegt weinig; de opnamen bij het water liggen te hoog achter de speler om de oever te laten zien. Geometrisch is de oever-merge identiek (zelfde vertices en materiaal, `receiveShadow` was overal waar), maar dat is niet in beeld bekeken.
+
+## Vervolg 6: voertuigen en personen erbij, lijst per eigenaar (s3)
+
+Extra stappen (exacte tellingen per eigenaar uit de route `det`, hoog, twee runs van de oude code 7ea959ee tegen twee van nu):
+- **Sierdoppen** op de wielen via de wielinstancing (`wheelinstances3d.js`): de cilinders op de wielen waren vier losse aanroepen per auto. Eigenaar `Cylinder`: markt 20 naar 0, straat 18 naar 0, a7 15 naar 3, winsum 8 naar 0.
+- **Blobschaduwen** als één `InstancedMesh` (`scene3d.js` `fillBlobPool`, gevuld in `onBeforeRender` van de pool, als de matrices af zijn; zelfde geometrie, materiaal, polygon offset en renderOrder; zwart met gelijke alpha, dus de volgorde onderling doet er niet toe): markt 24 en 28 naar 2, straat 27 en 52 naar 0, winsum 33 en 36 naar 0. Beeldcontrole op een bevroren frame (`PERF_ONLY=blobab`, pool tegen losse blobs tegen pool): het verschil pool-los (4,9 en 4,6 procent) is kleiner dan pool-pool (7,4 en 5,6 procent), dus niet te onderscheiden van de ruis die zelfs een gepauzeerde wereld nog geeft.
+- Samen met wolken (-16) en oevers (water -60 tot -100): markt ~-60 van ~630, straat ~-150 tot -190 van 1000 tot 1190, winsum ~-95 van ~600, a7 ~-30 van ~300: **10 tot 16 procent minder aanroepen**. De totaalcijfers (`draws`) lopen ruim 10 procent uiteen tussen runs van dezelfde code (hoeveel voertuigen en personen in beeld, hoe vaak de schaduwpas draait: 36 tegen 72), dus alleen de eigenaar-tellingen zijn te vertrouwen.
+
+Waar de rest zit, per post (FN2, aanroepen per frame) en waarom die niet verder omlaag gaat zonder grote ingreep:
+
+| post | markt | straat | a7 | winsum | waarom niet verder |
+|---|---:|---:|---:|---:|---|
+| losse gebouwen | 102 | 152 | 38 | 26 | de ring tussen `inner` (175 m) en de detailstraal (190 m) en randcellen met minder dan 3 gebouwen; `MIN_MEMBERS` 2 en een kleinere marge gaven geen meetbare winst; landmarks hebben transparante glasdelen |
+| gebouwen gebatcht | 69 | 102 | 8 | 26 | al samengevoegd per cel en materiaal (18 tot 20 materialen blijven over) |
+| voertuigen | 71 | 60 | 7 | 53 | per auto 4 meshes met 3 materiaalgroepen (body, deuren, kap, klep); samenvoegen raakt `models3d_vehicles.js` (deuren, schade) |
+| overig | 62 | 147 | 72 | 40 | de kermis in stad-straat (~70 losse dozen en bollen), vogels, lantaarnhalo's |
+| wegen los | 49 | 38 | 28 | 48 | celgrootte 160 gaf 85 naar 70, binnen de ruis |
+| terrein | 44 | 44 | 0 | 0 | één groep per zichtbare tegel, niet samen te voegen zonder de tegelculling te verliezen |
+| verre LOD | 43 | 58 | 23 | 23 | één aanroep per tegel en laag; tegel 640 in plaats van 320 gaf -13 aanroepen maar +15 tot 20 procent driehoeken en grotere bouwstappen; teruggedraaid |
+| props en landschap | 41 | 35 | 79 | 100 | al per tegel gebatcht; de rest zijn bomen, hekken en draden per soort |
+| schaduwpas | 29 | 75 | 38 | 29 | gevelsieraad en detail werpen schaduw; wegnemen verandert het beeld |
+| water en oevers | 19 | 64 | 29 | 95 | wateroppervlakken zijn transparant en blijven per polygoon los |
+| voetgangers | 15 | 29 | 3 | 10 | skinned meshes, één aanroep per persoon |
+
+Conclusie: met alleen beeldgelijke stappen is het gevraagde -40 procent niet haalbaar; de laatste grote posten (losse gebouwen aan de batchrand, voertuigdelen, schaduwpas) vragen een eigen pad per post met eigen beeldrisico. Dit is wat ik kon aantonen; niet bekeken door een mens.
+
+## Vervolg 7: de CPU-kant van de stad te voet (r8b, #246)
+
+**Uitkomst: de 60 fps zijn niet gehaald.** Beeld-gelijke stappen geven samen ongeveer **2 tot 3 ms CPU-tijd per frame minder** (6 tot 10 procent, `mcpu` hieronder) op de echte RTX 3060 (`ANGLE (NVIDIA, NVIDIA GeForce RTX 3060 ... Direct3D11`, GPU-timer aanwezig). Op de rustige machine van de vorige ronde (21 ms, 47 fps) is dat grofweg 19 ms (52 fps); een rustige machine was er deze nacht niet, dus die laatste omrekening is een schatting, geen meting.
+
+### Hoe is gemeten (nieuw)
+
+- De machine draaide de hele nacht 3 tot 4 andere Electron-instanties en tientallen processen: dezelfde route gaf 21 tot 60 ms per frame, van minuut tot minuut. Frametijden zeggen daarom niets. `run.mjs` meet nu de **CPU-tijd van de renderer-hoofdthread per frame** (`mcpu`, `threadcpu.ps1`: threadtijden van het Electron-proces tussen de meetmarkeringen van de route), zonder de tijd dat de thread door andere processen werd onderbroken.
+- `PERF_ONLY=ab` wisselt varianten **binnen één proces** af in vensters van 4 s (A B, B A, ...; `?perfoff=` of `window.__perfOffDyn` zet een stap uit), zodat de varianten dezelfde belasting voelen. `node scripts/perf/abin.mjs <naam>.json` toont per variant de mediaan van `mcpu`, het verschil per ronde en deterministische werktellers per frame (aantal `updateMatrixWorld`-aanroepen en frustumtests). Venster tegen venster blijft de ruis 3 tot 5 ms; een stap van minder dan ~1 ms is niet aan te tonen, de totalen wel.
+- Zonder vertraging door Chromium zelf: `run.mjs` zet `--disable-renderer-backgrounding`, `--disable-backgrounding-occluded-windows` en `CalculateNativeWinOcclusion` uit (een venster onder andere vensters liep anders trager). `PERF_AB_MOVE=2` meet staand en lopend (3 m/s, route `wandel`), `PERF_SETTLE` laat de route langer inlopen, autoResolution staat uit zodat de lastaanpassing van het spel de werklast niet verandert.
+
+### De top 10 (hoog, heelver, te voet in de stad)
+
+Draw calls per frame per eigenaar (`PERF_DIAG=1`, 712 in totaal, daarvan ~97 in de schaduwpas): actoren 218 (~8 per auto bij ~9 auto's in beeld, 66 voor 65 personen), schaduwpas 97, losse wegen 63, losse gebouwen 63, gebouwbatch 46, terrein 43, verre LOD 39, wegbatch 32, gebouwdetail 29, water 28 (en oevers 9).
+
+CPU-tijd (CPU-profielen, 14 s bezette hoofdthread). Stilstaand: `renderer.render` **50%** (hoofdpas `renderObjects` 22%, schaduwpas 9%, `projectObject` 12%, `updateMatrixWorld` 8%; `setProgram` is een kwart van de render), spelsimulatie 22% (verkeers-AI 6,5%, waarvan voertuig-gebouwbotsingen 3%, voertuig-voertuigbotsingen 2%; personen 3,5%), HUD 7%. Lopend: render 39%, spelsimulatie 15%, `syncBuildings` 8,7% (waarvan gebouwen bouwen 6%), HUD 7% (minimap 3,8%, hints 1,9%), prewarm 5%, tegelstreaming 4%, `farlod.update` 2,8%, batcher-update 2,6%.
+
+De doorslaggevende vondst: de **eigen tijd van three's `renderObject` in de schaduwpas** (de recursie over alle knopen van de scene, ~9000 stuks) was de grootste enkele post van het hele profiel, groter dan `projectObject` van de hoofdpas. 3509 van de 9369 knopen (37%) zitten in groepen op het hoogste niveau zonder één schaduwwerper (het terrein 529, de losse wegen, de verre LOD, en 1638 in actoren buiten het schaduwbereik), en de schaduwpas liep ze toch allemaal af.
+
+Verder: de 16 `render()`-aanroepen per frame zijn de bloom-blurs: 0,3 ms in totaal (20 µs per stuk), dus daar valt niets te halen. Chromium-vlaggen: `--in-process-gpu` was 2x trager, `--use-angle=gl` in een van twee paren sneller (74 tegen 99 ms) en in het andere gelijk (110 tegen 107 ms, drukke machine, autoResolution aan), `--use-angle=vulkan` gaf geen resultaat; niet verder uitgezocht (een gepaarde run vraagt twee Electron-slots tegelijk).
+
+### Gedaan (beeld-gelijk bedoeld; elke stap achter `?perfoff=<stap>` uit te zetten voor een A/B)
+
+| stap (perfoff) | wat | gemeten (staand, 10 tot 16 vensters per variant) |
+|---|---|---|
+| `schaduwpas` en `schaduwgroepen` (`scene3d.js` `hookShadowPass`) | groepen zonder schaduwwerper (terrein, losse wegen, verre LOD, weg- en oeverbatches, flavour) en actoren buiten `ACTOR_SHADOW_DIST` doen niet mee aan de schaduwpas (even onzichtbaar, direct erna terug); een groep wordt één keer doorzocht en opnieuw bij een andere kinderenteller en gespreid elke 45 passes (zes keer zo zelden voor groepen die wel werpen) | **2,4 ms (10%), 9 van 10 vensters** |
+| `actoren` (`cullOffscreenActors`) | voertuigen, personen en dieren buiten beeld (plus de reikwijdte van hun schaduw bij de zon van dat moment, `actorShadowReach`) blijven buiten de scene-wandeling van de hoofdpas; zichtbare actoren lopen hun verborgen kinderen (bestuurder, uitgezette lampen) niet af; een gewone voetganger buiten beeld krijgt geen pose | **1,2 ms (5%)** |
+| `schaduw` (`shadowPassSkipped`) | rustige straat (speler loopt, niets sneller dan 4 m/s in het schaduwgebied): de schaduwkaart om het andere frame, ook bij cpuLevel 0 | 0,7 ms (2,6%) |
+| `groepen` (`cullOffscreenGroups`) | bevroren gebouw-, weg-, water- en landmarkgroepen buiten beeld doen niet mee aan de hoofdpas (bol eenmalig berekend, voor de schaduwpas weer zichtbaar) | binnen de ruis; lopend 950 matrixwandelingen per frame minder |
+| `wielen` | `addVehicleWheels` dwong voor elk voertuig een volledige `updateMatrixWorld(true)` af, ook voor die buiten beeld | 640 (staand) tot 1040 (lopend) matrixwandelingen per frame minder; tijd binnen de ruis |
+| `terreinvast` | de terreingroep (~500 tegelmeshes) loopt niet meer mee in de matrixwandeling | 150 tot 210 matrixwandelingen per frame minder; tijd binnen de ruis |
+| `bouwsync` | `syncBuildings` doet na een pas zonder bouwwerk of prefetch niets tot de focus 15 cm verschuift of 12 frames voorbij zijn | 2,0 ms staand, 1,6 ms lopend (11 en 10 van 14 vensters; drukke machine) |
+| `verresync` | idem voor `farlod.update` (elke tegel van de wereld met een hypot per frame): rust tot 1 m of 30 frames | niet apart gemeten |
+| `terreinsamen` (`terrainmerge.js`) | de tegels van 400 m delen één vertexbuffer: vier indexlijsten worden één mesh (minder draws en knopen; alleen bij het laden) | geometrisch gelijk (eenheidstest), tijd niet apart |
+| voertuig-gebouwbotsing (`vehicle.js`) | de zes kanten per auto vroegen elk frame zes keer het raster en bouwden zes kleine arrays; nu één lijst per auto, bewaard zolang de auto binnen 1,5 m blijft | ~3% van de hoofdthread in het profiel; `junction_sim_test --quick` geeft dezelfde uitkomsten (zelfde zaad) |
+
+**Alles aan tegen alles uit, afwisselend in één proces, 16 vensters van 4 s per variant (`fin2`):**
+
+| | staand | lopend (3 m/s) |
+|---|---:|---:|
+| `mcpu` alles aan, mediaan | 31,4 ms | 36,6 ms |
+| `mcpu` alles uit, mediaan | 33,7 ms | 40,4 ms |
+| mediaan van het verschil per paar | **3,5 ms (9,0%)** | **3,4 ms (9,9%)** |
+| matrixwandelingen per frame, uit tegen aan | 7765 tegen 6097 (-21%) | 7473 tegen 4957 (-34%) |
+| frustumtests per frame, uit tegen aan | 3611 tegen 2843 (-21%) | 3363 tegen 2692 (-20%) |
+
+Vijf onafhankelijke runs van dezelfde vergelijking geven 3,1 ms (staand, de eerste drie stappen, 14 van 14 vensterparen), 2,5 en 3,6, 1,2 en 2,0, 1,7 en 2,6 en 3,5 en 3,4 ms: ruwweg **2 tot 3 ms**. De spreiding is de ruis van de machine; daarom de mediaan van het paarverschil en niet het gemiddelde (één venster kan 50 ms zijn).
+
+### Beeld
+
+- **`PERF_ONLY=verify`** (nieuw, `scene3d.js` `verifyCull`): draaiend en wandelend op vijf plekken (centrum, straat, kanaal, Winsum, Hoogezand; 1634 frames) is elk afgekapt actor en elke afgekapte groep (431.662 controles) opnieuw getest met de exacte doos van wat zichtbaar is tegen de frustum van de camera, en elke groep die uit de schaduwpas bleef (11.925.163 controles) opnieuw op schaduwwerpers: **0 missers**. Een eerdere versie van de controle meldde 3516 missers; dat bleek de doos van verborgen kinderen waarvan de matrix niet wordt bijgewerkt (die staat op de oorsprong): de controle telt nu alleen wat zichtbaar is.
+- Een pixelvergelijking van een stilgezette wereld is niet bruikbaar gebleken: `world.uiPaused` wordt elk frame door de UI overschreven, dus mensen en verkeer bewegen door. De route `beeld` (aan, uit, aan) liet dat zien: zelfs stappen zonder beeldeffect gaven honderden tot duizenden afwijkende pixels. Daarom blijft alleen `verify` over.
+- Niet door een mens in beeld bekeken. De schaduwkaart om het andere frame laat de schaduw van een bewegend ding een frame (16 ms) achterlopen; bij looptempo is dat 5 cm, ongeveer een texel.
+
+### Onderzocht, niet gedaan
+
+- **BatchedMesh of eigen multi-draw voor de statische stad:** de statische delen zijn al per cel samengevoegd; wat overblijft (losse gebouwen aan de batchrand ~100, losse wegen ~60, terrein 43, verre LOD 39) is geen kandidaat voor één BatchedMesh zonder materialen te delen, three r160 kent geen `deleteGeometry` (dus geen streaming in en uit) en ANGLE-D3D11 voert `multiDraw` toch als losse draws uit in het GPU-proces. De CPU-kosten zitten in three's werk per object (`setProgram` een kwart van de render, `renderObject`, `projectObject`), niet in de GL-aanroep zelf: de nette winst was minder knopen per frame, niet minder draws.
+- **Dubbelzijdige transparante `MeshBasicMaterial`s** (de gele markeringen en lichtvlakken, 4 per frame): three tekent ze in twee doorgangen en zet daarvoor `side` en `needsUpdate = true` om, 7,9 keer per frame een `getProgram`. ~0,25 ms; `forceSinglePass` verandert de menging, dus niet gedaan.
+- **Minimap** (4% van de hoofdthread): dun verdeeld (zee 0,3%, buitenkant 0,25%, spoor 0,35%, plekken 0,7%); een gecachte onderlaag kost meer beeldrisico dan ze oplevert.
+- **Verkeers-AI** (6,5%): de ring van volle simulatie (150 m voor auto's, `simlagen.js`) is een ontwerpkeuze; smaller maken scheelt 0,3 tot 0,7 ms maar verandert het verkeer.
+- **Statische groepen die niet bevroren zijn** (232 naamloze groepen, 3719 knopen, 4001 van de ~4771 niet-actorknopen bewegen drie seconden niet): zouden ook kunnen worden afgekapt, maar zonder bevroren matrix is de bol niet vast. Kandidaat voor een volgende ronde: de makers (kermis, straatmeubilair) hun groepen laten bevriezen of per groep samenvoegen.
+- **Bouwen tijdens het lopen** (`3d:buildings`, tot 4 ms per frame zolang er iets ontbreekt) verschuift werk, het haalt het niet weg; een budget dat alleen de rest van de frame gebruikt zou de uitschieters (p95) verlagen. Geen gemiddelde winst, niet gedaan.
+- **60 fps blijft buiten bereik:** rond 19 ms (schatting op een rustige machine) zit nog `3d:render` ~8 tot 9 ms, simulatie ~5 ms, bouwen en HUD ~3 ms. De volgende stap is het aantal knopen en meshes zelf omlaag (kermis en straatmeubilair samenvoegen, de voertuigdelen per auto) of de simulatie naar de worker (#58).
+
+## Vervolg 8: snel reizen (A7, heli langs het spoor) en een 60 fps-voorinstelling (r8b, #247 en #246)
+
+Gemeten met de gereedschappen van Vervolg 7 (`mcpu`, `PERF_ONLY=ab`, `abin.mjs`), op de echte RTX 3060, hoog en heelver, autoResolution uit, de machine niet leeg (de runs van dezelfde code verschillen onderling 20 tot 40%; lees de verhoudingen en de pieken, niet één getal).
+
+### #247: wat er bij snel reizen mis was
+
+Routes `a7` (auto, 33 m/s, 60 s) en `spoor` (heli langs het spoor, 39 m/s, 45 s) met `--hitch`, voor de wijzigingen (`s247a`, `s247b`) en na (`s247e` tot `s247j`):
+
+| | voor | na |
+|---|---|---|
+| a7: gem. frame, p99, frames >100 ms | 51 en 34 ms, 300 en 117 ms, 54 en 20 | 28 tot 38 ms, 67 tot 100 ms, 9 tot 12 |
+| a7: `gl:getProgramParameter` per frame | 0,5 tot 1,0 ms (3 stallen van 335 tot 406 ms, een frame van 2,1 s) | 0,0 tot 0,01 ms (met de linkwacht; 0,6 tot 1,2 ms zonder) |
+| a7: `3d:buildings` per frame | 2,3 tot 3,4 ms | 1,4 tot 2,1 ms |
+| spoor: gem. frame, p99, frames >100 ms | 67 en 89 ms, 167 en 533 ms, 21 en 70 | 35 tot 62 ms, 67 tot 200 ms, 3 tot 52 |
+| spoor: HUD per frame | 12,7 tot 14,6 ms | 5,6 tot 13 ms (meer bij meer last) |
+
+Bevindingen uit de CPU-profielen (14 s bezette hoofdthread):
+- **De minimap** was op de A7 12% en in de heli 18% van de hoofdthread: bij de uitgezoomde schalen (0,24 tot 0,55 px/m, straal 360 tot 830 m) een pad, een fill en een `fillStyle` per gebouw en een rasterquery van alle vijf lagen per tekenbeurt. Nu een pad per kleur en wikkelrichting (zonder `closePath`: in een pad van duizenden subpaden kost die ~1 ms per stuk, een eerste versie met `closePath` gaf 18 ms HUD), het raster 25% ruimer gevraagd en 0,4 s bewaard, geen bomenlaag, en de weg-lus rekent niets uit voor wegen die op die zoom wegvallen.
+- **Shaders die voor het eerst worden getekend** blokkeerden het frame 0,3 tot 1 s (`getProgramParameter` wacht op de link): een nieuwe gebouwstijl, een nieuw batchmateriaal, een landmark-kit. Nu compileert een nieuw gebouw of nieuwe batchmesh eerst in de achtergrond en wacht tot 2 s tot zijn programma's klaar zijn (`?perfoff=bouwklaar`), en een tekenaanroep van de spelscene waarvan het materiaal nog geen gelinkt programma heeft blijft een paar frames uit en het object wordt na het frame gecompileerd (`?perfoff=linkwacht`; pas na 600 getekende frames, zodat het laadscherm en de eerste beelden niet op een lege scene wachten; alleen met `KHR_parallel_shader_compile`).
+- **`renderer.compile` liep per aanroep door de hele scene** (~9000 knopen) om de lampen te vinden: 6% van de hoofdthread in de heli-run, omdat het voor elk nieuw gebouw werd aangeroepen. Nu een scene met alleen de lampen, fog en omgeving (`?perfoff=compileklein`).
+- **Personen**: `buildPersonMesh` kostte 3,5 tot 6% van de hoofdthread (93% daarvan is de geometrie, die per persoon uniek is door zijn look). Bij snelheden boven 12 m/s krijgen mensen op meer dan 90 m (6 m per m/s erboven) geen mesh meer (`?perfoff=persoonsbereik`).
+- **De geometrie-worker** liep niet 11 tot 26 s achter, afgezien van het opstarten: per taak 40 tot 70 ms gemiddeld (`geo.byKind`), `roadGeo` hoogstens 1,3 tot 2,5 s met ten hoogste 8 open (het plafond van x2), `cityMerge` 0,6 tot 1,4 s. Het getal in het issue is `roadInit`: 9 tot 13 s eenmalig bij het starten, waarachter alles in dezelfde worker moest wachten. Nu twee workers: wegen en oevers (`roadInit`, `roadGeo`, `shoreInit`, `shore`) in de een, `cityMerge` en `terrain` in de ander (`?perfoff=eenworker` zet het terug). `roadInit` zelf blijft 9 tot 13 s (2,4 s op een vrije thread); een kortere start vraagt een worker die de gebouwtegels niet decodeert.
+- Tegels vooruit: `tilefocus.js` en `syncRoads` (x2) sorteren al op rijrichting tot 8 s vooruit; `tiles.late` bleef 0 op beide routes.
+
+### #246: een 60 fps-voorinstelling
+
+De zichtafstand is de grootste enkele hefboom in de stad, niet de detailstraal. In één proces afwisselend gemeten (6 vensters per variant, `mcpu`, hoog):
+
+| variant | staand | lopend (3 m/s) | draw calls |
+|---|---:|---:|---:|
+| hoog (heel ver, 900 m) | 26,1 ms | 24,1 ms | 779 |
+| zichtafstand ver (600 m, de standaard van het spel) | 23,6 ms | 24,8 ms | 737 |
+| **zichtafstand kort (150 m)** | **20,2 ms** | **21,3 ms** | 432 |
+| verschil kort tegen heel ver (mediaan per paar) | **-3,7 ms (-16%), 6 van 6** | **-3,0 ms (-13%), 6 van 6** | -347 |
+
+Eerdere reeksen (`s247f`, `s247g`, `s247h`, `s247i`): kort scheelt 3,4 tot 10 ms (-15 tot -30%, alle ronden), normaal (350 m) 1,5 tot 1,7 ms, ver 2,0 ms, Gemiddeld (kwaliteit middel, normaal) 3,3 ms, de schaduwen uit 0,5 ms, een detailstraal van 160 of 140 m bij dezelfde zichtafstand niets (de gebouwen verhuizen naar de verre LOD). Draw calls per eigenaar, hoog tegen kort (`s247i`): verre LOD 60 tegen 0, landmarks 14 tegen 0, water en oevers ~33 tegen 0, terrein 15 tegen 3, en door de detailstraal van 140 m gebouwbatches 148 tegen 82, losse wegen 39 tegen 11, gebouwdetails 44 tegen 18, losse gebouwen 44 tegen 24. De standaard 'ver' is dus bijna even zwaar als 'heel ver'; 'normaal' pas lichter.
+
+Daarom is er een nieuwe voorinstelling **Vlot** (`gfxprofile.js`): kwaliteit hoog, schaduwen aan, resolutie 100% met automatische bijsturing, zichtafstand kort. De volgorde is Laag, Gemiddeld, Vlot, Hoog; de beeldadvisor op het titelscherm stelt Vlot voor als de mediaan van de frametijd tussen 17,5 en 22 ms ligt (boven 22 ms Gemiddeld, boven 30 ms Laag), zodat een machine als deze (47 fps op Hoog) een kaartje krijgt. Op deze machine: 20,2 ms staand en 21,3 ms lopend op een belaste machine; op een rustige (Hoog 21 ms) is Vlot ruwweg 16 tot 17 ms, dus rond de 60 fps (afgeleid, niet gemeten). De 60 fps zijn met beeld-gelijke stappen dus niet gehaald en alleen met een korte zichtafstand bereikt of benaderd: wie ver wil kijken blijft op 47 tot 52 fps.
+
+Gereedschap erbij: `PERF_ONLY=ab` neemt tokens `set:<instelling>:<waarde>` (instellingen voor dat venster) en `detail:<m>` (andere detailstraal) en met `PERF_DIAG=1` de draw calls per eigenaar per venster; `abin.mjs` toont het verschil per eigenaar. `PERF_AB_PRE=<ms>` laat een variant eerst inlopen.
+
+### Niet gedaan
+- **Personen cachen:** de geometrie is per persoon uniek (kleren, huid, look); een cache per sleutel haalt weinig en kost veel geheugen; zonder per-persoon geometrie in een worker is het bereik de goedkope winst.
+- **Een snelheidsafhankelijke gebouwdetailstraal:** kleiner dan 190 m scheelt niets zolang de verre LOD de rest tekent (zie de tabel); het zou alleen het bouwen vermindren, en dat is nu al ruim binnen het budget.
+- **De eerste 11 s `roadInit` verkorten:** vraagt een andere opbouw van de worker-kaart (geen gebouwtegels decoderen).

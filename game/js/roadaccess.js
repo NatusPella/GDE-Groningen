@@ -2,7 +2,7 @@
 // adapt to the travel mode (zoom, what is emphasised, "niet voor jou"), so
 // both ask here. Pure: scripts/hud_test.mjs checks the table.
 //
-// Access comes from the OSM highway type the map keeps (citymap.json has no
+// Access comes from the OSM highway type the map keeps (stad.json has no
 // access tags yet): walkers and cyclists stay off the trunk roads (the ring,
 // autowegen), cars off footways, cycleways, pedestrian streets and steps,
 // cyclists off footways and steps. Real access tags (foot/bicycle/
@@ -126,6 +126,39 @@ export function isMarktFietsRoad(road, len = null) {
   if (l < MARKT.minLen) return false;
   const a = road.pts[0], b = road.pts[road.pts.length - 1];
   return Math.hypot((a[0] + b[0]) / 2 - MARKT.x, (a[1] + b[1]) / 2 - MARKT.y) <= MARKT.reach;
+}
+
+// What stands on the square and keeps the painted route off a way (#327): the bumper-car tent of the kermis (always there; kermis.js
+// takes its place from here) and the café terraces, the tables and parasols round a horeca spot (cityprops.js findTerraceSpot: up to 7 m).
+export const KERMIS_TENT = { x: 173.32, y: 108.21, rot: -0.0164, hu: 10, hv: 6 };
+const TENT_PAD = 4.5, TERRACE_R = 9;
+export function marktFietsBlocked(horeca, x, y) {
+  const c = Math.cos(KERMIS_TENT.rot), s = Math.sin(KERMIS_TENT.rot);
+  const u = (x - KERMIS_TENT.x) * c + (y - KERMIS_TENT.y) * s, v = -(x - KERMIS_TENT.x) * s + (y - KERMIS_TENT.y) * c;
+  if (Math.abs(u) < KERMIS_TENT.hu + TENT_PAD && Math.abs(v) < KERMIS_TENT.hv + TENT_PAD) return true;
+  for (const h of horeca || []) if (Math.abs(h.x - x) < TERRACE_R && Math.abs(h.y - y) < TERRACE_R && Math.hypot(h.x - x, h.y - y) < TERRACE_R) return true;
+  return false;
+}
+
+// The stretches of a bike-route way (arc length s0 to s1 along it) that are free of the tent and the terraces, at least `min` m long.
+export function marktFietsSpans(road, horeca, s0, s1, min = 6) {
+  const out = [];
+  let acc = 0, start = null, last = null;
+  const step = (s, x, y) => {
+    if (s < s0 || s > s1) return;
+    const blocked = marktFietsBlocked(horeca, x, y);
+    if (!blocked && start === null) start = s;
+    if (blocked && start !== null) { if (last - start >= min) out.push([start, last]); start = null; }
+    if (!blocked) last = s;
+  };
+  for (let i = 0; i < road.pts.length - 1; i++) {
+    const a = road.pts[i], b = road.pts[i + 1], l = Math.hypot(b[0] - a[0], b[1] - a[1]);
+    const n = Math.max(1, Math.ceil(l / 0.5));
+    for (let k = 0; k < n; k++) step(acc + (l * k) / n, a[0] + ((b[0] - a[0]) * k) / n, a[1] + ((b[1] - a[1]) * k) / n);
+    acc += l;
+  }
+  if (start !== null && last - start >= min) out.push([start, last]);
+  return out;
 }
 
 export const isMarktDay = (weekday, hour) => [2, 5, 6].includes(weekday) && hour >= 8 && hour < 18;

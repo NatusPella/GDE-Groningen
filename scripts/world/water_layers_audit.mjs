@@ -1,5 +1,5 @@
 // Dubbel water (#231): waar liggen twee waterlagen over elkaar buiten de stad? Telt per streek, over de
-// tegels van de provincie (game/world) en de stadskaart (game/citymap.json):
+// tegels van de provincie (game/world) en de stad (stad.json + OSM-lagen):
 //   tiles       tegels met water
 //   rows        waterrijen
 //   flatOnly    rijen zonder nav (de oude platte laag: tekent alleen de verre LOD, geen vaarwater)
@@ -7,7 +7,7 @@
 //   cityOverM2  oppervlak waar de stadskaart en de tegels van de provincie beide water hebben
 // Daarnaast de lagen die water tekenen en op welke hoogte (zie de kop van waterlagen hieronder), want
 // de oorzaak van #231 zat daar: de platte water van de verre LOD lag op de grond over het echte water.
-//   node scripts/world/water_layers_audit.mjs [--strict] [--json]
+//   node scripts/world/water_layers_audit.mjs [--strict] [--json] [--raw]   (zonder --raw: de dubbele rijen die het spel weglaat, game/js/waterdupes.js, tellen niet mee)
 import fs from 'node:fs';
 import path from 'node:path';
 import zlib from 'node:zlib';
@@ -17,10 +17,11 @@ import '../node3d.mjs';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const G = await import('../../game/js/gdt.js');
 const { streekOf } = await import('./prop_conflict_audit.mjs');
+const { dropWaterDuplicates } = await import('../../game/js/waterdupes.js');
 
 const CELL = 4;
 // wat --strict toestaat: alleen dalen (gemeten op de tegels van 18 oktober)
-export const LIMITS = { doubleShare: 0.095, cityOverShare: 0.01 };
+export const LIMITS = { doubleShare: 0.085, cityOverShare: 0.01 };
 
 // de lagen die water tekenen (voor de rapportage; de test bewaakt de belangrijkste regels)
 export const LAYERS = [
@@ -67,16 +68,18 @@ export function overlapArea(a, b, box) {
   return n * CELL * CELL;
 }
 
-function main() {
+async function main() {
   const args = process.argv.slice(2);
   const out = path.join(ROOT, 'game/world');
   const file = path.join(out, 'index-provincie.json');
   if (!fs.existsSync(file)) { console.log('SKIP geen game/world met de provinciegegevens'); return; }
   const index = JSON.parse(fs.readFileSync(file, 'utf8'));
-  const city = JSON.parse(fs.readFileSync(path.join(ROOT, 'game/citymap.json'), 'utf8'));
+  const { loadCityData } = await import('../lib/loadworld.mjs');
+  const city = await loadCityData({ extras: false });
   const cityWater = (city.water || []).map((w) => ({ pts: w.pts, b: bounds(w.pts) }));
   const fds = new Map();
   const per = {};
+  let dropped = 0;
   for (const [key, t] of Object.entries(index.tiles)) {
     if (!t.n || !t.n.water || key[0] === 'o') continue;
     const p = index.packs[t.pack];
@@ -84,8 +87,10 @@ function main() {
     const buf = Buffer.alloc(t.len);
     fs.readSync(fds.get(p.file), buf, 0, t.len, t.off);
     const blob = G.decodeBlob(new Uint8Array(zlib.inflateRawSync(buf)));
-    const rows = ((blob.sections.find((s) => s.type === G.SECTION.WATER) || { rows: [] }).rows).filter((r) => r.pts && r.pts.length > 3);
+    let rows = ((blob.sections.find((s) => s.type === G.SECTION.WATER) || { rows: [] }).rows).filter((r) => r.pts && r.pts.length > 3);
     if (!rows.length) continue;
+    // as the game loads them (--raw: as the tiles hold them) (TileWorld.addTile leaves the twins out, game/js/waterdupes.js)
+    if (!args.includes('--raw')) { const gone = dropWaterDuplicates(rows); dropped += gone.size; rows = rows.filter((r) => !gone.has(r)); }
     const [ox, oy] = G.tileOrigin(t.i, t.j);
     const box = [ox, oy, ox + 1000, oy + 1000];
     const s = per[streekOf(ox + 500, oy + 500)] || (per[streekOf(ox + 500, oy + 500)] = { tiles: 0, rows: 0, flatOnly: 0, doubleM2: 0, coveredM2: 0, cityOverM2: 0 });
@@ -104,6 +109,7 @@ function main() {
   for (const l of LAYERS) console.log(`  ${l.id.padEnd(12)} ${l.file}  y: ${l.y}\n               ${l.note}`);
   console.log('\nstreek'.padEnd(18) + ['tegels', 'rijen', 'platOnly', 'dubbel ha', 'dekking ha', 'stad+tegel ha'].map((x) => x.padStart(14)).join(''));
   for (const [n, s] of Object.entries(per)) console.log(n.padEnd(17) + [s.tiles, s.rows, s.flatOnly, Math.round(s.doubleM2 / 1e4), Math.round(s.coveredM2 / 1e4), Math.round(s.cityOverM2 / 1e4)].map((x) => String(x).padStart(14)).join(''));
+  if (!args.includes('--raw')) console.log(`(na het weglaten van ${dropped} dubbele rijen)`);
   console.log(`totaal: dubbel ${(total.doubleShare * 100).toFixed(2)} % van het water, stadskaart over tegels ${(total.cityOverShare * 100).toFixed(2)} %`);
   if (args.includes('--strict')) {
     const bad = Object.entries(LIMITS).filter(([k, v]) => total[k] > v);
@@ -111,4 +117,4 @@ function main() {
     if (bad.length) process.exit(1);
   }
 }
-if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1])) main();
+if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1])) await main();

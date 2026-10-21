@@ -47,7 +47,8 @@ check('combo multiplier is capped', (() => { const st = C.createCarillon('broede
 {
   // the stand is open ground of the city map: no building, no water, clear of the walls
   const here = path.dirname(fileURLToPath(import.meta.url));
-  const map = JSON.parse(fs.readFileSync(path.join(here, '../game/citymap.json'), 'utf8'));
+  const { loadStadData } = await import('./lib/loadworld.mjs');
+  const map = await loadStadData();
   const inPoly = (x, y, p) => { let r = false; for (let i = 0, j = p.length - 1; i < p.length; j = i++) { if ((p[i][1] > y) !== (p[j][1] > y) && x < ((p[j][0] - p[i][0]) * (y - p[i][1])) / (p[j][1] - p[i][1]) + p[i][0]) r = !r; } return r; };
   const s = C.CARILLON_STAND;
   const blocked = [[0, 0], [1.5, 0], [-1.5, 0], [0, 1.5], [0, -1.5]].some(([dx, dy]) => map.buildings.concat(map.water).some((b) => inPoly(s.x + dx, s.y + dy, b.pts)));

@@ -7,12 +7,14 @@ Code-identifiers, bestandsnamen en opslagsleutels (`gde-save-v1`, `saveslots.js`
 
 | Niet | Wel | Opmerking |
 | --- | --- | --- |
-| save, saves, savegame | **spelstand**, **spelstanden** | zelfstandig naamwoord |
+| save, saves | **savegame**, **savegames** | zelfstandig naamwoord; "savegame" is het gekozen woord (eigenaar), geen anglicisme |
+| (scherm en menu-item) | **Opgeslagen spellen** | knoppen: **Spel opslaan**, **Spel laden**, **Spel verwijderen**, **Spel exporteren**, **Spel importeren**; slotkaartjes heten "Opgeslagen spel 1", "Opgeslagen spel 2"; losse verwijzingen in lopende tekst mogen "savegame" zeggen |
 | save (werkwoord), "save je spel" | **opslaan**, **bewaren** | "Opslaan" voor de knop, "bewaren" voor een naam of kopie |
-| save slot, slot (voor een spelstand) | **opslagplek** | "slot" als deursluiting is gewoon Nederlands en blijft |
+| save slot, slot (voor een savegame) | **opslagplek** | "slot" als deursluiting is gewoon Nederlands en blijft |
 | backup | **herstelkopie** | |
-| load, loaden | **laden** | "Laatste spelstand laden" |
-| host | **gastheer** | de speler die de kamer opent in coöp; de ander is de gast |
+| load, loaden | **laden** | "Laatste savegame laden" |
+| host, gastheer, gastgever | **de naam van de speler** ("Tammo heeft het spel geopend", "Wacht tot Tammo het spel start"), of **de ander** | geen rolnaam bij samen spelen (eigenaar, 20-10): niet "gastheer" en niet "gastgever". De knoppen heten **Een spel openen** en **Meedoen**; de naam is die van het personage (Tammo, Tessa) of de profielnaam. "Gast" mag waar het moet ("de gast"), liever met naam. In code en docs blijft de interne naam `host` |
+| co-op, coöp, multiplayer | **samen spelen** | de naam van de modus in beeld; zie ook de regel hierboven voor wie het spel opende. Interne namen, bestanden en issue-titels blijven `coop` |
 | lobby | **kamer** (of wachtkamer) | alleen waar het in beeld staat |
 | checkpoint (race, route) | **controlepunt** | "Controlepunt 4/9" |
 | checkpoint (opnieuw beginnen na mislukken) | **hervatpunt** | "Je begint opnieuw bij het laatste hervatpunt." |
@@ -28,6 +30,16 @@ Code-identifiers, bestandsnamen en opslagsleutels (`gde-save-v1`, `saveslots.js`
 | shopaholic | **winkelverslaafde** | |
 | total loss | **afgeschreven** | "de auto is afgeschreven" |
 | hole(s) (discgolf, pitch & putt) | **baan**, **banen** | "Baan 3/9"; de mand blijft de mand |
+| respawn, spawn | **opnieuw verschijnen**, **hervatten**; **verschijnen** | |
+| loading | **laden** | |
+| game over | **einde spel** | |
+| highscore | **topscore** | |
+| unlock(ed) | **ontgrendel(d)** | |
+| achievement(s) | **prestatie(s)** | zo heet het scherm al |
+| tutorial | **uitleg** | |
+| quest | **opdracht** | |
+| loot | **buit** | |
+| gameplay, gamer(s) | **spel**, **speler(s)** | in regieaanwijzingen van `script.json` (niet getoond) toegestaan |
 
 ## Ingeburgerd, dus toegestaan
 

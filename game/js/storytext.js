@@ -10,7 +10,6 @@
 //   storyLines(ids, opts)      cutscene lines [who, text, opts] for missionstory.js (intro, outro, stage scenes)
 //   talkLines(id)              lines for storytalk.js, the subtitle talk that runs during a mission
 //   radioContacts(step, at)    Radio Nachtstreek fragments for storycontact.js (anchor at 'start' or 'after' a step)
-//   appTexts(id)               the silent app texts of a scene
 //   appSchedule()/appsAt(step, at)   the silent app texts and the step they arrive on
 //   banterExchanges()          banter.js exchanges (the autogesprekken)
 //   readingTime(text)          how long a line is up when nothing is played
@@ -54,7 +53,7 @@ export function readingTime(text) {
 }
 
 // { src, dur } of the recording of a line (src absolute), or null for a text-only line.
-export function lineVoice(l) {
+function lineVoice(l) {
   if (!l || l.textOnly || !l.rec) return null;
   const v = manifests[l.rec] && manifests[l.rec][(l.voice || l.speaker) + '|' + l.text];
   return v ? { src: DIRS[l.rec] + v.src, dur: v.dur } : null;
@@ -133,11 +132,6 @@ export function radioContacts(step, at) {
     id: s.id,
     lines: s.lines.filter((l) => l.channel !== 'app-stil').map((l) => [l.key, l.text, { tag: l.tag }]),
   }));
-}
-
-export function appTexts(id) {
-  const sc = scene(id);
-  return sc ? sc.lines.filter((l) => l.channel === 'app-stil') : [];
 }
 
 // The silent app texts reach the player on the step they are about. Two sources:

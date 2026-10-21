@@ -28,7 +28,7 @@ concurrency:
 jobs:
   dmg:
     runs-on: macos-latest
-    timeout-minutes: 60
+    timeout-minutes: 20
     env:
       GH_TOKEN: ${{ github.token }}
       TAG: ${{ inputs.tag }}
@@ -61,7 +61,7 @@ jobs:
           GDE_PREBUILT_WORLD: ${{ runner.temp }}/gde-world/world
         run: |
           npm run stage
-          npx electron-builder --mac --universal --publish never
+          npx electron-builder --mac --universal --publish never --config.publish.provider=github --config.publish.owner="${{ github.repository_owner }}" --config.publish.repo="${{ github.event.repository.name }}"
 
       - name: Naar de release
         working-directory: desktop

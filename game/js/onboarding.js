@@ -16,7 +16,7 @@
 import { showCard, cardsBusy } from './hudcards.js';
 import { mayStart, narrativeState } from './narrative.js';
 import { isCinematicActive, sinceCinematic } from './cinematics.js';
-import { isPauseMenuOpen } from './pausemenu.js';
+import { isPauseMenuOpen } from './pausestate.js';
 import { getSettings } from './settings.js';
 import { physicalKey, keyName, tokenKey } from './controls.js';
 import { hintUses, glyphHtml } from './prompts.js';
@@ -95,7 +95,7 @@ function quiet() {
   return Object.values(ns.since).every((s) => s >= QUIET);
 }
 
-export function resetOnboarding() {
+function resetOnboarding() {
   seen = new Set();
   try { localStorage.removeItem(STORE_KEY); } catch (e) { /* ignore */ }
 }

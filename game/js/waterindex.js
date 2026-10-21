@@ -21,6 +21,7 @@ export function onTileCut(ax, ay, bx, by) {
 // middle, so a long edge (a 175 m patch rectangle, #236) that runs across other water for
 // part of its length would count as shore along all of it, a wall across a lock chamber.
 const MAX_EDGE = 20;
+const SEAM_MAX = 4, SEAM_STEP = 0.4;
 export function createWaterIndex(polys) {
   let n = 0;
   for (const p of polys) for (let i = 0; i < p.pts.length; i++) {
@@ -117,6 +118,31 @@ export function createWaterIndex(polys) {
     shore[i] = inWater(mx + nx, my + ny) !== inWater(mx - nx, my - ny) ? 1 : 0;
   }
 
+  // a patch edge with water past a strip of land of SEAM_MAX m or less is welded: no shore, nor the edge facing it
+  const weld = new Float32Array(n), wnx = new Float32Array(n), wny = new Float32Array(n);
+  let welds = 0;
+  for (let i = 0; i < n; i++) {
+    if (!shore[i] || !polys[poly[i]].seam) continue;
+    const dx = bx[i] - ax[i], dy = by[i] - ay[i], len = Math.hypot(dx, dy);
+    const mx = (ax[i] + bx[i]) / 2, my = (ay[i] + by[i]) / 2;
+    let nx = -dy / len, ny = dx / len;
+    if (inWater(mx + nx * 0.6, my + ny * 0.6)) { nx = -nx; ny = -ny; }          // out of the patch, towards the land
+    for (let d = SEAM_STEP; d <= SEAM_MAX; d += SEAM_STEP) {
+      if (!inWater(mx + nx * d, my + ny * d)) continue;
+      weld[i] = d; wnx[i] = nx; wny[i] = ny; shore[i] = 0; welds++;
+      // the edge on the far side of the strip, about parallel to this one, runs next to the point where the water starts
+      const hx = mx + nx * d, hy = my + ny * d;
+      edgesIn(hx - 0.8, hy - 0.8, hx + 0.8, hy + 0.8, (j) => {
+        if (!shore[j] || polys[poly[j]].seam) return;
+        const ex = bx[j] - ax[j], ey = by[j] - ay[j], l2 = ex * ex + ey * ey || 1e-9;
+        if (Math.abs(ex * dx + ey * dy) / Math.sqrt(l2) / len < 0.7) return;
+        const t = Math.max(0, Math.min(1, ((hx - ax[j]) * ex + (hy - ay[j]) * ey) / l2));
+        if (Math.hypot(ax[j] + ex * t - hx, ay[j] + ey * t - hy) < 0.8) shore[j] = 0;
+      });
+      break;
+    }
+  }
+
   const out = { d: 0, i: -1, tx: 1, ty: 0 };
   function nearestShore(x, y, maxR) {
     let best = maxR * maxR, bi = -1;
@@ -162,7 +188,7 @@ export function createWaterIndex(polys) {
     return false;
   }
 
-  return { ax, ay, bx, by, poly, shore, count: n, inWater, edgesIn, nearestShore, rayDist, segHitsAny };
+  return { ax, ay, bx, by, poly, shore, count: n, inWater, edgesIn, nearestShore, rayDist, segHitsAny, weld, wnx, wny, welds };
 }
 
 function segSeg(p0x, p0y, p1x, p1y, q0x, q0y, q1x, q1y) {
@@ -244,6 +270,42 @@ function tileClearance(map, x, y, maxR, st) {
   return d;
 }
 
+// Two water rows that stop short of each other leave a strip of land across the canal, and the hull probes that
+// land in it count as dry: a wall that a route through the gap cannot pass (#343). A hairline (water within
+// SEAM m on both sides, the cut of a polygon, the corner of two) is water as free as the narrower side. A gap
+// patch of the waterway fixes (row.seam) with water past a strip of SEAM_MAX m or less is welded by
+// createWaterIndex: the edges on both sides are no shore, and a point in the strip is as free as the water next to it.
+const SEAM = 0.8, SEAM_DIAG = SEAM * Math.SQRT1_2;
+const SEAM_DIRS = [[SEAM, 0], [0, SEAM], [SEAM_DIAG, SEAM_DIAG], [SEAM_DIAG, -SEAM_DIAG]];
+function seamClearance(map, x, y, maxR, st) {
+  let best = null;
+  for (const [dx, dy] of SEAM_DIRS) {
+    const a = tileClearance(map, x + dx, y + dy, maxR, st);
+    if (a === null) continue;
+    const b = tileClearance(map, x - dx, y - dy, maxR, st);
+    if (b !== null) return Math.min(a, b);
+  }
+  const ti = tileWaterIndex(map, x, y);
+  if (!ti || !ti.welds) return null;
+  ti.edgesIn(x - SEAM_MAX, y - SEAM_MAX, x + SEAM_MAX, y + SEAM_MAX, (i) => {
+    const w = ti.weld[i];
+    if (!w) return;
+    const ex = ti.bx[i] - ti.ax[i], ey = ti.by[i] - ti.ay[i], l = Math.hypot(ex, ey) || 1e-9;
+    const wx = x - ti.ax[i], wy = y - ti.ay[i];
+    const u = (wx * ex + wy * ey) / l;
+    if (u < -0.3 || u > l + 0.3) return;
+    const t = wx * ti.wnx[i] + wy * ti.wny[i];         // how far out of the patch
+    if (t < -0.05 || t > w + 0.05) return;
+    // the water a metre into the patch and a metre past the strip: free as the narrower of the two
+    const a = tileClearance(map, x - ti.wnx[i] * (t + 1), y - ti.wny[i] * (t + 1), maxR, st);
+    const c = tileClearance(map, x + ti.wnx[i] * (w - t + 1), y + ti.wny[i] * (w - t + 1), maxR, st);
+    if (a === null || c === null) return;
+    const v = Math.min(a, c);
+    if (best === null || v < best) best = v;
+  });
+  return best;
+}
+
 // The open sea (seawater.js createSeaClearance, set by regions.js): (x, y, maxR) -> free
 // sea round the point, null on land. The sea carries on from a water row's edge.
 let seaFn = null;
@@ -259,8 +321,20 @@ const OB_CELL = 16;
 function obstacleGrid(map) {
   if (map._waterObstacles) return map._waterObstacles;
   const g = map._waterObstacles = new SpatialGrid(OB_CELL);
-  for (const b of map.buildings || []) if (b.type === 'houseboat') addWaterObstacle(map, b.pts);
+  for (const b of map.buildings || []) if (b.type === 'houseboat' && !b._moor) addMooredBuilding(map, b);
   return g;
+}
+
+// A houseboat of a streamed tile (tileworld.js addTile / dropTile) is a moored obstacle like the city's, for as
+// long as its tile is there: the boat keeps off it and slides along it, instead of running into the building wall (#343).
+export function addMooredBuilding(map, b) {
+  if (b._moor || !b.pts) return;
+  b._moor = addWaterObstacle(map, b.pts);
+}
+export function dropMooredBuilding(map, b) {
+  if (!b._moor) return;
+  obstacleGrid(map).remove(b._moor, b._moor.box);
+  b._moor = null;
 }
 
 // A closed ring [[x, y], ...] in the water that boats and swimmers stay clear of.
@@ -268,8 +342,9 @@ export function addWaterObstacle(map, ring) {
   const g = obstacleGrid(map);
   let minx = Infinity, miny = Infinity, maxx = -Infinity, maxy = -Infinity;
   for (const [x, y] of ring) { minx = Math.min(minx, x); maxx = Math.max(maxx, x); miny = Math.min(miny, y); maxy = Math.max(maxy, y); }
-  const ob = { ring, minx, miny, maxx, maxy };
-  g.insert(ob, [minx - 4, miny - 4, maxx + 4, maxy + 4]);
+  const ob = { ring, minx, miny, maxx, maxy, box: [minx - 4, miny - 4, maxx + 4, maxy + 4] };
+  g.insert(ob, ob.box);
+  return ob;
 }
 
 function ringDist(ring, x, y) {
@@ -340,6 +415,8 @@ export function waterClearance(map, x, y, maxR = 4) {
   let d = tileClearance(map, x, y, maxR, idx);
   // no water row: the open sea, which OSM has no polygon for (seawater.js), else land
   if (d === null && seaFn) d = seaFn(x, y, maxR);
+  // ...or a strip of land between two rows that stop short of each other: water too (seamClearance)
+  if (d === null) d = seamClearance(map, x, y, maxR, idx);
   if (d === null) return -1;
   const list = obstacleGrid(map).query(x, y, x, y);
   if (list) {

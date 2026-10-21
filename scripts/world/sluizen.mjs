@@ -13,7 +13,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { loadProvinceVaar } from './vaarnet_data.mjs';
-import { pointInStaticPolygon } from '../../game/js/waterlevels.js';
+import { pointInStaticPolygon, surfaceLift } from '../../game/js/waterlevels.js';
 
 const root = new URL('../../', import.meta.url);
 export const SIDE_PAD = 60;      // m water dat we buiten de kolk aan elke kant verwachten
@@ -44,7 +44,7 @@ function makeIndex(water) {
       (cells.get(k) || cells.set(k, []).get(k)).push(w);
     }
   }
-  return (x, y) => {
+  const find = (x, y) => {
     for (const w of cells.get(Math.floor(x / C) * 100003 + Math.floor(y / C)) || []) {
       const b = w._b;
       if (x < b[0] || x > b[2] || y < b[1] || y > b[3]) continue;
@@ -52,6 +52,9 @@ function makeIndex(water) {
     }
     return null;
   };
+  // every polygon over the point (the lake and the creeks the data lays inside it)
+  find.all = (x, y) => (cells.get(Math.floor(x / C) * 100003 + Math.floor(y / C)) || []).filter((w) => x >= w._b[0] && x <= w._b[2] && y >= w._b[1] && y <= w._b[3] && pointInStaticPolygon(x, y, w.pts));
+  return find;
 }
 
 // De waterstukjes uit game/vaarnet_fixes.json als polygonen: gaten [x, y, lengte, breedte, hoek, nav]
@@ -86,6 +89,12 @@ export function measure(plekken, water) {
       return first;
     };
     const w0 = side(-1), w1 = side(1);
+    // is the water at this side drawn at its own peil (waterlevels.js surfaceLift, #299)? Then the lock lifts the boat
+    const ownSide = (sg) => {
+      for (let u = half + 4; u <= half + SIDE_PAD; u += 3) if (at.all(p.x + c * sg * u, p.y + s * sg * u).some((w) => surfaceLift(w) > 0)) return 1;
+      return 0;
+    };
+    const own = [ownSide(-1), ownSide(1)];
     // langs de as van het ene water naar het andere: waar ontbreekt water?
     let gap = 0, worst = 0, worstEnd = 0, total = 0;
     for (let u = -(half + SIDE_PAD); u <= half + SIDE_PAD; u += STEP) {
@@ -98,7 +107,7 @@ export function measure(plekken, water) {
     const patch = worst > GAP_OK ? [Math.round((p.x + c * mid) * 10) / 10, Math.round((p.y + s * mid) * 10) / 10, Math.round((worst + 2) * 10) / 10, Math.max(6, Math.round((p.w || 8) * 10) / 10), p.a, Math.max(2, nav)] : null;
     out.push({ patch,
       id: p.id, n: p.n || '', x: p.x, y: p.y, a: p.a, l: p.l, w: p.w || 8,
-      lv: [w0 ? w0.lv : null, w1 ? w1.lv : null],
+      lv: [w0 ? w0.lv : null, w1 ? w1.lv : null], own,
       kind: [w0 ? w0.kind : null, w1 ? w1.kind : null],
       nav: [w0 ? w0.nav ?? 0 : 0, w1 ? w1.nav ?? 0 : 0],
       body: [w0 ? w0.body : null, w1 ? w1.body : null],
@@ -128,21 +137,21 @@ export function levelsFor(m) {
 if (process.argv[1] && import.meta.url.endsWith(path.basename(process.argv[1]))) {
   const P = loadProvinceVaar(worldDir());
   const plekken = JSON.parse(fs.readFileSync(new URL('game/waterplekken.json', root))).plekken;
-  // de stad staat in game/citymap.json; de gaten en verbindingen van vaarnet_fixes.json maakt de wereldbouwer water
-  const city = JSON.parse(fs.readFileSync(new URL('game/citymap.json', root))).water.map((w) => ({ ...w, lock: false }));
+  // het stadswater komt uit de OSM-tegelbouw (loadworld.mjs); de gaten en verbindingen van vaarnet_fixes.json maakt de wereldbouwer water
+  const city = (await (await import('../lib/loadworld.mjs')).loadCityData({ extras: false })).water.map((w) => ({ ...w, lock: false }));
   const list = measure(plekken, P.water.concat(city, fixWater()));
   let bad = 0;
   for (const m of list.sort((p, q) => (p.n || '').localeCompare(q.n || ''))) {
     const why = verdict(m);
     if (why.length) bad++;
-    console.log(`${why.length ? 'GAT ' : 'ok  '} ${m.n || '(zonder naam)'} (${Math.round(m.x)},${Math.round(m.y)}) peil ${m.lv.join(' / ')} ${m.kind.join(' / ')}${why.length ? ' : ' + why.join(', ') : ''}`);
+    console.log(`${why.length ? 'GAT ' : 'ok  '} ${m.n || '(zonder naam)'} (${Math.round(m.x)},${Math.round(m.y)}) peil ${m.lv.join(' / ')}${m.own[0] || m.own[1] ? ' (eigen peil ' + m.own.join('/') + ')' : ''} ${m.kind.join(' / ')}${why.length ? ' : ' + why.join(', ') : ''}`);
   }
   for (const m of list) if (m.patch && verdict(m).length) console.log('   sluisgat voor vaarnet_fixes.json: ' + JSON.stringify(m.patch) + ' // ' + (m.n || m.id));
   console.log(`${list.length} sluizen, ${bad} met een gat of een ontbrekende zijde`);
   if (process.argv.includes('--raster')) {
     // het vaarnetraster (vaarnet.mjs): liggen de twee kanten in hetzelfde waterstuk, voor klasse 2 en 3?
     const { buildRaster, components, cellOf, nearestOpenCell } = await import('./vaarnet.mjs');
-    const built = buildRaster({ worldDir: worldDir() });
+    const built = await buildRaster({ worldDir: worldDir() });
     let apart = 0;
     for (const cls of [2, 3]) {
       const comp = components(built.R, cls);
@@ -159,8 +168,8 @@ if (process.argv[1] && import.meta.url.endsWith(path.basename(process.argv[1])))
     if (process.argv.includes('--strict') && apart) process.exit(1);
   }
   if (process.argv.includes('--write')) {
-    const rows = list.map((m) => ({ id: m.id, n: m.n, x: m.x, y: m.y, a: m.a, l: m.l, w: m.w, lv: levelsFor(m), zee: m.zee ? 1 : 0 }));
-    fs.writeFileSync(new URL('game/sluizen.json', root), JSON.stringify({ v: 1, uitleg: 'Sluizen voor het sluismechaniek (game/js/sluizen.js), gemaakt door scripts/world/sluizen.mjs: plek, richting a (zijde 0 aan de -as-kant), kolklengte l, breedte w, peil lv aan beide zijden.', sluizen: rows }, null, 0) + '\n');
+    const rows = list.map((m) => ({ id: m.id, n: m.n, x: m.x, y: m.y, a: m.a, l: m.l, w: m.w, lv: levelsFor(m), zee: m.zee ? 1 : 0, ...(m.own[0] || m.own[1] ? { own: m.own } : {}) }));
+    fs.writeFileSync(new URL('game/sluizen.json', root), JSON.stringify({ v: 1, uitleg: 'Sluizen voor het sluismechaniek (game/js/sluizen.js), gemaakt door scripts/world/sluizen.mjs: plek, richting a (zijde 0 aan de -as-kant), kolklengte l, breedte w, peil lv aan beide zijden, own (alleen waar een kant op eigen peil getekend wordt: het Lauwersmeer).', sluizen: rows }, null, 0) + '\n');
     console.log('game/sluizen.json geschreven: ' + rows.length);
   }
   if (process.argv.includes('--strict') && bad) process.exit(1);

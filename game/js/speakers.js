@@ -6,7 +6,7 @@
 // Okabe-Ito pair that stays apart for every common colour blindness.
 // Pure data plus two tiny helpers: Node scripts may import it.
 
-export const SPEAKER_COLORS = {
+const SPEAKER_COLORS = {
   Tammo: '#2a8ad4',
   Anita: '#d86b00',
   Rikus: '#a35ad6',
@@ -45,15 +45,15 @@ export const SPEAKER_COLORS = {
   'Mevrouw Tuinstra': '#a47ab8',
 };
 // generic NPCs, bijbaan bosses, radio and navigation voices
-export const NEUTRAL = '#8a8a8a';
+const NEUTRAL = '#8a8a8a';
 
 // The one place where a speaker id becomes the name players see. Speaker ids
 // key the voice manifests ("Anita|<text>"), SPEAKER_COLORS and the TTS cast,
 // and the character key 'anita' is in saves, so those stay. On screen she is
 // called Tessa.
-export const DISPLAY_NAME = { Anita: 'Tessa' };
+const DISPLAY_NAME = { Anita: 'Tessa' };
 // character key ('tammo' / 'anita', as in saves) -> the name on screen
-export const CHARACTER_NAME = { tammo: 'Tammo', anita: 'Tessa' };
+const CHARACTER_NAME = { tammo: 'Tammo', anita: 'Tessa' };
 export const charName = (key) => CHARACTER_NAME[key] || CHARACTER_NAME.tammo;
 
 // "Tammo (gids)" and "Schipper Wiebe (megafoon)" are still Tammo and Wiebe.

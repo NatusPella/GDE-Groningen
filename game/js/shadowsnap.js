@@ -19,7 +19,26 @@ export function snapShadowCenter(c, right, up, dir, texel) {
 // mover (the player's car) would then trail its shadow by a frame on every
 // skipped frame and the shadow visibly hops, so skipping is only allowed
 // while the focus is nearly still.
-export const SHADOW_SKIP_MAX_SPEED = 2.5; // m/s
-export function shadowPassSkipped(cpuLvl, frameCounter, focusSpeed) {
-  return cpuLvl > 0 && focusSpeed < SHADOW_SKIP_MAX_SPEED && (frameCounter & 1) === 1;
+const SHADOW_SKIP_MAX_SPEED = 2.5; // m/s
+// On a machine that keeps up (cpuLevel 0) the shadow map is also left alone
+// every other frame while the focus walks and nothing fast moves in the
+// shadow area (`calm`): a shadow that is one frame (16 ms) behind is 5 cm off
+// at walking pace, about a texel.
+const SHADOW_CALM_MAX_SPEED = 3.5; // m/s, just over the default walking pace (3.0)
+// cpuLevel 3 (the machine cannot keep up even with level 2): the shadow map is drawn one frame in four while the focus walks or runs
+const SHADOW_WEAK_MAX_SPEED = 8; // m/s
+export function shadowPassSkipped(cpuLvl, frameCounter, focusSpeed, calm = false) {
+  if (cpuLvl >= 3) return focusSpeed < SHADOW_WEAK_MAX_SPEED && (frameCounter & 3) !== 0;
+  if ((frameCounter & 1) !== 1) return false;
+  return cpuLvl > 0 ? focusSpeed < SHADOW_SKIP_MAX_SPEED : calm && focusSpeed < SHADOW_CALM_MAX_SPEED;
+}
+
+// How far past the screen edge an actor still has to be drawn: its shadow falls
+// into view. `dir` is the unit vector towards the sun; a caster of `height` m
+// throws its shadow height / tan(elevation) m along the ground, clamped to
+// `max`, plus a fixed `pad` for the animation and the body.
+export function actorShadowReach(dir, height = 3, pad = 3, max = 30) {
+  const horizontal = Math.hypot(dir.x, dir.z);
+  const reach = dir.y <= 0.05 ? max : Math.min(max, height * horizontal / dir.y);
+  return pad + reach;
 }

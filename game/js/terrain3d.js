@@ -4,6 +4,8 @@ import { createWaterIndex } from './waterindex.js';
 import { COUNTRY_GLSL, COUNTRY_UNIFORMS, setCountryBounds } from './countryfield.js';
 import { applyCutMask } from './cutmask3d.js';
 import { followWaterQuality } from './water3d.js';
+import { mergeTerrainTiles } from './terrainmerge.js';
+import { perfOff } from './devflags.js';
 
 // Replaces the old flat 2-triangle "fallback floor" PlaneGeometry(6000,6000)
 // + single-color MeshLambertMaterial that used to live in scene3d.js's
@@ -408,7 +410,8 @@ export function terrainArrays(bounds, waterPolys = [], opts = {}) {
 export function terrainGroup(T, group = new THREE.Group(), material = group.material || createTerrainMaterial()) {
   const posAttr = new THREE.BufferAttribute(T.positions, 3);
   const normAttr = new THREE.BufferAttribute(T.normals, 3);
-  for (const { index, box: [x0, z0, x1, z1] } of T.tiles) {
+  // 2 x 2 tiles to a mesh: the far terrain in view was ~40 draws and as many nodes to walk
+  for (const { index, box: [x0, z0, x1, z1] } of mergeTerrainTiles(T.tiles, perfOff('terreinsamen') ? 0 : TERRAIN_TILE_M * 2)) {
     const geo = new THREE.BufferGeometry();
     geo.setAttribute('position', posAttr);
     geo.setAttribute('normal', normAttr);

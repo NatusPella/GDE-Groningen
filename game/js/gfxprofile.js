@@ -9,10 +9,13 @@ import { FLAGS } from './devflags.js';
 export const GFX_PRESETS = {
   laag: { quality: 'laag', shadows: false, drawDistance: 'kort', resolution: 0.75, autoResolution: true },
   middel: { quality: 'middel', shadows: true, drawDistance: 'normaal', resolution: 1, autoResolution: true },
+  // Hoog's look with the view distance of Laag: no far LOD, no far terrain and countryside, ~400 draw calls fewer per frame
+  // in the city. On the RTX 3060 test machine 4 to 5 ms less CPU time per frame than Hoog (docs/PERF-METING-2026-10-19.md Vervolg 8): the 60 fps preset.
+  vlot: { quality: 'hoog', shadows: true, drawDistance: 'kort', resolution: 1, autoResolution: true },
   hoog: { quality: 'hoog', shadows: true, drawDistance: 'heelver', resolution: 1, autoResolution: true },
 };
-export const PRESET_ORDER = ['laag', 'middel', 'hoog'];
-const LABELS = { laag: 'Laag', middel: 'Gemiddeld', hoog: 'Hoog' };
+export const PRESET_ORDER = ['laag', 'middel', 'vlot', 'hoog'];
+const LABELS = { laag: 'Laag', middel: 'Gemiddeld', vlot: 'Vlot', hoog: 'Hoog' };
 export const presetLabel = (name) => LABELS[name] || name;
 
 // "schaduwen uit · resolutie 75%, automatisch · zichtafstand kort"
@@ -48,7 +51,7 @@ export function currentPreset(st = getSettings()) {
 
 // The out-of-the-box graphics: Hoog with 'ver' instead of 'heelver'. Shown
 // as Eigen; the first-run advice treats it like Hoog.
-export const GFX_DEFAULT = { ...GFX_PRESETS.hoog, drawDistance: 'ver' };
+const GFX_DEFAULT = { ...GFX_PRESETS.hoog, drawDistance: 'ver' };
 export const isDefaultGfx = (st = getSettings()) => Object.entries(GFX_DEFAULT).every(([k, v]) => st[k] === v);
 
 // --- phones and tablets --------------------------------------------------
@@ -57,6 +60,8 @@ export const isDefaultGfx = (st = getSettings()) => Object.entries(GFX_DEFAULT).
 // tuned for a small screen with a shared GPU and a battery.
 export const MOBILE_PROFILES = {
   telefoon: { quality: 'laag', shadows: false, drawDistance: 'kort', resolution: 0.6, autoResolution: true },
+  // a phone with little memory or few cores (deviceMemory <= 3 or <= 4 cores): the same, a smaller render
+  telefoonZwak: { quality: 'laag', shadows: false, drawDistance: 'kort', resolution: 0.5, autoResolution: true },
   tablet: { quality: 'laag', shadows: false, drawDistance: 'normaal', resolution: 0.75, autoResolution: true },
   tabletKrachtig: { quality: 'middel', shadows: true, drawDistance: 'normaal', resolution: 0.8, autoResolution: true },
 };
@@ -66,7 +71,7 @@ export const MOBILE_PROFILES = {
 // plenty of memory and cores.
 export function mobileProfileFor({ width = 0, height = 0, cores = 0, memory = 0 } = {}) {
   const short = Math.min(width, height) || Math.max(width, height);
-  if (short && short < 600) return 'telefoon';
+  if (short && short < 600) return (memory > 0 && memory <= 3) || (cores > 0 && cores <= 4) ? 'telefoonZwak' : 'telefoon';
   if (cores >= 8 && memory >= 6) return 'tabletKrachtig';
   return 'tablet';
 }
@@ -150,7 +155,8 @@ export function classifyGpu({ renderer = '', maxTexture = 0, cores = 0, memory =
 // Pure: what a few seconds of frame times say (median ms at the current
 // settings) combined with the GPU's own tier.
 export function adviseFromSample(gpuTier, medianMs, current) {
-  const measured = medianMs > 30 ? 'laag' : medianMs > 20 ? 'middel' : 'hoog';
+  // 17.5 ms is just over 60 fps: a machine that stays under it keeps Hoog, one between 17.5 and 22 ms gets Vlot (Hoog's look, a short view)
+  const measured = medianMs > 30 ? 'laag' : medianMs > 22 ? 'middel' : medianMs > 17.5 ? 'vlot' : 'hoog';
   let pick = lower(gpuTier, measured);
   // a weak GPU that still renders smoothly here only drops one step
   if (measured === 'hoog' && pick === 'laag') pick = 'middel';
@@ -261,8 +267,10 @@ export function startGfxAdvisor(gl) {
 // down to 60%. CPU-bound: cpuLevel 1-2, fewer facade details and a shadow
 // map every other frame (scene3d.js). A step back up that has to be undone
 // again soon makes the next step up wait twice as long (15 s up to 2 min).
-const DYN_MIN = 0.6;
+const DYN_MIN = 0.5;
 const SLOW_MS = 27, GOOD_MS = 19;
+// cpuLevel 3: no shadow map but one frame in four, the shortest view and detail ring, fewer facade details and a thinner city
+const CPU_LEVEL_MAX = 3;
 const COOL_MS = 2500, UP_WAIT_MS = 15000, UP_WAIT_MAX = 120000;
 const dyn = { scale: 1, cpuLevel: 0, ms: [], cpu: [], sum: 0, slowGpu: 0, slowCpu: 0, good: 0, cool: 0, upWait: UP_WAIT_MS, upAt: 0, lastUp: -1e9, now: 0 };
 export const dynamicScale = () => dyn.scale;
@@ -286,7 +294,10 @@ export function noteFrame(ms, cpuMs) {
     dyn.scale = 1; dyn.cpuLevel = 0;
     return true;
   }
-  if (!(ms > 0) || ms > 250) return false;
+  if (!(ms > 0)) return false;
+  // a frame past 250 ms is a hitch (or a hidden window) to the judgement, but a machine that only manages 3 fps must still be seen as slow:
+  // it counts as 250 (each second is judged by its median, so single hitches do not move it)
+  ms = Math.min(ms, 250); cpuMs = Math.min(cpuMs, 250);
   dyn.now += ms;
   if (dyn.cool > 0) { dyn.cool -= ms; return false; }
   dyn.ms.push(ms); dyn.cpu.push(cpuMs); dyn.sum += ms;
@@ -298,11 +309,13 @@ export function noteFrame(ms, cpuMs) {
   const hoog = getSettings().quality === 'hoog';
   if (med > SLOW_MS) {
     dyn.good = 0;
-    if (gpuBound) { dyn.slowGpu++; dyn.slowCpu = 0; } else { dyn.slowCpu++; dyn.slowGpu = 0; }
+    // far over budget (a weak machine): each such second counts double, so the steps come twice as fast
+    const sev = med > SLOW_MS * 2.5 ? 2 : 1;
+    if (gpuBound) { dyn.slowGpu += sev; dyn.slowCpu = 0; } else { dyn.slowCpu += sev; dyn.slowGpu = 0; }
     if (dyn.slowGpu >= (hoog ? 3 : 2) && dyn.scale > DYN_MIN) {
       dyn.scale = Math.max(DYN_MIN, dyn.scale - 0.1);
       dyn.slowGpu = 0;
-    } else if (dyn.slowCpu >= 2 && dyn.cpuLevel < 2) {
+    } else if (dyn.slowCpu >= 2 && dyn.cpuLevel < CPU_LEVEL_MAX) {
       dyn.cpuLevel++;
       dyn.slowCpu = 0;
     }

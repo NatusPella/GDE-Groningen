@@ -48,5 +48,10 @@ check('volle maan licht', L.maanLicht(14.77) > 0.99 && L.maanLicht(0) < 0.01 && 
   check('dag: alles uit', d.lantaarns === 0 && d.ramen === 0 && !d.koplampen && d.sterren === 0);
 }
 check('determinisch', JSON.stringify(L.nachtLook({ uur: 22, nacht: 0.8, dag: 3 })) === JSON.stringify(L.nachtLook({ uur: 22, nacht: 0.8, dag: 3 })));
+check('koplampen: dag droog uit', L.koplampenFactor(0, 0, 0) === 0);
+check('koplampen: nacht aan', L.koplampenFactor(1, 0, 0) === 1);
+check('koplampen: regen overdag aan', L.koplampenFactor(0, 0.8, 0) > 0.5 && L.koplampenFactor(0, 0.1, 0) === 0);
+check('koplampen: dichte mist overdag aan', L.koplampenFactor(0, 0, 0.9) > 0.5);
+check('koplampen: stijgt met regen', L.koplampenFactor(0, 0.3, 0) < L.koplampenFactor(0, 0.5, 0));
 console.log(bad ? `weerlook_test: ${bad} fout(en)` : 'weerlook_test: alles goed');
 process.exit(bad ? 1 : 0);

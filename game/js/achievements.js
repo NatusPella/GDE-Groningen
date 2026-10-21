@@ -10,6 +10,7 @@
 // lifetime key was ever cleared.
 import { dualHtml } from './subtitles.js';
 import { mayStart, noteToast } from './narrative.js';
+import { MISSION_IDS, RETIRED_MISSIONS } from './storyarc_basis.js';
 import { KEYS } from './storagekeys.js';
 import { iconSvg } from './achievementicons.js';
 import { isOverlayHeld } from './overlayhold.js';
@@ -51,12 +52,16 @@ export const SILVER_DAMAGE = 60;
 export const MEDALS = ['', 'Brons', 'Zilver', 'Goud'];
 
 const mdefs = [];
+// goals of missions the story no longer plays (#187): `retired` hides them unless already earned
+export const isRetiredMission = (i) => RETIRED_MISSIONS.includes(MISSION_IDS[i]);
 MISSION_GOALS.forEach((g, i) => {
   const n = i + 1;
+  const before = mdefs.length;
   mdefs.push({ id: `m${n}_klaar`, cat: 'missies', title: `${g.name}`, desc: `Klaar missie ${n}` });
   const goldDesc = g.byPlace ? 'Goud: win de race als eerste' : `Goud: binnen ${fmtTime(g.gold)}, ${g.happy ? `toeristen minstens ${g.happy[0]}% tevreden` : 'weinig schade'}${g.wanted < 5 ? g.wanted ? ', hooguit 1 ster' : ', zonder politie' : ''}`;
   mdefs.push({ id: `m${n}_goud`, cat: 'missies', title: `${g.name}: goud`, desc: goldDesc, medal: true });
   mdefs.push({ id: `m${n}_extra`, cat: 'missies', title: g.extra[0], desc: g.extra[1] });
+  if (isRetiredMission(i)) for (let k = before; k < mdefs.length; k++) mdefs[k].retired = true;
 });
 
 export const ACHIEVEMENTS = [
@@ -146,6 +151,7 @@ export const ACHIEVEMENTS = [
   { id: 'ski_sprong', cat: 'verkennen', title: 'Hoog en schoon', desc: 'Land een sprong met een draai en een grab', hidden: true },
   { id: 'geheimen_alle', cat: 'verkennen', title: 'Stadjer met geheimen', desc: 'Vind alle 8 geheimpjes van Grunn in één spel', save: 'geheimen', goal: 8, hidden: true },
   { id: 'streek_verzameld', cat: 'verzamelen', title: 'Streekverzamelaar', desc: 'Vind alle vierentwintig streekvondsten van de provincie', set: 'streekverzamel', goal: 24 },
+  { id: 'dierenboek', cat: 'verzamelen', title: 'Dierenvriend', desc: 'Zie alle dertien dieren van de provincie en schrijf ze op in je dierenboek', set: 'dierenboek', goal: 13 },
   { id: 'streek_geheimen', cat: 'verkennen', title: 'Kenner van de streek', desc: 'Vind het geheim van elke streek in de provincie', set: 'streekgeheimen', goal: 8, hidden: true },
   { id: 'zonsopgang', cat: 'verkennen', title: 'Vroege vogel', desc: 'Zie de zon opkomen boven Grunn' },
   // the Ommeland extras (worldends.js, dorpsuitjes.js): progress only, never where
@@ -529,19 +535,23 @@ export function applyAchievementSaveData(d) {
 
 // --- views ------------------------------------------------------------------
 
+// retired prestaties (missions the story no longer plays) show only when earned in an older save
+const visibleAch = (a) => !a.retired || !!life.unlocked[a.id];
+
 export function getAchievementSummary() {
-  const total = ACHIEVEMENTS.length;
-  const done = ACHIEVEMENTS.filter((a) => life.unlocked[a.id]).length;
+  const list = ACHIEVEMENTS.filter(visibleAch);
+  const total = list.length;
+  const done = list.filter((a) => life.unlocked[a.id]).length;
   return { done, total, pct: total ? Math.floor((done / total) * 100) : 0 };
 }
 
 export function getAchievementView() {
   return CATEGORIES.map(([cat, label]) => {
-    const items = ACHIEVEMENTS.filter((a) => a.cat === cat).map((a) => {
+    const items = ACHIEVEMENTS.filter((a) => a.cat === cat && visibleAch(a)).map((a) => {
       const unlocked = !!life.unlocked[a.id];
       const cur = progressOf(a);
       return {
-        id: a.id, unlocked, hidden: !!a.hidden && !unlocked, medal: !!a.medal,
+        id: a.id, cat: a.cat, unlocked, hidden: !!a.hidden && !unlocked, medal: !!a.medal,
         title: a.title, desc: a.desc, at: unlocked && life.unlocked[a.id] > 1 ? life.unlocked[a.id] : 0,
         progress: a.goal && a.goal > 1 && cur != null ? { cur: Math.min(cur, a.goal), goal: a.goal, unit: a.unit || '' } : null,
       };

@@ -15,9 +15,13 @@
 import { GameMap, SpatialGrid, loadMap, markDryRoad } from './mapdata.js';
 import { polygonBounds, pointInPolygon } from './util.js';
 import { promoteMainWaterway } from './waterlevels.js';
+import { dropWaterDuplicates } from './waterdupes.js';
+import { addMooredBuilding, dropMooredBuilding } from './waterindex.js';
 import { SECTION, decodeBlob } from './gdt.js';
 import { TileStore, FrameQueue, HttpRangeSource, inflateRaw, makeWorkerDecoder, decodeCompressed } from './tilestore.js';
 import { TerrainField } from './terrainraster.js';
+import { extendElevation, shrinkElevation } from './elevation.js';
+import { joinMeta } from './poisections.js';
 
 const KIND_OF = new Map([
   [SECTION.BUILDINGS, 'buildings'], [SECTION.ROADS, 'roads'], [SECTION.WATER, 'water'], [SECTION.GREEN, 'green'],
@@ -76,6 +80,8 @@ export class TileWorld extends GameMap {
   static fromTiles(global, tiles) {
     const info = {};
     for (const s of global.sections) if (s.type === SECTION.META) Object.assign(info, s.json);
+    // the places of the meta (shops, horeca, garages, ...) are rows of their tiles (poisections.js)
+    info.meta = joinMeta(info.meta, tiles.map((t) => t.sections.filter((s) => s.type === SECTION.POIS).flatMap((s) => s.rows)));
     const arrays = {};
     for (const kind of KIND_OF.values()) arrays[kind] = new Array((info.counts && info.counts[kind]) || 0);
     const res = {};
@@ -132,7 +138,10 @@ export class TileWorld extends GameMap {
       if (s.type === SECTION.RASTER && this.terrain) { this.terrain.add(tk, s.raster); continue; }
       const kind = KIND_OF.get(s.type);
       if (!kind) continue;
+      // the same lake mapped twice is drawn once (waterdupes.js, #231)
+      const twins = kind === 'water' ? dropWaterDuplicates(s.rows) : null;
       for (const { gid, obj } of rowsOf(kind, s)) {
+        if (twins && twins.size && twins.has(obj)) continue;
         let e = this._res[kind].get(gid);
         if (!e) {
           e = { obj, tiles: new Set() };
@@ -141,6 +150,7 @@ export class TileWorld extends GameMap {
           if (kind === 'buildings' || kind === 'roads' || kind === 'water' || kind === 'green' || kind === 'rails' || kind === 'parcels') obj.bounds = boundsOfObj(kind, obj);
           if (kind === 'water') { promoteMainWaterway(obj); this._waterVer = (this._waterVer || 0) + 1; newWater.push(obj); }
           if (kind === 'roads') newRoads.push(obj);
+          if (kind === 'buildings' && obj.type === 'houseboat') addMooredBuilding(this, obj); // (boats keep off it, #343)
           const grid = gridOf(kind, obj);
           if (grid) (this[grid] || (this[grid] = new SpatialGrid(64))).insert(obj, boundsOfObj(kind, obj));
           // a streamed tile's mapped furniture joins the list streetfurniture3d.js reads
@@ -151,9 +161,12 @@ export class TileWorld extends GameMap {
         e.tiles.add(tk);
       }
     }
-    // the profiles of streamed bridges and viaducts (build_province.mjs --viaducts, #235): the elevation model
-    // keeps to the pinned set, so they only count with ?viaducten, for a look at the ribbons
-    if (this.streamProfiles) attachProfiles(tile, (gid) => { const e = this._res.roads.get(gid); return e && e.obj; });
+    // the profiles of streamed bridges and viaducts (build_province.mjs, #235): the roads of the tile join the elevation
+    // model with them (surfaceAt, embankments, walls, a deck a boat sails under: #300). ?vlakbruggen leaves them flat.
+    if (this.streamProfiles !== false) {
+      attachProfiles(tile, (gid) => { const e = this._res.roads.get(gid); return e && e.obj; });
+      if (newRoads.length && tile.sections.some((s) => s.type === SECTION.HEIGHTS)) this.elevAdded = (this.elevAdded || 0) + extendElevation(this, newRoads);
+    }
     // a road over water without a bridge tag is a culvert or a dry deck (mapdata.js markDryRoad)
     for (const r of newRoads) markDryRoad(this, r);
     for (const w of newWater) {
@@ -170,8 +183,8 @@ export class TileWorld extends GameMap {
   }
 
   // the maps draw the flat water too
-  queryView(minx, miny, maxx, maxy) {
-    const v = super.queryView(minx, miny, maxx, maxy);
+  queryView(minx, miny, maxx, maxy, withTrees = true) {
+    const v = super.queryView(minx, miny, maxx, maxy, withTrees);
     if (this.flatWaterGrid) v.water = v.water.concat(this.flatWaterGrid.query(minx, miny, maxx, maxy));
     return v;
   }
@@ -225,17 +238,21 @@ export class TileWorld extends GameMap {
     if (!this.resident.delete(tk)) return false;
     for (const fn of this._tileListeners || []) fn('drop', null, tk);
     if (this.terrain) this.terrain.drop(tk);
+    const goneRoads = [];
     for (const kind of Object.keys(this._res)) {
       for (const [gid, e] of this._res[kind]) {
         if (!e.tiles.delete(tk) || e.tiles.size) continue;
         this._res[kind].delete(gid);
+        if (kind === 'roads' && e.obj.z) goneRoads.push(e.obj);
         if (kind === 'water') this._waterVer = (this._waterVer || 0) + 1;
+        if (kind === 'buildings' && e.obj.type === 'houseboat') dropMooredBuilding(this, e.obj);
         const grid = gridOf(kind, e.obj);
         if (grid && this[grid]) this[grid].remove(e.obj, boundsOfObj(kind, e.obj));
         if (kind === 'furniture' && this.furniture) { const q = this.furniture.indexOf(e.obj); if (q >= 0) this.furniture.splice(q, 1); }
         if (kind === 'furniture' && e.obj.k === 'hedge' && e.obj.pts && this.hedgeGrid) this.hedgeGrid.remove(e.obj, polygonBounds(e.obj.pts));
       }
     }
+    if (goneRoads.length) shrinkElevation(this, goneRoads);
     return true;
   }
 
@@ -316,9 +333,9 @@ export function mergeIndex(index, extra, { only = null } = {}) {
 }
 
 
-// The map at `url` (citymap.json) for code that only needs the map: the tile
-// world when the build has tiles, else the JSON files (dev server).
-export async function loadMapAuto(url = 'citymap.json', onProgress = null, { pool = true } = {}) {
+// The map at `url` (stad.json) for code that only needs the map: the tile
+// world when the build has tiles, else stad.json alone (dev server).
+export async function loadMapAuto(url = 'stad.json', onProgress = null, { pool = true } = {}) {
   // with the overlays of the city's tiles, as the game's own map has them (the worker's roads and shores must see the same neighbours)
   const t = await loadTileWorld(url.replace(/[^/]*$/, '') + 'world/', { onProgress, pool, extra: [{ name: 'index-provincie.json', only: (q) => !!q.ov }] });
   return t ? t.world : loadMap(url, onProgress);

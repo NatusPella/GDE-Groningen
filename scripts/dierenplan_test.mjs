@@ -64,7 +64,7 @@ for (const k of SPECIES_IDS) for (let d = 0; d < 30; d += 3) {
 }
 ok(calmed(7, 1, 'koe') && calmed(1, 100, 'koe') && !calmed(1, 3, 'koe'), 'tot rust komen');
 // geluid
-ok(soundOf('koe') === 'cow' && soundOf('schaap') === 'sheep' && soundOf('meeuw') === 'seagull' && soundOf('zeehond') === null && soundOf('xyz') === null, 'geluid');
+ok(soundOf('koe') === 'cow' && soundOf('schaap') === 'sheep' && soundOf('meeuw') === 'seagull' && soundOf('zeehond') === 'seal' && soundOf('reiger') === 'heron' && soundOf('vis') === 'fish' && soundOf('xyz') === null, 'geluid');
 // aansluiting op wildlife.js: limieten volgen streek en kwaliteit
 {
   const base = { seagull: 7, grazer: 3, duck: 6, pigeon: 14, cat: 2, dog: 3 };
@@ -73,9 +73,10 @@ ok(soundOf('koe') === 'cow' && soundOf('schaap') === 'sheep' && soundOf('meeuw')
   ok(wk.grazer > wad.grazer, 'meer grazers in het Westerkwartier');
   ok(laag.seagull < wad.seagull, 'lage kwaliteit heeft minder dieren');
   ok(wad.pigeon === 14 && wad.cat === 2 && wad.dog === 3, 'stadsdieren onaangeroerd');
-  for (const s of STREKEN_PLAN) for (const q of ['laag', 'middel', 'hoog']) { const l = wildlifeLimits(s, q, base); ok(l.seagull >= 1 && l.grazer >= 1 && l.duck >= 1, 'minstens een', s + q); }
+  for (const s of STREKEN_PLAN) for (const q of ['laag', 'middel', 'hoog']) { const l = wildlifeLimits(s, q, base); ok(l.seagull >= 1 && (l.grazer >= 1 || s === 'stad') && l.duck >= 1, 'minstens een', s + q); }
   ok(grazerPick('westerkwartier', 0.2) === 'cow' && grazerPick('hogeland', 0.9) === 'sheep', 'koe of schaap naar streek');
   ok(wildlifeLimits('onbekend', 'hoog', base).seagull >= 1, 'onbekende streek valt terug op stad');
+  ok(wildlifeLimits('stad', 'hoog', base).grazer === 0 && wildlifeLimits('onbekend', 'laag', base).grazer === 0, 'de stad heeft geen vee (#330)');
 }
 ok(gansKans('oldambt') > gansKans('stad') && gansKans('stad') === 0 && gansKans('hogeland') <= 0.6, 'ganzen op het land naar streek');
 console.log(`dierenplan_test: ${n - fails}/${n} ok`);

@@ -40,10 +40,57 @@ ok(count([road([[0, 0], [100, 0]]), road([[50, -30], [50, 30]], { tunnel: true }
 
 ok(count([road([[0, 0], [100, 0]], { tunnel: true, layer: -1 }), road([[50, -30], [50, 30]], { tunnel: true, layer: -2 })], 'crossNoNode') === 0, 'two tunnels at different depths do not cross')
 
+// separateRibbons (stad_wegen.mjs, #268): the generator narrows ribbons that lie over each other
+const { separateRibbons } = await import('./world/stad_wegen.mjs');
+const lane3 = (y, o = {}) => one([[0, y], [100, y]], 3, { width: 10.75, widthSrc: 'lanes', lanesFwd: 3, lanesBwd: 0, laneW: 3.25, ...o });
+{
+  const dual = [lane3(0), lane3(9.5)];
+  ok(count(dual, 'overlap') === 1, 'a dual road 9.5 m apart with 10.75 m ribbons overlaps');
+  const rep = separateRibbons(dual);
+  ok(rep.pairs === 1 && rep.narrowed === 2 && dual[0].width === dual[1].width && dual[0].width < 10.75, 'both carriageways get the same, narrower width', JSON.stringify(rep));
+  ok(count(dual, 'overlap') === 0, 'and no longer overlap');
+  ok((dual[0].width + dual[1].width) / 2 <= 9.5 + 1 + 1e-9, 'the ribbons overlap by at most the 1 m margin');
+}
+{
+  const a = lane3(0), b = lane3(14); // far enough apart
+  const rep = separateRibbons([a, b]);
+  ok(rep.pairs === 0 && a.width === 10.75 && b.width === 10.75, 'ribbons that do not overlap stay as they are');
+}
+{
+  const a = lane3(0, { widthSrc: 'tag', width: 11 }), b = lane3(9.5);
+  separateRibbons([a, b]);
+  ok(a.width === 11 && b.width < 10.75, 'a width tag stays while the other way can give way');
+}
+{
+  const a = lane3(0, { lanesFwd: 1, width: 5 }), b = lane3(6);
+  separateRibbons([a, b]);
+  ok(a.width >= 3.15 - 1e-9 && b.width < 10.75 && count([a, b], 'overlap') === 0, 'a narrow carriageway keeps its lane, the wide one gives the rest');
+}
+{
+  const a = lane3(0), b = lane3(0.5); // the same way twice, not two ways side by side
+  const w = a.width;
+  const rep = separateRibbons([a, b]);
+  ok(a.width === w && rep.left === 1, 'ways almost on top of each other are left alone and reported');
+}
+{
+  const a = lane3(0), b = road([[0, 0], [0, 40]], { width: 7 }); // a side street leaving it: shares a node, no overlap check
+  const w = a.width;
+  separateRibbons([a, b]);
+  ok(a.width === w, 'a way that joins at a node is no neighbour');
+}
+{
+  // the narrower stretch must not leave a step where it joins its own chain (widthJump)
+  const a = one([[0, 0], [100, 0]], 3, { width: 10.75, widthSrc: 'lanes', laneW: 3.25 }), c = one([[100, 0], [200, 0]], 3, { width: 10.75, widthSrc: 'lanes', laneW: 3.25 });
+  const n = lane3(8.5); // overlaps a only
+  separateRibbons([a, c, n]);
+  ok(Math.abs(a.width - c.width) <= 1.4 + 1e-9, 'the chain gets no step wider than 1.4 m', a.width + ' / ' + c.width);
+}
+
 // the city map: today's counts are the ceiling
-const data = JSON.parse(fs.readFileSync(new URL('../game/citymap.json', import.meta.url)));
+const { loadStadData } = await import('./lib/loadworld.mjs');
+const data = await loadStadData();
 const f = auditSeams(data.roads);
-const CEIL = { laneJump: 230, widthJump: 7, gap: 24, overlap: 135, crossNoNode: 0 };
+const CEIL = { laneJump: 231, /* was 230 op de oude stad; OSM telt bij Emmabrug (3 tegen 2 stroken) en Griffeweg (1 tegen 2) een echt verschil, #90 */ widthJump: 4, gap: 0, overlap: 10, crossNoNode: 0 };
 for (const [k, max] of Object.entries(CEIL)) ok(f[k].length <= max, `map: ${k} not above ${max}`, f[k].length);
 
 console.log(`${n - fails}/${n} ok`);

@@ -1,0 +1,2685 @@
+{
+ "gemaakt": "2026-10-20",
+ "bronnen": {
+  "gronings": "woordwaark.nl, woordenboek (alle 10 woordenboeken, taal Gronings, exact zoeken): Molema, ter Laan, Reker, Ganderheyden, Steenhuis, Meijer, Boeles, Abels, Westerkwartier. b = woordenboeken met een treffer, n = Nederlandse vertalingen",
+  "fries": "en.wiktionary.org en fy.wiktionary.org (MediaWiki-API) en fy.wikipedia.org (aantal artikelen met het woord)"
+ },
+ "gronings": {
+  "bieno": null,
+  "nuim": null,
+  "moeke": {
+   "b": [
+    "S.H. Abels",
+    "Westerkwartier",
+    "S.J.H. Reker",
+    "K. ter Laan",
+    "H. Molema"
+   ],
+   "n": [
+    "bok ⋅ moeder",
+    "moeder ⋅ stad",
+    "moeder",
+    "moeke"
+   ]
+  },
+  "stroat": {
+   "b": [
+    "S.J.H. Reker",
+    "K. ter Laan"
+   ],
+   "n": [
+    "straat"
+   ]
+  },
+  "stun": null,
+  "fryslân": null,
+  "lèste": null,
+  "kin": {
+   "b": [
+    "K. ter Laan"
+   ],
+   "n": []
+  },
+  "ains": {
+   "b": [
+    "S.J.H. Reker",
+    "K. ter Laan",
+    "H. Molema"
+   ],
+   "n": [
+    "eens ⋅ eensgezind",
+    "iemands",
+    "eens"
+   ]
+  },
+  "doarmit": {
+   "b": [
+    "K. ter Laan"
+   ],
+   "n": []
+  },
+  "aals": {
+   "b": [
+    "S.J.H. Reker",
+    "K. ter Laan",
+    "H. Molema"
+   ],
+   "n": [
+    "veel",
+    "alles",
+    "als"
+   ]
+  },
+  "wust": null,
+  "old": {
+   "b": [
+    "S.H. Abels",
+    "S.J.H. Reker",
+    "A.A. Ganderheyden",
+    "P. Boeles"
+   ],
+   "n": [
+    "jong ⋅ oud",
+    "oud ⋅ vervelend",
+    "oud",
+    "langdurig ⋅ vervelend"
+   ]
+  },
+  "woater": {
+   "b": [
+    "S.H. Abels",
+    "S.J.H. Reker",
+    "H. Molema",
+    "K. ter Laan"
+   ],
+   "n": [
+    "knie ⋅ water",
+    "ondiep ⋅ water",
+    "urine ⋅ water",
+    "water"
+   ]
+  },
+  "kaai": {
+   "b": [
+    "K. ter Laan"
+   ],
+   "n": []
+  },
+  "eefkes": {
+   "b": [
+    "S.J.H. Reker",
+    "K. ter Laan",
+    "H. Molema"
+   ],
+   "n": [
+    "eventjes"
+   ]
+  },
+  "vroag": {
+   "b": [
+    "S.J.H. Reker"
+   ],
+   "n": [
+    "vraag"
+   ]
+  },
+  "kaant": {
+   "b": [
+    "Westerkwartier",
+    "S.J.H. Reker",
+    "F.H. Steenhuis 1",
+    "K. ter Laan"
+   ],
+   "n": [
+    "helemaal, bijna -",
+    "kant",
+    "klaar",
+    "netheid"
+   ]
+  },
+  "goat": null,
+  "veurdeur": null,
+  "aanhollen": {
+   "b": [
+    "K. ter Laan"
+   ],
+   "n": [
+    "aanhouden",
+    "aanspreken"
+   ]
+  },
+  "aaltied": {
+   "b": [
+    "S.J.H. Reker",
+    "K. ter Laan"
+   ],
+   "n": [
+    "altijd"
+   ]
+  },
+  "opnij": null,
+  "weggong": null,
+  "hol": {
+   "b": [
+    "K. ter Laan",
+    "H. Molema"
+   ],
+   "n": [
+    "hol",
+    "bol"
+   ]
+  },
+  "butendeur": null,
+  "komst": {
+   "b": [
+    "K. ter Laan"
+   ],
+   "n": [
+    "komst"
+   ]
+  },
+  "wiek": {
+   "b": [
+    "S.J.H. Reker",
+    "F.H. Steenhuis 1",
+    "K. ter Laan",
+    "H. Molema"
+   ],
+   "n": [
+    "vaart II (water)",
+    "wijk",
+    "bat",
+    "week"
+   ]
+  },
+  "stilstait": null,
+  "veurdat": {
+   "b": [
+    "S.J.H. Reker",
+    "K. ter Laan"
+   ],
+   "n": [
+    "voordat"
+   ]
+  },
+  "achteran": null,
+  "hat": null,
+  "roai": {
+   "b": [
+    "K. ter Laan",
+    "H. Molema"
+   ],
+   "n": [
+    "raai"
+   ]
+  },
+  "aleen": null,
+  "aarst": {
+   "b": [
+    "F.H. Steenhuis 1",
+    "K. ter Laan"
+   ],
+   "n": [
+    "arks"
+   ]
+  },
+  "woard": {
+   "b": [
+    "K. ter Laan"
+   ],
+   "n": []
+  },
+  "raakt": null,
+  "tiedens": {
+   "b": [
+    "S.J.H. Reker",
+    "K. ter Laan"
+   ],
+   "n": [
+    "tijdens"
+   ]
+  },
+  "pien": {
+   "b": [
+    "S.J.H. Reker",
+    "K. ter Laan",
+    "H. Molema"
+   ],
+   "n": [
+    "pijn",
+    "gebrek ⋅ pijn"
+   ]
+  },
+  "vaarst": null,
+  "aal": {
+   "b": [
+    "S.H. Abels",
+    "S.J.H. Reker",
+    "F.H. Steenhuis 1",
+    "K. ter Laan"
+   ],
+   "n": [
+    "mogelijk",
+    "voortdurend ⋅ wèl",
+    "al ⋅ alles ⋅ ieder ⋅ iedereen",
+    "al, het -"
+   ]
+  },
+  "opkocht": null,
+  "joaren": {
+   "b": [
+    "H. Molema"
+   ],
+   "n": [
+    "jaar"
+   ]
+  },
+  "wol": {
+   "b": [
+    "S.J.H. Reker",
+    "F.H. Steenhuis 1",
+    "K. ter Laan",
+    "H. Molema"
+   ],
+   "n": [
+    "wèl",
+    "wel",
+    "wol",
+    "voortdurend ⋅ wèl"
+   ]
+  },
+  "blieven": {
+   "b": [
+    "S.J.H. Reker",
+    "K. ter Laan"
+   ],
+   "n": [
+    "believen ⋅ blijven",
+    "believen"
+   ]
+  },
+  "ieder": {
+   "b": [
+    "S.J.H. Reker",
+    "K. ter Laan"
+   ],
+   "n": [
+    "ijzer"
+   ]
+  },
+  "rie": null,
+  "kwiet": {
+   "b": [
+    "S.J.H. Reker",
+    "K. ter Laan"
+   ],
+   "n": [
+    "kwijt"
+   ]
+  },
+  "vismark": null,
+  "voortoan": null,
+  "doarover": {
+   "b": [
+    "K. ter Laan"
+   ],
+   "n": []
+  },
+  "betoalen": {
+   "b": [
+    "S.J.H. Reker",
+    "K. ter Laan",
+    "H. Molema"
+   ],
+   "n": [
+    "betalen"
+   ]
+  },
+  "allemoal": {
+   "b": [
+    "K. ter Laan"
+   ],
+   "n": []
+  },
+  "veurzichtig": {
+   "b": [
+    "H. Molema"
+   ],
+   "n": [
+    "voorzichtig"
+   ]
+  },
+  "doan": {
+   "b": [
+    "S.J.H. Reker",
+    "K. ter Laan",
+    "A.A. Ganderheyden"
+   ],
+   "n": [
+    "af ⋅ afgelopen",
+    "doen",
+    "af ⋅ verloren",
+    "afgelopen"
+   ]
+  },
+  "dien": {
+   "b": [
+    "S.J.H. Reker",
+    "F.H. Steenhuis 1",
+    "K. ter Laan",
+    "H. Molema"
+   ],
+   "n": [
+    "jouw",
+    "dijn",
+    "-tje",
+    "-je"
+   ]
+  },
+  "zulfs": null,
+  "grötter": null,
+  "duvenkeuning": null,
+  "zwoarder": null,
+  "holt": {
+   "b": [
+    "S.H. Abels",
+    "A.A. Ganderheyden",
+    "H. Molema",
+    "P. Boeles"
+   ],
+   "n": [
+    "Klaas ⋅ hout",
+    "hout",
+    "huis"
+   ]
+  },
+  "gaauwer": null,
+  "oetziet": null,
+  "hiele": null,
+  "slait": null,
+  "kriegen": {
+   "b": [
+    "S.J.H. Reker",
+    "K. ter Laan",
+    "A.A. Ganderheyden",
+    "H. Molema"
+   ],
+   "n": [
+    "krijgen ⋅ pakken",
+    "krijgen",
+    "krijgen ⋅ vangen",
+    "over"
+   ]
+  },
+  "nuimen": {
+   "b": [
+    "S.J.H. Reker",
+    "K. ter Laan",
+    "H. Molema",
+    "P. Boeles"
+   ],
+   "n": [
+    "noemen"
+   ]
+  },
+  "aans": {
+   "b": [
+    "S.J.H. Reker",
+    "F.H. Steenhuis 1",
+    "K. ter Laan"
+   ],
+   "n": [
+    "anders",
+    "als",
+    "anders ⋅ echter",
+    "als ⋅ behalve ⋅ dan ⋅ indien ⋅ of"
+   ]
+  },
+  "hait": {
+   "b": [
+    "S.H. Abels",
+    "S.J.H. Reker",
+    "F.H. Steenhuis 1",
+    "K. ter Laan",
+    "H. Molema"
+   ],
+   "n": [
+    "warm, erg - ⋅ zuchten",
+    "driftig ⋅ heet ⋅ warmbloedig",
+    "heet",
+    "heit"
+   ]
+  },
+  "verbieusterd": null,
+  "aovend": null,
+  "bannen": {
+   "b": [
+    "K. ter Laan"
+   ],
+   "n": []
+  },
+  "speult": null,
+  "zulfde": {
+   "b": [
+    "S.J.H. Reker",
+    "K. ter Laan",
+    "H. Molema"
+   ],
+   "n": [
+    "zelfde"
+   ]
+  },
+  "bleven": {
+   "b": [
+    "K. ter Laan",
+    "H. Molema"
+   ],
+   "n": [
+    "ge",
+    "bleven",
+    "blijven"
+   ]
+  },
+  "riedt": null,
+  "verlezen": null,
+  "bewiesmateriaal": null,
+  "noa": {
+   "b": [
+    "S.J.H. Reker",
+    "K. ter Laan",
+    "A.A. Ganderheyden",
+    "H. Molema"
+   ],
+   "n": [
+    "na ⋅ naar",
+    "naar",
+    "na",
+    "na ⋅ op ⋅ te (bij sommige plaatsn.)"
+   ]
+  },
+  "wedstried": null,
+  "aarste": null,
+  "duvenmelker": null,
+  "aindelk": null,
+  "biehollen": null,
+  "thoes": {
+   "b": [
+    "S.J.H. Reker",
+    "K. ter Laan",
+    "A.A. Ganderheyden",
+    "H. Molema"
+   ],
+   "n": [
+    "thuis",
+    "tehuis"
+   ]
+  },
+  "buten": {
+   "b": [
+    "Westerkwartier",
+    "S.J.H. Reker",
+    "F.H. Steenhuis 1",
+    "K. ter Laan",
+    "H. Molema",
+    "P. Boeles"
+   ],
+   "n": [
+    "buiten",
+    "ruilen",
+    "handelen (handel drijven) ⋅ ruilen ⋅ sjacheren"
+   ]
+  },
+  "groden": null,
+  "betje": null,
+  "bloemetjesmark": null,
+  "oetzicht": {
+   "b": [
+    "K. ter Laan"
+   ],
+   "n": []
+  },
+  "bluust": null,
+  "buslien": null,
+  "nèt": null,
+  "bliede": {
+   "b": [
+    "S.J.H. Reker",
+    "K. ter Laan"
+   ],
+   "n": [
+    "blij"
+   ]
+  },
+  "vief": {
+   "b": [
+    "S.J.H. Reker",
+    "K. ter Laan",
+    "A.A. Ganderheyden",
+    "H. Molema"
+   ],
+   "n": [
+    "vijf"
+   ]
+  },
+  "vandoage": {
+   "b": [
+    "S.J.H. Reker"
+   ],
+   "n": [
+    "vandaag"
+   ]
+  },
+  "kriegst": null,
+  "goie": {
+   "b": [
+    "S.J.H. Reker"
+   ],
+   "n": []
+  },
+  "aflevert": null,
+  "kaapt": null,
+  "betoalt": null,
+  "dié": null,
+  "leerd": null,
+  "vaailig": null,
+  "hailve": null,
+  "mouten": {
+   "b": [
+    "S.H. Abels",
+    "S.J.H. Reker",
+    "K. ter Laan",
+    "A.A. Ganderheyden",
+    "H. Molema"
+   ],
+   "n": [
+    "moeten ⋅ niet ⋅ willen",
+    "moeten",
+    "moest",
+    "moetwerk"
+   ]
+  },
+  "vaaren": null,
+  "doarachter": null,
+  "studeerd": null,
+  "winst": {
+   "b": [
+    "K. ter Laan"
+   ],
+   "n": []
+  },
+  "gaauwste": null,
+  "doarom": {
+   "b": [
+    "S.J.H. Reker",
+    "K. ter Laan",
+    "H. Molema"
+   ],
+   "n": [
+    "daarom ⋅ desalniettemin",
+    "daarom"
+   ]
+  },
+  "moakt": null,
+  "juust": {
+   "b": [
+    "S.J.H. Reker",
+    "K. ter Laan",
+    "H. Molema"
+   ],
+   "n": [
+    "juist ⋅ trouwens",
+    "juist",
+    "juist ⋅ net"
+   ]
+  },
+  "vaailige": null,
+  "wait": {
+   "b": [
+    "K. ter Laan",
+    "P. Boeles"
+   ],
+   "n": [
+    "tarwe"
+   ]
+  },
+  "stoalen": {
+   "b": [
+    "K. ter Laan"
+   ],
+   "n": []
+  },
+  "et": {
+   "b": [
+    "P. Boeles"
+   ],
+   "n": [
+    "h",
+    "et"
+   ]
+  },
+  "leuf": null,
+  "har": null,
+  "nije": {
+   "b": [
+    "P. Boeles"
+   ],
+   "n": [
+    "nieuw"
+   ]
+  },
+  "zuken": {
+   "b": [
+    "S.J.H. Reker"
+   ],
+   "n": [
+    "zoeken"
+   ]
+  },
+  "verleden": {
+   "b": [
+    "S.J.H. Reker",
+    "K. ter Laan",
+    "A.A. Ganderheyden",
+    "H. Molema"
+   ],
+   "n": [
+    "verleden",
+    "lijden"
+   ]
+  },
+  "zai": {
+   "b": [
+    "S.J.H. Reker",
+    "K. ter Laan",
+    "A.A. Ganderheyden"
+   ],
+   "n": [
+    "zij",
+    "zaai"
+   ]
+  },
+  "moaken": {
+   "b": [
+    "S.J.H. Reker",
+    "A.A. Ganderheyden",
+    "H. Molema"
+   ],
+   "n": [
+    "maken ⋅ opbrengen",
+    "maken",
+    "doen ⋅ geven ⋅ opbrengen",
+    "opbrengen ⋅ opvoeden"
+   ]
+  },
+  "nauwelks": null,
+  "mörn": {
+   "b": [
+    "S.J.H. Reker",
+    "K. ter Laan",
+    "A.A. Ganderheyden"
+   ],
+   "n": [
+    "morgen"
+   ]
+  },
+  "eerlk": {
+   "b": [
+    "K. ter Laan"
+   ],
+   "n": []
+  },
+  "older": {
+   "b": [
+    "S.J.H. Reker",
+    "F.H. Steenhuis 1",
+    "A.A. Ganderheyden",
+    "H. Molema"
+   ],
+   "n": [
+    "leeftijd, (hoge -)",
+    "ouder"
+   ]
+  },
+  "gong": null,
+  "zied": {
+   "b": [
+    "S.J.H. Reker",
+    "K. ter Laan",
+    "A.A. Ganderheyden",
+    "H. Molema"
+   ],
+   "n": [
+    "zijdelings",
+    "kant",
+    "zijde",
+    "opbergen"
+   ]
+  },
+  "vrogger": null,
+  "dartig": null,
+  "nuumst": null,
+  "ainrichtingsverkeer": null,
+  "eigenlk": null,
+  "belegering": null,
+  "oetnoodiging": null,
+  "menselk": null,
+  "luusteren": null,
+  "wark": {
+   "b": [
+    "H. Molema",
+    "P. Boeles"
+   ],
+   "n": [
+    "werk",
+    "honingraten ⋅ werk",
+    "jongewijvenwerk"
+   ]
+  },
+  "loodzwoar": null,
+  "loaten": {
+   "b": [
+    "S.J.H. Reker",
+    "K. ter Laan",
+    "H. Molema"
+   ],
+   "n": [
+    "laten",
+    "bestellen",
+    "toelaten",
+    "eels"
+   ]
+  },
+  "plend": null,
+  "jo": {
+   "b": [
+    "F.H. Steenhuis 1"
+   ],
+   "n": [
+    "ja"
+   ]
+  },
+  "mekoar": {
+   "b": [
+    "K. ter Laan",
+    "H. Molema"
+   ],
+   "n": [
+    "elkaar",
+    "wambuis"
+   ]
+  },
+  "hoeren": null,
+  "doarnet": null,
+  "slimste": {
+   "b": [
+    "K. ter Laan",
+    "H. Molema"
+   ],
+   "n": [
+    "slimste"
+   ]
+  },
+  "kold": {
+   "b": [
+    "S.H. Abels",
+    "H. Molema"
+   ],
+   "n": [
+    "gootsteen ⋅ wintervoet",
+    "drukte ⋅ koud",
+    "koud ⋅ vuur",
+    "koud"
+   ]
+  },
+  "zegst": null,
+  "bedoelen": null,
+  "stroatjes": null,
+  "huzen": {
+   "b": [
+    "S.J.H. Reker"
+   ],
+   "n": [
+    "ophitsen"
+   ]
+  },
+  "inzakt": null,
+  "nuimd": null,
+  "keuningin": null,
+  "omlaiding": null,
+  "bliedt": null,
+  "lèst": null,
+  "zichzulf": null,
+  "stoaring": null,
+  "woarom": {
+   "b": [
+    "H. Molema"
+   ],
+   "n": [
+    "waarom",
+    "daarom"
+   ]
+  },
+  "nammen": null,
+  "aigenlk": null,
+  "sticht": {
+   "b": [
+    "S.J.H. Reker",
+    "F.H. Steenhuis 1",
+    "H. Molema"
+   ],
+   "n": [
+    "hek, soort -",
+    "sticht"
+   ]
+  },
+  "zol": {
+   "b": [
+    "K. ter Laan"
+   ],
+   "n": []
+  },
+  "zuden": {
+   "b": [
+    "S.J.H. Reker",
+    "K. ter Laan"
+   ],
+   "n": [
+    "zuiden"
+   ]
+  },
+  "dwaars": {
+   "b": [
+    "S.J.H. Reker",
+    "K. ter Laan"
+   ],
+   "n": [
+    "dwars ⋅ onvriendelijk",
+    "onvriendelijk"
+   ]
+  },
+  "deurhen": {
+   "b": [
+    "A.A. Ganderheyden",
+    "H. Molema"
+   ],
+   "n": [
+    "doorheen",
+    "door"
+   ]
+  },
+  "pakhuzen": null,
+  "bruggies": null,
+  "volkswiek": null,
+  "aallang": null,
+  "stroatnammen": null,
+  "jatstroat": null,
+  "korrewegwiek": null,
+  "woar": {
+   "b": [
+    "S.J.H. Reker",
+    "K. ter Laan",
+    "A.A. Ganderheyden",
+    "H. Molema"
+   ],
+   "n": [
+    "waar ⋅ werkelijk",
+    "misschien",
+    "ergens",
+    "waar"
+   ]
+  },
+  "ideë": null,
+  "zailschepen": null,
+  "veurheen": null,
+  "drokke": null,
+  "tuunen": null,
+  "metbewegen": null,
+  "aend": null,
+  "oosterparkwiek": null,
+  "oranjewiek": null,
+  "herenhuzen": null,
+  "drok": {
+   "b": [
+    "K. ter Laan",
+    "A.A. Ganderheyden",
+    "H. Molema"
+   ],
+   "n": [
+    "druk"
+   ]
+  },
+  "bruken": {
+   "b": [
+    "S.J.H. Reker",
+    "F.H. Steenhuis 1",
+    "K. ter Laan",
+    "H. Molema"
+   ],
+   "n": [
+    "gebruiken",
+    "gebruiken ⋅ nuttigen"
+   ]
+  },
+  "vroagd": null,
+  "schreven": null,
+  "selwerderwiek": null,
+  "rijtjeshuzen": null,
+  "still": null,
+  "tiedelke": null,
+  "dichtstbiezunde": null,
+  "vake": null,
+  "allerlèste": null,
+  "mogst": null,
+  "riedst": null,
+  "stoa": null,
+  "veuraan": {
+   "b": [
+    "K. ter Laan"
+   ],
+   "n": []
+  },
+  "opbouwd": null,
+  "lait": null,
+  "aind": {
+   "b": [
+    "S.J.H. Reker",
+    "H. Molema",
+    "K. ter Laan"
+   ],
+   "n": [
+    "eend"
+   ]
+  },
+  "stuurd": null,
+  "oostkaant": null,
+  "moestuunen": null,
+  "rukt": null,
+  "suker": {
+   "b": [
+    "S.J.H. Reker",
+    "F.H. Steenhuis 1",
+    "H. Molema",
+    "K. ter Laan"
+   ],
+   "n": [
+    "suiker"
+   ]
+  },
+  "vliegst": null,
+  "lantaarnpoalen": null,
+  "menuten": null,
+  "dee": null,
+  "weerzain": null,
+  "loskoppen": null,
+  "disse": {
+   "b": [
+    "H. Molema"
+   ],
+   "n": [
+    "deze",
+    "dit is",
+    "fris",
+    "handvol"
+   ]
+  },
+  "kunstenoar": {
+   "b": [
+    "K. ter Laan"
+   ],
+   "n": [
+    "kunstenaar"
+   ]
+  },
+  "fusilleerd": null,
+  "peer": {
+   "b": [
+    "S.J.H. Reker",
+    "K. ter Laan",
+    "H. Molema"
+   ],
+   "n": [
+    "peer",
+    "muil",
+    "⋅"
+   ]
+  },
+  "kij": {
+   "b": [
+    "K. ter Laan"
+   ],
+   "n": []
+  },
+  "nuumde": null,
+  "reup": {
+   "b": [
+    "H. Molema"
+   ],
+   "n": [
+    "ruif"
+   ]
+  },
+  "aaloverst": null,
+  "kiekte": null,
+  "roar": {
+   "b": [
+    "S.J.H. Reker",
+    "K. ter Laan",
+    "A.A. Ganderheyden",
+    "H. Molema"
+   ],
+   "n": [
+    "raar ⋅ vreemd",
+    "raar",
+    "dol ⋅ vreemd"
+   ]
+  },
+  "natgoan": null,
+  "sluten": {
+   "b": [
+    "S.J.H. Reker",
+    "K. ter Laan",
+    "H. Molema"
+   ],
+   "n": [
+    "sluiten",
+    "sluiting"
+   ]
+  },
+  "aigenoar": {
+   "b": [
+    "H. Molema"
+   ],
+   "n": [
+    "eigenaar"
+   ]
+  },
+  "jatte": null,
+  "oetgang": {
+   "b": [
+    "K. ter Laan"
+   ],
+   "n": [
+    "uitgang"
+   ]
+  },
+  "deurlopen": {
+   "b": [
+    "K. ter Laan"
+   ],
+   "n": [
+    "doorlopen"
+   ]
+  },
+  "wegjaagd": null,
+  "snackkeuning": null,
+  "nim": null,
+  "poal": {
+   "b": [
+    "S.J.H. Reker",
+    "K. ter Laan",
+    "H. Molema"
+   ],
+   "n": [
+    "paal",
+    "listig"
+   ]
+  },
+  "rieden": {
+   "b": [
+    "S.J.H. Reker",
+    "K. ter Laan",
+    "H. Molema"
+   ],
+   "n": [
+    "rijden",
+    "rijden ⋅ varen"
+   ]
+  },
+  "sluut": null,
+  "klain": {
+   "b": [
+    "S.J.H. Reker",
+    "F.H. Steenhuis 1",
+    "K. ter Laan"
+   ],
+   "n": [
+    "veen",
+    "klein",
+    "klijn"
+   ]
+  },
+  "betoald": null,
+  "oefend": null,
+  "oetstapt": null,
+  "deup": {
+   "b": [
+    "S.J.H. Reker",
+    "K. ter Laan",
+    "A.A. Ganderheyden"
+   ],
+   "n": [
+    "doop",
+    "dreumes",
+    "dreumes ⋅ keutel"
+   ]
+  },
+  "slimmer": {
+   "b": [
+    "K. ter Laan"
+   ],
+   "n": []
+  },
+  "schuten": null,
+  "drokste": null,
+  "veurbie": {
+   "b": [
+    "S.J.H. Reker",
+    "K. ter Laan"
+   ],
+   "n": [
+    "voorbij",
+    "geleden ⋅ voorbij"
+   ]
+  },
+  "hielemoal": {
+   "b": [
+    "S.J.H. Reker"
+   ],
+   "n": [
+    "helemaal",
+    "bijna ⋅ helemaal",
+    "geheel ⋅ helemaal"
+   ]
+  },
+  "ruum": null,
+  "aaien": {
+   "b": [
+    "Westerkwartier",
+    "S.J.H. Reker",
+    "K. ter Laan"
+   ],
+   "n": [
+    "eggen",
+    "aaien",
+    "⋅ besmeuren ⋅ klikken ⋅ slaan"
+   ]
+  },
+  "volkstuun": null,
+  "aailand": null,
+  "kört": {
+   "b": [
+    "S.J.H. Reker",
+    "A.A. Ganderheyden",
+    "H. Molema",
+    "K. ter Laan"
+   ],
+   "n": [
+    "kort ⋅ plank",
+    "kort ⋅ stuk",
+    "kort",
+    "kapot ⋅ stuk"
+   ]
+  },
+  "duven": null,
+  "woonen": null,
+  "luustern": null,
+  "vuurwark": null,
+  "tegelieke": null,
+  "opzied": {
+   "b": [
+    "K. ter Laan"
+   ],
+   "n": []
+  },
+  "aindigen": null,
+  "gelieke": {
+   "b": [
+    "S.J.H. Reker",
+    "K. ter Laan",
+    "A.A. Ganderheyden",
+    "H. Molema"
+   ],
+   "n": [
+    "even",
+    "gelijk"
+   ]
+  },
+  "rde": null,
+  "begraffenis": {
+   "b": [
+    "S.J.H. Reker",
+    "H. Molema"
+   ],
+   "n": [
+    "begrafenis"
+   ]
+  },
+  "rieke": null,
+  "normoal": {
+   "b": [
+    "K. ter Laan"
+   ],
+   "n": []
+  },
+  "duuzenden": null,
+  "groaf": {
+   "b": [
+    "K. ter Laan"
+   ],
+   "n": [
+    "graaf"
+   ]
+  },
+  "buurjong": null,
+  "loater": {
+   "b": [
+    "S.H. Abels"
+   ],
+   "n": [
+    "kwartier ⋅ later",
+    "avond ⋅ later ⋅ schoon ⋅ volk"
+   ]
+  },
+  "kiekst": null,
+  "kriegt": null,
+  "noteerd": null,
+  "luusteraar": null,
+  "mörns": {
+   "b": [
+    "A.A. Ganderheyden"
+   ],
+   "n": [
+    "morgen"
+   ]
+  },
+  "geft": null,
+  "stuurst": null,
+  "stuntaovend": null,
+  "terwiel": null,
+  "diekken": null,
+  "gongen": null,
+  "peild": null,
+  "aarder": null,
+  "oetstappen": {
+   "b": [
+    "K. ter Laan"
+   ],
+   "n": [
+    "uitstappen"
+   ]
+  },
+  "afmoaken": null,
+  "achterkaant": null,
+  "muus": {
+   "b": [
+    "H. Molema"
+   ],
+   "n": [
+    "muis"
+   ]
+  },
+  "eerlke": null,
+  "samenwarking": null,
+  "riek": {
+   "b": [
+    "S.J.H. Reker",
+    "K. ter Laan",
+    "A.A. Ganderheyden",
+    "H. Molema"
+   ],
+   "n": [
+    "rijk",
+    "riek",
+    "rijk ⋅ sterk"
+   ]
+  },
+  "aanpast": null,
+  "metmoakt": null,
+  "butenkomen": null,
+  "leufden": null,
+  "drokte": {
+   "b": [
+    "S.J.H. Reker",
+    "H. Molema"
+   ],
+   "n": [
+    "drukte ⋅ koud",
+    "drukte ⋅ ruzie",
+    "drukte",
+    "fratsen ⋅ ruzie",
+    "drukte ⋅ ophemelarij",
+    "ruzie"
+   ]
+  },
+  "filmd": null,
+  "vlaggies": null,
+  "bladen": null,
+  "verlaus": null,
+  "vreug": null,
+  "zitst": null,
+  "zeden": {
+   "b": [
+    "K. ter Laan"
+   ],
+   "n": []
+  },
+  "olders": {
+   "b": [
+    "S.J.H. Reker",
+    "H. Molema"
+   ],
+   "n": [
+    "ouders",
+    "ouder",
+    "voorouder"
+   ]
+  },
+  "vanoet": null,
+  "duutslaand": null,
+  "kinst": null,
+  "schient": {
+   "b": [
+    "H. Molema"
+   ],
+   "n": [
+    "schijnen"
+   ]
+  },
+  "diek": {
+   "b": [
+    "S.J.H. Reker",
+    "K. ter Laan",
+    "H. Molema"
+   ],
+   "n": [
+    "dijk"
+   ]
+  },
+  "veurzorg": null,
+  "voetbald": null,
+  "stilstoan": null,
+  "woarhen": {
+   "b": [
+    "H. Molema"
+   ],
+   "n": [
+    "waarheen"
+   ]
+  },
+  "vanoavend": null,
+  "hiel": {
+   "b": [
+    "S.J.H. Reker",
+    "A.A. Ganderheyden"
+   ],
+   "n": [
+    "heel",
+    "halen",
+    "houden",
+    "geheel ⋅ heel"
+   ]
+  },
+  "wiezen": {
+   "b": [
+    "S.J.H. Reker",
+    "K. ter Laan"
+   ],
+   "n": [
+    "wijzen"
+   ]
+  },
+  "goaten": {
+   "b": [
+    "A.A. Ganderheyden"
+   ],
+   "n": [
+    "gat",
+    "buisgat",
+    "loer"
+   ]
+  },
+  "zunnetje": null,
+  "gisteravend": null,
+  "bouwd": null,
+  "oetverkocht": null,
+  "vasthollen": null,
+  "wegrieden": null,
+  "duuster": {
+   "b": [
+    "S.J.H. Reker",
+    "K. ter Laan",
+    "H. Molema"
+   ],
+   "n": [
+    "boos ⋅ duister",
+    "duister",
+    "boos ⋅ schor",
+    "boos"
+   ]
+  },
+  "doarbinnen": null,
+  "leden": {
+   "b": [
+    "S.J.H. Reker",
+    "K. ter Laan",
+    "A.A. Ganderheyden",
+    "H. Molema"
+   ],
+   "n": [
+    "ge",
+    "leden",
+    "⋅ voorbij",
+    "ledematen",
+    "lijden",
+    "⋅ hierheen ⋅ vandaan"
+   ]
+  },
+  "bekieken": null,
+  "mos": {
+   "b": [
+    "K. ter Laan",
+    "H. Molema"
+   ],
+   "n": [
+    "moest",
+    "mos",
+    "sel"
+   ]
+  },
+  "flitspoal": null,
+  "flitst": null,
+  "huurd": null,
+  "duukt": null,
+  "aander": {
+   "b": [
+    "S.J.H. Reker",
+    "K. ter Laan"
+   ],
+   "n": [
+    "ander ⋅ tweede ⋅ volgend",
+    "ander",
+    "toekomstig ⋅ volgend",
+    "tweede"
+   ]
+  },
+  "leende": null,
+  "warkt": null,
+  "mins": {
+   "b": [
+    "A.A. Ganderheyden"
+   ],
+   "n": [
+    "mens"
+   ]
+  },
+  "mouilker": null,
+  "hakken": {
+   "b": [
+    "K. ter Laan",
+    "A.A. Ganderheyden",
+    "P. Boeles"
+   ],
+   "n": [
+    "hak",
+    "uitsteken"
+   ]
+  },
+  "goedenaovend": null,
+  "goeiemörn": null,
+  "draaid": null,
+  "bestait": null,
+  "dissels": null,
+  "sluitingstied": null,
+  "wus": null,
+  "zeun": {
+   "b": [
+    "S.J.H. Reker",
+    "K. ter Laan",
+    "P. Boeles"
+   ],
+   "n": [
+    "zoon"
+   ]
+  },
+  "zegd": {
+   "b": [
+    "K. ter Laan",
+    "H. Molema"
+   ],
+   "n": [
+    "ge",
+    "zegd"
+   ]
+  },
+  "haald": null,
+  "menuut": null,
+  "ruumt": null,
+  "onderduken": null,
+  "vanoaf": null,
+  "zunsondergang": null,
+  "heurd": null,
+  "heerlk": {
+   "b": [
+    "K. ter Laan"
+   ],
+   "n": []
+  },
+  "kloarzet": null,
+  "sloopt": null,
+  "nij": {
+   "b": [
+    "S.J.H. Reker",
+    "K. ter Laan",
+    "A.A. Ganderheyden",
+    "H. Molema",
+    "P. Boeles"
+   ],
+   "n": [
+    "benieuwd ⋅ nieuw",
+    "nieuw",
+    "niet",
+    "benieuwd"
+   ]
+  },
+  "mog": null,
+  "gemainte": {
+   "b": [
+    "S.J.H. Reker",
+    "K. ter Laan"
+   ],
+   "n": [
+    "gemeente"
+   ]
+  },
+  "aindigt": null,
+  "vaiver": null,
+  "vinst": null,
+  "hete": null,
+  "warken": null,
+  "verhoest": null,
+  "verdwoalen": {
+   "b": [
+    "S.J.H. Reker",
+    "K. ter Laan"
+   ],
+   "n": [
+    "verdwalen"
+   ]
+  },
+  "bedrief": {
+   "b": [
+    "S.J.H. Reker",
+    "K. ter Laan",
+    "H. Molema"
+   ],
+   "n": [
+    "bedrijf",
+    "bedrijf ⋅ hoeveelheid ⋅ inboedel ⋅ rommel",
+    "drijven"
+   ]
+  },
+  "ai": {
+   "b": [
+    "K. ter Laan",
+    "H. Molema"
+   ],
+   "n": [
+    "a",
+    "ai",
+    "als jij",
+    "ei",
+    "hij"
+   ]
+  },
+  "wied": {
+   "b": [
+    "S.J.H. Reker",
+    "K. ter Laan",
+    "H. Molema"
+   ],
+   "n": [
+    "ver ⋅ wijd",
+    "wijd",
+    "wijd genoeg",
+    "wijd weg"
+   ]
+  },
+  "tussendeur": null,
+  "neudig": {
+   "b": [
+    "P. Boeles"
+   ],
+   "n": [
+    "nodig"
+   ]
+  },
+  "theehoes": null,
+  "vroage": {
+   "b": [
+    "S.J.H. Reker"
+   ],
+   "n": [
+    "vraag"
+   ]
+  },
+  "slopen": {
+   "b": [
+    "S.J.H. Reker",
+    "K. ter Laan"
+   ],
+   "n": [
+    "slopen"
+   ]
+  },
+  "oetzag": null,
+  "dreug": {
+   "b": [
+    "S.J.H. Reker",
+    "K. ter Laan",
+    "A.A. Ganderheyden",
+    "H. Molema",
+    "P. Boeles"
+   ],
+   "n": [
+    "droog",
+    "vrij"
+   ]
+  },
+  "hold": null,
+  "zundag": {
+   "b": [
+    "S.J.H. Reker",
+    "K. ter Laan"
+   ],
+   "n": [
+    "zondag",
+    "zomer"
+   ]
+  },
+  "heurde": null,
+  "aanleggd": null,
+  "luusteraars": null,
+  "zwoar": null,
+  "smeult": null,
+  "teld": null,
+  "overhin": null,
+  "luusterde": null,
+  "schraift": null,
+  "slim": {
+   "b": [
+    "Westerkwartier",
+    "S.J.H. Reker",
+    "F.H. Steenhuis 1",
+    "K. ter Laan",
+    "A.A. Ganderheyden",
+    "H. Molema",
+    "P. Boeles"
+   ],
+   "n": [
+    "erg",
+    "erg ⋅ zeer",
+    "slim",
+    "vals (munt)",
+    "erg ⋅ flinkop",
+    "zeer"
+   ]
+  },
+  "veurgang": null,
+  "hoeveul": null,
+  "moanden": null,
+  "moag": {
+   "b": [
+    "A.A. Ganderheyden",
+    "H. Molema"
+   ],
+   "n": [
+    "maag"
+   ]
+  },
+  "ambtenoar": {
+   "b": [
+    "K. ter Laan"
+   ],
+   "n": [
+    "ambtenaar"
+   ]
+  },
+  "menutjes": null,
+  "vroagt": null,
+  "nuumt": null,
+  "heurst": null,
+  "zwiegend": null,
+  "veurtvluchtig": null,
+  "achternoa": {
+   "b": [
+    "K. ter Laan"
+   ],
+   "n": [
+    "hoenders"
+   ]
+  },
+  "zist": null,
+  "voader": {
+   "b": [
+    "S.J.H. Reker",
+    "K. ter Laan"
+   ],
+   "n": [
+    "vader",
+    "papa ⋅ vader"
+   ]
+  },
+  "vaarbewies": null,
+  "panneerd": null,
+  "duvenfluisteraar": null,
+  "luusterst": null,
+  "aanvroagd": null,
+  "schilderd": null,
+  "hong": null,
+  "wichtje": {
+   "b": [
+    "K. ter Laan"
+   ],
+   "n": [
+    "ge",
+    "wichtje"
+   ]
+  },
+  "mark": {
+   "b": [
+    "A.A. Ganderheyden",
+    "H. Molema",
+    "P. Boeles"
+   ],
+   "n": [
+    "mark",
+    "t",
+    "merk",
+    "merg",
+    "paarden"
+   ]
+  },
+  "luuster": {
+   "b": [
+    "K. ter Laan",
+    "H. Molema"
+   ],
+   "n": [
+    "lustre"
+   ]
+  },
+  "persoonlk": null,
+  "langzoam": {
+   "b": [
+    "S.J.H. Reker"
+   ],
+   "n": [
+    "langzaam"
+   ]
+  },
+  "holst": null,
+  "lieske": null,
+  "ruk": {
+   "b": [
+    "K. ter Laan"
+   ],
+   "n": [
+    "ruk"
+   ]
+  },
+  "schraif": null,
+  "zeild": null,
+  "moust": null,
+  "wilst": null,
+  "valst": null,
+  "vanof": null,
+  "tiedelk": {
+   "b": [
+    "S.J.H. Reker",
+    "K. ter Laan"
+   ],
+   "n": [
+    "tijdelijk"
+   ]
+  },
+  "aovends": null,
+  "wiest": null,
+  "oetdaging": null,
+  "zetst": null,
+  "appst": null,
+  "brocht": null,
+  "aandersom": {
+   "b": [
+    "K. ter Laan"
+   ],
+   "n": []
+  },
+  "biedst": null,
+  "zeten": null,
+  "haddest": null,
+  "opeten": {
+   "b": [
+    "K. ter Laan",
+    "H. Molema"
+   ],
+   "n": [
+    "opeten"
+   ]
+  },
+  "voetbalwedstried": null,
+  "proatst": null,
+  "proatte": null,
+  "rukst": null,
+  "woonst": null,
+  "gaauwe": null,
+  "hollen": {
+   "b": [
+    "K. ter Laan",
+    "A.A. Ganderheyden",
+    "H. Molema"
+   ],
+   "n": [
+    "houden",
+    "stoppen",
+    "hilt"
+   ]
+  },
+  "hongen": null,
+  "aanderen": null,
+  "goast": null,
+  "oetgeven": {
+   "b": [
+    "H. Molema"
+   ],
+   "n": [
+    "uitgeven"
+   ]
+  },
+  "sjouwst": null,
+  "veurzichtige": null,
+  "stoast": null,
+  "leufd": null,
+  "viskt": null,
+  "duuve": null,
+  "schit": null,
+  "ies": {
+   "b": [
+    "S.J.H. Reker",
+    "K. ter Laan",
+    "A.A. Ganderheyden",
+    "H. Molema"
+   ],
+   "n": [
+    "eens",
+    "ijs I (niet voor consumptie)",
+    "ijs",
+    "ereis"
+   ]
+  },
+  "zomeraovend": null,
+  "warkers": null,
+  "dudelke": null,
+  "stroatnaam": null,
+  "klemrieden": null,
+  "overaind": null,
+  "koopaovend": null,
+  "laanhuzen": null,
+  "verjoardag": {
+   "b": [
+    "K. ter Laan"
+   ],
+   "n": []
+  },
+  "lien": {
+   "b": [
+    "S.J.H. Reker",
+    "H. Molema"
+   ],
+   "n": [
+    "lijn ⋅ touw",
+    "lijn",
+    "touw",
+    "lijntje"
+   ]
+  },
+  "grunnegers": null,
+  "openderd": null,
+  "ontwarpen": null,
+  "veenen": null,
+  "aanvoerd": null,
+  "schept": null,
+  "blieft": {
+   "b": [
+    "K. ter Laan",
+    "A.A. Ganderheyden"
+   ],
+   "n": [
+    "believen"
+   ]
+  },
+  "hielhuids": null,
+  "moaaaat": null,
+  "metnomen": null,
+  "woaterwagen": null,
+  "filmpie": null,
+  "zomeravend": null,
+  "zoveul": {
+   "b": [
+    "K. ter Laan"
+   ],
+   "n": []
+  },
+  "aanstoan": {
+   "b": [
+    "K. ter Laan"
+   ],
+   "n": [
+    "aanstaan"
+   ]
+  },
+  "vleermuus": null,
+  "twijduuster": null,
+  "botst": null,
+  "elkenain": {
+   "b": [
+    "S.J.H. Reker"
+   ],
+   "n": [
+    "iedereen",
+    "al ⋅ alles ⋅ ieder ⋅ iedereen"
+   ]
+  },
+  "aovendlicht": null,
+  "bedocht": {
+   "b": [
+    "P. Boeles"
+   ],
+   "n": []
+  },
+  "vroagst": null,
+  "morst": null,
+  "aine": {
+   "b": [
+    "S.J.H. Reker",
+    "F.H. Steenhuis 1",
+    "K. ter Laan"
+   ],
+   "n": [
+    "één",
+    "iemand",
+    "een",
+    "iemand ⋅ wie"
+   ]
+  },
+  "regeld": null,
+  "duventil": null,
+  "bepoal": null,
+  "wolst": null,
+  "leend": null,
+  "overaal": {
+   "b": [
+    "S.J.H. Reker",
+    "K. ter Laan"
+   ],
+   "n": [
+    "overal"
+   ]
+  },
+  "stroaten": null,
+  "overdrief": null,
+  "ruggegraat": null,
+  "rechtdeur": null,
+  "datzulfde": null,
+  "hudige": null,
+  "ossenmark": null,
+  "kruden": {
+   "b": [
+    "H. Molema"
+   ],
+   "n": [
+    "kruid"
+   ]
+  },
+  "zonnewiezer": null,
+  "oprocht": null,
+  "repareern": null,
+  "rieweze": null,
+  "proatje": {
+   "b": [
+    "K. ter Laan",
+    "H. Molema"
+   ],
+   "n": [
+    "praatje"
+   ]
+  },
+  "kommen": {
+   "b": [
+    "S.J.H. Reker",
+    "K. ter Laan"
+   ],
+   "n": [
+    "komen"
+   ]
+  },
+  "deurtrappen": null,
+  "veurtuuntje": null,
+  "zaoterdag": null,
+  "zut": null,
+  "wegwarker": null,
+  "roare": {
+   "b": [
+    "K. ter Laan"
+   ],
+   "n": []
+  },
+  "boksteen": null,
+  "ondertied": {
+   "b": [
+    "S.J.H. Reker",
+    "K. ter Laan",
+    "A.A. Ganderheyden",
+    "H. Molema"
+   ],
+   "n": [
+    "inmiddels",
+    "ondertijd"
+   ]
+  },
+  "wedstriedsdagen": null,
+  "spiet": {
+   "b": [
+    "K. ter Laan"
+   ],
+   "n": []
+  },
+  "völ": null,
+  "riebaan": null,
+  "leerzoam": {
+   "b": [
+    "K. ter Laan"
+   ],
+   "n": [
+    "leerzaam"
+   ]
+  },
+  "fluusteren": null,
+  "stoaringsbericht": null,
+  "dreugt": null,
+  "wachtlieste": null,
+  "iesboan": {
+   "b": [
+    "Westerkwartier"
+   ],
+   "n": [
+    "ijsbaan"
+   ]
+  },
+  "veurruit": null,
+  "denkst": null,
+  "normoale": null,
+  "tienduuzend": null,
+  "kiekers": null,
+  "oetvinden": null,
+  "ruken": {
+   "b": [
+    "S.J.H. Reker"
+   ],
+   "n": [
+    "ruiken",
+    "ruiken ⋅ stinken"
+   ]
+  },
+  "broken": {
+   "b": [
+    "K. ter Laan",
+    "H. Molema"
+   ],
+   "n": [
+    "ge",
+    "broken"
+   ]
+  },
+  "ooggetuuge": null,
+  "betoalst": null,
+  "apels": null,
+  "misdoad": {
+   "b": [
+    "K. ter Laan"
+   ],
+   "n": []
+  },
+  "twij-nul": null,
+  "ontwiek": null,
+  "langszied": null,
+  "veurtuug": null,
+  "aindheden": null,
+  "verhoezer": null,
+  "scharpe": null,
+  "vieftig": null,
+  "tuunman": null,
+  "veurjoar": {
+   "b": [
+    "S.J.H. Reker"
+   ],
+   "n": [
+    "voorjaar"
+   ]
+  },
+  "ziest": null,
+  "vanzulf": {
+   "b": [
+    "S.J.H. Reker",
+    "K. ter Laan"
+   ],
+   "n": [
+    "natuurlijk ⋅ vanzelf ⋅ vanzelfsprekend",
+    "natuurlijk",
+    "vanzelf ⋅ vanzelfsprekend"
+   ]
+  },
+  "volhollen": null,
+  "veurschot": null,
+  "vooroetgang": null,
+  "veurlèste": null,
+  "binnenkomen": null,
+  "weggoan": {
+   "b": [
+    "K. ter Laan",
+    "H. Molema"
+   ],
+   "n": [
+    "weggaan"
+   ]
+  },
+  "zolst": null,
+  "woarover": null,
+  "weghaald": null,
+  "openstaait": null,
+  "verhoesdoos": null,
+  "nedocht": null,
+  "zatten": {
+   "b": [
+    "S.J.H. Reker",
+    "K. ter Laan"
+   ],
+   "n": [
+    "verzadigen",
+    "voedzaam"
+   ]
+  },
+  "rieker": null,
+  "kepot": {
+   "b": [
+    "S.J.H. Reker",
+    "A.A. Ganderheyden",
+    "H. Molema"
+   ],
+   "n": [
+    "kapot ⋅ ziek",
+    "kapot",
+    "ziek",
+    "bedorven ⋅ gemeen ⋅ ziek",
+    "kapot ⋅ stuk",
+    "kapoeres"
+   ]
+  },
+  "peerden": null,
+  "test": null,
+  "kroakt": null,
+  "groeven": null,
+  "oetbreid": null,
+  "spierpien": null,
+  "neerleg": null,
+  "kokte": null,
+  "tuun": {
+   "b": [
+    "S.J.H. Reker",
+    "K. ter Laan",
+    "H. Molema",
+    "P. Boeles"
+   ],
+   "n": [
+    "tuin",
+    "omheining ⋅ tuin"
+   ]
+  },
+  "metbeweegt": null,
+  "inschrieven": null,
+  "honderdvieftig": null,
+  "wrieven": null,
+  "hanen": null,
+  "wollen": {
+   "b": [
+    "K. ter Laan"
+   ],
+   "n": []
+  },
+  "metmoak": null,
+  "traanen": null,
+  "dar": null,
+  "zunsopgang": null,
+  "woarveur": null,
+  "inreden": null,
+  "stug": null
+ },
+ "fries": {
+  "moai": {
+   "fyp": 608,
+   "woordenboek": "beautiful, pretty, nice"
+  },
+  "tige": {
+   "fyp": 6861,
+   "woordenboek": "much, many; much, very (\"Tige tank!\")"
+  },
+  "tank": {
+   "fyp": 341
+  },
+  "sjoch": {
+   "fyp": 13203,
+   "woordenboek": "I see; look! (sjen)"
+  },
+  "neat": {
+   "fyp": 3645,
+   "woordenboek": "nothing"
+  },
+  "hjir": {
+   "fyp": 8237,
+   "woordenboek": "here"
+  },
+  "drok": {
+   "fyp": 304,
+   "woordenboek": "crowded, busy; zealous, driven"
+  },
+  "gjin": {
+   "fyp": 10571,
+   "woordenboek": "no, none"
+  },
+  "dyn": {
+   "fyp": 173,
+   "woordenboek": "your (informal singular)"
+  },
+  "myn": {
+   "fyp": 710,
+   "woordenboek": "my"
+  },
+  "foar": {
+   "fyp": 41918,
+   "woordenboek": "for; before"
+  },
+  "mem": {
+   "fyp": 3362,
+   "woordenboek": "mother, mom"
+  },
+  "wykein": {
+   "fyp": 275
+  },
+  "fakmanskip": {
+   "fyp": 37
+  },
+  "nedich": {
+   "fyp": 1653
+  },
+  "skûtsje": {
+   "fyp": 121
+  },
+  "publyk": {
+   "fyp": 1576
+  },
+  "wiene": {
+   "fyp": 9443,
+   "woordenboek": "verleden tijd van wêze (fy.wiktionary)"
+  },
+  "jimme": {
+   "fyp": 114,
+   "woordenboek": "2e persoon meervoud (fy.wiktionary)"
+  },
+  "Grins": {
+   "fyp": 4865
+  },
+  "wâld": {
+   "fyp": 621,
+   "woordenboek": "forest"
+  },
+  "weach": {
+   "fyp": 205,
+   "woordenboek": "wave"
+  },
+  "hjoed": {
+   "fyp": 3692,
+   "woordenboek": "today"
+  },
+  "brêgekening": {
+   "fyp": 0
+  },
+  "skûtsjekening": {
+   "fyp": 0
+  },
+  "kening": {
+   "fyp": 5090,
+   "woordenboek": "king"
+  },
+  "skûtsje-sprint": {
+   "fyp": 0
+  },
+  "skûtsjes": {
+   "fyp": 67
+  },
+  "skûtsjesiler": {
+   "fyp": 4
+  },
+  "seil": {
+   "fyp": 95
+  },
+  "trapfyts": {
+   "fyp": 0
+  },
+  "jûn": {
+   "fyp": 2746,
+   "woordenboek": "evening; tonight"
+  },
+  "út": {
+   "fyp": 35598,
+   "woordenboek": "out of; out"
+  },
+  "ús": {
+   "fyp": 839,
+   "woordenboek": "our; my (family members)"
+  },
+  "hûs": {
+   "fyp": 4343,
+   "woordenboek": "house"
+  },
+  "tún": {
+   "fyp": 672,
+   "woordenboek": "garden"
+  },
+  "genôch": {
+   "fyp": 2106,
+   "woordenboek": "enough"
+  },
+  "jild": {
+   "fyp": 2035,
+   "woordenboek": "money"
+  },
+  "sûkelade": {
+   "fyp": 9,
+   "woordenboek": "chocolate"
+  },
+  "útslach": {
+   "fyp": 348
+  },
+  "wêr": {
+   "fyp": 302,
+   "woordenboek": "where (interrogative)"
+  },
+  "pompeblêden": {
+   "fyp": 44
+  },
+  "pompeblêd": {
+   "fyp": 58,
+   "woordenboek": "leaf of the yellow waterlily"
+  },
+  "ien": {
+   "fyp": 17440,
+   "woordenboek": "one"
+  },
+  "twa": {
+   "fyp": 15027,
+   "woordenboek": "two"
+  },
+  "trije": {
+   "fyp": 10535,
+   "woordenboek": "three"
+  },
+  "fuort": {
+   "fyp": 6107,
+   "woordenboek": "away, gone"
+  },
+  "efkes": {
+   "fyp": 248
+  },
+  "betiid": {
+   "fyp": 273
+  },
+  "werom": {
+   "fyp": 7897
+  },
+  "bytsje": {
+   "fyp": 1090
+  },
+  "gelok": {
+   "fyp": 95,
+   "woordenboek": "luck, fortune"
+  },
+  "teminsten": {
+   "fyp": 1126
+  },
+  "mjitte": {
+   "fyp": 796
+  },
+  "wiet": {
+   "fyp": 247,
+   "woordenboek": "wet"
+  },
+  "wrachtich": {
+   "fyp": 6
+  },
+  "hearen": {
+   "fyp": 344,
+   "woordenboek": "(meervoud van hear)"
+  },
+  "hear": {
+   "fyp": 1090,
+   "woordenboek": "lord; the Lord, God"
+  },
+  "oant": {
+   "fyp": 21412,
+   "woordenboek": "till, until"
+  },
+  "sjen": {
+   "fyp": 6215,
+   "woordenboek": "to see"
+  },
+  "ek": {
+   "fyp": 32380,
+   "woordenboek": "also, too"
+  },
+  "mear": {
+   "fyp": 14704,
+   "woordenboek": "more"
+  },
+  "folle": {
+   "fyp": 5275,
+   "woordenboek": "many, much"
+  },
+  "sizze": {
+   "fyp": 1112,
+   "woordenboek": "to say"
+  },
+  "fertelle": {
+   "fyp": 324,
+   "woordenboek": "to tell"
+  },
+  "allinnich": {
+   "fyp": 4703
+  },
+  "woe": {
+   "fyp": 2896,
+   "woordenboek": "verleden tijd van wolle (fy.wiktionary)"
+  },
+  "jaan": {
+   "fyp": 3228,
+   "woordenboek": "to give"
+  },
+  "oan": {
+   "fyp": 35392,
+   "woordenboek": "on"
+  },
+  "lear": {
+   "fyp": 671
+  },
+  "stipkes": {
+   "fyp": 38
+  },
+  "stipke": {
+   "fyp": 4
+  },
+  "potsje": {
+   "fyp": 81
+  },
+  "grinzers": {
+   "fyp": 27
+  },
+  "grinzer": {
+   "fyp": 497
+  },
+  "fryske": {
+   "fyp": 9809
+  },
+  "frysk": {
+   "fyp": 8264
+  },
+  "fryslân": {
+   "fyp": 11339
+  },
+  "wy": {
+   "fyp": 764,
+   "woordenboek": "we"
+  },
+  "net": {
+   "fyp": 22847,
+   "woordenboek": "not"
+  },
+  "snits": {
+   "fyp": 1796
+  },
+  "better": {
+   "fyp": 3004
+  },
+  "noch": {
+   "fyp": 17796,
+   "woordenboek": "still"
+  },
+  "ferhip": {
+   "fyp": 0
+  },
+  "skûtsjezeiler": {
+   "fyp": 0
+  },
+  "hekweach": {
+   "fyp": 0
+  },
+  "skûtsjekoning": {
+   "fyp": 0
+  },
+  "skûtsjesilen": {
+   "fyp": 104
+  },
+  "it": {
+   "fyp": null,
+   "woordenboek": "it"
+  },
+  "in": {
+   "fyp": null,
+   "woordenboek": "a, an"
+  },
+  "as": {
+   "fyp": null,
+   "woordenboek": "if; as, like"
+  },
+  "Snits": {
+   "woordenboek": "Sneek (fy.wiktionary)"
+  },
+  "Fryslân": {
+   "woordenboek": "provinsje fan Nederlân (fy.wiktionary)"
+  }
+ },
+ "omgekeerd": {
+  "uitleg": "Nederlands -> Gronings opzoeking op woordwaark.nl voor de Groningse woorden die niet als trefwoord voorkomen. OK = onze spelling staat bij de Groningse vormen, AFW = andere vormen (eerste varianten getoond), GEEN = Nederlandse trefwoord niet in het woordenboek",
+  "regels": [
+   "AFW aleen (alleen) => allain, allaint, allinneg, allènt, bloots, enkeld, alleinde, allende, allèn, allènne, allènnîg, allìjn, allìjne, àllijnd",
+   "AFW goat (gaan) => goan, gonnen, krösken, opkrözzen, over-goan, loopen, gân",
+   "AFW stun (staan) => stoan, traauwen, vertraauwen, noa stoan, wōn",
+   "AFW rie (rijden) => rieden, voaren, ridt - voart",
+   "AFW har (hebben) => hebben, hemmen, kebm, hemmên, hai",
+   "AFW bieno (bijna) => host, aan, aal, aalaan, aalweg, benoasten, benoasten bie, glad, hoast, kaar",
+   "AFW betje (beetje) => beetken, bedie, biet, bietje, snittje, bijtje, beedien, beetje",
+   "AFW aigenlk (eigenlijk) => aigenliek, aigenst, aigentliek, aiglieks, aingst, aink, ainliek, ainlieks, aigliek, aings, ainks, anliek, aigelk (Stad), ainglieks",
+   "AFW duven (duif) => doef, doeve, mok",
+   "OK  lèste (laatste)",
+   "GEEN menuten (minuut)",
+   "AFW hiele (heel) => glène, verhipte, hail, finoal, gehail, haildaal, hailendaal, hiel, huil, huul, vlak, hijl, nooit, heil",
+   "OK  nèt (net)",
+   "AFW vaaren (varen) => rieden, voaren, bōtjevoaren, oam",
+   "AFW aindelk (eindelijk) => endelk, laank overlet, ìndelk, ìndeln, eindeling",
+   "AFW vrogger (vroeger) => oldsheer, aleer, veurheer, veurtied, vrouger, vrougerdoagen, vrougerjoaren, vrougertieden, beveuren, in t veuren, aal eer, bie veuren",
+   "AFW aaloverst (overal) => aalderwegens, overaal, alderwegens, alerwegens, overàl, overal",
+   "AFW zulfs (zelfs) => alderdeegs, zölfs, zuls, zöls, zulf, zulm",
+   "AFW aarste (eerste) => eerste, rd, rt, eerstjed, andert",
+   "AFW achteran (achteraan) => achteraan, achterwegens",
+   "AFW nauwelks (nauwelijks) => mor even, naauw, zuneg, even",
+   "AFW dartig (dertig) => daarteg, dareg, datteg",
+   "AFW luusteren (luisteren) => heuren, lustern I, luustern I, roazen, lustern, lustêrn",
+   "AFW still (stil) => smoegerg, stil, le, tuk, foef",
+   "AFW woonen (wonen) => wonen, wonên",
+   "AFW kinst (kunnen) => kennen, keunen, kinnen, magen, maggen, meugen, kunnen, oetkennen",
+   "AFW nuim (noemen) => neumen, noemen, nuimen, numen, nummen",
+   "AFW wust (weten) => waiten, maarken, vernemen, wieten I, wōs, wijt, wijten, nijt",
+   "GEEN vismark (vismarkt)",
+   "AFW gaauwer (snel) => snel",
+   "AFW moakt (maken) => doun, moaken, opbrengen, opsmieten, schudden, gemoak, bermoaken, toumoaken",
+   "GEEN omlaiding (omleiding)",
+   "AFW rukt (ruiken) => kaainen, roeken, ruken",
+   "AFW vanoavend (vanavond) => toavend",
+   "GEEN stoaring (storing)",
+   "AFW veurheen (vroeger) => oldsheer, aleer, veurheer, veurtied, vrouger, vrougerdoagen, vrougerjoaren, vrougertieden, beveuren, in t veuren, aal eer, bie veuren",
+   "AFW dee (doen) => doen, doun, oet t stro zetten, ommaans hebben, aanlangen, geven, langen, moaken, opbrengen, opsmieten, schudden, toulangen, zetten",
+   "GEEN vuurwark (vuurwerk)",
+   "AFW aovend (avond) => loat, loos, oavend, volk, loater, schoon, oavens, harst, toavend, ’n oavend, oab’nd, toavênd, aâvend",
+   "AFW zegst (zeggen) => zeggen, gezegd, tegen, ken ’k joe, boonen, der, wa’s",
+   "AFW betoald (betalen) => bain, zeer, betoalen, liek moaken, uutbulen, entrichten",
+   "AFW tegelieke (tegelijk) => tougelieks, toegelieks",
+   "AFW kriegt (krijgen) => kriegen, vangen, haainen, langs",
+   "AFW achterkaant (achterkant)",
+   "AFW gong (gaan) => goan, gonnen, krösken, opkrözzen, over-goan, loopen, gân",
+   "AFW stoa (staan) => stoan, traauwen, vertraauwen, noa stoan, wōn",
+   "AFW jatte (stelen) => gappen, kuurogen, loeren, nasjen, nasken, nastern, neppen, stelen, bedraigen, bedriegen, belotjen, bemietern, knooien, smiegeln",
+   "AFW stuurst (sturen) => sturen",
+   "AFW aarder (eerder) => eder, eer",
+   "GEEN dissels (zichzelf)",
+   "AFW warken (werken) => aarbaiden, waarken",
+   "AFW heurde (horen) => heuren, lustern I, luustern I, roazen, ōmheuren",
+   "AFW schraift (schrijven) => schrieven, schriven",
+   "AFW zist (zien) => zain, zien, ’t zuun, zijn, maggen, wezen, suun, zuun, sein, zein",
+   "AFW zolst (zullen) => zallen, zellen, scheulen (Ww.), schal, zōl, wōl",
+   "AFW veurdeur (voordeur) => veurdeure of veurdeur",
+   "AFW opnij (opnieuw) => vannais, vannaizen, vannijs, vernijs, veur nijs, van vrizzen",
+   "AFW voortoan (voortaan) => inkomsteg, touverdan, touverdan (Old. en Ww.), vandan, vedan, verdan, veurdan",
+   "AFW grötter (groot) => batseg, groot, haid, seghaid, tröts, grof en, stoer",
+   "AFW zwoarder (zwaar) => lodeg, swoar, muilek, stoef, stoer, beswoarlek, beswoarliek",
+   "AFW duvenmelker (duivenmelker) => doevemelker",
+   "GEEN plend (plannen)",
+   "GEEN inzakt (instorten)",
+   "AFW pakhuzen (pakhuis) => pakhoes, stek, loopsel",
+   "GEEN dichtstbiezunde (dichtstbijzijnde)",
+   "AFW mogst (mogen) => keunen, kinnen, magen, maggen, meugen, zoowat",
+   "AFW lait (laten) => loaten, loaden, loat stoan",
+   "AFW kiekte (kijken) => kieken, neuze, moar kiek!",
+   "AFW aailand (eiland) => aailaand, blok, ailand",
+   "AFW vreug (vroeg) => op tied, vro, vroug, vörrelk, bietieds, vrou, vroo",
+   "GEEN veurgang (voorrang)",
+   "AFW nuumt (noemen) => neumen, noemen, nuimen, numen, nummen",
+   "AFW huzen (huis) => hoes, huus, kleun, kleune, kebof, hoezie, ploug, holt, ring",
+   "AFW zied (sinds) => sunt (dat), sunt (des), van dat, sunt",
+   "AFW ieder (iedereen) => aal, elkenain, elks, elkain, elk en ain, iederenijn, elkenijn",
+   "AFW aend (eend) => aind, eend, ijn, ijnd",
+   "AFW groaf (graf) => graf, ramp, t, oa, legerstede",
+   "AFW roai (raad) => road, begriepen, levendig, te roade",
+   "OK  zol (zullen)",
+   "OK  jo (ja)",
+   "OK  wol (willen)",
+   "OK  mouten (moeten)"
+  ]
+ }
+}

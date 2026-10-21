@@ -37,9 +37,9 @@ const DURATION = {
   onweer: [50, 90],
 };
 
-export const CITY_RADIUS = 4000;
+const CITY_RADIUS = 4000;
 
-export const REGIONS = {
+const REGIONS = {
   stad: { naam: 'Grunn', wet: 1 },
   noord: { naam: 'het Hogeland en de kust', wet: 1.15 },
   oost: { naam: 'de Veenkoloniën', wet: 0.9 },

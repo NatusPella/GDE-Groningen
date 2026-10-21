@@ -2,7 +2,7 @@ import { dualHtml, dutchFor } from './subtitles.js';
 import { isStale } from './validity.js';
 import { paintSpeaker } from './speakers.js';
 import { noteSpoken } from './characters.js';
-import { getClockText } from './hud_panel.js';
+import { getClockText } from './clocktext.js';
 import { readingSeconds } from './world.js';
 import { lineVoiceFor } from './linevoice.js';
 import { playCallVoice, playPhoneRing, playSmsVoice, playPhonePing } from './audio.js';
@@ -223,7 +223,7 @@ function noticeFrom(from) {
   notice = { from, until: performance.now() + NOTICE_HOLD_MS + 1500 };
 }
 
-export function hangUp() {
+function hangUp() {
   if (!call) return;
   finishCall(true);
 }

@@ -1,7 +1,7 @@
 import { clamp } from '../util.js';
-import { isPauseMenuOpen } from '../pausemenu.js';
-import { isMapOpen, getMapViewStats } from '../mapview.js';
-import { getUserWaypoint } from '../routing.js';
+import { isPauseMenuOpen, isMapOpen } from '../pausestate.js';
+import { getUserWaypoint } from '../goal.js';
+import { sfxLinks } from '../latehooks.js';
 
 // Menu/phone/map interface sounds, pickup chimes, mission/wanted stingers.
 // Stingers go through their own bus and briefly duck G-Music.
@@ -205,7 +205,7 @@ export function updateUiSfx(dt, world) {
   if (pause !== st.pause) { st.pause = pause; openedAt = now; if (!muted) (document.body.classList.contains('game-started') ? phoneSnd(pause) : whoosh(pause)); }
 
   if (isMapOpen()) {
-    const s = getMapViewStats();
+    const s = sfxLinks.mapStats();
     const z = s ? s.zoom : null;
     if (st.zoom !== null && z !== null && Math.abs(z - st.zoom) / st.zoom > 0.04 && now - st.zoomAt > 0.06) {
       st.zoomAt = now;

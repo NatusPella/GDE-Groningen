@@ -70,6 +70,7 @@ const CSS = `
 #pause-menu .vh-clue b em { font-style: normal; color: #3fc97a; margin-right: 4px; }
 #pause-menu .vh-clue p { font-size: 18px; line-height: 1.35; color: rgba(240,237,228,0.85); }
 #pause-menu .vh-clue[data-unknown] b { color: var(--mut); }
+#pause-menu .vh-clue.vh-rest { grid-column: 1 / -1; }
 #pause-menu .vh-plakje[data-state="gered"] b::after { content: ' · gered'; color: #3fc97a; }
 #pause-menu .vh-plakje[data-state="verloren"] b::after { content: ' · verloren'; color: #e0604a; }
 #pause-menu .vh-plakje[data-state="geblokkeerd"] b::after { content: ' · geblokkeerd'; color: #e8b84a; }
@@ -146,7 +147,7 @@ function loadPics(el) {
   }
 }
 
-export function selectCharacter(panel, id) {
+function selectCharacter(panel, id) {
   const c = CHARACTER_BY_ID.get(id);
   const box = panel.querySelector('.vh-viewer');
   if (!c || !box) return;
@@ -195,11 +196,12 @@ function cluesHtml() {
     return `<section class="vh-part"${here ? ' data-cur' : ''}><div class="m-gh"><span>${esc(PARTS[part].title)}</span><span>${known.length} van ${clues.length}</span></div>` +
       `<span class="m-bar vh-pbar"><i data-bar="clue-${part}" data-w="${Math.round((known.length / clues.length) * 100)}"></i></span>` +
       (here && WHY[part] ? `<p class="vh-why"><b>Waar het om draait:</b> ${esc(WHY[part])}</p>` : '') +
-      '<div class="vh-clues">' + clues.map((c) => {
+      '<div class="vh-clues">' + clues.filter((c) => found.has(c.title)).map((c) => {
         const f = found.get(c.title);
-        if (!f) return `<div class="vh-clue" data-unknown><b>???</b><p>Nog te ontdekken.</p></div>`;
         return `<div class="vh-clue"${f.isNew ? ' data-new' : ''}><b>${c.kind === 'hart' ? '<em>&#9829;</em>' : ''}${esc(c.title)}</b><p>${esc(c.text)}</p></div>`;
-      }).join('') + '</div></section>';
+      }).join('') +
+      // de nog niet gevonden aanwijzingen als één rustige regel, geen muur van vraagtekens (#92)
+      (known.length < clues.length ? `<div class="vh-clue vh-rest" data-unknown><b>${clues.length - known.length} nog te ontdekken</b></div>` : '') + '</div></section>';
   }).join('') + '</div>';
 }
 

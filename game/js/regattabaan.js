@@ -7,7 +7,7 @@ export const BAAN = { straal: 55, stralen: [55, 42, 30], tonnen: 4, zoek: [80, 1
 
 // Alle punten op de cirkel en tussen de tonnen moeten water zijn, zodat de boot er langs kan.
 // Rond elke ton moet ook water zijn (RUIMTE m, acht richtingen): een ton aan de kade kun je niet ronden.
-export const RUIMTE = 10;
+const RUIMTE = 10;
 const ruimteRond = (t, wateralOk) => {
   for (let k = 0; k < 8; k++) { const a = (k / 8) * Math.PI * 2; if (!wateralOk(t.x + Math.cos(a) * RUIMTE, t.y + Math.sin(a) * RUIMTE)) return false; }
   return true;

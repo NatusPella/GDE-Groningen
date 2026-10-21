@@ -1,7 +1,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getScene } from './scene3d.js';
 import { buildPersonMesh } from './models3d_people.js';
-import { isMissionActive, getActiveRace } from './missions.js';
+import { isMissionActive, getActiveRace } from './missionquery.js';
 import { isCinematicActive } from './cinematics.js';
 import { isShopOpen } from './shopui.js';
 import { startPigeonMode, isPigeonActive, addPigeonLoft, buildPigeonBird, posePigeonBird } from './pigeonmode.js';
@@ -14,7 +14,7 @@ import { playerBusy } from './busy.js';
 // playing as her, E hands over to Tammo when he's around, and he whistles.
 
 // What Tessa says at a pigeon spot (a bubble in her own voice, "~f|" lines)
-export const ANITA_NO_PIGEON = [
+const ANITA_NO_PIGEON = [
   'Duiven luisteren naar Tammo. Naar mij luistert alleen Tammo.',
   'Tammo! Fluiten! …Hij hoort me niet. De duiven ook niet.',
   'Ik ben geen duivenkoning. Ik ben de baas van de duivenkoning.',

@@ -250,7 +250,7 @@ const telefoonrave = {
 
 export const STAD_MISSIES = [museumbus, suikerbieten, herstelploeg, oogtv, telefoonrave, vandermeden, schouwburg, bernardrit];
 export const STAD_MISSIE_IDS = STAD_MISSIES.map((m) => m.id);
-export const stadMissieById = (id) => STAD_MISSIES.find((m) => m.id === id) || null;
+const stadMissieById = (id) => STAD_MISSIES.find((m) => m.id === id) || null;
 
 export function startStadRonde(id, level = 1) {
   const rule = stadMissieById(id);

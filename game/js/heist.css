@@ -96,7 +96,7 @@
 }
 #heist-ui .hx-note.on { opacity: 1; transform: translate(-50%, -50%) rotate(-3deg) scale(1); }
 #heist-ui .hx-note::before { content: ''; position: absolute; left: 42%; top: -11px; width: 76px; height: 22px; background: rgba(230, 220, 160, 0.75); transform: rotate(4deg); }
-#heist-ui .hx-note .kick { font-family: 'Arial Narrow', Arial, sans-serif; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: #8a6f3c; }
+#heist-ui .hx-note .kick { font-family: 'Arial Narrow', Arial, sans-serif; font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: #8a6f3c; }
 #heist-ui .hx-note .txt { font-size: 34px; line-height: 1.25; margin-top: 8px; }
 #heist-ui .hx-note .nl-sub { display: block; margin-top: 6px; font-family: 'Arial Narrow', Arial, sans-serif; font-size: 15px; font-style: italic; color: #6d5d44; }
 

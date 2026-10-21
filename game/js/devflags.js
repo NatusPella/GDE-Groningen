@@ -42,10 +42,8 @@ export const FLAGS = Object.freeze({
   cut: val('cut'),
   frames: has('frames'),
   video: has('video'),
-  legacymap: has('legacymap'),
   terrain: has('terrain'),
-  viaducten: has('viaducten'),
-  stadlaag: val('stadlaag'),
+  vlakbruggen: has('vlakbruggen'),
   nobatch: has('nobatch'),
   shaderdebug: has('shaderdebug'),
   noworker: has('noworker'),
@@ -67,10 +65,16 @@ export const FLAGS = Object.freeze({
   testmenu: has('testmenu'),
   brugbotsing: has('brugbotsing'),
   sfxtest: has('sfxtest'),
+  perfoff: val('perfoff'),
 });
 
+// Prestatiestappen die voor een A/B-meting uit kunnen: ?perfoff=schaduw+actoren (scripts/perf/ab.mjs). Alles staat standaard aan.
+const PERF_OFF = new Set((FLAGS.perfoff || '').split(/[+ ]/).filter(Boolean));
+// window.__perfOffDyn (a Set, scripts/perf/routes.js route ab) switches steps within one run: the A and B windows of a measurement then feel the same load
+export const perfOff = (name) => PERF_OFF.has(name) || (typeof window !== 'undefined' && window.__perfOffDyn !== undefined && window.__perfOffDyn.has(name));
+
 export const FLAG_DOCS = Object.freeze({
-  dev: 'Verhaalpaneel op F9; eigen opslag (gde-dev:), raakt je echte spelstand niet',
+  dev: 'Verhaalpaneel op F9; eigen opslag (gde-dev:), raakt je echte savegame niet',
   storytest: 'Geautomatiseerde verhaaltest; opslag alleen in het geheugen',
   autoplay: 'Spelbot (#186): window.__bot (playerapi.js) levert de spelstatus en neemt acties aan; vaste seed (autoplay=seed), opslag alleen in het geheugen',
   stil: 'Geen audio en geen pauze bij verborgen tabblad (testsessies)',
@@ -86,10 +90,8 @@ export const FLAG_DOCS = Object.freeze({
   cut: 'Trailer: montagevariant (vol, kort, verhaal, gameplay, teaser, hoofd)',
   frames: 'Trailer: sla beeld voor beeld op',
   video: 'Trailer: neem video op (alleen desktop)',
-  legacymap: 'Laad de oude kaart in plaats van de tegelwereld',
-  viaducten: 'Hoogteprofielen van provinciebruggen en viaducten uit de tegels (alleen als gebouwd met --viaducts; het hoogtemodel volgt nog)',
+  vlakbruggen: 'Provinciebruggen en viaducten vlak op straatniveau, zonder de hoogteprofielen uit de tegels (om te vergelijken)',
   terrain: 'Hoogtes volgen het AHN-terrein (dijken, wierden; het terrein wordt nog niet getekend)',
-  stadlaag: 'Stad per laag uit de gedeelde tegelbouw (gebouwen, wegen, water, spoor, groen, meubilair, poi, objecten, namen, of alle); #90, standaard uit',
   nobatch: 'Zet het samenvoegen van meshes uit (scene3d)',
   shaderdebug: 'Laat three.js shaderfouten controleren',
   noworker: 'Geometrie op de hoofdthread in plaats van in de worker',
@@ -98,19 +100,19 @@ export const FLAG_DOCS = Object.freeze({
   gpu: 'Doe alsof de GPU deze renderer-tekst heeft (test van het advies)',
   preset: 'Instellingen alleen voor deze sessie, bv. quality:laag,drawDistance:kort',
   pixeldebug: 'Nabewerking verft NaN/Inf-pixels magenta en negatieve HDR-waarden cyaan (issue #35)',
-  coop: 'Lokale co-op voor twee spelers: speler 2 stuurt de metgezel (coop.js, issue #95)',
+  coop: 'Lokaal samen spelen met twee spelers: speler 2 stuurt de metgezel (coop.js, issue #95)',
   marker: 'marker=vorm: de vaste 3D-vormen van de wereldmarker in plaats van het zachte glyph',
-  stadlaag: 'Welke stadslagen uit de tegelbouw komen (lagen gescheiden door komma, of alle)',
   touch: 'Raakbediening aan (touch=1) of uit (touch=0), ook zonder touchscherm',
   hitch: 'Meet haperingen (hitchprobe)',
   simauto: "Ook gewone auto's ver van de speler door de simulatieworker laten rijden (simbridge.js, #58); alleen met de worker aan; nog niet standaard tot de meting winst laat zien",
   simlagen: 'Standaard aan; ?zonderlagen zet uit. Verkeer en voetgangers volgens simulatielagen per streek en afstand (simlagen.js)',
   zwartcheck: 'Controleer op zwarte beelden (blackframe)',
-  testmenu: 'Testmenu op F10 met alle schakelaars en snelkoppelingen; eigen opslag (gde-dev:), raakt je echte spelstand niet',
+  testmenu: 'Testmenu op F10 met alle schakelaars en snelkoppelingen; eigen opslag (gde-dev:), raakt je echte savegame niet',
   sfxtest: 'Geluidstest: paneel met alle effecten, een afstandsschuif en een afspeelknop per effect; F8 verbergt het (#173)',
   brugbotsing: 'Stuurt na een paar seconden een binnenvaartschip tegen de dichtstbijzijnde brug (#9)',
   reizen: 'Reisbeats in het nieuwe verhaal: keuze Meerijden, Zelf rijden of Overslaan bij een sprong (#97); staat standaard aan, uit met zonderreizen en in de testmodi',
   zonderreizen: 'Zet de reisbeats uit (zie reizen)',
+  perfoff: 'A/B-meting: zet prestatiestappen uit, namen gescheiden door +, bv. perfoff=schaduw+actoren (devflags.js, scripts/perf/ab.mjs)',
 });
 
 

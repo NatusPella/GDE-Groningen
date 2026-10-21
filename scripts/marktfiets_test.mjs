@@ -34,7 +34,21 @@ check('a too short way does not', !RA.isMarktFietsRoad(route[0], 10));
 
 // --- the painted lanes
 const markVerts = (r) => { const g = RS.roadSurfaceGeometries(r, true); return g && g.mark ? g.mark.attributes.position.count : 0; };
-check('every bike-route way gets painted markings', route.every((r) => markVerts(r) > 16), route.map(markVerts).join(','));
+// (a way that lies wholly in a terrace or the tent gets none: the paint stays off what stands on the square, #327)
+const horeca = map.meta.horeca || [];
+const freeWay = (r) => RA.marktFietsSpans(r, horeca, 1, 1e9).length > 0;
+check('every bike-route way with a free stretch gets painted markings', route.every((r) => freeWay(r) ? markVerts(r) > 16 : markVerts(r) === 0), route.map(markVerts).join(','));
+check('most of the bike route is still painted', route.filter(freeWay).length >= 6, route.filter(freeWay).length);
+{
+  // no paint inside the bumper-car tent or within the café terraces (mark vertices are x, height, y)
+  let inside = 0, total = 0;
+  for (const r of route) {
+    const g = RS.roadSurfaceGeometries(r, true);
+    const pos = g && g.mark ? g.mark.attributes.position.array : [];
+    for (let i = 0; i < pos.length; i += 3) { total++; if (RA.marktFietsBlocked(horeca, pos[i], pos[i + 2])) inside++; }
+  }
+  check('no marking inside the tent or a terrace', total > 100 && inside <= total * 0.02, inside + '/' + total);
+}
 check('the same ways under another name get none (the paint is the route)', route.every((r) => markVerts({ ...r, name: 'Ander pad' }) === 0));
 check('the markings stay finite', route.every((r) => { const a = RS.roadSurfaceGeometries(r, true).mark.attributes.position.array; return a.every(Number.isFinite); }));
 

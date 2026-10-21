@@ -70,10 +70,11 @@ check('overweg buiten de lijn geeft niets', D.doorgangenOverweg(lijn, 99999, 3).
 const mid = door.find((t) => t > 9 * 3600);
 check('boom is dicht als er om 9 uur een trein komt', D.boomStand(door, mid - 3).dicht === 1);
 
-// echte lijnen uit citymap.json (4 stoplijnen; de rest komt uit de provinciedata)
-const map = JSON.parse(fs.readFileSync(new URL('../game/citymap.json', import.meta.url), 'utf8'));
+// echte lijnen uit stad.json (4 stoplijnen; de rest komt uit de provinciedata)
+const { loadStadData } = await import('./lib/loadworld.mjs');
+const map = await loadStadData();
 const echte = (map.railRoutes || []).filter((r) => r.stops && r.stops.length >= 2);
-check('citymap heeft spoorlijnen met stations', echte.length >= 1);
+check('stad.json heeft spoorlijnen met stations', echte.length >= 1);
 for (const r of echte) {
   const steden = r.stops.map((s) => s.name);
   check(`${r.name}: unieke stationsnamen en oplopende afstand`, new Set(steden).size === steden.length && r.stops.every((s, i, a) => i === 0 || s.s >= a[i - 1].s));
@@ -83,5 +84,29 @@ for (const r of echte) {
   check(`${r.name}: totale rijtijd plausibel (1..120 min)`, tot > 60 && tot < 7200, tot);
 }
 
+
+// --- het bord uit de echte treinen (bordUitTreinen)
+{
+  const route = { name: 'Testlijn', stops: [{ name: 'A', s: 0 }, { name: 'B', s: 10000 }, { name: 'C', s: 20000 }] };
+  const trein = (o) => ({ route, c: 0, dir: 1, v: 0, state: 'dwell', target: 0, timer: 0, vmax: 20, ...o });
+  const nu = 8 * 3600;
+  // wachtend in B: vertrekt over de timer, aankomst nu, richting C
+  const a = D.bordUitTreinen([trein({ c: 10000, target: 1, timer: 20 })], 'B', nu, { schaal: 1 });
+  check('trein die staat te wachten: vertrek over de timer', a.length >= 1 && a[0].tijd === nu + 20 && a[0].aankomst === nu && a[0].richting === 'C' && a[0].echt);
+  // onderweg naar B over 5000 m bij 16 m/s: ~312 s, plus 25 s oponthoud
+  const b = D.bordUitTreinen([trein({ c: 5000, target: 1, state: 'run', v: 18 })], 'B', nu, { schaal: 1 });
+  check('trein onderweg: aankomst uit afstand', Math.abs(b[0].aankomst - (nu + 5000 / 16)) < 1 && Math.abs(b[0].tijd - b[0].aankomst - 25) < 1);
+  // een station vóór de trein (A ligt achter hem): pas na keren aan het eind
+  const c = D.bordUitTreinen([trein({ c: 15000, target: 2, state: 'run' })], 'A', nu, { schaal: 1 });
+  check('station achter de trein: eerst keren aan het eindstation', c.length >= 1 && c[0].aankomst > nu + (5000 + 20000) / 16 && c[0].richting === 'C');
+  // spelklok: schaal 60 maakt van 1 echte seconde een spelminuut
+  const d = D.bordUitTreinen([trein({ c: 10000, target: 1, timer: 20 })], 'B', nu, { schaal: 60 });
+  check('schaal zet echte om in spelklokseconden', d[0].tijd === nu + 1200);
+  check('speler- en parkeerstand tellen niet mee', D.bordUitTreinen([trein({ state: 'player' }), trein({ state: 'parked' })], 'B', nu).length === 0);
+  check('onbekend station geeft niets', D.bordUitTreinen([trein()], 'Z', nu).length === 0);
+  const e = D.bordUitTreinen([trein({ c: 20000, target: 2, timer: 10 })], 'B', nu, { schaal: 1 });
+  check('vanaf het eindstation gaat hij terug naar A', e[0].richting === 'A' && e[0].dir === -1);
+  check('bord is gesorteerd', (() => { const r = D.bordUitTreinen([trein({ c: 5000, target: 1, state: 'run' }), trein({ c: 10000, target: 1, timer: 5 })], 'B', nu, { schaal: 1 }); return r.every((x, i) => i === 0 || x.tijd >= r[i - 1].tijd); })());
+}
 console.log(bad ? `${bad} van ${n} mislukt` : `dienstregeling_test ok (${n} checks)`);
 process.exit(bad ? 1 : 0);

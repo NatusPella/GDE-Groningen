@@ -102,58 +102,8 @@ export function storySpeakerName(key) {
 // Entry options: introNpc: false (the intro has no NPC), outroNpcKey (another NPC for the
 // outro), introCast/outroCast/introProps/outroProps, kiss (the outro is staged as a couple).
 const STORY = [
-  {
-    // 0: H1 Berend telt de krassen (the first scene after the opening: the camera comes down onto the square)
-    npc: 'berend', outroPose: 'hips', ask: 2, introOpen: 'descend',
-    intro: [
-      ['N', 'Goidag.', { cam: 'track', card: 'berend' }],
-      ['A', 'Goidag, Berend.'],
-      ['N', 'Ik heb gisteren alle krassen geteld. Nul. Zo blijft het.'],
-      ['T', 'Jij bent toch Bommen Berend? Van het Ontzet?'],
-      ['N', 'Niet zo hard. Veertig jaar speel ik hem. Elk jaar val ik de stad aan, en elk jaar verlies ik. Dat doet wat met een mens.'],
-      ['A', 'Ik rij.', { cam: 'close' }],
-      ['T', 'Jij rijdt als een fietser met een deadline.', { cam: 'two' }],
-      ['A', 'En jij als een fietser zonder fiets. Sleutels, Berend.'],
-    ],
-    outroNpc: true,
-    outro: [
-      ['N', '…Goud.'],
-      ['A', 'Trede twee van de complimentenladder, Tammo.'],
-      ['N', 'Overdrijf niet. Er was hier trouwens al een Fries die mijn bakkie wilde kopen. Contant, uit een klomp. Een blauw colbert, in augustus.', { clue: true }],
-      ['T', 'Wat moet een Fries met jouw bakkie?'],
-      ['N', 'Wat moet een Fries met ons? Ze kopen altijd wat. Hier, vijftig euro. …Moi.'],
-      ['T', 'Hij zei moi.'],
-      ['A', 'Tegen mij.'],
-    ],
-    replay: [['N', 'Weer nul krassen. Ik begin het je bijna te gunnen.']],
-    fail: [['A', 'Dit vertellen we Berend dus niet.'], ['T', 'Hij schrijft er vast een brief over.']],
-  },
-  {
-    // 1: H3 Iets met de Grote Markt (a summer stunt evening, nobody gets hurt)
-    npc: 'jelmer', outroPose: 'cheer', ask: 4,
-    intro: [
-      ['N', 'Moi moi chat! Zomeravond op de Grote Markt! En kijk: verse content!', { card: 'jelmer' }],
-      ['T', 'Ik ben geen content. Ik ben Tammo.'],
-      ['A', 'Spreek voor jezelf. Ik ben heel veel content.'],
-      ['T', 'En die terrassen?'],
-      ['N', 'Die zijn het publiek! Niemand raken, wel laten schrikken!'],
-      ['torenwachter', 'Tammo. Torenwachter. Er staan mensen op de Grote Markt.', { card: 'torenwachter' }],
-      ['T', 'Het is de Grote Markt.'],
-      ['torenwachter', 'Ik meld alleen.'],
-    ],
-    outroNpc: true,
-    outro: [
-      ['terras', 'Kon minder!'],
-      ['N', 'Tienduizend kijkers! En kijk: "JelleWâld" in de chat. "Groot Loug. Moai foar in wykein."', { clue: true }],
-      ['A', 'Groot Loug. Zo noemen wíj onszelf. Dat mag hij niet.'],
-      ['N', '"En dat famke yn it read: sa\'n leaf gesicht."'],
-      ['T', 'Wie is die man.'],
-      ['A', 'Is dat een vraag?'],
-      ['T', 'Nee.'],
-    ],
-    replay: [['N', 'Chat, hij is er weer! De man zonder content! Niemand raken, hè!']],
-    fail: [['A', 'Saai. Zelfs de duiven gaan weg.'], ['T', 'Die zijn gewoon naar de Vismarkt.']],
-  },
+  null, // 0: retired mission 'berend' (missions.js retiredDef), its script was removed in #187
+  null, // 1: retired mission 'chaos' (missions.js retiredDef), its script was removed in #187
   {
     // 2: H5 Wind tegen, beide kanten op
     npc: 'sjoerd', outroPose: 'cheer', ask: 0,
@@ -178,51 +128,8 @@ const STORY = [
     replay: [['N', 'Wind tegen? Natuurlijk. Beide kanten op. Proost.']],
     fail: [['T', 'Eerstejaars. Die hebben nog energie.'], ['A', 'En ouders die de huur betalen.']],
   },
-  {
-    // 3: H7 Heel aankomen is ook een kunst
-    npc: 'femke', outroPose: 'cheer', ask: 0,
-    intro: [
-      ['N', 'Breekbaar. Het is een stuk over wind.', { card: 'femke' }],
-      ['T', 'In Grunn. Dat is geen kunst. Dat is het weerbericht.'],
-    ],
-    outroNpc: true,
-    outro: [
-      ['N', 'Heel! Bijna heel. O, en de groothandel is leeg. Twee reuzen kochten al het frituurvet van Stad. "Us Mem Vet" stond op de tankwagen.', { clue: true }],
-      ['A', 'Geen vet, geen eierballen op het Ontzet. Geen eierballen, geen Grunn in de Snackprijs.'],
-      ['T', 'Dan hoeft hij niet eens te winnen.'],
-      ['N', 'Blijven jullie kijken?'],
-      ['T', 'Ik kan heel goed tegen wind. Alleen niet tegen kunst.'],
-      ['A', 'Hij kan wel tegen kunst. Als ik naast hem zit.'],
-      ['T', '…Zei je dat nou hardop?'],
-      ['A', 'Nee. Dat was de wind.'],
-    ],
-    replay: [['N', 'Het decor moet weer gisteren al staan. Het is altijd gisteren bij Noorderzon.']],
-    fail: [['A', 'Dan wordt het moderne dans.'], ['T', 'Zonder decor. Daar krijg je hier subsidie voor.']],
-  },
-  {
-    // 4: H9 Ring Zuid, laatste fase
-    npc: 'harm', outroPose: 'cheer', ask: 0,
-    introCast: [{ key: 'jelle', pose: 'arms' }], introProps: ['limo'],
-    intro: [
-      ['N', 'Eén rondje om de stad, vol gas. Als de weg het houdt, mag ik eindelijk met pensioen.', { card: 'harm' }],
-      ['jelle', 'Moai, Grinzer. Eén rondje om jullie dorp. Wie wint, mag famke een eierbal geven.'],
-      ['A', 'Famke koopt haar eigen eierbal.'],
-      ['T', 'Dat neem ik je kwalijk.', { cam: 'close' }],
-      ['A', 'Dat was een hele zin, Tammo.'],
-      ['T', 'Ik voelde het.'],
-    ],
-    outroNpc: true,
-    outro: [
-      ['N', 'Hij ligt er! Ik ga met pensioen! Eindelijk mag ik er zelf overheen!'],
-      ['A', 'Je pakte mijn hand in de bocht.'],
-      ['T', 'Voor de grip.'],
-      ['A', 'We zaten in een auto, Tammo. Met stuur.'],
-      ['T', 'Het was een lange bocht.'],
-      ['jelle', 'Dit is net klear, Grinzer.'],
-    ],
-    replay: [['N', 'De laatste fase. Weer. Ik kom elke keer kijken.']],
-    fail: [['T', 'De weg is klaar. Wij nog niet.'], ['A', 'Nog een rondje. Ik let op de pionnen.']],
-  },
+  null, // 3: retired mission 'noorderzon' (missions.js retiredDef), its script was removed in #187
+  null, // 4: retired mission 'ringweg' (missions.js retiredDef), its script was removed in #187
   {
     // 5: H11 Nog eentje dan
     npc: 'geert', outroPose: 'hips', ask: 0,
@@ -276,31 +183,7 @@ const STORY = [
     replay: [['N', 'Hest weer veur \'n ander? Dat was geen compliment, jong.']],
     fail: [['T', 'Au. Ik heb nu profiel op mijn rug.'], ['A', 'Kom, ik help je overeind. Weer.']],
   },
-  {
-    // 7: H13 Alles klopt, behalve de papieren (the kiss)
-    npc: 'klaas', ask: 0,
-    intro: [
-      ['N', 'Jullie varen, ik kijk de andere kant op. De boot is van Schipper Wiebe. Die zit tot vieren in de kroeg. Meestal.', { card: 'klaas' }],
-      ['T', 'Links ziet u Grunn. Rechts ziet u ook Grunn. Onder u ziet u fietsen.'],
-      ['toerist', 'Hoeveel?'],
-      ['T', 'Meer dan mensen. Iedereen heeft er één, en één in het water.'],
-    ],
-    outroNpc: false,
-    kiss: true,
-    outro: [
-      ['A', 'Daar. Het skûtsje. Twee reuzen met hun voeten in het water.', { clue: true }],
-      ['T', 'Weet je nog, bij Berend? Toen mocht ik niet eens rijden.'],
-      ['A', 'Mag je nog steeds niet.'],
-      ['T', 'Nee. Maar ik zit wel naast je.'],
-      ['A', 'Moi.'],
-      ['T', '…Moi.', { kiss: true, cam: 'kiss' }],
-      ['A', 'Dat was voor de toeristen.'],
-      ['T', 'Die zijn al uitgestapt.'],
-      ['A', '…Ja.'],
-    ],
-    replay: [['T', 'Links Grunn. Rechts ook. Alles klopt. Behalve de papieren.']],
-    fail: [['A', 'Gids zijn is moeilijker dan het lijkt.'], ['T', 'Links water. Rechts ook. Onder ons: fietsen.']],
-  },
+  null, // 7: retired mission 'rondvaart' (missions.js retiredDef), its script was removed in #187
   {
     // 8: H2 Even pinnen (Durk & Douwe rip out the ATM with Tessa's pass in it)
     npc: 'sjabbe', outroPose: 'hips', ask: 4, introNpc: false,
@@ -1206,7 +1089,8 @@ function pushIn(p, k) {
   return { ...p, position: P(lerp(p.position.x, p.lookAt.x, q), lerp(p.position.y, p.lookAt.y, q), lerp(p.position.z, p.lookAt.z, q)), fov: p.fov * (1 - 0.1 * k) };
 }
 
-const cineLines = (lines) => lines.map((l) => ({ speaker: l.speaker, text: l.text, at: l.at, dur: l.dur, clue: l.clue || undefined }));
+// own: the scene plays the voices itself (its shot callback), so cinematics.js must not look them up and start them a second time (#326)
+const cineLines = (lines) => lines.map((l) => ({ speaker: l.speaker, text: l.text, at: l.at, dur: l.dur, clue: l.clue || undefined, own: true }));
 
 // Runs a staged scene: voices, gestures, clue push-ins and the camera
 // (camera(t, cur) returns a pose). keep: the caller cleans up (a queued card).
@@ -1214,7 +1098,7 @@ function runScene(r, tl, { id, kicker = '', title = '', cardFor = 3, camera, pos
   const lines = tl.lines;
   run = r;
   const ok = playCinematic({
-    id, priority: 3, duration: tl.total, pause: true, letterbox: !live, skippable: true, hideHud: true,
+    id, priority: 3, duration: tl.total, pause: true, letterbox: !live, skippable: true, hideHud: true, hidePlayers: true,
     kicker, title, cardFor,
     lines: cineLines(lines),
     shot: (u, t) => {
@@ -1627,7 +1511,7 @@ export function playVaultScene(w, { at, lines = [], landing = 'Moai! Oant sjen, 
   };
   run = r;
   const ok = playCinematic({
-    id: 'mission-vault', priority: 3, duration: total, pause: true, letterbox: true, skippable: true, hideHud: true,
+    id: 'mission-vault', priority: 3, duration: total, pause: true, letterbox: true, skippable: true, hideHud: true, hidePlayers: true,
     kicker, title, cardFor: kicker ? 2.4 : 0,
     lines: cineLines(allLines),
     shot: (u, t) => {
@@ -1798,7 +1682,7 @@ export function playCastScene(w, { at, facing = null, lines = [], cast = [], pro
   if (ok && big) {
     let t0 = 0;
     const queued = playCinematic({
-      id: 'mission-scene', priority: 3, duration: 3.6, pause: true, letterbox: true, skippable: true, hideHud: true, big, queue: true,
+      id: 'mission-scene', priority: 3, duration: 3.6, pause: true, letterbox: true, skippable: true, hideHud: true, hidePlayers: true, big, queue: true,
       shot: (u, t) => {
         const dt = Math.max(0, Math.min(0.1, t - t0));
         t0 = t;
@@ -2381,4 +2265,30 @@ export function storyReplayLines(i) {
     const v = voiceFor(speaker, text);
     return { speaker, text, src: v ? VOICE_DIR + v.src : null, dur: v ? v.dur : 0 };
   });
+}
+
+// The player's own jump at the end of a `timing` stage with vaultJump (M20, the fierljep duel at the Bourtange moat):
+// the real pole vault of fierljep.js with its side camera, a landing when the duel was won and a splash when not.
+// Returns a handle { done: Promise<{ result, x, y }>, dispose() } or null when there is no crossing near (the stage goes on without).
+export function playDuelJump(w, { at, fail = false } = {}) {
+  if (!fjMod || !w || !at) return null;
+  // the water index only knows the city's canals; the moat of Bourtange is countryside water, so fall back to a plain ray search (a bridge nearby does not matter: it is a duel, nobody walks round)
+  let spot = fjMod.findVaultSpot(w.map, at.x, at.y, 95, { maxWidth: 26, bridgeNear: BRIDGE_NEAR });
+  if (!spot) {
+    const c = waterCrossing(w, at.x, at.y, 120, 26);
+    if (c && Math.hypot(c.b.x - c.a.x, c.b.y - c.a.y) >= 5) spot = { from: c.a, to: c.b };
+  }
+  if (!spot) return null;
+  const look = w.player.character === 'anita' ? ANITA_APPEARANCE : TAMMO_APPEARANCE;
+  const dx = spot.to.x - spot.from.x, dy = spot.to.y - spot.from.y, D = Math.hypot(dx, dy) || 1;
+  const npc = { x: spot.from.x - (dx / D) * 9, y: spot.from.y - (dy / D) * 9, angle: Math.atan2(dy, dx), appearance: look };
+  w.cinematicHidePlayers = true;
+  const h = fjMod.poleVault(npc, spot.from, spot.to, { camera: true, slowmo: !fail, fail, appearance: look, say: false, keepActor: true, swimTime: 2.5 });
+  const done = h.done.then((res) => {
+    w.cinematicHidePlayers = false;
+    if (res && res.result === 'landed' && Number.isFinite(res.x)) { w.player.x = res.x; w.player.y = res.y; }
+    setTimeout(() => h.dispose(), 1500);
+    return res;
+  });
+  return { done, dispose: () => { w.cinematicHidePlayers = false; h.dispose(); } };
 }

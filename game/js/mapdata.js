@@ -1,11 +1,12 @@
 import { polygonBounds, closestPointOnSegment, pointInPolygon, isInWater } from './util.js';
-import { waterPolyAt } from './waterlevels.js';
+import { waterPolyAt, waterPolyIn } from './waterlevels.js';
 import { inPassage, clipWaysInBuildings } from './passages.js';
 import { attachMuseumPlan } from './museumplan.js';
 import { attachInteriorPlans } from './interieurplan.js';
 import { SpatialGrid } from './spatialgrid.js';
 import { deriveBuildings, liftNestedRoofs, isRingRoad } from './derive.js';
-import { deckTerrainAt, isDeckRoad } from './deckterrain.js';
+import { deckTerrainAt, isDeckRoad, roadTerrainAt } from './deckterrain.js';
+import { clearTreesFromRoads } from './treeclear.js';
 import { buildElevation, pickedRibbon, groundHeightAt, surfaceAt, ribbonAt, ribbonZAt, roadZAt, ceilingAt, coveredAt, surfaceHalfWidth, offLevelAt } from './elevation.js';
 
 const CELL = 80; // meters per grid cell
@@ -22,12 +23,18 @@ export function markDryRoad(map, r) {
   // roads with a height profile pass over/under the water for real
   if (r.bridge || r.z || !DRY_CATS.has(r.cat)) return false;
   const pts = r.pts;
+  if (!map.waterNear) return false;
+  // the water near the whole road, got once: most roads have none, the rest test only these
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  for (const p of pts) { if (p[0] < x0) x0 = p[0]; if (p[0] > x1) x1 = p[0]; if (p[1] < y0) y0 = p[1]; if (p[1] > y1) y1 = p[1]; }
+  const polys = map.waterGrid.query(x0 - 0.5, y0 - 0.5, x1 + 0.5, y1 + 0.5);
+  if (!polys.length) return false;
   for (let i = 0; i < pts.length - 1; i++) {
     const [ax, ay] = pts[i], [bx, by] = pts[i + 1];
     const steps = Math.max(1, Math.ceil(Math.hypot(bx - ax, by - ay) / 2));
     for (let k = 0; k <= steps; k++) {
       const x = ax + ((bx - ax) * k) / steps, y = ay + ((by - ay) * k) / steps;
-      if (waterPolyAt(map, x, y)) { r.bridge = true; r.dryCrossing = true; return true; }
+      if (waterPolyIn(polys, x, y)) { r.bridge = true; r.dryCrossing = true; return true; }
     }
   }
   return false;
@@ -152,6 +159,9 @@ export class GameMap {
     markDryCrossings(this);
     this.elev = buildElevation(this);
     this.trees = this.trees.filter((t) => !onCarriageway(this, t[0], t[1]) && !this.offStreetLevel(t[0], t[1]));
+    // (and one on the kerb or close to the carriageway is set beside the road, or goes: treeclear.js, #324; the same as fromParts does for tiles of an older build)
+    this.treeClearStats = { moved: 0, removed: 0 };
+    this.trees = clearTreesFromRoads(this, this.trees, this.treeClearStats);
 
     this.treeGrid = new SpatialGrid(CELL * 2);
     for (const t of this.trees) {
@@ -206,6 +216,9 @@ export class GameMap {
       m.greenGrid.insert(g, g.bounds);
     }
     m.elev = buildElevation(m);
+    // (a mapped tree on the kerb or the carriageway is set beside the road, or goes: treeclear.js, #324)
+    m.treeClearStats = { moved: 0, removed: 0 };
+    m.trees = clearTreesFromRoads(m, m.trees, m.treeClearStats);
     m.treeGrid = new SpatialGrid(CELL * 2);
     for (const t of m.trees) m.treeGrid.insert(t, [t[0], t[1], t[0], t[1]]);
     return m;
@@ -231,13 +244,17 @@ export class GameMap {
     }
     const z = groundHeightAt(this.elev, x, y, zHint - t);
     const pr = pickedRibbon();
-    return z + (isDeckRoad(pr) ? this.deckTerrainAt(pr, x, y, t) : t);
+    return z + (pr ? this.terrainBase(pr, x, y) : t);
   }
 
-  // what the profile of ribbon r (null: the ground) is relative to at (x, y), m
+  // what the profile of ribbon r (null: the ground) is relative to at (x, y), m. A deck keeps to the
+  // line between its ends (deckterrain.js). Any other road or rail runs on the terrain AT ITS VERTICES,
+  // straight in between: the solver (profile.mjs) places its vertices, and the raster's bilinear
+  // kinks (25 m cells) laid over a road at 80 km/h would throw a car into the air.
   terrainBase(r, x, y) {
     const t = this.terrainAt(x, y);
-    return isDeckRoad(r) ? this.deckTerrainAt(r, x, y, t) : t;
+    if (isDeckRoad(r)) return this.deckTerrainAt(r, x, y, t);
+    return r && r.pts && r.pts.length > 1 ? roadTerrainAt(r, x, y, this.terrain.at, this.terrain.size) : t;
   }
 
   deckTerrainAt(r, x, y, ground) {
@@ -278,7 +295,8 @@ export class GameMap {
   // The ribbon (layer) at (x, y) nearest height z: what something put down
   // there stands on (null at street level)
   ribbonAt(x, y, z) {
-    return ribbonAt(this.elev, x, y, z);
+    // (with ?terrain the layers are relative to the terrain, #78)
+    return ribbonAt(this.elev, x, y, this.terrainOn ? z - this.terrainAt(x, y) : z);
   }
 
   // Height of road r at (x, y); 0 for flat roads.
@@ -302,7 +320,9 @@ export class GameMap {
   }
 
   ceilingAt(x, y, z) {
-    return ceilingAt(this.elev, x, y, z);
+    if (!this.terrainOn) return ceilingAt(this.elev, x, y, z);
+    const t = this.terrainAt(x, y), c = ceilingAt(this.elev, x, y, z - t);
+    return c + t;
   }
 
   // Inside a covered (tunnel) section: the canal above an aqueduct is not
@@ -504,10 +524,10 @@ export class GameMap {
     return { x: sx, y: sy, road: first.road || null };
   }
 
-  // Open ground someone can stand on and walk away from: dry (or a bridge),
+  // Open ground someone can stand on and walk away from: dry (a bridge is dry for isInWater),
   // outside every footprint except its passages, not a closed-off courtyard.
   isOpenSpot(x, y, reach = 45) {
-    if (isInWater(this, x, y) && !this.isOnBridge(x, y)) return false;
+    if (isInWater(this, x, y)) return false;
     for (const b of this.buildingsNear(x, y, 0.5)) {
       const [minx, miny, maxx, maxy] = b.bounds;
       if (x >= minx && x <= maxx && y >= miny && y <= maxy && pointInPolygon(x, y, b.pts) && !inPassage(this, b, x, y)) return false;
@@ -552,13 +572,14 @@ export class GameMap {
     return false;
   }
 
-  queryView(minx, miny, maxx, maxy) {
+  // withTrees false: the minimap does not draw them
+  queryView(minx, miny, maxx, maxy, withTrees = true) {
     return {
       roads: this.roadGrid.query(minx, miny, maxx, maxy),
       buildings: this.buildingGrid.query(minx, miny, maxx, maxy),
       water: this.waterGrid.query(minx, miny, maxx, maxy),
       green: this.greenGrid.query(minx, miny, maxx, maxy),
-      trees: this.treeGrid.query(minx, miny, maxx, maxy),
+      trees: withTrees ? this.treeGrid.query(minx, miny, maxx, maxy) : [],
     };
   }
 }
@@ -587,7 +608,7 @@ export function slimWorkerMap(map) {
 
 // onProgress(0..1) reports download progress when the size is known.
 // game/mapextras.json (scripts/add_map_extras.py): data kept next to
-// citymap.json and merged here - extra footprints, per-building patches
+// stad.json and merged here - extra footprints, per-building patches
 // (heights, names, landmark models), bus-only roads and bus lanes.
 async function fetchExtras(url) {
   try {
@@ -648,6 +669,11 @@ export function applyMapExtras(data, ex) {
     if (best) Object.assign(best, p.set);
   }
   data.buildings = data.buildings.filter((b) => !b.remove);
+  // roadPatches [{ osm, set }]: fields of the way with that OSM id (the real width of an alley, #284)
+  if (ex.roadPatches && ex.roadPatches.length) {
+    const by = new Map(ex.roadPatches.map((p) => [p.osm, p.set]));
+    for (const r of data.roads) { const set = by.get(r.osm); if (set) Object.assign(r, set); }
+  }
 
   const at = new Map();
   for (const r of data.roads) {
@@ -712,7 +738,9 @@ export function applyMapExtras(data, ex) {
   }
 }
 
-export async function loadMap(url = 'map.json', onProgress = null) {
+// The map from stad.json (the hand layer, docs/ARCHITECTUUR-STAD-NAAR-TEGELS.md): without the layers the OSM tile build
+// brings (water, green, trees, buildings other than the hand-made ones), so only for a build without world/ tiles.
+export async function loadMap(url = 'stad.json', onProgress = null) {
   const extras = fetchExtras(url);
   const res = await fetch(url);
   if (!res.ok) throw new Error('failed to load map data: ' + res.status);
@@ -737,10 +765,12 @@ export async function loadMap(url = 'map.json', onProgress = null) {
     data = await res.json();
   }
   const ex = await extras;
+  for (const l of data.fromOsm || []) if (!data[l]) data[l] = [];
+  for (const k of ['format', 'fromOsm', 'tiles', 'cover']) delete data[k];
   // every map file is in the RD New world frame (rdnew.js); a file from an
   // older build would put the whole map tens of metres off
-  for (const [name, f] of [['citymap.json', data.meta && data.meta.frame], ['mapextras.json', ex ? ex.frame : 'rd-new']]) {
-    if (f !== 'rd-new') console.error(`${name} is not in the rd-new frame (scripts/world/rebase_data.py)`);
+  for (const [name, f] of [['stad.json', data.meta && data.meta.frame], ['mapextras.json', ex ? ex.frame : 'rd-new']]) {
+    if (f !== 'rd-new') console.error(`${name} is not in the rd-new frame (scripts/world/rdnew.py)`);
   }
   applyMapExtras(data, ex);
   return new GameMap(data);

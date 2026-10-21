@@ -26,7 +26,7 @@ const newSignaler = () => new MultiSignaler(CONFIG, { socket: (url) => { const w
 export function mountLobby(root, hooks, opts = {}) {
   const direct = onlineSupported();
   const api = direct ? window.gdeDesktop.coop : null;
-  let state = createLobby({ direct, rtc: rtcSupported(), laatsteCode: hooks.laatsteCode, start: opts.start, rol: opts.rol, holdNaam: opts.holdNaam });
+  let state = createLobby({ direct, rtc: rtcSupported(), laatsteCode: hooks.laatsteCode, start: opts.start, rol: opts.rol, keuze: opts.keuze, holdNaam: opts.holdNaam, startGate: opts.startGate, spelNaam: opts.spelNaam });
   state.route = opts.route || null;
   if (opts.holdSlot != null) state = reduce(state, { t: 'hold', slot: opts.holdSlot, naam: opts.holdNaam });
   let hub = opts.hub || null, session = opts.session || null, handle = null, room = null, stopListen = null, joinedOnce = false, wacht = false;
@@ -35,7 +35,7 @@ export function mountLobby(root, hooks, opts = {}) {
 
   function draw() {
     const v = view(state);
-    const wensen = v.wensen ? `<div class="coop-wensen" role="group" aria-label="Kies een figuur">${v.wensen.map((w) => `<button type="button" class="ss-item" data-act="${w.act}" aria-pressed="${w.gekozen}"><span class="ss-label"><span style="color:${w.kleur}" aria-hidden="true">●</span> ${esc(w.naam)}${w.gekozen ? ' ✓' : ''}</span></button>`).join('')}</div>` : '';
+    const wensen = v.wensen ? `<div class="coop-wensen" role="group" aria-label="Kies een figuur">${v.wensen.map((w) => `<button type="button" class="m-bg coop-wens" data-act="${w.act}" aria-pressed="${w.gekozen}"><span class="ss-label"><span style="color:${w.kleur}" aria-hidden="true">●</span> ${esc(w.naam)}${w.gekozen ? ' ✓' : ''}</span></button>`).join('')}</div>` : '';
     root.innerHTML =
       `<h3 class="coop-title">${esc(v.title)}</h3>` +
       v.lines.map((l) => `<p>${esc(l)}</p>`).join('') +
@@ -43,7 +43,7 @@ export function mountLobby(root, hooks, opts = {}) {
       (v.input ? `<input class="coop-input" type="text" spellcheck="false" autocomplete="off" placeholder="${esc(v.input.placeholder)}" value="${esc(v.input.value || '')}">` : '') +
       wensen +
       (v.error ? `<p class="coop-error" role="alert">${esc(v.error)}</p>` : '') +
-      `<div class="coop-btns">${v.buttons.map((b) => `<button type="button" class="ss-item${b.primary ? ' ss-hero' : ''}" data-act="${b.act}"><span class="ss-label">${esc(b.label)}</span></button>`).join('')}</div>`;
+      `<div class="coop-btns">${v.buttons.map((b) => `<button type="button" class="${b.primary ? 'm-bp' : 'm-bg'} coop-btn" data-act="${b.act}"${b.disabled ? ' disabled aria-disabled="true"' : ''}><span class="ss-label">${esc(b.label)}</span></button>`).join('')}</div>`;
   }
 
   // ----- host
@@ -82,7 +82,7 @@ export function mountLobby(root, hooks, opts = {}) {
       if (stopListen) stopListen();
       stopListen = listenForGuests(api, (tr) => hooks.addGuest(tr));
       const r = await api.host(hub.roster.max);
-      if (!r.ok) return set({ t: 'fout', msg: r.text || 'De gastheer kon niet starten.' });
+      if (!r.ok) return set({ t: 'fout', msg: r.text || 'Het spel openen lukte niet.' });
       return set({ t: 'code', code: r.code, lanCode: r.lanCode, note: r.online ? '' : r.text });
     }
     await openRoom();
@@ -95,13 +95,18 @@ export function mountLobby(root, hooks, opts = {}) {
     sess.onstatus = (st) => {
       set({ t: 'status', status: st, reason: sess.rejected, partner: { slot: sess.slot } });
       if (st === 'ok') {
-        if (sess.welcome && Array.isArray(sess.welcome.lijst)) set({ t: 'spelers', lijst: sess.welcome.lijst, max: sess.welcome.max });
+        if (!sess.lijstGezien && sess.welcome && Array.isArray(sess.welcome.lijst)) set({ t: 'spelers', lijst: sess.welcome.lijst, max: sess.welcome.max });
         if (!joinedOnce) { joinedOnce = true; if (hooks.joined) hooks.joined(ROLES.GAST); }
         if (opts.start && hooks.resumed) hooks.resumed();
       }
     };
     const prev = sess.onevent;
-    sess.onevent = (b) => { if (b && b.k === 'spelers' && Array.isArray(b.lijst)) set({ t: 'spelers', lijst: b.lijst.map((x) => ({ ...x, naam: nameOf(x.char) })), max: b.max }); if (prev) prev(b); };
+    sess.onevent = (b) => {
+      if (b && b.k === 'hek') { // de gastheer start het spel (of er was geen wachtkamer): de wachtkamer van de gast sluit
+        const was = state.caps.startGate; set({ t: 'gate', aan: !!b.aan });
+        if (was && !b.aan && hooks.startSpel) hooks.startSpel();
+      }
+      if (b && b.k === 'spelers' && Array.isArray(b.lijst)) sess.lijstGezien = true; if (b && b.k === 'spelers' && Array.isArray(b.lijst)) set({ t: 'spelers', lijst: b.lijst.map((x) => ({ ...x, naam: nameOf(x.char) })), max: b.max }); if (prev) prev(b); };
   }
 
   async function guestStart() {
@@ -134,7 +139,8 @@ export function mountLobby(root, hooks, opts = {}) {
   async function act(a) {
     const input = root.querySelector('.coop-input');
     try {
-      if (a === 'kies-host') set({ t: 'kies', rol: ROLES.HOST });
+      if (a === 'start-spel') { if (hooks.startSpel) hooks.startSpel(); }
+      else if (a === 'kies-host') set({ t: 'kies', rol: ROLES.HOST });
       else if (a === 'kies-gast') set({ t: 'kies', rol: ROLES.GAST });
       else if (a === 'route-kamer') set({ t: 'route', route: ROUTES.KAMER });
       else if (a === 'route-direct') set({ t: 'route', route: ROUTES.DIRECT });
@@ -153,8 +159,9 @@ export function mountLobby(root, hooks, opts = {}) {
         if (api && state.route === ROUTES.DIRECT) api.setMax(gekozen);
         if (hub && state.route === ROUTES.KAMER) onRoster(hub.roster);
       } else if (a === 'terug' || a === 'verbreek') {
-        cleanup();
+        // eerst netjes afmelden (BYE naar de anderen), dan pas de verbinding en de poort sluiten: andersom komt het afmelden nooit aan en houdt de host de plek nog tot de pauze
         if (hooks.disconnect) hooks.disconnect(a, state.rol, opts.holdSlot);
+        cleanup();
         set({ t: a === 'terug' ? 'terug' : 'verbreek' });
       } else if (a === 'hervat') {
         set({ t: 'hervat' }); // opnieuw uitwisselen; de terugkerende speler vindt zijn plek via zijn token
@@ -166,6 +173,7 @@ export function mountLobby(root, hooks, opts = {}) {
   }
 
   if (hub && opts.start) { const prev = hub.onchange; hub.onchange = (r) => { if (prev) prev(r); onRoster(r); }; }
+  if (session && opts.start) watch(session); // wachtscherm van een gast: zodra de verbinding van zelf terugkomt (zelfde token), sluit het scherm
   root.addEventListener('click', (e) => {
     const b = e.target.closest && e.target.closest('[data-act]');
     if (b && root.contains(b)) act(b.dataset.act);

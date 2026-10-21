@@ -3,12 +3,13 @@ import { getScene } from './scene3d.js';
 import { buildBuildingMesh } from './models3d_buildings.js';
 import { onLandmarkModelLoaded } from './landmarkmodels.js';
 import { getSettings } from './settings.js';
-import { pushAudioEvent } from './pedestrians.js';
+import { pushAudioEvent } from './pedgeom.js';
 import { unlockAchievement } from './achievements.js';
-import { saveGame } from './savegame.js';
+import { saveGame } from './savehook.js';
 import { pointInPolygon, isInWater, clamp, angleLerp, normalizeAngle, WATER_Y } from './util.js';
 import { KEYS } from './storagekeys.js';
 import { quitRunningActivities } from './busy.js';
+import { waterNearby } from './waterlevels.js';
 
 const LEVEL_H = 3.1;
 const G = 9.8;
@@ -1119,7 +1120,7 @@ function updateFood(dt) {
 function nearWater() {
   const vm = (world.map.meta.landmarks || []).find((l) => l.name === 'Vismarkt');
   if (vm && Math.hypot(vm.x - P.x, vm.y - P.y) < 250) return true;
-  return world.map.waterNear(P.x, P.y, 40).length > 0;
+  return waterNearby(world.map, P.x, P.y, 40);
 }
 
 function spawnGull() {
@@ -1571,7 +1572,7 @@ function landingSpot(map) {
     const [x, y] = map.escapeBuilding(P.x, P.y);
     if (!isInWater(map, x, y) && map.canWalkOut(x, y, 40)) return { x, y };
   }
-  const dry = (x, y) => !isInWater(map, x, y) || map.isOnBridge(x, y);
+  const dry = (x, y) => !isInWater(map, x, y);
   const s = map.findOpenSpawn(P.x, P.y, 400);
   if (s && dry(s.x, s.y)) return { x: s.x, y: s.y };
   // kade roads often overlap the canal polygon: walk the nearby street points
@@ -1756,7 +1757,7 @@ export function isPigeonActive() {
 // poop score of the current flight).
 export function getPigeonFlight() {
   if (!active) return null;
-  return { x: P.x, y: P.y, z: P.z, ground: surfaceAt(P.x, P.y, false).h, mode: P.mode, score, intro: !!intro };
+  return { x: P.x, y: P.y, z: P.z, ground: surfaceAt(P.x, P.y, false).h, mode: P.mode, score, intro: !!intro, yaw: P.yaw, speed: P.speed };
 }
 
 // Read-only: where the gull is (for the mission map), or null.

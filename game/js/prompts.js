@@ -14,9 +14,8 @@ import { promptSub, explains, explainId, markSeen, parseSeen } from './hudtext.j
 const downKey = () => keyWord(getSettings().keyBinds, 'control');
 import { isPadActive, padState } from './gamepad.js';
 import { getUiScale } from './uiscale.js';
-import { isPhoneOpen } from './phone.js';
-import { isPauseMenuOpen } from './pausemenu.js';
-import { lineOfSight } from './pedestrians.js';
+import { isPhoneOpen, isPauseMenuOpen } from './pausestate.js';
+import { lineOfSight } from './pedgeom.js';
 import { pigeonSpotPrompt, pigeonSpotSecondary } from './pigeonspots.js';
 import { sideJobPrompt, sideJobSecondary } from './sidejobs.js';
 import { stationPrompt, stationSecondary } from './stationtravel.js';
@@ -130,7 +129,7 @@ function keyCap(k) {
 }
 
 // Hold-to-interact / cooldown ring around a glyph; p in 0..1.
-export function setHoldProgress(el, p) {
+function setHoldProgress(el, p) {
   const ring = el && el.querySelector('.r-fg');
   if (!ring) return;
   const v = Math.max(0, Math.min(1, p));

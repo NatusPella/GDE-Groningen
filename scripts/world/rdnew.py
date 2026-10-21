@@ -108,7 +108,7 @@ def P(x, y):
 
 
 def frame_meta():
-    """What citymap.json / ommeland.json carry in meta to say which frame they are in."""
+    """What stad.json / ommeland.json carry in meta to say which frame they are in."""
     return {"frame": FRAME, "rdOrigin": [RD_ORIGIN_X, RD_ORIGIN_Y]}
 
 

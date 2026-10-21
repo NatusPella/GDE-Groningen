@@ -8,7 +8,8 @@
 //    on top solid from the street), crash barriers along raised roads;
 //  - the open-cut mask: where the ground is cut away (terrain, grass, green
 //    and the canal bed discard fragments there, see cutmask3d.js).
-// Pure data, built once per map (map.elev).
+// Pure data, built once per map (map.elev); the roads of streamed tiles join it, and leave it with their tile
+// (extendElevation, shrinkElevation: #300).
 import { closestPointOnSegment } from './util.js';
 import { SpatialGrid } from './spatialgrid.js';
 
@@ -44,26 +45,36 @@ class Grid extends SpatialGrid {
 
 const EMPTY = { segs: [], walls: [], skirts: [], floors: [], cuts: [], has: false };
 
+// The raised or sunken segments of one road (none without a profile or on street level): { r, i, ax, ay, bx, by, za, zb, len, ux, uy, hs, deck, covered, box }
+function segsOfRoad(r) {
+  const out = [];
+  const Z = r.z;
+  if (!Z || Z.length !== r.pts.length) return out;
+  const hs = surfaceHalfWidth(r);
+  const P = r.pts;
+  for (let i = 0; i < P.length - 1; i++) {
+    const ax = P[i][0], ay = P[i][1], bx = P[i + 1][0], by = P[i + 1][1];
+    const len = Math.hypot(bx - ax, by - ay);
+    if (len < 1e-3) continue;
+    const za = Z[i], zb = Z[i + 1];
+    if (Math.abs(za) < 0.02 && Math.abs(zb) < 0.02) continue;
+    const s = {
+      r, i, ax, ay, bx, by, za, zb, len, ux: (bx - ax) / len, uy: (by - ay) / len, hs,
+      deck: !!r.bridge && !r.tunnel, covered: !!r.tunnel,
+    };
+    const reach = hs + WALL_T + Math.max(0, Math.max(za, zb)) / EMB_SLOPE + 1;
+    s.box = [Math.min(ax, bx) - reach, Math.min(ay, by) - reach, Math.max(ax, bx) + reach, Math.max(ay, by) + reach];
+    out.push(s);
+  }
+  return out;
+}
+
 export function buildElevation(map) {
   const segs = [];
   const grid = new Grid(CELL);
   for (const r of map.roads) {
-    const Z = r.z;
-    if (!Z || Z.length !== r.pts.length) continue;
-    const hs = surfaceHalfWidth(r);
-    const P = r.pts;
-    for (let i = 0; i < P.length - 1; i++) {
-      const ax = P[i][0], ay = P[i][1], bx = P[i + 1][0], by = P[i + 1][1];
-      const len = Math.hypot(bx - ax, by - ay);
-      if (len < 1e-3) continue;
-      const za = Z[i], zb = Z[i + 1];
-      if (Math.abs(za) < 0.02 && Math.abs(zb) < 0.02) continue;
-      const s = {
-        r, i, ax, ay, bx, by, za, zb, len, ux: (bx - ax) / len, uy: (by - ay) / len, hs,
-        deck: !!r.bridge && !r.tunnel, covered: !!r.tunnel,
-      };
-      const reach = hs + WALL_T + Math.max(0, Math.max(za, zb)) / EMB_SLOPE + 1;
-      grid.insert(s, Math.min(ax, bx) - reach, Math.min(ay, by) - reach, Math.max(ax, bx) + reach, Math.max(ay, by) + reach);
+    for (const s of segsOfRoad(r)) {
+      grid.insert(s, s.box[0], s.box[1], s.box[2], s.box[3]);
       segs.push(s);
     }
   }
@@ -88,6 +99,103 @@ export function buildElevation(map) {
   joinWallEnds(elev);
   buildCuts(elev);
   return elev;
+}
+
+// ------------------------------------------------------------- streamed roads (#300)
+
+// The roads of a streamed tile join the elevation model as their heights section arrives (tileworld.js addTile) and leave
+// it with the tile (dropTile): `roads` are all the tile's road rows, with or without a profile. The raised segments get
+// their grid entries, embankment pieces and walls; street-level roads near a raised segment (and street-level pieces of
+// a new road near an older raised one) go into the flat grid, which tells an embankment from a bridge deck.
+// A tile's neighbours are not looked at again when it comes in: a viaduct whose road below lies in a tile that
+// is not there yet is built as a deck over nothing, an embankment without the abutment (the loaded tiles of a
+// view are the same set every time the player goes there, and an embankment's slope is only a slope).
+function newElevation(map) {
+  return { segs: [], grid: new Grid(CELL), has: true, walls: [], skirts: [], floors: [], brkWalls: [], wallGrid: new Grid(WALL_CELL), cuts: [], map, flatGrid: new Grid(16), byRoad: new Map(), flatOf: new Map() };
+}
+const isFlatSeg = (r, i) => !r.z || (Math.abs(r.z[i]) < 0.02 && Math.abs(r.z[i + 1]) < 0.02);
+function addFlatPiece(elev, r, i) {
+  const a = r.pts[i], b = r.pts[i + 1], hs = surfaceHalfWidth(r);
+  const piece = { ax: a[0], ay: a[1], bx: b[0], by: b[1], hs, r };
+  const box = [Math.min(a[0], b[0]) - hs, Math.min(a[1], b[1]) - hs, Math.max(a[0], b[0]) + hs, Math.max(a[1], b[1]) + hs];
+  elev.flatGrid.insert(piece, box[0], box[1], box[2], box[3]);
+  let list = elev.flatOf.get(r);
+  if (!list) elev.flatOf.set(r, list = []);
+  list.push({ piece, box, i });
+}
+const flatHas = (elev, r, i) => { const l = elev.flatOf.get(r); return !!l && l.some((f) => f.i === i); };
+
+// Returns the number of raised or sunken segments that came in.
+export function extendElevation(map, roads) {
+  let elev = map.elev;
+  if (!elev || !elev.has) elev = map.elev = newElevation(map);
+  if (!elev.byRoad) { elev.byRoad = new Map(); elev.flatOf = new Map(); }
+  const added = [];
+  for (const r of roads) {
+    if (elev.byRoad.has(r)) continue;
+    const segs = segsOfRoad(r);
+    elev.byRoad.set(r, segs);
+    for (const s of segs) { elev.grid.insert(s, s.box[0], s.box[1], s.box[2], s.box[3]); elev.segs.push(s); added.push(s); }
+  }
+  // street-level roads next to a raised segment of the new roads
+  const seen = new Set();
+  for (const s of added) {
+    const cx = (s.ax + s.bx) / 2, cy = (s.ay + s.by) / 2, reach = s.len / 2 + s.hs + 4;
+    for (const o of map.roadsNear(cx, cy, reach)) {
+      if (!o.z || elev.byRoad.get(o)) { /* a road with a profile: its flat pieces count too */ }
+      for (let i = 0; i < o.pts.length - 1; i++) {
+        if (!isFlatSeg(o, i) || flatHas(elev, o, i)) continue;
+        const k = o.pts[i][0] * 7 + o.pts[i][1] * 13 + i;
+        if (seen.has(k)) continue;
+        seen.add(k);
+        const a = o.pts[i], b = o.pts[i + 1];
+        if (Math.hypot((a[0] + b[0]) / 2 - cx, (a[1] + b[1]) / 2 - cy) > reach + Math.hypot(b[0] - a[0], b[1] - a[1]) / 2) continue;
+        addFlatPiece(elev, o, i);
+      }
+    }
+  }
+  // a new road's own street-level pieces beside raised segments that were already there
+  for (const r of roads) {
+    for (let i = 0; i < r.pts.length - 1; i++) {
+      if (!isFlatSeg(r, i) || flatHas(elev, r, i)) continue;
+      const a = r.pts[i], b = r.pts[i + 1];
+      if (elev.grid.at(a[0], a[1]) || elev.grid.at(b[0], b[1]) || elev.grid.at((a[0] + b[0]) / 2, (a[1] + b[1]) / 2)) addFlatPiece(elev, r, i);
+    }
+  }
+  if (!added.length) return 0;
+  classifyFill(elev, added);
+  buildWalls(elev, map, added);
+  buildCuts(elev, added);
+  elev.version = (elev.version || 0) + 1;
+  return added.length;
+}
+
+// The roads of a dropped tile leave the model (the ones extendElevation brought in). Returns the number of segments removed.
+export function shrinkElevation(map, roads) {
+  const elev = map.elev;
+  if (!elev || !elev.byRoad) return 0;
+  const gone = new Set();
+  for (const r of roads) {
+    const segs = elev.byRoad.get(r);
+    if (segs) {
+      elev.byRoad.delete(r);
+      for (const s of segs) { elev.grid.remove(s, s.box); gone.add(s); }
+    }
+    const flat = elev.flatOf.get(r);
+    if (flat) { elev.flatOf.delete(r); for (const f of flat) elev.flatGrid.remove(f.piece, f.box); }
+  }
+  if (!gone.size) return 0;
+  const keep = (arr) => { let j = 0; for (let i = 0; i < arr.length; i++) if (!gone.has(arr[i].seg || arr[i])) arr[j++] = arr[i]; arr.length = j; };
+  keep(elev.segs); keep(elev.skirts); keep(elev.floors); keep(elev.brkWalls); keep(elev.cuts);
+  for (let i = elev.walls.length - 1; i >= 0; i--) {
+    const w = elev.walls[i];
+    if (!gone.has(w.seg)) continue;
+    if (!w.drawOnly) elev.wallGrid.remove(w, [Math.min(w.ax, w.bx) - 2, Math.min(w.ay, w.by) - 2, Math.max(w.ax, w.bx) + 2, Math.max(w.ay, w.by) + 2]);
+    elev.walls.splice(i, 1);
+  }
+  elev._copingBends = null;
+  elev.version = (elev.version || 0) + 1;
+  return gone.size;
 }
 
 // Where one way of a cutting ends and the next begins (or a wall piece is
@@ -207,8 +315,8 @@ export function lowerSurfaceAt(elev, x, y, zTop) {
 // over a lower road (drawn as a deck, open below), else per side `retain`
 // where the embankment slope would bury a lower road (a vertical abutment
 // wall instead), otherwise a grass slope.
-function classifyFill(elev) {
-  for (const s of elev.segs) {
+function classifyFill(elev, segs = elev.segs) {
+  for (const s of segs) {
     if (s.deck || s.rail || (s.za <= RAISED && s.zb <= RAISED)) continue;
     const n = Math.max(1, Math.round(s.len / PIECE));
     s.pieces = [];
@@ -667,9 +775,9 @@ function sunkenNeighbourZ(elev, x, y, except) {
 // (solid for whoever is in the trench) and `fence` (solid for whoever is up
 // at street level); openings where another road at the same level joins, and
 // no fence where a street crosses over the cutting or on top of a tunnel.
-function buildWalls(elev, map) {
+function buildWalls(elev, map, segs = elev.segs) {
   const walls = elev.walls;
-  for (const s of elev.segs) {
+  for (const s of segs) {
     // a rail viaduct has parapets; its embankment ramps are open
     if (s.rail && !s.deck) continue;
     const n = Math.max(1, Math.round(s.len / PIECE));
@@ -738,6 +846,12 @@ function buildWalls(elev, map) {
           kind: cut ? 'cut' : 'barrier', seg: s,
           low: !joined, fence: false, covered: s.covered,
         };
+        // a crash barrier on a ramp that runs under the edge of a higher deck (a slip road leaving a viaduct, still inside its footprint for
+        // a while): whoever drives on that deck is above it, however near the 2 m window of wallSide it is
+        if (!cut && !s.rail) {
+          const over = surfaceZ(elev, mx, my, s.r, zr + 2.0, 1.3);
+          if (over !== null && over > zr + 0.7) piece.over = over;
+        }
         if (cut) {
           // no fence where the other carriageway of the cutting continues beyond this wall
           piece.fence = !s.covered && !joined && !onFlatRoad(map, mx, my) &&
@@ -832,7 +946,7 @@ function wallSide(w, z) {
     return w.fence && z < w.top + 1.5 ? -1 : 0;
   }
   // a crash barrier is under a metre tall: a deck two metres above it clears it
-  return w.low && z > w.z - 1.2 && z < w.z + 2 ? 1 : 0;
+  return w.low && z > w.z - 1.2 && z < (w.over !== undefined ? Math.min(w.z + 2, w.over - 0.6) : w.z + 2) ? 1 : 0;
 }
 
 // Knocked-out barrier and fence sections (breakables.js registers the test)
@@ -901,9 +1015,9 @@ export function elevWallContact(elev, x, y, z, band = 1.4, props = false) {
 
 // ------------------------------------------------------------------ open cuts
 
-function buildCuts(elev) {
+function buildCuts(elev, segs = elev.segs) {
   // open (not covered) sunken segment runs: footprint quads out to the wall
-  for (const s of elev.segs) {
+  for (const s of segs) {
     if (s.covered || (s.za > -CUT_Z && s.zb > -CUT_Z)) continue;
     elev.cuts.push(s);
   }

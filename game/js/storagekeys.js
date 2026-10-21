@@ -10,8 +10,7 @@
 export const PREFIX = 'gde-';
 // ?dev runs keep their own copy of every key under this prefix (devflags.js)
 export const DEV_PREFIX = 'gde-dev:';
-export const LEGACY_PREFIX = 'gte-';
-export const LEGACY_DEV_PREFIX = 'gte-dev:';
+const LEGACY_DEV_PREFIX = 'gte-dev:';
 
 // The story keeps its progress under keys with a '-nieuw' suffix: the keys of the first version of
 // the story ('gde-save-v1', ...) stay as they were and are never deleted; oudmigratie.js copies
@@ -65,6 +64,8 @@ export const BASE_KEYS = {
   benchmarkLast: 'gde-benchmark-last-v1',
   // parts and tuning per vehicle (tuningplan.js), new in 0.38: no legacy name, not part of the save
   tuning: 'gde-tuning-v1',
+  // the animals you keep and what you did for them (dierenbezit.js, #193): new, no legacy name, not part of the save
+  dieren: 'gde-dieren-v1',
   // how often each HUD explanation has been shown (hudtext.js), new in 0.38: no legacy name
   hudSeen: 'gde-hud-gezien',
   // which steps were cleared with help on, and for which steps the help offer was shown (assistlive.js, #215): new, no legacy name
@@ -78,6 +79,9 @@ export const KEYS = Object.fromEntries(Object.entries(BASE_KEYS).map(([k, v]) =>
 // good write of the same slot. Both follow the story arc, like KEYS.save.
 export const MAX_SLOTS = 8;
 export const slotKey = (n) => (n === 1 ? KEYS.save : `gde-save-slot-${n}${ARC_SUFFIX}`);
+// The small screenshot on a savegame card: its own key, never part of the save itself,
+// so a full storage or a lost thumbnail can not touch a savegame.
+export const slotThumbKey = (n) => `gde-save-thumb-${n}-nieuw`;
 export const slotRecoveryKey = (n) => (n === 1 ? `gde-save-herstel${ARC_SUFFIX}` : `gde-save-slot-${n}-herstel${ARC_SUFFIX}`);
 
 export const SESSION_KEYS = {
@@ -111,7 +115,7 @@ export const LEGACY_KEYS = [
 // render caches: rebuilt on demand, so they are not copied (no double storage use)
 export const LEGACY_CACHE_KEYS = ['gte-snapshots', 'gte6.placeshots'];
 
-export const LEGACY_SESSION_KEYS = [['gte-benchmark-pending', SESSION_KEYS.benchmarkPending]];
+const LEGACY_SESSION_KEYS = [['gte-benchmark-pending', SESSION_KEYS.benchmarkPending]];
 
 export const MIGRATED_KEY = 'gde-migrated-v1';
 

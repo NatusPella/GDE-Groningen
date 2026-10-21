@@ -5,6 +5,7 @@
 //
 //   node scripts/world/vaarnet_graph.mjs           bouw en meld
 //   node scripts/world/vaarnet_graph.mjs --write   schrijf game/vaarnet.json
+//   --spelwater: alleen water waar het spel water heeft (polygonen en gatenstuk), zonder het verbreden en dichten van het raster
 //
 // Knopen: havens (de binnenstad, steden en dorpen aan het water), zee, het Lauwersmeer,
 // sluizen, beweegbare bruggen, splitsingen en uiteinden. Een tak draagt de kleinste
@@ -13,8 +14,9 @@
 // Water van klasse 1 (sloten en vijvers) zit er met opzet niet in, en waterstukken kleiner
 // dan MIN_COMP_CELLS cellen ook niet (zie de audit: vaarnet.mjs --components).
 import fs from 'node:fs';
-import { buildRaster, sail, cellOf, cellXY, coastIndex, seaRegion, components, nearestOpenCell, CELL, SEA_REACH, CLASS_KIND } from './vaarnet.mjs';
+import { buildRaster, sail, cellOf, cellXY, coastIndex, seaRegion, components, nearestOpenCell, ringNear, CELL, SEA_REACH, CLASS_KIND } from './vaarnet.mjs';
 import { STREET_CLEAR } from '../../game/js/vaarnet.js';
+import { createWaterIndex } from '../../game/js/waterindex.js';
 
 const SEA_NAME = { waddenzee: 'Waddenzee bij Lauwersoog', eems: 'Eems bij Delfzijl', dollard: 'Dollard bij Termunterzijl', noordzee: 'Noordzee' };
 const WANT_VILLAGES = new Set(['Zoutkamp', 'Lauwersoog', 'Termunterzijl', 'Nieuwe Statenzijl', 'Zuidlaren', 'Eemshaven']);
@@ -23,8 +25,16 @@ const RANK = { kruising: 0, brug: 1, sluis: 2, haven: 3, meer: 3, zee: 3 };
 const id = (cx, cy) => cy * GW + cx;
 export const MIN_COMP_CELLS = 200;
 
-// vereenvoudigt een lijn (Douglas-Peucker) tot de afwijking eps m
-export function simplify(P, eps) {
+// loopt het rechte stuk a-b (elke meter bekeken) over een dichte plek?
+function chordDry(a, b, dry) {
+  const L = Math.hypot(b[0] - a[0], b[1] - a[1]), n = Math.ceil(L);
+  for (let i = 1; i < n; i++) if (dry(a[0] + (b[0] - a[0]) * i / n, a[1] + (b[1] - a[1]) * i / n)) return true;
+  return false;
+}
+
+// vereenvoudigt een lijn (Douglas-Peucker) tot de afwijking eps m; met `dry` (x, y) -> true op land of een woonboot blijft elk stuk
+// ervan af: een rechte lijn die over zo'n plek loopt wordt gesplitst (#343)
+export function simplify(P, eps, dry = null) {
   if (P.length < 3) return P;
   const keep = new Uint8Array(P.length);
   keep[0] = keep[P.length - 1] = 1;
@@ -37,7 +47,7 @@ export function simplify(P, eps) {
       const d = Math.abs((P[i][0] - P[a][0]) * dy - (P[i][1] - P[a][1]) * dx) / L;
       if (d > md) { md = d; mi = i; }
     }
-    if (md > eps && mi > 0) { keep[mi] = 1; stack.push([a, mi], [mi, b]); }
+    if (mi > 0 && (md > eps || (dry && b > a + 1 && chordDry(P[a], P[b], dry)))) { keep[mi] = 1; stack.push([a, mi], [mi, b]); }
   }
   return P.filter((_, i) => keep[i]);
 }
@@ -104,6 +114,10 @@ export function buildGraph(built, { eps = 14, log = () => {} } = {}) {
   const { R, P } = built;
   const hubs = hubList(built);
   const root = hubs[0];
+  // een lijn mag niet over land of door een woonboot (op 1,5 m na: de romp is 2 m breed); land is hier het echte water van de
+  // polygonen, niet de cel: een cel waar de oever doorheen loopt is water in het raster
+  const exact = createWaterIndex(built.navPolys || []);
+  const dryAt = (x, y) => { const [cx, cy] = cellOf(x, y); return R.nav(cx, cy) === 0 || !exact.inWater(x, y) || (R.rings.size > 0 && ringNear(R, x, y, 1.5)); };
   const coast = coastIndex(P.edge);
   const seaOf = (cx, cy) => { const [x, y] = cellXY(cx, cy), q = coast.near(x, y, SEA_REACH); return q ? seaRegion(q[0], q[1]) : null; };
   const hubAt = new Map(hubs.map((h) => [id(h.cell[0], h.cell[1]), h]));
@@ -195,7 +209,7 @@ export function buildGraph(built, { eps = 14, log = () => {} } = {}) {
         const o2 = R.obs.get(id(cells[i][0], cells[i][1]));
         if (o2 !== undefined && R.list[o2].kind === 'vast') clear = Math.min(clear, STREET_CLEAR);
       }
-      edges.push({ a: na, b: nb, len: Math.round(len), cls: edgeClass(navs), clear, pts: simplify(cells.map(([cx, cy]) => cellXY(cx, cy)), eps) });
+      edges.push({ a: na, b: nb, len: Math.round(len), cls: edgeClass(navs), clear, pts: simplify(cells.map(([cx, cy]) => cellXY(cx, cy)), eps, dryAt) });
     }
     log('klasse ' + cls + ': ' + comp.sizes.slice(1).filter((n) => n >= MIN_COMP_CELLS).length + ' waterstukken, ' + targets.length + ' bladeren, ' + tp.size + ' boomcellen, ' + edges.length + ' takken');
   }
@@ -226,7 +240,9 @@ export function encodeGraph(g) {
 }
 
 if (process.argv[1] && process.argv[1].endsWith('vaarnet_graph.mjs')) {
-  const built = buildRaster();
+  const gameWater = process.argv.includes('--spelwater');
+  const built = await buildRaster({ gameWater, houseboats: true });
+  if (gameWater) console.log(`raster van het spel: ${built.dry} cellen zonder water in de polygonen weggehaald`);
   const g = buildGraph(built, { log: (m) => console.log(m) });
   const json = JSON.stringify(encodeGraph(g));
   const km = (f) => Math.round(g.edges.filter(f).reduce((n, e) => n + e.len, 0) / 1000);

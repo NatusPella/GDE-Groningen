@@ -9,7 +9,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { migrateSave, migrateSettings, savedStoryStep, savedArc, SAVE_VERSION, SETTINGS_VERSION } from '../game/js/savemigrate.js';
+import { migrateSave, migrateSettings, plausiblePos, savedStoryStep, savedArc, SAVE_VERSION, SETTINGS_VERSION } from '../game/js/savemigrate.js';
 import { STEP_BY_ID, RETIRED_STEPS, ARC_ID, STEPS } from '../game/js/storyarc.js';
 import { STAT_DEFAULTS, statsFromSave } from '../game/js/world.js';
 import { CHEAT_BY_ID } from '../game/js/cheatlist.js';
@@ -22,7 +22,7 @@ const src = (f) => fs.readFileSync(path.join(ROOT, 'game/js', f), 'utf8');
 // ids the game accepts, read from the sources (those modules need a browser)
 const shops = src('shops.js');
 const block = (text, start) => text.slice(text.indexOf(start), text.indexOf('\n};', text.indexOf(start)));
-const VEHICLES = new Set([...block(shops, 'export const VEHICLE_STOCK').matchAll(/^ {2}(\w+): \{ kind:/gm)].map((m) => m[1]));
+const VEHICLES = new Set([...block(src('shopdata.js'), 'export const VEHICLE_STOCK').matchAll(/^ {2}(\w+): \{ kind:/gm)].map((m) => m[1]));
 const OUTFIT_IDS = new Set([...block(shops, 'export const OUTFITS').matchAll(/id: '([\w-]+)'/g)].map((m) => m[1]));
 const UPGRADES = new Set([...shops.slice(shops.indexOf('export const CAR_UPGRADES'), shops.indexOf('];', shops.indexOf('export const CAR_UPGRADES'))).matchAll(/id: '([\w-]+)'/g)].map((m) => m[1]));
 const STATS = new Set(Object.keys(STAT_DEFAULTS));
@@ -194,6 +194,16 @@ for (const [g, want] of [[true, true], [false, false], ['ja', undefined]]) {
   ok(!('bogus' in st), 'statsFromSave: unknown keys dropped');
   ok(Object.keys(statsFromSave(null)).length === STATS.size && statsFromSave(undefined).kills === 0, 'statsFromSave: no stats at all gives the defaults');
   ok(statsFromSave({ kills: -3 }).kills === 0, 'statsFromSave: negative counter clamps to 0');
+}
+
+// #212: a position outside the province frame is not placed; a migrated legacy Ommeland one is
+{
+  const old = migrateSave({ v: 6, pos: { x: 6000, y: -2500 } }).data;
+  const [wx, wy] = legacyToWorld(6000, -2500);
+  ok(plausiblePos(old.pos) && Math.abs(old.pos.x - wx) < 0.2 && old.frame === 'rd-new', 'a legacy Ommeland position migrates once into the RD frame');
+  const again = migrateSave(old).data;
+  ok(again.pos.x === old.pos.x && again.pos.y === old.pos.y, 'a migrated save does not move again');
+  ok(!plausiblePos({ x: 233000, y: 582000 }) && !plausiblePos({ x: NaN, y: 0 }) && !plausiblePos(null) && plausiblePos({ x: -4200, y: 1900 }), 'plausiblePos');
 }
 
 console.log(`${n - fails}/${n} checks passed over ${files.length} fixtures`);

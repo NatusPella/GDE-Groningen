@@ -8,6 +8,7 @@ import { setRoadNetwork, roadSurfaceGeometries, roadKey } from './roadsurface.js
 import { terrainArrays } from './terrain3d.js';
 import { structureArrays, overpassDeckArrays, structureTransfer } from './roadstructures3d.js';
 import { shoreParts } from './quaywalls.js';
+import { adoptSideSpans } from './movablebridges.js';
 
 // Geometry jobs that run in the geometry worker (geoworker.js) or, as a
 // fallback, on the main thread (geojobs.js): data in, typed arrays out. Only
@@ -61,7 +62,7 @@ function cityMerge({ geos, lists }) {
 
 // A BufferGeometry as plain data and back (attributes, index, groups,
 // bounding sphere); the arrays move as transferables.
-export function plainGeometry(g, transfer) {
+function plainGeometry(g, transfer) {
   if (!g) return null;
   const attrs = {};
   for (const k in g.attributes) {
@@ -78,6 +79,7 @@ export function plainGeometry(g, transfer) {
 const RD = { byKey: null, map: null };
 async function roadInit({ url, keys }) {
   const map = await loadMapAuto(url, null, { pool: false });
+  adoptSideSpans(map.roads); // the same movable side spans as the main thread, so the shores draw no static deck under them
   const want = new Set(keys);
   for (let i = map.roads.length - 1; i >= 0; i--) {
     const r = map.roads[i];

@@ -64,6 +64,15 @@ const step = { id: 'T1' };
   await tick();
   ok(w.player.x === 0 && flags.size === 0, 'no beat / end step: nothing');
 }
+// the ride that story.js passes is startMeerijden(world, option, dest): rideWith binds the world, so tickStoryTravel's ride(option, dest) reaches it right
+{
+  const w = mkWorld(0), flags = new Set();
+  let got = null;
+  const fake = async (world, o, d) => { got = { world, o, d }; world.player.x = d.x; return { aangekomen: true }; };
+  S.tickStoryTravel({ on: true, step, flags, world: w, busy: false, script: lookup, ask: async () => 'meerijden', ride: S.rideWith(w, fake) });
+  await tick(); await tick();
+  ok(got && got.world === w && got.o.id === 'trein' && got.d.name === 'Warffum' && w.player.x === 17000, 'rideWith: de wereld gaat mee als eerste argument', JSON.stringify(got && { o: got.o.id, d: got.d }));
+}
 // meerijden: the ride scene gets the option and the goal; skip/overslaan bring the vehicle along
 {
   const w = mkWorld(0), flags = new Set();
@@ -87,6 +96,15 @@ const step = { id: 'T1' };
   S.tickStoryTravel({ on: true, step, flags, world: w, busy: false, script: lookup, ask: async () => 'overslaan' });
   await tick(); await tick();
   ok(w.player.inVehicle.x === 17000 && w.player.inVehicle.speed === 0, 'vehicle comes along');
+}
+// #311: the trip ends at the step's own place, not where the guide points for a moment ("first to your garage")
+const { STEPS } = await import('../game/js/storyarc_nieuw.js');
+{
+  const t3 = STEPS.find((q) => q.id === 'T3');
+  const d = S.destOf(t3, { x: -1291, y: -1062, name: 'garage' });
+  ok(t3.goal.type === 'reis' && d.name === 'Winschoten' && Math.hypot(d.x + 1291, d.y + 1062) > 20000, 'T3: the ride ends in Winschoten', JSON.stringify(d));
+  const g = { x: 1, y: 2 };
+  ok(S.destOf({ goal: { type: 'goto' } }, g) === g, 'other goals keep the guide');
 }
 console.log(`${n - fails}/${n} storytravel`);
 process.exit(fails ? 1 : 0);

@@ -1,7 +1,7 @@
 // Test for scripts/text_audit.mjs: the word lists catch what they should, ordinary Dutch passes,
 // the allowlist has no stale entries, and the game's own player text has no open findings.
 //   node scripts/text_audit_test.mjs
-import { checkText, isProse, jsStrings, audit, voicedLookup, ALLOW } from './text_audit.mjs';
+import { checkText, checkRaw, isProse, jsStrings, audit, voicedLookup, ALLOW } from './text_audit.mjs';
 
 let failed = 0;
 const ok = (cond, msg) => { if (!cond) { failed++; console.log('FAIL ' + msg); } };
@@ -45,9 +45,10 @@ ok(has('Oudjoarsknaller in november', 'winter'), 'winterlijst: oudjoar en novemb
 ok(has('Entschuldigung, wir haben das nicht gesehen', 'duits'), 'Duits');
 ok(has('Bonjour, merci pour tout', 'frans'), 'Frans');
 ok(!has('Wie is die man? Hier pas je op.', 'duits') && !has('Wie is die man? Hier pas je op.', 'frans'), 'Nederlandse woorden geen vals alarm');
-ok(has('Je save is weg', 'anglicisme') && has('Vraag de host om een code', 'anglicisme') && has('Rond je run af met een combo', 'anglicisme'), 'anglicisme: save, host, run, combo');
+ok(has('Je save is weg', 'anglicisme') && has('Vraag de host om een code', 'anglicisme') && has('De gastheer wacht', 'rolnaam') && has('Vraag de gastgever', 'rolnaam') && !has('Tammo heeft het spel geopend', 'rolnaam') && has('Rond je run af met een combo', 'anglicisme'), 'anglicisme: save, host, run, combo');
 ok(has('Bij het laatste checkpoint en total loss', 'anglicisme') && has('Mooie ghosts met tricks', 'anglicisme'), 'anglicisme: checkpoint, total loss, ghosts, tricks');
-ok(!has('Je spelstand is bewaard; de gastheer wacht, hatchback of sedan', 'anglicisme'), 'Nederlands en ingeburgerd: geen vals alarm');
+ok(has('Speel co-op of multiplayer', 'anglicisme') && has('De coöp-modus', 'anglicisme'), 'anglicisme: co-op, multiplayer, coöp');
+ok(!has('Je savegame is bewaard; Tammo wacht, hatchback of sedan', 'anglicisme'), 'Nederlands en ingeburgerd: geen vals alarm');
 ok(!has('Hoster Hostel, de runderen en het slot', 'anglicisme') && !has('<button data-action="save">Opslaan</button> .pm-rail-acts [data-boost]', 'anglicisme'), 'woorddelen en markup geven geen vals alarm');
 
 // the allowlist: every entry has a reason, and still matches something
@@ -59,6 +60,21 @@ for (const a of ALLOW) ok(findings.some((f) => f.allowed === a), `verouderde all
 const open = findings.filter((f) => !f.allowed);
 for (const f of open) console.log(`OPEN [${f.rule}] ${f.file}:${f.line}: ${f.term} | ${f.text.slice(0, 100)}`);
 ok(open.length === 0, `${open.length} bevindingen buiten de allowlist (node scripts/text_audit.mjs)`);
+
+// ronde 2 (#150): meer merken en personen, winterwoorden, anglicismen, persoonsgegevens en externe adressen
+ok(has('Haal een Nespresso bij de Wibra', 'merk') && has('Bestel bij Zalando', 'merk') && has('Op Roblox en Fortnite', 'merk'), 'merk: koffie, winkel, spel');
+ok(has('Dat zegt Max Verstappen', 'persoon') && has('Ede Staal zingt', 'persoon') && has('Op Tomorrowland', 'persoon'), 'persoon: sporter, Groninger zanger, festival');
+ok(!has('Score: 100, de Action-held kijkt Plus Only', 'merk'), 'gewone woorden (Score, Action, Plus, Only) geven geen merkalarm');
+ok(has('Pas op voor de gladheid en de dooi', 'winter') && has('Alles is gevroren', 'winter'), 'winter: gladheid, dooi, gevroren');
+ok(!has('Het wordt een mooie zomerdag met zon', 'winter'), 'zomer is geen winter');
+ok(has('Je moet respawn kiezen', 'anglicisme') && has('Nieuwe achievements unlocked', 'anglicisme') && has('Open de tutorial', 'anglicisme'), 'anglicisme: respawn, achievements, unlocked, tutorial');
+const raw = (t) => checkRaw(t).map((f) => f.rule + ':' + f.note);
+ok(raw('Mail naar ' + ['tammo', 'voorbeeld.nl'].join('@')).some((x) => x.startsWith('persoonsgegevens')), 'e-mailadres');
+ok(raw('Bel 06-12345678 of 050 1234567').filter((x) => x.includes('telefoon')).length >= 1, 'telefoonnummer');
+ok(raw('Stort op NL91 ABNA 0417 1643 00').some((x) => x.includes('IBAN')), 'IBAN');
+ok(raw('Kijk op https://voorbeeld.nl/pagina').some((x) => x.startsWith('url')) && raw('Kijk op www.voorbeeld.nl').some((x) => x.startsWith('url')), 'webadres');
+ok(raw('Het is 1234 meter, rond 2026 en code 50').length === 0, 'gewone getallen zijn geen telefoonnummer');
+ok(raw('Dinsdag 18 augustus, ochtend').length === 0, 'gewone zin zonder gegevens');
 
 if (failed) { console.log(`${failed} mislukt`); process.exit(1); }
 console.log('text_audit_test ok');

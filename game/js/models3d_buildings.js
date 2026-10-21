@@ -3,7 +3,7 @@ import { HABBO_PALETTE, habboMaterial, vcMaterial, GeoBuilder, createBrickDetail
 import { getLandmarkModel } from './landmarkmodels.js';
 import { hasLandmarkModel, buildLandmarkGeometry, LANDMARK_MATERIALS, setLandmarkNight } from './landmarks3d.js';
 import { facadeLook } from './winkelkit.js';
-import { capBuilding } from './buildingcap.js';
+import { capBuilding, ringArea } from './buildingcap.js';
 import { glassMaterial, setGlassNight, paneUV, PANE_HOME, PANE_GROUND, PANE_SHOP, PANE_OFFICE } from './interiorglass.js';
 import { pointInPolygon, segDist as segDistXY, WATER_Y } from './util.js';
 import { passagesOf, doorsOf } from './passages.js';
@@ -302,6 +302,12 @@ function familyIndexFor(box) {
   return Math.floor(hash2(gx, gy) * PALETTE_FAMILIES.length);
 }
 
+// a big building=construction outline is a building site, not a hall: a low sand pad with containers and heaps
+const isBuildingSite = (b) => b.type === 'construction' && ringArea(b.pts || []) > 1500;
+const SITE_ROOF_TONE = 0x9a8f78;
+const siteRoofMaterial = habboMaterial(SITE_ROOF_TONE, { map: flatRoofTexture });
+applyPortalCut(siteRoofMaterial);
+
 function archetypeOf(b) {
   const t = b.type || 'yes';
   if (t === 'house' || t === 'detached' || t === 'terrace' || t === 'semidetached_house') return 'house';
@@ -414,7 +420,7 @@ function convexHull(points) {
   return hull.length >= 3 ? hull : pts.slice(0, Math.min(3, pts.length));
 }
 
-// Exported so a Node harness can verify this pipeline against citymap.json.
+// Exported so a Node harness can verify this pipeline against the city map.
 export function sanitizeFootprint(pts) {
   const open = stripClosingDuplicate(pts);
   const deduped = dedupeInterior(open);
@@ -718,6 +724,7 @@ const segDist = (x, z, e) => segDistXY(x, z, e.ax, e.ay, e.bx, e.by);
 function addFlatRoofDetail(B, b, edges, open, depth, floorCount, archetype, wallHex, copeC, r) {
   const A = edges.area;
   if (A < 8) return;
+  const site = isBuildingSite(b);
   let e0 = edges[0];
   for (const e of edges) if (e.len > e0.len) e0 = e;
   const tx = e0.tx, ty = e0.ty, ry = Math.atan2(-ty, tx);
@@ -732,6 +739,9 @@ function addFlatRoofDetail(B, b, edges, open, depth, floorCount, archetype, wall
   const toW = (a, c) => [cx + a * tx - c * ty, cz + a * ty + c * tx];
   const yb = depth - 0.05;
   const big = floorCount >= 3 || A > 90;
+  // a hall or warehouse (thousands of m2) has a roof to match: more patches, units, skylights and seams, and bigger (#260)
+  const huge = A > 1500;
+  const hs = huge ? Math.min(2.4, 1 + Math.sqrt(A / 4000)) : 1;
 
   const pad = b.helipad && mapRef() && mapRef().meta.helipad;
   const clearAt = (x, z, m) => pointInPolygon(x, z, b.pts) && edges.every((e) => segDist(x, z, e) >= m) && !(pad && Math.hypot(x - pad.x, z - pad.y) < pad.r + 2.5);
@@ -766,15 +776,44 @@ function addFlatRoofDetail(B, b, edges, open, depth, floorCount, archetype, wall
     B.quadOut(p(-1, -1), p(1, -1), p(1, 1), p(-1, 1), [0, 1, 0], color, G_DETAIL);
   };
 
+  if (site) {
+    // containers (some stacked), heaps of sand and gravel, a few lamps: a site seen from above is busy
+    const COLORS = [0x2f5d8a, 0xb5451b, 0xd9d3c3, 0x3f7a4f, 0xc9a227, 0x6b6e72];
+    const nBox = Math.min(90, Math.floor(A / 350));
+    for (let i = 0; i < nBox; i++) {
+      const s = spot(3, 1.2, 1.5, 0.8, placed, 12);
+      if (!s) continue;
+      const col = COLORS[Math.floor(r(120 + i) * COLORS.length)];
+      rbox(s.a, s.c, yb, 6, 2.6, 2.4, col);
+      if (r(160 + i) < 0.3) rbox(s.a, s.c, yb + 2.6, 6, 2.6, 2.4, COLORS[Math.floor(r(200 + i) * COLORS.length)]);
+    }
+    const nHeap = Math.min(40, Math.floor(A / 1200));
+    for (let i = 0; i < nHeap; i++) {
+      const rad = 3 + r(240 + i) * 5, h = 1.5 + r(280 + i) * 2;
+      const s = spot(rad, rad, 1.5, 0.6, placed, 10);
+      if (!s) continue;
+      const [x, z] = toW(s.a, s.c);
+      B.geo(new THREE.ConeGeometry(rad, h, 7), composeMatrix(x, depth + h / 2 - 0.05, z, 0, r(320 + i) * 6.28, 0), r(360 + i) < 0.5 ? 0xb7a77f : 0x7d7f82, G_DETAIL);
+    }
+    const nLamp = Math.min(30, 2 + Math.floor(A / 3000));
+    for (let i = 0; i < nLamp; i++) {
+      const s = spot(0.3, 0.3, 1.5, 0.6, placed, 8);
+      if (!s) continue;
+      rbox(s.a, s.c, yb, 0.25, 9, 0.25, 0x4a4d50);
+      rbox(s.a, s.c, yb + 9, 1.2, 0.3, 0.5, 0xd8d6c8);
+    }
+    return;
+  }
+
   // darker, dirtier band where the membrane runs up against the parapet
   const band = r(50) < 0.5 ? 0x55565a : 0x505154;
   for (const e of edges) wallBox(B, e, 0, e.len, yb, depth + 0.03, -0.5, -0.02, band, G_DETAIL, FACE_TOP);
 
-  const nPatch = Math.min(4, Math.floor(A / 45) + (r(51) < 0.55 ? 1 : 0));
+  const nPatch = Math.min(4 + (huge ? Math.floor(A / 1500) : 0), huge ? 40 : 4, Math.floor(A / 45) + (r(51) < 0.55 ? 1 : 0) + (huge ? Math.floor(A / 1500) : 0));
   for (let i = 0; i < nPatch; i++) {
-    const ha = 0.6 + r(52 + i) * 1.4, hc = 0.5 + r(56 + i) * 1.0;
+    const ha = (0.6 + r(52 + i) * 1.4) * hs * (huge ? 2 : 1), hc = (0.5 + r(56 + i) * 1.0) * hs * (huge ? 2 : 1);
     const s = spot(ha, hc, 0.6, 0.2, patches, 4);
-    if (s) flat(s.a, s.c, ha, hc, depth + 0.045 + 0.015 * i, ROOF_PATCH[Math.floor(r(60 + i) * ROOF_PATCH.length)]);
+    if (s) flat(s.a, s.c, ha, hc, depth + 0.045 + 0.015 * (i % 8), ROOF_PATCH[Math.floor(r(60 + i) * ROOF_PATCH.length)]);
   }
 
   const rail = floorCount >= 5 && r(61) < 0.45;
@@ -849,9 +888,9 @@ function addFlatRoofDetail(B, b, edges, open, depth, floorCount, archetype, wall
     }
   }
 
-  const nHvac = big ? Math.min(4, 1 + Math.floor(A / 160) + (r(72) < 0.4 ? 1 : 0)) : (A > 25 && r(73) < 0.3 ? 1 : 0);
+  const nHvac = big ? Math.min(huge ? 4 + Math.floor(A / 800) : 4, huge ? 40 : 4, 1 + Math.floor(A / 160) + (r(72) < 0.4 ? 1 : 0)) : (A > 25 && r(73) < 0.3 ? 1 : 0);
   for (let i = 0; i < nHvac; i++) {
-    const ha = 0.55 + r(74 + i) * 0.35, hc = 0.4 + r(78 + i) * 0.2, h = 0.75 + r(82 + i) * 0.4;
+    const ha = (0.55 + r(74 + i) * 0.35) * hs, hc = (0.4 + r(78 + i) * 0.2) * hs, h = (0.75 + r(82 + i) * 0.4) * hs;
     const s = spot(ha, hc, m);
     if (!s) continue;
     rbox(s.a, s.c, yb, ha * 2, h + 0.05, hc * 2, i % 2 ? 0xd2d4d4 : 0xbfc3c5);
@@ -867,7 +906,7 @@ function addFlatRoofDetail(B, b, edges, open, depth, floorCount, archetype, wall
   }
 
   if (A > 30 && r(94) < 0.55) {
-    const n = Math.min(8, Math.floor(A / 45));
+    const n = Math.min(8 + (huge ? Math.floor(A / 1000) : 0), huge ? 40 : 8, Math.floor(A / 45));
     let prev = null;
     for (let i = 0; i < n; i++) {
       let s = null;
@@ -910,6 +949,28 @@ function addFlatRoofDetail(B, b, edges, open, depth, floorCount, archetype, wall
   for (let i = 0; i < nDrain; i++) {
     const s = spot(0.15, 0.15, 0.55, 0.3, placed, 4);
     if (s) rbox(s.a, s.c, yb, 0.3, 0.13, 0.3, 0x2f3033);
+  }
+
+  if (huge) {
+    // skylights, and panel seams over the whole roof, so a hall is not one blank plate from above (#260)
+    const nSky = Math.min(48, Math.floor(A / 700));
+    for (let i = 0; i < nSky; i++) {
+      const s = spot(1.6 * hs, 0.7 * hs, m, 1.2, placed, 8);
+      if (!s) continue;
+      rbox(s.a, s.c, yb, 3.2 * hs, 0.34, 1.4 * hs, 0x8d979d);
+      rbox(s.a, s.c, depth + 0.3, 3.0 * hs, 0.06, 1.2 * hs, 0xb7c3ca);
+    }
+    // thin lighter lines along the long axis, in pieces that fit inside the outline
+    const piece = 14;
+    let seams = 0;
+    for (let c = c0 + m + 1; c <= c1 - m - 1 && seams < 500; c += 7) {
+      for (let a = a0 + m + 1; a + piece <= a1 - m - 1 && seams < 500; a += piece + 1.5) {
+        const mid = a + piece / 2;
+        if (!fits(mid, c, piece / 2, 0.05, m) || !free(placed, mid, c, piece / 2, 0.05, 0.1)) continue;
+        flat(mid, c, piece / 2, 0.05, depth + 0.04, 0x6a6e73);
+        seams++;
+      }
+    }
   }
 }
 
@@ -1331,6 +1392,7 @@ export function buildingBase(b) {
 
 // Massing + rough colours for the far LOD layer (farlod.js).
 export function buildingLodStyle(b) {
+  capBuilding(b); // the far LOD shows the same capped heights as the mesh (buildingcap.js, #179/#259)
   const box = bboxOf(b);
   const archetype = archetypeOf(b);
   const fine = hash2(box.sx, box.sy);
@@ -1399,6 +1461,7 @@ export function buildBuildingMesh(b) {
   let depth;
   if (b.landmark && b.landmarkKind === 'tower') depth = TOWER_HEIGHT * 0.6;
   else if (archetype === 'houseboat') depth = Math.min(HOUSEBOAT_MAX_DEPTH, Math.max(HOUSEBOAT_MIN_DEPTH, b.h * LEVEL_HEIGHT));
+  else if (isBuildingSite(b)) depth = 0.35 + (b.lift || 0);
   else depth = Math.max(2.4, b.h * LEVEL_HEIGHT) + (b.lift || 0);
 
   if (!b._geo3dParts) b._geo3dParts = {};
@@ -1420,7 +1483,7 @@ export function buildBuildingMesh(b) {
   const { wallHex, roofHex, frame } = pickColors(b, box, archetype, fine);
   const wallMat = archetype === 'houseboat' ? houseboatWallMaterial(wallHex) : wallMaterial(wallHex);
   const roofMat = roofMaterial(roofHex);
-  const flatRoofMat = flatRoofMaterials[Math.floor(hash2(fine * 7.1, fine2 * 3.3) * flatRoofMaterials.length)];
+  const flatRoofMat = isBuildingSite(b) ? siteRoofMaterial : flatRoofMaterials[Math.floor(hash2(fine * 7.1, fine2 * 3.3) * flatRoofMaterials.length)];
   group.add(new THREE.Mesh(parts.main, [flatRoofMat, wallMat]));
 
   if (archetype !== 'houseboat') addPassages(group, b, parts, depth);

@@ -10,7 +10,6 @@ export const MENU_SKIP = new Set(['testmenu', 'dev', 'storytest', 'autoplay', 's
 
 // Switches that take a value, with a few useful values to offer.
 export const VALUE_FLAGS = {
-  stadlaag: ['alle', 'gebouwen', 'wegen', 'water', 'spoor', 'groen'],
   marker: ['vorm'],
   gpu: ['Intel UHD'],
   touch: ['1', '0'],
@@ -49,8 +48,8 @@ export const SHORTCUTS = [
   { id: 'brug', group: 'Wereld', label: 'Naar een brug', act: { kind: 'bridge' } },
   { id: 'avond', group: 'Wereld', label: 'Zomeravond (21:00)', act: { kind: 'clock', hour: 21 } },
   { id: 'dag', group: 'Wereld', label: 'Middag (12:00)', act: { kind: 'clock', hour: 12 } },
-  { id: 'schip', group: 'Boten en bruggen', label: 'Spawn een binnenvaartschip (water in de buurt)', act: { kind: 'ship', model: 'spits' } },
-  { id: 'schip2', group: 'Boten en bruggen', label: 'Spawn een Kempenaar', act: { kind: 'ship', model: 'kempenaar' } },
+  { id: 'schip', group: 'Boten en bruggen', label: 'Zet een binnenvaartschip neer (water in de buurt)', act: { kind: 'ship', model: 'spits' } },
+  { id: 'schip2', group: 'Boten en bruggen', label: 'Zet een Kempenaar neer', act: { kind: 'ship', model: 'kempenaar' } },
   { id: 'wanted3', group: 'Verkeer en politie', label: 'Zet wanted op 3 sterren', act: { kind: 'wanted', level: 3 } },
   { id: 'wanted0', group: 'Verkeer en politie', label: 'Wanted weg', act: { kind: 'wanted', level: 0 } },
   { id: 'missie1', group: 'Missies en verhaal', label: 'Start de eerste missie', act: { kind: 'story', what: 'first' } },

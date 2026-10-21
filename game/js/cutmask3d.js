@@ -8,7 +8,7 @@ import { openCutMask } from './elevation.js';
 const blank = new THREE.DataTexture(new Uint8Array([0]), 1, 1, THREE.RedFormat);
 blank.needsUpdate = true;
 
-export const CUT_UNIFORMS = {
+const CUT_UNIFORMS = {
   uCutMask: { value: blank },
   uCutRect: { value: new THREE.Vector4(1e9, 1e9, 0, 0) },
   // only near the player (x, z, radius): beyond the streamed road meshes the

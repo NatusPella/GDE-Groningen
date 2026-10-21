@@ -27,6 +27,7 @@ registerBuilderHooks();
 import { wgsToWorld, worldToWgs } from '../../game/js/rdnew.js';
 import { edgeRows } from '../../game/js/navgraph.js';
 import { ribbon } from './derive_tiles.mjs';
+import { waterIndex, wetFraction, GREEN_WET_FRAC } from './placement_audit.mjs';
 import { edgeFromOsm } from '../../game/js/worldedge.js';
 import { LINES, TOWNS, loadPlaces, corridorTiles, tileSources, packOf } from './corridor.mjs';
 import { bakeCityRoutes, railLines } from './cityroutes.mjs';
@@ -416,6 +417,12 @@ export function tileBlob(i, j, list, gid, flags, builder, stats = null, extras =
       if (pieces && f.kind === 'roads') (pieces.get(f.row) || pieces.set(f.row, []).get(f.row)).push(r);
     }
   }
+  // a grass, park or forest outline cut at the tile edge can end up wholly in the water of this tile
+  // (the whole outline was not): drawn, it is a green strip across the open water (issue #185)
+  if (rows.green.length && rows.water.length) {
+    const wet = waterIndex(rows.water);
+    rows.green = rows.green.filter((g) => g.pts.length < 4 || wetFraction(g.pts, wet) < GREEN_WET_FRAC);
+  }
   // the junction model: a node in this tile, its arms by the road pieces of this tile that hold the node
   const junctions = [];
   if (pieces) {
@@ -616,7 +623,7 @@ async function cityKeysOf(arg) {
   if (arg && fs.existsSync(arg)) return new Set(Object.keys(JSON.parse(fs.readFileSync(arg, 'utf8')).tiles));
   await import('../node3d.mjs');
   const P = await import('./pack_tiles.mjs');
-  const built = P.build(P.loadSources());
+  const built = P.build(await P.loadSourcesLaag());
   return new Set(built.blobs.keys());
 }
 

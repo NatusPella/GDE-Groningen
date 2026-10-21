@@ -1,11 +1,11 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getScene } from './scene3d.js';
 import { getTrains, routePoint, placeTrain, railZ, returnStolenTrains } from './railway.js';
-import { isMissionActive, getActiveRace } from './missions.js';
+import { isMissionActive, getActiveRace } from './missionquery.js';
 import { isCinematicActive, playCinematic, skipCinematic } from './cinematics.js';
 import { isShopOpen, openShopMenu, closeShopMenu } from './shopui.js';
 import { recordStat, recordUnique, unlockAchievement } from './achievements.js';
-import { saveGame } from './savegame.js';
+import { saveGame } from './savehook.js';
 import { manageTrafficPopulation, manageBikePopulation } from './vehicle.js';
 import { spawnPedestriansNear } from './pedestrians.js';
 import { isInWater } from './util.js';

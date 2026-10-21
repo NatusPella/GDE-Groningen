@@ -1,21 +1,23 @@
 import { screenFx } from './postfx3d.js';
+import { isOverlayHeld } from './overlayhold.js';
 import { cutsceneTakesSpace } from './spacegate.js';
 import { setDualText } from './subtitles.js';
 import { paintSpeaker } from './speakers.js';
 import { noteSpoken } from './characters.js';
 import { getSettings } from './settings.js';
-import { isPauseMenuOpen } from './pausemenu.js';
-import { isMapOpen } from './mapview.js';
+import { isPauseMenuOpen, isMapOpen } from './pausestate.js';
 import { respawnPlayer } from './world.js';
-import { V, W, clamp01, easeInOut, easeOut, pathShot, roofAt, clearKeys, wijkStreetShot } from './camerapath.js';
-import { startRespawnScene, respawnFade } from './respawn.js';
+import { V, W, clamp01, easeInOut, easeOut, pathShot, roofAt, clearKeys, wijkStreetShot, buildingReach } from './camerapath.js';
 import { playStoryVoice, setStoryScene, setStoryProbe } from './audio.js';
 import { isIntroPlaying } from './trailerstate.js';
 import { logoHtml, GAME_NAME, SUBTITLE } from './logo.js';
 import { mayInterrupt, noteMoment } from './attention.js';
 import { registerNarrative } from './narrative.js';
 import { lineVoiceFor } from './linevoice.js';
-import { getFollowPose, prewarmStreamAt } from './scene3d.js';
+// What cinematics.js asks of respawn.js and scene3d.js comes in through setCinematicLinks
+// (respawn.js and main.js call it), so it imports neither (#108).
+import { cinematicLinks as links } from './latehooks.js';
+export function setCinematicLinks(l) { Object.assign(links, l); }
 import { KEYS } from './storagekeys.js';
 import { registerBusyProbe } from './busy.js';
 import { interiorEyePose } from './carinterior.js';
@@ -195,7 +197,7 @@ export function setNameCard(text) {
 // spec.prewarm: [{ x, y }] map points the scene will show, built ahead
 // (scene3d.js prewarmStreamAt) so its first frames are not the far LOD.
 function prewarmPoints(points) {
-  for (const p of points || []) if (p) prewarmStreamAt(p.x, p.y);
+  for (const p of points || []) if (p) links.prewarmStreamAt(p.x, p.y);
 }
 
 // The tile world's side of the same list: the tiles round every point are
@@ -255,18 +257,22 @@ export function playCinematic(spec) {
   return true;
 }
 
+// samen spelen (coopcut.js): de gast loopt mee met de tijd van de gastheer
+export const setCinematicRate = (r) => { if (active) active.rate = r; };
+export const setCinematicTime = (t) => { if (active) active.t = Math.max(0, Math.min(active.duration - 0.05, t)); };
+
 export function skipCinematic() {
   if (active) finish(true);
 }
 
 // Subtitles without their own recording get one from the lines manifest
-// (narration without a speaker is Rikus, the narrator). Voiced lines then stay up
+// (narration without a speaker is Rikus, the narrator); a line marked `own` is voiced by its scene. Voiced lines then stay up
 // until their recording has finished, pushing the rest (and the scene) later.
 function attachVoices(a) {
   if (!a.lines || !a.lines.length) return;
   let found = false;
   const lines = a.lines.map((l) => {
-    const v = !l.voice && lineVoiceFor(l.speaker, l.text);
+    const v = !l.voice && !l.own && lineVoiceFor(l.speaker, l.text);
     if (!v) return l;
     found = true;
     return { ...l, voice: v.src, vdur: v.dur };
@@ -405,7 +411,7 @@ export function updateCinematics(dt, w) {
   const frozen = isPauseMenuOpen() || isMapOpen();
   if (!frozen) {
     if (active) {
-      active.t += active.realtime ? Math.max(dt, wallDt) : dt;
+      active.t += (active.realtime ? Math.max(dt, wallDt) : dt) * (active.rate ?? 1);
       updateSubtitles();
       if (active.t >= active.duration) finish(false);
     }
@@ -418,6 +424,9 @@ export function updateCinematics(dt, w) {
   if (started && w.input.wasPressed('v') && !active) cycleCinemaCam(w);
   if (camMode && !w.player.inVehicle) setCamMode(0);
 
+  // a scene that films its own cast (hidePlayers): the real players stay hidden for the whole scene, also when another run
+  // cleans up in between and clears the flag (two identical Tammos next to Tessa, #264)
+  if (active && active.hidePlayers) { w.cinematicHidePlayers = true; w.cinematicHideNav = true; }
   let pose = null;
   if (active && active.shot) {
     try {
@@ -588,7 +597,7 @@ function flyInShot(w, first) {
   // camera hanging in the air. Built on the second frame, once the follow
   // camera has caught up with a player the scene just put back.
   return (u) => {
-    const f = getFollowPose();
+    const f = links.getFollowPose();
     if (!path && f && u > 0) {
       const land = { pos: V(f.position.x, f.position.y, f.position.z), look: V(f.lookAt.x, f.lookAt.y, f.lookAt.z) };
       const above = { pos: V(land.pos.x, land.pos.y, land.pos.z + 10), look: land.look };
@@ -813,12 +822,12 @@ export function wijkHighlights(w, name, max = 3) {
 // the wijk's highlights listed; the flyover is the optional film (Instellingen).
 let wijkCardEl = null;
 let wijkCardT = 0;
-function showWijkCard(w, wijk) {
+function showWijkCard(w, wijk, left = 30) {
   if (typeof document === 'undefined') return false;
   if (!wijkCardEl) {
     const st = document.createElement('style');
     st.textContent = `
-#wijk-card { position: fixed; left: 6vw; bottom: 22vh; z-index: 17; pointer-events: none; color: #f0ede4; max-width: 44ch;
+#wijk-card { position: fixed; left: max(6vw, calc((46px + 250px + 190px) * var(--ui, 1))); bottom: calc(11vh + 12vh); z-index: 17; pointer-events: none; color: #f0ede4; max-width: 44ch;
   opacity: 0; transform: translateX(-28px); transition: opacity .35s, transform .6s cubic-bezier(.2,.7,.2,1); text-shadow: 0 2px 12px rgba(0,0,0,.85); }
 #wijk-card.on { opacity: 1; transform: none; }
 #wijk-card .wc-kick { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 18px; letter-spacing: .2em; color: #3fc97a; }
@@ -835,6 +844,8 @@ function showWijkCard(w, wijk) {
     wijkCardEl.innerHTML = '<div class="wc-kick">Nieuwe wijk</div><div class="wc-name"></div><div class="wc-line"></div><div class="wc-hi"></div>';
     document.body.appendChild(wijkCardEl);
   }
+  // onder de resultaatkaart of een keuzepaneel wacht de wijkkaart (#292), hooguit 12 s
+  if (left > 0 && isOverlayHeld('wijkkaart')) { clearTimeout(wijkCardT); wijkCardT = setTimeout(() => showWijkCard(w, wijk, left - 1), 400); return true; }
   const text = wijkLine(wijk.name);
   const hi = wijkHighlights(w, wijk.name);
   wijkCardEl.querySelector('.wc-name').textContent = wijk.name;
@@ -850,7 +861,7 @@ function showWijkCard(w, wijk) {
   return true;
 }
 
-export { pathShot, roofAt, clearKeys };
+export { pathShot, roofAt, clearKeys, showWijkCard };
 
 // The flyover's camera path, its pose samples prewarmed (the path is pure:
 // pathShot keyframes). Reused by playWijk while the player is still about
@@ -961,14 +972,14 @@ function playDeath(w, pending) {
     id: 'death', priority: 5, duration: DUR, letterbox: true, timeScale: 0.25, skippable: true,
     tint: opts.busted ? 'bust' : 'death', big: opts.busted ? 'OPGEPAKT' : 'DOOD',
     shot: (u, t) => {
-      if (t > DUR - 0.45) respawnFade(Math.min(1, (t - (DUR - 0.45)) / 0.4));
+      if (t > DUR - 0.45) links.respawnFade(Math.min(1, (t - (DUR - 0.45)) / 0.4));
       return shot(u);
     },
     onEnd: () => {
-      if (w.pendingRespawn !== pending) { respawnFade(0, 300); return; }
+      if (w.pendingRespawn !== pending) { links.respawnFade(0, 300); return; }
       // the trip to the hospital / police station; it respawns the player itself
-      if (startRespawnScene(w, pending, opts)) return;
-      respawnFade(0, 400);
+      if (links.startRespawnScene(w, pending, opts)) return;
+      links.respawnFade(0, 400);
       w.pendingRespawn = null;
       respawnFromScene(w, opts);
     },
@@ -980,13 +991,18 @@ export function respawnFromScene(w, opts) {
   try { respawnPlayer(w, opts); } finally { respawnFromCine = false; }
 }
 
+// The orbit runs outside the building it films (a wide one like the Forum has a reach of 47 m from its point, the orbit used
+// to be 28 m) and its title card names the place on screen, as the first version did (#329).
 function playLandmark(w, lm) {
-  const h = LANDMARK_HEIGHT[lm.name] || 16;
+  const fp = buildingReach(w.map, lm.x, lm.y);
+  const h = Math.max(LANDMARK_HEIGHT[lm.name] || 16, Math.min(60, fp.top));
   const p = w.player;
   const start = Math.atan2(p.y - lm.y, p.x - lm.x);
+  const radius = Math.min(Math.max(Math.min(60, Math.max(28, h * 0.6)), fp.reach + 18), 80);
   playCinematic({
     id: 'landmark', priority: 1, duration: 3.8, pause: true,
-    shot: orbitShot(w, { fixed: lm, radius: Math.min(60, Math.max(28, h * 0.6)), height: h * 0.45 + 9, lookY: h * 0.42, sweep: 1.3, start }),
+    kicker: 'Ontdekt', title: lm.name,
+    shot: orbitShot(w, { fixed: lm, radius, height: h * 0.45 + 9, lookY: h * 0.42, sweep: 1.3, start }),
   });
 }
 

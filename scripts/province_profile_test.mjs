@@ -9,7 +9,9 @@ import * as G from '../game/js/gdt.js';
 import * as WB from '../game/js/worldbuilder.js';
 import { worldToWgs } from '../game/js/rdnew.js';
 import { features, tileBlob } from './world/build_corridor.mjs';
-import { profileFeats, cutZ, isFlat } from './world/province_profile.mjs';
+import { profileFeats, cutZ, isFlat, shippingPins, shippingWater, SHIPPING_DECK_Z } from './world/province_profile.mjs';
+import { SHIPPING_CLEAR, BOEZEM_Y, bridgeClearance } from '../game/js/waterlevels.js';
+import { MAX_GRADE, GRADE_TOL } from '../game/js/roadprofile.js';
 import { auditViaducts, MIN_SEP, LIMIT, auditProvince } from './world/viaduct_audit.mjs';
 
 let n = 0, bad = 0;
@@ -50,6 +52,58 @@ const byOsm = (id) => roads().find((r) => r.osm === id);
   const zm = cutZ(deck, [mid])[0];
   ok(Math.abs(zm - (deck.z[0] + deck.z[1]) / 2) < 0.02, 'cutZ interpoleert tussen twee hoekpunten');
 }
+// een brug over een vaarweg (Eemskanaal): het dek ligt hoog genoeg voor de binnenvaart (#295); een sloot en een meer met die naam niet
+{
+  const wy = (id, tags, pts) => way(id, tags, pts);
+  const els2 = [
+    wy(21, { highway: 'secondary' }, [[-500, 800], [-100, 800]]),
+    wy(22, { highway: 'secondary', bridge: 'yes', layer: '1' }, [[-100, 800], [100, 800]]),
+    wy(23, { highway: 'secondary' }, [[100, 800], [500, 800]]),
+    wy(24, { highway: 'secondary' }, [[-500, 1500], [-100, 1500]]),
+    wy(25, { highway: 'secondary', bridge: 'yes', layer: '1' }, [[-100, 1500], [100, 1500]]),
+    wy(26, { highway: 'secondary' }, [[100, 1500], [500, 1500]]),
+    wy(27, { highway: 'secondary', bridge: 'yes', layer: '1' }, [[1200, 800], [1400, 800]]),
+  ];
+  const f2 = features(els2, { urbanAt: () => 0, village: () => false, signs: false });
+  const rect = (x0, y0, x1, y1) => [[X0 + x0, Y0 + y0], [X0 + x1, Y0 + y0], [X0 + x1, Y0 + y1], [X0 + x0, Y0 + y1]];
+  const water = (name, kind, pts) => ({ kind: 'water', row: { pts, name, kind, nav: 4, lv: -2.3, dp: 4.5, flat: true } });
+  f2.push(water('Eemskanaal', 'kanaal', rect(-40, 0, 40, 2000)));        // over de brug 22 en 25 (25 heet hier ook Eemskanaal)
+  const r2 = () => f2.filter((f) => f.kind === 'roads').map((f) => f.row);
+  const by = (id) => r2().find((r) => r.osm === id);
+  ok(shippingWater({ name: 'Eemskanaal', kind: 'kanaal' }) && shippingWater({ name: 'Van Starkenborghkanaal', kind: 'diep' }), 'de Eemskanaal en de Van Starkenborghkanaal zijn vaarwegen');
+  ok(!shippingWater({ name: 'Lauwersmeer', kind: 'meer' }) && !shippingWater({ name: 'Zeemsloot', kind: 'diep' }) && !shippingWater({ name: '', kind: 'kanaal' }), 'een meer met die naam, een sloot en water zonder naam niet');
+  const pins = shippingPins(r2().filter((r) => r.bridge ? true : true), f2.filter((f) => f.kind === 'water').map((f) => f.row));
+  ok(pins.length === 0, 'zonder profiel (nog niet gedensifieerd) geen pinnen op wegen zonder brug over water: de brug 22 heeft hoekpunten buiten het kanaal', String(pins.length));
+  const info = profileFeats(f2);
+  const deck = by(22);
+  ok(info.pins > 0 && deck && deck.z, 'het dek over het kanaal krijgt een profiel met pinnen', JSON.stringify({ pins: info.pins }));
+  const over = deck.pts.map((p, i) => [p, deck.z[i]]).filter(([p]) => Math.abs(p[0] - X0) <= 40);
+  ok(over.length >= 2 && over.every(([, z]) => z >= SHIPPING_DECK_Z - 0.02), 'elk punt van het dek boven het water ligt minstens SHIPPING_DECK_Z hoog', over.map(([, z]) => z.toFixed(2)).join(','));
+  const clearOver = Math.min(...over.map(([, z]) => bridgeClearance({}, z, BOEZEM_Y)));
+  ok(clearOver >= SHIPPING_CLEAR, `de vrije hoogte onder het dek is minstens ${SHIPPING_CLEAR} m (een binnenvaartschip van 4,2 m kan eronder)`, clearOver.toFixed(2));
+  const grade = (r) => { let m = 0; for (let i = 0; i + 1 < r.pts.length; i++) { const L = Math.hypot(r.pts[i + 1][0] - r.pts[i][0], r.pts[i + 1][1] - r.pts[i][1]); if (L > 2) m = Math.max(m, Math.abs(r.z[i + 1] - r.z[i]) / L); } return m; };
+  const lim = MAX_GRADE.secondary + GRADE_TOL;
+  ok(grade(deck) <= lim, 'de helling van het dek blijft binnen de grens van een secundaire weg', (grade(deck) * 100).toFixed(1) + ' %');
+  ok(Math.abs(deck.z[0]) < 0.3 && Math.abs(deck.z[deck.z.length - 1]) < 0.3, 'het dek loopt aan beide einden op straatniveau aan', deck.z[0].toFixed(2) + ' / ' + deck.z[deck.z.length - 1].toFixed(2));
+  for (const id of [21, 23]) { const r = by(id); ok(!r.z || grade(r) <= lim, `de oprit ${id} (als hij een profiel krijgt) binnen de grens`, r.z ? (grade(r) * 100).toFixed(1) + ' %' : ''); }
+  ok(!by(27).z || isFlat(by(27).z), 'een brug over niets blijft vlak');
+}
+// zonder zinken: een tunnel onder een weg blijft op straatniveau, de weg erover stijgt (de provincie tekent geen bakken in de grond)
+{
+  const els3 = [
+    way(31, { highway: 'trunk' }, [[-400, 2500], [-90, 2500]]),
+    way(32, { highway: 'trunk', tunnel: 'yes', layer: '-1' }, [[-90, 2500], [90, 2500]]),
+    way(33, { highway: 'trunk' }, [[90, 2500], [400, 2500]]),
+    way(34, { highway: 'secondary' }, [[0, 2300], [0, 2700]]),
+  ];
+  const f3 = features(els3, { urbanAt: () => 0, village: () => false, signs: false });
+  const r3 = () => f3.filter((f) => f.kind === 'roads').map((f) => f.row);
+  profileFeats(f3);
+  const tun = r3().find((r) => r.osm === 32), over = r3().find((r) => r.osm === 34);
+  ok(!tun.z || Math.min(...tun.z) > -0.05, 'de tunnel zakt niet onder het terrein', tun.z ? Math.min(...tun.z).toFixed(2) : 'geen z');
+  ok(over.z && Math.max(...over.z) > 2.5, 'de weg erover stijgt in plaats daarvan', over.z ? Math.max(...over.z).toFixed(2) : 'geen z');
+  ok(r3().every((r) => !r.z || Math.min(...r.z) > -0.05), 'geen enkele weg ligt onder het terrein');
+}
 // de tegel: roads zonder z, heights met z, gid's gelijk
 {
   const [i, j] = G.tileIndexOf(X0, Y0);
@@ -72,12 +126,11 @@ const byOsm = (id) => roads().find((r) => r.osm === id);
 // de echte extract (alleen als die er is): onder de drempel
 {
   const dir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../data/cache/province');
-  const main = 'C:/Users/abuis/GIT/GDE-Groningen/data/cache/province';
   const use = fs.existsSync(dir) ? dir : null;
   if (use && process.env.GDE_VIADUCT_FULL) {
     const r = auditProvince(use, {});
     ok(r.open.length <= LIMIT, 'provincie: onscheiden viaducten onder de drempel', `${r.open.length} > ${LIMIT}`);
-  } else console.log(`SKIP provincie-extract (zet GDE_VIADUCT_FULL=1 en data/cache/province; ${main} bestaat alleen in de hoofdmap)`);
+  } else console.log(`SKIP provincie-extract (zet GDE_VIADUCT_FULL=1 en data/cache/province; die map bestaat alleen in de hoofdmap)`);
 }
 console.log(`${n - bad}/${n} ok`);
 process.exit(bad ? 1 : 0);

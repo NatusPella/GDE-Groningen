@@ -61,7 +61,7 @@ geld uit de game. Elk punt alleen is al genoeg.
 | Gesimuleerd gokken | Ja | Kraskaarten en loten bij Rook & Geluk, met geld uit de game. Geen echt geld, geen lootboxes. |
 | Angst of horror | Nee | |
 | Discriminatie | Nee | |
-| Interactie tussen spelers, online of chat | Nee | Er is alleen offline singleplayer. |
+| Interactie tussen spelers, online of chat | Beperkt | Singleplayer is offline. Samen spelen (#95) gaat met een kamercode, zonder tekstchat en zonder openbare lobby; zie de aanvulling in `docs/IARC-ANTWOORDEN.md`. |
 | Aankopen in de game | Nee | Er zijn geen aankopen met echt geld en geen lootboxes. |
 | Locatie of persoonsgegevens delen | Nee | |
 

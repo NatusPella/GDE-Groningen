@@ -45,7 +45,7 @@ const smoke = argValue('--smoke-test');
 function queryParts() {
   const silent = hasFlag('--stil');
   const trailerShot = argValue('--trailer-shot'), trailerCut = argValue('--trailer-cut'), trailerFrames = argValue('--trailer-frames');
-  return [(silent || storyTest) && 'stil', hasFlag('--audio-graph') && 'audiograf', hasFlag('--coop') && 'coop', hasFlag('--hitch') && 'hitch', hasFlag('--zwartcheck') && 'zwartcheck', hasFlag('--dev') && 'dev', findArg('--autoplay') && (argValue('--autoplay') ? `autoplay=${encodeURIComponent(argValue('--autoplay'))}` : 'autoplay'), storyTest && 'storytest', spotsOnly && 'spotsonly',
+  return [(silent || storyTest) && 'stil', hasFlag('--audio-graph') && 'audiograf', hasFlag('--coop') && 'coop', hasFlag('--hitch') && 'hitch', hasFlag('--zwartcheck') && 'zwartcheck', hasFlag('--dev') && 'dev', hasFlag('--reizen') && 'reizen', findArg('--autoplay') && (argValue('--autoplay') ? `autoplay=${encodeURIComponent(argValue('--autoplay'))}` : 'autoplay'), storyTest && 'storytest', spotsOnly && 'spotsonly',
     // automated runs never get the first-launch attract intro
     (smoke !== null || storyTest || hasFlag('--perf-test') || findArg('--autoplay')) && !TRAILER && 'noattract',
     TRAILER && 'trailer', TRAILER && trailerShot && `shot=${encodeURIComponent(trailerShot)}`, (TRAILER || hasFlag('--trailer-preview')) && trailerCut && `cut=${encodeURIComponent(trailerCut)}`,
@@ -57,10 +57,11 @@ function queryParts() {
     hasFlag('--gfx-advice') && 'gfxadvies',
     // --nobatch: city buildings drawn one by one (A/B of buildingbatch3d.js)
     hasFlag('--nobatch') && 'nobatch',
+    hasFlag('--touch') && 'touch=1',
     // --url-flags=simauto,zonderworker: extra ?-switches of devflags.js for this run (A/B metingen, scripts/perf/run.mjs)
     ...(argValue('--url-flags') || '').split(',').filter(Boolean),
-    // --viaducten: the bridge and viaduct profiles of streamed tiles (#235)
-    hasFlag('--viaducten') && 'viaducten',
+    // --vlakbruggen: the bridges and viaducts of streamed tiles flat on the street, as before #300
+    hasFlag('--vlakbruggen') && 'vlakbruggen',
     argValue('--gfx-advice') && `gpu=${encodeURIComponent(argValue('--gfx-advice'))}`].filter(Boolean);
 }
 
@@ -120,11 +121,13 @@ function attach(win, { gameDir }) {
       return true;
     });
   }
+  // --emulate-mobile with it: a phone (touch events, viewport meta, like Chrome's device mode);
+  // --touch forces the touch controls on (?touch=1)
   // --emulate-view=WxH[@scale]: the page lays out in a WxH viewport (a 4K layout on a smaller screen),
   // shown at `scale` (default 0.5) in the window; for the screenshot script (scripts/ui_shots.mjs)
   const emu = /^(\d+)x(\d+)(?:@([\d.]+))?$/.exec(argValue('--emulate-view') || '');
   if (emu) {
-    const apply = () => win.webContents.enableDeviceEmulation({ screenPosition: 'desktop', screenSize: { width: +emu[1], height: +emu[2] }, viewPosition: { x: 0, y: 0 }, viewSize: { width: +emu[1], height: +emu[2] }, deviceScaleFactor: 1, scale: Number(emu[3]) || 0.5 });
+    const apply = () => win.webContents.enableDeviceEmulation({ screenPosition: hasFlag('--emulate-mobile') ? 'mobile' : 'desktop', screenSize: { width: +emu[1], height: +emu[2] }, viewPosition: { x: 0, y: 0 }, viewSize: { width: +emu[1], height: +emu[2] }, deviceScaleFactor: 1, scale: Number(emu[3]) || 0.5 });
     win.webContents.on('did-finish-load', apply);
   }
   if (storyTest) runStoryTest(win, storyTest.includes('=') ? storyTest.slice(storyTest.indexOf('=') + 1) : path.join(require('os').tmpdir(), 'gde-story-test'));
@@ -176,6 +179,9 @@ function attach(win, { gameDir }) {
             }
             // console.log('[profile] 8000') from the script: a CPU profile of that many ms
             if (message.startsWith('[profile] ')) { runProfile(win, Number(message.slice(10)) || 6000).catch((err) => console.log('[profile]', err.message)); return; }
+            // testharnas (#95, tekstvelden): echte toetsen en een klembord, zoals een speler ze heeft
+            if (message.startsWith('[sendinput] ')) { try { win.webContents.sendInputEvent(JSON.parse(message.slice(12))); } catch (er) { /* geen geldig invoerbericht */ } return; }
+            if (message.startsWith('[clipboard-set] ')) { try { require('electron').clipboard.writeText(message.slice(16)); } catch (er) { /* geen klembord */ } return; }
             if (!message.startsWith('[capture] ')) return;
             const img = await win.webContents.capturePage();
             fsSync.writeFileSync(smoke.replace(/\.png$/, `-${message.slice(10).trim()}.png`), img.toPNG());
@@ -183,10 +189,20 @@ function attach(win, { gameDir }) {
           const body = fsSync.readFileSync(scriptArg, 'utf8');
           await win.webContents.executeJavaScript(`(async () => {
             const key = (k, code) => { for (const t of [window, document]) { t.dispatchEvent(new KeyboardEvent('keydown', { key: k, code, bubbles: true })); t.dispatchEvent(new KeyboardEvent('keyup', { key: k, code, bubbles: true })); } };
-            key('Enter', 'Enter');
-            await new Promise((r) => setTimeout(r, 2500));
+            if (!${JSON.stringify(!!process.env.GDE_MENU_TEST)}) { // GDE_MENU_TEST=1: het script krijgt het hoofdmenu zelf (coöp-testbank --menu)
+            // the menu waits for its gate (world drawn, streaming quiet) and ignores keys before: press Enter until the title screen is gone
+            // (on a loaded machine the game ran under a menu that stayed)
+            const ss = document.getElementById('start-screen');
+            let seen = false;
+            for (let i = 0; i < 60; i++) {
+              const up = !!ss && ss.classList.contains('visible');
+              if (up) { seen = true; key('Enter', 'Enter'); }
+              await new Promise((r) => setTimeout(r, up ? 2500 : 1000));
+              if (seen && !ss.classList.contains('visible')) break;
+            }
             const w = window.__debug && window.__debug.world;
             for (let i = 0; i < 25 && w && w.paused; i++) { key(' ', 'Space'); await new Promise((r) => setTimeout(r, 700)); }
+            }
           })()`);
           const out = await win.webContents.executeJavaScript(`(async () => { ${body}\n })()`);
           console.log('[perf-script]', typeof out === 'string' ? out : JSON.stringify(out));

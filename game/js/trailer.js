@@ -14,7 +14,8 @@ import { setTrailerRunning } from './trailerstate.js';
 import { buildAtm, buildVitrineRoom, buildFlag, waveFlag } from './trailerprops.js';
 import { TAMMO_APPEARANCE, ANITA_APPEARANCE, seatPose, seatPerson, seatedY } from './models3d_people.js';
 import { JELLE_LOOK, DURK_LOOK, DOUWE_LOOK } from './storycast.js';
-import { spawnPedestriansNear, isOnRoad } from './pedestrians.js';
+import { spawnPedestriansNear } from './pedestrians.js';
+import { isOnRoad } from './pedgeom.js';
 import { KERMIS } from './kermis.js';
 import { tractorBodyGeometry, tractorBaseGeometry } from './countrymodels.js';
 import { vcMaterial } from './pixelart3d.js';
@@ -664,7 +665,7 @@ const CUT_ORDER = {
     ['kermis', 4.0], ['trauma', 3.6], ['aerial', 5.8], ['logo', 5.0], ['berend', 3.0]],
   gameplay: [['steamLogo', 2.6], ['gpCity', 2.2], ['gH1', 2.2], ['gH2', 2.0], ['hudStunt', 2.4], ['gH4', 2.0], ['gH5', 2.2],
     ['vitrine', 2.0], ['gH7', 2.0], ['tanker', 2.2], ['race', 2.2], ['night', 2.0], ['gH12', 2.0], ['boat', 2.2], ['gH14', 2.2],
-    ['hudHeli', 2.4], ['hudChase', 2.2], ['gH18', 2.2], ['kermis', 2.2], ['gTwins', 1.8], ['ommeland', 2.4], ['hudJob', 2.2],
+    ['hudHeli', 2.4], ['hudChase', 2.2], ['gH18', 2.2], ['kermis', 2.2], ['gTwins', 1.8], ['trauma', 2.4], ['hudJob', 2.2],
     ['hudPhone', 2.4], ['timelapse', 2.2], ['storm', 1.8], ['vismarkt', 2.2], ['aerial', 2.4], ['logo', 4.0]],
 };
 
@@ -877,8 +878,8 @@ function buildShots(w) {
 
   const escapade = {
     label: 'De Escapade in de Herestraat', cuts: ['vol', 'kort'], dur: 4.0, kort: 3.0, clock: 10.5, weather: 'helder', focus: lane(here, 90, 0),
-    voice: [[0.3, 'audio/voicelines/banter/st-bijbaan_1_a_91280b.mp3', ['verhaal'], 3.26]],
-    lines: [[0.3, 3.1, 'Anita', 'Iemand moet de Fjord Frituur betalen.', ['verhaal']]],
+    voice: [[0.1, 'audio/voicelines/banter/st-end-kop-fjord_0_a_c5a140.mp3', ['verhaal'], 3.67]],
+    lines: [[0.1, 3.5, 'Anita', 'Zonder die Eierbal geen Fjord Frituur.', ['verhaal']]],
     caps: [[0.4, 3.2, 'Eén droom op vier wielen.', null, ['vol', 'kort']]],
     enter(r, s) {
       clearRoad(r, here, 7);
@@ -891,7 +892,8 @@ function buildShots(w) {
       s.d += v * dt;
       const q = lane(here, s.d, 0.2);
       if (s.car) {
-        Object.assign(s.car, { x: q.x, y: q.y, angle: q.a, speed: v });
+        // the car glides along the lane; a low reported speed keeps it from smashing bikes and bins into debris
+        Object.assign(s.car, { x: q.x, y: q.y, angle: q.a, speed: Math.min(v, 4) });
         seat(r.actor('tammo'), s.car, true);
         seat(r.actor('anita'), s.car, false);
       }
@@ -947,7 +949,7 @@ function buildShots(w) {
     cam(u, t, s) {
       const q = s.q, f = Math.cos(s.a), g = Math.sin(s.a);
       // low at the kerb, three-quarter front: Jelle clear of the tractor cab
-      return { position: P(q.x + f * lerp(3.5, 2.5, u) + g * 7, q.y + g * lerp(3.5, 2.5, u) - f * 7, 0.6), lookAt: P(q.x - f * 1.2, q.y - g * 1.2, 2.1), fov: 50, shake: 0.02 };
+      return { position: P(q.x + f * lerp(3.5, 2.5, u) + g * 7, q.y + g * lerp(3.5, 2.5, u) - f * 7, 2.3), lookAt: P(q.x - f * 1.2, q.y - g * 1.2, 1.9), fov: 50, shake: 0.02 };
     },
   };
 
@@ -1014,8 +1016,8 @@ function buildShots(w) {
   const vitrine = {
     label: 'De Gouden Eierbal', cuts: ['vol', 'verhaal'], dur: 4.0, verhaal: 6.0, clock: 23.4, weather: 'helder', focus: museum,
     caps: [[2.2, 1.7, 'De Gouden Eierbal.', 'Groninger Museum', ['vol']], [4.15, 1.75, 'De Gouden Eierbal.', 'Groninger Museum', ['verhaal']]],
-    voice: [[0.25, 'audio/voicelines/banter/h2-pass-karaat_0_t_739985.mp3', ['verhaal'], 2.8], [2.25, 'audio/voicelines/banter/st-h6_0_a_8d4667.mp3', ['verhaal'], 2.85]],
-    lines: [[0.25, 2.0, 'Tammo', 'Achttien karaat. Hoeveel eierballen is dat?', ['verhaal']], [2.25, 1.75, 'Anita', 'Vannacht. Het museum. Geen zaklamp.', ['verhaal']]],
+    voice: [[0.25, 'audio/voicelines/lines/anita/het_museum_de_gouden_eierbal_70526a93.mp3', ['verhaal'], 2.61], [3.0, 'audio/voicelines/banter/st-h6_0_a_8d4667.mp3', ['verhaal'], 2.85]],
+    lines: [[0.25, 2.5, 'Anita', 'Het museum. De Gouden Eierbal.', ['verhaal']], [3.0, 2.85, 'Anita', 'Vannacht. Het museum. Geen zaklamp.', ['verhaal']]],
     prep(r) { vitrineRoom(r); },
     enter(r, s) {
       s.room = vitrineRoom(r);

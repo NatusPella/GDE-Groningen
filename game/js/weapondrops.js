@@ -23,7 +23,7 @@ export function dropWeapon(world, key, x, y, gz = 0) {
   return d;
 }
 
-export function nearestDrop(world, reach = RAGE.pickupReach) {
+function nearestDrop(world, reach = RAGE.pickupReach) {
   const p = world.player;
   if (!p || p.inVehicle || p.swimming || p.dead || !world.weaponDrops) return null;
   let best = null, bd = reach;
@@ -41,7 +41,7 @@ export function weaponDropPrompt(world) {
   return { id: 'drop-' + d.id, x: d.x, y: d.y, h: 0.5, key: 'E', label: dropLabel(d.key), sub: plan.ok ? 'Van de grond' : plan.msg, ring: true, dim: !plan.ok };
 }
 
-export function usePickup(world) {
+function usePickup(world) {
   const d = nearestDrop(world);
   if (!d) return false;
   const plan = pickupPlan(d.key, world.ammo[d.key] || 0);

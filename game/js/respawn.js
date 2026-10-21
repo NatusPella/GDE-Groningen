@@ -1,10 +1,10 @@
-import { playCinematic, roofAt, respawnFromScene } from './cinematics.js';
+import { playCinematic, roofAt, respawnFromScene, setCinematicLinks } from './cinematics.js';
 import { spawnHeroCarNear, spawnVehicleOnRoad, manageTrafficPopulation, manageBikePopulation } from './vehicle.js';
 import { slotFits, propBlocked, sleepingParkedCars } from './parkedcars.js';
 import { spawnPedestriansNear } from './pedestrians.js';
 import { helipadInfo, scriptHeli, landHeliOnPad } from './skyprops.js';
 import { isInWater, closestPointOnSegment, pointInPolygon } from './util.js';
-import { saveSoon } from './savegame.js';
+import { saveSoon } from './savehook.js';
 import { nearestFacility, inDoorRange } from './facilities.js';
 import { edgeDistance } from './countryfield.js';
 
@@ -810,3 +810,5 @@ if (typeof window !== 'undefined') {
     plan: (w, site) => planArrival(w, site),
   };
 }
+
+setCinematicLinks({ startRespawnScene, respawnFade });

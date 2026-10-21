@@ -5,7 +5,7 @@
 import { dualHtml } from './subtitles.js';
 import {
   getAchievementView, getAchievementSummary, getLifetimeStats, getMissionRecord, formatMissionTime,
-  MISSION_GOALS, MEDALS, EIERBAL_TOTAL, getStat, unseenAchievementCount, isAchievementFresh, markAchievementsSeen,
+  MISSION_GOALS, isRetiredMission, MEDALS, EIERBAL_TOTAL, getStat, unseenAchievementCount, isAchievementFresh, markAchievementsSeen,
 } from './achievements.js';
 import { SIDE_JOBS } from './sidejobs.js';
 import { iconSvg } from './achievementicons.js';
@@ -61,6 +61,7 @@ function ring(pct, label, size = 96) {
 function medalsBlock() {
   return '<div class="pa-grid">' + MISSION_GOALS.map((g, i) => {
     const r = getMissionRecord(i);
+    if (isRetiredMission(i) && !(r && (r.medal || r.runs))) return '';
     const m = r ? r.medal : 0;
     const best = r && r.best != null ? `record ${formatMissionTime(r.best)}` : 'nog niet gespeeld';
     return `<div class="pa-cell"><span>${esc(g.name)}</span><span class="mut"><span class="m-medal m${m}"></span> ${m ? MEDALS[m] : 'Geen medaille'} · ${best}</span></div>`;
