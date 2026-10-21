@@ -5,8 +5,8 @@
 // audit niet ziet: in 0.36-0.38 was `GAME_PAD_CTX` niet geimporteerd, zodat elk frame in het spel een
 // ReferenceError gaf en het pad alleen in de menu's werkte.
 //   node scripts/gamepad_live_test.mjs
-let fails = 0;
-const ok = (c, name, extra) => { if (!c) { fails++; console.log('FAIL', name, extra !== undefined ? JSON.stringify(extra) : ''); } };
+let fails = 0, checks = 0;
+const ok = (c, name, extra) => { checks++; if (!c) { fails++; console.log('FAIL', name, extra !== undefined ? JSON.stringify(extra) : ''); } };
 
 // --- een nepbrowser, net genoeg voor gamepad.js, input.js en settings.js
 class ClassList {
@@ -167,6 +167,43 @@ pad2.buttons[0].pressed = true; pad2.buttons[0].value = 1; frame(2);
 ok(padState().active && padState().family === 'switch', 'het Switch-pad wordt herkend en actief', padState());
 pad2.buttons[0].pressed = false; pad2.buttons[0].value = 0; frame(2);
 
+// herbinden: de onderste en de rechterknop wisselen, de gevolgen zitten in de situatie lopen
+{
+  const { bindButton } = await import('../game/js/controls.js');
+  const { capturePadButton } = await import('../game/js/gamepad.js');
+  pads[0] = pad; zet('foot'); reset();
+  setSetting('padBinds', bindButton({}, 'a', 'b').binds);
+  press('b'); frame(2);
+  ok(seen.some((s) => s[0] === 'down' && s[1] === ' '), 'herbinden: de fysieke B doet nu wat A deed (spatie)', seen);
+  press('b', false); frame(2); seen.length = 0;
+  press('a'); frame(2);
+  ok(seen.some((s) => s[0] === 'down' && s[1] === 'Control'), 'herbinden: de fysieke A doet nu wat B deed (Control)', seen);
+  press('a', false); frame(2);
+  // de volgende knopdruk gaat naar de herbindscherm, niet naar het spel
+  let gevangen = null; capturePadButton((b) => { gevangen = b; });
+  reset(); press('x'); frame(2); press('x', false); frame(2);
+  ok(gevangen === 'x' && !seen.some((s) => s[0] === 'down'), 'herbinden: de volgende knop gaat naar het herbindscherm', [gevangen, seen]);
+  setSetting('padBinds', {});
+  reset();
+}
+
+// trillen bij schade, als de controller een motor heeft en de speler het wil
+{
+  const slagen = [];
+  pad.vibrationActuator = { playEffect: (type, p) => { slagen.push([type, p.duration]); return Promise.resolve(); } };
+  zet('foot'); reset();
+  world.health = 100; world.armor = 0; frame(3);
+  world.health = 40; frame(3);
+  ok(slagen.length >= 1 && slagen[0][0] === 'dual-rumble', 'trillen: schade geeft een trilling', slagen);
+  const na = slagen.length;
+  setSetting('rumble', false); world.health = 10; frame(3); ok(slagen.length === na, 'trillen: uit in de instellingen is stil');
+  setSetting('rumble', true);
+  hooks.open = true; world.health = 5; frame(3);
+  ok(slagen.length === na, 'trillen: niet in een menu');
+  hooks.open = false;
+  delete pad.vibrationActuator;
+}
+
 // coop: speler 1 houdt zijn pad ook als pad 2 invoer geeft
 const pad3 = mk('Xbox 360 Controller (XInput STANDARD GAMEPAD)'); pad3.index = 1;
 pads[1] = pad3; world.coop = true; frame(2);
@@ -177,4 +214,4 @@ world.coop = false;
 
 ok(threw === null, 'de hele run zonder uitzondering', threw && String(threw));
 if (fails) { console.log(`${fails} mislukt`); process.exit(1); }
-console.log('gamepad_live_test: ok');
+console.log(`gamepad_live_test: ok (${checks} controles)`);
