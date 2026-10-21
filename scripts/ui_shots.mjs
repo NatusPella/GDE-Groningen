@@ -15,6 +15,8 @@ const arg = (n, d) => { const a = process.argv.find((x) => x.startsWith('--' + n
 const out = path.resolve(arg('out', path.join(os.tmpdir(), 'gde-ui-shots')));
 const sizes = arg('sizes', '1280x720,1920x1080,3840x2160').split(',');
 const only = arg('only', '');
+// --timeout=<s>: how long one window size may run before it is killed (default 240; long scene files need more)
+const timeoutS = Number(arg('timeout', 240)) || 240;
 // --emulate=0.45: the page lays out at the full size (a real 3840x2160 viewport on a smaller
 // screen, devtools.js --emulate-view) in a window of 0.45 of the size (it must fit the screen); the picture is that much smaller
 const emulate = Number(arg('emulate', '0')) || 0;
@@ -63,7 +65,7 @@ for (const size of sizes) {
   const killer = setTimeout(() => {
     log += '\n[timeout]';
     if (process.platform === 'win32') spawnSync('taskkill', ['/PID', String(child.pid), '/T', '/F']); else child.kill('SIGKILL');
-  }, 240000);
+  }, timeoutS * 1000);
   const code = await new Promise((res) => child.on('close', res));
   clearTimeout(killer);
   fs.writeFileSync(path.join(out, `_log-${size}.txt`), log);
