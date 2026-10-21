@@ -769,7 +769,10 @@ results.routes.startup = await safe('startup', async () => {
 // 30 frames each, with the shadow update forced every frame. A build that keeps casters out of the shadow map shows less than the one it is compared with.
 results.routes.shadowtris = await safe('shadowtris', async () => {
   if (!ONLY.includes('shadowtris')) return null;
-  const spots = [['markt', FOOT[0][0], FOOT[0][1], 0.3], ['straat', FOOT[3][0], FOOT[3][1], 1.9], ['gracht2', FOOT[4][0], FOOT[4][1], 2.6]];
+  // standing 6 m from the water's edge, looking at it (the helper of vspots): the quay walls are the casters there
+  const atWater = (x, y) => { let best = null; for (const poly of map.waterNear(x, y, 400)) for (const q of poly.pts) { const d = Math.hypot(q[0] - x, q[1] - y); if (!best || d < best.d) best = { d, q }; } if (!best) return null; const dx = x - best.q[0], dy = y - best.q[1], l = Math.hypot(dx, dy) || 1; return [best.q[0] + dx / l * 6, best.q[1] + dy / l * 6, Math.atan2(-dy, -dx)]; };
+  const wa = atWater(FOOT[4][0], FOOT[4][1]), wb = atWater(FOOT[3][0], FOOT[3][1]);
+  const spots = [['markt', FOOT[0][0], FOOT[0][1], 0.3], ['straat', FOOT[3][0], FOOT[3][1], 1.9], ['gracht2', FOOT[4][0], FOOT[4][1], 2.6], ...(wa ? [['kade', ...wa]] : []), ...(wb ? [['kade1', ...wb]] : [])];
   const variants = (window.__perfAbFor && window.__perfAbFor.shadowtris) || [['', []]];
   const outAll = {};
   for (const [vname, voff] of variants) {
