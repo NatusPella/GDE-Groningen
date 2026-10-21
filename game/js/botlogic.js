@@ -217,7 +217,9 @@ export function decide(s, mem = {}) {
   }
   if (!veh && (stage === 'board' || stage === 'plane') && (mem.boardTries || 0) < 4) {
     // a boat or a plane counts too: M17 starts in a sloep, M15 in a plane
-    const near = (s.nearby && s.nearby.vehicles || []).filter((c) => c.free && c.distance < 80);
+    // a car with someone at the wheel is a carjacking: the police are on us at once (the bot got arrested a dozen times on the way)
+    const free0 = (s.nearby && s.nearby.vehicles || []).filter((c) => c.free && c.distance < 80);
+    const near = free0.some((c) => !c.occupied) ? free0.filter((c) => !c.occupied) : free0;
     // the marker of a board stage stands on the mission's own car: a free vehicle right at the marker wins over the nearest one (M22: the Escapade stands in a car park among other cars)
     const atMarker = t && Number.isFinite(t.x) ? near.filter((c) => Math.hypot(c.x - t.x, c.y - t.y) < 8).sort((a, c) => Math.hypot(a.x - t.x, a.y - t.y) - Math.hypot(c.x - t.x, c.y - t.y))[0] : null;
     // the marker is still far off and no car stands there: walk to it first (20 s), not into the nearest car (a stolen one brings the police)
@@ -243,7 +245,7 @@ export function decide(s, mem = {}) {
   }
   // on foot: a vehicle close by is worth it for a long way
   if (t.distance > 140 && !onFootOnly && (mem.boardTries || 0) < 3) {
-    const v = (s.nearby && s.nearby.vehicles || []).find((c) => c.free && c.drivable && c.distance < 60);
+    const v = (s.nearby && s.nearby.vehicles || []).find((c) => c.free && c.drivable && !c.occupied && c.distance < 60);
     if (v) return { type: 'enter', vehicle: v };
   }
   return { type: 'goto', mode: 'walk' };
