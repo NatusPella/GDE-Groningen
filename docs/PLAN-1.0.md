@@ -1,7 +1,9 @@
 # Plan naar 1.0 (#65)
 
-Stand: 20 oktober 2026, laatste pre-release 0.37.1. Dit is een **plan**; het is
-niets uitgevoerd, geen tag gemaakt en niets gepubliceerd. De lijst van werk zelf
+Stand: 21 oktober 2026, laatste pre-release 0.38.1. Dit is een **plan**; het is
+niets uitgevoerd, geen tag gemaakt en niets gepubliceerd. De afvinkbare stappen
+(release candidate, twee weken bugfixes, definitieve trailer, 1.0.0) staan als
+comment-checklist in #65; dit document beschrijft de afspraak erachter. De lijst van werk zelf
 staat op het bord (constitution 7); dit document beschrijft alleen de afspraak
 voor het eindspel: wat 1.0 betekent, in welke volgorde, en wie wat beslist.
 
@@ -10,7 +12,7 @@ voor het eindspel: wat 1.0 betekent, in welke volgorde, en wie wat beslist.
 1.0.0 is de eerste versie die we zonder voorbehoud aan onbekende spelers geven.
 Voorwaarden (allemaal controleerbaar op het bord of met een script):
 
-1. **Geen open issue met label `bug` en impact `hoog` of `zeer-hoog`** zonder besluit van de eigenaar om het uit te stellen (comment in het issue).
+1. **Geen open issue met label `bug` en impact `hoog` of `zeer-hoog`** zonder besluit van de eigenaar om het uit te stellen (comment in het issue). Stand 21 oktober: 4 open bugs, waarvan 3 met impact hoog (#246 en #247 prestaties, #326 voiceover; die laatste wacht op een luistertest door de eigenaar).
 2. **Het hele verhaal is door een mens gespeeld** (akte 2 tot en met 5 nog niet; zie [PLAYTESTPLAN.md](PLAYTESTPLAN.md), #221 en #116) en de uitkomst staat als issues op het bord.
 3. **Tests groen** zoals vóór elke release in [AGENTS.md](../AGENTS.md): `node --check`, `voice_coverage --quiet`, alle `scripts/*_test.mjs`, één Electron-verhaaltest, zware wereldchecks. Dit draait de coördinator.
 4. **Teksten kloppen met de constitution**: `node scripts/text_audit.mjs` geeft 0 bevindingen (#150); Gronings/Fries is nagelezen of de eigenaar heeft besloten het zo te laten (#13, lijst in [NALEZEN-GRONINGS-FRIES.md](NALEZEN-GRONINGS-FRIES.md)).
