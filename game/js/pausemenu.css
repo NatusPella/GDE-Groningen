@@ -227,10 +227,19 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
 /* 720p and 1366: two columns, so the viewer keeps room for the name and the button */
 @media (max-width: 1400px) { #pause-menu .m-main > .m-list.gar-list { width: 470px; grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 #pause-menu .gar-card { flex-direction: column; align-items: stretch; gap: 8px; padding: 12px; min-height: 0; text-align: left; background: rgba(240, 237, 228, 0.04); }
-#pause-menu .gar-card .gar-ph { display: flex; align-items: center; justify-content: center; height: 88px; border-radius: 6px; background: radial-gradient(ellipse at 50% 85%, rgba(240, 237, 228, 0.12), rgba(240, 237, 228, 0) 70%); }
+#pause-menu .gar-card .gar-ph { position: relative; display: flex; align-items: center; justify-content: center; height: 104px; overflow: hidden; border-radius: 6px; background: radial-gradient(ellipse at 50% 85%, rgba(240, 237, 228, 0.12), rgba(240, 237, 228, 0) 70%); }
 #pause-menu .gar-card .gar-ph svg { width: 76px; height: 76px; }
+#pause-menu .gar-card .gar-ph img, #pause-menu .gar-card .gar-ph .gar-turn { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
+#pause-menu .gar-card .gar-ph .gar-sk { position: absolute; left: 22%; right: 22%; bottom: 22%; height: 34%; border-radius: 40%; background: rgba(240, 237, 228, 0.06); }
+#pause-menu .gar-card .gar-ph.spin img { visibility: hidden; }
+#pause-menu .gar-card.sel .gar-ph, #pause-menu .gar-card:focus-visible .gar-ph { background: radial-gradient(ellipse at 50% 85%, rgba(240, 237, 228, 0.2), rgba(240, 237, 228, 0) 72%); }
 #pause-menu .gar-card .nm { padding: 0; }
-#pause-menu .gar-card.off .gar-ph { opacity: 0.5; }
+/* yours and for sale in full paint; locked grey, written off washed out */
+#pause-menu .gar-card.off .gar-ph { opacity: 0.85; }
+#pause-menu .gar-card .gar-ph[data-look="locked"] img, #pause-menu .gar-card .gar-ph[data-look="locked"] .gar-turn { filter: grayscale(1) brightness(0.62) contrast(0.9); }
+#pause-menu .gar-card .gar-ph[data-look="lost"] img, #pause-menu .gar-card .gar-ph[data-look="lost"] .gar-turn { filter: grayscale(0.75) brightness(0.8); }
+#pause-menu .gar-card .gar-ph .gar-turn { opacity: 0; }
+#pause-menu .gar-card .gar-ph .gar-turn.on { opacity: 1; }
 #pause-menu .gar-st { display: flex; align-items: center; gap: 8px; min-height: 28px; }
 #pause-menu .gar-st svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; color: var(--mut); }
 #pause-menu .gar-st .v { font-size: 22px; }

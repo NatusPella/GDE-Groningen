@@ -21,6 +21,7 @@ import { loadProvinceVaar } from './vaarnet_data.mjs';
 import { effectiveNav, linkPolygon, gatPolygon, passBridge, classOfKind, airOfKind, lockPassage, STREET_CLEAR, LAKE_BARGE_AREA } from '../../game/js/vaarnet.js';
 import { polyArea, MAIN_WATERWAYS, BRIDGE_DECK_T, BOEZEM_Y } from '../../game/js/waterlevels.js';
 import { worldToWgs } from '../../game/js/rdnew.js';
+import { createWaterIndex } from '../../game/js/waterindex.js';
 import { outsideDist } from '../../game/js/worldedge.js';
 
 export const CELL = 5;
@@ -36,7 +37,7 @@ const NCX = Math.ceil(GW / CS), NCY = Math.ceil(GH / CS);
 // ------------------------------------------------------------------ raster
 
 export class Raster {
-  constructor() { this.chunks = new Array(NCX * NCY).fill(null); this.obs = new Map(); this.list = []; }
+  constructor() { this.chunks = new Array(NCX * NCY).fill(null); this.obs = new Map(); this.list = []; this.rings = new Map(); }
   chunk(cx, cy, make = false) {
     const k = (cy >> 8) * NCX + (cx >> 8);
     return this.chunks[k] || (make ? (this.chunks[k] = new Uint8Array(CS * CS)) : null);
@@ -52,6 +53,11 @@ export class Raster {
     const c = this.chunk(cx, cy, true), i = ((cy & 255) << 8) | (cx & 255);
     const o = c[i];
     c[i] = Math.max(o & 7, v & 7) | (o & ~7) | (v & ~7);
+  }
+  // de cel is geen water meer (een afgemeerde woonboot)
+  clear(cx, cy) {
+    const c = this.chunk(cx, cy);
+    if (c) c[((cy & 255) << 8) | (cx & 255)] = 0;
   }
 }
 export const cellOf = (x, y) => [Math.floor((x - X0) / CELL), Math.floor((y - Y0) / CELL)];
@@ -71,6 +77,51 @@ export function fillPolygon(R, pts, v) {
       for (let gx = Math.max(0, Math.ceil((xs[q] - X0) / CELL - 0.5)); gx <= Math.min(GW - 1, Math.floor((xs[q + 1] - X0) / CELL - 0.5)); gx++) R.put(gx, gy, v);
     }
   }
+}
+
+// Een woonboot ligt vast in het water en een romp past er niet doorheen: de cellen binnen margin m van de omtrek
+// gaan dicht, zodat de route er omheen loopt of het smalle water sluit (#343). De marge is de halve diagonaal van een cel
+// (3,54 m): geen stap van de route tussen twee open cellen kan dan nog door de woonboot lopen. De omtrek zelf blijft bewaard (R.rings,
+// per blok van 16 m) voor ringNear: de vereenvoudigde lijn van een tak mag er ook niet overheen.
+export const HOUSEBOAT_M = 3.6;
+const RING_BLOCK = 16;
+export function ringNear(R, x, y, m) {
+  const bx = Math.floor(x / RING_BLOCK), by = Math.floor(y / RING_BLOCK);
+  for (let a = -1; a <= 1; a++) for (let b = -1; b <= 1; b++) {
+    const list = R.rings.get((bx + a) * 100003 + by + b);
+    if (!list) continue;
+    for (const ring of list) if (ringDist(ring, x, y) <= m) return true;
+  }
+  return false;
+}
+function ringDist(ring, x, y) {
+  let d2 = Infinity, inside = false;
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    const ax = ring[j][0], ay = ring[j][1], bx = ring[i][0], by = ring[i][1];
+    if ((ay > y) !== (by > y) && x < ax + (bx - ax) * (y - ay) / (by - ay)) inside = !inside;
+    const ex = bx - ax, ey = by - ay, l2 = ex * ex + ey * ey;
+    const t = l2 > 1e-9 ? Math.max(0, Math.min(1, ((x - ax) * ex + (y - ay) * ey) / l2)) : 0;
+    d2 = Math.min(d2, (ax + ex * t - x) ** 2 + (ay + ey * t - y) ** 2);
+  }
+  return inside ? 0 : Math.sqrt(d2);
+}
+export function blockRing(R, ring, margin = HOUSEBOAT_M) {
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  for (const p of ring) { x0 = Math.min(x0, p[0]); y0 = Math.min(y0, p[1]); x1 = Math.max(x1, p[0]); y1 = Math.max(y1, p[1]); }
+  for (let bx = Math.floor((x0 - 1) / RING_BLOCK); bx <= Math.floor((x1 + 1) / RING_BLOCK); bx++) {
+    for (let by = Math.floor((y0 - 1) / RING_BLOCK); by <= Math.floor((y1 + 1) / RING_BLOCK); by++) {
+      const k = bx * 100003 + by;
+      (R.rings.get(k) || R.rings.set(k, []).get(k)).push(ring);
+    }
+  }
+  const [ca, cb] = cellOf(x0 - margin - CELL, y0 - margin - CELL), [cc, cd] = cellOf(x1 + margin + CELL, y1 + margin + CELL);
+  let n = 0;
+  for (let gy = Math.max(0, cb); gy <= Math.min(GH - 1, cd); gy++) for (let gx = Math.max(0, ca); gx <= Math.min(GW - 1, cc); gx++) {
+    if (!R.get(gx, gy)) continue;
+    const [px, py] = cellXY(gx, gy);
+    if (ringDist(ring, px, py) <= margin) { R.clear(gx, gy); n++; }
+  }
+  return n;
 }
 
 // De hoogte van het dek (z langs de weg, zoals de stad ze heeft) op het punt van de weg het dichtst bij (x, y); null zonder profiel.
@@ -132,7 +183,10 @@ function fillObs(R, pts, n) {
 
 // ------------------------------------------------------------------ data
 
-export async function buildRaster({ worldDir, city = true, fixesOn = !process.argv.includes('--no-fixes'), gatenOn = !process.argv.includes('--fixes') } = {}) {
+// houseboats: de woonboten van de provincietegels sluiten hun cellen (alleen de route van het vaarnet, vaarnet_graph.mjs: de
+// audit en de gaten van vaarnet_fixes.json blijven wat ze waren). gameWater: het raster van het spel zelf (vaarnet_graph.mjs): alleen water waar een polygon of een gatenstuk van het spel
+// water heeft; het verbreden en dichten hieronder maakt anders water van land waar een romp niet door kan (#343)
+export async function buildRaster({ worldDir, city = true, fixesOn = !process.argv.includes('--no-fixes'), gatenOn = !process.argv.includes('--fixes'), gameWater = false, houseboats = false } = {}) {
   const P = loadProvinceVaar(worldDir);
   const cityMap = city ? await (await import('../lib/loadworld.mjs')).loadCityData({ extras: false }) : { water: [], roads: [], meta: {} };
   const water = [...P.water, ...cityMap.water.map((w) => ({ ...w, tile: 'stad', lock: false }))];
@@ -140,6 +194,7 @@ export async function buildRaster({ worldDir, city = true, fixesOn = !process.ar
   const byName = new Map();
   for (const w of water) if (w.kind === 'meer' && w.name) byName.set(w.name, (byName.get(w.name) || 0) + polyArea(w.pts));
   const R = new Raster();
+  const navPolys = []; // de polygonen van het raster, voor de lijn van een tak (vaarnet_graph.mjs dryAt)
   for (const w of water) {
     if (w.pts.length < 3) continue;
     const eff = effectiveNav(w, w.name ? byName.get(w.name) || 0 : polyArea(w.pts));
@@ -149,11 +204,12 @@ export async function buildRaster({ worldDir, city = true, fixesOn = !process.ar
     if (/lauwersmeer/i.test(w.name || '')) v |= 16;
     if ((MAIN_WATERWAYS.test(w.name || '') && (w.nav ?? 0) >= 3) || eff >= 4) v |= 32;
     fillPolygon(R, w.pts, v);
+    navPolys.push({ pts: w.pts });
   }
   // de verbindingen die een gat in het water dichten (game/vaarnet_fixes.json); met --no-fixes weggelaten
   const fixFile = fixesOn ? JSON.parse(fs.readFileSync(new URL('../../game/vaarnet_fixes.json', import.meta.url))) : { links: [], gaten: [] };
-  for (const l of fixFile.links || []) fillPolygon(R, linkPolygon(l), 4 | 32);
-  if (gatenOn) for (const g of [...(fixFile.gaten || []), ...(fixFile.verbindingen || []), ...(fixFile.sluisgaten || []), ...(fixFile.zee || [])]) fillPolygon(R, gatPolygon(g), g[5] | 32);
+  for (const l of fixFile.links || []) { fillPolygon(R, linkPolygon(l), 4 | 32); navPolys.push({ pts: linkPolygon(l) }); }
+  if (gatenOn) for (const g of [...(fixFile.gaten || []), ...(fixFile.verbindingen || []), ...(fixFile.sluisgaten || []), ...(fixFile.zee || [])]) { fillPolygon(R, gatPolygon(g), g[5] | 32); navPolys.push({ pts: gatPolygon(g) }); }
   // bruggen over water
   const roads = [...P.bridges, ...cityMap.roads.filter((r) => r && r.bridge).map((r) => ({ pts: r.pts, z: r.z || null, width: r.width || 4, movable: r.movable || '', name: r.name || '', type: r.type || '', city: true }))];
   for (const b of roads) {
@@ -168,8 +224,25 @@ export async function buildRaster({ worldDir, city = true, fixesOn = !process.ar
   const wide = widenWideWater(R);
   const mains = widenMainWaterways(R);
   const closed = closeGaps(R);
+  let dry = 0;
+  if (gameWater) {
+    const exact = createWaterIndex(navPolys);
+    for (let ci = 0; ci < R.chunks.length; ci++) {
+      const ch = R.chunks[ci];
+      if (!ch) continue;
+      const bx = (ci % NCX) * CS, by = Math.floor(ci / NCX) * CS;
+      for (let i = 0; i < ch.length; i++) {
+        if (!(ch[i] & 7)) continue;
+        const [x, y] = cellXY(bx + (i & 255), by + (i >> 8));
+        if (!exact.inWater(x, y)) { ch[i] = 0; dry++; }
+      }
+    }
+  }
+  // de woonboten van de provincietegels (die van de stad liggen langs de kade en horen bij de kadewand): als laatste,
+  // het verbreden en dichten hierboven maakt van een dichte cel anders weer water
+  if (houseboats) for (const h of P.houseboats || []) if (h.pts && h.pts.length > 2) blockRing(R, h.pts);
   const heights = setClearances(R);
-  return { R, P, cityMap, water, locks, closed, mains, wide, places: P.idx.global.places || [] };
+  return { R, P, cityMap, water, navPolys, dry, locks, closed, mains, wide, places: P.idx.global.places || [] };
 }
 
 // Water van klasse 3 met aan alle kanten minstens WIDE_M m water (een vaargeul van
@@ -423,6 +496,49 @@ function obstacleCost(ob, kind) {
 
 // Dijkstra over de open cellen van een klasse. targets: (cx, cy) => label | null.
 // Geeft per label de eerste (goedkoopste) cel die het bereikt, plus de totale reikwijdte.
+// De afstand (in cellen, tot SHORE_CAP) van elke open cel tot de dichtstbijzijnde cel die voor de klasse dicht is, per brok:
+// een golf vanaf de dichte cellen. Een brok dat er niet is, is dicht.
+export const SHORE_CAP = 6;
+export const SHORE_COST = [0, 16, 9, 5, 3, 1, 0];
+export function shoreDist(R, cls) {
+  const key = '_sd' + cls;
+  if (R[key]) return R[key];
+  const out = new Array(NCX * NCY).fill(null);
+  for (let k = 0; k < R.chunks.length; k++) {
+    const ch = R.chunks[k];
+    if (!ch) continue;
+    const a = out[k] = new Uint8Array(CS * CS);
+    for (let i = 0; i < ch.length; i++) a[i] = (ch[i] & 7) >= cls ? SHORE_CAP : 0;
+  }
+  // (de cellen buiten een brok kijken in de buurbrok, een ontbrekend brok telt als dicht)
+  const at = (cx, cy, level) => {
+    if (cx < 0 || cy < 0 || cx >= GW || cy >= GH) return false;
+    const a = out[(cy >> 8) * NCX + (cx >> 8)];
+    return !!a && a[((cy & 255) << 8) | (cx & 255)] === level;
+  };
+  const closedAt = (cx, cy) => {
+    if (cx < 0 || cy < 0 || cx >= GW || cy >= GH) return true;
+    const a = out[(cy >> 8) * NCX + (cx >> 8)];
+    return !a || a[((cy & 255) << 8) | (cx & 255)] === 0;
+  };
+  for (let level = 1; level < SHORE_CAP; level++) {
+    for (let k = 0; k < out.length; k++) {
+      const a = out[k];
+      if (!a) continue;
+      const bx = (k % NCX) * CS, by = Math.floor(k / NCX) * CS, next = [];
+      for (let i = 0; i < a.length; i++) {
+        if (a[i] !== SHORE_CAP) continue;
+        const cx = bx + (i & 255), cy = by + (i >> 8);
+        let hit = false;
+        for (let s = 0; s < 8 && !hit; s++) hit = level === 1 ? closedAt(cx + DX[s], cy + DY[s]) : at(cx + DX[s], cy + DY[s], level - 1);
+        if (hit) next.push(i);
+      }
+      for (const i of next) a[i] = level;
+    }
+  }
+  return (R[key] = out);
+}
+
 export function sail(R, starts, cls, kind, targets, { stopWhenAll = null, navCost = null } = {}) {
   const dist = new Map(), par = new Map(); // brok -> Float32Array / Uint8Array
   const dch = (cx, cy) => { const k = (cy >> 8) * NCX + (cx >> 8); let c = dist.get(k); if (!c) { c = new Float32Array(CS * CS).fill(Infinity); dist.set(k, c); par.set(k, new Uint8Array(CS * CS)); } return k; };
@@ -431,6 +547,7 @@ export function sail(R, starts, cls, kind, targets, { stopWhenAll = null, navCos
   let reached = 0;
   for (const [cx, cy] of starts) { const k = dch(cx, cy); dist.get(k)[((cy & 255) << 8) | (cx & 255)] = 0; heap.push(0, id(cx, cy)); }
   const open = (cx, cy) => R.nav(cx, cy) >= cls;
+  const sd = shoreDist(R, cls);
   while (heap.n) {
     const u = heap.pop(), d = heap.popKey, cx = u % GW, cy = (u - cx) / GW;
     const k = dch(cx, cy), di = ((cy & 255) << 8) | (cx & 255);
@@ -444,10 +561,9 @@ export function sail(R, starts, cls, kind, targets, { stopWhenAll = null, navCos
       if (!open(nx, ny)) continue;
       // een diagonaal mag geen hoek afsnijden door gesloten water
       let c = navCost ? DC[s] * navCost[R.nav(nx, ny)] : DC[s];
-      // dicht bij de oever kost meer: de route houdt het midden van de vaargeul
-      let shore = 0;
-      for (let q = 0; q < 8; q += 2) if (!open(nx + DX[q], ny + DY[q])) shore++;
-      c += shore * 3;
+      // dicht bij de oever kost meer: de route houdt het midden van de vaargeul (een cel naast de oever ligt tot 2,5 m van
+      // het echte water-eind en een romp past er niet, #343)
+      c += SHORE_COST[sd[(ny >> 8) * NCX + (nx >> 8)][((ny & 255) << 8) | (nx & 255)]];
       const nid = id(nx, ny), ob = R.obs.get(nid);
       if (ob !== undefined && ob !== ob0) c += obstacleCost(R.list[ob], kind);
       const nk = dch(nx, ny), ni = ((ny & 255) << 8) | (nx & 255), nd = d + c;

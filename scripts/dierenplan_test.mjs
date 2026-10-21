@@ -73,9 +73,10 @@ ok(soundOf('koe') === 'cow' && soundOf('schaap') === 'sheep' && soundOf('meeuw')
   ok(wk.grazer > wad.grazer, 'meer grazers in het Westerkwartier');
   ok(laag.seagull < wad.seagull, 'lage kwaliteit heeft minder dieren');
   ok(wad.pigeon === 14 && wad.cat === 2 && wad.dog === 3, 'stadsdieren onaangeroerd');
-  for (const s of STREKEN_PLAN) for (const q of ['laag', 'middel', 'hoog']) { const l = wildlifeLimits(s, q, base); ok(l.seagull >= 1 && l.grazer >= 1 && l.duck >= 1, 'minstens een', s + q); }
+  for (const s of STREKEN_PLAN) for (const q of ['laag', 'middel', 'hoog']) { const l = wildlifeLimits(s, q, base); ok(l.seagull >= 1 && (l.grazer >= 1 || s === 'stad') && l.duck >= 1, 'minstens een', s + q); }
   ok(grazerPick('westerkwartier', 0.2) === 'cow' && grazerPick('hogeland', 0.9) === 'sheep', 'koe of schaap naar streek');
   ok(wildlifeLimits('onbekend', 'hoog', base).seagull >= 1, 'onbekende streek valt terug op stad');
+  ok(wildlifeLimits('stad', 'hoog', base).grazer === 0 && wildlifeLimits('onbekend', 'laag', base).grazer === 0, 'de stad heeft geen vee (#330)');
 }
 ok(gansKans('oldambt') > gansKans('stad') && gansKans('stad') === 0 && gansKans('hogeland') <= 0.6, 'ganzen op het land naar streek');
 console.log(`dierenplan_test: ${n - fails}/${n} ok`);

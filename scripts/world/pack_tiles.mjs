@@ -24,6 +24,7 @@ const { edgeRows, globalChains } = await import('../../game/js/navgraph.js');
 const { heightRows } = await import('../../game/js/roadprofile.js');
 const { junctionRows } = await import('../../game/js/junctions.js');
 const { shiftRaster } = await import('../../game/js/terrainraster.js');
+const { splitMeta } = await import('../../game/js/poisections.js');
 const { polygonBounds } = await import('../../game/js/util.js');
 const { heightOf, bagKey, pitchedFits } = await import('../../game/js/buildingheights.js');
 
@@ -159,7 +160,7 @@ export async function loadCityDataLaag(game = path.join(ROOT, 'game'), lagen = p
     // wegen en spoor: hele wegen uit de OSM-bouw met hun hoogteprofiel (stad_wegen.mjs); legt ook het profiel van de busbanen in de extras terug
     if (rows.wegen) {
       const { profileCity } = await import('./stad_wegen.mjs');
-      report.wegen = profileCity(data, rows.wegen, { lagen: all, extras: extrasData, inside: (x, y) => cover.inside(x, y) });
+      report.wegen = await profileCity(data, rows.wegen, { lagen: all, extras: extrasData, inside: (x, y) => cover.inside(x, y) });
     }
     // wat de provinciebouw per tegel niet weet: extras-gebouwen gaan voor OSM, geen bos op baan, weg of gebouw (stad_na.mjs)
     if (!osm) { const na = await (await import('./stad_na.mjs')).tidyCity(data, extrasData); if (process.env.GDE_STAD_LOG) console.log('stad_na', JSON.stringify(na)); }
@@ -268,12 +269,15 @@ export function build({ map }, attrs = loadAttrs(), terrain = loadTerrainRasters
     const { a, b, ...rest } = e;
     (t.kinds.nav || (t.kinds.nav = [])).push({ ...rest, p: [a, b] });
   }
+  // the places of map.meta (shops, horeca, garages, ...) as rows of the tile their point lies in (poisections.js, #314)
+  const split = splitMeta(map.meta, (x, y) => { const [i, j] = G.tileIndexOf(x, y); return G.tileKey(i, j); }, (k) => tiles.has(k));
+  for (const [k, rows] of split.rows) tiles.get(k).kinds.pois = rows;
   const blobs = new Map();
   for (const t of [...tiles.values()].sort((a, b) => a.i - b.i || a.j - b.j)) {
-    const sections = [...KINDS, ['heights', G.SECTION.HEIGHTS], ['junctions', G.SECTION.JUNCTIONS], ['nav', G.SECTION.NAV]].filter(([kind]) => t.kinds[kind]).map(([kind, type]) => ({ type, rows: t.kinds[kind] }));
+    const sections = [...KINDS, ['heights', G.SECTION.HEIGHTS], ['junctions', G.SECTION.JUNCTIONS], ['nav', G.SECTION.NAV], ['pois', G.SECTION.POIS]].filter(([kind]) => t.kinds[kind]).map(([kind, type]) => ({ type, rows: t.kinds[kind] }));
     if (terrain.has(t.key)) sections.push({ type: G.SECTION.RASTER, raster: terrain.get(t.key) });
     const maxH = Math.max(0, ...(t.kinds.buildings || []).map((b) => b.h || 0));
-    const n = Object.fromEntries([...KINDS, ['heights'], ['junctions'], ['nav']].filter(([k]) => t.kinds[k]).map(([k]) => [k, t.kinds[k].length]));
+    const n = Object.fromEntries([...KINDS, ['heights'], ['junctions'], ['nav'], ['pois']].filter(([k]) => t.kinds[k]).map(([k]) => [k, t.kinds[k].length]));
     blobs.set(t.key, { i: t.i, j: t.j, flags: 1, bytes: G.encodeBlob({ i: t.i, j: t.j, flags: 1, builder: BUILDER, sections }), n, maxH });
   }
   // the global layer: what every system needs everywhere until F1 gives it a tile home
@@ -284,7 +288,7 @@ export function build({ map }, attrs = loadAttrs(), terrain = loadTerrainRasters
     builder: BUILDER,
     sections: [
       { type: G.SECTION.META, json: { nav: globalChains(map.roads) } },
-      { type: G.SECTION.META, json: { meta: map.meta, counts, dryCrossings: map.dryCrossings || 0, clippedWays: clipped } },
+      { type: G.SECTION.META, json: { meta: split.meta, counts, dryCrossings: map.dryCrossings || 0, clippedWays: clipped } },
       { type: G.SECTION.ROADS, version: 1, rows: [] },
       ...['stations', 'levelCrossings', 'railRoutes', 'railLifts'].map((k) => ({ type: G.SECTION.META, json: { [k]: map[k] } })),
     ],

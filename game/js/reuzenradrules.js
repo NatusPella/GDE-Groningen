@@ -17,6 +17,8 @@ export const PRICE = 2;
 export const BOARD_WINDOW = 0.26;
 // de gondel hangt zo ver onder het draaipunt; daar zit je
 export const SEAT_DROP = 1.05;
+// de camera hangt zo ver buiten het vlak van het rad (kermis.js: de twee randen staan op v = +-1,2), anders vullen spaken, randen en lampjes het beeld
+export const CAM_OUT = 2.2;
 // waar je instapt en uitstapt, aan de marktkant van het rad
 export const LOAD_AT = { u: WHEEL_AT.u, v: WHEEL_AT.v + 4 };
 export const LOAD_RADIUS = 3.2;

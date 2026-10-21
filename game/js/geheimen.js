@@ -10,6 +10,7 @@ import { pushAudioEvent } from './pedgeom.js';
 import { addToSaveSet, getSaveSet } from './achievements.js';
 import { WATER_Y } from './util.js';
 import { advanceRoomClock, roomShouldClose } from './roomclock.js';
+import { buildUfoMesh, kleurLampjes } from './ufo3d.js';
 
 // Geheimpjes: eight hidden little things in town, each found once per
 // playthrough for a small reward, counted by the hidden achievement
@@ -173,19 +174,7 @@ function buildRoom() {
 }
 
 function buildUfo() {
-  const g = new THREE.Group();
-  const hull = new THREE.MeshStandardMaterial({ color: 0x9aa4ae, metalness: 0.85, roughness: 0.25, emissive: 0x1a2028 });
-  const disc = add(g, new THREE.SphereGeometry(7, 28, 12), hull, 0, 0, 0);
-  disc.scale.set(1, 0.22, 1);
-  const dome = add(g, new THREE.SphereGeometry(2.6, 18, 10, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0x9affc8, transparent: true, opacity: 0.85 }), 0, 0.9, 0);
-  dome.castShadow = false;
-  const lights = [];
-  for (let i = 0; i < 12; i++) {
-    const a = (i / 12) * Math.PI * 2;
-    const m = add(g, new THREE.SphereGeometry(0.35, 8, 6), new THREE.MeshBasicMaterial({ color: 0xffd23f }), Math.cos(a) * 6.6, -0.2, Math.sin(a) * 6.6);
-    m.castShadow = false;
-    lights.push(m);
-  }
+  const { g, lights } = buildUfoMesh(7);   // dezelfde schotel als bij de schaapontvoering (ufo3d.js, #333)
   const beam = new THREE.Mesh(new THREE.ConeGeometry(7, UFO.z, 24, 1, true).translate(0, -UFO.z / 2, 0), new THREE.MeshBasicMaterial({ color: 0xb8ffd8, transparent: true, opacity: 0.12, depthWrite: false, side: THREE.DoubleSide, blending: THREE.AdditiveBlending }));
   g.add(beam);
   g.position.set(UFO.x, UFO.z, UFO.y);
@@ -378,7 +367,7 @@ function proximity(w, dt) {
 function updateUfo(w, dt) {
   if (!ufo || !ufo.g.visible) return;
   const t = w.time;
-  ufo.lights.forEach((m, i) => m.material.color.setHSL(((t * 0.4 + i / 12) % 1), 0.9, 0.6));
+  kleurLampjes(ufo.lights, t);
   if (ufo.leave) {
     ufo.leave += dt;
     ufo.beam.visible = false;

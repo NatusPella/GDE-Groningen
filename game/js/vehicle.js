@@ -1,4 +1,4 @@
-import { linesNear, project as projectOnLine, makeRunner, stepRunner, startAt } from './busroutes.js';
+import { linesNear, project as projectOnLine, makeRunner, stepRunner, startAt, busMagWeg } from './busroutes.js';
 import { assistDamage } from './assistlive.js';
 import { closestPointOnSegment, normalizeAngle, clamp, lerp, pointInPolygon, inMapWater, WATER_Y, keepBoatOffShore, boatDryPoints } from './util.js';
 import { waterClearance, waterChannelPoints } from './waterindex.js';
@@ -1005,7 +1005,9 @@ export function manageTrafficPopulation(world, opts = {}) {
     // reach the distance despawn, silently eating the traffic quota. A
     // vehicle stuck bouncing off the same dead end (isolated stub with no
     // real connection) is cleared the same way rather than left oscillating.
-    if ((!v.wrecked && ((v.deadEndBounces || 0) > 2 || (v.stuckFor || 0) > 25 || ((v.waitFor || 0) > 45 && Math.hypot(v.x - player.x, v.y - player.y) > 70))) || Math.hypot(v.x - player.x, v.y - player.y) > despawnDist) vehicles.splice(i, 1);
+    // een bus die ver van zijn lijn is geraakt (een omweg zonder einde) verdwijnt als niemand kijkt (#322)
+    const verdwaald = !!v.busRun && Math.hypot(v.x - player.x, v.y - player.y) > 60 && projectOnLine(v.busRun.line, v.x, v.y).d > BUS_VERDWAALD_M;
+    if ((!v.wrecked && ((v.deadEndBounces || 0) > 2 || (v.stuckFor || 0) > 25 || ((v.waitFor || 0) > 45 && Math.hypot(v.x - player.x, v.y - player.y) > 70))) || verdwaald || Math.hypot(v.x - player.x, v.y - player.y) > despawnDist) vehicles.splice(i, 1);
   }
 
   let count = 0;
@@ -1131,6 +1133,22 @@ let busLines = [];
 export function setBusLines(lines) { busLines = lines || []; }
 export function getBusLines() { return busLines; }
 
+// Het dichtstbijzijnde punt op een weg waar de bus van deze lijn mag rijden (#322), of null.
+// nearestRoadPoint pakt de dichtstbijzijnde weg, en dat is naast een lijn vaak een smal parallel straatje.
+function busSpawnPoint(map, line, x, y, reach = 25) {
+  let best = null;
+  for (const road of map.roadsNear(x, y, reach)) {
+    if (road.pts.length < 2 || !busMagWeg(road, line)) continue;
+    for (let i = 0; i < road.pts.length - 1; i++) {
+      const cp = closestPointOnSegment(x, y, road.pts[i][0], road.pts[i][1], road.pts[i + 1][0], road.pts[i + 1][1]);
+      if (cp.dist2 < reach * reach && (!best || cp.dist2 < best.dist2)) best = { x: cp.x, y: cp.y, road, dist2: cp.dist2 };
+    }
+  }
+  return best;
+}
+
+const BUS_VERDWAALD_M = 200; // m van zijn lijn: de bus is de weg kwijt
+
 export function manageBusPopulation(world, { target = 4, spawnMin = 90, spawnMax = 220, despawnDist = 300 } = {}) {
   const { map, player, vehicles } = world;
   for (let i = vehicles.length - 1; i >= 0; i--) {
@@ -1150,8 +1168,8 @@ export function manageBusPopulation(world, { target = 4, spawnMin = 90, spawnMax
     const pr = projectOnLine(line, player.x, player.y);
     const dir = Math.random() < 0.5 ? 1 : -1;
     const at = startAt(line, Math.max(0, Math.min(line.length, pr.s + dir * (spawnMin + Math.random() * (spawnMax - spawnMin) * 0.6))), dir);
-    const rp = map.nearestRoadPoint(at.x, at.y, 25, true);
-    if (!rp || rp.road.cat === 'foot' || rp.road.width < 2.55 + 1.1) continue;
+    const rp = busSpawnPoint(map, line, at.x, at.y);
+    if (!rp) continue;
     const v = spawnVehicleOnRoad(map, rp.road, false, Math.random, false, true, rp);
     if (Math.abs(normalizeAngle(v.angle - at.angle)) > Math.PI / 2) continue;
     const d = Math.hypot(v.x - player.x, v.y - player.y);
@@ -1163,7 +1181,7 @@ export function manageBusPopulation(world, { target = 4, spawnMin = 90, spawnMax
   // with a real line in reach the buses are the line's, not random ones on the main roads (#80)
   if (line) return;
 
-  const candidates = map.roadsNear(player.x, player.y, spawnMax).filter((r) => r.cat === 'major' || r.cat === 'normal' || r.busOnly);
+  const candidates = map.roadsNear(player.x, player.y, spawnMax).filter((r) => (r.cat === 'major' || r.cat === 'normal' || r.busOnly) && busMagWeg(r, null));   // #322: geen woonstraten, paden of smalle wegen
   let guard = 0;
   while (count < target && candidates.length && guard++ < target * 6) {
     const road = candidates[Math.floor(Math.random() * candidates.length)];
@@ -1703,6 +1721,7 @@ function canUseRoad(v, r) {
   if (r.cat === 'cycle' && !small) return false;
   if (v.isMotor && !motorRoadAllowed(v.model, r)) return false; // brommers and motors keep off the fietspad
   if (r.busOnly && !busLaneUser(v)) return false;
+  if (v.isBus && !busMagWeg(r, v.busRun ? v.busRun.line : null, v.model.wid)) return false;   // #322: een bus blijft op zijn lijn of het busnet
   return small || r.width >= v.model.wid + 1.1;
 }
 
@@ -1774,7 +1793,8 @@ function nextTurn(v, map, rng, goal, k, road, at, dir) {
 const ROUTE_MAX_EXPANSIONS = 6000;
 
 function findRoute(v, map, gx, gy) {
-  const target = map.nearestRoadPoint(gx, gy, 300, true);
+  // een bus mikt op de dichtstbijzijnde weg waar hij mag rijden, niet op het parallelle straatje naast zijn lijn (#322)
+  const target = (v.isBus && busSpawnPoint(map, v.busRun ? v.busRun.line : null, gx, gy, 60)) || map.nearestRoadPoint(gx, gy, 300, true);
   if (!target || !canUseRoad(v, target.road)) return false;
   const tp = target.road.pts;
   let ti = 0, tBest = Infinity;
@@ -2531,9 +2551,22 @@ function tangentialSpeed(a, b, nx, ny) {
   return Math.abs(-vx * ny + vy * nx);
 }
 
+// Een politiepaard (#331) gaat niet kapot en blijft ook niet staan: een klap van deze schade (een auto
+// van ~5 m/s tegen het paard) gooit de ruiter eraf en het paard slaat op hol. Dat doet policemounts.js
+// maybeBolt zodra de gezondheid onder HORSE_BOLT_HEALTH (40) komt; hier komt hij er in één klap onder.
+const HORSE_KNOCK_DAMAGE = 10;
+const HORSE_KNOCKED_HEALTH = 30;
+const HORSE_SOFT = 0.35; // een paard is zacht: de auto die het raakt krijgt zoveel van de schade
+const isMountHorse = (v) => v._mount === 'horse' && v.driver !== 'player';
+
 function applyImpactDamage(v, dmg, playerInvolved, world) {
   if (dmg <= 0 || v.wrecked) return;
   if (v.disabled) { v.burnLeft -= dmg * 0.06; return; }
+  if (isMountHorse(v)) {
+    v.health = Math.max(1, v.health - dmg * CRASH_DAMAGE_SCALE);
+    if (dmg >= HORSE_KNOCK_DAMAGE) v.health = Math.min(v.health, HORSE_KNOCKED_HEALTH);
+    return;
+  }
   if (v.driver === 'player') dmg = assistDamage(dmg);
   v.health = Math.max(0, v.health - dmg * CRASH_DAMAGE_SCALE);
   if (playerInvolved && v.driver === 'player' && !v.flat && !v.isBoat && !v.isHeli && !v.isBus && dmg >= FLAT_MIN_DAMAGE && v.health > 0 && Math.random() < Math.min(FLAT_MAX_CHANCE, dmg / 60)) v.flat = true;
@@ -2676,8 +2709,8 @@ export function resolveVehicleVehicleCollisions(vehicles, world = null) {
       reportImpact(world, hx, hy, relN, playerInvolved);
       if (relN > HARD_HIT_CLOSING_SPEED) {
         const base = (relN - HARD_HIT_CLOSING_SPEED) * IMPACT_DAMAGE_PER_MPS;
-        applyImpactDamage(a, clamp(base * clamp(2 * mB / (mA + mB), 0.25, 1.6), 0, MAX_IMPACT_DAMAGE), playerInvolved, world);
-        applyImpactDamage(b, clamp(base * clamp(2 * mA / (mA + mB), 0.25, 1.6), 0, MAX_IMPACT_DAMAGE), playerInvolved, world);
+        applyImpactDamage(a, clamp(base * clamp(2 * mB / (mA + mB), 0.25, 1.6), 0, MAX_IMPACT_DAMAGE) * (isMountHorse(b) ? HORSE_SOFT : 1), playerInvolved, world);
+        applyImpactDamage(b, clamp(base * clamp(2 * mA / (mA + mB), 0.25, 1.6), 0, MAX_IMPACT_DAMAGE) * (isMountHorse(a) ? HORSE_SOFT : 1), playerInvolved, world);
         a.hitThisFrame = true; a.hitX = hx; a.hitY = hy; a.hitImpactSpeed = relN;
         b.hitThisFrame = true; b.hitX = hx; b.hitY = hy; b.hitImpactSpeed = relN;
       }

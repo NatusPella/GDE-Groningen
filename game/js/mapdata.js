@@ -5,7 +5,7 @@ import { attachMuseumPlan } from './museumplan.js';
 import { attachInteriorPlans } from './interieurplan.js';
 import { SpatialGrid } from './spatialgrid.js';
 import { deriveBuildings, liftNestedRoofs, isRingRoad } from './derive.js';
-import { deckTerrainAt, isDeckRoad } from './deckterrain.js';
+import { deckTerrainAt, isDeckRoad, roadTerrainAt } from './deckterrain.js';
 import { buildElevation, pickedRibbon, groundHeightAt, surfaceAt, ribbonAt, ribbonZAt, roadZAt, ceilingAt, coveredAt, surfaceHalfWidth, offLevelAt } from './elevation.js';
 
 const CELL = 80; // meters per grid cell
@@ -237,13 +237,17 @@ export class GameMap {
     }
     const z = groundHeightAt(this.elev, x, y, zHint - t);
     const pr = pickedRibbon();
-    return z + (isDeckRoad(pr) ? this.deckTerrainAt(pr, x, y, t) : t);
+    return z + (pr ? this.terrainBase(pr, x, y) : t);
   }
 
-  // what the profile of ribbon r (null: the ground) is relative to at (x, y), m
+  // what the profile of ribbon r (null: the ground) is relative to at (x, y), m. A deck keeps to the
+  // line between its ends (deckterrain.js). Any other road or rail runs on the terrain AT ITS VERTICES,
+  // straight in between: the solver (profile.mjs) places its vertices, and the raster's bilinear
+  // kinks (25 m cells) laid over a road at 80 km/h would throw a car into the air.
   terrainBase(r, x, y) {
     const t = this.terrainAt(x, y);
-    return isDeckRoad(r) ? this.deckTerrainAt(r, x, y, t) : t;
+    if (isDeckRoad(r)) return this.deckTerrainAt(r, x, y, t);
+    return r && r.pts && r.pts.length > 1 ? roadTerrainAt(r, x, y, this.terrain.at, this.terrain.size) : t;
   }
 
   deckTerrainAt(r, x, y, ground) {

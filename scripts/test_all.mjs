@@ -201,6 +201,7 @@ const ZWAAR = [
   ['terrain_audit', 'scripts/world/terrain_audit.mjs', [], 600, true],
   ['railprofile', 'scripts/world/railprofile.mjs', ['--strict'], 300, false],
   ['drive_audit', 'scripts/world/drive_audit.mjs', ['--strict'], 1800, true],
+  ['bus_audit', 'scripts/bus_audit.mjs', ['--sim'], 1800, true],
   ['junction_sim_test', 'scripts/junction_sim_test.mjs', [], 900, true],
   ['network_drive_test', 'scripts/network_drive_test.mjs', [], 5400, true],
   ['province_test', 'scripts/province_test.mjs', [], 5400, true],
