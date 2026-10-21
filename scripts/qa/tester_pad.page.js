@@ -68,15 +68,22 @@ stick(0, -1); await sleep(800); snap('stick omhoog na pauze'); stick(0, 0);
 out.loopafstand2 = pos() && p0 ? +Math.hypot(pos()[0] - p0[0], pos()[1] - p0[1]).toFixed(2) : null;
 // 5. kaart
 await tap('view'); await sleep(600); snap('Terug/view: kaart?'); await tap('b'); await sleep(500); snap('B na kaart');
-// 6. voertuig: dichtstbijzijnde auto voor de speler zetten en E (=X)
+// 6. voertuig: een geparkeerde auto vlakbij, de speler ernaast, Y (de E-knop) om in te stappen
 try {
-  const v = (w.vehicles || []).find((x) => x && !x.isHeli && !x.isPlane && !x.isBoat && x.mesh);
-  if (v && w.player) { w.player.x = v.x + 3; w.player.y = v.y; if ('z' in w.player && v.z != null) w.player.z = v.z; await sleep(500); }
-  await tap('y'); await sleep(1200); snap('Y bij auto', { auto: !!(w.player && w.player.inVehicle) });
-  if (w.player && w.player.inVehicle) {
-    const q0 = pos(); hold('rt'); await sleep(1500); snap('gas (RT)'); hold('rt', false); stick(1, 0); await sleep(600); snap('sturen'); stick(0, 0);
+  const p = w.player;
+  const kand = (w.vehicles || []).filter((x) => x && Number.isFinite(x.x) && !x.driver && !x.wrecked && !x.isHeli && !x.isPlane && !x.isBoat && !x.isBus && !x.isTrain && (x.parked || x.isHeroCar || x.playerOwned))
+    .sort((u, v) => Math.hypot(u.x - p.x, u.y - p.y) - Math.hypot(v.x - p.x, v.y - p.y));
+  const v = kand[0];
+  out.voertuig = { aantal: (w.vehicles || []).length, kandidaten: kand.length, gekozen: v ? { x: +v.x.toFixed(1), y: +v.y.toFixed(1), parked: !!v.parked, hero: !!v.isHeroCar } : null };
+  if (v) { p.x = v.x + 2.2; p.y = v.y; await sleep(700); }
+  await tap('y'); await sleep(1200); snap('Y bij auto', { auto: !!p.inVehicle });
+  if (p.inVehicle) {
+    const q0 = pos(); hold('rt'); await sleep(2000); snap('gas (RT)', { snelheid: +(p.inVehicle.speed || 0).toFixed(1) }); hold('rt', false);
+    stick(1, 0); hold('rt'); await sleep(900); snap('sturen met gas (stick rechts)'); stick(0, 0); hold('rt', false);
     out.rijafstand = pos() && q0 ? +Math.hypot(pos()[0] - q0[0], pos()[1] - q0[1]).toFixed(2) : null;
-    await tap('y'); await sleep(800); snap('Y: uitstappen', { auto: !!(w.player && w.player.inVehicle) });
+    hold('lt'); await sleep(1500); snap('rem (LT)', { snelheid: +(p.inVehicle.speed || 0).toFixed(1) }); hold('lt', false);
+    await tap('x'); snap('X: claxon (geen fout)');
+    await tap('y'); await sleep(900); snap('Y: uitstappen', { auto: !!p.inVehicle });
   }
 } catch (e) { out.fouten.push('voertuig: ' + e.message); }
 return JSON.stringify({ results: { pad: out } });
