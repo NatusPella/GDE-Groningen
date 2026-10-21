@@ -15,7 +15,7 @@ import { getSideJobSpotsForRender } from './sidejobs.js';
 import { getGaragesForRender } from './garages.js';
 import { getStationsForRender } from './stationtravel.js';
 import { storyFlag } from './storyquery.js';
-import { isVerplaatsbaar, schoonPlekken, plekVan, volgendePlek, opPlek, plekInfo } from './inrichting.js';
+import { isVerplaatsbaar, schoonPlekken, plekVan, volgendePlek, opPlek, plekInfo, zonderStock } from './inrichting.js';
 import { getLedger, summary } from './finance.js';
 
 // EIKEA furniture for Tammo and Tessa's flat (home.js). Bought in the EIKEA
@@ -46,7 +46,7 @@ const FURNITURE = [
     at: { x: 0.36, z: 2.6, rot: Math.PI / 2, fit: 'h', size: 1.9 }, solid: [0.1, 1.95, 0.66, 3.25], use: { x: 1.15, z: 2.6 } },
   { id: 'bank', short: 'Zitmoi', label: 'Bank "Zitmoi"', price: 299, desc: 'Zit als een Grunneger: stug maar trouw',
     perk: 'Zitten (E): snel weer gezond', stat: ['Herstel op de bank', '+10 gezondheid per seconde'], replaces: true,
-    at: { x: 3.7, z: 3.95, rot: Math.PI, fit: 'w', size: 2.5 }, use: { x: 5.45, z: 3.75 } },
+    at: { x: 3.7, z: 3.95, rot: Math.PI, fit: 'w', size: 2.5 }, solid: [2.4, 3.35, 5.0, 4.55], use: { x: 5.45, z: 3.75 } },
   { id: 'lamp', short: 'Lichtje Tjoek', label: 'Lamp "Lichtje Tjoek"', price: 15, desc: 'Voor lange avonden in Stad',
     perk: "'s Avonds echt licht in de flat", stat: ['Gezelligheid', 'Warm licht, elke avond'],
     at: { x: 0.6, z: 4.7, rot: 0, fit: 'h', size: 1.6 }, solid: [0.38, 4.48, 0.82, 4.92] },
@@ -196,10 +196,14 @@ export function furnitureSkip() {
   return new Set(FURNITURE.filter((f) => f.replaces && state.owned.has(f.id)).map((f) => f.id));
 }
 
-// The piece as it stands now: lamp, plant, bookcase and desk can be moved (inrichting.js).
+// The piece as it stands now: lamp, plant, bookcase, tv, desk, sofa and beds can be moved (inrichting.js).
 function eff(f) {
   const o = isVerplaatsbaar(f.id) && opPlek(f.id, plekVan(state.plek, f.id));
   if (!o) return f;
+  if (o.bedden) {
+    const [a, b] = o.bedden;
+    return { ...f, at: { ...f.at, x: a.x, z: a.z, rot: a.rot }, at2: { ...f.at2, x: b.x, z: b.z, rot: b.rot }, solids: o.solids };
+  }
   if (o.use) return { ...f, at: { ...f.at, x: o.x, z: o.z, rot: o.rot }, solid: o.solid, use: o.use };
   return { ...f, at: { ...f.at, x: o.x, z: o.z }, solid: o.solid, use: f.use && { x: f.use.x + o.dx, z: f.use.z + o.dz } };
 }
@@ -207,10 +211,27 @@ function eff(f) {
 // Walkable-flat solids of the placed pieces [x0, z0, x1, z1].
 export function furnitureSolids() {
   const out = [];
-  for (const f of FURNITURE) if (f.solid && state.owned.has(f.id)) out.push(eff(f).solid);
+  for (const f of FURNITURE) {
+    if (!state.owned.has(f.id)) continue;
+    const e = eff(f);
+    if (e.solids) out.push(...e.solids);
+    else if (e.solid) out.push(e.solid);
+  }
   // de losse tv van de flat staat op zijn standaardplek tot de Kiekkast er is
   if (!state.owned.has('tv')) out.push(BY_ID.get('tv').solid);
   return out;
+}
+
+// home.js: the stock sofa and beds are blocks of flat.solids; once the EIKEA ones stand, only theirs count.
+export function furnitureStockSolids(solids) {
+  return zonderStock(solids, state.owned);
+}
+
+// home.js: where the sleeping spots of Tammo's (bed) and Tessa's (bed2) bed are now, in the flat's frame; null = stock.
+export function furnitureBedUses() {
+  if (!state.owned.has('bed')) return null;
+  const o = opPlek('bed', plekVan(state.plek, 'bed'));
+  return o ? { bed: o.bedden[0].use, bed2: o.bedden[1].use } : null;
 }
 
 const lambert = new Map();
@@ -325,8 +346,11 @@ export function furnitureSlept(w, fromHour, toHour) {
 
 // Where the companion stays in the flat: on the Zitmoi when there is one.
 export function companionSeat() {
-  return has('bank') ? { x: 3.15, z: 3.98, seat: SEAT_Y } : null;
+  const o = has('bank') && bankNow();
+  return o ? { x: o.buur.x, z: o.buur.z, seat: SEAT_Y, kijk: o.kijk } : null;
 }
+
+const bankNow = () => opPlek('bank', plekVan(state.plek, 'bank'));
 
 function newDay() {
   state.day++;
@@ -458,7 +482,8 @@ export function getEierbalTips() {
 // --- the Zitmoi ------------------------------------------------------------------------
 
 function seatSpot() {
-  const [x, y] = parent.flat.fl(4.25, 3.98);
+  const s = bankNow().seat;
+  const [x, y] = parent.flat.fl(s.x, s.z);
   return { x, y };
 }
 
@@ -469,7 +494,8 @@ function sitDown(w) {
   seat = { x: s.x, y: s.y };
   p.x = s.x; p.y = s.y; p.vx = 0; p.vy = 0;
   p.sofaSeat = SEAT_Y;
-  p.angle = Math.atan2(-parent.flat.Y[1], -parent.flat.Y[0]);
+  const k = bankNow().kijk, F = parent.flat;
+  p.angle = Math.atan2(k.x * F.X[1] + k.z * F.Y[1], k.x * F.X[0] + k.z * F.Y[0]);
   if (momentDue()) {
     state.moment = true;
     said.add('sofa');
@@ -485,7 +511,8 @@ function standUp(w, place) {
   if (!p) return;
   p.sofaSeat = null;
   if (place && parent) {
-    const [x, y] = parent.flat.fl(5.4, 3.6);
+    const s = bankNow().sta;
+    const [x, y] = parent.flat.fl(s.x, s.z);
     p.x = x; p.y = y;
   }
 }
@@ -664,7 +691,7 @@ function pcMenu(w) {
           { id: 'kas-w', label: 'Deze week', desc: `Binnen ${euro(s.weekIn)}, uit ${euro(s.weekOut)}`, plain: true, price: 0, buy: () => '' },
           { id: 'kas-t', label: 'Totaal', desc: `Verdiend ${euro(s.inTotal)}, uitgegeven ${euro(s.outTotal)}${s.topOut.length ? `. Meeste uitgaven: ${s.topOut.map(([k, v]) => `${k} ${euro(v)}`).join(', ')}` : ''}`, plain: true, price: 0, buy: () => '' },
         ] },
-        ...(move.length ? [{ title: 'Flat inrichten', note: 'Lamp, plant, kast, bureau en tv kunnen op een andere plek', items: move }] : []),
+        ...(move.length ? [{ title: 'Flat inrichten', note: 'Lamp, plant, kast, bureau, tv, bank en bedden kunnen op een andere plek', items: move }] : []),
       ];
     },
   };
