@@ -286,13 +286,13 @@ if (want('kraam')) {
 // ---- #61: Jelle's trekker-limo, Disco-zwaailicht en Spiegelstad ----
 if (want('streken2')) {
   clearInterval(skipper);
-  w.clock = 20.2; // schemering: de lichtjes vallen op
+  w.clock = 18.2; // gouden uur: licht genoeg om de auto's te zien, de lichtjes vallen nog op
   const CH = await imp('cheats');
   const TF = await imp('trafficfleet');
   const CM = await imp('cheatmods');
   const gh = (x, y) => (map.groundHeightAt ? map.groundHeightAt(x, y, 0) || 0 : 0);
   const rp = map.nearestRoadPoint(100, 77, 500, true) || { x: 100, y: 77 };
-  const keepS = setInterval(() => { p.x = rp.x; p.y = rp.y; p.vx = p.vy = 0; w.clock = 20.2; }, 50);
+  const keepS = setInterval(() => { p.x = rp.x; p.y = rp.y; p.vx = p.vy = 0; w.clock = 18.2; }, 50);
   teleport(rp.x, rp.y);
   await sleep(1500); for (let i = 0; i < 40 && document.querySelector('.ls.on:not(.out)'); i++) await sleep(500); await sleep(3000);
   await sleep(4000);
@@ -309,12 +309,17 @@ if (want('streken2')) {
     done.push('streken2-' + name);
   };
   // twee auto's zetten we zelf neer, zodat er altijd iets te zien is (het verkeer zelf komt na een minuut)
-  const road = map.nearestRoadPoint(rp.x + 14, rp.y, 80, true) || { x: rp.x + 14, y: rp.y };
+  // de weg: heading van het dichtstbijzijnde stuk, twee auto's op 8 en 14 m voor de speler, de camera erachter
+  const rd = rp.road && rp.road.pts ? rp.road.pts : null;
+  let hd = 0;
+  if (rd) { let bi = 0, bd = Infinity; for (let i = 0; i < rd.length - 1; i++) { const d = Math.hypot((rd[i][0] + rd[i + 1][0]) / 2 - rp.x, (rd[i][1] + rd[i + 1][1]) / 2 - rp.y); if (d < bd) { bd = d; bi = i; } } hd = Math.atan2(rd[bi + 1][1] - rd[bi][1], rd[bi + 1][0] - rd[bi][0]); }
+  const along = (s) => ({ x: rp.x + Math.cos(hd) * s, y: rp.y + Math.sin(hd) * s });
+  const road = along(8);
   const base = { name: 'sedan', len: 4.3, wid: 1.8, maxSpeed: 50, accel: 10, brake: 24, turnRate: 2.6, color: '#2f3a52' };
-  const sedan = new VH.Vehicle(road.x, road.y, 0, { ...base });
+  const sedan = new VH.Vehicle(road.x, road.y, hd, { ...base });
   sedan.parked = true; sedan.speed = 0; w.vehicles.push(sedan);
-  const camFrom = { x: rp.x - 6, y: rp.y - 7, z: 2.2 };
-  const camTo = { x: road.x, y: road.y, z: 1.2 };
+  const camFrom = { ...along(-3), z: 2.1 };
+  const camTo = { ...along(11), z: 1.1 };
   await camShot('normaal', camFrom, camTo);
   info.push('canvas transform normaal "' + cv().style.transform + '"');
   info.push('aan: ' + ['spiegelstad'].map((id) => id + '=' + CH.setCheat(id, true)).join(' '));
@@ -339,14 +344,16 @@ if (want('streken2')) {
   info.push('verkeer kiest: ' + JSON.stringify(picks.map((q) => q.model && q.model.name + ' ' + q.model.len)) + ' look ' + JSON.stringify(CM.MODS.look && { swap: CM.MODS.look.swap, n: (CM.MODS.look.palette || []).length }) + ' cars ' + CM.MODS.cars);
   const limoModel = (picks.find((q) => q.model && q.model.name === 'trekkerlimo') || {}).model;
   if (limoModel) {
-    const limo = new VH.Vehicle(road.x, road.y + 5, 0.2, { ...limoModel });
+    const lp = along(15);
+    const limo = new VH.Vehicle(lp.x, lp.y, hd, { ...limoModel });
     limo.parked = true; limo.speed = 0; w.vehicles.push(limo);
     await sleep(2500);
-    await camShot('limo-schuin', { x: road.x - 8, y: road.y + 11, z: 2.6 }, { x: road.x, y: road.y + 5, z: 1.4 });
-    await camShot('limo-zij', { x: road.x + 1, y: road.y + 13, z: 2.0 }, { x: road.x, y: road.y + 5, z: 1.4 });
+    const side = (s, k) => ({ x: lp.x + Math.cos(hd + 1.57) * k + Math.cos(hd) * s, y: lp.y + Math.sin(hd + 1.57) * k + Math.sin(hd) * s });
+    await camShot('limo-schuin', { ...side(-7, 6), z: 2.4 }, { ...lp, z: 1.3 });
+    await camShot('limo-zij', { ...side(0, 7.5), z: 1.9 }, { ...lp, z: 1.3 });
     CH.setCheat('disco', true);
     await sleep(2000);
-    await camShot('limo-disco', { x: road.x - 8, y: road.y + 11, z: 2.6 }, { x: road.x, y: road.y + 5, z: 1.8 });
+    await camShot('limo-disco', { ...side(-7, 6), z: 2.4 }, { ...lp, z: 1.9 });
     CH.setCheat('disco', false);
   }
   CH.setCheat('trekkerlimo', false);
@@ -430,7 +437,9 @@ if (want('kaartlagen')) {
   try {
     const okB = SJ && SJ.start('bus');
     info.push('bus-bijbaan start ' + okB + ' ' + JSON.stringify((SJ && SJ.ctx && SJ.ctx() && { job: SJ.ctx().job.id, vehicle: !!SJ.ctx().vehicle }) || null));
-    await sleep(4000);
+    // de intro van de baas (een filmpje) wegdrukken, dan pas de kaart
+    for (let k = 0; k < 14; k++) { await sleep(500); if (cine.isCinematicActive()) cine.skipCinematic(); }
+    await sleep(2500);
     const v = SJ && SJ.ctx && SJ.ctx() && SJ.ctx().vehicle;
     if (v) { holdK.on = false; p.x = v.x; p.y = v.y; p.enterVehicle(v, w); await sleep(2500); holdK.x = v.x; holdK.y = v.y; }
     layerInfo('bus');
@@ -447,13 +456,21 @@ if (want('kaartlagen')) {
     info.push('treinen stil ' + trains.length + ' van ' + RW.getTrains().length);
     const t0 = trains.sort((a, b) => Math.hypot(a.cars[0].x - 100, a.cars[0].y - 77) - Math.hypot(b.cars[0].x - 100, b.cars[0].y - 77))[0];
     if (t0) {
-      const [bx, by] = RW.routePoint(t0.route, t0.c + (t0.halfLen - 3));
-      teleport(bx + 1.5, by + 1.5);
-      holdK.x = bx + 1.5; holdK.y = by + 1.5;
-      await sleep(1500); for (let i = 0; i < 40 && document.querySelector('.ls.on:not(.out)'); i++) await sleep(500); await sleep(3000);
-      await sleep(3000);
-      keyEv('keydown', 'e', 'KeyE'); await sleep(120); keyEv('keyup', 'e', 'KeyE');
-      await sleep(1500);
+      for (const end of [-1, 1]) {
+        if (w.trainDriving) break;
+        const [bx, by] = RW.routePoint(t0.route, t0.c + end * (t0.halfLen - 3));
+        teleport(bx, by);
+        holdK.x = bx; holdK.y = by;
+        await sleep(1500);
+        for (let i = 0; i < 40 && document.querySelector('.ls.on:not(.out)'); i++) await sleep(500);
+        await sleep(3000);
+        const SA = await imp('stationtravel');
+        info.push('trein-diag state ' + t0.state + ' stop-offmap ' + !!(t0.route.stops[t0.target] || {}).offmap + ' railZ ' + (RW.railZ(bx, by) || 0).toFixed(2) + ' speler gz+z ' + ((w.player.gz || 0) + (w.player.z || 0)).toFixed(2) + ' offMap ' + RW.isOffMap(bx, by, -20) + ' stationPrompt ' + JSON.stringify(SA.stationPrompt(w) && SA.stationPrompt(w).label) + ' afstand ' + Math.hypot(bx - w.player.x, by - w.player.y).toFixed(1) + ' inVehicle ' + !!w.player.inVehicle + ' swim ' + !!w.player.swimming + ' paused ' + !!w.paused);
+        const prompt = (await imp('traindrive')).trainPrompt(w);
+        info.push('trein einde ' + end + ' @' + Math.round(bx) + ',' + Math.round(by) + ' prompt ' + JSON.stringify(prompt && prompt.label));
+        keyEv('keydown', 'e', 'KeyE'); await sleep(120); keyEv('keyup', 'e', 'KeyE');
+        await sleep(1500);
+      }
       info.push('trein bestuurd ' + !!w.trainDriving);
       if (w.trainDriving) {
         w.wanted = 0; w.wantedDecayTimer = 0;
