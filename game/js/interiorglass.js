@@ -220,9 +220,9 @@ vec3 igProducts(vec2 c, float detail, float style, int st) {
     float h = igH(vec2(cell, row));
     float fx = fract(c.x / 0.78 + row * 0.5);
     col = vec3(0.14, 0.15, 0.17);
-    if (fx > 0.07 && fx < 0.93 && fy > 0.1 && fy < 0.9) {
-      vec3 scr = h < 0.3 ? vec3(0.2, 0.5, 1.0) : (h < 0.55 ? vec3(0.95, 0.5, 0.2) : (h < 0.8 ? vec3(0.9, 0.95, 1.0) : vec3(0.3, 0.85, 0.55)));
-      col = scr * (0.7 + 0.5 * fy);
+    if (fx > 0.14 && fx < 0.86 && fy > 0.16 && fy < 0.84) {
+      vec3 scr = h < 0.35 ? vec3(0.22, 0.5, 0.98) : (h < 0.65 ? vec3(0.35, 0.82, 0.95) : (h < 0.9 ? vec3(0.9, 0.95, 1.0) : vec3(0.95, 0.55, 0.25)));
+      col = scr * (0.75 + 0.45 * fy);
     }
   } else if (pat == 10) {
     float row = floor(c.y / 0.36), fy = fract(c.y / 0.36);
@@ -249,7 +249,7 @@ vec3 igProducts(vec2 c, float detail, float style, int st) {
       if (fx > 0.05 && fx < 0.95 && c.y > 0.04) col = pi == 0 ? vec3(0.95, 0.55, 0.12) : (pi == 1 ? vec3(0.3, 0.68, 0.25) : (pi == 2 ? vec3(0.88, 0.2, 0.18) : vec3(0.97, 0.85, 0.2)));
     } else if (c.y > 1.55) {
       float u = c.x / 0.45;
-      col = fract(u) < 0.5 ? vec3(0.88, 0.16, 0.14) : vec3(0.98, 0.9, 0.3);
+      col = c.y < 1.8 ? (fract(u) < 0.5 ? vec3(0.88, 0.16, 0.14) : vec3(0.98, 0.9, 0.3)) : vec3(0.92, 0.93, 0.9);
       if (c.y < 1.62) col = vec3(0.98);
     } else {
       float row = floor((c.y - 0.45) / 0.42), fy = fract((c.y - 0.45) / 0.42);
