@@ -50,7 +50,7 @@ const P = {
     me === SECOND ? [219, 'verlaat', { wie: SECOND }] : [219, 'wacht', { s: 22 }], [246, 'stopHost', {}],
   ]])),
   kamer: { host: [[0, 'wacht', { s: DURATION }]], gast: [[0, 'wacht', { s: DURATION }]], gast2: [[0, 'wacht', { s: DURATION }]] },
-  verhaal: Object.fromEntries(['host', 'gast', 'gast2'].map((me) => [me, [[0, 'verhaal', { s: Number(arg('verhaal-s', 1500)), until: arg('until', 'T1'), speed: Number(arg('speed', 1)) || 1 }], ...(me === 'host' ? [[0, 'stopHost', {}]] : [])]])), // de host stopt als het verhaal klaar is: de gasten lopen tot dan mee
+  verhaal: Object.fromEntries(['host', 'gast', 'gast2'].map((me) => [me, [[0, 'verhaal', { s: Number(arg('verhaal-s', 3600)), until: arg('until', 'T1'), speed: Number(arg('speed', 1)) || 1 }], ...(me === 'host' ? [[0, 'stopHost', {}]] : [])]])), // de host stopt als het verhaal klaar is: de gasten lopen tot dan mee
   opening: flag('host-save') ? Object.fromEntries(['host', 'gast', 'gast2'].map((me) => [me, [[0, 'wacht', { s: 8 }], [9, 'betaal', me === 'host' ? { geld: 250 } : {}], [16, 'opgeslagen', {}], [20, 'wacht', { s: 3 }], ...(me === 'host' ? [[24, 'stopHost', {}]] : [])]])) : Object.fromEntries(['host', 'gast', 'gast2'].map((me) => [me, [[0, 'opening', { s: Number(arg('opening-s', 400)), skip: flag('skip') }], ...(me === 'host' ? [[0, 'stopHost', {}]] : [])]])), // nieuw spel samen: het hek, de opening, overslaan (alleen de gastheer)
   gastacties: Object.fromEntries(['host', 'gast', 'gast2'].map((me) => [me, [[14, 'gastwinkel', { s: 50 }], [66, 'gastrit', { s: 90 }], ...(me === 'host' ? [[160, 'stopHost', {}]] : [])]])), // #291: winkelen en een rit met het stuur
   touch: { host: [[0, 'kijk', { s: 16 }]], gast: [[0, 'touch', { s: 12 }]], gast2: [[0, 'wacht', { s: 16 }]] },
@@ -240,7 +240,7 @@ if (GASTEN === 0) { // alleen de host in Electron: wat de headless gasten en de 
     check(kinds.klok && kinds.hash, `mockgast ${i + 1}: geen klok- en hashberichten`);
     if (SUITE === 'verhaal') {
       check(labels.size >= 3, `mockgast ${i + 1}: te weinig opdrachtmeldingen van de host (${labels.size})`);
-      check(med != null && med < 30, `mockgast ${i + 1}: loopt niet mee met Tammo (mediaan ${med == null ? '?' : med.toFixed(0)} m)`);
+      if (i === 0) check(med != null && med < 30, `mockgast ${i + 1}: loopt niet mee met Tammo (mediaan ${med == null ? '?' : med.toFixed(0)} m)`); // plek 2 en hoger rijden mee of worden bij de groep gezet (#372)
       check((kinds.weer || 0) >= 2, `mockgast ${i + 1}: geen weerberichten van de host (#364)`);
       check((kinds.beloning || 0) >= 1 && (kinds.uitslag || 0) >= 1, `mockgast ${i + 1}: geen beloning of uitslag na een geslaagde opdracht (#365, #371): ${kinds.beloning || 0}/${kinds.uitslag || 0}`);
       { const dur = Math.max(1, (Date.now() - T0) / 1000); note(`mockgast ${i + 1}: ontvangt ${(m.transport.bytesIn / 1024 / dur).toFixed(1)} kB/s en stuurt ${(m.transport.bytesOut / 1024 / dur).toFixed(2)} kB/s`); }
