@@ -144,9 +144,9 @@ if (want('bus3')) {
   if (bus) {
     const gh = (x, y) => (map.groundHeightAt ? map.groundHeightAt(x, y, 0) || 0 : 0);
     const keep = setInterval(() => { if (bus) bus.speed = 0; }, 50);
-    for (const [name, rel, R, up] of [['voor', 0, 5.5, 2.6], ['voor-dicht', 0, 3.2, 2.9], ['zij', Math.PI / 2, 5.5, 2.2]]) {
+    for (const [name, rel, R, up] of [['voor', 0, 12, 2.4], ['voor-dicht', 0, 9, 2.6], ['voor-schuin', 0.6, 10, 2.4], ['zij', Math.PI / 2, 7, 2.2]]) {
       const a = bus.angle + rel, g = gh(bus.x, bus.y);
-      const pose = { position: { x: bus.x + Math.cos(a) * R, y: bus.y + Math.sin(a) * R, z: g + up }, lookAt: { x: bus.x + Math.cos(bus.angle) * (rel === 0 ? 2 : 1.5), y: bus.y + Math.sin(bus.angle) * (rel === 0 ? 2 : 1.5), z: g + 2.6 }, cut: true };
+      const pose = { position: { x: bus.x + Math.cos(a) * R, y: bus.y + Math.sin(a) * R, z: g + up }, lookAt: { x: bus.x + Math.cos(bus.angle) * (rel === 0 || rel === 0.6 ? 5.4 : 1.5), y: bus.y + Math.sin(bus.angle) * (rel === 0 || rel === 0.6 ? 5.4 : 1.5), z: g + 2.4 }, cut: true };
       if (cine.isCinematicActive()) cine.skipCinematic();
       cine.playCinematic({ id: 'vi-bus', duration: 60, priority: 9, shot: () => pose });
       await sleep(2000);
