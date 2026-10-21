@@ -6,6 +6,7 @@ const sleep = (ms) => new Promise((res) => setTimeout(res, ms));
 for (let i = 0; i < 240 && !(window.__debug && window.__debug.world); i++) await sleep(500);
 const D = window.__debug; const w = D.world;
 const out = { stappen: [], fouten: [] };
+try {
 
 // een nep-pad met de standaardindeling; knoppen op indexnummer van PAD_BUTTONS
 const ORDER = ['a', 'b', 'x', 'y', 'lb', 'rb', 'lt', 'rt', 'view', 'start', 'ls', 'rs', 'up', 'down', 'left', 'right'];
@@ -86,4 +87,5 @@ try {
     await tap('y'); await sleep(900); snap('Y: uitstappen', { auto: !!p.inVehicle });
   }
 } catch (e) { out.fouten.push('voertuig: ' + e.message); }
+} catch (e) { out.fouten.push('fataal: ' + (e && e.stack || e)); }
 return JSON.stringify({ results: { pad: out } });
