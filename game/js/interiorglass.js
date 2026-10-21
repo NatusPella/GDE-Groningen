@@ -34,6 +34,7 @@ const uniforms = {
   uShopFloor: { value: flat(SHOP_T.floor) },
   uShopAccent: { value: flat(SHOP_T.accent) },
   uShopLay: { value: flat(SHOP_T.layout) },
+  uShopSty: { value: flat(SHOP_T.stijl) },
   uNightGlow: { value: 0 },
   uLitFrac: { value: 0 },
   uShopFrac: { value: 0 },
@@ -77,6 +78,7 @@ uniform vec4 uShopWall[${SHOP_KINDS.length}];
 uniform vec4 uShopFloor[${SHOP_KINDS.length}];
 uniform vec4 uShopAccent[${SHOP_KINDS.length}];
 uniform vec4 uShopLay[${SHOP_KINDS.length}];
+uniform vec4 uShopSty[${SHOP_KINDS.length}];
 
 struct IgPane { vec2 p; vec2 size; float K; float kind; float rank; };
 
@@ -126,18 +128,119 @@ float igBox(vec3 ro, vec3 ird, vec3 b0, vec3 b1, inout vec3 n) {
   return a;
 }
 
+float igDisc(vec2 p, vec2 r) { return length(p / r); }
+
+// Wat er in de ruit staat verschilt per winkeltype (winkelkit.js, STIJL.patroon): schappen,
+// broden, koelvitrine, menubord, kledingrekken, fietswielen, bloemen, spiegels, tv's,
+// rommel, kaarten en tijdschriften. Op afstand blijft de kleur van het type over.
 vec3 igProducts(vec2 c, float detail, float style, int st) {
   vec4 acc = uShopAccent[st];
+  int pat = int(uShopSty[st].x + 0.5);
   float rh = 0.3 + 0.35 * uShopWall[st].a + 0.08 * style;
-  float row = floor(c.y / rh);
-  float fy = fract(c.y / rh);
-  float cell = floor(c.x / (0.06 + 0.4 * uShopLay[st].w * (0.8 + 0.4 * style)) + row * 0.37);
-  float h = igH(vec2(cell, row));
-  vec3 prod = 0.35 + 0.6 * vec3(fract(h * 3.7), fract(h * 5.3 + 0.2), fract(h * 9.1 + 0.5));
-  prod = mix(prod, acc.rgb * (0.55 + 0.7 * h), acc.a);
-  prod = mix(vec3(0.62), prod, detail);
-  vec3 col = fy < 0.1 ? vec3(0.85) : (fy < 0.1 + 0.75 * (0.6 + 0.4 * h) ? prod : vec3(0.3));
-  return col;
+  float itemW = 0.06 + 0.4 * uShopLay[st].w * (0.8 + 0.4 * style);
+  vec3 col;
+  if (pat == 1) {
+    rh = 0.5;
+    float row = floor(c.y / rh), fy = fract(c.y / rh);
+    float cell = floor(c.x / 0.3 + row * 0.37);
+    float h = igH(vec2(cell, row));
+    vec2 l = vec2(fract(c.x / 0.3 + row * 0.37) - 0.5, fy - 0.36);
+    col = vec3(0.96, 0.9, 0.76);
+    if (fy < 0.1) col = vec3(0.55, 0.38, 0.2);
+    else if (igDisc(l, vec2(0.44, 0.26)) < 1.0) col = mix(vec3(0.82, 0.5, 0.2), vec3(0.58, 0.32, 0.14), h) * (1.15 - 0.4 * l.y);
+    if (fy > 0.1 && h > 0.8 && igDisc(l, vec2(0.44, 0.26)) < 0.7) col = mix(col, vec3(0.9, 0.35, 0.4), 0.6);
+  } else if (pat == 2) {
+    rh = 0.45;
+    float row = floor(c.y / rh), fy = fract(c.y / rh);
+    float cell = floor(c.x / 0.3 + row * 0.5);
+    float h = igH(vec2(cell, row));
+    col = vec3(0.78, 0.88, 0.9);
+    if (fy < 0.22) col = mix(vec3(0.72, 0.22, 0.22), vec3(0.93, 0.6, 0.55), h);
+    else if (fy > 0.5 && fract(c.x / 0.13 + h) < 0.4) col = vec3(0.58, 0.26, 0.2);
+    else if (fy < 0.3) col = vec3(0.95);
+  } else if (pat == 3) {
+    float row = floor(c.y / 0.16), fy = fract(c.y / 0.16);
+    float cell = floor(c.x / 1.1);
+    float h = igH(vec2(cell, row));
+    col = vec3(0.13, 0.1, 0.1);
+    float bar = fract(c.x / 1.1);
+    if (c.y > 1.15 && c.y < 1.9 && fract(c.x / 0.55) > 0.1 && fract(c.x / 0.55) < 0.9) col = mix(vec3(0.85, 0.35, 0.18), vec3(0.95, 0.75, 0.25), h);
+    else if (fy > 0.25 && fy < 0.7 && bar < 0.15 + 0.6 * h) col = vec3(0.96, 0.82, 0.32);
+  } else if (pat == 4) {
+    float row = floor(c.y / 0.75), fy = fract(c.y / 0.75);
+    float cell = floor(c.x / 0.075 + row * 3.0);
+    float h = igH(vec2(cell, row));
+    col = vec3(0.9, 0.88, 0.92);
+    if (fy > 0.86 && fy < 0.92) col = vec3(0.5);
+    else if (fy > 0.12 && fy < 0.86 && fract(c.x / 0.075 + row * 3.0) < 0.82) col = mix(0.25 + 0.7 * vec3(fract(h * 3.7), fract(h * 7.1), fract(h * 11.3)), acc.rgb, 0.35 * h);
+  } else if (pat == 5) {
+    float cell = floor(c.x / 1.1);
+    float h = igH(vec2(cell, 4.0));
+    vec2 l = vec2(fract(c.x / 1.1) * 1.1, mod(c.y, 1.2));
+    col = vec3(0.86, 0.9, 0.94);
+    float w1 = abs(length(l - vec2(0.28, 0.4)) - 0.27), w2 = abs(length(l - vec2(0.82, 0.4)) - 0.27);
+    if (min(w1, w2) < 0.035) col = vec3(0.1);
+    else if (abs(l.y - (0.4 + 0.25 * (l.x - 0.28) / 0.54)) < 0.025 && l.x > 0.28 && l.x < 0.82) col = mix(acc.rgb, vec3(0.8, 0.2, 0.2), h);
+    else if (abs(l.y - 0.4) < 0.02 && l.x > 0.28 && l.x < 0.82) col = vec3(0.2);
+  } else if (pat == 6) {
+    rh = 0.75;
+    float row = floor(c.y / rh), fy = fract(c.y / rh);
+    float cell = floor(c.x / 0.42 + row * 0.5);
+    float h = igH(vec2(cell, row));
+    vec2 l = vec2(fract(c.x / 0.42 + row * 0.5) - 0.5, fy);
+    col = vec3(0.86, 0.93, 0.82);
+    if (fy < 0.3 && abs(l.x) < 0.38) col = vec3(0.55, 0.6, 0.64);
+    else if (fy > 0.3 && fy < 0.55 && abs(l.x) < 0.04) col = vec3(0.2, 0.5, 0.22);
+    else if (fy >= 0.55 && igDisc(vec2(l.x, fy - 0.7), vec2(0.34 + 0.08 * h, 0.2)) < 1.0) {
+      vec3 fl = h < 0.25 ? vec3(0.95, 0.3, 0.5) : (h < 0.5 ? vec3(0.98, 0.85, 0.2) : (h < 0.75 ? vec3(0.95, 0.95, 0.95) : vec3(0.9, 0.2, 0.2)));
+      col = fl * (0.85 + 0.3 * fract(h * 40.0));
+    }
+  } else if (pat == 7) {
+    float cell = floor(c.x / 1.2);
+    float fx = fract(c.x / 1.2);
+    col = vec3(0.86, 0.93, 0.93);
+    if (fx > 0.08 && fx < 0.92 && c.y > 0.55 && c.y < 2.0) {
+      col = mix(vec3(0.64, 0.78, 0.86), vec3(0.93, 0.97, 1.0), clamp((c.y - 0.5) * 0.5 + 0.25 * fx, 0.0, 1.0));
+      if (fx < 0.12 || fx > 0.88 || c.y < 0.6 || c.y > 1.95) col = vec3(0.12);
+    } else if (c.y < 0.55 && fract(c.x / 0.2) < 0.5) col = mix(vec3(0.3, 0.6, 0.7), vec3(0.85, 0.5, 0.6), igH(vec2(cell, floor(c.x / 0.2))));
+  } else if (pat == 8) {
+    float row = floor(c.y / 0.5), fy = fract(c.y / 0.5);
+    float cell = floor(c.x / 0.78 + row * 0.5);
+    float h = igH(vec2(cell, row));
+    float fx = fract(c.x / 0.78 + row * 0.5);
+    col = vec3(0.14, 0.15, 0.17);
+    if (fx > 0.07 && fx < 0.93 && fy > 0.1 && fy < 0.9) {
+      vec3 scr = h < 0.3 ? vec3(0.2, 0.5, 1.0) : (h < 0.55 ? vec3(0.95, 0.5, 0.2) : (h < 0.8 ? vec3(0.9, 0.95, 1.0) : vec3(0.3, 0.85, 0.55)));
+      col = scr * (0.7 + 0.5 * fy);
+    }
+  } else if (pat == 10) {
+    float row = floor(c.y / 0.36), fy = fract(c.y / 0.36);
+    float cell = floor(c.x / 0.2 + row * 0.41);
+    float h = igH(vec2(cell, row));
+    float fx = fract(c.x / 0.2 + row * 0.41);
+    col = vec3(0.98, 0.95, 0.88);
+    if (fx > 0.1 && fx < 0.9 && fy > 0.12 && fy < 0.88) col = 0.3 + 0.7 * vec3(fract(h * 3.7), fract(h * 5.3 + 0.2), fract(h * 9.1 + 0.5));
+    if (h > 0.85) col = mix(vec3(0.95), vec3(0.2, 0.35, 0.75), step(0.5, fy));
+  } else if (pat == 11) {
+    float row = floor(c.y / 0.34), fy = fract(c.y / 0.34);
+    float cell = floor(c.x / 0.24 + row * 0.33);
+    float h = igH(vec2(cell, row));
+    float fx = fract(c.x / 0.24 + row * 0.33);
+    col = vec3(0.3);
+    if (fx > 0.06 && fx < 0.94 && fy > 0.05) col = fy > 0.65 ? mix(acc.rgb, vec3(0.95, 0.85, 0.2), h) : 0.55 + 0.4 * vec3(fract(h * 3.7), fract(h * 5.3), fract(h * 9.1));
+  } else {
+    // 0 schappen, 9 rommelkasten: rijen producten in de kleur van het type
+    float row = floor(c.y / rh), fy = fract(c.y / rh);
+    float cell = floor(c.x / itemW + row * 0.37);
+    float h = igH(vec2(cell, row));
+    vec3 prod = 0.35 + 0.6 * vec3(fract(h * 3.7), fract(h * 5.3 + 0.2), fract(h * 9.1 + 0.5));
+    prod = mix(prod, acc.rgb * (0.55 + 0.7 * h), acc.a);
+    if (pat == 9) prod = prod * vec3(0.8, 0.7, 0.55) + 0.05;
+    col = fy < 0.1 ? vec3(0.85) : (fy < 0.1 + 0.75 * (0.6 + 0.4 * h) ? prod : vec3(0.3));
+    if (pat == 9) col = fy < 0.1 ? vec3(0.45, 0.32, 0.2) : col;
+  }
+  // far away only the type's tone remains
+  return mix(mix(vec3(0.4), acc.rgb, 0.45) * 0.9, col, detail);
 }
 
 vec3 igInterior(IgPane q, vec3 N, vec3 V, float dist, out float fres) {
