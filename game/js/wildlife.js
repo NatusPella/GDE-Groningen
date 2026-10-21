@@ -9,9 +9,11 @@ import { splatterAnimal, GIB_SPEED } from './gore3d.js';
 import { MODS } from './cheatmods.js';
 import { buildingAt } from './tileplace.js';
 import { streekAt } from './regioleven.js';
-import { wildlifeLimits, grazerPick, gansKans, fleeFrom, STREEK_MIX } from './dierenplan.js';
+import { wildlifeLimits, fleeFrom, STREEK_MIX } from './dierenplan.js';
 import { getSettings } from './settings.js';
-import { dierVanKind, ONTDEK_M, SET_DIEREN } from './dierenregister.js';
+import { dierVanKind, ONTDEK_M, SET_DIEREN, biotoopVanPlek, veeVoorPlek } from './dierenregister.js';
+import { urbanWeight } from './provinceworld.js';
+import { inBebouwdeKom } from './worldplaces.js';
 import { recordUnique } from './achievements.js';
 
 // Ambient trailer-parody wildlife: seagulls over the Diepenring,
@@ -270,6 +272,11 @@ function maintain(world) {
   }
   const streek = streekAt(player.x, player.y);
   const streekId = streek ? streek.id : 'stad';
+  // #330: vee hoort op weide en dijk. Wie de bebouwde kom in komt (of de stad in rijdt), laat het achter.
+  for (let i = list.length - 1; i >= 0; i--) {
+    const a = list[i];
+    if ((a.kind === 'cow' || a.kind === 'sheep' || a.kind === 'gans') && biotoopVanPlek(streekId, urbanWeight(a.x, a.y), inBebouwdeKom(a.x, a.y)) === 'stad') list.splice(i, 1);
+  }
   const LIMITS = wildlifeLimits(streekId, getSettings().quality, BASE_LIMITS);   // #193
   const count = { seagull: 0, grazer: 0, duck: 0, pigeon: 0, cat: 0, dog: 0, reiger: 0, zeehond: 0, vis: 0 };
   for (const a of list) count[a.kind === 'cow' || a.kind === 'sheep' || a.kind === 'gans' ? 'grazer' : a.kind]++;
@@ -286,16 +293,16 @@ function maintain(world) {
     }
   }
   const green = greenPolys.length && count.grazer < LIMITS.grazer && rng() < 0.3 ? layerPointNear(map, 'greenNear', player.x, player.y, rng, 15, SPAWN_RADIUS) : null;
-  if (green) {
-    const hx = green.x, hy = green.y;
-    if (count.grazer + 3 <= LIMITS.grazer && rng() < gansKans(streekId)) {   // #193: ganzen op het land
-      const n = 3 + Math.floor(rng() * 3);
-      for (let k = 0; k < n && count.grazer + k < LIMITS.grazer; k++) list.push(newGrazer('gans', hx + (rng() - 0.5) * 3, hy + (rng() - 0.5) * 3, rng));
-      return;
-    }
-    const kind = grazerPick(streekId, rng());
-    const herd = kind === 'sheep' ? 1 + Math.floor(rng() * 2) : 1;
-    for (let k = 0; k < herd && count.grazer + k < LIMITS.grazer; k++) list.push(newGrazer(kind, hx + k * 1.5, hy + k * 0.8, rng));
+  const biotoop = green ? biotoopVanPlek(streekId, urbanWeight(green.x, green.y), inBebouwdeKom(green.x, green.y)) : null;
+  const vee = green ? veeVoorPlek(streekId, biotoop, ((world.clock % 24) + 24) % 24, rng()) : null;   // #330: nooit in de bebouwde kom
+  if (vee === 'gans') {
+    const n = 3 + Math.floor(rng() * 3);
+    for (let k = 0; k < n && count.grazer + k < LIMITS.grazer; k++) list.push(newGrazer('gans', green.x + (rng() - 0.5) * 3, green.y + (rng() - 0.5) * 3, rng));
+    return;
+  }
+  if (vee) {
+    const herd = vee === 'sheep' ? 1 + Math.floor(rng() * 2) : 1;
+    for (let k = 0; k < herd && count.grazer + k < LIMITS.grazer; k++) list.push(newGrazer(vee, green.x + k * 1.5, green.y + k * 0.8, rng));
   }
   if (waterClose) list.push(...spawnWaterLife(map, player, streekId, count, getSettings().quality, rng));
   if (count.duck < LIMITS.duck - 1 && waterClose) list.push(...spawnDucks(map, player.x, player.y, rng));
@@ -677,6 +684,7 @@ export function updateWildlife(dt, world) {
       if (world.time - a.deadAt > CARCASS_S) a.gone = true;
       continue;
     }
+    if (a.ontvoerd) continue;   // #333: de schotel heeft dit schaap (schaapontvoeringrt.js), het loopt niet meer
     switch (a.kind) {
       case 'seagull': updateSeagull(a, dt, world); break;
       case 'duck': updateDuck(a, dt); break;

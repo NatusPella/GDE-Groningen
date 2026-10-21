@@ -2352,7 +2352,7 @@ function drawMinimap(dt, world) {
     }
   }
   ctx.globalAlpha = landAlpha;
-  drawRailsOnMap(ctx, world.map, player.x - MM_RADIUS_M, player.y - MM_RADIUS_M, player.x + MM_RADIUS_M, player.y + MM_RADIUS_M, 3.2);
+  drawRailsOnMap(ctx, world.map, player.x - MM_RADIUS_M, player.y - MM_RADIUS_M, player.x + MM_RADIUS_M, player.y + MM_RADIUS_M, 3.2, MINI_STYLE);
   drawTrainsOnMap(ctx);
 
   const MM_BUILDING_COLORS = MINI_STYLE.buildings;

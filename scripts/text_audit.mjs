@@ -221,7 +221,7 @@ const WINTER = [
 // HUD, minimap, cheats en savegame (de eigenaar koos dat woord voor de opgeslagen spelstand) zijn ingeburgerd en staan hier bewust niet in.
 const ANGLICISMEN = [
   ['save', 'savegame (zelfstandig), opslaan (werkwoord)'], ['saves', 'savegames'], ['save slot', 'opslagplek'], ['save-slot', 'opslagplek'],
-  ['host', 'gastheer'], ['co-op', 'samen spelen'], ['coöp', 'samen spelen'], ['multiplayer', 'samen spelen'], ['checkpoint', 'controlepunt (race) of hervatpunt (opnieuw beginnen)'], ['checkpoints', 'controlepunten'],
+  ['host', 'de naam van de speler (Tammo, Tessa) of "de ander"'], ['co-op', 'samen spelen'], ['coöp', 'samen spelen'], ['multiplayer', 'samen spelen'], ['checkpoint', 'controlepunt (race) of hervatpunt (opnieuw beginnen)'], ['checkpoints', 'controlepunten'],
   ['ghost', 'spook of spookrijder'], ['ghosts', 'spookrijders'], ['chain', 'keten'], ['run', 'ronde, rit of poging'], ['runs', 'rondes'],
   ['trick', 'kunstje of toer'], ['tricks', 'kunstjes of toeren'], ['boost', 'versnelling of stoot'], ['combo', 'reeks'], ['combo\'s', 'reeksen'],
   ['livestream', 'uitzending'], ['deadline', 'uiterste tijd'], ['shopaholic', 'winkelverslaafde'], ['total loss', 'afgeschreven'], ['lobby', 'wachtkamer of kamer'], ['loadout', 'uitrusting'],
@@ -234,6 +234,8 @@ const stripMarkup = (t) => t.replace(/\b(?:data-[\w-]+|class|id|for|name|type|ro
 
 const FIXED = [
   { rule: 'de-grunn', re: /\bde Grunn\b(?!e|\w)/i, note: "'de Grunn' mag niet; het is 'Grunn'" },
+  // samen spelen heeft geen rolnaam (eigenaar, 20-10): wie het spel opende heet bij zijn naam (Tammo, Tessa, de profielnaam) of 'de ander'
+  { rule: 'rolnaam', re: /\bgast(?:heer|gever)\b/i, note: "geen rolnaam bij samen spelen: gebruik de naam van de speler ('Tammo heeft het spel geopend') of 'de ander' (docs/WOORDENLIJST.md)" },
 ];
 
 // ---------------------------------------------------------------- allowlist

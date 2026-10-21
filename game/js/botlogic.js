@@ -210,7 +210,11 @@ export function decide(s, mem = {}) {
   if (!veh && (stage === 'board' || stage === 'plane') && (mem.boardTries || 0) < 4) {
     // a boat or a plane counts too: M17 starts in a sloep, M15 in a plane
     const near = (s.nearby && s.nearby.vehicles || []).filter((c) => c.free && c.distance < 80);
-    const v = near.find((c) => !light(c.kind)) || near[0];
+    // the marker of a board stage stands on the mission's own car: a free vehicle right at the marker wins over the nearest one (M22: the Escapade stands in a car park among other cars)
+    const atMarker = t && Number.isFinite(t.x) ? near.filter((c) => Math.hypot(c.x - t.x, c.y - t.y) < 8).sort((a, c) => Math.hypot(a.x - t.x, a.y - t.y) - Math.hypot(c.x - t.x, c.y - t.y))[0] : null;
+    // the marker is still far off and no car stands there: walk to it first (20 s), not into the nearest car (a stolen one brings the police)
+    if (!atMarker && t && t.distance > 30) { if (mem.boardWalkUntil == null) mem.boardWalkUntil = (s.t || 0) + 20; if ((s.t || 0) < mem.boardWalkUntil) return { type: 'goto', mode: 'walk' }; }
+    const v = atMarker || near.find((c) => !light(c.kind)) || near[0];
     if (v) return { type: 'enter', vehicle: v };
   }
   // on foot at the marker with a prompt on screen (the loket, the pinautomaat, a counter): press the action key a few times

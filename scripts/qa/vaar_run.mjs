@@ -1,8 +1,9 @@
 // Speelcheck van de vaarroute (#232 #233 #184): één headless Electron (wegwerpprofiel) zet een waypoint op de Waddenzee,
 // laat een sloep de route van de stad naar Lauwersoog in stukken varen en de Waddenzee op, met screenshots.
-//   node scripts/qa/vaar_run.mjs --game-dir=<gestaged game-map> [--out=<map>] [--settle=6000] [--leg=14] [--sea=30]
+//   node scripts/qa/vaar_run.mjs --game-dir=<gestaged game-map> [--out=<map>] [--settle=6000] [--leg=14] [--sea=30] [--wait=8]
 // De game-map is `desktop/build/game` of een kopie met de provinciewereld (GDE_GAME_DIR);
 // GDE_DESKTOP=<map> voor een desktop-map met node_modules; ELECTRON_EXE=<pad> als desktop/node_modules/electron/dist ontbreekt.
+// --wait: de seconden die een ver controlepunt krijgt om zijn tegels te laden voordat het als 'niet nat' telt.
 // Uitvoer: <out>/shots-<id>.png, vaar.json, run.log.
 import fs from 'node:fs';
 import os from 'node:os';
@@ -17,7 +18,7 @@ const OUT = path.resolve(arg('out', path.join(os.tmpdir(), 'gde-qa-vaar')));
 fs.mkdirSync(OUT, { recursive: true });
 const profile = `gde-test-va-${process.pid}`;
 const script = path.join(OUT, '_page.js');
-fs.writeFileSync(script, `window.__va = ${JSON.stringify({ settle: Number(arg("settle", 6000)), leg: Number(arg("leg", 14)), sea: Number(arg("sea", 30)), wait: Number(arg("wait", 30)) })};\n` + fs.readFileSync(path.join(HERE, 'vaar.page.js'), 'utf8'));
+fs.writeFileSync(script, `window.__va = ${JSON.stringify({ settle: Number(arg("settle", 6000)), leg: Number(arg("leg", 14)), sea: Number(arg("sea", 30)), wait: Number(arg("wait", 8)) })};\n` + fs.readFileSync(path.join(HERE, 'vaar.page.js'), 'utf8'));
 const electron = process.env.ELECTRON_EXE || path.join(ROOT, 'desktop', 'node_modules', 'electron', 'dist', process.platform === 'win32' ? 'electron.exe' : 'Electron');
 const env = { ...process.env, GDE_TEST_PROFILE: profile };
 if (arg('game-dir')) env.GDE_GAME_DIR = path.resolve(arg('game-dir'));

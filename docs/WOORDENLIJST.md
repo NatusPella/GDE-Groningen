@@ -13,8 +13,8 @@ Code-identifiers, bestandsnamen en opslagsleutels (`gde-save-v1`, `saveslots.js`
 | save slot, slot (voor een savegame) | **opslagplek** | "slot" als deursluiting is gewoon Nederlands en blijft |
 | backup | **herstelkopie** | |
 | load, loaden | **laden** | "Laatste savegame laden" |
-| host | **gastheer** | de speler die de kamer opent bij samen spelen; de ander is de gast |
-| co-op, coöp, multiplayer | **samen spelen** | de naam van de modus in beeld; "gastheer" en "gast" voor host en guest. Interne namen, bestanden en issue-titels blijven `coop` |
+| host, gastheer, gastgever | **de naam van de speler** ("Tammo heeft het spel geopend", "Wacht tot Tammo het spel start"), of **de ander** | geen rolnaam bij samen spelen (eigenaar, 20-10): niet "gastheer" en niet "gastgever". De knoppen heten **Een spel openen** en **Meedoen**; de naam is die van het personage (Tammo, Tessa) of de profielnaam. "Gast" mag waar het moet ("de gast"), liever met naam. In code en docs blijft de interne naam `host` |
+| co-op, coöp, multiplayer | **samen spelen** | de naam van de modus in beeld; zie ook de regel hierboven voor wie het spel opende. Interne namen, bestanden en issue-titels blijven `coop` |
 | lobby | **kamer** (of wachtkamer) | alleen waar het in beeld staat |
 | checkpoint (race, route) | **controlepunt** | "Controlepunt 4/9" |
 | checkpoint (opnieuw beginnen na mislukken) | **hervatpunt** | "Je begint opnieuw bij het laatste hervatpunt." |
