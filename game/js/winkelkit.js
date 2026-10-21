@@ -100,12 +100,43 @@ export const WINKEL = {
   },
 };
 
+// Hoe de producten in de ruit eruitzien (patroon in de shader, igProducts) en wat er
+// buiten voor de deur staat (models3d_buildings.js, addShopfront): zo lijkt een
+// bakker niet op een bloemist, ook niet op afstand.
+//   patroon: 0 schappen, 1 broden en taarten, 2 koelvitrine, 3 menubord, 4 kledingrekken,
+//            5 fietswielen, 6 emmers met bloemen, 7 spiegelwand, 8 tv-schermen,
+//            9 rommelkasten, 10 kaarten en mokken, 11 tijdschriftenrek
+export const STIJL = {
+  supermarkt: { patroon: 0, buiten: 'karretjes' },
+  bakker: { patroon: 1, buiten: 'bord' },
+  slager: { patroon: 2, buiten: 'bord' },
+  snackbar: { patroon: 3, buiten: 'menubord' },
+  kleding: { patroon: 4, buiten: 'poppen' },
+  fietsen: { patroon: 5, buiten: 'fietsrek' },
+  bloemist: { patroon: 6, buiten: 'emmers' },
+  kapper: { patroon: 7, buiten: 'kapperspaal' },
+  elektronica: { patroon: 8, buiten: 'vlag' },
+  tweedehands: { patroon: 9, buiten: 'meubels' },
+  souvenir: { patroon: 10, buiten: 'draaistandaard' },
+  kiosk: { patroon: 11, buiten: 'krantenrek' },
+  kermiskraam: { patroon: 1, buiten: 'bord' },
+};
+for (const k of SHOP_KINDS) Object.assign(WINKEL[k], STIJL[k]);
+
 export const SHOP_LEVELS = 32; // niveaus van de ruitrang (interiorglass.js)
 
 // Hetzelfde type in de gevel (rang -> niveau) en in de shader (K / 8 -> niveau).
 export function typeOfLevel(level) {
   const n = SHOP_KINDS.length;
   return SHOP_KINDS[((Math.floor(level) % n) + n) % n];
+}
+// Het omgekeerde: een rang die bij `type` hoort (een van de niveaus van dat type, per seed).
+export function rankForType(type, seed = 0) {
+  const levels = [];
+  for (let l = 0; l < SHOP_LEVELS; l++) if (typeOfLevel(l) === type) levels.push(l);
+  if (!levels.length) return hash2(seed, 5.5);
+  const l = levels[Math.floor(hash2(seed, 8.8) * levels.length) % levels.length];
+  return (l + 0.5) / SHOP_LEVELS;
 }
 export const typeOfRank = (rank) => typeOfLevel(Math.floor(Math.min(0.999, Math.max(0, rank)) * SHOP_LEVELS));
 
@@ -144,18 +175,19 @@ export function winkelLook(type, seed = 0) {
 export function facadeLook(rank) {
   const type = typeOfRank(rank);
   const t = WINKEL[type];
-  return { type, sign: t.sign, awning: t.awning };
+  return { type, sign: t.sign, awning: t.awning, buiten: t.buiten };
 }
 
-// Voor de shader: vier vec4-reeksen in volgorde van SHOP_KINDS.
+// Voor de shader: vijf vec4-reeksen in volgorde van SHOP_KINDS.
 export function shaderTable() {
-  const wall = [], floor = [], accent = [], layout = [];
+  const wall = [], floor = [], accent = [], layout = [], stijl = [];
   for (const k of SHOP_KINDS) {
     const t = WINKEL[k];
     wall.push([...hex(t.wall), t.row]);
     floor.push([...hex(t.floor), t.floorPattern]);
     accent.push([...hex(t.accent), t.mix]);
     layout.push([t.island[0], t.island[1], t.counter[0], t.items]);
+    stijl.push([t.patroon, 0, 0, 0]);
   }
-  return { wall, floor, accent, layout };
+  return { wall, floor, accent, layout, stijl };
 }
