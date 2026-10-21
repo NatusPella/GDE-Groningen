@@ -30,12 +30,12 @@ function growTyped(a, n) {
 }
 
 class DrawPool extends THREE.BatchedMesh {
-  constructor(material, cast, layout) {
+  constructor(material, cast, layout, receive) {
     super(1, 1, 1, material);
     this.layout = layout; // [{ name, size, ctor, norm }]
     this.frustumCulled = false;
     this.castShadow = cast;
-    this.receiveShadow = true;
+    this.receiveShadow = receive;
     this.matrixAutoUpdate = false;
     this.perObjectFrustumCulled = false;
     this.sortObjects = false;
@@ -200,15 +200,15 @@ export function createDrawHub(name) {
     // called with each new pool: scene3d.js starts compiling its program right away
     onPool: null,
     // geo: merged, indexed, world coordinates, with a bounding sphere; returns the handle for remove
-    add(mat, cast, geo) {
-      const key = `${mat.uuid}|${cast ? 1 : 0}|${layoutSig(geo)}`;
+    add(mat, cast, geo, receive = true) {
+      const key = `${mat.uuid}|${cast ? 1 : 0}${receive ? 1 : 0}|${layoutSig(geo)}`;
       let p = pools.get(key);
       if (!p) {
         const layout = Object.keys(geo.attributes).sort().map((k) => {
           const a = geo.attributes[k];
           return { name: k, size: a.itemSize, ctor: a.array.constructor, norm: a.normalized };
         });
-        p = new DrawPool(copyOf(mat), cast, layout);
+        p = new DrawPool(copyOf(mat), cast, layout, receive);
         p.visible = false;
         root.add(p);
         pools.set(key, p);

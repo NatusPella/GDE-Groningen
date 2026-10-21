@@ -359,7 +359,7 @@ export function createFarLOD(scene, map, opts) {
       const mat = MATS[t.stream && name === 'green' ? 'greenNear' : t.stream && name === 'water' ? 'waterStream' : name];
       if (t.pooled) {
         // one cell of the multi-draw pool (multidraw3d.js) instead of a mesh of its own; `visible` follows the distance as before
-        const handle = drawHub.add(mat, false, geo);
+        const handle = drawHub.add(mat, false, geo, false);
         t.meshes.push({ handle, userData: { tris: geo.index.count / 3 }, vis: true, set visible(v) { if (v !== this.vis) { this.vis = v; drawHub.setVisible(this.handle, v); } }, get visible() { return this.vis; } });
         continue;
       }
