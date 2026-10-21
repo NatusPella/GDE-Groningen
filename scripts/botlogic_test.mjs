@@ -333,5 +333,22 @@ const near = (a, b, e = 1e-6) => Math.abs(a - b) < e;
   ok(!wall.reverse, 'carControls: met iemand vlak voor de neus niet blindelings achteruit');
 }
 
+// bochten in de route (#354): een rechte weg begrenst niets, een haakse bocht kost snelheid, hoe dichterbij hoe meer
+{
+  const car = { x: 0, y: 0, angle: 0, speed: 20 };
+  const straight = L.curveCap([{ x: 10, y: 0 }, { x: 30, y: 0 }, { x: 60, y: 0 }], 0, car);
+  ok(straight === Infinity, 'curveCap: een rechte weg begrenst niets');
+  const near = L.curveCap([{ x: 6, y: 0 }, { x: 6, y: 20 }, { x: 6, y: 40 }], 0, car);
+  const mid = L.curveCap([{ x: 20, y: 0 }, { x: 20, y: 20 }, { x: 20, y: 40 }], 0, car);
+  const far = L.curveCap([{ x: 50, y: 0 }, { x: 50, y: 20 }, { x: 50, y: 40 }], 0, car);
+  ok(near < mid && mid < far, 'curveCap: een haakse bocht dichtbij begrenst harder dan verder weg', String([near, mid, far]));
+  ok(near < 15 && near >= 5, 'curveCap: een haakse bocht op 6 m: ruim onder de 36 m/s en boven de ondergrens', String(near));
+  const gentle = L.curveCap([{ x: 20, y: 0 }, { x: 40, y: 6 }, { x: 60, y: 6 }], 0, car);
+  ok(gentle > mid, 'curveCap: een flauwe knik begrenst minder dan een haakse bocht', String([gentle, mid]));
+  ok(L.curveCap([{ x: 70, y: 0 }, { x: 70, y: 30 }, { x: 70, y: 60 }], 0, car, { look: 40 }) === Infinity, 'curveCap: wat voorbij het zicht ligt telt niet');
+  const slow = L.carControls(car, { x: 100, y: 0 }, { top: 36, curveCap: 8 });
+  ok(slow.want === 8 && slow.throttle === -1, 'carControls: een bocht voor de neus remt tot de bochtsnelheid', JSON.stringify(slow));
+}
+
 console.log(`${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);
