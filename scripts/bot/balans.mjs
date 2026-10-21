@@ -23,8 +23,17 @@ export function stepsOf(events) {
   const get = (id) => { if (!steps.has(id)) steps.set(id, { id, title: '', t0: null, t1: null, speel: null, wall: null, dist: null, cine: null, cineN: null, talk: null, goals: 0, maxQuiet: null, fails: 0, stuck: 0, cheats: [], outcome: '', cineDur: [], routes: [], firstStatus: null, stages: new Set(), stagesKnown: false, failTekst: [], pogingen: [[]], tMissie: null, aanloop: [] }); return steps.get(id); };
   // older runs logged the first goal of a step just before its 'begin' (meterTick ran first): put it after
   events = events.slice();
-  for (let i = 0; i + 1 < events.length; i++) {
-    if (events[i].type === 'doel' && events[i + 1].type === 'step' && events[i + 1].event === 'begin' && Math.abs(events[i + 1].t - events[i].t) < 0.6) { const x = events[i]; events[i] = events[i + 1]; events[i + 1] = x; i++; }
+  for (let i = 0; i < events.length; i++) {
+    if (events[i].type !== 'doel') continue;
+    let k = i + 1;
+    while (k < events.length && events[k].type === 'step' && events[k].event === 'end' && Math.abs(events[k].t - events[i].t) < 0.6) k++;
+    if (k > i && k < events.length && events[k].type === 'step' && events[k].event === 'begin' && Math.abs(events[k].t - events[i].t) < 0.6) {
+      const [d] = events.splice(i, 1);
+      // the new step logs the same goal again a moment later (the old meter saw it first): then drop this one
+      const dup = events.slice(k, k + 12).some((x) => x.type === 'doel' && Math.abs(x.t - d.t) < 3 && Math.abs((x.afstand || 0) - (d.afstand || 0)) < 12);
+      if (!dup) events.splice(k, 0, d);
+      i--;
+    }
   }
   for (const e of events) {
     if (e.type === 'step' && e.event === 'begin') { cur.id = e.id; const s = get(e.id); s.title = e.label || ''; if (s.t0 == null) s.t0 = e.t; }
