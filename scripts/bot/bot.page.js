@@ -17,6 +17,7 @@ const Br = await imp('breakables');
 const Pg = await imp('pigeonmode');
 const MS = await imp('missions');
 const BK = await imp('bakeround');
+const Co = await imp('collision');
 const BAKE_KEYS = { ei: '1', zout: '2', meel: '3', vet: '4', mosterd: '5' };
 for (let i = 0; i < 600 && !window.__bot; i++) await sleep(100);
 const B = window.__bot;
@@ -40,6 +41,16 @@ world.devInvuln = !!CFG.invulnerable;
 // --speed=N: N gameplay steps per frame (playerapi speed); waiting budgets and stuck windows are in game time, so they scale along
 if (CFG.speed > 1) B.speed(CFG.speed);
 
+// the game's own walking collision (player.js WALK_OPTS): a point is free when a walker standing there is not pushed out
+const WALK_OPTS = { byPlayer: true, noWalls: true };
+function footFree(x, y) {
+  try {
+    const gz = world.map.groundHeightAt ? world.map.groundHeightAt(x, y, 0) || 0 : 0;
+    const [rx, ry] = Co.resolveWalker(x, y, player.radius || 0.4, world.map, 0, 0, WALK_OPTS, gz, 0);
+    return Math.hypot(rx - x, ry - y) < 0.04;
+  } catch (e) { return true; }
+}
+
 function plan(s, mode, tgt) {
   const kind = mode === 'drive' ? 'drive' : 'walk';
   const me = { x: s.player.x, y: s.player.y };
@@ -59,8 +70,13 @@ function plan(s, mode, tgt) {
       if (e && L.distance({ x: e[0], y: e[1] }, tgt) < 80) { pts = R.getRouteAhead(1e9) || pts; src = pts ? 'gps' : src; }
     } catch (e) { /* geen route */ }
   }
-  const line = pts || [[me.x, me.y]];
+  let line = pts || [[me.x, me.y]];
   line.push([tgt.x, tgt.y]);
+  // on foot the planned route knows no stall poles, bins or benches: every blocked stretch gets a way round it (#218)
+  if (kind === 'walk') {
+    const rep = L.repairPath(line, footFree);
+    if (rep.fixed) { B.log('omweg-plan', { stukken: rep.fixed, van: line.length, naar: rep.pts.length }); line = rep.pts; src += '+omweg'; }
+  }
   follower = new L.PathFollower(line, { reach: mode === 'drive' ? 7 : 2.5 });
   B.log('route', { mode, planned: !!pts, src, points: line.length, to: [Math.round(tgt.x), Math.round(tgt.y)] });
 }
@@ -72,7 +88,7 @@ function steerTowards(s, mode, tgt, stopAt, top = 24, stopR = null) {
   if (!follower || key !== followKey || s.t - planAt > 12) { followKey = key; planAt = s.t; plan(s, mode, tgt); }
   const me = { x: s.player.x, y: s.player.y };
   const direct = L.distance(me, tgt);
-  const aim = direct < (mode === "walk" ? 9 : 25) ? tgt : follower.next(me) || tgt;   // on foot the planned route goes round poles and walls almost to the end
+  const aim = direct < (mode === "walk" ? 9 : 25) && (mode !== 'walk' || L.segmentFree(me, tgt, footFree)) ? tgt : follower.next(me) || tgt;   // on foot the planned route goes round poles and walls almost to the end
   if ((mode === 'drive' || mode === 'boat') && s.player.vehicle) {
     // a garage (M02: drive in and stand still 1.2 s) or a stage with `stop`: come to rest right there
     const stg = M.activeStage();
