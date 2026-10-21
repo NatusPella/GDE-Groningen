@@ -639,7 +639,7 @@ results.routes.glcalls = await safe('glcalls', async () => {
   for (const name of Object.getOwnPropertyNames(proto)) {
     let d; try { d = gl[name]; } catch (e) { continue; }
     if (typeof d !== 'function' || name === 'constructor') continue;
-    // what the context holds now (the game's own filter of redundant calls, glfilter.js, sits in front of the native one): counted behind the filter, restored afterwards
+    // what the context holds now (an own property of the context is put back afterwards, a prototype method stays where it is)
     const o = d; origs.push([name, o, Object.prototype.hasOwnProperty.call(gl, name)]);
     gl[name] = function (...a) { const m = cnt[phase]; m.set(name, (m.get(name) || 0) + 1); if (owner !== null && phase === 'main') { let q = byOwner.get(owner); if (!q) byOwner.set(owner, q = new Map()); q.set(name, (q.get(name) || 0) + 1); } return o.apply(gl, a); };
   }
@@ -653,7 +653,7 @@ results.routes.glcalls = await safe('glcalls', async () => {
   r.renderBufferDirect = function (camera, scene2, geometry, material, object, group) { if (window.__ownerOf && phase === 'main') owner = window.__ownerOf(object).replace(/ (Buffer|Extrude|Box|Cylinder|Plane|Circle|Sphere|Shape)[^ ]*.*$/, '').slice(0, 60); const out = rbd.call(r, camera, scene2, geometry, material, object, group); owner = null; if (phase === 'main') { const pr = r.properties.get(material).currentProgram; seq.push(pr ? pr.id : -1); } return out; };
   r.render = function (s2, c2) { if (s2 !== sc.scene) return prevR.call(r, s2, c2); const was = phase; phase = 'main'; frames++; seq = []; try { return prevR.call(r, s2, c2); } finally { phase = was; seqs.push(seq); } };
   const f0 = frameCount();
-  const fst = gl.__glFilter ? { ...gl.__glFilter } : null; // calls the filter of redundant GL calls (glfilter.js) kept from the context during these frames: they are in the counts below, but cost nothing
+  const fst = gl.__glFilter ? { ...gl.__glFilter } : null; // (only a build with a filter of redundant GL calls has this; the one of r42 was taken out again, see Vervolg 9)
   await new Promise((res) => { const f = () => { if (frames >= 90) res(); else requestAnimationFrame(f); }; requestAnimationFrame(f); });
   const filtered = fst ? { pixelStorei: +((gl.__glFilter.skippedPixelStore - fst.skippedPixelStore) / frames).toFixed(1), texParameteri: +((gl.__glFilter.skippedTexParameter - fst.skippedTexParameter) / frames).toFixed(1) } : null;
   r.render = prevR; r.shadowMap.render = smR; r.renderBufferDirect = rbd;
