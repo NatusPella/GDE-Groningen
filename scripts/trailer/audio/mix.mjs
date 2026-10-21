@@ -55,7 +55,7 @@ export const SFX = {
   // trein/lichtbaken: korte hoge dubbele toon
   ding: { t: 1.1, expr: '0.45*sin(2*PI*1175*t)*exp(-t*4)+0.3*sin(2*PI*1760*t)*exp(-t*5)' },
   // lage hartslag voor een stille spanningsmoment
-  hart: { t: 1.2, expr: '0.9*sin(2*PI*52*t)*exp(-t*14)+0.7*sin(2*PI*52*(t-0.28))*exp(-(t-0.28)*14)*step(t-0.28)' },
+  hart: { t: 1.2, expr: '0.9*sin(2*PI*52*t)*exp(-t*14)+0.7*sin(2*PI*52*(t-0.28))*exp(-(t-0.28)*14)*gte(t,0.28)' },
   // camera-sluiter (fotomodus)
   sluiter: { t: 0.22, noise: 'white', fx: 'highpass=f=1800,volume=eval=frame:volume=\'exp(-t*28)*2\'' },
 };

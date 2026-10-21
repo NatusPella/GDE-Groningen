@@ -316,6 +316,144 @@ function driver(pts, { top = 16, look = 6, grip = 5.5, stopAtEnd = false, steerG
   return api;
 }
 
+// --- camerarigs: functies (t, world) => pose voor camera() -------------------------------------------------------
+const exps = (dt, lag) => 1 - Math.exp(-dt / Math.max(1e-4, lag));
+const rig = {
+  // draait om een punt: straal r, hoogte z, van hoek a0 over sweep radialen in dur seconden; kijkt naar het punt op hoogte lookZ
+  orbit(c, { r = 40, z = 12, a0 = 0, sweep = 1, dur = 4, lookZ = 3, fov = 50, rEnd = null, zEnd = null } = {}) {
+    return (t) => {
+      const u = Math.min(1, t / dur), k = smooth(u);
+      const a = a0 + sweep * k, rr = rEnd == null ? r : lerp(r, rEnd, k), zz = zEnd == null ? z : lerp(z, zEnd, k);
+      return { position: { x: c.x + Math.cos(a) * rr, y: c.y + Math.sin(a) * rr, z: zz }, lookAt: { x: c.x, y: c.y, z: lookZ }, fov };
+    };
+  },
+  // rechte beweging van a naar b (met z), kijkt van la naar lb; ease 'smooth' of 'lin'
+  dolly(a, b, la, lb, { dur = 4, fov = 50, ease = 'smooth', fovEnd = null } = {}) {
+    return (t) => {
+      const u = Math.min(1, t / dur), k = ease === 'lin' ? u : smooth(u);
+      const m = (p, q) => ({ x: lerp(p.x, q.x, k), y: lerp(p.y, q.y, k), z: lerp(p.z ?? 0, q.z ?? 0, k) });
+      return { position: m(a, b), lookAt: m(la, lb || la), fov: fovEnd == null ? fov : lerp(fov, fovEnd, k) };
+    };
+  },
+  // achtervolgingscamera achter een voertuig (of ander object met x, y, angle): dist achter, height boven de grond, side opzij;
+  // lag = traagheid in s; kijkt lookAhead m vooruit. Blijft boven daken.
+  chase(get, { dist = 9, height = 3, side = 0, lookAhead = 6, lag = 0.18, fov = 62, lookZ = 1.2, minAbove = 1.2 } = {}) {
+    let pos = null, look = null, yaw = null;
+    return (t) => {
+      const v = get();
+      if (!v) return null;
+      const dt = 1 / 60;
+      if (yaw === null) yaw = v.angle;
+      let dy = v.angle - yaw; dy = Math.atan2(Math.sin(dy), Math.cos(dy));
+      yaw += dy * exps(dt, lag * 1.4);
+      const gz = (v.z || 0) + groundZ(v.x, v.y) * 0;
+      const want = { x: v.x - Math.cos(yaw) * dist - Math.sin(yaw) * side, y: v.y - Math.sin(yaw) * dist + Math.cos(yaw) * side };
+      const wz = Math.max(groundZ(want.x, want.y) + height, (v.z || 0) + height * 0.6, safeZ(want.x, want.y, minAbove));
+      const wl = { x: v.x + Math.cos(v.angle) * lookAhead, y: v.y + Math.sin(v.angle) * lookAhead, z: (v.z || groundZ(v.x, v.y)) + lookZ };
+      if (!pos) { pos = { ...want, z: wz }; look = { ...wl }; }
+      const k = exps(dt, lag);
+      pos = { x: pos.x + (want.x - pos.x) * k, y: pos.y + (want.y - pos.y) * k, z: pos.z + (wz - pos.z) * k };
+      look = { x: look.x + (wl.x - look.x) * exps(dt, lag * 0.6), y: look.y + (wl.y - look.y) * exps(dt, lag * 0.6), z: look.z + (wl.z - look.z) * k };
+      return { position: { ...pos }, lookAt: { ...look }, fov };
+    };
+  },
+  // vaste camera die een bewegend ding volgt (met trage draai): pos blijft, kijkt naar get() + lookZ
+  fixed(pos, get, { fov = 40, lookZ = 1.2, lag = 0.25, dolly = null } = {}) {
+    let look = null;
+    return (t) => {
+      const v = get();
+      if (!v) return null;
+      const w = { x: v.x, y: v.y, z: (v.z || groundZ(v.x, v.y)) + lookZ };
+      if (!look) look = { ...w };
+      const k = exps(1 / 60, lag);
+      look = { x: look.x + (w.x - look.x) * k, y: look.y + (w.y - look.y) * k, z: look.z + (w.z - look.z) * k };
+      const d = dolly ? { x: dolly.x * t, y: dolly.y * t, z: (dolly.z || 0) * t } : { x: 0, y: 0, z: 0 };
+      return { position: { x: pos.x + d.x, y: pos.y + d.y, z: pos.z + d.z }, lookAt: { ...look }, fov };
+    };
+  },
+  // zijkant: camera naast het voertuig op afstand, meebewegend (tracking shot)
+  side(get, { dist = 7, height = 1.6, ahead = 1, fov = 45, lookZ = 1.1, left = false, lag = 0.08 } = {}) {
+    let pos = null;
+    return (t) => {
+      const v = get();
+      if (!v) return null;
+      const sg = left ? -1 : 1;
+      const want = { x: v.x + Math.cos(v.angle) * ahead - Math.sin(v.angle) * dist * sg, y: v.y + Math.sin(v.angle) * ahead + Math.cos(v.angle) * dist * sg };
+      const wz = Math.max(groundZ(want.x, want.y) + height, safeZ(want.x, want.y, 1));
+      if (!pos) pos = { ...want, z: wz };
+      const k = exps(1 / 60, lag);
+      pos = { x: pos.x + (want.x - pos.x) * k, y: pos.y + (want.y - pos.y) * k, z: pos.z + (wz - pos.z) * k };
+      return { position: { ...pos }, lookAt: { x: v.x, y: v.y, z: (v.z || groundZ(v.x, v.y)) + lookZ }, fov };
+    };
+  },
+};
+
+// --- teksten in beeld (bijschriften, titelkaart) -------------------------------------------------------------
+// In het spel zelf getekend, met het lettertype en de huisstijl van het spel; hun animaties lopen op de virtuele klok.
+let ovRoot = null;
+function overlay() {
+  if (ovRoot) return ovRoot;
+  const st = document.createElement('style');
+  st.textContent = `
+  #clip-ov { position: fixed; inset: 0; z-index: 99990; pointer-events: none; overflow: hidden; font-family: 'Bebas Neue', 'Big Shoulders Display', 'Arial Narrow', Arial, sans-serif; color: #f0ede4; }
+  #clip-ov .cl-scrim { position: absolute; left: 0; right: 0; bottom: 0; height: 42vh; background: linear-gradient(to top, rgba(4,10,8,0.62), rgba(4,10,8,0)); animation: clFade 0.5s both; }
+  #clip-ov .cl-cap { position: absolute; left: 6vw; bottom: 9vh; font-size: min(12vh, 130px); line-height: 0.95; letter-spacing: 0.035em; text-shadow: 0 0.04em 0.14em rgba(0,0,0,0.7); animation: clUp 0.55s cubic-bezier(.2,.8,.2,1) both; }
+  #clip-ov .cl-cap.right { left: auto; right: 6vw; text-align: right; }
+  #clip-ov .cl-cap.center { left: 0; right: 0; text-align: center; bottom: 40vh; }
+  #clip-ov .cl-cap small { display: block; font-size: 0.3em; letter-spacing: 0.26em; color: #3fc97a; margin-bottom: 0.25em; }
+  #clip-ov .cl-cap.out { animation: clDown 0.35s ease-in both; }
+  #clip-ov .cl-end { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: radial-gradient(ellipse at center, #10281a 0%, #07130c 70%); animation: clFade 0.6s both; }
+  #clip-ov .cl-end .gde-logo { font-size: min(34vh, 380px); animation: clPop 0.8s cubic-bezier(.2,.9,.2,1) both; }
+  #clip-ov .cl-end .cl-line { margin-top: 5vh; font-size: min(4.2vh, 44px); letter-spacing: 0.28em; color: #cfe8d8; animation: clUp 0.7s 0.5s cubic-bezier(.2,.8,.2,1) both; }
+  #clip-ov .cl-end .cl-age { position: absolute; left: 3.2vw; bottom: 5vh; display: flex; align-items: center; gap: 1.4vw; animation: clFade 0.6s 0.9s both; }
+  #clip-ov .cl-end .cl-pegi { width: 5vh; height: 6vh; border-radius: 5px; background: #d93f3f; display: flex; align-items: center; justify-content: center; box-shadow: inset 0 0 0 3px #f0ede4; color: #fff; font-size: 3.2vh; line-height: 0.9; }
+  #clip-ov .cl-end .cl-age span { font-size: 2.4vh; letter-spacing: 0.12em; color: #a9c4b4; font-family: 'Arial Narrow', Arial, sans-serif; text-transform: uppercase; }
+  #clip-ov .cl-black { position: absolute; inset: 0; background: #000; }
+  @keyframes clUp { from { opacity: 0; transform: translateY(0.35em); } to { opacity: 1; transform: none; } }
+  @keyframes clDown { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateY(0.2em); } }
+  @keyframes clFade { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes clPop { from { opacity: 0; transform: scale(1.08); } to { opacity: 1; transform: none; } }`;
+  document.head.appendChild(st);
+  ovRoot = document.createElement('div');
+  ovRoot.id = 'clip-ov';
+  document.body.appendChild(ovRoot);
+  return ovRoot;
+}
+let capEl = null;
+// bijschrift linksonder (pos 'right' of 'center'): kicker klein en groen erboven
+function caption(text, { kicker = '', pos = '', scrim = true } = {}) {
+  const r = overlay();
+  clearCaption(true);
+  if (scrim && !r.querySelector('.cl-scrim')) { const sc = document.createElement('div'); sc.className = 'cl-scrim'; r.appendChild(sc); }
+  capEl = document.createElement('div');
+  capEl.className = 'cl-cap ' + pos;
+  capEl.innerHTML = (kicker ? '<small>' + kicker + '</small>' : '') + text;
+  r.appendChild(capEl);
+  return capEl;
+}
+function clearCaption(now = false) {
+  const r = overlay();
+  if (capEl) { if (now) capEl.remove(); else { const e = capEl; e.classList.add('out'); setTimeout(() => e.remove(), 400); } capEl = null; }
+  if (now) return;
+  const sc = r.querySelector('.cl-scrim'); if (sc) sc.remove();
+}
+// titelkaart: logo van het spel, regel eronder, leeftijdsbord. lines: tekst onder het logo
+async function endCard({ line = '', age = true } = {}) {
+  const r = overlay();
+  const { logoHtml } = await import('/js/logo.js');
+  const el = document.createElement('div');
+  el.className = 'cl-end';
+  el.innerHTML = logoHtml({ sub: true }) + (line ? '<div class="cl-line">' + line + '</div>' : '') + (age ? '<div class="cl-age"><div class="cl-pegi">18</div><span>Bevat geweld, alcohol en gesimuleerd gokken</span></div>' : '');
+  r.appendChild(el);
+  return el;
+}
+function clearOverlay() { if (ovRoot) ovRoot.innerHTML = ''; capEl = null; }
+// speelt cues af tijdens play(): [[t, () => ...], ...]
+function cueRunner(cues) {
+  const fired = new Set();
+  return (t) => { cues.forEach(([at, fn], i) => { if (t >= at && !fired.has(i)) { fired.add(i); fn(t); } }); };
+}
+
 // --- clips -------------------------------------------------------------------------------------------------
 // een gebeurtenis in de opname (tijd in seconden sinds het begin van de clip): voor het geluid in de montage
 const mark = (kind, data = {}) => { if (rec.on) rec.events.push({ t: +(rec.frames / 60).toFixed(3), kind, ...data }); };
@@ -382,5 +520,5 @@ async function runAll(names, only = '') {
 
 const clipApi = {
   world, player, M, vnow: () => vnow, sleep, advance, settle, pending, cam, releaseCam, spline, hud, weather, clock, placePlayer,
-  spawn, enter, leave, route, driver, mark, groundZ, safeZ, rt, camera, freeClock, begin, play, end, png, lerp, clamp01, smooth, smoother, skipCinematics, installVirtualTime, runCallbacks, present,
+  rig, overlay, caption, clearCaption, endCard, clearOverlay, cueRunner, spawn, enter, leave, route, driver, mark, groundZ, safeZ, rt, camera, freeClock, begin, play, end, png, lerp, clamp01, smooth, smoother, skipCinematics, installVirtualTime, runCallbacks, present,
 };

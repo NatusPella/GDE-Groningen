@@ -53,6 +53,11 @@ function setupClips({ ipcMain, win, dir, ffmpeg, fps = 60 }) {
       fs.writeFileSync(out, img.toPNG());
       return out;
     }
+    if (cmd === 'json') {
+      const out = path.join(dir, String(arg.name || 'data').replace(/[^w.-]/g, '_') + '.json');
+      fs.writeFileSync(out, JSON.stringify(arg.data, null, 1));
+      return out;
+    }
     if (cmd === 'end') {
       if (!cur) return null;
       const c = cur;
