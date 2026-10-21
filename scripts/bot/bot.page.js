@@ -241,10 +241,41 @@ async function rescue(s, stepKey, info) {
   detector.acknowledge(s.t);
 }
 
+// balance and pace meter (#147, scripts/bot/balans.mjs): per step the wall time, the metres walked or driven, the time in cutscenes,
+// talks and dialogs, the goal changes and the longest quiet stretch (no movement, no scene, no new goal)
+let meter = null;
+const newMeter = (s) => ({ t0: s.t, wall0: s.wall, pos: { x: s.player.x, y: s.player.y }, dist: 0, cine: 0, cineN: 0, cineAt: null, talk: 0, goals: 0, goal: '', lastAct: s.t, maxQuiet: 0, prev: s.t, active: 0, limit: 0, minLeft: null });
+function meterTick(s) {
+  if (!meter) meter = newMeter(s);
+  const m = meter, dt = Math.max(0, Math.min(2, s.t - m.prev));
+  m.prev = s.t;
+  const d = Math.hypot(s.player.x - m.pos.x, s.player.y - m.pos.y);
+  if (d < 60) m.dist += d;   // a teleport or a respawn is no distance walked
+  m.pos = { x: s.player.x, y: s.player.y };
+  const busy = !!(s.blocking.cinematic || s.blocking.talk || s.blocking.dialog || s.blocking.banner || s.blocking.ride || s.blocking.shop);
+  if (s.blocking.cinematic) { m.cine += dt; if (m.cineAt == null) { m.cineAt = s.t; m.cineN++; } } else if (m.cineAt != null) { B.log('cine', { id: s.story.id, dur: Math.round((s.t - m.cineAt) * 10) / 10 }); m.cineAt = null; }
+  if (s.blocking.talk) m.talk += dt;
+  // the mission's own clock: how long it ran active, the longest time limit seen and the least time that was left
+  if (s.mission.active) { m.active += dt; if (Number.isFinite(s.mission.timeLeft)) { m.limit = Math.max(m.limit, s.mission.timeLeft); m.minLeft = m.minLeft == null ? s.mission.timeLeft : Math.min(m.minLeft, s.mission.timeLeft); } }
+  const goal = [s.mission.stage || '', s.mission.label || '', s.target ? s.target.name || '' : ''].join('|');
+  // every goal (also the first of a step) with the distance to it: the length of the route a player has to cover, whoever plays
+  if (goal !== m.goal) { if (m.goal) m.goals++; B.log('doel', { stage: s.mission.stage || '', label: s.mission.label || '', doel: s.target ? s.target.name || '' : '', afstand: s.target ? s.target.distance : null, veh: s.player.vehicle ? s.player.vehicle.kind : 'te voet', eerste: !m.goal }); m.goal = goal; m.lastAct = s.t; }
+  if (busy || d > 0.05 || (s.player.vehicle && s.player.vehicle.speed > 1)) m.lastAct = s.t;
+  m.maxQuiet = Math.max(m.maxQuiet, s.t - m.lastAct);
+}
+function meterEnd(s, id, outcome) {
+  const m = meter;
+  if (!m) { B.log('step', { event: 'end', id, outcome }); return; }
+  B.log('step', { event: 'end', id, outcome, wall: Math.round((s.wall - m.wall0) / 100) / 10, dist: Math.round(m.dist), cine: Math.round(m.cine * 10) / 10, cineN: m.cineN, talk: Math.round(m.talk * 10) / 10, goals: m.goals, maxQuiet: Math.round(m.maxQuiet * 10) / 10, actief: Math.round(m.active * 10) / 10, limiet: Math.round(m.limit), restMin: m.minLeft == null ? null : Math.round(m.minLeft) });
+  meter = null;
+}
+
 function track(s) {
   const id = s.story.end ? 'einde' : s.story.id;
+  meterTick(s);
   if (id !== lastStep) {
-    if (lastStep) B.log('step', { event: 'end', id: lastStep, outcome: 'klaar' });
+    if (lastStep) meterEnd(s, lastStep, 'klaar');
+    meter = newMeter(s);
     B.log('step', { event: 'begin', id, label: s.story.title || '', part: s.story.part });
     lastStep = id; lastPhase = '';
     mem.boardTries = 0; mem.pressTries = 0; mem.planTries = 0;
@@ -512,13 +543,14 @@ if (CFG.sweep && CFG.sweep.length) {
     const t0 = B.time();
     await sleep(1500);
     await loop((s) => s.story.id !== id || B.time() - t0 > (CFG.perStepS || 600));
-    B.log('step', { event: 'end', id, outcome: B.status().story.id === id ? 'tijd op' : 'klaar' });
+    meterEnd(B.status(), id, B.status().story.id === id ? 'tijd op' : 'klaar');
     result = 'TIMEOUT';
   }
   result = 'KLAAR'; reason = CFG.sweep.length + ' stappen';
 } else await loop(null);
 
 B.releaseAll();
+if (meter && lastStep) meterEnd(B.status(), lastStep, 'laatste');   // the step the run ends in (the part is over, or time ran out)
 shot(`einde-${result.toLowerCase()}`);
 B.log('einde', { result, reason, step: lastStep });
 return JSON.stringify({ result, reason, step: lastStep, gameSeconds: B.time(), wallSeconds: Math.round((performance.now() - wall0) / 1000) });
