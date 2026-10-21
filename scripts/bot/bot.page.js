@@ -67,12 +67,12 @@ function plan(s, mode, tgt) {
 
 // aim for the target over the planned route; returns the distance left
 // stopR: how close on foot (default 0.6 of the marker radius; a vehicle to board needs the bot right next to it, not 5 m away)
-function steerTowards(s, mode, tgt, stopAt, top = 24, stopR = null) {
+function steerTowards(s, mode, tgt, stopAt, top = 24, stopR = null, direct0 = false) {
   const key = mode + ':' + Math.round(tgt.x / 5) + ',' + Math.round(tgt.y / 5);
   if (!follower || key !== followKey || s.t - planAt > 12) { followKey = key; planAt = s.t; plan(s, mode, tgt); }
   const me = { x: s.player.x, y: s.player.y };
   const direct = L.distance(me, tgt);
-  const aim = direct < (mode === "walk" ? 9 : 25) ? tgt : follower.next(me) || tgt;   // on foot the planned route goes round poles and walls almost to the end
+  const aim = direct0 || direct < (mode === "walk" ? 9 : 25) ? tgt : follower.next(me) || tgt;   // on foot the planned route goes round poles and walls almost to the end
   if ((mode === 'drive' || mode === 'boat') && s.player.vehicle) {
     // a garage (M02: drive in and stand still 1.2 s) or a stage with `stop`: come to rest right there
     const stg = M.activeStage();
@@ -455,7 +455,7 @@ while (true) {
       }
     }
     if (act.mode !== 'drive' && !s.player.vehicle && mem.detour && s.t < mem.detour.until && Math.hypot(mem.detour.x - s.player.x, mem.detour.y - s.player.y) > 3) { steerTowards(s, 'walk', mem.detour, false, 24, 2.5); continue; }
-    steerTowards(s, act.mode, aim, !act.stunt && s.mission.phase !== 'active' && s.target.source === 'missiestart', top, s.mission.stage === 'lock' || s.mission.stage === 'crack' ? 1 : null);
+    steerTowards(s, act.mode, aim, !act.stunt && s.mission.phase !== 'active' && s.target.source === 'missiestart', top, s.mission.stage === 'lock' || s.mission.stage === 'crack' ? 1 : null, !!(act.stunt && s.player.vehicle && s.target.distance < 250));
     if (wedgeOut) {
       wedgeOut = false;
       B.log('klem', { x: s.player.x, y: s.player.y });
