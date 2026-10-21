@@ -1,5 +1,5 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-import { drawHub, poolable } from './multidraw3d.js';
+import { drawHub, poolable, depthMaterialFor } from './multidraw3d.js';
 import { perfOff } from './devflags.js';
 
 // Static batching for city buildings and roads: the meshes of every
@@ -253,6 +253,14 @@ function makeGroup(B, job) {
       mesh._matricesTexture = standInMatrices;
       mesh.userData.standIn = true;
     }
+    if (pooled && bk.cast) {
+      // the depth program of the shadow pass is not guarded by the link wait: it must be linked before the cell is drawn, so it is compiled with the rest
+      const dm = new THREE.Mesh(geo, depthMaterialFor(bk.mat));
+      dm.isBatchedMesh = true;
+      dm._matricesTexture = standInMatrices;
+      dm.userData.standInDepth = true;
+      group.add(dm);
+    }
     mesh.castShadow = bk.cast;
     mesh.receiveShadow = true;
     mesh.matrixAutoUpdate = false;
@@ -271,6 +279,7 @@ function finishJob(B) {
   // the stand-ins of the pooled buckets go (the geometry lives on in the pool's buffers); the others stay as meshes
   const handles = [];
   for (const mesh of [...group.children]) {
+    if (mesh.userData.standInDepth) { group.remove(mesh); continue; }
     if (!mesh.userData.standIn) continue;
     handles.push(drawHub.add(job.geos.find((q) => q.geo === mesh.geometry).bk.mat, mesh.castShadow, mesh.geometry));
     group.remove(mesh);

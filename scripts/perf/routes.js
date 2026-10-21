@@ -34,7 +34,7 @@ const DUR = window.__perfDur || 20000;
 const skipper = setInterval(() => { if (cine.isCinematicActive()) cine.skipCinematic(); }, 100);
 w.devInvuln = true;
 const gpu = H.enableGpu(r.getContext());
-const allLinked = async (maxMs = 120000) => { const t = performance.now(); while (performance.now() - t < maxMs) { const pr = r.info.programs || []; if (pr.length && pr.every((q) => q.isReady())) return Math.round(performance.now() - t); await sleep(500); } return -1; };
+const allLinked = async (maxMs = 150000) => { const t = performance.now(); let last = -1, stable = 0; while (performance.now() - t < maxMs) { const pr = r.info.programs || []; stable = pr.length === last ? stable + 1 : 0; last = pr.length; if (pr.length && stable >= 6 && pr.every((q) => q.isReady())) return Math.round(performance.now() - t); await sleep(500); } return -1; };
 // a lost pointer lock opens the pause menu; the open-menu routes open it themselves
 D.input.canLock = () => false;
 // the start screen (menu, since the menus of r5) stays up over a started game: hide it so the screenshots show the game
