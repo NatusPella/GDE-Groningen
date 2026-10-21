@@ -14,7 +14,7 @@
 #start-screen .ss-logo { position: absolute; left: 160px; top: 112px; display: flex; flex-direction: column; align-items: flex-start; gap: 16px; }
 #start-screen .gde-logo { font-size: 192px; margin: 0; }
 #start-screen .ss-tag { margin: 0; font-size: 22px; font-style: italic; color: rgba(240, 237, 228, 0.78); text-shadow: 0 1px 8px rgba(0, 0, 0, 0.8); }
-#start-screen .ss-menu { position: absolute; left: 128px; top: 548px; width: 640px; display: flex; flex-direction: column; }
+#start-screen .ss-menu { position: absolute; left: 128px; bottom: 88px; width: 640px; display: flex; flex-direction: column; }
 #start-screen .ss-item { position: relative; display: flex; flex-direction: row; align-items: center; gap: 8px; width: 100%; height: 56px; padding: 0 32px; border-radius: 8px; text-align: left;
   font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 36px; letter-spacing: 0.05em; line-height: 1; color: rgba(240, 237, 228, 0.66); background: none; border: 0; cursor: pointer;
   transition: color 0.2s, background 0.2s; text-shadow: 0 2px 12px rgba(0, 0, 0, 0.6); }
@@ -65,7 +65,7 @@
 #start-screen .ss-news-body code { font-family: Menlo, Consolas, monospace; font-size: 0.9em; background: rgba(240, 237, 228, 0.08); padding: 0 6px; border-radius: 4px; }
 @media (max-height: 820px) {
   #start-screen .ss-logo { top: 56px; } #start-screen .gde-logo { font-size: 150px; }
-  #start-screen .ss-menu { top: 430px; } #start-screen .ss-item { height: 48px; font-size: 32px; } #start-screen .ss-hero .ss-label { font-size: 46px; }
+  #start-screen .ss-menu { bottom: 80px; } #start-screen .ss-item { height: 48px; font-size: 32px; } #start-screen .ss-hero .ss-label { font-size: 46px; }
   #start-screen .ss-save { bottom: 96px; } #start-screen .ss-save .big { font-size: 56px; }
 }
 @media (prefers-reduced-motion: reduce) { #start-screen, #start-screen * { animation: none !important; transition: none !important; } }
@@ -115,7 +115,7 @@ html.reduce-motion #start-screen, html.reduce-motion #start-screen * { animation
 @media (max-height: 460px) {
   #start-screen .ss-logo { left: 28px; top: 12px; gap: 6px; } #start-screen .gde-logo { font-size: 78px; }
   #start-screen .ss-tag { font-size: 14px; max-width: 300px; }
-  #start-screen .ss-menu { left: 340px; top: 14px; width: min(440px, calc(100% - 360px)); max-height: calc(100% - 28px); overflow-y: auto; scrollbar-width: none; }
+  #start-screen .ss-menu { left: 340px; top: 14px; bottom: auto; width: min(440px, calc(100% - 360px)); max-height: calc(100% - 28px); overflow-y: auto; scrollbar-width: none; }
   #start-screen .ss-item { height: 40px; padding: 0 20px; font-size: 26px; }
   #start-screen .ss-item[data-act="exit"] { height: 36px; font-size: 22px; margin-top: 6px; }
   #start-screen .ss-item.ss-hero { padding: 8px 20px 10px; margin-bottom: 6px; gap: 4px; }

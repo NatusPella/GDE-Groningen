@@ -88,7 +88,7 @@ if (root) {
   // full: Nieuw spel asks first
   if (count >= 8) {
     key('ArrowDown'); await sleep(200);
-    key('Enter'); await sleep(500);
+    if (document.activeElement) document.activeElement.click(); await sleep(500);
     const q = root.querySelector('.ssl-new .ssl-over');
     check(!!q, 'bij 8 spellen vraagt Nieuw spel niets');
     if (q) { log.push('vraag: ' + q.textContent.trim().slice(0, 120)); await shot('alleen-' + count + '-vol'); key('Escape'); await sleep(300); check(!root.querySelector('.ssl-new .ssl-over') && !!document.getElementById('saveslots'), 'Escape sluit de vraag niet (of het hele scherm)'); }

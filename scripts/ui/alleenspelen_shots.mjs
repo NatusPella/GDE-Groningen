@@ -1,5 +1,5 @@
 // Beelden en controles van het hoofdmenu en 'Alleen spelen' (Opgeslagen spellen met Doorgaan en Nieuw spel), #34 #92 #208:
-//   node scripts/ui/alleenspelen_shots.mjs --out=<map> [--sizes=1280x720,1920x1080] [--counts=0,1,8] [--slot]
+//   node scripts/ui/alleenspelen_shots.mjs --out=<map> [--sizes=1280x720,1920x1080] [--counts=0,1,8] [--slot [--wacht=<minuten>]]
 // Per grootte en aantal opgeslagen spellen: een Electron-run die het wegwerpprofiel vult, en een run die de beelden maakt
 // (scripts/ui/alleenspelen_scenes.js, GDE_MENU_TEST=1). Nooit echte opslag: elk profiel is een eigen map in de temp-map.
 // Er mag maar één Electron tegelijk van deze run draaien; met --slot neemt het script zelf een slot (C:/Users/abuis/gde-locks/electron-N).
@@ -16,6 +16,7 @@ const out = path.resolve(arg('out', path.join(os.tmpdir(), 'gde-alleenspelen')))
 const sizes = arg('sizes', '1280x720,1920x1080').split(',');
 const counts = arg('counts', '0,1,8').split(',').map(Number);
 const bin = process.env.GDE_ELECTRON || path.join(root, 'desktop', 'node_modules', '.bin', process.platform === 'win32' ? 'electron.cmd' : 'electron');
+const waitMin = Number(arg('wacht', 8)) || 8;
 const LOCKS = process.env.GDE_LOCKS || 'C:/Users/abuis/gde-locks';
 fs.mkdirSync(out, { recursive: true });
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -26,7 +27,7 @@ if (process.argv.includes('--slot')) {
     for (const n of [1, 2, 3]) {
       try { fs.mkdirSync(`${LOCKS}/electron-${n}`); lock = `${LOCKS}/electron-${n}`; break; } catch (e) { /* bezet */ }
     }
-    if (!lock) { if (i > 120) { console.error('Geen Electron-slot gekregen.'); process.exit(3); } await sleep(4000); }
+    if (!lock) { if (i > waitMin * 15) { console.error('Geen Electron-slot gekregen.'); process.exit(3); } await sleep(4000); }
   }
   console.log('slot', lock);
 }
