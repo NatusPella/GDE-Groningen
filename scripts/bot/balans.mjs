@@ -1,0 +1,95 @@
+// Balans en tempo per missie uit runs van de Spelbot (#147). Leest alleen events.jsonl (geen Electron):
+//   node scripts/bot/balans.mjs --out=docs/verhaal/BALANS-TEMPO.md kop=<runmap> romp=<runmap> staart=<runmap> zuid=<runmap> ontzet=<runmap>
+// Per stap (uit de 'step'-gebeurtenissen met de meter van bot.page.js): speeltijd, echte tijd, afgelegde meters, tijd in cutscenes,
+// in gesprekken, doelwissels, de langste stilte (geen beweging, scène of nieuw doel), mislukt ('Opnieuw'), vastgezeten en cheats.
+// Daarna per akte de mediaan en het maximum en een lijst afwijkingen. De bot beoordeelt geen plezier: een lange stilte of een cheat
+// kan aan de bot liggen. Een stap met een cheat telt niet mee in de mediaan (de cheat knipt de tijd af).
+import fs from 'node:fs';
+import path from 'node:path';
+
+const arg = (k, d) => { const a = process.argv.find((v) => v.startsWith(`--${k}=`)); return a ? a.slice(k.length + 3) : d; };
+const runs = process.argv.slice(2).filter((a) => !a.startsWith('--') && a.includes('=')).map((a) => [a.slice(0, a.indexOf('=')), a.slice(a.indexOf('=') + 1)]);
+const fmt = (s) => (s == null ? '-' : `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, '0')}`);
+const median = (a) => { const b = [...a].sort((x, y) => x - y); return b.length ? (b.length % 2 ? b[(b.length - 1) / 2] : (b[b.length / 2 - 1] + b[b.length / 2]) / 2) : null; };
+
+export function readEvents(dir) {
+  return fs.readFileSync(path.join(dir, 'events.jsonl'), 'utf8').split(/\r?\n/).filter(Boolean).map((l) => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean);
+}
+
+// per step: { id, title, t0, t1, speel, wall, dist, cine, cineN, talk, goals, maxQuiet, fails, stuck, cheats, outcome, cineDur[] }
+export function stepsOf(events) {
+  const steps = new Map();
+  const cur = { id: null };
+  const get = (id) => { if (!steps.has(id)) steps.set(id, { id, title: '', t0: null, t1: null, speel: null, wall: null, dist: null, cine: null, cineN: null, talk: null, goals: 0, maxQuiet: null, fails: 0, stuck: 0, cheats: [], outcome: '', cineDur: [] }); return steps.get(id); };
+  for (const e of events) {
+    if (e.type === 'step' && e.event === 'begin') { cur.id = e.id; const s = get(e.id); s.title = e.label || ''; if (s.t0 == null) s.t0 = e.t; }
+    else if (e.type === 'step' && e.event === 'end') {
+      const s = get(e.id); s.t1 = e.t; s.outcome = e.outcome || '';
+      for (const k of ['wall', 'dist', 'cine', 'cineN', 'talk', 'maxQuiet']) if (e[k] != null) s[k] = e[k];
+      if (e.goals != null) s.goals = e.goals;
+      s.speel = s.t0 != null ? Math.round((e.t - s.t0) * 10) / 10 : null;
+    } else if (cur.id) {
+      const s = get(cur.id);
+      if (e.type === 'mission' && e.event === 'fail') s.fails++;
+      else if (e.type === 'stuck') s.stuck++;
+      else if (e.type === 'cheat' && e.rung !== 'nudge') s.cheats.push(e.rung);
+      else if (e.type === 'cine') s.cineDur.push(e.dur);
+    }
+  }
+  return [...steps.values()];
+}
+
+export const AKTEN = { kop: 'Akte 1', romp: 'Akte 2', staart: 'Akte 3', zuid: 'Akte 4', ontzet: 'Akte 5' };
+
+// afwijkingen van één akte: de regels die in de tabel gemarkeerd worden
+export function afwijkingen(steps, { quiet = 90, ritM = 1500 } = {}) {
+  const clean = steps.filter((s) => s.speel != null && s.cheats.length === 0 && /^M\d/.test(s.id));
+  const med = median(clean.map((s) => s.speel));
+  const out = [];
+  for (const s of steps) {
+    if (!/^M\d|^T\d/.test(s.id) || s.speel == null) continue;
+    if (s.maxQuiet != null && s.maxQuiet > quiet) out.push({ id: s.id, soort: 'stilte', tekst: `${s.id}: ${Math.round(s.maxQuiet)} s zonder beweging, scène of nieuw doel` });
+    if (s.dist != null && s.dist > ritM) out.push({ id: s.id, soort: 'rit', tekst: `${s.id}: ${s.dist} m afgelegd (meer dan ${ritM} m)` });
+    if (med && s.cheats.length === 0 && s.speel > 1.6 * med && s.speel > 240) out.push({ id: s.id, soort: 'lang', tekst: `${s.id}: ${fmt(s.speel)} speeltijd, ${(s.speel / med).toFixed(1)} keer de mediaan van de akte (${fmt(med)})` });
+    if (s.fails >= 2) out.push({ id: s.id, soort: 'opnieuw', tekst: `${s.id}: ${s.fails} keer opnieuw` });
+    if (s.cine != null && s.speel > 0 && s.cine / s.speel > 0.5 && s.cine > 90) out.push({ id: s.id, soort: 'scene', tekst: `${s.id}: ${Math.round(100 * s.cine / s.speel)}% van de tijd in cutscenes (${fmt(s.cine)})` });
+  }
+  return { med, out };
+}
+
+export function rapport(runList) {
+  const lines = [];
+  const alle = {};
+  for (const [name, dir] of runList) {
+    const steps = stepsOf(readEvents(dir));
+    alle[name] = steps;
+    const res = fs.existsSync(path.join(dir, 'result.json')) ? JSON.parse(fs.readFileSync(path.join(dir, 'result.json'), 'utf8')) : {};
+    const { med, out } = afwijkingen(steps);
+    lines.push(`## ${AKTEN[name] || name}`, '', `Run \`${path.basename(path.dirname(dir))}/${path.basename(dir)}\`: uitkomst ${res.result || 'onbekend'}, speeltijd ${fmt(res.gameSeconds)}, echte tijd ${fmt(res.wallSeconds)}.`, '');
+    lines.push('| Stap | Titel | Speeltijd | Echt | Afstand | Cutscene | Gesprek | Doelwissels | Langste stilte | Opnieuw | Vast | Cheats |', '|---|---|---|---|---|---|---|---|---|---|---|---|');
+    for (const s of steps) {
+      if (s.speel == null) continue;
+      lines.push(`| ${s.id} | ${(s.title || '').slice(0, 34)} | ${fmt(s.speel)} | ${fmt(s.wall)} | ${s.dist ?? '-'} m | ${fmt(s.cine)} | ${fmt(s.talk)} | ${s.goals} | ${s.maxQuiet != null ? Math.round(s.maxQuiet) + ' s' : '-'} | ${s.fails} | ${s.stuck} | ${s.cheats.length ? s.cheats.join(', ') : '-'} |`);
+    }
+    lines.push('', `Mediaan speeltijd van de stappen zonder cheat: ${fmt(med)}.`, '');
+    if (out.length) { lines.push('Afwijkingen:', '', ...out.map((o) => `- ${o.tekst}`), ''); } else lines.push('Geen afwijkingen boven de drempels.', '');
+  }
+  // akten onderling
+  lines.push('## Akten onderling', '', '| Akte | Stappen | Mediaan speeltijd | Langste stap | Mediaan afstand | Mediaan cutscene | Mediaan doelwissels | Opnieuw | Cheats |', '|---|---|---|---|---|---|---|---|---|');
+  for (const [name, steps] of Object.entries(alle)) {
+    const m = steps.filter((s) => /^M\d/.test(s.id) && s.speel != null);
+    const clean = m.filter((s) => s.cheats.length === 0);
+    const longest = m.reduce((b, s) => (!b || s.speel > b.speel ? s : b), null);
+    lines.push(`| ${AKTEN[name] || name} | ${m.length} | ${fmt(median(clean.map((s) => s.speel)))} | ${longest ? `${longest.id} ${fmt(longest.speel)}` : '-'} | ${median(clean.filter((s) => s.dist != null).map((s) => s.dist)) ?? '-'} m | ${fmt(median(clean.filter((s) => s.cine != null).map((s) => s.cine)))} | ${median(clean.map((s) => s.goals)) ?? '-'} | ${m.reduce((n, s) => n + s.fails, 0)} | ${m.reduce((n, s) => n + s.cheats.length, 0)} |`);
+  }
+  lines.push('');
+  return { text: lines.join('\n'), alle };
+}
+
+if (import.meta.url === `file:///${process.argv[1].replace(/\\/g, '/')}` || process.argv[1].endsWith('balans.mjs')) {
+  if (runs.length) {
+    const { text } = rapport(runs);
+    const OUT = arg('out');
+    if (OUT) { fs.mkdirSync(path.dirname(path.resolve(OUT)), { recursive: true }); fs.writeFileSync(OUT, text); console.log(`geschreven: ${OUT}`); } else console.log(text);
+  }
+}
