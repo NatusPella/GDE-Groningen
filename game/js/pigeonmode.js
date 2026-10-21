@@ -1757,7 +1757,7 @@ export function isPigeonActive() {
 // poop score of the current flight).
 export function getPigeonFlight() {
   if (!active) return null;
-  return { x: P.x, y: P.y, z: P.z, ground: surfaceAt(P.x, P.y, false).h, mode: P.mode, score, intro: !!intro };
+  return { x: P.x, y: P.y, z: P.z, ground: surfaceAt(P.x, P.y, false).h, mode: P.mode, score, intro: !!intro, yaw: P.yaw, speed: P.speed };
 }
 
 // Read-only: where the gull is (for the mission map), or null.

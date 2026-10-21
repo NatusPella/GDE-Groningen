@@ -11,6 +11,10 @@ const sleep = (ms) => new Promise((res) => setTimeout(res, ms));
 const imp = (f) => import('/js/' + f + '.js');
 const L = await imp('botlogic');
 const R = await imp('routing');
+const M = await imp('missions');
+const V = await imp('vehicle');
+const Br = await imp('breakables');
+const Pg = await imp('pigeonmode');
 const MS = await imp('missions');
 const BK = await imp('bakeround');
 const BAKE_KEYS = { ei: '1', zout: '2', meel: '3', vet: '4', mosterd: '5' };
@@ -25,6 +29,7 @@ const wall0 = performance.now();
 const detector = new L.StuckDetector({ windowS: CFG.stuckS || 30 });
 const wedge = new L.WedgeDetector();
 const mem = { boardTries: 0, pressTries: 0 };
+const detours = {};   // per stage: the sidesteps tried on foot before a cheat
 const ladder = {}, fails = {}, scenes = {};
 let lastCine = false;
 let wedgeOut = false, wedgeDir = 1;
@@ -40,16 +45,18 @@ function plan(s, mode, tgt) {
   const me = { x: s.player.x, y: s.player.y };
   let pts = null;
   try {
-    const r = R.planLandRoute(world.map, kind, [me.x, me.y], [tgt.x, tgt.y]);
+    // a boat sails the waterway net (planBoatTrip), the land graph knows nothing of water
+    const r = mode === 'boat' ? R.planBoatTrip(world.map, [me.x, me.y], [tgt.x, tgt.y], 'sloep') : R.planLandRoute(world.map, kind, [me.x, me.y], [tgt.x, tgt.y]);
     pts = r && r.pts && r.pts.length ? r.pts : null;
   } catch (e) { B.log('routefout', { msg: String(e && e.message || e).slice(0, 200) }); }
-  // outside the city graph (the Ommeland) planLandRoute finds nothing: follow the line the game itself shows the player, when it leads to this goal
+  // outside the city graph (the Ommeland) planLandRoute finds nothing, and where the own route ran into a wall (a detour was needed)
+  // the line the game itself shows the player is the better one, when it leads to this goal
   let src = pts ? 'plan' : 'recht';
-  if (!pts) {
+  if (!pts || (kind === 'walk' && detours[mem.stageKey] > 0)) {
     try {
       const gps = R.getActiveRoute();
       const e = gps && gps.pts && gps.pts.length > 1 ? gps.pts[gps.pts.length - 1] : null;
-      if (e && L.distance({ x: e[0], y: e[1] }, tgt) < 80) { pts = R.getRouteAhead(1e9); src = 'gps'; }
+      if (e && L.distance({ x: e[0], y: e[1] }, tgt) < 80) { pts = R.getRouteAhead(1e9) || pts; src = pts ? 'gps' : src; }
     } catch (e) { /* geen route */ }
   }
   const line = pts || [[me.x, me.y]];
@@ -65,9 +72,12 @@ function steerTowards(s, mode, tgt, stopAt, top = 24, stopR = null) {
   if (!follower || key !== followKey || s.t - planAt > 12) { followKey = key; planAt = s.t; plan(s, mode, tgt); }
   const me = { x: s.player.x, y: s.player.y };
   const direct = L.distance(me, tgt);
-  const aim = direct < 25 ? tgt : follower.next(me) || tgt;
-  if (mode === 'drive' && s.player.vehicle) {
-    const c = L.carControls({ x: me.x, y: me.y, angle: s.player.vehicle.angle, speed: s.player.vehicle.speed }, aim, { stopAt, top });
+  const aim = direct < (mode === "walk" ? 9 : 25) ? tgt : follower.next(me) || tgt;   // on foot the planned route goes round poles and walls almost to the end
+  if ((mode === 'drive' || mode === 'boat') && s.player.vehicle) {
+    // a garage (M02: drive in and stand still 1.2 s) or a stage with `stop`: come to rest right there
+    const stg = M.activeStage();
+    const rest = stg && (stg.kind === 'garage' ? 3.5 : stg.stop ? Math.max(3, stg.stop + 2) : 0);
+    const c = L.carControls({ x: me.x, y: me.y, angle: s.player.vehicle.angle, speed: s.player.vehicle.speed }, aim, { stopAt: stopAt || !!rest, rest, top: mode === 'boat' ? Math.min(top, 9) : top });
     B.stick(c.steer, c.throttle > 0 ? -1 : c.throttle < 0 ? 1 : 0);
     if (!c.reverse && wedge.update(s.t, s.player.vehicle.speed, c.throttle)) wedge.reset(), wedgeOut = true;
     if (B.input.isDown('shift')) B.up('shift');
@@ -79,6 +89,68 @@ function steerTowards(s, mode, tgt, stopAt, top = 24, stopR = null) {
     if (direct > 40) B.down('shift'); else B.up('shift');
   }
   return direct;
+}
+
+// the plane (M15): keys from botlogic.planeKeys, applied as holds; the gates and the strip come from the mission def
+const FLY_KEYS = ['w', 's', 'a', 'd', ' ', 'control', 'shift'];
+// keys for plane and pigeon: the stick (a leftover steering axis outranks the keys) goes to zero, and a key the game lost
+// (a jump clears its input) is released and pressed again so bot and game agree
+function applyFlyKeys(want) {
+  B.stick(0, 0);
+  for (const k of FLY_KEYS) {
+    if (want.has(k)) { if (!B.input.isDown(k)) { B.up(k); B.down(k); } } else if (B.input.isDown(k)) B.up(k);
+  }
+}
+function releaseFly() { for (const k of FLY_KEYS) if (B.input.isDown(k)) B.up(k); }
+async function flyStep(s) {
+  const v = player.inVehicle;
+  if (!v || !v.plane) { releaseFly(); return; }
+  const pl = v.plane;
+  const st = M.activeStage();
+  const def = (M.getMissionDefs() || [])[s.mission.index];
+  const gh = (x, y) => (world.map.groundHeightAt ? world.map.groundHeightAt(x, y, 0) || 0 : 0);
+  const kind = st && st.kind;
+  // a flight that takes too long (a gate it cannot make) is a finding: the ladder takes over
+  const fkey = (kind || '') + (s.story.id || '');
+  if (mem.flyKey !== fkey) { mem.flyKey = fkey; mem.flyT = s.t; }
+  if (s.t - mem.flyT > 420) { mem.flyT = s.t; releaseFly(); await rescue(s, fkey, { idleFor: 420 }); return; }
+  const stripSpec = def && def.stages && (def.stages.find((q) => q.kind === 'plane') || {}).strip;
+  let o = null;
+  if (kind === 'airgates' && s.target) {
+    const gates = st.gates || [];
+    let g = gates[0], bd = Infinity;
+    for (const q of gates) { const d = L.distance(q, s.target); if (d < bd) { bd = d; g = q; } }
+    o = { agl: pl.z - gh(pl.x, pl.y), goal: { x: s.target.x, y: s.target.y }, alt: g ? (g.lo + g.hi) / 2 : 20, mode: 'fly' };
+  } else if (kind === 'landplane' && stripSpec) {
+    o = { agl: pl.z - gh(pl.x, pl.y), goal: { x: s.target ? s.target.x : stripSpec.x, y: s.target ? s.target.y : stripSpec.y }, alt: 30, mode: 'land', strip: stripSpec };
+  } else if (kind === 'plane') {
+    // just boarded: the stage moves on by itself
+    releaseFly();
+    return;
+  } else if (pl.onGround && pl.speed < 2) {
+    // the stage is over (or none): climb out
+    releaseFly();
+    await keyTap('e'); await sleep(900);
+    return;
+  } else if (stripSpec) {
+    o = { agl: pl.z - gh(pl.x, pl.y), goal: { x: stripSpec.x, y: stripSpec.y }, alt: 30, mode: 'land', strip: stripSpec };
+  }
+  if (!o) { releaseFly(); return; }
+  const want = L.planeKeys({ x: pl.x, y: pl.y, z: pl.z, heading: pl.heading, speed: pl.speed, pitch: pl.pitch, roll: pl.roll, vz: pl.vz, onGround: pl.onGround, throttle: pl.throttle }, o);
+  applyFlyKeys(want);
+  if (ticks % 20 === 0) {
+    const rel = o.strip ? (() => { const c = Math.cos(o.strip.heading), sn = Math.sin(o.strip.heading), dx = pl.x - o.strip.x, dy = pl.y - o.strip.y; return { along: Math.round(dx * c + dy * sn), across: Math.round(-dx * sn + dy * c), hdg: Math.round(L.normAngle(pl.heading - o.strip.heading) * 100) / 100 }; })() : null;
+    B.log('vlucht', { mode: o.mode, agl: Math.round(o.agl), v: Math.round(pl.speed), vz: Math.round(pl.vz * 10) / 10, gate: o.goal && [Math.round(o.goal.x), Math.round(o.goal.y)], rel, keys: [...want].join('') });
+  }
+}
+
+// E (and F) is read once per frame, but at --speed=N a frame runs N gameplay steps: the first step boards, the second sees the same press
+// and gets out again (a plane, a car at random). One step per frame for the length of an interaction key.
+async function keyTap(key, ms = 90) {
+  const fast = (CFG.speed || 1) > 1 && (key === 'e' || key === 'f');
+  if (fast) B.speed(1);
+  await B.press(key, ms);
+  if (fast) { await sleep(150); B.speed(CFG.speed); }
 }
 
 async function holdSkip() {
@@ -104,13 +176,27 @@ async function nudge(s) {
   follower = null;
 }
 
+// on foot the planned route knows no poles, bins or corners: sidestep left, right, back and round before a cheat is needed
+async function detour(s, n) {
+  const me = { x: s.player.x, y: s.player.y }, tgt = s.target || me;
+  const turn = [Math.PI / 2, -Math.PI / 2, Math.PI * 0.75, -Math.PI * 0.75][(n - 1) % 4];
+  B.log('omweg', { n, x: Math.round(me.x), y: Math.round(me.y) });
+  const [x, y] = L.footStick(L.normAngle(L.headingTo(me, tgt) + turn), s.player.camYaw);
+  B.stick(x, y);
+  await B.press(' ', 120);
+  await sleep(2200);
+  B.stick(0, 0);
+  follower = null;
+}
+
 async function rescue(s, stepKey, info) {
   // the ladder counts per story step (a failed mission restarts the detector, not the ladder); every fail is a rung higher
   const sid = s.story.id || '?';
   const rung = L.rescueFor((ladder[sid] = (ladder[sid] || 0) + 1) - 1 + (fails[sid] || 0));
-  B.log('stuck', { step: stepKey, x: s.player.x, y: s.player.y, idleFor: info.idleFor, goalDist: s.target ? s.target.distance : null, rung });
+  B.log('stuck', { step: stepKey, x: s.player.x, y: s.player.y, idleFor: info.idleFor, goalDist: s.target ? s.target.distance : null, rung, doel: s.target && { x: s.target.x, y: s.target.y, vehicle: !!s.target.vehicle, source: s.target.source }, prompt: s.hud.prompt || undefined, dichtbij: (s.nearby.vehicles || []).slice(0, 3).map((c) => [c.kind, c.distance, c.free]) });
   shot(`${stepKey}-vast`);
   if (rung === 'nudge') { await nudge(s); detector.acknowledge(s.t); return; }
+  if (!s.player.vehicle && !s.blocking.cinematic && !s.blocking.talk && (detours[stepKey] = (detours[stepKey] || 0) + 1) <= 4) { await detour(s, detours[stepKey]); detector.acknowledge(s.t); ladder[sid]--; return; }
   const m = s.mission.active;
   let ok = false;
   if (rung === 'teleport') ok = B.cheat.teleport();
@@ -165,7 +251,13 @@ if (CFG.from) {
   }
 }
 
+// a slip in one tick (a mission without stages, a world that is reloading) is logged and the bot plays on: a night-long run must not die on it
 async function loop(stopFn) {
+  for (let k = 0; k < 200; k++) {
+    try { return await loop1(stopFn); } catch (e) { B.log('lusfout', { msg: String((e && e.stack) || e).slice(0, 400) }); await sleep(400); }
+  }
+}
+async function loop1(stopFn) {
 while (true) {
   await sleep(100);
   const s = B.status();
@@ -175,6 +267,8 @@ while (true) {
   if (stopFn && stopFn(s)) { result = 'KLAAR'; reason = 'stap uitgespeeld'; break; }
   track(s);
   const stepKey = (s.story.id || '?') + (s.mission.active ? ':' + (s.mission.stage || 'm') : '');
+  // each stage of a mission gets its own few tries at boarding and at a prompt
+  if (stepKey !== mem.stageKey) { mem.stageKey = stepKey; mem.pressTries = 0; mem.boardTries = 0; mem.planTries = 0; mem.vehTries = 0; }
   if (ticks++ % 100 === 0) B.log('status', { x: s.player.x, y: s.player.y, step: stepKey, dist: s.target ? s.target.distance : null, veh: s.player.vehicle ? s.player.vehicle.kind : 'te voet', wanted: s.wanted, money: s.player.money, msgs: s.hud.messages.slice(0, 2), sub: s.hud.subtitle && s.hud.subtitle.text });
   // a mission that asks for it ('Uitstappen, jong. Fatbikes ontwijk je te voet.'): out of the vehicle
   if (s.hud.messages.some((m) => /uitstappen|te voet/i.test(m))) mem.onFootUntil = s.t + 60;
@@ -189,9 +283,43 @@ while (true) {
       B.log('bak', { recipe: bst.recipe, rounds: bst.rounds || 1 });
       for (let r = 0; r < (bst.rounds || 1); r++) for (const id of order) { await B.press(BAKE_KEYS[id], 110); await sleep(350); }
       await sleep(1200);
-      detector.hold(s.t);
+      detector.hold(s.t); heldSince = null;
       continue;
     }
+  }
+  // the heist panels (M06): the needle of the fuse box, the pins of the back door and the dial of the case, read from the panel like a player's eyes
+  const hx = s.mission.active && !s.blocking.cinematic && document.querySelector('.hx-panel.on');
+  if (hx) {
+    B.stick(0, 0);
+    const pct = (el, k) => parseFloat(el && el.style[k]) || 0;
+    const z = hx.querySelector('[data-z]'), nd = hx.querySelector('[data-n]');
+    let hit = false;
+    if (z && nd) {
+      const zl = pct(z, 'left'), zw = pct(z, 'width'), at = pct(nd, 'left');
+      hit = Math.abs(at - (zl + zw / 2)) <= Math.max(1.5, zw / 2 - 4);
+      if (hit) B.log('zekering', { at: Math.round(at), zone: [Math.round(zl), Math.round(zl + zw)] });
+    } else if (hx.querySelector('.hx-chamber')) {
+      const ch = hx.querySelector('.hx-chamber.cur'), pin = ch && ch.querySelector('.hx-pin');
+      const zone = parseFloat(ch && ch.style.getPropertyValue('--zone')) / 100 || 0.18;
+      hit = !!pin && (parseFloat(pin.style.top) - 2) / 44 <= Math.max(0.02, zone - 0.05);
+      if (hit) B.log('slotje', { zone });
+    } else if (hx.querySelector('.hx-dial')) {
+      const dial = hx.querySelector('.hx-dial');
+      const m = /rotate\((-?[\d.]+)/.exec((hx.querySelector('[data-rot]').getAttribute('transform')) || '');
+      const v = m ? ((-parseFloat(m[1]) / 9) % 40 + 40) % 40 : 0;
+      const cur = [...hx.querySelectorAll('.hx-digit')].findIndex((d) => d.classList.contains('cur'));
+      const want = [19, 5, 3][Math.max(0, cur)] ?? 0;
+      if (dial.classList.contains('hot')) hit = true;
+      else {
+        const diff = ((want - Math.round(v)) % 40 + 40) % 40;
+        await B.press(diff <= 20 ? 'd' : 'a', 70);
+        await sleep(120);
+      }
+    }
+    if (hit) { await keyTap(' ', 90); await sleep(450); }
+    else await sleep(25);
+    detector.hold(s.t); heldSince = null;
+    continue;
   }
   // a timing stage (M18, M20, M21, M26)
   if (s.mission.active && s.mission.stage === 'timing' && !s.blocking.cinematic) {
@@ -207,10 +335,42 @@ while (true) {
       if (width > 0 && at >= left + 3 && at <= left + width - 3) { pressed = true; B.log('timing', { at, zone: [left, left + width] }); }
     }
     await B.press(' ');
-    detector.hold(s.t);
+    detector.hold(s.t); heldSince = null;
     continue;
   }
+  // a requirement the next step asks for (a bike for the KEI race, a gun, black clothes, a boat, the dark of M06): the story guide says where to go
+  // ("Eerst: ...") and the bot goes there first, like a player who reads the line
+  const guide = world.storyGuide;
+  if (mem.guideSeen !== s.story.id + '|' + !!(guide && guide.buy)) { mem.guideSeen = s.story.id + '|' + !!(guide && guide.buy); B.log('gids', { stap: s.story.id, gids: guide && { x: Math.round(guide.x), y: Math.round(guide.y), naam: guide.name, koop: guide.buy, winkel: guide.shopId }, bron: s.target && s.target.source, actief: s.mission.active }); }
+  if (!s.mission.active && !s.blocking.shop && guide && (guide.buy || /^Eerst/i.test(guide.name || '')) && Number.isFinite(guide.x) && s.target) {
+    const gk = (guide.step || '') + ':' + Math.round(guide.x) + ',' + Math.round(guide.y);
+    if (mem.gateKey !== gk) { mem.gateKey = gk; mem.pressTries = 0; mem.boardTries = 0; B.log('eis', { stap: guide.step, winkel: guide.name || '', x: Math.round(guide.x), y: Math.round(guide.y) }); }
+    s.target = { x: guide.x, y: guide.y, z: null, name: guide.name || '', source: 'winkel', distance: Math.round(Math.hypot(guide.x - s.player.x, guide.y - s.player.y) * 10) / 10 };
+  }
   const act = L.decide(s, mem);
+  if (act.type !== 'wait' && act.type !== 'skip' && act.type !== 'choose' && act.type !== 'closemenu') heldSince = null;   // playing is not waiting: the wait clock starts over
+  if (act.type === 'shop') {
+    // the first two goes: Enter selects the highlighted (story) item, Enter buys; then Escape
+    detector.hold(s.t);
+    B.stick(0, 0);
+    const m0 = player.money ?? world.money;
+    if (act.n <= 2) { await B.press('enter', 150); await sleep(600); if (act.n === 2) B.log('winkel', { gekocht: m0 - world.money, geld: Math.round(world.money) }); }
+    else await B.press('escape', 150);
+    await sleep(300);
+    continue;
+  }
+  if (act.type === 'pigeon') {
+    // a pigeon: fly to the next target of the stage; releaseFly is shared (A, D, Space, Shift)
+    detector.hold(s.t);
+    const f = Pg.getPigeonFlight();
+    if (!f || f.intro) { releaseFly(); await sleep(200); continue; }
+    if (f.mode !== 'fly') { releaseFly(); await B.press(' ', 120); await sleep(500); continue; }   // on the ground: take off
+    const want = L.pigeonKeys(f, s.target);
+    applyFlyKeys(want);
+    if (ticks % 20 === 0) B.log('duif', { x: Math.round(f.x), y: Math.round(f.y), z: Math.round(f.z), doel: [s.target.x, s.target.y], keys: [...want].join('') });
+    continue;
+  }
+  if (act.type === 'fly') { detector.hold(s.t); await flyStep(s); continue; }
   if (act.type === 'wait' || act.type === 'skip' || act.type === 'choose' || act.type === 'closemenu') {
     detector.hold(s.t);
     // waiting is only free for a while: something that never lets go (a stuck talk, banner or loading flag) is a finding and gets the ladder
@@ -230,15 +390,36 @@ while (true) {
   const gd = s.target ? s.target.distance : null;
   const st = detector.update(s.t, { x: s.player.x, y: s.player.y, goalDist: gd, key: stepKey });
   if (st.stuck) { await rescue(s, stepKey, st); continue; }
-  if (act.type === 'press') { B.stick(0, 0); if (act.interact) { mem.pressTries++; B.log('handeling', { key: act.key, prompt: s.hud.prompt }); } await B.press(act.key); await sleep(act.interact ? 900 : 0); continue; }
+  if (act.type === 'press') { B.stick(0, 0); if (act.interact) { mem.pressTries++; B.log('handeling', { key: act.key, prompt: s.hud.prompt }); } await keyTap(act.key); await sleep(act.interact ? 900 : 0); continue; }
   if (act.type === 'enter') {
     const v = act.vehicle;
-    const d = steerTowards(s, 'walk', v, false, 24, 2.2);
-    if (d < 3.5) { B.stick(0, 0); mem.boardTries++; B.log('instappen', { kind: v.kind }); await B.press('e'); await sleep(700); follower = null; }
+    // the game lets you in when the body outline is within ENTER_REACH: a plane (5 m wide) is far from its centre by then
+    const vObj = world.vehicles.find((q) => Math.hypot(q.x - v.x, q.y - v.y) < 0.6);
+    const big = vObj && Math.max(vObj.halfLen || 0, vObj.halfWid || 0) > 3;
+    const d = steerTowards(s, 'walk', v, false, 24, big ? 0.4 : 2.2);
+    // the game's own test: this is what lights the prompt and lets E in
+    const near = vObj ? V.findEnterableVehicle(player.x, player.y, world.vehicles) === vObj : d < 3.5;
+    // only the game's own test lets E in: from further off keep walking (stopping to press E there was a deadlock)
+    if (near || (!vObj && d < 3.5)) { B.stick(0, 0); mem.boardTries++; await keyTap('e', 240); await sleep(700); const fe = V.findEnterableVehicle(player.x, player.y, world.vehicles); B.log('instappen', { kind: v.kind, toegestaan: near, binnen: !!player.inVehicle, doel: vObj && { x: Math.round(vObj.x * 10) / 10, y: Math.round(vObj.y * 10) / 10, hl: vObj.halfLen, hw: vObj.halfWid, naam: vObj.name || vObj.label || '', hero: !!vObj.isHeroCar, wrak: !!vObj.wrecked, slot: !!(vObj.locked || vObj.disabled) }, kan: fe && { x: Math.round(fe.x * 10) / 10, y: Math.round(fe.y * 10) / 10, naam: fe.name || fe.label || '' }, ik: [Math.round(player.x * 10) / 10, Math.round(player.y * 10) / 10] }); follower = null; }
     continue;
   }
   if (act.type === 'goto') {
     if (!s.target) continue;
+    // the stunt evening (M01): knock the props over, the nearest one that is still standing; people are left alone by the circle of the square
+    let aim = s.target, top = act.top || 24;
+    // eggs break on a rough road above 8.5 m/s (M09) and a convoy falls apart when the lead car runs away (M23)
+    const mdef = (M.getMissionDefs() || [])[s.mission.index];
+    if (mdef && mdef.eggs) top = Math.min(top, 7);
+    if (s.mission.stage === 'convoy') top = Math.min(top, 11);
+    if (act.stunt && s.player.vehicle) {
+      let best = null, bd = Infinity;
+      for (const q of Br.propsInRadius(s.player.x, s.player.y, 90)) {
+        if (!String(q.key).startsWith('stunt')) continue;
+        const d = Math.hypot(q.x - s.player.x, q.y - s.player.y);
+        if (d < bd) { bd = d; best = q; }
+      }
+      if (best) { aim = { x: best.x, y: best.y, distance: bd }; top = 14; }
+    }
     // on foot, wedged against a stall pole or a prop: sidestep (alternating sides, longer each time), then plan again
     if (act.mode !== 'drive' && !s.player.vehicle && !s.blocking.cinematic && s.target.distance > 5) {
       const fp = mem.footPos;
@@ -260,7 +441,7 @@ while (true) {
       }
     }
     if (act.mode !== 'drive' && !s.player.vehicle && mem.detour && s.t < mem.detour.until && Math.hypot(mem.detour.x - s.player.x, mem.detour.y - s.player.y) > 3) { steerTowards(s, 'walk', mem.detour, false, 24, 2.5); continue; }
-    steerTowards(s, act.mode, s.target, !act.stunt && s.mission.phase !== 'active' && s.target.source === 'missiestart', act.top || 24);
+    steerTowards(s, act.mode, aim, !act.stunt && s.mission.phase !== 'active' && s.target.source === 'missiestart', top, s.mission.stage === 'lock' || s.mission.stage === 'crack' ? 1 : null);
     if (wedgeOut) {
       wedgeOut = false;
       B.log('klem', { x: s.player.x, y: s.player.y });
