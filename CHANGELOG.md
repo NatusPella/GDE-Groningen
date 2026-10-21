@@ -6,6 +6,9 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Verbeterd
+- **Samen spelen: een gast kan winkelen, in- en uitstappen en het stuur krijgen (#291; in twee Electron-vensters op één computer gedraaid met een echte wachtkamer, winkel en rit; niet door een mens bekeken en niet op twee computers):** wie meedoet kan nu zelf winkelen bij kleding, kapper, tabak en loterij, avondwinkel, snackbar en woonwarenhuis en eten bij de muurkroket en horeca, met zijn eigen geld; wat hij koopt staat in zijn eigen opgeslagen spel. Bij een wapenwinkel of autodealer krijgt hij een melding ('alleen in je eigen spel'). Met E stapt Tessa als bijrijder uit (als het voertuig bijna stilstaat) en weer in. Met Y geeft de bestuurder het stuur aan zijn bijrijder, die met zijn stick en Spatie (handrem) rijdt; de bijrijder kan erom vragen en het teruggeven. Zelf een voertuig nemen, gesprekken met voorbijgangers en bijbanen of minigames meedoen kunnen nog niet (docs/COOP-GAST.md). Y heeft geen knop op een controller.
+
 ## [0.38.1] - 2026-10-21
 
 ### Opgelost

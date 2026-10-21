@@ -73,7 +73,7 @@ const openSamen = async () => { // het pauzemenu, onderdeel Samen (zoals een spe
 // terug het spel in zoals een speler: de knop Doorgaan van het overzicht (Escape in het pauzemenu gaat een stap terug)
 const closeMenu = async () => {
   for (let i = 0; i < 6; i++) {
-    if (!(W() || {}).paused) break;
+    if (!document.querySelector('#pause-menu.visible')) break; // niet op world.paused: een filmpje pauzeert de wereld ook, en Escape zou dan het menu juist openen
     const resume = [...document.querySelectorAll('#pause-menu [data-action="resume"]')].find((b) => b.offsetParent);
     if (resume) resume.click();
     else { const ov = document.querySelector('#pause-menu .ra[data-goto="overzicht"]'); if (ov && ov.getAttribute('aria-current') !== 'true') ov.click(); else await esc(); }
