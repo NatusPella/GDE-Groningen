@@ -1351,6 +1351,7 @@ function hookShadowPass(shadowMap) {
       try { run(lights, sc, camera); } finally { for (let i = 0; i < culledGroups.length; i++) culledGroups[i].visible = false; }
       return;
     }
+    probe.mark('3d:render:voorpas');
     const kids = scene.children;
     const groups = !perfOff('schaduwgroepen');
     for (let i = 0; i < kids.length; i++) {
@@ -1364,7 +1365,9 @@ function hookShadowPass(shadowMap) {
         c.visible = false; shadowHidden.push(c);
       }
     }
+    probe.mark('3d:render:schaduwscan');
     try { run(lights, sc, camera); } finally {
+      probe.mark('3d:render:schaduwpas');
       for (let i = 0; i < shadowHidden.length; i++) shadowHidden[i].visible = true;
       shadowHidden.length = 0;
       for (let i = 0; i < culledGroups.length; i++) culledGroups[i].visible = false;
@@ -3028,9 +3031,12 @@ export function update3D(dt, world) {
   if (menuCover) menuShadowDone = true;
   if (sizeDirty) applyRenderSize();
   progSortOn = !perfOff('progsort');
+  probe.mark('3d:render:pre');
   cullOffscreenActors();
   skipHiddenMatrixWalk();
+  probe.mark('3d:render:cull');
   try { postfx.render(); } finally { restoreCulledActors(); }
+  probe.mark('3d:render:hoofdpas+post');
   compilePending();
   if (afterFrameQ.length) { const q = afterFrameQ; afterFrameQ = []; for (const f of q) { try { f(); } catch (e) { /* no picture */ } } }
   canvasFrames++;

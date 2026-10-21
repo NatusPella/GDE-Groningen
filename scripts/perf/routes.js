@@ -733,6 +733,91 @@ results.routes.renderprof = await safe('renderprof', async () => {
   while (performance.now() - t0 < ms) { for (let i = 0; i < 10; i++) { r.render(sc.scene, sc.cam); n++; } gl.finish(); await sleep(0); }
   return { renders: n, msPerRender: +((performance.now() - t0) / n).toFixed(2), linkedAfter, warmMs, linkedAfter2 };
 });
+// where the frame time of the city on foot goes (only with PERF_ONLY=r46; r46, #246): windows of the same walk with one part of the frame switched off,
+// alternating in one process (the machine is never quiet, so only a window next to its neighbours means something). Per window: the interval of the
+// frames (histogram: a frame that misses a vsync costs 33 ms), the time inside the rAF callback, the GPU timer, the sections of the hitch probe, and
+// the thread sampler of run.mjs (`mcpu` and the GPU process) through the marks `r46:<variant>:<round>`.
+// PERF_R46='base;nopostfx;noshadow;pauzesim;hudoff' (variants), PERF_AB_ROUNDS (rounds), PERF_AB_WIN (ms per window), PERF_SETTLE
+results.routes.r46 = await safe('r46', async () => {
+  if (!ONLY.includes('r46')) return null;
+  const WIN = window.__perfAbWin || 6000, ROUNDS = window.__perfAbRounds || 3;
+  const VAR = (window.__perfR46 || 'base;nopostfx;noshadow;pauzesim;hudoff').split(';').filter(Boolean);
+  fixWorld(); teleport(FOOT[0][0], FOOT[0][1]); w.camYaw = 0.3; p.angle = 0.3;
+  const FLEN = pathLen(FOOT);
+  const SPEED = window.__perfAbMove === 0 || !window.__perfAbMove ? 3 : window.__perfAbMove === 9 ? 0 : 3; // PERF_AB_MOVE=9: standing still
+  const wt0 = performance.now();
+  mover = (now) => { // 3 m/s along the path, back and forth
+    const s = ((now - wt0) / 1000) * SPEED, L = FLEN * 2, m = s % L, back = m > FLEN;
+    const q = at(FOOT, back ? L - m : m);
+    p.x = q.x; p.y = q.y; p.angle = back ? q.ang + Math.PI : q.ang; w.camYaw = p.angle;
+  };
+  await sleep(window.__perfSettle || 20000);
+  const builds = () => { const b = sc.batches(); return Object.values(b).reduce((q, e) => q + (e.builds || 0) + (e.dropped || 0), 0); };
+  { let last = builds(), still = 0; for (let i = 0; i < 120 && still < 6; i++) { await sleep(500); const n = builds(); still = n === last ? still + 1 : 0; last = n; } }
+  await allLinked();
+  const hud = document.getElementById('hud');
+  const pfx = sc.postfx, pfxRender = pfx.render, shRender = r.shadowMap.render.bind(r.shadowMap);
+  const shOrig = r.shadowMap.render;
+  // gltime: every function of the context times itself (performance.now() pairs, jittered by the browser, so only the sums over thousands of calls mean anything)
+  const gl2 = r.getContext(); let glT = null;
+  const glOn = () => {
+    glT = new Map();
+    const proto = Object.getPrototypeOf(gl2);
+    for (const k of Object.getOwnPropertyNames(proto)) {
+      let f; try { f = gl2[k]; } catch (e) { continue; }
+      if (typeof f !== 'function' || k === 'constructor' || Object.prototype.hasOwnProperty.call(gl2, k)) continue;
+      const e = { n: 0, ms: 0 }; glT.set(k, e);
+      gl2[k] = function (...a) { const t = performance.now(); const v = f.apply(gl2, a); e.ms += performance.now() - t; e.n++; return v; };
+    }
+  };
+  const glOff = () => { if (!glT) return null; for (const k of glT.keys()) delete gl2[k]; const o = glT; glT = null; return o; };
+  const apply = (name) => {
+    const set = new Set(name.split('+'));
+    if (set.has('gltime') && !glT) glOn();
+    pfx.render = set.has('nopostfx') ? () => {} : pfxRender;
+    r.shadowMap.render = set.has('noshadow') ? () => {} : shOrig;
+    w.coopHold = set.has('pauzesim');
+    if (hud) hud.style.display = set.has('hudoff') ? 'none' : '';
+  };
+  const out = [];
+  for (let round = 0; round < ROUNDS; round++) {
+    const order = round % 2 ? [...VAR].reverse() : VAR;
+    for (const name of order) {
+      apply(name);
+      await sleep(1500); fixWorld();
+      if (window.__hitch) window.__hitch.reset();
+      const prof = round === 0 && (window.__perfProfile || '').split(',').includes(name === 'base' ? 'r46' : 'r46:' + name);
+      H.start();
+      console.error('[perf-mark] start r46:' + name + ':' + round + ' ' + Date.now());
+      if (prof) console.log('[profile] ' + Math.min(WIN - 1000, 15000));
+      if (round === 0 && (window.__perfProfile || '').split(',').includes('heap:' + name)) console.log('[heapprof] ' + Math.min(WIN - 1000, 15000));
+      if (round === 0 && name === 'base' && (window.__perfProfile || '').split(',').includes('r46trace')) console.log('[trace] ' + Math.min(WIN - 1500, 6000));
+      const frames0 = H.frames.length;
+      const cc0 = calls, tr0 = tris, rn0 = renders;
+      // heap per frame (with --enable-precise-memory-info): what rises between two frames is what the frame allocated, a fall is a GC
+      const heap = []; let heapOn = true; const heapTick = () => { heap.push(performance.memory.usedJSHeapSize); if (heapOn) requestAnimationFrame(heapTick); }; requestAnimationFrame(heapTick);
+      await sleep(WIN);
+      heapOn = false;
+      const fr = H.frames.slice();
+      const res = H.stop();
+      console.error('[perf-mark] end r46:' + name + ':' + round + ' ' + Date.now() + ' ' + res.frames);
+      void frames0;
+      const dts = []; for (let i = 1; i < fr.length; i++) dts.push(fr[i][0] - fr[i - 1][0]);
+      const hist = { '<12': 0, '12-15': 0, '15-18': 0, '18-25': 0, '25-36': 0, '36-50': 0, '>50': 0 };
+      for (const d of dts) hist[d < 12 ? '<12' : d < 15 ? '12-15' : d < 18 ? '15-18' : d < 25 ? '18-25' : d < 36 ? '25-36' : d < 50 ? '36-50' : '>50']++;
+      const row = { name, round, ...res, hist, callsPerFrame: Math.round((calls - cc0) / Math.max(1, res.frames)), rendersPerFrame: +((renders - rn0) / Math.max(1, res.frames)).toFixed(2) };
+      { let up = 0, gcs = 0, gcKB = 0; for (let i = 1; i < heap.length; i++) { const d = heap[i] - heap[i - 1]; if (d >= 0) up += d; else { gcs++; gcKB += -d; } } row.alloc = { kbPerFrame: +(up / 1024 / Math.max(1, heap.length - 1)).toFixed(1), gcs, gcMB: +(gcKB / 1048576).toFixed(1), perSecond: +(gcs / (WIN / 1000)).toFixed(2) }; }
+      if (window.__hitch) { const hs = window.__hitch.summary(); row.sections = hs.sections; }
+      const gt = glOff();
+      if (gt) { const f = Math.max(1, res.frames); const rows = [...gt].filter(([, e]) => e.n).map(([k, e]) => [k, +(e.ms / f).toFixed(3), +(e.n / f).toFixed(1)]).sort((a, b) => b[1] - a[1]); row.gl = { totalMs: +rows.reduce((q, x) => q + x[1], 0).toFixed(2), totalCalls: +rows.reduce((q, x) => q + x[2], 0).toFixed(0), top: rows.slice(0, 30) }; }
+      out.push(row);
+    }
+  }
+  apply('base');
+  mover = null;
+  if ((window.__perfProfile || '').split(',').includes('r46trace')) await sleep(8000); // the trace file is written after the window
+  return { rows: out, flen: FLEN, speed: SPEED };
+});
 // how long the shader programs take to link after the game started (only with PERF_ONLY=progready): every 500 ms the number of programs of the renderer and how many are linked,
 // until all are (at most 150 s), with the standing camera in the city; a pool adds programs (the batched variant of each batch material and its depth material)
 results.routes.progready = await safe('progready', async () => {

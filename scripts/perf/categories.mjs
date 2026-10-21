@@ -21,6 +21,8 @@ const HELPERS = /^(util|mapdata|pixelart3d|countryfield)\.js$/;
 // scene3d.js: per-frame update/render vs streaming the city
 const SCENE_STREAM = /build|stream|merge|batch|ensure|load|make|create|geom|warm|cell|road|water|tree|bldg|building|lod/i;
 
+// the first sample's delta is the wait since the profiler started (seconds on a loaded machine) and would count as native: deltas over CAP us are capped (--cap=, default 5000)
+const CAP = Number((process.argv.find((a) => a.startsWith('--cap=')) || '--cap=5000').slice(6));
 const files = process.argv.slice(2).filter((a) => !a.startsWith('--'));
 const top = process.argv.includes('--top');
 // --incl=fnA,fnB: inclusive ms of those functions (by name)
@@ -61,7 +63,7 @@ for (const f of files) {
     return res;
   };
   const per = new Map();
-  p.samples.forEach((id, i) => per.set(id, (per.get(id) || 0) + (p.timeDeltas[i] || 0)));
+  p.samples.forEach((id, i) => per.set(id, (per.get(id) || 0) + Math.min(CAP, p.timeDeltas[i] || 0)));
   for (const [id, us] of per) {
     const [c, key] = classify(id);
     all += us;
