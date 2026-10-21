@@ -39,7 +39,7 @@ process.on('SIGINT', () => { release(); process.exit(130); });
 
 const hook = fs.readFileSync(path.join(HERE, 'hook.js'), 'utf8');
 void hook;
-const script = `window.__perfDur = ${Number(process.env.PERF_DUR) || 20000}; window.__perfOnly = '${process.env.PERF_ONLY || ''}'; window.__perfDiag = ${process.env.PERF_DIAG || 0}; window.__perfProfile = '${process.env.PERF_PROFILE || ''}'; window.__perfSim = '${process.env.PERF_SIM || ''}'; window.__perfJump = ${process.env.PERF_JUMP || 0}; window.__perfSettle = ${Number(process.env.PERF_SETTLE) || 0}; window.__perfAb = ${JSON.stringify((process.env.PERF_AB || '').split(';').filter(Boolean).map((v) => { const i = v.indexOf('='); return [v.slice(0, i), v.slice(i + 1).split('+').filter(Boolean)]; }))}; window.__perfAbWin = ${Number(process.env.PERF_AB_WIN) || 5000}; window.__perfAbRounds = ${Number(process.env.PERF_AB_ROUNDS) || 6}; window.__perfAbPre = ${Number(process.env.PERF_AB_PRE) || 0}; window.__perfAbMove = ${Number(process.env.PERF_AB_MOVE) || 0};\n` + fs.readFileSync(path.join(HERE, 'routes.js'), 'utf8');
+const script = `window.__perfDur = ${Number(process.env.PERF_DUR) || 20000}; window.__perfOnly = '${process.env.PERF_ONLY || ''}'; window.__perfDiag = ${process.env.PERF_DIAG || 0}; window.__perfProfile = '${process.env.PERF_PROFILE || ''}'; window.__perfSim = '${process.env.PERF_SIM || ''}'; window.__perfJump = ${process.env.PERF_JUMP || 0}; window.__perfSettle = ${Number(process.env.PERF_SETTLE) || 0}; window.__perfAb = ${JSON.stringify((process.env.PERF_AB || '').split(';').filter(Boolean).map((v) => { const i = v.indexOf('='); return [v.slice(0, i), v.slice(i + 1).split('+').filter(Boolean)]; }))}; window.__perfAbWin = ${Number(process.env.PERF_AB_WIN) || 5000}; window.__perfAbRounds = ${Number(process.env.PERF_AB_ROUNDS) || 6}; window.__perfAbPre = ${Number(process.env.PERF_AB_PRE) || 0}; window.__perfAbMove = ${Number(process.env.PERF_AB_MOVE) || 0}; window.__perfPool = ${process.env.PERF_POOL ? 1 : 0}; window.__perfSamples = ${Number(process.env.PERF_SAMPLES) || 0};\n` + fs.readFileSync(path.join(HERE, 'routes.js'), 'utf8');
 const scriptFile = path.join(OUT, `_${name}.js`);
 fs.writeFileSync(scriptFile, script);
 
@@ -47,7 +47,7 @@ await takeSlot();
 const profile = `gde-test-k1perf-${name}`;
 fs.rmSync(path.join(os.tmpdir(), profile), { recursive: true, force: true });
 const desktop = path.join(HERE, '..', '..', 'desktop');
-const electron = path.join(desktop, 'node_modules', 'electron', 'dist', process.platform === 'win32' ? 'electron.exe' : 'electron');
+const electron = process.env.ELECTRON_EXE || path.join(desktop, 'node_modules', 'electron', 'dist', process.platform === 'win32' ? 'electron.exe' : 'electron');
 const args = ['.', '--windowed', '--stil', '--force-device-scale-factor=1', '--window-size=1920x1080',
   // with other windows over this one Chromium would throttle it as occluded or backgrounded: a measuring run must not be slowed by that
   '--disable-renderer-backgrounding', '--disable-backgrounding-occluded-windows', '--disable-features=CalculateNativeWinOcclusion', `--smoke-test=${path.join(OUT, name + '.png')}`,
