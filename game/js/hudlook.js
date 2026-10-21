@@ -70,10 +70,19 @@ export function meterLook(level, palette) {
 // the player's "Grootte interface", between 0.8 and 4.
 export const BASE_W = 1440;
 export const BASE_H = 900;
-export function uiScaleFor(width, height, user = 1) {
-  const auto = Math.max(1, Math.min(height / BASE_H, width / BASE_W));
+// A phone (touch, short side under 700 px) lays the HUD out smaller than the
+// 1440x900 base: at 1 it would fill an 800x360 screen with the minimap and
+// the cards. Short side 540 and up keeps scale 1; below it shrinks to 0.62 at
+// the smallest, which still leaves 11 px for the 18 px texts.
+export const PHONE_SHORT = 700;
+export const PHONE_REF = 540;
+export const PHONE_MIN = 0.62;
+export function uiScaleFor(width, height, user = 1, touch = false) {
+  const short = Math.min(width, height);
+  const phone = touch && short < PHONE_SHORT;
+  const auto = phone ? Math.max(PHONE_MIN, Math.min(1, short / PHONE_REF)) : Math.max(1, Math.min(height / BASE_H, width / BASE_W));
   const u = Number(user) || 1;
-  return Math.round(Math.min(4, Math.max(0.8, auto * u)) * 1000) / 1000;
+  return Math.round(Math.min(4, Math.max(phone ? 0.5 : 0.8, auto * u)) * 1000) / 1000;
 }
 
 // The box the HUD lays out in, in HUD px: the window divided by the scale.

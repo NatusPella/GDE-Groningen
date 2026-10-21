@@ -92,3 +92,4 @@ html.reduce-motion #saveslots .ssl-card, html.reduce-motion #saveslots .ssl-more
   #saveslots .m-head, #saveslots .ssl-msg, #saveslots .ssl-foot { padding-left: 20px; padding-right: 20px; }
   #saveslots .ssl-scroll { padding: 16px 20px 8px; }
 }
+#saveslots .ssl-intro { margin: 8px 0 0; font-size: 20px; max-width: 760px; }

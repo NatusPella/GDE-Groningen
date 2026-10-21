@@ -92,6 +92,22 @@ ok(zf && zr && zf.every((z, i) => Math.abs(z - zr[i]) < 0.02), 'over a raised te
 }
 
 // fetched rasters (optional)
+// a road that is no deck runs on the terrain at its vertices, straight in between (#269): the raster's
+// kinks (here a 20 m dip between the vertices) do not reach a car on the road
+{
+  const { roadTerrainAt } = await import('../game/js/deckterrain.js');
+  const bump = (x) => (Math.abs(x - 50) < 10 ? -3 : 0); // the dip between two vertices
+  const road = { pts: [[0, 0], [100, 0]], cat: 'normal', type: 'primary', width: 8 };
+  ok(roadTerrainAt(road, 50, 0, bump) === 0 && roadTerrainAt(road, 25, 0, (x) => x / 10) === 2.5, 'a road follows its vertices, not the terrain between them');
+  ok(roadTerrainAt(road, -20, 3, (x) => x / 10) === 0 && roadTerrainAt(road, 140, 3, (x) => x / 10) === 10, 'beyond its ends the terrain of the end');
+  const f1 = (x) => x / 10, f2 = (x) => x / 5;
+  ok(roadTerrainAt(road, 50, 0, f1) === 5 && roadTerrainAt(road, 50, 0, f2) === 10, 'a new terrain sampler renews the vertex heights');
+  const rm = new GameMap({ meta: { bounds: [0, 0, 200, 100] }, roads: [road], buildings: [], water: [], green: [], trees: [] });
+  rm.terrain = new T.TerrainField(); rm.terrainOn = true;
+  rm.terrain.at = bump;
+  ok(rm.terrainBase(road, 50, 0) === 0 && rm.terrainBase(null, 50, 0) === -3, 'GameMap.terrainBase: the road on its vertices, the ground on the terrain');
+}
+
 const idx = new URL('../data/world/ahn/index.json', import.meta.url);
 if (fs.existsSync(idx)) {
   const { loadTerrainField } = await import('./world/terrain.mjs');

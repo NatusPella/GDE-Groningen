@@ -18,6 +18,9 @@ export const PROP_BUILD = {
 };
 // props that only make sense next to water (harbour, quay, ditch)
 const WATER_KINDS = new Set(['bolder', 'container', 'visnet', 'vuurtoren']);
+// vee (#330): het dierenregister zegt dat het op weide en dijk staat, dus aan de rand van het dorp, niet in de kom
+const VEE_KINDS = new Set(['schaap']);
+export const VEE_RING = [0.65, 0.95];   // binnen welk deel van de reach vee-props gezocht worden
 
 const SCALE = 0.3; // props per km² of the profile, thinned: a hint, not a promise
 export const CAP = 14; // most of one kind per town
@@ -44,6 +47,7 @@ export function planTown(t, { seed = 1, tries = 8 } = {}) {
   const rng = mulberry(hash(t.id) ^ seed);
   const c = townCentre(t);
   const at = (rMax, bias) => { const r = rMax * Math.pow(rng(), bias), a = rng() * Math.PI * 2; return [c.x + Math.cos(a) * r, c.y + Math.sin(a) * r]; };
+  const ring = () => { const r = t.reach * (VEE_RING[0] + rng() * (VEE_RING[1] - VEE_RING[0])), a = rng() * Math.PI * 2; return [c.x + Math.cos(a) * r, c.y + Math.sin(a) * r]; };
   const out = [], skipped = [];
   let n = 0;
   for (const p of t.props) {
@@ -52,9 +56,9 @@ export function planTown(t, { seed = 1, tries = 8 } = {}) {
     const want = countFor(p.per, t.reach);
     for (let i = 0; i < want; i++) {
       const list = [];
-      const water = WATER_KINDS.has(p.kind);
-      for (let k = 0; k < (water ? tries * 4 : tries); k++) list.push(at(t.reach * 0.9, 0.7));
-      out.push({ id: `${t.id}-${p.kind}-${n++}`, kind: p.kind, build, water, x: list[0][0], y: list[0][1], tries: list });
+      const water = WATER_KINDS.has(p.kind), vee = VEE_KINDS.has(p.kind);
+      for (let k = 0; k < (water ? tries * 4 : tries); k++) list.push(vee ? ring() : at(t.reach * 0.9, 0.7));
+      out.push({ id: `${t.id}-${p.kind}-${n++}`, kind: p.kind, build, water, vee, x: list[0][0], y: list[0][1], tries: list });
     }
   }
   let m = 0;

@@ -10,6 +10,7 @@
 import { STEPS, STEP_BY_ID, PARTS, CLUES, WHY, CHARACTERS, SPEAKERS, stepAvailable, missionIndexOf, computeMoneyTimeline, partNumber, stepDone, nextStoryStep } from './storyarc.js';
 import { tickStoryTravel, rideWith } from './storytravel.js';
 import { askTravel, travelPromptOpen } from './reispanel.js';
+import { gateOn } from './coopgate.js';
 import { startMeerijden } from './reisrit.js';
 import { FLAGS } from './devflags.js';
 import { setMeetHook } from './namecard.js';
@@ -216,7 +217,7 @@ const GOALS = {
     begin: (st, b) => { b.phase = 'wait'; },
     met: (st, b) => {
       if (b.phase === 'wait') {
-        const ready = !isMissionActive() && !isCinematicActive() && sinceCinematic() > 1 && !narrativeBusy() && !world.pigeonMode && !world.pendingRespawn && document.body.classList.contains('game-started');
+        const ready = !isMissionActive() && !isCinematicActive() && sinceCinematic() > 1 && !narrativeBusy() && !world.pigeonMode && !world.pendingRespawn && document.body.classList.contains('game-started') && !gateOn() && world.coopRole !== 'client';
         if (ready && storyDataReady()) { b.phase = 'play'; if (!playOpening(b)) b.phase = 'done'; }
         else if (ready && world.time - rt.enteredAt > 40) b.phase = 'done';
       }

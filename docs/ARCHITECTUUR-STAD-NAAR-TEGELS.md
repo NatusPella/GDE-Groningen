@@ -578,3 +578,32 @@ binnen 1 m 97,5 %, 30 van 30 landmarks, overkappingen 65 oud / 75 nieuw. Wegen: 
 **Bewust anders dan de oude stad.** Het Hoofdstation-startpunt blijft bij het stationsgebouw (de OSM-halte ligt 50 m zuidelijker bij de perrons; treinroutes houden
 de halte); `road_seams_test` laneJump-plafond 231 (OSM telt twee echte stroken-verschillen); de ring bij de Beneluxweg ligt vlak onder het viaduct (de oude kaart had
 een kunstmatig 5,6 m diepe bak zonder OSM-bron); 58 beweegbare bruggen in plaats van 34 (OSM-tags; op de ring uitgezet).
+
+## Vervolg op C3 (21 oktober 2026, #314): wat is gedaan en waarom de overlaytegels blijven
+
+**Gedaan: B6-B8 als data.** De plaatsen van `meta` (winkels, horeca, garages, wijkpunten, landmarks, verkeerslichten, zorglocaties, politiebureaus,
+ziekenhuis, helikopterplek, `pois` per soort: 2.274 punten) staan als rijen in de `POIS`-sectie van de tegel van hun punt (`game/js/poisections.js`, 40
+stadstegels; 7 punten buiten de stadstegels blijven in de globale laag onder `poiRest`). `tileworld.js fromTiles` voegt ze weer samen tot `map.meta`, dus de
+lezers veranderen niet; de test (`scripts/poisections_test.mjs`, `tileworld_test`, `world_tiles_test`) bewijst dat `meta` identiek terugkomt, ook door de
+`.gdt`-tabellen. Wat nog ontbreekt voor echt tegelgebonden plaatsen is C1: de lezers moeten per tegel vragen in plaats van de hele lijst te lezen.
+
+**Geprobeerd en teruggedraaid: C2 (overlaytegels weg).** Commit `a1312910` bevat de proef (stadsdekking = de 54 stadstegels zelf, de tegels ernaast laten weg wat de
+stad neemt via `outsideCover`, geen vlag 64, geen `citycover.mjs`). Gemeten op twee volledige wereldbouwen (oud en nieuw, zelfde invoer): de gebouwen zijn dezelfde
+voetafdrukken (78.333 van 78.336), de hoogtes na een herstel in `joinAttrs` even goed (3D BAG 74.346 tegen 73.997), geen dubbele gebouwen of water met de tegels ernaast. Maar:
+
+| Maat (stadstegels, oud tegenover nieuw) | oud (stad + overlays) | nieuw (tot de rand) |
+|---|---|---|
+| gebouwen, wegen, water, groen, bomen in de vaste set (`index.counts`) | 51.728 / 12.159 / 797 / 3.718 / 22.744 | 77.265 / 16.793 / 1.621 / 6.570 / 38.503 |
+| pakketgrootte van de stad | 5,4 MB | 7,5 MB |
+| meubilair (rijen in het gebied) | 2.924 | 933 |
+| percelen (`PARCELS`) | 537 | 358 |
+
+De overlaytegels zijn dus meer dan een rand: ze zijn het gestreamde pad voor de buitenwijken. De vaste set groeit met 38 tot 69 % (45 modules lezen hele arrays, dus laadtijd
+en geheugen), en wat het gestreamde pad (`addTile`) doet bestaat niet voor de vaste set: de perceelraster en heggenraster (`landUseAt`, `hedgeNear`: hekken, vee en
+heggen in de buitenwijken), het weglaten van dubbele wateren (#231), het OSM-meubilair (de stad heeft eigen `cityprops` voor de kern), `railGrid`. Daarom is C2 niet los van C1 te
+doen: eerst moet de stad net als de provincie gestreamd worden (de vaste set alleen spawn, garage, missieset en eigen auto), of het gestreamde pad moet voor de vaste set
+dezelfde rasters bouwen. De kern en de buitenwijken scheiden blijft nodig tot dan. Het meetscript van de proef (`stad_pariteit_c2.mjs`: rijen per laag tussen twee werelden,
+dubbelcontrole met `overlap_check.mjs`) staat in die commit.
+
+**Niet gedaan.** C1 (ontpinnen: 45 modules naar tegelqueries, `index.pins.city`, `TileWorld.fromTiles` met een dichte gid-reeks) en punt 4 (`data/ommeland_raw.json.gz`
+vervangen door extracten van de buurprovincies via `extract_province.py --near`: vraagt grote downloads van Geofabrik, niet zonder akkoord van de eigenaar).

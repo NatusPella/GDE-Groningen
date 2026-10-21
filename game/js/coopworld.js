@@ -107,9 +107,9 @@ export function leesMissieBericht(b) {
   return { actief: true, label: b.label, type: typeof b.type === 'string' ? b.type.slice(0, 24) : '', index: b.index | 0, stap: typeof b.stap === 'string' ? b.stap.slice(0, 90) : '' };
 }
 // Tekst voor de gast: wat de host nu speelt, en of de gast kan meedoen.
-export function missieTekst(m, rol = 'wereld') {
+export function missieTekst(m, rol = 'wereld', naam = 'De ander') {
   if (!m || !m.actief) return '';
-  return rol === 'wereld' ? `De gastheer speelt: ${m.label}. Jij loopt mee in de open wereld.` : `De gastheer speelt: ${m.label}. Doe mee waar het kan.`;
+  return rol === 'wereld' ? `${naam} speelt: ${m.label}. Jij loopt mee in de open wereld.` : `${naam} speelt: ${m.label}. Doe mee waar het kan.`;
 }
 
 // ----------------------------------------------------------- wat de host op het scherm heeft
@@ -137,5 +137,5 @@ export function sceneBericht(prev, sc) {
 }
 export function leesSceneBericht(b) { return b && b.k === 'scene' ? schoonScene(b) : null; }
 // Tekst voor de gast bij een filmpje
-export const FILMPJE_TEKST = 'De gastheer kijkt een filmpje. Je wacht even.';
-export const PAUZE_TEKST = 'De gastheer heeft het spel op pauze.';
+export const filmpjeTekst = (naam = 'De ander') => `${naam} kijkt een filmpje. Je wacht even.`;
+export const pauzeTekst = (naam = 'De ander') => `${naam} heeft het spel op pauze.`;

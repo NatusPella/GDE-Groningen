@@ -8,6 +8,7 @@
 // openSaveSlots({ mode: 'start' | 'game', world, onLoad(n), onNew(), onClose(), pick, onPick(n) })
 //   start: the main menu (a card loads that game and goes on; an empty card starts a new game)
 //   game:  the pause menu (a card loads that game; an empty card saves the current game there)
+//   eyebrow / titel / hint / loadLabel: optional texts (Samen spelen: 'Een spel openen')
 //   pick + onPick(n): choosing a card only makes it the active game and calls onPick(n), without loading
 //     (the host of Samen spelen picks the game to play with); an empty card calls onNew() as usual.
 import * as S from './saveslots.js';
@@ -116,7 +117,7 @@ export function openSaveSlots(opts = {}) {
     else if (opts.onClose) opts.onClose();
   };
 
-  const primaryLabel = opts.pick ? 'Kiezen' : mode === 'start' ? 'Doorgaan' : 'Laden';
+  const primaryLabel = opts.loadLabel || (opts.pick ? 'Kiezen' : mode === 'start' ? 'Doorgaan' : 'Laden');
 
   const mi = (act, ic, label, extra = '') => `<button type="button" class="ssl-mi${extra}" role="menuitem" data-grp="menu" data-do="${act}">${svg(IC[ic])}<span>${label}</span></button>`;
 
@@ -190,7 +191,7 @@ export function openSaveSlots(opts = {}) {
     const stage = document.createElement('div');
     stage.className = 'gm-stage';
     stage.innerHTML = `<section class="m-panel ssl-panel">
-      <header class="m-head"><div><span class="m-eb">${mode === 'start' ? 'Hoofdmenu' : 'Pauze'}</span><h1 class="m-h1" id="ssl-title">Opgeslagen spellen</h1></div><div class="m-hr"><span class="mut">${slots.length} van ${MAX_SLOTS}</span></div></header>
+      <header class="m-head"><div><span class="m-eb">${esc(opts.eyebrow || (mode === 'start' ? 'Hoofdmenu' : 'Pauze'))}</span><h1 class="m-h1" id="ssl-title">${esc(opts.titel || 'Opgeslagen spellen')}</h1>${opts.hint ? `<p class="mut ssl-intro">${esc(opts.hint)}</p>` : ''}</div><div class="m-hr"><span class="mut">${slots.length} van ${MAX_SLOTS}</span></div></header>
       <div class="ssl-scroll"><div class="ssl-grid" role="list" aria-label="Opgeslagen spellen">${tiles.join('')}</div></div>
       <p class="ssl-msg" role="status">${esc(message)}</p>
       <footer class="ssl-foot"><button type="button" class="ssl-fb" data-grp="foot" data-do="import"${full ? ' disabled title="Alle plekken zijn in gebruik"' : ''}>${svg(IC.import)}<span>Spel importeren</span></button>

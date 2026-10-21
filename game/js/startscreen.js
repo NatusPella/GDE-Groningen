@@ -6,6 +6,7 @@ import { checkWhatsNew, markVersionSeen, compareVersions } from './whatsnew.js';
 import { pointInPolygon } from './util.js';
 import { openPauseMenu, menuIcon } from './pausemenu.js';
 import { requestOpenSamen } from './samenpanel.js';
+import { openSamenKeuze, isSamenKeuzeOpen } from './samenkeuze.js';
 import { isPauseMenuOpen } from './pausestate.js';
 import { getAchievementSummary } from './achievements.js';
 import { pendingTrailer } from './trailerstate.js';
@@ -512,9 +513,20 @@ export function runStartScreen(world, { render, relocate, tick, ready }) {
       if (it.act === 'continue') {
         continueGame();
       } else if (it.act === 'samen') {
-        // het spel start zoals altijd (Doorgaan, of een nieuw spel zonder savegame); daarna staat de lobby klaar (main.js)
-        requestOpenSamen();
-        if (save) continueGame(); else startNew();
+        // een echte menustroom: Gastheer worden (kies een opgeslagen spel of Nieuw spel) of Meedoen; daarna staat de wachtkamer klaar (main.js)
+        openSamenKeuze({
+          onClose: () => focus(sel),
+          onKies: (rol) => {
+            if (rol === 'gast') { requestOpenSamen({ rol: 'gast', gate: true }); if (save) continueGame(); else startNew(); return; }
+            openSaveSlots({
+              mode: 'start', eyebrow: 'Samen spelen', titel: 'Kies jullie spel', loadLabel: 'Dit spel spelen',
+              hint: 'Jij opent het spel: de anderen spelen mee in het spel dat je hier kiest. Kies een lege plek voor een nieuw spel.',
+              onLoad: () => { requestOpenSamen({ rol: 'host', gate: true }); continueGame(); },
+              onNew: () => { requestOpenSamen({ rol: 'host', gate: true }); startNew(); },
+              onClose: () => focus(sel),
+            });
+          },
+        });
       } else if (it.act === 'saves') {
         openSaveSlots({ mode: 'start', onLoad: continueGame, onNew: () => startNew(), onClose: () => {
           // Doorgaan shows the save as it was when the menu opened: rebuild the menu when saves changed
@@ -559,7 +571,7 @@ export function runStartScreen(world, { render, relocate, tick, ready }) {
     };
     news.querySelector('.ss-news-close').addEventListener('click', closeNews);
     const onKey = (e) => {
-      if (isPauseMenuOpen() || isSaveSlotsOpen() || done || trailerOn) return;
+      if (isPauseMenuOpen() || isSaveSlotsOpen() || isSamenKeuzeOpen() || done || trailerOn) return;
       if (e.target && e.target.closest && e.target.closest('#gfx-advice')) return;
       const k = e.key;
       if (!news.hidden) {

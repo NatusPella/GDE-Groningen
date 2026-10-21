@@ -133,14 +133,18 @@ const near = (a, b, e = 1e-6) => Math.abs(a - b) < e;
   ok(L.decide(atm, { pressTries: 4 }).type === 'goto', 'na vier pogingen weer lopen');
   ok(L.decide({ ...atm, target: { x: 90, y: 0, distance: 90 } }).type === 'goto', 'prompt ver van het doel telt niet');
   const board = { ...b(), mission: { active: true, stage: 'board' }, target: { x: 300, y: 0, distance: 300 }, nearby: { vehicles: [{ x: 20, y: 0, distance: 20, free: true, drivable: true, kind: 'auto' }] } };
-  ok(L.decide(board).type === 'enter', 'board-stage: instappen, ook ver van het doel');
+  ok(L.decide(board).type === 'goto', 'board-stage: eerst naar de ver weg gelegen markering lopen (20 s), niet in de eerste de beste auto');
+  ok(L.decide(board, { boardWalkUntil: -1 }).type === 'enter', 'board-stage: daarna toch instappen, ook ver van het doel');
   ok(L.decide(board, { boardTries: 4 }).type === 'goto', 'board-stage: opgeven na vier keer');
+  // the car at the marker wins over the nearest one (M22: the Escapade stands among other cars)
+  const two = { ...board, target: { x: 30, y: 0, distance: 30 }, nearby: { vehicles: [{ x: 5, y: 0, distance: 5, free: true, drivable: true, kind: 'auto' }, { x: 30, y: 1, distance: 30, free: true, drivable: true, kind: 'auto' }] } };
+  ok(L.decide(two).type === 'enter' && L.decide(two).vehicle.x === 30, 'board-stage: de auto bij de markering boven de dichtstbijzijnde');
   // op een fiets bij de board-stage: eerst uitstappen, dan een motorvoertuig boven de fiets die je net verliet
   const onBike = { ...board, player: { ...board.player, vehicle: { kind: 'fiets', speed: 0, angle: 0 } }, nearby: { vehicles: [{ x: 5, y: 0, distance: 5, free: true, drivable: true, kind: 'fiets' }, { x: 20, y: 0, distance: 20, free: true, drivable: true, kind: 'auto' }] } };
   const mb = {};
   ok(L.decide(onBike, mb).key === 'e' && mb.boardTries === 1, 'board-stage op een fiets: uitstappen');
   ok(L.decide(onBike, { boardTries: 4 }).type === 'goto', 'board-stage op een fiets: opgeven na vier keer');
-  ok(L.decide({ ...onBike, player: { ...onBike.player, vehicle: null } }).vehicle.kind === 'auto', 'board-stage te voet: motorvoertuig boven de fiets');
+  ok(L.decide({ ...onBike, player: { ...onBike.player, vehicle: null } }, { boardWalkUntil: -1 }).vehicle.kind === 'auto', 'board-stage te voet: motorvoertuig boven de fiets');
   ok(L.decide({ ...b(), mission: { active: true, stage: 'hold' }, target: { x: 1, y: 0, distance: 1 } }).type === 'wait', 'hold-stage: stilstaan in de ring');
   const planS = { ...b(), mission: { active: true, stage: 'plan' }, target: { x: 1, y: 0, distance: 1 } };
   const pm = {};

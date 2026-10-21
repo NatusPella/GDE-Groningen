@@ -129,7 +129,7 @@ export function wildlifeLimits(streek, quality, base) {
     if (base[kind] == null) continue;
     const f = Math.max(...soorten.map((s) => mix[s] || 0));
     const streekF = Math.max(0.25, Math.min(1.6, f));
-    out[kind] = Math.max(1, Math.round(base[kind] * streekF * Math.max(0.4, q)));
+    out[kind] = kind === 'grazer' && f === 0 ? 0 : Math.max(1, Math.round(base[kind] * streekF * Math.max(0.4, q)));   // #330: de stad heeft geen vee
   }
   return out;
 }

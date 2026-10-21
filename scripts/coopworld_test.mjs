@@ -60,7 +60,7 @@ t('opdracht-bericht: alleen bij verandering; begin en einde; gast controleert wa
 });
 t('tekst voor de gast: Nederlands; extra spelers lopen mee in de open wereld', () => {
   const m = { actief: true, label: 'Berend telt de krassen' };
-  assert.match(W.missieTekst(m, 'wereld'), /De gastheer speelt: Berend telt de krassen\. Jij loopt mee in de open wereld/);
+  assert.match(W.missieTekst(m, 'wereld'), /De ander speelt: Berend telt de krassen\. Jij loopt mee in de open wereld/);
   assert.match(W.missieTekst(m, 'hoofdrol'), /Doe mee waar het kan/);
   assert.equal(W.missieTekst({ actief: false }), '');
 });

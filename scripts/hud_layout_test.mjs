@@ -32,6 +32,12 @@ for (const [w, h] of SIZES) {
 ok(uiScaleFor(3840, 2160) === 2.4 && uiScaleFor(1920, 1080) === 1.2, 'schaal 1.2 op 1080p en 2.4 op 4K');
 ok(uiScaleFor(1280, 720) === 1, '720p krijgt schaal 1 (HUD 1280x720, niet kleiner)');
 ok(uiScaleFor(1920, 1080, 1.3) > uiScaleFor(1920, 1080), 'Grootte interface werkt door');
+// telefoon (aanraking, korte zijde < 700): kleinere HUD; tablet en bureaublad ongewijzigd
+ok(uiScaleFor(800, 360, 1, true) === 0.667 && uiScaleFor(360, 800, 1, true) === 0.667, 'telefoon 800x360 en 360x800: schaal 0.667');
+ok(uiScaleFor(915, 412, 1, true) > 0.7 && uiScaleFor(915, 412, 1, true) < 0.8, 'telefoon 915x412: ca. 0.76');
+ok(uiScaleFor(1180, 820, 1, true) === 1 && uiScaleFor(1920, 1080, 1, true) === 1.2, 'tablet en groot scherm met touch: schaal ongewijzigd');
+ok(uiScaleFor(800, 360, 1, false) === 1, 'zonder touch blijft 800x360 op schaal 1');
+ok(uiScaleFor(320, 200, 1, true) === 0.62 && uiScaleFor(800, 360, 0.1, true) >= 0.5, 'telefoon: ondergrens 0.62, gebruikersfactor tot 0.5');
 ok(uiScaleFor(10, 10, 0.1) >= 0.8 && uiScaleFor(99999, 99999, 9) <= 4, 'schaal blijft tussen 0.8 en 4');
 
 // text: no HUD font below READABLE_MIN device px unless it floors itself on --hud-min

@@ -117,7 +117,7 @@ export function buildNieuwDefs({ map, walk, drive, models = {} }) {
       type: 'stages',
       label: 'De dijk',
       intro: ["Zaterdag, zonsopgang. Om acht uur legt Jelles deurwaarder beslag op de ligplaats van Lammerts woonschip in Delfzijl, met al het vet, de eieren en het zout van de vrienden van Oma erin.", "Wees eerder bij de sluis van Delfzijl dan de trekker-limo met de deurwaarder. De dijk is lang en er staan schapen op de weg."],
-      outro: 'De sluis van Delfzijl, eerst. Het beslag mislukt: de voorraden zijn veilig.',
+      outro: 'Wij waren eerst bij de sluis van Delfzijl. Het beslag mislukt: de voorraden zijn veilig.',
       timeLimit: null,
       reward: 1000,
       vehicle: 'car',
