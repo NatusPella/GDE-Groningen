@@ -244,14 +244,19 @@ export function meldNeer(world, n) {
 // (geen gebouwen, geen grond). Eerst een melding, daarna zet de gastheer hem bij de groep (#366).
 export function bandFiguren(world, dt) {
   const p = world.player; if (!p || !Number.isFinite(p.x)) return;
+  const v = p.inVehicle, snel = !!v && Math.abs(v.speed || 0) > 6; // rijdt de gastheer weg, dan raakt een speler te voet het eerst achter
   for (const fig of Object.values(figures(world))) {
-    const d = Math.hypot(fig.x - p.x, fig.y - p.y);
-    if (d > FIGUUR_WAARSCHUWING && !fig.gewaarschuwd) { fig.gewaarschuwd = true; if (world.coopMeld) world.coopMeld(fig.slot, 'Blijf bij de groep: te ver weg wordt je teruggezet.'); }
+    if (fig.inVeh) continue;
+    const d = Math.hypot(fig.x - p.x, fig.y - p.y), band = snel ? 35 : FIGUUR_BAND;
+    const plek = !!v && figuurPlekken(v) > Object.values(figures(world)).filter((f) => f.inVeh === v).length;
+    if (d > FIGUUR_WAARSCHUWING && !fig.gewaarschuwd && !snel) { fig.gewaarschuwd = true; if (world.coopMeld) world.coopMeld(fig.slot, 'Blijf bij de groep: te ver weg wordt je teruggezet.'); }
     if (d <= FIGUUR_WAARSCHUWING) fig.gewaarschuwd = false;
-    fig.verTijd = d > FIGUUR_BAND ? (fig.verTijd || 0) + dt : 0;
+    fig.verTijd = d > band ? (fig.verTijd || 0) + dt : 0;
     if (fig.verTijd >= (d > 300 ? 0.5 : FIGUUR_TERUG_S)) { // een sprong van de gastheer (snelreizen, herstel) haalt de figuur meteen bij
+      fig.verTijd = 0; fig.gewaarschuwd = false; fig.vx = 0; fig.vy = 0;
+      if (plek) { fig.inVeh = v; fig.coopVoertuig = true; fig.x = v.x; fig.y = v.y; if (world.coopMeld) world.coopMeld(fig.slot, 'Je rijdt mee. Met E stap je uit als het voertuig stilstaat.'); continue; } // is er plek, dan zit hij weer in het voertuig (geen eindeloos terugzetten)
       const a = (fig.slot * 1.7) % (Math.PI * 2);
-      fig.x = p.x + Math.cos(a) * 2.2; fig.y = p.y + Math.sin(a) * 2.2; fig.vx = 0; fig.vy = 0; fig.verTijd = 0; fig.gewaarschuwd = false;
+      fig.x = p.x + Math.cos(a) * 2.2; fig.y = p.y + Math.sin(a) * 2.2;
       if (world.coopMeld) world.coopMeld(fig.slot, 'Je staat weer bij de groep.');
     }
   }
