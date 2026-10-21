@@ -261,14 +261,18 @@ function freeClock() { pins.clock = null; pins.weather = null; }
 
 // de HUD van het spel aan of uit (kaarten, minikaart, aanwijzingen): in een trailer-shot zonder HUD
 let hudStyle = null;
-function hud(on) {
+// De HUD van het spel aan of uit (kaarten, minikaart, aanwijzingen). hud(false, 'verhaal') verbergt alles behalve de ondertitels en
+// naamkaarten van de filmpjes (#cine), zoals een speler ze ziet.
+function hud(on, mode = '') {
   if (!hudStyle) hudStyle = document.getElementById('clip-hud-style');
   if (!hudStyle) {
     hudStyle = document.createElement('style');
     hudStyle.id = 'clip-hud-style';
-    hudStyle.textContent = '#hud, #minimap, .minimap, #prompts, .prompts, #subtitles, #cine, #toast-layer, #wijk-card, .wijk-card { visibility: hidden !important; }';
     document.head.appendChild(hudStyle);
   }
+  const list = ['#hud', '#minimap', '.minimap', '#prompts', '.prompts', '#subtitles', '#toast-layer', '#wijk-card', '.wijk-card'];
+  if (mode !== 'verhaal') list.push('#cine');
+  hudStyle.textContent = list.join(', ') + ' { visibility: hidden !important; }';
   hudStyle.disabled = !!on;
 }
 
@@ -326,7 +330,13 @@ function spawn(key, x, y, angle = null, { onRoad = true } = {}) {
   return v;
 }
 function enter(v) { player.x = v.x; player.y = v.y; player.enterVehicle(v, world); world.camYaw = v.angle; }
-function leave() { if (player.inVehicle) player.exitVehicle(world.map, world); }
+function leave() {
+  const v = player.inVehicle;
+  if (v) { v.speed = 0; v.driftX = 0; v.driftY = 0; v.vx = 0; v.vy = 0; player.exitVehicle(world.map, world); }
+  // niet gewond of omgevallen na een eerdere opname
+  player.health = 100; player.ragdoll = null; player.vx = 0; player.vy = 0;
+  world.health = 100; world.armor = 0;
+}
 
 // Haalt voertuigen (en resten van eerdere opnames) weg binnen r meter van x, y; keep = voertuigen die blijven
 function clearArea(x, y, r, keep = []) {
@@ -459,7 +469,7 @@ function driver(pts, { top = 16, look = 6, grip = 5.5, stopAtEnd = false, steerG
 // --- camerarigs: functies (t, world) => pose voor camera() -------------------------------------------------------
 const exps = (dt, lag) => 1 - Math.exp(-dt / Math.max(1e-4, lag));
 // de dichtstbijzijnde vrije plek (buiten gebouwen) op de lijn van (x0,y0) naar (x1,y1), vanaf x1,y1 teruggetrokken tot x0,y0
-function clearAlong(x0, y0, x1, y1, minFrac = 0.18) {
+function clearAlong(x0, y0, x1, y1, minFrac = 0.42) {
   for (let f = 1; f >= minFrac; f -= 0.06) {
     const x = x0 + (x1 - x0) * f, y = y0 + (y1 - y0) * f;
     if (M.camp.roofAt(world.map, x, y) === 0) return { x, y, f };
@@ -610,6 +620,29 @@ async function endCard({ line = '', age = true } = {}) {
   r.appendChild(el);
   return el;
 }
+// miniatuur voor YouTube: het logo van het spel groot links, de leeftijdsaanduiding klein; pos 'links' | 'rechts' | 'midden'
+async function thumbOverlay({ pos = 'links', line = '' } = {}) {
+  const r = overlay();
+  if (!document.getElementById('clip-thumb-style')) {
+    const st = document.createElement('style');
+    st.id = 'clip-thumb-style';
+    st.textContent = `
+    #clip-ov .cl-thumb { position: absolute; inset: 0; display: flex; align-items: center; }
+    #clip-ov .cl-thumb.links { justify-content: flex-start; padding-left: 4.5vw; background: linear-gradient(to right, rgba(3,9,6,0.78) 0%, rgba(3,9,6,0.42) 38%, rgba(3,9,6,0) 62%); }
+    #clip-ov .cl-thumb.rechts { justify-content: flex-end; padding-right: 4.5vw; background: linear-gradient(to left, rgba(3,9,6,0.78) 0%, rgba(3,9,6,0.42) 38%, rgba(3,9,6,0) 62%); }
+    #clip-ov .cl-thumb.midden { justify-content: center; background: radial-gradient(ellipse at center, rgba(3,9,6,0.55) 0%, rgba(3,9,6,0) 70%); }
+    #clip-ov .cl-thumb .gde-logo { font-size: min(30vh, 330px); filter: drop-shadow(0 0.02em 0.06em rgba(0,0,0,0.7)); }
+    #clip-ov .cl-thumb .cl-tline { position: absolute; left: 4.5vw; bottom: 7vh; font-size: min(5vh, 54px); letter-spacing: 0.22em; color: #cfe8d8; text-shadow: 0 2px 6px rgba(0,0,0,0.7); }
+    #clip-ov .cl-thumb .cl-tage { position: absolute; right: 2.4vw; bottom: 4vh; width: 5.4vh; height: 6.4vh; border-radius: 5px; background: #d93f3f; display: flex; align-items: center; justify-content: center; box-shadow: inset 0 0 0 3px #f0ede4; color: #fff; font-size: 3.6vh; line-height: 0.9; }`;
+    document.head.appendChild(st);
+  }
+  const { logoHtml } = await import('/js/logo.js');
+  const el = document.createElement('div');
+  el.className = 'cl-thumb ' + pos;
+  el.innerHTML = logoHtml({ sub: true }) + (line ? '<div class="cl-tline">' + line + '</div>' : '') + '<div class="cl-tage">18</div>';
+  r.appendChild(el);
+  return el;
+}
 function clearOverlay() { if (ovRoot) ovRoot.innerHTML = ''; capEl = null; }
 // speelt cues af tijdens play(): [[t, () => ...], ...]
 function cueRunner(cues) {
@@ -644,6 +677,8 @@ async function play(seconds, fn) {
 async function end() {
   if (previewing()) { const o = { name: rec.name, preview: true, frames: rec.frames, wall_s: +((rt.now() - rec.t0) / 1000).toFixed(1) }; logc('voorbeeld ' + JSON.stringify(o)); return o; }
   const r = await gd.clip('end');
+  // de gebeurtenissen ook in het consolelogboek (run.mjs/repl: r1.log): reserve voor het zijbestand
+  logc('events ' + JSON.stringify({ name: rec.name, frames: rec.frames, events: rec.events }));
   await gd.clip('json', { name: rec.name, data: { name: rec.name, frames: rec.frames, events: rec.events, stats: { extra: rec.extra, maxExtra: rec.maxExtra, framesWithWait: rec.pendFrames } } });
   const out = { name: rec.name, frames: rec.frames, wall_s: +((rt.now() - rec.t0) / 1000).toFixed(1), extraFrames: rec.extra, maxExtra: rec.maxExtra, framesWithWait: rec.pendFrames, maxPending: rec.maxPend, ffmpeg: r && r.code };
   rec.on = false;
@@ -656,8 +691,12 @@ const png = (name) => gd.clip('png', { name });
 // --- spel starten ------------------------------------------------------------------------------------------
 async function skipCinematics(maxMs = 20000) {
   const t0 = rt.now();
-  while (rt.now() - t0 < maxMs) {
-    if (M.cine.isCinematicActive && M.cine.isCinematicActive()) { M.cine.skipCinematic(); await sleep(250); } else break;
+  let quiet = 0;
+  // het openingsfilmpje bestaat uit drie aaneengesloten delen: pas klaar als er een tijdje niets meer speelt
+  while (rt.now() - t0 < maxMs && quiet < 8) {
+    if (M.cine.isCinematicActive && M.cine.isCinematicActive()) { quiet = 0; M.cine.skipAllCinematics(); }
+    else quiet++;
+    await sleep(250);
   }
 }
 
@@ -690,5 +729,5 @@ async function runAll(names, only = '') {
 
 const clipApi = {
   world, player, M, vnow: () => ST.vnow, sleep, advance, settle, pending, cam, releaseCam, spline, hud, weather, clock, placePlayer,
-  rig, cutCam, overlay, caption, clearCaption, endCard, clearOverlay, cueRunner, findRow, roadPts, press, resetUi, clearArea, calmPolice, spawn, enter, leave, route, driver, mark, groundZ, safeZ, rt, camera, freeClock, begin, play, end, png, lerp, clamp01, smooth, smoother, skipCinematics, installVirtualTime, runCallbacks, present,
+  rig, cutCam, overlay, caption, clearCaption, endCard, thumbOverlay, clearOverlay, cueRunner, findRow, roadPts, press, resetUi, clearArea, calmPolice, spawn, enter, leave, route, driver, mark, groundZ, safeZ, rt, camera, freeClock, begin, play, end, png, lerp, clamp01, smooth, smoother, skipCinematics, installVirtualTime, runCallbacks, present,
 };

@@ -61,6 +61,14 @@ export const SFX = {
   stad: { t: 8, noise: 'pink', fx: "bandpass=f=900:width_type=q:w=0.35,volume=eval=frame:volume='(0.5+0.3*sin(2*PI*0.4*t))*min(1,t/1.0)*min(1,(8-t)/1.5)*2.2'" },
   // meeuw: twee dalende uithalen
   meeuw: { t: 1.3, expr: "0.3*sin(2*PI*(2300-1000*min(t,0.55)/0.55)*t)*exp(-t*2.2)*min(1,t*40)+0.22*sin(2*PI*(2000-800*min(max(t-0.65,0),0.5)/0.5)*t)*gte(t,0.65)*exp(-(t-0.65)*3)" },
+  // doorlopende geluiden onder een shot (8 s, zachte in- en uitloop; de montage legt ze achter elkaar)
+  motorloop: { t: 8, expr: "(0.30*sin(2*PI*58*t+0.5*sin(2*PI*6*t))+0.18*sin(2*PI*116*t+0.7*sin(2*PI*6*t))+0.10*sin(2*PI*174*t)+0.06*(random(0)*2-1))*min(1,t/0.6)*min(1,(8-t)/0.8)" },
+  regen: { t: 8, noise: 'pink', fx: "highpass=f=1200,lowpass=f=9000,volume=eval=frame:volume='min(1,t/0.8)*min(1,(8-t)/1.0)*1.1'" },
+  water: { t: 8, noise: 'pink', fx: "bandpass=f=700:width_type=q:w=0.5,volume=eval=frame:volume='(0.6+0.4*sin(2*PI*0.7*t))*min(1,t/0.8)*min(1,(8-t)/1.0)*2.2'" },
+  rotor: { t: 8, expr: "(0.55*sin(2*PI*38*t)*(0.55+0.45*sin(2*PI*10.5*t))+0.20*(random(0)*2-1)*(0.5+0.5*sin(2*PI*10.5*t)))*min(1,t/0.8)*min(1,(8-t)/0.8)" },
+  mensen: { t: 8, noise: 'pink', fx: "bandpass=f=1100:width_type=q:w=0.25,volume=eval=frame:volume='(0.55+0.35*sin(2*PI*0.37*t)+0.1*sin(2*PI*1.3*t))*min(1,t/1.0)*min(1,(8-t)/1.0)*3'" },
+  // menu: zachte opening van een scherm
+  scherm: { t: 0.5, noise: 'pink', fx: "bandpass=f=2400:width_type=q:w=0.6,volume=eval=frame:volume='pow(sin(PI*min(1,t/0.5)),2)*1.2'" },
   // camera-sluiter (fotomodus)
   sluiter: { t: 0.22, noise: 'white', fx: 'highpass=f=1800,volume=eval=frame:volume=\'exp(-t*28)*2\'' },
 };

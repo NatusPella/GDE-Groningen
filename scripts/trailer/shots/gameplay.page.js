@@ -36,6 +36,16 @@ async function carRun(c, o) {
   if (!noCam) c.camera(rig ? rig(v) : c.rig.chase(() => v), { hideHud });
   await c.settle({ label: name, frames: 25 });
   for (let i = 0; i < lead * 60; i++) { drv.tick(); await c.advance({ capture: false }); if (i === 60) w.wanted = wanted; }
+  if (o.thumb) {
+    // miniatuur: een paar beelden verder, het logo erop, één PNG
+    for (let i = 0; i < (o.thumb.after || 60); i++) { drv.tick(); await c.advance({ capture: false }); }
+    c.hud(false);
+    await c.thumbOverlay({ pos: o.thumb.pos || 'links' });
+    for (let i = 0; i < 40; i++) { drv.tick(); await c.advance({ capture: false }); }
+    await c.png(o.thumb.name);
+    c.clearOverlay(); drv.stop(); c.calmPolice();
+    return { thumb: o.thumb.name };
+  }
   await c.begin(name);
   await c.play(dur, () => drv.tick());
   const r = await c.end();
@@ -45,14 +55,14 @@ async function carRun(c, o) {
 }
 
 // Een scherm van het spel (pauzemenu, kaart, ...) opnemen: het menu opent op `open`, daarna lopen de acties op hun tijd.
-async function uiRun(c, { name, dur, open, at = 0.2, cues = [], pre = 90 }) {
+async function uiRun(c, { name, dur, open, at = 0.2, cues = [], frame = null }) {
   const pm = await import('/js/pausemenu.js');
   c.releaseCam();
   c.hud(true);
   await c.settle({ label: name, frames: 20 });
   await c.begin(name);
   const run = c.cueRunner([[at, () => open(pm)], ...cues]);
-  await c.play(dur, (t) => run(t));
+  await c.play(dur, (t) => { run(t); if (frame) frame(t); });
   const r = await c.end();
   await c.resetUi();
   return r;
@@ -87,19 +97,22 @@ shot('s01-chase', async (c) => {
 });
 
 // S2 nacht en regen: dezelfde stad, de koplampen aan
-shot('s02-regen', async (c) => carRun(c, { name: 's02-regen', a: [17, 300], b: [360, 160], clock: 23.3, weather: 'regen', dur: 2 * 4 * BEAT, top: 15, lead: 5,
-  rig: (v) => c.cutCam([[0, () => c.rig.chase(() => v, { dist: 7, height: 1.9, lag: 0.12, fov: 62 })], [4 * BEAT * 1.0, () => c.rig.side(() => v, { dist: 5.5, height: 1.2, fov: 50, ahead: 1.5 })]]) }));
+shot('s02-regen', async (c) => carRun(c, { name: 's02-regen', a: [300, 120], b: [900, 300], clock: 21.2, weather: 'regen', dur: 2 * 4 * BEAT, top: 15, lead: 5,
+  rig: (v) => c.cutCam([[0, () => c.rig.chase(() => v, { dist: 9, height: 2.6, lag: 0.12, fov: 62 })], [4 * BEAT, () => c.rig.side(() => v, { dist: 6.5, height: 1.3, fov: 50, ahead: 1.5 })]]) }));
 
 // S3 de stadsbus (echt verkeer, nieuwe bussen): de camera loopt mee langs de straat
 shot('s03-bus', async (c) => {
   const w = c.world;
   c.leave(); c.releaseCam(); c.clock(16.6); c.weather('helder'); c.hud(false);
   c.placePlayer(480, 50, 0);
-  for (let i = 0; i < 120; i++) await c.advance({ capture: false });
-  const bus = w.vehicles.find((v) => v.isBus && Math.hypot(v.x - 480, v.y - 50) < 400) || w.vehicles.find((v) => v.isBus);
+  let bus = null;
+  for (let i = 0; i < 1500 && !bus; i++) {
+    await c.advance({ capture: false });
+    bus = w.vehicles.find((v) => v.isBus && v.speed > 4 && Math.hypot(v.x - 480, v.y - 50) < 300) || null;
+  }
   if (!bus) return 'geen bus';
   c.placePlayer(bus.x, bus.y, 0);
-  c.camera(c.rig.side(() => bus, { dist: 9, height: 1.8, fov: 48, ahead: 3 }));
+  c.camera(c.rig.side(() => bus, { dist: 10, height: 1.6, fov: 54, ahead: 5 }));
   await c.settle({ label: 's03', frames: 25 });
   await c.begin('s03-bus');
   await c.play(4 * BEAT, null);
@@ -122,7 +135,7 @@ async function boatRun(c, o) {
   const cand = w.vehicles.filter((v) => v.isBoat && !v.isPolice).sort((a, b) => Math.hypot(a.x - x, a.y - y) - Math.hypot(b.x - x, b.y - y))[0];
   if (!cand) throw new Error('geen boot bij ' + x + ',' + y);
   const sd = await import('/js/shopdata.js');
-  cand.model = { ...sd.VEHICLE_STOCK.speedboot.model, color: sd.VEHICLE_STOCK.speedboot.color };
+  cand.model = { ...sd.VEHICLE_STOCK[o.boat || 'speedboot'].model, color: sd.VEHICLE_STOCK[o.boat || 'speedboot'].color };
   const r = await import('/js/routing.js');
   const u = await import('/js/util.js');
   let trip = null;
@@ -130,7 +143,7 @@ async function boatRun(c, o) {
     for (let k = 0; k < 24 && !trip; k++) {
       const a = (k / 24) * Math.PI * 2, tx = cand.x + Math.cos(a) * R, ty = cand.y + Math.sin(a) * R;
       if (!u.isInWater(w.map, tx, ty)) continue;
-      const t = r.planBoatTrip(w.map, [cand.x, cand.y], [tx, ty], 'speedboot');
+      const t = r.planBoatTrip(w.map, [cand.x, cand.y], [tx, ty], o.boat || 'speedboot');
       if (t && t.length > minTrip * 0.8) trip = t;
     }
   }
@@ -148,7 +161,8 @@ async function boatRun(c, o) {
   drv.stop();
   return { ...out, speed: +cand.speed.toFixed(1), remaining: Math.round(drv.remaining()), trip: Math.round(trip.length) };
 }
-shot('s05-boot', async (c) => boatRun(c, { name: 's05-boot', x: -5019, y: -9741, dur: 2 * 4 * BEAT, lead: 3 }));
+shot('s05-boot', async (c) => boatRun(c, { name: 's05-boot', x: -5019, y: -9741, dur: 2 * 4 * BEAT, lead: 3, boat: 'rondvaartboot', top: 8,
+  rig: (v) => c.cutCam([[0, () => c.rig.chase(() => v, { dist: 17, height: 5.5, lag: 0.15, fov: 58, lookZ: 0.5 })], [4 * BEAT, () => c.rig.side(() => v, { dist: 12, height: 1.4, fov: 46, ahead: 3, lookZ: 0.8, left: true })]]) }));
 
 // S9 de collectie: een rij voertuigen op de Grote Markt, de camera loopt er langs (56 voertuigen in het spel)
 shot('s09-collectie', async (c) => {
@@ -167,7 +181,7 @@ shot('s09-collectie', async (c) => {
   c.clearArea(row.x + ux * len / 2, row.y + uy * len / 2, len);
   const vs = [];
   keys.forEach((k, i) => { try { const q = P(5 + i * gap, 0); const v = c.spawn(k, q.x, q.y, row.a + Math.PI / 2, { onRoad: false }); v.parked = true; v.driver = 'cine'; v.speed = 0; vs.push(v); } catch (e) { /* ontbreekt */ } });
-  c.camera(c.rig.dolly(P(-6, 11, 1.7), P(len + 10, 11, 2.0), P(4, 0, 1.2), P(len + 20, 0, 1.2), { dur: 4 * BEAT * 2, fov: 46, ease: 'lin' }));
+  c.camera(c.rig.dolly(P(-4, 6.5, 1.5), P(len + 6, 6.5, 1.7), P(4, 0, 1.1), P(len + 16, 0, 1.1), { dur: 4 * BEAT * 2, fov: 46, ease: 'lin' }));
   await c.settle({ label: 's09', frames: 40 });
   await c.begin('s09-collectie');
   await c.play(2 * 4 * BEAT, null);
@@ -176,10 +190,114 @@ shot('s09-collectie', async (c) => {
   return { ...r, n: vs.length, row };
 });
 
+// S8 de helikopter van het spel (echte vliegbesturing, via toetsen): opstijgen vanaf het helikopterplatform en over de stad
+async function heliRun(c, o) {
+  const { name, dur, to, alt = 75, lead = 12, clock = 18.2, rig, weather = 'helder' } = o;
+  const w = c.world, inp = c.M.inp;
+  await c.resetUi();
+  c.calmPolice(); c.leave(); c.releaseCam(); c.hud(false); c.clock(clock); c.weather(weather);
+  const pad = w.map.meta.helipad;
+  c.placePlayer(pad.x, pad.y, 0);
+  for (let i = 0; i < 90; i++) await c.advance({ capture: false });
+  const v = c.M.shops.spawnStockVehicle(w, 'wiekenwubbo', pad.x, pad.y, pad.angle || 0, c.groundZ(pad.x, pad.y));
+  if (!v) throw new Error('geen heli');
+  c.enter(v);
+  const keys = new Set();
+  const hold = (k, on) => { if (on && !keys.has(k)) { inp.sendKey('keydown', k); keys.add(k); } else if (!on && keys.has(k)) { inp.sendKey('keyup', k); keys.delete(k); } };
+  const norm = (a) => Math.atan2(Math.sin(a), Math.cos(a));
+  const tick = () => {
+    const err = norm(Math.atan2(to.y - v.y, to.x - v.x) - v.angle);
+    hold('d', err > 0.06); hold('a', err < -0.06);
+    hold(' ', (v.z || 0) < alt - 2); hold('control', (v.z || 0) > alt + 6);
+    hold('w', Math.abs(err) < 0.6 && (v.onGround ? (v.z || 0) > alt - 40 : true));
+  };
+  c.camera(rig ? rig(v) : c.rig.chase(() => v, { dist: 24, height: 9, lag: 0.25, fov: 55, lookZ: 0 }));
+  await c.settle({ label: name, frames: 25 });
+  for (let i = 0; i < lead * 60; i++) { tick(); await c.advance({ capture: false }); }
+  await c.begin(name);
+  await c.play(dur, () => tick());
+  const r = await c.end();
+  for (const k of [...keys]) hold(k, false);
+  return { ...r, pos: [Math.round(v.x), Math.round(v.y), Math.round(v.z || 0)], speed: +(v.speed || 0).toFixed(1) };
+}
+shot('s08-heli', async (c) => heliRun(c, { name: 's08-heli', to: { x: 214, y: 10 }, dur: 2 * 4 * BEAT, lead: 14,
+  rig: (v) => c.cutCam([[0, () => c.rig.chase(() => v, { dist: 26, height: 9, lag: 0.3, fov: 56, lookZ: 0 })], [4 * BEAT, () => c.rig.side(() => v, { dist: 30, height: -2, fov: 46, ahead: 8, lookZ: 0, left: true })]]) }));
+
+// S11 de Vismarkt: fietsers, voetgangers en meeuwen, de camera glijdt op ooghoogte langs het plein
+shot('s11-leven', async (c) => {
+  stand(c, { x: 18, y: 258, clock: 16.3 });
+  c.hud(false);
+  await c.settle({ label: 's11-pre', frames: 10 });
+  const row = c.findRow(18, 258, 46, 16, { R: 120 });
+  if (!row) throw new Error('geen vrije strook');
+  const ux = Math.cos(row.a), uy = Math.sin(row.a), nx = -uy, ny = ux;
+  const P = (d, side, z = 0) => ({ x: row.x + ux * d + nx * side, y: row.y + uy * d + ny * side, z: c.groundZ(row.x + ux * d, row.y + uy * d) + z });
+  c.placePlayer(row.x + ux * 23, row.y + uy * 23, 0);
+  c.camera(c.rig.dolly(P(2, 5, 1.5), P(40, 5, 1.7), P(10, -2, 1.5), P(46, -2, 2.0), { dur: 2 * 4 * BEAT, fov: 50 }));
+  await c.settle({ label: 's11', frames: 60 });
+  await c.begin('s11-leven');
+  await c.play(2 * 4 * BEAT, null);
+  return { ...(await c.end()), row };
+});
+
+shot('u06-telefoon', async (c) => {
+  stand(c, { x: 130, y: 95, a: 0.5, clock: 17.6 });
+  return uiRun(c, { name: 'u06-telefoon', dur: 4 * BEAT, open: (pm) => pm.openPauseMenu('telefoon') });
+});
+shot('u07-prestaties', async (c) => {
+  stand(c, { x: 130, y: 95, a: 0.5, clock: 17.6 });
+  return uiRun(c, { name: 'u07-prestaties', dur: 4 * BEAT, open: (pm) => pm.openPauseMenu('prestaties') });
+});
+shot('u08-verhaal', async (c) => {
+  stand(c, { x: 130, y: 95, a: 0.5, clock: 17.6 });
+  return uiRun(c, { name: 'u08-verhaal', dur: 4 * BEAT, open: (pm) => pm.openPauseMenu('verhaal') });
+});
+
+// S06 nachtrit langs het water: andere route, neon en regen
+shot('s06-nachtrit', async (c) => carRun(c, { name: 's06-nachtrit', a: [17, 300], b: [360, 160], clock: 22.6, weather: 'motregen', dur: 2 * 4 * BEAT, top: 16, lead: 5,
+  rig: (v) => c.cutCam([[0, () => c.rig.chase(() => v, { dist: -9, height: 1.5, lookAhead: -6, lag: 0.1, fov: 68, lookZ: 1.0 })], [4 * BEAT, () => c.rig.chase(() => v, { dist: 10, height: 3.2, lag: 0.14, fov: 60 })]]) }));
+
+// Miniaturen (1920x1080 PNG met het logo van het spel; thumbs.mjs maakt er 1280x720 van)
+shot('t-gp-a', async (c) => carRun(c, { name: 't-gp-a', a: [300, 120], b: [900, 300], clock: 17.3, top: 15, wanted: 2, lead: 8,
+  rig: (v) => c.rig.chase(() => v, { dist: -8.5, height: 1.5, lookAhead: -6, lag: 0.1, fov: 62, lookZ: 1.0 }), thumb: { name: 't-gp-a', pos: 'rechts', after: 40 } }));
+shot('t-gp-b', async (c) => carRun(c, { name: 't-gp-b', model: 'trekker', pts: c.roadPts(-4899, -9421, 400, [-4300, -9900]), clock: 18.5, top: 7, lead: 3, grip: 4,
+  rig: (v) => c.rig.chase(() => v, { dist: 9, height: 2.6, lag: 0.2, fov: 56 }), thumb: { name: 't-gp-b', pos: 'links', after: 30 } }));
+
+// S12 slotachtervolging bij schemer
+shot('s12-finale', async (c) => {
+  const BAR = 4 * BEAT;
+  return carRun(c, {
+    name: 's12-finale', a: [17, 300], b: [360, 160], clock: 19.6, dur: 3 * BAR, top: 19, wanted: 4, lead: 6,
+    rig: (v) => c.cutCam([
+      [0, () => c.rig.chase(() => v, { dist: 7.5, height: 2.0, lag: 0.1, fov: 70 })],
+      [0.5 * BAR, () => c.rig.chase(() => v, { dist: -8, height: 1.4, lookAhead: -6, lag: 0.1, fov: 72, lookZ: 1.0 })],
+      [1.0 * BAR, () => c.rig.side(() => v, { dist: 6, height: 1.2, fov: 46, ahead: 2 })],
+      [1.5 * BAR, () => c.rig.chase(() => v, { dist: 15, height: 24, lookAhead: 4, lag: 0.3, fov: 52, lookZ: 0 })],
+      [2.25 * BAR, () => c.rig.chase(() => v, { dist: 9, height: 3, lag: 0.12, fov: 64 })],
+    ]),
+  });
+});
+
+// S99 de titelkaart: het logo van het spel, "Zomer vol misdaad" en de leeftijdsaanduiding
+shot('s99-titel', async (c) => {
+  await c.resetUi();
+  c.hud(false);
+  await c.settle({ label: 's99', frames: 5 });
+  await c.begin('s99-titel');
+  const run = c.cueRunner([[0.0, () => c.endCard({ line: 'EEN GAME VAN NATUSPELLA' })]]);
+  await c.play(3 * 4 * BEAT, (t) => run(t));
+  const r = await c.end();
+  c.clearOverlay();
+  return r;
+});
+
 // UI: kaart
 shot('u01-kaart', async (c) => {
   stand(c, { x: 130, y: 95, a: 0.5, clock: 17.6 });
-  return uiRun(c, { name: 'u01-kaart', dur: 2 * 4 * BEAT, open: (pm) => pm.openPauseMenu('map') });
+  const mv = await import('/js/mapview.js');
+  const D = 2 * 4 * BEAT;
+  // de kaart zoomt langzaam in op het centrum (zoom 1 naar 3,6, exponentieel)
+  return uiRun(c, { name: 'u01-kaart', dur: D, open: (pm) => pm.openPauseMenu('map'), frame: (t) => { if (t > 0.5) { const k = Math.min(1, (t - 0.5) / (D - 0.5)), e = k * k * (3 - 2 * k); mv.setMapView(110 - 60 * (1 - e), 70 - 60 * (1 - e), Math.pow(3.6, e)); } } });
 });
 
 shot('u02-garage', async (c) => {
