@@ -327,6 +327,16 @@ Instruments of the draw-call study (r42, #246; docs/PERF-METING-2026-10-19.md "V
 `pedtier` (walkers far away keep their pose every frame), `linkpoll` (the old per-draw question whether a program is linked).
 The pool (`multidraw3d.js`, `drawpool.js`, tests `scripts/drawpool_test.mjs` and `scripts/multidraw_test.mjs`): `window.__scene3d.batches().pool` has its numbers (pools, cells, vertices, MB).
 
+Where the frame goes (r46, #246; docs/PERF-METING-2026-10-19.md "Vervolg 10"): route `r46` of `scripts/perf/routes.js` (`PERF_ONLY=r46`) walks the city at 3 m/s and plays windows of
+`PERF_AB_WIN` ms in turns inside one process, each with one part of the frame off: `PERF_R46='base;nopostfx;noshadow;pauzesim;pauzesim+nopostfx;hudoff;stand;gltime;disposewho;progcalls;off:<step>;set:<setting>:<value>'`
+(`nopostfx` the whole render, `noshadow` the shadow pass, `pauzesim` the simulation, `stand` no walking, `off:` a `?perfoff=` step, `set:` a setting for the window, `gltime` the time of every GL function, `disposewho`
+who frees geometries and textures, `progcalls` how often three asks for a program). Per window: frame intervals (with a histogram), the time in the rAF callback, `mcpu`, the GPU process thread, GPU timer, the hitch sections
+(`3d:render:*` now splits the render), batcher time, heap growth per frame; `node scripts/perf/r46pair.mjs <naam>.json <old> <new> [section ...]` prints the paired differences with their standard error.
+`PERF_PROFILE=r46` (CPU profile of the first `base` window), `r46:<variant>`, `heap:<variant>` (sampled allocations, `[heapprof] ms` from the page) and `r46trace` (a Chromium trace of all processes, `[trace] ms`;
+`GDE_TRACE_OUT=<dir>`, read with `scripts/perf/trace.mjs`; `GDE_TRACE_CATEGORIES` overrides the categories) are written to `GDE_PROFILE_OUT` / `GDE_TRACE_OUT`; run with `--enable-precise-memory-info` for the heap numbers.
+`scripts/perf/personbench.mjs` times `buildPersonMesh` in Node and hashes the geometry. `?perfoff=schaduwhaak` is the old shadow hook that ran for every `render()` call.
+A profile taken on a busy machine starts with a huge first time delta (the wait since the profiler started): `selftime.mjs` and `categories.mjs` cap deltas at 5 ms (`--cap=`).
+
 ## Trailer mode
 
 "GDE Groningen — Een zomer in Grunn": one scripted sequence of 24 shots through
