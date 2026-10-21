@@ -6,6 +6,11 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Verbeterd
+- **Cutscenes: meer variatie in de camera en geen lens vol bord of rug meer (#136, #147; 76 scènes met 786 shots in Electron gemeten en door Claude bekeken, niet door een mens):** de dekking van gesprekken wisselt nu tussen vijf hoeken (achter de schouder, inschuiven, rondom, hoog over de straat en een langzame inzoom op het gezicht) in plaats van drie. Een bord, pinautomaat, zuil of duiventil houdt de camera op afstand (in M01.3 vulde een wit bord de lens), een camera die langs een gevel naast iemand wordt getrokken wijkt uit naar vrije grond (in de test stond hij op 0,45 m van een acteur) en de langzame inschuif bij een lange shot loopt verder door, zodat de camera niet stilstaat. In echte tijd gespeeld (M01 t/m M03) komt de camera nergens dichter dan 1,1 m bij iemand, op twee beeldjes bij een wisseling na. De tas die Jelle draagt heeft een klep en een hengsel.
+- **Opening en thuisavonden: regels zonder opname hebben een zacht gemurmel onder de ondertitel (#326, #117; in Electron gemeten, nog niet beluisterd door een mens):** de missiescènes deden dat al, de opening en de twee avonden in de flat niet; ze hebben nu hetzelfde. In Electron gemeten (de opening en de introductie en afloop van M01 t/m M03): 71 van de 73 tekstregels hebben het gemurmel, twee niet (een regel op de grens met een opname). Het blijft een gok in toon en niveau. De ontbrekende opnames zelf staan in `docs/verhaal/OPNAMELIJST.md` (952 regels, de eerste 112 zijn de opening en M01 t/m M03); de ondertitel is de terugval en blijft staan. De politieauto-scène (M02.intro) is in echte tijd gemeten: de trekker, de sirene met de politieauto en de piepende banden komen alle vier in de geluidsgraaf, het niveau stijgt boven de basis van de mix uit.
+- **Cutscene-preview toont ook wat de camera ziet (#209; de pagina in Electron geopend en bekeken door Claude):** naast het bovenaanzicht staat het camerabeeld met de acteurs als zuilen en de props als blokken (zonder gebouwen), met een waarschuwing als de spreker niet in beeld is; de PNG per shot bevat beide.
+
 ## [0.38.1] - 2026-10-21
 
 ### Opgelost
