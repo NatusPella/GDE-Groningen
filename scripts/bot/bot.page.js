@@ -189,6 +189,19 @@ async function detour(s, n) {
   follower = null;
 }
 
+// in a vehicle that sits against a kerb, a wall or other traffic: other ways out of it, one after the other, before a cheat is needed
+const vdetours = {};
+async function vdetour(s, n) {
+  B.log('voertuigomweg', { n, x: Math.round(s.player.x), y: Math.round(s.player.y), snelheid: s.player.vehicle && s.player.vehicle.speed });
+  const pattern = [[-1, 2200, 1, 1600], [1, 2200, -1, 1600], [0, 4000, 0.5, 2500], [-1, 3000, -1, 3000]][(n - 1) % 4];
+  B.stick(pattern[0], 1);
+  await sleep(pattern[1]);
+  B.stick(pattern[2], -1);
+  await sleep(pattern[3]);
+  B.stick(0, 0);
+  follower = null;
+}
+
 async function rescue(s, stepKey, info) {
   // the ladder counts per story step (a failed mission restarts the detector, not the ladder); every fail is a rung higher
   const sid = s.story.id || '?';
@@ -196,6 +209,7 @@ async function rescue(s, stepKey, info) {
   B.log('stuck', { step: stepKey, x: s.player.x, y: s.player.y, idleFor: info.idleFor, goalDist: s.target ? s.target.distance : null, rung, doel: s.target && { x: s.target.x, y: s.target.y, vehicle: !!s.target.vehicle, source: s.target.source }, prompt: s.hud.prompt || undefined, dichtbij: (s.nearby.vehicles || []).slice(0, 3).map((c) => [c.kind, c.distance, c.free]) });
   shot(`${stepKey}-vast`);
   if (rung === 'nudge') { await nudge(s); detector.acknowledge(s.t); return; }
+  if (s.player.vehicle && !s.player.vehicle.plane && !s.player.vehicle.heli && !s.blocking.cinematic && (vdetours[stepKey] = (vdetours[stepKey] || 0) + 1) <= 4) { await vdetour(s, vdetours[stepKey]); detector.acknowledge(s.t); ladder[sid]--; return; }
   if (!s.player.vehicle && !s.blocking.cinematic && !s.blocking.talk && (detours[stepKey] = (detours[stepKey] || 0) + 1) <= 4) { await detour(s, detours[stepKey]); detector.acknowledge(s.t); ladder[sid]--; return; }
   const m = s.mission.active;
   let ok = false;
