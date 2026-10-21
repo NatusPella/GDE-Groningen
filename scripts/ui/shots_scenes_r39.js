@@ -426,11 +426,11 @@ if (want('streken')) {
   const keepS = setInterval(() => { p.x = rp.x; p.y = rp.y; p.vx = p.vy = 0; w.clock = 14; }, 50);
   teleport(rp.x, rp.y);
   for (let i = 0; i < 40 && document.querySelector('.ls.on:not(.out)'); i++) await sleep(500);
-  await sleep(45000);
+  await sleep(70000);
   console.log('[capture] streken-1');
   await sleep(2500);
   const gh = (x, y) => (map.groundHeightAt ? map.groundHeightAt(x, y, 0) || 0 : 0);
-  const car = w.vehicles.filter((v) => !v.isBike && !v.isBoat && !v.isHeroCar && Math.hypot(v.x - p.x, v.y - p.y) < 60 && !v.parked).sort((a, b) => Math.hypot(a.x - p.x, a.y - p.y) - Math.hypot(b.x - p.x, b.y - p.y))[0];
+  const car = w.vehicles.filter((v) => !v.isBike && !v.isScooter && !v.isBoat && !v.isHeroCar && v.model && v.model.len > 1.8 && Math.hypot(v.x - p.x, v.y - p.y) < 80 && !v.parked).sort((a, b) => Math.hypot(a.x - p.x, a.y - p.y) - Math.hypot(b.x - p.x, b.y - p.y))[0];
   info.push('auto dichtbij ' + (car ? JSON.stringify({ len: +(car.model.len || 0).toFixed(2), color: car.model.color }) : 'geen'));
   if (car) {
     const g = gh(car.x, car.y);
