@@ -1,5 +1,5 @@
-import { pointInPolygon, distToRing } from './shopbind.js';
-import { SHOP_KINDS } from './winkelkit.js';
+import { pointInPolygon, distToRing, seedOf } from './shopbind.js';
+import { SHOP_KINDS, winkelNaam } from './winkelkit.js';
 // Welke winkel waar staat (issue #156): de gevel en het ruit-interieur van een
 // pand volgen het echte winkeltype van de plek erin, niet een willekeurige rang.
 // Pure koppeling: spots in (x, y, winkeltype uit de winkelkit), type uit voor
@@ -44,13 +44,15 @@ export function setShopSpots(spots) {
 // Facilities (FAC.all-rijen) en winkels van het spel naar spots.
 export function spotsFrom(facilities = [], gameShops = []) {
   const out = [];
+  // een naam alleen als hij verzonnen is (shopplaces.json: sp, of een winkel van het spel); anders een verzonnen naam uit het type
+  const naam = (t, x, y, own) => own || winkelNaam(t, seedOf(Math.round(x) + '|' + Math.round(y)));
   for (const f of facilities) {
     const t = f.wk && SHOP_KINDS.includes(f.wk) ? f.wk : KIT_OF_FACILITY[f.kind];
-    if (t) out.push({ x: f.x, y: f.y, type: t });
+    if (t) out.push({ x: f.x, y: f.y, type: t, name: naam(t, f.x, f.y, f.sp ? f.own : '') });
   }
   for (const s of gameShops) {
     const t = KIT_OF_GAMESHOP[s.type];
-    if (t) out.push({ x: s.x, y: s.y, type: t });
+    if (t) out.push({ x: s.x, y: s.y, type: t, name: naam(t, s.x, s.y, s.name) });
   }
   return out;
 }
@@ -58,7 +60,7 @@ export function spotsFrom(facilities = [], gameShops = []) {
 // Het winkeltype voor een pand: de dichtstbijzijnde spot die in de plattegrond
 // ligt of hooguit `reach` m van de voorgevel (edge) af. ring: [[x, y], ...].
 // null als er geen spot is (dan kiest het pand zelf een type).
-export function shopTypeFor(ring, edge = null, reach = 4) {
+export function shopSpotFor(ring, edge = null, reach = 4) {
   if (!grid.size || !ring || ring.length < 3) return null;
   let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
   for (const [x, y] of ring) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
@@ -85,5 +87,7 @@ export function shopTypeFor(ring, edge = null, reach = 4) {
       }
     }
   }
-  return best ? best.type : null;
+  return best;
 }
+
+export const shopTypeFor = (ring, edge = null, reach = 4) => { const s = shopSpotFor(ring, edge, reach); return s ? s.type : null; };

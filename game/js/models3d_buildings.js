@@ -3,7 +3,7 @@ import { HABBO_PALETTE, habboMaterial, vcMaterial, GeoBuilder, createBrickDetail
 import { getLandmarkModel } from './landmarkmodels.js';
 import { hasLandmarkModel, buildLandmarkGeometry, LANDMARK_MATERIALS, setLandmarkNight } from './landmarks3d.js';
 import { facadeLook, rankForType } from './winkelkit.js';
-import { shopTypeFor } from './shopspots.js';
+import { shopSpotFor } from './shopspots.js';
 import { capBuilding, ringArea } from './buildingcap.js';
 import { glassMaterial, setGlassNight, paneUV, PANE_HOME, PANE_GROUND, PANE_SHOP, PANE_OFFICE } from './interiorglass.js';
 import { pointInPolygon, segDist as segDistXY, WATER_Y } from './util.js';
@@ -1043,10 +1043,12 @@ function buildDetailGeometry(b, box, archetype, depth, fine, fine2, wallHex, roo
   else if (houseboat) style = { w: 1.0, bay: 1.7, hRatio: 0.42 };
   else style = { w: tallHistoric ? 1.05 : 1.0 + r(10) * 0.3, bay: 2.1 + r(11) * 0.5, hRatio: tallHistoric ? 0.6 : 0.5 };
 
-  let shopEdge = null, poiType = null;
+  let shopEdge = null, poiType = null, poiName = '';
   if (!industrial && !houseboat && mainEdge && !mainEdge.party && mainEdge.len >= 3.5 && floorH >= 2.6) {
     // a real shop in this building (shopspots.js, #156): it gets a shopfront of its own type
-    poiType = shopTypeFor(edges.map((e) => [e.ax, e.ay]), mainEdge);
+    const poi = shopSpotFor(edges.map((e) => [e.ax, e.ay]), mainEdge);
+    poiType = poi ? poi.type : null;
+    poiName = poi ? poi.name || '' : '';
     if (poiType || archetype === 'retail' || (centre && r(12) < 0.55)) shopEdge = mainEdge;
   }
   const shopTop = Math.min(floorH - 0.35, 3.2);
@@ -1109,7 +1111,11 @@ function buildDetailGeometry(b, box, archetype, depth, fine, fine2, wallHex, roo
   }
   if (shopEdge) addShopfront(B, shopEdge, 0.15, shopEdge.len - 0.15, shopTop, S, seed, poiType);
   // read by the QA scenes (scripts/ui/shots_scenes_r39.js): where the shopfront is and what it sells
-  b.shopFront = shopEdge ? { ax: shopEdge.ax, ay: shopEdge.ay, bx: shopEdge.bx, by: shopEdge.by, nx: shopEdge.nx, ny: shopEdge.ny, poi: poiType } : null;
+  // (shopsigns3d.js hangs the name of the shop on it)
+  b.shopFront = shopEdge ? {
+    ax: shopEdge.ax, ay: shopEdge.ay, bx: shopEdge.bx, by: shopEdge.by, nx: shopEdge.nx, ny: shopEdge.ny, tx: shopEdge.tx, ty: shopEdge.ty,
+    s0: 0.15, s1: shopEdge.len - 0.15, top: shopTop, poi: poiType, name: poiName, sign: poiType ? facadeLook(rankForType(poiType, seed)).sign : 0x232323,
+  } : null;
 
   if (!industrial && archetype !== 'house' && floorCount >= 3 && r(15) < 0.45) {
     for (let f = 1; f < floorCount; f++) {
