@@ -202,7 +202,7 @@ export function decide(s, mem = {}) {
   const light = (k) => k === 'fiets' || k === 'scooter';
   // in some other vehicle at a 'board' stage (a bike, or last mission's car): get out, then take the one that is standing there
   // the marker is a vehicle (the tractor of the mission) and the bot sits in another one: out of it, then into the right one
-  if (t.vehicle && (stage === 'board' || stage === 'goto' || stage === 'garage' || stage === 'plane') && !(veh && veh.plane)) {   // not a 'chase': that prey is not ours to board
+  if (t.vehicle && (stage === '' || stage === 'board' || stage === 'goto' || stage === 'garage' || stage === 'plane') && !(veh && veh.plane)) {   // not a 'chase': that prey is not ours to board
     if (veh) { if ((veh.speed || 0) < 3 && (mem.vehTries || 0) < 4) { mem.vehTries = (mem.vehTries || 0) + 1; return { type: 'press', key: 'e', why: 'uitstappen' }; } }
     else if ((mem.boardTries || 0) < 12) {
       const v = (s.nearby && s.nearby.vehicles || []).find((c) => Math.hypot(c.x - t.x, c.y - t.y) < 1.5);
