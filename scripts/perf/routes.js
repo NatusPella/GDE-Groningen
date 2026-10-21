@@ -596,7 +596,7 @@ results.routes.poolrender = await safe('poolrender', async () => {
 // the GL calls per render and the variants in turns over ROUNDS rounds (the order swaps every round), so the load is the same for all of them
 results.routes.renderab = await safe('renderab', async () => {
   if (!ONLY.includes('renderab')) return null;
-  const variants = window.__perfAb; const ROUNDS = window.__perfAbRounds || 4; const SAMPLES = window.__perfSamples || 40;
+  const variants = (window.__perfAbFor && window.__perfAbFor.renderab) || window.__perfAb; const ROUNDS = window.__perfAbRounds || 4; const SAMPLES = window.__perfSamples || 40;
   fixWorld(); teleport(FOOT[0][0], FOOT[0][1]); w.camYaw = 0.3; p.angle = 0.3; await sleep(window.__perfSettle || 12000);
   const gl = r.getContext();
   const settle = async () => { const builds = () => { const b = sc.batches(); return Object.values(b).reduce((q, e) => q + (e.builds || 0) + (e.dropped || 0), 0); }; let last = builds(), still = 0; for (let i = 0; i < 120 && still < 6; i++) { await sleep(500); const n = builds(); still = n === last ? still + 1 : 0; last = n; } };
@@ -627,7 +627,7 @@ results.routes.renderab = await safe('renderab', async () => {
 results.routes.glcalls = await safe('glcalls', async () => {
   if (!ONLY.includes('glcalls')) return null;
   fixWorld(); teleport(FOOT[0][0], FOOT[0][1]); w.camYaw = 0.3; p.angle = 0.3; await sleep(window.__perfSettle || 12000);
-  const variants = window.__perfAb && window.__perfAb.length ? window.__perfAb : [['', []]];
+  const variants = (window.__perfAbFor && window.__perfAbFor.glcalls) || (window.__perfAb && window.__perfAb.length ? window.__perfAb : [['', []]]);
   const outAll = {};
   for (const [vname, voff] of variants) {
   window.__perfOffDyn = new Set(voff); await sleep(1500);
@@ -799,7 +799,7 @@ results.routes.shadowtris = await safe('shadowtris', async () => {
 results.routes.shadowmap = await safe('shadowmap', async () => {
   if (!ONLY.includes('shadowmap')) return null;
   const spots = [['markt', FOOT[0][0], FOOT[0][1], 0.3], ['gracht2', FOOT[4][0], FOOT[4][1], 2.6], ['straat', FOOT[3][0], FOOT[3][1], 1.9]];
-  const variants = window.__perfAb && window.__perfAb.length ? window.__perfAb : [['', []]];
+  const variants = (window.__perfAbFor && window.__perfAbFor.shadowmap) || (window.__perfAb && window.__perfAb.length ? window.__perfAb : [['', []]]);
   const outAll = {};
   for (const [vname, voff] of variants) {
   window.__perfOffDyn = new Set(voff.filter((o) => o !== 'settle'));
