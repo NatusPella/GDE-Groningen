@@ -90,7 +90,7 @@ bij de duif vliegt de gastheer alleen, bij het museum sluipt de gastheer en de r
 - **Cutscenes die al lopen als je aansluit** zie je niet; je hoort alleen dat de gastheer een filmpje kijkt.
 - **Het pauzemenu van de gastheer pauzeert het spel voor iedereen.** Een gast die zijn eigen menu opent pauzeert alleen zichzelf (zijn figuur staat stil).
 - **Geen spraak of tekstchat in het spel.** Gebruik een gesprek buiten het spel (de roeptoetsen zijn voor korte dingen).
-- **Controller:** de roeptoetsen (7, 8, 9) hebben nog geen knop op een controller; met de muis kan het via de knoppen linksonder.
+- **Controller:** te voet zijn D-pad links, omlaag en rechts de roepjes (Kom hier, Help!, Kijk daar) zolang je in een sessie zit; het kusje, het overslaan van een verhaalstap en het lakmenu zitten dan alleen op het toetsenbord. In een voertuig is D-pad omhoog het stuur doorgeven. Met de muis kan het ook via de knoppen linksonder. Niet met een echte controller geprobeerd.
 - **Geluid van de stemmen bij een gast** is niet apart gecontroleerd.
 
 ## Als er iets misgaat
