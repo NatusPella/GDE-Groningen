@@ -104,6 +104,7 @@ function sampleNow(n) {
     verdiend: x.coopVerdiend || 0, ri: x.coop && x.coop.remoteInput ? [Math.round(x.coop.remoteInput.mx * 100) / 100, Math.round(x.coop.remoteInput.my * 100) / 100, x.coop.remoteInput.buttons | 0] : null,
     hm: hm ? (hm.actief ? hm.label + ' | ' + (hm.stap || '') : '-') : null,
     hostEnt: x.coopHost ? [x.coopHost.voertuigen.length, x.coopHost.doelen.length, (x.coopHost.voetgangers || []).length] : null,
+    vs: x.player && x.player.inVehicle ? [Math.round((x.player.inVehicle.speed || 0) * 10) / 10, x.player.inVehicle.wrecked ? 1 : 0, Math.round(x.player.inVehicle.health ?? -1), x.coopWielSlot ?? null] : null,
     veh: x.player && x.player.inVehicle ? 1 : 0, vehC: x.companion && x.companion.inVehicle ? 1 : 0, nVeh: (x.vehicles || []).length,
     cutscene: !!(cine && cine.classList.contains('on')), camOver: !!x.cameraOverride, cutBezig: x.coopCutBezig ?? null, gate: !!(x.coopStartGateGezien),
     cam3: x.cameraOverride && x.cameraOverride.position ? [Math.round(x.cameraOverride.position.x), Math.round(x.cameraOverride.position.y), Math.round(x.cameraOverride.position.z ?? 0)] : null,
@@ -691,14 +692,14 @@ const PHASES = {
       await B.press('y', 120); await sleep(1500);
       log('gastrit-wiel-gegeven', { wielSlot: w.coopWielSlot ?? null });
       const p0 = v ? [v.x, v.y] : null;
-      await sleep(9000); // de gast stuurt: vooruit
-      log('gastrit-gereden-door-gast', { m: v && p0 ? Math.round(Math.hypot(v.x - p0[0], v.y - p0[1])) : null, snelheid: v ? Math.round(v.speed * 10) / 10 : null, wielSlot: w.coopWielSlot ?? null });
+      let maxM = 0, maxV = 0; for (let i = 0; i < 90; i++) { if (v && p0) { maxM = Math.max(maxM, Math.hypot(v.x - p0[0], v.y - p0[1])); maxV = Math.max(maxV, Math.abs(v.speed || 0)); } await sleep(100); } // de gast stuurt: vooruit
+      log('gastrit-gereden-door-gast', { m: Math.round(maxM * 10) / 10, maxSnelheid: Math.round(maxV * 10) / 10, snelheid: v ? Math.round(v.speed * 10) / 10 : null, wielSlot: w.coopWielSlot ?? null });
       shot('gastrit-onderweg-host');
       await sleep(6000); // de gast geeft het terug (Y) en remt; de host staat stil
       log('gastrit-wiel-terug', { wielSlot: w.coopWielSlot ?? null, snelheid: v ? Math.round(v.speed * 10) / 10 : null });
       // de host rijdt zelf een stukje (het stuur is weer van hem)
       const q0 = v ? [v.x, v.y] : null;
-      B.stick(0, -1); await sleep(2500); B.stick(0, 0); await sleep(3500);
+      B.stick(0, -1); await sleep(1200); B.stick(0, 0); B.down(' '); await sleep(1500); B.up(' '); await sleep(3300); // kort: een crash tegen een muur werpt de bestuurder uit het voertuig
       log('gastrit-host-reed-zelf', { m: v && q0 ? Math.round(Math.hypot(v.x - q0[0], v.y - q0[1])) : null, snelheid: v ? Math.round(v.speed * 10) / 10 : null });
       await sleep(20000); // de gast probeert uit te stappen tijdens het rijden, stapt uit (E) bij stilstand en weer in (E)
       log('gastrit-eind-host', { host: !!w.player.inVehicle, tessa: !!w.companion.inVehicle, coopUit: !!w.companion.coopUit });
@@ -717,21 +718,16 @@ const PHASES = {
     log('gastrit-gast-wiel', { wiel: !!w.coopWiel, meldingen: window.__gastMsgs.slice(-3), t: sec() });
     shot('gastrit-gast-wiel');
     // kort en rustig (een crash tegen een muur kost de bestuurder zijn leven): vooruit, een bocht, remmen met handrem
-    B.stick(0, -1); await sleep(1800);
+    B.stick(0, -1); await sleep(1100);
     shot('gastrit-gast-stuurt');
-    B.stick(0.6, -1); await sleep(900);
+    B.stick(0.4, -1); await sleep(500);
     B.stick(0, 1); B.down(' '); await sleep(4500); B.up(' '); B.stick(0, 0);
     await sleep(1500);
     log('gastrit-gast-gestuurd', { wiel: !!w.coopWiel, input: w.coopNet && w.coopNet.session ? w.coopNet.session.pendingInput.buttons : null });
     await B.press('y', 120); await sleep(1500); // het stuur terug
     log('gastrit-gast-wiel-terug', { wiel: !!w.coopWiel, meldingen: window.__gastMsgs.slice(-3) });
-    // de host rijdt zelf (T+16 tot T+19) en staat daarna stil: eerst probeert de gast uit te stappen terwijl het voertuig rijdt (een melding), later bij stilstand
-    await sleep(5500);
-    window.__gastMsgs.length = 0;
-    await B.press('e', 150); await sleep(1500);
-    log('gastrit-gast-uit-te-snel', { inVoertuig: !!w.coopInVoertuig, meldingen: window.__gastMsgs.slice(-3), t: sec() });
-    if (!w.coopInVoertuig) { await sleep(1000); await B.press('e', 150); await sleep(2000); } // het voertuig reed nog niet snel genoeg: ze stond al buiten, weer instappen
-    await sleep(6000);
+    // de host rijdt zelf een stukje en staat daarna stil: dan stapt de gast uit (E) en weer in (E)
+    await sleep(14000);
     window.__gastMsgs.length = 0;
     await B.press('e', 150); await sleep(2000);
     log('gastrit-gast-uit', { inVoertuig: !!w.coopInVoertuig, meldingen: window.__gastMsgs.slice(-3), t: sec() });
