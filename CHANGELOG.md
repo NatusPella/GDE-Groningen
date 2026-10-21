@@ -9,6 +9,8 @@ nieuwe functies, `y` voor alleen bugfixes.
 ## [0.37.1] - 2026-10-19
 
 ### Nieuw
+- **Twee zijmissies erbij, benchmark met de controller (nog niet gespeeld):** Cabaretgeluid bij de Schouwburg (een geluidswagen op drie hoeken, de portier noteert klachten bij te hard rijden) en Bernhards karretje (rustig naar twee bankjes rijden). De benchmark stopt ook met B of Start op de controller. (Refs #26, #159)
+- **Cutscene-camera's netter (nog niet in beeld bekeken):** alle 25 bevindingen van de cutscene-audit zijn opgelost: geen camera meer in een personage of prop, de spreker is in beeld en personages lopen niet door elkaar. (Refs #136)
 - **Cutscenes tonen echte voertuigen en dieren (deels in beeld bekeken):** auto's, bestelbus, bakkie, trekker, politieauto, fietsen, duif en kat komen nu uit dezelfde modellen als in de wereld in plaats van blokjes. De aanhanger (bestaat niet in het spel) is uit Even pinnen gehaald en de validatie weigert zo'n placeholder voortaan. (Refs #136)
 - **Naamkaarten in de opening, spoor in de benchmark (nog niet in beeld bekeken):** Tessa en Tammo krijgen een naamkaart linksonder zodra ze in de keuken in beeld komen. De benchmarkroute heeft een nieuw shot langs het spoor met een eigen categorie in de resultaten. (Refs #159)
 - **Verkeer en voetgangers rond de cutscene-camera (nog niet in beeld bekeken):** tijdens een cutscene vullen auto's, fietsers en voetgangers zich rond waar de camera kijkt, niet rond de verborgen speler. (Refs #157)
