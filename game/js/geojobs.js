@@ -28,6 +28,8 @@ const WORKER_ONLY = new Set(['roadInit', 'shoreInit']);
 const fallbackHooks = [];
 let fellBack = false;
 // byKind: per job kind the count, the longest round trip (ms, queue wait included) and the most jobs open at once (#247)
+// the open worker jobs (the trailer recordings wait until it is 0, scripts/trailer/lib/clip.page.js)
+export const geoOpenCount = () => open.size;
 export const geoStats = { worker: 0, sync: 0, maxRoundTrip: 0, maxOpen: 0, byKind: {} };
 const kindStat = (k) => geoStats.byKind[k] || (geoStats.byKind[k] = { n: 0, maxMs: 0, sumMs: 0, maxOpen: 0 });
 
