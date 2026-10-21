@@ -30,7 +30,7 @@ Per hoofdpersoon: drie kenmerken (hoe hij of zij klinkt), drie lievelingswoorden
 | Wie | Drie kenmerken | Drie lievelingswoorden | Eén taboe |
 |---|---|---|---|
 | **Tammo** | traag, letterlijk, onverwacht scherp | *Moi*, *Klopt*, *Kon minder* | Hij zegt nooit "liefde" of "ik voel". Hij komt tot *Woist ja wel* en *Ik wil bij jou blijven*, en dat is een heel jaar. |
-| **Tessa** | droog, plannerig, preciezer dan nodig | *Tammo* (als aanspreking), *lijstje*, *Rijden, niet praten* | Ze zegt geen Gronings of Fries met opzet. *Moi* glipt er twee keer per ongeluk uit, en dat is de grap. |
+| **Tessa** | droog, plannerig, preciezer dan nodig | *Tammo* (als aanspreking), *lijstje*, *Rijden, niet praten* | Ze praat standaard Nederlands en nooit met een Gronings accent (zie hieronder). *Moi* glipt er twee keer per ongeluk uit, en dat is de grap. |
 | **Jelle Terpstra** | juridisch proza, beleefd bedreigend, netjes tot in zijn paniek | *overeenkomst*, *mevrouw*, *juridisch* | Hij zegt nooit "sorry". Alleen tegen zijn moeder: *Ja, mem*. |
 | **Mem (Gerda Terpstra)** | kort, Fries-warm, moederlijk gezag | *jonge*, *famke*, *Tige tank* | Ze praat nooit langer dan twee zinnen en verheft nooit haar stem. |
 | **Oma Trijntje** | Gronings, onderkoeld, wijs | *jong*, *Eet je krentjebrij*, *Woist ja wel* | Ze legt haar eigen gevoel niet uit. Ze zegt het één keer. Dan is het waar. |
@@ -38,6 +38,15 @@ Per hoofdpersoon: drie kenmerken (hoe hij of zij klinkt), drie lievelingswoorden
 | **Rikus** (radio) | deadpan, melder, onverstoorbaar | *een luisteraar meldt*, *Ik zeg niks*, *Storingsbericht* | Hij geeft geen mening over de speler. *Ik zeg niks* is zijn mening. |
 | **Durk en Douwe** | Durk praat in slogans, Douwe echoot, samen een koor | *Douwe*, *baas*, *Net fertelle, hè?* | Douwe zegt nooit een hele zin. Alleen een echo, een *Hè* of een *Plons*. |
 | **De torenwachter** | meldt alleen | *Ik meld alleen*, *Er hangt iets aan mijn toren* | Een mening. Hij mag één keer zeggen *Ik meld niet alleen. Ik klap.* en daarna niet meer. |
+
+**De stem van Tessa (besluit van de eigenaar).** Tessa is Nederlandse en praat standaard Nederlands, ook in de opname: geen Gronings accent, geen dialectspelling in haar tekst.
+Ze mag af en toe een Gronings woord zeggen, maar als iemand van buiten de streek: voorzichtig, licht stuntelig, soms met een verbetering door een Groninger. Dat is een grap over haar, nooit een manier van praten.
+
+- Goed: *Koeien kieken altijd.* / *Altied.* (M09.3), *Joa. Dat is het Hogeland.* / *Je zegt joa als een vraag.* (T1), *Moi. …Goedemorgen, bedoel ik.* (M09.1).
+- Fries kent ze wel een beetje (ze woonde elke zomer in Ljouwert naast Mem, M22.4), Gronings niet. Fries mag ze vertalen of weigeren te vertalen (*Dat is Fries. Ik vertaal het niet.*).
+- Geen *nait*, *mor*, *hè* aan het eind van haar zinnen, geen *jong* als aanspreking. Zij zegt *Grunn* (nooit *de Grunn*) omdat de rest van het spel het zo noemt, en *de stad* of *Groningen* waar een Stadjer *Stad* zou zeggen.
+- Uitzonderingen die blijven: *Goidag, Berend* (M01.1, M21.1, opgenomen: de stuntelige groet), *Moi* (M16.6) en *Mien jong* (M26.7), het enige moment waarop ze het bewust en goed zegt.
+- Nieuwe Gronings in haar mond zet je eerst in [DIALECT-NALEZING.md](DIALECT-NALEZING.md); één woord per scène is genoeg.
 
 Bijfiguren hebben één trek, geen formule:
 
@@ -93,14 +102,16 @@ Dit zijn de feiten die elke scène moet delen. Wijkt een regel af, dan gaat het 
 | Feit | Waarde |
 |---|---|
 | Tammo | 34 jaar (*Ik ben vierendertig, oma*). Woont op de Escapade. |
-| Tessa en Tammo | kennen elkaar twaalf jaar. De treinreis naar Delfzijl was een jeugdherinnering, twintig jaar geleden. Ze wonen sinds 14 augustus samen (Paddepoel, Pleiadenlaan). |
+| Tessa en Tammo | kennen elkaar al twintig jaar, sinds de treinreis naar Delfzijl als kinderen. Tammo is er twaalf jaar verliefd op en zweeg twaalf jaar (M26.7). Ze wonen sinds 14 augustus samen (Paddepoel, Pleiadenlaan). |
 | Oma Trijntje | 92. Won de Snackprijs in 1953. |
 | Mem (Gerda Terpstra) | 91. Werd in 1953 tweede, tegen Trijntje. Moeder van Jelle. "Zeventig jaar" is een afronding. |
 | Geesje | kosteres in Warffum, 84. Geen schoolvriendin van Trijntje: ze kent haar van de kerk. |
 | Lammert | havenmeester in de Eemshaven. **Zijn vader** danste in 1953 met Trijntje, niet hij. |
 | Kalender | vrijdag 14 augustus (begin) tot vrijdag 28 augustus (Gronings Ontzet, Snackprijs). Epiloog vrijdag 11 september. |
 | Jelle en de bal | Jelle had de Gouden Eierbal al op 12 augustus (logboek M18). Tammo en Tessa kraken op 17 augustus een leeg museum. |
-| De jury | vijf juryleden. Drie van de vijf beslist. Het oudste jurylid (Berend) zit voor als Tuinstra er niet is. |
+| De jury | vijf juryleden. Drie van de vijf beslist. Het oudste jurylid (Berend) zit voor als Hoving er niet is. |
+| De bewaarder | Mevrouw Hoving bewaart de Gouden Eierbal sinds 1998. Wie de bal bewaart, zit de jury voor en tekent de uitslag. Is de bewaarder verhinderd, dan zit het oudste jurylid voor: Berend Bos, jurylid sinds 1982. Jelle wil zich op 28 augustus om drie uur bij de notaris laten inschrijven als nieuwe bewaarder, dan tekent hij zelf de uitslag. Zeg het zo, zonder artikelnummers en zonder het woord nietig. |
+| Juryleden | Vijf: Berend en vier anderen. Twee liepen weg bij de kermis, één stapte uit de trein, één heeft een contract met Jelle (en blijft zo). Alleen dat ene jurylid stemt in de finale op Us Mem Snacks met het woord contract. |
 | Plaatsen | Veendam ligt aan het Oosterdiep. De Dollard is een inham. Het Lauwersmeer heeft geen getij; de wind duwt het water. De Eemshaven heeft geen containerterminal. |
 
 ## 6. Voor je klaar bent

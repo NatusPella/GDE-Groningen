@@ -1,6 +1,6 @@
 // The game's calendar: one Groningen summer, 2026 (docs/verhaal/KALENDER.md).
 // Day 1 is vrijdag 14 augustus (the Kop, KEI-week), Gronings Ontzet is day 15
-// (vrijdag 28 augustus), the epilogue starts on dinsdag 1 september and the
+// (vrijdag 28 augustus), the epilogue is on vrijdag 11 september (EPILOGUE_DAY) and the
 // astronomical summer ends after dinsdag 22 september, day 40. After that the
 // date stops and the days keep counting: "Nazomer · dag 41". It stays summer.
 //
