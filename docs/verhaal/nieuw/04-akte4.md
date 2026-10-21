@@ -101,7 +101,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte4
 
 ## Reisbeat: de bus naar Bourtange (T4; was missie M23)
 
-**Wat:** Ter Apel-bos naar Vesting Bourtange (12 km), dinsdag 25 augustus, vertrek 20:15, aankomst 20:59 ("Op tijd. Dat is één minuut te vroeg."); de speler kiest meerijden (relatiegesprek, de kleine grappen van de veertig re-enactors), zelf besturen (`sidejob_bus.js`) of skippen. **Inhoud:** Tinus wordt geïntroduceerd; Berend: "Je kijkt vaker naar die telefoon dan naar de weg. Hij komt wel."; Tammo: "Er zijn veertig stoelen." Tessa: "Dat zie ik."; Jelle belt: "Gezellige bus, jongens. Ik rij even langs." (tweede van drie keer "gezellig"). **Waarom een reisbeat:** de missie draagt geen eigen plakje of waarheid, dus zij is samengevoegd met de reis (zie 00-OVERZICHT §3).
+**Wat:** Ter Apel-bos naar Vesting Bourtange (12 km), dinsdag 25 augustus, vertrek 20:15, aankomst 20:59 ("Op tijd. Dat is één minuut te vroeg."); de speler kiest meerijden (relatiegesprek, de kleine grappen van de veertig re-enactors), zelf besturen (`sidejob_bus.js`) of skippen. **Inhoud:** Tinus wordt geïntroduceerd; Berend: "Je kijkt vaker naar die telefoon dan naar de weg. Hij komt wel."; Tammo: "Er zijn veertig stoelen." Tessa: "Dat zie ik."; Jelle belt: "Gezellige bus, allemaal. Ik rij even langs." (tweede van drie keer "gezellig"). **Waarom een reisbeat:** de missie draagt geen eigen plakje of waarheid, dus zij is samengevoegd met de reis (zie 00-OVERZICHT §3).
 
 ---
 
