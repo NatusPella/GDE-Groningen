@@ -90,7 +90,7 @@ export const KEUZE_JOBS = {
       'Praeses Wilgenhout vraagt of jij de tafelspeech houdt. Kies drie keer de zin die past.',
     ],
     say: {
-      arrive: 'Praeses Wilgenhout tikt tegen zijn glas. "Dames en heren, een dankwoord, een grapje en een heildronk, in die volgorde."',
+      arrive: 'Praeses Wilgenhout tikt tegen zijn glas. "Beste aanwezigen, een dankwoord, een grapje en een heildronk, in die volgorde."',
       quit: 'Je zet je glas neer en glipt naar de uitgang. Niemand merkt het, behalve de portier.',
       deskTitle: 'VIGILANTIA · TAFELSPEECH',
     },

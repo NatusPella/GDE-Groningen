@@ -15,7 +15,7 @@ export const CHEATS = [
   { id: 'teleport', kind: 'action', name: 'Overal en nergens', desc: 'Kies een plek op de kaart en je staat er. Met auto en al, als je erin zit.' },
   { id: 'voertuig', kind: 'action', name: 'Voertuig hier', desc: 'Henk bezorgt je voertuig naast je neer: gratis en meteen, zonder fooi en zonder wachten.' },
   { id: 'zwaartekracht', name: 'Eierbal-zwaartekracht', desc: 'Springen alsof je net uit de frituur komt: hoog, traag en een beetje vettig. Auto\'s doen mee.' },
-  { id: 'grotekoppen', name: 'Grote koppen', safe: true, desc: 'Iedereen krijgt het hoofd dat hij denkt te hebben.' },
+  { id: 'grotekoppen', name: 'Grote koppen', safe: true, desc: 'Iedereen krijgt het hoofd dat bij de eigen verbeelding past.' },
   { id: 'gronings', name: 'Gronings ondertiteld', safe: true, desc: 'Alle ondertitels in plat Gronings. Leest het niet lekker? Dan ben je nait van hier.' },
   { id: 'zomeravond', name: 'Altijd zomeravond', group: 'klok', desc: 'De klok blijft op half negen staan. Gouden licht, lange schaduwen, nooit naar bed.' },
   { id: 'nachtstad', name: 'Nachtstad', group: 'klok', desc: 'Het blijft half één. De Poelestraat vindt het prima.' },

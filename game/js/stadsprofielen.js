@@ -156,7 +156,7 @@ export const TOWN_PROFILES = [
     streets: ['Hoofdstraat', 'Julianastraat', 'Maarsdreef', 'Buinerweg', 'Krommewijk'],
     sfeer: {
       ochtend: ['Op het kanaal ligt een dunne laag mist. Een platbodem glijdt erdoorheen zonder geluid.', 'De brugwachter zet zijn koffie neer en kijkt of er iets aankomt. Dat is er niet.'],
-      middag: ['Op de Hoofdstraat zijn de terrassen vol. Een fietsbel klinkt boven alles uit.', 'Een stuurman zwaait naar een auto. De auto zwaait terug, uit beleefdheid.'],
+      middag: ['Op de Hoofdstraat zijn de terrassen vol. Een fietsbel klinkt boven alles uit.', 'Iemand aan het roer zwaait naar een auto. De auto zwaait terug, uit beleefdheid.'],
       avond: ['Langs het kanaal gaan de lantaarns aan, één voor één, als dominostenen.', 'Een bootje met lampjes vaart langzaam voorbij. Er staat niemand aan boord.'],
     },
     props: [{ kind: 'brug', per: 2 }, { kind: 'bolder', per: 6 }, { kind: 'fietsenrek', per: 7 }, { kind: 'bank', per: 6 }],

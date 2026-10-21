@@ -134,5 +134,5 @@ export const RAGE_TEXT = {
   squirt: 'Pats! Kletsnat, maar verder niks aan de hand.',
   drop: (key) => `Hij liet zijn ${DROP_INFO[key] ? DROP_INFO[key].name : 'spullen'} vallen. Oppakken met E.`,
   arrested: 'De agent neemt de ruziemaker mee. De auto blijft staan.',
-  start: (armed) => (armed ? 'Een boze bestuurder stapt uit, met iets in zijn hand.' : 'Een boze bestuurder stapt uit.'),
+  start: (armed) => (armed ? 'Een boze bestuurder stapt uit, met iets in de hand.' : 'Een boze bestuurder stapt uit.'),
 };

@@ -85,7 +85,7 @@ const COP_LINES = ['Staan blijven! Politie!', 'Handen omhoog!', 'Blijf stoan!', 
 const CALL_LINES = {
   shot: 'Hallo, 112? Hier wordt schoten!',
   boom: '112? Hier ontploft van alles!',
-  hit: 'Politie? Een gek slaat hier mensen in elkaar!',
+  hit: 'Politie? Iemand slaat hier mensen in elkaar!',
   theft: 'Politie? Der wordt hier een auto jat!',
 };
 
