@@ -69,7 +69,7 @@
   #start-screen .ss-save { bottom: 96px; } #start-screen .ss-save .big { font-size: 56px; }
 }
 /* 720p (1280x720): twee grote keuzes en vier kleine passen niet onder het logo; zonder deze regel valt Afsluiten onder de rand en ligt de regel 'Made with' over Over */
-@media (max-height: 760px) {
+@media (max-height: 820px) {
   #start-screen .ss-menu { top: 370px; }
   #start-screen .ss-item { height: 42px; font-size: 30px; }
   #start-screen .ss-item.ss-hero { padding: 8px 32px 10px; gap: 4px; }

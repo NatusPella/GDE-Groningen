@@ -6,6 +6,9 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Opgelost
+- **Hoofdmenu op 1280x720 en 1366x768: Afsluiten staat weer in beeld (gemeten in Electron, door Claude in beeld bekeken, niet door een mens):** het nieuwe hoofdmenu met twee grote keuzes en vier kleine liep op een laag scherm onder de rand (Afsluiten stond voor een deel buiten beeld en de regel 'Made with' lag over Over). Onder 820 px hoogte zijn de rijen kleiner en begint het menu hoger.
+
 ### Nieuw
 - **Drie streken erbij: Jelle's trekker-limo, Disco-zwaailicht en Spiegelstad (#61; in Electron door Claude in beeld bekeken, niet door een mens):** de trekker-limo maakt van elke nieuwe auto in het verkeer Jelles trekker met een lange zwarte limousine erachter (het verkeer sterft er in 45 s naartoe uit, zoals bij de andere verkeerstreken); Disco-zwaailicht zet op elk voertuig een draaiend lichtje in alle kleuren met een schijfje glans; Spiegelstad spiegelt de 3D-weergave, waarbij de HUD en de menu's leesbaar blijven en de besturing blijft zoals ze was. Alle drie zijn cosmetisch en werken ook tijdens een missie. Daarmee bestaan alle negen streken die het issue noemde.
 - **Fiets: het sprongetje (#207; in Electron door Claude in beeld bekeken, niet door een mens):** Ctrl vasthouden en de rem (Spatie) kort aantikken boven 2,5 m/s: beide wielen komen van de grond (bijna een halve meter, zachte landing). Lang remmen blijft een stoppie. Zwemmen, uit het water klimmen, over een hek springen, de wheelie en de stoppie bestonden al.
