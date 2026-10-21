@@ -659,6 +659,52 @@ const CHECKS = [
     }
     return { banen: out, opmerking: 'de keuzebanen zijn tot het loon gespeeld door een script (antwoord 1, 2, 3 rond); de ritten en de rave alleen gestart (vier seconden), niet gespeeld tot het einde; niet beoordeeld: uitleg, loon en of het leuk is' };
   } },
+  // de ritten van #26 helemaal door de regels: elke rit start, het voertuig wordt op elk doel gezet en blijft daar staan (zo meet de regel 'stil bij het doel'),
+  // tot het loon binnen is; het rijden zelf wordt hier niet gespeeld (geen gevoel voor de besturing, geen verkeer)
+  { id: 'ritten26', issues: [26], run: async () => {
+    const SJ = await imp('sidejobs');
+    const act = w.sideJobActions; if (!act) return { fout: 'world.sideJobActions ontbreekt (bijbanen niet gestart)' };
+    const IDS = JOBS.length ? JOBS : ['museumbus', 'suikerbieten', 'herstelploeg', 'oogtv', 'vandermeden', 'schouwburg', 'bernardrit'];
+    const alle = SJ.getSideJobSpotsForRender();
+    const out = [];
+    const ctx = () => (D.sidejobs && D.sidejobs.ctx ? D.sidejobs.ctx() : null);
+    for (const id of IDS) {
+      const sp = alle.find((q) => q.job.id === id);
+      if (!sp) { out.push({ id, fout: 'geen startplek in de kaart' }); continue; }
+      const i0 = issues.length;
+      w.wanted = 0; w.health = 100;
+      await go(sp.x, sp.y, 0, 3500);
+      for (let k = 0; k < 3 && Math.hypot(p.x - sp.x, p.y - sp.y) > 2; k++) await go(sp.x, sp.y, 0, 3500);
+      let pogingen = 0;
+      while (pogingen < 4 && !act.active()) { pogingen++; await tap('e', 'KeyE', 160); await sleep(1800); }
+      const rec = { id, naam: sp.job.name, gestart: act.active() };
+      if (!rec.gestart) { out.push({ ...rec, meldingen: issues.slice(i0).map((x) => x.m) }); continue; }
+      hold = null; driving = true;
+      const geld0 = w.money; const t0 = performance.now(); const gezien = [];
+      let doelen = 0, voltooid = false;
+      for (let ronde = 0; ronde < 6 && act.active() && !voltooid && performance.now() - t0 < 150000; ronde++) {
+        const c = ctx(); const d = c && c.data;
+        if (!d || !d.doelen || !c.vehicle) { await sleep(1000); continue; }
+        const lijst = d.doelen.map((q) => ({ x: q.x, y: q.y }));
+        doelen = lijst.length;
+        for (const q of lijst) {
+          if (!act.active() || w.money > geld0) break;
+          c.vehicle.x = q.x; c.vehicle.y = q.y; c.vehicle.speed = 0; c.vehicle.vx = c.vehicle.vy = 0;
+          p.x = q.x; p.y = q.y; p.vx = p.vy = 0;
+          gezien.push([Math.round(q.x), Math.round(q.y)]);
+          for (let k = 0; k < 9 && act.active() && w.money <= geld0; k++) await sleep(700);
+          if (gezien.length === 1) await snap('zijmissie-' + id + '-doel', 300);
+        }
+        if (w.money > geld0) voltooid = true;
+      }
+      await snap('zijmissie-' + id + (voltooid ? '-klaar' : '-niet-klaar'), 300);
+      if (act.active()) act.stop();
+      driving = false;
+      await sleep(2500);
+      out.push({ ...rec, doelen, bezocht: gezien.length, voltooid, geld: Math.round(w.money - geld0), duurS: Math.round((performance.now() - t0) / 1000), meldingen: issues.slice(i0).map((x) => x.m) });
+    }
+    return { ritten: out, opmerking: 'door een script: het voertuig wordt op elk doel gezet en staat daar stil; niet gereden, niet beoordeeld: de besturing, het verkeer, het loon en of het leuk is' };
+  } },
   // voertuigen (speeltestlus): elk winkelvoertuig op een weg bij de Grote Markt neerzetten, instappen, drie seconden gas, kijken of het rijdt
   { id: 'voertuigen', issues: [], run: async () => {
     const S = await imp('shops');
