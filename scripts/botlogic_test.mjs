@@ -99,6 +99,19 @@ const near = (a, b, e = 1e-6) => Math.abs(a - b) < e;
   h.update(0, { x: 0, y: 0, goalDist: 50, key: 'k' });
   for (let t = 1; t <= 30; t++) h.hold(t);
   ok(!h.update(31, { x: 0, y: 0, goalDist: 50, key: 'k' }).stuck, 'hold pauzeert de klok');
+  {
+    // een omweg (de afstand tot het doel wordt eerst groter) is geen vastzitten zolang de bot beweegt; na hardS wel
+    const d = new L.StuckDetector({ windowS: 30, hardS: 150 });
+    let stuck = false, x = 0;
+    for (let t = 1; t <= 140; t++) { x += 3; stuck = d.update(t, { x, y: 0, goalDist: 100 + x, key: 'k' }).stuck || stuck; }
+    ok(!stuck, 'omweg: bewegen telt als voortgang');
+    for (let t = 141; t <= 200; t++) { x += 3; stuck = d.update(t, { x, y: 0, goalDist: 100 + x, key: 'k' }).stuck || stuck; }
+    ok(stuck, 'omweg zonder ooit dichterbij: na hardS toch vast');
+    const w = new L.StuckDetector({ windowS: 30 });
+    let ws = false;
+    for (let t = 1; t <= 40; t++) ws = w.update(t, { x: 1 + (t % 2), y: 0, goalDist: 50, key: 'k' }).stuck || ws;
+    ok(ws, 'wippen op één plek blijft vast');
+  }
   ok(L.rescueFor(0) === 'nudge' && L.rescueFor(1) === 'teleport' && L.rescueFor(2) === 'objective' && L.rescueFor(3) === 'win' && L.rescueFor(4) === 'skip' && L.rescueFor(9) === 'skip', 'redding loopt op, laatste sport is skip');
   ok(!L.isCheat('nudge') && L.isCheat('teleport'), 'een duwtje is geen cheat');
 }

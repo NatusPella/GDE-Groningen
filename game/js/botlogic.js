@@ -100,28 +100,34 @@ export class PathFollower {
 // was). No progress for `windowS` seconds is "stuck". hold(t) pauses the clock for
 // cutscenes, talks and menus; a changed `key` (another mission step) starts over.
 export class StuckDetector {
-  constructor({ windowS = 30, minGain = 3, minMove = 4 } = {}) {
-    Object.assign(this, { windowS, minGain, minMove });
+  // windowS: no progress for this long is stuck. Progress is a goal distance that got minGain smaller than the best so far, or (with a
+  // goal) a move of roamM metres away from where the last progress was seen: a detour round a block gets longer before it gets shorter.
+  // hardS caps the roaming: this long without a better goal distance is stuck whatever the bot moves.
+  constructor({ windowS = 30, minGain = 3, minMove = 4, roamM = 25, hardS = 150 } = {}) {
+    Object.assign(this, { windowS, minGain, minMove, roamM, hardS });
     this.reset(0);
   }
   reset(t = 0, key = null) {
     this.key = key;
     this.best = Infinity;
     this.tBest = t;
+    this.tHard = t;
     this.anchor = null;
     this.stuckCount = 0;
   }
-  hold(t) { this.tBest = Math.max(this.tBest, t); }
+  hold(t) { this.tBest = Math.max(this.tBest, t); this.tHard = Math.max(this.tHard, t); }
   // acknowledge: after a rescue, wait another window before the next one
-  acknowledge(t) { this.tBest = t; this.best = Infinity; this.anchor = null; this.stuckCount++; }
+  acknowledge(t) { this.tBest = t; this.tHard = t; this.best = Infinity; this.anchor = null; this.stuckCount++; }
   update(t, { x, y, goalDist = null, key = null }) {
     if (key !== this.key) this.reset(t, key);
     if (Number.isFinite(goalDist)) {
-      if (goalDist < this.best - this.minGain) { this.best = goalDist; this.tBest = t; }
+      if (goalDist < this.best - this.minGain) { this.best = goalDist; this.tBest = t; this.tHard = t; this.anchor = { x, y }; }
+      else if (!this.anchor) this.anchor = { x, y };
+      else if (this.roamM && Math.hypot(x - this.anchor.x, y - this.anchor.y) >= this.roamM) { this.anchor = { x, y }; this.tBest = t; }
     } else {
-      if (!this.anchor || Math.hypot(x - this.anchor.x, y - this.anchor.y) >= this.minMove) { this.anchor = { x, y }; this.tBest = t; }
+      if (!this.anchor || Math.hypot(x - this.anchor.x, y - this.anchor.y) >= this.minMove) { this.anchor = { x, y }; this.tBest = t; this.tHard = t; }
     }
-    const idleFor = t - this.tBest;
+    const idleFor = Math.max(t - this.tBest, this.hardS && t - this.tHard >= this.hardS ? t - this.tHard : 0);
     return { stuck: idleFor >= this.windowS, idleFor };
   }
 }
