@@ -7,7 +7,7 @@
 // steering, the camera, the mouse buttons). The last input used decides
 // which glyphs the hints show: `pad-active` on <html> plus `data-pad` with
 // the controller family; any real key or mouse use switches back.
-import { PAD_BUTTONS, PAD_MAPS, GAME_PAD_CTX, buttonSlots, padFamily } from './controls.js';
+import { PAD_BUTTONS, PAD_MAPS, PAD_COOP, GAME_PAD_CTX, buttonSlots, padFamily } from './controls.js';
 import { getSettings, onSettingsChange } from './settings.js';
 import { sendKey } from './input.js';
 import { playerBusy } from './busy.js';
@@ -149,6 +149,9 @@ function context() {
 function press(slot) {
   const map = PAD_MAPS[ctx] || PAD_MAPS.foot;
   let a = map[slot];
+  // Samen spelen: in een voertuig geeft D-pad omhoog het stuur (Y op het toetsenbord)
+  const coop = world && world.coopNet && PAD_COOP[ctx];
+  if (coop && coop[slot]) a = coop[slot];
   if (a == null) return;
   if (ctx === 'menu') a = menuKey(slot, a);
   if (a == null) return;
