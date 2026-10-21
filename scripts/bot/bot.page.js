@@ -329,6 +329,16 @@ while (true) {
   if (CFG.until && s.story.id === CFG.until) { result = 'KLAAR'; reason = `tot stap ${CFG.until}`; break; } // bijv. de coöp-testbank: M01 t/m M08, stop zodra T1 begint
   if (s.story.end || (PART !== 'all' && s.story.part && s.story.part !== PART)) { result = 'KLAAR'; reason = s.story.end ? `einde van ${s.story.part}` : `stap ${s.story.id} hoort bij ${s.story.part}`; break; }
   if (stopFn && stopFn(s)) { result = 'KLAAR'; reason = 'stap uitgespeeld'; break; }
+  // --skip-stages=N: the first N stages of the step are completed with the objective cheat once the mission runs (logged as setup, not as a bot
+  // finding), to test a later stage on its own (#354: the chase of M26); the bot first plays the mission start and the intro
+  if (mem.skipLeft > 0 && s.mission.active && s.mission.stage && !s.blocking.cinematic && !s.blocking.banner && !s.blocking.talk) {
+    await sleep(1500);
+    mem.skipLeft--;
+    B.log('setup', { what: 'stage-skip', over: mem.skipLeft, stage: s.mission.stage });
+    B.cheat.objective();
+    await sleep(2500);
+    continue;
+  }
   track(s);
   const stepKey = (s.story.id || '?') + (s.mission.active ? ':' + (s.mission.stage || 'm') : '');
   // each stage of a mission gets its own few tries at boarding and at a prompt
@@ -554,16 +564,7 @@ if (CFG.sweep && CFG.sweep.length) {
     follower = null; detector.reset(B.time()); mem.boardTries = 0; mem.pressTries = 0; mem.planTries = 0; lastStep = null; lastPhase = '';
     const t0 = B.time();
     await sleep(1500);
-    // --skip-stages=N: the first N stages of the step are completed with the objective cheat (logged as setup, not as a bot finding), to test a later stage on its own (#354: the chase of M26)
-    for (let k = 0; k < (typeof CFG.skipStages === 'object' ? CFG.skipStages[id] || 0 : CFG.skipStages || 0); k++) {
-      // the mission starts a few seconds after the jump (the intro first): wait until it runs and no scene is up
-      for (let i = 0; i < 300 && !(B.status().mission.active && B.status().mission.stage); i++) { const b = B.status().blocking; if (b.cinematic || b.banner) await B.press(' '); await sleep(400); }
-      for (let i = 0; i < 120 && (B.status().blocking.cinematic || B.status().blocking.banner); i++) { await B.press(' '); await sleep(400); }
-      await sleep(1500);
-      B.cheat.objective();
-      B.log('setup', { what: 'stage-skip', n: k + 1, stage: (B.status().mission || {}).stage });
-      await sleep(2500);
-    }
+    mem.skipLeft = typeof CFG.skipStages === 'object' ? CFG.skipStages[id] || 0 : CFG.skipStages || 0;   // see loop1
     await loop((s) => s.story.id !== id || B.time() - t0 > (CFG.perStepS || 600));
     B.log('step', { event: 'end', id, outcome: B.status().story.id === id ? 'tijd op' : 'klaar' });
     result = 'TIMEOUT';
