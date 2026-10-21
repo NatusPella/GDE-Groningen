@@ -25,7 +25,7 @@ import { quitTrainDrive } from './traindrive.js';
 import { statsFromSave } from './world.js';
 import { getRadioSave, applyRadioSave } from './radio.js';
 import { KEYS, slotKey } from './storagekeys.js';
-import { applyGuestEarnings } from './coopsave.js';
+import { applyGuestChanges } from './coopsave.js';
 import { getRenderer, afterNextFrame } from './scene3d.js';
 import { readSlot, writeSlotRaw, writeThumb, activeSlot, setActive, createSlot, deleteSlot, nameOf, pickActive } from './saveslots.js';
 import { registerSaveGame, registerSaveTimers } from './savehook.js';
@@ -284,10 +284,12 @@ function keepThumb(n, force) {
 // Een gast: de verdiende beloningen erbij in de actieve slot, de rest van die save blijft zoals hij was.
 function saveGuestEarnings(w) {
   const earned = w.coopVerdiend || 0;
-  if (!(earned > 0)) return false;
   try {
     const r = readSlot(null, saveTarget());
-    const next = r.state === 'ok' || r.state === 'hersteld' ? applyGuestEarnings(r.data, earned) : null;
+    // het verdiende geld en wat de gast zelf kocht of at (#291): zijn eigen geld en spullen in zijn eigen opgeslagen spel
+    const ok = r.state === 'ok' || r.state === 'hersteld';
+    const next = ok ? applyGuestChanges(r.data, serialize(w), earned) : null;
+    if (ok && !next) { w.coopVerdiend = 0; return false; } // niets te bewaren (het verdiende geld stond er al in)
     if (!next || !writeSlotRaw(null, saveTarget(), JSON.stringify(next))) return false;
     w.coopVerdiend = 0;
     return true;

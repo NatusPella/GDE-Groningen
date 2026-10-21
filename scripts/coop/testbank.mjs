@@ -3,6 +3,7 @@
 //   suites: basis (host + gasten, lijst, klok, desync), net (4 spelers: slecht netwerk, desync, uitval, betalen, vertrek,
 //           nieuwe gast, host stopt), kamer (kamercode via WebRTC en een lokale nep-tracker), verhaal (de spelbot speelt
 //           M01 t/m M08 als host, de gasten lopen mee), touch (gast met aanraakbediening), opening (nieuw spel samen via de
+//           gastacties (#291: een gast winkelt met zijn eigen geld, krijgt het stuur, stapt uit en in),
 //           menustroom: tekstveld, wachtkamer, de opening samen bekijken, overslaan alleen door de gastheer)
 //   --gasten=1|2 (Electron-gasten, host + gasten <= 3 sloten), --mock=N (extra headless gasten in dit proces, voor de 4e speler)
 //   --menu: begin bij het hoofdmenu (ingang Samen spelen), --duration=20, --invuln
@@ -50,6 +51,7 @@ const P = {
   kamer: { host: [[0, 'wacht', { s: DURATION }]], gast: [[0, 'wacht', { s: DURATION }]], gast2: [[0, 'wacht', { s: DURATION }]] },
   verhaal: Object.fromEntries(['host', 'gast', 'gast2'].map((me) => [me, [[0, 'verhaal', { s: Number(arg('verhaal-s', 1500)), until: arg('until', 'T1'), speed: Number(arg('speed', 1)) || 1 }], ...(me === 'host' ? [[0, 'stopHost', {}]] : [])]])), // de host stopt als het verhaal klaar is: de gasten lopen tot dan mee
   opening: flag('host-save') ? Object.fromEntries(['host', 'gast', 'gast2'].map((me) => [me, [[0, 'wacht', { s: 8 }], [9, 'betaal', me === 'host' ? { geld: 250 } : {}], [16, 'opgeslagen', {}], [20, 'wacht', { s: 3 }], ...(me === 'host' ? [[24, 'stopHost', {}]] : [])]])) : Object.fromEntries(['host', 'gast', 'gast2'].map((me) => [me, [[0, 'opening', { s: Number(arg('opening-s', 400)), skip: flag('skip') }], ...(me === 'host' ? [[0, 'stopHost', {}]] : [])]])), // nieuw spel samen: het hek, de opening, overslaan (alleen de gastheer)
+  gastacties: Object.fromEntries(['host', 'gast', 'gast2'].map((me) => [me, [[14, 'gastwinkel', { s: 50 }], [66, 'gastrit', { s: 90 }], ...(me === 'host' ? [[160, 'stopHost', {}]] : [])]])), // #291: winkelen en een rit met het stuur
   touch: { host: [[0, 'kijk', { s: 16 }]], gast: [[0, 'touch', { s: 12 }]], gast2: [[0, 'wacht', { s: 16 }]] },
 }[SUITE];
 if (!P) { console.error('onbekende suite: ' + SUITE); process.exit(2); }
@@ -476,13 +478,37 @@ if (SUITE === 'verhaal') {
   for (const n of NAMES.filter((x) => x !== 'host')) { const l = seenBy(n); note(`${n} zag ${l.length} opdracht/stap-meldingen`); check(l.length >= 3, `${n}: te weinig opdrachtmeldingen van de host gezien (${l.length})`); }
 }
 
+// ----- suite 'gastacties' (#291): winkelen en een rit door een gast, docs/COOP-GAST.md
+if (SUITE === 'gastacties') {
+  const one = (Ev, t) => of(Ev, t)[0];
+  const wh = of(H, 'winkel-host'), wg = one(G, 'winkel-gast-voor'), wo = one(G, 'winkel-gast-open'), wi = one(G, 'winkel-gast-items'), wn = one(G, 'winkel-gast-na'), wv = one(G, 'winkel-gast-verboden');
+  check(wh.length >= 2 && wh.every((e) => !e.fout), 'winkel: de host vond geen winkels: ' + JSON.stringify(wh.map((e) => e.fout || e.winkel)));
+  check(wg && wg.near && wg.rol === 'client', 'winkel: de gast staat niet bij een winkel: ' + JSON.stringify(wg));
+  check(wo && wo.open, 'winkel: een gast kan met E geen winkel openen: ' + JSON.stringify(wo));
+  check(wi && wi.n >= 1, 'winkel: geen artikelen in het menu van de gast: ' + JSON.stringify(wi));
+  check(wn && wn.gekocht && wn.gekocht.uitgegeven > 0 && wn.money < wg.money, 'winkel: de gast kocht niets of zijn geld daalde niet: ' + JSON.stringify({ wg, wn }));
+  check(wn && wn.save && wn.save.money === wn.money, 'winkel: de aankoop staat niet in de eigen save van de gast: ' + JSON.stringify(wn && wn.save) + ' tegen ' + (wn && wn.money));
+  check(wv && !wv.open && (wv.meldingen || []).some((m) => /alleen in je eigen spel/.test(m)), 'winkel: bij een wapenwinkel of autodealer hoort een melding en geen menu: ' + JSON.stringify(wv));
+  const ri = one(H, 'gastrit-host-in'), rw = one(H, 'gastrit-wiel-gegeven'), rg = one(H, 'gastrit-gereden-door-gast'), rt = one(H, 'gastrit-wiel-terug'), rz = one(H, 'gastrit-host-reed-zelf'), re = one(H, 'gastrit-eind-host');
+  const gi = one(G, 'gastrit-gast-in'), gw = one(G, 'gastrit-gast-wiel'), gs = one(G, 'gastrit-gast-gestuurd'), gt = one(G, 'gastrit-gast-wiel-terug'), gu = one(G, 'gastrit-gast-uit'), gn = one(G, 'gastrit-gast-weer-in'), gts = one(G, 'gastrit-gast-uit-te-snel');
+  check(ri && ri.host && ri.tessa, 'rit: de host zit niet in een voertuig met Tessa: ' + JSON.stringify(ri));
+  check(gi && gi.inVoertuig, 'rit: de gast weet niet dat hij in het voertuig zit: ' + JSON.stringify(gi));
+  check(rw && rw.wielSlot === 1 && gw && gw.wiel && (gw.meldingen || []).some((m) => /geeft je het stuur/.test(m)), 'stuur: de gast kreeg het stuur niet of las er niets over: ' + JSON.stringify({ rw, gw }));
+  check(rg && rg.m > 8, 'stuur: het voertuig reed niet (9 s alleen met de stick van de gast): ' + JSON.stringify(rg));
+  check(gt && !gt.wiel && rt && rt.wielSlot === null, 'stuur: terugdoen met Y werkt niet: ' + JSON.stringify({ gt, rt }));
+  check(rz && rz.m > 3, 'stuur: de host kan na het terugnemen zelf niet rijden: ' + JSON.stringify(rz));
+  check(gu && !gu.inVoertuig, 'bijrijden: de gast stapte niet uit met E bij stilstand: ' + JSON.stringify({ gts, gu }));
+  check(gn && gn.inVoertuig, 'bijrijden: de gast stapte niet weer in met E: ' + JSON.stringify(gn));
+  note('rit: de gast kreeg het stuur, het voertuig reed ' + (rg && rg.m) + ' m op zijn stick; uitstappen te snel: ' + JSON.stringify(gts && { inVoertuig: gts.inVoertuig, meldingen: gts.meldingen }));
+}
+
 // ----- suite 'opening': de menustroom, het tekstveld, de wachtkamer, het hek en de opening samen (#315-#318)
 if (SUITE === 'opening') {
   const one = (Ev, t) => of(Ev, t)[0];
   const sk = one(H, 'samenkeuze'), sp = one(H, 'spelkeuze'), gsk = one(G, 'samenkeuze');
   check(sk && sk.knoppen === 'host,gast,terug', 'menu: Samen spelen opent niet de keuze Gastheer worden / Meedoen: ' + JSON.stringify(sk && sk.knoppen));
   check(gsk && gsk.knoppen === 'host,gast,terug', 'menu: de gast ziet de keuze niet');
-  check(sp && sp.titel === 'Kies jullie spel' && /Lege plek/.test(sp.kaarten || ''), 'spelkeuze: de gastheer krijgt niet het scherm Opgeslagen spellen met lege plekken: ' + JSON.stringify(sp));
+  check(sp && sp.titel === 'Kies jullie spel' && /Leeg/.test(sp.kaarten || ''), 'spelkeuze: de gastheer krijgt niet het scherm Opgeslagen spellen met lege plekken: ' + JSON.stringify(sp));
   // tekstveld (de gast): echte toetsen, plakken, het menu op de rechtermuisknop
   const tt = one(G, 'tekstveld-typen'), tp = one(G, 'tekstveld-plakken'), tm = one(G, 'tekstveld-menu'), tmp = one(G, 'tekstveld-menu-plakken');
   check(tt && tt.waarde === 'wasd e' && tt.focus, 'tekstveld: W, A, S, D en spatie komen niet in het veld: ' + JSON.stringify(tt));
@@ -524,8 +550,8 @@ if (SUITE === 'opening') {
   if (!flag('skip') && !flag('host-save')) {
     const startenG = spG ? spG.spoor.filter((r) => r[1] === 'gast-start' && r[3]).map((r) => r[2]) : [];
     check(startenG.length >= 3, 'opening: de gast speelde maar ' + startenG.length + ' scènes na (verwacht 3): ' + JSON.stringify(startenG));
-    const abs = diffs.map(Math.abs).sort((a, b) => a - b), med = abs[Math.floor(abs.length / 2)];
-    note(`opening: mediaan ${med.toFixed(2)} s, grootste ${abs[abs.length - 1].toFixed(1)} s verschil tussen host en gast`);
+    const abs = diffs.map(Math.abs).sort((a, b) => a - b), med = abs.length ? abs[Math.floor(abs.length / 2)] : 99;
+    note(abs.length ? `opening: mediaan ${med.toFixed(2)} s, grootste ${abs[abs.length - 1].toFixed(1)} s verschil tussen host en gast` : 'opening: geen gemeenschappelijke regels');
     // een zware computer (andere programma's, een scène die nog wordt opgebouwd) laat een venster een paar seconden haperen: dan springt de gast bij. Daarom: mediaan, het grootste deel binnen 1,5 s, en de laatste tien regels gelijk
     check(abs.length > 10 && med < 0.6, 'opening: de regels lopen gemiddeld meer dan 0,6 s uit de pas (mediaan ' + med.toFixed(2) + ' s)');
     check(abs.filter((d) => d < 1.5).length >= abs.length * 0.8, 'opening: meer dan 20% van de regels loopt meer dan 1,5 s uit de pas');
