@@ -20,6 +20,7 @@ import { addMooredBuilding, dropMooredBuilding } from './waterindex.js';
 import { SECTION, decodeBlob } from './gdt.js';
 import { TileStore, FrameQueue, HttpRangeSource, inflateRaw, makeWorkerDecoder, decodeCompressed } from './tilestore.js';
 import { TerrainField } from './terrainraster.js';
+import { joinMeta } from './poisections.js';
 
 const KIND_OF = new Map([
   [SECTION.BUILDINGS, 'buildings'], [SECTION.ROADS, 'roads'], [SECTION.WATER, 'water'], [SECTION.GREEN, 'green'],
@@ -78,6 +79,8 @@ export class TileWorld extends GameMap {
   static fromTiles(global, tiles) {
     const info = {};
     for (const s of global.sections) if (s.type === SECTION.META) Object.assign(info, s.json);
+    // the places of the meta (shops, horeca, garages, ...) are rows of their tiles (poisections.js)
+    info.meta = joinMeta(info.meta, tiles.map((t) => t.sections.filter((s) => s.type === SECTION.POIS).flatMap((s) => s.rows)));
     const arrays = {};
     for (const kind of KIND_OF.values()) arrays[kind] = new Array((info.counts && info.counts[kind]) || 0);
     const res = {};

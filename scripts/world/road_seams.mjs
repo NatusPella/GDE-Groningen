@@ -7,7 +7,7 @@
 //   widthJump    the same, and the paved widths differ by more than 1.5 m: a
 //                step in the kerb line (a *_link or a change of class is a slip road)
 //   gap          a car way ends 0.3-4 m from another one's line without
-//                touching it (same level): a sliver of grass between them
+//                touching it (same level) and heads for that line: a sliver of grass between them
 //   overlap      two car ways at the same level run side by side so close that
 //                their ribbons overlap for 6 m or more, with no shared node
 //   crossNoNode  two car ways at the same level cross without a shared node
@@ -67,23 +67,33 @@ export function auditSeams(roads) {
     if (ao !== bi || ai !== bo) found.laneJump.push({ at, a: a.name, b: b.name, lanes: [[ao, ai], [bo, bi]] });
     else if (Math.abs(a.width - b.width) > 1.5 && a.cat === b.cat) found.widthJump.push({ at, a: a.name, b: b.name, widths: [a.width, b.width] });
   }
-  // gaps: a free end close to another way's line
+  // the segments of the car ways by 30 m cell, for the gap lookup and for overlap and crossings
+  const G = 30, grid = new Map();
+  const cells = (a, b, f) => { for (let gx = Math.floor((Math.min(a[0], b[0]) - 8) / G); gx <= Math.floor((Math.max(a[0], b[0]) + 8) / G); gx++) for (let gy = Math.floor((Math.min(a[1], b[1]) - 8) / G); gy <= Math.floor((Math.max(a[1], b[1]) + 8) / G); gy++) f(gx + ',' + gy); };
+  car.forEach((r, ri) => { for (let i = 0; i < r.pts.length - 1; i++) cells(r.pts[i], r.pts[i + 1], (k) => { if (!grid.has(k)) grid.set(k, []); grid.get(k).push([ri, i]); }); });
+  // gaps: a free end close to another way's line (the cells pad every segment by 8 m: all ways within 4 m are in the end's cell)
   for (const r of car) {
     for (const i of [0, r.pts.length - 1]) {
       const p = r.pts[i];
       if ((nodes.get(key(p)) || []).some(([o]) => o !== r && CAR.has(o.cat))) continue;
-      for (const o of car) {
+      const near = [...new Set((grid.get(Math.floor(p[0] / G) + ',' + Math.floor(p[1] / G)) || []).map(([ri]) => ri))].sort((a, b) => a - b);
+      for (const o of near.map((ri) => car[ri])) {
         if (o === r || level(o) !== level(r)) continue;
-        let best = Infinity;
-        for (let j = 0; j < o.pts.length - 1; j++) best = Math.min(best, segDist(p[0], p[1], o.pts[j], o.pts[j + 1]));
-        if (best > 0.3 && best < 4 && best > o.width / 2 + 0.01 - 0.3) { found.gap.push({ at: p, a: r.name, b: o.name, d: +best.toFixed(2) }); break; }
+        let best = Infinity, foot = null;
+        for (let j = 0; j < o.pts.length - 1; j++) { const d = segDist(p[0], p[1], o.pts[j], o.pts[j + 1]); if (d < best) { best = d; foot = j; } }
+        if (!(best > 0.3 && best < 4 && best > o.width / 2 + 0.01 - 0.3)) continue;
+        // the way has to head for the other line: two ways that start side by side (a dual road's carriageways, two service roads
+        // running on in parallel) are no gap, and a hairpin back onto the other line is not one a join could close (stad_wegen.mjs closeGaps)
+        const nb = r.pts[i === 0 ? 1 : r.pts.length - 2], hl = Math.hypot(p[0] - nb[0], p[1] - nb[1]) || 1;
+        const a = o.pts[foot], b = o.pts[foot + 1], dx = b[0] - a[0], dy = b[1] - a[1], t = Math.max(0, Math.min(1, ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / (dx * dx + dy * dy || 1e-9)));
+        const qx = a[0] + dx * t, qy = a[1] + dy * t;
+        if (((qx - p[0]) * (p[0] - nb[0]) + (qy - p[1]) * (p[1] - nb[1])) / (hl * best) < 0.5) continue;
+        found.gap.push({ at: p, a: r.name, b: o.name, d: +best.toFixed(2) });
+        break;
       }
     }
   }
   // overlap and crossings
-  const G = 30, grid = new Map();
-  const cells = (a, b, f) => { for (let gx = Math.floor((Math.min(a[0], b[0]) - 8) / G); gx <= Math.floor((Math.max(a[0], b[0]) + 8) / G); gx++) for (let gy = Math.floor((Math.min(a[1], b[1]) - 8) / G); gy <= Math.floor((Math.max(a[1], b[1]) + 8) / G); gy++) f(gx + ',' + gy); };
-  car.forEach((r, ri) => { for (let i = 0; i < r.pts.length - 1; i++) cells(r.pts[i], r.pts[i + 1], (k) => { if (!grid.has(k)) grid.set(k, []); grid.get(k).push([ri, i]); }); });
   const shares = (a, b) => a.pts.some((p) => (nodes.get(key(p)) || []).some(([o]) => o === b));
   const pairs = new Map();
   for (const bucket of grid.values()) {
