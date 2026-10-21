@@ -20,7 +20,7 @@ import { ABOUT_HTML } from './credits.js';
 import { startLoadScreen, setLoadTips } from './loadscreen.js';
 
 export const TIPS = [
-  'Tip: in Grunn neemt een fietser altijd voorrang, of hij die nou heeft of niet.',
+  'Tip: in Grunn neemt een fietser altijd voorrang, of die nou voorrang heeft of niet.',
   'Tip: de Martinitoren heet hier gewoon d’Olle Grieze.',
   'Tip: een eierbal eet je warm. Koud is een misdaad, ook in Grunn.',
   'Tip: “Moi” is goeiemorgen, goeiemiddag én goeienavond.',

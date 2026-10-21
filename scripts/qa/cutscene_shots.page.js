@@ -69,7 +69,7 @@ for (const e of cat) {
   root.add(run.group);
   w.cinematicHidePlayers = true; w.cinematicHideNav = true;
   T = 0;
-  cine.playCinematic({ id: 'cs-shots', duration: 3600, priority: 9, letterbox: false, hideHud: true, pause: true, skippable: false, shot: () => run.frame(T, 0.05) });
+  cine.playCinematic({ id: 'cs-shots', duration: 3600, priority: 9, letterbox: false, hideHud: true, pause: true, skippable: false, shot: () => { const pose = run.frame(T, 0.05); if (pose) pose.cut = true; return pose; } }); // always a hard cut: the stills jump about in time, and the camera's own blend (scene3d applyCameraOverride) would otherwise show a position between two shots (a back or a head filling the lens that no player sees)
   await sleep(500);
   // het afsluiten van een vorige cinematic (de start van het spel) zet deze vlaggen weer uit: opnieuw aanzetten, anders staat de speler zelf naast de acteurs (#264)
   w.cinematicHidePlayers = true; w.cinematicHideNav = true;
@@ -85,7 +85,7 @@ for (const e of cat) {
     for (let k = 0; k < dn.n; k++) times.push(Math.round((t0 + 0.2 + (t1 - t0 - 0.4) * (k / (dn.n - 1))) * 10) / 10);
     console.log('[cs-dense] ' + e.id + ' shot ' + dn.shot + ' van ' + t0.toFixed(1) + ' tot ' + t1.toFixed(1) + ' s');
   }
-  let persons = null; const probes = [];
+  let persons = null; const probes = []; const blok = [];
   // wie staat er in beeld: alle zichtbare figuren (met een eigen schaduwcirkel) bij het anker, met hun ouderketen (#264)
   {
     T = times[0] || 0.2;
@@ -110,6 +110,21 @@ for (const e of cat) {
     await sleep(380);
     const name = prev.stillName(e.id, k, t).replace(/\.png$/, '').replace(/[^\w.-]/g, '_');
     console.log('[capture] ' + name);
+    // lens vrij? 5x5 kijkstralen: een treffer binnen 1,3 m (lantaarnpaal, bord, boom, rug) vult het beeld
+    {
+      const ray = new THREE.Raycaster(); ray.far = 1.3;
+      const cm = window.__scene3d.cam, near = [];
+      for (let iy = 0; iy < 5; iy++) for (let ix = 0; ix < 5; ix++) {
+        ray.setFromCamera(new THREE.Vector2((ix - 2) / 2.2, (iy - 2) / 2.2), cm);
+        const h = ray.intersectObject(root, true).find((q) => q.object.visible && !(q.object.material && q.object.material.transparent && q.object.material.opacity < 0.3));
+        if (h) { const chain = []; for (let q = h.object; q && chain.length < 3; q = q.parent) chain.push(q.name || q.type); near.push({ d: +h.distance.toFixed(2), chain: chain.join('<') }); }
+      }
+      if (near.length >= 3) {
+        // where the camera really stands and who is nearest (the scene sampled with the real roof test), for the verdict
+        let who = null;
+        try { const sm = e.scene.sample(t, at, env); const c0 = sm.camera.position; who = Object.entries(sm.actors).filter(([, a]) => a.visible !== false).map(([k, a]) => [k, +Math.hypot(a.x - c0.x, a.y - c0.y).toFixed(2)]).sort((a, b) => a[1] - b[1])[0]; } catch (err) { /* no verdict */ }
+        blok.push({ t, n: near.length, d: Math.min(...near.map((x) => x.d)), wat: near[0].chain, cam: [cm.position.x, cm.position.z, cm.position.y].map((v) => +v.toFixed(2)), dak: cam.roofAt(map, cm.position.x, cm.position.z), dichtst: who }); console.log('[cs-blok] ' + e.id + ' t=' + t + ' ' + near.length + '/25 stralen < 1,3 m (' + near[0].chain + ')'); }
+    }
     if (CS.probe && CS.probe.id === e.id && Math.abs(t - CS.probe.t) < 0.06) probes.push({ t, hits: CS.probe.px.map(([x, y]) => ({ x, y, hits: probeAt(x, y) })) });
     await sleep(450);
     k++;
@@ -127,7 +142,7 @@ for (const e of cat) {
     } catch (err) { /* sampling failed: no verdict */ }
   }
   if (inside.length) console.log('[cs-clip] ' + e.id + ' camera in gebouw/grond op t=' + inside.slice(0, 12).join(','));
-  results[e.id] = { persons, probes, shots: times.length, clip: inside.length ? inside.slice(0, 40) : undefined, anker: { x: +at.x.toFixed(1), y: +at.y.toFixed(1), facing: +at.facing.toFixed(2) } };
+  results[e.id] = { persons, probes, shots: times.length, blok: blok.length ? blok : undefined, clip: inside.length ? inside.slice(0, 40) : undefined, anker: { x: +at.x.toFixed(1), y: +at.y.toFixed(1), facing: +at.facing.toFixed(2) } };
   console.log('[cs-scene] ' + e.id + ' ' + JSON.stringify(results[e.id]));
   await sleep(300);
 }

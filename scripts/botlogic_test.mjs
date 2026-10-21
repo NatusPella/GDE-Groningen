@@ -136,7 +136,7 @@ const near = (a, b, e = 1e-6) => Math.abs(a - b) < e;
   const mvFoot = L.decide({ ...base(), mission: { active: true, stage: 'board' }, target: mvT, nearby: { vehicles: mvNear } }, {});
   ok(mvFoot.type === 'enter' && mvFoot.vehicle.x === 6, 'doel is een voertuig: dat voertuig nemen, niet het dichtstbijzijnde');
   ok(L.decide({ ...base(), player: { ...base().player, vehicle: { kind: 'auto', speed: 0 } }, mission: { active: true, stage: 'board' }, target: mvT, nearby: { vehicles: mvNear } }, {}).key === 'e', 'doel is een ander voertuig: eerst uitstappen');
-  ok(L.decide({ ...base(), player: { ...base().player, vehicle: { kind: 'auto', speed: 0 } }, mission: { active: true, stage: 'chase' }, target: mvT, nearby: { vehicles: mvNear } }, {}).key !== 'e', 'achtervolging: de prooi is niet het voertuig om in te stappen');
+  ok(L.decide({ ...base(), player: { ...base().player, vehicle: { kind: 'auto', speed: 0 } }, mission: { active: true, stage: 'chase' }, target: { ...mvT, distance: 40 }, nearby: { vehicles: mvNear } }, {}).key !== 'e', 'achtervolging: een prooi op afstand is niet het voertuig om in te stappen');
   const inCarPlane = { ...base(), player: { ...base().player, vehicle: { kind: 'auto', speed: 0 } }, mission: { active: true, stage: 'plane' }, nearby: { vehicles: [{ x: 6, y: 0, distance: 6, free: true, drivable: false, kind: 'vliegtuig' }] } };
   ok(L.decide(inCarPlane, {}).key === 'e', 'plane-fase vanuit een auto: eerst uitstappen');
   const far = { ...base(), target: { x: 900, y: 0, distance: 900 }, nearby: { vehicles: [{ x: 5, y: 0, distance: 5, free: true, drivable: true, kind: 'auto' }] } };
@@ -265,6 +265,41 @@ const near = (a, b, e = 1e-6) => Math.abs(a - b) < e;
   ok(L.pigeonKeys({ ...f, z: 30 }, { x: 100, y: 0, z: 60 }).has(' '), 'duif: doelhoogte 60: omhoog');
   const bs = { v: 1, t: 1, player: { x: 0, y: 0, angle: 0, camYaw: 0, vehicle: null, pigeon: true }, story: {}, mission: { active: true }, hud: { messages: [] }, blocking: {}, nearby: { vehicles: [] }, target: { x: 50, y: 0, distance: 50, source: 'missie' } };
   ok(L.decide(bs).type === 'pigeon', 'duifstand: duif vliegen');
+}
+
+// --- te voet: een route om kraampalen en andere obstakels heen (#218) ---------------------
+{
+  // een rij kraampalen met een opening van 1 m, en een dicht muurtje van palen met een omweg rechts
+  const rij = [];
+  for (let y = -6; y <= 6; y += 1.2) rij.push({ x: 10, y });
+  const free = (x, y) => !rij.some((q) => Math.hypot(q.x - x, q.y - y) < 0.9);
+  ok(L.segmentFree({ x: 0, y: 0 }, { x: 5, y: 0 }, free), 'vrij stuk is vrij');
+  ok(!L.segmentFree({ x: 0, y: 0 }, { x: 20, y: 0 }, free), 'stuk door de paalrij is niet vrij');
+  const d = L.detourAround({ x: 0, y: 0 }, { x: 20, y: 0 }, free);
+  ok(d && d.length >= 3, 'omweg rond de paalrij gevonden');
+  ok(d && d.every((p, i) => i === 0 || L.segmentFree(d[i - 1], p, free)), 'elk stuk van de omweg is vrij');
+  ok(d && near(d[d.length - 1].x, 20) && near(d[d.length - 1].y, 0), 'omweg eindigt op het doel');
+  const r = L.repairPath([[0, 0], [20, 0], [40, 0]], free);
+  ok(r.fixed === 1 && r.pts.length >= 4, 'repairPath herstelt één stuk');
+  const dicht = (x, y) => !(x > 9 && x < 11 && y > -60 && y < 60);
+  const geen = L.detourAround({ x: 0, y: 0 }, { x: 20, y: 0 }, dicht);
+  ok(geen === null, 'een muur zonder omweg geeft null');
+  const r2 = L.repairPath([[0, 0], [20, 0]], dicht);
+  ok(r2.fixed === 0 && r2.pts.length === 2, 'zonder omweg blijft de route zoals hij was');
+  // het doel zelf mag in een obstakel liggen (een voertuig om in te stappen): de omweg komt er toch
+  const doelIn = (x, y) => Math.hypot(x - 20, y) > 0.7 && free(x, y);
+  const d2 = L.detourAround({ x: 0, y: 0 }, { x: 20, y: 0 }, doelIn);
+  ok(d2 && d2.length >= 3, 'doel in een obstakel: toch een route');
+}
+
+// een achtervolging: het doel is het voertuig dat wegrijdt, de bot blijft in zijn eigen auto en rijdt erachteraan (#218, M26)
+{
+  const st = (stage, veh) => ({ v: 1, t: 1, player: { x: 0, y: 0, angle: 0, camYaw: 0, vehicle: veh, pigeon: false }, story: {}, mission: { active: true, stage }, hud: { messages: [] }, blocking: {}, nearby: { vehicles: [] }, target: { x: 80, y: 0, distance: 80, source: 'missie', vehicle: true } });
+  const car = { kind: 'auto', x: 0, y: 0, angle: 0, speed: 0 };
+  const d = L.decide(st('chase', car), {});
+  ok(d.type === 'goto' && d.mode === 'drive', 'achtervolging: de bot rijdt erachteraan en stapt niet uit', JSON.stringify(d));
+  const d2 = L.decide(st('board', car), {});
+  ok(d2.type === 'press' && d2.key === 'e', 'een board-stap met een voertuig als doel: eerst uitstappen', JSON.stringify(d2));
 }
 
 console.log(`${n - fails}/${n} ok`);

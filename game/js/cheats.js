@@ -126,6 +126,9 @@ export function updateCheats(dt, w) {
   MODS.pigeons = live('duivenstorm') ? 5 : 1;
   MODS.gronings = live('gronings');
   setHeadScale(live('grotekoppen') ? 2.1 : 1);
+  MODS.pedScale = live('kleinemensjes') ? 0.5 : 1;
+  MODS.pigeonScale = live('reuzenduif') ? 6 : 1;
+  MODS.alwaysGreen = live('altijdgroen');
 
   for (const [id, hour] of Object.entries(CLOCK)) if (live(id)) w.clock = hour;
   if (live('snelletijd')) updateDayNight(dt * FAST_CLOCK, w);

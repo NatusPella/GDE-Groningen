@@ -70,7 +70,7 @@ const FARES = [
     done: 'Dank joe wel, mien jong. Hier, n pepermuntje. En wat veur de pot.',
   },
   {
-    who: 'Een zakenman met drie telefoons', from: 'forum', to: ['europapark'], rush: true,
+    who: 'Een zakenreiziger met drie telefoons', from: 'forum', to: ['europapark'], rush: true,
     hail: 'Taxi! TAXI!',
     board: 'Station Europapark, snel! Mijn intercity gaat over vier minuten. Nee, drie.',
     done: 'Gehaald! Hou het wisselgeld maar. Moi!',
@@ -157,7 +157,7 @@ export default {
   needsVehicle: () => true,
 
   timeout(c) {
-    return c.data.fare && c.data.fare.rush ? 'de trein is weg. De zakenman belt zijn advocaat' : 'de klant stapt bij het stoplicht uit: "Ik loop wel"';
+    return c.data.fare && c.data.fare.rush ? 'de trein is weg. De zakenreiziger belt de advocaat' : 'de klant stapt bij het stoplicht uit: "Ik loop wel"';
   },
 
   update(dt, c) {

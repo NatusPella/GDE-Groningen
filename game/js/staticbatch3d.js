@@ -1,4 +1,6 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import { drawHub, poolable, depthMaterialFor } from './multidraw3d.js';
+import { perfOff } from './devflags.js';
 
 // Static batching for city buildings and roads: the meshes of every
 // building (road) in a 48 m cell are merged into one mesh per material, which
@@ -10,8 +12,14 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 // the same way, and swapped in at once. Their geometry already holds world
 // coordinates (meshes sit at the origin; small child offsets are baked in).
 
+// The merged cells are drawn from one multi-draw pool per material instead of one mesh per cell and material (multidraw3d.js, #246);
+// ?perfoff=pool keeps the separate meshes.
+export { drawHub };
+
 const CELL = 48;
 const MARGIN = 15;
+// a pooled cell costs no mesh of its own, so a cell may hold a single item and merging reaches closer to the edge of the radius
+const POOL_MARGIN = 3;
 const MIN_MEMBERS = 3;
 
 // geometry edited in place (a knocked-out crash barrier) bumps
@@ -51,6 +59,7 @@ function attrSig(g) {
 function unmerge(B, c) {
   if (!c.group) return;
   for (const m of c.members) for (const p of m.parts) p.visible = true;
+  if (c.group.handles) for (const h of c.group.handles) drawHub.remove(h);
   c.group.removeFromParent();
   for (const o of c.group.children) o.geometry.dispose();
   c.group = null;
@@ -230,11 +239,28 @@ function* finishWork(job) {
   }
 }
 
+// the stand-ins of a pooled cell are only compiled, never drawn: the pool's own copy of each material, flagged as batched
+const standInMatrices = new THREE.DataTexture(new Float32Array(16 * 4), 4, 4, THREE.RGBAFormat, THREE.FloatType);
 function makeGroup(B, job) {
   const group = new THREE.Group();
   group.name = B.name;
+  if (job.pooled === undefined) job.pooled = !perfOff('pool');
   for (const { geo, bk } of job.geos) {
-    const mesh = new THREE.Mesh(geo, bk.mat);
+    const pooled = job.pooled && poolable(bk.mat);
+    const mesh = new THREE.Mesh(geo, pooled ? drawHub.materialFor(bk.mat) : bk.mat);
+    if (pooled) {
+      mesh.isBatchedMesh = true;
+      mesh._matricesTexture = standInMatrices;
+      mesh.userData.standIn = true;
+    }
+    if (pooled && bk.cast) {
+      // the depth program of the shadow pass is not guarded by the link wait: it must be linked before the cell is drawn, so it is compiled with the rest
+      const dm = new THREE.Mesh(geo, depthMaterialFor(bk.mat));
+      dm.isBatchedMesh = true;
+      dm._matricesTexture = standInMatrices;
+      dm.userData.standInDepth = true;
+      group.add(dm);
+    }
     mesh.castShadow = bk.cast;
     mesh.receiveShadow = true;
     mesh.matrixAutoUpdate = false;
@@ -250,12 +276,22 @@ function finishJob(B) {
   const group = job.group || makeGroup(B, job);
   const c = job.c;
   unmerge(B, c);
+  // the stand-ins of the pooled buckets go (the geometry lives on in the pool's buffers); the others stay as meshes
+  const handles = [];
+  for (const mesh of [...group.children]) {
+    if (mesh.userData.standInDepth) { group.remove(mesh); continue; }
+    if (!mesh.userData.standIn) continue;
+    handles.push(drawHub.add(job.geos.find((q) => q.geo === mesh.geometry).bk.mat, mesh.castShadow, mesh.geometry));
+    group.remove(mesh);
+  }
+  group.handles = handles;
+  group.pooled = !!job.pooled;
   c.group = group;
+  if (group.children.length) B.root.add(group); // a cell that went entirely to the pool needs no node
   c.members = job.list;
   c.memberSet = new Set(job.list.map((m) => m.b));
   c.withDetail = job.withDetail;
   for (const m of c.members) for (const p of m.parts) p.visible = false;
-  B.root.add(group);
   B.stats.merged++;
   B.stats.builds++;
   B.job = null;
@@ -264,7 +300,7 @@ function finishJob(B) {
 // --- per frame -------------------------------------------------------------
 
 // opts: { name, eligible(item, mesh), valid(item, mesh, ctx, dist), cell,
-// minMembers, part(mesh), inner(ctx), fresh, dist(item, px, py) }: which items may be merged,
+// minMembers, part(mesh), inner(ctx, margin), fresh, dist(item, px, py) }: which items may be merged,
 // whether a merged one may stay merged, the cell size, the fewest items worth
 // a batch, the one child mesh to merge instead of all of them, the distance
 // an item must be within to be merged (default: the detail radius less a
@@ -293,7 +329,7 @@ function createStaticBatcher(opts) {
     const dist = opts.dist ? (b) => opts.dist(b, px, py) : (b) => { const [x, y] = centreOf(b); return Math.hypot(x - px, y - py); };
     for (const c of B.cells.values()) {
       if (!c.group) continue;
-      let bad = c.withDetail !== ctx.withDetail;
+      let bad = c.withDetail !== ctx.withDetail || !!c.group.pooled === perfOff('pool');
       for (let i = 0; i < c.members.length && !bad; i++) if (!memberOk(c.members[i], ctx, dist)) bad = true;
       if (bad) { unmerge(B, c); B.stats.dropped++; continue; }
       for (const m of c.members) for (const p of m.parts) p.visible = false;
@@ -328,7 +364,10 @@ function createStaticBatcher(opts) {
     // while each of them is valid; items crossing inner (or streaming in)
     // one by one draw on their own until a rebuild is worth it: a few of
     // them, or the cell is then complete
-    const inner = opts.inner ? opts.inner(ctx) : Math.min(ctx.drawDist, ctx.detailR) - MARGIN;
+    const pooled = !perfOff('pool');
+    const margin = pooled && !perfOff('poolrand') ? POOL_MARGIN : MARGIN;
+    const fewest = pooled && !perfOff('poolklein') ? 1 : minMembers;
+    const inner = opts.inner ? opts.inner(ctx, margin) : Math.min(ctx.drawDist, ctx.detailR) - margin;
     const want = new Map();
     for (const [b, mesh] of meshes) {
       if ((hidden && hidden.has(b)) || !mesh.parent || !mesh.visible || mesh.userData.noBatch || !opts.eligible(b, mesh)) continue;
@@ -345,7 +384,7 @@ function createStaticBatcher(opts) {
     for (const c of B.cells.values()) if (c.group && !want.has(c.key)) unmerge(B, c);
     let best = null;
     for (const w of want.values()) {
-      if (w.list.length < minMembers) continue;
+      if (w.list.length < fewest) continue;
       const c = B.cells.get(w.key);
       if (c && c.group && c.withDetail === ctx.withDetail) {
         let fresh = 0;
@@ -368,7 +407,7 @@ function createStaticBatcher(opts) {
 
   function info() {
     let meshesN = 0;
-    for (const c of B.cells.values()) if (c.group) meshesN += c.group.children.length;
+    for (const c of B.cells.values()) if (c.group) meshesN += c.group.children.length + (c.group.handles ? c.group.handles.length : 0);
     const detail = B.lastWant ? [...B.lastWant.values()].map((w) => [w.key, w.list.length, Math.round(w.d), Math.round(w.far), B.cells.get(w.key) && B.cells.get(w.key).group ? 1 : 0]) : [];
     return { ...B.stats, meshes: meshesN, job: B.job ? `${B.job.i}/${B.job.pieces.length}` : null, detail };
   }
@@ -426,7 +465,7 @@ export const roadBatcher = createStaticBatcher({
     const b = r.bounds;
     return b ? Math.hypot(Math.max(b[0] - px, 0, px - b[2]), Math.max(b[1] - py, 0, py - b[3])) : 1e9;
   },
-  inner: (ctx) => ctx.drawDist - 15,
+  inner: (ctx, margin) => ctx.drawDist - margin,
   fresh: 2,
   eligible: () => true,
   valid: () => true,
@@ -443,7 +482,7 @@ export const shoreBatcher = createStaticBatcher({
     const b = it.bounds;
     return Math.hypot(Math.max(b[0] - px, 0, px - b[2]), Math.max(b[1] - py, 0, py - b[3]));
   },
-  inner: (ctx) => ctx.drawDist - 15,
+  inner: (ctx, margin) => ctx.drawDist - margin,
   fresh: 2,
   part: (holder) => holder.mesh,
   eligible: () => true,
