@@ -79,10 +79,15 @@ ok(quickScene([{ speaker: 'X', text: 'y', at: 1, dur: 2 }], { npc: { key: 'besta
 // een knip van een scriptscène en de solo-rit
 {
   ok(sliceOf('M26.4#7-14') && sliceOf('M26.4#7-14').from === 7 && sliceOf('M26.4') === null, 'sliceOf leest de knip');
-  const sl = sliceOf('M26.4#7-14');
-  const { lines, total } = linesOf(script, [sl.id], looks, [sl.from, sl.to]);
-  ok(lines.length === 7, 'M26.4 regels 7 tot 14 zijn zeven regels', String(lines.length));
-  check('M26.4#7-14', missionScene('M26.4#7-14', lines, { looks }), lines, total);
+  const keys = Object.keys(MORE_SPECS).filter((k) => sliceOf(k));
+  ok(keys.includes('M26.4#7-14') && keys.includes('M06.3#0-4'), 'de knippen van missions_akte5.js en missions_nieuw.js zijn geregisseerd', keys.join(','));
+  for (const key of keys) {
+    const sl = sliceOf(key);
+    const { lines, total } = linesOf(script, [sl.id], looks, [sl.from, sl.to]);
+    ok(lines.length === sl.to - sl.from, key + ': het aantal regels klopt', String(lines.length));
+    for (const b of MORE_SPECS[key].beats) if (typeof b.on === 'string') ok(lines.some((l) => l.text.startsWith(b.on)), key + ' beat vindt zijn regel', b.on);
+    check(key, missionScene(key, lines, { looks }), lines, total);
+  }
 }
 {
   const { lines, total } = linesOf(script, sceneIdsFor('M21.intro'), looks);

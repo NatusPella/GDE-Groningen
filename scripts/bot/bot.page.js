@@ -119,7 +119,13 @@ function steerTowards(s, mode, tgt, stopAt, top = 24, stopR = null, direct0 = fa
     const c = L.carControls(car, aim, { stopAt: stopAt || !!rest, rest, top: mode === 'boat' ? Math.min(top, 9) : top, gentle: !!(s.mission.active && mdefE && mdefE.eggs), avoid, curveCap: curve });
     B.stick(c.steer, c.throttle ? -c.throttle : 0);
     // a chase is logged every 3 s: where, how fast, how far from the fleeing car, what stands in the lane (#354)
-    if (avoid && s.t - (mem.chaseLogT || -9) >= 3) { mem.chaseLogT = s.t; B.log('achtervolging', { x: Math.round(me.x), y: Math.round(me.y), v: Math.round((s.player.vehicle.speed || 0) * 10) / 10, afstand: Math.round(direct), hindernis: avoid.filter((o) => Math.hypot(o.x - me.x, o.y - me.y) < 14).length, stuur: Math.round(c.steer * 100) / 100, gas: c.throttle, wens: Math.round(c.want * 10) / 10 }); }
+    if (avoid) {
+      if (mem.chaseT0 == null || s.t - mem.chaseLogT > 60) mem.chaseT0 = s.t;
+      if (s.t - (mem.chaseLogT || -9) >= (s.t - mem.chaseT0 < 40 ? 1 : 3)) {
+        mem.chaseLogT = s.t;
+        B.log('achtervolging', { x: Math.round(me.x * 10) / 10, y: Math.round(me.y * 10) / 10, hoek: Math.round(car.angle * 100) / 100, v: Math.round((s.player.vehicle.speed || 0) * 10) / 10, afstand: Math.round(direct), aim: [Math.round(aim.x), Math.round(aim.y)], punt: follower ? follower.i + '/' + follower.length : '-', hindernis: avoid.filter((o) => Math.hypot(o.x - me.x, o.y - me.y) < 14).length, stuur: Math.round(c.steer * 100) / 100, gas: c.throttle, wens: Math.round(c.want * 10) / 10, bocht: curve === Infinity ? null : Math.round(curve) });
+      }
+    }
     if (!c.reverse && wedge.update(s.t, s.player.vehicle.speed, c.throttle)) wedge.reset(), wedgeOut = true;
     if (B.input.isDown('shift')) B.up('shift');
   } else {
@@ -537,6 +543,14 @@ if (CFG.sweep && CFG.sweep.length) {
     follower = null; detector.reset(B.time()); mem.boardTries = 0; mem.pressTries = 0; mem.planTries = 0; lastStep = null; lastPhase = '';
     const t0 = B.time();
     await sleep(1500);
+    // --skip-stages=N: the first N stages of the step are completed with the objective cheat (logged as setup, not as a bot finding), to test a later stage on its own (#354: the chase of M26)
+    for (let k = 0; k < (CFG.skipStages || 0); k++) {
+      for (let i = 0; i < 120 && (B.status().blocking.cinematic || B.status().blocking.banner || B.status().blocking.talk); i++) { await B.press(' '); await sleep(400); }
+      await sleep(1500);
+      B.cheat.objective();
+      B.log('setup', { what: 'stage-skip', n: k + 1, stage: (B.status().mission || {}).stage });
+      await sleep(2500);
+    }
     await loop((s) => s.story.id !== id || B.time() - t0 > (CFG.perStepS || 600));
     B.log('step', { event: 'end', id, outcome: B.status().story.id === id ? 'tijd op' : 'klaar' });
     result = 'TIMEOUT';
