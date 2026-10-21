@@ -215,7 +215,7 @@ function spawnSkater(world, p, hour) {
   let skaters = 0;
   for (const ped of world.pedestrians) if (ped.carry === 'skateboard' && ped.state !== 'dead') skaters++;
   if (skaters >= SKATER_MAX || !pickSkater(world.map, p.x, p.y, hour)) return;
-  for (const ped of spawnPedestriansNear(world.map, p.x, p.y, 1, Math.random)) {
+  for (const ped of spawnPedestriansNear(world.map, p.x, p.y, 1, Math.random, true)) {
     if (!finite(ped.x, ped.y)) continue;
     ped.carry = 'skateboard';
     ped.hasBag = false;
@@ -237,7 +237,7 @@ export function pickOrientation(map, x, y, hour, rng = Math.random) {
 function spawnOrientation(world, p, hour) {
   for (const ped of world.pedestrians) if (ped.ontgroening && ped.state !== 'dead') return;
   if (!pickOrientation(world.map, p.x, p.y, hour)) return;
-  const lead = spawnPedestriansNear(world.map, p.x, p.y, 1, Math.random)[0];
+  const lead = spawnPedestriansNear(world.map, p.x, p.y, 1, Math.random, true)[0];
   if (!lead || !finite(lead.x, lead.y)) return;
   lead.ontgroening = 'leader';
   lead.hasBag = false;
@@ -287,7 +287,7 @@ function spawnCourier(world, p, hour) {
   let couriers = 0;
   for (const ped of world.pedestrians) if (ped.carry === 'bezorgtas' && ped.state !== 'dead') couriers++;
   if (couriers >= COURIER_MAX || !pickFootCourier(world.map, p.x, p.y, hour)) return;
-  for (const ped of spawnPedestriansNear(world.map, p.x, p.y, 1, Math.random)) {
+  for (const ped of spawnPedestriansNear(world.map, p.x, p.y, 1, Math.random, true)) {
     if (!finite(ped.x, ped.y)) continue;
     ped.carry = 'bezorgtas';
     ped.hasBag = false;
@@ -353,7 +353,7 @@ export function updateStreetLife(dt, world) {
   if (carriers >= MAX_CARRIERS) return;
   const kind = pickCarrier(world.map, p.x, p.y, hour);
   if (!kind) return;
-  const fresh = spawnPedestriansNear(world.map, p.x, p.y, 1, Math.random);
+  const fresh = spawnPedestriansNear(world.map, p.x, p.y, 1, Math.random, true);
   for (const ped of fresh) {
     if (!finite(ped.x, ped.y)) continue;
     ped.carry = kind;

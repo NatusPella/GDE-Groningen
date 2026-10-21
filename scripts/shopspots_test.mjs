@@ -19,9 +19,9 @@ for (const t of K.SHOP_KINDS) {
 }
 check(Number.isFinite(K.rankForType('bestaat-niet', 3)), 'onbekend type geeft toch een rang');
 
-// elk type heeft een eigen patroon in de ruit (kermiskraam deelt met bakker)
+// elk type heeft een eigen patroon in de ruit
 const pats = new Set(K.SHOP_KINDS.map((t) => K.WINKEL[t].patroon));
-check(pats.size >= 12, `patronen in de ruit: ${pats.size}`);
+check(pats.size === K.SHOP_KINDS.length, `patronen in de ruit: ${pats.size}`);
 const T = K.shaderTable();
 check(T.stijl.length === K.SHOP_KINDS.length && T.stijl.every((r) => r.length === 4), 'shadertabel stijl');
 
