@@ -708,7 +708,7 @@ for (const [id, key, x] of [['M18.7', 'accountmanager', 2.4], ['M23.6', 'wubbo',
 // cab (hidden, they move with it, so the camera finds them); Tammo is on his own mission and not in the scene (`solo`). The camera
 // has to follow the car, so there is no automatic coverage: a wide shot of the bakkie pulling away, then the camera rides along.
 S['M21.intro'] = {
-  solo: true, manual: true,
+  solo: true, manual: true, align: 'road',
   cast: { berend: { key: 'berend', at: [-34, 0], face: 0, anim: 'idle', noauto: true } },
   duo: { tessa: { at: [-34, 0], face: 0, anim: 'idle' } },
   props: { bakkie: { kind: 'bakkie', at: [-34, 0, 0], face: 0 } },
