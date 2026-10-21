@@ -802,3 +802,22 @@ S['M24.3'] = {
   shots: [],
   wide: WIDE([-4.8, 4, 3.2], [-2.8, 2.9, 2.4], 'mid:bert,tessa@1.2'),
 };
+
+// M06.3 lines 0-3, the empty case (missions_nieuw.js: script M06.3 from 0 to 4, the scene stage with `reveal`): the camera is the hand-made
+// push-in on the case (missions.js playStageScene, timed on heist.js REVEAL; it is the whole scene, `shotAll`), so this staging only brings
+// the pair: they stand behind the case and look at it, Tessa points at the card, Tammo shakes his head at the thank-you.
+S['M06.3#0-4'] = {
+  duo: { tammo: { at: [-2.6, 1.0], face: 0, anim: 'look' }, tessa: { at: [-2.6, -0.8], face: 0, anim: 'look' } },
+  cast: {}, props: {},
+  open: [],
+  beats: [
+    { on: 0, dt: 0.4, actor: 'tessa', walk: [[-1.6, -0.6]], speed: 0.7 },
+    { on: 'Hij bedankt', actor: 'tammo', anim: 'shake' },
+    { on: 'Hij. Bedankt', actor: 'tessa', anim: 'shake' },
+    { on: 'Hij. Bedankt', dt: 0.3, actor: 'tammo', face: 'actor:tessa' },
+    { on: 'De vitrine is leeg', actor: 'tessa', anim: 'point' },
+    { on: 'De vitrine is leeg', dt: 0.6, actor: 'tammo', walk: [[-1.4, 0.8]], speed: 0.7 },
+  ],
+  shots: [],
+  wide: WIDE([-6, 3.4, 2.4], [-4.4, 2.6, 2.0], 'mid:tammo,tessa@1.2'),
+};
