@@ -96,7 +96,7 @@ export function roomShell(B, b, r, i, rooms = MUSEUM_ROOMS) {
   }
 }
 
-const BEAM = 0x2c1d12, BRASS = 0xc9a04a, FLAME = 0xffd36a;
+const BEAM = 0x2c1d12, BRASS = 0xe6c15a, FLAME = 0xffd36a;
 function kerkPlafond(B, r) {
   const rot = -Math.atan2(r.uy, r.ux);
   const box = (a, c, y, sa, sy, sc, color, grp = G_SOLID) => { const [x, , z] = at(r, a, c, 0); B.box(x, y, z, sa, sy, sc, color, grp, 0, rot, 0); };
