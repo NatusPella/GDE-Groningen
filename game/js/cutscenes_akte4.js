@@ -747,7 +747,7 @@ S['M26.4#7-14'] = {
   ],
   beats: [
     { on: 0, actor: 'durk', walk: [[-1.6, 2.6]], speed: 1.2 },
-    { on: 'Net fertelle', dt: 0.2, actor: 'durk', face: 'prop:vuurwerk' },
+    { on: 'Douwe. Niet aanraken', dt: 0.2, actor: 'durk', face: 'prop:vuurwerk' },
     { on: '…Hè.', actor: 'douwe', walk: [[-2.2, -1.8]], speed: 1.0 },
     { on: '…Hè.', dt: 0.3, actor: 'douwe', face: 'prop:vuurwerk' },
     { on: 'Rook! Links', actor: 'tessa', anim: 'point' },
