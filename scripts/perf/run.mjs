@@ -60,6 +60,10 @@ const log = fs.createWriteStream(logFile);
 console.error(`start ${new Date().toTimeString().slice(0, 8)} load ${os.loadavg().map((x) => x.toFixed(2)).join(' ')}`);
 // other Electron instances (other agents) and the CPU they take disturb the numbers: count them around the run
 const others = () => { try { const o = spawnSync(process.platform === 'win32' ? 'tasklist' : 'pgrep', process.platform === 'win32' ? ['/FI', 'IMAGENAME eq electron.exe', '/NH'] : ['-c', 'electron'], { encoding: 'utf8' }).stdout; return process.platform === 'win32' ? (o.match(/electron.exe/g) || []).length : Number(o) || 0; } catch { return null; } };
+// how busy the machine is around the run (the Windows load average is always 0): CPU use over one second before the start and after the end, free memory
+const cpuTimes = () => os.cpus().reduce((a, c) => { const t = c.times; a.idle += t.idle; a.all += t.user + t.nice + t.sys + t.idle + t.irq; return a; }, { idle: 0, all: 0 });
+const cpuBusy = async () => { const a = cpuTimes(); await sleep(1000); const b = cpuTimes(); return +(100 * (1 - (b.idle - a.idle) / Math.max(1, b.all - a.all))).toFixed(0); };
+const busyBefore = await cpuBusy();
 const before = others();
 const t0 = Date.now();
 const child = spawn(electron, args, { cwd: desktop, env: { ...process.env, GDE_TEST_PROFILE: profile }, stdio: ['ignore', 'pipe', 'pipe'] });
@@ -120,7 +124,7 @@ try {
 } catch (e) { result.threadCpuError = String(e); }
 fs.rmSync(threadFile, { force: true });
 result.errors = lines.filter((l) => l.startsWith('[renderer] [perf-route-error]'));
-result.machine = { electronProcsBefore: before, electronProcsAfter: others(), load: os.loadavg(), cpus: os.cpus().length, cpu: os.cpus()[0].model, memGB: Math.round(os.totalmem() / 1e9) };
+result.machine = { cpuBusyBeforePct: busyBefore, cpuBusyAfterPct: await cpuBusy(), freeMemGB: +(os.freemem() / 1e9).toFixed(1), electronProcsBefore: before, electronProcsAfter: others(), load: os.loadavg(), cpus: os.cpus().length, cpu: os.cpus()[0].model, memGB: Math.round(os.totalmem() / 1e9) };
 fs.writeFileSync(path.join(OUT, name + '.json'), JSON.stringify(result));
 
 const COLS = [['avg', 'avg'], ['p95', 'p95'], ['p99', 'p99'], ['max', 'max'], ['cpuAvg', 'cpu'], ['mainCpuPerFrame', 'mcpu'], ['cpuP95', 'cpu95'], ['gpuAvg', 'gpu'], ['callsPerFrame', 'calls'], ['trisPerFrame', 'tris'], ['longTasks', 'long'], ['longMax', 'lmax'], ['over50', '>50'], ['heapMB', 'heap']];
