@@ -70,7 +70,15 @@ if (want('winkels')) {
     }
     if (!found) { info.push('winkels ' + type + ': geen gevel met dit type gebouwd'); continue; }
     const f = found.f, mx = (f.ax + f.bx) / 2, my = (f.ay + f.by) / 2;
-    const cx = mx + f.nx * 8, cy = my + f.ny * 8;
+    // the camera stands on free ground in front of the shopfront: not inside a building, not too close to one
+    const pointIn = (x, y, ring) => { let ins = false; for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) { const [xi, yi] = ring[i], [xj, yj] = ring[j]; if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) ins = !ins; } return ins; };
+    let dist = 0, cx = mx, cy = my;
+    for (const dd of [8, 6.5, 5, 4]) {
+      const tx = mx + f.nx * dd, ty = my + f.ny * dd;
+      if (!map.buildingsNear(tx, ty, 6).some((q) => q.pts && pointIn(tx, ty, q.pts))) { dist = dd; cx = tx; cy = ty; break; }
+    }
+    info.push('  camera ' + (dist ? dist + ' m voor de gevel' : 'geen vrije plek'));
+    if (!dist) continue;
     hold = { x: cx, y: cy };
     teleport(cx, cy);
     await sleep(2500);

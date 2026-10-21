@@ -1147,33 +1147,40 @@ function busSpawnPoint(map, line, x, y, reach = 25) {
   return best;
 }
 
+// what the line spawner did (read by the QA scenes): tries, no road of the line near the spot, wrong way, blocked, spawned
+export const busSpawnStats = { tries: 0, noRoad: 0, wrongWay: 0, blocked: 0, spawned: 0 };
 const BUS_VERDWAALD_M = 200; // m van zijn lijn: de bus is de weg kwijt
 
 export function manageBusPopulation(world, { target = 4, spawnMin = 90, spawnMax = 220, despawnDist = 300 } = {}) {
   const { map, player, vehicles } = world;
+  // echte lijnen (busroutes.js, zodra de lijndata geladen is): een bus begint op zijn lijn en rijdt hem
+  const near = busLines.length ? linesNear(busLines, player.x, player.y, spawnMax) : [];
+  const line = near[0] || null;
   for (let i = vehicles.length - 1; i >= 0; i--) {
     const v = vehicles[i];
     if (!v.isBus || v.driver === 'player') continue;
+    // buses spawned before the line data had loaded (or before the player came near a line) have no line:
+    // out of sight they make room for the line's own buses (#160), else they fill the quota for ever
+    if (line && !v.busRun && !v.wrecked && Math.hypot(v.x - player.x, v.y - player.y) > spawnMin * 0.7) { vehicles.splice(i, 1); continue; }
     if ((!v.wrecked && ((v.deadEndBounces || 0) > 2 || (v.stuckFor || 0) > 25 || ((v.waitFor || 0) > 45 && Math.hypot(v.x - player.x, v.y - player.y) > 70))) || Math.hypot(v.x - player.x, v.y - player.y) > despawnDist) vehicles.splice(i, 1);
   }
 
   let count = 0;
-  for (const v of vehicles) if (v.isBus && !v.wrecked && v.driver !== 'player') count++;
+  for (const v of vehicles) if (v.isBus && !v.wrecked && v.driver !== 'player' && (!line || v.busRun)) count++;
 
-  // echte lijnen (busroutes.js, zodra de lijndata geladen is): een bus begint op zijn lijn en rijdt hem
-  const near = busLines.length ? linesNear(busLines, player.x, player.y, spawnMax) : [];
-  const line = near[0] || null;
   for (let tries = 0; line && count < target && tries < 4; tries++) {
     const line = near[Math.floor(Math.random() * near.length)];
     const pr = projectOnLine(line, player.x, player.y);
     const dir = Math.random() < 0.5 ? 1 : -1;
     const at = startAt(line, Math.max(0, Math.min(line.length, pr.s + dir * (spawnMin + Math.random() * (spawnMax - spawnMin) * 0.6))), dir);
+    busSpawnStats.tries++;
     const rp = busSpawnPoint(map, line, at.x, at.y);
-    if (!rp) continue;
+    if (!rp) { busSpawnStats.noRoad++; continue; }
     const v = spawnVehicleOnRoad(map, rp.road, false, Math.random, false, true, rp);
-    if (Math.abs(normalizeAngle(v.angle - at.angle)) > Math.PI / 2) continue;
+    if (Math.abs(normalizeAngle(v.angle - at.angle)) > Math.PI / 2) { busSpawnStats.wrongWay++; continue; }
     const d = Math.hypot(v.x - player.x, v.y - player.y);
-    if (d < spawnMin || d > spawnMax || !spawnSpotFree(vehicles, v) || spawnWouldPop(world, v)) continue;
+    if (d < spawnMin || d > spawnMax || !spawnSpotFree(vehicles, v) || spawnWouldPop(world, v)) { busSpawnStats.blocked++; continue; }
+    busSpawnStats.spawned++;
     v.busRun = makeRunner(line, projectOnLine(line, v.x, v.y).s, dir);
     vehicles.push(v);
     count++;
