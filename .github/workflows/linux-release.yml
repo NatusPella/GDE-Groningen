@@ -60,6 +60,13 @@ jobs:
           npm run stage
           npx electron-builder --linux --publish never --config.publish.provider=github --config.publish.owner="${{ github.repository_owner }}" --config.publish.repo="${{ github.event.repository.name }}"
 
+      # alleen met de optie arm64 (standaard uit): cross-build op de x64-runner
+      - name: AppImage en tar.gz (ARM64)
+        if: ${{ inputs.arm64 }}
+        working-directory: desktop
+        run: |
+          npx electron-builder --linux --arm64 --publish never --config.linux.artifactName='GDE-Groningen-${version}-linux-arm64.${ext}' --config.publish.provider=github --config.publish.owner="${{ github.repository_owner }}" --config.publish.repo="${{ github.event.repository.name }}"
+
       - name: Controleren
         working-directory: desktop
         run: |
@@ -77,3 +84,8 @@ jobs:
         run: |
           VERSION="${TAG#v}"
           gh release upload "$TAG" "dist/GDE-Groningen-$VERSION-linux.AppImage" "dist/GDE-Groningen-$VERSION-linux.tar.gz" --clobber
+          if [ "${{ inputs.arm64 }}" = "true" ]; then
+            test -s "dist/GDE-Groningen-$VERSION-linux-arm64.AppImage"
+            test -s "dist/GDE-Groningen-$VERSION-linux-arm64.tar.gz"
+            gh release upload "$TAG" "dist/GDE-Groningen-$VERSION-linux-arm64.AppImage" "dist/GDE-Groningen-$VERSION-linux-arm64.tar.gz" --clobber
+          fi
