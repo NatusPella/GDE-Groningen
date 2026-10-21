@@ -110,6 +110,7 @@ async function loadModules() {
   M.bot = await import('/js/botlogic.js');
   M.inp = await import('/js/input.js');
   M.set = await import('/js/settings.js');
+  M.ps = await import('/js/pausestate.js');
   M.cd = await import('/js/cinedrive.js');
 }
 
@@ -120,7 +121,9 @@ function pending() {
   const store = map.store ? map.store.loading : 0;
   const queue = map.tileQueue ? map.tileQueue.size : 0;
   const geo = M.geo.geoOpenCount ? M.geo.geoOpenCount() : 0;
-  return { buildings: sp.buildings, roads: sp.roads, tiles: store, queue, geo, boost: sp.ahead ? 1 : 0, total: sp.buildings + sp.roads + store + queue + geo };
+  // achter een menu of de kaart staat het 3D-beeld stil (het spel bouwt dan niets bij): daar wachten we niet op
+  const covered = M.ps && (M.ps.isPauseMenuOpen() || M.ps.isMapOpen());
+  return { buildings: sp.buildings, roads: sp.roads, tiles: store, queue, geo, boost: sp.ahead ? 1 : 0, covered: covered ? 1 : 0, total: covered ? 0 : sp.buildings + sp.roads + store + queue + geo };
 }
 
 // klok en weer blijven per beeld vast staan (het spel laat ze zelf lopen)

@@ -75,7 +75,7 @@ for (const f of plan.flash || []) post.push(`eq=brightness='min(0.85,1.6*max(0,1
 if (post.length) { vf += `;[cat]${post.join(',')}[vout]`; last = 'vout'; }
 const mp4 = path.join(out, `${name}.mp4`);
 inputs.push('-i', wav);
-const ff = ['-hide_banner', '-loglevel', 'error', '-stats', '-y', ...inputs, '-filter_complex', `${chains.join(';')};${vf}`, '-map', `[${last}]`, '-map', `${clips.length}:a`,
+const ff = ['-hide_banner', '-loglevel', 'error', '-nostats', '-y', ...inputs, '-filter_complex', `${chains.join(';')};${vf}`, '-map', `[${last}]`, '-map', `${clips.length}:a`,
   '-c:v', 'libx264', '-preset', plan.preset || 'slow', '-crf', String(plan.crf ?? 16), '-profile:v', 'high', '-level', '4.2', '-pix_fmt', 'yuv420p', '-r', String(FPS),
   '-colorspace', 'bt709', '-color_primaries', 'bt709', '-color_trc', 'bt709', '-g', String(FPS * 2), '-bf', '2',
   '-c:a', 'aac', '-b:a', '256k', '-ar', '48000', '-ac', '2', '-t', total.toFixed(4), '-movflags', '+faststart', mp4];
