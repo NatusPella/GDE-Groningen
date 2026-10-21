@@ -8,12 +8,13 @@ import { unlockAchievement, recordChallengeResult, getChallengeRecord, recordSta
 import { showCard } from './hudcards.js';
 import { notifyPhone } from './phonefeed.js';
 import { spawnFxSpark } from './fx3d.js';
-import { addStaticCollider } from './breakables.js';
+import { addStaticCollider, addProp, removeProp } from './breakables.js';
 import { activityBlock, iconDisc } from './activitykit.js';
 import { KERMIS_LINES, BOTS_BUMPED, BOTS_HIT, KERMIS_NEWS, KERMIS_TWINS } from './funlines.js';
 import { DURK_LOOK, DOUWE_LOOK } from './storycast.js';
 import { isToday } from './calendarday.js';
 import { rand } from './rng.js';
+import { KERMIS_TENT } from './roadaccess.js';
 import { WHEEL_AT, R, AX as WHEEL_AX, N, OMEGA } from './reuzenradrules.js';
 
 // Kermis op de Grote Markt. The botsautotent of kermisbaas Jan stands on
@@ -25,8 +26,8 @@ import { WHEEL_AT, R, AX as WHEEL_AX, N, OMEGA } from './reuzenradrules.js';
 // for every bump you give, more for a fast one or one in a flank, a combo
 // for quick ones in a row. `window.__kermis` debug.
 
-const K = { x: 173.32, y: 108.21, rot: -0.0164 };
-const HU = 10, HV = 6;
+const K = KERMIS_TENT; // (roadaccess.js: the painted bike route keeps off the tent too)
+const HU = K.hu, HV = K.hv;
 const CAR_R = 0.92;
 const RIDE_S = 75;
 const PRICE = 3;
@@ -68,6 +69,8 @@ const JAN = toW(-HU - 1, 2.4);
 
 // The kermis frame, for reuzenrad.js: kermis-local (u, v) to map and back, and the frame's turn.
 export const kermisFrame = { toW, toL, rot: K.rot };
+// where the stalls and the wheel's legs stand (kermis-local to map), for the test of their colliders
+export const kermisFairSpots = () => [...STALLS.map((st) => toW(st.u, st.v - 0.3)), ...[-1, 1].flatMap((k) => [-1.3, 1.3].map((sd) => toW(WHEEL.u + k * Math.tan(0.32) * 10, WHEEL.v + sd)))];
 
 // The reuzenrad (reuzenrad.js rides it): its turn angle, or null while the fair is not standing.
 export function kermisWheel() {
@@ -89,24 +92,35 @@ function reserved(x, y) {
   return Math.abs(l.u - WHEEL.u) < 5.5 && Math.abs(l.v - WHEEL.v) < 3;
 }
 
-// The rim, the kassa, the stalls and the wheel's legs are solid (the stalls
-// and the wheel stand there on kermis evenings only, their colliders always:
-// small, and out of the way on the square).
+// The rim and the kassa of the tent are solid always; the stalls and the wheel's legs only while the fair stands there
+// (kermis evenings): by day they were invisible obstacles on the square (#327), setFairColliders puts them in and out.
+let fairProps = [];
+let fairSolid = false;
+export function setFairColliders(on) {
+  if (on === fairSolid) return;
+  fairSolid = on;
+  for (const p of fairProps) { if (on) addProp(p); else removeProp(p); }
+}
 function addColliders() {
-  const seg = (u0, v0, u1, v1, r = 0.2) => {
+  const seg = (u0, v0, u1, v1, r = 0.2, own = null) => {
     const a = toW(u0, v0), b = toW(u1, v1);
-    addStaticCollider('garagewall', (a.x + b.x) / 2, (a.y + b.y) / 2, r, Math.hypot(b.x - a.x, b.y - a.y) / 2, Math.atan2(b.y - a.y, b.x - a.x));
+    const p = addStaticCollider('garagewall', (a.x + b.x) / 2, (a.y + b.y) / 2, r, Math.hypot(b.x - a.x, b.y - a.y) / 2, Math.atan2(b.y - a.y, b.x - a.x));
+    if (own) { removeProp(p); own.push(p); }
   };
   const e = 0.3;
   seg(-HU - e, -HV - e, HU + e, -HV - e); seg(-HU - e, HV + e, HU + e, HV + e);
   seg(-HU - e, -HV - e, -HU - e, HV + e); seg(HU + e, -HV - e, HU + e, HV + e);
   const b = toL(BOOTH.x, BOOTH.y);
   seg(b.u - 0.6, b.v - 0.1, b.u - 0.6, b.v + 0.9, 0.75);
-  for (const st of STALLS) seg(st.u - 1.7, st.v - 0.3, st.u + 1.7, st.v - 0.3, 0.55);
+  fairProps = [];
+  for (const st of STALLS) seg(st.u - 1.7, st.v - 0.3, st.u + 1.7, st.v - 0.3, 0.55, fairProps);
   for (const k of [-1, 1]) for (const sd of [-1.3, 1.3]) {
     const p = toW(WHEEL.u + k * Math.tan(0.32) * 10, WHEEL.v + sd);
-    addStaticCollider('post', p.x, p.y, 0.3);
+    const post = addStaticCollider('post', p.x, p.y, 0.3);
+    removeProp(post);
+    fairProps.push(post);
   }
+  fairSolid = false;
 }
 
 // --- meshes ------------------------------------------------------------------------------
@@ -655,6 +669,7 @@ function updateLod(w, dt) {
   }
   if (on && !fair && d < DETAIL_M) fair = buildFair();
   if (fair) fair.root.visible = on && d < DETAIL_M + 200;
+  setFairColliders(!!(fair && fair.root.visible));
   if (on && d < 140 && (!crowd || crowd.length < CROWD_SPOTS.length)) crowd = buildCrowd(crowd || []);
   else if (crowd && (!on || d > 180)) disposeCrowd();
   // the first kermis evening of the day gets a Kiekdoar item

@@ -144,7 +144,9 @@ function makeBridge(r, pinned) {
 
 // The bridges of a map: one per movable road. Span along the road from its
 // first to its last vertex; `half` the deck's half width.
+let bridgeMap = null; // the map the bridges stand on: where a barrier post may stand (not on another carriageway)
 export function buildMovableBridges(map) {
+  bridgeMap = map;
   bridges = [];
   adoptSideSpans(map.roads || []);
   for (const r of map.roads || []) { const b = makeBridge(r, true); if (b) bridges.push(b); }
@@ -399,6 +401,22 @@ export function updateMovableBridges(dt, world) {
 
 // The barrier arms as game-plane segments: one per end on the right-hand
 // side of the way in (both ends; the whole width on a one-way or narrow way).
+// Is (x, y) on a car road other than `own` (a neighbouring carriageway of a dual bridge, a side road at the foot of the ramp)?
+// A barrier post or a signal post stands at the edge, never in the traffic of another lane (#325).
+export function onOtherCarRoad(map, x, y, own, margin = 0.3) {
+  if (!map || !map.roadsNear) return false;
+  for (const r of map.roadsNear(x, y, 6)) {
+    if (r === own || r.cat === 'foot' || r.cat === 'cycle') continue;
+    const hw = (r.width || 4) / 2 + margin;
+    for (let i = 0; i < r.pts.length - 1; i++) {
+      const ax = r.pts[i][0], ay = r.pts[i][1], bx = r.pts[i + 1][0] - ax, by = r.pts[i + 1][1] - ay, l2 = bx * bx + by * by || 1;
+      const t = Math.max(0, Math.min(1, ((x - ax) * bx + (y - ay) * by) / l2));
+      if (Math.hypot(ax + bx * t - x, ay + by * t - y) < hw) return true;
+    }
+  }
+  return false;
+}
+
 export function boomsOf(b) {
   if (b._booms) return b._booms;
   b._booms = [];
@@ -408,9 +426,20 @@ export function boomsOf(b) {
     const ux = end ? -b.ux : b.ux, uy = end ? -b.uy : b.uy;
     const rx = -uy, ry = ux; // to the right of the way in (y south: right-hand)
     const ex = end ? b.bx : b.ax, ey = end ? b.by : b.ay;
-    const px = ex - ux * BOOM_OUT + rx * (b.half + 0.3), py = ey - uy * BOOM_OUT + ry * (b.half + 0.3);
-    const len = (r.oneway || small ? b.half * 2 : b.half) + 0.3;
-    b._booms.push({ c: b, i: b._booms.length, ax: px - rx * 0.1, ay: py - ry * 0.1, bx: px - rx * (len + 0.1), by: py - ry * (len + 0.1), px, py, ux, uy, rx, ry, len });
+    // the post stands right of the way in; where that is another carriageway or a side road it moves on: outward, along the
+    // approach, and if the whole right edge is taken to the left edge (the arm then closes from that side), to the nearest free spot
+    let sd = 1, px = ex - ux * BOOM_OUT + rx * (b.half + 0.3), py = ey - uy * BOOM_OUT + ry * (b.half + 0.3), out = 0;
+    search: for (const side of [1, -1]) {
+      for (const e of [0, 1, 2, 3, 4.5, 6]) {
+        for (const along of [BOOM_OUT, BOOM_OUT + 1.5, BOOM_OUT - 1.5, BOOM_OUT + 3, BOOM_OUT + 5, BOOM_OUT + 8, BOOM_OUT + 11]) {
+          const qx = ex - ux * along + side * rx * (b.half + 0.3 + e), qy = ey - uy * along + side * ry * (b.half + 0.3 + e);
+          if (!onOtherCarRoad(bridgeMap, qx, qy, r)) { sd = side; px = qx; py = qy; out = e; break search; }
+        }
+      }
+    } // (no free spot: the post stays where it was)
+    const len = (r.oneway || small ? b.half * 2 : b.half) + 0.3 + out;
+    const qx = sd * rx, qy = sd * ry; // from the arm to its post
+    b._booms.push({ c: b, i: b._booms.length, ax: px - qx * 0.1, ay: py - qy * 0.1, bx: px - qx * (len + 0.1), by: py - qy * (len + 0.1), px, py, ux, uy, rx: qx, ry: qy, len });
   }
   return b._booms;
 }
