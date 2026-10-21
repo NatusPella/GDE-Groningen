@@ -62,7 +62,7 @@ import { effectsFor, shakeAmount } from './a11ylogic.js';
 import { reducedMotion } from './motion.js';
 import { dynamicScale, cpuLevel } from './gfxprofile.js';
 import { VIEW_DISTANCES, viewDistanceFor, detailDistanceFor, DETAIL_BASE } from './viewdist.js';
-import { buildingBatcher, roadBatcher, facadeBatcher, shoreBatcher } from './staticbatch3d.js';
+import { buildingBatcher, roadBatcher, facadeBatcher, shoreBatcher, drawHub } from './staticbatch3d.js';
 import { simLevel } from './simload.js';
 import { beginWheels, addVehicleWheels, endWheels } from './wheelinstances3d.js';
 
@@ -975,6 +975,9 @@ export function init3D(map) {
     freezeStatic(terrainMesh);
   }
   scene.add(freezeStatic(terrainMesh));
+  scene.add(drawHub.root);
+  // a pool of a material not seen before links its program in the background before its first cell draws
+  drawHub.onPool = (p) => { if (!perfOff('bouwklaar')) precompile(p); };
 
   // Opaque canal bed under the whole map: terrain holes are cut per grid
   // triangle, so their jagged edges never line up exactly with the water
@@ -1025,7 +1028,7 @@ export function init3D(map) {
   onSettingsChange(applyViewSettings);
   resize3D();
   window.addEventListener('resize', resize3D);
-  window.__scene3d = { THREE, scene, cam, renderer, postfx, farLod, actors: () => ({ vehicles: vehicleMeshes, peds: pedMeshes, wildlife: wildlifeMeshes, culled: culledActors }), setBlobPool: (on) => { blobPoolOn = !!on; }, dists: () => ({ DRAW_DIST, buildingDetailR, facadeDetailDist, roadDetailR, viewDist }), batches: () => ({ buildings: buildingBatcher.info(), facades: facadeBatcher.info(), roads: roadBatcher.info(), shores: shoreBatcher.info() }) };
+  window.__scene3d = { THREE, scene, cam, renderer, postfx, farLod, actors: () => ({ vehicles: vehicleMeshes, peds: pedMeshes, wildlife: wildlifeMeshes, culled: culledActors }), setBlobPool: (on) => { blobPoolOn = !!on; }, dists: () => ({ DRAW_DIST, buildingDetailR, facadeDetailDist, roadDetailR, viewDist }), batches: () => ({ buildings: buildingBatcher.info(), facades: facadeBatcher.info(), roads: roadBatcher.info(), shores: shoreBatcher.info(), pool: drawHub.stats() }) };
 }
 
 // increments each time the scene is drawn to the canvas (blackframe.js)
@@ -1366,8 +1369,30 @@ function hookShadowPass(shadowMap) {
 // shadow pass's own material, so a skipped caster would never come back), and without the extension nothing changes.
 const linkPending = new Set();
 const LINK_GUARD_AFTER = 600;
+// three sorts the opaque draws by material id, so the materials of one program lie wherever their ids fall and the renderer
+// switches program (and uploads the lights, fog and shadow uniforms again) far more often than there are programs.
+// This sort puts the program first: the id of the program a material was last drawn with, noted after each draw of the
+// game scene (?perfoff=progsort for the plain order).
+let progSortOn = true;
+function programSort(a, b) {
+  if (a.groupOrder !== b.groupOrder) return a.groupOrder - b.groupOrder;
+  if (a.renderOrder !== b.renderOrder) return a.renderOrder - b.renderOrder;
+  if (progSortOn) {
+    const pa = a.material.userData.pk || 0, pb = b.material.userData.pk || 0;
+    if (pa !== pb) return pa - pb;
+  }
+  if (a.material.id !== b.material.id) return a.material.id - b.material.id;
+  if (a.z !== b.z) return a.z - b.z;
+  return a.id - b.id;
+}
 function hookLinkGuard(r) {
-  const draw = r.renderBufferDirect.bind(r);
+  r.setOpaqueSort(programSort);
+  const draw0 = r.renderBufferDirect.bind(r);
+  const draw = function (camera, sc, geometry, material, object, group) {
+    const out = draw0(camera, sc, geometry, material, object, group);
+    if (sc === scene && !Array.isArray(material)) { const pr = r.properties.get(material).currentProgram; if (pr) material.userData.pk = pr.id; }
+    return out;
+  };
   let guard = null;
   r.renderBufferDirect = function (camera, sc, geometry, material, object, group) {
     if (guard === null) guard = r.extensions.has('KHR_parallel_shader_compile');
@@ -2285,6 +2310,7 @@ export function update3D(dt, world) {
         withDetail: true, compile: batchCompile, ready: batchReady, budgetMs: 1 });
     } else facadeBatcher.clear();
   }
+  drawHub.syncMaterials();
   probe.mark('3d:buildings');
   setCutMaskCenter(focus.x, focus.y, DRAW_DIST - 6);
   updatePortals(focus.x, focus.y);
@@ -2960,6 +2986,7 @@ export function update3D(dt, world) {
   renderer.shadowMap.autoUpdate = !(menuCover && menuShadowDone) && !shadowPassSkipped(cpuLevel(), shadowFrame++, focusSpeed, !perfOff('schaduw') && shadowAreaCalm(world, focus.x, focus.y));
   if (menuCover) menuShadowDone = true;
   if (sizeDirty) applyRenderSize();
+  progSortOn = !perfOff('progsort');
   cullOffscreenActors();
   skipHiddenMatrixWalk();
   try { postfx.render(); } finally { restoreCulledActors(); }
@@ -3167,7 +3194,7 @@ function prewarmKind(o) {
     k = Object.keys(g.attributes).join(',') + (g.morphAttributes.position ? 'M' : '');
     g.userData._pwKind = k;
   }
-  return (o.isInstancedMesh ? 'i' : o.isSkinnedMesh ? 'k' : o.isSprite ? 's' : o.isPoints ? 'p' : o.isLineSegments ? 'ls' : o.isLine ? 'l' : 'm')
+  return (o.isInstancedMesh ? 'i' : o.isSkinnedMesh ? 'k' : o.isBatchedMesh ? 'b' : o.isSprite ? 's' : o.isPoints ? 'p' : o.isLineSegments ? 'ls' : o.isLine ? 'l' : 'm')
     + (o.instanceColor ? 'c' : '') + k;
 }
 
@@ -3197,6 +3224,14 @@ function makePrewarmProxy(o, m) {
           : o.isLineSegments ? new THREE.LineSegments(g, m)
             : o.isLine ? new THREE.Line(g, m)
               : new THREE.Mesh(g, m);
+  // a pool (multidraw3d.js): the program has the batching define; one degenerate range so that the draw is made at all
+  if (o.isBatchedMesh) {
+    proxy.isBatchedMesh = true;
+    proxy._matricesTexture = o._matricesTexture;
+    proxy._multiDrawStarts = new Int32Array(1);
+    proxy._multiDrawCounts = new Int32Array([3]);
+    proxy._multiDrawCount = 1;
+  }
   // its own colour buffer: disposing the stand-in frees its instance buffers,
   // and a shared one would leave the real mesh drawing from a deleted buffer
   // (black grass tufts, shrubs and hedges)
@@ -3242,8 +3277,8 @@ function queuePrewarm(o, variant) {
     }
     // no depth programs while the preset has shadows off ('laag'): compiling
     // them only competes with the ones that will be drawn
-    if (o.castShadow && sun.castShadow && !o.customDepthMaterial && (o.isMesh || o.isLine || o.isPoints)) {
-      const dm = shadowDepthStandIn(m);
+    if (o.castShadow && sun.castShadow && (!o.customDepthMaterial || o.userData.pool) && (o.isMesh || o.isLine || o.isPoints)) {
+      const dm = o.userData.pool ? o.customDepthMaterial : shadowDepthStandIn(m);
       const dkey = 'D' + dm.id + '|' + kind + (o.receiveShadow ? 'r' : '');
       if (done.has(dkey)) continue;
       done.add(dkey);

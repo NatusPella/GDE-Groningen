@@ -606,7 +606,10 @@ results.routes.renderab = await safe('renderab', async () => {
       await sleep(1500); await settle(); fixWorld(); await sleep(500);
       sample(); sample();
       const t = []; let calls = 0, tris = 0;
+      // the thread sampler of run.mjs turns the marks into the CPU ms of the main thread per render (threadCpu 'renderab:<name>:<round>')
+      console.error('[perf-mark] start renderab:' + name + ':' + round + ' ' + Date.now());
       for (let i = 0; i < SAMPLES; i++) { t.push(sample()); calls = r.info.render.calls; tris = r.info.render.triangles; if (i % 8 === 7) await sleep(30); }
+      console.error('[perf-mark] end renderab:' + name + ':' + round + ' ' + Date.now() + ' ' + SAMPLES * 20);
       t.sort((a, b) => a - b);
       out.push({ name, round, median: +t[t.length >> 1].toFixed(2), q1: +t[t.length >> 2].toFixed(2), min: +t[0].toFixed(2), calls, tris, pool: sc.batches().pool });
     }
@@ -615,6 +618,47 @@ results.routes.renderab = await safe('renderab', async () => {
   const summary = {};
   for (const [name] of variants) { const rows = out.filter((q) => q.name === name); const med = (k) => { const v = rows.map((q) => q[k]).sort((a, b) => a - b); return v[v.length >> 1]; }; summary[name] = { median: med('median'), q1: med('q1'), min: med('min'), calls: med('calls'), tris: med('tris') }; }
   return { summary, rows: out };
+});
+// GL calls per frame by function (only with PERF_ONLY=glcalls): every function of the context is counted over 90 frames of the running game at the standing camera, the shadow pass apart;
+// the cost of the renderer's main thread is mostly the writing of these calls, so their number is the deterministic measure of it (docs/PERF-METING-2026-10-19.md, Vervolg 9)
+results.routes.glcalls = await safe('glcalls', async () => {
+  if (!ONLY.includes('glcalls')) return null;
+  fixWorld(); teleport(FOOT[0][0], FOOT[0][1]); w.camYaw = 0.3; p.angle = 0.3; await sleep(window.__perfSettle || 12000);
+  const variants = window.__perfAb && window.__perfAb.length ? window.__perfAb : [['', []]];
+  const outAll = {};
+  for (const [vname, voff] of variants) {
+  window.__perfOffDyn = new Set(voff); await sleep(1500);
+  { const builds = () => { const b = sc.batches(); return Object.values(b).reduce((q, e) => q + (e.builds || 0) + (e.dropped || 0), 0); }; let last = builds(), still = 0; for (let i = 0; i < 80 && still < 6; i++) { await sleep(500); const n = builds(); still = n === last ? still + 1 : 0; last = n; } }
+  fixWorld();
+  const gl = r.getContext(); const proto = Object.getPrototypeOf(gl);
+  const cnt = { main: new Map(), shadow: new Map(), other: new Map() }; let phase = 'other';
+  const origs = [];
+  for (const name of Object.getOwnPropertyNames(proto)) {
+    let d; try { d = proto[name]; } catch (e) { continue; }
+    if (typeof d !== 'function' || name === 'constructor') continue;
+    const o = d; origs.push([name, o]);
+    gl[name] = function (...a) { const m = cnt[phase]; m.set(name, (m.get(name) || 0) + 1); return o.apply(gl, a); };
+  }
+  const smR = r.shadowMap.render.bind(r.shadowMap);
+  r.shadowMap.render = (...a) => { const was = phase; phase = 'shadow'; try { smR(...a); } finally { phase = was; } };
+  const prevR = r.render; let frames = 0;
+  // the program of each draw of the main pass in order: the distinct programs and the runs of the same program (a switch re-uploads the lights, fog and shadow uniforms)
+  const rbd = r.renderBufferDirect; let seq = [], seqs = [];
+  r.renderBufferDirect = function (camera, scene2, geometry, material, object, group) { const out = rbd.call(r, camera, scene2, geometry, material, object, group); if (phase === 'main') { const pr = r.properties.get(material).currentProgram; seq.push(pr ? pr.id : -1); } return out; };
+  r.render = function (s2, c2) { if (s2 !== sc.scene) return prevR.call(r, s2, c2); const was = phase; phase = 'main'; frames++; seq = []; try { return prevR.call(r, s2, c2); } finally { phase = was; seqs.push(seq); } };
+  const f0 = frameCount();
+  await new Promise((res) => { const f = () => { if (frames >= 90) res(); else requestAnimationFrame(f); }; requestAnimationFrame(f); });
+  r.render = prevR; r.shadowMap.render = smR; r.renderBufferDirect = rbd;
+  for (const [name, o] of origs) delete gl[name];
+  const progs = seqs.map((q) => { let runs = 0, last = null; const set = new Set(); for (const id of q) { set.add(id); if (id !== last) runs++; last = id; } return { draws: q.length, distinct: set.size, runs }; });
+  const medP = (k) => { const v = progs.map((q) => q[k]).sort((a, b) => a - b); return v[v.length >> 1]; };
+  const top = (m, n = 28) => [...m].sort((a, b) => b[1] - a[1]).slice(0, n).map(([k, v]) => [k, +(v / frames).toFixed(1)]);
+  const sum = (m) => +([...m.values()].reduce((a, b) => a + b, 0) / frames).toFixed(1);
+  void f0;
+  outAll[vname || 'basis'] = { frames, programs: { draws: medP('draws'), distinct: medP('distinct'), runs: medP('runs') }, mainTotal: sum(cnt.main), shadowTotal: sum(cnt.shadow), otherTotal: sum(cnt.other), main: top(cnt.main), shadow: top(cnt.shadow, 12), other: top(cnt.other, 12), calls: r.info.render.calls };
+  }
+  window.__perfOffDyn = undefined;
+  return outAll;
 });
 // A/B inside one run (only with PERF_ONLY=ab): window.__perfAb = [[name, [perfoff steps...]], ...] (PERF_AB='aan=;uit=actoren+schaduw'); the variants take
 // turns in short windows (window.__perfAbWin ms, window.__perfAbRounds rounds, the order swaps every round), so they feel the same load.
