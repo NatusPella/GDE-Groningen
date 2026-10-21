@@ -33,6 +33,8 @@ contextBridge.exposeInMainWorld('gdeDesktop', {
   },
   // only answered in a --trailer-frames run (main.js)
   captureFrame: (n) => ipcRenderer.invoke('gde:capture-frame', n),
+  // only in a --clip run (clipvideo.js): begin / frame / png / end of a clip, one frame at a time
+  clip: (cmd, arg) => ipcRenderer.invoke('gde:clip', cmd, arg),
   // only in a --trailer-video run: the sound sheet the export mixes
   videoBegin: (sheet) => ipcRenderer.invoke('gde:video-begin', sheet),
 });
