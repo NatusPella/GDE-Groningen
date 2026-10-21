@@ -1,6 +1,6 @@
 import { boxOf, withTiles } from './tileplace.js';
 import { edgeDistance } from './countryfield.js';
-import { landmarkParams } from './landmarkkit.js';
+import { landmarkParams, kitCoversBuilding, COVER_KINDS } from './landmarkkit.js';
 import { createLandmarkLayer } from './landmarklayer3d.js';
 
 // The landmark kits in today's Ommeland (LK1): the candidates from
@@ -66,8 +66,28 @@ function prepareLandmarks(items, map) {
   return out.filter(Boolean);
 }
 
-// Per frame from scene3d.js: loads the list once the tiles are in.
-export function updateOmmelandLandmarks(world, scene, focus) {
+// The tile building under a church, mill or borg kit is hidden while the kit stands (#338): the kit is the
+// building there. Every second the kits within COVER_R of the focus look at the buildings on their footprint,
+// so tiles that stream in later are covered too (setBuildingHidden: no mesh, out of the camera's collision set).
+const COVER_R = 450, COVER_EVERY_MS = 1000;
+let coverAt = 0;
+const covered = new Set();
+function coverBuildings(map, list, focus, hide) {
+  const now = performance.now();
+  if (!hide || now - coverAt < COVER_EVERY_MS) return;
+  coverAt = now;
+  for (const p of list) {
+    if (!COVER_KINDS.has(p.kind) || Math.hypot(p.x - focus.x, p.y - focus.y) > COVER_R) continue;
+    for (const b of map.buildingsNear(p.x, p.y, Math.max(p.len || 0, p.wid || 0) / 2 + 12)) {
+      if (covered.has(b) || !kitCoversBuilding(p, b)) continue;
+      covered.add(b);
+      hide(b, true);
+    }
+  }
+}
+
+// Per frame from scene3d.js: loads the list once the tiles are in. hideBuilding: scene3d's setBuildingHidden.
+export function updateOmmelandLandmarks(world, scene, focus, hideBuilding = null) {
   if (!world.map.store) return;
   if (!S) {
     S = { layer: null, list: null };
@@ -81,6 +101,7 @@ export function updateOmmelandLandmarks(world, scene, focus) {
     }).catch((e) => console.warn('landmark kits not loaded', e && e.message));
   }
   if (!S.layer) return;
+  if (S.list && !window.__noLandmarkKits) coverBuildings(world.map, S.list, focus, hideBuilding);
   // (perf A/B: window.__noLandmarkKits)
   S.layer.group.visible = !window.__noLandmarkKits;
   if (window.__noLandmarkKits) return;
