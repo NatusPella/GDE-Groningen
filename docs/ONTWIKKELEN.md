@@ -481,6 +481,11 @@ The city is built like the rest of the province (#90). There is no city map file
   `game/mapextras.json` (bus roads and lanes, road patches, building patches, passages, fuel stations, padel courts) and
   `game/landmarkkits.json` stay as they were.
   See docs/ARCHITECTUUR-STAD-NAAR-TEGELS.md section 4.5 for the key table and how landmarks, POIs and names hang on tiles.
+  The places of `meta` (shops, horeca, garages, landmarks, traffic lights, care sites, police stations, hospital, helipad, pois per kind) are
+  rows of the POIS section of the tile their point lies in (`game/js/poisections.js`, #314): `pack_tiles.mjs` splits them off the global layer,
+  `TileWorld.fromTiles` joins them back for the readers that still want the whole list; `scripts/poisections_test.mjs` proves it lossless on the
+  real meta. Wide roads that lie side by side get their ribbons narrowed in the build (`stad_wegen.mjs separateRibbons`, #268; `node
+  scripts/world/road_seams.mjs` lists what is left, `road_seams_test.mjs` keeps the ceilings).
 
 The map covers the whole ringweg plus its surroundings; beyond the city's coverage the province tiles take over. Every script
 projects lat/lon to the world frame, RD New shifted to the old origin (`scripts/world/rdnew.py`, see ARCHITECTURE.md "Units and
@@ -551,6 +556,21 @@ is in m NAP (één nulpunt voor alle tegels), gaten (water, onder viaducten) wor
 AHN heeft onder viaducten geen data: daar gelden de viaducthoogteregels van #8. Het spel tekent nog geen
 terrein; met `?terrain` volgen `groundHeightAt`/`surfaceAt` het terrein (profielen zijn relatief aan het
 terrein, `profile.mjs --terrain`). Zonder de vlag verandert er niets. Tests: `terrain_test.mjs`, `scripts/world/fetch_ahn_test.py`.
+
+Stand 20 oktober (#269, waarom `?terrain` nog niet standaard is). Een weg die geen dek is meet het terrein op zijn eigen hoekpunten, recht
+ertussen (`deckterrain.js roadTerrainAt`, `GameMap.terrainBase`); de 54 stadstegels hebben nu ook een AHN-raster (10 m, m NAP:
+`fetch_ahn.py --province --fetch --cell 10 --tiles <stad.json tiles>`; de 16 centrale stadstegels misten er een en gaven 0 m). De
+stadsoplosser kan over het terrein rekenen met `GDE_STAD_TERRAIN=1` (`stad_wegen.mjs`; `GDE_STAD_RING=0` slaat `ringHeights` over, want dat
+plateau is vlak gerekend en telt dubbel boven een terrein dat al een dijk is). Gemeten met `network_drive_test --terrain` (2584 ritten, 418
+watersteken van de ring): vlak opgelost 437 mislukt en 118 steken; terrein-opgelost met ringplateaus 471 en 168; terrein-opgelost zonder
+`ringHeights` 342 en 6. 258 verschillende faalplekken, 234 daarvan binnen 40 m van een brug of tunnel: het zijn de kunstwerken van de ring.
+Oorzaak: AHN heeft onder een viaduct geen data en vult het gat uit de omgeving, dus de weg die onder het viaduct doorgaat (Groningerweg onder de
+Noordzeeweg) klimt in het terrein op de dijk van 5 m en het dek zelf meet vanaf die dijk. Wat ontbreekt voor standaard: een terrein dat onder
+een kunstwerk de aanloop van de onderliggende weg volgt (en niet de dijk), en een ringoplosser die in absolute hoogtes rekent. Zolang dat er niet
+is, blijft `?terrain` een vlag; zonder de vlag verandert er niets.
+Geprobeerd en weggehaald (21 oktober): het terrein onder een dek vervangen door wat naast het dek ligt (de lagere van beide kanten over de richting van het dek). Dat
+maakte het erger (477 mislukte ritten vlak opgelost, 534 terrein-opgelost): de straat onder een viaduct loopt door de hele aanloopdijk, niet alleen onder het dek,
+dus die straat heeft een eigen profiel nodig (zoals een dek: de lijn tussen zijn uiteinden buiten de dijk), in de oplosser en in het spel. Dat is de volgende stap.
 
 ## Samen spelen (issue #95)
 

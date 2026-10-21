@@ -105,5 +105,11 @@ ok(badgeShape('hospital') === 'circle' && badgeShape('politiebureau') === 'shiel
 ok(shadeHex('#808080', 0) === '#808080' && shadeHex('#808080', 1) === '#ffffff' && shadeHex('#808080', -1) === '#000000', 'shadeHex ends');
 ok(stateLook('vergrendeld').gray && stateLook('vergrendeld').alpha < stateLook('ontdekt').alpha && stateLook('ontdekt').alpha < stateLook('aanwezig').alpha && !stateLook().gray, 'states: locked < discovered < present');
 ok(mapIconAlpha('player', 0.1) === 1 && mapIconAlpha('hospital', 0.9) < 1 && mapIconAlpha('hospital', 5) === 1 && mapIconAlpha('shop-a', 2) >= 0.8, 'important icons are solid, the rest fade in to 1 and never below 0.8');
+// Garages are easy to find (tester feedback on 0.38.0, the bigger icons): they show from zoom 1.1, outrank shops and fun,
+// and no icon is ever smaller than MIN_ICON_PX (21 px). Changes to the map style keep to this.
+ok(mapKindVisible('garage', 1.1) && !mapKindVisible('garage', 1.0), 'garages show from zoom 1.1');
+ok(mapPriority('garage') > mapPriority('shop') && mapPriority('garage') > mapPriority('fun'), 'a garage outranks shops and fun on the map');
+ok(MIN_ICON_PX >= 21 && mapIconScale(1) * ICON_UNITS >= 21 && miniIconScale(150) * ICON_UNITS >= 21, 'icons keep their size (21 px at least, full map and minimap)');
+
 console.log(`${n} checks, ${fails} failed`);
 process.exit(fails ? 1 : 0);
