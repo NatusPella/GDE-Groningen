@@ -47,5 +47,11 @@ ok(targetMix((id) => id === 'geenverkeer').mix.cars === 0, 'geenverkeer: no cars
   ok(lookModel(m, { palette: ['#1', '#2'], size: 1 }, rng).color === '#2', 'palette pick stays in range');
 }
 
+// de wereldstreken van ronde 39 (#61): kliko is een verkeerstreek met een eigen look, de andere drie zijn schakelaars
+const kl = TRAFFIC_STREKEN.find((s) => s.id === 'kliko');
+ok(kl && kl.look && kl.look.size < 1 && kl.look.palette.length >= 3, 'kliko: kleine grijs-groen-blauwe auto\'s');
+for (const id of ['kliko', 'kleinemensjes', 'reuzenduif', 'altijdgroen']) ok(CHEATS.some((c) => c.id === id && c.name && c.desc), id + ' staat in de cheatlijst');
+ok(CHEATS.find((c) => c.id === 'kliko').group === 'verkeer', 'kliko hoort bij de verkeerstreken');
+
 console.log(`${n - bad}/${n} checks passed`);
 process.exit(bad ? 1 : 0);

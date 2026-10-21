@@ -15,6 +15,10 @@ const arg = (n, d) => { const a = process.argv.find((x) => x.startsWith('--' + n
 const out = path.resolve(arg('out', path.join(os.tmpdir(), 'gde-ui-shots')));
 const sizes = arg('sizes', '1280x720,1920x1080,3840x2160').split(',');
 const only = arg('only', '');
+// --types=a,b: a scene file may read window.__shotsTypes (shots_scenes_r39.js: which shop types)
+const types = arg('types', '');
+// --timeout=<s>: how long one window size may run before it is killed (default 240; long scene files need more)
+const timeoutS = Number(arg('timeout', 240)) || 240;
 // --emulate=0.45: the page lays out at the full size (a real 3840x2160 viewport on a smaller
 // screen, devtools.js --emulate-view) in a window of 0.45 of the size (it must fit the screen); the picture is that much smaller
 const emulate = Number(arg('emulate', '0')) || 0;
@@ -51,7 +55,7 @@ for (const size of sizes) {
   const profDir = path.join(os.tmpdir(), profile);
   fs.rmSync(profDir, { recursive: true, force: true });
   const script = path.join(out, `_scenes-${size}.js`);
-  fs.writeFileSync(script, `window.__shotsOnly = ${JSON.stringify(only)};\n` + fs.readFileSync(scenes, 'utf8'));
+  fs.writeFileSync(script, `window.__shotsOnly = ${JSON.stringify(only)};\nwindow.__shotsTypes = ${JSON.stringify(types)};\n` + fs.readFileSync(scenes, 'utf8'));
   // devtools adds -<scene> to the name for every capture
   const png = path.join(out, size + '.png');
   const args = ['.', '--windowed', '--stil', '--force-device-scale-factor=1', '--window-size=' + (emulate ? size.split('x').map((n) => Math.round(Number(n) * emulate)).join('x') : size), ...(emulate ? ['--emulate-view=' + size + '@' + emulate] : []), ...(flags ? ['--url-flags=' + flags] : []), '--smoke-test=' + png, '--perf-script=' + script];
@@ -63,7 +67,7 @@ for (const size of sizes) {
   const killer = setTimeout(() => {
     log += '\n[timeout]';
     if (process.platform === 'win32') spawnSync('taskkill', ['/PID', String(child.pid), '/T', '/F']); else child.kill('SIGKILL');
-  }, 240000);
+  }, timeoutS * 1000);
   const code = await new Promise((res) => child.on('close', res));
   clearTimeout(killer);
   fs.writeFileSync(path.join(out, `_log-${size}.txt`), log);
