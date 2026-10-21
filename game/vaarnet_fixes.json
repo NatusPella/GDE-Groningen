@@ -1444,6 +1444,11 @@
     [-2607.5,-2042.5,17,8,0.622,3],
     [-24849.3,-20669.8,79,11.6,-0.98,3]
   ],
+  "dammenUitleg": "dammen: [x, y, straal m, naam]; land waar closeGaps (scripts/world/vaarnet.mjs) geen water van mag maken: een dijk met een weg zonder sluis of brug, waar het raster twee stukken hoofdvaarweg anders aan elkaar zet en het vaarnet een route dwars door de dijk legt (#349)",
+  "dammen": [
+    [-23982,-20337,40,"Lauwersoog: dijkweg tussen het havenwater en de kolk"],
+    [-23845,-20470,50,"Lauwersoog: dijk tussen de kolk en het Lauwersmeer"]
+  ],
   "zeeUitleg": "zee: verbinding en tong zee bij een zeetoegang zonder water aan de zeekant, [x, y, lengte, breedte, hoek (rad), nav, naam]; de tong loopt tot voorbij de omkeerlijn van het eind van de wereld (worldedge.js). Nog niet in beeld bekeken.",
   "zee": [
     [23842.5,-12402.3,269.7,40,-0.927,4,"zee eems"],

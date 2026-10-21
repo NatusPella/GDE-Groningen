@@ -104,6 +104,8 @@ check('opslagsleutel geregistreerd', BASE_KEYS.eventsSeen === V.SEEN_KEY);
   check('showFor: voortgang loopt op tussen begin en eind', f0.progress === 0 && f1.progress > 0.5 && f1.progress < 1);
   check('showFor: uit buiten het venster of op een andere dag', !fN.on && !V.showFor(vw.from + 1, 22.5).on && !V.showFor(1, 22.5).on);
   const we = fs.readFileSync(new URL('../game/js/worldevents.js', import.meta.url), 'utf8');
+  const fx = fs.readFileSync(new URL('../game/js/fx3d.js', import.meta.url), 'utf8');
+  check('burstpuffs gloeien (geen nachtlichten: aGlow) en de burst heeft een flits (#347)', fx.includes('aGlow') && fx.includes('vGlow > 0.5') && we.includes('-1.6, 1)') && we.includes('flash of the burst'));
   check('worldevents laat de agenda-show op en knallen (sub firework)', /showFor\(today\(w\)/.test(we) && /sub: 'firework'/.test(we) && /makeShell\(Math\.random, where/.test(we));
 }
 
