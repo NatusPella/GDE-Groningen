@@ -14,7 +14,9 @@ const pos = args.filter((a) => !a.startsWith('--'));
 const [file, name] = pos;
 if (!file || !name) { console.error('gebruik: repl_shot.mjs --out=<map> <bestand> <clip> [--preview]'); process.exit(2); }
 const src = fs.readFileSync(path.resolve(file), 'utf8');
+const argsFile = opt('args', '');
 const body = `window.__preview = ${args.includes('--preview')};
+window.__args = ${argsFile ? fs.readFileSync(path.resolve(argsFile), 'utf8') : 'null'};
 const SH = {}; const shot = (n, f) => { SH[n] = f; };
 ${src}
 if (!SH[${JSON.stringify(name)}]) return 'clip onbekend: ' + ${JSON.stringify(name)} + ' (kies uit ' + Object.keys(SH).join(', ') + ')';

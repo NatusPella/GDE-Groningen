@@ -15,7 +15,7 @@ for (const c of clips) {
   if (files.length) rows.push({ c, files: files.map((f) => path.join(out, f)) });
   else console.error(`geen stills voor ${c}`);
 }
-const W = 320, H = 180;
+const W = 240, H = 135;
 const inputs = rows.flatMap((r) => r.files.flatMap((f) => ['-i', f]));
 let n = 0;
 const parts = [], layout = [];

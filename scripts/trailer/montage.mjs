@@ -57,6 +57,13 @@ const wav = path.join(out, `${name}.mix.wav`);
 const mixRep = renderMix(audioPlan, wav, { game: opt('game', path.join(ROOT, 'game')), report: path.join(out, `${name}.mix.json`) });
 console.log(`geluid: ${mixRep.final.lufs} LUFS, piek ${mixRep.final.peak} dBFS (versterking ${mixRep.gainApplied} dB)`);
 
+// de bedoelde sprongen en pauzes voor check_audio.mjs: begin, binnenkomst van de muziek, uitfade, en de stemmen (pauzes tussen woorden onder de ducking)
+const allow = { intended: [[0, 0.4, 'begin van de trailer']] };
+for (const m of audioPlan.music || []) { allow.intended.push([m.at - 0.3, m.at + 0.5, 'de muziek komt binnen (de drop)']); allow.intended.push([m.at + (m.dur ?? total - m.at) - (m.fadeOut ?? 2.5) - 0.3, total, 'uitfade van de muziek']); }
+for (const v of mixRep.voices) allow.intended.push([v.at - 0.4, v.at + v.dur + 0.9, 'stem: ducking van de muziek en pauzes tussen woorden']);
+allow.intended.push([total - 1.6, total, 'uitfade naar zwart']);
+fs.writeFileSync(path.join(out, `${name}.allow.json`), JSON.stringify(allow, null, 1));
+
 // beeld
 const inputs = [];
 const chains = [];
@@ -66,7 +73,16 @@ clips.forEach((c, i) => {
   const sp = c.speed !== 1 ? `,setpts=PTS/${c.speed}` : '';
   chains.push(`[${i}:v]trim=start=${s}:duration=${(c.dur * c.speed).toFixed(5)},setpts=PTS-STARTPTS${sp},fps=${FPS},scale=1920:1080:flags=lanczos,setsar=1,format=yuv420p[v${i}]`);
 });
-let vf = `${clips.map((c, i) => `[v${i}]`).join('')}concat=n=${clips.length}:v=1:a=0[cat]`;
+let vf = `${clips.map((c, i) => `[v${i}]`).join('')}concat=n=${clips.length}:v=1:a=0[cat0]`;
+// bijschriftensporen (shots/captions.page.js): schaduw met multiply, tekst met screen; beide op de lengte van de trailer
+let capIn = 0;
+if (plan.captions) {
+  const sh = inputs.length / 2, tx = sh + 1;
+  inputs.push('-i', plan.captions.shadow, '-i', plan.captions.text);
+  vf += `;[${sh}:v]trim=duration=${total.toFixed(4)},setpts=PTS-STARTPTS,fps=${FPS},format=yuv420p[csh];[${tx}:v]trim=duration=${total.toFixed(4)},setpts=PTS-STARTPTS,fps=${FPS},format=yuv420p[ctx]`;
+  vf += ';[cat0][csh]blend=all_mode=multiply:shortest=1[cm];[cm][ctx]blend=all_mode=screen:shortest=1[cat]';
+  capIn = 2;
+} else vf = vf.replace('[cat0]', '[cat]');
 let last = 'cat';
 const post = [];
 if (plan.fadeIn) post.push(`fade=t=in:st=0:d=${plan.fadeIn}`);
@@ -75,7 +91,7 @@ for (const f of plan.flash || []) post.push(`eq=brightness='min(0.85,1.6*max(0,1
 if (post.length) { vf += `;[cat]${post.join(',')}[vout]`; last = 'vout'; }
 const mp4 = path.join(out, `${name}.mp4`);
 inputs.push('-i', wav);
-const ff = ['-hide_banner', '-loglevel', 'error', '-nostats', '-y', ...inputs, '-filter_complex', `${chains.join(';')};${vf}`, '-map', `[${last}]`, '-map', `${clips.length}:a`,
+const ff = ['-hide_banner', '-loglevel', 'error', '-nostats', '-y', ...inputs, '-filter_complex', `${chains.join(';')};${vf}`, '-map', `[${last}]`, '-map', `${clips.length + capIn}:a`,
   '-c:v', 'libx264', '-preset', plan.preset || 'slow', '-crf', String(plan.crf ?? 16), '-profile:v', 'high', '-level', '4.2', '-pix_fmt', 'yuv420p', '-r', String(FPS),
   '-colorspace', 'bt709', '-color_primaries', 'bt709', '-color_trc', 'bt709', '-g', String(FPS * 2), '-bf', '2',
   '-c:a', 'aac', '-b:a', '256k', '-ar', '48000', '-ac', '2', '-t', total.toFixed(4), '-movflags', '+faststart', mp4];
