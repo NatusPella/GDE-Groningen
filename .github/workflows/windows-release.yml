@@ -10,8 +10,6 @@
 name: Windows-exe
 
 on:
-  push:
-    branches: [claude/r51-ci-builds]
   workflow_dispatch:
     inputs:
       tag:
@@ -28,7 +26,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: windows-release-${{ (inputs.tag || 'v0.38.1') }}
+  group: windows-release-${{ inputs.tag }}
   cancel-in-progress: false
 
 jobs:
@@ -40,12 +38,12 @@ jobs:
         shell: bash
     env:
       GH_TOKEN: ${{ github.token }}
-      TAG: ${{ inputs.tag || 'v0.38.1' }}
+      TAG: ${{ inputs.tag }}
       CSC_IDENTITY_AUTO_DISCOVERY: 'false'
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ (inputs.tag || 'v0.38.1') }}
+          ref: ${{ inputs.tag }}
 
       - uses: actions/setup-node@v4
         with:
@@ -95,8 +93,7 @@ jobs:
         working-directory: desktop
         run: |
           VERSION="${TAG#v}"
-          cp "dist/GDE-Groningen-$VERSION-windows-portable.exe" "TEST-GDE-Groningen-$VERSION-windows-portable.exe"
-          gh release upload "$TAG" "TEST-GDE-Groningen-$VERSION-windows-portable.exe" --clobber
+          gh release upload "$TAG" "dist/GDE-Groningen-$VERSION-windows-portable.exe" --clobber
           if [ "${{ inputs.arm64 }}" = "true" ]; then
             test -s "dist/GDE-Groningen-$VERSION-windows-arm64-portable.exe"
             gh release upload "$TAG" "dist/GDE-Groningen-$VERSION-windows-arm64-portable.exe" --clobber
