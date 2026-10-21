@@ -28,10 +28,13 @@ contextBridge.exposeInMainWorld('gdeDesktop', {
     close: (id) => ipcRenderer.send('gde:coop-close', id),
     setMax: (n) => ipcRenderer.send('gde:coop-max', n),
     stop: () => ipcRenderer.invoke('gde:coop-stop'),
+    diagnose: () => ipcRenderer.invoke('gde:coop-diagnose'),
     onEvent: (fn) => { coopListeners.add(fn); return () => coopListeners.delete(fn); },
   },
   // only answered in a --trailer-frames run (main.js)
   captureFrame: (n) => ipcRenderer.invoke('gde:capture-frame', n),
+  // only in a --clip run (clipvideo.js): begin / frame / png / end of a clip, one frame at a time
+  clip: (cmd, arg) => ipcRenderer.invoke('gde:clip', cmd, arg),
   // only in a --trailer-video run: the sound sheet the export mixes
   videoBegin: (sheet) => ipcRenderer.invoke('gde:video-begin', sheet),
 });

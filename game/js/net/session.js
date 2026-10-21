@@ -90,7 +90,7 @@ export class HostSession extends Base {
     const m = decodeJson(buf); if (!m) return;
     const r = checkHandshake(this.cfg.info, m.body);
     const reply = (b) => this._emit(encodeJson(T.WELCOME, 0, this.tickN, 0, b));
-    if (!r.ok) { this.rejected.push(r.reason); return reply({ ok: false, reason: r.reason }); }
+    if (!r.ok) { this.rejected.push(r.reason); return reply({ ok: false, reason: r.reason, version: String(this.cfg.info.version || '') }); }
     const tok = m.body.token;
     if (this.guest && tok && tok === this.guest.token) { // hervatten of herhaalde hello
       const resumed = this.status === 'lost';
@@ -228,7 +228,7 @@ export class ClientSession extends Base {
     if (this._common(h, buf)) { if (this.status === 'lag') this._setStatus('ok'); return; }
     if (h.type === T.WELCOME) {
       const m = decodeJson(buf); if (!m) return;
-      if (!m.body.ok) { this.rejected = m.body.reason; this._setStatus('geweigerd'); return; }
+      if (!m.body.ok) { this.rejected = m.body.reason; this.remoteVersion = typeof m.body.version === 'string' ? m.body.version.slice(0, 20) : ''; this._setStatus('geweigerd'); return; }
       this.welcome = m.body; // inclusief wat de hub meegaf: personage, lijst van spelers
       this.slot = m.body.slot; this.seed = m.body.seed; this.caps = Array.isArray(m.body.caps) ? m.body.caps : []; this.token = m.body.token; this.joined = true;
       if (m.body.resumed) { this.rel.reset(); this.buf.clear(); }

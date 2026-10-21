@@ -30,6 +30,13 @@ export const HELP_TOPICS = [
   { id: 'vastgelopen', title: 'Vastgelopen?', lines: [
     '{ESC} › Overzicht heeft "Vastgelopen? Zet me vrij" en, tijdens een missie, "Missie afbreken".',
   ] },
+  { id: 'samen', title: 'Samen spelen', lines: [
+    'Kies Samen spelen in het hoofdmenu of onder {ESC}. Eén speler kiest Een spel openen en deelt de kamercode; de anderen kiezen Meedoen en typen of plakken die code.',
+    'Iedereen moet dezelfde versie van het spel hebben. Staat er "Andere versie", installeer dan allemaal de nieuwste.',
+    'Lukt het niet? Kies in dat scherm Verbinding testen: daar staat in gewone taal wat er mis is en wat je kunt doen. Met Foutrapport kopiëren kun je dat naar iemand sturen.',
+    'Windows vraagt de eerste keer of GDE Groningen het netwerk mag gebruiken. Kies Toestaan (privé netwerk).',
+    'Valt iemands verbinding weg, dan pauzeert het spel en komt het vanzelf terug zodra die weer verbonden is.',
+  ] },
   { id: 'toetsen', title: 'Toetsen en controller', lines: [
     'Alle toetsen en knoppen staan onder Besturing. Je kunt ze zelf anders zetten, voor toetsenbord en controller.',
     'Zet de uitleg uit onder Instellingen › Interface › Meer opties.',

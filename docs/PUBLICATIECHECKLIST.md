@@ -1,7 +1,10 @@
 # Publicatiechecklist (#83, met #37, #62, #72, #57)
 
-Stand: 19 oktober 2026. De repo is **privé**; niets hieronder is gedaan of
-aangezet. Alles in de kolom "Eigenaar" doet of beslist alleen de eigenaar
+Stand: 21 oktober 2026 (na 0.38.1). De repo is **privé**; niets hieronder is gedaan of
+aangezet. Laatste run van de controles op 21 oktober: `publish_check --history` 0 FAIL
+(3 WARN: de handmatige workflow), `secrets_scan` 0 treffers (3597 commits, 12931 tekstbestanden),
+`merkenregister_check` 45 rijen en 0 afwijkingen, `text_audit` 0 bevindingen, `audio_herkomst`
+3123 stemclips allemaal in een `tts.json` met Gemini TTS, 20 + 2 + 1 muziekbestanden. Alles in de kolom "Eigenaar" doet of beslist alleen de eigenaar
 (AGENTS.md, constitution 8). Context: [PUBLICEREN.md](PUBLICEREN.md).
 
 ## 1. Automatische controle (agents mogen dit draaien)
@@ -13,6 +16,7 @@ node scripts/publish_check_test.mjs           # test van de check zelf
 node scripts/text_audit.mjs                   # speltekst: merken, personen, winter, Engels
 node scripts/secrets_scan.mjs                 # sleutelpatronen over werkboom en ALLE commits (±1 min)
 node scripts/merkenregister_check.mjs         # merkenregister klopt met de code
+node scripts/audio_herkomst.mjs               # elke stemclip gelogd met een Gemini-model; telling muziek en stemmen
 ```
 
 De check scant getrackte bestanden op sleutels, e-mailadressen, thuispaden,

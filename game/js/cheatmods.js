@@ -17,6 +17,8 @@ export const MODS = {
   pedScale: 1, // size of the walkers (Kleine mensjes)
   pigeonScale: 1, // size of the pigeons (Reuzenduif)
   alwaysGreen: false, // every traffic light is green for the cars (Altijd groen)
+  mirror: false, // the 3D picture is mirrored (Spiegelstad)
+  disco: false, // every vehicle gets a spinning coloured light (Disco-zwaailicht, discolight.js)
   gronings: false,
 };
 

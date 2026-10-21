@@ -15,7 +15,16 @@ const { argValue, hasFlag, findArg } = require('./args.cjs');
 // (trailervideo.js; default ~/Downloads, 1920x1080 unless --trailer=WxH)
 const VIDEO = findArg('--trailer-video');
 const TRAILER = findArg('--trailer') || (VIDEO && '--trailer');
-const TRAILER_SIZE = TRAILER && TRAILER.includes('=') ? TRAILER.split('=')[1] : VIDEO ? '1920x1080' : null;
+// --clip=<map>: de trailerclips (scripts/trailer/): het spel zelf met een vaste tijdstap, elk beeld naar <map>/<clip>.mp4 (clipvideo.js);
+// --clip-size=WxH (standaard 1920x1080). Altijd schaalfactor 1, zodat de pagina precies W x H CSS-pixels is
+const CLIP = findArg('--clip');
+const TRAILER_SIZE = TRAILER && TRAILER.includes('=') ? TRAILER.split('=')[1] : VIDEO ? '1920x1080' : CLIP ? (argValue('--clip-size') || '1920x1080') : null;
+if (CLIP) {
+  app.commandLine.appendSwitch('force-device-scale-factor', '1');
+  // een venster dat achter een ander staat mag niet stoppen met tekenen (anders hangt de opname)
+  app.commandLine.appendSwitch('disable-features', 'CalculateNativeWinOcclusion');
+  app.commandLine.appendSwitch('disable-renderer-backgrounding');
+}
 let video = null;
 if (VIDEO) {
   const tv = require('./trailervideo.js');
@@ -31,7 +40,7 @@ const BENCH = findArg('--benchmark');
 
 // test runs (--stil / --smoke-test) get a throwaway profile, so they never
 // touch the player's saves, settings or achievements
-const isTestRun = !!(TRAILER || hasFlag('--autoplay') || BENCH || hasFlag('--stil') || hasFlag('--smoke-test') || hasFlag('--story-test') || hasFlag('--validate-spots'));
+const isTestRun = !!(TRAILER || CLIP || hasFlag('--autoplay') || BENCH || hasFlag('--stil') || hasFlag('--smoke-test') || hasFlag('--story-test') || hasFlag('--validate-spots'));
 
 // --story-test[=<dir>] runs the automated story test (screenshots per step and
 // report.json in <dir>); --validate-spots[=<dir>]: its spot check only
@@ -103,6 +112,18 @@ function attach(win, { gameDir }) {
       fsSync.writeFileSync(path.join(bootCap, `boot-${message.slice(10).trim()}.png`), img.toPNG());
     });
   }
+  if (CLIP) {
+    const clipv = require('./clipvideo.js');
+    const ffmpeg = clipv.findFfmpeg();
+    if (!ffmpeg) { console.error('[clip] ffmpeg niet gevonden (PATH of GDE_FFMPEG)'); process.exit(1); }
+    const clipDir = path.resolve(CLIP.includes('=') ? CLIP.slice(CLIP.indexOf('=') + 1) : 'clips');
+    clipv.setupClips({ ipcMain, win, dir: clipDir, ffmpeg });
+    if (hasFlag('--clip-repl')) clipv.setupRepl({ win, dir: clipDir, app });
+    win.webContents.on('console-message', (e, legacyLevel, legacyMessage) => {
+      const message = String(e.message !== undefined ? e.message : legacyMessage);
+      if (message.startsWith('[clip]')) console.log(message);
+    });
+  }
   if (video) {
     const [W, H] = TRAILER_SIZE.split('x').map(Number);
     video.run = video.tv.setupTrailerVideo({ ipcMain, win, out: video.out, size: [W - (W % 2), H - (H % 2)], gameDir, ffmpeg: video.ffmpeg });
@@ -140,8 +161,10 @@ function attach(win, { gameDir }) {
     win.webContents.on('did-fail-load', (e, code, desc, url) => console.log('[load failed]', code, desc, url));
     setTimeout(async () => {
       try {
-        // a loaded machine (other test runs) needs longer than the fixed delay: wait up to 90 s for the game
-        for (let i = 0; i < 90 && !(await win.webContents.executeJavaScript('!!window.__debug')); i++) await new Promise((r) => setTimeout(r, 1000));
+        // a loaded machine (other test runs) needs longer than the fixed delay: wait up to 90 s for the game (GDE_SMOKE_WAIT_S: longer; with three
+        // other Electron runs and 400 MB of free memory the game took more than 90 s to come up and every test script failed on its first import)
+        const waitS = Number(process.env.GDE_SMOKE_WAIT_S) || 90;
+        for (let i = 0; i < waitS && !(await win.webContents.executeJavaScript('!!window.__debug')); i++) await new Promise((r) => setTimeout(r, 1000));
         // --smoke-eval=<js> runs in the page first (e.g. open a menu), so the
         // screenshot shows that state
         const evalArg = argValue('--smoke-eval');
@@ -433,4 +456,4 @@ function runStoryTest(win, dir) {
   setTimeout(() => { console.log('[story-test] timeout'); done(2); }, (+process.env.GDE_STORY_TIMEOUT_MIN || 15) * 60 * 1000);
 }
 
-module.exports = { isTestRun, trailerSize: TRAILER_SIZE, queryParts, attach };
+module.exports = { isTestRun, clipMode: !!CLIP, trailerSize: TRAILER_SIZE, queryParts, attach };
