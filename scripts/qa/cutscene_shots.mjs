@@ -1,7 +1,7 @@
 // Screenshot per shot van de geregisseerde scènes in de echte wereld (#136, #209).
 // Electron (wegwerpprofiel, één instantie, sluit af) loopt cutscene_shots.page.js een korte
 // scripted check per functie af en bewaart per check screenshots en consolefouten.
-//   node scripts/qa/cutscene_shots.mjs [--out=<map>] [--only=kaart,wanted] [--settle=<ms>]
+//   node scripts/qa/cutscene_shots.mjs [--out=<map>] [--only=M01,M02] [--settle=<ms>] [--page=cutpreview_check.page.js]
 // Vereist `cd desktop && npm run stage`. ELECTRON_EXE=<pad> als desktop/node_modules/electron/dist ontbreekt.
 // Uitvoer: <out>/shots-<check>[-<n>].png, features.json (per check: issues, notities, meldingen), run.log.
 import fs from 'node:fs';
@@ -27,7 +27,7 @@ for (let i = 0; i < 40; i++) { const s = document.querySelector('#start-screen')
 await new Promise((r) => setTimeout(r, 4000));\n`;
 const profile = `gde-test-cs-${process.pid}`;
 const script = path.join(OUT, '_page.js');
-fs.writeFileSync(script, WACHT + `window.__cs = ${JSON.stringify({ only: ONLY.split(",").filter(Boolean), settle: SETTLE, probe: PROBE ? (([id, t, px]) => ({ id, t: Number(t), px: px.split(',').map((q) => q.split('x').map(Number)) }))(PROBE.split(':')) : undefined, dense: DENSE ? Object.fromEntries(DENSE.split(',').map((d) => { const [id, shot, n] = d.split(':'); return [id, { shot: Number(shot), n: Number(n) || 4 }]; })) : undefined })};\n` + fs.readFileSync(path.join(HERE, 'cutscene_shots.page.js'), 'utf8'));
+fs.writeFileSync(script, WACHT + `window.__cs = ${JSON.stringify({ only: ONLY.split(",").filter(Boolean), settle: SETTLE, probe: PROBE ? (([id, t, px]) => ({ id, t: Number(t), px: px.split(',').map((q) => q.split('x').map(Number)) }))(PROBE.split(':')) : undefined, dense: DENSE ? Object.fromEntries(DENSE.split(',').map((d) => { const [id, shot, n] = d.split(':'); return [id, { shot: Number(shot), n: Number(n) || 4 }]; })) : undefined })};\n` + fs.readFileSync(path.join(HERE, arg('page', 'cutscene_shots.page.js')), 'utf8'));
 const electron = process.env.ELECTRON_EXE || path.join(ROOT, 'desktop', 'node_modules', 'electron', 'dist', process.platform === 'win32' ? 'electron.exe' : 'Electron');
 const env = { ...process.env, GDE_TEST_PROFILE: profile };
 delete env.ELECTRON_RUN_AS_NODE;

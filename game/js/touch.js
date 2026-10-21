@@ -3,7 +3,7 @@
 // input.js the way gamepad.js does (padAxis, padHold, mouse), so every
 // action works unchanged. Does nothing on a desktop; ?touch=1 forces it on
 // and ?touch=0 off. Menus and the phone stay plain taps.
-import { detectTouch, touchMode, touchLayout, touchMore, stickVector, knobOffset, lookDelta, stickKeys, touchPlan, touchContext, stickless, leftButtonX, touchUiActive, STICK_RADIUS } from './touchlogic.js';
+import { detectTouch, touchMode, touchLayout, touchMore, stickVector, knobOffset, lookDelta, stickKeys, touchPlacement, leftOffset, touchContext, stickless, touchUiActive, STICK_RADIUS } from './touchlogic.js';
 import { refreshGlyphs } from './glyphs.js';
 import { getSettings } from './settings.js';
 import { FLAGS } from './devflags.js';
@@ -34,19 +34,26 @@ html.touch-device, html.touch-device body { overscroll-behavior: none; -webkit-t
 html.touch-device body { touch-action: manipulation; }
 html.touch-device button, html.touch-device [role="button"], html.touch-device select { min-height: 44px; }
 html.touch-device #touch-ui .t-btn { min-height: 0; }
-/* the HUD makes room: the clock column leaves the corner of the pause button, a phone has no room for the street name beside the buttons, keyboard hints mean nothing */
-html.touch-device #hud .hud-top-right { right: calc(var(--hud-edge, 24px) + 64px); }
-html.touch-device[data-touch-class="phone"] #hud .hud-fcol { display: none; }
+/* the HUD around the touch layer (#96): zone C (clock, stars) left of pause and Meer, the speedometer between the thumbs, the street name above the minimap */
+html.touch-device #hud .hud-top-right { right: calc(var(--hud-edge) + 128px / var(--ui, 1)); }
+html.touch-device #hud .hud-speedo, html.touch-device #hud .hud-heli { right: auto; left: 50%; transform: translateX(-50%); }
+html.touch-device #hud .hud-vehname, html.touch-device #hud .hud-race { right: calc(var(--hud-edge) + 120px / var(--ui, 1)); }
+/* the key-hint rows (Kaart, Radio, ...) lay under the right thumb: the buttons carry those labels; keyboard hints mean nothing, a map has a close button */
+html.touch-device #hud .hud-ctx { display: none; }
+/* the stunt evening's score card lay under the gas and horn buttons: it moves left of the button block */
+html.touch-device #hud .stunt-hud { right: calc(var(--hud-edge) + 260px / var(--ui, 1)); }
 html.touch-device .mv-close { display: inline-flex !important; }
 html.touch-device .m-hint, html.touch-device #start-screen .ss-foot { display: none; }
+html.touch-device #hud .hud-fcol { left: var(--hud-edge); bottom: calc(var(--mm-bottom) + var(--mm-size) + 6px); }
+/* small HUD texts stay at 11 px on screen after the phone's HUD scale (0.62-0.8) */
+html.touch-device #hud :is(small, .hud-key, .ach-kicker, .ach-desc, .ach-pct, .pf-time, .pf-more, .nl-sub, .hud-mission-progress) { font-size: max(12px, calc(11px / var(--ui, 1))); }
+/* the pause menu is a landscape layout: on a portrait phone it says so */
+html.touch-portrait #pause-menu.visible::before { content: 'Draai je toestel voor het menu'; position: absolute; left: 50%; top: 8px; transform: translateX(-50%); z-index: 5; padding: 8px 14px; border-radius: 18px; background: rgba(10, 19, 13, 0.9); color: #f0ede4; font: 15px Arial, sans-serif; white-space: nowrap; }
 #touch-ui .t-left-btns, #touch-ui .t-right-btns { position: absolute; bottom: env(safe-area-inset-bottom); }
 #touch-ui .t-left-btns { left: env(safe-area-inset-left); width: 0; height: 0; }
 #touch-ui .t-right-btns { right: env(safe-area-inset-right); width: 0; height: 0; }
 `;
 
-// button spots from the bottom right corner, in px: [right, bottom]
-const SPOTS_RIGHT = [[24, 110], [96, 40], [96, 180], [168, 110], [30, 226]];
-const SPOTS_LEFT = [[24, 40], [24, 120], [96, 40]];
 
 export function initTouch(input, world, hooks = {}) {
   if (typeof window === 'undefined' || typeof document === 'undefined') return false;
@@ -70,6 +77,7 @@ export function initTouch(input, world, hooks = {}) {
   style.textContent = CSS;
   document.head.appendChild(style);
   document.documentElement.classList.add('touch-device');
+  window.dispatchEvent(new Event('touchmode')); // uiscale.js: a phone gets a smaller HUD
 
   const root = document.createElement('div');
   root.id = 'touch-ui';
@@ -110,7 +118,9 @@ export function initTouch(input, world, hooks = {}) {
   const hold = (k, v) => input.padHold(k, v);
   const act = (b, down) => {
     const a = b.action;
-    if (a === '@fire') input.mouse.down = down;
+    // cinematics.js counts the Space it sees (a real key event) for hold-to-skip; padHold alone never reaches it
+    if (ctx === 'cutscene') sendKey(down ? 'keydown' : 'keyup', a, 'pad');
+    else if (a === '@fire') input.mouse.down = down;
     else if (a === '@aim') input.mouse.rightDown = down;
     else if (a.startsWith('@wheel')) { if (down) input.mouse.wheel += a === '@wheel+' ? 100 : -100; }
     else if (a === '@gas') hold('w', down);
@@ -155,16 +165,7 @@ export function initTouch(input, world, hooks = {}) {
 
   function build() {
     btnHost.textContent = '';
-    const plan = touchPlan(ctx);
-    let r = 0, l = 0;
-    // the left buttons start beside the minimap, not over it
-    const mm = document.querySelector('#hud .hud-minimap-wrap');
-    const mr = mm && mm.offsetParent !== null ? mm.getBoundingClientRect().right : 0;
-    const x0 = leftButtonX({ minimapRight: mr, scale: touchLayout({ width: window.innerWidth, height: window.innerHeight }).scale });
-    for (const b of plan) {
-      if (b.side === 'right') addButton(b, SPOTS_RIGHT[r++ % SPOTS_RIGHT.length], 'right');
-      else { const s = SPOTS_LEFT[l++ % SPOTS_LEFT.length]; addButton(b, [x0 + s[0] - 24, s[1]], 'left'); }
-    }
+    for (const { b, spot, side } of touchPlacement(ctx)) addButton(b, spot, side);
     const more = touchMore(ctx);
     if (more.length) {
       const panel = document.createElement('div');
@@ -236,6 +237,8 @@ export function initTouch(input, world, hooks = {}) {
   };
   left.addEventListener('pointerup', stickEnd);
   left.addEventListener('pointercancel', stickEnd);
+  // a stick whose release never arrived (capture lost) would block every later touch on this side
+  left.addEventListener('lostpointercapture', stickEnd);
 
   right.addEventListener('pointerdown', (e) => {
     if (look) return;
@@ -253,11 +256,15 @@ export function initTouch(input, world, hooks = {}) {
   const lookEnd = (e) => { if (look && look.id === e.pointerId) look = null; };
   right.addEventListener('pointerup', lookEnd);
   right.addEventListener('pointercancel', lookEnd);
+  right.addEventListener('lostpointercapture', lookEnd);
+
+  // a cutscene (cinematics.js) owns the screen: the buttons give way to one Overslaan
+  const cineActive = () => { const c = document.getElementById('cine'); return !!c && c.classList.contains('active'); };
 
   // follows the game: shown while playing, rebuilt when the situation changes
   setInterval(() => {
     const active = touchUiActive({ started: document.body.classList.contains('game-started'), menuOpen: hooks.menuOpen ? hooks.menuOpen() : false });
-    const nctx = active ? touchContext(world, { started: true, menuOpen: false, shiftMode: getSettings().shiftMode }) : 'menu';
+    const nctx = active ? touchContext(world, { started: true, menuOpen: false, shiftMode: getSettings().shiftMode, cine: cineActive() }) : 'menu';
     if (active !== shown) {
       shown = active;
       document.documentElement.classList.toggle('touch-play', active);

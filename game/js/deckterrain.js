@@ -42,3 +42,22 @@ export function deckTerrainAt(r, x, y, terrainAt, ground = terrainAt(x, y), ver 
   const line = p.a + (p.b - p.a) * s;
   return line + Math.max(0, ground - line - DECK_DEADBAND);
 }
+
+// The terrain a road or rail that is no deck is measured from (#269): the terrain at its vertices, straight
+// in between, clamped to its ends. `ver` renews the vertex heights when rasters stream in, like deckTerrainAt.
+export function roadTerrainAt(r, x, y, terrainAt, ver = 0) {
+  let v = r._tv;
+  if (!v || v.src !== terrainAt || v.ver !== ver) {
+    v = r._tv = { h: r.pts.map((p) => terrainAt(p[0], p[1])), src: terrainAt, ver };
+  }
+  const P = r.pts;
+  let best = Infinity, out = v.h[0];
+  for (let i = 0; i + 1 < P.length; i++) {
+    const ax = P[i][0], ay = P[i][1], dx = P[i + 1][0] - ax, dy = P[i + 1][1] - ay;
+    const l2 = dx * dx + dy * dy;
+    const t = l2 > 1e-9 ? Math.max(0, Math.min(1, ((x - ax) * dx + (y - ay) * dy) / l2)) : 0;
+    const d = Math.hypot(x - ax - dx * t, y - ay - dy * t);
+    if (d < best) { best = d; out = v.h[i] + (v.h[i + 1] - v.h[i]) * t; }
+  }
+  return out;
+}

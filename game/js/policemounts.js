@@ -470,6 +470,7 @@ export function ejectMountRider(v, world, state) {
 export function maybeBolt(v, world, state) {
   if (v._mount !== 'horse' || v._bolting || v.health > HORSE_BOLT_HEALTH) return false;
   v._bolting = true;
+  if (world.addMessage && dist(v.x, v.y, world.player.x, world.player.y) < 60) world.addMessage('Het politiepaard schrikt: de ruiter springt eraf en het paard slaat op hol', 3);
   if (!v._riderAway && !v._crew) ejectMountRider(v, world, state);
   v._ejected = true;
   v._riderAway = true;
@@ -477,6 +478,13 @@ export function maybeBolt(v, world, state) {
   v.isPolice = true;
   v.hijacked = true;
   v.road = null;
+  // het paard steigert en schiet weg van de speler, in plaats van tegen de auto aan te blijven duwen (#331)
+  const p = world.player;
+  v.angle = Math.atan2(v.y - p.y, v.x - p.x);
+  v.speed = Math.max(v.speed, 3);
+  v.yawVel = 0;
+  v.driftX = 0;
+  v.driftY = 0;
   return true;
 }
 
