@@ -28,6 +28,7 @@ contextBridge.exposeInMainWorld('gdeDesktop', {
     close: (id) => ipcRenderer.send('gde:coop-close', id),
     setMax: (n) => ipcRenderer.send('gde:coop-max', n),
     stop: () => ipcRenderer.invoke('gde:coop-stop'),
+    diagnose: () => ipcRenderer.invoke('gde:coop-diagnose'),
     onEvent: (fn) => { coopListeners.add(fn); return () => coopListeners.delete(fn); },
   },
   // only answered in a --trailer-frames run (main.js)
