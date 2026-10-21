@@ -637,9 +637,10 @@ results.routes.glcalls = await safe('glcalls', async () => {
   const cnt = { main: new Map(), shadow: new Map(), other: new Map() }; let phase = 'other';
   const origs = [];
   for (const name of Object.getOwnPropertyNames(proto)) {
-    let d; try { d = proto[name]; } catch (e) { continue; }
+    let d; try { d = gl[name]; } catch (e) { continue; }
     if (typeof d !== 'function' || name === 'constructor') continue;
-    const o = d; origs.push([name, o]);
+    // what the context holds now (the game's own filter of redundant calls, glfilter.js, sits in front of the native one): counted behind the filter, restored afterwards
+    const o = d; origs.push([name, o, Object.prototype.hasOwnProperty.call(gl, name)]);
     gl[name] = function (...a) { const m = cnt[phase]; m.set(name, (m.get(name) || 0) + 1); if (owner !== null && phase === 'main') { let q = byOwner.get(owner); if (!q) byOwner.set(owner, q = new Map()); q.set(name, (q.get(name) || 0) + 1); } return o.apply(gl, a); };
   }
   const smR = r.shadowMap.render.bind(r.shadowMap);
@@ -652,16 +653,18 @@ results.routes.glcalls = await safe('glcalls', async () => {
   r.renderBufferDirect = function (camera, scene2, geometry, material, object, group) { if (window.__ownerOf && phase === 'main') owner = window.__ownerOf(object).replace(/ (Buffer|Extrude|Box|Cylinder|Plane|Circle|Sphere|Shape)[^ ]*.*$/, '').slice(0, 60); const out = rbd.call(r, camera, scene2, geometry, material, object, group); owner = null; if (phase === 'main') { const pr = r.properties.get(material).currentProgram; seq.push(pr ? pr.id : -1); } return out; };
   r.render = function (s2, c2) { if (s2 !== sc.scene) return prevR.call(r, s2, c2); const was = phase; phase = 'main'; frames++; seq = []; try { return prevR.call(r, s2, c2); } finally { phase = was; seqs.push(seq); } };
   const f0 = frameCount();
+  const fst = gl.__glFilter ? { ...gl.__glFilter } : null; // calls the filter of redundant GL calls (glfilter.js) kept from the context during these frames: they are in the counts below, but cost nothing
   await new Promise((res) => { const f = () => { if (frames >= 90) res(); else requestAnimationFrame(f); }; requestAnimationFrame(f); });
+  const filtered = fst ? { pixelStorei: +((gl.__glFilter.skippedPixelStore - fst.skippedPixelStore) / frames).toFixed(1), texParameteri: +((gl.__glFilter.skippedTexParameter - fst.skippedTexParameter) / frames).toFixed(1) } : null;
   r.render = prevR; r.shadowMap.render = smR; r.renderBufferDirect = rbd;
-  for (const [name, o] of origs) delete gl[name];
+  for (const [name, o, own] of origs) { if (own) gl[name] = o; else delete gl[name]; }
   const progs = seqs.map((q) => { let runs = 0, last = null; const set = new Set(); for (const id of q) { set.add(id); if (id !== last) runs++; last = id; } return { draws: q.length, distinct: set.size, runs }; });
   const medP = (k) => { const v = progs.map((q) => q[k]).sort((a, b) => a - b); return v[v.length >> 1]; };
   const top = (m, n = 28) => [...m].sort((a, b) => b[1] - a[1]).slice(0, n).map(([k, v]) => [k, +(v / frames).toFixed(1)]);
   const sum = (m) => +([...m.values()].reduce((a, b) => a + b, 0) / frames).toFixed(1);
   void f0;
   const owners = [...byOwner].map(([k, m]) => [k, +([...m.values()].reduce((a, b) => a + b, 0) / frames).toFixed(1), [...m].sort((a, b) => b[1] - a[1]).slice(0, 6).map(([n, v]) => n + '=' + +(v / frames).toFixed(1)).join(' ')]).sort((a, b) => b[1] - a[1]).slice(0, 24);
-  outAll[vname || 'basis'] = { owners, frames, programs: { draws: medP('draws'), distinct: medP('distinct'), runs: medP('runs') }, mainTotal: sum(cnt.main), shadowTotal: sum(cnt.shadow), otherTotal: sum(cnt.other), main: top(cnt.main), shadow: top(cnt.shadow, 12), other: top(cnt.other, 12), calls: r.info.render.calls };
+  outAll[vname || 'basis'] = { owners, filtered, frames, programs: { draws: medP('draws'), distinct: medP('distinct'), runs: medP('runs') }, mainTotal: sum(cnt.main), shadowTotal: sum(cnt.shadow), otherTotal: sum(cnt.other), main: top(cnt.main), shadow: top(cnt.shadow, 12), other: top(cnt.other, 12), calls: r.info.render.calls };
   }
   window.__perfOffDyn = undefined;
   return outAll;

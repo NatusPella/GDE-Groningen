@@ -63,6 +63,7 @@ import { reducedMotion } from './motion.js';
 import { dynamicScale, cpuLevel } from './gfxprofile.js';
 import { VIEW_DISTANCES, viewDistanceFor, detailDistanceFor, DETAIL_BASE } from './viewdist.js';
 import { compareOpaque } from './drawpool.js';
+import { installGlFilter } from './glfilter.js';
 import { buildingBatcher, roadBatcher, facadeBatcher, shoreBatcher, drawHub } from './staticbatch3d.js';
 import { simLevel } from './simload.js';
 import { beginWheels, addVehicleWheels, endWheels } from './wheelinstances3d.js';
@@ -904,6 +905,7 @@ export function init3D(map) {
   renderer.shadowMap.type = THREE.PCFShadowMap;
   hookShadowPass(renderer.shadowMap);
   hookLinkGuard(renderer);
+  installGlFilter(renderer.getContext());
   pinShaderPrograms(renderer);
   // Fetching shader info logs after a link is a sync point that costs tens of
   // ms per program on a busy GPU; ?shaderdebug brings the error checks back.
