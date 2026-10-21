@@ -254,7 +254,7 @@ export function playScript(w, def, { lines, duration, anchor, cine = {}, env: en
   const prewarm = cine.prewarm || shotPoints(scene, at, duration);
   const cutId = replay ? 0 : cutHostId();
   const ok = playCinematic({
-    priority: 4, pause: true, letterbox: true, skippable: true, hideHud: true, hidePlayers: true,
+    priority: 4, pause: true, letterbox: true, skippable: true, hideHud: true, hidePlayers: true, mumble: true,
     prewarm,
     ...cine, id: cine.id || def.id, duration, lines,
     onStart() {
