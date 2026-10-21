@@ -379,7 +379,22 @@ export function compileScene(def, opts = {}) {
     const P = world(anchor, pos.f, pos.s), L = world(anchor, look.f, look.s);
     const z0 = anchor.z || 0;
     let cam = fitCamera({ x: P.x, y: P.y, z: z0 + pos.h }, { x: L.x, y: L.y, z: z0 + look.h }, env);
-    // fitCamera may have pulled the camera in from a wall, next to a person: push out again unless that lands in a wall
+    // fitCamera may have pulled the camera in from a wall, next to a person: push out again unless that lands in a wall or a prop
+    let propsNear = null;
+    const propBlocks = (x, y) => {
+      if (!propsNear) {
+        propsNear = [];
+        for (const id of Object.keys(ptrack)) {
+          const q = propState(id, t);
+          if (!q.visible) continue;
+          const foot = propFoot(props[id].kind), W = world(anchor, q.f, q.s);
+          const hi = foot ? q.h + foot[2] + 0.3 : q.h + 1.4;
+          if (cam.z - z0 > hi || cam.z - z0 < q.h - 0.3) continue;
+          propsNear.push({ x: W.x, y: W.y, r: (foot ? Math.max(foot[0], foot[1]) / 2 : 0) + PROP_CLEAR });
+        }
+      }
+      return propsNear.some((q) => Math.hypot(x - q.x, y - q.y) < q.r - 1e-6);
+    };
     if (!def.set && cam.z - z0 < 2.4) for (const id of Object.keys(track)) {
       if (last([{ t: 0, v: true }, ...track[id].vis], t).v === false) continue;
       const q = actorPos(id, t), W = world(anchor, q.f, q.s);
@@ -388,11 +403,12 @@ export function compileScene(def, opts = {}) {
       const nx = W.x + dx / d * CAM_CLEAR, ny = W.y + dy / d * CAM_CLEAR;
       if (env && env.solid && env.solid(nx, ny, cam.z)) continue;
       if (env && env.clamp) { const c2 = env.clamp(nx, ny, cam.z, 'camera'); if (c2 && (Math.abs(c2.x - nx) > 1e-6 || Math.abs(c2.y - ny) > 1e-6)) continue; }
+      if (propBlocks(nx, ny)) continue;
       cam = { ...cam, x: nx, y: ny };
     }
-    // still inside someone's personal space (the push out landed in a wall, so fitCamera had pulled the camera in beside them: a back
-    // or a head filled the lens, M02.intro and M03.intro in the real world): the free spot round them nearest to where the shot wanted to be
-    if (!def.set && env && env.solid && cam.z - z0 < 2.4) {
+    // still inside someone's personal space (the push out landed in a wall or a prop, so fitCamera had pulled the camera in beside them: a
+    // back or a head filled the lens, M02.intro and M03.intro in the real world): the free spot round them nearest to where the shot wanted to be
+    if (!def.set && cam.z - z0 < 2.4) {
       const people = [];
       for (const id of Object.keys(track)) {
         if (last([{ t: 0, v: true }, ...track[id].vis], t).v === false) continue;
@@ -406,8 +422,9 @@ export function compileScene(def, opts = {}) {
         for (const r of [CAM_CLEAR + 0.1, 2.3, 3.2, 4.5]) {
           for (let k = 0; k < 16; k++) {
             const a = k / 16 * Math.PI * 2, x = near.x + Math.cos(a) * r, y = near.y + Math.sin(a) * r;
-            if (env.solid(x, y, cam.z) || tooClose(x, y)) continue;
-            if (env.clamp) { const c2 = env.clamp(x, y, cam.z, 'camera'); if (c2 && (Math.abs(c2.x - x) > 1e-6 || Math.abs(c2.y - y) > 1e-6)) continue; }
+            if (env && env.solid && env.solid(x, y, cam.z)) continue;
+            if (tooClose(x, y) || propBlocks(x, y)) continue;
+            if (env && env.clamp) { const c2 = env.clamp(x, y, cam.z, 'camera'); if (c2 && (Math.abs(c2.x - x) > 1e-6 || Math.abs(c2.y - y) > 1e-6)) continue; }
             const d = Math.hypot(x - P.x, y - P.y);
             if (d < bd) { bd = d; best = { x, y }; }
           }
