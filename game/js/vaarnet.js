@@ -94,9 +94,10 @@ export function patchRows(fixes) {
     const kind = PATCH_KIND[nav] || 'diep';
     return { pts, kind, nav, lv: BOEZEM_Y, dp: WATER_KINDS[kind].depth, body: -2, name: name || '', flat: true, fix: true };
   };
-  for (const l of (fixes && fixes.links) || []) rows.push(row(linkPolygon(l), 4, l.name));
-  for (const g of (fixes && fixes.gaten) || []) rows.push(row(gatPolygon(g), g[5] || 3, ''));
-  for (const g of (fixes && fixes.verbindingen) || []) rows.push(row(gatPolygon(g), g[5] || 2, ''));
+  // (seam: the land strip between such a patch and the canal's own row is welded shut for a hull, waterindex.js, #343)
+  for (const l of (fixes && fixes.links) || []) rows.push({ ...row(linkPolygon(l), 4, l.name), seam: true });
+  for (const g of (fixes && fixes.gaten) || []) rows.push({ ...row(gatPolygon(g), g[5] || 3, ''), seam: true });
+  for (const g of (fixes && fixes.verbindingen) || []) rows.push({ ...row(gatPolygon(g), g[5] || 2, ''), seam: true });
   // the chamber of a lock the map draws no water in (scripts/world/sluizen.mjs finds them)
   for (const g of (fixes && fixes.sluisgaten) || []) rows.push(row(gatPolygon(g), g[5] || 3, ''));
   // the sea off a coast the map draws no water at: the open water of the Wadden and the Eems

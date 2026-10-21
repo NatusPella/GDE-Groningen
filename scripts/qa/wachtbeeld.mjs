@@ -14,6 +14,7 @@ const ROOT = path.resolve(HERE, '..', '..');
 const arg = (k, d) => { const a = process.argv.find((v) => v.startsWith(`--${k}=`)); return a ? a.slice(k.length + 3) : d; };
 const OUT = path.resolve(arg('out', path.join(os.tmpdir(), 'gde-qa-wachtbeeld')));
 const jobs = JSON.parse(fs.readFileSync(path.resolve(arg('jobs')), 'utf8'));
+for (const j of jobs) if (j.file) j.code = fs.readFileSync(path.resolve(path.dirname(path.resolve(arg('jobs'))), j.file), 'utf8'); // kind 'code': de job staat in een los bestand
 fs.mkdirSync(OUT, { recursive: true });
 // zoals de sweep: wachten op de wereld, het startscherm weg (Enter), even rust
 const WACHT = 'for (let i = 0; i < 240 && !(window.__debug && window.__debug.world); i++) await new Promise((r) => setTimeout(r, 500));\n'

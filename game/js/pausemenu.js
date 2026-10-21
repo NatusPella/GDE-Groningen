@@ -1465,7 +1465,7 @@ function showTab(name, how) {
   if (name === 'verhaal') { showSubtab('verhaal', pref.sub.verhaal || 'personages'); renderVerhaalPanel(); }
   if (name === 'streken') { if (prev !== 'streken') resetCheatsPanel(); renderCheats(); }
   if (name === 'fotos') renderFotoPanel(root.querySelector('[data-panel="fotos"] .pm-inner'));
-  if (name === 'samen') renderSamenPanel(root.querySelector('[data-panel="samen"] .pm-inner'), world);
+  if (name === 'samen') renderSamenPanel(root.querySelector('[data-panel="samen"] .pm-inner'), world, closePauseMenu);
   if (name === 'prestaties') { renderAchievementsPanel(root.querySelector('[data-panel="prestaties"] .pm-inner')); syncSheetSub(); }
   if (name === 'controls') { const q = root.querySelector('[data-controls-search]'); q.value = ''; filterControls(''); showSubtab('controls', pref.sub.controls || 'toetsen'); bindMsg = ''; renderBinds(); }
   if (prev === 'controls' && name !== 'controls') cancelRebind();

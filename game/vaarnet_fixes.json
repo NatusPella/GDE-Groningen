@@ -1446,11 +1446,11 @@
   ],
   "zeeUitleg": "zee: verbinding en tong zee bij een zeetoegang zonder water aan de zeekant, [x, y, lengte, breedte, hoek (rad), nav, naam]; de tong loopt tot voorbij de omkeerlijn van het eind van de wereld (worldedge.js). Nog niet in beeld bekeken.",
   "zee": [
-    [23847.5,-12399.8,267.9,40,-0.971,4,"zee eems"],
+    [23842.5,-12402.3,269.7,40,-0.927,4,"zee eems"],
     [25378.6,-13034,3190,500,5.934,4,"zee eems"],
     [30938.9,-9733.7,269.2,40,-1.802,4,"zee dollard"],
     [30378.5,-11316.2,3190,500,4.363,4,"zee dollard"],
-    [-25156.2,-20803,268,40,-1.1,4,"zee waddenzee"],
+    [-25166.2,-20808,269.2,40,-1.01,4,"zee waddenzee"],
     [-24830,-22444.9,3190,500,4.887,4,"zee waddenzee"]
   ]
 }

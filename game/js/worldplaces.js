@@ -29,6 +29,13 @@ export function builtUp(p) {
   return { r: Math.round(Math.max(120, Math.min(3200, r))) };
 }
 
+// Ligt (x, y) in de bebouwde kom van een plaats met bevolkingscijfer (de cirkel van builtUp)? De stad Groningen
+// reikt zo 3,2 km rond haar kern, een dorp van 1500 inwoners ruim 400 m (#330: daar staat geen vee).
+export function inBebouwdeKom(x, y) {
+  for (const t of PLACES.towns) if (t.r && Math.hypot(t.x - x, t.y - y) < t.r) return true;
+  return false;
+}
+
 export function setWorldPlaces(list) {
   PLACES.list = Array.isArray(list) ? list : [];
   PLACES.names = new Set(PLACES.list.map((p) => p.name));

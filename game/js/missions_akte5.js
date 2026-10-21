@@ -33,7 +33,7 @@ export function buildAkte5Defs({ map, walk, drive }) {
       type: 'stages',
       label: 'Een luik erin',
       intro: ['Tinus\' schuur bij Zuidhorn. Henk heeft een luik en een koekje. Eén.', 'Bouw een luik in de Escapade, bewijs in de modder dat de as het houdt en laat Tinus hem eruit trekken.'],
-      outro: 'De Escapade is de Fjord Frituur. Er is een wagen, nog geen bal.',
+      outro: 'De Escapade is de Fjord Frituur. Nog geen bal. Mem en Oma hebben de vrienden gebeld: samen naar de Grote Markt.',
       timeLimit: null,
       reward: 300,
       costRow: ['Gevolg', 'Het luik is betaald met het horloge van Tammo\'s opa'],
@@ -63,14 +63,19 @@ export function buildAkte5Defs({ map, walk, drive }) {
         },
         {
           kind: 'goto', target: { at: MODDER, snap: 'drive', label: 'De modder' }, mode: 'vehicle', radius: 24, stop: 0,
-          label: 'Rij de Escapade de modder in: laat zien dat de as het houdt', say: 'Rij hem de modder in. Als de as het houdt, houdt hij het ook op de Grote Markt.',
+          label: 'Rij de Escapade de modder in, tot hij vastzit: de as moet het houden', say: 'Rij hem de modder in. Als de as het houdt, houdt hij het ook op de Grote Markt.',
           talk: { ids: ['M22.3'], from: 0, to: 4, delay: 1.5 }, mud: true,
         },
         {
-          kind: 'hold', target: { at: MODDER, snap: 'drive' }, radius: 40, time: 9, mode: 'vehicle', mud: true,
-          label: 'Zit vast: wacht tot Tinus hem eruit trekt', say: 'Vast. Tinus komt met de trekker: aan de trekhaak.',
+          // stuck in the mud: not a wait but a rocking rhythm; Tinus pulls on the beat (the tags only colour the mission's own report)
+          kind: 'timing', kicker: 'Los uit de modder', help: 'wip op het ritme', goodAt: 2, tagGood: 'modder-los', tagLow: 'modder-traag',
+          label: 'Zit vast: wip de wagen los terwijl Tinus trekt', say: 'Vast. Tinus haakt de trekker aan: wip mee op het ritme, druk als de streep in het groen is.',
           talk: { ids: ['M22.3'], from: 4, delay: 1.5 },
-          ticks: ['Tinus haakt de trekker aan.', 'De trekker trekt. De Escapade komt los.'],
+          rounds: [
+            { text: 'Gas, terug, gas: de trekker trekt mee.', speed: 0.7, zone: [0.34, 0.66], ok: 'De wielen pakken even.', bad: 'De wielen slippen door.' },
+            { text: 'Nog een keer, harder.', speed: 0.85, zone: [0.38, 0.62], ok: 'De Escapade komt een stuk los.', bad: 'Hij zakt weer weg.' },
+            { text: 'De laatste ruk.', speed: 1.0, zone: [0.4, 0.6], ok: 'Los! De as houdt het.', bad: 'Net niet. Tinus trekt hem er toch uit.' },
+          ],
         },
         {
           kind: 'scene', label: 'De schuur, \'s avonds', target: { at: SCHUUR, snap: 'walk' }, kicker: 'Tinus\' schuur', title: 'Een thuis met wielen',

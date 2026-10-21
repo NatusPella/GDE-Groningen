@@ -110,8 +110,8 @@ function camera(w) {
   const g = ride;
   if (!g || !g.seat) return;
   const s = g.seat, d = W.lookDir(g.look);
-  const pos = toW(s.u, s.v);
-  const far = toW(s.u + d.u * 12, s.v + d.v * 12);
+  const pos = toW(s.u, s.v + W.CAM_OUT);
+  const far = toW(s.u + d.u * 12, s.v + W.CAM_OUT + d.v * 12);
   const at = { x: far.x, y: far.y, z: s.h + EYE + d.h * 12 };
   // het mikpunt loopt rustig achter de muis aan
   g.aim = g.aim ? { x: g.aim.x + (at.x - g.aim.x) * 0.2, y: g.aim.y + (at.y - g.aim.y) * 0.2, z: g.aim.z + (at.z - g.aim.z) * 0.2 } : at;

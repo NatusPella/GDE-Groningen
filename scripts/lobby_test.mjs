@@ -116,7 +116,7 @@ t('N spelers: de host ziet de lijst, kan iedereen apart verwijderen en het maxim
   s = L.reduce(s, { t: 'spelers', lijst: LIJST(4), max: 4 });
   assert.equal(s.step, 'verbonden');
   const v = L.view(s);
-  assert.match(v.lines[0], /Spelers \(4 van 4\): Tammo \(gastheer\), Tessa, Bram, Lotte/);
+  assert.match(v.lines[0], /Spelers \(4 van 4\): Tammo, Tessa, Bram, Lotte/);
   assert.deepEqual(v.buttons.filter((b) => b.act.startsWith('kick-')).map((b) => b.act), ['kick-1', 'kick-2', 'kick-3']);
   assert.deepEqual(v.buttons.filter((b) => b.act.startsWith('max-')).map((b) => b.act), ['max-8', 'max-12', 'max-16']);
   assert.equal(v.code, null, 'vol: de code hoeft niet meer getoond');
@@ -156,5 +156,21 @@ t('het maximum is standaard 8 en blijft tussen 4 en 16', () => {
   assert.equal(L.createLobby(APP).max, 8);
   const s = L.reduce(L.createLobby(APP), { t: 'spelers', lijst: [], max: 99 }); assert.equal(s.max, 16);
   assert.equal(L.reduce(L.createLobby(APP), { t: 'spelers', lijst: [], max: 2 }).max, 4);
+});
+t('Spel starten: uit zolang je alleen bent, aan met minstens twee spelers; een gast leest dat hij wacht', () => {
+  const lijst = (n) => Array.from({ length: n }, (_, i) => ({ slot: i, char: i ? 'rik' : 'tammo', naam: i ? 'Rik' : 'Tammo', verbinding: 'ok' }));
+  const GATE = { ...APP, startGate: true };
+  const wacht = L.view(run(GATE, { t: 'kies', rol: 'host' }, { t: 'route', route: 'kamer' }, { t: 'akkoord' }, { t: 'code', code: 'ABC' }));
+  const startWacht = wacht.buttons.find((b) => b.act === 'start-spel');
+  assert.ok(startWacht && startWacht.disabled, 'alleen jij: Spel starten staat uit'); assert.match(wacht.lines.join(' '), /minstens twee spelers/);
+  const host = (n) => L.view(L.reduce(run(GATE, { t: 'kies', rol: 'host' }, { t: 'status', status: 'ok' }), { t: 'spelers', lijst: lijst(n), max: 8 }));
+  assert.equal(host(1).buttons.find((b) => b.act === 'start-spel').disabled, true);
+  assert.equal(host(2).buttons.find((b) => b.act === 'start-spel').disabled, false);
+  const verloren = L.view(L.reduce(run(GATE, { t: 'kies', rol: 'host' }, { t: 'status', status: 'ok' }), { t: 'spelers', lijst: lijst(2).map((p) => ({ ...p, verbinding: p.slot ? 'lost' : 'ok' })), max: 8 }));
+  assert.equal(verloren.buttons.find((b) => b.act === 'start-spel').disabled, true, 'een weggevallen speler telt niet mee');
+  const gast = L.view(L.reduce(run(GATE, { t: 'kies', rol: 'gast' }, { t: 'status', status: 'ok' }), { t: 'spelers', lijst: lijst(2), max: 8 }));
+  assert.match(gast.lines.join(' '), /Wacht tot Tammo het spel start/); assert.match(gast.lines.join(' '), /Tammo heeft het spel geopend/); assert.doesNotMatch(gast.lines.join(' '), /gastheer|gastgever/i); assert.equal(gast.buttons.some((b) => b.act === 'start-spel'), false, 'een gast heeft geen Spel starten');
+  const open = L.view(L.reduce(L.reduce(run(GATE, { t: 'kies', rol: 'gast' }, { t: 'status', status: 'ok' }), { t: 'spelers', lijst: lijst(2), max: 8 }), { t: 'gate', aan: false }));
+  assert.doesNotMatch(open.lines.join(' '), /Wacht tot/, 'na het starten staat de wachttekst er niet meer');
 });
 console.log(`lobby_test: ${n}/${n} ok`);
