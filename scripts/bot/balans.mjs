@@ -38,6 +38,9 @@ export function stepsOf(events) {
       else if (e.type === 'status' && !s.firstStatus && Number.isFinite(e.dist)) s.firstStatus = { afstand: e.dist, veh: e.veh };
     }
   }
+  // the step a run ends in has no 'end' of its own (older runs): it lasts until the last event
+  const lastT = events.reduce((m, e) => (Number.isFinite(e.t) ? Math.max(m, e.t) : m), 0);
+  for (const s of steps.values()) if (s.speel == null && s.t0 != null && s.t1 == null) { s.speel = Math.round((lastT - s.t0) * 10) / 10; s.outcome = s.outcome || 'laatste'; }
   return [...steps.values()];
 }
 
