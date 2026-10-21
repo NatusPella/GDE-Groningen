@@ -61,7 +61,7 @@ if (BM.modus === 'vergelijk') {
   else {
     await sleep(1500);
     console.log('[capture] benchmark-kaart-tweede');
-    out.tekst2 = c2.innerText.replace(/s+/g, ' ').slice(0, 700);
+    out.tekst2 = c2.innerText.replace(/\s+/g, ' ').slice(0, 700);
     out.vergelijking2 = (c2.querySelector('.tr-cmp') || {}).innerText || '';
   }
   await sleep(2500);
