@@ -390,6 +390,32 @@ export function compileScene(def, opts = {}) {
       if (env && env.clamp) { const c2 = env.clamp(nx, ny, cam.z, 'camera'); if (c2 && (Math.abs(c2.x - nx) > 1e-6 || Math.abs(c2.y - ny) > 1e-6)) continue; }
       cam = { ...cam, x: nx, y: ny };
     }
+    // still inside someone's personal space (the push out landed in a wall, so fitCamera had pulled the camera in beside them: a back
+    // or a head filled the lens, M02.intro and M03.intro in the real world): the free spot round them nearest to where the shot wanted to be
+    if (!def.set && env && env.solid && cam.z - z0 < 2.4) {
+      const people = [];
+      for (const id of Object.keys(track)) {
+        if (last([{ t: 0, v: true }, ...track[id].vis], t).v === false) continue;
+        const q = actorPos(id, t);
+        people.push(world(anchor, q.f, q.s));
+      }
+      const tooClose = (x, y) => people.some((W) => Math.hypot(x - W.x, y - W.y) < CAM_CLEAR - 1e-6);
+      if (tooClose(cam.x, cam.y)) {
+        const near = people.reduce((b, W) => (!b || Math.hypot(cam.x - W.x, cam.y - W.y) < Math.hypot(cam.x - b.x, cam.y - b.y) ? W : b), null);
+        let best = null, bd = Infinity;
+        for (const r of [CAM_CLEAR + 0.1, 2.3, 3.2, 4.5]) {
+          for (let k = 0; k < 16; k++) {
+            const a = k / 16 * Math.PI * 2, x = near.x + Math.cos(a) * r, y = near.y + Math.sin(a) * r;
+            if (env.solid(x, y, cam.z) || tooClose(x, y)) continue;
+            if (env.clamp) { const c2 = env.clamp(x, y, cam.z, 'camera'); if (c2 && (Math.abs(c2.x - x) > 1e-6 || Math.abs(c2.y - y) > 1e-6)) continue; }
+            const d = Math.hypot(x - P.x, y - P.y);
+            if (d < bd) { bd = d; best = { x, y }; }
+          }
+          if (best) break;
+        }
+        if (best) cam = { ...cam, x: best.x, y: best.y };
+      }
+    }
     return {
       position: cam, lookAt: { x: L.x, y: L.y, z: z0 + look.h },
       fov: sh.fov ?? 46, cut: u === 0 || (t - sh.t) < 1 / 30, shotIndex: i,
