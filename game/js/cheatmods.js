@@ -14,6 +14,9 @@ export const MODS = {
   turbo: false, // the Escapade's top speed and acceleration
   bounce: false, // the player's car bounces on landing
   bigHeads: false,
+  pedScale: 1, // size of the walkers (Kleine mensjes)
+  pigeonScale: 1, // size of the pigeons (Reuzenduif)
+  alwaysGreen: false, // every traffic light is green for the cars (Altijd groen)
   gronings: false,
 };
 

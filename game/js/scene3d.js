@@ -1,5 +1,6 @@
 import { FLAGS, perfOff } from './devflags.js';
 import { sfxLinks } from './latehooks.js';
+import { MODS } from './cheatmods.js';
 import { setDualText } from './subtitles.js';
 import { markerColors } from './a11y.js';
 import { speakerHtml } from './speakers.js';
@@ -2163,6 +2164,7 @@ function syncPedestrianMeshes(world, player, animDt) {
     }
     mesh.position.set(p.x, p.gz || 0, p.y);
     mesh.rotation.y = -p.angle;
+    if (ud.pedScale !== MODS.pedScale) { mesh.scale.setScalar(MODS.pedScale); ud.pedScale = MODS.pedScale; }   // Kleine mensjes (cheat)
     // a plain walker out of the frame (last frame's cull, scene3d.js cullOffscreenActors) is not posed: its walk phase waits
     if (ud.offscreen && !p.ragdoll && !p.pose && !p.carry && !p.heldWeapon && !p.attackFx && !p.hitReact && !(p.greetUntil > world.time) && !perfOff('actoren')) continue;
     // far walkers animate at half rate on a CPU-bound machine (simload.js)
@@ -2502,6 +2504,7 @@ export function update3D(dt, world) {
       if (mesh) {
         const y = (a.kind === 'seagull' ? 6 + Math.sin(world.time * 2 + (a.flapSeed || 0)) * 1.2 : 0) + (a.lift || 0);
         mesh.position.set(a.x, y, a.y);
+        if (a.kind === 'pigeon' && mesh.userData.pigeonScale !== MODS.pigeonScale) { mesh.scale.setScalar(MODS.pigeonScale); mesh.userData.pigeonScale = MODS.pigeonScale; }   // Reuzenduif (cheat)
         mesh.rotation.y = -a.angle - (a.draai || 0);   // a.lift en a.draai: een schaap in de straal van een schotel (#333)
         animateWildlifeMesh3D(mesh, a, world.time);
       }
