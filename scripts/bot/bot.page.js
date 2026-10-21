@@ -105,7 +105,8 @@ function steerTowards(s, mode, tgt, stopAt, top = 24, stopR = null, direct0 = fa
   if (!follower || key !== followKey || s.t - planAt > 12) { followKey = key; planAt = s.t; plan(s, mode, tgt); }
   const me = { x: s.player.x, y: s.player.y };
   const direct = L.distance(me, tgt);
-  const aim = direct0 || direct < (mode === "walk" ? 9 : 25) && (mode !== 'walk' || L.segmentFree(me, tgt, footFree)) ? tgt : follower.next(me) || tgt;   // on foot the planned route goes round poles and walls almost to the end
+  const chasing = mode === 'drive' && s.mission.active && s.mission.stage === 'chase';
+  const aim = direct0 || direct < (mode === "walk" ? 9 : chasing ? 9 : 25) && (mode !== 'walk' || L.segmentFree(me, tgt, footFree)) ? tgt : follower.next(me) || tgt;   // on foot the planned route goes round poles and walls almost to the end
   if ((mode === 'drive' || mode === 'boat') && s.player.vehicle) {
     // a garage (M02: drive in and stand still 1.2 s) or a stage with `stop`: come to rest right there
     const stg = M.activeStage();
@@ -113,8 +114,12 @@ function steerTowards(s, mode, tgt, stopAt, top = 24, stopR = null, direct0 = fa
     const mdefE = (M.getMissionDefs() || [])[s.mission.index];
     // in a chase the lane is full of cyclists and walkers (M26, the Hoogstraatje): steer round them instead of through (#354)
     const avoid = mode === 'drive' && s.mission.active && s.mission.stage === 'chase' ? trafficAhead(me, tgt) : null;
-    const c = L.carControls({ x: me.x, y: me.y, angle: s.player.vehicle.angle, speed: s.player.vehicle.speed }, aim, { stopAt: stopAt || !!rest, rest, top: mode === 'boat' ? Math.min(top, 9) : top, gentle: !!(s.mission.active && mdefE && mdefE.eggs), avoid });
+    const car = { x: me.x, y: me.y, angle: s.player.vehicle.angle, speed: s.player.vehicle.speed };
+    const curve = avoid && follower ? L.curveCap(follower.pts, follower.i, car) : null;
+    const c = L.carControls(car, aim, { stopAt: stopAt || !!rest, rest, top: mode === 'boat' ? Math.min(top, 9) : top, gentle: !!(s.mission.active && mdefE && mdefE.eggs), avoid, curveCap: curve });
     B.stick(c.steer, c.throttle ? -c.throttle : 0);
+    // a chase is logged every 3 s: where, how fast, how far from the fleeing car, what stands in the lane (#354)
+    if (avoid && s.t - (mem.chaseLogT || -9) >= 3) { mem.chaseLogT = s.t; B.log('achtervolging', { x: Math.round(me.x), y: Math.round(me.y), v: Math.round((s.player.vehicle.speed || 0) * 10) / 10, afstand: Math.round(direct), hindernis: avoid.filter((o) => Math.hypot(o.x - me.x, o.y - me.y) < 14).length, stuur: Math.round(c.steer * 100) / 100, gas: c.throttle, wens: Math.round(c.want * 10) / 10 }); }
     if (!c.reverse && wedge.update(s.t, s.player.vehicle.speed, c.throttle)) wedge.reset(), wedgeOut = true;
     if (B.input.isDown('shift')) B.up('shift');
   } else {

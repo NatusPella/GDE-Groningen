@@ -608,6 +608,57 @@ const CHECKS = [
     }
     return { gestapeld, banen: out, opmerking: 'alleen starten en vier seconden meedraaien; niet gespeeld tot een klus af was, niet beoordeeld: balans, uitleg en loon' };
   } },
+  // zijmissies van #26: per missie een route vanaf de Grote Markt, naar de plek, E, en spelen: de keuzebanen worden helemaal gespeeld (antwoorden
+  // tot het loon), de ritten en de rave starten en draaien vier seconden; beelden van paneel, marker en uitslag (pictogram: de kaart-check)
+  { id: 'zijmissies', issues: [26], run: async () => {
+    const SJ = await imp('sidejobs');
+    const RT = await imp('routing');
+    const act = w.sideJobActions; if (!act) return { fout: 'world.sideJobActions ontbreekt (bijbanen niet gestart)' };
+    const KEUZE = ['loket', 'studiestaat', 'vigilantia', 'promotie', 'kamerkoning', 'wolkenhal', 'helix', 'niemeyer', 'bernard'];
+    const RITTEN = ['museumbus', 'suikerbieten', 'herstelploeg', 'oogtv', 'vandermeden', 'schouwburg', 'bernardrit'];
+    const IDS = JOBS.length ? JOBS : [...KEUZE, 'rechtbank', 'boa', 'cabaret', ...RITTEN, 'telefoonrave'];
+    const alle = SJ.getSideJobSpotsForRender();
+    const out = [];
+    for (const id of IDS) {
+      const sp = alle.find((q) => q.job.id === id);
+      if (!sp) { out.push({ id, fout: 'geen startplek in de kaart' }); continue; }
+      const i0 = issues.length;
+      w.wanted = 0; w.health = 100;
+      let route = null;
+      try { const r = RT.planLandRoute(map, 'walk', [GM.x, GM.y], [sp.x, sp.y]); route = r && r.pts ? r.pts.length : 0; } catch (e) { route = 'fout: ' + String(e.message || e).slice(0, 80); }
+      await go(sp.x, sp.y, 0, 3500);
+      for (let k = 0; k < 3 && Math.hypot(p.x - sp.x, p.y - sp.y) > 2; k++) await go(sp.x, sp.y, 0, 3500);
+      w.wanted = 0;
+      let pogingen = 0;
+      while (pogingen < 4 && !act.active()) { pogingen++; if (Math.hypot(p.x - sp.x, p.y - sp.y) > 2) await go(sp.x, sp.y, 0, 3000); await tap('e', 'KeyE', 160); await sleep(1800); }
+      const rec = { id, naam: sp.job.name, x: Math.round(sp.x), y: Math.round(sp.y), route, pogingen, gestart: act.active() };
+      if (!rec.gestart) { rec.melding = (w.messages || []).slice(-2).map((m) => (m.text || '').slice(0, 70)); out.push({ ...rec, meldingen: issues.slice(i0).map((x) => x.m) }); continue; }
+      const geld0 = w.money;
+      const t0 = performance.now(), seen = {};
+      let beantwoord = 0;
+      const ctx = () => (D.sidejobs && D.sidejobs.ctx ? D.sidejobs.ctx() : null);
+      if (KEUZE.includes(id) || id === 'telefoonrave') {
+        while (act.active() && performance.now() - t0 < (id === 'telefoonrave' ? 14000 : 70000)) {
+          const c = ctx(); const d = c && c.data; const ph = d && d.phase;
+          if (!seen.start) { seen.start = true; await snap('zijmissie-' + id + '-start', 400); }
+          if (d && d.dest && (ph === 'carry' || ph === 'lopen') && Math.hypot(p.x - d.dest.x, p.y - d.dest.y) > 4) { await go(d.dest.x, d.dest.y, 0, 2500); continue; }
+          if (ph === 'ask') { if (!seen.ask) { seen.ask = true; await snap('zijmissie-' + id + '-vraag', 500); } const n = 1 + (beantwoord % 3); await tap(String(n), 'Digit' + n); beantwoord++; await sleep(300); }
+          else if (ph === 'draaien') { if (!seen.rave) { seen.rave = true; await snap('zijmissie-' + id + '-paneel', 500); } await tap('3', 'Digit3'); await sleep(400); }
+          else if (ph === 'result' && !seen.res) { seen.res = true; await snap('zijmissie-' + id + '-klaar', 400); }
+          await sleep(250);
+        }
+        if (id === 'telefoonrave' && act.active()) act.stop();
+      } else {
+        await sleep(4000);
+        await snap('zijmissie-' + id, 200);
+        act.stop();
+      }
+      await sleep(2500);
+      out.push({ ...rec, beantwoord, klaar: !act.active(), duurS: Math.round((performance.now() - t0) / 1000), geld: Math.round(w.money - geld0), meldingen: issues.slice(i0).map((x) => x.m) });
+      if (act.active()) { act.stop(); await sleep(2500); }
+    }
+    return { banen: out, opmerking: 'de keuzebanen zijn tot het loon gespeeld door een script (antwoord 1, 2, 3 rond); de ritten en de rave alleen gestart (vier seconden), niet gespeeld tot het einde; niet beoordeeld: uitleg, loon en of het leuk is' };
+  } },
   // voertuigen (speeltestlus): elk winkelvoertuig op een weg bij de Grote Markt neerzetten, instappen, drie seconden gas, kijken of het rijdt
   { id: 'voertuigen', issues: [], run: async () => {
     const S = await imp('shops');

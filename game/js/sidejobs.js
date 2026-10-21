@@ -842,6 +842,63 @@ export function drawJobGlyph(g, glyph, r, bg) {
       g.beginPath(); g.arc(0.2, 0, 0.38, -0.9, 0.9); g.stroke();
       g.beginPath(); g.arc(0.2, 0, 0.65, -0.9, 0.9); g.stroke();
       break;
+    case 'loket':   // a stamp: handle, neck, base
+      g.roundRect(-0.28, -0.74, 0.56, 0.4, 0.14);
+      g.fill();
+      g.fillRect(-0.12, -0.36, 0.24, 0.36);
+      g.fillRect(-0.7, 0.0, 1.4, 0.3);
+      g.fillRect(-0.7, 0.44, 1.4, 0.12);
+      break;
+    case 'studiestaat':   // two coins
+      g.arc(-0.22, 0.12, 0.42, 0, Math.PI * 2);
+      g.fill();
+      g.beginPath(); g.arc(0.3, -0.24, 0.4, 0, Math.PI * 2); g.fill();
+      g.fillStyle = bg;
+      g.fillRect(0.2, -0.4, 0.2, 0.32);
+      break;
+    case 'vigilantia':   // a glass raised
+      g.moveTo(-0.5, -0.64); g.lineTo(0.5, -0.64); g.lineTo(0.16, 0.14); g.lineTo(-0.16, 0.14); g.closePath();
+      g.fill();
+      g.fillRect(-0.06, 0.12, 0.12, 0.46);
+      g.fillRect(-0.4, 0.56, 0.8, 0.12);
+      break;
+    case 'promotie':   // a mortarboard with its tassel
+      g.moveTo(0, -0.62); g.lineTo(0.9, -0.16); g.lineTo(0, 0.3); g.lineTo(-0.9, -0.16); g.closePath();
+      g.fill();
+      g.beginPath(); g.moveTo(-0.5, 0.06); g.lineTo(-0.5, 0.5); g.quadraticCurveTo(0, 0.82, 0.5, 0.5); g.lineTo(0.5, 0.06); g.lineTo(0, 0.3); g.closePath(); g.fill();
+      g.lineWidth = 0.1;
+      g.beginPath(); g.moveTo(0.8, -0.12); g.lineTo(0.8, 0.4); g.stroke();
+      break;
+    case 'kamerkoning':   // a crown
+      g.moveTo(-0.72, 0.5); g.lineTo(-0.72, -0.34); g.lineTo(-0.36, 0.04); g.lineTo(0, -0.5); g.lineTo(0.36, 0.04); g.lineTo(0.72, -0.34); g.lineTo(0.72, 0.5);
+      g.closePath();
+      g.fill();
+      break;
+    case 'wolkenhal':   // a cloud
+      g.arc(-0.34, 0.12, 0.36, 0, Math.PI * 2);
+      g.fill();
+      g.beginPath(); g.arc(0.02, -0.18, 0.44, 0, Math.PI * 2); g.arc(0.4, 0.14, 0.34, 0, Math.PI * 2); g.fill();
+      g.fillRect(-0.34, 0.12, 0.74, 0.36);
+      break;
+    case 'helix':   // a spiral
+      g.lineWidth = 0.16;
+      for (let a = 0.2; a < 9; a += 0.2) { const r = 0.07 * a; g.lineTo(Math.cos(a) * r, Math.sin(a) * r); }
+      g.stroke();
+      break;
+    case 'niemeyer':   // a robot head
+      g.roundRect(-0.56, -0.4, 1.12, 0.92, 0.16);
+      g.fill();
+      g.fillRect(-0.05, -0.72, 0.1, 0.32);
+      g.fillStyle = bg;
+      g.beginPath(); g.arc(-0.22, -0.06, 0.12, 0, Math.PI * 2); g.arc(0.22, -0.06, 0.12, 0, Math.PI * 2); g.fill();
+      g.fillRect(-0.28, 0.2, 0.56, 0.1);
+      break;
+    case 'bernard':   // an umbrella
+      g.moveTo(-0.84, 0.0); g.quadraticCurveTo(0, -1.0, 0.84, 0.0); g.quadraticCurveTo(0.42, -0.14, 0, 0.0); g.quadraticCurveTo(-0.42, -0.14, -0.84, 0.0);
+      g.fill();
+      g.lineWidth = 0.12;
+      g.beginPath(); g.moveTo(0, 0.0); g.lineTo(0, 0.6); g.quadraticCurveTo(0, 0.82, 0.22, 0.82); g.stroke();
+      break;
     default:
       g.arc(0, 0, 0.5, 0, Math.PI * 2); g.fill();
   }
