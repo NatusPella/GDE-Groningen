@@ -81,6 +81,23 @@ function plan(s, mode, tgt) {
   B.log('route', { mode, planned: !!pts, src, points: line.length, to: [Math.round(tgt.x), Math.round(tgt.y)] });
 }
 
+// what stands in the lane of a car at `me` that is chasing `tgt`: walkers, cyclists and moving traffic within 30 m (not the car it chases)
+function trafficAhead(me, tgt) {
+  const out = [];
+  for (const p of world.pedestrians || []) {
+    if (p.state === 'dead' || Math.hypot(p.x - me.x, p.y - me.y) > 30) continue;
+    out.push({ x: p.x, y: p.y, r: 0.45 });
+  }
+  const own = player.inVehicle;
+  for (const v of world.vehicles || []) {
+    if (v === own || v.wrecked || v.sinking || Math.hypot(v.x - me.x, v.y - me.y) > 30) continue;
+    if (Math.hypot(v.x - tgt.x, v.y - tgt.y) < 6) continue;        // the one we chase
+    if (v.parked && !(Math.abs(v.speed || 0) > 0.5)) continue;     // a parked car stands at the kerb, not in the lane
+    out.push({ x: v.x, y: v.y, r: v.isBike || v.isScooter ? 0.6 : Math.max(0.9, (v.halfWid || 1) * 0.9) });
+  }
+  return out;
+}
+
 // aim for the target over the planned route; returns the distance left
 // stopR: how close on foot (default 0.6 of the marker radius; a vehicle to board needs the bot right next to it, not 5 m away)
 function steerTowards(s, mode, tgt, stopAt, top = 24, stopR = null, direct0 = false) {
@@ -94,7 +111,9 @@ function steerTowards(s, mode, tgt, stopAt, top = 24, stopR = null, direct0 = fa
     const stg = M.activeStage();
     const rest = stg && (stg.kind === 'garage' ? 3.5 : stg.stop ? Math.max(3, stg.stop + 2) : 0);
     const mdefE = (M.getMissionDefs() || [])[s.mission.index];
-    const c = L.carControls({ x: me.x, y: me.y, angle: s.player.vehicle.angle, speed: s.player.vehicle.speed }, aim, { stopAt: stopAt || !!rest, rest, top: mode === 'boat' ? Math.min(top, 9) : top, gentle: !!(s.mission.active && mdefE && mdefE.eggs) });
+    // in a chase the lane is full of cyclists and walkers (M26, the Hoogstraatje): steer round them instead of through (#354)
+    const avoid = mode === 'drive' && s.mission.active && s.mission.stage === 'chase' ? trafficAhead(me, tgt) : null;
+    const c = L.carControls({ x: me.x, y: me.y, angle: s.player.vehicle.angle, speed: s.player.vehicle.speed }, aim, { stopAt: stopAt || !!rest, rest, top: mode === 'boat' ? Math.min(top, 9) : top, gentle: !!(s.mission.active && mdefE && mdefE.eggs), avoid });
     B.stick(c.steer, c.throttle ? -c.throttle : 0);
     if (!c.reverse && wedge.update(s.t, s.player.vehicle.speed, c.throttle)) wedge.reset(), wedgeOut = true;
     if (B.input.isDown('shift')) B.up('shift');
@@ -452,6 +471,8 @@ while (true) {
     const mdef = (M.getMissionDefs() || [])[s.mission.index];
     if (mdef && mdef.eggs) top = Math.min(top, 7);
     if (s.mission.stage === 'convoy') top = Math.min(top, 11);
+    // a chase: the fleeing car cruises at 14 and runs at 28, the Fjord Frituur can do 50 (#354)
+    if (s.mission.stage === 'chase' && s.player.vehicle && !s.player.vehicle.boat) top = Math.max(top, 36);
     if (act.stunt && s.player.vehicle) {
       let best = null, bd = Infinity;
       for (const q of Br.propsInRadius(s.player.x, s.player.y, 90)) {
