@@ -1385,6 +1385,20 @@ function programSort(a, b) {
   if (a.z !== b.z) return a.z - b.z;
   return a.id - b.id;
 }
+// Whether a program is linked. Asking is a synchronous round trip to the GPU process that waits out its backlog (KHR_parallel_shader_compile
+// COMPLETION_STATUS), and the guard asked for every draw of every material still linking: with a few dozen programs pending that was most of the
+// frame (66% of the main thread in a profile right after a pool was created). A linked program is remembered; while one is not linked, the
+// question is asked at most every LINK_POLL_MS for all of them, and the answer in between is 'not yet' (its draw waits a frame or two longer).
+const LINK_POLL_MS = 25;
+let linkPollAt = 0;
+function programLinked(p) {
+  if (p._linked) return true;
+  const now = performance.now();
+  if (now < linkPollAt) return false;
+  if (p.isReady()) { p._linked = true; return true; }
+  linkPollAt = now + LINK_POLL_MS;
+  return false;
+}
 function hookLinkGuard(r) {
   r.setOpaqueSort(programSort);
   const draw0 = r.renderBufferDirect.bind(r);
@@ -1400,7 +1414,7 @@ function hookLinkGuard(r) {
     if (guard && canvasFrames > LINK_GUARD_AFTER && (sc === null || sc === scene) && !material.isMeshDepthMaterial && !material.isMeshDistanceMaterial && !perfOff('linkwacht')) {
       const programs = r.properties.get(material).programs;
       let ready = !!programs;
-      if (programs) for (const p of programs.values()) if (!p.isReady()) { ready = false; break; }
+      if (programs) for (const p of programs.values()) if (!programLinked(p)) { ready = false; break; }
       if (!ready) { linkPending.add(object); return undefined; }
     }
     return draw(camera, sc, geometry, material, object, group);
