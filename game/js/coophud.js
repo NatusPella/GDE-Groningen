@@ -3,7 +3,8 @@
 // een Ping-knop. Alleen DOM; wat het label toont komt uit partnerhud.js (getest).
 // Niet in beeld bekeken. Markeringen op de kaart en de minimap zijn er nog niet
 // (partnerhud.projectMarker is klaar voor gebruik).
-import { sendPing } from './coopnet.js';
+import { pingGebaar } from './coopnet.js';
+import { PING_TOETSEN } from './coopping.js';
 
 let fadeEl = null, chip = null, last = '';
 
@@ -32,7 +33,8 @@ export function updatePartnerChip(world) {
     chip.className = 'coop-chip';
     chip.style.cssText = 'position:fixed;left:16px;bottom:16px;z-index:700;display:flex;flex-direction:column;gap:4px;padding:6px 10px;background:rgba(15,40,26,0.85);color:#f0ede4;border-radius:6px;font:14px "Arial Narrow",Arial,sans-serif;';
     chip.addEventListener('click', (e) => {
-      if (e.target.closest('[data-ping]') && world.player) sendPing(world, world.player.x, world.player.y, 'hier');
+      const b = e.target.closest('[data-ping]');
+      if (b && world.player) pingGebaar(world, b.getAttribute('data-ping'));
     });
     document.body.appendChild(chip);
   }
@@ -43,5 +45,5 @@ export function updatePartnerChip(world) {
   if (key === last) return;
   last = key;
   chip.innerHTML = lijst.map((p) => `<div style="display:flex;gap:8px;align-items:center"><span style="color:${p.kleur}" aria-hidden="true">${SHAPE[p.vorm] || '●'}</span><span><b>${p.naam}</b> · ${p.tekst}</span></div>`).join('') +
-    '<button type="button" data-ping style="align-self:flex-start;background:#3fc97a;color:#0c140e;border:0;border-radius:4px;padding:2px 8px;cursor:pointer">Ping</button>';
+    '<div style="display:flex;gap:4px;flex-wrap:wrap">' + PING_TOETSEN.map((k) => `<button type="button" data-ping="${k.soort}" title="Toets ${k.toets.toUpperCase()}" style="background:#3fc97a;color:#0c140e;border:0;border-radius:4px;padding:2px 8px;cursor:pointer">${k.tekst} <small>${k.toets.toUpperCase()}</small></button>`).join('') + '</div>';
 }

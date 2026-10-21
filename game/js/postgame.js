@@ -334,7 +334,7 @@ function finish(r, res) {
   if (res.value != null && !res.aborted) rec = recordChallengeResult(w, def.id, { value: res.value, medal: res.medal | 0, lower: !!res.lower });
   const medal = res.medal | 0;
   const prize = res.reward != null ? res.reward : PRIZE[medal];
-  if (prize > 0) w.money += prize;
+  if (prize > 0) { w.money += prize; if (w.coopDeel) w.coopDeel(prize); } // samen spelen (#365)
   if (!res.aborted) {
     if (res.success || medal > 0) {
       unlockAchievement(w, `${def.id}_klaar`);
