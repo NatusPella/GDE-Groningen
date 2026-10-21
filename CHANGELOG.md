@@ -6,6 +6,9 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Verbeterd
+- **De stad is wat lichter om te tekenen (#246; gemeten op een drukke machine, door Claude en niet door een mens in beeld bekeken; de 60 fps zijn niet gehaald):** de gebouw-, gevel- en wegcellen en de tegels van de verre laag worden nu per materiaal met één multi-draw-aanroep getekend in plaats van één mesh per cel (`?perfoff=pool` zet het terug): in de stad 746 tegen 404 draw calls per frame (-46%) en 0,7 ms minder CPU per scene-render (11,0 tegen 10,3 ms); een hele frame te voet 1,3 ms korter (25,0 tegen 23,4 ms, 6 van 6 afwisselende paren, 3 standaardfouten), staand binnen de ruis (22,7 tegen 22,3 ms, -1,6 ± 1,3). De dekkende tekenlijst sorteert eerst op programma (programmawissels 164 naar 94, ~270 GL-aanroepen minder), streek- en waterplekken stellen hun geometrie niet meer bij elke tekenaanroep opnieuw in (164 GL-aanroepen per frame), en de wachttijd op het linken van shaders vraagt nog maar elke 25 ms (en niet meer per tekenaanroep) of een programma klaar is. Een GL-aanroep blijkt 25 tot 300 ns te kosten en een draw call in three ongeveer 2 µs: minder aanroepen alleen brengt de 60 fps dus niet. Voetgangers ver weg (meer dan ~55 m) krijgen hun pose om de 2e of 4e frame (`?perfoff=pedtier`). Onderweg bleek de kopie van een materiaal zijn `defines` kwijt te raken (alle wegen effen grijs); dat is opgelost en heeft een test. De kademuren blijven los omdat een beeld aan het water er met de pool anders uitzag (oorzaak niet gevonden). Niet gehaald: 60 fps te voet op deze machine (20 tot 23 ms); wat daarvoor nodig is staat in docs/PERF-METING-2026-10-19.md, Vervolg 9.
+
 ## [0.38.1] - 2026-10-21
 
 ### Opgelost
