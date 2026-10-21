@@ -25,7 +25,7 @@ const release = () => { if (slot) { try { fs.rmdirSync(slot); } catch { /* weg *
 process.on('exit', release);
 if (process.argv.includes('--slot')) {
   for (let t = 0; t < 720 && !slot; t++) {
-    for (const n of [1, 2, 3]) { try { fs.mkdirSync(`C:/Users/abuis/gde-locks/electron-${n}`); slot = `C:/Users/abuis/gde-locks/electron-${n}`; break; } catch { /* bezet */ } }
+    for (const n of [1, 2, 3]) { const dir = path.join(process.env.GDE_LOCKS || path.join(os.homedir(), 'gde-locks'), `electron-${n}`); try { fs.mkdirSync(dir); slot = dir; break; } catch { /* bezet */ } }
     if (!slot) await new Promise((r) => setTimeout(r, 20000));
   }
 }

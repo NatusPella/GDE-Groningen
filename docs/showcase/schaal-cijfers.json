@@ -1,0 +1,223 @@
+{
+  "gemaakt": "2026-10-21T15:16:38.859Z",
+  "commit": "79ad6188",
+  "let_op": "Gemeten cijfers uit scripts/stats/schaal.mjs; de bron staat bij elk cijfer.",
+  "cijfers": [
+    {
+      "id": "git.commits",
+      "waarde": 3575,
+      "tekst": "3.575",
+      "label": "commits",
+      "bron": "git rev-list --count HEAD",
+      "let_op": null
+    },
+    {
+      "id": "git.kalenderdagen",
+      "waarde": 34,
+      "tekst": "34",
+      "label": "dagen van eerste commit tot nu",
+      "bron": "git log (--format=%cI)",
+      "let_op": null
+    },
+    {
+      "id": "sessies.branches_sessies",
+      "waarde": 389,
+      "tekst": "389",
+      "label": "AI-sessies met eigen branch",
+      "bron": "git for-each-ref + kopteksten van merge-commits",
+      "let_op": "ondergrens: een sessie die op een bestaande branch werkte, een opgeruimde en nooit gemergede branch of een oude branchnaam telt niet mee"
+    },
+    {
+      "id": "code.regels_code",
+      "waarde": 279491,
+      "tekst": "279.491",
+      "label": "regels code",
+      "bron": "som van de talen hieronder, zonder Markdown en data",
+      "let_op": null
+    },
+    {
+      "id": "code.spelmodules",
+      "waarde": 709,
+      "tekst": "709",
+      "label": "JavaScript-modules in het spel",
+      "bron": "git ls-files game/js",
+      "let_op": null
+    },
+    {
+      "id": "issues.totaal",
+      "waarde": 360,
+      "tekst": "360",
+      "label": "issues op het bord",
+      "bron": "gh issue list --state all",
+      "let_op": "pull requests zijn hier niet bij"
+    },
+    {
+      "id": "issues.bugs_gesloten",
+      "waarde": 169,
+      "tekst": "169",
+      "label": "bugs opgelost",
+      "bron": "gh issue list --state all",
+      "let_op": null
+    },
+    {
+      "id": "releases.aantal",
+      "waarde": 48,
+      "tekst": "48",
+      "label": "releases",
+      "bron": "gh release list",
+      "let_op": null
+    },
+    {
+      "id": "wereld.oppervlak_km2",
+      "waarde": 2955,
+      "tekst": "2.955",
+      "label": "km² speelgebied",
+      "bron": "oppervlakte (formule van Gauss) van global.outline in index-provincie.json",
+      "let_op": "het gebied binnen de grens, dus ook water; docs/PROVINCIE-PLAN.md noemt ~2.960 km² totaal en ~2.330 km² land"
+    },
+    {
+      "id": "wereld.tegels",
+      "waarde": 2901,
+      "tekst": "2.901",
+      "label": "kaarttegels",
+      "bron": "game/world/index-provincie.json + tegels (.gdp)",
+      "let_op": null
+    },
+    {
+      "id": "wereld.gebouwen",
+      "waarde": 387530,
+      "tekst": "387.530",
+      "label": "gebouwen",
+      "bron": "game/world/index-provincie.json + tegels (.gdp)",
+      "let_op": "unieke gid; gelijk aan index stats.buildings"
+    },
+    {
+      "id": "wereld.wegen_km",
+      "waarde": 12344,
+      "tekst": "12.344",
+      "label": "km weg en pad",
+      "bron": "game/world/index-provincie.json + tegels (.gdp)",
+      "let_op": "som van de lengte van de polylijnen; een weg met twee rijbanen telt per rijbaan"
+    },
+    {
+      "id": "wereld.bruggen",
+      "waarde": 2687,
+      "tekst": "2.687",
+      "label": "brugstukken",
+      "bron": "game/world/index-provincie.json + tegels (.gdp)",
+      "let_op": "OSM-ways met het brugkenmerk; een brug kan uit meerdere stukken bestaan"
+    },
+    {
+      "id": "wereld.stations",
+      "waarde": 30,
+      "tekst": "30",
+      "label": "treinstations",
+      "bron": "index-provincie.json global.stations",
+      "let_op": null
+    },
+    {
+      "id": "wereld.buslijnen",
+      "waarde": 98,
+      "tekst": "98",
+      "label": "buslijnnummers",
+      "bron": "game/world/provincie-bus.json (ref)",
+      "let_op": null
+    },
+    {
+      "id": "wereld.dorpen",
+      "waarde": 190,
+      "tekst": "190",
+      "label": "dorpen",
+      "bron": "places kind village",
+      "let_op": null
+    },
+    {
+      "id": "wereld.bomen",
+      "waarde": 956141,
+      "tekst": "956.141",
+      "label": "bomen",
+      "bron": "game/world/index-provincie.json + tegels (.gdp)",
+      "let_op": "rijen in de tegels; een rij kan een boom of een groepje zijn"
+    },
+    {
+      "id": "inhoud.verhaalmissies",
+      "waarde": 31,
+      "tekst": "31",
+      "label": "verhaalmissies",
+      "bron": "game/js/storyarc.js",
+      "let_op": null
+    },
+    {
+      "id": "inhoud.cutscenes",
+      "waarde": 72,
+      "tekst": "72",
+      "label": "cutscenes",
+      "bron": "game/js/cutscenes_akte1..4.js",
+      "let_op": null
+    },
+    {
+      "id": "inhoud.dialoogregels",
+      "waarde": 1320,
+      "tekst": "1.320",
+      "label": "regels dialoog",
+      "bron": "game/storydata/script.json (scenes[].lines)",
+      "let_op": null
+    },
+    {
+      "id": "inhoud.stemopnames",
+      "waarde": 3057,
+      "tekst": "3.057",
+      "label": "stemopnames",
+      "bron": "game/audio/voicelines",
+      "let_op": "bestanden, geen zinnen; alle stemmen zijn met AI gemaakt (README)"
+    },
+    {
+      "id": "inhoud.muziektracks",
+      "waarde": 20,
+      "tekst": "20",
+      "label": "muziektracks",
+      "bron": "game/audio/gmusic/manifest.json",
+      "let_op": "tracks met AI gemaakt (README); meer dan 3 minuten per track is niet gemeten"
+    },
+    {
+      "id": "inhoud.voertuigmodellen",
+      "waarde": 28,
+      "tekst": "28",
+      "label": "voertuigmodellen",
+      "bron": "game/js/vehicleregister.js",
+      "let_op": "per klasse: auto 19, tweewieler 3, boot 1, lucht 1, attractie 2, dier 1, ov 1"
+    },
+    {
+      "id": "inhoud.diersoorten",
+      "waarde": 13,
+      "tekst": "13",
+      "label": "diersoorten",
+      "bron": "game/js/dierenregister.js",
+      "let_op": "koe, schaap, paard, gans, eend, zwaan, meeuw, reiger, vis, zeehond, duif, kat, hond"
+    },
+    {
+      "id": "inhoud.bijbanen",
+      "waarde": 38,
+      "tekst": "38",
+      "label": "bijbanen",
+      "bron": "game/js/sidejobs.js",
+      "let_op": null
+    },
+    {
+      "id": "inhoud.activiteiten",
+      "waarde": 17,
+      "tekst": "17",
+      "label": "minigames en activiteiten",
+      "bron": "game/js/activities.js",
+      "let_op": "zonder de pg_*-minigames van de verhaalmissies"
+    },
+    {
+      "id": "inhoud.prestaties",
+      "waarde": 187,
+      "tekst": "187",
+      "label": "prestaties",
+      "bron": "game/js/achievements.js",
+      "let_op": null
+    }
+  ]
+}

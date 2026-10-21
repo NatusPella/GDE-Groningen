@@ -202,6 +202,8 @@ function trackMovement(dt, w, p, pv) {
 }
 
 function trackPolice(dt, w) {
+  // samen spelen (#370): het gezochtniveau van een gast is dat van de gastheer; ontsnappen is aan de gastheer, niet aan wie meekijkt
+  if (w.coopRole === 'client') { wantedStreak = 0; had5 = false; return; }
   const wanted = w.wanted || 0;
   setStatMax(w, 'maxWanted', wanted);
   if (wanted >= 5) had5 = true;

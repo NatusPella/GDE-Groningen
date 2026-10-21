@@ -128,6 +128,8 @@ function createWindow() {
     // The .ico carries hand-tuned 16-48 px images for the taskbar and title bar.
     ...(process.platform !== 'darwin' ? { icon: path.join(__dirname, 'resources', process.platform === 'win32' ? 'icon.ico' : 'window-icon.png') } : {}),
     autoHideMenuBar: true,
+    // --clip (trailer clips): no frame, so the page is exactly the requested size (a frame costs 16 x 39 px)
+    ...(devtools && devtools.clipMode ? { frame: false, x: 0, y: 0 } : {}),
     show: false,
     fullscreen: !rec && !hasFlag('--windowed') && loadWindowState().fullscreen,
     webPreferences: {
@@ -135,7 +137,10 @@ function createWindow() {
       preload: path.join(__dirname, 'preload.js'),
     },
   });
-  win.once('ready-to-show', () => win.show());
+  win.once('ready-to-show', () => {
+    if (devtools && devtools.clipMode && rec) win.setBounds({ x: 0, y: 0, width: Math.round(rec[0] / recScale), height: Math.round(rec[1] / recScale) });
+    win.show();
+  });
   const syncFullscreen = () => {
     const on = win.isFullScreen();
     if (!hasFlag('--windowed')) saveWindowState({ fullscreen: on });
@@ -191,6 +196,7 @@ if (!app.requestSingleInstanceLock()) {
   ipcMain.on('gde:coop-send', (e, id, bytes) => { if (coop && Number.isInteger(id) && bytes && bytes.length <= 8192) coop.send(id, new Uint8Array(bytes)); });
   ipcMain.on('gde:coop-close', (e, id) => { if (coop && Number.isInteger(id)) coop.close(id); });
   ipcMain.on('gde:coop-max', (e, n) => { if (coop && Number.isInteger(n)) coop.setMax(n); });
+  ipcMain.handle('gde:coop-diagnose', (e) => coopFor(e.sender).diagnose());
   ipcMain.handle('gde:coop-stop', () => (coop ? coop.stop() : null));
   app.on('before-quit', () => { if (coop) coop.stop(); }); // sluit de poort op de router weer
   ipcMain.handle('gde:save-text', async (e, name, text) => {

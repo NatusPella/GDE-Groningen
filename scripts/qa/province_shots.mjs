@@ -1,9 +1,11 @@
 // Zichtcontrole van de provincie (#5): loopt een plekkenlijst door in één
 // Electron-instantie (wegwerpprofiel, geen echte opslag) en neemt per plek
 // twee screenshots: shots-<naam>.png (straatniveau) en shots-<naam>-hoog.png.
-//   node scripts/qa/province_shots.mjs [--ronde=1|2] [--out=<map>] [--only=a,b] [--settle=<ms>] [--drive=<ms>] [--list]
+//   node scripts/qa/province_shots.mjs [--ronde=1|2|3] [--out=<map>] [--only=a,b] [--settle=<ms>] [--drive=<ms>] [--list]
 // Ronde 1: dorpen en stad (twee opnamen per plek). Ronde 2: spoor, A7, water en kust met de
 // camera langs de lijn, plus een speelcheck (een stuk rijden met een auto en varen met een boot).
+// Ronde 3 (#5): de kust en de zee (Eemshaven, Delfzijl, Lauwersoog, Pieterburen, Dollard) vanaf het land en op ooghoogte,
+// de A7-knooppunten en de havens en dorpen die nog ontbraken; geen speelcheck.
 // ELECTRON_EXE=<pad naar electron.exe> als desktop/node_modules/electron/dist ontbreekt.
 // Vereist `cd desktop && npm run stage` (de gestagede game/ met de provinciewereld).
 // Uitvoer: <out>/shots-<naam>.png, spots.json (resultaat per plek), run.log.
@@ -14,6 +16,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { wgsToWorld } from '../../game/js/rdnew.js';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, '..', '..');
@@ -24,7 +27,7 @@ const SETTLE = Number(arg('settle', 9000));
 const RONDE = Number(arg('ronde', 1));
 const DRIVE = Number(arg('drive', 15000));
 
-const index = JSON.parse(fs.readFileSync(path.join(ROOT, 'game', 'world', 'index-provincie.json'), 'utf8')).global;
+const index = JSON.parse(fs.readFileSync(path.join(process.env.GAME_WORLD || path.join(ROOT, 'game', 'world'), 'index-provincie.json'), 'utf8')).global; // (GAME_WORLD: de wereld van een andere build, zoals bij sweep.mjs)
 const place = (name, kind) => {
   const p = index.places.find((q) => q.name === name && (!kind || q.kind === kind));
   if (!p) throw new Error(`plaats niet gevonden: ${name}`);
@@ -109,7 +112,35 @@ const SPOTS2 = [
   water('water-delfzijl-haven', place('Delfzijl'), 2500, true),
 ];
 
-if (process.argv.includes('--list')) { console.log(JSON.stringify(RONDE === 2 ? SPOTS2 : SPOTS)); process.exit(0); }
+const SPOTS3 = [
+  { name: 'zee-eemshaven', type: 'zee', ...place('Eemshaven'), R: 8000 },
+  { name: 'zee-delfzijl', type: 'zee', ...place('Delfzijl'), R: 9000 },
+  { name: 'zee-lauwersoog', type: 'zee', ...place('Lauwersoog'), R: 8000 },
+  { name: 'zee-pieterburen', type: 'zee', ...place('Pieterburen'), R: 8000 },
+  { name: 'zee-dollard', type: 'zee', ...place('Termunterzijl'), R: 9000 },
+  { name: 'zee-noordpolderzijl', type: 'zee', ...place('Noordpolderzijl'), R: 9000 },
+  { name: 'knoop-a7-hoogkerk', type: 'knoop', ...place('Hoogkerk') },
+  { name: 'knoop-a7-hoogezand', type: 'knoop', ...place('Hoogezand') },
+  { name: 'knoop-a7-zuidbroek', type: 'knoop', ...place('Zuidbroek') },
+  { name: 'knoop-a7-scheemda', type: 'knoop', ...place('Scheemda') },
+  { name: 'knoop-a28-noord', type: 'knoop', ...off(centrum, -1500, -1800) },
+  { name: 'haven-delfzijl', type: 'plaats', ...place('Delfzijl'), snapR: 600 },
+  { name: 'haven-eemshaven', type: 'plaats', ...place('Eemshaven'), snapR: 1500 },
+  { name: 'haven-zoutkamp', type: 'plaats', ...place('Zoutkamp'), snapR: 600 },
+  // (de plaatsknopen van Eemshaven en Delfzijl liggen niet bij de industrie: de coördinaten van de haven zelf)
+  { name: 'industrie-eemshaven', type: 'plaats', ...(([x, y]) => ({ x, y }))(wgsToWorld(53.4330, 6.8700)), snapR: 900 },
+  { name: 'industrie-delfzijl', type: 'plaats', ...(([x, y]) => ({ x, y }))(wgsToWorld(53.3290, 6.9340)), snapR: 900 },
+  { name: 'dorp-uithuizen', type: 'plaats', ...place('Uithuizen'), snapR: 400 },
+  { name: 'dorp-loppersum', type: 'plaats', ...place('Loppersum'), snapR: 400 },
+  { name: 'dorp-leek', type: 'plaats', ...place('Leek'), snapR: 400 },
+  { name: 'dorp-hoogezand', type: 'plaats', ...place('Hoogezand'), snapR: 400 },
+  { name: 'dorp-stadskanaal', type: 'plaats', ...place('Stadskanaal'), snapR: 400 },
+  { name: 'dorp-ter-apel', type: 'plaats', ...place('Ter Apel'), snapR: 400 },
+  { name: 'dorp-vlagtwedde', type: 'plaats', ...place('Vlagtwedde'), snapR: 400 },
+];
+const SPOTSX = RONDE === 3 ? SPOTS3 : SPOTS2;
+if (process.argv.includes('--list')) { console.log(JSON.stringify(RONDE >= 2 ? SPOTSX : SPOTS)); process.exit(0); }
+
 
 fs.mkdirSync(OUT, { recursive: true });
 const profile = `gde-test-qa-${process.pid}`;
@@ -117,9 +148,9 @@ const script = path.join(OUT, '_page.js');
 const WACHT = 'for (let i = 0; i < 240 && !(window.__debug && window.__debug.world); i++) await new Promise((r) => setTimeout(r, 500));\n'
   + `const kEnter = () => { for (const t of [window, document]) { t.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', bubbles: true })); t.dispatchEvent(new KeyboardEvent('keyup', { key: 'Enter', code: 'Enter', bubbles: true })); } };
 let seen = false;
-for (let i = 0; i < 60; i++) { const s = document.querySelector('#start-screen'); const up = !!s && s.classList.contains('visible'); if (up) { seen = true; const it = [...s.querySelectorAll('.ss-item')].find((e) => /nieuw spel/i.test(e.textContent)); if (it) it.click(); else kEnter(); } await new Promise((r) => setTimeout(r, up ? 2500 : 1000)); if (seen && !up) break; if (document.body.classList.contains('game-started')) break; }
+for (let i = 0; i < 60; i++) { const s = document.querySelector('#start-screen'); const up = !!s && s.classList.contains('visible'); if (up) { seen = true; const it = (window.__menuStart ? { click: () => window.__menuStart('nieuw') } : null); if (it) it.click(); else kEnter(); } await new Promise((r) => setTimeout(r, up ? 2500 : 1000)); if (seen && !up) break; if (document.body.classList.contains('game-started')) break; }
 await new Promise((r) => setTimeout(r, 4000));\n`;
-fs.writeFileSync(script, WACHT + (RONDE === 2 ? `window.__qa2 = ${JSON.stringify({ spots: SPOTS2, settle: SETTLE, drive: DRIVE, only: ONLY })};
+fs.writeFileSync(script, WACHT + (RONDE >= 2 ? `window.__qa2 = ${JSON.stringify({ spots: SPOTSX, settle: SETTLE, drive: DRIVE, only: ONLY, noPlay: RONDE === 3 })};
 ` + fs.readFileSync(path.join(HERE, 'province_shots2.page.js'), 'utf8') : `window.__qaSpots = ${JSON.stringify(SPOTS)}; window.__qaSettle = ${SETTLE}; window.__qaOnly = ${JSON.stringify(ONLY)};\n` + fs.readFileSync(path.join(HERE, 'province_shots.page.js'), 'utf8')));
 const electron = process.env.ELECTRON_EXE || path.join(ROOT, 'desktop', 'node_modules', 'electron', 'dist', process.platform === 'win32' ? 'electron.exe' : 'Electron');
 const env = { ...process.env, GDE_TEST_PROFILE: profile };
@@ -133,13 +164,13 @@ fs.rmSync(path.join(os.tmpdir(), profile), { recursive: true, force: true });
 const lines = (r.stdout || '').split('\n');
 let res = {}, full = {};
 for (const l of lines) { const m = l.match(/^\[perf-script\] (.*)$/); if (m) try { full = JSON.parse(m[1]); res = full.spots || {}; } catch {} }
-if (RONDE === 2) fs.writeFileSync(path.join(OUT, "ronde2.json"), JSON.stringify(full, null, 1));
+if (RONDE >= 2) fs.writeFileSync(path.join(OUT, `ronde${RONDE}.json`), JSON.stringify(full, null, 1));
 fs.writeFileSync(path.join(OUT, 'spots.json'), JSON.stringify(res, null, 1));
 const geflagd = Object.entries(res).filter(([, v]) => v.check && v.check.flags.length);
 const gechecked = Object.values(res).filter((v) => v.check).length;
 if (gechecked) console.log(`automatische controle: ${gechecked} plekken, ${geflagd.length} met een vlag${geflagd.map(([k, v]) => `
   ${k}: ${v.check.flags.join(', ')}`).join('')}`);
 const nan = lines.filter((l) => /NaN/i.test(l));
-console.log(`plekken: ${Object.keys(res).length}/${(RONDE === 2 ? SPOTS2 : SPOTS).length}, exit ${r.status}${r.signal ? ' ' + r.signal : ''}, NaN-regels in log: ${nan.length}`);
+console.log(`plekken: ${Object.keys(res).length}/${(RONDE >= 2 ? SPOTSX : SPOTS).length}, exit ${r.status}${r.signal ? ' ' + r.signal : ''}, NaN-regels in log: ${nan.length}`);
 console.log(`uitvoer: ${OUT}`);
 process.exit(r.status === 0 && Object.keys(res).length ? 0 : 1);

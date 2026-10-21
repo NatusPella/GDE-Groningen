@@ -5,7 +5,7 @@
 // --game-dir: [<label>=]<gestagede game>, kommagescheiden; een map die `GDE_STAGE_OUT=<map> node desktop/build.mjs` maakte
 //   (standaard desktop/build/game). Elke run schrijft naar <out>/<label>/.
 // ELECTRON_EXE=<pad naar electron.exe> als desktop/node_modules/electron/dist ontbreekt.
-// --slot: neemt een Electron-slot volgens C:/Users/abuis/gde-locks/README.txt (mkdir electron-1..3) en geeft het vrij.
+// --slot: neemt een Electron-slot volgens $GDE_LOCKS/README.txt (standaard ~/gde-locks) (mkdir electron-1..3) en geeft het vrij.
 // Uitvoer per run: shots-ks-<plek>-<dag|nacht>-<mini|kaart-zN>.png, result.json, run.log.
 import fs from 'node:fs';
 import os from 'node:os';
@@ -22,7 +22,7 @@ const RUNS = arg('game-dir', '').split(',').filter(Boolean).map((s, i) => {
   return m ? { label: m[1], game: path.resolve(m[2]) } : { label: i ? `run${i + 1}` : 'run', game: path.resolve(s) };
 });
 if (!RUNS.length) RUNS.push({ label: 'run', game: '' });
-const LOCKS = 'C:/Users/abuis/gde-locks';
+const LOCKS = process.env.GDE_LOCKS || path.join(os.homedir(), 'gde-locks');
 const spots = arg('spots', 'stad:Groningen:city,dorp:Winsum').split(',').map((s) => { const [naam, plaats, kind] = s.split(':'); return { naam, plaats, kind }; });
 const cfg = { spots, zooms: arg('zooms', '1,3,6').split(',').map(Number), uren: { dag: 13, nacht: 23 }, settle: Number(arg('settle', 6000)), mapSettle: Number(arg('map-settle', 4500)) };
 

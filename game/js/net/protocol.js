@@ -25,7 +25,7 @@ export function checkHandshake(local, remote) {
 export const REASON_TEXT = {
   spel: 'Dit is niet hetzelfde spel.',
   protocol: 'De versies van samen spelen passen niet bij elkaar.',
-  versie: 'De spelversies zijn verschillend. Werk beide spellen bij.',
+  versie: 'Andere versie van het spel. Installeer allebei dezelfde versie, het liefst de nieuwste, en probeer het opnieuw.',
   tegels: 'De wereldbestanden zijn verschillend. Werk beide spellen bij.',
   verhaal: 'Het verhaal is verschillend. Kies op beide kanten hetzelfde verhaal.',
   vol: 'De sessie zit al vol.',

@@ -41,7 +41,8 @@ assert.ok(kept[0][1] > 3.9 && kept[0][2] === 1 && kept[0][3] === 100, 'soort en 
 const { heeftWereld, laadStadTegels } = await import('./lib/stadtegels.mjs');
 if (!heeftWereld()) { console.log('treeclear_test: ok (alleen de kleine kaart; geen game/world voor de stad)'); process.exit(0); }
 const city = (await laadStadTegels()).world;
-assert.ok(city.treeClearStats.moved > 100 && city.treeClearStats.moved < 1500, 'verschoven: ' + city.treeClearStats.moved);
+// (tegels van een oudere bouw hadden er ruim 400 nodig; de OSM-tegelbouw legt de bomen al naast de weg, dan zijn het er een paar)
+assert.ok(city.treeClearStats.moved < 1500, 'verschoven: ' + city.treeClearStats.moved);
 assert.ok(city.treeClearStats.removed < 200, 'verwijderd: ' + city.treeClearStats.removed);
 let bad = 0, narrow = 0, n = 0;
 const seen = new Set();

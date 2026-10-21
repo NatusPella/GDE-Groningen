@@ -40,14 +40,14 @@ import lijn from './sidejob_lijn.js';
 import { BIJBAAN_JOBS } from './sidejob_bijbaan.js';
 import { veerdienst } from './sidejob_veer.js';
 import { PANEEL_JOBS } from './sidejob_paneel.js';
-import { loket, studiestaat, vigilantia, kamerkoning, wolkenhal, helix, niemeyer, bernard } from './sidejob_keuze.js';
+import { loket, studiestaat, vigilantia, promotie, kamerkoning, wolkenhal, helix, niemeyer, bernard } from './sidejob_keuze.js';
 import { STAD_JOBS } from './sidejob_stad.js';
 import { SIDEJOB_PAY_MULT, SIDEJOB_LEVEL_BONUS, SIDEJOB_ACCIDENT_FINE } from './economy.js';
 import { playerBusy } from './busy.js';
 import { jobBonusHook } from './latehooks.js';
 import { noteMoney } from './finance.js';
 
-export const SIDE_JOBS = [bezorger, taxi, bus, rondvaart, fietsdepot, verhuizing, rondvaarttour, boa, rechtbank, cabaret, vracht, loket, studiestaat, vigilantia, kamerkoning, wolkenhal, helix, niemeyer, bernard, lijn, ...BIJBAAN_JOBS, veerdienst, ...PANEEL_JOBS, ...STAD_JOBS];
+export const SIDE_JOBS = [bezorger, taxi, bus, rondvaart, fietsdepot, verhuizing, rondvaarttour, boa, rechtbank, cabaret, vracht, loket, studiestaat, vigilantia, promotie, kamerkoning, wolkenhal, helix, niemeyer, bernard, lijn, ...BIJBAAN_JOBS, veerdienst, ...PANEEL_JOBS, ...STAD_JOBS];
 const BY_ID = new Map(SIDE_JOBS.map((j) => [j.id, j]));
 
 export const JOB_TARGET_COLOR = '#ff9a3c';
@@ -97,7 +97,7 @@ export function getSideJobList() {
 }
 
 // Rough pay per round for the phone's job app until the player has own figures.
-const PAY_GUESS = { lijn: [60, 120], bezorger: [27, 55], taxi: [25, 60], bus: [90, 140], rondvaart: [55, 105], rondvaarttour: [40, 80], fietsdepot: [45, 90], verhuizing: [80, 180], boa: [38, 60], rechtbank: [60, 105], cabaret: [25, 85], vracht: [70, 130], loket: [52, 90], studiestaat: [62, 110], vigilantia: [56, 98], kamerkoning: [52, 92], wolkenhal: [58, 100], helix: [54, 92], niemeyer: [54, 94], bernard: [48, 84], museumbus: [48, 86], suikerbieten: [50, 90], herstelploeg: [66, 96], oogtv: [69, 93], telefoonrave: [40, 85], vandermeden: [56, 90], schouwburg: [56, 92], bernardrit: [52, 84] };
+const PAY_GUESS = { lijn: [60, 120], bezorger: [27, 55], taxi: [25, 60], bus: [90, 140], rondvaart: [55, 105], rondvaarttour: [40, 80], fietsdepot: [45, 90], verhuizing: [80, 180], boa: [38, 60], rechtbank: [60, 105], cabaret: [25, 85], vracht: [70, 130], loket: [52, 90], studiestaat: [62, 110], vigilantia: [56, 98], promotie: [58, 100], kamerkoning: [52, 92], wolkenhal: [58, 100], helix: [54, 92], niemeyer: [54, 94], bernard: [48, 84], museumbus: [48, 86], suikerbieten: [50, 90], herstelploeg: [66, 96], oogtv: [69, 93], telefoonrave: [40, 85], vandermeden: [56, 90], schouwburg: [56, 92], bernardrit: [52, 84] };
 
 // Phone job app: every job with pay, distance and why it can't start now.
 export function getSideJobOffers(w) {
@@ -284,6 +284,7 @@ function completeRound(c, res = {}) {
   const total = pay + tip;
   noteMoney('Bijbaantjes');
   world.money += total;
+  if (world.coopDeel) world.coopDeel(total); // samen spelen (#365)
   c.earned += total;
   c.streak++;
   c.round++;
@@ -841,6 +842,63 @@ export function drawJobGlyph(g, glyph, r, bg) {
       g.beginPath(); g.moveTo(-0.2, -0.2); g.lineTo(0.2, -0.55); g.lineTo(0.2, 0.55); g.lineTo(-0.2, 0.2); g.closePath(); g.fill();
       g.beginPath(); g.arc(0.2, 0, 0.38, -0.9, 0.9); g.stroke();
       g.beginPath(); g.arc(0.2, 0, 0.65, -0.9, 0.9); g.stroke();
+      break;
+    case 'loket':   // a stamp: handle, neck, base
+      g.roundRect(-0.28, -0.74, 0.56, 0.4, 0.14);
+      g.fill();
+      g.fillRect(-0.12, -0.36, 0.24, 0.36);
+      g.fillRect(-0.7, 0.0, 1.4, 0.3);
+      g.fillRect(-0.7, 0.44, 1.4, 0.12);
+      break;
+    case 'studiestaat':   // two coins
+      g.arc(-0.22, 0.12, 0.42, 0, Math.PI * 2);
+      g.fill();
+      g.beginPath(); g.arc(0.3, -0.24, 0.4, 0, Math.PI * 2); g.fill();
+      g.fillStyle = bg;
+      g.fillRect(0.2, -0.4, 0.2, 0.32);
+      break;
+    case 'vigilantia':   // a glass raised
+      g.moveTo(-0.5, -0.64); g.lineTo(0.5, -0.64); g.lineTo(0.16, 0.14); g.lineTo(-0.16, 0.14); g.closePath();
+      g.fill();
+      g.fillRect(-0.06, 0.12, 0.12, 0.46);
+      g.fillRect(-0.4, 0.56, 0.8, 0.12);
+      break;
+    case 'promotie':   // a mortarboard with its tassel
+      g.moveTo(0, -0.62); g.lineTo(0.9, -0.16); g.lineTo(0, 0.3); g.lineTo(-0.9, -0.16); g.closePath();
+      g.fill();
+      g.beginPath(); g.moveTo(-0.5, 0.06); g.lineTo(-0.5, 0.5); g.quadraticCurveTo(0, 0.82, 0.5, 0.5); g.lineTo(0.5, 0.06); g.lineTo(0, 0.3); g.closePath(); g.fill();
+      g.lineWidth = 0.1;
+      g.beginPath(); g.moveTo(0.8, -0.12); g.lineTo(0.8, 0.4); g.stroke();
+      break;
+    case 'kamerkoning':   // a crown
+      g.moveTo(-0.72, 0.5); g.lineTo(-0.72, -0.34); g.lineTo(-0.36, 0.04); g.lineTo(0, -0.5); g.lineTo(0.36, 0.04); g.lineTo(0.72, -0.34); g.lineTo(0.72, 0.5);
+      g.closePath();
+      g.fill();
+      break;
+    case 'wolkenhal':   // a cloud
+      g.arc(-0.34, 0.12, 0.36, 0, Math.PI * 2);
+      g.fill();
+      g.beginPath(); g.arc(0.02, -0.18, 0.44, 0, Math.PI * 2); g.arc(0.4, 0.14, 0.34, 0, Math.PI * 2); g.fill();
+      g.fillRect(-0.34, 0.12, 0.74, 0.36);
+      break;
+    case 'helix':   // a spiral
+      g.lineWidth = 0.16;
+      for (let a = 0.2; a < 9; a += 0.2) { const r = 0.07 * a; g.lineTo(Math.cos(a) * r, Math.sin(a) * r); }
+      g.stroke();
+      break;
+    case 'niemeyer':   // a robot head
+      g.roundRect(-0.56, -0.4, 1.12, 0.92, 0.16);
+      g.fill();
+      g.fillRect(-0.05, -0.72, 0.1, 0.32);
+      g.fillStyle = bg;
+      g.beginPath(); g.arc(-0.22, -0.06, 0.12, 0, Math.PI * 2); g.arc(0.22, -0.06, 0.12, 0, Math.PI * 2); g.fill();
+      g.fillRect(-0.28, 0.2, 0.56, 0.1);
+      break;
+    case 'bernard':   // an umbrella
+      g.moveTo(-0.84, 0.0); g.quadraticCurveTo(0, -1.0, 0.84, 0.0); g.quadraticCurveTo(0.42, -0.14, 0, 0.0); g.quadraticCurveTo(-0.42, -0.14, -0.84, 0.0);
+      g.fill();
+      g.lineWidth = 0.12;
+      g.beginPath(); g.moveTo(0, 0.0); g.lineTo(0, 0.6); g.quadraticCurveTo(0, 0.82, 0.22, 0.82); g.stroke();
       break;
     default:
       g.arc(0, 0, 0.5, 0, Math.PI * 2); g.fill();

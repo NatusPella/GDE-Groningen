@@ -8,7 +8,6 @@ import { openPauseMenu, menuIcon } from './pausemenu.js';
 import { requestOpenSamen } from './samenpanel.js';
 import { openSamenKeuze, isSamenKeuzeOpen } from './samenkeuze.js';
 import { isPauseMenuOpen } from './pausestate.js';
-import { getAchievementSummary } from './achievements.js';
 import { pendingTrailer } from './trailerstate.js';
 // trailer.js (2500 lines) is only loaded when a trailer or benchmark really runs
 import { startTheme, stopTheme } from './theme.js';
@@ -350,12 +349,6 @@ function loadChangelog() {
   return changelogCache;
 }
 
-function summaryText(s) {
-  const d = new Date(s.savedAt);
-  const when = s.savedAt ? `${d.toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' })} ${d.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' })}` : '';
-  return [`€${s.money.toLocaleString('nl-NL')}`, `${s.missionsDone} missies`, s.character, when].filter(Boolean).join(' · ');
-}
-
 // After the attract intro: the logo appears big in the middle, then glides
 // and shrinks into its place before the menu fades in (CSS .ss-handoff).
 function logoIn(screen) {
@@ -375,32 +368,27 @@ function logoIn(screen) {
 }
 
 // Title screen over the live city, cycling through highlights. Resolves with
-// 'game' (Doorgaan / Nieuw spel).
+// 'game' (Alleen spelen: Doorgaan / Nieuw spel, or Samen spelen).
 export function runStartScreen(world, { render, relocate, tick, ready }) {
   return new Promise((resolve) => {
     const screen = el('start-screen');
     const menu = screen.querySelector('.ss-menu');
     ensureActiveSlot();
     const save = hasSave() ? getSaveSummary() : null;
+    // two big choices (Alleen spelen opens Opgeslagen spellen: Doorgaan, Nieuw spel or any saved game), then the quiet rest
     const items = [];
-    if (save) items.push({ act: 'continue', label: 'Doorgaan', sub: summaryText(save) });
-    items.push({ act: 'new', label: 'Nieuw spel', sub: save ? 'Begin opnieuw in Grunn' : 'Moi! Stap in en rij' });
+    items.push({ act: 'solo', label: 'Alleen spelen', sub: save ? 'Doorgaan, een nieuw spel of een ander opgeslagen spel' : 'Moi! Stap in en rij' });
     items.push({ act: 'samen', label: 'Samen spelen', sub: 'Met een vriend of vriendin, tot 4 spelers' });
-    items.push({ act: 'saves', label: 'Opgeslagen spellen', sub: 'Kies, hernoem, exporteer of verwijder je spellen' });
     items.push({ act: 'news', label: 'Wat is er nieuw', sub: 'Alle versies en wijzigingen' });
     items.push({ act: 'settings', label: 'Instellingen', sub: 'Geluid, beeld en camera' });
     items.push({ act: 'about', label: 'Over', sub: 'Credits, licenties en privacy' });
     if (window.gdeDesktop && window.gdeDesktop.isDesktop) items.push({ act: 'exit', label: 'Afsluiten', sub: 'Tot de volgende keer. Hou dij goud!' });
-    const pct = getAchievementSummary().pct;
     const st = save && save.story;
-    const heroSub = st ? [save.name, st.part, st.ended ? 'verhaal uit' : '', pct > 0 ? `${pct}% prestaties` : ''].filter(Boolean).join(' · ') : save ? summaryText(save) : '';
     const itemHtml = (it, i) => {
-      if (it.act === 'continue') {
-        const prog = st && st.total ? Math.round((st.done / st.total) * 100) : null;
-        return `<button type="button" role="menuitem" class="ss-item ss-hero" data-act="continue" data-i="${i}"><span class="ss-label">${menuIcon('resume', 'ss-ic big')}${it.label}</span><small>${heroSub}</small>` +
-          (prog != null ? `<span class="ss-prog"><span class="m-bar"><i style="width:${prog}%"></i></span><span class="bebas">${prog}%</span></span>` : '') + '</button>';
+      if (it.act === 'solo' || it.act === 'samen') {
+        return `<button type="button" role="menuitem" class="ss-item ss-hero" data-act="${it.act}" data-i="${i}"><span class="ss-label">${menuIcon(it.act, 'ss-ic big')}${it.label}</span><small>${it.sub}</small></button>`;
       }
-      return `<button type="button" role="menuitem" class="ss-item" data-act="${it.act}" data-i="${i}">${menuIcon(it.act === 'saves' ? 'load' : it.act === 'continue' ? 'resume' : it.act)}<span class="ss-label">${it.label}</span><small>${it.sub}</small></button>`;
+      return `<button type="button" role="menuitem" class="ss-item" data-act="${it.act}" data-i="${i}">${menuIcon(it.act)}<span class="ss-label">${it.label}</span><small>${it.sub}</small></button>`;
     };
     menu.innerHTML = items.map(itemHtml).join('');
     // where the save picks up, right of the menu
@@ -412,14 +400,13 @@ export function runStartScreen(world, { render, relocate, tick, ready }) {
         const d = save.savedAt ? new Date(save.savedAt) : null;
         const ago = d ? Math.round((Date.now() - d.getTime()) / 60000) : -1;
         const agoText = ago < 0 ? '' : ago < 1 ? 'net opgeslagen' : ago < 120 ? `opgeslagen ${ago} min geleden` : `opgeslagen ${d.toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' })} ${d.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' })}`;
-        saveCard.innerHTML = `<span class="m-eb">Je gaat verder als ${esc(save.character)}</span><span class="big${title.length > 22 ? ' long' : ''}">${esc(title)}</span>` +
+        saveCard.innerHTML = `<span class="m-eb">Laatst gespeeld als ${esc(save.character)}</span><span class="big${title.length > 22 ? ' long' : ''}">${esc(title)}</span>` +
           (save.goal && save.goal !== title ? `<span class="line">Doel: ${esc(save.goal)}</span>` : st ? `<span class="line">${esc(st.part)}${st.date ? ' · ' + esc(st.date) : ''}</span>` : '') +
           `<span class="meta">${[`€${save.money.toLocaleString('nl-NL')}`, `${save.missionsDone} missies`, agoText].filter(Boolean).join(' · ')}</span>`;
       }
     }
     const buttons = [...menu.querySelectorAll('.ss-item')];
     let sel = 0;
-    let confirmNew = false;
     let done = false;
     let last = performance.now();
 
@@ -465,16 +452,8 @@ export function runStartScreen(world, { render, relocate, tick, ready }) {
 
     const focus = (i) => {
       sel = (i + buttons.length) % buttons.length;
-      if (confirmNew && items[sel].act !== 'new') setConfirm(false);
       buttons.forEach((b, j) => b.classList.toggle('sel', j === sel));
       buttons[sel].focus({ preventScroll: true });
-    };
-    const setConfirm = (on) => {
-      confirmNew = on;
-      const b = buttons[items.findIndex((it) => it.act === 'new')];
-      b.classList.toggle('confirm', on);
-      b.querySelector('.ss-label').textContent = on ? 'Zeker weten?' : 'Nieuw spel';
-      b.querySelector('small').textContent = on ? 'Enter nog een keer: je savegame wordt gewist' : items.find((it) => it.act === 'new').sub;
     };
     const restoreWorld = () => {
       world.menuCam = false;
@@ -527,16 +506,14 @@ export function runStartScreen(world, { render, relocate, tick, ready }) {
             });
           },
         });
-      } else if (it.act === 'saves') {
-        openSaveSlots({ mode: 'start', onLoad: continueGame, onNew: () => startNew(), onClose: () => {
-          // Doorgaan shows the save as it was when the menu opened: rebuild the menu when saves changed
+      } else if (it.act === 'solo') {
+        // Alleen spelen: the Opgeslagen spellen screen, with Doorgaan (the game played last) and Nieuw spel on top
+        openSaveSlots({ mode: 'start', solo: true, onLoad: continueGame, onNew: () => startNew(), onClose: () => {
+          // the card at the right shows the save as it was when the menu opened: rebuild the menu when saves changed
           const now = hasSave() ? getSaveSummary() : null;
           if (!done && JSON.stringify(now && [now.slot, now.savedAt, now.name]) !== JSON.stringify(save && [save.slot, save.savedAt, save.name])) location.reload();
           else focus(sel);
         } });
-      } else if (it.act === 'new') {
-        if (save && !confirmNew) { setConfirm(true); return; }
-        startNew();
       } else if (it.act === 'news') {
         openNews();
       } else if (it.act === 'about') {
@@ -547,6 +524,8 @@ export function runStartScreen(world, { render, relocate, tick, ready }) {
         window.gdeDesktop.quit();
       }
     };
+    // for the QA scripts and recordings (docs/ONTWIKKELEN.md): start without clicking through Alleen spelen
+    window.__menuStart = (wat) => { if (done || trailerOn) return false; if (wat === 'doorgaan' && save) continueGame(); else startNew(); return true; };
     const news = screen.querySelector('.ss-news');
     const newsBody = news.querySelector('.ss-news-body');
     const newsTitle = news.querySelector('h2');
@@ -589,7 +568,6 @@ export function runStartScreen(world, { render, relocate, tick, ready }) {
       if (k === 'ArrowDown' || k === 's' || k === 'S') focus(sel + 1);
       else if (k === 'ArrowUp' || k === 'w' || k === 'W') focus(sel - 1);
       else if (k === 'Enter' || k === ' ') { if (!e.repeat) activate(sel); }
-      else if (k === 'Escape' && confirmNew) setConfirm(false);
       else return;
       e.preventDefault();
       e.stopPropagation();
@@ -641,11 +619,10 @@ export function runStartScreen(world, { render, relocate, tick, ready }) {
       await T.fadeOutTrailer(false, backHome);
       stopTheme();
       trailerOn = false;
-      const cont = items.findIndex((it) => it.act === 'continue');
       // the result and its one-click preset wait in Instellingen > Beeld
-      if (fromGame && cont >= 0) {
+      if (fromGame && save) {
         if (next === 'settings') world.openSettingsOnStart = 'video';
-        activate(cont);
+        continueGame();
         return;
       }
       showMenu(false);

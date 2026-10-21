@@ -7,6 +7,8 @@
 //
 // openSaveSlots({ mode: 'start' | 'game', world, onLoad(n), onNew(), onClose(), pick, onPick(n) })
 //   start: the main menu (a card loads that game and goes on; an empty card starts a new game)
+//   solo: Alleen spelen (the main menu): Doorgaan (the game played last) on top, Nieuw spel as the first card,
+//     a card loads that game; with every place in use Nieuw spel asks first, as it takes the place of the active game
 //   game:  the pause menu (a card loads that game; an empty card saves the current game there)
 //   eyebrow / titel / hint / loadLabel: optional texts (Samen spelen: 'Een spel openen')
 //   pick + onPick(n): choosing a card only makes it the active game and calls onPick(n), without loading
@@ -46,6 +48,7 @@ const IC = {
   import: '<path d="M12 4v11M8 11l4 4 4-4M5 20h14"/>',
   back: '<path d="M15 5l-7 7 7 7"/>',
   x: '<path d="M6 6l12 12M18 6L6 18"/>',
+  resume: '<path d="M8 5l11 7-11 7z"/>',
 };
 const svg = (d, cls = 'ssl-ic') => `<svg class="${cls}" viewBox="0 0 24 24" aria-hidden="true">${d}</svg>`;
 
@@ -117,7 +120,8 @@ export function openSaveSlots(opts = {}) {
     else if (opts.onClose) opts.onClose();
   };
 
-  const primaryLabel = opts.loadLabel || (opts.pick ? 'Kiezen' : mode === 'start' ? 'Doorgaan' : 'Laden');
+  const solo = mode === 'start' && !!opts.solo && !opts.pick;
+  const primaryLabel = opts.loadLabel || (opts.pick ? 'Kiezen' : mode === 'start' && !solo ? 'Doorgaan' : 'Laden');
 
   const mi = (act, ic, label, extra = '') => `<button type="button" class="ssl-mi${extra}" role="menuitem" data-grp="menu" data-do="${act}">${svg(IC[ic])}<span>${label}</span></button>`;
 
@@ -175,23 +179,57 @@ export function openSaveSlots(opts = {}) {
     '<span class="ssl-pic"><span class="ssl-nopic">' + svg(IC.plus, 'ssl-nopic-ic') + '</span></span>' +
     `<span class="ssl-body"><span class="ssl-nm mut">Leeg</span><span class="ssl-part mut one">${mode === 'start' ? 'Nieuw spel' : 'Spel opslaan'}</span><span class="ssl-meta">&nbsp;</span></span></button></div>`;
 
+  // Alleen spelen: Nieuw spel is the first card. With every place in use it asks first (it takes the place of the active game)
+  const newCard = (n, active) => {
+    const ask = over && over.kind === 'newfull';
+    const q = ask ? `<div class="ssl-over ssl-q" role="alertdialog" aria-label="Nieuw spel"><p>Alle ${MAX_SLOTS} plekken zijn in gebruik. Je nieuwe spel komt op de plek van "${esc(active ? active.name : '')}". Dat spel wordt gewist, alleen de herstelkopie blijft bewaard.</p>` +
+      '<div class="ssl-qacts"><button type="button" class="m-bp" data-grp="menu" data-do="back">Nee, terug</button><button type="button" class="m-bg danger" data-grp="menu" data-do="newfull-ok">Ja, nieuw spel</button></div></div>' : '';
+    return `<div class="ssl-card ssl-new${ask ? ' open' : ''}" role="listitem" data-slot="0">` +
+      `<button type="button" class="ssl-main" data-grp="list" data-slot="0" data-do="${n ? 'new' : 'new-ask'}" data-want="${n}" aria-label="Nieuw spel">` +
+      `<span class="ssl-pic"><span class="ssl-nopic">${svg(IC.plus, 'ssl-nopic-ic')}</span><span class="ssl-go">Beginnen</span></span>` +
+      '<span class="ssl-body"><span class="ssl-nm">Nieuw spel</span><span class="ssl-part one">Moi! Stap in en rij</span><span class="ssl-meta">&nbsp;</span></span></button>' + q + '</div>';
+  };
+
+  // the game played last: the active one, else the one saved last; Doorgaan on top
+  const lastPlayed = (slots) => {
+    const ok = slots.filter((s) => s.summary && s.state !== 'kapot' && s.state !== 'nieuwer' && s.state !== 'ander-verhaal');
+    return ok.find((s) => s.active) || ok.sort((a, b) => b.summary.savedAt - a.summary.savedAt)[0] || null;
+  };
+  const heroHtml = (s) => {
+    const data = S.readSlot(null, s.n).data;
+    const story = data ? storySummary(data) : null;
+    const thumb = S.readThumb(null, s.n);
+    const part = story ? (story.ended ? 'Het verhaal is uit' : story.part) : 'Het begin';
+    const ago = S.agoText(s.summary.savedAt) || dateText(s.summary.savedAt);
+    const prog = story && story.total ? Math.round((story.done / story.total) * 100) : null;
+    const pic = thumb ? `<img src="${thumb}" alt="" draggable="false">` : `<span class="ssl-nopic">${svg(IC.person, 'ssl-nopic-ic')}</span>`;
+    return `<button type="button" class="ssl-hero" data-grp="hero" data-do="load" data-slot="${s.n}" aria-label="Doorgaan: ${esc(s.name)}">` +
+      `<span class="ssl-hero-pic">${pic}</span><span class="ssl-hero-body"><span class="ssl-hero-lab">${svg(IC.resume, 'ssl-hero-ic')}Doorgaan</span>` +
+      `<span class="ssl-hero-nm one">${esc(s.name)} · ${esc(part)}</span><span class="ssl-hero-meta one mut">${esc(S.formatPlaytime(s.summary.playSeconds))} · ${esc(ago)}</span>` +
+      (prog != null ? `<span class="ssl-hero-prog"><span class="m-bar"><i style="width:${prog}%"></i></span><span class="bebas">${prog}%</span></span>` : '') + '</span></button>';
+  };
+
+  let intro = true;
   const render = (focus) => {
     const slots = S.listSlots();
     if (!slots.some((s) => s.n === sel)) sel = slots.length ? (slots.find((s) => s.active) || slots[0]).n : 0;
     const byN = new Map(slots.map((s) => [s.n, s]));
     const tiles = [];
     // the games there are, then one empty card: the other empty places stay out of sight (calm)
-    let emptyShown = false;
+    let emptyShown = solo;
+    if (solo) tiles.push(newCard(S.freeSlot(null), slots.find((s) => s.active)));
     for (let n = 1; n <= MAX_SLOTS; n++) {
       if (byN.has(n)) tiles.push(card(byN.get(n)));
       else if (!emptyShown) { tiles.push(emptyCard(n)); emptyShown = true; }
     }
+    const last = solo ? lastPlayed(slots) : null;
     const full = slots.length >= MAX_SLOTS;
     rootEl.querySelector('.gm-stage')?.remove();
     const stage = document.createElement('div');
     stage.className = 'gm-stage';
     stage.innerHTML = `<section class="m-panel ssl-panel">
       <header class="m-head"><div><span class="m-eb">${esc(opts.eyebrow || (mode === 'start' ? 'Hoofdmenu' : 'Pauze'))}</span><h1 class="m-h1" id="ssl-title">${esc(opts.titel || 'Opgeslagen spellen')}</h1>${opts.hint ? `<p class="mut ssl-intro">${esc(opts.hint)}</p>` : ''}</div><div class="m-hr"><span class="mut">${slots.length} van ${MAX_SLOTS}</span></div></header>
+      ${last ? `<div class="ssl-hero-wrap">${heroHtml(last)}</div>` : ''}
       <div class="ssl-scroll"><div class="ssl-grid" role="list" aria-label="Opgeslagen spellen">${tiles.join('')}</div></div>
       <p class="ssl-msg" role="status">${esc(message)}</p>
       <footer class="ssl-foot"><button type="button" class="ssl-fb" data-grp="foot" data-do="import"${full ? ' disabled title="Alle plekken zijn in gebruik"' : ''}>${svg(IC.import)}<span>Spel importeren</span></button>
@@ -203,9 +241,12 @@ export function openSaveSlots(opts = {}) {
     if (over) {
       if (over.kind === 'rename') { el = q('[data-input]'); if (el) { el.focus(); el.select(); return; } }
       el = q('.ssl-over [data-grp="menu"]:not(:disabled)');
-      if (over.kind === 'delete' || over.kind === 'overwrite') el = q('.ssl-over [data-do="back"]');
+      if (over.kind === 'delete' || over.kind === 'overwrite' || over.kind === 'newfull') el = q('.ssl-over [data-do="back"]');
     } else if (focus && focus.more) el = q(`[data-more="${focus.more}"]`);
+    else if (focus && focus.newcard) el = q('.ssl-new .ssl-main');
+    else if (intro && !focus && q('.ssl-hero')) el = q('.ssl-hero');
     else el = q(`.ssl-main[data-slot="${(focus && focus.slot) || sel}"]:not(:disabled)`) || q(`.ssl-more[data-more="${sel}"]`) || q('[data-grp="list"]:not(:disabled)');
+    intro = false;
     if (el) { el.focus(); if (el.scrollIntoView) el.scrollIntoView({ block: 'nearest' }); }
   };
 
@@ -215,7 +256,9 @@ export function openSaveSlots(opts = {}) {
     const slot = n || sel;
     const cur = S.listSlots().find((s) => s.n === slot);
     if (act === 'close') { close(); return; }
-    if (act === 'back') { const m = over && over.n; over = null; render({ more: m }); return; }
+    if (act === 'back') { const m = over && over.n; const nf = over && over.kind === 'newfull'; over = null; render(nf ? { newcard: true } : { more: m }); return; }
+    if (act === 'new-ask') { over = { n: 0, kind: 'newfull' }; render(); return; }
+    if (act === 'newfull-ok') { close(() => { if (opts.onNew) opts.onNew(); }); return; }
     if (act === 'new') {
       if (mode === 'start') { close(() => { if (opts.onNew) opts.onNew(); }); return; }
       if (world && world.pigeonMode) { say('Je bent een duif. Stop de duif-modus om op te slaan.'); return; }
@@ -331,6 +374,10 @@ export function openSaveSlots(opts = {}) {
     const first = (g) => rootEl.querySelector(`[data-grp="${g}"]:not(:disabled)`);
     if (!cur || !rootEl.contains(cur) || !cur.dataset.grp) { const f = first('list') || first('foot'); if (f) f.focus(); return; }
     const grp = cur.dataset.grp;
+    if (grp === 'hero') {
+      if (dir === 'down' || dir === 'right') { const m = rootEl.querySelector('.ssl-card .ssl-main:not(:disabled)'); if (m) m.focus(); }
+      return;
+    }
     if (grp === 'menu') {
       const items = [...rootEl.querySelectorAll('.ssl-over [data-grp="menu"]:not(:disabled)')];
       const i = items.indexOf(cur);
@@ -359,7 +406,7 @@ export function openSaveSlots(opts = {}) {
     const moreOf = (k) => cards[k] && cards[k].querySelector('.ssl-more');
     if (dir === 'right') { if (!onMore && moreOf(ci)) moreOf(ci).focus(); else focusCard(ci + 1, false); }
     else if (dir === 'left') { if (onMore) focusCard(ci, false); else if (ci > 0) focusCard(ci - 1, !!moreOf(ci - 1)); }
-    else if (dir === 'up') focusCard(ci - cols, onMore);
+    else if (dir === 'up') { if (!focusCard(ci - cols, onMore)) { const h = first('hero'); if (h) h.focus(); } }
     else if (dir === 'down') { if (!focusCard(ci + cols, onMore)) { const f = first('foot'); if (f) f.focus(); } }
   };
 

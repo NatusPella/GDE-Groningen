@@ -95,8 +95,8 @@ export const WINKEL = {
   kermiskraam: {
     label: 'Kermiskraam', wall: 0xf2dca0, floor: 0x7e5a3a, floorPattern: 0, row: 0.25, items: 0.4, accent: 0xe0b23a, mix: 0.75,
     island: [0.0, 0.0], counter: [1.1], sign: 0xd04a3a, awning: 0xd04a3a,
-    furniture: ['gestreept zeildoek', 'toonbank met gloeilampjes', 'suikerspin', 'oliebollenpan'],
-    etalage: 'gloeilampjes en een gestreept zeildoek', names: [['Kermis', 'Oliebol', 'Suikerspin', 'Gouden'], ['Kraam', 'Feestje', 'Plezier', 'Lekkernij']],
+    furniture: ['gestreept zeildoek', 'toonbank met gloeilampjes', 'suikerspin', 'poffertjespan'],
+    etalage: 'gloeilampjes en een gestreept zeildoek', names: [['Kermis', 'Poffertje', 'Suikerspin', 'Gouden'], ['Kraam', 'Feestje', 'Plezier', 'Lekkernij']],
   },
 };
 
@@ -105,7 +105,8 @@ export const WINKEL = {
 // bakker niet op een bloemist, ook niet op afstand.
 //   patroon: 0 schappen, 1 broden en taarten, 2 koelvitrine, 3 menubord, 4 kledingrekken,
 //            5 fietswielen, 6 emmers met bloemen, 7 spiegelwand, 8 tv-schermen,
-//            9 rommelkasten, 10 kaarten en mokken, 11 tijdschriftenrek
+//            9 rommelkasten, 10 kaarten en mokken, 11 tijdschriftenrek,
+//            12 kermiskraam (zeildoek, gloeilampjes, poffertjes en suikerspin)
 export const STIJL = {
   supermarkt: { patroon: 0, buiten: 'karretjes' },
   bakker: { patroon: 1, buiten: 'bord' },
@@ -119,7 +120,7 @@ export const STIJL = {
   tweedehands: { patroon: 9, buiten: 'meubels' },
   souvenir: { patroon: 10, buiten: 'draaistandaard' },
   kiosk: { patroon: 11, buiten: 'krantenrek' },
-  kermiskraam: { patroon: 1, buiten: 'bord' },
+  kermiskraam: { patroon: 12, buiten: 'bord' },
 };
 for (const k of SHOP_KINDS) Object.assign(WINKEL[k], STIJL[k]);
 
