@@ -332,21 +332,13 @@ while (true) {
     detector.hold(s.t); heldSince = null;
     continue;
   }
-  // a requirement the next mission asks for (a bike for the KEI race, a gun, black clothes, a boat): the story says where ("Koop er een bij ...")
-  // and the bot goes there first, like a player who reads the line
-  if (!s.mission.active && !s.blocking.shop && s.story.id && s.target) {
-    let gate = null, place = null;
-    try {
-      const gdef = (M.getMissionDefs() || []).find((d) => d.id === s.story.id);
-      gate = gdef && M.unmetRequirement(world, gdef);
-      place = gate && gate !== 'night' ? M.requirementPlace(world, gate) : null;
-    } catch (e) { if (!mem.gateErr) { mem.gateErr = 1; B.log('eisfout', { msg: String(e && e.message || e).slice(0, 160) }); } }
-    if (mem.gateSeen !== s.story.id) { mem.gateSeen = s.story.id; B.log('eis-check', { stap: s.story.id, eis: gate || null, plaats: !!place }); }
-    if (place && Number.isFinite(place.x)) {
-      const gk = gate + ':' + Math.round(place.x) + ',' + Math.round(place.y);
-      if (mem.gateKey !== gk) { mem.gateKey = gk; mem.pressTries = 0; mem.boardTries = 0; B.log('eis', { eis: gate, winkel: place.name || place.type || '', x: Math.round(place.x), y: Math.round(place.y) }); }
-      s.target = { x: place.x, y: place.y, z: null, name: place.name || '', source: 'winkel', distance: Math.round(Math.hypot(place.x - s.player.x, place.y - s.player.y) * 10) / 10 };
-    }
+  // a requirement the next step asks for (a bike for the KEI race, a gun, black clothes, a boat): the story guide says where to buy it
+  // ("Eerst: ...") and the bot goes there first, like a player who reads the line
+  const guide = world.storyGuide;
+  if (!s.mission.active && !s.blocking.shop && guide && guide.buy && Number.isFinite(guide.x) && s.target) {
+    const gk = (guide.step || '') + ':' + Math.round(guide.x) + ',' + Math.round(guide.y);
+    if (mem.gateKey !== gk) { mem.gateKey = gk; mem.pressTries = 0; mem.boardTries = 0; B.log('eis', { stap: guide.step, winkel: guide.name || '', x: Math.round(guide.x), y: Math.round(guide.y) }); }
+    s.target = { x: guide.x, y: guide.y, z: null, name: guide.name || '', source: 'winkel', distance: Math.round(Math.hypot(guide.x - s.player.x, guide.y - s.player.y) * 10) / 10 };
   }
   const act = L.decide(s, mem);
   if (act.type !== 'wait' && act.type !== 'skip' && act.type !== 'choose' && act.type !== 'closemenu') heldSince = null;   // playing is not waiting: the wait clock starts over
