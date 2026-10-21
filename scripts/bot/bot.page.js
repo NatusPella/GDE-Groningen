@@ -486,12 +486,20 @@ while (true) {
     if (s.mission.stage === 'chase' && s.player.vehicle && !s.player.vehicle.boat) top = Math.max(top, 36);
     if (act.stunt && s.player.vehicle) {
       let best = null, bd = Infinity;
+      mem.stuntSkip = mem.stuntSkip || {};
       for (const q of Br.propsInRadius(s.player.x, s.player.y, 90)) {
-        if (!String(q.key).startsWith('stunt')) continue;
+        if (!String(q.key).startsWith('stunt') || (mem.stuntSkip[q.key] || 0) > s.t) continue;
         const d = Math.hypot(q.x - s.player.x, q.y - s.player.y);
         if (d < bd) { bd = d; best = q; }
       }
-      if (best) { aim = { x: best.x, y: best.y, distance: bd }; top = 14; }
+      if (best) {
+        // circling a prop that does not fall (the car orbits it, or a bollard stands in the way): after 6 s within 10 m it is left alone for 90 s and the next one is tried (M01, #312)
+        if (bd < 10) {
+          if (!mem.stuntNear || mem.stuntNear.key !== best.key) mem.stuntNear = { key: best.key, since: s.t };
+          else if (s.t - mem.stuntNear.since > 6) { mem.stuntSkip[best.key] = s.t + 90; B.log('stunt-omweg', { key: best.key, x: Math.round(best.x), y: Math.round(best.y) }); mem.stuntNear = null; }
+        } else mem.stuntNear = null;
+        aim = { x: best.x, y: best.y, distance: bd }; top = 14;
+      }
     }
     // on foot, wedged against a stall pole or a prop: sidestep (alternating sides, longer each time), then plan again
     if (act.mode !== 'drive' && !s.player.vehicle && !s.blocking.cinematic && s.target.distance > 5) {
