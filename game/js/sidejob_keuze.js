@@ -7,6 +7,7 @@ import { namedBuildingSpot, pick, euro } from './sidejobkit.js';
 import { createChoicePanel, keycap } from './choicepanel.js';
 import { KEUZE_JOBS, pickKeuzeRound, keuzePay } from './keuzewerk.js';
 import { dist } from './util.js';
+import { wgsToWorld } from './rdnew.js';
 
 const ARRIVE_R = 5.5;
 const RESULT_S = 3;
@@ -21,8 +22,10 @@ function makeJob(spec) {
   const spot = (map) => {
     const s = namedBuildingSpot(map, spec.building);
     if (s) return { x: s.x, y: s.y, name: spec.building };
-    const o = map.findOpenSpawn(100, 76, 80);
-    return { x: o ? o.x : 100, y: o ? o.y : 76, name: spec.building };
+    // the building is not in the loaded tiles by name: its approximate real spot (keuzewerk.js wgs), not the Grote Markt for every job
+    const [fx, fy] = spec.wgs ? wgsToWorld(spec.wgs[0], spec.wgs[1]) : [100, 76];
+    const o = map.findOpenSpawn(fx, fy, 80);
+    return { x: o ? o.x : fx, y: o ? o.y : fy, name: spec.building };
   };
   const paintQuestion = (c) => {
     const d = c.data;
