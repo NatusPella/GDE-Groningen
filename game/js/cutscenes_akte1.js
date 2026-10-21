@@ -14,6 +14,7 @@
 //   wide    a first establishing shot { from, to, look, fov, until: <line index> }
 //   solo    true: Tessa on her own (Tammo is elsewhere): he is hidden and gets no coverage (M21)
 //   manual  true: no automatic coverage after the forced `shots` (a camera that follows a moving car)
+//   align   'road': the scene stands on the nearest road, +f along it (a car that drives through the scene, missionstory.js alignToRoad)
 // A key with '#from-to' ('M26.4#7-14') is a slice of a script scene: a stage scene that plays lines 7 to 13 of M26.4.
 // A beat whose line is not found (an edited text) is skipped, so a text edit never breaks a scene.
 // Coordinates are local to the player's spot: f forward, s left, h up (m). The pair stands at f 0,
@@ -51,6 +52,7 @@ const merge = (...parts) => ({
 });
 
 export const SPECS = {};
+export const sceneSpec = (key) => SPECS[key] || MORE_SPECS[key] || null;
 // more stagings (cutscenes_akte3.js ...): read by missionScene as well, so act 1's own test keeps its list
 export const MORE_SPECS = {};
 // act 2 (M08-M11) is staged in its own file

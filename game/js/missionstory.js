@@ -16,7 +16,7 @@ import { storyLines, storyDataReady, readingTime, storyDirRecording } from './st
 import { AKTE5_STORY } from './missionstory_akte5.js';
 import { openBank } from './voicebank.js';
 import { playScript } from './cutscenehost.js';
-import { missionScene, quickScene } from './cutscenes_akte1.js';
+import { missionScene, quickScene, sceneSpec } from './cutscenes_akte1.js';
 import { STORY_AKTE4 } from './missionstory_akte4.js';
 import { STORY_AKTE2 } from './missionstory_akte2.js';
 import './cutscenes_akte3.js';
@@ -1188,6 +1188,27 @@ function stagedKey(i, kind) {
   return step ? step.id + '.' + kind : null;
 }
 
+// A spec with `align: 'road'` (a car that drives through the scene, M21.intro) stands on the nearest road with its +f along it, in the direction
+// closest to `facing`: the bakkie then drives down a street, not across a lawn. Returns { x, y, facing } or null when no road is within 40 m.
+function alignToRoad(w, anchor, facing) {
+  const rp = w.map.nearestRoadPoint && w.map.nearestRoadPoint(anchor.x, anchor.y, 60, true);
+  const pts = rp && rp.road && rp.road.pts;
+  if (!pts || pts.length < 2) return null;
+  let best = null;
+  for (let i = 0; i + 1 < pts.length; i++) {
+    const ax = pts[i][0], ay = pts[i][1], bx = pts[i + 1][0], by = pts[i + 1][1];
+    const dx = bx - ax, dy = by - ay, l2 = dx * dx + dy * dy || 1e-9;
+    const t = Math.max(0, Math.min(1, ((rp.x - ax) * dx + (rp.y - ay) * dy) / l2));
+    const d = Math.hypot(ax + dx * t - rp.x, ay + dy * t - rp.y);
+    if (!best || d < best.d) best = { d, a: Math.atan2(dy, dx) };
+  }
+  if (!best || Math.hypot(rp.x - anchor.x, rp.y - anchor.y) > 40) return null;
+  let a = best.a;
+  const diff = Math.atan2(Math.sin(a - facing), Math.cos(a - facing));
+  if (Math.abs(diff) > Math.PI / 2) a += Math.PI;
+  return { x: rp.x, y: rp.y, facing: a };
+}
+
 // opts.def: a scene that is not a spec of missionScene (quickScene); opts.update(t, dt) runs every frame; opts.shotOverride(t) is a hand-made
 // camera for a stretch of the scene (a pose, or null for the script's own); opts.z is the floor height (the deck of a boat)
 function playStaged(w, key, tl, { anchor, facing, kicker = '', title = '', cardFor = 3, banner, bannerAfter, def: given = null, update = null, shotOverride = null, z = 0 }) {
@@ -1195,6 +1216,11 @@ function playStaged(w, key, tl, { anchor, facing, kicker = '', title = '', cardF
   const sceneLines = tl.lines.map((l) => ({ speaker: l.speaker, text: l.text, at: l.at, dur: l.dur }));
   const def = given ? given(sceneLines) : missionScene(key, sceneLines, { looks: NPC });
   if (!def) return false;
+  const spec = key ? sceneSpec(key) : null;
+  if (spec && spec.align === 'road') {
+    const at = alignToRoad(w, anchor, facing);
+    if (at) { anchor = { x: at.x, y: at.y }; facing = at.facing; }
+  }
   const lines = tl.lines;
   let voiced = null;
   let peds = [];
