@@ -231,6 +231,8 @@ export function meldNeer(world, n) {
     n.hostNeer = pr;
     if (pr) n.hub.announce({ k: 'melding', tekst: `${openerNaam(world.coopRoster, true)} is ${pr === 'gepakt' ? 'door de politie gepakt' : 'neergeslagen'}.` });
   }
+  const vast = !!(world.companionHold && world.coop && world.coop.remote); // een opdracht of minigame parkeert Tessa: haar speler kan even niet lopen (#375)
+  if (vast !== !!n.tessaVast) { n.tessaVast = vast; n.hub.announce({ k: 'melding', tekst: vast ? 'Je kijkt even mee: de opdracht houdt je op je plek.' : 'Je kunt weer lopen.' }, 1); }
   const c = world.companion, dood = !!(c && c.state === 'dead');
   if (dood !== !!n.tessaNeer) {
     n.tessaNeer = dood;

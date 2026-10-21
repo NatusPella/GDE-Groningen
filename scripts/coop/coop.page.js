@@ -84,6 +84,10 @@ const closeMenu = async () => {
 
 // ---- wat deze instantie ziet (elke seconde)
 let state = { allIn: false, phase: '' };
+// beeldsnelheid van deze pagina: frames per seconde en de langste tussentijd van de laatste seconde
+const FPS = { n: 0, t: performance.now(), prev: performance.now(), gap: 0, fps: 0, gapLast: 0 };
+const tickFps = (now) => { FPS.n++; const g = now - FPS.prev; FPS.prev = now; if (g > FPS.gap) FPS.gap = g; if (now - FPS.t >= 1000) { FPS.fps = Math.round(FPS.n * 1000 / (now - FPS.t)); FPS.gapLast = Math.round(FPS.gap); FPS.n = 0; FPS.t = now; FPS.gap = 0; } requestAnimationFrame(tickFps); };
+requestAnimationFrame(tickFps);
 function sampleNow(n) {
   const x = W(); if (!x) return null;
   const b = (o) => (o ? { x: Math.round(o.x * 10) / 10, y: Math.round(o.y * 10) / 10, char: o.character || '' } : null);
@@ -91,6 +95,7 @@ function sampleNow(n) {
   const hm = x.coopHostMissie;
   const cine = document.getElementById('cine');
   return {
+    fps: FPS.fps, gap: FPS.gapLast,
     n, ph: state.phase, paused: !!x.paused, uiPaused: !!x.uiPaused, coopHold: !!x.coopHold, hold: !!document.querySelector('.coop-hold'), clock: x.time, uur: x.clock, slot: ses ? ses.slot : (net && net.role === 'host' ? 0 : -1),
     status: ses ? ses.status : (net && net.hub ? [...net.hub.sessions.entries()].map(([s, v]) => s + ':' + v.status).join(',') : null),
     inp: ses && ses.pendingInput ? [Math.round(ses.pendingInput.mx * 100) / 100, Math.round(ses.pendingInput.my * 100) / 100] : null,
