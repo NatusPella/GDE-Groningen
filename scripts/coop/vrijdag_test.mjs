@@ -118,6 +118,21 @@ t('wanted is gedeeld en volgt de gastheer', () => {
   assert.deepEqual(s.gs.map((g) => g.gw.wanted), [0, 0, 0]);
 });
 
+t('neergeslagen en gepakt: de anderen horen het, het label toont de status, en Tessa hoort dat zij geraakt is', () => {
+  const s = avond(3); s.step(2);
+  s.hw.pendingRespawn = { busted: true }; s.step(1);
+  for (const g of s.gs) { assert.match(g.gw.messages.join(' '), /Tammo is door de politie gepakt/); assert.equal(g.gw.coopPartners.find((p) => p.naam === 'Tammo').status, 'neer'); }
+  s.hw.pendingRespawn = null; s.step(1);
+  assert.equal(s.gs[0].gw.coopPartners.find((p) => p.naam === 'Tammo').status, 'voet', 'weer op de been');
+  s.hw.pendingRespawn = { busted: false }; s.step(1); s.hw.pendingRespawn = null;
+  assert.match(s.gs[2].gw.messages.join(' '), /Tammo is neergeslagen/);
+  s.hw.companion.state = 'dead'; s.step(1);
+  assert.match(s.gs[0].gw.messages.join(' '), /Je bent geraakt/); assert.doesNotMatch(s.gs[1].gw.messages.join(' '), /Je bent geraakt/, 'alleen Tessa hoort dat');
+  assert.equal(s.gs[1].gw.coopPartners.find((p) => p.naam === 'Tessa').status, 'neer');
+  s.hw.companion.state = 'alive'; s.step(1);
+  assert.match(s.gs[0].gw.messages.join(' '), /Je staat weer/);
+});
+
 t('roepjes: 7, 8 en 9 geven bij iedereen een baken met naam, kleur en regel; te snel achter elkaar kan niet; na 8 s zijn ze weg', () => {
   const s = avond(3); s.step(3);
   const [tessa, bram, lotte] = s.gs.map((g) => g.gw);

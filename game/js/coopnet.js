@@ -63,7 +63,7 @@ export function hostSim(world, roster) {
     },
     snapshot() {
       const p = world.player, c = world.companion;
-      const body = (b, slot) => { const q = posOf(b); return b && ({ slot, x: q.x, y: q.y, z: b.z || 0, angle: q.angle || 0, alive: true, inVeh: !!b.inVehicle, driver: false, run: false, health: 100, vehicle: null }); };
+      const body = (b, slot) => { const q = posOf(b); return b && ({ slot, x: q.x, y: q.y, z: b.z || 0, angle: q.angle || 0, alive: slot === 0 ? !world.pendingRespawn : slot === 1 ? b.state !== 'dead' : true, inVeh: !!b.inVehicle, driver: false, run: false, health: 100, vehicle: null }); };
       const players = [body(p, 0), body(c, 1)];
       for (const s of roster().spelers) if (s.slot >= 2) players.push(body(figures(world)[s.slot], s.slot));
       return {
@@ -187,6 +187,20 @@ function stepFigures(world, dt) {
   bandFiguren(world, dt);
 }
 
+// Neergaan, arrestatie en opstaan van de gastheer en Tessa: de anderen horen het, de gast zelf ook (#369)
+export function meldNeer(world, n) {
+  const pr = world.pendingRespawn ? (world.pendingRespawn.busted ? 'gepakt' : 'neer') : null;
+  if (pr !== (n.hostNeer || null)) {
+    n.hostNeer = pr;
+    if (pr) n.hub.announce({ k: 'melding', tekst: `${openerNaam(world.coopRoster, true)} is ${pr === 'gepakt' ? 'door de politie gepakt' : 'neergeslagen'}.` });
+  }
+  const c = world.companion, dood = !!(c && c.state === 'dead');
+  if (dood !== !!n.tessaNeer) {
+    n.tessaNeer = dood;
+    n.hub.announce({ k: 'melding', tekst: dood ? 'Je bent geraakt. Je staat zo weer op.' : 'Je staat weer.' }, 1);
+  }
+}
+
 // Een extra speler (plek 2 en hoger) heeft geen band zoals Tessa; loopt hij te ver van de gastheer, dan is de wereld daar niet geladen
 // (geen gebouwen, geen grond). Eerst een melding, daarna zet de gastheer hem bij de groep (#366).
 export function bandFiguren(world, dt) {
@@ -196,7 +210,7 @@ export function bandFiguren(world, dt) {
     if (d > FIGUUR_WAARSCHUWING && !fig.gewaarschuwd) { fig.gewaarschuwd = true; if (world.coopMeld) world.coopMeld(fig.slot, 'Blijf bij de groep: te ver weg wordt je teruggezet.'); }
     if (d <= FIGUUR_WAARSCHUWING) fig.gewaarschuwd = false;
     fig.verTijd = d > FIGUUR_BAND ? (fig.verTijd || 0) + dt : 0;
-    if (fig.verTijd >= FIGUUR_TERUG_S) {
+    if (fig.verTijd >= (d > 300 ? 0.5 : FIGUUR_TERUG_S)) { // een sprong van de gastheer (snelreizen, herstel) haalt de figuur meteen bij
       const a = (fig.slot * 1.7) % (Math.PI * 2);
       fig.x = p.x + Math.cos(a) * 2.2; fig.y = p.y + Math.sin(a) * 2.2; fig.vx = 0; fig.vy = 0; fig.verTijd = 0; fig.gewaarschuwd = false;
       if (world.coopMeld) world.coopMeld(fig.slot, 'Je staat weer bij de groep.');
@@ -275,10 +289,11 @@ export function tickCoopNet(world, dt) {
     const r = sceneBericht(n.sceneNu, sc); n.sceneNu = r.huidig;
     if (r.event) n.hub.announce(r.event);
   }
+  meldNeer(world, n); // de gastheer of Tessa gaat neer of wordt gearresteerd (#369)
   const mb = missieBericht(n.missie || null, world.mission); // wat de host speelt, voor de gasten
   if (mb.event) { n.hub.announce(mb.event); } n.missie = mb.huidig;
   const c = world.companion;
-  const players = [c ? { slot: 1, x: posOf(c).x, y: posOf(c).y, angle: posOf(c).angle, alive: true, inVeh: !!c.inVehicle } : null, ...Object.values(figures(world)).map((f) => ({ slot: f.slot, x: f.x, y: f.y, angle: f.angle, alive: true }))].filter(Boolean);
+  const players = [c ? { slot: 1, x: posOf(c).x, y: posOf(c).y, angle: posOf(c).angle, alive: c.state !== 'dead', inVeh: !!c.inVehicle } : null, ...Object.values(figures(world)).map((f) => ({ slot: f.slot, x: f.x, y: f.y, angle: f.angle, alive: true }))].filter(Boolean);
   world.coopPartners = partnersInfo(0, players, world.coopRoster || []);
   world.coopPartner = world.coopPartners[0] || null;
   // gedeelde camera met Tessa (plek 1) zolang zij echt meespeelt; extra spelers hebben hun eigen camera
