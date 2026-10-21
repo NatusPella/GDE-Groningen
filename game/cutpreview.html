@@ -14,7 +14,9 @@
   .dot { width: 10px; height: 10px; border-radius: 2px; flex: none; }
   .dot.ok { background: #3fc97a; } .dot.waarschuwing { background: #e8c93a; transform: rotate(45deg); } .dot.fout { background: #d93f3f; border-radius: 50%; }
   #main { display: flex; flex-direction: column; min-width: 0; padding: 10px; gap: 8px; }
-  #cv { width: 100%; flex: 1; min-height: 240px; background: #1a2a1c; border: 1px solid #333; }
+  #views { display: flex; gap: 8px; flex: 1; min-height: 240px; }
+  #cv { flex: 3; min-width: 0; width: 100%; background: #1a2a1c; border: 1px solid #333; }
+  #cam { flex: 2; min-width: 0; width: 100%; align-self: flex-start; aspect-ratio: 16 / 9; background: #223; border: 1px solid #333; }
   #bar { display: flex; gap: 8px; align-items: center; }
   #bar input[type=range] { flex: 1; }
   #bar button { background: #23262d; color: #eee; border: 1px solid #555; border-radius: 6px; padding: 4px 10px; font: inherit; cursor: pointer; }
@@ -28,8 +30,8 @@
 <div id="app">
   <div id="list"><div class="mut">Laden…</div></div>
   <div id="main">
-    <div id="title"><b>Cutscene-preview</b> <span class="mut">Bovenaanzicht zonder het spel. Rood = acteur, blauw = prop, geel = camera.</span></div>
-    <canvas id="cv" width="900" height="560"></canvas>
+    <div id="title"><b>Cutscene-preview</b> <span class="mut">Bovenaanzicht (links) en camerabeeld (rechts) zonder het spel. Rood = acteur, blauw = prop, geel = camera. Het camerabeeld toont geen gebouwen.</span></div>
+    <div id="views"><canvas id="cv" width="900" height="560"></canvas><canvas id="cam" width="640" height="360" title="Wat de camera ziet: acteurs als zuilen, props als blokken; zonder gebouwen"></canvas></div>
     <div id="bar"><button id="play">Speel</button><input id="t" type="range" min="0" max="100" step="0.1" value="0"><span id="clock" class="mut"></span><button id="exp">Bewaar beelden per shot</button></div>
     <div id="info"></div>
     <ul id="issues"></ul>
