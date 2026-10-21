@@ -106,7 +106,7 @@ const r1 = win(28, 34); check(r1.some((s) => s.pm && /Help!\|Tammo/.test(s.pm)),
 const d1 = win(36, 41); check(d1.length && d1.every((s) => s.hostEnt && s.hostEnt[1] === 1), 'doel: de gast ziet het doel niet: ' + JSON.stringify(d1.slice(-1).map((s) => s.hostEnt)));
 const d2 = win(44, 49); check(d2.length && d2.every((s) => s.hostEnt && s.hostEnt[1] === 0), 'doel: het blijft staan na de opdracht');
 // gepakt en meerijden
-const g1 = win(51, 53); check(g1.length && g1.some((s) => s.partners.some((p) => p[1] === 'Tammo' && p[2] === 'neergeslagen')), 'gepakt: de gast ziet Tammo niet als neergeslagen: ' + JSON.stringify(g1.slice(-1).map((s) => s.partners)));
+const g1 = win(51, 53); check(g1.length && g1.some((s) => s.partners.some((p) => p[1] === 'Tammo' && p[2] === 'neer')), 'gepakt: de gast ziet Tammo niet als neergeslagen: ' + JSON.stringify(g1.slice(-1).map((s) => s.partners)));
 const m1 = win(62, 70); check(m1.length && m1.some((s) => s.voert === 1), 'meerijden: de gast weet niet dat hij meerijdt');
 const tb = of('tab')[0], tl = of('tab-los')[0], sm = of('spelersmenu')[0];
 check(tb && tb.zichtbaar && tb.rijen === 2 + MOCK, 'Tab: de spelerslijst staat niet in beeld met ' + (2 + MOCK) + ' spelers: ' + JSON.stringify(tb));

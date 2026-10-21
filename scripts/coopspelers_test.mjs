@@ -40,4 +40,10 @@ t('afstanden: bij je, afgerond op tien meter, kilometers met een komma; rommel g
   assert.deepEqual(spelersRijen({ roster: [null, { slot: 'x' }] }), []);
 });
 
+t('een gast kent van de lijst alleen plek en personage: naam, kleur en vorm komen uit het personage', () => {
+  const r = spelersRijen({ mijnSlot: 1, roster: [{ slot: 0, char: 'tammo', verbinding: 'ok' }, { slot: 1, char: 'anita', verbinding: 'ok' }, { slot: 2, char: 'rik', verbinding: 'ok' }] });
+  assert.deepEqual(r.map((x) => x.naam), ['Tessa', 'Tammo', 'Rik']);
+  assert.ok(r.every((x) => /^#/.test(x.kleur) && VORM_TEKEN[x.vorm]));
+});
+
 console.log(`coopspelers_test: ${n}/${n} ok`);

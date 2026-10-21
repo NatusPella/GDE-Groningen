@@ -2,6 +2,8 @@
 // wat die speler doet (te voet, in een voertuig, aan het stuur, in een opdracht) en de afstand. De lijst staat in het scherm als
 // je Tab ingedrukt houdt en in het onderdeel Spelers van het pauzemenu (coopspelersui.js); er staat niets permanent in beeld.
 
+import { charInfo } from './coopplayers.js';
+
 export const VORM_TEKEN = { driehoek: '▲', ruit: '◆', vierkant: '■', cirkel: '●', vijfhoek: '⬟', ster: '★', plus: '✚', kruis: '✖', maan: '☾', hart: '♥', bliksem: 'ϟ', druppel: '◖', blok: '▮', golf: '≈', schild: '⬢', bloem: '✿' };
 export const VERBINDING_TEKST = { ok: 'goed', lag: 'haperd', lost: 'weg' };
 
@@ -25,8 +27,9 @@ export function spelersRijen({ mijnSlot = 0, roster = [], partners = [], mijn = 
     let afstand = null;
     if (!jij && p && p.zichtbaar && mijn && Number.isFinite(mijn.x) && Number.isFinite(p.x)) afstand = Math.hypot(p.x - mijn.x, p.y - mijn.y);
     const ms = rtt(r.slot);
+    const c = charInfo(r.char) || {}; // een gast krijgt van de gastheer alleen plek en personage; naam, kleur en vorm horen bij dat personage
     rijen.push({
-      slot: r.slot, naam: r.naam || '?', kleur: r.kleur || '#cccccc', vorm: r.vorm || 'cirkel', jij,
+      slot: r.slot, naam: r.naam || c.naam || '?', kleur: r.kleur || c.kleur || '#cccccc', vorm: r.vorm || c.vorm || 'cirkel', jij,
       verbinding: r.verbinding || 'ok', verbindingTekst: VERBINDING_TEKST[r.verbinding || 'ok'] || 'goed', ms: Number.isFinite(ms) ? Math.round(ms) : null,
       doet, afstand, afstandTekst: afstandTekst(afstand), x: p && p.zichtbaar ? p.x : null, y: p && p.zichtbaar ? p.y : null,
     });
