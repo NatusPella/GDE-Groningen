@@ -7,6 +7,7 @@ import { playerBusy } from './busy.js';
 import { showCard } from './hudcards.js';
 import { createNieuwsLink, tikNieuws } from './nieuwslink.js';
 import { areaOf, partOf, wetOf, rollGebabbel, AREA_NAMES } from './gebabbel.js';
+import { tikStraatpraat } from './straatpraat.js';
 
 const recent = [];
 const recentTalk = [];
@@ -36,6 +37,8 @@ export function updateRegioLeven(dt, w) {
   }
   if (playerBusy(w).busy) return;
   const p = w.player;
+  // passers-by talk to each other in bubbles (straatpraat.js, #190), not from a fast vehicle
+  if (!p.inVehicle || Math.abs(p.inVehicle.speed || 0) < 6) tikStraatpraat(dt, w);
   const moving = p.inVehicle ? Math.abs(p.inVehicle.speed || 0) > 0.5 : (p.speed || 0) > 0.3;
   if ((scanT -= dt) <= 0) {
     scanT = 0.5;
