@@ -34,7 +34,7 @@ export function stepsOf(events) {
       else if (e.type === 'stuck') s.stuck++;
       else if (e.type === 'cheat' && e.rung !== 'nudge') s.cheats.push(e.rung);
       else if (e.type === 'cine') s.cineDur.push(e.dur);
-      else if (e.type === 'doel' && Number.isFinite(e.afstand)) { s.routes.push({ afstand: e.afstand, veh: e.veh }); if (e.stage) s.stages.add(e.stage); s.stagesKnown = true; }
+      else if (e.type === 'doel' && Number.isFinite(e.afstand)) { s.routes.push({ afstand: e.afstand, veh: e.veh }); if (e.stage) { s.stages.add(e.stage); s.stagesKnown = true; } }
       else if (e.type === 'status') {
         if (!s.firstStatus && Number.isFinite(e.dist)) s.firstStatus = { afstand: e.dist, veh: e.veh };
       }
@@ -90,7 +90,7 @@ export function afwijkingen(steps, { quiet = 90, ritM = 1800 } = {}) {
     if (s.limiet > 0 && s.restMin != null && s.fails === 0 && s.restMin < 0.1 * s.limiet) out.push({ id: s.id, soort: 'krap', tekst: `${s.id}: nog ${s.restMin} s van ${s.limiet} s over (minder dan 10%)` });
     if (s.limiet > 0 && s.actief > 0 && s.fails === 0 && s.cheats.length === 0 && s.actief < 0.2 * s.limiet && s.limiet >= 180) out.push({ id: s.id, soort: 'ruim', tekst: `${s.id}: ${Math.round(s.actief)} s gebruikt van ${s.limiet} s (minder dan 20%)` });
     // variety (the wish of #147: more than driving to a point): the kinds of stage the bot saw in this step
-    if (s.stagesKnown && /^Md/.test(s.id) && s.stages.size <= 2 && s.speel > 150) out.push({ id: s.id, soort: 'variatie', tekst: `${s.id}: maar ${s.stages.size} soort${s.stages.size === 1 ? '' : 'en'} stap (${[...s.stages].join(', ') || 'geen'}), minder dan drie` });
+    if (s.stagesKnown && /^M\d/.test(s.id) && s.stages.size <= 2 && s.speel > 150) out.push({ id: s.id, soort: 'variatie', tekst: `${s.id}: maar ${s.stages.size} soort${s.stages.size === 1 ? '' : 'en'} stap (${[...s.stages].join(', ') || 'geen'}), minder dan drie` });
     if (s.fails >= 2) out.push({ id: s.id, soort: 'opnieuw', tekst: `${s.id}: ${s.fails} keer opnieuw` });
     if (s.cine != null && s.speel > 0 && s.cine / s.speel > 0.5 && s.cine > 90) out.push({ id: s.id, soort: 'scene', tekst: `${s.id}: ${Math.round(100 * s.cine / s.speel)}% van de tijd in cutscenes (${fmt(s.cine)})` });
   }
