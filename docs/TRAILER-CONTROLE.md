@@ -1,31 +1,66 @@
 # Trailers: wat is gecontroleerd (#63)
 
-Twee nieuwe trailers van de nieuwste main, opgenomen in het echte spel (geen nagebouwde beelden): een **gameplaytrailer** en een **verhaaltrailer**,
-beide 1080p60. Reproduceren: [scripts/trailer/README.md](../scripts/trailer/README.md). Het pakket staat buiten git in `C:\Users\abuis\GIT\GDE-Uploadpakket2`;
-er is **niets** geüpload of aangemaakt (constitution 8).
+Twee nieuwe trailers, opgenomen in het echte spel (geen nagebouwde beelden): een **gameplaytrailer** (74,9 s) en een **verhaaltrailer** (77,3 s),
+beide 1920x1080 op 60 beelden per seconde, H.264 + AAC. Reproduceren: [scripts/trailer/README.md](../scripts/trailer/README.md).
+Het pakket staat buiten git in `C:\Users\abuis\GIT\GDE-uploadpakket2` (het oude pakket staat er nog). Er is **niets** geüpload of gepubliceerd
+(constitution 8); in het pakket staat een uploadplan met alles op Privé.
 
 ## Eisen van de eigenaar en hoe ze zijn aangepakt
 
 | Eis | Aanpak |
 |---|---|
-| A. Nieuwste main, preset Hoog, nieuwste UI, geen oude elementen | Build van origin/main (zie "Bron"), `?preset=quality:hoog,shadows:true,drawDistance:heelver,resolution:1,autoResolution:false`. Alle UI-beelden zijn schermen van het spel zelf (pauzemenu, kaart, garage met 3D-voorbeelden, Opgeslagen spellen, Samen spelen); geen aparte trailer-HUD. |
-| B. Geen inladende mapdelen | Opnemen met vaste tijdstap en **wachten op de wereld voor elk beeld** (tegels, gebouwen, wegen, geometrie-worker); zie hieronder. |
-| C. Audio zonder dips | Eén mix per trailer met ducking in plaats van losse stukken; alleen schone stukken van de Gemini-nummers; analyse per 100 ms. |
-| D. Montage | Snijden op de maat (135,469 en 119,47 bpm), hook in 3 s, opbouw, slotkaart met titel en 18+. |
-| E. Controle | Dit document en de rapporten per trailer in `controle/`. |
+| A. Nieuwste main, preset Hoog, nieuwste UI | Build van main op het moment van opnemen (zie "Bron"), preset `quality:hoog,shadows:true,drawDistance:heelver,resolution:1,autoResolution:false`. Alle schermen zijn die van het spel zelf (pauzemenu, kaart, garage met 3D-voorbeelden, Opgeslagen spellen, Samen spelen); de opnames na de laatste main-wijzigingen zijn opnieuw gedaan. |
+| B. Geen inladende mapdelen | Opnemen met een vaste tijdstap (1/60 s, geen echte klok) en voor elk beeld wachten tot tegels, gebouwen, wegen en de geometrie-worker klaar zijn; zie "Controle van het beeld". |
+| C. Audio zonder dips | Eén mix per trailer met ducking in plaats van losse stukken; alleen schone stukken van de Gemini-nummers uit `game/audio/gmusic`; eigen effecten uit ffmpeg-synthese; de stemmen zijn de bestaande opnames van het spel (geen nieuwe TTS). |
+| D. Montage | Snijden op de maat (135,469 en 119,474 bpm, analyse in `scripts/trailer/audio/analyze_music.mjs`), hook binnen 3 s, opbouw, slotkaart met "GDE Groningen – Zomer vol misdaad" en de 18+-aanduiding, geen echte merken of personen, geen namen van testers (alleen "NatusPella"), geen HUD of debug in beeld. |
+| E. Controle | Dit document, de rapporten per trailer in `controle/` van het pakket en de beeldbladen (één beeld per seconde). |
 
 ## Bron en instellingen
 
-(wordt aangevuld met de commit, de build en de instellingen van de uiteindelijke opnames)
+- Branch `claude/trailer-nieuw`; de opnames zijn gemaakt met de game uit de merge van `origin/main` (50b43834, 22 oktober 2026 rond 21:15) in
+  die branch (commit a384324f), gestaged met `GDE_PREBUILT_WORLD` uit de release-build `s5-rel2` van 21 oktober (de wereld is data en verschilt niet per commit).
+- Opnemen: `desktop --clip` (frameloos venster van precies 1920x1080), wegwerpprofiel, `--stil`, instellingen `cinematicMoments=false`,
+  ondertitels `extragroot` met contrast `hoog` (alleen tijdens de opname, niet opgeslagen).
+- Wat het spel zelf toont: de ondertitels en naamkaarten van de filmpjes, de menu's en de wereld. Er is geen aparte trailer-HUD. De HUD (minikaart, nieuwskaart, doel)
+  staat uit; de doelmarkeringen van het spel (zuil, ring, pictogram) zijn verborgen omdat de camera er anders dwars doorheen vliegt.
+- Alle gesproken regels zijn bestaande opnames uit `game/audio/voicelines`; regels zonder opname staan alleen als ondertitel. De muziek is
+  `Zomerse_droom_in_de_Stad` (gameplay) en `Goudgeld_op_de_oprit` (verhaal), met eigen effecten (zoefjes, klappen, regen, motor, bellen, klok).
 
 ## Controle van het beeld
 
-(wordt aangevuld)
+- **Vaste tijdstap en wachten op de wereld:** voor elk opgenomen beeld loopt het spel op 1/60 s en wacht de opname tot er niets meer te streamen valt
+  (kleine tussenbeelden van 0,02 ms die niet meetellen in de beeldklok). Per clip staat in het zijbestand (`<clip>.json`) hoeveel tussenbeelden nodig waren
+  (bijna altijd 0, hooguit 7) en elke verandering in de scène-handtekening (gebouwen, gevels, wegen, geometrieën).
+- **Samen spelen:** in coöp-modus laadt het spel de gebouwen pas na een paar seconden terwijl het streamen al "klaar" meldt; de coöp-opname wacht daarom 400 beelden
+  extra en is daarna met het oog nagekeken (gebouwen aanwezig, beide spelers in beeld).
+- **Per beeld nagekeken:** beide trailers zijn met beeldbladen (één beeld per seconde) en close-ups bekeken. Gevonden en opgelost: paarse kleurzweem door het samenvoegen van
+  bijschriften in YUV (nu in RGB); bijschriften over de menu's (weggelaten daar); een zwevend doelpictogram dat de camera binnenvloog (verborgen en de rit verplaatst);
+  de wereld met HUD in de eerste beeldjes van de menu-opnames (menu opent nu vóór de opname); een donker eindstuk van de marktclip (ingekort); een vastlopende rit
+  door stilstaande geparkeerde auto's na een wijziging in main (blokkades vooruit worden weggehaald); een filmpje dat het spel pauzeerde na het hoofdmenu.
+- **Automatische controle** (`check_video.mjs`): 0 dubbele beelden, zwart alleen in de fade van begin en einde. De "pop-in verdacht"-lijst (38 en 42 plekken) bestaat vooral uit
+  snelle beweging langs gevels en uit bedoelde camerasneden binnen een clip; de vier grootste verschillen per trailer zijn bekeken (twee opeenvolgende beelden en hun verschil): geen tegel of gebouw dat ineens verschijnt. Dit
+  is dus een controle met het oog op de verdachte plekken, geen bewijs per pixel.
 
-## Controle van het geluid
+## Controle van het geluid (`check_audio.mjs`, per 100 ms, vastgehouden omhullende van 300 ms)
 
-(wordt aangevuld)
+| | Gameplaytrailer | Verhaaltrailer |
+|---|---|---|
+| Duur | 74,9 s | 77,3 s |
+| Geïntegreerde luidheid | -14,1 LUFS (doel -14 ±1) | -14,1 LUFS |
+| True peak | -1,8 dBTP (max -1) | -1,5 dBTP |
+| Dalingen > 6 dB zonder reden | 0 | 0 van 83 mogelijke |
+| Sprongen > 6 dB zonder reden | 0 (1 bedoelde: de klap op de drop) | 0 van 42 mogelijke |
+| Stiltes > 0,3 s buiten bedoelde pauzes | 0 | 0 |
+| Luidheidsbereik (LRA) | 2,0 LU | 2,4 LU |
+
+"Een reden" staat in het allow-bestand dat de montage schrijft: begin en einde (fades), de muziek die binnenkomt, de ducking onder elke stem, bewuste klappen (impact). Elke
+stem krijgt een eigen niveau (-15 LUFS) en de muziek zakt er 4 tot 5 dB onder. De grafieken staan in `controle/`.
 
 ## Niet gecontroleerd
 
-(wordt aangevuld)
+- Niet beluisterd door een mens: de geluidscontrole is meetbaar (zie boven), het oordeel over smaak en afmeting van muziek en stemmen niet.
+- De trailers zijn niet op een tv, telefoon of in YouTube zelf bekeken; de leesbaarheid van de ondertitels is op 1080p beoordeeld in de beeldbladen en close-ups.
+- Niet op macOS gemaakt; alleen op Windows met één Electron-instantie.
+- Verhaaltrailer: de spoilerkeuze (geen twist, geen finale) is op de regels van het script beoordeeld, niet door een speler die het verhaal niet kent.
+- Waargenomen en niet onderzocht (mogelijk een spelfout, geen onderdeel van deze opdracht): na scriptmatig rijden toonde Prestaties een enorm negatief getal bij "Honderd op de teller"
+  (de opnames van de menu's zijn daarom in een schone sessie gemaakt); in de garage zegt het spel "Je zit erin" voor een opgeslagen voertuig terwijl de speler te voet is.

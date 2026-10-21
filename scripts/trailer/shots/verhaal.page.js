@@ -61,6 +61,7 @@ async function playStory(c, { name, def, lines, duration, anchor = null, from = 
     for (let i = 0; i < 30; i++) await c.advance({ capture: false });
     await c.png(thumb.name);
     c.clearOverlay();
+    if (sb) sb.style.visibility = '';
     return { thumb: thumb.name };
   }
   const fired = new Set();
@@ -92,7 +93,7 @@ shot('v01-keuken', async (c) => {
   const dur = last.at + last.dur + 3;
   // de keuken is een gesloten kamer hoog boven de straat (story.js KITCHEN_Z)
   const sp = { x: 214, y: 60, facing: 0, z: 345 };
-  return playStory(c, { name: 'v01-keuken', def: act, lines, duration: dur, anchor: sp, clock: 7.2, from: 10, to: Math.min(dur, 56) });
+  return playStory(c, { name: 'v01-keuken', def: act, lines, duration: dur, anchor: sp, clock: 7.2, from: 10, to: Math.min(dur, 45) });
 });
 
 // V00: de straat in de opening (fietsers, de meeuw, de postbode) met de naamkaarten van Tessa en Tammo
@@ -114,7 +115,7 @@ shot('v02-verhuisdag', async (c) => {
   const dur = last.at + last.dur + 4.6;
   const act = cs.OPENING_ACTS[2];
   const fit = { radii: [10, 16, 24, 34, 46, 60], ground: (x, y) => c.M.camp.roofAt(c.world.map, x, y) === 0 };
-  return playStory(c, { name: 'v02-verhuisdag', def: act, lines, duration: dur, anchor: { x: -1418, y: -1157, facing: 0.6, z: 0 }, clock: 10.2, fit });
+  return playStory(c, { name: 'v02-verhuisdag', def: act, lines, duration: dur, anchor: { x: -1418, y: -1157, facing: 0.6, z: 0 }, clock: 10.2, fit, to: 7.8 });
 });
 
 // Opdrachtscènes (cutscenes_akte1.js): dezelfde regie als in het spel, met de bestaande stemmen
@@ -129,10 +130,10 @@ async function missionStory(c, { name, key, scene, anchor, clock = 14, weather =
   const fit = { radii: [10, 16, 24, 34, 46, 60], ground: (x, y) => c.M.camp.roofAt(c.world.map, x, y) === 0 };
   return playStory(c, { name, def, lines, duration: dur, anchor: { ...anchor, z: 0 }, clock, weather, fit, from, to, thumb });
 }
-shot('v03-berend', async (c) => missionStory(c, { name: 'v03-berend', key: 'M01.intro', scene: 'M01.1', anchor: { x: 250, y: 26, facing: 0.3 }, clock: 11 }));
+shot('v03-berend', async (c) => missionStory(c, { name: 'v03-berend', key: 'M01.intro', scene: 'M01.1', anchor: { x: 250, y: 26, facing: 0.3 }, clock: 11, to: 19.6 }));
 shot('v04-markt', async (c) => missionStory(c, { name: 'v04-markt', key: 'M01.3', scene: 'M01.3', anchor: { x: 101, y: 77, facing: 0.5 }, clock: 18.4 }));
 shot('v05a-automaat', async (c) => missionStory(c, { name: 'v05a-automaat', key: 'M02.intro', scene: 'M02.1', anchor: { x: -300, y: 100, facing: 1.2 }, clock: 7.6, from: 5.9, to: 16.3 }));
-shot('v05b-politie', async (c) => missionStory(c, { name: 'v05b-politie', key: 'M02.intro', scene: 'M02.1', anchor: { x: -300, y: 100, facing: 1.2 }, clock: 7.6, from: 49.4, to: 55.5 }));
+shot('v05b-politie', async (c) => missionStory(c, { name: 'v05b-politie', key: 'M02.intro', scene: 'M02.1', anchor: { x: -300, y: 100, facing: 1.2 }, clock: 7.6, from: 44.8, to: 51.0 }));
 shot('v06a-duif', async (c) => missionStory(c, { name: 'v06a-duif', key: 'M04.intro', scene: 'M04.1', anchor: { x: 121, y: -700, facing: 0.8 }, clock: 16.5, from: 4.4, to: 12.4 }));
 shot('v06b-duif', async (c) => missionStory(c, { name: 'v06b-duif', key: 'M04.intro', scene: 'M04.1', anchor: { x: 121, y: -700, facing: 0.8 }, clock: 16.5, from: 19.2, to: 29.8 }));
 shot('v07-kiezel', async (c) => missionStory(c, { name: 'v07-kiezel', key: 'M05.intro', scene: 'M05.1', anchor: { x: 121, y: -740, facing: 2.2 }, clock: 15.2, from: 14.2, to: 24.6 }));

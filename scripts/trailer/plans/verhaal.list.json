@@ -1,6 +1,6 @@
 {
  "name": "GDE-Groningen-verhaaltrailer-1080p60",
- "clipsDir": "C:/Users/abuis/gde-trailer-work/r1",
+ "clipsDir": "C:/Users/abuis/gde-trailer-work/r2",
  "captionsDir": "C:/Users/abuis/gde-trailer-work/cap-vh",
  "bpm": 119.474,
  "hook": 0,
@@ -64,7 +64,7 @@
   },
   {
    "clip": "v00-straat.mp4",
-   "in": 15.6,
+   "in": 2.3,
    "beats": 6,
    "label": "straat",
    "sfx": [
@@ -83,37 +83,37 @@
   {
    "clip": "v02-verhuisdag.mp4",
    "in": 0,
-   "beats": 14,
+   "beats": 13,
    "label": "verhuisdag"
   },
   {
    "clip": "v03-berend.mp4",
-   "in": 0,
+   "in": 0.1,
    "beats": 6,
    "label": "berend"
   },
   {
    "clip": "v03-berend.mp4",
-   "in": 15.65,
-   "beats": 5,
+   "in": 16.15,
+   "beats": 6,
    "label": "berend3"
   },
   {
    "clip": "v04-markt.mp4",
-   "in": 6.75,
+   "in": 8.55,
    "beats": 10,
    "label": "markt"
   },
   {
    "clip": "v04-markt.mp4",
-   "in": 24.5,
+   "in": 26.4,
    "beats": 17,
    "label": "markt2"
   },
   {
    "clip": "v05b-politie.mp4",
    "in": 0,
-   "beats": 9,
+   "beats": 10,
    "label": "politie",
    "sfx": [
     [
@@ -149,7 +149,7 @@
   {
    "clip": "v06b-duif.mp4",
    "in": 0,
-   "beats": 19,
+   "beats": 18,
    "label": "duif"
   },
   {
