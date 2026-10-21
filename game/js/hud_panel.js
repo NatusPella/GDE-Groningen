@@ -2451,6 +2451,9 @@ function drawMinimap(dt, world) {
     const kind = missionMapKind(m.index, m.phase === 'active');
     if (!icon(kind, m.marker.x, m.marker.y)) missionEdge = edgeAngle(m.marker.x, m.marker.y);
   }
+  // samen spelen: het doel van de opdracht van de gastheer staat ook op de minimap van een gast (#368)
+  const gastDoel = world.coopRole === 'client' && !showMission && !job && world.coopHost && world.coopHost.doelen && world.coopHost.doelen[0];
+  if (gastDoel && !icon(missionMapKind(-1, true), gastDoel.x, gastDoel.y)) missionEdge = edgeAngle(gastDoel.x, gastDoel.y);
 
   let wpEdge = null;
   if (wp && !busyGame && !icon('userWaypoint', wp.x, wp.y)) wpEdge = edgeAngle(wp.x, wp.y);
