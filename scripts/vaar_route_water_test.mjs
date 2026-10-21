@@ -23,8 +23,10 @@ map.addWaterPatches(V.patchRows(JSON.parse(fs.readFileSync(new URL('vaarnet_fixe
 const lau = JSON.parse(fs.readFileSync(new URL('index-provincie.json', root), 'utf8')).global.places.find((p) => p.name === 'Lauwersoog');
 let n = 0, fails = 0;
 const ok = (c, m, info = '') => { n++; if (!c) { fails++; console.log(`FAIL ${m}${info ? ' (' + info + ')' : ''}`); } };
-// het begin: de Gerrit Krolbrug in de stad ligt op (0, 0) van de kaart; het doel is het eerste water bij Lauwersoog
-const r = V.planVaarRoute(net, [-1448, -74], [lau.x - 30, lau.y - 450], 'rondvaart', { snapMax: 3000 });
+// het begin: de Gerrit Krolbrug in de stad ligt op (0, 0) van de kaart; het doel is het zeeknooppunt van het vaarnet bij Lauwersoog
+// (de tong voorbij de Robbengatsluis). Het eerste water bij het dorp (de vijver achter de dijk) is sinds de dammen (#349) een eiland.
+const zee = net.nodes[net.hubs['Waddenzee bij Lauwersoog']];
+const r = V.planVaarRoute(net, [-1448, -74], [zee.x, zee.y], 'rondvaart', { snapMax: 3000 });
 ok(!!r && r.pts.length > 50, 'er is een vaarroute van de binnenstad naar Lauwersoog', r && String(r.pts.length));
 const samples = [];
 if (r) for (let i = 1; i < r.pts.length; i++) {
