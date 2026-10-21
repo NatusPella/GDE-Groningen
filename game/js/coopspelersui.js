@@ -52,7 +52,7 @@ export function updateSpelersOverlay(world) {
   const rijen = world.coopNet && world.coopSpelers;
   const menu = document.getElementById('pause-menu');
   const film = document.body.classList.contains('cine-hide-hud'); // een filmpje verbergt de HUD, dus ook de lijst
-  const toon = !!(rijen && rijen.length && world.input && world.input.isDown && world.input.isDown('tab') && !(menu && menu.classList.contains('visible')) && !film);
+  const toon = !!(rijen && rijen.length && world.input && world.input.isDown && world.input.isDown('tab') && !world.paused && !(menu && menu.classList.contains('visible')) && !film); // niet over de kaart, een winkel of het pauzemenu
   if (!toon) { if (overlay) overlay.style.display = 'none'; return; }
   zorgVoorStijl();
   if (!overlay) {
