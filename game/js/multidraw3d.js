@@ -220,10 +220,13 @@ function copyOf(mat) {
   let c = copies.get(mat);
   if (!c) {
     c = mat.clone();
+    // clone() does not carry the defines of a built-in material over (MeshStandardMaterial.copy resets them to STANDARD): the road surfaces choose their
+    // paving by define (roadsurface.js SURF_KLINKER, SURF_TILES, ...) and without them every road was plain grey
+    c.defines = { ...mat.defines };
     c.onBeforeCompile = mat.onBeforeCompile;
     const ck = mat.customProgramCacheKey;
     c.customProgramCacheKey = () => (ck ? ck.call(mat) : '') + '|pool';
-    c.userData = { ...mat.userData, shared: true, poolOf: mat };
+    c.userData = { ...mat.userData, shared: true, poolOf: mat, srcVersion: mat.version };
     copies.set(mat, c);
   }
   return c;
@@ -269,6 +272,12 @@ export function createDrawHub(name) {
     syncMaterials() {
       for (const p of pools.values()) {
         const m = p.material, s = m.userData.poolOf;
+        // the original was touched (a define switched, e.g. the road bump on a quality change): the copy follows
+        if (s.version !== m.userData.srcVersion) {
+          m.userData.srcVersion = s.version;
+          m.defines = { ...s.defines };
+          m.needsUpdate = true;
+        }
         for (const k of MIRROR) if (m[k] !== s[k]) m[k] = s[k];
         if (!m.color.equals(s.color) && !m.vertexColors) m.color.copy(s.color);
       }
