@@ -1,6 +1,6 @@
 // Het geluid van de gestuurde scènes met rijdende voertuigen echt gemeten (#117): één Electron (slot uit gde-locks, wegwerpprofiel,
 // BelowNormal) met de audiotap (--audio-graph: de graaf speelt in een gedempte uitvoer, het niveau vóór de uitgang wordt gemeten).
-//   node scripts/qa/cutaudio_live.mjs [--out=<map>] [--only=M01,M09] [--max=12] [--speed=1] [--game-dir=<gestaged game-map>]
+//   node scripts/qa/cutaudio_live.mjs [--out=<map>] [--only=M01,M09] [--prop=politie,bakkie] [--max=12] [--speed=2] [--game-dir=<gestaged game-map>]
 // Uitvoer: <out>/cutaudio.json (per scène: wat de scène in de geluidsrij zette, hoeveel bronnen er in de graaf startten, RMS en piek
 // in de scène tegenover de stilte ervoor), run.log. Niemand heeft het gehoord: dit meet alleen dat er geluid komt en hoe hard.
 import fs from 'node:fs';
@@ -14,7 +14,7 @@ const ROOT = path.resolve(HERE, '..', '..');
 const arg = (k, d) => { const a = process.argv.find((v) => v.startsWith(`--${k}=`)); return a ? a.slice(k.length + 3) : d; };
 const OUT = path.resolve(arg('out', path.join(os.tmpdir(), 'gde-cutaudio-live')));
 fs.mkdirSync(OUT, { recursive: true });
-const cfg = { only: arg('only', '').split(',').filter(Boolean), max: Number(arg('max', 12)), speed: Number(arg('speed', 1)) };
+const cfg = { only: arg('only', '').split(',').filter(Boolean), prop: arg('prop', '').split(',').filter(Boolean), max: Number(arg('max', 12)), speed: Number(arg('speed', 2)) };
 const WACHT = 'for (let i = 0; i < 240 && !(window.__debug && window.__debug.world); i++) await new Promise((r) => setTimeout(r, 500));\n'
   + "const kEnter = () => { for (const t of [window, document]) { t.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', bubbles: true })); t.dispatchEvent(new KeyboardEvent('keyup', { key: 'Enter', code: 'Enter', bubbles: true })); } };\n"
   + "for (let i = 0; i < 40; i++) { const s = document.querySelector('#start-screen'); if (!s || !s.classList.contains('visible')) break; const it = [...s.querySelectorAll('.ss-item')].find((e) => /nieuw s/i.test(e.textContent)); if (it) it.click(); else kEnter(); await new Promise((r) => setTimeout(r, 2500)); }\n"
