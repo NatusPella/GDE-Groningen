@@ -12,7 +12,7 @@ import { dryIndices } from './greenwater.js';
 
 const GREEN_Y = 0.015;
 const CHUNK = 64;
-const CELL = 10;
+export const CELL = 10;
 const SIDEWALK_CATS = new Set(['major', 'normal', 'minor']);
 const SIDEWALK_EXTRA = 1.8;
 
@@ -584,7 +584,7 @@ gl_Position = projectionMatrix * mvPosition;`);
 
 // ---------------------------------------------------------------- tuft streaming
 
-const QUALITY = {
+export const QUALITY = {
   laag: null,
   middel: { radius: 28, density: 0.45, maxDensity: 2.5, edgeStep: 0.55, shrubRadius: 50, cap: 16000 },
   hoog: { radius: 40, density: 1, maxDensity: 6, edgeStep: 0.32, shrubRadius: 70, cap: 45000 },
@@ -627,7 +627,8 @@ function inPolyRow(x, y, g) {
   return inside;
 }
 
-function generateCell(map, ci, cj, Q, full) {
+// (exported for scripts/world/hedge_audit.mjs: the cell's instances against the roads of the tiles)
+export function generateCell(map, ci, cj, Q, full) {
   const x0 = ci * CELL, y0 = cj * CELL, x1 = x0 + CELL, y1 = y0 + CELL;
   const cx = x0 + CELL / 2, cy = y0 + CELL / 2;
   const out = { full };

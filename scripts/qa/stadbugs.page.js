@@ -1,6 +1,7 @@
 // Page half of scripts/qa/stadbugs.mjs (desktop --perf-script body): beelden en metingen op losse plekken van de stad
 // voor de door een tester gemelde bugs (#323 t/m #335). window.__sb = { settle, spots: [{ naam, x, y, a, views, eval }] }.
 //   views: [{ n, p: [x, y, hoogte boven de grond], l: [x, y, hoogte boven de grond] }] (absolute spelcoordinaten)
+//   een eval kan window.__sbMenuOk = true zetten om het pauzemenu open te houden, en met console.log('[capture] naam') een beeld van het venster vragen
 //   eval: een async functietekst (w, map, imp, sleep, go, shot, release) => json, uitgevoerd nadat de plek geladen is; het resultaat gaat in de uitvoer
 //   (release() laat de speler los, voor een rit of wandeling).
 // Elke keydown wordt gevolgd door een keyup (er worden hier geen toetsen gedrukt).
@@ -28,7 +29,7 @@ const teleport = (x, y) => {
 };
 let hold = null, done = false;
 const tick = () => {
-  if (PM.isPauseMenuOpen()) PM.closePauseMenu();
+  if (PM.isPauseMenuOpen() && !window.__sbMenuOk) PM.closePauseMenu(); // (een eval die het pauzemenu meet zet __sbMenuOk)
   D.input.mouse.y = innerHeight * 0.4;
   if (hold) { p.x = hold.x; p.y = hold.y; p.vx = p.vy = 0; p.angle = hold.a; w.camYaw = hold.a; w.clock = CFG.clock || 14; }
   if (!done) requestAnimationFrame(tick);

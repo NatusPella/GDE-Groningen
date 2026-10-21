@@ -207,6 +207,8 @@ const ZWAAR = [
   ['province_test', 'scripts/province_test.mjs', [], 5400, true],
   ['province_detail_test', 'scripts/province_detail_test.mjs', [], 5400, true],
   ['vaarnet_province_test', 'scripts/vaarnet_province_test.mjs', [], 900, true],
+  ['hull_route_audit', 'scripts/hull_route_audit.mjs', ['--half=120'], 900, true],
+  ['hedge_audit', 'scripts/world/hedge_audit.mjs', ['--r=150', '--spots=Prinsentuin,Martinikerkhof,Noorderplantsoen,Vismarkt'], 600, true],
   ['bridge_province_test', 'scripts/bridge_province_test.mjs', [], 900, true],
 ];
 

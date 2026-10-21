@@ -33,7 +33,7 @@ const E = (id, kind, naam, plaats, at, m, d, dTo, from, to, tekst) => ({
 });
 
 export const AGENDA = [
-  E('ev-kermis-zuidlaren', 'kermis', 'Zomerkermis Zuidlaren', 'Zuidlaren', [53.0937, 6.6819], 8, 21, 23, 14, 24,
+  E('ev-kermis-zuidbroek', 'kermis', 'Zomerkermis Zuidbroek', 'Zuidbroek', [53.1717, 6.8697], 8, 21, 23, 14, 24,
     'Draaimolens, suikerspin en een oliebollenkraam in augustus. Niemand vraagt waarom.'),
   E('ev-markt-winsum', 'markt', 'Zomermarkt Winsum', 'Winsum', [53.3317, 6.5195], 8, 19, 19, 8, 16,
     'Kramen met kaas, fruit en een man die zegt dat zijn tomaten van gisteren zijn. Dat klopt.'),

@@ -1,6 +1,6 @@
 // Beelden en metingen op losse stadsplekken voor de tester-bugs #323 t/m #335: één headless Electron (slot uit gde-locks,
 // wegwerpprofiel, BelowNormal), sluit zelf af.
-//   node scripts/qa/stadbugs.mjs --spots=<json> [--out=<map>] [--settle=<ms>] [--game-dir=<gestaged game-map>]
+//   node scripts/qa/stadbugs.mjs --spots=<json> [--out=<map>] [--settle=<ms>] [--size=1600x900] [--game-dir=<gestaged game-map>]
 // De spots-json is { spots: [{ naam, x, y, a, views: [{ n, p: [x, y, h], l: [x, y, h] }], eval }], clock } (zie stadbugs.page.js).
 // Omgeving: ELECTRON_EXE=<pad> als desktop/node_modules/electron ontbreekt; --game-dir (of GDE_GAME_DIR, met backslashes).
 // Uitvoer: <out>/shots-<naam>-<n>.png, stadbugs.json, run.log. Het slot wordt altijd vrijgegeven.
@@ -36,7 +36,7 @@ if (fs.existsSync(LOCKS)) {
 }
 const free = () => { if (slot) { try { fs.rmdirSync(slot); } catch { /* weg */ } slot = null; } };
 process.on('exit', free);
-const args = ['.', '--windowed', '--stil', '--force-device-scale-factor=1', '--window-size=1600x900', `--smoke-test=${path.join(OUT, 'shots.png')}`, `--perf-script=${script}`];
+const args = ['.', '--windowed', '--stil', '--force-device-scale-factor=1', `--window-size=${arg('size', '1600x900')}`, `--smoke-test=${path.join(OUT, 'shots.png')}`, `--perf-script=${script}`];
 const child = spawn(electron, args, { cwd: path.join(ROOT, 'desktop'), env, stdio: ['ignore', 'pipe', 'pipe'] });
 let log = '';
 child.stdout.on('data', (d) => { log += d; });

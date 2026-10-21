@@ -2315,7 +2315,7 @@ export function update3D(dt, world) {
   updateEvenementen3D(scene, world, calendarTodayEv(world), (x, y) => (world.map.spawnZ ? world.map.spawnZ(x, y) : 0),
     (x, y, m) => !buildingAt(world.map, x, y, m) && !isInWater(world.map, x, y));
   updateCountryside(dt, world, scene, cam, viewDist);
-  updateOmmelandLandmarks(world, scene, focus);
+  updateOmmelandLandmarks(world, scene, focus, setBuildingHidden);
   probe.mark('3d:rail+country');
 
   syncParkedLayer(scene, sleepingParkedCars(world), buildVehicleActor, focus, DRAW_DIST);

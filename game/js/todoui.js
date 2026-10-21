@@ -168,7 +168,7 @@ function tilesHtml(world, extra) {
   const found = getSaveSet('eierballen').size + getSaveSet('geheimen').size, all = EIERBAL_TOTAL + SECRETS_TOTAL;
   const min = Math.floor((extra.play || 0) / 60);
   const play = min < 1 ? 'net begonnen' : min < 60 ? `${min} min` : `${Math.floor(min / 60)} u ${String(min % 60).padStart(2, '0')}`;
-  const tile = (ic, label, val, pct, goto) => `<button type="button" class="ov-tile" ${goto ? `data-goto="${goto}"` : 'tabindex="-1"'} aria-label="${esc(label)}: ${esc(val)}">${svg(ic)}<span class="ov-tv">${esc(val)}</span><span class="ov-tl mut">${esc(label)}</span>${pct == null ? '' : `<span class="m-bar"><i style="width:${pct}%"></i></span>`}</button>`;
+  const tile = (ic, label, val, pct, goto) => `<button type="button" class="ov-tile" ${goto ? `data-goto="${goto}"` : 'tabindex="-1"'} aria-label="${esc(label)}: ${esc(val)}">${svg(ic)}<span class="ov-tv${val.length > 7 ? ' long' : ''}">${esc(val)}</span><span class="ov-tl mut">${esc(label)}</span>${pct == null ? '' : `<span class="m-bar"><i style="width:${pct}%"></i></span>`}</button>`;
   return '<div class="ov-tiles">' +
     tile(ICON.coin, 'Geld', `€${Math.floor(world.money || 0).toLocaleString('nl-NL')}`, null, 'spullen') +
     tile(ICON.clock, 'Speeltijd', play, null, '') +
