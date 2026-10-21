@@ -17,6 +17,8 @@ nieuwe functies, `y` voor alleen bugfixes.
 - **Samen spelen: speler 3 en 4 lopen niet meer door gebouwen en water en blijven bij de groep (#366), en rijden mee in het voertuig van wie het spel opende (#372):** auto drie extra plekken, bus zes; wie meerijdt is niet meer als poppetje in het blok te zien.
 - **Samen spelen: roepjes (#367):** 7 = Kom hier, 8 = Help!, 9 = Kijk daar, met een lichtzuil in jouw kleur, een punt op minimap en kaart en een regel; knoppen in het spelerslabel (nu boven de minimap, met afstand, #374).
 - **Samen spelen: het doel van de opdracht staat op minimap en kaart van een gast (#368), iedereen hoort als wie het spel opende neergaat of gepakt wordt (#369), wie Tessa bestuurt leest waarom lopen even niet kan (#375) en in een menu loopt de figuur niet weg (#373).**
+- **Samen spelen: de lijst met spelers staat niet meer permanent in beeld (#377; met een Electron-gast en 2 of 4 spelers op 1280x720 en 1920x1080 door Claude in beeld bekeken, niet door een mens):** houd Tab ingedrukt voor een compacte lijst met naam, kleur, vorm, wat iedereen doet, verbinding met ping en afstand; in het pauzemenu staat zolang je samen speelt het onderdeel Spelers met dezelfde gegevens, de roepknoppen en 'Ga erheen'. Op minimap en kaart staat per speler alleen een klein gekleurd punt.
+- **Samen spelen: bij een gast loopt het weer en de dagstand echt mee (#378):** een gast ziet dezelfde bui, regen en tijd als wie het spel opende (de weerstaat kwam al binnen, maar werd bij een gast nooit gestapt).
 - **Samen spelen: een gast ontgrendelt geen 'ontsnapt_5' door het gezochtniveau van wie het spel opende (#370).**
 
 ### Verbeterd
