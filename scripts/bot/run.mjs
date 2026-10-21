@@ -95,11 +95,23 @@ const env = { ...process.env, GDE_TEST_PROFILE: profile, GDE_NIEUW_VERHAAL: '1' 
 delete env.ELECTRON_RUN_AS_NODE;
 const t0 = Date.now();
 // uitvoer rechtstreeks naar run.log: wordt de run afgebroken (time-out, kill, de testrun zelf onderbroken), dan blijven de details staan (#255)
-const logFd = fs.openSync(path.join(OUT, 'run.log'), 'w');
-const r = spawnSync(electron, ['.', '--windowed', '--stil', '--force-device-scale-factor=1', '--window-size=1280x720', `--autoplay=${seed}`, ...(flag('audio') ? ['--audio-graph'] : []), ...(flag('reizen') ? ['--reizen'] : []),
-  `--smoke-test=${path.join(OUT, 'shots.png')}`, `--perf-script=${script}`, `--bot-events=${events}`],
-{ cwd: path.join(ROOT, 'desktop'), env, stdio: ['ignore', logFd, logFd], timeout: (cfg.maxWallS + 240) * 1000, killSignal: 'SIGKILL' });
-fs.closeSync(logFd);
+// op een overvolle machine start het spel soms niet binnen de tijd ('Failed to fetch dynamically imported module': de pagina was er nog niet): dan één keer opnieuw
+let r;
+for (let poging = 1; poging <= 2; poging++) {
+  const logFd = fs.openSync(path.join(OUT, 'run.log'), 'w');
+  r = spawnSync(electron, ['.', '--windowed', '--stil', '--force-device-scale-factor=1', '--window-size=1280x720', `--autoplay=${seed}`, ...(flag('audio') ? ['--audio-graph'] : []), ...(flag('reizen') ? ['--reizen'] : []),
+    `--smoke-test=${path.join(OUT, 'shots.png')}`, `--perf-script=${script}`, `--bot-events=${events}`],
+  { cwd: path.join(ROOT, 'desktop'), env, stdio: ['ignore', logFd, logFd], timeout: (cfg.maxWallS + 240) * 1000, killSignal: 'SIGKILL' });
+  fs.closeSync(logFd);
+  const boot = fs.readFileSync(path.join(OUT, 'run.log'), 'utf8');
+  if (poging === 1 && /Failed to fetch dynamically imported module/.test(boot) && !/\[perf-script\]/.test(boot)) {
+    console.error('het spel startte niet (overvolle machine?): nog een poging');
+    fs.rmSync(path.join(os.tmpdir(), profile), { recursive: true, force: true });
+    fs.writeFileSync(events, JSON.stringify({ type: 'meta', replay: L.REPLAY_VERSION, seed, ...cfg, started: new Date().toISOString(), poging: 2 }) + '\n');
+    continue;
+  }
+  break;
+}
 if (r.error && r.error.code !== 'ETIMEDOUT') console.error('Electron starten mislukt (niet geïnstalleerd? zet ELECTRON_EXE):', r.error.message);
 r.stdout = fs.readFileSync(path.join(OUT, 'run.log'), 'utf8');
 fs.rmSync(path.join(os.tmpdir(), profile), { recursive: true, force: true });
