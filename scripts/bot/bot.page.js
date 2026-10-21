@@ -467,7 +467,19 @@ while (true) {
   } else heldSince = null;
   if (act.type === 'closemenu') { await B.press('escape'); continue; }
   if (act.type === 'choose') { B.log('keuze', { dialog: s.blocking.dialog.text, key: act.key }); shot(`${stepKey}-keuze`); await B.choose(act.key); continue; }
-  if (act.type === 'skip') { await holdSkip(); continue; }
+  if (act.type === 'skip') {
+    // --watch=<s>: a cutscene is watched instead of skipped, with a beam every 2.5 s (at most 16 per scene), to look at staging in the real game (#352)
+    if (CFG.watch && s.blocking.cinematic && !s.blocking.banner) {
+      if (mem.watchT0 == null) { mem.watchT0 = performance.now(); mem.watchLast = -1e9; mem.watchN = 0; mem.sceneNo = (mem.sceneNo || 0) + 1; }
+      if (performance.now() - mem.watchT0 < CFG.watch * 1000) {
+        if (performance.now() - mem.watchLast > 2500 && mem.watchN < 16) { mem.watchLast = performance.now(); mem.watchN++; shot(`${(s.story.id || 'x')}-szene${mem.sceneNo}-${String(mem.watchN).padStart(2, '0')}`); }
+        await sleep(300);
+        continue;
+      }
+    } else mem.watchT0 = null;
+    await holdSkip();
+    continue;
+  }
   if (act.type === 'wait') { B.stick(0, 0); continue; }
   const gd = s.target ? s.target.distance : null;
   const st = detector.update(s.t, { x: s.player.x, y: s.player.y, goalDist: gd, key: stepKey });

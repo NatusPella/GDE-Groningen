@@ -5,6 +5,7 @@
 //   --part=all speelt akte 1 t/m 5 achter elkaar; --wait=<s> is het wachtbudget (een gesprek, banner of laadscherm dat zo lang blijft staan is een bevinding en krijgt de ladder)
 //   node scripts/bot/run.mjs --mode=minigames [--only=kartbaan,duif] [--play=40]   (fase 3: elke minigame kort spelen)
 //   node scripts/bot/run.mjs --mode=missions --only=M03,M04 [--per-step=600] [--skip-stages=N|M24:2,M26:7]   (elke stap los, via een sprong; --skip-stages voltooit eerst de eerste N stappen van de missie met de objective-cheat, om een latere stap los te testen)
+//   --watch=<s>   kijkt elke cutscene (hooguit s seconden) in plaats van hem over te slaan, met een beeld om de 2,5 s (shots-<stap>-szene<n>-<k>.png)
 //   --reizen zet de reisbeats aan (standaard uit in de bot; de bot kiest dan de eerste optie, Meerijden)
 //   --from=T1 springt eerst naar die stap en speelt dan door (de sprong van een sweep slaat reisstappen over, dit niet)
 //   --skip-from slaat die stap na de sprong over (cheat): de volgende stap, bv. een reisstap, begint dan bij jouw plek
@@ -79,7 +80,7 @@ const seed = Number(arg('seed', 1)) || 1;
 const replayFile = arg('replay');
 const profile = `gde-test-spelbot-${process.pid}`;
 const script = path.join(OUT, '_page.js');
-const cfg = { part: arg('part', 'kop'), maxGameS: Number(arg('max-game', 3600)), maxWallS: Number(arg('max-wall', 1800)), stuckS: Number(arg('stuck', 30)), only: arg('only', ''), from: arg('from', ''), skipFrom: flag('skip-from'), playS: Number(arg('play', 40)), perS: Number(arg('per', 60)), mode: arg('mode', 'story'), sweep: arg('mode') === 'missions' ? arg('only', '').split(',').filter(Boolean) : [], perStepS: Number(arg('per-step', 600)), skipStages: /:/.test(arg('skip-stages', '')) ? Object.fromEntries(arg('skip-stages', '').split(',').map((q) => q.split(':')).map(([k, v]) => [k, Number(v) || 0])) : Number(arg('skip-stages', 0)) || 0, shots: Number(arg('shots', 80)), speed: Number(arg('speed', 1)) || 1, waitS: Number(arg('wait', 45)) || 45, until: arg('until', ''), invulnerable: flag('invuln') };
+const cfg = { part: arg('part', 'kop'), maxGameS: Number(arg('max-game', 3600)), maxWallS: Number(arg('max-wall', 1800)), stuckS: Number(arg('stuck', 30)), only: arg('only', ''), from: arg('from', ''), skipFrom: flag('skip-from'), playS: Number(arg('play', 40)), perS: Number(arg('per', 60)), mode: arg('mode', 'story'), sweep: arg('mode') === 'missions' ? arg('only', '').split(',').filter(Boolean) : [], perStepS: Number(arg('per-step', 600)), watch: Number(arg('watch', 0)) || 0, skipStages: /:/.test(arg('skip-stages', '')) ? Object.fromEntries(arg('skip-stages', '').split(',').map((q) => q.split(':')).map(([k, v]) => [k, Number(v) || 0])) : Number(arg('skip-stages', 0)) || 0, shots: Number(arg('shots', 80)), speed: Number(arg('speed', 1)) || 1, waitS: Number(arg('wait', 45)) || 45, until: arg('until', ''), invulnerable: flag('invuln') };
 let pre = `window.__botCfg = ${JSON.stringify(cfg)};\n`;
 if (replayFile) {
   const rl = L.RunLog.parse(fs.readFileSync(path.resolve(replayFile), 'utf8'));
