@@ -765,6 +765,35 @@ results.routes.startup = await safe('startup', async () => {
   }
   return { rows, pool: sc.batches().pool };
 });
+// what the shadow pass draws (only with PERF_ONLY=shadowtris, PERF_DIAG=1 for the owner names): at fixed spots the triangles and draws of the sun's shadow pass in total and per owner,
+// 30 frames each, with the shadow update forced every frame. A build that keeps casters out of the shadow map shows less than the one it is compared with.
+results.routes.shadowtris = await safe('shadowtris', async () => {
+  if (!ONLY.includes('shadowtris')) return null;
+  const spots = [['markt', FOOT[0][0], FOOT[0][1], 0.3], ['straat', FOOT[3][0], FOOT[3][1], 1.9], ['gracht2', FOOT[4][0], FOOT[4][1], 2.6]];
+  const out = {};
+  const triOf = (o, g) => {
+    if (o.isBatchedMesh) { let n = 0; for (let i = 0; i < o._multiDrawCount; i++) n += o._multiDrawCounts[i]; return n / 3; }
+    const base = g.index ? g.index.count : g.attributes.position.count;
+    const dr = g.drawRange; const n = Math.min(base, dr.count === Infinity ? base : dr.count);
+    return (n / 3) * (o.isInstancedMesh ? o.count : 1);
+  };
+  for (const [name, x, y, yaw] of spots) {
+    teleport(x, y); w.camYaw = yaw; p.angle = yaw;
+    await sleep(window.__perfSettle || 12000);
+    { const builds = () => { const b = sc.batches(); return Object.values(b).reduce((q, e) => q + (e.builds || 0) + (e.dropped || 0), 0); }; let last = builds(), still = 0; for (let i = 0; i < 80 && still < 6; i++) { await sleep(500); const n = builds(); still = n === last ? still + 1 : 0; last = n; } }
+    fixWorld(); await sleep(1500);
+    let inSh = false, draws = 0, tris = 0, frames = 0; const owners = new Map();
+    const smR = r.shadowMap.render.bind(r.shadowMap);
+    r.shadowMap.render = (...a) => { inSh = true; frames++; try { smR(...a); } finally { inSh = false; } };
+    const rbd = r.renderBufferDirect;
+    r.renderBufferDirect = function (camera, scene2, geometry, material, object, group) { if (inSh) { const t = triOf(object, geometry); draws++; tris += t; const k = (window.__ownerOf ? window.__ownerOf(object) : object.type).replace(/ (Buffer|Extrude|Box|Cylinder|Plane|Circle|Sphere|Shape)[^ ]*.*$/, '').slice(0, 50); const e = owners.get(k) || [0, 0]; e[0]++; e[1] += t; owners.set(k, e); } return rbd.call(r, camera, scene2, geometry, material, object, group); };
+    const sm = r.shadowMap.autoUpdate; r.shadowMap.autoUpdate = true; r.shadowMap.needsUpdate = true;
+    await new Promise((res) => { const f = () => { if (frames >= 30) res(); else requestAnimationFrame(f); }; requestAnimationFrame(f); });
+    r.renderBufferDirect = rbd; r.shadowMap.render = smR; r.shadowMap.autoUpdate = sm;
+    out[name] = { frames, draws: +(draws / frames).toFixed(1), tris: Math.round(tris / frames), owners: [...owners].sort((a, b) => b[1][1] - a[1][1]).slice(0, 14).map(([k, v]) => [k, +(v[0] / frames).toFixed(1), Math.round(v[1] / frames)]) };
+  }
+  return out;
+});
 // A/B inside one run (only with PERF_ONLY=ab): window.__perfAb = [[name, [perfoff steps...]], ...] (PERF_AB='aan=;uit=actoren+schaduw'); the variants take
 // turns in short windows (window.__perfAbWin ms, window.__perfAbRounds rounds, the order swaps every round), so they feel the same load.
 // Every window is a perf-mark pair 'ab:<name>:<round>' for the thread sampler of run.mjs; PERF_AB_MOVE=1 walks (3 m/s) instead of standing.
