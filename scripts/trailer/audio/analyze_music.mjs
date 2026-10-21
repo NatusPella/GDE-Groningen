@@ -100,6 +100,36 @@ function cleanSegments(x, minLen = 8) {
   return segs;
 }
 
+// Verfijnt het raster: kleinste-kwadraten door de onset-pieken bij de voorspelde tellen (tempo op 0,01 bpm),
+// en kiest de tel die het sterkst terugkomt (modulo 4) als eerste tel van de maat.
+function refineGrid(env, hopS, bpm, t0) {
+  let period = 60 / bpm, start = t0;
+  for (let iter = 0; iter < 3; iter++) {
+    const pts = [];
+    const total = env.length * hopS;
+    for (let n = 0; start + n * period < total - period; n++) {
+      const pred = start + n * period;
+      const lo = Math.max(0, Math.round((pred - period / 4) / hopS)), hi = Math.min(env.length - 1, Math.round((pred + period / 4) / hopS));
+      let best = lo;
+      for (let i = lo; i <= hi; i++) if (env[i] > env[best]) best = i;
+      if (env[best] > 0) pts.push([n, best * hopS, env[best]]);
+    }
+    // gewogen regressie
+    let sw = 0, sx = 0, sy = 0, sxx = 0, sxy = 0;
+    for (const [n, t, w] of pts) { sw += w; sx += w * n; sy += w * t; sxx += w * n * n; sxy += w * n * t; }
+    const slope = (sw * sxy - sx * sy) / (sw * sxx - sx * sx);
+    const icpt = (sy - slope * sx) / sw;
+    period = slope; start = icpt;
+  }
+  // downbeat: de tel (0..3) met de meeste onset-energie
+  const acc = [0, 0, 0, 0];
+  const total = env.length * hopS;
+  for (let n = 0; start + n * period < total; n++) { const i = Math.round((start + n * period) / hopS); if (env[i] !== undefined) acc[n % 4] += env[i]; }
+  const down = acc.indexOf(Math.max(...acc));
+  const t1 = start + down * period;
+  return { bpm: +(60 / period).toFixed(3), period: +period.toFixed(5), firstDownbeat: +(t1 - Math.floor(t1 / (4 * period)) * 4 * period).toFixed(3) };
+}
+
 function loudness(file) {
   const r = spawnSync(ffmpegPath(), ['-hide_banner', '-nostats', '-i', file, '-af', 'ebur128=peak=true', '-f', 'null', '-'], { encoding: 'utf8', maxBuffer: 1 << 28 });
   const t = r.stderr;
@@ -119,7 +149,8 @@ for (const f of fs.readdirSync(DIR).filter((n) => n.endsWith('.mp3') && n.includ
   const seg = 2 * SR;
   const energy = [];
   for (let i = 0; i + seg <= x.length; i += seg) { let e = 0; for (let j = 0; j < seg; j++) e += x[i + j] * x[i + j]; energy.push(+(10 * Math.log10(e / seg + 1e-12)).toFixed(1)); }
-  out[f] = { dur: +(x.length / SR).toFixed(1), bpm, firstBeat: +start.toFixed(2), ...loudness(file), clean: cleanSegments(x), energy2s: energy };
-  console.log(`${f.padEnd(40)} ${out[f].dur.toString().padStart(6)} s  ${String(bpm).padStart(6)} bpm  eerste tel ${start.toFixed(2)}  ${out[f].lufs} LUFS  piek ${out[f].peak}  schoon: ${out[f].clean.map((c) => `${c[0]}-${c[1]}`).join(' ')}`);
+  const grid = refineGrid(env, hopS, bpm, start);
+  out[f] = { dur: +(x.length / SR).toFixed(1), bpm: grid.bpm, grid, firstBeat: +start.toFixed(2), ...loudness(file), clean: cleanSegments(x), energy2s: energy };
+  console.log(`${f.padEnd(40)} ${out[f].dur.toString().padStart(6)} s  ${String(grid.bpm).padStart(8)} bpm  maat1 ${grid.firstDownbeat}  ${out[f].lufs} LUFS  piek ${out[f].peak}  schoon: ${out[f].clean.map((c) => `${c[0]}-${c[1]}`).join(' ')}`);
 }
 if (arg('out', '')) fs.writeFileSync(arg('out', ''), JSON.stringify(out, null, 1));

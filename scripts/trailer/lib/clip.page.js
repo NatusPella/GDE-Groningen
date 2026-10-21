@@ -100,6 +100,12 @@ async function loadModules() {
   M.day = await import('/js/daynight.js');
   M.load = await import('/js/loadscreen.js');
   M.camp = await import('/js/camerapath.js');
+  M.veh = await import('/js/vehicle.js');
+  M.shops = await import('/js/shops.js');
+  M.route = await import('/js/routing.js');
+  M.bot = await import('/js/botlogic.js');
+  M.inp = await import('/js/input.js');
+  M.cd = await import('/js/cinedrive.js');
 }
 
 // wat er nog te laden is rond de camera (alles 0 = klaar)
@@ -120,7 +126,7 @@ function applyPins() {
 }
 
 // --- de opname ---------------------------------------------------------------------------------------------
-const rec = { on: false, name: '', frames: 0, extra: 0, maxPend: 0, maxExtra: 0, pendFrames: 0, t0: 0, log: [] };
+const rec = { events: [], on: false, name: '', frames: 0, extra: 0, maxPend: 0, maxExtra: 0, pendFrames: 0, t0: 0, log: [] };
 const EXTRA_MS = 0.02;       // een tussenbeeld laat de klok 0,02 ms lopen (nooit 0: sommige stappen delen door dt)
 const MAX_EXTRA = 240;       // meer dan 4 s wachten op streamen: geef op en meld het
 
@@ -241,8 +247,80 @@ function placePlayer(x, y, angle = null) {
   return s;
 }
 
+// --- voertuigen en rijden ---------------------------------------------------------------------------------
+// Een voertuig uit het spel (sleutel uit shopdata VEHICLE_STOCK, of 'hero' voor de Escapade) op een weg bij x, y.
+function spawn(key, x, y, angle = null, { onRoad = true } = {}) {
+  let v = null;
+  const at = onRoad ? world.map.nearestRoadPoint(x, y, 120, true, true) : null;
+  const px = at ? at.x : x, py = at ? at.y : y;
+  let a = angle;
+  if (a == null && at && at.road) { // rijrichting langs de weg
+    const pts = at.road.pts; let best = Infinity;
+    for (let i = 0; i < pts.length - 1; i++) { const mx = (pts[i][0] + pts[i + 1][0]) / 2, my = (pts[i][1] + pts[i + 1][1]) / 2, d = Math.hypot(px - mx, py - my); if (d < best) { best = d; a = Math.atan2(pts[i + 1][1] - pts[i][1], pts[i + 1][0] - pts[i][0]); } }
+  }
+  a = a ?? 0;
+  if (key === 'hero') { v = M.veh.spawnHeroCarNear(world.map, px, py); if (v) { v.x = px; v.y = py; v.angle = a; } }
+  else v = M.shops.spawnStockVehicle(world, key, px, py, a);
+  if (!v) throw new Error('voertuig niet te plaatsen: ' + key);
+  v.speed = 0; v.road = null; v.parked = false;
+  if (!world.vehicles.includes(v)) world.vehicles.push(v);
+  return v;
+}
+function enter(v) { player.x = v.x; player.y = v.y; player.enterVehicle(v, world); world.camYaw = v.angle; }
+function leave() { if (player.inVehicle) player.exitVehicle(world.map, world); }
+
+// Route over de wegen van het spel van a naar b ([x, y] elk), als punten.
+function route(a, b, kind = 'drive', opts = {}) {
+  const r = M.route.planLandRoute(world.map, kind, a, b, opts);
+  if (!r) throw new Error('geen route ' + a + ' -> ' + b);
+  return r.pts.map((p) => ({ x: p[0], y: p[1] }));
+}
+
+// Een bestuurder voor de speler in een voertuig: pure-pursuit over een gladgestreken route, met snelheid naar de
+// bochten voor je. Het voertuig rijdt met de echte natuurkunde van het spel; de bestuurder drukt alleen de stick in
+// (input.padAxis, net als de Spelbot). tick() per beeld aanroepen (in de play-functie). opts: top (m/s), look (m),
+// grip (zijwaartse versnelling in m/s2 voor de bochtsnelheid), stopAtEnd.
+function driver(pts, { top = 16, look = 6, grip = 5.5, stopAtEnd = false, steerGain = 1.9 } = {}) {
+  const path = M.cd.smoothPath(pts.map((q) => [q.x, q.y]), 1);
+  let s = 0;
+  const norm = M.bot.normAngle;
+  const api = {
+    done: false, path, get s() { return s; },
+    tick() {
+      const v = player.inVehicle;
+      if (!v) return;
+      // dichtstbijzijnde punt op het pad vanaf de vorige positie
+      let best = Infinity, bs = s;
+      for (let t = Math.max(0, s - 4); t <= Math.min(path.len, s + 40); t += 1) { const q = path.at(t); const d = Math.hypot(q.x - v.x, q.y - v.y); if (d < best) { best = d; bs = t; } }
+      s = bs;
+      const sp = Math.abs(v.speed || 0);
+      const Ld = look + sp * 0.55;
+      if (s >= path.len - 2.5) { api.done = true; world.input.padAxis = [0, stopAtEnd ? 0.6 : 0]; return; }
+      const tg = path.at(Math.min(path.len - 0.01, s + Ld));
+      const err = norm(Math.atan2(tg.y - v.y, tg.x - v.x) - v.angle);
+      // bocht vooruit: grootste hoekverandering per meter over de komende afstand
+      let kmax = 0, prev = path.at(s).a;
+      const horizon = Math.min(path.len - s, 10 + sp * 1.6);
+      for (let t = 2; t <= horizon; t += 2) { const a = path.at(s + t).a; kmax = Math.max(kmax, Math.abs(norm(a - prev)) / 2); prev = a; }
+      let vmax = Math.min(top, Math.sqrt(grip / Math.max(kmax, 1e-3)));
+      if (stopAtEnd) vmax = Math.min(vmax, Math.max(2, (path.len - s) * 0.5));
+      vmax = Math.max(vmax, 3.5);
+      const steer = Math.max(-1, Math.min(1, err * steerGain));
+      const thr = Math.max(-1, Math.min(1, (vmax - sp) * 0.45));
+      world.input.padAxis = [steer, -thr];
+      api.vmax = vmax; api.err = err;
+    },
+    stop() { world.input.padAxis = [0, 0]; },
+    remaining: () => path.len - s,
+  };
+  return api;
+}
+
 // --- clips -------------------------------------------------------------------------------------------------
+// een gebeurtenis in de opname (tijd in seconden sinds het begin van de clip): voor het geluid in de montage
+const mark = (kind, data = {}) => { if (rec.on) rec.events.push({ t: +(rec.frames / 60).toFixed(3), kind, ...data }); };
 async function begin(name) {
+  rec.events = [];
   rec.on = true; rec.name = name; rec.frames = 0; rec.extra = 0; rec.maxPend = 0; rec.maxExtra = 0; rec.pendFrames = 0; rec.t0 = rt.now();
   await gd.clip('begin', { name });
 }
@@ -256,6 +334,7 @@ async function play(seconds, fn) {
 }
 async function end() {
   const r = await gd.clip('end');
+  await gd.clip('json', { name: rec.name, data: { name: rec.name, frames: rec.frames, events: rec.events, stats: { extra: rec.extra, maxExtra: rec.maxExtra, framesWithWait: rec.pendFrames } } });
   const out = { name: rec.name, frames: rec.frames, wall_s: +((rt.now() - rec.t0) / 1000).toFixed(1), extraFrames: rec.extra, maxExtra: rec.maxExtra, framesWithWait: rec.pendFrames, maxPending: rec.maxPend, ffmpeg: r && r.code };
   rec.on = false;
   rec.log.push(out);
@@ -303,5 +382,5 @@ async function runAll(names, only = '') {
 
 const clipApi = {
   world, player, M, vnow: () => vnow, sleep, advance, settle, pending, cam, releaseCam, spline, hud, weather, clock, placePlayer,
-  groundZ, safeZ, rt, camera, freeClock, begin, play, end, png, lerp, clamp01, smooth, smoother, skipCinematics, installVirtualTime, runCallbacks, present,
+  spawn, enter, leave, route, driver, mark, groundZ, safeZ, rt, camera, freeClock, begin, play, end, png, lerp, clamp01, smooth, smoother, skipCinematics, installVirtualTime, runCallbacks, present,
 };
