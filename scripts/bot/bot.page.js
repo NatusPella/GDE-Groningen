@@ -272,11 +272,12 @@ function meterEnd(s, id, outcome) {
 
 function track(s) {
   const id = s.story.end ? 'einde' : s.story.id;
-  meterTick(s);
+  if (id === lastStep) meterTick(s);   // a new step starts its own meter below: its first goal belongs after its 'begin'
   if (id !== lastStep) {
     if (lastStep) meterEnd(s, lastStep, 'klaar');
     meter = newMeter(s);
     B.log('step', { event: 'begin', id, label: s.story.title || '', part: s.story.part });
+    meterTick(s);
     lastStep = id; lastPhase = '';
     mem.boardTries = 0; mem.pressTries = 0; mem.planTries = 0;
     shot(`${id}-begin`);
