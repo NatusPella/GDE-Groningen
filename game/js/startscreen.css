@@ -1,5 +1,5 @@
 /* The main menu (startscreen.js): the logo, then a short text menu with
-   "Doorgaan" as the one big thing; on the right where the save will pick up.
+   "Alleen spelen" and "Samen spelen" as the two big things; on the right the game played last.
    Over the flying city camera. menu.css base. */
 #start-screen { position: fixed; inset: 0; z-index: 20; display: none; font-family: 'Arial Narrow', Arial, sans-serif;
   background: linear-gradient(90deg, rgba(12, 20, 14, 0.92) 0%, rgba(12, 20, 14, 0.7) 34%, rgba(12, 20, 14, 0.1) 64%, rgba(12, 20, 14, 0.4) 100%), radial-gradient(ellipse at 60% 40%, rgba(12, 20, 14, 0) 50%, rgba(12, 20, 14, 0.6) 100%);
@@ -25,18 +25,13 @@
 #start-screen .ss-item:focus { outline: none; }
 #start-screen .ss-item:focus-visible { outline: 2px solid var(--ink); outline-offset: -2px; }
 #start-screen .ss-item[data-act="exit"] { height: 48px; font-size: 28px; margin-top: 24px; }
-#start-screen .ss-item.ss-hero { flex-direction: column; align-items: flex-start; justify-content: center; gap: 8px; height: auto; padding: 16px 32px 24px; margin-bottom: 16px; color: var(--ink); }
+#start-screen .ss-item.ss-hero { flex-direction: column; align-items: flex-start; justify-content: center; gap: 8px; height: auto; padding: 14px 32px 18px; margin-bottom: 8px; color: var(--ink); }
+#start-screen .ss-item.ss-hero + .ss-item:not(.ss-hero) { margin-top: 16px; }
 #start-screen .ss-item.ss-hero.sel { background: rgba(63, 201, 122, 0.12); }
 #start-screen .ss-item.ss-hero.sel::before { top: 0; bottom: 0; border-radius: 8px 0 0 8px; }
-#start-screen .ss-hero .ss-label { font-size: 64px; line-height: 0.9; }
+#start-screen .ss-hero .ss-label { font-size: 60px; line-height: 0.9; }
 #start-screen .ss-hero small { display: block; margin: 0; font-size: 20px; color: var(--mut); }
-#start-screen .ss-prog { display: flex; align-items: center; gap: 16px; }
-#start-screen .ss-prog .m-bar { width: 320px; }
-#start-screen .ss-prog .m-bar i { background: var(--g); }
-#start-screen .ss-prog .bebas { font-size: 22px; }
-#start-screen .ss-item.confirm { color: var(--redtx); }
-#start-screen .ss-item.confirm small { display: inline; color: var(--redtx); }
-#start-screen .ss-item.confirm.sel::before { background: var(--red); }
+#start-screen .ss-hero:not(.sel) .ss-label { color: rgba(240, 237, 228, 0.88); }
 #start-screen .ss-save { position: absolute; right: 128px; bottom: 128px; max-width: 760px; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; text-align: right; text-shadow: 0 2px 16px rgba(0, 0, 0, 0.5); }
 #start-screen .ss-save .big { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 72px; line-height: 0.9; letter-spacing: 0.04em; }
 #start-screen .ss-save .big.long { font-size: 52px; }
@@ -70,7 +65,7 @@
 #start-screen .ss-news-body code { font-family: Menlo, Consolas, monospace; font-size: 0.9em; background: rgba(240, 237, 228, 0.08); padding: 0 6px; border-radius: 4px; }
 @media (max-height: 820px) {
   #start-screen .ss-logo { top: 56px; } #start-screen .gde-logo { font-size: 150px; }
-  #start-screen .ss-menu { top: 430px; } #start-screen .ss-item { height: 48px; font-size: 32px; } #start-screen .ss-hero .ss-label { font-size: 52px; }
+  #start-screen .ss-menu { top: 430px; } #start-screen .ss-item { height: 48px; font-size: 32px; } #start-screen .ss-hero .ss-label { font-size: 46px; }
   #start-screen .ss-save { bottom: 96px; } #start-screen .ss-save .big { font-size: 56px; }
 }
 @media (prefers-reduced-motion: reduce) { #start-screen, #start-screen * { animation: none !important; transition: none !important; } }
@@ -125,7 +120,6 @@ html.reduce-motion #start-screen, html.reduce-motion #start-screen * { animation
   #start-screen .ss-item[data-act="exit"] { height: 36px; font-size: 22px; margin-top: 6px; }
   #start-screen .ss-item.ss-hero { padding: 8px 20px 10px; margin-bottom: 6px; gap: 4px; }
   #start-screen .ss-hero .ss-label { font-size: 36px; } #start-screen .ss-hero small { font-size: 14px; }
-  #start-screen .ss-prog .m-bar { width: 200px; }
   #start-screen .ss-save { display: none; }
   #start-screen .ss-credit { left: 28px; bottom: 8px; height: 22px; font-size: 13px; }
   #start-screen .ss-news { top: 8px; bottom: 8px; left: 16px; right: 16px; width: auto; }
@@ -143,5 +137,4 @@ html.reduce-motion #start-screen, html.reduce-motion #start-screen * { animation
 #start-screen .ss-ic { flex: none; width: 28px; height: 28px; margin-right: 8px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; opacity: 0.6; transition: opacity 0.2s, stroke 0.2s; }
 #start-screen .ss-ic.big { width: 44px; height: 44px; margin-right: 16px; vertical-align: -4px; stroke-width: 1.6; opacity: 0.85; }
 #start-screen .ss-item.sel .ss-ic, #start-screen .ss-item:hover .ss-ic, #start-screen .ss-item:focus-visible .ss-ic { stroke: var(--g); opacity: 1; }
-#start-screen .ss-item.confirm .ss-ic { stroke: var(--redtx); opacity: 1; }
 @media (max-height: 700px) { #start-screen .ss-ic { width: 22px; height: 22px; } #start-screen .ss-ic.big { width: 30px; height: 30px; } }

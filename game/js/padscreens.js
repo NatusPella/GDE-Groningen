@@ -7,8 +7,8 @@ import { PAD_MAPS } from './controls.js';
 // from -> to, ctx = de PAD_MAPS-situatie die op `from` geldt, key = de toets die het nodig heeft
 export const PAD_SCREEN_EDGES = [
   // titelscherm (menusituatie: A is Enter, B gaat terug)
-  { from: 'titel', to: 'voet', ctx: 'menu', key: 'enter', note: 'Doorgaan of nieuw spel' },
-  { from: 'titel', to: 'saveslots', ctx: 'menu', key: 'enter', note: 'Spellen beheren' },
+  { from: 'titel', to: 'saveslots', ctx: 'menu', key: 'enter', note: 'Alleen spelen: Opgeslagen spellen' },
+  { from: 'saveslots', to: 'voet', ctx: 'menu', key: 'enter', note: 'Doorgaan, Nieuw spel of een opgeslagen spel laden' },
   { from: 'titel', to: 'nieuws', ctx: 'menu', key: 'enter', note: 'Wat is er nieuw' },
   { from: 'nieuws', to: 'titel', ctx: 'menu', key: 'escape' },
   { from: 'saveslots', to: 'titel', ctx: 'menu', key: 'escape' },

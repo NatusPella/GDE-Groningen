@@ -11,7 +11,7 @@ const key = (k, code) => { for (const t of [window, document]) { t.dispatchEvent
 const ss = document.getElementById('start-screen');
 for (let i = 0; i < 120 && !document.body.classList.contains('game-started'); i++) {
   const up = !!ss && ss.classList.contains('visible');
-  if (up) { const it = [...ss.querySelectorAll('.ss-item')].find((q) => /nieuw spel/i.test(q.textContent)); if (it) it.click(); else key('Enter', 'Enter'); }
+  if (up) { const it = (window.__menuStart ? { click: () => window.__menuStart('nieuw') } : null); if (it) it.click(); else key('Enter', 'Enter'); }
   await sleep(2000);
 }
 const cine = await import('/js/cinematics.js');

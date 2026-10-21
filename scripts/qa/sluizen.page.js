@@ -8,7 +8,7 @@ const tapKey = (k, code) => { for (const t of [window, document]) { t.dispatchEv
 for (let i = 0; i < 40; i++) {
   const ss = document.querySelector('#start-screen');
   if (!ss || getComputedStyle(ss).display === 'none' || !ss.getClientRects().length || getComputedStyle(ss).visibility === 'hidden') break;
-  const item = [...ss.querySelectorAll('.ss-item')].find((e) => /nieuw spel/i.test(e.textContent));
+  const item = (window.__menuStart ? { click: () => window.__menuStart('nieuw') } : null);
   if (item) item.click(); else tapKey('Enter', 'Enter');
   await sleep(3000);
 }
