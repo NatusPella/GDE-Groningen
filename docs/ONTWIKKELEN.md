@@ -97,6 +97,10 @@ Newer helpers and tests worth knowing:
 | `scripts/discolight_test.mjs`, `scripts/tileworld_pinned_test.mjs`, `scripts/tegel_schoon_test.mjs` | De kleurkeuze van het Disco-zwaailicht en de schakelaars van de streken, de rasters van de gepinde set van `TileWorld.fromTiles` en het naast de weg zetten van bomen in de pack-bouw |
 | `scripts/simlagen_test.mjs`, `simworker_test.mjs` | Simulation layers and the simulation worker kernel |
 | `scripts/padlogic_test.mjs`, `touch_test.mjs` | Controller and touch logic without hardware |
+| `scripts/gamepad_live_test.mjs` | The real `gamepad.js` against a mock `navigator.getGamepads` (no browser): every situation of `PAD_MAPS`, every button's key or mouse stand-in, sticks, triggers, remapping, hotplug, coop pad stickiness, rumble. Catches what the static audits cannot (in 0.36-0.38 a missing import made every in-game frame throw) |
+| `scripts/pad_input_audit.mjs`, `padscreens_test.mjs` | Every key the game reads has a pad button or a stated reason; every screen is reachable and leavable with only a pad (hand-made graph in `padscreens.js`) |
+| `scripts/qa/tester_bugs.mjs --check=pad|padscreens` | In Electron with a mock pad: `pad` plays the opening, walks, looks, drives and opens the pause menu (what the stick and buttons do to the player); `padscreens` walks every title screen, pause section/subtab, the save slots, Samen spelen, the garage and the on-screen keyboard with only D-pad, A and B and lists what never got focus |
+| `scripts/audio_herkomst.mjs` | Counts music and voice clips and checks every clip is logged in a `tts.json` with a Gemini model (#62) |
 | `scripts/akte1_doelen_test.mjs`, `reisbeats_test.mjs`, `reisaudit_test.mjs` (elke sprong >6,5 km tussen opeenvolgende stappen heeft een reisbeat), `reiskeuze_test.mjs`, `reistijd_test.mjs` | Every act-1 mission goal exists on the map; travel beats |
 | `scripts/placement_audit_test.mjs`, `road_seams_test.mjs`, `clearance_audit.mjs` | Placement of footprints, road seams and viaduct clearance |
 | `scripts/desktop_args_test.mjs` | The desktop argument parser (`desktop/args.cjs`) |

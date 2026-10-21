@@ -61,7 +61,9 @@ geld uit de game. Elk punt alleen is al genoeg.
 | Gesimuleerd gokken | Ja | Kraskaarten en loten bij Rook & Geluk, met geld uit de game. Geen echt geld, geen lootboxes. |
 | Angst of horror | Nee | |
 | Discriminatie | Nee | |
-| Interactie tussen spelers, online of chat | Beperkt | Singleplayer is offline. Samen spelen (#95) gaat met een kamercode, zonder tekstchat en zonder openbare lobby; zie de aanvulling in `docs/IARC-ANTWOORDEN.md`. |
+| Interactie tussen spelers, online of chat | Beperkt | Singleplayer is offline. Samen spelen (#95, sinds 0.38) gaat met een kamercode, zonder tekstchat, spraak en openbare lobby; zie §6 van `docs/IARC-ANTWOORDEN.md`. |
+| Geld verliezen (beroving) | Ja, licht | Een dief snaait je portemonnee en je verliest een deel van je spelgeld; niemand wordt geraakt (`muggingrules.js`). |
+| Door AI gemaakte inhoud | Ja, vooraf gemaakt | Muziek en stemmen komen van Google Gemini; tijdens het spelen is er geen AI. Alleen relevant voor de Steam-melding (`docs/steam/winkelpagina.md`). |
 | Aankopen in de game | Nee | Er zijn geen aankopen met echt geld en geen lootboxes. |
 | Locatie of persoonsgegevens delen | Nee | |
 

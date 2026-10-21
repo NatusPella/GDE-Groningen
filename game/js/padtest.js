@@ -2,7 +2,7 @@
 // welk pad herkend is, welke knoppen en assen een beweging geven en hoe de
 // game het pad indeelt, zodat een tester precies kan melden wat niet klopt.
 import { padInfo, PAD_LAYOUTS } from './controls.js';
-import { getSettings } from './settings.js';
+import { getSettings, setSetting } from './settings.js';
 
 let root = null;
 let raf = 0;
@@ -32,11 +32,20 @@ export function closePadTest() {
   root = null;
 }
 
+// de indelingen waar de speler uit kiest als de letters op zijn knoppen anders zijn dan het spel denkt
+const LAYOUT_CHOICES = [['auto', 'Automatisch'], ['xbox', 'Onderste knop A'], ['switch', 'Onderste knop B'], ['ps', 'Vormknoppen'], ['deck', 'Handheld']];
+
 function onKey(e) {
   if (e.key === 'Escape' || e.key === 'Backspace') { e.preventDefault(); e.stopPropagation(); closePadTest(); return; }
-  // ook Enter en de pijlen: een A-knop mag het testscherm niet sluiten
+  // de pijlen en Enter (A) bedienen de indelingsknoppen; ze sluiten het testscherm niet
   e.preventDefault();
   e.stopPropagation();
+  if (e.type !== 'keydown' || e.repeat) return;
+  const btns = [...root.querySelectorAll('button')];
+  const i = btns.indexOf(document.activeElement);
+  if (e.key === 'Enter' && i >= 0) { btns[i].click(); return; }
+  const step = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[e.key];
+  if (step && btns.length) btns[((i < 0 ? (step > 0 ? -1 : 0) : i) + step + btns.length) % btns.length].focus();
 }
 
 export function openPadTest() {
@@ -51,6 +60,8 @@ export function openPadTest() {
   root.innerHTML = `<div style="width:min(640px,92vw);max-height:90vh;overflow:auto;padding:20px;border-radius:14px;background:#17201a;border:1px solid #3a4a3e">
     <h2 style="margin:0 0 8px">Controller testen</h2>
     <p class="pt-id" style="margin:0 0 4px"></p><p class="pt-info" style="margin:0 0 4px"></p><p class="pt-note" style="margin:0 0 8px;color:#f2c230"></p>
+    <p style="margin:0 0 6px">Staat er een andere letter op je onderste knop dan hieronder? Kies hoe je knoppen heten:</p>
+    <div class="pt-lay" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px">${LAYOUT_CHOICES.map(([v, t]) => `<button type="button" data-lay="${v}" style="padding:6px 12px">${t}</button>`).join('')}</div>
     <p class="pt-last" style="margin:0 0 8px;min-height:1.4em"></p>
     <div class="pt-btns" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px"></div>
     <p class="pt-axes" style="margin:0 0 12px;font-variant-numeric:tabular-nums"></p>
@@ -59,6 +70,7 @@ export function openPadTest() {
   document.body.appendChild(root);
   const q = (c) => root.querySelector(c);
   q('.pt-close').addEventListener('click', closePadTest);
+  q('.pt-lay').addEventListener('click', (e) => { const b = e.target.closest('button[data-lay]'); if (b) setSetting('padLayout', b.dataset.lay); });
   q('.pt-close').focus();
   window.addEventListener('keydown', onKey, true);
   let last = '';
@@ -71,6 +83,11 @@ export function openPadTest() {
     q('.pt-id').textContent = pad ? `Gevonden: ${pad.id}` : 'Geen controller gevonden.';
     q('.pt-info').textContent = pad ? `Herkend als ${info.name} · indeling ${family} · mapping ${pad.mapping || 'geen'} · ${pad.buttons.length} knoppen, ${pad.axes.length} assen` : '';
     q('.pt-note').textContent = info.note;
+    for (const b of q('.pt-lay').children) {
+      const on = b.dataset.lay === (pref || 'auto');
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+      b.style.cssText = `padding:6px 12px;border:1px solid #3a4a3e;background:${on ? '#f2c230' : 'transparent'};color:${on ? '#17201a' : 'inherit'}`;
+    }
     const btns = q('.pt-btns');
     const n = pad ? pad.buttons.length : 0;
     if (btns.childElementCount !== n) {
