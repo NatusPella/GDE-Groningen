@@ -539,6 +539,36 @@ function addShopProps(B, e, s0, s1, bw, doorBay, kind, seed) {
   lay(put, x, hash2(seed, 9.9));
 }
 
+// De kermiskraam (winkelkit.js, #356): geen gewone pui met markies maar een kraam tegen de gevel:
+// een houten toonbank met een rood-wit geblokt schort, een diep gestreept zeildoek met schulprand,
+// twee palen en een slinger gloeilampjes langs de rand. Steekt 1,7 m de stoep op, hoogstens 6 m breed (bij de deur).
+function addKraam(B, e, s0, s1, top, seed) {
+  const RED = 0xd04a3a, CREAM = 0xf2ead2, WOOD = 0x7a5436, BULB = 0xfff0a0;
+  const a0 = s0 + 0.1, a1 = s1 - 0.1;
+  if (a1 - a0 < 1.2) return;
+  const D = 1.7, ya = top - 0.12, yb = Math.min(2.45, top - 0.6);
+  wallBox(B, e, a0, a1, 0, 1.0, 0.1, 0.75, WOOD, G_DETAIL, FACE_FRONT | FACE_TOP | FACE_SIDES);
+  wallBox(B, e, a0 - 0.05, a1 + 0.05, 1.0, 1.06, 0.05, 0.85, 0xb08a5c, G_DETAIL, FACE_FRONT | FACE_TOP | FACE_SIDES);
+  const nb = Math.max(2, Math.round((a1 - a0) / 0.3)), bw = (a1 - a0) / nb;
+  for (let i = 0; i < nb; i++) wallQuad(B, e, a0 + i * bw, a0 + (i + 1) * bw, 0.05, 0.9, 0.76, i % 2 ? CREAM : RED);
+  const strips = Math.max(2, Math.round((a1 - a0) / 0.4)), sw = (a1 - a0) / strips;
+  const up = [e.nx * 0.5, 1, e.ny * 0.5];
+  for (let i = 0; i < strips; i++) {
+    const c = i % 2 ? CREAM : RED;
+    const p0 = a0 + i * sw, p1 = p0 + sw;
+    B.quadOut(wp(e, p0, ya, 0.1), wp(e, p1, ya, 0.1), wp(e, p1, yb, D), wp(e, p0, yb, D), up, c);
+    B.quadOut(wp(e, p0, ya - 0.03, 0.1), wp(e, p1, ya - 0.03, 0.1), wp(e, p1, yb - 0.03, D), wp(e, p0, yb - 0.03, D), [-up[0], -1, -up[2]], shade(c, 0.6));
+    wallQuad(B, e, p0, p1, yb - 0.16, yb, D, c);
+    B.triOut(wp(e, p0, yb - 0.16, D), wp(e, p1, yb - 0.16, D), wp(e, (p0 + p1) / 2, yb - 0.34, D), [e.nx, 0, e.ny], c);
+  }
+  for (const s of [a0 + 0.04, a1 - 0.04]) wallBox(B, e, s - 0.04, s + 0.04, 0, yb - 0.1, D - 0.1, D - 0.02, WOOD, G_DETAIL, FACE_FRONT | FACE_SIDES);
+  const nl = Math.max(3, Math.round((a1 - a0) / 0.38));
+  for (let i = 0; i < nl; i++) {
+    const s = a0 + ((i + 0.5) * (a1 - a0)) / nl;
+    wallBox(B, e, s - 0.045, s + 0.045, yb - 0.46, yb - 0.37, D + 0.01, D + 0.1, BULB, G_DETAIL, FACE_FRONT | FACE_TOP | FACE_SIDES | FACE_BOTTOM);
+  }
+}
+
 function addShopfront(B, e, s0, s1, top, S, seed, poiType = null) {
   const span = s1 - s0;
   wallBox(B, e, s0, s1, 0, 0.4, 0, 0.075, HARDSTONE, G_DETAIL, FACE_FRONT | FACE_TOP | FACE_SIDES);
@@ -564,6 +594,7 @@ function addShopfront(B, e, s0, s1, top, S, seed, poiType = null) {
     }
   }
   wallBox(B, e, s0, s1, top, top + 0.5, 0, 0.12, look.sign);
+  if (look.type === 'kermiskraam') { const dc = s0 + (doorBay + 0.5) * bw; addKraam(B, e, Math.max(s0, dc - 3), Math.min(s1, dc + 3), top, seed); return; } // (een kraam is zes meter, niet de hele gevel)
   addShopProps(B, e, s0, s1, bw, doorBay, look.buiten, seed);
   if (look.awning) {
     const a0 = s0 + 0.15, a1 = s1 - 0.15, ya = top - 0.05, yb = top - 0.6, da = 0.12, db = 1.25;
@@ -1115,6 +1146,7 @@ function buildDetailGeometry(b, box, archetype, depth, fine, fine2, wallHex, roo
   b.shopFront = shopEdge ? {
     ax: shopEdge.ax, ay: shopEdge.ay, bx: shopEdge.bx, by: shopEdge.by, nx: shopEdge.nx, ny: shopEdge.ny, tx: shopEdge.tx, ty: shopEdge.ty,
     s0: 0.15, s1: shopEdge.len - 0.15, top: shopTop, poi: poiType, name: poiName, sign: poiType ? facadeLook(rankForType(poiType, seed)).sign : 0x232323,
+    type: facadeLook(poiType ? rankForType(poiType, seed) : hash2(seed, 5.5)).type,
   } : null;
 
   if (!industrial && archetype !== 'house' && floorCount >= 3 && r(15) < 0.45) {

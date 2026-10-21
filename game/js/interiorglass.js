@@ -239,6 +239,22 @@ vec3 igProducts(vec2 c, float detail, float style, int st) {
     float fx = fract(c.x / 0.24 + row * 0.33);
     col = vec3(0.3);
     if (fx > 0.06 && fx < 0.94 && fy > 0.05) col = fy > 0.65 ? mix(acc.rgb, vec3(0.95, 0.85, 0.2), h) : 0.55 + 0.4 * vec3(fract(h * 3.7), fract(h * 5.3), fract(h * 9.1));
+  } else if (pat == 12) {
+    // kermiskraam: een gestreepte zeildoek-wand, een rij gloeilampjes, oliebollen (poedersuiker) en suikerspin op de planken
+    col = mod(floor(c.x / 0.28), 2.0) < 0.5 ? vec3(0.86, 0.2, 0.16) : vec3(0.97, 0.93, 0.82);
+    if (c.y < 1.45) {
+      col = c.y < 0.1 ? vec3(0.3, 0.2, 0.12) : vec3(0.47, 0.31, 0.19);
+      float row = floor((c.y - 0.1) / 0.67), fy = fract((c.y - 0.1) / 0.67);
+      float u = c.x / 0.34 + row * 0.5, cell = floor(u);
+      float h = igH(vec2(cell, row + 12.0));
+      vec2 l = vec2(fract(u) - 0.5, fy - 0.5);
+      if (c.y > 0.1 && row < 0.5 && igDisc(l, vec2(0.4, 0.3)) < 1.0) col = mix(vec3(0.62, 0.36, 0.14), vec3(0.96, 0.93, 0.88), step(0.72, fract(h * 11.0 + l.x * 4.0 + l.y * 3.0)));
+      else if (c.y > 0.1 && row > 0.5) {
+        if (igDisc(vec2(l.x, l.y - 0.12), vec2(0.4, 0.3)) < 1.0) col = h < 0.5 ? vec3(0.97, 0.56, 0.74) : vec3(0.56, 0.78, 0.97);
+        else if (abs(l.x) < 0.035 && l.y < 0.0) col = vec3(0.9, 0.85, 0.7);
+      }
+    }
+    if (length(vec2((fract(c.x / 0.38) - 0.5) * 0.38, c.y - 1.52)) < 0.07) col = vec3(1.0, 0.94, 0.58);
   } else if (pat == 0) {
     // supermarket: crates of fruit down below, packages on the shelves, a red offers banner on top
     if (c.y < 0.45) {

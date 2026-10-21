@@ -750,6 +750,10 @@ window.__furniture = {
   reset: () => { state = blank(); refresh3D(); },
   newDay: () => newDay(),
   seated: () => !!seat,
+  // QA (#359): zet een meubel op een plek van inrichting.js (alleen een geldige plek van dat meubel) en bouw de flat opnieuw; zit/sta op de bank
+  plek: (id, p) => { if (isVerplaatsbaar(id) && schoonPlekken({ [id]: p })[id]) { state.plek[id] = p; refresh3D(); } return { ...state.plek }; },
+  zit: () => { if (!seat && world && parent && has('bank')) sitDown(world); return !!seat; },
+  sta: () => { if (seat) standUp(world, true); return !seat; },
   tv: () => (tv ? { title: tv.title, i: tv.i, n: tv.lines.length } : null),
 };
 
