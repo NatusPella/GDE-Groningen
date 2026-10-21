@@ -411,3 +411,69 @@ Gereedschap erbij: `PERF_ONLY=ab` neemt tokens `set:<instelling>:<waarde>` (inst
 - **Personen cachen:** de geometrie is per persoon uniek (kleren, huid, look); een cache per sleutel haalt weinig en kost veel geheugen; zonder per-persoon geometrie in een worker is het bereik de goedkope winst.
 - **Een snelheidsafhankelijke gebouwdetailstraal:** kleiner dan 190 m scheelt niets zolang de verre LOD de rest tekent (zie de tabel); het zou alleen het bouwen vermindren, en dat is nu al ruim binnen het budget.
 - **De eerste 11 s `roadInit` verkorten:** vraagt een andere opbouw van de worker-kaart (geen gebouwtegels decoderen).
+
+## Vervolg 9: draw calls zijn niet de kost; de multi-draw-pool en wat er wel toe doet (r42, #246, #247, #58, #4)
+
+**Uitkomst: de 60 fps zijn niet gehaald, en met stappen op draw calls en GL-aanroepen zijn ze niet te halen.** Wat is aangetoond: de CPU-tijd van de hoofdthread per scene-render daalt met 0,7 ms (11,0 naar 10,3 ms, 6,5%) bij 46% minder draw calls (746 naar 404); te voet is een hele frame 1,3 ms korter (25,0 naar 23,4 ms; 6 van 6 paren lager; 3 standaardfouten); staand is het verschil binnen de ruis (22,7 naar 22,3 ms; gepaard -1,6 ± 1,3 ms). Een GL-aanroep kost 25 tot 300 ns, een draw call in three ongeveer 2 µs: de 14 µs per draw call van Vervolg 2 was een gemiddelde over alles wat een frame doet, geen kost per aanroep. Dat verklaart waarom elke eerdere stap met minder aanroepen onder de ruis bleef. De simulatie van het verkeer is maar 1,2 ms per frame (simbench), dus naar een worker verplaatsen (#58) levert hooguit 1 ms.
+
+### De machine, en hoe er gemeten is
+
+De machine was bij elke run in gebruik door andere sessies (CPU-gebruik 17 tot 48% vóór en tot 76% na een run, 1,6 tot 6 GB vrij, 4 tot 9 Electron-processen; `machine` in elke JSON). Een rustige machine voor #4 is er dus niet geweest. Daarom gepaarde, afwisselende vensters in één proces, de CPU-tijd van de renderer-hoofdthread (`mcpu`, het thread-sampleren van Vervolg 7) en voor elke verschil de gemiddelde met standaardfout (`scripts/perf/abpair.mjs`): een verschil telt pas bij een paar standaardfouten. Nieuw in `scripts/perf/routes.js` (docs/ONTWIKKELEN.md): `renderab` (alleen de scene-render, CPU per render), `renderprof` + `selftime.mjs`/`callers.mjs` (profiel van alleen die render), `glcalls` (GL-aanroepen per frame per functie en per eigenaar, programmawissels), `glbench` (ns per GL-aanroep), `shadowtris`/`shadowmap` (wat de schaduwpas tekent, de kaart zelf), `poolvis`, `progready`/`startup`, en `scripts/perf/simbench.mjs` (verkeerssimulatie zonder browser). Alle runs: hoog, heel ver, resolutie 100%, `autoResolution` uit, 1904x993, RTX 3060 via ANGLE/D3D11, 14:00 helder.
+
+### Wat de metingen zeggen
+
+1. **Een GL-aanroep kost bijna niets** (`glbench`, ns per aanroep, minimum van 5 reeksen): `uniformMatrix4fv` 275, `uniform3f` 275, `bindVertexArray` 25, `bindTexture` 25, `drawElements` 25, `multiDrawElementsWEBGL` met 40 bereiken 450, `bufferSubData` 850. Een frame heeft 3200 aanroepen (hieronder): ongeveer 1 ms. De 17% 'native' in het CPU-profiel van Vervolg 7 is dus voor het grootste deel niet het schrijven van commando's maar de aanroep zelf in V8 en wachten op het GPU-proces.
+2. **De pool haalt 46% van de draw calls weg en 0,7 ms.** `renderab` (40 reeksen van 20 renders, afwisselend oud en nieuw, 4 rondes, hoog, staand in de markt): oud 11,01 ms CPU per render en 746 aanroepen, nieuw 10,29 ms en 404 (onderste kwartiel 10,50 tegen 9,93). Een eerdere ronde met de pool alleen: 13,26 tegen 12,90 (alleen de cellen) en 12,11 ms (cellen, losse gebouwen en verre LOD) bij 746, 525 en 421 aanroepen. Samen ongeveer 2 µs per draw call.
+3. **Hele frame (`ab`, vier varianten in één proces, 5 s vensters).** Te voet (3 m/s, rustigere machine): oud 25,0 ms, nieuw 23,4 ms; gepaard -1,33 ms ± 0,43 (6 van 6 rondes lager). Staand, drukke machine (48 tot 76% CPU): 35,6 tegen 31,1 ms, gepaard -1,5 ± 2,2. Staand, rustigere machine, 8 rondes, nadat de wegen hun bestrating terug hadden: 22,7 tegen 22,3 ms, gepaard -1,6 ± 1,3 (4 van 8 rondes lager). De onderdelen apart (de pool alleen; sortering, GL-filter en voetgangers zonder pool) liggen elk binnen de ruis (+0,5 ± 0,4 tot -1,9 ± 1,1 ms): de stappen tellen op, geen enkele is los aantoonbaar. Die runs draaiden nog met het GL-filter van hieronder.
+4. **GL-aanroepen per frame (`glcalls`, hoofdpas, 90 frames).** Hoofdversie van vóór deze ronde: 3208 aanroepen, 733 draws, 133 programmawissels. Nu: 2661 (met een filter voor overbodige `pixelStorei`- en `texParameteri`-aanroepen, dat 226 ervan niet doorgaf: 2435; zie onder), 440 draws, 94 wissels: -24% aanroepen met het filter, -17% zonder. Per eigenaar: de pool 460, personen (skinned) 257, wegen die nog los zijn 163, voertuigonderdelen ongeveer 300, water 108.
+5. **De linkwacht vroeg per tekenaanroep naar `COMPLETION_STATUS`.** Dat is een synchrone ronde naar het GPU-proces. Zolang er programma's linken (de eerste minuten, en bij elk nieuw materiaal) was dat in een directe renderlus 46 tot 69% van de hoofdthread (`getProgramParameter` in `WebGLUniforms`/de linkwacht), in het spel zelf 5,65 ms per frame in de hitch-sectie van de eerste run. Nu hoogstens elke 25 ms voor alle programma's samen, en een gelinkt programma wordt onthouden (`?perfoff=linkpoll` voor de oude regel). Het effect op een spelframe is niet los gemeten: de startup-vensters van losse runs (gemiddelde van venster 4 tot 8: hoofdversie 20,9 ms, pool met de oude linkwacht 22,6, pool met de nieuwe 24,3; CPU-gebruik vooraf 22, 38 en 23%) verschillen meer door de belasting van dat moment dan door de wijziging, en de pool-runs zijn zonder meer niet sneller dan de hoofdversie. Behouden omdat ze een synchrone vraag per draw weghaalt, niet omdat het frame er aantoonbaar sneller van wordt.
+6. **Programma's:** de pool voegt 23 programma's toe (285 naar 308: de variant met batching van elk poolmateriaal en één dieptemateriaal per kant); ze worden bij het maken van de pool op de achtergrond gecompileerd en een cel wacht tot de zijne gelinkt zijn (dieptemateriaal inbegrepen, want de schaduwpas wordt niet door de linkwacht gedekt).
+7. **#58, het verkeer:** `simbench.mjs`, 32 auto's rond het centrum, 60 stappen per seconde, 2401 stappen: 1,24 ms CPU per stap (`updateTrafficAI` 15%, `followSpeedLimit` 12%, voertuig-gebouwbotsing 10%, `curveSpeedLimit` 7%, voertuig-voertuigbotsing 5%). In het spel is dat 1,3 tot 1,6 ms: de hele auto-simulatie naar een worker verplaatsen kan nooit meer dan ongeveer 1 ms opleveren, minus de overdracht. Voor voetgangers geldt hetzelfde (0,6 ms). Het blijft dus liggen.
+
+### Gedaan (alles achter een `?perfoff=`-stap)
+
+| stap | wat | effect |
+|---|---|---|
+| `pool` (`multidraw3d.js`, `drawpool.js`) | de samengevoegde cellen van `staticbatch3d.js` (gebouwen, gevels, wegen) en de tegels van de verre LOD gaan in één buffer per materiaal en worden met één `WEBGL_multi_draw`-aanroep per materiaal getekend (een `BatchedMesh` met een eenheidsmatrix, bereiken per cel gekozen met een bolltest op getypeerde arrays; eigen materiaalkopie met de `defines`, eigen dieptemateriaal, toewijzer en compactie; materialen die dat niet kunnen (alfatest, shaders) blijven losse meshes; de kademuren blijven los) | 746 naar 404 draws, -0,7 ms per render |
+| `poolklein`, `poolrand` | met de pool mag een cel uit één item bestaan en reikt het samenvoegen tot 3 m van de rand van de detailstraal (was 15 m en 2 of 3 items): de losse gebouwen en wegen aan de rand worden ook gepoold | zit in bovenstaande |
+| `progsort` (`compareOpaque`) | de dekkende lijst van three sorteert eerst op programma | programmawissels 164 naar 94, ~270 GL-aanroepen minder |
+| `pedtier` | voetgangers op meer dan ~55 m krijgen hun pose om de 2e, meer dan ~130 m om de 4e frame, zonder dat three hun botten opnieuw uitrekent en uploadt | niet apart gemeten |
+| (geen stap) | streek- en waterplekken: eigen geometrie per InstancedMesh, zodat three de attributen niet bij elke tekenaanroep opnieuw instelt | 164 GL-aanroepen per frame, 12 draws |
+| `linkpoll` | zie 5 | zie 5 |
+
+### Geprobeerd en teruggedraaid
+
+- **Een filter voor overbodige GL-aanroepen** (`pixelStorei` en `texParameteri` per texture, 226 van de 2661 aanroepen per frame, vooral de bottextures van ~70 personen): werkt (de tellers kloppen) maar een aanroep kost 25 tot 300 ns en het filter zet zelf een wikkel om vijf aanroepen die bijna 540 keer per frame voorkomen: per saldo niets aantoonbaars en een risico voor de toestand van de hele context. Eruit; de meetroute `glcalls` blijft.
+
+### Wat er onderweg misging
+
+- **Wegen effen grijs.** `Material.clone()` neemt de `defines` van een MeshStandardMaterial niet mee (de `copy` zet ze terug op `STANDARD`), en de wegdekken kiezen hun bestrating met een define (`SURF_KLINKER`, `SURF_TILES`). In de eerste schermafdrukken van de pool was elk wegdek effen; gezien op de beelden (een pixelvergelijking had het niet gemeld). Opgelost met een kopie van de defines en het volgen van een wijziging ervan; `scripts/multidraw_test.mjs` test het nu.
+- **De directe renderlus** (`renderprof`) rendert naar het canvas, wat voor elk programma een nieuwe variant is (toonmapping en kleurruimte van het doel horen bij een programma); de eerste renders linkten dus seconden lang. Opgewarmd vóór de meting.
+- Een slot-lek van mezelf: een run die ik afbrak liet zijn Electron-slot staan; na controle (geen proces, mijn run) vrijgegeven.
+
+### Beeld
+
+Schermafdrukken van elf vaste plekken (`vspots`) van de hoofdversie (twee runs) en van de pool: markt en kanaal komen overeen met de hoofdversie (herringbone-bestrating, schaduwen, gevels). De schaduwkaart zelf is op drie plekken gelijk aan die van de hoofdversie (`shadowmap`: 0, 0 en 4 van 256 blokken wijken 25 punten of meer af, gemiddeld 4,1, 0,1 en 3,0) en de schaduwpas tekent vergelijkbaar veel driehoeken (10391 tegen 10524, 6639 tegen 7289, 13654 tegen 13196; in een latere run tekende de hoofdversie op de markt de helft, 5264, een teken dat die telling van run tot run schommelt). Eén plek niet verklaard: bij de Gracht (`gracht2`, aan het water) missen in de poolversie de brede schaduw van de kademuur en een deel van de bestrating-kleur; in dezelfde run met de pool aan en uit is dat verschil er niet (Ebbingestraat), dus de oorzaak is niet bevestigd. Omdat de kademuren daar de grote werpers zijn, blijft `shoreBatcher` buiten de pool. Niet door een mens bekeken.
+
+### #247, snel reizen
+
+Routes `a7` (auto, 33 m/s) en `spoor` (heli langs het spoor, 39 m/s), hoofdversie tegen de pool (losse runs, niet afwisselend; de machine verschilt per run). A7: hoofdversie 31,4 ms gemiddeld (mcpu 29,4), p99 83 ms, 135 frames boven 50 ms, langste frame 1134 ms; pool 36,3 ms (mcpu 33,1), p99 83, 160 frames, langste 3567 ms in de eerste run en 33,9 ms (mcpu 32,5), p99 100, 159 frames, langste 767 ms in een tweede run met `--hitch`. Spoor: hoofdversie 62,5 ms (mcpu 58,3), p99 233, 356 frames; pool 46,3 ms (mcpu 42,9), p99 100, 216 frames. Het beeld is dus gemengd: boven het spoor lichter, op de A7 niet aantoonbaar anders. De hitch-sectie van de tweede A7-run laat zien dat nieuwe poolmaterialen in het frame zelf een programma krijgen (`getProgram`/`acquireProgram` voor een poolmateriaal en voor het dieptemateriaal: 1 tot 3 ms JS per programma, en de piek van `3d:render` van 345 ms) en dat `3d:buildings` (53 ms piek) en `3d:peds` (10 ms) de grootste hakkers blijven. #247 blijft open: een volgende stap is de pools voor de bekende materialen vooraf aan te maken (prewarm bij het laden), zodat er onderweg alleen nog nieuwe stijlen compileren.
+
+### Niet gehaald, en wat voor 60 fps nodig is
+
+Op deze machine kost een stad te voet nog 20 tot 23 ms, ook op een rustiger moment. De rest zit verdeeld: de render (~10 ms in de directe lus, waarvan three's eigen werk per object en per knoop het grootste deel is), de simulatie (~6 ms), HUD en minimap (~2 ms), bouwen tijdens het lopen (tot 3 ms). Wat nog kan en hoeveel (schattingen, niet gedaan):
+1. **Knopen i.p.v. aanroepen.** Er blijven ~9400 knopen in de scene (matrixwandeling 1,2 ms, `projectObject` ~2 ms, schaduwwandeling ~1,5 ms). Gepoolde gebouwdelen zijn verborgen maar worden nog doorlopen; hun groepen kunnen `visible = false` en `matrixWorldAutoUpdate = false` krijgen en de ~1500 niet-bevroren statische knopen kunnen worden bevroren: 1 tot 1,5 ms.
+2. **Voetgangers en fietsers**: de rijders op fiets en scooter hebben nog geen `pedtier` (~200 aanroepen per frame), en een eenvoudige pose voor ver weg (geen botten) zou 0,5 ms besparen.
+3. **De enige stap van meer dan 3 ms is parallellisme:** de scene in een worker (OffscreenCanvas) en de simulatie op de hoofdthread laten overlappen: frametijd wordt dan het maximum van de twee (~12 ms op deze machine). Dat vraagt dat de ongeveer 90 `*3d.js`-modules niet meer rechtstreeks uit `world` lezen maar uit een snapshot per frame; geschat op weken, niet dagen. Dat is de 'X' die #246 nodig heeft; tot dan is **Vlot** (zichtafstand kort) de weg naar 60 fps.
+4. Een rustige machine blijft nodig voor #4: dit alles zou 's nachts met alle andere sessies dicht opnieuw moeten.
+
+### Herhalen
+
+```
+cd desktop && npm run stage            # of GDE_PREBUILT_WORLD=<bestaande build>/game/world GDE_STAGE_OUT=<map>/game node build.mjs
+PERF_AB_RENDERAB='oud=pool+progsort+pedtier+settle;nieuw=settle' PERF_AB_ROUNDS=4 PERF_SAMPLES=40 PERF_ONLY=renderab node scripts/perf/run.mjs <naam> <voorinstelling>
+node scripts/perf/renderab.mjs <PERF_OUT>/<naam>.json
+PERF_AB='old=pool+progsort+pedtier+settle;new=settle' PERF_AB_PRE=25000 PERF_AB_ROUNDS=8 PERF_AB_MOVE=1 PERF_ONLY=ab node scripts/perf/run.mjs <naam> <voorinstelling>
+node scripts/perf/abpair.mjs <PERF_OUT>/<naam>.json
+GDE_PROVINCE_SRC=<repo>/data/cache/province node scripts/perf/simbench.mjs --seconds=40
+```
