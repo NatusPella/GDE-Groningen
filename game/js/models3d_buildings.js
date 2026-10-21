@@ -1108,6 +1108,8 @@ function buildDetailGeometry(b, box, archetype, depth, fine, fine2, wallHex, roo
     }
   }
   if (shopEdge) addShopfront(B, shopEdge, 0.15, shopEdge.len - 0.15, shopTop, S, seed, poiType);
+  // read by the QA scenes (scripts/ui/shots_scenes_r39.js): where the shopfront is and what it sells
+  b.shopFront = shopEdge ? { ax: shopEdge.ax, ay: shopEdge.ay, bx: shopEdge.bx, by: shopEdge.by, nx: shopEdge.nx, ny: shopEdge.ny, poi: poiType } : null;
 
   if (!industrial && archetype !== 'house' && floorCount >= 3 && r(15) < 0.45) {
     for (let f = 1; f < floorCount; f++) {

@@ -42,63 +42,50 @@ const done = [`viewport ${innerWidth}x${innerHeight} dpr ${devicePixelRatio} ui 
 
 const info = [];
 if (want('winkels')) {
-  // #156: per winkeltype een echte plek uit de data, de gevel van voren (langste voorgevel) en de ruit
+  // #156: per winkeltype een echte plek uit de data; de gevel van voren (b.shopFront, gezet door models3d_buildings) en de ruit
   const SS = await imp('shopspots');
   const FACM = await imp('facilities');
   const WK = await imp('winkelkit');
-  const spots = SS.spotsFrom(FACM.FAC.all, SH.getShopsForRender()).map((s, i) => ({ ...s, i }));
-  const pointIn = (x, y, ring) => { let ins = false; for (let a = 0, b = ring.length - 1; a < ring.length; b = a++) { const [xi, yi] = ring[a], [xj, yj] = ring[b]; if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) ins = !ins; } return ins; };
+  const spots = SS.spotsFrom(FACM.FAC.all, SH.getShopsForRender());
   const gh = (x, y) => (map.groundHeightAt ? map.groundHeightAt(x, y, 0) || 0 : 0);
-  const want13 = WK.SHOP_KINDS.filter((t) => t !== 'kermiskraam');
-  for (const type of want13) {
+  const only = (window.__shotsTypes || '').split(',').filter(Boolean);
+  clearInterval(skipper);
+  w.clock = 14;
+  let hold = null;
+  const keep = setInterval(() => { if (hold) { p.x = hold.x; p.y = hold.y; p.vx = p.vy = 0; } w.clock = 14; if (cine.isCinematicActive() && !hold) cine.skipCinematic(); }, 50);
+  for (const type of WK.SHOP_KINDS.filter((k) => k !== 'kermiskraam' && (!only.length || only.includes(k)))) {
     const cand = spots.filter((s) => s.type === type);
     info.push('winkels ' + type + ': ' + cand.length + ' plekken');
-    let hit = null;
-    for (const s of cand.slice(0, 40)) {
-      const bs = map.buildingsNear(s.x, s.y, 8).filter((b) => b.pts && b.pts.length >= 3 && !b.landmark);
-      for (const b of bs) {
-        if (SS.shopTypeFor(b.pts.map((q) => [q[0], q[1]]), null, 4) !== type) continue;
-        let best = null;
-        for (let k = 0; k < b.pts.length; k++) {
-          const a = b.pts[k], c = b.pts[(k + 1) % b.pts.length];
-          const len = Math.hypot(c[0] - a[0], c[1] - a[1]);
-          if (len < 4) continue;
-          const mx = (a[0] + c[0]) / 2, my = (a[1] + c[1]) / 2;
-          const nx = (c[1] - a[1]) / len, ny = -(c[0] - a[0]) / len;
-          for (const sg of [1, -1]) {
-            const cx = mx + nx * sg * 9, cy = my + ny * sg * 9;
-            if (pointIn(cx, cy, b.pts)) continue;
-            // the camera must stand free: not inside another building
-            if (map.buildingsNear(cx, cy, 1.5).some((q) => q !== b && q.pts && pointIn(cx, cy, q.pts))) continue;
-            // nearest to the spot
-            const d = Math.hypot(mx - s.x, my - s.y) - len * 0.5;
-            if (!best || d < best.d) best = { d, mx, my, cx, cy };
-          }
-        }
-        if (best) { hit = { s, b, ...best }; break; }
-      }
-      if (hit) break;
+    let found = null;
+    for (const s of cand.slice(0, 30)) {
+      const bs = map.buildingsNear(s.x, s.y, 8).filter((b) => b.pts && b.pts.length >= 3 && !b.landmark && SS.shopTypeFor(b.pts.map((q) => [q[0], q[1]]), null, 4) === type);
+      if (!bs.length) continue;
+      hold = { x: s.x, y: s.y };
+      teleport(s.x, s.y);
+      for (let i = 0; i < 40 && document.querySelector('.ls.on:not(.out)'); i++) await sleep(500);
+      await sleep(2500);
+      for (const b of bs) if (b.shopFront && b.shopFront.poi === type) { found = { s, b, f: b.shopFront }; break; }
+      info.push('  kandidaat @' + Math.round(s.x) + ',' + Math.round(s.y) + ' panden ' + bs.length + ' voorgevel ' + bs.map((b) => (b.shopFront ? b.shopFront.poi || 'rank' : String(b.shopFront))).join('/'));
+      if (found) break;
     }
-    if (!hit) { info.push('winkels ' + type + ': geen pand gevonden'); continue; }
-    clearInterval(skipper);
-    w.clock = 14;
-    const hold = { x: hit.cx, y: hit.cy };
-    teleport(hit.cx, hit.cy);
-    for (let i = 0; i < 40 && document.querySelector('.ls.on:not(.out)'); i++) await sleep(500);
-    const keep = setInterval(() => { p.x = hold.x; p.y = hold.y; p.vx = p.vy = 0; w.clock = 14; }, 50);
-    await sleep(4000);
-    const g = gh(hit.mx, hit.my);
-    const pose = { position: { x: hit.cx, y: hit.cy, z: g + 2.0 }, lookAt: { x: hit.mx, y: hit.my, z: g + 1.6 }, cut: true };
+    if (!found) { info.push('winkels ' + type + ': geen gevel met dit type gebouwd'); continue; }
+    const f = found.f, mx = (f.ax + f.bx) / 2, my = (f.ay + f.by) / 2;
+    const cx = mx + f.nx * 8, cy = my + f.ny * 8;
+    hold = { x: cx, y: cy };
+    teleport(cx, cy);
+    await sleep(2500);
+    const g = gh(mx, my);
+    const pose = { position: { x: cx, y: cy, z: g + 2.2 }, lookAt: { x: mx, y: my, z: g + 1.8 }, cut: true };
     if (cine.isCinematicActive()) cine.skipCinematic();
     cine.playCinematic({ id: 'vi-winkel', duration: 60, priority: 9, shot: () => pose });
     await sleep(2400);
     console.log('[capture] winkel-' + type);
     await sleep(600);
     cine.skipCinematic();
-    clearInterval(keep);
-    info.push('winkel ' + type + ' @' + Math.round(hit.mx) + ',' + Math.round(hit.my));
+    info.push('winkel ' + type + ' @' + Math.round(mx) + ',' + Math.round(my));
     done.push('winkel-' + type);
   }
+  clearInterval(keep);
 }
 clearInterval(skipper);
 return done.concat(info);
