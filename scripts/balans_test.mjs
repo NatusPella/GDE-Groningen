@@ -49,6 +49,13 @@ ok(!out.some((o) => o.id === 'M05' && o.soort === 'lang'), 'een stap met een che
   ok(!afwijkingen(stepsOf(e3)).out.some((o) => o.soort === 'variatie'), 'zonder doelgebeurtenissen geen oordeel over de variatie');
 }
 
+// een mislukte poging begint de stap opnieuw: de route is de langste poging, niet de som
+{
+  const { nominaal } = await import('./bot/balans.mjs');
+  const e4 = [{ t: 0, type: 'step', event: 'begin', id: 'M09' }, { t: 1, type: 'doel', afstand: 700, veh: 'auto' }, { t: 2, type: 'doel', afstand: 2300, veh: 'auto' }, { t: 50, type: 'mission', event: 'fail', msgs: [] }, { t: 51, type: 'doel', afstand: 700, veh: 'auto' }, { t: 52, type: 'doel', afstand: 2300, veh: 'auto' }, { t: 100, type: 'step', event: 'end', id: 'M09', outcome: 'klaar' }];
+  ok(nominaal(stepsOf(e4)[0]).meter === 3000, 'de route telt de poging, niet de som van de pogingen');
+}
+
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'balans-'));
 fs.writeFileSync(path.join(dir, 'events.jsonl'), ev.map((e) => JSON.stringify(e)).join('\n'));
 fs.writeFileSync(path.join(dir, 'result.json'), JSON.stringify({ result: 'KLAAR', gameSeconds: 1560, wallSeconds: 800 }));

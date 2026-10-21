@@ -20,7 +20,7 @@ export function readEvents(dir) {
 export function stepsOf(events) {
   const steps = new Map();
   const cur = { id: null };
-  const get = (id) => { if (!steps.has(id)) steps.set(id, { id, title: '', t0: null, t1: null, speel: null, wall: null, dist: null, cine: null, cineN: null, talk: null, goals: 0, maxQuiet: null, fails: 0, stuck: 0, cheats: [], outcome: '', cineDur: [], routes: [], firstStatus: null, stages: new Set(), stagesKnown: false }); return steps.get(id); };
+  const get = (id) => { if (!steps.has(id)) steps.set(id, { id, title: '', t0: null, t1: null, speel: null, wall: null, dist: null, cine: null, cineN: null, talk: null, goals: 0, maxQuiet: null, fails: 0, stuck: 0, cheats: [], outcome: '', cineDur: [], routes: [], firstStatus: null, stages: new Set(), stagesKnown: false, failTekst: [], pogingen: [[]] }); return steps.get(id); };
   for (const e of events) {
     if (e.type === 'step' && e.event === 'begin') { cur.id = e.id; const s = get(e.id); s.title = e.label || ''; if (s.t0 == null) s.t0 = e.t; }
     else if (e.type === 'step' && e.event === 'end') {
@@ -30,11 +30,11 @@ export function stepsOf(events) {
       s.speel = s.t0 != null ? Math.round((e.t - s.t0) * 10) / 10 : null;
     } else if (cur.id) {
       const s = get(cur.id);
-      if (e.type === 'mission' && e.event === 'fail') s.fails++;
+      if (e.type === 'mission' && e.event === 'fail') { s.fails++; s.pogingen.push([]); s.failTekst.push((e.msgs || []).filter((m) => /mislukt|tijd|kwijt|betrapt|opgepakt|weg|stuk|kapot|te laat|vertrokken|dicht/i.test(m))[0] || (e.msgs || [])[0] || ''); }
       else if (e.type === 'stuck') s.stuck++;
       else if (e.type === 'cheat' && e.rung !== 'nudge') s.cheats.push(e.rung);
       else if (e.type === 'cine') s.cineDur.push(e.dur);
-      else if (e.type === 'doel' && Number.isFinite(e.afstand)) { s.routes.push({ afstand: e.afstand, veh: e.veh }); if (e.stage) { s.stages.add(e.stage); s.stagesKnown = true; } }
+      else if (e.type === 'doel' && Number.isFinite(e.afstand)) { s.routes.push({ afstand: e.afstand, veh: e.veh }); s.pogingen[s.pogingen.length - 1].push({ afstand: e.afstand, veh: e.veh }); if (e.stage) { s.stages.add(e.stage); s.stagesKnown = true; } }
       else if (e.type === 'status') {
         if (!s.firstStatus && Number.isFinite(e.dist)) s.firstStatus = { afstand: e.dist, veh: e.veh };
       }
@@ -67,10 +67,15 @@ export async function cutsceneSpreiding() {
 // the length of the route a player has to cover, whoever plays: the distance to each goal when it appears (the first of the step from the
 // first status when the run did not log it). Time: 5,5 m/s on foot, 14 m/s in a vehicle. Goals beyond 8 km (a train, a flight) are left out.
 export function nominaal(s) {
-  const list = s.routes.length ? s.routes : s.firstStatus ? [s.firstStatus] : [];
-  let m = 0, t = 0;
-  for (const r of list) { if (!(r.afstand < 8000)) continue; m += r.afstand; t += r.afstand / (r.veh && r.veh !== 'te voet' ? 14 : 5.5); }
-  return { meter: Math.round(m), sec: Math.round(t) };
+  // a failed attempt starts the step over: the longest single attempt is the route (the sum over the retries would count it again)
+  const lists = s.pogingen.some((l) => l.length) ? s.pogingen : s.firstStatus ? [[s.firstStatus]] : [[]];
+  let best = { meter: 0, sec: 0 };
+  for (const list of lists) {
+    let m = 0, t = 0;
+    for (const r of list) { if (!(r.afstand < 8000)) continue; m += r.afstand; t += r.afstand / (r.veh && r.veh !== 'te voet' ? 14 : 5.5); }
+    if (m > best.meter) best = { meter: Math.round(m), sec: Math.round(t) };
+  }
+  return best;
 }
 
 export const AKTEN = { kop: 'Akte 1', romp: 'Akte 2', staart: 'Akte 3', zuid: 'Akte 4', ontzet: 'Akte 5' };
@@ -112,6 +117,8 @@ export function rapport(runList) {
       lines.push(`| ${s.id} | ${(s.title || '').slice(0, 34)} | ${fmt(s.speel)} | ${fmt(s.wall)} | ${nominaal(s).meter} m | ${fmt(nominaal(s).sec)} | ${s.dist ?? '-'} m | ${fmt(s.cine)} | ${fmt(s.talk)} | ${s.goals} | ${s.stagesKnown ? s.stages.size : '-'} | ${s.maxQuiet != null ? Math.round(s.maxQuiet) + ' s' : '-'} | ${s.limiet > 0 ? `${fmt(s.actief)} van ${fmt(s.limiet)}` : '-'} | ${s.fails} | ${s.stuck} | ${s.cheats.length ? s.cheats.join(', ') : '-'} |`);
     }
     lines.push('', `Mediaan speeltijd van de stappen zonder cheat: ${fmt(med)}.`, '');
+    const mis = steps.filter((x) => x.failTekst.length);
+    if (mis.length) { lines.push('Mislukt (de melding van het spel):', '', ...mis.flatMap((x) => x.failTekst.map((t, i) => `- ${x.id}, poging ${i + 1}: ${String(t).slice(0, 140)}`)), ''); }
     if (out.length) { lines.push('Afwijkingen:', '', ...out.map((o) => `- ${o.tekst}`), ''); } else lines.push('Geen afwijkingen boven de drempels.', '');
   }
   // akten onderling
