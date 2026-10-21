@@ -12,12 +12,12 @@ nieuwe functies, `y` voor alleen bugfixes.
 - **Twee nieuwe radionummers van Gemini (niet gehoord door een mens in het spel):** "Fietsend door de Ochtend" (blaaskapel, overdag) en "Zonlicht in het Noorderplantsoen" (zomerhit, overdag) draaien op G-Music. Nieuwe nummers komen op de radio eerst aan bod, zodat je de oude niet zat wordt.
 
 ### Verbeterd (samen spelen met vier, voor vrijdag 23-10; door bots en in één Electron-venster op één computer getest, niet door vier mensen gespeeld)
-- **Samen spelen: het weer is voor iedereen hetzelfde (#364):** de gastheer meldt de weerstaat; een gast stapt zijn eigen weermachine niet meer.
-- **Samen spelen: beloningen komen bij de gasten (#365, #371):** na een missie, bijbaan of prijs krijgt elke verbonden speler de helft in zijn eigen portemonnee, en leest of de opdracht gelukt of mislukt is.
-- **Samen spelen: speler 3 en 4 lopen niet meer door gebouwen en water en blijven bij de groep (#366), en rijden mee in het voertuig van de gastheer (#372):** auto drie extra plekken, bus zes; wie meerijdt is niet meer als poppetje in het blok te zien.
+- **Samen spelen: het weer is voor iedereen hetzelfde (#364):** wie het spel opende meldt de weerstaat; de anderen stappen hun eigen weermachine niet meer.
+- **Samen spelen: beloningen komen bij de gasten (#365, #371):** na een missie, bijbaan of prijs van wie het spel opende krijgt elke verbonden speler de helft in zijn eigen portemonnee, en leest of de opdracht gelukt of mislukt is.
+- **Samen spelen: speler 3 en 4 lopen niet meer door gebouwen en water en blijven bij de groep (#366), en rijden mee in het voertuig van wie het spel opende (#372):** auto drie extra plekken, bus zes; wie meerijdt is niet meer als poppetje in het blok te zien.
 - **Samen spelen: roepjes (#367):** 7 = Kom hier, 8 = Help!, 9 = Kijk daar, met een lichtzuil in jouw kleur, een punt op minimap en kaart en een regel; knoppen in het spelerslabel (nu boven de minimap, met afstand, #374).
-- **Samen spelen: het doel van de opdracht staat op minimap en kaart van een gast (#368), iedereen hoort of de gastheer neergaat of gepakt wordt (#369), de speler van Tessa hoort waarom hij even niet kan lopen (#375) en een gast in een menu laat zijn figuur niet lopen (#373).**
-- **Samen spelen: een gast ontgrendelt geen 'ontsnapt_5' door het gezochtniveau van de gastheer (#370).**
+- **Samen spelen: het doel van de opdracht staat op minimap en kaart van een gast (#368), iedereen hoort als wie het spel opende neergaat of gepakt wordt (#369), wie Tessa bestuurt leest waarom lopen even niet kan (#375) en in een menu loopt de figuur niet weg (#373).**
+- **Samen spelen: een gast ontgrendelt geen 'ontsnapt_5' door het gezochtniveau van wie het spel opende (#370).**
 
 ### Verbeterd
 - **Flat inrichten: ook de bank en de bedden zijn te verplaatsen (#359; in Electron door Claude in beeld bekeken: de bank tegen de zuid- en de westmuur met Tammo en Tessa erop, de bedden met de kop naar het noorden en gemengd; niet door een mens):** via de pc (Flat inrichten) kan de Zitmoi naar vier plekken (midden, zuidmuur bij de gang of bij de keuken, westmuur) en gaan de twee Sloapstee-bedden samen naar vier standen (koppen naar het zuiden, naar het noorden, of per kamer anders). Het zitpunt, de plek van de ander, de kijkrichting, de plek waar je opstaat en de slaapplek (E) gaan mee; de losse blokjes van de standaardbank en -bedden vallen weg zodra de nieuwe er staan. Het kleed en het salontafeltje blijven staan.
