@@ -337,6 +337,7 @@ function updateFireworks(dt, w) {
 
 function burst(s, playerDist) {
   const [r, g, b] = s.color;
+  // the puffs grow with the distance so a burst stays a few degrees across at 800 m (#347); they glow (no lights) so they read at night
   const scale = (1 + Math.min(7, playerDist / 260)) * (s.big ? 1.5 : 1);
   const speed = (s.kind === 'ring' ? 17 : 14) * (s.big ? 1.3 : 1);
   const life = s.kind === 'willow' ? 2.8 : 1.5;
@@ -345,9 +346,11 @@ function burst(s, playerDist) {
     const tilt = s.kind === 'ring' ? 0 : (Math.random() - 0.5) * 1.9;
     const sp = speed * (s.kind === 'ring' ? 1 : 0.55 + Math.random() * 0.5);
     spawnFxPuff(s.x, s.h, s.y, Math.cos(a) * sp * Math.cos(tilt * 0.5), Math.sin(tilt) * sp * 0.8, Math.sin(a) * sp * Math.cos(tilt * 0.5), life * (0.8 + Math.random() * 0.4),
-      0.45 * scale, 1.4 * scale, r, g, b, 0.95, 1.7, s.kind === 'willow' ? -3.2 : -1.6);
+      1.1 * scale, 2.6 * scale, r, g, b, 0.95, 1.7, s.kind === 'willow' ? -3.2 : -1.6, 1);
     if (k % 3 === 0) spawnFxSpark(s.x, s.h, s.y, Math.cos(a) * sp * 1.1, Math.sin(tilt) * sp, Math.sin(a) * sp * 1.1, 1.1);
   }
+  // the flash of the burst itself: one big, short, nearly white puff in the colour of the shell
+  spawnFxPuff(s.x, s.h, s.y, 0, 0, 0, 0.4, 3 * scale, 12 * scale, 0.5 + r * 0.5, 0.5 + g * 0.5, 0.5 + b * 0.5, 0.9, 0, 0, 1);
   S.fw.sounds.push({ t: soundLag(playerDist), ev: { kind: 'weapon', sub: 'firework', x: s.x, y: s.y, z: s.h, far: true } });
 }
 
