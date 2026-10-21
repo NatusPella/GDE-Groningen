@@ -48,7 +48,7 @@ export function carControls(car, target, opts = {}) {
   if (Math.abs(err) > 2.0 && Math.abs(speed) < 6 && d > 8) return { steer: -steer, throttle: -1, err, dist: d, want: -3, reverse: true };
   let throttle = 0;
   if (speed < want - 1) throttle = 1;
-  else if (speed > want + 3) throttle = -1;
+  else if (speed > want + 3) throttle = opts.gentle ? -0.3 : -1;   // gentle: a load of eggs breaks above 13 m/s² of braking
   else if (want === 0 && speed > 0.8) throttle = -1;
   return { steer, throttle, err, dist: d, want };
 }
