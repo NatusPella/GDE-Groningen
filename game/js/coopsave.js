@@ -38,6 +38,25 @@ export function clearSession(storage) { try { storage.removeItem(KEYS.coopSessio
 // de wereld van de host verdiende (coöp-beloningen) komt in zijn eigen save, in de
 // actieve slot (saveslots.js). Pure functie: geeft een nieuwe save terug, of null als er
 // niets te doen is. Het geld blijft een geheel getal en nooit negatief.
+// Wat een gast in de wereld van de host zelf doet (winkelen, eten, #291) verandert zijn eigen geld en spullen; die velden
+// komen in zijn eigen save, de rest van die save (verhaal, plek, personage, missies) blijft zoals hij was.
+export const GAST_VELDEN = ['money', 'health', 'armor', 'weapon', 'ammo', 'stats', 'shops', 'meubels', 'financien'];
+// data = de save in de slot, mine = de toestand van de gast nu (savegame.js serialize), earned = verdiend in deze sessie.
+// Geeft de nieuwe save, of null als er niets te bewaren is. Het geld blijft een geheel getal en nooit negatief.
+export function applyGuestChanges(data, mine, earned = 0) {
+  if (!isObj(data)) return null;
+  const next = { ...data };
+  if (isObj(mine)) for (const k of GAST_VELDEN) if (mine[k] !== undefined) next[k] = mine[k];
+  if (!isObj(mine) || !Number.isFinite(mine.money)) {
+    const e = Math.floor(Number(earned));
+    const base = Number.isFinite(data.money) && data.money >= 0 ? Math.floor(data.money) : 0;
+    next.money = Number.isFinite(e) && e > 0 ? base + e : base;
+  }
+  next.money = Math.max(0, Math.floor(Number(next.money) || 0));
+  next.moneyBackup = next.money;
+  return JSON.stringify(next) === JSON.stringify(data) ? null : next;
+}
+
 export function applyGuestEarnings(data, earned) {
   const e = Math.floor(Number(earned));
   if (!isObj(data) || !Number.isFinite(e) || e <= 0) return null;

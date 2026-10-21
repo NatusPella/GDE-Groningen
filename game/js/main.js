@@ -100,6 +100,7 @@ import { updatePhotoMode, wireFotoKey } from './fotomodusui.js';
 import { initPauseMenu, isPauseMenuOpen, openPauseMenu, pauseMenuCover } from './pausemenu.js';
 import { wantsOpenSamen, takeOpenSamen, samenGate } from './samenpanel.js';
 import { gateOn, setGate } from './coopgate.js';
+import { updateGastLokaal } from './coopgastlokaal.js';
 import { initDayNight, updateDayNight, DAY_LENGTH_S } from './daynight.js';
 import { initCalendar, updateCalendar, today as calendarToday } from './calendarday.js';
 import { updateFx3D } from './fx3d.js';
@@ -632,7 +633,7 @@ async function boot() {
   function updateGameplay(dt) {
     world.time += dt;
     // samen spelen (#95): een gast draait de wereld van de host niet zelf; die komt via het net (coopnet.js, coopworld.js)
-    if (world.coopRole === 'client' && world.coopNet && world.coopNet.joined) return;
+    if (world.coopRole === 'client' && world.coopNet && world.coopNet.joined) { updateGastLokaal(world); return; } // winkelen en in- of uitstappen (#291)
     // money must stay a number: a NaN from any price or reward is undone
     if (Number.isFinite(world.money)) world._goodMoney = world.money;
     else {

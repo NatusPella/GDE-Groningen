@@ -28,6 +28,7 @@ import { planeExitBlock } from './planecontrol.js';
 import { MODS } from './cheatmods.js';
 import { reportCrime } from './crime.js';
 import { shift as shiftGear } from './gearbox.js';
+import { wielInvoer } from './coopgast.js';
 import { buildingAt } from './tileplace.js';
 export { resolveBuildingCollisions };
 
@@ -167,7 +168,7 @@ export class Player {
       this.perch = null;
       if (v.sinking) { this.x = v.x; this.y = v.y; this.angle = v.angle; return; }
       if (v.wrecked) { this.exitVehicle(map, world); if (v.blewUp && !v.isBike && !v.isScooter) this.blownOut(world, v); }
-      else { this.driveVehicle(dt, input, map, world); this.gz = v.z || 0; return; }
+      else { this.driveVehicle(dt, world && world.coopWielSlot === 1 && world.coop && world.coop.remote && world.companion && world.companion.inVehicle === v ? wielInvoer(world.coop.remoteInput) : input, map, world); this.gz = v.z || 0; return; } // samen spelen (#291): de bijrijder heeft het stuur
     }
 
     if (this.water || isInWater(map, this.x, this.y, this.gz + this.z)) {

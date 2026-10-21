@@ -73,7 +73,7 @@ const openSamen = async () => { // het pauzemenu, onderdeel Samen (zoals een spe
 // terug het spel in zoals een speler: de knop Doorgaan van het overzicht (Escape in het pauzemenu gaat een stap terug)
 const closeMenu = async () => {
   for (let i = 0; i < 6; i++) {
-    if (!(W() || {}).paused) break;
+    if (!document.querySelector('#pause-menu.visible')) break; // niet op world.paused: een filmpje pauzeert de wereld ook, en Escape zou dan het menu juist openen
     const resume = [...document.querySelectorAll('#pause-menu [data-action="resume"]')].find((b) => b.offsetParent);
     if (resume) resume.click();
     else { const ov = document.querySelector('#pause-menu .ra[data-goto="overzicht"]'); if (ov && ov.getAttribute('aria-current') !== 'true') ov.click(); else await esc(); }
@@ -104,6 +104,7 @@ function sampleNow(n) {
     verdiend: x.coopVerdiend || 0, ri: x.coop && x.coop.remoteInput ? [Math.round(x.coop.remoteInput.mx * 100) / 100, Math.round(x.coop.remoteInput.my * 100) / 100, x.coop.remoteInput.buttons | 0] : null,
     hm: hm ? (hm.actief ? hm.label + ' | ' + (hm.stap || '') : '-') : null,
     hostEnt: x.coopHost ? [x.coopHost.voertuigen.length, x.coopHost.doelen.length, (x.coopHost.voetgangers || []).length] : null,
+    vs: x.player && x.player.inVehicle ? [Math.round((x.player.inVehicle.speed || 0) * 10) / 10, x.player.inVehicle.wrecked ? 1 : 0, Math.round(x.player.inVehicle.health ?? -1), x.coopWielSlot ?? null] : null,
     veh: x.player && x.player.inVehicle ? 1 : 0, vehC: x.companion && x.companion.inVehicle ? 1 : 0, nVeh: (x.vehicles || []).length,
     cutscene: !!(cine && cine.classList.contains('on')), camOver: !!x.cameraOverride, cutBezig: x.coopCutBezig ?? null, gate: !!(x.coopStartGateGezien),
     cam3: x.cameraOverride && x.cameraOverride.position ? [Math.round(x.cameraOverride.position.x), Math.round(x.cameraOverride.position.y), Math.round(x.cameraOverride.position.z ?? 0)] : null,
@@ -158,8 +159,8 @@ async function toLobby() {
       await sleep(1500);
       shot('spelkeuze');
       await sleep(600);
-      if (CFG.hostSlot) { document.querySelector('#saveslots [data-slot="' + CFG.hostSlot + '"]').click(); await sleep(300); const l = document.querySelector('#saveslots [data-do="load"]'); log('spelkeuze-laden', { label: l && l.textContent }); l.click(); }
-      else document.querySelector('#saveslots .ssl-card.empty').click();
+      if (CFG.hostSlot) { const l = document.querySelector('#saveslots .ssl-main[data-slot="' + CFG.hostSlot + '"]'); log('spelkeuze-laden', { label: (l.querySelector('.ssl-go') || {}).textContent }); l.click(); }
+      else document.querySelector('#saveslots .ssl-card.empty [data-do="new"]').click();
     }
     let skipping = !CFG.watchOpening;
     (async () => { // Spatie ingedrukt houden slaat een filmpje over
@@ -233,6 +234,7 @@ async function connect() {
   }
   if (CFG.watchOpening && CFG.role === 'host') return; // de fase 'opening' drukt zelf op Spel starten
   if (gateKnop) { // een nieuw spel: de gastheer start het (zoals een speler); de opening begint daarna, de anderen kijken mee (of de gastheer slaat over)
+    if (CFG.gateWachtMs) await sleep(CFG.gateWachtMs); // de gast leest 'Wacht tot ... het spel start' en het menu sluit pas bij het starten
     gateKnop.click(); log('spel-gestart', {});
     let skip = true; (async () => { while (skip) { if (W() && (W().cameraOverride || (document.getElementById('cine') && document.getElementById('cine').classList.contains('on')))) await holdSkip(); await sleep(2500); } })();
     await until(() => !(W().paused), 8000, 'het spel loopt na Spel starten');
@@ -601,6 +603,140 @@ const PHASES = {
     log('tekstveld-menu-plakken', { waarde: inp.value });
     inp.value = ''; inp.dispatchEvent(new Event('input', { bubbles: true }));
     if (oud && oud.indexOf(String.fromCharCode(10)) < 0 && oud.indexOf(String.fromCharCode(13)) < 0) console.log('[clipboard-set] ' + oud); // het klembord van vóór de test terug
+  },
+  // #291: winkelen door een gast. De host zet zich bij een winkel (de gast staat ernaast), de gast drukt E en koopt met zijn eigen geld;
+  // bij een wapenwinkel of autodealer krijgt hij een melding en opent er niets.
+  async gastwinkel({ s = 50 }) {
+    const w = W(), B = window.__bot;
+    const naarWinkel = async (types, naam) => {
+      const S = await imp('shops');
+      const lijst = (S.getShopsForRender() || []).filter((x) => types.includes(x.type));
+      lijst.sort((a, b) => Math.hypot(a.x - w.player.x, a.y - w.player.y) - Math.hypot(b.x - w.player.x, b.y - w.player.y));
+      const sh = lijst[0];
+      if (!sh) { log('winkel-host', { naam, fout: 'geen winkel van dit soort', types }); return null; }
+      w.player.x = sh.x; w.player.y = sh.y + 1.2; w.companion.x = sh.x + 0.8; w.companion.y = sh.y + 1.2; // Tessa (de gast) ernaast
+      log('winkel-host', { naam, winkel: sh.name, soort: sh.type, n: lijst.length });
+      return sh;
+    };
+    if (CFG.role === 'host') {
+      window.__startPos = { x: w.player.x, y: w.player.y }; // hier begint de rit later weer (open ruimte, geen winkeldeur)
+      await sleep(1000);
+      await naarWinkel(['super', 'snack', 'kleding', 'tabak', 'kapper'], 'toegestaan');
+      await sleep(22000);
+      await naarWinkel(['wapens', 'auto', 'fietsen', 'pand'], 'niet-toegestaan');
+      await sleep(20000);
+      return;
+    }
+    // de gast
+    const SH = await imp('shopui'), SV = await imp('savegame'), S = await imp('shops');
+    window.__gastMsgs = window.__gastMsgs || [];
+    if (!w.__msgHaak) { const o = w.addMessage.bind(w); w.addMessage = (t, ...a) => { window.__gastMsgs.push(String(t)); return o(t, ...a); }; w.__msgHaak = true; }
+    await sleep(6000);
+    const money0 = w.money, near = S.nearestShop(w);
+    log('winkel-gast-voor', { money: money0, near: near ? near.name + ':' + near.type : null, pos: [Math.round(w.player.x), Math.round(w.player.y)], rol: w.coopRole });
+    await B.press('e', 150); await sleep(1500);
+    const open = SH.isShopOpen();
+    log('winkel-gast-open', { open, tekst: open ? (document.querySelector('#shop-menu') || {}).innerText && document.querySelector('#shop-menu').innerText.slice(0, 160) : '' });
+    shot('winkel-gast-open');
+    let gekocht = null;
+    if (open) {
+      const items = [...document.querySelectorAll('#shop-menu .sm-item')].filter((b) => b.getAttribute('aria-disabled') !== 'true');
+      log('winkel-gast-items', { n: items.length, eerste: items[0] && items[0].innerText.slice(0, 60) });
+      if (items[0]) { items[0].click(); await sleep(500); const buy = document.querySelector('#shop-menu .sm-buy'); if (buy) { buy.click(); await sleep(600); if (SH.isShopOpen() && buy && !buy.disabled) { buy.click(); await sleep(600); } } }
+      gekocht = { money: w.money, uitgegeven: money0 - w.money };
+      await B.press('escape', 120); await sleep(800);
+    }
+    const na = { open: SH.isShopOpen(), money: w.money };
+    // het geld en de aankoop staan in zijn eigen opgeslagen spel (zijn eigen save, niet die van de host)
+    let save = null; try { SV.saveGame(w, { toast: false }); await sleep(300); const d = SV.readSave(); save = d ? { money: d.money, health: d.health } : null; } catch (e) { save = { fout: String(e.message || e) }; }
+    log('winkel-gast-na', { ...na, gekocht, save, rol: w.coopRole });
+    await sleep(16000 - 0);
+    // de wapenwinkel: een melding, geen menu
+    await sleep(2000);
+    const near2 = S.nearestShop(w); window.__gastMsgs.length = 0;
+    await B.press('e', 150); await sleep(1200);
+    log('winkel-gast-verboden', { near: near2 ? near2.name + ':' + near2.type : null, open: SH.isShopOpen(), meldingen: window.__gastMsgs.slice(-4) });
+    shot('winkel-gast-verboden');
+    if (SH.isShopOpen()) { await B.press('escape', 120); await sleep(500); }
+  },
+  // #291: een rit samen. De host stapt in, Tessa (de gast) rijdt mee; de host geeft het stuur (Y), de gast stuurt, geeft het terug (Y),
+  // stapt uit (E) en weer in (E).
+  async gastrit({ s = 70 }) {
+    const w = W(), B = window.__bot;
+    if (CFG.role === 'host') {
+      const v0 = (w.vehicles || []).length;
+      const S = await imp('shops');
+      const winkels = S.getShopsForRender() || [];
+      const winkelAfstand = (x, y) => winkels.reduce((m, q) => Math.min(m, Math.hypot(q.x - x, q.y - y)), 1e9);
+      const voorLijst = new Set(w.vehicles || []);
+      // terug naar het beginpunt (geen winkeldeur in de buurt: E opent daar het menu in plaats van het voertuig) en daar een voertuig bezorgen
+      if (window.__startPos) { w.player.x = window.__startPos.x; w.player.y = window.__startPos.y; w.companion.x = w.player.x + 1.2; w.companion.y = w.player.y + 1.2; await sleep(1500); }
+      let kies = null, via = '';
+      try {
+        const Ch = await imp('cheats'); const keuzes = Ch.spawnChoices(w) || [];
+        const k = keuzes.find((c) => c.kind === 'car') || keuzes[0];
+        const res = k ? Ch.spawnVehicleHere(k.id, w) : { ok: false };
+        if (res.ok) { via = 'cheat'; await sleep(1200); kies = (w.vehicles || []).find((x) => x && !voorLijst.has(x) && !x.wrecked) || null; }
+      } catch (e) { /* hieronder: bestaand voertuig */ }
+      if (!kies) { kies = (w.vehicles || []).filter((x) => x && !x.isBoat && !x.isHeli && !x.isPlane && !x.wrecked && !x.isPolice && !x.isBus && !x.isBike && !x.isScooter && !x.driver).sort((p, q) => Math.hypot(p.x - w.player.x, p.y - w.player.y) - Math.hypot(q.x - w.player.x, q.y - w.player.y))[0] || null; via = kies ? 'bestaand' : ''; if (kies) { w.player.x = kies.x; w.player.y = kies.y + 2.4; w.companion.x = kies.x + 1.2; w.companion.y = kies.y + 2.4; } }
+      log('gastrit-voertuig', { via, gevonden: !!kies, winkelAfstand: kies ? Math.round(winkelAfstand(kies.x, kies.y)) : null, afstandHost: kies ? Math.round(Math.hypot(kies.x - w.player.x, kies.y - w.player.y) * 10) / 10 : null });
+      await sleep(1500);
+      const dicht = () => (kies && (w.vehicles || []).includes(kies) ? kies : (w.vehicles || []).filter((x) => x && !x.isBoat && !x.isHeli && !x.wrecked && !x.isPolice).sort((p, q) => Math.hypot(p.x - w.player.x, p.y - w.player.y) - Math.hypot(q.x - w.player.x, q.y - w.player.y))[0]);
+      for (let i = 0; i < 8 && !w.player.inVehicle; i++) { const v = dicht(); if (v && Math.hypot(v.x - w.player.x, v.y - w.player.y) > 3.5) { w.player.x = v.x; w.player.y = v.y + 2.2; w.companion.x = v.x + 1; w.companion.y = v.y + 2.2; } await B.press('e', 150); await sleep(900); }
+      for (let i = 0; i < 40 && !w.companion.inVehicle; i++) await sleep(300);
+      log('gastrit-host-in', { via, host: !!w.player.inVehicle, tessa: !!w.companion.inVehicle, voertuigen: [v0, (w.vehicles || []).length] });
+      shot('gastrit-host-in');
+      await sleep(4000);
+      const v = w.player.inVehicle;
+      // geef het stuur (Y); de host doet zelf niets meer met de stick
+      await B.press('y', 120); await sleep(1500);
+      log('gastrit-wiel-gegeven', { wielSlot: w.coopWielSlot ?? null });
+      const p0 = v ? [v.x, v.y] : null;
+      let maxM = 0, maxV = 0; for (let i = 0; i < 90; i++) { if (v && p0) { maxM = Math.max(maxM, Math.hypot(v.x - p0[0], v.y - p0[1])); maxV = Math.max(maxV, Math.abs(v.speed || 0)); } await sleep(100); } // de gast stuurt: vooruit
+      log('gastrit-gereden-door-gast', { m: Math.round(maxM * 10) / 10, maxSnelheid: Math.round(maxV * 10) / 10, snelheid: v ? Math.round(v.speed * 10) / 10 : null, wielSlot: w.coopWielSlot ?? null });
+      shot('gastrit-onderweg-host');
+      await sleep(6000); // de gast geeft het terug (Y) en remt; de host staat stil
+      log('gastrit-wiel-terug', { wielSlot: w.coopWielSlot ?? null, snelheid: v ? Math.round(v.speed * 10) / 10 : null });
+      // de host rijdt zelf een stukje (het stuur is weer van hem)
+      const q0 = v ? [v.x, v.y] : null;
+      B.stick(0, -1); await sleep(1200); B.stick(0, 0); B.down(' '); await sleep(1500); B.up(' '); await sleep(3300); // kort: een crash tegen een muur werpt de bestuurder uit het voertuig
+      log('gastrit-host-reed-zelf', { m: v && q0 ? Math.round(Math.hypot(v.x - q0[0], v.y - q0[1])) : null, snelheid: v ? Math.round(v.speed * 10) / 10 : null });
+      await sleep(20000); // de gast probeert uit te stappen tijdens het rijden, stapt uit (E) bij stilstand en weer in (E)
+      log('gastrit-eind-host', { host: !!w.player.inVehicle, tessa: !!w.companion.inVehicle, coopUit: !!w.companion.coopUit });
+      await B.press('e', 150); await sleep(1500);
+      return;
+    }
+    // de gast
+    window.__gastMsgs = window.__gastMsgs || [];
+    if (!w.__msgHaak) { const o = w.addMessage.bind(w); w.addMessage = (t, ...a) => { window.__gastMsgs.push(String(t)); return o(t, ...a); }; w.__msgHaak = true; }
+    const t0 = performance.now(); const sec = () => Math.round((performance.now() - t0) / 100) / 10;
+    for (let i = 0; i < 80 && !w.coopInVoertuig; i++) await sleep(300);
+    log('gastrit-gast-in', { inVoertuig: !!w.coopInVoertuig, t: sec() });
+    await sleep(5000);
+    // de host geeft het stuur: de gast hoort het en stuurt vooruit
+    for (let i = 0; i < 40 && !w.coopWiel; i++) await sleep(250);
+    log('gastrit-gast-wiel', { wiel: !!w.coopWiel, meldingen: window.__gastMsgs.slice(-3), t: sec() });
+    shot('gastrit-gast-wiel');
+    // kort en rustig (een crash tegen een muur kost de bestuurder zijn leven): vooruit, een bocht, remmen met handrem
+    B.stick(0, -1); await sleep(1100);
+    shot('gastrit-gast-stuurt');
+    B.stick(0.4, -1); await sleep(500);
+    B.stick(0, 1); B.down(' '); await sleep(4500); B.up(' '); B.stick(0, 0);
+    await sleep(1500);
+    log('gastrit-gast-gestuurd', { wiel: !!w.coopWiel, input: w.coopNet && w.coopNet.session ? w.coopNet.session.pendingInput.buttons : null });
+    await B.press('y', 120); await sleep(1500); // het stuur terug
+    log('gastrit-gast-wiel-terug', { wiel: !!w.coopWiel, meldingen: window.__gastMsgs.slice(-3) });
+    // de host rijdt zelf een stukje en staat daarna stil: dan stapt de gast uit (E) en weer in (E)
+    await sleep(14000);
+    window.__gastMsgs.length = 0;
+    await B.press('e', 150); await sleep(2000);
+    log('gastrit-gast-uit', { inVoertuig: !!w.coopInVoertuig, meldingen: window.__gastMsgs.slice(-3), t: sec() });
+    shot('gastrit-gast-uit');
+    await sleep(3000);
+    await B.press('e', 150); await sleep(2500); // weer in
+    log('gastrit-gast-weer-in', { inVoertuig: !!w.coopInVoertuig, meldingen: window.__gastMsgs.slice(-3), t: sec() });
+    shot('gastrit-gast-weer-in');
+    await sleep(3000);
   },
   // de spelbot speelt het verhaal (alleen de host); de gasten lopen mee
   async verhaal({ s = 1500, until = 'T1', speed = 1 }) {
