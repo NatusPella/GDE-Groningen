@@ -57,7 +57,12 @@ function plan(s, mode, tgt) {
   let pts = null;
   try {
     // a boat sails the waterway net (planBoatTrip), the land graph knows nothing of water
-    const r = mode === 'boat' ? R.planBoatTrip(world.map, [me.x, me.y], [tgt.x, tgt.y], 'sloep') : R.planLandRoute(world.map, kind, [me.x, me.y], [tgt.x, tgt.y]);
+    // in a chase the player simply turns round in a one-way street, or drives out of a street that is closed to cars (the game lets him): the legal
+    // route (2500 m from the Pelsterstraat, or the GPS line, south and round the block) took the bot more than 380 m from the limo and the chase ended
+    // 'lost'. The walking graph runs both ways along every street: from the Gelkingestraat 488 m up the street, over the Grote Markt to the Oude
+    // Boteringestraat (M26, #354)
+    const chasing = kind === 'drive' && s.mission.active && s.mission.stage === 'chase';
+    const r = mode === 'boat' ? R.planBoatTrip(world.map, [me.x, me.y], [tgt.x, tgt.y], 'sloep') : R.planLandRoute(world.map, chasing ? 'walk' : kind, [me.x, me.y], [tgt.x, tgt.y]);
     pts = r && r.pts && r.pts.length ? r.pts : null;
   } catch (e) { B.log('routefout', { msg: String(e && e.message || e).slice(0, 200) }); }
   // outside the city graph (the Ommeland) planLandRoute finds nothing, and where the own route ran into a wall (a detour was needed)
