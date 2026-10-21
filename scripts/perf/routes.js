@@ -17,6 +17,7 @@ for (let i = 0; i < 40 && !document.body.classList.contains('game-started'); i++
 const D = window.__debug; const w = D.world; const p = w.player; const map = w.map;
 const sc = window.__scene3d; const r = sc.renderer;
 const sleep = (ms) => new Promise((res) => setTimeout(res, ms));
+
 const imp = (f) => import('/js/' + f + '.js');
 const cine = await imp('cinematics');
 const VEH = await imp('vehicle');
@@ -33,6 +34,7 @@ const DUR = window.__perfDur || 20000;
 const skipper = setInterval(() => { if (cine.isCinematicActive()) cine.skipCinematic(); }, 100);
 w.devInvuln = true;
 const gpu = H.enableGpu(r.getContext());
+const allLinked = async (maxMs = 150000) => { const t = performance.now(); let last = -1, stable = 0; while (performance.now() - t < maxMs) { const pr = r.info.programs || []; stable = pr.length === last ? stable + 1 : 0; last = pr.length; if (pr.length && stable >= 6 && pr.every((q) => q.isReady())) return Math.round(performance.now() - t); await sleep(500); } return -1; };
 // a lost pointer lock opens the pause menu; the open-menu routes open it themselves
 D.input.canLock = () => false;
 // the start screen (menu, since the menus of r5) stays up over a started game: hide it so the screenshots show the game
@@ -64,6 +66,7 @@ if (window.__perfDiag) {
       ' ud=' + Object.keys(o.userData || {}).slice(0, 3).join('/') + ' geo=' + (g.type || '') + (g.userData && Object.keys(g.userData).length ? '[' + Object.keys(g.userData).slice(0, 2).join('/') + ']' : '') +
       ' v' + (g.attributes && g.attributes.position ? (g.attributes.position.count < 100 ? '<100' : g.attributes.position.count < 1000 ? '<1k' : '>1k') : '?');
   };
+  window.__ownerOf = ownerOf;
   const smRender = r.shadowMap.render.bind(r.shadowMap);
   r.shadowMap.render = (...a) => { inShadow = true; try { smRender(...a); } finally { inShadow = false; } };
   r.renderBufferDirect = function (camera, scene, geometry, material, object, group) {
@@ -503,6 +506,356 @@ results.routes.det = await safe('det', async () => {
   r.render = prevR;
   return out;
 });
+// PoC multi-draw pool (PERF_POOL=1 with PERF_ONLY=ab): the meshes of the building/facade/road/shore batches that exist now are copied into one
+// geometry per material (one THREE.BatchedMesh object with an identity matrix, its draw ranges chosen per frame by a sphere test per cell);
+// the originals sit out while the variant is on (perfoff step 'pool' = pool off). Standing only: the batchers keep changing while walking.
+function buildPoolPoC() {
+  const T = sc.THREE;
+  const roots = sc.scene.children.filter((c) => /^(building|facade|road|shore)-batches$/.test(c.name));
+  const meshes = [];
+  for (const r0 of roots) r0.traverse((o) => { if (o.isMesh && o.userData.staticBatch && !Array.isArray(o.material) && o.geometry.index) meshes.push(o); });
+  const buckets = new Map();
+  for (const m of meshes) {
+    const g = m.geometry; const sig = Object.keys(g.attributes).sort().join(',');
+    const key = m.material.uuid + '|' + (m.castShadow ? 1 : 0) + '|' + sig;
+    let b = buckets.get(key); if (!b) buckets.set(key, b = { mat: m.material, cast: m.castShadow, names: Object.keys(g.attributes).sort(), items: [], verts: 0, idx: 0 });
+    b.items.push(m); b.verts += g.attributes.position.count; b.idx += g.index.count;
+  }
+  const pools = [];
+  let totalEntries = 0;
+  for (const b of buckets.values()) {
+    const geo = new T.BufferGeometry();
+    for (const n of b.names) {
+      const a0 = b.items[0].geometry.attributes[n];
+      const out = new a0.array.constructor(b.verts * a0.itemSize); let o = 0;
+      for (const m of b.items) { const a = m.geometry.attributes[n]; out.set(a.array, o); o += a.array.length; }
+      geo.setAttribute(n, new T.BufferAttribute(out, a0.itemSize, a0.normalized));
+    }
+    const index = new Uint32Array(b.idx); let io = 0, vo = 0;
+    const ent = new Float32Array(b.items.length * 4); const start = new Int32Array(b.items.length), count = new Int32Array(b.items.length);
+    b.items.forEach((m, i) => {
+      const g = m.geometry, ix = g.index.array; start[i] = io; count[i] = ix.length;
+      for (let k = 0; k < ix.length; k++) index[io + k] = ix[k] + vo;
+      io += ix.length; vo += g.attributes.position.count;
+      if (!g.boundingSphere) g.computeBoundingSphere();
+      ent[i * 4] = g.boundingSphere.center.x; ent[i * 4 + 1] = g.boundingSphere.center.y; ent[i * 4 + 2] = g.boundingSphere.center.z; ent[i * 4 + 3] = g.boundingSphere.radius;
+    });
+    geo.setIndex(new T.BufferAttribute(index, 1));
+    geo.setAttribute('batchId', new T.BufferAttribute(new Uint16Array(b.verts), 1));
+    // three recompiles a program each time a material switches between a batched and a plain mesh: the pool gets its own copy
+    const pm0 = b.mat.clone(); pm0.onBeforeCompile = b.mat.onBeforeCompile; { const ck = b.mat.customProgramCacheKey; pm0.customProgramCacheKey = () => (ck ? ck.call(b.mat) : '') + '|pool'; }
+    const pool = new T.BatchedMesh(1, 1, 1, pm0);
+    pool.geometry = geo; pool.frustumCulled = false; pool.castShadow = b.cast; pool.receiveShadow = true; pool.matrixAutoUpdate = false;
+    pool._matricesTexture.image.data.set([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]); pool._matricesTexture.needsUpdate = true;
+    pool.userData.poolPoC = true;
+    // the shared depth material would flip between batched and plain meshes in the shadow pass
+    pool.customDepthMaterial = new T.MeshDepthMaterial({ depthPacking: T.RGBADepthPacking });
+    const starts = new Int32Array(b.items.length), counts = new Int32Array(b.items.length), fr = new T.Frustum(), pm = new T.Matrix4(), sp = new T.Sphere();
+    const cull = (camera) => {
+      pm.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse); fr.setFromProjectionMatrix(pm);
+      let n = 0;
+      for (let i = 0; i < b.items.length; i++) { sp.center.set(ent[i * 4], ent[i * 4 + 1], ent[i * 4 + 2]); sp.radius = ent[i * 4 + 3]; if (fr.intersectsSphere(sp)) { starts[n] = start[i] * 4; counts[n] = count[i]; n++; } }
+      pool._multiDrawStarts = starts; pool._multiDrawCounts = counts; pool._multiDrawCount = n;
+    };
+    pool.onBeforeRender = (renderer, scene, camera) => cull(camera);
+    pool.onBeforeShadow = (renderer, object, camera, shadowCamera) => cull(shadowCamera);
+    totalEntries += b.items.length;
+    pools.push(pool);
+  }
+  const grp = new T.Group(); grp.name = 'pool-poc'; grp.matrixAutoUpdate = false;
+  for (const q of pools) grp.add(q);
+  sc.scene.add(grp);
+  const set = (on) => { grp.visible = on; for (const r0 of roots) r0.visible = !on; };
+  return { set, info: { pools: pools.length, sources: meshes.length, entries: totalEntries, roots: roots.map((c) => c.name) } };
+}
+// the pool PoC against the plain batches, render calls only (only with PERF_ONLY=poolrender): 30 direct renders per sample, the variants in turns,
+// so the load of the machine is the same for both; median and paired difference over PAIRS pairs
+results.routes.poolrender = await safe('poolrender', async () => {
+  if (!ONLY.includes('poolrender')) return null;
+  fixWorld(); teleport(FOOT[0][0], FOOT[0][1]); await sleep(window.__perfSettle || 12000);
+  const pool = buildPoolPoC();
+  await sleep(1500);
+  const gl = r.getContext();
+  const measure = () => { const t0 = performance.now(); for (let i = 0; i < 30; i++) r.render(sc.scene, sc.cam); gl.finish(); return (performance.now() - t0) / 30; };
+  const rows = [];
+  for (let k = 0; k < 4; k++) { pool.set(false); measure(); pool.set(true); measure(); }
+  for (let k = 0; k < (window.__perfPairs || 24); k++) {
+    const order = k % 2 ? [true, false] : [false, true];
+    const res = {};
+    for (const on of order) { pool.set(on); res[on] = measure(); res[on + 'calls'] = r.info.render.calls; res[on + 'tris'] = r.info.render.triangles; }
+    rows.push(res);
+    await sleep(50);
+  }
+  pool.set(false);
+  const med = (a) => { const v = [...a].sort((x, y) => x - y); return +v[v.length >> 1].toFixed(2); };
+  const diffs = rows.map((q) => q.true - q.false);
+  return { info: pool.info, off: med(rows.map((q) => q.false)), on: med(rows.map((q) => q.true)), diffMedian: med(diffs), lower: diffs.filter((x) => x < 0).length, pairs: rows.length, callsOff: rows[0].falsecalls, callsOn: rows[0].truecalls, trisOff: rows[0].falsetris, trisOn: rows[0].truetris, diffs: diffs.map((x) => +x.toFixed(2)) };
+});
+// render-only A/B inside one run (only with PERF_ONLY=renderab, variants as PERF_AB): per variant (perfoff steps) the batchers settle, then SAMPLES samples of
+// 20 direct scene renders (the camera standing); the median and the lower quartile of the ms per render (the lower quartile is what the machine's other work disturbs least),
+// the GL calls per render and the variants in turns over ROUNDS rounds (the order swaps every round), so the load is the same for all of them
+results.routes.renderab = await safe('renderab', async () => {
+  if (!ONLY.includes('renderab')) return null;
+  const variants = (window.__perfAbFor && window.__perfAbFor.renderab) || window.__perfAb; const ROUNDS = window.__perfAbRounds || 4; const SAMPLES = window.__perfSamples || 40;
+  fixWorld(); teleport(FOOT[0][0], FOOT[0][1]); w.camYaw = 0.3; p.angle = 0.3; await sleep(window.__perfSettle || 12000);
+  const gl = r.getContext();
+  const settle = async () => { const builds = () => { const b = sc.batches(); return Object.values(b).reduce((q, e) => q + (e.builds || 0) + (e.dropped || 0), 0); }; let last = builds(), still = 0; for (let i = 0; i < 120 && still < 6; i++) { await sleep(500); const n = builds(); still = n === last ? still + 1 : 0; last = n; } };
+  const sample = () => { const t0 = performance.now(); for (let i = 0; i < 20; i++) r.render(sc.scene, sc.cam); gl.finish(); return (performance.now() - t0) / 20; };
+  const out = [];
+  for (let round = 0; round < ROUNDS; round++) {
+    const order = round % 2 ? [...variants].reverse() : variants;
+    for (const [name, off] of order) {
+      window.__perfOffDyn = new Set(off);
+      await sleep(1500); await settle(); fixWorld(); await sleep(500);
+      sample(); sample();
+      const t = []; let calls = 0, tris = 0;
+      // the thread sampler of run.mjs turns the marks into the CPU ms of the main thread per render (threadCpu 'renderab:<name>:<round>')
+      console.error('[perf-mark] start renderab:' + name + ':' + round + ' ' + Date.now());
+      for (let i = 0; i < SAMPLES; i++) { t.push(sample()); calls = r.info.render.calls; tris = r.info.render.triangles; if (i % 8 === 7) await sleep(30); }
+      console.error('[perf-mark] end renderab:' + name + ':' + round + ' ' + Date.now() + ' ' + SAMPLES * 20);
+      t.sort((a, b) => a - b);
+      out.push({ name, round, median: +t[t.length >> 1].toFixed(2), q1: +t[t.length >> 2].toFixed(2), min: +t[0].toFixed(2), calls, tris, pool: sc.batches().pool });
+    }
+  }
+  window.__perfOffDyn = undefined;
+  const summary = {};
+  for (const [name] of variants) { const rows = out.filter((q) => q.name === name); const med = (k) => { const v = rows.map((q) => q[k]).sort((a, b) => a - b); return v[v.length >> 1]; }; summary[name] = { median: med('median'), q1: med('q1'), min: med('min'), calls: med('calls'), tris: med('tris') }; }
+  return { summary, rows: out };
+});
+// GL calls per frame by function (only with PERF_ONLY=glcalls): every function of the context is counted over 90 frames of the running game at the standing camera, the shadow pass apart;
+// the cost of the renderer's main thread is mostly the writing of these calls, so their number is the deterministic measure of it (docs/PERF-METING-2026-10-19.md, Vervolg 9)
+results.routes.glcalls = await safe('glcalls', async () => {
+  if (!ONLY.includes('glcalls')) return null;
+  fixWorld(); teleport(FOOT[0][0], FOOT[0][1]); w.camYaw = 0.3; p.angle = 0.3; await sleep(window.__perfSettle || 12000);
+  const variants = (window.__perfAbFor && window.__perfAbFor.glcalls) || (window.__perfAb && window.__perfAb.length ? window.__perfAb : [['', []]]);
+  const outAll = {};
+  for (const [vname, voff] of variants) {
+  window.__perfOffDyn = new Set(voff); await sleep(1500);
+  { const builds = () => { const b = sc.batches(); return Object.values(b).reduce((q, e) => q + (e.builds || 0) + (e.dropped || 0), 0); }; let last = builds(), still = 0; for (let i = 0; i < 80 && still < 6; i++) { await sleep(500); const n = builds(); still = n === last ? still + 1 : 0; last = n; } }
+  fixWorld();
+  const gl = r.getContext(); const proto = Object.getPrototypeOf(gl);
+  const cnt = { main: new Map(), shadow: new Map(), other: new Map() }; let phase = 'other';
+  const origs = [];
+  for (const name of Object.getOwnPropertyNames(proto)) {
+    let d; try { d = gl[name]; } catch (e) { continue; }
+    if (typeof d !== 'function' || name === 'constructor') continue;
+    // what the context holds now (the game's own filter of redundant calls, glfilter.js, sits in front of the native one): counted behind the filter, restored afterwards
+    const o = d; origs.push([name, o, Object.prototype.hasOwnProperty.call(gl, name)]);
+    gl[name] = function (...a) { const m = cnt[phase]; m.set(name, (m.get(name) || 0) + 1); if (owner !== null && phase === 'main') { let q = byOwner.get(owner); if (!q) byOwner.set(owner, q = new Map()); q.set(name, (q.get(name) || 0) + 1); } return o.apply(gl, a); };
+  }
+  const smR = r.shadowMap.render.bind(r.shadowMap);
+  r.shadowMap.render = (...a) => { const was = phase; phase = 'shadow'; try { smR(...a); } finally { phase = was; } };
+  const prevR = r.render; let frames = 0;
+  // with PERF_DIAG=1 the GL calls of the main pass are attributed to the owner of the draw they belong to (the diag owner names), per function
+  let owner = null; const byOwner = new Map();
+  // the program of each draw of the main pass in order: the distinct programs and the runs of the same program (a switch re-uploads the lights, fog and shadow uniforms)
+  const rbd = r.renderBufferDirect; let seq = [], seqs = [];
+  r.renderBufferDirect = function (camera, scene2, geometry, material, object, group) { if (window.__ownerOf && phase === 'main') owner = window.__ownerOf(object).replace(/ (Buffer|Extrude|Box|Cylinder|Plane|Circle|Sphere|Shape)[^ ]*.*$/, '').slice(0, 60); const out = rbd.call(r, camera, scene2, geometry, material, object, group); owner = null; if (phase === 'main') { const pr = r.properties.get(material).currentProgram; seq.push(pr ? pr.id : -1); } return out; };
+  r.render = function (s2, c2) { if (s2 !== sc.scene) return prevR.call(r, s2, c2); const was = phase; phase = 'main'; frames++; seq = []; try { return prevR.call(r, s2, c2); } finally { phase = was; seqs.push(seq); } };
+  const f0 = frameCount();
+  const fst = gl.__glFilter ? { ...gl.__glFilter } : null; // calls the filter of redundant GL calls (glfilter.js) kept from the context during these frames: they are in the counts below, but cost nothing
+  await new Promise((res) => { const f = () => { if (frames >= 90) res(); else requestAnimationFrame(f); }; requestAnimationFrame(f); });
+  const filtered = fst ? { pixelStorei: +((gl.__glFilter.skippedPixelStore - fst.skippedPixelStore) / frames).toFixed(1), texParameteri: +((gl.__glFilter.skippedTexParameter - fst.skippedTexParameter) / frames).toFixed(1) } : null;
+  r.render = prevR; r.shadowMap.render = smR; r.renderBufferDirect = rbd;
+  for (const [name, o, own] of origs) { if (own) gl[name] = o; else delete gl[name]; }
+  const progs = seqs.map((q) => { let runs = 0, last = null; const set = new Set(); for (const id of q) { set.add(id); if (id !== last) runs++; last = id; } return { draws: q.length, distinct: set.size, runs }; });
+  const medP = (k) => { const v = progs.map((q) => q[k]).sort((a, b) => a - b); return v[v.length >> 1]; };
+  const top = (m, n = 28) => [...m].sort((a, b) => b[1] - a[1]).slice(0, n).map(([k, v]) => [k, +(v / frames).toFixed(1)]);
+  const sum = (m) => +([...m.values()].reduce((a, b) => a + b, 0) / frames).toFixed(1);
+  void f0;
+  const owners = [...byOwner].map(([k, m]) => [k, +([...m.values()].reduce((a, b) => a + b, 0) / frames).toFixed(1), [...m].sort((a, b) => b[1] - a[1]).slice(0, 6).map(([n, v]) => n + '=' + +(v / frames).toFixed(1)).join(' ')]).sort((a, b) => b[1] - a[1]).slice(0, 24);
+  outAll[vname || 'basis'] = { owners, filtered, frames, programs: { draws: medP('draws'), distinct: medP('distinct'), runs: medP('runs') }, mainTotal: sum(cnt.main), shadowTotal: sum(cnt.shadow), otherTotal: sum(cnt.other), main: top(cnt.main), shadow: top(cnt.shadow, 12), other: top(cnt.other, 12), calls: r.info.render.calls };
+  }
+  window.__perfOffDyn = undefined;
+  return outAll;
+});
+// what one GL call costs the main thread (only with PERF_ONLY=glbench): ns per call of the calls three makes per draw, on a scratch canvas with the same flags as the game's
+results.routes.glbench = await safe('glbench', async () => {
+  if (!ONLY.includes('glbench')) return null;
+  const cv = document.createElement('canvas'); cv.width = cv.height = 64;
+  const g = cv.getContext('webgl2', { antialias: false, powerPreference: 'high-performance' });
+  const vs = g.createShader(g.VERTEX_SHADER); g.shaderSource(vs, '#version 300 es\nin vec3 p; uniform mat4 m; uniform mat3 n; uniform vec3 c; uniform float f; void main(){ gl_Position = m * vec4(p + c * f + n[0], 1.0); }'); g.compileShader(vs);
+  const fs2 = g.createShader(g.FRAGMENT_SHADER); g.shaderSource(fs2, '#version 300 es\nprecision mediump float; out vec4 o; void main(){ o = vec4(1.0); }'); g.compileShader(fs2);
+  const pr = g.createProgram(); g.attachShader(pr, vs); g.attachShader(pr, fs2); g.linkProgram(pr); g.useProgram(pr);
+  const vao = g.createVertexArray(); g.bindVertexArray(vao);
+  const vb = g.createBuffer(); g.bindBuffer(g.ARRAY_BUFFER, vb); g.bufferData(g.ARRAY_BUFFER, new Float32Array(9 * 64), g.DYNAMIC_DRAW); g.enableVertexAttribArray(0); g.vertexAttribPointer(0, 3, g.FLOAT, false, 0, 0);
+  const ib = g.createBuffer(); g.bindBuffer(g.ELEMENT_ARRAY_BUFFER, ib); g.bufferData(g.ELEMENT_ARRAY_BUFFER, new Uint32Array(3 * 64).map((_, i) => i % 3), g.DYNAMIC_DRAW);
+  const vao2 = g.createVertexArray();
+  const M = new Float32Array(16), N = new Float32Array(9);
+  const loc = (n) => g.getUniformLocation(pr, n);
+  const md = g.getExtension('WEBGL_multi_draw');
+  const starts = new Int32Array(40), counts = new Int32Array(40).fill(3);
+  const tex = g.createTexture();
+  const tests = {
+    uniformMatrix4fv: () => g.uniformMatrix4fv(loc('m'), false, M),
+    uniformMatrix3fv: () => g.uniformMatrix3fv(loc('n'), false, N),
+    uniform3f: () => g.uniform3f(loc('c'), 1, 2, 3),
+    uniform1f: () => g.uniform1f(loc('f'), 1),
+    getUniformLocation: () => loc('m'),
+    bindVertexArray: (i) => g.bindVertexArray(i & 1 ? vao : vao2),
+    bindTexture: (i) => g.bindTexture(g.TEXTURE_2D, i & 1 ? tex : null),
+    activeTexture: (i) => g.activeTexture(g.TEXTURE0 + (i & 3)),
+    useProgram: (i) => g.useProgram(i & 1 ? pr : null),
+    drawElements: () => g.drawElements(g.TRIANGLES, 3, g.UNSIGNED_INT, 0),
+    multiDraw40: () => md && md.multiDrawElementsWEBGL(g.TRIANGLES, counts, 0, g.UNSIGNED_INT, starts, 0, 40),
+    bufferSubData: () => g.bufferSubData(g.ELEMENT_ARRAY_BUFFER, 0, new Uint32Array(3)),
+    disable_enable: (i) => (i & 1 ? g.enable(g.BLEND) : g.disable(g.BLEND)),
+  };
+  const out = {};
+  for (const [name, fn] of Object.entries(tests)) {
+    for (let i = 0; i < 2000; i++) fn(i);
+    g.finish();
+    const best = [];
+    for (let rep = 0; rep < 5; rep++) { const N2 = 4000; const t0 = performance.now(); for (let i = 0; i < N2; i++) fn(i); const t1 = performance.now(); best.push((t1 - t0) * 1e6 / N2); g.finish(); }
+    best.sort((a, b) => a - b);
+    out[name] = { minNs: Math.round(best[0]), medNs: Math.round(best[2]) };
+  }
+  return out;
+});
+// CPU profile of nothing but the scene render (only with PERF_ONLY=renderprof, GDE_PROFILE_OUT=<dir> for the raw profile): the camera stands, the scene is rendered
+// straight to the canvas in a loop for PERF_DUR ms (default 12 s) while the profiler runs; node scripts/perf/selftime.mjs <dir>/*.cpuprofile shows which functions the time is in
+results.routes.renderprof = await safe('renderprof', async () => {
+  if (!ONLY.includes('renderprof')) return null;
+  fixWorld(); teleport(FOOT[0][0], FOOT[0][1]); w.camYaw = 0.3; p.angle = 0.3; await sleep(window.__perfSettle || 12000);
+  { const builds = () => { const b = sc.batches(); return Object.values(b).reduce((q, e) => q + (e.builds || 0) + (e.dropped || 0), 0); }; let last = builds(), still = 0; for (let i = 0; i < 80 && still < 6; i++) { await sleep(500); const n = builds(); still = n === last ? still + 1 : 0; last = n; } }
+  fixWorld();
+  const linkedAfter = await allLinked();
+  const gl = r.getContext();
+  // the first renders straight to the canvas need every program once more (tone mapping and colour space of the target are part of a program): they link in the frame, seconds in all
+  const warm0 = performance.now();
+  for (let k = 0; k < 4; k++) { r.render(sc.scene, sc.cam); gl.finish(); await sleep(50); }
+  const linkedAfter2 = await allLinked(); const warmMs = Math.round(performance.now() - warm0);
+  for (let k = 0; k < 3; k++) { r.render(sc.scene, sc.cam); gl.finish(); await sleep(50); }
+  const ms = Math.min(15000, window.__perfDur || 12000);
+  console.log('[profile] ' + ms);
+  await sleep(300);
+  const t0 = performance.now(); let n = 0;
+  while (performance.now() - t0 < ms) { for (let i = 0; i < 10; i++) { r.render(sc.scene, sc.cam); n++; } gl.finish(); await sleep(0); }
+  return { renders: n, msPerRender: +((performance.now() - t0) / n).toFixed(2), linkedAfter, warmMs, linkedAfter2 };
+});
+// how long the shader programs take to link after the game started (only with PERF_ONLY=progready): every 500 ms the number of programs of the renderer and how many are linked,
+// until all are (at most 150 s), with the standing camera in the city; a pool adds programs (the batched variant of each batch material and its depth material)
+results.routes.progready = await safe('progready', async () => {
+  if (!ONLY.includes('progready')) return null;
+  fixWorld(); teleport(FOOT[0][0], FOOT[0][1]); w.camYaw = 0.3; p.angle = 0.3;
+  const t0 = performance.now(); const series = []; let allAt = null;
+  for (let i = 0; i < 300; i++) {
+    await sleep(500);
+    const progs = r.info.programs || [];
+    const ready = progs.filter((q) => q.isReady()).length;
+    if (i % 4 === 0) series.push([Math.round(performance.now() - t0), progs.length, ready, r.info.render.calls]);
+    if (ready === progs.length && progs.length > 50 && i > 12) { allAt = Math.round(performance.now() - t0); break; }
+  }
+  return { allAtMs: allAt, series, programs: (r.info.programs || []).length, pool: sc.batches().pool };
+});
+// the first minute and a half in the city (only with PERF_ONLY=startup): per window of 10 s the frames and, through the thread sampler, the main thread's CPU per frame
+// ('startup:<i>' marks), with the number of programs and how many are linked; shows what the compiling of shaders after the load costs (?perfoff=linkpoll: the old polling)
+results.routes.startup = await safe('startup', async () => {
+  if (!ONLY.includes('startup')) return null;
+  fixWorld(); teleport(FOOT[0][0], FOOT[0][1]); w.camYaw = 0.3; p.angle = 0.3;
+  const rows = [];
+  for (let i = 0; i < 9; i++) {
+    H.start();
+    console.error('[perf-mark] start startup:' + i + ' ' + Date.now());
+    await sleep(10000);
+    const res = H.stop();
+    console.error('[perf-mark] end startup:' + i + ' ' + Date.now() + ' ' + res.frames);
+    const pr = r.info.programs || [];
+    rows.push({ i, frames: res.frames, avg: res.avg, p95: res.p95, cpuAvg: res.cpuAvg, programs: pr.length, linked: pr.filter((q) => q.isReady()).length, calls: r.info.render.calls });
+  }
+  return { rows, pool: sc.batches().pool };
+});
+// what the shadow pass draws (only with PERF_ONLY=shadowtris, PERF_DIAG=1 for the owner names): at fixed spots the triangles and draws of the sun's shadow pass in total and per owner,
+// 30 frames each, with the shadow update forced every frame. A build that keeps casters out of the shadow map shows less than the one it is compared with.
+results.routes.shadowtris = await safe('shadowtris', async () => {
+  if (!ONLY.includes('shadowtris')) return null;
+  const spots = [['markt', FOOT[0][0], FOOT[0][1], 0.3], ['straat', FOOT[3][0], FOOT[3][1], 1.9], ['gracht2', FOOT[4][0], FOOT[4][1], 2.6]];
+  const variants = (window.__perfAbFor && window.__perfAbFor.shadowtris) || [['', []]];
+  const outAll = {};
+  for (const [vname, voff] of variants) {
+  window.__perfOffDyn = new Set(voff.filter((o) => o !== 'settle'));
+  if (voff.length) await sleep(12000);
+  const out = {};
+  const triOf = (o, g) => {
+    if (o.isBatchedMesh) { let n = 0; for (let i = 0; i < o._multiDrawCount; i++) n += o._multiDrawCounts[i]; return n / 3; }
+    const base = g.index ? g.index.count : g.attributes.position.count;
+    const dr = g.drawRange; const n = Math.min(base, dr.count === Infinity ? base : dr.count);
+    return (n / 3) * (o.isInstancedMesh ? o.count : 1);
+  };
+  for (const [name, x, y, yaw] of spots) {
+    teleport(x, y); w.camYaw = yaw; p.angle = yaw;
+    await sleep(window.__perfSettle || 12000);
+    { const builds = () => { const b = sc.batches(); return Object.values(b).reduce((q, e) => q + (e.builds || 0) + (e.dropped || 0), 0); }; let last = builds(), still = 0; for (let i = 0; i < 80 && still < 6; i++) { await sleep(500); const n = builds(); still = n === last ? still + 1 : 0; last = n; } }
+    fixWorld(); await sleep(1500);
+    let inSh = false, draws = 0, tris = 0, frames = 0; const owners = new Map(); const big = new Map();
+    const smR = r.shadowMap.render.bind(r.shadowMap);
+    r.shadowMap.render = (...a) => { inSh = true; frames++; try { smR(...a); } finally { inSh = false; } };
+    const rbd = r.renderBufferDirect;
+    r.renderBufferDirect = function (camera, scene2, geometry, material, object, group) { if (inSh) { const t = triOf(object, geometry); draws++; tris += t; const k = (window.__ownerOf ? window.__ownerOf(object) : object.type).replace(/ (Buffer|Extrude|Box|Cylinder|Plane|Circle|Sphere|Shape)[^ ]*.*$/, '').slice(0, 50); const e = owners.get(k) || [0, 0]; e[0]++; e[1] += t; owners.set(k, e); const bs = geometry.boundingSphere || (geometry.computeBoundingSphere(), geometry.boundingSphere); const rad = object.isBatchedMesh ? 9999 : Math.round(bs ? bs.radius * Math.max(object.scale.x, 1) : 0); const bk = k + '|' + (object.castShadow ? 'c' : 'n') + '|' + (object.parent && object.parent.name || ''); const e2 = big.get(bk) || [0, 0, 0]; e2[0]++; e2[1] += t; e2[2] = Math.max(e2[2], rad); big.set(bk, e2); } return rbd.call(r, camera, scene2, geometry, material, object, group); };
+    const sm = r.shadowMap.autoUpdate; r.shadowMap.autoUpdate = true; r.shadowMap.needsUpdate = true;
+    await new Promise((res) => { const f = () => { if (frames >= 30) res(); else requestAnimationFrame(f); }; requestAnimationFrame(f); });
+    r.renderBufferDirect = rbd; r.shadowMap.render = smR; r.shadowMap.autoUpdate = sm;
+    out[name] = { frames, draws: +(draws / frames).toFixed(1), tris: Math.round(tris / frames), biggest: [...big].sort((a, c) => c[1][2] - a[1][2]).slice(0, 10).map(([k, v]) => [k, +(v[0] / frames).toFixed(1), Math.round(v[1] / frames), v[2]]), owners: [...owners].sort((a, b) => b[1][1] - a[1][1]).slice(0, 14).map(([k, v]) => [k, +(v[0] / frames).toFixed(1), Math.round(v[1] / frames)]) };
+  }
+  outAll[vname || 'basis'] = out;
+  }
+  window.__perfOffDyn = undefined;
+  return outAll;
+});
+// the sun's shadow map itself (only with PERF_ONLY=shadowmap): at fixed spots a forced shadow pass, the map read back and reduced to a 16 x 16 grid of how much of each
+// block holds a caster (a texel that is not the cleared white); the grids of two builds can be compared block by block (a lost caster shows as a block that is emptier)
+results.routes.shadowmap = await safe('shadowmap', async () => {
+  if (!ONLY.includes('shadowmap')) return null;
+  const spots = [['markt', FOOT[0][0], FOOT[0][1], 0.3], ['gracht2', FOOT[4][0], FOOT[4][1], 2.6], ['straat', FOOT[3][0], FOOT[3][1], 1.9]];
+  const variants = (window.__perfAbFor && window.__perfAbFor.shadowmap) || (window.__perfAb && window.__perfAb.length ? window.__perfAb : [['', []]]);
+  const outAll = {};
+  for (const [vname, voff] of variants) {
+  window.__perfOffDyn = new Set(voff.filter((o) => o !== 'settle'));
+  if (voff.length) await sleep(12000);
+  const out = {};
+  const sunL = []; sc.scene.traverse((o) => { if (o.isDirectionalLight && o.castShadow) sunL.push(o); });
+  const L = sunL[0];
+  for (const [name, x, y, yaw] of spots) {
+    teleport(x, y); w.camYaw = yaw; p.angle = yaw;
+    await sleep(window.__perfSettle || 12000);
+    { const builds = () => { const b = sc.batches(); return Object.values(b).reduce((q, e) => q + (e.builds || 0) + (e.dropped || 0), 0); }; let last = builds(), still = 0; for (let i = 0; i < 80 && still < 6; i++) { await sleep(500); const n = builds(); still = n === last ? still + 1 : 0; last = n; } }
+    fixWorld(); await sleep(2500);
+    // the game's own frame has just drawn the map: read it back right after one of its renders
+    let got = null;
+    await new Promise((res) => { let k = 0; const f = () => { if (++k < 6) { requestAnimationFrame(f); return; } const t = L.shadow.map; const W = t.width, Hh = t.height; const buf = new Uint8Array(W * Hh * 4); r.readRenderTargetPixels(t, 0, 0, W, Hh, buf); got = { W, Hh, buf }; res(); }; requestAnimationFrame(f); });
+    const { W, Hh, buf } = got; const G = 16; const grid = [];
+    for (let gy = 0; gy < G; gy++) { const row = []; for (let gx = 0; gx < G; gx++) { let n = 0, tot = 0; const x0 = gx * W / G, x1 = (gx + 1) * W / G, y0 = gy * Hh / G, y1 = (gy + 1) * Hh / G; for (let yy = y0; yy < y1; yy += 4) for (let xx = x0; xx < x1; xx += 4) { const i = (yy * W + xx) * 4; tot++; if (!(buf[i] === 255 && buf[i + 1] === 255 && buf[i + 2] === 255 && buf[i + 3] === 255)) n++; } row.push(Math.round(100 * n / tot)); } grid.push(row.join(' ')); }
+    out[name] = { size: [W, Hh], grid };
+  }
+  outAll[vname || 'basis'] = out;
+  }
+  window.__perfOffDyn = undefined;
+  return outAll;
+});
+// pictures of the same spot with steps switched off one after the other, in ONE process (only with PERF_ONLY=poolvis, PERF_AB=name=steps;..., spots from PERF_VIS_SPOTS=markt,gracht2):
+// the variants of the run are compared by eye and with pngdiff.mjs; a step that rebuilds things (pool) gets a long run-in (PERF_AB_PRE ms, default 90 s)
+results.routes.poolvis = await safe('poolvis', async () => {
+  if (!ONLY.includes('poolvis')) return null;
+  const all = { markt: [FOOT[0][0], FOOT[0][1], 0.3], gracht2: [FOOT[4][0], FOOT[4][1], 2.6], straat: [FOOT[3][0], FOOT[3][1], 1.9], kanaal: [FOOT[4][0], FOOT[4][1], 2.6] };
+  const want = (window.__perfVisSpots || 'gracht2').split(',').filter(Boolean);
+  const variants = window.__perfAb;
+  const names = [];
+  for (const sp of want) {
+    const [x, y, yaw] = all[sp];
+    teleport(x, y); w.camYaw = yaw; p.angle = yaw;
+    for (const [vname, voff] of variants) {
+      window.__perfOffDyn = new Set(voff.filter((o) => o !== 'settle'));
+      await sleep(voff.includes('settle') ? (window.__perfAbPre || 90000) : 15000);
+      { const builds = () => { const b = sc.batches(); return Object.values(b).reduce((q, e) => q + (e.builds || 0) + (e.dropped || 0), 0); }; let last = builds(), still = 0; for (let i = 0; i < 120 && still < 8; i++) { await sleep(500); const n = builds(); still = n === last ? still + 1 : 0; last = n; } }
+      fixWorld(); await sleep(1500);
+      console.log('[capture] ' + sp + '-' + vname);
+      names.push(sp + '-' + vname);
+      await sleep(900);
+    }
+  }
+  window.__perfOffDyn = undefined;
+  return { names };
+});
 // A/B inside one run (only with PERF_ONLY=ab): window.__perfAb = [[name, [perfoff steps...]], ...] (PERF_AB='aan=;uit=actoren+schaduw'); the variants take
 // turns in short windows (window.__perfAbWin ms, window.__perfAbRounds rounds, the order swaps every round), so they feel the same load.
 // Every window is a perf-mark pair 'ab:<name>:<round>' for the thread sampler of run.mjs; PERF_AB_MOVE=1 walks (3 m/s) instead of standing.
@@ -516,9 +869,10 @@ results.routes.ab = await safe('ab', async () => {
   const T = sc.THREE, cnt = { umw: 0, fto: 0 };
   const oU = T.Object3D.prototype.updateMatrixWorld; T.Object3D.prototype.updateMatrixWorld = function (f) { cnt.umw++; return oU.call(this, f); };
   const oF = T.Frustum.prototype.intersectsObject; T.Frustum.prototype.intersectsObject = function (o) { cnt.fto++; return oF.call(this, o); };
-  const out = [];
+  const out = []; let poolPoC = null;
   for (const mode of modes) {
     fixWorld(); teleport(FOOT[0][0], FOOT[0][1]); await sleep(window.__perfSettle || 12000);
+    if (window.__perfPool && !poolPoC) { poolPoC = buildPoolPoC(); console.error('[perf-pool] ' + JSON.stringify(poolPoC.info)); }
     const tStart = performance.now();
     if (mode === 'lopen') mover = (now) => walkFoot(null, (now - tStart) / 1000 * 0.5);
     for (let round = 0; round < ROUNDS; round++) {
@@ -530,8 +884,10 @@ results.routes.ab = await safe('ab', async () => {
         window.__perfDetail = detail ? Number(detail.slice(7)) : 0;
         if (detail || window.__perfDetailWas) { window.__perfDetailWas = !!detail; SCN.refreshRenderScale(); }
         const undo = Object.keys(sets).length ? SET.withTempSettings(sets) : null;
-        window.__perfOffDyn = new Set(off.filter((o) => !o.startsWith('set:') && !o.startsWith('detail:')));
-        await sleep(undo ? (window.__perfAbPre || 6000) : 1200);
+        window.__perfOffDyn = new Set(off.filter((o) => !o.startsWith('set:') && !o.startsWith('detail:') && o !== 'settle'));
+        if (poolPoC) poolPoC.set(!off.includes('pool'));
+        // 'settle' among the steps: the variant gets the long run-in too (steps that rebuild things, like pool, need it)
+        await sleep(undo || off.includes('settle') ? (window.__perfAbPre || 6000) : 1200);
         calls = 0; renders = 0; cnt.umw = 0; cnt.fto = 0; diag.clear();
         H.start();
         const key = name + '@' + mode + ':' + round;

@@ -1,6 +1,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { buildingLodStyle } from './models3d_buildings.js';
 import { perfOff } from './devflags.js';
+import { drawHub } from './multidraw3d.js';
 
 // Far LOD layer: plain extruded buildings and flat ground (green, paths,
 // roads) merged per TILE x TILE metre tile, one draw call per tile and layer.
@@ -351,10 +352,18 @@ export function createFarLOD(scene, map, opts) {
     const J = t.job;
     t.job = null;
     t.meshes = [];
+    t.pooled = !perfOff('pool');
     for (const [name, B] of [['building', J.bld], ['green', J.green], ['path', J.path], ['road', J.road], ['water', J.water]]) {
       const geo = B.build(name !== 'building');
       if (!geo) continue;
-      const mesh = new THREE.Mesh(geo, MATS[t.stream && name === 'green' ? 'greenNear' : t.stream && name === 'water' ? 'waterStream' : name]);
+      const mat = MATS[t.stream && name === 'green' ? 'greenNear' : t.stream && name === 'water' ? 'waterStream' : name];
+      if (t.pooled) {
+        // one cell of the multi-draw pool (multidraw3d.js) instead of a mesh of its own; `visible` follows the distance as before
+        const handle = drawHub.add(mat, false, geo, false);
+        t.meshes.push({ handle, userData: { tris: geo.index.count / 3 }, vis: true, set visible(v) { if (v !== this.vis) { this.vis = v; drawHub.setVisible(this.handle, v); } }, get visible() { return this.vis; } });
+        continue;
+      }
+      const mesh = new THREE.Mesh(geo, mat);
       mesh.matrixAutoUpdate = false;
       mesh.userData.tris = geo.index.count / 3;
       root.add(mesh);
@@ -363,7 +372,11 @@ export function createFarLOD(scene, map, opts) {
   }
 
   function disposeTile(t) {
-    if (t.meshes) for (const m of t.meshes) { root.remove(m); m.geometry.dispose(); }
+    if (t.meshes) for (const m of t.meshes) {
+      if (m.handle) { drawHub.remove(m.handle); continue; }
+      root.remove(m);
+      m.geometry.dispose();
+    }
     t.meshes = null;
     t.job = null;
   }
@@ -394,6 +407,8 @@ export function createFarLOD(scene, map, opts) {
       return;
     }
     for (const t of tiles.values()) {
+      // switched with ?perfoff=pool (A/B runs): the tile is built again in the other mode
+      if (t.meshes && t.pooled === perfOff('pool')) disposeTile(t);
       const d = rectDist(t, px, py);
       t.dist = d;
       if (d < viewDist) {
