@@ -22,6 +22,7 @@ const STEL = { tempo: setCinematicRate, tijd: setCinematicTime };
 //
 // playScript(w, def, { lines, duration, anchor, cine }) -> boolean
 //   anchor: { x, y, facing, z }  (default: the player, facing the way they look)
+//   fit:    { radii, ground, dirs } the anchor may move to free ground when no turn is clean (cutscript.js fitAnchor)
 //   env:    { solid, clamp } keeps the set out of buildings (cutscript.js fitCamera/fitAnchor); default: the building layer
 //   cine:   extra playCinematic fields (id, priority, kicker, title, tint, ...)
 //   lines:  [{ speaker, text, at, dur, voice? }], untouched: they stay the story's own
@@ -228,7 +229,7 @@ function kitchenEnv(at) {
 if (typeof window !== 'undefined') window.__cutHost = { buildScriptRun };
 
 // replay: een gast speelt de scène van de gastheer na (coopcut.js); die stuurt niets door en slaat niets over
-export function playScript(w, def, { lines, duration, anchor, cine = {}, env: envIn = null, replay = false } = {}) {
+export function playScript(w, def, { lines, duration, anchor, cine = {}, env: envIn = null, fit = null, replay = false } = {}) {
   if (current) return false;
   const root = getScene();
   if (!root) return false;
@@ -244,7 +245,7 @@ export function playScript(w, def, { lines, duration, anchor, cine = {}, env: en
   // nobody and no camera inside a building: the anchor turns to free ground, a camera in a wall moves (cutscript.js)
   const indoors = def.set === 'keuken';
   const env = envIn || (indoors ? kitchenEnv({ x: a.x, y: a.y, z: a.z || 0 }) : { solid: (x, y, z) => roofAt(w.map, x, y) > z - 0.2 });
-  const at = indoors ? { ...a, facing: 0 } : fitAnchor(scene, a, env);
+  const at = indoors ? { ...a, facing: 0 } : fitAnchor(scene, a, env, fit || {});
   let run = null, lastT = 0;
   // name cards (fx 'naam' { text, dur }): a character is introduced at the lower left (#159)
   const cards = (def.fx || []).filter((f) => f.fx === 'naam').map((f) => ({ text: f.text, t0: resolveTime(f.t, lines, duration) ?? 0, dur: f.dur ?? 2.4 }));
@@ -292,6 +293,6 @@ export function playScript(w, def, { lines, duration, anchor, cine = {}, env: en
     },
   });
   // samen spelen: de gasten spelen dezelfde scène (na de start, zodat een scène die niet begint ook niet wordt doorgestuurd)
-  if (ok && !replay && w.coopNet && w.coopNet.role === 'host') cutHostStart(w, cutId, cutPakket({ def, lines, duration, anchor: a, cine }));
+  if (ok && !replay && w.coopNet && w.coopNet.role === 'host') cutHostStart(w, cutId, cutPakket({ def, lines, duration, anchor: at, cine }));
   return ok;
 }

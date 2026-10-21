@@ -63,6 +63,17 @@ Beeld voor beeld vanaf een vaste camera; zonder de cinematic-camera van het spel
 - `node scripts/qa/sluizen_run.mjs --game-dir=<map> --only=lauwersoog-heen` (#236, #299) laat een sloep door de Robbengatsluis varen en meet daarna de hoogte van alle watermeshes (het meer op -1,0, de rest op -2,3, het kolkwater) en de lift van de boot; `node scripts/bot/run.mjs --mode=bruggen --slot` rijdt een auto over 12 bruggen (stad en provincie) en meldt hoogtesprongen (#300).
 - Zonder Electron: `scripts/elevation_stream_test.mjs` (het hoogtemodel van streamende tegels), `scripts/province_profile_test.mjs` (profielen, bruggen over vaarwegen, geen zinkende wegen), `scripts/vaarnet_province_test.mjs` (de binnenvaartroute naar de vier zeeën, met de echte wereld), `scripts/bridge_auto_test.mjs` (brug wacht op een leeg dek, #302).
 
+## Meetronde voor meldingen van testers (#321, #326, #328, #329)
+
+`node scripts/qa/tester_bugs.mjs --check=intro|audio|caption|lock [--out=<map>] [--max=<s>] [--opts='{"missions":"M01,M02"}']` draait één Electron (slot uit `gde-locks`, wegwerpprofiel, BelowNormal) en laat een page-script van `scripts/qa/tester_<check>.page.js` het hoofdmenu zelf bedienen: het kiest Nieuw spel, meet en geeft één JSON terug (`result.json`), met beelden `shots-*.png`. `GDE_GAME_DIR=<map>game` (met backslashes) en `ELECTRON_EXE=<pad>` als de worktree geen eigen build heeft; een eigen build zonder wereldbouw: `GDE_PREBUILT_WORLD=<map met index.json> GDE_STAGE_OUT=<map>game node desktop/build.mjs`.
+
+- **intro:** de camera van Nieuw spel tot het eind van de opening, elk frame: plek, kijkrichting, camera onder een dak (in een gebouw), draai per frame zonder geplande cut (een flip) en welke cinematic en ondertitel loopt. `frames.json` is `[t, x, y, h, dx, dy, dz, fov, dak, cine, override, cut, cinematic, ondertitel]` per frame.
+- **audio:** per ondertitelregel van de opening en van de introductie en afloop van M01 t/m M03 (via `playStoryIntro`/`playStoryOutro`): start de opname, wordt hij afgekapt of geweigerd, en klopt dat met `textOnly` in `game/storydata/script.json`.
+- **caption:** de eerste-bezoek-cinematic bij grote gebouwen (Forum, Martinitoren, Museum, Euroborg, station, kerken): cameraplek ten opzichte van het gebouw, welke tekst waar in beeld staat en de plaatskaart erna.
+- **lock:** wat `Input.tryLock` doet in een echt Electron-venster (vergrendeld, terugval naar de vrije cursor, reden van een geweigerde aanvraag).
+
+`node scripts/opnamelijst.mjs` schrijft `docs/verhaal/OPNAMELIJST.md`: elke verhaalregel zonder opname (de ondertitel is dan de terugval, het spel speelt niets). `--check` faalt als de lijst achterloopt op `script.json`.
+
 ## Vaarroute-QA (#343, #184, #233)
 
 Komt een romp door de route van het vaarnet? Twee kanten, de eerste zonder Electron:

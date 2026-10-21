@@ -42,6 +42,8 @@ import { isShopOpen } from './shopui.js';
 import { maybeOfferHelp, noteStepCleared } from './assistlive.js';
 import { playCinematic, isCinematicActive, skipCinematic, sinceCinematic, isBannerUp } from './cinematics.js';
 import { playScript } from './cutscenehost.js';
+import { roofAt } from './camerapath.js';
+import { isInWater } from './util.js';
 import { openingActs, END_CARD, flatScene } from './cutscenes.js';
 import { refreshDayNight } from './daynight.js';
 import { getTrainTripCount, getStationsForRender } from './stationtravel.js';
@@ -495,6 +497,8 @@ function playOpening(b) {
     return playScript(world, act.def, {
       lines: act.lines, duration: act.duration,
       anchor: act.def.set === 'keuken' ? { x: spot.x, y: spot.y, facing: 0, z: KITCHEN_Z } : { ...spot },
+      // nobody stands in the street scenes: when the new home's tower leaves no clean turn, they play on the closest open ground (#321)
+      fit: { radii: [10, 16, 24, 34, 46, 60], ground: (x, y) => roofAt(world.map, x, y) === 0 && !isInWater(world.map, x, y) },
       cine: {
         id: 'story-opening',
         ...(i === 0 ? { kicker: `${partNumber('kop')} · ${kop.date}`, title: kop.name, cardFor: 3.2 } : {}),

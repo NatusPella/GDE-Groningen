@@ -1441,7 +1441,8 @@
      "text": "Er komt een politieauto aan. Instappen.",
      "tag": "BEHOUDEN",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
+     "rec": "lines",
      "voice": "Anita"
     },
     {
