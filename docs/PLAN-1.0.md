@@ -12,7 +12,7 @@ voor het eindspel: wat 1.0 betekent, in welke volgorde, en wie wat beslist.
 1.0.0 is de eerste versie die we zonder voorbehoud aan onbekende spelers geven.
 Voorwaarden (allemaal controleerbaar op het bord of met een script):
 
-1. **Geen open issue met label `bug` en impact `hoog` of `zeer-hoog`** zonder besluit van de eigenaar om het uit te stellen (comment in het issue). Stand 21 oktober: 4 open bugs, waarvan 3 met impact hoog (#246 en #247 prestaties, #326 voiceover; die laatste wacht op een luistertest door de eigenaar).
+1. **Geen open issue met label `bug` en impact `hoog` of `zeer-hoog`** zonder besluit van de eigenaar om het uit te stellen (comment in het issue). Stand 21 oktober: 5 open bugs, waarvan 4 met impact hoog (#246 en #247 prestaties, #326 voiceover, #363 de controller in het spel; die laatste is gerepareerd in een branch die nog gemerged moet worden).
 2. **Het hele verhaal is door een mens gespeeld** (akte 2 tot en met 5 nog niet; zie [PLAYTESTPLAN.md](PLAYTESTPLAN.md), #221 en #116) en de uitkomst staat als issues op het bord.
 3. **Tests groen** zoals vóór elke release in [AGENTS.md](../AGENTS.md): `node --check`, `voice_coverage --quiet`, alle `scripts/*_test.mjs`, één Electron-verhaaltest, zware wereldchecks. Dit draait de coördinator.
 4. **Teksten kloppen met de constitution**: `node scripts/text_audit.mjs` geeft 0 bevindingen (#150); Gronings/Fries is nagelezen of de eigenaar heeft besloten het zo te laten (#13, lijst in [NALEZEN-GRONINGS-FRIES.md](NALEZEN-GRONINGS-FRIES.md)).
