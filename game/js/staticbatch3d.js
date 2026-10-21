@@ -278,7 +278,7 @@ function finishJob(B) {
   group.handles = handles;
   group.pooled = !!job.pooled;
   c.group = group;
-  B.root.add(group);
+  if (group.children.length) B.root.add(group); // a cell that went entirely to the pool needs no node
   c.members = job.list;
   c.memberSet = new Set(job.list.map((m) => m.b));
   c.withDetail = job.withDetail;
