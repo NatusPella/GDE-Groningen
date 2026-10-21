@@ -18,6 +18,7 @@ import { isPauseMenuOpen } from './pausestate.js';
 import { isShopOpen } from './shopui.js';
 import { isRitActive } from './reisrit.js';
 import { isPigeonActive } from './pigeonmode.js';
+import { occupancyOf } from './occupants.js';
 import { installAudioTap } from './botaudio.js';
 
 const r1 = (v) => Math.round(v * 10) / 10;
@@ -38,14 +39,16 @@ export function initPlayerApi(world, input) {
 
   const kindOf = (v) => (v.isBoat ? 'boot' : v.isHeli ? 'heli' : v.isPlane ? 'vliegtuig' : v.isBike ? 'fiets' : v.isScooter ? 'scooter' : v.isBus ? 'bus' : 'auto');
 
-  function nearbyVehicles(max = 60) {
+  // within 250 m, the 12 nearest: a long walk looks for a ride beyond the 60 m of the old list (M13 is 33 km away)
+  function nearbyVehicles(max = 250) {
     const out = [];
     for (const v of world.vehicles || []) {
       const d = Math.hypot(v.x - player.x, v.y - player.y);
       if (d > max || v === player.inVehicle) continue;
-      out.push({ x: r1(v.x), y: r1(v.y), distance: r1(d), kind: kindOf(v), free: !v.wrecked && !v.isPolice && !v.sinking, drivable: !v.isBoat && !v.isHeli, mission: !!(v.missionCar || v.isHeroCar) });
+      out.push({ v, d });
     }
-    return out.sort((a, b) => a.distance - b.distance).slice(0, 8);
+    out.sort((a, b) => a.d - b.d);
+    return out.slice(0, 12).map(({ v, d }) => ({ x: r1(v.x), y: r1(v.y), distance: r1(d), kind: kindOf(v), free: !v.wrecked && !v.isPolice && !v.sinking, drivable: !v.isBoat && !v.isHeli, mission: !!(v.missionCar || v.isHeroCar), occupied: !!occupancyOf(v).driver }));
   }
 
   function dialog() {

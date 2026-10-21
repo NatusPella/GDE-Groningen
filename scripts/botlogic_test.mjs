@@ -99,6 +99,19 @@ const near = (a, b, e = 1e-6) => Math.abs(a - b) < e;
   h.update(0, { x: 0, y: 0, goalDist: 50, key: 'k' });
   for (let t = 1; t <= 30; t++) h.hold(t);
   ok(!h.update(31, { x: 0, y: 0, goalDist: 50, key: 'k' }).stuck, 'hold pauzeert de klok');
+  {
+    // een omweg (de afstand tot het doel wordt eerst groter) is geen vastzitten zolang de bot beweegt; na hardS wel
+    const d = new L.StuckDetector({ windowS: 30, hardS: 150 });
+    let stuck = false, x = 0;
+    for (let t = 1; t <= 140; t++) { x += 3; stuck = d.update(t, { x, y: 0, goalDist: 100 + x, key: 'k' }).stuck || stuck; }
+    ok(!stuck, 'omweg: bewegen telt als voortgang');
+    for (let t = 141; t <= 200; t++) { x += 3; stuck = d.update(t, { x, y: 0, goalDist: 100 + x, key: 'k' }).stuck || stuck; }
+    ok(stuck, 'omweg zonder ooit dichterbij: na hardS toch vast');
+    const w = new L.StuckDetector({ windowS: 30 });
+    let ws = false;
+    for (let t = 1; t <= 40; t++) ws = w.update(t, { x: 1 + (t % 2), y: 0, goalDist: 50, key: 'k' }).stuck || ws;
+    ok(ws, 'wippen op één plek blijft vast');
+  }
   ok(L.rescueFor(0) === 'nudge' && L.rescueFor(1) === 'teleport' && L.rescueFor(2) === 'objective' && L.rescueFor(3) === 'win' && L.rescueFor(4) === 'skip' && L.rescueFor(9) === 'skip', 'redding loopt op, laatste sport is skip');
   ok(!L.isCheat('nudge') && L.isCheat('teleport'), 'een duwtje is geen cheat');
 }
@@ -116,10 +129,14 @@ const near = (a, b, e = 1e-6) => Math.abs(a - b) < e;
   ok(L.decide({ ...base(), mission: { active: true, stage: 'goto' }, blocking: { talk: true } }).type === 'goto', 'gesprek in een missie: doorlopen');
   ok(L.decide({ ...base(), target: null }).type === 'wait', 'zonder doel wachten');
   ok(L.decide(base()).mode === 'walk', 'dichtbij: lopen');
+  { const occ = L.decide({ ...base(), target: { x: 14, y: 0, distance: 14, source: 'missie' }, mission: { active: true, stage: 'board' }, nearby: { vehicles: [{ x: 5, y: 0, distance: 5, free: true, drivable: true, kind: 'auto', occupied: true }, { x: 30, y: 0, distance: 30, free: true, drivable: true, kind: 'auto', occupied: false }] } }, {}); ok(occ.type === 'enter' && occ.vehicle.x === 30, 'een auto met bestuurder laat de bot staan (autodiefstal)'); }
+  ok(L.decide({ ...base(), player: { ...base().player, vehicle: { kind: 'auto', speed: 8 } }, hud: { messages: ['Je auto staat in brand! Stap uit (E) voor hij ontploft'] } }, {}).key === 'e', 'brandende auto: uitstappen');
+  ok(L.decide({ ...base(), player: { ...base().player, vehicle: { kind: 'fiets', speed: 1 } }, target: { x: 10, y: 0, distance: 10, source: 'winkel' } }, {}).key === 'e', 'bij de winkel van het verhaal: van de fiets af');
   const mvT = { x: 6, y: 0, distance: 6, source: 'missie', vehicle: true }, mvNear = [{ x: 6, y: 0, distance: 6, free: true, drivable: true, kind: 'auto' }, { x: 2, y: 3, distance: 3.6, free: true, drivable: true, kind: 'auto' }];
-  const mvFoot = L.decide({ ...base(), target: mvT, nearby: { vehicles: mvNear } }, {});
+  const mvFoot = L.decide({ ...base(), mission: { active: true, stage: 'board' }, target: mvT, nearby: { vehicles: mvNear } }, {});
   ok(mvFoot.type === 'enter' && mvFoot.vehicle.x === 6, 'doel is een voertuig: dat voertuig nemen, niet het dichtstbijzijnde');
-  ok(L.decide({ ...base(), player: { ...base().player, vehicle: { kind: 'auto', speed: 0 } }, target: mvT, nearby: { vehicles: mvNear } }, {}).key === 'e', 'doel is een ander voertuig: eerst uitstappen');
+  ok(L.decide({ ...base(), player: { ...base().player, vehicle: { kind: 'auto', speed: 0 } }, mission: { active: true, stage: 'board' }, target: mvT, nearby: { vehicles: mvNear } }, {}).key === 'e', 'doel is een ander voertuig: eerst uitstappen');
+  ok(L.decide({ ...base(), player: { ...base().player, vehicle: { kind: 'auto', speed: 0 } }, mission: { active: true, stage: 'chase' }, target: { ...mvT, distance: 40 }, nearby: { vehicles: mvNear } }, {}).key !== 'e', 'achtervolging: een prooi op afstand is niet het voertuig om in te stappen');
   const inCarPlane = { ...base(), player: { ...base().player, vehicle: { kind: 'auto', speed: 0 } }, mission: { active: true, stage: 'plane' }, nearby: { vehicles: [{ x: 6, y: 0, distance: 6, free: true, drivable: false, kind: 'vliegtuig' }] } };
   ok(L.decide(inCarPlane, {}).key === 'e', 'plane-fase vanuit een auto: eerst uitstappen');
   const far = { ...base(), target: { x: 900, y: 0, distance: 900 }, nearby: { vehicles: [{ x: 5, y: 0, distance: 5, free: true, drivable: true, kind: 'auto' }] } };

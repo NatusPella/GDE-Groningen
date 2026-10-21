@@ -48,7 +48,7 @@ export function carControls(car, target, opts = {}) {
   if (Math.abs(err) > 2.0 && Math.abs(speed) < 6 && d > 8) return { steer: -steer, throttle: -1, err, dist: d, want: -3, reverse: true };
   let throttle = 0;
   if (speed < want - 1) throttle = 1;
-  else if (speed > want + 3) throttle = -1;
+  else if (speed > want + 3) throttle = opts.gentle ? -0.3 : -1;   // gentle: a load of eggs breaks above 13 m/s² of braking
   else if (want === 0 && speed > 0.8) throttle = -1;
   return { steer, throttle, err, dist: d, want };
 }
@@ -173,28 +173,34 @@ export function repairPath(pts, free, { horizon = 160, ...opts } = {}) {
 // was). No progress for `windowS` seconds is "stuck". hold(t) pauses the clock for
 // cutscenes, talks and menus; a changed `key` (another mission step) starts over.
 export class StuckDetector {
-  constructor({ windowS = 30, minGain = 3, minMove = 4 } = {}) {
-    Object.assign(this, { windowS, minGain, minMove });
+  // windowS: no progress for this long is stuck. Progress is a goal distance that got minGain smaller than the best so far, or (with a
+  // goal) a move of roamM metres away from where the last progress was seen: a detour round a block gets longer before it gets shorter.
+  // hardS caps the roaming: this long without a better goal distance is stuck whatever the bot moves.
+  constructor({ windowS = 30, minGain = 3, minMove = 4, roamM = 25, hardS = 150 } = {}) {
+    Object.assign(this, { windowS, minGain, minMove, roamM, hardS });
     this.reset(0);
   }
   reset(t = 0, key = null) {
     this.key = key;
     this.best = Infinity;
     this.tBest = t;
+    this.tHard = t;
     this.anchor = null;
     this.stuckCount = 0;
   }
-  hold(t) { this.tBest = Math.max(this.tBest, t); }
+  hold(t) { this.tBest = Math.max(this.tBest, t); this.tHard = Math.max(this.tHard, t); }
   // acknowledge: after a rescue, wait another window before the next one
-  acknowledge(t) { this.tBest = t; this.best = Infinity; this.anchor = null; this.stuckCount++; }
+  acknowledge(t) { this.tBest = t; this.tHard = t; this.best = Infinity; this.anchor = null; this.stuckCount++; }
   update(t, { x, y, goalDist = null, key = null }) {
     if (key !== this.key) this.reset(t, key);
     if (Number.isFinite(goalDist)) {
-      if (goalDist < this.best - this.minGain) { this.best = goalDist; this.tBest = t; }
+      if (goalDist < this.best - this.minGain) { this.best = goalDist; this.tBest = t; this.tHard = t; this.anchor = { x, y }; }
+      else if (!this.anchor) this.anchor = { x, y };
+      else if (this.roamM && Math.hypot(x - this.anchor.x, y - this.anchor.y) >= this.roamM) { this.anchor = { x, y }; this.tBest = t; }
     } else {
-      if (!this.anchor || Math.hypot(x - this.anchor.x, y - this.anchor.y) >= this.minMove) { this.anchor = { x, y }; this.tBest = t; }
+      if (!this.anchor || Math.hypot(x - this.anchor.x, y - this.anchor.y) >= this.minMove) { this.anchor = { x, y }; this.tBest = t; this.tHard = t; }
     }
-    const idleFor = t - this.tBest;
+    const idleFor = Math.max(t - this.tBest, this.hardS && t - this.tHard >= this.hardS ? t - this.tHard : 0);
     return { stuck: idleFor >= this.windowS, idleFor };
   }
 }
@@ -251,6 +257,8 @@ export function decide(s, mem = {}) {
   if (b.pauseMenu) return { type: 'closemenu' };
   if (b.dialog && b.dialog.options && b.dialog.options.length) return { type: 'choose', key: b.dialog.options[0].key };
   if (b.cinematic || b.banner || b.ride) return { type: 'skip' };
+  // the car is on fire ("Stap uit (E) voor hij ontploft"): out, whatever the stage; a plane in flames has no way out
+  if (s.player && s.player.vehicle && !s.player.vehicle.plane && !s.player.vehicle.heli && ((s.hud && s.hud.messages) || []).some((m) => /staat in brand|ontploft/i.test(m))) return { type: 'press', key: 'e', why: 'brand' };
   // an open shop (the story's item is the one highlighted): Enter selects, Enter buys, Escape walks out again
   if (b.shop) return { type: 'shop', n: mem.shopN = (mem.shopN || 0) + 1 };
   if (mem.shopN) mem.shopN = 0;
@@ -285,7 +293,9 @@ export function decide(s, mem = {}) {
   }
   if (!veh && (stage === 'board' || stage === 'plane') && (mem.boardTries || 0) < 4) {
     // a boat or a plane counts too: M17 starts in a sloep, M15 in a plane
-    const near = (s.nearby && s.nearby.vehicles || []).filter((c) => c.free && c.distance < 80);
+    // a car with someone at the wheel is a carjacking: the police are on us at once (the bot got arrested a dozen times on the way)
+    const free0 = (s.nearby && s.nearby.vehicles || []).filter((c) => c.free && c.distance < 80);
+    const near = free0.some((c) => !c.occupied) ? free0.filter((c) => !c.occupied) : free0;
     // the marker of a board stage stands on the mission's own car: a free vehicle right at the marker wins over the nearest one (M22: the Escapade stands in a car park among other cars)
     const atMarker = t && Number.isFinite(t.x) ? near.filter((c) => Math.hypot(c.x - t.x, c.y - t.y) < 8).sort((a, c) => Math.hypot(a.x - t.x, a.y - t.y) - Math.hypot(c.x - t.x, c.y - t.y))[0] : null;
     // the marker is still far off and no car stands there: walk to it first (20 s), not into the nearest car (a stolen one brings the police)
@@ -302,6 +312,8 @@ export function decide(s, mem = {}) {
   if (stage === 'plan' && (mem.planTries || 0) < 3) { mem.planTries = (mem.planTries || 0) + 1; return { type: 'press', key: 'a', why: 'plan' }; }
   // a hold stage (stand still in the ring): stop walking once inside
   if (stage === 'hold' && t.distance <= 3.5) return { type: 'wait', why: 'vasthouden' };
+  // at the shop the story sent us to: a shop opens for someone on foot, so get off the bike or out of the car at the door
+  if (veh && !veh.plane && t.source === 'winkel' && t.distance < 25 && Math.abs(veh.speed || 0) < 3 && (mem.vehTries || 0) < 6) { mem.vehTries = (mem.vehTries || 0) + 1; return { type: 'press', key: 'e', why: 'uitstappen' }; }
   if (veh && veh.plane) return { type: 'fly' };
   if (veh) {
     if (onFootOnly) return { type: 'press', key: 'e', why: 'uitstappen' };
@@ -309,7 +321,9 @@ export function decide(s, mem = {}) {
   }
   // on foot: a vehicle close by is worth it for a long way
   if (t.distance > 140 && !onFootOnly && (mem.boardTries || 0) < 3) {
-    const v = (s.nearby && s.nearby.vehicles || []).find((c) => c.free && c.drivable && c.distance < 60);
+    // 60 m round us for a trip of a few hundred metres, a walk of 250 m for a trip of kilometres (the bot walked 33 km to M13 on foot)
+    const reach = t.distance > 1500 ? 250 : 60;
+    const v = (s.nearby && s.nearby.vehicles || []).find((c) => c.free && c.drivable && !c.occupied && c.distance < reach);
     if (v) return { type: 'enter', vehicle: v };
   }
   return { type: 'goto', mode: 'walk' };

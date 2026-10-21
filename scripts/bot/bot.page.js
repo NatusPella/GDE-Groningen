@@ -83,18 +83,19 @@ function plan(s, mode, tgt) {
 
 // aim for the target over the planned route; returns the distance left
 // stopR: how close on foot (default 0.6 of the marker radius; a vehicle to board needs the bot right next to it, not 5 m away)
-function steerTowards(s, mode, tgt, stopAt, top = 24, stopR = null) {
+function steerTowards(s, mode, tgt, stopAt, top = 24, stopR = null, direct0 = false) {
   const key = mode + ':' + Math.round(tgt.x / 5) + ',' + Math.round(tgt.y / 5);
   if (!follower || key !== followKey || s.t - planAt > 12) { followKey = key; planAt = s.t; plan(s, mode, tgt); }
   const me = { x: s.player.x, y: s.player.y };
   const direct = L.distance(me, tgt);
-  const aim = direct < (mode === "walk" ? 9 : 25) && (mode !== 'walk' || L.segmentFree(me, tgt, footFree)) ? tgt : follower.next(me) || tgt;   // on foot the planned route goes round poles and walls almost to the end
+  const aim = direct0 || direct < (mode === "walk" ? 9 : 25) && (mode !== 'walk' || L.segmentFree(me, tgt, footFree)) ? tgt : follower.next(me) || tgt;   // on foot the planned route goes round poles and walls almost to the end
   if ((mode === 'drive' || mode === 'boat') && s.player.vehicle) {
     // a garage (M02: drive in and stand still 1.2 s) or a stage with `stop`: come to rest right there
     const stg = M.activeStage();
     const rest = stg && (stg.kind === 'garage' ? 3.5 : stg.stop ? Math.max(3, stg.stop + 2) : 0);
-    const c = L.carControls({ x: me.x, y: me.y, angle: s.player.vehicle.angle, speed: s.player.vehicle.speed }, aim, { stopAt: stopAt || !!rest, rest, top: mode === 'boat' ? Math.min(top, 9) : top });
-    B.stick(c.steer, c.throttle > 0 ? -1 : c.throttle < 0 ? 1 : 0);
+    const mdefE = (M.getMissionDefs() || [])[s.mission.index];
+    const c = L.carControls({ x: me.x, y: me.y, angle: s.player.vehicle.angle, speed: s.player.vehicle.speed }, aim, { stopAt: stopAt || !!rest, rest, top: mode === 'boat' ? Math.min(top, 9) : top, gentle: !!(s.mission.active && mdefE && mdefE.eggs) });
+    B.stick(c.steer, c.throttle ? -c.throttle : 0);
     if (!c.reverse && wedge.update(s.t, s.player.vehicle.speed, c.throttle)) wedge.reset(), wedgeOut = true;
     if (B.input.isDown('shift')) B.up('shift');
   } else {
@@ -205,6 +206,19 @@ async function detour(s, n) {
   follower = null;
 }
 
+// in a vehicle that sits against a kerb, a wall or other traffic: other ways out of it, one after the other, before a cheat is needed
+const vdetours = {};
+async function vdetour(s, n) {
+  B.log('voertuigomweg', { n, x: Math.round(s.player.x), y: Math.round(s.player.y), snelheid: s.player.vehicle && s.player.vehicle.speed });
+  const pattern = [[-1, 2200, 1, 1600], [1, 2200, -1, 1600], [0, 4000, 0.5, 2500], [-1, 3000, -1, 3000]][(n - 1) % 4];
+  B.stick(pattern[0], 1);
+  await sleep(pattern[1]);
+  B.stick(pattern[2], -1);
+  await sleep(pattern[3]);
+  B.stick(0, 0);
+  follower = null;
+}
+
 async function rescue(s, stepKey, info) {
   // the ladder counts per story step (a failed mission restarts the detector, not the ladder); every fail is a rung higher
   const sid = s.story.id || '?';
@@ -212,6 +226,7 @@ async function rescue(s, stepKey, info) {
   B.log('stuck', { step: stepKey, x: s.player.x, y: s.player.y, idleFor: info.idleFor, goalDist: s.target ? s.target.distance : null, rung, doel: s.target && { x: s.target.x, y: s.target.y, vehicle: !!s.target.vehicle, source: s.target.source }, prompt: s.hud.prompt || undefined, dichtbij: (s.nearby.vehicles || []).slice(0, 3).map((c) => [c.kind, c.distance, c.free]) });
   shot(`${stepKey}-vast`);
   if (rung === 'nudge') { await nudge(s); detector.acknowledge(s.t); return; }
+  if (s.player.vehicle && !s.player.vehicle.plane && !s.player.vehicle.heli && !s.blocking.cinematic && (vdetours[stepKey] = (vdetours[stepKey] || 0) + 1) <= 4) { await vdetour(s, vdetours[stepKey]); detector.acknowledge(s.t); ladder[sid]--; return; }
   if (!s.player.vehicle && !s.blocking.cinematic && !s.blocking.talk && (detours[stepKey] = (detours[stepKey] || 0) + 1) <= 4) { await detour(s, detours[stepKey]); detector.acknowledge(s.t); ladder[sid]--; return; }
   const m = s.mission.active;
   let ok = false;
@@ -284,7 +299,7 @@ while (true) {
   track(s);
   const stepKey = (s.story.id || '?') + (s.mission.active ? ':' + (s.mission.stage || 'm') : '');
   // each stage of a mission gets its own few tries at boarding and at a prompt
-  if (stepKey !== mem.stageKey) { mem.stageKey = stepKey; mem.pressTries = 0; mem.boardTries = 0; mem.planTries = 0; mem.vehTries = 0; }
+  if (stepKey !== mem.stageKey) { mem.stageKey = stepKey; mem.pressTries = 0; mem.boardTries = 0; mem.planTries = 0; mem.vehTries = 0; mem.nearMiss = 0; }
   if (ticks++ % 100 === 0) B.log('status', { x: s.player.x, y: s.player.y, step: stepKey, dist: s.target ? s.target.distance : null, veh: s.player.vehicle ? s.player.vehicle.kind : 'te voet', wanted: s.wanted, money: s.player.money, msgs: s.hud.messages.slice(0, 2), sub: s.hud.subtitle && s.hud.subtitle.text });
   // a mission that asks for it ('Uitstappen, jong. Fatbikes ontwijk je te voet.'): out of the vehicle
   if (s.hud.messages.some((m) => /uitstappen|te voet/i.test(m))) mem.onFootUntil = s.t + 60;
@@ -363,6 +378,14 @@ while (true) {
     if (mem.gateKey !== gk) { mem.gateKey = gk; mem.pressTries = 0; mem.boardTries = 0; B.log('eis', { stap: guide.step, winkel: guide.name || '', x: Math.round(guide.x), y: Math.round(guide.y) }); }
     s.target = { x: guide.x, y: guide.y, z: null, name: guide.name || '', source: 'winkel', distance: Math.round(Math.hypot(guide.x - s.player.x, guide.y - s.player.y) * 10) / 10 };
   }
+  // three failed tries at the same mission: the bot cannot do this one (the eggs, a chase): a cheat to move on, logged as such, instead of hours of retries
+  if (s.mission.active && (fails[s.story.id] || 0) >= 3 && !(mem.failCheat || (mem.failCheat = {}))[s.story.id]) {
+    mem.failCheat[s.story.id] = true;
+    const okw = B.cheat.win();
+    B.log('cheat', { rung: 'win', ok: !!okw, step: stepKey, why: 'driemaal mislukt', mission: { phase: s.mission.phase }, blocking: [] });
+    detector.acknowledge(s.t);
+    continue;
+  }
   const act = L.decide(s, mem);
   if (act.type !== 'wait' && act.type !== 'skip' && act.type !== 'choose' && act.type !== 'closemenu') heldSince = null;   // playing is not waiting: the wait clock starts over
   if (act.type === 'shop') {
@@ -412,11 +435,13 @@ while (true) {
     // the game lets you in when the body outline is within ENTER_REACH: a plane (5 m wide) is far from its centre by then
     const vObj = world.vehicles.find((q) => Math.hypot(q.x - v.x, q.y - v.y) < 0.6);
     const big = vObj && Math.max(vObj.halfLen || 0, vObj.halfWid || 0) > 3;
-    const d = steerTowards(s, 'walk', v, false, 24, big ? 0.4 : 2.2);
+    // when the game keeps picking another vehicle (two cars side by side) walk right up to this one: its outline is then the nearest
+    const d = steerTowards(s, 'walk', v, false, 24, big || (mem.nearMiss || 0) >= 2 ? 0.4 : 2.2);
     // the game's own test: this is what lights the prompt and lets E in
     const near = vObj ? V.findEnterableVehicle(player.x, player.y, world.vehicles) === vObj : d < 3.5;
     // only the game's own test lets E in: from further off keep walking (stopping to press E there was a deadlock)
     if (near || (!vObj && d < 3.5)) { B.stick(0, 0); mem.boardTries++; await keyTap('e', 240); await sleep(700); const fe = V.findEnterableVehicle(player.x, player.y, world.vehicles); B.log('instappen', { kind: v.kind, toegestaan: near, binnen: !!player.inVehicle, doel: vObj && { x: Math.round(vObj.x * 10) / 10, y: Math.round(vObj.y * 10) / 10, hl: vObj.halfLen, hw: vObj.halfWid, naam: vObj.name || vObj.label || '', hero: !!vObj.isHeroCar, wrak: !!vObj.wrecked, slot: !!(vObj.locked || vObj.disabled) }, kan: fe && { x: Math.round(fe.x * 10) / 10, y: Math.round(fe.y * 10) / 10, naam: fe.name || fe.label || '' }, ik: [Math.round(player.x * 10) / 10, Math.round(player.y * 10) / 10] }); follower = null; }
+    else if (d < 3.5) mem.nearMiss = (mem.nearMiss || 0) + 1;
     continue;
   }
   if (act.type === 'goto') {
@@ -457,7 +482,7 @@ while (true) {
       }
     }
     if (act.mode !== 'drive' && !s.player.vehicle && mem.detour && s.t < mem.detour.until && Math.hypot(mem.detour.x - s.player.x, mem.detour.y - s.player.y) > 3) { steerTowards(s, 'walk', mem.detour, false, 24, 2.5); continue; }
-    steerTowards(s, act.mode, aim, !act.stunt && s.mission.phase !== 'active' && s.target.source === 'missiestart', top, s.mission.stage === 'lock' || s.mission.stage === 'crack' ? 1 : null);
+    steerTowards(s, act.mode, aim, !act.stunt && s.mission.phase !== 'active' && (s.target.source === 'missiestart' || s.target.source === 'winkel'), top, s.mission.stage === 'lock' || s.mission.stage === 'crack' ? 1 : null, !!(act.stunt && s.player.vehicle && s.target.distance < 250));
     if (wedgeOut) {
       wedgeOut = false;
       B.log('klem', { x: s.player.x, y: s.player.y });
