@@ -302,5 +302,19 @@ const near = (a, b, e = 1e-6) => Math.abs(a - b) < e;
   ok(d2.type === 'press' && d2.key === 'e', 'een board-stap met een voertuig als doel: eerst uitstappen', JSON.stringify(d2));
 }
 
+// na een mislukte missie neemt de bot het aanbod 'opnieuw beginnen' (Enter), eenmaal per aanbod (#147: de bot rijdt niet terug naar de start)
+{
+  const st = (msgs, t, active = false) => ({ v: 1, t, player: { x: 0, y: 0, angle: 0, camYaw: 0, vehicle: null, pigeon: false }, story: {}, mission: { active }, hud: { messages: msgs }, blocking: {}, nearby: { vehicles: [] }, target: { x: 500, y: 0, distance: 500, source: 'missiestart' } });
+  const mem = {};
+  const a = L.decide(st(['Heel aankomen: opnieuw beginnen? Druk op Enter (of E).'], 100), mem);
+  ok(a.type === 'press' && a.key === 'enter', 'het aanbod opnieuw beginnen: Enter', JSON.stringify(a));
+  const b = L.decide(st(['Heel aankomen: opnieuw beginnen? Druk op Enter (of E).'], 102), mem);
+  ok(b.type !== 'press' || b.key !== 'enter', 'hetzelfde aanbod niet meteen nog een keer');
+  const c = L.decide(st(['Heel aankomen: opnieuw beginnen? Druk op Enter (of E).'], 110), mem);
+  ok(c.type === 'press' && c.key === 'enter', 'een nieuw aanbod na 8 s: weer Enter');
+  const d = L.decide(st([], 200), {});
+  ok(!(d.type === 'press' && d.key === 'enter'), 'zonder aanbod geen Enter');
+}
+
 console.log(`${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);
