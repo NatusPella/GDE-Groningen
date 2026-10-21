@@ -832,6 +832,30 @@ results.routes.shadowmap = await safe('shadowmap', async () => {
   window.__perfOffDyn = undefined;
   return outAll;
 });
+// pictures of the same spot with steps switched off one after the other, in ONE process (only with PERF_ONLY=poolvis, PERF_AB=name=steps;..., spots from PERF_VIS_SPOTS=markt,gracht2):
+// the variants of the run are compared by eye and with pngdiff.mjs; a step that rebuilds things (pool) gets a long run-in (PERF_AB_PRE ms, default 90 s)
+results.routes.poolvis = await safe('poolvis', async () => {
+  if (!ONLY.includes('poolvis')) return null;
+  const all = { markt: [FOOT[0][0], FOOT[0][1], 0.3], gracht2: [FOOT[4][0], FOOT[4][1], 2.6], straat: [FOOT[3][0], FOOT[3][1], 1.9], kanaal: [FOOT[4][0], FOOT[4][1], 2.6] };
+  const want = (window.__perfVisSpots || 'gracht2').split(',').filter(Boolean);
+  const variants = window.__perfAb;
+  const names = [];
+  for (const sp of want) {
+    const [x, y, yaw] = all[sp];
+    teleport(x, y); w.camYaw = yaw; p.angle = yaw;
+    for (const [vname, voff] of variants) {
+      window.__perfOffDyn = new Set(voff.filter((o) => o !== 'settle'));
+      await sleep(voff.includes('settle') ? (window.__perfAbPre || 90000) : 15000);
+      { const builds = () => { const b = sc.batches(); return Object.values(b).reduce((q, e) => q + (e.builds || 0) + (e.dropped || 0), 0); }; let last = builds(), still = 0; for (let i = 0; i < 120 && still < 8; i++) { await sleep(500); const n = builds(); still = n === last ? still + 1 : 0; last = n; } }
+      fixWorld(); await sleep(1500);
+      console.log('[capture] ' + sp + '-' + vname);
+      names.push(sp + '-' + vname);
+      await sleep(900);
+    }
+  }
+  window.__perfOffDyn = undefined;
+  return { names };
+});
 // A/B inside one run (only with PERF_ONLY=ab): window.__perfAb = [[name, [perfoff steps...]], ...] (PERF_AB='aan=;uit=actoren+schaduw'); the variants take
 // turns in short windows (window.__perfAbWin ms, window.__perfAbRounds rounds, the order swaps every round), so they feel the same load.
 // Every window is a perf-mark pair 'ab:<name>:<round>' for the thread sampler of run.mjs; PERF_AB_MOVE=1 walks (3 m/s) instead of standing.
