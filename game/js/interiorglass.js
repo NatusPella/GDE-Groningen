@@ -175,7 +175,9 @@ vec3 igProducts(vec2 c, float detail, float style, int st) {
     col = vec3(0.92, 0.9, 0.94);
     if (fy > 0.9 && fy < 0.95) col = vec3(0.42);
     else if (fy > 0.12 && fy < 0.9 && h > 0.15) {
-      float halfw = mix(0.4, 0.13, smoothstep(0.66, 0.84, fy));
+      // a T-shirt on a hanger: sleeves out at the top, a body below, a notch for the neck
+      float halfw = fy > 0.64 ? 0.46 : 0.3;
+      if (fy > 0.82 && abs(fx) < 0.09) halfw = 0.0;
       if (abs(fx) < halfw) {
         int pi = int(floor(h * 6.0));
         vec3 cc = pi == 0 ? vec3(0.82, 0.25, 0.3) : (pi == 1 ? vec3(0.2, 0.4, 0.75) : (pi == 2 ? vec3(0.95, 0.8, 0.25) : (pi == 3 ? vec3(0.25, 0.6, 0.4) : (pi == 4 ? vec3(0.55, 0.35, 0.7) : vec3(0.97)))));
@@ -238,28 +240,63 @@ vec3 igProducts(vec2 c, float detail, float style, int st) {
     col = vec3(0.3);
     if (fx > 0.06 && fx < 0.94 && fy > 0.05) col = fy > 0.65 ? mix(acc.rgb, vec3(0.95, 0.85, 0.2), h) : 0.55 + 0.4 * vec3(fract(h * 3.7), fract(h * 5.3), fract(h * 9.1));
   } else if (pat == 0) {
-    // supermarket: shelves of boxes and tins in a few flat package colours, a yellow price strip under each shelf
-    float row = floor(c.y / 0.42), fy = fract(c.y / 0.42);
-    float u = c.x / 0.2 + row * 0.31;
-    float cell = floor(u), fx = fract(u);
-    float h = igH(vec2(cell, row));
-    col = vec3(0.84, 0.85, 0.86);
-    if (fy < 0.09) col = vec3(0.96, 0.84, 0.25);
-    else if (fx > 0.07 && fx < 0.93 && fy < 0.09 + 0.8 * (0.72 + 0.28 * h)) {
-      int pi = int(floor(h * 5.0));
-      col = pi == 0 ? vec3(0.85, 0.22, 0.2) : (pi == 1 ? vec3(0.96, 0.8, 0.2) : (pi == 2 ? vec3(0.2, 0.55, 0.3) : (pi == 3 ? vec3(0.95, 0.95, 0.93) : vec3(0.22, 0.42, 0.8))));
-      if (fy > 0.09 + 0.8 * (0.72 + 0.28 * h) - 0.14) col *= 1.15;
+    // supermarket: crates of fruit down below, packages on the shelves, a red offers banner on top
+    if (c.y < 0.45) {
+      float u = c.x / 0.5, cell = floor(u), fx = fract(u);
+      float h = igH(vec2(cell, 7.0));
+      int pi = int(floor(h * 4.0));
+      col = vec3(0.45, 0.32, 0.2);
+      if (fx > 0.05 && fx < 0.95 && c.y > 0.04) col = pi == 0 ? vec3(0.95, 0.55, 0.12) : (pi == 1 ? vec3(0.3, 0.68, 0.25) : (pi == 2 ? vec3(0.88, 0.2, 0.18) : vec3(0.97, 0.85, 0.2)));
+    } else if (c.y > 1.55) {
+      float u = c.x / 0.45;
+      col = fract(u) < 0.5 ? vec3(0.88, 0.16, 0.14) : vec3(0.98, 0.9, 0.3);
+      if (c.y < 1.62) col = vec3(0.98);
+    } else {
+      float row = floor((c.y - 0.45) / 0.42), fy = fract((c.y - 0.45) / 0.42);
+      float u = c.x / 0.26 + row * 0.31;
+      float cell = floor(u), fx = fract(u);
+      float h = igH(vec2(cell, row));
+      col = vec3(0.84, 0.85, 0.86);
+      if (fy < 0.09) col = vec3(0.96, 0.84, 0.25);
+      else if (fx > 0.07 && fx < 0.93 && fy < 0.09 + 0.8 * (0.72 + 0.28 * h)) {
+        int pi = int(floor(h * 5.0));
+        col = pi == 0 ? vec3(0.85, 0.22, 0.2) : (pi == 1 ? vec3(0.96, 0.8, 0.2) : (pi == 2 ? vec3(0.2, 0.55, 0.3) : (pi == 3 ? vec3(0.95, 0.95, 0.93) : vec3(0.22, 0.42, 0.8))));
+        if (fy > 0.3 && fy < 0.55) col = mix(col, vec3(0.97), 0.7);   // a white label on every package
+      }
+    }
+  } else if (pat == 9) {
+    // second hand: a wall of odds and ends on shelves: framed pictures, clocks, lamps and vases
+    float row = floor(c.y / 0.7), ly = c.y - row * 0.7;
+    float u = c.x / 0.55 + row * 0.37, cell = floor(u);
+    float lx = (fract(u) - 0.5) * 0.55;
+    float h = igH(vec2(cell, row + 3.0));
+    col = vec3(0.8, 0.72, 0.58);
+    if (ly < 0.06) col = vec3(0.4, 0.28, 0.17);
+    else {
+      int ty = int(floor(h * 4.0));
+      if (ty == 0) {
+        if (abs(lx) < 0.2 && ly > 0.18 && ly < 0.62) col = (abs(lx) < 0.16 && ly > 0.22 && ly < 0.58) ? 0.3 + 0.6 * vec3(fract(h * 7.1), fract(h * 3.3), fract(h * 5.7)) : vec3(0.35, 0.22, 0.1);
+      } else if (ty == 1) {
+        float rr = length(vec2(lx, ly - 0.38));
+        if (rr < 0.19) col = rr > 0.15 ? vec3(0.2, 0.15, 0.1) : vec3(0.95, 0.92, 0.8);
+      } else if (ty == 2) {
+        float hw = mix(0.2, 0.07, clamp((ly - 0.36) / 0.26, 0.0, 1.0));
+        if (ly > 0.36 && ly < 0.62 && abs(lx) < hw) col = vec3(0.95, 0.8, 0.4);
+        else if (abs(lx) < 0.016 && ly > 0.1 && ly <= 0.36) col = vec3(0.3, 0.25, 0.2);
+        else if (ly > 0.06 && ly < 0.12 && abs(lx) < 0.1) col = vec3(0.3, 0.25, 0.2);
+      } else {
+        float e = length(vec2(lx / 0.11, (ly - 0.24) / 0.17));
+        if (e < 1.0 || (abs(lx) < 0.035 && ly > 0.38 && ly < 0.5)) col = mix(vec3(0.2, 0.5, 0.55), vec3(0.75, 0.35, 0.3), step(0.5, fract(h * 9.0)));
+      }
     }
   } else {
-    // 0 schappen, 9 rommelkasten: rijen producten in de kleur van het type
+    // reserve: rijen producten in de kleur van het type
     float row = floor(c.y / rh), fy = fract(c.y / rh);
     float cell = floor(c.x / itemW + row * 0.37);
     float h = igH(vec2(cell, row));
     vec3 prod = 0.35 + 0.6 * vec3(fract(h * 3.7), fract(h * 5.3 + 0.2), fract(h * 9.1 + 0.5));
     prod = mix(prod, acc.rgb * (0.55 + 0.7 * h), acc.a);
-    if (pat == 9) prod = prod * vec3(0.8, 0.7, 0.55) + 0.05;
     col = fy < 0.1 ? vec3(0.85) : (fy < 0.1 + 0.75 * (0.6 + 0.4 * h) ? prod : vec3(0.3));
-    if (pat == 9) col = fy < 0.1 ? vec3(0.45, 0.32, 0.2) : col;
   }
   // far away only the type's tone remains
   return mix(mix(vec3(0.4), acc.rgb, 0.45) * 0.9, col, detail);
