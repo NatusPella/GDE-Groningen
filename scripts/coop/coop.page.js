@@ -293,6 +293,27 @@ const PHASES = {
   async wacht({ s = 10 }) { await sleep(s * 1000); },
   async kijk({ s = 10 }) { await sleep(s * 1000); }, // zelfde als wacht, onder een eigen fasenaam (de testbank leest er de invoer van een andere speler in)
   async shot({ name }) { shot(name); await sleep(600); },
+  // de spelerslijst bij Tab (#377): Tab vasthouden, schermafbeelding, loslaten
+  async tab({ name = 'g-tab' }) {
+    for (const t of [window, document]) t.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', code: 'Tab', bubbles: true }));
+    await sleep(900);
+    const el = document.getElementById('coop-spelers');
+    log('tab', { zichtbaar: !!el && getComputedStyle(el).display !== 'none', rijen: el ? el.querySelectorAll('.cs-rij').length : 0, tekst: el ? el.innerText.slice(0, 300) : '' });
+    shot(name); await sleep(500);
+    for (const t of [window, document]) t.dispatchEvent(new KeyboardEvent('keyup', { key: 'Tab', code: 'Tab', bubbles: true }));
+    await sleep(400);
+    log('tab-los', { zichtbaar: !!el && getComputedStyle(el).display !== 'none' });
+  },
+  // het onderdeel Spelers in het pauzemenu (#377)
+  async spelersmenu({ name = 'g-spelersmenu' }) {
+    await esc();
+    await until(() => document.querySelector('.ra[data-goto="spelers"]'), 8000, 'rail-knop Spelers');
+    document.querySelector('.ra[data-goto="spelers"]').click();
+    await sleep(1200);
+    const p = document.querySelector('#pause-menu [data-panel="spelers"]');
+    log('spelersmenu', { zichtbaar: !!p && !p.hidden, rijen: p ? p.querySelectorAll('.cs-rij').length : 0, roep: p ? p.querySelectorAll('[data-ping]').length : 0 });
+    shot(name); await sleep(500); await closeMenu();
+  },
   // bij een slecht netwerk spelen: alleen op de aangegeven instanties (args.wie)
   async netsim({ s = 20, latency = 0.12, jitter = 0.05, loss = 0.1, wie = null }) {
     if (wie && !wie.includes(CFG.name)) { await sleep(s * 1000); return; }

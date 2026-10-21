@@ -40,9 +40,9 @@ for (const s of ['SIGINT', 'SIGTERM']) process.on(s, () => { release(); process.
 // ---- het programma van de gast (seconden na "verbonden") en het draaiboek van de host, op dezelfde tijdlijn
 const PROGRAM = [
   [0, 'wacht', { s: 8 }], [10, 'shot', { name: 'v-start' }], [24, 'shot', { name: 'v-onweer' }], [30, 'shot', { name: 'v-roep' }], [38, 'shot', { name: 'v-doel' }],
-  [46, 'shot', { name: 'v-uitslag' }], [54, 'shot', { name: 'v-gepakt' }], [66, 'shot', { name: 'v-rit' }], [78, 'wacht', { s: 20 }],
+  [46, 'shot', { name: 'v-uitslag' }], [54, 'shot', { name: 'v-gepakt' }], [66, 'shot', { name: 'v-rit' }], [76, 'tab', { name: 'v-tab' }], [80, 'spelersmenu', { name: 'v-spelersmenu' }], [94, 'wacht', { s: 20 }],
 ];
-const HOST_STOP = 96;
+const HOST_STOP = 116;
 const code = {};
 const started = Date.now();
 await takeSlot();
@@ -102,6 +102,10 @@ const d2 = win(44, 49); check(d2.length && d2.every((s) => s.hostEnt && s.hostEn
 // gepakt en meerijden
 const g1 = win(51, 53); check(g1.length && g1.some((s) => s.partners.some((p) => p[1] === 'Tammo' && p[2] === 'neergeslagen')), 'gepakt: de gast ziet Tammo niet als neergeslagen: ' + JSON.stringify(g1.slice(-1).map((s) => s.partners)));
 const m1 = win(62, 70); check(m1.length && m1.some((s) => s.voert === 1), 'meerijden: de gast weet niet dat hij meerijdt');
+const tb = of('tab')[0], tl = of('tab-los')[0], sm = of('spelersmenu')[0];
+check(tb && tb.zichtbaar && tb.rijen === 2, 'Tab: de spelerslijst staat niet in beeld met twee spelers: ' + JSON.stringify(tb));
+check(tl && tl.zichtbaar === false, 'Tab: de lijst blijft staan na het loslaten');
+check(sm && sm.zichtbaar && sm.rijen === 2 && sm.roep === 3, 'pauzemenu: het onderdeel Spelers ontbreekt of is leeg: ' + JSON.stringify(sm));
 for (const e of E.filter((x) => x.type === 'console' && x.level === 'error')) problems.push('consolefout: ' + String(e.msg).slice(0, 160));
 for (const e of E.filter((x) => x.type === 'jserror')) problems.push(`jserror: ${e.msg} ${e.file}:${e.line}`);
 notes.push('draaiboek: ' + host.log.join('; '));
