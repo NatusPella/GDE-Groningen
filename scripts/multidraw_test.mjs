@@ -49,6 +49,21 @@ ok('a caster has its own depth material', pool.customDepthMaterial && pool.custo
 ok('the data is where the handle says', readBack(a).x0 === 0 && readBack(a).quads === 3 && readBack(b).x0 === 10 && readBack(b).quads === 5);
 ok('poolable: alpha test and shader materials are not', poolable(mat) && !poolable(new THREE.MeshStandardMaterial({ alphaTest: 0.5 })) && !poolable(new THREE.ShaderMaterial()));
 
+// the defines of a material (the road surfaces pick their paving by define) go to the copy, and follow a change of the original
+{
+  const m2 = new THREE.MeshStandardMaterial({ color: 0x777777 });
+  m2.defines = { SURF_KLINKER: '' };
+  const h2 = hub.add(m2, false, piece(40, 1));
+  const c2 = h2.pool.material;
+  ok('the copy keeps the defines of the original', c2.defines.SURF_KLINKER === '' && c2.defines.STANDARD === undefined || c2.defines.SURF_KLINKER === '', JSON.stringify(c2.defines));
+  m2.defines.SURF_BUMP = ''; m2.needsUpdate = true;
+  hub.syncMaterials();
+  ok('and a define added later', c2.defines.SURF_BUMP === '' && c2.defines.SURF_KLINKER === '', JSON.stringify(c2.defines));
+  delete m2.defines.SURF_BUMP; m2.needsUpdate = true;
+  hub.syncMaterials();
+  ok('and one taken away', c2.defines.SURF_BUMP === undefined, JSON.stringify(c2.defines));
+}
+
 // ranges for a camera looking down -z from the origin: the piece at x 0 is inside, a piece far to the side is not
 const cam = new THREE.PerspectiveCamera(60, 1.5, 0.5, 100);
 cam.updateMatrixWorld();
