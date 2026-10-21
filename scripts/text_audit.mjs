@@ -8,6 +8,7 @@
 //   node scripts/text_audit.mjs --all      also list the allowlisted ones, with the reason
 //   node scripts/text_audit.mjs --json     machine-readable findings
 // Regel `anglicisme`: Engelse leenwoorden (save, host, checkpoint, ...) zijn een fout; zie docs/WOORDENLIJST.md.
+// Regel `inclusief`: kwetsende of verouderde woorden, mannelijk-als-standaard en machtstermen; zie 'Inclusieve taal' in docs/WOORDENLIJST.md.
 // Lines that are already voiced are flagged `ingesproken`: report them, do not change them
 // (re-recording needs the owner's go-ahead). Intentional cases go in ALLOW below, with a reason.
 import fs from 'node:fs';
@@ -232,6 +233,23 @@ const ANGLICISMEN = [
 // markup en selectors zijn geen tekst: attributen als data-action="save" en [data-boost] of .pm-rail-acts niet meekijken
 const stripMarkup = (t) => t.replace(/\b(?:data-[\w-]+|class|id|for|name|type|role|href|src)="[^"]*"/g, ' ').replace(/\bdata-[\w-]+/g, ' ').replace(/\[[^\]]*\]/g, ' ').replace(/(?<![\p{L}\p{N}])[.#][a-z][\w-]*/gu, ' ');
 
+// Inclusieve taal (docs/WOORDENLIJST.md, sectie 'Inclusieve taal'): [categorie, regex, wat in de plaats komt].
+// Alleen woorden die in speltekst een groep kunnen raken of een man als standaard nemen. Een vondst is een
+// aanwijzing, geen vonnis: satire over gedrag of een personage met eigenheid mag blijven (ALLOW, met reden).
+const heel = (re) => new RegExp(`(?<![\\p{L}\\p{N}])(?:${re.source})(?![\\p{L}\\p{N}])`, 'iu');
+const INCLUSIEF = [
+  ['kwetsend', heel(/mongool|mongolen|spast|spastisch\w*|debiel\w*|imbeciel\w*|achterlijk\w*|zwakzinnig\w*|psychopaa?t\w*|schizo\w*|dwergen?|invalide\w*|gehandicapt\w*|kreupel\w*|mismaakt\w*|gestoord\w*|krankzinnig\w*|idioot|idioten|gekkenhuis|dolhuis|het gesticht/), 'iemand, een persoon met een beperking, of benoem het gedrag'],
+  ['kwetsend', heel(/een gek|die gek|dat gek|zo'n gek|de gek|gekken/), "iemand of een persoon; 'gek' als bijvoeglijk naamwoord voor gedrag mag"],
+  ['kwetsend', heel(/zigeuners?|zigeunerin\w*|negers?|negerin\w*|negerzoen\w*|kaffers?|hottentot\w*|indianen|indiaan\w*|eskimo\w*|allochto\w*|autochto\w*|mohammedaan\w*|gastarbeiders?|jappen?|chinezen/), 'noem het volk of de herkomst, of laat het weg'],
+  ['kwetsend', heel(/flikkers?|mietjes?|nichten?|travestieten?|wijf|wijven|slet|sletten|hoer|homo's?|homoseksuele?n?/), 'laat het weg of benoem het gedrag'],
+  ['kwetsend', heel(/kankerlijers?|kanker\w*|tyfus\w*|tering|pleuris\w*|kolere\w*|klere/), 'een andere krachtterm (donders, verdraaid), geen ziekte als vloek'],
+  ['macht', heel(/slaaf|slaven|slavin\w*|slaves?|blacklist\w*|whitelist\w*|black list|white list|guests?/), 'een neutrale term (blokkeerlijst, toegestaan, deelnemer)'],
+  ['man-standaard', heel(/politiem[ae]nn?\w*|brandweerm[ae]nn?\w*|vuilnism[ae]nn?\w*|zakenm[ae]nn?\w*|zakenlieden|klusjesm[ae]nn?\w*|stuurm[ae]nn?\w*|stuntm[ae]nn?\w*|cameram[ae]nn?\w*|loodsm[ae]nn?\w*|dienstmeisjes?|werkster|serveerster|verpleegster|stewardess\w*|schoonmaakster|kapster|huisvrouwen?/), 'agent, brandweerlieden, vuilnisophaler, zakenreiziger, klusser, iemand aan het roer, serveerder, verpleegkundige, cabinepersoneel, schoonmaker'],
+  ['aanspreekvorm', heel(/jongens|meisjes|meiden|dames en heren|heren en dames|beste heren|mijne heren/), 'allemaal, iedereen, mensen, beste aanwezigen, hoi allemaal'],
+  ['generiek-hij', /(?<![\p{L}])(?:iedereen|iemand|ieder|elke speler|elke bestuurder|een speler|de speler|een bestuurder|de bestuurder|een fietser|een passagier|een toerist|een voetganger)(?![\p{L}])[^.!?]{0,60}(?<![\p{L}])(?:hij|zijn(?! (?:de|een|het|er|niet|ook|al|nog|dan|hier|daar|zo|nu|toch|altijd|nooit|weg|klaar|bij|in|op|aan|te|maar|wel|geen)(?![\p{L}]))(?=\s+\p{L}))(?![\p{L}])/iu, "die, diegene, de of je eigen: geen 'hij' voor een onbekend persoon"],
+];
+const INCL_RES = INCLUSIEF.map(([cat, re, nl]) => ({ cat, nl, re }));
+
 const FIXED = [
   { rule: 'de-grunn', re: /\bde Grunn\b(?!e|\w)/i, note: "'de Grunn' mag niet; het is 'Grunn'" },
   // samen spelen heeft geen rolnaam (eigenaar, 20-10): wie het spel opende heet bij zijn naam (Tammo, Tessa, de profielnaam) of 'de ander'
@@ -262,6 +280,7 @@ export function checkText(text) {
   for (const w of WINTER) { const m = w.exec(text); if (m) found.push({ rule: 'winter', term: m[0], note: 'winterwoord (altijd zomer)' }); }
   const kaal = stripMarkup(text);
   for (const a of ANGLI_RES) { const m = a.re.exec(kaal); if (m) found.push({ rule: 'anglicisme', term: m[0], note: `Engels leenwoord; zeg: ${a.nl}` }); }
+  for (const r of INCL_RES) { const m = r.re.exec(text); if (m) found.push({ rule: 'inclusief', term: m[0], note: `inclusieve taal (${r.cat}); zeg: ${r.nl}` }); }
   for (const f of FIXED) { const m = f.re.exec(text); if (m) found.push({ rule: f.rule, term: m[0], note: f.note }); }
   const words = text.toLowerCase().match(/[a-z']+/g) || [];
   if (words.length >= 3) {
