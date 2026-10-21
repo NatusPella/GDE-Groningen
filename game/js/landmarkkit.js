@@ -799,13 +799,15 @@ function hall(B, p, lod) {
 // houses. Returns an item for landmarkParams, or null.
 const KIT_TYPES = new Set(['farm', 'silo', 'industrial', 'apartments', 'school', 'college', 'university', 'train_station', 'civic', 'public', 'warehouse']);
 const FARM_NAMED = new Set(['farm', 'house', 'yes', 'industrial', 'detached', 'farm_auxiliary', 'barn', 'residential']);
+// a pakhuis mapped as something else (a warehouse of the harbour often is building=yes, a converted one apartments): the name decides (#348)
+const PAKHUIS_NAMED = new Set(['yes', 'apartments', 'commercial', 'industrial', 'retail', 'service', 'warehouse']);
 const outlineArea = (o) => { let a = 0; for (let i = 0; i < o.length; i += 2) { const j = (i + 2) % o.length; a += o[i] * o[j + 1] - o[j] * o[i + 1]; } return Math.abs(a / 2); };
 
 export function kitItemFromBuilding(b, ring = null) {
   const type = b.type, name = b.name || '';
   // a name that says what it is: a museum, a town hall, a farm mapped as a house or a shed
   const named = name && (/museum/i.test(name) ? 'museum' : /stadhuis|gemeentehuis/i.test(name) ? 'townhall'
-    : /boerderij|stolp|hoeve/i.test(name) && FARM_NAMED.has(type) ? 'farm' : null);
+    : /boerderij|stolp|hoeve/i.test(name) && FARM_NAMED.has(type) ? 'farm' : /pakhuis/i.test(name) && PAKHUIS_NAMED.has(type) ? 'pakhuis' : null);
   if (!named && !KIT_TYPES.has(type)) return null;
   const pts = ring || b.pts;
   if (!pts || pts.length < 3) return null;
@@ -824,6 +826,7 @@ export function kitItemFromBuilding(b, ring = null) {
     else if (type === 'train_station') k = area >= 60 ? 'station' : null;
     else if ((type === 'civic' || type === 'public') && /stadhuis|gemeentehuis/i.test(name)) k = 'townhall';
   }
+  if (k === 'pakhuis' && (area < 150 || area > 4000)) return null;
   if (!k || area < 40 || area > 60000) return null;
   let x = 0, y = 0;
   for (const p of pts) { x += p[0]; y += p[1]; }
