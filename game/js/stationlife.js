@@ -39,10 +39,20 @@ export function nearestStation(stations, x, y, r = NEAR_R) {
 // Alles wat HUD, omroep en 3D van een station nodig hebben. clock: spelklok in uren, dag: dagnummer.
 // treinen: de rijdende treinen (railway.getTrains()); met die lijst volgt het bord de echte treinen,
 // zonder valt het terug op het rooster. schaal: spelklokseconden per echte seconde.
+// Een echte trein telt alleen mee als hij binnen BORD_HORIZON spelseconden komt: een trein die in het echt
+// tien minuten weg is, is op de spelklok tien uur weg en gaf een bord met willekeurige tijden (#339). Met
+// minder dan BORD_MIN echte treinen vult het rooster het bord aan (dubbelen weggelaten), op volgorde van tijd.
+export const BORD_HORIZON = 90 * 60, BORD_MIN = 4, BORD_N = 5;
 export function stationView(station, clock, dag, treinen = null, schaal = 60) {
   const nu = ((clock % 24) + 24) % 24 * 3600;
-  const echt = treinen ? bordUitTreinen(treinen.filter((t) => station.lijnen.includes(t.route)), station.name, nu, { aantal: 5, schaal }) : [];
-  const bord = echt.length ? echt : vertrekBord(station.lijnen, station.name, nu, dag, { aantal: 5, terug: 30 });
+  const echt = (treinen ? bordUitTreinen(treinen.filter((t) => station.lijnen.includes(t.route)), station.name, nu, { aantal: 12, schaal }) : [])
+    .filter((r) => r.tijd - nu <= BORD_HORIZON).slice(0, BORD_N);
+  let bord = echt;
+  if (echt.length < BORD_MIN) {
+    const rooster = vertrekBord(station.lijnen, station.name, nu, dag, { aantal: BORD_N + 3, terug: 30 });
+    const dubbel = (r) => echt.some((e) => e.lijn === r.lijn && e.richting === r.richting && Math.abs(e.tijd - r.tijd) < 600);
+    bord = echt.concat(rooster.filter((r) => !dubbel(r))).sort((a, b) => a.tijd - b.tijd || a.lijn.localeCompare(b.lijn)).slice(0, BORD_N);
+  }
   const eerst = bord[0] || null;
   const wacht = eerst ? eerst.tijd - nu : Infinity;
   return {
