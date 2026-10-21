@@ -1,0 +1,98 @@
+# De Windows-exe (portable) van een bestaande release bouwen op een Windows-runner. Lokaal bouwen
+# (desktop/release.sh) blijft de snelste en goedkoopste keuze; dit is de reserve en de weg naar een
+# Windows-build zonder de eigen pc. Alleen met de hand te starten (workflow_dispatch).
+#
+# Zoals de andere release-workflows bouwt deze de provinciekaart niet zelf: hij haalt de gestagede
+# tegels uit het release-asset gde-world.tgz en geeft ze aan desktop/build.mjs via GDE_PREBUILT_WORLD.
+# Geen code signing (de exe is niet ondertekend, zoals de lokale build); alleen GITHUB_TOKEN.
+# Windows-minuten tellen 2x, zie docs/RELEASEN.md. De exe krijgt dezelfde naam als die van release.sh
+# en vervangt dus een bestaande bijlage (--clobber).
+name: Windows-exe
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag van de bestaande release, bijvoorbeeld v0.38.1'
+        required: true
+        type: string
+      arm64:
+        description: 'Ook de ARM64-variant bouwen (nog niet op echte ARM-hardware getest)'
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
+
+concurrency:
+  group: windows-release-${{ inputs.tag }}
+  cancel-in-progress: false
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 25
+    defaults:
+      run:
+        shell: bash
+    env:
+      GH_TOKEN: ${{ github.token }}
+      TAG: ${{ inputs.tag }}
+      CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: npm
+          cache-dependency-path: desktop/package-lock.json
+
+      - name: De gestagede wereld van de release
+        run: |
+          mkdir -p "$RUNNER_TEMP/gde-world"
+          gh release download "$TAG" --pattern gde-world.tgz --dir "$RUNNER_TEMP/gde-world" \
+            || { echo "Geen gde-world.tgz bij $TAG: maak hem met 'npm run release -- ... --world' of upload hem met gh release upload."; exit 1; }
+          tar xzf "$RUNNER_TEMP/gde-world/gde-world.tgz" -C "$RUNNER_TEMP/gde-world"
+          test -f "$RUNNER_TEMP/gde-world/world/index.json"
+          echo "GDE_PREBUILT_WORLD=$(cygpath -w "$RUNNER_TEMP/gde-world/world")" >> "$GITHUB_ENV"
+
+      - name: npm ci
+        working-directory: desktop
+        run: npm ci
+
+      - name: Stage en exe
+        working-directory: desktop
+        run: |
+          npm run stage
+          npx electron-builder --win --x64 --publish never --config.publish.provider=github --config.publish.owner="${{ github.repository_owner }}" --config.publish.repo="${{ github.event.repository.name }}"
+
+      # alleen met de optie arm64 (standaard uit): cross-build, de exe krijgt een eigen naam
+      - name: Stage en exe (ARM64)
+        if: ${{ inputs.arm64 }}
+        working-directory: desktop
+        run: |
+          VERSION="${TAG#v}"
+          npx electron-builder --win --arm64 --publish never --config.portable.artifactName="GDE-Groningen-$VERSION-windows-arm64-portable.exe" --config.publish.provider=github --config.publish.owner="${{ github.repository_owner }}" --config.publish.repo="${{ github.event.repository.name }}"
+
+      - name: Controleren
+        working-directory: desktop
+        run: |
+          VERSION="${TAG#v}"
+          EXE="dist/GDE-Groningen-$VERSION-windows-portable.exe"
+          ls -l dist
+          test -s "$EXE"
+          head -c 2 "$EXE" | od -An -c | grep -q 'M   Z'
+
+      - name: Naar de release
+        working-directory: desktop
+        run: |
+          VERSION="${TAG#v}"
+          gh release upload "$TAG" "dist/GDE-Groningen-$VERSION-windows-portable.exe" --clobber
+          if [ "${{ inputs.arm64 }}" = "true" ]; then
+            test -s "dist/GDE-Groningen-$VERSION-windows-arm64-portable.exe"
+            gh release upload "$TAG" "dist/GDE-Groningen-$VERSION-windows-arm64-portable.exe" --clobber
+          fi
