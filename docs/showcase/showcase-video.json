@@ -1,0 +1,149 @@
+{
+  "titel": "Een provincie in 34 dagen",
+  "lengte_s": 180,
+  "formaat": "1920x1080 @60",
+  "taal": "nl",
+  "let_op": "Scenario, geen montage. Cijfers: docs/showcase/schaal-cijfers.json (id -> waarde). Geen voice-over, geen TTS, geen echte merken of personen in beeld of tekst. Niets publiceren zonder akkoord van de eigenaar.",
+  "overlay_stijl": {
+    "positie": "linksonder",
+    "opkomst_s": 0.5,
+    "houden_s": 2.5,
+    "weg_s": 0.4,
+    "tussentijd_s": 0.6,
+    "cijfer": "groot, #3fc97a, Bebas Neue (terugval Arial Narrow)",
+    "label": "wit",
+    "schatting_kleur": "#d93f3f"
+  },
+  "scenes": [
+    {
+      "nr": 1,
+      "van": 0,
+      "tot": 10,
+      "beeld": "Zonsopgang boven d'Olle Grieze, fietsers, een meeuw; uitzoomen tot de provinciekaart",
+      "kaarten": [
+        "Een spel van een hele provincie.",
+        "In 34 dagen."
+      ],
+      "overlays": [],
+      "opname": "bestaand"
+    },
+    {
+      "nr": 2,
+      "van": 10,
+      "tot": 25,
+      "beeld": "De Vismarkt met terrassen en de Martinitoren",
+      "kaarten": [
+        "De opdracht: “Maak een grappig open-wereldspel in het echte Groningen.”"
+      ],
+      "overlays": [],
+      "opname": "bestaand"
+    },
+    {
+      "nr": 3,
+      "van": 25,
+      "tot": 55,
+      "beeld": "Snelle tour door de provincie: binnenstad, ringweg, dijk, Eemshaven, dorp, trein; overzichtskaart",
+      "kaarten": [
+        "Een hele provincie. Op ware grootte."
+      ],
+      "overlays": [
+        "wereld.oppervlak_km2",
+        "wereld.gebouwen",
+        "wereld.wegen_km",
+        "wereld.stations"
+      ],
+      "opname": "bestaand"
+    },
+    {
+      "nr": 4,
+      "van": 55,
+      "tot": 80,
+      "beeld": "Sluipen, boot, helikopter, kermis, achtervolging, de duif, een bijbaan; één korte cutscene",
+      "kaarten": [
+        "Missies, voertuigen, bijbanen, stemmen."
+      ],
+      "overlays": [
+        "inhoud.verhaalmissies",
+        "inhoud.voertuigmodellen",
+        "inhoud.bijbanen",
+        "inhoud.stemopnames"
+      ],
+      "opname": "bestaand"
+    },
+    {
+      "nr": 5,
+      "van": 80,
+      "tot": 110,
+      "beeld": "Bewegende grafiek van commits per dag (tijdlijnen.commitsPerDag) tot de piek; rij sessie-branches",
+      "kaarten": [
+        "Eén opdrachtgever. Tientallen AI-sessies tegelijk.",
+        "Elke sessie een eigen werkmap."
+      ],
+      "overlays": [
+        "git.commits",
+        "sessies.branches_sessies",
+        "issues.totaal",
+        "releases.aantal"
+      ],
+      "opname": "nieuw: motion graphic"
+    },
+    {
+      "nr": 6,
+      "van": 110,
+      "tot": 135,
+      "beeld": "De spelbot speelt een missie; testrapport met groene regels en één rode; beeldcontrole keurt zwart beeld af",
+      "kaarten": [
+        "Een test weet niet wat leuk is.",
+        "Maar hij kijkt wel mee."
+      ],
+      "overlays": [
+        "tests.testscripts",
+        "tests.rapport_pass"
+      ],
+      "opname": "nieuw: spelbot-opname en nagebouwd rapportbeeld"
+    },
+    {
+      "nr": 7,
+      "van": 135,
+      "tot": 155,
+      "beeld": "Rustig beeld: Tessa en Tammo bij de lege standplaats",
+      "kaarten": [
+        "Het is een pre-release. Het is niet af.",
+        "Smaak, toon en risico blijven mensenwerk."
+      ],
+      "overlays": [
+        "issues.open"
+      ],
+      "opname": "bestaand"
+    },
+    {
+      "nr": 8,
+      "van": 155,
+      "tot": 170,
+      "beeld": "Twee balken: lang (traditioneel, schatting) en kort (met AI, gemeten)",
+      "kaarten": [
+        "Schatting, geen meting.",
+        "Traditioneel: 10 tot 40 persoonsjaar",
+        "Met AI: 34 dagen"
+      ],
+      "overlays": [
+        "git.kalenderdagen"
+      ],
+      "opname": "nieuw: motion graphic",
+      "let_op": "het woord schatting in rood (#d93f3f); bandbreedte uit docs/showcase/SCHATTING.md"
+    },
+    {
+      "nr": 9,
+      "van": 170,
+      "tot": 180,
+      "beeld": "De rode Escapade remt scheef op de lege standplaats; zwart; titel",
+      "kaarten": [
+        "GDE Groningen: Zomer vol misdaad",
+        "Heel Groningen. Voor één eierbal.",
+        "Gemaakt met AI. Gestuurd door mensen."
+      ],
+      "overlays": [],
+      "opname": "bestaand"
+    }
+  ]
+}
