@@ -21,15 +21,16 @@ const FOCUSABLE = 'button:not([disabled]), [href], input:not([disabled]), select
 const shown = (e) => e.getClientRects().length > 0 && !e.closest('[hidden]') && getComputedStyle(e).visibility !== 'hidden' && getComputedStyle(e).pointerEvents !== 'none';
 const label = (e) => ((e.getAttribute('aria-label') || e.textContent || e.value || e.id || e.className || e.tagName) + '').replace(/\s+/g, ' ').trim().slice(0, 40) + ' <' + e.tagName.toLowerCase() + '>';
 const gezien = new Set();
-document.addEventListener('focusin', (e) => gezien.add(e.target), true);
+const sleutel = (e) => label(e) + JSON.stringify(e.dataset || {});
+document.addEventListener('focusin', (e) => gezien.add(sleutel(e.target)), true);
 const hoofd = (sel) => document.querySelector(sel);
 const vis = (sel) => { const e = hoofd(sel); return !!(e && shown(e)); };
 const inRail = (e) => !!e.closest('.pm-rail');
 
 async function loop(rootEl, naam, extra = {}) {
   gezien.clear();
-  if (document.activeElement && rootEl.contains(document.activeElement)) gezien.add(document.activeElement);
-  const kand = () => [...rootEl.querySelectorAll(FOCUSABLE)].filter(shown);
+  if (document.activeElement && rootEl.contains(document.activeElement)) gezien.add(sleutel(document.activeElement));
+  const kand = () => [...rootEl.querySelectorAll(FOCUSABLE)].filter((e) => shown(e) && !e.closest('.pm-footer'));
   const n0 = kand().length;
   const tot = Math.min(Date.now() + SCHERM_MS, EINDE);
   let stappen = 0;
@@ -40,13 +41,13 @@ async function loop(rootEl, naam, extra = {}) {
       for (let i = 0; i < n0 + 8 && stil < 10 && Date.now() < tot; i++) {
         const voor = gezien.size;
         await tap(dir); stappen++;
-        if (document.activeElement && rootEl.contains(document.activeElement)) gezien.add(document.activeElement);
+        if (document.activeElement && rootEl.contains(document.activeElement)) gezien.add(sleutel(document.activeElement));
         stil = gezien.size === voor ? stil + 1 : 0;
       }
     }
   }
   const alle = kand().filter((e) => !e.closest('[aria-hidden="true"]'));
-  const mis = (lijst) => lijst.filter((e) => !gezien.has(e)).map(label);
+  const mis = (lijst) => lijst.filter((e) => !gezien.has(sleutel(e))).map(label);
   const paneel = alle.filter((e) => !inRail(e)); const rail = alle.filter(inRail);
   const r = { naam, paneel: { n: paneel.length, onbereikbaar: mis(paneel) }, rail: { n: rail.length, onbereikbaar: mis(rail) }, stappen, tijdOp: Date.now() >= tot, ...extra };
   out.schermen.push(r);
