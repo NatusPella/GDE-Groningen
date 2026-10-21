@@ -382,8 +382,27 @@ function church(B, p, lod) {
 }
 
 // The wierde: a low mound, the churchyard wall round it, lime trees and graves.
+export const wierdeRadius = (p) => Math.max(p.len, p.wid) * 0.62 + 9;
+
+// A road through the mound's footprint (its flat top and the 7 m of slope round it) lies under it: the mound is a 1,4 m mesh the ground
+// height does not know, so the street is drawn over by grass and a walker on it stands in the hill to the hips (#5: Uithuizen Kerkplein).
+// roads: rows with pts (any road near the church). True when one of them runs within the foot of the mound.
+export function wierdeOnRoad(p, roads) {
+  const R = wierdeRadius(p) + 7;
+  for (const r of roads || []) {
+    const P = r.pts;
+    if (!P || P.length < 2 || r.bridge || r.tunnel || r.z) continue;
+    for (let i = 0; i < P.length - 1; i++) {
+      const dx = P[i + 1][0] - P[i][0], dy = P[i + 1][1] - P[i][1], L2 = dx * dx + dy * dy || 1e-9;
+      const t = Math.max(0, Math.min(1, ((p.x - P[i][0]) * dx + (p.y - P[i][1]) * dy) / L2));
+      if (Math.hypot(P[i][0] + dx * t - p.x, P[i][1] + dy * t - p.y) < R) return true;
+    }
+  }
+  return false;
+}
+
 function wierde(B, p, lod) {
-  const R = Math.max(p.len, p.wid) * 0.62 + 9, H = 1.4;
+  const R = wierdeRadius(p), H = 1.4;
   B.geo(new THREE.CylinderGeometry(R, R + 7, H, 16, 1, true), composeMatrix(0, H / 2 - 0.05, 0), 0x6f8a4e);
   B.geo(new THREE.CircleGeometry(R, 16).rotateX(-Math.PI / 2), composeMatrix(0, H - 0.04, 0), 0x6f8a4e);
   if (lod !== LOD_FULL) return;
