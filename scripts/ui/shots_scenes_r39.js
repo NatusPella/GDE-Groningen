@@ -73,7 +73,7 @@ if (want('winkels')) {
     // the camera stands on free ground in front of the shopfront: not inside a building, not too close to one
     const pointIn = (x, y, ring) => { let ins = false; for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) { const [xi, yi] = ring[i], [xj, yj] = ring[j]; if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) ins = !ins; } return ins; };
     let dist = 0, cx = mx, cy = my;
-    for (const dd of [8, 6.5, 5, 4]) {
+    for (const dd of [8, 6.5, 5, 4, 3, 2.2]) {
       const tx = mx + f.nx * dd, ty = my + f.ny * dd;
       if (!map.buildingsNear(tx, ty, 6).some((q) => q.pts && pointIn(tx, ty, q.pts))) { dist = dd; cx = tx; cy = ty; break; }
     }
