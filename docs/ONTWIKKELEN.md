@@ -304,6 +304,18 @@ walks, frustum tests) and the paired difference per round: the variants switch w
 in a run) and feel the same load. `PERF_ONLY=verify` checks that nothing that shows is cut (actors and groups kept out of the main pass, groups kept out of the shadow pass).
 `PERF_ONLY=wandel` walks at the game's own pace (3 m/s). `PERF_SETTLE=<ms>` lets a route settle longer first.
 
+Instruments of the draw-call study (r42, #246; docs/PERF-METING-2026-10-19.md "Vervolg 9"), all routes of `scripts/perf/routes.js`:
+`renderab` (CPU of the main thread per direct scene render, variants as `PERF_AB_RENDERAB='naam=stappen;...'`, table `scripts/perf/renderab.mjs`),
+`renderprof` (a CPU profile of nothing but the scene render; `scripts/perf/selftime.mjs` lists the self time per function, `scripts/perf/callers.mjs` who calls one),
+`glcalls` (GL calls per frame by function, by owner with `PERF_DIAG=1`, program switches; variants as `PERF_AB_GLCALLS`), `glbench` (ns per GL call),
+`shadowtris` and `shadowmap` (what the shadow pass draws, the shadow map as a 16 x 16 grid; `PERF_AB_SHADOWTRIS`, `PERF_AB_SHADOWMAP`), `poolvis` (pictures of one spot with steps off, in one process;
+`PERF_VIS_SPOTS`), `progready` and `startup` (linking of the shader programs after the load), `det`/`census`/`cost` as before. `scripts/perf/abpair.mjs <json>` gives the paired differences of an `ab` run with their standard error;
+`scripts/perf/simbench.mjs` (Node, `GDE_PROVINCE_SRC=<repo>/data/cache/province`) measures the CPU of the traffic simulation without a browser. A step name `settle` in an `ab` variant gives that variant the long run-in
+(`PERF_AB_PRE`), for steps that rebuild things. `run.mjs` takes `ELECTRON_EXE` and notes the machine's CPU use and free memory around the run (`machine` in the JSON).
+`?perfoff=` steps added: `pool` (the static cells and the far LOD as separate meshes again), `poolklein` and `poolrand` (cells of one item and the small margin only with the pool), `progsort` (three's own order of the opaque draws),
+`glfilter` (every GL call through), `pedtier` (walkers far away keep their pose every frame), `linkpoll` (the old per-draw question whether a program is linked).
+The pool (`multidraw3d.js`, `drawpool.js`, tests `scripts/drawpool_test.mjs` and `scripts/multidraw_test.mjs`): `window.__scene3d.batches().pool` has its numbers (pools, cells, vertices, MB).
+
 ## Trailer mode
 
 "GDE Groningen — Een zomer in Grunn": one scripted sequence of 24 shots through
