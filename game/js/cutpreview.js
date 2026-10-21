@@ -13,7 +13,7 @@ import { missionScene, SPECS, MORE_SPECS } from './cutscenes_akte1.js';
 import './cutscenes_akte2.js';
 import './cutscenes_akte3.js';
 import './cutscenes_akte4.js';
-import { OPENING_ACTS, openingActs, END_CARD } from './cutscenes.js';
+import { OPENING_ACTS, openingActs, END_CARD, flatScene } from './cutscenes.js';
 import { STEPS } from './storyarc_nieuw.js';
 import { propFoot } from './cutscenemodels.js';
 
@@ -50,6 +50,21 @@ export function linesOf(script, ids, looks = {}) {
     }
   }
   return { lines: out, total: t + 0.3 };
+}
+
+// The lines of an evening at home the way story.js (story-wait) and storyeikea.js (story-eikea) time them without
+// recordings: 2.2 s lead, reading time per line, 0.25 s between. Returns { lines, total } like linesOf.
+export function homeLinesOf(script, id, looks = {}) {
+  const sc = script.scenes.find((s) => s.id === id);
+  const out = [];
+  let t = 2.2;
+  for (const l of (sc && sc.lines) || []) {
+    if (l.channel === 'app-stil') continue;
+    const dur = Math.max(1.6, Math.min(5, 0.8 + l.text.length * 0.055));
+    out.push({ speaker: SPEAKER_NAME[l.key] || (looks[l.key] && looks[l.key].name) || l.key, text: l.text, at: t, dur });
+    t += dur + 0.25;
+  }
+  return { lines: out, total: t + 0.4 };
 }
 
 // 'M08.intro' -> ['M08.1'] through the story steps; 'M01.3' (no suffix) is a script scene itself.
@@ -147,6 +162,14 @@ export function buildCatalog({ script, npcSource = '', looks = null }) {
     }
     const def = missing ? null : missionScene(key, lines, { looks: L });
     out.push(entryFor({ id: key, group: 'Missies', title: key, def, lines, duration: total, missing }));
+  }
+  // the evenings at home, generated from the lines (flatScene): only M06.0 is one in the story today, the other two
+  // variants (EIKEA, a quiet evening) borrow its lines to show the staging
+  const home = homeLinesOf(script, 'M06.0', L);
+  if (home.lines.length > 2) {
+    for (const [id, variant, title] of [['M06.0', 'wachten', 'Thuisavond: wachten tot middernacht (M06.0)'], ['story-eikea', 'eikea', 'Thuisavond: meubels in elkaar (voorbeeldregels M06.0)'], ['story-avond', 'avond', 'Thuisavond: een rustige avond (voorbeeldregels M06.0)']]) {
+      out.push(entryFor({ id, group: 'Thuisavonden', title, def: flatScene(variant, home.lines), lines: home.lines, duration: home.total }));
+    }
   }
   return out;
 }
