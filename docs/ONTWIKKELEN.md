@@ -85,6 +85,8 @@ Newer helpers and tests worth knowing:
 | `scripts/storage_migration_test.mjs`, `save_migration_test.mjs` | Old keys and old saves keep loading; run these after adding any `gde-*` key (register it in `storagekeys.js`) |
 | `scripts/busy_test.mjs`, `activityhub_test.mjs`, `hudbus_test.mjs`, `hudbus_surfaces_test.mjs`, `hud_test.mjs` | The player-busy gate, the activity registry, the attention planner and the HUD rules |
 | `scripts/cutscript_test.mjs`, `actoranim_test.mjs` | The cutscene language (validator, sampler) and the actor animation layer |
+| `scripts/cutscenes_akte1_test.mjs` … `cutscenes_akte4_test.mjs`, `cutscenes_kort_test.mjs`, `cutpreview_test.mjs` | The staged mission scenes per act on the real script lines, the generic scenes (`quickScene`: repeated question, replay line, boat deck), the slice keys (`M26.4#7-14`) and the preview catalogue (opening, missions, evenings at home) |
+| `scripts/sidejob_glyph_test.mjs` | Every side mission of #26 has its own map pictogram (`drawJobGlyph` in `sidejobs.js`) |
 | `scripts/spatialgrid_test.mjs`, `nearest_road_test.mjs` | The shared grid and the nearest-road query |
 | `scripts/mapstyle_test.mjs`, `regions_test.mjs`, `loadlogic_test.mjs` | Map style table (palettes, `INK`, icon colours, the zoom/layer rule; no loose colour literals in the map renderers), regions and load-screen logic |
 | `scripts/qa/kaartstijl_shots.mjs` | Minimap and full map, day and night, at fixed spots and zooms, for a before/after run on two staged games (`--game-dir=voor=<map>,na=<map> --slot`) |
