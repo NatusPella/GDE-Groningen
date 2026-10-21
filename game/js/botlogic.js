@@ -184,6 +184,8 @@ export function decide(s, mem = {}) {
   if (b.pauseMenu) return { type: 'closemenu' };
   if (b.dialog && b.dialog.options && b.dialog.options.length) return { type: 'choose', key: b.dialog.options[0].key };
   if (b.cinematic || b.banner || b.ride) return { type: 'skip' };
+  // the car is on fire ("Stap uit (E) voor hij ontploft"): out, whatever the stage; a plane in flames has no way out
+  if (s.player && s.player.vehicle && !s.player.vehicle.plane && !s.player.vehicle.heli && ((s.hud && s.hud.messages) || []).some((m) => /staat in brand|ontploft/i.test(m))) return { type: 'press', key: 'e', why: 'brand' };
   // an open shop (the story's item is the one highlighted): Enter selects, Enter buys, Escape walks out again
   if (b.shop) return { type: 'shop', n: mem.shopN = (mem.shopN || 0) + 1 };
   if (mem.shopN) mem.shopN = 0;
