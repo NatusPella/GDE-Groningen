@@ -33,6 +33,8 @@ class Backend {
     this._t = t;
   }
   _every(ms, f) { this.ivs.push(this.timers.setInterval(f, ms)); }
+  // een broker die net dichtging mag geen fout in de console geven: sturen op een gesloten socket is dan stil niets (readyState 2 en 3)
+  _send(data) { if (!this.ws || this.ws.readyState > 1) return false; try { this.ws.send(data); return true; } catch (e) { return false; } }
   close() {
     this.closed = true;
     for (const i of this.ivs) this.timers.clearInterval(i);
@@ -47,7 +49,7 @@ export class TrackerBackend extends Backend {
   constructor(opts) { super('tracker', opts); this.peerId = rid(this.rand); }
   _announce(extra) {
     const m = { action: 'announce', info_hash: this.hash, peer_id: this.peerId, numwant: 5, uploaded: 0, downloaded: 0, left: 1, ...extra };
-    this.ws.send(JSON.stringify(m));
+    this._send(JSON.stringify(m));
   }
   host(topic, offerBlob, onAnswer, timeoutMs = 6000) {
     this.hash = bin(topic); this.offerId = rid(this.rand);
@@ -111,10 +113,10 @@ export const mqtt = {
 export class MqttBackend extends Backend {
   constructor(opts) { super('mqtt', opts); this.clientId = 'gde' + rid(this.rand, 12); }
   _run(timeoutMs, onReady, onPublish) {
-    this._connect(timeoutMs, () => { this.ws.send(mqtt.connect(this.clientId)); }, (data) => {
+    this._connect(timeoutMs, () => { this._send(mqtt.connect(this.clientId)); }, (data) => {
       const u8 = typeof data === 'string' ? te.encode(data) : new Uint8Array(data);
       for (const p of mqtt.parse(u8)) {
-        if (p.type === 'connack') { if (p.rc !== 0) { this._set('fout'); return; } this._set('ok'); this._every(20000, () => this.ws.send(mqtt.ping())); onReady(); }
+        if (p.type === 'connack') { if (p.rc !== 0) { this._set('fout'); return; } this._set('ok'); this._every(20000, () => this._send(mqtt.ping())); onReady(); }
         else if (p.type === 'publish') onPublish(p);
       }
     });
@@ -122,22 +124,22 @@ export class MqttBackend extends Backend {
   host(topic, offerBlob, onAnswer, timeoutMs = 6000) {
     this.base = `gde/coop/${topic}`; this.hosting = true;
     this._run(timeoutMs, () => {
-      this.ws.send(mqtt.subscribe(1, this.base + '/a'));
-      this.ws.send(mqtt.publish(this.base + '/o', offerBlob, true)); // vastgehouden: de gast mag later komen
+      this._send(mqtt.subscribe(1, this.base + '/a'));
+      this._send(mqtt.publish(this.base + '/o', offerBlob, true)); // vastgehouden: de gast mag later komen
     }, (p) => { if (p.topic === this.base + '/a' && p.payload) onAnswer(p.payload); });
   }
   join(topic, onOffer, timeoutMs = 6000) {
     this.base = `gde/coop/${topic}`;
     let got = false;
-    this._run(timeoutMs, () => this.ws.send(mqtt.subscribe(1, this.base + '/o')), (p) => {
+    this._run(timeoutMs, () => this._send(mqtt.subscribe(1, this.base + '/o')), (p) => {
       if (p.topic !== this.base + '/o' || !p.payload || got) return;
       got = true;
-      onOffer(p.payload, (answer) => this.ws.send(mqtt.publish(this.base + '/a', answer, false)));
+      onOffer(p.payload, (answer) => this._send(mqtt.publish(this.base + '/a', answer, false)));
     });
   }
   close() {
     // het vastgehouden aanbod opruimen (een leeg bericht wist het)
-    try { if (this.base && this.ws && this.hosting && !this.closed) this.ws.send(mqtt.publish(this.base + '/o', '', true)); } catch (e) { /* weg */ }
+    try { if (this.base && this.ws && this.hosting && !this.closed) this._send(mqtt.publish(this.base + '/o', '', true)); } catch (e) { /* weg */ }
     super.close();
   }
 }
@@ -153,10 +155,10 @@ export class PeerJsBackend extends Backend {
     this._connect(timeoutMs, () => {}, (data) => {
       let m; try { m = JSON.parse(data); } catch (e) { return; }
       if (m.type === 'OPEN') this._set('ok');
-      else if (m.type === 'OFFER' && m.payload && m.payload.gde === 'hallo' && m.src) this.ws.send(JSON.stringify({ type: 'OFFER', dst: m.src, payload: { gde: 'aanbod', blob: offerBlob } }));
+      else if (m.type === 'OFFER' && m.payload && m.payload.gde === 'hallo' && m.src) this._send(JSON.stringify({ type: 'OFFER', dst: m.src, payload: { gde: 'aanbod', blob: offerBlob } }));
       else if (m.type === 'ANSWER' && m.payload && m.payload.gde === 'antwoord' && m.payload.blob) onAnswer(m.payload.blob);
     });
-    this._every(5000, () => { try { this.ws.send(JSON.stringify({ type: 'HEARTBEAT' })); } catch (e) { /* weg */ } });
+    this._every(5000, () => { try { this._send(JSON.stringify({ type: 'HEARTBEAT' })); } catch (e) { /* weg */ } });
   }
   join(topic, onOffer, timeoutMs = 6000) {
     const hostId = 'gde' + topic.slice(0, 24);
@@ -164,10 +166,10 @@ export class PeerJsBackend extends Backend {
     let got = false;
     this._connect(timeoutMs, () => {}, (data) => {
       let m; try { m = JSON.parse(data); } catch (e) { return; }
-      if (m.type === 'OPEN') { this._set('ok'); this.ws.send(JSON.stringify({ type: 'OFFER', dst: hostId, payload: { gde: 'hallo' } })); }
+      if (m.type === 'OPEN') { this._set('ok'); this._send(JSON.stringify({ type: 'OFFER', dst: hostId, payload: { gde: 'hallo' } })); }
       else if (m.type === 'OFFER' && m.payload && m.payload.gde === 'aanbod' && m.payload.blob && !got) {
         got = true;
-        onOffer(m.payload.blob, (answer) => this.ws.send(JSON.stringify({ type: 'ANSWER', dst: hostId, payload: { gde: 'antwoord', blob: answer } })));
+        onOffer(m.payload.blob, (answer) => this._send(JSON.stringify({ type: 'ANSWER', dst: hostId, payload: { gde: 'antwoord', blob: answer } })));
       }
     });
   }
