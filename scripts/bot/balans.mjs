@@ -39,6 +39,24 @@ export function stepsOf(events) {
   return [...steps.values()];
 }
 
+// de ontwerp-duur van de cutscenes per akte (leestijd, zonder de opnames): uit de catalogus van de cutscene-preview
+export async function cutsceneSpreiding() {
+  const { buildCatalog } = await import('../../game/js/cutpreview.js');
+  const root = new URL('../../', import.meta.url);
+  const script = JSON.parse(fs.readFileSync(new URL('game/storydata/script.json', root), 'utf8'));
+  const cat = buildCatalog({ script, npcSource: fs.readFileSync(new URL('game/js/missionstory.js', root), 'utf8') });
+  const akteVan = (id) => { const m = /^M(\d+)/.exec(id); if (!m) return null; const k = +m[1]; return k <= 6 ? 'kop' : k <= 11 ? 'romp' : k <= 16 ? 'staart' : k <= 21 ? 'zuid' : 'ontzet'; };
+  const perAkte = {};
+  for (const e of cat) { const a = akteVan(e.id); if (!a || !e.duration) continue; (perAkte[a] = perAkte[a] || []).push({ id: e.id, dur: e.duration }); }
+  const lines = ['## Cutscenes per akte (ontwerp)', '', 'Duur van de scènes zoals het spel ze timet zonder opnames (leestijd per regel); met opnames is een scène korter of even lang. Afgeleid uit `cutpreview.js`.', '', '| Akte | Scènes | Mediaan | Langste | Totaal | Scènes boven 90 s |', '|---|---|---|---|---|---|'];
+  for (const [a, list] of Object.entries(perAkte)) {
+    const longest = list.reduce((b, x) => (!b || x.dur > b.dur ? x : b), null);
+    lines.push(`| ${AKTEN[a]} | ${list.length} | ${fmt(median(list.map((x) => x.dur)))} | ${longest.id} ${fmt(longest.dur)} | ${fmt(list.reduce((n, x) => n + x.dur, 0))} | ${list.filter((x) => x.dur > 90).map((x) => x.id).join(', ') || '-'} |`);
+  }
+  lines.push('');
+  return { text: lines.join('\n'), perAkte };
+}
+
 export const AKTEN = { kop: 'Akte 1', romp: 'Akte 2', staart: 'Akte 3', zuid: 'Akte 4', ontzet: 'Akte 5' };
 
 // afwijkingen van één akte: de regels die in de tabel gemarkeerd worden
@@ -88,7 +106,8 @@ export function rapport(runList) {
 
 if (import.meta.url === `file:///${process.argv[1].replace(/\\/g, '/')}` || process.argv[1].endsWith('balans.mjs')) {
   if (runs.length) {
-    const { text } = rapport(runs);
+    const { text: t0 } = rapport(runs);
+    const text = process.argv.includes('--cutscenes') ? `${t0}\n${(await cutsceneSpreiding()).text}` : t0;
     const OUT = arg('out');
     if (OUT) { fs.mkdirSync(path.dirname(path.resolve(OUT)), { recursive: true }); fs.writeFileSync(OUT, text); console.log(`geschreven: ${OUT}`); } else console.log(text);
   }
