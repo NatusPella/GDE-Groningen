@@ -703,6 +703,21 @@ results.routes.glbench = await safe('glbench', async () => {
   }
   return out;
 });
+// CPU profile of nothing but the scene render (only with PERF_ONLY=renderprof, GDE_PROFILE_OUT=<dir> for the raw profile): the camera stands, the scene is rendered
+// straight to the canvas in a loop for PERF_DUR ms (default 12 s) while the profiler runs; node scripts/perf/selftime.mjs <dir>/*.cpuprofile shows which functions the time is in
+results.routes.renderprof = await safe('renderprof', async () => {
+  if (!ONLY.includes('renderprof')) return null;
+  fixWorld(); teleport(FOOT[0][0], FOOT[0][1]); w.camYaw = 0.3; p.angle = 0.3; await sleep(window.__perfSettle || 12000);
+  { const builds = () => { const b = sc.batches(); return Object.values(b).reduce((q, e) => q + (e.builds || 0) + (e.dropped || 0), 0); }; let last = builds(), still = 0; for (let i = 0; i < 80 && still < 6; i++) { await sleep(500); const n = builds(); still = n === last ? still + 1 : 0; last = n; } }
+  fixWorld();
+  const gl = r.getContext();
+  const ms = Math.min(15000, window.__perfDur || 12000);
+  console.log('[profile] ' + ms);
+  await sleep(300);
+  const t0 = performance.now(); let n = 0;
+  while (performance.now() - t0 < ms) { for (let i = 0; i < 10; i++) { r.render(sc.scene, sc.cam); n++; } gl.finish(); await sleep(0); }
+  return { renders: n, msPerRender: +((performance.now() - t0) / n).toFixed(2), calls: r.info.render.calls };
+});
 // A/B inside one run (only with PERF_ONLY=ab): window.__perfAb = [[name, [perfoff steps...]], ...] (PERF_AB='aan=;uit=actoren+schaduw'); the variants take
 // turns in short windows (window.__perfAbWin ms, window.__perfAbRounds rounds, the order swaps every round), so they feel the same load.
 // Every window is a perf-mark pair 'ab:<name>:<round>' for the thread sampler of run.mjs; PERF_AB_MOVE=1 walks (3 m/s) instead of standing.
