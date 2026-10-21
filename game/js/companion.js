@@ -9,6 +9,7 @@ import { waterClearance } from './waterindex.js';
 import { passagesOf } from './collision.js';
 
 import { coopStep } from './coopglue.js';
+import { kanUitstappen } from './coopgast.js';
 const SWIM_EDGE_CLEAR = 0.7;
 import { registerPoseSource, unregisterPoseSource, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
 
@@ -700,6 +701,33 @@ function followGround(world) {
   c.gz = map.groundHeightAt(c.x, c.y, hint);
 }
 
+// De gast (plek 1, de metgezel) doet iets met E (docs/COOP-GAST.md): zit ze in het voertuig van de host, dan stapt ze uit zodra het
+// bijna stilstaat; staat ze erbuiten en zit de host in een voertuig met een vrije plek dichtbij, dan stapt ze in.
+function coopGastGebruik(c, p, world) {
+  if (!world.coop || !world.coop.remote) return;
+  const meld = (t) => { if (world.coopMeld) world.coopMeld(1, t); };
+  if (c.inVehicle) {
+    const v = c.inVehicle;
+    if (!kanUitstappen(v)) { meld('Stap uit als het voertuig bijna stilstaat.'); return; }
+    v.passenger = null;
+    c.inVehicle = null;
+    [c.x, c.y] = findExitSpot(v, c.radius, world.map, EXIT_RIGHT_FIRST);
+    c.vx = 0; c.vy = 0;
+    c.coopUit = true;
+    if (world.coopWielSlot === 1) world.coopWielSlot = null; // zonder bijrijder geen stuur
+    return;
+  }
+  const v = p.inVehicle;
+  if (!v) return;
+  const canRide = !v.sinking && !v.riderOff && !(v.isHeli && (!v.onGround || Math.abs((v.z || 0) - (c.gz || 0)) > 2.5));
+  if (!canRide || v.passenger) { meld(v.passenger ? 'Er is geen plek meer in dit voertuig.' : 'Hier kun je nu niet instappen.'); return; }
+  if (dist(c.x, c.y, v.x, v.y) >= (v.isBoat ? BOARD_DIST + 2.5 : BOARD_DIST) + 2) { meld('Loop naar het voertuig om in te stappen.'); return; }
+  c.inVehicle = v;
+  v.passenger = 'companion';
+  c.coopUit = false;
+  c.vx = 0; c.vy = 0;
+}
+
 function stepCompanion(dt, world) {
   const c = world.companion;
   const p = world.player;
@@ -712,8 +740,11 @@ function stepCompanion(dt, world) {
   }
   if (isKnockedDown(c, world)) { c.vx = 0; c.vy = 0; return; }
   if (world.companionHold && holdCompanion(c, world.companionHold, dt, world)) return;
-  // mini co-op (coop.js): a second human steers the companion on foot
-  if (world.coop && !p.inVehicle && !c.inVehicle && !c.water && coopStep(c, dt, world, moveWithCollisions)) return;
+  // samen spelen (#291): de gast drukte op E: als bijrijder uitstappen (bijna stilstaand) of weer instappen
+  if (!p.inVehicle) c.coopUit = false; // de host stapte uit: ze loopt weer gewoon mee
+  if (world.coopGebruik) { world.coopGebruik = false; coopGastGebruik(c, p, world); }
+  // mini co-op (coop.js): a second human steers the companion on foot (ook naast het voertuig van de host als ze zelf is uitgestapt)
+  if (world.coop && (!p.inVehicle || c.coopUit) && !c.inVehicle && !c.water && coopStep(c, dt, world, moveWithCollisions)) return;
 
   if (c.water && !c.inVehicle) {
     const boat = p.inVehicle && p.inVehicle.isBoat && !p.inVehicle.passenger && !p.inVehicle.sinking ? p.inVehicle : null;

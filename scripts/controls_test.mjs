@@ -71,7 +71,7 @@ ok(C.KEY_ACTIONS.some(([k, d]) => k === 'control' && /heli/.test(d)) && C.KEY_AC
 ok(C.KEY_ACTIONS.some(([k, d]) => k === 'n' && /radio aan of uit/i.test(d)), 'N turns the radio on or off');
 ok(!C.KEY_ACTIONS.some(([k]) => k === 'b') && !C.KEY_ACTIONS.some(([, d]) => /zender/i.test(d)), 'no previous/next station keys left');
 ok(C.padSlotFor('N', 'vehicle') === 'lb' && /radio aan of uit/i.test(C.slotUses('lb')), 'LB in a vehicle is the radio switch, and Besturing says so', C.slotUses('lb'));
-ok(JSON.stringify(C.normalizeKeyBinds({ b: 'y', n: 'y' })) === '{"n":"y"}', 'a saved bind for the old B action is dropped, N keeps its own');
+ok(JSON.stringify(C.normalizeKeyBinds({ b: 'i', n: 'i' })) === '{"n":"i"}', 'a saved bind for the old B action is dropped, N keeps its own');
 
 // every situation maps every game key it needs to some button
 const need = { foot: [' ', 'control', 'e', 'f', 'k', 'm', 'escape', 'shift', 'tab', 'o'], vehicle: [' ', 'e', 'h', 'l', 'q', 'v', 'm', 'escape', 'n', 'shift', '@fire'],
