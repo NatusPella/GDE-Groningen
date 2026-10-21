@@ -166,7 +166,7 @@ function metCode() {
 
 // toegevoegd en verwijderd over de hele geschiedenis (alleen programmacode)
 function metChurn() {
-  const uit = git('log', '--numstat', '--format=@@@');
+  const uit = git('log', '--numstat', '--format=%x40');
   if (!uit) return;
   let plus = 0, min = 0, files = 0;
   for (const l of uit.split('\n')) {
