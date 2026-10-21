@@ -1,7 +1,7 @@
 // Speelchecks per nieuwe functie (ronde 3, issues van Review naar Klaar): in één headless
 // Electron (wegwerpprofiel, één instantie, sluit af) loopt feature_smoke.page.js een korte
 // scripted check per functie af en bewaart per check screenshots en consolefouten.
-//   node scripts/qa/feature_smoke.mjs [--out=<map>] [--only=kaart,wanted] [--settle=<ms>]
+//   node scripts/qa/feature_smoke.mjs [--out=<map>] [--only=kaart,wanted] [--settle=<ms>] [--jobs=brugdienst,suikerbieten (alleen bij --only=bijbanen)]
 // Vereist `cd desktop && npm run stage`. ELECTRON_EXE=<pad> als desktop/node_modules/electron/dist ontbreekt.
 // Uitvoer: <out>/shots-<check>[-<n>].png, features.json (per check: issues, notities, meldingen), run.log.
 import fs from 'node:fs';
@@ -20,7 +20,7 @@ const SETTLE = Number(arg('settle', 8000));
 fs.mkdirSync(OUT, { recursive: true });
 const profile = `gde-test-fs-${process.pid}`;
 const script = path.join(OUT, '_page.js');
-fs.writeFileSync(script, `window.__fs = ${JSON.stringify({ only: ONLY, settle: SETTLE })};\n` + fs.readFileSync(path.join(HERE, 'feature_smoke.page.js'), 'utf8'));
+fs.writeFileSync(script, `window.__fs = ${JSON.stringify({ only: ONLY, settle: SETTLE, jobs: (arg('jobs', '') || '').split(',').filter(Boolean) })};\n` + fs.readFileSync(path.join(HERE, 'feature_smoke.page.js'), 'utf8'));
 const electron = process.env.ELECTRON_EXE || path.join(ROOT, 'desktop', 'node_modules', 'electron', 'dist', process.platform === 'win32' ? 'electron.exe' : 'Electron');
 const env = { ...process.env, GDE_TEST_PROFILE: profile };
 delete env.ELECTRON_RUN_AS_NODE;

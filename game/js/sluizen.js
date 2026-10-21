@@ -14,6 +14,7 @@
 // sluis altijd beschikbaar voor wie komt: geen deadlock. Geen scène hier: sluizen3d.js tekent.
 
 import { makeLock, request, enter, stepLock, levelTime, LOCK_TIMING } from './locks.js';
+import { BOEZEM_Y } from './waterlevels.js';
 
 export const SLUIS = {
   REACH: 90,          // m voor de deur waarbinnen een naderende boot de sluis vraagt
@@ -34,6 +35,8 @@ export function makeSluis(row) {
   const len = Math.min(SLUIS.MAX_LEN, Math.max(SLUIS.MIN_LEN, row.l || SLUIS.MIN_LEN));
   const lock = makeLock({ x: row.x, y: row.y, a: row.a || 0, len, width: Math.max(6, row.w || 8), levels: row.lv ? row.lv.slice() : [-2.3, -2.3], name: row.n || '' });
   lock.id = row.id;
+  // which side's water is drawn at its own peil (waterlevels.js surfaceLift: the Lauwersmeer, #299)
+  lock.own = row.own && (row.own[0] || row.own[1]) ? [!!row.own[0], !!row.own[1]] : null;
   lock.half = len / 2;
   lock.c = Math.cos(lock.a); lock.s = Math.sin(lock.a);
   lock.stuck = 0;        // s dat de cyclus wacht op een vrije deurzone
@@ -71,8 +74,11 @@ function updateSignals(lock) { lock.sig[0] = signalOf(lock, 0); lock.sig[1] = si
 
 // De hoogte (m, t.o.v. het wateroppervlak van de wereld) waarmee een boot in de kolk meegaat:
 // hij stijgt of daalt met het peil in de kolk; als de uitgaande deur opengaat zakt dat verschil
-// weer weg (buiten tekent de wereld één watervlak).
+// weer weg (buiten tekent de wereld één watervlak). Een sluis waar een kant op eigen peil getekend
+// wordt (lock.own: het Lauwersmeer ligt 1,3 m boven de Waddenzee, #299) heeft die zakking niet:
+// buiten ligt het water even hoog als de kolk, en de lift is het peil van de kolk zelf, ook in rust.
 export function liftOf(lock) {
+  if (lock.own) return lock.level - BOEZEM_Y;
   if (lock.state === 'levelling') return lock.level - lock.levels[lock.at];
   if (lock.state === 'opening') return (lock.level - lock.levels[lock.at]) * (1 - Math.min(1, lock.t / LOCK_TIMING.GATE_S));
   return 0;
@@ -84,13 +90,20 @@ export function inChamber(lock, x, y, pad = 0) {
   return Math.abs(f.u) <= lock.half + pad && Math.abs(f.lat) <= lock.width / 2 + 1 + pad;
 }
 
-// De lift van de sluis waar boot v in ligt, of 0.
-export function sluisLiftAt(x, y) {
+// De lift van de kolk waar een boot op (x, y) in ligt, of null als er geen kolk is die hem tilt. Alleen een sluis
+// met een kant op eigen peil (lock.own) tilt de boot: bij de andere ligt het water aan beide kanten in het ene
+// watervlak van de wereld, en een boot die daar met het kolkpeil mee zou gaan, zakt onder dat vlak weg.
+export function chamberLiftAt(x, y) {
   for (const k of sluizen) {
-    if (Math.abs(x - k.x) > k.half + 10 || Math.abs(y - k.y) > k.half + 10) continue;
-    if (k.state !== 'ready' && inChamber(k, x, y)) return liftOf(k);
+    if (!k.own || Math.abs(x - k.x) > k.half + 10 || Math.abs(y - k.y) > k.half + 10) continue;
+    if (inChamber(k, x, y)) return liftOf(k);
   }
-  return 0;
+  return null;
+}
+// ...of 0.
+export function sluisLiftAt(x, y) {
+  const l = chamberLiftAt(x, y);
+  return l === null ? 0 : l;
 }
 
 // De sluis voor (x, y) binnen bereik, of null.

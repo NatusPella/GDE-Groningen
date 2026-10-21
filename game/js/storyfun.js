@@ -26,7 +26,7 @@ import { flashScreen } from './postfx3d.js';
 import { makeHeli, HELI_MODEL, helipadById } from './heliflight.js';
 import { playCastScene } from './missionstory.js';
 import { playCinematic, isCinematicActive } from './cinematics.js';
-import { isMissionActive } from './missions.js';
+import { isMissionActive } from './missionquery.js';
 import { isActivityActive } from './activities.js';
 import { buildPersonMesh, animatePersonWalk } from './models3d_people.js';
 import { getScene } from './scene3d.js';
@@ -345,7 +345,7 @@ function updatePending(w) {
 // Where an option is: its station, or the nearest walkable point to its spot
 // (the Noorderplantsoen's landmark lies in the pond).
 const hideoutAt = new Map();
-export function hideoutSpot(o) {
+function hideoutSpot(o) {
   if (hideoutAt.has(o.id)) return hideoutAt.get(o.id);
   let at = null;
   if (o.at === 'station') {

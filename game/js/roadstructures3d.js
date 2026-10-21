@@ -300,7 +300,8 @@ export function structureArrays(r, map) {
     B.quad('concrete', [l0[0], a0 - DECK_T, l0[1]], [l1[0], b0 - DECK_T, l1[1]], [r1[0], b0 - DECK_T, r1[1]], [r0[0], a0 - DECK_T, r0[1]]);
   };
   const segOf = new Map();
-  for (const sg of elev.segs) if (sg.r === r) segOf.set(sg.i, sg);
+  // (a streamed road has its segments listed: no walk over all of the province's)
+  for (const sg of (elev.byRoad && elev.byRoad.get(r)) || elev.segs) if (sg.r === r) segOf.set(sg.i, sg);
 
   // open ends of an embankment slope (where it gives way to a deck, an
   // abutment wall or the road ends) are closed with a triangle down to the

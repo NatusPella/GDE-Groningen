@@ -8,7 +8,7 @@ import { normalizeAngle } from './util.js';
 import { getSettings } from './settings.js';
 import { getCamera } from './scene3d.js';
 import { propsInRadius } from './breakables.js';
-import { wallOnPath } from './combat.js';
+import { wallOnPath } from './wallpath.js';
 
 const LOCK_CONE = 0.45; // rad either side of the camera heading
 const KEEP_CONE = 0.8; // a held lock survives this far off-centre

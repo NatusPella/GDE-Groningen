@@ -1,9 +1,13 @@
 // De Spelbot-driver (#186): start één Electron-instantie met wegwerpprofiel, laat
 // bot.page.js de game spelen en bouwt uit de gebeurtenissen het rapport.
 //   node scripts/bot/run.mjs [--out=<map>] [--part=kop|all] [--seed=1] [--stuck=30]
-//        [--max-game=3600] [--max-wall=1800] [--shots=80] [--invuln] [--audio] [--force] [--slot]
+//        [--until=<stap-id>] [--max-game=3600] [--max-wall=1800] [--shots=80] [--invuln] [--speed=1..8] [--wait=45] [--audio] [--reizen] [--force] [--slot]
+//   --part=all speelt akte 1 t/m 5 achter elkaar; --wait=<s> is het wachtbudget (een gesprek, banner of laadscherm dat zo lang blijft staan is een bevinding en krijgt de ladder)
 //   node scripts/bot/run.mjs --mode=minigames [--only=kartbaan,duif] [--play=40]   (fase 3: elke minigame kort spelen)
 //   node scripts/bot/run.mjs --mode=missions --only=M03,M04 [--per-step=600]   (elke stap los, via een sprong)
+//   --reizen zet de reisbeats aan (standaard uit in de bot; de bot kiest dan de eerste optie, Meerijden)
+//   --from=T1 springt eerst naar die stap en speelt dan door (de sprong van een sweep slaat reisstappen over, dit niet)
+//   --skip-from slaat die stap na de sprong over (cheat): de volgende stap, bv. een reisstap, begint dan bij jouw plek
 //   node scripts/bot/run.mjs --report=<map>           (rapport opnieuw uit events.jsonl)
 //   node scripts/bot/run.mjs --replay=<events.jsonl> [--out=<map>]   (invoer terugspelen)
 // ELECTRON_EXE=<pad> als desktop/node_modules/electron/dist ontbreekt. Vereist
@@ -58,15 +62,15 @@ if (!flag('force') && !flag('slot') && process.platform === 'win32') {
   if (/electron\.exe/i.test(t.stdout || '')) { console.error('Er draait al een Electron-instantie; de bot wacht niet. Sluit hem of gebruik --force.'); process.exit(3); }
 }
 
-// --slot: een Electron-slot nemen volgens C:/Users/abuis/gde-locks/README.txt (mkdir electron-1..3) en altijd vrijgeven
+// --slot: een Electron-slot nemen volgens <GDE_LOCKS>/README.txt (mkdir electron-1..3) en altijd vrijgeven
 let slot = null;
 const release = () => { if (slot) { try { fs.rmdirSync(slot); } catch { /* al weg */ } slot = null; } };
 process.on('exit', release);
 if (flag('slot')) {
-  const LOCKS = 'C:/Users/abuis/gde-locks';
-  for (let tries = 0; tries < 240 && !slot; tries++) {
+  const LOCKS = process.env.GDE_LOCKS || path.join(os.homedir(), 'gde-locks');
+  for (let tries = 0; tries < 720 && !slot; tries++) {
     for (const n of [1, 2, 3]) { try { fs.mkdirSync(path.join(LOCKS, `electron-${n}`)); slot = path.join(LOCKS, `electron-${n}`); console.log(`slot electron-${n}`); break; } catch { /* bezet */ } }
-    if (!slot) await new Promise((r) => setTimeout(r, 60000));
+    if (!slot) await new Promise((r) => setTimeout(r, 20000));
   }
   if (!slot) { console.error('geen Electron-slot gekregen'); process.exit(4); }
 }
@@ -75,7 +79,7 @@ const seed = Number(arg('seed', 1)) || 1;
 const replayFile = arg('replay');
 const profile = `gde-test-spelbot-${process.pid}`;
 const script = path.join(OUT, '_page.js');
-const cfg = { part: arg('part', 'kop'), maxGameS: Number(arg('max-game', 3600)), maxWallS: Number(arg('max-wall', 1800)), stuckS: Number(arg('stuck', 30)), only: arg('only', ''), playS: Number(arg('play', 40)), perS: Number(arg('per', 60)), mode: arg('mode', 'story'), sweep: arg('mode') === 'missions' ? arg('only', '').split(',').filter(Boolean) : [], perStepS: Number(arg('per-step', 600)), shots: Number(arg('shots', 80)), invulnerable: flag('invuln') };
+const cfg = { part: arg('part', 'kop'), maxGameS: Number(arg('max-game', 3600)), maxWallS: Number(arg('max-wall', 1800)), stuckS: Number(arg('stuck', 30)), only: arg('only', ''), from: arg('from', ''), skipFrom: flag('skip-from'), playS: Number(arg('play', 40)), perS: Number(arg('per', 60)), mode: arg('mode', 'story'), sweep: arg('mode') === 'missions' ? arg('only', '').split(',').filter(Boolean) : [], perStepS: Number(arg('per-step', 600)), shots: Number(arg('shots', 80)), speed: Number(arg('speed', 1)) || 1, waitS: Number(arg('wait', 45)) || 45, until: arg('until', ''), invulnerable: flag('invuln') };
 let pre = `window.__botCfg = ${JSON.stringify(cfg)};\n`;
 if (replayFile) {
   const rl = L.RunLog.parse(fs.readFileSync(path.resolve(replayFile), 'utf8'));
@@ -89,15 +93,18 @@ const electron = process.env.ELECTRON_EXE || path.join(ROOT, 'desktop', 'node_mo
 const env = { ...process.env, GDE_TEST_PROFILE: profile, GDE_NIEUW_VERHAAL: '1' };
 delete env.ELECTRON_RUN_AS_NODE;
 const t0 = Date.now();
-const r = spawnSync(electron, ['.', '--windowed', '--stil', '--force-device-scale-factor=1', '--window-size=1280x720', `--autoplay=${seed}`, ...(flag('audio') ? ['--audio-graph'] : []), ...(flag('viaducten') ? ['--viaducten'] : []),
+// uitvoer rechtstreeks naar run.log: wordt de run afgebroken (time-out, kill, de testrun zelf onderbroken), dan blijven de details staan (#255)
+const logFd = fs.openSync(path.join(OUT, 'run.log'), 'w');
+const r = spawnSync(electron, ['.', '--windowed', '--stil', '--force-device-scale-factor=1', '--window-size=1280x720', `--autoplay=${seed}`, ...(flag('audio') ? ['--audio-graph'] : []), ...(flag('reizen') ? ['--reizen'] : []),
   `--smoke-test=${path.join(OUT, 'shots.png')}`, `--perf-script=${script}`, `--bot-events=${events}`],
-{ cwd: path.join(ROOT, 'desktop'), env, encoding: 'utf8', maxBuffer: 1 << 28, timeout: (cfg.maxWallS + 240) * 1000, killSignal: 'SIGKILL' });
-if (r.error) console.error('Electron starten mislukt (niet geïnstalleerd? zet ELECTRON_EXE):', r.error.message);
-fs.writeFileSync(path.join(OUT, 'run.log'), `${r.stdout || ''}\n${r.stderr || ''}`);
+{ cwd: path.join(ROOT, 'desktop'), env, stdio: ['ignore', logFd, logFd], timeout: (cfg.maxWallS + 240) * 1000, killSignal: 'SIGKILL' });
+fs.closeSync(logFd);
+if (r.error && r.error.code !== 'ETIMEDOUT') console.error('Electron starten mislukt (niet geïnstalleerd? zet ELECTRON_EXE):', r.error.message);
+r.stdout = fs.readFileSync(path.join(OUT, 'run.log'), 'utf8');
 fs.rmSync(path.join(os.tmpdir(), profile), { recursive: true, force: true });
-release();
+const timedOut = !!(r.error && r.error.code === 'ETIMEDOUT');
 
-let res = { result: r.status === 0 ? 'ONBEKEND' : 'ELECTRON-FOUT', reason: `exit ${r.status}${r.signal ? ' ' + r.signal : ''}` };
+let res = { result: timedOut ? 'ONDERBROKEN' : r.status === 0 ? 'ONBEKEND' : 'ELECTRON-FOUT', reason: timedOut ? `Electron na ${Math.round((Date.now() - t0) / 1000)} s gestopt (time-out)` : `exit ${r.status}${r.signal ? ' ' + r.signal : ''}` };
 for (const l of (r.stdout || '').split(/\r?\n/)) { const m = l.match(/^\[perf-script\] (.*)$/); if (m) try { res = JSON.parse(m[1]); } catch { /* geen JSON */ } }
 const smokeErr = (r.stdout || '').split(/\r?\n/).find((l) => l.startsWith('[smoke error]'));
 if (smokeErr &&!['KLAAR', 'TIMEOUT', 'REPLAY'].includes(res.result)) res = { result: 'FOUT', reason: smokeErr.slice(14) };
@@ -107,5 +114,19 @@ res.arc = 'nieuw';
 fs.writeFileSync(path.join(OUT, 'result.json'), JSON.stringify(res, null, 1));
 buildFiles(OUT, { result: `${res.result}${res.reason ? ` (${res.reason})` : ''}`, gameSeconds: res.gameSeconds, wallSeconds: res.wallSeconds, seed, arc: 'nieuw', title: `${cfg.part}, seed ${seed}` });
 console.log(`${res.result}: ${res.reason || ''}`);
+// de details blijven ook bij een afgebroken run: wat klaar was, waar het stopte (#255)
+{
+  const evs = fs.readFileSync(events, 'utf8').split(/\r?\n/).map((l) => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean);
+  const mgs = evs.filter((e) => e.type === 'minigame');
+  if (cfg.mode === 'minigames') {
+    const planned = (evs.find((e) => e.type === 'start' && e.mode === 'minigames') || {}).activities || [];
+    const done = new Set(mgs.map((m) => m.id));
+    const rest = planned.filter((i) => !done.has(i));
+    console.log(`minigames klaar: ${mgs.length}/${planned.length}; gestart ${mgs.filter((m) => m.started).length}; niet gestart zonder reden: ${mgs.filter((m) => !m.started && !m.reden).map((m) => m.id).join(', ') || '-'}; ontwerp: ${mgs.filter((m) => !m.started && m.reden).map((m) => m.id).join(', ') || '-'}${rest.length ? `; niet aan toe gekomen: ${rest.join(', ')}` : ''}`);
+  }
+  const last = evs.filter((e) => e.type !== 'console').slice(-1)[0];
+  if (res.result !== 'KLAAR' && res.result !== 'REPLAY' && last) console.log(`laatste gebeurtenis: ${JSON.stringify(last).slice(0, 300)}`);
+  fs.writeFileSync(path.join(OUT, 'result.json'), JSON.stringify({ ...res, minigames: mgs.map((m) => [m.id, m.started, m.stuck, m.how, m.reden || '']) }, null, 1));
+}
 console.log(`uitvoer: ${OUT}`);
 process.exit(res.result === 'KLAAR' || res.result === 'REPLAY' ? 0 : 1);

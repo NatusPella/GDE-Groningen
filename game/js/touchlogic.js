@@ -4,6 +4,7 @@
 // PAD_MAPS), so touch drives exactly the actions the gamepad and keyboard do.
 import { PAD_MAPS, GAME_PAD_CTX, tokenKey } from './controls.js';
 import { playerBusy } from './busy.js';
+import { uiScaleFor } from './hudlook.js';
 
 // A phone or tablet: a coarse primary pointer that can't hover, or touch
 // points without a fine pointer. A laptop with a touchscreen keeps a mouse.
@@ -13,7 +14,7 @@ export function detectTouch({ maxTouchPoints = 0, coarse = false, fine = false, 
   return maxTouchPoints > 0 && !fine;
 }
 
-export const STICK_DEAD = 0.15;
+const STICK_DEAD = 0.15;
 export const STICK_RADIUS = 56;
 
 // Where the thumb is compared with where the stick was planted: a vector
@@ -55,7 +56,7 @@ export function stickKeys(vec, held = new Set()) {
 }
 
 const LABELS = {
-  ' ': { foot: 'Spring', minigame: 'Spring', vehicle: 'Handrem', vehicleManual: 'Handrem', skutsje: 'Handrem', heli: 'Omhoog', pigeon: 'Vlieg', train: 'Fluit', foodtruck: 'OK', klokken: 'Start' },
+  ' ': { foot: 'Spring', minigame: 'Spring', vehicle: 'Handrem', vehicleManual: 'Handrem', skutsje: 'Handrem', heli: 'Omhoog', pigeon: 'Vlieg', train: 'Fluit', foodtruck: 'OK', klokken: 'Start', cutscene: 'Overslaan' },
   control: { heli: 'Omlaag', pigeon: 'Pikken', foot: 'Bukken', minigame: 'Bukken' },
   e: { _: 'Gebruik', pannenkoek: 'Appel', klokken: 'Volgend' }, f: 'Instappen', h: 'Toeter', l: 'Sirene', q: { _: 'Achterom', pannenkoek: 'Stroop', klokken: 'Vorig' }, n: 'Radio', m: 'Kaart', o: 'Overslaan', k: 'Kusje',
   shift: 'Rennen', tab: 'Doel', c: 'Koer', x: 'Mens', v: 'Film', r: { _: 'Lak', pannenkoek: 'Kaas' }, z: 'Zeil vieren', '[': 'Links', ']': 'Rechts', p: 'Alarm',
@@ -73,7 +74,7 @@ export function labelFor(ctx, action) {
 // sprint and brake extras.
 const RIGHT = ['a', 'b', 'x', 'y', 'rt'];
 const LEFT = ['lt', 'ls', 'lb'];
-export const TOUCH_SLOTS = [...RIGHT, ...LEFT, 'rb'];
+const TOUCH_SLOTS = [...RIGHT, ...LEFT, 'rb'];
 
 // [{ slot, action, label, side }] for a situation; slots without a Dutch
 // label (or no action) are left out so the screen stays quiet.
@@ -81,6 +82,8 @@ export const TOUCH_SLOTS = [...RIGHT, ...LEFT, 'rb'];
 export const stickless = (ctx) => (PAD_MAPS[ctx] || {}).stick === 'none';
 
 export function touchPlan(ctx) {
+  // a cutscene: one button, held (Space) like the hold-to-skip of the keyboard
+  if (ctx === 'cutscene') return [{ slot: 'a', action: ' ', label: 'Overslaan', side: 'right' }];
   const map = PAD_MAPS[ctx] || PAD_MAPS.foot;
   const out = [];
   const seen = new Set();
@@ -98,6 +101,66 @@ export function touchPlan(ctx) {
   return out;
 }
 
+// Button spots from the bottom corner they sit in, in px before the layout
+// scale: [offset from the side, from the bottom]. Right: a diamond for the four
+// face buttons and one high up for the gas; left: a 2x2 block next to the stick.
+export const SPOTS_RIGHT = [[24, 110], [104, 40], [104, 180], [184, 110], [30, 240]];
+export const SPOTS_LEFT = [[24, 40], [24, 120], [124, 40], [124, 120]];
+export const BTN_H = 64;
+export const BTN_MIN_W = 64;
+// pause and "Meer" share the top row at the right edge: [offset from the side, size]
+export const PAUSE_BTN = { right: 10, top: 10, size: 60 };
+export const MORE_BTN = { right: 74, top: 10, size: 60 };
+
+// Where each button of a situation goes: [{ b, spot, side }]. A situation with
+// more buttons on a side than that side has spots gets none for the surplus
+// (touch_test.mjs checks that no plan runs out).
+export function touchPlacement(ctx) {
+  const out = [];
+  let r = 0, l = 0;
+  for (const b of touchPlan(ctx)) {
+    const spot = b.side === 'right' ? SPOTS_RIGHT[r++] : SPOTS_LEFT[l++];
+    if (spot) out.push({ b, spot, side: b.side });
+  }
+  return out;
+}
+
+// Where the HUD puts the minimap (hud_panel.css zone F: --hud-edge and --mm-size
+// by screen size, bottom 46, all times the HUD scale) in screen px. The left
+// buttons stay clear of it: beside it on a wide screen, above it on a portrait one.
+export function hudMinimap({ width, height }) {
+  const small = height <= 640 || width <= 760;
+  const mm = small ? 190 : 250, edge = small ? 24 : 46;
+  const ui = uiScaleFor(width, height, 1, true);
+  return { x: edge * ui, y: height - (46 + mm) * ui, w: mm * ui, h: mm * ui };
+}
+
+// How far the left buttons move, in button units (before the layout scale):
+// right: past the minimap; up: over it (portrait).
+export function leftOffset({ width, height }) {
+  const m = hudMinimap({ width, height });
+  const s = touchLayout({ width, height }).scale;
+  if (height > width) return { right: 0, up: Math.max(0, Math.ceil((height - m.y + 8) / s - SPOTS_LEFT[0][1])) };
+  return { right: Math.max(0, Math.ceil((m.x + m.w + 8) / s - SPOTS_LEFT[0][0])), up: 0 };
+}
+
+// Screen rectangles (px) of everything in the touch layer for a situation on a
+// screen of width x height: buttons (zoomed by the layout scale, like btnHost),
+// pause and, when the situation has extras, "Meer".
+export function touchRects(ctx, { width, height }) {
+  const s = touchLayout({ width, height }).scale;
+  const off = leftOffset({ width, height });
+  const rects = touchPlacement(ctx).map(({ b, spot, side }) => {
+    const w = Math.max(BTN_MIN_W, Math.round(b.label.length * 8.5 + 20));
+    const x = side === 'right' ? width - (spot[0] + w) * s : (spot[0] + off.right) * s;
+    return { name: b.label, x, y: height - (spot[1] + (side === 'left' ? off.up : 0) + BTN_H) * s, w: w * s, h: BTN_H * s };
+  });
+  const top = (o, name) => ({ name, x: width - (o.right + o.size) * s, y: o.top * s, w: o.size * s, h: o.size * s });
+  rects.push(top(PAUSE_BTN, 'II'));
+  if (touchMore(ctx).length) rects.push(top(MORE_BTN, 'Meer'));
+  return rects;
+}
+
 // Whether on-screen touches count as game input at all: taps on menus and
 // the phone must stay plain clicks.
 export function touchUiActive({ started, menuOpen }) {
@@ -106,8 +169,9 @@ export function touchUiActive({ started, menuOpen }) {
 
 // The PAD_MAPS situation for the world right now (the same choice
 // gamepad.js makes), so touch buttons follow what the player is doing.
-export function touchContext(w, { started = true, menuOpen = false, shiftMode = 'auto' } = {}) {
+export function touchContext(w, { started = true, menuOpen = false, shiftMode = 'auto', cine = false } = {}) {
   if (!started || menuOpen) return 'menu';
+  if (cine) return 'cutscene';
   if (!w) return 'foot';
   if (w.pigeonMode) return 'pigeon';
   if (w.trainDriving) return 'train';
@@ -135,7 +199,8 @@ export function touchLayout({ width = 800, height = 400 } = {}) {
   const portrait = height > width;
   return {
     cls, portrait, orientation: portrait ? 'portrait' : 'landscape',
-    scale: Math.round(Math.max(0.7, Math.min(1.3, base * (short / (cls === 'tablet' ? 768 : 400) > 1.3 ? 1.1 : 1))) * 100) / 100,
+    // the left block (176 px) and the right diamond (about 250 px) must fit side by side, also on a narrow portrait screen
+    scale: Math.round(Math.max(0.7, Math.min(1.3, base * (short / (cls === 'tablet' ? 768 : 400) > 1.3 ? 1.1 : 1), width / 480)) * 100) / 100,
     hint: portrait ? 'Draai je toestel voor de beste besturing' : '',
     // the stick zone gets less of the screen on a narrow phone so the look zone stays big enough
     leftShare: cls === 'tablet' ? 0.4 : 0.45,
@@ -146,6 +211,7 @@ export function touchLayout({ width = 800, height = 400 } = {}) {
 // have no button of their own; they sit behind one "Meer" button.
 const MORE_SLOTS = ['up', 'down', 'left', 'right', 'view'];
 export function touchMore(ctx) {
+  if (ctx === 'cutscene') return [];
   const map = PAD_MAPS[ctx] || PAD_MAPS.foot;
   const direct = new Set(touchPlan(ctx).map((b) => b.action));
   const out = [];

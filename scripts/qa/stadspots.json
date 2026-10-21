@@ -1,0 +1,609 @@
+{
+ "gemaakt": "uit de oude stadskaart gemeten (oriëntatiepunten, wijken, bruggen, kunstwerken, station, water, raster); vaste lijst, bewust niet opnieuw gegenereerd",
+ "n": 67,
+ "spots": [
+  {
+   "name": "s01-martinitoren",
+   "cat": "landmark",
+   "x": 195.8,
+   "y": -5.8,
+   "a": 2.72,
+   "street": "",
+   "nacht": true
+  },
+  {
+   "name": "s02-martinikerk",
+   "cat": "landmark",
+   "x": 258.6,
+   "y": 23.5,
+   "a": -0.323,
+   "street": "Martinikerkhof",
+   "nacht": false
+  },
+  {
+   "name": "s03-grote-markt",
+   "cat": "landmark",
+   "x": 106.3,
+   "y": 58.6,
+   "a": 2.798,
+   "street": "Grote Markt",
+   "nacht": true
+  },
+  {
+   "name": "s04-vismarkt",
+   "cat": "landmark",
+   "x": 19.4,
+   "y": 255.6,
+   "a": 2.556,
+   "street": "Vismarkt",
+   "nacht": false
+  },
+  {
+   "name": "s05-der-aa-kerk",
+   "cat": "landmark",
+   "x": -178.9,
+   "y": 373.1,
+   "a": -0.4,
+   "street": "Akerkhof",
+   "nacht": true
+  },
+  {
+   "name": "s06-forum-groningen",
+   "cat": "landmark",
+   "x": 348.6,
+   "y": 51.7,
+   "a": -0.645,
+   "street": "",
+   "nacht": false
+  },
+  {
+   "name": "s07-groninger-museum",
+   "cat": "landmark",
+   "x": 72.5,
+   "y": 785.9,
+   "a": 1.455,
+   "street": "Museumeiland",
+   "nacht": true
+  },
+  {
+   "name": "s08-hoofdstation-groningen",
+   "cat": "landmark",
+   "x": -47.7,
+   "y": 953,
+   "a": 1.559,
+   "street": "",
+   "nacht": false
+  },
+  {
+   "name": "s09-prinsentuin",
+   "cat": "landmark",
+   "x": 267.9,
+   "y": -244.4,
+   "a": 0.467,
+   "street": "Turfsingel",
+   "nacht": true
+  },
+  {
+   "name": "s10-academiegebouw",
+   "cat": "landmark",
+   "x": -130.5,
+   "y": -29.3,
+   "a": -0.429,
+   "street": "",
+   "nacht": false
+  },
+  {
+   "name": "s11-goudkantoor",
+   "cat": "landmark",
+   "x": 89,
+   "y": 115.5,
+   "a": 2.629,
+   "street": "Waagplein",
+   "nacht": true
+  },
+  {
+   "name": "s12-noorderplantsoen",
+   "cat": "landmark",
+   "x": 105.9,
+   "y": -718.6,
+   "a": -0.39,
+   "street": "Oosterhamrikkade",
+   "nacht": false
+  },
+  {
+   "name": "s13-winkelcentrum-paddepoel",
+   "cat": "landmark",
+   "x": -1428.7,
+   "y": -1158.8,
+   "a": 1.248,
+   "street": "",
+   "nacht": true
+  },
+  {
+   "name": "s14-euroborg",
+   "cat": "landmark",
+   "x": 1804.9,
+   "y": 1352.8,
+   "a": 0.005,
+   "street": "Boumaboulevard",
+   "nacht": false
+  },
+  {
+   "name": "s15-bernoullipleinbuurt",
+   "cat": "wijk",
+   "x": 153.4,
+   "y": -933.1,
+   "a": -0.732,
+   "street": "Petrus Driessenstraat",
+   "nacht": true
+  },
+  {
+   "name": "s16-professorenbuurt",
+   "cat": "wijk",
+   "x": 568.3,
+   "y": -1263.3,
+   "a": -0.648,
+   "street": "Van Hamelstraat",
+   "nacht": false
+  },
+  {
+   "name": "s17-nieuw-indische-buurt",
+   "cat": "wijk",
+   "x": 287.7,
+   "y": -1588.7,
+   "a": 2.011,
+   "street": "Soerabajastraat",
+   "nacht": false
+  },
+  {
+   "name": "s18-binnenstad-oost",
+   "cat": "wijk",
+   "x": 507.4,
+   "y": -164.4,
+   "a": 0.138,
+   "street": "",
+   "nacht": true
+  },
+  {
+   "name": "s19-damsterkwartier",
+   "cat": "wijk",
+   "x": 801.2,
+   "y": 249.1,
+   "a": 2.454,
+   "street": "Lijnbaanstraat",
+   "nacht": false
+  },
+  {
+   "name": "s20-sterrebosbuurt",
+   "cat": "wijk",
+   "x": 689.1,
+   "y": 1880.6,
+   "a": 1.617,
+   "street": "",
+   "nacht": false
+  },
+  {
+   "name": "s21-oosterpoort",
+   "cat": "wijk",
+   "x": 858.2,
+   "y": 887.4,
+   "a": 2.923,
+   "street": "Warmoesstraat",
+   "nacht": true
+  },
+  {
+   "name": "s22-laanhuizen",
+   "cat": "wijk",
+   "x": -765.6,
+   "y": 1229.9,
+   "a": 2.762,
+   "street": "Illegaliteitslaan",
+   "nacht": false
+  },
+  {
+   "name": "s23-martini-trade-park",
+   "cat": "wijk",
+   "x": -640.3,
+   "y": 1827.4,
+   "a": -1.961,
+   "street": "",
+   "nacht": false
+  },
+  {
+   "name": "s24-gorechtbuurt",
+   "cat": "wijk",
+   "x": 869.3,
+   "y": -518.8,
+   "a": 0.987,
+   "street": "Gerbrand Bakkerstraat",
+   "nacht": true
+  },
+  {
+   "name": "s25-damsterbuurt",
+   "cat": "wijk",
+   "x": 1110.5,
+   "y": 50.3,
+   "a": -0.672,
+   "street": "Holtstek",
+   "nacht": false
+  },
+  {
+   "name": "s26-paddepoel-zuid",
+   "cat": "wijk",
+   "x": -1484,
+   "y": -643.4,
+   "a": -0.314,
+   "street": "Draakstraat",
+   "nacht": false
+  },
+  {
+   "name": "s27-de-hoogte",
+   "cat": "wijk",
+   "x": -260.1,
+   "y": -1574.8,
+   "a": 1.924,
+   "street": "",
+   "nacht": true
+  },
+  {
+   "name": "s28-korrewegwijk",
+   "cat": "wijk",
+   "x": 354.7,
+   "y": -1351.5,
+   "a": -2.682,
+   "street": "",
+   "nacht": false
+  },
+  {
+   "name": "s29-studentenbuurt",
+   "cat": "wijk",
+   "x": -768.5,
+   "y": -1144.3,
+   "a": 1.941,
+   "street": "",
+   "nacht": false
+  },
+  {
+   "name": "s30-noorderplantsoenbuurt",
+   "cat": "wijk",
+   "x": -744.5,
+   "y": -775.6,
+   "a": 0.987,
+   "street": "Tuinbouwdwarsstraat",
+   "nacht": true
+  },
+  {
+   "name": "s31-oranjebuurt",
+   "cat": "wijk",
+   "x": -1176,
+   "y": -181.4,
+   "a": 1.406,
+   "street": "Prinsesseweg",
+   "nacht": false
+  },
+  {
+   "name": "s32-metalenkwartier",
+   "cat": "wijk",
+   "x": -2194.3,
+   "y": -352.6,
+   "a": -1.856,
+   "street": "Kaliumstraat",
+   "nacht": false
+  },
+  {
+   "name": "s33-cortinghborg",
+   "cat": "wijk",
+   "x": -226.9,
+   "y": -1945.1,
+   "a": -1.283,
+   "street": "",
+   "nacht": true
+  },
+  {
+   "name": "s34-europapark",
+   "cat": "wijk",
+   "x": 1612.9,
+   "y": 1233.2,
+   "a": -0.815,
+   "street": "",
+   "nacht": false
+  },
+  {
+   "name": "s35-van-starkenborgh",
+   "cat": "wijk",
+   "x": 578.8,
+   "y": -2207,
+   "a": -0.986,
+   "street": "Tonny van Leeuwenlaan",
+   "nacht": false
+  },
+  {
+   "name": "s36-bisschopskwartier",
+   "cat": "wijk",
+   "x": 2.1,
+   "y": -154.2,
+   "a": 1.069,
+   "street": "Kleine Butjesstraat",
+   "nacht": true
+  },
+  {
+   "name": "s37-brug-griffeweg",
+   "cat": "brug",
+   "x": 945.9,
+   "y": 505.1,
+   "a": 2.593,
+   "street": "Griffeweg",
+   "nacht": true
+  },
+  {
+   "name": "s38-brug-noordzeeweg",
+   "cat": "brug",
+   "x": 135.2,
+   "y": -2178.7,
+   "a": 1.889,
+   "street": "Noordzeeweg",
+   "nacht": false
+  },
+  {
+   "name": "s39-brug-plataanlaan",
+   "cat": "brug",
+   "x": -1793.9,
+   "y": -1807.4,
+   "a": 2.873,
+   "street": "Plataanlaan",
+   "nacht": true
+  },
+  {
+   "name": "s40-brug-osloweg",
+   "cat": "brug",
+   "x": 2318.9,
+   "y": 550.9,
+   "a": 2.896,
+   "street": "Osloweg",
+   "nacht": true
+  },
+  {
+   "name": "s41-brug-5",
+   "cat": "brug",
+   "x": -1291.2,
+   "y": 1020,
+   "a": 0.492,
+   "street": "",
+   "nacht": false
+  },
+  {
+   "name": "s42-kunstwerk-laan-1940-1945",
+   "cat": "kunstwerk",
+   "x": -1411.1,
+   "y": 918.6,
+   "a": 0.769,
+   "street": "Laan 1940-1945",
+   "nacht": true
+  },
+  {
+   "name": "s43-kunstwerk-laan-1940-1945",
+   "cat": "kunstwerk",
+   "x": -1629.8,
+   "y": 520.8,
+   "a": -1.987,
+   "street": "Laan 1940-1945",
+   "nacht": false
+  },
+  {
+   "name": "s44-kunstwerk-laan-1940-1945",
+   "cat": "kunstwerk",
+   "x": -1510.9,
+   "y": 769.3,
+   "a": -2.066,
+   "street": "Laan 1940-1945",
+   "nacht": true
+  },
+  {
+   "name": "s45-kunstwerk-beneluxweg",
+   "cat": "kunstwerk",
+   "x": 1802.8,
+   "y": 714.6,
+   "a": 2.58,
+   "street": "Beneluxweg",
+   "nacht": true
+  },
+  {
+   "name": "s46-station-groningen-noord",
+   "cat": "spoor",
+   "x": -596.4,
+   "y": -1181.8,
+   "a": 0.6,
+   "street": "",
+   "nacht": true
+  },
+  {
+   "name": "s47-station-groningen-europapark",
+   "cat": "spoor",
+   "x": 1427.6,
+   "y": 1608,
+   "a": -0.07,
+   "street": "",
+   "nacht": true
+  },
+  {
+   "name": "s48-water-0",
+   "cat": "water",
+   "x": 530.4,
+   "y": 108,
+   "a": 0.002,
+   "street": "Poelebrug",
+   "nacht": true
+  },
+  {
+   "name": "s49-water-3",
+   "cat": "water",
+   "x": 1946.3,
+   "y": 1771.9,
+   "a": 1.498,
+   "street": "Oude Stamspoor",
+   "nacht": false
+  },
+  {
+   "name": "s50-water-8",
+   "cat": "water",
+   "x": 732.4,
+   "y": 497,
+   "a": 0.824,
+   "street": "Trompbrug",
+   "nacht": true
+  },
+  {
+   "name": "s51-raster-2400-1200",
+   "cat": "raster",
+   "x": -2398.5,
+   "y": -1196.1,
+   "a": -0.272,
+   "street": "",
+   "nacht": false
+  },
+  {
+   "name": "s52-raster-1200-2400",
+   "cat": "raster",
+   "x": -1152.7,
+   "y": -2348.5,
+   "a": 0.314,
+   "street": "",
+   "nacht": false
+  },
+  {
+   "name": "s53-raster-1200-1200",
+   "cat": "raster",
+   "x": -1157.3,
+   "y": -1204.6,
+   "a": 1.271,
+   "street": "Wilgenpad",
+   "nacht": false
+  },
+  {
+   "name": "s54-raster-1200-0",
+   "cat": "raster",
+   "x": -1216.7,
+   "y": -5,
+   "a": 2.886,
+   "street": "Adelheidstraat",
+   "nacht": false
+  },
+  {
+   "name": "s55-raster-1200-1200",
+   "cat": "raster",
+   "x": -1185.8,
+   "y": 1234.5,
+   "a": -0.409,
+   "street": "",
+   "nacht": false
+  },
+  {
+   "name": "s56-raster-1200-2400",
+   "cat": "raster",
+   "x": -1062.6,
+   "y": 2300.9,
+   "a": -0.508,
+   "street": "",
+   "nacht": false
+  },
+  {
+   "name": "s57-raster-0-2400",
+   "cat": "raster",
+   "x": -16.7,
+   "y": -2400.2,
+   "a": -0.463,
+   "street": "",
+   "nacht": false
+  },
+  {
+   "name": "s58-raster-0-1200",
+   "cat": "raster",
+   "x": 35.2,
+   "y": -1214,
+   "a": 0.641,
+   "street": "Sumatralaan",
+   "nacht": false
+  },
+  {
+   "name": "s59-raster-0-0",
+   "cat": "raster",
+   "x": -6.8,
+   "y": 19.4,
+   "a": 2.64,
+   "street": "Rodeweeshuisstraat",
+   "nacht": false
+  },
+  {
+   "name": "s60-raster-0-1200",
+   "cat": "raster",
+   "x": 13.2,
+   "y": 1210.1,
+   "a": -0.395,
+   "street": "",
+   "nacht": false
+  },
+  {
+   "name": "s61-raster-0-2400",
+   "cat": "raster",
+   "x": -3.2,
+   "y": 2226.6,
+   "a": -1.197,
+   "street": "Julianaweg",
+   "nacht": false
+  },
+  {
+   "name": "s62-raster-1200-2400",
+   "cat": "raster",
+   "x": 1186.9,
+   "y": -2393,
+   "a": -0.558,
+   "street": "Heerdenpad",
+   "nacht": false
+  },
+  {
+   "name": "s63-raster-1200-1200",
+   "cat": "raster",
+   "x": 1215.4,
+   "y": -1189.8,
+   "a": -2.238,
+   "street": "Oliemuldersweg",
+   "nacht": false
+  },
+  {
+   "name": "s64-raster-1200-0",
+   "cat": "raster",
+   "x": 1199.1,
+   "y": 6.4,
+   "a": 2.487,
+   "street": "Zagerij",
+   "nacht": false
+  },
+  {
+   "name": "s65-raster-1200-1200",
+   "cat": "raster",
+   "x": 1180.7,
+   "y": 1195.8,
+   "a": -0.71,
+   "street": "H.L. Wichersstraat",
+   "nacht": false
+  },
+  {
+   "name": "s66-raster-2400-1200",
+   "cat": "raster",
+   "x": 2387.6,
+   "y": -1215.5,
+   "a": -0.099,
+   "street": "Speenkruidstraat",
+   "nacht": false
+  },
+  {
+   "name": "s67-raster-2400-0",
+   "cat": "raster",
+   "x": 2417.6,
+   "y": -5.3,
+   "a": -1.975,
+   "street": "Euvelgunnerweg",
+   "nacht": false
+  }
+ ]
+}

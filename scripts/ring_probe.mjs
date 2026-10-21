@@ -10,8 +10,8 @@ await import('../game/js/player.js');
 const { probeRingSolids } = await import('../game/js/ringcheck.js');
 
 const root = new URL('../game/', import.meta.url);
-const data = JSON.parse(fs.readFileSync(new URL('citymap.json', root)));
-applyMapExtras(data, JSON.parse(fs.readFileSync(new URL('mapextras.json', root))));
+const { loadCityData } = await import('./lib/loadworld.mjs');
+const data = await loadCityData();
 const map = new GameMap(data);
 const hits = probeRingSolids({ map, flitspaalen: [] });
 for (const h of hits.slice(0, 60)) console.log(`${h.route} +${h.s} m ${h.kind} ${h.what} (${h.x}, ${h.y}, z ${h.z})`);

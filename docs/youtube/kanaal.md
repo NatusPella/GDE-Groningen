@@ -228,13 +228,12 @@ beschrijvingen:
 
 ## Publiek en leeftijd
 
-- **Gemaakt voor kinderen: Nee** (kanaal en elke video). De game mikt op
-  PEGI 16 (`docs/LEEFTIJD.md`): alcohol, misdaad als thema, cartoonesk
-  geweld.
-- **Leeftijdsbeperking: geen** nodig voor de trailers: geen bloed, geen
-  grof geweld (`docs/LEEFTIJD.md`). Wel in de beschrijving van een
-  gameplayvideo melden als er een kroegentocht of achtervolging met
-  wapens in zit, en bij twijfel de leeftijdsbeperking aanzetten.
+- **Gemaakt voor kinderen: Nee** (kanaal en elke video). De game is **18+**
+  (`docs/LEEFTIJD.md`: bloed en burgers die sneuvelen). De trailers tonen
+  dat niet; de beschrijving begint toch met een 18+-waarschuwing.
+- **Leeftijdsbeperking op de video:** niet nodig zolang er geen bloed en
+  geen geraakte burgers in beeld zijn (zie `docs/youtube/pakket.md`); bij
+  twijfel aanzetten.
 - Categorie: **Gaming**. Taal van de video: **Nederlands**. Ondertitels:
   Nederlands (de game heeft ze al; als SRT exporteren of automatisch laten
   maken en nakijken), optioneel Engels.

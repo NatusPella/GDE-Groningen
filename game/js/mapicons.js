@@ -2,34 +2,35 @@
 // (node-safe, no DOM). Every icon has a category with a priority; zoomed out
 // only the important categories show, zoomed in more, and where two icons
 // would overlap the one with the higher priority wins.
+import { INK, inkA, ICON_RIM, ICON_FILL, ICON_GLYPH_LIGHT, iconMinZoom, iconVisibleAtZoom } from './mapstyle.js';
 
-// min: the zoom (map zoom, 1 = the city's extent) from which the category shows;
-// pri: who wins a collision; keep: never dropped by a collision
+// pri: who wins a collision; keep: never dropped by a collision. The zoom a category
+// shows from is in mapstyle.js (ICON_MIN_ZOOM), with the other layer rules.
 const CATS = {
-  player: { min: 0, pri: 1000, keep: true },
-  partner: { min: 0, pri: 950, keep: true }, // medespelers (samen spelen, #95)
-  goal: { min: 0, pri: 900, keep: true },
-  mission: { min: 0, pri: 800, keep: true },
-  police: { min: 0, pri: 700, keep: true },
-  gevaar: { min: 0, pri: 650, keep: true },
-  rival: { min: 0, pri: 640, keep: true },
-  halte: { min: 0, pri: 620, keep: true },
-  subdoel: { min: 0, pri: 590 },
-  home: { min: 0, pri: 600, keep: true },
-  own: { min: 0.6, pri: 560 },
-  station: { min: 0, pri: 520 },
-  zorg: { min: 0.9, pri: 500 },
-  politiebureau: { min: 0.9, pri: 490 },
-  garage: { min: 1.1, pri: 450 },
-  job: { min: 1.1, pri: 400 },
-  fun: { min: 1.6, pri: 300 },
-  shop: { min: 2, pri: 250 },
-  ommeland: { min: 0.34, pri: 240 },
-  companion: { min: 1.6, pri: 230 },
-  tip: { min: 4, pri: 120 },
-  horeca: { min: 6, pri: 110 },
-  flitspaal: { min: 4, pri: 100 },
-  other: { min: 2, pri: 200 },
+  player: { pri: 1000, keep: true },
+  partner: { pri: 950, keep: true }, // medespelers (samen spelen, #95)
+  goal: { pri: 900, keep: true },
+  mission: { pri: 800, keep: true },
+  police: { pri: 700, keep: true },
+  gevaar: { pri: 650, keep: true },
+  rival: { pri: 640, keep: true },
+  halte: { pri: 620, keep: true },
+  subdoel: { pri: 590 },
+  home: { pri: 600, keep: true },
+  own: { pri: 560 },
+  station: { pri: 520 },
+  zorg: { pri: 500 },
+  politiebureau: { pri: 490 },
+  garage: { pri: 450 },
+  job: { pri: 400 },
+  fun: { pri: 300 },
+  shop: { pri: 250 },
+  ommeland: { pri: 240 },
+  companion: { pri: 230 },
+  tip: { pri: 120 },
+  horeca: { pri: 110 },
+  flitspaal: { pri: 100 },
+  other: { pri: 200 },
 };
 
 export function mapCategory(kind) {
@@ -67,7 +68,7 @@ export function mapPriority(kind) {
 
 // whether this kind shows at this zoom
 export function mapKindVisible(kind, zoom) {
-  return zoom >= CATS[mapCategory(kind)].min;
+  return iconVisibleAtZoom(mapCategory(kind), zoom);
 }
 
 // icon scale for the full map: 2.1 zoomed out, up to 3.2 right on the street.
@@ -81,24 +82,21 @@ export function mapIconScale(zoom) {
 // minimap is small and read at a glance: its icons are bigger in proportion.
 export const ICON_UNITS = 10;
 export const MIN_ICON_PX = 21; // full map and minimap, at any zoom
-export const MINI_ICON_FRAC = 0.095; // minimap icon / minimap size
-export const MINI_YOU_FACTOR = 1.15; // goals and routes a little bigger than places
+const MINI_ICON_FRAC = 0.095; // minimap icon / minimap size
+const MINI_YOU_FACTOR = 1.15; // goals and routes a little bigger than places
 export function miniIconScale(mapPx, you = false) {
   const px = Math.max(MIN_ICON_PX, (mapPx || 0) * MINI_ICON_FRAC) * (you ? MINI_YOU_FACTOR : 1);
   return Math.round(px / ICON_UNITS * 100) / 100;
 }
 // Two icons never closer than this (centre to centre, px) for a scale: a
 // little more than one icon width, so rims never touch.
-export const ICON_GAP_FACTOR = 1.45;
+const ICON_GAP_FACTOR = 1.45;
 export const iconGapPx = (scale) => Math.round(ICON_UNITS * scale * ICON_GAP_FACTOR);
 
 // The rim colour of an icon's disc per category, so the kinds read apart at a glance
-const CAT_RIM = {
-  zorg: '#ff5a5a', politiebureau: '#5a8bff', garage: '#ffb23f', station: '#9a7bff', job: '#4fd6c4',
-  shop: '#ff8ad0', gevaar: '#ff5a5a', rival: '#ffb23f', halte: '#ffd84a', subdoel: '#4fd6c4', fun: '#a6e04f', horeca: '#ff9a4f', own: '#f5e04f', ommeland: '#7fd0ff',
-};
+// (the colours are in mapstyle.js, ICON_RIM)
 export function mapRimColor(kind) {
-  return CAT_RIM[mapCategory(kind)] || 'rgba(240, 237, 228, 0.92)';
+  return ICON_RIM[mapCategory(kind)] || inkA('cream', 0.92);
 }
 
 // Icons that have to be drawn, in any order: [{ kind, sx, sy }]. Returns the
@@ -136,12 +134,12 @@ export function placeIcons(items, gap) {
 // The ground is either dark (the cream ring stands out) or light (the dark
 // outline does), so one of the two outer rings reaches GRAPHIC_CONTRAST (WCAG
 // 2.1 non-text, 3:1) on every palette; mapicons_test checks that on all of them.
-export const HALO_DARK = '#0c140e';
-export const HALO_LIGHT = '#f0ede4';
+export const HALO_DARK = INK.dark;
+export const HALO_LIGHT = INK.cream;
 export const GRAPHIC_CONTRAST = 3;
 const chan = (v) => { const c = v / 255; return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; };
 // relative luminance of '#rrggbb'
-export function hexLuminance(hex) {
+function hexLuminance(hex) {
   return 0.2126 * chan(parseInt(hex.slice(1, 3), 16)) + 0.7152 * chan(parseInt(hex.slice(3, 5), 16)) + 0.0722 * chan(parseInt(hex.slice(5, 7), 16));
 }
 export function hexContrast(a, b) {
@@ -165,11 +163,39 @@ export function haloOutline(ground) {
 // colour alone says what kind of place it is. hud_panel.js draws it from the
 // glyphs; the pairs below are checked by mapicons_test (fill/ink 3:1, and on
 // every ground at least one of the two reaches 3:1).
-export const FLAT_FILL = {
-  zorg: '#ff5a5a', politiebureau: '#5a8bff', garage: '#ffb23f', station: '#9a7bff', job: '#4fd6c4',
-  shop: '#ff8ad0', fun: '#a6e04f', horeca: '#ff9a4f', ommeland: '#7fd0ff',
-  flitspaal: '#ffe14a', tip: '#e8b060', other: '#f5f0e6',
+export const FLAT_FILL = ICON_FILL;
+// The badge: one shape per category next to its colour (so colour is never the only cue),
+// a light glyph on a saturated fill, a darker rim, a soft shadow (hud_panel.js flatSprite).
+export const BADGE_SHAPE = {
+  zorg: 'circle', politiebureau: 'shield', garage: 'hex', station: 'squircle', job: 'diamond',
+  shop: 'tile', fun: 'circle', horeca: 'circle', ommeland: 'circle', flitspaal: 'tile', tip: 'circle', other: 'circle',
 };
+export const BADGE_UNITS = 11; // the badge's width in base units (the glyph is about 10)
+export const GLYPH_LIGHT = ICON_GLYPH_LIGHT;
+export function badgeShape(kind) { return BADGE_SHAPE[mapCategory(kind)] || 'circle'; }
+// the glyph colour on a fill: cream where it reaches 3:1 (blue, red, purple), else dark ink (yellow, lime)
+export function badgeGlyphColor(fill) {
+  return hexContrast(GLYPH_LIGHT, fill) >= GRAPHIC_CONTRAST ? GLYPH_LIGHT : HALO_DARK;
+}
+// '#rrggbb' mixed towards white (k > 0) or black (k < 0), k in -1..1
+export function shadeHex(hex, k) {
+  const t = k < 0 ? 0 : 255, a = Math.abs(k);
+  const c = (i) => Math.round(parseInt(hex.slice(1 + i * 2, 3 + i * 2), 16) * (1 - a) + t * a);
+  return '#' + [c(0), c(1), c(2)].map((v) => v.toString(16).padStart(2, '0')).join('');
+}
+// states of a place: 'aanwezig' (default), 'ontdekt' (seen before, not here now: softer),
+// 'vergrendeld' (not open yet: grey, dimmed)
+export function stateLook(state) {
+  if (state === 'vergrendeld') return { gray: true, alpha: 0.62 };
+  if (state === 'ontdekt') return { gray: false, alpha: 0.82 };
+  return { gray: false, alpha: 1 };
+}
+// low-priority categories fade in just after the zoom they appear at, so the map does not pop
+export function mapIconAlpha(kind, zoom) {
+  const min = iconMinZoom(mapCategory(kind));
+  if (!(min > 0.5)) return 1;
+  return Math.max(0.8, Math.min(1, 0.8 + (zoom - min) / (min * 0.5) * 0.2));
+}
 export const FLAT_INK = HALO_DARK;
 // the colour of the category, or null when this kind keeps its own look (you, goals, missions,
 // police, mission-layer marks, your own vehicles and home)

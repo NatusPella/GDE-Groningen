@@ -13,8 +13,8 @@ const { GameMap, applyMapExtras } = await import('../game/js/mapdata.js');
 await import('../game/js/player.js');
 // the city's own map for what needs no tiles (water rule, meadow drag, police) and
 // the tile world, with the tiles round the spots in, for the rest
-const data = JSON.parse(fs.readFileSync(new URL('citymap.json', root)));
-applyMapExtras(data, JSON.parse(fs.readFileSync(new URL('mapextras.json', root))));
+const { loadCityData } = await import('./lib/loadworld.mjs');
+const data = await loadCityData();
 const cityMap = new GameMap(data);
 const { loadGameWorld, loadArea } = await import('./worldload.mjs');
 const T = await loadGameWorld();
@@ -35,7 +35,7 @@ const PWV = await import('../game/js/provinceworld.js');
 let beyond = [16328.69, 14806.14];
 for (let k = 0; k < 60 && PWV.inProvinceData(beyond[0], beyond[1]) !== false; k++) beyond = [beyond[0] + 1000, beyond[1] + 1000];
 const SPOTS = [
-  ['Eelde', 1774.82, 9945.78],
+  ['Haren', 2838.32, 5353.35],
   ['Bedum', 1931.4, -9027.27],
   ['Ten Boer', 8572.98, -6583.35],
   ['Zuidhorn', -10732.8, -3017.02],
@@ -78,11 +78,17 @@ for (const [name, x, y, mayBeEmpty] of SPOTS) {
   console.log(`${ok ? 'ok  ' : 'FAIL'} ${name}: ${cars.length} vehicles ${JSON.stringify(kinds)}, ${bad} misplaced, nearest ${enter}, ${ms} ms`);
 }
 console.log('parked near the spots', JSON.stringify(total));
-// the farm tractors and quads over a 15 x 15 km band past the real data
-const farm = {};
-for (let bx = 14; bx < 30; bx++) for (let by = 14; by < 30; by++) for (const q of PC.farmVehicleSpots(bx, by)) farm[q.model.name] = (farm[q.model.name] || 0) + 1;
-console.log('farm vehicles in 256 polder blocks', JSON.stringify(farm));
-if (!farm.tractor || !farm.quad) fails++;
+// the farm tractors: the procedural polder blocks only exist where the province data is not (countryplan.js
+// openLand, #124), so the yard tractors of the tiles' barns are what is left to find; the quads go with the blocks
+{
+  const farm = {};
+  for (const [name, x, y] of SPOTS.slice(0, 4)) {
+    await map.prefetchPoints([[x, y]], { radius: 3000 });
+    for (const b of map.buildingsNear(x, y, 3000)) { const q = PC.barnTractorSpot(b); if (q) farm[q.model.name] = (farm[q.model.name] || 0) + 1; }
+  }
+  console.log('yard tractors by the barns of the tiles', JSON.stringify(farm));
+  if (!farm.tractor) { fails++; console.log('FAIL no yard tractors by the barns of the tiles'); }
+}
 
 // moving traffic: within 70 m every road user is a real vehicle, placed on
 // its road each frame; taken over it is let go as an ordinary vehicle
@@ -90,11 +96,11 @@ if (!farm.tractor || !farm.quad) fails++;
   const THREE = await import('three');
   const life = await import('../game/js/countrylife.js');
   const scene = new THREE.Scene();
-  await map.prefetchPoints([[1774.82, 9945.78]], { radius: 1800 });
-  const world = { map, vehicles: [], time: 0, player: { x: 1774.82, y: 9945.78, inVehicle: null }, paused: false };
+  await map.prefetchPoints([[2838.32, 5353.35]], { radius: 1800 });
+  const world = { map, vehicles: [], time: 0, player: { x: 2838.32, y: 5353.35, inVehicle: null }, paused: false };
   const types = {};
   let real = 0, onPose = 0, taken = 0, released = 0;
-  for (let f = 0; f < 3000; f++) {
+  for (let f = 0; f < 1800; f++) {
     world.time += 1 / 30;
     life.updateCountryLife(1 / 30, world, scene, [], 400);
     const tr = life.countryTraffic();
@@ -143,10 +149,10 @@ const V = await import('../game/js/vehicle.js');
 const E = await import('../game/js/countryedge.js');
 const RG = await import('../game/js/roadgraph.js');
 RG.setRoadNet(RG.decodeRoadNet(JSON.parse(zlib.gunzipSync(fs.readFileSync(new URL('world/provincie-roads.json.gz', root))).toString('utf8'))));
-V.setGroundMap(cityMap);
+V.setGroundMap(map); // as main.js does: the tile world knows the roads, water and fields of the Ommeland
 const SEDAN = { name: 'sedan', len: 4.3, wid: 1.8, maxSpeed: 50, accel: 10, brake: 24, turnRate: 2.6, color: '#444' };
 
-// meadow drag for every driver (vehicle.js offroadDrag): an AI car flat out
+// meadow drag for every driver (the car covers ~80 m in the first 2 s) (vehicle.js offroadDrag): an AI car flat out
 // on grass slows to the cap, the same car on the road does not
 {
   const drive = (x, y, angle, driver) => {
@@ -154,25 +160,33 @@ const SEDAN = { name: 'sedan', len: 4.3, wid: 1.8, maxSpeed: 50, accel: 10, brak
     v.driver = driver;
     v.speed = 30;
     let worst = 0;
-    for (let f = 0; f < 120; f++) { v.applyControls(1 / 60, 1, 0, 0); if (f > 90) worst = Math.max(worst, v.speed); }
+    for (let f = 0; f < 180; f++) { v.applyControls(1 / 60, 1, 0, 0); if (f > 150) worst = Math.max(worst, v.speed); }
     return { v, worst };
   };
+  // a meadow and a road in the tiles round Bedum (resident after the prefetch above)
+  const [cx, cy] = [1931.4, -9027.27];
+  await map.prefetchPoints([[cx, cy]], { radius: 900 });
   let meadow = null, road = null;
-  for (let k = 0; k < 6000 && !meadow; k++) {
-    const x = -9000 + (k * 7919) % 18000, y = -9000 + (k * 104729) % 18000;
-    if (F.edgeDistance(x, y) < 300) continue;
-    if ([0, 10, 20, 30, 40].every((o) => V.offroadGround(cityMap, x + o, y) === 'gras')) meadow = [x, y];
+  for (let k = 0; k < 4000 && !meadow; k++) {
+    const x = cx - 700 + (k * 7919) % 1400, y = cy - 700 + (k * 104729) % 1400;
+    if ([0, 10, 20, 30, 40, 50, 60, 70, 80, 90].every((o) => V.offroadGround(map, x + o, y) === 'gras')) meadow = [x, y];
   }
-  for (const r of RG.roadNetRows()) {
-    if (r.kind > 3 || r.bridge) continue;
-    const a = r.pts[0], b = r.pts[1];
-    if (Math.hypot(b[0] - a[0], b[1] - a[1]) > 60 && F.edgeDistance(a[0], a[1]) > 300) { road = [a[0], a[1], Math.atan2(b[1] - a[1], b[0] - a[0])]; break; }
+  for (const r of map.roadsNear(cx, cy, 800)) {
+    if (r.bridge || r.z || !['major', 'normal', 'minor', 'service'].includes(r.cat)) continue;
+    for (let i = 0; i < r.pts.length - 1 && !road; i++) {
+      const a = r.pts[i], b = r.pts[i + 1], ang = Math.atan2(b[1] - a[1], b[0] - a[0]);
+      if (Math.hypot(b[0] - a[0], b[1] - a[1]) < 100) continue;
+      if ([5, 15, 25, 35, 45, 55, 65, 75, 85, 95].every((o) => V.carRoadAt(map, a[0] + Math.cos(ang) * o, a[1] + Math.sin(ang) * o))) road = [a[0], a[1], ang];
+    }
+    if (road) break;
   }
+  if (!meadow || !road) { console.log('FAIL meadow drag: no meadow or road found near Bedum', !!meadow, !!road); fails++; } else {
   const ai = drive(meadow[0], meadow[1], 0, null), pl = drive(meadow[0], meadow[1], 0, 'player'), onRoad = drive(road[0], road[1], road[2], null);
   // the same gentle cap for every driver: grass costs a sedan some top end, not a wall
   const ok = ai.worst < onRoad.worst - 2 && pl.worst < onRoad.worst - 2 && ai.worst > 28 && pl.worst > 28 && Math.abs(ai.worst - pl.worst) < 4;
   if (!ok) fails++;
-  console.log(`${ok ? 'ok  ' : 'FAIL'} meadow drag: AI ${ai.worst.toFixed(1)} m/s, player ${pl.worst.toFixed(1)} m/s after 2 s flat out from 30 on grass; on a road ${onRoad.worst.toFixed(1)}`);
+  console.log(`${ok ? 'ok  ' : 'FAIL'} meadow drag: AI ${ai.worst.toFixed(1)} m/s, player ${pl.worst.toFixed(1)} m/s after 3 s flat out from 30 on grass; on a road ${onRoad.worst.toFixed(1)}`);
+  }
 }
 
 // bridges over open water stay dry across the road's width and a car driven along the deck

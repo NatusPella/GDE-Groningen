@@ -287,6 +287,60 @@ een bostegel, 2.28) en de stad hetzelfde pad gebruiken. Het gedeelde budget is e
 Winstmaatregelen die het gedeelde pad ook voor de stad moet houden: `staticbatch3d.js` (cel van 48 m, een draw
 per materiaal), `farlod.js` (tegel x laag, een draw), `interiorglass.js` (gevelglas), instancing voor bomen en meubilair.
 
+### 4.5 `game/stad.json`: de handlaag van de stad (ingecheckt, stap C3)
+
+`game/stad.json` (3,3 MB, `"format": "stad-1"`) vervangt `citymap.json` (17,3 MB) als de ingecheckte stadsbron. Wat uit OSM komt
+(water, groen, bomen en alle gebouwen die niet met de hand zijn gemaakt) staat er niet meer in: dat komt uit de OSM-tegelbouw
+(`stad_laag.mjs`). `stad.json` bewaart het handwerk en de twee dingen die de stadsbouw vroeger uit de OSM-lagen van `citymap.json` las.
+Het bestand heeft één sleutel per regel en één rij per regel (leesbare diffs); de volgorde van de rijen is de `gid` in de tegels en blijft staan.
+
+| Sleutel | Inhoud | Hoe het aan tegels hangt |
+|---|---|---|
+| `format`, `fromOsm` | `"stad-1"`; de lagen die uit de OSM-bouw komen: `buildings, water, green, trees` (zodra `roads`/`rails` ook uit OSM komen, gaan ze erbij en uit het bestand) | `pack_tiles.mjs loadSourcesLaag` haalt `fromOsm` altijd uit OSM, `STAD_LAAG` kan er nog lagen aan toevoegen |
+| `tiles` | de 54 stadstegels (`235_581`, ...) in de volgorde van de stadsbouw | de tegels die de OSM-bouw voor de stad bouwt (`osmCityLayers(keys, ...)`); de volgorde bepaalt de rijvolgorde dus de bytes |
+| `cover` | de dekking van de stadskaart: een masker van 208 x 189 cellen van 40 m, run-length (`x0, y0, w, h, cell, rle`) | `citycover.mjs cityCoverFromMask`: alleen OSM-rijen met hun zwaartepunt in de dekking komen in de stad; daarbuiten dekken de overlaytegels van `build_province.mjs` |
+| `roads` | 10.785 wegen met `cat`, `type`, `width`, `lanes*`, `osm`, hoogteprofiel `z`, tunnels, bruggen, beweegbare bruggen | `pack_tiles.build`: in elke tegel die de wegband raakt, plus de secties `heights`, `junctions`, `nav` |
+| `rails`, `stations`, `levelCrossings`, `railRoutes`, `railLifts`, `railPlatforms` | 193 spoorstukken met profiel, 3 stations, 3 overwegen, 4 spoorroutes, 16 liften, 22 perrons | `rails` per tegel; de rest in de globale laag (`stations`, `levelCrossings`, `railRoutes`, `railLifts`) |
+| `furniture` | 12 gemapt straatmeubilair (hekken); de regelmeubilair wordt per tegel gemaakt (`streetfurniture.js`) | `FURNITURE`-sectie per tegel |
+| `buildings` | alleen de 30 handgebouwen (`isHandBuilding` in `stad_laag.mjs`): 29 `landmark`-rijen (Martinitoren, Martinikerk, Der Aa-kerk, Hoofdstation, Forum, Academiegebouw, Goudkantoor, Groninger Museum, Euroborg x4, Winkelcentrum Paddepoel x17) en de helikopterpleisterplaats (`helipad`); velden `landmark`, `landmarkKind`, `landmarkPart`, `parts`, `pitch`, `helipad` | een rij in elke tegel die de footprint raakt; de OSM-gebouwen die op een handgebouw liggen vervallen (`withHand`) |
+| `meta` | zie hieronder | de globale laag van het pakket (`META`-sectie), niet per tegel |
+
+**Landmarks.** Twee lagen die op *naam* aan elkaar hangen. (1) `meta.landmarks` (14 punten: `name`, `x`, `y`, `kind`, `buildingMatched`):
+de lijst die missies, verhaal, HUD, kaart en intro lezen (`map.meta.landmarks`); een RD-punt, geen tegelrij. (2) Het gebouw zelf: een rij in
+`buildings` met `landmark: <naam>`; de tekencode (`landmarks3d.js`, `landmarkmodels.js`, `models3d_buildings.js`, `paddepoel3d.js`) kiest op
+`b.landmark`/`b.name`. De tegel waarin een landmark staat volgt uit zijn footprint; zoek hem met `tileIndexOf(x, y)` of `buildingsNear`.
+Aanvullingen en correcties op OSM-gebouwen staan niet hier maar in `game/mapextras.json` (20 extra gebouwen, 142 patches op `osm`-id of
+positie, doorgangen, busbanen); `applyMapExtras` legt ze na de OSM-lagen over de kaart. In het doelmodel van 4.3 (stap B7) worden de
+landmark-rijen `objects` met de osm-/BAG-id als sleutel; tot dan is de naam de sleutel.
+
+**POI's en namen** (`meta`, alle als RD-punten `x`, `y`, nooit per tegel; de globale laag draagt ze naar de runtime):
+
+| `meta.*` | Aantal | Vorm | Lezers |
+|---|---|---|---|
+| `districts` | 2 | `{ name, rings }` (wijkgrenzen) | `hud_panel.js` |
+| `neighbourhoodPoints` | 66 | `{ name, x, y, kind }` | 14 modules, o.a. `ownedvehicles.js`, `shops.js`, `flavour.js`, `hud_panel.js`, `mapview.js`, `banter.js` |
+| `garages` | 48 | `{ name, x, y }` | `garages.js` |
+| `horeca` | 470 | `{ name, x, y }` (verzonnen namen) | `horeca.js`, `pedestrians.js`, `pedroutes.js`, `cityprops.js` |
+| `shops` | 54 | `{ t, x, y, wijk, street }` | `shops.js`, `facilities.js` |
+| `pois` | object per soort (`health`, `money`, `weapons`, ...) | `{ x, y, kind, name }` | `pedroutes.js` |
+| `trafficLights` | 422 | `{ x, y }` | `junctions.js`, `streetfurniture.js` |
+| `hospital`, `careSites`, `policeStations`, `helipad` | 1, 7, 2, 1 | `{ name, x, y }` (`helipad`: `{ x, y, r, angle }`) | `emergency.js`, `respawn.js`, `spotcheck.js`, `routing.js`, `streetlife.js`, `skyprops.js` |
+| `bounds`, `frame`, `rdOrigin`, `wgsBox`, `locks` | | kader van de stadskaart (RD) | `scene3d`, `terrain3d`, `heliflight`, `mapview` |
+
+Stappen B6 (poi) en B8 (namen) halen deze lijsten uit `meta` en zetten ze als rijen op de tegel van hun punt (`placeIndex`);
+tot dan is `stad.json` hun enige bron, en verandert een naam of POI daar (een rij per regel).
+
+**Bouwen en testen.** `loadSourcesLaag()` (pack_tiles.mjs) leest `stad.json`, haalt de lagen van `fromOsm` uit de OSM-bouw
+(`stad_cache.mjs` bewaart het resultaat in de tijdelijke map, met een sleutel uit de invoer en de bouwcode), legt `mapextras.json` erover
+en geeft de `GameMap`. `scripts/lib/loadworld.mjs` is de ene laadhulp voor tests: `loadStadData()` (alleen de handlaag, snel),
+`loadCityData()` en `loadCityWorld()` (met de OSM-lagen; zonder `data/cache/province` eindigt een test met SKIP). `scripts/stad_split_test.mjs`
+bewijst dat de splitsing verliesloos is: voor elke keuze van OSM-lagen zijn de stadstegels (sha256 per tegel, de globale laag en de
+tellingen) uit `[stad.json + OSM-lagen]` gelijk aan die uit `[citymap.json + dezelfde OSM-lagen]` (fixture: alle zes gekozen
+combinaties; `--echt`: de echte stad, 57 tegels + globale laag, 60 vingerafdrukken gelijk). Wijzigen kan met de hand, of met
+`profile.mjs --write` (wegen), `railprofile.mjs --write` (spoor) en `furniture.mjs --write` (meubilair), die terugschrijven in `stad.json`.
+`node scripts/stad_opruimen.mjs` controleert dat niets meer `citymap.json`, `data/*_raw.json` of de python-keten leest en toont dan de
+lijst van te verwijderen bestanden (het verwijdert zelf niets).
+
 ## 5. Stappenplan
 
 Regels: elke stap klein, afzonderlijk testbaar, het spel werkt na elke stap, vlag per stap,
@@ -437,3 +491,119 @@ Nog niet gedaan: de runtime leest `citymap.json` nog (main.js, facilities.js, ro
 ### Lezers van citymap.json in de runtime (18 oktober, grep op `game/js`)
 
 In een build met tegels leest de runtime `citymap.json` niet meer: `main.js` neemt `tiles.world` (alleen `?legacymap` of een dev-server zonder tegels valt terug op `loadMap`), `tileworld.js loadMapAuto` (ook voor de `roadInit`-worker in `geokernels.js`) probeert eerst de tegels, en `loadFacilities`/`loadShopPlaces` gebruiken de naam alleen als basispad voor `facilities.json` en `shopplaces.json`. Wat `citymap.json` nog echt nodig heeft: de productiebouw van de stadstegels (`scripts/world/pack_tiles.mjs`), de bouwhash (`desktop/build.mjs`), `web/build.mjs ESSENTIALS`, de terugvalpaden hierboven en ~39 scripts. Een runtimemodule omzetten is dus niet meer het knelpunt: dat is de stad uit de tegelbouw halen (OSM-bouw met stadsprofiel, gestreamd in plaats van de vaste set), wat een provincie-extract en een stagebouw vraagt. Niet gedaan in deze sessie (geen stage, geen Electron).
+
+## Stand B3/B4: wegen en spoor uit de OSM-bouw (`STAD_LAAG=roads,rails`, 20 oktober)
+
+`STAD_LAAG=roads,rails node scripts/world/pack_tiles.mjs --out <map>` maakt stadstegels met OSM-wegen en -spoor (en alle lagen samen: `STAD_LAAG=water,green,trees,buildings,roads,rails`). `wegen` en `spoor` gelden als alias. De stad is niet in tegels geknipt maar als hele wegen: `buildProvince({ collect })` geeft de wegen van elk pack ná de afleiding (`derive_tiles`) en het koppelen van de verkeerslichten, `scripts/world/stad_wegen.mjs` doet daarna wat `build_map.py` deed:
+
+| Stap | Was | Nu |
+|---|---|---|
+| wegen knippen op de dekking, stadssnelheid (geen dorpssnelheid), dubbele punten en dubbele bruggen weg | `process_osm.py` | `stad_wegen.mjs cutToCover` (de overlaytegels dekken de rest) |
+| plateaus en hellingen van de ring en wat ze kruist | `add_elevation.py` | `ring_elevation.mjs ringHeights` (zelfde uitkomst als het Python-script op dezelfde OSM-wegen: 343 van 423 ringwegen identiek, de rest binnen 0,2 m; rondingsverschillen in de punten) |
+| de hoogteoplosser | `profile.mjs --write` (3 rondes, 2 keer) | idem, in `profileCity`; busbanen en beschermde wegen uit `mapextras` gaan mee |
+| sporen, stations, overwegen, routes, liften, paden afknippen bij het spoor | `add_railways.py` | `stad_spoor.mjs cityRail` |
+| spoorprofiel | `railprofile.mjs --write` | idem (tags en perrons uit de OSM-elementen van de packs) |
+| verkeerslichten (`meta.trafficLights`) | `add_traffic_lights.py` | de gekoppelde lichten uit `junction_tiles.mjs` (`snapSignals`) |
+| droge kruisingen | `GameMap` | ook in de laag met 0,1 m speling (de OSM-punten liggen enkele cm anders) |
+| `busRoads`, `busLanes`, `roadZ` | op coördinaat | de punten gaan eerst naar het dichtstbijzijnde OSM-hoekpunt (`snapExtras`); zonder dat werden 794 van 1.540 punten niet gevonden en kregen straten een extra busweg |
+
+`junctionRows`, `heights` (pnet, st, ly) en `nav` komen daarna vanzelf uit `pack_tiles.build()`. De ringroute (`ringroute.js`) is niet opnieuw gemaakt: 99,5 % van de punten ligt binnen 1,5 m van een ringweg van de nieuwe stad.
+
+Meten: `node scripts/world/city_roads_diff.mjs [--lagen roads,rails]` (oud tegenover nieuw, JSON met `--json`), `scripts/stadlaag_wegen_test.mjs` (drempels), en `node --import ./scripts/lib/stadlaag_preload.mjs <test of audit>` met `STAD_LAAG` laat elk bestaand testbestand de nieuwe stad zien (de voorlader legt `citymap.json` en `mapextras.json` voor `fs.readFileSync` om; let op: een script dat de bouwketen zelf importeert, zoals `bridge_audit.mjs` of `profile.mjs`, draait zijn eigen hoofdprogramma dan vóór de omlegging). `STAD_LAAG_CACHE=<bestand>` bewaart de OSM-bouw (4 minuten) voor audits; wis het bestand na een codewijziging. `GDE_PROVINCE_SRC` wijst naar `data/cache/province` buiten de werkboom.
+
+### Pariteit (stad 18 oktober tegenover extract 15 oktober, binnen de dekking van de stad)
+
+| Maat | Uitkomst |
+|---|---|
+| wegen per klasse (aantal / km) oud > nieuw | major 1.311 / 110 > 1.306 / 112; normal 2.666 / 277 > 2.912 / 300; minor 2.056 / 130 > 2.314 / 152; voet 3.684 / 202 > 4.055 / 231; fiets 1.251 / 101 > 1.390 / 112 (het nieuwe extract kent meer wegen; 10 % van de nieuwe wegen ligt waar de oude kaart niets had) |
+| geometrie: oude wegen binnen 1 m van een nieuwe weg | 99,8 % (auto 99,8, voet 99,6, fiets 99,9) |
+| hoogte langs de wegen met profiel (3.609 monsters) binnen 0,25 / 0,5 / 1 m | 88,8 / 93,8 / 97,3 %; alle wegen 98,9 / 99,3 / 99,7 %; ring 92,1 / 95,4 / 97,7 %; raster van 25 m (`groundHeightAt`) 99,7 / 99,8 / 99,9 % |
+| kunstwerken per stuk (op OSM-id) | bruggen 198 van 204, tunnels 59 van 60, viaducten 43 van 43, beweegbaar 19 van 19, taluds 7 van 7, kuilen 2 van 2 |
+| rijstroken (5.725 paren) | `lanes` 100 %, vooruit 99,8, terug 99,9, breedte binnen 0,5 m 99,0, eenrichting 100 % |
+| kruispunten (`junctionModel`) | 4.178 oud, 4.574 nieuw; 4.169 gekoppeld; besturing gelijk 99,2 %, armen 99,9 %, regels 99,0 %; lichten 422 oud (alle terug binnen 8 m), 490 nieuw |
+| spoor | 34,6 > 36,7 km; 4 routes (lengte binnen 4 m); 3 stations; overwegen 3 van 3 (+1); liften 16 van 16 (+3); spoorhoogte binnen 0,5 m 93,4 % |
+| handwerk | busOnly 206 / 206, buslanen 103 > 107 |
+
+Audits oud tegenover nieuw (alle lagen aan): `drive_audit` 0 > 2 van 7.650 ritten (Bekemaheerd haarspeld, N46 afrit bij 2537,-1812), `junction_sim_test` 17/17 > 17/17, `network_drive_test` 2/2 > 1/2 (dezelfde afrit), `ring_probe` 0 > 1 keerwand (afrit naast het viaduct bij -1304,987), `bridge_audit_test` 18/18 > 16/18 (dubbele bruggen 4 tegenover 1, z-fight-kandidaten 12 tegenover 8, bij 447 bruggen tegenover 347), `surface_blend_test` 13/13 > 12/13 (nieuwe straat Atensheerd), en `lanes_test`, `road_route_test`, `bus_route_test`, `mode_route_test`, `train_ride_test`, `railprofile_test`, `surface_test`, `seat_audit`, `net_pairing_test`, `ring_hoop_test`, `lanetaper_test` onveranderd groen.
+
+Waar het nu anders is dan de oude stad, en waarom (bron, niet de bouw): het extract (15 oktober) is nieuwer dan de oude cache; ringbruggen zijn daarin soms `bridge:movable` (de laag laat ringwegen niet openen); de Beneluxweg onder de Kardingerweg (ongeveer 1950,-1935) ligt in de oude kaart 5,6 m verdiept (zonder tunnel- of laagtag in de rij; waarschijnlijk week de ring voor het korte viaduct van de Kardingerweg), de nieuwe bouw laat het viaduct (5,0 tot 5,7 m) boven de vlakke ring staan; het Hoofdstation ligt 50 m zuidelijker (nu bij de perrons); de oude namen met `Ã«` zijn goed; Winschoten rijdt over het spoor van Zwolle (de aftakking Wunderline bestond in de oude cache niet; een eindpunt daar liet de trein rechtdoor het niets in rijden). De drempels van `bridge_audit_test` en `junction_sim_test` zijn op de oude kaart afgesteld; zie het verslag voor de losse gevallen.
+
+### Stadswater: vaarklasse 4 uit de OSM-bouw (`annotateCityWater`, 20 oktober)
+
+De oude stad had het binnenstadswater als enkele grote polygonen (de Diepenring is één van 124.000 m2), de OSM-bouw heeft per pack dezelfde way en lijnen met een geraden breedte van 14 m. `annotateCityWater` (`game/js/waterlevels.js`) deed drie dingen anders dan de oude stad, met als gevolg dat de Diepenring, de havens en de kanalen 'diep' (klasse 3) werden: dezelfde polygoon uit meer packs lag meermaals over zichzelf (de laatste kopie hield de breedste cellen), een lint van een kanaallijn nam een kanaalpolygoon zijn breedste cellen af, en de armen van de Diepenring (Turfsingel, Schuitendiep, Spilsluizen) waren losse linten. Nu telt elke polygoon (op vorm en naam) één keer en krijgt elke kopie dezelfde klasse en hetzelfde lichaam, de breedte van een polygoon is het maximum over al zijn cellen, en een diep- of vaartlint dat voor 90 % in kanaalpolygonen ligt, hoort erbij (`laidOverCanal`). Oud tegenover nieuw (polygonen op 8 m bemonsterd): 100 % van de oude klasse-4-polygonen is weer klasse 4. Meten: `scripts/citywater_test.mjs`, `scripts/vaarnet_province_test.mjs`.
+
+### Tweede ronde (20 oktober, middag): afwijkingen van de eerste ronde hersteld
+
+| Punt | Oorzaak | Herstel | Oud > nieuw |
+|---|---|---|---|
+| `bridge_audit_test` dubbele bruggen en z-fight | `markDryRoads` stempelde 46 opritten op de wal van grachtbruggen (water tot de brugknoop) tot droog dek naast het echte dek | water binnen 3 m van een echt brugeinde telt niet mee in de data (`stad_wegen.mjs`); de GameMap legt bij het laden zelf het droge dek met de exacte test, zoals de oude stad (parity 198/204 bruggen blijft) | dubbel 4 > 1, z-fight 12 > 6 (plafond 1 en 8) |
+| `drive_audit` N46-afrit (2537,-1812) en `network_drive_test` | twee ondergrenzen ontmoetten elkaar op de afrit: een dal van 9 cm met een kink van 4,9 % bij de aansluiting; auto's sprongen op 53 km/u | `ring_elevation.mjs`: een dal van hooguit 4 punten dat geen grens vasthoudt wordt opgevuld tot de lagere rand | 2 > 1 mislukte ritten van 7.650; network_drive 2/2 |
+| `drive_audit` Bekemaheerd | haarspeld van 127 graden van een woonstraat; de rit begint 3 m voor de punt en de auto gaat 6 m uit de bocht | niet gewijzigd: de oude kaart heeft dezelfde geometrie en mislukt dezelfde rit als het pad 1 m langer is (reach 26 in plaats van 25 m); de hoek deelt zijn knoop met een tweede weg, afronden breekt die aansluiting | blijft 1 van 7.650 |
+| `drive_audit` Rijstebrijgang (kwam mee uit main) | de breedte van 3,6 m en de drie huizen op 1,9 m uit #284 stonden alleen in `citymap.json` | `mapextras.json`: `roadPatches` (nieuw, op OSM-id) en drie `buildingPatches` met de punten uit de oude kaart | 0 mislukt |
+| `ring_probe` keerwand -1304,987 | de vangrail van een afrit die onder de rand van het viaduct Laan 1940-1945 doorloopt (dek 6,00, rail op 4,05) blokkeerde verkeer tot 2 m erboven: 1,95 tegen 2,0 m | `elevation.js`: een rail onder een hoger dek (`over`) blokkeert alleen tot 0,6 m onder dat dek | 1 > 0 keerwanden |
+| `surface_blend_test` Atensheerd | een rode weg met een rode buur van een andere klasse verborg de grijze buur op dezelfde knoop: geen menging | `surfaceblend.js`: een buur met dezelfde kleur telt niet mee bij de keuze van de buur met de hoogste rang | 12/13 > 13/13 |
+| Beneluxweg bij de Kardingerweg | oud: ring 5,6 m verdiept zonder tunnel-, kuil- of laagtag in beide OSM-extracten (de oude keten liet de ring wijken voor de vlakke fietsbrug en het viaduct tegelijk, 11,2 m tussen viaduct en ring); nieuw: ring vlak onder een viaduct van 5,6 m, de fietsbrug 292426623 bleef op straatniveau over de ring | `ring_elevation.mjs`: een voet- of fietspad op een brug over een ringweg stijgt mee (ring blijft liggen waar OSM hem legt); 32 fiets- en voetwegen krijgen een brugprofiel (hoogte tot 6,1 m, aanloop 5 %) | ring vlak, beide bruggen 5,6 m |
+| `route_bridge_test` Hoofdstation > Remonstrantse Kerk | de OSM-knoop van het station staat in het extract van 15 oktober 50 m zuidelijker (bij de perrons); de wandelroute begon dus anders | `anchorStations` zet het station op het stationslandmark van het handwerk (treinroutes houden de knoop); lopen 619 m (1,69x), fietsen 704 m (1,92x): het fietsnet bevat nu het voetgangersgebied voor het station, de route loopt om het gebouw (de oude begon 31 m verder dwars door het gebouw); limiet fietsen 2,0 (via Herebrug 867 m lopend, 1005 m fietsend) | 1,73 > 1,69 lopen, 1,73 > 1,92 fietsen (limiet 2,0) |
+| `road_seams_test` widthJump en gap | `chain_duals` van het oude pad (breedte van een eenrichtingsweg in stukken) miste in de OSM-bouw; wegeinden naast een andere weg waren niet aan elkaar geknoopt | `chainDuals` en `closeGaps` in `stad_wegen.mjs` (verlenging hooguit 60 graden van de richting van het einde: een rijbaan naast zijn tegenrichting wordt geen haarspeld) | widthJump 10 > 7, gap 30 > 17 (oud 22); laneJump blijft 231 tegen plafond 230 |
+
+De laneJump-stand (231 tegen 230) komt uit de valse droge dekken van de eerste ronde: Emmabrug en Griffeweg liggen nu op hetzelfde niveau als hun buur en hebben met die buur echt een ander aantal rijstroken in OSM (3 tegen 2, 1 tegen 2); de Herebrug viel weg. Meten: `node scripts/world/profile.mjs` (audit van de hoogtes) en `scripts/road_seams_test.mjs`.
+
+## Stand na C3 (20 oktober 2026): de stad komt uit de tegelbouw, het oude stadspad is weg
+
+**Gedaan.** De stad draait in productie op `game/stad.json` (0,2 MB handlaag) plus de OSM-tegelbouw voor alle zes de lagen
+(gebouwen, water, groen, bomen, wegen, spoor); `STAD_LAAG` en de runtimevlag `?stadlaag` bestaan niet meer. Verwijderd (geen
+geschiedenisherschrijving; alles staat in de git-geschiedenis): `game/citymap.json` (17,3 MB), `data/groningen_raw.json` (35,6 MB) en de andere
+ruwe stadsbronnen (`data/*_raw.json`, `groningen_extra.json`, `ring_raw/extra.json.gz`, `landmark_footprints.json`: ca. 62 MB),
+de Python-keten (`build_map.py`, `process_osm.py`, `fetch_osm.py`, `add_*.py`, `gen_ringroute.py`, `lanes.py`, `audit_lanes.py`,
+`rebase_data.py`, `extract_palette.py`, `building_attrs.py`), `stad_split.mjs` (bewezen lossless op 6 laagkeuzes en de echte stad) en de
+pariteitstests tegenover de oude stad. Blijft staan: `data/ommeland_raw.json.gz` (27 randtegels buiten de provincie die de
+bufferextracten niet dekken; vervangen vraagt buurprovincie-extracten via het netwerk), `data/facilities_raw.json.gz`,
+`data/world/building_attrs.json.gz` (nu vaste data) en `ringroute.js` (vaste data; 99,5 % van de ring ligt binnen 1,5 m van de OSM-ring).
+
+**Beeldvergelijking (oud tegenover nieuw, vaste camerastanden).** `scripts/qa/stadvergelijk.mjs`: 67 plekken (14 landmarks, 22 wijken,
+5 bruggen, 4 kunstwerken, 2 stations, 3 water, 17 raster), dag voor alle plekken en nacht voor 25, een straat- en een hoogbeeld, dus 184 beelden per
+wereld; `stadverschil.mjs` meet per beeldpaar een grove handtekening (sg), pixels, randen en blokken, met een tweede run van de oude stad als ruisniveau;
+`stadblad.mjs` maakt contactbladen. Ruis (oud tegen oud, hoogbeelden): sg mediaan 0,0009, p90 0,0034. Oud tegen nieuw (hoogbeelden, run zonder
+weerverschil): sg mediaan 0,025, p90 0,05: elk gebouw komt uit een andere bron, dus kleine verschillen overal; de beelden zijn paar voor paar bekeken.
+Gevonden en hersteld: het crème blok in plaats van het Academiegebouw (dubbel OSM-gebouw over het handgebouw), boomsoorten (roze bloesem
+op de Vismarkt), het glazen dak van Paddepoel en de perronkappen (de CANOPIES-sectie ging verloren), kerkhofbomen, binnenstadswater als `diep` in plaats
+van `kanaal` (binnenvaart onbereikbaar), dubbele brugdekken, een profielknik op de N46-afrit. Op een paar plekken is de nieuwe stad beter (gebouwen
+met echte hoogte en daken waar de oude kaart een kale doos had; de echte ring en meer wegen aan de rand). De straatbeelden zijn door beweging (camera, verkeer)
+te onrustig voor een getal; daar telt het oog.
+
+**Pariteitsmetingen (laatste run).** Water: soort gelijk 99,0 %, peil 100 %. Groen: 100 % van de oude bomen heeft een tegelboom binnen 3 m. Gebouwen: hoogte
+binnen 1 m 97,5 %, 30 van 30 landmarks, overkappingen 65 oud / 75 nieuw. Wegen: 99,8 % van de oude wegen binnen 1 m, hoogte langs wegen met profiel binnen 0,5 m
+93,8 %, ring 95,4 %, rijstroken 100 %, kruispunten 99,2 %; spoor 34,6 / 36,7 km, overwegen 3/3, liften 16/16.
+
+**Bewust anders dan de oude stad.** Het Hoofdstation-startpunt blijft bij het stationsgebouw (de OSM-halte ligt 50 m zuidelijker bij de perrons; treinroutes houden
+de halte); `road_seams_test` laneJump-plafond 231 (OSM telt twee echte stroken-verschillen); de ring bij de Beneluxweg ligt vlak onder het viaduct (de oude kaart had
+een kunstmatig 5,6 m diepe bak zonder OSM-bron); 58 beweegbare bruggen in plaats van 34 (OSM-tags; op de ring uitgezet).
+
+## Vervolg op C3 (21 oktober 2026, #314): wat is gedaan en waarom de overlaytegels blijven
+
+**Gedaan: B6-B8 als data.** De plaatsen van `meta` (winkels, horeca, garages, wijkpunten, landmarks, verkeerslichten, zorglocaties, politiebureaus,
+ziekenhuis, helikopterplek, `pois` per soort: 2.274 punten) staan als rijen in de `POIS`-sectie van de tegel van hun punt (`game/js/poisections.js`, 40
+stadstegels; 7 punten buiten de stadstegels blijven in de globale laag onder `poiRest`). `tileworld.js fromTiles` voegt ze weer samen tot `map.meta`, dus de
+lezers veranderen niet; de test (`scripts/poisections_test.mjs`, `tileworld_test`, `world_tiles_test`) bewijst dat `meta` identiek terugkomt, ook door de
+`.gdt`-tabellen. Wat nog ontbreekt voor echt tegelgebonden plaatsen is C1: de lezers moeten per tegel vragen in plaats van de hele lijst te lezen.
+
+**Geprobeerd en teruggedraaid: C2 (overlaytegels weg).** Commit `a1312910` bevat de proef (stadsdekking = de 54 stadstegels zelf, de tegels ernaast laten weg wat de
+stad neemt via `outsideCover`, geen vlag 64, geen `citycover.mjs`). Gemeten op twee volledige wereldbouwen (oud en nieuw, zelfde invoer): de gebouwen zijn dezelfde
+voetafdrukken (78.333 van 78.336), de hoogtes na een herstel in `joinAttrs` even goed (3D BAG 74.346 tegen 73.997), geen dubbele gebouwen of water met de tegels ernaast. Maar:
+
+| Maat (stadstegels, oud tegenover nieuw) | oud (stad + overlays) | nieuw (tot de rand) |
+|---|---|---|
+| gebouwen, wegen, water, groen, bomen in de vaste set (`index.counts`) | 51.728 / 12.159 / 797 / 3.718 / 22.744 | 77.265 / 16.793 / 1.621 / 6.570 / 38.503 |
+| pakketgrootte van de stad | 5,4 MB | 7,5 MB |
+| meubilair (rijen in het gebied) | 2.924 | 933 |
+| percelen (`PARCELS`) | 537 | 358 |
+
+De overlaytegels zijn dus meer dan een rand: ze zijn het gestreamde pad voor de buitenwijken. De vaste set groeit met 38 tot 69 % (45 modules lezen hele arrays, dus laadtijd
+en geheugen), en wat het gestreamde pad (`addTile`) doet bestaat niet voor de vaste set: de perceelraster en heggenraster (`landUseAt`, `hedgeNear`: hekken, vee en
+heggen in de buitenwijken), het weglaten van dubbele wateren (#231), het OSM-meubilair (de stad heeft eigen `cityprops` voor de kern), `railGrid`. Daarom is C2 niet los van C1 te
+doen: eerst moet de stad net als de provincie gestreamd worden (de vaste set alleen spawn, garage, missieset en eigen auto), of het gestreamde pad moet voor de vaste set
+dezelfde rasters bouwen. De kern en de buitenwijken scheiden blijft nodig tot dan. Het meetscript van de proef (`stad_pariteit_c2.mjs`: rijen per laag tussen twee werelden,
+dubbelcontrole met `overlap_check.mjs`) staat in die commit.
+
+**Niet gedaan.** C1 (ontpinnen: 45 modules naar tegelqueries, `index.pins.city`, `TileWorld.fromTiles` met een dichte gid-reeks) en punt 4 (`data/ommeland_raw.json.gz`
+vervangen door extracten van de buurprovincies via `extract_province.py --near`: vraagt grote downloads van Geofabrik, niet zonder akkoord van de eigenaar).

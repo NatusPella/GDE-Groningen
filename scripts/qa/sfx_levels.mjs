@@ -1,6 +1,6 @@
 // Spelt elk effect van ?sfxtest af in de gestagede build en meet het niveau voor de gedempte uitgang (#173).
 //   node scripts/qa/sfx_levels.mjs [--out=<map>] [--only=fx:shop_bell,ev:3] [--settle=<ms>]
-// Vereist `cd desktop && npm run stage`, een Electron-slot (C:/Users/abuis/gde-locks) en een wegwerpprofiel.
+// Vereist `cd desktop && npm run stage`, een Electron-slot (GDE_LOCKS, standaard ~/gde-locks) en een wegwerpprofiel.
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';

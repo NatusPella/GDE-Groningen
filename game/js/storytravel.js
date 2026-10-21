@@ -9,6 +9,10 @@
 import { REISBEATS, beatFor } from './reisbeats.js';
 import { needsBeat } from './reistijd.js';
 import { arrival, travelOptions, RIDES } from './reiskeuze.js';
+import { reisPlace } from './storyreis.js';
+
+// where the trip ends: the travel step's own place; the guide can point somewhere else for a moment ("first to your garage", #311)
+export const destOf = (step, g) => (step && step.goal && step.goal.type === 'reis' && step.goal.at ? reisPlace(step) : g);
 
 export const REIS_FLAG = (id) => `reis:${id}`;
 
@@ -46,6 +50,10 @@ export function selfArrivalMoney(a, dist) {
   return a && a.money > 0 && dist <= AT_M ? a.money : 0;
 }
 
+// tickStoryTravel calls ride(option, dest); the ride scene (reisrit.js) wants (world, option, dest): bind the world.
+// Passed bare, the ride threw on its first line and a chosen 'Met de trein' did nothing at all (speeltestlus).
+export const rideWith = (world, startRide) => (option, dest) => startRide(world, option, dest);
+
 let asking = false;
 const pendingSelf = new Map();
 
@@ -65,7 +73,7 @@ export function tickStoryTravel(ctx) {
   const { on, step, flags, world: w, ask, script } = ctx;
   if (!on || !step || step.end) return;
   const beat = beatFor(step.id, script);
-  const g = w.storyGuide;
+  const g = destOf(step, w.storyGuide);
   // reward when the self-driven trip arrives
   const pend = pendingSelf.get(step.id);
   if (pend && g) {

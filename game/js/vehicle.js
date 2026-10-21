@@ -1,8 +1,8 @@
-import { nearestLine, project as projectOnLine, makeRunner, stepRunner, startAt } from './busroutes.js';
+import { linesNear, project as projectOnLine, makeRunner, stepRunner, startAt, busMagWeg } from './busroutes.js';
 import { assistDamage } from './assistlive.js';
 import { closestPointOnSegment, normalizeAngle, clamp, lerp, pointInPolygon, inMapWater, WATER_Y, keepBoatOffShore, boatDryPoints } from './util.js';
 import { waterClearance, waterChannelPoints } from './waterindex.js';
-import { shallowWater, waterAt, airDraftOf, passesUnder, bargeWater, bargeWaterAt, meanWidth, BARGE_MIN_CLEAR } from './waterlevels.js';
+import { shallowWater, waterAt, waterPolyAt, BRIDGE_DRY, airDraftOf, passesUnder, bargeWater, bargeWaterAt, meanWidth, BARGE_MIN_CLEAR } from './waterlevels.js';
 import { trafficSignalsNear, trafficLightPhaseMove } from './trafficlights.js';
 import { resolvePropCollisions, setSpeedCap } from './breakables.js';
 import { shardPuncture } from './roadshards.js';
@@ -12,30 +12,32 @@ import { markWreckedByPlayer, syncPlayerWrecks, disableVehicle } from './vehicle
 export { markWreckedByPlayer, syncPlayerWrecks, disableVehicle } from './vehiclewreck.js';
 import { inPassage } from './collision.js';
 import { elevWallContact } from './elevation.js';
-import { bridgeSpeedLimit, loweredBridgeBoomsNear } from './movablebridges.js';
+import { bridgeSpeedLimit, loweredBridgeBoomsNear, getMovableBridges, boatNeedsOpening, boatFrame } from './movablebridges.js';
 import { zebraSpeedLimit, sirenYield } from './trafficyield.js';
-import { lockGateStop } from './sluizen.js';
+import { lockGateStop, sluisNear } from './sluizen.js';
 import { countrySurface, countryRect, rectOutside, countryWeight, edgeDistance } from './countryfield.js';
 import { countryWater } from './countryedge.js';
 import { pushOutOfPlan, onFarmPaving, planExtraSolids } from './countryplan.js';
 import { pushOutOfTrunks } from './countrywalls.js';
 import { countryRailsNear, pushOutOfRails } from './countryrails.js';
 import { roadPriority, junctionArm } from './junctions.js';
-import { pickTrafficCar, carModel, applyFleetFlags, pickBikeVariant, wijkProfileAt, MIDIBUS_MODEL } from './trafficfleet.js';
+import { pickTrafficCar, carModel, applyFleetFlags, pickBikeVariant, wijkProfileAt, MIDIBUS_MODEL, roadCapacityTarget, roadLengthWithin } from './trafficfleet.js';
 import { pickWaterLife, newsVanWanted, distToCentre, hourOf } from './streetlifedata.js';
 import { vehicleHooks } from './vehiclehooks.js';
 import { pickBoatModel, BOAT_KINDS } from './boattypes.js';
-import { pickTrip } from './vaarnet.js';
+import { pickTrip, classOfKind } from './vaarnet.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { MODS } from './cheatmods.js';
 import { laneLayout } from './lanes.js';
 import { profileFor, createGearbox, stepGearbox } from './gearbox.js';
+import { loadTuning, tuningEffects } from './tuningplan.js';
+import { KEYS } from './storagekeys.js';
 import { slipAngle } from './drift.js';
 import { MOPED_LEGAL_SPEED } from './motomodels.js';
 import { pickMotor, motorRoadAllowed, motorTarget } from './motortraffic.js';
 import { FLAGS } from './devflags.js';
 import { verkeerOpties } from './simlagen.js';
-import { SMOKE_HEALTH } from './vehicledamage.js';
+import { SMOKE_HEALTH, kapRookt } from './vehicledamage.js';
 import { createWheelie, stepWheelie } from './bewegingrules.js';
 export { MOTORBIKE_MODELS, GEARED_MOPED_MODEL, MOPED_LEGAL_SPEED } from './motomodels.js';
 
@@ -215,9 +217,9 @@ export class Vehicle {
   }
 
   // Pedal bike (player only): Ctrl held while pedalling lifts the front wheel (bewegingrules.js, #207).
-  rideFiets(dt, throttle, top) {
+  rideFiets(dt, throttle, top, brake = 0) {
     const w = this.wheelieState || (this.wheelieState = createWheelie());
-    stepWheelie(w, { trick: !!this.trick && !this.disabled, throttle, speed: this.speed, top, dt });
+    stepWheelie(w, { trick: !!this.trick && !this.disabled, throttle, brake, speed: this.speed, top, dt });
     this.pitch = w.pitch;
     this.wheelie = w.up;
     if (w.up) this.speed *= w.slow;
@@ -347,7 +349,7 @@ export class Vehicle {
       }
     }
 
-    if (isPlayer && this.isBike && !m.motorbike) this.rideFiets(dt, throttle, top);
+    if (isPlayer && this.isBike && !m.motorbike) this.rideFiets(dt, throttle, top, brake);
     if (isPlayer && m.motorbike) this.rideMotorbike(dt, throttle, gb, top, absSpeed, normalizeAngle(this.angle - oldAngle) / (dt || 1));
 
     this.x += Math.cos(this.angle) * this.speed * dt;
@@ -934,6 +936,11 @@ export function spawnHeroCarNear(map, x, y, rng = Math.random) {
   const v = spawnVehicleOnRoad(map, point.road, false, rng, false, false, point);
   v.model = HERO_CAR_MODEL;
   v.isHeroCar = true;
+  // de onderdelen van de Escapade uit de garage (#196)
+  try {
+    const all = loadTuning(typeof localStorage !== 'undefined' ? localStorage : null, KEYS.tuning);
+    if (all.hero) v.tuning = tuningEffects(all.hero);
+  } catch (e) { /* zonder opslag geen onderdelen */ }
   // parked at the kerb, waiting for the player - not driving off as traffic
   const kerb = Math.max(0, (point.road.width || 6) / 2 - HERO_CAR_MODEL.wid / 2 - 0.3);
   v.x += -Math.sin(v.angle) * kerb;
@@ -959,12 +966,35 @@ function pruneWrecks(world) {
   for (const v of wrecks.slice(0, wrecks.length - MAX_WRECKS)) vehicles.splice(vehicles.indexOf(v), 1);
 }
 
+// A vehicle in the list twice, or two identical ones stacked on one spot (a mission
+// started twice spawns its van twice; a crash then shoves them apart as "three vans",
+// #211): the later copy goes. The player's own vehicle and anything with another
+// model, label or heading is left alone. Returns how many were removed.
+export function dedupeVehicles(vehicles) {
+  let removed = 0;
+  for (let i = vehicles.length - 1; i >= 0; i--) {
+    const v = vehicles[i];
+    if (vehicles.indexOf(v) < i) { vehicles.splice(i, 1); removed++; continue; }
+    if (v.driver === 'player' || v.wrecked || v.isBoat) continue;
+    for (let j = 0; j < i; j++) {
+      const o = vehicles[j];
+      if (o.driver === 'player' || o.wrecked || o.isBoat) continue;
+      if (Math.abs(o.x - v.x) > 0.6 || Math.abs(o.y - v.y) > 0.6 || (o.model && v.model && o.model.name !== v.model.name) || o.label !== v.label) continue;
+      if (Math.abs(Math.atan2(Math.sin(o.angle - v.angle), Math.cos(o.angle - v.angle))) > 0.3) continue;
+      vehicles.splice(i, 1); removed++;
+      break;
+    }
+  }
+  return removed;
+}
+
 export function manageTrafficPopulation(world, opts = {}) {
   const { map, vehicles } = world;
   const player = world.cameraOverride && world.streamFocus ? world.streamFocus : world.player; // in a cutscene the traffic fills round the camera's view (#157)
+  dedupeVehicles(vehicles);
   // ?simlagen (issue #18): doelaantal en afstanden per streek uit simlagen.js
   const lagen = FLAGS.simlagen ? verkeerOpties(wijkProfileAt(map, player.x, player.y).key, hourOf(world)) : null;
-  const { target = lagen ? lagen.target : 30, spawnMin = lagen ? lagen.spawnMin : 70, spawnMax = lagen ? lagen.spawnMax : 170, despawnDist = lagen ? lagen.despawnDist : 260 } = opts;
+  const { target: targetOpt = lagen ? lagen.target : 30, spawnMin = lagen ? lagen.spawnMin : 70, spawnMax = lagen ? lagen.spawnMax : 170, despawnDist = lagen ? lagen.despawnDist : 260 } = opts;
   pruneWrecks(world);
   vehicleHooks.manageParkedCars(world);
   for (let i = vehicles.length - 1; i >= 0; i--) {
@@ -975,13 +1005,17 @@ export function manageTrafficPopulation(world, opts = {}) {
     // reach the distance despawn, silently eating the traffic quota. A
     // vehicle stuck bouncing off the same dead end (isolated stub with no
     // real connection) is cleared the same way rather than left oscillating.
-    if ((!v.wrecked && ((v.deadEndBounces || 0) > 2 || (v.stuckFor || 0) > 25 || ((v.waitFor || 0) > 45 && Math.hypot(v.x - player.x, v.y - player.y) > 70))) || Math.hypot(v.x - player.x, v.y - player.y) > despawnDist) vehicles.splice(i, 1);
+    // een bus die ver van zijn lijn is geraakt (een omweg zonder einde) verdwijnt als niemand kijkt (#322)
+    const verdwaald = !!v.busRun && Math.hypot(v.x - player.x, v.y - player.y) > 60 && projectOnLine(v.busRun.line, v.x, v.y).d > BUS_VERDWAALD_M;
+    if ((!v.wrecked && ((v.deadEndBounces || 0) > 2 || (v.stuckFor || 0) > 25 || ((v.waitFor || 0) > 45 && Math.hypot(v.x - player.x, v.y - player.y) > 70))) || verdwaald || Math.hypot(v.x - player.x, v.y - player.y) > despawnDist) vehicles.splice(i, 1);
   }
 
   let count = 0;
   for (const v of vehicles) if (!v.wrecked && !v.isPolice && !v.isHeroCar && !v.isBike && !v.isBus && !v.isScooter && !v.isBoat && !v.parked && v.driver !== 'player') count++;
 
   const candidates = map.roadsNear(player.x, player.y, spawnMax).filter((r) => r.cat !== 'foot' && r.cat !== 'cycle' && r.width >= 3 && !r.busOnly);
+  // a hamlet with two short roads takes fewer cars than a city street grid (#265): the target follows the road length in range
+  const target = opts.target !== undefined ? targetOpt : roadCapacityTarget(roadLengthWithin(candidates, player.x, player.y, spawnMax), targetOpt);
   // ambulances, taxis and a cash-transport van are part of the everyday
   // traffic, not one-offs: keep a few of them around
   const have = { ambulance: 0, taxi: 0, cashvan: 0, newsvan: 0 };
@@ -991,7 +1025,7 @@ export function manageTrafficPopulation(world, opts = {}) {
   while (count < target && candidates.length && guard++ < target * 4) {
     const road = candidates[Math.floor(Math.random() * candidates.length)];
     const mid = road.pts[Math.floor(road.pts.length / 2)];
-    let pick = pickTrafficCar(map, mid[0], mid[1]);
+    let pick = pickTrafficCar(map, mid[0], mid[1], Math.random, { hour: hourOf(world) });
     for (const k of ['ambulance', 'taxi', 'cashvan', 'newsvan']) {
       if (have[k] < want[k] && Math.random() < (k === 'cashvan' ? 0.08 : k === 'newsvan' ? 0.1 : 0.25)) { pick = { kind: k, model: carModel(k) }; break; }
     }
@@ -1099,6 +1133,22 @@ let busLines = [];
 export function setBusLines(lines) { busLines = lines || []; }
 export function getBusLines() { return busLines; }
 
+// Het dichtstbijzijnde punt op een weg waar de bus van deze lijn mag rijden (#322), of null.
+// nearestRoadPoint pakt de dichtstbijzijnde weg, en dat is naast een lijn vaak een smal parallel straatje.
+function busSpawnPoint(map, line, x, y, reach = 25) {
+  let best = null;
+  for (const road of map.roadsNear(x, y, reach)) {
+    if (road.pts.length < 2 || !busMagWeg(road, line)) continue;
+    for (let i = 0; i < road.pts.length - 1; i++) {
+      const cp = closestPointOnSegment(x, y, road.pts[i][0], road.pts[i][1], road.pts[i + 1][0], road.pts[i + 1][1]);
+      if (cp.dist2 < reach * reach && (!best || cp.dist2 < best.dist2)) best = { x: cp.x, y: cp.y, road, dist2: cp.dist2 };
+    }
+  }
+  return best;
+}
+
+const BUS_VERDWAALD_M = 200; // m van zijn lijn: de bus is de weg kwijt
+
 export function manageBusPopulation(world, { target = 4, spawnMin = 90, spawnMax = 220, despawnDist = 300 } = {}) {
   const { map, player, vehicles } = world;
   for (let i = vehicles.length - 1; i >= 0; i--) {
@@ -1111,13 +1161,15 @@ export function manageBusPopulation(world, { target = 4, spawnMin = 90, spawnMax
   for (const v of vehicles) if (v.isBus && !v.wrecked && v.driver !== 'player') count++;
 
   // echte lijnen (busroutes.js, zodra de lijndata geladen is): een bus begint op zijn lijn en rijdt hem
-  const line = busLines.length ? nearestLine(busLines, player.x, player.y, spawnMax) : null;
+  const near = busLines.length ? linesNear(busLines, player.x, player.y, spawnMax) : [];
+  const line = near[0] || null;
   for (let tries = 0; line && count < target && tries < 4; tries++) {
+    const line = near[Math.floor(Math.random() * near.length)];
     const pr = projectOnLine(line, player.x, player.y);
     const dir = Math.random() < 0.5 ? 1 : -1;
     const at = startAt(line, Math.max(0, Math.min(line.length, pr.s + dir * (spawnMin + Math.random() * (spawnMax - spawnMin) * 0.6))), dir);
-    const rp = map.nearestRoadPoint(at.x, at.y, 25, true);
-    if (!rp || rp.road.cat === 'foot' || rp.road.width < 2.55 + 1.1) continue;
+    const rp = busSpawnPoint(map, line, at.x, at.y);
+    if (!rp) continue;
     const v = spawnVehicleOnRoad(map, rp.road, false, Math.random, false, true, rp);
     if (Math.abs(normalizeAngle(v.angle - at.angle)) > Math.PI / 2) continue;
     const d = Math.hypot(v.x - player.x, v.y - player.y);
@@ -1126,8 +1178,10 @@ export function manageBusPopulation(world, { target = 4, spawnMin = 90, spawnMax
     vehicles.push(v);
     count++;
   }
+  // with a real line in reach the buses are the line's, not random ones on the main roads (#80)
+  if (line) return;
 
-  const candidates = map.roadsNear(player.x, player.y, spawnMax).filter((r) => r.cat === 'major' || r.cat === 'normal' || r.busOnly);
+  const candidates = map.roadsNear(player.x, player.y, spawnMax).filter((r) => (r.cat === 'major' || r.cat === 'normal' || r.busOnly) && busMagWeg(r, null));   // #322: geen woonstraten, paden of smalle wegen
   let guard = 0;
   while (count < target && candidates.length && guard++ < target * 6) {
     const road = candidates[Math.floor(Math.random() * candidates.length)];
@@ -1311,30 +1365,36 @@ function pickBoatWaypoint(v, rng, map) {
   return fallback || [v.x, v.y];
 }
 
-// The waterway network (vaarnet.js, game/vaarnet.json): a barge that lies on it sails a trip
-// to one of its hubs, over the edges it clears (no low bridge, a lock or a movable bridge
-// costs time) instead of wandering in its polygon. The trip is a list of points the boat
+// The waterway network (vaarnet.js, game/vaarnet.json): a barge or a tour boat that lies on it
+// sails a trip to one of its hubs, over the edges it clears (no low bridge, a lock or a movable
+// bridge costs time) instead of wandering in its polygon. The trip is a list of points the boat
 // follows as waypoints; a boat that gets stuck, or a net that is out of reach, falls back
-// to the wander.
+// to the wander. At a lock or a bridge it waits like the player's boat: the lock's gate stops it
+// and asks the lock (sluizen.js), a movable bridge opens for a boat that needs it (movablebridges.js).
 let vaarNet = null;
 export function setVaarNet(net) { vaarNet = net; }
 const VAAR_REACH = 150, VAAR_RETRY_S = 45, VAAR_ARRIVE = 14;
+// a tour boat sails the city, its harbours and the Reitdiep (#296), not out to the Waddenzee: trips up to this long (m)
+export const TOUR_TRIP_MAX = 12000;
+const isTour = (v) => v.model.kind === 'rondvaart';
+// the boats that follow the net, and the longest trip they pick (Infinity: any hub)
+const followsNet = (v) => isBarge(v) || isTour(v);
 
 function followVaarTrip(v, dt, rng, map) {
-  if (!vaarNet || !isBarge(v)) return false;
+  if (!vaarNet || !followsNet(v)) return false;
   v._vaarWait = Math.max(0, (v._vaarWait || 0) - dt);
   if (v.stuckCount >= 2) { v._vaar = null; v._vaarWait = VAAR_RETRY_S; }
   if (!v._vaar) {
     if (v._vaarWait > 0) return false;
-    const trip = pickTrip(vaarNet, v.x, v.y, v.angle, v, rng, VAAR_REACH);
+    const trip = pickTrip(vaarNet, v.x, v.y, v.angle, v, rng, VAAR_REACH, isTour(v) ? TOUR_TRIP_MAX : Infinity);
     if (!trip) { v._vaarWait = VAAR_RETRY_S; return false; }
     v._vaar = { pts: trip.pts, i: 0, name: trip.name };
   }
   const T = v._vaar;
   while (T.i < T.pts.length - 1 && Math.hypot(T.pts[T.i][0] - v.x, T.pts[T.i][1] - v.y) < VAAR_ARRIVE) T.i++;
-  // the next point lies in a ditch or vaart (the net is wider than the barge can sail): drop the trip (#234)
+  // the next point lies in a ditch or vaart (the net is wider than the boat can sail): drop the trip (#234)
   const nw = waterAt(map, T.pts[T.i][0], T.pts[T.i][1]);
-  if (nw && !bargeWaterAt(nw)) { v._vaar = null; v._vaarWait = VAAR_RETRY_S; return false; }
+  if (nw && (isBarge(v) ? !bargeWaterAt(nw) : nw.navigable < classOfKind(v))) { v._vaar = null; v._vaarWait = VAAR_RETRY_S; return false; }
   if (T.i >= T.pts.length - 1 && Math.hypot(T.pts[T.i][0] - v.x, T.pts[T.i][1] - v.y) < VAAR_ARRIVE * 2) { v._vaar = null; v._vaarWait = VAAR_RETRY_S; return false; }
   v.waypoint = [T.pts[T.i][0], T.pts[T.i][1]];
   v.waypointTimer = BOAT_WAYPOINT_MAX;
@@ -1378,7 +1438,26 @@ export function boatInTheWay(v, others, look) {
 const BOAT_STUCK_S = 6, BOAT_STUCK_M = 1.2, BOAT_BACK_S = 3, BOAT_STUCK_GIVEUP = 3;
 export const BOAT_SWEEP_DIST = 70;
 
+// Is the boat waiting for a lock or a movable bridge that has to open for it (#296)? That is no
+// stuck boat: it lies still on purpose, for as long as a cycle takes (WAIT_MAX_S, then the
+// watchdog is back: a bridge or lock that never answers must not hold a boat for good).
+const WAIT_MAX_S = 150;
+function boatWaitsForPassage(v) {
+  const k = sluisNear(v.x, v.y, 120);
+  if (k && k.queue.some((q) => q.who === v)) return true;
+  for (const b of getMovableBridges()) {
+    if (Math.abs(b.x - v.x) > b.len / 2 + 90 || Math.abs(b.y - v.y) > b.len / 2 + 90) continue;
+    if (b.boats.has(v)) return true;
+    if (b.state !== 'closed' && b.state !== 'closing' && b.state !== 'up' && boatNeedsOpening(v) && boatFrame(b, v).w < 70) return true;
+  }
+  return false;
+}
+
 function boatWatchdog(v, dt, rng, map, chasing) {
+  if (boatWaitsForPassage(v)) {
+    v._passWait = (v._passWait || 0) + dt;
+    if (v._passWait < WAIT_MAX_S) { v._wdT = 0; v._wdAt = [v.x, v.y]; return; }
+  } else v._passWait = 0;
   v._wdT = (v._wdT || 0) + dt;
   if (!v._wdAt) v._wdAt = [v.x, v.y];
   const moved = Math.hypot(v.x - v._wdAt[0], v.y - v._wdAt[1]);
@@ -1565,21 +1644,43 @@ export function findNearestVehicle(x, y, vehicles, maxDist = 2.5) {
 const graphCache = new WeakMap();
 const nodeKey = (p) => Math.round(p[0] * 10) + ',' + Math.round(p[1] * 10);
 
-function roadGraph(map) {
-  let g = graphCache.get(map);
-  if (g) return g;
-  const nodes = new Map();
-  const nodeOf = new Map();
-  const drivable = map.roads.filter((r) => r.cat !== 'foot' && r.pts.length > 1);
-  for (const r of drivable) {
-    nodeOf.set(r, r.pts.map((p, idx) => {
+// The nodes (shared vertices) of the roads by road. The city's roads are indexed at once; a road that
+// streamed in with a province tile (it lives in the map's road grid, not in map.roads) is indexed the
+// first time it is asked for, together with every road that touches one of its vertices, so junctions
+// on the tiles have their arms: turns, routes and the priority rules (#265).
+class LazyNodeMap extends Map {
+  constructor(map, nodes) { super(); this.map = map; this.nodes = nodes; this.expanded = new Set(); }
+  register(r) {
+    if (super.has(r)) return;
+    super.set(r, r.pts.map((p, idx) => {
       const k = nodeKey(p);
-      let n = nodes.get(k);
-      if (!n) { n = []; nodes.set(k, n); }
+      let n = this.nodes.get(k);
+      if (!n) { n = []; this.nodes.set(k, n); }
       n.push({ road: r, idx });
       return n;
     }));
   }
+  get(r) {
+    if (!super.has(r)) {
+      if (!r || !r.pts || r.pts.length < 2 || r.cat === 'foot' || !this.map.roadsNear) return undefined;
+      this.register(r);
+    }
+    if (!this.expanded.has(r)) {
+      this.expanded.add(r);
+      for (const p of r.pts) for (const o of this.map.roadsNear(p[0], p[1], 3)) if (o.cat !== 'foot' && o.pts.length > 1) this.register(o);
+    }
+    return super.get(r);
+  }
+}
+
+function roadGraph(map) {
+  let g = graphCache.get(map);
+  if (g) return g;
+  const nodes = new Map();
+  const nodeOf = new LazyNodeMap(map, nodes);
+  const drivable = map.roads.filter((r) => r.cat !== 'foot' && r.pts.length > 1);
+  for (const r of drivable) nodeOf.register(r);
+  nodeOf.expanded = new Set(drivable);
   // OSM ways that should meet sometimes stop a metre or two short
   for (const r of drivable) {
     const arr = nodeOf.get(r);
@@ -1620,6 +1721,7 @@ function canUseRoad(v, r) {
   if (r.cat === 'cycle' && !small) return false;
   if (v.isMotor && !motorRoadAllowed(v.model, r)) return false; // brommers and motors keep off the fietspad
   if (r.busOnly && !busLaneUser(v)) return false;
+  if (v.isBus && !busMagWeg(r, v.busRun ? v.busRun.line : null, v.model.wid)) return false;   // #322: een bus blijft op zijn lijn of het busnet
   return small || r.width >= v.model.wid + 1.1;
 }
 
@@ -1691,7 +1793,8 @@ function nextTurn(v, map, rng, goal, k, road, at, dir) {
 const ROUTE_MAX_EXPANSIONS = 6000;
 
 function findRoute(v, map, gx, gy) {
-  const target = map.nearestRoadPoint(gx, gy, 300, true);
+  // een bus mikt op de dichtstbijzijnde weg waar hij mag rijden, niet op het parallelle straatje naast zijn lijn (#322)
+  const target = (v.isBus && busSpawnPoint(map, v.busRun ? v.busRun.line : null, gx, gy, 60)) || map.nearestRoadPoint(gx, gy, 300, true);
   if (!target || !canUseRoad(v, target.road)) return false;
   const tp = target.road.pts;
   let ti = 0, tBest = Infinity;
@@ -2336,6 +2439,20 @@ function vehicleCapsule(v) {
 // when the segments don't cross, and a good approximation for the shallow
 // crossing angles two cars on a road actually produce.
 function closestPointsBetweenSegments(s1, s2) {
+  // two bodies that cross each other (two cars through the same junction): the endpoint
+  // distances below say "a metre apart" and push them along a made-up normal, so they stayed
+  // stuck in each other; crossing segments are at distance zero, the caller then pushes them
+  // apart along the line between the centres (#265)
+  const d1x = s1.bx - s1.ax, d1y = s1.by - s1.ay, d2x = s2.bx - s2.ax, d2y = s2.by - s2.ay;
+  const den = d1x * d2y - d1y * d2x;
+  if (Math.abs(den) > 1e-6) {
+    const t = ((s2.ax - s1.ax) * d2y - (s2.ay - s1.ay) * d2x) / den;
+    const u = ((s2.ax - s1.ax) * d1y - (s2.ay - s1.ay) * d1x) / den;
+    if (t > 0 && t < 1 && u > 0 && u < 1) {
+      const x = s1.ax + d1x * t, y = s1.ay + d1y * t;
+      return { p1x: x, p1y: y, p2x: x, p2y: y, dist2: 0 };
+    }
+  }
   let p1x = s1.ax, p1y = s1.ay, p2x = s2.ax, p2y = s2.ay;
   let bestD2 = Infinity;
   let c = closestPointOnSegment(s1.ax, s1.ay, s2.ax, s2.ay, s2.bx, s2.by);
@@ -2434,9 +2551,22 @@ function tangentialSpeed(a, b, nx, ny) {
   return Math.abs(-vx * ny + vy * nx);
 }
 
+// Een politiepaard (#331) gaat niet kapot en blijft ook niet staan: een klap van deze schade (een auto
+// van ~5 m/s tegen het paard) gooit de ruiter eraf en het paard slaat op hol. Dat doet policemounts.js
+// maybeBolt zodra de gezondheid onder HORSE_BOLT_HEALTH (40) komt; hier komt hij er in één klap onder.
+const HORSE_KNOCK_DAMAGE = 10;
+const HORSE_KNOCKED_HEALTH = 30;
+const HORSE_SOFT = 0.35; // een paard is zacht: de auto die het raakt krijgt zoveel van de schade
+const isMountHorse = (v) => v._mount === 'horse' && v.driver !== 'player';
+
 function applyImpactDamage(v, dmg, playerInvolved, world) {
   if (dmg <= 0 || v.wrecked) return;
   if (v.disabled) { v.burnLeft -= dmg * 0.06; return; }
+  if (isMountHorse(v)) {
+    v.health = Math.max(1, v.health - dmg * CRASH_DAMAGE_SCALE);
+    if (dmg >= HORSE_KNOCK_DAMAGE) v.health = Math.min(v.health, HORSE_KNOCKED_HEALTH);
+    return;
+  }
   if (v.driver === 'player') dmg = assistDamage(dmg);
   v.health = Math.max(0, v.health - dmg * CRASH_DAMAGE_SCALE);
   if (playerInvolved && v.driver === 'player' && !v.flat && !v.isBoat && !v.isHeli && !v.isBus && dmg >= FLAT_MIN_DAMAGE && v.health > 0 && Math.random() < Math.min(FLAT_MAX_CHANCE, dmg / 60)) v.flat = true;
@@ -2579,8 +2709,8 @@ export function resolveVehicleVehicleCollisions(vehicles, world = null) {
       reportImpact(world, hx, hy, relN, playerInvolved);
       if (relN > HARD_HIT_CLOSING_SPEED) {
         const base = (relN - HARD_HIT_CLOSING_SPEED) * IMPACT_DAMAGE_PER_MPS;
-        applyImpactDamage(a, clamp(base * clamp(2 * mB / (mA + mB), 0.25, 1.6), 0, MAX_IMPACT_DAMAGE), playerInvolved, world);
-        applyImpactDamage(b, clamp(base * clamp(2 * mA / (mA + mB), 0.25, 1.6), 0, MAX_IMPACT_DAMAGE), playerInvolved, world);
+        applyImpactDamage(a, clamp(base * clamp(2 * mB / (mA + mB), 0.25, 1.6), 0, MAX_IMPACT_DAMAGE) * (isMountHorse(b) ? HORSE_SOFT : 1), playerInvolved, world);
+        applyImpactDamage(b, clamp(base * clamp(2 * mA / (mA + mB), 0.25, 1.6), 0, MAX_IMPACT_DAMAGE) * (isMountHorse(a) ? HORSE_SOFT : 1), playerInvolved, world);
         a.hitThisFrame = true; a.hitX = hx; a.hitY = hy; a.hitImpactSpeed = relN;
         b.hitThisFrame = true; b.hitX = hx; b.hitY = hy; b.hitImpactSpeed = relN;
       }
@@ -2625,11 +2755,16 @@ function resolveTrailerContacts(a, vehicles, world) {
   }
 }
 
-function collisionProbes(v) {
-  const pts = v.halfLen > 3 ? [[v.halfLen, v.halfWid], [v.halfLen, -v.halfWid], [0, -v.halfWid], [-v.halfLen, -v.halfWid], [-v.halfLen, v.halfWid], [0, v.halfWid]] : null;
-  if (!pts) return vehicleCorners(v);
+// The probes of a body in order: the four corners, and for a long one (a bus, a truck) the sides' middle as well.
+// Multiples of (halfLen, halfWid); probe k is worked out on its own, from where the car is now.
+const PROBES_LONG = [[1, 1], [1, -1], [0, -1], [-1, -1], [-1, 1], [0, 1]];
+const PROBES_SHORT = [[1, 1], [1, -1], [-1, -1], [-1, 1]];
+const probeCount = (v) => (v.halfLen > 3 ? 6 : 4);
+function collisionProbe(v, k) {
+  const m = (v.halfLen > 3 ? PROBES_LONG : PROBES_SHORT)[k];
+  const lx = m[0] * v.halfLen, ly = m[1] * v.halfWid;
   const cos = Math.cos(v.angle), sin = Math.sin(v.angle);
-  return pts.map(([lx, ly]) => [v.x + lx * cos - ly * sin, v.y + lx * sin + ly * cos]);
+  return [v.x + lx * cos - ly * sin, v.y + lx * sin + ly * cos];
 }
 
 const FALL_G = 9.8;
@@ -2776,6 +2911,21 @@ function updateSuspension(v, dt) {
   }
 }
 
+// The buildings round a body, asked for with 3 m to spare and kept while the car stays within 1.5 m of where it
+// was asked: the probes lie within halfLen + 0.5 of the centre, and a push-out moves the car by centimetres. A car
+// asked the grid every frame (a list of arrays per car, ~250 queries a frame in a busy street).
+const BODY_NEAR_SLACK = 3;
+const BODY_NEAR_MOVE = 1.5;
+let bodyNearMap = null, bodyNearEpoch = 0;
+function buildingsAroundBody(v, map) {
+  if (map !== bodyNearMap) { bodyNearMap = map; bodyNearEpoch++; }
+  const c = v._bodyNear;
+  if (c && c.epoch === bodyNearEpoch && c.r === v.halfLen && Math.abs(v.x - c.x) < BODY_NEAR_MOVE && Math.abs(v.y - c.y) < BODY_NEAR_MOVE) return c.list;
+  const list = map.buildingsNear(v.x, v.y, v.halfLen + BODY_NEAR_SLACK);
+  v._bodyNear = { epoch: bodyNearEpoch, x: v.x, y: v.y, r: v.halfLen, list };
+  return list;
+}
+
 // A body corner that has penetrated a footprint is pushed out along the
 // nearest wall's normal; the impulse removes only the into-wall velocity
 // (plus friction), so a glancing scrape slides along while a head-on stops
@@ -2788,9 +2938,10 @@ export function resolveVehicleBuildingCollision(v, map, dt) {
   settleVehicleHeight(v, map, dt);
   let hit = false, worst = 0, hx = 0, hy = 0;
   const light = v.isBike || v.isScooter;
-  const count = collisionProbes(v).length;
+  const count = probeCount(v);
   // up on a viaduct or down in the cutting nothing at street level is in the way
   const offLevel = (v.z || 0) > 4 || (v.z || 0) < -3.5;
+  const near = offLevel ? null : buildingsAroundBody(v, map);
   // Ommeland solids (barns, real buildings, silos, village furniture, trunks):
   // one circle round the whole body first: the corner tests only run beside one
   let country = false, rails = false;
@@ -2802,7 +2953,7 @@ export function resolveVehicleBuildingCollision(v, map, dt) {
     rails = countryRailsNear(v.x, v.y, reach + 1).length > 0;
   }
   for (let k = 0; k < count; k++) {
-    const c = collisionProbes(v)[k];
+    const c = collisionProbe(v, k);
     if (rails) {
       // a bridge railing: the corner stays on the deck side, where the body's centre is
       _cp.x = c[0]; _cp.y = c[1];
@@ -2833,7 +2984,7 @@ export function resolveVehicleBuildingCollision(v, map, dt) {
         hit = true;
       }
     }
-    for (const b of offLevel ? [] : map.buildingsNear(c[0], c[1], 1)) {
+    for (const b of near || []) {
       const [minx, miny, maxx, maxy] = b.bounds;
       if (c[0] < minx || c[0] > maxx || c[1] < miny || c[1] > maxy) continue;
       // building passages (passages.js) are open, the rest of the footprint is wall
@@ -3043,7 +3194,7 @@ export function vehicleNeedsFireEffect(v, time = 0) {
 }
 
 // Damaged but not yet burning (vehicledamage.js, #205): only the smoke of the effect, no flames.
-const smokes = (v) => !v.isBike && !v.isScooter && !v.isBoat && !v.isHeli && !v.sinking && v.health <= SMOKE_HEALTH;
+const smokes = (v) => !v.isBike && !v.isScooter && !v.isBoat && !v.isHeli && !v.sinking && (v.health <= SMOKE_HEALTH || kapRookt(v, v.model.len, v.model.wid));
 export function vehicleSmokeOnly(v) {
   return !v.wrecked && !v.disabled && v.health > VEHICLE_FIRE_HEALTH_THRESHOLD && smokes(v);
 }
@@ -3271,9 +3422,9 @@ function onCarRoad(map, x, y) {
 }
 
 export function overOpenWater(map, x, y, z) {
-  if (!inMapWater(map, x, y) || map.isOnBridge(x, y)) return false;
-  // over the canal on a viaduct, or under it through the aqueduct
-  if (z > 1.5 || (z < -3 && map.coveredAt && map.coveredAt(x, y))) return false;
+  // the water rule with its walker/car vetoes: dry on a bridge, over the canal on a viaduct,
+  // or under it through the aqueduct (waterlevels.js waterPolyAt)
+  if (!waterPolyAt(map, x, y, z, BRIDGE_DRY)) return false;
   // water reaching over the edge of a dry road (a polygon's corner, the countryside's water field) is its embankment
   if (onCarRoad(map, x, y)) return false;
   // a ditch or shallows with a peil of their own are driven through, not sunk in

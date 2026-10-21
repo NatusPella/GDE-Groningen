@@ -6,9 +6,10 @@ import { getBusLines } from './vehicle.js';
 import { busTrip, reisOpties } from './ovopties.js';
 import { travelSeconds } from './reistijd.js';
 import { lijnLagen } from './ovkaart.js';
+import { INK, inkA } from './mapstyle.js';
 
 // Onder deze afstand is meerijden geen keuze: gewoon lopen of rijden.
-export const MIN_OV_M = 1500;
+const MIN_OV_M = 1500;
 
 const cache = { key: '', opts: null };
 
@@ -44,7 +45,7 @@ export function tekenLijnen(ctx, lagen, toScreen, scale = 1) {
     p.pts.forEach((q, i) => { const [sx, sy] = toScreen(q[0], q[1]); if (i) ctx.lineTo(sx, sy); else ctx.moveTo(sx, sy); });
     ctx.setLineDash(p.dash || []);
     ctx.lineWidth = p.width * scale + 3;
-    ctx.strokeStyle = 'rgba(10, 16, 14, 0.7)';
+    ctx.strokeStyle = inkA('dark', 0.7);
     ctx.stroke();
     ctx.lineWidth = p.width * scale;
     ctx.strokeStyle = p.color;
@@ -57,15 +58,15 @@ export function tekenLijnen(ctx, lagen, toScreen, scale = 1) {
     ctx.globalAlpha = s.alpha;
     ctx.beginPath();
     ctx.arc(sx, sy, r, 0, Math.PI * 2);
-    ctx.fillStyle = s.big ? '#ffffff' : s.color;
+    ctx.fillStyle = s.big ? INK.white : s.color;
     ctx.fill();
     ctx.lineWidth = 2;
-    ctx.strokeStyle = s.big ? s.color : '#ffffff';
+    ctx.strokeStyle = s.big ? s.color : INK.white;
     ctx.stroke();
     if (s.alpha === 1 && s.name) {
       ctx.font = `${12 * scale}px Arial, sans-serif`;
-      ctx.fillStyle = '#ffffff';
-      ctx.strokeStyle = 'rgba(0,0,0,0.75)';
+      ctx.fillStyle = INK.white;
+      ctx.strokeStyle = inkA('black', 0.75);
       ctx.lineWidth = 3;
       ctx.strokeText(s.name, sx + r + 4, sy + 4);
       ctx.fillText(s.name, sx + r + 4, sy + 4);

@@ -1,6 +1,6 @@
 # Social preview en websitetekst: voorstel (#72)
 
-Stand: 18 oktober 2026. **Voorstel, niets geüpload of geplaatst.** Geen namen of
+Stand: 20 oktober 2026. Het plaatje is gemaakt (`docs/social-preview.png`, hieronder) en de About-tekst en topics staan op GitHub; **uploaden van het plaatje en een website-veld zijn nog niet gedaan** (de repo is privé). Geen namen of
 merken van andere games, geen "-achtige" vergelijkingen (LICENTIES.md §8).
 Altijd zomer.
 
@@ -16,7 +16,8 @@ Altijd zomer.
 - **Veilige zone:** 40 px rondom vrij; tekst binnen de linker 60%.
 - **Niet doen:** het woord "GTA", logo's van derden, echte personen of kentekens,
   de Esri-luchtfoto.
-- **Plaatsen:** Settings › Social preview, alleen door de eigenaar, pas na Public.
+- **Gemaakt:** `node scripts/social_preview.mjs` maakt `docs/social-preview.png` (1280×640, 786 KB) uit de in-game luchtrender van de Martinitoren en de Grote Kerk bij zonsondergang (`docs/steam/beelden/bron/luchtfoto.jpg`), met het woordmerk "GDE / Groningen / Zomer vol misdaad" en de regel "Gratis open-wereldkomedie in een low-poly Groningen". Geen HUD, wapens of merken. Andere beelden: `--bg=vismarkt` of `--bg=zonsopgang`.
+- **Plaatsen:** Settings › Social preview › Upload an image, alleen door de eigenaar. De instelling is op een privé-repo niet in te vullen door een agent (de ingebouwde browser is niet ingelogd).
 
 ## About-tekst (GitHub, max. 350 tekens)
 
@@ -24,7 +25,7 @@ Altijd zomer.
 > kroegen en een Fries met een plan. Three.js + Electron, met webversie. Eigen
 > verhaal, verzonnen personages, echte plekken.
 
-Topics: `threejs`, `electron`, `open-world`, `groningen`, `low-poly`, `comedy`,
+Staat op GitHub (20 okt): beschrijving gelijk aan de tekst hierboven, topics `browser-game`, `comedy`, `dutch`, `electron`, `game`, `groningen`, `gronings`, `indie-game`, `javascript`, `low-poly`, `netherlands`, `open-world`, `openstreetmap`, `threejs`, `webgl`. Voorstel was: `threejs`, `electron`, `open-world`, `groningen`, `low-poly`, `comedy`,
 `dutch`, `game`, `javascript`. Website-veld: leeg tot er een webversie is gekozen (#57).
 
 ## Websitetekst (landingspagina, als er een komt)

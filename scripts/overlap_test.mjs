@@ -1,4 +1,4 @@
-// Geen dubbele stad en land (#90): wat de provinciebouw rond de stad levert ligt niet ook in citymap.json.
+// Geen dubbele stad en land (#90): wat de provinciebouw rond de stad levert ligt niet ook in de stadskaart (stad.json en de OSM-lagen).
 // Gebouwen en wegen: geen enkele dubbel; water: grote kanalen die op de rand door beide worden getekend zijn toegestaan.
 // Slaat over zonder game/world.
 import fs from 'node:fs';

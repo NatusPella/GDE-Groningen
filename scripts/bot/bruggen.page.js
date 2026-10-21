@@ -18,7 +18,7 @@ world.devInvuln = true;
 let shots = 0;
 const shot = (n) => { if (shots < (CFG.shots || 80)) { shots++; B.shot(n); } };
 
-// [naam, x, y, soort]: stad (vlak, profiel, beweegbaar) en provincie (viaducten; alleen met --viaducten zichtbaar)
+// [naam, x, y, soort]: stad (vlak, profiel, beweegbaar) en provincie (viaducten, met hoogteprofiel)
 const TARGETS = [
   ['Gerrit Krolbrug', 0, 0, 'beweegbaar', 'Gerrit Krolbrug'],
   ['Herebrug', 353, 755, 'beweegbaar'],
@@ -149,7 +149,8 @@ for (const [name, x0, y0, kind, want] of TARGETS) {
       const st = { z: v.z || 0, ribbon: null, kind: 'ground' };
       const g = world.map.surfaceAt ? world.map.surfaceAt(v.x, v.y, st).z : 0;
       const z = v.z || 0;
-      if (last !== null && Math.abs(v.speed) > 1) { const j = Math.abs(z - last); if (j > 0.5) B.log('sprong', { name, t: +B.time().toFixed(2), x: +v.x.toFixed(1), y: +v.y.toFixed(1), z0: +last.toFixed(2), z1: +z.toFixed(2), g: +g.toFixed(2), speed: +v.speed.toFixed(1), air: !!v.airborne, ribbon: !!(v.surf && v.surf.ribbon), kind: v.surf && v.surf.kind }); maxJump = Math.max(maxJump, j); }
+      // de eerste seconde telt niet: de auto begint op z 0 en zakt of stijgt dan naar het echte oppervlak (op een oprit tot 2,5 m), dat is geen sprong van het spel
+      if (last !== null && Math.abs(v.speed) > 1 && B.time() - t0 > 1.5) { const j = Math.abs(z - last); if (j > 0.5) B.log('sprong', { name, t: +B.time().toFixed(2), x: +v.x.toFixed(1), y: +v.y.toFixed(1), z0: +last.toFixed(2), z1: +z.toFixed(2), g: +g.toFixed(2), speed: +v.speed.toFixed(1), air: !!v.airborne, ribbon: !!(v.surf && v.surf.ribbon), kind: v.surf && v.surf.kind }); maxJump = Math.max(maxJump, j); }
       last = z; samples++; maxZseen = Math.max(maxZseen, z);
       minGap = Math.min(minGap, z - g);
       if (v.sinking || v.inWater) sunk = true;

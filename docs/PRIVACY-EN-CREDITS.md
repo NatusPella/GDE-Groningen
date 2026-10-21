@@ -14,12 +14,12 @@ verstuurd. De eigenaar beslist wat waar komt te staan.
 | Foutrapport | Wordt alleen gekopieerd door de speler, niet verstuurd; bevat geen persoonsgegevens | CONTRIBUTING.md |
 | Desktopapp (Electron) | Alleen offline spelen; externe links openen in de systeembrowser | `desktop/main.js` |
 | Webversie | Haalt `three` van de jsDelivr-CDN en lettertypen van Google Fonts, tenzij de webbuild ze meelevert (`desktop/build.mjs` vendort ze). Dan ziet die dienst het IP-adres van de bezoeker | `game/index.html` |
-| Samen spelen (coöp, #95) | **Alleen na toestemming** van de speler (`net/consent.js`): het IP-adres gaat naar een openbare STUN-server, en versleutelde signalering (met de kamercode als sleutel) via openbare brokers. Er gaat geen telemetrie of account mee. Spelers die samen spelen zien elkaars IP-adres niet in het spel, maar WebRTC maakt een directe verbinding | `game/js/net/netconfig.js`, AGENTS.md punt 4 |
+| Samen spelen (#95) | **Alleen na toestemming** van de speler (`net/consent.js`): het IP-adres gaat naar een openbare STUN-server, en versleutelde signalering (met de kamercode als sleutel) via openbare brokers. Er gaat geen telemetrie of account mee. Spelers die samen spelen zien elkaars IP-adres niet in het spel, maar WebRTC maakt een directe verbinding | `game/js/net/netconfig.js`, AGENTS.md punt 4 |
 
 Openstaand (eigenaar): de SECURITY.md-zin "het spel stuurt niets naar een
-server" klopt sinds samen spelen alleen zonder coöp; die tekst is aangepast. De
+server" klopt sinds samen spelen alleen zonder samen spelen; die tekst is aangepast. De
 Steam- en IARC-antwoorden over "online contact" en "internet" moeten de
-coöp-uitzondering noemen (zie [IARC-ANTWOORDEN.md](IARC-ANTWOORDEN.md), aanvulling).
+uitzondering voor samen spelen noemen (zie [IARC-ANTWOORDEN.md](IARC-ANTWOORDEN.md), aanvulling).
 
 ## 2. Persoonsgegevens in de repo
 
@@ -46,8 +46,11 @@ schrijft niemand een echte naam in credits: gebruik NatusPella.
 - **Muziek en stemmen:** gemaakt met AI (Google Gemini), aangeboden voor zover er
   rechten op rusten
 - **Martinitoren-model:** gemaakt met Claude Design (Anthropic)
-- **Disclaimer:** GDE is een gratis fanparodie en niet gelieerd aan of goedgekeurd
-  door enige uitgever; alle personages en bedrijven zijn verzonnen.
+- **Disclaimer:** één tekst, gelijk in README, NOTICE.md en `game/js/credits.js`: gratis
+  fanparodie, niet gelieerd aan, gesponsord door of goedgekeurd door een gameontwikkelaar
+  of -uitgever, in het bijzonder niet door Rockstar Games of Take-Two Interactive (de
+  uitgever van GTA); alles verzonnen, gelijkenis berust op toeval. De uitgever wordt in het
+  spel alleen hier genoemd (Over); de aftiteling zegt "Fanparodie: alles verzonnen".
 
 Volledige herkomst en risico's: [LICENTIES.md](LICENTIES.md). AI-melding voor
 Steam staat in [steam/winkelpagina.md](steam/winkelpagina.md).

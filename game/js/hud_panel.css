@@ -8,12 +8,12 @@
   --hud-shadow: 0 1px 3px rgba(0, 0, 0, 0.9), 0 0 1px rgba(0, 0, 0, 0.9);
   --gron-green: #1e9e56;
   --gron-green-light: #3fc97a;
-  --hud-edge: 46px;
+  --hud-edge: max(46px, env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px));
   /* smallest text, 13 device px whatever the zoom (hudlook.js READABLE_MIN) */
   --hud-min: calc(13px / var(--ui, 1));
-  --hud-top: 34px;
+  --hud-top: max(34px, env(safe-area-inset-top, 0px));
   --mm-size: 250px;
-  --mm-bottom: 46px;
+  --mm-bottom: max(46px, env(safe-area-inset-bottom, 0px));
   --hud-card: linear-gradient(180deg, rgba(23, 48, 31, 0.84), rgba(12, 20, 14, 0.84));
   --hud-card-ring: 0 0 0 1px rgba(63, 201, 122, 0.28), 0 10px 26px rgba(0, 0, 0, 0.35);
   /* the right column under the top-right block (hud_panel.js measures it) */
@@ -24,7 +24,7 @@
   font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif;
   letter-spacing: 0.04em;
 }
-@media (max-height: 640px), (max-width: 760px) { #hud { --mm-size: 190px; --hud-edge: 24px; --hud-top: 18px; } }
+@media (max-height: 640px), (max-width: 760px) { #hud { --mm-size: 190px; --hud-edge: max(24px, env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px)); --hud-top: max(18px, env(safe-area-inset-top, 0px)); --mm-bottom: max(46px, env(safe-area-inset-bottom, 0px)); } }
 body.hide-minimap #hud .hud-minimap-wrap { display: none; }
 
 /* what the rules (hudrules.js) leave out: faded, not removed, so layout holds */
@@ -140,7 +140,7 @@ body.hide-minimap #hud .hud-minimap-wrap { display: none; }
 #hud .hud-mission {
   --obj: #3fc97a;
   position: absolute; bottom: calc(var(--hud-edge) + 56px); left: 50%; transform: translateX(-50%);
-  display: flex; align-items: center; gap: 12px; max-width: min(calc(58vw / var(--ui, 1)), calc(100vw / var(--ui, 1) - 2 * (var(--hud-edge) + var(--mm-size) + 190px))); padding: 8px 24px; border-radius: 8px;
+  display: flex; align-items: center; gap: 12px; max-width: min(calc(58vw / var(--ui, 1)), calc(100vw / var(--ui, 1) - 2 * (var(--hud-edge) + var(--mm-size) + 160px))); padding: 8px 24px; border-radius: 8px;
   color: #f0ede4; text-shadow: var(--hud-shadow);
   background: linear-gradient(90deg, rgba(12, 20, 14, 0), rgba(12, 20, 14, 0.78) 18%, rgba(12, 20, 14, 0.78) 82%, rgba(12, 20, 14, 0));
   pointer-events: none; transition: opacity 0.4s ease;
@@ -154,7 +154,8 @@ body.pigeon-mode #hud .hud-mission.in-mission:not([hidden]) { display: flex !imp
 #hud .hud-mission[data-kind="police"] { --obj: #ff9a9a; }
 #hud .hud-obj-icon { flex: 0 0 16px; width: 16px; height: 16px; fill: var(--obj); filter: drop-shadow(0 0 6px var(--obj)); }
 #hud .hud-obj-text { display: flex; flex-direction: column; align-items: flex-start; min-width: 0; line-height: 1.1; }
-#hud .hud-mission-label { font-family: 'Arial Narrow', Arial, sans-serif; font-size: 20px; letter-spacing: 0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+/* two lines before the ellipsis: at 1280x720 the block is about 300 px wide and most goals ('Stap in de auto: de pinautomaat ligt achterin') were cut off */
+#hud .hud-mission-label { font-family: 'Arial Narrow', Arial, sans-serif; font-size: 20px; letter-spacing: 0.01em; overflow: hidden; text-overflow: ellipsis; max-width: 100%; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; line-clamp: 3; }
 #hud .hud-mission-label:empty { display: none; }
 #hud .hud-mission-progress { margin-top: 2px; font-family: 'Arial Narrow', Arial, sans-serif; font-size: 14px; color: rgba(240, 237, 228, 0.8); white-space: nowrap; }
 #hud .hud-mission-progress:empty { display: none; }

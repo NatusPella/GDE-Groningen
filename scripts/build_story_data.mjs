@@ -11,6 +11,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { withEllipsisAliases } from '../game/js/voicebank.js';
 
 const REPO = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SRC = path.join(REPO, 'docs', 'verhaal', 'nieuw');
@@ -69,7 +70,7 @@ const manifests = {};
 function manifest(name) {
   if (!manifests[name]) {
     const p = path.join(VL, name, 'manifest.json');
-    manifests[name] = fs.existsSync(p) ? JSON.parse(fs.readFileSync(p, 'utf8')) : {};
+    manifests[name] = fs.existsSync(p) ? withEllipsisAliases(JSON.parse(fs.readFileSync(p, 'utf8'))) : {};
   }
   return manifests[name];
 }

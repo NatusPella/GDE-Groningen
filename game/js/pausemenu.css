@@ -39,6 +39,7 @@ body:has(#pause-menu.prestart.visible) #start-screen .ss-foot { visibility: hidd
 #pause-menu.prestart .pm-back { display: flex; }
 #pause-menu .pm-rail-acts { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px; padding-left: 24px; }
 #pause-menu .pm-rail-acts .m-bt { justify-content: flex-start; }
+#pause-menu .pm-rail-acts [data-action="saves"] { grid-column: 1 / -1; order: -1; }
 #pause-menu .pm-rail-foot { display: flex; flex-direction: column; padding: 16px 0 0 24px; }
 #pause-menu .pm-rail-foot .m-bt { align-self: flex-start; }
 #pause-menu .pm-ver { margin: 0; padding: 12px 0 0 24px; font-size: 16px; letter-spacing: 1px; color: var(--mut); }
@@ -147,6 +148,16 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
 #pause-menu .ov-goal { display: flex; align-items: center; gap: 8px; font-size: 20px; min-width: 0; }
 #pause-menu .ov-goal svg { width: 20px; height: 20px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 #pause-menu .ov-goal .m-bt { margin-left: 12px; height: 32px; }
+/* the state of the game in tiles, the quick settings */
+#pause-menu .ov-tiles { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 16px; margin-top: 40px; flex: none; }
+#pause-menu .ov-tile { display: flex; flex-direction: column; gap: 4px; padding: 16px 20px 18px; border-radius: 12px; background: rgba(240, 237, 228, 0.05); box-shadow: inset 0 0 0 1px var(--line); text-align: left; transition: background 0.2s; min-width: 0; }
+#pause-menu button.ov-tile:not([tabindex="-1"]):hover { background: rgba(240, 237, 228, 0.1); }
+#pause-menu .ov-tile[tabindex="-1"] { cursor: default; }
+#pause-menu .ov-tile svg { width: 24px; height: 24px; fill: none; stroke: var(--g); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+#pause-menu .ov-tv { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 44px; line-height: 1; letter-spacing: 0.03em; white-space: nowrap; }
+#pause-menu .ov-tl { font-size: 17px; }
+#pause-menu .ov-tile .m-bar { margin-top: 6px; }
+#pause-menu .ov-quick { display: grid; grid-template-columns: 1fr 1fr; gap: 0 32px; padding: 0 24px 8px; }
 #pause-menu .ov-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; margin-top: 48px; flex: none; }
 #pause-menu .ov-col { display: flex; flex-direction: column; margin-left: -24px; min-width: 0; }
 #pause-menu .ov-col .m-gh { padding-top: 0; }
@@ -216,10 +227,19 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
 /* 720p and 1366: two columns, so the viewer keeps room for the name and the button */
 @media (max-width: 1400px) { #pause-menu .m-main > .m-list.gar-list { width: 470px; grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 #pause-menu .gar-card { flex-direction: column; align-items: stretch; gap: 8px; padding: 12px; min-height: 0; text-align: left; background: rgba(240, 237, 228, 0.04); }
-#pause-menu .gar-card .gar-ph { display: flex; align-items: center; justify-content: center; height: 88px; border-radius: 6px; background: radial-gradient(ellipse at 50% 85%, rgba(240, 237, 228, 0.12), rgba(240, 237, 228, 0) 70%); }
+#pause-menu .gar-card .gar-ph { position: relative; display: flex; align-items: center; justify-content: center; height: 104px; overflow: hidden; border-radius: 6px; background: radial-gradient(ellipse at 50% 85%, rgba(240, 237, 228, 0.12), rgba(240, 237, 228, 0) 70%); }
 #pause-menu .gar-card .gar-ph svg { width: 76px; height: 76px; }
+#pause-menu .gar-card .gar-ph img, #pause-menu .gar-card .gar-ph .gar-turn { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
+#pause-menu .gar-card .gar-ph .gar-sk { position: absolute; left: 22%; right: 22%; bottom: 22%; height: 34%; border-radius: 40%; background: rgba(240, 237, 228, 0.06); }
+#pause-menu .gar-card .gar-ph.spin img { visibility: hidden; }
+#pause-menu .gar-card.sel .gar-ph, #pause-menu .gar-card:focus-visible .gar-ph { background: radial-gradient(ellipse at 50% 85%, rgba(240, 237, 228, 0.2), rgba(240, 237, 228, 0) 72%); }
 #pause-menu .gar-card .nm { padding: 0; }
-#pause-menu .gar-card.off .gar-ph { opacity: 0.5; }
+/* yours and for sale in full paint; locked grey, written off washed out */
+#pause-menu .gar-card.off .gar-ph { opacity: 0.85; }
+#pause-menu .gar-card .gar-ph[data-look="locked"] img, #pause-menu .gar-card .gar-ph[data-look="locked"] .gar-turn { filter: grayscale(1) brightness(0.62) contrast(0.9); }
+#pause-menu .gar-card .gar-ph[data-look="lost"] img, #pause-menu .gar-card .gar-ph[data-look="lost"] .gar-turn { filter: grayscale(0.75) brightness(0.8); }
+#pause-menu .gar-card .gar-ph .gar-turn { opacity: 0; }
+#pause-menu .gar-card .gar-ph .gar-turn.on { opacity: 1; }
 #pause-menu .gar-st { display: flex; align-items: center; gap: 8px; min-height: 28px; }
 #pause-menu .gar-st svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; color: var(--mut); }
 #pause-menu .gar-st .v { font-size: 22px; }
@@ -374,4 +394,57 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
   #pause-menu .ov-cols { margin-top: 10px; }
   #pause-menu .td-list { width: min(560px, 90%); }
   #pause-menu .td-fv { font-size: 18px; }
+}
+
+@media (max-width: 1100px) {
+  #pause-menu .ov-tiles { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  #pause-menu .ov-quick { grid-template-columns: 1fr; }
+}
+
+/* smalle, staande schermen (telefoon, #96): het rail wordt een balk bovenaan
+   die zijwaarts schuift, het blad vult de rest. Nog niet op een toestel gezien. */
+@media (max-width: 760px) and (orientation: portrait) {
+  #pause-menu .pm-rail { left: 8px; right: 8px; top: 8px; bottom: auto; width: auto; --ra-h: 44px; }
+  #pause-menu .pm-inner.pm-game { flex-direction: row; align-items: center; height: auto; overflow-x: auto; overflow-y: hidden; gap: 4px; }
+  #pause-menu .pm-q-head, #pause-menu .pm-rail-sp, #pause-menu .pm-rail-gap, #pause-menu .pm-ver { display: none; }
+  #pause-menu .ra { width: auto; flex: none; padding: 0 12px; font-size: 20px; gap: 8px; }
+  #pause-menu .ra[aria-current="true"]::before { left: 8px; right: 8px; top: auto; bottom: 2px; width: auto; height: 3px; }
+  #pause-menu .pm-rail-acts, #pause-menu .pm-rail-foot { display: flex; flex-direction: row; flex: none; padding: 0; gap: 4px; }
+  #pause-menu .pm-sheet { left: 8px; right: 8px; top: 64px; bottom: 8px; }
+  #pause-menu .pm-ov { padding: 12px; }
+  #pause-menu .m-main, #pause-menu .pm-settab:not([hidden]) { flex-direction: column; padding: 8px 8px 16px; gap: 12px; overflow-y: auto; }
+  #pause-menu .pm-slist, #pause-menu .m-list { width: auto; max-width: 100%; }
+  #pause-menu .pm-row input[type="range"] { width: 160px; }
+  #pause-menu .m-li { min-height: 48px; }
+  #pause-menu .pm-sheet-sub { font-size: 16px; }
+  #pause-menu .pm-sheet-r { display: none; }
+  #pause-menu .pm-sheet .m-h2, #pause-menu .pm-sheet .m-h1 { font-size: 40px; }
+  #pause-menu .m-foot { display: none; }
+}
+
+/* Samen spelen (lobbyui.js, #95): kop, tekst, code, invoer en knoppen in de menustijl; ook in het wachtscherm (.coop-hold) */
+#pause-menu .pm-samen { display: flex; flex-direction: column; gap: 12px; max-width: 952px; padding: 32px 64px 40px; overflow-y: auto; scrollbar-width: none; }
+/* the sheet already has the title: the lobby's own one is dropped, and Foto's gets the same inset as the other sections (m-main: 64px) */
+#pause-menu .pm-samen .coop-title { display: none; }
+#pause-menu .pm-fotos { overflow-y: auto; scrollbar-width: none; }
+#pause-menu .pm-fotos .foto-panel { padding: 32px 64px 40px; }
+.pm-samen, .coop-hold { font-family: 'Arial Narrow', Arial, sans-serif; color: var(--ink, #f0ede4); }
+.pm-samen .coop-title, .coop-hold .coop-title { margin: 0 0 4px; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-weight: normal; font-size: 40px; letter-spacing: 0.04em; }
+.pm-samen p, .coop-hold p { margin: 0; max-width: 640px; font-size: 22px; line-height: 1.35; }
+.pm-samen .coop-code, .coop-hold .coop-code { width: fit-content; max-width: 100%; margin: 4px 0; padding: 14px 18px; border-radius: 8px; background: rgba(240, 237, 228, 0.08); box-shadow: inset 0 0 0 1px rgba(240, 237, 228, 0.24); font-family: Consolas, 'Courier New', monospace; font-size: 26px; letter-spacing: 0.06em; user-select: all; overflow-wrap: anywhere; }
+.pm-samen .coop-input, .coop-hold .coop-input { box-sizing: border-box; width: 100%; max-width: 520px; height: 56px; padding: 0 16px; border-radius: 8px; border: 1px solid rgba(240, 237, 228, 0.3); background: rgba(0, 0, 0, 0.35); color: inherit; font-family: Consolas, 'Courier New', monospace; font-size: 24px; }
+.pm-samen .coop-input:focus-visible, .coop-hold .coop-input:focus-visible { outline: 2px solid var(--ink, #f0ede4); outline-offset: 2px; }
+.pm-samen .coop-error, .coop-hold .coop-error { color: #ff9a8f; }
+.pm-samen .coop-btns, .pm-samen .coop-wensen, .coop-hold .coop-btns { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 12px; }
+.coop-hold .coop-btn, .pm-samen .coop-btn, .pm-samen .coop-wens { cursor: pointer; border: 0; }
+.coop-hold .m-bg, .coop-hold .m-bp, .pm-samen .m-bg, .pm-samen .m-bp { white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; height: 56px; padding: 0 24px; border-radius: 8px; font-size: 24px; letter-spacing: 0.06em; background: transparent; color: var(--ink, #f0ede4); box-shadow: inset 0 0 0 1px rgba(240, 237, 228, 0.24); }
+.coop-hold .m-bp, .pm-samen .m-bp { background: var(--g, #3fc97a); color: #0c140e; box-shadow: none; }
+.pm-samen .coop-wens[aria-pressed="true"] { background: rgba(63, 201, 122, 0.18); box-shadow: inset 0 0 0 1px var(--g, #3fc97a); }
+.pm-samen .coop-btn:focus-visible, .coop-hold .coop-btn:focus-visible, .pm-samen .coop-wens:focus-visible { outline: 2px solid var(--ink, #f0ede4); outline-offset: 2px; }
+
+@media (max-height: 820px) {
+  #pause-menu .pm-samen, #pause-menu .pm-fotos .foto-panel { padding: 24px 56px 32px; }
+}
+@media (max-width: 760px) and (orientation: portrait) {
+  #pause-menu .pm-samen, #pause-menu .pm-fotos .foto-panel { padding: 12px; }
 }

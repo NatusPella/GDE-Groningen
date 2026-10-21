@@ -10,13 +10,16 @@ import { planTown, resolveItem, roadside } from './stadsplan.js';
 import { buildProp, disposeProp, animateProp } from './ommelandprops3d.js';
 import { openGround } from './ommelandplace.js';
 import { waterGap, roadKind } from './tileplace.js';
+import { urbanWeight } from './provinceworld.js';
+import { inBebouwdeKom } from './worldplaces.js';
+import { BEBOUWD_VANAF } from './dierenregister.js';
 
-export const NEAR_M = 150; // candidate tries within this distance of the player are resolved
-export const SHOW_M = 120; // props within this are built
-export const DROP_M = 170; // and dropped beyond this
-export const SHOP_M = 9; // a board speaks within this
-export const SFEER_FIRST_S = 9;
-export const SFEER_EVERY_S = 55;
+const NEAR_M = 150; // candidate tries within this distance of the player are resolved
+const SHOW_M = 120; // props within this are built
+const DROP_M = 170; // and dropped beyond this
+const SHOP_M = 9; // a board speaks within this
+const SFEER_FIRST_S = 9;
+const SFEER_EVERY_S = 55;
 const SCAN_S = 1;
 
 const towns = new Map(); // id -> { plan, state: Map(itemId -> { tested:Set, spot|null, prop|null }) }
@@ -38,6 +41,7 @@ function resolveOn(map) {
     const q = roadside(x, y, roads, (px, py) => openGround(map, px, py, { r: 0.9, road: 0.2 }));
     if (!q) return null;
     if (item.water && waterGap(map, q.x, q.y, 40) < -35) return null;
+    if (item.vee && (urbanWeight(q.x, q.y) > BEBOUWD_VANAF || inBebouwdeKom(q.x, q.y))) return null;   // #330: vee niet tussen de huizen
     return q;
   };
 }

@@ -33,6 +33,7 @@ export const TIMEOUTS = {
   broker: 6000,       // ms tot een broker als onbereikbaar telt
   fallbackAfter: 8000, // ms zonder een werkende broker: PeerJS-terugval proberen
   gather: 5000,       // ms wachten op ICE-kandidaten
-  connect: 30000,     // ms tot het hele koppelen mislukt
+  connect: 30000,     // ms tot het koppelen mislukt (de gast vanaf het zoeken van de host; de host vanaf het antwoord van de gast)
+  wait: 900000,       // ms dat een uitnodiging openstaat zolang er niemand de code gebruikt (tijd om de code door te geven)
 };
 export const ICE_SERVERS = STUN_SERVERS.map((urls) => ({ urls }));

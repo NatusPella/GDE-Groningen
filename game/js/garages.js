@@ -9,7 +9,7 @@ import { KEYS } from './storagekeys.js';
 import { vehicleUpgradeItems, paintItems, getOwnedEntries, spawnOwnedEntry, replacementFee, getHeroLook, vehiclePreviewOf } from './shops.js';
 import { repairCost, platesCost, HERO_REPLACE_FEE } from './economy.js';
 import { spawnHeroCarNear } from './vehicle.js';
-import { markDirty } from './savegame.js';
+import { markDirty } from './savehook.js';
 import { recordStat } from './achievements.js';
 import { startCall } from './phonefeed.js';
 import { facilitiesOf, countryFacilities } from './facilities.js';
@@ -108,7 +108,7 @@ function placeSite(map, poi) {
             }
           }
           if (!ok) continue;
-          best = { score: sc, x: cx, y: cy, angle: Math.atan2(-ny, -nx), road };
+          best = { score: sc, x: cx, y: cy, angle: Math.atan2(-ny, -nx), road, reach: BAY_D / 2 + hw + 0.5 };
         }
       }
     }
@@ -148,7 +148,37 @@ export function initCountryGarages(w) {
   placeSites(w.map, [...country(['car_repair', 'car', 'tyres'], 'garage'), ...country('fuel', 'pomp')]);
 }
 
+// A parked car's length along the kerb reaches this far beside the door.
+const ZONE_SIDE = BAY_W / 2 + 2.8;
+
+// (x, y) in the bay, or in the strip from its door to the middle of the street: parked cars, street props and trees stay
+// out of it, so the door is never blocked (#332). `pad` widens the zone (a tree's crown).
+function inGarageZone(x, y, pad = 0) {
+  for (const s of sites) {
+    if (Math.abs(s.x - x) > BAY_D + s.reach + 4 || Math.abs(s.y - y) > BAY_D + s.reach + 4) continue;
+    const l = local(s, x, y);
+    if (Math.abs(l.side) < ZONE_SIDE + pad && l.fwd > -BAY_D / 2 - 0.6 - pad && l.fwd < s.reach + pad) return true;
+  }
+  return false;
+}
+
+// The mapped trees inside a new site's zone leave the map (a tree in the bay half blocked the door).
+function clearTreesFor(map, site) {
+  if (!map.treesNear || !map.treeGrid) return 0;
+  let n = 0;
+  for (const t of map.treesNear(site.x, site.y, BAY_D + site.reach)) {
+    const l = local(site, t[0], t[1]);
+    if (Math.abs(l.side) < ZONE_SIDE + 0.8 && l.fwd > -BAY_D / 2 - 1.4 && l.fwd < site.reach + 0.8) { map.treeGrid.remove(t, [t[0], t[1], t[0], t[1]]); n++; }
+  }
+  return n;
+}
+
 function placeSites(map, pois) {
+  if (!map.garageZones) {
+    map.garageZones = true;
+    const prev = map.reservedAt;
+    map.reservedAt = (x, y) => (prev ? prev(x, y) : false) || inGarageZone(x, y);
+  }
   for (const poi of pois) {
     if (sites.some((s) => Math.hypot(s.x - poi.x, s.y - poi.y) < 60)) continue;
     const spot = placeSite(map, poi);
@@ -156,8 +186,9 @@ function placeSites(map, pois) {
     const wijk = poi.country ? poi.place : wijkAt(map, spot.x, spot.y);
     const site = {
       kind: poi.kind, name: siteName(poi, wijk, spot.road),
-      x: spot.x, y: spot.y, angle: spot.angle, wijk, door: 0, mesh: null, cooldownUntil: 0,
+      x: spot.x, y: spot.y, angle: spot.angle, reach: spot.reach, wijk, door: 0, mesh: null, cooldownUntil: 0,
     };
+    clearTreesFor(map, site);
     const fx = Math.cos(site.angle), fy = Math.sin(site.angle), sx = -fy, sy = fx;
     if (poi.kind === 'pomp') {
       for (const side of [1, -1]) {

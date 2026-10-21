@@ -4,7 +4,7 @@
 //
 // greenery: every tree row of the tile gets a species, height and flags
 //   (greenery.js speciesFor from the tile's own water, green and roads), and
-//   the wood and forest outlines are filled (greenery.js fillPolygon, 9 m),
+//   the wood, forest and cemetery outlines are filled (greenery.js fillPolygon, 9 m; a cemetery 18 m with glades),
 //   clear of ways, buildings, water, track and the mapped trees; the new trees
 //   go into the tile's tree rows with ids of their own (FILL_GID0 + tile + n).
 // furniture: nothing to store. The rule furniture (guardrails, gantries,
@@ -18,6 +18,8 @@ import { speciesFor, speciesFromTags, heightFor, fillPolygon, hash2, findRows, T
 import { pointInPolygon as inPoly, segDist as segDistXY } from './util.js';
 
 export const FILL_GID0 = 20_000_000;
+// (the glades of a cemetery follow the position, with one salt, so they run on across the edge of a tile)
+const FILL_RULES = { forest: { spacing: 9 }, cemetery: { spacing: 18, open: 0.3, salt: 7 } };
 
 const segDist = (x, y, a, b) => segDistXY(x, y, a[0], a[1], b[0], b[1]);
 function polyDist(x, y, P) {
@@ -56,7 +58,7 @@ export function greeneryHook(rows) {
     const th = parseFloat(String(tags.height || '').replace(',', '.'));
     if (th > 2 && th < 45) t[3] = Math.round(th * 10);
   });
-  // fill the woods
+  // fill the woods and the cemeteries (the city's rules, scripts/world/greenery.mjs FILL_RULES: a wood 9 m apart, a cemetery 18 m with glades)
   const keep = (x, y) => {
     if (water.some((w) => polyDist(x, y, w.pts) < 1.5)) return false;
     if (roads.some((r) => lineDist(x, y, r.pts) < (r.width || 4) / 2 + (r.cat === 'foot' ? 1.2 : 2))) return false;
@@ -67,10 +69,11 @@ export function greeneryHook(rows) {
   let n = 0;
   const base = FILL_GID0 + ((tile.i + 2000) * 4000 + (tile.j + 2000)) * 4096;
   green.forEach((g, gi) => {
-    if (g.kind !== 'forest') return;
-    for (const [x, y] of fillPolygon(g.pts, { spacing: 9, keep, salt: gi % 97 })) {
+    const rule = FILL_RULES[g.kind];
+    if (!rule) return;
+    for (const [x, y] of fillPolygon(g.pts, { spacing: rule.spacing, open: rule.open || 0, keep, salt: rule.salt ?? gi % 97 })) {
       if (n >= 4095) return;
-      const sp = speciesFor({ place: 'forest', water: waterDist(x, y) }, hash2(x * 0.7, y * 1.3));
+      const sp = speciesFor({ place: g.kind, water: waterDist(x, y) }, hash2(x * 0.7, y * 1.3));
       const t = [x, y, sp, heightFor(sp, hash2(y, x * 0.9)), TREE_FLAG.fill];
       t.gid = base + n++;
       trees.push(t);

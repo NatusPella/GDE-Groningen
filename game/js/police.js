@@ -1,18 +1,21 @@
 import { clamp, closestPointOnSegment, pointInPolygon, isInWater } from './util.js';
 import { spawnVehicleOnRoad, updateTrafficAI, resolveVehicleBuildingCollision, spawnPoliceBoatOnWater, attachToNearestRoad, maxCurvature } from './vehicle.js';
 import { requestRespawn } from './world.js';
+import { mulberry32 } from './rng.js';
 import { bustFine } from './economy.js';
-import { spawnCopPedestriansNear, makeCopPedestrian, isInsideBuilding, isSpawnHidden } from './pedestrians.js';
+import { spawnCopPedestriansNear, makeCopPedestrian, isSpawnHidden } from './pedestrians.js';
+import { isInsideBuilding } from './pedgeom.js';
 import { edgeDistance, ROAD_W } from './countryfield.js';
 import { pushOutOfPlan } from './countryplan.js';
 import { roadNetReady, snapRoad, roadPathNear, nodeXY } from './roadgraph.js';
 import { isKnockedDown } from './ragdoll.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { decayFactor, profileOf, hintFor } from './signalement.js';
-import { levelOf, markSeen, stepUnseen } from './wantedlevels.js';
+import { levelOf, markSeen, stepUnseen, isInterceptorSlot, INTERCEPTOR } from './wantedlevels.js';
 import { createShards, dropSpikes } from './roadshards.js';
 import { makeBeamGeometry, makeBeamMaterial, requestSearchlight } from './nightlights3d.js';
 import { trySpawnMounts, tryDeployCrew, adoptThrownRider, holdUnit, updateCrews, ejectMountRider, maybeBolt, updateBolting } from './policemounts.js';
+import { waterNearby } from './waterlevels.js';
 
 // search area, cooldown and roadblock timing per star: wantedlevels.js
 const SEE_RANGE_CAR = 55;
@@ -161,15 +164,23 @@ function vehicleClearance(world, x, y, r) {
 // the player and out of the camera's sight, preferring spots behind or
 // beside the player when they're driving - or ahead along their route when
 // they are outrunning every unit.
+// Waar de eenheden komen en hoe de wegblokkade staat is te herhalen: een eigen zaadje per wereld
+// (world.policeSeed, anders vast), zodat de achtervolgingssimulatie dezelfde politie krijgt.
+export function policeRng(world) {
+  if (!world._policeRng) world._policeRng = mulberry32(world.policeSeed ?? 0x5eed1);
+  return world._policeRng;
+}
+
 function findSpawnPoint(world, cx, cy, minFromPlayer = SPAWN_MIN_DIST, ahead = false) {
   const { map, player: p } = world;
   const pv = p.inVehicle;
   const heading = pv ? (pv.speed >= 0 ? pv.angle : pv.angle + Math.PI) : null;
   for (let attempt = 0; attempt < 10; attempt++) {
-    let ang = Math.random() * Math.PI * 2;
-    if (heading !== null && ahead && attempt < 7) ang = heading + (Math.random() - 0.5) * 1.6;
-    else if (heading !== null && Math.abs(pv.speed) > 6 && attempt < 6) ang = heading + Math.PI / 2 + Math.random() * Math.PI;
-    const d = SPAWN_MIN_DIST + Math.random() * (SPAWN_MAX_DIST - SPAWN_MIN_DIST);
+    const rnd = policeRng(world);
+    let ang = rnd() * Math.PI * 2;
+    if (heading !== null && ahead && attempt < 7) ang = heading + (rnd() - 0.5) * 1.6;
+    else if (heading !== null && Math.abs(pv.speed) > 6 && attempt < 6) ang = heading + Math.PI / 2 + rnd() * Math.PI;
+    const d = SPAWN_MIN_DIST + rnd() * (SPAWN_MAX_DIST - SPAWN_MIN_DIST);
     const qx = cx + Math.cos(ang) * d, qy = cy + Math.sin(ang) * d;
     const rp = map.nearestRoadPoint(qx, qy, 40, true) || countryRoadPoint(qx, qy, 70);
     if (!rp || rp.road.bridge) continue;
@@ -182,7 +193,7 @@ function findSpawnPoint(world, cx, cy, minFromPlayer = SPAWN_MIN_DIST, ahead = f
 }
 
 function spawnPoliceVehicleAt(world, rp, opts = {}) {
-  const v = spawnVehicleOnRoad(world.map, rp.road, !opts.motor, Math.random, false, false, { x: rp.x, y: rp.y }, !!opts.motor);
+  const v = spawnVehicleOnRoad(world.map, rp.road, !opts.motor, policeRng(world), false, false, { x: rp.x, y: rp.y }, !!opts.motor);
   if (!spawnSpotHidden(world, v.x, v.y, v.angle, v.halfLen || 2.2)) return null;
   if (solidAt(world.map, v.x, v.y)) return null;
   const m = world.map;
@@ -222,6 +233,7 @@ function trySpawnPolice(world, state) {
   if (!rp) return;
   const v = spawnPoliceVehicleAt(world, rp);
   if (!v) return;
+  v._interceptor = isInterceptorSlot(world.wanted, alive);
   tunePoliceCar(v, world);
   world.vehicles.push(v);
   state.nextSpawnAt = world.time + SPAWN_STAGGER;
@@ -242,8 +254,8 @@ function tunePoliceCar(v, world, d = 0, sees = true) {
   const base = POLICE_TOP_SPEED[w];
   const pv = world.player.inVehicle;
   const want = clamp((pv ? Math.abs(pv.speed) : 0) * RUBBER_BAND_MATCH, base * RUBBER_BAND_MIN, base * RUBBER_BAND_MAX);
-  v.model.maxSpeed = base + (want - base) * k;
-  v.model.accel = POLICE_ACCEL[w] * (1 + RUBBER_BAND_ACCEL * k);
+  v.model.maxSpeed = (base + (want - base) * k) * (v._interceptor ? INTERCEPTOR.boost : 1);
+  v.model.accel = POLICE_ACCEL[w] * (1 + RUBBER_BAND_ACCEL * k) * (v._interceptor ? INTERCEPTOR.boost : 1);
 }
 
 function despawnFarPolice(world, state) {
@@ -525,7 +537,7 @@ function despawnFarCopPeds(world) {
 function isPlayerNearWater(world) {
   const p = world.player;
   if (p.inVehicle && p.inVehicle.isBoat) return true;
-  return world.map.waterNear(p.x, p.y, WATER_PROXIMITY).length > 0;
+  return waterNearby(world.map, p.x, p.y, WATER_PROXIMITY);
 }
 
 function trySpawnPoliceBoat(world, state) {
@@ -752,12 +764,13 @@ function tryRoadblock(world, state) {
   const spacing = n === 4 ? Math.max(3.6, (width - 1) / 3) : ROADBLOCK_CAR_SPACING;
   const slots = [];
   for (let i = 0; i < n; i++) slots.push({ off: (i - (n - 1) / 2) * spacing, back: 0 });
-  if (world.wanted >= 4 && Math.random() < ROADBLOCK_EXTRA_CHANCE) slots.push({ off: (Math.random() - 0.5) * 2, back: 5.5 });
+  const rnd = policeRng(world);
+  if (world.wanted >= 4 && rnd() < ROADBLOCK_EXTRA_CHANCE) slots.push({ off: (rnd() - 0.5) * 2, back: 5.5 });
   const cars = [];
   let outer = 0;
   for (const { off, back } of slots) {
-    const side = off > 0.01 ? 1 : off < -0.01 ? -1 : (Math.random() < 0.5 ? 1 : -1);
-    const v = spawnVehicleOnRoad(world.map, road, true, Math.random, false, false, { x: rp.x, y: rp.y });
+    const side = off > 0.01 ? 1 : off < -0.01 ? -1 : (rnd() < 0.5 ? 1 : -1);
+    const v = spawnVehicleOnRoad(world.map, road, true, rnd, false, false, { x: rp.x, y: rp.y });
     v.x = rp.x + nx * off - fx * towardPlayer * back;
     v.y = rp.y + ny * off - fy * towardPlayer * back;
     v.angle = Math.atan2(ny * side, nx * side) + side * (back ? 0.6 : 0.35) * towardPlayer;

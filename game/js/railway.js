@@ -1,14 +1,15 @@
-// Railway simulation: shuttle trains on the routes baked into citymap.json
+// Railway simulation: shuttle trains on the routes baked into stad.json
 // (scripts/add_railways.py), level crossings that warn/close ahead of them,
 // and what happens to anything standing on the track. Rendering lives in
 // railway3d.js, which only reads the state exported here.
 import { requestRespawn } from './world.js';
-import { DEAD_DURATION } from './pedestrians.js';
+import { DEAD_DURATION } from './pedconst.js';
 import { knockDown } from './ragdoll.js';
 import { disableVehicle } from './vehiclewreck.js';
 import { vehicleHooks } from './vehiclehooks.js';
 import { splatterPed, bleedPed, GIB_SPEED } from './gore3d.js';
 import { railHeightFn } from './railprofile.js';
+import { MAP_PALETTE, INK } from './mapstyle.js';
 
 const HALF_WIDTH = 1.45;
 const DWELL = 25;
@@ -797,13 +798,14 @@ export function crossingSpeedLimit(v, path, project) {
 }
 
 // 2D map layers (minimap + full map): track lines, and the trains on top.
-export function drawRailsOnMap(ctx, map, x0, y0, x1, y1, widthM, color = '#55524c') {
+// The colours come from the map's palette (mapstyle.js), so the night palette reaches the rails too.
+export function drawRailsOnMap(ctx, map, x0, y0, x1, y1, widthM, palette = MAP_PALETTE) {
   const rails = map.rails || [];
   ctx.save();
   ctx.lineCap = 'butt';
   ctx.lineJoin = 'round';
   for (const pass of [0, 1]) {
-    ctx.strokeStyle = pass ? '#d8d4c8' : color;
+    ctx.strokeStyle = pass ? palette.railTie : palette.rail;
     ctx.lineWidth = pass ? widthM * 0.35 : widthM;
     ctx.setLineDash(pass ? [widthM * 1.4, widthM * 1.4] : []);
     for (const r of rails) {
@@ -822,7 +824,7 @@ export function drawRailsOnMap(ctx, map, x0, y0, x1, y1, widthM, color = '#55524
 
 export function drawTrainsOnMap(ctx) {
   ctx.save();
-  ctx.strokeStyle = '#1b1d22';
+  ctx.strokeStyle = INK.railBed;
   ctx.lineWidth = 0.8;
   for (const t of trains) {
     ctx.fillStyle = '#' + t.cfg.nose.toString(16).padStart(6, '0');

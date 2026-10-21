@@ -1,6 +1,6 @@
 // Map icon rules (game/js/mapicons.js): categories by zoom, size by zoom, and
 // the thinning where icons would overlap. Run: node scripts/mapicons_test.mjs
-import { mapCategory, mapKindVisible, mapIconScale, placeIcons, mapPriority, mapRimColor, miniIconScale, iconGapPx, MIN_ICON_PX, ICON_UNITS, hexContrast, haloRim, haloOutline, HALO_DARK, HALO_LIGHT, GRAPHIC_CONTRAST, FLAT_FILL, FLAT_INK, mapFillColor } from '../game/js/mapicons.js';
+import { mapCategory, mapKindVisible, mapIconScale, placeIcons, mapPriority, mapRimColor, miniIconScale, iconGapPx, MIN_ICON_PX, ICON_UNITS, hexContrast, haloRim, haloOutline, HALO_DARK, HALO_LIGHT, GRAPHIC_CONTRAST, FLAT_FILL, FLAT_INK, mapFillColor, BADGE_SHAPE, badgeShape, badgeGlyphColor, shadeHex, stateLook, mapIconAlpha, GLYPH_LIGHT } from '../game/js/mapicons.js';
 import { MAP_PALETTE, MINI_PALETTE, nightPalette, toRgba } from '../game/js/mapstyle.js';
 
 let n = 0, fails = 0;
@@ -89,5 +89,27 @@ for (const [cat, fill] of Object.entries(FLAT_FILL)) {
 }
 ok(new Set(['zorg', 'politiebureau', 'garage', 'station', 'job', 'shop', 'fun', 'horeca', 'ommeland'].map((c) => FLAT_FILL[c])).size === 9, 'categories have their own colour');
 ok(mapFillColor('hospital') === FLAT_FILL.zorg && mapFillColor('shop-bakker') === FLAT_FILL.shop && mapFillColor('player') === null && mapFillColor('missionActive') === null && mapFillColor('police') === null, 'fill follows the category; you, goals, missions and police keep their look');
+// the badge (#180): a shape and colour per category, a readable glyph, states and the zoom fade
+for (const cat of Object.keys(FLAT_FILL)) ok(BADGE_SHAPE[cat], 'a badge shape for ' + cat);
+{
+  const pairs = new Set(Object.keys(FLAT_FILL).filter((c) => !['tip', 'other'].includes(c)).map((c) => BADGE_SHAPE[c] + FLAT_FILL[c]));
+  ok(pairs.size === 10, 'every main category has its own shape and colour');
+  ok(new Set(['zorg', 'politiebureau', 'garage', 'station', 'job', 'shop'].map((c) => BADGE_SHAPE[c])).size === 6, 'the six main places each have their own silhouette');
+}
+for (const [cat, fill] of Object.entries(FLAT_FILL)) {
+  const g = badgeGlyphColor(fill);
+  ok(g === GLYPH_LIGHT || g === FLAT_INK, 'glyph colour of ' + cat + ' is cream or ink');
+  ok(hexContrast(g, fill) >= GRAPHIC_CONTRAST, 'glyph of ' + cat + ' on its fill ' + hexContrast(g, fill).toFixed(2));
+}
+ok(badgeShape('hospital') === 'circle' && badgeShape('politiebureau') === 'shield' && badgeShape('shop-snack') === 'tile' && badgeShape('garage') === 'hex' && badgeShape('station') === 'squircle', 'shape follows the category');
+ok(shadeHex('#808080', 0) === '#808080' && shadeHex('#808080', 1) === '#ffffff' && shadeHex('#808080', -1) === '#000000', 'shadeHex ends');
+ok(stateLook('vergrendeld').gray && stateLook('vergrendeld').alpha < stateLook('ontdekt').alpha && stateLook('ontdekt').alpha < stateLook('aanwezig').alpha && !stateLook().gray, 'states: locked < discovered < present');
+ok(mapIconAlpha('player', 0.1) === 1 && mapIconAlpha('hospital', 0.9) < 1 && mapIconAlpha('hospital', 5) === 1 && mapIconAlpha('shop-a', 2) >= 0.8, 'important icons are solid, the rest fade in to 1 and never below 0.8');
+// Garages are easy to find (tester feedback on 0.38.0, the bigger icons): they show from zoom 1.1, outrank shops and fun,
+// and no icon is ever smaller than MIN_ICON_PX (21 px). Changes to the map style keep to this.
+ok(mapKindVisible('garage', 1.1) && !mapKindVisible('garage', 1.0), 'garages show from zoom 1.1');
+ok(mapPriority('garage') > mapPriority('shop') && mapPriority('garage') > mapPriority('fun'), 'a garage outranks shops and fun on the map');
+ok(MIN_ICON_PX >= 21 && mapIconScale(1) * ICON_UNITS >= 21 && miniIconScale(150) * ICON_UNITS >= 21, 'icons keep their size (21 px at least, full map and minimap)');
+
 console.log(`${n} checks, ${fails} failed`);
 process.exit(fails ? 1 : 0);

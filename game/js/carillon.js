@@ -4,7 +4,7 @@ import { showCard } from './hudcards.js';
 import { standActivity, recLine } from './standactivity.js';
 import { createBoard, key, bubble, clearBubbles, pick, stopPressed } from './minigamekit.js';
 import { CARILLON_LINES } from './minigamelines3.js';
-import { pushAudioEvent } from './pedestrians.js';
+import { pushAudioEvent } from './pedgeom.js';
 import { TOWER, CARILLON_STAND, BELL_KEYS, BELL_NAMES, TUNES, CARILLON, MEDAL_AT, createCarillon, stepCarillon, bellHz, carillonMedal, accuracy } from './carillonrules.js';
 
 // Carillon in de Martinitoren: at the foot of the tower on the Grote Markt the
@@ -22,7 +22,7 @@ let game = null;
 let board = null;
 
 // A bell: the tower's own bell sample (sfx layer) at the pitch of this bell.
-export function playBell(w, bell, vel = 1) {
+function playBell(w, bell, vel = 1) {
   pushAudioEvent(w, { kind: 'bell_note', x: w.player.x, y: w.player.y, rate: bellHz(bell) / BELL_REF_HZ, gain: vel });
 }
 

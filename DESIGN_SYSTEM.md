@@ -181,7 +181,17 @@ the mockups' 1920x1080 px and zoomed by `--mz` (`--ui` / 1.2), so it scales with
 
 ## Map icons and world markers
 
-One icon language on the big map, the minimap and in the world. Each category has its own shape AND colour (red cross = hospital, blue shield = police station, blue train = station, green wrench = garage, orange fork = food, coloured rounded square = shop by type, yellow ring = mission, light-blue ring with a dot or arrow = objective, purple pin = your own goal). Icons are 15 to 24 px wide, always on a dark disc with a cream rim for contrast; zoomed out only the important categories show (mapicons.js), and where icons collide the higher priority wins. The legend stays a short list of icon and name; the explanation sits in the tooltip. In the world the marker is a thin light column of fixed height, a ring on the ground and one icon above it (worldmarker3d.js), never a filled screen.
+One icon language on the big map, the minimap and in the world. Every place is a **badge**: one silhouette per category next to its colour (so colour is never the only cue), a saturated fill with a lighter top and a lighter inner rim, a dark outline with a thin cream line outside it, a soft shadow, and the place's own glyph enlarged to about 60 % of the badge in cream (dark ink on yellow, lime, orange or teal, whichever reaches 3:1). Shapes and colours: care = red circle with a cross, police station = blue shield, garage = amber hexagon, station and halt = purple rounded rectangle, side job = teal diamond, shop = pink rounded square (a glyph per type), activity = green circle, food = orange circle, Ommeland = sky-blue circle, speed camera = yellow square, landmark = cream circle with a star. You (a glowing green arrow with a cream edge), goals (purple pin), missions (yellow ring), police units and your own places keep their own look so they stand out from the badges. Icons are 21 to 32 px; zoomed out only the important categories show (mapicons.js), the rest fade in over a short zoom range, and where icons collide the higher priority wins. A place has a state: present, discovered (softer) or locked (grey, dimmed; `opts.state`). The legend stays a short list of icon and name; the explanation sits in the tooltip. In the world the marker is a thin light column of fixed height, a ring on the ground and one icon above it (worldmarker3d.js), never a filled screen. `node scripts/ui_shots.mjs --scenes=scripts/ui/kaarticons_scenes.js` makes the icon sheet and the minimap and big map in town, village and Ommeland, day and night.
+
+## Menurust (meetbare criteria, #92)
+
+`node scripts/ui_shots.mjs --sizes=1920x1080 --scenes=scripts/ui/menumeting_scenes.js` meet per pauzemenuscherm (zonder rail en voet, alleen wat in het venster staat) de woorden, de pictogrammen en de kleinste letter.
+
+- **Tekst:** een keuzescherm (Overzicht, Kaart, Telefoon, Spullen, Garage, Prestaties, Instellingen, Foto's) toont hooguit 125 woorden; een naslagscherm (Te doen, Personages, Besturing) hooguit 270.
+- **Lettergrootte:** geen tekst onder 13 px, behalve toetsplaatjes (WASD, LT/RT).
+- **Beeld boven tekst:** een scherm met een lijst van dingen (Garage, Prestaties, Personages, Overzicht) heeft pictogrammen of plaatjes per item; onbekende items zijn één regel, geen muur van vraagtekens.
+- **HUD:** de woordbudgetten van `hudtext.js` (`hud_text_audit`, ratchet 0 boven budget), hooguit zes elementen naast de minimap (hudrules.js) en geen overlappende vlakken (`scripts/ui/overlays2_scenes.js`).
+- Stand 20 oktober (1080p): 21 schermen gemeten, alle binnen de criteria; het drukste keuzescherm is Instellingen › Camera met 123 woorden.
 
 ## Where this already applies (reference implementations)
 

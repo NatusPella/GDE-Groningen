@@ -74,6 +74,7 @@ De lijsten zijn een vangnet, geen uitputtende opsomming van wat er bestaat.
 node scripts/text_audit.mjs          # bevindingen buiten de allowlist (exit 1 bij een treffer)
 node scripts/text_audit.mjs --all    # ook de toegestane, met reden
 node scripts/text_audit_test.mjs
+node scripts/merkenregister_check.mjs   # sectie 6 klopt met de code (namen, winkelketens, automerken)
 ```
 
 De audit leest alle stringliteralen in `game/js` (commentaar en console-meldingen
@@ -81,7 +82,14 @@ niet), tekst en attributen in `game/index.html`, alle strings in
 `game/storydata/script.json` en het `[Unreleased]`-deel van het CHANGELOG, en
 controleert op echte merken, echte personen, Engels, winter en "de Grunn".
 
-Stand 18 oktober 2026: **0 bevindingen**, 57 toegestane gevallen, elk met een
+Stand 20 oktober 2026 (ronde 2, #150): de lijsten zijn uitgebreid met ruim 200 extra merken
+(telecom, winkels, kleding, drank, merken van elektronica, jeugdreeksen en tv-programma's),
+sporters, politici, artiesten en festivals, extra winterwoorden (dooi, gladheid, gevroren, sleeën),
+meer Engelse leenwoorden (respawn, achievements, tutorial, quest) en een nieuwe regel voor
+**persoonsgegevens en webadressen** (e-mail, telefoonnummer, IBAN, `http(s)://`, `www.`), ook
+in teksten die geen proza zijn. **0 bevindingen**, 105 toegestane gevallen met reden.
+
+Oudere stand 18 oktober 2026: 0 bevindingen, 57 toegestane gevallen, elk met een
 reden in `scripts/text_audit_allow.json`. Dertien eerdere bevindingen waren
 detectielijsten (de lijst met merken die het script zelf zoekt, `CHAINS` en
 `BRANDS` in de code), de platformnaam in de trailerkaart en een kermiskraam
@@ -92,3 +100,66 @@ scripts, de opname zelf is niet gecontroleerd op wat er gezegd wordt), beeld
 (logo's op texturen worden in de code gemaakt en zijn niet geaudit), namen in
 `data/` en in de OSM-kaarttegels (echte plaatsnamen, bedoeld), en de
 registercheck van de eigen naam (MERKENCHECK.md).
+
+## 6. Register met bron en beoordeling
+
+Een rij per verzonnen of op een echte naam lijkende naam die de speler kan zien.
+Kolom *Bron* is het bestand waar de naam in staat; `node scripts/merkenregister_check.mjs`
+controleert dat elke naam daar nog staat en dat elke winkelketen en elk automerk uit de
+code in dit register voorkomt. Kolom *Lijkt op* noemt een echt merk alleen als klank of
+woordspeling dat doet. Beoordeling: **ok** (geen gelijkenis), **let op** (klankgelijkenis
+met een echt merk; bewuste parodie, op de allowlist, de eigenaar kan kiezen te hernoemen),
+**besluit** (echt evenement of echte plek in de speltekst; eigenaarsbesluit, zie 4).
+
+| Naam | Soort | Bron | Lijkt op | Beoordeling |
+|---|---|---|---|---|
+| Pang & Zo | winkelketen, wapens | `game/js/shopdata.js` | niets | ok |
+| Pand & Poen | winkelketen, pandjeshuis | `game/js/shopdata.js` | niets | ok |
+| Stoer & Stads | winkelketen, kleding | `game/js/shopdata.js` | niets | ok |
+| Knip & Kuif | winkelketen, kapper | `game/js/shopdata.js` | niets | ok |
+| Rook & Geluk | winkelketen, tabak en loterij | `game/js/shopdata.js` | niets | ok |
+| Nait Duur | winkelketen, avondwinkel | `game/js/shopdata.js` | niets | ok |
+| Frituur Vet & Lekker | winkelketen, snackbar | `game/js/shopdata.js` | niets | ok |
+| Trap & Toeter | winkelketen, fietsen | `game/js/shopdata.js` | niets | ok |
+| Spaak & Band | winkelketen, fietsenmaker | `game/js/shopdata.js` | niets | ok |
+| Ome Harm Occasions | autodealer | `game/js/shopdata.js` | niets | ok |
+| Knal & Kolder Tuning | tuningwinkel | `game/js/shopdata.js` | niets | ok |
+| Bootje Huren | botenverhuur | `game/js/shopdata.js` | niets | ok |
+| Spuit & Klaar | spuiterij | `game/js/shopdata.js` | niets | ok |
+| EIKEA | woonwarenhuis ("Zweeds? Nee, Gronings") | `game/js/shopdata.js` | IKEA (één letter erbij, bewuste woordgrap) | let op |
+| Rotor Roelf | helikopterdealer | `game/js/shops.js` | niets | ok |
+| Poen Express | waardetransport (kluiswagen) | `game/js/cashvan.js` | niets | ok |
+| Pakkie Nou | pakketdienst | `game/js/vehiclenames.js` | pakketbezorgers in het algemeen | ok |
+| Noord-Nieuws | verslaggeversbus | `game/js/vehiclenames.js` | niets | ok |
+| Fjord Frituur | frietwagen van Tessa | `game/js/characters.js` | niets | ok |
+| Escapade | held-auto "Fjord Escapade" (Tammo) | `game/js/vehiclenames.js` | klank van "Fjord"/"Escapade" lijkt op een bekend automerk en model | let op |
+| Dollard | automerk | `game/js/vehiclenames.js` | de Dollard (baai); geen merk | ok |
+| Eemsmond | automerk | `game/js/vehiclenames.js` | gebied; geen merk | ok |
+| Hunze | automerk | `game/js/vehiclenames.js` | rivier; geen merk | ok |
+| Wadden | automerk | `game/js/vehiclenames.js` | gebied; geen merk | ok |
+| Reitdiep | automerk | `game/js/vehiclenames.js` | rivier; geen merk | ok |
+| Oldambt | automerk | `game/js/vehiclenames.js` | gebied; geen merk | ok |
+| Eemshaven | automerk | `game/js/vehiclenames.js` | haven; geen merk | ok |
+| Tweetakt | brommermerk | `game/js/vehiclenames.js` | beschrijvend woord | ok |
+| Albert Hijgt | supermarktbord in Paddepoel | `game/js/paddepoel3d.js` | sterke klankgelijkenis met de grootste supermarktketen van het land | let op |
+| Stadsloterij | lot bij Rook & Geluk | `game/js/shops.js` | de landelijke loterij (klank) | let op |
+| Grunneger Gokje | kraskaart | `game/js/shops.js` | niets | ok |
+| Duivenkraslot | kraskaart | `game/js/shops.js` | niets | ok |
+| Zomerzoet | ijssalon | `game/js/sidejob_vracht.js` | niets | ok |
+| Delfstof Noord | verzonnen delfstofbedrijf | `game/js/stadmissies.js` | geen echt bedrijf; gevoelig onderwerp, zie constitution 6 | ok |
+| Wiebelwerk | het Wiebelwerk-universum | `game/js/interieurplan.js` | niets | ok |
+| Us Mem Vet | bedrijf/winkel | `game/js/missions.js` | niets | ok |
+| Kiekdoar | nieuwssite | `game/js/attention.js` | niets | ok |
+| Radio Proat | radio | `game/js/radio.js` | niets | ok |
+| G-Music | muziekzender | `game/js/radio.js` | generieke naam; registercheck in MERKENCHECK.md | ok |
+| Pompeblêd | blad | `game/js/missionstory.js` | Fries woord voor waterleliebladeren | ok |
+| Lichtje Tjoek | lamp bij EIKEA | `game/js/furniture.js` | niets | ok |
+| Noorderzon | festival en jas (Femke, kalender, uitrusting) | `game/js/calendar.js` | het echte festival in Groningen | besluit |
+| KEI-week | introductieweek in de kalender | `game/js/calendar.js` | de echte introductieweek | besluit |
+| Gerrit Krolbrug | brug | `game/js/flavour.js` | echte brug (plaats), vernoemd naar een persoon; staat op de allowlist | besluit |
+| Qbuzz | alleen in een codecommentaar bij de stadsbuskleur, nooit in beeld | `game/js/vehicle.js` | echte busmaatschappij | ok (commentaar) |
+
+Vaste namen van huisstijl en personages staan in [personages.md](personages.md). Cafénamen
+(`CAFE_NAMES` in `game/js/horeca.js`) en horecanamen (`HORECA_NAMES` in `game/js/shopbind.js`)
+zijn losse woorden en zinnetjes ("De Lallende Koe", "de Dorstige Wierde") zonder merk;
+de tekstaudit toetst ze mee.

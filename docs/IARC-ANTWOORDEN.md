@@ -72,16 +72,23 @@ iets bij komt (stemlijnen in `game/audio`) verandert dit antwoord naar "ja".
 
 ## 6. Interactie, privacy, locatie
 
-| Vraag | Antwoord |
-|---|---|
-| Spelers kunnen met elkaar communiceren (chat, voice, berichten) | Nee |
-| Gebruikersgegenereerde inhoud delen of ontvangen | Nee |
-| Online multiplayer | Nee (alleen offline singleplayer) |
-| Gebruikers kunnen elkaar ontmoeten of vinden | Nee |
-| Deelt de game de **locatie** van de gebruiker | Nee |
-| Verzamelt of deelt persoonsgegevens, account, e-mail | Nee. Opslag is lokaal (savegame op het apparaat). |
-| Digitale aankopen, abonnement | Nee |
-| Bevat verwijzingen naar of links naar internet, sociale media | Nee in het spel (controleer: de website- of GitHub-link in het menu, indien aanwezig, vermelden als "link naar externe pagina") |
+Het spel heeft (#95, nog niet in een release) een modus **Samen spelen** (peer-to-peer, tot een
+paar spelers, met een kamercode). Er is geen tekstchat, geen spraak, geen publieke
+lobby, geen profielen en geen uitwisseling van eigen inhoud; spelers zien elkaar
+alleen als figuren in de wereld en delen de voortgang van het verhaal.
+
+| Vraag | Antwoord | Toelichting |
+|---|---|---|
+| Spelers kunnen met elkaar communiceren (chat, voice, berichten) | Nee | Alleen speltoestand en posities; geen tekst of spraak (`game/js/net/` bevat geen chat- of microfooncode). |
+| Gebruikers kunnen elkaar ontmoeten of vinden | Alleen met een kamercode die je zelf deelt | Geen zoekfunctie, geen openbare lijst. |
+| Online multiplayer | **Ja, optioneel** (Samen spelen) | Peer-to-peer (WebRTC). Het hele spel werkt ook volledig offline voor één speler. |
+| Gebruikersgegenereerde inhoud delen of ontvangen | Nee | |
+| Deelt de game gegevens met derden | Alleen na toestemming in het spel | IP-adres naar openbare STUN-servers; versleutelde signalering (kamercode als sleutel) via openbare brokers. Geen account, geen telemetrie. Zie `game/js/net/netconfig.js`, `net/consent.js` en [PRIVACY-EN-CREDITS.md](PRIVACY-EN-CREDITS.md). |
+| Deelt de game de **locatie** van de gebruiker | Nee | Geen geolocatie; het IP-adres bij Samen spelen is geen locatiegegeven dat het spel gebruikt. |
+| Verzamelt of deelt persoonsgegevens, account, e-mail | Nee | Opslag is lokaal (savegame op het apparaat). |
+| Digitale aankopen, abonnement | Nee | |
+| Internetverbinding nodig | Alleen voor Samen spelen, en in de **webversie** voor het laden van three.js (CDN) en lettertypen (Google Fonts) | De desktopversie draait zonder internet. Beantwoord een vraag over "verbinding met internet" voor de webversie met Ja. |
+| Verwijzingen naar of links naar internet, sociale media | Beperkt | Externe links openen in de systeembrowser (`desktop/main.js`). Vermeld ze als "link naar externe pagina". |
 
 ## 7. Overig
 
@@ -113,18 +120,19 @@ iets bij komt (stemlijnen in `game/audio`) verandert dit antwoord naar "ja".
    Console). Dat vraagt een account en e-mailadres; dat doet de eigenaar zelf.
 4. Verstuur het certificaat nooit zonder de eigenaar; deze notitie vult niets in.
 
-## Aanvulling na samen spelen (#95, 18 okt 2026)
+## Gecontroleerd tegen de code (20 okt 2026)
 
-De tabellen hierboven stammen van vóór de coöp-modus. Voor de vragen over
-online functies geldt nu (eigenaar vult aan bij het invullen):
+Zoekopdrachten in `game/js`, `game/index.html` en `game/storydata/script.json`
+(stand `main`, niets gestart of ingevuld):
 
-| Vraag (globaal) | Antwoord | Toelichting |
-|---|---|---|
-| Online interactie tussen gebruikers / chat | Beperkt: samen spelen met een kamercode, geen tekstchat, geen publieke lobby | Peer-to-peer (WebRTC) tussen spelers die de code delen |
-| Deelt gegevens met derden | Alleen na toestemming van de speler: IP-adres naar openbare STUN-servers; versleutelde signalering via openbare brokers | `game/js/net/netconfig.js`, `net/consent.js`, [PRIVACY-EN-CREDITS.md](PRIVACY-EN-CREDITS.md) |
-| Gebruikers kunnen content delen (UGC) | Nee | |
-| Internetverbinding nodig | Alleen voor samen spelen (en de webversie, zie het CDN-punt) | |
+- sterke scheldwoorden (kut, klootzak, godverdomme, tering, kanker, hoer, neuk, lul,
+  flikker, mongool, debiel): **0 treffers**;
+- drugswoorden (wiet, hasj, cocaïne, heroïne, xtc, drugs, coke, lsd, paddo): **0 treffers**
+  (alleen "Wiet" in `fierljep.js` en `subtitles.js`: Fries voor "nat", een uitroep van een falende polsstokspringer; leg dit zo uit als een tekstscan erover struikelt);
+- chat, emoji, spraak, microfoon in `game/js/net/` en `game/js/coop*.js`: **0 treffers**;
+- gokken: alleen kraskaarten en loten voor spelgeld in `shops.js`/`shopmodels3d.js`;
+- alcohol: horeca, kroegmissie, dronken-effect (`drunk.js`).
 
-Controleer in het echte formulier of "interactieve elementen" (users interact,
-shares info) aangevinkt moet worden; kies bij twijfel het ruimste antwoord. De
-overige stappen staan in [PUBLICATIECHECKLIST.md](PUBLICATIECHECKLIST.md).
+Niet nagegaan: de ingesproken audio (`game/audio`) zelf; de tekst erachter is wel
+doorzocht via de scripts. De eigenaar luistert steekproefsgewijs op sterke taal
+voordat hij het formulier indient. Het formulier invullen blijft aan de eigenaar.

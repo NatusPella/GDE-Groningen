@@ -12,6 +12,7 @@ import { isInWater, WATER_Y } from './util.js';
 import { getHelipads } from './heliflight.js';
 import { roadNetReady, roadGraphBuilt, roadGraphVersion, snapRoad, roadCosts, roadPath, roadPathToNode, roadPathFromNode, nodeXY, gatewayCandidates } from './roadgraph.js';
 import { playerBusy } from './busy.js';
+import { walkPathHook } from './latehooks.js';
 
 const STRAY_M = 25;
 // the further from the route you may stray before it is redone, per way of travel
@@ -26,6 +27,12 @@ const TELEPORT_M = 150;
 const MIN_RECOMPUTE_S = 2;
 const REACH_M = 8;
 const SNAP_MAX_M = 480;
+// road pieces this much further than the nearest one are as good a place to start or end on
+const SNAP_TIE_M = 0.3;
+const SNAP_TIE_MAX = 6;
+// a way to a car-free goal that comes close over the streets may be this much longer than the one to the nearest street
+const MIXED_DETOUR_MAX = 1.3;
+const MIXED_DETOUR_SLACK_M = 50;
 // a point further than this from a city street is out in the province (roadgraph.js)
 const CITY_SNAP_OK_M = 150;
 const GATEWAY_BAND_M = 700;
@@ -80,7 +87,7 @@ const THROUGH_BUILDING_COST = 8;
 // drawn when short; longer ones would cut through blocks.
 const CONNECTOR_MAX_M = 15;
 
-function throughBuilding(map, ax, ay, bx, by) {
+export function throughBuilding(map, ax, ay, bx, by) {
   const samples = Math.hypot(bx - ax, by - ay) > 6 ? [0.25, 0.5, 0.75] : [0.5];
   for (const t of samples) {
     const x = ax + (bx - ax) * t, y = ay + (by - ay) * t;
@@ -233,6 +240,7 @@ function snapToRoad(map, x, y, kind, lvl = null) {
   let fallback = null, fallbackD = Infinity;
   for (let r = 30; r <= SNAP_MAX_M; r *= 2) {
     let best = null, bestD = r;
+    const ties = [];
     for (const road of map.roadsNear(x, y, r)) {
       if (!usable(road)) continue;
       const rn = graph.roadNodes.get(road);
@@ -251,12 +259,19 @@ function snapToRoad(map, x, y, kind, lvl = null) {
           const rz = Z ? Z[i] + (Z[i + 1] - Z[i]) * t : 0;
           if (Math.abs(rz - lvl.z) > LEVEL_SPLIT_M) d += lvl.pen;
         }
+        if (inMain && d < bestD + SNAP_TIE_M) ties.push({ x: cx, y: cy, road, seg: i, t, segLen: Math.sqrt(l2), d });
         if (inMain ? d >= bestD : d >= fallbackD) continue;
         const hit = { x: cx, y: cy, road, seg: i, t, segLen: Math.sqrt(l2) };
         if (inMain) { bestD = d; best = hit; } else { fallbackD = d; fallback = hit; }
       }
     }
-    if (best) return best;
+    if (best) {
+      // At a junction several road pieces lie as near as the point does (a ramp, a one-way street beside it): the search takes
+      // all of them as starts or goals, or a piece that only leads away makes the way a detour (#320).
+      const alts = ties.filter((h) => h.d <= bestD + SNAP_TIE_M && !(h.road === best.road && h.seg === best.seg)).sort((u, v) => u.d - v.d).slice(0, SNAP_TIE_MAX);
+      if (alts.length) best.alts = alts;
+      return best;
+    }
   }
   return fallback;
 }
@@ -298,6 +313,8 @@ class Heap {
 
 // mode: 'walk' | 'drive' | 'mixed' | 'free' (drive with the one-ways ignored: the last
 // resort when a one-way the city map cuts off at its edge leaves no way) (true/false kept for walk/drive)
+// A snap's alts (pieces tied with it at a junction) are starts and goals too; `used` holds the ones the last way ran from and to.
+let used = null;
 function astar(fromSnap, toSnap, walkMode, nodesOut = null) {
   const G = graph;
   const mode = walkMode === true ? 'walk' : walkMode === false ? 'drive' : walkMode;
@@ -305,7 +322,8 @@ function astar(fromSnap, toSnap, walkMode, nodesOut = null) {
   walkMode = mode === 'walk' || mode === 'bike';
   const stamp = ++G.stamp;
   const gx = toSnap.x, gy = toSnap.y;
-  const h = (n) => Math.hypot(G.x[n] - gx, G.y[n] - gy);
+  // the alts lie within the tie distance of the snap itself, from both ends
+  const h = (n) => Math.max(0, Math.hypot(G.x[n] - gx, G.y[n] - gy) - 2 * SNAP_TIE_M - 0.1);
   const heap = new Heap();
   const relax = (n, g, p) => {
     if (G.seen[n] === stamp && G.g[n] <= g) return;
@@ -314,21 +332,36 @@ function astar(fromSnap, toSnap, walkMode, nodesOut = null) {
     G.prev[n] = p;
     heap.push(g + h(n), n);
   };
+  const oneWay = (snap) => snap.road.oneway && !walkMode && mode !== 'free' && isDrivable(snap.road);
 
-  const fr = G.roadNodes.get(fromSnap.road);
-  const fOne = fromSnap.road.oneway && !walkMode && mode !== 'free' && isDrivable(fromSnap.road);
-  relax(fr[fromSnap.seg + 1], (1 - fromSnap.t) * fromSnap.segLen, -1);
-  if (!fOne) relax(fr[fromSnap.seg], fromSnap.t * fromSnap.segLen, -1);
+  const froms = fromSnap.alts ? [fromSnap, ...fromSnap.alts] : [fromSnap];
+  const tos = toSnap.alts ? [toSnap, ...toSnap.alts] : [toSnap];
+  const startOf = new Map();
+  const seed = (n, g, c) => {
+    if (G.seen[n] === stamp && G.g[n] <= g) return;
+    startOf.set(n, c);
+    relax(n, g, -1);
+  };
+  for (const c of froms) {
+    const fr = G.roadNodes.get(c.road);
+    seed(fr[c.seg + 1], (1 - c.t) * c.segLen, c);
+    if (!oneWay(c)) seed(fr[c.seg], c.t * c.segLen, c);
+  }
+  // goal nodes: the node, the metres from it to the goal point along the piece, which goal piece
+  const goals = new Map();
+  const goal = (n, extra, c) => { const l = goals.get(n); if (l) l.push({ extra, c }); else goals.set(n, [{ extra, c }]); };
+  for (const c of tos) {
+    const tr = G.roadNodes.get(c.road);
+    goal(tr[c.seg], c.t * c.segLen, c);
+    if (!oneWay(c)) goal(tr[c.seg + 1], (1 - c.t) * c.segLen, c);
+  }
 
-  const tr = G.roadNodes.get(toSnap.road);
-  const tOne = toSnap.road.oneway && !walkMode && mode !== 'free' && isDrivable(toSnap.road);
-  const goalA = tr[toSnap.seg], goalB = tr[toSnap.seg + 1];
-  const extraA = toSnap.t * toSnap.segLen, extraB = (1 - toSnap.t) * toSnap.segLen;
-
-  let best = Infinity, bestEnd = -1, settled = 0;
-  if (fromSnap.road === toSnap.road && fromSnap.seg === toSnap.seg && (!fOne || toSnap.t >= fromSnap.t)) {
-    best = Math.abs(toSnap.t - fromSnap.t) * toSnap.segLen;
-    bestEnd = -2;
+  let best = Infinity, bestEnd = -1, endC = null, startC = null, settled = 0;
+  for (const f of froms) for (const t of tos) {
+    if (f.road === t.road && f.seg === t.seg && (!oneWay(f) || t.t >= f.t)) {
+      const d = Math.abs(t.t - f.t) * t.segLen;
+      if (d < best) { best = d; bestEnd = -2; startC = f; endC = t; }
+    }
   }
   while (heap.size) {
     if (heap.peekF() >= best) break;
@@ -337,8 +370,8 @@ function astar(fromSnap, toSnap, walkMode, nodesOut = null) {
     G.done[n] = stamp;
     settled++;
     const gn = G.g[n];
-    if (n === goalA && gn + extraA < best) { best = gn + extraA; bestEnd = n; }
-    if (n === goalB && !tOne && gn + extraB < best) { best = gn + extraB; bestEnd = n; }
+    const gl = goals.get(n);
+    if (gl) for (const e of gl) if (gn + e.extra < best) { best = gn + e.extra; bestEnd = n; endC = e.c; }
     for (let e = adj.start[n], end = adj.start[n + 1]; e < end; e++) {
       const m = adj.to[e];
       if (G.done[m] === stamp) continue;
@@ -347,14 +380,17 @@ function astar(fromSnap, toSnap, walkMode, nodesOut = null) {
   }
   if (!nodesOut) stats.lastSettled = settled;
   if (bestEnd === -1) return null;
-  const pts = [[toSnap.x, toSnap.y]];
-  for (let n = bestEnd; n >= 0; n = G.prev[n]) {
+  const pts = [[endC.x, endC.y]];
+  let n = bestEnd;
+  for (; n >= 0; n = G.prev[n]) {
     pts.push([G.x[n], G.y[n]]);
     if (nodesOut) nodesOut.push(n);
+    if (G.prev[n] < 0) startC = startOf.get(n);
   }
-  pts.push([fromSnap.x, fromSnap.y]);
+  pts.push([startC.x, startC.y]);
   pts.reverse();
   if (nodesOut) nodesOut.reverse();
+  used = { from: startC, to: endC };
   return pts;
 }
 
@@ -368,7 +404,7 @@ export function findWalkPath(map, ax, ay, bx, by) {
   const pts = astar(from, to, true, nodes);
   if (!pts) return null;
   const W = graph.walk;
-  const legs = [from.road];
+  const legs = [used.from.road];
   for (let i = 0; i < nodes.length - 1; i++) {
     const a = nodes[i], b = nodes[i + 1];
     let road = legs[legs.length - 1];
@@ -377,7 +413,7 @@ export function findWalkPath(map, ax, ay, bx, by) {
     }
     legs.push(road);
   }
-  if (nodes.length) legs.push(to.road);
+  if (nodes.length) legs.push(used.to.road);
   return { pts, legs };
 }
 
@@ -517,7 +553,7 @@ function cityGateways(map) {
 // to the city streets at the best gateway. An end out in a field gets one
 // straight leg to the nearest country road. null: the city graph handles it
 // (both ends in town) or there is no way.
-function countryRoute(world, target, from, to, graphMode, kind, p = world.player) {
+function countryRoute(world, target, from, to, graphMode, kind, p = world.player, force = false) {
   const map = world.map;
   const driveOnly = kind === 'drive';
   // a point counts as in the city when a city street is near and no country
@@ -532,8 +568,9 @@ function countryRoute(world, target, from, to, graphMode, kind, p = world.player
     const c = snapRoad(x, y, COUNTRY_ON_M);
     return !(c && c.d <= cityD + 5);
   };
-  const pIn = inCity(from, p.x, p.y);
-  const tIn = inCity(to, target.x, target.y);
+  // force: both ends on the country net, for a way the city graph has no strict route for (a gap in its streets)
+  const pIn = !force && inCity(from, p.x, p.y);
+  const tIn = !force && inCity(to, target.x, target.y);
   if (pIn && tIn) return null;
   if (!roadNetReady()) return null;
   const ps = pIn ? null : snapRoad(p.x, p.y, COUNTRY_SNAP_M, !driveOnly);
@@ -591,15 +628,15 @@ export function planLandRoute(map, kind, a, b, opts = {}) {
   const pts = astar(from, to, gm, nodes);
   if (!pts) return null;
   const adj = kind === 'drive' ? (opts.avoidMotorways ? graph.driveAvoid : graph.drive) : kind === 'bike' ? graph.bike : graph.walk;
-  const roads = [from.road];
+  const roads = [used.from.road];
   for (let i = 0; i < nodes.length - 1; i++) {
     const u = nodes[i], v = nodes[i + 1];
     let road = roads[roads.length - 1];
     for (let e = adj.start[u]; e < adj.start[u + 1]; e++) if (adj.to[e] === v) { road = map.roads[adj.road[e]]; break; }
     roads.push(road);
   }
-  if (nodes.length) roads.push(to.road);
-  return { pts, roads, from, to };
+  if (nodes.length) roads.push(used.to.road);
+  return { pts, roads, from: used.from, to: used.to };
 }
 
 // Where a waypoint clicks onto for a mode: the nearest road that is for the
@@ -770,22 +807,45 @@ function landRoute(world, target, mode, p) {
   const lvlTo = { z: Number.isFinite(target.z) ? target.z : 0, pen: Number.isFinite(target.z) ? LEVEL_PEN_START_M : LEVEL_PEN_TARGET_M / 2 };
   let to = snapToRoad(map, target.x, target.y, kind, lvlTo);
   let graphMode = driveOnly ? (avoid ? 'driveAvoid' : 'drive') : kind;
-  let compromise = null;
+  let compromise = null, carTo = null;
   // targets in car-free areas (Grote Markt, Poelestraat): drive along the
   // streets as close as possible, the last bit over the pedestrian area
   if (driveOnly && to && Math.hypot(to.x - target.x, to.y - target.y) > CONNECTOR_MAX_M) {
     const tw = snapToRoad(map, target.x, target.y, 'walk', lvlTo);
-    if (tw && Math.hypot(tw.x - target.x, tw.y - target.y) <= CONNECTOR_MAX_M) { graphMode = 'mixed'; to = tw; compromise = 'mixed'; }
+    if (tw && Math.hypot(tw.x - target.x, tw.y - target.y) <= CONNECTOR_MAX_M) { graphMode = 'mixed'; carTo = to; to = tw; compromise = 'mixed'; }
   }
   const from = snapToRoad(map, p.x, p.y, kind, lvlFrom);
-  let pts = countryRoute(world, target, from, to, graphMode, kind, p);
+  // The way to a snap: over the Ommeland roads when an end is out there, else over the city streets.
+  // Both ends on a city street: the city graph is a candidate too, and the shorter way wins. A city street that the
+  // province net also carries (it holds every car road of the tiles) counted as country, and the way then ran out
+  // to a gateway on the city's edge and back (#320).
+  const wayTo = (toS, gm) => {
+    let w = countryRoute(world, target, from, toS, gm, kind, p);
+    if (w && from && toS && Math.hypot(from.x - p.x, from.y - p.y) < CITY_SNAP_OK_M && Math.hypot(toS.x - target.x, toS.y - target.y) < CITY_SNAP_OK_M) {
+      const direct = astar(from, toS, gm);
+      if (direct && polyLength(direct) < polyLength(w)) w = direct;
+    }
+    if (!w && from && toS) {
+      w = astar(from, toS, gm);
+      // no strict way over the city streets: they can have a gap (a one-way cut off, a link missing) that the country net, which
+      // holds every car road of the tiles, closes; before the compromises of a free way against the one-ways (#320)
+      if (!w) w = countryRoute(world, target, from, toS, gm, kind, p, true);
+    }
+    return w;
+  };
+  let pts = wayTo(to, graphMode);
   if (!pts && from && to) {
-    pts = astar(from, to, graphMode);
     if (!pts && driveOnly) {
       const tw = snapToRoad(map, target.x, target.y, 'walk', lvlTo);
       if (tw) { pts = astar(from, tw, 'mixed'); if (pts) compromise = 'mixed'; }
     }
     if (!pts && driveOnly) { pts = astar(from, to, 'free'); if (pts) compromise = 'free'; }
+  }
+  // The last bit over the pedestrian area is a few metres, not a detour: when the way that comes close over the streets is far
+  // longer than the one to the nearest street, the latter wins and the rest is walked (#320)
+  if (pts && carTo && from && compromise === 'mixed') {
+    const toStreet = wayTo(carTo, avoid ? 'driveAvoid' : 'drive');
+    if (toStreet && polyLength(pts) > polyLength(toStreet) * MIXED_DETOUR_MAX + MIXED_DETOUR_SLACK_M) { pts = toStreet; compromise = null; }
   }
   // no route found: no line at all rather than a straight one through town
   if (!pts) { pts = [[p.x, p.y]]; compromise = null; }
@@ -897,11 +957,7 @@ export function clearUserWaypoint() {
   clearGoal();
 }
 
-// The goal's spot (any kind of goal), for the pin on the maps and in 3D.
-export function getUserWaypoint() {
-  const g = getGoal();
-  return g ? { x: g.x, y: g.y, name: g.name } : null;
-}
+export { getUserWaypoint } from './goal.js';
 
 export function getRoutingStats() {
   return { ...stats };
@@ -911,3 +967,5 @@ export function formatDistance(m) {
   if (m < 1000) return `${Math.max(0, Math.round(m / 10) * 10)} m`;
   return `${(m / 1000).toLocaleString('nl-NL', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} km`;
 }
+
+walkPathHook.find = findWalkPath; // pedroutes.js walks over this router (latehooks.js)

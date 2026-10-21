@@ -111,8 +111,8 @@ ok(near(map.spawnState(0, 2).z, 0) && map.spawnState(0, 2).ribbon === null, 'spa
   await import('../game/js/player.js');
   const RC = await import('../game/js/ringcheck.js');
   const root = new URL('../game/', import.meta.url);
-  const cm = JSON.parse(fs.readFileSync(new URL('citymap.json', root)));
-  applyMapExtras(cm, JSON.parse(fs.readFileSync(new URL('mapextras.json', root))));
+  const { loadCityData } = await import('./lib/loadworld.mjs');
+  const cm = await loadCityData();
   const real = new GameMap(cm);
   const world = { map: real, flitspaalen: [], player: { x: 0, y: 0 }, vehicles: [], props: [] };
   const c = RC.waterCrossings(real).find((q) => Math.hypot(q.x + 61, q.y - 1830) < 30);

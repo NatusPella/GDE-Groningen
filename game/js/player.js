@@ -4,7 +4,7 @@ import { waterClearance, pushOutOfWaterObstacles, insideWaterObstacle, swimmerCa
 import { findEnterableVehicle, distToVehicleBody, resolveBoomCollisions, resolveVehicleBuildingCollision, drivePlayerBoat, pushCircleOutOfVehicle, reportImpact, tickSinkingVehicles, speedCap } from './vehicle.js';
 import { hornAt } from './movablebridges.js';
 import { hornSluis } from './sluizen.js';
-import { waterAt } from './waterlevels.js';
+import { waterAt, surfaceLiftAt } from './waterlevels.js';
 import { MOPED_LEGAL_SPEED } from './motomodels.js';
 import { findRideableProp, rideProp } from './rideprops.js';
 import { playAutoGejatLine } from './audio.js';
@@ -12,9 +12,10 @@ import { requestRespawn } from './world.js';
 import { roadGrip } from './weather.js';
 import { getSettings } from './settings.js';
 import { makeJumpAssist, jumpStep } from './gamefeel.js';
+import { assistDamage } from './assistlive.js';
 import { ALGAE } from './eventrules.js';
 import { knockDown, isKnockedDown } from './ragdoll.js';
-import { resolveBuildingCollisions, resolveWalker } from './collision.js';
+import { resolveBuildingCollisions, resolveWalker, findExitSpot, EXIT_LEFT_FIRST, EXIT_RIGHT_FIRST } from './collision.js';
 import { resolveWalkerProps, propAhead } from './breakables.js';
 import { railingAhead } from './bridgerails.js';
 import { drunkMove, drunkSteer } from './drunk.js';
@@ -445,7 +446,7 @@ export class Player {
   }
 
   hurtByFall(world, speed) {
-    const dmg = Math.min(100, (speed - FALL_HURT_SPEED) * 9);
+    const dmg = assistDamage(Math.min(100, (speed - FALL_HURT_SPEED) * 9));
     if (world.armor > 0) {
       const a = Math.min(world.armor, dmg * 0.5);
       world.armor -= a;
@@ -507,8 +508,9 @@ export class Player {
       if (inMapWater(world.map, ex, ey)) { this.x = ex; this.y = ey; break; }
     }
     this.angle = v.angle;
-    this.z = v.sinking ? v.sinking.z : WATER_Y;
-    this.enterSwim(WATER_Y);
+    const top = WATER_Y + surfaceLiftAt(world.map, this.x, this.y);
+    this.z = v.sinking ? v.sinking.z : top;
+    this.enterSwim(top);
   }
 
   updateWater(dt, world) {
@@ -520,10 +522,12 @@ export class Player {
       this.z += this.vz * dt;
       const nx = this.x + this.vx * dt, ny = this.y + this.vy * dt;
       if (inMapWater(map, nx, ny) && !insideWaterObstacle(map, nx, ny)) { this.x = nx; this.y = ny; } else { this.vx = 0; this.vy = 0; }
-      if (this.z <= WATER_Y) {
+      // (a lake at its own peil, the Lauwersmeer, lies above the boezem's water: #299)
+      const top = WATER_Y + surfaceLiftAt(map, this.x, this.y);
+      if (this.z <= top) {
         world.particles.push({ kind: 'splash', x: this.x, y: this.y, until: world.time + SPLASH_LIFE });
         const keepZ = this.z;
-        this.enterSwim(WATER_Y);
+        this.enterSwim(top);
         this.z = keepZ;
       }
       this.canClimbOut = false;
@@ -581,7 +585,7 @@ export class Player {
 
     const tiltTarget = this.moving ? SWIM_TILT_MOVING : SWIM_TILT_IDLE;
     this.swimTilt += (tiltTarget - this.swimTilt) * Math.min(1, dt * 4);
-    this.z += (swimDepth(this.swimTilt, world.time) - this.z) * Math.min(1, dt * 5);
+    this.z += (swimDepth(this.swimTilt, world.time, 0, surfaceLiftAt(map, this.x, this.y)) - this.z) * Math.min(1, dt * 5);
 
     if (world.time >= this.climbScanAt) {
       this.climbScanAt = world.time + CLIMB_SCAN_INTERVAL;
@@ -962,8 +966,8 @@ export function stopVehicle(v) {
 
 // Mesh-origin height that keeps the head just above the surface at a given
 // forward lean, with a gentle bob.
-export function swimDepth(tilt, time, phase = 0) {
-  return WATER_Y + 0.1 - 1.6 * Math.cos(tilt) + Math.sin(time * 2.4 + phase) * 0.04;
+export function swimDepth(tilt, time, phase = 0, lift = 0) {
+  return WATER_Y + lift + 0.1 - 1.6 * Math.cos(tilt) + Math.sin(time * 2.4 + phase) * 0.04;
 }
 
 const CLIMB_DIRS = 16;
@@ -995,25 +999,5 @@ function isInsideBuilding(map, x, y) {
   return !!buildingAt(map, x, y);
 }
 
-// Sides as multipliers of the vehicle's (-sin, cos) normal, which is its
-// right-hand side (three.z = world.y). Drivers get out on the left (NL),
-// passengers on the right.
-export const EXIT_LEFT_FIRST = [-1, 1];
-export const EXIT_RIGHT_FIRST = [1, -1];
-
-export function findExitSpot(v, radius, map, sides = EXIT_LEFT_FIRST) {
-  const nx = -Math.sin(v.angle), ny = Math.cos(v.angle);
-  const off = v.halfWid + 0.7;
-  for (const s of sides) {
-    const ex = v.x + nx * off * s, ey = v.y + ny * off * s;
-    if (isInsideBuilding(map, ex, ey) || isInWater(map, ex, ey)) continue;
-    return resolveBuildingCollisions(ex, ey, radius, map);
-  }
-  // an alley narrower than the car: out the front or the back instead
-  const hl = (v.halfLen || v.halfWid * 2) + 0.7, fx = Math.cos(v.angle), fy = Math.sin(v.angle);
-  for (const s of [1, -1]) {
-    const ex = v.x + fx * hl * s, ey = v.y + fy * hl * s;
-    if (!isInsideBuilding(map, ex, ey) && !isInWater(map, ex, ey)) return resolveBuildingCollisions(ex, ey, radius, map);
-  }
-  return map.escapeBuilding(v.x + nx * off * sides[0], v.y + ny * off * sides[0]);
-}
+// findExitSpot and the exit sides live in collision.js (pedestrians.js uses them without importing the player, #108)
+export { findExitSpot, EXIT_LEFT_FIRST, EXIT_RIGHT_FIRST };

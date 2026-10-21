@@ -71,8 +71,8 @@ const worldOf = (piv, x, y, z) => new THREE.Vector3(x, y, z).applyMatrix4(piv.ma
   const RS = await import('../game/js/roadsurface.js');
   const MB = await import('../game/js/movablebridges.js');
   const M3 = await import('../game/js/movablebridges3d.js');
-  const data = JSON.parse(fs.readFileSync(new URL('../game/citymap.json', import.meta.url)));
-  applyMapExtras(data, JSON.parse(fs.readFileSync(new URL('../game/mapextras.json', import.meta.url))));
+  const { loadCityData } = await import('./lib/loadworld.mjs');
+  const data = await loadCityData();
   const map = new GameMap(data);
   RS.setRoadNetwork(map);
   const bridges = MB.buildMovableBridges(map);

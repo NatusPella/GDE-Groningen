@@ -22,15 +22,19 @@ export function fitsProfile(profile, world) {
 }
 
 // Multiplier on the search's decay timer while out of sight.
+// A loud, flashy tuned vehicle (v.tuning.opvallend, #196) stays in the
+// police's mind: the same description cools down up to 40% slower.
 export function decayFactor(profile, world) {
-  return fitsProfile(profile, world) ? 1 : MISMATCH_DECAY;
+  if (!fitsProfile(profile, world)) return MISMATCH_DECAY;
+  const v = world && world.player && world.player.inVehicle;
+  const flash = v && v.tuning && v.tuning.opvallend > 0 ? Math.min(1, v.tuning.opvallend) : 0;
+  return 1 - 0.4 * flash;
 }
 
 // The one-off hint while you hide in something that no longer fits the
 // description (HUD feedback, #43 step 7): says what the police are looking for.
 export const MISMATCH_HINT = 'De politie zoekt je oude voertuig. Dit is een andere: blijf uit het zicht.';
 export const ON_FOOT_HINT = 'De politie zoekt je voertuig. Te voet ben je moeilijker te vinden: blijf uit het zicht.';
-export const MATCH_HINT = 'Ze zoeken je nog steeds in dit voertuig.';
 export function hintFor(profile, world, hinted) {
   if (!profile || hinted) return null;
   if (fitsProfile(profile, world)) return null;

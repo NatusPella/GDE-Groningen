@@ -1,6 +1,7 @@
 import { clamp, dist, closestPointOnSegment, isInWater } from './util.js';
 import { spawnVehicleOnRoad, distToVehicleBody } from './vehicle.js';
-import { makeCopPedestrian, isInsideBuilding, isSpawnHidden, CITY_CENTRE } from './pedestrians.js';
+import { makeCopPedestrian, isSpawnHidden, CITY_CENTRE } from './pedestrians.js';
+import { isInsideBuilding } from './pedgeom.js';
 import { buildHorseMesh } from './countryside.js';
 import { setHorseMeshBuilder } from './models3d_vehicles.js';
 
@@ -40,7 +41,7 @@ const CREW_COOLDOWN = 4;
 const REMOUNT_RANGE = 30;
 const COMMANDEER_RANGE = 12;
 
-export function isMounted(v) {
+function isMounted(v) {
   return !!(v._mount || v._motor);
 }
 
@@ -224,21 +225,12 @@ function tickPatrol(v, dt, world) {
 }
 
 // Leaving patrol mode: the chase drives at full speed on its own route.
-export function endPatrol(v) {
+function endPatrol(v) {
   if (!v._patrol) return;
   v._patrol = null;
   v.aiOpts = null;
   v.waitTimer = 0;
   v.model.maxSpeed = v._baseTop;
-}
-
-// Devtools helper: a unit on the nearest path 15-30 m away, in plain view.
-export function spawnPoliceMountNear(world, kind = 'bike', patrol = false) {
-  const rp = findMountSpawn(world, 15, 30, false, patrol ? PATROL_CATS : MOUNT_ROAD_CATS);
-  if (!rp) return null;
-  const v = spawnMount(world, rp, kind);
-  if (patrol) makePatrol(v, world, patrolZoneAt(v.x, v.y) || PATROL_ZONES[0]);
-  return v;
 }
 
 // --- crew out / back in ------------------------------------------------------
@@ -478,6 +470,7 @@ export function ejectMountRider(v, world, state) {
 export function maybeBolt(v, world, state) {
   if (v._mount !== 'horse' || v._bolting || v.health > HORSE_BOLT_HEALTH) return false;
   v._bolting = true;
+  if (world.addMessage && dist(v.x, v.y, world.player.x, world.player.y) < 60) world.addMessage('Het politiepaard schrikt: de ruiter springt eraf en het paard slaat op hol', 3);
   if (!v._riderAway && !v._crew) ejectMountRider(v, world, state);
   v._ejected = true;
   v._riderAway = true;
@@ -485,6 +478,13 @@ export function maybeBolt(v, world, state) {
   v.isPolice = true;
   v.hijacked = true;
   v.road = null;
+  // het paard steigert en schiet weg van de speler, in plaats van tegen de auto aan te blijven duwen (#331)
+  const p = world.player;
+  v.angle = Math.atan2(v.y - p.y, v.x - p.x);
+  v.speed = Math.max(v.speed, 3);
+  v.yawVel = 0;
+  v.driftX = 0;
+  v.driftY = 0;
   return true;
 }
 

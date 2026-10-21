@@ -86,7 +86,8 @@ ok(SF.mappedFromOsm([hedgeEl]).length === 0 && SF.mappedFromOsm([hedgeEl], { hed
 
 // the map
 const root = new URL('../game/', import.meta.url);
-const data = JSON.parse(fs.readFileSync(new URL('citymap.json', root)));
+const { loadCityData } = await import('./lib/loadworld.mjs');
+const data = await loadCityData({ extras: false });
 ok(Array.isArray(data.furniture) && data.furniture.length > 0, 'mapped furniture in the map', data.furniture && data.furniture.length);
 const rep = FA.audit(data);
 ok(rep.counts.guardrail > 5000 && rep.counts.gantry > 10 && rep.counts.hectometer > 50, 'guardrails, gantries and hectometre posts on the city map', JSON.stringify(rep.counts));

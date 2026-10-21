@@ -19,14 +19,14 @@ export const SPECIES = {
   schaap: { habitat: 'dijk', density: 5, group: [3, 8], flee: 9, speed: 3.2, move: 'lopen', sound: 'sheep' },
   gans: { habitat: 'weide', density: 4, group: [3, 9], flee: 14, speed: 9, move: 'vliegen', sound: 'duck' },
   meeuw: { habitat: 'kust', density: 4, group: [2, 6], flee: 10, speed: 8, move: 'vliegen', sound: 'seagull' },
-  reiger: { habitat: 'water', density: 1, group: [1, 1], flee: 16, speed: 7, move: 'vliegen', sound: null },
+  reiger: { habitat: 'water', density: 1, group: [1, 1], flee: 16, speed: 7, move: 'vliegen', sound: 'heron' },
   eend: { habitat: 'water', density: 3, group: [2, 5], flee: 6, speed: 4, move: 'zwemmen', sound: 'duck' },
-  vis: { habitat: 'water', density: 6, group: [4, 10], flee: 5, speed: 3, move: 'duiken', sound: null },
-  zeehond: { habitat: 'wad', density: 2, group: [2, 6], flee: 18, speed: 3.5, move: 'duiken', sound: null },
+  vis: { habitat: 'water', density: 6, group: [4, 10], flee: 5, speed: 3, move: 'duiken', sound: 'fish' },
+  zeehond: { habitat: 'wad', density: 2, group: [2, 6], flee: 18, speed: 3.5, move: 'duiken', sound: 'seal' },
 };
 export const SPECIES_IDS = Object.keys(SPECIES);
 
-export const TILE_M = 128;
+const TILE_M = 128;
 // Het dichtheidsbudget: hoeveel dieren één tegel er hoogstens heeft, en hoeveel in totaal rond de speler.
 export const TILE_BUDGET = 14;
 export const TOTAL_BUDGET = { laag: 24, middel: 48, hoog: 80 };
@@ -107,13 +107,13 @@ export function fleeFrom(kind, ax, ay, mover) {
 }
 
 // Een dier komt weer tot rust: wanneer het ver genoeg weg is, of na hold seconden.
-export const CALM_AFTER = 6;
+const CALM_AFTER = 6;
 export function calmed(sinceFleeing, distToMover, kind) {
   const sp = SPECIES[kind];
   return !sp || sinceFleeing > CALM_AFTER || distToMover > sp.flee * 2.5;
 }
 
-// Geluid: de ambience.js-sleutel voor een soort of null. Zeehond en vis zijn stil tot er een sample voor is.
+// Geluid: de ambience.js-sleutel voor een soort of null. Reiger, zeehond en vis hebben een eigen synth-klank in sfx/dsp.js.
 export const soundOf = (kind) => (SPECIES[kind] ? SPECIES[kind].sound : null);
 
 // --- aansluiting op wildlife.js ------------------------------------------------------------
@@ -129,7 +129,7 @@ export function wildlifeLimits(streek, quality, base) {
     if (base[kind] == null) continue;
     const f = Math.max(...soorten.map((s) => mix[s] || 0));
     const streekF = Math.max(0.25, Math.min(1.6, f));
-    out[kind] = Math.max(1, Math.round(base[kind] * streekF * Math.max(0.4, q)));
+    out[kind] = kind === 'grazer' && f === 0 ? 0 : Math.max(1, Math.round(base[kind] * streekF * Math.max(0.4, q)));   // #330: de stad heeft geen vee
   }
   return out;
 }

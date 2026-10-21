@@ -116,7 +116,7 @@ function driverCard(w, pv) {
   }
 }
 
-export function updateBusBoards(dt, w) {
+function updateBusBoards(dt, w) {
   const p = w.player;
   for (const v of w.vehicles) {
     if (!v.isBus || !v.busRun || v.wrecked) continue;

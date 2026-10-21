@@ -14,7 +14,7 @@ import { createRecorder, recordGhost, finishGhost, ghostAt, loadGhost, saveGhost
 import { showGhostCar } from './ghostmesh.js';
 import { KEYS } from './storagekeys.js';
 
-export const DRIFT_ZONES = [
+const DRIFT_ZONES = [
   { id: 'oost', name: 'Rotonde Oost', x: 1997, y: 666, r: 78, spot: { x: 2016.3, y: 722.6 } },
   { id: 'station', name: 'Stationsrotonde', x: -52, y: 1730, r: 58, spot: { x: -48, y: 1705 } },
   { id: 'hoendiep', name: 'Rotonde Hoendiep', x: -1392, y: 929, r: 60, spot: { x: -1364, y: 936.5 } },
@@ -34,7 +34,7 @@ let chip = null;
 let chipKey = '';
 let world = null;
 
-export function driftEligible(v) {
+function driftEligible(v) {
   return !!v && !v.isBoat && !v.isHeli && !v.isBus && !v.isBike && !v.isScooter && !v.wrecked && !(v.model && (v.model.motorbike || v.model.name === 'tractor' || v.model.name === 'quad'));
 }
 

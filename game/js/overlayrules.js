@@ -4,23 +4,18 @@
 // tegen. Zo ligt er één ding tegelijk in beeld. overlayhold.js past het toe op de DOM;
 // scripts/overlayrules_test.mjs.
 
+// De tabellen en de regel staan in hudbus.js (mayShow('overlay', ...)); hier blijven de namen die de
+// DOM-kant (overlayhold.js) en de test gebruiken.
+import { OVERLAY_RANK, OVERLAY_HOLDS, heldOverlays as busHeld, mayShow } from './hudbus.js';
+
 // Rang: hoger wint. Zelfde rang houdt elkaar niet tegen.
-export const RANK = { resultaat: 5, keuze: 4, duelbalk: 3, prestatie: 2, naamkaart: 1, locatie: 1 };
+export const RANK = OVERLAY_RANK;
 
 // Wat een actieve overlay tegenhoudt.
-export const HOLDS = {
-  resultaat: ['naamkaart', 'locatie', 'prestatie', 'duelbalk'],
-  keuze: ['naamkaart', 'locatie', 'prestatie'],
-  duelbalk: ['prestatie', 'locatie'],
-};
+export const HOLDS = OVERLAY_HOLDS;
 
 // active: een lijst of Set met namen van wat nu in beeld is. Geeft de Set van wat moet wachten.
-export function heldOverlays(active) {
-  const on = new Set(active || []);
-  const held = new Set();
-  for (const a of on) for (const h of HOLDS[a] || []) if (on.has(h) && (RANK[a] || 0) > (RANK[h] || 0)) held.add(h);
-  return held;
-}
+export const heldOverlays = busHeld;
 
 // Mag deze overlay nu beginnen?
-export const mayStartOverlay = (name, active) => !heldOverlays([...(active || []).filter((a) => a !== name), name]).has(name);
+export const mayStartOverlay = (name, active) => mayShow('overlay', { name, active });

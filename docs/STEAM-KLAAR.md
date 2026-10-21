@@ -4,12 +4,13 @@ Issue #64. Alles hieronder is lokaal voorbereid. Er is niets naar Steam
 gestuurd, er is geen Steam-account of app-id, en geen enkel bestand maakt
 contact met Steam. `scripts/steam_test.mjs` controleert dat de bestanden in
 deze lijst bestaan en bij elkaar passen.
+De status per punt (klaar, open, eigenaar) staat in [STEAM-CHECKLIST.md](STEAM-CHECKLIST.md).
 
 ## 1. Wat al klaar staat in de repo
 
 | Onderdeel | Bestand | Stand |
 |---|---|---|
-| SteamPipe-build | `steam/scripts/app_build.vdf` en `depot_build_windows.vdf`, `_mac.vdf`, `_linux.vdf` | sjablonen met plaatshouders `APP_ID` en `DEPOT_ID_*` |
+| SteamPipe-build | `steam/scripts/app_build.vdf` en `depot_build_windows.vdf`, `_mac.vdf`, `_linux.vdf`; `steam/make-build-vdf.mjs` vult de ids in | sjablonen met plaatshouders `APP_ID` en `DEPOT_ID_*`; de ingevulde kopie komt in `steam/output/vdf/` |
 | Builds kopiëren | `steam/copy-builds.mjs` (`desktop/dist` naar `steam/content/<os>/`) | klaar; uitleg in `steam/README.md` |
 | Steam Input | `steam/steam_input/game_actions_APP_ID.vdf` | 12 actiesets (lopen, rijden, zeilen, helikopter, duif, trein, minigame, beiaard, pannenkoekenschip, frituurwagen, menu), Nederlandse namen zonder merken; gegenereerd door `steam/make-steam-files.mjs` |
 | Prestaties | `steam/achievements.json` | alle prestatie-ID's met lege `steamApiNaam`; gegenereerd, ook door `make-steam-files.mjs` |
@@ -66,7 +67,7 @@ besluit.
    op een bètatak; zelf live zetten.
 7. **Steam Input** configureren: het actiebestand uploaden en per situatie een
    standaardindeling kiezen, of de sjabloon "Gamepad" laten staan.
-8. **Prestaties** in Steamworks aanmaken (186 stuks, 21 verborgen), de
+8. **Prestaties** in Steamworks aanmaken (187 stuks, 21 verborgen), de
    API-namen in `steam/achievements.json` invullen (veld `steamApiNaam`) en
    daarna de koppeling in het spel laten bouwen (dat is nog niet gedaan:
    er is bewust geen Steam-bibliotheek in het spel).
@@ -88,8 +89,9 @@ besluit.
 
 ## 4. Niet gedaan, bewust
 
-- Geen Steamworks-SDK en geen overlay-integratie in het spel (de overlay met
-  Electron is niet getest).
+- Geen Steamworks-SDK in het spel. Voor de overlay is er alleen de startoptie
+  `--steam-overlay` (`desktop/steamflags.cjs`); die is met een echte Steam-client
+  niet geprobeerd.
 - Geen Steam Cloud-instelling; de opslagmap staat in `steam/README.md`
   (Auto-Cloud kan daarop wijzen).
 - Geen automatische controle van het Deck-gedrag op echte Deck-hardware.

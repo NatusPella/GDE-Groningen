@@ -94,13 +94,14 @@ export function patchRows(fixes) {
     const kind = PATCH_KIND[nav] || 'diep';
     return { pts, kind, nav, lv: BOEZEM_Y, dp: WATER_KINDS[kind].depth, body: -2, name: name || '', flat: true, fix: true };
   };
-  for (const l of (fixes && fixes.links) || []) rows.push(row(linkPolygon(l), 4, l.name));
-  for (const g of (fixes && fixes.gaten) || []) rows.push(row(gatPolygon(g), g[5] || 3, ''));
-  for (const g of (fixes && fixes.verbindingen) || []) rows.push(row(gatPolygon(g), g[5] || 2, ''));
+  // (seam: the land strip between such a patch and the canal's own row is welded shut for a hull, waterindex.js, #343)
+  for (const l of (fixes && fixes.links) || []) rows.push({ ...row(linkPolygon(l), 4, l.name), seam: true });
+  for (const g of (fixes && fixes.gaten) || []) rows.push({ ...row(gatPolygon(g), g[5] || 3, ''), seam: true });
+  for (const g of (fixes && fixes.verbindingen) || []) rows.push({ ...row(gatPolygon(g), g[5] || 2, ''), seam: true });
   // the chamber of a lock the map draws no water in (scripts/world/sluizen.mjs finds them)
   for (const g of (fixes && fixes.sluisgaten) || []) rows.push(row(gatPolygon(g), g[5] || 3, ''));
   // the sea off a coast the map draws no water at: the open water of the Wadden and the Eems
-  for (const g of (fixes && fixes.zee) || []) { const r = row(gatPolygon(g), 4, SEA_NAMES[g[6]] || 'Zee'); r.kind = 'zee'; r.dp = WATER_KINDS.zee.depth; rows.push(r); }
+  for (const g of (fixes && fixes.zee) || []) { const r = row(gatPolygon(g), 4, SEA_NAMES[g[6]] || 'Zee'); r.kind = 'zee'; r.dp = WATER_KINDS.zee.depth; r.strip = g[2] > 1000; rows.push(r); }
   return rows;
 }
 
@@ -208,8 +209,8 @@ export function routePoints(net, route) {
 // A trip for a boat at (x, y) heading `angle`: it joins the net at the edge end it points to
 // and sails to a hub it can reach (a lock or a movable bridge costs time, a low fixed bridge
 // shuts the edge for a boat that does not clear it). null when the net is out of reach or
-// every hub is shut. rng() picks the hub.
-export function pickTrip(net, x, y, angle, kind, rng = Math.random, maxD = 150) {
+// every hub is shut or further than maxLength m (a tour boat stays near home). rng() picks the hub.
+export function pickTrip(net, x, y, angle, kind, rng = Math.random, maxD = 150, maxLength = Infinity) {
   const at = nearestOnNet(net, x, y, maxD);
   if (!at || !edgeOpen(at.edge, kind)) return null;
   const e = at.edge, i = at.i;
@@ -224,7 +225,7 @@ export function pickTrip(net, x, y, angle, kind, rng = Math.random, maxD = 150) 
     const to = net.hubs[name];
     if (to === startNode) continue;
     const r = routeVaar(net, startNode, to, kind);
-    if (!r || r.nodes.length < 2) continue;
+    if (!r || r.nodes.length < 2 || r.length > maxLength) continue;
     return { name, length: r.length, wait: r.wait, pts: rest.concat(routePoints(net, r)) };
   }
   return null;

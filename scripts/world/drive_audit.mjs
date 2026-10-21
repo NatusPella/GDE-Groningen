@@ -5,7 +5,7 @@
 // for more than 0.3 s), no sink (into water) or fall (off a deck), no push off
 // the road, no standstill. Each drive runs on 25 m into the ways that carry
 // on at both ends, so the joints are driven too.
-//   node scripts/world/drive_audit.mjs [--all] [--solids] [--limit=N] [--strict] [--json=out.json]
+//   node scripts/world/drive_audit.mjs [--all] [--solids] [--limit=N] [--name=Straat] [--strict] [--json=out.json]
 // Default: the main and normal roads (secondary and up, tertiary, residential,
 // unclassified, their links); --all adds the minor ones (service, living
 // streets). --solids also probes every lane of those roads for anything solid
@@ -25,8 +25,8 @@ const { GameMap, applyMapExtras } = await import('../../game/js/mapdata.js');
 await import('../../game/js/player.js');
 const RC = await import('../../game/js/ringcheck.js');
 
-const data = JSON.parse(fs.readFileSync(path.join(ROOT, 'game/citymap.json'), 'utf8'));
-applyMapExtras(data, JSON.parse(fs.readFileSync(path.join(ROOT, 'game/mapextras.json'), 'utf8')));
+const { loadCityData } = await import('../lib/loadworld.mjs');
+const data = await loadCityData();
 const map = new GameMap(data);
 const world = { map, flitspaalen: [], player: { x: 0, y: 0 }, vehicles: [], props: [], particles: [], stats: {}, time: 0, addMessage() {}, audioEvents: [] };
 // the signal poles stand in the world as in the game (props a car can hit)
@@ -37,6 +37,7 @@ const len = (P) => P.slice(1).reduce((a, q, i) => a + Math.hypot(q[0] - P[i][0],
 let roads = map.roads.filter((r) => CLASSES.has(r.cat) && r.type !== 'track' && !r.busOnly && len(r.pts) >= 8);
 const limit = +(opt('limit') || 0);
 if (limit) roads = roads.slice(0, limit);
+if (opt('name')) roads = roads.filter((r) => r.name === opt('name'));
 
 const t0 = performance.now();
 const fails = [];

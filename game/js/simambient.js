@@ -5,7 +5,7 @@
 import { projectOnRoad } from './simworld.js';
 import { R_OUT } from './simhandover.js';
 
-export const MAX_ROAD_DIST = 8; // m: verder van een voetpad = geen worker-agent
+const MAX_ROAD_DIST = 8; // m: verder van een voetpad = geen worker-agent
 
 // Gewone wandelaars; alles met een rol (agent, scene, ragdoll, missie, baan) blijft echt.
 export function isAmbientPed(p) {

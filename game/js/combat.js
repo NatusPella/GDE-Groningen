@@ -1,9 +1,15 @@
-import { normalizeAngle, pointInPolygon, isInWater, WATER_Y, closestPointOnSegment } from './util.js';
+import { normalizeAngle, isInWater, WATER_Y, closestPointOnSegment } from './util.js';
 import { requestRespawn } from './world.js';
-import { disableVehicle, surfaceUnder } from './vehicle.js';
+import { surfaceUnder } from './vehicle.js';
+import { wallOnPath } from './wallpath.js';
+import { wreckVehicle } from './vehiclewreck.js';
+export { wallOnPath, wreckVehicle };
 import { knockDown } from './ragdoll.js';
 import { bloodSpray, bleedPed } from './gore3d.js';
-import { DEAD_DURATION } from './pedestrians.js';
+import { DEAD_DURATION } from './pedconst.js';
+import { WEAPONS, WEAPON_KEYS, SLOTS, isMeleeWeapon, isRangedWeapon, isGunWeapon } from './weapons.js';
+import { setCombatEffect, getCombatEffect } from './combateffect.js';
+export { getCombatEffect };
 import { propOnBulletPath, shootProp } from './breakables.js';
 import { reportCrime } from './crime.js';
 import { gunShotFx, gunImpactFx } from './gunfx3d.js';
@@ -11,37 +17,10 @@ import { updateAim, aimFireAngle, aimedTargetDistance } from './aimassist.js';
 import { scopeShot } from './scopeaim.js';
 import { propsInRadius } from './breakables.js';
 import { getSettings } from './settings.js';
+import { assistDamage } from './assistlive.js';
 import { squirtWater, throwExplosive, updateThrowables } from './throwables.js';
 
-// kind: melee (a swing that lands at the end of its wind-up), gun (bullets),
-// water (harmless spray), throw (carbidbus) and rocket (firework); the last
-// three fly in throwables.js. slot is the number key (1 melee, 2 handguns,
-// 3 long guns, 4 explosives), pressing it again cycles within the slot.
-// Melee weapons are owned with ammo 1, which is never used up.
-export const WEAPONS = {
-  fists: { kind: 'melee', slot: 1, damage: 12, range: 1.1, cooldown: 0.45, ammo: Infinity, swing: 'jab', knock: 0.4, push: 2.6, prop: 0.6, sound: 'flesh' },
-  knuppel: { kind: 'melee', slot: 1, damage: 30, range: 1.7, cooldown: 0.7, windup: 0.14, swing: 'bat', knock: 0.75, push: 4, prop: 3, sound: 'wood' },
-  hockeystick: { kind: 'melee', slot: 1, damage: 18, range: 1.9, cooldown: 0.55, windup: 0.12, swing: 'slap', knock: 0.9, push: 2.8, prop: 2, sound: 'wood' },
-  bezem: { kind: 'melee', slot: 1, damage: 6, range: 2.0, cooldown: 0.5, windup: 0.1, swing: 'sweep', knock: 0.35, push: 3.4, prop: 1, sound: 'broom', cone: 1.3 },
-  fietspomp: { kind: 'melee', slot: 1, damage: 14, range: 1.3, cooldown: 0.32, windup: 0.06, swing: 'stab', knock: 0.2, push: 1.6, prop: 1, sound: 'metal' },
-  klomp: { kind: 'melee', slot: 1, damage: 24, range: 1.2, cooldown: 0.6, windup: 0.18, swing: 'overhead', knock: 0.65, push: 2.2, prop: 2.5, sound: 'klomp' },
-  polsstok: { kind: 'melee', slot: 1, damage: 26, range: 3.4, cooldown: 1.3, windup: 0.34, swing: 'thrust', knock: 1, push: 5.5, prop: 3, sound: 'wood', cone: 0.6 },
-  pistol: { kind: 'gun', slot: 2, damage: 20, range: 26, cooldown: 0.32, speed: 55 },
-  uzi: { kind: 'gun', slot: 2, damage: 9, range: 20, cooldown: 0.08, speed: 60 },
-  waterpistool: { kind: 'water', slot: 2, damage: 0, range: 9, cooldown: 0.07, speed: 13 },
-  shotgun: { kind: 'gun', slot: 3, damage: 16, range: 11, cooldown: 0.85, speed: 48, pellets: 6, spread: 0.3 },
-  jachtgeweer: { kind: 'gun', slot: 3, damage: 95, range: 110, cooldown: 1.5, speed: 140, scope: true },
-  carbidbus: { kind: 'throw', slot: 4, range: 9, cooldown: 1.2, speed: 8 },
-  vuurwerk: { kind: 'rocket', slot: 4, range: 45, cooldown: 0.9, speed: 24 },
-};
-
-export const WEAPON_KEYS = Object.keys(WEAPONS);
-const SLOTS = 4;
-
-export function isMeleeWeapon(key) { return !!WEAPONS[key] && WEAPONS[key].kind === 'melee'; }
-// aimed and fired (guns, water, explosives): right mouse aims these
-export function isRangedWeapon(key) { return !!WEAPONS[key] && WEAPONS[key].kind !== 'melee'; }
-export function isGunWeapon(key) { return !!WEAPONS[key] && WEAPONS[key].kind === 'gun'; }
+export { WEAPONS, WEAPON_KEYS, isMeleeWeapon, isRangedWeapon, isGunWeapon };
 
 export function hasWeapon(world, key) {
   const w = WEAPONS[key];
@@ -50,15 +29,13 @@ export function hasWeapon(world, key) {
 
 
 let fireTimer = 0;
-let effect = null;
 let punchSide = -1; // alternates left/right jabs // {type:'muzzle'|'melee'|'squirt'|'throw', angle, until} — local fx state, not shared on world
 let pendingSwing = null;
 let lockedPed = null; // the soft-locked target, reachable a step further than the swing
 
-export function getCombatEffect() { return effect; }
 
 // Number key n: the owned weapons of slot n; pressing it again cycles them.
-export function selectWeaponSlot(world, slot) {
+function selectWeaponSlot(world, slot) {
   const own = WEAPON_KEYS.filter((k) => WEAPONS[k].slot === slot && hasWeapon(world, k));
   if (!own.length) return false;
   world.weapon = own[(own.indexOf(world.weapon) + 1) % own.length];
@@ -130,10 +107,10 @@ export function updateCombat(dt, world) {
   angle = scoped ? world.camYaw ?? angle : aimFireAngle(world, angle, weapon);
   if (weapon.kind === 'gun') fireGun(world, angle, weapon, scoped);
   else if (weapon.kind === 'water') {
-    effect = { type: 'squirt', angle, until: world.time + 0.06, start: world.time, weapon: world.weapon };
+    setCombatEffect({ type: 'squirt', angle, until: world.time + 0.06, start: world.time, weapon: world.weapon });
     squirtWater(world, angle, weapon);
   } else {
-    effect = { type: 'throw', angle, until: world.time + 0.3, start: world.time, weapon: world.weapon };
+    setCombatEffect({ type: 'throw', angle, until: world.time + 0.3, start: world.time, weapon: world.weapon });
     throwExplosive(world, world.weapon, angle, weapon, aimedTargetDistance(world));
   }
   world.ammo[world.weapon]--;
@@ -171,7 +148,7 @@ function meleeLock(world, angle, weapon) {
 function meleeAttack(world, angle, weapon) {
   angle = meleeLock(world, angle, weapon);
   punchSide = -punchSide;
-  effect = { type: 'melee', angle, until: world.time + 0.15, start: world.time, side: punchSide, weapon: world.weapon, swing: weapon.swing };
+  setCombatEffect({ type: 'melee', angle, until: world.time + 0.15, start: world.time, side: punchSide, weapon: world.weapon, swing: weapon.swing });
   weaponSound(world, { sub: 'swing', weapon: world.weapon, x: world.player.x, y: world.player.y });
   if (weapon.windup) pendingSwing = { at: world.time + weapon.windup, angle, weapon, key: world.weapon };
   else meleeHit(world, angle, weapon, world.weapon);
@@ -231,7 +208,7 @@ function meleeHit(world, angle, weapon, key) {
 const KICK = { pistol: [0.022, 0.008, 1.6], uzi: [0.009, 0.006, 0.6], shotgun: [0.05, 0.014, 3.5], jachtgeweer: [0.075, 0.01, 2.2] };
 
 function fireGun(world, angle, weapon, scoped = false) {
-  effect = { type: 'muzzle', angle, until: world.time + 0.06, start: world.time, weapon: world.weapon };
+  setCombatEffect({ type: 'muzzle', angle, until: world.time + 0.06, start: world.time, weapon: world.weapon });
   const p = world.player;
   const v = p.inVehicle;
   const shots = weapon.pellets || 1;
@@ -308,35 +285,6 @@ export function updateBullets(dt, world) {
 function sound(world, x, y, material, strength = 0.5) {
   const q = world.audioEvents || (world.audioEvents = []);
   if (q.length < 64) q.push({ kind: 'bullet_hit', x, y, material, strength });
-}
-
-// First building edge crossed between (x0, y0) and (x1, y1): { t, x, y, nx, ny, b }.
-// Buildings the bullet starts inside (fired from a passage) are ignored.
-export function wallOnPath(map, x0, y0, x1, y1) {
-  const dx = x1 - x0, dy = y1 - y0;
-  let best = null;
-  for (const bld of map.buildingsNear((x0 + x1) / 2, (y0 + y1) / 2, Math.hypot(dx, dy) / 2 + 1)) {
-    const [minx, miny, maxx, maxy] = bld.bounds;
-    if (Math.max(x0, x1) < minx || Math.min(x0, x1) > maxx || Math.max(y0, y1) < miny || Math.min(y0, y1) > maxy) continue;
-    const pts = bld.pts;
-    let hit = null;
-    for (let i = 0; i < pts.length - 1; i++) {
-      const ax = pts[i][0], ay = pts[i][1], ex = pts[i + 1][0] - ax, ey = pts[i + 1][1] - ay;
-      const den = dx * ey - dy * ex;
-      if (Math.abs(den) < 1e-9) continue;
-      const wx = ax - x0, wy = ay - y0;
-      const t = (wx * ey - wy * ex) / den;
-      const u = (wx * dy - wy * dx) / den;
-      if (t < 0 || t > 1 || u < 0 || u > 1 || (hit && t >= hit.t)) continue;
-      const el = Math.hypot(ex, ey) || 1;
-      let nx = -ey / el, ny = ex / el;
-      if (nx * dx + ny * dy > 0) { nx = -nx; ny = -ny; }
-      hit = { t, x: x0 + dx * t, y: y0 + dy * t, nx, ny, b: bld };
-    }
-    if (!hit || (best && hit.t >= best.t) || pointInPolygon(x0, y0, pts)) continue;
-    best = hit;
-  }
-  return best;
 }
 
 // Window or wall: a stable per-building share of the facade is glass, and
@@ -429,19 +377,6 @@ function vehicleImpact(world, b, h) {
   sound(world, h.x, h.y, h.glass ? 'glass' : 'metal', b.pellet ? 0.3 : 0.6);
 }
 
-export function wreckVehicle(world, v, byPlayer) {
-  // already burning: every hit brings the explosion closer
-  if (v.disabled) { v.burnLeft -= 0.7; return; }
-  if (v.wrecked) return;
-  disableVehicle(v, byPlayer, world);
-  if (!byPlayer) return;
-  if (v.isPolice && !v.hijacked) {
-    world.stats.kills++;
-    world.stats.copKills++;
-    world.wanted = Math.min(5, world.wanted + 2);
-  }
-}
-
 // Swept along this step (a bullet moves ~1 m per frame, more than a body is wide).
 function hitPedestrians(world, b, x0, y0) {
   let ped = null, bestT = 2;
@@ -514,6 +449,7 @@ function hitPlayer(world, b) {
 }
 
 export function damagePlayer(world, damage) {
+  damage = assistDamage(damage); // Hulp (#215): minder schade bij kogels, klappen en wegpiraten
   if (world.armor > 0) {
     const absorbed = Math.min(world.armor, damage);
     world.armor -= absorbed;

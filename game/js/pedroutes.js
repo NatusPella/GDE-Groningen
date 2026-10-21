@@ -1,11 +1,12 @@
 import { dist, isInWater, closestPointOnSegment, pointInPolygon } from './util.js';
-import { findWalkPath } from './routing.js';
 import { trafficSignalsNear, pedestriansMayCross, getTrafficLights } from './trafficlights.js';
-import { isInsideBuilding, isOnRoad, setPedPose, lineOfSight } from './pedestrians.js';
+import { isInsideBuilding, isOnRoad, setPedPose, lineOfSight } from './pedgeom.js';
 import { findProps, isPropBroken } from './breakables.js';
 import { SpatialGrid } from './spatialgrid.js';
+import { walkPathHook } from './latehooks.js';
 import { markZebraUser, zebraSpeedLimit } from './trafficyield.js';
 export { zebraSpeedLimit };
+
 
 // Long, purposeful walks: every civilian picks a destination a few hundred
 // metres away, walks there over the walk network on one side of the street,
@@ -28,7 +29,7 @@ const AVOID_R = 1.2;
 const AVOID_CELL = 3;
 const PAIR_SPACING = 0.85;
 
-export const pedNavStats = {
+const pedNavStats = {
   planned: 0, failed: 0, totalLen: 0, planMsMax: 0, planMsTotal: 0,
   arrivals: 0, entered: 0, crossWaits: 0, replans: 0, stuckSkips: 0, queue: 0,
   crossings: 0, atSite: 0, detours: 0, detourExtra: 0, zebraCross: 0, benchSits: 0,
@@ -145,7 +146,7 @@ function buildRoute(ped, world, dest) {
   const nav = ped.nav;
   nav.pending = null;
   const t0 = performance.now();
-  const res = findWalkPath(map, ped.x, ped.y, dest.x, dest.y);
+  const res = walkPathHook.find(map, ped.x, ped.y, dest.x, dest.y);
   if (!res || res.pts.length < 2) {
     pedNavStats.failed++;
     nav.retryAt = world.time + 1 + Math.random() * 2;

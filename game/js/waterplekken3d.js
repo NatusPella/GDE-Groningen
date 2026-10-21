@@ -36,7 +36,7 @@ function load() {
 const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _p = new THREE.Vector3(), _s = new THREE.Vector3(), _c = new THREE.Color();
 const UP = new THREE.Vector3(0, 1, 0);
 
-export function celGroup(lijst) {
+function celGroup(lijst) {
   const per = { box: [], cyl: [], cone: [] };
   for (const p of lijst) for (const q of partsToWorld(p)) per[q.s].push(q);
   const g = new THREE.Group();

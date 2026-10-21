@@ -1,10 +1,17 @@
 // Garage section of the pause menu (and the styles of the phone's
-// "Voertuigen" app): every vehicle as a card with a rendered thumbnail, the
-// selected one turning in the viewer. Thumbnails and the viewer both come
-// from vehiclepreview.js's one shared renderer, so the garage never opens a
-// WebGL context of its own.
+// "Voertuigen" app): every vehicle as a card with a picture of the real model
+// (three-quarter view from the front, in its own paint), the selected one
+// turning in the viewer. A card also turns on a turntable while the mouse is
+// on it, or it has keyboard or controller focus, or (touch) it was tapped.
+// Stills, turntable and viewer all come from vehiclepreview.js's one shared
+// renderer, so the garage never opens a WebGL context of its own.
 import { getGarageCatalog, whereText } from './ownedvehicles.js';
-import { createSharedPreview } from './vehiclepreview.js';
+import { createSharedPreview, renderSnapshot, cancelSnapshots } from './vehiclepreview.js';
+import { reducedMotion } from './motion.js';
+import {
+  GARAGE_3Q_ANGLE, GARAGE_PIC_W, GARAGE_PIC_H, garagePicZoom, TURN_SPEED, TURN_FPS,
+  garagePreviewSpec as previewSpec, garageCardLook, turntableTarget,
+} from './garagepics.js';
 import {
   GARAGE_FILTERS as FILTERS, GARAGE_SORTS as SORTS, garageGroup as groupOf, garagePrice as priceOf,
   garageShown, garageSections, garageTabCounts, cycleOption, keepSelection,
@@ -22,7 +29,7 @@ const GLYPHS = {
   heli: '<g fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M4 9h34M21 9v6M10 41h20M14 35v6M26 35v6M30 25h12M41 19v10"/></g><path d="M8 27a12 10 0 0 1 24 0v6H8z"/>',
 };
 
-export function vehicleGlyph(kind, color) {
+function vehicleGlyph(kind, color) {
   return `<svg viewBox="0 0 48 48" aria-hidden="true" style="color:${esc(color)}"><g fill="currentColor">${GLYPHS[kind] || GLYPHS.car}</g></svg>`;
 }
 
@@ -44,11 +51,6 @@ let lastList = [];
 const euro = (n) => `€${Number(n).toLocaleString('nl-NL')}`;
 const shownList = (list) => garageShown(list, view);
 
-function previewSpec(e) {
-  if (!e || !e.spec || !e.spec.model) return null;
-  return { kind: e.spec.kind === 'scooter' ? 'scooter' : e.spec.kind, model: e.spec.model, color: e.color, nameIdx: e.spec.nameIdx || 0, flags: e.hero ? { isHeroCar: true } : e.spec.flags || null };
-}
-
 // the card's status line: where it is, its price, or the lock
 function endHtml(e) {
   if (e.locked) return `${LOCK}<span class="t">${esc(e.unlockShort || 'Op slot')}</span>`;
@@ -59,10 +61,10 @@ function endHtml(e) {
   return `<span class="t${e.status === 'driving' ? ' g' : ''}">${label}</span>`;
 }
 
-// a card of the grid: the vehicle's silhouette in its own paint, name, status
+// a card of the grid: its picture (filled in by fillPics), name, status
 function row(e) {
   return `<button type="button" class="m-li gar-card${e.locked ? ' off' : ''}${e.id === selected ? ' sel' : ''}" data-garage-select="${esc(e.id)}" data-group="${groupOf(e)}"${e.id === selected ? ' aria-current="true"' : ''}>` +
-    `<span class="gar-ph">${vehicleGlyph(e.kind, e.locked ? '#6d756d' : e.color)}</span>` +
+    `<span class="gar-ph" data-look="${garageCardLook(e)}"><i class="gar-sk"></i></span>` +
     `<span class="nm"><span class="one">${esc(e.model)}</span><span class="gar-st">${endHtml(e)}</span></span></button>`;
 }
 
@@ -97,13 +99,110 @@ export function selectGarageVehicle(el, id, msg = '') {
   if (viewer) viewer.dispose();
   box.innerHTML = viewerHtml(e, msg);
   const c = box.querySelector('canvas');
-  viewer = createSharedPreview(c, { interactive: true, active: () => c.isConnected && c.offsetParent !== null });
+  viewer = createSharedPreview(c, { interactive: true, angle: GARAGE_3Q_ANGLE, active: () => c.isConnected && c.offsetParent !== null });
   viewer.show(previewSpec(e));
+  // a tap selects the card: on touch that is the one to turn
+  if (aim.touch) syncTurn(el);
 }
 
-// Drops the viewer's model (tab switched or menu closed).
+// Drops the viewer's model, the turntable and the pictures still to come
+// (tab switched or menu closed).
 export function disposeGarageViewer() {
   if (viewer) { viewer.dispose(); viewer = null; }
+  stopTurn();
+  if (turn) { turn.dispose(); turn = null; turnCanvas = null; }
+  cancelSnapshots(PIC_GROUP);
+}
+
+// --- card pictures and the turntable ---------------------------------------
+
+const PIC_GROUP = 'garage';
+let turn = null;
+let turnCanvas = null;
+let turnId = null;
+let turnTimer = 0;
+const aim = { hover: null, touch: false, latest: 'hover', downAt: -1e9, byPointer: false };
+
+// The pictures are drawn one by one in idle time, in list order; until a
+// card's picture is there it shows a quiet placeholder, and without WebGL the
+// old silhouette.
+function fillPics(el) {
+  for (const card of el.querySelectorAll('.gar-list .gar-card')) {
+    const e = lastList.find((x) => x.id === card.dataset.garageSelect);
+    const ph = card.querySelector('.gar-ph');
+    const spec = e && previewSpec(e);
+    if (!ph) continue;
+    const put = (url) => {
+      if (!ph.isConnected) return;
+      ph.innerHTML = url ? `<img alt="" draggable="false" src="${url}">` : vehicleGlyph(e.kind, e.locked ? '#6d756d' : e.color);
+    };
+    if (!spec) { put(''); continue; }
+    renderSnapshot(spec, GARAGE_PIC_W, GARAGE_PIC_H, put, { angle: GARAGE_3Q_ANGLE, zoom: garagePicZoom(spec), group: PIC_GROUP });
+  }
+}
+
+function stopTurn() {
+  clearTimeout(turnTimer);
+  if (turn) turn.clear();
+  if (turnCanvas && turnCanvas.parentNode) turnCanvas.parentNode.classList.remove('spin');
+  if (turnCanvas) turnCanvas.remove();
+  turnId = null;
+}
+
+function startTurn(el, id) {
+  const card = [...el.querySelectorAll('.gar-list .gar-card')].find((c) => c.dataset.garageSelect === id);
+  const ph = card && card.querySelector('.gar-ph');
+  const e = lastList.find((x) => x.id === id);
+  const spec = e && previewSpec(e);
+  if (!ph || !spec || !ph.querySelector('img')) return;
+  if (!turnCanvas) {
+    turnCanvas = document.createElement('canvas');
+    turnCanvas.className = 'gar-turn';
+    turnCanvas.setAttribute('aria-hidden', 'true');
+  }
+  if (!turn) turn = createSharedPreview(turnCanvas, { angle: GARAGE_3Q_ANGLE, zoom: garagePicZoom(spec), speed: TURN_SPEED, fps: TURN_FPS, active: () => turnCanvas.isConnected });
+  if (turnId === id) return;
+  stopTurn();
+  turnId = id;
+  ph.appendChild(turnCanvas);
+  turn.show(spec);
+  // the still steps aside once the first turning frame is drawn
+  requestAnimationFrame(() => { if (turnId === id) ph.classList.add('spin'); });
+}
+
+// One card turns: the pointer's or the focused one (the latest of the two; a
+// focus that a click gave does not count: the pointer has moved on), else on
+// touch the tapped one.
+function syncTurn(el) {
+  const focus = document.activeElement;
+  const focused = !aim.byPointer && focus && focus.classList && focus.classList.contains('gar-card') && el.contains(focus) ? focus.dataset.garageSelect : null;
+  const id = turntableTarget({ hover: aim.hover, focus: focused, selected, touch: aim.touch, reduced: reducedMotion(), latest: aim.latest });
+  clearTimeout(turnTimer);
+  if (id === null) { stopTurn(); return; }
+  if (id === turnId) return;
+  // a short wait, so sweeping the mouse over the grid builds no models
+  turnTimer = setTimeout(() => startTurn(el, id), turnId === null ? 110 : 40);
+}
+
+function bindTurntable(el) {
+  const cardOf = (t) => (t && t.closest ? t.closest('.gar-card') : null);
+  el.addEventListener('pointerover', (ev) => {
+    aim.touch = ev.pointerType === 'touch' || ev.pointerType === 'pen';
+    const c = ev.pointerType === 'mouse' ? cardOf(ev.target) : null;
+    const id = c ? c.dataset.garageSelect : null;
+    if (id === aim.hover) return;
+    aim.hover = id;
+    if (id) aim.latest = 'hover';
+    syncTurn(el);
+  });
+  el.addEventListener('pointerdown', (ev) => { aim.touch = ev.pointerType === 'touch' || ev.pointerType === 'pen'; aim.downAt = performance.now(); });
+  el.addEventListener('pointerleave', () => { aim.hover = null; syncTurn(el); });
+  el.addEventListener('focusin', () => {
+    aim.byPointer = performance.now() - aim.downAt < 500;
+    if (!aim.byPointer) aim.latest = 'focus';
+    syncTurn(el);
+  });
+  el.addEventListener('focusout', () => setTimeout(() => syncTurn(el), 0));
 }
 
 function tabsHtml(list) {
@@ -132,14 +231,19 @@ function pickShown(el) {
 function refreshList(el) {
   const tools = el.querySelector('.m-tabs');
   if (!tools || !el.querySelector('.gar-list')) return;
+  stopTurn();
+  cancelSnapshots(PIC_GROUP);
+  aim.hover = null;
   tools.innerHTML = tabsHtml(lastList);
   el.querySelector('.gar-list').innerHTML = listHtml(lastList);
+  fillPics(el);
   pickShown(el);
 }
 
 function bindToolbar(el) {
   if (el.dataset.garBound) return;
   el.dataset.garBound = '1';
+  bindTurntable(el);
   el.addEventListener('click', (ev) => {
     const c = ev.target.closest('[data-garage-cat]');
     const s = ev.target.closest('[data-garage-sort]');
@@ -162,8 +266,10 @@ export function renderGaragePanel(el, world, msg = '') {
   el.dataset.sub = `${owned.length} van ${list.length} voertuigen van jou`;
   el.innerHTML = `<div class="m-tabs">${tabsHtml(list)}</div>` +
     '<div class="m-main"><div class="m-list gar-list"></div><aside class="m-pane gar-viewer" aria-live="polite" aria-label="Details"></aside></div>';
+  aim.hover = null;
   disposeGarageViewer();
   el.querySelector('.gar-list').innerHTML = listHtml(list);
+  fillPics(el);
   pickShown(el);
   if (msg && selected) selectGarageVehicle(el, selected, msg);
 }

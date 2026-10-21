@@ -52,7 +52,7 @@ const ICON = {
   tip: '<path d="M9 21.5h6V20H9zM12 2a7 7 0 0 0-4 12.7V18.5h8v-3.8A7 7 0 0 0 12 2z"/>',
 };
 // rank: attention.js CARD_PRIORITY (story > danger > reward > tips)
-export const CARD_KINDS = {
+const CARD_KINDS = {
   missie: { label: 'Missie', rank: CARD_PRIORITY.missie },
   bijbaan: { label: 'Bijbaantje', rank: CARD_PRIORITY.bijbaan },
   geld: { label: 'Geld', rank: CARD_PRIORITY.geld },
@@ -149,7 +149,7 @@ function split(text) {
 // A card is up or waiting (onboarding.js waits for an empty HUD).
 export const cardsBusy = () => visible.some((c) => !c.leaving) || queue.length > 0;
 
-export function classify(text, opts = {}, w = world) {
+function classify(text, opts = {}, w = world) {
   const t = String(text || '');
   if (!t || opts.silent) return null;
   if (!opts.kind && DROP.some((re) => re.test(t))) return null;

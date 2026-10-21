@@ -136,20 +136,23 @@ const rect = (x0, y0, x1, y1, name = '') => ({ pts: [[x0, y0], [x1, y0], [x1, y1
 
 // 5. the map
 const root = new URL('../game/', import.meta.url);
-const data = JSON.parse(fs.readFileSync(new URL('citymap.json', root)));
+const { loadCityData } = await import('./lib/loadworld.mjs');
+const data = await loadCityData({ extras: false });
 ok(data.water.every((w) => w.kind && Number.isFinite(w.lv) && Number.isFinite(w.dp)), 'every water polygon annotated');
 const movable = data.roads.filter((r) => r.movable);
 ok(movable.length >= 19, 'movable bridges from OSM', movable.length);
 const { GameMap, applyMapExtras } = await import('../game/js/mapdata.js');
 applyMapExtras(data, JSON.parse(fs.readFileSync(new URL('mapextras.json', root))));
 const map = new GameMap(data);
-const mb = map.roads.find((r) => r.movable && r.cat === 'normal');
+// (een brug waar geen ander brugdek bij ligt: de kanaaloevers uit OSM geven een weg die er schuin langs loopt soms een eigen dek, dat telt niet voor deze brug)
+const alone = (r) => { const m = r.pts[Math.floor(r.pts.length / 2)]; return !map.roadsNear(m[0], m[1], 8).some((q) => q !== r && q.bridge && !q._open && !q.movable); };
+const mb = map.roads.find((r) => r.movable && r.cat === 'normal' && alone(r));
 const mid = mb.pts[Math.floor(mb.pts.length / 2)];
 ok(map.isOnBridge(mid[0], mid[1]), 'a closed movable bridge is a bridge');
 mb._open = true;
 ok(!map.isOnBridge(mid[0], mid[1]), 'an open one is not');
 mb._open = false;
-const rep = WA.audit(JSON.parse(fs.readFileSync(new URL('citymap.json', root))));
+const rep = WA.audit(await loadCityData({ extras: false }));
 ok(rep.classes[1].reached / rep.classes[1].wide > 0.95, 'a canoe reaches nearly all water wide enough', `${rep.classes[1].reached}/${rep.classes[1].wide}`);
 ok([1, 2, 3].every((c) => rep.classes[c].stops.length === 0), 'no fixed bridge too low for a canoe, sloep or tour boat');
 ok(rep.classes[3].mainKm2 > 1, 'the tour boats sail more than a square kilometre of canals', rep.classes[3].mainKm2);
@@ -175,6 +178,18 @@ console.log(`waterways: canoe ${rep.classes[1].reached}/${rep.classes[1].wide}, 
   ok(a && !a.wade && a.navigable === 4, 'deep province water: swim, barge');
   ok(d && d.wade, 'a province ditch is waded');
   ok(L.waterAt(m, 200, 70) === null, 'dry land between');
+}
+
+// 9. a body at its own peil is drawn there (#299)
+{
+  const poly = (o) => ({ pts: [[0, 0], [100, 0], [100, 100], [0, 100]], kind: 'meer', name: 'Lauwersmeer', lv: -1, ...o });
+  ok(Math.abs(L.surfaceLift(poly()) - (-1 - L.BOEZEM_Y)) < 1e-9 && L.surfaceLift(poly()) > 1.2, 'the Lauwersmeer lies 1,3 m above the boezem');
+  ok(L.surfaceLift(poly({ name: 'Zuidlaardermeer' })) === 0, 'every other lake is drawn at the one surface of the world, whatever its lv says');
+  ok(L.surfaceLift(poly({ kind: 'diep' })) === 0 && L.surfaceLift(poly({ lv: L.BOEZEM_Y })) === 0 && L.surfaceLift(null) === 0, 'a canal of that name, or a lake at the boezem, no lift');
+  // the creek polygons inside the lake: the lake's surface wins at any point it covers
+  const lake = poly(), creek = poly({ name: 'Vlinderbalg', lv: L.BOEZEM_Y, pts: [[20, 20], [80, 20], [80, 80], [20, 80]] });
+  const map = { waterNear: () => [creek, lake] };
+  ok(L.surfaceLiftAt(map, 50, 50) === L.surfaceLift(lake) && L.surfaceLiftAt(map, 150, 50) === 0, 'surfaceLiftAt: the lake over a creek inside it, nothing off it');
 }
 
 console.log(`${n - fails}/${n} water checks passed`);

@@ -230,8 +230,7 @@ function* finishWork(job) {
   }
 }
 
-function finishJob(B) {
-  const job = B.job;
+function makeGroup(B, job) {
   const group = new THREE.Group();
   group.name = B.name;
   for (const { geo, bk } of job.geos) {
@@ -243,6 +242,12 @@ function finishJob(B) {
     group.add(mesh);
   }
   group.matrixAutoUpdate = false;
+  return group;
+}
+
+function finishJob(B) {
+  const job = B.job;
+  const group = job.group || makeGroup(B, job);
   const c = job.c;
   unmerge(B, c);
   c.group = group;
@@ -265,14 +270,18 @@ function finishJob(B) {
 // an item must be within to be merged (default: the detail radius less a
 // margin), how many newcomers redo a merged cell (default 3), and the
 // item's distance (default: from its bounds' centre).
-export function createStaticBatcher(opts) {
-  const B = { name: opts.name, bake: !!opts.bake, cells: new Map(), job: null, frame: 0, root: null, stats: { cells: 0, merged: 0, builds: 0, dropped: 0 } };
+function createStaticBatcher(opts) {
+  const B = { name: opts.name, bake: !!opts.bake, cells: new Map(), job: null, frame: 0, root: null, stats: { cells: 0, merged: 0, builds: 0, dropped: 0, ms: 0, frames: 0 } };
   const cell = opts.cell || CELL, minMembers = opts.minMembers || MIN_MEMBERS;
   const memberOk = (m, ctx, dist) => ctx.meshes.get(m.b) === m.mesh && !(ctx.hidden && ctx.hidden.has(m.b)) && m.mesh.parent && verOf(m.parts) === m.ver && opts.valid(m.b, m.mesh, ctx, dist);
 
   // ctx: { scene, meshes (Map item -> group), hidden (Set or null), px, py,
   // detailR, drawDist, withDetail, budgetMs }
   function update(ctx) {
+    const t0 = performance.now();
+    try { step(ctx); } finally { B.stats.ms += performance.now() - t0; B.stats.frames++; }
+  }
+  function step(ctx) {
     if (!B.root) {
       B.root = new THREE.Group();
       B.root.name = B.name + 'es';
@@ -303,7 +312,14 @@ export function createStaticBatcher(opts) {
       while (performance.now() < deadline && !(done = job.fin.next().done));
       if (!done) return;
       if (stale()) B.job = null;
-      else { finishJob(B); B.kick = true; }
+      else {
+        // a merged mesh with a material whose shaders are not linked yet draws only once they are (a first draw
+        // blocked the frame for 0.3 to 1 s, #247): compile it first, in the background, and wait up to 2 s
+        if (ctx.compile && !job.group) { job.group = makeGroup(B, job); ctx.compile(job.group); job.linkSince = performance.now(); }
+        if (job.group && ctx.ready && !ctx.ready(job.group) && performance.now() - job.linkSince < 2000) return;
+        finishJob(B);
+        B.kick = true;
+      }
       return;
     }
     if (B.frame % 8 && !B.kick) return;
@@ -339,6 +355,7 @@ export function createStaticBatcher(opts) {
       if (!best || w.d < best.d) best = w;
     }
     B.stats.cells = want.size;
+    B.lastWant = want;
     if (!best) return;
     let c = B.cells.get(best.key);
     if (!c) B.cells.set(best.key, c = { key: best.key, group: null, members: [], memberSet: null, withDetail: ctx.withDetail });
@@ -352,7 +369,8 @@ export function createStaticBatcher(opts) {
   function info() {
     let meshesN = 0;
     for (const c of B.cells.values()) if (c.group) meshesN += c.group.children.length;
-    return { ...B.stats, meshes: meshesN, job: B.job ? `${B.job.i}/${B.job.pieces.length}` : null };
+    const detail = B.lastWant ? [...B.lastWant.values()].map((w) => [w.key, w.list.length, Math.round(w.d), Math.round(w.far), B.cells.get(w.key) && B.cells.get(w.key).group ? 1 : 0]) : [];
+    return { ...B.stats, meshes: meshesN, job: B.job ? `${B.job.i}/${B.job.pieces.length}` : null, detail };
   }
 
   // every cell back to its own meshes (the batcher is switched off)
@@ -410,6 +428,24 @@ export const roadBatcher = createStaticBatcher({
   },
   inner: (ctx) => ctx.drawDist - 15,
   fresh: 2,
+  eligible: () => true,
+  valid: () => true,
+});
+
+// shores (quaywalls.js): the meshes of the banks and quay walls of the water polygons, merged per material over the cells (items are the
+// shore meshes: item { mesh, bounds } -> holder { mesh, parent, visible, userData }; scene3d.js keeps the map in step with the water in the scene). The water
+// surface is transparent and stays on its own.
+export const shoreBatcher = createStaticBatcher({
+  name: 'shore-batch',
+  cell: 600,
+  minMembers: 2,
+  dist: (it, px, py) => {
+    const b = it.bounds;
+    return Math.hypot(Math.max(b[0] - px, 0, px - b[2]), Math.max(b[1] - py, 0, py - b[3]));
+  },
+  inner: (ctx) => ctx.drawDist - 15,
+  fresh: 2,
+  part: (holder) => holder.mesh,
   eligible: () => true,
   valid: () => true,
 });

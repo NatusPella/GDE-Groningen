@@ -9,7 +9,7 @@ for (let d = 0; d <= 400; d += 10) { const s = M.iconScale(d); ok(s >= prev, 'ic
 // about constant on screen between 40 m and the cap: size / distance stays within a factor 1
 ok(Math.abs(M.iconScale(100) / 100 - M.iconScale(160) / 160) < 0.01 || M.iconScale(160) === 4, 'on-screen size roughly constant');
 ok(M.iconLift(10) === 0 && M.iconLift(1e6) > 0, 'lift only far away');
-ok(M.columnWidth(0) === 1 && M.columnWidth(1e6) === 8, 'column width 1..8');
+ok(M.columnWidth(0) === 1 && M.columnWidth(1e6) === 14, 'column width 1..14');
 ok(M.columnWidth(400) * 0.07 * 2 / 400 > 0.002, 'op 400 m is de kolom minstens 0,1 graad breed');
 ok(M.columnHeight(0) === 28 && M.columnHeight(400) > 100 && M.columnHeight(1e6) === 140, 'kolom wordt hoger met afstand, begrensd');
 
@@ -31,5 +31,9 @@ ok(M.glyphPulse(-1) === 1 && M.glyphPulse(1) <= 1.07, 'glyph breathes by at most
 
 ok(!M.showLabel(14) && M.showLabel(15), 'label from 14 m');
 ok(M.labelText(42.4) === '42 m' && M.labelText(347) === '350 m' && M.labelText(1500) === '1,5 km', 'label text');
+// by day a normally blended, darker, more opaque column (the additive one vanished on the sky)
+ok(M.columnNormalBlend({ night: 0, rain: 0 }) && !M.columnNormalBlend({ night: 1 }) && !M.columnNormalBlend({ night: 0, rain: 1 }), 'normal blend by day, additive at night and in heavy rain');
+ok(M.dayColumnOpacity(0) === 0.5 && M.dayColumnOpacity(1e6) === 0.8 && M.dayColumnOpacity(120) > M.dayColumnOpacity(60), 'day column 0.5..0.8, stronger far off');
+ok(M.DAY_COLUMN_DARKEN > 0.5 && M.DAY_COLUMN_DARKEN < 1, 'day column slightly darker');
 console.log(`${n - fails}/${n} markerlook`);
 process.exit(fails ? 1 : 0);

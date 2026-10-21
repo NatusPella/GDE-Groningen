@@ -7,8 +7,7 @@ import { showCard, cardsBusy } from './hudcards.js';
 import { mayStart } from './narrative.js';
 import { isCinematicActive } from './cinematics.js';
 import { playerBusy } from './busy.js';
-import { isPauseMenuOpen } from './pausemenu.js';
-import { isMapOpen } from './mapview.js';
+import { isPauseMenuOpen, isMapOpen } from './pausestate.js';
 import { getSettings } from './settings.js';
 import { physicalKey, keyName, tokenKey } from './controls.js';
 import { glyphHtml } from './prompts.js';
@@ -27,10 +26,6 @@ let last = null;
 let shownAt = -Infinity;
 let t = 0;
 
-export function practiceDone() {
-  try { return localStorage.getItem(KEYS.oefenronde) === '1'; } catch (e) { return false; }
-}
-
 // One-time offer (value '0' in gde-oefenronde; '1' stays 'done'): a quiet card after the first minute of play.
 const OFFER_AFTER = 60;
 let playT = 0;
@@ -46,15 +41,15 @@ function maybeOffer(dt, w) {
   try { localStorage.setItem(KEYS.oefenronde, '0'); } catch (e) { /* memory only */ }
 }
 
-export function practiceActive() { return !!st && !st.done; }
+function practiceActive() { return !!st && !st.done; }
 
-export function beginPractice() {
+function beginPractice() {
   st = startPractice();
   last = null;
   shownAt = -Infinity;
 }
 
-export function stopPractice() { st = null; }
+function stopPractice() { st = null; }
 
 function card(w, s, key) {
   showCard(w, { kind: 'tip', kicker: 'Oefenronde', title: s.title, body: plainKeys(s.body), bodyHtml: htmlKeys(s.body), key, important: true, voice: false, duration: 10 });

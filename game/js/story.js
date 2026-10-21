@@ -8,8 +8,9 @@
 // built story the last step's character stays.
 
 import { STEPS, STEP_BY_ID, PARTS, CLUES, WHY, CHARACTERS, SPEAKERS, stepAvailable, missionIndexOf, computeMoneyTimeline, partNumber, stepDone, nextStoryStep } from './storyarc.js';
-import { tickStoryTravel } from './storytravel.js';
+import { tickStoryTravel, rideWith } from './storytravel.js';
 import { askTravel, travelPromptOpen } from './reispanel.js';
+import { gateOn } from './coopgate.js';
 import { startMeerijden } from './reisrit.js';
 import { FLAGS } from './devflags.js';
 import { setMeetHook } from './namecard.js';
@@ -28,7 +29,10 @@ import {
 import { getShopVisits, getShopsForRender, grantStoryItem } from './shops.js';
 import { getPigeonFlight, stopPigeonMode } from './pigeonmode.js';
 import { isHeliRunActive, abortHeliRun } from './helirun.js';
-import { jumpPrep, jumpSpot } from './storyjump.js';
+import { jumpPrep, jumpSpot, openRond } from './storyjump.js';
+import { JUMP_M } from './loadlogic.js';
+import { buildingAt, withTiles } from './tileplace.js';
+import { waterAt } from './waterlevels.js';
 import { purchaseCount, storyBuyLabel } from './storyshop.js';
 import { getPigeonSpotsForRender } from './pigeonspots.js';
 import { getSideJobList } from './sidejobs.js';
@@ -36,8 +40,10 @@ import { getGaragesForRender } from './garages.js';
 import { inHomeFlat, getHomeForRender, flatStage } from './home.js';
 import { isShopOpen } from './shopui.js';
 import { maybeOfferHelp, noteStepCleared } from './assistlive.js';
-import { playCinematic, isCinematicActive, sinceCinematic, isBannerUp } from './cinematics.js';
+import { playCinematic, isCinematicActive, skipCinematic, sinceCinematic, isBannerUp } from './cinematics.js';
 import { playScript } from './cutscenehost.js';
+import { roofAt } from './camerapath.js';
+import { isInWater } from './util.js';
 import { openingActs, END_CARD, flatScene } from './cutscenes.js';
 import { refreshDayNight } from './daynight.js';
 import { getTrainTripCount, getStationsForRender } from './stationtravel.js';
@@ -55,6 +61,7 @@ import { storyLines, talkLines, radioContacts, appsAt, storyDataReady, readingTi
 import { updateStoryTalk, stopTalk, playTalk } from './storytalk.js';
 import { makeReisGoals } from './storyreis.js';
 import { plakjesState } from './plakjes.js';
+import { registerStoryQueries } from './storyquery.js';
 
 // Rikus' Radio Nachtstreek studio (radiostudio.js, three.js from the CDN) for the
 // recaps and the epilogue; loaded lazily so Node checks can import this file.
@@ -212,7 +219,7 @@ const GOALS = {
     begin: (st, b) => { b.phase = 'wait'; },
     met: (st, b) => {
       if (b.phase === 'wait') {
-        const ready = !isMissionActive() && !isCinematicActive() && sinceCinematic() > 1 && !narrativeBusy() && !world.pigeonMode && !world.pendingRespawn && document.body.classList.contains('game-started');
+        const ready = !isMissionActive() && !isCinematicActive() && sinceCinematic() > 1 && !narrativeBusy() && !world.pigeonMode && !world.pendingRespawn && document.body.classList.contains('game-started') && !gateOn() && world.coopRole !== 'client';
         if (ready && storyDataReady()) { b.phase = 'play'; if (!playOpening(b)) b.phase = 'done'; }
         else if (ready && world.time - rt.enteredAt > 40) b.phase = 'done';
       }
@@ -336,7 +343,7 @@ function refreshGuide() {
       rt.gateCard = true;
       world.addMessage(`Gelukt! Terug naar het verhaal: ${step.title}`, 5, { kind: 'missie', key: 'story-buy' });
     }
-    else if (def) place = def.start;
+    else if (def && !gate) place = def.start;   // an unmet requirement keeps the guide at the shop: the start only once it is met
     // a requirement that stays unmet (no money, the rental boat sank) also makes the step skippable
     rt.gate = gate;
     rt.gatedSince = gate ? (rt.gatedSince >= 0 ? rt.gatedSince : world.time) : -1;
@@ -490,6 +497,8 @@ function playOpening(b) {
     return playScript(world, act.def, {
       lines: act.lines, duration: act.duration,
       anchor: act.def.set === 'keuken' ? { x: spot.x, y: spot.y, facing: 0, z: KITCHEN_Z } : { ...spot },
+      // nobody stands in the street scenes: when the new home's tower leaves no clean turn, they play on the closest open ground (#321)
+      fit: { radii: [10, 16, 24, 34, 46, 60], ground: (x, y) => roofAt(world.map, x, y) === 0 && !isInWater(world.map, x, y) },
       cine: {
         id: 'story-opening',
         ...(i === 0 ? { kicker: `${partNumber('kop')} · ${kop.date}`, title: kop.name, cardFor: 3.2 } : {}),
@@ -1073,7 +1082,7 @@ export function updateStory(dt, w) {
   }
   // travel beats (#97): the choice ride along / drive / skip before a long jump, behind ?reizen
   if (FLAGS.reizen && rt.leadAt < 0) {
-    tickStoryTravel({ on: true, step, flags: state.flags, world: w, ask: askTravel, ride: startMeerijden, script: storyScene,
+    tickStoryTravel({ on: true, step, flags: state.flags, world: w, ask: askTravel, ride: rideWith(w, startMeerijden), script: storyScene,
       busy: isMissionActive() || isCinematicActive() || narrativeBusy() || !!w.pigeonMode || !!w.pendingRespawn || travelPromptOpen() });
   }
   // the voorschot follows the lead that says what it is for
@@ -1218,15 +1227,18 @@ export function getStoryView() {
     done, total: avail.length,
   };
 }
+registerStoryQueries({ currentStep, storyFlag, getStoryView, storyVoorschotInfo, prepareStoryShop, getStorySave });
 
 // Dev chapter select: rebuilds the progress, money and belongings a player
 // would have right before step `id` (worst case money from the timeline).
 // opts.start: de missie van de stap ook meteen starten (QA en spelbot: phase 'active'); zonder staat de speler
 // naast de startplek en start de missie zoals voor een speler.
+let jumpSettle = 0;
 export function devJumpTo(id, opts = {}) {
   const k = STEPS.findIndex((s) => s.id === id);
   if (k < 0 || !stepAvailable(STEPS[k])) return false;
   const p0 = world.player;
+  const fromX = p0.x, fromY = p0.y;
   for (const a of jumpPrep({ missionActive: isMissionActive(), pigeon: !!world.pigeonMode, heliRun: isHeliRunActive(), inVehicle: !!p0.inVehicle })) {
     if (a === 'abortMission') failActiveMission(world, 'Missie afgebroken', 'Afgebroken');
     else if (a === 'stopPigeon') stopPigeonMode(world);
@@ -1234,6 +1246,8 @@ export function devJumpTo(id, opts = {}) {
     else if (a === 'exitVehicle') p0.exitVehicle(world.map, world);
   }
   if (isMissionActive()) return false;
+  // a cinematic of the old place (the game-start flight, a scene) would play on over the new one: a title card over a blank view (#267)
+  if (isCinematicActive()) skipCinematic();
   const prior = STEPS.slice(0, k);
   Object.assign(state, freshState());
   rt = freshRuntime();
@@ -1254,12 +1268,33 @@ export function devJumpTo(id, opts = {}) {
   enter(target);
   if (target.player) swapCharacter(world, target.player);
   const idx = missionIdx(target);
-  const spot = jumpSpot(idx >= 0 ? getMissionDefs()[idx] : null, world.storyGuide, { dist: 12 });
-  if (spot) {
+  const def = idx >= 0 ? getMissionDefs()[idx] : null;
+  const vrij1 = (x, y) => !buildingAt(world.map, x, y, 0.5) && !waterAt(world.map, x, y);
+  // een ruime plek eerst; is die er niet (een smalle steeg), dan volstaat een vrij punt
+  const vrijRuim = (x, y) => openRond(vrij1, x, y);
+  const vrij = vrij1;
+  const landOn = (spot) => {
     const p = world.player;
     const [ex, ey] = world.map.escapeBuilding ? world.map.escapeBuilding(spot.x, spot.y, 0.5) : [spot.x, spot.y];
     if (p.inVehicle) { p.inVehicle.x = ex; p.inVehicle.y = ey; p.inVehicle.speed = 0; }
     p.x = ex; p.y = ey;
+  };
+  const spot = jumpSpot(def, world.storyGuide, { dist: 12, vrij: vrijRuim }) || jumpSpot(def, world.storyGuide, { dist: 12, vrij });
+  if (spot) {
+    landOn(spot);
+    // a far jump hides the view behind the load screen while the streets stream in: the game's own watch swallows it right
+    // after a cinematic, and the world would show bare for a few seconds (#267)
+    if (Math.hypot(world.player.x - fromX, world.player.y - fromY) >= JUMP_M) world.devJumpLoad = true;
+    // de tegels om de landingsplek zijn na een verre sprong nog niet binnen: buildingAt ziet dan geen gebouw en de speler
+    // staat even later in een gevel (camera tegen een muur, #261). Zodra ze er zijn, kijkt dit opnieuw naar een vrije plek.
+    const token = ++jumpSettle;
+    const from = { x: world.player.x, y: world.player.y };
+    withTiles(world.map, [[spot.x, spot.y]], () => {
+      const p = world.player;
+      if (token !== jumpSettle || Math.hypot(p.x - from.x, p.y - from.y) > 8 || vrijRuim(p.x, p.y)) return;
+      const again = jumpSpot(def, world.storyGuide, { dist: 12, vrij: vrijRuim }) || jumpSpot(def, world.storyGuide, { dist: 12, vrij });
+      if (again) landOn(again);
+    }, { radius: 400, token: 'sprong' }).catch(() => {});
   }
   if (opts.start && idx >= 0 && !isMissionActive()) missionDebug.start(world, idx);
   return true;

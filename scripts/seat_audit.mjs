@@ -55,8 +55,11 @@ function worldOf(obj, x, y, z) {
 function groupBoxes(root, matIndex) {
   const pts = [];
   root.updateMatrixWorld(true);
+  const wheels = new Set(root.userData.wheels || []);
+  const onWheel = (o) => { for (let p = o.parent; p && p !== root; p = p.parent) if (wheels.has(p)) return true; return false; };
   root.traverse((o) => {
-    if (!o.isMesh || o.isSkinnedMesh || !o.geometry || o.userData.person) return;
+    // the hubcaps (sierdoppen, #205) sit on the wheels and have a second material group of their own: not glass
+    if (!o.isMesh || o.isSkinnedMesh || !o.geometry || o.userData.person || onWheel(o)) return;
     const g = o.geometry, pos = g.attributes.position;
     if (!pos) return;
     const groups = g.groups.length ? g.groups : [{ start: 0, count: pos.count, materialIndex: 0 }];

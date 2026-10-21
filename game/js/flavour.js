@@ -5,8 +5,9 @@ import { radioIsOn } from './radio.js';
 import { STATION_NAME } from './musicpick.js';
 import { isCinematicActive } from './cinematics.js';
 import { getActiveRoute } from './routing.js';
-import { getMissionDefs, isMissionCompleted } from './missions.js';
-import { Pedestrian, isInsideBuilding, isOnRoad, isSpawnHidden, CITY_CENTRE } from './pedestrians.js';
+import { getMissionDefs, isMissionCompleted } from './missionquery.js';
+import { Pedestrian, isSpawnHidden, CITY_CENTRE } from './pedestrians.js';
+import { isInsideBuilding, isOnRoad } from './pedgeom.js';
 import { Vehicle, makeTwoWheeler } from './vehicle.js';
 import { isInWater } from './util.js';
 import {
@@ -450,7 +451,7 @@ function keiCrowd(p, here) {
 // The statue stands on one fixed island, the roundabout of the H.W. Mesdagplein
 // (the middle of its ring in the map): the same spot every night, in every build,
 // whatever tiles are loaded (issue #172). scripts/peerd_test.mjs checks it is
-// still the middle of a roundabout of citymap.json.
+// still the middle of a roundabout of stad.json.
 export const PEERD_SPOT = { x: -944.1, y: 377.6, angle: 0.6 };
 
 function placePeerd() {

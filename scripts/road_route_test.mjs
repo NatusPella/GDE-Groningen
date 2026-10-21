@@ -301,6 +301,8 @@ function roadDistCity(p) {
   for (let k = 0; k < oneways.length && n < 60; k += Math.ceil(oneways.length / 60)) {
     const r = oneways[k], L = polyLen(r.pts);
     const [x0, y0] = along(r.pts, L * 0.6), [x1, y1] = along(r.pts, L * 0.2);
+    // inside the city map the city streets decide, and a route over them may start on a ramp the province net draws elsewhere (#320)
+    if (x0 > MB[0] && x0 < MB[2] && y0 > MB[1] && y0 < MB[3]) continue;
     // a one-way that ends in a dead end has no legal way: the router then ignores one-ways
     const sa = RG.snapRoad(x0, y0, 50), sb = RG.snapRoad(x1, y1, 50);
     if (!sa || !sb || !RG.roadPath(sa, sb)) continue;

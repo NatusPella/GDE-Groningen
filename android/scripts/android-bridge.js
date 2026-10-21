@@ -58,5 +58,7 @@
     // terug uit de achtergrond: niets doen, de speler zit al in het pauzemenu
     if (!s.isActive && !hidden) { hidden = true; escape(); } else if (s.isActive) hidden = false;
   });
+  // saves live in localStorage of the WebView: ask for storage Android may not evict
+  try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) { /* niet erg */ }
   document.documentElement.classList.add('android-app');
 })();

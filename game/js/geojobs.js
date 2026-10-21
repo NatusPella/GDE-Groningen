@@ -15,7 +15,11 @@ const WANT = typeof Worker !== 'undefined' && !STORY_TEST && !FLAGS.noworker;
 let KERNELS = null;
 export function registerKernels(k) { KERNELS = k; }
 
-let worker = null;
+// Two workers: the road and shore kernels (roadInit builds the whole network once, 9 to 13 s; roadGeo and shore use it) keep one to
+// themselves, so the props and the terrain are not queued behind that set-up (#247).
+const workers = [null, null];
+const WORKER_OF = { roadInit: 1, roadGeo: 1, shoreInit: 1, shore: 1 }; // shore reads the road worker's map
+const workerOf = (kind) => (FLAGS.perfoff && FLAGS.perfoff.includes('eenworker') ? 0 : WORKER_OF[kind] || 0);
 let failed = !WANT;
 let nextId = 1;
 const open = new Map();
@@ -37,17 +41,16 @@ function fail(err) {
   if (failed) return;
   console.warn('geometry worker unavailable, building on the main thread', err);
   failed = true;
-  if (worker) worker.terminate();
-  worker = null;
+  for (let i = 0; i < workers.length; i++) { if (workers[i]) workers[i].terminate(); workers[i] = null; }
   const jobs = [...open.values()];
   open.clear();
   for (const j of jobs) if (!WORKER_ONLY.has(j.kind)) runSync(j.kind, j.data, j.done);
 }
 
-function getWorker() {
-  if (worker || failed) return worker;
+function getWorker(i = 0) {
+  if (workers[i] || failed) return workers[i];
   try {
-    worker = new Worker(new URL('./geoworker.js', import.meta.url), { type: 'module' });
+    const worker = workers[i] = new Worker(new URL('./geoworker.js', import.meta.url), { type: 'module' });
     worker.onmessage = (e) => {
       const { id, result, error } = e.data;
       const j = open.get(id);
@@ -64,7 +67,7 @@ function getWorker() {
   } catch (e) {
     fail(e);
   }
-  return worker;
+  return workers[i];
 }
 
 // True while jobs go to the worker (a caller sends its data once, then).
@@ -74,7 +77,7 @@ export function geoWorkerActive() {
 
 
 export function runGeo(kind, data, done = () => {}) {
-  const w = getWorker();
+  const w = getWorker(workerOf(kind));
   if (!w) { runSync(kind, data, done); return; }
   const id = nextId++;
   open.set(id, { kind, data, done, t0: performance.now() });

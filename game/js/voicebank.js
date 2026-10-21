@@ -7,7 +7,20 @@
 const ROOT = new URL('../audio/voicelines/', import.meta.url).href;
 const banks = new Map();
 
-export const voiceKey = (speaker, text) => speaker + '|' + text;
+const voiceKey = (speaker, text) => speaker + '|' + text;
+
+// A line recorded with a leading ellipsis ("…Er komt een politieauto aan.", the pause before it) is also found
+// under the text without it: the story's script drops that mark, the recording says the same words (#326).
+// Adds the extra keys to a manifest object; an exact key always wins.
+export function withEllipsisAliases(m) {
+  for (const k of Object.keys(m || {})) {
+    const i = k.indexOf('|');
+    if (i < 0 || !/^…s*/.test(k.slice(i + 1))) continue;
+    const alias = k.slice(0, i + 1) + k.slice(i + 1).replace(/^…s*/, '');
+    if (!(alias in m)) m[alias] = m[k];
+  }
+  return m;
+}
 
 // dir: mapnaam onder audio/voicelines ('lines', 'jobs', 'story', ...).
 export function openBank(dir) {
@@ -31,7 +44,7 @@ export function openBank(dir) {
   banks.set(dir, b);
   if (typeof fetch === 'function' && typeof window !== 'undefined') {
     fetch(base + 'manifest.json').then((r) => (r.ok ? r.json() : {}))
-      .then((m) => { Object.assign(entries, m || {}); }).catch(() => {})
+      .then((m) => { Object.assign(entries, withEllipsisAliases(m || {})); }).catch(() => {})
       .then(() => { b.ready = true; });
   }
   return b;

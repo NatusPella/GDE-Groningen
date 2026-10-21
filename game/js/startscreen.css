@@ -76,6 +76,44 @@
 @media (prefers-reduced-motion: reduce) { #start-screen, #start-screen * { animation: none !important; transition: none !important; } }
 html.reduce-motion #start-screen, html.reduce-motion #start-screen * { animation: none !important; transition: none !important; }
 
+/* A phone (#96): the layout above is a 1440x900 design in fixed px, so on a
+   screen under 560 px high the menu lay below the bottom edge and a game could
+   not be started. Short and landscape: the logo left, the menu right as a
+   scrolling list; narrow and portrait: the logo on top, the menu under it. */
+@media (max-height: 560px) {
+  #start-screen .ss-logo { left: 28px; top: 14px; gap: 6px; }
+  #start-screen .gde-logo { font-size: 72px; }
+  #start-screen .ss-tag { font-size: 14px; }
+  #start-screen .ss-menu { left: auto; right: 24px; top: 10px; bottom: 36px; width: min(50vw, 380px); justify-content: center; overflow-y: auto; scrollbar-width: none; }
+  #start-screen .ss-item { height: 44px; font-size: 26px; padding: 0 20px; flex: none; }
+  #start-screen .ss-item[data-act="exit"] { height: 40px; font-size: 22px; margin-top: 8px; }
+  #start-screen .ss-item.ss-hero { padding: 8px 20px 12px; margin-bottom: 8px; }
+  #start-screen .ss-hero .ss-label { font-size: 38px; }
+  #start-screen .ss-hero small { font-size: 14px; }
+  #start-screen .ss-save, #start-screen .ss-foot { display: none; }
+  #start-screen .ss-credit { left: 28px; bottom: 10px; font-size: 13px; height: 20px; }
+  #start-screen .ss-news { top: 8px; bottom: 8px; left: 16px; right: 16px; width: auto; }
+  #start-screen .ss-news-head { padding: 12px 20px 0; }
+  #start-screen .ss-news-head h2 { font-size: 30px; }
+  #start-screen .ss-news-body { padding: 8px 20px 14px; font-size: 15px; }
+  #start-screen .ss-news-body h3 small, #start-screen .ss-news-tag { font-size: 14px; }
+  #start-screen .ss-news-body h4 { font-size: 17px; margin-top: 10px; }
+}
+@media (max-width: 760px) and (orientation: portrait) {
+  #start-screen .ss-logo { left: 24px; top: 28px; }
+  #start-screen .gde-logo { font-size: 84px; }
+  #start-screen .ss-menu { left: 12px; right: 12px; width: auto; top: 270px; bottom: 44px; justify-content: flex-start; overflow-y: auto; scrollbar-width: none; }
+  #start-screen .ss-item { height: 48px; font-size: 28px; padding: 0 20px; flex: none; }
+  #start-screen .ss-item.ss-hero { padding: 10px 20px 14px; }
+  #start-screen .ss-hero .ss-label { font-size: 44px; }
+  #start-screen .ss-hero small { font-size: 16px; }
+  #start-screen .ss-save, #start-screen .ss-foot { display: none; }
+  #start-screen .ss-credit { left: 24px; bottom: 12px; font-size: 14px; }
+  #start-screen .ss-news { top: 12px; bottom: 12px; left: 12px; right: 12px; width: auto; }
+  #start-screen .ss-news-head { padding: 20px 20px 0; }
+  #start-screen .ss-news-head h2 { font-size: 36px; }
+  #start-screen .ss-news-body { padding: 12px 20px 20px; font-size: 16px; }
+}
 #start-screen:has(.ss-news:not([hidden])) .ss-credit { visibility: hidden; }
 
 /* a phone held sideways (360-460 px tall, #227): logo on the left, the menu beside it */
@@ -96,3 +134,14 @@ html.reduce-motion #start-screen, html.reduce-motion #start-screen * { animation
   #start-screen .ss-news-body { padding: 10px 24px 16px; font-size: 16px; }
   #start-screen .ss-news-body h3 { font-size: 26px; margin-top: 16px; }
 }
+
+/* Rustig hoofdmenu (#34, #92): alleen GDE Groningen en één korte regel; de slogan en de uitleg van GDE
+   (Grootste Diefstal Ever) zijn weg uit het titelscherm, de versie en het credit staan in het voetregeltje. */
+#start-screen .ss-tag, #start-screen .gde-logo .gde-meaning { display: none; }
+
+/* Icons of the pause menu's set (menuIcon): quiet by default, green on the chosen item, no hover needed for touch */
+#start-screen .ss-ic { flex: none; width: 28px; height: 28px; margin-right: 8px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; opacity: 0.6; transition: opacity 0.2s, stroke 0.2s; }
+#start-screen .ss-ic.big { width: 44px; height: 44px; margin-right: 16px; vertical-align: -4px; stroke-width: 1.6; opacity: 0.85; }
+#start-screen .ss-item.sel .ss-ic, #start-screen .ss-item:hover .ss-ic, #start-screen .ss-item:focus-visible .ss-ic { stroke: var(--g); opacity: 1; }
+#start-screen .ss-item.confirm .ss-ic { stroke: var(--redtx); opacity: 1; }
+@media (max-height: 700px) { #start-screen .ss-ic { width: 22px; height: 22px; } #start-screen .ss-ic.big { width: 30px; height: 30px; } }

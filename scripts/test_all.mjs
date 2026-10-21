@@ -28,7 +28,8 @@ const opt = (n, d) => { const a = argv.find((v) => v.startsWith('--' + n + '='))
 const FASE = opt('fase', 'licht');
 const BASE = path.resolve(opt('rapport', path.join(os.tmpdir(), 'gde-testall')));
 const ONLY = opt('only', '');
-const LOCKS = opt('locks', fs.existsSync('C:/Users/abuis/gde-locks') ? 'C:/Users/abuis/gde-locks' : '');
+const DEFAULT_LOCKS = process.env.GDE_LOCKS || path.join(os.homedir(), 'gde-locks');
+const LOCKS = opt('locks', fs.existsSync(DEFAULT_LOCKS) ? DEFAULT_LOCKS : '');
 const JOBS = Math.max(1, Number(opt('jobs', 2)));
 const TEST_MS = Number(opt('test-timeout', 120)) * 1000;
 const STAMP = new Date().toISOString().replace(/[-:]/g, '').replace(/\..*$/, '').replace('T', '-');
@@ -94,10 +95,10 @@ const wilDit = (id) => !ONLY || id.includes(ONLY);
 
 // ---------------------------------------------------------------- stage (--stage)
 
-// Bouwt game/world als die ontbreekt: hergebruikt een wereld-cache (--cache=<map>, standaard die van GDE-merge),
+// Bouwt game/world als die ontbreekt: hergebruikt een wereld-cache (--cache=<map>, standaard $GDE_WORLD_CACHE of ../GDE-merge),
 // neemt het exclusieve stage-slot en draait `npm run stage` in desktop/.
 async function stageWereld() {
-  const cache = opt('cache', 'C:/Users/abuis/GIT/GDE-merge/desktop/.world-cache');
+  const cache = opt('cache', process.env.GDE_WORLD_CACHE || path.join(ROOT, '..', 'GDE-merge', 'desktop', '.world-cache'));
   const doel = path.join(ROOT, 'desktop', '.world-cache');
   if (!fs.existsSync(doel) && fs.existsSync(cache)) fs.cpSync(cache, doel, { recursive: true });
   const slot = LOCKS ? path.join(LOCKS, 'stage') : null;
@@ -122,7 +123,7 @@ async function stageWereld() {
 // ---------------------------------------------------------------- fase licht
 
 // Tests die minuten kosten (city_*, tegelwerelden): ruime limiet zodat ze echt uitkomen.
-const ZWARE_TESTS = /^(city_|corridor|tileworld|world_tiles|navgraph|minigames|overlap|road_route|water_look|mode_route|swim_escape|barge|import_cycles)/;
+const ZWARE_TESTS = /^(province_profile|city_|corridor|tileworld|world_tiles|navgraph|minigames|overlap|road_route|water_look|mode_route|swim_escape|barge|import_cycles)/;
 
 async function faseLicht(prev) {
   const items = [];
@@ -169,7 +170,9 @@ async function faseLicht(prev) {
   const tests = fs.readdirSync(path.join(ROOT, 'scripts')).filter((n) => /_test\.mjs$/.test(n) && !EXCLUDED.has(n)).filter((n) => wilDit(n)).sort();
   const taken = tests.map((t) => async () => {
     const ms = ZWARE_TESTS.test(t) ? TEST_MS * 15 : SLOW.has(t) ? TEST_MS * 4 : TEST_MS;
-    const r = await runCmd(process.execPath, [path.join('scripts', t)], { ms });
+    // province_profile_test slaat zichzelf over zonder GDE_VIADUCT_FULL=1; met de provincie-extract (data/cache/province) draait hij echt
+    const env = t === 'province_profile_test.mjs' && fs.existsSync(path.join(ROOT, 'data', 'cache', 'province')) ? { GDE_VIADUCT_FULL: '1' } : {};
+    const r = await runCmd(process.execPath, [path.join('scripts', t)], { ms, env });
     const it = itemUitRes('licht', 'test:' + t, t, r, ms);
     log(`${it.status.padEnd(7)} ${t} ${it.secs}s`);
     return it;
@@ -198,6 +201,7 @@ const ZWAAR = [
   ['terrain_audit', 'scripts/world/terrain_audit.mjs', [], 600, true],
   ['railprofile', 'scripts/world/railprofile.mjs', ['--strict'], 300, false],
   ['drive_audit', 'scripts/world/drive_audit.mjs', ['--strict'], 1800, true],
+  ['bus_audit', 'scripts/bus_audit.mjs', ['--sim'], 1800, true],
   ['junction_sim_test', 'scripts/junction_sim_test.mjs', [], 900, true],
   ['network_drive_test', 'scripts/network_drive_test.mjs', [], 5400, true],
   ['province_test', 'scripts/province_test.mjs', [], 5400, true],
@@ -226,7 +230,7 @@ async function faseZwaar() {
 
 // ---------------------------------------------------------------- fase electron
 
-// Slotenprotocol (--locks=<map>, zie C:/Users/abuis/gde-locks/README.txt): maximaal 3 Electron-slots, mkdir faalt als bezet.
+// Slotenprotocol (--locks=<map>, zie <GDE_LOCKS>/README.txt): maximaal 3 Electron-slots, mkdir faalt als bezet.
 const slaap = (ms) => new Promise((r) => setTimeout(r, ms));
 async function neemSlot(max = 3, wachtMs = 90 * 60e3) {
   if (!LOCKS) return null;
@@ -294,7 +298,7 @@ async function faseElectron(prev, staat) {
     : !heeftWereld() ? 'game/world ontbreekt (cd desktop && npm run stage)'
       : (!flag('force') && !LOCKS && elektronDraait() > 0) ? 'er draait al een Electron-instantie (de eigenaar speelt?); niets is gestart. Gebruik --force om toch te draaien'
         : null;
-  const STAPPEN = ['smoke', 'verhaaltest', 'geocheck', 'bot-missies', 'bot-minigames', 'qa-provincie-1', 'qa-provincie-2', 'qa-features', 'qa-visueel', 'ui-shots', 'coop'];
+  const STAPPEN = ['smoke', 'wereldpoort', 'verhaaltest', 'geocheck', 'bot-missies', 'bot-minigames', 'qa-provincie-1', 'qa-provincie-2', 'qa-features', 'qa-visueel', 'ui-shots', 'coop'];
   if (reden) { for (const s of STAPPEN.filter(wilDit)) items.push(skip('electron', 'electron:' + s, s, reden)); return { items, sigs: {} }; }
 
   const prevSigs = (staat.fases && staat.fases.electron && staat.fases.electron.sigs) || {};
@@ -324,6 +328,16 @@ async function faseElectron(prev, staat) {
       R.maakItem('electron', 'frametijd:smoke', 'frametijd smoke', fr.status, 0, fr.detail, { warn: fr.warn, stats: R.parseFrameStats(r.out) }),
       ...beeldItems('smoke', d, prevSigs, sigs),
     ];
+  });
+
+  // poort zwarte wereld / consolefouten per frame: het spel draait 120 frames; een lege of niet getekende wereld,
+  // NaN-meshes of een fout in meerdere frames laat de fase falen (scripts/perf/wereldpoort.js)
+  await stap('wereldpoort', async () => {
+    const d = stapDir('wereldpoort'), ms = 8 * 60e3;
+    const r = await runCmd(exe, [...basis, '--smoke-test=' + path.join(d, 'wereldpoort.png'), '--perf-script=' + path.join(ROOT, 'scripts', 'perf', 'wereldpoort.js')], { ms, env: env('wereldpoort'), cwd: desktop });
+    fs.writeFileSync(path.join(d, 'run.log'), r.out);
+    const b = r.timedOut ? { status: 'TIMEOUT', detail: 'tijdslimiet overschreden' } : R.beoordeelWereldpoort(R.parseWereldpoort(r.out));
+    return [R.maakItem('electron', 'electron:wereldpoort', 'poort zwarte wereld en fouten per frame', b.status, r.secs, b.detail), consoleItem('wereldpoort', r.out, 0), ...beeldItems('wereldpoort', d, prevSigs, sigs)];
   });
 
   await stap('verhaaltest', async () => {
@@ -386,7 +400,8 @@ async function faseElectron(prev, staat) {
   // coöp-testbank (y2): host en gast als twee Electrons op de loopback; neemt zelf de sloten
   if (fs.existsSync(path.join(ROOT, 'scripts', 'coop', 'testbank.mjs'))) {
     await stap('coop', async () => {
-      const d = stapDir('coop'), ms = 20 * 60e3;
+      // de testbank neemt zelf twee sloten en wacht daarop tot 90 min als andere sessies ze bezet houden: de limiet is 20 min testen plus die wachttijd
+      const d = stapDir('coop'), ms = (20 + 90) * 60e3;
       const r = await runCmd(process.execPath, ['scripts/coop/testbank.mjs', '--stage=' + path.join(desktop, 'build', 'game'), '--duration=20', '--out=' + d], { ms, env: env('coop') });
       fs.writeFileSync(path.join(d, 'sweep.log'), r.out);
       const st = r.timedOut ? 'TIMEOUT' : r.code === 0 ? 'PASS' : 'FAIL';
