@@ -34,7 +34,7 @@ async function sceneLines(ids, { start = 1.2, gap = 0.12, sceneGap = 0.9 } = {})
 }
 
 // Zet een filmpje van het spel klaar en loopt er per beeld mee: bij elke opgenomen stem een 'voice'-gebeurtenis.
-async function playStory(c, { name, def, lines, duration, anchor = null, from = 0, to = null, cine = {}, clock = null, weather = 'helder', fit = null }) {
+async function playStory(c, { name, def, lines, duration, anchor = null, from = 0, to = null, cine = {}, clock = null, weather = 'helder', fit = null, thumb = null }) {
   await c.resetUi();
   c.calmPolice(); c.leave(); c.releaseCam(); c.hud(false, 'verhaal');
   if (clock != null) c.clock(clock);
@@ -52,6 +52,17 @@ async function playStory(c, { name, def, lines, duration, anchor = null, from = 
   await c.settle({ label: name, frames: 25 });
   if (from > 0) { cin.setCinematicTime(from); for (let i = 0; i < 20; i++) await c.advance({ capture: false }); }
   const st = () => cin.cinematicState();
+  if (thumb) {
+    // miniatuur: loop (zonder opname) tot thumb.at, haal de ondertitels weg, leg het logo erover en maak één PNG
+    for (let i = 0; i < Math.round((thumb.at - from) * 60); i++) await c.advance({ capture: false });
+    c.hud(false);
+    const sb = document.getElementById('subtitles'); if (sb) sb.style.visibility = 'hidden';
+    await c.thumbOverlay({ pos: thumb.pos || 'links' });
+    for (let i = 0; i < 30; i++) await c.advance({ capture: false });
+    await c.png(thumb.name);
+    c.clearOverlay();
+    return { thumb: thumb.name };
+  }
   const fired = new Set();
   // regels die al begonnen zijn voor het fragment: stil laten (hun opname kan niet halverwege beginnen)
   if (from > 0 && st()) st().lines.forEach((l, k) => { if (l.at < from) fired.add(k); });
@@ -107,7 +118,7 @@ shot('v02-verhuisdag', async (c) => {
 });
 
 // Opdrachtscènes (cutscenes_akte1.js): dezelfde regie als in het spel, met de bestaande stemmen
-async function missionStory(c, { name, key, scene, anchor, clock = 14, weather = 'helder', from = 0, to = null }) {
+async function missionStory(c, { name, key, scene, anchor, clock = 14, weather = 'helder', from = 0, to = null, thumb = null }) {
   const cs = await import('/js/cutscenes_akte1.js');
   const ms = await import('/js/missionstory.js');
   const { lines } = await sceneLines([scene], { start: 1.0 });
@@ -116,7 +127,7 @@ async function missionStory(c, { name, key, scene, anchor, clock = 14, weather =
   const last = lines[lines.length - 1];
   const dur = last.at + last.dur + 2;
   const fit = { radii: [10, 16, 24, 34, 46, 60], ground: (x, y) => c.M.camp.roofAt(c.world.map, x, y) === 0 };
-  return playStory(c, { name, def, lines, duration: dur, anchor: { ...anchor, z: 0 }, clock, weather, fit, from, to });
+  return playStory(c, { name, def, lines, duration: dur, anchor: { ...anchor, z: 0 }, clock, weather, fit, from, to, thumb });
 }
 shot('v03-berend', async (c) => missionStory(c, { name: 'v03-berend', key: 'M01.intro', scene: 'M01.1', anchor: { x: 250, y: 26, facing: 0.3 }, clock: 11 }));
 shot('v04-markt', async (c) => missionStory(c, { name: 'v04-markt', key: 'M01.3', scene: 'M01.3', anchor: { x: 101, y: 77, facing: 0.5 }, clock: 18.4 }));
@@ -125,3 +136,13 @@ shot('v05b-politie', async (c) => missionStory(c, { name: 'v05b-politie', key: '
 shot('v06a-duif', async (c) => missionStory(c, { name: 'v06a-duif', key: 'M04.intro', scene: 'M04.1', anchor: { x: 121, y: -700, facing: 0.8 }, clock: 16.5, from: 4.4, to: 12.4 }));
 shot('v06b-duif', async (c) => missionStory(c, { name: 'v06b-duif', key: 'M04.intro', scene: 'M04.1', anchor: { x: 121, y: -700, facing: 0.8 }, clock: 16.5, from: 19.2, to: 29.8 }));
 shot('v07-kiezel', async (c) => missionStory(c, { name: 'v07-kiezel', key: 'M05.intro', scene: 'M05.1', anchor: { x: 121, y: -740, facing: 2.2 }, clock: 15.2, from: 14.2, to: 24.6 }));
+
+// Miniaturen van de verhaaltrailer (1920x1080 PNG met het logo; thumbs.mjs maakt er 1280x720 van): Tessa en Tammo samen op straat
+shot('t-vh-a', async (c) => missionStory(c, { name: 't-vh-a', key: 'M01.intro', scene: 'M01.1', anchor: { x: 250, y: 26, facing: 0.3 }, clock: 11, from: 26, thumb: { name: 't-vh-a', at: 29.5, pos: 'rechts' } }));
+shot('t-vh-b', async (c) => {
+  const cs = await import('/js/cutscenes.js');
+  const { lines } = await sceneLines(['C00.3'], { start: 1.0 });
+  const last = lines[lines.length - 1];
+  const fit = { radii: [10, 16, 24, 34, 46, 60], ground: (x, y) => c.M.camp.roofAt(c.world.map, x, y) === 0 };
+  return playStory(c, { name: 't-vh-b', def: cs.OPENING_ACTS[2], lines, duration: last.at + last.dur + 4.6, anchor: { x: -1418, y: -1157, facing: 0.6, z: 0 }, clock: 10.2, fit, from: 7, thumb: { name: 't-vh-b', at: 11.5, pos: 'links' } });
+});

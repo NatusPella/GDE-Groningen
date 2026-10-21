@@ -1,7 +1,7 @@
 {
  "name": "GDE-Groningen-verhaaltrailer-1080p60",
  "clipsDir": "C:/Users/abuis/gde-trailer-work/r1",
- "captionsDir": "C:/Users/abuis/gde-trailer-work/r1",
+ "captionsDir": "C:/Users/abuis/gde-trailer-work/cap-vh",
  "bpm": 119.474,
  "hook": 0,
  "fadeIn": 0.3,
@@ -67,12 +67,6 @@
    "in": 15.6,
    "beats": 6,
    "label": "straat",
-   "cap": [
-    "ZOMER IN GRUNN.",
-    "",
-    0.3,
-    2.4
-   ],
    "sfx": [
     [
      "meeuw",

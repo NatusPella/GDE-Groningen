@@ -80,8 +80,10 @@ let capIn = 0;
 if (plan.captions) {
   const sh = inputs.length / 2, tx = sh + 1;
   inputs.push('-i', plan.captions.shadow, '-i', plan.captions.text);
-  vf += `;[${sh}:v]trim=duration=${total.toFixed(4)},setpts=PTS-STARTPTS,fps=${FPS},format=yuv420p[csh];[${tx}:v]trim=duration=${total.toFixed(4)},setpts=PTS-STARTPTS,fps=${FPS},format=yuv420p[ctx]`;
-  vf += ';[cat0][csh]blend=all_mode=multiply:shortest=1[cm];[cm][ctx]blend=all_mode=screen:shortest=1[cat]';
+  // blend per kleurvlak: dus in RGB (anders worden ook de kleurvlakken vermenigvuldigd en kleurt het beeld paars)
+  const RGB = 'scale=in_color_matrix=bt709:in_range=tv,format=gbrp';
+  vf += `;[${sh}:v]trim=duration=${total.toFixed(4)},setpts=PTS-STARTPTS,fps=${FPS},${RGB}[csh];[${tx}:v]trim=duration=${total.toFixed(4)},setpts=PTS-STARTPTS,fps=${FPS},${RGB}[ctx];[cat0]${RGB}[crgb]`;
+  vf += ';[crgb][csh]blend=all_mode=multiply:shortest=1[cm];[cm][ctx]blend=all_mode=screen:shortest=1[cbl];[cbl]scale=out_color_matrix=bt709:out_range=tv,format=yuv420p[cat]';
   capIn = 2;
 } else vf = vf.replace('[cat0]', '[cat]');
 let last = 'cat';
