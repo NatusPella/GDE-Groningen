@@ -53,5 +53,15 @@ ok(kl && kl.look && kl.look.size < 1 && kl.look.palette.length >= 3, 'kliko: kle
 for (const id of ['kliko', 'kleinemensjes', 'reuzenduif', 'altijdgroen']) ok(CHEATS.some((c) => c.id === id && c.name && c.desc), id + ' staat in de cheatlijst');
 ok(CHEATS.find((c) => c.id === 'kliko').group === 'verkeer', 'kliko hoort bij de verkeerstreken');
 
+// Jelle's trekker-limo (#61): de auto's van het verkeer worden het model van de limo, de rijeigenschappen blijven
+const tl = TRAFFIC_STREKEN.find((s) => s.id === 'trekkerlimo');
+ok(tl && tl.look && tl.look.swap && tl.look.swap.name === 'trekkerlimo', 'trekkerlimo: een ander model');
+const base = { name: 'sedan', len: 4.3, wid: 1.8, maxSpeed: 50, accel: 10, brake: 24, turnRate: 2.6, color: '#2f3a52' };
+const lm = lookModel(base, tl.look, () => 0.1);
+ok(lm.name === 'trekkerlimo' && lm.len === 5.6 && lm.wid === 2.0 && lm.maxSpeed === 50 && /^#/.test(lm.color) && lm.color !== base.color, 'trekkerlimo: de auto wordt de limo, zwart, met de oude snelheid');
+ok(base.name === 'sedan', 'het basismodel blijft heel');
+for (const id of ['spiegelstad', 'disco', 'trekkerlimo']) ok(CHEATS.some((c) => c.id === id && c.name && c.desc && c.safe), id + ' staat in de cheatlijst als cosmetische streek');
+ok(CHEATS.find((c) => c.id === 'trekkerlimo').group === 'verkeer', 'trekkerlimo hoort bij de verkeerstreken');
+
 console.log(`${n - bad}/${n} checks passed`);
 process.exit(bad ? 1 : 0);

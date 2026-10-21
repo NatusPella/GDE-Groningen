@@ -6,6 +6,7 @@ import { markerColors } from './a11y.js';
 import { speakerHtml } from './speakers.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { buildBuildingMesh, setBuildingMap, setNightFactor } from './models3d_buildings.js';
+import { updateDiscoLamp } from './discolight.js';
 import { buildVehicleMesh, updateVehicleWheelSpin, applyFlatTire, setBusRearAngle, updatePoliceLamps, updateIndicatorLamps, syncPoliceMount, boatHullProfile, riderSeatFor, attachHelmet } from './models3d_vehicles.js';
 import {
   buildVehicleImpactSparkMesh3D, updateVehicleImpactSparkMesh3D,
@@ -2445,6 +2446,7 @@ export function update3D(dt, world) {
       if (v.sinking) { mesh.rotation.order = 'YZX'; mesh.position.y = v.sinking.z; mesh.rotation.z = v.sinking.pitch; mesh.rotation.x = v.sinking.roll; }
       if ((mesh.userData.roofN || 0) !== (v.roofBoxes || 0)) setRoofBoxes(mesh, v);
       if (v.indicator || mesh.userData.indLamps) updateIndicatorLamps(mesh, v, world.time);
+      if (MODS.disco || mesh.userData.disco) updateDiscoLamp(mesh, v, world.time, MODS.disco);
       if (v.isPolice || v.sirenOn || v.isAmbulance) updatePoliceLamps(mesh, world.time, v.sirenOn ? !v.wrecked : policeChasing && !v.hijacked && !v.wrecked && v.driver !== 'player', v.id);
       const driverDist = Math.abs(v.x - player.x) + Math.abs(v.y - player.y);
       ensureDriverFigure(mesh, v, driverDist, driverDeadline);
