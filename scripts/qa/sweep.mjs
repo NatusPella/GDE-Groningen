@@ -108,7 +108,7 @@ const electron = process.env.ELECTRON_EXE || path.join(ROOT, 'desktop', 'node_mo
 const WACHT = 'for (let i = 0; i < 240 && !(window.__debug && window.__debug.world); i++) await new Promise((r) => setTimeout(r, 500));\n'
   + `const kEnter = () => { for (const t of [window, document]) { t.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', bubbles: true })); t.dispatchEvent(new KeyboardEvent('keyup', { key: 'Enter', code: 'Enter', bubbles: true })); } };
 let seen = false;
-for (let i = 0; i < 60; i++) { const s = document.querySelector('#start-screen'); const up = !!s && s.classList.contains('visible'); if (up) { seen = true; const klik = (q) => { const e = document.querySelector(q); if (e) e.click(); return !!e; }; if (!(window.__menuStart && window.__menuStart('nieuw'))) { if (!klik('#saveslots .ssl-new [data-do]')) klik('#start-screen .ss-item[data-act="solo"]'); } } await new Promise((r) => setTimeout(r, up ? 2500 : 1000)); if (seen && !up) break; if (document.body.classList.contains('game-started')) break; }
+for (let i = 0; i < 60; i++) { const s = document.querySelector('#start-screen'); const up = !!s && s.classList.contains('visible'); if (up) { seen = true; const klik = (q) => { const e = document.querySelector(q); if (e) e.click(); return !!e; }; if (!klik('#saveslots .ssl-new [data-do]') && !(window.__menuStart && window.__menuStart('nieuw'))) klik('#start-screen .ss-item[data-act="solo"]'); } await new Promise((r) => setTimeout(r, up ? 2500 : 1000)); if (seen && !up) break; if (document.body.classList.contains('game-started')) break; }
 await new Promise((r) => setTimeout(r, 4000));\n`;
 
 async function runPart(deel, pre, pageFile, extraEnv = {}) {

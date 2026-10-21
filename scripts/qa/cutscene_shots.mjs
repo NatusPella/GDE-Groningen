@@ -25,7 +25,7 @@ fs.mkdirSync(OUT, { recursive: true });
 // het startscherm weg (Enter zolang het zichtbaar is): op een drukke machine verschijnt het na de Enter van de harnas
 const WACHT = 'for (let i = 0; i < 240 && !(window.__debug && window.__debug.world); i++) await new Promise((r) => setTimeout(r, 500));\n'
   + `const kEnter = () => { for (const t of [window, document]) { t.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', bubbles: true })); t.dispatchEvent(new KeyboardEvent('keyup', { key: 'Enter', code: 'Enter', bubbles: true })); } };
-for (let i = 0; i < 40; i++) { const s = document.querySelector('#start-screen'); if (!s || !s.classList.contains('visible')) break; const klik = (q) => { const e = document.querySelector(q); if (e) e.click(); return !!e; }; if (!(window.__menuStart && window.__menuStart('nieuw'))) { if (!klik('#saveslots .ssl-new [data-do]')) klik('#start-screen .ss-item[data-act="solo"]'); } await new Promise((r) => setTimeout(r, 3000)); }
+for (let i = 0; i < 40; i++) { const s = document.querySelector('#start-screen'); if (!s || !s.classList.contains('visible')) break; const klik = (q) => { const e = document.querySelector(q); if (e) e.click(); return !!e; }; if (!klik('#saveslots .ssl-new [data-do]') && !(window.__menuStart && window.__menuStart('nieuw'))) klik('#start-screen .ss-item[data-act="solo"]'); await new Promise((r) => setTimeout(r, 3000)); }
 await new Promise((r) => setTimeout(r, 4000));\n`;
 const profile = `gde-test-cs-${process.pid}`;
 const script = path.join(OUT, '_page.js');
