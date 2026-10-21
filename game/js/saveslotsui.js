@@ -60,7 +60,7 @@ function download(filename, text) {
 }
 
 // opts: { mode: 'start' | 'game', world, onLoad(n) (start: the caller continues with the chosen
-// slot, already active), onNew() (start: the caller starts a new game), onClose() }
+// slot, already active), onNew() (start: the caller starts a new game), onClose(), eyebrow/titel/hint/loadLabel (optional texts, Samen spelen) }
 export function openSaveSlots(opts = {}) {
   if (rootEl) return;
   ensureCss();
@@ -153,7 +153,7 @@ export function openSaveSlots(opts = {}) {
     }
     const loadable = !!sm;
     const full = S.freeSlot(null) === 0;
-    const acts = [`<button type="button" class="m-bp" data-grp="pane" data-do="load"${loadable ? '' : ' disabled'}>Spel laden</button>`];
+    const acts = [`<button type="button" class="m-bp" data-grp="pane" data-do="load"${loadable ? '' : ' disabled'}>${esc(opts.loadLabel || 'Spel laden')}</button>`];
     if (mode === 'game') acts.push('<button type="button" class="m-bg" data-grp="pane" data-do="save-here">Spel opslaan</button>');
     acts.push(`<button type="button" class="m-bg" data-grp="pane" data-do="copy"${loadable && !full ? '' : ' disabled'} title="${full ? 'Alle plekken zijn in gebruik' : 'Maakt een kopie op een lege plek'}">Spel kopiëren</button>`);
     acts.push('<button type="button" class="m-bg" data-grp="pane" data-do="rename">Hernoemen</button>');
@@ -179,7 +179,7 @@ export function openSaveSlots(opts = {}) {
     const stage = document.createElement('div');
     stage.className = 'gm-stage';
     stage.innerHTML = `<section class="m-panel ssl-panel">
-      <header class="m-head"><div><span class="m-eb">${mode === 'start' ? 'Hoofdmenu' : 'Pauze'}</span><h1 class="m-h1" id="ssl-title">Opgeslagen spellen</h1></div><div class="m-hr"><span class="mut">${slots.length} van ${MAX_SLOTS} plekken in gebruik</span></div></header>
+      <header class="m-head"><div><span class="m-eb">${esc(opts.eyebrow || (mode === 'start' ? 'Hoofdmenu' : 'Pauze'))}</span><h1 class="m-h1" id="ssl-title">${esc(opts.titel || 'Opgeslagen spellen')}</h1>${opts.hint ? `<p class="mut ssl-intro">${esc(opts.hint)}</p>` : ''}</div><div class="m-hr"><span class="mut">${slots.length} van ${MAX_SLOTS} plekken in gebruik</span></div></header>
       <div class="ssl-scroll"><div class="ssl-grid" role="list" aria-label="Opgeslagen spellen">${tiles.join('')}</div></div>
       <aside class="ssl-detail" aria-label="Details" aria-live="polite">${detailHtml(cur)}</aside>
       <p class="ssl-msg" role="status">${esc(message)}</p>

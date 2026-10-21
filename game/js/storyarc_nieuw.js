@@ -221,7 +221,7 @@ export const STEPS = [
   // --- Akte 2: Het Noorden is groot (Stad, Hogeland, Waddenzee, di 18 - do 20 augustus) -----
   M('M07', 'romp', 'Al het vet van Grunn', 'vetgekaapt', { built: true, reward: 950,
     story: { intro: ['M07.1'], outro: ['M07.3'], replay: ['M07.5'] }, scenes: ['M07.1', 'M07.2', 'M07.3', 'M07.4', 'M07.5'],
-    lead: ['T', 'De tankwagen van Us Mem Vet rijdt over de Europaweg. Tijd voor banden.'] }),
+    lead: ['T', 'De tankwagen van Us Mem Vet rijdt over de Europaweg. Banden stuk, tankwagen pakken, naar de Oosterpoort.'] }),
   M('M08', 'romp', 'Fatbikes tellen niet als fiets', 'fatbike', { built: true, reward: 500, unlocks: 'zitmoi',
     story: { intro: ['M08.1'], outro: ['M08.3'], replay: ['M08.5'] }, scenes: ['M08.1', 'M08.2', 'M08.3', 'M08.4', 'M08.5'],
     lead: ['T', 'Oma Trijntje belde: kom naar de Noorderhaven. Loop te voet heelhuids door de fatbikes aan de haven, dan vertelt ze wat ze over die bal weet.'] }),
@@ -236,7 +236,7 @@ export const STEPS = [
     story: { intro: ['M10.1'], outro: null }, scenes: ['M10.1', 'M10.2', 'M10.3', 'M10.4'],
     lead: ['T', 'Een zwarte trekker met vlaggetjes rijdt het erf van de kerk op. Dat is Jelle.'] }),
   A('T2', 'romp', 'De streekbus naar Zoutkamp', { type: 'reis', to: 'Zoutkamp', at: [53.3377, 6.2986], r: 400 }, { built: true, scenes: ['T2'],
-    lead: ['A', 'Met de streekbus naar Zoutkamp. Dat is de laatste halte, zegt Klaas. Daarna is er alleen nog water.'] }),
+    lead: ['A', 'Oma stuurt ons naar Kapitein Klaas in Zoutkamp: met de streekbus, overstappen in Winsum. Daarna is er alleen nog water.'] }),
   M('M11', 'romp', 'Geleend van de Friezen', 'skutsje', { built: true, reward: 1300,
     // the def of the old arc is replaced by the coast mission (missions_nieuw.js kustDef); the scenes M11.2-M11.7 are stages of it
     story: {
@@ -245,12 +245,12 @@ export const STEPS = [
       fail: [['A', 'Het ging mis. Terug naar Klaas, nog een keer.'], ['T', 'Hij kijkt nog steeds de andere kant op.']],
     },
     scenes: ['M11.1', 'M11.2', 'M11.3', 'M11.4', 'M11.5', 'M11.6', 'M11.7', 'M11.8'],
-    lead: ['A', 'Klaas wacht in Zoutkamp met een snelle boot. Jelles skûtsje vaart weg, met een gouden bal in de kist.'] }),
+    lead: ['A', 'Jelles skûtsje vaart naar Lauwersoog, met een gouden bal in de kist. Klaas leent je een snelle boot, tot de sluizen.'] }),
 
   // --- Akte 3: Aan de Eems (Eemsdelta en Oldambt, vr 21 - zo 23 augustus) ----------------
   M('M12', 'staart', 'Het staat niet in het rooster', 'traumaduif', { built: true, reward: 1500,
     story: { intro: ['M12.1'], outro: ['M12.4'], replay: ['M12.5'] }, scenes: ['M12.1', 'M12.2', 'M12.3', 'M12.4', 'M12.5'],
-    lead: ['A', 'Dokter Dijkstra wacht in Lauwersoog met een heli. Hij heeft honger, en Jelle vliegt met zijn koopboek boven de Dollard.'] }),
+    lead: ['A', 'Dokter Dijkstra wacht in Lauwersoog met een heli. Eerst eten voor de nachtdienst, dan naar Jelles ballon boven de Dollard, voor het koopboek.'] }),
   M('M13', 'staart', 'Het containerlabyrint', 'containers', { built: true, reward: 900,
     story: { intro: ['M13.1'], outro: ['M13.3'], replay: ['M13.4'] }, scenes: ['M13.1', 'M13.2', 'M13.3', 'M13.4'],
     lead: ['A', 'De Eemshaven, vannacht. Lammert wacht aan de kade: container 4471 moet leeg uitvaren.'] }),
@@ -258,13 +258,13 @@ export const STEPS = [
     story: { intro: ['M14.1'], outro: ['M14.3'], replay: ['M14.4'] }, scenes: ['M14.1', 'M14.2', 'M14.3', 'M14.4'],
     lead: ['T', 'Zonsopgang op de dijk bij Bierum. Om acht uur legt Jelles deurwaarder beslag in Delfzijl. Wij zijn eerder bij de sluis.'] }),
   A('T3', 'staart', 'De trein naar Winschoten', { type: 'reis', to: 'Winschoten', at: [53.1444, 7.0356], r: 400, scene: 'T3', from: 4 }, { built: true, scenes: ['T3'],
-    lead: ['A', 'Van Delfzijl met de trein naar Winschoten. Daar is een kermis.'] }),
+    lead: ['A', 'Van Delfzijl met de trein naar Winschoten. Jelle geeft de juryleden daar op de kermis een proeverij.'] }),
   M('M15', 'staart', 'Laag over het graan', 'graan', { built: true, reward: 900,
     story: { intro: ['M15.1'], outro: ['M15.3'], replay: ['M15.4'] }, scenes: ['M15.1', 'M15.2', 'M15.3', 'M15.4'],
     lead: ['A', 'Roelfien wacht bij haar graanveld bij Midwolda. Haar vliegtuig sleept al twintig jaar een spandoek voor de kermis.'] }),
   M('M16', 'staart', 'Nog eentje dan', 'kroegentocht', { built: true, reward: 600,
     story: { intro: ['M16.1'], outro: ['M16.3', 'M16.4', 'M16.5', 'M16.6'], replay: ['M16.7'] }, scenes: ['M16.1', 'M16.2', 'M16.3', 'M16.4', 'M16.5', 'M16.6', 'M16.7'],
-    lead: ['T', 'Durk en Douwe weten waar Jelle morgen heen gaat. Volg ze langs de kroegen van Geert op de kermis in Winschoten tot ze moe zijn.'] }),
+    lead: ['T', 'Durk en Douwe weten waar Jelle heen gaat. Volg ze langs Geerts drie tenten op de kermis in Winschoten, tot ze moe zijn.'] }),
 
   // --- Akte 4: Zuidwaarts (Veenkoloniën en Westerwolde, zo 23 - wo 26 augustus) ----------
   M('M17', 'zuid', 'Open, dicht', 'bruggen', { built: true, reward: 700,
@@ -275,7 +275,7 @@ export const STEPS = [
     lead: ['T', 'Wiebelwerk in Veendam doet elke nacht om middernacht de update van het museum. Ik wil het logboek zien.'] }),
   M('M19', 'zuid', 'Stoom', 'stoom', { built: true, reward: 800,
     story: { intro: ['M19.1'], outro: ['M19.3'], replay: ['M19.4'] }, scenes: ['M19.1', 'M19.2', 'M19.3', 'M19.4'],
-    lead: ['A', 'Op het perron in Veendam staat een stoomtrein stil. Daar zitten de laatste juryleden in. Rij hem naar Wildervank.'] }),
+    lead: ['A', 'Jelle kocht de machinist. In de stilstaande stoomtrein in Veendam zitten de laatste juryleden vast. Rij hem naar Wildervank.'] }),
   // the bus to Bourtange: the goal is the place (storyreis.js, akte 2's travel steps); the trip talk is the beat's (reisbeats.js)
   A('T4', 'zuid', 'De bus naar Bourtange', { type: 'reis', to: 'Vesting Bourtange', at: [53.0069, 7.1914], r: 350, scene: 'T4.3', from: 0 }, { built: true, scenes: ['T4.1', 'T4.2', 'T4.3', 'T4.4'],
     lead: ['T', 'Berend heeft veertig man, vijftien kartonnen kanonnen en een bus. Hij wacht in het bos bij Ter Apel.'] }),
@@ -289,19 +289,19 @@ export const STEPS = [
   // --- Akte 5: Ontzet (Westerkwartier en Stad, wo 26 - vr 28 augustus, epiloog 11 september) --
   M('M22', 'ontzet', 'Een luik erin', 'luik', { built: true, reward: 300,
     story: { intro: ['M22.1'], outro: null, replay: ['M22.5'] }, scenes: ['M22.1', 'M22.2', 'M22.3', 'M22.4', 'M22.5'],
-    lead: ['T', "Tinus' schuur bij Zuidhorn. Henk heeft een luik. Dan is de Escapade de Fjord Frituur."] }),
+    lead: ['T', "Tinus' schuur bij Zuidhorn. Henk bouwt een luik in de Escapade: dan is het de Fjord Frituur. Eerst de modder in, om de as te testen."] }),
   M('M23', 'ontzet', 'De colonne', 'colonne', { built: true, reward: 500,
     story: { intro: ['M23.1'], outro: ['M23.4'], replay: ['M23.5'] }, scenes: ['M23.1', 'M23.6', 'M23.7', 'M23.8', 'M23.2', 'M23.3', 'M23.4', 'M23.5'],
     lead: ['A', "Mem en Oma hebben de vrienden gebeld. We rijden samen naar de Grote Markt, vanaf Tinus' schuur."] }),
   M('M24', 'ontzet', "Er hangt iets Fries aan d'Olle Grieze", 'vlag', { built: true, reward: 600,
     story: { intro: ['M24.1'], outro: null, replay: ['M24.4'] }, scenes: ['M24.1', 'M24.2', 'M24.3', 'M24.4'],
-    lead: ['T', 'Bert zit op de Grote Markt. Jelles Friese vlag hangt boven de plek van de Fjord Frituur: laat zijn duif de vijf touwen doorpikken.'] }),
+    lead: ['T', 'Bert zit op de Grote Markt. Jelles Friese vlag hangt boven de plek van de Fjord Frituur: laat Berts duif de vijf touwen doorpikken.'] }),
   M('M25', 'ontzet', 'Het bod viel tegen', 'bod', { built: true, reward: 600,
     story: { intro: ['M25.1'], outro: ['M25.4'], replay: ['M25.5'] }, scenes: ['M25.1', 'M25.2', 'M25.3', 'M25.4', 'M25.5'],
-    lead: ['A', "Oma's keuken aan de Noorderhaven. Een oefenronde met alle ingrediënten, voor morgen."] }),
+    lead: ['A', "Oma's keuken aan de Noorderhaven. Bak vannacht een proefronde eierballen met alle vijf de ingrediënten: morgen is het Ontzet."] }),
   M('M26', 'ontzet', 'Ontzet, net als in 1672', 'ontzet', { built: true, reward: 4000,
     story: { intro: ['M26.1', 'M26.2'], outro: ['M26.7', 'M26.8'], replay: ['M26.9'] }, scenes: ['M26.1', 'M26.2', 'M26.3', 'M26.14', 'M26.15', 'M26.16', 'M26.4', 'M26.5', 'M26.6', 'M26.10', 'M26.11', 'M26.12', 'M26.13', 'M26.7', 'M26.8', 'M26.9'],
-    lead: ['A', 'De Grote Markt, vrijdag. Gronings Ontzet. Bak, hou de kraam heel en stop Jelle bij de notaris.'] }),
+    lead: ['A', 'De Grote Markt, vrijdag, Gronings Ontzet. Win met de beste eierbal, hou de kraam heel en houd Jelle voor drie uur bij de notaris vandaan.'] }),
   A('E', 'ontzet', 'Epiloog en slot', { type: 'epilogue' }, { built: true, scenes: ['E1', 'E2'] }),
 ];
 
