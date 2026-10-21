@@ -69,7 +69,7 @@ for (const e of cat) {
   root.add(run.group);
   w.cinematicHidePlayers = true; w.cinematicHideNav = true;
   T = 0;
-  cine.playCinematic({ id: 'cs-shots', duration: 3600, priority: 9, letterbox: false, hideHud: true, pause: true, skippable: false, shot: () => run.frame(T, 0.05) });
+  cine.playCinematic({ id: 'cs-shots', duration: 3600, priority: 9, letterbox: false, hideHud: true, pause: true, skippable: false, shot: () => { const pose = run.frame(T, 0.05); if (pose) pose.cut = true; return pose; } }); // always a hard cut: the stills jump about in time, and the camera's own blend (scene3d applyCameraOverride) would otherwise show a position between two shots (a back or a head filling the lens that no player sees)
   await sleep(500);
   // het afsluiten van een vorige cinematic (de start van het spel) zet deze vlaggen weer uit: opnieuw aanzetten, anders staat de speler zelf naast de acteurs (#264)
   w.cinematicHidePlayers = true; w.cinematicHideNav = true;
@@ -119,7 +119,11 @@ for (const e of cat) {
         const h = ray.intersectObject(root, true).find((q) => q.object.visible && !(q.object.material && q.object.material.transparent && q.object.material.opacity < 0.3));
         if (h) { const chain = []; for (let q = h.object; q && chain.length < 3; q = q.parent) chain.push(q.name || q.type); near.push({ d: +h.distance.toFixed(2), chain: chain.join('<') }); }
       }
-      if (near.length >= 3) { blok.push({ t, n: near.length, d: Math.min(...near.map((x) => x.d)), wat: near[0].chain }); console.log('[cs-blok] ' + e.id + ' t=' + t + ' ' + near.length + '/25 stralen < 1,3 m (' + near[0].chain + ')'); }
+      if (near.length >= 3) {
+        // where the camera really stands and who is nearest (the scene sampled with the real roof test), for the verdict
+        let who = null;
+        try { const sm = e.scene.sample(t, at, env); const c0 = sm.camera.position; who = Object.entries(sm.actors).filter(([, a]) => a.visible !== false).map(([k, a]) => [k, +Math.hypot(a.x - c0.x, a.y - c0.y).toFixed(2)]).sort((a, b) => a[1] - b[1])[0]; } catch (err) { /* no verdict */ }
+        blok.push({ t, n: near.length, d: Math.min(...near.map((x) => x.d)), wat: near[0].chain, cam: [cm.position.x, cm.position.z, cm.position.y].map((v) => +v.toFixed(2)), dak: cam.roofAt(map, cm.position.x, cm.position.z), dichtst: who }); console.log('[cs-blok] ' + e.id + ' t=' + t + ' ' + near.length + '/25 stralen < 1,3 m (' + near[0].chain + ')'); }
     }
     if (CS.probe && CS.probe.id === e.id && Math.abs(t - CS.probe.t) < 0.06) probes.push({ t, hits: CS.probe.px.map(([x, y]) => ({ x, y, hits: probeAt(x, y) })) });
     await sleep(450);
