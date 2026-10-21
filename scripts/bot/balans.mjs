@@ -109,13 +109,14 @@ export function afwijkingen(steps, { quiet = 90, ritM = 1800 } = {}) {
     if (!/^M\d|^T\d/.test(s.id) || s.speel == null) continue;
     if (s.maxQuiet != null && s.maxQuiet > quiet) out.push({ id: s.id, soort: 'stilte', tekst: `${s.id}: ${Math.round(s.maxQuiet)} s zonder beweging, scène of nieuw doel` });
     const nom = nominaal(s);
-    if (nom.meter > ritM) out.push({ id: s.id, soort: 'rit', tekst: `${s.id}: een route van ${nom.meter} m (ongeveer ${fmt(nom.sec)} reizen), meer dan ${ritM} m` });
+    if (nom.meter > ritM && s.cheats.length === 0) out.push({ id: s.id, soort: 'rit', tekst: `${s.id}: een route van ${nom.meter} m (ongeveer ${fmt(nom.sec)} reizen), meer dan ${ritM} m` });
     if (med && s.cheats.length === 0 && s.speel > 1.6 * med && s.speel > 240) out.push({ id: s.id, soort: 'lang', tekst: `${s.id}: ${fmt(s.speel)} speeltijd, ${(s.speel / med).toFixed(1)} keer de mediaan van de akte (${fmt(med)})` });
     // the time limit of the mission: almost all of it used (too tight for the bot, so surely for a player) or barely a fifth of it
     if (s.limiet > 0 && s.restMin != null && s.fails === 0 && s.restMin < 0.1 * s.limiet) out.push({ id: s.id, soort: 'krap', tekst: `${s.id}: nog ${s.restMin} s van ${s.limiet} s over (minder dan 10%)` });
     if (s.limiet > 0 && s.actief > 0 && s.fails === 0 && s.cheats.length === 0 && s.actief < 0.2 * s.limiet && s.limiet >= 180) out.push({ id: s.id, soort: 'ruim', tekst: `${s.id}: ${Math.round(s.actief)} s gebruikt van ${s.limiet} s (minder dan 20%)` });
     // variety (the wish of #147: more than driving to a point): the kinds of stage the bot saw in this step
-    if (s.stagesKnown && /^M\d/.test(s.id) && s.stages.size <= 2 && s.speel > 150) out.push({ id: s.id, soort: 'variatie', tekst: `${s.id}: maar ${s.stages.size} soort${s.stages.size === 1 ? '' : 'en'} stap (${[...s.stages].join(', ') || 'geen'}), minder dan drie` });
+    // (a step with a cheat skipped stages: its kinds say nothing)
+    if (s.stagesKnown && s.cheats.length === 0 && /^M\d/.test(s.id) && s.stages.size <= 2 && s.speel > 150) out.push({ id: s.id, soort: 'variatie', tekst: `${s.id}: maar ${s.stages.size} soort${s.stages.size === 1 ? '' : 'en'} stap (${[...s.stages].join(', ') || 'geen'}), minder dan drie` });
     if (s.fails >= 2) out.push({ id: s.id, soort: 'opnieuw', tekst: `${s.id}: ${s.fails} keer opnieuw` });
     if (s.cine != null && s.speel > 0 && s.cine / s.speel > 0.5 && s.cine > 90) out.push({ id: s.id, soort: 'scene', tekst: `${s.id}: ${Math.round(100 * s.cine / s.speel)}% van de tijd in cutscenes (${fmt(s.cine)})` });
   }
@@ -131,10 +132,10 @@ export function rapport(runList) {
     const res = fs.existsSync(path.join(dir, 'result.json')) ? JSON.parse(fs.readFileSync(path.join(dir, 'result.json'), 'utf8')) : {};
     const { med, out } = afwijkingen(steps);
     lines.push(`## ${AKTEN[name] || name}`, '', `Run \`${path.basename(path.dirname(dir))}/${path.basename(dir)}\`: uitkomst ${res.result || 'onbekend'}, speeltijd ${fmt(res.gameSeconds)}, echte tijd ${fmt(res.wallSeconds)}.`, '');
-    lines.push('| Stap | Titel | Speeltijd | Echt | Aanloop | Route | Reistijd | Afstand bot | Cutscene | Gesprek | Doelwissels | Soorten stap | Langste stilte | Tijdlimiet (gebruikt) | Opnieuw | Vast | Cheats |', '|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|');
+    lines.push('| Stap | Titel | Speeltijd | waarvan missie | Echt | Aanloop | Route | Reistijd | Afstand bot | Cutscene | Gesprek | Doelwissels | Soorten stap | Langste stilte | Tijdlimiet (gebruikt) | Opnieuw | Vast | Cheats |', '|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|');
     for (const s of steps) {
       if (s.speel == null) continue;
-      lines.push(`| ${s.id} | ${(s.title || '').slice(0, 34)} | ${fmt(s.speel)} | ${fmt(s.wall)} | ${s.aanloop.length ? aanloopMeter(s) + ' m' + (s.tMissie != null && s.t0 != null ? ` (${fmt(s.tMissie - s.t0)})` : '') : '-'} | ${nominaal(s).meter} m | ${fmt(nominaal(s).sec)} | ${s.dist ?? '-'} m | ${fmt(s.cine)} | ${fmt(s.talk)} | ${s.goals} | ${s.stagesKnown ? s.stages.size : '-'} | ${s.maxQuiet != null ? Math.round(s.maxQuiet) + ' s' : '-'} | ${s.limiet > 0 ? `${fmt(s.actief)} van ${fmt(s.limiet)}` : '-'} | ${s.fails} | ${s.stuck} | ${s.cheats.length ? s.cheats.join(', ') : '-'} |`);
+      lines.push(`| ${s.id} | ${(s.title || '').slice(0, 34)} | ${fmt(s.speel)} | ${s.tMissie != null && s.t1 != null ? fmt(s.t1 - s.tMissie) : '-'} | ${fmt(s.wall)} | ${s.aanloop.length ? aanloopMeter(s) + ' m' + (s.tMissie != null && s.t0 != null ? ` (${fmt(s.tMissie - s.t0)})` : '') : '-'} | ${nominaal(s).meter} m | ${fmt(nominaal(s).sec)} | ${s.dist ?? '-'} m | ${fmt(s.cine)} | ${fmt(s.talk)} | ${s.goals} | ${s.stagesKnown ? s.stages.size : '-'} | ${s.maxQuiet != null ? Math.round(s.maxQuiet) + ' s' : '-'} | ${s.limiet > 0 ? `${fmt(s.actief)} van ${fmt(s.limiet)}` : '-'} | ${s.fails} | ${s.stuck} | ${s.cheats.length ? s.cheats.join(', ') : '-'} |`);
     }
     lines.push('', `Mediaan speeltijd van de stappen zonder cheat: ${fmt(med)}.`, '');
     const mis = steps.filter((x) => x.failTekst.length);
@@ -142,12 +143,12 @@ export function rapport(runList) {
     if (out.length) { lines.push('Afwijkingen:', '', ...out.map((o) => `- ${o.tekst}`), ''); } else lines.push('Geen afwijkingen boven de drempels.', '');
   }
   // akten onderling
-  lines.push('## Akten onderling', '', '| Akte | Stappen | Mediaan speeltijd | Langste stap | Mediaan route | Mediaan cutscene | Mediaan doelwissels | Opnieuw | Cheats |', '|---|---|---|---|---|---|---|---|---|');
+  lines.push('## Akten onderling', '', '| Akte | Stappen | Mediaan speeltijd | Mediaan missietijd | Langste stap | Mediaan route | Mediaan cutscene | Mediaan doelwissels | Opnieuw | Cheats |', '|---|---|---|---|---|---|---|---|---|---|');
   for (const [name, steps] of Object.entries(alle)) {
     const m = steps.filter((s) => /^M\d/.test(s.id) && s.speel != null);
     const clean = m.filter((s) => s.cheats.length === 0);
     const longest = m.reduce((b, s) => (!b || s.speel > b.speel ? s : b), null);
-    lines.push(`| ${AKTEN[name] || name} | ${m.length} | ${fmt(median(clean.map((s) => s.speel)))} | ${longest ? `${longest.id} ${fmt(longest.speel)}` : '-'} | ${median(clean.map((s) => nominaal(s).meter)) ?? '-'} m | ${fmt(median(clean.filter((s) => s.cine != null).map((s) => s.cine)))} | ${median(clean.map((s) => s.goals)) ?? '-'} | ${m.reduce((n, s) => n + s.fails, 0)} | ${m.reduce((n, s) => n + s.cheats.length, 0)} |`);
+    lines.push(`| ${AKTEN[name] || name} | ${m.length} | ${fmt(median(clean.map((s) => s.speel)))} | ${fmt(median(clean.filter((s) => s.tMissie != null && s.t1 != null).map((s) => s.t1 - s.tMissie)))} | ${longest ? `${longest.id} ${fmt(longest.speel)}` : '-'} | ${median(clean.map((s) => nominaal(s).meter)) ?? '-'} m | ${fmt(median(clean.filter((s) => s.cine != null).map((s) => s.cine)))} | ${median(clean.map((s) => s.goals)) ?? '-'} | ${m.reduce((n, s) => n + s.fails, 0)} | ${m.reduce((n, s) => n + s.cheats.length, 0)} |`);
   }
   lines.push('');
   return { text: lines.join('\n'), alle };
