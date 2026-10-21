@@ -187,6 +187,20 @@ pad2.buttons[0].pressed = false; pad2.buttons[0].value = 0; frame(2);
   reset();
 }
 
+// Samen spelen: in een voertuig geeft D-pad omhoog het stuur (Y); zonder sessie blijft het de alarmlichten
+{
+  zet('vehicle'); reset();
+  press('up'); frame(2); press('up', false); frame(2);
+  ok(seen.some((s) => s[0] === 'down' && s[1] === 'p'), 'zonder sessie: D-pad omhoog is de alarmlichten (p)', seen);
+  world.coopNet = {}; reset();
+  press('up'); frame(2); press('up', false); frame(2);
+  ok(seen.some((s) => s[0] === 'down' && s[1] === 'y') && !seen.some((s) => s[1] === 'p'), 'Samen spelen: D-pad omhoog in het voertuig is Y (het stuur)', seen);
+  zet('foot'); reset();
+  press('up'); frame(2); press('up', false); frame(2);
+  ok(seen.some((s) => s[0] === 'down' && s[1] === 'n'), 'Samen spelen: te voet blijft D-pad omhoog de radio', seen);
+  delete world.coopNet;
+}
+
 // trillen bij schade, als de controller een motor heeft en de speler het wil
 {
   const slagen = [];
