@@ -16,9 +16,11 @@ import { GameMap, SpatialGrid, loadMap, markDryRoad } from './mapdata.js';
 import { polygonBounds, pointInPolygon } from './util.js';
 import { promoteMainWaterway } from './waterlevels.js';
 import { dropWaterDuplicates } from './waterdupes.js';
+import { addMooredBuilding, dropMooredBuilding } from './waterindex.js';
 import { SECTION, decodeBlob } from './gdt.js';
 import { TileStore, FrameQueue, HttpRangeSource, inflateRaw, makeWorkerDecoder, decodeCompressed } from './tilestore.js';
 import { TerrainField } from './terrainraster.js';
+import { joinMeta } from './poisections.js';
 
 const KIND_OF = new Map([
   [SECTION.BUILDINGS, 'buildings'], [SECTION.ROADS, 'roads'], [SECTION.WATER, 'water'], [SECTION.GREEN, 'green'],
@@ -77,6 +79,8 @@ export class TileWorld extends GameMap {
   static fromTiles(global, tiles) {
     const info = {};
     for (const s of global.sections) if (s.type === SECTION.META) Object.assign(info, s.json);
+    // the places of the meta (shops, horeca, garages, ...) are rows of their tiles (poisections.js)
+    info.meta = joinMeta(info.meta, tiles.map((t) => t.sections.filter((s) => s.type === SECTION.POIS).flatMap((s) => s.rows)));
     const arrays = {};
     for (const kind of KIND_OF.values()) arrays[kind] = new Array((info.counts && info.counts[kind]) || 0);
     const res = {};
@@ -145,6 +149,7 @@ export class TileWorld extends GameMap {
           if (kind === 'buildings' || kind === 'roads' || kind === 'water' || kind === 'green' || kind === 'rails' || kind === 'parcels') obj.bounds = boundsOfObj(kind, obj);
           if (kind === 'water') { promoteMainWaterway(obj); this._waterVer = (this._waterVer || 0) + 1; newWater.push(obj); }
           if (kind === 'roads') newRoads.push(obj);
+          if (kind === 'buildings' && obj.type === 'houseboat') addMooredBuilding(this, obj); // (boats keep off it, #343)
           const grid = gridOf(kind, obj);
           if (grid) (this[grid] || (this[grid] = new SpatialGrid(64))).insert(obj, boundsOfObj(kind, obj));
           // a streamed tile's mapped furniture joins the list streetfurniture3d.js reads
@@ -234,6 +239,7 @@ export class TileWorld extends GameMap {
         if (!e.tiles.delete(tk) || e.tiles.size) continue;
         this._res[kind].delete(gid);
         if (kind === 'water') this._waterVer = (this._waterVer || 0) + 1;
+        if (kind === 'buildings' && e.obj.type === 'houseboat') dropMooredBuilding(this, e.obj);
         const grid = gridOf(kind, e.obj);
         if (grid && this[grid]) this[grid].remove(e.obj, boundsOfObj(kind, e.obj));
         if (kind === 'furniture' && this.furniture) { const q = this.furniture.indexOf(e.obj); if (q >= 0) this.furniture.splice(q, 1); }

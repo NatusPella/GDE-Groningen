@@ -352,6 +352,15 @@ for (const J of CFG.jobs) {
         await capture(J.name + '-run' + pick.indexOf(st) + '-eind', 200);
       }
       if (theBoat) { p.exitVehicle(map, w); const i = w.vehicles.indexOf(theBoat); if (i >= 0) w.vehicles.splice(i, 1); }
+    } else if (J.kind === 'code') {
+      // vrije job (J.code of J.file): async-functietekst met de hulpmiddelen van deze pagina in `h`
+      const AF = Object.getPrototypeOf(async function () { /* leeg */ }).constructor;
+      hold = null; env.fix = true; fixWorld();
+      const h = { D, w, p, map, sc, THREE, imp, sleep, cine, PM, DN, WL, TP, RG, VH, BT, rec, J, errors,
+        teleport, gh, snapRoad, capture, poseShot, probeAt, vehicleOverlap, setWeather, fixWorld, kb, putBoat,
+        setHold: (v) => { hold = v; }, setEnv: (e) => { env = { ...env, ...e }; fixWorld(); },
+        keepCine: (v) => { ownShot = !!v; } };
+      await new AF('h', J.code)(h);
     } else if (J.kind === 'jump') {
       hold = null; env.fix = false; setWeather();
       const S2 = window.__story;

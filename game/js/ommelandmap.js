@@ -1,5 +1,6 @@
 import { getVillageMapSpots } from './dorpsuitjes.js';
 import { getFoundWorldEnds } from './worldends.js';
+import { INK } from './mapstyle.js';
 
 // The Ommeland's own places on the full map and the minimap (layer
 // 'ommeland'): the dorpsuitjes of every village the player has been near
@@ -20,15 +21,15 @@ export function drawOmmelandMapIcon(ctx, kind, s) {
   if (kind === 'wereldeinde') {
     ctx.beginPath();
     ctx.arc(0, 0, 4.8 * s, 0, Math.PI * 2);
-    ctx.fillStyle = '#1f2a3a';
+    ctx.fillStyle = INK.worldEnd;
     ctx.fill();
     ctx.lineWidth = 1.2 * s;
-    ctx.strokeStyle = '#0c140e';
+    ctx.strokeStyle = INK.dark;
     ctx.stroke();
     ctx.beginPath();
     ctx.arc(0, 0, 2.9 * s, Math.PI * 0.15, Math.PI * 1.85);
     ctx.lineWidth = 1.1 * s;
-    ctx.strokeStyle = '#f0ede4';
+    ctx.strokeStyle = INK.cream;
     ctx.stroke();
     ctx.beginPath();
     ctx.moveTo(1.2 * s, 0);
@@ -39,13 +40,13 @@ export function drawOmmelandMapIcon(ctx, kind, s) {
   if (kind !== 'dorp' && kind !== 'dorpKlaar') return false;
   ctx.beginPath();
   ctx.arc(0, 0, 4.8 * s, 0, Math.PI * 2);
-  ctx.fillStyle = kind === 'dorpKlaar' ? '#0f5c30' : '#1e9e56';
+  ctx.fillStyle = kind === 'dorpKlaar' ? INK.greenDark : INK.green;
   ctx.fill();
   ctx.lineWidth = 1.2 * s;
-  ctx.strokeStyle = '#0c140e';
+  ctx.strokeStyle = INK.dark;
   ctx.stroke();
-  ctx.strokeStyle = '#f0ede4';
-  ctx.fillStyle = '#e8c93a';
+  ctx.strokeStyle = INK.cream;
+  ctx.fillStyle = INK.yellow;
   ctx.lineWidth = 0.9 * s;
   if (kind === 'dorpKlaar') {
     ctx.beginPath();

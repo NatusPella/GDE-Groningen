@@ -105,5 +105,76 @@ for (const tab of ['overzicht', 'todo', 'map', 'telefoon', 'verhaal', 'spullen',
   PM.closePauseMenu();
   done.push('menu-' + tab);
 }
+// The garage's vehicle pictures (#196): the overview with every card's picture, then the
+// turntable by mouse, by keyboard focus and by touch, and with "Beweging beperken".
+if (want('garagefotos')) {
+  teleport(...P(100, 77));
+  PM.openPauseMenu('garage');
+  await sleep(600);
+  const root = document.querySelector('#pause-menu [data-panel="garage"] .pm-inner');
+  const cards = () => [...root.querySelectorAll('.gar-card')];
+  for (let i = 0; i < 80 && root.querySelectorAll('.gar-ph img').length < cards().length; i++) await sleep(250);
+  done.push('garage-fotos ' + root.querySelectorAll('.gar-ph img').length + '/' + cards().length);
+  await shot('garage-overzicht', 400);
+  const find = (key) => root.querySelector('.gar-card[data-garage-select="' + key + '"]') || cards()[0];
+  const mouse = (c, type) => (type === 'leave' ? root : c).dispatchEvent(new PointerEvent(type === 'leave' ? 'pointerleave' : 'pointerover', { bubbles: true, pointerType: 'mouse' }));
+  // frames the turning canvas draws per second
+  let draws = 0;
+  const orig = CanvasRenderingContext2D.prototype.drawImage;
+  CanvasRenderingContext2D.prototype.drawImage = function (...a) { if (this.canvas.classList.contains('gar-turn')) draws++; return orig.apply(this, a); };
+  const hover = async (name, key) => {
+    const c = find(key);
+    c.scrollIntoView({ block: 'center', behavior: 'instant' });
+    await sleep(300);
+    mouse(c, 'over');
+    await sleep(900);
+    draws = 0;
+    await sleep(1000);
+    done.push(name + ' ' + JSON.stringify({ spin: c.querySelector('.gar-ph').classList.contains('spin'), canvas: !!c.querySelector('canvas.gar-turn'), fps: draws, canvases: root.querySelectorAll('canvas.gar-turn').length, name: c.querySelector('.one').textContent, rect: (({ x, y, width, height }) => [x, y, width, height].map(Math.round))(c.getBoundingClientRect()) }));
+    await shot(name, 0);
+    return c;
+  };
+  const c1 = await hover('garage-hover-auto', 'hero');
+  await shot('garage-hover-auto-later', 700);
+  mouse(c1, 'leave');
+  await sleep(400);
+  done.push('na-verlaten ' + JSON.stringify({ canvases: root.querySelectorAll('canvas.gar-turn').length, spin: root.querySelectorAll('.gar-ph.spin').length }));
+  const c2 = await hover('garage-hover-bus', 'stadsbus');
+  mouse(c2, 'leave');
+  const c3 = await hover('garage-hover-boot', 'speedboot');
+  mouse(c3, 'leave');
+  await sleep(300);
+  // keyboard / controller focus
+  for (const t of [window, document]) { t.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', code: 'ArrowDown', bubbles: true })); t.dispatchEvent(new KeyboardEvent('keyup', { key: 'ArrowDown', code: 'ArrowDown', bubbles: true })); }
+  const c4 = find('stormvogel');
+  c4.scrollIntoView({ block: 'center', behavior: 'instant' });
+  c4.focus();
+  await sleep(1300);
+  done.push('focus ' + JSON.stringify({ spin: c4.querySelector('.gar-ph').classList.contains('spin'), focusVisible: c4.matches(':focus-visible'), name: c4.querySelector('.one').textContent, rect: Object.values(c4.getBoundingClientRect().toJSON()).slice(0, 4).map(Math.round) }));
+  await shot('garage-focus-tweewieler', 0);
+  c4.blur();
+  await sleep(300);
+  // touch: a tap selects and turns that card
+  const c5 = find('trekker');
+  c5.scrollIntoView({ block: 'center', behavior: 'instant' });
+  await sleep(200);
+  c5.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, pointerType: 'touch' }));
+  c5.dispatchEvent(new PointerEvent('pointerover', { bubbles: true, pointerType: 'touch' }));
+  c5.click();
+  await sleep(1300);
+  done.push('touch ' + JSON.stringify({ spin: c5.querySelector('.gar-ph').classList.contains('spin'), name: c5.querySelector('.one').textContent, rect: Object.values(c5.getBoundingClientRect().toJSON()).slice(0, 4).map(Math.round) }));
+  await shot('garage-touch', 0);
+  // "Beweging beperken": the mouse turns nothing
+  document.documentElement.classList.add('reduce-motion');
+  mouse(c1, 'over');
+  await sleep(1000);
+  done.push('beweging-beperkt ' + JSON.stringify({ canvases: root.querySelectorAll('canvas.gar-turn').length }));
+  document.documentElement.classList.remove('reduce-motion');
+  mouse(c1, 'leave');
+  CanvasRenderingContext2D.prototype.drawImage = orig;
+  PM.closePauseMenu();
+  await sleep(300);
+  done.push('na-sluiten ' + JSON.stringify({ canvases: document.querySelectorAll('canvas.gar-turn').length }));
+}
 clearInterval(skipper);
 return done;
