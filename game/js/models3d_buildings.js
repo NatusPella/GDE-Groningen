@@ -594,7 +594,7 @@ function addShopfront(B, e, s0, s1, top, S, seed, poiType = null) {
     }
   }
   wallBox(B, e, s0, s1, top, top + 0.5, 0, 0.12, look.sign);
-  if (look.type === 'kermiskraam') { const dc = s0 + (doorBay + 0.5) * bw; addKraam(B, e, Math.max(s0, dc - 3), Math.min(s1, dc + 3), top, seed); return; } // (een kraam is zes meter, niet de hele gevel)
+  if (look.type === 'kermiskraam') { const dc = s0 + (doorBay + 0.5) * bw, k0 = Math.max(s0, dc - 3), k1 = Math.min(s1, dc + 3); addKraam(B, e, k0, k1, top, seed); return { kraam: [k0, k1] }; } // (een kraam is zes meter, niet de hele gevel)
   addShopProps(B, e, s0, s1, bw, doorBay, look.buiten, seed);
   if (look.awning) {
     const a0 = s0 + 0.15, a1 = s1 - 0.15, ya = top - 0.05, yb = top - 0.6, da = 0.12, db = 1.25;
@@ -1140,13 +1140,13 @@ function buildDetailGeometry(b, box, archetype, depth, fine, fine2, wallHex, roo
       addDoor(B, e, e.len / 2, Math.min(1, e.len - 0.6), S, { h: Math.min(2.1, depth - 0.3) });
     }
   }
-  if (shopEdge) addShopfront(B, shopEdge, 0.15, shopEdge.len - 0.15, shopTop, S, seed, poiType);
+  const front = shopEdge ? addShopfront(B, shopEdge, 0.15, shopEdge.len - 0.15, shopTop, S, seed, poiType) : null;
   // read by the QA scenes (scripts/ui/shots_scenes_r39.js): where the shopfront is and what it sells
   // (shopsigns3d.js hangs the name of the shop on it)
   b.shopFront = shopEdge ? {
     ax: shopEdge.ax, ay: shopEdge.ay, bx: shopEdge.bx, by: shopEdge.by, nx: shopEdge.nx, ny: shopEdge.ny, tx: shopEdge.tx, ty: shopEdge.ty,
     s0: 0.15, s1: shopEdge.len - 0.15, top: shopTop, poi: poiType, name: poiName, sign: poiType ? facadeLook(rankForType(poiType, seed)).sign : 0x232323,
-    type: facadeLook(poiType ? rankForType(poiType, seed) : hash2(seed, 5.5)).type,
+    type: facadeLook(poiType ? rankForType(poiType, seed) : hash2(seed, 5.5)).type, kraam: front && front.kraam ? front.kraam : null, // (QA: de zes meter van de kermiskraam langs de gevel)
   } : null;
 
   if (!industrial && archetype !== 'house' && floorCount >= 3 && r(15) < 0.45) {
