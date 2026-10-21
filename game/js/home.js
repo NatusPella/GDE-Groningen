@@ -58,7 +58,7 @@ import { tagPleiadenlaan, tagKorenbloemstraat } from './thuis3d.js';
 import { keyWord } from './controls.js';
 import { getSettings } from './settings.js';
 const downKey = () => keyWord(getSettings().keyBinds, 'control');
-import { deliverFurniture, furnitureSkip, attachFurniture3D, leaveFurniture, furnitureSolids, furnitureUses, furnitureFocus, furniturePrompt, useFurniture, updateFurniture, updateFurnitureInside, companionSeat, furnitureSlept, fridgeCooldown, fridgePerk } from './furniture.js';
+import { deliverFurniture, furnitureSkip, attachFurniture3D, leaveFurniture, furnitureSolids, furnitureStockSolids, furnitureBedUses, furnitureUses, furnitureFocus, furniturePrompt, useFurniture, updateFurniture, updateFurnitureInside, companionSeat, furnitureSlept, fridgeCooldown, fridgePerk } from './furniture.js';
 import { playerBusy } from './busy.js';
 
 const NEAR_M = 200;
@@ -839,7 +839,7 @@ function clampToFlat(p) {
     const k = (r + 0.07 - d) / d;
     lx += (lx - c.x) * k; lz += (lz - c.y) * k;
   }
-  for (const [x0, z0, x1, z1] of [...f.solids, ...furnitureSolids()]) {
+  for (const [x0, z0, x1, z1] of [...furnitureStockSolids(f.solids), ...furnitureSolids()]) {
     const cx = Math.max(x0, Math.min(x1, lx)), cz = Math.max(z0, Math.min(z1, lz));
     const dx = lx - cx, dz = lz - cz;
     const d = Math.hypot(dx, dz);
@@ -973,7 +973,8 @@ function placeCompanion(w) {
   const [x, y] = home.flat.fl(s.x, s.z);
   c.x = x; c.y = y; c.vx = 0; c.vy = 0; c.gz = FLOOR_TOP;
   c.sofaSeat = s.seat;
-  c.angle = Math.atan2(-home.flat.Y[1], -home.flat.Y[0]);
+  const F = home.flat, k = s.kijk || { x: 0, z: -1 }; // the sofa may face another way (inrichting.js)
+  c.angle = Math.atan2(k.x * F.X[1] + k.z * F.Y[1], k.x * F.X[0] + k.z * F.Y[0]);
 }
 
 // wake: a chosen hour (the Sloapstee's menu) with its message, else morning
@@ -1065,7 +1066,13 @@ function flatUse(w) {
     const d = Math.hypot(s.x - p.x, s.y - p.y);
     if (d < bd) { bd = d; best = { k, s }; }
   };
-  for (const [k, s] of Object.entries(home.flat.use)) consider(k, s);
+  const bu = furnitureBedUses(); // the beds of the Sloapstee may stand elsewhere (inrichting.js)
+  for (const [k, s] of Object.entries(home.flat.use)) {
+    const o = bu && bu[k];
+    if (!o) { consider(k, s); continue; }
+    const [x, y] = home.flat.fl(o.x, o.z);
+    consider(k, { ...s, x, y, lx: o.x, lz: o.z });
+  }
   for (const u of furnitureUses()) consider(u.k, u);
   return best;
 }
