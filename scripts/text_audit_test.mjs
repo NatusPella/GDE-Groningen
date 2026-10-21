@@ -61,6 +61,15 @@ const open = findings.filter((f) => !f.allowed);
 for (const f of open) console.log(`OPEN [${f.rule}] ${f.file}:${f.line}: ${f.term} | ${f.text.slice(0, 100)}`);
 ok(open.length === 0, `${open.length} bevindingen buiten de allowlist (node scripts/text_audit.mjs)`);
 
+// inclusieve taal: kwetsende woorden, mannelijk als standaard, machtstermen, aanspreekvormen, generiek 'hij'
+ok(has('Politie? Een gek slaat hier mensen in elkaar!', 'inclusief') && has('Wat een debiele spastische dwerg', 'inclusief') && has('Dat is een invalide zigeuner', 'inclusief'), 'inclusief: kwetsende woorden');
+ok(has('Hou op met die kanker en tyfus', 'inclusief') && has('Zet hem op de blacklist van de master en de slave', 'inclusief'), 'inclusief: ziekte als vloek en machtstermen');
+ok(has('De brandweerman en de politieman bellen de zakenman', 'inclusief') && has('De serveerster en de stewardess', 'inclusief'), 'inclusief: mannelijk als standaard en vrouwelijke varianten');
+ok(has('Hoi jongens, dames en heren!', 'inclusief') && has('Iedereen krijgt het hoofd dat hij wil', 'inclusief') && has('Een fietser neemt voorrang, of hij die heeft', 'inclusief'), 'inclusief: aanspreekvorm en generiek hij');
+ok(!has('Ik ben gek op eierballen, het is een gekke dag', 'inclusief'), "inclusief: 'gek' als gedrag of voorkeur en 'gekke' geven geen vals alarm");
+ok(!has('Ik negeer het, twijfel niet, hij kocht de boterham; Boteringestraat en terugkeer', 'inclusief'), 'inclusief: negeren, twijfel, tering in Boteringestraat zijn geen treffers');
+ok(!has('Hoi allemaal, de agent en de brandweerlieden helpen iedereen met de eigen fiets', 'inclusief') && !has('Bij ons zijn er twee grote kerels, een buurman en de voorzitter', 'inclusief'), 'inclusief: neutrale woorden en personages met een bekend geslacht');
+
 // ronde 2 (#150): meer merken en personen, winterwoorden, anglicismen, persoonsgegevens en externe adressen
 ok(has('Haal een Nespresso bij de Wibra', 'merk') && has('Bestel bij Zalando', 'merk') && has('Op Roblox en Fortnite', 'merk'), 'merk: koffie, winkel, spel');
 ok(has('Dat zegt Max Verstappen', 'persoon') && has('Ede Staal zingt', 'persoon') && has('Op Tomorrowland', 'persoon'), 'persoon: sporter, Groninger zanger, festival');

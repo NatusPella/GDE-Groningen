@@ -2,7 +2,7 @@
 // scene with its validation status, and a top-down view you can play and scrub.
 // No game, no THREE: the scenes are sampled by cutpreview.js. The screenshot
 // export draws each shot's still (top-down plus camera) to a PNG.
-import { buildCatalog, frameAt, stillTimes, stillName, sceneBounds, summary, STATUS_LABEL } from './cutpreview.js';
+import { buildCatalog, frameAt, stillTimes, stillName, sceneBounds, summary, projectFrame, STATUS_LABEL } from './cutpreview.js';
 
 const $ = (id) => document.getElementById(id);
 const cv = $('cv');
@@ -83,8 +83,32 @@ function draw(t, target = cv) {
   return f;
 }
 
+// the camera's view: horizon, then every figure back to front (actors red, the speaker orange, props blue), no buildings
+function drawCam(f, target = $('cam')) {
+  const g = target.getContext('2d'), W = target.width, H = target.height;
+  g.fillStyle = '#9ec3e6';
+  g.fillRect(0, 0, W, H);
+  const v = f && projectFrame(cur, f, W / H);
+  if (!v) return;
+  const sy = (y) => H / 2 - y * H / 2, sx = (x) => W / 2 + x * W / 2;
+  const hy = Math.max(-2, Math.min(2, v.horizon));
+  g.fillStyle = '#6b8f5e';
+  g.fillRect(0, sy(hy), W, H - sy(hy));
+  for (const q of v.figures) {
+    const x0 = sx(q.x - q.w), x1 = sx(q.x + q.w), y0 = sy(q.yTop), y1 = sy(q.yBottom);
+    g.fillStyle = q.kind === 'prop' ? '#4a8fe0' : q.speaking ? '#ff7a5a' : '#d93f3f';
+    g.fillRect(x0, y0, x1 - x0, y1 - y0);
+    if (q.kind === 'actor') { g.fillStyle = '#f0c8a0'; const r = Math.max(2, (x1 - x0) * 0.4); g.beginPath(); g.arc((x0 + x1) / 2, y0 + r * 0.6, r, 0, Math.PI * 2); g.fill(); }
+    if (x1 - x0 > 24) { g.fillStyle = '#fff'; g.font = '11px system-ui'; g.fillText(q.id, x0 + 2, Math.min(H - 4, y1 - 3)); }
+  }
+  g.strokeStyle = 'rgba(255,255,255,.35)';
+  g.strokeRect(W * 0.1, H * 0.1, W * 0.8, H * 0.8); // the safe area
+  if (v.speakerInFrame === false) { g.fillStyle = '#ffd24a'; g.font = '13px system-ui'; g.fillText('Spreker niet in beeld', 10, 20); }
+}
+
 function show(t) {
   const f = draw(t);
+  drawCam(f);
   $('clock').textContent = `${t.toFixed(1)} / ${(cur ? cur.duration : 0).toFixed(1)} s`;
   $('info').innerHTML = f ? `<b>Shot ${f.shot}</b>${f.speaker ? ` · ${esc(f.speaker)}: ${esc(f.text)}` : ''}` : '';
 }
@@ -104,16 +128,24 @@ function tick(now) {
   if (t >= cur.duration) playing = false; else requestAnimationFrame(tick);
 }
 
-// One PNG per shot: the top-down still at the shot's start, named for the spelbot and the QA.
+// One PNG per shot: the top-down still and the camera view at the shot's start, named for the spelbot and the QA.
 $('exp').onclick = () => {
   if (!cur || !cur.scene) return;
-  const off = document.createElement('canvas');
+  const off = document.createElement('canvas'), cam = document.createElement('canvas'), both = document.createElement('canvas');
   off.width = 960;
   off.height = 600;
+  cam.width = 640;
+  cam.height = 360;
+  both.width = 1600;
+  both.height = 600;
   for (const t of stillTimes(cur)) {
     const f = draw(t, off);
+    drawCam(f, cam);
+    const bg = both.getContext('2d');
+    bg.drawImage(off, 0, 0);
+    bg.drawImage(cam, 960, 0);
     const a = document.createElement('a');
-    a.href = off.toDataURL('image/png');
+    a.href = both.toDataURL('image/png');
     a.download = stillName(cur.id, f.shot, t);
     a.click();
   }

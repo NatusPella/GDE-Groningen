@@ -212,7 +212,7 @@ TESSA: Oma Trijntje stuurt ons naar Kapitein Klaas in Zoutkamp. Hij heeft een bo
 BUSCHAUFFEUR: Ik rijd tot Winsum. Daar stapt u over op de lijn naar Zoutkamp. Dat is de laatste halte, daarna is er alleen nog water. [NIEUW]
 TAMMO: Dat klinkt als thuis. [NIEUW]
 TESSA: Dat is een compliment, hè. [NIEUW]
-BUSCHAUFFEUR: Uitstappen bij de haven, jongens. Dan zie je het water. [NIEUW]
+BUSCHAUFFEUR: Uitstappen bij de haven, allemaal. Dan zie je het water. [NIEUW]
 
 ## [M11.1] Geleend van de Friezen: intro – Lauwersmeer, Zoutkamp – rubberboot
 (regie: donderdag 20 augustus, middag. Zoutkamp, de haven. Naamkaart: KAPITEIN KLAAS. Gameplay: met de rubberboot een skûtsje inhalen en aan boord springen; later, bij laag water, zout halen van de kwelder en onopgemerkt blijven voor de kustwacht.)
@@ -224,7 +224,7 @@ KAPITEIN KLAAS: Het is een val. Maar het is ook de enige bal die we kunnen berei
 KAPITEIN KLAAS: Hier. Een snelle boot. Ik zit bovenin, ik kijk de andere kant op. Tot de sluizen bij Lauwersoog. Daarna is het open water en ben je voor eigen rekening. [NIEUW]
 TAMMO: Springen. Van een boot. Op een andere boot. [BEHOUDEN]
 TESSA: Jij stuurt, ik zeg wanneer. [BEHOUDEN]
-KAPITEIN KLAAS: Praat tegen je boot, jongens. Dat helpt. [NIEUW]
+KAPITEIN KLAAS: Praat tegen je boot, mensen. Dat helpt. [NIEUW]
 TAMMO: Hij luistert niet. [NIEUW]
 KAPITEIN KLAAS: Hij luistert wel. Alleen niet naar jou. [NIEUW]
 
@@ -232,7 +232,7 @@ KAPITEIN KLAAS: Hij luistert wel. Alleen niet naar jou. [NIEUW]
 TESSA: Het skûtsje. Links van de zandplaat. [NIEUW]
 TAMMO: Groter dan ik dacht. [NIEUW]
 TESSA: Het is een skûtsje. Dat is groter dan alles. [NIEUW]
-KAPITEIN KLAAS (telefoon): Niet voorbij de sluizen, jongens. Daarachter is het de Waddenzee, en daar vaar ik niet met een rubberboot. [NIEUW]
+KAPITEIN KLAAS (telefoon): Niet voorbij de sluizen, mensen. Daarachter is het de Waddenzee, en daar vaar ik niet met een rubberboot. [NIEUW]
 JELLE (telefoon): Mevrouw. U vaart op de vaargeul van Us Mem Snacks. Daar staat een tarief op. [NIEUW]
 TESSA: Nu, Tammo. Spring. [NIEUW]
 
@@ -255,7 +255,7 @@ KAPITEIN KLAAS: Oma's eierbal van 1953 had zout dat nog naar zee smaakte. [NIEUW
 
 ## [M11.5] Geleend van de Friezen: de zandplaat – Lauwersmeer, zandplaat – rubberboot
 (regie: de avond valt. De boot loopt vast op een zandplaat. Het meer heeft geen getij, maar de wind duwt het water weg. Klaas wacht tot het weer opkomt.)
-KAPITEIN KLAAS: Wij zitten vast, jongens. Dat is geen ramp. De wind duwt het water weg, over een uur komt het terug. [NIEUW]
+KAPITEIN KLAAS: Wij zitten vast, mensen. Dat is geen ramp. De wind duwt het water weg, over een uur komt het terug. [NIEUW]
 TESSA: Een uur. Op een zandplaat. [NIEUW]
 KAPITEIN KLAAS: Kijk omhoog. Boven het Lauwersmeer is het donkerste stuk van het land. [NIEUW]
 TAMMO: Dat zie ik. [NIEUW]
@@ -287,7 +287,7 @@ TESSA: Dat is jouw verdediging? [NIEUW]
 TESSA: Het licht gaat links. Wij gaan rechts, door het gras. [NIEUW]
 TAMMO: Drie kuipen zout. [NIEUW]
 TESSA: Er komt water. [NIEUW]
-KAPITEIN KLAAS (telefoon): Nu terug, jongens. Het water denkt niet na. [NIEUW]
+KAPITEIN KLAAS (telefoon): Nu terug, mensen. Het water denkt niet na. [NIEUW]
 TESSA: Rennen, Tammo. [NIEUW]
 
 ## [M11.8] Geleend van de Friezen: outro – Waddenkust, Lauwersoog – rubberboot

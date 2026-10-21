@@ -773,14 +773,16 @@ function playWeaponSfx(e, x, y) {
   const r = 0.92 + Math.random() * 0.16;
   switch (e.sub) {
     case 'swing': {
+      const slow = e.weapon === 'polsstok' ? 0.55 : e.weapon === 'bezem' ? 1.4 : 1;
+      if (playFx('swing_whoosh', x, y, { rate: Math.sqrt(slow) })) break;   // the rendered whoosh (#173); the synth below while it renders
       const out = spatialOut(x, y, { ref: 3, rolloff: 1.3, range: 40 });
       if (!out) return;
-      const slow = e.weapon === 'polsstok' ? 0.55 : e.weapon === 'bezem' ? 1.4 : 1;
       playNoiseBurst({ duration: 0.16 / slow, freq: 900 * slow * r, freqEnd: 300, q: 0.9, gain: 0.176, type: 'bandpass', out });
       break;
     }
     case 'shot': playGunshot(x, y, e.weapon, true); break;
     case 'empty': {
+      if (playFx('empty_click', x, y)) break;
       const out = spatialOut(x, y, { ref: 2, rolloff: 1.4, range: 25, prio: 2 });
       if (!out) return;
       playTone({ freq: 2400 * r, freqEnd: 1900 * r, type: 'square', duration: 0.025, gain: 0.08, out, prio: 2 });
@@ -1050,6 +1052,7 @@ function playGiggle(x, y, female) {
 }
 
 function playDoor(x, y, open) {
+  if (playFx(open ? 'door_house_open' : 'door_house_close', x, y)) return;
   const out = spatialOut(x, y, { ref: 3, rolloff: 1.2, range: 40 });
   if (!out) return;
   if (open) {
@@ -2749,7 +2752,7 @@ function playAudioEvents(world) {
         engineState.startAt = ctx.currentTime + doorDelay + 0.75;
         engineState.gear = 0;
         break;
-      case 'engine_stop': if (!synth.player) playEngineStop(x, y); break;
+      case 'engine_stop': if (!synth.player && !playFx('engine_off', x, y)) playEngineStop(x, y); break;
       case 'gear-ok': playNoiseBurst({ duration: 0.03, freq: 700, q: 3, gain: 0.05, type: 'bandpass', bus: uiBus }); break;
       case 'gear-grind': {
         for (let j = 0; j < 3; j++) playNoiseBurst({ duration: 0.05, freq: 1800 + j * 400, q: 1.5, gain: 0.06, type: 'bandpass', delay: j * 0.045, bus: uiBus });
@@ -2782,10 +2785,12 @@ function playAudioEvents(world) {
       case 'caw': case 'peck': playCritterEvent(e.kind, x, y, clamp(e.strength ?? 0.5, 0, 1)); break;
       case 'whoosh': playBuf('whoosh', { out: spatialOut(x, y, { ref: 6, range: 60 }) || undefined, gain: 0.18 + clamp(e.strength ?? 0.5, 0, 1) * 0.2 }); break;
       case 'camera_shutter':
+        if (playFx('camera_click', x, y)) break;
         playNoiseBurst({ duration: 0.025, freq: 3200, q: 2, gain: 0.14, type: 'bandpass', bus: uiBus });
         playNoiseBurst({ duration: 0.03, freq: 2400, q: 2, gain: 0.12, type: 'bandpass', delay: 0.07, bus: uiBus });
         break;
       case 'alarm': {
+        if (playFx('alarm_ring', x, y)) break;
         const out = spatialOut(x, y, { ref: 6, range: 90 });
         if (out) for (let j = 0; j < 6; j++) playTone({ freq: j % 2 ? 900 : 1300, type: 'square', duration: 0.22, gain: 0.07, delay: j * 0.24, out });
         break;

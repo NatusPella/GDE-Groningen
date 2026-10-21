@@ -50,3 +50,24 @@ Wordt er later een goed alternatief gekozen, voeg het dan hier toe en zet het wo
 
 Regels die al zijn ingesproken veranderen niet zonder akkoord van de eigenaar en een nieuwe opname.
 Ze staan met reden in `scripts/text_audit_allow.json` (nu: "deadline" in de regel van de fietser, wordt "uiterste tijd").
+
+## Inclusieve taal
+
+De speltekst is voor iedereen: geen woord dat een groep raakt, geen man als standaard.
+Dat is geen verbod op humor. Satire over gedrag of instituties, en een personage met eigenheid (een norse kapitein, een boze automobilist), mogen blijven.
+`node scripts/text_audit.mjs` (regel `inclusief`) wijst de woorden aan; de lijst staat in `INCLUSIEF` in dat script. Wat is aangepast en wat bewust bleef: [INCLUSIEVE-TAAL.md](INCLUSIEVE-TAAL.md).
+
+| Categorie | Niet | Wel | Opmerking |
+| --- | --- | --- | --- |
+| Mannelijk als standaard | politieman, brandweerman, vuilnisman, zakenman, klusjesman, stuurman, cameraman | **agent**, **brandweerlieden** (of brandweer), **vuilnisophaler**, **zakenreiziger**, **klusser**, **iemand aan het roer**, **cameraploeg** | een personage met een bekend geslacht blijft zoals het is (buurman, kroegbaas, Kapitein Klaas) |
+| Vrouwelijke varianten | serveerster, verpleegster, stewardess, schoonmaakster, werkster, dienstmeisje | **serveerder**, **verpleegkundige**, **cabinepersoneel**, **schoonmaker** | idem |
+| Aanspreken van een groep | jongens, meisjes, meiden, dames en heren, beste heren | **allemaal**, **iedereen**, **mensen**, **beste aanwezigen**, **luisteraars**, **hoi allemaal** | "jongens" over bepaalde jongens (Jelles jongens) of in een citaat blijft |
+| Onbekende persoon | iedereen/iemand/een fietser/de speler ... hij, zijn | **die**, **diegene**, **de**, **de eigen**, **je eigen** | "Iedereen houdt de eigen voortgang" |
+| Aandoening of beperking als scheldwoord | mongool, spastisch, debiel, achterlijk, gestoord, psychopaat, schizo, krankzinnig, idioot, invalide, gehandicapt, kreupel, mismaakt, dwerg, "een gek" (voor een persoon) | **iemand**, **een persoon met een beperking**, of **benoem het gedrag** (agressief, onhandig, onbezonnen) | "gek" voor gedrag of voorkeur mag ("gek op de fanfare", "rijden als gekken"); een persoon een gek noemen niet |
+| Afkomst of volk | zigeuner, neger, negerzoen, kaffer, hottentot, indiaan, eskimo, allochtoon, autochtoon, mohammedaan, gastarbeider | **het volk of de herkomst bij naam** (Roma en Sinti, Inuit), of laat het weg | Groninger, Fries, Drent en dorpsnamen zijn gewoon toegestaan |
+| Gender en seksualiteit als scheldwoord | flikker, mietje, nicht, travestiet, wijf, slet, hoer, homo | **laat het weg** of benoem het gedrag | |
+| Ziekte als vloek | kanker, tyfus, tering, pleuris, kolere, klere | **verdraaid**, **donders**, **sapperloot** | |
+| Machtstermen | master/slave, blacklist/whitelist, slaaf, guest(s) | **hoofd/volger**, **blokkeerlijst/toegestaan**, **gast** (Nederlands) | `host` is al "gastheer" (zie boven); in Samen spelen gaat het om de rol, zie de sessie die dat schrijft |
+
+Kom je een geval tegen dat niet in de lijst staat? Vraag: zou iemand uit die groep zich geraakt voelen, en is het nodig voor de grap? Zo nee: aanpassen.
+Een ingesproken regel die mild is, blijft klinken en staat met de nieuwe tekst in `scripts/voice_stil.json` (bij de volgende opname). Een echt kwetsend woord krijgt zijn opname niet meer: de regel verschijnt als ondertitel of tekstballon (ook in `voice_stil.json`).

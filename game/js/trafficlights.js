@@ -1,6 +1,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { makeProp, addProp, removeProp } from './breakables.js';
 import { allSignals } from './junctions.js';
+import { MODS } from './cheatmods.js';
 
 // Conflict-free fixed-time controllers. Every car approach belongs to an
 // axis (streams that are parallel or opposite); each axis gets its own green
@@ -69,19 +70,20 @@ function movePhase(h, move) {
 
 export function getTrafficLightPhase(head) {
   if (head.broken) return 'off';
+  if (MODS.alwaysGreen) return 'green';   // Altijd groen (cheat): the lamps show what the cars obey
   return movePhase(head, 'through');
 }
 
 // What an AI vehicle at this head obeys: left turners wait for their arrow
 // where the axis has a protected left phase.
 export function trafficLightPhaseMove(head, left) {
-  if (head.broken) return 'green';
+  if (head.broken || MODS.alwaysGreen) return 'green';
   return movePhase(head, left ? 'left' : 'through');
 }
 
 // Phase for traffic travelling at `heading` through this head's controller.
 export function trafficLightPhaseFor(head, heading) {
-  if (head.broken) return 'green';
+  if (head.broken || MODS.alwaysGreen) return 'green';
   const c = head.ctrl;
   let best = null, bs = 2;
   for (const a of c.approaches) {

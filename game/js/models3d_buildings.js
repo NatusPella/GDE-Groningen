@@ -2,7 +2,8 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { HABBO_PALETTE, habboMaterial, vcMaterial, GeoBuilder, createBrickDetailTexture, createRoofTileTexture, composeMatrix } from './pixelart3d.js';
 import { getLandmarkModel } from './landmarkmodels.js';
 import { hasLandmarkModel, buildLandmarkGeometry, LANDMARK_MATERIALS, setLandmarkNight } from './landmarks3d.js';
-import { facadeLook } from './winkelkit.js';
+import { facadeLook, rankForType } from './winkelkit.js';
+import { shopSpotFor } from './shopspots.js';
 import { capBuilding, ringArea } from './buildingcap.js';
 import { glassMaterial, setGlassNight, paneUV, PANE_HOME, PANE_GROUND, PANE_SHOP, PANE_OFFICE } from './interiorglass.js';
 import { pointInPolygon, segDist as segDistXY, WATER_Y } from './util.js';
@@ -510,7 +511,35 @@ function addDoor(B, e, c, w, S, opts = {}) {
   if (opts.canopy) wallBox(B, e, c - w / 2 - 0.35, c + w / 2 + 0.35, h + 0.62, h + 0.74, 0, 0.9, TRIM_DARK);
 }
 
-function addShopfront(B, e, s0, s1, top, S, seed) {
+// What stands outside the door of each shop type (winkelkit.js, STIJL.buiten): small blocks
+// on the pavement beside the door, so the shops differ from the street as well.
+const PROP_LAYOUT = {
+  emmers: (put, x, h) => { put(x - 0.22, x + 0.22, 0, 0.45, 0.35, 0.8, 0x6f7a80); put(x - 0.18, x + 0.18, 0.45, 0.7, 0.4, 0.75, [0xd8508a, 0xf0c030, 0xf2f2f2, 0xd03030][Math.floor(h * 4)]); },
+  karretjes: (put, x) => { put(x - 0.3, x + 0.3, 0.1, 0.9, 0.3, 1.1, 0x9aa1a5); put(x - 0.3, x + 0.3, 0.9, 0.95, 0.3, 1.1, 0xd8423a); },
+  bord: (put, x) => { put(x - 0.25, x + 0.25, 0, 0.8, 0.35, 0.5, 0x2a2b2d); put(x - 0.2, x + 0.2, 0.25, 0.7, 0.5, 0.52, 0xf2ead2); },
+  menubord: (put, x) => { put(x - 0.3, x + 0.3, 0, 0.95, 0.35, 0.5, 0x1d1a1a); put(x - 0.24, x + 0.24, 0.35, 0.85, 0.5, 0.52, 0xf2c24a); },
+  poppen: (put, x, h) => { put(x - 0.12, x + 0.12, 0, 1.55, 0.4, 0.6, 0xe8e2da); put(x - 0.2, x + 0.2, 0.7, 1.3, 0.38, 0.62, [0x7a4fb0, 0xd8423a, 0x2f6fb8][Math.floor(h * 3)]); },
+  fietsrek: (put, x) => { put(x - 0.7, x + 0.7, 0, 0.4, 0.3, 0.38, 0x4a4d50); put(x - 0.65, x - 0.55, 0.4, 0.95, 0.3, 0.9, 0x2f6fb8); put(x + 0.55, x + 0.65, 0.4, 0.95, 0.3, 0.9, 0x2f6fb8); },
+  kapperspaal: (put, x) => { for (let i = 0; i < 6; i++) put(x - 0.1, x + 0.1, 0.9 + i * 0.12, 1.02 + i * 0.12, 0.3, 0.5, i % 2 ? 0xf2f2f2 : [0xd03030, 0x2f4fa8][(i >> 1) % 2]); put(x - 0.12, x + 0.12, 0.84, 0.9, 0.28, 0.52, 0x2a2b2d); },
+  vlag: (put, x) => { put(x - 0.03, x + 0.03, 0, 2.6, 0.4, 0.46, 0x3a3c3e); put(x + 0.03, x + 0.55, 1.5, 2.6, 0.4, 0.43, 0x2f6ad8); },
+  meubels: (put, x) => { put(x - 0.3, x + 0.3, 0, 0.45, 0.35, 0.85, 0x7a5a3c); put(x - 0.3, x + 0.3, 0.45, 0.95, 0.35, 0.4, 0x7a5a3c); put(x - 0.7, x - 0.35, 0, 0.3, 0.4, 0.8, 0x9a8a6a); },
+  draaistandaard: (put, x, h) => { put(x - 0.2, x + 0.2, 0, 1.5, 0.4, 0.8, 0xc2423a); put(x - 0.17, x + 0.17, 0.5, 1.35, 0.42, 0.82, [0xf2d24a, 0x4a8ad8, 0xf2f2f2][Math.floor(h * 3)]); },
+  krantenrek: (put, x) => { put(x - 0.3, x + 0.3, 0, 1.3, 0.35, 0.55, 0x4a4d50); put(x - 0.27, x + 0.27, 0.5, 1.2, 0.55, 0.58, 0xe8e2da); put(x - 0.3, x + 0.3, 1.3, 1.5, 0.35, 0.55, 0xc23f78); },
+};
+
+function addShopProps(B, e, s0, s1, bw, doorBay, kind, seed) {
+  const lay = PROP_LAYOUT[kind];
+  if (!lay || s1 - s0 < 2.6) return;
+  const put = (a, b, y0, y1, d0, d1, color) => wallBox(B, e, a, b, y0, y1, d0, d1, color, G_DETAIL, FACE_FRONT | FACE_TOP | FACE_SIDES);
+  // beside the door: the nearest end of the front that is not the door's bay
+  const doorC = s0 + (doorBay + 0.5) * bw;
+  const left = doorC - s0 > s1 - doorC;
+  const x = left ? s0 + 0.8 : s1 - 0.8;
+  if (Math.abs(x - doorC) < 1.1) return;
+  lay(put, x, hash2(seed, 9.9));
+}
+
+function addShopfront(B, e, s0, s1, top, S, seed, poiType = null) {
   const span = s1 - s0;
   wallBox(B, e, s0, s1, 0, 0.4, 0, 0.075, HARDSTONE, G_DETAIL, FACE_FRONT | FACE_TOP | FACE_SIDES);
   const frameC = S.shopFrame;
@@ -518,7 +547,7 @@ function addShopfront(B, e, s0, s1, top, S, seed) {
   const n = Math.max(1, Math.round(span / 1.9));
   const bw = span / n;
   const doorBay = Math.floor(hash2(seed, 2.2) * n);
-  const shopRank = hash2(seed, 5.5);
+  const shopRank = poiType ? rankForType(poiType, seed) : hash2(seed, 5.5);
   // gevelreclame en markies van hetzelfde winkeltype als het interieur in de ruit (winkelkit.js)
   const look = facadeLook(shopRank);
   const shopUV = (s0, s1, y0, y1, bay) => wallQuad(B, e, s0, s1, y0, y1, 0.055, GLASS_TONES[(bay + Math.floor(seed * 7)) % 4 + 1], G_GLASS, edgePaneUV(e, shopRank, PANE_SHOP, s1 - s0, y1 - y0, bay));
@@ -535,6 +564,7 @@ function addShopfront(B, e, s0, s1, top, S, seed) {
     }
   }
   wallBox(B, e, s0, s1, top, top + 0.5, 0, 0.12, look.sign);
+  addShopProps(B, e, s0, s1, bw, doorBay, look.buiten, seed);
   if (look.awning) {
     const a0 = s0 + 0.15, a1 = s1 - 0.15, ya = top - 0.05, yb = top - 0.6, da = 0.12, db = 1.25;
     const strips = Math.max(1, Math.round((a1 - a0) / 0.45));
@@ -1013,9 +1043,13 @@ function buildDetailGeometry(b, box, archetype, depth, fine, fine2, wallHex, roo
   else if (houseboat) style = { w: 1.0, bay: 1.7, hRatio: 0.42 };
   else style = { w: tallHistoric ? 1.05 : 1.0 + r(10) * 0.3, bay: 2.1 + r(11) * 0.5, hRatio: tallHistoric ? 0.6 : 0.5 };
 
-  let shopEdge = null;
+  let shopEdge = null, poiType = null, poiName = '';
   if (!industrial && !houseboat && mainEdge && !mainEdge.party && mainEdge.len >= 3.5 && floorH >= 2.6) {
-    if (archetype === 'retail' || (centre && r(12) < 0.55)) shopEdge = mainEdge;
+    // a real shop in this building (shopspots.js, #156): it gets a shopfront of its own type
+    const poi = shopSpotFor(edges.map((e) => [e.ax, e.ay]), mainEdge);
+    poiType = poi ? poi.type : null;
+    poiName = poi ? poi.name || '' : '';
+    if (poiType || archetype === 'retail' || (centre && r(12) < 0.55)) shopEdge = mainEdge;
   }
   const shopTop = Math.min(floorH - 0.35, 3.2);
 
@@ -1075,7 +1109,13 @@ function buildDetailGeometry(b, box, archetype, depth, fine, fine2, wallHex, roo
       addDoor(B, e, e.len / 2, Math.min(1, e.len - 0.6), S, { h: Math.min(2.1, depth - 0.3) });
     }
   }
-  if (shopEdge) addShopfront(B, shopEdge, 0.15, shopEdge.len - 0.15, shopTop, S, seed);
+  if (shopEdge) addShopfront(B, shopEdge, 0.15, shopEdge.len - 0.15, shopTop, S, seed, poiType);
+  // read by the QA scenes (scripts/ui/shots_scenes_r39.js): where the shopfront is and what it sells
+  // (shopsigns3d.js hangs the name of the shop on it)
+  b.shopFront = shopEdge ? {
+    ax: shopEdge.ax, ay: shopEdge.ay, bx: shopEdge.bx, by: shopEdge.by, nx: shopEdge.nx, ny: shopEdge.ny, tx: shopEdge.tx, ty: shopEdge.ty,
+    s0: 0.15, s1: shopEdge.len - 0.15, top: shopTop, poi: poiType, name: poiName, sign: poiType ? facadeLook(rankForType(poiType, seed)).sign : 0x232323,
+  } : null;
 
   if (!industrial && archetype !== 'house' && floorCount >= 3 && r(15) < 0.45) {
     for (let f = 1; f < floorCount; f++) {

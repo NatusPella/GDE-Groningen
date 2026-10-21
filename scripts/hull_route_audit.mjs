@@ -49,12 +49,17 @@ let from, to;
 if (args.length >= 4) { from = [Number(args[0]), Number(args[1])]; to = [Number(args[2]), Number(args[3])]; } else {
   const lau = idx.global.places.find((p) => /^Lauwersoog/.test(p.name));
   from = [0, -350]; to = null;
+  // het zeewater dat het vaarnet zelf als bestemming kent (de tong voorbij de Robbengatsluis): een punt in open zee naast de dijk heeft geen
+  // knoop in de buurt, de route eindigde dan in het Lauwersmeer en liep dwars door de dijk (#349)
+  const zee = net.hubs['Waddenzee bij Lauwersoog'];
+  if (zee !== undefined) to = [net.nodes[zee].x, net.nodes[zee].y];
   for (let r = 150; r < 2500 && !to; r += 50) for (let a = 0; a < 6.28 && !to; a += 0.3) {
     const x = lau.x + Math.cos(a) * r, y = lau.y + Math.sin(a) * r;
     await loadAround(x, y, 100);
     if (waterClearance(map, x, y, 6) > 3 && seaAt(x, y)) to = [x, y];
   }
 }
+console.log(`van ${from.map(Math.round)} naar ${to.map(Math.round)}`);
 const route = planVaarRoute(net, from, to, kind);
 if (!route) { console.log(`GEEN ROUTE voor ${kind} van ${from.map(Math.round)} naar ${to.map(Math.round)}`); process.exit(1); }
 const P = route.pts, cum = [0];
@@ -114,6 +119,25 @@ for (let guard = 0; guard < 400; guard++) {
   // overbrug: alle cellen binnen PLUG m van het stokpunt open
   for (const c of cells.values()) if (Math.hypot(c.x - edge.x, c.y - edge.y) <= PLUG && !c.open) c.open = true;
   frontier = order.filter((c) => seen.has(key(c.cx, c.cy)) && Math.hypot(c.x - edge.x, c.y - edge.y) <= PLUG + CELL);
+}
+// --profiel=<van>-<tot>: de vrije ruimte (waterClearance) langs de lijn zelf, per 4 m, tussen twee afstanden van het begin
+{
+  const pr = opt('profiel', '');
+  if (pr) {
+    const [a, b] = pr.split('-').map(Number);
+    let line = '', last = -1e9;
+    for (let i = 0; i + 1 < P.length; i++) {
+      const L = cum[i + 1] - cum[i];
+      for (let s = 0; s < L; s += 1) {
+        const al = cum[i] + s;
+        if (al < a || al > b || al - last < 4) continue;
+        last = al;
+        const x = P[i][0] + (P[i + 1][0] - P[i][0]) * s / L, y = P[i][1] + (P[i + 1][1] - P[i][1]) * s / L;
+        await loadAround(x, y, 300);
+        console.log(`  ${String(Math.round(al)).padStart(6)} m  (${Math.round(x)}, ${Math.round(y)})  vrij ${waterClearance(map, x, y, 6).toFixed(1)} m`);
+      }
+    }
+  }
 }
 console.log(`route ${kind}: ${Math.round(total)} m, ${P.length} punten, strook ${HALF} m, vrije ruimte >= ${MIN_CLEAR} m`);
 console.log(`dichte plekken waar de romp niet door kan: ${blockers.length}`);

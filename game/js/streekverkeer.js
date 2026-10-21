@@ -13,6 +13,7 @@ export const FADE_SECONDS = 45;
 const ORANJE = ['#e8761c', '#f08a24', '#d9631a', '#f5a03c'];
 const REGENBOOG = ['#d8352a', '#f0a020', '#f2d21c', '#2f9e4f', '#2a74c9', '#7a3fb5', '#e0589a'];
 const TREKKER = ['#3f8f3a', '#c0392b', '#2a5fa8', '#d9a21c'];
+const KLIKO = ['#7b8085', '#3f7f46', '#3a66a8', '#5a5f64'];
 const KOEK = ['#c98a4b', '#e3b26e', '#a8662f', '#f0d29a'];
 
 // look: { palette, size } or null (the normal cars). size scales length and width.
@@ -25,6 +26,7 @@ export const TRAFFIC_STREKEN = [
   { id: 'oranjekoorts', mix: { cars: 1, bikes: 1, scooters: 1, motors: 1 }, look: { palette: ORANJE, size: 1 } },
   { id: 'regenboogverkeer', mix: { cars: 1.2, bikes: 1, scooters: 1, motors: 1 }, look: { palette: REGENBOOG, size: 1 } },
   { id: 'minimobielen', mix: { cars: 1.6, bikes: 1, scooters: 1, motors: 1 }, look: { palette: KOEK, size: 0.7 } },
+  { id: 'kliko', mix: { cars: 1.2, bikes: 1, scooters: 1, motors: 1 }, look: { palette: KLIKO, size: 0.6 } },
   { id: 'alleentrekkers', mix: { cars: 0.7, bikes: 0, scooters: 0, motors: 0 }, look: { palette: TREKKER, size: 1.25 } },
   { id: 'reuzenwagens', mix: { cars: 0.6, bikes: 1, scooters: 1, motors: 1 }, look: { palette: null, size: 1.35 } },
 ];

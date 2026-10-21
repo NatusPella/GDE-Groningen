@@ -284,3 +284,89 @@ defSample('crossing_bell', 0.9, (c, sr, R) => {
   addPartials(d, sr, 0, f, [[1, 1, 0.16], [1.006, 0.7, 0.2], [2.76, 0.45, 0.09], [5.4, 0.2, 0.04]], 1, R);
   nb(d, sr, 0, R, { type: 'hp', f: 4200, q: 1.5, tau: 0.004, amp: 0.5 });
 }, { peak: 0.85 });
+
+// The thin ones (issue #173, level report of scripts/qa/sfx_levels.mjs): swinging a weapon,
+// a house door, the engine switching off, the alarm, the camera and the empty click were
+// plain synth bursts 20 dB under the rest. Rendered here with a body, a start and a tail;
+// audio.js plays them first and keeps the old synth as the fallback while a sample renders.
+FX_INFO.swing_whoosh_0 = { cat: 'wapen', label: 'Zwaai met een wapen (A)', gain: 0.85, ref: 3, range: 45 };
+FX_INFO.swing_whoosh_1 = { cat: 'wapen', label: 'Zwaai met een wapen (B)', gain: 0.85, ref: 3, range: 45 };
+FX_INFO.swing_whoosh_2 = { cat: 'wapen', label: 'Zwaai met een wapen (C)', gain: 0.85, ref: 3, range: 45 };
+FX_INFO.door_house_open = { cat: 'deur', label: 'Huisdeur open', gain: 0.8, ref: 3, range: 45 };
+FX_INFO.door_house_close = { cat: 'deur', label: 'Huisdeur dicht', gain: 0.9, ref: 3, range: 50 };
+FX_INFO.engine_off = { cat: 'voertuig', label: 'Motor slaat af', gain: 0.8, ref: 5, range: 70 };
+FX_INFO.alarm_ring = { cat: 'omgeving', label: 'Alarm loeit', gain: 0.8, ref: 8, range: 160 };
+FX_INFO.camera_click = { cat: 'ui', label: 'Camera: spiegel en sluiter', gain: 0.9, ref: 3, range: 40 };
+FX_INFO.empty_click = { cat: 'wapen', label: 'Leeg: klik', gain: 0.9, ref: 2, range: 30 };
+
+// a whoosh: a band of noise that sweeps up through the swing and falls away
+for (let v = 0; v < 3; v++) defSample(`swing_whoosh_${v}`, 0.5, (c, sr, R) => {
+  const d = c[0], j = () => 0.9 + R() * 0.2, base = 520 + v * 90;
+  for (let k = 0; k < 5; k++) nb(d, sr, 0.015 + k * 0.035, R, { f: base * (1 + k * 0.55) * j(), q: 1.3, tau: 0.05, amp: 0.55 + k * 0.08, attack: 0.03 });
+  nb(d, sr, 0.04, R, { type: 'hp', f: 2800, q: 0.7, tau: 0.08, amp: 0.25, attack: 0.04, len: 0.3 });
+  thump(d, sr, 0.0, 95 * j(), 0.06, 0.25);
+}, { rate: 22050, peak: 0.75 });
+
+defSample('door_house_open', 0.9, (c, sr, R) => {
+  const d = c[0];
+  // handle, latch, then the door swinging off its stop
+  click(d, sr, R, 0, 2600, 0.9);
+  nb(d, sr, 0.004, R, { f: 1700, q: 2, tau: 0.012, amp: 0.9 });
+  thump(d, sr, 0.05, 120, 0.03, 0.55);
+  addTone(d, sr, 0.09, 0.5, R, { f0: 150 + R() * 30, f1: 290 + R() * 40, amp: 0.16, attack: 0.1, release: 0.2, shape: 'saw', vib: 0.05, vibRate: 24 });
+  nb(d, sr, 0.1, R, { f: 700, q: 1.5, tau: 0.25, amp: 0.25, attack: 0.1, len: 0.5 });
+}, { rate: 22050, peak: 0.85 });
+
+defSample('door_house_close', 0.7, (c, sr, R) => {
+  const d = c[0];
+  // the slam: body, the door hitting its frame, the latch snapping
+  thump(d, sr, 0, 88, 0.12, 1.5);
+  nb(d, sr, 0, R, { type: 'lp', f: 900, q: 0.7, tau: 0.07, amp: 1.2 });
+  nb(d, sr, 0, R, { f: 2600, q: 1.3, tau: 0.012, amp: 0.8 });
+  click(d, sr, R, 0.045, 2100, 0.7);
+  addPartials(d, sr, 0, 210 + R() * 30, [[1, 0.3, 0.12], [2.3, 0.15, 0.08]], 0.6, R);
+}, { rate: 22050, peak: 0.9 });
+
+defSample('engine_off', 1.6, (c, sr, R) => {
+  const d = c[0], f = 58 + R() * 6;
+  // a last cough as the revs fall away, then the metal ticking while it cools
+  addTone(d, sr, 0, 0.7, R, { f0: f * 2.1, f1: f * 0.55, amp: 0.55, attack: 0.01, release: 0.3, shape: 'saw', vib: 0.03, vibRate: 13 });
+  addTone(d, sr, 0, 0.6, R, { f0: f * 4.2, f1: f * 1.2, amp: 0.2, attack: 0.01, release: 0.3, shape: 'saw' });
+  thump(d, sr, 0.55, f * 1.1, 0.07, 0.8);
+  for (let k = 0; k < 7; k++) click(d, sr, R, 0.9 + k * (0.08 + k * 0.03) + R() * 0.02, 2800 + R() * 800, 0.4 - k * 0.04);
+  const lp = bq('lp', 1100, 0.7, sr);
+  for (let i = 0; i < d.length; i++) d[i] = lp.run(d[i]) * 1.5;
+}, { rate: 22050, peak: 0.8 });
+
+defSample('alarm_ring', 2.6, (c, sr, R, len) => {
+  const d = c[0], lp = bq('lp', 4200, 0.7, sr);
+  // a burglar bell: two tones that alternate five times a second, a hard edge and a little shimmer
+  let ph = 0;
+  for (let i = 0; i < d.length; i++) {
+    const t = i / sr, hi = Math.floor(t * 5) % 2 === 0, f = hi ? 1320 : 990;
+    ph += 2 * Math.PI * f / sr;
+    const e = Math.min(1, t / 0.02) * Math.min(1, (len - t) / 0.15);
+    const edge = 0.5 + 0.5 * Math.sin(t * 5 * Math.PI * 2 - 1.2);
+    d[i] = lp.run(Math.sign(Math.sin(ph)) * 0.55 + Math.sin(ph * 3) * 0.12) * e * (0.75 + 0.25 * edge);
+  }
+}, { rate: 22050, peak: 0.8 });
+
+defSample('camera_click', 0.35, (c, sr, R) => {
+  const d = c[0];
+  // mirror slap, then the shutter curtain
+  thump(d, sr, 0, 150, 0.015, 0.7);
+  click(d, sr, R, 0, 3200, 0.9);
+  nb(d, sr, 0, R, { f: 2400, q: 2, tau: 0.01, amp: 0.8 });
+  click(d, sr, R, 0.075, 2600, 0.7);
+  nb(d, sr, 0.075, R, { f: 3800, q: 2, tau: 0.008, amp: 0.6 });
+  thump(d, sr, 0.075, 190, 0.012, 0.35);
+}, { rate: 22050, peak: 0.8 });
+
+defSample('empty_click', 0.3, (c, sr, R) => {
+  const d = c[0];
+  // a dry hammer falling on nothing: a tik, then a smaller tok from the spring
+  click(d, sr, R, 0, 3400, 0.9);
+  nb(d, sr, 0, R, { f: 3000, q: 2.5, tau: 0.01, amp: 0.9 });
+  addPartials(d, sr, 0, 1900 + R() * 200, [[1, 0.6, 0.02], [2.4, 0.3, 0.015]], 0.35, R);
+  click(d, sr, R, 0.07, 2300, 0.45);
+}, { rate: 22050, peak: 0.8 });

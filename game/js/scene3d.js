@@ -1,5 +1,6 @@
 import { FLAGS, perfOff } from './devflags.js';
 import { sfxLinks } from './latehooks.js';
+import { MODS } from './cheatmods.js';
 import { setDualText } from './subtitles.js';
 import { markerColors } from './a11y.js';
 import { speakerHtml } from './speakers.js';
@@ -2221,6 +2222,7 @@ function syncPedestrianMeshes(world, player, animDt) {
     }
     mesh.position.set(p.x, p.gz || 0, p.y);
     mesh.rotation.y = -p.angle;
+    if (ud.pedScale !== MODS.pedScale) { mesh.scale.setScalar(MODS.pedScale); ud.pedScale = MODS.pedScale; }   // Kleine mensjes (cheat)
     // a plain walker out of the frame (last frame's cull, scene3d.js cullOffscreenActors) is not posed: its walk phase waits
     if (ud.offscreen && !p.ragdoll && !p.pose && !p.carry && !p.heldWeapon && !p.attackFx && !p.hitReact && !(p.greetUntil > world.time) && !perfOff('actoren')) continue;
     // far walkers animate at a lower rate (every 2nd frame beyond ~40 m, every 4th beyond ~90 m; walking and not posed otherwise): a person is a
@@ -2379,7 +2381,7 @@ export function update3D(dt, world) {
   updateEvenementen3D(scene, world, calendarTodayEv(world), (x, y) => (world.map.spawnZ ? world.map.spawnZ(x, y) : 0),
     (x, y, m) => !buildingAt(world.map, x, y, m) && !isInWater(world.map, x, y));
   updateCountryside(dt, world, scene, cam, viewDist);
-  updateOmmelandLandmarks(world, scene, focus);
+  updateOmmelandLandmarks(world, scene, focus, setBuildingHidden);
   probe.mark('3d:rail+country');
 
   syncParkedLayer(scene, sleepingParkedCars(world), buildVehicleActor, focus, DRAW_DIST);
@@ -2566,6 +2568,7 @@ export function update3D(dt, world) {
       if (mesh) {
         const y = (a.kind === 'seagull' ? 6 + Math.sin(world.time * 2 + (a.flapSeed || 0)) * 1.2 : 0) + (a.lift || 0);
         mesh.position.set(a.x, y, a.y);
+        if (a.kind === 'pigeon' && mesh.userData.pigeonScale !== MODS.pigeonScale) { mesh.scale.setScalar(MODS.pigeonScale); mesh.userData.pigeonScale = MODS.pigeonScale; }   // Reuzenduif (cheat)
         mesh.rotation.y = -a.angle - (a.draai || 0);   // a.lift en a.draai: een schaap in de straal van een schotel (#333)
         animateWildlifeMesh3D(mesh, a, world.time);
       }

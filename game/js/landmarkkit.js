@@ -832,3 +832,35 @@ export function kitItemFromBuilding(b, ring = null) {
   if (k === 'flat') t['building:levels'] = String(Math.round(hm / 3));
   return { k, n: name, x: x / pts.length, y: y / pts.length, o, t };
 }
+
+// --- tile buildings the kit replaces (issue #338) --------------------------------
+// A church, mill or borg kit (game/landmarkkits.json) is drawn whole on its own outline. The tile building
+// on the same footprint is then a second, wrong building: a church mapped building=yes is a flat of
+// twenty metres with housing windows (the height of the tower over the whole footprint), the tile house
+// under a borg z-fights with the kit. ommelandlandmarks.js hides such a building while the kit stands.
+// p: a landmarkParams result (kind, x, y, angle, len, wid; a mill has only the point); b: a tile row (pts).
+export const COVER_KINDS = new Set(['church', 'chapel', 'mill', 'castle']);
+const ringAreaOf = (pts) => { let a = 0; for (let i = 0; i < pts.length; i++) { const q = pts[(i + 1) % pts.length]; a += pts[i][0] * q[1] - q[0] * pts[i][1]; } return Math.abs(a / 2); };
+const inRing = (x, y, pts) => { let c = false; for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) { const [xi, yi] = pts[i], [xj, yj] = pts[j]; if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) c = !c; } return c; };
+const nearRing = (x, y, pts, r) => {
+  for (let i = 0; i < pts.length; i++) {
+    const a = pts[i], b = pts[(i + 1) % pts.length], dx = b[0] - a[0], dy = b[1] - a[1], L = dx * dx + dy * dy || 1e-9;
+    const t = Math.max(0, Math.min(1, ((x - a[0]) * dx + (y - a[1]) * dy) / L));
+    if (Math.hypot(a[0] + dx * t - x, a[1] + dy * t - y) <= r) return true;
+  }
+  return false;
+};
+export function kitCoversBuilding(p, b) {
+  if (!p || !COVER_KINDS.has(p.kind) || !b || b.landmark || !b.pts || b.pts.length < 3) return false;
+  const area = ringAreaOf(b.pts);
+  if (p.kind === 'mill') return area <= 500 && (inRing(p.x, p.y, b.pts) || nearRing(p.x, p.y, b.pts, 3));
+  if (!(p.len > 0 && p.wid > 0)) return false;
+  let cx = 0, cy = 0;
+  for (const q of b.pts) { cx += q[0]; cy += q[1]; }
+  cx /= b.pts.length; cy /= b.pts.length;
+  const ca = Math.cos(p.angle), sa = Math.sin(p.angle), dx = cx - p.x, dy = cy - p.y;
+  const u = dx * ca + dy * sa, v = -dx * sa + dy * ca;
+  if (Math.abs(u) > p.len / 2 + 3 || Math.abs(v) > p.wid / 2 + 3) return false;
+  const ratio = area / (p.len * p.wid);
+  return ratio >= 0.25 && ratio <= 3.5;
+}

@@ -29,6 +29,7 @@ import { productKey } from './shopmodels3d.js';
 import { makeHeli, registerHelipad } from './heliflight.js';
 import { buildHelipadMesh, buildHeliMesh } from './heli3d.js';
 import { noteMoney } from './finance.js';
+import { winkelMagVoorGast, MELDING_WINKEL } from './coopgast.js';
 
 export const SHOP_USE_RADIUS = 2.6;
 const OUTFIT_WANTED_COOLDOWN = 60;
@@ -595,6 +596,7 @@ export function shopPrimaryPrompt(world) {
   if (ws) return { id: 'ws-' + ws.id, x: ws.x, y: ws.y, h: 2.75, key: 'R', label: ws.type === 'tuning' ? 'Laten tunen' : ws.type === 'boot' ? 'Boot tunen' : 'Laten sleutelen', sub: storyHere(world, ws) || (ws.type === 'boot' ? `${ws.name}: de werf` : ws.name), ring: true };
   const s = nearestShop(world);
   if (!s) return null;
+  if (world.coopRole === 'client' && !winkelMagVoorGast(s.type)) return { id: 'shop-' + s.id, x: s.x, y: s.y, h: 2.75, key: 'E', label: 'Alleen in je eigen spel', sub: s.name, ring: true, dim: true }; // samen spelen (#291)
   if (policeWatching(world)) return { id: 'shop-' + s.id, x: s.x, y: s.y, h: 2.75, key: 'E', label: 'Binnenlopen', sub: `${s.name}: deur op slot, politie op je hielen`, ring: true, dim: true };
   return { id: 'shop-' + s.id, x: s.x, y: s.y, h: 2.75, key: 'E', label: s.type === 'boot' ? 'Bootje huren' : s.type === 'heli' ? 'Helikopters bekijken' : 'Binnenlopen', sub: storyHere(world, s) || `${s.name}: ${SHOP_TYPES[s.type].label.toLowerCase()}`, ring: true };
 }
@@ -619,6 +621,7 @@ export function tryShopInteract(world) {
   if (input.wasPressed('r')) {
     const g = garageForPaint(world);
     const ws = g ? null : workshopFor(world);
+    if ((g || ws) && world.coopRole === 'client') { input.consume('r'); world.addMessage(MELDING_WINKEL(ws ? ws.name : 'Spuit & Klaar'), 3.5); return true; } // samen spelen (#291): voertuigen en tuning alleen in je eigen spel
     if (g || ws) {
       input.consume('r');
       if (ws) { shopVisits[ws.type] = (shopVisits[ws.type] || 0) + 1; prepareStoryShop(); }
@@ -631,6 +634,7 @@ export function tryShopInteract(world) {
   if (!s) return false;
   input.consume('e');
   input.consume('f');
+  if (world.coopRole === 'client' && !winkelMagVoorGast(s.type)) { world.addMessage(MELDING_WINKEL(s.name), 3.5); return true; } // samen spelen (#291): wapens en voertuigen alleen in je eigen spel
   if (policeWatching(world)) {
     world.addMessage(`${s.name} gooit de deur op slot. Eerst de politie kwijt!`, 3);
     return true;
