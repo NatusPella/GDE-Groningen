@@ -49,7 +49,10 @@ export function stepsOf(events) {
       else if (e.type === 'stuck') s.stuck++;
       else if (e.type === 'cheat' && e.rung !== 'nudge') s.cheats.push(e.rung);
       else if (e.type === 'cine') s.cineDur.push(e.dur);
-      else if (e.type === 'doel' && Number.isFinite(e.afstand)) { if (s.tMissie == null) { s.aanloop.push({ afstand: e.afstand, veh: e.veh }); } else { s.routes.push({ afstand: e.afstand, veh: e.veh }); s.pogingen[s.pogingen.length - 1].push({ afstand: e.afstand, veh: e.veh }); } if (e.stage) { s.stages.add(e.stage); s.stagesKnown = true; } }
+      else if (e.type === 'doel' && Number.isFinite(e.afstand)) { if (s.tMissie == null) { s.aanloop.push({ afstand: e.afstand, veh: e.veh }); } else if (!(s.pogingen.length === 1 && !s.pogingen[0].length && s.aanloop.length && Math.abs(s.aanloop[s.aanloop.length - 1].afstand - e.afstand) < 15)) {
+          // (the first goal of a mission that starts where the run-up ended is the same goal: not counted twice)
+          s.routes.push({ afstand: e.afstand, veh: e.veh }); s.pogingen[s.pogingen.length - 1].push({ afstand: e.afstand, veh: e.veh });
+        } if (e.stage) { s.stages.add(e.stage); s.stagesKnown = true; } }
       else if (e.type === 'status') {
         if (!s.firstStatus && Number.isFinite(e.dist)) s.firstStatus = { afstand: e.dist, veh: e.veh };
       }
@@ -83,7 +86,7 @@ export async function cutsceneSpreiding() {
 // first status when the run did not log it). Time: 5,5 m/s on foot, 14 m/s in a vehicle. Goals beyond 8 km (a train, a flight) are left out.
 export function nominaal(s) {
   // a failed attempt starts the step over: the longest single attempt is the route (the sum over the retries would count it again)
-  const lists = s.pogingen.some((l) => l.length) ? s.pogingen : s.aanloop.length ? [s.aanloop] : s.firstStatus ? [[s.firstStatus]] : [[]];
+  const lists = s.pogingen.some((l) => l.length) ? s.pogingen : s.tMissie != null ? [[]] : s.aanloop.length ? [s.aanloop] : s.firstStatus ? [[s.firstStatus]] : [[]];
   let best = { meter: 0, sec: 0 };
   for (const list of lists) {
     let m = 0, t = 0;
