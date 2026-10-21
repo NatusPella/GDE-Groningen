@@ -8,8 +8,6 @@
 name: Linux-builds
 
 on:
-  push:
-    branches: [claude/r51-ci-builds]
   workflow_dispatch:
     inputs:
       tag:
