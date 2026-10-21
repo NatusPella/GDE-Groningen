@@ -20,7 +20,8 @@ ok(sceneIdsFor('M08.intro').length > 0 && sceneIdsFor('M01.3')[0] === 'M01.3', '
 
 const cat = buildCatalog({ script, npcSource });
 const keys = new Set([...Object.keys(SPECS), ...Object.keys(MORE_SPECS)]);
-ok(cat.length === keys.size + 4, 'catalogue: every spec, three acts and the end card', `${cat.length} vs ${keys.size + 4}`);
+ok(cat.length === keys.size + 4 + 3, 'catalogue: every spec, three acts, the end card and the three evenings at home', `${cat.length} vs ${keys.size + 7}`);
+ok(['M06.0', 'story-eikea', 'story-avond'].every((id) => cat.some((e) => e.id === id && e.group === 'Thuisavonden' && e.scene && e.lines.length > 2)), 'catalogue: the evenings at home (flatScene) are in the list with lines from the script');
 ok(new Set(cat.map((e) => e.id)).size === cat.length, 'catalogue ids are unique');
 for (const e of cat) {
   ok(Object.values(STATUS).includes(e.status), e.id + ' has a status', e.status);
