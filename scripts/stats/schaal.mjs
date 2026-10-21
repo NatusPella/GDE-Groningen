@@ -197,7 +197,7 @@ function metTests(lijst) {
     const runs = fs.readdirSync(k).filter((n) => /^\d{8}-\d{6}$/.test(n) && fs.existsSync(path.join(k, n, 'rapport.json'))).sort();
     if (runs.length) {
       map = path.join(k, runs[runs.length - 1]);
-      feit('tests', 'testrondes', 'Volledige testrondes (test_all) met rapport op deze machine', runs.length, 'rondes', k, 'alleen wat nog op schijf staat; het tijdelijke rapportmapje wordt niet bewaard');
+      feit('tests', 'testrondes', 'Volledige testrondes (test_all) met rapport op deze machine', runs.length, 'rondes', 'tijdelijke map gde-testall', 'alleen wat nog op schijf staat; het tijdelijke rapportmapje wordt niet bewaard');
       break;
     }
   }
@@ -211,12 +211,12 @@ function metTests(lijst) {
     const tel = {}; for (const i of items) tel[i.status] = (tel[i.status] || 0) + 1;
     const stempel = path.basename(map);
     if (items.length) {
-      feit('tests', 'rapport_items', `Items in het laatste testrapport (${stempel})`, items.length, 'items', path.join(map, 'rapport.json'));
+      feit('tests', 'rapport_items', `Items in het laatste testrapport (${stempel})`, items.length, 'items', `gde-testall/${stempel}/rapport.json`);
       for (const [s, n] of Object.entries(tel)) feit('tests', 'rapport_' + String(s).toLowerCase().replace(/\W+/g, '_'), `Status ${s} (${stempel})`, n, 'items', 'idem');
     } else {
-      feit('tests', 'rapport_gelezen', `Laatste testrapport (${stempel}) gelezen, maar de structuur is niet herkend`, 0, 'items', path.join(map, 'rapport.json'));
+      feit('tests', 'rapport_gelezen', `Laatste testrapport (${stempel}) gelezen, maar de structuur is niet herkend`, 0, 'items', `gde-testall/${stempel}/rapport.json`);
     }
-    if (r.duurSecs) feit('tests', 'rapport_duur_min', `Duur van die ronde (${stempel})`, rond(r.duurSecs / 60), 'minuten', path.join(map, 'rapport.json'));
+    if (r.duurSecs) feit('tests', 'rapport_duur_min', `Duur van die ronde (${stempel})`, rond(r.duurSecs / 60), 'minuten', `gde-testall/${stempel}/rapport.json`);
     info('rapport', stempel, JSON.stringify(tel));
   } catch (e) { mis('laatste testrapport', 'rapport.json onleesbaar: ' + e.message); }
 }
@@ -296,7 +296,7 @@ async function metWereld() {
   const gebouwd = fs.statSync(path.join(dir, 'index-provincie.json')).mtime.toISOString();
   const bron = 'game/world/index-provincie.json + tegels (.gdp)';
   const g = index.global || {};
-  feit('wereld', 'gebouwd_op', 'Wereldbouw waaruit dit komt', dag(gebouwd), 'datum', dir, 'een bouw van de dag genoemd; latere wijzigingen aan de wereldbouw zitten er niet in');
+  feit('wereld', 'gebouwd_op', 'Wereldbouw waaruit dit komt', dag(gebouwd), 'datum', 'game/world/index-provincie.json (tijdstempel)', 'een bouw van de dag genoemd; latere wijzigingen aan de wereldbouw zitten er niet in');
   feit('wereld', 'tegels', 'Kaarttegels van 1 × 1 km', Object.keys(index.tiles).length, 'tegels', bron);
   feit('wereld', 'tegelpakketten', 'Tegelpakketten (.gdp)', Object.keys(index.packs).length, 'bestanden', bron);
   let mb = 0; for (const p of Object.values(index.packs)) mb += p.size; feit('wereld', 'tegelgrootte_mb', 'Grootte van alle tegelpakketten', rond(mb / 1048576, 1), 'MB', bron);
