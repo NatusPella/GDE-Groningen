@@ -167,12 +167,21 @@ vec3 igProducts(vec2 c, float detail, float style, int st) {
     if (c.y > 1.15 && c.y < 1.9 && fract(c.x / 0.55) > 0.1 && fract(c.x / 0.55) < 0.9) col = mix(vec3(0.85, 0.35, 0.18), vec3(0.95, 0.75, 0.25), h);
     else if (fy > 0.25 && fy < 0.7 && bar < 0.15 + 0.6 * h) col = vec3(0.96, 0.82, 0.32);
   } else if (pat == 4) {
-    float row = floor(c.y / 0.75), fy = fract(c.y / 0.75);
-    float cell = floor(c.x / 0.075 + row * 3.0);
+    // clothes on a rail: garments with shoulders, flat colours, gaps between them (not a wall of spines)
+    float row = floor(c.y / 0.8), fy = fract(c.y / 0.8);
+    float u = c.x / 0.26 + row * 0.43;
+    float cell = floor(u), fx = fract(u) - 0.5;
     float h = igH(vec2(cell, row));
-    col = vec3(0.9, 0.88, 0.92);
-    if (fy > 0.86 && fy < 0.92) col = vec3(0.5);
-    else if (fy > 0.12 && fy < 0.86 && fract(c.x / 0.075 + row * 3.0) < 0.82) col = mix(0.25 + 0.7 * vec3(fract(h * 3.7), fract(h * 7.1), fract(h * 11.3)), acc.rgb, 0.35 * h);
+    col = vec3(0.92, 0.9, 0.94);
+    if (fy > 0.9 && fy < 0.95) col = vec3(0.42);
+    else if (fy > 0.12 && fy < 0.9 && h > 0.15) {
+      float halfw = mix(0.4, 0.13, smoothstep(0.66, 0.84, fy));
+      if (abs(fx) < halfw) {
+        int pi = int(floor(h * 6.0));
+        vec3 cc = pi == 0 ? vec3(0.82, 0.25, 0.3) : (pi == 1 ? vec3(0.2, 0.4, 0.75) : (pi == 2 ? vec3(0.95, 0.8, 0.25) : (pi == 3 ? vec3(0.25, 0.6, 0.4) : (pi == 4 ? vec3(0.55, 0.35, 0.7) : vec3(0.97)))));
+        col = mix(cc, acc.rgb, 0.15) * (0.85 + 0.25 * fy);
+      }
+    }
   } else if (pat == 5) {
     float cell = floor(c.x / 1.1);
     float h = igH(vec2(cell, 4.0));
@@ -228,6 +237,19 @@ vec3 igProducts(vec2 c, float detail, float style, int st) {
     float fx = fract(c.x / 0.24 + row * 0.33);
     col = vec3(0.3);
     if (fx > 0.06 && fx < 0.94 && fy > 0.05) col = fy > 0.65 ? mix(acc.rgb, vec3(0.95, 0.85, 0.2), h) : 0.55 + 0.4 * vec3(fract(h * 3.7), fract(h * 5.3), fract(h * 9.1));
+  } else if (pat == 0) {
+    // supermarket: shelves of boxes and tins in a few flat package colours, a yellow price strip under each shelf
+    float row = floor(c.y / 0.42), fy = fract(c.y / 0.42);
+    float u = c.x / 0.2 + row * 0.31;
+    float cell = floor(u), fx = fract(u);
+    float h = igH(vec2(cell, row));
+    col = vec3(0.84, 0.85, 0.86);
+    if (fy < 0.09) col = vec3(0.96, 0.84, 0.25);
+    else if (fx > 0.07 && fx < 0.93 && fy < 0.09 + 0.8 * (0.72 + 0.28 * h)) {
+      int pi = int(floor(h * 5.0));
+      col = pi == 0 ? vec3(0.85, 0.22, 0.2) : (pi == 1 ? vec3(0.96, 0.8, 0.2) : (pi == 2 ? vec3(0.2, 0.55, 0.3) : (pi == 3 ? vec3(0.95, 0.95, 0.93) : vec3(0.22, 0.42, 0.8))));
+      if (fy > 0.09 + 0.8 * (0.72 + 0.28 * h) - 0.14) col *= 1.15;
+    }
   } else {
     // 0 schappen, 9 rommelkasten: rijen producten in de kleur van het type
     float row = floor(c.y / rh), fy = fract(c.y / rh);
