@@ -63,7 +63,9 @@ import { effectsFor, shakeAmount } from './a11ylogic.js';
 import { reducedMotion } from './motion.js';
 import { dynamicScale, cpuLevel } from './gfxprofile.js';
 import { VIEW_DISTANCES, viewDistanceFor, detailDistanceFor, DETAIL_BASE } from './viewdist.js';
-import { buildingBatcher, roadBatcher, facadeBatcher, shoreBatcher } from './staticbatch3d.js';
+import { compareOpaque } from './drawpool.js';
+import { installGlFilter } from './glfilter.js';
+import { buildingBatcher, roadBatcher, facadeBatcher, shoreBatcher, drawHub } from './staticbatch3d.js';
 import { simLevel } from './simload.js';
 import { beginWheels, addVehicleWheels, endWheels } from './wheelinstances3d.js';
 
@@ -904,6 +906,7 @@ export function init3D(map) {
   renderer.shadowMap.type = THREE.PCFShadowMap;
   hookShadowPass(renderer.shadowMap);
   hookLinkGuard(renderer);
+  installGlFilter(renderer.getContext());
   pinShaderPrograms(renderer);
   // Fetching shader info logs after a link is a sync point that costs tens of
   // ms per program on a busy GPU; ?shaderdebug brings the error checks back.
@@ -976,6 +979,18 @@ export function init3D(map) {
     freezeStatic(terrainMesh);
   }
   scene.add(freezeStatic(terrainMesh));
+  scene.add(drawHub.root);
+  // a pool of a material not seen before links its program in the background before its first cell draws
+  drawHub.onPool = (p) => {
+    if (perfOff('bouwklaar')) return;
+    precompile(p);
+    if (p.customDepthMaterial) {
+      const d = new THREE.Mesh(p.geometry, p.customDepthMaterial);
+      d.isBatchedMesh = true;
+      d._matricesTexture = p._matricesTexture;
+      precompile(d);
+    }
+  };
 
   // Opaque canal bed under the whole map: terrain holes are cut per grid
   // triangle, so their jagged edges never line up exactly with the water
@@ -1026,7 +1041,7 @@ export function init3D(map) {
   onSettingsChange(applyViewSettings);
   resize3D();
   window.addEventListener('resize', resize3D);
-  window.__scene3d = { THREE, scene, cam, renderer, postfx, farLod, actors: () => ({ vehicles: vehicleMeshes, peds: pedMeshes, wildlife: wildlifeMeshes, culled: culledActors }), setBlobPool: (on) => { blobPoolOn = !!on; }, dists: () => ({ DRAW_DIST, buildingDetailR, facadeDetailDist, roadDetailR, viewDist }), batches: () => ({ buildings: buildingBatcher.info(), facades: facadeBatcher.info(), roads: roadBatcher.info(), shores: shoreBatcher.info() }) };
+  window.__scene3d = { THREE, scene, cam, renderer, postfx, farLod, actors: () => ({ vehicles: vehicleMeshes, peds: pedMeshes, wildlife: wildlifeMeshes, culled: culledActors }), setBlobPool: (on) => { blobPoolOn = !!on; }, dists: () => ({ DRAW_DIST, buildingDetailR, facadeDetailDist, roadDetailR, viewDist }), batches: () => ({ buildings: buildingBatcher.info(), facades: facadeBatcher.info(), roads: roadBatcher.info(), shores: shoreBatcher.info(), pool: drawHub.stats() }) };
 }
 
 // increments each time the scene is drawn to the canvas (blackframe.js)
@@ -1367,8 +1382,35 @@ function hookShadowPass(shadowMap) {
 // shadow pass's own material, so a skipped caster would never come back), and without the extension nothing changes.
 const linkPending = new Set();
 const LINK_GUARD_AFTER = 600;
+// three sorts the opaque draws by material id, so the materials of one program lie wherever their ids fall and the renderer
+// switches program (and uploads the lights, fog and shadow uniforms again) far more often than there are programs.
+// This sort puts the program first: the id of the program a material was last drawn with, noted after each draw of the
+// game scene (?perfoff=progsort for the plain order).
+let progSortOn = true;
+function programSort(a, b) { return compareOpaque(a, b, progSortOn); }
+// Whether a program is linked. Asking is a synchronous round trip to the GPU process that waits out its backlog (KHR_parallel_shader_compile
+// COMPLETION_STATUS), and the guard asked for every draw of every material still linking: with a few dozen programs pending that was most of the
+// frame (66% of the main thread in a profile right after a pool was created). A linked program is remembered; while one is not linked, the
+// question is asked at most every LINK_POLL_MS for all of them, and the answer in between is 'not yet' (its draw waits a frame or two longer).
+const LINK_POLL_MS = 25;
+let linkPollAt = 0;
+function programLinked(p) {
+  if (p._linked) return true;
+  if (perfOff('linkpoll')) return p.isReady();
+  const now = performance.now();
+  if (now < linkPollAt) return false;
+  if (p.isReady()) { p._linked = true; return true; }
+  linkPollAt = now + LINK_POLL_MS;
+  return false;
+}
 function hookLinkGuard(r) {
-  const draw = r.renderBufferDirect.bind(r);
+  r.setOpaqueSort(programSort);
+  const draw0 = r.renderBufferDirect.bind(r);
+  const draw = function (camera, sc, geometry, material, object, group) {
+    const out = draw0(camera, sc, geometry, material, object, group);
+    if (sc === scene && !Array.isArray(material)) { const pr = r.properties.get(material).currentProgram; if (pr) material.userData.pk = pr.id; }
+    return out;
+  };
   let guard = null;
   r.renderBufferDirect = function (camera, sc, geometry, material, object, group) {
     if (guard === null) guard = r.extensions.has('KHR_parallel_shader_compile');
@@ -1376,7 +1418,7 @@ function hookLinkGuard(r) {
     if (guard && canvasFrames > LINK_GUARD_AFTER && (sc === null || sc === scene) && !material.isMeshDepthMaterial && !material.isMeshDistanceMaterial && !perfOff('linkwacht')) {
       const programs = r.properties.get(material).programs;
       let ready = !!programs;
-      if (programs) for (const p of programs.values()) if (!p.isReady()) { ready = false; break; }
+      if (programs) for (const p of programs.values()) if (!programLinked(p)) { ready = false; break; }
       if (!ready) { linkPending.add(object); return undefined; }
     }
     return draw(camera, sc, geometry, material, object, group);
@@ -2103,6 +2145,24 @@ function buildPedActor(p) {
   return enableShadows(mesh, false);
 }
 
+// how many frames a walker's pose stays: 1 (every frame), 2 or 4. Manhattan distance to the player in metres (a Euclid distance of up to 1.4 less).
+const PED_TIER_2 = 55, PED_TIER_4 = 130;
+function pedTier(manhattan, p, now) {
+  if (p.ragdoll || p.pose || p.carry || p.heldWeapon || p.attackFx || p.hitReact || p.greetUntil > now) return 1;
+  if (perfOff('pedtier')) return simLevel() && manhattan > 45 ? 2 : 1;
+  return manhattan > PED_TIER_4 ? 4 : manhattan > PED_TIER_2 ? 2 : 1;
+}
+// a held pose is not worked out again by three.js (Skeleton.update) and not uploaded: the bone texture stays as it was
+function holdSkeleton(mesh, hold) {
+  const body = mesh.userData.body;
+  const sk = body && body.skeleton;
+  if (!sk) return;
+  if (!sk.__held) {
+    sk.__held = { hold: false, real: sk.update };
+    sk.update = function () { if (!this.__held.hold) this.__held.real.call(this); };
+  }
+  sk.__held.hold = hold;
+}
 function syncPedestrianMeshes(world, player, animDt) {
   pedClock += animDt || 1e-4;
   pedView.camX = cam.position.x;
@@ -2167,14 +2227,19 @@ function syncPedestrianMeshes(world, player, animDt) {
     if (ud.pedScale !== MODS.pedScale) { mesh.scale.setScalar(MODS.pedScale); ud.pedScale = MODS.pedScale; }   // Kleine mensjes (cheat)
     // a plain walker out of the frame (last frame's cull, scene3d.js cullOffscreenActors) is not posed: its walk phase waits
     if (ud.offscreen && !p.ragdoll && !p.pose && !p.carry && !p.heldWeapon && !p.attackFx && !p.hitReact && !(p.greetUntil > world.time) && !perfOff('actoren')) continue;
-    // far walkers animate at half rate on a CPU-bound machine (simload.js)
-    if (simLevel() && !p.ragdoll && Math.abs(p.x - player.x) + Math.abs(p.y - player.y) > 45) {
+    // far walkers animate at a lower rate (every 2nd frame beyond ~40 m, every 4th beyond ~90 m; walking and not posed otherwise): a person is a
+    // skinned mesh whose bones the renderer works out and uploads as a texture at every draw (~20 GL calls a person), and most of the people in the
+    // ring are far (?perfoff=pedtier: as before, half rate beyond 45 m only on a CPU-bound machine, simload.js)
+    const tier = pedTier(Math.abs(p.x - player.x) + Math.abs(p.y - player.y), p, world.time);
+    if (tier > 1) {
       ud.animAcc = (ud.animAcc || 0) + animDt;
       ud.animTick = (ud.animTick || 0) + 1;
-      if (ud.animTick & 1) continue;
+      if (ud.tickPhase === undefined) ud.tickPhase = Math.floor(ud.animOffset || 0) & 3;
+      if ((ud.animTick + ud.tickPhase) % tier) { holdSkeleton(mesh, true); continue; }
+      holdSkeleton(mesh, false);
       animatePersonWalk(mesh, p.speed || 0, ud.animAcc);
       ud.animAcc = 0;
-    } else animatePersonWalk(mesh, p.speed || 0, animDt);
+    } else { holdSkeleton(mesh, false); animatePersonWalk(mesh, p.speed || 0, animDt); }
     if (p.carry && !p.pose) carryPose(mesh, p.carry);
     // a road-rager (roadrage.js) holds what he brought and swings it
     if ((p.heldWeapon || null) !== (ud.pedHeld || null)) { ud.pedHeld = p.heldWeapon || null; setHeldWeapon(mesh, ud.pedHeld); }
@@ -2287,6 +2352,7 @@ export function update3D(dt, world) {
         withDetail: true, compile: batchCompile, ready: batchReady, budgetMs: 1 });
     } else facadeBatcher.clear();
   }
+  drawHub.syncMaterials();
   probe.mark('3d:buildings');
   setCutMaskCenter(focus.x, focus.y, DRAW_DIST - 6);
   updatePortals(focus.x, focus.y);
@@ -2963,6 +3029,7 @@ export function update3D(dt, world) {
   renderer.shadowMap.autoUpdate = !(menuCover && menuShadowDone) && !shadowPassSkipped(cpuLevel(), shadowFrame++, focusSpeed, !perfOff('schaduw') && shadowAreaCalm(world, focus.x, focus.y));
   if (menuCover) menuShadowDone = true;
   if (sizeDirty) applyRenderSize();
+  progSortOn = !perfOff('progsort');
   cullOffscreenActors();
   skipHiddenMatrixWalk();
   try { postfx.render(); } finally { restoreCulledActors(); }
@@ -3170,7 +3237,7 @@ function prewarmKind(o) {
     k = Object.keys(g.attributes).join(',') + (g.morphAttributes.position ? 'M' : '');
     g.userData._pwKind = k;
   }
-  return (o.isInstancedMesh ? 'i' : o.isSkinnedMesh ? 'k' : o.isSprite ? 's' : o.isPoints ? 'p' : o.isLineSegments ? 'ls' : o.isLine ? 'l' : 'm')
+  return (o.isInstancedMesh ? 'i' : o.isSkinnedMesh ? 'k' : o.isBatchedMesh ? 'b' : o.isSprite ? 's' : o.isPoints ? 'p' : o.isLineSegments ? 'ls' : o.isLine ? 'l' : 'm')
     + (o.instanceColor ? 'c' : '') + k;
 }
 
@@ -3200,6 +3267,14 @@ function makePrewarmProxy(o, m) {
           : o.isLineSegments ? new THREE.LineSegments(g, m)
             : o.isLine ? new THREE.Line(g, m)
               : new THREE.Mesh(g, m);
+  // a pool (multidraw3d.js): the program has the batching define; one degenerate range so that the draw is made at all
+  if (o.isBatchedMesh) {
+    proxy.isBatchedMesh = true;
+    proxy._matricesTexture = o._matricesTexture;
+    proxy._multiDrawStarts = new Int32Array(1);
+    proxy._multiDrawCounts = new Int32Array([3]);
+    proxy._multiDrawCount = 1;
+  }
   // its own colour buffer: disposing the stand-in frees its instance buffers,
   // and a shared one would leave the real mesh drawing from a deleted buffer
   // (black grass tufts, shrubs and hedges)
@@ -3245,8 +3320,8 @@ function queuePrewarm(o, variant) {
     }
     // no depth programs while the preset has shadows off ('laag'): compiling
     // them only competes with the ones that will be drawn
-    if (o.castShadow && sun.castShadow && !o.customDepthMaterial && (o.isMesh || o.isLine || o.isPoints)) {
-      const dm = shadowDepthStandIn(m);
+    if (o.castShadow && sun.castShadow && (!o.customDepthMaterial || o.userData.pool) && (o.isMesh || o.isLine || o.isPoints)) {
+      const dm = o.userData.pool ? o.customDepthMaterial : shadowDepthStandIn(m);
       const dkey = 'D' + dm.id + '|' + kind + (o.receiveShadow ? 'r' : '');
       if (done.has(dkey)) continue;
       done.add(dkey);

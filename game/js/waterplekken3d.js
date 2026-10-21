@@ -44,7 +44,8 @@ function celGroup(lijst) {
   for (const s of Object.keys(per)) {
     const arr = per[s];
     if (!arr.length) continue;
-    const im = new THREE.InstancedMesh(GEO[s], mat, arr.length);
+    // an own geometry per mesh: meshes that share one make three set the vertex attributes up again at every change from one mesh to the next (~14 GL calls a draw, 164 a frame for these)
+    const im = new THREE.InstancedMesh(GEO[s].clone(), mat, arr.length);
     arr.forEach((q, i) => {
       _q.setFromAxisAngle(UP, q.ry);
       _p.set(q.x, WATER_Y + q.y + q.h * BASE[s], q.z);
@@ -77,7 +78,7 @@ export function updateWaterplekken3D(world) {
   for (const [k, g] of live) {
     if (dist(k) > STREAM_OUT) {
       scene.remove(g);
-      g.traverse((o) => { if (o.isInstancedMesh) o.dispose(); });
+      g.traverse((o) => { if (o.isInstancedMesh) { o.dispose(); o.geometry.dispose(); } });
       live.delete(k);
     }
   }
