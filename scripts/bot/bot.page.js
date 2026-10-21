@@ -114,7 +114,7 @@ async function flyStep(s) {
   const fkey = (kind || '') + (s.story.id || '');
   if (mem.flyKey !== fkey) { mem.flyKey = fkey; mem.flyT = s.t; }
   if (s.t - mem.flyT > 420) { mem.flyT = s.t; releaseFly(); await rescue(s, fkey, { idleFor: 420 }); return; }
-  const stripSpec = def && (def.stages.find((q) => q.kind === 'plane') || {}).strip;
+  const stripSpec = def && def.stages && (def.stages.find((q) => q.kind === 'plane') || {}).strip;
   let o = null;
   if (kind === 'airgates' && s.target) {
     const gates = st.gates || [];
@@ -251,7 +251,13 @@ if (CFG.from) {
   }
 }
 
+// a slip in one tick (a mission without stages, a world that is reloading) is logged and the bot plays on: a night-long run must not die on it
 async function loop(stopFn) {
+  for (let k = 0; k < 200; k++) {
+    try { return await loop1(stopFn); } catch (e) { B.log('lusfout', { msg: String((e && e.stack) || e).slice(0, 400) }); await sleep(400); }
+  }
+}
+async function loop1(stopFn) {
 while (true) {
   await sleep(100);
   const s = B.status();
