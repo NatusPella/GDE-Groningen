@@ -799,6 +799,11 @@ results.routes.shadowtris = await safe('shadowtris', async () => {
 results.routes.shadowmap = await safe('shadowmap', async () => {
   if (!ONLY.includes('shadowmap')) return null;
   const spots = [['markt', FOOT[0][0], FOOT[0][1], 0.3], ['gracht2', FOOT[4][0], FOOT[4][1], 2.6], ['straat', FOOT[3][0], FOOT[3][1], 1.9]];
+  const variants = window.__perfAb && window.__perfAb.length ? window.__perfAb : [['', []]];
+  const outAll = {};
+  for (const [vname, voff] of variants) {
+  window.__perfOffDyn = new Set(voff.filter((o) => o !== 'settle'));
+  if (voff.length) await sleep(12000);
   const out = {};
   const sunL = []; sc.scene.traverse((o) => { if (o.isDirectionalLight && o.castShadow) sunL.push(o); });
   const L = sunL[0];
@@ -814,7 +819,10 @@ results.routes.shadowmap = await safe('shadowmap', async () => {
     for (let gy = 0; gy < G; gy++) { const row = []; for (let gx = 0; gx < G; gx++) { let n = 0, tot = 0; const x0 = gx * W / G, x1 = (gx + 1) * W / G, y0 = gy * Hh / G, y1 = (gy + 1) * Hh / G; for (let yy = y0; yy < y1; yy += 4) for (let xx = x0; xx < x1; xx += 4) { const i = (yy * W + xx) * 4; tot++; if (!(buf[i] === 255 && buf[i + 1] === 255 && buf[i + 2] === 255 && buf[i + 3] === 255)) n++; } row.push(Math.round(100 * n / tot)); } grid.push(row.join(' ')); }
     out[name] = { size: [W, Hh], grid };
   }
-  return out;
+  outAll[vname || 'basis'] = out;
+  }
+  window.__perfOffDyn = undefined;
+  return outAll;
 });
 // A/B inside one run (only with PERF_ONLY=ab): window.__perfAb = [[name, [perfoff steps...]], ...] (PERF_AB='aan=;uit=actoren+schaduw'); the variants take
 // turns in short windows (window.__perfAbWin ms, window.__perfAbRounds rounds, the order swaps every round), so they feel the same load.
