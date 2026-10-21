@@ -590,14 +590,14 @@ const PHASES = {
     const r = inp.getBoundingClientRect();
     await send({ type: 'mouseDown', x: Math.round(r.left + 20), y: Math.round(r.top + r.height / 2), button: 'right', clickCount: 1 });
     await send({ type: 'mouseUp', x: Math.round(r.left + 20), y: Math.round(r.top + r.height / 2), button: 'right', clickCount: 1 });
-    for (let i = 0; i < 20 && !document.querySelector('.gde-tfmenu'); i++) await sleep(250); // onder belasting komt een muisgebeurtenis soms seconden later
-    const menu = document.querySelector('.gde-tfmenu');
+    for (let i = 0; i < 20 && !document.querySelector('.tfmenu-gde'); i++) await sleep(250); // onder belasting komt een muisgebeurtenis soms seconden later
+    const menu = document.querySelector('.tfmenu-gde');
     log('tekstveld-menu', { menu: !!menu, items: menu ? [...menu.querySelectorAll('button')].map((b) => b.textContent).join(',') : '' });
     shot('tekstveld-menu');
     const plak = menu && [...menu.querySelectorAll('button')].find((b) => b.textContent === 'Plakken');
     if (plak) plak.click();
     for (let i = 0; i < 16 && inp.value !== 'kamer-xyz'; i++) await sleep(250);
-    if (inp.value !== 'kamer-xyz' && plak) { await zetKlembord('kamer-xyz'); inp.focus(); inp.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true, clientX: r.left + 20, clientY: r.top + 10 })); await sleep(300); const p2 = [...document.querySelectorAll('.gde-tfmenu button')].find((b) => b.textContent === 'Plakken'); if (p2) p2.click(); await sleep(700); log('tekstveld-menu-opnieuw', { waarde: inp.value }); }
+    if (inp.value !== 'kamer-xyz' && plak) { await zetKlembord('kamer-xyz'); inp.focus(); inp.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true, clientX: r.left + 20, clientY: r.top + 10 })); await sleep(300); const p2 = [...document.querySelectorAll('.tfmenu-gde button')].find((b) => b.textContent === 'Plakken'); if (p2) p2.click(); await sleep(700); log('tekstveld-menu-opnieuw', { waarde: inp.value }); }
     log('tekstveld-menu-plakken', { waarde: inp.value });
     inp.value = ''; inp.dispatchEvent(new Event('input', { bubbles: true }));
     if (oud && oud.indexOf(String.fromCharCode(10)) < 0 && oud.indexOf(String.fromCharCode(13)) < 0) console.log('[clipboard-set] ' + oud); // het klembord van vóór de test terug

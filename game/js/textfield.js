@@ -48,7 +48,7 @@ function closeMenu() { if (menu) { menu.remove(); menu = null; } }
 function showMenu(el, x, y) {
   closeMenu();
   menu = document.createElement('div');
-  menu.className = 'gde-tfmenu';
+  menu.className = 'tfmenu-gde';
   menu.setAttribute('role', 'menu');
   menu.style.cssText = `position:fixed;left:${Math.round(x)}px;top:${Math.round(y)}px;z-index:99999;min-width:160px;padding:4px;border-radius:8px;background:rgba(15,40,26,0.97);box-shadow:inset 0 0 0 1px rgba(240,237,228,0.24),0 8px 24px rgba(0,0,0,0.5);font:20px 'Bebas Neue','Arial Narrow',Arial,sans-serif;letter-spacing:0.05em;color:#f0ede4;`;
   const items = [['Knippen', () => copyFrom(el, true)], ['Kopiëren', () => copyFrom(el, false)], ['Plakken', () => pasteInto(el)], ['Alles selecteren', () => selectAll(el)]];
