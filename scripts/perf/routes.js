@@ -721,12 +721,17 @@ results.routes.renderprof = await safe('renderprof', async () => {
   fixWorld();
   const linkedAfter = await allLinked();
   const gl = r.getContext();
+  // the first renders straight to the canvas need every program once more (tone mapping and colour space of the target are part of a program): they link in the frame, seconds in all
+  const warm0 = performance.now();
+  for (let k = 0; k < 4; k++) { r.render(sc.scene, sc.cam); gl.finish(); await sleep(50); }
+  const linkedAfter2 = await allLinked(); const warmMs = Math.round(performance.now() - warm0);
+  for (let k = 0; k < 3; k++) { r.render(sc.scene, sc.cam); gl.finish(); await sleep(50); }
   const ms = Math.min(15000, window.__perfDur || 12000);
   console.log('[profile] ' + ms);
   await sleep(300);
   const t0 = performance.now(); let n = 0;
   while (performance.now() - t0 < ms) { for (let i = 0; i < 10; i++) { r.render(sc.scene, sc.cam); n++; } gl.finish(); await sleep(0); }
-  return { renders: n, msPerRender: +((performance.now() - t0) / n).toFixed(2), linkedAfter };
+  return { renders: n, msPerRender: +((performance.now() - t0) / n).toFixed(2), linkedAfter, warmMs, linkedAfter2 };
 });
 // how long the shader programs take to link after the game started (only with PERF_ONLY=progready): every 500 ms the number of programs of the renderer and how many are linked,
 // until all are (at most 150 s), with the standing camera in the city; a pool adds programs (the batched variant of each batch material and its depth material)
