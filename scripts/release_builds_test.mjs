@@ -31,6 +31,10 @@ ok(!applyBlock(localLinux, notesFor(V, all), true).split(BLOCK_START)[1]?.includ
 const j = (a, b) => ({ startedAt: a, completedAt: b });
 const b = billable([j('2026-10-21T10:00:00Z', '2026-10-21T10:04:10Z'), j('2026-10-21T10:00:00Z', '2026-10-21T10:00:20Z')], 10);
 ok(b.minutes === 6 && b.free === 60 && b.seconds === 270, 'minuten per job omhoog afgerond');
+ok(BUILDS.windows.factor === 2 && BUILDS.windows.arm && BUILDS.linux.arm && !BUILDS.mac.arm && !BUILDS.android.arm, 'Windows 2x; ARM-optie alleen Windows en Linux');
+ok(notesFor(V, all).length === 3, 'ARM-regels staan er niet zolang de bijlagen ontbreken');
+const arm = notesFor(V, [...all, `GDE-Groningen-${V}-windows-arm64-portable.exe`, `GDE-Groningen-${V}-linux-arm64.AppImage`, `GDE-Groningen-${V}-linux-arm64.tar.gz`]);
+ok(arm.length === 5 && arm.every((x) => !/ARM/.test(x) || /niet op echte ARM-hardware getest/.test(x)), 'ARM-regels met de eerlijke kanttekening');
 ok(BUILDS.mac.factor === 10 && BUILDS.linux.factor === 1 && BUILDS.android.factor === 1, 'factoren');
 
 console.log(`${n - fails}/${n} ok`);

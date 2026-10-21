@@ -1,10 +1,13 @@
 // Na een release (desktop/release.sh, met --world) de bouwwerk in GitHub Actions starten:
-// macOS-dmg, Linux (AppImage + tar.gz) en Android-debug-APK, wachten tot ze klaar zijn en de
+// Windows-exe, macOS-dmg, Linux (AppImage + tar.gz) en Android-debug-APK, wachten tot ze klaar zijn en de
 // releasenotities bijwerken met wat er is bijgekomen en hoe je het installeert.
 //
-//   node scripts/release_builds.mjs                 tag = v<versie in desktop/package.json>, alle drie
+//   node scripts/release_builds.mjs                 tag = v<versie in desktop/package.json>; start windows, mac, linux en android,
+//                                                   behalve wat als bijlage al op de release staat (lokale exe, eerdere dmg)
 //   node scripts/release_builds.mjs v0.38.1         een bestaande release
-//   node scripts/release_builds.mjs --only linux,android   alleen deze (mac|linux|android)
+//   node scripts/release_builds.mjs --only linux,android   alleen deze (windows|mac|linux|android), ook als de bijlage er al staat
+//   node scripts/release_builds.mjs --arm64         ook de ARM64-varianten van Windows en Linux (standaard uit, niet getest
+//                                                   op echte ARM-hardware)
 //   node scripts/release_builds.mjs --notes-only    geen builds, alleen de notities bijwerken
 //   node scripts/release_builds.mjs --droog         toon de notities, wijzig niets
 //   node scripts/release_builds.mjs --ref <branch>  workflows van een andere branch dan main (alleen als
@@ -22,8 +25,9 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
 export const BUILDS = {
+  windows: { workflow: 'windows-release.yml', label: 'Windows-exe', runner: 'Windows', factor: 2, arm: true, asset: (v) => `GDE-Groningen-${v}-windows-portable.exe` },
   mac: { workflow: 'mac-release.yml', label: 'macOS-dmg', runner: 'macOS', factor: 10, asset: (v) => `GDE-Groningen-${v}-mac.dmg` },
-  linux: { workflow: 'linux-release.yml', label: 'Linux', runner: 'Linux', factor: 1, asset: (v) => `GDE-Groningen-${v}-linux.AppImage` },
+  linux: { workflow: 'linux-release.yml', label: 'Linux', runner: 'Linux', factor: 1, arm: true, asset: (v) => `GDE-Groningen-${v}-linux.AppImage` },
   android: { workflow: 'android-release.yml', label: 'Android-APK', runner: 'Linux', factor: 1, asset: (v) => `GDE-Groningen-${v}-android-debug.apk` },
 };
 
@@ -38,6 +42,9 @@ export function notesFor(version, assetNames) {
   const appimage = `GDE-Groningen-${version}-linux.AppImage`;
   const targz = `GDE-Groningen-${version}-linux.tar.gz`;
   const apk = `GDE-Groningen-${version}-android-debug.apk`;
+  const winArm = `GDE-Groningen-${version}-windows-arm64-portable.exe`;
+  const linArm = `GDE-Groningen-${version}-linux-arm64.AppImage`;
+  const linArmTar = `GDE-Groningen-${version}-linux-arm64.tar.gz`;
   if (has(dmg)) {
     out.push(`**macOS** (Apple Silicon en Intel): open \`${dmg}\` en sleep GDE Groningen naar Programma's.
 De eerste keer: open de app, klik **Gereed** bij de melding, ga naar **Systeeminstellingen > Privacy en beveiliging**
@@ -54,6 +61,14 @@ Pak \`${targz}\` uit en start \`gde-groningen\`.`);
 sta **installeren uit onbekende bronnen** toe voor de app waarmee je het opent (Chrome, Bestanden) en tik op het bestand.
 Alles zit in de app, dus hij werkt offline; samen spelen (coöp) werkt niet op Android. Draait liggend op een emulator
 (Android 15) en met aanraking te spelen, maar **nog niet op een echt toestel getest**. Niet ondertekend met een eigen sleutel.`);
+  }
+  if (has(winArm)) {
+    out.push(`**Windows op ARM** (bijvoorbeeld een laptop met Snapdragon): \`${winArm}\`. Op een gewone pc of laptop (Intel of AMD) neem je de x64-exe hierboven.
+Niet ondertekend en **niet op echte ARM-hardware getest**.`);
+  }
+  if (has(linArm) && has(linArmTar)) {
+    out.push(`**Linux op ARM64** (bijvoorbeeld een Raspberry Pi 5 of een ARM-laptop): \`${linArm}\` of \`${linArmTar}\`, starten zoals bij Linux hierboven. De Steam Deck is x64 en neemt de gewone Linux-versie.
+Niet ondertekend en **niet op echte ARM-hardware getest**.`);
   }
   return out;
 }
@@ -96,8 +111,10 @@ async function main() {
   const tag = argv.find((a) => /^v\d+\.\d+\.\d+$/.test(a) && !valueArgs.has(a))
     || 'v' + JSON.parse(fs.readFileSync(path.join(ROOT, 'desktop', 'package.json'), 'utf8')).version;
   const version = tag.slice(1);
-  const only = (val('--only') || 'mac,linux,android').split(',').map((s) => s.trim()).filter(Boolean);
+  const explicit = val('--only');
+  let only = (explicit || Object.keys(BUILDS).join(',')).split(',').map((s) => s.trim()).filter(Boolean);
   for (const o of only) if (!BUILDS[o]) throw new Error(`onbekende build "${o}": kies uit ${Object.keys(BUILDS).join(', ')}`);
+  const arm64 = flag('--arm64');
   const ref = val('--ref');
   const dry = flag('--droog');
   const gh = findGh();
@@ -111,6 +128,11 @@ async function main() {
     throw new Error(`${tag} heeft geen gde-world.tgz: release met --world maken, of: tar czf gde-world.tgz -C desktop/build/game world && gh release upload ${tag} gde-world.tgz`);
   }
 
+  if (!explicit) {
+    const skip = only.filter((k) => names.includes(BUILDS[k].asset(version)));
+    if (skip.length) console.log(`Al als bijlage aanwezig, niet opnieuw gebouwd (--only ${skip.join(',')} om toch te bouwen): ${skip.map((k) => BUILDS[k].label).join(', ')}`);
+    only = only.filter((k) => !skip.includes(k));
+  }
   const results = {};
   if (!flag('--notes-only')) {
     const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -118,6 +140,7 @@ async function main() {
       const b = BUILDS[key];
       const since = new Date(Date.now() - 5000).toISOString();
       const args = ['workflow', 'run', b.workflow, '-f', `tag=${tag}`];
+      if (b.arm && arm64) args.push('-f', 'arm64=true');
       if (ref) args.push('--ref', ref);
       run(args);
       for (let i = 0; i < 30; i++) { // de run verschijnt binnen enkele seconden

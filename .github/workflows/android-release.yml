@@ -8,8 +8,6 @@
 name: Android-APK
 
 on:
-  push:
-    branches: [claude/r51-ci-builds]
   workflow_dispatch:
     inputs:
       tag:
@@ -21,7 +19,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: android-release-${{ (inputs.tag || 'v0.38.1') }}
+  group: android-release-${{ inputs.tag }}
   cancel-in-progress: false
 
 jobs:
@@ -30,11 +28,11 @@ jobs:
     timeout-minutes: 30
     env:
       GH_TOKEN: ${{ github.token }}
-      TAG: ${{ inputs.tag || 'v0.38.1' }}
+      TAG: ${{ inputs.tag }}
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ (inputs.tag || 'v0.38.1') }}
+          ref: ${{ inputs.tag }}
 
       - uses: actions/setup-node@v4
         with:
@@ -65,7 +63,7 @@ jobs:
       - uses: actions/cache@v4
         with:
           path: web/.cache/opus
-          key: opus-${{ (inputs.tag || 'v0.38.1') }}
+          key: opus-${{ inputs.tag }}
           restore-keys: opus-
 
       - name: De gestagede wereld van de release
@@ -85,11 +83,14 @@ jobs:
       - name: ffmpeg met Opus
         run: ffmpeg -hide_banner -encoders 2>/dev/null | grep -q libopus || { sudo apt-get update -q && sudo apt-get install -y -q ffmpeg; }
 
+      # git op Windows bewaart de uitvoerbit van gradlew niet altijd
       - name: Stage en debug-APK
         working-directory: android
         env:
           GDE_PREBUILT_WORLD: ${{ runner.temp }}/gde-world/world
-        run: npm run build -- --rebuild
+        run: |
+          chmod +x android/gradlew
+          npm run build -- --rebuild
 
       - name: Controleren
         run: |
