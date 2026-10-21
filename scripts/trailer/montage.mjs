@@ -61,6 +61,7 @@ console.log(`geluid: ${mixRep.final.lufs} LUFS, piek ${mixRep.final.peak} dBFS (
 const allow = { intended: [[0, 0.4, 'begin van de trailer']] };
 for (const m of audioPlan.music || []) { allow.intended.push([m.at - 0.3, m.at + 0.5, 'de muziek komt binnen (de drop)']); allow.intended.push([m.at + (m.dur ?? total - m.at) - (m.fadeOut ?? 2.5) - 0.3, total, 'uitfade van de muziek']); }
 for (const v of mixRep.voices) allow.intended.push([v.at - 0.4, v.at + v.dur + 0.9, 'stem: ducking van de muziek en pauzes tussen woorden']);
+for (const s of audioPlan.sfx || []) if (s.kind === 'impact') allow.intended.push([s.at - 0.1, s.at + 0.6, 'bewuste klap (impact) op de titel of de drop']);
 allow.intended.push([total - 1.6, total, 'uitfade naar zwart']);
 fs.writeFileSync(path.join(out, `${name}.allow.json`), JSON.stringify(allow, null, 1));
 
@@ -79,8 +80,10 @@ let capIn = 0;
 if (plan.captions) {
   const sh = inputs.length / 2, tx = sh + 1;
   inputs.push('-i', plan.captions.shadow, '-i', plan.captions.text);
-  vf += `;[${sh}:v]trim=duration=${total.toFixed(4)},setpts=PTS-STARTPTS,fps=${FPS},format=yuv420p[csh];[${tx}:v]trim=duration=${total.toFixed(4)},setpts=PTS-STARTPTS,fps=${FPS},format=yuv420p[ctx]`;
-  vf += ';[cat0][csh]blend=all_mode=multiply:shortest=1[cm];[cm][ctx]blend=all_mode=screen:shortest=1[cat]';
+  // blend per kleurvlak: dus in RGB (anders worden ook de kleurvlakken vermenigvuldigd en kleurt het beeld paars)
+  const RGB = 'scale=in_color_matrix=bt709:in_range=tv,format=gbrp';
+  vf += `;[${sh}:v]trim=duration=${total.toFixed(4)},setpts=PTS-STARTPTS,fps=${FPS},${RGB}[csh];[${tx}:v]trim=duration=${total.toFixed(4)},setpts=PTS-STARTPTS,fps=${FPS},${RGB}[ctx];[cat0]${RGB}[crgb]`;
+  vf += ';[crgb][csh]blend=all_mode=multiply:shortest=1[cm];[cm][ctx]blend=all_mode=screen:shortest=1[cbl];[cbl]scale=out_color_matrix=bt709:out_range=tv,format=yuv420p[cat]';
   capIn = 2;
 } else vf = vf.replace('[cat0]', '[cat]');
 let last = 'cat';

@@ -1,27 +1,445 @@
-{ "name": "GDE-Groningen-gameplaytrailer-1080p60", "clipsDir": "C:/Users/abuis/gde-trailer-work/r1", "captionsDir": "C:/Users/abuis/gde-trailer-work/r1",
-  "bpm": 135.469, "hook": 3.5433, "fadeIn": 0.35, "fadeOut": 1.4,
-  "music": { "file": "Zomerse_droom_in_de_Stad.mp3", "from": 74.05, "gain": -4, "fadeIn": 0.02, "fadeOut": 3.2 },
-  "cutSfx": "swish", "cutGain": -13,
-  "sfx": [["impact", 3.5433, -3]],
-  "shots": [
-    { "clip": "g00-hook.mp4", "beats": 8, "label": "hook", "sfx": [["wind", 0, -17], ["stad", 0, -22], ["meeuw", 0.9, -15], ["riser", 0.55, -9]] },
-    { "clip": "s01-chase.mp4", "beats": 16, "label": "achtervolging", "cap": ["RIJD.", "EEN OPEN WERELD", 0.35, 1.8], "sfx": [["motorloop", -0.2, -20], ["sirene", 0.4, -27], ["sirene", 3.0, -27]] },
-    { "clip": "s02-regen.mp4", "beats": 8, "label": "regen", "sfx": [["regen", 0, -23], ["motorloop", 0, -23]] },
-    { "clip": "s03-bus.mp4", "beats": 4, "label": "bus", "sfx": [["mensen", 0, -24]] },
-    { "clip": "s04-trekker.mp4", "beats": 8, "label": "trekker", "cap": ["HEEL GRONINGEN.", "VAN DE STAD TOT DE DIJK", 0.3, 1.7], "sfx": [["motorloop", 0, -26], ["wind", 0, -22]] },
-    { "clip": "s05-boot.mp4", "beats": 8, "label": "boot", "cap": ["VAAR.", "", 0.3, 1.5], "sfx": [["water", 0, -21], ["wind", 0, -24]] },
-    { "clip": "s08-heli.mp4", "beats": 8, "label": "heli", "cap": ["VLIEG.", "", 0.3, 1.5], "sfx": [["rotor", 0, -19]] },
-    { "clip": "u01-kaart.mp4", "beats": 8, "label": "kaart", "cap": ["VERKEN.", "DE KAART VAN GRUNN", 0.3, 1.7], "sfx": [["scherm", 0, -18]] },
-    { "clip": "u02-garage.mp4", "beats": 8, "label": "garage", "cap": ["JOUW GARAGE.", "56 VOERTUIGEN", 0.3, 1.7], "sfx": [["scherm", 0, -18], ["click", 1.3, -17], ["tick", 1.9, -19]] },
-    { "clip": "u03-overzicht.mp4", "beats": 4, "label": "overzicht", "sfx": [["scherm", 0, -18]] },
-    { "clip": "u04-opgeslagen.mp4", "beats": 4, "label": "opgeslagen", "sfx": [["click", 0.2, -17]] },
-    { "clip": "s09-collectie.mp4", "beats": 8, "label": "collectie", "sfx": [["mensen", 0, -25]] },
-    { "clip": "s11-leven.mp4", "beats": 8, "label": "leven", "sfx": [["mensen", 0, -23], ["bel", 1.0, -19], ["meeuw", 2.2, -18]] },
-    { "clip": "u06-telefoon.mp4", "beats": 4, "label": "telefoon", "sfx": [["scherm", 0, -18]] },
-    { "clip": "u07-prestaties.mp4", "beats": 4, "label": "prestaties", "sfx": [["tick", 0.3, -19]] },
-    { "clip": "u08-verhaal.mp4", "beats": 4, "label": "verhaal", "sfx": [["tick", 0.3, -19]] },
-    { "clip": "u05-samen.mp4", "beats": 8, "label": "samen-menu", "cap": ["SPEEL SAMEN.", "MET EEN VRIEND IN GRUNN", 0.3, 1.7], "sfx": [["scherm", 0, -18], ["click", 1.3, -17]] },
-    { "clip": "s06-nachtrit.mp4", "beats": 8, "label": "nachtrit", "sfx": [["regen", 0, -24], ["motorloop", 0, -22]] },
-    { "clip": "s12-finale.mp4", "beats": 12, "label": "finale", "cap": ["ZOMER VOL MISDAAD.", "", 1.6, 2.2], "sfx": [["riser", -0.7, -10], ["motorloop", 0, -19], ["sirene", 0.2, -26]] },
-    { "clip": "s99-titel.mp4", "beats": 12, "label": "titel", "noCutSfx": true, "sfx": [["impact", 0.0, -4], ["klok", 0.1, -22]] }
-  ] }
+{
+ "name": "GDE-Groningen-gameplaytrailer-1080p60",
+ "clipsDir": "C:/Users/abuis/gde-trailer-work/r2",
+ "captionsDir": "C:/Users/abuis/gde-trailer-work/cap-gp",
+ "bpm": 135.469,
+ "hook": 3.5433,
+ "fadeIn": 0.35,
+ "fadeOut": 1.4,
+ "music": {
+  "file": "Zomerse_droom_in_de_Stad.mp3",
+  "from": 74.05,
+  "gain": -4,
+  "fadeIn": 0.02,
+  "fadeOut": 3.2
+ },
+ "cutSfx": "swish",
+ "cutGain": -13,
+ "sfx": [
+  [
+   "impact",
+   3.5433,
+   -3
+  ]
+ ],
+ "shots": [
+  {
+   "clip": "g00-hook.mp4",
+   "beats": 8,
+   "label": "hook",
+   "sfx": [
+    [
+     "wind",
+     0,
+     -17
+    ],
+    [
+     "stad",
+     0,
+     -22
+    ],
+    [
+     "meeuw",
+     0.9,
+     -15
+    ],
+    [
+     "riser",
+     0.55,
+     -9
+    ]
+   ]
+  },
+  {
+   "clip": "s01-chase.mp4",
+   "beats": 16,
+   "label": "achtervolging",
+   "cap": [
+    "RIJD.",
+    "EEN OPEN WERELD",
+    0.35,
+    1.8
+   ],
+   "sfx": [
+    [
+     "motorloop",
+     -0.2,
+     -20
+    ],
+    [
+     "sirene",
+     0.4,
+     -27
+    ],
+    [
+     "sirene",
+     3,
+     -27
+    ]
+   ]
+  },
+  {
+   "clip": "s02-regen.mp4",
+   "beats": 8,
+   "label": "regen",
+   "sfx": [
+    [
+     "regen",
+     0,
+     -23
+    ],
+    [
+     "motorloop",
+     0,
+     -23
+    ]
+   ]
+  },
+  {
+   "clip": "s03-bus.mp4",
+   "beats": 4,
+   "label": "bus",
+   "sfx": [
+    [
+     "mensen",
+     0,
+     -24
+    ]
+   ]
+  },
+  {
+   "clip": "s04-trekker.mp4",
+   "beats": 8,
+   "label": "trekker",
+   "cap": [
+    "HEEL GRONINGEN.",
+    "VAN DE STAD TOT DE DIJK",
+    0.3,
+    1.7
+   ],
+   "sfx": [
+    [
+     "motorloop",
+     0,
+     -26
+    ],
+    [
+     "wind",
+     0,
+     -22
+    ]
+   ]
+  },
+  {
+   "clip": "s05-boot.mp4",
+   "beats": 8,
+   "label": "boot",
+   "cap": [
+    "VAAR.",
+    "",
+    0.3,
+    1.5
+   ],
+   "sfx": [
+    [
+     "water",
+     0,
+     -21
+    ],
+    [
+     "wind",
+     0,
+     -24
+    ]
+   ]
+  },
+  {
+   "clip": "s13-brug.mp4",
+   "beats": 8,
+   "label": "brug",
+   "cap": [
+    "EN DE BRUG GAAT OPEN.",
+    "",
+    0.3,
+    2
+   ],
+   "sfx": [
+    [
+     "bel",
+     0.2,
+     -19
+    ],
+    [
+     "bel",
+     1.2,
+     -19
+    ],
+    [
+     "water",
+     0,
+     -23
+    ],
+    [
+     "motorloop",
+     0,
+     -25
+    ]
+   ]
+  },
+  {
+   "clip": "s08-heli.mp4",
+   "beats": 8,
+   "label": "heli",
+   "cap": [
+    "VLIEG.",
+    "",
+    0.3,
+    1.5
+   ],
+   "sfx": [
+    [
+     "rotor",
+     0,
+     -19
+    ]
+   ]
+  },
+  {
+   "clip": "u01-kaart.mp4",
+   "beats": 8,
+   "label": "kaart",
+   "cap": [
+    "VERKEN.",
+    "DE KAART VAN GRUNN",
+    0.3,
+    1.7
+   ],
+   "sfx": [
+    [
+     "scherm",
+     0,
+     -18
+    ]
+   ]
+  },
+  {
+   "clip": "u02-garage.mp4",
+   "beats": 8,
+   "label": "garage",
+   "sfx": [
+    [
+     "scherm",
+     0,
+     -18
+    ],
+    [
+     "click",
+     1.3,
+     -17
+    ],
+    [
+     "tick",
+     1.9,
+     -19
+    ]
+   ]
+  },
+  {
+   "clip": "u03-overzicht.mp4",
+   "beats": 4,
+   "label": "overzicht",
+   "sfx": [
+    [
+     "scherm",
+     0,
+     -18
+    ]
+   ]
+  },
+  {
+   "clip": "u04-opgeslagen.mp4",
+   "beats": 4,
+   "label": "opgeslagen",
+   "sfx": [
+    [
+     "click",
+     0.2,
+     -17
+    ]
+   ]
+  },
+  {
+   "clip": "s09-collectie.mp4",
+   "beats": 5,
+   "label": "collectie",
+   "sfx": [
+    [
+     "mensen",
+     0,
+     -25
+    ]
+   ]
+  },
+  {
+   "clip": "s11-leven.mp4",
+   "beats": 8,
+   "label": "leven",
+   "sfx": [
+    [
+     "mensen",
+     0,
+     -23
+    ],
+    [
+     "bel",
+     1,
+     -19
+    ],
+    [
+     "meeuw",
+     2.2,
+     -18
+    ]
+   ]
+  },
+  {
+   "clip": "u06-telefoon.mp4",
+   "beats": 4,
+   "label": "telefoon",
+   "sfx": [
+    [
+     "scherm",
+     0,
+     -18
+    ]
+   ]
+  },
+  {
+   "clip": "u07-prestaties.mp4",
+   "beats": 4,
+   "label": "prestaties",
+   "sfx": [
+    [
+     "tick",
+     0.3,
+     -19
+    ]
+   ]
+  },
+  {
+   "clip": "u08-verhaal.mp4",
+   "beats": 4,
+   "label": "verhaal",
+   "sfx": [
+    [
+     "tick",
+     0.3,
+     -19
+    ]
+   ]
+  },
+  {
+   "clip": "u05-samen.mp4",
+   "beats": 8,
+   "label": "samen-menu",
+   "sfx": [
+    [
+     "scherm",
+     0,
+     -18
+    ],
+    [
+     "click",
+     1.3,
+     -17
+    ]
+   ]
+  },
+  {
+   "clip": "c01-samen.mp4",
+   "beats": 8,
+   "label": "samen-spelen",
+   "cap": [
+    "SPEEL SAMEN.",
+    "TWEE SPELERS OP ÉÉN SCHERM",
+    0.2,
+    2.6
+   ],
+   "sfx": [
+    [
+     "mensen",
+     0,
+     -24
+    ],
+    [
+     "tick",
+     0.1,
+     -19
+    ]
+   ]
+  },
+  {
+   "clip": "s06-nachtrit.mp4",
+   "beats": 8,
+   "label": "nachtrit",
+   "sfx": [
+    [
+     "regen",
+     0,
+     -24
+    ],
+    [
+     "motorloop",
+     0,
+     -22
+    ]
+   ]
+  },
+  {
+   "clip": "s12-finale.mp4",
+   "beats": 12,
+   "label": "finale",
+   "cap": [
+    "ZOMER VOL MISDAAD.",
+    "",
+    1.6,
+    2.2
+   ],
+   "sfx": [
+    [
+     "riser",
+     -0.7,
+     -10
+    ],
+    [
+     "motorloop",
+     0,
+     -19
+    ],
+    [
+     "sirene",
+     0.2,
+     -26
+    ]
+   ]
+  },
+  {
+   "clip": "s99-titel.mp4",
+   "beats": 16,
+   "label": "titel",
+   "noCutSfx": true,
+   "sfx": [
+    [
+     "impact",
+     0,
+     -4
+    ],
+    [
+     "klok",
+     0.1,
+     -22
+    ]
+   ]
+  }
+ ]
+}

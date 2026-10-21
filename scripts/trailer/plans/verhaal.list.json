@@ -1,0 +1,218 @@
+{
+ "name": "GDE-Groningen-verhaaltrailer-1080p60",
+ "clipsDir": "C:/Users/abuis/gde-trailer-work/r2",
+ "captionsDir": "C:/Users/abuis/gde-trailer-work/cap-vh",
+ "bpm": 119.474,
+ "hook": 0,
+ "fadeIn": 0.3,
+ "fadeOut": 1.4,
+ "voiceTarget": -15,
+ "music": {
+  "file": "Goudgeld_op_de_oprit.mp3",
+  "from": 16.51,
+  "gain": -4,
+  "fadeIn": 0.02,
+  "fadeOut": 3
+ },
+ "duck": {
+  "depth": 5,
+  "attack": 0.2,
+  "release": 0.8,
+  "pad": 0.05
+ },
+ "cutSfx": "swish",
+ "cutGain": -16,
+ "sfx": [
+  [
+   "impact",
+   0,
+   -9
+  ]
+ ],
+ "shots": [
+  {
+   "clip": "v01-keuken.mp4",
+   "in": 8.4,
+   "beats": 9,
+   "label": "keuken",
+   "noCutSfx": true,
+   "sfx": [
+    [
+     "riser",
+     0,
+     -22
+    ]
+   ]
+  },
+  {
+   "clip": "v01-keuken.mp4",
+   "in": 13,
+   "beats": 11,
+   "label": "keuken2"
+  },
+  {
+   "clip": "v01-keuken.mp4",
+   "in": 24.3,
+   "beats": 8,
+   "label": "keuken3"
+  },
+  {
+   "clip": "v01-keuken.mp4",
+   "in": 28.3,
+   "beats": 11,
+   "label": "keuken4"
+  },
+  {
+   "clip": "v00-straat.mp4",
+   "in": 2.3,
+   "beats": 6,
+   "label": "straat",
+   "sfx": [
+    [
+     "meeuw",
+     0.5,
+     -20
+    ],
+    [
+     "stad",
+     0,
+     -26
+    ]
+   ]
+  },
+  {
+   "clip": "v02-verhuisdag.mp4",
+   "in": 0,
+   "beats": 13,
+   "label": "verhuisdag"
+  },
+  {
+   "clip": "v03-berend.mp4",
+   "in": 0.1,
+   "beats": 6,
+   "label": "berend"
+  },
+  {
+   "clip": "v03-berend.mp4",
+   "in": 16.15,
+   "beats": 6,
+   "label": "berend3"
+  },
+  {
+   "clip": "v04-markt.mp4",
+   "in": 8.55,
+   "beats": 10,
+   "label": "markt"
+  },
+  {
+   "clip": "v04-markt.mp4",
+   "in": 26.4,
+   "beats": 17,
+   "label": "markt2"
+  },
+  {
+   "clip": "v05b-politie.mp4",
+   "in": 0,
+   "beats": 10,
+   "label": "politie",
+   "sfx": [
+    [
+     "sirene",
+     1,
+     -26
+    ]
+   ]
+  },
+  {
+   "clip": "s02-regen.mp4",
+   "in": 1,
+   "beats": 4,
+   "label": "regen",
+   "sfx": [
+    [
+     "regen",
+     0,
+     -23
+    ],
+    [
+     "motorloop",
+     0,
+     -21
+    ],
+    [
+     "sirene",
+     0.2,
+     -27
+    ]
+   ]
+  },
+  {
+   "clip": "v06b-duif.mp4",
+   "in": 0,
+   "beats": 18,
+   "label": "duif"
+  },
+  {
+   "clip": "v07-kiezel.mp4",
+   "in": 0,
+   "beats": 7,
+   "label": "kiezel"
+  },
+  {
+   "clip": "s01-chase.mp4",
+   "in": 1,
+   "beats": 4,
+   "label": "rit",
+   "cap": [
+    "EEN KAT. EEN PLAN.",
+    "EEN FRIETWAGEN.",
+    0.15,
+    2
+   ],
+   "sfx": [
+    [
+     "riser",
+     -0.8,
+     -12
+    ],
+    [
+     "motorloop",
+     0,
+     -20
+    ]
+   ]
+  },
+  {
+   "clip": "s08-heli.mp4",
+   "in": 1,
+   "beats": 4,
+   "label": "heli",
+   "sfx": [
+    [
+     "rotor",
+     0,
+     -20
+    ]
+   ]
+  },
+  {
+   "clip": "s99-titel.mp4",
+   "in": 0,
+   "beats": 10,
+   "label": "titel",
+   "noCutSfx": true,
+   "sfx": [
+    [
+     "impact",
+     0,
+     -4
+    ],
+    [
+     "klok",
+     0.1,
+     -22
+    ]
+   ]
+  }
+ ]
+}
