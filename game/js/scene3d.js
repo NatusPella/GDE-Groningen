@@ -2144,6 +2144,24 @@ function buildPedActor(p) {
   return enableShadows(mesh, false);
 }
 
+// how many frames a walker's pose stays: 1 (every frame), 2 or 4. Manhattan distance to the player in metres (a Euclid distance of up to 1.4 less).
+const PED_TIER_2 = 55, PED_TIER_4 = 130;
+function pedTier(manhattan, p, now) {
+  if (p.ragdoll || p.pose || p.carry || p.heldWeapon || p.attackFx || p.hitReact || p.greetUntil > now) return 1;
+  if (perfOff('pedtier')) return simLevel() && manhattan > 45 ? 2 : 1;
+  return manhattan > PED_TIER_4 ? 4 : manhattan > PED_TIER_2 ? 2 : 1;
+}
+// a held pose is not worked out again by three.js (Skeleton.update) and not uploaded: the bone texture stays as it was
+function holdSkeleton(mesh, hold) {
+  const body = mesh.userData.body;
+  const sk = body && body.skeleton;
+  if (!sk) return;
+  if (!sk.__held) {
+    sk.__held = { hold: false, real: sk.update };
+    sk.update = function () { if (!this.__held.hold) this.__held.real.call(this); };
+  }
+  sk.__held.hold = hold;
+}
 function syncPedestrianMeshes(world, player, animDt) {
   pedClock += animDt || 1e-4;
   pedView.camX = cam.position.x;
@@ -2207,14 +2225,19 @@ function syncPedestrianMeshes(world, player, animDt) {
     mesh.rotation.y = -p.angle;
     // a plain walker out of the frame (last frame's cull, scene3d.js cullOffscreenActors) is not posed: its walk phase waits
     if (ud.offscreen && !p.ragdoll && !p.pose && !p.carry && !p.heldWeapon && !p.attackFx && !p.hitReact && !(p.greetUntil > world.time) && !perfOff('actoren')) continue;
-    // far walkers animate at half rate on a CPU-bound machine (simload.js)
-    if (simLevel() && !p.ragdoll && Math.abs(p.x - player.x) + Math.abs(p.y - player.y) > 45) {
+    // far walkers animate at a lower rate (every 2nd frame beyond ~40 m, every 4th beyond ~90 m; walking and not posed otherwise): a person is a
+    // skinned mesh whose bones the renderer works out and uploads as a texture at every draw (~20 GL calls a person), and most of the people in the
+    // ring are far (?perfoff=pedtier: as before, half rate beyond 45 m only on a CPU-bound machine, simload.js)
+    const tier = pedTier(Math.abs(p.x - player.x) + Math.abs(p.y - player.y), p, world.time);
+    if (tier > 1) {
       ud.animAcc = (ud.animAcc || 0) + animDt;
       ud.animTick = (ud.animTick || 0) + 1;
-      if (ud.animTick & 1) continue;
+      if (ud.tickPhase === undefined) ud.tickPhase = Math.floor(ud.animOffset || 0) & 3;
+      if ((ud.animTick + ud.tickPhase) % tier) { holdSkeleton(mesh, true); continue; }
+      holdSkeleton(mesh, false);
       animatePersonWalk(mesh, p.speed || 0, ud.animAcc);
       ud.animAcc = 0;
-    } else animatePersonWalk(mesh, p.speed || 0, animDt);
+    } else { holdSkeleton(mesh, false); animatePersonWalk(mesh, p.speed || 0, animDt); }
     if (p.carry && !p.pose) carryPose(mesh, p.carry);
     // a road-rager (roadrage.js) holds what he brought and swings it
     if ((p.heldWeapon || null) !== (ud.pedHeld || null)) { ud.pedHeld = p.heldWeapon || null; setHeldWeapon(mesh, ud.pedHeld); }
