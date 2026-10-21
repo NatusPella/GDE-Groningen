@@ -25,8 +25,17 @@ export const CONSENT_TEXT = {
 };
 export const CONSENT_DETAIL = {
   kamer: 'Je kamercode versleutelt wat er via die servers gaat: zij zien alleen onleesbare berichten. Er wordt verder niets verstuurd.',
-  direct: 'Iedereen met de code kan zolang de poort open staat proberen te verbinden. Geef de code alleen aan je medespeler.',
+  direct: 'Iedereen met de code kan zolang de poort open staat proberen te verbinden. Geef de code alleen aan je medespeler. Windows kan nu vragen of GDE Groningen het netwerk mag gebruiken: kies Toestaan (privé netwerk), anders kan de ander je niet bereiken.',
 };
+
+// Wat "Verbinding testen" doet, vóór de speler het toestaat (het neemt contact op met openbare servers)
+export const DIAG_TEXT = 'De test neemt contact op met dezelfde openbare servers als de kamercode: internet, servers om elkaar te vinden en servers voor de kamercode. In de app test hij ook of je router automatisch een poort opent. Er wordt niets van jou verstuurd.';
+
+// Stand van de ander bij een versieverschil: duidelijke tekst met de versies
+export function versieTekst(lokaal, ander) {
+  const l = lokaal ? ` (jij: ${lokaal})` : '';
+  return ander ? `Andere versie: de ander speelt versie ${ander}${l}. Installeer allebei dezelfde versie, het liefst de nieuwste, en probeer het opnieuw.` : `Andere versie van het spel${l}. Installeer allebei dezelfde versie, het liefst de nieuwste, en probeer het opnieuw.`;
+}
 
 // Wat voor invoer is dit? Een kamercode of een adres/code voor de directe route.
 export function classifyInput(text) {
@@ -47,7 +56,8 @@ export function createLobby(caps = {}) {
     step: caps.start || (caps.keuze ? (caps.keuze === ROLES.HOST ? 'methode' : 'gast-typt') : 'start'), rol: caps.rol || caps.keuze || null, route: null, invoer: null,
     code: '', lanCode: '', note: '', error: '', reason: null, status: null, partner: null,
     spelers: [], max: DEFAULT_MAX, wens: null, holdSlot: null, holdNaam: caps.holdNaam || '',
-    caps: { direct: !!caps.direct, rtc: caps.rtc !== false, laatsteCode: caps.laatsteCode || '', startGate: !!caps.startGate, spelNaam: String(caps.spelNaam || '') },
+    caps: { direct: !!caps.direct, rtc: caps.rtc !== false, laatsteCode: caps.laatsteCode || '', startGate: !!caps.startGate, spelNaam: String(caps.spelNaam || ''), versie: String(caps.versie || ''), opslaan: !!caps.opslaan },
+    diag: null, terugNaar: 'start', andereVersie: '',
   };
 }
 const fresh = (s) => createLobby(s.caps);
@@ -80,6 +90,11 @@ export function reduce(s, ev) {
     case 'code': // de host heeft een code (kamercode, of adres met UPnP; zonder router de lokale code)
       n.code = ev.code; n.lanCode = ev.lanCode || ''; n.note = ev.note || ''; n.step = 'host-wacht'; return n;
     case 'fout': n.error = ev.msg || 'Er ging iets mis.'; return n;
+    case 'diag': // Verbinding testen: eerst de vraag om toestemming
+      n.terugNaar = s.step.startsWith('diag') ? s.terugNaar : s.step; n.step = 'diag-vraag'; return n;
+    case 'diag-go': n.step = 'diag-bezig'; n.diag = null; return n;
+    case 'diag-klaar': n.step = 'diag-uit'; n.diag = ev.beoordeling || null; return n;
+    case 'diag-terug': n.step = s.terugNaar || 'start'; return n;
     case 'wens': // alleen gast: gewenste figuur voor plek 2 en hoger
       n.wens = EXTRA_CHARS.some((c) => c.id === ev.char) ? ev.char : null; return n;
     case 'gate': n.caps = { ...s.caps, startGate: !!ev.aan }; return n;
@@ -94,7 +109,7 @@ export function reduce(s, ev) {
     }
     case 'verbinden': n.step = 'verbinden'; return n;
     case 'status': {
-      n.status = ev.status; n.reason = ev.reason || null; if (ev.partner) n.partner = ev.partner;
+      n.status = ev.status; n.reason = ev.reason || null; if (ev.ander) n.andereVersie = String(ev.ander); if (ev.partner) n.partner = ev.partner;
       if (ev.status === 'ok' || ev.status === 'lag') n.step = 'verbonden';
       else if (ev.status === 'lost') n.step = 'verbroken';
       else if (ev.status === 'geweigerd') n.step = 'geweigerd';
@@ -120,17 +135,19 @@ const PARTNER_NAME = { host: 'Tessa', gast: 'Tammo' }; // de ander van deze rol
 
 // Wat de UI toont. buttons: [{ act, label, primary? }]; input: een tekstvak; code: de code met kopieerknop.
 export function view(s) {
-  const V = (o) => ({ title: 'Samen spelen', lines: [], buttons: [], input: null, code: null, error: s.error, ...o });
+  // bij een fout in de stappen waar je verbindt: wijs de weg naar de test
+  const hulp = s.error && ['gast-typt', 'host-wacht', 'host-maakt-code', 'methode', 'verbinden'].includes(s.step) && !/gekopieerd/.test(s.error);
+  const V = (o) => { const r = { title: 'Samen spelen', lines: [], buttons: [], input: null, code: null, error: s.error, ...o }; if (hulp && r.buttons.some((b) => b.act === 'diag')) r.lines = [...r.lines, 'Lukt het niet? Kies Verbinding testen: daar staat wat er mis is en wat je kunt doen.']; return r; };
   switch (s.step) {
     case 'start':
       return V({
         lines: ['Speel samen met een vriend in de open wereld: opdrachten, minigames en het verhaal. Iedereen houdt zijn eigen voortgang. Wie het spel opent speelt Tammo, wie meedoet speelt Tessa.'],
-        buttons: [{ act: 'kies-host', label: 'Iemand uitnodigen', primary: true }, { act: 'kies-gast', label: 'Code of adres invoeren' }],
+        buttons: [{ act: 'kies-host', label: 'Iemand uitnodigen', primary: true }, { act: 'kies-gast', label: 'Code of adres invoeren' }, { act: 'diag', label: 'Verbinding testen' }],
       });
     case 'methode': {
       const buttons = [{ act: 'route-kamer', label: 'Kamercode', primary: true }];
       if (s.caps.direct) buttons.push({ act: 'route-direct', label: 'IP-adres (direct)' });
-      buttons.push({ act: 'terug', label: 'Terug' });
+      buttons.push({ act: 'diag', label: 'Verbinding testen' }, { act: 'terug', label: 'Terug' });
       return V({
         title: 'Iemand uitnodigen',
         lines: ['Kamercode: werkt overal, ook in de browser, via openbare servers.',
@@ -151,14 +168,14 @@ export function view(s) {
       if (s.note) lines.push(s.note);
       if (s.lanCode && s.lanCode !== s.code) lines.push('Op hetzelfde netwerk werkt ook de lokale code: ' + s.lanCode);
       if (s.caps.startGate) lines.push('Wacht op een medespeler: je kunt het spel starten zodra er minstens twee spelers zijn.');
-      return V({ title: 'Iemand uitnodigen', lines, code: s.code, buttons: [...(s.caps.startGate ? [{ act: 'start-spel', label: 'Spel starten', primary: true, disabled: true }] : []), { act: 'kopieer', label: 'Kopieer', primary: !s.caps.startGate }, { act: 'terug', label: 'Stoppen' }] });
+      return V({ title: 'Iemand uitnodigen', lines, code: s.code, buttons: [...(s.caps.startGate ? [{ act: 'start-spel', label: 'Spel starten', primary: true, disabled: true }] : []), { act: 'kopieer', label: 'Kopieer', primary: !s.caps.startGate }, { act: 'diag', label: 'Verbinding testen' }, { act: 'terug', label: 'Stoppen' }] });
     }
     case 'gast-typt':
       return V({
         title: 'Aansluiten', lines: ['Voer de kamercode of de koppelcode in die je kreeg. Als eerste gast speel je Tessa. Kom je er later bij, dan speel je een eigen figuur: kies er hieronder een, of laat het kiezen.', GAST_BEWAREN(s.caps.spelNaam)],
         input: { placeholder: 'Kamercode of GDE2-…', value: s.caps.laatsteCode || '' },
         wensen: EXTRA_CHARS.map((c) => ({ act: 'wens-' + c.id, id: c.id, naam: c.naam, kleur: c.kleur, gekozen: s.wens === c.id })),
-        buttons: [{ act: 'koppel', label: 'Verder', primary: true }, { act: 'terug', label: 'Terug' }],
+        buttons: [{ act: 'koppel', label: 'Verder', primary: true }, { act: 'diag', label: 'Verbinding testen' }, { act: 'terug', label: 'Terug' }],
       });
     case 'verbinden':
       return V({ title: 'Verbinden…', lines: ['Even geduld. Dit duurt een paar seconden.'], buttons: [{ act: 'terug', label: 'Annuleren' }] });
@@ -201,11 +218,21 @@ export function view(s) {
           `${wie} is niet meer bereikbaar. Het spel staat stil tot jullie weer verbonden zijn.`,
           host ? `Wil je niet wachten? Dan ${s.holdNaam ? 'verwijder je ' + s.holdNaam : 'speel je alleen verder'} en gaat het spel door.` : 'Voer de code opnieuw in, of stop met samen spelen; je komt terug waar je was.',
         ],
-        buttons: [{ act: 'hervat', label: 'Opnieuw verbinden', primary: true }, { act: 'verbreek', label: host ? 'Niet wachten' : 'Stoppen' }],
+        buttons: [{ act: 'hervat', label: 'Opnieuw verbinden', primary: true }, { act: 'verbreek', label: host ? 'Niet wachten' : 'Stoppen' }, { act: 'diag', label: 'Verbinding testen' }],
       });
     }
     case 'geweigerd':
-      return V({ title: 'Koppelen mislukt', lines: [REASON_TEXT[s.reason] || 'Koppelen is niet gelukt.'], buttons: [{ act: 'terug', label: 'Terug', primary: true }] });
+      return V({ title: 'Koppelen mislukt', lines: [s.reason === 'versie' ? versieTekst(s.caps.versie, s.andereVersie) : (REASON_TEXT[s.reason] || 'Koppelen is niet gelukt.')], buttons: [{ act: 'terug', label: 'Terug', primary: true }, { act: 'diag', label: 'Verbinding testen' }] });
+    case 'diag-vraag':
+      return V({ title: 'Verbinding testen', lines: [DIAG_TEXT], buttons: [{ act: 'diag-go', label: 'Test starten', primary: true }, { act: 'diag-terug', label: 'Annuleren' }] });
+    case 'diag-bezig':
+      return V({ title: 'Verbinding testen', lines: ['We testen je verbinding. Dit duurt ongeveer tien seconden…'], buttons: [] });
+    case 'diag-uit': {
+      const d = s.diag;
+      const teken = { ok: 'Goed', 'let-op': 'Let op', mis: 'Mis', overgeslagen: 'Niet getest' };
+      const lines = d ? [d.samenvatting, ...d.items.map((i) => `${teken[i.status] || i.status}: ${i.titel}. ${i.tekst}${i.tip ? ' ' + i.tip : ''}`)] : ['De test is niet gelukt.'];
+      return V({ title: 'Uitslag verbinding', lines, buttons: [{ act: 'diag-go', label: 'Opnieuw testen' }, { act: 'rapport', label: 'Foutrapport kopiëren' }, ...(s.caps.opslaan ? [{ act: 'logbestand', label: 'Logbestand opslaan' }] : []), { act: 'diag-terug', label: 'Terug', primary: true }] });
+    }
     default:
       return V({});
   }

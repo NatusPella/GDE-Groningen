@@ -10,7 +10,7 @@ for (let i = 0; i < 40 && !document.body.classList.contains('game-started'); i++
   if (/[?&]touch=1/.test(location.search)) {
     const news = document.querySelector('#start-screen .ss-news');
     if (news && !news.hidden) { for (const t of [window, document]) { t.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', code: 'Escape', bubbles: true })); t.dispatchEvent(new KeyboardEvent('keyup', { key: 'Escape', code: 'Escape', bubbles: true })); } await sleep(500); }
-    const item = [...document.querySelectorAll('#start-screen .ss-item')].find((e) => /Nieuw spel|Doorgaan/.test(e.textContent));
+    const item = (window.__menuStart ? { click: () => window.__menuStart('doorgaan') } : null);
     if (item) item.click();
   }
   for (const t of [window, document]) { t.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', bubbles: true })); t.dispatchEvent(new KeyboardEvent('keyup', { key: 'Enter', code: 'Enter', bubbles: true })); }

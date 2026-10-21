@@ -1,0 +1,108 @@
+# De Android-debug-APK van een bestaande release bouwen op een Linux-runner (Capacitor-project in
+# android/, zie docs/ANDROID.md). Alleen met de hand te starten (workflow_dispatch).
+#
+# De wereld komt uit het release-asset gde-world.tgz (GDE_PREBUILT_WORLD), net als bij de dmg en de
+# Linux-builds; android/scripts/build.mjs stagt de webversie (web/build.mjs, dat ffmpeg voor Opus
+# gebruikt) en roept gradlew assembleDebug aan. Alleen de debug-keystore van Gradle: geen eigen
+# sleutels, geen geheimen, geen Play Console. Het resultaat gaat met GITHUB_TOKEN naar dezelfde release.
+name: Android-APK
+
+on:
+  push:
+    branches: [claude/r51-ci-builds]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag van de bestaande release, bijvoorbeeld v0.38.1'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: android-release-${{ (inputs.tag || 'v0.38.1') }}
+  cancel-in-progress: false
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      GH_TOKEN: ${{ github.token }}
+      TAG: ${{ inputs.tag || 'v0.38.1' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ (inputs.tag || 'v0.38.1') }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: npm
+          cache-dependency-path: |
+            desktop/package-lock.json
+            android/package-lock.json
+
+      # Capacitor 8 vraagt JDK 21 (docs/ANDROID.md)
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Android-SDK (platform 36, build-tools 36.0.0)
+        run: |
+          test -n "$ANDROID_HOME"
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-36" "build-tools;36.0.0" > /dev/null
+          ls "$ANDROID_HOME/platforms" "$ANDROID_HOME/build-tools"
+
+      - uses: actions/cache@v4
+        with:
+          path: ~/.gradle/caches
+          key: gradle-${{ hashFiles('android/android/**/*.gradle', 'android/android/gradle/wrapper/gradle-wrapper.properties', 'android/package-lock.json') }}
+
+      - uses: actions/cache@v4
+        with:
+          path: web/.cache/opus
+          key: opus-${{ (inputs.tag || 'v0.38.1') }}
+          restore-keys: opus-
+
+      - name: De gestagede wereld van de release
+        run: |
+          mkdir -p "$RUNNER_TEMP/gde-world"
+          gh release download "$TAG" --pattern gde-world.tgz --dir "$RUNNER_TEMP/gde-world" \
+            || { echo "Geen gde-world.tgz bij $TAG: maak hem met 'npm run release -- ... --world' of upload hem met gh release upload."; exit 1; }
+          tar xzf "$RUNNER_TEMP/gde-world/gde-world.tgz" -C "$RUNNER_TEMP/gde-world"
+          test -f "$RUNNER_TEMP/gde-world/world/index.json"
+
+      # --ignore-scripts: de Electron-binary is hier niet nodig (zoals in test.yml)
+      - name: npm ci (desktop en android)
+        run: |
+          npm ci --prefix desktop --ignore-scripts
+          npm ci --prefix android
+
+      - name: ffmpeg met Opus
+        run: ffmpeg -hide_banner -encoders 2>/dev/null | grep -q libopus || { sudo apt-get update -q && sudo apt-get install -y -q ffmpeg; }
+
+      - name: Stage en debug-APK
+        working-directory: android
+        env:
+          GDE_PREBUILT_WORLD: ${{ runner.temp }}/gde-world/world
+        run: npm run build -- --rebuild
+
+      - name: Controleren
+        run: |
+          APK=android/out/gde-groningen-debug.apk
+          ls -l "$APK"
+          unzip -tq "$APK"
+          unzip -l "$APK" | grep -E ' AndroidManifest\.xml$'
+          unzip -l "$APK" | grep -E ' classes\.dex$'
+          AAPT2="$(ls -d "$ANDROID_HOME"/build-tools/36.0.0/aapt2)"
+          "$AAPT2" dump badging "$APK" | grep -E "^package: |sdkVersion|launchable-activity"
+
+      - name: Naar de release
+        run: |
+          VERSION="${TAG#v}"
+          cp android/out/gde-groningen-debug.apk "GDE-Groningen-$VERSION-android-debug.apk"
+          gh release upload "$TAG" "GDE-Groningen-$VERSION-android-debug.apk" --clobber

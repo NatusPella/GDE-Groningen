@@ -98,7 +98,7 @@ function finalize(w, why) {
   if (medal >= 3) unlockAchievement(w, 'drift_goud');
   if (pts >= 5000) unlockAchievement(w, 'drift_5000');
   const prize = Math.max(0, (PRIZE[medal] || 0) - (PRIZE[prev] || 0));
-  if (prize) w.money += prize;
+  if (prize) { w.money += prize; if (w.coopDeel) w.coopDeel(prize); } // samen spelen (#365)
   const lines = [`${pts} punten${medal ? ' · ' + MEDALS[medal].toLowerCase() : ''}`];
   if (rec && rec.newBest) lines.push('nieuw record');
   if (ghostSaved) lines.push('spookauto bewaard');

@@ -1,9 +1,10 @@
 // Meetrondes voor de vier door een tester gemelde bugs (#321 intro-camera, #326 voiceover, #329 titelkaart bij grote
 // gebouwen, #328 muis vastzetten). Eén Electron (slot uit gde-locks, wegwerpprofiel, BelowNormal), sluit zelf af.
-//   node scripts/qa/tester_bugs.mjs --check=intro|audio|caption|lock|achtervolging|cutnabij [--out=<map>] [--max=150] [--seed=<n>]
+//   node scripts/qa/tester_bugs.mjs --check=intro|audio|caption|lock|achtervolging|cutnabij|pad|padscreens [--out=<map>] [--max=150] [--seed=<n>]
 // Omgeving: GDE_GAME_DIR=<map>\game (met backslashes) voor een gestagede build, ELECTRON_EXE=<pad> als
 // desktop/node_modules ontbreekt. Het slot wordt altijd vrijgegeven. De page-scripts heten tester_<check>.page.js.
 // Bij --check=achtervolging (#117) komt daar de audiotap van scripts/qa/audiotap.js bij: het niveau en elk geluid van de cutscene met de politieauto (M02.intro).
+// Bij --check=pad en padscreens (#151) stuurt een nep-controller het spel; padscreens vraagt --max=700.
 // Bij --check=audio draait het spel met --stil --audio-graph: de hele geluidsgraaf loopt, maar in een gedempte uitgang (niets te horen).
 // Uitvoer: <out>/run.log, <out>/result.json (de [perf-script]-regel), <out>/frames.json (intro: [t,x,y,h,dx,dy,dz,fov,dak,cine,ov,cut]), beelden <out>/shots-*.png.
 import fs from 'node:fs';
@@ -18,7 +19,7 @@ const arg = (k, d) => { const a = process.argv.find((v) => v.startsWith(`--${k}=
 const CHECK = arg('check', 'intro');
 const OUT = path.resolve(arg('out', path.join(os.tmpdir(), `gde-tester-${CHECK}`)));
 const MAX = Number(arg('max', 150));
-const LOCKS = process.env.GDE_LOCKS || 'C:/Users/abuis/gde-locks';
+const LOCKS = process.env.GDE_LOCKS || path.join(os.homedir(), 'gde-locks');
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 fs.mkdirSync(OUT, { recursive: true });
 

@@ -58,6 +58,7 @@ function resetState(d) {
   on = new Set();
   stormForced = false;
   slowUntil = 0;
+  mirrorCanvas(false);
   primed = false;
   pollT = 0;
 }
@@ -129,6 +130,9 @@ export function updateCheats(dt, w) {
   MODS.pedScale = live('kleinemensjes') ? 0.5 : 1;
   MODS.pigeonScale = live('reuzenduif') ? 6 : 1;
   MODS.alwaysGreen = live('altijdgroen');
+  MODS.disco = live('disco');
+  MODS.mirror = live('spiegelstad');
+  mirrorCanvas(MODS.mirror);
 
   for (const [id, hour] of Object.entries(CLOCK)) if (live(id)) w.clock = hour;
   if (live('snelletijd')) updateDayNight(dt * FAST_CLOCK, w);
@@ -147,6 +151,15 @@ export function updateCheats(dt, w) {
   }
   lastSpeed = speed;
   MODS.slow = live('slowmo') && now < slowUntil ? 0.3 : 1;
+}
+
+// Spiegelstad: de 3D-weergave gespiegeld; de HUD, de menu's en de tekst erin blijven gewoon leesbaar.
+let mirrored = false;
+function mirrorCanvas(on) {
+  if (on === mirrored || typeof document === 'undefined') return;
+  mirrored = on;
+  const c = document.getElementById('game3d');
+  if (c) c.style.transform = on ? 'scaleX(-1)' : '';
 }
 
 function storm(w, want) {

@@ -11,7 +11,7 @@ Hoofdmenu → **Samen spelen** → een klein scherm (`samenkeuze.js`) met twee k
   spel en *Dit spel spelen*, of kies een lege plek voor een nieuw spel. Daarna opent het spel met de wachtkamer (de lobby, onderdeel
   *Samen spelen* van het pauzemenu) al op de keuze van de route (kamercode of IP-adres).
 - **Meedoen:** het spel opent met de wachtkamer op "Aansluiten" (kamercode of IP-adres van wie het spel opende).
-  Met een eigen opgeslagen spel gaat dat verder (Doorgaan); zonder begint het een nieuw spel (zie de regel hieronder).
+  Met een eigen opgeslagen spel gaat dat verder (het laatst gespeelde spel); zonder begint het een nieuw spel (zie de regel hieronder).
 
 Het pauzemenu kent dezelfde wachtkamer nog steeds (onderdeel *Samen spelen*): midden in een spel iemand uitnodigen of aansluiten werkt zoals
 voorheen.
