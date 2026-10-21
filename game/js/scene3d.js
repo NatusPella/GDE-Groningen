@@ -2492,9 +2492,9 @@ export function update3D(dt, world) {
     for (const a of world.wildlife) {
       const mesh = wildlifeMeshes.get(a);
       if (mesh) {
-        const y = a.kind === 'seagull' ? 6 + Math.sin(world.time * 2 + (a.flapSeed || 0)) * 1.2 : 0;
+        const y = (a.kind === 'seagull' ? 6 + Math.sin(world.time * 2 + (a.flapSeed || 0)) * 1.2 : 0) + (a.lift || 0);
         mesh.position.set(a.x, y, a.y);
-        mesh.rotation.y = -a.angle;
+        mesh.rotation.y = -a.angle - (a.draai || 0);   // a.lift en a.draai: een schaap in de straal van een schotel (#333)
         animateWildlifeMesh3D(mesh, a, world.time);
       }
     }

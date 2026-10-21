@@ -76,3 +76,4 @@ html.reduce-motion #saveslots .ssl-card, html.reduce-motion #saveslots .m-panel 
   #saveslots .ssl-foot { flex-direction: column; align-items: stretch; gap: 8px; }
   #saveslots .ssl-keys { display: none; }
 }
+#saveslots .ssl-intro { margin: 8px 0 0; font-size: 20px; max-width: 760px; }

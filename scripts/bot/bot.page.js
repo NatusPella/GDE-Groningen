@@ -420,13 +420,37 @@ while (true) {
       }
       if (best) { aim = { x: best.x, y: best.y, distance: bd }; top = 14; }
     }
+    // on foot, wedged against a stall pole or a prop: sidestep (alternating sides, longer each time), then plan again
+    if (act.mode !== 'drive' && !s.player.vehicle && !s.blocking.cinematic && s.target.distance > 5) {
+      const fp = mem.footPos;
+      if (!fp || Math.hypot(s.player.x - fp.x, s.player.y - fp.y) > 0.5) mem.footPos = { x: s.player.x, y: s.player.y, t: s.t };
+      else if (s.t - fp.t > 2) {
+        mem.footPos = null;
+        mem.sidesteps = (mem.sidesteps || 0) + 1;
+        const dir = mem.sidesteps % 2 ? 1 : -1, ms = 700 + 350 * Math.min(8, mem.sidesteps);
+        B.log('zijstap', { x: s.player.x, y: s.player.y, n: mem.sidesteps, ms });
+        B.stick(dir, -0.3);
+        await sleep(ms);
+        B.stick(0, 0);
+        // then a detour: a point to the side of the line to the goal, walked to first (the plan from there goes round the obstacle, not back into it)
+        const hx = s.target.x - s.player.x, hy = s.target.y - s.player.y, hl = Math.hypot(hx, hy) || 1;
+        const off = 7 + 3 * Math.min(6, mem.sidesteps);
+        mem.detour = { x: s.player.x + (-hy / hl) * off * dir + (hx / hl) * 4, y: s.player.y + (hx / hl) * off * dir + (hy / hl) * 4, until: s.t + 12 };
+        follower = null;
+        continue;
+      }
+    }
+    if (act.mode !== 'drive' && !s.player.vehicle && mem.detour && s.t < mem.detour.until && Math.hypot(mem.detour.x - s.player.x, mem.detour.y - s.player.y) > 3) { steerTowards(s, 'walk', mem.detour, false, 24, 2.5); continue; }
     steerTowards(s, act.mode, aim, !act.stunt && s.mission.phase !== 'active' && s.target.source === 'missiestart', top, s.mission.stage === 'lock' || s.mission.stage === 'crack' ? 1 : null);
     if (wedgeOut) {
       wedgeOut = false;
       B.log('klem', { x: s.player.x, y: s.player.y });
       wedgeDir = -wedgeDir;
-      B.stick(0.6 * wedgeDir, 1);
-      await sleep(1300);
+      // a car nose-first against a wall or kerb (M26: the Fjord Frituur on the pavement): back out longer and steer harder each time, then a forward arc the other way
+      mem.wedges = (s.t - (mem.wedgeAt || -99) < 25 ? (mem.wedges || 0) : 0) + 1; mem.wedgeAt = s.t;
+      B.stick(0.9 * wedgeDir, 1);
+      await sleep(1300 + 600 * Math.min(5, mem.wedges));
+      if (mem.wedges >= 2) { B.stick(-0.9 * wedgeDir, -1); await sleep(900); }
       B.stick(0, 0);
       follower = null;
     }

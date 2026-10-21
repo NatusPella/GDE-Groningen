@@ -46,7 +46,7 @@ export function buildAkte4Defs() {
       type: 'stages',
       label: 'Open, dicht',
       intro: ['Wubbo bedient elf bruggen in Veendam, op het ritme van de fanfare. Jelles mosterdschip moet er ook door.', 'Vaar door alle elf de bruggen, voor het mosterdschip uit. Toeter bij een gesloten brug, dan opent Wubbo hem.'],
-      outro: 'Het mosterdschip zit vast. De grove mosterd is van Oma, niet van Jelle. Plakje zeven is gered.',
+      outro: 'Het mosterdschip zit vast. De grove mosterd is van Oma, niet van Jelle. Wubbo kent een webbureau dat elke nacht om middernacht bijwerkt.',
       timeLimit: 420,
       timeUp: 'tijd op. Jelles mosterdschip is al door alle elf de bruggen',
       costRow: ['Gered', 'Plakje zeven: de grove mosterd gaat naar Oma'],
@@ -73,7 +73,7 @@ export function buildAkte4Defs() {
       type: 'stages',
       label: 'Wie draaide de camera\'s uit?',
       intro: ['Wiebelwerk in Veendam doet elke nacht om middernacht de update van het museum, ook van de camera\'s.', 'Ga naar binnen als klant, overtuig de accountmanager en kijk in het logboek van 12 augustus.'],
-      outro: 'Het logboek bewijst het: Jelle had de bal op 12 augustus al. Tessa print het.',
+      outro: 'Het logboek bewijst het: Jelle had de bal op 12 augustus al. Tessa print het. Mem vraagt ons dinsdag naar Bourtange.',
       reward: 600,
       onFoot: true,
       costRow: ['Ontdekt', 'Jelle had de bal al op 12 augustus'],
@@ -106,7 +106,7 @@ export function buildAkte4Defs() {
         },
         {
           // how wary the manager got: one wrong answer and he walks along, two and the guard does
-          kind: 'scene', label: 'De accountmanager reageert', target: ll('wiebelwerk', { label: 'Wiebelwerk' }), kicker: 'Wiebelwerk', script: { ids: ['M18.2'] },
+          kind: 'scene', label: 'Hoor wat de accountmanager van je antwoorden vindt', target: ll('wiebelwerk', { label: 'Wiebelwerk' }), kicker: 'Wiebelwerk', script: { ids: ['M18.2'] },
           scriptIf: [{ tag: 'argwaan2', ids: ['M18.7'] }, { tag: 'argwaan1', ids: ['M18.6'] }],
           cast: [{ key: 'accountmanager', pose: 'hips', at: [3.0, -0.4] }],
         },
@@ -196,14 +196,14 @@ export function buildAkte4Defs() {
           ],
         },
         {
-          kind: 'scene', target: ll('bourtangeGracht', { label: 'De gracht' }), label: 'Durk en Douwe', kicker: 'De gracht van Bourtange',
+          kind: 'scene', target: ll('bourtangeGracht', { label: 'De gracht' }), label: 'Luister naar Durk en Douwe: zij houden je bezig', kicker: 'De gracht van Bourtange',
           script: { ids: ['M20.2'] }, cast: [{ key: 'durk', pose: 'arms', at: [3.2, 1.0] }, { key: 'douwe', pose: 'arms', at: [3.2, -1.4] }],
         },
         {
           kind: 'goto', target: ll('bourtangeKruit', { label: 'De kruitkelder' }), mode: 'foot', radius: 12, label: 'Naar de kruitkelder', say: 'Mem en Oma Trijntje zitten in de kruitkelder. Jelle heeft de bal in een koffer.',
         },
         {
-          kind: 'scene', target: ll('bourtangeKruit', { label: 'De kruitkelder' }), label: 'Mem', kicker: 'De kruitkelder',
+          kind: 'scene', target: ll('bourtangeKruit', { label: 'De kruitkelder' }), label: 'Luister naar Mem in de kruitkelder', kicker: 'De kruitkelder',
           script: { ids: ['M20.3'] }, cast: [{ key: 'mem', pose: 'hold', at: [2.4, 0.6] }, { key: 'trijntje', pose: 'hips', at: [2.6, -0.8] }, { key: 'jelle', pose: 'hips', at: [4.2, 0] }, { key: 'berend', pose: 'arms', at: [3.6, 2.0] }],
         },
         {

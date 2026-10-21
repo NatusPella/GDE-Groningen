@@ -9,7 +9,7 @@
 const CFG = window.__coopCfg || {};
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const t0 = performance.now();
-const log = (type, data = {}) => console.log('[bot-log] ' + JSON.stringify({ t: Math.round(performance.now() - t0) / 1000, type, who: CFG.name, ...data }));
+const log = (type, data = {}) => console.log('[bot-log] ' + JSON.stringify({ t: Math.round(performance.now() - t0) / 1000, wall: Date.now(), type, who: CFG.name, ...data }));
 const imp = (f) => import('/js/' + f + '.js');
 window.addEventListener('error', (e) => log('jserror', { msg: String(e.message).slice(0, 160), file: String(e.filename || '').split('/js/').pop(), line: e.lineno, stack: e.error && e.error.stack ? String(e.error.stack).split(String.fromCharCode(10)).slice(0, 4).join(' | ').slice(0, 400) : '' }));
 window.addEventListener('unhandledrejection', (e) => log('jserror', { msg: 'belofte afgewezen: ' + String(e.reason && e.reason.message || e.reason).slice(0, 200) }));
@@ -105,7 +105,9 @@ function sampleNow(n) {
     hm: hm ? (hm.actief ? hm.label + ' | ' + (hm.stap || '') : '-') : null,
     hostEnt: x.coopHost ? [x.coopHost.voertuigen.length, x.coopHost.doelen.length, (x.coopHost.voetgangers || []).length] : null,
     veh: x.player && x.player.inVehicle ? 1 : 0, vehC: x.companion && x.companion.inVehicle ? 1 : 0, nVeh: (x.vehicles || []).length,
-    cutscene: !!(cine && cine.classList.contains('on')), camOver: !!x.cameraOverride,
+    cutscene: !!(cine && cine.classList.contains('on')), camOver: !!x.cameraOverride, cutBezig: x.coopCutBezig ?? null, gate: !!(x.coopStartGateGezien),
+    cam3: x.cameraOverride && x.cameraOverride.position ? [Math.round(x.cameraOverride.position.x), Math.round(x.cameraOverride.position.y), Math.round(x.cameraOverride.position.z ?? 0)] : null,
+    sub: cine && cine.querySelector('.cine-line') ? cine.querySelector('.cine-line').textContent.slice(0, 50) : '', letterbox: !!(cine && cine.classList.contains('letterbox')),
     story: window.__story && window.__story.mission ? (() => { try { const m = window.__story.mission(); return m && (m.phase || '') + ':' + (m.stage || ''); } catch (e) { return ''; } })() : '',
     net: netNow(),
   };
@@ -138,8 +140,28 @@ async function toLobby() {
     await sleep(800);
     log('hoofdmenu', { items: [...document.querySelectorAll('#start-screen .ss-item')].map((e) => e.dataset.act).join(',') });
     shot('hoofdmenu');
+    if (CFG.role === 'host' && CFG.hostSave) { // de gastheer heeft al een opgeslagen spel (met 777 euro); het is spel 1 in het scherm Opgeslagen spellen
+      const sv = await imp('savegame'); W().money = 777; const okS = sv.saveGame(W(), { toast: false }); W().money = 250;
+      log('host-save', { ok: okS, hasSave: sv.hasSave() }); CFG.hostSlot = 1;
+    }
     it.click();
-    let skipping = true;
+    // de menustroom (#95): Samen spelen -> Gastheer worden / Meedoen -> (gastheer) kies een opgeslagen spel of Nieuw spel
+    const keuze = await until(() => document.querySelector('#samenkeuze .sk-item'), 8000, 'het scherm Samen spelen (keuze)');
+    log('samenkeuze', { knoppen: [...document.querySelectorAll('#samenkeuze .sk-item')].map((b) => b.dataset.act).join(','), tekst: document.querySelector('#samenkeuze').innerText.slice(0, 300) });
+    await sleep(1200); // het menu en zijn stijlen laden eerst; dan pas de schermafbeelding
+    shot('samenkeuze');
+    await sleep(600);
+    document.querySelector('#samenkeuze [data-act="' + (CFG.role === 'host' ? 'host' : 'gast') + '"]').click();
+    if (CFG.role === 'host') {
+      await until(() => document.querySelector('#saveslots .ssl-card'), 8000, 'het scherm Opgeslagen spellen');
+      log('spelkeuze', { titel: (document.querySelector('#ssl-title') || {}).textContent, ogen: (document.querySelector('#saveslots .m-eb') || {}).textContent, hint: (document.querySelector('#saveslots .ssl-intro') || {}).textContent, kaarten: [...document.querySelectorAll('#saveslots .ssl-card')].map((c) => c.className + ':' + (c.querySelector('.ssl-nm') || {}).textContent).join(' | ') });
+      await sleep(1500);
+      shot('spelkeuze');
+      await sleep(600);
+      if (CFG.hostSlot) { document.querySelector('#saveslots [data-slot="' + CFG.hostSlot + '"]').click(); await sleep(300); const l = document.querySelector('#saveslots [data-do="load"]'); log('spelkeuze-laden', { label: l && l.textContent }); l.click(); }
+      else document.querySelector('#saveslots .ssl-card.empty').click();
+    }
+    let skipping = !CFG.watchOpening;
     (async () => { // Spatie ingedrukt houden slaat een filmpje over
       while (skipping) {
         if (W() && (W().cameraOverride || (document.getElementById('cine') && document.getElementById('cine').classList.contains('on')))) await holdSkip();
@@ -170,8 +192,8 @@ async function connect() {
   log('start', { role: CFG.role, route: CFG.route, viaMenu: !!CFG.viaMenu, net: netNow() });
   log('scherm', { titel: title(), knoppen: buttons() });
   if (CFG.role === 'host') {
-    await act('kies-host');
-    log('scherm', { titel: title(), knoppen: buttons() });
+    if (buttons().includes('kies-host')) await act('kies-host');
+    log('scherm', { titel: title(), knoppen: buttons(), tekst: panel().innerText.slice(0, 400) });
     await act(CFG.route === 'kamer' ? 'route-kamer' : 'route-direct');
     // toestemming: vóór akkoord is er niets verstuurd
     const voor = netNow();
@@ -183,10 +205,13 @@ async function connect() {
     const code = await until(() => { const c = panel().querySelector('.coop-code'); return c && c.textContent.trim(); }, 40000, 'code van de host');
     log('code', { code, net: netNow() });
     shot('host-code');
+    { const b0 = panel().querySelector('[data-act="start-spel"]'); log('start-alleen', { knop: !!b0, uit: !!(b0 && b0.disabled), tekst: panel().innerText.slice(0, 500) }); } // alleen jij: Spel starten staat uit
     await until(() => title() === 'Je speelt samen', CFG.waitS ? CFG.waitS * 1000 : 120000, 'een gast');
   } else {
-    await act('kies-gast');
+    if (buttons().includes('kies-gast')) await act('kies-gast');
+    log('scherm', { titel: title(), knoppen: buttons(), tekst: panel().innerText.slice(0, 500) });
     const input = await until(() => panel().querySelector('.coop-input'), 5000, 'invoerveld');
+    if (CFG.tekstTest) await PHASES.tekstveld();
     input.value = CFG.code; input.dispatchEvent(new Event('input', { bubbles: true }));
     await act('koppel');
     log('toestemming', { titel: title(), tekst: panel().innerText.slice(0, 600), knoppen: buttons(), net: netNow() });
@@ -198,6 +223,24 @@ async function connect() {
   log('verbonden', { titel: title(), tekst: panel().innerText.slice(0, 600), net: netNow() });
   await sleep(1500); // de fade van het binnenkomen is dan voorbij
   shot('lobby-verbonden');
+  const gateKnop = CFG.role === 'host' && panel().querySelector('[data-act="start-spel"]');
+  log('wachtkamer', { rol: CFG.role, gateKnop: !!gateKnop, gateKnopUit: !!(gateKnop && gateKnop.disabled), tekst: panel().innerText.slice(0, 700) });
+  if (CFG.role !== 'host' && W().coopHek) { // de gast wacht in de wachtkamer tot de ander start; het menu sluit dan vanzelf
+    log('hek-gast', { tekst: panel().innerText.slice(0, 500), paused: !!W().paused, cam: !!W().cameraOverride, cine: !!(W().cameraOverride) });
+    await until(() => !W().coopHek, 600000, 'de ander start het spel');
+    log('hek-open-gast', { paused: !!W().paused, menu: !!document.querySelector('#pause-menu.visible') });
+    await sleep(1500);
+  }
+  if (CFG.watchOpening && CFG.role === 'host') return; // de fase 'opening' drukt zelf op Spel starten
+  if (gateKnop) { // een nieuw spel: de gastheer start het (zoals een speler); de opening begint daarna, de anderen kijken mee (of de gastheer slaat over)
+    gateKnop.click(); log('spel-gestart', {});
+    let skip = true; (async () => { while (skip) { if (W() && (W().cameraOverride || (document.getElementById('cine') && document.getElementById('cine').classList.contains('on')))) await holdSkip(); await sleep(2500); } })();
+    await until(() => !(W().paused), 8000, 'het spel loopt na Spel starten');
+    await sleep(1500);
+    shot('spel-samen');
+    setTimeout(() => { skip = false; }, 90000);
+    return;
+  }
   await closeMenu(); // terug het spel in
   await sleep(1500);
   shot('spel-samen');
@@ -473,6 +516,91 @@ const PHASES = {
     await sleep(300);
     const d = sv.readSave();
     log('save', { role: w.coopRole || null, hadSave, ok, money: w.money, verdiend: w.coopVerdiend || 0, saveMoneyVoor: voor, saveMoney: d ? d.money : null, saveChar: d ? d.character : null });
+  },
+  // de opening van een nieuw spel samen (#95): de gastheer drukt op Spel starten, alle spelers zien dezelfde scènes
+  async opening({ s = 180, skip = false }) {
+    const C = await imp('cinematics');
+    const B = window.__bot;
+    const cineOn = () => { const c = document.getElementById('cine'); return !!(c && c.classList.contains('on')) || C.isCinematicActive(); };
+    const t0o = performance.now(); let eerste = null, gezien = 0, geprobeerd = false, overgeslagen = null;
+    if (CFG.role === 'host') {
+      // het hek: een tijd lang gebeurt er niets, ook al zijn alle spelers er
+      await sleep(7000);
+      log('gate-wacht', { cine: cineOn(), paused: !!W().paused, cam: !!W().cameraOverride, knop: !!panel().querySelector('[data-act="start-spel"]') });
+      shot('gate-host');
+      panel().querySelector('[data-act="start-spel"]').click(); log('spel-gestart', {});
+    } else {
+      await closeMenu(); // de gast kijkt vanuit het spel mee; hij wacht tot de gastheer start (hij begint niet zelf)
+      log('gate-gast', { cine: cineOn(), cam: !!W().cameraOverride, bezig: W().coopCutBezig ?? null });
+    }
+    const end = performance.now() + s * 1000; let n = 0, laatsteSub = '', uitSinds = null, keuken = 0;
+    while (performance.now() < end) {
+      const on = cineOn();
+      const x = W();
+      // de gast telt alleen de scène van de gastheer (zijn eigen start-filmpje telt niet)
+      if (on && eerste == null && (CFG.role === 'host' || x.coopCutBezig != null)) { eerste = (performance.now() - t0o) / 1000; log('opening-begin', { na: eerste, cutBezig: x.coopCutBezig ?? null, wachtte: eerste }); }
+      if (CFG.role === 'gast' && !net() && eerste != null) { log('opening-weg', { net: false }); break; } // de gastheer stopte: de gast speelt weer zijn eigen spel
+      if (on) gezien += 0.25;
+      if (on && x.cameraOverride && x.cameraOverride.position && x.cameraOverride.position.z > 300) { if (!keuken) keuken = performance.now(); else if (keuken > 0 && performance.now() - keuken > 4000) { keuken = -1; shot('opening-' + CFG.role + '-keuken'); } } // de keuken (tweede scène) van binnen
+      const c = document.getElementById('cine'); const sub = c && c.querySelector('.cine-line') ? c.querySelector('.cine-line').textContent : '';
+      if (sub && sub !== laatsteSub) { laatsteSub = sub; log('opening-regel', { sub: sub.slice(0, 60), cam: x.cameraOverride && x.cameraOverride.position ? [Math.round(x.cameraOverride.position.x), Math.round(x.cameraOverride.position.y), Math.round(x.cameraOverride.position.z ?? 0)] : null, bezig: x.coopCutBezig ?? null }); }
+      if (on && gezien >= 8 && !geprobeerd) {
+        geprobeerd = true; shot('opening-' + CFG.role + '-8s');
+        if (CFG.role === 'gast') { // een gast kan niet overslaan: Spatie ingedrukt houden doet niets (de meting loopt intussen door)
+          (async () => { if (B) { B.down(' '); await sleep(2200); B.up(' '); } log('gast-probeert-over', { nogActief: cineOn(), bezig: W().coopCutBezig ?? null }); })();
+        }
+      }
+      if (skip && CFG.role === 'host' && on && gezien >= 22 && !overgeslagen) { shot('opening-host-voor-overslaan'); log('host-slaat-over'); await holdSkip(2200); overgeslagen = performance.now(); }
+      if (overgeslagen && !cineOn() && performance.now() - overgeslagen > 800) { log('na-overslaan', { cine: cineOn(), cam: !!W().cameraOverride, bezig: W().coopCutBezig ?? null, sceneEl: !!document.getElementById('coop-scene'), paused: !!W().paused }); break; }
+      if (CFG.role === 'gast' && skip && geprobeerd && !cineOn()) { log('na-overslaan', { cine: false, cam: !!W().cameraOverride, bezig: W().coopCutBezig ?? null, sceneEl: !!document.getElementById('coop-scene'), paused: !!W().paused }); break; }
+      if (on) uitSinds = null; else if (uitSinds == null) uitSinds = performance.now();
+      if (!skip && geprobeerd && eerste != null && !on && uitSinds != null && performance.now() - uitSinds > 6000 && gezien > 20) { log('opening-klaar', { cam: !!W().cameraOverride, bezig: W().coopCutBezig ?? null, paused: !!W().paused }); break; }
+      await sleep(250);
+    }
+    log('cut-spoor', { spoor: (W().coopCutSpoor || []).map((r) => [Math.round((r[0] - 1792519000000) / 100) / 10, ...r.slice(1)]) });
+    log('opening-einde', { gezien, eerste, cine: cineOn() });
+    shot('opening-' + CFG.role + '-einde');
+  },
+  // een tekstveld neemt alle toetsen en plakken aan (#315): echte toetsaanslagen via het hoofdproces
+  async tekstveld() {
+    const inp = await until(() => panel().querySelector('.coop-input'), 8000, 'invoerveld');
+    // het klembord is van het hele systeem: wat erin stond zetten we na de test terug
+    let oud = ''; try { oud = await window.gdeDesktop.clipboard.readText(); } catch (e) { /* geen brug */ }
+    inp.focus(); inp.value = ''; inp.dispatchEvent(new Event('input', { bubbles: true }));
+    // het klembord vullen via het hoofdproces en teruglezen: het is van het hele systeem en een andere instantie kan er even tussen zitten
+    const zetKlembord = async (t) => { for (let i = 0; i < 5; i++) { console.log('[clipboard-set] ' + t); for (let j = 0; j < 8; j++) { await sleep(250); let g = ''; try { g = await window.gdeDesktop.clipboard.readText(); } catch (e) { /* geen brug */ } if (g === t) return true; } } log('klembord-niet-gezet', { gewenst: t }); return false; };
+    const send = async (ev) => { console.log('[sendinput] ' + JSON.stringify(ev)); await sleep(60); };
+    const typ = async (ch, code) => { await send({ type: 'keyDown', keyCode: code }); await send({ type: 'char', keyCode: ch }); await send({ type: 'keyUp', keyCode: code }); };
+    for (const [ch, code] of [['w', 'W'], ['a', 'A'], ['s', 'S'], ['d', 'D'], [' ', 'Space'], ['e', 'E']]) await typ(ch, code);
+    for (let i = 0; i < 40 && inp.value !== 'wasd e'; i++) await sleep(250); // onder belasting komen de toetsen soms seconden later aan
+    const na = inp.value, pos = W().player ? [W().player.x, W().player.y] : null;
+    log('tekstveld-typen', { waarde: na, focus: document.activeElement === inp, pos });
+    // plakken met Ctrl+V (het klembord zet het hoofdproces)
+    inp.value = ''; inp.dispatchEvent(new Event('input', { bubbles: true }));
+    for (let poging = 0; poging < 3 && inp.value !== '127.0.0.1:41234-ABC'; poging++) { // een andere instantie kan het klembord even gebruiken
+      inp.value = ''; inp.dispatchEvent(new Event('input', { bubbles: true }));
+      await zetKlembord('127.0.0.1:41234-ABC');
+      await send({ type: 'keyDown', keyCode: 'V', modifiers: ['control'] }); await send({ type: 'keyUp', keyCode: 'V', modifiers: ['control'] });
+      for (let i = 0; i < 16 && inp.value !== '127.0.0.1:41234-ABC'; i++) await sleep(250);
+    }
+    log('tekstveld-plakken', { waarde: inp.value });
+    // rechtermuisknop-menu: Plakken
+    inp.value = ''; inp.dispatchEvent(new Event('input', { bubbles: true }));
+    await zetKlembord('kamer-xyz');
+    const r = inp.getBoundingClientRect();
+    await send({ type: 'mouseDown', x: Math.round(r.left + 20), y: Math.round(r.top + r.height / 2), button: 'right', clickCount: 1 });
+    await send({ type: 'mouseUp', x: Math.round(r.left + 20), y: Math.round(r.top + r.height / 2), button: 'right', clickCount: 1 });
+    for (let i = 0; i < 20 && !document.querySelector('.tfmenu-gde'); i++) await sleep(250); // onder belasting komt een muisgebeurtenis soms seconden later
+    const menu = document.querySelector('.tfmenu-gde');
+    log('tekstveld-menu', { menu: !!menu, items: menu ? [...menu.querySelectorAll('button')].map((b) => b.textContent).join(',') : '' });
+    shot('tekstveld-menu');
+    const plak = menu && [...menu.querySelectorAll('button')].find((b) => b.textContent === 'Plakken');
+    if (plak) plak.click();
+    for (let i = 0; i < 16 && inp.value !== 'kamer-xyz'; i++) await sleep(250);
+    if (inp.value !== 'kamer-xyz' && plak) { await zetKlembord('kamer-xyz'); inp.focus(); inp.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true, clientX: r.left + 20, clientY: r.top + 10 })); await sleep(300); const p2 = [...document.querySelectorAll('.tfmenu-gde button')].find((b) => b.textContent === 'Plakken'); if (p2) p2.click(); await sleep(700); log('tekstveld-menu-opnieuw', { waarde: inp.value }); }
+    log('tekstveld-menu-plakken', { waarde: inp.value });
+    inp.value = ''; inp.dispatchEvent(new Event('input', { bubbles: true }));
+    if (oud && oud.indexOf(String.fromCharCode(10)) < 0 && oud.indexOf(String.fromCharCode(13)) < 0) console.log('[clipboard-set] ' + oud); // het klembord van vóór de test terug
   },
   // de spelbot speelt het verhaal (alleen de host); de gasten lopen mee
   async verhaal({ s = 1500, until = 'T1', speed = 1 }) {
