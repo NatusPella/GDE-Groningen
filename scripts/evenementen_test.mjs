@@ -6,6 +6,7 @@ import { KINDS, AGENDA } from '../game/js/evenementen.js';
 import { REGIO_EVENTS } from '../game/js/regioleven.js';
 import { day, LAST_SUMMER_DAY, ONTZET_DAY, weekdayOf } from '../game/js/calendar.js';
 import { BASE_KEYS } from '../game/js/storagekeys.js';
+import { edgeRule } from '../game/js/worldedge.js';
 
 let bad = 0, n = 0;
 const check = (name, ok, info = '') => { n++; if (!ok) { bad++; console.log('FAIL', name, info); } };
@@ -34,7 +35,7 @@ for (const ev of AGENDA) {
   }
 }
 
-const zl = AGENDA.find((e) => e.id === 'ev-kermis-zuidlaren');
+const zl = AGENDA.find((e) => e.id === 'ev-kermis-zuidbroek');
 const c = V.centreOf(zl);
 check('hart is eindig', Number.isFinite(c.x) && Number.isFinite(c.y));
 check('actief tijdens de kermis', V.isActive(zl, zl.from, 15) && V.isActive(zl, zl.to, 23));
@@ -123,6 +124,19 @@ check('opslagsleutel geregistreerd', BASE_KEYS.eventsSeen === V.SEEN_KEY);
   check('routestraf: midden maximaal', V.routePenalty(c.x, c.y, ev.from, mid) === V.ROUTE_PENALTY_M);
   check('routestraf: ver weg nul', V.routePenalty(c.x + 9000, c.y, ev.from, mid) === 0);
   check('routestraf: buiten de uren nul', V.routePenalty(c.x, c.y, ev.from, (ev.hours[1] + 1) % 24) === 0 || ev.hours[1] >= 24);
+}
+
+// elk middelpunt ligt binnen de rand van de wereld (#345: de kermis lag 2,6 km buiten de Drentse grens)
+{
+  const idx = new URL('../game/world/index-provincie.json', import.meta.url);
+  if (!fs.existsSync(idx)) console.log('SKIP randcheck: geen game/world');
+  else {
+    const edge = JSON.parse(fs.readFileSync(idx, 'utf8')).global?.edge;
+    for (const ev of AGENDA) {
+      const p = V.centreOf(ev), r = edgeRule(p.x, p.y, edge, { mode: 'foot' });
+      check(`${ev.id}: middelpunt binnen de rand van de wereld`, !r, r ? `${r.action} ${r.edge} ${Math.round(r.d)} m` : '');
+    }
+  }
 }
 
 console.log(bad ? `${bad} van ${n} mislukt` : `evenementen_test ok (${n} checks)`);
