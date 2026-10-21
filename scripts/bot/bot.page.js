@@ -244,7 +244,7 @@ async function rescue(s, stepKey, info) {
 // balance and pace meter (#147, scripts/bot/balans.mjs): per step the wall time, the metres walked or driven, the time in cutscenes,
 // talks and dialogs, the goal changes and the longest quiet stretch (no movement, no scene, no new goal)
 let meter = null;
-const newMeter = (s) => ({ t0: s.t, wall0: s.wall, pos: { x: s.player.x, y: s.player.y }, dist: 0, cine: 0, cineN: 0, cineAt: null, talk: 0, goals: 0, goal: '', lastAct: s.t, maxQuiet: 0, prev: s.t, speech: 0 });
+const newMeter = (s) => ({ t0: s.t, wall0: s.wall, pos: { x: s.player.x, y: s.player.y }, dist: 0, cine: 0, cineN: 0, cineAt: null, talk: 0, goals: 0, goal: '', lastAct: s.t, maxQuiet: 0, prev: s.t, active: 0, limit: 0, minLeft: null });
 function meterTick(s) {
   if (!meter) meter = newMeter(s);
   const m = meter, dt = Math.max(0, Math.min(2, s.t - m.prev));
@@ -255,6 +255,8 @@ function meterTick(s) {
   const busy = !!(s.blocking.cinematic || s.blocking.talk || s.blocking.dialog || s.blocking.banner || s.blocking.ride || s.blocking.shop);
   if (s.blocking.cinematic) { m.cine += dt; if (m.cineAt == null) { m.cineAt = s.t; m.cineN++; } } else if (m.cineAt != null) { B.log('cine', { id: s.story.id, dur: Math.round((s.t - m.cineAt) * 10) / 10 }); m.cineAt = null; }
   if (s.blocking.talk) m.talk += dt;
+  // the mission's own clock: how long it ran active, the longest time limit seen and the least time that was left
+  if (s.mission.active) { m.active += dt; if (Number.isFinite(s.mission.timeLeft)) { m.limit = Math.max(m.limit, s.mission.timeLeft); m.minLeft = m.minLeft == null ? s.mission.timeLeft : Math.min(m.minLeft, s.mission.timeLeft); } }
   const goal = [s.mission.stage || '', s.mission.label || '', s.target ? s.target.name || '' : ''].join('|');
   if (goal !== m.goal) { if (m.goal) { m.goals++; B.log('doel', { stage: s.mission.stage || '', label: s.mission.label || '', doel: s.target ? s.target.name || '' : '', afstand: s.target ? s.target.distance : null }); } m.goal = goal; m.lastAct = s.t; }
   if (busy || d > 0.05 || (s.player.vehicle && s.player.vehicle.speed > 1)) m.lastAct = s.t;
@@ -263,7 +265,7 @@ function meterTick(s) {
 function meterEnd(s, id, outcome) {
   const m = meter;
   if (!m) { B.log('step', { event: 'end', id, outcome }); return; }
-  B.log('step', { event: 'end', id, outcome, wall: Math.round((s.wall - m.wall0) / 100) / 10, dist: Math.round(m.dist), cine: Math.round(m.cine * 10) / 10, cineN: m.cineN, talk: Math.round(m.talk * 10) / 10, goals: m.goals, maxQuiet: Math.round(m.maxQuiet * 10) / 10 });
+  B.log('step', { event: 'end', id, outcome, wall: Math.round((s.wall - m.wall0) / 100) / 10, dist: Math.round(m.dist), cine: Math.round(m.cine * 10) / 10, cineN: m.cineN, talk: Math.round(m.talk * 10) / 10, goals: m.goals, maxQuiet: Math.round(m.maxQuiet * 10) / 10, actief: Math.round(m.active * 10) / 10, limiet: Math.round(m.limit), restMin: m.minLeft == null ? null : Math.round(m.minLeft) });
   meter = null;
 }
 
