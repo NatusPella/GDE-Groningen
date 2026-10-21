@@ -293,6 +293,31 @@ const PHASES = {
   async wacht({ s = 10 }) { await sleep(s * 1000); },
   async kijk({ s = 10 }) { await sleep(s * 1000); }, // zelfde als wacht, onder een eigen fasenaam (de testbank leest er de invoer van een andere speler in)
   async shot({ name }) { shot(name); await sleep(600); },
+  // de spelerslijst bij Tab (#377): Tab vasthouden, schermafbeelding, loslaten
+  async tab({ name = 'g-tab' }) {
+    for (const t of [window, document]) t.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', code: 'Tab', bubbles: true }));
+    await sleep(900);
+    const el = document.getElementById('coop-spelers');
+    log('tab', { zichtbaar: !!el && getComputedStyle(el).display !== 'none', rijen: el ? el.querySelectorAll('.cs-rij').length : 0, tekst: el ? el.innerText.slice(0, 300) : '' });
+    shot(name); await sleep(500);
+    for (const t of [window, document]) t.dispatchEvent(new KeyboardEvent('keyup', { key: 'Tab', code: 'Tab', bubbles: true }));
+    await sleep(400);
+    log('tab-los', { zichtbaar: !!el && getComputedStyle(el).display !== 'none' });
+  },
+  // het onderdeel Spelers in het pauzemenu (#377)
+  async spelersmenu({ name = 'g-spelersmenu' }) {
+    await esc();
+    await until(() => document.querySelector('.ra[data-goto="spelers"]'), 8000, 'rail-knop Spelers');
+    document.querySelector('.ra[data-goto="spelers"]').click();
+    await sleep(1200);
+    const p = document.querySelector('#pause-menu [data-panel="spelers"]');
+    const rail = document.querySelector('#pause-menu .pm-rail .pm-game'), opsl = document.querySelector('#pause-menu [data-action="save"]');
+    const first = document.querySelector('#pause-menu .pm-game .ra'), second = document.querySelectorAll('#pause-menu .pm-game .ra')[1];
+    log('spelersmenu', { zichtbaar: !!p && !p.hidden, rijen: p ? p.querySelectorAll('.cs-rij').length : 0, roep: p ? p.querySelectorAll('[data-ping]').length : 0,
+      rail: rail ? [rail.scrollHeight, rail.clientHeight] : null, opslaan: opsl ? Math.round(opsl.getBoundingClientRect().bottom) : null, venster: [innerWidth, innerHeight], raHoogte: first && second ? Math.round(second.getBoundingClientRect().top - first.getBoundingClientRect().top) : null, coop: document.getElementById('pause-menu').dataset.coop,
+      css: first ? { hoogte: getComputedStyle(first).height, raH: getComputedStyle(document.querySelector('#pause-menu .pm-rail')).getPropertyValue('--ra-h'), lettergrootte: getComputedStyle(first).fontSize, zoom: getComputedStyle(document.getElementById('pause-menu')).zoom, spHoogte: getComputedStyle(document.querySelector('#pause-menu .pm-rail-sp')).height, mt: getComputedStyle(document.getElementById('pause-menu')).getPropertyValue('--mt') } : null });
+    shot(name); await sleep(500); await closeMenu();
+  },
   // bij een slecht netwerk spelen: alleen op de aangegeven instanties (args.wie)
   async netsim({ s = 20, latency = 0.12, jitter = 0.05, loss = 0.1, wie = null }) {
     if (wie && !wie.includes(CFG.name)) { await sleep(s * 1000); return; }
@@ -488,8 +513,10 @@ const PHASES = {
   // het pauzemenu open terwijl je samen speelt: ligt het partnerlabel er niet overheen? (alleen een schermafbeelding en een controle)
   async menushot() {
     await openSamen(); await sleep(900);
-    const chip = document.querySelector('.coop-chip');
-    log('menushot', { chip: !!chip, chipZichtbaar: !!chip && getComputedStyle(chip).visibility !== 'hidden' });
+    // geen permanent label meer (#377): niets van de spelerslijst ligt over het menu; het onderdeel Spelers staat in de rail
+    const lijst = document.getElementById('coop-spelers');
+    const rail = document.querySelector('#pause-menu [data-goto="spelers"]');
+    log('menushot', { chip: true, chipZichtbaar: !!(lijst && getComputedStyle(lijst).display !== 'none') || !!document.querySelector('.coop-chip'), railSpelers: !!rail && !rail.hidden });
     shot('g-pauzemenu');
     await sleep(500); await closeMenu();
   },
