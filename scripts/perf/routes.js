@@ -503,6 +503,119 @@ results.routes.det = await safe('det', async () => {
   r.render = prevR;
   return out;
 });
+// PoC multi-draw pool (PERF_POOL=1 with PERF_ONLY=ab): the meshes of the building/facade/road/shore batches that exist now are copied into one
+// geometry per material (one THREE.BatchedMesh object with an identity matrix, its draw ranges chosen per frame by a sphere test per cell);
+// the originals sit out while the variant is on (perfoff step 'pool' = pool off). Standing only: the batchers keep changing while walking.
+function buildPoolPoC() {
+  const T = sc.THREE;
+  const roots = sc.scene.children.filter((c) => /^(building|facade|road|shore)-batches$/.test(c.name));
+  const meshes = [];
+  for (const r0 of roots) r0.traverse((o) => { if (o.isMesh && o.userData.staticBatch && !Array.isArray(o.material) && o.geometry.index) meshes.push(o); });
+  const buckets = new Map();
+  for (const m of meshes) {
+    const g = m.geometry; const sig = Object.keys(g.attributes).sort().join(',');
+    const key = m.material.uuid + '|' + (m.castShadow ? 1 : 0) + '|' + sig;
+    let b = buckets.get(key); if (!b) buckets.set(key, b = { mat: m.material, cast: m.castShadow, names: Object.keys(g.attributes).sort(), items: [], verts: 0, idx: 0 });
+    b.items.push(m); b.verts += g.attributes.position.count; b.idx += g.index.count;
+  }
+  const pools = [];
+  let totalEntries = 0;
+  for (const b of buckets.values()) {
+    const geo = new T.BufferGeometry();
+    for (const n of b.names) {
+      const a0 = b.items[0].geometry.attributes[n];
+      const out = new a0.array.constructor(b.verts * a0.itemSize); let o = 0;
+      for (const m of b.items) { const a = m.geometry.attributes[n]; out.set(a.array, o); o += a.array.length; }
+      geo.setAttribute(n, new T.BufferAttribute(out, a0.itemSize, a0.normalized));
+    }
+    const index = new Uint32Array(b.idx); let io = 0, vo = 0;
+    const ent = new Float32Array(b.items.length * 4); const start = new Int32Array(b.items.length), count = new Int32Array(b.items.length);
+    b.items.forEach((m, i) => {
+      const g = m.geometry, ix = g.index.array; start[i] = io; count[i] = ix.length;
+      for (let k = 0; k < ix.length; k++) index[io + k] = ix[k] + vo;
+      io += ix.length; vo += g.attributes.position.count;
+      if (!g.boundingSphere) g.computeBoundingSphere();
+      ent[i * 4] = g.boundingSphere.center.x; ent[i * 4 + 1] = g.boundingSphere.center.y; ent[i * 4 + 2] = g.boundingSphere.center.z; ent[i * 4 + 3] = g.boundingSphere.radius;
+    });
+    geo.setIndex(new T.BufferAttribute(index, 1));
+    geo.setAttribute('batchId', new T.BufferAttribute(new Uint16Array(b.verts), 1));
+    // three recompiles a program each time a material switches between a batched and a plain mesh: the pool gets its own copy
+    const pm0 = b.mat.clone(); pm0.onBeforeCompile = b.mat.onBeforeCompile; { const ck = b.mat.customProgramCacheKey; pm0.customProgramCacheKey = () => (ck ? ck.call(b.mat) : '') + '|pool'; }
+    const pool = new T.BatchedMesh(1, 1, 1, pm0);
+    pool.geometry = geo; pool.frustumCulled = false; pool.castShadow = b.cast; pool.receiveShadow = true; pool.matrixAutoUpdate = false;
+    pool._matricesTexture.image.data.set([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]); pool._matricesTexture.needsUpdate = true;
+    pool.userData.poolPoC = true;
+    // the shared depth material would flip between batched and plain meshes in the shadow pass
+    pool.customDepthMaterial = new T.MeshDepthMaterial({ depthPacking: T.RGBADepthPacking });
+    const starts = new Int32Array(b.items.length), counts = new Int32Array(b.items.length), fr = new T.Frustum(), pm = new T.Matrix4(), sp = new T.Sphere();
+    const cull = (camera) => {
+      pm.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse); fr.setFromProjectionMatrix(pm);
+      let n = 0;
+      for (let i = 0; i < b.items.length; i++) { sp.center.set(ent[i * 4], ent[i * 4 + 1], ent[i * 4 + 2]); sp.radius = ent[i * 4 + 3]; if (fr.intersectsSphere(sp)) { starts[n] = start[i] * 4; counts[n] = count[i]; n++; } }
+      pool._multiDrawStarts = starts; pool._multiDrawCounts = counts; pool._multiDrawCount = n;
+    };
+    pool.onBeforeRender = (renderer, scene, camera) => cull(camera);
+    pool.onBeforeShadow = (renderer, object, camera, shadowCamera) => cull(shadowCamera);
+    totalEntries += b.items.length;
+    pools.push(pool);
+  }
+  const grp = new T.Group(); grp.name = 'pool-poc'; grp.matrixAutoUpdate = false;
+  for (const q of pools) grp.add(q);
+  sc.scene.add(grp);
+  const set = (on) => { grp.visible = on; for (const r0 of roots) r0.visible = !on; };
+  return { set, info: { pools: pools.length, sources: meshes.length, entries: totalEntries, roots: roots.map((c) => c.name) } };
+}
+// the pool PoC against the plain batches, render calls only (only with PERF_ONLY=poolrender): 30 direct renders per sample, the variants in turns,
+// so the load of the machine is the same for both; median and paired difference over PAIRS pairs
+results.routes.poolrender = await safe('poolrender', async () => {
+  if (!ONLY.includes('poolrender')) return null;
+  fixWorld(); teleport(FOOT[0][0], FOOT[0][1]); await sleep(window.__perfSettle || 12000);
+  const pool = buildPoolPoC();
+  await sleep(1500);
+  const gl = r.getContext();
+  const measure = () => { const t0 = performance.now(); for (let i = 0; i < 30; i++) r.render(sc.scene, sc.cam); gl.finish(); return (performance.now() - t0) / 30; };
+  const rows = [];
+  for (let k = 0; k < 4; k++) { pool.set(false); measure(); pool.set(true); measure(); }
+  for (let k = 0; k < (window.__perfPairs || 24); k++) {
+    const order = k % 2 ? [true, false] : [false, true];
+    const res = {};
+    for (const on of order) { pool.set(on); res[on] = measure(); res[on + 'calls'] = r.info.render.calls; res[on + 'tris'] = r.info.render.triangles; }
+    rows.push(res);
+    await sleep(50);
+  }
+  pool.set(false);
+  const med = (a) => { const v = [...a].sort((x, y) => x - y); return +v[v.length >> 1].toFixed(2); };
+  const diffs = rows.map((q) => q.true - q.false);
+  return { info: pool.info, off: med(rows.map((q) => q.false)), on: med(rows.map((q) => q.true)), diffMedian: med(diffs), lower: diffs.filter((x) => x < 0).length, pairs: rows.length, callsOff: rows[0].falsecalls, callsOn: rows[0].truecalls, trisOff: rows[0].falsetris, trisOn: rows[0].truetris, diffs: diffs.map((x) => +x.toFixed(2)) };
+});
+// render-only A/B inside one run (only with PERF_ONLY=renderab, variants as PERF_AB): per variant (perfoff steps) the batchers settle, then SAMPLES samples of
+// 20 direct scene renders (the camera standing); the median and the lower quartile of the ms per render (the lower quartile is what the machine's other work disturbs least),
+// the GL calls per render and the variants in turns over ROUNDS rounds (the order swaps every round), so the load is the same for all of them
+results.routes.renderab = await safe('renderab', async () => {
+  if (!ONLY.includes('renderab')) return null;
+  const variants = window.__perfAb; const ROUNDS = window.__perfAbRounds || 4; const SAMPLES = window.__perfSamples || 40;
+  fixWorld(); teleport(FOOT[0][0], FOOT[0][1]); w.camYaw = 0.3; p.angle = 0.3; await sleep(window.__perfSettle || 12000);
+  const gl = r.getContext();
+  const settle = async () => { const builds = () => { const b = sc.batches(); return Object.values(b).reduce((q, e) => q + (e.builds || 0) + (e.dropped || 0), 0); }; let last = builds(), still = 0; for (let i = 0; i < 120 && still < 6; i++) { await sleep(500); const n = builds(); still = n === last ? still + 1 : 0; last = n; } };
+  const sample = () => { const t0 = performance.now(); for (let i = 0; i < 20; i++) r.render(sc.scene, sc.cam); gl.finish(); return (performance.now() - t0) / 20; };
+  const out = [];
+  for (let round = 0; round < ROUNDS; round++) {
+    const order = round % 2 ? [...variants].reverse() : variants;
+    for (const [name, off] of order) {
+      window.__perfOffDyn = new Set(off);
+      await sleep(1500); await settle(); fixWorld(); await sleep(500);
+      sample(); sample();
+      const t = []; let calls = 0, tris = 0;
+      for (let i = 0; i < SAMPLES; i++) { t.push(sample()); calls = r.info.render.calls; tris = r.info.render.triangles; if (i % 8 === 7) await sleep(30); }
+      t.sort((a, b) => a - b);
+      out.push({ name, round, median: +t[t.length >> 1].toFixed(2), q1: +t[t.length >> 2].toFixed(2), min: +t[0].toFixed(2), calls, tris, pool: sc.batches().pool });
+    }
+  }
+  window.__perfOffDyn = undefined;
+  const summary = {};
+  for (const [name] of variants) { const rows = out.filter((q) => q.name === name); const med = (k) => { const v = rows.map((q) => q[k]).sort((a, b) => a - b); return v[v.length >> 1]; }; summary[name] = { median: med('median'), q1: med('q1'), min: med('min'), calls: med('calls'), tris: med('tris') }; }
+  return { summary, rows: out };
+});
 // A/B inside one run (only with PERF_ONLY=ab): window.__perfAb = [[name, [perfoff steps...]], ...] (PERF_AB='aan=;uit=actoren+schaduw'); the variants take
 // turns in short windows (window.__perfAbWin ms, window.__perfAbRounds rounds, the order swaps every round), so they feel the same load.
 // Every window is a perf-mark pair 'ab:<name>:<round>' for the thread sampler of run.mjs; PERF_AB_MOVE=1 walks (3 m/s) instead of standing.
@@ -516,9 +629,10 @@ results.routes.ab = await safe('ab', async () => {
   const T = sc.THREE, cnt = { umw: 0, fto: 0 };
   const oU = T.Object3D.prototype.updateMatrixWorld; T.Object3D.prototype.updateMatrixWorld = function (f) { cnt.umw++; return oU.call(this, f); };
   const oF = T.Frustum.prototype.intersectsObject; T.Frustum.prototype.intersectsObject = function (o) { cnt.fto++; return oF.call(this, o); };
-  const out = [];
+  const out = []; let poolPoC = null;
   for (const mode of modes) {
     fixWorld(); teleport(FOOT[0][0], FOOT[0][1]); await sleep(window.__perfSettle || 12000);
+    if (window.__perfPool && !poolPoC) { poolPoC = buildPoolPoC(); console.error('[perf-pool] ' + JSON.stringify(poolPoC.info)); }
     const tStart = performance.now();
     if (mode === 'lopen') mover = (now) => walkFoot(null, (now - tStart) / 1000 * 0.5);
     for (let round = 0; round < ROUNDS; round++) {
@@ -530,8 +644,10 @@ results.routes.ab = await safe('ab', async () => {
         window.__perfDetail = detail ? Number(detail.slice(7)) : 0;
         if (detail || window.__perfDetailWas) { window.__perfDetailWas = !!detail; SCN.refreshRenderScale(); }
         const undo = Object.keys(sets).length ? SET.withTempSettings(sets) : null;
-        window.__perfOffDyn = new Set(off.filter((o) => !o.startsWith('set:') && !o.startsWith('detail:')));
-        await sleep(undo ? (window.__perfAbPre || 6000) : 1200);
+        window.__perfOffDyn = new Set(off.filter((o) => !o.startsWith('set:') && !o.startsWith('detail:') && o !== 'settle'));
+        if (poolPoC) poolPoC.set(!off.includes('pool'));
+        // 'settle' among the steps: the variant gets the long run-in too (steps that rebuild things, like pool, need it)
+        await sleep(undo || off.includes('settle') ? (window.__perfAbPre || 6000) : 1200);
         calls = 0; renders = 0; cnt.umw = 0; cnt.fto = 0; diag.clear();
         H.start();
         const key = name + '@' + mode + ':' + round;
