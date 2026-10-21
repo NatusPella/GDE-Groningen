@@ -3,7 +3,7 @@
 //   node scripts/cutscenes_kort_test.mjs
 import { readFileSync } from 'node:fs';
 import { compileScene, validateScene } from '../game/js/cutscript.js';
-import { quickScene, missionScene, MORE_SPECS } from '../game/js/cutscenes_akte1.js';
+import { quickScene, missionScene, MORE_SPECS, roadAlignment, sceneSpec } from '../game/js/cutscenes_akte1.js';
 import '../game/js/cutscenes_akte4.js';
 import { STEPS } from '../game/js/storyarc_nieuw.js';
 import { npcNamesFromSource, linesOf, sliceOf, sceneIdsFor } from '../game/js/cutpreview.js';
@@ -101,6 +101,17 @@ ok(quickScene([{ speaker: 'X', text: 'y', at: 1, dur: 2 }], { npc: { key: 'besta
   ok(Math.hypot(s1.actors.berend.x - s1.props.bakkie.x, s1.actors.berend.y - s1.props.bakkie.y) < 0.5, 'M21.intro: de stemmen zitten in de bakkie');
 }
 ok(!!MORE_SPECS['M24.3'], 'M24.3 (de vlag valt) heeft een regie');
+
+// M21.intro staat op een weg: de bakkie rijdt er in de richting langs die het dichtst bij de kijkrichting ligt
+{
+  ok(sceneSpec('M21.intro') && sceneSpec('M21.intro').align === 'road', 'M21.intro heeft align road');
+  const weg = [[0, 0], [40, 0], [40, 30]];
+  const oost = roadAlignment(weg, { x: 10, y: 0 }, 0.3), west = roadAlignment(weg, { x: 10, y: 0 }, Math.PI - 0.3), zuid = roadAlignment(weg, { x: 40, y: 12 }, 1.2);
+  ok(oost && Math.abs(oost.facing) < 1e-9, 'roadAlignment: kijkrichting oost geeft een rijrichting oost', JSON.stringify(oost));
+  ok(west && Math.abs(Math.abs(west.facing) - Math.PI) < 1e-9, 'roadAlignment: kijkrichting west keert de weg om', JSON.stringify(west));
+  ok(zuid && Math.abs(zuid.facing - Math.PI / 2) < 1e-9, 'roadAlignment: op het tweede stuk is de weg naar het zuiden', JSON.stringify(zuid));
+  ok(roadAlignment([[0, 0]], { x: 0, y: 0 }, 0) === null && roadAlignment(null, { x: 0, y: 0 }, 0) === null, 'roadAlignment: zonder weg null');
+}
 
 console.log(fails ? `${fails} of ${n} failed` : `cutscenes_kort_test: ${n} checks ok`);
 process.exit(fails ? 1 : 0);
