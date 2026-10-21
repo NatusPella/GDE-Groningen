@@ -150,6 +150,14 @@ t('neergeslagen en gepakt: de anderen horen het, het label toont de status, en T
   assert.match(s.gs[0].gw.messages.join(' '), /Je staat weer/);
 });
 
+t('een opdracht of minigame parkeert Tessa: haar speler hoort waarom hij even niet kan lopen', () => {
+  const s = avond(2); s.step(2);
+  s.hw.companionHold = { x: 5, y: 5, face: 0 }; s.step(1);
+  assert.match(s.gs[0].gw.messages.join(' '), /Je kijkt even mee/); assert.doesNotMatch(s.gs[1].gw.messages.join(' '), /Je kijkt even mee/);
+  s.hw.companionHold = null; s.step(1);
+  assert.match(s.gs[0].gw.messages.join(' '), /Je kunt weer lopen/);
+});
+
 t('roepjes: 7, 8 en 9 geven bij iedereen een baken met naam, kleur en regel; te snel achter elkaar kan niet; na 8 s zijn ze weg', () => {
   const s = avond(3); s.step(3);
   const [tessa, bram, lotte] = s.gs.map((g) => g.gw);
