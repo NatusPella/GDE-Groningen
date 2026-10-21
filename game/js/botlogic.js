@@ -34,7 +34,7 @@ export function footStick(heading, camYaw) {
 
 // Steering and pedals for a car at `car` ({x, y, angle, speed}) heading for `target`.
 // steer: -1..1 (positive turns right, like D); throttle: 1 gas, -1 brake/reverse, 0 coast.
-// opts.stopAt: true to come to rest at the target; opts.top: speed limit in m/s.
+// opts.stopAt: true to come to rest at the target (opts.rest: from that many metres the wanted speed is 0); opts.top: speed limit in m/s.
 export function carControls(car, target, opts = {}) {
   const top = opts.top ?? 22;
   const err = normAngle(headingTo(car, target) - car.angle);
@@ -42,13 +42,14 @@ export function carControls(car, target, opts = {}) {
   const steer = clamp(err * 1.6, -1, 1);
   // slow for sharp turns and for the end of the route
   let want = top * clamp(1.15 - Math.abs(err) * 0.9, 0.18, 1);
-  if (opts.stopAt) want = Math.min(want, Math.max(2, d * 0.5));
+  if (opts.stopAt) want = d < (opts.rest ?? 0) ? 0 : Math.min(want, Math.max(2, d * 0.5));
   const speed = car.speed || 0;
   // the target is behind us and we are slow: back up with the wheel turned the other way, so the nose swings round
   if (Math.abs(err) > 2.0 && Math.abs(speed) < 6 && d > 8) return { steer: -steer, throttle: -1, err, dist: d, want: -3, reverse: true };
   let throttle = 0;
   if (speed < want - 1) throttle = 1;
   else if (speed > want + 3) throttle = -1;
+  else if (want === 0 && speed > 0.8) throttle = -1;
   return { steer, throttle, err, dist: d, want };
 }
 
@@ -177,8 +178,13 @@ export function decide(s, mem = {}) {
   if (b.pauseMenu) return { type: 'closemenu' };
   if (b.dialog && b.dialog.options && b.dialog.options.length) return { type: 'choose', key: b.dialog.options[0].key };
   if (b.cinematic || b.banner || b.ride) return { type: 'skip' };
+  // an open shop (the story's item is the one highlighted): Enter selects, Enter buys, Escape walks out again
+  if (b.shop) return { type: 'shop', n: mem.shopN = (mem.shopN || 0) + 1 };
+  if (mem.shopN) mem.shopN = 0;
   if (b.respawn || b.loading) return { type: 'wait', why: b.respawn ? 'respawn' : 'laden' };
-  if (b.talk) return { type: 'wait', why: 'gesprek' };
+  // a talk during a mission is subtitles while you play on (M08: the fatbikes keep coming); outside one it is a conversation to hear out
+  if (b.talk && !(s.mission && s.mission.active)) return { type: 'wait', why: 'gesprek' };
+  if (s.player && s.player.pigeon && s.target) return { type: 'pigeon' };
   if (!s.target) return { type: 'wait', why: 'geen doel' };
   const t = s.target;
   const veh = s.player.vehicle;
@@ -188,11 +194,20 @@ export function decide(s, mem = {}) {
   // a 'board' stage wants the vehicle that is standing there: any free one close by, whatever the distance to the marker
   // on a bike or scooter the board stage's vehicle (a tractor, a quad) is another one: get off first, and pick a motor vehicle over the bike just left
   const light = (k) => k === 'fiets' || k === 'scooter';
-  if (veh && light(veh.kind) && stage === 'board' && (mem.boardTries || 0) < 4) {
-    const other = (s.nearby && s.nearby.vehicles || []).find((c) => c.free && c.drivable && !light(c.kind) && c.distance < 80);
-    if (other) { mem.boardTries = (mem.boardTries || 0) + 1; return { type: 'press', key: 'e', why: 'uitstappen' }; }
+  // in some other vehicle at a 'board' stage (a bike, or last mission's car): get out, then take the one that is standing there
+  // the marker is a vehicle (the tractor of the mission) and the bot sits in another one: out of it, then into the right one
+  if (t.vehicle && !(veh && veh.plane)) {
+    if (veh) { if ((veh.speed || 0) < 3 && (mem.vehTries || 0) < 4) { mem.vehTries = (mem.vehTries || 0) + 1; return { type: 'press', key: 'e', why: 'uitstappen' }; } }
+    else if ((mem.boardTries || 0) < 12) {
+      const v = (s.nearby && s.nearby.vehicles || []).find((c) => Math.hypot(c.x - t.x, c.y - t.y) < 1.5);
+      if (v) return { type: 'enter', vehicle: v };
+    }
   }
-  if (!veh && stage === 'board' && (mem.boardTries || 0) < 4) {
+  if (veh && !veh.plane && (stage === 'board' || stage === 'plane') && (mem.boardTries || 0) < 4) {
+    const other = (s.nearby && s.nearby.vehicles || []).find((c) => c.free && c.distance < 40 && (stage === 'plane' ? c.kind === 'vliegtuig' : c.drivable && (light(veh.kind) ? !light(c.kind) : true)));
+    if (other && (veh.speed || 0) < 3) { mem.boardTries = (mem.boardTries || 0) + 1; return { type: 'press', key: 'e', why: 'uitstappen' }; }
+  }
+  if (!veh && (stage === 'board' || stage === 'plane') && (mem.boardTries || 0) < 4) {
     // a boat or a plane counts too: M17 starts in a sloep, M15 in a plane
     const near = (s.nearby && s.nearby.vehicles || []).filter((c) => c.free && c.distance < 80);
     // the marker of a board stage stands on the mission's own car: a free vehicle right at the marker wins over the nearest one (M22: the Escapade stands in a car park among other cars)
@@ -211,6 +226,7 @@ export function decide(s, mem = {}) {
   if (stage === 'plan' && (mem.planTries || 0) < 3) { mem.planTries = (mem.planTries || 0) + 1; return { type: 'press', key: 'a', why: 'plan' }; }
   // a hold stage (stand still in the ring): stop walking once inside
   if (stage === 'hold' && t.distance <= 3.5) return { type: 'wait', why: 'vasthouden' };
+  if (veh && veh.plane) return { type: 'fly' };
   if (veh) {
     if (onFootOnly) return { type: 'press', key: 'e', why: 'uitstappen' };
     return { type: 'goto', mode: veh.boat ? 'boat' : veh.heli ? 'fly' : 'drive', ...(stunt ? { stunt: true, top: 30 } : {}) };
@@ -221,6 +237,63 @@ export function decide(s, mem = {}) {
     if (v) return { type: 'enter', vehicle: v };
   }
   return { type: 'goto', mode: 'walk' };
+}
+
+// --- plane autopilot (M15 Laag over het graan): pure, tested against arcadeplane.js -------------------------------
+// The arcade plane (planecontrol.js) takes W/S (throttle), A/D (roll), Space (nose up), Ctrl (nose down) and Shift (brake).
+// planeKeys(p, o) says which keys to hold this tick. p = the plane state { x, y, z, heading, speed, pitch, roll, vz, onGround, throttle },
+// o = { agl, goal: {x, y}, alt, mode: 'fly' | 'land', strip }: agl above the ground here, alt the wanted height above the ground.
+// 'land' flies an approach fix 700 m before the strip, then a glide slope to a point 60 m in, and brakes after touching down.
+export function planeKeys(p, o) {
+  const keys = new Set();
+  const stall = 22;
+  if (p.onGround) {
+    if (o.mode === 'land') { if (p.speed > 0.5) { keys.add('shift'); keys.add('s'); } return keys; }
+    if (p.throttle < 0.98) keys.add('w');
+    if (p.speed >= 32) keys.add(' ');
+    return keys;
+  }
+  let goal = o.goal, alt = o.alt ?? 20, vT = 46;
+  if (o.mode === 'land' && o.strip) {
+    const st = o.strip, c = Math.cos(st.heading), sn = Math.sin(st.heading);
+    const at = (a) => ({ x: st.x + c * a, y: st.y + sn * a });
+    const fix = at(-700), touch = at(60);
+    const dx = p.x - st.x, dy = p.y - st.y, along = dx * c + dy * sn, across = -dx * sn + dy * c;
+    const aligned = along < 300 && Math.abs(across) < 60 + Math.max(0, -along) * 0.12 && Math.abs(normAngle(p.heading - st.heading)) < 0.5;
+    if (!aligned && distance(p, fix) > 160) { goal = fix; alt = 40; vT = 44; }
+    else {
+      // glide slope to a touch point 80 m in; past it keep descending straight down the strip
+      alt = along < 80 ? clamp((80 - along) * 0.065, 0, 50) : 0;
+      vT = 32;
+      // a carrot on the centre line 120 m ahead of the plane keeps it lined up with the strip
+      goal = at(Math.min(400, along + 120));
+    }
+  }
+  const e = normAngle(headingTo(p, goal) - p.heading);
+  // close to the ground only a little roll: a wing down on touch-down is a crash
+  const rollMax = o.mode === 'land' && o.agl < 8 ? 0.12 : 0.75;
+  const rollWant = clamp(e * 2.2, -rollMax, rollMax);
+  if (p.roll < rollWant - 0.12) keys.add('d'); else if (p.roll > rollWant + 0.12) keys.add('a');
+  if (p.speed < vT - 3 || p.speed < stall + 7) keys.add('w'); else if (p.speed > vT + 4) keys.add('s');
+  const vzWant = clamp((alt - o.agl) * (o.mode === 'land' ? 0.45 : 0.28), -5, 6);
+  const low = o.agl < 6 && o.mode === 'land';
+  if (p.speed >= stall + 5) {
+    if (p.vz < (low ? -1.2 : vzWant) - 0.8) keys.add(' '); else if (p.vz > (low ? -1.2 : vzWant) + 0.8) keys.add('control');
+    if (low && o.agl < 2.5) keys.add('s');
+  }
+  return keys;
+}
+
+// --- pigeon autopilot (M04 Kieken van boven, M24 touwen): pure ------------------------------------------------------
+// The pigeon turns with A/D, climbs with Space and dives with Shift (pigeonmode.js updateFly). f = { x, y, z, ground, yaw },
+// tgt = { x, y, z? } (z absent: stay within ~40 m above the ground, the stage wants under 80). Returns the keys to hold.
+export function pigeonKeys(f, tgt) {
+  const keys = new Set();
+  const e = normAngle(headingTo(f, tgt) - f.yaw);
+  if (e > 0.06) keys.add('d'); else if (e < -0.06) keys.add('a');
+  const want = Number.isFinite(tgt.z) ? tgt.z : f.ground + 38;
+  if (f.z < want - 3) keys.add(' '); else if (f.z > want + 7) keys.add('shift');
+  return keys;
 }
 
 // --- status schema -------------------------------------------------------------------

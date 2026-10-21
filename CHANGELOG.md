@@ -6,6 +6,9 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Opgelost
+- **De pijl wijst naar de winkel als je eerst iets moet kopen (#350; door een bot gespeeld, niet door een mens):** stond er "Eerst: Koop een fiets bij Trap & Toeter" bovenin, dan wees de route toch naar de start van de missie en moest je zelf de winkel zoeken. Nu wijst de route naar de fietsenwinkel (of een wapen-, kleding- of botenverhuur), en bij "wachten tot het donker is" naar huis; pas daarna naar de missiestart.
+
 ### Verbeterd
 - **Een brug gaat pas open als er niemand meer op het dek staat (#302, getest met een gesimuleerde brug en voertuigen, niet in beeld bekeken):** een auto of voetganger die bij het sluiten van de slagbomen nog op het dek stond, viel eerder na 12 seconden in het water. Nu wacht de brug; staat de speler er nog na 6 seconden, dan meldt het spel "Van de brug af: hij moet open". Na 40 seconden wordt de opening afgeblazen (slagbomen weer omhoog) en vraagt een schip pas na 25 seconden opnieuw. Gaan de slagbomen omhoog en vraagt een schip meteen weer, dan komen ze eerst weer omlaag en wordt het dek opnieuw bekeken.
 - **Rondvaartboten varen over het vaarnet (#296, in een simulatie met een sluis, niet in beeld bekeken):** een rondvaartboot kiest een haven of kruising binnen 12 km (stad, havens, Reitdiep) en vaart er over de kanalen heen, met wachten voor een dichte sluisdeur of een brug die open moet. De waakhond die een boot na zes seconden stilstaan weer een andere kant op stuurde, telt wachten op een sluis of brug niet meer als vastzitten (ook voor binnenvaartschepen).
@@ -68,6 +71,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 
 ### Opgelost
+- **Suikerbieten naar de fabriek mislukte meteen (#337, door een bot gespeeld, niet door een mens):** de plek lag buiten de geladen wegen, de vrachtwagen stond 100 m weg en de baan eindigde met 'je liet je voertuig staan'. Zonder weg bij de plek start het baantje niet meer half, en de plek verplaatst zich naar de weg zodra die geladen is.
 - **Verkeer op kruispunten in dorpen en gehuchten (nog niet in beeld bekeken):** wegen die met een provinciegebied meekomen kenden geen kruispuntregels voor het verkeer (afslaan, voorrang, route); die doen nu mee. Auto's die elkaar op een kruising kruisen worden uit elkaar geduwd in plaats van in elkaar te blijven staan. In een headless simulatie bij Wildeplaats gaan 70 in plaats van 32 auto's door het kruispunt en blijft overlap alleen kortdurend bestaan (#265).
 - **Samen spelen: een gast die het spel verlaat meldt zich nu af (#310):** de gastheer houdt de plek van Tessa niet meer vast en toont geen wachtscherm meer na een bewuste stop; bij opnieuw aansluiten krijgt de gast zijn plek terug. Alleen lokaal getest.
 - **Samen spelen met kamercode: de uitnodiging verloopt niet meer na 30 seconden (#313):** de gastheer wacht nu tot 15 minuten op een medespeler; de verbindingstijd telt pas als de vriend antwoordt. In Electron getest met een lokale nep-tracker op één computer, niet met de openbare brokers en niet over internet.

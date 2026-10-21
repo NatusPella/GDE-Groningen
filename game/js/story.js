@@ -343,7 +343,7 @@ function refreshGuide() {
       rt.gateCard = true;
       world.addMessage(`Gelukt! Terug naar het verhaal: ${step.title}`, 5, { kind: 'missie', key: 'story-buy' });
     }
-    else if (def) place = def.start;
+    else if (def && !gate) place = def.start;   // an unmet requirement keeps the guide at the shop: the start only once it is met
     // a requirement that stays unmet (no money, the rental boat sank) also makes the step skippable
     rt.gate = gate;
     rt.gatedSince = gate ? (rt.gatedSince >= 0 ? rt.gatedSince : world.time) : -1;

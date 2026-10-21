@@ -57,7 +57,8 @@ function maakRit(regel) {
     anchor(map) {
       const p = plek(map, regel);
       const rp = map.nearestRoadPoint(p.x, p.y, 400, true);
-      return rp ? { x: rp.x, y: rp.y } : p;
+      // no road loaded there yet (the spot lies outside the city tiles): sidejobs.js looks again once it is
+      return rp ? { x: rp.x, y: rp.y } : { x: p.x, y: p.y, fallback: true };
     },
 
     start(c) {
