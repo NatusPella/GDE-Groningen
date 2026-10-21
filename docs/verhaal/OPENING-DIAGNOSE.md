@@ -59,7 +59,7 @@ De vierde en vijfde stap staan in de verkeerde volgorde: de speler fotografeert 
 
 ## 5. Andere punten die blijven hangen
 
-- **Namen.** Berend, Jelmer, Torenwachter, Durk, Douwe, Sjabbe, Jelle, Mevrouw Tuinstra, Bert, Sjoerd, Henk: elf namen in het eerste uur. Alleen de eerste vier (Tessa, Tammo, Jelle, Sjabbe) dragen de plot; de rest geeft één dienst en verdwijnt (Berend, Bert, Henk komen terug, maar pas veel later).
+- **Namen.** Berend, Jelmer, Torenwachter, Durk, Douwe, Sjabbe, Jelle, Mevrouw Hoving, Bert, Sjoerd, Henk: elf namen in het eerste uur. Alleen de eerste vier (Tessa, Tammo, Jelle, Sjabbe) dragen de plot; de rest geeft één dienst en verdwijnt (Berend, Bert, Henk komen terug, maar pas veel later).
 - **De bal is onzichtbaar.** In geen enkele scène van akte 1 wordt de Gouden Eierbal getoond of beschreven. Het kaartje in de lege vitrine is de eerste (en laatste) keer dat de speler hem "ziet", als afwezigheid.
 - **"Hetzelfde als het vorige verhaal"**: de stappen volgen de oude lijn (bakkie, pinnen, Loket, duif, fiets, museum), en de grappen blijven dezelfde soort (loketbureaucratie, Friezen, een compliment-ladder). De herbouw blijft dezelfde missies spelen (code en mechanics veranderen niet), maar elke missie krijgt een eigen reden, een eigen toon en een nieuwe uitkomst.
 - **Geen zichtbare gevolgen.** Na M01 is er geen enkel teken dat het geld is verdiend; na M03 komt de bal pas terug als afwezigheid.
