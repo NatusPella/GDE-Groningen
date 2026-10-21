@@ -313,7 +313,7 @@ Instruments of the draw-call study (r42, #246; docs/PERF-METING-2026-10-19.md "V
 `scripts/perf/simbench.mjs` (Node, `GDE_PROVINCE_SRC=<repo>/data/cache/province`) measures the CPU of the traffic simulation without a browser. A step name `settle` in an `ab` variant gives that variant the long run-in
 (`PERF_AB_PRE`), for steps that rebuild things. `run.mjs` takes `ELECTRON_EXE` and notes the machine's CPU use and free memory around the run (`machine` in the JSON).
 `?perfoff=` steps added: `pool` (the static cells and the far LOD as separate meshes again), `poolklein` and `poolrand` (cells of one item and the small margin only with the pool), `progsort` (three's own order of the opaque draws),
-`glfilter` (every GL call through), `pedtier` (walkers far away keep their pose every frame), `linkpoll` (the old per-draw question whether a program is linked).
+`pedtier` (walkers far away keep their pose every frame), `linkpoll` (the old per-draw question whether a program is linked).
 The pool (`multidraw3d.js`, `drawpool.js`, tests `scripts/drawpool_test.mjs` and `scripts/multidraw_test.mjs`): `window.__scene3d.batches().pool` has its numbers (pools, cells, vertices, MB).
 
 ## Trailer mode
