@@ -362,6 +362,14 @@ while (true) {
     if (mem.gateKey !== gk) { mem.gateKey = gk; mem.pressTries = 0; mem.boardTries = 0; B.log('eis', { stap: guide.step, winkel: guide.name || '', x: Math.round(guide.x), y: Math.round(guide.y) }); }
     s.target = { x: guide.x, y: guide.y, z: null, name: guide.name || '', source: 'winkel', distance: Math.round(Math.hypot(guide.x - s.player.x, guide.y - s.player.y) * 10) / 10 };
   }
+  // three failed tries at the same mission: the bot cannot do this one (the eggs, a chase): a cheat to move on, logged as such, instead of hours of retries
+  if (s.mission.active && (fails[s.story.id] || 0) >= 3 && !(mem.failCheat || (mem.failCheat = {}))[s.story.id]) {
+    mem.failCheat[s.story.id] = true;
+    const okw = B.cheat.win();
+    B.log('cheat', { rung: 'win', ok: !!okw, step: stepKey, why: 'driemaal mislukt', mission: { phase: s.mission.phase }, blocking: [] });
+    detector.acknowledge(s.t);
+    continue;
+  }
   const act = L.decide(s, mem);
   if (act.type !== 'wait' && act.type !== 'skip' && act.type !== 'choose' && act.type !== 'closemenu') heldSince = null;   // playing is not waiting: the wait clock starts over
   if (act.type === 'shop') {
