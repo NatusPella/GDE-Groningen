@@ -39,9 +39,9 @@ for (const e of cat) {
 ok(summary(cat).fout === 0, 'summary counts');
 // rhythm rule (#136): no camera holds still longer than MAX_CAMERA_STILL seconds, in every act
 for (const e of cat) if (e.scene) ok(e.rhythm && e.rhythm.longestStill <= MAX_CAMERA_STILL, e.id + ' camera rhythm', e.rhythm && String(e.rhythm.longestStill));
-// coverage: every intro/outro of the new story has a staged scene (M21 is a solo scene in the car and stays plain)
+// coverage: every intro/outro of the new story has a staged scene (M21.intro is the solo ride: staged with a moving bakkie, #352)
 {
-  const SOLO = new Set(['M21.intro']);
+  const SOLO = new Set();
   const bare = [];
   for (const s of STEPS) for (const k of ['intro', 'outro']) {
     const ids = (s.story && s.story[k]) || [];
