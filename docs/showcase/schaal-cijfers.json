@@ -1,12 +1,12 @@
 {
-  "gemaakt": "2026-10-21T15:16:38.859Z",
-  "commit": "79ad6188",
+  "gemaakt": "2026-10-21T23:41:42.952Z",
+  "commit": "50b43834",
   "let_op": "Gemeten cijfers uit scripts/stats/schaal.mjs; de bron staat bij elk cijfer.",
   "cijfers": [
     {
       "id": "git.commits",
-      "waarde": 3575,
-      "tekst": "3.575",
+      "waarde": 3716,
+      "tekst": "3.716",
       "label": "commits",
       "bron": "git rev-list --count HEAD",
       "let_op": null
@@ -21,40 +21,40 @@
     },
     {
       "id": "sessies.branches_sessies",
-      "waarde": 389,
-      "tekst": "389",
+      "waarde": 394,
+      "tekst": "394",
       "label": "AI-sessies met eigen branch",
       "bron": "git for-each-ref + kopteksten van merge-commits",
       "let_op": "ondergrens: een sessie die op een bestaande branch werkte, een opgeruimde en nooit gemergede branch of een oude branchnaam telt niet mee"
     },
     {
       "id": "code.regels_code",
-      "waarde": 279491,
-      "tekst": "279.491",
+      "waarde": 288172,
+      "tekst": "288.172",
       "label": "regels code",
       "bron": "som van de talen hieronder, zonder Markdown en data",
       "let_op": null
     },
     {
       "id": "code.spelmodules",
-      "waarde": 709,
-      "tekst": "709",
+      "waarde": 715,
+      "tekst": "715",
       "label": "JavaScript-modules in het spel",
       "bron": "git ls-files game/js",
       "let_op": null
     },
     {
       "id": "issues.totaal",
-      "waarde": 360,
-      "tekst": "360",
+      "waarde": 378,
+      "tekst": "378",
       "label": "issues op het bord",
       "bron": "gh issue list --state all",
       "let_op": "pull requests zijn hier niet bij"
     },
     {
       "id": "issues.bugs_gesloten",
-      "waarde": 169,
-      "tekst": "169",
+      "waarde": 179,
+      "tekst": "179",
       "label": "bugs opgelost",
       "bron": "gh issue list --state all",
       "let_op": null
@@ -149,16 +149,16 @@
     },
     {
       "id": "inhoud.cutscenes",
-      "waarde": 72,
-      "tekst": "72",
+      "waarde": 76,
+      "tekst": "76",
       "label": "cutscenes",
       "bron": "game/js/cutscenes_akte1..4.js",
       "let_op": null
     },
     {
       "id": "inhoud.dialoogregels",
-      "waarde": 1320,
-      "tekst": "1.320",
+      "waarde": 1337,
+      "tekst": "1.337",
       "label": "regels dialoog",
       "bron": "game/storydata/script.json (scenes[].lines)",
       "let_op": null
@@ -173,8 +173,8 @@
     },
     {
       "id": "inhoud.muziektracks",
-      "waarde": 20,
-      "tekst": "20",
+      "waarde": 22,
+      "tekst": "22",
       "label": "muziektracks",
       "bron": "game/audio/gmusic/manifest.json",
       "let_op": "tracks met AI gemaakt (README); meer dan 3 minuten per track is niet gemeten"
@@ -197,8 +197,8 @@
     },
     {
       "id": "inhoud.bijbanen",
-      "waarde": 38,
-      "tekst": "38",
+      "waarde": 39,
+      "tekst": "39",
       "label": "bijbanen",
       "bron": "game/js/sidejobs.js",
       "let_op": null
