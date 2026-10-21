@@ -22,14 +22,14 @@ const OUT = path.resolve(arg('out', path.join(os.tmpdir(), 'gde-readme-shots')))
 const ONLY = arg('only', '');
 
 if (flag('optimaliseer')) {
-  // 1600 px breed, webp, richtbedrag 250 KB per beeld; kwaliteit zakt tot het past
+  // 1600 px breed, webp, richtbedrag 250 KB per beeld; kwaliteit 90, zakt tot het past
   const naar = path.resolve(arg('naar', path.join(ROOT, 'docs', 'screenshots')));
   fs.mkdirSync(naar, { recursive: true });
   const bronnen = fs.readdirSync(OUT).filter((f) => /^shots-.*\.png$/.test(f) && (!ONLY || ONLY.split(',').includes(f.replace(/^shots-|\.png$/g, ''))));
   for (const f of bronnen) {
     const naam = f.replace(/^shots-/, '').replace(/\.png$/, '');
     const doel = path.join(naar, `${naam}.webp`);
-    let q = 82;
+    let q = 90;
     for (; q >= 40; q -= 6) {
       const r = spawnSync('ffmpeg', ['-y', '-v', 'error', '-i', path.join(OUT, f), '-vf', 'scale=1600:-2:flags=lanczos', '-c:v', 'libwebp', '-quality', String(q), doel], { encoding: 'utf8' });
       if (r.status !== 0) { console.error('ffmpeg faalde voor', f, r.stderr); process.exit(1); }
@@ -46,9 +46,9 @@ let slot = null;
 if (flag('slot')) {
   // een Electron-slot nemen (mkdir faalt als het bezet is), wachten tot er een vrij is; altijd vrijgeven
   fs.mkdirSync(LOCKS, { recursive: true });
-  for (let i = 0; i < 180 && !slot; i++) {
+  for (let i = 0; i < 40000 && !slot; i++) {
     for (const n of [1, 2, 3]) { try { fs.mkdirSync(path.join(LOCKS, `electron-${n}`)); slot = path.join(LOCKS, `electron-${n}`); break; } catch { /* bezet */ } }
-    if (!slot) { if (i === 0) console.log('alle Electron-slots bezet; wacht'); Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 60000); }
+    if (!slot) { if (i === 0) console.log('alle Electron-slots bezet; wacht'); Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 400); }
   }
   if (!slot) { console.error('geen slot gekregen'); process.exit(3); }
   const geef = () => { try { fs.rmdirSync(slot); } catch { /* al weg */ } };
@@ -70,7 +70,7 @@ for (let i = 0; i < 40; i++) { const s = document.querySelector('#start-screen')
 await new Promise((r) => setTimeout(r, 4000));\n`;
 const profile = `gde-test-readme-${process.pid}`;
 const script = path.join(OUT, '_page.js');
-fs.writeFileSync(script, WACHT + `window.__rs = ${JSON.stringify({ only: ONLY.split(',').filter(Boolean), settle: Number(arg('settle', 7000)), scout: arg('scout', '') ? JSON.parse(fs.readFileSync(path.resolve(arg('scout')), 'utf8')) : [] })};\n` + page);
+fs.writeFileSync(script, WACHT + `window.__rs = ${JSON.stringify({ only: ONLY.split(',').filter(Boolean), settle: Number(arg('settle', 7000)), stap: arg('stap', ''), waits: arg('waits', '') ? arg('waits', '').split(',').map(Number) : null, scout: arg('scout', '') ? JSON.parse(fs.readFileSync(path.resolve(arg('scout')), 'utf8')) : [] })};\n` + page);
 const electron = process.env.ELECTRON_EXE || path.join(ROOT, 'desktop', 'node_modules', 'electron', 'dist', process.platform === 'win32' ? 'electron.exe' : 'Electron');
 const env = { ...process.env, GDE_TEST_PROFILE: profile, GDE_NIEUW_VERHAAL: '1' };
 delete env.ELECTRON_RUN_AS_NODE;

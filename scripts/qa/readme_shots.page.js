@@ -70,6 +70,20 @@ const poseShot = async (name, pose, wait = 2600) => {
 };
 const idx = await fetch('/world/index-provincie.json').then((r) => r.json()).catch(() => null);
 const place = (n, kind) => idx && idx.global.places.find((q) => q.name === n && (!kind || q.kind === kind));
+const kb = (type, k, code) => { for (const t of [window, document]) t.dispatchEvent(new KeyboardEvent(type, { key: k, code, bubbles: true })); };
+// het dichtstbijzijnde wegstuk (midden en richting) rond (x, y)
+function snapRoad(x, y, R) {
+  let best = null;
+  for (const rd of (map.roadsNear ? map.roadsNear(x, y, R) : []) || []) {
+    for (let i = 0; i < rd.pts.length - 1; i++) {
+      const a = rd.pts[i], b = rd.pts[i + 1];
+      if (Math.hypot(b[0] - a[0], b[1] - a[1]) < 25) continue;
+      const mx = (a[0] + b[0]) / 2, my = (a[1] + b[1]) / 2, d = Math.hypot(mx - x, my - y);
+      if (!best || d < best.d) best = { d, x: mx, y: my, a: Math.atan2(b[1] - a[1], b[0] - a[0]) };
+    }
+  }
+  return best;
+}
 const key = (k, code) => { for (const t of [window, document]) { t.dispatchEvent(new KeyboardEvent('keydown', { key: k, code: code || k, bubbles: true })); t.dispatchEvent(new KeyboardEvent('keyup', { key: k, code: code || k, bubbles: true })); } };
 
 // een wereldbeeld: tijd, weer, de speler (buiten beeld) op de camerapositie zodat de tegels laden, dan de camera
@@ -116,7 +130,8 @@ shot('kaart-provincie', async () => {
   const c = place('Groningen', 'city') || { x: 0, y: 0 };
   teleport(c.x, c.y); await sleep(SETTLE);
   PM.openPauseMenu('map'); await sleep(2500);
-  MV.setMapView(c.x, c.y, 0.0001); await sleep(4000);
+  const PMP = await imp('provincemap'); const bb = PMP.provinceMapBounds(); // het midden van de kaart, zodat de provincie in het midden staat
+  MV.setMapView(bb ? (bb[0] + bb[2]) / 2 : c.x, bb ? (bb[1] + bb[3]) / 2 : c.y, 0.0001); await sleep(4000);
   await capture('kaart-provincie', 500);
   PM.closePauseMenu();
 });
@@ -129,21 +144,18 @@ shot('kaart-stad', async () => {
   PM.closePauseMenu();
 });
 
-// 2. Groningen: de Grote Markt en de Martinitoren overdag, en bij nacht
-shot('stad-markt-dag', async () => worldPose('stad-markt-dag', { clock: 15.5, cam: [40, 100, 7], look: [196, -6, 38], hold: [40, 100] }));
-shot('stad-markt-nacht', async () => worldPose('stad-markt-nacht', { clock: 22.4, cam: [40, 100, 7], look: [196, -6, 38], hold: [40, 100] }));
-shot('stad-vismarkt-dag', async () => worldPose('stad-vismarkt-dag', { clock: 16.5, cam: [30, 215, 5], look: [150, 20, 40], hold: [30, 215] }));
-shot('stad-vismarkt-nacht', async () => worldPose('stad-vismarkt-nacht', { clock: 22.4, cam: [30, 215, 5], look: [150, 20, 40], hold: [30, 215] }));
+// 2. Groningen: de Vismarkt met de Martinitoren in de avondzon, en de stad bij nacht van boven
+shot('stad-dag', async () => worldPose('stad-dag', { clock: 17.2, cam: [19, 256, 3], look: [80, 100, 25] }));
+shot('stad-nacht', async () => worldPose('stad-nacht', { clock: 22.2, cam: [40, 115, 45], look: [196, -6, 30] }));
 
-// 3. kust en regio
-shot('kust-lauwersoog', async () => worldPose('kust-lauwersoog', { clock: 18.5, cam: [lauw.x, lauw.y - 400, 6], look: [lauw.x, lauw.y - 1500, 0], hold: [lauw.x, lauw.y - 400] }));
-shot('regio-eemshaven', async () => worldPose('regio-eemshaven', { clock: 18.8, cam: [eems.x - 300, eems.y + 100, 10], look: [eems.x, eems.y, 40], hold: [eems.x - 300, eems.y + 100] }));
-shot('regio-winsum', async () => worldPose('regio-winsum', { clock: 17, cam: [winsum.x - 200, winsum.y + 200, 12], look: [winsum.x, winsum.y, 10], hold: [winsum.x - 200, winsum.y + 200] }));
+// 3. kust en regio: een skutsje bij de Robbengatsluis (Lauwersoog), windturbines en een kanaal bij de Eemshaven
+shot('kust-sluis', async () => worldPose('kust-sluis', { clock: 17.8, abs: true, cam: [-24865, -20596, 6], look: [-24888, -20612, 1.5], boat: [-24888, -20612, -0.98, 'skutsje'], settle: 8000 }));
+shot('regio-eemshaven', async () => worldPose('regio-eemshaven', { clock: 18.8, cam: [eems.x - 300, eems.y + 100, 10], look: [eems.x, eems.y, 40] }));
 
 // 4. het savegame-scherm "Opgeslagen spellen": zeven spellen met elk een eigen miniatuur van een andere plek
 shot('opgeslagen-spellen', async () => {
   const SG = await imp('savegame'); const S = await imp('saveslots'); const UI = await imp('saveslotsui');
-  const NAMES = ['Mijn eerste zomer', 'Tessa-route', '', 'Proefrit', 'Bij de Vismarkt', 'Rondje Waddenzee', 'Voor de zekerheid'];
+  const NAMES = ['Mijn eerste zomer', 'Tessa-route', '', 'Proefrit', 'Windmolenrondje', 'Naar het Ommeland', 'Voor de zekerheid'];
   const PLEKKEN = [[106, 58, 3.6, 12], [196, 20, 2.4, 15.5], [40, 215, 0.4, 17], [lauw.x, lauw.y - 300, 4.7, 18.5], [eems.x - 250, eems.y + 80, 0.2, 18.8], [winsum.x - 150, winsum.y + 150, 5.5, 17], [-48, 940, 1.5, 10]];
   hold = null;
   // elke plek: een gewone savegame (in plek 1) met een miniatuur van die plek, dan een kopie naar plek n
@@ -152,7 +164,7 @@ shot('opgeslagen-spellen', async () => {
     env = { clock, weather: null, fix: true }; fixWorld();
     teleport(x, y); hold = { x, y, a }; await sleep(SETTLE);
     w.money = 450 + n * 175;
-    SG.saveGame(w, { toast: false }); await sleep(1200);
+    SG.saveGame(w, { toast: true }); await sleep(1500); // toast: de miniatuur wordt dan altijd genomen (anders hooguit om de 45 s)
     if (n > 1) {
       const data = JSON.parse(localStorage.getItem('gde-save-v1-nieuw')); const thumb = S.readThumb(null, 1);
       S.writeSlot(null, n, { ...data, speeltijd: 400 + n * 2300, savedAt: Date.now() - (n - 1) * 7 * 3600000, character: n % 2 ? 'tammo' : 'anita' });
@@ -175,7 +187,7 @@ shot('garage', async () => {
   teleport(106, 58); await sleep(SETTLE * 0.5);
   const SHP = await imp('shops'); const SD = await imp('shopdata');
   const eigen = SHP.getOwnedEntries(); const nieuw = [];
-  for (const k of ['raket', 'speedboot', 'rondvaartboot', 'stormvogel', 'wiekenwubbo']) { const spec = SD.VEHICLE_STOCK[k]; if (spec && !eigen.some((o) => o.key === k)) nieuw.push({ key: k, spec, color: spec.color, upgrades: [], v: null, lost: false }); }
+  for (const k of ['raket', 'speedboot', 'stormvogel', 'wiekenwubbo', 'taxi']) { const spec = SD.VEHICLE_STOCK[k]; if (spec && !eigen.some((o) => o.key === k)) nieuw.push({ key: k, spec, color: spec.color, upgrades: [], v: null, lost: false }); }
   eigen.push(...nieuw);
   PM.openPauseMenu('garage'); await sleep(800);
   const root = document.querySelector('#pause-menu [data-panel="garage"] .pm-inner');
@@ -211,35 +223,72 @@ shot('samen-spelen', async () => {
   ] });
   await sleep(900);
   await capture('samen-spelen', 400);
-  v.close(); PM.closePauseMenu();
+  v.close();
+  // het aansluiten: een code invoeren en een eigen figuur kiezen
+  root.innerHTML = '';
+  const v2 = LU.mountLobby(root, hooks, { keuze: 'gast', spelNaam: 'Mijn eerste zomer' });
+  await sleep(700);
+  await capture('samen-aansluiten', 400);
+  v2.close(); PM.closePauseMenu();
 });
 
-// 7. een cutscene uit de opening, met ondertitel
-shot('cutscene-opening', async () => {
-  hold = null; env.fix = false; setWeather(); skipCine = false;
-  const S2 = window.__story;
-  S2.jump('M01', { start: true });
-  for (const [i, t] of [2500, 3500, 3500, 3500, 3500].entries()) { await sleep(t); console.log('[capture] cutscene-opening-' + i); await sleep(600); }
-  skipCine = true; if (cine.isCinematicActive()) cine.skipCinematic();
+// 7. een achtervolging (vóór de verhaalstappen: een lopende missie zet zijn melding in beeld): een auto op een lange straat, drie sterren, de politie komt erachteraan; het spelbeeld met HUD
+shot('achtervolging', async () => {
+  hold = null; env = { clock: 14, weather: null, fix: true }; fixWorld(); w.wanted = 0; // 14:00: de berichten van 16:30 staan er nog niet
+  const [x0, y0] = RS.rit || [106, 420];
+  teleport(x0, y0); hold = { x: x0, y: y0 }; await sleep(SETTLE);
+  const sn = snapRoad(x0, y0, 600);
+  if (!sn) throw new Error('geen weg gevonden');
+  // de Escapade (rood, oud en koppig) als hij er staat, anders de dichtstbijzijnde auto
+  const car = w.vehicles.find((v) => v.isHeroCar && !v.wrecked) || w.vehicles.filter((v) => !v.isBoat && !v.isBike && !v.isScooter && !v.isHeli && !v.isBus && !v.isPolice && !v.dead)
+    .sort((a, b) => Math.hypot(a.x - sn.x, a.y - sn.y) - Math.hypot(b.x - sn.x, b.y - sn.y))[0];
+  if (!car) throw new Error('geen auto');
+  hold = null; teleport(sn.x, sn.y);
+  car.x = sn.x; car.y = sn.y; car.angle = sn.a; car.speed = 0;
+  p.enterVehicle(car, w);
+  w.camYaw = sn.a;
+  await sleep(2500);
+  w.wanted = 3; w.wantedDecayTimer = 0;
+  kb('keydown', 'w', 'KeyW');
+  try {
+    await sleep(5000); console.log('[capture] achtervolging'); await sleep(700); // 5 s na de start: de melding 'Achtervolging' staat dan nog in beeld
+  } finally { kb('keyup', 'w', 'KeyW'); }
+  w.wanted = 0; await sleep(300);
+  if (p.inVehicle) p.exitVehicle(map, w);
 });
 
-shot('cutscene-verhuisdag', async () => storyShots('cutscene-verhuisdag', 'M00', [2000, 4000, 6000, 8000, 11000, 14000, 18000], 10));
-// 8. missiemomenten: de intro van een missie (de cutscene start vanzelf) op vaste momenten, met ondertitel
+// 8. de opening (Mijn eerste zomer: verhuisdag) en een missie-intro, met ondertitel
 async function storyShots(name, step, waits, clock) {
   hold = null; env = { clock: clock !== undefined ? clock : 14, weather: null, fix: false }; setWeather(); skipCine = false;
   const S2 = window.__story;
   S2.jump(step, { start: true });
   if (clock !== undefined) w.clock = clock;
   let t = 0;
-  for (const [i, at] of waits.entries()) { await sleep(at - t); t = at; console.log('[capture] ' + name + '-' + i); await sleep(600); t += 600; }
+  for (const [i, at] of waits.entries()) { await sleep(at - t); t = at; console.log('[capture] ' + name + (waits.length > 1 ? '-' + i : '')); await sleep(600); t += 600; }
   skipCine = true; if (cine.isCinematicActive()) cine.skipCinematic();
 }
-shot('missie-achtervolging', async () => storyShots('missie-achtervolging', 'M02', [3000, 5000, 7000, 9000, 11000, 13000, 16000, 19000, 23000]));
-shot('missie-duif', async () => storyShots('missie-duif', 'M04', [3000, 6000, 9000, 12000, 16000, 20000]));
-shot('missie-skutsje', async () => storyShots('missie-skutsje', 'M11', [3000, 6000, 9000, 12000, 16000]));
+// de opening: wacht tot de regel met de Martinitoren in beeld staat (de tijd hangt van de belasting af, de regel niet)
+shot('cutscene-opening', async () => {
+  hold = null; env = { clock: 10, weather: null, fix: false }; setWeather(); skipCine = false;
+  teleport(106, 58); await sleep(SETTLE); // de scène speelt rond de speler: altijd op de Grote Markt beginnen
+  // eerst M01 en dan M00: zo start de verhuisdag opnieuw, ook als het spel hem al achter de rug had
+  window.__story.jump('M01', { start: true }); await sleep(1500);
+  if (cine.isCinematicActive()) cine.skipCinematic();
+  window.__story.jump('M00', { start: true }); w.clock = 10;
+  const lijn = document.querySelector('#cine .cine-line');
+  let gezien = false, laatste = '';
+  for (let i = 0; i < 900 && !gezien; i++) { await sleep(100); laatste = lijn ? lijn.textContent : laatste; gezien = !!lijn && /Martinitoren/.test(lijn.textContent); }
+  if (!gezien) throw new Error('de regel met de Martinitoren kwam niet; laatste regel: ' + laatste);
+  await sleep(1200);
+  await capture('cutscene-opening', 100);
+  skipCine = true; if (cine.isCinematicActive()) cine.skipCinematic();
+});
+// verkenning van een missiemoment: --only=missie-verken maakt een reeks beelden van een stap
+shot('missie-verken', async () => storyShots('missie-verken', RS.stap || 'M02', RS.waits || [8000, 16000, 24000, 32000, 40000, 48000]));
 
 const rec = [];
 for (const S of SHOTS) {
+  if (!RS.only.length && /^(scout|missie-verken)$/.test(S.name)) continue; // alleen op verzoek
   if (RS.only.length && !RS.only.some((o) => S.name === o || S.name.startsWith(o))) continue;
   const r = { name: S.name };
   try { await S.fn(); } catch (e) { r.fout = String(e && e.stack || e).slice(0, 400); skipCine = true; ownShot = false; hold = null; try { if (cine.isCinematicActive()) cine.skipCinematic(); if (PM.isPauseMenuOpen()) PM.closePauseMenu(); } catch (e2) { /* verder */ } }
