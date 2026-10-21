@@ -333,5 +333,54 @@ if (want('bezit')) {
   HM.leave();
   done.push('bezit');
 }
+
+// ---- #160: waarom is er geen bus op een lijn? Spawnstatistiek, dan het bord en de HUD ----
+if (want('bus2')) {
+  clearInterval(skipper);
+  w.clock = 14;
+  const VM = await imp('vehicle');
+  const BR = await imp('busroutes');
+  const lines = VM.getBusLines();
+  const idx = await fetch('/world/index-provincie.json').then((r) => r.json()).catch(() => null);
+  const wins = idx && idx.global.places.find((q) => q.name === 'Winsum' && q.kind !== 'suburb');
+  const near = lines.length && wins ? lines.map((l) => ({ l, d: Math.min(...l.pts.map((q) => Math.hypot(q[0] - wins.x, q[1] - wins.y))) })).sort((x, y) => x.d - y.d)[0] : null;
+  info.push('buslijnen ' + lines.length + ' lijn ' + (near ? near.l.ref + ' ' + near.l.from + '-' + near.l.to + ' lengte ' + Math.round(near.l.length) + ' haltes ' + near.l.stops.length : 'geen'));
+  const mid = near ? near.l.pts[Math.floor(near.l.pts.length / 2)] : [wins.x, wins.y];
+  teleport(mid[0], mid[1]);
+  const keepB = setInterval(() => { p.x = mid[0]; p.y = mid[1]; p.vx = p.vy = 0; }, 50);
+  for (let i = 0; i < 40 && document.querySelector('.ls.on:not(.out)'); i++) await sleep(500);
+  let bus = null;
+  for (let t2 = 0; t2 < 60 && !bus; t2++) {
+    await sleep(1000);
+    const buses = w.vehicles.filter((v) => v.isBus);
+    bus = buses.find((v) => v.busRun && Math.hypot(v.x - p.x, v.y - p.y) < 250) || null;
+    if (t2 % 10 === 9) info.push('t=' + (t2 + 1) + 's stats ' + JSON.stringify(VM.busSpawnStats) + ' bussen ' + buses.length + ' met lijn ' + buses.filter((v) => v.busRun).length + ' dichtbij ' + buses.filter((v) => Math.hypot(v.x - p.x, v.y - p.y) < 250).length + ' lijnen<220m ' + BR.linesNear(lines, p.x, p.y, 220).length);
+  }
+  clearInterval(keepB);
+  info.push('bus op lijn: ' + (bus ? Math.round(bus.x) + ',' + Math.round(bus.y) + ' lijn ' + bus.busRun.line.ref + ' richting ' + bus.busRun.dir : 'geen'));
+  if (bus) {
+    const gh = (x, y) => (map.groundHeightAt ? map.groundHeightAt(x, y, 0) || 0 : 0);
+    const keep = setInterval(() => { if (bus) bus.speed = 0; }, 50);
+    for (const [name, rel, R, up] of [['voor', 0, 4.5, 2.4], ['zij', Math.PI / 2, 5.5, 2.2], ['schuin', Math.PI / 4, 9, 2.6]]) {
+      const a = bus.angle + rel, g = gh(bus.x, bus.y);
+      const pose = { position: { x: bus.x + Math.cos(a) * R, y: bus.y + Math.sin(a) * R, z: g + up }, lookAt: { x: bus.x + Math.cos(bus.angle) * (rel === 0 ? 2 : 1.5), y: bus.y + Math.sin(bus.angle) * (rel === 0 ? 2 : 1.5), z: g + 2.6 }, cut: true };
+      if (cine.isCinematicActive()) cine.skipCinematic();
+      cine.playCinematic({ id: 'vi-bus', duration: 60, priority: 9, shot: () => pose });
+      await sleep(2000);
+      console.log('[capture] bus-' + name);
+      await sleep(500);
+      cine.skipCinematic();
+      done.push('bus-' + name);
+    }
+    clearInterval(keep);
+    p.x = bus.x; p.y = bus.y;
+    p.enterVehicle(bus, w);
+    await sleep(3500);
+    console.log('[capture] bus-hud');
+    await sleep(500);
+    done.push('bus-hud ' + JSON.stringify({ inVehicle: !!p.inVehicle, class: document.body.classList.contains('bus-driving'), card: (document.querySelector('.hud-busnext') || {}).textContent }));
+    p.exitVehicle(map, w);
+  }
+}
 clearInterval(skipper);
 return done.concat(info);
