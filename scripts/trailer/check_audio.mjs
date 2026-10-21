@@ -40,8 +40,10 @@ const W = SR / 10;
 const n = Math.floor(x.length / W);
 const db = new Float32Array(n);
 for (let i = 0; i < n; i++) { let e = 0; for (let j = 0; j < W; j++) { const v = x[i * W + j]; e += v * v; } db[i] = 10 * Math.log10(e / W + 1e-12); }
-let clip = 0;
-for (let i = 0; i < x.length; i++) if (Math.abs(x[i]) >= 0.999) clip++;
+// sample-piek op de oorspronkelijke samplefrequentie en kanalen (de mono-mix op 16 kHz hierboven kan zelf overschrijden)
+const st = spawnSync(ffmpegPath(), ['-hide_banner', '-i', file, '-vn', '-af', 'astats=metadata=0:reset=0', '-f', 'null', '-'], { encoding: 'utf8', maxBuffer: 1 << 26 });
+const peaks = [...String(st.stderr).matchAll(/Peak level dB: (-?[\d.]+|-inf)/g)].map((m) => Number(m[1]));
+const clip = peaks.length ? Math.max(...peaks) : null;
 
 // Muziek heeft per 100 ms van nature gaten (tussen kick en snare): de bevindingen gaan over de vastgehouden
 // omhullende (hoogste waarde van 3 opeenvolgende stukken, dus 300 ms), niet over elke losse klap.
@@ -86,7 +88,7 @@ const loud = { lufs: num(/I:\s+(-?[\d.]+) LUFS/), lra: num(/LRA:\s+([\d.]+) LU/)
 
 const bad = (arr) => arr.filter((f) => !f.intended);
 const result = {
-  file: path.resolve(file), duration: +dur.toFixed(2), loudness: loud, clippedSamples: clip,
+  file: path.resolve(file), duration: +dur.toFixed(2), loudness: loud, samplePeakDb: clip,
   rmsMean: +(10 * Math.log10(db.reduce((a, b) => a + 10 ** (b / 10), 0) / n)).toFixed(1),
   findings,
   verdict: {
@@ -118,7 +120,7 @@ for (const f of findings.silences) cv.rect(px(f.from), T, px(f.to), GH - B, f.in
 cv.save(path.join(out, `${base}_audio.png`));
 
 const lines = [
-  `${path.basename(file)}: ${dur.toFixed(1)} s, ${loud.lufs} LUFS (doel ${TARGET}), LRA ${loud.lra}, true peak ${loud.truePeak} dBTP (max ${TP_MAX}), geklipte samples ${clip}`,
+  `${path.basename(file)}: ${dur.toFixed(1)} s, ${loud.lufs} LUFS (doel ${TARGET}), LRA ${loud.lra}, true peak ${loud.truePeak} dBTP (max ${TP_MAX}), sample-piek ${clip} dBFS`,
   `dalingen >6 dB: ${bad(findings.dips).length} onverklaard van ${findings.dips.length}${bad(findings.dips).slice(0, 12).map((f) => `\n   ${f.t} s: ${f.db} dB tegen ${f.around}`).join('')}`,
   `sprongen >6 dB: ${bad(findings.jumps).length} onverklaard van ${findings.jumps.length}${bad(findings.jumps).slice(0, 12).map((f) => `\n   ${f.t} s: ${f.from} -> ${f.to} dB`).join('')}`,
   `stiltes >0,3 s: ${bad(findings.silences).length} onverklaard van ${findings.silences.length}${bad(findings.silences).slice(0, 12).map((f) => `\n   ${f.from}-${f.to} s`).join('')}`,
