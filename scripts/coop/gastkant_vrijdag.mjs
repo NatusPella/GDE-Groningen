@@ -26,10 +26,11 @@ fs.mkdirSync(OUT, { recursive: true });
 
 // ---- één slot, hooguit 12 minuten vasthouden en dan even loslaten voor anderen
 const held = [];
+let wachtN = 0;
 async function takeSlot() {
   for (;;) {
     for (const k of [1, 2, 3]) { const d = path.join(LOCKS, 'electron-' + k); try { fs.mkdirSync(d); held.push(d); return; } catch (e) { /* bezet */ } }
-    console.log('sloten bezet, wacht 10 s'); await new Promise((r) => setTimeout(r, 10000));
+    if (++wachtN % 300 === 1) console.log('sloten bezet, wacht'); await new Promise((r) => setTimeout(r, 100)); // elke seconde kijken: een slot dat even vrij is, pak je zo sneller
   }
 }
 const release = () => { while (held.length) { try { fs.rmdirSync(held.pop()); } catch (e) { /* weg */ } } };
