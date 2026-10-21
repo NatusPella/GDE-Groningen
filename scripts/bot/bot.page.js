@@ -77,8 +77,9 @@ function steerTowards(s, mode, tgt, stopAt, top = 24, stopR = null, direct0 = fa
     // a garage (M02: drive in and stand still 1.2 s) or a stage with `stop`: come to rest right there
     const stg = M.activeStage();
     const rest = stg && (stg.kind === 'garage' ? 3.5 : stg.stop ? Math.max(3, stg.stop + 2) : 0);
-    const c = L.carControls({ x: me.x, y: me.y, angle: s.player.vehicle.angle, speed: s.player.vehicle.speed }, aim, { stopAt: stopAt || !!rest, rest, top: mode === 'boat' ? Math.min(top, 9) : top });
-    B.stick(c.steer, c.throttle > 0 ? -1 : c.throttle < 0 ? 1 : 0);
+    const mdefE = (M.getMissionDefs() || [])[s.mission.index];
+    const c = L.carControls({ x: me.x, y: me.y, angle: s.player.vehicle.angle, speed: s.player.vehicle.speed }, aim, { stopAt: stopAt || !!rest, rest, top: mode === 'boat' ? Math.min(top, 9) : top, gentle: !!(s.mission.active && mdefE && mdefE.eggs) });
+    B.stick(c.steer, c.throttle ? -c.throttle : 0);
     if (!c.reverse && wedge.update(s.t, s.player.vehicle.speed, c.throttle)) wedge.reset(), wedgeOut = true;
     if (B.input.isDown('shift')) B.up('shift');
   } else {
