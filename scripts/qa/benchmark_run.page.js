@@ -49,5 +49,23 @@ out.tekst = c.innerText.replace(/\s+/g, ' ').slice(0, 700);
 out.categorieen = [...c.querySelectorAll('.tr-cats span')].map((e) => e.innerText.replace(/\s+/g, ' '));
 out.vergelijking = (c.querySelector('.tr-cmp') || {}).innerText || '';
 out.knoppen = [...c.querySelectorAll('button')].map((b) => b.textContent);
+if (BM.modus === 'vergelijk') {
+  // 'Nog een keer': de tweede kaart hoort de vorige run te noemen
+  const again = c.querySelector('button[data-act="again"]');
+  again.click();
+  await sleep(5000);
+  const t2 = performance.now();
+  let c2 = null;
+  while (performance.now() - t2 < (BM.maxS || 900) * 1000) { await sleep(500); c2 = card(); if (c2) break; }
+  if (!c2) out.fouten.push('geen tweede resultaatkaart');
+  else {
+    await sleep(1500);
+    console.log('[capture] benchmark-kaart-tweede');
+    out.tekst2 = c2.innerText.replace(/s+/g, ' ').slice(0, 700);
+    out.vergelijking2 = (c2.querySelector('.tr-cmp') || {}).innerText || '';
+  }
+  await sleep(2500);
+  return JSON.stringify({ results: { benchmark: out } });
+}
 await sleep(2500);
 return JSON.stringify({ results: { benchmark: out } });

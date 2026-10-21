@@ -1,8 +1,9 @@
 // De échte benchmark in Electron (#159): een page-script start hem vanaf het titelscherm met hetzelfde event als de knop (gde-benchmark,
 // de route van de speler: BENCH_ROUTE), alleen in een testrun met GDE_MENU_TEST; een speler start hem zelf. Het page-script leest de kaart.
-//   node scripts/qa/benchmark_run.mjs [--modus=kaart|annuleer] [--out=<map>] [--max=900]
+//   node scripts/qa/benchmark_run.mjs [--modus=kaart|annuleer|vergelijk] [--out=<map>] [--max=900]
 //   kaart:    een volledige run, de kaart met echte cijfers wordt vastgelegd (screenshot + tekst + knoppen)
 //   annuleer: na 20 s een Escape; de overlay hoort weg te zijn en er hoort geen kaart te komen
+//   vergelijk: een run, daarna "Nog een keer": de tweede kaart hoort de vorige run te noemen
 // Eén Electron (slot uit gde-locks, wegwerpprofiel, BelowNormal). GDE_GAME_DIR=<map>\game en ELECTRON_EXE als de worktree geen build heeft.
 // Uitvoer: <out>/result.json, run.log (met de [trailer]-regels per shot), shots-*.png.
 import fs from 'node:fs';
