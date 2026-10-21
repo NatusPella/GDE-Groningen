@@ -16,8 +16,11 @@ if (!file) { console.error('gebruik: check_video.mjs <video> [--out=<map>] [--cu
 const out = path.resolve(opt('out', path.dirname(path.resolve(file))));
 fs.mkdirSync(out, { recursive: true });
 const base = path.basename(file).replace(/\.[^.]+$/, '');
-const POP = Number(opt('pop', 14));
+const POP = Number(opt('pop', 30));
 const cuts = opt('cuts', '').split(',').filter(Boolean).map(Number);
+// bedoelde sneden uit het zijbestand van de opname (<clip>.json, gemaakt door clip.page.js: gebeurtenissen van soort 'cut')
+const side = file.replace(/.[^.]+$/, '.json');
+if (fs.existsSync(side)) { try { for (const e of JSON.parse(fs.readFileSync(side, 'utf8')).events || []) if (e.kind === 'cut') cuts.push(e.t); } catch (e) { /* geen zijbestand */ } }
 const info = probe(file);
 const vs = info.streams.find((s) => s.codec_type === 'video');
 const [fn, fd] = vs.r_frame_rate.split('/').map(Number);
@@ -30,7 +33,7 @@ function raw(vf) {
   return r.stdout;
 }
 // verschil met het vorige beeld per blok (tblend: het eerste beeld wordt niet uitgevoerd, dus beeld i hoort bij index i-1)
-const diff = raw(`tblend=all_mode=difference,scale=${TW}:${TH}:flags=area,format=gray`);
+const diff = raw(`format=gray,tblend=all_mode=difference,scale=${TW}:${TH}:flags=area`);
 const luma = raw('scale=16:9:flags=area,format=gray');
 const nd = Math.floor(diff.length / TN);
 const nl = Math.floor(luma.length / (16 * 9));
@@ -60,9 +63,13 @@ for (let i = 0; i < nl;) {
 for (let i = 2; i < nd - 2; i++) {
   if (isCut[i] || isCut[i - 1] || isCut[i + 1]) continue;
   const t = (i + 1) / fps;
+  if (intendedCut(t)) continue;
   const a = D(i), p = D(i - 1), n = D(i + 1), p2 = D(i - 2), n2 = D(i + 2);
   const blocks = [];
   for (let k = 0; k < TN; k++) {
+    // de rand van het beeld telt niet mee: daar schuift altijd nieuw beeld in
+    const tx = k % TW, ty = Math.floor(k / TW);
+    if (tx < 2 || tx >= TW - 2 || ty < 1 || ty >= TH - 1) continue;
     const nb = Math.max(p[k], n[k], p2[k] * 0.8, n2[k] * 0.8);
     if (a[k] >= POP && a[k] > nb * 3 + 6) blocks.push(k);
   }
@@ -73,6 +80,18 @@ const merged = [];
 for (const p of res.pops) { const l = merged[merged.length - 1]; if (l && p.t - l.t < 0.1) l.blocks = Math.max(l.blocks, p.blocks); else merged.push({ ...p }); }
 res.pops = merged;
 fs.writeFileSync(path.join(out, `${base}_beeld.json`), JSON.stringify(res, null, 1));
+// --crops=<map>: per verdachte pop-in drie beelden (ervoor, erop, erna) rond het blok, naast elkaar
+if (opt('crops', '')) {
+  const cd = path.resolve(opt('crops', ''));
+  fs.mkdirSync(cd, { recursive: true });
+  res.pops.slice(0, 40).forEach((pp, k) => {
+    const [tx, ty] = pp.at[0];
+    const cx = Math.min(vs.width - 200, Math.max(0, tx * (vs.width / TW) - 90)), cy = Math.min(vs.height - 200, Math.max(0, ty * (vs.height / TH) - 90));
+    const frames = [-1, 0, 1].map((d) => ['-ss', String(Math.max(0, pp.t + d / fps - 0.5 / fps)), '-i', file]).flat();
+    const fc = [0, 1, 2].map((i) => `[${i}:v]trim=end_frame=1,crop=200:200:${Math.round(cx)}:${Math.round(cy)},scale=320:320[c${i}]`).join(';') + ';[c0][c1][c2]hstack=inputs=3[o]';
+    spawnSync(ffmpegPath(), ['-v', 'error', '-y', ...frames, '-filter_complex', fc, '-map', '[o]', '-frames:v', '1', path.join(cd, `${base}_pop${String(k + 1).padStart(2, '0')}_${pp.t}.png`)]);
+  });
+}
 
 const badCuts = res.cuts.filter((c) => !c.intended);
 console.log(`${path.basename(file)}: ${res.duration} s, ${nl} beelden @${fps} fps`);
