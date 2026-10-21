@@ -1,12 +1,12 @@
 {
-  "gemaakt": "2026-10-21T15:16:38.859Z",
-  "commit": "79ad6188",
+  "gemaakt": "2026-10-21T23:41:42.952Z",
+  "commit": "50b43834",
   "let_op": "Elk cijfer is gemeten uit de repo, GitHub of de gebouwde wereld, met zijn bron. Geen van deze cijfers is een schatting van werk of kosten; die staan apart in SCHATTING.md.",
   "cijfers": {
     "git.commits": {
       "groep": "git",
       "label": "Commits",
-      "waarde": 3575,
+      "waarde": 3716,
       "eenheid": "commits",
       "bron": "git rev-list --count HEAD"
     },
@@ -41,7 +41,7 @@
     "git.commits_per_actieve_dag": {
       "groep": "git",
       "label": "Gemiddeld aantal commits per actieve dag",
-      "waarde": 188.2,
+      "waarde": 195.6,
       "eenheid": "commits",
       "bron": "commits / actieve dagen"
     },
@@ -55,7 +55,7 @@
     "git.nachtcommits": {
       "groep": "git",
       "label": "Commits tussen 00:00 en 06:00 (lokale tijd van de commit)",
-      "waarde": 593,
+      "waarde": 603,
       "eenheid": "commits",
       "bron": "git log (--format=%cI)",
       "let_op": "de tijdstippen zijn de commit-tijden van de auteur; zegt niets over wie er wakker was"
@@ -63,7 +63,7 @@
     "git.merges": {
       "groep": "git",
       "label": "Merge-commits",
-      "waarde": 909,
+      "waarde": 931,
       "eenheid": "commits",
       "bron": "git log --merges"
     },
@@ -78,7 +78,7 @@
     "git.commits_met_ai_medeauteur": {
       "groep": "git",
       "label": "Commits met een AI als medeauteur in de voetregel",
-      "waarde": 2709,
+      "waarde": 2810,
       "eenheid": "commits",
       "bron": "Co-Authored-By: Claude in de commitberichten"
     },
@@ -88,26 +88,26 @@
       "waarde": 3,
       "eenheid": "modellen",
       "bron": "idem",
-      "let_op": "per naam: Claude Sonnet 5.5 1829; Claude Opus 5.5 850; Claude Sonnet 5 30"
+      "let_op": "per naam: Claude Sonnet 5.5 1930; Claude Opus 5.5 850; Claude Sonnet 5 30"
     },
     "git.commits_met_issue": {
       "groep": "git",
       "label": "Commits die een issue noemen (Closes/Refs #n)",
-      "waarde": 1594,
+      "waarde": 1692,
       "eenheid": "commits",
       "bron": "regex op de commitberichten"
     },
     "git.issues_genoemd": {
       "groep": "git",
       "label": "Verschillende issues genoemd in commitberichten",
-      "waarde": 331,
+      "waarde": 352,
       "eenheid": "issues",
       "bron": "idem"
     },
     "sessies.branches_sessies": {
       "groep": "sessies",
       "label": "Verschillende sessie-branches (claude/… en worktree-agent-…) die ooit bestonden of zijn gemerged",
-      "waarde": 389,
+      "waarde": 394,
       "eenheid": "branches",
       "bron": "git for-each-ref + kopteksten van merge-commits",
       "let_op": "ondergrens: een sessie die op een bestaande branch werkte, een opgeruimde en nooit gemergede branch of een oude branchnaam telt niet mee"
@@ -115,21 +115,21 @@
     "sessies.gemerged": {
       "groep": "sessies",
       "label": "Daarvan gemerged in de hoofdlijn",
-      "waarde": 354,
+      "waarde": 365,
       "eenheid": "branches",
       "bron": "git log --merges"
     },
     "sessies.branches_totaal": {
       "groep": "sessies",
       "label": "Branches in deze checkout (lokaal en op afstand)",
-      "waarde": 249,
+      "waarde": 255,
       "eenheid": "branches",
       "bron": "git for-each-ref"
     },
     "sessies.werkbomen": {
       "groep": "sessies",
       "label": "Git-werkbomen (parallelle werkmappen) nu",
-      "waarde": 71,
+      "waarde": 76,
       "eenheid": "werkbomen",
       "bron": "git worktree list",
       "let_op": "momentopname; opgeruimde werkbomen zijn weg"
@@ -144,92 +144,100 @@
     "code.bestanden_in_git": {
       "groep": "code",
       "label": "Bestanden in git",
-      "waarde": 4974,
+      "waarde": 5070,
       "eenheid": "bestanden",
       "bron": "git ls-files"
     },
     "code.js_bestanden": {
       "groep": "code",
       "label": "JavaScript-bestanden (.js, .mjs, .cjs)",
-      "waarde": 1425,
+      "waarde": 1497,
       "eenheid": "bestanden",
       "bron": "git ls-files"
     },
     "code.spelmodules": {
       "groep": "code",
       "label": "JavaScript-modules van het spel zelf (game/js/*.js)",
-      "waarde": 709,
+      "waarde": 715,
       "eenheid": "modules",
       "bron": "git ls-files game/js"
     },
     "code.js_regels": {
       "groep": "code",
       "label": "Regels JavaScript (alles)",
-      "waarde": 271496,
+      "waarde": 280154,
       "eenheid": "regels",
       "bron": "regels van alle .js/.mjs/.cjs in git (incl. lege regels en commentaar)"
     },
     "code.regels_code": {
       "groep": "code",
       "label": "Regels programmacode (JS, Python, HTML, CSS, shell, Java, Gradle)",
-      "waarde": 279491,
+      "waarde": 288172,
       "eenheid": "regels",
       "bron": "som van de talen hieronder, zonder Markdown en data"
     },
     "code.regels_docs": {
       "groep": "code",
       "label": "Regels documentatie (Markdown)",
-      "waarde": 44149,
+      "waarde": 44866,
       "eenheid": "regels",
       "bron": "git ls-files *.md"
     },
     "code.regels_data_json": {
       "groep": "code",
       "label": "Regels JSON-data in git",
-      "waarde": 90726,
+      "waarde": 92642,
       "eenheid": "regels",
       "bron": "git ls-files *.json",
       "let_op": "gegenereerde en handgemaakte data; geen programmacode"
     },
     "code_per_taal.javascript": {
       "groep": "code_per_taal",
-      "label": "JavaScript: 1425 bestanden",
-      "waarde": 271496,
+      "label": "JavaScript: 1497 bestanden",
+      "waarde": 280154,
       "eenheid": "regels",
       "bron": "git ls-files + regels tellen",
-      "let_op": "254079 niet-lege regels"
+      "let_op": "262309 niet-lege regels"
     },
     "code_per_taal.json_data_": {
       "groep": "code_per_taal",
-      "label": "JSON (data): 88 bestanden",
-      "waarde": 90726,
+      "label": "JSON (data): 91 bestanden",
+      "waarde": 92642,
       "eenheid": "regels",
       "bron": "git ls-files + regels tellen",
-      "let_op": "90726 niet-lege regels"
+      "let_op": "92642 niet-lege regels"
     },
     "code_per_taal.markdown": {
       "groep": "code_per_taal",
-      "label": "Markdown: 106 bestanden",
-      "waarde": 44149,
+      "label": "Markdown: 112 bestanden",
+      "waarde": 44866,
       "eenheid": "regels",
       "bron": "git ls-files + regels tellen",
-      "let_op": "36891 niet-lege regels"
+      "let_op": "37486 niet-lege regels"
     },
     "code_per_taal.python": {
       "groep": "code_per_taal",
       "label": "Python: 30 bestanden",
-      "waarde": 4333,
+      "waarde": 4335,
       "eenheid": "regels",
       "bron": "git ls-files + regels tellen",
-      "let_op": "3816 niet-lege regels"
+      "let_op": "3818 niet-lege regels"
     },
     "code_per_taal.css": {
       "groep": "code_per_taal",
       "label": "CSS: 12 bestanden",
-      "waarde": 2479,
+      "waarde": 2500,
       "eenheid": "regels",
       "bron": "git ls-files + regels tellen",
-      "let_op": "2354 niet-lege regels"
+      "let_op": "2374 niet-lege regels"
+    },
+    "code_per_taal.yaml": {
+      "groep": "code_per_taal",
+      "label": "YAML: 9 bestanden",
+      "waarde": 446,
+      "eenheid": "regels",
+      "bron": "git ls-files + regels tellen",
+      "let_op": "402 niet-lege regels"
     },
     "code_per_taal.tekst": {
       "groep": "code_per_taal",
@@ -255,14 +263,6 @@
       "bron": "git ls-files + regels tellen",
       "let_op": "304 niet-lege regels"
     },
-    "code_per_taal.yaml": {
-      "groep": "code_per_taal",
-      "label": "YAML: 7 bestanden",
-      "waarde": 257,
-      "eenheid": "regels",
-      "bron": "git ls-files + regels tellen",
-      "let_op": "238 niet-lege regels"
-    },
     "code_per_taal.html": {
       "groep": "code_per_taal",
       "label": "HTML: 2 bestanden",
@@ -273,35 +273,35 @@
     },
     "code_per_soort.spelcode_game_js_": {
       "groep": "code_per_soort",
-      "label": "Spelcode (game/js): 709 bestanden",
-      "waarde": 195559,
+      "label": "Spelcode (game/js): 715 bestanden",
+      "waarde": 196934,
       "eenheid": "regels",
       "bron": "git ls-files + regels tellen",
-      "let_op": "182174 niet-lege regels"
+      "let_op": "183470 niet-lege regels"
     },
     "code_per_soort.gereedschap_en_audits_scripts_rest_": {
       "groep": "code_per_soort",
-      "label": "Gereedschap en audits (scripts/, rest): 276 bestanden",
-      "waarde": 38937,
+      "label": "Gereedschap en audits (scripts/, rest): 326 bestanden",
+      "waarde": 44684,
       "eenheid": "regels",
       "bron": "git ls-files + regels tellen",
-      "let_op": "37407 niet-lege regels"
+      "let_op": "42904 niet-lege regels"
     },
     "code_per_soort.testcode__test_mjs_": {
       "groep": "code_per_soort",
-      "label": "Testcode (*_test.mjs): 409 bestanden",
-      "waarde": 33903,
+      "label": "Testcode (*_test.mjs): 424 bestanden",
+      "waarde": 35246,
       "eenheid": "regels",
       "bron": "git ls-files + regels tellen",
-      "let_op": "31579 niet-lege regels"
+      "let_op": "32829 niet-lege regels"
     },
     "code_per_soort.desktop_app_electron_": {
       "groep": "code_per_soort",
-      "label": "Desktop-app (Electron): 14 bestanden",
-      "waarde": 1501,
+      "label": "Desktop-app (Electron): 15 bestanden",
+      "waarde": 1694,
       "eenheid": "regels",
       "bron": "git ls-files + regels tellen",
-      "let_op": "1417 niet-lege regels"
+      "let_op": "1604 niet-lege regels"
     },
     "code_per_soort.android": {
       "groep": "code_per_soort",
@@ -330,21 +330,21 @@
     "tests.testscripts": {
       "groep": "tests",
       "label": "Testscripts (scripts/**/*_test.mjs)",
-      "waarde": 409,
+      "waarde": 424,
       "eenheid": "scripts",
       "bron": "git ls-files"
     },
     "tests.auditscripts": {
       "groep": "tests",
       "label": "Audit- en probe-scripts (*_audit.mjs en scripts in een audits-map)",
-      "waarde": 34,
+      "waarde": 36,
       "eenheid": "scripts",
       "bron": "git ls-files"
     },
     "git.regels_toegevoegd": {
       "groep": "git",
       "label": "Regels programmacode ooit toegevoegd (over alle commits)",
-      "waarde": 346197,
+      "waarde": 355707,
       "eenheid": "regels",
       "bron": "git log --numstat, alleen code-extensies",
       "let_op": "bruto: een regel die vaak is herschreven telt elke keer mee"
@@ -352,7 +352,7 @@
     "git.regels_verwijderd": {
       "groep": "git",
       "label": "Regels programmacode ooit verwijderd",
-      "waarde": 67047,
+      "waarde": 67874,
       "eenheid": "regels",
       "bron": "idem",
       "let_op": "zie hierboven"
@@ -360,14 +360,14 @@
     "git.bestandswijzigingen": {
       "groep": "git",
       "label": "Bestandswijzigingen in programmacode (som over commits)",
-      "waarde": 9366,
+      "waarde": 9723,
       "eenheid": "wijzigingen",
       "bron": "idem"
     },
     "tests.assert_aanroepen": {
       "groep": "tests",
       "label": "Controle-aanroepen in de testscripts (ok(, assert(, check(, eq(, expect()",
-      "waarde": 8841,
+      "waarde": 9297,
       "eenheid": "aanroepen",
       "bron": "regex op de bronregels van de *_test.mjs",
       "let_op": "statische telling van aanroepen in de code, geen uitgevoerde controles: een controle in een lus draait vaker"
@@ -375,57 +375,57 @@
     "tests.testrondes": {
       "groep": "tests",
       "label": "Volledige testrondes (test_all) met rapport op deze machine",
-      "waarde": 2,
+      "waarde": 3,
       "eenheid": "rondes",
       "bron": "tijdelijke map gde-testall",
       "let_op": "alleen wat nog op schijf staat; het tijdelijke rapportmapje wordt niet bewaard"
     },
     "tests.rapport_items": {
       "groep": "tests",
-      "label": "Items in het laatste testrapport (20261021-142258)",
-      "waarde": 408,
+      "label": "Items in het laatste testrapport (20261021-191603)",
+      "waarde": 422,
       "eenheid": "items",
-      "bron": "gde-testall/20261021-142258/rapport.json"
+      "bron": "gde-testall/20261021-191603/rapport.json"
     },
     "tests.rapport_pass": {
       "groep": "tests",
-      "label": "Status PASS (20261021-142258)",
-      "waarde": 374,
-      "eenheid": "items",
-      "bron": "idem"
-    },
-    "tests.rapport_timeout": {
-      "groep": "tests",
-      "label": "Status TIMEOUT (20261021-142258)",
-      "waarde": 4,
-      "eenheid": "items",
-      "bron": "idem"
-    },
-    "tests.rapport_skip": {
-      "groep": "tests",
-      "label": "Status SKIP (20261021-142258)",
-      "waarde": 29,
+      "label": "Status PASS (20261021-191603)",
+      "waarde": 378,
       "eenheid": "items",
       "bron": "idem"
     },
     "tests.rapport_fail": {
       "groep": "tests",
-      "label": "Status FAIL (20261021-142258)",
-      "waarde": 1,
+      "label": "Status FAIL (20261021-191603)",
+      "waarde": 9,
+      "eenheid": "items",
+      "bron": "idem"
+    },
+    "tests.rapport_skip": {
+      "groep": "tests",
+      "label": "Status SKIP (20261021-191603)",
+      "waarde": 28,
+      "eenheid": "items",
+      "bron": "idem"
+    },
+    "tests.rapport_timeout": {
+      "groep": "tests",
+      "label": "Status TIMEOUT (20261021-191603)",
+      "waarde": 7,
       "eenheid": "items",
       "bron": "idem"
     },
     "tests.rapport_duur_min": {
       "groep": "tests",
-      "label": "Duur van die ronde (20261021-142258)",
-      "waarde": 20,
+      "label": "Duur van die ronde (20261021-191603)",
+      "waarde": 27,
       "eenheid": "minuten",
-      "bron": "gde-testall/20261021-142258/rapport.json"
+      "bron": "gde-testall/20261021-191603/rapport.json"
     },
     "issues.totaal": {
       "groep": "issues",
       "label": "Issues (geopend, open en gesloten)",
-      "waarde": 360,
+      "waarde": 378,
       "eenheid": "issues",
       "bron": "gh issue list --state all",
       "let_op": "pull requests zijn hier niet bij"
@@ -433,84 +433,84 @@
     "issues.gesloten": {
       "groep": "issues",
       "label": "Gesloten",
-      "waarde": 322,
+      "waarde": 338,
       "eenheid": "issues",
       "bron": "gh issue list --state all"
     },
     "issues.open": {
       "groep": "issues",
       "label": "Nog open",
-      "waarde": 38,
+      "waarde": 40,
       "eenheid": "issues",
       "bron": "gh issue list --state all"
     },
     "issues.bugs": {
       "groep": "issues",
       "label": "Bugs (label bug)",
-      "waarde": 173,
+      "waarde": 188,
       "eenheid": "issues",
       "bron": "gh issue list --state all"
     },
     "issues.bugs_gesloten": {
       "groep": "issues",
       "label": "Bugs die gesloten zijn",
-      "waarde": 169,
+      "waarde": 179,
       "eenheid": "issues",
       "bron": "gh issue list --state all"
     },
     "issues.wensen": {
       "groep": "issues",
       "label": "Wensen (label wens)",
-      "waarde": 187,
+      "waarde": 190,
       "eenheid": "issues",
       "bron": "gh issue list --state all"
     },
     "issues.wensen_gesloten": {
       "groep": "issues",
       "label": "Wensen die gesloten zijn",
-      "waarde": 153,
+      "waarde": 159,
       "eenheid": "issues",
       "bron": "gh issue list --state all"
     },
     "issues.impact_zeer_hoog": {
       "groep": "issues",
       "label": "Label impact-zeer-hoog",
-      "waarde": 16,
+      "waarde": 19,
       "eenheid": "issues",
       "bron": "gh issue list --state all"
     },
     "issues.impact_hoog": {
       "groep": "issues",
       "label": "Label impact-hoog",
-      "waarde": 107,
+      "waarde": 112,
       "eenheid": "issues",
       "bron": "gh issue list --state all"
     },
     "issues.impact_midden": {
       "groep": "issues",
       "label": "Label impact-midden",
-      "waarde": 156,
+      "waarde": 163,
       "eenheid": "issues",
       "bron": "gh issue list --state all"
     },
     "issues.impact_laag": {
       "groep": "issues",
       "label": "Label impact-laag",
-      "waarde": 81,
+      "waarde": 84,
       "eenheid": "issues",
       "bron": "gh issue list --state all"
     },
     "issues.kosten_s": {
       "groep": "issues",
       "label": "Label kosten-S",
-      "waarde": 177,
+      "waarde": 190,
       "eenheid": "issues",
       "bron": "gh issue list --state all"
     },
     "issues.kosten_m": {
       "groep": "issues",
       "label": "Label kosten-M",
-      "waarde": 124,
+      "waarde": 129,
       "eenheid": "issues",
       "bron": "gh issue list --state all"
     },
@@ -524,14 +524,14 @@
     "issues.eigenaar": {
       "groep": "issues",
       "label": "Wachten op de eigenaar (label eigenaar)",
-      "waarde": 21,
+      "waarde": 22,
       "eenheid": "issues",
       "bron": "gh issue list --state all"
     },
     "issues.mediaan_uren_tot_sluiten": {
       "groep": "issues",
       "label": "Mediane tijd van openen tot sluiten",
-      "waarde": 19.6,
+      "waarde": 19.1,
       "eenheid": "uur",
       "bron": "gh issue list --state all"
     },
@@ -883,14 +883,14 @@
     "inhoud.dialoogregels": {
       "groep": "inhoud",
       "label": "Regels dialoog in het verhaalscript",
-      "waarde": 1320,
+      "waarde": 1337,
       "eenheid": "regels",
       "bron": "game/storydata/script.json (scenes[].lines)"
     },
     "inhoud.dialoogwoorden": {
       "groep": "inhoud",
       "label": "Woorden dialoog in het verhaalscript",
-      "waarde": 11088,
+      "waarde": 11351,
       "eenheid": "woorden",
       "bron": "idem",
       "let_op": "splitsen op spaties"
@@ -905,14 +905,14 @@
     "inhoud.cutscenes": {
       "groep": "inhoud",
       "label": "Geregisseerde cutscenes (SPECS + MORE_SPECS, na het laden van akte 1 t/m 4)",
-      "waarde": 72,
+      "waarde": 76,
       "eenheid": "cutscenes",
       "bron": "game/js/cutscenes_akte1..4.js"
     },
     "inhoud.bijbanen": {
       "groep": "inhoud",
       "label": "Bijbanen en zijmissies (SIDE_JOBS)",
-      "waarde": 38,
+      "waarde": 39,
       "eenheid": "bijbanen",
       "bron": "game/js/sidejobs.js"
     },
@@ -972,21 +972,21 @@
     "inhoud.audio_bestanden": {
       "groep": "inhoud",
       "label": "Geluidsbestanden in game/audio (stemmen, muziek, radio, nieuws)",
-      "waarde": 3146,
+      "waarde": 3148,
       "eenheid": "bestanden",
       "bron": "game/audio"
     },
     "inhoud.audio_mb": {
       "groep": "inhoud",
       "label": "Grootte van game/audio",
-      "waarde": 148,
+      "waarde": 156,
       "eenheid": "MB",
       "bron": "game/audio"
     },
     "inhoud_audio.gmusic": {
       "groep": "inhoud_audio",
       "label": "game/audio/gmusic",
-      "waarde": 24,
+      "waarde": 26,
       "eenheid": "bestanden",
       "bron": "game/audio/gmusic"
     },
@@ -1028,7 +1028,7 @@
     "inhoud.muziektracks": {
       "groep": "inhoud",
       "label": "Muziektracks in de radiolijst (gmusic/manifest.json)",
-      "waarde": 20,
+      "waarde": 22,
       "eenheid": "tracks",
       "bron": "game/audio/gmusic/manifest.json",
       "let_op": "tracks met AI gemaakt (README); meer dan 3 minuten per track is niet gemeten"
@@ -1036,7 +1036,7 @@
     "inhoud.muziekbestanden": {
       "groep": "inhoud",
       "label": "Muziekbestanden (gmusic + scenario + theme)",
-      "waarde": 27,
+      "waarde": 29,
       "eenheid": "bestanden",
       "bron": "game/audio/{gmusic,scenario,theme}"
     },
@@ -1137,11 +1137,11 @@
       },
       {
         "dag": "2026-10-20",
-        "commits": 519
+        "commits": 531
       },
       {
         "dag": "2026-10-21",
-        "commits": 166
+        "commits": 295
       }
     ],
     "issuesPerDag": [
@@ -1172,8 +1172,8 @@
       },
       {
         "dag": "2026-10-21",
-        "geopend": 12,
-        "gesloten": 36
+        "geopend": 30,
+        "gesloten": 52
       }
     ],
     "releasesPerDag": [
@@ -1293,8 +1293,8 @@
   "overlays": [
     {
       "id": "git.commits",
-      "waarde": 3575,
-      "tekst": "3.575",
+      "waarde": 3716,
+      "tekst": "3.716",
       "label": "commits",
       "bron": "git rev-list --count HEAD",
       "let_op": null
@@ -1309,40 +1309,40 @@
     },
     {
       "id": "sessies.branches_sessies",
-      "waarde": 389,
-      "tekst": "389",
+      "waarde": 394,
+      "tekst": "394",
       "label": "AI-sessies met eigen branch",
       "bron": "git for-each-ref + kopteksten van merge-commits",
       "let_op": "ondergrens: een sessie die op een bestaande branch werkte, een opgeruimde en nooit gemergede branch of een oude branchnaam telt niet mee"
     },
     {
       "id": "code.regels_code",
-      "waarde": 279491,
-      "tekst": "279.491",
+      "waarde": 288172,
+      "tekst": "288.172",
       "label": "regels code",
       "bron": "som van de talen hieronder, zonder Markdown en data",
       "let_op": null
     },
     {
       "id": "code.spelmodules",
-      "waarde": 709,
-      "tekst": "709",
+      "waarde": 715,
+      "tekst": "715",
       "label": "JavaScript-modules in het spel",
       "bron": "git ls-files game/js",
       "let_op": null
     },
     {
       "id": "issues.totaal",
-      "waarde": 360,
-      "tekst": "360",
+      "waarde": 378,
+      "tekst": "378",
       "label": "issues op het bord",
       "bron": "gh issue list --state all",
       "let_op": "pull requests zijn hier niet bij"
     },
     {
       "id": "issues.bugs_gesloten",
-      "waarde": 169,
-      "tekst": "169",
+      "waarde": 179,
+      "tekst": "179",
       "label": "bugs opgelost",
       "bron": "gh issue list --state all",
       "let_op": null
@@ -1437,16 +1437,16 @@
     },
     {
       "id": "inhoud.cutscenes",
-      "waarde": 72,
-      "tekst": "72",
+      "waarde": 76,
+      "tekst": "76",
       "label": "cutscenes",
       "bron": "game/js/cutscenes_akte1..4.js",
       "let_op": null
     },
     {
       "id": "inhoud.dialoogregels",
-      "waarde": 1320,
-      "tekst": "1.320",
+      "waarde": 1337,
+      "tekst": "1.337",
       "label": "regels dialoog",
       "bron": "game/storydata/script.json (scenes[].lines)",
       "let_op": null
@@ -1461,8 +1461,8 @@
     },
     {
       "id": "inhoud.muziektracks",
-      "waarde": 20,
-      "tekst": "20",
+      "waarde": 22,
+      "tekst": "22",
       "label": "muziektracks",
       "bron": "game/audio/gmusic/manifest.json",
       "let_op": "tracks met AI gemaakt (README); meer dan 3 minuten per track is niet gemeten"
@@ -1485,8 +1485,8 @@
     },
     {
       "id": "inhoud.bijbanen",
-      "waarde": 38,
-      "tekst": "38",
+      "waarde": 39,
+      "tekst": "39",
       "label": "bijbanen",
       "bron": "game/js/sidejobs.js",
       "let_op": null
