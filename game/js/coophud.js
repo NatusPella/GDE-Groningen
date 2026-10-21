@@ -38,6 +38,11 @@ export function updatePartnerChip(world) {
     });
     document.body.appendChild(chip);
   }
+  // het label staat boven de minimap, niet erover (#374): de minimap zit linksonder en is ruim 250 px hoog
+  const mm = document.querySelector('.hud-minimap-wrap');
+  const r = mm && !document.body.classList.contains('hide-minimap') ? mm.getBoundingClientRect() : null;
+  const onder = r && r.height > 0 && r.top < window.innerHeight ? Math.round(window.innerHeight - r.top + 8) : 16;
+  if (chip.dataset.onder !== String(onder)) { chip.dataset.onder = String(onder); chip.style.bottom = onder + 'px'; }
   const menu = document.getElementById('pause-menu'); // het label hoort niet over de items van het pauzemenu te staan
   const film = document.body.classList.contains('cine-hide-hud'); // een filmpje verbergt de HUD, dus ook dit label
   chip.style.visibility = (menu && menu.classList.contains('visible')) || film ? 'hidden' : '';
