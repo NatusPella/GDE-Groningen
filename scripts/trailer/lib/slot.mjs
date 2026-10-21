@@ -14,8 +14,8 @@ export async function takeSlot(label = 'trailer') {
       const dir = path.join(LOCKS, `electron-${n}`);
       try { fs.mkdirSync(dir); return dir; } catch { /* bezet */ }
     }
-    if (poging % 15 === 0) console.log(`[${label}] wacht op een Electron-slot...`);
-    await sleep(4000 + Math.floor(Math.random() * 2000));
+    if (poging % 120 === 0) console.log(`[${label}] wacht op een Electron-slot...`);
+    await sleep(500 + Math.floor(Math.random() * 400));
   }
 }
 
