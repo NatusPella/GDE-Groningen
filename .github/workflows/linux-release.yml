@@ -19,7 +19,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: linux-release-${{ (inputs.tag || 'v0.38.1') }}
+  group: linux-release-${{ inputs.tag }}
   cancel-in-progress: false
 
 jobs:
@@ -28,11 +28,11 @@ jobs:
     timeout-minutes: 25
     env:
       GH_TOKEN: ${{ github.token }}
-      TAG: ${{ inputs.tag || 'v0.38.1' }}
+      TAG: ${{ inputs.tag }}
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ (inputs.tag || 'v0.38.1') }}
+          ref: ${{ inputs.tag }}
 
       - uses: actions/setup-node@v4
         with:
