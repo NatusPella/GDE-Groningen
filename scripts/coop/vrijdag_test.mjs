@@ -55,6 +55,7 @@ t('de spelerslijst (Tab en het pauzemenu): iedereen heeft rijen met naam, wat ze
   const rh = s.hw.coopSpelers; assert.deepEqual(rh.map((r) => r.slot), [0, 1, 2, 3]); assert.equal(rh[0].jij, true); assert.match(rh[0].doet, /in opdracht/);
   assert.ok(rh.slice(1).every((r) => Number.isFinite(r.ms) && r.ms >= 0), 'de gastheer kent de ping van elke gast: ' + JSON.stringify(rh.map((r) => r.ms)));
   const rg = s.gs[1].gw.coopSpelers; assert.deepEqual(rg.map((r) => r.slot), [2, 0, 1, 3], 'jij bovenaan');
+  assert.deepEqual(rg.map((r) => r.naam), ['Bram', 'Tammo', 'Tessa', 'Lotte'], 'ook bij een gast staan de namen erin (de lijst bevat alleen personages)');
   assert.ok(Number.isFinite(rg[0].ms) && rg.slice(1).every((r) => r.ms === null), 'een gast kent alleen zijn eigen ping');
   assert.match(rg.find((r) => r.slot === 0).doet, /in opdracht/, 'ook een gast ziet dat de ander in een opdracht zit');
   s.gs[2].link.cut(); s.step(8);

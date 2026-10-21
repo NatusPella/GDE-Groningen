@@ -1438,6 +1438,7 @@ function showTab(name, how) {
   tab = name;
   setPauseMenuTabState(name);
   root.dataset.activeTab = name;
+  root.dataset.coop = world && world.coopNet ? '1' : '0';
   for (const b of root.querySelectorAll('.pm-game [data-goto]')) {
     b.setAttribute('aria-current', String(b.dataset.goto === name));
     b.hidden = !ids.includes(b.dataset.goto);
