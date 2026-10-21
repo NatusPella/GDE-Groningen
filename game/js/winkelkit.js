@@ -105,7 +105,8 @@ export const WINKEL = {
 // bakker niet op een bloemist, ook niet op afstand.
 //   patroon: 0 schappen, 1 broden en taarten, 2 koelvitrine, 3 menubord, 4 kledingrekken,
 //            5 fietswielen, 6 emmers met bloemen, 7 spiegelwand, 8 tv-schermen,
-//            9 rommelkasten, 10 kaarten en mokken, 11 tijdschriftenrek
+//            9 rommelkasten, 10 kaarten en mokken, 11 tijdschriftenrek,
+//            12 kermiskraam (zeildoek, gloeilampjes, oliebollen en suikerspin)
 export const STIJL = {
   supermarkt: { patroon: 0, buiten: 'karretjes' },
   bakker: { patroon: 1, buiten: 'bord' },
@@ -119,7 +120,7 @@ export const STIJL = {
   tweedehands: { patroon: 9, buiten: 'meubels' },
   souvenir: { patroon: 10, buiten: 'draaistandaard' },
   kiosk: { patroon: 11, buiten: 'krantenrek' },
-  kermiskraam: { patroon: 1, buiten: 'bord' },
+  kermiskraam: { patroon: 12, buiten: 'bord' },
 };
 for (const k of SHOP_KINDS) Object.assign(WINKEL[k], STIJL[k]);
 
