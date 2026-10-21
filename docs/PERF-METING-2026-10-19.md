@@ -477,3 +477,67 @@ PERF_AB='old=pool+progsort+pedtier+settle;new=settle' PERF_AB_PRE=25000 PERF_AB_
 node scripts/perf/abpair.mjs <PERF_OUT>/<naam>.json
 GDE_PROVINCE_SRC=<repo>/data/cache/province node scripts/perf/simbench.mjs --seconds=40
 ```
+
+## Vervolg 10: waar de 20 ms echt blijft, gemeten met een profiel (r46, #246, #247, #58, #4)
+
+**Uitkomst: de 60 fps zijn niet gehaald, maar het profiel vond één grote vermijdbare post en wijst de rest aan.** De eigen schaduwhaak (`hookShadowPass`, sinds Vervolg 7) liep bij elke `renderer.render()`-aanroep, en een frame op Hoog heeft er 16 (de scène en 15 fullscreen-quads van de bloom en de grade): elke keer een scan van de bovenste laag van de scène plus het verbergen en tonen van groepen, terwijl de quads geen licht hebben en three direct terugkeert. Nu slaat de haak die aanroepen over. Gepaard (oud tegen nieuw, afwisselend in één proces, `?perfoff=schaduwhaak` is het oude gedrag): hoofdthread-CPU **-4,1 ± 1,4 ms per frame op een belaste machine (11 van 14 paren lager, mediaan -3,8 ms, op een frame van 28 tot 43 ms)**, de schaduwscan zelf 2,5 naar 0,3 ms (14 van 14 paren). Op een rustige machine is dat naar schatting 2 tot 3 ms van de ~21; die rustige meting is niet gelukt (een uur gewacht op CPU-gebruik onder 30% met 3 GB vrij: dat kwam niet voor, en daarna waren de drie Electron-slots uren bezet).
+
+### De machine was niet rustig, en hoe er dus gemeten is
+
+Elke run draaide naast 4 tot 11 Electron-processen en tientallen node-tests van andere sessies (CPU-gebruik 34 tot 93% vóór en na een run, 0,3 tot 3,4 GB vrij van 17; `machine` in elke JSON). Frames waren daardoor 1,5 tot 3 keer zo traag als op de rustige machine van Vervolg 2 (21 ms). Wat dan nog betrouwbaar is: verhoudingen binnen één venster, secties van de hitchprobe (de tijd op de eigen thread), de CPU-tijd van de renderer-hoofdthread (`mcpu`) en gepaarde, afwisselende vensters in één proces. Een eigen route `r46` (`scripts/perf/routes.js`, `PERF_ONLY=r46`, `PERF_R46='base;nopostfx;pauzesim;...'`, zie docs/ONTWIKKELEN.md) speelt dezelfde wandeling (3 m/s door de stad, Hoog, heel ver, 14:00) in vensters van 8 s, waarin telkens één onderdeel van het frame uit staat. Nieuw gereedschap: Chromium-trace (`[trace] ms`, `scripts/perf/trace.mjs`), heap-allocatieprofiel (`[heapprof] ms`), GL-tijd per functie (variant `gltime`), `progcalls`, `disposewho`, `scripts/perf/personbench.mjs`; `selftime.mjs` en `categories.mjs` kappen nu de eerste tijdsdelta af (die is de wachttijd sinds de start van de profiler en telde als '(program)': 41 tot 51% van een profiel op een drukke machine was die ene delta).
+
+### 1. Waar de tijd zit (variant per venster, 3 rondes, Hoog, heel ver, belaste machine, oude haak)
+
+| variant | rAF-callback ms | hoofdthread-CPU ms | GPU-proces-CPU ms | interval ms | draws |
+|---|---:|---:|---:|---:|---:|
+| alles aan | 37,5 | 39,8 | 18,0 | 41,3 | 497 |
+| schaduwpas uit | 29,2 | 30,8 | 13,3 | 31,0 | 375 |
+| simulatie gepauzeerd (`world.coopHold`) | 25,8 | 26,6 | 13,2 | 28,5 | 475 |
+| render uit (`postfx.render` leeg) | 14,5 | 15,9 | 4,7 | 17,4 | 1 |
+| beide: simulatie en render uit | 6,6 | 7,1 | 3,2 | 17,7 | 0 |
+
+Dus op de hoofdthread: **render ongeveer 60%** (23 van 37 ms), simulatie (`updateGameplay`) ongeveer 30% (12 ms), de rest (3D-bijwerken, HUD, audio, tegelvolger) ongeveer 6,5 ms. De GPU is niet de rem: de GPU-timer geeft 15 tot 22 ms op een GPU die met de Electron-vensters van andere sessies gedeeld wordt, het GPU-proces zelf is 32% bezet (`CrGpuMain`, `CommandBufferService:PutChanged` 18%).
+
+Secties van de hitchprobe (ms per frame, gemiddeld, dezelfde runs): alles aan: `3d:render` samen 19,6 (met de oude haak: 15,1 vóór de schaduwpas door de herhaalde scans en terugzetlussen, schaduwscan 2,8, schaduwpas 1,6), `3d:buildings` 1,7, `3d:peds` 1,2, hud 1,9, traffic 2,8, police+collide 1,9, peds 0,9, wildlife 0,6, systems 0,6, player 0,6, `3d:prewarm` 0,5, `3d:lights` 0,5, `3d:grass` 0,5. Met de simulatie en de render uit blijft 6,4 ms over: gebouwen 1,3, hud 0,7, `3d:peds` 0,7, `3d:grass` 0,5, `3d:vehicles` 0,5, audio 0,2.
+
+### 2. De hoofdthread in een Chromium-trace (6 s, alles aan)
+
+De renderer-hoofdthread is 95% bezet; 86% daarvan is `FunctionCall` (JS en wat JS aanroept), 7,5% taakplanning, `CommandBufferProxyImpl::Flush` 1,1%, stijl, layout, paint en commit samen ongeveer 1,5%, V8-GC (scavenges) 0,7%. **DOM, layout, CSS-filters en de minimap-canvas zijn dus niet de rem**: de variant `hudoff` (`#hud` op `display: none`) scheelt -0,2 ± 0,9 ms (de HUD-JS blijft: 1,4 ms per frame), en de schermtegels van de compositor zijn in de trace niet te zien. GC: het spel alloceert 2,4 tot 3,8 MB heap per frame (met de simulatie gepauzeerd 1,0 tot 1,2 MB; de grootste allocators zijn de geometriebouwers van `pixelart3d.js` met `Array.push` ongeveer 28%, de voertuigsimulatie ongeveer 19%: `followSpeedLimit`, `resolveVehicleBuildingCollision`, `halfLen`, `resolveVehicleVehicleCollisions`), maar de scavenges (3 tot 8 per seconde) kosten samen 0,7% van de hoofdthread. Allocaties verminderen levert dus geen frametijd op.
+
+GL-aanroepen (variant `gltime`, elke functie van de context tijdt zichzelf): 3100 tot 3600 aanroepen per frame kosten samen 2,6 ms (7% van het frame): `bindVertexArray` 0,84 ms (650 per frame, 1,3 µs per stuk), `uniformMatrix4fv` 0,43 (730), `uniform3f` 0,31 (600), `bindTexture` 0,20 (260). Dat bevestigt Vervolg 9: GL-aanroepen zijn niet de kost. Textures en buffers: `deleteBuffer` en `deleteVertexArray` kosten in sommige vensters 1 tot 2,8 ms per frame (1 tot 2 aanroepen van ~1 ms: het opruimen van tegelgeometrie tijdens het lopen), `bufferData` 1 tot 11 ms per frame in vensters met streaming; samen spiegelen ze de pieken in `3d:buildings`, `cityprops` en `3d:water`, niet het gemiddelde. De eerste `getProgram`-tellingen: 18 tot 37 programma-opzoekingen per frame (12 daarvan het gedeelde dieptemateriaal van de schaduwpas, 2,5 per frame elk voor drie dubbelzijdige transparante `MeshBasicMaterial`s): ~0,5 ms.
+
+### 3. Frametempo en vsync (punt 4 van de opdracht)
+
+De frame-intervallen (rAF-tijdstempel, 8 s per venster) vallen in twee emmers, 16,7 en 33,3 ms, en bijna nooit ertussen (`hist` in de JSON): de tijdstempel is vsync-gebonden, een frame dat net te laat is kost een volle vsync. Zonder vertraging van de render (variant `render uit`, CPU 14 tot 15 ms) haalt het spel 56 tot 58 fps (94 tot 97% van de frames 16,7 ms, de rest 33 ms: de pieken van personen bouwen, tegelbatchers en omgevingsbakken); bij 25 tot 27 ms CPU is het gemiddelde interval 28 tot 33 ms. Met `--disable-frame-rate-limit --disable-gpu-vsync` verdwijnen de emmers (alle intervallen in 10 tot 36 ms), maar het gemiddelde interval blijft gelijk aan de CPU-tijd van de frame (34,6 ms interval bij 33,0 ms CPU, alles aan): vsync is de rem niet, de hoofdthread is het. **Voor 60 fps moet ook het 95e percentiel van de CPU onder ~16 ms: het gemiddelde moet naar ~13 ms en de pieken (personen bouwen 2,7 ms, gebouwbatcher 3 ms budget, programma-linking) moeten ervoor weg.**
+
+### 4. De stappen
+
+| stap | wat | effect |
+|---|---|---|
+| `schaduwhaak` (`scene3d.js` `hookShadowPass`) | de haak slaat renders over die niet de spelscène met een bij te werken schaduwkaart zijn (de 15 quads van de postketen, een scènepas zonder werpers, een frame waarin de schaduwkaart niet wordt herbouwd): geen scan, geen verbergen en tonen van groepen | hoofdthread **-4,1 ± 1,4 ms** per frame (14 paren in drie runs, 11 lager, mediaan -3,8), schaduwscan -2,5 ± 0,2 ms (14 van 14 paren); schaduwkaart en hoofdpas ongewijzigd |
+| extra secties in `3d:render` | `3d:render:pre`, `:cull`, `:voorpas`, `:schaduwscan`, `:schaduwpas`, `:hoofdpas+post` (alleen met `?hitch`) | meetinstrument |
+
+Het beeld is niet bekeken door een mens: de logica voor de spelscène met schaduwwerpers is ongewijzigd (zelfde code, alleen overgeslagen waar `run()` toch al terugkeerde); alleen een pixelvergelijking van schaduwen zou het nog tonen en die is op deze scène niet bruikbaar (Vervolg 7).
+
+### 5. Geprobeerd zonder winst
+
+- **Personen bouwen** (`buildPersonMesh`, 8 tot 10 per seconde tijdens het lopen, 1497 driehoeken, **2,7 ms per persoon in Node**, `scripts/perf/personbench.mjs`): een versie van `GeoBuilder` zonder vectoren en arrays per driehoek en met een sjabloon in plaats van `BoxGeometry` gaf bit-identieke geometrie (zelfde hash) maar geen snellere bouw (2,7 tegen 2,7 ms): het profiel is vlak (de `push`es van positie, kleur, uv, botindex en botgewicht, 17% en 12%; `build` 6%; GC 7%). Teruggedraaid. De skinned bounding box van `actorRadius` (0,41 tegen 0,06 ms per persoon) is te klein om te lonen.
+- **`?simauto`** (#58: gewone auto's ver weg door de simulatieworker): `traffic` 2,4 tegen 2,3 ms per frame, `police+collide` 1,8 tegen 1,7: geen winst te voet in de stad (er zijn weinig auto's voorbij de 150 m van volle simulatie), dus niet standaard gemaakt.
+- **Omgevingsbak** (`updateEnvironment`, elke seconde): geen sectiepiek boven 4 ms; geen stap.
+- **`set:resolution:0.5`** in een venster: onbruikbaar (de instelling vraagt een langere inloop dan de 1,5 s van de variant); niet verder gemeten.
+
+### 6. Wat dit zegt over 60 fps, en over #246, #247, #58 en #4
+
+De ontleding hierboven is de eerlijke stand: render ~60%, simulatie ~30%, de rest ~10%; elke volgende stap zit onder de 1 ms (in de CPU-profielen als aandeel van de bezette hoofdthread: `setProgram` 7 tot 12%, `projectObject` en `updateMatrixWorld` samen 7 tot 12%, `buildPersonMesh` 4%, gebouwbatcher 3 tot 5%, hud 4 tot 5%, de schaduwpas van three zelf 4 tot 5,5% met de haak nu 0,9%), behalve parallellisme. **#246 blijft open**: 60 fps te voet vraagt ongeveer 13 ms gemiddeld en een 95e percentiel onder 16 ms ms CPU per frame, zonder pieken. Vervolgplan, in volgorde van winst per risico: (1) de vermelde ~1500 niet-bevroren statische knopen bevriezen en de gepoolde verborgen delen buiten de wandeling houden (1 tot 1,5 ms, Vervolg 9); (2) de pieken: personen met een budget van één per frame (het model is 2,7 ms), de batchers en `cityprops` op de rest van het frame laten wachten; (3) de scène in een worker (OffscreenCanvas) met een snapshot per frame: de enige stap boven 3 ms, weken werk, en de reden dat #246 niet zonder X te sluiten is. #247 volgt het profiel niet als grote post (streaming ~10% van de hoofdthread te voet, de worker is niet de rem). #58: de simulatie is 30% van het frame op deze machine, maar de bestaande overdracht van auto's naar de worker (`?simauto`) wint te voet niets; een echte winst vraagt dat het verkeer binnen 150 m ook de worker in gaat, en dat is het grote ontwerp van (3). #4 (meten op een rustige machine) blijft open: geen enkele run van deze ronde was rustig.
+
+### Herhalen
+
+```
+cd desktop && npm run stage            # of GDE_PREBUILT_WORLD=<bestaande build>/game/world GDE_STAGE_OUT=<map>/game node build.mjs
+PERF_ONLY=r46 PERF_R46='base;nopostfx;pauzesim;pauzesim+nopostfx;noshadow;hudoff;stand;gltime;progcalls;disposewho;off:schaduwhaak' PERF_AB_ROUNDS=3 PERF_AB_WIN=8000 PERF_SETTLE=20000 \
+  node scripts/perf/run.mjs r46 "--preset=quality:hoog,shadows:true,drawDistance:heelver,resolution:1,autoResolution:false" --hitch --enable-precise-memory-info
+PERF_PROFILE=r46,r46:nopostfx,heap:base,r46trace GDE_PROFILE_OUT=<map> GDE_TRACE_OUT=<map> ...    # CPU-profiel, allocatieprofiel, Chromium-trace
+node scripts/perf/trace.mjs <map>/trace-*.json            # threads van de trace
+node scripts/perf/selftime.mjs <profiel> ; node scripts/perf/categories.mjs <profiel>
+node scripts/perf/personbench.mjs --n=300 --hash          # bouwkosten van een persoon in Node
+```
