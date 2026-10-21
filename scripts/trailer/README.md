@@ -50,3 +50,14 @@ slot los te laten) loopt een proef in een minuut.
 | `audio/analyze_music.mjs`, `audio/voice_catalog.mjs` | tempo en schone stukken van de nummers; alle bestaande stemopnames |
 | `check_video.mjs`, `check_audio.mjs`, `contact*.mjs`, `pv.mjs` | controle en contactbladen |
 | `thumbs.mjs`, `kenburns.mjs` | miniaturen (1280x720) en zoom over een stilstaand beeld |
+
+## Valkuilen (uit de praktijk)
+
+- `repl_shot.mjs` laadt de bibliotheek niet opnieuw: na een wijziging in `lib/clip.page.js` eerst `repl_lib.mjs` (of `repl_boot.mjs`) draaien.
+- Het hoofdmenu (Alleen spelen / Samen spelen) wordt voorbijgegaan met `window.__menuStart('nieuw')` (in `prepare()`); het openingsfilmpje begint pas enkele seconden daarna en pauzeert het spel, dus `skipCinematics` wacht 6 s rust.
+- Samen spelen (`repl_boot.mjs --url-add=coop`): de gebouwen laden pas na een paar seconden terwijl `pending()` al 0 meldt; eerst een proefscript (`resetUi`, `placePlayer`, `settle`) en dan 400 beelden wachten. Een opname direct na de herstart bleef twee keer hangen.
+- Menu-opnames (`uiRun`): het scherm opent vóór de opname en krijgt 50 beelden om in te faden, anders zijn de eerste beelden de wereld met HUD. Neem ze op in een schone sessie: na scriptmatig rijden toonde Prestaties een negatief getal.
+- Doelmarkeringen (zuil, ring, pictogram) worden verborgen (`hideMarkers`); het pictogram in de rit is een winkel- of deurmarkering die de camera anders binnenvliegt.
+- Bijschriftensporen samenvoegen in RGB (`gbrp`), niet in YUV: `blend=multiply` op de kleurvlakken geeft een paarse zweem. Een bijschriftenspoor kost ~8 minuten per trailer; wijzig daarom eerst de lijst en neem pas dan op.
+- De draaiende app saneert sidecar-namen met de oude regex alleen goed in een nieuwe start (`clipvideo.js`); een Electron die vóór de fix startte schreef `___-___.json`.
+- Slots: een tweede `run.mjs --repl` met `--electron=<pad naar de hoofdmap-electron>` aan de wachtrij zetten vóór het oude `quit` krijgt het slot als eerste; zonder werkend `--electron` kost de wachtrij 25 minuten.

@@ -27,7 +27,7 @@ const boot = `
 const key = (k, code) => { for (const t of [window, document]) { t.dispatchEvent(new KeyboardEvent('keydown', { key: k, code, bubbles: true })); t.dispatchEvent(new KeyboardEvent('keyup', { key: k, code, bubbles: true })); } };
 const ss = document.getElementById('start-screen');
 let seen = false;
-for (let i = 0; i < 60; i++) { const up = !!ss && ss.classList.contains('visible'); if (up) { seen = true; key('Enter', 'Enter'); } await new Promise((r) => setTimeout(r, up ? 2500 : 1000)); if (seen && !ss.classList.contains('visible')) break; }
+for (let i = 0; i < 60; i++) { const up = !!ss && ss.classList.contains('visible'); if (up && window.__menuStart) { seen = true; window.__menuStart('nieuw'); } else if (up) { seen = true; key('Enter', 'Enter'); } await new Promise((r) => setTimeout(r, up ? 2500 : 1000)); if (seen && !ss.classList.contains('visible')) break; }
 const wd = window.__debug.world;
 for (let i = 0; i < 25 && wd.paused; i++) { key(' ', 'Space'); await new Promise((r) => setTimeout(r, 700)); }
 `;

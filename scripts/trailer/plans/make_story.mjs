@@ -24,7 +24,7 @@ list.shots.forEach((s, i) => {
     for (const e of ev) {
       const a = e.t, b = e.t + (e.dur || 2);
       const start = (s.in || 0), end = start + dur;
-      if (a >= start - 0.05 && b <= end + 0.35) { if (e.src) voices.push({ src: e.src, at: +(t + (a - start)).toFixed(3), target: list.voiceTarget ?? -15, gain: s.voiceGain ?? 0, text: `${e.speaker}: ${e.text}` }); else warn.push(`geen opname voor "${e.text}" in ${s.clip}`); }
+      if (a >= start - 0.05 && b <= end + 0.35) { if (e.src) voices.push({ src: e.src.replace('app://game/', ''), at: +(t + (a - start)).toFixed(3), target: list.voiceTarget ?? -15, gain: s.voiceGain ?? 0, text: `${e.speaker}: ${e.text}` }); else warn.push(`geen opname voor "${e.text}" in ${s.clip}`); }
       else if (b > start && a < end) warn.push(`regel half in fragment (${s.clip}, ${a.toFixed(1)}-${b.toFixed(1)} s, fragment ${start}-${end.toFixed(1)}): ${e.speaker}: ${e.text.slice(0, 50)}`);
     }
   }
