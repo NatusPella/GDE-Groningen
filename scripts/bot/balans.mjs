@@ -21,6 +21,11 @@ export function stepsOf(events) {
   const steps = new Map();
   const cur = { id: null };
   const get = (id) => { if (!steps.has(id)) steps.set(id, { id, title: '', t0: null, t1: null, speel: null, wall: null, dist: null, cine: null, cineN: null, talk: null, goals: 0, maxQuiet: null, fails: 0, stuck: 0, cheats: [], outcome: '', cineDur: [], routes: [], firstStatus: null, stages: new Set(), stagesKnown: false, failTekst: [], pogingen: [[]], tMissie: null, aanloop: [] }); return steps.get(id); };
+  // older runs logged the first goal of a step just before its 'begin' (meterTick ran first): put it after
+  events = events.slice();
+  for (let i = 0; i + 1 < events.length; i++) {
+    if (events[i].type === 'doel' && events[i + 1].type === 'step' && events[i + 1].event === 'begin' && Math.abs(events[i + 1].t - events[i].t) < 0.6) { const x = events[i]; events[i] = events[i + 1]; events[i + 1] = x; i++; }
+  }
   for (const e of events) {
     if (e.type === 'step' && e.event === 'begin') { cur.id = e.id; const s = get(e.id); s.title = e.label || ''; if (s.t0 == null) s.t0 = e.t; }
     else if (e.type === 'step' && e.event === 'end') {
