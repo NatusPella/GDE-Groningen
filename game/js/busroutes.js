@@ -28,6 +28,76 @@ export function lineName(ref) {
 
 const dist = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]);
 
+// --- welke wegen een bus mag nemen (#322) ----------------------------------------------------------
+// Harde regels gelden altijd: geen voet- of fietspad, geen weg die OSM voor bussen sluit, geen
+// voetgangersstraat, pad of zandweg, en breed genoeg. Een bus zonder lijn (of een bus die een
+// omweg zoekt) blijft daarnaast op het busnet: hoofdwegen, tertiaire wegen, busbanen. Een straat
+// van het woonwijkje (residential, service) is er alleen voor een bus als zijn lijn er echt loopt:
+// de lijndata is de echte route, dus daar mag hij, en elders niet.
+export const BUS_WID = 2.6;          // m: een gelede bus
+export const BUS_MARGE = 1.1;        // m speling naast de bus (zoals vehicle.js canUseRoad)
+export const LIJN_STROOK = 12;       // m: een weg telt als "van de lijn" binnen deze afstand van de polylijn
+const GEEN_BUS_TYPES = new Set(['footway', 'cycleway', 'path', 'track', 'bridleway', 'steps', 'pedestrian', 'living_street', 'corridor', 'platform']);
+const BUSNET_TYPES = new Set(['motorway', 'motorway_link', 'trunk', 'trunk_link', 'primary', 'primary_link', 'secondary', 'secondary_link', 'tertiary', 'tertiary_link', 'unclassified', 'busway']);
+const ACC_BUS = 8;                   // navgraph.js ACC.BUS (hier herhaald om puur te blijven)
+
+// Reden waarom een bus een weg nooit mag nemen, of null.
+export function busWegFout(road, wid = BUS_WID) {
+  if (!road) return 'geen weg';
+  if (road.cat === 'foot') return 'voetpad';
+  if (road.cat === 'cycle') return 'fietspad';
+  if (road.busOnly) return null;
+  if (typeof road.acc === 'number' && !(road.acc & ACC_BUS)) return 'gesloten voor bussen';
+  if (GEEN_BUS_TYPES.has(road.type)) return `geen busweg (${road.type})`;
+  if (!(road.width >= wid + BUS_MARGE)) return 'te smal';
+  return null;
+}
+
+// Hoort de weg bij het busnet (ook zonder lijn)?
+export const busWegOpNet = (road) => !!road && (road.busOnly || road.cat === 'major' || BUSNET_TYPES.has(road.type));
+
+// Strook rond een lijn: een set rastercellen (6 m) binnen LIJN_STROOK van de polylijn.
+const CEL = 6;
+export function lijnStrook(line) {
+  if (line._strook) return line._strook;
+  const cells = new Set();
+  const r = Math.ceil(LIJN_STROOK / CEL);
+  for (let s = 0; s <= line.length; s += CEL * 0.5) {
+    const p = pointAt(line, s);
+    const cx = Math.floor(p.x / CEL), cy = Math.floor(p.y / CEL);
+    for (let i = -r; i <= r; i++) for (let j = -r; j <= r; j++) {
+      const x = (cx + i + 0.5) * CEL, y = (cy + j + 0.5) * CEL;
+      if (Math.hypot(x - p.x, y - p.y) <= LIJN_STROOK) cells.add((cx + i) * 100003 + (cy + j));
+    }
+  }
+  return (line._strook = cells);
+}
+export const opLijn = (line, x, y) => lijnStrook(line).has(Math.floor(x / CEL) * 100003 + Math.floor(y / CEL));
+
+// Loopt (het grootste deel van) de weg over de lijn? Punten om de ~12 m, minstens 60% binnen de strook.
+export function wegOpLijn(line, road) {
+  const P = road.pts;
+  let n = 0, hit = 0;
+  for (let i = 0; i < P.length - 1; i++) {
+    const a = P[i], b = P[i + 1], len = dist(a, b), k = Math.max(1, Math.ceil(len / 12));
+    for (let j = 0; j < k; j++) { const t = j / k; n++; if (opLijn(line, a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t)) hit++; }
+  }
+  const e = P[P.length - 1];
+  n++; if (opLijn(line, e[0], e[1])) hit++;
+  return hit / n >= 0.6;
+}
+
+// De regel voor het verkeer: mag een bus (met deze lijn, of zonder) deze weg nemen? Antwoorden per (lijn, weg) gecachet.
+export function busMagWeg(road, line, wid = BUS_WID) {
+  if (busWegFout(road, wid)) return false;
+  if (busWegOpNet(road)) return true;
+  if (!line) return false;
+  const c = line._wegen || (line._wegen = new WeakMap());
+  let v = c.get(road);
+  if (v === undefined) { v = wegOpLijn(line, road); c.set(road, v); }
+  return v;
+}
+
 // Ruwe lijn uit de data naar het model: opgeschoonde punten, boogafstanden,
 // haltes op boogafstand (gesorteerd, samengevoegd), lus ja/nee. null als de lijn
 // niet te gebruiken is.

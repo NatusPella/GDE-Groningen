@@ -257,6 +257,10 @@ export function playCinematic(spec) {
   return true;
 }
 
+// samen spelen (coopcut.js): de gast loopt mee met de tijd van de gastheer
+export const setCinematicRate = (r) => { if (active) active.rate = r; };
+export const setCinematicTime = (t) => { if (active) active.t = Math.max(0, Math.min(active.duration - 0.05, t)); };
+
 export function skipCinematic() {
   if (active) finish(true);
 }
@@ -407,7 +411,7 @@ export function updateCinematics(dt, w) {
   const frozen = isPauseMenuOpen() || isMapOpen();
   if (!frozen) {
     if (active) {
-      active.t += active.realtime ? Math.max(dt, wallDt) : dt;
+      active.t += (active.realtime ? Math.max(dt, wallDt) : dt) * (active.rate ?? 1);
       updateSubtitles();
       if (active.t >= active.duration) finish(false);
     }
