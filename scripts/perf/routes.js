@@ -771,9 +771,32 @@ results.routes.r46 = await safe('r46', async () => {
     }
   };
   const glOff = () => { if (!glT) return null; for (const k of glT.keys()) delete gl2[k]; const o = glT; glT = null; return o; };
+  // disposewho: who frees geometries and textures (gl.deleteBuffer and deleteVertexArray cost 1 to 2 ms a call), by the first game frames of the stack
+  const T = sc.THREE; let dispWho = null; const dispOrig = [];
+  const dispOn = () => {
+    dispWho = new Map();
+    for (const [proto, label] of [[T.BufferGeometry.prototype, 'geometry'], [T.Texture.prototype, 'texture'], [T.WebGLRenderTarget.prototype, 'target']]) {
+      const f = proto.dispose; dispOrig.push([proto, f]);
+      proto.dispose = function (...a) {
+        const st = (new Error().stack || '').split(String.fromCharCode(10)).slice(2, 9).map((l) => /at (\S+) \(?.*?([\w.]+\.js):(\d+)/.exec(l) || []).filter((m) => m[2] && !/three\.module/.test(m[2])).slice(0, 2).map((m) => m[1] + ' ' + m[2] + ':' + m[3]).join(' < ');
+        const k = label + ' ' + (label === 'geometry' ? (this.attributes && this.attributes.position ? (this.attributes.position.count < 100 ? '<100' : this.attributes.position.count < 2000 ? '<2k' : '>2k') : '?') : '') + ' ' + st;
+        dispWho.set(k, (dispWho.get(k) || 0) + 1);
+        return f.apply(this, a);
+      };
+    }
+  };
+  const dispOff = () => { if (!dispWho) return null; for (const [proto, f] of dispOrig) proto.dispose = f; dispOrig.length = 0; const o = dispWho; dispWho = null; return o; };
+  const SETm = await imp('settings'), SCNm = await imp('scene3d'); let undoSet = null;
   const apply = (name) => {
     const set = new Set(name.split('+'));
+    // set:<setting>:<value>: that setting for this window only (set:resolution:0.5, set:quality:laag, set:drawDistance:kort)
+    if (undoSet) { undoSet(); undoSet = null; }
+    const sets = {}; for (const t of set) if (t.startsWith('set:')) { const [, k, v] = t.split(':'); sets[k] = v; }
+    if (Object.keys(sets).length) undoSet = SETm.withTempSettings(sets);
     if (set.has('gltime') && !glT) glOn();
+    if (set.has('disposewho') && !dispWho) dispOn();
+    // off:<step>: the ?perfoff= steps of devflags.js for this window (off:schaduwhaak+off:pool ...)
+    window.__perfOffDyn = new Set([...set].filter((t) => t.startsWith('off:')).map((t) => t.slice(4)));
     pfx.render = set.has('nopostfx') ? () => {} : pfxRender;
     r.shadowMap.render = set.has('noshadow') ? () => {} : shOrig;
     w.coopHold = set.has('pauzesim');
@@ -808,12 +831,16 @@ results.routes.r46 = await safe('r46', async () => {
       const row = { name, round, ...res, hist, callsPerFrame: Math.round((calls - cc0) / Math.max(1, res.frames)), rendersPerFrame: +((renders - rn0) / Math.max(1, res.frames)).toFixed(2) };
       { let up = 0, gcs = 0, gcKB = 0; for (let i = 1; i < heap.length; i++) { const d = heap[i] - heap[i - 1]; if (d >= 0) up += d; else { gcs++; gcKB += -d; } } row.alloc = { kbPerFrame: +(up / 1024 / Math.max(1, heap.length - 1)).toFixed(1), gcs, gcMB: +(gcKB / 1048576).toFixed(1), perSecond: +(gcs / (WIN / 1000)).toFixed(2) }; }
       if (window.__hitch) { const hs = window.__hitch.summary(); row.sections = hs.sections; }
+      const dw = dispOff();
+      if (dw) row.dispose = [...dw].sort((a, b) => b[1] - a[1]).slice(0, 25).map(([k, n]) => [k, +(n / Math.max(1, res.frames)).toFixed(3)]);
       const gt = glOff();
       if (gt) { const f = Math.max(1, res.frames); const rows = [...gt].filter(([, e]) => e.n).map(([k, e]) => [k, +(e.ms / f).toFixed(3), +(e.n / f).toFixed(1)]).sort((a, b) => b[1] - a[1]); row.gl = { totalMs: +rows.reduce((q, x) => q + x[1], 0).toFixed(2), totalCalls: +rows.reduce((q, x) => q + x[2], 0).toFixed(0), top: rows.slice(0, 30) }; }
       out.push(row);
     }
   }
   apply('base');
+  if (undoSet) { undoSet(); undoSet = null; }
+  window.__perfOffDyn = undefined;
   mover = null;
   if ((window.__perfProfile || '').split(',').includes('r46trace')) await sleep(8000); // the trace file is written after the window
   return { rows: out, flen: FLEN, speed: SPEED };
