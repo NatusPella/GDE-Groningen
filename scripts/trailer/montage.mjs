@@ -61,6 +61,7 @@ console.log(`geluid: ${mixRep.final.lufs} LUFS, piek ${mixRep.final.peak} dBFS (
 const allow = { intended: [[0, 0.4, 'begin van de trailer']] };
 for (const m of audioPlan.music || []) { allow.intended.push([m.at - 0.3, m.at + 0.5, 'de muziek komt binnen (de drop)']); allow.intended.push([m.at + (m.dur ?? total - m.at) - (m.fadeOut ?? 2.5) - 0.3, total, 'uitfade van de muziek']); }
 for (const v of mixRep.voices) allow.intended.push([v.at - 0.4, v.at + v.dur + 0.9, 'stem: ducking van de muziek en pauzes tussen woorden']);
+for (const s of audioPlan.sfx || []) if (s.kind === 'impact') allow.intended.push([s.at - 0.1, s.at + 0.6, 'bewuste klap (impact) op de titel of de drop']);
 allow.intended.push([total - 1.6, total, 'uitfade naar zwart']);
 fs.writeFileSync(path.join(out, `${name}.allow.json`), JSON.stringify(allow, null, 1));
 

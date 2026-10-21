@@ -53,6 +53,8 @@ async function playStory(c, { name, def, lines, duration, anchor = null, from = 
   if (from > 0) { cin.setCinematicTime(from); for (let i = 0; i < 20; i++) await c.advance({ capture: false }); }
   const st = () => cin.cinematicState();
   const fired = new Set();
+  // regels die al begonnen zijn voor het fragment: stil laten (hun opname kan niet halverwege beginnen)
+  if (from > 0 && st()) st().lines.forEach((l, k) => { if (l.at < from) fired.add(k); });
   await c.begin(name);
   const t1 = to ?? duration;
   const n = Math.round((t1 - from) * 60);
@@ -118,6 +120,8 @@ async function missionStory(c, { name, key, scene, anchor, clock = 14, weather =
 }
 shot('v03-berend', async (c) => missionStory(c, { name: 'v03-berend', key: 'M01.intro', scene: 'M01.1', anchor: { x: 250, y: 26, facing: 0.3 }, clock: 11 }));
 shot('v04-markt', async (c) => missionStory(c, { name: 'v04-markt', key: 'M01.3', scene: 'M01.3', anchor: { x: 101, y: 77, facing: 0.5 }, clock: 18.4 }));
-shot('v05-automaat', async (c) => missionStory(c, { name: 'v05-automaat', key: 'M02.intro', scene: 'M02.1', anchor: { x: -300, y: 100, facing: 1.2 }, clock: 7.6 }));
-shot('v06-duif', async (c) => missionStory(c, { name: 'v06-duif', key: 'M04.intro', scene: 'M04.1', anchor: { x: 121, y: -700, facing: 0.8 }, clock: 16.5 }));
-shot('v07-kiezel', async (c) => missionStory(c, { name: 'v07-kiezel', key: 'M05.intro', scene: 'M05.1', anchor: { x: 121, y: -740, facing: 2.2 }, clock: 15.2 }));
+shot('v05a-automaat', async (c) => missionStory(c, { name: 'v05a-automaat', key: 'M02.intro', scene: 'M02.1', anchor: { x: -300, y: 100, facing: 1.2 }, clock: 7.6, from: 5.9, to: 16.3 }));
+shot('v05b-politie', async (c) => missionStory(c, { name: 'v05b-politie', key: 'M02.intro', scene: 'M02.1', anchor: { x: -300, y: 100, facing: 1.2 }, clock: 7.6, from: 49.4, to: 55.5 }));
+shot('v06a-duif', async (c) => missionStory(c, { name: 'v06a-duif', key: 'M04.intro', scene: 'M04.1', anchor: { x: 121, y: -700, facing: 0.8 }, clock: 16.5, from: 4.4, to: 12.4 }));
+shot('v06b-duif', async (c) => missionStory(c, { name: 'v06b-duif', key: 'M04.intro', scene: 'M04.1', anchor: { x: 121, y: -700, facing: 0.8 }, clock: 16.5, from: 19.2, to: 29.8 }));
+shot('v07-kiezel', async (c) => missionStory(c, { name: 'v07-kiezel', key: 'M05.intro', scene: 'M05.1', anchor: { x: 121, y: -740, facing: 2.2 }, clock: 15.2, from: 14.2, to: 24.6 }));

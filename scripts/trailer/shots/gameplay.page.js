@@ -333,3 +333,38 @@ shot('u05-samen', async (c) => {
   return uiRun(c, { name: 'u05-samen', dur: 2 * 4 * BEAT, open: (pm) => pm.openPauseMenu('samen'),
     cues: [[1.2, () => { const b = [...document.querySelectorAll('button')].find((x) => /uitnodigen/i.test(x.textContent)); if (b) b.click(); }]] });
 });
+
+// C01 Samen spelen (alleen met ?coop, repl_boot.mjs --url-add=coop): twee spelers op één scherm lopen over de Grote Markt;
+// speler 1 (Tammo) met W, speler 2 (Tessa) met IJKL. De camera is die van het spel zelf (hij volgt en zoomt uit voor beiden).
+async function coopRun(c, o) {
+  const { name, x, y, a = 0.5, clock = 17.6, dur = 12 * BEAT, hud = false, p1 = [], p2 = [], thumb = null } = o;
+  await c.resetUi();
+  stand(c, { x, y, a, clock });
+  c.calmPolice();
+  c.clearArea(x, y, 40);
+  c.hud(hud);
+  if (!c.world.coop) throw new Error('geen coop: start het spel met ?coop');
+  const inp = c.M.inp;
+  const held = new Set();
+  const key = (k, down) => { if (down === held.has(k)) return; if (down) held.add(k); else held.delete(k); inp.sendKey(down ? 'keydown' : 'keyup', k); };
+  await c.settle({ label: name + '-pre', frames: 40 });
+  // plannen: [van, tot, toets] in seconden
+  const want = (t) => new Set([...p1, ...p2].filter(([a, b]) => t >= a && t < b).map((k) => k[2]));
+  const step = (t) => { const w = want(t); for (const k of [...held]) if (!w.has(k)) key(k, false); for (const k of w) key(k, true); };
+  try {
+    if (thumb) {
+      for (let i = 0; i < thumb.after * 60; i++) { step(i / 60); await c.advance({ capture: false }); }
+      for (const k of [...held]) key(k, false);
+      await c.thumbOverlay({ pos: thumb.pos || 'links' });
+      for (let i = 0; i < 40; i++) await c.advance({ capture: false });
+      await c.png(thumb.name);
+      c.clearOverlay();
+      return { thumb: thumb.name };
+    }
+    await c.begin(name);
+    await c.play(dur, (t) => step(t));
+    return await c.end();
+  } finally { for (const k of [...held]) key(k, false); await c.advance({ capture: false }); }
+}
+shot('c01-samen', async (c) => coopRun(c, { name: 'c01-samen', x: 130, y: 95, a: 0.5, dur: 12 * BEAT,
+  p1: [[0.3, 4.8, 'w']], p2: [[0.3, 2.4, 'i'], [2.4, 4.8, 'u'], [2.4, 4.8, 'i']] }));
