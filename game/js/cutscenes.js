@@ -168,7 +168,9 @@ const ACT_KEUKEN = {
     { t: 'L13+2.8', shot: 'cut', at: [0.5, 0.75, 1.35], look: 'tessa@1.15', fov: 24 },
     { t: 'L13+6.0', shot: 'dolly', from: [0.5, 0.75, 1.35], to: [0.3, 0.75, 1.3], look: 'tessa@1.15', fov: 22 },
     { t: 'L14', shot: 'dolly', from: [-0.5, 0.75, 1.3], to: [-0.3, 0.75, 1.28], look: 'tammo@1.2', fov: 24 },
-    { t: 'L15', shot: 'cut', at: [0.6, -0.75, 1.3], look: 'tessa@1.15', fov: 26 },
+    // a long speech (8 s): a slow push-in, then the other side of her (a still cut for 8 s broke the rhythm rule)
+    { t: 'L15', shot: 'dolly', from: [0.6, -0.75, 1.3], to: [0.4, -0.75, 1.26], look: 'tessa@1.15', fov: 26 },
+    { t: 'L15+4.2', shot: 'dolly', from: [0.5, 0.75, 1.38], to: [0.3, 0.75, 1.32], look: 'tessa@1.15', fov: 24 },
     { t: 'L16', shot: 'cut', at: [0.0, -1.45, 1.4], look: 'mid:tammo,tessa@1.1', fov: 46 },
     { t: 'L17', shot: 'dolly', from: [0.6, -0.75, 1.4], to: [0.35, -0.75, 1.32], look: 'tessa@1.15', fov: 26 },
     { t: 'L18', shot: 'cut', at: [-0.4, 0.75, 1.35], look: 'tammo@1.2', fov: 30 },
