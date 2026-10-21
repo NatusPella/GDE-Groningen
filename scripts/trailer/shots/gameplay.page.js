@@ -54,14 +54,17 @@ async function carRun(c, o) {
   return { ...r, speed: +v.speed.toFixed(1), remaining: Math.round(drv.remaining()) };
 }
 
-// Een scherm van het spel (pauzemenu, kaart, ...) opnemen: het menu opent op `open`, daarna lopen de acties op hun tijd.
-async function uiRun(c, { name, dur, open, at = 0.2, cues = [], frame = null }) {
+// Een scherm van het spel (pauzemenu, kaart, ...) opnemen: het scherm opent vóór de opname en krijgt de tijd om helemaal
+// in te faden (anders zijn de eerste beelden de wereld met de HUD), daarna lopen de acties op hun tijd.
+async function uiRun(c, { name, dur, open, cues = [], frame = null, fade = 50 }) {
   const pm = await import('/js/pausemenu.js');
   c.releaseCam();
-  c.hud(true);
+  c.hud(false);
   await c.settle({ label: name, frames: 20 });
+  await open(pm);
+  for (let i = 0; i < fade; i++) await c.advance({ capture: false });
   await c.begin(name);
-  const run = c.cueRunner([[at, () => open(pm)], ...cues]);
+  const run = c.cueRunner(cues);
   await c.play(dur, (t) => { run(t); if (frame) frame(t); });
   const r = await c.end();
   await c.resetUi();
@@ -285,7 +288,7 @@ shot('s99-titel', async (c) => {
   await c.settle({ label: 's99', frames: 5 });
   await c.begin('s99-titel');
   const run = c.cueRunner([[0.0, () => c.endCard({ line: 'EEN GAME VAN NATUSPELLA' })]]);
-  await c.play(3 * 4 * BEAT, (t) => run(t));
+  await c.play(4 * 4 * BEAT, (t) => run(t));
   const r = await c.end();
   c.clearOverlay();
   return r;
@@ -318,11 +321,13 @@ shot('u03-overzicht', async (c) => {
 shot('u04-opgeslagen', async (c) => {
   stand(c, { x: 130, y: 95, a: 0.5, clock: 17.6 });
   const ss = await import('/js/saveslotsui.js');
-  c.releaseCam(); c.hud(true);
+  (await import('/js/savegame.js')).saveGame(c.world, { toast: false }); // wegwerpprofiel: zo staat er een opgeslagen spel in de lijst
+  c.releaseCam(); c.hud(false);
   await c.settle({ label: 'u04', frames: 20 });
+  ss.openSaveSlots({ mode: 'game', world: c.world });
+  for (let i = 0; i < 50; i++) await c.advance({ capture: false });
   await c.begin('u04-opgeslagen');
-  const run = c.cueRunner([[0.2, () => ss.openSaveSlots({ mode: 'game', world: c.world })]]);
-  await c.play(2 * 4 * BEAT, (t) => run(t));
+  await c.play(2 * 4 * BEAT, null);
   const r = await c.end();
   await c.resetUi();
   return r;
@@ -342,6 +347,7 @@ async function coopRun(c, o) {
   stand(c, { x, y, a, clock });
   c.calmPolice();
   c.clearArea(x, y, 40);
+  c.world.companion.x = c.player.x + 1.4; c.world.companion.y = c.player.y; // Tessa staat naast Tammo
   c.hud(hud);
   if (!c.world.coop) throw new Error('geen coop: start het spel met ?coop');
   const inp = c.M.inp;
@@ -366,5 +372,28 @@ async function coopRun(c, o) {
     return await c.end();
   } finally { for (const k of [...held]) key(k, false); await c.advance({ capture: false }); }
 }
-shot('c01-samen', async (c) => coopRun(c, { name: 'c01-samen', x: 130, y: 95, a: 0.5, dur: 12 * BEAT,
-  p1: [[0.3, 4.8, 'w']], p2: [[0.3, 2.4, 'i'], [2.4, 4.8, 'u'], [2.4, 4.8, 'i']] }));
+shot('c01-samen', async (c) => coopRun(c, { name: 'c01-samen', x: 214, y: 60, a: 0.5, clock: 16.4, dur: 8 * BEAT,
+  p1: [[0.2, 3.8, 'w'], [0.2, 3.8, 'shift']], p2: [[0.2, 3.8, 'i'], [0.2, 3.8, 'u']] }));
+
+// S13 de beweegbare brug (Maagdenbrug): de bellen, de slagbomen en de klep die omhoog gaat; de camera draait langzaam om de brug
+shot('s13-brug', async (c) => {
+  await c.resetUi();
+  const mb = await import('/js/movablebridges.js');
+  const b = mb.getMovableBridges().find((x) => x.name === 'Maagdenbrug');
+  if (!b) throw new Error('geen Maagdenbrug');
+  c.calmPolice(); c.leave(); c.releaseCam(); c.clock(17.2); c.weather('helder'); c.hud(false);
+  const a0 = Math.atan2(b.ux, -b.uy);
+  c.placePlayer(b.x + b.ux * 60, b.y + b.uy * 60, 0);
+  c.clearArea(b.x, b.y, 50);
+  c.camera(c.rig.orbit({ x: b.x, y: b.y }, { r: 30, z: 7.5, a0: a0 - 0.35, sweep: 0.7, dur: 3.55, lookZ: 3, fov: 52 }));
+  await c.settle({ label: 's13', frames: 40 });
+  for (let i = 0; b.state !== 'closed' && i < 3600; i++) await c.advance({ capture: false }); // een eerdere opening eerst laten afronden
+  mb.requestOpening(b, null, true, false);
+  let n = 0;
+  while (b.state !== 'opening' && n++ < 2400) await c.advance({ capture: false });
+  for (let i = 0; i < 20; i++) await c.advance({ capture: false });
+  await c.begin('s13-brug');
+  await c.play(3.55, null);
+  const r = await c.end();
+  return { ...r, waited: n, state: b.state, open: +b.open.toFixed(2) };
+});

@@ -40,4 +40,5 @@ for (const f of fs.existsSync(path.join(WORK, 'controle')) ? fs.readdirSync(path
   if (fs.statSync(src).isFile()) fs.copyFileSync(src, path.join(OUT, 'controle', f));
 }
 console.log(report.join('\n'));
+fs.copyFileSync(path.join(HERE, 'plans', 'lees-mij-eerst.md'), path.join(OUT, 'LEES-MIJ-EERST.md'));
 console.log(`pakket: ${OUT}`);
