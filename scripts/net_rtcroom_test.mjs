@@ -137,4 +137,31 @@ await t('de spelsessie draait over het kanaal: handshake, invoer en toestand', a
   for (let i = 0; i < 90; i++) { hs.tick(1 / 30); cs.tick(1 / 30); await tick(4); }
   assert.equal(cs.status, 'ok'); assert.ok(inputs.length > 5); assert.equal(cs.world().shared.money, 5);
 });
+await t('WebRTC valt weg midden in het spel: pauze (lost), een nieuw aanbod onder dezelfde kamercode, de gast komt terug op dezelfde plek', async () => {
+  const h = hub(), pcs = [];
+  const open = async () => {
+    const host = await hostRoom('K3J9D8F2MN', { pcFactory: (ice) => makePc(ice, pcs), signaler: h.signaler(), timeouts: TO });
+    const guest = await joinRoom('K3J9D8F2MN', { pcFactory: (ice) => makePc(ice, pcs), signaler: h.signaler(), timeouts: TO });
+    const gt = await guest.opened; await waitFor(() => host.transport.isOpen());
+    return { host, gt };
+  };
+  const INFO = { game: 'gde', proto: 1, version: 'x', tiles: '-', story: 'oud' };
+  const sim = { applyInput() {}, snapshot: () => ({ players: [{ slot: 0, x: 1, y: 2, z: 0, angle: 0, alive: true, health: 100 }], shared: { money: 5, wanted: 0, clock: 1 }, mission: { stage: 0, state: 'none', present: 3 }, entities: [] }), fullState: () => ({ wanted: 0 }) };
+  const a = await open();
+  const hs = new HostSession(a.host.transport, { info: INFO, seed: 1, sim }), cs = new ClientSession(a.gt, { info: INFO });
+  const lost = []; cs.onlost = () => lost.push(1); hs.onlost = () => lost.push(2);
+  for (let i = 0; i < 60; i++) { hs.tick(1 / 30); cs.tick(1 / 30); await tick(3); }
+  assert.equal(cs.status, 'ok'); const slot = cs.slot, token = cs.token;
+  // de verbinding valt weg: het kanaal gaat dicht, de rest komt niet meer aan
+  a.gt.close(); a.host.transport.close();
+  for (let i = 0; i < 400 && (cs.status !== 'lost' || hs.status !== 'lost'); i++) { hs.tick(1 / 30); cs.tick(1 / 30); await tick(1); }
+  assert.equal(cs.status, 'lost', 'de gast ziet de verbinding weg'); assert.equal(hs.status, 'lost', 'de gastheer ziet de verbinding weg');
+  // opnieuw uitwisselen onder dezelfde kamercode; beide kanten hervatten met hetzelfde token
+  const b = await open();
+  hs.rebind(b.host.transport); cs.rebind(b.gt);
+  for (let i = 0; i < 200 && cs.status !== 'ok'; i++) { hs.tick(1 / 30); cs.tick(1 / 30); await tick(3); }
+  assert.equal(cs.status, 'ok', 'automatisch hersteld'); assert.equal(cs.slot, slot, 'dezelfde plek'); assert.equal(cs.token, token, 'hetzelfde token');
+  for (let i = 0; i < 90; i++) { hs.tick(1 / 30); cs.tick(1 / 30); await tick(3); }
+  assert.equal(cs.world().shared.money, 5, 'de toestand komt weer binnen');
+});
 console.log(`net_rtcroom_test: ${n}/${n} ok`);
