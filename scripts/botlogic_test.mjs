@@ -275,5 +275,15 @@ const near = (a, b, e = 1e-6) => Math.abs(a - b) < e;
   ok(d2 && d2.length >= 3, 'doel in een obstakel: toch een route');
 }
 
+// een achtervolging: het doel is het voertuig dat wegrijdt, de bot blijft in zijn eigen auto en rijdt erachteraan (#218, M26)
+{
+  const st = (stage, veh) => ({ v: 1, t: 1, player: { x: 0, y: 0, angle: 0, camYaw: 0, vehicle: veh, pigeon: false }, story: {}, mission: { active: true, stage }, hud: { messages: [] }, blocking: {}, nearby: { vehicles: [] }, target: { x: 80, y: 0, distance: 80, source: 'missie', vehicle: true } });
+  const car = { kind: 'auto', x: 0, y: 0, angle: 0, speed: 0 };
+  const d = L.decide(st('chase', car), {});
+  ok(d.type === 'goto' && d.mode === 'drive', 'achtervolging: de bot rijdt erachteraan en stapt niet uit', JSON.stringify(d));
+  const d2 = L.decide(st('board', car), {});
+  ok(d2.type === 'press' && d2.key === 'e', 'een board-stap met een voertuig als doel: eerst uitstappen', JSON.stringify(d2));
+}
+
 console.log(`${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);
