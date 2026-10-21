@@ -978,7 +978,16 @@ export function init3D(map) {
   scene.add(freezeStatic(terrainMesh));
   scene.add(drawHub.root);
   // a pool of a material not seen before links its program in the background before its first cell draws
-  drawHub.onPool = (p) => { if (!perfOff('bouwklaar')) precompile(p); };
+  drawHub.onPool = (p) => {
+    if (perfOff('bouwklaar')) return;
+    precompile(p);
+    if (p.customDepthMaterial) {
+      const d = new THREE.Mesh(p.geometry, p.customDepthMaterial);
+      d.isBatchedMesh = true;
+      d._matricesTexture = p._matricesTexture;
+      precompile(d);
+    }
+  };
 
   // Opaque canal bed under the whole map: terrain holes are cut per grid
   // triangle, so their jagged edges never line up exactly with the water

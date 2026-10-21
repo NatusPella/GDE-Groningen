@@ -60,7 +60,7 @@ class DrawPool extends THREE.BatchedMesh {
     this.rebuildGeometry();
     this.name = 'pool';
     // the shared depth material of the shadow pass would flip between batched and plain casters (a program lookup each time): the pool has its own
-    if (cast) this.customDepthMaterial = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking, side: material.shadowSide != null ? material.shadowSide : SHADOW_SIDE[material.side] });
+    if (cast) this.customDepthMaterial = depthFor(material);
   }
 
   // a new BufferGeometry over the current arrays (first time, and after a buffer grew); the old one frees its GL buffers
@@ -200,6 +200,20 @@ class DrawPool extends THREE.BatchedMesh {
 export function poolable(m) {
   return !(m.alphaTest > 0) && !m.alphaMap && !m.displacementMap && !m.wireframe && !m.isShaderMaterial;
 }
+
+// the depth material for the shadow pass of the pools of one material: its side follows the material's, and nothing else of it matters to depth
+const depths = new Map();
+function depthFor(copy) {
+  const side = copy.shadowSide != null ? copy.shadowSide : SHADOW_SIDE[copy.side];
+  let d = depths.get(side);
+  if (!d) {
+    d = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking, side });
+    d.userData.shared = true;
+    depths.set(side, d);
+  }
+  return d;
+}
+export const depthMaterialFor = (mat) => depthFor(copyOf(mat));
 
 const copies = new Map();
 function copyOf(mat) {
