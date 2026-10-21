@@ -53,7 +53,8 @@ let marked = 0;
 for (const it of collectTexts()) {
   if (it.file.includes('gronings_spoken') || !/ /.test(it.text) || !STRONG.test(it.text)) continue;
   marked++;
-  for (const w of tokens(it.text)) if (!dutchSide.has(w) && !reg.gronings[w] && !reg.fries[w] && !okNl.has(w)) unknown.set(w, it.file + ':' + it.line);
+  const zonderHtml = it.text.replace(/<[^>]*>/g, ' ').replace(/&[a-z#0-9]+;/g, ' ');
+  for (const w of tokens(zonderHtml)) if (!dutchSide.has(w) && !reg.gronings[w] && !reg.fries[w] && !okNl.has(w)) unknown.set(w, it.file + ':' + it.line);
 }
 for (const [w, where] of unknown) ok(false, `Gronings of Fries woord '${w}' in getoonde tekst (${where}) staat niet in het register; voeg het toe aan scripts/dialect_woorden.json`);
 
