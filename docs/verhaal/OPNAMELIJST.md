@@ -2,11 +2,11 @@
 
 Gegenereerd door `node scripts/opnamelijst.mjs` uit `game/storydata/script.json`; niet met de hand aanpassen.
 
-Van de 1287 gesproken verhaalregels (zonder de bewust stille appjes) hebben er 335 een opname en 952 nog niet. Een regel zonder opname wordt als ondertitel getoond (spreker, kleur, leestijd) en er klinkt niets: het gesprek wacht niet op geluid. Een speler hoort dat als "stukken zonder voiceover" (#326).
+Van de 1300 gesproken verhaalregels (zonder de bewust stille appjes) hebben er 334 een opname en 966 nog niet. Een regel zonder opname wordt als ondertitel getoond (spreker, kleur, leestijd) en er klinkt niets: het gesprek wacht niet op geluid. Een speler hoort dat als "stukken zonder voiceover" (#326).
 
 Een regel krijgt een opname door hem op te nemen onder de stem uit de kolom **Stem**, met de tekst letterlijk zoals hij hier staat (het spel zoekt de opname op "<stem>|<tekst>"), en hem in het manifest van `audio/voicelines/story` of `lines` te zetten. Daarna zet `node scripts/build_story_data.mjs` de vlag `textOnly` uit. Een andere hoofdletter, punt of een "…" vooraan telt als een andere tekst, behalve die laatste: een opname met "…" vooraan wordt ook onder de tekst zonder gevonden.
 
-Eerst de opening en missie 1 t/m 3 (112 regels): die ziet iedere speler in het eerste uur.
+Eerst de opening en missie 1 t/m 3 (114 regels): die ziet iedere speler in het eerste uur.
 
 ## M00 (opening) · 14 regels
 
@@ -23,12 +23,12 @@ Eerst de opening en missie 1 t/m 3 (112 regels): die ziet iedere speler in het e
 | Stem | Regel | Kanaal | Toon |
 |---|---|---|---|
 | Rikus | Het is vrijdag 14 augustus. Een luisteraar meldt een Fries in een blauw colbert die Grunn aan het opkopen is. Ik zeg niks. | radio | NIEUW |
-| Anita | …Dat is het liefste wat iemand ooit over mijn plannen heeft gezegd. | stem | NIEUW |
+| Anita | …Dat komt op de zijkant van de wagen. | stem | NIEUW |
 | Anita | Zonder bank blijft er één weg over: de Noordelijke Snackprijs. De winnaar krijgt de enige vrije standplaats van Grunn. | stem | NIEUW |
 | Tammo | De prijs voor de beste eierbal. | stem | NIEUW |
 | Anita | Wij winnen op 28 augustus, wij krijgen die standplaats, en de Fjord Frituur heeft een thuis. | stem | NIEUW |
 | Tammo | Op Gronings Ontzet. | stem | NIEUW |
-| Anita | Dat is de dag dat Stad in 1672 de bisschop buiten hield. Dat spelen jullie elk jaar na. Ik ken het uit de boeken. | stem | NIEUW |
+| Anita | Dat is de dag dat Grunn in 1672 de bisschop buiten hield. Dat spelen jullie elk jaar na. Ik heb het nog nooit gezien. | stem | NIEUW |
 | Tammo | En tot die tijd? Hier past geen frietwagen. | stem | NIEUW |
 
 ### C00.3 Verhuisdag (opening; 3 zonder stem, 2 met)
@@ -39,18 +39,19 @@ Eerst de opening en missie 1 t/m 3 (112 regels): die ziet iedere speler in het e
 | Tammo | Honderdvijftig euro. Vandaag. | stem | NIEUW |
 | Anita | Een streamer betaalt honderdvijftig euro voor stunts. Alleen heeft de Escapade een lekke band, dus we lenen een bakkie. Rijden, niet praten. | stem | NIEUW |
 
-## M01 · 32 regels
+## M01 · 33 regels
 
-### M01.1 Nul krassen, vijftienhonderd punten: intro (intro; 7 zonder stem, 7 met)
+### M01.1 Nul krassen, vijftienhonderd punten: intro (intro; 8 zonder stem, 7 met)
 
 | Stem | Regel | Kanaal | Toon |
 |---|---|---|---|
-| Berend Bos | Mijn arm zit in het gips. Mijn bakkie moet naar mijn zus, aan het Boterdiep. Vijftig euro voor wie hem brengt. | stem | NIEUW |
+| Berend Bos | Mijn arm zit in het gips. Mijn bakkie, mijn pick-up, moet naar mijn zus, aan het Boterdiep. Vijftig euro voor wie hem brengt. | stem | NIEUW |
 | Anita | Wij brengen hem. Eerst even een klus op de Grote Markt, dan naar uw zus. | stem | NIEUW |
 | Berend Bos | Nul krassen. Of ik tel ze. | stem | NIEUW |
-| Anita | Berend geeft complimenten op een ladder, Tammo. "Goidag" is trede één. | stem | NIEUW |
-| Tammo | En de bovenste? | stem | NIEUW |
-| Anita | "Kon minder." Dat heeft Berend nog nooit gezegd. | stem | NIEUW |
+| Tammo | Berend geeft complimenten op een ladder. "Goidag" is trede één. | stem | NIEUW |
+| Anita | En de bovenste? | stem | NIEUW |
+| Tammo | "Kon minder." Daarboven zwijgt hij. Daar is nog niemand gekomen. | stem | NIEUW |
+| Berend Bos | Ik zit in het gips, niet in een doos. Ik hoor alles. | stem | NIEUW |
 | Anita | Vijftig euro van Berend. Met de stunts erbij is dat genoeg, Tammo. | stem | NIEUW |
 
 ### M01.2 Nul krassen, vijftienhonderd punten: de klus (key; 7 zonder stem, 1 met)
@@ -69,7 +70,7 @@ Eerst de opening en missie 1 t/m 3 (112 regels): die ziet iedere speler in het e
 
 | Stem | Regel | Kanaal | Toon |
 |---|---|---|---|
-| Anita | Dit is de Grote Markt. Parasols en kliko's mogen, mensen niet. Haal die vijftienhonderd punten. | stem | NIEUW |
+| Anita | Dit is de Grote Markt. Parasols en kliko's geven punten, mensen kosten je punten en krassen kosten je Berend. Haal die vijftienhonderd. | stem | NIEUW |
 
 ### M01.4 Nul krassen, vijftienhonderd punten: tijdens de stunts (key; 9 zonder stem, 0 met)
 
@@ -78,9 +79,9 @@ Eerst de opening en missie 1 t/m 3 (112 regels): die ziet iedere speler in het e
 | Jelmer | Chat, kijk die parasol! Die was van het terras. Nu is hij content! | stem | NIEUW |
 | Anita | Niemand raken, Tammo. Alleen de parasols. | stem | NIEUW |
 | Tammo | Alleen spullen. | stem | NIEUW |
-| Berend Bos | Goidag. Ik kijk mee op Kiekdoar. Ik hoor een parasol kraken. Dat is een kras. | telefoon | NIEUW |
+| Berend Bos | Goidag. Ik kijk mee op Kiekdoar. Ik hoor een parasol kraken. Dat klinkt als een kras. | telefoon | NIEUW |
 | Anita | Het is een parasol, Berend. | stem | NIEUW |
-| Berend Bos | Dat is een kras met een parasol. | telefoon | NIEUW |
+| Berend Bos | Dat klinkt als een kras met een parasol. | telefoon | NIEUW |
 | Jelmer | Chat vindt dat niet leuk! Een terrasstoel met een hoed erop! Min honderd! | stem | NIEUW |
 | Anita | Dat was een mens, Tammo. | stem | NIEUW |
 | Tammo | Een hoed. Die ging zelf op pad. | stem | NIEUW |
@@ -90,7 +91,7 @@ Eerst de opening en missie 1 t/m 3 (112 regels): die ziet iedere speler in het e
 | Stem | Regel | Kanaal | Toon |
 |---|---|---|---|
 | Jelmer | Tienduizend kijkers! En kijk: ene JelleWâld typt in de chat. | stem | NIEUW |
-| Anita | Dat is Fries. "Dat meisje in het rood: zo'n lief gezicht." | stem | NIEUW |
+| Anita | Dat is Fries. Ik vertaal het niet. | stem | NIEUW |
 | Jelmer | Honderdvijftig euro, overgemaakt op jouw pas. | stem | NIEUW |
 | Anita | Op mijn pas. Die pin ik morgenochtend, dan gaan we naar het Loket. | stem | NIEUW |
 
@@ -103,16 +104,15 @@ Eerst de opening en missie 1 t/m 3 (112 regels): die ziet iedere speler in het e
 | Tammo | En in de chat. | stem | NIEUW |
 | Anita | Dat zoeken we later uit. Eerst pinnen en inschrijven. | stem | NIEUW |
 
-## M02 · 20 regels
+## M02 · 19 regels
 
-### M02.1 Even pinnen: intro (intro; 6 zonder stem, 7 met)
+### M02.1 Even pinnen: intro (intro; 5 zonder stem, 7 met)
 
 | Stem | Regel | Kanaal | Toon |
 |---|---|---|---|
 | Anita | Half acht. Eerst honderdvijftig euro pinnen, dan naar het Loket. | stem | NIEUW |
-| Anita | Twee reuzen met een trekker hebben hem uit de muur getrokken. | stem | NIEUW |
-| Anita | In die pas zit mijn geld. Zonder pas geen contant, en het Loket neemt alleen contant. | stem | NIEUW |
-| Anita | Sjabbe van Pand & Poen koopt wat niemand wil en opent wat niemand kan. Wij brengen hem de automaat. | stem | NIEUW |
+| Anita | Ze trokken hem met een kabel uit de muur. Ik was nog niet klaar met mijn pincode. | stem | NIEUW |
+| Anita | Sjabbe van Pand & Poen koopt wat niemand wil en opent wat niemand kan. Wij brengen de automaat naar Sjabbe. | stem | NIEUW |
 | Anita | Een gestolen automaat op een aanhanger, en wij ernaast. | stem | NIEUW |
 | Tammo | Ik rij. | stem | NIEUW |
 
@@ -129,7 +129,7 @@ Eerst de opening en missie 1 t/m 3 (112 regels): die ziet iedere speler in het e
 
 | Stem | Regel | Kanaal | Toon |
 |---|---|---|---|
-| Sjabbe | Netjes. De automaat is vierhonderd euro waard aan onderdelen. Die houd ik. Dit is voor jullie. | stem | NIEUW |
+| Sjabbe | Netjes. De automaat is vierhonderd euro waard aan onderdelen. Die houd ik. Jullie krijgen je pas en een envelop. | stem | NIEUW |
 | Sjabbe | Dan moet je groter denken. Die twee reuzen, Durk en Douwe, werken voor een Fries in een blauw colbert. Jelle Terpstra. | stem | NIEUW |
 | Anita | Het colbert van Berend. De man uit de chat. | stem | NIEUW |
 | Sjabbe | Hij betaalt alles contant, uit een klomp. Een klomp is snel leeg. Daarom halen ze pinautomaten uit de muur. | stem | NIEUW |
@@ -145,13 +145,13 @@ Eerst de opening en missie 1 t/m 3 (112 regels): die ziet iedere speler in het e
 | Anita | Dat weten we na het Loket. Hij heeft het vast over meer dan een museum. | stem | NIEUW |
 | Tammo | Dan eerst het Loket. | stem | NIEUW |
 
-## M03 · 46 regels
+## M03 · 48 regels
 
 ### M03.1 Het Loket: intro (intro; 11 zonder stem, 0 met)
 
 | Stem | Regel | Kanaal | Toon |
 |---|---|---|---|
-| Anita | We staan bij Het Loket. Om twaalf uur sluit de inschrijving, en alleen contant. | stem | NIEUW |
+| Anita | Twaalf uur, contant. Hoe moeilijk kan een stempel zijn? | stem | NIEUW |
 | Loketbediende | Nummer 4117 aan loket A. Op het scherm staat 4093. | stem | NIEUW |
 | Tammo | Vierentwintig mensen voor ons. | stem | NIEUW |
 | Anita | Ik haal het formulier, jij pakt de stempels. | stem | NIEUW |
@@ -161,29 +161,30 @@ Eerst de opening en missie 1 t/m 3 (112 regels): die ziet iedere speler in het e
 | Loketbediende | Loket C is vandaag een stempel-loket. Loket B is vandaag Loket C. | stem | NIEUW |
 | Anita | Dat gezicht betekent: ik snap het niet. | stem | NIEUW |
 | Tammo | Klopt. | stem | NIEUW |
-| Sjabbe | Tessa. Sjabbe. Loket C heeft een zijdeur bij de kopieermachine. | telefoon | NIEUW |
+| Sjabbe | Loket C heeft een zijdeur bij de kopieermachine. | telefoon | NIEUW |
 
-### M03.2 Het Loket: Jelle (key; 17 zonder stem, 0 met)
+### M03.2 Het Loket: Jelle (key; 18 zonder stem, 0 met)
 
 | Stem | Regel | Kanaal | Toon |
 |---|---|---|---|
 | Jelle Terpstra | Goedemorgen. Jelle Terpstra, Us Mem Snacks. Mijn juristen hebben dit loket vanochtend vooruit betaald. | stem | NIEUW |
 | Anita | Jelle Terpstra. Meneer Klomp. | stem | NIEUW |
-| Jelle Terpstra | Ik heb de rij gekocht. Vanaf nu is uw nummer 4140. Dat staat in de overeenkomst. | stem | NIEUW |
+| Jelle Terpstra | Ik heb de rij gekocht. U staat nu helemaal achteraan, nummer 4140. Dat staat in de overeenkomst. | stem | NIEUW |
 | Tammo | Hij kocht onze plek. | stem | NIEUW |
-| Jelle Terpstra | Tevens koop ik alle vrije standplaatsen van Grunn. Contant, uit een klomp, definitief. | stem | NIEUW |
+| Jelle Terpstra | Verder koop ik alle standplaatsen van Grunn die vrijkomen. Contant, uit een klomp, definitief. | stem | NIEUW |
 | Anita | Alle? De standplaats van de winnaar is niet te koop. | stem | NIEUW |
 | Jelle Terpstra | Nee. Die win ik. | stem | NIEUW |
 | Anita | Salamitactiek. Plakje voor plakje, tot hij alles heeft. | stem | NIEUW |
 | Jelle Terpstra | Dat noemen wij ondernemen. Oant sjen. | stem | NIEUW |
 | Jelle Terpstra | Foar mem. | stem | NIEUW |
 | Tammo | Wat zei hij? | stem | NIEUW |
-| Anita | "Voor mem." Voor zijn moeder. | stem | NIEUW |
-| Mevrouw Tuinstra | Mevrouw Tuinstra. Ik bewaar de Gouden Eierbal, de wisselprijs van de Snackprijs, al sinds 1998. Wie de bal bewaart, zit de jury voor. Dat is artikel 4. | stem | NIEUW |
-| Loketbediende | Artikel 9: is de bewaarder verhinderd, dan zit het oudste jurylid voor. Dat is meneer Bos, jurylid sinds 1982. | stem | NIEUW |
-| Mevrouw Tuinstra | Meneer Terpstra heeft de vijf juryleden en mij uitgenodigd voor een treinreis met volpension, vanaf maandag, tot na het Ontzet. Een bijzonder aardige man. | stem | NIEUW |
+| Anita | Voor zijn moeder. Hij doet alles voor zijn moeder. | stem | NIEUW |
+| Mevrouw Hoving | Mevrouw Hoving. Ik bewaar de Gouden Eierbal, de wisselprijs van de Snackprijs, al sinds 1998. Wie de bal bewaart, zit de jury voor en tekent de uitslag. | stem | NIEUW |
+| Loketbediende | Is de bewaarder er niet, dan zit het oudste jurylid voor. Dat is Berend Bos, jurylid sinds 1982. | stem | NIEUW |
+| Mevrouw Hoving | Meneer Terpstra heeft de vier andere juryleden en mij uitgenodigd voor een treinreis met volpension: alle maaltijden erbij. Vanaf maandag, tot na het Ontzet. | stem | NIEUW |
+| Mevrouw Hoving | Berend Bos bedankte, want hij heeft een bakkie. Een bijzonder aardige man, meneer Terpstra. | stem | NIEUW |
 | Anita | En wie let dan op de bal? | stem | NIEUW |
-| Mevrouw Tuinstra | Het museum. De koepel hangt sinds woensdag onder een doek, wegens restauratie. | stem | NIEUW |
+| Mevrouw Hoving | Het museum. De koepel hangt sinds woensdag onder een doek, wegens restauratie. | stem | NIEUW |
 
 ### M03.3 Het Loket: de stempels (key; 7 zonder stem, 0 met)
 
@@ -197,16 +198,17 @@ Eerst de opening en missie 1 t/m 3 (112 regels): die ziet iedere speler in het e
 | Tammo | Een draaimolen. | stem | NIEUW |
 | Anita | Dat is een gemeente. | stem | NIEUW |
 
-### M03.4 Het Loket: outro (outro; 10 zonder stem, 6 met)
+### M03.4 Het Loket: outro (outro; 11 zonder stem, 6 met)
 
 | Stem | Regel | Kanaal | Toon |
 |---|---|---|---|
-| Loketbediende | Gefeliciteerd. U bent ingeschreven voor de Noordelijke Snackprijs. | stem | NIEUW |
+| Loketbediende | Gefeliciteerd. U bent ingeschreven voor de Noordelijke Snackprijs, met wagen. Zonder wagen vervalt uw inschrijving. | stem | NIEUW |
 | Anita | Wij zijn ingeschreven. Op 28 augustus op de Grote Markt. | stem | NIEUW |
-| Anita | Plakje één is van Jelle: alle standplaatsen. Dat krijgen we niet meer terug. | stem | NIEUW |
-| Anita | Jelle vroeg waar het museum alarmen heeft. Hij wil de bal, want wie de bal bewaart, zit de jury voor. | stem | NIEUW |
+| Anita | Hij vroeg Sjabbe waar het museum alarmen heeft. Hij wil de bal, want wie de bal bewaart, zit de jury voor. | stem | NIEUW |
 | Tammo | Dan wint Jelle. | stem | NIEUW |
-| Anita | Tenzij iemand hem eerder pakt. | stem | NIEUW |
+| Anita | Tenzij iemand de bal eerder pakt. | stem | NIEUW |
+| Tammo | Waarom bellen we het museum niet? | stem | NIEUW |
+| Anita | En dan zeggen? Dat Jelle naar alarmen vroeg? Er hangt een doek om de koepel en dat noemen ze restauratie. | stem | NIEUW |
 | Tammo | Wij stelen de Gouden Eierbal. | stem | NIEUW |
 | Anita | Wij bewaken hem. Na het Ontzet brengen we hem terug. | stem | NIEUW |
 | Duivenmelker Bert | Tammo. Bert, van de duiven. Er staat elke nacht een zwarte trekker bij het museum, met een limousine erachter. | telefoon | NIEUW |
@@ -233,22 +235,22 @@ Eerst de opening en missie 1 t/m 3 (112 regels): die ziet iedere speler in het e
 | Stem | Regel | Kanaal | Toon |
 |---|---|---|---|
 | Anita | Camera één, links van de deur. | telefoon | NIEUW |
-| Sjabbe | Tessa. Sjabbe. Bewakers zijn goedkoper dan camera's. Kijk wie er iets krijgt. | telefoon | NIEUW |
+| Sjabbe | Bewakers zijn goedkoper dan camera's. Kijk wie er iets krijgt. | telefoon | NIEUW |
 | Anita | Bewaker twee, met een koekje. | telefoon | NIEUW |
 | Tammo | Een Fries in een blauw colbert. | stem | NIEUW |
 | Anita | Hij telt de alarmen. Fotografeer hem. | telefoon | NIEUW |
 | Tammo | Ik fotografeer zijn colbert. | stem | NIEUW |
-| Anita | Hij geeft bewaker twee een eierbal. Voor het koekje. | telefoon | NIEUW |
+| Anita | Hij geeft bewaker twee een eierbal. Dat is zijn koekje. | telefoon | NIEUW |
 
 ### M04.3 Kieken van boven: outro (outro; 6 zonder stem, 5 met)
 
 | Stem | Regel | Kanaal | Toon |
 |---|---|---|---|
 | Anita | Pompeblêden. Een Fries. Hij telt de alarmen alsof hij iets controleert. Of voorbereidt. | stem | NIEUW |
-| Anita | Bewaker twee is omgekocht. Het museum waarschuwen heeft geen zin. | stem | NIEUW |
+| Anita | Bewaker twee is omgekocht. | stem | NIEUW |
 | Tammo | En de camera's? | stem | NIEUW |
 | Anita | Daar hebben we een moment voor nodig. | stem | NIEUW |
-| Tammo | Sjoerd, van de Kiezelweek. Zijn neef werkt daar 's nachts. Hij praat alleen met winnaars van zijn fietsrace. | stem | NIEUW |
+| Tammo | Sjoerd, van de Kiezelweek, die fietsrace. Zijn neef werkt 's nachts in het museum. Hij praat alleen met winnaars. | stem | NIEUW |
 | Anita | Dan winnen wij die fietsrace. | stem | NIEUW |
 
 ### M04.5 Autogesprek: daarna zien we wel (banter; 1 zonder stem, 4 met)
@@ -294,13 +296,13 @@ Eerst de opening en missie 1 t/m 3 (112 regels): die ziet iedere speler in het e
 | Rikus | Peiling: wie wint de Noordelijke Snackprijs? Een Fries: 58 procent. Een Stadjer: 31 procent. Weet ik niet: 11 procent. | radio | NIEUW |
 | Rikus | Een luisteraar meldt dat Oldenhuis Bakt in Veendam de eenenveertigste snackbar opent. Eenenveertig snackbars, van Lauwersoog tot Bourtange. Ik weet niet wie dat eet. | radio | NIEUW |
 
-## M06 · 36 regels
+## M06 · 34 regels
 
 ### M06.0 Thuis wachten tot middernacht (key; 1 zonder stem, 9 met)
 
 | Stem | Regel | Kanaal | Toon |
 |---|---|---|---|
-| Anita | Om twaalf uur gaan de camera's drie minuten uit. Tot die tijd wachten we. | stem | NIEUW |
+| Anita | Nog een kwartier. | stem | NIEUW |
 
 ### M06.1 Het museum stond er al zo: intro (intro; 3 zonder stem, 6 met)
 
@@ -314,7 +316,7 @@ Eerst de opening en missie 1 t/m 3 (112 regels): die ziet iedere speler in het e
 
 | Stem | Regel | Kanaal | Toon |
 |---|---|---|---|
-| Sjabbe | Tessa. Sjabbe. De zekering zit links. Het slot is een standaardslot. Ik heb er twintig verkocht. | telefoon | NIEUW |
+| Sjabbe | De zekering zit links. Het slot is een standaardslot. Ik heb er twintig verkocht. | telefoon | NIEUW |
 | Anita | De zekering. Links. Jij houdt de bewaker bezig. | stem | NIEUW |
 | Tammo | Waarmee? | stem | NIEUW |
 | Anita | Met je gezicht. | stem | NIEUW |
@@ -325,16 +327,14 @@ Eerst de opening en missie 1 t/m 3 (112 regels): die ziet iedere speler in het e
 | Anita | Misschien is hij betaald. Nog negentig seconden. | stem | NIEUW |
 | Tammo | De vitrine. Daar is hij. | stem | NIEUW |
 
-### M06.3 Het museum stond er al zo: de lege vitrine (outro; 6 zonder stem, 11 met)
+### M06.3 Het museum stond er al zo: de lege vitrine (outro; 4 zonder stem, 11 met)
 
 | Stem | Regel | Kanaal | Toon |
 |---|---|---|---|
 | Anita | De vitrine is leeg. Iemand was ons voor, en wil dat wij dat weten. | stem | NIEUW |
-| Jelle Terpstra | Daarom bel ik. De Gouden Eierbal is bij mij, dus ik zit de jury voor. Mijn juristen noemen het een overname. | radio | NIEUW |
-| Anita | De camera's gingen uit, maar iemand filmde ons. Hij wist dat we kwamen. | stem | NIEUW |
+| Jelle Terpstra | Daarom bel ik. De Gouden Eierbal is bij mij, dus ik word de bewaarder en zit de jury voor. Mijn juristen noemen het een overname. | radio | NIEUW |
 | Tammo | Bewaker twee. Met het koekje. | stem | NIEUW |
-| Tammo | Een dief die een bedankje achterlaat. Raar. | stem | NIEUW |
-| Anita | Rennen, Tammo. Eerlijk winnen kan nog. Eerst moeten we Jelle stoppen. | stem | NIEUW |
+| Anita | Rennen, Tammo. | stem | NIEUW |
 
 ### R1.3 Overgang naar akte 2: Nachtstreek, nacht (radio; 2 zonder stem, 1 met)
 
@@ -351,8 +351,8 @@ Eerst de opening en missie 1 t/m 3 (112 regels): die ziet iedere speler in het e
 | Anita | Dat is een regel, geen brug. | stem | NIEUW |
 | Tammo | Dat is de Kiekdeuse. | stem | NIEUW |
 | Anita | Dat is het Forum. | stem | NIEUW |
-| Tammo | Daar gaat Tessa, de wandelende encyclopedie van Stad. | stem | NIEUW |
-| Anita | Ik ben Nederlandse, Tammo. Ik ken Stad uit de boeken. | stem | NIEUW |
+| Tammo | Daar gaat Tessa, de wandelende encyclopedie van Grunn. | stem | NIEUW |
+| Anita | Ik ben Nederlandse, Tammo. Ik ken Grunn van de achterbank van jouw auto. | stem | NIEUW |
 | Tammo | Dan ken je het slecht. | stem | NIEUW |
 | Anita | Dan laat jij het me zien. | stem | NIEUW |
 | Tammo | Reken op een rondleiding. | stem | NIEUW |
@@ -373,20 +373,20 @@ Eerst de opening en missie 1 t/m 3 (112 regels): die ziet iedere speler in het e
 
 | Stem | Regel | Kanaal | Toon |
 |---|---|---|---|
-| Anita | De bal is weg en wij staan op de camera. Eerlijk winnen kan nog: we bakken zelf, met Oma's recept. Dan moet Jelle eerst ergens gestopt worden. | stem | NIEUW |
+| Anita | De bal is weg en wij staan op de camera. Eerlijk winnen kan nog: jouw oma won in 1953, dus die kan bakken. Dan moet Jelle eerst ergens gestopt worden. | stem | NIEUW |
 | Tammo | Salamitactiek. Plakje voor plakje. | stem | NIEUW |
-| Anita | Jelle koopt het vet van heel Grunn. Zonder vet geen oefenronde, en zonder oefenronde geen Snackprijs. | stem | NIEUW |
+| Anita | Jelle koopt het vet van heel Grunn. Zonder vet bakt niemand een eierbal. Ook Oma niet. | stem | NIEUW |
 | Tammo | En de bal? | stem | NIEUW |
-| Anita | Die kregen we niet terug. Het vet kunnen we nog winnen. | stem | NIEUW |
+| Anita | Die zijn we kwijt. Het vet nog niet. | stem | NIEUW |
 
 ### M07.2 Al het vet van Grunn: onderweg (key; 8 zonder stem, 0 met)
 
 | Stem | Regel | Kanaal | Toon |
 |---|---|---|---|
-| Jelle Terpstra | Goedemorgen, mevrouw. Wij hebben de Europaweg gehuurd voor een evenement. Vanaf nu is de weg dicht. Dat is geen oorlog, dat is een vergunning. | telefoon | NIEUW |
+| Jelle Terpstra | Goedemorgen, mevrouw. Wij hebben de Europaweg gehuurd voor een evenement. Vanaf nu is de weg dicht. Het staat in de vergunning. | telefoon | NIEUW |
 | Tammo | Je kunt geen weg kopen. | stem | NIEUW |
-| Anita | Hij heeft een vergunning. Dat is hetzelfde. De route springt om, door de smalle straten. | stem | NIEUW |
-| Anita | Let op, Tammo. Hard remmen kantelt een tankwagen. De vloeistof klotst naar voren en het zwaartepunt schuift mee. | stem | NIEUW |
+| Anita | Hij heeft een vergunning. Dat is hetzelfde. De route verandert: we moeten door de smalle straten. | stem | NIEUW |
+| Anita | De tank is vol, Tammo. Doe alsof je een volle kop soep naar de bank draagt. | stem | NIEUW |
 | Tammo | Dus niet remmen. | stem | NIEUW |
 | Anita | Zacht remmen. En de bochten ruim. | stem | NIEUW |
 | Tammo | Ik draai als een tankwagen. | stem | NIEUW |
@@ -398,16 +398,15 @@ Eerst de opening en missie 1 t/m 3 (112 regels): die ziet iedere speler in het e
 |---|---|---|---|
 | Snackbarhouder | Nog een tank? Voor jou zet ik de friteuse open. | stem | NIEUW |
 
-## M08 · 19 regels
+## M08 · 20 regels
 
-### M08.1 Fatbikes tellen niet als fiets: intro (intro; 2 zonder stem, 3 met)
+### M08.1 Fatbikes tellen niet als fiets: intro (intro; 1 zonder stem, 3 met)
 
 | Stem | Regel | Kanaal | Toon |
 |---|---|---|---|
 | Oma Trijntje | Tammo. Kom naar de Noorderhaven. Ik heb iets over die bal. | telefoon | NIEUW |
-| Anita | We lopen naar Oma Trijntje aan de Noorderhaven. Zij weet iets over de bal. | stem | NIEUW |
 
-### M08.2 Fatbikes tellen niet als fiets: onderweg (key; 5 zonder stem, 1 met)
+### M08.2 Fatbikes tellen niet als fiets: onderweg (key; 6 zonder stem, 0 met)
 
 | Stem | Regel | Kanaal | Toon |
 |---|---|---|---|
@@ -415,18 +414,20 @@ Eerst de opening en missie 1 t/m 3 (112 regels): die ziet iedere speler in het e
 | Tammo | Een fatbike. | stem | NIEUW |
 | Anita | Twee. Op één. | stem | NIEUW |
 | Tammo | Op één fatbike? | stem | NIEUW |
-| Anita | Durk en Douwe. Zij werken voor Jelle. Dat hoef je nu nog niet te snappen. | stem | NIEUW |
+| Anita | Durk en Douwe. Ze delen een fiets, een baas en een zin. | stem | NIEUW |
+| Tammo | Weer die twee. | stem | NIEUW |
 
-### M08.3 Fatbikes tellen niet als fiets: Oma's kamer (outro; 12 zonder stem, 8 met)
+### M08.3 Fatbikes tellen niet als fiets: Oma's kamer (outro; 13 zonder stem, 8 met)
 
 | Stem | Regel | Kanaal | Toon |
 |---|---|---|---|
 | Oma Trijntje | 1953. Dat ik won, weet je. Wat je niet weet: tweede werd een Fries meisje. Gerda Terpstra. Haar eierbal was beter. Ik wist het, zij wist het. De jury wist het niet. | stem | NIEUW |
 | Anita | Gerda. | stem | NIEUW |
+| Tammo | Foar mem. Mem is Gerda. | stem | NIEUW |
 | Tammo | Je kijkt raar. | stem | NIEUW |
 | Anita | Ik kijk altijd zo. | stem | NIEUW |
-| Oma Trijntje | Het recept van 1953 had vijf dingen van vijf vrienden: vet, eieren, zout, bloem en mosterd. Jelle koopt ze allemaal. Hier is het lijstje. | stem | NIEUW |
-| Anita | Lammert het vet, Geesje de eieren, Klaas het zout, Roelfien de bloem, Wubbo de mosterd. Vijf vrienden, vijf ingrediënten. Het vet hebben we al. Dan kunnen we meedoen, ook als Jelle de rest opkoopt. | stem | NIEUW |
+| Oma Trijntje | Het recept van 1953 had vijf dingen van vijf vrienden: vet, eieren, zout, meel en mosterd. Jelle koopt ze allemaal. Hier is het lijstje. | stem | NIEUW |
+| Anita | Vijf vrienden, vijf ingrediënten. Dan kunnen we meedoen, ook als Jelle de rest opkoopt. | stem | NIEUW |
 | Anita | En als we winnen, staat de Fjord Frituur op de Vismarkt. | stem | NIEUW |
 | Anita | Weet u waar de bal is, oma? | stem | NIEUW |
 | Oma Trijntje | Ik weet waar hij was. In een vitrine. | stem | NIEUW |
@@ -434,25 +435,27 @@ Eerst de opening en missie 1 t/m 3 (112 regels): die ziet iedere speler in het e
 | Oma Trijntje | Jelle zegt veel. | stem | NIEUW |
 | Oma Trijntje | Eerst Geesje, in Warffum. Zij heeft de eieren. Zeg dat ik je stuur. | stem | NIEUW |
 
-## T1 · 3 regels
+## T1 · 4 regels
 
-### T1 De trein naar Warffum (travel; 3 zonder stem, 5 met)
+### T1 De trein naar Warffum (travel; 4 zonder stem, 5 met)
 
 | Stem | Regel | Kanaal | Toon |
 |---|---|---|---|
 | Anita | We stappen uit in Warffum. Daar begint het Hogeland, en Geesje woont in de pastorie. | stem | NIEUW |
 | Tammo | Warffum. Is dat nog Grunn? | stem | NIEUW |
-| Anita | Dat is het Hogeland, Tammo. Dat is groter dan je denkt. | stem | NIEUW |
+| Anita | Joa. Dat is het Hogeland, Tammo. Dat is groter dan je denkt. | stem | NIEUW |
+| Tammo | Je zegt joa als een vraag. | stem | NIEUW |
 
-## M09 · 33 regels
+## M09 · 34 regels
 
-### M09.1 Heel aankomen is ook een kunst: intro (intro; 9 zonder stem, 0 met)
+### M09.1 Heel aankomen is ook een kunst: intro (intro; 10 zonder stem, 0 met)
 
 | Stem | Regel | Kanaal | Toon |
 |---|---|---|---|
 | Geesje | Jullie zijn van Trijntje. Het zijn eieren, geen relikwieën. Maar ik ben kosteres, dus ik behandel ze zo. | stem | NIEUW |
-| Anita | Oma Trijntje stuurt ons voor de eieren. Het recept van 1953 heeft er zestig nodig. | stem | NIEUW |
+| Anita | Moi. …Goedemorgen, bedoel ik. Het recept van 1953 heeft er zestig nodig. | stem | NIEUW |
 | Geesje | Jelle Terpstra heeft alle eieren van het Hogeland gekocht, behalve de mijne. Mijn kippen hebben geen contract. | stem | NIEUW |
+| Geesje | Zijn moeder, Gerda, belt Trijntje elk jaar op haar verjaardag. Ze zeggen dan allebei niks. | stem | NIEUW |
 | Geesje | Jullie brengen ze heel naar de kerkkelder in Usquert. Daar is het koel, en daar komt Jelle niet. | stem | NIEUW |
 | Anita | Heel, Tammo. Niet rap. Heel. | stem | NIEUW |
 | Tammo | Ik rij nooit rap. | stem | NIEUW |
@@ -460,22 +463,22 @@ Eerst de opening en missie 1 t/m 3 (112 regels): die ziet iedere speler in het e
 | Tammo | Eén keer. | stem | NIEUW |
 | Geesje | De trekker staat bij de schuur. Hij trekt hard. | stem | NIEUW |
 
-### M09.2 Heel aankomen is ook een kunst: de afgesloten weg (key; 5 zonder stem, 0 met)
+### M09.2 Heel aankomen is ook een kunst: de afgesloten weg (key; 3 zonder stem, 0 met)
 
 | Stem | Regel | Kanaal | Toon |
 |---|---|---|---|
-| Jelle Terpstra | Goedemorgen. De Dorpsweg is tot vier uur van mij. Een dorpsfeest. Ook deze heer heeft een overeenkomst met ons, dus hij kan niet wijken. | telefoon | NIEUW |
+| Jelle Terpstra | De Dorpsweg is tot vier uur van mij. Een dorpsfeest. Ook deze heer heeft een overeenkomst met ons, dus hij mag niet weg. | telefoon | NIEUW |
 | Boer | Een eierkoek per week, levenslang. Daar zeg je geen nee tegen. | stem | NIEUW |
 | Anita | Dan nemen we de wierdepaden. Vol gaten. Zes kratten, Tammo, en we hebben zestig eieren nodig. | stem | NIEUW |
-| Tammo | Alle zestig. | stem | NIEUW |
-| Anita | Alle zestig. | stem | NIEUW |
 
-### M09.3 Heel aankomen is ook een kunst: onderweg (key; 10 zonder stem, 1 met)
+### M09.3 Heel aankomen is ook een kunst: onderweg (key; 12 zonder stem, 1 met)
 
 | Stem | Regel | Kanaal | Toon |
 |---|---|---|---|
 | Tammo | Die koe kijkt naar me. | stem | NIEUW |
-| Anita | Koeien kijken altijd. Dat is hun hobby. | stem | NIEUW |
+| Anita | Koeien kieken altijd. Dat is hun hobby. | stem | NIEUW |
+| Tammo | Altied. | stem | NIEUW |
+| Anita | Altied. Dat is hun hobby. | stem | NIEUW |
 | Tammo | In Grunn kijkt niemand zo lang. | stem | NIEUW |
 | Anita | In Grunn kijkt niemand omhoog. Dit is een wierde, Tammo. Mensen bouwden hem zelf, tegen het water. | stem | NIEUW |
 | Tammo | Zelf gebouwd? Met de hand? | stem | NIEUW |
@@ -490,8 +493,8 @@ Eerst de opening en missie 1 t/m 3 (112 regels): die ziet iedere speler in het e
 | Stem | Regel | Kanaal | Toon |
 |---|---|---|---|
 | Geesje | De kratten staan heel. Dat is een kerkelijk wonder. | stem | NIEUW |
-| Anita | Zes kratten, zestig eieren, alle heel. Vet en eieren: twee van vijf. | stem | NIEUW |
-| Geesje | Dat is meer dan de pastoor ooit haalde. | stem | NIEUW |
+| Anita | Zes kratten, zestig eieren, alle heel. Ik heb ze drie keer geteld, voor de zekerheid. | stem | NIEUW |
+| Geesje | Dat is meer dan de dominee ooit haalde. | stem | NIEUW |
 | Durk | Douwe. De eieren zijn weg. | stem | NIEUW |
 | Douwe | …weg. | stem | NIEUW |
 | Geesje | Ze staan in de kerkkelder. Jullie komen te laat. | stem | NIEUW |
@@ -506,17 +509,18 @@ Eerst de opening en missie 1 t/m 3 (112 regels): die ziet iedere speler in het e
 
 ## M10 · 28 regels
 
-### M10.1 Een trekker-limo op de wierde: intro (intro; 7 zonder stem, 0 met)
+### M10.1 Een trekker-limo op de wierde: intro (intro; 8 zonder stem, 0 met)
 
 | Stem | Regel | Kanaal | Toon |
 |---|---|---|---|
-| Jelle Terpstra | Goedemiddag. Jelle Terpstra, Us Mem Snacks. Ik ben hier niet voor de eieren. Ik ben hier voor u. | stem | NIEUW |
+| Jelle Terpstra | Goedemiddag. Ik ben hier niet voor de eieren. Ik ben hier voor u. | stem | NIEUW |
 | Jelle Terpstra | U bent in het museum geweest. Mijn bewaker heeft beelden. Ik stel een overeenkomst voor: u verlaat Grunn en de Snackprijs, en de beelden verdwijnen. | stem | NIEUW |
+| Jelle Terpstra | Het kaartje in de vitrine was voor u. Bewaker twee belde mij vooraf. De alarmen telde ik voor de gezelligheid. | stem | NIEUW |
 | Anita | En de bal? | stem | NIEUW |
 | Jelle Terpstra | Die is hier. In deze koffer. Mijn juristen willen dat ik hem bij me draag. | stem | NIEUW |
 | Tammo | Je hebt hem dus echt. | stem | NIEUW |
 | Jelle Terpstra | Juridisch gezegd: ja. Durk, Douwe, pak ze. | stem | NIEUW |
-| Anita | Als hij de koffer loslaat, pakken wij hem. Op de quad. Nu. | stem | NIEUW |
+| Anita | Uithuizen heeft een sloot en een limo heeft geen vleugels. Wij zijn daar eerder. Dan moet hij uit zijn limo, en dan zien we wat er in die koffer zit. Op de quad. Nu. | stem | NIEUW |
 
 ### M10.2 Een trekker-limo op de wierde: de achtervolging (key; 7 zonder stem, 0 met)
 
@@ -542,7 +546,7 @@ Eerst de opening en missie 1 t/m 3 (112 regels): die ziet iedere speler in het e
 | Jelle Terpstra | Oant sjen! | stem | BEHOUDEN |
 | Douwe | …Plons. | stem | NIEUW |
 
-### M10.4 Autogesprek: hij heeft hem echt (banter; 7 zonder stem, 0 met)
+### M10.4 Autogesprek: hij heeft hem echt (banter; 6 zonder stem, 0 met)
 
 | Stem | Regel | Kanaal | Toon |
 |---|---|---|---|
@@ -551,8 +555,7 @@ Eerst de opening en missie 1 t/m 3 (112 regels): die ziet iedere speler in het e
 | Anita | Dat is liefde of een contract. | stem | NIEUW |
 | Tammo | Bij hem is dat hetzelfde. | stem | NIEUW |
 | Tammo | Of hij is dom. | stem | NIEUW |
-| Anita | Hij is niet dom. Hij wil dat we hem onderschatten. | stem | NIEUW |
-| Anita | Hij heeft de bal. Wij hebben de eieren. Oma stuurt ons naar Zoutkamp. | stem | NIEUW |
+| Anita | Hij heeft de bal. Wij hebben de eieren. | stem | NIEUW |
 
 ## T2 · 5 regels
 
@@ -560,23 +563,23 @@ Eerst de opening en missie 1 t/m 3 (112 regels): die ziet iedere speler in het e
 
 | Stem | Regel | Kanaal | Toon |
 |---|---|---|---|
-| Anita | Oma Trijntje stuurt ons naar Kapitein Klaas in Zoutkamp. Hij heeft een boot, en Jelle heeft daar een skûtsje. | stem | NIEUW |
+| Anita | Oma Trijntje stuurt ons naar Kapitein Klaas in Zoutkamp. Hij heeft een boot, en Jelle heeft daar een skûtsje: een groot Fries zeilschip. | stem | NIEUW |
 | Buschauffeur | Ik rijd tot Winsum. Daar stapt u over op de lijn naar Zoutkamp. Dat is de laatste halte, daarna is er alleen nog water. | stem | NIEUW |
 | Tammo | Dat klinkt als thuis. | stem | NIEUW |
 | Anita | Dat is een compliment, hè. | stem | NIEUW |
 | Buschauffeur | Uitstappen bij de haven, allemaal. Dan zie je het water. | stem | NIEUW |
 
-## M11 · 67 regels
+## M11 · 69 regels
 
 ### M11.1 Geleend van de Friezen: intro (intro; 9 zonder stem, 2 met)
 
 | Stem | Regel | Kanaal | Toon |
 |---|---|---|---|
-| Kapitein Klaas | Van Trijntje, hè? Ik viste dertig jaar fietsen uit de Diepenring. Nu vis ik ze uit het Reitdiep. Bijna niemand mist ze. | stem | NIEUW |
+| Kapitein Klaas | Van Trijntje, hè? Jullie sliepen op mijn boot en ik heb niks gezien. Ik viste dertig jaar fietsen uit de Diepenring. Nu vis ik ze uit het Reitdiep. Bijna niemand mist ze. | stem | NIEUW |
 | Kapitein Klaas | Wil je weten wat de vissers hier echt zeggen, ga dan op het Leugenbankje zitten. Daar liegen ze allemaal, behalve ik. | stem | NIEUW |
 | Kapitein Klaas | Het havenkantoor meldt dat Jelle een skûtsje heeft met een gouden bal in de kist. Hij vaart naar Lauwersoog, voor de pers. | stem | NIEUW |
 | Anita | Dat klinkt als een val. | stem | NIEUW |
-| Kapitein Klaas | Het is een val. Maar het is ook de enige bal die we kunnen bereiken. | stem | NIEUW |
+| Kapitein Klaas | Het is een val. Maar zolang hij naar het water kijkt, kijkt hij niet naar het wad. Daar ligt vanavond het zout van Oma. | stem | NIEUW |
 | Kapitein Klaas | Hier. Een snelle boot. Ik zit bovenin, ik kijk de andere kant op. Tot de sluizen bij Lauwersoog. Daarna is het open water en ben je voor eigen rekening. | stem | NIEUW |
 | Kapitein Klaas | Praat tegen je boot, mensen. Dat helpt. | stem | NIEUW |
 | Tammo | Hij luistert niet. | stem | NIEUW |
@@ -604,9 +607,9 @@ Eerst de opening en missie 1 t/m 3 (112 regels): die ziet iedere speler in het e
 
 | Stem | Regel | Kanaal | Toon |
 |---|---|---|---|
-| Kapitein Klaas | Het zout van Oma ligt bij Noordpolderzijl. Maar je moet het halen als het wad droog ligt. Jelle kocht de zoutstekers. | stem | NIEUW |
-| Anita | Dus we wachten tot het water weg is en lopen over de kwelder. | stem | NIEUW |
-| Kapitein Klaas | Tot de zandplaat vaar ik. De wind duwt het water hier uit het meer, dan zit je een uur vast. Daarna breng ik jullie langs de dijk naar de kwelder. | stem | NIEUW |
+| Kapitein Klaas | Het zout van Oma ligt bij Noordpolderzijl, op de kwelder. Dat is grasland aan zee, dat bij eb droog ligt. | stem | NIEUW |
+| Kapitein Klaas | Een zijl is een sluis die denkt dat hij een dorp is. Jelle kocht al het zout. | stem | NIEUW |
+| Kapitein Klaas | Eerst zit je een uur vast op een zandplaat: de wind duwt het water uit het meer. Daarna rijdt mijn neef jullie langs de dijk naar de kwelder. | stem | NIEUW |
 | Tammo | Waarom zout? | stem | NIEUW |
 | Kapitein Klaas | Oma's eierbal van 1953 had zout dat nog naar zee smaakte. | stem | NIEUW |
 
@@ -620,7 +623,7 @@ Eerst de opening en missie 1 t/m 3 (112 regels): die ziet iedere speler in het e
 | Tammo | Dat zie ik. | stem | NIEUW |
 | Anita | Dat is de Melkweg, Tammo. | stem | NIEUW |
 | Tammo | Ik dacht dat dat een vlek was. | stem | NIEUW |
-| Anita | Het is een vlek van een miljard sterren. | stem | NIEUW |
+| Anita | Het is een vlek van driehonderd miljard sterren. | stem | NIEUW |
 | Tammo | …Groter dan een vlek. | stem | NIEUW |
 
 ### M11.6 Geleend van de Friezen: de lange blik (key; 4 zonder stem, 6 met)
@@ -636,21 +639,23 @@ Eerst de opening en missie 1 t/m 3 (112 regels): die ziet iedere speler in het e
 
 | Stem | Regel | Kanaal | Toon |
 |---|---|---|---|
-| Kustwachter | Kustwacht. Melding van twee mensen in zwarte kleding op het wad. Waarschijnlijk een zeehond. | stem | NIEUW |
-| Tammo | Ik ben geen zeehond. | stem | NIEUW |
+| Kustwachter | Kustwacht. Melding van twee mensen in zwarte kleding op het wad. Waarschijnlijk schapen. | stem | NIEUW |
+| Tammo | Ik ben geen schaap. | stem | NIEUW |
 | Anita | Dat is jouw verdediging? | stem | NIEUW |
 | Anita | Het licht gaat links. Wij gaan rechts, door het gras. | stem | NIEUW |
-| Tammo | Drie kuipen zout. | stem | NIEUW |
+| Tammo | Drie emmers zout. | stem | NIEUW |
 | Anita | Er komt water. | stem | NIEUW |
 | Kapitein Klaas | Nu terug, mensen. Het water denkt niet na. | telefoon | NIEUW |
 | Anita | Rennen, Tammo. | stem | NIEUW |
 
-### M11.8 Geleend van de Friezen: outro (outro; 4 zonder stem, 0 met)
+### M11.8 Geleend van de Friezen: outro (outro; 6 zonder stem, 0 met)
 
 | Stem | Regel | Kanaal | Toon |
 |---|---|---|---|
-| Kapitein Klaas | Dat zout is van Oma. Vet, eieren, zout: drie van vijf. Jelle heeft het nakijken. | stem | NIEUW |
-| Dokter Dijkstra | Dijkstra, UMCG. Trijntje kookte vroeger voor mijn afdeling, dus ik bel terug. Morgen vliegt Jelle met zijn koopboek in een ballon boven de Dollard. Ik heb een heli en ik haal jullie op. Dit stond niet in het rooster. | telefoon | NIEUW |
+| Kapitein Klaas | Dat zout is van Oma. Jelle kocht al het zout, maar de zee is niet te koop. Nog niet. | stem | NIEUW |
+| Dokter Dijkstra | Dijkstra, van het UMCG, het ziekenhuis. Trijntje kookte vroeger voor mijn afdeling, dus ik help. | telefoon | NIEUW |
+| Dokter Dijkstra | Morgen vliegt Jelle met zijn koopboek in een ballon boven de Dollard. Hij boekte de ballon via mijn zwager. | telefoon | NIEUW |
+| Dokter Dijkstra | Ik heb een heli en ik haal jullie op. Dit stond niet in het rooster. | telefoon | NIEUW |
 | Anita | Een koopboek met alles wat hij wil kopen. Dat moeten we hebben. | stem | NIEUW |
 | Kapitein Klaas | En daarna naar de Eemshaven. Dat is Lammerts haven. Zijn vader danste met Trijntje in 1953. | stem | NIEUW |
 
@@ -660,7 +665,7 @@ Eerst de opening en missie 1 t/m 3 (112 regels): die ziet iedere speler in het e
 |---|---|---|---|
 | Rikus | Het Plantsoenfestijn opent vandaag in het Noorderplantsoen. Elf dagen theater en muziek. Het is er druk. | radio | NIEUW |
 | Rikus | Het festival heeft een hoofdsponsor: Oldenhuis Bakt, de keten met de eenenveertig snackbars. Bij elke frikandel hoort een bonnetje voor een tweede. Ik zeg niks. | radio | NIEUW |
-| Jelle Terpstra | Rikus. Ik ga naar de haven. De Eemshaven is van mij. Plakje vijf. | radio | NIEUW |
+| Jelle Terpstra | Rikus. Ik ga naar de haven. De Eemshaven is van mij. | radio | NIEUW |
 | Rikus | Storingsbericht: de Krolbrug is in storing. Niemand merkt verschil. | radio | NIEUW |
 | Rikus | De torenwachter belde niet. Dat is ook nieuws. | radio | NIEUW |
 
@@ -685,23 +690,24 @@ Eerst de opening en missie 1 t/m 3 (112 regels): die ziet iedere speler in het e
 | Tammo | Ik navigeer op gevoel. | stem | NIEUW |
 | Anita | Daarom staan we hier. | stem | NIEUW |
 
-## M12 · 26 regels
+## M12 · 24 regels
 
 ### M12.1 Het staat niet in het rooster: intro (intro; 5 zonder stem, 5 met)
 
 | Stem | Regel | Kanaal | Toon |
 |---|---|---|---|
-| Dokter Dijkstra | Ik ben Dokter Dijkstra, UMCG. Mijn traumaheli staat in onderhoud, en de nachtdienst heeft honger. | stem | NIEUW |
+| Dokter Dijkstra | Mijn traumaheli staat in onderhoud. Dit is die van Rotor Roelf, en mijn nachtdienst heeft honger. | stem | NIEUW |
 | Anita | Wij zoeken Jelles ballon. Hij vliegt boven de Dollard, met zijn koopboek in een aktetas. Daarin staat welk plakje hij als volgende koopt. | stem | NIEUW |
-| Dokter Dijkstra | Eerst de lunch. Achterin staat een koeltas. Die hebben twaalf uur niks gehad. | stem | NIEUW |
-| Dokter Dijkstra | Dan de ballon. Ik heb een lier. Zij houdt de heli stil naast de mand. Hij hangt en pakt de tas. | stem | NIEUW |
-| Anita | Ik heb drie lessen gehad en een jaar gegamed. Dat is meer dan Tammo. | stem | NIEUW |
+| Dokter Dijkstra | Eerst de lunch. Achterin staat een koeltas voor mijn collega's. Zij hebben twaalf uur niets gegeten. | stem | NIEUW |
+| Dokter Dijkstra | Dan de ballon. Ik heb een lier. Tessa houdt de heli stil naast de mand. Tammo hangt aan de lier en pakt de tas. | stem | NIEUW |
+| Anita | Ik heb drie lessen gehad en een jaar vlieggames gespeeld. Dat is meer dan Tammo. | stem | NIEUW |
 
-### M12.2 Het staat niet in het rooster: de lunch (key; 3 zonder stem, 1 met)
+### M12.2 Het staat niet in het rooster: de lunch (key; 4 zonder stem, 1 met)
 
 | Stem | Regel | Kanaal | Toon |
 |---|---|---|---|
-| Rotor Roelf | Moi! Rotor Roelf. Die heli is van mij, ik heb hem gisteren op het UMCG-dak gezet. Maar de lunch is van Dijkstra. Nait tegen d'Olle Grieze aan, hè? | telefoon | NIEUW |
+| Rotor Roelf | Moi! Rotor Roelf. Die heli is van mij, ik zette hem gisteren op het UMCG-dak. | telefoon | NIEUW |
+| Rotor Roelf | De lunch is van Dijkstra. Nait tegen d'Olle Grieze aan, hè? | telefoon | NIEUW |
 | Tammo | Een gewone vrijdag. | stem | NIEUW |
 | Dokter Dijkstra | En nu de ballon. Naar de Dollard. | stem | NIEUW |
 
@@ -719,33 +725,31 @@ Eerst de opening en missie 1 t/m 3 (112 regels): die ziet iedere speler in het e
 | Tammo | Doe bist schier. | stem | BEHOUDEN |
 | Anita | Je zei "doe bist schier" tegen de ballon. | stem | NIEUW |
 
-### M12.4 Het staat niet in het rooster: outro (outro; 9 zonder stem, 0 met)
+### M12.4 Het staat niet in het rooster: outro (outro; 6 zonder stem, 0 met)
 
 | Stem | Regel | Kanaal | Toon |
 |---|---|---|---|
-| Anita | Het koopboek van Jelle. Acht plakjes. | stem | NIEUW |
-| Tammo | Standplaatsen. Vet. Eieren. Zout. | stem | NIEUW |
-| Anita | Haven. Bloem en jury. Mosterd. | stem | NIEUW |
+| Anita | Het koopboek van Jelle. Acht plakjes, en bij elk plakje staat in de kantlijn "Foar mem", met een hartje. | stem | NIEUW |
 | Tammo | En het laatste plakje? | stem | NIEUW |
-| Anita | "De bewaarder." Daarbij staat: notaris, 28 augustus. Meer niet. | stem | NIEUW |
-| Tammo | Container 4471. Dat staat bij plakje vijf. | stem | NIEUW |
-| Anita | Dan weten we waar we moeten zijn. De Eemshaven. | stem | NIEUW |
-| Anita | En als wij winnen, staat de Fjord Frituur op de Vismarkt. Dat vergeet ik niet, Tammo. | stem | NIEUW |
+| Anita | "De bewaarder." Daarbij staat: notaris, 28 augustus, drie uur. Meer niet. | stem | NIEUW |
+| Tammo | Container 4471 staat bij de haven. | stem | NIEUW |
+| Anita | Dan weten we waar we vannacht moeten zijn. Hier. | stem | NIEUW |
 | Dokter Dijkstra | Die Fries is geland in een weiland bij Winschoten. Tussen de koeien. Hij was niet blij. De koeien ook niet. | stem | NIEUW |
 
-## M13 · 27 regels
+## M13 · 30 regels
 
-### M13.1 Het containerlabyrint: intro (intro; 10 zonder stem, 0 met)
+### M13.1 Het containerlabyrint: intro (intro; 11 zonder stem, 0 met)
 
 | Stem | Regel | Kanaal | Toon |
 |---|---|---|---|
-| Anita | Wij komen van Oma Trijntje. In Jelles koopboek staat dat zijn schip vannacht met de voorraad van haar vrienden uit de Eemshaven vertrekt. | stem | NIEUW |
-| Lammert | Lammert, havenmeester. Hier vaart de Borkum-veerboot en daar zoemt het datacenter. Een schip dat leeg blijft, en een kabel die vol zit. | stem | NIEUW |
+| Anita | Wij komen van Oma Trijntje. In Jelles koopboek staat: vannacht vertrekt zijn schip uit de Eemshaven, met alle reserves van Oma's vrienden aan boord. | stem | NIEUW |
+| Lammert | Hier vaart de Borkum-veerboot en daar zoemt het datacenter. Ik ben de havenmeester en ik vertel altijd wat er niet is: een leeg schip en een volle kabel. | stem | NIEUW |
 | Lammert | Mijn vader danste in 1953 met Trijntje. Dat vergeet zij niet. | stem | NIEUW |
-| Anita | Jelles tweede partij staat in container 4471: alles wat de vrienden van Oma niet in veiligheid konden brengen. Het schip vertrekt om zes uur. | stem | NIEUW |
+| Anita | De lading staat in container 4471: alles wat de vrienden van Oma extra hadden en Jelle opkocht. Het schip vertrekt om zes uur. | stem | NIEUW |
 | Lammert | Hier zijn de papieren. Jullie wisselen ze om. Dan blijft alles hier. | stem | NIEUW |
-| Tammo | Eén container tussen alle windmolenbladen en kabelhaspels? | stem | NIEUW |
-| Lammert | Hij staat onder een stapel kabelhaspels, naast de rode. | stem | NIEUW |
+| Tammo | Eén container tussen alle windmolenbladen en kabelrollen? | stem | NIEUW |
+| Lammert | Wij hebben geen containerterminal. Wij hebben één container en weten niet van wie. | stem | NIEUW |
+| Lammert | Hij staat onder een stapel kabelrollen, naast de rode. | stem | NIEUW |
 | Tammo | Ze zijn bijna allemaal rood. | stem | NIEUW |
 | Lammert | Dan moet je de blauwe zoeken. | stem | NIEUW |
 | Anita | We pakken de kraan. Dan zien we van boven welke blauw is. | stem | NIEUW |
@@ -763,13 +767,15 @@ Eerst de opening en missie 1 t/m 3 (112 regels): die ziet iedere speler in het e
 | Tammo | Ik doe mijn best. | stem | NIEUW |
 | Anita | Hij loopt weg. Nu. | stem | NIEUW |
 
-### M13.3 Het containerlabyrint: outro (outro; 8 zonder stem, 0 met)
+### M13.3 Het containerlabyrint: outro (outro; 10 zonder stem, 0 met)
 
 | Stem | Regel | Kanaal | Toon |
 |---|---|---|---|
-| Lammert | Het schip vaart leeg weg. Jelle krijgt zijn tweede partij nooit. | stem | NIEUW |
-| Anita | De voorraad blijft hier. | stem | NIEUW |
-| Lammert | Mijn vrachtwagen brengt de partij vannacht naar mijn woonschip in Delfzijl. Trijntje tekent morgen om acht uur de overdracht van het schip, op de sluis, zodat geen deurwaarder erbij kan. Jullie slapen in mijn havenkantoor. | stem | NIEUW |
+| Lammert | Het schip vaart leeg weg. Jelle krijgt zijn lading nooit. | stem | NIEUW |
+| Lammert | Mijn vrachtwagen brengt alles wat jullie hebben gered vannacht naar mijn woonschip in Delfzijl. | stem | NIEUW |
+| Lammert | Dit vat is van mijn vader: het vet van 1953. Voor Oma. | stem | NIEUW |
+| Lammert | Vanochtend om acht uur tekent Trijntje op de sluis de overdracht van mijn woonschip. Dan mag de deurwaarder er niet meer bij. | stem | NIEUW |
+| Lammert | Jullie slapen in mijn havenkantoor. | stem | NIEUW |
 | Tammo | Een kantoor? | stem | NIEUW |
 | Lammert | Met een bed. Twee bedden. | stem | NIEUW |
 | Anita | Twee bedden. | stem | NIEUW |
@@ -788,10 +794,10 @@ Eerst de opening en missie 1 t/m 3 (112 regels): die ziet iedere speler in het e
 
 | Stem | Regel | Kanaal | Toon |
 |---|---|---|---|
-| Jelle Terpstra | Goedemorgen. Mijn deurwaarder legt om acht uur beslag op de ligplaats van het woonschip van meneer Lammert. Ik heb gisteren zijn huurachterstand gekocht. | stem | NIEUW |
-| Anita | Daar ligt de reservepartij van de vrienden van Oma. En Trijntje tekent om acht uur de overdracht, op de sluis, als wij er zijn. | stem | NIEUW |
+| Jelle Terpstra | Goedemorgen. Mijn deurwaarder neemt om acht uur het woonschip van meneer Lammert in beslag. Ik heb gisteren zijn huurschuld gekocht. | stem | NIEUW |
+| Anita | In beslag nemen: dan neemt hij alles mee wat Lammert voor Oma bewaart. Trijntje wacht op de sluis met de pen. Tekent ze eerst, dan komt de deurwaarder te laat. | stem | NIEUW |
 | Jelle Terpstra | Dan raad ik u aan eerder aan de sluis te zijn dan mijn deurwaarder. Wie wint, mag famke een eierbal geven. | stem | NIEUW |
-| Anita | We rijden over de dijk naar de sluis van Delfzijl. Eerste aan de sluis wint, en de partij blijft van ons. | stem | NIEUW |
+| Anita | We rijden over de dijk naar de sluis van Delfzijl. Eerste aan de sluis wint, en de voorraad blijft van ons. | stem | NIEUW |
 | Tammo | Ik rij. | stem | NIEUW |
 | Anita | Ik zeg: links, rechts, schaap. | stem | NIEUW |
 | Tammo | Daar heb ik niks aan. | stem | NIEUW |
@@ -812,10 +818,10 @@ Eerst de opening en missie 1 t/m 3 (112 regels): die ziet iedere speler in het e
 
 | Stem | Regel | Kanaal | Toon |
 |---|---|---|---|
-| Lammert | De overdracht is getekend, om vijf voor acht. Het beslag mislukt. | stem | NIEUW |
-| Deurwaarder | Dat is een formaliteit die ik niet kan bestrijden. | stem | NIEUW |
+| Lammert | De overdracht is getekend, om vijf voor acht. Het beslag mislukt. Alleen mijn kade is verhuurd, voor een evenement. | stem | NIEUW |
+| Deurwaarder | Dat is nu officieel. Daar kan ik niets tegen doen. | stem | NIEUW |
 | Tammo | Je ziet er goed uit met wind. | stem | NIEUW |
-| Anita | Dat zegt iedereen over de tegenwind. | stem | NIEUW |
+| Anita | Mijn haar zit overal, Tammo. | stem | NIEUW |
 | Tammo | Dat bedoelde ik niet. | stem | NIEUW |
 | Anita | Wat bedoelde je dan? | stem | NIEUW |
 | Tammo | …Dat bedoelde ik wel. | stem | NIEUW |
@@ -834,7 +840,7 @@ Eerst de opening en missie 1 t/m 3 (112 regels): die ziet iedere speler in het e
 | Stem | Regel | Kanaal | Toon |
 |---|---|---|---|
 | Rikus | Wind uit het noordwesten. Op de Eemsdijk zijn zeventien schapen gered van een deurwaarder. Ik weet niet hoe. | radio | NIEUW |
-| Rikus | Kiekdoar meldt dat Oldenhuis Bakt in Delfzijl een vestiging opent, naast de visboer. De visboer lacht niet. | radio | NIEUW |
+| Rikus | Kiekdoar meldt dat Oldenhuis Bakt in Delfzijl een bestaande snackbar verbouwt, naast de visboer. De visboer lacht niet. | radio | NIEUW |
 
 ## T3 · 9 regels
 
@@ -842,7 +848,7 @@ Eerst de opening en missie 1 t/m 3 (112 regels): die ziet iedere speler in het e
 
 | Stem | Regel | Kanaal | Toon |
 |---|---|---|---|
-| Anita | We nemen de trein naar Winschoten. Jelle geeft de juryleden daar een proeverij op de kermis. Dat staat in zijn koopboek. | stem | NIEUW |
+| Anita | We nemen de trein naar Winschoten. Jelle geeft de juryleden daar een proeverij op de kermis. Dat staat in zijn koopboek. Roelfien wacht met haar vliegtuigje bij Midwolda. | stem | NIEUW |
 | Anita | Let op, de trein gaat eerst terug via Station Grunn. | stem | NIEUW |
 | Tammo | Dus we gaan eerst naar huis. | stem | NIEUW |
 | Anita | Even groeten, dan door. | stem | NIEUW |
@@ -852,16 +858,17 @@ Eerst de opening en missie 1 t/m 3 (112 regels): die ziet iedere speler in het e
 | Anita | Dat wist je niet. | stem | NIEUW |
 | Tammo | Een beetje. | stem | NIEUW |
 
-## M15 · 28 regels
+## M15 · 30 regels
 
-### M15.1 Laag over het graan: intro (intro; 8 zonder stem, 0 met)
+### M15.1 Laag over het graan: intro (intro; 9 zonder stem, 0 met)
 
 | Stem | Regel | Kanaal | Toon |
 |---|---|---|---|
-| Roelfien | Ik ben Roelfien. Graanboerin. Oma Trijntje is mijn nicht. | stem | NIEUW |
-| Anita | Oma Trijntje stuurt ons. Jelle geeft de juryleden een gratis proeverij op de kermis. Daar koopt hij ze. | stem | NIEUW |
-| Roelfien | Dan laten we de hele kermis zien wat hij doet. Mijn gewasspuiter sleept al twintig jaar een spandoek voor de kermis. | stem | NIEUW |
-| Roelfien | Vlieg laag, houd de molen rechts en trek pas op na de kermis. | stem | NIEUW |
+| Roelfien | Trijntje zei dat Tammo niks kan, maar het met overtuiging doet. Ik zeg het maar meteen, dan weten we dat allebei. | stem | NIEUW |
+| Anita | Jelle wil de juryleden kopen met een proeverij. | stem | NIEUW |
+| Roelfien | Dan laten we de hele kermis zien wat hij doet. Mijn vliegtuigje sleept al twintig jaar een spandoek voor de kermis. | stem | NIEUW |
+| Roelfien | Vlieg laag, houd de molen rechts en trek de neus pas omhoog na de kermis. | stem | NIEUW |
+| Roelfien | Het graan staat er nog. Dat wacht op het weer, niet op Jelle. | stem | NIEUW |
 | Tammo | Ik heb nog nooit gevlogen. | stem | NIEUW |
 | Anita | Je hing aan een touw. | stem | NIEUW |
 | Tammo | Dat telt niet. | stem | NIEUW |
@@ -878,46 +885,47 @@ Eerst de opening en missie 1 t/m 3 (112 regels): die ziet iedere speler in het e
 | Tammo | Het staat goed. | stem | NIEUW |
 | Jelle Terpstra | Dat is… eerlijk. | telefoon | NIEUW |
 
-### M15.3 Laag over het graan: outro (outro; 13 zonder stem, 0 met)
+### M15.3 Laag over het graan: outro (outro; 14 zonder stem, 0 met)
 
 | Stem | Regel | Kanaal | Toon |
 |---|---|---|---|
 | Jurylid | Is dit waar? Jelle koopt de jury? | stem | NIEUW |
-| Jelle Terpstra | Het is een proeverij. Er wordt geproefd en er wordt gesteld. | stem | NIEUW |
+| Jelle Terpstra | Het is een proeverij. Er wordt alleen geproefd. | stem | NIEUW |
 | Jurylid | Ik stap eruit. | stem | NIEUW |
 | Jurylid | Ik ook. | stem | NIEUW |
 | Roelfien | Twee van de vier andere juryleden zijn weggelopen. De andere twee zitten nog bij Jelle. | stem | NIEUW |
-| Anita | Twee weg. Dat scheelt, maar het is nog geen meerderheid. | stem | NIEUW |
-| Roelfien | De molen in Midwolda is van Jelle. Het fijne bloem krijg je daar niet meer. Ik heb mijn eigen graan. Dat is grof. | stem | NIEUW |
-| Anita | Dan heeft Jelle de fijne bloem. | stem | NIEUW |
+| Anita | Twee weg. Dat scheelt. Als ze maar wegblijven. | stem | NIEUW |
+| Roelfien | De molen in Midwolda is van Jelle. Fijn meel krijg je daar niet meer. Ik heb mijn eigen graan. Dat is grof. | stem | NIEUW |
+| Anita | Dan heeft Jelle al het fijne meel. | stem | NIEUW |
 | Roelfien | Oma's recept lust grof. Hier is het meel. Voor Trijntje. | stem | NIEUW |
-| Anita | Dan is ook de bloem gered. Vet, eieren, zout en bloem: vier van vijf. Alleen de mosterd nog. | stem | NIEUW |
+| Anita | Dan is het meel gered. Alleen de mosterd nog. | stem | NIEUW |
 | Tammo | Dank je, Roelfien. | stem | NIEUW |
-| Roelfien | Doe de groeten aan mijn nicht. En zeg dat de kermis mooi is. | stem | NIEUW |
+| Roelfien | Doe de groeten aan Trijntje. En zeg dat de kermis mooi is. | stem | NIEUW |
 | Anita | Vol, tenminste. | stem | NIEUW |
+| Anita | Durk en Douwe zitten nog bij Geert. Zij weten waar Jelle heen gaat. | stem | NIEUW |
 
 ### M15.4 Laag over het graan: herhaling (replay; 1 zonder stem, 0 met)
 
 | Stem | Regel | Kanaal | Toon |
 |---|---|---|---|
-| Roelfien | Het spandoek is gewassen. Het graan is niet jaloers. | stem | NIEUW |
+| Roelfien | Het spandoek is gewassen. Het graan heeft niks gezien. | stem | NIEUW |
 
-## M16 · 46 regels
+## M16 · 47 regels
 
 ### M16.1 Nog eentje dan: intro (intro; 4 zonder stem, 4 met)
 
 | Stem | Regel | Kanaal | Toon |
 |---|---|---|---|
-| Geert | Moi. Geert, van de Poelestraat. Er zitten twee Friese reuzen aan mijn bar en ze zingen al een uur. Ik heb drie tenten op deze kermis. Houd ze bij. | stem | NIEUW |
+| Geert | Moi. Geert, van de Poelestraat. Er zitten twee Friese reuzen aan mijn bar en ze zingen al een uur. Ik heb drie tenten op deze kermis. Blijf bij ze. | stem | NIEUW |
 | Geert | En Tessa: mijn nieuwe barman wil heel graag je nummer. | stem | NIEUW |
-| Anita | Het plan: Durk en Douwe weten waar Jelle morgen heen gaat. We volgen ze langs drie tenten tot ze moe zijn, dan vragen we het ze in de botsauto's. | stem | NIEUW |
+| Anita | Drie tenten. Daarna vertellen ze alles, en daarna weten ze het zelf niet meer. | stem | NIEUW |
 | Tammo | Ik drink maar één. | stem | NIEUW |
 
 ### M16.2 Nog eentje dan: tussen de tenten (key; 5 zonder stem, 2 met)
 
 | Stem | Regel | Kanaal | Toon |
 |---|---|---|---|
-| Student | Proost! Nog ééntje dan! | stem | NIEUW |
+| Student | Proost! Nog eentje dan! | stem | NIEUW |
 | Anita | Wie is dat? | stem | NIEUW |
 | Tammo | Een eerstejaars. Ze zijn overal. | stem | NIEUW |
 | Student | Ik hou van jullie allemaal! | stem | BEHOUDEN |
@@ -930,7 +938,7 @@ Eerst de opening en missie 1 t/m 3 (112 regels): die ziet iedere speler in het e
 | Durk | Baas zegt: jij bent de duif. Maar eerst bier. | stem | BEHOUDEN |
 | Anita | Een rit. Wij tegen jullie. Wie wint, krijgt een antwoord. | stem | NIEUW |
 | Durk | Welke vraag? | stem | NIEUW |
-| Anita | Waar is de bal, en waar gaat Jelle morgen heen? | stem | NIEUW |
+| Anita | Waar is de bal, en waar gaat Jelle maandag heen? | stem | NIEUW |
 
 ### M16.4 Nog eentje dan: de rit en de kus (key; 9 zonder stem, 0 met)
 
@@ -950,7 +958,7 @@ Eerst de opening en missie 1 t/m 3 (112 regels): die ziet iedere speler in het e
 
 | Stem | Regel | Kanaal | Toon |
 |---|---|---|---|
-| Durk | Baas rijdt maandag naar Veendam, voor de mosterd. Hik. De bal gaat mee, in de koffer onder het kussen van de limo. | stem | NIEUW |
+| Durk | Baas rijdt maandag naar Veendam, voor de mosterd. De bal gaat mee, in de gouden koffer onder het kussen van de limo. | stem | NIEUW |
 | Anita | Hij heeft hem echt. En hij draagt hem altijd bij zich. | stem | NIEUW |
 | Tammo | Dan pakken we hem in Veendam. | stem | NIEUW |
 | Durk | Net fertelle, hè? | stem | NIEUW |
@@ -959,8 +967,8 @@ Eerst de opening en missie 1 t/m 3 (112 regels): die ziet iedere speler in het e
 
 | Stem | Regel | Kanaal | Toon |
 |---|---|---|---|
-| Tammo | Bij Berend mocht ik niet rijden. | stem | NIEUW |
-| Anita | Dat was omdat je bleef. | stem | NIEUW |
+| Tammo | In de botsauto mocht ik niet sturen. | stem | NIEUW |
+| Anita | Dat zeg ik niet vaak. | stem | NIEUW |
 | Anita | Dat gezicht betekent: ik leef nog. | stem | NIEUW |
 | Tammo | Klopt. | stem | NIEUW |
 
@@ -976,7 +984,7 @@ Eerst de opening en missie 1 t/m 3 (112 regels): die ziet iedere speler in het e
 |---|---|---|---|
 | Rikus | Zondag. Het is stil in Winschoten. Dat is ook een kermis. | radio | NIEUW |
 
-### B3 Autogesprekken akte 3 (pool; haven, dijk, graan; Moffel-en-Piertje) (banter; 14 zonder stem, 1 met)
+### B3 Autogesprekken akte 3 (pool; haven, dijk, graan; Moffel-en-Piertje) (banter; 15 zonder stem, 1 met)
 
 | Stem | Regel | Kanaal | Toon |
 |---|---|---|---|
@@ -984,9 +992,10 @@ Eerst de opening en missie 1 t/m 3 (112 regels): die ziet iedere speler in het e
 | Anita | Een windturbine. Honderd meter hoog. | stem | NIEUW |
 | Tammo | Dan is het een grote molen. | stem | NIEUW |
 | Tammo | Wel. | stem | NIEUW |
-| Anita | Daar, Appingedam. Die keukens hangen boven het Damsterdiep. | stem | NIEUW |
-| Tammo | Balkons. | stem | NIEUW |
-| Anita | Keukens. Wie daar kookt, kijkt naar water. | stem | NIEUW |
+| Anita | Daar, Appingedam. Die balkons hangen boven het Damsterdiep. | stem | NIEUW |
+| Tammo | Keukens. | stem | NIEUW |
+| Anita | …Hoe weet jij dat? | stem | NIEUW |
+| Tammo | Een tante van mij kookte erin. Ze gooide de schillen in het water. De eenden kenden haar. | stem | NIEUW |
 | Tammo | Dan zet ik mijn friteuse daar. | stem | NIEUW |
 | Anita | Dan krijgt het Damsterdiep een vetlaag. | stem | NIEUW |
 | Tammo | De Dollard. Een bocht in de zee. | stem | NIEUW |
@@ -995,18 +1004,19 @@ Eerst de opening en missie 1 t/m 3 (112 regels): die ziet iedere speler in het e
 | Anita | Je geeft nooit toe. | stem | NIEUW |
 | Tammo | Jij ook niet. | stem | NIEUW |
 
-## M17 · 28 regels
+## M17 · 29 regels
 
-### M17.1 Open, dicht: intro (intro; 7 zonder stem, 0 met)
+### M17.1 Open, dicht: intro (intro; 8 zonder stem, 0 met)
 
 | Stem | Regel | Kanaal | Toon |
 |---|---|---|---|
 | Wubbo | Open of dicht. Nooit allebei. Dat is mijn hele werkfilosofie. Trijntje zocht iemand die kan wachten, en ik ben brugwachter. | stem | NIEUW |
-| Anita | Durk zei dat Jelle vandaag in Veendam de mosterd haalt. Zijn mosterdschip moet door elf van jouw bruggen, en de bal reist met hem mee. Die mosterd is plakje zeven. | stem | NIEUW |
+| Anita | Jelle haalt vandaag in Veendam de mosterd, zegt Durk. Zijn mosterdschip moet door elf van jouw bruggen. De bal reist met hem mee. | stem | NIEUW |
+| Wubbo | Vaar jij voor zijn schip uit, dan sluit ik de bruggen achter je. Dan zit zijn schip vast. | stem | NIEUW |
 | Tammo | Hoe weten we wanneer? | stem | NIEUW |
-| Wubbo | Elf bruggen. Ik open ze op het ritme van de fanfare. Mis je de maat, dan wacht je. | stem | NIEUW |
+| Wubbo | Elf bruggen. Toeter bij een gesloten brug, dan open ik op het ritme van de fanfare. Mis je de maat, dan wacht je. | stem | NIEUW |
 | Wubbo | Mijn brug is op tijd. Laat je boot dat ook zijn. | stem | NIEUW |
-| Tammo | Over zaterdag. In de botsauto. | stem | NIEUW |
+| Tammo | Tessa. Even over zaterdag. In de botsauto. | stem | NIEUW |
 | Anita | Welke zaterdag? | stem | NIEUW |
 
 ### M17.2 Open, dicht: de fanfare weg (key; 12 zonder stem, 0 met)
@@ -1014,7 +1024,7 @@ Eerst de opening en missie 1 t/m 3 (112 regels): die ziet iedere speler in het e
 | Stem | Regel | Kanaal | Toon |
 |---|---|---|---|
 | Wubbo | De fanfare is vertrokken. Iemand heeft ze een contract gegeven voor een optocht. | telefoon | NIEUW |
-| Jelle Terpstra | Goedemorgen. De fanfare speelt vandaag voor Us Mem Snacks. U hoort wel hoe bruggen klinken zonder muziek. | telefoon | NIEUW |
+| Jelle Terpstra | De fanfare speelt vandaag voor Us Mem Snacks. U hoort wel hoe bruggen klinken zonder muziek. | telefoon | NIEUW |
 | Wubbo | Ik fluit. Eén keer fluiten is open. Twee keer is dicht. | telefoon | NIEUW |
 | Anita | Luister naar de fluit, Tammo. | stem | NIEUW |
 | Tammo | Fluiten kan ik. | stem | NIEUW |
@@ -1045,20 +1055,21 @@ Eerst de opening en missie 1 t/m 3 (112 regels): die ziet iedere speler in het e
 |---|---|---|---|
 | Wubbo | Weer elf bruggen? Open. Dicht. Ik heb het al geleerd. | stem | NIEUW |
 
-## M18 · 41 regels
+## M18 · 42 regels
 
-### M18.1 Wie draaide de camera's uit?: intro (intro; 8 zonder stem, 0 met)
+### M18.1 Wie draaide de camera's uit?: intro (intro; 9 zonder stem, 0 met)
 
 | Stem | Regel | Kanaal | Toon |
 |---|---|---|---|
-| Tammo | We staan bij Wiebelwerk, in Veendam. Zij doen elke nacht om middernacht de update van het museum. Ook van de camera's. | stem | NIEUW |
-| Anita | Dat is toch geen misdaad? | stem | NIEUW |
+| Tammo | Wiebelwerk. Websites met karakter. | stem | NIEUW |
 | Tammo | Wie de camera's uitzet, heeft de bal. | stem | NIEUW |
-| Anita | Als daar staat dat Jelle de bal al had, zijn wij geen dieven maar getuigen. Dan kijken we in het logboek. | stem | NIEUW |
-| Sjabbe | Tessa. Sjabbe. Wiebelwerk? Daar liet ik mijn website maken. Hij is nog steeds in aanbouw. | telefoon | NIEUW |
+| Anita | Als in het logboek staat dat Jelle de bal al had, zijn wij geen dieven maar getuigen. Dan moeten we de serverkamer in. | stem | NIEUW |
+| Anita | De koepel hing sinds woensdag onder een doek. Woensdag was twaalf augustus. Dat logboek wil ik zien. | stem | NIEUW |
+| Sjabbe | Wiebelwerk? Daar liet ik mijn website maken. Zij beheren ook de camera's van het museum. Mijn website is nog steeds in aanbouw. | telefoon | NIEUW |
 | Accountmanager | Welkom bij Wiebelwerk. Wij maken websites. Wat is uw behoefte? | stem | NIEUW |
 | Anita | Een website voor een frietwagen. | stem | NIEUW |
 | Accountmanager | Prachtig. Dan beginnen we met een intake. | stem | NIEUW |
+| Anita | Antwoord alsof je de frietwagen zelf bent: warm, droog en eerlijk. | stem | NIEUW |
 
 ### M18.2 Wie draaide de camera's uit?: de intake gehaald (key; 6 zonder stem, 0 met)
 
@@ -1094,14 +1105,14 @@ Eerst de opening en missie 1 t/m 3 (112 regels): die ziet iedere speler in het e
 
 | Stem | Regel | Kanaal | Toon |
 |---|---|---|---|
-| Tammo | De update. Altijd 00:00, drie minuten. | stem | NIEUW |
+| Tammo | De update. Altijd om middernacht, drie minuten. | stem | NIEUW |
 | Anita | Behalve twaalf augustus. Dan stond hij op elf minuten. Aangevraagd door: Us Mem Snacks. | stem | NIEUW |
 | Tammo | Jelle. | stem | NIEUW |
-| Anita | En kijk: zijdeur, 00:03, pas van bewaker twee. Gast: D en D, tilwerk. | stem | NIEUW |
+| Anita | En kijk: zijdeur, drie minuten over twaalf, met de toegangspas van bewaker twee. Gasten: Durk en Douwe, om te sjouwen. | stem | NIEUW |
 | Anita | Een melding van bewaker twee, 16 augustus: duif op het dak, twee Stadjers kijken mee. | stem | NIEUW |
 | Tammo | De bewaker met het koekje. En twee reuzen. | stem | NIEUW |
-| Tammo | Tuinstra's pas. Geblokkeerd op twaalf augustus. | stem | NIEUW |
-| Anita | Zodat zij niets merkte. Twaalf augustus. Vijf dagen vóór onze kraak. Hij had hem toen al. | stem | NIEUW |
+| Tammo | De toegangspas van mevrouw Hoving. Die was die dag geblokkeerd. | stem | NIEUW |
+| Anita | Zodat zij niets merkte. Dat is vijf dagen vóór onze kraak. Hij had hem toen al. | stem | NIEUW |
 | Tammo | Dus wij kraakten een leeg museum. | stem | NIEUW |
 | Anita | Ik print dit. Dit is een bewijs. | stem | NIEUW |
 | Tammo | Waarvoor? | stem | NIEUW |
@@ -1111,7 +1122,7 @@ Eerst de opening en missie 1 t/m 3 (112 regels): die ziet iedere speler in het e
 
 | Stem | Regel | Kanaal | Toon |
 |---|---|---|---|
-| Accountmanager | Wiebelwerk stelt niks. Wij kunnen niks. Wij zijn een webbureau. | stem | NIEUW |
+| Accountmanager | Wiebelwerk doet niets verkeerds. Wij maken alleen websites. | stem | NIEUW |
 | Tammo | Een alibi. | stem | NIEUW |
 | Anita | Een webbureau. | stem | NIEUW |
 | Tammo | Dan is het niet Wiebelwerk. | stem | NIEUW |
@@ -1123,20 +1134,22 @@ Eerst de opening en missie 1 t/m 3 (112 regels): die ziet iedere speler in het e
 |---|---|---|---|
 | Accountmanager | Nog een intake? De koffie is nog warm. | stem | NIEUW |
 
-## M19 · 28 regels
+## M19 · 32 regels
 
-### M19.1 Stoom: intro (intro; 8 zonder stem, 0 met)
+### M19.1 Stoom: intro (intro; 10 zonder stem, 0 met)
 
 | Stem | Regel | Kanaal | Toon |
 |---|---|---|---|
-| Anita | We staan op het perron in Veendam, bij de museumlijn. De machinist is omgekocht. Hij zit al een uur op een bank en eet een eierbal. De trein staat stil. De laatste twee juryleden en de bewaarder zitten vier uur vast in Jelles salonrijtuig. | stem | NIEUW |
+| Anita | We staan op het perron in Veendam, bij de museumlijn. De machinist is omgekocht en eet al een uur een eierbal. | stem | NIEUW |
+| Anita | De trein staat stil. In Jelles salonrijtuig zitten de laatste twee juryleden en de bewaarder al vier uur vast. | stem | NIEUW |
 | Tammo | Wie rijdt hem dan? | stem | NIEUW |
 | Anita | Jij. | stem | NIEUW |
 | Tammo | Ik heb nog nooit een trein bestuurd. | stem | NIEUW |
 | Anita | Je hebt een fiets bestuurd. | stem | NIEUW |
 | Tammo | Vergelijkbaar. | stem | NIEUW |
 | Anita | Dan rijd jij hem, ik haal de juryleden. | stem | NIEUW |
-| Durk | Douwe. Het is de baas niet. | stem | NIEUW |
+| Durk | Douwe. Er rijdt een nieuwe machinist. | stem | NIEUW |
+| Douwe | …machinist. | stem | NIEUW |
 
 ### M19.2 Stoom: onderweg (key; 10 zonder stem, 1 met)
 
@@ -1149,23 +1162,25 @@ Eerst de opening en missie 1 t/m 3 (112 regels): die ziet iedere speler in het e
 | Tammo | Die ook. | stem | NIEUW |
 | Anita | Meneer, wilt u nog een eierbal? | stem | NIEUW |
 | Jurylid | Heerlijk. Wie is die mevrouw? | stem | NIEUW |
-| Anita | Dat is geen eierbal, dat is een boodschap: Jelle koopt u. | stem | NIEUW |
+| Anita | Breek hem open, meneer. Er zit een briefje in: "Jelle koopt u." | stem | NIEUW |
 | Jurylid | Dat is toch niet waar. | stem | NIEUW |
 | Anita | Het perron komt eraan. Stap maar uit. | stem | NIEUW |
 
-### M19.3 Stoom: outro (outro; 9 zonder stem, 0 met)
+### M19.3 Stoom: outro (outro; 11 zonder stem, 0 met)
 
 | Stem | Regel | Kanaal | Toon |
 |---|---|---|---|
 | Jurylid | Ik stap hier uit. Ik laat me niet kopen met een eierbal. | stem | NIEUW |
 | Jurylid | Ik niet. Ik heb een contract. Levenslang eierballen en elke kermis een kaartje. | stem | NIEUW |
-| Mevrouw Tuinstra | Ik stap niet uit. Ik ben verhinderd tot na het Ontzet, dat stond op de uitnodiging. Artikel 9 regelt mijn plaatsvervanger: het oudste jurylid, meneer Bos. Sinds 1985. | stem | NIEUW |
-| Anita | Eén jurylid gered. Eén is van hem. En de voorzitter zit vast in een trein. | stem | NIEUW |
-| Tammo | Drie van de vijf staan niet meer bij hem. | stem | NIEUW |
-| Anita | Dat is een meerderheid, als we ze tot het Ontzet vasthouden. En schrijft Jelle zich om drie uur bij de notaris in als nieuwe bewaarder, dan is de hele wedstrijd nietig. | stem | NIEUW |
+| Mevrouw Hoving | Ik stap niet uit. Ik blijf in de trein tot na het Ontzet, dat stond op de uitnodiging. Dan zit het oudste jurylid voor: Berend Bos, sinds 1982. | stem | NIEUW |
+| Anita | Eén jurylid gered. Eén is van hem. En de bewaarder blijft in de trein. | stem | NIEUW |
+| Tammo | Vier van de vijf staan niet meer bij hem, Berend meegerekend. | stem | NIEUW |
+| Anita | Dat is een meerderheid, als we ze tot het Ontzet vasthouden. | stem | NIEUW |
+| Anita | Maar op het Ontzet gaat Jelle om drie uur naar de notaris. Schrijft hij zich in als nieuwe bewaarder, dan tekent hij zelf de uitslag. Daarom zit mevrouw Hoving in de trein: zo kan zij hem niet tegenhouden. | stem | NIEUW |
 | Tammo | Ik heb een trein bestuurd. | stem | NIEUW |
 | Anita | Je hebt hem in een station gezet. Dat is meer dan de machinist. | stem | NIEUW |
-| Berend Bos | Goidag. Die man in dat blauwe colbert wilde mijn bakkie kopen, contant, uit een klomp. Dat vergeef ik hem niet. Hij komt dinsdag naar het Beleg van Bourtange, met zijn beleggers. Ik heb een bus nodig. Kom naar Ter Apel. | telefoon | NIEUW |
+| Berend Bos | Goidag. Die man in dat blauwe colbert wilde mijn bakkie kopen, contant, uit een klomp. Dat vergeef ik hem niet. | telefoon | NIEUW |
+| Berend Bos | Dinsdag komt hij naar het Beleg van Bourtange, met zijn mannen. Ik heb een bus nodig. Kom naar Ter Apel. | telefoon | NIEUW |
 
 ### M19.4 Stoom: herhaling (replay; 1 zonder stem, 0 met)
 
@@ -1173,20 +1188,19 @@ Eerst de opening en missie 1 t/m 3 (112 regels): die ziet iedere speler in het e
 |---|---|---|---|
 | Durk | Douwe. De trein staat weer stil. Net fertelle, hè? | stem | NIEUW |
 
-## T4 · 29 regels
+## T4 · 27 regels
 
-### T4.1 De bus naar Bourtange: instappen (intro; 11 zonder stem, 0 met)
+### T4.1 De bus naar Bourtange: instappen (intro; 10 zonder stem, 0 met)
 
 | Stem | Regel | Kanaal | Toon |
 |---|---|---|---|
-| Berend Bos | Goidag. Ik heb veertig man, vijftien kanonnen van karton, en een bus die niet start. | stem | NIEUW |
+| Berend Bos | Goidag. Ik heb veertig man, vijftien kanonnen van karton, en een bus die niet start. Het gips is eraf. Het stuur ook bijna. | stem | NIEUW |
 | Anita | Wij rijden. Ter Apel-bos naar de vesting, en de Escapade komt achter ons aan. | stem | NIEUW |
 | Berend Bos | Op tijd. Het Beleg begint om negen uur. Ik ben de bisschop. | stem | NIEUW |
 | Tammo | Je valt de vesting aan. | stem | NIEUW |
 | Berend Bos | Elk jaar. En elk jaar verlies ik. Wat mout, dat mout. | stem | NIEUW |
 | Anita | Waarom oefenen jullie in Bourtange? | stem | NIEUW |
-| Berend Bos | Omdat Grunn te klein is voor een echt beleg. Ik heb een vriendin in de vesting. | stem | NIEUW |
-| Tammo | Een vriendin? | stem | NIEUW |
+| Berend Bos | Omdat Grunn te klein is voor een echt beleg. | stem | NIEUW |
 | Berend Bos | Kom mor. Rijden. | stem | NIEUW |
 | Tinus | Ik ben Tinus. Ik beleg mee. Mijn trekker staat thuis, in het Westerkwartier. | stem | NIEUW |
 | Tammo | Welkom in de bus, Tinus. | stem | NIEUW |
@@ -1198,7 +1212,7 @@ Eerst de opening en missie 1 t/m 3 (112 regels): die ziet iedere speler in het e
 | Berend Bos | Je kijkt vaker naar die telefoon dan naar de weg. Hij komt wel. | stem | NIEUW |
 | Anita | Wie? | stem | NIEUW |
 | Berend Bos | Wie het ook is. | stem | NIEUW |
-| Tammo | Er zijn veertig stoelen. | stem | NIEUW |
+| Tammo | Er zijn genoeg stoelen. | stem | NIEUW |
 | Anita | Dat zie ik. | stem | NIEUW |
 | Tammo | Ik zit hier. | stem | NIEUW |
 | Anita | Dat zie ik ook. | stem | NIEUW |
@@ -1207,16 +1221,15 @@ Eerst de opening en missie 1 t/m 3 (112 regels): die ziet iedere speler in het e
 | Anita | Dat was slecht. | stem | NIEUW |
 | Berend Bos | Ik heb niks gezien. Ik ben belegeraar, geen getuige. | stem | NIEUW |
 
-### T4.3 De bus naar Bourtange: aankomst (outro; 6 zonder stem, 0 met)
+### T4.3 De bus naar Bourtange: aankomst (outro; 5 zonder stem, 0 met)
 
 | Stem | Regel | Kanaal | Toon |
 |---|---|---|---|
-| Anita | De Escapade staat op de parkeerplaats bij de poort. Henk bracht hem vanmiddag, en zijn zender zit er nog in. | stem | NIEUW |
+| Anita | De Escapade staat op de parkeerplaats bij de poort. Henk reed hem erheen, en zijn zender zit er nog in. | stem | NIEUW |
 | Berend Bos | Op tijd. Dat is één minuut te vroeg. | stem | NIEUW |
 | Tammo | Jij telde ze? | stem | NIEUW |
 | Berend Bos | Ik tel alles. | stem | NIEUW |
-| Anita | Dan weet je dat het Beleg om negen uur begint. | stem | NIEUW |
-| Berend Bos | Ik weet alles. | stem | NIEUW |
+| Berend Bos | Mijn bakkie staat al bij de poort. Eerst Oma en Gerda, toen de bus. | stem | NIEUW |
 
 ### T4.4 De bus naar Bourtange: herhaling (replay; 1 zonder stem, 0 met)
 
@@ -1224,13 +1237,13 @@ Eerst de opening en missie 1 t/m 3 (112 regels): die ziet iedere speler in het e
 |---|---|---|---|
 | Berend Bos | Weer veertig man? Kom mor. | stem | NIEUW |
 
-## M20 · 54 regels
+## M20 · 55 regels
 
 ### M20.1 Het beleg van Bourtange: de wallen (intro; 11 zonder stem, 0 met)
 
 | Stem | Regel | Kanaal | Toon |
 |---|---|---|---|
-| Berend Bos | Het Beleg van Bourtange. De vesting is van ons. | stem | NIEUW |
+| Berend Bos | Het Beleg van Bourtange. Elk jaar omsingel ik een vesting, en elk jaar houdt ze stand. | stem | NIEUW |
 | Tammo | Wie valt aan? | stem | NIEUW |
 | Berend Bos | Ik, met veertig man en een paard van karton. | stem | NIEUW |
 | Anita | En Jelle? | stem | NIEUW |
@@ -1240,7 +1253,7 @@ Eerst de opening en missie 1 t/m 3 (112 regels): die ziet iedere speler in het e
 | Douwe | …fierljep. | stem | NIEUW |
 | Tammo | Een ding voor Friezen. | stem | NIEUW |
 | Durk | Net fertelle, hè? | stem | BEHOUDEN |
-| Berend Bos | Fierljepen doen wij ook, jong. In Grijpskerk hebben ze er een vereniging voor. Dat is Grunn. | stem | NIEUW |
+| Berend Bos | Fierljepen, met een stok over een sloot? Grijpskerk heeft er een vereniging voor, jong. Dat is ook Grunn. | stem | NIEUW |
 
 ### M20.2 Het beleg van Bourtange: de gracht (key; 9 zonder stem, 1 met)
 
@@ -1252,7 +1265,7 @@ Eerst de opening en missie 1 t/m 3 (112 regels): die ziet iedere speler in het e
 | Durk | Douwe. Dat was ook geheim. | stem | NIEUW |
 | Tammo | Houd even vast. De sleutel zit erin. | stem | NIEUW |
 | Douwe | …vast. | stem | NIEUW |
-| Tammo | Ik spring. Val ik, dan de wind. | stem | NIEUW |
+| Tammo | Ik spring. Als ik val, was het de wind. | stem | NIEUW |
 | Douwe | …Plons. | stem | NIEUW |
 | Douwe | …Geen plons. | stem | NIEUW |
 
@@ -1263,16 +1276,16 @@ Eerst de opening en missie 1 t/m 3 (112 regels): die ziet iedere speler in het e
 | Jelle Terpstra | Mem. Hier is hij. Voor u. Ik heb hem genomen zoals het hoort: netjes, met een bedankje. | stem | NIEUW |
 | Mem Terpstra | Doe open, jonge. | stem | NIEUW |
 | Mem Terpstra | Dank je. Nu is hij van mij. | stem | NIEUW |
-| Jelle Terpstra | Mem. De afspraak was: u houdt hem vast tot ik win. Dit is een inbreuk op onze overeenkomst. | stem | NIEUW |
+| Jelle Terpstra | Mem. De afspraak was: u houdt hem vast tot ik win. Dit is een overtreding van onze overeenkomst. | stem | NIEUW |
 | Mem Terpstra | Er is geen overeenkomst, jonge. Er is een moeder. | stem | NIEUW |
-| Oma Trijntje | Gerda belde mij. Ze zei: mijn jongen heeft de bal. Ik zei: dan nemen we hem af. Berend reed. | stem | NIEUW |
+| Oma Trijntje | Gerda belde mij. Ze zei: mijn jongen heeft de bal. Ik zei: dan nemen we de bal van hem af. Berend reed. | stem | NIEUW |
 | Berend Bos | Nul krassen. Op de heenweg. | stem | NIEUW |
 | Tammo | Jij kende Mem. | stem | NIEUW |
 | Anita | "Tige tank! – J." Dat is Jelles J. Hij schrijft overal een bedankje bij. | stem | NIEUW |
-| Mem Terpstra | Dat heb ik hem geleerd. Alles wat goed is in mijn jongen komt van mij. Alles wat dit is, ook. | stem | NIEUW |
+| Mem Terpstra | Dat heb ik hem geleerd. Alles wat goed is in mijn jongen komt van mij. Dit ook. | stem | NIEUW |
 | Anita | Waarom doet u dit, mevrouw Terpstra? | stem | NIEUW |
-| Jelle Terpstra | Mem. Dit is geen einde. Dit is een geschil. | stem | NIEUW |
-| Jelle Terpstra | Durk. Douwe. Haal de beleggers. | stem | NIEUW |
+| Jelle Terpstra | Mem. Dit is nog niet voorbij. Mijn juristen noemen het een geschil. | stem | NIEUW |
+| Jelle Terpstra | Durk. Douwe. Haal mijn mannen. | stem | NIEUW |
 
 ### M20.4 Het beleg van Bourtange: de bal houden (key; 6 zonder stem, 0 met)
 
@@ -1285,21 +1298,22 @@ Eerst de opening en missie 1 t/m 3 (112 regels): die ziet iedere speler in het e
 | Mem Terpstra | Rustig, jonge mensen. Het is maar een bal. | stem | NIEUW |
 | Oma Trijntje | Dat zeg jij nu. | stem | NIEUW |
 
-### M20.5 Het beleg van Bourtange: de klomp (outro; 13 zonder stem, 6 met)
+### M20.5 Het beleg van Bourtange: de klomp (outro; 14 zonder stem, 6 met)
 
 | Stem | Regel | Kanaal | Toon |
 |---|---|---|---|
 | Tammo | Wie heb je verteld waar we waren? | stem | NIEUW |
 | Anita | Ik wist niet waar de bal lag. Ik wist wel dat Mem iets voor Jelle verborgen hield. Dat had ik tegen jou moeten zeggen. | stem | NIEUW |
-| Anita | En ik kan niet weten wat je verwacht als je niets zegt. | stem | NIEUW |
+| Anita | En ik kan niet raden wat je verwacht, als je niets zegt. | stem | NIEUW |
 | Tammo | Je zegt nooit iets. | stem | NIEUW |
 | Anita | Jij zegt nooit iets! | stem | NIEUW |
-| Anita | Nee. Jij vraagt nooit wat. Je wordt alleen stil. En dan boos op mij. | stem | NIEUW |
-| Oma Trijntje | Wij waren jullie voor. En ik had jullie moeten tegenhouden. Dat heb ik niet gedaan. | stem | NIEUW |
-| Mem Terpstra | Ik wilde Jelle stoppen. Ik heb jullie daarvoor gebruikt. Dat was verkeerd. | stem | NIEUW |
-| Berend Bos | Ik rijd jullie. En na de Snackprijs ga ik naar de politie. Over wat er in dat museum is gebeurd. | stem | NIEUW |
-| Mem Terpstra | Neem hem mee, famke. Jij appte het zelf: als bewaking. | stem | NIEUW |
-| Anita | Hij zet de auto op een trein. Zonder wagen geen Fjord Frituur. | stem | NIEUW |
+| Berend Bos | Twee keer "nooit" in tien seconden. Ik tel mee. | stem | NIEUW |
+| Anita | Nee, dat klopt niet. Jij vraagt nooit wat. Je wordt stil, en dan boos op mij. | stem | NIEUW |
+| Oma Trijntje | Wij waren jullie voor. | stem | NIEUW |
+| Mem Terpstra | Ik gebruikte jullie om Jelle te stoppen. Dat was verkeerd. | stem | NIEUW |
+| Berend Bos | Ik rijd jullie. Na de Snackprijs ga ik naar de politie, over dat museum. | stem | NIEUW |
+| Anita | Henks zender piept: onze auto staat al op een trein. Zonder auto geen Fjord Frituur. | stem | NIEUW |
+| Mem Terpstra | Neem de bal mee, famke. Bij jou is hij veiliger dan bij ons. | stem | NIEUW |
 | Oma Trijntje | Eén zin, jong. | stem | NIEUW |
 | Tammo | Ik heb er geen. | stem | NIEUW |
 
@@ -1326,8 +1340,8 @@ Eerst de opening en missie 1 t/m 3 (112 regels): die ziet iedere speler in het e
 | Anita | Het piepje van Henks zender staat bij Zuidhorn. Sneller. | stem | NIEUW |
 | Berend Bos | Ik rij nooit sneller dan negentig. | stem | NIEUW |
 | Anita | Dan rij je nu honderd. | stem | NIEUW |
-| Berend Bos | Je zoekt iemand die blijft. | stem | NIEUW |
-| Anita | …Dat is een bijzondere zin, Berend. | stem | NIEUW |
+| Berend Bos | Je hebt negen keer op je telefoon gekeken sinds Ter Apel. Er is geen bericht. Ik heb meegeteld. | stem | NIEUW |
+| Anita | …Dat is een bijzondere troost, Berend. | stem | NIEUW |
 
 ### M21.2 Iedereen heeft een rode auto gezien: Tessa, de jacht (key; 3 zonder stem, 0 met)
 
@@ -1346,8 +1360,8 @@ Eerst de opening en missie 1 t/m 3 (112 regels): die ziet iedere speler in het e
 | Anita | Dat tel je niet. | stem | NIEUW |
 | Berend Bos | Ik tel alles. | stem | NIEUW |
 | Anita | Zonder wagen kunnen we niet bakken. Dan wint Jelle zonder wedstrijd. | stem | NIEUW |
-| Anita | Henks tweede sleutel zat onder de bumper. Die van Tammo zit nog in zijn jas. | stem | NIEUW |
-| Henk | Henk. Tinus' schuur is hier vlakbij. Ik heb morgen iets voor jullie. Eén koekje. | telefoon | NIEUW |
+| Anita | Henks tweede sleutel zat onder de bumper. Tammo's sleutel zit in zijn jas, en Douwe heeft die jas. | stem | NIEUW |
+| Henk | Tinus' schuur is hier vlakbij. Ik heb morgen iets voor jullie. Eén koekje. | telefoon | NIEUW |
 
 ### M21.6 Iedereen heeft een rode auto gezien: Tessa, de overweg, de bal vastgehouden (key; 6 zonder stem, 0 met)
 
@@ -1358,20 +1372,20 @@ Eerst de opening en missie 1 t/m 3 (112 regels): die ziet iedere speler in het e
 | Anita | Dat is mijn schuld. | stem | NIEUW |
 | Berend Bos | Dat is een kras. Henk heeft er verf voor, en een koekje. | stem | NIEUW |
 | Anita | Zonder wagen kunnen we niet bakken. Dan wint Jelle zonder wedstrijd. | stem | NIEUW |
-| Henk | Henk. Tinus' schuur is hier vlakbij. Ik heb morgen iets voor jullie. Eén koekje. | telefoon | NIEUW |
+| Henk | Tinus' schuur is hier vlakbij. Ik heb morgen iets voor jullie. Eén koekje. | telefoon | NIEUW |
 
 ### M21.4 Iedereen heeft een rode auto gezien: Tammo, de vrienden (outro; 13 zonder stem, 1 met)
 
 | Stem | Regel | Kanaal | Toon |
 |---|---|---|---|
-| Tammo | Woensdagochtend, Tinus' schuur. Oma heeft al haar vrienden met hun ingrediënten laten komen. Zonder hen is er geen recept voor de Snackprijs. | stem | NIEUW |
 | Oma Trijntje | Houd mijn vrienden bij elkaar, jong. Zonder hen is er geen recept. | telefoon | NIEUW |
 | Mem Terpstra | Jelles advocaten hebben ze gebeld. Zeg het goed. | telefoon | NIEUW |
-| Tinus | Laat ze, jong. Praten kun je niet. | stem | NIEUW |
+| Tinus | Laat ze gaan, jong. Praten kun je niet. | stem | NIEUW |
 | Geesje | Mijn kerkvoogdij is gebeld. De kerkkelder is verhuurd. Het spijt me, jong. | stem | NIEUW |
 | Tammo | Wacht. | stem | NIEUW |
 | Kapitein Klaas | Mijn rubberboot is in beslag genomen. Tot de sluis ging het. Nu ben ik voor eigen rekening. | stem | NIEUW |
 | Tammo | Alsjeblieft. | stem | NIEUW |
+| Lammert | Mijn kade is verhuurd voor een evenement. Ik mag er zelf niet meer komen. | stem | NIEUW |
 | Wubbo | De brug draait op tijd. Maar vandaag draait hij voor een evenement. | stem | NIEUW |
 | Tammo | Ik… zeg het niet goed. | stem | NIEUW |
 | Roelfien | Mijn vliegvergunning is ingetrokken. Zeg het tegen Trijntje. | stem | NIEUW |
@@ -1389,7 +1403,7 @@ Eerst de opening en missie 1 t/m 3 (112 regels): die ziet iedere speler in het e
 | Stem | Regel | Kanaal | Toon |
 |---|---|---|---|
 | Tammo | Dat is Veendam. Bijna net zo groot als Grunn. | stem | NIEUW |
-| Anita | Het is een negende. | stem | NIEUW |
+| Anita | Het is een negende van Grunn. | stem | NIEUW |
 | Tammo | Ik ben hier nog nooit afgeslagen. | stem | NIEUW |
 | Anita | Er is ook niks om af te slaan. | stem | NIEUW |
 | Tammo | Dat bedoel ik. | stem | NIEUW |
@@ -1397,17 +1411,17 @@ Eerst de opening en missie 1 t/m 3 (112 regels): die ziet iedere speler in het e
 | Tammo | Ik dacht dat het de buren waren. | stem | NIEUW |
 | Anita | Je zegt niks over zaterdag. | stem | NIEUW |
 | Tammo | Dat is ook een antwoord. | stem | NIEUW |
-| Anita | Dat is een tegeltje. | stem | NIEUW |
-| Tammo | Een goed tegeltje. | stem | NIEUW |
+| Anita | Dat is een antwoord dat ik niet kan gebruiken. | stem | NIEUW |
+| Tammo | Een goed antwoord. | stem | NIEUW |
 
-## M22 · 46 regels
+## M22 · 44 regels
 
 ### M22.1 Een luik erin: intro (intro; 7 zonder stem, 1 met)
 
 | Stem | Regel | Kanaal | Toon |
 |---|---|---|---|
-| Tinus | Tinus, trekkertrekker, van de bus. Welkom in mijn schuur. Henk belde. Jullie zoeken een luik. | stem | NIEUW |
-| Henk | Henk, Garage Knalpot. Ik heb een luik, een uitlaat en een koekje. Eén. | stem | NIEUW |
+| Tinus | Welkom in mijn schuur. Henk belde. Jullie zoeken een luik. | stem | NIEUW |
+| Henk | Ik heb een luik, een uitlaat en een koekje. Eén. | stem | NIEUW |
 | Anita | Wij maken van de Escapade de Fjord Frituur. Daar hoort een luik bij. | stem | NIEUW |
 | Tammo | De Escapade is van mij. | stem | NIEUW |
 | Anita | Hij is van ons, Tammo. | stem | NIEUW |
@@ -1423,34 +1437,35 @@ Eerst de opening en missie 1 t/m 3 (112 regels): die ziet iedere speler in het e
 | Tammo | Een Escapade met een gat. | stem | NIEUW |
 | Henk | Een karaktergat. | stem | NIEUW |
 | Anita | Het is klaar. | stem | NIEUW |
-| Tammo | Het is blauw. Dat was niet afgesproken. | stem | NIEUW |
+| Tammo | Het bovenstuk is blauw. Dat was niet afgesproken. | stem | NIEUW |
 | Anita | Het is de kleur van de naam. | stem | NIEUW |
 | Henk | Het luik is betaald. Sjabbe vertelt wel hoe. | stem | NIEUW |
-| Sjabbe | Tessa. Sjabbe. Tammo belde vannacht, via Berend. Bert bracht het horloge van zijn opa bij mij, voor het luik. Ik heb niks gevraagd. | telefoon | NIEUW |
+| Sjabbe | Tammo belde vannacht, via Henk. Hij verkocht het horloge van zijn opa, via Bert. Dat betaalt het luik. Ik heb niks gevraagd. | telefoon | NIEUW |
 | Anita | Het horloge van je opa? | stem | NIEUW |
-| Tammo | Een horloge. Dit is een thuis. | stem | NIEUW |
+| Tammo | Het liep vijf minuten voor. Opa zei: dat zijn de goede minuten. | stem | NIEUW |
 
-### M22.3 Een luik erin: de modder (key; 9 zonder stem, 0 met)
+### M22.3 Een luik erin: de modder (key; 10 zonder stem, 0 met)
 
 | Stem | Regel | Kanaal | Toon |
 |---|---|---|---|
-| Tinus | De modder pakt eerst de auto. Dan pas je plannen. Een luik snijdt in de zijkant, en een friteuse weegt vierhonderd kilo. Als de as het niet houdt, breekt hij op de Grote Markt. Dus rij hem de modder in. | stem | NIEUW |
+| Tinus | De modder pakt eerst je auto. Je plannen komen daarna. | stem | NIEUW |
+| Tinus | Met een luik is de zijkant zwakker, en een friteuse weegt vierhonderd kilo. Houdt de achteras het niet, dan breekt hij op de Grote Markt. Rij hem dus de modder in. | stem | NIEUW |
 | Anita | En als hij vastzit? | stem | NIEUW |
 | Tinus | Dan trekt mijn trekker hem eruit. Aan de trekhaak. Aan Tammo hebben we hier niks. | stem | NIEUW |
 | Tammo | Ik zit vast. | stem | NIEUW |
-| Tinus | Dan trek ik je los. Hou vast. | stem | NIEUW |
+| Tinus | Dan trek ik je los. Houd vast. | stem | NIEUW |
 | Anita | Aan wat? | stem | NIEUW |
 | Tinus | Aan je zelfvertrouwen. | stem | NIEUW |
 | Tammo | Dat heb ik niet. | stem | NIEUW |
 | Tinus | Dan aan de trekker. | stem | NIEUW |
 
-### M22.4 Een luik erin: de schuur 's avonds, de knuffel (outro; 18 zonder stem, 4 met)
+### M22.4 Een luik erin: de schuur 's avonds, de knuffel (outro; 15 zonder stem, 4 met)
 
 | Stem | Regel | Kanaal | Toon |
 |---|---|---|---|
 | Anita | We hebben een wagen. We hebben geen bal. | stem | NIEUW |
-| Tammo | Jij zweeg omdat Mem het vroeg. Ik heb twaalf jaar niks gezegd. Ik was bang dat je dan wegging. | stem | NIEUW |
-| Tammo | Ik was boos om iets wat ik zelf deed. Sorry dat ik je alleen liet gaan. | stem | NIEUW |
+| Tammo | Jij zweeg voor een ander. Ik zweeg voor niemand. Dat is erger. | stem | NIEUW |
+| Tammo | Je ging alleen achter de trein aan. Ik zat op een hooibaal te mokken. | stem | NIEUW |
 | Anita | Ik moet je iets vertellen. Ik heb op zeven plekken gewoond voor ik tien was. | stem | NIEUW |
 | Tammo | Zeven? | stem | NIEUW |
 | Anita | En elke zomer woonde ik in Ljouwert, naast Mem. Zij leerde me suikerbrood roosteren. | stem | NIEUW |
@@ -1459,13 +1474,10 @@ Eerst de opening en missie 1 t/m 3 (112 regels): die ziet iedere speler in het e
 | Tammo | Dat verklaart waarom je moi zegt als je denkt dat ik niet luister. | stem | NIEUW |
 | Anita | Dat deed ik één keer. | stem | NIEUW |
 | Tammo | Twee keer. | stem | NIEUW |
-| Anita | Dat is een Fjord Frituur op wielen. Een thuis dat je kunt meenemen. | stem | NIEUW |
+| Anita | De Fjord Frituur is een thuis op wielen. Een thuis dat je kunt meenemen. | stem | NIEUW |
 | Anita | Ik ging niet weg. | stem | NIEUW |
 | Tammo | Je bleef nergens. | stem | NIEUW |
 | Anita | Ik ben gebleven. | stem | NIEUW |
-| Tammo | Ik zeg het op het Ontzet. Voor iedereen. | stem | NIEUW |
-| Anita | Dat is een belofte, Tammo. | stem | NIEUW |
-| Tammo | Dat is een belofte. | stem | NIEUW |
 
 ### M22.5 Een luik erin: herhaling (replay; 1 zonder stem, 0 met)
 
@@ -1473,17 +1485,18 @@ Eerst de opening en missie 1 t/m 3 (112 regels): die ziet iedere speler in het e
 |---|---|---|---|
 | Henk | Het luik zit er al. Een deuk meer kan geen kwaad. | stem | NIEUW |
 
-## M23 · 50 regels
+## M23 · 49 regels
 
-### M23.1 De colonne: intro (intro; 8 zonder stem, 0 met)
+### M23.1 De colonne: intro (intro; 9 zonder stem, 0 met)
 
 | Stem | Regel | Kanaal | Toon |
 |---|---|---|---|
-| Mem Terpstra | Famke. Trijntje en ik hebben ze gebeld. Ze zeiden nee tegen Jelles advocaten. Ze komen. | telefoon | NIEUW |
-| Anita | Dit is de colonne, naar de Grote Markt. Wij voorop, de rest erachter, en niemand valt weg. | stem | NIEUW |
-| Geesje | Ik rij op mijn scooter. Hij is sneller dan hij lijkt. | stem | NIEUW |
-| Wubbo | Ik heb de bus. De brug draait op tijd. De colonne liever ook. | stem | NIEUW |
-| Kapitein Klaas | Ik heb mijn boot terug: de moeder van Jelle belde de beslaglegger. Hij ligt op een aanhanger en ik praat tegen hem. | stem | NIEUW |
+| Mem Terpstra | Famke. Trijntje en ik hebben ze gebeld. Ze komen. | telefoon | NIEUW |
+| Anita | Jelle huurt morgen de hele Markt. Vandaag staan wij er eerst. Wij voorop, de rest erachter, en niemand valt weg. | stem | NIEUW |
+| Geesje | Ik rij op mijn scooter. Een bedevaart op twee wielen. Hij is sneller dan hij lijkt. | stem | NIEUW |
+| Wubbo | Ik rij de bus. Een bus is een brug op wielen. Ik zet de zijstraten dicht. | stem | NIEUW |
+| Tinus | Ik rij de trekker. Wat Jelle ook neerzet, ik trek het weg. | stem | NIEUW |
+| Kapitein Klaas | Ik heb mijn rubberboot terug. De moeder van Jelle belde de deurwaarder. De boot ligt op een aanhanger en ik praat tegen hem. | stem | NIEUW |
 | Berend Bos | Ik rij achteraan, met vijftien kanonnen en een doos vuurwerk voor het Ontzet. Dan zie ik alles. | stem | NIEUW |
 | Anita | Eén van jullie rijdt vlak naast ons en houdt Jelle bezig. Wie dat is, kiezen wij zo. | stem | NIEUW |
 | Anita | Rijden. Niet praten. | stem | NIEUW |
@@ -1494,7 +1507,7 @@ Eerst de opening en missie 1 t/m 3 (112 regels): die ziet iedere speler in het e
 |---|---|---|---|
 | Lammert | Ik zit achterin bij Wubbo in de bus. Dit is de mooiste optocht van de provincie. | telefoon | NIEUW |
 | Roelfien | Ik vlieg boven jullie. Mijn vergunning is ingetrokken, maar ze kunnen me niet vinden. | telefoon | NIEUW |
-| Jelle Terpstra | Mevrouw. Elke brug op uw route heeft vandaag een evenementenvergunning van mij. Veel plezier. | telefoon | NIEUW |
+| Jelle Terpstra | Mevrouw. Elke brug op uw route heeft vandaag een vergunning van mij voor een evenement. Veel plezier. | telefoon | NIEUW |
 | Anita | Jelle probeert ons te splitsen. Blijf bij elkaar. | stem | NIEUW |
 | Wubbo | Brug open. Ga maar. | telefoon | NIEUW |
 | Tinus | Ik trek hem weg. | stem | NIEUW |
@@ -1503,9 +1516,9 @@ Eerst de opening en missie 1 t/m 3 (112 regels): die ziet iedere speler in het e
 
 | Stem | Regel | Kanaal | Toon |
 |---|---|---|---|
-| Anita | Dat is Zuidhorn. Daar begon het Westerkwartier. | stem | NIEUW |
-| Tammo | Dat zeg je zo vaak. | stem | NIEUW |
-| Anita | Ik zeg het omdat het waar is. | stem | NIEUW |
+| Anita | Dat is Aduard. Hier houdt het Westerkwartier op. | stem | NIEUW |
+| Tammo | Waar zie je dat aan? | stem | NIEUW |
+| Anita | Meer fietsers, minder trekkers. Dat leer je als je vaak verhuist. | stem | NIEUW |
 | Anita | Ik heb nooit zo lang ergens gewoond. | stem | NIEUW |
 | Tammo | Ik heb nooit ergens anders gewoond. | stem | NIEUW |
 | Anita | Dan is dit een goed begin. | stem | NIEUW |
@@ -1516,8 +1529,8 @@ Eerst de opening en missie 1 t/m 3 (112 regels): die ziet iedere speler in het e
 
 | Stem | Regel | Kanaal | Toon |
 |---|---|---|---|
-| Durk | Douwe. Hij is niet de baas. | stem | NIEUW |
-| Douwe | …niet de baas. | stem | NIEUW |
+| Durk | Douwe. Jelle is niet onze baas. | stem | NIEUW |
+| Douwe | …niet onze baas. | stem | NIEUW |
 | Durk | Wij zijn alleen de bezigheid. | stem | BEHOUDEN |
 | Durk | En nu zijn wij de bezigheid van mem. | stem | NIEUW |
 | Tammo | Van Jelles mem? | stem | NIEUW |
@@ -1530,7 +1543,7 @@ Eerst de opening en missie 1 t/m 3 (112 regels): die ziet iedere speler in het e
 |---|---|---|---|
 | Wubbo | Ik rijd naast jullie. Een bus is breed. Ik zet elke zijstraat dicht waar Jelle langs wil. | stem | NIEUW |
 | Anita | En de bruggen? | stem | NIEUW |
-| Wubbo | Die draai ik zelf. Open of dicht, nooit allebei. | stem | NIEUW |
+| Wubbo | Die open ik op afstand, met mijn sleutel. Open of dicht, nooit allebei. | stem | NIEUW |
 | Tammo | En Jelle? | stem | NIEUW |
 | Wubbo | Die komt een minuut later. Zijn vergunningen hebben een loket. Mijn brug niet. | stem | NIEUW |
 
@@ -1541,18 +1554,16 @@ Eerst de opening en missie 1 t/m 3 (112 regels): die ziet iedere speler in het e
 | Tinus | Ik rij naast jullie, met de trekker. Hier kijk je niet ver: houtwallen. Maar ik trek alles weg wat Jelle neerzet. | stem | NIEUW |
 | Anita | Ook een limo? | stem | NIEUW |
 | Tinus | Ook een limo. Aan de trekhaak, als het moet. | stem | NIEUW |
-| Tammo | Hij zegt dit elke keer. | stem | NIEUW |
-| Anita | En elke keer klopt het. | stem | NIEUW |
+| Tammo | Dat zei hij in de modder ook. | stem | NIEUW |
+| Anita | En toen zaten we niet meer vast. | stem | NIEUW |
 
-### M23.8 De colonne: de scooter rijdt naast jullie (key; 5 zonder stem, 0 met)
+### M23.8 De colonne: de scooter rijdt naast jullie (key; 3 zonder stem, 0 met)
 
 | Stem | Regel | Kanaal | Toon |
 |---|---|---|---|
-| Geesje | Ik rij naast jullie, op mijn scooter. Ik ken elk steegje van hier tot de Grote Markt. | stem | NIEUW |
+| Geesje | Ik rij naast jullie, op mijn scooter. Dit is een bedevaart. Ik ken elk steegje van hier tot de Grote Markt. | stem | NIEUW |
 | Anita | Een scooter tegen een limo? | stem | NIEUW |
 | Geesje | Een limo past niet in een steegje, jong. | stem | NIEUW |
-| Tammo | Sneller dan hij lijkt. | stem | NIEUW |
-| Geesje | Zegt de kerk ook. | stem | NIEUW |
 
 ### M23.4 De colonne: outro (outro; 5 zonder stem, 0 met)
 
@@ -1593,19 +1604,19 @@ Eerst de opening en missie 1 t/m 3 (112 regels): die ziet iedere speler in het e
 | Tammo | Voor de grip? | stem | NIEUW |
 | Anita | Nee. Gewoon. | stem | NIEUW |
 
-## M25 · 21 regels
+## M25 · 22 regels
 
 ### M25.1 Het bod viel tegen: intro (intro; 7 zonder stem, 4 met)
 
 | Stem | Regel | Kanaal | Toon |
 |---|---|---|---|
 | Anita | Morgen is het Ontzet. Vannacht bakken we een proefronde, met alle vijf de ingrediënten van Oma's recept. | stem | NIEUW |
-| Oma Trijntje | Mosterd, eieren, zout en vet. Grove mosterd, niet dat zoete spul. En het meel van Roelfien. Grof, zoals vroeger. | stem | NIEUW |
+| Oma Trijntje | Mosterd van Wubbo, eieren van Geesje, zout van Klaas, meel van Roelfien en vet van Lammert. Alles grof, zoals vroeger. | stem | NIEUW |
 | Mem Terpstra | Ik zit hier ook, Trijntje. | stem | NIEUW |
 | Oma Trijntje | Dat weet ik, Gerda. | stem | NIEUW |
-| Sjabbe | Tessa. Sjabbe. Morgen om drie uur schrijft Jelle zich in bij de notaris in de Oude Boteringestraat. Met de bal. Dan is de wedstrijd nietig en de standplaats van hem. | telefoon | NIEUW |
-| Anita | Dan moeten wij eerder bij de notaris zijn dan hij. | stem | NIEUW |
-| Sjabbe | Wie eerst bij de notaris is, heeft het. Ik zeg alleen: breder dan een straat, dat is een frietwagen. | telefoon | NIEUW |
+| Sjabbe | De notaris zit in de Oude Boteringestraat. Morgen om drie uur laat Jelle zich daar inschrijven als nieuwe bewaarder, met de bal. Dan tekent hij zelf de uitslag. Een notaris is ook maar een loket, met een stempel. | telefoon | NIEUW |
+| Anita | Dan houden wij Jelle tegen. | stem | NIEUW |
+| Sjabbe | Ik zeg alleen: breder dan een straat, dat is een frietwagen. | telefoon | NIEUW |
 
 ### M25.2 Het bod viel tegen: het bakken (key; 7 zonder stem, 0 met)
 
@@ -1617,14 +1628,15 @@ Eerst de opening en missie 1 t/m 3 (112 regels): die ziet iedere speler in het e
 | Tammo | Het is een bal. | stem | NIEUW |
 | Oma Trijntje | Een eierbal. Dat is anders. | stem | NIEUW |
 | Mem Terpstra | Priuw, jonge. Dat is al beter dan de mijne. | stem | NIEUW |
-| Oma Trijntje | Dat zeg jij nu. | stem | NIEUW |
+| Oma Trijntje | Dat zei je in 1953 ook. | stem | NIEUW |
 
-### M25.3 Het bod viel tegen: het bod (key; 2 zonder stem, 9 met)
+### M25.3 Het bod viel tegen: het bod (key; 3 zonder stem, 9 met)
 
 | Stem | Regel | Kanaal | Toon |
 |---|---|---|---|
 | Jelle Terpstra | Goedenavond. | stem | NIEUW |
 | Jelle Terpstra | Details. Geef me de wagen en het recept, en ik geef jullie genoeg voor tien frietwagens. | stem | NIEUW |
+| Anita | Tammo verkocht het horloge van zijn opa voor één luik. Jij biedt tien frietwagens. | stem | NIEUW |
 
 ### M25.4 Het bod viel tegen: outro (outro; 4 zonder stem, 4 met)
 
@@ -1648,24 +1660,25 @@ Eerst de opening en missie 1 t/m 3 (112 regels): die ziet iedere speler in het e
 | Stem | Regel | Kanaal | Toon |
 |---|---|---|---|
 | Kind in het publiek | Nee! | stem | BEHOUDEN |
-| Anita | Vandaag is het Ontzet. We winnen met een eerlijke eierbal, en de Gouden Eierbal gaat terug naar het museum. Om drie uur schrijft Jelle zich in bij de notaris: dat moeten we tegenhouden. | stem | NIEUW |
+| Anita | Vandaag winnen we eerlijk. Tot drie uur, dan zien we wel. | stem | NIEUW |
 
-### M26.2 Ontzet, net als in 1672: de regels (key; 6 zonder stem, 0 met)
+### M26.2 Ontzet, net als in 1672: de regels (key; 7 zonder stem, 0 met)
 
 | Stem | Regel | Kanaal | Toon |
 |---|---|---|---|
 | Berend Bos | Voor iedereen. De beste eierbal wint de standplaats. De Gouden Eierbal zelf gaat terug naar het museum. Dat zijn twee aparte dingen. | stem | NIEUW |
 | Anita | Berend, dit is het logboek van Wiebelwerk. Twaalf augustus. Jelle nam de bal vijf dagen vóór ons. | stem | NIEUW |
-| Berend Bos | Eén: wie partij is, zit niet voor. Dat is Jelle. | stem | NIEUW |
-| Berend Bos | Twee: mevrouw Tuinstra zit nog in de trein, met volpension. Artikel negen: dan zit het oudste jurylid voor. Dat ben ik. Ik heb nog nooit iets gewonnen en nu moet ik oordelen. | stem | NIEUW |
-| Berend Bos | Drie: vijf juryleden, drie van de vijf beslist. Mijn mening is niet het hele oordeel. | stem | NIEUW |
-| Jelle Terpstra | Een notaris gaat boven een bisschop. Om drie uur schrijf ik mij in als de nieuwe bewaarder. Dan is de wedstrijd nietig en de standplaats van mij. | stem | NIEUW |
+| Berend Bos | Dat is een bewijs. Ik bewaar het. | stem | NIEUW |
+| Berend Bos | Regel een: wie partij is, zit niet voor. Dat is Jelle. | stem | NIEUW |
+| Berend Bos | Regel twee: mevrouw Hoving zit nog in de trein, met volpension. Dan zit het oudste jurylid voor. Dat ben ik. Ik heb nog nooit iets gewonnen en nu moet ik oordelen. | stem | NIEUW |
+| Berend Bos | Regel drie: vijf juryleden, de meerderheid beslist. Mijn mening is niet het hele oordeel. | stem | NIEUW |
+| Jelle Terpstra | Een notaris gaat boven een bisschop. Om drie uur schrijf ik mij in als de nieuwe bewaarder. Dan teken ik de uitslag zelf. | stem | NIEUW |
 
 ### M26.3 Ontzet, net als in 1672: bakken en de kraam heel (key; 8 zonder stem, 0 met)
 
 | Stem | Regel | Kanaal | Toon |
 |---|---|---|---|
-| Oma Trijntje | Eerst het ei. Dan het zout. Dan het meel. Niet zeuren, jong. | telefoon | NIEUW |
+| Oma Trijntje | Eerst het ei. Dan het zout. Dan het meel. De mosterd zit al in het deeg. Niet zeuren, jong. | telefoon | NIEUW |
 | Tammo | Grof meel. Dat knispert. | stem | NIEUW |
 | Anita | Dat is onze korrel. Zijn bal is glad. De onze niet. | stem | NIEUW |
 | Durk | Douwe. De kraam. | stem | NIEUW |
@@ -1679,35 +1692,35 @@ Eerst de opening en missie 1 t/m 3 (112 regels): die ziet iedere speler in het e
 | Stem | Regel | Kanaal | Toon |
 |---|---|---|---|
 | Torenwachter | Tammo. De limo gaat de Oude Boteringestraat in. Het is kwart voor drie. | telefoon | NIEUW |
-| Sjabbe | Notaris, nummer negen. Hij sluit om drie uur zijn deur. | telefoon | NIEUW |
+| Tammo | De ballen staan bij de jury. De kraam mag weg. | stem | NIEUW |
 | Anita | De Fjord Frituur is breder dan de straat. Daar ga ik staan. | stem | NIEUW |
 | Tammo | Bert. Mijn duiven. | stem | NIEUW |
 | Duivenmelker Bert | Ze staan klaar, jong. | stem | NIEUW |
 | Tammo | Ik fluit. | stem | NIEUW |
 | Anita | Hij fluit. | stem | NIEUW |
-| Durk | Net fertelle, hè? | stem | NIEUW |
+| Durk | Douwe. Niet aanraken. | stem | NIEUW |
 | Anita | Rook! Links! De Fjord blijft staan. | stem | NIEUW |
 | Jelle Terpstra | Mevrouw. U staat op de openbare weg. Dat is een overtreding. Het is drie minuten voor drie. Ik moet… | stem | NIEUW |
 | Douwe | …Plons. | stem | NIEUW |
 | Anita | Hij houdt de koffer weer boven water. | stem | NIEUW |
 | Tammo | Hij is consistent. | stem | NIEUW |
-| Torenwachter | Tammo. De klok staat op drie uur. Ze staan vast. Ik meld niet alleen. Ik klap. | telefoon | NIEUW |
+| Torenwachter | Tammo. De klok staat op drie uur. De limo staat vast. Ik meld niet alleen. Ik klap. | telefoon | NIEUW |
 
 ### M26.14 Ontzet, net als in 1672: de straten dicht, de bus (key; 5 zonder stem, 0 met)
 
 | Stem | Regel | Kanaal | Toon |
 |---|---|---|---|
-| Wubbo | Herestraat dicht. Bus dwars. De deuren heb ik open gelaten, voor de sfeer. | telefoon | NIEUW |
+| Wubbo | Poelestraat dicht. Bus dwars. De deuren heb ik open gelaten, voor de sfeer. | telefoon | NIEUW |
 | Anita | Dank je, Wubbo. | stem | NIEUW |
 | Wubbo | Open of dicht, Tessa. Vandaag allebei. | telefoon | NIEUW |
 | Anita | Dat mag niet. | stem | NIEUW |
-| Tammo | Het is een bus. | stem | NIEUW |
+| Tammo | Zijn bus, zijn regels. | stem | NIEUW |
 
 ### M26.15 Ontzet, net als in 1672: de straten dicht, de trekker (key; 4 zonder stem, 0 met)
 
 | Stem | Regel | Kanaal | Toon |
 |---|---|---|---|
-| Tinus | Zuiderdiep dicht. Trekker dwars. Wie er langs wil, moet eerst met mij praten. | telefoon | NIEUW |
+| Tinus | Gelkingestraat dicht. Trekker dwars. Wie er langs wil, moet eerst met mij praten. | telefoon | NIEUW |
 | Anita | Je trekker past er net in. | stem | NIEUW |
 | Tinus | Ik trek hem weg. De limo, niet de trekker. | telefoon | NIEUW |
 | Tammo | In de stad ziet hij er nog groter uit. | stem | NIEUW |
@@ -1729,14 +1742,14 @@ Eerst de opening en missie 1 t/m 3 (112 regels): die ziet iedere speler in het e
 | Jelle Terpstra | Mem. De notaris sluit… | stem | NIEUW |
 | Mem Terpstra | Dat is zijn probleem. Jij bent mijn probleem. | stem | NIEUW |
 | Jelle Terpstra | …Ja, mem. | stem | NIEUW |
-| Anita | Het is drie uur geweest. Zijn inschrijving is verlopen. Plakje acht valt. | stem | NIEUW |
+| Anita | Het is drie uur geweest. De notaris is dicht. Jelle tekent niets. | stem | NIEUW |
 
 ### M26.6 Ontzet, net als in 1672: de jury (key; 3 zonder stem, 3 met)
 
 | Stem | Regel | Kanaal | Toon |
 |---|---|---|---|
-| Mem Terpstra | Ik ben de moeder van Jelle. Ik heb vandaag in zijn kraam gestaan. Dat doe ik niet meer. Ik wil dat er eerlijk wordt geproefd. | stem | NIEUW |
-| Berend Bos | Eén verschil, dan stemmen we. De Friese bal is glad, van fijn bloem. De Groninger heeft een korrel van grof meel. Die korrel proef je. Dat is een eierbal die ergens vandaan komt. | stem | NIEUW |
+| Mem Terpstra | Ik heb vandaag in zijn kraam gestaan. Nu wil ik dat er eerlijk wordt geproefd. | stem | NIEUW |
+| Berend Bos | Eén verschil, dan stemmen we. De Friese bal is glad, van fijn meel. De Groninger heeft een korrel van grof meel. Die korrel proef je. Dat is een eierbal die ergens vandaan komt. | stem | NIEUW |
 | Berend Bos | Stemmen. Jurylid één. | stem | NIEUW |
 
 ### M26.10 Ontzet, net als in 1672: de stemming, vijf van de vijf (key; 6 zonder stem, 0 met)
@@ -1748,7 +1761,7 @@ Eerst de opening en missie 1 t/m 3 (112 regels): die ziet iedere speler in het e
 | Jurylid | Fjord Frituur. | stem | NIEUW |
 | Jurylid | Fjord Frituur. | stem | NIEUW |
 | Berend Bos | Fjord Frituur. Vijf van de vijf. Mijn stem was niet eens nodig. | stem | NIEUW |
-| Jelle Terpstra | Vijf van de vijf. Dat is geen jury, dat is een volksopstand. | stem | NIEUW |
+| Jelle Terpstra | Vijf van de vijf. Mijn juristen willen weten wie dit organiseerde. | stem | NIEUW |
 
 ### M26.11 Ontzet, net als in 1672: de stemming, vier van de vijf (key; 5 zonder stem, 0 met)
 
@@ -1758,7 +1771,7 @@ Eerst de opening en missie 1 t/m 3 (112 regels): die ziet iedere speler in het e
 | Jurylid | Fjord Frituur. | stem | NIEUW |
 | Jurylid | Fjord Frituur. | stem | NIEUW |
 | Jurylid | Us Mem Snacks. Ik heb een contract. | stem | NIEUW |
-| Berend Bos | Fjord Frituur. Vier van de vijf. Mijn stem was de laatste, niet de enige. | stem | NIEUW |
+| Berend Bos | Fjord Frituur. Vier van de vijf. Ik was de laatste. | stem | NIEUW |
 
 ### M26.12 Ontzet, net als in 1672: de stemming, drie van de vijf (key; 6 zonder stem, 0 met)
 
@@ -1767,19 +1780,18 @@ Eerst de opening en missie 1 t/m 3 (112 regels): die ziet iedere speler in het e
 | Jurylid | Fjord Frituur. | stem | NIEUW |
 | Jurylid | Us Mem Snacks. Ik heb een contract. | stem | NIEUW |
 | Jurylid | Fjord Frituur. | stem | NIEUW |
-| Jurylid | Us Mem Snacks. Ik heb een contract. | stem | NIEUW |
-| Berend Bos | Fjord Frituur. Drie van de vijf. Het is krap. Mijn stem was de zwaarste, niet de enige. | stem | NIEUW |
-| Jelle Terpstra | Drie tegen twee. Dat is geen vonnis, dat is een beroepszaak. | stem | NIEUW |
+| Jurylid | Us Mem Snacks. De korrel is te grof. | stem | NIEUW |
+| Berend Bos | Fjord Frituur. Drie van de vijf. Het is krap. | stem | NIEUW |
+| Jelle Terpstra | Drie tegen twee. Mijn juristen willen een nieuwe stemming. | stem | NIEUW |
 
-### M26.13 Ontzet, net als in 1672: de uitslag (key; 8 zonder stem, 8 met)
+### M26.13 Ontzet, net als in 1672: de uitslag (key; 7 zonder stem, 8 met)
 
 | Stem | Regel | Kanaal | Toon |
 |---|---|---|---|
-| Mem Terpstra | Zie je? Dat was alles wat ik wilde. | stem | NIEUW |
+| Mem Terpstra | Zie je? Ik had het niet nodig. Maar het is fijn. | stem | NIEUW |
 | Berend Bos | De standplaats op de Vismarkt gaat naar de Fjord Frituur. | stem | NIEUW |
 | Mem Terpstra | De bal gaat terug naar het museum. Dat is zijn plek. | stem | NIEUW |
-| Anita | Dank u, Berend. | stem | NIEUW |
-| Berend Bos | En na afloop ga ik naar de politie. Over twaalf augustus. Ik ben belegeraar, geen getuige. | stem | NIEUW |
+| Berend Bos | En na afloop ga ik naar de politie, over twaalf augustus. Ik was belegeraar, geen getuige. Nu wel. | stem | NIEUW |
 | Jelle Terpstra | De standplaatsen houd ik. Dat is juridisch dichtgetimmerd. De molen ook. De rest geef ik terug. | stem | NIEUW |
 | Mem Terpstra | Dat is mijn zoon. | stem | NIEUW |
 | Jelle Terpstra | Ja, mem. | stem | NIEUW |
@@ -1795,7 +1807,7 @@ Eerst de opening en missie 1 t/m 3 (112 regels): die ziet iedere speler in het e
 | Stem | Regel | Kanaal | Toon |
 |---|---|---|---|
 | Anita | Wij komen. Met de frituur. | telefoon | NIEUW |
-| Jelle Terpstra | Dan wil ik een rekening. Voor het parkeren. | telefoon | NIEUW |
+| Jelle Terpstra | Dan stuur ik een rekening. Voor het parkeren. | telefoon | NIEUW |
 
 ### M26.9 Ontzet, net als in 1672: herhaling (replay; 1 zonder stem, 0 met)
 
@@ -1803,7 +1815,7 @@ Eerst de opening en missie 1 t/m 3 (112 regels): die ziet iedere speler in het e
 |---|---|---|---|
 | Berend Bos | Elk jaar hetzelfde Ontzet. Ik verlies graag. | stem | NIEUW |
 
-## E · 9 regels
+## E · 11 regels
 
 ### E1 Epiloog (epilogue; 3 zonder stem, 2 met)
 
@@ -1813,15 +1825,17 @@ Eerst de opening en missie 1 t/m 3 (112 regels): die ziet iedere speler in het e
 | Anita | Het is tweeëntwintig graden. | stem | NIEUW |
 | Tammo | Nee. Van de volgende ook niet. Alvast. | stem | NIEUW |
 
-### E2 Slot (epilogue; 6 zonder stem, 7 met)
+### E2 Slot (epilogue; 8 zonder stem, 7 met)
 
 | Stem | Regel | Kanaal | Toon |
 |---|---|---|---|
-| Rikus | Jelle gaf zes plakjes terug, uit eigen beweging. De standplaatsen en de molen hield hij. Hij zei dat hij het "gezellig" vond. | radio | NIEUW |
-| Rikus | Oldenhuis Bakt sluit alle eenenveertig snackbars. Het was een dekmantel van Us Mem Snacks. | radio | NIEUW |
-| Rikus | Mevrouw Tuinstra stapt in Wildervank uit de trein. Met volpension. | radio | NIEUW |
+| Rikus | Jelle gaf bijna alles terug, helemaal vrijwillig. De standplaatsen en de molen hield hij. Hij zei dat hij het gezellig vond. | radio | NIEUW |
+| Rikus | Oldenhuis Bakt sluit alle eenenveertig snackbars. De eigenaar blijkt Jelle te zijn. Nu weet ik wie dat at: niemand. | radio | NIEUW |
+| Rikus | Mevrouw Hoving stapt na bijna vier weken volpension in Wildervank uit de trein. | radio | NIEUW |
 | Rikus | De Krolbrug staat nu open. Niemand weet waarom. Dat is verdacht. | radio | NIEUW |
-| Rikus | De politie sloot de zaak van de twee Stadjers in het zwart. Op de band staat vooral de pas van Jelle. | radio | NIEUW |
+| Rikus | De politie sloot de zaak van de twee Stadjers in het zwart. Op de camerabeelden is vooral bewaker twee te zien, met een koekje. | radio | NIEUW |
+| Rikus | Sjabbe bracht een horloge terug naar de Vismarkt. Hij vroeg niets. | radio | NIEUW |
+| Rikus | Durk en Douwe werken nu voor Jelles moeder. Ze sturen een kaartje. | radio | NIEUW |
 | Rikus | Het jurylid met het contract eet nog steeds gratis eierballen. In Ljouwert. | radio | NIEUW |
 
 ## Inclusieve taal: bij een nieuwe opname

@@ -302,5 +302,61 @@ const near = (a, b, e = 1e-6) => Math.abs(a - b) < e;
   ok(d2.type === 'press' && d2.key === 'e', 'een board-stap met een voertuig als doel: eerst uitstappen', JSON.stringify(d2));
 }
 
+// ontwijken in smal verkeer (#354): een fietser of voetganger in de rijstrook buigt het doel weg en begrenst de snelheid
+{
+  const car = { x: 0, y: 0, angle: 0, speed: 14 };
+  const clear = L.avoidance(car, [{ x: 30, y: 9, r: 0.5 }, { x: -10, y: 0, r: 0.5 }]);
+  ok(clear.bias === 0 && clear.cap === Infinity && !clear.nearest, 'avoidance: niets in de rijstrook, niets verandert');
+  const right = L.avoidance(car, [{ x: 12, y: 1.0, r: 0.6 }]);
+  ok(right.bias < 0, 'avoidance: een fietser rechts voor de auto: naar links sturen', String(right.bias));
+  const left = L.avoidance(car, [{ x: 12, y: -1.0, r: 0.6 }]);
+  ok(left.bias > 0, 'avoidance: een fietser links voor de auto: naar rechts sturen', String(left.bias));
+  const ahead = L.avoidance(car, [{ x: 10, y: 0, r: 0.5 }]);
+  ok(ahead.bias < 0 && ahead.cap < 14, 'avoidance: precies voor de auto: links langs en afremmen', JSON.stringify(ahead));
+  const farL = L.avoidance(car, [{ x: 40, y: 0, r: 0.5 }]);
+  ok(farL.bias === 0, 'avoidance: verder dan het zicht telt niet');
+  const near2 = L.avoidance(car, [{ x: 3, y: 0.2, r: 0.5 }]);
+  ok(near2.cap <= 2, 'avoidance: vlak ervoor: stilstaan', String(near2.cap));
+  // een auto die naar het zuiden rijdt (hoek 90 graden): rechts is dan het westen
+  const west = L.avoidance({ x: 0, y: 0, angle: Math.PI / 2, speed: 10 }, [{ x: -1, y: 12, r: 0.5 }]);
+  const east = L.avoidance({ x: 0, y: 0, angle: Math.PI / 2, speed: 10 }, [{ x: 1, y: 12, r: 0.5 }]);
+  ok(west.bias < 0 && east.bias > 0, 'avoidance: naar het zuiden is rechts het westen: iemand in het westen betekent naar links', String([west.bias, east.bias]));
+  // carControls: zonder obstakels dezelfde besturing, met een fietser een ander stuur en een lagere wens
+  const target = { x: 100, y: 0 };
+  const plain = L.carControls(car, target, { top: 30 });
+  const same = L.carControls(car, target, { top: 30, avoid: [] });
+  ok(plain.steer === same.steer && plain.want === same.want, 'carControls: een lege lijst obstakels verandert niets');
+  const dodge = L.carControls(car, target, { top: 30, avoid: [{ x: 9, y: 0.4, r: 0.6 }] });
+  ok(dodge.steer < plain.steer - 0.3 && dodge.want < plain.want, 'carControls: met een fietser voor de auto: ander stuur en lagere snelheid', JSON.stringify([plain, dodge]));
+  // een rij voetgangers die de straat vult laat de auto niet achteruit draaien: hij blijft in de bocht aanzetten
+  const wall = L.carControls({ x: 0, y: 0, angle: 0, speed: 1 }, { x: -50, y: 0 }, { top: 30, avoid: [{ x: 3, y: 0, r: 0.5 }] });
+  ok(!wall.reverse, 'carControls: met iemand vlak voor de neus niet blindelings achteruit');
+}
+
+// bochten in de route (#354): een rechte weg begrenst niets, een haakse bocht kost snelheid, hoe dichterbij hoe meer
+{
+  const car = { x: 0, y: 0, angle: 0, speed: 20 };
+  const straight = L.curveCap([{ x: 10, y: 0 }, { x: 30, y: 0 }, { x: 60, y: 0 }], 0, car);
+  ok(straight === Infinity, 'curveCap: een rechte weg begrenst niets');
+  const near = L.curveCap([{ x: 6, y: 0 }, { x: 6, y: 20 }, { x: 6, y: 40 }], 0, car);
+  const mid = L.curveCap([{ x: 20, y: 0 }, { x: 20, y: 20 }, { x: 20, y: 40 }], 0, car);
+  const far = L.curveCap([{ x: 50, y: 0 }, { x: 50, y: 20 }, { x: 50, y: 40 }], 0, car);
+  ok(near < mid && mid < far, 'curveCap: een haakse bocht dichtbij begrenst harder dan verder weg', String([near, mid, far]));
+  ok(near < 15 && near >= 5, 'curveCap: een haakse bocht op 6 m: ruim onder de 36 m/s en boven de ondergrens', String(near));
+  const gentle = L.curveCap([{ x: 20, y: 0 }, { x: 40, y: 6 }, { x: 60, y: 6 }], 0, car);
+  ok(gentle > mid, 'curveCap: een flauwe knik begrenst minder dan een haakse bocht', String([gentle, mid]));
+  ok(L.curveCap([{ x: 70, y: 0 }, { x: 70, y: 30 }, { x: 70, y: 60 }], 0, car, { look: 40 }) === Infinity, 'curveCap: wat voorbij het zicht ligt telt niet');
+  const slow = L.carControls(car, { x: 100, y: 0 }, { top: 36, curveCap: 8 });
+  ok(slow.want === 8 && slow.throttle === -1, 'carControls: een bocht voor de neus remt tot de bochtsnelheid', JSON.stringify(slow));
+}
+
+// een route die ver van de bot begint (#354: de M26-start in de Gelkingestraat gaf een route vanaf de Pelsterstraat, 130 m verder)
+{
+  const me = { x: 224.9, y: 233.6 };
+  ok(L.routeStartsFar(me, [[90, 293], [94, 303]]) === true, 'routeStartsFar: een route die 130 m verder begint wordt niet gevolgd');
+  ok(L.routeStartsFar(me, [[226, 236], [235, 241]]) === false, 'routeStartsFar: een route die bij de bot begint wel');
+  ok(L.routeStartsFar(me, null) === false && L.routeStartsFar(me, []) === false, 'routeStartsFar: zonder route niets');
+}
+
 console.log(`${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);

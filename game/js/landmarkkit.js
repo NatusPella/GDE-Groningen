@@ -382,8 +382,27 @@ function church(B, p, lod) {
 }
 
 // The wierde: a low mound, the churchyard wall round it, lime trees and graves.
+export const wierdeRadius = (p) => Math.max(p.len, p.wid) * 0.62 + 9;
+
+// A road through the mound's footprint (its flat top and the 7 m of slope round it) lies under it: the mound is a 1,4 m mesh the ground
+// height does not know, so the street is drawn over by grass and a walker on it stands in the hill to the hips (#5: Uithuizen Kerkplein).
+// roads: rows with pts (any road near the church). True when one of them runs within the foot of the mound.
+export function wierdeOnRoad(p, roads) {
+  const R = wierdeRadius(p) + 7;
+  for (const r of roads || []) {
+    const P = r.pts;
+    if (!P || P.length < 2 || r.bridge || r.tunnel || r.z) continue;
+    for (let i = 0; i < P.length - 1; i++) {
+      const dx = P[i + 1][0] - P[i][0], dy = P[i + 1][1] - P[i][1], L2 = dx * dx + dy * dy || 1e-9;
+      const t = Math.max(0, Math.min(1, ((p.x - P[i][0]) * dx + (p.y - P[i][1]) * dy) / L2));
+      if (Math.hypot(P[i][0] + dx * t - p.x, P[i][1] + dy * t - p.y) < R) return true;
+    }
+  }
+  return false;
+}
+
 function wierde(B, p, lod) {
-  const R = Math.max(p.len, p.wid) * 0.62 + 9, H = 1.4;
+  const R = wierdeRadius(p), H = 1.4;
   B.geo(new THREE.CylinderGeometry(R, R + 7, H, 16, 1, true), composeMatrix(0, H / 2 - 0.05, 0), 0x6f8a4e);
   B.geo(new THREE.CircleGeometry(R, 16).rotateX(-Math.PI / 2), composeMatrix(0, H - 0.04, 0), 0x6f8a4e);
   if (lod !== LOD_FULL) return;
@@ -799,13 +818,15 @@ function hall(B, p, lod) {
 // houses. Returns an item for landmarkParams, or null.
 const KIT_TYPES = new Set(['farm', 'silo', 'industrial', 'apartments', 'school', 'college', 'university', 'train_station', 'civic', 'public', 'warehouse']);
 const FARM_NAMED = new Set(['farm', 'house', 'yes', 'industrial', 'detached', 'farm_auxiliary', 'barn', 'residential']);
+// a pakhuis mapped as something else (a warehouse of the harbour often is building=yes, a converted one apartments): the name decides (#348)
+const PAKHUIS_NAMED = new Set(['yes', 'apartments', 'commercial', 'industrial', 'retail', 'service', 'warehouse']);
 const outlineArea = (o) => { let a = 0; for (let i = 0; i < o.length; i += 2) { const j = (i + 2) % o.length; a += o[i] * o[j + 1] - o[j] * o[i + 1]; } return Math.abs(a / 2); };
 
 export function kitItemFromBuilding(b, ring = null) {
   const type = b.type, name = b.name || '';
   // a name that says what it is: a museum, a town hall, a farm mapped as a house or a shed
   const named = name && (/museum/i.test(name) ? 'museum' : /stadhuis|gemeentehuis/i.test(name) ? 'townhall'
-    : /boerderij|stolp|hoeve/i.test(name) && FARM_NAMED.has(type) ? 'farm' : null);
+    : /boerderij|stolp|hoeve/i.test(name) && FARM_NAMED.has(type) ? 'farm' : /pakhuis/i.test(name) && PAKHUIS_NAMED.has(type) ? 'pakhuis' : null);
   if (!named && !KIT_TYPES.has(type)) return null;
   const pts = ring || b.pts;
   if (!pts || pts.length < 3) return null;
@@ -824,6 +845,7 @@ export function kitItemFromBuilding(b, ring = null) {
     else if (type === 'train_station') k = area >= 60 ? 'station' : null;
     else if ((type === 'civic' || type === 'public') && /stadhuis|gemeentehuis/i.test(name)) k = 'townhall';
   }
+  if (k === 'pakhuis' && (area < 150 || area > 4000)) return null;
   if (!k || area < 40 || area > 60000) return null;
   let x = 0, y = 0;
   for (const p of pts) { x += p[0]; y += p[1]; }

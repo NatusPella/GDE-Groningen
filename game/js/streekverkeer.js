@@ -16,7 +16,9 @@ const TREKKER = ['#3f8f3a', '#c0392b', '#2a5fa8', '#d9a21c'];
 const KLIKO = ['#7b8085', '#3f7f46', '#3a66a8', '#5a5f64'];
 const KOEK = ['#c98a4b', '#e3b26e', '#a8662f', '#f0d29a'];
 
-// look: { palette, size } or null (the normal cars). size scales length and width.
+// look: { palette, size, swap } or null (swap: velden van een ander model, zoals de trekker-limo) (the normal cars). size scales length and width.
+const LIMO = ['#141414', '#1b1c1f', '#26262b', '#2b1a1a'];
+
 export const TRAFFIC_STREKEN = [
   { id: 'geenverkeer', mix: { cars: 0, bikes: 0, scooters: 0, motors: 0 }, look: null },
   { id: 'fietsenstad', mix: { cars: 0, bikes: 3, scooters: 0, motors: 0 }, look: null },
@@ -28,6 +30,7 @@ export const TRAFFIC_STREKEN = [
   { id: 'minimobielen', mix: { cars: 1.6, bikes: 1, scooters: 1, motors: 1 }, look: { palette: KOEK, size: 0.7 } },
   { id: 'kliko', mix: { cars: 1.2, bikes: 1, scooters: 1, motors: 1 }, look: { palette: KLIKO, size: 0.6 } },
   { id: 'alleentrekkers', mix: { cars: 0.7, bikes: 0, scooters: 0, motors: 0 }, look: { palette: TREKKER, size: 1.25 } },
+  { id: 'trekkerlimo', mix: { cars: 0.8, bikes: 1, scooters: 1, motors: 1 }, look: { palette: LIMO, size: 1, swap: { name: 'trekkerlimo', len: 5.6, wid: 2.0 } } },
   { id: 'reuzenwagens', mix: { cars: 0.6, bikes: 1, scooters: 1, motors: 1 }, look: { palette: null, size: 1.35 } },
 ];
 
@@ -59,6 +62,7 @@ export function stepMix(cur, mix, dt, seconds = FADE_SECONDS) {
 export function lookModel(model, look, rng = Math.random) {
   if (!look || !model) return model;
   const out = { ...model };
+  if (look.swap) Object.assign(out, look.swap); // een ander model (Jelle's trekker-limo), de rijeigenschappen blijven
   if (look.palette && look.palette.length) out.color = look.palette[Math.floor(rng() * look.palette.length) % look.palette.length];
   if (look.size && look.size !== 1) { out.len = model.len * look.size; out.wid = model.wid * look.size; }
   return out;

@@ -1,4 +1,4 @@
-// keuzewerk.js: de keuzebanen (Loket, StudieStaat, Vigilantia, Kamerkoning, Wolkenhal, Helix, Niemeyer, Bernard).
+// keuzewerk.js: de keuzebanen (Loket, StudieStaat, Vigilantia, Promotie, Kamerkoning, Wolkenhal, Helix, Niemeyer, Bernard).
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -7,7 +7,8 @@ import * as K from '../game/js/keuzewerk.js';
 let n = 0, bad = 0;
 const check = (name, ok, extra) => { n++; if (!ok) { bad++; console.log('FAIL', name, extra || ''); } };
 
-check('eight jobs', K.KEUZE_IDS.join() === 'loket,studiestaat,vigilantia,kamerkoning,wolkenhal,helix,niemeyer,bernard');
+check('nine jobs', K.KEUZE_IDS.join() === 'loket,studiestaat,vigilantia,promotie,kamerkoning,wolkenhal,helix,niemeyer,bernard');
+check('every job has its own building (two jobs on one spot start only the nearest)', new Set(K.KEUZE_IDS.map((id) => K.KEUZE_JOBS[id].building)).size === K.KEUZE_IDS.length);
 const texts = [];
 for (const id of K.KEUZE_IDS) {
   const j = K.KEUZE_JOBS[id];

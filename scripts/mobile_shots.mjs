@@ -6,7 +6,7 @@
 //   node scripts/mobile_shots.mjs [--out=<map>] [--devices=360x800,412x915,...] [--only=voet,auto,...] [--scale=0.6]
 // Needs `cd desktop && npm install && npm run stage` once (GDE_ELECTRON=<pad>
 // for another electron binary). One Electron at a time: it takes a slot from
-// C:/Users/abuis/gde-locks (the night-run protocol) when that folder exists, a
+// $GDE_LOCKS, default ~/gde-locks (the night-run protocol) when that folder exists, a
 // throwaway profile (GDE_TEST_PROFILE) and BelowNormal priority; the process is
 // closed after every device.
 import { spawn, spawnSync } from 'node:child_process';
@@ -23,7 +23,7 @@ const DEFAULT = '800x360,360x800,915x412,412x915,844x390,390x844,1180x820,820x11
 const devices = arg('devices', DEFAULT).split(',');
 const only = arg('only', '');
 const scenes = path.resolve(arg('scenes', path.join(root, 'scripts', 'ui', 'mobile_scenes.js')));
-const LOCKS = process.env.GDE_LOCKS || 'C:/Users/abuis/gde-locks';
+const LOCKS = process.env.GDE_LOCKS || path.join(os.homedir(), 'gde-locks');
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 let bin = process.env.GDE_ELECTRON;

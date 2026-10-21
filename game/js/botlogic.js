@@ -32,12 +32,68 @@ export function footStick(heading, camYaw) {
   return [Math.sin(r), -Math.cos(r)];
 }
 
+// A planned route that begins far from where the bot stands (#354): the planner starts on the nearest road a vehicle may use, and in a street
+// closed to cars (the Gelkingestraat, where the M26 chase starts) that is another road, 130 m away. pts: [[x, y], ...]. Such a route is not followed.
+export function routeStartsFar(pos, pts, max = 35) {
+  return !!(pts && pts.length && distance(pos, { x: pts[0][0], y: pts[0][1] }) > max);
+}
+
+// A cyclist, a walker or a parked car in the lane ahead (#354, the M26 chase through narrow streets): how far to turn the aim away from
+// them (radians, positive = to the right, like the steer) and the speed the car can still stop from. obstacles: [{ x, y, r }] in world
+// coordinates; the corridor is the car's width plus the obstacle's radius plus a margin, `look` metres ahead. Several obstacles add up.
+export function avoidance(car, obstacles, { look = 24, half = 1.2, brake = 7, margin = 0.5 } = {}) {
+  const c = Math.cos(car.angle), s = Math.sin(car.angle);
+  let bias = 0, cap = Infinity, nearest = null;
+  for (const o of obstacles || []) {
+    const dx = o.x - car.x, dy = o.y - car.y;
+    const f = dx * c + dy * s;      // metres ahead
+    const l = -dx * s + dy * c;     // metres to the right (the right-hand side of heading a is a + 90 degrees)
+    const r = o.r ?? 0.5;
+    const need = half + r + margin;
+    if (f < -1 || f > look + r || Math.abs(l) >= need) continue;
+    // the side with room: away from where the obstacle is; dead ahead goes left (the Dutch drive on the right, an obstacle in the lane is passed on the left)
+    const side = Math.abs(l) < 0.25 ? -1 : l > 0 ? -1 : 1;
+    const push = (need - Math.abs(l)) / need;               // 1 dead ahead, 0 at the edge of the corridor
+    const near = Math.max(0, 1 - Math.max(0, f - r) / look);  // 1 right on top of it
+    bias += side * Math.min(0.9, push * (0.35 + 0.9 * near));
+    const room = f - r - 2.5;
+    cap = Math.min(cap, room > 0 ? Math.max(4, Math.sqrt(2 * brake * room) + 3) : 2);
+    if (!nearest || f < nearest.f) nearest = { f, l, r };
+  }
+  return { bias: Math.max(-1.1, Math.min(1.1, bias)), cap, nearest };
+}
+
+// The speed a car can still keep for the bends of a planned route (#354: in the narrow streets the bot took every corner at full speed and
+// ended on the pavement). pts: the route (points {x, y}), from index `from`. A corner of `theta` between two stretches of length a and b
+// can be rounded with a radius of at most min(a, b) / (2 tan(theta / 2)), which is driven at sqrt(aLat * radius) (never under `floor`);
+// before it the car may be faster by what it can still brake away over the distance: sqrt(vCorner^2 + 2 * brake * distance).
+// Returns the lowest of those speeds within `look` metres along the route (Infinity on a straight).
+export function curveCap(pts, from, car, { look = 60, aLat = 7, brake = 8, floor = 5 } = {}) {
+  const q = [{ x: car.x, y: car.y }, ...(pts || []).slice(Math.max(0, from)).map((p) => ({ x: p.x, y: p.y }))];
+  let cap = Infinity, along = 0;
+  for (let k = 1; k + 1 < q.length; k++) {
+    const a = distance(q[k - 1], q[k]), b = distance(q[k], q[k + 1]);
+    along += a;
+    if (along > look) break;
+    if (a < 0.5 || b < 0.5) continue;
+    const theta = Math.min(3.0, Math.abs(normAngle(headingTo(q[k], q[k + 1]) - headingTo(q[k - 1], q[k]))));
+    if (theta < 0.25) continue;
+    const r = Math.min(a, b, 40) / (2 * Math.tan(theta / 2));
+    const vCorner = Math.max(floor, Math.sqrt(aLat * r));
+    cap = Math.min(cap, Math.sqrt(vCorner * vCorner + 2 * brake * along));
+  }
+  return cap;
+}
+
 // Steering and pedals for a car at `car` ({x, y, angle, speed}) heading for `target`.
 // steer: -1..1 (positive turns right, like D); throttle: 1 gas, -1 brake/reverse, 0 coast.
 // opts.stopAt: true to come to rest at the target (opts.rest: from that many metres the wanted speed is 0); opts.top: speed limit in m/s.
+// opts.avoid: obstacles for avoidance() (they bend the aim and cap the speed; opts.avoidOpts: its options); opts.curveCap: a speed limit for the bends ahead (curveCap()).
 export function carControls(car, target, opts = {}) {
   const top = opts.top ?? 22;
-  const err = normAngle(headingTo(car, target) - car.angle);
+  const av = opts.avoid && opts.avoid.length ? avoidance(car, opts.avoid, opts.avoidOpts) : null;
+  const err0 = normAngle(headingTo(car, target) - car.angle);
+  const err = av ? normAngle(err0 + av.bias) : err0;
   const d = distance(car, target);
   const steer = clamp(err * 1.6, -1, 1);
   // slow for sharp turns and for the end of the route
@@ -45,7 +101,9 @@ export function carControls(car, target, opts = {}) {
   if (opts.stopAt) want = d < (opts.rest ?? 0) ? 0 : Math.min(want, Math.max(2, d * 0.5));
   const speed = car.speed || 0;
   // the target is behind us and we are slow: back up with the wheel turned the other way, so the nose swings round
-  if (Math.abs(err) > 2.0 && Math.abs(speed) < 6 && d > 8) return { steer: -steer, throttle: -1, err, dist: d, want: -3, reverse: true };
+  if (av && av.cap < want) want = av.cap;
+  if (opts.curveCap != null && opts.curveCap < want) want = opts.curveCap;
+  if (Math.abs(err0) > 2.0 && Math.abs(speed) < 6 && d > 8 && !(av && av.nearest && av.nearest.f < 6)) return { steer: -steer, throttle: -1, err, dist: d, want: -3, reverse: true };
   let throttle = 0;
   if (speed < want - 1) throttle = 1;
   else if (speed > want + 3) throttle = opts.gentle ? -0.3 : -1;   // gentle: a load of eggs breaks above 13 m/s² of braking
