@@ -112,6 +112,63 @@ export const GEBABBEL = [
   G('o-x2', 'oldambt', 'ochtend', null, ['Bakker', 'Eén brood of twee?'], ['Klant', 'Eén.'], ['Bakker', 'Je komt toch terug, neem er twee.']),
   G('v-x1', 'veenkolonien', 'middag', null, ['Kanaalbewoner', 'Dat is de Hoofdvaart.'], ['Toerist', 'Waar is dan de rest van de vaart?'], ['Kanaalbewoner', 'Die is hier, je kijkt er al uren naar.']),
   G('v-x2', 'veenkolonien', 'avond', null, ['Aardappelboer', 'De oogst is goed.'], ['Buurman', 'Hoe goed?'], ['Aardappelboer', 'Zo goed dat ik moe ben van het vertellen.']),
+
+  // --- ronde 39: meer gesprekken, ook van één regel voor een mompelende voorbijganger ---
+  G('s-o3', 'stad', 'ochtend', null, ['Student', 'Mijn eerste college begint over tien minuten.'], ['Maat', 'En je fiets?'], ['Student', 'Die begint over tien minuten ook.']),
+  G('s-m3', 'stad', 'middag', 'droog', ['Toerist', 'Is dit de Grote Markt?'], ['Inwoner', 'Dat zeggen de borden.'], ['Toerist', 'En waar is de rest van de markt?']),
+  G('s-m4', 'stad', 'middag', null, ['Terrasgast', 'Moi, nog een bakkie?']),
+  G('s-a3', 'stad', 'avond', 'droog', ['Student', 'Er is een borrel in het park.'], ['Maat', 'Er is altijd een borrel in het park.']),
+  G('s-n3', 'stad', 'nacht', null, ['Uitgaander', 'Waar is mijn fiets?'], ['Vriend', 'Je kwam met de bus.'], ['Uitgaander', 'Dan ben ik de bus kwijt.']),
+  G('s-r3', 'stad', null, 'regen', ['Voorbijganger', 'Het regent op mijn plannen.'], ['Maat', 'Dan heb je dus plannen.']),
+  G('s-w3', 'stad', null, 'mist', ['Toerist', 'Waar is de toren gebleven?'], ['Inwoner', 'Die staat er. Hij doet alleen even mee met de mist.']),
+  G('s-w4', 'stad', null, 'onweer', ['Student', 'Dat is geen onweer, dat is mijn buurman met zijn bas.']),
+
+  G('h-o3', 'hogeland', 'ochtend', 'droog', ['Boer', 'Het gras staat er mooi bij.'], ['Buurman', 'Het gras staat er altijd mooi bij.'], ['Boer', 'Daarom zeg ik het.']),
+  G('h-m3', 'hogeland', 'middag', null, ['Fietser', 'Waar is het volgende dorp?'], ['Boer', 'Zie je die toren?'], ['Fietser', 'Die zie ik al een uur.']),
+  G('h-m4', 'hogeland', 'middag', 'droog', ['Wandelaar', 'Wat een uitzicht. Er is gewoon niets in de weg.']),
+  G('h-a3', 'hogeland', 'avond', null, ['Boer', 'Er komt weer een mooie lucht aan.'], ['Maat', 'Wil je die ophalen of laten hangen?']),
+  G('h-n2', 'hogeland', 'nacht', null, ['Boer', 'Hoor je dat? Niets.'], ['Maat', 'Dat noem ik nou rust.']),
+  G('h-r2', 'hogeland', null, 'regen', ['Fietser', 'Waar schuil je hier?'], ['Boer', 'Bij mij, in de schuur.'], ['Fietser', 'Is daar een dak?']),
+  G('h-w3', 'hogeland', null, 'mist', ['Boer', 'De koeien weten de weg. Ik volg ze maar.']),
+
+  G('e-o2', 'eemsdelta', 'ochtend', null, ['Visser', 'Het was een goede nacht.'], ['Havenmeester', 'Voor de vissen of voor jou?']),
+  G('e-m3', 'eemsdelta', 'middag', 'droog', ['Toerist', 'Zijn die kranen echt?'], ['Inwoner', 'Ze doen in elk geval hun best.']),
+  G('e-m4', 'eemsdelta', 'middag', null, ['Fietser', 'Waar waait het naartoe?'], ['Havenarbeider', 'Altijd naar de zee. Behalve vandaag.']),
+  G('e-a3', 'eemsdelta', 'avond', null, ['Schipper', 'Het licht is mooi op het water.'], ['Maat', 'Het licht is altijd mooi, het water is het probleem.']),
+  G('e-n2', 'eemsdelta', 'nacht', null, ['Wachter', 'Elke nacht hetzelfde schip.'], ['Maat', 'Dat noem ik trouw.']),
+  G('e-r2', 'eemsdelta', null, 'regen', ['Visser', 'Zeg maar niets, het regent al genoeg.']),
+
+  G('w-o2', 'wadden', 'ochtend', null, ['Gids', 'We vertrekken als het water weg is.'], ['Wadloper', 'En als het terugkomt?'], ['Gids', 'Dan lopen we sneller.']),
+  G('w-m3', 'wadden', 'middag', 'droog', ['Toerist', 'Is dit nou de zee?'], ['Schipper', 'Dit is de plek waar de zee zich verstopt.']),
+  G('w-m4', 'wadden', 'middag', null, ['Strandwandelaar', 'Dat is een heel grote schelp.'], ['Kind', 'Dat is mijn schoen.']),
+  G('w-a3', 'wadden', 'avond', null, ['Schipper', 'De laatste boot vertrekt.'], ['Toerist', 'Zonder mij?'], ['Schipper', 'Daar is hij inmiddels aan gewend.']),
+  G('w-n2', 'wadden', 'nacht', null, ['Vuurtorenwachter', 'De lamp draait. Ik niet.']),
+  G('w-r2', 'wadden', null, 'regen', ['Wandelaar', 'Natte voeten.'], ['Gids', 'Voor straks is dat een voordeel.']),
+  G('w-w3', 'wadden', null, 'mist', ['Schipper', 'Ik vaar op de geur van zout.'], ['Maat', 'Dat ruikt overal naar.']),
+
+  G('k-o2', 'westerkwartier', 'ochtend', null, ['Fruitteler', 'De appels zijn vroeg wakker.']),
+  G('k-m3', 'westerkwartier', 'middag', 'droog', ['Fietser', 'Mooie route, hier.'], ['Boer', 'Die gaat ook nog ergens heen.']),
+  G('k-a2', 'westerkwartier', 'avond', null, ['Buurvrouw', 'Heb je gehoord? De bakker heeft nieuwe bollen.'], ['Buurman', 'Dat hoorde ik al van de bakker.']),
+  G('k-n2', 'westerkwartier', 'nacht', null, ['Boer', 'Het dorp is stil, alleen het klokje tikt.']),
+  G('k-r2', 'westerkwartier', null, 'regen', ['Fietser', 'Dat is wel weer een bui.'], ['Boer', 'Niet zeuren, die appels drinken mee.']),
+  G('k-w3', 'westerkwartier', null, 'mist', ['Boer', 'Ik zie mijn eigen koeien niet.'], ['Buurman', 'Dan zijn het jouw koeien niet.']),
+  G('k-w4', 'westerkwartier', null, 'onweer', ['Fruitteler', 'Alles dicht, behalve de appels.']),
+
+  G('o-o3', 'oldambt', 'ochtend', null, ['Boer', 'Het graan staat er al.'], ['Maat', 'Het graan staat er altijd, jij komt later.']),
+  G('o-m3', 'oldambt', 'middag', null, ['Fietser', 'Hoe ver is Winschoten?'], ['Boer', 'Even rechtdoor en dan nog een stukje rechtdoor.']),
+  G('o-a3', 'oldambt', 'avond', null, ['Dorpeling', 'De zon zakt achter de molen.'], ['Maat', 'Dat doet hij elke dag, hij is er goed in.']),
+  G('o-n2', 'oldambt', 'nacht', null, ['Boer', 'Zie je die sterren?'], ['Maat', 'Ik zie vooral de koplamp van die trekker.']),
+  G('o-r2', 'oldambt', null, 'regen', ['Boer', 'Ons graan zegt dank u.'], ['Fietser', 'Mijn jas zegt iets anders.']),
+  G('o-w3', 'oldambt', null, 'mist', ['Fietser', 'Is dit de weg?'], ['Boer', 'Dit is de akker.'], ['Fietser', 'Dat verklaart de klei op mijn banden.']),
+  G('o-w4', 'oldambt', null, 'onweer', ['Boer', 'De lucht is donker, de akkers stil.']),
+
+  G('v-o2', 'veenkolonien', 'ochtend', null, ['Aardappelboer', 'De rooier staat klaar.'], ['Buurman', 'En de koffie?'], ['Aardappelboer', 'Die ook.']),
+  G('v-m3', 'veenkolonien', 'middag', 'droog', ['Fietser', 'Is dit nou het kanaal?'], ['Inwoner', 'Dit is het kanaal. Dat andere ook.']),
+  G('v-a3', 'veenkolonien', 'avond', null, ['Schipper', 'De brug gaat open.'], ['Wachter', 'Kom maar, we hebben tijd.']),
+  G('v-n2', 'veenkolonien', 'nacht', null, ['Boer', 'Het is stil in de kolonie.'], ['Maat', 'Stil is een woord voor een goede nacht.']),
+  G('v-r2', 'veenkolonien', null, 'regen', ['Aardappelboer', 'Eindelijk water voor de aardappelen.'], ['Maat', 'En voor mijn pet.']),
+  G('v-w3', 'veenkolonien', null, 'mist', ['Schipper', 'Ik zie de brug niet.'], ['Brugwachter', 'Dat hoort ook zo. Hij komt vanzelf.']),
+  G('v-w4', 'veenkolonien', null, 'onweer', ['Boer', 'Alles onder dak, de trekker ook.']),
 ];
 
 // --- daypart, weather and area -------------------------------------------------------------
@@ -143,9 +200,10 @@ export function gebabbelFor(area, part, wet) {
 }
 
 // Eén gesprek: weer en tijd van de dag eerst (specifiek wint), nooit er één uit `recent` (ids) als er keus is.
-// rng() in [0, 1).
-export function rollGebabbel(area, part, wet, rng = Math.random, recent = []) {
-  const pool = gebabbelFor(area, part, wet);
+// rng() in [0, 1). maxParties: 1 geeft alleen gesprekken met één spreker (een mompelende voorbijganger).
+export function rollGebabbel(area, part, wet, rng = Math.random, recent = [], maxParties = 9) {
+  const parties = (g) => new Set(g.lines.map((l) => l[0])).size;
+  const pool = gebabbelFor(area, part, wet).filter((g) => parties(g) <= maxParties);
   if (!pool.length) return null;
   const fresh = pool.filter((g) => !recent.includes(g.id));
   let pick = fresh.length ? fresh : pool;
