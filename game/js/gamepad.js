@@ -7,7 +7,7 @@
 // steering, the camera, the mouse buttons). The last input used decides
 // which glyphs the hints show: `pad-active` on <html> plus `data-pad` with
 // the controller family; any real key or mouse use switches back.
-import { PAD_BUTTONS, PAD_MAPS, buttonSlots, padFamily } from './controls.js';
+import { PAD_BUTTONS, PAD_MAPS, GAME_PAD_CTX, buttonSlots, padFamily } from './controls.js';
 import { getSettings, onSettingsChange } from './settings.js';
 import { sendKey } from './input.js';
 import { playerBusy } from './busy.js';
