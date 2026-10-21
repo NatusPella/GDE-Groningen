@@ -62,6 +62,9 @@ function plan(s, mode, tgt) {
   } catch (e) { B.log('routefout', { msg: String(e && e.message || e).slice(0, 200) }); }
   // outside the city graph (the Ommeland) planLandRoute finds nothing, and where the own route ran into a wall (a detour was needed)
   // the line the game itself shows the player is the better one, when it leads to this goal
+  // the planner starts a route on the nearest road it may use: a car that stands in a street closed to cars (the Gelkingestraat, where the M26 chase
+  // starts) got a route that began on the Pelsterstraat, 130 m away, and drove straight at that first point through the houses (#354)
+  if (pts && mode !== 'boat' && L.distance(me, { x: pts[0][0], y: pts[0][1] }) > 35) { B.log('route-start-ver', { van: [Math.round(me.x), Math.round(me.y)], eerste: pts[0].map(Math.round) }); pts = null; }
   let src = pts ? 'plan' : 'recht';
   if (!pts || (kind === 'walk' && detours[mem.stageKey] > 0)) {
     try {
