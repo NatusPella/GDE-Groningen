@@ -264,7 +264,7 @@ export const SURFACES = {
   activiteit: { files: ['stunthud.js', 'heistui.js', 'casework.js', 'bakeround.js', 'carbid.js', 'dorpsuitjes.js', 'kermis.js', 'padel.js', 'pigeonmode.js', 'postgame.js', 'reuzenrad.js', 'rondvaartchase.js', 'stationtravel.js'], zone: 'C', p: P1, own: 'het paneel van de activiteit zelf; de activiteit bepaalt wanneer, playerBusy houdt de rest weg' },
   voertuighud: { files: ['heliflight.js', 'helirun.js', 'planeflight.js', 'busboard3d.js'], zone: 'H', p: P2, own: 'vervangt de snelheidsmeter zolang je vliegt (body.heli-flying)' },
   samen: { files: ['coophud.js', 'coophold.js', 'coopscene.js', 'partnerhud.js'], p: P2, own: 'het partnerlabel en de fade bij samen spelen, en het meekijklaagje van een gast op de scene van de host (coopscene.js, volgt wat de host toont); geen eigen planner' },
-  menu: { files: ['pausemenu.js', 'mapview.js', 'phone.js', 'todoui.js', 'garageui.js', 'shopui.js', 'verhaalui.js', 'profileoverlay.js', 'startscreen.js', 'furniture.js', 'gfxprofile.js'], own: 'de speler opent het zelf; het is modaal en de rest wacht' },
+  menu: { files: ['pausemenu.js', 'mapview.js', 'phone.js', 'todoui.js', 'garageui.js', 'shopui.js', 'verhaalui.js', 'profileoverlay.js', 'startscreen.js', 'furniture.js', 'gfxprofile.js', 'samenkeuze.js', 'textfield.js'], own: 'de speler opent het zelf; het is modaal en de rest wacht' },
   invoer: { files: ['input.js', 'touch.js', 'aimassist.js'], own: 'invoer en richtkruis; vragen de aandacht niet' },
   dev: { files: ['storydev.js', 'storytest.js', 'testmenu.js', 'padtest.js', 'trailer.js'], own: 'ontwikkel- en promohulpen; niet voor de speler' },
   effect: { files: ['postfx3d.js', 'drunk.js'], own: 'schermeffect zonder tekst (flits, kleur); geen informatie' },
