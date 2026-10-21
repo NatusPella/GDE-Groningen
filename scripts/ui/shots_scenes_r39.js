@@ -385,5 +385,76 @@ if (want('bus2')) {
     p.exitVehicle(map, w);
   }
 }
+
+// ---- #190: voorbijgangers praten in tekstbellen ----
+if (want('praat')) {
+  clearInterval(skipper);
+  w.clock = 14;
+  const SP = await imp('straatpraat');
+  const home = map.findOpenSpawn(100, 77, 60) || { x: 100, y: 77 };
+  const keepP = setInterval(() => { p.x = home.x; p.y = home.y; p.vx = p.vy = 0; w.clock = 14; }, 50);
+  teleport(home.x, home.y);
+  for (let i = 0; i < 40 && document.querySelector('.ls.on:not(.out)'); i++) await sleep(500);
+  await sleep(3000);
+  let got = 0, seen = [];
+  for (let t2 = 0; t2 < 120 && got < 3; t2++) {
+    await sleep(1000);
+    const talking = w.pedestrians.filter((q) => q.speechText && w.time < q.speechUntil);
+    if (SP.straatpraatState().run && talking.length) {
+      await sleep(600);
+      const again = w.pedestrians.filter((q) => q.speechText && w.time < q.speechUntil);
+      if (!again.length) continue;
+      got++;
+      seen.push(again.map((q) => q.speechText).join(' / '));
+      console.log('[capture] praat-' + got);
+      await sleep(3500);
+    }
+  }
+  info.push('praat: ' + got + ' gesprekken in beeld; ' + JSON.stringify(seen) + ' staat ' + JSON.stringify(SP.straatpraatState()));
+  clearInterval(keepP);
+}
+
+// ---- #61: Alles is een kliko, Kleine mensjes, Reuzenduif, Altijd groen ----
+if (want('streken')) {
+  clearInterval(skipper);
+  w.clock = 14;
+  const ACH = await imp('achievements');
+  const CH = await imp('cheats');
+  for (const id of ['kliko', 'kleinemensjes', 'reuzenduif', 'altijdgroen']) { try { ACH.recordUnique(w, 'streken', id); } catch (e) { info.push('unlock ' + id + ': ' + e.message); } }
+  info.push('aan: ' + ['kliko', 'kleinemensjes', 'reuzenduif', 'altijdgroen'].map((id) => id + '=' + CH.setCheat(id, true)).join(' '));
+  const rp = map.nearestRoadPoint(100, 77, 500, true) || { x: 100, y: 77 };
+  const keepS = setInterval(() => { p.x = rp.x; p.y = rp.y; p.vx = p.vy = 0; w.clock = 14; }, 50);
+  teleport(rp.x, rp.y);
+  for (let i = 0; i < 40 && document.querySelector('.ls.on:not(.out)'); i++) await sleep(500);
+  await sleep(45000);
+  console.log('[capture] streken-1');
+  await sleep(2500);
+  const gh = (x, y) => (map.groundHeightAt ? map.groundHeightAt(x, y, 0) || 0 : 0);
+  const car = w.vehicles.filter((v) => !v.isBike && !v.isBoat && !v.isHeroCar && Math.hypot(v.x - p.x, v.y - p.y) < 60 && !v.parked).sort((a, b) => Math.hypot(a.x - p.x, a.y - p.y) - Math.hypot(b.x - p.x, b.y - p.y))[0];
+  info.push('auto dichtbij ' + (car ? JSON.stringify({ len: +(car.model.len || 0).toFixed(2), color: car.model.color }) : 'geen'));
+  if (car) {
+    const g = gh(car.x, car.y);
+    const pose = { position: { x: car.x + 5, y: car.y + 5, z: g + 2.2 }, lookAt: { x: car.x, y: car.y, z: g + 0.7 }, cut: true };
+    cine.playCinematic({ id: 'vi-kliko', duration: 30, priority: 9, shot: () => pose });
+    await sleep(2000);
+    console.log('[capture] streken-auto');
+    await sleep(500);
+    cine.skipCinematic();
+  }
+  const ped = w.pedestrians.filter((q) => !q.isCop && Math.hypot(q.x - p.x, q.y - p.y) < 25).sort((a, b) => Math.hypot(a.x - p.x, a.y - p.y) - Math.hypot(b.x - p.x, b.y - p.y))[0];
+  if (ped) {
+    const g = gh(ped.x, ped.y);
+    const pose = { position: { x: ped.x + 3, y: ped.y + 3, z: g + 1.4 }, lookAt: { x: ped.x, y: ped.y, z: g + 0.5 }, cut: true };
+    cine.playCinematic({ id: 'vi-klein', duration: 30, priority: 9, shot: () => pose });
+    await sleep(2000);
+    console.log('[capture] streken-mensje');
+    await sleep(500);
+    cine.skipCinematic();
+  }
+  info.push('pedScale ' + (await imp('cheatmods')).MODS.pedScale + ' pigeonScale ' + (await imp('cheatmods')).MODS.pigeonScale + ' alwaysGreen ' + (await imp('cheatmods')).MODS.alwaysGreen);
+  for (const id of ['kliko', 'kleinemensjes', 'reuzenduif', 'altijdgroen']) CH.setCheat(id, false);
+  clearInterval(keepS);
+  done.push('streken');
+}
 clearInterval(skipper);
 return done.concat(info);
