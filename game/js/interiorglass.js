@@ -240,7 +240,7 @@ vec3 igProducts(vec2 c, float detail, float style, int st) {
     col = vec3(0.3);
     if (fx > 0.06 && fx < 0.94 && fy > 0.05) col = fy > 0.65 ? mix(acc.rgb, vec3(0.95, 0.85, 0.2), h) : 0.55 + 0.4 * vec3(fract(h * 3.7), fract(h * 5.3), fract(h * 9.1));
   } else if (pat == 12) {
-    // kermiskraam: een gestreepte zeildoek-wand, een rij gloeilampjes, oliebollen (poedersuiker) en suikerspin op de planken
+    // kermiskraam: een gestreepte zeildoek-wand, een rij gloeilampjes, poffertjes (poedersuiker) en suikerspin op de planken
     col = mod(floor(c.x / 0.28), 2.0) < 0.5 ? vec3(0.86, 0.2, 0.16) : vec3(0.97, 0.93, 0.82);
     if (c.y < 1.45) {
       col = c.y < 0.1 ? vec3(0.3, 0.2, 0.12) : vec3(0.47, 0.31, 0.19);

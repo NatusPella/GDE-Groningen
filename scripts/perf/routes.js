@@ -744,10 +744,11 @@ results.routes.r46 = await safe('r46', async () => {
   const VAR = (window.__perfR46 || 'base;nopostfx;noshadow;pauzesim;hudoff').split(';').filter(Boolean);
   fixWorld(); teleport(FOOT[0][0], FOOT[0][1]); w.camYaw = 0.3; p.angle = 0.3;
   const FLEN = pathLen(FOOT);
-  const SPEED = window.__perfAbMove === 0 || !window.__perfAbMove ? 3 : window.__perfAbMove === 9 ? 0 : 3; // PERF_AB_MOVE=9: standing still
-  const wt0 = performance.now();
+  let SPEED = window.__perfAbMove === 9 ? 0 : 3; // PERF_AB_MOVE=9: standing still; a variant 'stand' stands still for its window
+  let sAcc = 0, tPrev = performance.now();
   mover = (now) => { // 3 m/s along the path, back and forth
-    const s = ((now - wt0) / 1000) * SPEED, L = FLEN * 2, m = s % L, back = m > FLEN;
+    sAcc += ((now - tPrev) / 1000) * SPEED; tPrev = now;
+    const s = sAcc, L = FLEN * 2, m = s % L, back = m > FLEN;
     const q = at(FOOT, back ? L - m : m);
     p.x = q.x; p.y = q.y; p.angle = back ? q.ang + Math.PI : q.ang; w.camYaw = p.angle;
   };
@@ -787,8 +788,17 @@ results.routes.r46 = await safe('r46', async () => {
   };
   const dispOff = () => { if (!dispWho) return null; for (const [proto, f] of dispOrig) proto.dispose = f; dispOrig.length = 0; const o = dispWho; dispWho = null; return o; };
   const SETm = await imp('settings'), SCNm = await imp('scene3d'); let undoSet = null;
+  // progcalls: how often three asks for a material's program per frame (getParameters calls the material's customProgramCacheKey each time); by material
+  let progC = null, progOrig = null;
+  const progOn = () => {
+    progC = new Map(); progOrig = T.Material.prototype.customProgramCacheKey;
+    T.Material.prototype.customProgramCacheKey = function () { const k = this.type + ' ' + (this.name || '') + ' ' + (this.userData && this.userData.pk !== undefined ? 'pk' : '') + (this.skinning ? 's' : '') + ' #' + this.id; progC.set(k, (progC.get(k) || 0) + 1); return progOrig.call(this); };
+  };
+  const progOff = () => { if (!progC) return null; T.Material.prototype.customProgramCacheKey = progOrig; const o = progC; progC = null; return o; };
   const apply = (name) => {
     const set = new Set(name.split('+'));
+    if (set.has('progcalls') && !progC) progOn();
+    SPEED = set.has('stand') ? 0 : window.__perfAbMove === 9 ? 0 : 3;
     // set:<setting>:<value>: that setting for this window only (set:resolution:0.5, set:quality:laag, set:drawDistance:kort)
     if (undoSet) { undoSet(); undoSet = null; }
     const sets = {}; for (const t of set) if (t.startsWith('set:')) { const [, k, v] = t.split(':'); sets[k] = v; }
@@ -817,6 +827,8 @@ results.routes.r46 = await safe('r46', async () => {
       if (round === 0 && name === 'base' && (window.__perfProfile || '').split(',').includes('r46trace')) console.log('[trace] ' + Math.min(WIN - 1500, 6000));
       const frames0 = H.frames.length;
       const cc0 = calls, tr0 = tris, rn0 = renders;
+      const batchNow = () => Object.fromEntries(Object.entries(sc.batches()).filter(([, v]) => v && v.ms !== undefined).map(([k, v]) => [k, [v.ms, v.frames, v.builds, v.dropped]]));
+      const bs0 = batchNow();
       // heap per frame (with --enable-precise-memory-info): what rises between two frames is what the frame allocated, a fall is a GC
       const heap = []; let heapOn = true; const heapTick = () => { heap.push(performance.memory.usedJSHeapSize); if (heapOn) requestAnimationFrame(heapTick); }; requestAnimationFrame(heapTick);
       await sleep(WIN);
@@ -828,9 +840,13 @@ results.routes.r46 = await safe('r46', async () => {
       const dts = []; for (let i = 1; i < fr.length; i++) dts.push(fr[i][0] - fr[i - 1][0]);
       const hist = { '<12': 0, '12-15': 0, '15-18': 0, '18-25': 0, '25-36': 0, '36-50': 0, '>50': 0 };
       for (const d of dts) hist[d < 12 ? '<12' : d < 15 ? '12-15' : d < 18 ? '15-18' : d < 25 ? '18-25' : d < 36 ? '25-36' : d < 50 ? '36-50' : '>50']++;
-      const row = { name, round, ...res, hist, callsPerFrame: Math.round((calls - cc0) / Math.max(1, res.frames)), rendersPerFrame: +((renders - rn0) / Math.max(1, res.frames)).toFixed(2) };
+      const bs1 = batchNow();
+      const batch = Object.fromEntries(Object.keys(bs1).map((k) => [k, { msPerFrame: +((bs1[k][0] - bs0[k][0]) / Math.max(1, bs1[k][1] - bs0[k][1])).toFixed(3), builds: bs1[k][2] - bs0[k][2], dropped: bs1[k][3] - bs0[k][3] }]));
+      const row = { name, round, ...res, hist, callsPerFrame: Math.round((calls - cc0) / Math.max(1, res.frames)), rendersPerFrame: +((renders - rn0) / Math.max(1, res.frames)).toFixed(2), batch };
       { let up = 0, gcs = 0, gcKB = 0; for (let i = 1; i < heap.length; i++) { const d = heap[i] - heap[i - 1]; if (d >= 0) up += d; else { gcs++; gcKB += -d; } } row.alloc = { kbPerFrame: +(up / 1024 / Math.max(1, heap.length - 1)).toFixed(1), gcs, gcMB: +(gcKB / 1048576).toFixed(1), perSecond: +(gcs / (WIN / 1000)).toFixed(2) }; }
-      if (window.__hitch) { const hs = window.__hitch.summary(); row.sections = hs.sections; }
+      if (window.__hitch) { const hs = window.__hitch.summary(); row.sections = hs.sections; row.peaks = hs.peaks; row.slowFrames = hs.slow.slice(0, 12).map((q) => [q.gap, q.cpu, (q.sections || []).slice(0, 4)]); }
+      const pc = progOff();
+      if (pc) { const f = Math.max(1, res.frames); const rows = [...pc].sort((a, b) => b[1] - a[1]); row.progcalls = { perFrame: +(rows.reduce((q, x) => q + x[1], 0) / f).toFixed(1), materials: rows.length, top: rows.slice(0, 14).map(([k, n]) => [k, +(n / f).toFixed(2)]) }; }
       const dw = dispOff();
       if (dw) row.dispose = [...dw].sort((a, b) => b[1] - a[1]).slice(0, 25).map(([k, n]) => [k, +(n / Math.max(1, res.frames)).toFixed(3)]);
       const gt = glOff();

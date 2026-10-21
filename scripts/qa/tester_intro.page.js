@@ -46,7 +46,7 @@ const t0 = performance.now();
 for (let i = 0; i < 120; i++) {
   const up = !!ss && ss.classList.contains('visible');
   if (up) {
-    const it = [...ss.querySelectorAll('.ss-item')].find((q) => /nieuw spel/i.test(q.textContent));
+    const it = (window.__menuStart ? { click: () => window.__menuStart('nieuw') } : null);
     if (it) it.click(); else key('Enter', 'Enter');
     await sleep(2500);
     if (!ss.classList.contains('visible')) break;

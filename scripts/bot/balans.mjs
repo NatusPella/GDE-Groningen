@@ -20,7 +20,7 @@ export function readEvents(dir) {
 export function stepsOf(events) {
   const steps = new Map();
   const cur = { id: null };
-  const get = (id) => { if (!steps.has(id)) steps.set(id, { id, title: '', t0: null, t1: null, speel: null, wall: null, dist: null, cine: null, cineN: null, talk: null, goals: 0, maxQuiet: null, fails: 0, stuck: 0, cheats: [], outcome: '', cineDur: [], routes: [], firstStatus: null, stages: new Set(), stagesKnown: false, failTekst: [], pogingen: [[]] }); return steps.get(id); };
+  const get = (id) => { if (!steps.has(id)) steps.set(id, { id, title: '', t0: null, t1: null, speel: null, wall: null, dist: null, cine: null, cineN: null, talk: null, goals: 0, maxQuiet: null, fails: 0, stuck: 0, cheats: [], outcome: '', cineDur: [], routes: [], firstStatus: null, stages: new Set(), stagesKnown: false, failTekst: [], pogingen: [[]], tMissie: null, aanloop: [] }); return steps.get(id); };
   for (const e of events) {
     if (e.type === 'step' && e.event === 'begin') { cur.id = e.id; const s = get(e.id); s.title = e.label || ''; if (s.t0 == null) s.t0 = e.t; }
     else if (e.type === 'step' && e.event === 'end') {
@@ -30,11 +30,12 @@ export function stepsOf(events) {
       s.speel = s.t0 != null ? Math.round((e.t - s.t0) * 10) / 10 : null;
     } else if (cur.id) {
       const s = get(cur.id);
+      if (e.type === 'mission' && e.event === 'start' && s.tMissie == null) s.tMissie = e.t;
       if (e.type === 'mission' && e.event === 'fail') { s.fails++; s.pogingen.push([]); s.failTekst.push((e.msgs || []).filter((m) => /mislukt|tijd|kwijt|betrapt|opgepakt|weg|stuk|kapot|te laat|vertrokken|dicht/i.test(m))[0] || (e.msgs || [])[0] || ''); }
       else if (e.type === 'stuck') s.stuck++;
       else if (e.type === 'cheat' && e.rung !== 'nudge') s.cheats.push(e.rung);
       else if (e.type === 'cine') s.cineDur.push(e.dur);
-      else if (e.type === 'doel' && Number.isFinite(e.afstand)) { s.routes.push({ afstand: e.afstand, veh: e.veh }); s.pogingen[s.pogingen.length - 1].push({ afstand: e.afstand, veh: e.veh }); if (e.stage) { s.stages.add(e.stage); s.stagesKnown = true; } }
+      else if (e.type === 'doel' && Number.isFinite(e.afstand)) { if (s.tMissie == null) { s.aanloop.push({ afstand: e.afstand, veh: e.veh }); } else { s.routes.push({ afstand: e.afstand, veh: e.veh }); s.pogingen[s.pogingen.length - 1].push({ afstand: e.afstand, veh: e.veh }); } if (e.stage) { s.stages.add(e.stage); s.stagesKnown = true; } }
       else if (e.type === 'status') {
         if (!s.firstStatus && Number.isFinite(e.dist)) s.firstStatus = { afstand: e.dist, veh: e.veh };
       }
@@ -68,7 +69,7 @@ export async function cutsceneSpreiding() {
 // first status when the run did not log it). Time: 5,5 m/s on foot, 14 m/s in a vehicle. Goals beyond 8 km (a train, a flight) are left out.
 export function nominaal(s) {
   // a failed attempt starts the step over: the longest single attempt is the route (the sum over the retries would count it again)
-  const lists = s.pogingen.some((l) => l.length) ? s.pogingen : s.firstStatus ? [[s.firstStatus]] : [[]];
+  const lists = s.pogingen.some((l) => l.length) ? s.pogingen : s.aanloop.length ? [s.aanloop] : s.firstStatus ? [[s.firstStatus]] : [[]];
   let best = { meter: 0, sec: 0 };
   for (const list of lists) {
     let m = 0, t = 0;
@@ -76,6 +77,11 @@ export function nominaal(s) {
     if (m > best.meter) best = { meter: Math.round(m), sec: Math.round(t) };
   }
   return best;
+}
+
+// the run-up: the distance to the mission's start before it began (the player walks or drives there, a travel step covers the rest)
+export function aanloopMeter(s) {
+  return Math.round(s.aanloop.filter((r) => r.afstand < 100000).reduce((m, r) => m + r.afstand, 0));
 }
 
 export const AKTEN = { kop: 'Akte 1', romp: 'Akte 2', staart: 'Akte 3', zuid: 'Akte 4', ontzet: 'Akte 5' };
@@ -111,10 +117,10 @@ export function rapport(runList) {
     const res = fs.existsSync(path.join(dir, 'result.json')) ? JSON.parse(fs.readFileSync(path.join(dir, 'result.json'), 'utf8')) : {};
     const { med, out } = afwijkingen(steps);
     lines.push(`## ${AKTEN[name] || name}`, '', `Run \`${path.basename(path.dirname(dir))}/${path.basename(dir)}\`: uitkomst ${res.result || 'onbekend'}, speeltijd ${fmt(res.gameSeconds)}, echte tijd ${fmt(res.wallSeconds)}.`, '');
-    lines.push('| Stap | Titel | Speeltijd | Echt | Route | Reistijd | Afstand bot | Cutscene | Gesprek | Doelwissels | Soorten stap | Langste stilte | Tijdlimiet (gebruikt) | Opnieuw | Vast | Cheats |', '|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|');
+    lines.push('| Stap | Titel | Speeltijd | Echt | Aanloop | Route | Reistijd | Afstand bot | Cutscene | Gesprek | Doelwissels | Soorten stap | Langste stilte | Tijdlimiet (gebruikt) | Opnieuw | Vast | Cheats |', '|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|');
     for (const s of steps) {
       if (s.speel == null) continue;
-      lines.push(`| ${s.id} | ${(s.title || '').slice(0, 34)} | ${fmt(s.speel)} | ${fmt(s.wall)} | ${nominaal(s).meter} m | ${fmt(nominaal(s).sec)} | ${s.dist ?? '-'} m | ${fmt(s.cine)} | ${fmt(s.talk)} | ${s.goals} | ${s.stagesKnown ? s.stages.size : '-'} | ${s.maxQuiet != null ? Math.round(s.maxQuiet) + ' s' : '-'} | ${s.limiet > 0 ? `${fmt(s.actief)} van ${fmt(s.limiet)}` : '-'} | ${s.fails} | ${s.stuck} | ${s.cheats.length ? s.cheats.join(', ') : '-'} |`);
+      lines.push(`| ${s.id} | ${(s.title || '').slice(0, 34)} | ${fmt(s.speel)} | ${fmt(s.wall)} | ${s.aanloop.length ? aanloopMeter(s) + ' m' + (s.tMissie != null && s.t0 != null ? ` (${fmt(s.tMissie - s.t0)})` : '') : '-'} | ${nominaal(s).meter} m | ${fmt(nominaal(s).sec)} | ${s.dist ?? '-'} m | ${fmt(s.cine)} | ${fmt(s.talk)} | ${s.goals} | ${s.stagesKnown ? s.stages.size : '-'} | ${s.maxQuiet != null ? Math.round(s.maxQuiet) + ' s' : '-'} | ${s.limiet > 0 ? `${fmt(s.actief)} van ${fmt(s.limiet)}` : '-'} | ${s.fails} | ${s.stuck} | ${s.cheats.length ? s.cheats.join(', ') : '-'} |`);
     }
     lines.push('', `Mediaan speeltijd van de stappen zonder cheat: ${fmt(med)}.`, '');
     const mis = steps.filter((x) => x.failTekst.length);

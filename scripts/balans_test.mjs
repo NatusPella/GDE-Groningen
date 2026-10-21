@@ -17,7 +17,7 @@ const step = (id, t0, t1, extra = {}, inside = []) => {
 step('M01', 0, 200);
 step('M02', 200, 400);
 step('M03', 400, 640);
-step('M04', 640, 1500, { dist: 2400, maxQuiet: 130 }, [{ type: 'mission', event: 'fail' }, { type: 'mission', event: 'fail' }, { type: 'cine', dur: 12 }, { type: 'doel', afstand: 1500, veh: 'auto', eerste: true }, { type: 'doel', afstand: 900, veh: 'te voet' }]);
+step('M04', 640, 1500, { dist: 2400, maxQuiet: 130 }, [{ type: 'mission', event: 'start' }, { type: 'mission', event: 'fail' }, { type: 'mission', event: 'fail' }, { type: 'cine', dur: 12 }, { type: 'doel', afstand: 1500, veh: 'auto', eerste: true }, { type: 'doel', afstand: 900, veh: 'te voet' }]);
 step('M06', 1560, 1800, { limiet: 300, restMin: 12, actief: 288 });
 step('M07', 1800, 2000, { limiet: 600, restMin: 480, actief: 60 });
 step('M05', 1500, 1560, {}, [{ type: 'cheat', rung: 'objective' }, { type: 'cheat', rung: 'nudge' }, { type: 'stuck' }]);
@@ -51,8 +51,11 @@ ok(!out.some((o) => o.id === 'M05' && o.soort === 'lang'), 'een stap met een che
 
 // een mislukte poging begint de stap opnieuw: de route is de langste poging, niet de som
 {
-  const { nominaal } = await import('./bot/balans.mjs');
-  const e4 = [{ t: 0, type: 'step', event: 'begin', id: 'M09' }, { t: 1, type: 'doel', afstand: 700, veh: 'auto' }, { t: 2, type: 'doel', afstand: 2300, veh: 'auto' }, { t: 50, type: 'mission', event: 'fail', msgs: [] }, { t: 51, type: 'doel', afstand: 700, veh: 'auto' }, { t: 52, type: 'doel', afstand: 2300, veh: 'auto' }, { t: 100, type: 'step', event: 'end', id: 'M09', outcome: 'klaar' }];
+  const { nominaal, aanloopMeter } = await import('./bot/balans.mjs');
+  const e4 = [{ t: 0, type: 'step', event: 'begin', id: 'M09' }, { t: 0.5, type: 'mission', event: 'start' }, { t: 1, type: 'doel', afstand: 700, veh: 'auto' }, { t: 2, type: 'doel', afstand: 2300, veh: 'auto' }, { t: 50, type: 'mission', event: 'fail', msgs: [] }, { t: 51, type: 'doel', afstand: 700, veh: 'auto' }, { t: 52, type: 'doel', afstand: 2300, veh: 'auto' }, { t: 100, type: 'step', event: 'end', id: 'M09', outcome: 'klaar' }];
+  const e5 = [{ t: 0, type: 'step', event: 'begin', id: 'M13' }, { t: 1, type: 'doel', afstand: 43455, veh: 'te voet' }, { t: 600, type: 'mission', event: 'start' }, { t: 601, type: 'doel', afstand: 130, veh: 'te voet', stage: 'goto' }, { t: 700, type: 'step', event: 'end', id: 'M13', outcome: 'klaar' }];
+  const s13 = stepsOf(e5)[0];
+  ok(nominaal(s13).meter === 130 && aanloopMeter(s13) === 43455, 'de aanloop naar de missiestart telt niet als route van de missie');
   ok(nominaal(stepsOf(e4)[0]).meter === 3000, 'de route telt de poging, niet de som van de pogingen');
 }
 

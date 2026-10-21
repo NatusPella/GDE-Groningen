@@ -12,7 +12,7 @@ snap('voor nieuw spel');
 for (let i = 0; i < 120; i++) {
   const up = !!ss && ss.classList.contains('visible');
   if (up) {
-    const it = [...ss.querySelectorAll('.ss-item')].find((q) => /nieuw spel/i.test(q.textContent));
+    const it = (window.__menuStart ? { click: () => window.__menuStart('nieuw') } : null);
     if (it) it.click();
     await sleep(2500);
     if (!ss.classList.contains('visible')) break;
