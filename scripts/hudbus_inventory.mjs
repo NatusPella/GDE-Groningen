@@ -129,8 +129,8 @@ const INFO = {
   },
   samen: {
     api: null,
-    what: 'Samen spelen: de fade bij binnenkomst en het partnerlabel.',
-    suggest: 'Blijft; klein en zonder tekst.',
+    what: 'Samen spelen: de fade bij binnenkomst en de spelerslijst bij Tab (nooit permanent in beeld; de lijst met acties staat in het pauzemenu).',
+    suggest: 'Blijft; klein en alleen op verzoek van de speler.',
   },
   menu: {
     api: null,
