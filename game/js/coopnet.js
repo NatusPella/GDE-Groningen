@@ -18,9 +18,10 @@ import { partnersInfo, createPings, addPing, tickPings, pingEvent } from './part
 import { holdBeleid, leesLijstEvent, lijst } from './coopplayers.js';
 import { cameraRelative, stepSlot2, sharedCamera } from './coop.js';
 import { gateOn, setGate } from './coopgate.js';
+import { WIEL_TEKST, WIEL_HOST_TEKST, WIEL_VERZOEK_S } from './coopgast.js';
 import { nieuwCutVerzamelaar, cutGastSpeel, cutGastStop, leesCutTijd, cutSpoor } from './coopcut.js';
 import { verzamelEntiteiten, leesEntiteiten, missieBericht, leesMissieBericht, missieTekst, sceneBericht, leesSceneBericht, sceneLeeg, filmpjeTekst } from './coopworld.js';
-import { verhaalRol, openerNaam } from './coopplayers.js';
+import { verhaalRol, openerNaam, charInfo } from './coopplayers.js';
 import { KLOK_EVERY, klokEvent, leesKlokEvent, KlokVolger } from './net/speelklok.js';
 import { HASH_EVERY, viewOf, hashEvent, leesHashEvent, DesyncMonitor } from './net/desync.js';
 
@@ -78,6 +79,8 @@ function prepareCoop(world) {
 function endCoop(world) {
   if (world.coop) { world.coop.remote = false; world.coop.remoteInput = null; world.coop.fixedChars = false; if (world.coop.prevLocal !== undefined) { world.coop.local = world.coop.prevLocal; world.coop.prevLocal = undefined; } }
   world.coopPartner = null; world.coopPartners = []; world.coopRoster = null; world.coopFigures = {}; world.coopHost = null; world.coopHostMissie = null; world.coopCam = null; world.coopScene = null;
+  world.coopMeld = null; world.coopGebruik = false; world.coopWielSlot = null; world.coopWielVraag = null; world.coopWiel = false; world.coopInVoertuig = false; // (#291)
+  if (world.companion) world.companion.coopUit = false;
 }
 const now = (world) => (Number.isFinite(world.time) ? world.time : Date.now() / 1000);
 
@@ -128,6 +131,7 @@ export function startHost(world, info, opts = {}) {
   setFixedCharacters(world, 0);
   world.coopRole = 'host';
   world.coopRoster = lijst(hub.roster);
+  world.coopMeld = (slot, tekst) => hub.announce({ k: 'melding', tekst: String(tekst).slice(0, 90) }, slot); // een korte melding voor een gast (#291)
   world.coopNet = { role: 'host', hub, fade, route, removing: {}, info, tKlok: 0, tHash: 0, hashN: 0, scene, tScene: 0, filmpjeT: 0, sceneNu: null };
   return hub;
 }
@@ -187,7 +191,8 @@ export function tickCoopNet(world, dt) {
       stopCoopNet(world); return;
     }
     const inp = world.input;
-    const m = makeClientInput(inp && inp.axis ? inp.axis() : [0, 0], !!(inp && inp.isDown && inp.isDown('shift')), world.camYaw);
+    const m = makeClientInput(inp && inp.axis ? inp.axis() : [0, 0], !!(inp && inp.isDown && inp.isDown('shift')), world.camYaw, !!(world.coopWiel && inp && inp.isDown && inp.isDown(' ')));
+    if (inp && inp.wasPressed && inp.wasPressed('y')) wielGebaar(world); // Y: om het stuur vragen (#291)
     if (world.coopScene && world.coopScene.filmpje) s.setInput(0, 0, 0, m.yaw); // de gastheer kijkt een filmpje: Tessa staat stil
     else s.setInput(m.mx, m.my, m.buttons, m.yaw);
     s.tick(dt);
@@ -202,6 +207,9 @@ export function tickCoopNet(world, dt) {
       const sample = s.world();
       if (sample && !n.joined) { n.joined = true; if (n.fade) n.fade('in'); }
       applyHostState(world, s.slot, sample, world.coopRoster, dt);
+      const ik = sample && sample.players.find((q) => q.slot === s.slot);
+      world.coopInVoertuig = !!(ik && ik.inVeh);
+      if (!world.coopInVoertuig) world.coopWiel = false;
       world.coopHost = sample ? leesEntiteiten(sample.entities) : { voertuigen: [], doelen: [], voetgangers: [] };
       world.coopPartners = partnersInfo(s.slot, sample ? sample.players : [], world.coopRoster || []);
       world.coopPartner = world.coopPartners[0] || null;
@@ -211,6 +219,8 @@ export function tickCoopNet(world, dt) {
   }
   for (const [slot, t] of Object.entries(n.removing)) { n.removing[slot] = t - dt; if (n.removing[slot] <= 0) { delete n.removing[slot]; n.hub.release(+slot); } }
   n.hub.tick(dt);
+  if (world.input && world.input.wasPressed && world.input.wasPressed('y')) wielGebaar(world); // Y: het stuur geven of terugnemen (#291)
+  if (world.coopWielSlot != null && !(world.player.inVehicle && world.companion && world.companion.inVehicle === world.player.inVehicle)) wielLos(world);
   stepFigures(world, dt);
   n.tKlok += dt; n.tHash += dt;
   if (n.tKlok >= KLOK_EVERY) { n.tKlok = 0; n.hub.announce(klokEvent(world)); }
@@ -278,6 +288,31 @@ export function handleEvent(world, body, van = 0) {
       world.coopHek = !!body.aan;
       return true;
     }
+    case 'gebruik': { // de gast drukte op E bij de host: als bijrijder in- of uitstappen (alleen plek 1, de metgezel)
+      if (!n || n.role !== 'host' || van !== 1) return false;
+      world.coopGebruik = true;
+      return true;
+    }
+    case 'wielvraag': { // de gast vraagt om het stuur; de bestuurder geeft het met Y
+      if (!n || n.role !== 'host' || van !== 1) return false;
+      if (body.terug) { if (wielLos(world) && world.addMessage) world.addMessage(WIEL_HOST_TEKST.terug(gastNaam(world, 1)), 4); return true; } // de bijrijder geeft het stuur terug
+      const p = world.player, c = world.companion;
+      if (!(p.inVehicle && c && c.inVehicle === p.inVehicle)) { if (world.coopMeld) world.coopMeld(1, WIEL_TEKST.geen); return false; }
+      world.coopWielVraag = { slot: 1, tot: (Number(world.time) || 0) + WIEL_VERZOEK_S };
+      if (world.addMessage) world.addMessage(WIEL_HOST_TEKST.gevraagd(gastNaam(world, 1)), 5);
+      return true;
+    }
+    case 'wiel': { // de bestuurder geeft het stuur of neemt het terug
+      if (!n || n.role !== 'client') return false;
+      world.coopWiel = !!body.aan;
+      if (world.addMessage) world.addMessage(body.aan ? WIEL_TEKST.gekregen(openerNaam(world.coopRoster, true)) : WIEL_TEKST.terug(openerNaam(world.coopRoster, true)), 4);
+      return true;
+    }
+    case 'melding': { // een korte melding van de host, alleen voor jou
+      if (!n || n.role !== 'client' || typeof body.tekst !== 'string') return false;
+      if (world.addMessage) world.addMessage(body.tekst.slice(0, 90), 3.5);
+      return true;
+    }
     case 'cuttijd': { // de tijd van de gastheer in zijn scène: de gast loopt mee (coopcut.js cutGastTempo)
       if (!n || n.role !== 'client') return false;
       const k = leesCutTijd(body); if (!k) return false;
@@ -335,6 +370,40 @@ export function sendPing(world, x, y, soort = 'hier') {
   if (!addPing(world.coopPings, { x, y, soort, van: 'eigen' }, now(world))) return false;
   return n.role === 'host' ? n.hub.announce({ ...pingEvent(x, y, soort), van: 0 }) : n.session.sendEvent(pingEvent(x, y, soort));
 }
+// ---- de gast doet iets bij de host (#291, docs/COOP-GAST.md)
+const gastNaam = (world, slot) => { const p = (world.coopRoster || []).find((x) => x && x.slot === slot); return (p && (p.naam || (charInfo(p.char) || {}).naam)) || 'De ander'; };
+// E van de gast die niet bij een winkel of automaat was: de host laat zijn lichaam in- of uitstappen
+export function gastGebruik(world) {
+  const n = world.coopNet; if (!n || n.role !== 'client' || !n.joined) return false;
+  return n.session.sendEvent({ k: 'gebruik' });
+}
+// Y: de host geeft het stuur aan zijn bijrijder (of neemt het terug), de gast vraagt erom
+export function wielGebaar(world) {
+  const n = world.coopNet; if (!n) return false;
+  if (n.role === 'client') {
+    if (!world.coopInVoertuig) { if (world.addMessage) world.addMessage(WIEL_TEKST.geen, 3); return false; }
+    if (world.coopWiel) return n.session.sendEvent({ k: 'wielvraag', terug: true }); // je hebt het stuur: Y geeft het terug
+    if (world.addMessage) world.addMessage(WIEL_TEKST.gevraagd, 3);
+    return n.session.sendEvent({ k: 'wielvraag' });
+  }
+  const p = world.player, c = world.companion;
+  if (!(p.inVehicle && c && c.inVehicle === p.inVehicle && world.coop && world.coop.remote) || p.inVehicle.isHeli || p.inVehicle.isPlane) return false;
+  const naam = gastNaam(world, 1);
+  if (world.coopWielSlot === 1) { wielLos(world); if (world.addMessage) world.addMessage(WIEL_HOST_TEKST.terug(naam), 4); return true; }
+  world.coopWielSlot = 1; world.coopWielVraag = null;
+  n.hub.announce({ k: 'wiel', aan: true }, 1);
+  if (world.addMessage) world.addMessage(WIEL_HOST_TEKST.gegeven(naam), 4);
+  return true;
+}
+// het stuur is weer van de bestuurder
+export function wielLos(world) {
+  const was = world.coopWielSlot != null;
+  world.coopWielSlot = null;
+  const n = world.coopNet;
+  if (was && n && n.role === 'host') n.hub.announce({ k: 'wiel', aan: false }, 1);
+  return was;
+}
+
 // Host: beloning voor één gast (slot) of voor alle gasten; elk bewaart hem in zijn eigen save.
 export function payGuest(world, geld, slot = null) {
   const n = world.coopNet; if (!n || n.role !== 'host') return false;
