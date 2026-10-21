@@ -21,7 +21,8 @@ import { tileFocus } from './tilefocus.js';
 import { setWorldPlaces } from './worldplaces.js';
 import { setRegionData } from './regions.js';
 import { tileIndexOf, tileKey, tileOrigin } from './gdt.js';
-import { loadFacilities, initFacilities, loadShopPlaces, initShopPlaces, setExtraBuiltWorld, placeWithTiles } from './facilities.js';
+import { loadFacilities, initFacilities, loadShopPlaces, initShopPlaces, setExtraBuiltWorld, placeWithTiles, FAC } from './facilities.js';
+import { setShopSpots, spotsFrom } from './shopspots.js';
 import { ensureCountryEdge } from './countryplan.js';
 import { warmCountryMaps } from './countrymap.js';
 import { Input } from './input.js';
@@ -56,7 +57,7 @@ import { initMotion } from './motion.js';
 import { initHud, updateHud } from './hud_panel.js';
 import { initGarages, initCountryGarages, updateGarages, tryGarageInteract } from './garages.js';
 import { initHoreca, initCountryHoreca, updateHoreca, tryHorecaInteract } from './horeca.js';
-import { initShops, initCountryShops, updateShops, tryShopInteract, COUNTRY_SHOP_KINDS } from './shops.js';
+import { initShops, initCountryShops, updateShops, tryShopInteract, COUNTRY_SHOP_KINDS, getShopsForRender } from './shops.js';
 import { initSnackMachines, updateSnackMachines, tryMachineInteract } from './snackautomaat.js';
 import { updateStreetLife, tryStreetLifeInteract } from './streetlife.js';
 import { bikeBoost, hourOf } from './streetlifedata.js';
@@ -353,6 +354,7 @@ async function boot() {
   setFarProps(land);
   initFacilities(map, await facilities);
   initShopPlaces(map, await shopPlaces);
+  setShopSpots(spotsFrom(FAC.all)); // a building's shopfront follows the real shop in it (#156)
   markLoad('ommeland');
   prepareHomeMap(map);
   setLoadProgress(0.55);
@@ -393,6 +395,7 @@ async function boot() {
   initGarages(world);
   initHoreca(world);
   initShops(world);
+  setShopSpots(spotsFrom(FAC.all, getShopsForRender()));
   initSnackMachines(world);
   initHome(world);
   parkHeroAtHome(world);
