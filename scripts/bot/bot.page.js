@@ -258,7 +258,8 @@ function meterTick(s) {
   // the mission's own clock: how long it ran active, the longest time limit seen and the least time that was left
   if (s.mission.active) { m.active += dt; if (Number.isFinite(s.mission.timeLeft)) { m.limit = Math.max(m.limit, s.mission.timeLeft); m.minLeft = m.minLeft == null ? s.mission.timeLeft : Math.min(m.minLeft, s.mission.timeLeft); } }
   const goal = [s.mission.stage || '', s.mission.label || '', s.target ? s.target.name || '' : ''].join('|');
-  if (goal !== m.goal) { if (m.goal) { m.goals++; B.log('doel', { stage: s.mission.stage || '', label: s.mission.label || '', doel: s.target ? s.target.name || '' : '', afstand: s.target ? s.target.distance : null }); } m.goal = goal; m.lastAct = s.t; }
+  // every goal (also the first of a step) with the distance to it: the length of the route a player has to cover, whoever plays
+  if (goal !== m.goal) { if (m.goal) m.goals++; B.log('doel', { stage: s.mission.stage || '', label: s.mission.label || '', doel: s.target ? s.target.name || '' : '', afstand: s.target ? s.target.distance : null, veh: s.player.vehicle ? s.player.vehicle.kind : 'te voet', eerste: !m.goal }); m.goal = goal; m.lastAct = s.t; }
   if (busy || d > 0.05 || (s.player.vehicle && s.player.vehicle.speed > 1)) m.lastAct = s.t;
   m.maxQuiet = Math.max(m.maxQuiet, s.t - m.lastAct);
 }

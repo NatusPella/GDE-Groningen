@@ -17,7 +17,7 @@ const step = (id, t0, t1, extra = {}, inside = []) => {
 step('M01', 0, 200);
 step('M02', 200, 400);
 step('M03', 400, 640);
-step('M04', 640, 1500, { dist: 2400, maxQuiet: 130 }, [{ type: 'mission', event: 'fail' }, { type: 'mission', event: 'fail' }, { type: 'cine', dur: 12 }]);
+step('M04', 640, 1500, { dist: 2400, maxQuiet: 130 }, [{ type: 'mission', event: 'fail' }, { type: 'mission', event: 'fail' }, { type: 'cine', dur: 12 }, { type: 'doel', afstand: 1500, veh: 'auto', eerste: true }, { type: 'doel', afstand: 900, veh: 'te voet' }]);
 step('M06', 1560, 1800, { limiet: 300, restMin: 12, actief: 288 });
 step('M07', 1800, 2000, { limiet: 600, restMin: 480, actief: 60 });
 step('M05', 1500, 1560, {}, [{ type: 'cheat', rung: 'objective' }, { type: 'cheat', rung: 'nudge' }, { type: 'stuck' }]);
@@ -25,6 +25,8 @@ step('M05', 1500, 1560, {}, [{ type: 'cheat', rung: 'objective' }, { type: 'chea
 const steps = stepsOf(ev);
 ok(steps.length === 7, 'zeven stappen');
 const m4 = steps.find((s) => s.id === 'M04');
+const nom = (await import('./bot/balans.mjs')).nominaal(m4);
+ok(nom.meter === 2400 && nom.sec === Math.round(1500 / 14 + 900 / 5.5), 'M04: de nominale route is de som van de doelafstanden', JSON.stringify(nom));
 ok(m4.speel === 860 && m4.fails === 2 && m4.dist === 2400 && m4.cineDur.length === 1, 'M04: speeltijd, mislukt, afstand, cutscene', JSON.stringify(m4));
 const m5 = steps.find((s) => s.id === 'M05');
 ok(m5.cheats.length === 1 && m5.stuck === 1, 'M05: een cheat (de nudge telt niet) en een keer vast', JSON.stringify(m5));
