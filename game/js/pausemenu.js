@@ -11,6 +11,7 @@ import { setPauseMenuOpen, setPauseMenuTabState, setPauseMenuControls } from './
 import { PRESET_ORDER, presetLabel, describePreset, describeChanges, currentPreset, applyPreset, getBenchResult, dismissBenchBanner, GEAR_SVG } from './gfxprofile.js';
 import { mountMapView, setMapActive, setMapCloseHandler, setMapView, getDiscoveredRatio, setMapTeleport } from './mapview.js';
 import { renderSamenPanel } from './samenpanel.js';
+import { renderSpelersPanel } from './coopspelersui.js';
 import { renderCheatsPanel, cheatsClick, resetCheatsPanel, cheatsFocus } from './cheatsui.js';
 import { skipCurrent, getStoryJournal, markCluesSeen } from './story.js';
 import { saveGame, hasSave, loadLatestSave, startNewSlot, getSaveSummary, getPlaySeconds } from './savegame.js';
@@ -192,6 +193,7 @@ const ICONS = {
   new: '<path d="M12 4v16M4 12h16"/>',
   news: '<path d="M5 4h11l3 3v13H5z"/><path d="M8 10h8M8 14h8M8 17h5"/>',
   about: '<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5h0"/>',
+  spelers: '<circle cx="12" cy="7.5" r="3"/><circle cx="5.5" cy="10.5" r="2.1"/><circle cx="18.5" cy="10.5" r="2.1"/><path d="M6.5 20c0-3.4 2.4-5.6 5.5-5.6s5.5 2.2 5.5 5.6"/>',
   samen: '<circle cx="9" cy="8.5" r="3"/><circle cx="17" cy="9.5" r="2.4"/><path d="M3 20c0-3.6 2.6-5.8 6-5.8s6 2.2 6 5.8M16 14.5c2.6.1 5 1.7 5 5"/>',
 };
 // An icon of the pause menu's set for the main menu's items, or '' for an unknown name.
@@ -212,12 +214,13 @@ const SECTIONS = [
   ['prestaties', 'Prestaties', 'Blijven bewaard, ook bij een nieuw spel'],
   ['fotos', "Foto's", 'Fotomodus en je galerij'],
   ['samen', 'Samen spelen', 'Iemand uitnodigen of aansluiten'],
+  ['spelers', 'Spelers', 'Wie er meespeelt'],
   ['settings', 'Instellingen', 'Wijzigingen worden meteen bewaard'],
   ['controls', 'Besturing', 'Alle toetsen, per situatie'],
   ['streken', 'Cheats', 'Een beetje vals spelen'],
 ];
 // the rail's three groups: playing, collected, system
-const RAIL_GROUPS = [['overzicht', 'todo', 'map', 'telefoon'], ['verhaal', 'spullen', 'garage', 'prestaties', 'fotos', 'samen'], ['settings', 'controls', 'streken']];
+const RAIL_GROUPS = [['overzicht', 'todo', 'map', 'telefoon'], ['verhaal', 'spullen', 'garage', 'prestaties', 'fotos', 'samen', 'spelers'], ['settings', 'controls', 'streken']];
 const PRESTART_SECTIONS = ['settings', 'controls'];
 const SUBTABS = {
   todo: [['verhaal', 'Verhaal'], ['alles', 'Alles'], ['dichtbij', 'Dichtbij']],
@@ -241,6 +244,7 @@ const HINTS = {
   garage: [[['↑', '↓'], 'kiezen'], [['Enter'], 'laten afleveren'], [['Q', 'E'], 'soort'], [['Esc'], BACK, 'back']],
   prestaties: [[['↑', '↓'], 'kiezen'], [['Enter'], 'openen'], [['Q', 'E'], 'weergave'], [['Esc'], BACK, 'back']],
   fotos: [[['F8'], 'fotomodus'], [['Esc'], BACK, 'back']],
+  spelers: [[['↑', '↓'], 'kiezen'], [['Enter'], 'roepen of erheen'], [['Esc'], BACK, 'back']],
   streken: [[['↑', '↓'], 'kiezen'], [['Enter'], 'aan of uit'], [['Esc'], BACK, 'back']],
   settings: [[['↑', '↓'], 'kiezen'], [['←', '→'], 'wijzigen'], [['Q', 'E'], 'tabblad'], [['Esc'], BACK, 'back']],
   controls: [[['↑', '↓'], 'kiezen'], [['Enter'], 'toets wijzigen'], [['Q', 'E'], 'onderdeel'], [['Esc'], BACK, 'back']],
@@ -289,7 +293,8 @@ export function pauseMenuCover() {
 
 const started = () => document.body.classList.contains('game-started');
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-const sectionIds = () => (prestart ? PRESTART_SECTIONS : SECTIONS.map(([id]) => id));
+// 'Spelers' staat alleen in het menu zolang je samen speelt (#377)
+const sectionIds = () => (prestart ? PRESTART_SECTIONS : SECTIONS.map(([id]) => id).filter((id) => id !== 'spelers' || !!(world && world.coopNet)));
 const sectionOf = (id) => SECTIONS.find(([s]) => s === id);
 const key = (k) => `<span class="hud-key">${k}</span>`;
 
@@ -498,6 +503,7 @@ export function initPauseMenu(w) {
           <section data-panel="fotos" class="pm-panel pm-col" hidden><div class="pm-inner pm-fotos"></div></section>
           <section data-panel="streken" class="pm-panel pm-col" hidden><div class="pm-inner pm-streken"></div></section>
           <section data-panel="samen" class="pm-panel pm-col" hidden><div class="pm-inner pm-samen"></div></section>
+          <section data-panel="spelers" class="pm-panel pm-col" hidden><div class="pm-inner pm-spelers"></div></section>
           <section data-panel="settings" class="pm-panel pm-col pm-tabbed" hidden><div class="pm-inner pm-settings">${settingsHtml()}</div></section>
           <section data-panel="controls" class="pm-panel pm-col pm-tabbed" hidden><div class="pm-inner pm-cinner">
             ${subtabsHtml('controls', 'Besturing')}
@@ -1432,6 +1438,7 @@ function showTab(name, how) {
   tab = name;
   setPauseMenuTabState(name);
   root.dataset.activeTab = name;
+  root.dataset.coop = world && world.coopNet ? '1' : '0';
   for (const b of root.querySelectorAll('.pm-game [data-goto]')) {
     b.setAttribute('aria-current', String(b.dataset.goto === name));
     b.hidden = !ids.includes(b.dataset.goto);
@@ -1466,6 +1473,7 @@ function showTab(name, how) {
   if (name === 'verhaal') { showSubtab('verhaal', pref.sub.verhaal || 'personages'); renderVerhaalPanel(); }
   if (name === 'streken') { if (prev !== 'streken') resetCheatsPanel(); renderCheats(); }
   if (name === 'fotos') renderFotoPanel(root.querySelector('[data-panel="fotos"] .pm-inner'));
+  if (name === 'spelers') renderSpelersPanel(root.querySelector('[data-panel="spelers"] .pm-inner'), world, closePauseMenu);
   if (name === 'samen') renderSamenPanel(root.querySelector('[data-panel="samen"] .pm-inner'), world, closePauseMenu);
   if (name === 'prestaties') { renderAchievementsPanel(root.querySelector('[data-panel="prestaties"] .pm-inner')); syncSheetSub(); }
   if (name === 'controls') { const q = root.querySelector('[data-controls-search]'); q.value = ''; filterControls(''); showSubtab('controls', pref.sub.controls || 'toetsen'); bindMsg = ''; renderBinds(); }

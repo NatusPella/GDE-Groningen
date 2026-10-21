@@ -39,6 +39,7 @@ De eerste keer dat je een spel opent met het **IP-adres** (niet bij de kamercode
 
 ### 5. Tijdens het spelen
 
+- **Wie speelt er mee?** Houd **Tab** ingedrukt voor de lijst met spelers (naam, wat ze doen, verbinding en afstand). In het pauzemenu staat daarvoor het onderdeel **Spelers**, met de roepknoppen *Kom hier*, *Help!* en *Kijk daar* (ook op de toetsen 7, 8 en 9). De lijst staat niet de hele tijd in beeld, zodat de kaart vrij blijft.
 - Valt iemand weg, dan pauzeert het spel en staat er wie ontbreekt. Als de verbinding terugkomt, gaat het vanzelf door. Wil de speler die het spel opende niet wachten, dan kiest die **Niet wachten**.
 - Wil je stoppen? Kies in het pauzemenu **Samen spelen** en dan **Spel verlaten** (of, voor wie het spel opende, **Iedereen stoppen**). Je komt terug waar je was in je eigen spel.
 - Iemand later toevoegen kan altijd: geef de code, tot het maximum van vier spelers.

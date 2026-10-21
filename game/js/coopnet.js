@@ -25,6 +25,7 @@ import { verhaalRol, openerNaam, charInfo } from './coopplayers.js';
 import { KLOK_EVERY, klokEvent, leesKlokEvent, KlokVolger } from './net/speelklok.js';
 import { HASH_EVERY, viewOf, hashEvent, leesHashEvent, DesyncMonitor } from './net/desync.js';
 import { PING_TOETSEN, PING_TEKST, pingPlek, pingMarkers, pingRegel } from './coopping.js';
+import { spelersRijen } from './coopspelers.js';
 import { WEER_EVERY, weerEvent, leesWeerEvent, pasWeerToe } from './coopweer.js';
 
 export const CAPS = ['scene', 'spelers']; // wat dit spel kent; uitbreidbaar (net/session.js negotiate)
@@ -86,7 +87,7 @@ function prepareCoop(world) {
 function endCoop(world) {
   if (world.coop) { world.coop.remote = false; world.coop.remoteInput = null; world.coop.fixedChars = false; if (world.coop.prevLocal !== undefined) { world.coop.local = world.coop.prevLocal; world.coop.prevLocal = undefined; } }
   world.coopPartner = null; world.coopPartners = []; world.coopRoster = null; world.coopFigures = {}; world.coopHost = null; world.coopHostMissie = null; world.coopCam = null; world.coopScene = null;
-  world.coopMeld = null; world.coopDeel = null; world.coopUitslag = null; world.coopPingMarks = []; world.coopGebruik = false; world.coopWielSlot = null; world.coopWielVraag = null; world.coopWiel = false; world.coopInVoertuig = false; // (#291)
+  world.coopMeld = null; world.coopDeel = null; world.coopUitslag = null; world.coopPingMarks = []; world.coopSpelers = []; world.coopGebruik = false; world.coopWielSlot = null; world.coopWielVraag = null; world.coopWiel = false; world.coopInVoertuig = false; // (#291)
   if (world.companion) world.companion.coopUit = false;
 }
 const now = (world) => (Number.isFinite(world.time) ? world.time : Date.now() / 1000);
@@ -142,7 +143,7 @@ export function startHost(world, info, opts = {}) {
   world.coopUitslag = (ok, label, reden, loon) => uitslagMelden(world, ok, label, reden, loon); // gelukt of mislukt (#371)
   world.coopDeel = (bedrag) => deelMetGasten(world, bedrag); // missies, bijbanen en prijzen delen met de gasten (#365)
   world.coopMeld = (slot, tekst) => hub.announce({ k: 'melding', tekst: String(tekst).slice(0, 90) }, slot); // een korte melding voor een gast (#291)
-  world.coopNet = { role: 'host', hub, fade, route, removing: {}, info, tKlok: 0, tHash: 0, tWeer: 0, hashN: 0, scene, tScene: 0, filmpjeT: 0, sceneNu: null };
+  world.coopNet = { role: 'host', hub, fade, route, removing: {}, info, tKlok: 0, tHash: 0, tWeer: 0, tSpelers: 1, hashN: 0, scene, tScene: 0, filmpjeT: 0, sceneNu: null };
   return hub;
 }
 
@@ -169,7 +170,7 @@ export function startClient(world, transport, info, opts = {}) {
   // de host is de baas: bij een desync (net/desync.js) zet de gast zijn wanted weer gelijk aan dat van de host
   session.onresync = (st) => { if (st && Number.isFinite(st.wanted)) world.wanted = st.wanted | 0; };
   world.coopRole = 'client';
-  world.coopNet = { role: 'client', session, stash, fade, joined: false, fixed: false, route, info, klok: new KlokVolger(), desync: new DesyncMonitor(), lokaal: 0 };
+  world.coopNet = { role: 'client', session, stash, fade, joined: false, fixed: false, route, info, klok: new KlokVolger(), desync: new DesyncMonitor(), lokaal: 0, tSpelers: 1 };
   return session;
 }
 
@@ -224,6 +225,15 @@ export function figGebruik(world, slot) {
   return true;
 }
 
+// De lijst voor de spelerslijst (Tab en het pauzemenu): ook de gast kent alleen zijn eigen ping; die van de anderen kent alleen de gastheer (#377)
+function bouwSpelers(world, n) {
+  const host = n.role === 'host', p = world.player;
+  const mijnSlot = host ? 0 : (n.session && n.session.slot) || 0;
+  const rtt = (slot) => { if (host) { const s = n.hub.sessions.get(slot); return s && Number.isFinite(s.rtt) ? s.rtt * 1000 : null; } return slot === mijnSlot && n.session && Number.isFinite(n.session.rtt) ? n.session.rtt * 1000 : null; };
+  const opdracht = host ? (world.mission && world.mission.phase === 'active' ? world.mission.label || 'opdracht' : null) : (world.coopHostMissie && world.coopHostMissie.actief ? world.coopHostMissie.label : null);
+  world.coopSpelers = spelersRijen({ mijnSlot, roster: world.coopRoster || [], partners: world.coopPartners || [], mijn: p ? { x: p.x, y: p.y, inVoertuig: host ? !!p.inVehicle : !!world.coopInVoertuig, rijdt: host ? !!p.inVehicle && world.coopWielSlot == null : !!world.coopWiel } : null, rtt, opdracht });
+}
+
 // Neergaan, arrestatie en opstaan van de gastheer en Tessa: de anderen horen het, de gast zelf ook (#369)
 export function meldNeer(world, n) {
   const pr = world.pendingRespawn ? (world.pendingRespawn.busted ? 'gepakt' : 'neer') : null;
@@ -244,14 +254,19 @@ export function meldNeer(world, n) {
 // (geen gebouwen, geen grond). Eerst een melding, daarna zet de gastheer hem bij de groep (#366).
 export function bandFiguren(world, dt) {
   const p = world.player; if (!p || !Number.isFinite(p.x)) return;
+  const v = p.inVehicle, snel = !!v && Math.abs(v.speed || 0) > 6; // rijdt de gastheer weg, dan raakt een speler te voet het eerst achter
   for (const fig of Object.values(figures(world))) {
-    const d = Math.hypot(fig.x - p.x, fig.y - p.y);
-    if (d > FIGUUR_WAARSCHUWING && !fig.gewaarschuwd) { fig.gewaarschuwd = true; if (world.coopMeld) world.coopMeld(fig.slot, 'Blijf bij de groep: te ver weg wordt je teruggezet.'); }
+    if (fig.inVeh) continue;
+    const d = Math.hypot(fig.x - p.x, fig.y - p.y), band = snel ? 35 : FIGUUR_BAND;
+    const plek = !!v && figuurPlekken(v) > Object.values(figures(world)).filter((f) => f.inVeh === v).length;
+    if (d > FIGUUR_WAARSCHUWING && !fig.gewaarschuwd && !snel) { fig.gewaarschuwd = true; if (world.coopMeld) world.coopMeld(fig.slot, 'Blijf bij de groep: te ver weg wordt je teruggezet.'); }
     if (d <= FIGUUR_WAARSCHUWING) fig.gewaarschuwd = false;
-    fig.verTijd = d > FIGUUR_BAND ? (fig.verTijd || 0) + dt : 0;
+    fig.verTijd = d > band ? (fig.verTijd || 0) + dt : 0;
     if (fig.verTijd >= (d > 300 ? 0.5 : FIGUUR_TERUG_S)) { // een sprong van de gastheer (snelreizen, herstel) haalt de figuur meteen bij
+      fig.verTijd = 0; fig.gewaarschuwd = false; fig.vx = 0; fig.vy = 0;
+      if (plek) { fig.inVeh = v; fig.coopVoertuig = true; fig.x = v.x; fig.y = v.y; if (world.coopMeld) world.coopMeld(fig.slot, 'Je rijdt mee. Met E stap je uit als het voertuig stilstaat.'); continue; } // is er plek, dan zit hij weer in het voertuig (geen eindeloos terugzetten)
       const a = (fig.slot * 1.7) % (Math.PI * 2);
-      fig.x = p.x + Math.cos(a) * 2.2; fig.y = p.y + Math.sin(a) * 2.2; fig.vx = 0; fig.vy = 0; fig.verTijd = 0; fig.gewaarschuwd = false;
+      fig.x = p.x + Math.cos(a) * 2.2; fig.y = p.y + Math.sin(a) * 2.2;
       if (world.coopMeld) world.coopMeld(fig.slot, 'Je staat weer bij de groep.');
     }
   }
@@ -280,6 +295,8 @@ export function tickCoopNet(world, dt) {
     if (!world.paused && !world.uiPaused && !world.coopHold && world.input && world.input.wasPressed && (n.role === 'host' || n.joined)) for (const k of PING_TOETSEN) if (world.input.wasPressed(k.toets)) pingGebaar(world, k.soort); // 7, 8, 9 (#367)
     world.coopPingMarks = pingMarkers(world.coopPings, world.coopRoster, n.role === 'client' && n.session ? n.session.slot : 0, now(world));
   }
+  n.tSpelers += dt;
+  if (n.tSpelers >= 0.25) { n.tSpelers = 0; bouwSpelers(world, n); }
   if (n.role === 'client') {
     const s = n.session;
     // afgewezen (sessie vol, andere versie) of de gastheer stopte (BYE): de gast speelt weer in zijn eigen spel. Zonder dit bleef hij 'gast' (zijn spel werd niet meer bewaard)
