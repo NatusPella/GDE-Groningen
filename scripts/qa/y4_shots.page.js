@@ -25,9 +25,9 @@ for (let i = 0; i < 25 && w.paused; i++) { await tap(' ', 'Space'); await sleep(
 out.gestart = document.body.classList.contains('game-started');
 await sleep(3000);
 
-// 1. evenement: Zomerkermis Zuidlaren
+// 1. evenement: Zomerkermis Zuidbroek
 try {
-  const ev = EV.AGENDA.find((e) => e.id === 'ev-kermis-zuidlaren'); const c = EV.centreOf(ev);
+  const ev = EV.AGENDA.find((e) => e.id === 'ev-kermis-zuidbroek'); const c = EV.centreOf(ev);
   // het verhaal begrenst de datum: de kalender krijgt een vaste dag (alleen voor deze beeldcheck)
   const dagN = ev.from;
   const seen = w.calendar ? w.calendar.seen : [];
