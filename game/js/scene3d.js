@@ -1345,6 +1345,10 @@ function groupCastsShadow(c) {
 function hookShadowPass(shadowMap) {
   const run = shadowMap.render.bind(shadowMap);
   shadowMap.render = (lights, sc, camera) => {
+    // every render() call comes through here: the 16 a frame of the post chain (bloom blurs, grade; fullscreen quads without lights) and the
+    // scene's own pass without shadow casters have nothing to hide or show; three leaves them straight away (a scan of the scene's top level,
+    // 15 times a frame, cost 1 to 2 ms: perfoff=schaduwhaak)
+    if ((sc !== scene || !lights.length) && !perfOff('schaduwhaak')) { run(lights, sc, camera); return; }
     // the groups cut from the main pass shadow the view too: back in for this pass
     for (let i = 0; i < culledGroups.length; i++) culledGroups[i].visible = true;
     if (perfOff('schaduwpas')) {
