@@ -56,6 +56,11 @@ export const SFX = {
   ding: { t: 1.1, expr: '0.45*sin(2*PI*1175*t)*exp(-t*4)+0.3*sin(2*PI*1760*t)*exp(-t*5)' },
   // lage hartslag voor een stille spanningsmoment
   hart: { t: 1.2, expr: '0.9*sin(2*PI*52*t)*exp(-t*14)+0.7*sin(2*PI*52*(t-0.28))*exp(-(t-0.28)*14)*gte(t,0.28)' },
+  // sfeer: wind over de daken en een zacht stadsgeruis (lange stukken die in en uit faden); de montage legt ze onder de opening
+  wind: { t: 8, noise: 'brown', fx: "lowpass=f=520,highpass=f=35,volume=eval=frame:volume='(0.35+0.25*sin(2*PI*0.23*t))*min(1,t/1.2)*min(1,(8-t)/1.5)*5'" },
+  stad: { t: 8, noise: 'pink', fx: "bandpass=f=900:width_type=q:w=0.35,volume=eval=frame:volume='(0.5+0.3*sin(2*PI*0.4*t))*min(1,t/1.0)*min(1,(8-t)/1.5)*2.2'" },
+  // meeuw: twee dalende uithalen
+  meeuw: { t: 1.3, expr: "0.3*sin(2*PI*(2300-1000*min(t,0.55)/0.55)*t)*exp(-t*2.2)*min(1,t*40)+0.22*sin(2*PI*(2000-800*min(max(t-0.65,0),0.5)/0.5)*t)*gte(t,0.65)*exp(-(t-0.65)*3)" },
   // camera-sluiter (fotomodus)
   sluiter: { t: 0.22, noise: 'white', fx: 'highpass=f=1800,volume=eval=frame:volume=\'exp(-t*28)*2\'' },
 };
@@ -109,7 +114,7 @@ export function buildMix(plan, gameDir, { masterGain = 0 } = {}) {
     const g = (target - (m.lufs ?? target)) + num(v.gain);
     voiceInfo.push({ at: v.at, dur: m.dur ?? 3, src: v.src, lufs: m.lufs, gain: +g.toFixed(1) });
     const n = add(['-i', file]);
-    chains.push(`[${n}:a]aformat=sample_rates=${SR}:channel_layouts=stereo,volume=${g.toFixed(2)}dB,adelay=${Math.round(v.at * 1000)}:all=1[v${i}]`);
+    chains.push(`[${n}:a]aformat=sample_rates=${SR}:channel_layouts=stereo,volume=${g.toFixed(2)}dB,adelay=${Math.round(v.at * 1000)}:all=1,apad=whole_dur=${dur}[v${i}]`);
     labels.push(`[v${i}]`);
   });
   const duck = duckExpr(voiceInfo.filter((v, i) => (plan.voices[i].duck ?? true)), plan.duck || {});
@@ -125,7 +130,7 @@ export function buildMix(plan, gameDir, { masterGain = 0 } = {}) {
     // ducking alleen op de muziek (tijden zijn trailertijd; de muziek begint op m.at)
     if (m.duck !== false) f.push(`volume='${duck.replace(/\bt\b/g, `(t+${(m.at || 0).toFixed(3)})`)}':eval=frame`);
     if (m.lowpass) f.push(`lowpass=f=${m.lowpass}`);
-    f.push(`adelay=${Math.round((m.at || 0) * 1000)}:all=1`);
+    f.push(`adelay=${Math.round((m.at || 0) * 1000)}:all=1`, `apad=whole_dur=${dur}`);
     chains.push(`[${n}:a]${f.join(',')}[m${i}]`);
     labels.push(`[m${i}]`);
   });
@@ -135,18 +140,18 @@ export function buildMix(plan, gameDir, { masterGain = 0 } = {}) {
     const n = add(['-f', 'lavfi', '-i', s.src]);
     const f = [s.fx, `aformat=sample_rates=${SR}:channel_layouts=stereo`, `volume=${num(e.gain, -6)}dB`];
     if (e.fadeOut) f.push(`afade=t=out:st=${Math.max(0, s.dur - e.fadeOut)}:d=${e.fadeOut}`);
-    f.push(`adelay=${Math.round(e.at * 1000)}:all=1`);
+    f.push(`adelay=${Math.round(e.at * 1000)}:all=1`, `apad=whole_dur=${dur}`);
     chains.push(`[${n}:a]${f.filter(Boolean).join(',')}[x${i}]`);
     labels.push(`[x${i}]`);
   });
-  chains.push(`${labels.join('')}amix=inputs=${labels.length}:duration=longest:normalize=0:dropout_transition=0,atrim=0:${dur.toFixed(3)},volume=${masterGain}dB[mix]`);
+  chains.push(`${labels.join('')}amix=inputs=${labels.length}:duration=longest:normalize=0:dropout_transition=0,volume=${masterGain}dB[mix]`);
   return { inputs, filter: chains.join(';'), voiceInfo };
 }
 
 export function renderMix(plan, outWav, { game = path.join(ROOT, 'game'), report = null } = {}) {
   const base = buildMix(plan, game);
   const tmp = outWav.replace(/\.wav$/, '.pre.wav');
-  const ff = (extra, out) => run(ffmpegPath(), ['-hide_banner', '-loglevel', 'error', '-y', ...base.inputs, '-filter_complex', base.filter, '-map', '[mix]', ...extra, '-ar', String(SR), '-c:a', 'pcm_f32le', out]);
+  const ff = (extra, out) => run(ffmpegPath(), ['-hide_banner', '-loglevel', 'error', '-y', ...base.inputs, '-filter_complex', base.filter, '-map', '[mix]', '-t', plan.duration.toFixed(3), ...extra, '-ar', String(SR), '-c:a', 'pcm_f32le', out]);
   ff([], tmp);
   // ronde 1: meten (geïntegreerde luidheid en piek van de ruwe mix)
   const m = measure(tmp);
