@@ -1,5 +1,5 @@
 // node scripts/drawpool_test.mjs: the allocator and the frustum culling of the multi-draw pool (game/js/drawpool.js)
-import { RangeAllocator, frustumPlanes, cullRanges } from '../game/js/drawpool.js';
+import { RangeAllocator, frustumPlanes, cullRanges, compareOpaque } from '../game/js/drawpool.js';
 
 let fail = 0;
 const ok = (name, cond, extra = '') => { if (!cond) fail++; console.log(`${cond ? 'ok  ' : 'FAIL'} ${name} ${extra}`); };
@@ -56,5 +56,17 @@ const ok = (name, cond, extra = '') => { if (!cond) fail++; console.log(`${cond 
   // a far limit drops what is too far from the camera
   const n2 = cullRanges(spheres, firsts, counts, 5, pl, 4, starts, oc, 0.1, 1.2, 0, 0);
   ok('distance limit', n2 === 1 && starts[0] === 800, `${n2}`);
+}
+// the sort of the opaque draws: program first, then three's order
+{
+  const it = (id, mat, pk, z = 0, renderOrder = 0) => ({ id, groupOrder: 0, renderOrder, material: { id: mat, userData: { pk } }, z });
+  const items = [it(1, 10, 7), it(2, 11, 3), it(3, 12, 7), it(4, 13, 3), it(5, 14, 9), it(6, 10, 7, -1)];
+  const byProgram = [...items].sort((a, b) => compareOpaque(a, b, true)).map((q) => q.id);
+  ok('program first: the materials of one program lie together', byProgram.join() === '2,4,6,1,3,5', byProgram.join());
+  const plain = [...items].sort((a, b) => compareOpaque(a, b, false)).map((q) => q.id);
+  ok('plain: by material, then depth', plain.join() === '6,1,2,3,4,5' || plain.join() === '1,6,2,3,4,5', plain.join());
+  const runs = (ids) => ids.reduce((n, id, k) => n + (k === 0 || items[id - 1].material.userData.pk !== items[ids[k - 1] - 1].material.userData.pk ? 1 : 0), 0);
+  ok('fewer program switches', runs(byProgram) < runs(plain), runs(byProgram) + ' against ' + runs(plain));
+  ok('a render order still comes before the program', compareOpaque(it(1, 10, 9, 0, 0), it(2, 11, 1, 0, 5), true) < 0);
 }
 process.exit(fail ? 1 : 0);

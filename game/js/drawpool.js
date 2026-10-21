@@ -87,3 +87,19 @@ export function cullRanges(spheres, firsts, counts, n, planes, bytes, starts, ou
   }
   return k;
 }
+
+// The order of the opaque draws of a frame: three's own (group, render order, material, depth from the camera) with the program first when
+// programFirst is on, so the materials that share a program lie together and the renderer switches program once per program, not once per
+// run of materials. a and b are render items ({ groupOrder, renderOrder, material, z, id }); material.userData.pk is the id of the program the
+// material was last drawn with (scene3d.js notes it after each draw).
+export function compareOpaque(a, b, programFirst) {
+  if (a.groupOrder !== b.groupOrder) return a.groupOrder - b.groupOrder;
+  if (a.renderOrder !== b.renderOrder) return a.renderOrder - b.renderOrder;
+  if (programFirst) {
+    const pa = a.material.userData.pk || 0, pb = b.material.userData.pk || 0;
+    if (pa !== pb) return pa - pb;
+  }
+  if (a.material.id !== b.material.id) return a.material.id - b.material.id;
+  if (a.z !== b.z) return a.z - b.z;
+  return a.id - b.id;
+}

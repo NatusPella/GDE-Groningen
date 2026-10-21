@@ -62,6 +62,7 @@ import { effectsFor, shakeAmount } from './a11ylogic.js';
 import { reducedMotion } from './motion.js';
 import { dynamicScale, cpuLevel } from './gfxprofile.js';
 import { VIEW_DISTANCES, viewDistanceFor, detailDistanceFor, DETAIL_BASE } from './viewdist.js';
+import { compareOpaque } from './drawpool.js';
 import { buildingBatcher, roadBatcher, facadeBatcher, shoreBatcher, drawHub } from './staticbatch3d.js';
 import { simLevel } from './simload.js';
 import { beginWheels, addVehicleWheels, endWheels } from './wheelinstances3d.js';
@@ -1374,17 +1375,7 @@ const LINK_GUARD_AFTER = 600;
 // This sort puts the program first: the id of the program a material was last drawn with, noted after each draw of the
 // game scene (?perfoff=progsort for the plain order).
 let progSortOn = true;
-function programSort(a, b) {
-  if (a.groupOrder !== b.groupOrder) return a.groupOrder - b.groupOrder;
-  if (a.renderOrder !== b.renderOrder) return a.renderOrder - b.renderOrder;
-  if (progSortOn) {
-    const pa = a.material.userData.pk || 0, pb = b.material.userData.pk || 0;
-    if (pa !== pb) return pa - pb;
-  }
-  if (a.material.id !== b.material.id) return a.material.id - b.material.id;
-  if (a.z !== b.z) return a.z - b.z;
-  return a.id - b.id;
-}
+function programSort(a, b) { return compareOpaque(a, b, progSortOn); }
 // Whether a program is linked. Asking is a synchronous round trip to the GPU process that waits out its backlog (KHR_parallel_shader_compile
 // COMPLETION_STATUS), and the guard asked for every draw of every material still linking: with a few dozen programs pending that was most of the
 // frame (66% of the main thread in a profile right after a pool was created). A linked program is remembered; while one is not linked, the
