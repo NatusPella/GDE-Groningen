@@ -266,6 +266,9 @@ export function decide(s, mem = {}) {
   // a talk during a mission is subtitles while you play on (M08: the fatbikes keep coming); outside one it is a conversation to hear out
   if (b.talk && !(s.mission && s.mission.active)) return { type: 'wait', why: 'gesprek' };
   if (s.player && s.player.pigeon && s.target) return { type: 'pigeon' };
+  // after a failure the game offers to start the mission over (#214: Enter fades back to the start, to the last checkpoint stage):
+  // a player takes it instead of driving back, so the bot does too (once per offer, the message stays up a few seconds)
+  if (s.mission && !s.mission.active && (s.hud.messages || []).some((m) => /opnieuw beginnen\? Druk op Enter/i.test(m)) && (s.t - (mem.retryAt ?? -99)) > 8) { mem.retryAt = s.t; return { type: 'press', key: 'enter', why: 'opnieuw' }; }
   if (!s.target) return { type: 'wait', why: 'geen doel' };
   const t = s.target;
   const veh = s.player.vehicle;
