@@ -35,7 +35,7 @@ export function footStick(heading, camYaw) {
 // A cyclist, a walker or a parked car in the lane ahead (#354, the M26 chase through narrow streets): how far to turn the aim away from
 // them (radians, positive = to the right, like the steer) and the speed the car can still stop from. obstacles: [{ x, y, r }] in world
 // coordinates; the corridor is the car's width plus the obstacle's radius plus a margin, `look` metres ahead. Several obstacles add up.
-export function avoidance(car, obstacles, { look = 24, half = 1.4, brake = 7, margin = 0.8 } = {}) {
+export function avoidance(car, obstacles, { look = 24, half = 1.2, brake = 7, margin = 0.5 } = {}) {
   const c = Math.cos(car.angle), s = Math.sin(car.angle);
   let bias = 0, cap = Infinity, nearest = null;
   for (const o of obstacles || []) {

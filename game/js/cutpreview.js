@@ -54,7 +54,7 @@ export function linesOf(script, ids, looks = {}, slice = null) {
 
 // The lines of an evening at home the way story.js (story-wait) and storyeikea.js (story-eikea) time them without
 // recordings: 2.2 s lead, reading time per line, 0.25 s between. Returns { lines, total } like linesOf.
-export function homeLinesOf(script, id, looks = {}) {
+function homeLinesOf(script, id, looks = {}) {
   const sc = script.scenes.find((s) => s.id === id);
   const out = [];
   let t = 2.2;
