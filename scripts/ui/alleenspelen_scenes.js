@@ -3,7 +3,7 @@
 // (Opgeslagen spellen with Doorgaan and Nieuw spel) and checks keyboard focus, the grid and the texts. Never touches real storage.
 const sleep = (ms) => new Promise((res) => setTimeout(res, ms));
 const imp = (f) => import('/js/' + f + '.js');
-const [what, countText] = String(window.__shotsOnly || 'shots:0').split(':');
+const [what, countText, how] = String(window.__shotsOnly || 'shots:0').split(':');
 const count = Number(countText) || 0;
 const ss = document.getElementById('start-screen');
 for (let i = 0; i < 120 && !(ss && ss.classList.contains('visible')); i++) await sleep(1000);
@@ -29,6 +29,23 @@ if (what === 'seed') {
   }
   if (count) S.setActive(null, 1);
   return ['gezaaid ' + count + ': ' + JSON.stringify(S.listSlots(null).map((s) => s.n + ':' + s.name))];
+}
+
+if (what === 'play') {
+  // really start a game through the screen: no menu may stay over the world
+  const solo = ss.querySelector('.ss-item[data-act="solo"]');
+  solo.click(); await sleep(900);
+  const root = document.getElementById('saveslots');
+  const btn = how === 'doorgaan' ? root.querySelector('.ssl-hero') : root.querySelector('.ssl-new .ssl-main');
+  btn.click(); await sleep(700);
+  if (how === 'nieuw' && count >= 8) { const ja = document.querySelector('[data-do="newfull-ok"]'); if (!ja) return ['geen vraag bij 8 spellen']; ja.click(); await sleep(700); }
+  let gone = false;
+  for (let i = 0; i < 60 && !gone; i++) { await sleep(1000); gone = !ss.classList.contains('visible') && !document.getElementById('saveslots') && document.body.classList.contains('game-started'); }
+  await sleep(3000);
+  const left = [ss.classList.contains('visible'), !!document.getElementById('saveslots'), getComputedStyle(ss).display];
+  console.log('[capture] spel-' + count + '-' + how);
+  await sleep(800);
+  return [`play ${count} ${how}: menu weg ${gone}; start-screen zichtbaar ${left[0]}, saveslots ${left[1]}, display ${left[2]}`];
 }
 
 const log = [`viewport ${innerWidth}x${innerHeight}; ${count} opgeslagen spellen`];
