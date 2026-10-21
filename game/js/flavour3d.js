@@ -5,6 +5,8 @@ import { isInsideBuilding, isOnRoad } from './pedgeom.js';
 import { isInWater, pointInPolygon } from './util.js';
 import { BILLBOARD_SLOGANS, KROLBRUG_SIGNS, OOSTERPARK_PLAQUE } from './flavourlines.js';
 import { KROLBRUG, PLANTSOEN, GROTE_MARKT, OOSTERPARK, krolLevel } from './flavour.js';
+import { buildPersonMesh, seatPose, seatedY } from './models3d_people.js';
+import { SIT_GROUND, SEAT_TOP, POOL_SIZE, picnicPeople, assignPool } from './picnicpeople.js';
 
 // The 3D side of flavour.js: billboards, the Gerrit Krolbrug detour, the
 // Noorderplantsoen picnic, the wandering Peerd, the Oosterpark plaque, the
@@ -281,26 +283,15 @@ function buildPicnic() {
   const white = std(0xffffff);
   const col = new THREE.Color();
   const blanket = instanced(new THREE.PlaneGeometry(1.9, 1.5).rotateX(-Math.PI / 2), white, spots.length);
-  const torso = instanced(new THREE.BoxGeometry(0.42, 0.55, 0.26).translate(0, 0.28, 0), white, spots.length * 2);
-  const head = instanced(new THREE.SphereGeometry(0.13, 8, 6), white, spots.length * 2);
   const speaker = instanced(new THREE.BoxGeometry(0.26, 0.42, 0.24).translate(0, 0.21, 0), std(0x1e2126), spots.length);
   const bbq = instanced(new THREE.BoxGeometry(0.46, 0.12, 0.3).translate(0, 0.06, 0), std(0xb9bdc2, { metalness: 0.5, roughness: 0.5 }), spots.length);
   const coals = instanced(new THREE.PlaneGeometry(0.4, 0.24).rotateX(-Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0x331100, emissive: 0xff5a1a, emissiveIntensity: 1.4 }), spots.length);
   const wheel = instanced(new THREE.TorusGeometry(0.33, 0.03, 5, 14), std(0x1e1e1e), spots.length * 2);
   const frame = instanced(new THREE.BoxGeometry(1.0, 0.05, 0.05), white, spots.length);
-  let nt = 0, ns = 0, nb = 0, nk = 0;
+  let ns = 0, nb = 0, nk = 0;
   spots.forEach((s, i) => {
     place(blanket, i, s.x, 0.04, s.y, s.a);
     blanket.setColorAt(i, col.setHex(BLANKETS[i % BLANKETS.length]));
-    const people = 1 + (s.r > 0.45 ? 1 : 0);
-    for (let k = 0; k < people; k++) {
-      const ox = Math.cos(s.a) * (k ? 0.5 : -0.5), oy = -Math.sin(s.a) * (k ? 0.5 : -0.5);
-      place(torso, nt, s.x + ox, 0.05, s.y + oy, s.a + (k ? Math.PI : 0) + (s.r - 0.5));
-      torso.setColorAt(nt, col.setHex(SHIRTS[(i + k * 3) % SHIRTS.length]));
-      place(head, nt, s.x + ox, 0.72, s.y + oy);
-      head.setColorAt(nt, col.setHex(SKINS[(i * 7 + k) % SKINS.length]));
-      nt++;
-    }
     if (i % 3 === 0) { place(speaker, ns++, s.x + Math.cos(s.a + 1) * 0.8, 0.04, s.y + Math.sin(s.a + 1) * 0.8, s.a); }
     if (i % 3 === 1) {
       const bx = s.x + Math.cos(s.a - 1.2) * 1.5, by = s.y + Math.sin(s.a - 1.2) * 1.5;
@@ -316,9 +307,28 @@ function buildPicnic() {
       nk++;
     }
   });
-  torso.count = head.count = nt; speaker.count = ns; bbq.count = coals.count = nb; wheel.count = nk * 2; frame.count = nk;
-  for (const m of [blanket, torso, head, speaker, bbq, coals, wheel, frame]) g.add(m);
-  picnic = { g, coals };
+  speaker.count = ns; bbq.count = coals.count = nb; wheel.count = nk * 2; frame.count = nk;
+  for (const m of [blanket, speaker, bbq, coals, wheel, frame]) g.add(m);
+  // de picknickers zijn gewone mensmodellen in een zittende pose (#342), een pool bij de speler in de buurt
+  picnic = { g, coals, people: picnicPeople(spots), pool: [], lastAssign: -1 };
+}
+
+// Zet de pool picknickers bij de speler neer (elke halve seconde). Het model wordt pas gebouwd als er een figuur nodig is.
+function stepPicnicPeople(world, p) {
+  const pn = picnic;
+  if (world.time - pn.lastAssign < 0.5) return;
+  pn.lastAssign = world.time;
+  if (!pn.pool.length) for (let i = 0; i < POOL_SIZE; i++) pn.pool.push({ who: -1, mesh: null });
+  for (const i of assignPool(pn.people, pn.pool, p.x, p.y)) {
+    const q = pn.pool[i];
+    if (q.who < 0) { if (q.mesh) q.mesh.visible = false; continue; }
+    const who = pn.people[q.who];
+    if (!q.mesh) { q.mesh = buildPersonMesh(SHIRTS[(i * 3) % SHIRTS.length], SKINS[(i * 7 + 1) % SKINS.length]); q.mesh.name = 'picknicker'; pn.g.add(q.mesh); }
+    seatPose(q.mesh, SIT_GROUND[who.pose]);
+    q.mesh.position.set(who.x, seatedY(q.mesh, SEAT_TOP), who.y);
+    q.mesh.rotation.y = who.ry;
+    q.mesh.visible = true;
+  }
 }
 
 // --- Peerd van Ome Loeks ------------------------------------------------------------
@@ -574,7 +584,10 @@ export function updateFlavour3D(dt, world) {
 
   if (picnic) {
     picnic.g.visible = F.plantsoen && near(PLANTSOEN.x, PLANTSOEN.y, 480);
-    if (picnic.g.visible) picnic.coals.material.emissiveIntensity = 1.1 + Math.sin(world.time * 7) * 0.3;
+    if (picnic.g.visible) {
+      picnic.coals.material.emissiveIntensity = 1.1 + Math.sin(world.time * 7) * 0.3;
+      stepPicnicPeople(world, p);
+    }
   }
 
   if (peerd && F.peerd) {
