@@ -118,6 +118,7 @@ import { updateSpikeStrips3D } from './spikestrips3d.js';
 import { tryWeaponDropInteract, updateWeaponDrops3D } from './weapondrops.js';
 import { initFlitspaal, updateFlitspaal } from './flitspaal.js';
 import { initWildlife, updateWildlife } from './wildlife.js';
+import { tickSchaapontvoering } from './schaapontvoeringrt.js';
 import { initSkyProps, updateSkyProps } from './skyprops.js';
 import { initSikkomFeed, updateSikkomFeed } from './sikkomfeed.js';
 import { initPhoneFeed, updatePhoneFeed } from './phonefeed.js';
@@ -763,6 +764,7 @@ async function boot() {
     updatePedestrians(dt, world);
     probe.mark('peds');
     updateWildlife(dt, world);
+    tickSchaapontvoering(dt, world);
     updateStreetLife(dt, world);
     updateSkyProps(dt, world);
     updatePigeonSpots(dt, world);
