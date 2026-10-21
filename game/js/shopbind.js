@@ -20,7 +20,7 @@ export const SHOP_TYPE = {
   bicycle: 'fietsen',
   florist: 'bloemist', garden_centre: 'bloemist',
   hairdresser: 'kapper', beauty: 'kapper',
-  electronics: 'elektronica', mobile_phone: 'elektronica', computer: 'elektronica', paint: 'elektronica', hardware: 'elektronica', doityourself: 'elektronica',
+  electronics: 'elektronica', mobile_phone: 'elektronica', computer: 'elektronica', paint: 'elektronica',
   second_hand: 'tweedehands', pawnbroker: 'tweedehands', variety_store: 'tweedehands', furniture: 'tweedehands', antiques: 'tweedehands', charity: 'tweedehands',
   gift: 'souvenir',
   newsagent: 'kiosk', kiosk: 'kiosk', tobacco: 'kiosk', lottery: 'kiosk',

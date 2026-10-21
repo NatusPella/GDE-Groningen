@@ -10,7 +10,12 @@
 //   open    cues at t = 0 (cutscript cue objects without t)
 //   beats   [{ on: <line index | start of the line's text | 'end'>, dt, ...cue }]   story actions on a line
 //   shots   [{ on, ...shot }]   hand-made camera shots on a line (the rest is covered automatically)
+//   fx      [{ on, dt, fx: 'sfx', kind: 'splash' }]   host effects on a line (cutscenehost.js)
 //   wide    a first establishing shot { from, to, look, fov, until: <line index> }
+//   solo    true: Tessa on her own (Tammo is elsewhere): he is hidden and gets no coverage (M21)
+//   manual  true: no automatic coverage after the forced `shots` (a camera that follows a moving car)
+//   align   'road': the scene stands on the nearest road, +f along it (a car that drives through the scene, missionstory.js alignToRoad)
+// A key with '#from-to' ('M26.4#7-14') is a slice of a script scene: a stage scene that plays lines 7 to 13 of M26.4.
 // A beat whose line is not found (an edited text) is skipped, so a text edit never breaks a scene.
 // Coordinates are local to the player's spot: f forward, s left, h up (m). The pair stands at f 0,
 // Tammo on the left (s +0.6), Tessa on the right (s -0.6).
@@ -47,6 +52,24 @@ const merge = (...parts) => ({
 });
 
 export const SPECS = {};
+export const sceneSpec = (key) => SPECS[key] || MORE_SPECS[key] || null;
+
+// The heading of a road (pts: [[x, y], ...]) at the point `rp` ({ x, y }) on it, turned to the direction closest to `facing`: { x, y, facing },
+// or null for a road without two points (a spec with `align: 'road'`, missionstory.js).
+export function roadAlignment(pts, rp, facing) {
+  if (!pts || pts.length < 2 || !rp) return null;
+  let best = null;
+  for (let i = 0; i + 1 < pts.length; i++) {
+    const ax = pts[i][0], ay = pts[i][1], bx = pts[i + 1][0], by = pts[i + 1][1];
+    const dx = bx - ax, dy = by - ay, l2 = dx * dx + dy * dy || 1e-9;
+    const t = Math.max(0, Math.min(1, ((rp.x - ax) * dx + (rp.y - ay) * dy) / l2));
+    const d = Math.hypot(ax + dx * t - rp.x, ay + dy * t - rp.y);
+    if (!best || d < best.d) best = { d, a: Math.atan2(dy, dx) };
+  }
+  let a = best.a;
+  if (Math.abs(Math.atan2(Math.sin(a - facing), Math.cos(a - facing))) > Math.PI / 2) a += Math.PI;
+  return { x: rp.x, y: rp.y, facing: a };
+}
 // more stagings (cutscenes_akte3.js ...): read by missionScene as well, so act 1's own test keeps its list
 export const MORE_SPECS = {};
 // act 2 (M08-M11) is staged in its own file
@@ -518,8 +541,8 @@ Object.assign(SPECS, SPECS_AKTE2);
       { on: 'Foar mem', actor: 'jelle', anim: 'look' },
       { on: 'Wat zei hij', actor: 'tammo', face: 'actor:jelle' },
       { on: 'Wat zei hij', dt: 0.2, actor: 'tammo', anim: 'shrug' },
-      { on: 'Mevrouw Tuinstra', actor: 'bewaarder', walk: [[3.0, -0.6]], speed: 1.0 },
-      { on: 'Mevrouw Tuinstra', dt: 0.1, actor: 'bewaarder', face: 'actor:tessa' },
+      { on: 'Mevrouw Hoving', actor: 'bewaarder', walk: [[3.0, -0.6]], speed: 1.0 },
+      { on: 'Mevrouw Hoving', dt: 0.1, actor: 'bewaarder', face: 'actor:tessa' },
       { on: 'Meneer Terpstra', actor: 'bewaarder', anim: 'point' },
       { on: 'En wie let', actor: 'tessa', anim: 'shake' },
       { on: 'Het museum', actor: 'bewaarder', anim: 'hips' },
@@ -555,8 +578,8 @@ const CAMS = {
   close: (side, toward) => ({ shot: 'dolly', from: toward ? [3.4, side * 0.6, 1.6] : [-0.4, side * 1.6, 1.6], to: toward ? [2.6, side * 0.4, 1.62] : [0.4, side * 1.3, 1.62], look: 'speaker', fov: 25 }),
 };
 
-export function missionScene(key, lines, { looks = {} } = {}) {
-  const spec = SPECS[key] || MORE_SPECS[key];
+export function missionScene(key, lines, { looks = {}, spec: given = null } = {}) {
+  const spec = given || SPECS[key] || MORE_SPECS[key];
   if (!spec || !lines || !lines.length) return null;
   const actors = {};
   for (const id of ['tammo', 'tessa']) actors[id] = { ...DUO[id], ...((spec.duo || {})[id] || {}) };
@@ -569,6 +592,7 @@ export function missionScene(key, lines, { looks = {} } = {}) {
   }
   const props = spec.props || {};
   const cues = [];
+  if (spec.solo) { cues.push({ t: 0, actor: 'tammo', hide: true }); meta.tammo.noauto = true; }
   for (const o of spec.open || []) cues.push({ t: 0, ...o });
   for (const [id, c] of Object.entries(spec.cast || {})) if (c.carry) cues.push({ t: 0, actor: id, carry: c.carry });
 
@@ -618,6 +642,7 @@ export function missionScene(key, lines, { looks = {} } = {}) {
   let lastT = -9, lastSpeaker = null, variant = 0, lastIdx = -1;
   lines.forEach((l, i) => {
     if (i < first && !shotAt.has(i)) return;
+    if (spec.manual && !shotAt.has(i)) return;
     const me = speakerActor(l.speaker);
     const forced = shotAt.get(i);
     if (!forced && i === first && w && first === 0) return;
@@ -643,9 +668,29 @@ export function missionScene(key, lines, { looks = {} } = {}) {
   // the closing frame: back out to the street
   const wend = spec.wide ? { shot: 'dolly', from: [spec.wide.to[0] + 0.5, spec.wide.to[1], spec.wide.to[2] + 0.3], to: [spec.wide.to[0] + 2.2, spec.wide.to[1] * 0.9, spec.wide.to[2] + 1.2], look: spec.wide.look, fov: spec.wide.fov || 48 } : null;
   const lastLine = lines[lines.length - 1];
-  if (wend && lastLine.dur > 1.6) shots.push({ t: tspec(lines.length - 1, Math.max(0.6, lastLine.dur - 1.4)), ...wend });
+  if (wend && !spec.manual && lastLine.dur > 1.6) shots.push({ t: tspec(lines.length - 1, Math.max(0.6, lastLine.dur - 1.4)), ...wend });
   drift(shots, lines, endT + 1);
-  return { id: 'story-' + key, actors, props, cues, shots };
+  const fx = (spec.fx || []).map((f) => ({ f, idx: resolveOn(f.on, lines) })).filter((q) => q.idx !== -1).map(({ f, idx }) => { const { on, dt, ...rest } = f; return { t: idx == null ? 'end' : tspec(idx, dt || 0), ...rest }; });
+  return { id: 'story-' + key, actors, props, cues, shots, ...(fx.length ? { fx } : {}) };
+}
+
+// A scene for lines that have no spec of their own (#352): the repeat of a mission's question (the `short` intro), the one line of
+// a replay and the pair on a boat's deck. The NPC (when there is one) stands where the mission's NPCs do, the pair turns to
+// whoever speaks, every line gets a gesture and a new frame. npc: { key, look } or null (the pair alone: a deck).
+export function quickScene(lines, { npc = null, looks = {}, deck = false } = {}) {
+  const look = npc && (npc.look || looks[npc.key]);
+  if (npc && !look) return null;
+  const spec = {
+    cast: npc ? { npc: { key: npc.key, at: [2.8, 0.2], face: 190, anim: 'idle', gest: ['point', 'hips', 'talk', 'shrug'] } } : {},
+    props: {},
+    open: [{ actor: 'tessa', face: npc ? 'actor:npc' : 'actor:tammo' }, { actor: 'tammo', face: npc ? 'actor:npc' : 'actor:tessa' }],
+    beats: npc ? [{ on: 0, dt: 0.2, actor: 'npc', walk: [[2.1, 0.2]], speed: 0.7 }] : [{ on: 0, dt: 0.3, actor: 'tessa', walk: [[0.5, -0.9]], speed: 0.5 }, { on: 0, dt: 0.3, actor: 'tammo', walk: [[0.5, 0.9]], speed: 0.5 }],
+    shots: [],
+    wide: deck
+      ? { from: [-4.2, 3.4, 2.6], to: [-2.6, 2.6, 2.0], look: 'mid:tammo,tessa@1.2', fov: 46, until: 1 }
+      : { from: [-3.6, 3.6, 2.9], to: [-1.8, 2.6, 2.2], look: npc ? 'mid:npc,tessa@1.2' : 'mid:tammo,tessa@1.2', fov: 48, until: 1 },
+  };
+  return missionScene(deck ? 'dek' : 'kort', lines, { looks: npc ? { [npc.key]: look } : looks, spec });
 }
 
 // Rhythm rule (#136): a camera never holds still longer than ~6 s. A fixed cut that runs long gets a slow push-in

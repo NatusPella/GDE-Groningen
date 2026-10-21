@@ -3178,6 +3178,15 @@ function modeOk(p, mode) {
   return true;
 }
 
+// The staging (cutscenes_akte*.js) of a stage scene: its one script scene ('M20.2'), or the slice of it that it plays ('M26.4#7-14').
+// The reveal of the case (M06.3) has a hand-made camera for the whole scene (shotAll below): its staging only brings the people.
+function stagingKey(st) {
+  const sc = st.script;
+  if (!sc || sc.ids.length !== 1) return null;
+  if (sc.from || sc.to) return `${sc.ids[0]}#${sc.from || 0}-${sc.to == null ? '' : sc.to}`;
+  return sc.ids[0];
+}
+
 function playStageScene(world, st, S) {
   // the new arc's stage scenes say the script's lines (storytext.js)
   // a consequence picks the scene: the baking score (scriptTier) or an answer's tag (scriptIf)
@@ -3272,9 +3281,9 @@ function playStageScene(world, st, S) {
     const lookTo = (wide && st.cam.at && resolveTarget(world, st.cam.at, c)) || c;
     const staged = playCastScene(world, {
       at: wide ? c : { x: world.player.x, y: world.player.y }, lines: st.lines, cast: st.cast || [],
-      kicker: st.kicker || '', title: st.title || '', big: wide ? '' : st.big || '', lookTo, solo: !!st.solo, staging: !st.reveal && !st.cam && st.script && !st.script.from && !st.script.to && st.script.ids.length === 1 ? st.script.ids[0] : null, lead: st.reveal ? REVEAL.card : 0.6,
+      kicker: st.kicker || '', title: st.title || '', big: wide ? '' : st.big || '', lookTo, solo: !!st.solo, staging: stagingKey(st), lead: st.reveal ? REVEAL.card : 0.6,
       deck: st.target && st.target.skutsje ? chain.skutsje : null,
-      shot: st.reveal || wide || st.deckCam ? shot : null, shotLines: wide ? st.shotLines || 1 : 0,
+      shot: st.reveal || wide || st.deckCam ? shot : null, shotLines: wide ? st.shotLines || 1 : 0, shotAll: !!st.reveal,
       poses: st.dropFlag || st.showFlag ? (t, cur) => ({ T: 'lookup', A: cur && cur.who === 'A' ? (st.dropFlag ? 'cheer' : 'point') : 'lookup' }) : null,
       props: [...(st.props || []), ...(st.knots ? [{ kind: 'point', name: 'knots', at: flagKnotsFocus }] : [])],
       update: st.dropFlag || st.showFlag ? (t, dt) => updateStoryProps(st.dropFlag ? dt * 0.45 : dt) : st.reveal ? heistRevealUpdate : null,

@@ -153,6 +153,7 @@ function makeJob(spec) {
 export const loket = makeJob(KEUZE_JOBS.loket);
 export const studiestaat = makeJob(KEUZE_JOBS.studiestaat);
 export const vigilantia = makeJob(KEUZE_JOBS.vigilantia);
+export const promotie = makeJob(KEUZE_JOBS.promotie);
 export const kamerkoning = makeJob(KEUZE_JOBS.kamerkoning);
 export const wolkenhal = makeJob(KEUZE_JOBS.wolkenhal);
 export const helix = makeJob(KEUZE_JOBS.helix);

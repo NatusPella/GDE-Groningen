@@ -212,6 +212,10 @@ export const PAD_MAPS = {
   menu: { a: 'enter', b: 'escape', x: 'delete', y: ' ', lb: 'q', rb: 'e', lt: '[', rt: ']', ls: null, rs: null, up: 'arrowup', down: 'arrowdown', left: 'arrowleft', right: 'arrowright', view: 'm', start: 'escape', stick: 'nav' },
 };
 
+// Samen spelen: in een voertuig is D-pad omhoog het stuur geven, terugnemen of erom vragen (Y op het toetsenbord, #291);
+// de alarmlichten (en bij handmatig schakelen de radio) zijn dan niet op het pad te bereiken zolang er een sessie loopt.
+export const PAD_COOP = { vehicle: { up: 'y' }, vehicleManual: { up: 'y' }, skutsje: { up: 'y' } };
+
 // The button for a canonical key or a mouse token in a situation, as a slot
 // name ('a', 'rt', ...) or 'lstick'/'rstick'; null when the pad has none.
 export function padSlotFor(token, ctx = 'foot') {

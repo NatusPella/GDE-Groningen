@@ -72,7 +72,7 @@ export function buildNieuwDefs({ map, walk, drive, models = {} }) {
       type: 'deliver',
       label: 'Nul krassen, vijftienhonderd punten',
       triggerRadius: 6,
-      intro: ['Honderdvijftig euro voor de inschrijving van de Noordelijke Snackprijs, uiterlijk morgen. Een streamer betaalt honderdvijftig voor stunts, Berend Bos vijftig voor zijn bakkie.', 'Doel: haal vijftienhonderd stuntpunten op de Grote Markt, zonder mensen en zonder krassen. Breng het bakkie daarna heel naar het Boterdiep.'],
+      intro: ['Je hebt uiterlijk morgen honderdvijftig euro nodig voor de inschrijving van de Noordelijke Snackprijs. Een streamer betaalt honderdvijftig voor stunts. Berend Bos betaalt vijftig voor zijn bakkie.', 'Doel: haal vijftienhonderd stuntpunten op de Grote Markt. Parasols en kliko\'s geven punten; mensen en krassen kosten je. Breng het bakkie daarna heel naar het Boterdiep.'],
       outro: 'Honderdvijftig op de pas, vijftig van Berend. Nieuw doel: morgenochtend pinnen en inschrijven bij Het Loket.',
       timeLimit: 240,
       timeUp: 'tijd op. Jelmers chat is al naar een kattenfilmpje en Berend wacht nog',
@@ -92,7 +92,7 @@ export function buildNieuwDefs({ map, walk, drive, models = {} }) {
       // the crane cabin is a place to keep still, no crane to drive. The places are guesses until the Eemshaven tiles are seen.
       type: 'stages',
       label: 'Het containerlabyrint',
-      intro: ["De Eemshaven, vannacht. Lammert, de havenmeester, wacht aan de kade, tussen de windmolenbladen en kabelhaspels.", "Container 4471 staat onder een stapel kabelhaspels. Sluip langs de bewakers en camera's, vind hem en verwissel de papieren voor het schip om zes uur vertrekt."],
+      intro: ["De Eemshaven, vannacht. Lammert, de havenmeester, wacht aan de kade, tussen de windmolenbladen en kabelrollen.", "Doel: zoek container 4471 onder de kabelrollen. Sluip langs de bewakers en camera's, verwissel de papieren en ga weg voordat het schip om zes uur vertrekt."],
       outro: 'De papieren zijn verwisseld. Het schip van Jelle vaart leeg weg.',
       timeLimit: 480,
       timeUp: 'het schip van zes uur is vertrokken, met container 4471 vol. Lammert schudt zijn hoofd',
@@ -150,7 +150,7 @@ export function buildNieuwDefs({ map, walk, drive, models = {} }) {
       // (aeroway=aerodrome); no airfield is invented, the plane stands on a grass strip like Kist Kees at Eelde.
       type: 'stages',
       label: 'Laag over het graan',
-      intro: ["Roelfien wacht bij haar graanveld bij Midwolda. Jelle geeft de juryleden op de kermis een gratis proeverij, en daar koopt hij ze mee.", "Vlieg Roelfiens gewasspuiter laag over het graan, pik het spandoek op en sleep het over de kermis. Hou de molen rechts en trek pas op na de kermis."],
+      intro: ["Roelfien wacht bij haar graanveld bij Midwolda. Jelle geeft de juryleden op de kermis een gratis proeverij, en zo wil hij ze kopen.", "Doel: vlieg Roelfiens vliegtuigje laag over het graan en pik het spandoek op. Sleep het over de kermis. Houd de molen rechts en trek de neus pas omhoog na de kermis."],
       outro: 'Het spandoek hing boven de kermis. Twee juryleden stapten uit.',
       timeLimit: null,
       reward: 900,
@@ -237,12 +237,12 @@ export function applyNieuw(list) {
   const rooster = by('Het staat niet in het rooster');
   if (rooster) {
     const L = ROOSTER.lauwersoog;
-    rooster.intro = ['Dokter Dijkstra landt in Lauwersoog met Rotor Roelfs heli. De nachtdienst heeft honger, en Jelle vliegt met zijn koopboek boven de Dollard.', 'Eerst de lunch naar het UMCG, dan achter de ballon aan: houd de heli stil naast de mand, dan pakt Tammo de aktetas.'];
+    rooster.intro = ['Dokter Dijkstra landt in Lauwersoog met Rotor Roelfs heli. De nachtdienst heeft honger, en Jelle vliegt met zijn koopboek boven de Dollard.', 'Doel: eerst de lunch naar het UMCG, dan achter de ballon aan. Houd de heli stil naast de mand, dan pakt Tammo de aktetas met het koopboek.'];
     rooster.outro = 'Tammo knipte de aktetas los. Het koopboek van Jelle: acht plakjes.';
     rooster.start = { x: L.x - 7, y: L.y + 5, road: null };
     delete rooster.startSpot;
     rooster.stages = [{ kind: 'heli', variant: 'rooster', target: { x: L.x, y: L.y, label: 'Terrein bij de visafslag, Lauwersoog' }, hint: 'Naar het terrein bij de visafslag in Lauwersoog: Dokter Dijkstra wacht.',
-      label: 'Vlieg naar het UMCG, dan naar Jelles ballon boven de Dollard', say: 'Instappen bij Dijkstra. Spatie omhoog, W vooruit, A/D draaien. Hij vliegt de lange stukken, jij houdt de heli stil naast de mand.', lost: 'de ballon is ontsnapt over de Dollard' }];
+      label: 'Vlieg Dijkstra\'s lunch naar het UMCG, haal dan de aktetas met Jelles koopboek uit de ballon boven de Dollard', say: 'Instappen bij Dijkstra. Spatie omhoog, W vooruit, A/D draaien. Dijkstra vliegt de lange stukken, jij houdt de heli stil naast de mand.', lost: 'de ballon is ontsnapt over de Dollard' }];
     rooster.costRow = ['Ontdekt', 'Plakje acht: notaris, 28 augustus'];
   }
   // M16 Nog eentje dan: the kroegentocht moves to the kermis of Winschoten (Sat 22 Aug): three tents on foot
@@ -251,7 +251,7 @@ export function applyNieuw(list) {
     const W = (dx, dy) => spotAt(53.1444, 7.0356, dx, dy);
     const via = (dx, dy) => ({ ...W(dx, dy), via: true });
     const tent = (name, dx, dy, toast) => ({ ...W(dx, dy), name, toast });
-    kerm.intro = ['De kermis van Winschoten, zaterdagavond. Geert heeft drie tenten, en Durk en Douwe zingen aan zijn bar.', 'Te voet langs drie tenten, hè. Elke tent een drankje, en de dronken menigte duwt je zo omver.'];
+    kerm.intro = ['De kermis van Winschoten, zaterdagavond. Geert heeft drie tenten, en Durk en Douwe zingen aan zijn bar.', 'Doel: volg Durk en Douwe langs drie tenten en win in de botsauto\'s hun geheim. Elke tent een drankje; de dronken menigte duwt je zo omver.'];
     kerm.outro = 'Drie tenten gehaald. Durk en Douwe zijn moe genoeg voor de botsauto\'s.';
     kerm.say = 'Loop langs drie tenten en drink in elke tent mee. De menigte duwt, dus blijf overeind en wees binnen de honderd seconden klaar.';
     kerm.timeLimit = 100;

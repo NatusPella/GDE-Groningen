@@ -22,13 +22,16 @@ ok(looks.berend && looks.berend.name === 'Berend Bos', 'NPC table parsed');
 const SCENES = {};
 for (const s of STEPS.filter((q) => (q.part === 'zuid' || q.part === 'ontzet') && q.story)) { SCENES[s.id + '.intro'] = s.story.intro; if (s.story.outro) SCENES[s.id + '.outro'] = s.story.outro; }
 for (const k of Object.keys(SPECS)) if (/^M(1[7-9]|2\d)\.\d+$/.test(k)) SCENES[k] = [k];
+// a stage scene that plays a slice of a script scene (missions_akte5.js script { ids, from, to }): 'M26.4#7-14' = lines 7 to 13 of M26.4
+const SLICE = {};
+for (const k of Object.keys(SPECS)) { const m = /^(M\d+\.\d+)#(\d+)-(\d+)$/.exec(k); if (m) { SCENES[k] = [m[1]]; SLICE[k] = [+m[2], +m[3]]; } }
 const NAME = { T: 'Tammo', A: 'Anita' };
 // the timeline of missionstory.js without recordings: reading time, 0.6 s lead, 0.1 s between
-function linesOf(ids) {
+function linesOf(ids, slice = null) {
   const out = [];
   let t = 0.6;
   for (const id of ids) {
-    for (const l of data.scenes.find((s) => s.id === id).lines) {
+    for (const l of data.scenes.find((s) => s.id === id).lines.slice(...(slice || [0]))) {
       if (l.channel === 'app-stil') continue;
       const dur = Math.max(2.2, Math.min(8, 1.3 + l.text.length * 0.058));
       out.push({ speaker: NAME[l.key] || (looks[l.key] && looks[l.key].name) || l.key, text: l.text, at: t, dur });
@@ -39,11 +42,11 @@ function linesOf(ids) {
 }
 
 const KEYS = Object.keys(SPECS).filter((k) => /^M(1[7-9]|2[0-9])./.test(k));
-ok(KEYS.filter((k) => /\.(intro|outro)$/.test(k)).length === 16, 'sixteen staged intros and outros', String(KEYS.length));
+ok(KEYS.filter((k) => /\.(intro|outro)$/.test(k)).length === 17, 'seventeen staged intros and outros (M21.intro is the solo ride)', String(KEYS.length));
 ok(KEYS.filter((k) => /\.\d+$/.test(k)).length >= 9, 'the in-mission scenes are staged', String(KEYS.length));
 for (const key of KEYS) {
   ok(SCENES[key], key + ' has a script scene', key);
-  const { lines, total } = linesOf(SCENES[key]);
+  const { lines, total } = linesOf(SCENES[key], SLICE[key]);
   // every beat finds its line (a silent skip would hide a typo)
   for (const b of SPECS[key].beats) if (typeof b.on === 'string') ok(lines.some((l) => l.text.startsWith(b.on)), key + ' beat finds its line', b.on);
   const def = missionScene(key, lines, { looks });

@@ -21,7 +21,7 @@ export const GAST_REGELS = [
   { actie: 'eten', mag: 'ja', regel: 'Eten en drinken bij een horecaplek en de muurkroket: met je eigen geld en je eigen gezondheid.' },
   { actie: 'voertuig-kopen', mag: 'nee', regel: 'Voertuigen, boten, helikopters, wapens, tuning en lak kopen kan alleen in je eigen spel: ze zouden in de wereld van de ander verschijnen.' },
   { actie: 'bijrijden', mag: 'ja', regel: 'De eerste gast (Tessa) rijdt mee als wie het spel opende in een voertuig zit en dicht bij is; met E stap je uit (als het voertuig bijna stilstaat) en weer in. De derde en vierde speler stappen ook met E in (auto: drie extra plekken, bus: zes) en zijn dan niet meer te zien; fietsen, scooters en helikopters hebben geen plek.' },
-  { actie: 'sturen', mag: 'deels', regel: 'Met Y geeft de bestuurder het stuur aan zijn bijrijder (en neemt het terug); de bijrijder kan met Y om het stuur vragen. De bestuurder blijft de bestuurder: schade en politie zijn van hem.' },
+  { actie: 'sturen', mag: 'deels', regel: 'Met Y (controller: D-pad omhoog) geeft de bestuurder het stuur aan zijn bijrijder (en neemt het terug); de bijrijder kan met Y om het stuur vragen. De bestuurder blijft de bestuurder: schade en politie zijn van hem.' },
   { actie: 'eigen-voertuig', mag: 'nee', regel: 'Zelf een voertuig nemen en ermee rijden kan alleen in je eigen spel.' },
   { actie: 'gesprekken', mag: 'nee', regel: 'Praten met voorbijgangers en personages kan alleen in je eigen spel; wat de ander zegt zie je als ondertitel.' },
   { actie: 'bijbanen', mag: 'nee', regel: 'Een bijbaan of minigame start en speelt wie het spel opende; jij kijkt mee. Samen een opdracht doen kan alleen waar de opdracht dat zegt.' },
@@ -53,14 +53,16 @@ export function wielInvoer(r) {
 export const knoppen = (rennen, handrem) => (rennen ? 1 : 0) | (handrem ? 2 : 0);
 
 // Wat de bijrijder te lezen krijgt als de host het stuur geeft of terugneemt
+// de toets voor het stuur-gebaar: Y op het toetsenbord, D-pad omhoog met een controller
+const wielToets = () => (typeof document !== 'undefined' && document.documentElement && document.documentElement.classList.contains('pad-active') ? 'D-pad omhoog' : 'Y');
 export const WIEL_TEKST = {
-  gekregen: (naam) => `${naam} geeft je het stuur. Y om het terug te geven.`,
+  gekregen: (naam) => `${naam} geeft je het stuur. ${wielToets()} om het terug te geven.`,
   terug: (naam) => `${naam} neemt het stuur terug.`,
   gevraagd: 'Je vraagt om het stuur.',
   geen: 'Alleen als bijrijder kun je om het stuur vragen.',
 };
 export const WIEL_HOST_TEKST = {
-  gevraagd: (naam) => `${naam} vraagt om het stuur. Y om te geven.`,
-  gegeven: (naam) => `Je geeft ${naam} het stuur. Y om het terug te nemen.`,
+  gevraagd: (naam) => `${naam} vraagt om het stuur. ${wielToets()} om te geven.`,
+  gegeven: (naam) => `Je geeft ${naam} het stuur. ${wielToets()} om het terug te nemen.`,
   terug: (naam) => `Je neemt het stuur terug van ${naam}.`,
 };

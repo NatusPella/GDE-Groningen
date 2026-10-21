@@ -1,5 +1,5 @@
 // Coöp-testbank (#95): echte Electron-instanties die met elkaar verbinden, op 127.0.0.1.
-//   node scripts/coop/testbank.mjs --stage=<gestagede game-map> --suite=<naam> [--out=<map>] [--route=direct|kamer]
+//   node scripts/coop/testbank.mjs --stage=<gestagede game-map> --suite=<naam> [--out=<map>] [--route=direct|kamer] [--publiek]
 //   suites: basis (host + gasten, lijst, klok, desync), net (4 spelers: slecht netwerk, desync, uitval, betalen, vertrek,
 //           nieuwe gast, host stopt), kamer (kamercode via WebRTC en een lokale nep-tracker), verhaal (de spelbot speelt
 //           M01 t/m M08 als host, de gasten lopen mee), touch (gast met aanraakbediening), opening (nieuw spel samen via de
@@ -30,6 +30,7 @@ const MENU = flag('menu') || SUITE !== 'basis';
 const GASTEN = Math.max(0, Math.min(2, Number(arg('gasten', SUITE === 'verhaal' ? 2 : 1))));  // 0: alleen de host in Electron en headless gasten (mock) erbij
 const MOCK = Math.max(0, Number(arg('mock', SUITE === 'net' ? (GASTEN > 1 ? 1 : GASTEN === 1 ? 2 : 3) : GASTEN === 0 ? 1 : 0)) || 0); // vier spelers: host + Electron-gasten + headless gasten
 const SECOND = GASTEN > 1 ? 'gast2' : 'gast'; // wie in de suite 'net' een slecht netwerk krijgt en later vertrekt
+const PUBLIEK = flag('publiek'); // de kamercode-route over de echte openbare brokers en STUN-servers (alleen internet nodig, geen nep-tracker)
 const ROUTE = arg('route', SUITE === 'kamer' ? 'kamer' : 'direct');
 const OUT = path.resolve(arg('out', path.join(os.tmpdir(), 'gde-coop', new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19))));
 const LOCKS = process.env.GDE_LOCKS || path.join(os.homedir(), 'gde-locks');
@@ -94,7 +95,7 @@ function start(name, cfg, seed, extraArgs = []) {
   const env = { ...process.env, GDE_TEST_PROFILE: profile, GDE_GAME_DIR: STAGE, GDE_COOP_TEST: '1', ...(MENU ? { GDE_MENU_TEST: '1' } : {}) };
   delete env.ELECTRON_RUN_AS_NODE;
   const extra = [...extraArgs];
-  if (ROUTE === 'kamer') extra.push('--disable-features=WebRtcHideLocalIpsWithMdns', '--allow-loopback-in-peer-connection'); // kandidaten op de loopback, zonder mDNS-naam en zonder firewall
+  if (ROUTE === 'kamer' && !PUBLIEK) extra.push('--disable-features=WebRtcHideLocalIpsWithMdns', '--allow-loopback-in-peer-connection'); // kandidaten op de loopback, zonder mDNS-naam en zonder firewall
   const child = spawn(ELECTRON, ['.', '--windowed', '--stil', '--force-device-scale-factor=1', '--window-size=1280x720', '--coop', `--autoplay=${seed}`,
     `--smoke-test=${path.join(dir, 'shots.png')}`, `--perf-script=${script}`, `--bot-events=${events}`, ...extra], { cwd: path.join(ROOT, 'desktop'), env, stdio: ['ignore', 'pipe', 'pipe'] });
   try { os.setPriority(child.pid, os.constants.priority.PRIORITY_BELOW_NORMAL); } catch (e) { /* geen rechten: gewone prioriteit */ }
@@ -119,7 +120,7 @@ process.on('exit', () => { for (const k of kids) { try { k.kill(); } catch (e) {
 // ---------------------------------------------------------------- start
 const T0 = Date.now();
 let tracker = null;
-if (ROUTE === 'kamer') {
+if (ROUTE === 'kamer' && !PUBLIEK) {
   const { startFakeTracker } = await import('./faketracker.mjs');
   tracker = await startFakeTracker(); trackerPort = tracker.port;
   console.log('nep-tracker op 127.0.0.1:' + trackerPort);
@@ -307,7 +308,8 @@ for (const n of NAMES) {
   if (ROUTE === 'direct') check(v && v.net.ws === 0 && v.net.rtc === 0 && v.net.fetch === 0, `${n}: de IP-route gebruikt de browser niet voor verkeer: ${JSON.stringify(v && v.net)}`);
   else check(v && v.net.rtc >= 1 && v.net.fetch === 0, `${n}: kamerroute zonder WebRTC of met fetch: ${JSON.stringify(v && v.net)}`);
 }
-if (ROUTE === 'kamer') {
+if (ROUTE === 'kamer' && PUBLIEK) note('echte openbare brokers en STUN-servers gebruikt (--publiek); geen nep-tracker, dus geen controle van wat de brokers zagen');
+if (ROUTE === 'kamer' && !PUBLIEK) {
   const wss = new Set(); for (const n of NAMES) for (const s of samples(n)) void s;
   const wire = trackerSeen.join('\n');
   check(trackerSeen.length > 0, 'de nep-tracker zag niets: de kamercode-route is niet gebruikt');
