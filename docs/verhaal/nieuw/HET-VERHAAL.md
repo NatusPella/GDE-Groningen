@@ -558,7 +558,7 @@ TESSA
 Achter Jelle staat een kleine, oude dame met een hoed, een gouden speldje en een stempel.
 
 BEWAARDER  
-Mevrouw Tuinstra. Ik bewaar de Gouden Eierbal, de wisselprijs van de Snackprijs, al sinds 1998. Wie de bal bewaart, zit de jury voor. Dat is artikel 4.
+Mevrouw Hoving. Ik bewaar de Gouden Eierbal, de wisselprijs van de Snackprijs, al sinds 1998. Wie de bal bewaart, zit de jury voor. Dat is artikel 4.
 
 LOKETBEDIENDE  
 Artikel 9: is de bewaarder verhinderd, dan zit het oudste jurylid voor. Dat is meneer Bos, jurylid sinds 1982.
@@ -2827,7 +2827,7 @@ TAMMO
 De bewaker met het koekje. En twee reuzen.
 
 TAMMO  
-Tuinstra's pas. Geblokkeerd op twaalf augustus.
+Hoving's pas. Geblokkeerd op twaalf augustus.
 
 TESSA  
 Zodat zij niets merkte. Twaalf augustus. Vijf dagen vóór onze kraak. Hij had hem toen al.
@@ -2866,7 +2866,7 @@ Kom dinsdag naar Bourtange, voor het Beleg. Jelle komt ook. – M.
 
 EXT. VEENDAM, PERRON, VEENKOLONIËN - MIDDAG [M19]
 
-Maandag 24 augustus, late middag. Een museumstoomtrein onder stoom, maar hij staat stil. Op een bank bij het perron zit de machinist met een bordje eierballen. In het salonrijtuig zitten twee juryleden en mevrouw Tuinstra, de bewaarder, met een bordje eierballen.
+Maandag 24 augustus, late middag. Een museumstoomtrein onder stoom, maar hij staat stil. Op een bank bij het perron zit de machinist met een bordje eierballen. In het salonrijtuig zitten twee juryleden en mevrouw Hoving, de bewaarder, met een bordje eierballen.
 
 Gameplay: Tammo is machinist en rijdt de trein naar het volgende perron, terwijl Tessa door de wagons naar de juryleden loopt.
 
@@ -4112,7 +4112,7 @@ BEREND
 Eén: wie partij is, zit niet voor. Dat is Jelle.
 
 BEREND  
-Twee: mevrouw Tuinstra zit nog in de trein, met volpension. Artikel negen: dan zit het oudste jurylid voor. Dat ben ik. Ik heb nog nooit iets gewonnen en nu moet ik oordelen.
+Twee: mevrouw Hoving zit nog in de trein, met volpension. Artikel negen: dan zit het oudste jurylid voor. Dat ben ik. Ik heb nog nooit iets gewonnen en nu moet ik oordelen.
 
 BEREND  
 Drie: vijf juryleden, drie van de vijf beslist. Mijn mening is niet het hele oordeel.
@@ -4538,7 +4538,7 @@ RIKUS (V.O. radio)
 Oldenhuis Bakt sluit alle eenenveertig snackbars. Het was een dekmantel van Us Mem Snacks.
 
 RIKUS (V.O. radio)  
-Mevrouw Tuinstra stapt in Wildervank uit de trein. Met volpension.
+Mevrouw Hoving stapt in Wildervank uit de trein. Met volpension.
 
 RIKUS (V.O. radio)  
 De Krolbrug staat nu open. Niemand weet waarom. Dat is verdacht.
