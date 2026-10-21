@@ -291,6 +291,127 @@
       "file": "keuzewerk",
       "ctx": "dankwoord aan de gastheer",
       "why": "een speech op een feest (de gastheer van het feest in het verhaal), niets met samen spelen"
+    },
+    {
+      "rule": "inclusief",
+      "term": "jongens",
+      "file": "intromontage",
+      "ctx": "ik ook, jongens",
+      "why": "Rikus aan luisteraars van de radio; ingesproken: de opname blijft; bij een heropname vervangen (docs/INCLUSIEVE-TAAL.md) (\"ik ook, luisteraars\")"
+    },
+    {
+      "rule": "inclusief",
+      "term": "jongens",
+      "file": "script.json",
+      "ctx": "ik ook, jongens",
+      "why": "Rikus aan luisteraars van de radio; ingesproken: de opname blijft; bij een heropname vervangen (docs/INCLUSIEVE-TAAL.md) (\"ik ook, luisteraars\")"
+    },
+    {
+      "rule": "inclusief",
+      "term": "jongens",
+      "file": "missions.js",
+      "ctx": "Opzij, jongens",
+      "why": "Durk en Douwe; ingesproken: de opname blijft; bij een heropname vervangen (docs/INCLUSIEVE-TAAL.md)"
+    },
+    {
+      "rule": "inclusief",
+      "term": "jongens",
+      "file": "missions.js",
+      "ctx": "Kom op, jongens",
+      "why": "Durk en Douwe; ingesproken: de opname blijft; bij een heropname vervangen (docs/INCLUSIEVE-TAAL.md)"
+    },
+    {
+      "rule": "inclusief",
+      "term": "jongens",
+      "file": "missionstory",
+      "ctx": "Jongens. Ik heb net twee reuzen",
+      "why": "Kapitein Klaas; ingesproken: de opname blijft; bij een heropname vervangen (docs/INCLUSIEVE-TAAL.md)"
+    },
+    {
+      "rule": "inclusief",
+      "term": "jongens",
+      "file": "script.json",
+      "ctx": "Jongens. Ik heb net twee reuzen",
+      "why": "Kapitein Klaas; ingesproken: de opname blijft; bij een heropname vervangen (docs/INCLUSIEVE-TAAL.md)"
+    },
+    {
+      "rule": "inclusief",
+      "term": "jongens",
+      "file": "script.json",
+      "ctx": "Moi, jongens. Lekker gebotst",
+      "why": "de kermisbaas bij de botsauto's; ingesproken: de opname blijft; bij een heropname vervangen (docs/INCLUSIEVE-TAAL.md)"
+    },
+    {
+      "rule": "inclusief",
+      "term": "jongens",
+      "file": "subtitles.js",
+      "ctx": "Fietsen jullie maar, jongens",
+      "why": "Nederlandse ondertitel bij een ingesproken Friese regel (\"Jim fytse mar, jonges\"); ingesproken: de opname blijft; bij een heropname vervangen (docs/INCLUSIEVE-TAAL.md)"
+    },
+    {
+      "rule": "inclusief",
+      "term": "jongens",
+      "file": "subtitles.js",
+      "ctx": "Mijn jongens hebben jouw auto",
+      "why": "Jelle over zijn eigen handlangers (mannen in dienst bij hem), geen aanspreekvorm van een groep"
+    },
+    {
+      "rule": "inclusief",
+      "term": "dames en heren",
+      "file": "rondvaart",
+      "why": "de gids spreekt toeristen formeel aan, een parodie op de rondvaartgids; ingesproken: de opname blijft; bij een heropname vervangen (docs/INCLUSIEVE-TAAL.md) (\"beste mensen\")"
+    },
+    {
+      "rule": "inclusief",
+      "term": "iedereen kan zien dat hij",
+      "file": "banterlines",
+      "why": "de hij is een bepaalde bestuurder in het gesprek over de bus; ingesproken: de opname blijft; bij een heropname vervangen (docs/INCLUSIEVE-TAAL.md)"
+    },
+    {
+      "rule": "inclusief",
+      "term": "gekken",
+      "file": "sidejob_taxi",
+      "ctx": "rieden ze as gekken",
+      "why": "gezegde over rijgedrag (\"rijden als gekken\"), geen persoon of aandoening; ingesproken"
+    },
+    {
+      "rule": "inclusief",
+      "term": "gekken",
+      "file": "subtitles.js",
+      "ctx": "ze as gekken",
+      "why": "Friese/Groningse regel en zijn Nederlandse ondertitel: gezegde over rijgedrag, ingesproken"
+    },
+    {
+      "rule": "inclusief",
+      "term": "gekken",
+      "file": "subtitles.js",
+      "ctx": "rijden ze als gekken",
+      "why": "Friese/Groningse regel en zijn Nederlandse ondertitel: gezegde over rijgedrag, ingesproken"
+    },
+    {
+      "rule": "inclusief",
+      "term": "klusjesman",
+      "file": "radio.js",
+      "why": "terugkerende grap over een mysterieuze klusser; ingesproken: de opname blijft; bij een heropname vervangen (docs/INCLUSIEVE-TAAL.md) (\"klusser\")"
+    },
+    {
+      "rule": "inclusief",
+      "term": "klusjesman",
+      "file": "sikkomfeed",
+      "why": "dezelfde grap als in radio.js; ingesproken: de opname blijft; bij een heropname vervangen (docs/INCLUSIEVE-TAAL.md)"
+    },
+    {
+      "rule": "inclusief",
+      "term": "Iedereen houdt zijn",
+      "file": "lobby.js",
+      "why": "regel van het Samen spelen-scherm; sessie r27-samenspelen herschrijft die tekst, daarna vervalt deze regel"
+    },
+    {
+      "rule": "inclusief",
+      "term": "iedereen, en van twee zingende Friese reuzen aan zijn",
+      "file": "characters.js",
+      "ctx": "Kroegbaas",
+      "why": "de zijn is de kroegbaas, een vaste man in het verhaal; geen onbekende persoon"
     }
   ]
 }
