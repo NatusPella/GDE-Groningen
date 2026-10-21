@@ -18,6 +18,8 @@ const ROOT = path.resolve(HERE, '..', '..');
 const arg = (k, d) => { const a = process.argv.find((v) => v.startsWith(`--${k}=`)); return a ? a.slice(k.length + 3) : d; };
 const STAGE = path.resolve(arg('stage', process.env.GDE_GAME_DIR || ''));
 if (!STAGE || !fs.existsSync(path.join(STAGE, 'index.html'))) { console.error('--stage=<gestagede game-map> ontbreekt (scripts/coop/restage.mjs)'); process.exit(2); }
+const SIZE = arg('size', '1280x720'); // ook 1920x1080 (#377)
+const MOCK = Math.max(0, Math.min(2, Number(arg('mock', 0)) || 0)); // extra headless spelers: 0 = twee spelers in totaal, 2 = vier
 const OUT = path.resolve(arg('out', path.join(os.tmpdir(), 'gde-gastkant', new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19))));
 const LOCKS = process.env.GDE_LOCKS || path.join(os.homedir(), 'gde-locks');
 const ELECTRON = process.env.ELECTRON_EXE || path.join(ROOT, 'desktop', 'node_modules', 'electron', 'dist', process.platform === 'win32' ? 'electron.exe' : 'Electron');
@@ -54,7 +56,7 @@ fs.writeFileSync(script, `window.__coopCfg = ${JSON.stringify({ name: 'gast', ro
 const profile = `gde-test-gastkant-${process.pid}`;
 const env = { ...process.env, GDE_TEST_PROFILE: profile, GDE_GAME_DIR: STAGE, GDE_COOP_TEST: '1', GDE_MENU_TEST: '1' };
 delete env.ELECTRON_RUN_AS_NODE;
-const child = spawn(ELECTRON, ['.', '--windowed', '--stil', '--force-device-scale-factor=1', '--window-size=1280x720', '--coop', '--autoplay=22', '--url-flags=touch=1',
+const child = spawn(ELECTRON, ['.', '--windowed', '--stil', '--force-device-scale-factor=1', `--window-size=${SIZE}`, '--coop', '--autoplay=22', '--url-flags=touch=1',
   `--smoke-test=${path.join(OUT, 'shots.png')}`, `--perf-script=${script}`, `--bot-events=${events}`], { cwd: path.join(ROOT, 'desktop'), env, stdio: ['ignore', 'pipe', 'pipe'] });
 try { os.setPriority(child.pid, os.constants.priority.PRIORITY_BELOW_NORMAL); } catch (e) { /* gewone prioriteit */ }
 let out = ''; child.stdout.on('data', (d) => { out += d; }); child.stderr.on('data', (d) => { out += d; });
@@ -65,8 +67,11 @@ const readEvents = () => fs.readFileSync(events, 'utf8').split(/\r?\n/).filter(B
 // het draaiboek van de host begint zodra de gast "allen-erbij" meldt
 (async () => {
   for (let i = 0; i < 1200 && !readEvents().some((e) => e.type === 'allen-erbij'); i++) await new Promise((r) => setTimeout(r, 500));
+  const mocks = [];
+  if (MOCK) { const { startMockGuest } = await import('./mockclient.mjs'); for (let i = 0; i < MOCK; i++) { const m = await startMockGuest({ stage: STAGE, code: host.code, net: {}, seed: 31 + i }); m.input = (t) => ({ mx: Math.cos(t / 4 + i * 2), my: Math.sin(t / 4 + i * 2), run: false, yaw: 0 }); mocks.push(m); } }
   const W = await import(pathToFileURL(path.join(ROOT, 'game', 'js', 'weatherstate.js')).href);
   const ws = W.createWeatherState(5); host.world.weatherState = ws;
+  globalThis.__mocks = mocks;
   host.at(8, (h) => { ws.regions.stad.kind = 'onweer'; ws.regions.stad.rain = 0.85; ws.regions.stad.overcast = 0.95; });
   host.at(26, (h) => h.log.push('roep ' + h.N.sendPing(h.world, h.world.player.x + 6, h.world.player.y + 2, 'gevaar')));
   host.at(32, (h) => h.mission({ phase: 'active', label: 'Het Loket', type: 'stages', index: 3, progressText: 'Rij naar het loket', marker: { x: -1200, y: -1020 } }));
@@ -80,6 +85,7 @@ const readEvents = () => fs.readFileSync(events, 'utf8').split(/\r?\n/).filter(B
 const res = await done;
 release();
 try { await host.stop(); } catch (e) { /* al weg */ }
+for (const m of globalThis.__mocks || []) { try { await m.stop(); } catch (e) { /* al weg */ } }
 
 // ---------------------------------------------------------------- beoordelen
 const E = readEvents(); const problems = [], notes = [];
@@ -103,9 +109,9 @@ const d2 = win(44, 49); check(d2.length && d2.every((s) => s.hostEnt && s.hostEn
 const g1 = win(51, 53); check(g1.length && g1.some((s) => s.partners.some((p) => p[1] === 'Tammo' && p[2] === 'neergeslagen')), 'gepakt: de gast ziet Tammo niet als neergeslagen: ' + JSON.stringify(g1.slice(-1).map((s) => s.partners)));
 const m1 = win(62, 70); check(m1.length && m1.some((s) => s.voert === 1), 'meerijden: de gast weet niet dat hij meerijdt');
 const tb = of('tab')[0], tl = of('tab-los')[0], sm = of('spelersmenu')[0];
-check(tb && tb.zichtbaar && tb.rijen === 2, 'Tab: de spelerslijst staat niet in beeld met twee spelers: ' + JSON.stringify(tb));
+check(tb && tb.zichtbaar && tb.rijen === 2 + MOCK, 'Tab: de spelerslijst staat niet in beeld met ' + (2 + MOCK) + ' spelers: ' + JSON.stringify(tb));
 check(tl && tl.zichtbaar === false, 'Tab: de lijst blijft staan na het loslaten');
-check(sm && sm.zichtbaar && sm.rijen === 2 && sm.roep === 3, 'pauzemenu: het onderdeel Spelers ontbreekt of is leeg: ' + JSON.stringify(sm));
+check(sm && sm.zichtbaar && sm.rijen === 2 + MOCK && sm.roep === 3, 'pauzemenu: het onderdeel Spelers ontbreekt of is leeg: ' + JSON.stringify(sm));
 for (const e of E.filter((x) => x.type === 'console' && x.level === 'error')) problems.push('consolefout: ' + String(e.msg).slice(0, 160));
 for (const e of E.filter((x) => x.type === 'jserror')) problems.push(`jserror: ${e.msg} ${e.file}:${e.line}`);
 notes.push('draaiboek: ' + host.log.join('; '));

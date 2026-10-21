@@ -18,6 +18,7 @@ nog niet in beeld is bekeken staat dat erbij.
   voertuigen en voetgangers in de buurt, en elkaar met naam, kleur en vorm (op de minimap, de kaart en boven het hoofd).
 - **Wat je samen kunt doen:** lopen en rennen, meerijden (Tessa: ook sturen met Y; speler 3 en 4: achterin), winkelen en eten met eigen geld,
   naar elkaar wijzen met de roeptoetsen (7, 8, 9) en elkaar op de kaart vinden.
+- **De lijst met spelers staat niet permanent in beeld.** Houd **Tab** ingedrukt: links in het scherm staat een compacte lijst met naam, kleur en vorm, wat iedereen doet (te voet, in een voertuig, aan het stuur, in een opdracht), de verbinding (met de ping in ms: de gastheer ziet die van iedereen, een speler alleen zijn eigen) en de afstand. In het pauzemenu staat, zolang je samen speelt, het onderdeel **Spelers** met dezelfde gegevens, de roepknoppen en *Ga erheen* (zet een route naar die speler op de kaart). Op de minimap en de kaart staat per speler alleen een klein gekleurd punt met een vorm; boven het personage staat de naam.
 - **Wat alleen de gastheer doet:** missies en bijbanen starten en spelen, praten met mensen, minigames, voertuigen kopen. De anderen
   kijken mee (de tekst van het gesprek staat in beeld) en lopen of rijden mee.
 
@@ -37,7 +38,7 @@ nog niet in beeld is bekeken staat dat erbij.
 
 | Wanneer | Wat | Waarom |
 |---|---|---|
-| 0:00 | Verbinden, Verbinding testen, namen en kleuren checken in het label linksonder | Problemen met netwerk zie je nu, niet midden in de opening |
+| 0:00 | Verbinden, Verbinding testen, namen en kleuren checken: houd Tab ingedrukt voor de lijst met spelers | Problemen met netwerk zie je nu, niet midden in de opening |
 | 0:15 | **Spel starten**: de opening (verhuisdag) samen kijken | Alle drie de scènes zijn voor iedereen gelijk; alleen de gastheer kan overslaan |
 | 0:30 | **Vrij rondlopen en rondrijden in de stad** (10 minuten): het museum, het Hoofdstation, de Grote Markt; in- en uitstappen oefenen, het stuur doorgeven (Y), roepen (7, 8, 9) | Dit is wat het best werkt met vier mensen; het leert iedereen de bediening zonder dat een missie mislukt |
 | 0:45 | **M01 tot en met M03** (Nul krassen, Even pinnen, Het Loket) | Korte autoritten met een bijrijder; elke missie meldt het doel en de stap bij iedereen |
@@ -90,7 +91,7 @@ bij de duif vliegt de gastheer alleen, bij het museum sluipt de gastheer en de r
 - **Cutscenes die al lopen als je aansluit** zie je niet; je hoort alleen dat de gastheer een filmpje kijkt.
 - **Het pauzemenu van de gastheer pauzeert het spel voor iedereen.** Een gast die zijn eigen menu opent pauzeert alleen zichzelf (zijn figuur staat stil).
 - **Geen spraak of tekstchat in het spel.** Gebruik een gesprek buiten het spel (de roeptoetsen zijn voor korte dingen).
-- **Controller:** te voet zijn D-pad links, omlaag en rechts de roepjes (Kom hier, Help!, Kijk daar) zolang je in een sessie zit; het kusje, het overslaan van een verhaalstap en het lakmenu zitten dan alleen op het toetsenbord. In een voertuig is D-pad omhoog het stuur doorgeven. Met de muis kan het ook via de knoppen linksonder. Niet met een echte controller geprobeerd.
+- **Controller:** te voet zijn D-pad links, omlaag en rechts de roepjes (Kom hier, Help!, Kijk daar) zolang je in een sessie zit; het kusje, het overslaan van een verhaalstap en het lakmenu zitten dan alleen op het toetsenbord. In een voertuig is D-pad omhoog het stuur doorgeven. Met de muis kan het ook in het pauzemenu, onderdeel Spelers. Niet met een echte controller geprobeerd.
 - **Geluid van de stemmen bij een gast** is niet apart gecontroleerd.
 
 ## Als er iets misgaat
@@ -114,7 +115,7 @@ bij de duif vliegt de gastheer alleen, bij het museum sluipt de gastheer en de r
 - [ ] Een wegwerpprofiel of tijdelijke map is niet nodig voor spelers; poort 9000 en de geïnstalleerde app worden niet gebruikt voor testen.
 
 **Aan het begin (de eerste 15 minuten):**
-- [ ] Alle vier verbonden, in de lijst linksonder: naam, kleur, vorm, status.
+- [ ] Alle vier verbonden, in de lijst die je met Tab laat zien: naam, kleur, vorm, wat ze doen, verbinding.
 - [ ] Iedereen probeert 7, 8 en 9 één keer en ziet de zuil en de regel.
 - [ ] De opening is voor iedereen gelijk begonnen en niemand staat stil.
 
