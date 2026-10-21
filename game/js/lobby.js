@@ -135,7 +135,9 @@ const PARTNER_NAME = { host: 'Tessa', gast: 'Tammo' }; // de ander van deze rol
 
 // Wat de UI toont. buttons: [{ act, label, primary? }]; input: een tekstvak; code: de code met kopieerknop.
 export function view(s) {
-  const V = (o) => ({ title: 'Samen spelen', lines: [], buttons: [], input: null, code: null, error: s.error, ...o });
+  // bij een fout in de stappen waar je verbindt: wijs de weg naar de test
+  const hulp = s.error && ['gast-typt', 'host-wacht', 'host-maakt-code', 'methode', 'verbinden'].includes(s.step) && !/gekopieerd/.test(s.error);
+  const V = (o) => { const r = { title: 'Samen spelen', lines: [], buttons: [], input: null, code: null, error: s.error, ...o }; if (hulp && r.buttons.some((b) => b.act === 'diag')) r.lines = [...r.lines, 'Lukt het niet? Kies Verbinding testen: daar staat wat er mis is en wat je kunt doen.']; return r; };
   switch (s.step) {
     case 'start':
       return V({
@@ -166,7 +168,7 @@ export function view(s) {
       if (s.note) lines.push(s.note);
       if (s.lanCode && s.lanCode !== s.code) lines.push('Op hetzelfde netwerk werkt ook de lokale code: ' + s.lanCode);
       if (s.caps.startGate) lines.push('Wacht op een medespeler: je kunt het spel starten zodra er minstens twee spelers zijn.');
-      return V({ title: 'Iemand uitnodigen', lines, code: s.code, buttons: [...(s.caps.startGate ? [{ act: 'start-spel', label: 'Spel starten', primary: true, disabled: true }] : []), { act: 'kopieer', label: 'Kopieer', primary: !s.caps.startGate }, { act: 'terug', label: 'Stoppen' }] });
+      return V({ title: 'Iemand uitnodigen', lines, code: s.code, buttons: [...(s.caps.startGate ? [{ act: 'start-spel', label: 'Spel starten', primary: true, disabled: true }] : []), { act: 'kopieer', label: 'Kopieer', primary: !s.caps.startGate }, { act: 'diag', label: 'Verbinding testen' }, { act: 'terug', label: 'Stoppen' }] });
     }
     case 'gast-typt':
       return V({

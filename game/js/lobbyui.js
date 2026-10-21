@@ -36,8 +36,35 @@ export function mountLobby(root, hooks, opts = {}) {
   let hub = opts.hub || null, session = opts.session || null, handle = null, room = null, stopListen = null, joinedOnce = false, wacht = false;
 
   const LOGT = { kies: 'rol gekozen', route: 'route gekozen', akkoord: 'toestemming gegeven', code: 'code gemaakt', fout: 'fout', status: 'status', verbinden: 'verbinden', hervat: 'opnieuw verbinden', verbreek: 'verbroken door speler', spelers: 'spelerslijst' };
+  // Automatisch herstel (kamercode-route, wachtscherm in het spel): de gastheer zet na een paar seconden zelf een nieuw aanbod klaar onder
+  // dezelfde kamercode, de gast voert die code zelf opnieuw in; beide met hetzelfde token, dus dezelfde plek. Een paar pogingen, daarna handmatig.
+  let autoTimer = null, autoTries = 0;
+  const AUTO = { eerste: 3000, tussen: 20000, max: 5, ...(opts.auto || {}) };
+  const AUTO_EERSTE = AUTO.eerste, AUTO_TUSSEN = AUTO.tussen, AUTO_MAX = AUTO.max;
+  function planAuto(ms) {
+    if (autoTimer || !opts.start || state.route !== ROUTES.KAMER || autoTries >= AUTO_MAX) return;
+    autoTimer = setTimeout(async () => {
+      autoTimer = null;
+      if (state.step === 'verbonden' || autoTries >= AUTO_MAX) return;
+      autoTries++; verbindingslog.add('herstel', `automatische poging ${autoTries}`);
+      try {
+        if (state.rol === ROLES.HOST) {
+          if (state.step === 'verbroken') await act('hervat');
+          else if (state.step === 'host-maakt-code') await hostStart();
+        } else {
+          const code = hooks.laatsteCode || state.caps.laatsteCode;
+          if (state.step === 'verbroken') set({ t: 'hervat' });
+          if (state.step === 'gast-typt' && code) { set({ t: 'invoer', text: code }); if (state.step === 'toestemming') { set({ t: 'akkoord' }); await guestStart(); } }
+        }
+      } catch (e) { verbindingslog.add('herstel', 'poging mislukt'); }
+      if (state.step !== 'verbonden') planAuto(AUTO_TUSSEN);
+    }, ms);
+  }
   const set = (ev) => {
+    const was = state.step;
     state = reduce(state, ev);
+    if (state.step === 'verbroken' && was !== 'verbroken') planAuto(AUTO_EERSTE);
+    if (state.step === 'verbonden') autoTries = 0;
     if (LOGT[ev.t]) verbindingslog.add(LOGT[ev.t], ev.t === 'fout' ? ev.msg : ev.t === 'status' ? `${ev.status}${ev.reason ? ' (' + ev.reason + ')' : ''}` : ev.t === 'route' || ev.t === 'kies' ? String(ev.route || ev.rol) : ev.t === 'spelers' ? `${(ev.lijst || []).length} spelers` : '');
     draw();
   };
@@ -45,7 +72,8 @@ export function mountLobby(root, hooks, opts = {}) {
     set({ t: 'diag-go' });
     verbindingslog.add('diagnose', 'gestart');
     let beoordeling = null;
-    try { beoordeling = beoordeel(await meet(maakEnv({ api }))); } catch (e) { verbindingslog.add('diagnose', 'mislukt'); }
+    try { const ms = opts.diagMs || 6000;
+      beoordeling = beoordeel(await meet(maakEnv({ api, ms }), { limiet: ms * 3 })); } catch (e) { verbindingslog.add('diagnose', 'mislukt'); }
     if (beoordeling) verbindingslog.add('diagnose', beoordeling.items.map((i) => `${i.id}=${i.status}`).join(' '));
     lastDiag = beoordeling;
     set({ t: 'diag-klaar', beoordeling });
@@ -149,6 +177,8 @@ export function mountLobby(root, hooks, opts = {}) {
   }
 
   function cleanup() {
+    if (autoTimer) { clearTimeout(autoTimer); autoTimer = null; }
+    autoTries = AUTO_MAX; // na sluiten geen pogingen meer
     if (handle && handle.cancel) handle.cancel();
     handle = null; wacht = false;
     if (stopListen) { stopListen(); stopListen = null; }
@@ -203,5 +233,6 @@ export function mountLobby(root, hooks, opts = {}) {
     if (b && root.contains(b)) act(b.dataset.act);
   });
   draw();
+  if (state.step === 'verbroken') planAuto(AUTO_EERSTE);
   return { event: set, state: () => state, close() { cleanup(); root.innerHTML = ''; } };
 }

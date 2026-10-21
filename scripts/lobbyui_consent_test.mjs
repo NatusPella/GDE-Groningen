@@ -16,6 +16,7 @@ globalThis.window = globalThis;
 globalThis.navigator ??= {};
 
 const { mountLobby } = await import('../game/js/lobbyui.js');
+const { makeRoom, formatRoom } = await import('../game/js/net/sigcrypto.js');
 
 let n = 0;
 const t = async (name, f) => { await f(); n++; };
@@ -69,6 +70,42 @@ await t('Spel verlaten (IP-route): eerst afmelden bij de anderen, dan pas de poo
   delete window.gdeDesktop;
   assert.deepEqual(order, ['afmelden verbreek', 'poort dicht'], 'volgorde: ' + order.join(' > '));
   lobby.close();
+});
+await t('Verbinding testen: vóór "Test starten" geen verkeer; daarna een uitslag in gewone taal, een rapport zonder adressen en terug naar het scherm waar je was', async () => {
+  const w0 = log.ws.length, p0 = log.pc.length;
+  const root = fakeRoot(); const lobby = mountLobby(root, hooks(), { diagMs: 30 });
+  root.click('kies-gast'); root.click('diag'); await tick();
+  assert.equal(lobby.state().step, 'diag-vraag'); assert.match(root.innerHTML, /openbare servers/);
+  assert.equal(log.ws.length, w0, 'geen WebSocket voor de toestemming'); assert.equal(log.pc.length, p0, 'geen RTCPeerConnection voor de toestemming');
+  root.click('diag-terug'); assert.equal(lobby.state().step, 'gast-typt');
+  root.click('diag'); root.click('diag-go'); await tick(150);
+  assert.equal(lobby.state().step, 'diag-uit'); assert.ok(log.ws.length > w0, 'nu pas contact met de brokers');
+  assert.match(root.innerHTML, /Servers voor de kamercode/); assert.match(root.innerHTML, /Foutrapport kopiëren/);
+  let gekopieerd = '';
+  Object.defineProperty(globalThis.navigator, 'clipboard', { value: { writeText: async (t) => { gekopieerd = t; } }, configurable: true });
+  root.click('rapport'); await tick();
+  assert.match(gekopieerd, /verbindingsrapport/); assert.ok(!/d+.d+.d+.d+/.test(gekopieerd), 'geen IP-adressen in het rapport');
+  root.click('diag-terug'); assert.equal(lobby.state().step, 'gast-typt');
+  lobby.close();
+});
+await t('automatisch herstel (kamercode): de gast en de gastheer proberen het zelf opnieuw, zonder klik', async () => {
+  const gast = mountLobby(fakeRoot(), hooks({ laatsteCode: formatRoom(makeRoom()) }), { start: 'verbroken', rol: 'gast', route: 'kamer', auto: { eerste: 15, tussen: 40, max: 3 } });
+  const wGast0 = log.ws.length;
+  assert.equal(gast.state().step, 'verbroken');
+  await tick(120);
+  assert.notEqual(gast.state().step, 'verbroken', 'de gast probeert zelf opnieuw te verbinden'); assert.ok(log.ws.length > wGast0, 'er is een nieuwe signalering gestart');
+  gast.close();
+  let nieuw = 0;
+  const host = mountLobby(fakeRoot(), hooks({ startHost: () => { nieuw++; return { roster: { max: 4, spelers: [] }, vrijePlekken: true }; } }), { start: 'verbroken', rol: 'host', route: 'kamer', hub: { roster: { max: 4, spelers: [] }, vrijePlekken: true }, auto: { eerste: 15, tussen: 40, max: 3 } });
+  await tick(120);
+  assert.notEqual(host.state().step, 'verbroken', 'de gastheer zet zelf een nieuw aanbod klaar');
+  host.close();
+});
+await t('automatisch herstel doet niets bij de IP-route (de code verandert dan) en stopt na sluiten', async () => {
+  const gast = mountLobby(fakeRoot(), hooks({ laatsteCode: 'GDE2-127.0.0.1:41000-AAAAAAAA-0000' }), { start: 'verbroken', rol: 'gast', route: 'direct', auto: { eerste: 10, tussen: 20, max: 3 } });
+  await tick(80); assert.equal(gast.state().step, 'verbroken'); gast.close();
+  const g2 = mountLobby(fakeRoot(), hooks({ laatsteCode: formatRoom(makeRoom()) }), { start: 'verbroken', rol: 'gast', route: 'kamer', auto: { eerste: 60, tussen: 60, max: 3 } });
+  g2.close(); await tick(120); assert.equal(g2.state().step, 'verbroken', 'na sluiten geen poging meer');
 });
 console.log(`lobbyui_consent_test: ${n}/${n} ok`);
 process.exit(0); // timers van de signaler niet afwachten
