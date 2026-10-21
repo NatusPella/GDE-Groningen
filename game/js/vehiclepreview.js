@@ -5,6 +5,7 @@ import { buildProductMesh } from './shopmodels3d.js';
 import { VERSION } from './version.js';
 import { watchContext } from './blackframe.js';
 import { KEYS } from './storagekeys.js';
+import { previewVehicle } from './garagepics.js';
 
 const OBJECT_KINDS = new Set(['weapon', 'person', 'product']);
 // a person seen from the front, the face turned a little into the screen
@@ -44,6 +45,39 @@ function setupScene() {
   return { scene, rim, cam: new THREE.PerspectiveCamera(32, 3, 0.1, 100) };
 }
 
+// A soft contact shadow under a vehicle, so it stands on the panel instead of
+// floating: one shared plane and radial-gradient texture, scaled per model and
+// turning with it (a child of the mesh). Shared, so disposeMesh leaves it.
+let shadowParts = null;
+function groundShadow(box) {
+  if (!shadowParts) {
+    const c = document.createElement('canvas');
+    c.width = c.height = 64;
+    const g = c.getContext('2d');
+    const grad = g.createRadialGradient(32, 32, 2, 32, 32, 32);
+    grad.addColorStop(0, 'rgba(0,0,0,0.62)');
+    grad.addColorStop(0.55, 'rgba(0,0,0,0.3)');
+    grad.addColorStop(1, 'rgba(0,0,0,0)');
+    g.fillStyle = grad;
+    g.fillRect(0, 0, 64, 64);
+    const map = new THREE.CanvasTexture(c);
+    map.colorSpace = THREE.SRGBColorSpace;
+    const material = new THREE.MeshBasicMaterial({ map, transparent: true, depthWrite: false });
+    material.userData.shared = true;
+    const geometry = new THREE.PlaneGeometry(1, 1);
+    geometry.rotateX(-Math.PI / 2);
+    geometry.userData.shared = true;
+    shadowParts = { material, geometry };
+  }
+  const m = new THREE.Mesh(shadowParts.geometry, shadowParts.material);
+  const size = box.getSize(new THREE.Vector3());
+  const mid = box.getCenter(new THREE.Vector3());
+  m.scale.set(Math.max(0.6, size.x) * 1.3, 1, Math.max(0.6, size.z) * 1.45);
+  m.position.set(mid.x, 0.015, mid.z);
+  m.renderOrder = -1;
+  return m;
+}
+
 // { mesh, body, fit } for a spec, or null. sphereFit: frame vehicles by
 // their bounding sphere too (any canvas shape, tall buses and bikes).
 function buildObject(spec, sphereFit = false) {
@@ -67,12 +101,17 @@ function buildObject(spec, sphereFit = false) {
     }
     return { mesh, body, fit };
   }
-  const fake = { id: -1 - (spec.nameIdx || 0), model: { ...spec.model, color: spec.color }, isBike: spec.kind === 'bike', isScooter: spec.kind === 'scooter', isBoat: spec.kind === 'boat', isHeli: spec.kind === 'heli', ...(spec.flags || {}), health: 100 };
-  const mesh = buildVehicleMesh(fake);
-  if (!sphereFit) return { mesh, body: null, fit: null };
+  const mesh = buildVehicleMesh(previewVehicle(spec));
   mesh.updateMatrixWorld(true);
-  const sphere = new THREE.Box3().setFromObject(mesh).getBoundingSphere(new THREE.Sphere());
-  return { mesh, body: null, fit: { c: new THREE.Vector3(0, sphere.center.y, 0), r: Math.max(0.3, sphere.radius * 0.78) } };
+  const box = new THREE.Box3().setFromObject(mesh);
+  if (!box.isEmpty()) mesh.add(groundShadow(box));
+  if (!sphereFit) return { mesh, body: null, fit: null };
+  const sphere = box.getBoundingSphere(new THREE.Sphere());
+  // turn about the model's own middle (a bus with its trailer is built from its front axle)
+  const pivot = new THREE.Group();
+  mesh.position.set(-sphere.center.x, 0, -sphere.center.z);
+  pivot.add(mesh);
+  return { mesh: pivot, body: null, fit: { c: new THREE.Vector3(0, sphere.center.y, 0), r: Math.max(0.3, sphere.radius * 0.78) } };
 }
 
 function frameCamera(cam, spec, fit, zoom) {
@@ -220,11 +259,15 @@ function renderShared(mesh, spec, fit, w, h, zoom) {
 
 // Same API as createVehiclePreview, drawn through the shared renderer onto
 // `canvas` (a plain 2D canvas). dispose() frees only the model.
-export function createSharedPreview(canvas, { interactive = false, active = () => true, pixelRatio = () => Math.min(1.5, devicePixelRatio), angle = 0.6 } = {}) {
-  const p = { mesh: null, body: null, fit: null, key: '', raf: 0, angle, zoom: 1, drag: null, idleAt: 0, spec: null, dead: false, last: 0, ctx: canvas.getContext('2d') };
+// speed: radians per second of the turn; fps: a cap on the frames drawn (the
+// garage cards turn at 30).
+export function createSharedPreview(canvas, { interactive = false, active = () => true, pixelRatio = () => Math.min(1.5, devicePixelRatio), angle = 0.6, speed = 0.75, fps = 0, zoom = 1 } = {}) {
+  const p = { mesh: null, body: null, fit: null, key: '', raf: 0, angle, zoom, drag: null, idleAt: 0, spec: null, dead: false, last: 0, drawn: 0, ctx: canvas.getContext('2d') };
+  const minGap = fps ? 1000 / fps - 3 : 0;
 
   function tick() {
     if (p.dead || !p.mesh || !active()) { p.raf = 0; return; }
+    if (minGap && performance.now() - p.drawn < minGap) { p.raf = requestAnimationFrame(tick); return; }
     const pr = pixelRatio();
     const w = Math.round(canvas.clientWidth * pr), h = Math.round(canvas.clientHeight * pr);
     if (!w || !h) { p.raf = requestAnimationFrame(tick); return; }
@@ -232,7 +275,8 @@ export function createSharedPreview(canvas, { interactive = false, active = () =
     const now = performance.now();
     const dt = Math.min(0.1, (now - (p.last || now)) / 1000);
     p.last = now;
-    if (!p.drag && now > p.idleAt) p.angle += dt * 0.75;
+    p.drawn = now;
+    if (!p.drag && now > p.idleAt) p.angle += dt * speed;
     p.mesh.rotation.y = p.angle;
     if (p.spec.kind === 'person') animatePersonWalk(p.body, 0, dt);
     const src = renderShared(p.mesh, p.spec, p.fit, w, h, p.zoom);
@@ -288,11 +332,11 @@ const queue = [];
 let pumping = false;
 const SHOT_BUDGET_MS = 6;
 
-function shoot(spec, w, h, angle) {
+function shoot(spec, w, h, angle, zoom = 1) {
   const o = buildObject(spec, true);
   if (!o) return '';
   o.mesh.rotation.y = angle;
-  const src = renderShared(o.mesh, spec, o.fit, w, h, 1);
+  const src = renderShared(o.mesh, spec, o.fit, w, h, zoom);
   // read back in the same task as the render (no preserveDrawingBuffer)
   const url = src ? src.toDataURL('image/png') : '';
   disposeMesh(o.mesh);
@@ -345,7 +389,7 @@ function pump(deadline) {
     if (n ? performance.now() - t0 >= SHOT_BUDGET_MS || left < MIN_IDLE_MS : left < MIN_IDLE_MS) break;
     const job = queue.shift();
     if (!shots.has(job.key)) {
-      shots.set(job.key, shoot(job.spec, job.w, job.h, job.angle));
+      shots.set(job.key, shoot(job.spec, job.w, job.h, job.angle, job.zoom));
       if (job.keep) keepShot(job.key, shots.get(job.key));
     }
     for (const cb of job.cbs) cb(shots.get(job.key));
@@ -359,14 +403,20 @@ function pump(deadline) {
 // pixels, cached for the session. Rendered in idle time (see pump): `cb` gets the URL
 // (right away when cached); the return value is the cached URL or null.
 // keep: also across sessions (see keepShot).
-export function renderSnapshot(spec, w, h, cb = null, { angle = 0.6, keep = false } = {}) {
+export function renderSnapshot(spec, w, h, cb = null, { angle = 0.6, keep = false, group = '', zoom = 1 } = {}) {
   if (!spec) return null;
-  const key = `${w}x${h}@${angle}|${JSON.stringify(spec)}`;
+  const key = `${w}x${h}@${angle}${zoom === 1 ? '' : 'z' + zoom}|${JSON.stringify(spec)}`;
   if (!shots.has(key) && keep && keptShots().shots[key]) shots.set(key, keptShots().shots[key]);
   if (shots.has(key)) { if (cb) cb(shots.get(key)); return shots.get(key); }
   const job = queue.find((j) => j.key === key);
   if (job) { if (cb) job.cbs.push(cb); job.keep = job.keep || keep; return null; }
-  queue.push({ key, spec, w, h, angle, keep, cbs: cb ? [cb] : [] });
+  queue.push({ key, spec, w, h, angle, zoom, keep, group, cbs: cb ? [cb] : [] });
   if (!pumping) { pumping = true; idle(pump); }
   return null;
+}
+
+// Drops the snapshots of `group` that are still waiting (the garage closed
+// before its cards were all drawn); finished ones stay cached.
+export function cancelSnapshots(group) {
+  for (let i = queue.length - 1; i >= 0; i--) if (queue[i].group === group) queue.splice(i, 1);
 }

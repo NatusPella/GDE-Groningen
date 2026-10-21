@@ -27,6 +27,7 @@ import { warmCountryMaps } from './countrymap.js';
 import { Input } from './input.js';
 import { initGamepad } from './gamepad.js';
 import { initPadKeyboard } from './padkeyboard.js';
+import { initTextFields } from './textfield.js';
 import { initInputDevice } from './inputdevice.js';
 import { skipFrame } from './framecap.js';
 import { initTouch } from './touch.js';
@@ -97,7 +98,8 @@ import { noteFrame, hideAdvice, classifyGpu, readGpu, dynamicScale, cpuLevel } f
 import { updateStreetSigns } from './streetsigns.js';
 import { updatePhotoMode, wireFotoKey } from './fotomodusui.js';
 import { initPauseMenu, isPauseMenuOpen, openPauseMenu, pauseMenuCover } from './pausemenu.js';
-import { wantsOpenSamen, takeOpenSamen } from './samenpanel.js';
+import { wantsOpenSamen, takeOpenSamen, samenGate } from './samenpanel.js';
+import { gateOn, setGate } from './coopgate.js';
 import { initDayNight, updateDayNight, DAY_LENGTH_S } from './daynight.js';
 import { initCalendar, updateCalendar, today as calendarToday } from './calendarday.js';
 import { updateFx3D } from './fx3d.js';
@@ -116,6 +118,7 @@ import { updateSpikeStrips3D } from './spikestrips3d.js';
 import { tryWeaponDropInteract, updateWeaponDrops3D } from './weapondrops.js';
 import { initFlitspaal, updateFlitspaal } from './flitspaal.js';
 import { initWildlife, updateWildlife } from './wildlife.js';
+import { tickSchaapontvoering } from './schaapontvoeringrt.js';
 import { initSkyProps, updateSkyProps } from './skyprops.js';
 import { initSikkomFeed, updateSikkomFeed } from './sikkomfeed.js';
 import { initPhoneFeed, updatePhoneFeed } from './phonefeed.js';
@@ -447,6 +450,7 @@ async function boot() {
   input.canLock = () => document.body.classList.contains('game-started') && !menuOpen() && !world.uiPaused;
   initInputDevice();
   initPadKeyboard();
+  initTextFields(); // alle toetsen, plakken en een rechtermuismenu in tekstvelden (#95)
   initGamepad(input, world, { menuOpen: () => menuOpen() || isPlayAheadOpen() || isHelpOfferOpen(), phoneOpen: isPhoneOpen, pauseOpen: isPauseMenuOpen, mapOpen: () => isMapOpen() });
   initTouch(input, world, { menuOpen: () => menuOpen() || isPlayAheadOpen() || isHelpOfferOpen() });
   document.addEventListener('pointerlockchange', () => {
@@ -536,14 +540,19 @@ async function boot() {
   }
 
   const feelDip = makeDip(), dipSeen = { imp: null, mh: null };
-  let samenSince = null;
+  let samenSince = null, gateMenu = false;
   function frameBody(dt) {
     // Samen spelen vanuit het hoofdmenu (#95): de lobby opent zodra het spel te besturen is (na de opening van een nieuw spel)
     // (een paar seconden wachten: de opening van een nieuw spel begint pas even na de start en zou de lobby anders overvallen)
     if (wantsOpenSamen()) {
       if (samenSince == null) samenSince = world.time;
-      if (world.time - samenSince > 5 && !isCinematicActive() && sinceCinematic() > 2 && !world.cameraOverride && !world.pendingRespawn && !isPauseMenuOpen()) { takeOpenSamen(); samenSince = null; openPauseMenu('samen'); }
+      // met het wachtkamer-hek (nieuw spel samen) opent de lobby meteen, voordat de opening begint
+      const klaar = samenGate() ? world.time - samenSince > 1.5 && document.body.classList.contains('game-started') && !isPauseMenuOpen() : world.time - samenSince > 5 && !isCinematicActive() && sinceCinematic() > 2 && !world.cameraOverride && !world.pendingRespawn && !isPauseMenuOpen();
+      if (klaar) { gateMenu = samenGate(); takeOpenSamen(); samenSince = null; openPauseMenu('samen'); }
     }
+    // het hek gaat pas open met minstens twee spelers en een druk op Spel starten (samenpanel.js); tot dan blijft iedereen in de wachtkamer
+    if (gateOn() && gateMenu && !isPauseMenuOpen()) openPauseMenu('samen');
+    if (!gateOn()) gateMenu = false;
     updateMapView(dt, world);
     world.paused = isMapOpen() || isPauseMenuOpen() || isShopOpen() || !!world.uiPaused || !!world.coopHold; // coopHold: wachtscherm bij een weggevallen speler (coophold.js)
     if (document.pointerLockElement && (isMapOpen() || isPauseMenuOpen() || isPhoneOpen())) document.exitPointerLock();
@@ -755,6 +764,7 @@ async function boot() {
     updatePedestrians(dt, world);
     probe.mark('peds');
     updateWildlife(dt, world);
+    tickSchaapontvoering(dt, world);
     updateStreetLife(dt, world);
     updateSkyProps(dt, world);
     updatePigeonSpots(dt, world);

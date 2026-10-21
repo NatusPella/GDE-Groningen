@@ -1,7 +1,7 @@
 // stadsplan.js (#67): the candidate spots of the town profiles, the kerb snap and the
 // placing, pure; plus that every prop kind of a profile has a builder that builds.
 //   node scripts/stadsplan_test.mjs
-import { PROP_BUILD, planTown, roadside, resolveItem, placeAll, tallyPlan, countFor, mulberry, SPACING, SHOP_SPACING, CAP } from '../game/js/stadsplan.js';
+import { PROP_BUILD, planTown, roadside, resolveItem, placeAll, tallyPlan, countFor, mulberry, SPACING, SHOP_SPACING, CAP, VEE_RING } from '../game/js/stadsplan.js';
 import { TOWN_PROFILES, townCentre } from '../game/js/stadsprofielen.js';
 
 let n = 0, bad = 0;
@@ -29,6 +29,18 @@ for (const t of TOWN_PROFILES) {
 }
 ok(planTown(TOWN_PROFILES.find((t) => t.id === 'appingedam')).skipped.includes('brug'), 'bridges are tile work, reported as skipped');
 ok(planTown(TOWN_PROFILES.find((t) => t.id === 'delfzijl')).items.filter((i) => i.water).length > 0, 'harbour props want water');
+// #330: schapen staan aan de rand van het dorp (weide, dijk), niet in de kom
+{
+  let vee = 0;
+  for (const t of TOWN_PROFILES) {
+    const c = townCentre(t);
+    for (const it of planTown(t).items.filter((i) => i.kind === 'schaap')) {
+      vee++;
+      ok(it.vee === true && it.tries.every(([x, y]) => { const d = Math.hypot(x - c.x, y - c.y) / t.reach; return d >= VEE_RING[0] - 1e-9 && d <= VEE_RING[1] + 1e-9; }), `${t.id}: schapen alleen in de buitenring`);
+    }
+  }
+  ok(vee > 0, 'er zijn dorpen met schapen');
+}
 
 // roadside: kerb spot beside a road, on free ground, facing the road
 const road = [{ pts: [[0, 0], [100, 0]], width: 6 }];
