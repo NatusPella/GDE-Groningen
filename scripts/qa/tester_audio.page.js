@@ -34,9 +34,13 @@ document.addEventListener('pause', (e) => {
 }, true);
 // het gemurmel onder een regel zonder opname (audio.js playTextMumble) zijn korte driehoekstonen van 100 tot 300 Hz
 const tones = [];
+// playTone zet de toonhoogte met setValueAtTime (frequency.value blijft dan 440 tot de graaf rekent): onthoud de laatst gezette waarde per parameter
+const lastSet = new WeakMap();
+const origSet = AudioParam.prototype.setValueAtTime;
+AudioParam.prototype.setValueAtTime = function (v, t) { try { lastSet.set(this, v); } catch (e) { /* meting */ } return origSet.call(this, v, t); };
 const origOscStart = OscillatorNode.prototype.start;
 OscillatorNode.prototype.start = function (...a) {
-  try { if (this.type === 'triangle' && this.frequency.value > 80 && this.frequency.value < 320) tones.push(T()); } catch (e) { /* meting */ }
+  try { const f = lastSet.has(this.frequency) ? lastSet.get(this.frequency) : this.frequency.value; if (this.type === 'triangle' && f > 80 && f < 320) tones.push(T()); } catch (e) { /* meting */ }
   return origOscStart.apply(this, a);
 };
 const subs = [];
