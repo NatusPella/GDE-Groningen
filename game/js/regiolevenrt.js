@@ -35,10 +35,12 @@ export function updateRegioLeven(dt, w) {
     const n = tikNieuws(nieuws, w, nieuwsNow, { regio: 'groningen', plaats: sk ? sk.name : 'Groningen' }, nieuwsEnv);
     if (n && !playerBusy(w).busy) showCard(w, { kind: 'tip', kicker: n.bron, title: n.item.lezer, body: n.item.tekst, duration: 9, key: 'nieuws-' + Math.round(nieuwsNow), voice: false });
   }
+  // passers-by talk to each other in bubbles (straatpraat.js, #190): also during a mission or a job (it is
+  // ambient), not in a cutscene, a minigame or a respawn, and not from a fast vehicle
+  const pv = w.player.inVehicle;
+  if ((!pv || Math.abs(pv.speed || 0) < 6) && !playerBusy(w, ['cinematic', 'respawn', 'heliRun', 'pigeon', 'train', 'padel', 'activityGame']).busy) tikStraatpraat(dt, w);
   if (playerBusy(w).busy) return;
   const p = w.player;
-  // passers-by talk to each other in bubbles (straatpraat.js, #190), not from a fast vehicle
-  if (!p.inVehicle || Math.abs(p.inVehicle.speed || 0) < 6) tikStraatpraat(dt, w);
   const moving = p.inVehicle ? Math.abs(p.inVehicle.speed || 0) > 0.5 : (p.speed || 0) > 0.3;
   if ((scanT -= dt) <= 0) {
     scanT = 0.5;
