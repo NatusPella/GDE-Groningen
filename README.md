@@ -16,7 +16,7 @@
 misdaad en flauwekul, in het echte Groningen: de straten, grachten,
 gebouwen en het Ommeland komen uit OpenStreetMap.
 
-![Op de Vismarkt, met de Martinitoren op de achtergrond](docs/steam/beelden/screenshots/02-vismarkt.jpg)
+![Een zomeravond op de Vismarkt in Groningen, met de Martinitoren op de achtergrond](docs/screenshots/stad-dag.webp)
 
 ## Waar gaat het over
 
@@ -43,12 +43,13 @@ De game is **18+** (geweld, bloed en gokken met spelgeld; zie
 
 | | |
 |---|---|
-| ![Een missie met de HUD](docs/steam/beelden/screenshots/01-missie-hud.jpg) | ![De ringrace](docs/steam/beelden/screenshots/03-ringrace.jpg) |
-| ![Met de helikopter boven de stad](docs/steam/beelden/screenshots/04-heli-hud.jpg) | ![Het Ommeland](docs/steam/beelden/screenshots/07-ommeland.jpg) |
-| ![Een achtervolging](docs/steam/beelden/screenshots/09-achtervolging.jpg) | ![Duif-modus](docs/steam/beelden/screenshots/10-duif.jpg) |
+| ![De kaart van de hele provincie Groningen, met dorpen, wegen, water en de stations](docs/screenshots/kaart-provincie.webp)<br>**De hele provincie** op de kaart (M): dorpen, wegen, water en stations, met de Waddenzee boven en Drenthe en Duitsland aan de randen. | ![De kaart van de stad Groningen met de nieuwe icoontjes voor winkels, garages, kroegen en bijzondere plekken](docs/screenshots/kaart-stad.webp)<br>**De stad op de kaart**: elke plek heeft een eigen icoon, van winkels en garages tot klussen en bijzondere plekken. |
+| ![De binnenstad van Groningen bij nacht, met de verlichte Martinitoren tussen de daken](docs/screenshots/stad-nacht.webp)<br>**Groningen bij nacht**: de Martinitoren boven een zee van verlichte ramen. | ![Een skutsje met oranje zeil bij een sluis aan de Waddenzee in de avondzon](docs/screenshots/kust-sluis.webp)<br>**Aan de Waddenzee**: een skutsje bij de sluis, in het licht van een lange zomeravond. |
+| ![Windturbines en een kanaal in het Groninger landschap bij zonsondergang](docs/screenshots/regio-eemshaven.webp)<br>**Het Ommeland**: windturbines, kanalen en weidse luchten bij de Eemshaven. | ![Een scène uit de opening van het verhaal met een Nederlandse ondertitel](docs/screenshots/cutscene-opening.webp)<br>**De opening**: de stemmen praten Gronings, de ondertitel is gewoon Nederlands. |
+| ![Een achtervolging door een smalle Groningse straat, met drie sterren, kaart en snelheidsmeter](docs/screenshots/achtervolging.webp)<br>**Achtervolging**: drie sterren, de politie zoekt je en jij zoekt een steegje. | ![De garage met een overzicht van voertuigen, elk met een draaiend 3D-voorbeeld](docs/screenshots/garage.webp)<br>**De garage**: auto's, boten, scooters en een helikopter, elk met een draaiend 3D-voorbeeld. |
+| ![Het scherm Opgeslagen spellen met zeven spelstanden, elk met een eigen miniatuur](docs/screenshots/opgeslagen-spellen.webp)<br>**Opgeslagen spellen**: tot acht spelstanden, elk met een eigen miniatuur, naam en speeltijd. | ![De wachtkamer van Samen spelen met een kamercode en drie spelers](docs/screenshots/samen-spelen.webp)<br>**Samen spelen**: nodig vrienden uit met een kamercode; wie meedoet speelt Tessa of kiest een eigen figuur. |
 
-Alle beelden zijn in het spel zelf gemaakt (`scripts/steam_images.mjs`);
-meer in [docs/steam/beelden/](docs/steam/beelden/).
+Alle beelden zijn in het spel zelf gemaakt, op 1920x1080 met de voorinstelling Hoog (`scripts/qa/readme_shots.mjs`, zie [docs/TESTEN.md](docs/TESTEN.md)); meer, voor een eventuele Steam-pagina, in [docs/steam/beelden/](docs/steam/beelden/).
 
 ## Spelen en bouwen
 
