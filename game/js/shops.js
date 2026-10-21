@@ -596,7 +596,7 @@ export function shopPrimaryPrompt(world) {
   if (ws) return { id: 'ws-' + ws.id, x: ws.x, y: ws.y, h: 2.75, key: 'R', label: ws.type === 'tuning' ? 'Laten tunen' : ws.type === 'boot' ? 'Boot tunen' : 'Laten sleutelen', sub: storyHere(world, ws) || (ws.type === 'boot' ? `${ws.name}: de werf` : ws.name), ring: true };
   const s = nearestShop(world);
   if (!s) return null;
-  if (world.coopRole === 'client' && !winkelMagVoorGast(s.type)) return { id: 'shop-' + s.id, x: s.x, y: s.y, h: 2.75, key: 'E', label: 'Alleen in je eigen spel', sub: s.name, ring: true, dim: true }; // samen spelen (#291)
+  if (world.coopRole === 'client' && !winkelMagVoorGast(s.type)) return { id: 'shop-' + s.id, x: s.x, y: s.y, h: 2.75, key: 'E', label: 'Alleen eigen spel', sub: s.name, ring: true, dim: true }; // samen spelen (#291)
   if (policeWatching(world)) return { id: 'shop-' + s.id, x: s.x, y: s.y, h: 2.75, key: 'E', label: 'Binnenlopen', sub: `${s.name}: deur op slot, politie op je hielen`, ring: true, dim: true };
   return { id: 'shop-' + s.id, x: s.x, y: s.y, h: 2.75, key: 'E', label: s.type === 'boot' ? 'Bootje huren' : s.type === 'heli' ? 'Helikopters bekijken' : 'Binnenlopen', sub: storyHere(world, s) || `${s.name}: ${SHOP_TYPES[s.type].label.toLowerCase()}`, ring: true };
 }
