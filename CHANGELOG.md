@@ -6,6 +6,8 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+## [0.38.1] - 2026-10-21
+
 ### Opgelost
 - **De pijl wijst naar de winkel als je eerst iets moet kopen (#350; door een bot gespeeld, niet door een mens):** stond er "Eerst: Koop een fiets bij Trap & Toeter" bovenin, dan wees de route toch naar de start van de missie en moest je zelf de winkel zoeken. Nu wijst de route naar de fietsenwinkel (of een wapen-, kleding- of botenverhuur), en bij "wachten tot het donker is" naar huis; pas daarna naar de missiestart.
 
