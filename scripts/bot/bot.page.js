@@ -553,7 +553,9 @@ if (CFG.sweep && CFG.sweep.length) {
     await sleep(1500);
     // --skip-stages=N: the first N stages of the step are completed with the objective cheat (logged as setup, not as a bot finding), to test a later stage on its own (#354: the chase of M26)
     for (let k = 0; k < (CFG.skipStages || 0); k++) {
-      for (let i = 0; i < 120 && (B.status().blocking.cinematic || B.status().blocking.banner || B.status().blocking.talk); i++) { await B.press(' '); await sleep(400); }
+      // the mission starts a few seconds after the jump (the intro first): wait until it runs and no scene is up
+      for (let i = 0; i < 300 && !(B.status().mission.active && B.status().mission.stage); i++) { const b = B.status().blocking; if (b.cinematic || b.banner) await B.press(' '); await sleep(400); }
+      for (let i = 0; i < 120 && (B.status().blocking.cinematic || B.status().blocking.banner); i++) { await B.press(' '); await sleep(400); }
       await sleep(1500);
       B.cheat.objective();
       B.log('setup', { what: 'stage-skip', n: k + 1, stage: (B.status().mission || {}).stage });
