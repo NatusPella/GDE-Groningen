@@ -5,7 +5,8 @@
 const D = window.__debug; const w = D.world; const p = w.player; const map = w.map;
 const sleep = (ms) => new Promise((res) => setTimeout(res, ms));
 const imp = (f) => import('/js/' + f + '.js');
-const host = await imp('cutscenehost');
+await imp('cutscenehost');
+const host = window.__cutHost; // QA-haak van cutscenehost.js (geen export)
 const scr = await imp('cutscript');
 const prev = await imp('cutpreview');
 const cam = await imp('camerapath');
