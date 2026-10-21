@@ -392,7 +392,8 @@ if (want('praat')) {
   w.clock = 14;
   const SP = await imp('straatpraat');
   const home = map.findOpenSpawn(100, 77, 60) || { x: 100, y: 77 };
-  const keepP = setInterval(() => { p.x = home.x; p.y = home.y; p.vx = p.vy = 0; w.clock = 14; }, 50);
+  const holdP = { x: home.x, y: home.y };
+  const keepP = setInterval(() => { p.x = holdP.x; p.y = holdP.y; p.vx = p.vy = 0; w.clock = 14; }, 50);
   teleport(home.x, home.y);
   for (let i = 0; i < 40 && document.querySelector('.ls.on:not(.out)'); i++) await sleep(500);
   await sleep(3000);
@@ -401,13 +402,19 @@ if (want('praat')) {
     await sleep(1000);
     const talking = w.pedestrians.filter((q) => q.speechText && w.time < q.speechUntil);
     if (SP.straatpraatState().run && talking.length) {
-      await sleep(600);
+      // stand 5 m from the first speaker, looking at them, so the bubble is in the picture
+      const q0 = talking[0];
+      const a0 = Math.atan2(q0.y - home.y, q0.x - home.x);
+      holdP.x = q0.x - Math.cos(a0) * 5; holdP.y = q0.y - Math.sin(a0) * 5;
+      p.angle = a0; w.camYaw = a0;
+      await sleep(900);
       const again = w.pedestrians.filter((q) => q.speechText && w.time < q.speechUntil);
       if (!again.length) continue;
       got++;
       seen.push(again.map((q) => q.speechText).join(' / '));
       console.log('[capture] praat-' + got);
-      await sleep(3500);
+      await sleep(2500);
+      holdP.x = home.x; holdP.y = home.y;
     }
   }
   info.push('praat: ' + got + ' gesprekken in beeld; ' + JSON.stringify(seen) + ' staat ' + JSON.stringify(SP.straatpraatState()));
@@ -434,8 +441,7 @@ if (want('streken')) {
   info.push('auto dichtbij ' + (car ? JSON.stringify({ len: +(car.model.len || 0).toFixed(2), color: car.model.color }) : 'geen'));
   if (car) {
     const g = gh(car.x, car.y);
-    const pose = { position: { x: car.x + 5, y: car.y + 5, z: g + 2.2 }, lookAt: { x: car.x, y: car.y, z: g + 0.7 }, cut: true };
-    cine.playCinematic({ id: 'vi-kliko', duration: 30, priority: 9, shot: () => pose });
+    cine.playCinematic({ id: 'vi-kliko', duration: 30, priority: 9, shot: () => ({ position: { x: car.x + 5, y: car.y + 5, z: g + 2.2 }, lookAt: { x: car.x, y: car.y, z: g + 0.7 }, cut: true }) });
     await sleep(2000);
     console.log('[capture] streken-auto');
     await sleep(500);
@@ -444,8 +450,7 @@ if (want('streken')) {
   const ped = w.pedestrians.filter((q) => !q.isCop && Math.hypot(q.x - p.x, q.y - p.y) < 25).sort((a, b) => Math.hypot(a.x - p.x, a.y - p.y) - Math.hypot(b.x - p.x, b.y - p.y))[0];
   if (ped) {
     const g = gh(ped.x, ped.y);
-    const pose = { position: { x: ped.x + 3, y: ped.y + 3, z: g + 1.4 }, lookAt: { x: ped.x, y: ped.y, z: g + 0.5 }, cut: true };
-    cine.playCinematic({ id: 'vi-klein', duration: 30, priority: 9, shot: () => pose });
+    cine.playCinematic({ id: 'vi-klein', duration: 30, priority: 9, shot: () => ({ position: { x: ped.x + 3, y: ped.y + 3, z: g + 1.4 }, lookAt: { x: ped.x, y: ped.y, z: g + 0.5 }, cut: true }) });
     await sleep(2000);
     console.log('[capture] streken-mensje');
     await sleep(500);
