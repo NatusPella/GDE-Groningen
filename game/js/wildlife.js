@@ -8,6 +8,7 @@ import { pushCircleOutOfVehicle, vehicleHitBody } from './vehicle.js';
 import { splatterAnimal, GIB_SPEED } from './gore3d.js';
 import { MODS } from './cheatmods.js';
 import { buildingAt } from './tileplace.js';
+import { onRoadway } from './wegvlak.js';
 import { streekAt } from './regioleven.js';
 import { wildlifeLimits, fleeFrom, STREEK_MIX } from './dierenplan.js';
 import { getSettings } from './settings.js';
@@ -51,8 +52,9 @@ const PIGEON_STAND_Y = 0.1;
 
 let maintainTimer = 0;
 
+// (no animal picks a spot on a carriageway or in the middle of a junction: they stood in the traffic of the Emmaviaduct, #334)
 function openGround(map, x, y) {
-  return !buildingAt(map, x, y) && !isInWater(map, x, y);
+  return !buildingAt(map, x, y) && !isInWater(map, x, y) && !onRoadway(map, x, y, 0.4);
 }
 
 function randomOpenPointNear(map, x, y, rMin, rMax, rng = Math.random) {
@@ -297,12 +299,12 @@ function maintain(world) {
   const vee = green ? veeVoorPlek(streekId, biotoop, ((world.clock % 24) + 24) % 24, rng()) : null;   // #330: nooit in de bebouwde kom
   if (vee === 'gans') {
     const n = 3 + Math.floor(rng() * 3);
-    for (let k = 0; k < n && count.grazer + k < LIMITS.grazer; k++) list.push(newGrazer('gans', green.x + (rng() - 0.5) * 3, green.y + (rng() - 0.5) * 3, rng));
+    for (let k = 0; k < n && count.grazer + k < LIMITS.grazer; k++) { const gx = green.x + (rng() - 0.5) * 3, gy = green.y + (rng() - 0.5) * 3; if (openGround(map, gx, gy)) list.push(newGrazer('gans', gx, gy, rng)); }
     return;
   }
   if (vee) {
     const herd = vee === 'sheep' ? 1 + Math.floor(rng() * 2) : 1;
-    for (let k = 0; k < herd && count.grazer + k < LIMITS.grazer; k++) list.push(newGrazer(vee, green.x + k * 1.5, green.y + k * 0.8, rng));
+    for (let k = 0; k < herd && count.grazer + k < LIMITS.grazer; k++) if (openGround(map, green.x + k * 1.5, green.y + k * 0.8)) list.push(newGrazer(vee, green.x + k * 1.5, green.y + k * 0.8, rng));
   }
   if (waterClose) list.push(...spawnWaterLife(map, player, streekId, count, getSettings().quality, rng));
   if (count.duck < LIMITS.duck - 1 && waterClose) list.push(...spawnDucks(map, player.x, player.y, rng));
@@ -393,7 +395,7 @@ export function updateHerd(a, dt, world) {
     steer(a, a.wanderTarget.x, a.wanderTarget.y, 4, dt);
     return;
   }
-  updateGrazer(a, dt);
+  updateGrazer(a, dt, world.map);
 }
 
 // Reiger: staat roerloos aan de waterkant; schrikt hij, dan vliegt hij weg en is hij na een tijd uit beeld.
@@ -473,17 +475,18 @@ function updateGans(a, dt, world) {
     steer(a, a.wanderTarget.x, a.wanderTarget.y, 6, dt);
     return;
   }
-  updateGrazer(a, dt);
+  updateGrazer(a, dt, world.map);
 }
 
-function updateGrazer(a, dt) {
+function updateGrazer(a, dt, map) {
   if (dist(a.x, a.y, a.wanderTarget.x, a.wanderTarget.y) < GRAZER_ARRIVE_RADIUS) {
     a.speed = 0;
     a.waypointTimer -= dt;
     if (a.waypointTimer <= 0) {
       const ang = Math.random() * Math.PI * 2;
       const rad = Math.random() * a.homeRadius;
-      a.wanderTarget = { x: a.homeX + Math.cos(ang) * rad, y: a.homeY + Math.sin(ang) * rad };
+      const tx = a.homeX + Math.cos(ang) * rad, ty = a.homeY + Math.sin(ang) * rad;
+      a.wanderTarget = !map || openGround(map, tx, ty) ? { x: tx, y: ty } : { x: a.homeX, y: a.homeY };
       a.waypointTimer = GRAZER_PAUSE_MIN + Math.random() * (GRAZER_PAUSE_MAX - GRAZER_PAUSE_MIN);
       a.speed = GRAZER_SPEED * (0.7 + Math.random() * 0.5);
     }
@@ -697,8 +700,20 @@ export function updateWildlife(dt, world) {
       case 'vis': updateVis(a, dt, world); break;
       default: updateHerd(a, dt, world);
     }
+    keepOffRoad(a, dt, world);
     groundContacts(a, world);
   }
+}
+
+// A ground animal that ends up on a carriageway or a junction anyway (a flock landing, a flight from a car, a shove) leaves:
+// no animal stands in the traffic (#334). Looked at a few times a second.
+const OFF_ROAD = new Set(['cat', 'pigeon', 'cow', 'sheep', 'gans']);
+function keepOffRoad(a, dt, world) {
+  if (!OFF_ROAD.has(a.kind) || (a.kind === 'pigeon' && a.state !== 'ground')) return;
+  a.roadT = (a.roadT || 0) - dt;
+  if (a.roadT > 0) return;
+  a.roadT = 0.3 + Math.random() * 0.2;
+  if (onRoadway(world.map, a.x, a.y, 0.1)) a.gone = true;
 }
 
 // Animals on the ground are bodies like any walker: walls and posts stop

@@ -5,7 +5,7 @@
 // quaywalls) stand for the bridge while it is closed; while it moves the road
 // is hidden (scene3d.js passes openBridgeRoads() to the road batcher).
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-import { getMovableBridges, boomsOf, boatSignal, movableBridgesVersion } from './movablebridges.js';
+import { getMovableBridges, boomsOf, boatSignal, movableBridgesVersion, onOtherCarRoad } from './movablebridges.js';
 import { mergeGeometries, tint } from './geomerge.js';
 import { waterAt } from './waterlevels.js';
 import { roadSurfaceGeometries, roadSurfaceMaterials, getMarkingMaterial } from './roadsurface.js';
@@ -136,32 +136,24 @@ function surfaceMeshes(b, s0, L, dir, geo, mats) {
 // With the map the spot dodges: it moves outward and along until it stands on no
 // other car road and, if it can, not in the water.
 export function signalSpot(b, end, map = null) {
-  const side = end ? -1 : 1;
-  const nx = -b.uy * side, ny = b.ux * side;
   const dir = end ? 1 : -1;
   const ex = end ? b.bx : b.ax, ey = end ? b.by : b.ay;
   let best = null, bestScore = Infinity;
-  for (const out of [0, 1.8, 3.6, 5.4, 8, 11]) {
-    for (const beyond of [1.5, 4.5, 7.5, 11, 15, 20]) {
-      const x = ex + dir * b.ux * beyond + nx * (b.half + 1.2 + out), y = ey + dir * b.uy * beyond + ny * (b.half + 1.2 + out);
-      if (!map) return [x, y];
-      const score = (onCarRoad(map, x, y, b.r) ? 2 : 0) + (waterAt(map, x, y) ? 1 : 0) + out * 0.01 + beyond * 0.001;
-      if (score < bestScore) { bestScore = score; best = [x, y]; }
+  // (the bank this end is meant for first; where that has no free spot the other bank, a dual bridge has a carriageway on that side, #325)
+  for (const flip of [1, -1]) {
+    const side = (end ? -1 : 1) * flip;
+    const nx = -b.uy * side, ny = b.ux * side;
+    for (const out of [0, 1.8, 3.6, 5.4, 8, 11]) {
+      for (const beyond of [1.5, 4.5, 7.5, 11, 15, 20]) {
+        const x = ex + dir * b.ux * beyond + nx * (b.half + 1.2 + out), y = ey + dir * b.uy * beyond + ny * (b.half + 1.2 + out);
+        if (!map) return [x, y];
+        const score = (onOtherCarRoad(map, x, y, b.r, 0.5) ? 2 : 0) + (waterAt(map, x, y) ? 1 : 0) + (flip < 0 ? 0.5 : 0) + out * 0.01 + beyond * 0.001;
+        if (score < bestScore) { bestScore = score; best = [x, y]; }
+      }
     }
+    if (bestScore < 0.5) break;
   }
   return best;
-}
-function onCarRoad(map, x, y, own) {
-  if (!map.roadsNear) return false;
-  for (const r of map.roadsNear(x, y, 6)) {
-    if (r === own || r.cat === 'foot' || r.cat === 'cycle') continue;
-    for (let i = 0; i < r.pts.length - 1; i++) {
-      const ax = r.pts[i][0], ay = r.pts[i][1], bx = r.pts[i + 1][0] - ax, by = r.pts[i + 1][1] - ay, l2 = bx * bx + by * by || 1;
-      const t = Math.max(0, Math.min(1, ((x - ax) * bx + (y - ay) * by) / l2));
-      if (Math.hypot(ax + bx * t - x, ay + by * t - y) < (r.width || 4) / 2 + 0.5) return true;
-    }
-  }
-  return false;
 }
 function buildSignal(b, end, map) {
   const root = new THREE.Group();

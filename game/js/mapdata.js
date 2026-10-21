@@ -6,6 +6,7 @@ import { attachInteriorPlans } from './interieurplan.js';
 import { SpatialGrid } from './spatialgrid.js';
 import { deriveBuildings, liftNestedRoofs, isRingRoad } from './derive.js';
 import { deckTerrainAt, isDeckRoad, roadTerrainAt } from './deckterrain.js';
+import { clearTreesFromRoads } from './treeclear.js';
 import { buildElevation, pickedRibbon, groundHeightAt, surfaceAt, ribbonAt, ribbonZAt, roadZAt, ceilingAt, coveredAt, surfaceHalfWidth, offLevelAt } from './elevation.js';
 
 const CELL = 80; // meters per grid cell
@@ -158,6 +159,9 @@ export class GameMap {
     markDryCrossings(this);
     this.elev = buildElevation(this);
     this.trees = this.trees.filter((t) => !onCarriageway(this, t[0], t[1]) && !this.offStreetLevel(t[0], t[1]));
+    // (and one on the kerb or close to the carriageway is set beside the road, or goes: treeclear.js, #324; the same as fromParts does for tiles of an older build)
+    this.treeClearStats = { moved: 0, removed: 0 };
+    this.trees = clearTreesFromRoads(this, this.trees, this.treeClearStats);
 
     this.treeGrid = new SpatialGrid(CELL * 2);
     for (const t of this.trees) {
@@ -212,6 +216,9 @@ export class GameMap {
       m.greenGrid.insert(g, g.bounds);
     }
     m.elev = buildElevation(m);
+    // (a mapped tree on the kerb or the carriageway is set beside the road, or goes: treeclear.js, #324)
+    m.treeClearStats = { moved: 0, removed: 0 };
+    m.trees = clearTreesFromRoads(m, m.trees, m.treeClearStats);
     m.treeGrid = new SpatialGrid(CELL * 2);
     for (const t of m.trees) m.treeGrid.insert(t, [t[0], t[1], t[0], t[1]]);
     return m;

@@ -27,39 +27,42 @@ import { buildAkte2Defs, applyAkte2 } from './missions_akte2.js';
 
 export function buildNieuwDefs({ map, walk, drive, models = {} }) {
   const list = [];
-  const lm = (map.meta.landmarks || []).find((l) => l.name === 'Goudkantoor') || { x: 86.5, y: 111.7 };
-  const loketAt = (dx, dy) => walk(lm.x + dx, lm.y + dy);
+  // Het Loket is het Stadhuis aan de Grote Markt (een echt loket in een kantoor; het Goudkantoor ernaast is een restaurant, #335):
+  // de rij loopt buiten, voor de westgevel op het plein tussen het Goudkantoor en het Stadhuis. Vaste punten, op begaanbare grond gezet.
+  const LOKET = { rij: [108, 108], A: [108, 96], C: [114, 122] };
+  const loketAt = (dx, dy) => walk(LOKET.rij[0] + dx, LOKET.rij[1] + dy);
+  const loket = (key, label) => ({ at: LOKET[key], snap: 'walk', label });
   list.push(
     {
       // M03 Het Loket: a queue puzzle on foot. Jelle bought the queue, so from his scene on the clock runs faster.
       type: 'stages',
       label: 'Het Loket',
-      intro: ['Het Loket bij de Grote Markt: om twaalf uur sluit de inschrijving voor de Noordelijke Snackprijs, en het loket neemt alleen contant.', 'Trek een wachtnummer, haal formulier 7B en de stempel, en schrijf in. Voor twaalf uur.'],
+      intro: ['Het Loket in het Stadhuis aan de Grote Markt: om twaalf uur sluit de inschrijving voor de Noordelijke Snackprijs, en het loket neemt alleen contant.', 'De rij staat buiten, voor de gevel. Trek een wachtnummer, haal formulier 7B en de stempel, en schrijf in. Voor twaalf uur.'],
       outro: 'Ingeschreven voor de Noordelijke Snackprijs. Jelle wil de Gouden Eierbal: pak hem eerst. Nieuw doel: naar Bert op het Stationsplein.',
       timeLimit: 180,
       costRow: ['Inschrijfgeld', '-€150, contant betaald'],
       timeUp: 'het Loket is dicht. Om twaalf uur sloot de inschrijving',
       reward: 0,
       onFoot: true,
-      start: loketAt(8, 14),
+      start: loketAt(-10, 14),
       stages: [
-        { kind: 'goto', target: { landmark: 'Goudkantoor', off: [3, 7], snap: 'walk', label: 'Het Loket: wachtnummer' }, mode: 'foot', radius: 5, stop: 0.8, label: 'Trek een wachtnummer', say: 'Nummer 4117. Op het scherm staat 4093.' },
+        { kind: 'goto', target: loket('rij', 'Het Loket: wachtnummer'), mode: 'foot', radius: 5, stop: 0.8, label: 'Trek een wachtnummer', say: 'Nummer 4117. Op het scherm staat 4093.' },
         // a beat of waiting, so the queue is felt before Jelle buys it (timing instead of only walking)
-        { kind: 'hold', target: { landmark: 'Goudkantoor', off: [3, 7], snap: 'walk', label: 'Het Loket: wachtrij' }, radius: 6, time: 5, ticks: ['Scherm: 4101. Nog zestien nummers.', 'Scherm: 4109. Bijna aan de beurt.'], label: 'Wacht in de rij tot je nummer komt', say: 'Blijf in de rij staan tot 4117 wordt omgeroepen.' },
+        { kind: 'hold', target: loket('rij', 'Het Loket: wachtrij'), radius: 6, time: 5, ticks: ['Scherm: 4101. Nog zestien nummers.', 'Scherm: 4109. Bijna aan de beurt.'], label: 'Wacht in de rij tot je nummer komt', say: 'Blijf in de rij staan tot 4117 wordt omgeroepen.' },
         {
           kind: 'scene', label: 'Jelle', kicker: 'Het Loket', script: { ids: ['M03.2'] }, clock: 3,
           cast: [{ key: 'jelle', pose: 'hold', at: [2.6, 0.8] }, { key: 'bewaarder', pose: 'hips', at: [3.6, -1.2] }],
         },
         {
-          kind: 'goto', target: { landmark: 'Goudkantoor', off: [-9, 4], snap: 'walk', label: 'Loket A: formulier 7B' }, mode: 'foot', radius: 5, stop: 0.8,
+          kind: 'goto', target: loket('A', 'Loket A: formulier 7B'), mode: 'foot', radius: 5, stop: 0.8,
           label: 'Haal formulier 7B bij loket A', say: 'Formulier 7B, in drievoud. Niet vouwen.', talk: { ids: ['M03.3'], from: 0, to: 4, delay: 1.2 },
         },
         {
-          kind: 'goto', target: { landmark: 'Goudkantoor', off: [11, -9], snap: 'walk', label: 'Loket C: de zijdeur bij de kopieermachine' }, mode: 'foot', radius: 5, stop: 0.8,
-          label: 'Haal de stempel bij loket C', say: 'Loket C heeft een zijdeur bij de kopieermachine.', talk: { ids: ['M03.3'], from: 4, to: 7, delay: 1.2 },
+          kind: 'goto', target: loket('C', 'Loket C: de zijdeur van het Stadhuis'), mode: 'foot', radius: 5, stop: 0.8,
+          label: 'Haal de stempel bij loket C', say: 'Loket C heeft een zijdeur, naast de kopieermachine die iemand buiten heeft gezet.', talk: { ids: ['M03.3'], from: 4, to: 7, delay: 1.2 },
         },
         {
-          kind: 'goto', target: { landmark: 'Goudkantoor', off: [3, 7], snap: 'walk', label: 'Het Loket: inschrijven' }, mode: 'foot', radius: 5, stop: 0.8,
+          kind: 'goto', target: loket('rij', 'Het Loket: inschrijven'), mode: 'foot', radius: 5, stop: 0.8,
           label: 'Schrijf in bij de balie', say: 'Alles bij elkaar: nu inschrijven, honderdvijftig euro contant.', pay: 150, paid: 'Inschrijving Noordelijke Snackprijs', payShort: ' Tessa legt de rest bij.',
         },
       ],
