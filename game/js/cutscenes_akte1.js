@@ -53,6 +53,23 @@ const merge = (...parts) => ({
 
 export const SPECS = {};
 export const sceneSpec = (key) => SPECS[key] || MORE_SPECS[key] || null;
+
+// The heading of a road (pts: [[x, y], ...]) at the point `rp` ({ x, y }) on it, turned to the direction closest to `facing`: { x, y, facing },
+// or null for a road without two points (a spec with `align: 'road'`, missionstory.js).
+export function roadAlignment(pts, rp, facing) {
+  if (!pts || pts.length < 2 || !rp) return null;
+  let best = null;
+  for (let i = 0; i + 1 < pts.length; i++) {
+    const ax = pts[i][0], ay = pts[i][1], bx = pts[i + 1][0], by = pts[i + 1][1];
+    const dx = bx - ax, dy = by - ay, l2 = dx * dx + dy * dy || 1e-9;
+    const t = Math.max(0, Math.min(1, ((rp.x - ax) * dx + (rp.y - ay) * dy) / l2));
+    const d = Math.hypot(ax + dx * t - rp.x, ay + dy * t - rp.y);
+    if (!best || d < best.d) best = { d, a: Math.atan2(dy, dx) };
+  }
+  let a = best.a;
+  if (Math.abs(Math.atan2(Math.sin(a - facing), Math.cos(a - facing))) > Math.PI / 2) a += Math.PI;
+  return { x: rp.x, y: rp.y, facing: a };
+}
 // more stagings (cutscenes_akte3.js ...): read by missionScene as well, so act 1's own test keeps its list
 export const MORE_SPECS = {};
 // act 2 (M08-M11) is staged in its own file

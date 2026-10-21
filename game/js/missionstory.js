@@ -16,7 +16,7 @@ import { storyLines, storyDataReady, readingTime, storyDirRecording } from './st
 import { AKTE5_STORY } from './missionstory_akte5.js';
 import { openBank } from './voicebank.js';
 import { playScript } from './cutscenehost.js';
-import { missionScene, quickScene, sceneSpec } from './cutscenes_akte1.js';
+import { missionScene, quickScene, sceneSpec, roadAlignment } from './cutscenes_akte1.js';
 import { STORY_AKTE4 } from './missionstory_akte4.js';
 import { STORY_AKTE2 } from './missionstory_akte2.js';
 import './cutscenes_akte3.js';
@@ -1192,21 +1192,8 @@ function stagedKey(i, kind) {
 // closest to `facing`: the bakkie then drives down a street, not across a lawn. Returns { x, y, facing } or null when no road is within 40 m.
 function alignToRoad(w, anchor, facing) {
   const rp = w.map.nearestRoadPoint && w.map.nearestRoadPoint(anchor.x, anchor.y, 60, true);
-  const pts = rp && rp.road && rp.road.pts;
-  if (!pts || pts.length < 2) return null;
-  let best = null;
-  for (let i = 0; i + 1 < pts.length; i++) {
-    const ax = pts[i][0], ay = pts[i][1], bx = pts[i + 1][0], by = pts[i + 1][1];
-    const dx = bx - ax, dy = by - ay, l2 = dx * dx + dy * dy || 1e-9;
-    const t = Math.max(0, Math.min(1, ((rp.x - ax) * dx + (rp.y - ay) * dy) / l2));
-    const d = Math.hypot(ax + dx * t - rp.x, ay + dy * t - rp.y);
-    if (!best || d < best.d) best = { d, a: Math.atan2(dy, dx) };
-  }
-  if (!best || Math.hypot(rp.x - anchor.x, rp.y - anchor.y) > 40) return null;
-  let a = best.a;
-  const diff = Math.atan2(Math.sin(a - facing), Math.cos(a - facing));
-  if (Math.abs(diff) > Math.PI / 2) a += Math.PI;
-  return { x: rp.x, y: rp.y, facing: a };
+  const at = rp && rp.road ? roadAlignment(rp.road.pts, rp, facing) : null;
+  return at && Math.hypot(rp.x - anchor.x, rp.y - anchor.y) <= 40 ? at : null;
 }
 
 // opts.def: a scene that is not a spec of missionScene (quickScene); opts.update(t, dt) runs every frame; opts.shotOverride(t) is a hand-made
