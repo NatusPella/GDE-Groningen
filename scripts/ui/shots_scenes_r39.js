@@ -123,7 +123,7 @@ if (want('bewegen')) {
   for (let r = 40; r < 1400 && !spot; r += 20) {
     for (let a = 0; a < 6.28 && !spot; a += 0.2) {
       const x = centre.x + Math.cos(a) * r, y = centre.y + Math.sin(a) * r;
-      if (!wet(x, y)) continue;
+      if (!wet(x, y) || w.vehicles.some((v) => v.isBoat && Math.hypot(v.x - x, v.y - y) < 60)) continue;
       for (let b = 0; b < 6.28; b += 0.7854) {
         const bx = x + Math.cos(b) * 5, by = y + Math.sin(b) * 5;
         if (!wet(bx, by) && !map.buildingsNear(bx, by, 1).length) { spot = { x, y, bank: b, bx, by }; break; }
@@ -136,7 +136,7 @@ if (want('bewegen')) {
     hold = null;
     for (let i = 0; i < 40 && document.querySelector('.ls.on:not(.out)'); i++) await sleep(500);
     await sleep(2500);
-    p.startWaterFall && p.startWaterFall();
+    if (p.enterSwim) p.enterSwim();
     await sleep(2500);
     info.push('water-state ' + p.water);
     p.angle = spot.bank;
@@ -145,7 +145,7 @@ if (want('bewegen')) {
     keyEv('keydown', 'w', 'KeyW');
     await sleep(1500);
     await follow('zwemmen-door', Math.cos(spot.bank + 1.57) * 3.2, Math.sin(spot.bank + 1.57) * 3.2, 1.5);
-    for (let i = 0; i < 20 && !p.climbSpot; i++) await sleep(300);
+    for (let i = 0; i < 30 && !p.climbSpot; i++) await sleep(300);
     info.push('klimplek ' + !!p.climbSpot + ' water ' + p.water);
     if (p.climbSpot) {
       keyEv('keyup', 'w', 'KeyW');
@@ -188,10 +188,9 @@ if (want('bewegen')) {
   p.enterVehicle(bike, w);
   p.angle = 0;
   await sleep(1500);
-  keyEv('keydown', 'w', 'KeyW');
-  await sleep(2500);
   keyEv('keydown', 'Control', 'ControlLeft');
-  await sleep(700);
+  keyEv('keydown', 'w', 'KeyW');
+  await sleep(1100);
   const side = (bike.angle || 0) + Math.PI / 2;
   await follow('wheelie-1', Math.cos(side) * 4.5, Math.sin(side) * 4.5, 1.2, 60);
   await sleep(500);
@@ -297,8 +296,9 @@ if (want('bezit')) {
   const SHU2 = await imp('shopui');
   window.__furniture.give();
   w.money = 4000;
-  HM.enter();
-  await sleep(4000);
+  HM.goHome();
+  await sleep(5000);
+  if (!(HM.state() || {}).inside) { HM.enter(); await sleep(4000); }
   info.push('flat binnen ' + JSON.stringify(HM.state && HM.state()).slice(0, 160));
   // a few bookings for the ledger
   for (const [d, label] of [[250, 'Missies'], [-120, 'Winkels'], [60, 'Bijbaantjes'], [-35, 'Eten en drinken']]) { const F = await imp('finance'); F.noteMoney(label); w.money += d; await sleep(300); }
