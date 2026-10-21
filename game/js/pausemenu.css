@@ -150,11 +150,13 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
 #pause-menu .ov-goal .m-bt { margin-left: 12px; height: 32px; }
 /* the state of the game in tiles, the quick settings */
 #pause-menu .ov-tiles { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 16px; margin-top: 40px; flex: none; }
-#pause-menu .ov-tile { display: flex; flex-direction: column; gap: 4px; padding: 16px 20px 18px; border-radius: 12px; background: rgba(240, 237, 228, 0.05); box-shadow: inset 0 0 0 1px var(--line); text-align: left; transition: background 0.2s; min-width: 0; }
+#pause-menu .ov-tile { display: flex; flex-direction: column; gap: 4px; padding: 16px 20px 18px; border-radius: 12px; background: rgba(240, 237, 228, 0.05); box-shadow: inset 0 0 0 1px var(--line); text-align: left; transition: background 0.2s; min-width: 0; container-type: inline-size; }
 #pause-menu button.ov-tile:not([tabindex="-1"]):hover { background: rgba(240, 237, 228, 0.1); }
 #pause-menu .ov-tile[tabindex="-1"] { cursor: default; }
 #pause-menu .ov-tile svg { width: 24px; height: 24px; fill: none; stroke: var(--g); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 #pause-menu .ov-tv { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 44px; line-height: 1; letter-spacing: 0.03em; white-space: nowrap; }
+/* een lange waarde ('net begonnen', een groot bedrag) krimpt mee met de breedte van de tegel in plaats van over de buurtegel te lopen (#351) */
+#pause-menu .ov-tv.long { font-size: min(44px, 17cqw); }
 #pause-menu .ov-tl { font-size: 17px; }
 #pause-menu .ov-tile .m-bar { margin-top: 6px; }
 #pause-menu .ov-quick { display: grid; grid-template-columns: 1fr 1fr; gap: 0 32px; padding: 0 24px 8px; }
