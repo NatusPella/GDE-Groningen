@@ -119,6 +119,14 @@ t('filmpjes en keuzes: iedereen wacht synchroon en het wachten eindigt altijd (o
   for (const g of s.gs) { assert.equal(g.gw.coopNet, null, 'speelt weer zelf: geen eeuwig wachten'); assert.equal(g.gw.coopScene, null); }
 });
 
+t('een gast in het pauzemenu, de kaart of een winkel laat zijn figuur niet lopen', () => {
+  const s = avond(2); s.step(2);
+  const g = s.gs[1].gw; g.input.axis = () => [1, 0];
+  s.step(1); assert.equal(g.coopNet.session.pendingInput.mx, 1, 'onderweg');
+  g.paused = true; s.step(1); assert.equal(g.coopNet.session.pendingInput.mx, 0, 'in een menu staat hij stil');
+  g.paused = false; s.step(1); assert.equal(g.coopNet.session.pendingInput.mx, 1);
+});
+
 t('wanted is gedeeld en volgt de gastheer', () => {
   const s = avond(3); s.step(2);
   s.hw.wanted = 4; s.step(2);
