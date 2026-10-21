@@ -8,6 +8,8 @@
 name: Linux-builds
 
 on:
+  push:
+    branches: [claude/r51-ci-builds]
   workflow_dispatch:
     inputs:
       tag:
@@ -19,7 +21,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: linux-release-${{ inputs.tag }}
+  group: linux-release-${{ (inputs.tag || 'v0.38.1') }}
   cancel-in-progress: false
 
 jobs:
@@ -28,11 +30,11 @@ jobs:
     timeout-minutes: 25
     env:
       GH_TOKEN: ${{ github.token }}
-      TAG: ${{ inputs.tag }}
+      TAG: ${{ inputs.tag || 'v0.38.1' }}
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.tag }}
+          ref: ${{ (inputs.tag || 'v0.38.1') }}
 
       - uses: actions/setup-node@v4
         with:
