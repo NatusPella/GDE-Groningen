@@ -38,6 +38,7 @@ const teleport = (x, y) => {
 };
 const shot = async (name, wait = 1200) => { await sleep(wait); console.log('[capture] ' + name); await sleep(600); };
 const SH = await imp('shops');
+const PIG = await imp('pigeonmode');
 const done = [`viewport ${innerWidth}x${innerHeight} dpr ${devicePixelRatio} ui ${getComputedStyle(document.documentElement).getPropertyValue('--ui')}`];
 
 const info = [];
@@ -131,7 +132,7 @@ if (want('bewegen')) {
   }
   info.push('water ' + JSON.stringify(spot && { x: Math.round(spot.x), y: Math.round(spot.y) }));
   if (spot) {
-    teleport(spot.x - Math.cos(spot.bank) * 6, spot.y - Math.sin(spot.bank) * 6);
+    teleport(spot.x, spot.y);
     hold = null;
     for (let i = 0; i < 40 && document.querySelector('.ls.on:not(.out)'); i++) await sleep(500);
     await sleep(2500);
@@ -139,6 +140,7 @@ if (want('bewegen')) {
     await sleep(2500);
     info.push('water-state ' + p.water);
     p.angle = spot.bank;
+    w.camYaw = spot.bank;
     await follow('zwemmen-stil', Math.cos(spot.bank + 1.57) * 3.2, Math.sin(spot.bank + 1.57) * 3.2, 1.5);
     keyEv('keydown', 'w', 'KeyW');
     await sleep(1500);
@@ -190,9 +192,10 @@ if (want('bewegen')) {
   await sleep(2500);
   keyEv('keydown', 'Control', 'ControlLeft');
   await sleep(700);
-  await follow('wheelie-1', 0.5, 5.5, 1.3, 60);
-  await sleep(800);
-  await follow('wheelie-2', 0.5, 5.5, 1.3, 60);
+  const side = (bike.angle || 0) + Math.PI / 2;
+  await follow('wheelie-1', Math.cos(side) * 4.5, Math.sin(side) * 4.5, 1.2, 60);
+  await sleep(500);
+  await follow('wheelie-2', Math.cos(side) * 4.5, Math.sin(side) * 4.5, 1.2, 60);
   info.push('wheelie ' + JSON.stringify({ wheelie: !!bike.wheelie, pitch: +(bike.pitch || 0).toFixed(2), speed: +(bike.speed || 0).toFixed(1) }));
   keyEv('keyup', 'Control', 'ControlLeft'); keyEv('keyup', 'w', 'KeyW');
   await sleep(500);
