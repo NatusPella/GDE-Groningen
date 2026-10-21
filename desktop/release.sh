@@ -16,7 +16,8 @@
 #   npm run release -- minor --linux --web
 #
 # SemVer: 0.x.y until the real launch, then 1.0.0 (npm run release -- major).
-# Everything is built locally (no GitHub Actions needed).
+# Windows (and with --linux the Linux build) is built locally. macOS, Linux and Android can be added from
+# GitHub Actions afterwards: node ../scripts/release_builds.mjs (see ../docs/RELEASEN.md; needs --world).
 set -e
 cd "$(dirname "$0")"
 # Windows (Git Bash, or npm's sh): gh is often not on PATH; look in the standard install folders (#141).
