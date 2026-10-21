@@ -95,6 +95,15 @@ t('de opdracht van de gastheer: alle spelers lezen wat gespeeld wordt, de volgen
   for (const g of s.gs) { assert.equal(g.gw.coopHostMissie.actief, false); assert.equal(g.gw.coopHost.doelen.length, 0, 'na de opdracht geen doel meer'); }
 });
 
+t('gelukt of mislukt: elke gast leest het resultaat van de gastheer', () => {
+  const s = avond(3); s.step(2);
+  s.hw.coopUitslag(true, 'Het Loket', '', 400); s.step(1);
+  for (const g of s.gs) assert.match(g.gw.messages.join(' '), /Het Loket gelukt! Tammo en jij hebben het samen gedaan/);
+  s.hw.coopUitslag(false, 'De Kluis', 'Te laat', 0); s.step(1);
+  for (const g of s.gs) assert.match(g.gw.messages.join(' '), /De Kluis mislukt: Te laat/);
+  assert.equal(N.handleEvent(s.hw, { k: 'uitslag', ok: true, label: 'x' }), false, 'een gastheer luistert er niet naar');
+});
+
 t('filmpjes en keuzes: iedereen wacht synchroon en het wachten eindigt altijd (ook als de gastheer overslaat of wegvalt)', () => {
   let sc = { filmpje: false, regel: null, keuze: null };
   const s = avond(3, { scene: () => sc }); s.step(2);

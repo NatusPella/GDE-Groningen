@@ -85,7 +85,7 @@ function prepareCoop(world) {
 function endCoop(world) {
   if (world.coop) { world.coop.remote = false; world.coop.remoteInput = null; world.coop.fixedChars = false; if (world.coop.prevLocal !== undefined) { world.coop.local = world.coop.prevLocal; world.coop.prevLocal = undefined; } }
   world.coopPartner = null; world.coopPartners = []; world.coopRoster = null; world.coopFigures = {}; world.coopHost = null; world.coopHostMissie = null; world.coopCam = null; world.coopScene = null;
-  world.coopMeld = null; world.coopDeel = null; world.coopPingMarks = []; world.coopGebruik = false; world.coopWielSlot = null; world.coopWielVraag = null; world.coopWiel = false; world.coopInVoertuig = false; // (#291)
+  world.coopMeld = null; world.coopDeel = null; world.coopUitslag = null; world.coopPingMarks = []; world.coopGebruik = false; world.coopWielSlot = null; world.coopWielVraag = null; world.coopWiel = false; world.coopInVoertuig = false; // (#291)
   if (world.companion) world.companion.coopUit = false;
 }
 const now = (world) => (Number.isFinite(world.time) ? world.time : Date.now() / 1000);
@@ -138,6 +138,7 @@ export function startHost(world, info, opts = {}) {
   setFixedCharacters(world, 0);
   world.coopRole = 'host';
   world.coopRoster = lijst(hub.roster);
+  world.coopUitslag = (ok, label, reden, loon) => uitslagMelden(world, ok, label, reden, loon); // gelukt of mislukt (#371)
   world.coopDeel = (bedrag) => deelMetGasten(world, bedrag); // missies, bijbanen en prijzen delen met de gasten (#365)
   world.coopMeld = (slot, tekst) => hub.announce({ k: 'melding', tekst: String(tekst).slice(0, 90) }, slot); // een korte melding voor een gast (#291)
   world.coopNet = { role: 'host', hub, fade, route, removing: {}, info, tKlok: 0, tHash: 0, tWeer: 0, hashN: 0, scene, tScene: 0, filmpjeT: 0, sceneNu: null };
@@ -216,6 +217,12 @@ export function bandFiguren(world, dt) {
       if (world.coopMeld) world.coopMeld(fig.slot, 'Je staat weer bij de groep.');
     }
   }
+}
+
+// De opdracht van de gastheer is gelukt of mislukt: elke gast leest het (en bij gelukt wat zijn deel was), zodat niemand raadt (#371)
+export function uitslagMelden(world, ok, label, reden = '', loon = 0) {
+  const n = world.coopNet; if (!n || n.role !== 'host') return false;
+  return n.hub.announce({ k: 'uitslag', ok: !!ok, label: String(label || '').slice(0, 60), reden: String(reden || '').slice(0, 60), deel: ok ? Math.floor(Math.max(0, Number(loon) || 0) * GAST_DEEL) : 0 });
 }
 
 // Missies, bijbanen en prijzen van de gastheer: elke verbonden gast krijgt zijn deel in zijn eigen portemonnee (#365).
@@ -323,6 +330,13 @@ export function handleEvent(world, body, van = 0) {
       // een nieuwe opdracht: wat de gastheer speelt; daarna alleen nog de volgende stap
       const tekst = nieuweOpdracht ? missieTekst(m, verhaalRol(slot) === 'wereld' ? 'wereld' : 'hoofdrol', openerNaam(world.coopRoster, true)) : (m.actief && m.stap ? `${openerNaam(world.coopRoster, true)}, volgende stap: ${m.stap}` : '');
       if (tekst && world.addMessage) world.addMessage(tekst, 6);
+      return true;
+    }
+    case 'uitslag': { // gelukt of mislukt, van de gastheer (#371)
+      if (!n || n.role !== 'client' || typeof body.label !== 'string') return false;
+      const naam = openerNaam(world.coopRoster, true);
+      const tekst = body.ok ? `${body.label} gelukt! ${naam} en jij hebben het samen gedaan.` : `${body.label} mislukt${body.reden ? ': ' + String(body.reden).slice(0, 60) : ''}. ${naam} probeert het misschien opnieuw.`;
+      if (world.addMessage) world.addMessage(tekst.slice(0, 160), 5);
       return true;
     }
     case 'scene': { // wat de host op het scherm heeft: filmpje, regel, keuze (alleen kijken)

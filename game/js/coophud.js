@@ -41,9 +41,12 @@ export function updatePartnerChip(world) {
   const menu = document.getElementById('pause-menu'); // het label hoort niet over de items van het pauzemenu te staan
   const film = document.body.classList.contains('cine-hide-hud'); // een filmpje verbergt de HUD, dus ook dit label
   chip.style.visibility = (menu && menu.classList.contains('visible')) || film ? 'hidden' : '';
-  const key = lijst.map((p) => `${p.slot}|${p.naam}|${p.tekst}|${p.kleur}`).join(';');
+  // afstand tot elke medespeler, afgerond zodat het label niet elke stap verspringt (#372)
+  const pl = world.player;
+  const afstand = (p) => { if (!pl || !p.zichtbaar || !Number.isFinite(p.x)) return ''; const d = Math.hypot(p.x - pl.x, p.y - pl.y); return d < 15 ? 'bij je' : d >= 1000 ? `${(d / 1000).toFixed(1).replace('.', ',')} km` : `${Math.round(d / 10) * 10} m`; };
+  const key = lijst.map((p) => `${p.slot}|${p.naam}|${p.tekst}|${p.kleur}|${afstand(p)}`).join(';');
   if (key === last) return;
   last = key;
-  chip.innerHTML = lijst.map((p) => `<div style="display:flex;gap:8px;align-items:center"><span style="color:${p.kleur}" aria-hidden="true">${SHAPE[p.vorm] || '●'}</span><span><b>${p.naam}</b> · ${p.tekst}</span></div>`).join('') +
+  chip.innerHTML = lijst.map((p) => `<div style="display:flex;gap:8px;align-items:center"><span style="color:${p.kleur}" aria-hidden="true">${SHAPE[p.vorm] || '●'}</span><span><b>${p.naam}</b> · ${p.tekst}${afstand(p) ? ' · ' + afstand(p) : ''}</span></div>`).join('') +
     '<div style="display:flex;gap:4px;flex-wrap:wrap">' + PING_TOETSEN.map((k) => `<button type="button" data-ping="${k.soort}" title="Toets ${k.toets.toUpperCase()}" style="background:#3fc97a;color:#0c140e;border:0;border-radius:4px;padding:2px 8px;cursor:pointer">${k.tekst} <small>${k.toets.toUpperCase()}</small></button>`).join('') + '</div>';
 }
