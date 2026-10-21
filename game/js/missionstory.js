@@ -1204,8 +1204,8 @@ function playStaged(w, key, tl, { anchor, facing, kicker = '', title = '', cardF
     cine: {
       id: 'mission-scene', priority: 3, kicker, title, cardFor, shotOverride,
       frame: (t, dt) => {
-        if (update) update(t, dt);
         const cur = lines.find((l) => t >= l.at && t < l.at + l.dur);
+        if (update) update(t, dt, cur);
         if (!cur || cur === voiced) return;
         voiced = cur;
         if (cur.voice) playStoryVoice(VOICE_DIR + cur.voice.src, { radio: cur.who === 'V' || cur.who === 'rikus' || cur.radio });
@@ -1654,17 +1654,18 @@ export function playVaultScene(w, { at, lines = [], landing = 'Moai! Oant sjen, 
 // the first `shotFor` seconds (the whole scene when 0), else the camera
 // follows the speaker. big: a card after the talk, over the same set.
 // lead: seconds before the first line (a silent beat for the shot).
-export function playCastScene(w, { at, facing = null, lines = [], cast = [], props = [], kicker = '', title = '', big = '', lead = 0.6, shot = null, shotFor = 0, shotLines = 0, deck = null, lookTo = null, poses = null, update = null, solo = false, staging = null } = {}) {
+export function playCastScene(w, { at, facing = null, lines = [], cast = [], props = [], kicker = '', title = '', big = '', lead = 0.6, shot = null, shotFor = 0, shotLines = 0, shotAll = false, deck = null, lookTo = null, poses = null, update = null, solo = false, staging = null } = {}) {
   if (run) return false;
   // the new story's stage scenes with a staging (cutscenes_akte1.js): the direction language; the rest below
   // a hand-made camera (`shot`) that lasts for the first lines only (shotFor, shotLines: the falling flag, M24.3) is a shotOverride of the staging
-  if (staging && !deck && !solo && (!shot || shotFor || shotLines) && !cast.some((e) => e && e.water)) {
+  // (shotAll: the hand-made camera is the whole scene, the reveal of the case in M06.3: the staging then only brings the people and the voices)
+  if (staging && !deck && !solo && (!shot || shotFor || shotLines || shotAll) && !cast.some((e) => e && e.water)) {
     const anchor0 = w.player.inVehicle ? onFootAnchor(w) : freeSpot(w, at.x, at.y);
     const tlS = timeline(lines, null, lead);
     const until = shotLines && tlS.lines[shotLines - 1] ? tlS.lines[shotLines - 1].at + tlS.lines[shotLines - 1].dur : shotFor;
     const staged = playStaged(w, staging, tlS, {
       anchor: anchor0, facing: facing != null ? facing : facingTowards(w, anchor0, lookTo), kicker, title, cardFor: 2.5, update,
-      shotOverride: shot && until ? (t) => (t < until ? shot(clamp01(t / until), t) : null) : null,
+      shotOverride: shot && until ? (t) => (t < until ? shot(clamp01(t / until), t) : null) : shot && shotAll ? (t) => shot(clamp01(t / tlS.total), t) : null,
     });
     if (staged) {
       // the title card after the scene ('Hij valt!'): on the last frame of the hand-made camera
