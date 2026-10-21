@@ -281,7 +281,10 @@ export function playScript(w, def, { lines, duration, anchor, cine = {}, env: en
         const cur = cards.find((k) => t >= k.t0 && t < k.t0 + k.dur) || null;
         if (cur !== cardNow) { cardNow = cur; setNameCard(cur ? cur.text : null); }
       }
-      return run.frame(t, dt);
+      const pose = run.frame(t, dt);
+      // a hand-made camera for part of the scene (cine.shotOverride(t): a pose, or null to leave it to the script), e.g. the falling flag (M24.3)
+      const own = cine.shotOverride ? cine.shotOverride(t) : null;
+      return own || pose;
     },
     onEnd(skipped, replaced) {
       if (run) { run.dispose(); run = null; }
