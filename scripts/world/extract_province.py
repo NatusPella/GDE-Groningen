@@ -72,7 +72,9 @@ PLACE_KINDS = {"city", "town", "village", "hamlet", "suburb", "quarter", "neighb
 FAC_AMENITY = {"police", "hospital", "clinic", "doctors", "fire_station", "pharmacy", "fuel", "taxi", "bus_station", "fast_food",
                "cafe", "pub", "bar", "restaurant", "car_wash", "bicycle_rental", "boat_rental", "parking"}
 FAC_SHOP = set(("supermarket|convenience|clothes|shoes|fashion|hairdresser|beauty|bicycle|car|car_repair|car_parts|tyres|"
-                "tobacco|lottery|newsagent|kiosk|second_hand|pawnbroker|outdoor|variety_store|furniture|paint|bakery|butcher").split("|"))
+                "tobacco|lottery|newsagent|kiosk|second_hand|pawnbroker|outdoor|variety_store|furniture|paint|bakery|butcher|"
+                "florist|gift|garden_centre|greengrocer|deli|pastry|confectionery|seafood|jewelry|boutique|electronics|mobile_phone|computer|"
+                "antiques|charity").split("|"))
 FAC_PLACE = {"city", "town", "village", "hamlet", "suburb", "quarter", "neighbourhood"}
 FAC_BBOX = (52.83, 6.15, 53.57, 7.25)
 
