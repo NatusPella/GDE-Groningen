@@ -311,7 +311,10 @@ const PHASES = {
     document.querySelector('.ra[data-goto="spelers"]').click();
     await sleep(1200);
     const p = document.querySelector('#pause-menu [data-panel="spelers"]');
-    log('spelersmenu', { zichtbaar: !!p && !p.hidden, rijen: p ? p.querySelectorAll('.cs-rij').length : 0, roep: p ? p.querySelectorAll('[data-ping]').length : 0 });
+    const rail = document.querySelector('#pause-menu .pm-rail .pm-game'), opsl = document.querySelector('#pause-menu [data-action="save"]');
+    const first = document.querySelector('#pause-menu .pm-game .ra'), second = document.querySelectorAll('#pause-menu .pm-game .ra')[1];
+    log('spelersmenu', { zichtbaar: !!p && !p.hidden, rijen: p ? p.querySelectorAll('.cs-rij').length : 0, roep: p ? p.querySelectorAll('[data-ping]').length : 0,
+      rail: rail ? [rail.scrollHeight, rail.clientHeight] : null, opslaan: opsl ? Math.round(opsl.getBoundingClientRect().bottom) : null, venster: [innerWidth, innerHeight], raHoogte: first && second ? Math.round(second.getBoundingClientRect().top - first.getBoundingClientRect().top) : null, coop: document.getElementById('pause-menu').dataset.coop });
     shot(name); await sleep(500); await closeMenu();
   },
   // bij een slecht netwerk spelen: alleen op de aangegeven instanties (args.wie)
