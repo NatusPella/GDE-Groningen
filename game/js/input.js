@@ -31,9 +31,18 @@ export function sendKey(type, k, from, extra = {}) {
 
 const isTextField = (t) => !!(t && (t.tagName === 'TEXTAREA' || (t.tagName === 'INPUT' && !['range', 'checkbox', 'radio', 'button'].includes(t.type)) || t.isContentEditable));
 
+// pointer lock (tryLock): refused gestures in a row before the free-cursor fallback, how long a request counts as
+// pending, and the least time between two counted refusals
+const LOCK_FAILS = 3;
+const LOCK_PENDING_MS = 1500;
+const LOCK_FAIL_GAP_MS = 2000;
+
 export class Input {
   constructor(target = window) {
     this.keys = new Set();
+    this._lockFails = 0;
+    this._lockAsked = null;
+    this._lockFailedAt = null;
     // dx/dy: relative mouse motion this frame while the pointer is locked
     this.mouse = { x: 0, y: 0, dx: 0, dy: 0, locked: false, down: false, rightDown: false, middleDown: false, wheel: 0 };
     this._justPressed = new Set();
@@ -110,7 +119,9 @@ export class Input {
     });
     document.addEventListener('pointerlockchange', () => {
       this.mouse.locked = !!document.pointerLockElement;
-      if (!this.mouse.locked) this.mouse.down = false;
+      this._lockAsked = null;
+      if (this.mouse.locked) this._lockFails = 0;
+      else this.mouse.down = false;
     });
     window.addEventListener('mousedown', (e) => {
       // the click that captures the mouse for looking around shouldn't also fire
@@ -181,15 +192,33 @@ export class Input {
 
   // Captures the mouse for looking around; needs a user gesture (click or
   // key). Embedded browsers (e.g. an app's preview pane) refuse pointer
-  // lock, so then plain cursor movement over the game steers instead.
-  tryLock() {
+  // lock, so then plain cursor movement over the game steers instead - but
+  // only after LOCK_FAILS refused gestures in a row (#328): one refusal is
+  // normal (a request without a gesture after a long load, one right after
+  // Esc released the lock, a key repeat while the first is pending) and used
+  // to switch to the free cursor for the rest of the session, so with more
+  // than one monitor the cursor left the window after ~160 degrees.
+  // gesture=false: a request the game makes itself (the start of a game),
+  // which may be refused without counting.
+  tryLock(gesture = true) {
     const canvas = document.getElementById('game3d');
     if (this.lookFallback || this.mouse.locked || !this.canLock || !this.canLock() || !canvas || !canvas.requestPointerLock) return false;
+    const now = typeof performance !== 'undefined' ? performance.now() : Date.now();
+    // a request still pending (key repeats come every 30 ms): that one decides
+    if (this._lockAsked != null && now - this._lockAsked < LOCK_PENDING_MS) return true;
+    this._lockAsked = now;
+    const failed = () => {
+      this._lockAsked = null;
+      if (!gesture || this.mouse.locked) return;
+      if (now - (this._lockFailedAt ?? -Infinity) < LOCK_FAIL_GAP_MS) return; // one refusal per gap
+      this._lockFailedAt = now;
+      if (++this._lockFails >= LOCK_FAILS) this.lookFallback = true;
+    };
     try {
       const req = canvas.requestPointerLock();
-      if (req && req.catch) req.catch(() => { this.lookFallback = true; });
+      if (req && req.catch) req.catch(failed);
     } catch (err) {
-      this.lookFallback = true;
+      failed();
     }
     return true;
   }

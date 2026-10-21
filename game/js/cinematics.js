@@ -7,7 +7,7 @@ import { noteSpoken } from './characters.js';
 import { getSettings } from './settings.js';
 import { isPauseMenuOpen, isMapOpen } from './pausestate.js';
 import { respawnPlayer } from './world.js';
-import { V, W, clamp01, easeInOut, easeOut, pathShot, roofAt, clearKeys, wijkStreetShot } from './camerapath.js';
+import { V, W, clamp01, easeInOut, easeOut, pathShot, roofAt, clearKeys, wijkStreetShot, buildingReach } from './camerapath.js';
 import { playStoryVoice, setStoryScene, setStoryProbe } from './audio.js';
 import { isIntroPlaying } from './trailerstate.js';
 import { logoHtml, GAME_NAME, SUBTITLE } from './logo.js';
@@ -266,13 +266,13 @@ export function skipCinematic() {
 }
 
 // Subtitles without their own recording get one from the lines manifest
-// (narration without a speaker is Rikus, the narrator). Voiced lines then stay up
+// (narration without a speaker is Rikus, the narrator); a line marked `own` is voiced by its scene. Voiced lines then stay up
 // until their recording has finished, pushing the rest (and the scene) later.
 function attachVoices(a) {
   if (!a.lines || !a.lines.length) return;
   let found = false;
   const lines = a.lines.map((l) => {
-    const v = !l.voice && lineVoiceFor(l.speaker, l.text);
+    const v = !l.voice && !l.own && lineVoiceFor(l.speaker, l.text);
     if (!v) return l;
     found = true;
     return { ...l, voice: v.src, vdur: v.dur };
@@ -991,13 +991,18 @@ export function respawnFromScene(w, opts) {
   try { respawnPlayer(w, opts); } finally { respawnFromCine = false; }
 }
 
+// The orbit runs outside the building it films (a wide one like the Forum has a reach of 47 m from its point, the orbit used
+// to be 28 m) and its title card names the place on screen, as the first version did (#329).
 function playLandmark(w, lm) {
-  const h = LANDMARK_HEIGHT[lm.name] || 16;
+  const fp = buildingReach(w.map, lm.x, lm.y);
+  const h = Math.max(LANDMARK_HEIGHT[lm.name] || 16, Math.min(60, fp.top));
   const p = w.player;
   const start = Math.atan2(p.y - lm.y, p.x - lm.x);
+  const radius = Math.min(Math.max(Math.min(60, Math.max(28, h * 0.6)), fp.reach + 18), 80);
   playCinematic({
     id: 'landmark', priority: 1, duration: 3.8, pause: true,
-    shot: orbitShot(w, { fixed: lm, radius: Math.min(60, Math.max(28, h * 0.6)), height: h * 0.45 + 9, lookY: h * 0.42, sweep: 1.3, start }),
+    kicker: 'Ontdekt', title: lm.name,
+    shot: orbitShot(w, { fixed: lm, radius, height: h * 0.45 + 9, lookY: h * 0.42, sweep: 1.3, start }),
   });
 }
 

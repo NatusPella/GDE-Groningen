@@ -64,13 +64,14 @@ const ACT_TRAILER = {
     { t: 'L1+0.2', fx: 'sfx', kind: 'caw' },
   ],
   shots: [
-    // a crane over the street, a low cut onto the bikes, the gull, the postman, then up the facade
+    // a crane over the street, a low cut onto the bikes, the gull, the postman, then up over the street (the look stays
+    // on the street: no facade is where the set stands when it moves off a tower, #321)
     { t: 0, shot: 'orbit', target: 'mid:postbode,escapade', radius: 17, start: 200, sweep: 55, h0: 10, h1: 4, fov: 42, look: 'escapade' },
     { t: 'L0+1.8', shot: 'dolly', from: [-7, -7.5, 0.5], to: [6, -7, 0.85], look: 'fiets1@0.9', fov: 32 },
     { t: 'L1', shot: 'cut', at: [6, 3, 7], look: 'duif', fov: 38, shake: 0.03 },
     { t: 'L1+2.2', shot: 'dolly', from: [-1, 3.6, 1.2], to: [3.5, 4.4, 1.55], look: 'postbode@1.3', fov: 36 },
     { t: 'L2', shot: 'dolly', from: [-3, -6.4, 1.2], to: [0, -7.2, 1.9], look: 'escapade@1.1', fov: 38 },
-    { t: 'L2+1.0', shot: 'dolly', from: [-3, -7.2, 1.6], to: [-3, -7.2, 18], look: [8, 4.5, 24], fov: 46 },
+    { t: 'L2+1.0', shot: 'dolly', from: [-3, -7.2, 1.6], to: [-3, -7.2, 18], look: [8, 4.5, 4], fov: 46 },
   ],
 };
 
