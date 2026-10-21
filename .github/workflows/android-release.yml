@@ -85,11 +85,14 @@ jobs:
       - name: ffmpeg met Opus
         run: ffmpeg -hide_banner -encoders 2>/dev/null | grep -q libopus || { sudo apt-get update -q && sudo apt-get install -y -q ffmpeg; }
 
+      # git op Windows bewaart de uitvoerbit van gradlew niet altijd
       - name: Stage en debug-APK
         working-directory: android
         env:
           GDE_PREBUILT_WORLD: ${{ runner.temp }}/gde-world/world
-        run: npm run build -- --rebuild
+        run: |
+          chmod +x android/gradlew
+          npm run build -- --rebuild
 
       - name: Controleren
         run: |
