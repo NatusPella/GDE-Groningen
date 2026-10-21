@@ -233,6 +233,7 @@ async function connect() {
   }
   if (CFG.watchOpening && CFG.role === 'host') return; // de fase 'opening' drukt zelf op Spel starten
   if (gateKnop) { // een nieuw spel: de gastheer start het (zoals een speler); de opening begint daarna, de anderen kijken mee (of de gastheer slaat over)
+    if (CFG.gateWachtMs) await sleep(CFG.gateWachtMs); // de gast leest 'Wacht tot ... het spel start' en het menu sluit pas bij het starten
     gateKnop.click(); log('spel-gestart', {});
     let skip = true; (async () => { while (skip) { if (W() && (W().cameraOverride || (document.getElementById('cine') && document.getElementById('cine').classList.contains('on')))) await holdSkip(); await sleep(2500); } })();
     await until(() => !(W().paused), 8000, 'het spel loopt na Spel starten');
@@ -613,10 +614,11 @@ const PHASES = {
       const sh = lijst[0];
       if (!sh) { log('winkel-host', { naam, fout: 'geen winkel van dit soort', types }); return null; }
       w.player.x = sh.x; w.player.y = sh.y + 1.2; w.companion.x = sh.x + 0.8; w.companion.y = sh.y + 1.2; // Tessa (de gast) ernaast
-      log('winkel-host', { naam, winkel: sh.name, type: sh.type, n: lijst.length });
+      log('winkel-host', { naam, winkel: sh.name, soort: sh.type, n: lijst.length });
       return sh;
     };
     if (CFG.role === 'host') {
+      window.__startPos = { x: w.player.x, y: w.player.y }; // hier begint de rit later weer (open ruimte, geen winkeldeur)
       await sleep(1000);
       await naarWinkel(['super', 'snack', 'kleding', 'tabak', 'kapper'], 'toegestaan');
       await sleep(22000);
@@ -662,15 +664,23 @@ const PHASES = {
     const w = W(), B = window.__bot;
     if (CFG.role === 'host') {
       const v0 = (w.vehicles || []).length;
-      let via = '';
+      const S = await imp('shops');
+      const winkels = S.getShopsForRender() || [];
+      const winkelAfstand = (x, y) => winkels.reduce((m, q) => Math.min(m, Math.hypot(q.x - x, q.y - y)), 1e9);
+      const voorLijst = new Set(w.vehicles || []);
+      // terug naar het beginpunt (geen winkeldeur in de buurt: E opent daar het menu in plaats van het voertuig) en daar een voertuig bezorgen
+      if (window.__startPos) { w.player.x = window.__startPos.x; w.player.y = window.__startPos.y; w.companion.x = w.player.x + 1.2; w.companion.y = w.player.y + 1.2; await sleep(1500); }
+      let kies = null, via = '';
       try {
         const Ch = await imp('cheats'); const keuzes = Ch.spawnChoices(w) || [];
-        const kies = keuzes.find((c) => c.kind === 'car') || keuzes[0];
-        const res = kies ? Ch.spawnVehicleHere(kies.id, w) : { ok: false };
-        if (res.ok) via = 'cheat';
-      } catch (e) { /* hieronder: dichtstbijzijnde */ }
+        const k = keuzes.find((c) => c.kind === 'car') || keuzes[0];
+        const res = k ? Ch.spawnVehicleHere(k.id, w) : { ok: false };
+        if (res.ok) { via = 'cheat'; await sleep(1200); kies = (w.vehicles || []).find((x) => x && !voorLijst.has(x) && !x.wrecked) || null; }
+      } catch (e) { /* hieronder: bestaand voertuig */ }
+      if (!kies) { kies = (w.vehicles || []).filter((x) => x && !x.isBoat && !x.isHeli && !x.isPlane && !x.wrecked && !x.isPolice && !x.isBus && !x.isBike && !x.isScooter && !x.driver).sort((p, q) => Math.hypot(p.x - w.player.x, p.y - w.player.y) - Math.hypot(q.x - w.player.x, q.y - w.player.y))[0] || null; via = kies ? 'bestaand' : ''; if (kies) { w.player.x = kies.x; w.player.y = kies.y + 2.4; w.companion.x = kies.x + 1.2; w.companion.y = kies.y + 2.4; } }
+      log('gastrit-voertuig', { via, gevonden: !!kies, winkelAfstand: kies ? Math.round(winkelAfstand(kies.x, kies.y)) : null, afstandHost: kies ? Math.round(Math.hypot(kies.x - w.player.x, kies.y - w.player.y) * 10) / 10 : null });
       await sleep(1500);
-      const dicht = () => (w.vehicles || []).filter((x) => x && !x.isBoat && !x.isHeli && !x.wrecked && !x.isPolice).sort((a, b) => Math.hypot(a.x - w.player.x, a.y - w.player.y) - Math.hypot(b.x - w.player.x, b.y - w.player.y))[0];
+      const dicht = () => (kies && (w.vehicles || []).includes(kies) ? kies : (w.vehicles || []).filter((x) => x && !x.isBoat && !x.isHeli && !x.wrecked && !x.isPolice).sort((p, q) => Math.hypot(p.x - w.player.x, p.y - w.player.y) - Math.hypot(q.x - w.player.x, q.y - w.player.y))[0]);
       for (let i = 0; i < 8 && !w.player.inVehicle; i++) { const v = dicht(); if (v && Math.hypot(v.x - w.player.x, v.y - w.player.y) > 3.5) { w.player.x = v.x; w.player.y = v.y + 2.2; w.companion.x = v.x + 1; w.companion.y = v.y + 2.2; } await B.press('e', 150); await sleep(900); }
       for (let i = 0; i < 40 && !w.companion.inVehicle; i++) await sleep(300);
       log('gastrit-host-in', { via, host: !!w.player.inVehicle, tessa: !!w.companion.inVehicle, voertuigen: [v0, (w.vehicles || []).length] });
@@ -706,10 +716,12 @@ const PHASES = {
     for (let i = 0; i < 40 && !w.coopWiel; i++) await sleep(250);
     log('gastrit-gast-wiel', { wiel: !!w.coopWiel, meldingen: window.__gastMsgs.slice(-3), t: sec() });
     shot('gastrit-gast-wiel');
-    B.stick(0, -1); await sleep(5000);
+    // kort en rustig (een crash tegen een muur kost de bestuurder zijn leven): vooruit, een bocht, remmen met handrem
+    B.stick(0, -1); await sleep(1800);
     shot('gastrit-gast-stuurt');
-    B.stick(0.6, -1); await sleep(2500);
-    B.stick(0, 1); B.down(' '); await sleep(2500); B.up(' '); B.stick(0, 0);
+    B.stick(0.6, -1); await sleep(900);
+    B.stick(0, 1); B.down(' '); await sleep(4500); B.up(' '); B.stick(0, 0);
+    await sleep(1500);
     log('gastrit-gast-gestuurd', { wiel: !!w.coopWiel, input: w.coopNet && w.coopNet.session ? w.coopNet.session.pendingInput.buttons : null });
     await B.press('y', 120); await sleep(1500); // het stuur terug
     log('gastrit-gast-wiel-terug', { wiel: !!w.coopWiel, meldingen: window.__gastMsgs.slice(-3) });
