@@ -1,0 +1,79 @@
+# De Linux-builds (AppImage + tar.gz, o.a. voor de Steam Deck) van een bestaande release bouwen op
+# een Linux-runner. Alleen met de hand te starten (workflow_dispatch); niets start hem vanzelf.
+#
+# Zoals mac-release.yml bouwt deze workflow de provinciekaart niet zelf: hij haalt de gestagede
+# tegels op uit de release, als asset gde-world.tgz (maak hem met `npm run release -- ... --world`),
+# en geeft ze aan desktop/build.mjs via GDE_PREBUILT_WORLD. De bestanden zijn niet ondertekend en
+# gaan met GITHUB_TOKEN naar dezelfde release. Linux-minuten tellen 1x (macOS 10x), zie docs/RELEASEN.md.
+name: Linux-builds
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag van de bestaande release, bijvoorbeeld v0.38.1'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: linux-release-${{ inputs.tag }}
+  cancel-in-progress: false
+
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      GH_TOKEN: ${{ github.token }}
+      TAG: ${{ inputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: npm
+          cache-dependency-path: desktop/package-lock.json
+
+      - name: De gestagede wereld van de release
+        run: |
+          mkdir -p "$RUNNER_TEMP/gde-world"
+          gh release download "$TAG" --pattern gde-world.tgz --dir "$RUNNER_TEMP/gde-world" \
+            || { echo "Geen gde-world.tgz bij $TAG: maak hem met 'npm run release -- ... --world' of upload hem met gh release upload."; exit 1; }
+          tar xzf "$RUNNER_TEMP/gde-world/gde-world.tgz" -C "$RUNNER_TEMP/gde-world"
+          test -f "$RUNNER_TEMP/gde-world/world/index.json"
+
+      - name: npm ci
+        working-directory: desktop
+        run: npm ci
+
+      - name: Stage, AppImage en tar.gz
+        working-directory: desktop
+        env:
+          GDE_PREBUILT_WORLD: ${{ runner.temp }}/gde-world/world
+        run: |
+          npm run stage
+          npx electron-builder --linux --publish never --config.publish.provider=github --config.publish.owner="${{ github.repository_owner }}" --config.publish.repo="${{ github.event.repository.name }}"
+
+      - name: Controleren
+        working-directory: desktop
+        run: |
+          VERSION="${TAG#v}"
+          ls -l dist
+          APPIMAGE="dist/GDE-Groningen-$VERSION-linux.AppImage"
+          TARGZ="dist/GDE-Groningen-$VERSION-linux.tar.gz"
+          test -s "$APPIMAGE"
+          test -s "$TARGZ"
+          tar tzf "$TARGZ" | grep -E '(^|/)gde-groningen$'
+          head -c 4 "$APPIMAGE" | od -An -c | grep -q 'E   L   F'
+
+      - name: Naar de release
+        working-directory: desktop
+        run: |
+          VERSION="${TAG#v}"
+          gh release upload "$TAG" "dist/GDE-Groningen-$VERSION-linux.AppImage" "dist/GDE-Groningen-$VERSION-linux.tar.gz" --clobber
