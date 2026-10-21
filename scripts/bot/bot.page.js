@@ -550,6 +550,7 @@ if (CFG.sweep && CFG.sweep.length) {
 } else await loop(null);
 
 B.releaseAll();
+if (meter && lastStep) meterEnd(B.status(), lastStep, 'laatste');   // the step the run ends in (the part is over, or time ran out)
 shot(`einde-${result.toLowerCase()}`);
 B.log('einde', { result, reason, step: lastStep });
 return JSON.stringify({ result, reason, step: lastStep, gameSeconds: B.time(), wallSeconds: Math.round((performance.now() - wall0) / 1000) });
