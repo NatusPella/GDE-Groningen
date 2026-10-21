@@ -73,7 +73,7 @@ const readEvents = () => fs.readFileSync(events, 'utf8').split(/\r?\n/).filter(B
   const ws = W.createWeatherState(5); host.world.weatherState = ws;
   globalThis.__mocks = mocks;
   host.at(8, (h) => { ws.regions.stad.kind = 'onweer'; ws.regions.stad.rain = 0.85; ws.regions.stad.overcast = 0.95; });
-  host.at(26, (h) => h.log.push('roep ' + h.N.sendPing(h.world, h.world.player.x + 6, h.world.player.y + 2, 'gevaar')));
+  host.at(26, (h) => h.log.push('roep ' + h.N.sendPing(h.world, h.world.companion.x + 3, h.world.companion.y, 'gevaar')));
   host.at(32, (h) => h.mission({ phase: 'active', label: 'Het Loket', type: 'stages', index: 3, progressText: 'Rij naar het loket', marker: { x: -1200, y: -1020 } }));
   host.at(42, (h) => { h.mission(null); h.world.coopUitslag(true, 'Het Loket', '', 400); h.pay(200, 1); });
   host.at(50, (h) => { h.world.pendingRespawn = { busted: true }; });
