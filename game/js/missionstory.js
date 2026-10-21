@@ -68,7 +68,7 @@ export const NPC = {
   hilje: { ...HILJE_LOOK, name: 'Hilje' },
   // the new story (storyarc_nieuw.js): the new cast and the small roles
   loketbediende: { name: 'Loketbediende', shirt: 0x6a7280, skin: SKIN.woodLight, variant: 'female', seed: 6101, hairStyle: 'bob' },
-  bewaarder: { name: 'Mevrouw Tuinstra', shirt: 0x5b3f6e, skin: SKIN.woodLight, variant: 'female', seed: 6102, hairStyle: 'bun' },
+  bewaarder: { name: 'Mevrouw Hoving', shirt: 0x5b3f6e, skin: SKIN.woodLight, variant: 'female', seed: 6102, hairStyle: 'bun' },
   geesje: { name: 'Geesje', shirt: 0x7a8a5a, skin: SKIN.woodLight, variant: 'female', seed: 6103, hairStyle: 'bun' },
   lammert: { name: 'Lammert', shirt: 0x2f4a66, skin: SKIN.woodMid, variant: 'male', seed: 6104 },
   roelfien: { name: 'Roelfien', shirt: 0xc2793a, skin: SKIN.woodLight, variant: 'female', seed: 6105, hairStyle: 'curly' },

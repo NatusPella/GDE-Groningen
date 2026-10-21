@@ -1,5 +1,7 @@
 # Tessa spreekt standaard Nederlands (issue #134)
 
+**Besluit van de eigenaar (verhaalronde 3):** Tessa is Nederlandse en praat standaard Nederlands. Ze mag af en toe een Gronings woord zeggen als iemand van buiten de streek (voorzichtig, licht stuntelig, soms met een verbetering door een Groninger). Vastgelegd in [STIJLGIDS.md](STIJLGIDS.md). De bestaande opnames hebben nog het Groningse accent; heropnemen kost TTS en wacht op akkoord.
+
 Onderzoek, geen TTS gedraaid. Stand: nieuwe verhaal (`game/storydata/script.json`) en de stem-config.
 
 ## Bevinding
