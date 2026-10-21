@@ -13,13 +13,13 @@ const DIRECT_CODE = makeCode({ ip: '84.12.34.56', port: 41000, key: 'ABCDEFGH' }
 
 t('start: twee keuzes, geen keuze per save of bij het starten', () => {
   const v = L.view(L.createLobby(APP));
-  assert.deepEqual(v.buttons.map((b) => b.act), ['kies-host', 'kies-gast']);
-  assert.deepEqual(v.buttons.map((b) => b.label), ['Iemand uitnodigen', 'Code of adres invoeren']);
+  assert.deepEqual(v.buttons.map((b) => b.act), ['kies-host', 'kies-gast', 'diag']);
+  assert.deepEqual(v.buttons.map((b) => b.label), ['Iemand uitnodigen', 'Code of adres invoeren', 'Verbinding testen']);
   assert.match(v.lines[0], /eigen voortgang/); assert.match(v.lines[0], /Tammo/);
 });
 t('methode: kamercode altijd, IP-adres alleen in de desktop-app', () => {
-  assert.deepEqual(L.view(run(APP, { t: 'kies', rol: 'host' })).buttons.map((b) => b.act), ['route-kamer', 'route-direct', 'terug']);
-  assert.deepEqual(L.view(run(WEB, { t: 'kies', rol: 'host' })).buttons.map((b) => b.act), ['route-kamer', 'terug']);
+  assert.deepEqual(L.view(run(APP, { t: 'kies', rol: 'host' })).buttons.map((b) => b.act), ['route-kamer', 'route-direct', 'diag', 'terug']);
+  assert.deepEqual(L.view(run(WEB, { t: 'kies', rol: 'host' })).buttons.map((b) => b.act), ['route-kamer', 'diag', 'terug']);
   const s = run(WEB, { t: 'kies', rol: 'host' }, { t: 'route', route: 'direct' });
   assert.equal(s.step, 'methode'); assert.match(s.error, /desktop-app/);
 });
@@ -81,10 +81,10 @@ t('wegvallen: spel pauzeert en wacht; host kan Alleen verder, gast Stoppen; herv
   assert.match(L.view(h).lines.join(' '), /haperde/);
   h = L.reduce(h, { t: 'status', status: 'lost' });
   assert.match(L.view(h).lines[0], /staat stil/);
-  assert.deepEqual(L.view(h).buttons.map((b) => b.label), ['Opnieuw verbinden', 'Niet wachten']);
+  assert.deepEqual(L.view(h).buttons.map((b) => b.label), ['Opnieuw verbinden', 'Niet wachten', 'Verbinding testen']);
   assert.equal(L.reduce(h, { t: 'hervat' }).step, 'host-maakt-code');
   const g = run(APP, { t: 'kies', rol: 'gast' }, { t: 'status', status: 'lost' });
-  assert.deepEqual(L.view(g).buttons.map((b) => b.label), ['Opnieuw verbinden', 'Stoppen']);
+  assert.deepEqual(L.view(g).buttons.map((b) => b.label), ['Opnieuw verbinden', 'Stoppen', 'Verbinding testen']);
   assert.equal(L.reduce(g, { t: 'hervat' }).step, 'gast-typt');
 });
 t('het wacht-scherm tijdens het spel start direct op "verbroken"', () => {
