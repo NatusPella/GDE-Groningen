@@ -71,7 +71,7 @@ function prepareLandmarks(items, map) {
 // so tiles that stream in later are covered too (setBuildingHidden: no mesh, out of the camera's collision set).
 const COVER_R = 450, COVER_EVERY_MS = 1000;
 let coverAt = 0;
-const covered = new Set();
+const covered = new WeakSet(); // (a dropped tile's buildings go with it)
 function coverBuildings(map, list, focus, hide) {
   const now = performance.now();
   if (!hide || now - coverAt < COVER_EVERY_MS) return;

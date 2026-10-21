@@ -37,7 +37,14 @@ const NCX = Math.ceil(GW / CS), NCY = Math.ceil(GH / CS);
 // ------------------------------------------------------------------ raster
 
 export class Raster {
-  constructor() { this.chunks = new Array(NCX * NCY).fill(null); this.obs = new Map(); this.list = []; this.rings = new Map(); }
+  constructor() { this.chunks = new Array(NCX * NCY).fill(null); this.obs = new Map(); this.list = []; this.rings = new Map(); this.dammen = []; }
+  // ligt de cel op een dam (game/vaarnet_fixes.json `dammen`: [x, y, straal, naam]): land dat closeGaps niet tot water mag maken (#349)
+  onDam(cx, cy) {
+    if (!this.dammen.length) return false;
+    const [x, y] = cellXY(cx, cy);
+    for (const d of this.dammen) if (Math.hypot(x - d[0], y - d[1]) <= d[2]) return true;
+    return false;
+  }
   chunk(cx, cy, make = false) {
     const k = (cy >> 8) * NCX + (cx >> 8);
     return this.chunks[k] || (make ? (this.chunks[k] = new Uint8Array(CS * CS)) : null);
@@ -208,6 +215,7 @@ export async function buildRaster({ worldDir, city = true, fixesOn = !process.ar
   }
   // de verbindingen die een gat in het water dichten (game/vaarnet_fixes.json); met --no-fixes weggelaten
   const fixFile = fixesOn ? JSON.parse(fs.readFileSync(new URL('../../game/vaarnet_fixes.json', import.meta.url))) : { links: [], gaten: [] };
+  R.dammen = fixFile.dammen || [];
   for (const l of fixFile.links || []) { fillPolygon(R, linkPolygon(l), 4 | 32); navPolys.push({ pts: linkPolygon(l) }); }
   if (gatenOn) for (const g of [...(fixFile.gaten || []), ...(fixFile.verbindingen || []), ...(fixFile.sluisgaten || []), ...(fixFile.zee || [])]) { fillPolygon(R, gatPolygon(g), g[5] | 32); navPolys.push({ pts: gatPolygon(g) }); }
   // bruggen over water
@@ -308,8 +316,10 @@ export function widenMainWaterways(R) {
         if (R.get(cx + dx, cy + dy) & 32) continue;
         for (let k = 2; k <= K; k++) {
           if (!(R.get(cx + dx * k, cy + dy * k) & 32)) continue;
-          // alles ertussen was land of smal water: het wordt hoofdvaarweg
-          for (let q = 1; q < k; q++) fill.push([cx + dx * q, cy + dy * q]);
+          // alles ertussen was land of smal water: het wordt hoofdvaarweg, behalve een dam (een dijk waar geen vaarweg is: #349)
+          let dam = false;
+          for (let q = 1; q < k && !dam; q++) dam = R.onDam(cx + dx * q, cy + dy * q);
+          if (!dam) for (let q = 1; q < k; q++) fill.push([cx + dx * q, cy + dy * q]);
           break;
         }
       }
@@ -361,7 +371,7 @@ export function closeGaps(R) {
       for (let k = 1; k <= K && !b; k++) { const v = R.get(cx + dx * k, cy + dy * k); if ((v & 7) >= 2) b = v; }
       if (a && b) best = Math.max(best, Math.min(a & 7, b & 7));
     }
-    if (best > cur) fill.push([cx, cy, best]);
+    if (best > cur && !R.onDam(cx, cy)) fill.push([cx, cy, best]);
   };
   // rasterruis: één gesloten cel tussen twee open
   for (let ci = 0; ci < R.chunks.length; ci++) {
@@ -934,6 +944,8 @@ if (process.argv[1] && process.argv[1].endsWith('vaarnet.mjs')) {
       '  "verbindingen": [', verbindingen.map(line).join(',\n'), '  ],',
       '  "sluisgatenUitleg": ' + JSON.stringify('sluisgaten: de kolk van een sluis waar de kaart geen water tekent, [x, y, lengte, breedte, hoek (rad), nav]; gemaakt met scripts/world/sluizen.mjs (#236), blijft staan bij --fixes') + ',',
       '  "sluisgaten": [', (cur.sluisgaten || []).map(line).join(',\n'), '  ],',
+      '  "dammenUitleg": ' + JSON.stringify(cur.dammenUitleg) + ',',
+      '  "dammen": [', (cur.dammen || []).map(line).join(',\n'), '  ],',
       '  "zeeUitleg": ' + JSON.stringify('zee: verbinding en tong zee bij een zeetoegang zonder water aan de zeekant, [x, y, lengte, breedte, hoek (rad), nav, naam]; de tong loopt tot voorbij de omkeerlijn van het eind van de wereld (worldedge.js). Nog niet in beeld bekeken.') + ',',
       '  "zee": [', zee.map(line).join(',\n'), '  ]',
       '}', '',
