@@ -640,7 +640,7 @@ deck or the street under it, from the `z` profile) counts 40 m (start) or
 mode (`setRoutePrefs({ planMode })`, cleared when the map closes). The GPS
 card gives turns by car, bike and boat, "Uitstappen bij" in the train and the
 altitude and landing spot in the air. `node scripts/mode_route_test.mjs`
-runs all of it on the city map and on the F0 tiles. `getActiveRoute()` is the primary one (goal, else
+runs all of it on the city map and on the F0 tiles. `node scripts/route_quality_test.mjs` holds the route against the shortest way: 311 fixed pairs (city, villages, A7, province, bridges, water goals, plus walking and cycling in the city) on the real graph, the chosen route over a pure-length Dijkstra (`scripts/lib/routeref.mjs`); a car route over 1.3x the shortest way fails (#320). The router keeps the rules that make a way longer than the shortest one (one-ways, access, no way through a building, the level of start and goal). When both ends are on city streets it takes the shorter of the city and the country way (the province net carries the city streets too), it starts and ends on every road piece tied at a junction (`snap.alts`), it tries the country net when the city graph has no strict way before it bends the one-ways, and a car-free goal only drives round to the pedestrian area when that costs under 1.3x + 50 m over the way to the nearest street. `scripts/qa/route_beeld.mjs` takes the route on the minimap and the big map in Electron. `getActiveRoute()` is the primary one (goal, else
 objective, else care: 3D ribbon, route chip), `getRoutes()` all of them
 (minimap, full map, map header); `dismissCareRoute()` (the "Negeren" button
 in the map header) hides the pink route until the need is over. In pigeon
