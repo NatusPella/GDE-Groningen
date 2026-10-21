@@ -49,6 +49,10 @@ let from, to;
 if (args.length >= 4) { from = [Number(args[0]), Number(args[1])]; to = [Number(args[2]), Number(args[3])]; } else {
   const lau = idx.global.places.find((p) => /^Lauwersoog/.test(p.name));
   from = [0, -350]; to = null;
+  // het zeewater dat het vaarnet zelf als bestemming kent (de tong voorbij de Robbengatsluis): een punt in open zee naast de dijk heeft geen
+  // knoop in de buurt, de route eindigde dan in het Lauwersmeer en liep dwars door de dijk (#349)
+  const zee = net.hubs['Waddenzee bij Lauwersoog'];
+  if (zee !== undefined) to = [net.nodes[zee].x, net.nodes[zee].y];
   for (let r = 150; r < 2500 && !to; r += 50) for (let a = 0; a < 6.28 && !to; a += 0.3) {
     const x = lau.x + Math.cos(a) * r, y = lau.y + Math.sin(a) * r;
     await loadAround(x, y, 100);
