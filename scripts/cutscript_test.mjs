@@ -166,6 +166,17 @@ ok(ACTOR_ANIMS.length === ANIMS.length && ACTOR_ANIMS.every((a) => ANIMS.include
   ok(!solid(c.x, c.y, c.z), 'a camera inside a building is moved to free space', JSON.stringify(c));
   ok(fitCamera({ x: -3, y: 0, z: 1.6 }, { x: -2, y: 0, z: 1.4 }, env).x === -3, 'a free camera stays');
   // the opening scene faces the building: the anchor turns away until nothing stands in the wall
+  // the shot wants a spot inside the building, next to an actor: fitCamera pulls it in beside them; the camera ends 1,5 m from them
+  {
+    const def = { id: 'ring-test', actors: { a: { look: 'tammo', at: [1.0, 0], face: 0, anim: 'idle', speaker: 'Tammo' } }, shots: [{ t: 0, shot: 'cut', at: [4, 0, 1.6], look: 'speaker', fov: 40 }, { t: 1.5, shot: 'cut', at: [3, 1, 1.6], look: 'speaker', fov: 40 }] };
+    const sc2 = compileScene(def, { lines: [{ speaker: 'Tammo', text: 'Hallo.', at: 0.2, dur: 2 }], duration: 3 });
+    const anch = { x: 0, y: 0, facing: 0, z: 0 };
+    for (const t of [0.5, 2]) {
+      const s = sc2.sample(t, anch, env), cp = s.camera.position, ap = s.actors.a;
+      ok(Math.hypot(cp.x - ap.x, cp.y - ap.y) >= 1.49, 'camera at 1,5 m from the actor although the wall is in the way (t=' + t + ')', JSON.stringify({ cp, ap }));
+      ok(!solid(cp.x, cp.y, cp.z), 'and not in the wall (t=' + t + ')', JSON.stringify(cp));
+    }
+  }
   const sc = moving.scene;
   const duration = moving.duration;
   const a0 = { x: 0, y: 0, facing: 0, z: 0 };
