@@ -1393,6 +1393,7 @@ const LINK_POLL_MS = 25;
 let linkPollAt = 0;
 function programLinked(p) {
   if (p._linked) return true;
+  if (perfOff('linkpoll')) return p.isReady();
   const now = performance.now();
   if (now < linkPollAt) return false;
   if (p.isReady()) { p._linked = true; return true; }
