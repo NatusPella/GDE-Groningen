@@ -794,6 +794,28 @@ results.routes.shadowtris = await safe('shadowtris', async () => {
   }
   return out;
 });
+// the sun's shadow map itself (only with PERF_ONLY=shadowmap): at fixed spots a forced shadow pass, the map read back and reduced to a 16 x 16 grid of how much of each
+// block holds a caster (a texel that is not the cleared white); the grids of two builds can be compared block by block (a lost caster shows as a block that is emptier)
+results.routes.shadowmap = await safe('shadowmap', async () => {
+  if (!ONLY.includes('shadowmap')) return null;
+  const spots = [['markt', FOOT[0][0], FOOT[0][1], 0.3], ['gracht2', FOOT[4][0], FOOT[4][1], 2.6], ['straat', FOOT[3][0], FOOT[3][1], 1.9]];
+  const out = {};
+  const sunL = []; sc.scene.traverse((o) => { if (o.isDirectionalLight && o.castShadow) sunL.push(o); });
+  const L = sunL[0];
+  for (const [name, x, y, yaw] of spots) {
+    teleport(x, y); w.camYaw = yaw; p.angle = yaw;
+    await sleep(window.__perfSettle || 12000);
+    { const builds = () => { const b = sc.batches(); return Object.values(b).reduce((q, e) => q + (e.builds || 0) + (e.dropped || 0), 0); }; let last = builds(), still = 0; for (let i = 0; i < 80 && still < 6; i++) { await sleep(500); const n = builds(); still = n === last ? still + 1 : 0; last = n; } }
+    fixWorld(); await sleep(2500);
+    // the game's own frame has just drawn the map: read it back right after one of its renders
+    let got = null;
+    await new Promise((res) => { let k = 0; const f = () => { if (++k < 6) { requestAnimationFrame(f); return; } const t = L.shadow.map; const W = t.width, Hh = t.height; const buf = new Uint8Array(W * Hh * 4); r.readRenderTargetPixels(t, 0, 0, W, Hh, buf); got = { W, Hh, buf }; res(); }; requestAnimationFrame(f); });
+    const { W, Hh, buf } = got; const G = 16; const grid = [];
+    for (let gy = 0; gy < G; gy++) { const row = []; for (let gx = 0; gx < G; gx++) { let n = 0, tot = 0; const x0 = gx * W / G, x1 = (gx + 1) * W / G, y0 = gy * Hh / G, y1 = (gy + 1) * Hh / G; for (let yy = y0; yy < y1; yy += 4) for (let xx = x0; xx < x1; xx += 4) { const i = (yy * W + xx) * 4; tot++; if (!(buf[i] === 255 && buf[i + 1] === 255 && buf[i + 2] === 255 && buf[i + 3] === 255)) n++; } row.push(Math.round(100 * n / tot)); } grid.push(row.join(' ')); }
+    out[name] = { size: [W, Hh], grid };
+  }
+  return out;
+});
 // A/B inside one run (only with PERF_ONLY=ab): window.__perfAb = [[name, [perfoff steps...]], ...] (PERF_AB='aan=;uit=actoren+schaduw'); the variants take
 // turns in short windows (window.__perfAbWin ms, window.__perfAbRounds rounds, the order swaps every round), so they feel the same load.
 // Every window is a perf-mark pair 'ab:<name>:<round>' for the thread sampler of run.mjs; PERF_AB_MOVE=1 walks (3 m/s) instead of standing.
