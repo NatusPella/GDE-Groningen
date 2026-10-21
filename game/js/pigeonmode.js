@@ -1220,7 +1220,7 @@ function updateGull(dt) {
 function toggleFlock() {
   if (flock.length && !flock[0].leaving) {
     for (const b of flock) { b.leaving = true; b.t = 0; b.vz += 4; }
-    world.addMessage('Doei, jongens!', 2);
+    world.addMessage('Doei, allemaal!', 2);
     return;
   }
   if (flock.length) return;

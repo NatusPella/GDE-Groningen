@@ -34,7 +34,7 @@ const SIGHTS = [
   { i: 80, name: "d'Olle Grieze", lines: ["Kijk rechts over de daken: d'Olle Grieze, de Martinitoren.", 'Zevenennegentig meter. De langste Stadjer die nooit verhuist.', 'Wie de trap op loopt, krijgt uitzicht. En spierpijn.'] },
 ];
 
-const BUMP_LINES = ['Bonk! Een toerist laat zijn stroopwafel in het water vallen.', 'Tik tegen de kade. "Is this part of the tour?"', 'Schrap! De woonboot-bewoner kijkt niet blij.'];
+const BUMP_LINES = ['Bonk! Een toerist laat de stroopwafel in het water vallen.', 'Tik tegen de kade. "Is this part of the tour?"', 'Schrap! De woonboot-bewoner kijkt niet blij.'];
 
 function legBounds(k) {
   const n = PIERS.length - 1;

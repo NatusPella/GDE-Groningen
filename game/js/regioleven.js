@@ -90,7 +90,7 @@ export const ENCOUNTERS = [
   { id: 'e-bourtange', streek: 'westerwolde', hours: [9, 19], weight: 2, who: 'Een wandelaar',
     lines: ['Een wandelaar loopt voor de derde keer om dezelfde wal. Hij zegt dat hij de vesting uit het hoofd leert.'], reward: 0 },
   { id: 'e-avond-wolde', streek: 'westerwolde', hours: [17, 23], weight: 2, who: 'Een fietser',
-    lines: ['Langs het kanaal fietst iemand met een lamp op zijn hoed. Het licht schuift mee over het water.'], reward: 5 },
+    lines: ['Langs het kanaal fietst iemand met een lamp op de hoed. Het licht schuift mee over het water.'], reward: 5 },
   { id: 'e-kotter', streek: 'lauwerskust', hours: [6, 18], weight: 3, who: 'Een visser',
     lines: ['Een visser sjort aan een net en zegt zonder op te kijken: Garnalen, geen mensen. Je loopt maar weer door.'], reward: 0 },
   { id: 'e-wadloper', streek: 'lauwerskust', hours: [8, 20], weight: 2, who: 'Een wadloper',
