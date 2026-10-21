@@ -140,8 +140,10 @@ function attach(win, { gameDir }) {
     win.webContents.on('did-fail-load', (e, code, desc, url) => console.log('[load failed]', code, desc, url));
     setTimeout(async () => {
       try {
-        // a loaded machine (other test runs) needs longer than the fixed delay: wait up to 90 s for the game
-        for (let i = 0; i < 90 && !(await win.webContents.executeJavaScript('!!window.__debug')); i++) await new Promise((r) => setTimeout(r, 1000));
+        // a loaded machine (other test runs) needs longer than the fixed delay: wait up to 90 s for the game (GDE_SMOKE_WAIT_S: longer; with three
+        // other Electron runs and 400 MB of free memory the game took more than 90 s to come up and every test script failed on its first import)
+        const waitS = Number(process.env.GDE_SMOKE_WAIT_S) || 90;
+        for (let i = 0; i < waitS && !(await win.webContents.executeJavaScript('!!window.__debug')); i++) await new Promise((r) => setTimeout(r, 1000));
         // --smoke-eval=<js> runs in the page first (e.g. open a menu), so the
         // screenshot shows that state
         const evalArg = argValue('--smoke-eval');
