@@ -18,6 +18,7 @@ import { isPauseMenuOpen } from './pausestate.js';
 import { isShopOpen } from './shopui.js';
 import { isRitActive } from './reisrit.js';
 import { isPigeonActive } from './pigeonmode.js';
+import { occupancyOf } from './occupants.js';
 import { installAudioTap } from './botaudio.js';
 
 const r1 = (v) => Math.round(v * 10) / 10;
@@ -43,7 +44,7 @@ export function initPlayerApi(world, input) {
     for (const v of world.vehicles || []) {
       const d = Math.hypot(v.x - player.x, v.y - player.y);
       if (d > max || v === player.inVehicle) continue;
-      out.push({ x: r1(v.x), y: r1(v.y), distance: r1(d), kind: kindOf(v), free: !v.wrecked && !v.isPolice && !v.sinking, drivable: !v.isBoat && !v.isHeli, mission: !!(v.missionCar || v.isHeroCar) });
+      out.push({ x: r1(v.x), y: r1(v.y), distance: r1(d), kind: kindOf(v), free: !v.wrecked && !v.isPolice && !v.sinking, drivable: !v.isBoat && !v.isHeli, mission: !!(v.missionCar || v.isHeroCar), occupied: !!occupancyOf(v).driver });
     }
     return out.sort((a, b) => a.distance - b.distance).slice(0, 8);
   }

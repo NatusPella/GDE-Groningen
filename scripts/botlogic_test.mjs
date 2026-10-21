@@ -129,6 +129,7 @@ const near = (a, b, e = 1e-6) => Math.abs(a - b) < e;
   ok(L.decide({ ...base(), mission: { active: true, stage: 'goto' }, blocking: { talk: true } }).type === 'goto', 'gesprek in een missie: doorlopen');
   ok(L.decide({ ...base(), target: null }).type === 'wait', 'zonder doel wachten');
   ok(L.decide(base()).mode === 'walk', 'dichtbij: lopen');
+  { const occ = L.decide({ ...base(), target: { x: 14, y: 0, distance: 14, source: 'missie' }, mission: { active: true, stage: 'board' }, nearby: { vehicles: [{ x: 5, y: 0, distance: 5, free: true, drivable: true, kind: 'auto', occupied: true }, { x: 30, y: 0, distance: 30, free: true, drivable: true, kind: 'auto', occupied: false }] } }, {}); ok(occ.type === 'enter' && occ.vehicle.x === 30, 'een auto met bestuurder laat de bot staan (autodiefstal)'); }
   ok(L.decide({ ...base(), player: { ...base().player, vehicle: { kind: 'auto', speed: 8 } }, hud: { messages: ['Je auto staat in brand! Stap uit (E) voor hij ontploft'] } }, {}).key === 'e', 'brandende auto: uitstappen');
   ok(L.decide({ ...base(), player: { ...base().player, vehicle: { kind: 'fiets', speed: 1 } }, target: { x: 10, y: 0, distance: 10, source: 'winkel' } }, {}).key === 'e', 'bij de winkel van het verhaal: van de fiets af');
   const mvT = { x: 6, y: 0, distance: 6, source: 'missie', vehicle: true }, mvNear = [{ x: 6, y: 0, distance: 6, free: true, drivable: true, kind: 'auto' }, { x: 2, y: 3, distance: 3.6, free: true, drivable: true, kind: 'auto' }];
