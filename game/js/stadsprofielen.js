@@ -171,7 +171,7 @@ export const TOWN_PROFILES = [
     ],
   },
   {
-    id: 'zoutkamp', name: 'Zoutkamp', at: [53.3345, 6.2985], reach: 1200, kind: 'haven',
+    id: 'zoutkamp', name: 'Zoutkamp', at: [53.33696, 6.30114], reach: 1200, kind: 'haven',
     teaser: 'Kotters, garnalen en de dijk naar het Lauwersmeer. Het ruikt hier altijd naar zout, ook in de koffie.',
     streets: ['Reitdiepskade', 'Dorpsstraat', 'Strandweg', 'Hunsingokanaal', 'Beatrixstraat'],
     sfeer: {

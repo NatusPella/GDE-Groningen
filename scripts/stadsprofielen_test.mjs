@@ -2,6 +2,8 @@
 //   node scripts/stadsprofielen_test.mjs
 import { TOWN_PROFILES, townProfile, townAt, townCentre, sfeerLine, daypart, DAYPARTS } from '../game/js/stadsprofielen.js';
 import { wgsToWorld } from '../game/js/rdnew.js';
+import fs from 'node:fs';
+import { fileURLToPath } from 'node:url';
 
 let n = 0, bad = 0;
 const ok = (c, name) => { n++; if (!c) { bad++; console.log('FAIL', name); } };
@@ -35,6 +37,23 @@ ok(daypart(7) === 'ochtend' && daypart(13) === 'middag' && daypart(21) === 'avon
   const a = sfeerLine(t, 8, () => 0), b = sfeerLine(t, 8, () => 0, a);
   ok(t.sfeer.ochtend.includes(a) && b !== a, 'sfeer avoids the last line');
   ok(t.sfeer.avond.includes(sfeerLine(t, 22, () => 0.999)), 'sfeer by the hour, rng at the edge');
+}
+// het hart van elk profiel ligt op land, niet in een waterpolygoon van de provinciegegevens (#346: Zoutkamp lag in het Reitdiep)
+{
+  const dir = new URL('../game/world/', import.meta.url), idx = new URL('index-provincie.json', dir);
+  if (!fs.existsSync(idx)) console.log('SKIP waterhart: geen game/world');
+  else {
+    const { loadAround } = await import('./world/tegelprobe.mjs');
+    const world = { dir: fileURLToPath(dir), index: JSON.parse(fs.readFileSync(idx, 'utf8')) };
+    const inPoly = (x, y, P) => { let c = false; for (let i = 0, j = P.length - 1; i < P.length; j = i++) { const [xi, yi] = P[i], [xj, yj] = P[j]; if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) c = !c; } return c; };
+    for (const t of TOWN_PROFILES) {
+      const c = townCentre(t), d = loadAround(world, c.x, c.y, 30);
+      const wet = d.water.some((q) => q.bounds[0] <= c.x && q.bounds[2] >= c.x && q.bounds[1] <= c.y && q.bounds[3] >= c.y && q.pts.length > 2 && inPoly(c.x, c.y, q.pts));
+      ok(d.tiles.length > 0, `${t.id}: er zijn tegels bij het hart`);
+      ok(d.buildings.some((q) => Math.hypot((q.bounds[0] + q.bounds[2]) / 2 - c.x, (q.bounds[1] + q.bounds[3]) / 2 - c.y) < 150), `${t.id}: gebouwen binnen 150 m van het hart`);
+      ok(!wet, `${t.id}: het hart ligt niet in het water`);
+    }
+  }
 }
 console.log(`${n - bad}/${n} checks passed`);
 process.exit(bad ? 1 : 0);
