@@ -350,5 +350,13 @@ const near = (a, b, e = 1e-6) => Math.abs(a - b) < e;
   ok(slow.want === 8 && slow.throttle === -1, 'carControls: een bocht voor de neus remt tot de bochtsnelheid', JSON.stringify(slow));
 }
 
+// een route die ver van de bot begint (#354: de M26-start in de Gelkingestraat gaf een route vanaf de Pelsterstraat, 130 m verder)
+{
+  const me = { x: 224.9, y: 233.6 };
+  ok(L.routeStartsFar(me, [[90, 293], [94, 303]]) === true, 'routeStartsFar: een route die 130 m verder begint wordt niet gevolgd');
+  ok(L.routeStartsFar(me, [[226, 236], [235, 241]]) === false, 'routeStartsFar: een route die bij de bot begint wel');
+  ok(L.routeStartsFar(me, null) === false && L.routeStartsFar(me, []) === false, 'routeStartsFar: zonder route niets');
+}
+
 console.log(`${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);

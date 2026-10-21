@@ -32,6 +32,12 @@ export function footStick(heading, camYaw) {
   return [Math.sin(r), -Math.cos(r)];
 }
 
+// A planned route that begins far from where the bot stands (#354): the planner starts on the nearest road a vehicle may use, and in a street
+// closed to cars (the Gelkingestraat, where the M26 chase starts) that is another road, 130 m away. pts: [[x, y], ...]. Such a route is not followed.
+export function routeStartsFar(pos, pts, max = 35) {
+  return !!(pts && pts.length && distance(pos, { x: pts[0][0], y: pts[0][1] }) > max);
+}
+
 // A cyclist, a walker or a parked car in the lane ahead (#354, the M26 chase through narrow streets): how far to turn the aim away from
 // them (radians, positive = to the right, like the steer) and the speed the car can still stop from. obstacles: [{ x, y, r }] in world
 // coordinates; the corridor is the car's width plus the obstacle's radius plus a margin, `look` metres ahead. Several obstacles add up.
