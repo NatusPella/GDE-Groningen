@@ -284,5 +284,54 @@ if (want('missiekaart')) {
   }
   clearInterval(keepMk);
 }
+
+// ---- #206: de flat met alle meubels, de pc (kasboek, flat inrichten) en Spullen > Geld ----
+if (want('bezit')) {
+  clearInterval(skipper);
+  w.clock = 14;
+  const FU = await imp('furniture');
+  const HM = window.__home;
+  const SHU2 = await imp('shopui');
+  window.__furniture.give();
+  w.money = 4000;
+  HM.enter();
+  await sleep(4000);
+  info.push('flat binnen ' + JSON.stringify(HM.state && HM.state()).slice(0, 160));
+  // a few bookings for the ledger
+  for (const [d, label] of [[250, 'Missies'], [-120, 'Winkels'], [60, 'Bijbaantjes'], [-35, 'Eten en drinken']]) { const F = await imp('finance'); F.noteMoney(label); w.money += d; await sleep(300); }
+  const f = HM.home && HM.home.flat;
+  const fl = f && f.fl ? f.fl.bind(f) : null;
+  const camFlat = async (name, from, to, wait = 800) => {
+    const [fx, fy] = fl(from[0], from[2]), [tx, ty] = fl(to[0], to[2]);
+    const pose = { position: { x: fx, y: fy, z: (f.floorY || 0) + from[1] }, lookAt: { x: tx, y: ty, z: (f.floorY || 0) + to[1] }, cut: true };
+    if (cine.isCinematicActive()) cine.skipCinematic();
+    cine.playCinematic({ id: 'vi-flat', duration: 60, priority: 9, shot: () => pose });
+    await sleep(wait + 1500);
+    console.log('[capture] ' + name);
+    await sleep(500);
+    cine.skipCinematic();
+    done.push(name);
+  };
+  if (fl) {
+    await camFlat('bezit-flat-boven', [5.6, 11, 4.2], [5.6, 0, 4.1]);
+    await camFlat('bezit-flat-schuin', [1.2, 2.3, 8.0], [6.5, 0.7, 2.5]);
+  } else info.push('geen flat.fl');
+  // the pc: money book and moving the furniture
+  FU.useFurniture(w, 'f-bureau', {});
+  await sleep(1500);
+  console.log('[capture] bezit-pc');
+  await sleep(600);
+  try { SHU2.closeShopMenu({ save: false }); } catch (e) { info.push('pc dicht: ' + e.message); }
+  await sleep(500);
+  // move the lamp and the plant to other corners through the same menu entries, then look at the flat again
+  window.__furniture.move && window.__furniture.move();
+  PM.openPauseMenu('spullen');
+  await sleep(2000);
+  console.log('[capture] bezit-spullen');
+  await sleep(600);
+  PM.closePauseMenu();
+  HM.leave();
+  done.push('bezit');
+}
 clearInterval(skipper);
 return done.concat(info);
