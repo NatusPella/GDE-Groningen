@@ -284,6 +284,7 @@ function completeRound(c, res = {}) {
   const total = pay + tip;
   noteMoney('Bijbaantjes');
   world.money += total;
+  if (world.coopDeel) world.coopDeel(total); // samen spelen (#365)
   c.earned += total;
   c.streak++;
   c.round++;
