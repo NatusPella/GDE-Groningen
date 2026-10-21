@@ -16,6 +16,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { wgsToWorld } from '../../game/js/rdnew.js';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, '..', '..');
@@ -126,6 +127,9 @@ const SPOTS3 = [
   { name: 'haven-delfzijl', type: 'plaats', ...place('Delfzijl'), snapR: 600 },
   { name: 'haven-eemshaven', type: 'plaats', ...place('Eemshaven'), snapR: 1500 },
   { name: 'haven-zoutkamp', type: 'plaats', ...place('Zoutkamp'), snapR: 600 },
+  // (de plaatsknopen van Eemshaven en Delfzijl liggen niet bij de industrie: de coördinaten van de haven zelf)
+  { name: 'industrie-eemshaven', type: 'plaats', ...(([x, y]) => ({ x, y }))(wgsToWorld(53.4330, 6.8700)), snapR: 900 },
+  { name: 'industrie-delfzijl', type: 'plaats', ...(([x, y]) => ({ x, y }))(wgsToWorld(53.3290, 6.9340)), snapR: 900 },
   { name: 'dorp-uithuizen', type: 'plaats', ...place('Uithuizen'), snapR: 400 },
   { name: 'dorp-loppersum', type: 'plaats', ...place('Loppersum'), snapR: 400 },
   { name: 'dorp-leek', type: 'plaats', ...place('Leek'), snapR: 400 },
