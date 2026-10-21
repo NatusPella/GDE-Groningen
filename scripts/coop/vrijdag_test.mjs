@@ -193,6 +193,36 @@ t('derde en vierde speler: botsingen en een band — wie te ver weg is wordt na 
   assert.ok(N.FIGUUR_BAND > N.FIGUUR_WAARSCHUWING);
 });
 
+t('meerijden met vier: ook de 3e en 4e speler stappen mee in het voertuig van de gastheer, zijn niet meer te zien en stappen uit als het stilstaat', () => {
+  const s = avond(3); s.step(3);
+  const [tessa, bram, lotte] = s.gs.map((g) => g.gw), auto = { id: 7, x: 10, y: 0, angle: 0, speed: 0, halfWid: 1, model: { len: 4 } };
+  s.hw.vehicles = [auto]; s.hw.player.inVehicle = auto; s.hw.player.x = 10; s.hw.player.y = 0;
+  const fb = s.hw.coopFigures[2], fl = s.hw.coopFigures[3]; fb.x = 12; fb.y = 1; fl.x = 8; fl.y = -1;
+  const pin = (w) => { w.coopNet.session.sendEvent({ k: 'gebruik' }); };
+  pin(bram); pin(lotte); s.step(1.5);
+  assert.equal(fb.inVeh, auto); assert.equal(fl.inVeh, auto); assert.equal(fb.coopVoertuig, true);
+  assert.equal(bram.coopInVoertuig, true, 'Bram weet dat hij meerijdt');
+  assert.equal(tessa.coopFigures[2].coopVoertuig, true, 'bij Tessa is Bram uit beeld (het voertuig is een blok)');
+  assert.equal(tessa.coopPartners.find((p) => p.naam === 'Bram').status, 'voertuig');
+  auto.x = 300; auto.speed = 20; s.step(1);
+  assert.ok(Math.abs(fb.x - 300) < 0.01 && Math.abs(fl.x - 300) < 0.01, 'ze rijden mee');
+  assert.ok(Math.abs(bram.player.x - 300) < 3, 'de camera van Bram volgt de rit: ' + bram.player.x);
+  assert.deepEqual(s.holds.filter((h) => h[0] === 'host'), []);
+  s.step(6); assert.equal(fb.inVeh, auto, 'niemand wordt bij de groep teruggezet terwijl hij meerijdt');
+  pin(bram); s.step(1);
+  assert.equal(fb.inVeh, auto, 'uitstappen kan niet bij 20 m/s'); assert.match(bram.messages.join(' '), /bijna stilstaat/);
+  auto.speed = 0; pin(bram); s.step(1.5);
+  assert.equal(fb.inVeh, null); assert.equal(fb.coopVoertuig, false); assert.ok(Math.hypot(fb.x - 300, fb.y) > 1.5 && Math.hypot(fb.x - 300, fb.y) < 6, 'naast het voertuig');
+  s.hw.player.inVehicle = null; s.step(1);
+  assert.equal(fl.inVeh, null, 'stapt de gastheer uit, dan staat de rest ernaast'); assert.equal(fl.coopVoertuig, false);
+  s.hw.player.inVehicle = { id: 8, x: 300, y: 0, isBike: true }; fb.x = 300; fb.y = 1; pin(bram); s.step(1);
+  assert.match(bram.messages.join(' '), /niet meerijden/);
+  const bus = { id: 9, x: 300, y: 0, isBus: true, angle: 0, speed: 0 }; s.hw.player.inVehicle = bus;
+  assert.equal(N.figuurPlekken(bus), 6); assert.equal(N.figuurPlekken({ isHeli: true }), 0);
+  s.hw.player.inVehicle = { id: 10, x: 900, y: 0, angle: 0, speed: 0 }; pin(bram); s.step(1);
+  assert.match(bram.messages.join(' '), /Loop naar het voertuig/);
+});
+
 t('Tessa valt weg: het spel pauzeert voor de gastheer; een extra speler niet; geen dubbele of verdwenen figuren', () => {
   const s = avond(3); s.step(3);
   s.gs[1].link.cut(); s.step(8);

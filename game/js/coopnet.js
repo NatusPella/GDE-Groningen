@@ -18,7 +18,7 @@ import { partnersInfo, createPings, addPing, tickPings, pingEvent } from './part
 import { holdBeleid, leesLijstEvent, lijst } from './coopplayers.js';
 import { cameraRelative, stepSlot2, sharedCamera } from './coop.js';
 import { gateOn, setGate } from './coopgate.js';
-import { WIEL_TEKST, WIEL_HOST_TEKST, WIEL_VERZOEK_S } from './coopgast.js';
+import { WIEL_TEKST, WIEL_HOST_TEKST, WIEL_VERZOEK_S, kanUitstappen } from './coopgast.js';
 import { nieuwCutVerzamelaar, cutGastSpeel, cutGastStop, leesCutTijd, cutSpoor } from './coopcut.js';
 import { verzamelEntiteiten, leesEntiteiten, missieBericht, leesMissieBericht, missieTekst, sceneBericht, leesSceneBericht, sceneLeeg, filmpjeTekst } from './coopworld.js';
 import { verhaalRol, openerNaam, charInfo } from './coopplayers.js';
@@ -33,6 +33,7 @@ export const MAX_REWARD = 1000000;
 export const GAST_DEEL = 0.5; // een gast krijgt de helft van wat de gastheer verdient met een missie, bijbaan of prijs (#365)
 export const FIGUUR_BAND = 110; // m: verder dan dit van de gastheer verdwaalt een extra speler in een wereld die daar niet geladen is (#366)
 export const FIGUUR_WAARSCHUWING = 80;
+export const FIGUUR_INSTAP_AFSTAND = 9; // m: de 3e en 4e speler stappen in als het voertuig van de gastheer zo dichtbij is (#372)
 export const FIGUUR_TERUG_S = 4;  // s te ver weg voor de gastheer de figuur bij de groep zet
 
 // De tegelhash komt van de aanroeper (manifest van de wereld); story = verhaalboog.
@@ -63,7 +64,7 @@ export function hostSim(world, roster) {
     },
     snapshot() {
       const p = world.player, c = world.companion;
-      const body = (b, slot) => { const q = posOf(b); return b && ({ slot, x: q.x, y: q.y, z: b.z || 0, angle: q.angle || 0, alive: slot === 0 ? !world.pendingRespawn : slot === 1 ? b.state !== 'dead' : true, inVeh: !!b.inVehicle, driver: false, run: false, health: 100, vehicle: null }); };
+      const body = (b, slot) => { const q = posOf(b); return b && ({ slot, x: q.x, y: q.y, z: b.z || 0, angle: q.angle || 0, alive: slot === 0 ? !world.pendingRespawn : slot === 1 ? b.state !== 'dead' : true, inVeh: !!(b.inVehicle || b.inVeh), driver: false, run: false, health: 100, vehicle: null }); };
       const players = [body(p, 0), body(c, 1)];
       for (const s of roster().spelers) if (s.slot >= 2) players.push(body(figures(world)[s.slot], s.slot));
       return {
@@ -177,6 +178,11 @@ function stepFigures(world, dt) {
   const f = figures(world);
   for (const slot of Object.keys(f)) {
     const fig = f[slot];
+    if (fig.inVeh) { // een extra speler zit mee in het voertuig van de gastheer (#372)
+      const v = fig.inVeh;
+      if (world.player.inVehicle !== v || v.wrecked || v.sinking) figUit(world, fig);
+      else { fig.x = v.x; fig.y = v.y; fig.angle = v.angle || 0; fig.vx = 0; fig.vy = 0; continue; }
+    }
     if (!fig.input) { fig.vx *= Math.max(0, 1 - 10 * dt); fig.vy *= Math.max(0, 1 - 10 * dt); continue; }
     const m = fig.input;
     const len = Math.hypot(m.mx, m.my), sx = len > 1 ? 1 / len : 1;
@@ -186,6 +192,36 @@ function stepFigures(world, dt) {
     else { fig.x += fig.vx * dt; fig.y += fig.vy * dt; }
   }
   bandFiguren(world, dt);
+}
+
+// Plekken voor extra spelers (naast Tessa) in een voertuig van de gastheer
+export function figuurPlekken(v) {
+  if (!v || v.isBike || v.isScooter || v.isHeli || v.isPlane || v.wrecked || v.sinking) return 0;
+  return v.isBus ? 6 : 3;
+}
+// Een extra speler stapt uit: naast het voertuig, aan de kant van zijn plek
+function figUit(world, fig) {
+  const v = fig.inVeh; fig.inVeh = null; fig.coopVoertuig = false;
+  if (!v) return;
+  const zijde = fig.slot % 2 ? 1 : -1, a = (v.angle || 0) + zijde * Math.PI / 2, d = (v.halfWid || 1) + 1.4 + 0.5 * Math.floor(fig.slot / 2);
+  fig.x = v.x + Math.cos(a) * d; fig.y = v.y + Math.sin(a) * d; fig.vx = 0; fig.vy = 0;
+}
+// E van de 3e of 4e speler: instappen als de gastheer in een voertuig zit met een vrije plek dichtbij, of uitstappen als het bijna stilstaat
+export function figGebruik(world, slot) {
+  const fig = figures(world)[slot]; if (!fig) return false;
+  const meld = (t) => { if (world.coopMeld) world.coopMeld(slot, t); };
+  if (fig.inVeh) {
+    if (!kanUitstappen(fig.inVeh)) { meld('Stap uit als het voertuig bijna stilstaat.'); return false; }
+    figUit(world, fig); return true;
+  }
+  const v = world.player && world.player.inVehicle;
+  if (!v) return false;
+  const plekken = figuurPlekken(v);
+  if (!plekken) { meld('Hier kun je niet meerijden.'); return false; }
+  if (Math.hypot(fig.x - v.x, fig.y - v.y) > FIGUUR_INSTAP_AFSTAND) { meld('Loop naar het voertuig om in te stappen.'); return false; }
+  if (Object.values(figures(world)).filter((f) => f.inVeh === v).length >= plekken) { meld('Er is geen plek meer in dit voertuig.'); return false; }
+  fig.inVeh = v; fig.coopVoertuig = true; fig.vx = 0; fig.vy = 0;
+  return true;
 }
 
 // Neergaan, arrestatie en opstaan van de gastheer en Tessa: de anderen horen het, de gast zelf ook (#369)
@@ -300,7 +336,7 @@ export function tickCoopNet(world, dt) {
   const mb = missieBericht(n.missie || null, world.mission); // wat de host speelt, voor de gasten
   if (mb.event) { n.hub.announce(mb.event); } n.missie = mb.huidig;
   const c = world.companion;
-  const players = [c ? { slot: 1, x: posOf(c).x, y: posOf(c).y, angle: posOf(c).angle, alive: c.state !== 'dead', inVeh: !!c.inVehicle } : null, ...Object.values(figures(world)).map((f) => ({ slot: f.slot, x: f.x, y: f.y, angle: f.angle, alive: true }))].filter(Boolean);
+  const players = [c ? { slot: 1, x: posOf(c).x, y: posOf(c).y, angle: posOf(c).angle, alive: c.state !== 'dead', inVeh: !!c.inVehicle } : null, ...Object.values(figures(world)).map((f) => ({ slot: f.slot, x: f.x, y: f.y, angle: f.angle, alive: true, inVeh: !!f.inVeh }))].filter(Boolean);
   world.coopPartners = partnersInfo(0, players, world.coopRoster || []);
   world.coopPartner = world.coopPartners[0] || null;
   // gedeelde camera met Tessa (plek 1) zolang zij echt meespeelt; extra spelers hebben hun eigen camera
@@ -361,7 +397,8 @@ export function handleEvent(world, body, van = 0) {
       return true;
     }
     case 'gebruik': { // de gast drukte op E bij de host: als bijrijder in- of uitstappen (alleen plek 1, de metgezel)
-      if (!n || n.role !== 'host' || van !== 1) return false;
+      if (!n || n.role !== 'host' || van < 1) return false;
+      if (van >= 2) return figGebruik(world, van); // de 3e en 4e speler stappen zelf in of uit (#372)
       world.coopGebruik = true;
       return true;
     }
