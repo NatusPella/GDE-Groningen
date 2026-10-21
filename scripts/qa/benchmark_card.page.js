@@ -1,26 +1,27 @@
-// Page half for `cutscene_shots.mjs --page=benchmark_card.page.js` (#159): starts the real benchmark from the title
-// screen (event gde-benchmark), waits for the result card and takes a screenshot of it.
+// Page half for `cutscene_shots.mjs --page=benchmark_card.page.js` (#159): the result card of the benchmark with
+// synthetic frame times (a real run is a player's choice, AGENTS.md): checks the categories incl. 'Spoor', the
+// advice and the buttons, and takes a screenshot. The route's shot ids are checked against the trailer's shots.
 const sleep = (ms) => new Promise((res) => setTimeout(res, ms));
+const B = await import('/js/benchstats.js');
+const T = await import('/js/trailer.js');
 const out = { fouten: [] };
-await sleep(4000);
-const t0 = performance.now();
-let card = null, last = -1e9;
-while (performance.now() - t0 < 480000) {
-  await sleep(1000);
-  const tr = document.getElementById('trailer');
-  // the title screen's listener may attach late: ask again until the benchmark runs
-  if ((!tr || !tr.classList.contains('on')) && performance.now() - last > 8000 && !(card && !card.hidden)) { window.dispatchEvent(new Event('gde-benchmark')); last = performance.now(); out.pogingen = (out.pogingen || 0) + 1; }
-  card = document.getElementById('trailer-result');
-  if (card && !card.hidden) break;
-  card = null;
-}
-out.seconden = Math.round((performance.now() - t0) / 1000);
-if (!card) out.fouten.push('geen resultaatkaart binnen 7 minuten');
-else {
-  await sleep(800);
-  out.tekst = card.innerText.replace(/\s+/g, ' ').slice(0, 600);
-  out.categorieen = [...card.querySelectorAll('.tr-cats span')].map((e) => e.innerText.replace(/\s+/g, ' '));
-  console.log('[capture] benchmark-kaart');
-  await sleep(1200);
-}
+await sleep(3000);
+const stats = (fps) => Array.from({ length: 240 }, (_, i) => 1000 / fps + (i % 40 === 0 ? 25 : 0) + (i % 7));
+const shots = B.BENCH_ROUTE.map(([id], i) => ({ id, label: id, ms: stats(i % 3 === 0 ? 38 : 62) }));
+const all = shots.flatMap((s) => s.ms);
+const fs = B.frameStats(all);
+const mean = all.reduce((a, b) => a + b, 0) / all.length;
+const res = { stats: { avg: 1000 / mean, low: fs.low1, low1: fs.low1, p95: fs.p95, slow33: fs.slow33, hitches: B.routeHitches(shots), cats: B.categoryStats(shots), memory: 310, heaviest: null, frames: all.length, shots: [], spikes: [0, 0, 0] } };
+out.categorieen = Object.keys(res.stats.cats);
+if (!out.categorieen.includes('spoor')) out.fouten.push('geen categorie spoor');
+const p = T.showBenchmarkResults(res);
+await sleep(1500);
+const card = document.getElementById('trailer-result');
+out.zichtbaar = !!card && !card.hidden;
+out.tekst = card ? card.innerText.replace(/\s+/g, ' ').slice(0, 500) : null;
+out.knoppen = card ? [...card.querySelectorAll('button')].map((b) => b.textContent) : [];
+console.log('[capture] benchmark-kaart');
+await sleep(1500);
+if (card) card.querySelector('[data-act="back"]').click();
+await Promise.race([p, sleep(2000)]);
 return JSON.stringify({ results: { benchmark: out } });

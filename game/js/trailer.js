@@ -2488,6 +2488,7 @@ let resultEl = null;
 
 // Shows the results card; resolves with 'again' or 'back'.
 export function showBenchmarkResults(res) {
+  ensureUi(); // the card's styles come with the trailer's UI: also when the card is shown without a run
   const stats = res && res.stats;
   // the result also waits in Instellingen > Beeld (gfxprofile.js)
   if (!BENCH_RUNS) setBenchResult(stats, res.preset, res.presetFps || {});
