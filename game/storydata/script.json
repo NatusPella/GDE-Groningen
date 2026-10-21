@@ -5318,7 +5318,7 @@
     {
      "speaker": "Buschauffeur",
      "key": "buschauffeur",
-     "text": "Uitstappen bij de haven, jongens. Dan zie je het water.",
+     "text": "Uitstappen bij de haven, allemaal. Dan zie je het water.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
@@ -5409,7 +5409,7 @@
     {
      "speaker": "Kapitein Klaas",
      "key": "klaas",
-     "text": "Praat tegen je boot, jongens. Dat helpt.",
+     "text": "Praat tegen je boot, mensen. Dat helpt.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
@@ -5471,7 +5471,7 @@
     {
      "speaker": "Kapitein Klaas",
      "key": "klaas",
-     "text": "Niet voorbij de sluizen, jongens. Daarachter is het de Waddenzee, en daar vaar ik niet met een rubberboot.",
+     "text": "Niet voorbij de sluizen, mensen. Daarachter is het de Waddenzee, en daar vaar ik niet met een rubberboot.",
      "tag": "NIEUW",
      "channel": "telefoon",
      "textOnly": true
@@ -5641,7 +5641,7 @@
     {
      "speaker": "Kapitein Klaas",
      "key": "klaas",
-     "text": "Wij zitten vast, jongens. Dat is geen ramp. De wind duwt het water weg, over een uur komt het terug.",
+     "text": "Wij zitten vast, mensen. Dat is geen ramp. De wind duwt het water weg, over een uur komt het terug.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
@@ -5889,7 +5889,7 @@
     {
      "speaker": "Kapitein Klaas",
      "key": "klaas",
-     "text": "Nu terug, jongens. Het water denkt niet na.",
+     "text": "Nu terug, mensen. Het water denkt niet na.",
      "tag": "NIEUW",
      "channel": "telefoon",
      "textOnly": true
@@ -9556,7 +9556,7 @@
     {
      "speaker": "Jelle Terpstra",
      "key": "jelle",
-     "text": "Gezellige bus, jongens. Ik rij even langs.",
+     "text": "Gezellige bus, allemaal. Ik rij even langs.",
      "tag": "NIEUW",
      "channel": "telefoon",
      "textOnly": true
