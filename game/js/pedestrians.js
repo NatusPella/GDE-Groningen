@@ -213,9 +213,12 @@ function spawnPedsRaw(map, x, y, count, rng, minDist = 0, hidden = true) {
 
 // Civilian spawns honour a budget set by the population manager below, so
 // main.js's fixed top-up can't undo the night-time thinning.
-export function spawnPedestriansNear(map, x, y, count, rng = Math.random) {
-  const n = Math.max(0, Math.min(count, Math.floor(spawnBudget)));
-  spawnBudget -= n;
+// free: a walker with a part to play (a skateboarder, a first-year group, a courier, a mover with a sofa: streetlife.js) does not
+// come out of the population budget. The budget is what the streets still lack to the target, so where the crowd is full it is 0
+// and none of those walkers ever appeared (#348: no skateboarder, group or courier in eight minutes in four districts).
+export function spawnPedestriansNear(map, x, y, count, rng = Math.random, free = false) {
+  const n = Math.max(0, Math.min(count, free ? count : Math.floor(spawnBudget)));
+  if (!free) spawnBudget -= n;
   return n ? addCompanions(map, spawnPedsRaw(map, x, y, n, rng), n) : [];
 }
 
@@ -939,7 +942,7 @@ function managePopulation(world) {
     let excess = walkers - desired;
     for (let i = world.pedestrians.length - 1; i >= 0 && excess > 0; i--) {
       const p = world.pedestrians[i];
-      if (p.isCop || p.scene || p.nightlife || p.leader || p.state !== 'wander') continue;
+      if (p.isCop || p.scene || p.nightlife || p.leader || p.carry || p.ontgroening || p.state !== 'wander') continue; // (the ones with a part keep it)
       if (dist(p.x, p.y, player.x, player.y) < 55 || !isSpawnHidden(world, p.x, p.y)) continue;
       if (FLAGS.simlagen) verlatenPool.afleggen(p.x, p.y);
       world.pedestrians.splice(i, 1);

@@ -686,11 +686,12 @@ if (want('regatta')) {
       const bots = w.vehicles.filter((v) => v.isBoat && v !== boat && v.model && v.model.zeil);
       info.push('bots ' + bots.length + ' ' + JSON.stringify(bots.slice(0, 4).map((v) => [Math.round(v.x), Math.round(v.y)])));
       const g = 0;
-      for (const [name, dx, dy, up] of [['hoog', 0, 0.1, 55], ['achter', -14, 0, 5.5]]) {
-        const a = boat.angle;
-        const px = name === 'hoog' ? boat.x : boat.x - Math.cos(a) * 14, py = name === 'hoog' ? boat.y : boat.y - Math.sin(a) * 14;
-        cine.playCinematic({ id: 'vi-regatta', duration: 30, priority: 9, shot: () => ({ position: { x: px, y: py, z: up }, lookAt: { x: boat.x + Math.cos(a) * 20, y: boat.y + Math.sin(a) * 20, z: 1 }, cut: true }) });
-        await sleep(2200);
+      const st0 = R.state(), t0 = st0.tonnen[0], t1 = st0.tonnen[1] || t0;
+      const ang0 = Math.atan2(t1.y - t0.y, t1.x - t0.x);
+      await sleep(8000);
+      for (const [name, px, py, up, lx, ly] of [['ton-hoog', t0.x - 30, t0.y - 30, 38, t0.x, t0.y], ['ton-laag', t0.x - Math.cos(ang0) * 45, t0.y - Math.sin(ang0) * 45, 3.2, t0.x, t0.y], ['ton-bots', t0.x - Math.cos(ang0) * 12 + Math.sin(ang0) * 20, t0.y - Math.sin(ang0) * 12 - Math.cos(ang0) * 20, 2.6, t0.x - Math.cos(ang0) * 18, t0.y - Math.sin(ang0) * 18]]) {
+        cine.playCinematic({ id: 'vi-regatta', duration: 30, priority: 9, shot: () => ({ position: { x: px, y: py, z: up }, lookAt: { x: lx, y: ly, z: 0.5 }, cut: true }) });
+        await sleep(2600);
         console.log('[capture] regatta-' + name);
         await sleep(500);
         cine.skipCinematic();
