@@ -1659,7 +1659,7 @@ export function playCastScene(w, { at, facing = null, lines = [], cast = [], pro
   // the new story's stage scenes with a staging (cutscenes_akte1.js): the direction language; the rest below
   // a hand-made camera (`shot`) that lasts for the first lines only (shotFor, shotLines: the falling flag, M24.3) is a shotOverride of the staging
   // (shotAll: the hand-made camera is the whole scene, the reveal of the case in M06.3: the staging then only brings the people and the voices)
-  if (staging && !deck && !solo && (!shot || shotFor || shotLines || shotAll) && !cast.some((e) => e && e.water)) {
+  if (staging && !deck && !solo && (!big || shot) && (!shot || shotFor || shotLines || shotAll) && !cast.some((e) => e && e.water)) {
     const anchor0 = w.player.inVehicle ? onFootAnchor(w) : freeSpot(w, at.x, at.y);
     const tlS = timeline(lines, null, lead);
     const until = shotLines && tlS.lines[shotLines - 1] ? tlS.lines[shotLines - 1].at + tlS.lines[shotLines - 1].dur : shotFor;
