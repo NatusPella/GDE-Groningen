@@ -129,6 +129,12 @@ bij de duif vliegt de gastheer alleen, bij het museum sluipt de gastheer en de r
 - [ ] De gastheer slaat op; iedereen bewaart zijn eigen spel.
 - [ ] Feedback als issue (`bug` of `wens`, in het Nederlands) of in #116.
 
+## Wat is getest (22-10, op één computer)
+
+- **Vier spelers, M01 tot en met M08:** de spelbot speelde als gastheer met drie bot-gasten (een echte Electron-gastheer; de gasten zijn bots). Alles bleef synchroon (geen afwijking, geen foutmelding): 660 weerberichten, 16 uitslagen en 5 beloningen per gast, ongeveer 8 kB/s naar elke gast en 0,5 kB/s terug. De bot had voor M01, M02, M05, M06 en M08 een cheat nodig (zoals zonder samen spelen).
+- **Een gast in beeld (Electron, gescripte gastheer, 1280x720 en 1920x1080, met 2 en 4 spelers):** weer en regen, tijd van de dag, een roep met naam, het doel op de minimap, de uitslag, gepakt, meerijden, de lijst bij Tab en het onderdeel Spelers in het pauzemenu. Door Claude in beeld bekeken. Beeldsnelheid van de gast tijdens de run: mediaan 43 tot 55 fps (korte haperingen bij het laden).
+- **Nog niet:** vier mensen, twee computers, internet, een controller, geluid van de stemmen bij een gast.
+
 ## Wat Claude niet zelf kon bekijken
 
 Alles waar "in beeld" staat: de lichtzuilen van de roeptoetsen, de kaartpunten, het verdwijnen van het poppetje bij het meerijden, het label met de afstand, en hoe het voelt om met vier
