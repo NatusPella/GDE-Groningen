@@ -43,6 +43,22 @@ Het onderstaande over duur en belasting zijn schattingen op een gewone ontwikkel
 - **Speeltest van #74 (`scripts/qa/speeltest74.mjs`):** de handmatige speeltests als scripted run met beelden en metingen: achteruitkijken (Q) in een auto op een Ommeland-weg (kijkrichting van de camera ten opzichte van de auto), een GPS-doel in het Ommeland (route, minimap, kaart, afslagbanner), frametijd-pieken bij het rijden met 30 m/s met zichtafstand normaal, ver en heel ver (`--only=heelver`), en een padelpotje met auto-spel (`--only=padel`). De auto rijdt kinematisch langs de langste weg, zodat de wereld streamt zoals bij een echte rit.
 - Eén Electron-instantie per deel, wegwerpprofiel, `--slot` neemt een slot uit `gde-locks`. `ELECTRON_EXE` en `GAME_WORLD` wijzen een Electron en een gestagede wereld aan als de worktree er geen heeft. Het logboek zegt altijd dat niemand de beelden heeft gezien.
 
+## Beelden voor de README (`scripts/qa/readme_shots.mjs`)
+
+Maakt de beelden van de galerij in [README.md](../README.md) reproduceerbaar: een kaart van de hele provincie en van de stad, Groningen overdag en bij nacht, een boot bij de zeesluis van Lauwersoog, windturbines bij de Eemshaven, een cutscene uit de opening, een achtervolging, de garage, het scherm Opgeslagen spellen en de wachtkamer van Samen spelen.
+
+```
+node scripts/qa/readme_shots.mjs --slot [--out=<map>] [--only=<namen>] [--settle=7000]
+node scripts/qa/readme_shots.mjs --optimaliseer [--out=<map>] [--naar=docs/screenshots]
+node scripts/qa/readme_shots.mjs --lijst
+```
+
+- **Eén Electron, wegwerpprofiel, geen netwerk.** `--slot` neemt een Electron-slot (zie het slotenprotocol in `gde-locks`). `GDE_GAME_DIR` en `ELECTRON_EXE` wijzen een gestagede game en een Electron aan als de worktree er geen heeft; de wereld hoeft niet opnieuw gebouwd te worden (`GDE_PREBUILT_WORLD=<andere-build>/game/world GDE_STAGE_OUT=<map>/game node desktop/build.mjs` stage alleen de JS). De wachtkamer van Samen spelen is een nagebootste staat in het eigen scherm: er gaat niets over het net.
+- **Vaste omstandigheden:** voorinstelling Hoog (`gfxprofile.js`), geen dynamische resolutie, een vaste tijd van de dag en helder weer per beeld, camerastanden via de cinematic-camera zonder letterbox, HUD, routelint of baken (de rest van de pagina buiten het canvas wordt tijdelijk verborgen). De pagina legt zich uit op 1920x1080 in een venster van 0,9 keer die grootte (Windows houdt een venster binnen het werkgebied), dus de PNG's zijn 1728x972.
+- **Camerastanden zoeken:** `--only=scout --scout=<json>` met `[{ "name", "cam": [x, y, hoogte], "look": [x, y, hoogte], "clock", "hold", "settle", "abs", "boat": [x, y, hoek, soort] }]` maakt van elke stand een beeld (`shots-scout-<name>.png`). Coördinaten zijn die van het wereldframe (`game/world/index-provincie.json`); `abs` neemt de hoogte absoluut (voor water).
+- **Optimaliseren:** `--optimaliseer` zet de PNG's (`shots-<naam>.png` in `--out`) met ffmpeg om naar webp van 1600 px breed in `docs/screenshots/`, met zakkende kwaliteit tot een beeld onder de 250 KB blijft (samen onder de 2 MB). Met `--only=<namen>` alleen die beelden.
+- Het script kijkt zelf niets na: een mens bekijkt elk beeld (scherp, mooi licht, geen artefacten of kapotte objecten, niets van een echt merk of persoon) en kiest wat in de README komt. Beelden die een agent niet zelf bekeek, horen er niet in.
+
 ## Speelchecks per functie en de spelbot met reizen
 
 - `node scripts/qa/feature_smoke.mjs [--only=winkelen,bijbanen,voertuigen,...]` draait korte scripted checks in één Electron (wegwerpprofiel). Naast de oudere checks (kaart, wanted, bus, interieur, ...) zijn er `winkelen` (per winkeltype naar de deur, E, paneel lezen, het eerste item kopen), `bijbanen` (elke bijbaan starten, vier seconden draaien, stoppen; meldt ook bijbanen die op één plek staan of niet starten) en `voertuigen` (elk winkelvoertuig neerzetten, instappen, drie seconden gas). Uitvoer in `features.json` en `shots-*.png`.
