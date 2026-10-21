@@ -18,7 +18,7 @@ const arg = (k, d) => { const a = process.argv.find((v) => v.startsWith(`--${k}=
 const CHECK = arg('check', 'intro');
 const OUT = path.resolve(arg('out', path.join(os.tmpdir(), `gde-tester-${CHECK}`)));
 const MAX = Number(arg('max', 150));
-const LOCKS = process.env.GDE_LOCKS || 'C:/Users/abuis/gde-locks';
+const LOCKS = process.env.GDE_LOCKS || path.join(os.homedir(), 'gde-locks');
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 fs.mkdirSync(OUT, { recursive: true });
 
