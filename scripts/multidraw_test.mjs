@@ -82,7 +82,7 @@ void far;
   // fragmenting: take out every other piece, then ask for a piece that fits no single hole
   for (let i = 0; i < hs.length; i += 2) hub.remove(hs[i][0]);
   const cap0 = pool.vAlloc.capacity, comp0 = pool.compacted || 0;
-  const big = hub.add(mat, true, piece(9000, 1500));
+  const big = hub.add(mat, true, piece(9000, 5000));
   ok('a fragmented buffer is packed instead of grown', pool.vAlloc.capacity === cap0 && (pool.compacted || 0) > comp0, `${cap0} ${pool.vAlloc.capacity} ${pool.compacted}`);
   ok('after that every live piece still reads back', hs.filter((_, i) => i % 2).every(([h, x]) => { const r = readBack(h); return r && r.x0 === x; }) && readBack(big).x0 === 9000 && readBack(a).x0 === 0);
   // the ranges follow the packed pieces
