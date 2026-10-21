@@ -488,8 +488,10 @@ const PHASES = {
   // het pauzemenu open terwijl je samen speelt: ligt het partnerlabel er niet overheen? (alleen een schermafbeelding en een controle)
   async menushot() {
     await openSamen(); await sleep(900);
-    const chip = document.querySelector('.coop-chip');
-    log('menushot', { chip: !!chip, chipZichtbaar: !!chip && getComputedStyle(chip).visibility !== 'hidden' });
+    // geen permanent label meer (#377): niets van de spelerslijst ligt over het menu; het onderdeel Spelers staat in de rail
+    const lijst = document.getElementById('coop-spelers');
+    const rail = document.querySelector('#pause-menu [data-goto="spelers"]');
+    log('menushot', { chip: true, chipZichtbaar: !!(lijst && getComputedStyle(lijst).display !== 'none') || !!document.querySelector('.coop-chip'), railSpelers: !!rail && !rail.hidden });
     shot('g-pauzemenu');
     await sleep(500); await closeMenu();
   },

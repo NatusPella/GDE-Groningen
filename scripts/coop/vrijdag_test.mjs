@@ -50,6 +50,18 @@ t('vier spelers: iedereen krijgt een eigen plek, naam, kleur en vorm; de lijst i
   assert.equal(s.hw.coopPartners.length, 3);
 });
 
+t('de spelerslijst (Tab en het pauzemenu): iedereen heeft rijen met naam, wat ze doen en verbinding; de gastheer kent ieders ping, een gast alleen de eigen', () => {
+  const s = avond(3, { hostExtra: { mission: { phase: 'active', label: 'Het Loket', index: 3, marker: { x: 9, y: 9 } } } }); s.step(4);
+  const rh = s.hw.coopSpelers; assert.deepEqual(rh.map((r) => r.slot), [0, 1, 2, 3]); assert.equal(rh[0].jij, true); assert.match(rh[0].doet, /in opdracht/);
+  assert.ok(rh.slice(1).every((r) => Number.isFinite(r.ms) && r.ms >= 0), 'de gastheer kent de ping van elke gast: ' + JSON.stringify(rh.map((r) => r.ms)));
+  const rg = s.gs[1].gw.coopSpelers; assert.deepEqual(rg.map((r) => r.slot), [2, 0, 1, 3], 'jij bovenaan');
+  assert.ok(Number.isFinite(rg[0].ms) && rg.slice(1).every((r) => r.ms === null), 'een gast kent alleen zijn eigen ping');
+  assert.match(rg.find((r) => r.slot === 0).doet, /in opdracht/, 'ook een gast ziet dat de ander in een opdracht zit');
+  s.gs[2].link.cut(); s.step(8);
+  assert.equal(s.hw.coopSpelers.find((r) => r.slot === 3).verbindingTekst, 'weg');
+  N.stopCoopNet(s.hw); assert.deepEqual(s.hw.coopSpelers, [], 'zonder sessie geen lijst');
+});
+
 t('het weer is van de gastheer: een bui boven de stad is bij elke gast hetzelfde, ook bij wie later aansluit', () => {
   const ws = createWeatherState(99); for (let i = 0; i < 600; i++) stepWeather(ws, 1, 14); // een tijd later
   ws.regions.stad.kind = 'onweer'; ws.regions.stad.rain = 0.85; ws.regions.stad.overcast = 0.95; ws.regions.noord.kind = 'mist'; ws.regions.noord.mist = 0.6;

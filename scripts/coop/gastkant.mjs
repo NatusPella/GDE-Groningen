@@ -126,7 +126,8 @@ check(th && th.axis && th.axis[0] > 0.25 && th.axis[0] < 0.85, 'touch: halve sti
 note(notes, 'touch: ' + JSON.stringify({ knoppen: tu && tu.speelknoppen, half: th && th.axis, vol: tv && tv.axis }));
 const tc = traces.companion.filter(([t]) => t >= 120 && t <= 134); check(tc.length > 4 && Math.hypot(tc[tc.length - 1][1] - tc[0][1], tc[tc.length - 1][2] - tc[0][2]) > 4, 'touch: Tessa bewoog niet in de wereld van de host: ' + JSON.stringify([tc[0], tc[tc.length - 1]]));
 const ms = of('menushot')[0];
-check(ms && ms.chip && ms.chipZichtbaar === false, 'pauzemenu: het partnerlabel ligt nog over het menu: ' + JSON.stringify(ms));
+check(ms && ms.chip && ms.chipZichtbaar === false, 'pauzemenu: de spelerslijst ligt nog over het menu: ' + JSON.stringify(ms));
+check(ms && ms.railSpelers === true, 'pauzemenu: het onderdeel Spelers staat niet in de rail: ' + JSON.stringify(ms));
 // opnieuw verbinden via het wachtscherm
 const hh = of('herverbind-hold')[0], hk = of('herverbind-klaar')[0], hc = of('herverbind-code')[0];
 check(hh && hh.hold && hh.paused && hh.coopHold, 'herverbinden: geen wachtscherm met pauze bij de gast: ' + JSON.stringify(hh));
