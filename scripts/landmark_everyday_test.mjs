@@ -78,6 +78,11 @@ check(top(cases.find((c) => c[0] === 'flat')[1]) > 28, 'ten levels is over 28 m'
   check(K.kitItemFromBuilding(row('Pakhuis Noordhaven', 40, 14)) && K.kitItemFromBuilding(row('Pakhuis Noordhaven', 40, 14)).k === 'pakhuis', 'a named warehouse becomes a pakhuis');
   check(!K.kitItemFromBuilding(row('', 40, 14)), 'an unnamed warehouse stays a plain building');
   check(!K.kitItemFromBuilding(row('Pakhuis X', 8, 8)), 'a shed is too small');
+  // (#348) the name decides when the tag says something else: OSM maps harbour warehouses as building=yes, converted ones as apartments
+  for (const type of ['yes', 'apartments', 'commercial']) check(K.kitItemFromBuilding(row('Pakhuis Friesland', 40, 14, type)) && K.kitItemFromBuilding(row('Pakhuis Friesland', 40, 14, type)).k === 'pakhuis', 'a pakhuis mapped as ' + type + ' is a pakhuis');
+  check(!K.kitItemFromBuilding(row('Pakhuis Friesland', 40, 14, 'house')), 'a house named pakhuis stays a house');
+  check(!K.kitItemFromBuilding(row('Pakhuis Friesland', 300, 40, 'yes')), 'a block of 12.000 m2 is no pakhuis');
+  check(!K.kitItemFromBuilding(row('Loods', 40, 14, 'yes')), 'a loods alone is not a pakhuis');
 }
 console.log(fails.length ? 'FAIL\n' + fails.join('\n') : `ok (${cases.length} synthetic items)`);
 process.exit(fails.length ? 1 : 0);

@@ -1,6 +1,6 @@
 // Fietstrucs en standen (#207): game/js/bewegingrules.js, plus de nieuwe animaties in actoranim.js.
 //   node scripts/bewegingrules_test.mjs
-import { WHEELIE, createWheelie, stepWheelie, wheelieMeters, zwemStand, klimStand, sprongStand } from '../game/js/bewegingrules.js';
+import { WHEELIE, HOP, createWheelie, stepWheelie, wheelieMeters, zwemStand, klimStand, sprongStand } from '../game/js/bewegingrules.js';
 import { ANIMS, animateActor } from '../game/js/actoranim.js';
 
 let bad = 0;
@@ -36,6 +36,22 @@ s = createWheelie(); stepWheelie(s, {}); stepWheelie(s, { trick: true, throttle:
 check('rare invoer blijft heel', Number.isFinite(s.pitch) && Number.isFinite(s.slow));
 s = createWheelie(); run(s, 2, go);
 check('pitch nooit boven de grens', s.pitch <= WHEELIE.pitch + 1e-9);
+
+// het sprongetje: de rem kort aantikken met Ctrl vast
+const tap = (secs, i = {}) => { const q = createWheelie(); let hops = 0, frames = 0; const dt = 1 / 60; const f = (brake, n, extra = {}) => { for (let k = 0; k < n; k++) { stepWheelie(q, { dt, trick: true, throttle: 0, speed: 5, top: 7, brake, ...i, ...extra }); if (q.hop) { hops++; frames = k + 1; } } }; f(1, Math.round(secs / dt)); f(0, 10); return { q, hops, frames }; };
+let r = tap(0.1);
+check('rem kort aantikken: één sprongetje', r.hops === 1 && r.q.hops === 1, r.hops);
+r = tap(0.5);
+check('rem lang vasthouden: geen sprongetje (stoppie)', r.hops === 0);
+r = tap(0.1, { speed: 1 });
+check('te langzaam: geen sprongetje', r.hops === 0);
+r = tap(0.1, { trick: false });
+check('zonder Ctrl: geen sprongetje', r.hops === 0);
+r = tap(0.1, { airborne: true });
+check('in de lucht: geen sprongetje', r.hops === 0);
+{ const q = createWheelie(); let n = 0; for (let k = 0; k < 6; k++) { for (let j = 0; j < 5; j++) { stepWheelie(q, { dt: 1 / 60, trick: true, speed: 5, top: 7, brake: 1 }); } stepWheelie(q, { dt: 1 / 60, trick: true, speed: 5, top: 7, brake: 0 }); if (q.hop) n++; }
+  check('na een sprongetje even rust (cooldown)', n === 1, n); }
+check('sprong is klein en veilig', HOP.vz > 2 && HOP.vz < 4.5 && HOP.vz < 7);
 
 const finite = (o) => Object.values(o).every((v) => (typeof v === 'number' ? Number.isFinite(v) : finite(v)));
 for (const [n, f] of [['zwem', zwemStand], ['klim', klimStand]]) {
