@@ -718,6 +718,21 @@ results.routes.renderprof = await safe('renderprof', async () => {
   while (performance.now() - t0 < ms) { for (let i = 0; i < 10; i++) { r.render(sc.scene, sc.cam); n++; } gl.finish(); await sleep(0); }
   return { renders: n, msPerRender: +((performance.now() - t0) / n).toFixed(2), calls: r.info.render.calls };
 });
+// how long the shader programs take to link after the game started (only with PERF_ONLY=progready): every 500 ms the number of programs of the renderer and how many are linked,
+// until all are (at most 150 s), with the standing camera in the city; a pool adds programs (the batched variant of each batch material and its depth material)
+results.routes.progready = await safe('progready', async () => {
+  if (!ONLY.includes('progready')) return null;
+  fixWorld(); teleport(FOOT[0][0], FOOT[0][1]); w.camYaw = 0.3; p.angle = 0.3;
+  const t0 = performance.now(); const series = []; let allAt = null;
+  for (let i = 0; i < 300; i++) {
+    await sleep(500);
+    const progs = r.info.programs || [];
+    const ready = progs.filter((q) => q.isReady()).length;
+    if (i % 4 === 0) series.push([Math.round(performance.now() - t0), progs.length, ready, r.info.render.calls]);
+    if (ready === progs.length && progs.length > 50 && i > 12) { allAt = Math.round(performance.now() - t0); break; }
+  }
+  return { allAtMs: allAt, series, programs: (r.info.programs || []).length, pool: sc.batches().pool };
+});
 // A/B inside one run (only with PERF_ONLY=ab): window.__perfAb = [[name, [perfoff steps...]], ...] (PERF_AB='aan=;uit=actoren+schaduw'); the variants take
 // turns in short windows (window.__perfAbWin ms, window.__perfAbRounds rounds, the order swaps every round), so they feel the same load.
 // Every window is a perf-mark pair 'ab:<name>:<round>' for the thread sampler of run.mjs; PERF_AB_MOVE=1 walks (3 m/s) instead of standing.
