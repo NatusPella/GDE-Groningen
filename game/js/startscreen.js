@@ -508,7 +508,7 @@ export function runStartScreen(world, { render, relocate, tick, ready }) {
         });
       } else if (it.act === 'solo') {
         // Alleen spelen: the Opgeslagen spellen screen, with Doorgaan (the game played last) and Nieuw spel on top
-        openSaveSlots({ mode: 'start', solo: true, onLoad: continueGame, onNew: () => startNew(), onClose: () => {
+        openSaveSlots({ mode: 'start', solo: true, eyebrow: 'Alleen spelen', onLoad: continueGame, onNew: () => startNew(), onClose: () => {
           // the card at the right shows the save as it was when the menu opened: rebuild the menu when saves changed
           const now = hasSave() ? getSaveSummary() : null;
           if (!done && JSON.stringify(now && [now.slot, now.savedAt, now.name]) !== JSON.stringify(save && [save.slot, save.savedAt, save.name])) location.reload();
