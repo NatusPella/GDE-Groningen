@@ -680,8 +680,8 @@ const CHECKS = [
     SS.runStartScreen(w, { render() {}, relocate() {}, tick() {} });
     await sleep(1500);
     await snap('titel');
-    const btn = document.querySelector('.ss-item[data-act="saves"]');
-    if (btn) { btn.click(); await sleep(1200); await snap('titel-spelstanden'); }
+    const btn = document.querySelector('.ss-item[data-act="solo"]');
+    if (btn) { btn.click(); await sleep(1200); await snap('titel-alleen-spelen'); }
     return { knoppen: [...document.querySelectorAll('.ss-item')].map((b) => b.dataset.act) };
   } },
 ];
