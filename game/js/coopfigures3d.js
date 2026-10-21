@@ -5,6 +5,7 @@
 // (getest); dit bestand is alleen three.js en is niet in beeld bekeken.
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getScene } from './scene3d.js';
+import { isCinematicActive } from './cinematics.js';
 import { buildPersonMesh, animatePersonWalk } from './models3d_people.js';
 import { figuurLook } from './coopplayers.js';
 import { planFigures, needsRebuild, walkSpeed, labelSpec, LABEL_Y } from './coopfigures.js';
@@ -44,6 +45,7 @@ export const hasFigureMeshes = () => meshes.size > 0;
 export function syncFigures(world, dt) {
   const scene = getScene();
   if (!scene) return;
+  const filmpje = isCinematicActive() || !!world.cinematicHidePlayers;
   const plan = planFigures([...meshes.keys()], world.coopFigures);
   for (const slot of plan.remove) { dispose(scene, meshes.get(slot)); meshes.delete(slot); }
   for (const f of plan.add) meshes.set(f.slot, build(scene, f));
@@ -52,7 +54,7 @@ export function syncFigures(world, dt) {
     if (needsRebuild(e.char, f)) { dispose(scene, e); e = build(scene, f); meshes.set(f.slot, e); }
     const map = world.map;
     if (map && map.elev && map.elev.has && map.groundHeightAt) { try { f.gz = map.groundHeightAt(f.x, f.y); } catch (er) { /* hoogte onbekend: vlak */ } }
-    e.mesh.visible = !f.coopVoertuig; // wie meerijdt zit in het voertuig (#372)
+    e.mesh.visible = !f.coopVoertuig && !filmpje; // wie meerijdt zit in het voertuig (#372); in een filmpje staan alleen de spelers van de scène in beeld (#376)
     e.mesh.position.set(f.x, (f.gz || 0) + (f.z || 0), f.y);
     e.mesh.rotation.y = -(f.angle || 0);
     animatePersonWalk(e.mesh, walkSpeed(e.prev, f, dt), dt);
