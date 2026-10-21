@@ -290,7 +290,7 @@ export function tickCoopNet(world, dt) {
     const inp = world.input;
     const m = makeClientInput(inp && inp.axis ? inp.axis() : [0, 0], !!(inp && inp.isDown && inp.isDown('shift')), world.camYaw, !!(world.coopWiel && inp && inp.isDown && inp.isDown(' ')));
     if (inp && inp.wasPressed && inp.wasPressed('y')) wielGebaar(world); // Y: om het stuur vragen (#291)
-    if (world.coopScene && world.coopScene.filmpje) s.setInput(0, 0, 0, m.yaw); // de gastheer kijkt een filmpje: Tessa staat stil
+    if ((world.coopScene && world.coopScene.filmpje) || world.paused) s.setInput(0, 0, 0, m.yaw); // de gastheer kijkt een filmpje, of de gast zit zelf in een menu, de kaart of een winkel: zijn figuur staat stil (#373)
     else s.setInput(m.mx, m.my, m.buttons, m.yaw);
     s.tick(dt);
     n.lokaal += dt;
