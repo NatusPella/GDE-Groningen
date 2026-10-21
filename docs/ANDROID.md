@@ -15,6 +15,9 @@ npm run smoke                # emulator/toestel via adb: installeren, starten, c
 ```
 
 De eerste `web/build.mjs` bouwt de wereld (ca. 15 min); met een bestaande wereldcache (`desktop/.world-cache`, `game/world`) en Opus-cache (`web/.cache`) duurt de hele build ca. 3 min. Zonder `--rebuild` hergebruikt hij `web-dist/`.
+**Processorarchitectuur:** de APK is universeel. Hij bevat geen native bibliotheken (`lib/` ontbreekt; alleen DEX, de WebView-inhoud en resources), dus er is geen ABI-filter dat arm64-v8a, armeabi-v7a of x86_64 uitsluit; gecontroleerd op de APK uit Actions voor v0.38.1 (`unzip -l`). Wel is alleen de emulator (x86_64) gebruikt, geen arm64-toestel.
+De CI-bouw (`.github/workflows/android-release.yml`, `docs/RELEASEN.md`) levert dezelfde debug-APK als release-bijlage `GDE-Groningen-<versie>-android-debug.apk`.
+
 Installeren op een toestel (USB-foutopsporing): `adb install -r android/out/gde-groningen-debug.apk`; `chrome://inspect` voor de console.
 
 ## Hoe het in elkaar zit

@@ -58,8 +58,10 @@ jobs:
           mkdir -p "$RUNNER_TEMP/gde-world"
           gh release download "$TAG" --pattern gde-world.tgz --dir "$RUNNER_TEMP/gde-world" \
             || { echo "Geen gde-world.tgz bij $TAG: maak hem met 'npm run release -- ... --world' of upload hem met gh release upload."; exit 1; }
-          tar xzf "$RUNNER_TEMP/gde-world/gde-world.tgz" -C "$RUNNER_TEMP/gde-world"
-          test -f "$RUNNER_TEMP/gde-world/world/index.json"
+          # tar op Windows leest "D:..." als een andere computer: eerst naar de map
+          cd "$RUNNER_TEMP/gde-world"
+          tar xzf gde-world.tgz
+          test -f world/index.json
           echo "GDE_PREBUILT_WORLD=$(cygpath -w "$RUNNER_TEMP/gde-world/world")" >> "$GITHUB_ENV"
 
       - name: npm ci
