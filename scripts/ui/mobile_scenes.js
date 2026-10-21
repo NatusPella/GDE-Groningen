@@ -11,7 +11,7 @@ for (let i = 0; i < 40 && !document.body.classList.contains('game-started'); i++
   // the 'Wat is er nieuw' panel opens on a new version: close it first
   const news = document.querySelector('#start-screen .ss-news-close');
   if (news && news.getBoundingClientRect().width > 0) { keyAll('keydown', 'Escape', 'Escape'); keyAll('keyup', 'Escape', 'Escape'); await sleep(800); }
-  if (!startShot && document.querySelector('#start-screen [data-act="new"]')) {
+  if (!startShot && document.querySelector('#start-screen [data-act="solo"]')) {
     startShot = true;
     await sleep(3000);
     const W = innerWidth, H = innerHeight;
@@ -20,9 +20,10 @@ for (let i = 0; i < 40 && !document.body.classList.contains('game-started'); i++
     console.log('[capture] startscherm');
     await sleep(900);
   }
-  // a tap on 'Nieuw spel' (the menu can lie below the fold on a short screen; the click works anyway)
-  const nieuw = document.querySelector('#start-screen [data-act="new"]');
-  if (nieuw) nieuw.click(); else { keyAll('keydown', 'Enter', 'Enter'); keyAll('keyup', 'Enter', 'Enter'); }
+  // a tap on 'Alleen spelen', then on 'Nieuw spel' (the menu can lie below the fold on a short screen; the click works anyway)
+  const solo = document.querySelector('#start-screen [data-act="solo"]');
+  const nieuw = document.querySelector('#saveslots [data-do="new"], #saveslots [data-do="new-ask"]');
+  if (nieuw) nieuw.click(); else if (solo) solo.click(); else { keyAll('keydown', 'Enter', 'Enter'); keyAll('keyup', 'Enter', 'Enter'); }
   await sleep(2500);
   for (let k = 0; k < 6 && window.__debug && window.__debug.world.paused; k++) {
     for (const t of [window, document]) { t.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', code: 'Space', bubbles: true })); t.dispatchEvent(new KeyboardEvent('keyup', { key: ' ', code: 'Space', bubbles: true })); }
