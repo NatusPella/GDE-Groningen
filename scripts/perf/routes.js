@@ -770,6 +770,11 @@ results.routes.startup = await safe('startup', async () => {
 results.routes.shadowtris = await safe('shadowtris', async () => {
   if (!ONLY.includes('shadowtris')) return null;
   const spots = [['markt', FOOT[0][0], FOOT[0][1], 0.3], ['straat', FOOT[3][0], FOOT[3][1], 1.9], ['gracht2', FOOT[4][0], FOOT[4][1], 2.6]];
+  const variants = (window.__perfAbFor && window.__perfAbFor.shadowtris) || [['', []]];
+  const outAll = {};
+  for (const [vname, voff] of variants) {
+  window.__perfOffDyn = new Set(voff.filter((o) => o !== 'settle'));
+  if (voff.length) await sleep(12000);
   const out = {};
   const triOf = (o, g) => {
     if (o.isBatchedMesh) { let n = 0; for (let i = 0; i < o._multiDrawCount; i++) n += o._multiDrawCounts[i]; return n / 3; }
@@ -782,17 +787,20 @@ results.routes.shadowtris = await safe('shadowtris', async () => {
     await sleep(window.__perfSettle || 12000);
     { const builds = () => { const b = sc.batches(); return Object.values(b).reduce((q, e) => q + (e.builds || 0) + (e.dropped || 0), 0); }; let last = builds(), still = 0; for (let i = 0; i < 80 && still < 6; i++) { await sleep(500); const n = builds(); still = n === last ? still + 1 : 0; last = n; } }
     fixWorld(); await sleep(1500);
-    let inSh = false, draws = 0, tris = 0, frames = 0; const owners = new Map();
+    let inSh = false, draws = 0, tris = 0, frames = 0; const owners = new Map(); const big = new Map();
     const smR = r.shadowMap.render.bind(r.shadowMap);
     r.shadowMap.render = (...a) => { inSh = true; frames++; try { smR(...a); } finally { inSh = false; } };
     const rbd = r.renderBufferDirect;
-    r.renderBufferDirect = function (camera, scene2, geometry, material, object, group) { if (inSh) { const t = triOf(object, geometry); draws++; tris += t; const k = (window.__ownerOf ? window.__ownerOf(object) : object.type).replace(/ (Buffer|Extrude|Box|Cylinder|Plane|Circle|Sphere|Shape)[^ ]*.*$/, '').slice(0, 50); const e = owners.get(k) || [0, 0]; e[0]++; e[1] += t; owners.set(k, e); } return rbd.call(r, camera, scene2, geometry, material, object, group); };
+    r.renderBufferDirect = function (camera, scene2, geometry, material, object, group) { if (inSh) { const t = triOf(object, geometry); draws++; tris += t; const k = (window.__ownerOf ? window.__ownerOf(object) : object.type).replace(/ (Buffer|Extrude|Box|Cylinder|Plane|Circle|Sphere|Shape)[^ ]*.*$/, '').slice(0, 50); const e = owners.get(k) || [0, 0]; e[0]++; e[1] += t; owners.set(k, e); const bs = geometry.boundingSphere || (geometry.computeBoundingSphere(), geometry.boundingSphere); const rad = object.isBatchedMesh ? 9999 : Math.round(bs ? bs.radius * Math.max(object.scale.x, 1) : 0); const bk = k + '|' + (object.castShadow ? 'c' : 'n') + '|' + (object.parent && object.parent.name || ''); const e2 = big.get(bk) || [0, 0, 0]; e2[0]++; e2[1] += t; e2[2] = Math.max(e2[2], rad); big.set(bk, e2); } return rbd.call(r, camera, scene2, geometry, material, object, group); };
     const sm = r.shadowMap.autoUpdate; r.shadowMap.autoUpdate = true; r.shadowMap.needsUpdate = true;
     await new Promise((res) => { const f = () => { if (frames >= 30) res(); else requestAnimationFrame(f); }; requestAnimationFrame(f); });
     r.renderBufferDirect = rbd; r.shadowMap.render = smR; r.shadowMap.autoUpdate = sm;
-    out[name] = { frames, draws: +(draws / frames).toFixed(1), tris: Math.round(tris / frames), owners: [...owners].sort((a, b) => b[1][1] - a[1][1]).slice(0, 14).map(([k, v]) => [k, +(v[0] / frames).toFixed(1), Math.round(v[1] / frames)]) };
+    out[name] = { frames, draws: +(draws / frames).toFixed(1), tris: Math.round(tris / frames), biggest: [...big].sort((a, c) => c[1][2] - a[1][2]).slice(0, 10).map(([k, v]) => [k, +(v[0] / frames).toFixed(1), Math.round(v[1] / frames), v[2]]), owners: [...owners].sort((a, b) => b[1][1] - a[1][1]).slice(0, 14).map(([k, v]) => [k, +(v[0] / frames).toFixed(1), Math.round(v[1] / frames)]) };
   }
-  return out;
+  outAll[vname || 'basis'] = out;
+  }
+  window.__perfOffDyn = undefined;
+  return outAll;
 });
 // the sun's shadow map itself (only with PERF_ONLY=shadowmap): at fixed spots a forced shadow pass, the map read back and reduced to a 16 x 16 grid of how much of each
 // block holds a caster (a texel that is not the cleared white); the grids of two builds can be compared block by block (a lost caster shows as a block that is emptier)
