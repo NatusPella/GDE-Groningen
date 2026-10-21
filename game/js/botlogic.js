@@ -245,7 +245,9 @@ export function decide(s, mem = {}) {
   }
   // on foot: a vehicle close by is worth it for a long way
   if (t.distance > 140 && !onFootOnly && (mem.boardTries || 0) < 3) {
-    const v = (s.nearby && s.nearby.vehicles || []).find((c) => c.free && c.drivable && !c.occupied && c.distance < 60);
+    // 60 m round us for a trip of a few hundred metres, a walk of 250 m for a trip of kilometres (the bot walked 33 km to M13 on foot)
+    const reach = t.distance > 1500 ? 250 : 60;
+    const v = (s.nearby && s.nearby.vehicles || []).find((c) => c.free && c.drivable && !c.occupied && c.distance < reach);
     if (v) return { type: 'enter', vehicle: v };
   }
   return { type: 'goto', mode: 'walk' };
