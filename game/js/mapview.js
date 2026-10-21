@@ -1103,6 +1103,9 @@ function drawDynamicMarkers(ctx, world) {
     icon(null, missionMapKind(m.index, m.phase === 'active'), m.marker.x, m.marker.y,
       m.label || 'Missie', {}, m.phase === 'active' ? 'Missiedoel' : 'Missie starten', m.phase === 'active' ? null : { todo: 'm:' + m.index });
   }
+  // samen spelen: het doel van de opdracht van de gastheer staat ook op de kaart van een gast (#368)
+  const gastDoel = world.coopRole === 'client' && !showMission && world.coopHost && world.coopHost.doelen && world.coopHost.doelen[0];
+  if (gastDoel) icon(null, missionMapKind(-1, true), gastDoel.x, gastDoel.y, (world.coopHostMissie && world.coopHostMissie.label) || 'Opdracht', {}, 'Missiedoel van ' + (((world.coopRoster || []).find((r) => r.slot === 0) || {}).naam || 'de ander'));
   // the story's step stays on the map while a goal of your own waits it out
   const sg = world.storyGuide;
   if (sg && !world.storyFreePlay && !(showMission && Math.hypot(m.marker.x - sg.x, m.marker.y - sg.y) < 4) && !(sg.buy && storyTargetShop(world))) {
@@ -1213,6 +1216,7 @@ function drawDynamicMarkers(ctx, world) {
   icon(null, 'player', world.player.x, world.player.y, 'Jij', { angle: world.player.angle });
   // medespelers (samen spelen, #95): eigen kleur en vorm, naam en status bij de aanwijzer
   for (const p of world.coopPartners || []) if (p.zichtbaar) icon(null, 'partner', p.x, p.y, p.naam, { angle: p.heading, kleur: p.kleur, vorm: p.vorm }, p.tekst);
+  for (const m of world.coopPingMarks || []) icon(null, 'partner', m.x, m.y, m.naam ? `${m.naam}: ${m.tekst}` : m.tekst, { angle: 0, kleur: m.kleur, vorm: m.vorm }, 'roep');
   for (const q of placeIcons(queue, iconGapPx(sc))) {
     drawMapIconHalo(ctx, q.kind, q.sx, q.sy, sc);
     drawMapIcon(ctx, q.kind, q.sx, q.sy, sc, { t, alpha: mapIconAlpha(q.kind, z), ...q.opts });

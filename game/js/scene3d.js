@@ -2739,7 +2739,7 @@ export function update3D(dt, world) {
       playerMesh.userData.shadow.visible = false;
     }
   } else {
-    playerMesh.visible = !hidePlayers && scopeBlend < 0.6;
+    playerMesh.visible = !hidePlayers && scopeBlend < 0.6 && !world.coopInVoertuig; // een gast die meerijdt zit in het blok (#372)
     if (!driveRagdoll(player, playerMesh, world, animDt)) {
       playerMesh.userData.shadow.visible = !player.swimming;
       playerMesh.rotation.x = 0;
@@ -2798,7 +2798,7 @@ export function update3D(dt, world) {
       placeSeated(companionMesh, vehicleMeshes.get(cv.id), cv, vehicleSeat(cv, false), world.time);
       if (companionMesh.userData.shadow) companionMesh.userData.shadow.visible = false;
     } else {
-      companionMesh.visible = !hidePlayers;
+      companionMesh.visible = !hidePlayers && !comp.coopVoertuig; // samen spelen: de gastheer in een voertuig is bij een gast een blok (#372)
       if (!driveRagdoll(comp, companionMesh, world, animDt)) {
         companionMesh.position.set(comp.x, (comp.gz || 0) + (comp.z || 0), comp.y);
         companionMesh.rotation.x = 0;

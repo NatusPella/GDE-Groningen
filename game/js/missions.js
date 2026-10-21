@@ -1399,6 +1399,8 @@ function succeed(world, def) {
   const reason = def.type === 'boat' ? rondvaartOutro() : def.outro || def.label;
   noteMoney('Missies');
   world.money += reward;
+  if (world.coopDeel) world.coopDeel(reward); // samen spelen (#365): de gasten krijgen hun deel
+  if (world.coopUitslag) world.coopUitslag(true, def.label, '', reward); // en horen dat het gelukt is (#371)
   world.stats.missionsDone++;
   world.addMessage(`${def.label} geklaard! ${replay ? 'Klusloon ' : ''}+€${base}${tip ? ` en €${tip} fooi` : ''}${adj.text}${cons.text}`, 4);
   const stats = runStats(world, def);
@@ -1435,7 +1437,7 @@ export function payMedalBonus(world, i, medal) {
   if (medal <= from) return 0;
   const bonus = medalBonus(d.reward, from, medal);
   chain.medalPaid[i] = medal;
-  if (bonus > 0) { noteMoney('Missies'); world.money += bonus; }
+  if (bonus > 0) { noteMoney('Missies'); world.money += bonus; if (world.coopDeel) world.coopDeel(bonus); }
   return bonus;
 }
 
@@ -1462,6 +1464,7 @@ function fail(world, def, reason) {
   const pretty = reason ? reason[0].toUpperCase() + reason.slice(1) : def.label;
   const i = chain.index;
   playStoryFail(world, i, { reason: pretty, stats: runStats(world, def) });
+  if (world.coopUitslag) world.coopUitslag(false, def.label, pretty); // samen spelen (#371): de gasten horen het
   endInFailure(world, `${def.label} mislukt${reason ? ' — ' + reason : ''}`);
   hooks.failed(world, i);
 }
