@@ -1,6 +1,6 @@
 # Speeltest: GDE Groningen – Zomer vol misdaad
 
-Voor mensen die de game nog niet kennen. Speel ongeveer 45 tot 60 minuten, het liefst vanaf **Nieuw spel**, en vul daarna deze vragen in. Eerlijk zijn mag, "kon minder" ook. 😉
+Voor mensen die de game nog niet kennen. Speel ongeveer 45 tot 60 minuten, het liefst vanaf **Alleen spelen › Nieuw spel**, en vul daarna deze vragen in. Eerlijk zijn mag, "kon minder" ook. 😉
 
 **Voor de begeleider**
 - Leg niets uit. Kijk mee zonder te helpen, en schrijf op waar iemand vastloopt of twijfelt.
