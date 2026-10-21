@@ -660,6 +660,49 @@ results.routes.glcalls = await safe('glcalls', async () => {
   window.__perfOffDyn = undefined;
   return outAll;
 });
+// what one GL call costs the main thread (only with PERF_ONLY=glbench): ns per call of the calls three makes per draw, on a scratch canvas with the same flags as the game's
+results.routes.glbench = await safe('glbench', async () => {
+  if (!ONLY.includes('glbench')) return null;
+  const cv = document.createElement('canvas'); cv.width = cv.height = 64;
+  const g = cv.getContext('webgl2', { antialias: false, powerPreference: 'high-performance' });
+  const vs = g.createShader(g.VERTEX_SHADER); g.shaderSource(vs, '#version 300 es\nin vec3 p; uniform mat4 m; uniform mat3 n; uniform vec3 c; uniform float f; void main(){ gl_Position = m * vec4(p + c * f + n[0], 1.0); }'); g.compileShader(vs);
+  const fs2 = g.createShader(g.FRAGMENT_SHADER); g.shaderSource(fs2, '#version 300 es\nprecision mediump float; out vec4 o; void main(){ o = vec4(1.0); }'); g.compileShader(fs2);
+  const pr = g.createProgram(); g.attachShader(pr, vs); g.attachShader(pr, fs2); g.linkProgram(pr); g.useProgram(pr);
+  const vao = g.createVertexArray(); g.bindVertexArray(vao);
+  const vb = g.createBuffer(); g.bindBuffer(g.ARRAY_BUFFER, vb); g.bufferData(g.ARRAY_BUFFER, new Float32Array(9 * 64), g.DYNAMIC_DRAW); g.enableVertexAttribArray(0); g.vertexAttribPointer(0, 3, g.FLOAT, false, 0, 0);
+  const ib = g.createBuffer(); g.bindBuffer(g.ELEMENT_ARRAY_BUFFER, ib); g.bufferData(g.ELEMENT_ARRAY_BUFFER, new Uint32Array(3 * 64).map((_, i) => i % 3), g.DYNAMIC_DRAW);
+  const vao2 = g.createVertexArray();
+  const M = new Float32Array(16), N = new Float32Array(9);
+  const loc = (n) => g.getUniformLocation(pr, n);
+  const md = g.getExtension('WEBGL_multi_draw');
+  const starts = new Int32Array(40), counts = new Int32Array(40).fill(3);
+  const tex = g.createTexture();
+  const tests = {
+    uniformMatrix4fv: () => g.uniformMatrix4fv(loc('m'), false, M),
+    uniformMatrix3fv: () => g.uniformMatrix3fv(loc('n'), false, N),
+    uniform3f: () => g.uniform3f(loc('c'), 1, 2, 3),
+    uniform1f: () => g.uniform1f(loc('f'), 1),
+    getUniformLocation: () => loc('m'),
+    bindVertexArray: (i) => g.bindVertexArray(i & 1 ? vao : vao2),
+    bindTexture: (i) => g.bindTexture(g.TEXTURE_2D, i & 1 ? tex : null),
+    activeTexture: (i) => g.activeTexture(g.TEXTURE0 + (i & 3)),
+    useProgram: (i) => g.useProgram(i & 1 ? pr : null),
+    drawElements: () => g.drawElements(g.TRIANGLES, 3, g.UNSIGNED_INT, 0),
+    multiDraw40: () => md && md.multiDrawElementsWEBGL(g.TRIANGLES, counts, 0, g.UNSIGNED_INT, starts, 0, 40),
+    bufferSubData: () => g.bufferSubData(g.ELEMENT_ARRAY_BUFFER, 0, new Uint32Array(3)),
+    disable_enable: (i) => (i & 1 ? g.enable(g.BLEND) : g.disable(g.BLEND)),
+  };
+  const out = {};
+  for (const [name, fn] of Object.entries(tests)) {
+    for (let i = 0; i < 2000; i++) fn(i);
+    g.finish();
+    const best = [];
+    for (let rep = 0; rep < 5; rep++) { const N2 = 4000; const t0 = performance.now(); for (let i = 0; i < N2; i++) fn(i); const t1 = performance.now(); best.push((t1 - t0) * 1e6 / N2); g.finish(); }
+    best.sort((a, b) => a - b);
+    out[name] = { minNs: Math.round(best[0]), medNs: Math.round(best[2]) };
+  }
+  return out;
+});
 // A/B inside one run (only with PERF_ONLY=ab): window.__perfAb = [[name, [perfoff steps...]], ...] (PERF_AB='aan=;uit=actoren+schaduw'); the variants take
 // turns in short windows (window.__perfAbWin ms, window.__perfAbRounds rounds, the order swaps every round), so they feel the same load.
 // Every window is a perf-mark pair 'ab:<name>:<round>' for the thread sampler of run.mjs; PERF_AB_MOVE=1 walks (3 m/s) instead of standing.

@@ -52,6 +52,7 @@ class DrawPool extends THREE.BatchedMesh {
     this.firsts = new Int32Array(SLOT0);
     this.counts = new Int32Array(SLOT0);
     this.freeSlots = [];
+    this.handles = []; // by slot: the live handle, for compact()
     this.slotTop = 0;
     this.live = 0;
     this._multiDrawStarts = new Int32Array(SLOT0);
@@ -80,7 +81,31 @@ class DrawPool extends THREE.BatchedMesh {
     if (old) old.dispose();
   }
 
+  // Pieces come and go as the player moves; when the free space of a buffer is there but in bits (not one run that fits), the live pieces are packed
+  // to the front instead of growing the buffer (a long walk through the province would otherwise only ever make it bigger).
+  compact() {
+    const live = this.handles.filter(Boolean).sort((a, b) => a.v0 - b.v0);
+    this.vAlloc = new RangeAllocator(this.vAlloc.capacity);
+    this.iAlloc = new RangeAllocator(this.iAlloc.capacity);
+    const arrays = this.layout.map((l) => new l.ctor(this.vAlloc.capacity * l.size));
+    const index = new Uint32Array(this.iAlloc.capacity);
+    for (const h of live) {
+      const v0 = this.vAlloc.alloc(h.nV), i0 = this.iAlloc.alloc(h.nI);
+      this.layout.forEach((l, i) => arrays[i].set(this.arrays[i].subarray(h.v0 * l.size, (h.v0 + h.nV) * l.size), v0 * l.size));
+      const d = v0 - h.v0;
+      for (let k = 0; k < h.nI; k++) index[i0 + k] = this.index[h.i0 + k] + d;
+      h.v0 = v0; h.i0 = i0;
+      this.firsts[h.slot] = i0;
+    }
+    this.arrays = arrays;
+    this.index = index;
+    this.rebuildGeometry();
+    this.compacted = (this.compacted || 0) + 1;
+  }
+
   ensure(nV, nI) {
+    const fragmented = (alloc, need) => alloc.largest() < need && alloc.capacity - alloc.used >= need * 1.5 && alloc.used < alloc.capacity * 0.6;
+    if (fragmented(this.vAlloc, nV) || fragmented(this.iAlloc, nI)) this.compact();
     let grew = false;
     if (this.vAlloc.largest() < nV) {
       const cap = Math.max(this.vAlloc.capacity * 2, this.vAlloc.capacity + nV);
@@ -136,13 +161,18 @@ class DrawPool extends THREE.BatchedMesh {
     this.counts[slot] = nI;
     this.live++;
     this.visible = true;
-    return { pool: this, slot, v0, nV, i0, nI, r: bs.radius };
+    const h = { pool: this, slot, v0, nV, i0, nI, r: bs.radius };
+    this.handles[slot] = h;
+    return h;
   }
 
   remove(h) {
+    if (h.slot < 0) return;
+    this.handles[h.slot] = null;
     this.spheres[h.slot * 4 + 3] = -1;
     this.counts[h.slot] = 0;
     this.freeSlots.push(h.slot);
+    h.slot = -1;
     this.vAlloc.release(h.v0, h.nV);
     this.iAlloc.release(h.i0, h.nI);
     this.live--;
@@ -151,6 +181,7 @@ class DrawPool extends THREE.BatchedMesh {
 
   // a cell that is out of the distance sits the pass out (radius -1 is what a free slot has)
   setVisible(h, on) {
+    if (h.slot < 0) return;
     this.spheres[h.slot * 4 + 3] = on ? h.r : -1;
   }
 
@@ -186,7 +217,7 @@ function copyOf(mat) {
 
 const layoutSig = (g) => Object.keys(g.attributes).sort().map((k) => {
   const a = g.attributes[k];
-  return `${k}${a.itemSize}${a.array.constructor.name[0]}${a.normalized ? 'n' : ''}`;
+  return `${k}${a.itemSize}${a.array.constructor.name}${a.normalized ? 'n' : ''}`;
 }).join(',');
 
 export function createDrawHub(name) {
