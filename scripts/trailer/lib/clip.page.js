@@ -151,11 +151,20 @@ function sceneSig() {
 }
 
 // zet de wereld één beeld verder (1/60 s) en wacht tot alle streaming klaar is; dan is het beeld klaar voor opname
+// De doelmarkeringen van het spel (zuil, ring en pictogram, userData.wm) horen niet in een trailer: de camera vliegt er anders dwars doorheen.
+function hideMarkers() {
+  const sc = window.__scene3d;
+  if (!sc || !sc.scene) return;
+  // het spel zet visible zelf elk beeld weer aan (in dezelfde aanroep als het tekenen): daarom blijft de eigenschap vast op false
+  sc.scene.traverse((o) => { if (o.userData && o.userData.wm && !o.userData.clipHidden) { o.userData.clipHidden = true; Object.defineProperty(o, 'visible', { get: () => false, set: () => {}, configurable: true }); } });
+}
+
 async function advance({ capture = true, dtMs = STEP_MS } = {}) {
   applyPins();
   applyCam();
   world.cinematicHideNav = true; // geen routelijn of doelbaken in beeld
   runCallbacks(dtMs);
+  hideMarkers();
   await present();
   let n = 0;
   let p = pending();
@@ -299,6 +308,7 @@ async function press(key, frames = 2) {
 }
 // alle schermen van het spel dicht (pauzemenu, opgeslagen spellen, kaart, winkel): de wereld loopt weer
 async function resetUi() {
+  if (M.cine.isCinematicActive && M.cine.isCinematicActive()) M.cine.skipAllCinematics(); // een filmpje dat net begon pauzeert het spel
   const pm = await import('/js/pausemenu.js');
   const ss = await import('/js/saveslotsui.js');
   for (let i = 0; i < 4; i++) {
@@ -363,7 +373,19 @@ function route(a, b, kind = 'drive', opts = {}) {
 
 // Haalt verkeer en voetgangers uit de rijstrook vooruit, waar ze nog ver weg zijn (> farM m van het voertuig): zo rijdt de auto
 // niet vast achter een file en raakt hij geen voetganger (geen bloed in de trailer), en niemand verdwijnt in beeld.
+// Een stilstaand voertuig vlak voor de auto (ook een politieauto die vooruit is gespawnd) wordt weggehaald: de rit mag niet blijven steken.
+function clearBlockers(v) {
+  const ca = Math.cos(v.angle), sa = Math.sin(v.angle);
+  const before = world.vehicles.length;
+  world.vehicles = world.vehicles.filter((e) => {
+    if (e === v || e.driver === 'player') return true;
+    const dx = e.x - v.x, dy = e.y - v.y, ahead = dx * ca + dy * sa, side = -dx * sa + dy * ca;
+    return !(ahead > 1 && ahead < 22 && Math.abs(side) < 3.2 && Math.abs(e.speed || 0) < 3);
+  });
+  return before - world.vehicles.length;
+}
 function sweepAhead(path, s, v, { laneW, pedW, farM }) {
+  clearBlockers(v);
   const pts = [];
   for (let t = Math.max(12, farM - 10); t <= 150 && s + t < path.len; t += 5) pts.push(path.at(s + t));
   if (!pts.length) return 0;
@@ -689,11 +711,11 @@ async function end() {
 const png = (name) => gd.clip('png', { name });
 
 // --- spel starten ------------------------------------------------------------------------------------------
-async function skipCinematics(maxMs = 20000) {
+async function skipCinematics(maxMs = 30000, calm = 8) {
   const t0 = rt.now();
   let quiet = 0;
   // het openingsfilmpje bestaat uit drie aaneengesloten delen: pas klaar als er een tijdje niets meer speelt
-  while (rt.now() - t0 < maxMs && quiet < 8) {
+  while (rt.now() - t0 < maxMs && quiet < calm) {
     if (M.cine.isCinematicActive && M.cine.isCinematicActive()) { quiet = 0; M.cine.skipAllCinematics(); }
     else quiet++;
     await sleep(250);
@@ -702,8 +724,11 @@ async function skipCinematics(maxMs = 20000) {
 
 async function prepare() {
   await loadModules();
+  // het hoofdmenu (Alleen spelen / Samen spelen) voorbij: __menuStart is er voor opnames en QA (docs/ONTWIKKELEN.md)
+  for (let i = 0; i < 40 && !window.__menuStart && !document.body.classList.contains('game-started'); i++) await sleep(500);
+  if (window.__menuStart && !document.body.classList.contains('game-started')) window.__menuStart('nieuw');
   for (let i = 0; i < 60 && !document.body.classList.contains('game-started'); i++) await sleep(500);
-  await skipCinematics();
+  await skipCinematics(40000, 24); // het openingsfilmpje start pas een paar seconden na Nieuw spel
   await sleep(500);
   installVirtualTime();
   window.__clip = clipApi;

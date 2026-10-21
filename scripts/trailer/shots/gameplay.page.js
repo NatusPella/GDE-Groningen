@@ -88,7 +88,7 @@ shot('g00-hook', async (c) => {
 shot('s01-chase', async (c) => {
   const BAR = 4 * BEAT;
   return carRun(c, {
-    name: 's01-chase', a: [300, 120], b: [900, 300], clock: 17.2, dur: 4 * BAR, top: 17, wanted: 3, lead: 6,
+    name: 's01-chase', a: [300, 120], b: [900, 300], clock: 17.2, dur: 4 * BAR, top: 17, wanted: 3, lead: 7.6,
     rig: (v) => c.cutCam([
       [0, () => c.rig.chase(() => v, { dist: 8, height: 2.3, lag: 0.12, fov: 66 })],
       [1 * BAR, () => c.rig.chase(() => v, { dist: -9, height: 1.5, lookAhead: -6, lag: 0.1, fov: 70, lookZ: 1.0 })],
@@ -353,7 +353,7 @@ async function coopRun(c, o) {
   const inp = c.M.inp;
   const held = new Set();
   const key = (k, down) => { if (down === held.has(k)) return; if (down) held.add(k); else held.delete(k); inp.sendKey(down ? 'keydown' : 'keyup', k); };
-  await c.settle({ label: name + '-pre', frames: 40 });
+  await c.settle({ label: name + '-pre', frames: 400 }); // in coop laden de gebouwen pas na een paar seconden (pending meldt dan al 0)
   // plannen: [van, tot, toets] in seconden
   const want = (t) => new Set([...p1, ...p2].filter(([a, b]) => t >= a && t < b).map((k) => k[2]));
   const step = (t) => { const w = want(t); for (const k of [...held]) if (!w.has(k)) key(k, false); for (const k of w) key(k, true); };
