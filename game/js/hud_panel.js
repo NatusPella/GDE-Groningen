@@ -2468,6 +2468,9 @@ function drawMinimap(dt, world) {
   const partnerEdges = [];
   for (const p of world.coopPartners || []) if (p.zichtbaar && !icon('partner', p.x, p.y, { kleur: p.kleur, vorm: p.vorm, angle: p.heading + mapRotation })) partnerEdges.push({ a: edgeAngle(p.x, p.y), kleur: p.kleur });
 
+  // roepjes van de medespelers (samen spelen, #367): een ster of kruis in de kleur van wie riep
+  for (const m of world.coopPingMarks || []) if (!icon('partner', m.x, m.y, { kleur: m.kleur, vorm: m.vorm, angle: 0 })) partnerEdges.push({ a: edgeAngle(m.x, m.y), kleur: m.kleur });
+
   forEachPoliceUnit(world, (x, y, kind) => icon(kind, x, y));
   forEachCashTarget(world, (x, y) => icon('cash', x, y));
 

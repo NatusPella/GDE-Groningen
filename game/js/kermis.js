@@ -624,7 +624,7 @@ function end(w, { quit = false } = {}) {
   unlockAchievement(w, 'botsauto_klaar');
   if (medal >= 3) unlockAchievement(w, 'botsauto_goud');
   const prize = (PRIZE[medal] || 0) * (g.bonus ? 2 : 1);
-  if (prize) w.money += prize;
+  if (prize) { w.money += prize; if (w.coopDeel) w.coopDeel(prize); } // samen spelen (#365)
   const stats = [['Punten', String(g.score)], ['Botsingen', String(g.hits)], ['Langste reeks', `${g.best}`]];
   if (medal) stats.push(['Medaille', MEDALS[medal]]);
   if (rec && rec.newBest) stats.push(['Record', 'Nieuw!']);

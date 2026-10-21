@@ -1213,6 +1213,7 @@ function drawDynamicMarkers(ctx, world) {
   icon(null, 'player', world.player.x, world.player.y, 'Jij', { angle: world.player.angle });
   // medespelers (samen spelen, #95): eigen kleur en vorm, naam en status bij de aanwijzer
   for (const p of world.coopPartners || []) if (p.zichtbaar) icon(null, 'partner', p.x, p.y, p.naam, { angle: p.heading, kleur: p.kleur, vorm: p.vorm }, p.tekst);
+  for (const m of world.coopPingMarks || []) icon(null, 'partner', m.x, m.y, m.naam ? `${m.naam}: ${m.tekst}` : m.tekst, { angle: 0, kleur: m.kleur, vorm: m.vorm }, 'roep');
   for (const q of placeIcons(queue, iconGapPx(sc))) {
     drawMapIconHalo(ctx, q.kind, q.sx, q.sy, sc);
     drawMapIcon(ctx, q.kind, q.sx, q.sy, sc, { t, alpha: mapIconAlpha(q.kind, z), ...q.opts });

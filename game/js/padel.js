@@ -1041,7 +1041,7 @@ function endMatch(w, { quit = false } = {}) {
   if (win) unlockAchievement(w, 'padel_winst');
   if (medal >= 3) unlockAchievement(w, 'padel_goud');
   const prize = PRIZE[medal] || 0;
-  if (prize) w.money += prize;
+  if (prize) { w.money += prize; if (w.coopDeel) w.coopDeel(prize); } // samen spelen (#365)
   w.health = 100;
   w.padelFitUntil = w.time + (win ? FIT_WIN_S : FIT_LOSE_S);
   const stats = [['Games', `${g.games[0]}-${g.games[1]}`], ['Langste rally', `${g.bestRally} slagen`], ['Padelfit', `${Math.round((win ? FIT_WIN_S : FIT_LOSE_S) / 60)} min herstel`]];
