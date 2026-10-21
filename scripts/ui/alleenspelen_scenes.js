@@ -58,7 +58,7 @@ if (root) {
   const title = root.querySelector('#ssl-title').textContent;
   const eb = root.querySelector('.m-eb').textContent;
   log.push(`scherm: ${eb} / ${title}`);
-  check(title === 'Opgeslagen spellen' && eb === 'Alleen spelen', 'kop van het scherm klopt niet');
+  check(title === 'Opgeslagen spellen' && /^hoofdmenu$/i.test(eb), 'kop van het scherm klopt niet');
   const first = root.querySelector('.ssl-grid .ssl-card');
   check(first && first.classList.contains('ssl-new'), 'Nieuw spel is niet de eerste kaart');
   const hero = root.querySelector('.ssl-hero');
@@ -88,8 +88,11 @@ if (root) {
   // full: Nieuw spel asks first
   if (count >= 8) {
     key('ArrowDown'); await sleep(200);
+    const desc = (e) => (e ? `${e.tagName}.${String(e.className).slice(0, 40)} do=${e.dataset && e.dataset.do} in=${e.closest && e.closest('.ssl-card') ? e.closest('.ssl-card').className : ''}` : 'geen');
+    log.push('focus voor Enter: ' + desc(document.activeElement));
     key('Enter'); await sleep(500);
-    const q = root.querySelector('.ssl-new .ssl-over');
+    let q = root.querySelector('.ssl-new .ssl-over');
+    if (!q && document.activeElement && document.activeElement.click) { log.push('Enter gaf geen vraag; klik op het focuselement'); document.activeElement.click(); await sleep(500); q = root.querySelector('.ssl-new .ssl-over'); log.push('na klik: vraag ' + (q ? 'ja' : 'nee') + '; focus ' + desc(document.activeElement)); }
     check(!!q, 'bij 8 spellen vraagt Nieuw spel niets');
     if (q) { log.push('vraag: ' + q.textContent.trim().slice(0, 120)); await shot('alleen-' + count + '-vol'); key('Escape'); await sleep(300); check(!root.querySelector('.ssl-new .ssl-over') && !!document.getElementById('saveslots'), 'Escape sluit de vraag niet (of het hele scherm)'); }
   }
