@@ -81,7 +81,7 @@ export const INTERIEUREN = [];
 {
   const f = frame(258.78, -7.45, 2.7099);
   const R = (...a) => mk(f, ...a);
-  const kerk = { wall: 0xd8cdb2, floor: 0x8f8a80, ceil: 0xe9e1cc };
+  const kerk = { wall: 0xd8cdb2, floor: 0x8f8a80, ceil: 0x4a3524, balken: true };
   INTERIEUREN.push({
     id: 'martinikerk',
     match: { landmark: 'Martinikerk' },
@@ -116,7 +116,7 @@ export const INTERIEUREN = [];
   // +a runs west (the tower of the OSM data stands at the west end), the choir lies east
   const f = frame(-170.81, 340.25, -0.3293 + Math.PI);
   const R = (...a) => mk(f, ...a);
-  const kerk = { wall: 0xe0d6bd, floor: 0x96907f, ceil: 0xf0e8d4 };
+  const kerk = { wall: 0xe0d6bd, floor: 0x96907f, ceil: 0x4a3524, balken: true };
   INTERIEUREN.push({
     id: 'aakerk',
     match: { landmark: 'Der Aa-kerk', type: 'church' },
@@ -230,7 +230,7 @@ export const INTERIEUREN = [];
   // a runs along the nave (choir at -a), c across it
   const f = frame(532.64, 504.08, 4.1244);
   const R = (...a) => mk(f, ...a);
-  const kerk = { wall: 0xddd2b8, floor: 0x8c877c, ceil: 0xede5d0 };
+  const kerk = { wall: 0xddd2b8, floor: 0x8c877c, ceil: 0x4a3524, balken: true };
   INTERIEUREN.push({
     id: 'jozefkathedraal',
     match: { name: 'Sint-Jozefkathedraal' },
@@ -307,8 +307,8 @@ export const INTERIEUREN = [];
     match: { name: 'Remonstrantse Kerk' },
     show: 60,
     rooms: [
-      R('kerkzaal', -2, 4.5, 18, 12, 8, { name: 'Kerkzaal', style: { wall: 0xe9e1cc, floor: 0x9a8566, ceil: 0xf4eedd } }),
-      R('bijzaal', 8.5, 4, 5.5, 8, 4, { name: 'Bijzaal', style: { wall: 0xefe6d2, floor: 0xa9a08c, ceil: 0xf4f0e6 } }),
+      R('kerkzaal', -2, 4.5, 18, 12, 8, { name: 'Kerkzaal', style: { wall: 0xe9e1cc, floor: 0x9a8566, ceil: 0x4a3524, balken: true } }),
+      R('bijzaal', 8.5, 4, 5.5, 8, 4, { name: 'Bijzaal', style: { wall: 0xefe6d2, floor: 0xa9a08c, ceil: 0x4a3524, balken: true } }),
       R('deurZij', 0, -2.8, 3, 4.8, 3.2, { deur: true, name: 'Ingang', style: DOOR }),
       R('deurTuin', 2, 11.6, 3, 3.4, 3.2, { deur: true, name: 'Tuindeur', style: DOOR }),
     ],

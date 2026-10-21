@@ -70,7 +70,8 @@ export function applyHostState(world, me, sample, roster = null, dt = 0) {
 
 // Invoer van de gast: schermrichting (axis x rechts, y omlaag) en de eigen camerahoek,
 // zodat de host de richting in wereldruimte kan bepalen (coopglue.js).
-export function makeClientInput(axis, run, camYaw) {
+// run: rennen (bit 0); handrem: Spatie (bit 1, voor wie het stuur heeft, #291)
+export function makeClientInput(axis, run, camYaw, handrem = false) {
   const [x, y] = axis || [0, 0];
-  return { mx: x, my: y, buttons: run ? 1 : 0, yaw: Number.isFinite(camYaw) ? camYaw : 0 };
+  return { mx: x, my: y, buttons: (run ? 1 : 0) | (handrem ? 2 : 0), yaw: Number.isFinite(camYaw) ? camYaw : 0 };
 }

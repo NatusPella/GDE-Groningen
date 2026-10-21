@@ -32,7 +32,7 @@ export const BOA_CASES = [
     rule: 'Kleurenbesluit: €14 per kleur die niet bij elkaar past, plus €6 voor de hond.', terms: [{ label: 'kleuren', n: 2, unit: 14 }], flat: 6 },
   { id: 'terras', scene: 'Een terrasstoel staat vijf centimeter te ver over de lijn, en een tweede doet het ook.',
     rule: 'Terrasmaat: €7 per centimeter, plus €9 per stoel.', terms: [{ label: 'centimeters', n: 5, unit: 7 }, { label: 'stoelen', n: 2, unit: 9 }], flat: 0 },
-  { id: 'bank', scene: 'Iemand zit op een bankje dat hij zelf heeft meegenomen, en dat staat midden op het plein.',
+  { id: 'bank', scene: 'Iemand zit op een bankje dat die persoon zelf heeft meegenomen, en dat staat midden op het plein.',
     rule: 'Zitbesluit: €25 voor een eigen bankje, plus €5 per poot.', terms: [{ label: 'poten', n: 4, unit: 5 }], flat: 25 },
   { id: 'eierbal', scene: 'Een eierbal wordt ongevraagd gedeeld: drie happen aan drie vrienden.',
     rule: 'Deelbesluit: €5 per hap, plus €7 per vriend die niet had gevraagd.', terms: [{ label: 'happen', n: 3, unit: 5 }, { label: 'vrienden', n: 3, unit: 7 }], flat: 0 },
@@ -150,7 +150,7 @@ export const CABARET = {
   who: 'Ype Tjaarda',
   intro: 'Ype Tjaarda, Fries cabaretier, speelt vanavond voor een uitverkochte zaal. Jij zit op rij zeven en hebt één taak: op de maat een grapje terugroepen.',
   acts: [
-    { text: 'Goeie jûn, dames en hearen! (Goedenavond, dames en heren!)', cue: 2.6 },
+    { text: 'Goeie jûn, allegear! (Goedenavond, allemaal!)', cue: 2.6 },
     { text: 'Wat is it hjir drok. Moai, moai. (Wat is het hier druk. Mooi, mooi.)', cue: 2.4 },
     { text: 'Ik kom út Fryslân. Wy sizze net folle, mar wy sizze it goed. (Ik kom uit Friesland. Wij zeggen niet veel, maar wij zeggen het goed.)', cue: 2.8 },
     { text: 'Yn Grunn is alles in bytsje tichterby. Ek de kroegen. (In Groningen is alles een beetje dichterbij. Ook de kroegen.)', cue: 2.6 },

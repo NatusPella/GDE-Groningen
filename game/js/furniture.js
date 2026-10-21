@@ -523,7 +523,7 @@ function newsLines(w) {
   const found = eggs.filter((e) => e.found).length;
   const say = (text) => ({ speaker: 'Nieuwslezer', text, src: null, dur: 0 });
   const out = [say('Goeienavond Grunn, dit is het Kiekdoar Journaal.')];
-  out.push(say(st.missionsDone ? `De mysterieuze klusjesmannen uit Paddepoel hebben al ${st.missionsDone} klussen op hun naam.` : 'Rustig in Stad. Verdacht rustig.'));
+  out.push(say(st.missionsDone ? `De mysterieuze klussers uit Paddepoel hebben al ${st.missionsDone} klussen op hun naam.` : 'Rustig in Stad. Verdacht rustig.'));
   out.push(say(st.playerWrecks ? `Garages juichen: al ${st.playerWrecks} auto's afgeschreven in de stad.` : 'Opvallend: nog geen auto afgeschreven. Garages maken zich zorgen.'));
   if (eggs.length) out.push(say(found ? `Eierbaljager gesignaleerd: ${found} van de ${eggs.length} verstopte eierballen zijn al weg.` : `Ergens in Stad liggen ${eggs.length} eierballen verstopt. Niemand weet waar.`));
   if (st.copKills) out.push(say('De politie zoekt nog altijd getuigen. Bellen kan, maar niemand doet het.'));

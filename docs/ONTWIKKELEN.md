@@ -88,6 +88,9 @@ Newer helpers and tests worth knowing:
 | `scripts/spatialgrid_test.mjs`, `nearest_road_test.mjs` | The shared grid and the nearest-road query |
 | `scripts/mapstyle_test.mjs`, `regions_test.mjs`, `loadlogic_test.mjs` | Map style table (palettes, `INK`, icon colours, the zoom/layer rule; no loose colour literals in the map renderers), regions and load-screen logic |
 | `scripts/qa/kaartstijl_shots.mjs` | Minimap and full map, day and night, at fixed spots and zooms, for a before/after run on two staged games (`--game-dir=voor=<map>,na=<map> --slot`) |
+| `scripts/shopspots_test.mjs`, `shopsign_test.mjs`, `winkelkit_test.mjs` | Winkelgevels per echt winkeltype (`shopspots.js`), het uithangbord (`shopsign.js`) en de winkelkit |
+| `scripts/straatpraat_test.mjs`, `gebabbel_test.mjs` | Voorbijgangers die in tekstbellen praten (`straatpraat.js`) en de gesprekken per streek, dagdeel en weer |
+| `scripts/ui/shots_scenes_r39.js` | Beeldscenes voor `scripts/ui_shots.mjs --scenes=... --only=winkels,bewegen,missiekaart,bezit,bus2 [--types=supermarkt,...] [--timeout=<s>]`: winkelgevels per type, zwemmen, klimmen, springen, wheelie, de missiekaart (gezocht, duif, kart, boot), de flat met pc en Spullen, en de lijnbus met bord en HUD |
 | `scripts/simlagen_test.mjs`, `simworker_test.mjs` | Simulation layers and the simulation worker kernel |
 | `scripts/padlogic_test.mjs`, `touch_test.mjs` | Controller and touch logic without hardware |
 | `scripts/akte1_doelen_test.mjs`, `reisbeats_test.mjs`, `reisaudit_test.mjs` (elke sprong >6,5 km tussen opeenvolgende stappen heeft een reisbeat), `reiskeuze_test.mjs`, `reistijd_test.mjs` | Every act-1 mission goal exists on the map; travel beats |

@@ -156,7 +156,7 @@ export const TOWN_PROFILES = [
     streets: ['Hoofdstraat', 'Julianastraat', 'Maarsdreef', 'Buinerweg', 'Krommewijk'],
     sfeer: {
       ochtend: ['Op het kanaal ligt een dunne laag mist. Een platbodem glijdt erdoorheen zonder geluid.', 'De brugwachter zet zijn koffie neer en kijkt of er iets aankomt. Dat is er niet.'],
-      middag: ['Op de Hoofdstraat zijn de terrassen vol. Een fietsbel klinkt boven alles uit.', 'Een stuurman zwaait naar een auto. De auto zwaait terug, uit beleefdheid.'],
+      middag: ['Op de Hoofdstraat zijn de terrassen vol. Een fietsbel klinkt boven alles uit.', 'Iemand aan het roer zwaait naar een auto. De auto zwaait terug, uit beleefdheid.'],
       avond: ['Langs het kanaal gaan de lantaarns aan, één voor één, als dominostenen.', 'Een bootje met lampjes vaart langzaam voorbij. Er staat niemand aan boord.'],
     },
     props: [{ kind: 'brug', per: 2 }, { kind: 'bolder', per: 6 }, { kind: 'fietsenrek', per: 7 }, { kind: 'bank', per: 6 }],
@@ -171,7 +171,7 @@ export const TOWN_PROFILES = [
     ],
   },
   {
-    id: 'zoutkamp', name: 'Zoutkamp', at: [53.3345, 6.2985], reach: 1200, kind: 'haven',
+    id: 'zoutkamp', name: 'Zoutkamp', at: [53.33696, 6.30114], reach: 1200, kind: 'haven',
     teaser: 'Kotters, garnalen en de dijk naar het Lauwersmeer. Het ruikt hier altijd naar zout, ook in de koffie.',
     streets: ['Reitdiepskade', 'Dorpsstraat', 'Strandweg', 'Hunsingokanaal', 'Beatrixstraat'],
     sfeer: {

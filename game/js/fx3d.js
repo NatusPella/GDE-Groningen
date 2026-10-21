@@ -157,7 +157,8 @@ function skidWheel(v, i, wx, wy, halfW, intensity) {
 // --- smoke / dust / spray / exhaust (lit camera-facing puffs) ----------------------
 // Instanced quads with a standard material so puffs pick up the same sun,
 // sky and fog as everything else; the fragment fakes a sphere normal and a
-// lumpy soft edge, and per-instance opacity rides in aAlpha.
+// lumpy soft edge, and per-instance opacity rides in aAlpha. A glow puff (aGlow, firework bursts #347) ignores the
+// lights and shows its own colour, so it still reads at night.
 
 const smoke = {
   mesh: null, alphaAttr: null, alpha: null, seed: null,
@@ -169,10 +170,11 @@ function puffMaterial() {
   const mat = new THREE.MeshStandardMaterial({ roughness: 1, metalness: 0, transparent: true, depthWrite: false });
   mat.onBeforeCompile = (sh) => {
     sh.vertexShader = sh.vertexShader
-      .replace('#include <common>', '#include <common>\nattribute float aAlpha;\nattribute float aSeed;\nvarying float vAlpha;\nvarying float vSeed;\nvarying vec2 vPuff;')
-      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvAlpha = aAlpha;\nvSeed = aSeed;\nvPuff = position.xy * 2.0;');
+      .replace('#include <common>', '#include <common>\nattribute float aAlpha;\nattribute float aSeed;\nattribute float aGlow;\nvarying float vAlpha;\nvarying float vSeed;\nvarying float vGlow;\nvarying vec2 vPuff;')
+      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvAlpha = aAlpha;\nvSeed = aSeed;\nvGlow = aGlow;\nvPuff = position.xy * 2.0;');
     sh.fragmentShader = sh.fragmentShader
-      .replace('#include <common>', '#include <common>\nvarying float vAlpha;\nvarying float vSeed;\nvarying vec2 vPuff;')
+      .replace('#include <common>', '#include <common>\nvarying float vAlpha;\nvarying float vSeed;\nvarying float vGlow;\nvarying vec2 vPuff;')
+      .replace('#include <opaque_fragment>', 'if (vGlow > 0.5) outgoingLight = diffuseColor.rgb * 1.8;\n#include <opaque_fragment>')
       .replace('#include <alphamap_fragment>', `#include <alphamap_fragment>
         float pr = length(vPuff);
         float pa = vSeed * 6.2832;
@@ -192,11 +194,14 @@ function initSmoke(scene) {
   for (const k of ['x', 'y', 'z', 'vx', 'vy', 'vz', 'age', 'life', 's0', 's1', 'a0', 'drag', 'lift', 'size', 'floor']) smoke[k] = new Float32Array(n);
   smoke.alpha = new Float32Array(n);
   smoke.seed = new Float32Array(n);
+  smoke.glow = new Float32Array(n);
   const geo = new THREE.PlaneGeometry(1, 1);
   smoke.alphaAttr = new THREE.InstancedBufferAttribute(smoke.alpha, 1).setUsage(THREE.DynamicDrawUsage);
   smoke.seedAttr = new THREE.InstancedBufferAttribute(smoke.seed, 1).setUsage(THREE.DynamicDrawUsage);
   geo.setAttribute('aAlpha', smoke.alphaAttr);
   geo.setAttribute('aSeed', smoke.seedAttr);
+  smoke.glowAttr = new THREE.InstancedBufferAttribute(smoke.glow, 1).setUsage(THREE.DynamicDrawUsage);
+  geo.setAttribute('aGlow', smoke.glowAttr);
   const mesh = new THREE.InstancedMesh(geo, puffMaterial(), n);
   mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
   mesh.setColorAt(0, _c.setRGB(1, 1, 1));
@@ -211,7 +216,7 @@ function initSmoke(scene) {
 }
 
 // r,g,b 0..1 (sRGB); s0 -> s1 is the diameter over life (metres); lift is upward accel.
-function spawnSmoke(x, y, z, vx, vy, vz, life, s0, s1, r, g, b, a, drag = 1.5, lift = 0.3) {
+function spawnSmoke(x, y, z, vx, vy, vz, life, s0, s1, r, g, b, a, drag = 1.5, lift = 0.3, glow = 0) {
   const i = smoke.next;
   smoke.next = (i + 1) % SMOKE_MAX;
   smoke.x[i] = x; smoke.y[i] = y; smoke.z[i] = z;
@@ -223,13 +228,14 @@ function spawnSmoke(x, y, z, vx, vy, vz, life, s0, s1, r, g, b, a, drag = 1.5, l
   smoke.s0[i] = s0; smoke.s1[i] = s1; smoke.a0[i] = a;
   smoke.drag[i] = drag; smoke.lift[i] = lift;
   smoke.seed[i] = Math.random();
+  smoke.glow[i] = glow;
   smoke.mesh.setColorAt(i, _c.setRGB(r, g, b, THREE.SRGBColorSpace));
   smoke.colorDirty = true;
   smoke.dirty = true;
 }
 
-export function spawnFxPuff(x, y, z, vx, vy, vz, life, s0, s1, r, g, b, a, drag, lift) {
-  if (ready) spawnSmoke(x, y, z, vx, vy, vz, life, s0, s1, r, g, b, a, drag, lift);
+export function spawnFxPuff(x, y, z, vx, vy, vz, life, s0, s1, r, g, b, a, drag, lift, glow = 0) {
+  if (ready) spawnSmoke(x, y, z, vx, vy, vz, life, s0, s1, r, g, b, a, drag, lift, glow);
 }
 
 // Hot streak (bullet ricochet, grinding metal); three.js coordinates.
@@ -283,7 +289,7 @@ function updateSmoke(dt) {
   }
   mesh.instanceMatrix.needsUpdate = true;
   smoke.alphaAttr.needsUpdate = true;
-  if (smoke.colorDirty) { mesh.instanceColor.needsUpdate = true; smoke.seedAttr.needsUpdate = true; smoke.colorDirty = false; }
+  if (smoke.colorDirty) { mesh.instanceColor.needsUpdate = true; smoke.seedAttr.needsUpdate = true; smoke.glowAttr.needsUpdate = true; smoke.colorDirty = false; }
   smoke.dirty = live > 0;
 }
 

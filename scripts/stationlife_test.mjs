@@ -46,5 +46,18 @@ check('andere stations andere plekken', S.reizigerPlekken(st[0], 1)[0].x !== sp[
   check('met treinen volgt het bord de echte trein', v.bord.length >= 1 && v.bord[0].echt && v.bord[0].tijd === v.nu + 30);
   check('zonder treinen op deze lijnen terug op het rooster', !S.stationView(beta, 8.0, 3, [{ route: { name: 'X', stops: [] }, state: 'run', c: 0, dir: 1, target: 0 }], 1).bord.some((r) => r.echt));
 }
+// #339: een trein die in het echt ver weg is, zet geen willekeurige tijd op het bord
+{
+  const nu0 = 10 * 3600;
+  const ver = [{ route: A, c: 100, dir: 1, v: 18, state: 'run', target: 1, vmax: 20 }]; // 12 km op 16 m/s = 12,5 min echt = 12,5 uur spelklok
+  const v = S.stationView(beta, 10, 3, ver, 60);
+  check('verre trein (uren op de spelklok) staat niet op het bord', v.bord.every((r) => !r.echt) && v.bord.length >= 3);
+  check('bord loopt op en blijft binnen een paar uur van nu', v.bord.every((r, i) => (i === 0 || r.tijd >= v.bord[i - 1].tijd) && r.tijd - nu0 < 4 * 3600), v.bord.map((r) => r.tijd));
+  const dicht = [{ route: A, c: 12000, dir: 1, v: 0, state: 'dwell', target: 1, timer: 20, vmax: 20 }]; // staat nu op het station: vertrekt over 20 s echt = 20 min spelklok
+  const w = S.stationView(beta, 10, 3, dicht, 60);
+  check('nabije trein staat er wel op, gemengd met het rooster in tijdvolgorde', w.bord.some((r) => r.echt) && w.bord.length >= 4 && w.bord.every((r, i) => i === 0 || r.tijd >= w.bord[i - 1].tijd));
+  check('geen dubbelen tussen echte trein en rooster', new Set(w.bord.map((r) => r.lijn + r.richting + Math.round(r.tijd / 600))).size === w.bord.length);
+  check('bordCellen: vier cellen met oplopende tijden', (() => { const c = S.bordCellen(w); const ts = c.map((x) => x.t.slice(0, 5)); return c.length === 4 && ts.every((t, i) => i === 0 || t >= ts[i - 1]); })());
+}
 console.log(bad ? `${bad} van ${n} mislukt` : `stationlife_test: ${n} controles ok`);
 process.exit(bad ? 1 : 0);
