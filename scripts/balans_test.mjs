@@ -40,6 +40,15 @@ ok(out.some((o) => o.id === 'M06' && o.soort === 'krap'), 'een tijdlimiet die bi
 ok(out.some((o) => o.id === 'M07' && o.soort === 'ruim'), 'een tijdlimiet die nauwelijks gebruikt wordt valt op (ruim)');
 ok(!out.some((o) => o.id === 'M05' && o.soort === 'lang'), 'een stap met een cheat telt niet als te lang');
 
+// variatie: een stap met maar twee soorten stap (alleen rijden naar een punt) valt op, zonder doel-gebeurtenissen niet
+{
+  const e2 = [{ t: 0, type: 'step', event: 'begin', id: 'M08', label: 'x' }, { t: 1, type: 'doel', stage: 'goto', afstand: 100, veh: 'auto' }, { t: 100, type: 'doel', stage: 'goto', afstand: 300, veh: 'auto' }, { t: 101, type: 'doel', stage: 'chase', afstand: 50, veh: 'auto' }, { t: 300, type: 'step', event: 'end', id: 'M08', outcome: 'klaar' }];
+  const v = afwijkingen(stepsOf(e2));
+  ok(v.out.some((o) => o.id === 'M08' && o.soort === 'variatie'), 'twee soorten stap valt op als variatie');
+  const e3 = e2.filter((e) => e.type !== 'doel');
+  ok(!afwijkingen(stepsOf(e3)).out.some((o) => o.soort === 'variatie'), 'zonder doelgebeurtenissen geen oordeel over de variatie');
+}
+
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'balans-'));
 fs.writeFileSync(path.join(dir, 'events.jsonl'), ev.map((e) => JSON.stringify(e)).join('\n'));
 fs.writeFileSync(path.join(dir, 'result.json'), JSON.stringify({ result: 'KLAAR', gameSeconds: 1560, wallSeconds: 800 }));
