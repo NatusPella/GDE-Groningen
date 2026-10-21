@@ -8,7 +8,11 @@ const key = (k, type) => window.dispatchEvent(new KeyboardEvent(type, { key: k, 
 const tr = () => document.getElementById('trailer');
 const card = () => { const c = document.getElementById('trailer-result'); return c && !c.hidden ? c : null; };
 const start = async () => {
-  for (let i = 0; i < 20; i++) { window.dispatchEvent(new Event('gde-benchmark')); await sleep(1500); if (tr() && tr().classList.contains('on')) return true; }
+  // the title screen's listener may attach late: ask again every 8 s (as benchmark_card.page.js does), never twice in a row
+  for (let i = 0; i < 8; i++) {
+    window.dispatchEvent(new Event('gde-benchmark'));
+    for (let k = 0; k < 8; k++) { await sleep(1000); if (tr() && tr().classList.contains('on')) return true; }
+  }
   return false;
 };
 await sleep(4000);
