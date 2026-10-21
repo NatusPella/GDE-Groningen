@@ -17,6 +17,7 @@ for (let i = 0; i < 40 && !document.body.classList.contains('game-started'); i++
 const D = window.__debug; const w = D.world; const p = w.player; const map = w.map;
 const sc = window.__scene3d; const r = sc.renderer;
 const sleep = (ms) => new Promise((res) => setTimeout(res, ms));
+
 const imp = (f) => import('/js/' + f + '.js');
 const cine = await imp('cinematics');
 const VEH = await imp('vehicle');
@@ -33,6 +34,7 @@ const DUR = window.__perfDur || 20000;
 const skipper = setInterval(() => { if (cine.isCinematicActive()) cine.skipCinematic(); }, 100);
 w.devInvuln = true;
 const gpu = H.enableGpu(r.getContext());
+const allLinked = async (maxMs = 120000) => { const t = performance.now(); while (performance.now() - t < maxMs) { const pr = r.info.programs || []; if (pr.length && pr.every((q) => q.isReady())) return Math.round(performance.now() - t); await sleep(500); } return -1; };
 // a lost pointer lock opens the pause menu; the open-menu routes open it themselves
 D.input.canLock = () => false;
 // the start screen (menu, since the menus of r5) stays up over a started game: hide it so the screenshots show the game
@@ -710,13 +712,14 @@ results.routes.renderprof = await safe('renderprof', async () => {
   fixWorld(); teleport(FOOT[0][0], FOOT[0][1]); w.camYaw = 0.3; p.angle = 0.3; await sleep(window.__perfSettle || 12000);
   { const builds = () => { const b = sc.batches(); return Object.values(b).reduce((q, e) => q + (e.builds || 0) + (e.dropped || 0), 0); }; let last = builds(), still = 0; for (let i = 0; i < 80 && still < 6; i++) { await sleep(500); const n = builds(); still = n === last ? still + 1 : 0; last = n; } }
   fixWorld();
+  const linkedAfter = await allLinked();
   const gl = r.getContext();
   const ms = Math.min(15000, window.__perfDur || 12000);
   console.log('[profile] ' + ms);
   await sleep(300);
   const t0 = performance.now(); let n = 0;
   while (performance.now() - t0 < ms) { for (let i = 0; i < 10; i++) { r.render(sc.scene, sc.cam); n++; } gl.finish(); await sleep(0); }
-  return { renders: n, msPerRender: +((performance.now() - t0) / n).toFixed(2), calls: r.info.render.calls };
+  return { renders: n, msPerRender: +((performance.now() - t0) / n).toFixed(2), linkedAfter };
 });
 // how long the shader programs take to link after the game started (only with PERF_ONLY=progready): every 500 ms the number of programs of the renderer and how many are linked,
 // until all are (at most 150 s), with the standing camera in the city; a pool adds programs (the batched variant of each batch material and its depth material)
@@ -732,6 +735,23 @@ results.routes.progready = await safe('progready', async () => {
     if (ready === progs.length && progs.length > 50 && i > 12) { allAt = Math.round(performance.now() - t0); break; }
   }
   return { allAtMs: allAt, series, programs: (r.info.programs || []).length, pool: sc.batches().pool };
+});
+// the first minute and a half in the city (only with PERF_ONLY=startup): per window of 10 s the frames and, through the thread sampler, the main thread's CPU per frame
+// ('startup:<i>' marks), with the number of programs and how many are linked; shows what the compiling of shaders after the load costs (?perfoff=linkpoll: the old polling)
+results.routes.startup = await safe('startup', async () => {
+  if (!ONLY.includes('startup')) return null;
+  fixWorld(); teleport(FOOT[0][0], FOOT[0][1]); w.camYaw = 0.3; p.angle = 0.3;
+  const rows = [];
+  for (let i = 0; i < 9; i++) {
+    H.start();
+    console.error('[perf-mark] start startup:' + i + ' ' + Date.now());
+    await sleep(10000);
+    const res = H.stop();
+    console.error('[perf-mark] end startup:' + i + ' ' + Date.now() + ' ' + res.frames);
+    const pr = r.info.programs || [];
+    rows.push({ i, frames: res.frames, avg: res.avg, p95: res.p95, cpuAvg: res.cpuAvg, programs: pr.length, linked: pr.filter((q) => q.isReady()).length, calls: r.info.render.calls });
+  }
+  return { rows, pool: sc.batches().pool };
 });
 // A/B inside one run (only with PERF_ONLY=ab): window.__perfAb = [[name, [perfoff steps...]], ...] (PERF_AB='aan=;uit=actoren+schaduw'); the variants take
 // turns in short windows (window.__perfAbWin ms, window.__perfAbRounds rounds, the order swaps every round), so they feel the same load.
