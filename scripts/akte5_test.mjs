@@ -88,7 +88,8 @@ ok(fin.stages.map((q) => q.kind).join() === 'bake,hold,board,timing,timing,scene
   ok(fin.stages.filter((q) => q.kind === 'scene')[0].scriptIf.length === 3, 'M26: the street scene has a line per ally');
 }
 ok(fin.stages.find((q) => q.kind === 'chase').keep === true, 'the limo is not adopted as a mission car');
-ok(byLabel('Een luik erin').stages.filter((q) => q.mud).length === 4, 'the mud is a slalom of two stages, the drive in and the wait for the tractor');
+ok(byLabel('Een luik erin').stages.filter((q) => q.mud).length === 3, 'the mud is a slalom of three drives');
+ok(byLabel('Een luik erin').stages.some((q) => q.kind === 'timing' && q.kicker === 'Los uit de modder' && q.rounds.length === 3), 'stuck in the mud is a rocking rhythm, not a wait (#218)');
 ok(fresh.every((d) => d.heroCar), 'the new defs use the Escapade');
 
 // the finale card (story.js playFinale) is the epilogue and the studio of the script, word for word
