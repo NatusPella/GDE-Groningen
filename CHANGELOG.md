@@ -6,6 +6,9 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Verbeterd
+- **Inclusievere speltekst (alleen tekst, niet in beeld bekeken):** aanspreekvormen voor een gemengde groep, beroepen op -man en een onbekende persoon met 'hij' zijn neutraler gemaakt, en een mens wordt niet meer als aandoening uitgemaakt. De lijst en de redenen staan in docs/INCLUSIEVE-TAAL.md.
+
 ## [0.38.1] - 2026-10-21
 
 ### Opgelost
