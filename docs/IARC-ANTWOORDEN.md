@@ -72,7 +72,7 @@ iets bij komt (stemlijnen in `game/audio`) verandert dit antwoord naar "ja".
 
 ## 6. Interactie, privacy, locatie
 
-Het spel heeft (#95, nog niet in een release) een modus **Samen spelen** (peer-to-peer, tot een
+Het spel heeft sinds 0.38 (#95, #316-#318) een modus **Samen spelen** (peer-to-peer, tot een
 paar spelers, met een kamercode). Er is geen tekstchat, geen spraak, geen publieke
 lobby, geen profielen en geen uitwisseling van eigen inhoud; spelers zien elkaar
 alleen als figuren in de wereld en delen de voortgang van het verhaal.
@@ -99,6 +99,9 @@ alleen als figuren in de wereld en delen de voortgang van het verhaal.
 | Bedreigende of intimiderende inhoud | Licht | A night scene about a woman feeling unsafe (F4a, nog niet gebouwd): serieus, geen geweld in beeld; voeg dit toe als het er komt. |
 | Politieke of religieuze inhoud | Nee | Echte plaatsen en parodie-merken; zie `docs/LICENTIES.md` voor de merkenregel. |
 | Echte personen of merken | Parodie | Verzonnen namen en parodieën; geen echte personen. |
+| Geld verliezen, beroving | Ja, licht | In een paar wijken 's avonds en 's nachts snaait een dief je portemonnee: je verliest een deel van je spelgeld, niemand wordt geraakt en er is geen geweld in beeld (`muggingrules.js`). Het geld is niet te koop. Zie constitution 6 in AGENTS.md (satire, geen leed). |
+| Door AI gemaakte inhoud | Ja, vooraf gemaakt | Alle muziek en alle stemmen zijn vooraf gemaakt met Google Gemini; er zijn geen AI-aanroepen tijdens het spelen. IARC vraagt hier meestal niet naar, Steam wel (AI-melding in `docs/steam/winkelpagina.md`; de herkomst staat in `docs/LICENTIES.md` §2 en §4). |
+| Satire, humor | Ja | Een open-wereld-komedie met verzonnen bedrijven en personages; politiek en religie komen niet voor. |
 
 ## Verwacht label
 
@@ -120,7 +123,7 @@ alleen als figuren in de wereld en delen de voortgang van het verhaal.
    Console). Dat vraagt een account en e-mailadres; dat doet de eigenaar zelf.
 4. Verstuur het certificaat nooit zonder de eigenaar; deze notitie vult niets in.
 
-## Gecontroleerd tegen de code (20 okt 2026)
+## Gecontroleerd tegen de code (21 okt 2026, herhaald op `main` na 0.38.1)
 
 Zoekopdrachten in `game/js`, `game/index.html` en `game/storydata/script.json`
 (stand `main`, niets gestart of ingevuld):
@@ -129,9 +132,13 @@ Zoekopdrachten in `game/js`, `game/index.html` en `game/storydata/script.json`
   flikker, mongool, debiel): **0 treffers**;
 - drugswoorden (wiet, hasj, cocaïne, heroïne, xtc, drugs, coke, lsd, paddo): **0 treffers**
   (alleen "Wiet" in `fierljep.js` en `subtitles.js`: Fries voor "nat", een uitroep van een falende polsstokspringer; leg dit zo uit als een tekstscan erover struikelt);
-- chat, emoji, spraak, microfoon in `game/js/net/` en `game/js/coop*.js`: **0 treffers**;
+- chat, emoji, spraak, microfoon in `game/js/net/` en `game/js/coop*.js`: **0 treffers** (het veld `voice` in `coopcut.js` is de verwijzing naar een opgenomen stemlijn, geen microfoon);
 - gokken: alleen kraskaarten en loten voor spelgeld in `shops.js`/`shopmodels3d.js`;
-- alcohol: horeca, kroegmissie, dronken-effect (`drunk.js`).
+- alcohol: horeca, kroegmissie, dronken-effect (`drunk.js`);
+- wapens (`weapons.js`): vuisten, knuppel, hockeystick, bezem, fietspomp, klomp, polsstok, pistool, uzi, waterpistool (onschadelijk), shotgun, jachtgeweer, carbidbus en vuurwerk; geen nieuwe soort sinds de eerste versie van dit blad;
+- Samen spelen staat sinds 0.38.0 in de releases (CHANGELOG `[0.38.1]`); de antwoorden in §6 gelden dus voor wat spelers nu downloaden;
+- beroving: `muggingrules.js` (deel van het geld, niemand geraakt, geen geweld in beeld);
+- angst/horror: de schaapontvoering door een ufo (#333) is slapstick (een straal en een schaap dat omhoog zweeft), geen horror.
 
 Niet nagegaan: de ingesproken audio (`game/audio`) zelf; de tekst erachter is wel
 doorzocht via de scripts. De eigenaar luistert steekproefsgewijs op sterke taal

@@ -607,3 +607,25 @@ dubbelcontrole met `overlap_check.mjs`) staat in die commit.
 
 **Niet gedaan.** C1 (ontpinnen: 45 modules naar tegelqueries, `index.pins.city`, `TileWorld.fromTiles` met een dichte gid-reeks) en punt 4 (`data/ommeland_raw.json.gz`
 vervangen door extracten van de buurprovincies via `extract_province.py --near`: vraagt grote downloads van Geofabrik, niet zonder akkoord van de eigenaar).
+
+## Vervolg op #314 (21 oktober 2026, ronde 43): waarom C2 niet los te halen is, en wat er nu voor klaar staat
+
+**Waarom de proef van r32 vastliep, in vier regels.** (1) De overlaytegels zijn niet "een rand" maar het gestreamde pad voor de buitenwijken: haal je ze
+weg, dan moet de gepinde set die wijken dragen, en die groeit 38 tot 69 % (45 modules lezen hele arrays, de stadspakketten 5,4 naar 7,5 MB). (2) Het
+gestreamde pad (`addTile`) bouwt rasters die de gepinde set (`fromTiles`) niet bouwde: het perceelraster (`landUseAt`) en het heggenraster
+(`hedgeNear`), dus de hekken, het vee en de heggen van de buitenwijken vielen weg (179 percelen, 1.991 meubilairrijen). (3) `addTile` laat dubbele
+wateren weg (#231, `waterdupes.js`); `fromTiles` niet. (4) Rails en
+verkeerslichten buiten de oude kaartrand (`meta.bounds`) vielen weg (78,6 naar 49 km spoor). Punt 2 is een gemeten kloof: `fromTiles` met percelen en
+heggen in de tegels gaf `landUseAt` en `hedgeNear` niets terug (3 van 6 controles van de nieuwe test mislukten).
+
+**Nu klaar.** `TileWorld.fromTiles` zet de percelen en de gemapte heggen van de gepinde tegels in dezelfde rasters als `addTile`
+(`scripts/tileworld_pinned_test.mjs`, 6/6). De stad draagt vandaag geen percelen en maar 2 heggen in de gepinde set (de overlaytegels dragen ze), dus er
+verandert nog niets in het spel; het is de voorwaarde die C2 nodig had.
+
+**Wat C2 verder nodig heeft, in volgorde.** (a) De dubbele wateren (#231) ook in `fromTiles` (`markDryRoad` doet de `GameMap`-bouw er al voor, `mapdata.js`).
+(b) Het spoor en de verkeerslichten buiten de oude kaartrand uit de tegels halen in plaats van uit `meta.bounds`. (c) Pas dan de stadsdekking gelijk aan de 54
+stadstegels zetten (`citycover.mjs`, vlag 64 en de `o`-sleutels laten vervallen; de proef staat in commit `a1312910`) en `stad_pariteit_c2.mjs` laten bewijzen dat gebouwen,
+wegen, water, groen en bomen gelijk zijn. (d) De vaste set die daarna groeit: alleen acceptabel als C1 (de lezers per tegel laten vragen) eerst de grootste
+hele-array-lezers (`passages`, `geokernels`, `scene3d`, `mapdata`, `routing`) heeft verlaten; anders wordt de laadtijd van de stad de prijs voor het weglaten van een tegelsoort.
+Het advies is dus: C1 vóór C2, en C2 pas als de pinned set weer klein is. Punt 4 van het issue (`data/ommeland_raw.json.gz` vervangen door buurprovincie-extracten) vraagt een
+grote download en wacht op akkoord van de eigenaar.

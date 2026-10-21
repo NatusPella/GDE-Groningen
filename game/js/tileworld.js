@@ -111,6 +111,14 @@ export class TileWorld extends GameMap {
       dryCrossings: info.dryCrossings, clippedWays: clipped,
     });
     map._res = res;
+    // what the streamed path (addTile) puts in its own grids too: the parcels (landUseAt) and the mapped hedges (hedgeNear) of the
+    // pinned tiles. The city's tiles carry none today (its overlay tiles stream them), but a city of tiles to the very edge (#314, C2)
+    // would lose the countryside's fences, herds and hedges at its rim without them.
+    for (const [, e] of res.parcels || []) {
+      e.obj.bounds = boundsOfObj('parcels', e.obj);
+      (map.parcelGrid || (map.parcelGrid = new SpatialGrid(64))).insert(e.obj, e.obj.bounds);
+    }
+    for (const [, e] of res.furniture || []) if (e.obj.k === 'hedge' && e.obj.pts) (map.hedgeGrid || (map.hedgeGrid = new SpatialGrid(64))).insert(e.obj, polygonBounds(e.obj.pts));
     map._gidOf = new WeakMap();
     for (const kind of Object.keys(res)) for (const [gid, e] of res[kind]) if (typeof e.obj === 'object') map._gidOf.set(e.obj, gid);
     map.terrain = terrain;

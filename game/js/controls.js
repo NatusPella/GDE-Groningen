@@ -21,6 +21,9 @@ export const KEY_ACTIONS = [
   ['f', 'Instappen (tweede toets); duif: poepen', 'actie'],
   ['k', 'Kusje', 'actie'],
   ['y', 'Samen spelen: het stuur aan je bijrijder geven of terugnemen; als bijrijder om het stuur vragen of het teruggeven', 'actie'],
+  ['7', 'Samen spelen: roepen "Kom hier" (een baken voor iedereen)', 'actie'],
+  ['8', 'Samen spelen: roepen "Help!"', 'actie'],
+  ['9', 'Samen spelen: wijzen "Kijk daar" (een stuk voor je uit)', 'actie'],
   ['q', 'Achterom kijken; skûtsje: zeil aanhalen', 'actie'],
   ['z', 'Skûtsje: zeil vieren', 'actie'],
   ['h', 'Toeteren', 'actie'],
@@ -208,6 +211,11 @@ export const PAD_MAPS = {
   foodtruck: { a: ' ', b: 'backspace', x: 'backspace', y: 'e', up: '1', right: '2', down: '3', left: '4', lb: '5', rb: '6', lt: null, rt: '@gas', ls: null, rs: null, view: 'm', start: 'escape', stick: 'move' },
   menu: { a: 'enter', b: 'escape', x: 'delete', y: ' ', lb: 'q', rb: 'e', lt: '[', rt: ']', ls: null, rs: null, up: 'arrowup', down: 'arrowdown', left: 'arrowleft', right: 'arrowright', view: 'm', start: 'escape', stick: 'nav' },
 };
+
+// Samen spelen: in een voertuig is D-pad omhoog het stuur geven, terugnemen of erom vragen (Y op het toetsenbord, #291);
+// de alarmlichten (en bij handmatig schakelen de radio) zijn dan niet op het pad te bereiken zolang er een sessie loopt.
+// Te voet: D-pad links, omlaag en rechts zijn de roepjes Kom hier (7), Help! (8) en Kijk daar (9, #367); het kusje, het overslaan van een verhaalstap en het lakmenu staan dan alleen op het toetsenbord.
+export const PAD_COOP = { vehicle: { up: 'y' }, vehicleManual: { up: 'y' }, skutsje: { up: 'y' }, foot: { left: '7', down: '8', right: '9' } };
 
 // The button for a canonical key or a mouse token in a situation, as a slot
 // name ('a', 'rt', ...) or 'lstick'/'rstick'; null when the pad has none.

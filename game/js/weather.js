@@ -210,7 +210,8 @@ function followRegionWeather(dt, world, w) {
   if (!world.weatherState) world.weatherState = createWeatherState((Math.random() * 0x7fffffff) | 0);
   const p = world.player;
   const region = p ? regionAt(p.x, p.y) : 'stad';
-  stepWeather(world.weatherState, dt, typeof world.clock === 'number' ? world.clock : 12);
+  // samen spelen (#364): een gast volgt het weer van de gastheer (coopweer.js) en stapt zijn eigen machine niet
+  if (world.coopRole !== 'client') stepWeather(world.weatherState, dt, typeof world.clock === 'number' ? world.clock : 12);
   const r = regionWeather(world.weatherState, region);
   const was = w.kind;
   const step = dt / RAMP_TIME;

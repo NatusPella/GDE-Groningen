@@ -6,6 +6,7 @@ import { markerColors } from './a11y.js';
 import { speakerHtml } from './speakers.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { buildBuildingMesh, setBuildingMap, setNightFactor } from './models3d_buildings.js';
+import { updateDiscoLamp } from './discolight.js';
 import { buildVehicleMesh, updateVehicleWheelSpin, applyFlatTire, setBusRearAngle, updatePoliceLamps, updateIndicatorLamps, syncPoliceMount, boatHullProfile, riderSeatFor, attachHelmet } from './models3d_vehicles.js';
 import {
   buildVehicleImpactSparkMesh3D, updateVehicleImpactSparkMesh3D,
@@ -1345,12 +1346,18 @@ function groupCastsShadow(c) {
 function hookShadowPass(shadowMap) {
   const run = shadowMap.render.bind(shadowMap);
   shadowMap.render = (lights, sc, camera) => {
+    // every render() call comes through here: the 16 a frame of the post chain (bloom blurs, grade; fullscreen quads without lights), the
+    // scene's own pass without shadow casters, and a frame whose shadow map is not redrawn have nothing to hide or show; three leaves them
+    // straight away. The scan of the scene's top level and the hide and show of its groups ran for each of them: 15 times a frame, 2 to 5 ms
+    // (perfoff=schaduwhaak)
+    if ((sc !== scene || !lights.length || !shadowMap.enabled || (!shadowMap.autoUpdate && !shadowMap.needsUpdate)) && !perfOff('schaduwhaak')) { run(lights, sc, camera); return; }
     // the groups cut from the main pass shadow the view too: back in for this pass
     for (let i = 0; i < culledGroups.length; i++) culledGroups[i].visible = true;
     if (perfOff('schaduwpas')) {
       try { run(lights, sc, camera); } finally { for (let i = 0; i < culledGroups.length; i++) culledGroups[i].visible = false; }
       return;
     }
+    probe.mark('3d:render:voorpas');
     const kids = scene.children;
     const groups = !perfOff('schaduwgroepen');
     for (let i = 0; i < kids.length; i++) {
@@ -1364,7 +1371,9 @@ function hookShadowPass(shadowMap) {
         c.visible = false; shadowHidden.push(c);
       }
     }
+    probe.mark('3d:render:schaduwscan');
     try { run(lights, sc, camera); } finally {
+      probe.mark('3d:render:schaduwpas');
       for (let i = 0; i < shadowHidden.length; i++) shadowHidden[i].visible = true;
       shadowHidden.length = 0;
       for (let i = 0; i < culledGroups.length; i++) culledGroups[i].visible = false;
@@ -2445,6 +2454,7 @@ export function update3D(dt, world) {
       if (v.sinking) { mesh.rotation.order = 'YZX'; mesh.position.y = v.sinking.z; mesh.rotation.z = v.sinking.pitch; mesh.rotation.x = v.sinking.roll; }
       if ((mesh.userData.roofN || 0) !== (v.roofBoxes || 0)) setRoofBoxes(mesh, v);
       if (v.indicator || mesh.userData.indLamps) updateIndicatorLamps(mesh, v, world.time);
+      if (MODS.disco || mesh.userData.disco) updateDiscoLamp(mesh, v, world.time, MODS.disco);
       if (v.isPolice || v.sirenOn || v.isAmbulance) updatePoliceLamps(mesh, world.time, v.sirenOn ? !v.wrecked : policeChasing && !v.hijacked && !v.wrecked && v.driver !== 'player', v.id);
       const driverDist = Math.abs(v.x - player.x) + Math.abs(v.y - player.y);
       ensureDriverFigure(mesh, v, driverDist, driverDeadline);
@@ -2729,7 +2739,7 @@ export function update3D(dt, world) {
       playerMesh.userData.shadow.visible = false;
     }
   } else {
-    playerMesh.visible = !hidePlayers && scopeBlend < 0.6;
+    playerMesh.visible = !hidePlayers && scopeBlend < 0.6 && !world.coopInVoertuig; // een gast die meerijdt zit in het blok (#372)
     if (!driveRagdoll(player, playerMesh, world, animDt)) {
       playerMesh.userData.shadow.visible = !player.swimming;
       playerMesh.rotation.x = 0;
@@ -2788,7 +2798,7 @@ export function update3D(dt, world) {
       placeSeated(companionMesh, vehicleMeshes.get(cv.id), cv, vehicleSeat(cv, false), world.time);
       if (companionMesh.userData.shadow) companionMesh.userData.shadow.visible = false;
     } else {
-      companionMesh.visible = !hidePlayers;
+      companionMesh.visible = !hidePlayers && !comp.coopVoertuig; // samen spelen: de gastheer in een voertuig is bij een gast een blok (#372)
       if (!driveRagdoll(comp, companionMesh, world, animDt)) {
         companionMesh.position.set(comp.x, (comp.gz || 0) + (comp.z || 0), comp.y);
         companionMesh.rotation.x = 0;
@@ -3028,9 +3038,12 @@ export function update3D(dt, world) {
   if (menuCover) menuShadowDone = true;
   if (sizeDirty) applyRenderSize();
   progSortOn = !perfOff('progsort');
+  probe.mark('3d:render:pre');
   cullOffscreenActors();
   skipHiddenMatrixWalk();
+  probe.mark('3d:render:cull');
   try { postfx.render(); } finally { restoreCulledActors(); }
+  probe.mark('3d:render:hoofdpas+post');
   compilePending();
   if (afterFrameQ.length) { const q = afterFrameQ; afterFrameQ = []; for (const f of q) { try { f(); } catch (e) { /* no picture */ } } }
   canvasFrames++;

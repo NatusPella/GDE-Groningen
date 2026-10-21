@@ -87,6 +87,7 @@ export function initCompanion(world) {
     swimTilt: 0,
     climb: null,
   };
+  world.coopMove = moveFigure; // samen spelen (#366): botsingen voor de figuren van extra spelers
   world.onRespawn.push(() => {
     const c = world.companion;
     if (c.inVehicle) { c.inVehicle.passenger = null; c.inVehicle = null; }
@@ -464,6 +465,29 @@ function moveWithCollisions(c, dt, world) {
     c.y = ny;
   }
   if (isInWater(map, c.x, c.y)) startFall(c);
+}
+
+// Samen spelen (#366): de figuur van een derde of vierde speler loopt met dezelfde botsingen als de metgezel
+// (rekwisieten, voetgangers, hekken, gebouwen) en komt niet in het water; world.coopMove wordt in initCompanion gezet.
+export function moveFigure(f, dt, world) {
+  const map = world.map;
+  if (!map) { f.x += f.vx * dt; f.y += f.vy * dt; return; }
+  if (!Number.isFinite(f.radius)) f.radius = RADIUS;
+  const steps = Math.max(1, Math.min(8, Math.ceil(Math.hypot(f.vx, f.vy) * dt / (f.radius * 0.9))));
+  const sdt = dt / steps;
+  for (let i = 0; i < steps; i++) {
+    let nx = f.x + f.vx * sdt, ny = f.y + f.vy * sdt;
+    [nx, ny] = pushOutOfProps(nx, ny, f.radius);
+    [nx, ny] = pushOutOfPeds(nx, ny, f.radius, world);
+    [nx, ny] = resolveRailings(nx, ny, f.radius, map);
+    [nx, ny] = resolveBuildingCollisions(nx, ny, f.radius, map, 0, true);
+    if (isInWater(map, nx, ny) && !isInWater(map, f.x, f.y)) {
+      if (!isInWater(map, nx, f.y)) ny = f.y;
+      else if (!isInWater(map, f.x, ny)) nx = f.x;
+      else { nx = f.x; ny = f.y; }
+    }
+    f.x = nx; f.y = ny;
+  }
 }
 
 // Rotate the desired velocity off a wall/prop straight ahead, preferring

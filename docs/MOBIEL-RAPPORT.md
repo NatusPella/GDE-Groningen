@@ -2,7 +2,7 @@
 
 Gemeten en bekeken in Electron met Chromium-apparaatemulatie (`--emulate-mobile`, touchbediening geforceerd met `--touch`), wegwerpprofiel, één Electron tegelijk. Geen echt toestel, geen echte vingers: dit is een layoutcontrole, geen speltest.
 
-Herhalen: `cd desktop && npm run stage`, dan `node scripts/mobile_shots.mjs [--devices=800x360,412x915] [--only=voet,auto,heli,overzicht]`. Het script neemt een slot uit `C:/Users/abuis/gde-locks`, schrijft beelden en `metrics-<scherm>.json` naar `%TEMP%\gde-mobile-shots` en sluit Electron na elk scherm. De scenes staan in `scripts/ui/mobile_scenes.js`: per situatie een meting (knoppen, HUD-blokken, kleine tekst, overlap) en een screenshot.
+Herhalen: `cd desktop && npm run stage`, dan `node scripts/mobile_shots.mjs [--devices=800x360,412x915] [--only=voet,auto,heli,overzicht]`. Het script neemt een slot uit `$GDE_LOCKS` (standaard `~/gde-locks`), schrijft beelden en `metrics-<scherm>.json` naar `%TEMP%\gde-mobile-shots` en sluit Electron na elk scherm. De scenes staan in `scripts/ui/mobile_scenes.js`: per situatie een meting (knoppen, HUD-blokken, kleine tekst, overlap) en een screenshot.
 
 Schermen: 360x800, 412x915, 390x844 (telefoons) en 820x1180 (tablet), elk liggend en staand. Situaties: te voet, gezocht, auto, motor, boot, helikopter, duif, trein, pauzemenu (overzicht, kaart, instellingen, besturing, telefoon, ...), startscherm. Niet bereikt in de run: de minigame-situaties (de scene zette alleen `activityGame`; de knoppen bleven die van te voet) en de winkel (geen winkel gevonden).
 

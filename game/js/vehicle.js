@@ -38,7 +38,7 @@ import { pickMotor, motorRoadAllowed, motorTarget } from './motortraffic.js';
 import { FLAGS } from './devflags.js';
 import { verkeerOpties } from './simlagen.js';
 import { SMOKE_HEALTH, kapRookt } from './vehicledamage.js';
-import { createWheelie, stepWheelie } from './bewegingrules.js';
+import { createWheelie, stepWheelie, HOP } from './bewegingrules.js';
 export { MOTORBIKE_MODELS, GEARED_MOPED_MODEL, MOPED_LEGAL_SPEED } from './motomodels.js';
 
 // every traffic model, for warming their meshes before they first spawn
@@ -219,7 +219,8 @@ export class Vehicle {
   // Pedal bike (player only): Ctrl held while pedalling lifts the front wheel (bewegingrules.js, #207).
   rideFiets(dt, throttle, top, brake = 0) {
     const w = this.wheelieState || (this.wheelieState = createWheelie());
-    stepWheelie(w, { trick: !!this.trick && !this.disabled, throttle, brake, speed: this.speed, top, dt });
+    stepWheelie(w, { trick: !!this.trick && !this.disabled, throttle, brake, speed: this.speed, top, dt, airborne: !!this.airborne });
+    if (w.hop && !this.airborne) { this.airborne = true; this.vz = HOP.vz; } // sprongetje (#207)
     this.pitch = w.pitch;
     this.wheelie = w.up;
     if (w.up) this.speed *= w.slow;

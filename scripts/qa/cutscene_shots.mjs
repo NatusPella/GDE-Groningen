@@ -1,7 +1,8 @@
 // Screenshot per shot van de geregisseerde scènes in de echte wereld (#136, #209).
 // Electron (wegwerpprofiel, één instantie, sluit af) loopt cutscene_shots.page.js een korte
 // scripted check per functie af en bewaart per check screenshots en consolefouten.
-//   node scripts/qa/cutscene_shots.mjs [--out=<map>] [--only=M01,M02] [--settle=<ms>] [--page=cutpreview_check.page.js]
+//   node scripts/qa/cutscene_shots.mjs [--out=<map>] [--only=M01,M02] [--spot=x,y,hoek] [--settle=<ms>] [--page=cutpreview_check.page.js]
+// --spot kiest de plek in de echte wereld (spelcoördinaten en kijkrichting in rad, standaard 200.8,45.4,0.3), bijvoorbeeld bij een gebouw dat de camera in de weg zit (#355).
 // Vereist `cd desktop && npm run stage`. ELECTRON_EXE=<pad> als desktop/node_modules/electron/dist ontbreekt.
 // Uitvoer: <out>/shots-<check>[-<n>].png, features.json (per check: issues, notities, meldingen), run.log.
 import fs from 'node:fs';
@@ -17,17 +18,18 @@ const OUT = path.resolve(arg('out', path.join(os.tmpdir(), 'gde-qa-cutscenes')))
 const ONLY = arg('only', '');
 const SETTLE = Number(arg('settle', 8000));
 const PROBE = arg('probe', ''); // M22.4:51.1:1300x580,400x590 = wat zit er achter die pixels
+const SPOT = arg('spot', ''); // 123.4,56.7,0.3 = x,y,hoek: de plek in de echte wereld (standaard Grote Markt)
 const DENSE = arg('dense', ''); // M02.intro:6:5 = vijf beelden verspreid over shot 6
 
 fs.mkdirSync(OUT, { recursive: true });
 // het startscherm weg (Enter zolang het zichtbaar is): op een drukke machine verschijnt het na de Enter van de harnas
 const WACHT = 'for (let i = 0; i < 240 && !(window.__debug && window.__debug.world); i++) await new Promise((r) => setTimeout(r, 500));\n'
   + `const kEnter = () => { for (const t of [window, document]) { t.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', bubbles: true })); t.dispatchEvent(new KeyboardEvent('keyup', { key: 'Enter', code: 'Enter', bubbles: true })); } };
-for (let i = 0; i < 40; i++) { const s = document.querySelector('#start-screen'); if (!s || !s.classList.contains('visible')) break; const it = [...s.querySelectorAll('.ss-item')].find((e) => /nieuw spel/i.test(e.textContent)); if (it) it.click(); else kEnter(); await new Promise((r) => setTimeout(r, 3000)); }
+for (let i = 0; i < 40; i++) { const s = document.querySelector('#start-screen'); if (!s || !s.classList.contains('visible')) break; const it = (window.__menuStart ? { click: () => window.__menuStart('nieuw') } : null); if (it) it.click(); else kEnter(); await new Promise((r) => setTimeout(r, 3000)); }
 await new Promise((r) => setTimeout(r, 4000));\n`;
 const profile = `gde-test-cs-${process.pid}`;
 const script = path.join(OUT, '_page.js');
-fs.writeFileSync(script, WACHT + `window.__cs = ${JSON.stringify({ only: ONLY.split(",").filter(Boolean), settle: SETTLE, probe: PROBE ? (([id, t, px]) => ({ id, t: Number(t), px: px.split(',').map((q) => q.split('x').map(Number)) }))(PROBE.split(':')) : undefined, dense: DENSE ? Object.fromEntries(DENSE.split(',').map((d) => { const [id, shot, n] = d.split(':'); return [id, { shot: Number(shot), n: Number(n) || 4 }]; })) : undefined })};\n` + fs.readFileSync(path.join(HERE, arg('page', 'cutscene_shots.page.js')), 'utf8'));
+fs.writeFileSync(script, WACHT + `window.__cs = ${JSON.stringify({ only: ONLY.split(",").filter(Boolean), settle: SETTLE, spot: SPOT ? (([x, y, a]) => ({ x, y, a: a || 0 }))(SPOT.split(',').map(Number)) : undefined, probe: PROBE ? (([id, t, px]) => ({ id, t: Number(t), px: px.split(',').map((q) => q.split('x').map(Number)) }))(PROBE.split(':')) : undefined, dense: DENSE ? Object.fromEntries(DENSE.split(',').map((d) => { const [id, shot, n] = d.split(':'); return [id, { shot: Number(shot), n: Number(n) || 4 }]; })) : undefined })};\n` + fs.readFileSync(path.join(HERE, arg('page', 'cutscene_shots.page.js')), 'utf8'));
 const electron = process.env.ELECTRON_EXE || path.join(ROOT, 'desktop', 'node_modules', 'electron', 'dist', process.platform === 'win32' ? 'electron.exe' : 'Electron');
 const env = { ...process.env, GDE_TEST_PROFILE: profile };
 delete env.ELECTRON_RUN_AS_NODE;

@@ -1,5 +1,5 @@
-// De flat inrichten (#206): sommige meubels van furniture.js kunnen op een andere
-// plek staan. Pure regels, geen DOM en geen THREE (scripts/inrichting_test.mjs).
+// De flat inrichten (#206, #359): sommige meubels van furniture.js (lamp, plant, kast, tv, bureau,
+// bank en bedden) kunnen op een andere plek staan. Pure regels, geen DOM en geen THREE (scripts/inrichting_test.mjs).
 //
 // Elk meubel heeft een lijstje plekken (hoeken van de flat, in het vlak van de
 // flat: x langs de gevel, z naar binnen). Twee meubels delen nooit een plek, en
@@ -31,9 +31,67 @@ export const WANDPLEKKEN = {
   b4: { label: 'Kamer van Tammo, noordmuur', x: 5.3, z: 5.55, rot: 0, solid: [4.65, 5.25, 5.95, 5.9], use: { x: 5.3, z: 6.5 } },
 };
 
+// De bank (Zitmoi): 2,6 m lang, 1,2 m diep met de rugleuning. Een standplek geeft het midden en de
+// draairichting (rot: 0 kijkt naar +z, PI naar de noordmuur, PI/2 naar +x); het blokje, het gebruikspunt
+// (waar E het zitten start), de zitplek van de speler, de plek van de ander en de plek waar je opstaat
+// rekenen we uit het midden. `kant` is het uiteinde waar je langs de bank loopt: 1 = rechts als je
+// erop kijkt (zoals de standaardplek), -1 = links.
+const rond = (v) => Math.round(v * 1e4) / 1e4;
+function bankPlek(label, x, z, rot, kant) {
+  const c = Math.cos(rot), s = Math.sin(rot);
+  const wereld = (lx, lz) => ({ x: rond(x + lx * c + lz * s), z: rond(z - lx * s + lz * c) });
+  const hoek = [wereld(-1.3, -0.6), wereld(1.3, 0.6)];
+  return {
+    label, x, z, rot, kant,
+    solid: [rond(Math.min(hoek[0].x, hoek[1].x)), rond(Math.min(hoek[0].z, hoek[1].z)), rond(Math.max(hoek[0].x, hoek[1].x)), rond(Math.max(hoek[0].z, hoek[1].z))],
+    use: wereld(-1.75 * kant, 0.2),
+    seat: wereld(-0.55 * kant, -0.03),
+    buur: wereld(0.55 * kant, -0.03),
+    sta: wereld(-1.7 * kant, 0.35),
+    kijk: { x: rond(Math.sin(rot)), z: rond(Math.cos(rot)) },
+  };
+}
+export const BANKPLEKKEN = {
+  s1: bankPlek('Midden van de woonkamer', 3.7, 3.95, Math.PI, 1),
+  s2: bankPlek('Zuidmuur van de woonkamer, bij de gang', 4.8, 4.6, Math.PI, 1),
+  s3: bankPlek('Zuidmuur van de woonkamer, bij de keuken', 6.6, 4.6, Math.PI, -1),
+  s4: bankPlek('Westmuur van de woonkamer', 0.6, 2.3, Math.PI / 2, 1),
+};
+
+// De twee bedden (Sloapstee) gaan samen: elk blijft in zijn eigen kamer (Tammo links, Tessa rechts van
+// de scheidingsmuur), alleen de kop gaat naar de zuid- of de noordmuur. 0,95 x 2,0 m, rot PI = kop
+// naar de zuidmuur. `use` is de plek naast het bed waar E het slapen start.
+function bedPlek(label, tammoZuid, tessaZuid) {
+  const bed = (x, zuid) => ({ x, z: zuid ? 7.95 : 6.25, rot: zuid ? Math.PI : 0, solid: [rond(x - 0.475), zuid ? 6.9 : 5.25, rond(x + 0.475), zuid ? 8.95 : 7.25] });
+  const t = bed(6.6, tammoZuid), s = bed(7.8, tessaZuid);
+  t.use = { x: 5.65, z: tammoZuid ? 7.3 : 6.9 };
+  s.use = { x: 8.75, z: tessaZuid ? 7.3 : 6.9 };
+  return { label, bedden: [t, s] };
+}
+export const BEDPLEKKEN = {
+  d1: bedPlek('Koppen tegen de zuidmuur', true, true),
+  d2: bedPlek('Koppen tegen de noordmuur', false, false),
+  d3: bedPlek('Tammo met de kop naar het zuiden, Tessa naar het noorden', true, false),
+  d4: bedPlek('Tammo met de kop naar het noorden, Tessa naar het zuiden', false, true),
+};
+
+// De losse blokjes van home.js (flat.solids) die bank en bedden vervangen zodra ze zijn bezorgd; die
+// vallen weg zodat het meubel op zijn nieuwe plek niet tegen een spookblokje loopt.
+export const STOCK_BLOKJES = {
+  bank: [[2.4, 3.35, 5.0, 4.55]],
+  bed: [[6.1, 6.9, 7.1, 8.95], [7.3, 6.9, 8.3, 8.95]],
+};
+export function zonderStock(solids, bezit) {
+  const weg = new Set();
+  for (const id of Object.keys(STOCK_BLOKJES)) if (bezit && bezit.has(id)) for (const b of STOCK_BLOKJES[id]) weg.add(b.join());
+  return (solids || []).filter((b) => !weg.has(b.join()));
+}
+
 // Welke meubels verplaatsbaar zijn, waarheen, en wat de standaardplek is.
 // half: halve breedte van het blokje waar je niet doorheen loopt.
 export const VERPLAATSBAAR = {
+  bank: { opties: ['s1', 's2', 's3', 's4'], standaard: 's1', bankplek: true },
+  bed: { opties: ['d1', 'd2', 'd3', 'd4'], standaard: 'd1', bedplek: true },
   lamp: { opties: ['h1', 'h2', 'h3', 'h4', 'h5'], standaard: 'h1', half: 0.22 },
   plant: { opties: ['h4', 'h1', 'h2', 'h3', 'h5'], standaard: 'h4', half: 0.32 },
   kast: { opties: ['k1', 'k2', 'k3'], standaard: 'k1', wand: true },
@@ -42,7 +100,7 @@ export const VERPLAATSBAAR = {
 };
 
 // De plek (hoek of wand) met zijn naam.
-export const plekInfo = (plek) => PLEKKEN[plek] || WANDPLEKKEN[plek] || null;
+export const plekInfo = (plek) => PLEKKEN[plek] || WANDPLEKKEN[plek] || BANKPLEKKEN[plek] || BEDPLEKKEN[plek] || null;
 
 export const isVerplaatsbaar = (id) => Object.prototype.hasOwnProperty.call(VERPLAATSBAAR, id);
 
@@ -72,7 +130,7 @@ export function plekBezet(plekken, eigen, id, plek) {
     const q = plekVan(plekken, o);
     if (q === plek) return true;
     const t = opPlek(o, q);
-    return !!(r && t && overlap(r.solid, t.solid));
+    return !!(r && t && r.solids.some((a) => t.solids.some((b) => overlap(a, b))));
   });
 }
 
@@ -96,15 +154,27 @@ export function volgendePlek(plekken, eigen, id) {
 export function opPlek(id, plek) {
   const v = VERPLAATSBAAR[id];
   if (!v) return null;
+  if (v.bankplek) {
+    const p = BANKPLEKKEN[plek], std = BANKPLEKKEN[v.standaard];
+    if (!p) return null;
+    return { x: p.x, z: p.z, rot: p.rot, dx: p.x - std.x, dz: p.z - std.z, solid: p.solid, solids: [p.solid], use: p.use, seat: p.seat, buur: p.buur, sta: p.sta, kijk: p.kijk };
+  }
+  if (v.bedplek) {
+    const p = BEDPLEKKEN[plek];
+    if (!p) return null;
+    const [t, s] = p.bedden;
+    return { x: t.x, z: t.z, rot: t.rot, dx: 0, dz: 0, solid: t.solid, solids: [t.solid, s.solid], bedden: p.bedden };
+  }
   if (v.wand) {
     const p = WANDPLEKKEN[plek], std = WANDPLEKKEN[v.standaard];
     if (!p) return null;
-    return { x: p.x, z: p.z, rot: p.rot, dx: p.x - std.x, dz: p.z - std.z, solid: p.solid, use: p.use };
+    return { x: p.x, z: p.z, rot: p.rot, dx: p.x - std.x, dz: p.z - std.z, solid: p.solid, solids: [p.solid], use: p.use };
   }
   const p = PLEKKEN[plek];
   const std = PLEKKEN[v.standaard];
   if (!p) return null;
-  return { x: p.x, z: p.z, dx: p.x - std.x, dz: p.z - std.z, solid: [p.x - v.half, p.z - v.half, p.x + v.half, p.z + v.half] };
+  const solid = [p.x - v.half, p.z - v.half, p.x + v.half, p.z + v.half];
+  return { x: p.x, z: p.z, dx: p.x - std.x, dz: p.z - std.z, solid, solids: [solid] };
 }
 
 // Elke plek ligt binnen de flat (b x d), niet op een vast blokje en niet vlak langs een muur.
@@ -112,6 +182,8 @@ export function opPlek(id, plek) {
 // geen vast blokje raakt, geen muur kruist en het gebruikspunt vrij is.
 export function plekGeldig(plek, flat) {
   if (WANDPLEKKEN[plek]) return wandGeldig(WANDPLEKKEN[plek], flat);
+  if (BANKPLEKKEN[plek]) return wandGeldig(BANKPLEKKEN[plek], flat);
+  if (BEDPLEKKEN[plek]) return BEDPLEKKEN[plek].bedden.every((b) => wandGeldig(b, flat));
   const p = PLEKKEN[plek];
   if (!p || !flat) return false;
   const m = 0.3;

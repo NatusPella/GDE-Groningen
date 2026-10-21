@@ -1,6 +1,6 @@
 import { boxOf, withTiles } from './tileplace.js';
 import { edgeDistance } from './countryfield.js';
-import { landmarkParams, kitCoversBuilding, COVER_KINDS } from './landmarkkit.js';
+import { landmarkParams, kitCoversBuilding, COVER_KINDS, wierdeOnRoad, wierdeRadius } from './landmarkkit.js';
 import { createLandmarkLayer } from './landmarklayer3d.js';
 
 // The landmark kits in today's Ommeland (LK1): the candidates from
@@ -56,6 +56,7 @@ function prepareLandmarks(items, map) {
     if (!p) continue;
     // tower to the west: the long axis pointing east
     if (Math.cos(p.angle) < 0) p.angle += Math.PI;
+    if (p.wierde && wierdeOnRoad(p, map.roadsNear(p.x, p.y, wierdeRadius(p) + 8))) p.wierde = false; // (no mound over a street, #5)
     out.push(p);
   }
   for (const m of mills) out.push(landmarkParams(m));
