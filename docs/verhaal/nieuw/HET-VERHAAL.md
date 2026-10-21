@@ -1629,7 +1629,7 @@ TESSA
 Dat is een compliment, hè.
 
 BUSCHAUFFEUR  
-Uitstappen bij de haven, jongens. Dan zie je het water.
+Uitstappen bij de haven, allemaal. Dan zie je het water.
 
 EXT. LAUWERSMEER, ZOUTKAMP - MIDDAG [M11]
 
@@ -1662,7 +1662,7 @@ TESSA
 Jij stuurt, ik zeg wanneer.
 
 KAPITEIN KLAAS  
-Praat tegen je boot, jongens. Dat helpt.
+Praat tegen je boot, mensen. Dat helpt.
 
 TAMMO  
 Hij luistert niet.
@@ -1682,7 +1682,7 @@ TESSA
 Het is een skûtsje. Dat is groter dan alles.
 
 KAPITEIN KLAAS (V.O. telefoon)  
-Niet voorbij de sluizen, jongens. Daarachter is het de Waddenzee, en daar vaar ik niet met een rubberboot.
+Niet voorbij de sluizen, mensen. Daarachter is het de Waddenzee, en daar vaar ik niet met een rubberboot.
 
 JELLE (V.O. telefoon)  
 Mevrouw. U vaart op de vaargeul van Us Mem Snacks. Daar staat een tarief op.
@@ -1737,7 +1737,7 @@ EXT. LAUWERSMEER, ZANDPLAAT - AVOND [M11]
 De avond valt. De boot loopt vast op een zandplaat. Het meer heeft geen getij, maar de wind duwt het water weg. Klaas wacht tot het weer opkomt.
 
 KAPITEIN KLAAS  
-Wij zitten vast, jongens. Dat is geen ramp. De wind duwt het water weg, over een uur komt het terug.
+Wij zitten vast, mensen. Dat is geen ramp. De wind duwt het water weg, over een uur komt het terug.
 
 TESSA  
 Een uur. Op een zandplaat.
@@ -1822,7 +1822,7 @@ TESSA
 Er komt water.
 
 KAPITEIN KLAAS (V.O. telefoon)  
-Nu terug, jongens. Het water denkt niet na.
+Nu terug, mensen. Het water denkt niet na.
 
 TESSA  
 Rennen, Tammo.
@@ -3021,7 +3021,7 @@ TESSA
 Dat zie ik ook.
 
 JELLE (V.O. telefoon)  
-Gezellige bus, jongens. Ik rij even langs.
+Gezellige bus, allemaal. Ik rij even langs.
 
 TAMMO  
 Dat was Jelle.

@@ -1,0 +1,22 @@
+{
+  "note": "Inclusieve taal (docs/INCLUSIEVE-TAAL.md). 'stil': regels zonder opname, met opzet: de tekst is aangepast en er is geen nieuwe opname gemaakt. De regel blijft als ondertitel of tekstballon staan en klinkt niet; voice_coverage en de generator slaan ze over. 'heropname': ingesproken regels die mild zijn en daarom nog klinken zoals opgenomen; bij een nieuwe opname wordt de tekst 'wordt'. Elke regel heeft een reden (why).",
+  "stil": [
+    {
+      "text": "Politie? Iemand slaat hier mensen in elkaar!",
+      "was": "Politie? Een gek slaat hier mensen in elkaar!",
+      "why": "'een gek' voor een gewelddadig mens maakt een psychische aandoening tot scheldwoord; de oude opname is niet meer in gebruik"
+    }
+  ],
+  "heropname": [
+    { "stem": "Rikus", "bron": "game/js/intromontage.js, script.json (akte 1)", "was": "Voor wie wakker ligt van de huur: ik ook, jongens.", "wordt": "Voor wie wakker ligt van de huur: ik ook, luisteraars.", "why": "de radio spreekt een gemengde groep luisteraars aan" },
+    { "stem": "Anita", "bron": "game/js/missions.js", "was": "En ik kom voor hem. Opzij, jongens.", "wordt": "En ik kom voor hem. Opzij, allemaal.", "why": "jongens als aanspreekvorm van een gemengde groep" },
+    { "stem": "Tammo", "bron": "game/js/missions.js", "was": "Kom op, jongens. Eén keer luisteren.", "wordt": "Kom op, allemaal. Eén keer luisteren.", "why": "idem" },
+    { "stem": "Tammo", "bron": "script.json (akte 3)", "was": "Moi, jongens. Lekker gebotst?", "wordt": "Moi, allemaal. Lekker gebotst?", "why": "idem" },
+    { "stem": "Kapitein Klaas", "bron": "game/js/missionstory.js, script.json (akte 2)", "was": "Jongens. Ik heb net twee reuzen uit de haven gevist.", "wordt": "Mensen. Ik heb net twee reuzen uit de haven gevist.", "why": "idem" },
+    { "stem": "Jelle Terpstra", "bron": "game/js/missions.js, subtitles.js", "was": "Jim fytse mar, jonges.", "wordt": "Jim fytse mar, allegear.", "why": "idem; de Nederlandse ondertitel wordt 'Fietsen jullie maar, allemaal.'" },
+    { "stem": "Tammo (gids)", "bron": "game/js/rondvaartlines.js", "was": "Dat was het rondje, dames en heren. / Dames en heren, aan uw rechterhand: Schipper Wiebe.", "wordt": "Dat was het rondje, beste mensen. / Beste mensen, aan uw rechterhand: Schipper Wiebe.", "why": "dames en heren sluit anderen uit; de gids blijft formeel" },
+    { "stem": "Schipper Wiebe (megafoon)", "bron": "game/js/rondvaartchase.js", "was": "Dames en heren, u zit op een gestolen boot! / Hou je vast, dames en heren!", "wordt": "Beste mensen, u zit op een gestolen boot! / Hou je vast, beste mensen!", "why": "idem" },
+    { "stem": "Tammo", "bron": "game/js/banterlines.js", "was": "Zodat iedereen kan zien dat hij niet in de bus zit.", "wordt": "Zodat iedereen kan zien dat die niet in de bus zit.", "why": "geen 'hij' voor een onbekende bestuurder" },
+    { "stem": "Rikus (nieuws, mission_up)", "bron": "game/js/radio.js, sikkomfeed.js", "was": "Mysterieuze klusjesman weer aan het werk in Groningen.", "wordt": "Mysterieuze klusser weer aan het werk in Groningen.", "why": "mannelijk als standaard" }
+  ]
+}

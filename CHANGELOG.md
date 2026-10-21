@@ -22,6 +22,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ### Hulpmiddelen
 - **Controles voor de beeldbugs (#324, #349, #117):** `hedge_audit.mjs` (de echte heginstanties tegen de wegen: bij het Prinsentuin, het Martinikerkhof, het Noorderplantsoen en de Vismarkt staat geen heg op een weg, dus #324 is niet te reproduceren), `hull_route_audit.mjs --profiel`, `cutaudio_live.mjs` (de gestuurde scènes met rijdende voertuigen echt afgespeeld met de geluidstap) en `ui/tegels_scenes.js`.
+- **Inclusievere speltekst (alleen tekst, niet in beeld bekeken):** aanspreekvormen voor een gemengde groep, beroepen op -man en een onbekende persoon met 'hij' zijn neutraler gemaakt, en een mens wordt niet meer als aandoening uitgemaakt. De lijst en de redenen staan in docs/INCLUSIEVE-TAAL.md.
 
 ## [0.38.1] - 2026-10-21
 

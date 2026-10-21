@@ -57,6 +57,20 @@ for (const k of order) {
     out.push('');
   }
 }
+// inclusieve taal (docs/INCLUSIEVE-TAAL.md): regels die bewust stil zijn of bij een heropname een nieuwe tekst krijgen
+const stilFile = path.join(REPO, 'scripts', 'voice_stil.json');
+if (fs.existsSync(stilFile)) {
+  const st = JSON.parse(fs.readFileSync(stilFile, 'utf8'));
+  out.push('## Inclusieve taal: bij een nieuwe opname');
+  out.push('');
+  out.push('Deze lijst komt uit `scripts/voice_stil.json`. Stille regels hebben bewust geen opname meer (ondertitel of tekstballon); bij de andere klinkt de oude opname nog en vervangt de nieuwe tekst hem bij de volgende opname.');
+  out.push('');
+  out.push('| Stem | Nu | Wordt | Waar | Reden |');
+  out.push('|---|---|---|---|---|');
+  for (const x of st.stil || []) out.push(`| (stil) | ${cell(x.was)} | ${cell(x.text)} | ${cell(x.bron || 'game/js/pedestrians.js')} | ${cell(x.why)} |`);
+  for (const x of st.heropname || []) out.push(`| ${cell(x.stem)} | ${cell(x.was)} | ${cell(x.wordt)} | ${cell(x.bron)} | ${cell(x.why)} |`);
+  out.push('');
+}
 const text = out.join('\n').replace(/\n+$/, '\n');
 if (process.argv.includes('--check')) {
   const cur = fs.existsSync(OUT) ? fs.readFileSync(OUT, 'utf8').replace(/\r\n/g, '\n') : '';

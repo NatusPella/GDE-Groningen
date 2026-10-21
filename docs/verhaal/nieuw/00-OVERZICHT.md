@@ -202,7 +202,7 @@ De helden winnen de finale dus niet doordat al zijn zetten vooraf zijn teruggedr
 | "Ik zeg niks." (Rikus) | M02 (de trekker in de Herestraat, BEHOUDEN) | M06: "Ik zeg niks. Ik draai drie minuten stilte." (BEHOUDEN) | slot: "…brandt 's avonds nog maar in één slaapkamer licht. Ik zeg niks." (BEHOUDEN) |
 | "Ik meld alleen." (torenwachter) | M01 (de Grote Markt, BEHOUDEN) | M24: "Iets Fries. Ik meld alleen." (BEHOUDEN, radio) | M26: "Ik meld niet alleen. Ik klap." |
 | "…Plons." | M10 (Jelle in de sloot) | M20: "…Plons." en dan "…Geen plons." | M26: Jelle in de gracht |
-| "Gezellig programma" | M07 (Jelle op de radio, BEHOUDEN) | T4: "Gezellige bus, jongens." | slot: Jelle vond het "gezellig" |
+| "Gezellig programma" | M07 (Jelle op de radio, BEHOUDEN) | T4: "Gezellige bus, allemaal." | slot: Jelle vond het "gezellig" |
 | de fietstunnel | M06 (2029, BEHOUDEN) | M07: "Dit is erger dan de fietstunnel." (BEHOUDEN) | M26: "2031. Hij is bijna klaar. Eerste friet is voor mij." (BEHOUDEN) |
 
 (Tammo's eigen recorded "Ik zeg niks. Dat is ook een antwoord." in de weigering van M02 is zijn karaktermotief, niet de radiograp, en is niet aangeraakt.)
