@@ -1,5 +1,5 @@
 // Balans en tempo per missie uit runs van de Spelbot (#147). Leest alleen events.jsonl (geen Electron):
-//   node scripts/bot/balans.mjs --out=docs/verhaal/BALANS-TEMPO.md kop=<runmap> romp=<runmap> staart=<runmap> zuid=<runmap> ontzet=<runmap>
+//   node scripts/bot/balans.mjs [--cutscenes] [--intro=<tekst.md>] --out=docs/verhaal/BALANS-TEMPO.md kop=<runmap> romp=<runmap> staart=<runmap> zuid=<runmap> ontzet=<runmap>
 // Per stap (uit de 'step'-gebeurtenissen met de meter van bot.page.js): speeltijd, echte tijd, afgelegde meters, tijd in cutscenes,
 // in gesprekken, doelwissels, de langste stilte (geen beweging, scène of nieuw doel), mislukt ('Opnieuw'), vastgezeten en cheats.
 // Daarna per akte de mediaan en het maximum en een lijst afwijkingen. De bot beoordeelt geen plezier: een lange stilte of een cheat
@@ -156,7 +156,9 @@ export function rapport(runList) {
 if (import.meta.url === `file:///${process.argv[1].replace(/\\/g, '/')}` || process.argv[1].endsWith('balans.mjs')) {
   if (runs.length) {
     const { text: t0 } = rapport(runs);
-    const text = process.argv.includes('--cutscenes') ? `${t0}\n${(await cutsceneSpreiding()).text}` : t0;
+    const body = process.argv.includes('--cutscenes') ? `${t0}\n${(await cutsceneSpreiding()).text}` : t0;
+    const intro = arg('intro');
+    const text = intro && fs.existsSync(intro) ? `${fs.readFileSync(intro, 'utf8').replace(/\s+$/, '')}\n\n${body}` : body;
     const OUT = arg('out');
     if (OUT) { fs.mkdirSync(path.dirname(path.resolve(OUT)), { recursive: true }); fs.writeFileSync(OUT, text); console.log(`geschreven: ${OUT}`); } else console.log(text);
   }
