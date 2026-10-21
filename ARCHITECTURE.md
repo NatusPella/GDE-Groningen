@@ -1194,6 +1194,12 @@ under the player (`profileoverlay.js`).
   (and the wheel instancing below). On 'laag' (or a busy CPU) the facade
   details within their radius get their own batcher (`facadeBatcher`, the
   detail mesh only); roads use 96 m cells and two roads make a batch.
+- `multidraw3d.js` + `drawpool.js` (r42, #246): the merged cells of `staticbatch3d.js` (and the tiles of `farlod.js`) are not meshes of their own any more: their geometry is copied into one big
+  buffer per material (a `THREE.BatchedMesh` with an identity matrix, so three binds the matrix texture and calls `WEBGL_multi_draw`), and the cells that show are drawn by one multi-draw
+  call per material (a frustum test per cell over typed arrays, `cullRanges`; the shadow pass uses the shadow camera's). The pool has its own copy of the material (three
+  recompiles a program every time a material switches between a batched and a plain mesh; the copy keeps the `defines` and follows the original's `envMapIntensity`, `emissiveIntensity`, ...
+  and a change of its `defines`) and its own depth material for the shadow pass; a piece is added and removed with a range allocator (`RangeAllocator`), a fragmented buffer is packed
+  (`compact`). Materials that cannot be reproduced there (alpha test, shaders, wireframe: `poolable`) stay separate meshes. `?perfoff=pool` switches it off. Measured gain: `docs/PERF-METING-2026-10-19.md` Vervolg 9.
 - `wheelinstances3d.js`: vehicle wheels keep their own meshes (spin, steer,
   skid marks) on a hidden layer; one InstancedMesh per wheel geometry and
   material draws those of the vehicles in (or near) the view each frame.

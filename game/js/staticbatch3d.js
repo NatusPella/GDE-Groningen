@@ -244,7 +244,7 @@ const standInMatrices = new THREE.DataTexture(new Float32Array(16 * 4), 4, 4, TH
 function makeGroup(B, job) {
   const group = new THREE.Group();
   group.name = B.name;
-  if (job.pooled === undefined) job.pooled = !perfOff('pool');
+  if (job.pooled === undefined) job.pooled = B.pool && !perfOff('pool');
   for (const { geo, bk } of job.geos) {
     const pooled = job.pooled && poolable(bk.mat);
     const mesh = new THREE.Mesh(geo, pooled ? drawHub.materialFor(bk.mat) : bk.mat);
@@ -307,7 +307,7 @@ function finishJob(B) {
 // margin), how many newcomers redo a merged cell (default 3), and the
 // item's distance (default: from its bounds' centre).
 function createStaticBatcher(opts) {
-  const B = { name: opts.name, bake: !!opts.bake, cells: new Map(), job: null, frame: 0, root: null, stats: { cells: 0, merged: 0, builds: 0, dropped: 0, ms: 0, frames: 0 } };
+  const B = { name: opts.name, bake: !!opts.bake, pool: opts.pool !== false, cells: new Map(), job: null, frame: 0, root: null, stats: { cells: 0, merged: 0, builds: 0, dropped: 0, ms: 0, frames: 0 } };
   const cell = opts.cell || CELL, minMembers = opts.minMembers || MIN_MEMBERS;
   const memberOk = (m, ctx, dist) => ctx.meshes.get(m.b) === m.mesh && !(ctx.hidden && ctx.hidden.has(m.b)) && m.mesh.parent && verOf(m.parts) === m.ver && opts.valid(m.b, m.mesh, ctx, dist);
 
@@ -329,7 +329,7 @@ function createStaticBatcher(opts) {
     const dist = opts.dist ? (b) => opts.dist(b, px, py) : (b) => { const [x, y] = centreOf(b); return Math.hypot(x - px, y - py); };
     for (const c of B.cells.values()) {
       if (!c.group) continue;
-      let bad = c.withDetail !== ctx.withDetail || !!c.group.pooled === perfOff('pool');
+      let bad = c.withDetail !== ctx.withDetail || !!c.group.pooled !== (B.pool && !perfOff('pool'));
       for (let i = 0; i < c.members.length && !bad; i++) if (!memberOk(c.members[i], ctx, dist)) bad = true;
       if (bad) { unmerge(B, c); B.stats.dropped++; continue; }
       for (const m of c.members) for (const p of m.parts) p.visible = false;
@@ -364,7 +364,7 @@ function createStaticBatcher(opts) {
     // while each of them is valid; items crossing inner (or streaming in)
     // one by one draw on their own until a rebuild is worth it: a few of
     // them, or the cell is then complete
-    const pooled = !perfOff('pool');
+    const pooled = B.pool && !perfOff('pool');
     const margin = pooled && !perfOff('poolrand') ? POOL_MARGIN : MARGIN;
     const fewest = pooled && !perfOff('poolklein') ? 1 : minMembers;
     const inner = opts.inner ? opts.inner(ctx, margin) : Math.min(ctx.drawDist, ctx.detailR) - margin;
@@ -476,6 +476,8 @@ export const roadBatcher = createStaticBatcher({
 // surface is transparent and stays on its own.
 export const shoreBatcher = createStaticBatcher({
   name: 'shore-batch',
+  // the quay walls stay separate meshes: they cast the long shadows along the water, and a picture at the water's edge looked different with them pooled (not found why)
+  pool: false,
   cell: 600,
   minMembers: 2,
   dist: (it, px, py) => {
