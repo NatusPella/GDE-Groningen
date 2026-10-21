@@ -564,7 +564,7 @@ Eerst de opening en missie 1 t/m 3 (112 regels): die ziet iedere speler in het e
 | Buschauffeur | Ik rijd tot Winsum. Daar stapt u over op de lijn naar Zoutkamp. Dat is de laatste halte, daarna is er alleen nog water. | stem | NIEUW |
 | Tammo | Dat klinkt als thuis. | stem | NIEUW |
 | Anita | Dat is een compliment, hè. | stem | NIEUW |
-| Buschauffeur | Uitstappen bij de haven, jongens. Dan zie je het water. | stem | NIEUW |
+| Buschauffeur | Uitstappen bij de haven, allemaal. Dan zie je het water. | stem | NIEUW |
 
 ## M11 · 67 regels
 
@@ -578,7 +578,7 @@ Eerst de opening en missie 1 t/m 3 (112 regels): die ziet iedere speler in het e
 | Anita | Dat klinkt als een val. | stem | NIEUW |
 | Kapitein Klaas | Het is een val. Maar het is ook de enige bal die we kunnen bereiken. | stem | NIEUW |
 | Kapitein Klaas | Hier. Een snelle boot. Ik zit bovenin, ik kijk de andere kant op. Tot de sluizen bij Lauwersoog. Daarna is het open water en ben je voor eigen rekening. | stem | NIEUW |
-| Kapitein Klaas | Praat tegen je boot, jongens. Dat helpt. | stem | NIEUW |
+| Kapitein Klaas | Praat tegen je boot, mensen. Dat helpt. | stem | NIEUW |
 | Tammo | Hij luistert niet. | stem | NIEUW |
 | Kapitein Klaas | Hij luistert wel. Alleen niet naar jou. | stem | NIEUW |
 
@@ -589,7 +589,7 @@ Eerst de opening en missie 1 t/m 3 (112 regels): die ziet iedere speler in het e
 | Anita | Het skûtsje. Links van de zandplaat. | stem | NIEUW |
 | Tammo | Groter dan ik dacht. | stem | NIEUW |
 | Anita | Het is een skûtsje. Dat is groter dan alles. | stem | NIEUW |
-| Kapitein Klaas | Niet voorbij de sluizen, jongens. Daarachter is het de Waddenzee, en daar vaar ik niet met een rubberboot. | telefoon | NIEUW |
+| Kapitein Klaas | Niet voorbij de sluizen, mensen. Daarachter is het de Waddenzee, en daar vaar ik niet met een rubberboot. | telefoon | NIEUW |
 | Jelle Terpstra | Mevrouw. U vaart op de vaargeul van Us Mem Snacks. Daar staat een tarief op. | telefoon | NIEUW |
 | Anita | Nu, Tammo. Spring. | stem | NIEUW |
 
@@ -614,7 +614,7 @@ Eerst de opening en missie 1 t/m 3 (112 regels): die ziet iedere speler in het e
 
 | Stem | Regel | Kanaal | Toon |
 |---|---|---|---|
-| Kapitein Klaas | Wij zitten vast, jongens. Dat is geen ramp. De wind duwt het water weg, over een uur komt het terug. | stem | NIEUW |
+| Kapitein Klaas | Wij zitten vast, mensen. Dat is geen ramp. De wind duwt het water weg, over een uur komt het terug. | stem | NIEUW |
 | Anita | Een uur. Op een zandplaat. | stem | NIEUW |
 | Kapitein Klaas | Kijk omhoog. Boven het Lauwersmeer is het donkerste stuk van het land. | stem | NIEUW |
 | Tammo | Dat zie ik. | stem | NIEUW |
@@ -642,7 +642,7 @@ Eerst de opening en missie 1 t/m 3 (112 regels): die ziet iedere speler in het e
 | Anita | Het licht gaat links. Wij gaan rechts, door het gras. | stem | NIEUW |
 | Tammo | Drie kuipen zout. | stem | NIEUW |
 | Anita | Er komt water. | stem | NIEUW |
-| Kapitein Klaas | Nu terug, jongens. Het water denkt niet na. | telefoon | NIEUW |
+| Kapitein Klaas | Nu terug, mensen. Het water denkt niet na. | telefoon | NIEUW |
 | Anita | Rennen, Tammo. | stem | NIEUW |
 
 ### M11.8 Geleend van de Friezen: outro (outro; 4 zonder stem, 0 met)
@@ -1202,7 +1202,7 @@ Eerst de opening en missie 1 t/m 3 (112 regels): die ziet iedere speler in het e
 | Anita | Dat zie ik. | stem | NIEUW |
 | Tammo | Ik zit hier. | stem | NIEUW |
 | Anita | Dat zie ik ook. | stem | NIEUW |
-| Jelle Terpstra | Gezellige bus, jongens. Ik rij even langs. | telefoon | NIEUW |
+| Jelle Terpstra | Gezellige bus, allemaal. Ik rij even langs. | telefoon | NIEUW |
 | Tammo | Dat was Jelle. | stem | NIEUW |
 | Anita | Dat was slecht. | stem | NIEUW |
 | Berend Bos | Ik heb niks gezien. Ik ben belegeraar, geen getuige. | stem | NIEUW |
@@ -1823,3 +1823,21 @@ Eerst de opening en missie 1 t/m 3 (112 regels): die ziet iedere speler in het e
 | Rikus | De Krolbrug staat nu open. Niemand weet waarom. Dat is verdacht. | radio | NIEUW |
 | Rikus | De politie sloot de zaak van de twee Stadjers in het zwart. Op de band staat vooral de pas van Jelle. | radio | NIEUW |
 | Rikus | Het jurylid met het contract eet nog steeds gratis eierballen. In Ljouwert. | radio | NIEUW |
+
+## Inclusieve taal: bij een nieuwe opname
+
+Deze lijst komt uit `scripts/voice_stil.json`. Stille regels hebben bewust geen opname meer (ondertitel of tekstballon); bij de andere klinkt de oude opname nog en vervangt de nieuwe tekst hem bij de volgende opname.
+
+| Stem | Nu | Wordt | Waar | Reden |
+|---|---|---|---|---|
+| (stil) | Politie? Een gek slaat hier mensen in elkaar! | Politie? Iemand slaat hier mensen in elkaar! | game/js/pedestrians.js | 'een gek' voor een gewelddadig mens maakt een psychische aandoening tot scheldwoord; de oude opname is niet meer in gebruik |
+| Rikus | Voor wie wakker ligt van de huur: ik ook, jongens. | Voor wie wakker ligt van de huur: ik ook, luisteraars. | game/js/intromontage.js, script.json (akte 1) | de radio spreekt een gemengde groep luisteraars aan |
+| Anita | En ik kom voor hem. Opzij, jongens. | En ik kom voor hem. Opzij, allemaal. | game/js/missions.js | jongens als aanspreekvorm van een gemengde groep |
+| Tammo | Kom op, jongens. Eén keer luisteren. | Kom op, allemaal. Eén keer luisteren. | game/js/missions.js | idem |
+| Tammo | Moi, jongens. Lekker gebotst? | Moi, allemaal. Lekker gebotst? | script.json (akte 3) | idem |
+| Kapitein Klaas | Jongens. Ik heb net twee reuzen uit de haven gevist. | Mensen. Ik heb net twee reuzen uit de haven gevist. | game/js/missionstory.js, script.json (akte 2) | idem |
+| Jelle Terpstra | Jim fytse mar, jonges. | Jim fytse mar, allegear. | game/js/missions.js, subtitles.js | idem; de Nederlandse ondertitel wordt 'Fietsen jullie maar, allemaal.' |
+| Tammo (gids) | Dat was het rondje, dames en heren. / Dames en heren, aan uw rechterhand: Schipper Wiebe. | Dat was het rondje, beste mensen. / Beste mensen, aan uw rechterhand: Schipper Wiebe. | game/js/rondvaartlines.js | dames en heren sluit anderen uit; de gids blijft formeel |
+| Schipper Wiebe (megafoon) | Dames en heren, u zit op een gestolen boot! / Hou je vast, dames en heren! | Beste mensen, u zit op een gestolen boot! / Hou je vast, beste mensen! | game/js/rondvaartchase.js | idem |
+| Tammo | Zodat iedereen kan zien dat hij niet in de bus zit. | Zodat iedereen kan zien dat die niet in de bus zit. | game/js/banterlines.js | geen 'hij' voor een onbekende bestuurder |
+| Rikus (nieuws, mission_up) | Mysterieuze klusjesman weer aan het werk in Groningen. | Mysterieuze klusser weer aan het werk in Groningen. | game/js/radio.js, sikkomfeed.js | mannelijk als standaard |

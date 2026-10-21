@@ -82,6 +82,9 @@ export function roomShell(B, b, r, i, rooms = MUSEUM_ROOMS) {
       }
     }
   }
+  // a church ceiling (style.balken: interieurplan.js, #340): dark wood with cross beams and a ridge beam, and brass
+  // chandeliers with candle flames instead of the office panels
+  if (st.balken) { kerkPlafond(B, r); return; }
   // light panels
   const nx = Math.max(1, Math.floor((r.hl * 2) / 3.6)), nz = Math.max(1, Math.floor((r.hw * 2) / 3.6));
   for (let ix = 0; ix < nx; ix++) {
@@ -89,6 +92,27 @@ export function roomShell(B, b, r, i, rooms = MUSEUM_ROOMS) {
       const a = -r.hl + (ix + 0.5) * (r.hl * 2) / nx, c = -r.hw + (iz + 0.5) * (r.hw * 2) / nz;
       const s = r.id === 'zaal3' ? 0.25 : 0.4;
       B.quadOut(at(r, a - s, c - s, r.h - 0.02), at(r, a + s, c - s, r.h - 0.02), at(r, a + s, c + s, r.h - 0.02), at(r, a - s, c + s, r.h - 0.02), [0, -1, 0], 0xffffff, G_LAMP);
+    }
+  }
+}
+
+const BEAM = 0x2c1d12, BRASS = 0xe6c15a, FLAME = 0xffd36a;
+function kerkPlafond(B, r) {
+  const rot = -Math.atan2(r.uy, r.ux);
+  const box = (a, c, y, sa, sy, sc, color, grp = G_SOLID) => { const [x, , z] = at(r, a, c, 0); B.box(x, y, z, sa, sy, sc, color, grp, 0, rot, 0); };
+  const n = Math.max(1, Math.round(r.hl * 2 / 4));
+  for (let i = 0; i < n; i++) box(-r.hl + (i + 0.5) * (r.hl * 2) / n, 0, r.h - 0.3, 0.34, 0.6, r.hw * 2 - 0.1, BEAM);
+  box(0, 0, r.h - 0.12, r.hl * 2 - 0.1, 0.24, 0.5, BEAM);
+  // two chandeliers on the ridge beam, one in a small room; they hang up to 2.5 m (less in a low room, clear of a head): chain, ring, four candles
+  const lamps = r.hl * 2 >= 14 ? [-r.hl / 2, r.hl / 2] : [0];
+  const drop = Math.min(2.5, r.h * 0.22);
+  for (const a of lamps) {
+    box(a, 0, r.h - drop / 2 - 0.1, 0.04, drop - 0.2, 0.04, BRASS);
+    box(a, 0, r.h - drop, 1.2, 0.07, 1.2, BRASS);
+    box(a, 0, r.h - drop, 0.8, 0.07, 0.8, BRASS);
+    for (const sa of [-0.55, 0.55]) for (const sc of [-0.55, 0.55]) {
+      box(a + sa, sc, r.h - drop + 0.12, 0.06, 0.16, 0.06, 0xf4efe2);
+      box(a + sa, sc, r.h - drop + 0.26, 0.07, 0.1, 0.07, FLAME, G_LAMP);
     }
   }
 }

@@ -33,6 +33,8 @@ const PENDING = new Set();
 OTHER.add('door_wood_open'); OTHER.add('door_wood_close');
 // played by audio.js for the weapon 'firework' sub-event and the crossing_bell event
 for (const n of ['firework_burst_0', 'firework_burst_1', 'firework_burst_2', 'crossing_bell']) OTHER.add(n);
+// played by audio.js instead of the thin synth versions (#173): swing, empty click, house doors, engine off, alarm, camera
+for (const n of ['swing_whoosh_0', 'swing_whoosh_1', 'swing_whoosh_2', 'empty_click', 'door_house_open', 'door_house_close', 'engine_off', 'alarm_ring', 'camera_click']) OTHER.add(n);
 for (const name of Object.keys(FX_INFO)) ok(linked.has(name) || OTHER.has(name) || PENDING.has(name), `${name}: has a source`);
 // no double playback: an effect is pushed by one place only
 for (const s of SELF_PUSHED) ok(!LINK_RULES.some((r) => r.fx === s.fx), `${s.fx}: not both linked and self-pushed`);

@@ -549,6 +549,10 @@ const CAMS = {
   cut: (side, toward) => ({ shot: 'cut', at: toward ? [3.9, side * 0.9, 1.6] : [-1.7, side * 0.8, 1.55], look: 'speaker', fov: 30 }),
   dolly: (side, toward) => ({ shot: 'dolly', from: toward ? [3.0, side * 1.9, 1.5] : [-0.8, side * 2.4, 1.5], to: toward ? [2.0, side * 1.1, 1.55] : [0.4, side * 1.5, 1.55], look: 'speaker', fov: 34 }),
   orbit: (side, toward, start) => ({ shot: 'orbit', target: 'speaker', radius: 2.6, start, sweep: 38 * -side, h0: 1.5, h1: 1.8, look: 'speaker', fov: 38 }),
+  // a high, wider angle that shows the street around the talkers (the coverage looked the same in every scene, #136)
+  high: (side, toward) => ({ shot: 'cut', at: toward ? [4.6, side * 2.6, 2.8] : [-2.8, side * 2.4, 2.8], look: 'speaker', fov: 44 }),
+  // a slow push-in on the face: the punch line of a speech
+  close: (side, toward) => ({ shot: 'dolly', from: toward ? [3.4, side * 0.6, 1.6] : [-0.4, side * 1.6, 1.6], to: toward ? [2.6, side * 0.4, 1.62] : [0.4, side * 1.3, 1.62], look: 'speaker', fov: 25 }),
 };
 
 export function missionScene(key, lines, { looks = {} } = {}) {
@@ -626,9 +630,9 @@ export function missionScene(key, lines, { looks = {} } = {}) {
     if (forced) { const { on, dt, ...rest } = forced; shot = { ...rest }; if (dt) shot.dt = dt; }
     else if (me == null) shot = { shot: 'cut', at: [-2.4, 0.6, 1.7], look: 'mid:tammo,tessa@1.3', fov: 40 };
     else {
-      const k = variant++ % 3;
+      const k = variant++ % 5;
       const farSide = me === 'tammo' || me === 'tessa';
-      shot = k === 0 ? CAMS.cut(duoSide, farSide) : k === 1 ? CAMS.dolly(duoSide, farSide) : CAMS.orbit(duoSide, farSide, farSide ? 160 + i * 20 : 20 + i * 25);
+      shot = k === 0 ? CAMS.cut(duoSide, farSide) : k === 1 ? CAMS.dolly(duoSide, farSide) : k === 2 ? CAMS.orbit(duoSide, farSide, farSide ? 160 + i * 20 : 20 + i * 25) : k === 3 ? CAMS.high(duoSide, farSide) : CAMS.close(duoSide, farSide);
     }
     const dt = shot.dt || 0;
     delete shot.dt;
@@ -659,7 +663,7 @@ function drift(shots, lines, total) {
     const a = at(s.t), b = i + 1 < shots.length ? at(shots[i + 1].t) : total;
     if (a == null || b == null || b - a <= DRIFT_AFTER) return;
     const [f, l, h] = s.at;
-    const k = 0.4 / Math.max(0.5, Math.hypot(f, l));
+    const k = Math.max(0.4, (b - a) * 0.075) / Math.max(0.5, Math.hypot(f, l)); // a longer shot pushes in further, so the eased start and end do not read as still
     const { at: _at, ...rest } = s;
     shots[i] = { ...rest, shot: 'dolly', from: [f, l, h], to: [f - f * k, l - l * k, h - 0.08] };
   });

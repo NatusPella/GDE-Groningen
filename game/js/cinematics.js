@@ -8,7 +8,7 @@ import { getSettings } from './settings.js';
 import { isPauseMenuOpen, isMapOpen } from './pausestate.js';
 import { respawnPlayer } from './world.js';
 import { V, W, clamp01, easeInOut, easeOut, pathShot, roofAt, clearKeys, wijkStreetShot, buildingReach } from './camerapath.js';
-import { playStoryVoice, setStoryScene, setStoryProbe } from './audio.js';
+import { playStoryVoice, setStoryScene, setStoryProbe, playTextMumble } from './audio.js';
 import { isIntroPlaying } from './trailerstate.js';
 import { logoHtml, GAME_NAME, SUBTITLE } from './logo.js';
 import { mayInterrupt, noteMoment } from './attention.js';
@@ -290,6 +290,9 @@ function attachVoices(a) {
   a.duration = Math.max(a.duration + shift, end.at + end.dur + 0.2);
 }
 
+// the internal codes of playTextMumble (audio.js): A = Tessa, T = Tammo, V = Rikus; anyone else keeps the default pitch
+const MUMBLE_WHO = (speaker) => (/^(anita|tessa)$/i.test(speaker) ? 'A' : /^tammo$/i.test(speaker) ? 'T' : /^rikus$/i.test(speaker) ? 'V' : '');
+
 function begin(spec) {
   active = {
     priority: 1, duration: 3, letterbox: true, skippable: true, hideHud: true, pause: false, timeScale: 1,
@@ -388,6 +391,7 @@ function updateSubtitles() {
   setDualText(els.line, l ? l.text : '', { gloss: true });
   els.root.classList.toggle('sub-clue', !!(l && l.clue));
   if (l && l.voice) playStoryVoice(l.voice, { radio: !!l.radio });
+  else if (l && active.mumble && l.speaker && !l.own) playTextMumble(MUMBLE_WHO(l.speaker), l.text, l.dur ?? 2.5); // geen opname: een zacht gemurmel onder de ondertitel (#326)
 }
 
 // realtime cinematics (the opening montage: its lines are timed to their

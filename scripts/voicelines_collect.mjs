@@ -405,7 +405,11 @@ export function collect() {
     hint(t);
   }
 
-  return out;
+  // Regels die bewust geen opname meer hebben (inclusieve taal, docs/INCLUSIEVE-TAAL.md): ze verschijnen als
+  // ondertitel of tekstballon en worden niet opnieuw gegenereerd. Zie scripts/voice_stil.json.
+  const stilFile = path.join(REPO, 'scripts', 'voice_stil.json');
+  const stil = new Set(fs.existsSync(stilFile) ? JSON.parse(fs.readFileSync(stilFile, 'utf8')).stil.map((x) => x.text) : []);
+  return stil.size ? out.filter((e) => !stil.has(e.text)) : out;
 }
 
 const hasKey = (e, s) => {

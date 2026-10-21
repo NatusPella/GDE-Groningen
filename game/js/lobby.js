@@ -178,7 +178,6 @@ export function view(s) {
         lines.push(genoeg ? "Het spel begint pas als jij op 'Spel starten' drukt: ook de openingsscène zien jullie samen." : 'Wacht op een medespeler: je kunt het spel starten zodra er minstens twee spelers zijn.');
         buttons.push({ act: 'start-spel', label: 'Spel starten', primary: true, disabled: !genoeg });
       }
-      if (!host && s.caps.startGate) lines.push(`Wacht tot ${opener} het spel start.`);
       if (host) {
         for (const p of lijst) if (p.slot !== 0) buttons.push({ act: 'kick-' + p.slot, label: `${p.naam} verwijderen` });
         for (const m of [4, 8, 12, 16]) if (m !== s.max && m >= lijst.length) buttons.push({ act: 'max-' + m, label: `Tot ${m} spelers` });
@@ -186,6 +185,7 @@ export function view(s) {
         buttons.push({ act: 'verbreek', label: 'Iedereen stoppen' });
       } else {
         lines.push(`${opener} heeft het spel geopend.`);
+        if (s.caps.startGate) lines.push(`Wacht tot ${opener} het spel start.`);
         lines.push(GAST_BEWAREN(s.caps.spelNaam, opener));
         lines.push('Je kunt er elk moment uit; je komt terug waar je was.');
         buttons.push({ act: 'verbreek', label: 'Spel verlaten' });

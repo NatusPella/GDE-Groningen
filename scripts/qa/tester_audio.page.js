@@ -32,6 +32,17 @@ document.addEventListener('pause', (e) => {
   const d = e.target.duration;
   if (Number.isFinite(d) && e.target.currentTime < d - 0.2) { r.cut = +(e.target.currentTime / d).toFixed(2); r.dur = d; r.cutAt = T(); }
 }, true);
+// het gemurmel onder een regel zonder opname (audio.js playTextMumble) zijn korte driehoekstonen van 100 tot 300 Hz
+const tones = [];
+// playTone zet de toonhoogte met setValueAtTime (frequency.value blijft dan 440 tot de graaf rekent): onthoud de laatst gezette waarde per parameter
+const lastSet = new WeakMap();
+const origSet = AudioParam.prototype.setValueAtTime;
+AudioParam.prototype.setValueAtTime = function (v, t) { try { lastSet.set(this, v); } catch (e) { /* meting */ } return origSet.call(this, v, t); };
+const origOscStart = OscillatorNode.prototype.start;
+OscillatorNode.prototype.start = function (...a) {
+  try { const f = lastSet.has(this.frequency) ? lastSet.get(this.frequency) : this.frequency.value; if (this.type === 'triangle' && f > 80 && f < 320) tones.push(T()); } catch (e) { /* meting */ }
+  return origOscStart.apply(this, a);
+};
 const subs = [];
 const lineEl = () => document.querySelector('#cine .cine-line');
 const spkEl = () => document.querySelector('#cine .cine-speaker');
@@ -62,10 +73,13 @@ function judge(from, to) {
     const goed = ps.filter((q) => q.ok === true || q.ok === null);
     let stem = 'stil';
     if (ps.length) stem = goed.length === 0 ? 'geweigerd' : goed.every((q) => q.cut != null) ? 'afgekapt' : 'start';
-    rows.push({ t: s.t - from, spreker: s.spreker, tekst: s.text.slice(0, 80), verwacht: expect(s.text), stem, dubbel: ps.length > 1, pogingen: ps.map((q) => ({ dt: q.t - s.t, src: q.src.replace(/^audio\/voicelines\//, '').slice(0, 60), ok: q.ok, cut: q.cut ?? null, ended: q.ended })) });
+    const murmur = tones.filter((q) => q >= s.t - 100 && q < until).length;
+    rows.push({ t: s.t - from, murmur, spreker: s.spreker, tekst: s.text.slice(0, 80), verwacht: expect(s.text), stem, dubbel: ps.length > 1, pogingen: ps.map((q) => ({ dt: q.t - s.t, src: q.src.replace(/^audio\/voicelines\//, '').slice(0, 60), ok: q.ok, cut: q.cut ?? null, ended: q.ended })) });
   }
   const bad = rows.filter((r) => (r.verwacht === 'stem' && r.stem !== 'start') || (r.verwacht === 'tekst' && r.stem !== 'stil'));
-  return { regels: rows.length, metStem: rows.filter((r) => r.stem === 'start').length, stil: rows.filter((r) => r.stem === 'stil').length, afgekapt: rows.filter((r) => r.stem === 'afgekapt').length, geweigerd: rows.filter((r) => r.stem === 'geweigerd').length, dubbel: rows.filter((r) => r.dubbel).length, afwijkend: bad, rows };
+  // een tekstregel van een sprekend personage hoort een gemurmel te hebben (#326): geen stilte die 'kapot' voelt
+  const zonderMurmel = rows.filter((r) => r.verwacht === 'tekst' && r.spreker && r.murmur === 0);
+  return { regels: rows.length, metStem: rows.filter((r) => r.stem === 'start').length, stil: rows.filter((r) => r.stem === 'stil').length, afgekapt: rows.filter((r) => r.stem === 'afgekapt').length, geweigerd: rows.filter((r) => r.stem === 'geweigerd').length, dubbel: rows.filter((r) => r.dubbel).length, afwijkend: bad, zonderMurmel: zonderMurmel.map((r) => ({ t: r.t, spreker: r.spreker, tekst: r.tekst })), metMurmel: rows.filter((r) => r.murmur > 0).length, rows };
 }
 
 const cine = await import('/js/cinematics.js');

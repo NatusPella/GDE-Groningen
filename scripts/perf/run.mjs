@@ -39,7 +39,7 @@ process.on('SIGINT', () => { release(); process.exit(130); });
 
 const hook = fs.readFileSync(path.join(HERE, 'hook.js'), 'utf8');
 void hook;
-const script = `window.__perfDur = ${Number(process.env.PERF_DUR) || 20000}; window.__perfOnly = '${process.env.PERF_ONLY || ''}'; window.__perfDiag = ${process.env.PERF_DIAG || 0}; window.__perfProfile = '${process.env.PERF_PROFILE || ''}'; window.__perfSim = '${process.env.PERF_SIM || ''}'; window.__perfJump = ${process.env.PERF_JUMP || 0}; window.__perfSettle = ${Number(process.env.PERF_SETTLE) || 0}; window.__perfAb = ${JSON.stringify((process.env.PERF_AB || '').split(';').filter(Boolean).map((v) => { const i = v.indexOf('='); return [v.slice(0, i), v.slice(i + 1).split('+').filter(Boolean)]; }))}; window.__perfAbWin = ${Number(process.env.PERF_AB_WIN) || 5000}; window.__perfAbRounds = ${Number(process.env.PERF_AB_ROUNDS) || 6}; window.__perfAbPre = ${Number(process.env.PERF_AB_PRE) || 0}; window.__perfAbMove = ${Number(process.env.PERF_AB_MOVE) || 0};\n` + fs.readFileSync(path.join(HERE, 'routes.js'), 'utf8');
+const script = `window.__perfDur = ${Number(process.env.PERF_DUR) || 20000}; window.__perfOnly = '${process.env.PERF_ONLY || ''}'; window.__perfDiag = ${process.env.PERF_DIAG || 0}; window.__perfProfile = '${process.env.PERF_PROFILE || ''}'; window.__perfSim = '${process.env.PERF_SIM || ''}'; window.__perfJump = ${process.env.PERF_JUMP || 0}; window.__perfSettle = ${Number(process.env.PERF_SETTLE) || 0}; window.__perfAb = ${JSON.stringify((process.env.PERF_AB || '').split(';').filter(Boolean).map((v) => { const i = v.indexOf('='); return [v.slice(0, i), v.slice(i + 1).split('+').filter(Boolean)]; }))}; window.__perfAbWin = ${Number(process.env.PERF_AB_WIN) || 5000}; window.__perfAbRounds = ${Number(process.env.PERF_AB_ROUNDS) || 6}; window.__perfAbPre = ${Number(process.env.PERF_AB_PRE) || 0}; window.__perfAbMove = ${Number(process.env.PERF_AB_MOVE) || 0}; window.__perfAbFor = ${JSON.stringify(Object.fromEntries(['SHADOWMAP', 'GLCALLS', 'RENDERAB', 'SHADOWTRIS'].filter((k) => process.env['PERF_AB_' + k]).map((k) => [k.toLowerCase(), process.env['PERF_AB_' + k].split(';').filter(Boolean).map((v) => { const i = v.indexOf('='); return [v.slice(0, i), v.slice(i + 1).split('+').filter(Boolean)]; })])))}; window.__perfPool = ${process.env.PERF_POOL ? 1 : 0}; window.__perfVisSpots = '${process.env.PERF_VIS_SPOTS || ''}'; window.__perfSamples = ${Number(process.env.PERF_SAMPLES) || 0};\n` + fs.readFileSync(path.join(HERE, 'routes.js'), 'utf8');
 const scriptFile = path.join(OUT, `_${name}.js`);
 fs.writeFileSync(scriptFile, script);
 
@@ -47,7 +47,7 @@ await takeSlot();
 const profile = `gde-test-k1perf-${name}`;
 fs.rmSync(path.join(os.tmpdir(), profile), { recursive: true, force: true });
 const desktop = path.join(HERE, '..', '..', 'desktop');
-const electron = path.join(desktop, 'node_modules', 'electron', 'dist', process.platform === 'win32' ? 'electron.exe' : 'electron');
+const electron = process.env.ELECTRON_EXE || path.join(desktop, 'node_modules', 'electron', 'dist', process.platform === 'win32' ? 'electron.exe' : 'electron');
 const args = ['.', '--windowed', '--stil', '--force-device-scale-factor=1', '--window-size=1920x1080',
   // with other windows over this one Chromium would throttle it as occluded or backgrounded: a measuring run must not be slowed by that
   '--disable-renderer-backgrounding', '--disable-backgrounding-occluded-windows', '--disable-features=CalculateNativeWinOcclusion', `--smoke-test=${path.join(OUT, name + '.png')}`,
@@ -60,6 +60,10 @@ const log = fs.createWriteStream(logFile);
 console.error(`start ${new Date().toTimeString().slice(0, 8)} load ${os.loadavg().map((x) => x.toFixed(2)).join(' ')}`);
 // other Electron instances (other agents) and the CPU they take disturb the numbers: count them around the run
 const others = () => { try { const o = spawnSync(process.platform === 'win32' ? 'tasklist' : 'pgrep', process.platform === 'win32' ? ['/FI', 'IMAGENAME eq electron.exe', '/NH'] : ['-c', 'electron'], { encoding: 'utf8' }).stdout; return process.platform === 'win32' ? (o.match(/electron.exe/g) || []).length : Number(o) || 0; } catch { return null; } };
+// how busy the machine is around the run (the Windows load average is always 0): CPU use over one second before the start and after the end, free memory
+const cpuTimes = () => os.cpus().reduce((a, c) => { const t = c.times; a.idle += t.idle; a.all += t.user + t.nice + t.sys + t.idle + t.irq; return a; }, { idle: 0, all: 0 });
+const cpuBusy = async () => { const a = cpuTimes(); await sleep(1000); const b = cpuTimes(); return +(100 * (1 - (b.idle - a.idle) / Math.max(1, b.all - a.all))).toFixed(0); };
+const busyBefore = await cpuBusy();
 const before = others();
 const t0 = Date.now();
 const child = spawn(electron, args, { cwd: desktop, env: { ...process.env, GDE_TEST_PROFILE: profile }, stdio: ['ignore', 'pipe', 'pipe'] });
@@ -120,7 +124,7 @@ try {
 } catch (e) { result.threadCpuError = String(e); }
 fs.rmSync(threadFile, { force: true });
 result.errors = lines.filter((l) => l.startsWith('[renderer] [perf-route-error]'));
-result.machine = { electronProcsBefore: before, electronProcsAfter: others(), load: os.loadavg(), cpus: os.cpus().length, cpu: os.cpus()[0].model, memGB: Math.round(os.totalmem() / 1e9) };
+result.machine = { cpuBusyBeforePct: busyBefore, cpuBusyAfterPct: await cpuBusy(), freeMemGB: +(os.freemem() / 1e9).toFixed(1), electronProcsBefore: before, electronProcsAfter: others(), load: os.loadavg(), cpus: os.cpus().length, cpu: os.cpus()[0].model, memGB: Math.round(os.totalmem() / 1e9) };
 fs.writeFileSync(path.join(OUT, name + '.json'), JSON.stringify(result));
 
 const COLS = [['avg', 'avg'], ['p95', 'p95'], ['p99', 'p99'], ['max', 'max'], ['cpuAvg', 'cpu'], ['mainCpuPerFrame', 'mcpu'], ['cpuP95', 'cpu95'], ['gpuAvg', 'gpu'], ['callsPerFrame', 'calls'], ['trisPerFrame', 'tris'], ['longTasks', 'long'], ['longMax', 'lmax'], ['over50', '>50'], ['heapMB', 'heap']];

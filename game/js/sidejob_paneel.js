@@ -8,7 +8,7 @@ import { wgsToWorld } from './rdnew.js';
 import { spawnJobVehicle, randomStreetPoint, vehicleSpeed, euro } from './sidejobkit.js';
 import { createChoicePanel, keycap } from './choicepanel.js';
 import { dist } from './util.js';
-import { ankerMetWeg } from './bijbaananker.js';
+import { ankerMetWeg, ankerBijBrug } from './bijbaananker.js';
 
 const STAD = { x: 213.81, y: 9.9 };
 const STAY_R = 45;
@@ -105,8 +105,9 @@ function paneelBaan(id, kleur, baas, glyph, anker, teken, melding) {
   return {
     ...b, kicker: 'Bijbaantje', allowWanted: false,
     anchor(map) {
-      const o = map.findOpenSpawn(anker.x, anker.y, 80);
-      return o ? { x: o.x, y: o.y } : anker;
+      const p = typeof anker === 'function' ? anker(map) : anker;
+      const o = map.findOpenSpawn(p.x, p.y, 80);
+      return o ? { x: o.x, y: o.y, fallback: p.fallback } : p;
     },
     start(c) { c.data.home = { x: c.spot.x, y: c.spot.y }; return true; },
     needsVehicle: () => false,
@@ -169,7 +170,7 @@ export const kermisdraai = paneelBaan('kermisdraai', '#e04f8a', 'Kermisbaas De V
   },
   { goed: ['Precies op tijd!', false], fout: ['Te vroeg of te laat: de rij kijkt.', true], rit: ['Een rit erop, volgende groep!', false] });
 
-export const brugdienst = paneelBaan('brugdienst', '#4a8fc0', 'Brugmeester Damsterdiep', 'rondvaart', regioPunt('eemsdelta'),
+export const brugdienst = paneelBaan('brugdienst', '#4a8fc0', 'Brugmeester Damsterdiep', 'rondvaart', (map) => ankerBijBrug(map),
   (d, pn) => {
     const s = d.ronde.s;
     pn.set({
