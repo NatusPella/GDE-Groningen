@@ -66,7 +66,7 @@ if (flag('lijst')) {
 // zoals de sweep: wachten op de wereld, het startscherm weg (Enter), even rust
 const WACHT = 'for (let i = 0; i < 240 && !(window.__debug && window.__debug.world); i++) await new Promise((r) => setTimeout(r, 500));\n'
   + `const kEnter = () => { for (const t of [window, document]) { t.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', bubbles: true })); t.dispatchEvent(new KeyboardEvent('keyup', { key: 'Enter', code: 'Enter', bubbles: true })); } };
-for (let i = 0; i < 40; i++) { const s = document.querySelector('#start-screen'); if (!s || !s.classList.contains('visible')) break; const it = [...s.querySelectorAll('.ss-item')].find((e) => /nieuw spel/i.test(e.textContent)); if (it) it.click(); else kEnter(); await new Promise((r) => setTimeout(r, 2500)); }
+for (let i = 0; i < 40; i++) { const s = document.querySelector('#start-screen'); if (!s || !s.classList.contains('visible')) break; const nw = document.querySelector('#saveslots .ssl-new [data-do]'); const it = [...s.querySelectorAll('.ss-item')].find((e) => /nieuw spel/i.test(e.textContent)); if (nw) nw.click(); else if (it) it.click(); else if (window.__menuStart && window.__menuStart('nieuw')) { /* gestart */ } else { const so = s.querySelector('.ss-item[data-act="solo"]'); if (so) so.click(); else kEnter(); } await new Promise((r) => setTimeout(r, 2500)); }
 await new Promise((r) => setTimeout(r, 4000));\n`;
 const profile = `gde-test-readme-${process.pid}`;
 const script = path.join(OUT, '_page.js');
