@@ -1,4 +1,4 @@
-// Three more small text jobs for the Stad (refs #26): "Het Loket" (forms, a
+// Small text jobs for the Stad (refs #26): "Het Loket" (forms, a
 // queue and a stamp), "StudieStaat" (an invented student-loan office) and
 // "Vigilantia" (a made-up student society: toast and table speech). Each is a
 // short round of three multiple-choice questions at a named building; a wrong
@@ -83,8 +83,8 @@ export const KEUZE_JOBS = {
     id: 'vigilantia',
     name: 'Borrel bij Vigilantia',
     boss: 'Praeses Wilgenhout',
-    building: 'Academiegebouw',
-    wgs: [53.2189, 6.5614],
+    building: 'Harmoniegebouw',
+    wgs: [53.219, 6.5607],
     color: '#8a5ac8',
     blurb: 'Houd de tafelspeech op de borrel van een verzonnen studentenvereniging',
     tagline: 'Drie keuzes in de speech. Het gaat om de toon, niet om de glazen.',
@@ -107,6 +107,36 @@ export const KEUZE_JOBS = {
     ],
     pay: { base: 26, perRight: 15, tipAll: 18 },
     verdicts: ['Een warm applaus. Zelfs de portier klapt mee.', 'De zaal knikt beleefd. Een paar glazen blijven in de lucht hangen.', 'Stilte. Na een tijdje begint iemand maar over het weer.'],
+  },
+
+  promotie: {
+    id: 'promotie',
+    name: 'Promotie met toga en hoedje',
+    boss: 'Pedel Vlinderstrik',
+    building: 'Academiegebouw',
+    wgs: [53.2197, 6.5627],
+    color: '#5a7ad0',
+    blurb: 'Begeleid een plechtige promotie met toga, hoedje en een stoet die nergens haast mee heeft',
+    tagline: 'Drie vragen voor de plechtigheid. Een fout antwoord kost alleen een kwartier extra ceremonie.',
+    intro: [
+      'In het Academiegebouw wordt vandaag gepromoveerd. De toga hangt klaar, het hoedje ook, en de stoet staat al een kwartier klaar.',
+      'Pedel Vlinderstrik wil weten of jij de plechtigheid kent. Antwoord met 1, 2 of 3.',
+    ],
+    say: {
+      arrive: 'Pedel Vlinderstrik tikt driemaal met zijn staf op de vloer. "De promovendus zit in de gang, het hoedje op zijn knie. Wij beginnen."',
+      quit: 'Je hangt het hoedje aan de kapstok en glipt door de zijdeur naar buiten. De stoet loopt zonder jou de zaal in, heel langzaam.',
+      deskTitle: 'ACADEMIEGEBOUW · PROMOTIE',
+    },
+    cases: [
+      C('De stoet gaat de zaal in. Wie loopt voorop?', 'De pedel, met de staf', ['De promovendus, met het hoedje alvast op', 'De fotograaf, achteruit']),
+      C('Wanneer zet de promovendus het hoedje op?', 'Als de pedel het teken geeft', ['Meteen bij de deur, dan is het gedaan', 'Nooit, hij houdt het op zijn knie als kussentje']),
+      C('Het stoetlid achteraan loopt te snel. Wat zegt de pedel?', '"Rustig, de plechtigheid heeft geen haast."', ['"Ren maar, de taart staat klaar."', '"Loop maar om, ik wacht wel."']),
+      C('De toga is een maat te groot. Wat doe je?', 'Een speld of een extra gesp, voor de stoet begint', ['Er een mouw afknippen', 'Hem met een riem om de nek dragen en hopen']),
+      C('Een gast klapt midden in de verdediging. Wat doe je?', 'Een vriendelijke knik: pas klappen als het mag', ['Zelf ook klappen, anders valt het op', 'De gast naar buiten tillen, stoel en al']),
+      C('De bul is uitgereikt. Wat is de volgorde?', 'Handdruk, felicitaties, dan pas de borrel', ['Borrel, handdruk, felicitaties', 'Felicitaties, borrel, een tweede bul voor de zekerheid']),
+    ],
+    pay: { base: 28, perRight: 15, tipAll: 20 },
+    verdicts: ['De bul gaat over de tafel, het hoedje blijft op zijn plek. De pedel kijkt bijna tevreden.', 'De plechtigheid slaagt, met een paar extra minuten stilte.', 'De stoet loopt twee keer door de zaal. Niemand durft iets te zeggen.'],
   },
 
   kamerkoning: {

@@ -57,11 +57,19 @@ function plan(s, mode, tgt) {
   let pts = null;
   try {
     // a boat sails the waterway net (planBoatTrip), the land graph knows nothing of water
-    const r = mode === 'boat' ? R.planBoatTrip(world.map, [me.x, me.y], [tgt.x, tgt.y], 'sloep') : R.planLandRoute(world.map, kind, [me.x, me.y], [tgt.x, tgt.y]);
+    // in a chase the player simply turns round in a one-way street, or drives out of a street that is closed to cars (the game lets him): the legal
+    // route (2500 m from the Pelsterstraat, or the GPS line, south and round the block) took the bot more than 380 m from the limo and the chase ended
+    // 'lost'. The walking graph runs both ways along every street: from the Gelkingestraat 488 m up the street, over the Grote Markt to the Oude
+    // Boteringestraat (M26, #354)
+    const chasing = kind === 'drive' && s.mission.active && s.mission.stage === 'chase';
+    const r = mode === 'boat' ? R.planBoatTrip(world.map, [me.x, me.y], [tgt.x, tgt.y], 'sloep') : R.planLandRoute(world.map, chasing ? 'walk' : kind, [me.x, me.y], [tgt.x, tgt.y]);
     pts = r && r.pts && r.pts.length ? r.pts : null;
   } catch (e) { B.log('routefout', { msg: String(e && e.message || e).slice(0, 200) }); }
   // outside the city graph (the Ommeland) planLandRoute finds nothing, and where the own route ran into a wall (a detour was needed)
   // the line the game itself shows the player is the better one, when it leads to this goal
+  // the planner starts a route on the nearest road it may use: a car that stands in a street closed to cars (the Gelkingestraat, where the M26 chase
+  // starts) got a route that began on the Pelsterstraat, 130 m away, and drove straight at that first point through the houses (#354)
+  if (mode !== 'boat' && L.routeStartsFar(me, pts)) { B.log('route-start-ver', { van: [Math.round(me.x), Math.round(me.y)], eerste: pts[0].map(Math.round) }); pts = null; }
   let src = pts ? 'plan' : 'recht';
   if (!pts || (kind === 'walk' && detours[mem.stageKey] > 0)) {
     try {
@@ -81,6 +89,23 @@ function plan(s, mode, tgt) {
   B.log('route', { mode, planned: !!pts, src, points: line.length, to: [Math.round(tgt.x), Math.round(tgt.y)] });
 }
 
+// what stands in the lane of a car at `me` that is chasing `tgt`: walkers, cyclists and moving traffic within 30 m (not the car it chases)
+function trafficAhead(me, tgt) {
+  const out = [];
+  for (const p of world.pedestrians || []) {
+    if (p.state === 'dead' || Math.hypot(p.x - me.x, p.y - me.y) > 30) continue;
+    out.push({ x: p.x, y: p.y, r: 0.45 });
+  }
+  const own = player.inVehicle;
+  for (const v of world.vehicles || []) {
+    if (v === own || v.wrecked || v.sinking || Math.hypot(v.x - me.x, v.y - me.y) > 30) continue;
+    if (Math.hypot(v.x - tgt.x, v.y - tgt.y) < 6) continue;        // the one we chase
+    if (v.parked && !(Math.abs(v.speed || 0) > 0.5)) continue;     // a parked car stands at the kerb, not in the lane
+    out.push({ x: v.x, y: v.y, r: v.isBike || v.isScooter ? 0.6 : Math.max(0.9, (v.halfWid || 1) * 0.9) });
+  }
+  return out;
+}
+
 // aim for the target over the planned route; returns the distance left
 // stopR: how close on foot (default 0.6 of the marker radius; a vehicle to board needs the bot right next to it, not 5 m away)
 function steerTowards(s, mode, tgt, stopAt, top = 24, stopR = null, direct0 = false) {
@@ -88,14 +113,27 @@ function steerTowards(s, mode, tgt, stopAt, top = 24, stopR = null, direct0 = fa
   if (!follower || key !== followKey || s.t - planAt > 12) { followKey = key; planAt = s.t; plan(s, mode, tgt); }
   const me = { x: s.player.x, y: s.player.y };
   const direct = L.distance(me, tgt);
-  const aim = direct0 || direct < (mode === "walk" ? 9 : 25) && (mode !== 'walk' || L.segmentFree(me, tgt, footFree)) ? tgt : follower.next(me) || tgt;   // on foot the planned route goes round poles and walls almost to the end
+  const chasing = mode === 'drive' && s.mission.active && s.mission.stage === 'chase';
+  const aim = direct0 || direct < (mode === "walk" ? 9 : chasing ? 9 : 25) && (mode !== 'walk' || L.segmentFree(me, tgt, footFree)) ? tgt : follower.next(me) || tgt;   // on foot the planned route goes round poles and walls almost to the end
   if ((mode === 'drive' || mode === 'boat') && s.player.vehicle) {
     // a garage (M02: drive in and stand still 1.2 s) or a stage with `stop`: come to rest right there
     const stg = M.activeStage();
     const rest = stg && (stg.kind === 'garage' ? 3.5 : stg.stop ? Math.max(3, stg.stop + 2) : 0);
     const mdefE = (M.getMissionDefs() || [])[s.mission.index];
-    const c = L.carControls({ x: me.x, y: me.y, angle: s.player.vehicle.angle, speed: s.player.vehicle.speed }, aim, { stopAt: stopAt || !!rest, rest, top: mode === 'boat' ? Math.min(top, 9) : top, gentle: !!(s.mission.active && mdefE && mdefE.eggs) });
+    // in a chase the lane is full of cyclists and walkers (M26, the Hoogstraatje): steer round them instead of through (#354)
+    const avoid = mode === 'drive' && s.mission.active && s.mission.stage === 'chase' ? trafficAhead(me, tgt) : null;
+    const car = { x: me.x, y: me.y, angle: s.player.vehicle.angle, speed: s.player.vehicle.speed };
+    const curve = avoid && follower ? L.curveCap(follower.pts, follower.i, car) : null;
+    const c = L.carControls(car, aim, { stopAt: stopAt || !!rest, rest, top: mode === 'boat' ? Math.min(top, 9) : top, gentle: !!(s.mission.active && mdefE && mdefE.eggs), avoid, curveCap: curve });
     B.stick(c.steer, c.throttle ? -c.throttle : 0);
+    // a chase is logged every 3 s: where, how fast, how far from the fleeing car, what stands in the lane (#354)
+    if (avoid) {
+      if (mem.chaseT0 == null || s.t - mem.chaseLogT > 60) mem.chaseT0 = s.t;
+      if (s.t - (mem.chaseLogT || -9) >= (s.t - mem.chaseT0 < 40 ? 1 : 3)) {
+        mem.chaseLogT = s.t;
+        B.log('achtervolging', { x: Math.round(me.x * 10) / 10, y: Math.round(me.y * 10) / 10, hoek: Math.round(car.angle * 100) / 100, v: Math.round((s.player.vehicle.speed || 0) * 10) / 10, afstand: Math.round(direct), aim: [Math.round(aim.x), Math.round(aim.y)], punt: follower ? follower.i + '/' + follower.length : '-', hindernis: avoid.filter((o) => Math.hypot(o.x - me.x, o.y - me.y) < 14).length, stuur: Math.round(c.steer * 100) / 100, gas: c.throttle, wens: Math.round(c.want * 10) / 10, bocht: curve === Infinity ? null : Math.round(curve) });
+      }
+    }
     if (!c.reverse && wedge.update(s.t, s.player.vehicle.speed, c.throttle)) wedge.reset(), wedgeOut = true;
     if (B.input.isDown('shift')) B.up('shift');
   } else {
@@ -241,10 +279,41 @@ async function rescue(s, stepKey, info) {
   detector.acknowledge(s.t);
 }
 
+// balance and pace meter (#147, scripts/bot/balans.mjs): per step the wall time, the metres walked or driven, the time in cutscenes,
+// talks and dialogs, the goal changes and the longest quiet stretch (no movement, no scene, no new goal)
+let meter = null;
+const newMeter = (s) => ({ t0: s.t, wall0: s.wall, pos: { x: s.player.x, y: s.player.y }, dist: 0, cine: 0, cineN: 0, cineAt: null, talk: 0, goals: 0, goal: '', lastAct: s.t, maxQuiet: 0, prev: s.t, active: 0, limit: 0, minLeft: null });
+function meterTick(s) {
+  if (!meter) meter = newMeter(s);
+  const m = meter, dt = Math.max(0, Math.min(2, s.t - m.prev));
+  m.prev = s.t;
+  const d = Math.hypot(s.player.x - m.pos.x, s.player.y - m.pos.y);
+  if (d < 60) m.dist += d;   // a teleport or a respawn is no distance walked
+  m.pos = { x: s.player.x, y: s.player.y };
+  const busy = !!(s.blocking.cinematic || s.blocking.talk || s.blocking.dialog || s.blocking.banner || s.blocking.ride || s.blocking.shop);
+  if (s.blocking.cinematic) { m.cine += dt; if (m.cineAt == null) { m.cineAt = s.t; m.cineN++; } } else if (m.cineAt != null) { B.log('cine', { id: s.story.id, dur: Math.round((s.t - m.cineAt) * 10) / 10 }); m.cineAt = null; }
+  if (s.blocking.talk) m.talk += dt;
+  // the mission's own clock: how long it ran active, the longest time limit seen and the least time that was left
+  if (s.mission.active) { m.active += dt; if (Number.isFinite(s.mission.timeLeft)) { m.limit = Math.max(m.limit, s.mission.timeLeft); m.minLeft = m.minLeft == null ? s.mission.timeLeft : Math.min(m.minLeft, s.mission.timeLeft); } }
+  const goal = [s.mission.stage || '', s.mission.label || '', s.target ? s.target.name || '' : ''].join('|');
+  // every goal (also the first of a step) with the distance to it: the length of the route a player has to cover, whoever plays
+  if (goal !== m.goal) { if (m.goal) m.goals++; B.log('doel', { stage: s.mission.stage || '', label: s.mission.label || '', doel: s.target ? s.target.name || '' : '', afstand: s.target ? s.target.distance : null, veh: s.player.vehicle ? s.player.vehicle.kind : 'te voet', eerste: !m.goal }); m.goal = goal; m.lastAct = s.t; }
+  if (busy || d > 0.05 || (s.player.vehicle && s.player.vehicle.speed > 1)) m.lastAct = s.t;
+  m.maxQuiet = Math.max(m.maxQuiet, s.t - m.lastAct);
+}
+function meterEnd(s, id, outcome) {
+  const m = meter;
+  if (!m) { B.log('step', { event: 'end', id, outcome }); return; }
+  B.log('step', { event: 'end', id, outcome, wall: Math.round((s.wall - m.wall0) / 100) / 10, dist: Math.round(m.dist), cine: Math.round(m.cine * 10) / 10, cineN: m.cineN, talk: Math.round(m.talk * 10) / 10, goals: m.goals, maxQuiet: Math.round(m.maxQuiet * 10) / 10, actief: Math.round(m.active * 10) / 10, limiet: Math.round(m.limit), restMin: m.minLeft == null ? null : Math.round(m.minLeft) });
+  meter = null;
+}
+
 function track(s) {
   const id = s.story.end ? 'einde' : s.story.id;
+  meterTick(s);
   if (id !== lastStep) {
-    if (lastStep) B.log('step', { event: 'end', id: lastStep, outcome: 'klaar' });
+    if (lastStep) meterEnd(s, lastStep, 'klaar');
+    meter = newMeter(s);
     B.log('step', { event: 'begin', id, label: s.story.title || '', part: s.story.part });
     lastStep = id; lastPhase = '';
     mem.boardTries = 0; mem.pressTries = 0; mem.planTries = 0;
@@ -296,6 +365,16 @@ while (true) {
   if (CFG.until && s.story.id === CFG.until) { result = 'KLAAR'; reason = `tot stap ${CFG.until}`; break; } // bijv. de coöp-testbank: M01 t/m M08, stop zodra T1 begint
   if (s.story.end || (PART !== 'all' && s.story.part && s.story.part !== PART)) { result = 'KLAAR'; reason = s.story.end ? `einde van ${s.story.part}` : `stap ${s.story.id} hoort bij ${s.story.part}`; break; }
   if (stopFn && stopFn(s)) { result = 'KLAAR'; reason = 'stap uitgespeeld'; break; }
+  // --skip-stages=N: the first N stages of the step are completed with the objective cheat once the mission runs (logged as setup, not as a bot
+  // finding), to test a later stage on its own (#354: the chase of M26); the bot first plays the mission start and the intro
+  if (mem.skipLeft > 0 && s.mission.active && s.mission.stage && !s.blocking.cinematic && !s.blocking.banner && !s.blocking.talk) {
+    await sleep(1500);
+    mem.skipLeft--;
+    B.log('setup', { what: 'stage-skip', over: mem.skipLeft, stage: s.mission.stage });
+    B.cheat.objective();
+    await sleep(2500);
+    continue;
+  }
   track(s);
   const stepKey = (s.story.id || '?') + (s.mission.active ? ':' + (s.mission.stage || 'm') : '');
   // each stage of a mission gets its own few tries at boarding and at a prompt
@@ -424,7 +503,19 @@ while (true) {
   } else heldSince = null;
   if (act.type === 'closemenu') { await B.press('escape'); continue; }
   if (act.type === 'choose') { B.log('keuze', { dialog: s.blocking.dialog.text, key: act.key }); shot(`${stepKey}-keuze`); await B.choose(act.key); continue; }
-  if (act.type === 'skip') { await holdSkip(); continue; }
+  if (act.type === 'skip') {
+    // --watch=<s>: a cutscene is watched instead of skipped, with a beam every 2.5 s (at most 16 per scene), to look at staging in the real game (#352)
+    if (CFG.watch && s.blocking.cinematic && !s.blocking.banner) {
+      if (mem.watchT0 == null) { mem.watchT0 = performance.now(); mem.watchLast = -1e9; mem.watchN = 0; mem.sceneNo = (mem.sceneNo || 0) + 1; }
+      if (performance.now() - mem.watchT0 < CFG.watch * 1000) {
+        if (performance.now() - mem.watchLast > 2500 && mem.watchN < 16) { mem.watchLast = performance.now(); mem.watchN++; shot(`${(s.story.id || 'x')}-szene${mem.sceneNo}-${String(mem.watchN).padStart(2, '0')}`); }
+        await sleep(300);
+        continue;
+      }
+    } else mem.watchT0 = null;
+    await holdSkip();
+    continue;
+  }
   if (act.type === 'wait') { B.stick(0, 0); continue; }
   const gd = s.target ? s.target.distance : null;
   const st = detector.update(s.t, { x: s.player.x, y: s.player.y, goalDist: gd, key: stepKey });
@@ -452,14 +543,24 @@ while (true) {
     const mdef = (M.getMissionDefs() || [])[s.mission.index];
     if (mdef && mdef.eggs) top = Math.min(top, 7);
     if (s.mission.stage === 'convoy') top = Math.min(top, 11);
+    // a chase: the fleeing car cruises at 14 and runs at 28, the Fjord Frituur can do 50 (#354)
+    if (s.mission.stage === 'chase' && s.player.vehicle && !s.player.vehicle.boat) top = Math.max(top, 36);
     if (act.stunt && s.player.vehicle) {
       let best = null, bd = Infinity;
+      mem.stuntSkip = mem.stuntSkip || {};
       for (const q of Br.propsInRadius(s.player.x, s.player.y, 90)) {
-        if (!String(q.key).startsWith('stunt')) continue;
+        if (!String(q.key).startsWith('stunt') || (mem.stuntSkip[q.key] || 0) > s.t) continue;
         const d = Math.hypot(q.x - s.player.x, q.y - s.player.y);
         if (d < bd) { bd = d; best = q; }
       }
-      if (best) { aim = { x: best.x, y: best.y, distance: bd }; top = 14; }
+      if (best) {
+        // circling a prop that does not fall (the car orbits it, or a bollard stands in the way): after 6 s within 10 m it is left alone for 90 s and the next one is tried (M01, #312)
+        if (bd < 10) {
+          if (!mem.stuntNear || mem.stuntNear.key !== best.key) mem.stuntNear = { key: best.key, since: s.t };
+          else if (s.t - mem.stuntNear.since > 6) { mem.stuntSkip[best.key] = s.t + 90; B.log('stunt-omweg', { key: best.key, x: Math.round(best.x), y: Math.round(best.y) }); mem.stuntNear = null; }
+        } else mem.stuntNear = null;
+        aim = { x: best.x, y: best.y, distance: bd }; top = 14;
+      }
     }
     // on foot, wedged against a stall pole or a prop: sidestep (alternating sides, longer each time), then plan again
     if (act.mode !== 'drive' && !s.player.vehicle && !s.blocking.cinematic && s.target.distance > 5) {
@@ -511,14 +612,16 @@ if (CFG.sweep && CFG.sweep.length) {
     follower = null; detector.reset(B.time()); mem.boardTries = 0; mem.pressTries = 0; mem.planTries = 0; lastStep = null; lastPhase = '';
     const t0 = B.time();
     await sleep(1500);
+    mem.skipLeft = typeof CFG.skipStages === 'object' ? CFG.skipStages[id] || 0 : CFG.skipStages || 0;   // see loop1
     await loop((s) => s.story.id !== id || B.time() - t0 > (CFG.perStepS || 600));
-    B.log('step', { event: 'end', id, outcome: B.status().story.id === id ? 'tijd op' : 'klaar' });
+    meterEnd(B.status(), id, B.status().story.id === id ? 'tijd op' : 'klaar');
     result = 'TIMEOUT';
   }
   result = 'KLAAR'; reason = CFG.sweep.length + ' stappen';
 } else await loop(null);
 
 B.releaseAll();
+if (meter && lastStep) meterEnd(B.status(), lastStep, 'laatste');   // the step the run ends in (the part is over, or time ran out)
 shot(`einde-${result.toLowerCase()}`);
 B.log('einde', { result, reason, step: lastStep });
 return JSON.stringify({ result, reason, step: lastStep, gameSeconds: B.time(), wallSeconds: Math.round((performance.now() - wall0) / 1000) });

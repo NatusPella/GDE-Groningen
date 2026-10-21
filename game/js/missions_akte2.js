@@ -20,8 +20,8 @@ function kustDef() {
   return {
     type: 'stages',
     label: 'Geleend van de Friezen',
-    intro: ['Klaas leent jullie een snelle rubberboot. Jelles skûtsje vaart het Reitdiep af, met een gouden bal in de kist.', 'Haal het skûtsje in en spring aan boord. Daarna het zout van Oma: drie kuipen van de kwelder bij Noordpolderzijl, uit het licht van de kustwacht, terug voor het water komt.'],
-    outro: 'Het zout is van Oma. Plakje vier is gered.',
+    intro: ['Klaas leent jullie een snelle rubberboot. Jelles skûtsje (een groot Fries zeilschip) vaart het Reitdiep af, met een gouden bal in de kist.', 'Haal het skûtsje in en spring aan boord. Haal daarna drie emmers zout van de kwelder bij Noordpolderzijl. Blijf uit het licht van de kustwacht en ga terug voordat het water komt.'],
+    outro: 'Het zout is van Oma.',
     timeLimit: null,
     timeUp: 'het water kwam terug. Jullie zitten vast op het wad',
     reward: 1300,
@@ -61,7 +61,7 @@ export function buildAkte2Defs({ models = {} } = {}) {
       // church cellar in Usquert. Jelle shuts the road, so the wierdepaden it is: speed breaks eggs there (eggs.rough).
       type: 'stages',
       label: 'Heel aankomen is ook een kunst',
-      intro: ['Jelle Terpstra kocht alle eieren van het Hogeland, behalve die van Geesje. Oma\'s recept van 1953 heeft er zestig nodig.', 'Breng Geesjes laatste zes kratten, zestig eieren, heel naar de kerkkelder in Usquert. Rustig rijden: Oma\'s recept heeft er zestig nodig.'],
+      intro: ['Jelle Terpstra kocht alle eieren van het Hogeland, behalve die van Geesje. Oma\'s recept van 1953 heeft er zestig nodig.', 'Breng Geesjes laatste zes kratten, zestig eieren, heel naar de kerkkelder in Usquert. Rij rustig: elk ei telt.'],
       outro: 'Zestig eieren, alle heel. Vet en eieren zijn binnen: twee van vijf.',
       timeLimit: null,
       reward: 700,

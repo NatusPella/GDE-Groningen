@@ -14,7 +14,7 @@ Dit is de lijn waar het begin van het verhaal op rust. De tekst staat in `docs/v
 
 1. **Vier namen onthouden:** Tessa, Tammo, Jelle (de tegenstander), Sjabbe (de helper: hij weet dingen, belt met tips, opent wat dicht zit). Alle anderen zijn een rol: ze zeggen wat ze doen of zijn in hun eerste regel, krijgen geen uitleg over zichzelf en komen in de scène zelf op en af.
    - Rollen die naam hebben omdat ze later terugkomen: **Berend** (bakkiebezitter; later jurylid en uitdeler van complimenten), **Bert** (duivenmelker), **Henk** (garage), **Sjoerd** (Kiezelcommissie). Hun naam hoeft de speler in het eerste uur niet te onthouden: ze komen in één missie voor.
-   - Naamloos in het eerste uur: de streamer (ondertitel "Streamer", was Jelmer; te dicht bij Jelle), de torenwachter, de twee reuzen (Durk en Douwe; hun namen vallen alleen in hun eigen opgenomen regel), de loketbediende, de bewaarder (mevrouw Tuinstra), het terrasgast.
+   - Naamloos in het eerste uur: de streamer (ondertitel "Streamer", was Jelmer; te dicht bij Jelle), de torenwachter, de twee reuzen (Durk en Douwe; hun namen vallen alleen in hun eigen opgenomen regel), de loketbediende, de bewaarder (mevrouw Hoving), het terrasgast.
 2. **Eén doel per missie, in één zin, met één werkwoord.** De HUD-tekst begint daarmee. De missie eindigt met het volgende doel, hardop of zichtbaar op de kaart.
 3. **De reden komt vóór de actie,** nooit erna. Wie een nieuwe naam hoort, hoort er in dezelfde regel bij wat die naam voor hen doet.
 4. **Eén gedachte per regel.** Tammo zegt nooit meer dan acht woorden (uitzondering: de opa, zijn drie grote momenten). Tessa legt uit, in gewone zinnen, niet in lijstjes.

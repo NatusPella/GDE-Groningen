@@ -35,6 +35,7 @@ import { deriveFeatures } from './derive_tiles.mjs';
 import { waterIndex, wetFraction } from './placement_audit.mjs';
 import { snapSignals, junctionsOf } from './junction_tiles.mjs';
 import { profileFeats, cutZ } from './province_profile.mjs';
+import { clearPackTrees } from './tegel_schoon.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 export const PROVINCE_BUILDER = 1;
@@ -422,7 +423,7 @@ export function buildProvince({ root = ROOT, src = SRC_DIR, extra = bufferDirs(s
     raster = new Raster(x0, y0, Math.ceil(((i1 - i0 + 1) * G.TILE_M) / FINE_M), Math.ceil(((j1 - j0 + 1) * G.TILE_M) / FINE_M), FINE_M);
   }
   const gid = { buildings: GID0, roads: GID0, water: GID0, green: GID0, trees: GID0, rails: GID0, canopies: GID0, furniture: GID0, parcels: GID0 };
-  const stats = { tiles: 0, buildings: 0, roads: 0, water: 0, rails: 0, green: 0, trees: 0, furniture: 0, junctions: 0, signals: 0, autoSignals: 0, hsrc: {}, packs: 0, sourceMB: 0, bag: bag3d ? bag3d.stats : null, derived: { moved: 0, merged: 0, canopies: 0, lifted: 0, clipped: 0, trimmed: 0, afloat: 0, ditchCut: 0, ditchJoined: 0, ditchDropped: 0, drowned: 0 } };
+  const stats = { tiles: 0, buildings: 0, roads: 0, water: 0, rails: 0, green: 0, trees: 0, furniture: 0, junctions: 0, signals: 0, autoSignals: 0, hsrc: {}, packs: 0, sourceMB: 0, bag: bag3d ? bag3d.stats : null, derived: { moved: 0, merged: 0, canopies: 0, lifted: 0, clipped: 0, trimmed: 0, afloat: 0, ditchCut: 0, ditchJoined: 0, ditchDropped: 0, drowned: 0, treesMoved: 0, treesRemoved: 0 } };
   const blobs = new Map();
   const empty = [], noPack = [];
   const railRows = [];
@@ -531,6 +532,10 @@ export function buildProvince({ root = ROOT, src = SRC_DIR, extra = bufferDirs(s
     }
     // the whole ways of the pack for a caller that wants them uncut (stad_laag.mjs: roads and rails of the city, #90)
     if (collect) collect(feats, { pack: pk, want, els, lights });
+    // trees on or against a carriageway go beside it (treeclear.js, #324): the city's tiles do it at load, the streamed ones here
+    const ts = { moved: 0, removed: 0 };
+    feats = clearPackTrees(feats, ts);
+    stats.derived.treesMoved += ts.moved; stats.derived.treesRemoved += ts.removed;
     // features by tile, only for this pack's tiles
     const mine = new Set(want);
     const idx = new Map();

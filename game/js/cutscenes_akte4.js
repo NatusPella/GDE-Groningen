@@ -15,7 +15,7 @@ S['M17.intro'] = {
   open: [{ actor: 'tessa', face: 'actor:wubbo' }, { actor: 'tammo', face: 'actor:wubbo' }],
   beats: [
     { on: 0, dt: 0.4, actor: 'wubbo', walk: [[2, 0.4]], speed: 0.8 },
-    { on: 'Durk zei dat Jelle', actor: 'tessa', anim: 'point' },
+    { on: 'Jelle haalt vandaag in Veendam', actor: 'tessa', anim: 'point' },
     { on: 'Hoe weten we wanneer', actor: 'tammo', anim: 'shrug' },
     { on: 'Elf bruggen', actor: 'wubbo', anim: 'point' },
     { on: 'Mijn brug is op tijd', actor: 'wubbo', anim: 'hips' },
@@ -47,9 +47,9 @@ S['M18.intro'] = {
   props: { klembord: { kind: 'klembord', at: [2.4, -0.9, 0.9] } },
   open: [{ actor: 'tessa', face: 'actor:tammo' }, { actor: 'tammo', face: 'actor:tessa' }],
   beats: [
-    { on: 'Dat is toch geen misdaad', actor: 'tessa', anim: 'shrug' },
+    { on: 'Wiebelwerk. Websites', actor: 'tammo', anim: 'shrug' },
     { on: 'Wie de camera', actor: 'tammo', anim: 'point' },
-    { on: 'Als daar staat', actor: 'tessa', anim: 'nod' },
+    { on: 'Als in het logboek staat', actor: 'tessa', anim: 'nod' },
     { on: 'Welkom bij Wiebelwerk', actor: 'accountmanager', walk: [[2.2, -0.2]], speed: 0.9 },
     { on: 'Welkom bij Wiebelwerk', dt: 0.3, actor: 'accountmanager', face: 'actor:tessa' },
     { on: 'Een website voor een frietwagen', actor: 'tessa', anim: 'talk' },
@@ -63,7 +63,7 @@ S['M18.outro'] = {
   props: {},
   open: [{ actor: 'tessa', face: 'actor:accountmanager' }, { actor: 'tammo', face: 'actor:accountmanager' }],
   beats: [
-    { on: 'Wiebelwerk stelt niks', actor: 'accountmanager', anim: 'shrug' },
+    { on: 'Wiebelwerk doet niets verkeerds', actor: 'accountmanager', anim: 'shrug' },
     { on: 'Een webbureau', dt: 0.5, actor: 'accountmanager', walk: [[3.4, -0.3]], speed: 0.7 },
     { on: 'Een alibi', actor: 'tammo', anim: 'point' },
     { on: 'Een webbureau', actor: 'tessa', anim: 'look' },
@@ -86,7 +86,7 @@ S['M19.intro'] = {
     { on: 'Je hebt een fiets', actor: 'tessa', anim: 'shrug' },
     { on: 'Vergelijkbaar', actor: 'tammo', anim: 'nod' },
     { on: 'Dan rijd jij hem', actor: 'tessa', walk: [[-1.6, -2.4]], speed: 1 },
-    { on: 'Douwe. Het is de baas', actor: 'durk', face: 'actor:tammo' },
+    { on: 'Douwe. Er rijdt een nieuwe machinist', actor: 'durk', face: 'actor:tammo' },
   ],
   shots: [],
   wide: WIDE([-5, 4.2, 3.2], [-3, 3, 2.4], 'mid:tammo,tessa@1'),
@@ -104,7 +104,7 @@ S['M19.outro'] = {
     { on: 'Ik niet. Ik heb een contract', actor: 'jurylid', face: 'actor:bewaarder' },
     { on: 'Ik stap niet uit', actor: 'bewaarder', anim: 'hips' },
     { on: 'Eén jurylid gered', actor: 'tessa', anim: 'shrug' },
-    { on: 'Drie van de vijf staan', actor: 'tammo', anim: 'shake' },
+    { on: 'Vier van de vijf staan', actor: 'tammo', anim: 'shake' },
     { on: 'Ik heb een trein bestuurd', actor: 'tammo', anim: 'cheer' },
     { on: 'Je hebt hem in een station', actor: 'tessa', anim: 'nod' },
   ],
@@ -150,7 +150,7 @@ S['M20.outro'] = {
     { on: 'Ik wist niet waar', actor: 'tessa', anim: 'talk' },
     { on: 'Wij waren jullie voor', actor: 'trijntje', face: 'actor:tammo' },
     { on: 'Wij waren jullie voor', dt: 0.4, actor: 'trijntje', anim: 'hips' },
-    { on: 'Ik wilde Jelle stoppen', actor: 'mem', anim: 'shrug' },
+    { on: 'Ik gebruikte jullie om Jelle', actor: 'mem', anim: 'shrug' },
     { on: 'Ik rijd jullie', actor: 'berend', anim: 'point' },
     { on: 'Ik haal jouw auto', actor: 'tessa', anim: 'shrug' },
     { on: 'Eén zin, jong', actor: 'trijntje', anim: 'point' },
@@ -170,8 +170,8 @@ S['M22.intro'] = {
   open: [{ actor: 'tessa', face: 'actor:henk' }, { actor: 'tammo', face: 'actor:tinus' }],
   beats: [
     { on: 0, dt: 0.4, actor: 'henk', walk: [[2.2, -1.0]], speed: 0.8 },
-    { on: 'Tinus, trekkertrekker', actor: 'tinus', anim: 'wave' },
-    { on: 'Henk, Garage Knalpot', actor: 'henk', anim: 'point' },
+    { on: 'Welkom in mijn schuur', actor: 'tinus', anim: 'wave' },
+    { on: 'Ik heb een luik, een uitlaat', actor: 'henk', anim: 'point' },
     { on: 'Wij maken van de Escapade', actor: 'tessa', anim: 'point' },
     { on: 'De Escapade is van mij', actor: 'tammo', anim: 'hips' },
     { on: 'Hij is van ons, Tammo', actor: 'tessa', face: 'actor:tammo' },
@@ -196,10 +196,10 @@ S['M23.intro'] = {
   beats: [
     { on: 0, dt: 0.4, actor: 'mem', walk: [[2.0, 0.6]], speed: 0.8 },
     { on: 'Famke. Trijntje en ik', actor: 'mem', anim: 'point' },
-    { on: 'Dit is de colonne', actor: 'tessa', anim: 'point' },
+    { on: 'Jelle huurt morgen de hele Markt', actor: 'tessa', anim: 'point' },
     { on: 'Ik rij op mijn scooter', actor: 'geesje', anim: 'wave' },
-    { on: 'Ik heb de bus', actor: 'wubbo', anim: 'point' },
-    { on: 'Ik heb mijn boot terug', actor: 'klaas', anim: 'talk' },
+    { on: 'Ik rij de bus', actor: 'wubbo', anim: 'point' },
+    { on: 'Ik heb mijn rubberboot terug', actor: 'klaas', anim: 'talk' },
     { on: 'Ik rij achteraan', actor: 'berend', anim: 'point' },
     { on: 'Rijden. Niet praten', actor: 'tessa', anim: 'point' },
   ],
@@ -254,12 +254,12 @@ S['M25.intro'] = {
   open: [{ actor: 'tessa', face: 'actor:trijntje' }, { actor: 'tammo', face: 'actor:trijntje' }],
   beats: [
     { on: 0, dt: 0.4, actor: 'mem', walk: [[2.2, -1.2]], speed: 0.8 },
-    { on: 'Mosterd, eieren, zout', actor: 'trijntje', anim: 'point' },
+    { on: 'Mosterd van Wubbo', actor: 'trijntje', anim: 'point' },
     { on: 'Oma… hoe zei opa', actor: 'tammo', anim: 'look' },
     { on: 'Niet. Hij zei', actor: 'trijntje', anim: 'talk' },
     { on: 'Ik zit hier ook, Trijntje', actor: 'mem', anim: 'hips' },
-    { on: 'Dan moeten wij eerder', actor: 'tessa', anim: 'nod' },
-    { on: 'Tessa. Sjabbe. Morgen', actor: 'tessa', anim: 'phone' },
+    { on: 'Dan houden wij Jelle tegen', actor: 'tessa', anim: 'nod' },
+    { on: 'De notaris zit in de Oude Boteringestraat', actor: 'tessa', anim: 'phone' },
   ],
   shots: [],
   wide: WIDE([-5, 4.2, 3.2], [-3, 3, 2.4], 'mid:trijntje,mem@1'),
@@ -299,12 +299,12 @@ S['M26.intro'] = {
     { on: 'Moi, Grunn', actor: 'rikus', anim: 'wave' },
     { on: 'Grunn! Geef je over', actor: 'berend', anim: 'point' },
     { on: 'Nee!', actor: 'kind', anim: 'cheer' },
-    { on: 'Vandaag is het Ontzet', actor: 'tessa', anim: 'point' },
-    { on: 'Vandaag is het Ontzet', dt: 3, actor: 'tammo', face: 'actor:tessa' },
+    { on: 'Vandaag winnen we eerlijk', actor: 'tessa', anim: 'point' },
+    { on: 'Vandaag winnen we eerlijk', dt: 3, actor: 'tammo', face: 'actor:tessa' },
     { on: 'Ik bak nooit onder druk', actor: 'tammo', anim: 'shake' },
     { on: 'Je doet alles onder druk', actor: 'tessa', anim: 'shrug' },
   ],
-  shots: [{ on: 'Vandaag is het Ontzet', dt: 0.4, shot: 'dolly', from: [-2.2, 2.8, 1.8], to: [-0.6, 2.2, 1.6], look: 'mid:tammo,tessa@1.3', fov: 44 }],
+  shots: [{ on: 'Vandaag winnen we eerlijk', dt: 0.4, shot: 'dolly', from: [-2.2, 2.8, 1.8], to: [-0.6, 2.2, 1.6], look: 'mid:tammo,tessa@1.3', fov: 44 }],
   wide: WIDE([-5.5, 4.5, 3.4], [-3.5, 3.2, 2.5], 'mid:berend,tessa@1'),
 };
 S['M26.outro'] = {
@@ -377,7 +377,7 @@ S['M20.3'] = {
     { on: 'Jij kende Mem', actor: 'tammo', anim: 'look' },
     { on: 'Dat heb ik hem geleerd', actor: 'mem', anim: 'nod' },
     { on: 'Omdat mijn zoon', actor: 'mem', anim: 'shrug' },
-    { on: 'Mem. Dit is geen einde', actor: 'jelle', anim: 'point' },
+    { on: 'Mem. Dit is nog niet voorbij', actor: 'jelle', anim: 'point' },
     { on: 'Durk. Douwe. Haal', actor: 'jelle', walk: [[7.5, 1.5]], speed: 1.4 },
   ],
   shots: [
@@ -399,7 +399,7 @@ S['M21.3'] = {
     { on: 'Nul krassen op de auto', actor: 'berend', anim: 'shrug' },
     { on: 'Dat tel je niet', actor: 'tessa', anim: 'hips' },
     { on: 'Ik tel alles', actor: 'berend', anim: 'point' },
-    { on: 'Henk. Tinus', actor: 'henk', anim: 'point' },
+    { on: 'Tinus\' schuur is hier vlakbij', actor: 'henk', anim: 'point' },
   ],
   shots: [],
   wide: WIDE([-5, 4, 3.2], [-3, 3, 2.4], 'mid:berend,tessa@1'),
@@ -420,14 +420,14 @@ S['M22.2'] = {
     { on: 'Een Escapade met een gat', actor: 'tammo', anim: 'point' },
     { on: 'Een karaktergat', actor: 'henk', anim: 'nod' },
     { on: 'Het is klaar', actor: 'tessa', anim: 'hips' },
-    { on: 'Het is blauw', actor: 'tammo', anim: 'shake' },
+    { on: 'Het bovenstuk is blauw', actor: 'tammo', anim: 'shake' },
     { on: 'Het is de kleur van de naam', actor: 'tessa', anim: 'point' },
     { on: 'Het luik is betaald', actor: 'henk', face: 'actor:sjabbe' },
     { on: 'Het luik is betaald', dt: 0.3, actor: 'sjabbe', walk: [[3.4, -1.8]], speed: 1.5 },
-    { on: 'Tessa. Sjabbe', actor: 'sjabbe', anim: 'talk' },
+    { on: 'Tammo belde vannacht', actor: 'sjabbe', anim: 'talk' },
     { on: 'Het horloge van je opa', actor: 'tessa', face: 'actor:tammo' },
     { on: 'Het horloge van je opa', dt: 0.6, actor: 'tammo', face: 'prop:escapade' },
-    { on: 'Een horloge. Dit is een thuis', actor: 'tammo', anim: 'shrug' },
+    { on: 'Het liep vijf minuten voor', actor: 'tammo', anim: 'shrug' },
   ],
   shots: [],
   wide: WIDE([-5, 4.2, 3.2], [-3, 3, 2.4], 'mid:henk,escapade@1'),
@@ -443,7 +443,7 @@ S['M22.4'] = {
     { on: 'We hebben een wagen', dt: 0.5, actor: 'tammo', walk: [[2.4, 0.5]], speed: 0.8 },
     { on: 'Sorry. Dat ik nooit', actor: 'tammo', anim: 'shrug' },
     { on: 'Je zei net iets', actor: 'tessa', anim: 'nod' },
-    { on: 'Jij zweeg omdat', actor: 'tammo', anim: 'talk' },
+    { on: 'Jij zweeg voor een ander', actor: 'tammo', anim: 'talk' },
     { on: 'Ik moet je iets vertellen', actor: 'tessa', anim: 'lean' },
     { on: 'Zeven?', actor: 'tammo', anim: 'shake' },
     { on: 'Jij? Fries?', actor: 'tammo', anim: 'laugh' },
@@ -451,11 +451,9 @@ S['M22.4'] = {
     { on: 'Dat verklaart waarom', actor: 'tammo', anim: 'point' },
     { on: 'Dat deed ik één keer', actor: 'tessa', anim: 'shrug' },
     { on: 'Twee keer', actor: 'tammo', anim: 'laugh' },
-    { on: 'Dat is een Fjord Frituur', actor: 'tessa', face: 'prop:escapade' },
-    { on: 'Dat is een Fjord Frituur', dt: 0.3, actor: 'tessa', anim: 'point' },
+    { on: 'De Fjord Frituur is een thuis', actor: 'tessa', face: 'prop:escapade' },
+    { on: 'De Fjord Frituur is een thuis', dt: 0.3, actor: 'tessa', anim: 'point' },
     { on: 'Ik ging niet weg', actor: 'tessa', walk: [[2.2, -0.2]], speed: 0.6 },
-    { on: 'Ik zeg het op het Ontzet', actor: 'tammo', anim: 'nod' },
-    { on: 'Dat is een belofte, Tammo', actor: 'tessa', anim: 'nod' },
   ],
   shots: [],
   wide: WIDE([-4.6, 3.6, 3], [-2.6, 2.8, 2.2], 'mid:tammo,tessa@1.2'),
@@ -470,7 +468,7 @@ S['M23.3'] = {
   props: { jas: { kind: 'doos', at: [3.6, -1.4, 1] } },
   open: [{ actor: 'tessa', face: 'actor:durk' }, { actor: 'tammo', face: 'actor:durk' }],
   beats: [
-    { on: 'Douwe. Hij is niet de baas', actor: 'durk', anim: 'point' },
+    { on: 'Douwe. Jelle is niet onze baas', actor: 'durk', anim: 'point' },
     { on: 'Wij zijn alleen', actor: 'durk', anim: 'talk' },
     { on: 'En nu zijn wij de bezigheid van mem', actor: 'durk', anim: 'hips' },
     { on: 'Van Jelles mem', actor: 'tammo', anim: 'shrug' },
@@ -569,7 +567,7 @@ S['M26.10'] = vote([
   { on: 'Fjord Frituur. Vijf van de vijf', actor: 'tessa', anim: 'cheer' },
   { on: 'Fjord Frituur. Vijf van de vijf', actor: 'tammo', anim: 'cheer' },
   { on: 'Fjord Frituur. Vijf van de vijf', actor: 'kind', anim: 'cheer' },
-  { on: 'Vijf van de vijf. Dat is geen jury', actor: 'jelle', anim: 'shake' },
+  { on: 'Vijf van de vijf. Mijn juristen', actor: 'jelle', anim: 'shake' },
 ]);
 S['M26.11'] = vote([
   { on: 3, actor: 'jurylid', anim: 'shake' },
@@ -604,7 +602,7 @@ S['M21.6'] = { ...S['M21.3'], beats: [
   { on: 'Eén kras op de auto', actor: 'berend', anim: 'shrug' },
   { on: 'Dat is mijn schuld', actor: 'tessa', anim: 'shrug' },
   { on: 'Dat is een kras', actor: 'berend', anim: 'point' },
-  { on: 'Henk. Tinus', actor: 'henk', anim: 'point' },
+  { on: 'Tinus\' schuur is hier vlakbij', actor: 'henk', anim: 'point' },
 ] };
 
 // --- M18 the intake in three outcomes (M18.2 passed, M18.6 one wrong answer, M18.7 two): the manager at his desk ---
@@ -650,7 +648,7 @@ S['M23.6'] = {
   beats: [
     { on: 'Ik rijd naast jullie', actor: 'wubbo', anim: 'point' },
     { on: 'En de bruggen', actor: 'tessa', anim: 'look' },
-    { on: 'Die draai ik zelf', actor: 'wubbo', anim: 'hips' },
+    { on: 'Die open ik op afstand', actor: 'wubbo', anim: 'hips' },
     { on: 'Die komt een minuut later', actor: 'wubbo', anim: 'talk' },
   ],
   shots: [], wide: friendWide('wubbo'),
@@ -661,7 +659,7 @@ S['M23.7'] = {
     { on: 'Ik rij naast jullie', actor: 'tinus', anim: 'talk' },
     { on: 'Ook een limo', actor: 'tessa', anim: 'look' },
     { on: 'Ook een limo. Aan de trekhaak', actor: 'tinus', anim: 'point' },
-    { on: 'En elke keer klopt het', actor: 'tessa', anim: 'nod' },
+    { on: 'En toen zaten we niet meer vast', actor: 'tessa', anim: 'nod' },
   ],
   shots: [], wide: friendWide('tinus'),
 };
@@ -671,7 +669,7 @@ S['M23.8'] = {
     { on: 'Ik rij naast jullie', actor: 'geesje', anim: 'talk' },
     { on: 'Een scooter tegen een limo', actor: 'tessa', anim: 'shrug' },
     { on: 'Een limo past niet', actor: 'geesje', anim: 'point' },
-    { on: 'Zegt de kerk ook', actor: 'geesje', anim: 'hips' },
+    { on: 'Ik rij naast jullie, op mijn scooter', actor: 'geesje', anim: 'hips' },
   ],
   shots: [], wide: friendWide('geesje'),
 };
@@ -680,13 +678,13 @@ const streets = (key, x, beats) => ({
   props: {}, open: friendOpen(key), beats, shots: [], wide: friendWide(key),
 });
 S['M26.14'] = streets('wubbo', 5.0, [
-  { on: 'Herestraat dicht', actor: 'wubbo', anim: 'point' },
+  { on: 'Poelestraat dicht', actor: 'wubbo', anim: 'point' },
   { on: 'Dank je, Wubbo', actor: 'tessa', anim: 'nod' },
   { on: 'Dat mag niet', actor: 'tessa', anim: 'shake' },
-  { on: 'Het is een bus', actor: 'tammo', anim: 'shrug' },
+  { on: 'Zijn bus, zijn regels', actor: 'tammo', anim: 'shrug' },
 ]);
 S['M26.15'] = streets('tinus', 5.0, [
-  { on: 'Zuiderdiep dicht', actor: 'tinus', anim: 'point' },
+  { on: 'Gelkingestraat dicht', actor: 'tinus', anim: 'point' },
   { on: 'Je trekker past er net in', actor: 'tessa', anim: 'look' },
   { on: 'Ik trek hem weg', actor: 'tinus', anim: 'hips' },
   { on: 'In de stad ziet hij', actor: 'tammo', anim: 'shrug' },
@@ -701,3 +699,123 @@ S['M26.16'] = streets('geesje', 5.0, [
 for (const [id, key, x] of [['M18.7', 'accountmanager', 2.4], ['M23.6', 'wubbo', 3.2], ['M23.7', 'tinus', 3.2], ['M23.8', 'geesje', 3.0], ['M26.14', 'wubbo', 5.0], ['M26.15', 'tinus', 5.0], ['M26.16', 'geesje', 5.0]]) {
   S[id].beats.unshift({ on: 0, dt: 0.3, actor: key, walk: [[x - 1.4, 0.2]], speed: 0.9 });
 }
+
+// --- scenes that had no staging (#352) ---
+
+// M21.1 the ride (the intro of the solo mission): Tessa next to Berend in his bakkie over the dark heath. The two voices sit in the
+// cab (hidden, they move with it, so the camera finds them); Tammo is on his own mission and not in the scene (`solo`). The camera
+// has to follow the car, so there is no automatic coverage: a wide shot of the bakkie pulling away, then the camera rides along.
+S['M21.intro'] = {
+  solo: true, manual: true, align: 'road',
+  cast: { berend: { key: 'berend', at: [-34, 0], face: 0, anim: 'idle', noauto: true } },
+  duo: { tessa: { at: [-34, 0], face: 0, anim: 'idle' } },
+  props: { bakkie: { kind: 'bakkie', at: [-34, 0, 0], face: 0 } },
+  open: [
+    { actor: 'berend', hide: true }, { actor: 'tessa', hide: true },
+    { prop: 'bakkie', path: [[-34, 0], [34, 0]], speed: 2.8 },
+    { actor: 'berend', walk: [[34, 0]], speed: 2.8 }, { actor: 'tessa', walk: [[34, 0]], speed: 2.8 },
+  ],
+  beats: [],
+  shots: [
+    { on: 1, shot: 'follow', target: 'berend', dist: 5.4, side: 2.4, h: 1.5, fov: 42 },
+    { on: 2, shot: 'orbit', target: 'berend', radius: 5.6, start: 100, sweep: 80, h0: 1.2, h1: 1.9, look: 'prop:bakkie@1.1', fov: 40 },
+    { on: 4, shot: 'follow', target: 'tessa', dist: 6.2, side: -2.6, h: 1.2, fov: 36 },
+    { on: 6, shot: 'orbit', target: 'berend', radius: 8.5, start: 215, sweep: 45, h0: 3.2, h1: 3.8, look: 'prop:bakkie@1', fov: 44 },
+  ],
+  wide: { from: [-42, 5.6, 2.5], to: [-36, 4.6, 1.9], look: 'prop:bakkie@1.1', fov: 46, until: 1 },
+};
+
+// M26.4 lines 7-13, the blokkade (missions_akte5.js: script M26.4 from 7 to 14, a stage scene after the chase): Durk and Douwe light
+// Berend's fireworks, Tessa sets the Fjord Frituur across the street, Jelle gets out of the limo with a speech and steps back
+// over a pigeon into the water. The limo nose to the hatch; Jelle's splash is a world sound, he comes back up on the far side.
+S['M26.4#7-14'] = {
+  cast: {
+    durk: { key: 'durk', at: [-2.8, 3.2], face: 330, anim: 'idle', gest: ['point', 'hips', 'cheer'] },
+    douwe: { key: 'douwe', at: [-3.0, -3.0], face: 30, anim: 'idle', gest: ['shrug', 'look', 'laugh'] },
+    jelle: { key: 'jelle', at: [5.4, -0.4], face: 180, anim: 'idle', gest: ['point', 'hips', 'point', 'shrug'] },
+  },
+  props: {
+    fjord: { kind: 'bestelbus', at: [3.4, 4.8, 0], face: 90 },
+    limo: { kind: 'trekker', at: [7.8, -1.6, 0], face: 195 },
+    vuurwerk: { kind: 'doos', at: [-3.4, 2.4, 0] },
+    duif: { kind: 'duif', at: [6.2, -0.7, 0], face: 20 },
+    koffer: { kind: 'koffer', at: [5.4, -0.4, 1] },
+  },
+  open: [
+    { actor: 'tessa', face: 'actor:durk' }, { actor: 'tammo', face: 'actor:durk' },
+    { actor: 'jelle', carry: 'koffer' }, { actor: 'jelle', face: 'actor:tessa' },
+  ],
+  beats: [
+    { on: 0, actor: 'durk', walk: [[-1.6, 2.6]], speed: 1.2 },
+    { on: 'Net fertelle', dt: 0.2, actor: 'durk', face: 'prop:vuurwerk' },
+    { on: '…Hè.', actor: 'douwe', walk: [[-2.2, -1.8]], speed: 1.0 },
+    { on: '…Hè.', dt: 0.3, actor: 'douwe', face: 'prop:vuurwerk' },
+    { on: 'Rook! Links', actor: 'tessa', anim: 'point' },
+    { on: 'Rook! Links', dt: 0.3, actor: 'tammo', face: 'actor:durk' },
+    { on: 'Rook! Links', dt: 0.4, actor: 'durk', anim: 'cheer' },
+    { on: 'Rook! Links', dt: 0.4, prop: 'vuurwerk', bob: 0.06 },
+    { on: 'Mevrouw. U staat', actor: 'jelle', anim: 'point' },
+    { on: 'Mevrouw. U staat', dt: 2.4, actor: 'jelle', walk: [[8.8, -3.6]], speed: 0.9 },
+    { on: 'Mevrouw. U staat', dt: 2.6, prop: 'duif', path: [[6.2, -0.7], [8.4, -3.2]], speed: 1.2 },
+    { on: '…Plons', actor: 'jelle', anim: 'sprong' },
+    { on: '…Plons', dt: 0.5, actor: 'jelle', hide: true },
+    { on: '…Plons', actor: 'douwe', anim: 'look' },
+    { on: 'Hij houdt de koffer', actor: 'jelle', show: true },
+    { on: 'Hij houdt de koffer', actor: 'jelle', anim: 'klim' },
+    { on: 'Hij houdt de koffer', dt: 0.2, actor: 'tessa', anim: 'point' },
+    { on: 'Hij is consistent', actor: 'tammo', anim: 'shrug' },
+  ],
+  fx: [{ on: '…Plons', dt: 0.35, fx: 'sfx', kind: 'splash' }],
+  shots: [{ on: 'Mevrouw. U staat', dt: 0.6, shot: 'dolly', from: [1.4, -2.6, 1.6], to: [3.2, -1.6, 1.7], look: 'actor:jelle@1.5', fov: 36 }],
+  wide: WIDE([-5.4, 0.6, 3.2], [-3.4, 1.0, 2.4], 'mid:fjord,limo@1.2'),
+};
+
+// M24.3 the flag falls (missions_akte5.js: the stage 'De vlag valt', dropFlag): Bert and the pigeon next to the pair on the Grote Markt,
+// the square applauds. The first two lines are the hand-made camera that follows the flag down (missions.js playStageScene); after
+// them this staging takes over. +f points at the Martinitoren.
+S['M24.3'] = {
+  cast: {
+    bert: { key: 'bert', at: [1.8, 1.6], face: 200, anim: 'idle', gest: ['talk', 'hips', 'point'] },
+    gast1: { key: 'terras', at: [5.8, 3.6], face: 190, anim: 'cheer', bg: true },
+    gast2: { key: 'toerist', at: [6.4, -2.8], face: 170, anim: 'cheer', bg: true },
+    gast3: { key: 'harm', at: [8.2, 0.6], face: 180, anim: 'laugh', bg: true },
+  },
+  props: { duif: { kind: 'duif', at: [1.8, 1.6, 1.5], face: 20 } },
+  open: [
+    { actor: 'bert', face: 'actor:tammo' }, { actor: 'tessa', anim: 'cheer' }, { actor: 'tammo', anim: 'look' },
+    { prop: 'duif', bob: 0.03 },
+  ],
+  beats: [
+    { on: 'Kon minder', actor: 'bert', anim: 'hips' },
+    { on: 'Heel Grunn klapt', actor: 'tessa', anim: 'laugh' },
+    { on: 'Heel Grunn klapt', dt: 0.3, actor: 'tammo', face: 'actor:tessa' },
+    { on: 'Niet voor de duif', actor: 'tammo', anim: 'point' },
+    { on: 'Niet voor de duif', dt: 1.4, prop: 'duif', path: [[1.8, 1.6, 1.5], [3.4, 0.6, 3.0], [-4, 0, 7]], speed: 3.5 },
+    { on: 'Ik klapte ook', actor: 'tessa', anim: 'shrug' },
+    { on: 'Ik klapte ook', dt: 0.3, actor: 'tessa', walk: [[0.5, 0.2]], speed: 0.6 },
+    { on: 'Voor de grip', actor: 'tammo', anim: 'shake' },
+    { on: 'Nee. Gewoon.', actor: 'tessa', face: 'actor:tammo' },
+    { on: 'Nee. Gewoon.', dt: 0.4, actor: 'tessa', anim: 'nod' },
+  ],
+  shots: [],
+  wide: WIDE([-4.8, 4, 3.2], [-2.8, 2.9, 2.4], 'mid:bert,tessa@1.2'),
+};
+
+// M06.3 lines 0-3, the empty case (missions_nieuw.js: script M06.3 from 0 to 4, the scene stage with `reveal`): the camera is the hand-made
+// push-in on the case (missions.js playStageScene, timed on heist.js REVEAL; it is the whole scene, `shotAll`), so this staging only brings
+// the pair: they stand behind the case and look at it, Tessa points at the card, Tammo shakes his head at the thank-you.
+S['M06.3#0-4'] = {
+  duo: { tammo: { at: [-2.6, 1.0], face: 0, anim: 'look' }, tessa: { at: [-2.6, -0.8], face: 0, anim: 'look' } },
+  cast: {}, props: {},
+  open: [],
+  beats: [
+    { on: 0, dt: 0.4, actor: 'tessa', walk: [[-1.6, -0.6]], speed: 0.7 },
+    { on: 'Hij bedankt', actor: 'tammo', anim: 'shake' },
+    { on: 'Hij. Bedankt', actor: 'tessa', anim: 'shake' },
+    { on: 'Hij. Bedankt', dt: 0.3, actor: 'tammo', face: 'actor:tessa' },
+    { on: 'De vitrine is leeg', actor: 'tessa', anim: 'point' },
+    { on: 'De vitrine is leeg', dt: 0.6, actor: 'tammo', walk: [[-1.4, 0.8]], speed: 0.7 },
+  ],
+  shots: [],
+  wide: WIDE([-6, 3.4, 2.4], [-4.4, 2.6, 2.0], 'mid:tammo,tessa@1.2'),
+};

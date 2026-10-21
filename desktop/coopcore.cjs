@@ -184,7 +184,29 @@ function createCoopCore(opts) {
     if (mapping) { const mp = mapping; mapping = null; try { await mp.close(); } catch (e) { /* router weg */ } }
   }
   const setMax = (n) => { max = Math.min(16, Math.max(2, n | 0 || 8)); return max; };
-  return { host, join, send, close, stop, setMax, isConnected: () => socks.size > 0, count: () => socks.size };
+  // "Verbinding testen" (net/diagnose.js): kan het spel een poort openen en opent de router er automatisch een (UPnP)?
+  // Proef met een tijdelijke poort, die meteen weer dicht gaat; een lopende uitnodiging blijft ongemoeid.
+  async function diagnose() {
+    const m = await load();
+    if (server) return { poort: { ok: true, poort: 0, bezet: true }, upnp: mapping ? { ok: true } : { ok: false, reason: 'uit' } };
+    let proef = null, port = 0;
+    for (let p = PORT_MIN; p <= PORT_MAX && !port; p += Math.floor(Math.random() * 7) + 1) {
+      const s = net.createServer();
+      try { await new Promise((res, rej) => { s.once('error', rej); s.listen(p, '0.0.0.0', () => { s.removeListener('error', rej); res(); }); }); proef = s; port = p; } catch (e) { try { s.close(); } catch (e2) { /* weg */ } }
+    }
+    if (!port) return { poort: { ok: false }, upnp: { ok: false, reason: 'uit' } };
+    let upnp = { ok: false, reason: 'uit' };
+    if (opts.upnp !== false) {
+      try {
+        const ext = await m.upnp.openPort(opts.io || realIo(opts.localIp || lanIp()), { port });
+        upnp = ext && ext.ok ? { ok: true } : { ok: false, reason: ext ? ext.reason : 'onbereikbaar' };
+        if (ext && ext.ok && ext.close) { try { await ext.close(); } catch (e) { /* router weg */ } }
+      } catch (e) { upnp = { ok: false, reason: 'onbereikbaar' }; }
+    }
+    try { proef.close(); } catch (e) { /* weg */ }
+    return { poort: { ok: true, poort: port }, upnp };
+  }
+  return { host, join, send, close, stop, setMax, diagnose, isConnected: () => socks.size > 0, count: () => socks.size };
 }
 
 module.exports = { createCoopCore, isLanHost, lanIp };
