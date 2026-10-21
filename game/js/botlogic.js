@@ -94,6 +94,79 @@ export class PathFollower {
   }
 }
 
+// --- on foot: the planned route knows no stall poles, bins or benches (#218) ---------
+// `free(x, y)` says whether a walker fits at the point (the page side asks the game's own collision).
+// segmentFree samples a straight stretch every `step` metres; repairPath replaces every blocked stretch
+// of a route by a way round it: A* on a grid of `cell` metres over the stretch's box (8 directions, a
+// diagonal only between free corners), then pulled tight again with straight lines of sight.
+export function segmentFree(a, b, free, step = 0.4) {
+  const d = distance(a, b), n = Math.max(1, Math.ceil(d / step));
+  for (let i = 1; i <= n; i++) if (!free(a.x + (b.x - a.x) * i / n, a.y + (b.y - a.y) * i / n)) return false;
+  return true;
+}
+
+export function detourAround(a, b, free, { cell = 0.8, margin = 14, maxCells = 90 } = {}) {
+  const x0 = Math.min(a.x, b.x) - margin, y0 = Math.min(a.y, b.y) - margin;
+  const w = Math.min(maxCells, Math.ceil((Math.abs(a.x - b.x) + 2 * margin) / cell)), h = Math.min(maxCells, Math.ceil((Math.abs(a.y - b.y) + 2 * margin) / cell));
+  const at = (i, j) => ({ x: x0 + (i + 0.5) * cell, y: y0 + (j + 0.5) * cell });
+  const cellOf = (p) => [Math.max(0, Math.min(w - 1, Math.floor((p.x - x0) / cell))), Math.max(0, Math.min(h - 1, Math.floor((p.y - y0) / cell)))];
+  const memo = new Map();
+  const ok = (i, j) => { const k = j * w + i; let v = memo.get(k); if (v === undefined) { const p = at(i, j); v = free(p.x, p.y); memo.set(k, v); } return v; };
+  const [si, sj] = cellOf(a), [gi, gj] = cellOf(b);
+  const key = (i, j) => j * w + i;
+  const g = new Map([[key(si, sj), 0]]), from = new Map(), open = [[0, si, sj]], done = new Set();
+  const hz = (i, j) => Math.hypot(i - gi, j - gj);
+  while (open.length) {
+    let best = 0;
+    for (let q = 1; q < open.length; q++) if (open[q][0] < open[best][0]) best = q;
+    const [, i, j] = open.splice(best, 1)[0];
+    const k = key(i, j);
+    if (done.has(k)) continue;
+    done.add(k);
+    if (i === gi && j === gj) break;
+    for (let di = -1; di <= 1; di++) for (let dj = -1; dj <= 1; dj++) {
+      if (!di && !dj) continue;
+      const ni = i + di, nj = j + dj;
+      if (ni < 0 || nj < 0 || ni >= w || nj >= h) continue;
+      const goal = ni === gi && nj === gj;
+      if (!goal && !ok(ni, nj)) continue;
+      if (di && dj && !(ok(i + di, j) && ok(i, j + dj))) continue;
+      const nk = key(ni, nj), c = g.get(k) + Math.hypot(di, dj);
+      if (c < (g.has(nk) ? g.get(nk) : Infinity)) { g.set(nk, c); from.set(nk, k); open.push([c + hz(ni, nj), ni, nj]); }
+    }
+  }
+  if (!from.has(key(gi, gj)) && !(si === gi && sj === gj)) return null;
+  const cells = [];
+  for (let k = key(gi, gj); k !== undefined; k = from.get(k)) { cells.push({ x: at(k % w, Math.floor(k / w)).x, y: at(k % w, Math.floor(k / w)).y }); if (k === key(si, sj)) break; }
+  cells.reverse();
+  const pts = [a, ...cells.slice(1, -1), b];
+  // pull tight: from each point jump to the furthest one that is still in line of sight
+  const out = [pts[0]];
+  let i = 0;
+  while (i < pts.length - 1) {
+    let j = pts.length - 1;
+    while (j > i + 1 && !segmentFree(pts[i], pts[j], free)) j--;
+    out.push(pts[j]);
+    i = j;
+  }
+  return out;
+}
+
+// pts: [[x, y], ...] (a planned route, the goal last); only the first `horizon` metres are looked at
+export function repairPath(pts, free, { horizon = 160, ...opts } = {}) {
+  const P = pts.map((p) => (Array.isArray(p) ? { x: p[0], y: p[1] } : { x: p.x, y: p.y }));
+  const out = [P[0]];
+  let along = 0, fixed = 0;
+  for (let i = 1; i < P.length; i++) {
+    const a = out[out.length - 1], b = P[i];
+    along += distance(a, b);
+    if (along > horizon || segmentFree(a, b, free)) { out.push(b); continue; }
+    const d = detourAround(a, b, free, opts);
+    if (d && d.length > 1) { out.push(...d.slice(1)); fixed++; } else out.push(b);
+  }
+  return { pts: out.map((p) => [p.x, p.y]), fixed };
+}
+
 // --- stuck detection ------------------------------------------------------------
 // Progress = the distance to the goal got `minGain` metres smaller than the best so far
 // (or, without a goal distance, the position moved `minMove` metres from where it
