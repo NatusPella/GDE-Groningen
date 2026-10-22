@@ -74,6 +74,8 @@ export const BASE_KEYS = {
   help: 'gde-hulp-v1',
   // the career of this player per trade (loopbaan.js, #381): new, no legacy name, never part of a savegame (everyone has their own, also when playing together)
   loopbaan: 'gde-loopbaan-v1',
+  // the farm of this player (boerderij.js, #415): new, no legacy name, never part of a savegame (everyone has their own, also when playing together)
+  boerderij: 'gde-boerderij-v1',
 };
 
 export const KEYS = Object.fromEntries(Object.entries(BASE_KEYS).map(([k, v]) => [k, ARC_KEYS.includes(k) ? v + ARC_SUFFIX : v]));
