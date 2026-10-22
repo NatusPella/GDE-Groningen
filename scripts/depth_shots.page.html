@@ -27,9 +27,8 @@ try {
   const { Vehicle, TRAFFIC_MODELS } = await import('/game/js/vehicle.js');
   const BB = await import('/game/js/busboard3d.js');
   const { SIGN_OFF, SIGN_H } = await import('/game/js/shopsign.js');
-  const SS = await import('/game/js/streetsigns.js');
   const na = typeof BB.attachBusBoards === 'function';
-  window.__info = { na, plateZ: SS.PLATE_Z || null };
+  window.__info = { na };
 
   const canvas = document.getElementById('c');
   const W = 1280, H = 720;
@@ -118,7 +117,8 @@ try {
     sign.scale.set(4.5, SIGN_H, 1); sign.position.set(-3, 3.3, SIGN_OFF);
     scene.add(sign);
     // straatnaambord (streetsigns.js buildSignMesh, kind 'facade')
-    const Z = SS.PLATE_Z || { back: 0.02, text: 0.034 };
+    // de maten van streetsigns.js PLATE_Z: voor #382 lag de tekst 1,5 mm voor de plaat (0,034), erna 7,5 mm (0,04) met polygonOffset
+    const Z = na ? { back: 0.02, text: 0.04 } : { back: 0.02, text: 0.034 };
     const pc = document.createElement('canvas'); pc.width = 640; pc.height = 140;
     const pg = pc.getContext('2d');
     pg.fillStyle = '#1f3f8f'; pg.fillRect(0, 0, 640, 140); pg.strokeStyle = '#fff'; pg.lineWidth = 6; pg.strokeRect(9, 9, 622, 122);
@@ -127,7 +127,7 @@ try {
     const pw = 0.5 * 640 / 140;
     const back = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 0.025), new THREE.MeshStandardMaterial({ color: 0x1f3f8f, roughness: 0.5 }));
     back.scale.set(pw + 0.04, 0.54, 1); back.position.set(4.5, 2.9, Z.back);
-    const text = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshStandardMaterial(SS.PLATE_Z ? { map: ptex, roughness: 0.5, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -8 } : { map: ptex, roughness: 0.5 }));
+    const text = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshStandardMaterial(na ? { map: ptex, roughness: 0.5, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -8 } : { map: ptex, roughness: 0.5 }));
     text.scale.set(pw, 0.5, 1); text.position.set(4.5, 2.9, Z.text);
     scene.add(back, text);
     // de camera kijkt schuin langs de gevel, zoals een speler op straat
