@@ -413,7 +413,7 @@ export function tileBlob(i, j, list, gid, flags, builder, stats = null, extras =
         const zt = wayZt && wayZt.length ? cutZt(f.row, piece) : null;
         const row = { gid: r.gid };
         if (z && !isFlat(z)) { const st = segmentStructures({ ...r, z }); Object.assign(row, { pnet: 0, z, st, ly: st.map(() => o) }); }
-        if (zt && !isFlat(zt)) { const stt = segmentStructures({ ...r, z: zt }); Object.assign(row, { zt, stt }); if (!row.z) Object.assign(row, { pnet: -1, ly: stt.map(() => o) }); }
+        if (zt && (!isFlat(zt) || (f.row.bridge && !f.row.tunnel))) { const stt = segmentStructures({ ...r, z: zt }); Object.assign(row, { zt, stt }); if (!row.z) Object.assign(row, { pnet: -1, ly: stt.map(() => o) }); }
         else if (wayZt && row.z) row.zf = 1;
         if (row.z || row.zt || row.zf) heights.push(row);
       }

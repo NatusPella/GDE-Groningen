@@ -7,7 +7,7 @@
 // under the deck, a tunnel through it). The ends are the terrain itself, so
 // deck and street join without a step. Pure: the sampler is passed in.
 
-export const DECK_DEADBAND = 0.3; // m the ground may stand above the line before the deck follows it
+export const DECK_DEADBAND = 0.05; // m the ground may stand above the line before the deck follows it (a deck below the ground it spans would leave a car on the ground)
 
 export const isDeckRoad = (r) => !!r && (!!r.bridge || !!r.tunnel) && !!r.pts && r.pts.length >= 2;
 
