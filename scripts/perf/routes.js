@@ -78,6 +78,27 @@ if (window.__perfDiag) {
   };
 }
 
+// PERF_DEPTH=1: draws that take over 3 ms in renderBufferDirect (a program that was not linked yet blocks there), by kind of material and owner,
+// and whether the material had a program at all when it was drawn (results.depth)
+const slowDraws = new Map();
+if (window.__perfDepth) {
+  const own = (o) => { let a = o, label = ''; while (a && !label) { label = (a.userData && (a.userData.kind || a.userData.type || a.userData.propKind)) || a.name || ''; a = a.parent; } if (label) return label; let top = o; while (top.parent && top.parent !== sc.scene) top = top.parent; const g = o.geometry || {}; return 'u:' + (o.isInstancedMesh ? 'inst' : o.type) + ' top=' + (top === o ? 'self' : (top.name || top.type) + '{' + Object.keys(top.userData || {}).slice(0, 3).join('/') + '}') + ' geo=' + (g.type || '') + ' v' + (g.attributes && g.attributes.position ? g.attributes.position.count : '?'); };
+  const prev = r.renderBufferDirect;
+  r.renderBufferDirect = function (camera, scene, geometry, material, object, group) {
+    const m = Array.isArray(material) ? material[0] : material;
+    const pr = r.properties.get(m).programs;
+    const had = !!pr;
+    const t = performance.now();
+    const out = prev.call(this, camera, scene, geometry, material, object, group);
+    const ms = performance.now() - t;
+    if (H.recording && ms > 3) {
+      const k = (m.type || '') + (inShadow ? ' [sh]' : '') + ' ' + own(object) + (had ? '' : ' NOPROG');
+      const e = slowDraws.get(k) || { n: 0, ms: 0, max: 0 };
+      e.n++; e.ms += ms; e.max = Math.max(e.max, ms); slowDraws.set(k, e);
+    }
+    return out;
+  };
+}
 const pathLen = (pts) => { let L = 0; for (let i = 1; i < pts.length; i++) L += Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]); return L; };
 const at = (pts, s) => {
   for (let i = 1; i < pts.length; i++) {
@@ -113,6 +134,30 @@ const fixWorld = () => {
   if (DN.refreshDayNight) DN.refreshDayNight(w);
 };
 
+// How far the streaming keeps up with the player (#247), per frame of a route: the detail radius of buildings and roads
+// as a share of DRAW_DIST (it shrinks to the nearest thing still missing, scene3d.js dists()), what still waits to be built
+// (streamPending), the tile store's queue and the longest wait of a frame's tile work. Lower share = more pop-in at the rim.
+const SP = await imp('scene3d').catch(() => null);
+function streamProbe() {
+  const rows = [];
+  let on = true;
+  const tick = () => {
+    if (!on) return;
+    const d = sc.dists ? sc.dists() : null, pend = SP && SP.streamPending ? SP.streamPending() : null, st = map.store;
+    if (d) rows.push([d.buildingDetailR / d.DRAW_DIST, d.roadDetailR / d.DRAW_DIST, pend ? pend.buildings : 0, pend ? pend.roads : 0, st ? st.queue.length + st.active : 0, map.tileQueue ? map.tileQueue.size : 0, d.DRAW_DIST]);
+    requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+  const avg = (i) => rows.length ? +(rows.reduce((a, q) => a + q[i], 0) / rows.length).toFixed(3) : null;
+  const mx = (i) => rows.reduce((a, q) => Math.max(a, q[i]), 0);
+  const share = (i, lim) => rows.length ? +(rows.filter((q) => q[i] < lim).length / rows.length).toFixed(3) : null;
+  return { stop() {
+    on = false;
+    return { frames: rows.length, drawDist: rows.length ? rows[0][6] : null, bDetailAvg: avg(0), bDetailBelow90: share(0, 0.9), bDetailBelow50: share(0, 0.5), rDetailAvg: avg(1), rDetailBelow90: share(1, 0.9), rDetailBelow50: share(1, 0.5),
+      pendBAvg: avg(2), pendBMax: mx(2), pendRAvg: avg(3), pendRMax: mx(3), tileLoadAvg: avg(4), tileLoadMax: mx(4), tileFrameQAvg: avg(5), tileFrameQMax: mx(5) };
+  } };
+}
+
 async function run(name, setup, move, teardown, opts = {}) {
   if (ONLY.length && !ONLY.includes(name)) return null;
   LOOK = { clock: opts.clock ?? 14, rain: !!opts.rain };
@@ -131,8 +176,12 @@ async function run(name, setup, move, teardown, opts = {}) {
   console.error('[perf-mark] start ' + name + ' ' + Date.now());
   if (window.__hitch) window.__hitch.reset();
   if ((window.__perfProfile || '').split(',').includes(name)) console.log('[profile] ' + Math.min(DURR - 2000, 15000));
+  const canvasFrames0 = SP && SP.canvasFrameCount ? SP.canvasFrameCount() : null;
+  const probe = streamProbe();
   await sleep(DURR);
   const res = H.stop();
+  res.stream = probe.stop();
+  res.stream.canvasFrames = [canvasFrames0, SP && SP.canvasFrameCount ? SP.canvasFrameCount() : null]; // the link guard of scene3d.js only works after 600
   console.error('[perf-mark] end ' + name + ' ' + Date.now() + ' ' + res.frames);
   const frames = Math.max(1, res.frames);
   mover = null;
@@ -147,6 +196,7 @@ async function run(name, setup, move, teardown, opts = {}) {
     const hs = window.__hitch.summary();
     out.hitch = { sections: hs.sections, peaks: hs.peaks, over50: hs.over50, over100: hs.over100, slow: hs.slow.slice(0, 25), programs: hs.programs.slice(0, 20).map((q) => q.name) };
   }
+  if (window.__perfDepth) { out.slowDraws = [...slowDraws].sort((a, b) => b[1].ms - a[1].ms).slice(0, 25).map(([k, e]) => [k, e.n, Math.round(e.ms), Math.round(e.max)]); slowDraws.clear(); }
   if (window.__perfDiag) { out.diag = [...diag.entries()].sort((a, b) => b[1] - a[1]).slice(0, 80).map(([k, n]) => [k, +(n / frames).toFixed(1)]); diag.clear(); }
   console.log('[capture] ' + name);
   await sleep(400);
@@ -1278,4 +1328,11 @@ done = true;
 clearInterval(skipper);
 r.render = origRender;
 r.renderBufferDirect = origRBD;
+// PERF_ONLY=wegenklaar: no route, only wait until the geometry worker's road network is ready (#247) and hand in the whole load timeline,
+// with the road worker's job times (geoStats.byKind)
+if (ONLY.includes('wegenklaar')) {
+  for (let i = 0; i < 180 && !window.__loadMarks.roadsReady; i++) await sleep(500);
+  await sleep(1000);
+  results.routes.wegenklaar = { marks: { ...window.__loadMarks }, geo: GJ ? { ...GJ.geoStats } : null };
+}
 return JSON.stringify(results);

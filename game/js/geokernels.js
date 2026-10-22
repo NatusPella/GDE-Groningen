@@ -77,9 +77,25 @@ function plainGeometry(g, transfer) {
 // worker side: its own copy of the map, from the same files, with the roads
 // the main thread has dropped since (home.js) taken out the same way
 const RD = { byKey: null, map: null };
+// The worker's map loads as soon as the game boots (roadPreload, roadsurface.js preloadRoadWorker): roadInit used to start it only with the
+// first road sync, 9 to 13 s (2.4 s on an idle thread) before any road could come from the worker (#247). roadInit then only has to prune it.
+let roadLoad = null;
+// (the test swaps the loader: scripts/roadpreload_test.mjs)
+export const roadMapLoader = { load: loadMapAuto };
+function roadMapLoad(url) {
+  return roadLoad || (roadLoad = roadMapLoader.load(url, null, { pool: false }).then((map) => {
+    adoptSideSpans(map.roads); // the same movable side spans as the main thread, so the shores draw no static deck under them
+    return map;
+  }));
+}
+async function roadPreload({ url }) {
+  await roadMapLoad(url);
+  return { result: true, transfer: [] };
+}
 async function roadInit({ url, keys }) {
-  const map = await loadMapAuto(url, null, { pool: false });
-  adoptSideSpans(map.roads); // the same movable side spans as the main thread, so the shores draw no static deck under them
+  const loading = roadMapLoad(url);
+  roadLoad = null; // a second roadInit reads the files again: this map is pruned below
+  const map = await loading;
   const want = new Set(keys);
   for (let i = map.roads.length - 1; i >= 0; i--) {
     const r = map.roads[i];
@@ -134,6 +150,6 @@ function terrain({ bounds, water }) {
   return { result: T, transfer: [T.positions.buffer, T.normals.buffer, ...T.tiles.map((t) => t.index.buffer)] };
 }
 
-export const KERNELS = { cityMerge, roadInit, roadGeo, shoreInit, shore, terrain };
+export const KERNELS = { cityMerge, roadPreload, roadInit, roadGeo, shoreInit, shore, terrain };
 registerKernels(KERNELS);
 export { geometryFromPlain };
