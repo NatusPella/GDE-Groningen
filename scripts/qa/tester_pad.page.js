@@ -18,7 +18,8 @@ Object.defineProperty(navigator, 'getGamepads', { configurable: true, value: () 
 const hold = (name, on = true) => { const b = pad.buttons[ORDER.indexOf(name)]; b.pressed = on; b.value = on ? 1 : 0; };
 const stick = (lx, ly, rx = 0, ry = 0) => { pad.axes = [lx, ly, rx, ry]; };
 const frames = async (n) => { for (let i = 0; i < n; i++) await new Promise((r) => requestAnimationFrame(r)); };
-const tap = async (name, ms = 120) => { hold(name, true); await sleep(ms); hold(name, false); await sleep(120); };
+// een tik duurt minstens 4 beelden: op een zwaar belaste computer is een beeld trager dan 120 ms en zou een korte tik nooit gepeild worden
+const tap = async (name, ms = 120) => { hold(name, true); await frames(4); await sleep(ms); hold(name, false); await frames(2); await sleep(120); };
 const M = {};
 for (const [f, n] of [['pausemenu', 'isPauseMenuOpen'], ['mapview', 'isMapOpen'], ['phone', 'isPhoneOpen'], ['shopui', 'isShopOpen'], ['todo', 'isPlayAheadOpen'], ['assistlive', 'isHelpOfferOpen'], ['cinematics', 'isCinematicActive']]) { try { M[n] = (await import('/js/' + f + '.js'))[n]; } catch (e) { out.fouten.push('import ' + f + ': ' + e.message); } }
 const hooksNow = () => Object.fromEntries(Object.entries(M).map(([n, f]) => { try { return [n, !!f()]; } catch (e) { return [n, 'fout']; } }).filter(([, v]) => v));
@@ -36,12 +37,18 @@ hold('down'); await frames(4); hold('down', false); await frames(4);
 snap('na eerste knop (titel)');
 // nieuw spel kiezen zoals een speler met het pad: A
 const ss = document.getElementById('start-screen');
-// op een zwaar belaste computer laadt het spel traag: hooguit eens per 15 s op Alleen spelen drukken
+// met D-pad omlaag/omhoog naar Alleen spelen (de eerste knop hierboven kan het menu al verschoven hebben), dan A;
+// op een zwaar belaste computer laadt het spel traag: hooguit eens per 20 s opnieuw proberen
+const opSolo = () => { const sel = ss && ss.querySelector('.ss-item.sel'); return !!sel && sel.dataset.act === 'solo'; };
 let laatsteA = 0;
 for (let i = 0; i < 400 && !document.body.classList.contains('game-started'); i++) {
-  if (ss && ss.classList.contains('visible') && Date.now() - laatsteA > 15000) {
-    const it = [...ss.querySelectorAll('.ss-item')].find((q) => /alleen spelen|nieuw spel/i.test(q.textContent));
-    if (it) { laatsteA = Date.now(); it.focus(); await tap('a'); await sleep(1500); if (!document.body.classList.contains('game-started')) await tap('a'); }
+  if (ss && ss.classList.contains('visible') && Date.now() - laatsteA > 20000) {
+    laatsteA = Date.now();
+    for (let k = 0; k < 8 && !opSolo(); k++) await tap(k < 4 ? 'up' : 'down');
+    snap('titel: op Alleen spelen', { opSolo: opSolo() });
+    if (!opSolo()) { await sleep(1000); continue; } // nooit A op een ander item (Afsluiten!)
+    await tap('a'); await sleep(1500);
+    if (!document.body.classList.contains('game-started') && ss.classList.contains('visible') && opSolo()) await tap('a');
   }
   await sleep(1000);
 }
