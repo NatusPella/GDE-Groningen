@@ -5,6 +5,7 @@
 // and keys traindrive.js. Pays per halte plus a medal bonus (payFor).
 import { createBoard, key } from './minigamekit.js';
 import { driveRange, routePoint } from './railway.js';
+import { loopbaanVerdien } from './loopbaanlive.js';
 import {
   startService, stepService, abandonService, boardView, doorsOpen, MEDAL_NAMES, STOPPED_V, payFor,
 } from './machinistrules.js';
@@ -89,7 +90,8 @@ export function updateMachinist(dt, world, t) {
     if (!svc.paid) {
       svc.paid = true;
       const pay = payFor(r, svc.abandoned);
-      if (pay > 0) { world.money += pay; if (world.coopDeel) world.coopDeel(pay); world.addMessage(`Dienst betaald: €${pay}`, 3); }
+      const betaald = loopbaanVerdien(world, 'trein', pay, { xp: pay > 0 ? Math.round(r.made * 4 + r.medal * 8) : 0, n: 0, uniek: 'machinist' }); // samen spelen (#365), loopbaan (#381)
+      if (betaald > 0) world.addMessage(`Dienst betaald: €${betaald}`, 3);
     }
     board.set({
       row: `<b>${MEDAL_NAMES[r.medal]}</b> &middot; ${r.score} punten`,

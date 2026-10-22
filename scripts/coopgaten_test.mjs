@@ -41,8 +41,9 @@ const aantal = (w, re) => w.messages.filter((m) => re.test(m)).length;
 // ------------------------------------------------------------------ #365
 t('#365: elke plek waar de gastheer geld verdient deelt het met de gasten (haken in de bron)', () => {
   const eisen = { 'missions.js': 2, 'sidejobs.js': 1, 'carbid.js': 1, 'driftzone.js': 1, 'kermis.js': 1, 'padel.js': 1, 'postgame.js': 1, 'machinist.js': 1 };
-  for (const [f, min] of Object.entries(eisen)) assert.ok((bron(f).match(/world\.coopDeel\(|w\.coopDeel\(/g) || []).length >= min, `${f} roept coopDeel aan (${min}x)`);
-  assert.match(bron('coopnet.js'), /world\.coopDeel = \(bedrag\) => deelMetGasten/, 'de gastheer zet de haak bij startHost');
+  // een plek deelt via world.coopDeel(...) zelf, of via loopbaanVerdien(...) (loopbaanlive.js roept coopDeel aan, #381)
+  for (const [f, min] of Object.entries(eisen)) assert.ok((bron(f).match(/world\.coopDeel\(|w\.coopDeel\(|loopbaanVerdien\(/g) || []).length >= min, `${f} roept coopDeel aan (${min}x)`);
+  assert.match(bron('coopnet.js'), /world\.coopDeel = \(bedrag(, info)?\) => deelMetGasten/, 'de gastheer zet de haak bij startHost');
   assert.match(bron('coopnet.js'), /world\.coopDeel = null/, 'en haalt hem weg bij het stoppen');
 });
 

@@ -19,6 +19,7 @@ import { rand } from './rng.js';
 import { SET_GAMES, scorePoint, pointCall, judgeServeHit, serveInBox, serveFault, wallKind, judgeWall } from './padelrules.js';
 import { loadEchtePlekken, padelDefs } from './echteplekken.js';
 import { tilesIn, withTiles } from './tileplace.js';
+import { loopbaanVerdien } from './loopbaanlive.js';
 
 // Padel courts where OSM has them (game/mapextras.json "padel", built by
 // scripts/add_map_extras.py): a glass cage with blue turf, a net and lights
@@ -1040,8 +1041,7 @@ function endMatch(w, { quit = false } = {}) {
   unlockAchievement(w, 'padel_klaar');
   if (win) unlockAchievement(w, 'padel_winst');
   if (medal >= 3) unlockAchievement(w, 'padel_goud');
-  const prize = PRIZE[medal] || 0;
-  if (prize) { w.money += prize; if (w.coopDeel) w.coopDeel(prize); } // samen spelen (#365)
+  const prize = loopbaanVerdien(w, 'padel', PRIZE[medal] || 0, { xp: win ? 24 : 20, n: 1, uniek: String(g.site.id) }); // samen spelen (#365), loopbaan (#381)
   w.health = 100;
   w.padelFitUntil = w.time + (win ? FIT_WIN_S : FIT_LOSE_S);
   const stats = [['Games', `${g.games[0]}-${g.games[1]}`], ['Langste rally', `${g.bestRally} slagen`], ['Padelfit', `${Math.round((win ? FIT_WIN_S : FIT_LOSE_S) / 60)} min herstel`]];

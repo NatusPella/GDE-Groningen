@@ -16,6 +16,7 @@ import { isToday } from './calendarday.js';
 import { rand } from './rng.js';
 import { KERMIS_TENT } from './roadaccess.js';
 import { WHEEL_AT, R, AX as WHEEL_AX, N, OMEGA } from './reuzenradrules.js';
+import { loopbaanVerdien } from './loopbaanlive.js';
 
 // Kermis op de Grote Markt. The botsautotent of kermisbaas Jan stands on
 // the south side of the square all the time (always open, €3 a ride);
@@ -623,8 +624,7 @@ function end(w, { quit = false } = {}) {
   recordStat(w, 'botsautoRides');
   unlockAchievement(w, 'botsauto_klaar');
   if (medal >= 3) unlockAchievement(w, 'botsauto_goud');
-  const prize = (PRIZE[medal] || 0) * (g.bonus ? 2 : 1);
-  if (prize) { w.money += prize; if (w.coopDeel) w.coopDeel(prize); } // samen spelen (#365)
+  const prize = loopbaanVerdien(w, 'kermis', (PRIZE[medal] || 0) * (g.bonus ? 2 : 1), { xp: 12, n: 1, uniek: 'botsauto' }); // samen spelen (#365), loopbaan (#381)
   const stats = [['Punten', String(g.score)], ['Botsingen', String(g.hits)], ['Langste reeks', `${g.best}`]];
   if (medal) stats.push(['Medaille', MEDALS[medal]]);
   if (rec && rec.newBest) stats.push(['Record', 'Nieuw!']);
