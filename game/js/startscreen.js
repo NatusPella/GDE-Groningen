@@ -18,6 +18,7 @@ import { makeMenuGate, GATE } from './menuready.js';
 import { isAdvisorSampling, startGfxAdvisor } from './gfxprofile.js';
 import { ABOUT_HTML } from './credits.js';
 import { startLoadScreen, setLoadTips } from './loadscreen.js';
+import { MENU_PLEKKEN, stadPlek, leesVerleden, bewaarVerleden, kiesVolgende, noteer, maakBeeld } from './menuplekken.js';
 
 export const TIPS = [
   'Tip: in Grunn neemt een fietser altijd voorrang, of die nou voorrang heeft of niet.',
@@ -151,30 +152,26 @@ const SHOT_MAX_S = 16;
 const FADE_S = 0.45;
 const BLACK_HOLD_S = 0.3;
 const LEVEL_H = 3.1;
-const SHOT_CLOCKS = [9.5, 12.5, 15, 18.6, 19.3, 20.4, 22.5];
+// de stad achter het menu in zomerlicht (#380): ochtend tot de late namiddag, droog
+const SHOT_CLOCKS = [9.5, 11, 12.5, 15, 16.5, 17.8];
 const SHOT_WEATHER = [
-  { weight: 30 },
-  { weight: 18, overcast: 0.75 },
-  { weight: 14, mist: 0.7, overcast: 0.3 },
-  { weight: 13, rain: 0.35 },
-  { weight: 15, rain: 0.6 },
-  { weight: 7, rain: 0.85 },
-  { weight: 3, rain: 1, kind: 'storm' },
+  { weight: 60 },
+  { weight: 28, overcast: 0.35 },
+  { weight: 12, overcast: 0.6 },
 ];
 
 function pickShotWeather(base) {
   let r = Math.random() * SHOT_WEATHER.reduce((sum, k) => sum + k.weight, 0);
   let k = SHOT_WEATHER[0];
   for (const c of SHOT_WEATHER) { r -= c.weight; if (r <= 0) { k = c; break; } }
-  const rain = k.rain || 0;
   return {
     ...base,
-    active: rain > 0,
-    kind: k.kind || (rain > 0.7 ? 'onweer' : rain > 0 ? 'regenbui' : undefined),
-    peak: rain,
-    intensity: rain,
+    active: false,
+    kind: undefined,
+    peak: 0,
+    intensity: 0,
     overcast: k.overcast || 0,
-    mist: k.mist || 0,
+    mist: 0,
     windAngle: Math.random() * Math.PI * 2,
     elapsed: 0,
     duration: Infinity,
@@ -268,15 +265,6 @@ function makeShot(map, spot) {
     const a = a0 + dir * t * 0.045;
     return { position: { x: c.x + Math.cos(a) * R, y: c.y + Math.sin(a) * R, z: z + Math.sin(t * 0.13) * 3 }, lookAt: { x: c.x, y: c.y, z: lookZ }, fov: 55 };
   };
-}
-
-function shuffle(list) {
-  const a = list.slice();
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
 }
 
 const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -376,20 +364,21 @@ export function runStartScreen(world, { render, relocate, tick, ready }) {
     const menu = screen.querySelector('.ss-menu');
     ensureActiveSlot();
     const save = hasSave() ? getSaveSummary() : null;
-    // two big choices (Alleen spelen opens Opgeslagen spellen: Doorgaan, Nieuw spel or any saved game), then the quiet rest
+    // two big choices (Alleen spelen opens Opgeslagen spellen: Doorgaan, Nieuw spel or any saved game), then the quiet rest;
+    // only icon and label, no explaining sentences (#380)
     const items = [];
-    items.push({ act: 'solo', label: 'Alleen spelen', sub: save ? 'Doorgaan, een nieuw spel of een ander opgeslagen spel' : 'Moi! Stap in en rij' });
-    items.push({ act: 'samen', label: 'Samen spelen', sub: 'Met een vriend of vriendin, tot 4 spelers' });
-    items.push({ act: 'news', label: 'Wat is er nieuw', sub: 'Alle versies en wijzigingen' });
-    items.push({ act: 'settings', label: 'Instellingen', sub: 'Geluid, beeld en camera' });
-    items.push({ act: 'about', label: 'Over', sub: 'Credits, licenties en privacy' });
-    if (window.gdeDesktop && window.gdeDesktop.isDesktop) items.push({ act: 'exit', label: 'Afsluiten', sub: 'Tot de volgende keer. Hou dij goud!' });
+    items.push({ act: 'solo', label: 'Alleen spelen' });
+    items.push({ act: 'samen', label: 'Samen spelen' });
+    items.push({ act: 'news', label: 'Wat is er nieuw' });
+    items.push({ act: 'settings', label: 'Instellingen' });
+    items.push({ act: 'about', label: 'Over' });
+    if (window.gdeDesktop && window.gdeDesktop.isDesktop) items.push({ act: 'exit', label: 'Afsluiten' });
     const st = save && save.story;
     const itemHtml = (it, i) => {
       if (it.act === 'solo' || it.act === 'samen') {
-        return `<button type="button" role="menuitem" class="ss-item ss-hero" data-act="${it.act}" data-i="${i}"><span class="ss-label">${menuIcon(it.act, 'ss-ic big')}${it.label}</span><small>${it.sub}</small></button>`;
+        return `<button type="button" role="menuitem" class="ss-item ss-hero" data-act="${it.act}" data-i="${i}" aria-label="${it.label}" title="${it.label}"><span class="ss-label">${menuIcon(it.act, 'ss-ic big')}${it.label}</span></button>`;
       }
-      return `<button type="button" role="menuitem" class="ss-item" data-act="${it.act}" data-i="${i}">${menuIcon(it.act)}<span class="ss-label">${it.label}</span><small>${it.sub}</small></button>`;
+      return `<button type="button" role="menuitem" class="ss-item" data-act="${it.act}" data-i="${i}">${menuIcon(it.act)}<span class="ss-label">${it.label}</span></button>`;
     };
     menu.innerHTML = items.map(itemHtml).join('');
     // where the save picks up, right of the menu
@@ -417,16 +406,20 @@ export function runStartScreen(world, { render, relocate, tick, ready }) {
     const homeClock = world.clock;
     const homeWeather = world.weather;
     const move = relocate || ((x, y) => { p.x = x; p.y = y; });
-    const spots = [...(map.meta.landmarks || []), ...EXTRA_SPOTS];
-    let bag = [];
-    let lastSpot = null;
+    // the backdrop (#380): hand-picked viewpoints over the whole province plus the city's own spots; each start shows another
+    // series (menuplekken.js), never the first of the last start, and remembers what it showed
+    const pool = [...MENU_PLEKKEN, ...[...(map.meta.landmarks || []), ...EXTRA_SPOTS].map(stadPlek)];
+    let storage = null;
+    try { storage = window.localStorage; } catch (e) { /* no storage: every start picks fresh */ }
+    let verleden = leesVerleden(storage);
+    let firstPick = true;
+    let curSpot = null;
     const nextSpot = () => {
-      if (!bag.length) {
-        bag = shuffle(spots);
-        if (bag[0] === lastSpot && bag.length > 1) bag.push(bag.shift());
-      }
-      lastSpot = bag.shift();
-      return lastSpot;
+      const spot = kiesVolgende(pool, verleden, Math.random);
+      verleden = noteer(verleden, spot, { eerste: firstPick });
+      firstPick = false;
+      bewaarVerleden(storage, verleden);
+      return spot;
     };
     let shot = makeShot(map, { x: home.x, y: home.y, kind: 'spawn' });
     let shotT = 0;
@@ -441,15 +434,24 @@ export function runStartScreen(world, { render, relocate, tick, ready }) {
     fade.style.cssText = `position:fixed;inset:0;z-index:19;background:#05080a;opacity:0;pointer-events:none;transition:opacity ${FADE_S}s ease`;
     document.body.appendChild(fade);
 
-    const cut = () => {
-      const spot = nextSpot();
+    // to a viewpoint: the player goes there (the street life and the streaming follow), the sun to the camera's side
+    const cutTo = (spot, vast = {}) => {
+      curSpot = spot;
       move(spot.x, spot.y);
-      world.clock = SHOT_CLOCKS[Math.floor(Math.random() * SHOT_CLOCKS.length)];
+      if (spot.stad) {
+        world.clock = SHOT_CLOCKS[Math.floor(Math.random() * SHOT_CLOCKS.length)];
+        shot = makeShot(map, spot);
+      } else {
+        const beeld = maakBeeld(spot, Math.random, vast);
+        world.clock = beeld.uur;
+        shot = beeld.pose;
+        window.__menuBeeld = { id: spot.id, uur: beeld.uur, hoek: Math.round(beeld.theta * 180 / Math.PI), beweging: beeld.beweging };
+      }
       if (homeWeather) world.weather = pickShotWeather(homeWeather);
-      shot = makeShot(map, spot);
       shotT = 0;
       shotDur = SHOT_MIN_S + Math.random() * (SHOT_MAX_S - SHOT_MIN_S);
     };
+    const cut = () => cutTo(nextSpot());
 
     const focus = (i) => {
       sel = (i + buttons.length) % buttons.length;
@@ -638,6 +640,22 @@ export function runStartScreen(world, { render, relocate, tick, ready }) {
     if (update) { newsSince = update.since; changelogCache = null; }
     markVersionSeen(VERSION);
     const intro = pendingTrailer();
+    // the first viewpoint is there before the gate starts to look, so the world streams in round it while the boot screen is up (#380)
+    if (!intro) cutTo(nextSpot());
+    // for the QA scripts (scripts/qa/menuplekken_shots.mjs): the list, and a cut to one viewpoint that stays up
+    window.__menuPlekken = {
+      lijst: () => pool.map((p) => p.id),
+      naar: (id, vast = {}) => {
+        const spot = pool.find((p) => p.id === id);
+        if (!spot || done) return null;
+        cutTo(spot, vast);
+        shotDur = 1e9;
+        phase = 'show';
+        fade.style.opacity = '0';
+        return window.__menuBeeld || { id };
+      },
+      stand: () => ({ id: curSpot && curSpot.id, t: Math.round(shotT * 10) / 10, wacht: streamPending() }),
+    };
     const playIntro = async () => {
       trailerOn = true;
       dismissLoading();
