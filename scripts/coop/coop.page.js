@@ -212,10 +212,6 @@ async function connect() {
     const code = await until(() => { const c = panel().querySelector('.coop-code'); return c && c.textContent.trim(); }, 40000, 'code van de host');
     log('code', { code, net: netNow() });
     shot('host-code');
-    if (CFG.maxSpelers) { // meer dan 8 spelers: de knop "Tot 16 spelers" van de lobby, zoals een speler
-      const knop = await until(() => panel().querySelector(`[data-act="max-${CFG.maxSpelers}"]`), 15000, 'knop max-' + CFG.maxSpelers).catch(() => null);
-      if (knop) knop.click(); log('max-knop', { max: CFG.maxSpelers, gevonden: !!knop }); await sleep(400);
-    }
     { const b0 = panel().querySelector('[data-act="start-spel"]'); log('start-alleen', { knop: !!b0, uit: !!(b0 && b0.disabled), tekst: panel().innerText.slice(0, 500) }); } // alleen jij: Spel starten staat uit
     await until(() => title() === 'Je speelt samen', CFG.waitS ? CFG.waitS * 1000 : 120000, 'een gast');
   } else {
@@ -232,6 +228,10 @@ async function connect() {
     await until(() => title() === 'Je speelt samen', 90000, 'verbinding met de host');
   }
   log('verbonden', { titel: title(), tekst: panel().innerText.slice(0, 600), net: netNow() });
+  if (CFG.role === 'host' && CFG.maxSpelers) { // meer dan 8 spelers: de knop "Tot 16 spelers" staat in de lobby zodra de eerste gast er is; de rest komt pas daarna
+    const knop = await until(() => panel().querySelector(`[data-act="max-${CFG.maxSpelers}"]`), 15000, 'knop max-' + CFG.maxSpelers).catch(() => null);
+    if (knop) knop.click(); log('max-knop', { max: CFG.maxSpelers, gevonden: !!knop }); await sleep(400);
+  }
   await sleep(1500); // de fade van het binnenkomen is dan voorbij
   shot('lobby-verbonden');
   const gateKnop = CFG.role === 'host' && panel().querySelector('[data-act="start-spel"]');
