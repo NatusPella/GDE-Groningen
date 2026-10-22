@@ -130,7 +130,6 @@ await takeSlots(1 + GASTEN);
 console.log('uitvoer:', OUT);
 const host = start('host', { role: 'host', waitS: 300, joinWaitS: 400 }, 11);
 const code = await waitFor(host.events, 'code', 240000);
-if (EXPECT > 8) await waitFor(host.events, 'max-knop', 60000); // de gastheer kiest eerst "Tot 16 spelers" en pas daarna komen de gasten (anders is de TCP-kant nog vol bij 8)
 const problems = [];
 const notes = [];
 let guest = null, guest2 = null;
@@ -168,6 +167,7 @@ if (code && MOCK && ROUTE === 'direct') {
     return { mx: dy / d, my: -dx / d, run: d > 14, yaw: 0 };
   };
   for (let i = 0; i < MOCK; i++) {
+    if (i === 1 && EXPECT > 8) await waitFor(host.events, 'max-knop', 90000); // de gastheer kiest "Tot 16 spelers" zodra de eerste gast er is; de rest komt pas daarna (anders is de TCP-kant vol bij 8)
     try {
       const m = await startMockGuest({ stage: STAGE, code: guestCode, wens: undefined, net: SUITE === 'net' && (GASTEN > 0 || i === MOCK - 1) ? { latency: 0.08, jitter: 0.03, loss: 0.05 } : {}, seed: 7 + i });
       m.input = SUITE === 'verhaal' ? volg(m) : spin(i); mocks.push(m); console.log('mockgast', i + 1, 'verbonden');
