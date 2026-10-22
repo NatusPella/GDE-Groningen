@@ -6,6 +6,9 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Nieuw
+- **Deel 4: Nazomer, een korte vervolgreeks na het Ontzet in Loppersum en Vesting Bourtange (#361; de Electron-verhaaltest speelt het door, 36 stappen; verder niet door een mens bekeken):** na de finalekaart van akte 5 bellen Oma Trijntje en Berend nog één keer, tussen maandag 14 en zaterdag 19 september (nog zomer). Willemien, familie van Oma, moet even uit haar huis in Loppersum omdat het wordt versterkt: Inpakken (boeken, servies, een foto uit 1953, de kat in de mand), De wisselwoning (de verhuisbus rustig rijden, Rikus draait één nummer zonder praatje) en Terug (tafels op het erf, buurtfeest, "Voor de grip."). Het bedrijf heet alleen Delfstof Noord en is nergens een schurk; geen cijfers, geen tijdslimiet, geen falen. Daarna de reisstap naar Bourtange en Het proefbeleg: Berend wil één keer weten hoe winnen voelt, de vrienden van Oma (Lammert, Klaas, Roelfien, Wubbo, Tinus, Geesje, Bert) helpen met gracht, ophaalbrug en drie bolwerken, hij wint en vindt dat verkeerd. Slot: "Thuis is waar de kar staat." "Zes." "Kon minder." Alleen tekst en ondertitels, niets nieuws ingesproken; de aftiteling en de uitdagingen van Jelle blijven van akte 5. Ontwerp en keuzes: docs/verhaal/nieuw/DEEL4.md. De plaatsen komen uit het OSM-uittreksel; de regie, de camerastanden en de plaatsen zijn nog niet in beeld bekeken.
+
 ## [0.38.2] - 2026-10-22
 
 ### Opgelost
