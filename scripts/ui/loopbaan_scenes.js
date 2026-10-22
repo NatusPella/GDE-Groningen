@@ -39,7 +39,6 @@ const teleport = (x, y) => {
 const shot = async (name, wait = 1200) => { await sleep(wait); console.log('[capture] ' + name); await sleep(600); };
 const done = [`viewport ${innerWidth}x${innerHeight} dpr ${devicePixelRatio} ui ${getComputedStyle(document.documentElement).getPropertyValue('--ui')}`];
 const info = [];
-const info = [];
 const A = D.achievements.loopbaan;
 // a player who has done a bit of everything: different levels per trade
 const geef = (vak, xp, n, uniek) => { A.tel(vak, { xp, n }); (uniek || []).forEach((u) => A.tel(vak, { uniek: u })); };
@@ -66,13 +65,20 @@ await sleep(500);
 // the card waits while a phone message or a district card holds the HUD: wait until it is up
 const kaartje = async (naam) => {
   let st = null;
-  for (let i = 0; i < 80; i++) {
+  for (let i = 0; i < 400; i++) {
     st = window.__cards && window.__cards.state();
     if (st && st.visible.some((c) => c.kicker === 'Loopbaan')) break;
-    await sleep(500);
+    await sleep(100);
   }
   info.push(naam + ': ' + JSON.stringify(st && st.visible.map((c) => ({ k: c.kicker, t: c.title, b: c.body }))));
-  await shot(naam, 700);
+  await sleep(250);
+  const e = document.querySelector('.hud-cards-e');
+  const kaart = e && e.querySelector('.hud-card');
+  const r = kaart && kaart.getBoundingClientRect();
+  info.push(naam + ' dom: ' + JSON.stringify({ e: !!e, n: e ? e.children.length : -1, cls: kaart && kaart.className, op: kaart && getComputedStyle(kaart).opacity, r: r && [Math.round(r.x), Math.round(r.y), Math.round(r.width), Math.round(r.height)], body: document.body.className.slice(0, 200) }));
+  await shot(naam, 0);
+  const e2 = document.querySelector('.hud-cards-e');
+  info.push(naam + ' na: ' + (e2 ? e2.children.length : -1));
 };
 A.tel('bus', { xp: 160 });
 await kaartje('niveau-omhoog');
