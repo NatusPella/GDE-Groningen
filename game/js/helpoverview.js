@@ -28,7 +28,7 @@ export const HELP_TOPICS = [
     'Achterom kijken met {Q}, toeteren met {H}, handrem met {SPACE}.',
   ] },
   { id: 'vastgelopen', title: 'Vastgelopen?', lines: [
-    '{ESC} › Overzicht heeft "Vastgelopen? Zet me vrij" en, tijdens een missie, "Missie afbreken".',
+    '{ESC} › Overzicht heeft "Vastgelopen? Zet me vrij" en, tijdens een missie, "Missie stoppen" (je krijgt eerst een vraag).',
   ] },
   { id: 'samen', title: 'Samen spelen', lines: [
     'Kies Samen spelen in het hoofdmenu of onder {ESC}. Eén speler kiest Een spel openen en deelt de kamercode; de anderen kiezen Meedoen en typen of plakken die code.',

@@ -386,5 +386,15 @@ ok(L.decide({ ...b(), mission: { active: true, stage: 'hold' }, target: { x: 8, 
   ok(L.routeStartsFar(me, null) === false && L.routeStartsFar(me, []) === false, 'routeStartsFar: zonder route niets');
 }
 
+// --annuleer (#390): the bot stops a mission through the menu; the report says whether the game kept its promises
+{
+  const good = { t: 41, type: 'annuleer', voor: { id: 'M01', stage: 'goto', fails: 0, money: 250 }, knop: true, vraagZichtbaar: true, nogActiefNaVraag: true, na: { actief: false, fase: 'cooldown', fails: 0, money: 250, menuDicht: true }, ok: true };
+  const md = L.buildReport([good], { title: 'test', seed: 1, result: 'KLAAR' });
+  ok(md.includes('## Missie gestopt uit het menu (#390)') && md.includes('bij M01: knop ja, vraag ja, na de vraag nog actief ja, na Ja gestopt (mislukkingen 0 naar 0, geld 250 naar 250): klopt'), 'annuleer: de regel van een geslaagde stop');
+  const bad = L.buildReport([{ ...good, vraagZichtbaar: false, na: { ...good.na, actief: true, fails: 1 }, ok: false }], {});
+  ok(bad.includes('vraag **nee**') && bad.includes('**nog actief**') && bad.includes('**klopt niet**'), 'annuleer: wat niet klopt valt op');
+  ok(!L.buildReport([], {}).includes('#390'), 'annuleer: zonder stop geen sectie');
+}
+
 console.log(`${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);

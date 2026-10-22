@@ -448,6 +448,30 @@ while (true) {
     await sleep(2500);
     continue;
   }
+  // --annuleer=<s>: once, s seconds into the first mission that runs, the bot stops it through the pause menu the way a player does (Esc, the
+  // Missie stoppen button, Ja stoppen: #390); what the game says afterwards is logged ('annuleer'), then the bot plays the mission again as after a failure
+  if (CFG.annuleer > 0 && !mem.annuleerd) {
+    if (!s.mission.active) mem.actiefSinds = null;
+    else if (mem.actiefSinds == null) mem.actiefSinds = s.t;
+    else if (s.t - mem.actiefSinds >= CFG.annuleer && !s.blocking.cinematic && !s.blocking.banner && !s.blocking.talk) {
+      mem.annuleerd = true;
+      const PM = await imp('pausemenu'), MS = await imp('missions');
+      const world = window.__debug.world, voor = { id: s.story.id, stage: s.mission.stage, fails: window.__story.view().fails || 0, money: Math.round(world.money) };
+      PM.openPauseMenu('overzicht'); await sleep(900);
+      const knop = document.querySelector('[data-action="mission-stop"]');
+      knop && knop.click(); await sleep(400);
+      const vraag = document.querySelector('[data-stop-confirm]');
+      const vraagZichtbaar = !!vraag && !vraag.hidden;
+      const nogActief = MS.isMissionActive();
+      const ja = document.querySelector('[data-action="mission-stop-go"]');
+      ja && ja.click(); await sleep(1500);
+      const na = { actief: MS.isMissionActive(), fase: world.mission && world.mission.phase, fails: window.__story.view().fails || 0, money: Math.round(world.money), menuDicht: !PM.isPauseMenuOpen() };
+      B.log('annuleer', { voor, knop: !!knop, vraagZichtbaar, nogActiefNaVraag: nogActief, na, ok: !!knop && vraagZichtbaar && nogActief && !na.actief && na.fails === voor.fails && na.money === voor.money });
+      shot(`${voor.id}-gestopt`);
+      follower = null; detector.reset(B.time());
+      continue;
+    }
+  }
   if (s.t - (mem.trailT ?? -9) >= 1.5) { mem.trailT = s.t; (mem.trail = mem.trail || []).push([Math.round(s.t), Math.round(s.player.x), Math.round(s.player.y), s.player.vehicle ? Math.round(s.player.vehicle.speed * 10) / 10 : 0, s.player.vehicle ? s.player.vehicle.angle : null, s.player.vehicle ? s.player.vehicle.kind : 'voet', s.player.vehicle ? s.player.vehicle.health : null]); if (mem.trail.length > 24) mem.trail.shift(); }
   // a new game starts on a random landmark (the menu spot: seeded, but every run draws another), 0.5 to 2.5 km from the start of M01: a commute of 2 to 15
   // minutes that says nothing about act 1 and decided whether the 30 minutes of the test run were enough. Once, at the start, the bot is taken to the goal (logged as setup)
