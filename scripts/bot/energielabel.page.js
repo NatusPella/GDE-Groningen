@@ -11,7 +11,7 @@ const world = B.world, player = B.player;
 const K = await imp('keuzewerk');
 const SJ = await imp('sidejobs');
 const job = K.KEUZE_JOBS.energielabel;
-B.speed(2);
+B.speed(4);   // on a loaded machine the game ran at a few frames a second: more steps per frame, the waits below are in real time
 world.devInvuln = true;
 
 const spot = SJ.getSideJobSpotsForRender().find((s) => s.job.id === 'energielabel');
@@ -34,7 +34,7 @@ const rondes = [];
 let goed = 0, vragen = 0, fout = 0, ronde = 0, prevN = 0, cur = [];
 const gedaan = new Set();
 const t0 = performance.now();
-while (act.active() && rondes.length < 3 && performance.now() - t0 < 150000) {
+while (act.active() && rondes.length < 3 && performance.now() - t0 < 600000) {
   const d = B.status().blocking.dialog;
   const m = d && /VRAAG ([0-9]) VAN 3/.exec(d.kicker || '');
   if (!d || !d.options || !d.options.length || !m) { await sleep(200); continue; }
@@ -53,8 +53,9 @@ while (act.active() && rondes.length < 3 && performance.now() - t0 < 150000) {
   if (i >= 0) goed++;
   if (n === 3) { rondes.push(cur); cur = []; await sleep(300); }
 }
-// the result card (3 s) and the pay
-await sleep(6000);
+// the result card (3 s of game time) and the pay: until the last round is paid, at most 60 s
+const p0 = K.keuzePay('energielabel', 3);
+for (let i = 0; i < 240 && world.money - money0 < rondes.length * (p0.base + p0.tip); i++) await sleep(250);
 const geld = Math.round(world.money - money0);
 const p = K.keuzePay('energielabel', 3);
 const verwacht = rondes.length * (p.base + p.tip);
