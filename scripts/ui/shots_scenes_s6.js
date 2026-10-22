@@ -1,5 +1,5 @@
 // Scenes voor #207 (animaties): zwemmen, klimmen uit het water, over een hek springen en fietstrucs (wheelie, zonder handen, stoppie).
-// node scripts/ui_shots.mjs --scenes=scripts/ui/shots_scenes_s6.js --only=fietstrucs,zwemklim,hek --sizes=1280x720
+// node scripts/ui_shots.mjs --scenes=scripts/ui/shots_scenes_s6.js --only=fietstrucs,stoppie,zwemklim,hek --sizes=1280x720
 // Basis: scripts/ui/shots_scenes_r39.js. Scenes for scripts/ui_shots.mjs (run by desktop --perf-script, one page per
 // window size). Each scene opens a screen and logs "[capture] <name>", which
 // devtools.js turns into <out>/<size>-<name>.png. Nothing here writes saves:
@@ -50,11 +50,13 @@ const keyEv = (ty, k, code) => { for (const tg of [window, document]) tg.dispatc
 const press = async (k, code, ms) => { keyEv('keydown', k, code); await sleep(ms); keyEv('keyup', k, code); };
 const follow = async (name, dx, dy, dz, wait = 250) => {
   // a camera beside the player at the moment of the call
-  const g = map.groundHeightAt ? map.groundHeightAt(p.x, p.y, 0) || 0 : 0;
+  // de camera hangt aan de voeten van de speler; in het water (p.z negatief, de gracht ligt onder de kade) mee omlaag
+  const g = (typeof p.gz === 'number' ? p.gz : (map.groundHeightAt ? map.groundHeightAt(p.x, p.y, 0) || 0 : 0)) + Math.min(0, p.z || 0);
   const pose = { position: { x: p.x + dx, y: p.y + dy, z: g + dz }, lookAt: { x: p.x, y: p.y, z: g + 0.9 }, cut: true };
   if (cine.isCinematicActive()) cine.skipCinematic();
   cine.playCinematic({ id: 'vi-bew', duration: 30, priority: 9, shot: () => pose });
   await sleep(wait);
+  if (cine.cinematicPoseIssues) { const pi = cine.cinematicPoseIssues(); if (pi.length) info.push('pose ' + name + ' ' + JSON.stringify(pi).slice(0, 200)); }
   console.log('[capture] ' + name);
   await sleep(450);
   cine.skipCinematic();
@@ -82,32 +84,60 @@ if (want('fietstrucs')) {
   keyEv('keydown', 'w', 'KeyW');
   const log = [];
   const got = {};
-  for (let i = 0; i < 9; i++) {
+  for (let i = 0; i < 16; i++) {
     await sleep(350);
     const st = state(bike);
     log.push(JSON.stringify(st));
-    if (st.up && !got.wheelie) { got.wheelie = 1; await follow('fiets-wheelie', Math.cos(side()) * 3.6, Math.sin(side()) * 3.6, 1.0, 30); }
+    if (st.up && !got.wheelie) {
+      got.wheelie = 1;
+      await follow('fiets-wheelie', Math.cos(side()) * 3.6, Math.sin(side()) * 3.6, 1.0, 30);
+      bike.speed = 5.8; // de baan is kort: meteen op de snelheid voor zonder handen (boven driekwart van 7 m/s)
+      info.push('snelheid op 5,8 gezet');
+    }
     if (st.hands > 0.9 && !got.hands) { got.hands = 1; await follow('fiets-zonderhanden', Math.cos(side()) * 3.6, Math.sin(side()) * 3.6, 1.0, 30); }
   }
   info.push('trucs ' + log.join(' '));
-  // stoppie: gas los, Ctrl blijft vast, de rem (Spatie) erin
-  keyEv('keyup', 'w', 'KeyW');
-  keyEv('keydown', ' ', 'Space');
-  for (let i = 0; i < 6; i++) {
-    await sleep(160);
-    const st = state(bike);
-    info.push('stoppie ' + JSON.stringify(st));
-    if (st.nose && !got.nose) { got.nose = 1; await follow('fiets-stoppie', Math.cos(side()) * 3.4, Math.sin(side()) * 3.4, 1.0, 30); }
-  }
-  keyEv('keyup', ' ', 'Space'); keyEv('keyup', 'Control', 'ControlLeft');
+
+  keyEv('keyup', 'w', 'KeyW'); keyEv('keyup', 'Control', 'ControlLeft');
   await sleep(600);
   p.exitVehicle(map, w);
   done.push('fietstrucs');
 }
 
+// ---- stoppie: Ctrl en de rem (Spatie) boven 3,5 m/s; de snelheid wordt voor de opname vastgehouden ----
+if (want('stoppie')) {
+  clearInterval(skipper);
+  w.clock = 14;
+  const home = map.findOpenSpawn(100, 77, 80) || { x: 100, y: 77 };
+  const bike = VH.makeTwoWheeler('fiets', home.x, home.y, 0);
+  w.vehicles.push(bike);
+  teleport(home.x, home.y);
+  await settle();
+  teleport(home.x, home.y);
+  p.enterVehicle(bike, w);
+  p.angle = 0; w.camYaw = 0;
+  await sleep(1500);
+  const side = () => (bike.angle || 0) + Math.PI / 2;
+  bike.speed = 5.5;
+  keyEv('keydown', 'Control', 'ControlLeft');
+  keyEv('keydown', ' ', 'Space');
+  const hold = setInterval(() => { if (bike.speed > 0 && bike.speed < 5) bike.speed = 5; }, 50);
+  const got = {};
+  for (let i = 0; i < 8; i++) {
+    await sleep(120);
+    const st = state(bike);
+    info.push('stoppie ' + JSON.stringify(st));
+    if (st.nose && !got.nose) { got.nose = 1; await follow('fiets-stoppie', Math.cos(side()) * 3.4, Math.sin(side()) * 3.4, 1.0, 30); }
+  }
+  clearInterval(hold);
+  keyEv('keyup', ' ', 'Space'); keyEv('keyup', 'Control', 'ControlLeft');
+  await sleep(600);
+  p.exitVehicle(map, w);
+  done.push('stoppie');
+}
+
 // ---- zwemmen en uit het water klimmen ----
 if (want('zwemklim')) {
-  clearInterval(skipper);
   w.clock = 14;
   let holdB = null;
   const WL = await imp('waterlevels');
@@ -129,19 +159,21 @@ if (want('zwemklim')) {
     holdB = { x: spot.x, y: spot.y };
     teleport(spot.x, spot.y);
     await settle();
+    clearInterval(skipper);
     const keepW = setInterval(() => { if (holdB && p.water === 'swim') { p.x = holdB.x; p.y = holdB.y; p.vx = p.vy = 0; } }, 50);
     if (p.enterSwim) p.enterSwim();
     p.angle = spot.b; w.camYaw = spot.b;
     await sleep(1800);
-    info.push('water ' + p.water + ' tilt ' + (p.swimTilt || 0).toFixed(2));
+    info.push('water ' + p.water + ' tilt ' + (p.swimTilt || 0).toFixed(2) + ' gz ' + (p.gz || 0).toFixed(2) + ' z ' + (p.z || 0).toFixed(2) + ' wade ' + (p.wade || 0).toFixed(2));
     const side = spot.b + Math.PI / 2;
-    await follow('zwem-stil', Math.cos(side) * 2.6, Math.sin(side) * 2.6, 0.9);
+    const cands = [[side, 2.6], [side + Math.PI, 2.6], [spot.b + Math.PI + 0.9, 3.2], [spot.b + 0.9, 3.2]];
+    for (const [k, [ang, d]] of cands.entries()) await follow('zwem-stil-' + 'abcd'[k], Math.cos(ang) * d, Math.sin(ang) * d, 0.9);
     // zwemmen in beweging: de bewaker laat los en W beweegt
     holdB = null;
     keyEv('keydown', 'w', 'KeyW');
     await sleep(600);
     info.push('zwemt ' + JSON.stringify({ vx: +p.vx.toFixed(1), water: p.water }));
-    await follow('zwem-beweging', Math.cos(side) * 2.6, Math.sin(side) * 2.6, 0.9, 30);
+    for (const [k, [ang, d]] of cands.entries()) await follow('zwem-beweging-' + 'abcd'[k], Math.cos(ang) * d, Math.sin(ang) * d, 0.9, 30);
     keyEv('keyup', 'w', 'KeyW');
     clearInterval(keepW);
     p.x = spot.x; p.y = spot.y;
@@ -149,7 +181,8 @@ if (want('zwemklim')) {
     p.startClimb({ x: spot.cs.x, y: spot.cs.y });
     for (const [i, ms] of [[1, 150], [2, 150], [3, 150], [4, 200]]) {
       await sleep(ms);
-      await follow('klim-' + i, Math.cos(side) * 2.8, Math.sin(side) * 2.8, 1.1, 20);
+      const [ang, d] = cands[(i - 1) % 4];
+      await follow('klim-' + i + 'abcd'[(i - 1) % 4], Math.cos(ang) * d, Math.sin(ang) * d, 1.1, 20);
     }
     info.push('na klimmen water ' + p.water + ' z ' + (p.z || 0).toFixed(2));
   }
@@ -190,9 +223,10 @@ if (want('hek')) {
     if (fx - p.x < 1.3 && !seen) { seen = 1; keyEv('keydown', ' ', 'Space'); await sleep(50); keyEv('keyup', ' ', 'Space'); }
   }
   info.push('hek: vault ' + !!p.vault + ' x ' + (p.x - ox).toFixed(1) + ' z ' + (p.z || 0).toFixed(2));
-  for (const [i, ms] of [[1, 60], [2, 110], [3, 110], [4, 140]]) {
-    await sleep(ms);
-    await follow('hek-' + i, 0.3, 4.6, 1.2, 20);
+  if (p.vault) { p.vault.time = 3.6; keyEv('keyup', 'w', 'KeyW'); } // de sprong in slow motion; de pose hangt aan de voortgang u
+  for (let i = 1; i <= 5; i++) {
+    await follow('hek-' + i, 0.3, 4.2, 1.1, 10);
+    info.push('hek ' + i + ' u ' + (p.vaultU || 0).toFixed(2) + ' z ' + (p.z || 0).toFixed(2));
   }
   keyEv('keyup', 'w', 'KeyW');
   info.push('hek na: x ' + (p.x - ox).toFixed(1) + ' z ' + (p.z || 0).toFixed(2));
