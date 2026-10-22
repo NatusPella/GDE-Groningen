@@ -69,4 +69,4 @@ if (process.argv.includes('--water')) {
   }
 }
 fs.writeFileSync(arg('uit') || 'worker_diff.json', JSON.stringify(res));
-console.log(`${metOverlays ? 'met' : 'zonder'} overlays: ${res.roads.length} wegen${res.shore ? `, ${res.shore.length} wateren` : ''} gehasht`);
+console.log(`${metOverlays ? 'overlays via de index (wereld van voor de samenvoeging)' : 'overlays met de stadstegels'}: ${res.roads.length} wegen${res.shore ? `, ${res.shore.length} wateren` : ''} gehasht`);

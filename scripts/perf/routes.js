@@ -1445,6 +1445,6 @@ r.renderBufferDirect = origRBD;
 if (ONLY.includes('wegenklaar')) {
   for (let i = 0; i < 180 && !window.__loadMarks.roadsReady; i++) await sleep(500);
   await sleep(1000);
-  results.routes.wegenklaar = { marks: { ...window.__loadMarks }, geo: GJ ? { ...GJ.geoStats } : null };
+  results.routes.wegenklaar = { marks: { ...window.__loadMarks }, menuGate: window.__menuGate ? window.__menuGate() : null, menuHang: window.__menuHang ? window.__menuHang() : null, tileWindows: window.__tileWindows || null, bootLog: (window.__bootLog || []).filter((q, i) => i % 4 === 0), geo: GJ ? { ...GJ.geoStats } : null };
 }
 return JSON.stringify(results);

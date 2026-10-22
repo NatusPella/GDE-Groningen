@@ -198,7 +198,18 @@ pad2.buttons[0].pressed = false; pad2.buttons[0].value = 0; frame(2);
   zet('foot'); reset();
   press('up'); frame(2); press('up', false); frame(2);
   ok(seen.some((s) => s[0] === 'down' && s[1] === 'n'), 'Samen spelen: te voet blijft D-pad omhoog de radio', seen);
+  // de roepjes (#367): D-pad links, omlaag en rechts te voet zijn Kom hier (7), Help! (8) en Kijk daar (9); zonder sessie zijn het de gewone toetsen
+  for (const [knop, toets] of [['left', '7'], ['down', '8'], ['right', '9']]) {
+    zet('foot'); reset();
+    press(knop); frame(2); press(knop, false); frame(2);
+    ok(seen.some((s) => s[0] === 'down' && s[1] === toets), 'Samen spelen: te voet is D-pad ' + knop + ' het roepje ' + toets, seen);
+  }
   delete world.coopNet;
+  for (const [knop, toets] of [['left', 'o'], ['down', 'k'], ['right', 'r']]) {
+    zet('foot'); reset();
+    press(knop); frame(2); press(knop, false); frame(2);
+    ok(seen.some((s) => s[0] === 'down' && s[1] === toets) && !seen.some((s) => ['7', '8', '9'].includes(s[1])), 'zonder sessie: te voet is D-pad ' + knop + ' de gewone toets ' + toets, seen);
+  }
 }
 
 // trillen bij schade, als de controller een motor heeft en de speler het wil

@@ -457,7 +457,7 @@ export function handleEvent(world, body, van = 0) {
       const naam = openerNaam(world.coopRoster, true);
       const deel = Math.floor(Number(body.deel)) || 0;
       // gestopt (#390): de gastheer stopte de missie uit het pauzemenu, voor iedereen; het is geen mislukking
-      const tekst = body.gestopt ? `${naam} heeft ${body.label} gestopt, voor jullie allebei. ${naam} kan hem opnieuw starten.` : body.ok ? `${body.label} gelukt! ${naam} en jij hebben het samen gedaan.${deel > 0 ? ` Jouw deel: €${deel.toLocaleString('nl-NL')}.` : ''}` : `${body.label} mislukt${body.reden ? ': ' + String(body.reden).slice(0, 60) : ''}. ${naam} probeert het misschien opnieuw.`;
+      const tekst = body.gestopt ? `${naam} heeft ${body.label} gestopt, voor iedereen. ${naam} kan hem opnieuw starten.` : body.ok ? `${body.label} gelukt! ${naam} en jij hebben het samen gedaan.${deel > 0 ? ` Jouw deel: €${deel.toLocaleString('nl-NL')}.` : ''}` : `${body.label} mislukt${body.reden ? ': ' + String(body.reden).slice(0, 60) : ''}. ${naam} probeert het misschien opnieuw.`;
       if (world.addMessage) world.addMessage(tekst.slice(0, 160), 5);
       return true;
     }
