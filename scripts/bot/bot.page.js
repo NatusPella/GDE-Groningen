@@ -650,6 +650,21 @@ while (true) {
         aim = { x: best.x, y: best.y, distance: bd }; top = 14;
       }
     }
+    // the straight line to a prop or the square runs through water (the pond north of the Grote Markt lies right on the line from the start): a way round
+    // it over dry land (A* on a grid of 2.5 m, pulled tight), followed point by point; without one the road plan takes over
+    if (act.stunt && s.player.vehicle && s.target.distance < 250) {
+      const me0 = { x: s.player.x, y: s.player.y };
+      if (!L.segmentFree(me0, aim, carFree, 1.5)) {
+        const dk = Math.round(aim.x / 8) + ',' + Math.round(aim.y / 8);
+        if (!mem.stuntDetour || mem.stuntDetour.key !== dk || s.t - mem.stuntDetour.t > 4) {
+          const d = L.detourAround(me0, aim, carFree, { cell: 2.5, margin: 24, maxCells: 90 });
+          mem.stuntDetour = { key: dk, t: s.t, f: d && d.length > 1 ? new L.PathFollower(d, { reach: 5 }) : null };
+          B.log('stunt-detour', { punten: d ? d.length : 0, van: [Math.round(me0.x), Math.round(me0.y)], naar: [Math.round(aim.x), Math.round(aim.y)] });
+        }
+        const nx = mem.stuntDetour.f && mem.stuntDetour.f.next(me0);
+        if (nx) aim = { x: nx.x, y: nx.y, distance: L.distance(me0, nx) };
+      }
+    }
     // on foot, wedged against a stall pole or a prop: sidestep (alternating sides, longer each time), then plan again
     if (act.mode !== 'drive' && !s.player.vehicle && !s.blocking.cinematic && s.target.distance > 5 && s.mission.stage !== 'hold' && await footUnstick(s, s.target)) continue;
     if (act.mode !== 'drive' && !s.player.vehicle && mem.detour && s.t < mem.detour.until && Math.hypot(mem.detour.x - s.player.x, mem.detour.y - s.player.y) > 3) { steerTowards(s, 'walk', mem.detour, false, 24, 2.5); continue; }
