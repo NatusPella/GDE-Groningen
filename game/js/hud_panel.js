@@ -52,6 +52,7 @@ import { initCards, updateCards } from './hudcards.js';
 import { markerColors, onPaletteChange } from './a11y.js';
 import { drawMissionGlyph } from './missionicons.js';
 import { drawMapGlyph } from './mapglyphs.js';
+import { miniWind, windSterkte, windPijlHoek, windTekst } from './windmini.js';
 import { decideHud, zones, hudNow, P3, PLACE_SHOW, E_SHOW, DEFER_MAX, GPS_NEAR } from './hudrules.js';
 import { vehicleKind, speedoLook, meterLevel, hudEdge, distanceOwner, vehicleLabelOwner } from './hudlook.js';
 import { nextTurn, turnText, etaText } from './hudgps.js';
@@ -2482,6 +2483,8 @@ function drawMinimap(dt, world) {
   drawMapIcon(ctx, 'player', cx, cy, 1.8, { angle: player.angle + mapRotation });
 
   drawNorthIndicator(ctx, cx, cy, mapRotation - Math.PI / 2);
+  const wind = miniWind(world);
+  if (wind) drawMiniWind(ctx, WIND_X, MINIMAP_SIZE - WIND_Y, wind, mapRotation);
 
   const edgeR = MINIMAP_SIZE / 2 - 11;
   if (heroEdge != null) {
@@ -2556,6 +2559,58 @@ function drawNorthIndicator(ctx, cx, cy, screenAngle) {
   const dpr = Math.max(1, Math.round(Math.hypot(tf.a, tf.b)));
   if (!northGlyph || northGlyph.dpr !== dpr || (!northGlyph.font && document.fonts && document.fonts.check('bold 10px "Bebas Neue"'))) northGlyph = makeNorthGlyph(dpr);
   ctx.drawImage(northGlyph.c, x - 13, y - 13, 26, 26);
+}
+
+// The wind while you sail (#399): a dark disc in the lower left corner of the minimap with an arrow that points where
+// the wind blows to (like the wind gauge, zeilvaren.js) and one to three streaks that grow with the wind speed; the
+// speed in m/s under it. The same disc and ring as the N, so it reads as part of the minimap.
+export const WIND_X = 30, WIND_Y = 48;
+export function drawMiniWind(ctx, x, y, wind, mapRotation) {
+  const { t, streepjes } = windSterkte(wind.snelheid);
+  const half = 9 + t * 6; // half the arrow's length, 9 to 15 px
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.beginPath();
+  ctx.arc(0, 0, 24, 0, Math.PI * 2);
+  ctx.fillStyle = inkA('dark', 0.82);
+  ctx.fill();
+  ctx.lineWidth = 1.2;
+  ctx.strokeStyle = INK.greenLight;
+  ctx.stroke();
+  ctx.rotate(windPijlHoek(wind.van, mapRotation));
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.strokeStyle = INK.cream;
+  ctx.fillStyle = INK.cream;
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(-half, 0);
+  ctx.lineTo(half - 4, 0);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(half, 0);
+  ctx.lineTo(half - 7, -4.8);
+  ctx.lineTo(half - 7, 4.8);
+  ctx.closePath();
+  ctx.fill();
+  // the streaks run alongside the shaft, the stronger the wind the more of them
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  if (streepjes >= 2) for (const sy of [-5.5, 5.5]) { ctx.moveTo(-half, sy); ctx.lineTo(-half + 8, sy); }
+  if (streepjes >= 3) for (const sy of [-10, 10]) { ctx.moveTo(-half + 2, sy); ctx.lineTo(-half + 8, sy); }
+  ctx.stroke();
+  ctx.restore();
+  ctx.save();
+  ctx.font = '14px "Bebas Neue", "Arial Narrow", Arial, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'top';
+  ctx.lineWidth = 3;
+  ctx.lineJoin = 'round';
+  ctx.strokeStyle = inkA('dark', 0.85);
+  ctx.strokeText(windTekst(wind.snelheid), x, y + 25);
+  ctx.fillStyle = INK.cream;
+  ctx.fillText(windTekst(wind.snelheid), x, y + 25);
+  ctx.restore();
 }
 
 let northGlyph = null;
