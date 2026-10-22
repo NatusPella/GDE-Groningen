@@ -31,7 +31,7 @@ export function coopStep(c, dt, world, move) {
   const yaw = (world.coop.remote ? (world.coop.remoteInput && world.coop.remoteInput.yaw) : world.camYaw) || 0, cs = Math.cos(yaw), sn = Math.sin(yaw);
   stepSlot2(c, { ...inp, x: cs * -inp.y - sn * inp.x, y: sn * -inp.y + cs * inp.x }, dt, null);
   move(c, dt, world);
-  const l = leash(world.player, c);
+  const l = leash(world.player, c, world.coop.leash); // in een sessie Infinity (coopnet.js): daar doet de band het werk (#388)
   if (l.clamped) { c.x = l.x; c.y = l.y; }
   c.crouching = false;
   c.pose = null;

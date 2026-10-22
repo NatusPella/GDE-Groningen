@@ -411,6 +411,32 @@ const PHASES = {
     log('betaald', { ok, geld });
     await sleep(3000);
   },
+  // samen spelen (#388): de camera van de gast draait met de muis (hij draaide nooit omdat updateGameplay niet draait voor een gast)
+  async gastcamera() {
+    const w = W();
+    if (CFG.role === 'host') { await sleep(6000); return; }
+    const m = w.input.mouse, was = m.locked;
+    const y0 = w.camYaw; m.locked = true; // een echte vergrendelde muis kan een test niet krijgen: de pagina meldt hem als vergrendeld
+    for (let i = 0; i < 20; i++) { window.dispatchEvent(new MouseEvent('mousemove', { movementX: 40, movementY: 0, clientX: 400, clientY: 300 })); await sleep(50); }
+    await sleep(200);
+    const y1 = w.camYaw; m.locked = was;
+    log('gastcamera', { yaw0: Math.round(y0 * 1000) / 1000, yaw1: Math.round(y1 * 1000) / 1000, lookActief: !!w.input.lookActive() });
+    shot('gastcamera');
+  },
+  // samen spelen (#388): de gast rent van de gastheer weg (ver voorbij de oude lijn van 38 m) en wordt na de waarschuwing bij de groep gezet;
+  // of de gast loopt door terwijl het spel van de gastheer op pauze staat
+  async gastloop({ s = 30, naam = 'gastloop', rennen = true }) {
+    const B = window.__bot, w = W();
+    if (CFG.role === 'host' || !B) { await sleep(s * 1000); return; }
+    const afstand = () => Math.hypot(w.player.x - w.companion.x, w.player.y - w.companion.y);
+    const p0 = [w.player.x, w.player.y];
+    let max = 0; const end = performance.now() + s * 1000;
+    if (rennen) B.down('shift');
+    B.stick(0, -1);
+    while (performance.now() < end) { max = Math.max(max, afstand()); await sleep(100); }
+    B.stick(0, 0); if (rennen) B.up('shift');
+    log(naam, { max: Math.round(max), einde: Math.round(afstand()), verplaatst: Math.round(Math.hypot(w.player.x - p0[0], w.player.y - p0[1])), pauzeHost: !!(w.coopScene && w.coopScene.pauze) });
+  },
   // spelen: de eigen figuur loopt een rondje met de stick; kijk of de host hem volgt
   async loop({ s = 12 }) {
     const B = window.__bot; if (!B) { await sleep(s * 1000); return; }

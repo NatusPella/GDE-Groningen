@@ -17,6 +17,7 @@ import { bindCoop } from './coopglue.js';
 import { partnersInfo, createPings, addPing, tickPings, pingEvent } from './partnerhud.js';
 import { holdBeleid, leesLijstEvent, lijst } from './coopplayers.js';
 import { cameraRelative, stepSlot2, sharedCamera } from './coop.js';
+import { coopStep } from './coopglue.js';
 import { gateOn, setGate } from './coopgate.js';
 import { WIEL_TEKST, WIEL_HOST_TEKST, WIEL_VERZOEK_S, kanUitstappen } from './coopgast.js';
 import { nieuwCutVerzamelaar, cutGastSpeel, cutGastStop, leesCutTijd, cutSpoor } from './coopcut.js';
@@ -36,6 +37,7 @@ export const GAST_DEEL = 0.5; // een gast krijgt de helft van wat de gastheer ve
 export const FIGUUR_BAND = 110; // m: verder dan dit van de gastheer verdwaalt een extra speler in een wereld die daar niet geladen is (#366)
 export const FIGUUR_WAARSCHUWING = 80;
 export const FIGUUR_INSTAP_AFSTAND = 9; // m: de 3e en 4e speler stappen in als het voertuig van de gastheer zo dichtbij is (#372)
+export const CAMERA_DELEN = false; // Tammo en Tessa delen geen camera meer: elke speler heeft zijn eigen scherm en muis; het midden tussen beiden zette de camera verder weg en scheef (#388)
 export const FIGUUR_TERUG_S = 4;  // s te ver weg voor de gastheer de figuur bij de groep zet
 
 // De tegelhash komt van de aanroeper (manifest van de wereld); story = verhaalboog.
@@ -86,6 +88,7 @@ function prepareCoop(world) {
   world.coopPings = world.coopPings || createPings();
 }
 function endCoop(world) {
+  if (world.coop) { delete world.coop.leash; }
   if (world.coop) { world.coop.remote = false; world.coop.remoteInput = null; world.coop.fixedChars = false; if (world.coop.prevLocal !== undefined) { world.coop.local = world.coop.prevLocal; world.coop.prevLocal = undefined; } }
   world.coopPartner = null; world.coopPartners = []; world.coopRoster = null; world.coopFigures = {}; world.coopHost = null; world.coopHostMissie = null; world.coopCam = null; world.coopScene = null;
   world.coopMeld = null; world.coopDeel = null; world.coopUitslag = null; world.coopPingMarks = []; world.coopSpelers = []; world.coopGebruik = false; world.coopWielSlot = null; world.coopWielVraag = null; world.coopWiel = false; world.coopInVoertuig = false; // (#291)
@@ -139,6 +142,7 @@ export function startHost(world, info, opts = {}) {
   });
   hub.onchange = (roster) => { world.coopRoster = lijst(roster); if (onChange) onChange(roster); };
   setFixedCharacters(world, 0);
+  if (world.coop) world.coop.leash = Infinity; // geen harde lijn van 38 m om Tessa: ze kon niet verder dan dat van de gastheer, en hij kon niet weten waarom (#388); bandMetgezel doet het werk
   world.coopRole = 'host';
   world.coopRoster = lijst(hub.roster);
   world.coopUitslag = (ok, label, reden, loon) => uitslagMelden(world, ok, label, reden, loon); // gelukt of mislukt (#371)
@@ -194,6 +198,16 @@ function stepFigures(world, dt) {
     else { fig.x += fig.vx * dt; fig.y += fig.vy * dt; }
   }
   bandFiguren(world, dt);
+  bandMetgezel(world, dt);
+}
+
+// Pauzeert de gastheer (pauzemenu, kaart, winkel), dan stond de wereld stil en de speler van Tessa met hem: updateGameplay stapt haar niet.
+// De anderen blijven lopen (stepFigures draait altijd); Tessa nu ook. Een wachtscherm bij wegvallen (coopHold) pauzeert wel voor iedereen (#388).
+export function stapMetgezelInPauze(world, dt) {
+  const c = world.companion, p = world.player;
+  if (!world.paused || world.coopHold || !c || !p || !world.coop || !world.coop.remote) return false;
+  if (c.inVehicle || c.water || c.state === 'dead' || world.companionHold || (p.inVehicle && !c.coopUit)) return false;
+  return coopStep(c, dt, world, world.coopMove || ((q, d) => { q.x += q.vx * d; q.y += q.vy * d; }));
 }
 
 // Plekken voor extra spelers (naast Tessa) in een voertuig van de gastheer
@@ -233,6 +247,16 @@ function bouwSpelers(world, n) {
   const rtt = (slot) => { if (host) { const s = n.hub.sessions.get(slot); return s && Number.isFinite(s.rtt) ? s.rtt * 1000 : null; } return slot === mijnSlot && n.session && Number.isFinite(n.session.rtt) ? n.session.rtt * 1000 : null; };
   const opdracht = host ? (world.mission && world.mission.phase === 'active' ? world.mission.label || 'opdracht' : null) : (world.coopHostMissie && world.coopHostMissie.actief ? world.coopHostMissie.label : null);
   world.coopSpelers = spelersRijen({ mijnSlot, roster: world.coopRoster || [], partners: world.coopPartners || [], mijn: p ? { x: p.x, y: p.y, inVoertuig: host ? !!p.inVehicle : !!world.coopInVoertuig, rijdt: host ? !!p.inVehicle && world.coopWielSlot == null : !!world.coopWiel } : null, rtt, opdracht });
+}
+
+// Tessa gaat niet meer vanzelf mee als de gastheer instapt (een echte speler beslist zelf): ze leest wat ze moet doen (#388)
+export function meldVoertuig(world, n) {
+  const hv = world.player && world.player.inVehicle || null, c = world.companion;
+  if (hv === (n.hostVoertuig || null)) return false;
+  n.hostVoertuig = hv;
+  if (!hv || !c || c.inVehicle || hv.passenger || !(world.coop && world.coop.remote) || !figuurPlekken(hv)) return false;
+  n.hub.announce({ k: 'melding', tekst: `${openerNaam(world.coopRoster, true)} zit in een voertuig. Druk bij het voertuig op E om mee te rijden.` }, 1);
+  return true;
 }
 
 // Neergaan, arrestatie en opstaan van de gastheer en Tessa: de anderen horen het, de gast zelf ook (#369)
@@ -278,6 +302,32 @@ export function bandFiguren(world, dt) {
       if (world.coopMeld) world.coopMeld(fig.slot, 'Je staat weer bij de groep.');
     }
   }
+}
+
+// De speler van Tessa (plek 1) heeft dezelfde band als een extra speler (#388): eerst een melding, dan zet de gastheer haar bij de groep, of
+// laat haar meerijden als hij wegrijdt en er plek is. Vroeger hield een harde lijn van 38 m haar vast: wie het paarse lijntje volgde of
+// verder liep kon alleen nog terug.
+export function bandMetgezel(world, dt) {
+  const c = world.companion, p = world.player;
+  if (!c || !p || !world.coop || !world.coop.remote || c.inVehicle || c.state === 'dead' || !Number.isFinite(p.x) || !Number.isFinite(c.x)) return false;
+  const v = p.inVehicle, snel = !!v && Math.abs(v.speed || 0) > 6;
+  const d = Math.hypot(c.x - p.x, c.y - p.y), band = snel ? 35 : FIGUUR_BAND;
+  if (d > FIGUUR_WAARSCHUWING && !c.gewaarschuwd && !snel) { c.gewaarschuwd = true; if (world.coopMeld) world.coopMeld(1, 'Blijf bij de groep: te ver weg wordt je teruggezet.'); }
+  if (d <= FIGUUR_WAARSCHUWING) c.gewaarschuwd = false;
+  c.verTijd = d > band ? (c.verTijd || 0) + dt : 0;
+  if (c.verTijd < (d > 300 ? 0.5 : FIGUUR_TERUG_S)) return false;
+  c.verTijd = 0; c.gewaarschuwd = false; c.vx = 0; c.vy = 0;
+  const plek = !!v && !v.passenger && !v.sinking && !v.riderOff && !v.isHeli && !v.isPlane;
+  if (plek) { c.inVehicle = v; v.passenger = 'companion'; c.coopUit = false; if (world.coopMeld) world.coopMeld(1, 'Je rijdt mee. Met E stap je uit als het voertuig stilstaat.'); return true; }
+  const a0 = Math.PI * 1.7;
+  c.x = p.x; c.y = p.y;
+  for (let i = 0; i < 8; i++) {
+    const a = a0 + i * Math.PI / 4, x = p.x + Math.cos(a) * 2.2, y = p.y + Math.sin(a) * 2.2;
+    if (!world.coopVrij || world.coopVrij(x, y, world)) { c.x = x; c.y = y; break; }
+  }
+  c.gz = p.gz || 0;
+  if (world.coopMeld) world.coopMeld(1, 'Je staat weer bij de groep.');
+  return true;
 }
 
 // De opdracht van de gastheer is gelukt of mislukt: elke gast leest het (en bij gelukt wat zijn deel was), zodat niemand raadt (#371)
@@ -341,7 +391,7 @@ export function tickCoopNet(world, dt) {
       world.coopHost = sample ? leesEntiteiten(sample.entities) : { voertuigen: [], doelen: [], voetgangers: [] };
       world.coopPartners = partnersInfo(s.slot, sample ? sample.players : [], world.coopRoster || []);
       world.coopPartner = world.coopPartners[0] || null;
-      world.coopCam = s.slot === 1 ? sharedCamera(world.player, world.companion) : null; // alleen Tessa deelt de camera met Tammo
+      world.coopCam = CAMERA_DELEN && s.slot === 1 ? sharedCamera(world.player, world.companion) : null; // alleen Tessa zou de camera delen met Tammo (uit, #388)
     }
     return;
   }
@@ -350,6 +400,7 @@ export function tickCoopNet(world, dt) {
   if (world.input && world.input.wasPressed && world.input.wasPressed('y')) wielGebaar(world); // Y: het stuur geven of terugnemen (#291)
   if (world.coopWielSlot != null && !(world.player.inVehicle && world.companion && world.companion.inVehicle === world.player.inVehicle)) wielLos(world);
   stepFigures(world, dt);
+  stapMetgezelInPauze(world, dt);
   n.tKlok += dt; n.tHash += dt; n.tWeer += dt;
   if (n.tKlok >= KLOK_EVERY) { n.tKlok = 0; n.hub.announce(klokEvent(world)); }
   if (n.tWeer >= WEER_EVERY) { n.tWeer = 0; const we = weerEvent(world.weatherState); if (we) n.hub.announce(we); }
@@ -364,6 +415,7 @@ export function tickCoopNet(world, dt) {
     if (r.event) n.hub.announce(r.event);
   }
   meldNeer(world, n); // de gastheer of Tessa gaat neer of wordt gearresteerd (#369)
+  meldVoertuig(world, n); // de gastheer stapt in: Tessa leest hoe ze meerijdt (#388)
   const mb = missieBericht(n.missie || null, world.mission); // wat de host speelt, voor de gasten
   if (mb.event) { n.hub.announce(mb.event); } n.missie = mb.huidig;
   const c = world.companion;
@@ -372,7 +424,7 @@ export function tickCoopNet(world, dt) {
   world.coopPartner = world.coopPartners[0] || null;
   // gedeelde camera met Tessa (plek 1) zolang zij echt meespeelt; extra spelers hebben hun eigen camera
   const tessa = n.hub.roster.spelers.find((x) => x.slot === 1);
-  world.coopCam = tessa && tessa.verbinding === 'ok' && world.coop && world.coop.remote ? sharedCamera(world.player, world.companion) : null;
+  world.coopCam = CAMERA_DELEN && tessa && tessa.verbinding === 'ok' && world.coop && world.coop.remote ? sharedCamera(world.player, world.companion) : null;
 }
 
 // ---------------------------------------------------------------- gebeurtenissen tussen de spelers
