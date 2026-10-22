@@ -71,7 +71,7 @@ while (act.active() && performance.now() - t0 < wall) {
   const s = B.status();
   const c = ctx();
   const d = c && c.data && c.data.s;
-  if (d && d.fase !== lastFase) { lastFase = d.fase; log.fasen.push([Math.round(s.t), d.fase]); B.log('fase', { fase: d.fase, t: Math.round(s.t), pionnen: d.pionnen, wanted: s.wanted }); }
+  if (d && d.fase !== lastFase) { lastFase = d.fase; log.fasen.push([Math.round(s.t), d.fase]); B.log('fase', { fase: d.fase, t: Math.round(s.t), pionnen: d.pionnen, wanted: s.wanted, hp: s.player.vehicle ? s.player.vehicle.health : null }); }
   if (s.wanted > lastStar) { log.sterren = Math.max(log.sterren, s.wanted); lastStar = s.wanted; B.log('politie', { wanted: s.wanted, x: Math.round(s.player.x), y: Math.round(s.player.y), v: Math.round((s.player.vehicle ? s.player.vehicle.speed : 0) * 10) / 10, peds: s.nearby.peds, politie: s.nearby.police, msgs: s.hud.messages.slice(0, 3), dronken: Math.round((world.drunk || 0) * 100) / 100 }); }
   if (s.wanted === 0) lastStar = 0;
   if (s.blocking.cinematic || s.blocking.banner || s.blocking.talk) { B.stick(0, 0); B.down(' '); await sleep(300); B.up(' '); continue; }
@@ -111,7 +111,9 @@ while (act.active() && performance.now() - t0 < wall) {
   const car = { x: me.x, y: me.y, angle: veh.angle, speed: veh.speed };
   const obst = trafficAhead(me);
   const curve = L.curveCap(follower.pts, follower.i, car);
-  const ctl = L.carControls(car, aim, { top: 32, avoid: obst, curveCap: curve });
+  // in de stad rustig (een auto die in de fik vliegt is de rit uit), op de A7 vol gas, bij de pionnen en de politie in de buurt remt hij af
+  const top = d && (d.fase === 'stad') ? 17 : d && d.fase === 'slalom' ? 14 : 32;
+  const ctl = L.carControls(car, aim, { top, avoid: obst, curveCap: curve });
   B.stick(ctl.steer, ctl.throttle ? -ctl.throttle : 0);
   if (!ctl.reverse && wedge.update(s.t, veh.speed, ctl.throttle)) {
     wedge.reset(); wedges++; B.log('klem', { x: Math.round(me.x), y: Math.round(me.y) });
