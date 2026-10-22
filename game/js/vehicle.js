@@ -3014,7 +3014,7 @@ export function resolveVehicleBuildingCollision(v, map, dt) {
       hit = true;
       break;
     }
-    const rc = v.isBoat || v.sinking ? null : (map.elev ? elevWallContact(map.elev, c[0], c[1], v.z || 0, 1.4, v.driver === 'player') : null);
+    const rc = v.isBoat || v.sinking ? null : (map.elev ? (map.terrainOn ? map.wallContact(c[0], c[1], v.z || 0, 1.4, v.driver === 'player') : elevWallContact(map.elev, c[0], c[1], v.z || 0, 1.4, v.driver === 'player')) : null);
     if (rc) {
       v.x += rc.nx * rc.depth;
       v.y += rc.ny * rc.depth;

@@ -732,7 +732,7 @@ function followGround(world) {
   const p = world.player;
   const pz = (p.gz || 0) + (p.z || 0);
   const hint = dist(c.x, c.y, p.x, p.y) < 4 ? pz : c.gz || 0;
-  const w = resolveElevWalls(map.elev, c.x, c.y, hint, c.radius);
+  const w = map.terrainOn ? map.resolveWalls(c.x, c.y, hint, c.radius) : resolveElevWalls(map.elev, c.x, c.y, hint, c.radius);
   if (w) [c.x, c.y] = w;
   c.gz = map.groundHeightAt(c.x, c.y, hint);
 }

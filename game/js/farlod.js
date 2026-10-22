@@ -1,6 +1,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { buildingLodStyle } from './models3d_buildings.js';
 import { perfOff } from './devflags.js';
+import { buildingLift, roadBaseAt } from './terrainlift.js';
 import { drawHub } from './multidraw3d.js';
 
 // Far LOD layer: plain extruded buildings and flat ground (green, paths,
@@ -192,7 +193,7 @@ class MeshBuilder {
   }
 }
 
-function addBuilding(B, b) {
+function addBuilding(B, b, lift = 0) {
   const s = buildingLodStyle(b);
   const ring = s.ring;
   const n = ring.length;
@@ -204,7 +205,7 @@ function addBuilding(B, b) {
   }
   const pts = area2 > 0 ? ring.slice().reverse() : ring;
   const cx = (b.bounds[0] + b.bounds[2]) / 2, cy = (b.bounds[1] + b.bounds[3]) / 2;
-  const wall = rgb8(s.wallHex), roof = rgb8(s.roofHex), y0 = s.base || 0, h = y0 + s.depth;
+  const wall = rgb8(s.wallHex), roof = rgb8(s.roofHex), y0 = (s.base || 0) + lift, h = y0 + s.depth;
   const base = B.vertCount;
   for (const [x, y] of pts) B.vert(x, y0, y, wall, cx, cy);
   for (const [x, y] of pts) B.vert(x, h, y, wall, cx, cy);
@@ -317,7 +318,9 @@ export function createFarLOD(scene, map, opts) {
       if ((++k & 7) === 0 && performance.now() > deadline) return false;
       if (J.phase === 0) {
         if (J.i >= t.buildings.length) { J.phase = 1; J.i = 0; continue; }
-        addBuilding(J.bld, t.buildings[J.i++]);
+        const b = t.buildings[J.i++];
+        // (?terrain, #269: what stands on the relief rides up with it, terrainlift.js)
+        addBuilding(J.bld, b, map.terrainOn ? buildingLift(map, b) : 0);
       } else if (J.phase === 1) {
         if (J.i >= t.segs.length) { J.phase = 2; J.i = 0; continue; }
         for (let n = 0; n < 16 && J.i < t.segs.length; n++, J.i += 2) {
@@ -332,7 +335,8 @@ export function createFarLOD(scene, map, opts) {
             col = tintCache.get(key);
             if (!col) tintCache.set(key, col = rgb8(new THREE.Color(tint).lerp(new THREE.Color(colors.sidewalk), car ? 0.3 : 0).getHex()));
           }
-          addSegment(car ? J.road : J.path, a[0], a[1], c[0], c[1], half, col, r.z ? r.z[s] : 0, r.z ? r.z[s + 1] : 0);
+          const ta = map.terrainOn ? roadBaseAt(map, r, a[0], a[1]) : 0, tb = map.terrainOn ? roadBaseAt(map, r, c[0], c[1]) : 0;
+          addSegment(car ? J.road : J.path, a[0], a[1], c[0], c[1], half, col, (r.z ? r.z[s] : 0) + ta, (r.z ? r.z[s + 1] : 0) + tb);
         }
       } else if (J.phase === 2) {
         if (J.i >= t.green.length) { J.phase = 3; J.i = 0; continue; }

@@ -117,7 +117,7 @@ const byOsm = (id) => roads().find((r) => r.osm === id);
   if (roadsSec && hs) {
     ok(roadsSec.rows.every((r) => r.z === undefined), 'het profiel staat niet in de wegrij zelf');
     const ids = new Set(roadsSec.rows.map((r) => r.gid));
-    ok(hs.rows.length >= 1 && hs.rows.every((r) => ids.has(r.gid) && r.z.length >= 2 && Array.isArray(r.st) && r.st.length === r.z.length - 1), 'heights-rijen horen bij wegen van de tegel');
+    ok(hs.rows.length >= 1 && hs.rows.every((r) => ids.has(r.gid) && (r.z ? r.z.length >= 2 && Array.isArray(r.st) && r.st.length === r.z.length - 1 : !!r.zt)), 'heights-rijen horen bij wegen van de tegel (een rij zonder z draagt alleen het terreinprofiel zt, #269)');
     const deckRow = roadsSec.rows.find((r) => r.osm === 2);
     const h = deckRow && hs.rows.find((r) => r.gid === deckRow.gid);
     ok(h && h.z.length === deckRow.pts.length && Math.max(...h.z) > 3, 'het dek heeft een profiel van gelijke lengte, hoger dan 3 m', h && Math.max(...h.z).toFixed(1));

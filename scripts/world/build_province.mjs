@@ -7,7 +7,7 @@
 // memory stays that of one 8 x 8 km pack.
 //
 //   node scripts/world/build_province.mjs [--out game/world] [--city <index.json>] [--src data/cache/province] [--no-fill]
-//   --terrain puts the AHN rasters of data/world/ahn (fetch_ahn.py --province) in the tiles (RASTER section; #78)
+//   --terrain puts the AHN rasters of data/world/ahn (fetch_ahn.py --province) in the tiles (RASTER section; #78), as relief (relief.mjs, #269)
 //   (--no-fill leaves out the old Ommeland area's corner past the strip, which fillOldExtent builds from data/ommeland_raw.json.gz)
 //
 // Out: v<pack>-<hash>.gdp packs and index-provincie.json (tiles; the global
@@ -34,7 +34,7 @@ import { loadProvinceBag, bagMatcher } from './bag3d.mjs';
 import { deriveFeatures } from './derive_tiles.mjs';
 import { waterIndex, wetFraction } from './placement_audit.mjs';
 import { snapSignals, junctionsOf } from './junction_tiles.mjs';
-import { profileFeats, cutZ } from './province_profile.mjs';
+import { profileFeats, cutZ, cutZt } from './province_profile.mjs';
 import { clearPackTrees } from './tegel_schoon.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
@@ -260,7 +260,7 @@ export function outsideCover(list, inside) {
     if (f.kind === 'furniture') { if (keep(r.pts[0][0], r.pts[0][1])) out.push(f); continue; }
     // roads, rails
     let run = null;
-    const flush = () => { if (run && run.length > 1) out.push({ ...f, row: { ...r, pts: run, ...(r.z ? { z: cutZ(r, run) } : null) } }); run = null; };
+    const flush = () => { if (run && run.length > 1) out.push({ ...f, row: { ...r, pts: run, ...(r.z ? { z: cutZ(r, run) } : null), ...(r.zt ? { zt: r.zt.length ? cutZt(r, run) : [] } : null) } }); run = null; };
     const P = r.pts;
     for (let i = 0; i < P.length - 1; i++) {
       const [ax, ay] = P[i], [bx, by] = P[i + 1];
@@ -679,7 +679,7 @@ async function main() {
   const cityKeys = await cityKeysOf(opt('--city') || path.join(out, 'index.json'));
   const t1 = performance.now();
   const cityCover = args.includes('--no-overlay') ? null : await cityCoverOf();
-  const built = buildProvince({ src, cityKeys, cityCover, fillOld: !args.includes('--no-fill'), viaducts: !args.includes('--flat'), terrain: args.includes('--terrain') ? (await import('./terrain.mjs')).loadTerrainRasters() : null, onPack: args.includes('--verbose') ? (pk, s) => console.log(`  pack ${pk}: ${s.tiles} tiles so far`) : null });
+  const built = buildProvince({ src, cityKeys, cityCover, fillOld: !args.includes('--no-fill'), viaducts: !args.includes('--flat'), terrain: args.includes('--terrain') ? (await import('./terrain.mjs')).loadReliefRasters() : null, onPack: args.includes('--verbose') ? (pk, s) => console.log(`  pack ${pk}: ${s.tiles} tiles so far`) : null });
   const t2 = performance.now();
   const { index, size } = writeProvince(out, built);
   const raw = Object.values(index.tiles).reduce((a, t) => a + t.raw, 0);
