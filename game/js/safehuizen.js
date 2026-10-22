@@ -19,6 +19,7 @@ import { getScene } from './scene3d.js';
 import { addStaticCollider, removeProp } from './breakables.js';
 import { iconDisc } from './activitykit.js';
 import { playerBusy } from './busy.js';
+import { isInWater } from './util.js';
 
 const DEUR_AFSTAND = 3.2;   // m van het midden van het huisje tot de plek bij de deur
 const GEBRUIK_R = 2.2;
@@ -57,11 +58,28 @@ function ververs(w) {
     return { ...h, ang, x: h.x + Math.cos(ang) * 22, y: h.y + Math.sin(ang) * 22, geplaatst: false, mesh: null, props: null };
   });
 }
+// Droog land: niet in het water en ook geen water vlak ernaast (de kade).
+const droog = (map, x, y) => !isInWater(map, x, y) && ![[6, 0], [-6, 0], [0, 6], [0, -6]].some(([dx, dy]) => isInWater(map, x + dx, y + dy));
+// Het binnenpunt van een woonplaats of wijk kan in het water vallen (Delfzijl ligt deels in de Eems): zoek in ringen om dat punt naar de
+// dichtstbijzijnde open, droge plek. Lukt dat niet, dan is het huisje onbruikbaar: geen huisje, geen deur en geen icoon.
+const ZOEK_RINGEN = [0, 40, 80, 140, 220, 320, 450, 650, 900, 1300, 1800];
 function plaats(h, w) {
   if (h.geplaatst || !w.map || !w.map.findOpenSpawn) return;
   h.geplaatst = true;
-  const sp = w.map.findOpenSpawn(h.x, h.y, SNAP_R);
-  if (sp) { h.x = sp.x; h.y = sp.y; }
+  const x0 = h.x, y0 = h.y;
+  let gevonden = null;
+  for (const r of ZOEK_RINGEN) {
+    for (let k = 0; k < (r ? 12 : 1) && !gevonden; k++) {
+      const a = (k / 12) * Math.PI * 2 + hashHoek(h.id);
+      const cx = x0 + Math.cos(a) * r, cy = y0 + Math.sin(a) * r;
+      const sp = w.map.findOpenSpawn(cx, cy, SNAP_R);
+      const q = sp ? { x: sp.x, y: sp.y } : { x: cx, y: cy };
+      if (droog(w.map, q.x, q.y)) gevonden = q;
+    }
+    if (gevonden) break;
+  }
+  if (!gevonden) { h.onbruikbaar = true; return; }
+  h.x = gevonden.x; h.y = gevonden.y;
   // het huisje kijkt naar de dichtstbijzijnde weg, anders zoals het viel
   const rd = w.map.nearestRoadPoint ? w.map.nearestRoadPoint(h.x, h.y, 80, false, true) : null;
   if (rd) h.ang = Math.atan2(rd.y - h.y, rd.x - h.x);
@@ -230,6 +248,7 @@ function dichtbij(w) {
   const p = w.player;
   let best = null, bd = GEBRUIK_R;
   for (const h of huizen) {
+    if (h.onbruikbaar) continue;
     const d = deur(h);
     const afst = Math.hypot(p.x - d.x, p.y - d.y);
     if (afst < bd) { bd = afst; best = h; }
@@ -246,8 +265,8 @@ export const SAFEHUIS = {
   id: 'safehuis',
   layer: 'safehuis',
   legend: { kind: 'act-safehuis', label: 'Safehouse', note: 'een huisje om te kopen of te krijgen in elk gebied dat je kunt veroveren' },
-  init(w) { wereld = w; window.__safehuis = { lijst: () => huizen.map((h) => ({ id: h.id, naam: h.naam, adres: h.adres, x: h.x, y: h.y, ang: h.ang, deur: deur(h), gebied: h.gebied, geplaatst: h.geplaatst, mesh: !!h.mesh, eigen: heeftHuisLive(h.id) })), menu: (id) => { const h = huizen.find((q) => q.id === id); return h ? openShopMenu(w, menu(w, h)) : null; } }; },
-  spots: () => huizen.map((h) => ({ id: h.id, name: h.naam, ...deur(h), mode: 'walk' })),
+  init(w) { wereld = w; window.__safehuis = { lijst: () => huizen.map((h) => ({ id: h.id, naam: h.naam, adres: h.adres, x: h.x, y: h.y, ang: h.ang, deur: deur(h), gebied: h.gebied, geplaatst: h.geplaatst, onbruikbaar: !!h.onbruikbaar, mesh: !!h.mesh, eigen: heeftHuisLive(h.id) })), menu: (id) => { const h = huizen.find((q) => q.id === id); return h ? openShopMenu(w, menu(w, h)) : null; } }; },
+  spots: () => huizen.filter((h) => !h.onbruikbaar).map((h) => ({ id: h.id, name: h.naam, ...deur(h), mode: 'walk' })),
   prompt(w) {
     const h = kanNiet(w) === 'x' ? null : dichtbij(w);
     if (!h) return null;
@@ -261,7 +280,7 @@ export const SAFEHUIS = {
     const lijst = [];
     const hier = dichtbij(w);
     for (const h of huizen) {
-      if (Math.hypot(p.x - h.x, p.y - h.y) > 70 || h === hier) continue;
+      if (h.onbruikbaar || Math.hypot(p.x - h.x, p.y - h.y) > 70 || h === hier) continue;
       lijst.push({ id: h.id + '-2', x: h.x, y: h.y, h: 4.6, label: h.naam, sub: heeftHuisLive(h.id) ? h.adres : `Te koop · ${h.adres}`, kind: 'place' });
     }
     return lijst;
@@ -287,6 +306,7 @@ export const SAFEHUIS = {
       const d = Math.hypot(p.x - h.x, p.y - h.y);
       if (d < STREAM_IN) {
         if (!h.geplaatst) plaats(h, w);
+        if (h.onbruikbaar) continue;
         const eigen = heeftHuisLive(h.id);
         if (h.mesh && h.gebouwdMet !== undefined && !h.gebouwdMet.endsWith(String(eigen))) opruimen(h); // net gekocht: de vlag erbij
         if (!h.mesh) bouw(h, w);
@@ -316,7 +336,7 @@ export const huisVanGebied = (gebiedId) => huizen.find((h) => h.gebied === gebie
 // Het snelreisanker: naar de deur van je eigen safehouse, met de bewakers van de kaartteleport (geen missie, geen politie, niet op het water).
 export function reisNaarHuis(huisIdent) {
   const h = huizen.find((q) => q.id === huisIdent);
-  if (!h || !wereld || !heeftHuisLive(huisIdent)) return false;
+  if (!h || h.onbruikbaar || !wereld || !heeftHuisLive(huisIdent)) return false;
   const d = deur(h);
   return !!(wereld.cheatActions && wereld.cheatActions.teleport(d.x, d.y, h.naam));
 }
