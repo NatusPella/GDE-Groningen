@@ -10,6 +10,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 - **Fietser zonder handen en een echte houding bij fietstrucs (#207; in Electron door Claude in beeld bekeken, niet door een mens):** Ctrl vasthouden en snel doortrappen boven driekwart van de topsnelheid, rechtdoor: de fietser steekt beide armen de lucht in. In een bocht, bij remmen of als je Ctrl loslaat pakt hij het stuur weer; de fiets rijdt hetzelfde. Bij een wheelie zit de fietser nu achterover met gestrekte armen aan het stuur, bij een stoppie voorover. Het staat in de pauzepagina.
 
 ### Verbeterd
+- **Uit het water klimmen gebruikt de klimstand (#207; niet in beeld bekeken, de camera in de gracht werkte niet):** tot nu toe bleef de speler tijdens de klim de zwemstand houden; nu gaan de armen hand over hand omhoog.
 - **Zwemmen, klimmen en springen over een hek zonder nieuwe objecten per beeld (#207):** de standen worden elk beeld in dezelfde pose geschreven in plaats van in een nieuw object, zodat de speler niets extra's alloceert.
 
 ## [0.38.2] - 2026-10-22
