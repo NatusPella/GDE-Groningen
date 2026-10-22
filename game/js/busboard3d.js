@@ -7,8 +7,9 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getVehicleMesh } from './models3d_vehicles.js';
 import { getBusLines } from './vehicle.js';
+import { startBusShift } from './sidejobs.js';
 import { nearestLine, project } from './busroutes.js';
-import { boardText, busLineOf, lineDirection, nextStopInfo, stopAnnouncement, roundDist, OPERATOR } from './busboard.js';
+import { boardText, busLineOf, takeOverOffer, lineDirection, nextStopInfo, stopAnnouncement, roundDist, OPERATOR } from './busboard.js';
 
 const BOARD_R = 140;            // m: alleen bussen in de buurt krijgen een bord
 // m voor het buitenste vlak van de romp. De zijborden hingen op 0,02 m, precies gelijk met het deurblad
@@ -89,26 +90,31 @@ function getCard() {
 body.bus-driving #hud .hud-busnext{display:block}
 #hud .hud-busnext small{display:block;font-size:12px;letter-spacing:3px;text-transform:uppercase;color:#ffb21a}
 #hud .hud-busnext b{font-weight:normal;font-size:22px;letter-spacing:1px}
-#hud .hud-busnext span{font-size:14px;color:rgba(240,237,228,.7);margin-left:8px}`;
+#hud .hud-busnext span{font-size:14px;color:rgba(240,237,228,.7);margin-left:8px}
+#hud .hud-busnext em{display:none;font-style:normal;font-size:13px;margin-top:4px;color:rgba(240,237,228,.85)}
+#hud .hud-busnext.offer em{display:block}
+#hud .hud-busnext kbd{font:inherit;font-weight:bold;padding:0 6px;margin-right:6px;border-radius:3px;background:#f0ede4;color:#14201a;text-shadow:none}`;
   document.head.appendChild(st);
   const el = document.createElement('div');
   el.className = 'hud-busnext';
-  el.innerHTML = '<small></small><div><b></b><span></span></div>';
+  el.innerHTML = '<small></small><div><b></b><span></span></div><em><kbd>G</kbd>Dienst overnemen</em>';
   root.appendChild(el);
   card = { el, small: el.querySelector('small'), b: el.querySelector('b'), span: el.querySelector('span') };
   return card;
 }
 
+// Geeft { line, dir } als de speler de dienst van deze bus kan overnemen (de G-toets), anders null.
 function driverCard(w, pv) {
   const lines = getBusLines();
   const on = !!(pv && pv.isBus && lines.length);
   if (typeof document !== 'undefined') document.body.classList.toggle('bus-driving', on);
-  if (!on) { last = { idx: -1, near: false, line: null }; return; }
+  if (!on) { last = { idx: -1, near: false, line: null }; return null; }
   const own = busLineOf(pv);
   const line = own ? own.line : nearestLine(lines, pv.x, pv.y, 40);
   const dir = line ? (own ? own.dir : lineDirection(line, pv.x, pv.y, pv.angle)) : 0;
   const c = getCard();
-  if (!line || !dir) { if (typeof document !== 'undefined') document.body.classList.remove('bus-driving'); return; }
+  if (!line || !dir) { if (typeof document !== 'undefined') document.body.classList.remove('bus-driving'); return null; }
+  const offer = takeOverOffer({ isBus: true, jobVehicle: !!pv.sideJob, shiftActive: !!(w.sideJob && w.sideJob.active), line, dir });
   const info = nextStopInfo(line, dir, project(line, pv.x, pv.y).s);
   const b = boardText(line, dir);
   if (c) {
@@ -116,6 +122,7 @@ function driverCard(w, pv) {
     c.small.style.color = b.color;
     c.b.textContent = info ? info.name : '';
     c.span.textContent = info ? roundDist(info.dist) : '';
+    c.el.classList.toggle('offer', offer);
   }
   if (info) {
     const near = info.dist < 150;
@@ -125,6 +132,7 @@ function driverCard(w, pv) {
       last = { idx: info.index, near, line };
     }
   }
+  return offer ? { line, dir } : null;
 }
 
 function updateBusBoards(dt, w) {
@@ -133,7 +141,12 @@ function updateBusBoards(dt, w) {
     if (!v.isBus || !busLineOf(v) || v.wrecked) continue;
     if (Math.hypot(v.x - p.x, v.y - p.y) < BOARD_R) ensureBoard(v);
   }
-  driverCard(w, p.inVehicle);
+  const offer = driverCard(w, p.inVehicle);
+  // G: de dienst overnemen. Zonder die keuze rijd je gewoon rond (#396).
+  if (offer && w.input && w.input.wasPressed('g')) {
+    w.input.consume('g');
+    startBusShift(w, p.inVehicle, offer.line, offer.dir);
+  }
 }
 
 export const busBoardKind = { id: 'busboards', tickPhase: 'world', tick: updateBusBoards };

@@ -766,6 +766,8 @@ function reclaimCar(world, ped, car) {
 
 function reportCarTheft(world, ped, car) {
   if (world.wanted > 0 || world.player.inVehicle !== car) return;
+  // wie de dienst van een gekaapte lijnbus heeft overgenomen (busboard3d.js, #396) rijdt nu als buschauffeur: geen aangifte
+  if (world.sideJobActions && world.sideJobActions.vehicle && world.sideJobActions.vehicle() === car) return;
   world.wanted = 1;
   world.policeTip = { x: ped.x, y: ped.y, time: world.time };
   world.wantedProfile = profileOf(world);
