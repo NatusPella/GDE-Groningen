@@ -623,6 +623,7 @@ export const PITCHPUTT = {
       skip: () => { if (!game) return false; game.phase = 'holeDone'; game.phaseT = 99; return true; },
       finish: () => { if (!game) return false; for (let i = game.hole; i < HOLES.length; i++) { game.hole = i; holeDone(w, HOLES[i].par, 'cup'); } game.hole = HOLES.length - 1; nextHole(w); return true; },
       quit: () => { if (!game) return false; end(w, { quit: true }); return true; },
+      hut: () => ({ near: hutNear, t: Math.round(hutT * 10) / 10, gebouwd: !!built, wolfie: !!(built && built.wolfie.visible), rij: etqQ.length }),
       etiquette: () => (game ? { eer: game.etq.eer, boos: game.etq.boos, sirRel: game.etq.sirRel, spelerRel: game.etq.spelerRel, fase: game.etq.hole && game.etq.hole.fase } : null),
     };
   },
