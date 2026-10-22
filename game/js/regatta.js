@@ -108,7 +108,9 @@ function start(w) {
   board.show();
   const bots = maakBots(baan.tonnen, 3);
   meshes = buildMeshes(baan.tonnen, bots);
-  run = { reg: createRegatta(baan.tonnen, { richttijd: richtTijd(baan.tonnen) }), bots, baan, haven: near.m.name, flash: null, flashT: 0 };
+  // de baan kan een eind van de haven liggen (smal water, #384): de aanloop telt mee in de richttijd en de bots wachten er even mee
+  const aanloop = Math.max(0, Math.hypot(baan.tonnen[0].x - w.player.x, baan.tonnen[0].y - w.player.y) - 25) / 2.6;
+  run = { reg: createRegatta(baan.tonnen, { richttijd: Math.round(richtTijd(baan.tonnen) + aanloop) }), bots, baan, haven: near.m.name, flash: null, flashT: 0, aanloop };
   gameUi.showCard(w, { kind: 'tip', kicker: 'Zeilregatta', title: 'Twee rondes langs de tonnen', body: 'Ronde de vier tonnen in volgorde, twee keer. Vaar niet recht tegen de wind in: kruis. [Q] haalt het zeil aan, [Z] viert het. [Backspace] stopt.', duration: 11, key: 'regatta-help', voice: false });
   return true;
 }
@@ -135,7 +137,7 @@ function tick(dt, w) {
     if (run.flash === STAP_IN) run.flash = null;
   } else { r.t += dt; run.flash = STAP_IN; }
   if (!r.klaar && w.wind) {
-    stepBots(run.bots, r.tonnen, w.wind, dt, r.t, r.rondes);
+    if (r.t > run.aanloop) stepBots(run.bots, r.tonnen, w.wind, dt, r.t - run.aanloop, r.rondes);
     if (meshes) run.bots.forEach((b, i) => { const m = meshes.botList[i]; if (m) { m.position.set(b.x, WATER_Y + 0.3, b.y); m.rotation.y = -b.heading; } });
   }
   if (r.gerond > was) {

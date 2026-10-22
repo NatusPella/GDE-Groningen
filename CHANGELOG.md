@@ -6,6 +6,9 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Opgelost
+- **Zeilregatta: elke jachthaven heeft weer een baan (#384, #197; gemeten op de tegels met de waterregel van het spel, niet in Electron of in beeld bekeken):** na de gebouwcontrole van #362 vond de regatta bij geen enkele van de 8 jachthavens een baan, omdat de ronde baan van vier tonnen een open water van 80 m nodig heeft en de havens vooral smal water hebben. `kiesBaan` zoekt nu op een raster van 10 m tot 400 m van de haven (kleinste straal 30 m), en valt dan terug op een heen-en-weer-baan van vier tonnen op 55 m langs een gracht of vaart met minstens 12, 9 of 6 m water rondom. Vijf havens krijgen een ronde baan, drie (Noorderhoek, Het Hoofd, De Brede Vaart) een lijnbaan, geen enkele op een gebouw. Ligt de baan een eind van de haven (De Brede Vaart 391 m), dan telt de aanloop mee in de richttijd en wachten de bots even. Nieuwe test: \`regattabaan_haven_test.mjs\`.
+
 ## [0.39.0] - 2026-10-22
 
 ### Opgelost
