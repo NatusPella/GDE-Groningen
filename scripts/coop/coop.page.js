@@ -247,7 +247,7 @@ async function connect() {
     if (CFG.gateWachtMs) await sleep(CFG.gateWachtMs); // de gast leest 'Wacht tot ... het spel start' en het menu sluit pas bij het starten
     gateKnop.click(); log('spel-gestart', {});
     let skip = true; (async () => { while (skip) { if (W() && (W().cameraOverride || (document.getElementById('cine') && document.getElementById('cine').classList.contains('on')))) await holdSkip(); await sleep(2500); } })();
-    await until(() => !(W().paused), 8000, 'het spel loopt na Spel starten');
+    await until(() => !(W().paused), 60000, 'het spel loopt na Spel starten'); // op een drukke computer duurt het laadscherm van de opening soms lang
     await sleep(1500);
     shot('spel-samen');
     setTimeout(() => { skip = false; }, 90000);
