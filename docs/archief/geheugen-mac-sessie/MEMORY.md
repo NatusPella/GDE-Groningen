@@ -1,0 +1,15 @@
+- [Max parallel agents](max-parallel-agents.md) — more than 3 agents OK; heavy/Electron tests only in one final round
+- [Paused WIP branches](paused-wip-branches.md) — perf round 1 merged; story/trailer/UX2/mesh2 running; final integrated test pending
+- [TTS billing via OpenRouter](tts-billing-via-openrouter.md) — pay TTS from OpenRouter credits, minimise direct Google billing
+- [Gemini 3.8 TTS findings](gemini-38-tts-findings.md) — whole cast on 3.8 since 2026-10-02; style via speech_metadata; Tammo = Orus (Gronings)
+- [YouTube channel](youtube-channel.md) — @NatusPella, upload Private, confirm before saving
+- [No in-app browser for the game](no-inapp-browser-game.md) — never leave the game open in the Browser pane; headless/Electron, close right after
+- [Release & publishing](release-and-publishing.md) — road to 1.0: no fees, unsigned builds, nothing public without permission, email rewrite pending
+- [Game naming](game-naming.md) — renaming to 'GDE Groningen – Zomer vol misdaad' (Grootste Diefstal Ever), rollout after 0.23
+- [Keep momentum](keep-momentum.md) — don't idle; keep working the roadmap, ask only for real decisions (publish, money, history rewrite, [?] items)
+- [Green pixel bug](green-pixel-bug.md) — Maus sees an occasional lingering green pixel; investigate later
+- [GDE handoff 0.28](gde-handoff-0-28.md) — state after v0.28.0: open items, pending decisions, workflow
+- [Province autonomy](province-autonomy.md) — run ALL province phases F0–F5 autonomously, release per phase, don't ask
+- [Roadmap on GitHub](roadmap-on-github.md) — issues only, no roadmap markdown in git; columns Bugs/Wensen/Bezig/Review/Klaar
+- [Prioritering](prioritering.md) — bugs first, then impact/cost, then later; no P-labels
+- [Handoff 0.34](handoff-0-34.md) — paused 2026-10-17: release steps left, junction_sim_test failing after #79 merge, main unpushed
