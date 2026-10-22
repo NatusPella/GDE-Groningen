@@ -80,12 +80,13 @@ export function tekenVeroverd(ctx, toScreen, scale, cw, ch, hover, label, kleurT
   for (const { r, sx, sy, px } of zichtbaar) {
     if (px < 14) continue;
     if (r.voltooid) {
-      const s = Math.max(16, Math.min(28, px * 0.5));
-      tekenVlag(ctx, sx, sy - px + 3, s, r.vlag);
-      if (px >= 34) label(ctx, r.titel, sx, sy + px + 14, kleurTekst, 'center');
-      hover.push({ sx, sy: sy - px - s * 0.4, name: r.titel, sub: `${r.niveau.enkel[0].toUpperCase()}${r.niveau.enkel.slice(1)} veroverd: alles gedaan (${r.totaal} dingen)` });
+      // de vlag staat op de ring, maar nooit verder dan 46 px van het midden: bij een grote zoom valt de ring buiten beeld
+      const s = Math.max(16, Math.min(28, px * 0.5)), af = Math.min(px, 46);
+      tekenVlag(ctx, sx, sy - af + 3, s, r.vlag);
+      if (px >= 34) label(ctx, r.titel, sx, sy + af + 14, kleurTekst, 'center');
+      hover.push({ sx, sy: sy - af - s * 0.4, name: r.titel, sub: `${r.niveau.enkel[0].toUpperCase()}${r.niveau.enkel.slice(1)} veroverd: alles gedaan (${r.totaal} dingen)` });
     } else if (px >= 22) {
-      label(ctx, `${r.klaar}/${r.totaal}`, sx, sy + px + 12, kleurTekst, 'center');
+      label(ctx, `${r.klaar}/${r.totaal}`, sx, sy + Math.min(px, 46) + 12, kleurTekst, 'center');
     }
   }
   ctx.restore();

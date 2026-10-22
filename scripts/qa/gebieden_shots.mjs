@@ -20,11 +20,11 @@ const LOCKS = process.env.GDE_LOCKS || path.join(os.homedir(), 'gde-locks');
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 let slot = null;
 async function takeSlot() {
-  for (let tries = 0; tries < 900; tries++) { // elke 4 s, ~1 uur: de slots wisselen snel van eigenaar
+  for (let tries = 0; tries < 5400; tries++) { // elke 2 s, ~3 uur: de slots wisselen snel van eigenaar
     for (const n of [1, 2, 3]) {
       try { fs.mkdirSync(path.join(LOCKS, `electron-${n}`)); slot = path.join(LOCKS, `electron-${n}`); console.log(`slot electron-${n}`); return; } catch { /* bezet */ }
     }
-    await sleep(4000);
+    await sleep(2000);
   }
   throw new Error('geen Electron-slot gekregen');
 }
