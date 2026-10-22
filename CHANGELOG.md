@@ -6,6 +6,11 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Verbeterd (samen spelen met vier, nalopen voor vrijdag 23-10; door bots en tests op één computer, niet door vier mensen gespeeld of in beeld bekeken)
+- **Samen spelen: ook bij knock-out, arrestatie of afbreken van een opdracht lezen de anderen dat de opdracht mislukt is (#371):** tot nu toe hoorden ze dat alleen als de opdracht zelf mislukte (tijd op, doel kwijt). Nu staat er ook "mislukt: opgepakt door de politie" of "mislukt: neergeslagen".
+- **Samen spelen: bij "gelukt!" staat wat jouw deel was (#371, #365):** "Het Loket gelukt! Tammo en jij hebben het samen gedaan. Jouw deel: €200."
+- **Samen spelen: een roepje van een ander laat een korte pling horen (#367):** het bestaande meldingsgeluid, geen nieuwe opname; wie zelf roept hoort het niet.
+
 ## [0.38.2] - 2026-10-22
 
 ### Opgelost
