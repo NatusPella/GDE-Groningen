@@ -470,7 +470,8 @@ if (want('kaartlagen')) {
   // 1 de buslijn-bijbaan (Streekbus Hunzedal, job 'lijn'): haltes en route op de kaart
   try {
     // de bijbaan begint bij zijn eigen plek (SJ.spots(): de eerste halte van de eerste lijn), daar staat de bus klaar
-    const spL = SJ && SJ.spots().find((q) => q.job && q.job.id === 'lijn');
+    let spL = null;
+    for (let k = 0; k < 40 && !spL; k++) { spL = SJ && SJ.spots().find((q) => q.job && q.job.id === 'lijn'); if (!spL) await sleep(2000); } // (de bijbaanplekken komen pas na het laden van de wereld)
     info.push('lijn-plek ' + JSON.stringify(spL && { x: Math.round(spL.x), y: Math.round(spL.y) }));
     if (spL) {
       holdK.x = spL.x; holdK.y = spL.y;
@@ -478,11 +479,17 @@ if (want('kaartlagen')) {
       await waitLoad();
     }
     // het spawnen van de bus kan mislukken zolang de wegen daar nog niet geladen zijn: een paar keer proberen, zonder politie
+    // wachten tot de wegen bij de halte geladen zijn (spawnJobVehicle wil een weg binnen 40 m)
+    if (spL) {
+      let rpL = null;
+      for (let k = 0; k < 45 && !(rpL && Math.hypot(rpL.x - spL.x, rpL.y - spL.y) <= 40); k++) { rpL = map.nearestRoadPoint(spL.x, spL.y, 150, true); if (!(rpL && Math.hypot(rpL.x - spL.x, rpL.y - spL.y) <= 40)) await sleep(2000); }
+      info.push('weg bij de halte ' + (rpL ? Math.round(Math.hypot(rpL.x - spL.x, rpL.y - spL.y)) + ' m' : 'geen') + ' speler ' + Math.round(p.x) + ',' + Math.round(p.y));
+    }
     let okB = false;
-    for (let k = 0; k < 4 && okB !== true; k++) {
+    for (let k = 0; k < 10 && okB !== true; k++) {
       w.wanted = 0; w.wantedDecayTimer = 0;
       okB = SJ && SJ.start('lijn');
-      if (okB !== true) { info.push('lijn-start poging ' + (k + 1) + ' mislukt: ' + JSON.stringify((w.messages || []).slice(-1).map((q) => q.text))); holdK.on = true; await sleep(6000); }
+      if (okB !== true) { info.push('lijn-start poging ' + (k + 1) + ' mislukt: ' + JSON.stringify((w.messages || []).slice(-1).map((q) => q.text))); holdK.on = true; await sleep(9000); }
     }
     info.push('bus-bijbaan start ' + okB + ' berichten ' + JSON.stringify((w.messages || []).slice(-2).map((q) => q.text)) + ' ' + JSON.stringify((SJ && SJ.ctx && SJ.ctx() && { job: SJ.ctx().job.id, vehicle: !!SJ.ctx().vehicle }) || null));
     // de intro van de baas (een filmpje) wegdrukken, dan pas de kaart
@@ -493,6 +500,8 @@ if (want('kaartlagen')) {
     if (v) { holdK.on = false; p.x = v.x; p.y = v.y; p.enterVehicle(v, w); await sleep(2500); holdK.x = v.x; holdK.y = v.y; }
     for (let k = 0; k < 20 && !(w.sideJob && w.sideJob.bus); k++) await sleep(500);
     info.push('na instappen: in voertuig ' + !!p.inVehicle + ' bus-laagdata ' + !!(w.sideJob && w.sideJob.bus) + ' marker ' + JSON.stringify(w.sideJob && w.sideJob.marker) + ' voortgang ' + (w.sideJob && w.sideJob.progress));
+    await sleep(2500);
+    info.push('hud-kaartje "' + ((document.querySelector('.hud-busnext') || {}).textContent || 'geen') + '" bij de rit "' + (w.sideJob && w.sideJob.progress) + '"');
     layerInfo('bus');
     await both('bus', 4, 1.2, w.sideJob && w.sideJob.marker ? { x: w.sideJob.marker.x, y: w.sideJob.marker.y } : null);
     if (SJ) SJ.quit();

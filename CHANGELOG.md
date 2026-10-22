@@ -6,6 +6,9 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Opgelost
+- **Bijbaan Streekbus: het kaartje "volgende halte" en het bord op de bus volgen de rit (#386; in Electron door Claude in beeld bekeken, niet door een mens):** het kaartje onderin nam de dichtstbijzijnde lijn, en op de A28 lopen er meerdere over dezelfde weg: het kaartje noemde "lijn 312 naar Groningen" terwijl de rit "Lijn 027" was. De bijbaanbus onthoudt nu zijn lijn en richting, en krijgt zelf ook een bord.
+
 ## [0.39.0] - 2026-10-22
 
 ### Opgelost
