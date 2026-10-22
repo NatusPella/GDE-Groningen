@@ -34,8 +34,15 @@ const rondes = [];
 let goed = 0, vragen = 0, fout = 0, ronde = 0, prevN = 0, cur = [];
 const gedaan = new Set();
 const t0 = performance.now();
+let lastT = -1, stilT = 0, lastLog = 0;
 while (act.active() && rondes.length < 3 && performance.now() - t0 < 600000) {
-  const d = B.status().blocking.dialog;
+  const st = B.status();
+  // the game clock stands still (the pause menu opened by itself, or the window lost focus): Escape closes the menu, Space starts a paused game again
+  if (st.t === lastT) stilT += 200; else { stilT = 0; lastT = st.t; }
+  if (st.blocking.pauseMenu) { await B.press('escape'); await sleep(400); continue; }
+  if (stilT >= 3000 && st.blocking.paused) { await B.press(' '); stilT = 0; }
+  if (performance.now() - lastLog > 20000) { lastLog = performance.now(); B.log('stil', { t: st.t, blocking: Object.keys(st.blocking).filter((k) => st.blocking[k]) }); }
+  const d = st.blocking.dialog;
   const m = d && /VRAAG ([0-9]) VAN 3/.exec(d.kicker || '');
   if (!d || !d.options || !d.options.length || !m) { await sleep(200); continue; }
   const n = Number(m[1]);
