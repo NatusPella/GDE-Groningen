@@ -14,6 +14,17 @@ Voor wie het project overneemt (een andere AI of machine). Lees dit eerst, daarn
 - De geheugenbestanden van de vorige AI (`~/.claude/projects/.../memory/`): niet overgedragen; de belangrijkste afspraken staan hieronder en in `AGENTS.md`.
 **Lokale branches die niet op `main` zitten** (halfwerk van gestopte agents) zijn als `wip/...` naar GitHub gezet: `wip/treinmachinist-14`, `wip/landmarks-21`, `wip/winter-schepen-32-7`.
 
+## 1b. Nieuwe Windows-machine, stap voor stap
+Getest is dit op macOS; de stappen hieronder zijn de Windows-vertaling. `docs/ONTWIKKELEN.md` heeft een tabel van welke scripts waar werken ("Git Bash" betekent een POSIX-shell op Windows, dus Git Bash of WSL, niet PowerShell of cmd), en `docs/RELEASEN.md` beschrijft het release op Windows.
+1. **Installeren:** Git for Windows (met Git Bash), Node.js (zelfde grote versie als op de Mac: 26.x), Python 3 en de GitHub CLI. Daarna `gh auth login` en `gh auth refresh -s project,read:project` (voor het bord).
+2. **Clonen:** `git clone https://github.com/NatusPella/GDE-Groningen.git` en `cd GDE-Groningen`. `.gitattributes` zet de regeleindes goed (sh en mjs blijven LF); verander `core.autocrlf` niet.
+3. **Bouwen:** `cd desktop`, `npm install`, `npm run stage` (haalt three.js en lettertypen op in `desktop/vendor-cache`, bouwt de tegels en bundelt het spel; de eerste keer een paar minuten).
+4. **De provinciegegevens (`data/cache`)** staan niet in git. Een reservekopie (72 MB, zonder de Python-venv) staat als bijlage bij het concept-release `data-cache-backup`. Haal hem op met `gh release download data-cache-backup --repo NatusPella/GDE-Groningen --pattern data-cache.tgz` en pak hem uit in de repo-map met `tar -xzf data-cache.tgz -C data` (Windows 10 en later heeft `tar`). Is er een Python-venv nodig (sommige scripts in `scripts/world/`), maak die opnieuw: `python -m venv data/cache/venv`. Zonder `data/cache` werkt het spel en bijna alle tests, maar een volledige tegelbouw (en dus een release met de provinciekaart) niet.
+5. **`.env`** (OpenRouter-sleutel) is er alleen nodig voor de TTS-scripts en wordt nu niet gebruikt. Kopieer hem zelf (nooit via git); de sleutel moet sowieso vervangen worden (issue #36).
+6. **Spelen:** in Git Bash `sh scripts/play_local.sh`; in PowerShell: `cd desktop; $env:GDE_TEST_PROFILE="gde-lokaal"; .\node_modules\.bin\electron.cmd . --windowed`.
+7. **Testen:** `node scripts/run_tests.mjs` (een set in één keer, gewone `node`), of per bestand `node scripts\<naam>_test.mjs`. Zware tests en de Electron-verhaaltest bij het release (zie sectie 2).
+8. **Releasen op Windows:** `cd desktop && npm run release -- minor|patch --world` bouwt de Windows-exe en `gde-world.tgz`; de Mac-, Linux- en Android-builds komen uit Actions met `node scripts/release_builds.mjs` (zie `docs/RELEASEN.md`). Een Mac-dmg kan niet op Windows gebouwd worden.
+
 ## 2. Starten en testen
 - Lokaal spelen: `sh scripts/play_local.sh` (testprofiel, nieuw verhaal aan; `--echt` voor je eigen profiel, `--vers` om opnieuw te beginnen).
 - Alle tests: `for t in scripts/*_test.mjs; do node $t || echo FAIL $t; done` (gewone `node`, macOS heeft geen `timeout`), plus `node scripts/voice_coverage.mjs --quiet`, `node scripts/junction_sim_test.mjs` (moet 17/17 zijn) en `node scripts/world/drive_audit.mjs` (norm: ongeveer 2 botsingen).
