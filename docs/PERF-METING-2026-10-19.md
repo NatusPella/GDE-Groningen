@@ -665,3 +665,30 @@ node --expose-gc scripts/perf/tilemem.mjs <map met world/>               # heap 
 node --expose-gc scripts/perf/streamdrive.mjs <map met world/> --budget=150e6   # rit over de echte tegels
 node scripts/qa/benchmark_run.mjs --modus=kaart --heap --gc [--heapprof=200000]  # heap van de benchmark; --modus=annuleer-pad
 ```
+
+## Vervolg 14: het opstarten: 18 van de 44 s hoofdthread was blokkerend linken (s5, #247)
+
+**Uitkomst:** de linkwacht (draws van niet-gelinkte programma's wachten, alle links lopen parallel) stond bij het opstarten niet aan: hij begon pas na 600 getekende frames. Daardoor tekende het eerste frame achter het laadscherm elk programma van de scène voor het eerst en wachtte elke draw op zijn eigen link, na elkaar. Nu werkt de wacht vanaf het eerste frame (`LINK_GUARD_EARLY`, `?perfoff=linkvroeg` is het oude gedrag; een opname met `trailer`, `frames`, `video` of `preview` houdt de 600 frames). De machine was bij elke run vol (CPU 47 tot 93%); de A/B is gepaard (oud en nieuw afwisselend, dezelfde stage), de tellingen zijn de uitkomst, niet de seconden.
+
+### Het opstartprofiel
+
+CPU-profiel van de eerste 50 s van de pagina (`GDE_BOOT_PROFILE=<ms>`, nieuw in `desktop/devtools.js`, het profiel naar `GDE_PROFILE_OUT`): 42,7 s bezet van 44,3 s, **18,0 s (42%) in `WebGLUniforms`** (`getProgramParameter` bij het eerste gebruik van een programma, `setProgram` uit `renderScene` van de hoofdpas), render 47% van het geheel, streamen en geometrie 10%. De menupoort (`menuready.js`) kwam in elke oude run uit op zijn time-out van 20 s (`timedOut: true`), met één frame van 12,5 tot 22,3 s en 2 tot 13 getekende frames in die 20 s.
+
+### Gepaard, koude start (`PERF_ONLY=wegenklaar`, tijd na het titelscherm; poort-venster = de eerste 20 s van de menupoort)
+
+| | oud (`?perfoff=linkvroeg`) | nieuw |
+|---|---|---|
+| langste frame in het poort-venster | 14,3 / 15,5 / 22,3 s (+ 13,6 s in een vierde run) | 5,8 / 4,4 / 6,6 s (+ 4,1 en 4,3 s in twee runs van de bouwproef, zie onder) |
+| getekende frames in het venster | 7 / 5 / 2 (+ 6) | 111 / 109 / 135 (+ 87 en 91) |
+| wegenkaart van de worker klaar na het titelscherm | 18,4 / 15,5 / 22,6 s (+ 13,7 s) | 7,4 / 5,9 / 7,1 s (+ 5,4 en 5,1 s) |
+
+De wegenkaart is eerder klaar omdat de hoofdthread het antwoord van de worker niet meer 15 tot 22 s laat liggen (de worker was al na 0,5 s klaar, Vervolg 13). Een eerste versie met de wacht pas vanaf het derde frame (`LINK_GUARD_EARLY = 2`) hielp niet (langste frame 15,5 tot 21,2 s): de stall zit in de eerste frames zelf. De wereld achter het menu is op het screenshot na de poort volledig (`s5lm-new1.png` tegen `s5lk-old1.png`, door Claude bekeken: zelfde straat, geen ontbrekende gevels); de eerste seconden zelf zijn niet in beeld bekeken: de wacht laat tijdelijk draws weg, dus daar kan iets later verschijnen.
+
+### Wat de poort nu nog vasthoudt
+
+De poort haalt in alle nieuwe runs nog steeds zijn time-out (20 s): de nog te bouwen gebouwen en wegen (`streamPending`) zijn na ~11 s op 0 (van 440 aan het begin), daarna wacht hij op `extraDone`, de plaatsing van de garages, cafés en winkels op het platteland (`placeWithTiles`, `placement`-markering ~26 tot 28 s na het titelscherm op deze machine). Een bouwbudget van 20 ms in plaats van 4 ms per frame zolang het menu nog niet getoond wordt (een proef, teruggedraaid) maakte `streamPending` niet sneller 0 (11,2 s zonder, 11,6 s met): het bouwen wacht op de link van de programma's (`bouwklaar`), niet op het budget. De volgende kandidaat is de plaatsing: haar tegelstukken (`withTiles` met `slice: 6` ms per frame) kunnen bij een laadscherm en een nog verborgen menu groter, en de tijd is dan niet door de framesnelheid begrensd. Niet gedaan, niet gemeten.
+
+### Gereedschap
+
+- `GDE_BOOT_PROFILE=<ms>` (desktop): CPU-profiel vanaf dom-ready; `PERF_ONLY=wegenklaar` geeft nu ook `menuGate`, `menuHang`, `tileWindows` en een `bootLog` (elke 250 ms: wachtende gebouwen en wegen, de tegels van het viewpunt).
+- `scripts/perf/hook.js` schrijft die `bootLog` zelf, vanaf het laden van de pagina.
