@@ -20,6 +20,7 @@ import { addStaticCollider, removeProp } from './breakables.js';
 import { iconDisc } from './activitykit.js';
 import { playerBusy } from './busy.js';
 import { isInWater } from './util.js';
+import { provinceLandAt } from './regions.js';
 
 const DEUR_AFSTAND = 3.2;   // m van het midden van het huisje tot de plek bij de deur
 const GEBRUIK_R = 2.2;
@@ -58,8 +59,8 @@ function ververs(w) {
     return { ...h, ang, x: h.x + Math.cos(ang) * 22, y: h.y + Math.sin(ang) * 22, geplaatst: false, mesh: null, props: null };
   });
 }
-// Droog land: niet in het water en ook geen water vlak ernaast (de kade).
-const droog = (map, x, y) => !isInWater(map, x, y) && ![[6, 0], [-6, 0], [0, 6], [0, -6]].some(([dx, dy]) => isInWater(map, x + dx, y + dy));
+// Droog land: binnen het land van de provincie (niet de Eems of de Waddenzee), niet in het water en ook geen water vlak ernaast (de kade).
+const droog = (map, x, y) => provinceLandAt(x, y) && !isInWater(map, x, y) && ![[6, 0], [-6, 0], [0, 6], [0, -6]].some(([dx, dy]) => isInWater(map, x + dx, y + dy));
 // Het binnenpunt van een woonplaats of wijk kan in het water vallen (Delfzijl ligt deels in de Eems): zoek in ringen om dat punt naar de
 // dichtstbijzijnde open, droge plek. Lukt dat niet, dan is het huisje onbruikbaar: geen huisje, geen deur en geen icoon.
 const ZOEK_RINGEN = [0, 40, 80, 140, 220, 320, 450, 650, 900, 1300, 1800];
