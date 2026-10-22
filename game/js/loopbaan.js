@@ -88,7 +88,7 @@ export const vakInfo = (id) => BY_ID.get(id) || null;
 const BAAN_VAK = {
   bus: 'bus', lijn: 'bus', schoolrit: 'bus', museumbus: 'bus',
   taxi: 'taxi', taxinacht: 'taxi', bernard: 'taxi', bernardrit: 'taxi',
-  bezorger: 'bezorg', fietssoep: 'bezorg', vracht: 'bezorg', verhuizing: 'bezorg', melkrit: 'bezorg', balenrit: 'bezorg', suikerbieten: 'bezorg',
+  bezorger: 'bezorg', krantenwijk: 'bezorg', fietssoep: 'bezorg', vracht: 'bezorg', verhuizing: 'bezorg', melkrit: 'bezorg', balenrit: 'bezorg', suikerbieten: 'bezorg',
   rondvaart: 'water', rondvaarttour: 'water', veerdienst: 'water', strandpost: 'water',
   boa: 'handhaving', rechtbank: 'handhaving', fietsdepot: 'handhaving', berging: 'handhaving', brugdienst: 'handhaving', herstelploeg: 'handhaving',
   loket: 'kantoor', studiestaat: 'kantoor', wolkenhal: 'kantoor', vandermeden: 'kantoor',
