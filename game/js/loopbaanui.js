@@ -6,6 +6,7 @@ import * as L from './loopbaan.js';
 import { getProfiel } from './loopbaanlive.js';
 import { SIDE_JOBS } from './sidejobs.js';
 import { fillBars } from './motion.js';
+import { gebiedenHtml, kiesGebied, reisNaar, GEBIEDEN_CSS } from './gebiedenui.js';
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const nl = (n) => Math.round(n).toLocaleString('nl-NL');
@@ -65,11 +66,12 @@ function zetCss() {
   if (cssAan || typeof document === 'undefined') return;
   cssAan = true;
   const el = document.createElement('style');
-  el.textContent = CSS;
+  el.textContent = CSS + GEBIEDEN_CSS;
   document.head.appendChild(el);
 }
 
 let gekozen = 'trein';
+let weergave = 'vakken'; // 'vakken' of 'gebieden' (gebiedenui.js)
 const bars = new Map();
 
 function rij(profiel, info) {
@@ -113,16 +115,28 @@ function detailHtml(profiel, id) {
     trap + banenHtml;
 }
 
-export function renderLoopbaanPanel(el) {
+const tabs = () => '<nav class="m-tablist" role="tablist" aria-label="Weergave">' + [['vakken', 'Vakken'], ['gebieden', 'Veroverd']].map(([id, t]) =>
+  `<button type="button" role="tab" class="m-tab" data-lbview="${id}" aria-selected="${weergave === id}">${t}</button>`).join('') + '</nav>';
+
+let sluitMenu = null; // pausemenu.js: sluit het menu na een snelreis
+export function renderLoopbaanPanel(el, sluit = null) {
   if (!el) return;
+  if (sluit) sluitMenu = sluit;
   zetCss();
-  const profiel = getProfiel();
-  if (!L.vakInfo(gekozen)) gekozen = L.VAK_IDS[0];
-  const sam = L.samenvatting(profiel);
-  const lijst = L.GROEPEN.map((g) => `<div class="lb-groep">${esc(g.naam)}</div>` + L.VAKKEN.filter((v) => v.groep === g.id).map((v) => rij(profiel, v)).join('')).join('');
-  el.innerHTML = `<div class="m-tabs"><span class="m-grow"></span><span class="pa-total"><span class="m-num">${sam.som - L.VAKKEN.length}</span><span class="mut">van ${sam.max - L.VAKKEN.length} niveaus omhoog${sam.hoogste ? ` · hoogste titel: ${esc(sam.hoogste.titel)}` : ''}</span></span></div>` +
-    `<div class="m-main"><div class="m-list pa-list lb-list">${lijst}</div><aside class="m-pane pa-pane lb-pane" aria-live="polite">${detailHtml(profiel, gekozen)}</aside></div>`;
-  fillBars(el, bars);
+  if (weergave === 'gebieden') {
+    const g = gebiedenHtml();
+    el.innerHTML = `<div class="m-tabs">${tabs()}<span class="m-grow"></span><span class="pa-total">${g.totaal}</span></div>` +
+      `<div class="m-main"><div class="m-list pa-list lb-list">${g.lijst}</div><aside class="m-pane pa-pane lb-pane gb-pane" aria-live="polite">${g.pane}</aside></div>`;
+    fillBars(el, bars);
+  } else {
+    const profiel = getProfiel();
+    if (!L.vakInfo(gekozen)) gekozen = L.VAK_IDS[0];
+    const sam = L.samenvatting(profiel);
+    const lijst = L.GROEPEN.map((g) => `<div class="lb-groep">${esc(g.naam)}</div>` + L.VAKKEN.filter((v) => v.groep === g.id).map((v) => rij(profiel, v)).join('')).join('');
+    el.innerHTML = `<div class="m-tabs">${tabs()}<span class="m-grow"></span><span class="pa-total"><span class="m-num">${sam.som - L.VAKKEN.length}</span><span class="mut">van ${sam.max - L.VAKKEN.length} niveaus omhoog${sam.hoogste ? ` · hoogste titel: ${esc(sam.hoogste.titel)}` : ''}</span></span></div>` +
+      `<div class="m-main"><div class="m-list pa-list lb-list">${lijst}</div><aside class="m-pane pa-pane lb-pane" aria-live="polite">${detailHtml(profiel, gekozen)}</aside></div>`;
+    fillBars(el, bars);
+  }
   if (!el.dataset.bound) {
     el.dataset.bound = '1';
     const kies = (id) => {
@@ -132,7 +146,29 @@ export function renderLoopbaanPanel(el) {
       el.querySelector('.lb-pane').innerHTML = detailHtml(getProfiel(), gekozen);
       queueMicrotask(() => fillBars(el, bars));
     };
-    el.addEventListener('click', (e) => { const b = e.target.closest('[data-vak]'); if (b) kies(b.dataset.vak); });
-    el.addEventListener('focusin', (e) => { const b = e.target.closest && e.target.closest('[data-vak]'); if (b) kies(b.dataset.vak); });
+    let gebied = null;
+    const kiesG = (id) => {
+      if (!id || id === gebied) return;
+      gebied = id;
+      for (const b of el.querySelectorAll('[data-gebied]')) { const aan = b.dataset.gebied === id; b.classList.toggle('sel', aan); b.toggleAttribute('aria-current', aan); }
+      el.querySelector('.lb-pane').innerHTML = kiesGebied(id);
+      queueMicrotask(() => fillBars(el, bars));
+    };
+    el.addEventListener('click', (e) => {
+      const t = e.target.closest('[data-lbview]');
+      if (t) { if (t.dataset.lbview !== weergave) { weergave = t.dataset.lbview; gebied = null; renderLoopbaanPanel(el); } return; }
+      const r = e.target.closest('[data-reis]');
+      if (r) { reisNaar(r.dataset.reis, r, sluitMenu); return; }
+      const g = e.target.closest('[data-gebied]');
+      if (g) { kiesG(g.dataset.gebied); return; }
+      const b = e.target.closest('[data-vak]');
+      if (b) kies(b.dataset.vak);
+    });
+    el.addEventListener('focusin', (e) => {
+      const g = e.target.closest && e.target.closest('[data-gebied]');
+      if (g) { kiesG(g.dataset.gebied); return; }
+      const b = e.target.closest && e.target.closest('[data-vak]');
+      if (b) kies(b.dataset.vak);
+    });
   }
 }

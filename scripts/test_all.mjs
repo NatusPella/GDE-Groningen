@@ -373,8 +373,8 @@ async function faseElectron(prev, staat) {
   });
 
   const botSweep = (naam, mode) => stap(naam, async () => {
-    const d = stapDir(naam), ms = 45 * 60e3;
-    const r = await runCmd(process.execPath, ['scripts/bot/run.mjs', `--mode=${mode}`, `--out=${d}`, '--force'], { ms, env: env(naam) });
+    const d = stapDir(naam), ms = 45 * 60e3; // missies: de bot speelt eerlijk, akte 1 past niet meer in de standaard 30 minuten (#387)
+    const r = await runCmd(process.execPath, ['scripts/bot/run.mjs', `--mode=${mode}`, `--out=${d}`, '--force', ...(mode === 'missions' ? ['--max-wall=2400'] : [])], { ms, env: env(naam) });
     fs.writeFileSync(path.join(d, 'sweep.log'), r.out);
     let analyse = '';
     if (fs.existsSync(path.join(d, 'events.jsonl'))) {

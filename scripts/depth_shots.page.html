@@ -212,6 +212,22 @@ try {
     }
     scene.add(mesh);
   }
+  // de ambulance van alle kanten (#407)
+  if (wanted('ambulance')) {
+    scene.remove(mesh);
+    const m = { ...TRAFFIC_MODELS().find((s) => s.name === 'van') };
+    const v = new Vehicle(0, 0, 0, m); v.isAmbulance = true;
+    const g = buildVehicleMesh(v); scene.add(g); g.updateMatrixWorld(true);
+    const hlA = m.len / 2, hwA = m.wid / 2;
+    shoot('ambulance-schuin-voor', [hlA + 5.2, 2.4, hwA + 4.4], [0, 1.2, 0], 8.5);
+    shoot('ambulance-zijkant', [0, 1.5, hwA + 9], [0, 1.3, 0], 8);
+    shoot('ambulance-schuin-achter', [-hlA - 5.2, 2.4, -hwA - 4.4], [0, 1.2, 0], 8.5);
+    shoot('ambulance-boven-voor', [hlA + 2.5, 4.6, 0.5], [hlA - 1.2, 1.0, 0], 4.5);
+    shoot('ambulance-achter', [-hlA - 6.5, 1.8, 0.8], [0, 1.2, 0], 5);
+    shoot('ambulance-voor', [hlA + 6.5, 1.8, -0.8], [0, 1.2, 0], 5);
+    scene.remove(g);
+    scene.add(mesh);
+  }
   // zij- en voorkant, schuin van voren (zoals een speler langsrijdt), zoomend op het bord
   // de hele bus: zijkant (stoepkant, de deuren), schuin van voren, bovenop de stoep gezien (#385)
   if (wanted('bus-overzicht')) {

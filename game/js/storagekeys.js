@@ -76,6 +76,8 @@ export const BASE_KEYS = {
   loopbaan: 'gde-loopbaan-v1',
   // the fish book of this player (visboek.js, #412): new, no legacy name, never part of a savegame (everyone has their own, also when playing together)
   visboek: 'gde-visboek-v1',
+  // what this player did per wijk, plaats and streek (gebieden.js, #414): new, no legacy name, never part of a savegame
+  gebieden: 'gde-gebieden-v1',
 };
 
 export const KEYS = Object.fromEntries(Object.entries(BASE_KEYS).map(([k, v]) => [k, ARC_KEYS.includes(k) ? v + ARC_SUFFIX : v]));

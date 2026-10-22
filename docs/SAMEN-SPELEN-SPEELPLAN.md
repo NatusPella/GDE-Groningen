@@ -1,4 +1,4 @@
-# Samen spelen: speelplan voor vrijdag 23 oktober 2026 (2 tot 4 spelers)
+# Samen spelen: speelplan voor vrijdag 23 oktober 2026 (2 tot 4 spelers; het spel kan tot 16)
 
 Voor de avond dat de eigenaar en een paar testers samen spelen. Dit is het speelplan: wie wat doet, in welke volgorde, wat het leukst
 is en wat nog niet kan. De verbinding (kamercode, IP-adres, router, firewall) staat in [SAMEN-SPELEN-HANDLEIDING.md](SAMEN-SPELEN-HANDLEIDING.md);
@@ -9,14 +9,14 @@ nog niet in beeld is bekeken staat dat erbij.
 ## In één minuut: hoe samen spelen werkt
 
 - **Eén spel, van wie het opent.** De speler die het spel opent (intern "de gastheer") speelt Tammo en draait de wereld, het verhaal, de
-  missies en de voertuigen. De anderen spelen mee in dat spel: de tweede speler is Tessa, de derde en vierde zijn een eigen figuur
+  missies en de voertuigen. De anderen spelen mee in dat spel: de tweede speler is Tessa, vanaf de derde speler is het een eigen figuur
   (standaard Rik en Sanne; wie zich aanmeldt kan een andere figuur wensen).
 - **Iedereen houdt zijn eigen geld en spullen.** Geld uit missies, bijbanen en prijzen van de gastheer krijgt elke speler voor de helft
   in zijn eigen portemonnee. Wat je zelf koopt (kleding, eten) blijft van jou. Het verhaal, de missies en de voertuigen blijven bij de
   gastheer; je eigen opgeslagen spel verandert alleen in geld en spullen.
 - **Wat iedereen ziet:** dezelfde tijd van de dag, hetzelfde weer, hetzelfde gezochtniveau, dezelfde opdracht, hetzelfde filmpje, de
   voertuigen en voetgangers in de buurt, en elkaar met naam, kleur en vorm (op de minimap, de kaart en boven het hoofd).
-- **Wat je samen kunt doen:** lopen en rennen, meerijden (Tessa: ook sturen met Y; speler 3 en 4: achterin), winkelen en eten met eigen geld,
+- **Wat je samen kunt doen:** lopen en rennen, meerijden (Tessa: ook sturen met Y; speler 3 en hoger: achterin), winkelen en eten met eigen geld,
   naar elkaar wijzen met de roeptoetsen (7, 8, 9) en elkaar op de kaart vinden.
 - **De lijst met spelers staat niet permanent in beeld.** Houd **Tab** ingedrukt: links in het scherm staat een compacte lijst met naam, kleur en vorm, wat iedereen doet (te voet, in een voertuig, aan het stuur, in een opdracht), de verbinding (met de ping in ms: de gastheer ziet die van iedereen, een speler alleen zijn eigen) en de afstand. In het pauzemenu staat, zolang je samen speelt, het onderdeel **Spelers** met dezelfde gegevens, de roepknoppen en *Ga erheen* (zet een route naar die speler op de kaart). Op de minimap en de kaart staat per speler alleen een klein gekleurd punt met een vorm; boven het personage staat de naam.
 - **Wat alleen de gastheer doet:** missies en bijbanen starten en spelen, praten met mensen, minigames, voertuigen kopen. De anderen
@@ -59,7 +59,7 @@ bij de duif vliegt de gastheer alleen, bij het museum sluipt de gastheer en de r
 - **Elkaar wijzen:** 7 = *Kom hier*, 8 = *Help!*, 9 = *Kijk daar* (een stuk voor je uit). Bij iedereen verschijnt een lichtzuil in jouw kleur, een
   punt op minimap en kaart en een regel. Een speler die ver weg is vindt zo zijn weg terug.
 - **Winkelen en eten** met eigen geld: de kledingwinkel, de kapper, de snackbar en de muurkroket. Het geeft elke speler een eigen uiterlijk.
-- **Het weer en de tijd van de dag zijn gelijk.** Een onweersbui boven Grunn zien alle vier. Wachten tot het donker is kan.
+- **Het weer en de tijd van de dag zijn gelijk.** Een onweersbui boven Grunn zien alle spelers. Wachten tot het donker is kan.
 - **Bijbanen en minigames van de gastheer** (padel, carbid, de botsauto's, driften): de anderen kijken mee en krijgen de helft van de prijs.
   Dit zijn vooral kijkdingen; wie kijkt kan roepen.
 
@@ -89,7 +89,11 @@ bij de duif vliegt de gastheer alleen, bij het museum sluipt de gastheer en de r
 - **Extra spelers zitten achterin of lopen:** een fiets, scooter of helikopter heeft geen plek voor hen. In een vliegtuig of op een trein rijdt alleen de gastheer mee.
 - **De voertuigen en voetgangers van de gastheer zijn bij een gast eenvoudige blokken en poppetjes**, alleen binnen ongeveer 150 m van een speler.
 - **Cutscenes die al lopen als je aansluit** zie je niet; je hoort alleen dat de gastheer een filmpje kijkt.
-- **Het pauzemenu van de gastheer pauzeert het spel voor iedereen.** Een gast die zijn eigen menu opent pauzeert alleen zichzelf (zijn figuur staat stil).
+- **De pauze van wie het spel opende (pauzemenu, kaart, winkel) pauzeert de wereld, maar niet de spelers:** iedereen blijft lopen en de camera blijft draaien; er staat "heeft het spel op pauze" in beeld. Verkeer, voetgangers, de tijd en de opdracht staan stil. Een gast die zijn eigen menu opent pauzeert alleen zijn eigen figuur. Het wachtscherm bij een weggevallen speler (Tessa) pauzeert wel iedereen.
+- **De camera is van jezelf.** Elke speler draait zijn eigen camera met de muis; er is geen gedeelde camera meer.
+- **Ver weg lopen kan tot 80 m van wie het spel opende** (melding "Blijf bij de groep"); na 110 m, of meteen na een teleport van de ander, zet het spel je bij de groep. Zo kun je het paarse lijntje een eind volgen, maar niet naar de overkant van de stad.
+- **Een ritje of teleport via de kaart kan een gast niet** ("Dat kan alleen in je eigen spel"); die verplaatst alleen je eigen figuur.
+- **In een voertuig stap je zelf in met E** (ook Tessa): ze gaat niet vanzelf mee. Rijdt de ander weg en blijf je ver achter, dan rijd je na een paar seconden mee.
 - **Geen spraak of tekstchat in het spel.** Gebruik een gesprek buiten het spel (de roeptoetsen zijn voor korte dingen).
 - **Controller:** te voet zijn D-pad links, omlaag en rechts de roepjes (Kom hier, Help!, Kijk daar) zolang je in een sessie zit; het kusje, het overslaan van een verhaalstap en het lakmenu zitten dan alleen op het toetsenbord. In een voertuig is D-pad omhoog het stuur doorgeven. Met de muis kan het ook in het pauzemenu, onderdeel Spelers. Niet met een echte controller geprobeerd.
 - **Geluid van de stemmen bij een gast** is niet apart gecontroleerd.
@@ -104,7 +108,58 @@ bij de duif vliegt de gastheer alleen, bij het museum sluipt de gastheer en de r
 | Een filmpje blijft hangen | De gastheer houdt Spatie ingedrukt om over te slaan; dit eindigt het filmpje voor iedereen |
 | Een missie mislukt | De gastheer kiest *Opnieuw*; de anderen zien dat de opdracht weer loopt |
 | Iemand moet er later bij | Aansluiten kan via het pauzemenu (Samen spelen); een nieuwe speler staat meteen naast de gastheer en krijgt het weer, de klok en de opdracht |
-| Het spel hapert | De gastheer zet de grafische stand lager; als de gastheer haperd merkt iedereen het. Meer dan vier spelers wordt afgeraden |
+| Het spel hapert | De gastheer zet de grafische stand lager; als de gastheer haperd merkt iedereen het. Gemeten tot 16 spelers (zie hieronder); met meer dan 8 hapert een oudere computer van de gastheer sneller |
+
+## Donderdagavond: een echte test over internet (checklist, ca. 45 minuten)
+
+Doel: ontdekken wat een test op één computer niet kan laten zien: een echt netwerk, een tweede computer, een muis die echt draait. Twee mensen is genoeg
+(één opent het spel, één doet mee); met meer is beter. Noteer bij elk punt *gelukt*, *niet gelukt* of *raar*, met het tijdstip.
+Wie het spel opent: de computer met de beste verbinding. Poort 9000 en de geïnstalleerde versie voor andere dingen blijven ongemoeid.
+
+**Voorbereiding (10 minuten)**
+- [ ] Iedereen heeft dezelfde versie (zie *Over*) en geen VPN aan.
+- [ ] Wie het spel opent kiest Samen spelen › Een spel openen, daarna Kamercode, en leest het toestemmingsscherm. De code gaat via een app naar de anderen.
+- [ ] De anderen kiezen Samen spelen › Meedoen, typen de code en kiezen *Akkoord en verbinden*.
+- [ ] Lukt het niet: *Verbinding testen* in de wachtkamer, en het foutrapport kopiëren (Foutrapport kopiëren).
+
+**Lobby en start (5 minuten)**
+- [ ] Alle namen staan in de wachtkamer; wie later komt ziet de lijst vanzelf groeien.
+- [ ] Wie het spel opent kiest *Spel starten*. Voor de anderen sluit het menu; de opening begint voor iedereen tegelijk.
+- [ ] Houd **Tab** ingedrukt: naam, kleur, vorm, wat iedereen doet, de verbinding.
+
+**Camera en lopen (5 minuten)**, door elke speler die meedoet
+- [ ] De camera draait met de muis, naar links, rechts, omhoog en omlaag; hij staat dicht achter je (niet ver weg).
+- [ ] Lopen en rennen in alle richtingen, ook achteruit en zijwaarts.
+- [ ] Loop 100 m van de ander: na 80 m komt "Blijf bij de groep", na 110 m sta je weer bij de groep.
+- [ ] Zet een doel op de kaart (M) en volg het paarse lijntje; als de ander een eind wegloopt of teleporteert staat jouw figuur weer bij hem.
+
+**Pauze (3 minuten)**
+- [ ] Wie het spel opent opent het pauzemenu: de anderen kunnen blijven lopen en de camera draaien en lezen "heeft het spel op pauze". Daarna weer doorgaan.
+- [ ] Een andere speler opent zijn eigen pauzemenu: alleen zijn eigen figuur staat stil.
+
+**Voertuig (5 minuten)**
+- [ ] Wie het spel opent stapt in een auto: de anderen lezen "zit in een voertuig. Druk bij het voertuig op E om mee te rijden".
+- [ ] Tessa stapt met E in (de derde speler en hoger ook, tot drie plekken in een auto, zes in een bus), rijdt mee en stapt uit als het voertuig bijna stilstaat.
+- [ ] Wie het spel opent geeft het stuur aan Tessa (Y) en neemt het weer terug.
+- [ ] E bij een geparkeerd voertuig zegt waarom meerijden niet kan.
+
+**Opdracht, uitkomst en geld (10 minuten)**
+- [ ] Wie het spel opent start een opdracht (M01): alle anderen lezen wat er gespeeld wordt en zien het doel op de minimap.
+- [ ] Stop de opdracht via Esc › Overzicht › *Missie stoppen* (met de vraag): de anderen lezen "heeft ... gestopt, voor iedereen"; er is geen mislukking en geen beloning. Start hem daarna opnieuw.
+- [ ] Rond een opdracht af: iedereen leest "gelukt" met "Jouw deel: €…" en krijgt de helft in de eigen portemonnee. Laat de opdracht een keer mislukken: iedereen leest de reden.
+- [ ] De Stuntavond (zie de kaart): de uitleg is kort, omverrijden van losse dingen geeft punten, mensen kosten geen punten. Alleen wie het spel opent speelt hem; de anderen kijken mee.
+- [ ] Loopbaan (Esc › Loopbaan) van een gast: er komen punten bij na een gedeelde beloning; het loon volgt zijn eigen niveau.
+
+**Roepen en neergaan (5 minuten)**
+- [ ] Iedereen drukt 7, 8 en 9: bij iedereen komt een lichtzuil in de kleur van de roeper, een punt op minimap en kaart en een regel, met een korte pling.
+- [ ] Wie het spel opent laat zich neerslaan of arresteren: de anderen lezen het en zien "neergeslagen" in het label.
+
+**Wegvallen en stoppen (5 minuten)**
+- [ ] Een speler haalt het netwerk uit en weer in (of sluit het spel en komt terug met dezelfde code): hij komt op dezelfde plek terug. Valt Tessa weg, dan wacht het spel (wachtscherm).
+- [ ] Wie het spel opent slaat op en kiest Iedereen stoppen: de anderen lezen dat het spel gestopt is en spelen weer in hun eigen spel.
+
+**Wat je meestuurt als iets misging:** tijdstip, wie wat deed, een schermafbeelding, het foutrapport van beide kanten (Instellingen › Foutrapport › Kopieer naar klembord), en de versie.
+Wat ook helpt: iemand die niets doet maar meekijkt en let op haperingen (de beeldsnelheid van de gastheer bij meer spelers).
 
 ## Checklist
 
