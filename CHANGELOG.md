@@ -6,6 +6,9 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Verbeterd
+- **De stadskaart gebruikt ongeveer 30 % minder geheugen en kaartvragen zijn 30 tot 55 % sneller (#314; gemeten in Node op de wereld van 0.38.2, niet in beeld bekeken):** gebouwen, wegen, water en groen van de tegels waren door één `delete` per rij trage objecten geworden (204 naar 142 MB voor de stad, 327 naar 231 MB met de overlaytegels, per thread). Er verandert niets aan wat u ziet.
+
 ## [0.38.2] - 2026-10-22
 
 ### Opgelost
