@@ -63,6 +63,9 @@ for (const [naam, info] of [['startscherm', startBtn], ['pauzemenu', pauseBtn], 
 }
 gesture('Enter op een terugknop geeft één terug-geluid (toets en klik)', [[T0, 'key', { key: 'Enter', repeat: false, info: pauseBack }], [T0 + 0.02, 'click', { info: pauseBack, detail: 0 }]], ['back']);
 gesture('een muisklik op een terugknop geeft terug', [[T0, 'pointer', {}], [T0 + 0.1, 'click', { info: pauseBack, detail: 1 }]], ['back']);
+gesture('Escape en dan het focus dat het sluitende menu teruggeeft: één geluid (terug), geen tikje', [[T0, 'key', { key: 'Escape', repeat: false, info: shopBtn }], [T0 + 0.03, 'focus', { info: startBtn }]], ['back']);
+gesture('Enter dat een nieuw scherm opent en daar het eerste focus: één geluid (keuze)', [[T0, 'key', { key: 'Enter', repeat: false, info: shopBtn }], [T0 + 0.02, 'click', { info: shopBtn, detail: 0 }], [T0 + 0.08, 'focus', { info: shopBtn }]], ['select']);
+gesture('een pijl een kwart seconde na een keuze tikt wel weer', [[T0, 'key', { key: 'Enter', repeat: false, info: shopBtn }], [T0 + 0.4, 'focus', { info: shopBtn }]], ['select', 'tick']);
 gesture('een toets die blijft hangen (herhaling) geeft niets', [[T0, 'key', { key: 'Enter', repeat: true, info: pauseBtn }], [T0 + 0.05, 'key', { key: 'Escape', repeat: true, info: shopBtn }]], []);
 gesture('de klik van een toets lang daarna is een nieuwe handeling', [[T0, 'key', { key: ' ', repeat: false, info: shopBtn }], [T0 + 1.5, 'click', { info: shopBtn, detail: 0 }]], ['select', 'select']);
 // schuiven en vinkjes: het eigen geluid, geen keuzegeluid van toets of klik
@@ -132,12 +135,13 @@ gesture('buiten een menu: geen tikje en geen keuze', [[T0, 'focus', { info: loss
   for (let i = 0; i < 20000; i++) {
     t += 0.5 + r() * 2; // een handeling per seconde of twee, ruim na de vorige
     const info = infos[Math.floor(r() * infos.length)];
-    const soort = Math.floor(r() * 4);
+    const soort = Math.floor(r() * 5);
     const ev = [];
     if (soort === 0) ev.push({ kind: 'key', t, key: r() < 0.5 ? 'Enter' : ' ', repeat: false, info }, { kind: 'click', t: t + r() * 0.3, info, detail: 0 });
     else if (soort === 1) ev.push({ kind: 'pointer', t }, { kind: 'focus', t: t + 0.002 + r() * 0.01, info }, { kind: 'click', t: t + 0.06 + r() * 0.2, info, detail: 1 });
     else if (soort === 2) ev.push({ kind: 'focus', t, info });
-    else ev.push({ kind: 'key', t, key: 'Enter', repeat: false, info: { ...info, back: true } }, { kind: 'click', t: t + 0.01, info: { ...info, back: true }, detail: 0 }); // Enter op een terugknop
+    else if (soort === 3) ev.push({ kind: 'key', t, key: 'Enter', repeat: false, info: { ...info, back: true } }, { kind: 'click', t: t + 0.01, info: { ...info, back: true }, detail: 0 }); // Enter op een terugknop
+    else ev.push({ kind: 'key', t, key: 'Escape', repeat: false, info: { ...info, root: info.root === 'pause' ? 'gm' : info.root } }, { kind: 'focus', t: t + 0.02 + r() * 0.15, info }); // Escape en het focus dat terugkomt
     let got = 0;
     for (const e of ev.sort((a, b) => a.t - b.t)) { if (decide(st, e).sound) got++; }
     handelingen++;
