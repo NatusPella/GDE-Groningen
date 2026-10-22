@@ -7,6 +7,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 ## [Unreleased]
 
 ### Opgelost
+- **Kaarticonen die niemand snapte zijn leesbaar (#383):** het icoon met de bult was een symbool dat zijn gekleurde delen kwijt was. Carbid is nu een melkbus, de kartbaan een geblokte vlag, de Kroketkoning een kroon, de pannenkoek een koekenpan, hengelen een vis, klimtoren een berg, evenementen een tent, het dorpsuitje een wimpel, Jelle's uitdaging een hart en de Fjord Frituur een frietzak. De brug op de missiekaart is een brug met pijlers en het karretje van de tegenstander een kart. Politie te paard en per fiets is gewoon een schild. De vormen van medespelers (maan, hart, bliksem, druppel, blok, golf, schild, bloem) zijn echte vormen in plaats van stekelige blobs. In headless Chrome bekeken op minikaart- en grote-kaartformaat, niet in het spel zelf.
 - **De politie-iconen op de kaart en de minikaart knipperen alleen nog als je gezocht wordt**; zonder sterren staan ze rustig stil.
 
 ### Verbeterd (samen spelen met vier, nalopen voor vrijdag 23-10; door bots en tests op één computer, niet door vier mensen gespeeld of in beeld bekeken)
