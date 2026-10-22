@@ -13,6 +13,7 @@ import { missionScene, SPECS, MORE_SPECS } from './cutscenes_akte1.js';
 import './cutscenes_akte2.js';
 import './cutscenes_akte3.js';
 import './cutscenes_akte4.js';
+import './cutscenes_akte6.js';
 import { OPENING_ACTS, openingActs, END_CARD, flatScene } from './cutscenes.js';
 import { STEPS } from './storyarc_nieuw.js';
 import { propFoot } from './cutscenemodels.js';

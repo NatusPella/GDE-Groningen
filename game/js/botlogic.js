@@ -85,6 +85,16 @@ export function curveCap(pts, from, car, { look = 60, aLat = 7, brake = 8, floor
   return cap;
 }
 
+// The speed that keeps a convoy together (M23, game/js/convoyrules.js: warning at 90 m, apart after 12 s beyond 170 m): the leader waits for the one
+// furthest behind. gaps: metres from the leader to each member. The line itself is about 100 m long behind a steady leader (every member aims at a
+// trail point two places further back), so only a gap beyond that counts: full `top` up to 105 m, easing down to 3 m/s at 150 m, standing still from 160 m.
+export function convoyPace(gaps, top = 11) {
+  const worst = Math.max(0, ...(gaps || []).filter(Number.isFinite));
+  if (worst >= 160) return 0;
+  if (worst <= 105) return top;
+  return Math.max(3, top - (top - 3) * (worst - 105) / 45);
+}
+
 // Steering and pedals for a car at `car` ({x, y, angle, speed}) heading for `target`.
 // steer: -1..1 (positive turns right, like D); throttle: 1 gas, -1 brake/reverse, 0 coast.
 // opts.stopAt: true to come to rest at the target (opts.rest: from that many metres the wanted speed is 0); opts.top: speed limit in m/s.
@@ -276,6 +286,10 @@ export const isCheat = (rung) => rung !== 'nudge';
 export function isStunt(s) {
   const m = s.mission || {};
   if (m.stage === 'stunt') return true;
+  // the stunt evening runs (M01): its score is on the mission, whatever the message line says by now
+  if (m.stunt && !(m.stunt.score >= m.stunt.target)) return true;
+  // before the square is reached the score does not run yet, but the goal is the middle of it (after the stunt the goal is the delivery)
+  if (m.stuntSpec && s.target && Math.hypot(s.target.x - m.stuntSpec.x, s.target.y - m.stuntSpec.y) < 15) return true;
   const words = [m.label, m.type, ...((s.hud && s.hud.messages) || [])].join(' ');
   return /stunt|schans|sprong|spring|driften|drift/i.test(words);
 }
@@ -371,8 +385,9 @@ export function decide(s, mem = {}) {
   }
   // the plan panel of a heist (M06 'Kies met A of S'): take the first way in
   if (stage === 'plan' && (mem.planTries || 0) < 3) { mem.planTries = (mem.planTries || 0) + 1; return { type: 'press', key: 'a', why: 'plan' }; }
-  // a hold stage (stand still in the ring): stop walking once inside
-  if (stage === 'hold' && t.distance <= 3.5) return { type: 'wait', why: 'vasthouden' };
+  // a hold stage (stand still in the ring): stop walking once inside (the ring is 9 m wide: closer than 5.5 m counts, M26: after a firework hit the bot
+  // kept walking to 3.5 m, and the wedge sidesteps took it out of the ring again, 135 s for a 30 s stage)
+  if (stage === 'hold' && t.distance <= 5.5) return { type: 'wait', why: 'vasthouden' };
   // at the shop the story sent us to: a shop opens for someone on foot, so get off the bike or out of the car at the door
   if (veh && !veh.plane && t.source === 'winkel' && t.distance < 25 && Math.abs(veh.speed || 0) < 3 && (mem.vehTries || 0) < 6) { mem.vehTries = (mem.vehTries || 0) + 1; return { type: 'press', key: 'e', why: 'uitstappen' }; }
   if (veh && veh.plane) return { type: 'fly' };

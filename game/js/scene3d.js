@@ -24,8 +24,8 @@ import { seatedOf } from './occupants.js';
 import { vehicleSeat, placeSeated, makeSeatTracker, trackSeat, drawTransition, syncBoatCrew } from './seating3d.js';
 import { updateCarInterior } from './carinterior.js';
 import { updateSwimmers3D } from './swimmers3d.js';
-import { neutralPose, blendPose, applyPose } from './actoranim.js';
-import { sprongStand, zwemStand, klimStand } from './bewegingrules.js';
+import { neutralPose, applyPose } from './actoranim.js';
+import { sprongStand, zwemStand, klimStand, fietsHouding } from './bewegingrules.js';
 import { driveRagdoll, syncBikeRider } from './ragdoll.js';
 import { applyWeatherToScene3D } from './weather.js';
 import { quakeJitter } from './eventrules.js';
@@ -245,10 +245,12 @@ const kissMeshes = new Map();
 // glossy gradient, white rim), so it reads as a heart from every angle.
 let kissHeartTex = null;
 // Over een hek of hindernis: de sprongstand uit bewegingrules.js (#207) op de botten van de speler.
+// Eén pose die elk beeld wordt hergebruikt: de standen schrijven er direct in (geen nieuwe objecten per beeld).
+const bewegPose = neutralPose();
+const rijderHouding = { lean: 0, armZ: 0, armX: 0 };
 function vaultPose(mesh, u, climb, t) {
-  const p = neutralPose();
-  blendPose(p, climb ? klimStand(t) : sprongStand(u), 1);
-  applyPose(mesh.userData, p);
+  if (climb) klimStand(t, bewegPose); else sprongStand(u, bewegPose);
+  applyPose(mesh.userData, bewegPose);
 }
 
 function kissHeartTexture() {
@@ -863,8 +865,11 @@ function syncPlayerRider(pv, pvMesh, hide) {
     playerRider.position.set(fat ? -0.26 : -0.3, (fat ? 0.93 : 1.02) - 0.93 * playerRider.scale.y, 0);
     playerRider.rotation.set(0, 0, -0.08);
     const arm = fat ? 0.95 : 0.85;
-    ud.armL.rotation.set(0, 0, arm);
-    ud.armR.rotation.set(0, 0, arm);
+    // fietstrucs (#207): achterover bij een wheelie, voorover bij een stoppie, de armen omhoog zonder handen
+    const trick = !pv.model.fat && pv.wheelieState ? fietsHouding(pv.wheelieState, arm, rijderHouding) : null;
+    if (trick) playerRider.rotation.z += trick.lean;
+    ud.armL.rotation.set(trick ? -trick.armX : 0, 0, trick ? trick.armZ : arm);
+    ud.armR.rotation.set(trick ? trick.armX : 0, 0, trick ? trick.armZ : arm);
     // touching the thighs re-runs the pedal IK (models3d_people pedalIK)
     ud.legL.rotation.z = fat ? 0.55 : 0.33;
     ud.legR.rotation.z = fat ? 0.55 : 0.33;
@@ -2764,10 +2769,11 @@ export function update3D(dt, world) {
       animatePersonWalk(playerMesh, Math.hypot(player.vx, player.vy), animDt);
       if (player.vault && Number.isFinite(player.vaultU)) vaultPose(playerMesh, player.vaultU, !!player.vault.climb, world.time);
       else if (player.swimming && !player.inVehicle) {
-        // zwemmen (#207): schoolslag bij beweging, rustig watertrappelen als je stilligt
-        const p = neutralPose();
-        blendPose(p, zwemStand(world.time * (Math.hypot(player.vx, player.vy) > 0.3 ? 1 : 0.4)), 1);
-        applyPose(playerMesh.userData, p);
+        // zwemmen (#207): schoolslag bij beweging, rustig watertrappelen als je stilligt; uit het water
+        // klimmen (water 'climb') is hand over hand omhoog, ruim één slag in de klimtijd
+        if (player.water === 'climb' && player.climb) klimStand(player.climb.t * 3.5, bewegPose);
+        else zwemStand(world.time * (Math.hypot(player.vx, player.vy) > 0.3 ? 1 : 0.4), bewegPose);
+        applyPose(playerMesh.userData, bewegPose);
       }
       if (player.sofaSeat != null) { seatPose(playerMesh); playerMesh.position.y = seatedY(playerMesh, (player.gz || 0) + player.sofaSeat); }
       if (player.carrying) carryOverlay(playerMesh);

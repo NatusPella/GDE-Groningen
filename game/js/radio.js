@@ -134,7 +134,7 @@ function clip([key, text]) {
 
 function news() {
   const texts = [
-    ...SMS_SAY.peerd.lines, ...SMS_SAY.bike.lines,
+    ...SMS_SAY.bike.lines,
     ...['job_bezorger', 'job_bus', 'job_taxi', 'job_fietsdepot', 'job_rondvaart', 'job_verhuizing'].map((k) => SMS_SAY[k].lines[0]),
     PLANTSOEN_NEWS, ...Object.values(EVENT_DAYS).map((e) => e.announce), KERMIS_NEWS,
   ].filter(Boolean);

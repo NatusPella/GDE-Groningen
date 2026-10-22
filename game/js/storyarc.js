@@ -51,11 +51,19 @@ export function stepDone(k, doneId, missionPassed) {
   return false;
 }
 
-// The next step to play, or { end: part } where the built story stops.
-export function nextStoryStep(doneId, missionPassed) {
+// The part that follows the finale (Deel 4): it carries `after`, the part whose end card has to play first.
+export const FINALE_PART = 'ontzet';
+// Is step s the first of a part that follows a finale (storyarc_nieuw.js PARTS.*.after)?
+const isContinuation = (s, lastPart) => s.part !== lastPart && !!PARTS[s.part] && !!PARTS[s.part].after;
+
+// The next step to play, or { end: part } where the built story stops. A continuation (Deel 4) waits for the
+// end card of the part it follows: cardSeen(part) tells whether that card has played; without it (a save
+// summary, the calendar of an old save) the continuation counts as open.
+export function nextStoryStep(doneId, missionPassed, cardSeen) {
   let lastPart = 'kop';
   for (let k = 0; k < STEPS.length; k++) {
     const s = STEPS[k];
+    if (cardSeen && isContinuation(s, lastPart) && !cardSeen(PARTS[s.part].after) && !stepDone(k, doneId, missionPassed)) return { end: PARTS[s.part].after, next: null, finale: true };
     // a step that is not built blocks the story, unless the save has it done (a dev jump, or the acts built side by side)
     if (!stepAvailable(s) && !stepDone(k, doneId, missionPassed)) return { end: lastPart, next: s };
     lastPart = s.part;

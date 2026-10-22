@@ -213,8 +213,8 @@ const ZWAAR = [
   ['hedge_audit', 'scripts/world/hedge_audit.mjs', ['--r=150', '--spots=Prinsentuin,Martinikerkhof,Noorderplantsoen,Vismarkt'], 600, true],
   ['hedge_audit_stad', 'scripts/world/hedge_audit.mjs', ['--stad'], 900, true],
   ['tegel_afstand_audit', 'scripts/world/tegel_afstand_audit.mjs', [], 900, true],
-  // (234 van 1.429 watergaten liggen over gebouwen, #362: het plafond zakt mee naar 0 zodra het vaarnet opnieuw is gemaakt)
-  ['gaten_gebouwen_audit', 'scripts/world/gaten_gebouwen_audit.mjs', ['--max=240'], 900, true],
+  // (geen watergat van het vaarnet over een gebouw, #362)
+  ['gaten_gebouwen_audit', 'scripts/world/gaten_gebouwen_audit.mjs', ['--max=0'], 900, true],
   ['bridge_province_test', 'scripts/bridge_province_test.mjs', [], 900, true],
 ];
 

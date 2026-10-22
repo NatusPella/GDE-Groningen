@@ -6,7 +6,9 @@
 // - de wheelie op een gewone fiets: Ctrl vasthouden, trappen, tussen 2,5 m/s en
 //   driekwart van de topsnelheid. Na een paar seconden zakt het voorwiel zachtjes
 //   terug (balans kwijt) en de fietser trapt rustig door: niemand valt, niemand raakt gewond.
-// - de standen voor de acteur (actoranim.js): zwemmen, klimmen en over iets heen springen.
+// - zonder handen rijden boven driekwart van de topsnelheid (HANDS), en de houding van de fietser bij
+//   wheelie, stoppie en zonder handen (fietsHouding).
+// - de standen voor de acteur (actoranim.js en de speler in scene3d.js): zwemmen, klimmen en over iets heen springen.
 
 export const WHEELIE = { minSpeed: 2.5, topShare: 0.75, pitch: 0.5, holdMax: 2.6, rise: 3.2, fall: 4.5, drag: 0.35 };
 
@@ -18,8 +20,13 @@ export const HOP = { minSpeed: 2.5, tap: 0.22, vz: 3.1, cooldown: 0.6 };
 // De stoppie op de gewone fiets: Ctrl vasthouden en remmen; het achterwiel komt een beetje omhoog.
 const STOPPIE = { minSpeed: 3.5, pitch: -0.32, holdMax: 2.2 };
 
+// Zonder handen (handsfree): Ctrl vast en trappen boven driekwart van de topsnelheid, waar een wheelie niet meer kan,
+// rechtdoor (stuur minder dan `steer`): de handen gaan van het stuur de lucht in. Zodra je bocht neemt, rem pakt of
+// Ctrl loslaat, pakt de fietser het stuur weer. Alleen de houding verandert; de fiets rijdt hetzelfde.
+export const HANDS = { steer: 0.3, rise: 5, fall: 8 };
+
 export function createWheelie() {
-  return { nose: false, nosed: 0, pitch: 0, held: 0, up: false, dist: 0, best: 0, lost: false, brakeT: 0, hop: false, hopCool: 0, hops: 0 };
+  return { nose: false, nosed: 0, pitch: 0, held: 0, up: false, dist: 0, best: 0, lost: false, brakeT: 0, hop: false, hopCool: 0, hops: 0, hands: 0, handsT: 0, handsBest: 0 };
 }
 
 // Eén stap. i: { trick, throttle, speed, top, dt }. Geeft de bijgewerkte staat terug (dezelfde
@@ -57,6 +64,11 @@ export function stepWheelie(s, i) {
   if (s.up) s.dist += speed * dt;
   else if (was) { s.best = Math.max(s.best, s.dist); s.dist = 0; }
   s.slow = s.up ? Math.pow(1 - WHEELIE.drag * 0.1, dt * 10) : 1;
+  // zonder handen: boven de wheelie-snelheid, rechtdoor, op de grond; s.hands loopt zacht van 0 naar 1
+  const steer = Math.abs(Number.isFinite(i.steer) ? i.steer : 0);
+  const free = !!i.trick && i.throttle > 0 && speed > top * WHEELIE.topShare && steer < HANDS.steer && !(i.brake > 0.1) && !i.airborne;
+  s.hands = Math.max(0, Math.min(1, s.hands + (free ? 1 : -1) * dt * (free ? HANDS.rise : HANDS.fall)));
+  if (s.hands > 0.5) { s.handsT += dt; s.handsBest = Math.max(s.handsBest, s.handsT); } else s.handsT = 0;
   return s;
 }
 
@@ -66,35 +78,50 @@ export const wheelieMeters = (s) => Math.round(Math.max(s.dist, s.best));
 // --- standen voor de acteur ------------------------------------------------------------
 // Elke functie geeft de hoeken (radialen) van de ledematen op tijdstip t, zoals
 // actoranim.js ze in applyPose gebruikt: { legL, legR: { z, k }, armL, armR: { z, e }, chest: { z } }.
+// Met een eigen `o` (newStand()) schrijven ze daarin en maken ze niets nieuws: de speler gebruikt
+// dat elk beeld. Zonder `o` krijg je een vers object (cutscenes, tests).
 const sin = Math.sin;
+const clamp01 = (x) => (x > 1 ? 1 : x > 0 ? x : 0);
+export const newStand = () => ({ armL: { z: 0, e: 0 }, armR: { z: 0, e: 0 }, legL: { z: 0, k: 0 }, legR: { z: 0, k: 0 }, chest: { z: 0 } });
+const fill = (o, aLz, aLe, aRz, aRe, lLz, lLk, lRz, lRk, cz) => {
+  o.armL.z = aLz; o.armL.e = aLe; o.armR.z = aRz; o.armR.e = aRe;
+  o.legL.z = lLz; o.legL.k = lLk; o.legR.z = lRz; o.legR.k = lRk;
+  o.chest.z = cz;
+  return o;
+};
 
 // Zwemmen (schoolslag-achtig): armen om de beurt naar voren, benen trappelen, romp plat.
-export function zwemStand(t) {
-  const a = sin(t * 4.2), b = sin(t * 4.2 + Math.PI);
-  return {
-    armL: { z: 1.9 + a * 0.5, e: 0.3 + Math.max(0, a) * 0.5 }, armR: { z: 1.9 + b * 0.5, e: 0.3 + Math.max(0, b) * 0.5 },
-    legL: { z: -0.15 + a * 0.35, k: 0.35 + Math.max(0, -a) * 0.4 }, legR: { z: -0.15 + b * 0.35, k: 0.35 + Math.max(0, -b) * 0.4 },
-    chest: { z: -0.2 },
-  };
+export function zwemStand(t, o = newStand()) {
+  const a = sin(t * 4.2), b = -a;
+  return fill(o, 1.9 + a * 0.5, 0.3 + Math.max(0, a) * 0.5, 1.9 + b * 0.5, 0.3 + Math.max(0, b) * 0.5,
+    -0.15 + a * 0.35, 0.35 + Math.max(0, -a) * 0.4, -0.15 + b * 0.35, 0.35 + Math.max(0, -b) * 0.4, -0.2);
 }
 
 // Klimmen: hand over hand, de knieën om de beurt omhoog.
-export function klimStand(t) {
-  const a = sin(t * 3), b = sin(t * 3 + Math.PI);
-  return {
-    armL: { z: 2.5 + a * 0.4, e: 0.7 }, armR: { z: 2.5 + b * 0.4, e: 0.7 },
-    legL: { z: 0.5 + Math.max(0, a) * 0.7, k: 0.9 + Math.max(0, a) * 0.4 }, legR: { z: 0.5 + Math.max(0, b) * 0.7, k: 0.9 + Math.max(0, b) * 0.4 },
-    chest: { z: 0.1 },
-  };
+export function klimStand(t, o = newStand()) {
+  const a = sin(t * 3), b = -a;
+  return fill(o, 2.5 + a * 0.4, 0.7, 2.5 + b * 0.4, 0.7,
+    0.5 + Math.max(0, a) * 0.7, 0.9 + Math.max(0, a) * 0.4, 0.5 + Math.max(0, b) * 0.7, 0.9 + Math.max(0, b) * 0.4, 0.1);
 }
 
 // Over een hek: p loopt van 0 (afzet) tot 1 (landing). Benen opgetrokken in het midden, armen vooruit.
-export function sprongStand(p) {
+export function sprongStand(p, o = newStand()) {
   const q = Math.max(0, Math.min(1, Number.isFinite(p) ? p : 0));
   const up = sin(q * Math.PI);
-  return {
-    armL: { z: 0.4 + up * 1.3, e: 0.3 }, armR: { z: 0.4 + up * 1.3, e: 0.3 },
-    legL: { z: 0.2 + up * 1.5, k: up * 1.6 }, legR: { z: 0.1 + up * 1.1, k: up * 1.2 },
-    chest: { z: up * 0.25 },
-  };
+  return fill(o, 0.4 + up * 1.3, 0.3, 0.4 + up * 1.3, 0.3, 0.2 + up * 1.5, up * 1.6, 0.1 + up * 1.1, up * 1.2, up * 0.25);
+}
+
+// De houding van de fietser bij een truc, uit de staat van stepWheelie. `armBase` is de armhoek aan het stuur.
+// Geeft in `o` terug: lean (erbij op de romphoek, positief = achterover), armZ (armen naar voren/omhoog)
+// en armX (armen opzij, alleen links negatief en rechts positief toepassen).
+//  - wheelie: achterover, armen gestrekt naar het opgetrokken stuur
+//  - stoppie: voorover boven het stuur
+//  - zonder handen: rechtop, beide armen de lucht in en een beetje open
+export function fietsHouding(s, armBase, o = { lean: 0, armZ: 0, armX: 0 }) {
+  const w = clamp01(s.pitch / WHEELIE.pitch), n = clamp01(-s.pitch / -STOPPIE.pitch), h = clamp01(s.hands || 0);
+  o.lean = w * 0.3 - n * 0.22 + h * 0.1;
+  const bars = armBase + (1.2 - armBase) * w + 0.1 * n;
+  o.armZ = bars + (2.75 - bars) * h;
+  o.armX = 0.5 * h;
+  return o;
 }

@@ -12,7 +12,7 @@ import { Vehicle, makeTwoWheeler } from './vehicle.js';
 import { isInWater } from './util.js';
 import {
   NICKNAMES, NICKNAME_BARKS, BIJNA_THUIS, KROLBRUG_FAULTS, KROLBRUG_SIGNS, RING_ZUID_GPS, KON_MINDER,
-  COW_FEED, EVENT_DAYS, PLANTSOEN_BARKS, PLANTSOEN_NEWS, PEERD_NEWS, PEERD_BARKS, BIKE_RESURFACE,
+  COW_FEED, EVENT_DAYS, PLANTSOEN_BARKS, PLANTSOEN_NEWS, PEERD_BARKS, BIKE_RESURFACE,
   NACHTSTREEK, NACHTSTREEK_STORY, SUPPORTER_CHANTS,
 } from './flavourlines.js';
 import { KEYS } from './storagekeys.js';
@@ -182,7 +182,6 @@ function clockEdges() {
 function newDay() {
   F.day++;
   F.sunny = Math.random() < 0.6;
-  F.peerdNews = !!F.peerd;
 }
 
 function newNight() {
@@ -460,11 +459,7 @@ function placePeerd() {
 
 function peerd(p) {
   if (!F.peerd) return;
-  if (F.peerdNews) {
-    F.peerdNews = false;
-    const i = Math.floor(Math.random() * PEERD_NEWS.length);
-    notify('Kiekdoar', PEERD_NEWS[i].replace('{w}', placeName(F.peerd.x, F.peerd.y)), { say: SMS_SAY.peerd.lines[i] });
-  }
+  // no news messages about the statue any more (the owner found them noise); only the barks nearby
   if (d2(p, F.peerd) < 35 && ready('peerd') && Math.random() < 0.2 && bark(F.peerd, PEERD_BARKS, 30)) hold('peerd', 80);
 }
 
@@ -579,7 +574,7 @@ const debugApi = {
   event(k = 'bloemetjesmarkt') { F.debugEvent = !!k; if (k) startEvent(k, 0); else endEvent(); return F.event; },
   end() { endEvent(); },
   krol() { F.krolInside = false; cd.krol = 0; krolbrug({ x: KROLBRUG.x, y: KROLBRUG.y }); return F.krolText; },
-  peerd() { F.night++; placePeerd(); F.peerdNews = true; return F.peerd; },
+  peerd() { F.night++; placePeerd(); return F.peerd; },
   sun(on = true) { F.sunny = on; F.plantsoenSet = false; },
   cows(kind = 'wreck') { cd.cows = 0; F.cowPrev = null; const [cow, line] = pick(COW_FEED[kind]); notify('Kiekdoar · De Koeien', `${cow}: “${line}”`, { voiced: true }); return speak('Koe ' + cow, line); },
   gps() { cd.gps = 0; const l = pick(RING_ZUID_GPS); world.addMessage(`Navigatie: “${l}”`, 4); return speak('Navigatie', l); },

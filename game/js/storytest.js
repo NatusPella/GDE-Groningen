@@ -19,7 +19,7 @@ import { heistWatchers, PLAN_BOUNDS } from './heist.js';
 import { isInWater } from './util.js';
 import { deliverOwnedVehicle } from './ownedvehicles.js';
 import { skipStoryContact } from './storycontact.js';
-import { STEPS, STEP_BY_ID, PARTS, stepAvailable, computeMoneyTimeline, missionIndexOf } from './storyarc.js';
+import { STEPS, STEP_BY_ID, PARTS, stepAvailable, computeMoneyTimeline, missionIndexOf, FINALE_PART } from './storyarc.js';
 import { getMissionDefs, isMissionActive } from './missions.js';
 import { applySave, saveGame, loadLatestSave } from './savegame.js';
 import { isVillageMiniActive } from './dorpsuitjes.js';
@@ -543,7 +543,17 @@ export async function runStoryTest(world) {
         await drain(world);
         const cur = S().current();
         if (!cur) { check('current step', false, 'geen stap'); break; }
-        if (cur.end) break;
+        if (cur.end) {
+          // the finale card of act 5 is not the end of the arc while Deel 4 follows it: let the card play, then go on with M27
+          if (cur.end === lastPart) break;
+          await waitFor(() => S().cardShown(cur.end), 25000);
+          check(`the end card of ${cur.end} is shown before the next part starts`, S().cardShown(cur.end));
+          await drain(world);
+          const resumed = await waitFor(() => { const c = S().current(); return !!c && !c.end; }, 10000);
+          check(`after the end card of ${cur.end} the story goes on`, resumed, JSON.stringify(S().current()));
+          if (!resumed) break;
+          continue;
+        }
         const step = STEP_BY_ID.get(cur.id);
         if (NEW && cur.id === 'M06') { world.clock = 23.9; refreshDayNight(world); }
         const entry = { id: cur.id, kind: cur.kind, title: cur.title, moneyBefore: Math.round(world.money), ok: false, notes: [] };
@@ -817,13 +827,13 @@ export async function runStoryTest(world) {
       check('all available steps passed', report.steps.length === STEPS.filter(stepAvailable).length - firstLooped, `${report.steps.length} stappen`);
       check('Tammo and Tessa take turns', NEW || swaps >= 4, `${swaps} wissels`);
       const calEnd = window.__calendar && window.__calendar.get();
-      check('after the story the calendar is in September', calEnd && (!PARTS[lastPart].finale || calEnd.day >= 19), calEnd && calEnd.info.long);
+      check('after the story the calendar is in September', calEnd && (!PARTS[FINALE_PART].finale || calEnd.day >= 19), calEnd && calEnd.info.long);
       check('no cutscene camera off the map', !cinematicPoseIssues().length, JSON.stringify(cinematicPoseIssues().slice(0, 4)));
       check('Rotor Roelf took his demo heli back', !window.__storyFun || !window.__storyFun.state().demo, JSON.stringify(window.__storyFun && window.__storyFun.state()));
 
       // after the ending (postgame.js): Jelle's challenges and the Fjord Frituur
       const pg = window.__postgame;
-      if (PARTS[lastPart] && PARTS[lastPart].finale) {
+      if (PARTS[FINALE_PART] && PARTS[FINALE_PART].finale) {
         check('post-game opens after the ending', await waitFor(() => pg && pg.open() && pg.spots().length >= 4, 8000), JSON.stringify(pg && pg.spots().map((q) => q.id)));
         for (const id of ['bruggen', 'fierljep', 'skutsje', 'fjord', 'koe']) {
           const p = world.player;

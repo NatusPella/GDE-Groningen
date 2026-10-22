@@ -8,8 +8,13 @@
 //   flush   < 2 mm   fights at any distance
 //   close   2-12 mm  can fight inside the 140 m detail radius (24-bit depth, near 0.5)
 //   near    12 mm-tol only at long range / grazing angles
+// A pair whose materials differ in polygonOffsetUnits, with the more negative one in front, is "layered" (settled at any
+// distance, not counted); with the more negative one behind it is "bleed" (the offset pulls it through at range).
 //   node scripts/zfight_audit.mjs [--all] [--r=450] [--area=x0,y0,x1,y1]
 //        [--tol=0.02] [--top=20] [--json] [--module=generic]
+// --vehicles audits the vehicle meshes instead of the city (#382): every traffic model plus the
+// bus with its destination boards, police, ambulance and the other specials, each as a module
+// 'vehicle:<name>' (no map, no building data needed). --list prints every spot.
 // Needs the vendored three.js once: cd desktop && npm run stage
 import './node3d.mjs';
 import fs from 'node:fs';
@@ -22,6 +27,8 @@ const TOP = +opt('top', 20);
 const RADIUS = has('all') ? Infinity : +opt('r', 450);
 const AREA = opt('area', '') ? opt('area').split(',').map(Number) : null;
 const ONLY = opt('module', '');
+const VEH = has('vehicles');
+let DEBUG = +opt('debug', 0); // print the first N visible pairs with their normals, for hunting a pattern
 const MIN_AREA = 0.0004;
 const T0 = Date.now();
 const log = (...a) => { if (!has('json')) console.error(`[${((Date.now() - T0) / 1000).toFixed(1)}s]`, ...a); };
@@ -62,12 +69,15 @@ GeoBuilder.prototype.build = function () {
   return geo;
 };
 
-const { loadCityData } = await import('./lib/loadworld.mjs');
-const data = await loadCityData();
-const map = new GameMap(data);
-MB.setBuildingMap(map);
-try { (await import('../game/js/home.js')).prepareHomeMap(map); } catch (e) { log('prepareHomeMap skipped:', e.message); }
-log('map loaded,', map.buildings.length, 'buildings');
+let map = null;
+if (!VEH) {
+  const { loadCityData } = await import('./lib/loadworld.mjs');
+  const data = await loadCityData();
+  map = new GameMap(data);
+  MB.setBuildingMap(map);
+  try { (await import('../game/js/home.js')).prepareHomeMap(map); } catch (e) { log('prepareHomeMap skipped:', e.message); }
+  log('map loaded,', map.buildings.length, 'buildings');
+}
 
 const CENTRE = { x: 100.63, y: 76.18 };
 function moduleOf(b) {
@@ -93,11 +103,11 @@ function wanted(b, mod) {
 // flat arrays: 9 coords, normal, plane offset, look id, owner id, flags
 let cap = 1 << 20, N = 0;
 let P = new Float64Array(cap * 9), NRM = new Float32Array(cap * 3), D = new Float64Array(cap);
-let LOOK = new Int32Array(cap), SITE = new Int32Array(cap), OWNER = new Int32Array(cap), DBL = new Uint8Array(cap);
+let LOOK = new Int32Array(cap), SITE = new Int32Array(cap), OWNER = new Int32Array(cap), DBL = new Uint8Array(cap), POFF = new Int8Array(cap);
 function grow() {
   cap *= 2;
   const g = (A, k) => { const B = new A.constructor(cap * k); B.set(A); return B; };
-  P = g(P, 9); NRM = g(NRM, 3); D = g(D, 1); LOOK = g(LOOK, 1); SITE = g(SITE, 1); OWNER = g(OWNER, 1); DBL = g(DBL, 1);
+  P = g(P, 9); NRM = g(NRM, 3); D = g(D, 1); LOOK = g(LOOK, 1); SITE = g(SITE, 1); OWNER = g(OWNER, 1); DBL = g(DBL, 1); POFF = g(POFF, 1);
 }
 const looks = new Map(), lookNames = [];
 function lookId(key, name) {
@@ -127,6 +137,8 @@ function addObject(rootObj, owner) {
       const m = Array.isArray(o.material) ? o.material[gr.materialIndex] : o.material;
       if (!m || m.visible === false || m.colorWrite === false) continue;
       const dbl = m.side === THREE.DoubleSide ? 1 : 0;
+      // polygonOffsetUnits of the material (negative: drawn nearer the camera by that many depth steps, at any distance)
+      const poff = m.polygonOffset ? Math.max(-100, Math.min(100, Math.round(m.polygonOffsetUnits || 0))) : 0;
       const mid = matId(m);
       const end = Math.min(gr.start + gr.count, idx ? idx.count : pos.count);
       for (let k = gr.start; k + 2 < end; k += 3) {
@@ -143,7 +155,8 @@ function addObject(rootObj, owner) {
         let key = 'm' + mid, name = (m.name || m.type.replace('Mesh', '').replace('Material', '')) + mid;
         if (m.vertexColors && col) {
           const c = [col.getX(ia), col.getY(ia), col.getZ(ia)].map((x) => Math.round(x * 255));
-          key += ':' + c.join(',');
+          // colours within a few levels of each other look the same: not a visible fight
+          key += ':' + c.map((x) => Math.round(x / 6)).join(',');
           name += ' #' + c.map((x) => x.toString(16).padStart(2, '0')).join('');
         } else if (m.color) name += ' #' + m.color.getHexString();
         // textured: same material with different texture coordinates is a different look
@@ -160,6 +173,7 @@ function addObject(rootObj, owner) {
         OWNER[N] = owner;
         SITE[N] = sites && sites.length * 3 === (idx ? idx.count : pos.count) ? sites[ia / 3 | 0] : meshSite;
         DBL[N] = dbl;
+        POFF[N] = poff;
         N++;
       }
     }
@@ -167,9 +181,63 @@ function addObject(rootObj, owner) {
 }
 
 // ------------------------------------------------------------ build
+async function addVehicles() {
+  const { buildVehicleMesh, setHorseMeshBuilder } = await import('../game/js/models3d_vehicles.js');
+  const { buildHorseMesh } = await import('../game/js/countryside.js');
+  setHorseMeshBuilder(buildHorseMesh);
+  const { Vehicle, TRAFFIC_MODELS } = await import('../game/js/vehicle.js');
+  const { attachBusBoards } = await import('../game/js/busboard3d.js');
+  const seen = new Set();
+  const cases = [];
+  for (const m of TRAFFIC_MODELS()) {
+    if (seen.has(m.name)) continue;
+    seen.add(m.name);
+    cases.push([m.name, m, {}]);
+  }
+  const extra = (name, base, flags) => { const m = TRAFFIC_MODELS().find((x) => x.name === base); if (m) cases.push([name, m, flags]); };
+  // models the traffic table does not hold (the same list scripts/seat_audit.mjs seats people in)
+  for (const [n, len, wid, flags = {}] of [['cashvan', 5.2, 2.0], ['foodtruck', 5.4, 2.1], ['truck', 8.5, 2.5], ['truck', 8.5, 2.5, { model: { tank: true } }], ['trekkerlimo', 5.6, 2.0], ['tractor', 4.3, 2.3], ['quad', 2.1, 1.2], ['taxi', 4.6, 1.8], ['escort', 4.0, 1.65, { isHeroCar: true }], ['midibus', 8.4, 2.3]]) {
+    cases.push([n + (flags.model && flags.model.tank ? '-tank' : ''), { name: n, len, wid, color: '#888888' }, flags]);
+  }
+  extra('police', 'sedan', { isPolice: true });
+  extra('ambulance', 'van', { isAmbulance: true });
+  extra('bus-gelede', 'bus', { model: { trailer: 6.8 } });
+  // the destination boards (busboard3d.js attachBusBoards) on every bus the game builds
+  for (const c of cases.slice()) if (/bus/.test(c[0])) cases.push([c[0] + '+borden', c[1], { ...c[2], borden: true }]);
+  let col = 0;
+  for (const [name, model0, flags] of cases) {
+    const model = { ...model0, ...(flags.model || {}) };
+    const v = new Vehicle(0, 0, 0, model);
+    Object.assign(v, flags, { model });
+    delete v.borden;
+    v.isBike = model.name === 'bike';
+    v.isScooter = model.name === 'scooter';
+    let grp;
+    try { grp = buildVehicleMesh(v); } catch (e) { log('build failed', name, e.message); continue; }
+    if (flags.borden) {
+      const tex = new THREE.Texture(document.createElement('canvas'));
+      if (attachBusBoards) attachBusBoards(grp, model, tex);
+      else {
+        // busboard3d.js from before #382 (an older commit, for the "voor" count): the boards inline, 0.02 m off the hull
+        const hl = model.len / 2, hw = model.wid / 2;
+        for (const [x, z, w, ry] of [[hl + 0.02, 0, Math.min(1.9, model.wid * 0.75), Math.PI / 2], [hl - 1.6, hw + 0.02, 1.5, 0], [hl - 1.6, -hw - 0.02, 1.5, Math.PI]]) {
+          const m = new THREE.Mesh(new THREE.PlaneGeometry(w, w * 20 / 128), new THREE.MeshBasicMaterial({ map: tex }));
+          m.position.set(x, 2.5, z); m.rotation.y = ry; grp.add(m);
+        }
+      }
+    }
+    grp.position.set(col++ * 30, 0, -9000);
+    owners.push({ b: null, mod: 'vehicle:' + name, name });
+    const n0 = N;
+    addObject(grp, owners.length - 1);
+    const s = modStat('vehicle:' + name);
+    s.buildings++;
+    s.tris += N - n0;
+  }
+}
 const perModule = {};
-const modStat = (m) => perModule[m] || (perModule[m] = { buildings: 0, tris: 0, pairs: 0, flush: 0, close: 0, near: 0, area: 0 });
-for (const b of map.buildings) {
+const modStat = (m) => perModule[m] || (perModule[m] = { buildings: 0, tris: 0, pairs: 0, flush: 0, close: 0, near: 0, area: 0, layered: 0, bleed: 0 });
+for (const b of (VEH ? [] : map.buildings)) {
   const mod = moduleOf(b);
   if (!wanted(b, mod)) continue;
   let grp;
@@ -181,7 +249,8 @@ for (const b of map.buildings) {
   s.buildings++;
   s.tris += N - n0;
 }
-if (!ONLY || ONLY === 'canopies') {
+if (VEH) await addVehicles();
+if (!VEH && (!ONLY || ONLY === 'canopies')) {
   try {
     const grp = (await import('../game/js/canopies3d.js')).buildCanopies(map);
     owners.push({ b: null, mod: 'canopies', name: 'canopies' });
@@ -298,7 +367,7 @@ function heightField(k) {
   return h;
 }
 function insideSolid(x, y, z) {
-  if (y < -1) return false;
+  if (y < -1 || !map) return false;
   for (const b of map.buildingsNear(x, z, 0.5)) {
     if (b.hidden || !pointInPolygon(x, z, b.pts)) continue;
     const k = ownerOf.get(b);
@@ -355,7 +424,12 @@ function openShare(t, ov, sign) {
 }
 // visible share: some side that both triangles show is open
 function pairVisible(i, j, dot, ov) {
-  if (DBL[i] && DBL[j]) return Math.max(openShare(i, ov, 1), openShare(i, ov, -1));
+  if (DBL[i] && DBL[j]) {
+    const up = openShare(i, ov, 1), down = openShare(i, ov, -1);
+    // back to back (a wall top under a slab, a box against a box): both sides have to be open, else one side is
+    // inside a solid and nothing of the pair can be seen from there
+    return dot < 0 ? Math.min(up, down) : Math.max(up, down);
+  }
   if (dot > 0) return openShare(i, ov, 1);
   // opposite facing: i's front with j's back (j double-sided), or j's front with i's back
   return Math.max(DBL[j] ? openShare(i, ov, 1) : 0, DBL[i] ? openShare(j, ov, 1) : 0);
@@ -398,23 +472,37 @@ for (const [, list] of grid) {
       hiddenArea += ov.a * (1 - vis);
       ov.a *= vis;
       const sep = Math.max(Math.abs(sMin), Math.abs(sMax));
+      if (DEBUG > 0 && ov.a > +opt('debugarea', 0) && DEBUG-- > 0) console.error('pair', 'n', [0, 1, 2].map((k) => NRM[i * 3 + k].toFixed(2)).join(','), [0, 1, 2].map((k) => NRM[j * 3 + k].toFixed(2)).join(','), 'dbl', DBL[i], DBL[j], 'sep', sep.toFixed(4), 'area', ov.a.toFixed(2), 'vis', vis, 'at', ov.x.toFixed(2), ov.y.toFixed(2), ov.z.toFixed(2));
       const oi = owners[OWNER[i]], oj = owners[OWNER[j]];
       const mod = OWNER[i] === OWNER[j] ? oi.mod : [oi.mod, oj.mod].sort().join('+');
       const s = modStat(mod);
+      // a polygonOffset difference settles the pair at every distance when the material with the larger (more negative)
+      // offset is also the nearer plane: "layered", not counted as a fight. When it is the plane behind, the offset
+      // pulls it through the other one at range: "bleed", counted as a fight and reported apart.
+      const du = POFF[j] - POFF[i];
+      let bleedPair = false;
+      if (du !== 0 && dot > 0) {
+        const mid = (sMin + sMax) / 2, winnerJ = du < 0;
+        if (winnerJ ? mid >= -0.0005 : mid <= 0.0005) { s.layered += ov.a; continue; }
+        // the offset is |du| depth steps, 4.3 mm each at the 190 m edge of the detail ring (depth_precision.mjs): a plane
+        // further behind than that stays behind within the ring, so it is an ordinary near/close pair, not a bleed
+        if (sep < Math.abs(du) * 0.0043) { s.bleed += ov.a; bleedPair = true; }
+      }
+      const bnd = bleedPair ? 'bleed' : band(sep); // spots and patterns list the bleed pairs first
       s.pairs++;
       s[band(sep)] += ov.a;
       s.area += ov.a;
       // spots: per owner pair, look pair and band
       const la = Math.min(LOOK[i], LOOK[j]), lb = Math.max(LOOK[i], LOOK[j]);
-      const key = `${Math.min(OWNER[i], OWNER[j])}/${Math.max(OWNER[i], OWNER[j])}/${la}/${lb}/${band(sep)}`;
+      const key = `${Math.min(OWNER[i], OWNER[j])}/${Math.max(OWNER[i], OWNER[j])}/${la}/${lb}/${bnd}`;
       let sp = spots.get(key);
-      if (!sp) spots.set(key, sp = { mod, owners: [...new Set([oi.name, oj.name])].join(' | '), looks: `${lookNames[la]}  vs  ${lookNames[lb]}`, band: band(sep), sep: 0, area: 0, n: 0, x: ov.x, y: ov.y, z: ov.z });
+      if (!sp) spots.set(key, sp = { mod, owners: [...new Set([oi.name, oj.name])].join(' | '), looks: `${lookNames[la]}  vs  ${lookNames[lb]}`, band: bnd, sep: 0, area: 0, n: 0, x: ov.x, y: ov.y, z: ov.z });
       sp.area += ov.a;
       sp.n++;
       const sa = siteNames[SITE[i]], sb = siteNames[SITE[j]];
-      const pk = `${band(sep)}|${sa < sb ? sa + '  vs  ' + sb : sb + '  vs  ' + sa}`;
+      const pk = `${bnd}|${sa < sb ? sa + '  vs  ' + sb : sb + '  vs  ' + sa}`;
       let pt = patterns.get(pk);
-      if (!pt) patterns.set(pk, pt = { band: band(sep), sites: pk.slice(pk.indexOf('|') + 1), area: 0, n: 0, owners: new Set(), at: [Math.round(ov.x), Math.round(ov.z), +ov.y.toFixed(1)] });
+      if (!pt) patterns.set(pk, pt = { band: bnd, sites: pk.slice(pk.indexOf('|') + 1), area: 0, n: 0, owners: new Set(), at: [Math.round(ov.x), Math.round(ov.z), +ov.y.toFixed(1)] });
       pt.area += ov.a;
       pt.n++;
       pt.owners.add(OWNER[i]);
@@ -426,17 +514,17 @@ log('tested', tested, 'coplanar candidates;', hiddenPairs, 'pairs (' + Math.roun
 
 const r3 = (x) => Math.round(x * 1000) / 1000;
 const mods = Object.entries(perModule).sort((a, b) => b[1].area - a[1].area);
-const RANK = { flush: 0, close: 1, near: 2 };
+const RANK = { bleed: -1, flush: 0, close: 1, near: 2 };
 const top = [...spots.values()].sort((a, b) => RANK[a.band] - RANK[b.band] || b.area - a.area).slice(0, TOP);
-const total = mods.reduce((t, [, s]) => ({ pairs: t.pairs + s.pairs, flush: t.flush + s.flush, close: t.close + s.close, near: t.near + s.near }), { pairs: 0, flush: 0, close: 0, near: 0 });
+const total = mods.reduce((t, [, s]) => ({ pairs: t.pairs + s.pairs, flush: t.flush + s.flush, close: t.close + s.close, near: t.near + s.near, layered: t.layered + s.layered, bleed: t.bleed + s.bleed }), { pairs: 0, flush: 0, close: 0, near: 0, layered: 0, bleed: 0 });
 const pats = [...patterns.values()].sort((a, b) => RANK[a.band] - RANK[b.band] || b.area - a.area).slice(0, TOP).map((p) => ({ ...p, owners: p.owners.size }));
 if (has('json')) {
   console.log(JSON.stringify({ tol: TOL, total, modules: Object.fromEntries(mods), top, patterns: pats }, null, 1));
 } else {
   console.log(`z-fight audit (tol ${TOL} m, ${has('all') ? 'whole city' : AREA ? 'area ' + AREA.join(',') : 'generic within ' + RADIUS + ' m of the centre, all special models'})`);
-  console.log('module'.padEnd(34), 'bldgs'.padStart(6), 'tris'.padStart(9), 'pairs'.padStart(7), 'flush m2'.padStart(9), 'close m2'.padStart(9), 'near m2'.padStart(9));
-  for (const [m, s] of mods) console.log(m.padEnd(34), String(s.buildings).padStart(6), String(s.tris).padStart(9), String(s.pairs).padStart(7), s.flush.toFixed(2).padStart(9), s.close.toFixed(2).padStart(9), s.near.toFixed(2).padStart(9));
-  console.log('TOTAL'.padEnd(34), ''.padStart(6), String(N).padStart(9), String(total.pairs).padStart(7), total.flush.toFixed(2).padStart(9), total.close.toFixed(2).padStart(9), total.near.toFixed(2).padStart(9));
+  console.log('module'.padEnd(34), 'bldgs'.padStart(6), 'tris'.padStart(9), 'pairs'.padStart(7), 'flush m2'.padStart(9), 'close m2'.padStart(9), 'near m2'.padStart(9), 'layered'.padStart(9), 'bleed m2'.padStart(9));
+  for (const [m, s] of mods) console.log(m.padEnd(34), String(s.buildings).padStart(6), String(s.tris).padStart(9), String(s.pairs).padStart(7), s.flush.toFixed(2).padStart(9), s.close.toFixed(2).padStart(9), s.near.toFixed(2).padStart(9), s.layered.toFixed(2).padStart(9), s.bleed.toFixed(2).padStart(9));
+  console.log('TOTAL'.padEnd(34), ''.padStart(6), String(N).padStart(9), String(total.pairs).padStart(7), total.flush.toFixed(2).padStart(9), total.close.toFixed(2).padStart(9), total.near.toFixed(2).padStart(9), total.layered.toFixed(2).padStart(9), total.bleed.toFixed(2).padStart(9));
   console.log(`\ntop ${pats.length} patterns (source sites, flush first):`);
   for (const t of pats) console.log(`${t.band.padEnd(5)} ${t.area.toFixed(2).padStart(9)}m2 x${t.n} in ${t.owners} bldgs  e.g. @ ${t.at[0]},${t.at[1]} h${t.at[2]}\n      ${t.sites}`);
   console.log(`\ntop ${top.length} spots (flush first), map x,y and height:`);

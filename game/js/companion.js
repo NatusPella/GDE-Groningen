@@ -88,6 +88,7 @@ export function initCompanion(world) {
     climb: null,
   };
   world.coopMove = moveFigure; // samen spelen (#366): botsingen voor de figuren van extra spelers
+  world.coopVrij = figuurVrij;
   world.onRespawn.push(() => {
     const c = world.companion;
     if (c.inVehicle) { c.inVehicle.passenger = null; c.inVehicle = null; }
@@ -488,6 +489,17 @@ export function moveFigure(f, dt, world) {
     }
     f.x = nx; f.y = ny;
   }
+  // op de ring (elevation.js): blijf op het dek of in de bak waar je staat, achter de wanden, zoals de metgezel (followGround)
+  if (map.elev && map.elev.has) {
+    const hint = f.gz || 0, w = resolveElevWalls(map.elev, f.x, f.y, hint, f.radius);
+    if (w) [f.x, f.y] = w;
+    f.gz = map.groundHeightAt(f.x, f.y, hint);
+  }
+}
+
+// Staat een figuur hier op droog land, buiten gebouwen? (coopnet.js: de terugzetplek en een figuur die vastzit in water of muur)
+export function figuurVrij(x, y, world) {
+  return !!world.map && !blockedAt(world, x, y, 0.05, false); // een punt: wie tegen een muur of de waterkant staat (straal 0,35) zit niet vast
 }
 
 // Rotate the desired velocity off a wall/prop straight ahead, preferring
