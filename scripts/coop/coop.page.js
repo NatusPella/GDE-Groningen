@@ -181,6 +181,10 @@ async function toLobby() {
     log('menu-lobby', { titel: title(), knoppen: buttons() });
     shot('lobby-start');
   } else {
+    // een nieuw spel begint met een opening (een filmpje van minuten, waarin je niet kunt aansluiten: canJoin). Op een drukke computer begint die pas na
+    // enkele seconden, ver na het begin van dit script; wacht dus eerst tot het spel echt loopt en de opening is begonnen (of niet komt) en sla hem dan over
+    for (let i = 0; i < 100 && !document.body.classList.contains('game-started'); i++) await sleep(300);
+    for (let i = 0; i < 50 && !(W().cameraOverride || W().pendingRespawn || (document.getElementById('cine') && document.getElementById('cine').classList.contains('on'))); i++) await sleep(300);
     for (let i = 0; i < 25 && W().paused; i++) { key(' ', 'Space'); await sleep(700); }
     await sleep(1500);
     for (let i = 0; i < 60 && (W().cameraOverride || W().pendingRespawn || document.getElementById('cine') && document.getElementById('cine').classList.contains('on')); i++) { if (i > 6 && i % 4 === 0) { try { window.__story.skip(true); } catch (e) { /* geen verhaal-API */ } } await holdSkip(); await sleep(300); }
