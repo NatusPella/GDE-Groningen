@@ -17,28 +17,39 @@ async function captionTrack(c, mode) {
     st.textContent = `
       #clip-ov .cl-cap.shadow { color: #000; text-shadow: 0 0 0.12em #000, 0 0 0.35em #000, 0 0 0.7em rgba(0,0,0,0.9); }
       #clip-ov .cl-cap.shadow small { color: #000; }
-      #clip-ov .cl-cap.plain { text-shadow: none; }`;
+      #clip-ov .cl-cap.plain { text-shadow: none; }
+      #clip-ov .cl-cap.num { left: auto; right: 6vw; bottom: 9vh; text-align: right; font-size: min(14vh, 150px); }
+      #clip-ov .cl-cap.num.boven { bottom: auto; top: 9vh; }
+      #clip-ov .cl-cap.num.links { right: auto; left: 6vw; text-align: left; }
+      #clip-ov .cl-cap.num .cl-n { color: #3fc97a; }
+      #clip-ov .cl-cap.shadow.num .cl-n { color: #000; }
+      #clip-ov .cl-cap.num small { font-size: 0.24em; letter-spacing: 0.22em; color: #e8f2ec; margin: 0.15em 0 0; }
+      #clip-ov .cl-cap.shadow.num small { color: #000; }`;
     document.head.appendChild(st);
   }
   c.hud(false);
   await c.settle({ label: 'captrack-' + mode, frames: 5 });
   await c.begin('captrack-' + mode);
-  let cur = null;
-  const total = args.total;
-  const n = Math.round(total * 60);
+  const n = Math.round(args.total * 60);
+  const live = new Map(); // index van het item -> element: meerdere bijschriften en cijfers kunnen tegelijk in beeld zijn
+  const activeAt = (t) => args.items.some((it) => t >= it.at - 0.05 && t < it.at + it.dur + 0.05);
+  let idle = false;
   for (let i = 0; i < n; i++) {
     const t = i / 60;
-    const it = args.items.find((x) => t >= x.at && t < x.at + x.dur);
-    if (it !== cur) {
-      if (cur) { const e = r.querySelector('.cl-cap'); if (e) e.remove(); }
-      cur = it || null;
-      if (it) {
+    // zonder bijschrift verandert er niets: het laatste beeld herhalen tot het volgende bijschrift begint
+    if (idle && !activeAt(t)) { let j = i; while (j < n && !activeAt(j / 60)) j++; await c.repeatFrame(j - i); i = j - 1; continue; }
+    idle = !activeAt(t) && i > 2;
+    args.items.forEach((it, k) => {
+      const on = t >= it.at && t < it.at + it.dur;
+      if (!on && live.has(k)) { live.get(k).remove(); live.delete(k); }
+      if (on && !live.has(k)) {
         const el = document.createElement('div');
-        el.className = 'cl-cap plain ' + (it.pos || '') + (mode === 'schaduw' ? ' shadow' : '');
-        el.innerHTML = (it.kicker ? '<small>' + it.kicker + '</small>' : '') + it.text;
+        el.className = 'cl-cap plain ' + (it.num ? 'num ' : '') + (it.pos || '') + (mode === 'schaduw' ? ' shadow' : '');
+        el.innerHTML = it.num ? '<span class="cl-n">' + it.num + '</span><small>' + (it.label || '') + '</small>' : (it.kicker ? '<small>' + it.kicker + '</small>' : '') + it.text;
         r.appendChild(el);
+        live.set(k, el);
       }
-    }
+    });
     await c.advance({ capture: true });
   }
   const out = await c.end();

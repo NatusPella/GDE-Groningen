@@ -8,9 +8,11 @@
 // Bij elke snede (behalve de eerste) komt automatisch het effect cutSfx (een zoef), tenzij een shot "noCutSfx" heeft.
 import fs from 'node:fs';
 import path from 'node:path';
+import { loadCijfers } from './cijfers.mjs';
 
 const args = process.argv.slice(2);
 const list = JSON.parse(fs.readFileSync(args.find((a) => !a.startsWith('--')), 'utf8'));
+const cijf = loadCijfers((args.find((a) => a.startsWith('--cijfers=')) || '').slice(10) || list.cijfers);
 const out = (args.find((a) => a.startsWith('--out=')) || '--out=plan.json').slice(6);
 const beat = 60 / list.bpm;
 const clips = [], caps = [], sfx = [...(list.sfx || []).map(([kind, at, gain]) => ({ kind, at, gain }))];
@@ -20,7 +22,9 @@ list.shots.forEach((s, i) => {
   clips.push({ src: s.clip, in: s.in || 0, dur, speed: s.speed || 1, label: s.label || s.clip });
   if (i > 0 && !s.noCutSfx && list.cutSfx !== false) sfx.push({ kind: s.cutSfx || list.cutSfx || 'swish', at: +(t - 0.05).toFixed(4), gain: s.cutGain ?? list.cutGain ?? -12 });
   for (const [kind, off, gain] of s.sfx || []) sfx.push({ kind, at: +(t + off).toFixed(4), gain });
-  if (s.cap) caps.push({ at: +(t + (s.cap[2] ?? 0.3)).toFixed(3), dur: s.cap[3] ?? 1.7, text: s.cap[0], kicker: s.cap[1] || '', pos: s.cap[4] || '' });
+  for (const n of s.nums || []) { const c = String(n[0]).startsWith('=') ? { tekst: String(n[0]).slice(1), label: '' } : cijf.get(n[0]); caps.push({ at: +(t + (n[1] ?? 0.4)).toFixed(3), dur: n[2] ?? 2.6, num: c.tekst + (n[4] || ''), label: (n[3] || c.label).toUpperCase(), pos: n[5] || '' }); }
+  const sub = (x) => String(x || '').replace(/\{([\w.]+)\}/g, (_, id) => cijf.get(id).tekst);
+  if (s.cap) caps.push({ at: +(t + (s.cap[2] ?? 0.3)).toFixed(3), dur: s.cap[3] ?? 1.7, text: sub(s.cap[0]), kicker: sub(s.cap[1]), pos: s.cap[4] || '' });
   t += dur;
 });
 const plan = {
