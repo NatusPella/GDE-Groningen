@@ -219,7 +219,7 @@ export class Vehicle {
   // Pedal bike (player only): Ctrl held while pedalling lifts the front wheel (bewegingrules.js, #207).
   rideFiets(dt, throttle, top, brake = 0) {
     const w = this.wheelieState || (this.wheelieState = createWheelie());
-    stepWheelie(w, { trick: !!this.trick && !this.disabled, throttle, brake, speed: this.speed, top, dt, airborne: !!this.airborne });
+    stepWheelie(w, { trick: !!this.trick && !this.disabled, throttle, brake, speed: this.speed, top, dt, airborne: !!this.airborne, steer: this.steer });
     if (w.hop && !this.airborne) { this.airborne = true; this.vz = HOP.vz; } // sprongetje (#207)
     this.pitch = w.pitch;
     this.wheelie = w.up;

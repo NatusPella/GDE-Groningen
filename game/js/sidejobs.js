@@ -46,6 +46,8 @@ import { SIDEJOB_PAY_MULT, SIDEJOB_LEVEL_BONUS, SIDEJOB_ACCIDENT_FINE } from './
 import { playerBusy } from './busy.js';
 import { jobBonusHook } from './latehooks.js';
 import { noteMoney } from './finance.js';
+import { loopbaanLoon, loopbaanTel, loopbaanDeel } from './loopbaanlive.js';
+import { vakVanBaan } from './loopbaan.js';
 
 export const SIDE_JOBS = [bezorger, taxi, bus, rondvaart, fietsdepot, verhuizing, rondvaarttour, boa, rechtbank, cabaret, vracht, loket, studiestaat, vigilantia, promotie, kamerkoning, wolkenhal, helix, niemeyer, bernard, lijn, ...BIJBAAN_JOBS, veerdienst, ...PANEEL_JOBS, ...STAD_JOBS];
 const BY_ID = new Map(SIDE_JOBS.map((j) => [j.id, j]));
@@ -270,10 +272,14 @@ function introLines(job) {
 
 // --- rounds -----------------------------------------------------------------
 
-function payFor(c, base) {
+// Het loon voor de ronde voor de loopbaan (#381): wat de bijbaan zelf betaalt, en dat keer de factor van het vak.
+function basisFor(c, base) {
   const lvlMul = SIDEJOB_PAY_MULT * (1 + SIDEJOB_LEVEL_BONUS * (c.level - 1));
   const streakMul = 1 + 0.06 * Math.min(c.streak, 10);
   return Math.max(1, Math.round(base * lvlMul * streakMul * jobBonusHook.get()));
+}
+function payFor(c, base) {
+  return Math.max(1, loopbaanLoon(vakVanBaan(c.job.id), basisFor(c, base)));
 }
 
 function completeRound(c, res = {}) {
@@ -282,9 +288,12 @@ function completeRound(c, res = {}) {
   const pay = payFor(c, base);
   const tip = Math.max(0, Math.round(res.tip || 0));
   const total = pay + tip;
+  const vak = vakVanBaan(c.job.id);
+  const xp = 8 + (res.flawless === false ? 0 : 2);
   noteMoney('Bijbaantjes');
   world.money += total;
-  if (world.coopDeel) world.coopDeel(total); // samen spelen (#365)
+  if (world.coopDeel) world.coopDeel(total, loopbaanDeel(vak, basisFor(c, base) + tip, xp)); // samen spelen (#365): de gast verdient volgens zijn eigen niveau (#381)
+  loopbaanTel(world, vak, { n: 1, xp, uniek: c.job.id });
   c.earned += total;
   c.streak++;
   c.round++;

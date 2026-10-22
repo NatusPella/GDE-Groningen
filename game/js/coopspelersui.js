@@ -27,7 +27,7 @@ const CSS = `
 .cs-net { white-space: nowrap; opacity: 0.9; } .cs-net i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; }
 .cs-naar { grid-column: 2 / -1; justify-self: start; margin: 0 0 4px; padding: 3px 10px; border: 0; border-radius: 4px; background: rgba(240,237,228,0.14); color: inherit; font: inherit; cursor: pointer; }
 .cs-naar:hover, .cs-naar:focus-visible { background: rgba(63,201,122,0.35); outline: none; }
-#coop-spelers { position: fixed; left: 50%; top: 104px; transform: translateX(-50%); z-index: 700; width: min(560px, 62vw); padding: 12px 16px 10px; background: rgba(12,20,14,0.88); color: #f0ede4; border-radius: 8px; box-shadow: 0 0 0 1px rgba(240,237,228,0.14); pointer-events: none; }
+#coop-spelers { position: fixed; left: 50%; top: 104px; transform: translateX(-50%); z-index: 700; width: min(560px, 62vw); max-height: calc(100vh - 124px); overflow: hidden; padding: 12px 16px 10px; background: rgba(12,20,14,0.88); color: #f0ede4; border-radius: 8px; box-shadow: 0 0 0 1px rgba(240,237,228,0.14); pointer-events: none; }
 #coop-spelers h3 { margin: 0 0 4px; font: normal 22px "Bebas Neue", "Arial Narrow", Arial, sans-serif; letter-spacing: 0.06em; }
 #coop-spelers .cs-voet { margin-top: 6px; padding-top: 6px; border-top: 1px solid rgba(240,237,228,0.16); font: 14px "Arial Narrow", Arial, sans-serif; opacity: 0.8; }
 #coop-spelers .cs-voet b { padding: 0 5px; border-radius: 3px; background: rgba(240,237,228,0.18); }

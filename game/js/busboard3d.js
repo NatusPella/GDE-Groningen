@@ -11,6 +11,10 @@ import { nearestLine, project } from './busroutes.js';
 import { boardText, lineDirection, nextStopInfo, stopAnnouncement, roundDist, OPERATOR } from './busboard.js';
 
 const BOARD_R = 140;            // m: alleen bussen in de buurt krijgen een bord
+// m voor het buitenste vlak van de romp. De zijborden hingen op 0,02 m, precies gelijk met het deurblad
+// (hw + 0,02 = 1,295 m): dat was het flikkerende bord (#382). De buitenste deurlijst ligt op 1,301 m.
+const SIDE_OFF = 0.04;
+const FRONT_OFF = 0.07;         // voor de ruit (0,041 m) en de lampenstrook (0,051 m) van de voorkant
 const textures = new Map();
 
 function boardTexture(b) {
@@ -40,7 +44,7 @@ function boardTexture(b) {
 }
 
 function addBoard(group, tex, x, y, z, w, ry) {
-  const m = new THREE.Mesh(new THREE.PlaneGeometry(w, w * 20 / 128), new THREE.MeshBasicMaterial({ map: tex }));
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(w, w * 20 / 128), new THREE.MeshBasicMaterial({ map: tex, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -4 }));
   m.position.set(x, y, z);
   m.rotation.y = ry;
   group.add(m);
@@ -55,17 +59,22 @@ function ensureBoard(v) {
   const b = boardText(run.line, run.dir);
   if (mesh.userData.busBoardKey === b.key) return;
   const tex = boardTexture(b);
-  if (!mesh.userData.busBoards) {
-    const hl = v.model.len / 2, hw = v.model.wid / 2;
-    // voor: op de plek van het gele bestemmingsvlak van het model (2,8 m), vóór het glas (x1 + 0,035);
-    // zijkanten: in het raam achter de voordeur (de deur zit op hl - 1,05 met een kozijn tot hw + 0,02), niet over de deur heen
-    mesh.userData.busBoards = [
-      addBoard(mesh, tex, hl + 0.07, 2.8, 0, Math.min(1.9, v.model.wid * 0.75), Math.PI / 2),
-      addBoard(mesh, tex, hl - 2.75, 2.4, hw + 0.04, 1.5, 0),
-      addBoard(mesh, tex, hl - 2.75, 2.4, -hw - 0.04, 1.5, Math.PI),
-    ];
-  } else for (const m of mesh.userData.busBoards) m.material.map = tex;
+  if (!mesh.userData.busBoards) attachBusBoards(mesh, v.model, tex);
+  else for (const m of mesh.userData.busBoards) m.material.map = tex;
   mesh.userData.busBoardKey = b.key;
+}
+
+// De drie borden aan een busmesh; ook door scripts/zfight_audit.mjs --vehicles gebruikt.
+export function attachBusBoards(mesh, model, tex) {
+  const hl = model.len / 2, hw = model.wid / 2;
+  // voor: op de plek van het gele bestemmingsvlak van het model (2,8 m); zijkanten: in het raam achter de voordeur
+  // (de deur zit op hl - 1,05 en zou het bord half bedekken), niet over de deur heen
+  mesh.userData.busBoards = [
+    addBoard(mesh, tex, hl + FRONT_OFF, 2.8, 0, Math.min(1.9, model.wid * 0.75), Math.PI / 2),
+    addBoard(mesh, tex, hl - 2.75, 2.4, hw + SIDE_OFF, 1.5, 0),
+    addBoard(mesh, tex, hl - 2.75, 2.4, -hw - SIDE_OFF, 1.5, Math.PI),
+  ];
+  return mesh.userData.busBoards;
 }
 
 let card = null;
