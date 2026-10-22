@@ -6,6 +6,8 @@ const sleep = (ms) => new Promise((res) => setTimeout(res, ms));
 for (let i = 0; i < 240 && !(window.__debug && window.__debug.world); i++) await sleep(500);
 const D = window.__debug; const w = D.world;
 const out = { stappen: [], fouten: [] };
+// op een zwaar belaste computer kan de run te lang duren: na maxS-30 s komt het deelresultaat terug in plaats van niets
+const body = (async () => {
 try {
 
 // een nep-pad met de standaardindeling; knoppen op indexnummer van PAD_BUTTONS
@@ -34,12 +36,14 @@ hold('down'); await frames(4); hold('down', false); await frames(4);
 snap('na eerste knop (titel)');
 // nieuw spel kiezen zoals een speler met het pad: A
 const ss = document.getElementById('start-screen');
-for (let i = 0; i < 120 && !document.body.classList.contains('game-started'); i++) {
-  if (ss && ss.classList.contains('visible')) {
-    const it = [...ss.querySelectorAll('.ss-item')].find((q) => /nieuw spel/i.test(q.textContent));
-    if (it) { it.focus(); await tap('a'); }
-    await sleep(2500);
-  } else await sleep(500);
+// op een zwaar belaste computer laadt het spel traag: hooguit eens per 15 s op Alleen spelen drukken
+let laatsteA = 0;
+for (let i = 0; i < 400 && !document.body.classList.contains('game-started'); i++) {
+  if (ss && ss.classList.contains('visible') && Date.now() - laatsteA > 15000) {
+    const it = [...ss.querySelectorAll('.ss-item')].find((q) => /alleen spelen|nieuw spel/i.test(q.textContent));
+    if (it) { laatsteA = Date.now(); it.focus(); await tap('a'); await sleep(1500); if (!document.body.classList.contains('game-started')) await tap('a'); }
+  }
+  await sleep(1000);
 }
 snap('game-started');
 const cineAan = () => !!document.querySelector('#cine.active') || !!w.cameraOverride || w.uiPaused;
@@ -57,18 +61,19 @@ const p0 = pos();
 stick(0, -1); await sleep(1500); snap('stick omhoog 1,5 s'); stick(0, 0); await sleep(300);
 out.loopafstand = pos() && p0 ? +Math.hypot(pos()[0] - p0[0], pos()[1] - p0[1]).toFixed(2) : null;
 // 2. camera
-const camBefore = D.input.mouse.dx;
-stick(0, 0, 1, 0); await sleep(500); snap('rechterstick rechts'); stick(0, 0, 0, 0);
+const yaw0 = w.camYaw;
+stick(0, 0, 1, 0); await sleep(800); snap('rechterstick rechts', { camYaw: w.camYaw }); stick(0, 0, 0, 0); await sleep(200);
+out.camDraai = +((w.camYaw - yaw0) || 0).toFixed(3);
 // 3. springen (A) en rennen (L-stick klik)
-await tap('a'); snap('A te voet (spring)');
+{ let zMax = 0; const tk = setInterval(() => { zMax = Math.max(zMax, w.player.z || 0); }, 16); await tap('a', 250); await sleep(500); clearInterval(tk); out.sprongHoogte = +zMax.toFixed(2); snap('A te voet (spring)', { zMax: out.sprongHoogte }); await sleep(800); }
 await tap('ls'); snap('L3 te voet (ren-vergrendeling)');
 // 4. pauzemenu en terug
-await tap('start'); await sleep(600); snap('Start: pauzemenu', { paus: !!document.querySelector('#pause-menu, .pause-menu, [role="dialog"]') });
-await tap('b'); await sleep(600); snap('B: terug naar het spel');
+await tap('start', 250); for (let i = 0; i < 12 && !(hooksNow().isPauseMenuOpen); i++) await sleep(250); out.startOpentPauze = !!hooksNow().isPauseMenuOpen; snap('Start: pauzemenu', { paus: !!document.querySelector('#pause-menu, .pause-menu, [role="dialog"]') });
+await tap('b', 250); for (let i = 0; i < 12 && hooksNow().isPauseMenuOpen; i++) await sleep(250); out.bSluitPauze = !hooksNow().isPauseMenuOpen; snap('B: terug naar het spel');
 stick(0, -1); await sleep(800); snap('stick omhoog na pauze'); stick(0, 0);
 out.loopafstand2 = pos() && p0 ? +Math.hypot(pos()[0] - p0[0], pos()[1] - p0[1]).toFixed(2) : null;
 // 5. kaart
-await tap('view'); await sleep(600); snap('Terug/view: kaart?'); await tap('b'); await sleep(500); snap('B na kaart');
+await tap('view', 250); for (let i = 0; i < 12 && !hooksNow().isMapOpen; i++) await sleep(250); out.viewOpentKaart = !!hooksNow().isMapOpen; snap('Terug/view: kaart?'); await tap('b', 250); for (let i = 0; i < 12 && (hooksNow().isMapOpen || hooksNow().isPauseMenuOpen); i++) await sleep(250); out.bSluitKaart = !hooksNow().isMapOpen && !hooksNow().isPauseMenuOpen; snap('B na kaart');
 // 6. voertuig: een geparkeerde auto vlakbij, de speler ernaast, Y (de E-knop) om in te stappen
 try {
   const p = w.player;
@@ -88,4 +93,9 @@ try {
   }
 } catch (e) { out.fouten.push('voertuig: ' + e.message); }
 } catch (e) { out.fouten.push('fataal: ' + (e && e.stack || e)); }
+})();
+const klaar = await Promise.race([body.then(() => true), sleep(Math.max(60, (window.__tb.maxS || 150) - 30) * 1000).then(() => false)]);
+if (!klaar) out.fouten.push('stand: body=' + document.body.className + ' | start-screen=' + ((document.getElementById('start-screen') || {}).className || 'geen') + ' | focus=' + (document.activeElement ? document.activeElement.outerHTML.slice(0, 120) : ''));
+if (!klaar) console.log('[capture] tijdslimiet');
+if (!klaar) out.fouten.push('tijdslimiet: laatste stap ' + (out.stappen.length ? out.stappen[out.stappen.length - 1].naam : 'geen'));
 return JSON.stringify({ results: { pad: out } });
