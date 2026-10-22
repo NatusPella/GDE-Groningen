@@ -358,6 +358,11 @@ let statListener = null;
 export function setStatListener(fn) {
   statListener = typeof fn === 'function' ? fn : null;
 }
+// gebiedenlive.js (#414) hears every new unique (a find, a secret) too.
+let uniekListener = null;
+export function setUniekListener(fn) {
+  uniekListener = typeof fn === 'function' ? fn : null;
+}
 export function lifetimeSnapshot() {
   return { stats: { ...life.stats }, sets: Object.fromEntries(Object.entries(life.sets).map(([k, v]) => [k, v.slice()])) };
 }
@@ -420,6 +425,7 @@ export function recordUnique(w, key, value) {
   list.push(value);
   markDirty();
   checkGoals((a) => a.set === key);
+  if (uniekListener) uniekListener(world, key, value);
   return true;
 }
 

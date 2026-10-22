@@ -181,6 +181,10 @@ async function toLobby() {
     log('menu-lobby', { titel: title(), knoppen: buttons() });
     shot('lobby-start');
   } else {
+    // een nieuw spel begint met een opening (een filmpje van minuten, waarin je niet kunt aansluiten: canJoin). Op een drukke computer begint die pas na
+    // enkele seconden, ver na het begin van dit script; wacht dus eerst tot het spel echt loopt en de opening is begonnen (of niet komt) en sla hem dan over
+    for (let i = 0; i < 100 && !document.body.classList.contains('game-started'); i++) await sleep(300);
+    for (let i = 0; i < 50 && !(W().cameraOverride || W().pendingRespawn || (document.getElementById('cine') && document.getElementById('cine').classList.contains('on'))); i++) await sleep(300);
     for (let i = 0; i < 25 && W().paused; i++) { key(' ', 'Space'); await sleep(700); }
     await sleep(1500);
     for (let i = 0; i < 60 && (W().cameraOverride || W().pendingRespawn || document.getElementById('cine') && document.getElementById('cine').classList.contains('on')); i++) { if (i > 6 && i % 4 === 0) { try { window.__story.skip(true); } catch (e) { /* geen verhaal-API */ } } await holdSkip(); await sleep(300); }
@@ -228,6 +232,10 @@ async function connect() {
     await until(() => title() === 'Je speelt samen', 90000, 'verbinding met de host');
   }
   log('verbonden', { titel: title(), tekst: panel().innerText.slice(0, 600), net: netNow() });
+  if (CFG.role === 'host' && CFG.maxSpelers) { // meer dan 8 spelers: de knop "Tot 16 spelers" staat in de lobby zodra de eerste gast er is; de rest komt pas daarna
+    const knop = await until(() => panel().querySelector(`[data-act="max-${CFG.maxSpelers}"]`), 15000, 'knop max-' + CFG.maxSpelers).catch(() => null);
+    if (knop) knop.click(); log('max-knop', { max: CFG.maxSpelers, gevonden: !!knop }); await sleep(400);
+  }
   await sleep(1500); // de fade van het binnenkomen is dan voorbij
   shot('lobby-verbonden');
   const gateKnop = CFG.role === 'host' && panel().querySelector('[data-act="start-spel"]');
@@ -243,7 +251,7 @@ async function connect() {
     if (CFG.gateWachtMs) await sleep(CFG.gateWachtMs); // de gast leest 'Wacht tot ... het spel start' en het menu sluit pas bij het starten
     gateKnop.click(); log('spel-gestart', {});
     let skip = true; (async () => { while (skip) { if (W() && (W().cameraOverride || (document.getElementById('cine') && document.getElementById('cine').classList.contains('on')))) await holdSkip(); await sleep(2500); } })();
-    await until(() => !(W().paused), 8000, 'het spel loopt na Spel starten');
+    await until(() => !(W().paused), 60000, 'het spel loopt na Spel starten'); // op een drukke computer duurt het laadscherm van de opening soms lang
     await sleep(1500);
     shot('spel-samen');
     setTimeout(() => { skip = false; }, 90000);
@@ -344,7 +352,9 @@ const PHASES = {
   // de host kijkt wat er gebeurt als een gast wegvalt
   async uitvalHost({ s = 8, wie = 'gast' }) {
     if (CFG.role !== 'host') { await sleep((s + 20) * 1000); return; }
-    await sleep((s - 1) * 1000);
+    // de fasen van gast en gastheer lopen niet gelijk (een rit duurt soms langer): wacht tot de speler echt als weg te boek staat (de gast sluit zijn verbinding 8 s)
+    { const w0 = performance.now(); while (performance.now() - w0 < (s + 40) * 1000 && !(W().coopRoster || []).some((r) => r.slot === 1 && r.verbinding === 'lost')) await sleep(200); }
+    await sleep(500);
     log('uitval-host', { hold: !!document.querySelector('.coop-hold'), uiPaused: !!W().coopHold, paused: !!W().paused, roster: (W().coopRoster || []).map((r) => [r.slot, r.verbinding]) });
     shot('uitval-host-hold');
     await sleep(21000);
@@ -532,7 +542,16 @@ const PHASES = {
   // een ritje: de host zet een voertuig naast zich neer (cheat 'voertuig hier' of een voertuig in de buurt), stapt in en rijdt; Tessa (de gast)
   // stapt via de volg-AI als passagier mee. De gasten kijken: staat Tessa als passagier, rijdt het voertuig mee, stapt ze weer uit?
   async rit({ s = 24 }) {
-    if (CFG.role !== 'host') { await sleep(s * 1000); return; }
+    if (CFG.role !== 'host') { // Tessa gaat niet meer vanzelf mee (#388): zodra de host in een voertuig zit stapt de gast zelf in met E
+      const t0 = performance.now(); let gedrukt = 0, erin = false;
+      while (performance.now() - t0 < s * 1000) {
+        const p = (W().coopPartners || []).find((q) => q.slot === 0);
+        if (p && /voertuig|rijdt/.test(p.status) && !W().coopInVoertuig && !W().companion.inVehicle && window.__bot && gedrukt < 8) { await window.__bot.press('e', 150); gedrukt++; await sleep(1500); } else await sleep(500);
+        erin = erin || !!W().coopInVoertuig;
+      }
+      log('rit-gast', { gedrukt, erin });
+      return;
+    }
     const w = W(), B = window.__bot;
     let via = '';
     const voorLijst = new Set(w.vehicles || []);
@@ -582,11 +601,14 @@ const PHASES = {
       await sleep((s - 3) * 1000);
       log('filmpje-na', { actief: C.isCinematicActive() });
     } else {
-      await sleep(3500);
+      // de fasen van de host duren soms langer dan gepland (een rit): de gast wacht tot het filmpje echt begint
+      const w0 = performance.now(); while (!(W().coopScene && W().coopScene.filmpje) && performance.now() - w0 < (s + 12) * 1000) await sleep(200);
+      await sleep(1500);
       const x = W();
       log('filmpje-gast', { sc: x.coopScene || null, sceneEl: !!document.getElementById('coop-scene'), input: x.coopNet && x.coopNet.session ? [x.coopNet.session.pendingInput.mx, x.coopNet.session.pendingInput.my] : null });
       shot('filmpje-gast');
-      await sleep((s - 3.5) * 1000 + 2500);
+      const w1 = performance.now(); while (W().coopScene && W().coopScene.filmpje && performance.now() - w1 < (s + 6) * 1000) await sleep(200);
+      await sleep(2500);
       log('filmpje-gast-na', { sc: W().coopScene || null, sceneEl: !!document.getElementById('coop-scene') });
     }
   },
@@ -833,7 +855,11 @@ const PHASES = {
     window.__gastMsgs = window.__gastMsgs || [];
     if (!w.__msgHaak) { const o = w.addMessage.bind(w); w.addMessage = (t, ...a) => { window.__gastMsgs.push(String(t)); return o(t, ...a); }; w.__msgHaak = true; }
     const t0 = performance.now(); const sec = () => Math.round((performance.now() - t0) / 100) / 10;
-    for (let i = 0; i < 80 && !w.coopInVoertuig; i++) await sleep(300);
+    for (let i = 0; i < 80 && !w.coopInVoertuig; i++) { // Tessa gaat niet meer vanzelf mee (#388): zodra de host in het voertuig zit stapt de gast in met E
+      const p = (w.coopPartners || []).find((q) => q.slot === 0);
+      if (p && /voertuig|rijdt/.test(p.status) && i % 7 === 0) await B.press('e', 150);
+      await sleep(300);
+    }
     log('gastrit-gast-in', { inVoertuig: !!w.coopInVoertuig, t: sec() });
     await sleep(5000);
     // de host geeft het stuur: de gast hoort het en stuurt vooruit

@@ -22,6 +22,7 @@ export const KINDS = {
   optocht: { naam: 'Optocht', crowd: 0.75, sound: 'orkest', reach: 260, closure: 160, traffic: 0, props: ['wagen', 'vlaggetjes', 'dranghek'], icon: 'vlag' },
   vuurwerk: { naam: 'Vuurwerkshow', crowd: 0.7, sound: 'vuurwerk', reach: 500, closure: 90, traffic: 0.3, props: ['dranghek', 'lampjes'], icon: 'vlag' },
   concert: { naam: 'Openluchtconcert', crowd: 0.55, sound: 'concert', reach: 150, closure: 60, traffic: 0.5, props: ['podium', 'stoel', 'lampjes'], icon: 'zon' },
+  tewaterlating: { naam: 'Tewaterlating', crowd: 0.8, sound: 'speaker', reach: 320, closure: 110, traffic: 0, props: ['dranghek', 'vlaggetjes', 'lampjes'], icon: 'vlag' },
   wielerronde: { naam: 'Wielerronde', crowd: 0.5, sound: 'speaker', reach: 200, closure: 140, traffic: 0, props: ['dranghek', 'vlaggetjes', 'finishboog'], icon: 'vlag' },
 };
 
@@ -51,6 +52,13 @@ export const AGENDA = [
     'Botsauto\'s en een rad van fortuin met alleen prijzen. Het gaat om het idee.'),
   E('ev-optocht-winschoten', 'optocht', 'Molenoptocht Winschoten', 'Winschoten', [53.1431, 7.0356], 9, 19, 19, 13, 16,
     'Wagens in de vorm van molens, met echte wieken. De wind werkt mee.'),
+  // Scheepswerf De Kielhaal (werf.js, #398): het schip glijdt om 15:00 op zijn zij het water in; de golf spoelt over de kade
+  E('ev-werf-1', 'tewaterlating', 'Tewaterlating bij Scheepswerf De Kielhaal', 'Zoutkamp', [53.33263, 6.29302], 8, 23, 23, 14, 16.5,
+    'Een nieuw schip glijdt op zijn zij het water in. Blijf achter het hek: de golf is niet bijzonder beleefd.'),
+  E('ev-werf-2', 'tewaterlating', 'Tewaterlating bij Scheepswerf De Kielhaal', 'Zoutkamp', [53.33263, 6.29302], 9, 6, 6, 14, 16.5,
+    'Alweer een schip van de helling. De bouwers zeggen dat ze het nu echt onder de knie hebben.'),
+  E('ev-werf-3', 'tewaterlating', 'Tewaterlating bij Scheepswerf De Kielhaal', 'Zoutkamp', [53.33263, 6.29302], 9, 20, 20, 14, 16.5,
+    'Het laatste schip van de zomer. Wie droog wil blijven, staat bij de koffiekar.'),
   E('ev-concert-veendam', 'concert', 'Avondconcert Veendam', 'Veendam', [53.10571, 6.8786], 9, 9, 9, 19, 22,
     'Zomeravond, een podium aan het Winschoterdiep en een zangeres die iedereen een beetje kent.'),
 ];
