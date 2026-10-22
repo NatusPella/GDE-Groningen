@@ -6,6 +6,9 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Opgelost
+- **Samen spelen: de figuur van elke extra speler (plek 2 en hoger, tot 16 spelers) loopt niet meer door muren en water, op het ringdek blijft hij achter de wanden en loopt hij op de juiste hoogte (#366; gemeten met een nepkaart en in Electron met vier spelers, niet in beeld bekeken):** de figuren van plek 2 en hoger gebruiken dezelfde botsingen als Tessa (gebouwen, hekken, rekwisieten, voetgangers, water) en nu ook de wanden en hoogte van de ring. Zit zo'n figuur na een sprong van de gastheer in het water of in een muur, of dwaalt hij verder dan ongeveer 110 m weg, dan zet de gastheer hem na een paar seconden terug op de eerste droge plek naast zich, met een korte melding.
+
 ## [0.38.2] - 2026-10-22
 
 ### Opgelost
