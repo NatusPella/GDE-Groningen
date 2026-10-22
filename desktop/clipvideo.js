@@ -45,6 +45,13 @@ function setupClips({ ipcMain, win, dir, ffmpeg, fps = 60 }) {
       if (buf.length !== width * height * 4 || width !== cur.w || height !== cur.h) { log(`beeld ${cur.frames}: formaat ${width}x${height} wijkt af, overgeslagen`); return false; }
       if (!cur.proc.stdin.write(buf)) await new Promise((res) => cur.proc.stdin.once('drain', res));
       cur.frames++;
+      cur.last = buf;
+      return true;
+    }
+    // 'repeat': het laatste beeld n keer opnieuw (stilstaande stukken van een bijschriftenspoor of een kaart hoeven niet elk beeld opnieuw te worden opgenomen)
+    if (cmd === 'repeat') {
+      if (!cur || !cur.last) throw new Error('geen beeld om te herhalen');
+      for (let i = 0; i < (arg.n | 0); i++) { if (!cur.proc.stdin.write(cur.last)) await new Promise((res) => cur.proc.stdin.once('drain', res)); cur.frames++; }
       return true;
     }
     if (cmd === 'png') {

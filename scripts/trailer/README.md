@@ -61,3 +61,9 @@ slot los te laten) loopt een proef in een minuut.
 - Bijschriftensporen samenvoegen in RGB (`gbrp`), niet in YUV: `blend=multiply` op de kleurvlakken geeft een paarse zweem. Een bijschriftenspoor kost ~8 minuten per trailer; wijzig daarom eerst de lijst en neem pas dan op.
 - De draaiende app saneert sidecar-namen met de oude regex alleen goed in een nieuwe start (`clipvideo.js`); een Electron die vóór de fix startte schreef `___-___.json`.
 - Slots: een tweede `run.mjs --repl` met `--electron=<pad naar de hoofdmap-electron>` aan de wachtrij zetten vóór het oude `quit` krijgt het slot als eerste; zonder werkend `--electron` kost de wachtrij 25 minuten.
+
+## Cijfers en kaarten voor een langere showcase-trailer
+
+- `plans/cijfers.mjs` leest het cijferblad van de schaalmeting (`scripts/stats/schaal.mjs`; pad: `--cijfers=`, `$GDE_CIJFERS` of een `cijfers.json` in het uploadpakket). Overlays in een shot: `nums: [[id, start, duur, label, achtervoegsel, pos]]` (in `make_plan.mjs` / `make_story.mjs`), bijschriften mogen `{id}` bevatten. Een onbekend id stopt de montage: er komt geen verzonnen getal in beeld.
+- `plans/showcase_kaarten.mjs` maakt de JSON per kaart (cijfers, commits per dag, sessies, testuitvoer, balken); `shots/kaarten.page.js` neemt ze op (`repl_shot.mjs --args=<kaart.json> shots/kaarten.page.js kaart`) en de slotkaart (`slot`). De lijst met de montage zelf staat buiten git.
+- Nieuwe opnames: `u09-provincie` (kaart over de hele provincie; mist vooraf via `exploreCity`), `k-*` (vluchten per streek), `m-*` (minigames), `s13-brug`, `x-trein`, `x-daguur`, `c01-samen` (met `repl_boot.mjs --url-add=coop`).

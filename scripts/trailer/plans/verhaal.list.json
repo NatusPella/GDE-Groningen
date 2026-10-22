@@ -81,6 +81,96 @@
    ]
   },
   {
+   "clip": "u09-provincie.mp4",
+   "beats": 8,
+   "label": "provincie",
+   "noVoices": true,
+   "cap": [
+    "EEN HELE PROVINCIE.",
+    "VOOR TESSA EN TAMMO",
+    0.2,
+    2.6
+   ],
+   "nums": [
+    [
+     "wereld.oppervlak_km2",
+     1.6,
+     2.2,
+     "km² speelgebied",
+     "",
+     ""
+    ]
+   ],
+   "sfx": [
+    [
+     "scherm",
+     0,
+     -20
+    ],
+    [
+     "riser",
+     0.2,
+     -16
+    ]
+   ]
+  },
+  {
+   "clip": "k-lauwersoog.mp4",
+   "in": 0.1,
+   "beats": 3,
+   "label": "kust",
+   "noVoices": true,
+   "sfx": [
+    [
+     "wind",
+     0,
+     -22
+    ]
+   ]
+  },
+  {
+   "clip": "k-uithuizen.mp4",
+   "in": 0.1,
+   "beats": 3,
+   "label": "dorp",
+   "noVoices": true,
+   "sfx": [
+    [
+     "wind",
+     0,
+     -22
+    ]
+   ]
+  },
+  {
+   "clip": "k-appingedam.mp4",
+   "in": 0.1,
+   "beats": 3,
+   "label": "stad",
+   "noVoices": true,
+   "sfx": [
+    [
+     "wind",
+     0,
+     -22
+    ]
+   ]
+  },
+  {
+   "clip": "k-bourtange.mp4",
+   "in": 0.1,
+   "beats": 3,
+   "label": "vesting",
+   "noVoices": true,
+   "sfx": [
+    [
+     "wind",
+     0,
+     -22
+    ]
+   ]
+  },
+  {
    "clip": "v02-verhuisdag.mp4",
    "in": 0,
    "beats": 13,
@@ -102,7 +192,17 @@
    "clip": "v04-markt.mp4",
    "in": 8.55,
    "beats": 10,
-   "label": "markt"
+   "label": "markt",
+   "nums": [
+    [
+     "inhoud.dialoogregels",
+     0.5,
+     2.4,
+     "regels dialoog, met stem",
+     "",
+     ""
+    ]
+   ]
   },
   {
    "clip": "v04-markt.mp4",
@@ -150,13 +250,33 @@
    "clip": "v06b-duif.mp4",
    "in": 0,
    "beats": 18,
-   "label": "duif"
+   "label": "duif",
+   "nums": [
+    [
+     "inhoud.verhaalmissies",
+     0.5,
+     2.4,
+     "verhaalmissies",
+     "",
+     ""
+    ]
+   ]
   },
   {
    "clip": "v07-kiezel.mp4",
    "in": 0,
    "beats": 7,
-   "label": "kiezel"
+   "label": "kiezel",
+   "nums": [
+    [
+     "inhoud.cutscenes",
+     0.4,
+     2.2,
+     "cutscenes",
+     "",
+     ""
+    ]
+   ]
   },
   {
    "clip": "s01-chase.mp4",
@@ -183,22 +303,9 @@
    ]
   },
   {
-   "clip": "s08-heli.mp4",
-   "in": 1,
-   "beats": 4,
-   "label": "heli",
-   "sfx": [
-    [
-     "rotor",
-     0,
-     -20
-    ]
-   ]
-  },
-  {
    "clip": "s99-titel.mp4",
    "in": 0,
-   "beats": 10,
+   "beats": 14,
    "label": "titel",
    "noCutSfx": true,
    "sfx": [
