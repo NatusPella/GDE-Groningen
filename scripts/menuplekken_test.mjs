@@ -187,6 +187,7 @@ const winkel = () => { const m = new Map(); return { getItem: (k) => (m.has(k) ?
   ok(/extraDone && tilesReady/.test(ss), 'de poort wacht ook op de tegels rond de eerste plek');
   ok(/registerShots\(\[\{ at: \[spot\.x, spot\.y\] \}\]/.test(ss) && /map\.releaseShots\(\)/.test(ss), 'de tegels rond een plek worden vastgehouden en bij het starten losgelaten');
   ok(/tilesReady && sp\.buildings \+ sp\.roads === 0/.test(ss) && /BLACK_MAX_S = 8/.test(ss), 'een wissel wacht (hoogstens 8 s) tot de tegels en gebouwen er zijn');
+  ok(/function treeClearance\(map, q\)/.test(ss) && /treeClearance\(map, q0\)/.test(ss), 'de camera kijkt over de bomen voor de lens en op de zichtlijn');
   const mainSrc = read('game/js/main.js');
   ok(/planMenuStart\(map\)/.test(mainSrc) && /import \{[^}]*planMenuStart[^}]*\} from '\.\/startscreen\.js'/.test(mainSrc), 'main.js plant de eerste plek tijdens het laden');
   ok(!/rain: 0\.[0-9]|kind: 'storm'/.test(ss.slice(ss.indexOf('const SHOT_WEATHER'), ss.indexOf('const EXTRA_SPOTS'))), 'achter het menu regent het niet (zomerlicht)');

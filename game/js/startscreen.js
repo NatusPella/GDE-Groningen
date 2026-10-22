@@ -208,6 +208,21 @@ function clearance(map, x, y, r = 6) {
   return top + 5;
 }
 
+// The height a camera needs to look over the trees: those at its lens (within 10 m) and those on the line of sight to the target.
+// Trees are [x, y, species, height] rows (mapdata.js treesNear); a tree is taken as 8 m when it has no height.
+function treeClearance(map, q) {
+  if (!map.treesNear) return 0;
+  const { position: c, lookAt: l } = q;
+  let need = 0;
+  for (const t of map.treesNear(c.x, c.y, 10)) need = Math.max(need, (t[3] || 8) + 3);
+  for (let i = 1; i < 8; i++) {
+    const f = i / 8;
+    const px = c.x + (l.x - c.x) * f, py = c.y + (l.y - c.y) * f;
+    for (const t of map.treesNear(px, py, 5)) need = Math.max(need, ((t[3] || 8) + 1 - l.z * f) / (1 - f));
+  }
+  return need;
+}
+
 function roadDirection(map, spot) {
   let best = null, bd = Infinity;
   for (const r of map.roadsNear(spot.x, spot.y, 40)) {
@@ -483,7 +498,10 @@ export function runStartScreen(world, { render, relocate, tick, ready }) {
           const q = beeld.pose(t);
           if (zMin === null && tilesReady) {
             zMin = 0;
-            for (let u = 0; u <= SHOT_MAX_S + 2; u += 3) { const c = beeld.pose(u).position; zMin = Math.max(zMin, clearance(map, c.x, c.y, 8)); }
+            for (let u = 0; u <= SHOT_MAX_S + 2; u += 3) {
+              const q0 = beeld.pose(u);
+              zMin = Math.max(zMin, clearance(map, q0.position.x, q0.position.y, 8), treeClearance(map, q0));
+            }
             zMin = Math.min(zMin, 45);
           }
           if (zMin && q.position.z < zMin) q.position.z = zMin;
