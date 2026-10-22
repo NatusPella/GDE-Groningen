@@ -7,6 +7,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 ## [Unreleased]
 
 ### Opgelost
+- **Geen meldingen meer over het Peerd van Ome Loeks** (telefoon en radionieuws); het standbeeld, zijn roepjes en het geheim op de Martinitoren blijven.
 - **De politie-iconen op de kaart en de minikaart knipperen alleen nog als je gezocht wordt**; zonder sterren staan ze rustig stil.
 
 ### Verbeterd (samen spelen met vier, nalopen voor vrijdag 23-10; door bots en tests op één computer, niet door vier mensen gespeeld of in beeld bekeken)
@@ -14,7 +15,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 - **Samen spelen: bij "gelukt!" staat wat jouw deel was (#371, #365):** "Het Loket gelukt! Tammo en jij hebben het samen gedaan. Jouw deel: €200."
 - **Samen spelen met meer dan vier spelers: de laatste speler kon niet meer aansluiten en roepjes verdwenen (#367, #95):** met ongeveer 14 tot 16 spelers werd het welkomstbericht te groot, zodat wie het spel opende een fout kreeg; het bericht bevat nu de korte lijst. Een ping van de een duwde bij vier spelers de ping van een ander weg; er passen nu 16 roepjes tegelijk (twee per speler). De spelerslijst bij Tab past ook onder elkaar op een laag scherm. Getest tot en met 16 spelers; de 17e wordt geweigerd.
 - **Samen spelen: een roepje van een ander laat een korte pling horen (#367):** het bestaande meldingsgeluid, geen nieuwe opname; wie zelf roept hoort het niet.
-- **Samen spelen: de figuur van elke extra speler (plek 2 en hoger, tot 16 spelers) loopt niet meer door muren en water, op het ringdek blijft hij achter de wanden en loopt hij op de juiste hoogte (#366; gemeten met een nepkaart en in Electron met vier spelers, niet in beeld bekeken):** de figuren van plek 2 en hoger gebruiken dezelfde botsingen als Tessa (gebouwen, hekken, rekwisieten, voetgangers, water) en nu ook de wanden en hoogte van de ring. Zit zo'n figuur na een sprong van wie het spel opende in het water of in een muur, of dwaalt hij verder dan ongeveer 110 m weg, dan zet de gastheer hem na een paar seconden terug op de eerste droge plek naast zich, met een korte melding.
+- **Samen spelen: de figuur van elke extra speler (plek 2 en hoger, tot 16 spelers) loopt niet meer door muren en water, op het ringdek blijft hij achter de wanden en loopt hij op de juiste hoogte (#366; gemeten met een nepkaart en in Electron met vier spelers, niet in beeld bekeken):** de figuren van plek 2 en hoger gebruiken dezelfde botsingen als Tessa (gebouwen, hekken, rekwisieten, voetgangers, water) en nu ook de wanden en hoogte van de ring. Zit zo'n figuur na een sprong van wie het spel opende in het water of in een muur, of dwaalt hij verder dan ongeveer 110 m weg, dan zet wie het spel opende hem na een paar seconden terug op de eerste droge plek naast zich, met een korte melding.
 
 ## [0.38.2] - 2026-10-22
 
