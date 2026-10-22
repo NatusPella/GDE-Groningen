@@ -7,9 +7,8 @@ import { getMissionList } from './missionquery.js';
 import { getSideJobList } from './sidejobs.js';
 import { activitySpots } from './activities.js';
 import { getPadelSpotsForRender } from './padel.js';
-import { FINDS, findPos, STREKEN, SET_VERZAMEL, SET_GEHEIM } from './regioleven.js';
-import { worldPlaceList } from './worldplaces.js';
-import { wgsToWorld } from './rdnew.js';
+import { FINDS, findPos, SET_VERZAMEL, SET_GEHEIM } from './regioleven.js';
+import { ontvouw } from './grenzen.js';
 import { lifetimeSnapshot } from './achievements.js';
 import { getProfiel as getLoopbaan } from './loopbaanlive.js';
 import { VAK_IDS } from './loopbaan.js';
@@ -53,16 +52,29 @@ function bekendeSleutels() {
   return s;
 }
 
+// De echte grenzen (game/grenzen.json, scripts/world/grenzen.mjs): eenmaal geladen, op dezelfde manier als de andere gegevensbestanden
+// naast index.html. Mislukt het laden, dan zijn er geen gebieden en blijven de taken bewaard.
+let grenzen = null;
+let grenzenKlaar = false;
+let grenzenBezig = false;
+export function laadGrenzen() {
+  if (grenzenBezig || grenzenKlaar || typeof fetch !== 'function' || typeof location === 'undefined') return;
+  grenzenBezig = true;
+  fetch(new URL('grenzen.json', location.href).href)
+    .then((r) => (r.ok ? r.json() : null))
+    .then((j) => { grenzen = ontvouw(j); })
+    .catch((e) => { console.warn('grenzen niet geladen', e); })
+    .finally(() => { grenzenKlaar = true; grenzenBezig = false; });
+}
+export const getGrenzen = () => grenzen;
+
 // De bron voor gebiedenlive.initGebieden: een functie die de indeling-invoer geeft, of null zolang de wereld nog niet klaar is.
-export function maakBron(world) {
+export function maakBron() {
+  laadGrenzen();
   return () => {
-    const meta = world && world.map && world.map.meta;
-    const wijken = (meta && meta.neighbourhoodPoints) || [];
     const taken = verzamelTaken();
-    // wachten tot de missies en bijbanen er zijn, anders zaait een nieuwe sleutel op een halve lijst
-    if (!wijken.length || !taken.some((t) => t.soort === 'missie') || !taken.some((t) => t.soort === 'baan')) return null;
-    const sx = wijken.reduce((a, p) => a + p.x, 0) / wijken.length, sy = wijken.reduce((a, p) => a + p.y, 0) / wijken.length;
-    const streken = STREKEN.map((s) => { const [x, y] = wgsToWorld(s.at[0], s.at[1]); return { id: s.id, naam: s.name, x, y, reach: s.reach }; });
-    return { wijken: wijken.map((p) => ({ naam: p.name, x: p.x, y: p.y })), plaatsen: worldPlaceList(), streken, stad: { x: sx, y: sy }, taken, bekend: bekendeSleutels };
+    // wachten op de grenzen, en tot de missies en bijbanen er zijn, anders zaait een nieuwe sleutel op een halve lijst
+    if (!grenzenKlaar || !taken.some((t) => t.soort === 'missie') || !taken.some((t) => t.soort === 'baan')) return null;
+    return { grenzen, taken, bekend: bekendeSleutels };
   };
 }
