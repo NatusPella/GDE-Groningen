@@ -822,8 +822,30 @@ const FARM_NAMED = new Set(['farm', 'house', 'yes', 'industrial', 'detached', 'f
 const PAKHUIS_NAMED = new Set(['yes', 'apartments', 'commercial', 'industrial', 'retail', 'service', 'warehouse']);
 const outlineArea = (o) => { let a = 0; for (let i = 0; i < o.length; i += 2) { const j = (i + 2) % o.length; a += o[i] * o[j + 1] - o[j] * o[i + 1]; } return Math.abs(a / 2); };
 
+// A church mapped as a plain building (#406): 65 of the province's church buildings are building=yes (or a house, a shop) with only a name,
+// and 14 of them have no kit in landmarkkits.json (that file is made from the place_of_worship tags). Drawn as an ordinary building they are
+// a flat of 10 to 20 m over the whole footprint (the height of the tower): a tall box with housing windows. The name says what they are.
+// Words: a church (also as the end of a name: Liudgerkerk), a chapel, a synagogue; a congregation or parish named by its denomination.
+const CHURCH_WORD = /(?<![\p{L}])(?:\p{L}*kerk|\p{L}*kerkje|kapel|synagoge|basiliek|bedehuis)(?![\p{L}])/iu;
+const CHURCH_BODY = /(?<![\p{L}])(?:hervormde|gereformeerde|doopsgezinde|protestantse|baptisten|evangelische|apostolische|christelijke)\s+gemeente(?![\p{L}])|(?<![\p{L}])parochie(?![\p{L}])/iu;
+// names with a church word that are no church: a school, a club, a farm, a parish hall, the town hall, a smithy, a museum
+const NOT_CHURCH = /school|vereniging|(?<![\p{L}])vv(?![\p{L}])|boerderij|dorpshuis|gemeentehuis|gemeentewerf|gemeentewerken|pastorie|parochiehuis|verzorgings|centre|center|centrum|kerkhof|molen|café|restaurant|winkel|smid|garage|camping|hotel|museum/iu;
+// tile types a church can be mapped as; church, chapel, cathedral, synagogue and mosque rows keep their own archetype
+const CHURCH_AS = new Set(['yes', 'house', 'retail', 'commercial', 'apartments', 'public', 'civic', 'office', 'detached']);
+export function churchKindOfName(type, name) {
+  if (!name || !CHURCH_AS.has(type)) return null;
+  // a congregation or parish named by its denomination is a church whatever the place is called (Protestantse gemeente Roodeschool)
+  if (!CHURCH_BODY.test(name) && (!CHURCH_WORD.test(name) || NOT_CHURCH.test(name))) return null;
+  return /kapel|kerkje/i.test(name) ? 'chapel' : 'church';
+}
+// the kits the game has loaded (ommelandlandmarks.js): a church one of them already draws is left to it
+let KIT_LIST = null;
+export function setKitList(list) { KIT_LIST = list || null; }
+
 export function kitItemFromBuilding(b, ring = null) {
   const type = b.type, name = b.name || '';
+  const churchK = churchKindOfName(type, name);
+  if (churchK) return churchItemFromBuilding(b, ring || b.pts, churchK);
   // a name that says what it is: a museum, a town hall, a farm mapped as a house or a shed
   const named = name && (/museum/i.test(name) ? 'museum' : /stadhuis|gemeentehuis/i.test(name) ? 'townhall'
     : /boerderij|stolp|hoeve/i.test(name) && FARM_NAMED.has(type) ? 'farm' : /pakhuis/i.test(name) && PAKHUIS_NAMED.has(type) ? 'pakhuis' : null);
@@ -853,6 +875,23 @@ export function kitItemFromBuilding(b, ring = null) {
   if (hm) t.height = String(hm);
   if (k === 'flat') t['building:levels'] = String(Math.round(hm / 3));
   return { k, n: name, x: x / pts.length, y: y / pts.length, o, t };
+}
+
+// The church kit item of a tile row: its own outline, its name, the height of the data when it is a believable church height.
+function churchItemFromBuilding(b, pts, k) {
+  if (!pts || pts.length < 3) return null;
+  const o = [];
+  for (const p of pts) o.push(p[0], p[1]);
+  const area = outlineArea(o);
+  if (area < 50 || area > 3000) return null;
+  let x = 0, y = 0;
+  for (const p of pts) { x += p[0]; y += p[1]; }
+  x /= pts.length; y /= pts.length;
+  // a church of the kit list stands on this footprint: that kit draws it and hides this building (ommelandlandmarks.js coverBuildings)
+  if (KIT_LIST && KIT_LIST.some((p) => COVER_KINDS.has(p.kind) && Math.hypot(p.x - x, p.y - y) < 90 && kitCoversBuilding(p, b))) return null;
+  const t = { building: k === 'chapel' ? 'chapel' : 'church' };
+  if (b.hm >= 8 && b.hm <= 48) t.height = String(b.hm);
+  return { k, n: b.name || '', x, y, o, t };
 }
 
 // --- tile buildings the kit replaces (issue #338) --------------------------------
