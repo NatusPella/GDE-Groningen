@@ -18,6 +18,7 @@ const Pg = await imp('pigeonmode');
 const MS = await imp('missions');
 const BK = await imp('bakeround');
 const Co = await imp('collision');
+const Un = await imp('util');
 const BAKE_KEYS = { ei: '1', zout: '2', meel: '3', vet: '4', mosterd: '5' };
 for (let i = 0; i < 600 && !window.__bot; i++) await sleep(100);
 const B = window.__bot;
@@ -49,6 +50,11 @@ function footFree(x, y) {
     const [rx, ry] = Co.resolveWalker(x, y, player.radius || 0.4, world.map, 0, 0, WALK_OPTS, gz, 0);
     return Math.hypot(rx - x, ry - y) < 0.04;
   } catch (e) { return true; }
+}
+
+// a car can drive over the point: no water and no building (the stunt drive goes in a straight line, M01: the square lies against a canal, #312)
+function carFree(x, y) {
+  try { return !Un.isInWater(world.map, x, y) && !(world.map.buildingsNear && world.map.buildingsNear(x, y, 1.2).length); } catch (e) { return true; }
 }
 
 function plan(s, mode, tgt) {
@@ -594,7 +600,8 @@ while (true) {
       for (const q of Br.propsInRadius(s.player.x, s.player.y, 90)) {
         if (!String(q.key).startsWith('stunt') || (mem.stuntSkip[q.key] || 0) > s.t) continue;
         const d = Math.hypot(q.x - s.player.x, q.y - s.player.y);
-        if (d < bd) { bd = d; best = q; }
+        // only a prop the car can reach in a straight line over dry land
+        if (d < bd && L.segmentFree({ x: s.player.x, y: s.player.y }, q, carFree, 2)) { bd = d; best = q; }
       }
       if (best) {
         // circling a prop that does not fall (the car orbits it, or a bollard stands in the way): after 6 s within 10 m it is left alone for 90 s and the next one is tried (M01, #312)
@@ -608,7 +615,7 @@ while (true) {
     // on foot, wedged against a stall pole or a prop: sidestep (alternating sides, longer each time), then plan again
     if (act.mode !== 'drive' && !s.player.vehicle && !s.blocking.cinematic && s.target.distance > 5 && s.mission.stage !== 'hold' && await footUnstick(s, s.target)) continue;
     if (act.mode !== 'drive' && !s.player.vehicle && mem.detour && s.t < mem.detour.until && Math.hypot(mem.detour.x - s.player.x, mem.detour.y - s.player.y) > 3) { steerTowards(s, 'walk', mem.detour, false, 24, 2.5); continue; }
-    steerTowards(s, act.mode, aim, !act.stunt && s.mission.phase !== 'active' && (s.target.source === 'missiestart' || s.target.source === 'winkel'), top, s.mission.stage === 'lock' || s.mission.stage === 'crack' ? 1 : null, !!(act.stunt && s.player.vehicle && s.target.distance < 250));
+    steerTowards(s, act.mode, aim, !act.stunt && s.mission.phase !== 'active' && (s.target.source === 'missiestart' || s.target.source === 'winkel'), top, s.mission.stage === 'lock' || s.mission.stage === 'crack' ? 1 : null, !!(act.stunt && s.player.vehicle && s.target.distance < 250 && L.segmentFree({ x: s.player.x, y: s.player.y }, aim, carFree, 2)));
     if (wedgeOut) {
       wedgeOut = false;
       B.log('klem', { x: s.player.x, y: s.player.y });
