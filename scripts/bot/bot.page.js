@@ -17,6 +17,7 @@ const Br = await imp('breakables');
 const Pg = await imp('pigeonmode');
 const MS = await imp('missions');
 const BK = await imp('bakeround');
+const Ga = await imp('garages');
 const Co = await imp('collision');
 const Un = await imp('util');
 const TL = await imp('trafficlaw');
@@ -152,7 +153,24 @@ function steerTowards(s, mode, tgt, stopAt, top = 24, stopR = null, direct0 = fa
   const me = { x: s.player.x, y: s.player.y };
   const direct = L.distance(me, tgt);
   const chasing = mode === 'drive' && s.mission.active && s.mission.stage === 'chase';
-  const aim = direct0 || direct < (mode === "walk" ? 9 : chasing ? 9 : 25) && (mode !== 'walk' || L.segmentFree(me, tgt, footFree)) ? tgt : follower.next(me) || tgt;   // on foot the planned route goes round poles and walls almost to the end
+  let aim = direct0 || direct < (mode === "walk" ? 9 : chasing ? 9 : 25) && (mode !== 'walk' || L.segmentFree(me, tgt, footFree)) ? tgt : follower.next(me) || tgt;
+  // a garage (M02: Spuit & Klaar): the bay is walled on three sides and open at the door. Straight at the middle from the side or the back wedges the car
+  // against a wall (150 s at the garage in the failed gate run, #387): first to a point in the street in front of the door, then in along its axis
+  // and out again once the stage is done: the car stands nose to the back wall, so backwards along the axis until it is out of the bay (the next stage's route
+  // started inside the walls and the bot stood 140 s in the bay before the rescue ladder lifted it out)
+  if (mode === 'drive' && s.player.vehicle && !s.player.vehicle.boat) {
+    const stg0 = M.activeStage(), gi = stg0 && stg0.kind === 'garage' ? null : Ga.garageInside(world);
+    if (gi && Math.cos(s.player.vehicle.angle - gi.angle) < 0.3) { B.stick(0, 1); return direct; }
+  }
+  if (mode === 'drive' && s.player.vehicle && direct < 45) {
+    const stg = M.activeStage();
+    const g = stg && stg.kind === 'garage' ? Ga.getGaragesForRender().find((q) => Math.hypot(q.x - tgt.x, q.y - tgt.y) < 1.5) : null;
+    if (g) {
+      const gx = Math.cos(g.angle), gy = Math.sin(g.angle);
+      const fwd = (me.x - g.x) * gx + (me.y - g.y) * gy, side = -(me.x - g.x) * gy + (me.y - g.y) * gx;
+      if (!(fwd > 4 && Math.abs(side) < fwd * 0.3 + 0.8)) aim = { x: g.x + gx * 11, y: g.y + gy * 11 };
+    }
+  }   // on foot the planned route goes round poles and walls almost to the end
   if ((mode === 'drive' || mode === 'boat') && s.player.vehicle) {
     // a garage (M02: drive in and stand still 1.2 s) or a stage with `stop`: come to rest right there
     const stg = M.activeStage();
