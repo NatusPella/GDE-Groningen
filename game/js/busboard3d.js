@@ -8,7 +8,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { getVehicleMesh } from './models3d_vehicles.js';
 import { getBusLines } from './vehicle.js';
 import { nearestLine, project } from './busroutes.js';
-import { boardText, lineDirection, nextStopInfo, stopAnnouncement, roundDist, OPERATOR } from './busboard.js';
+import { boardText, busLineOf, lineDirection, nextStopInfo, stopAnnouncement, roundDist, OPERATOR } from './busboard.js';
 
 const BOARD_R = 140;            // m: alleen bussen in de buurt krijgen een bord
 // m voor het buitenste vlak van de romp. De zijborden hingen op 0,02 m, precies gelijk met het deurblad
@@ -52,7 +52,7 @@ function addBoard(group, tex, x, y, z, w, ry) {
 }
 
 function ensureBoard(v) {
-  const run = v.busRun;
+  const run = busLineOf(v);
   if (!run) return;
   const mesh = getVehicleMesh(v.id);
   if (!mesh) return;
@@ -104,8 +104,9 @@ function driverCard(w, pv) {
   const on = !!(pv && pv.isBus && lines.length);
   if (typeof document !== 'undefined') document.body.classList.toggle('bus-driving', on);
   if (!on) { last = { idx: -1, near: false, line: null }; return; }
-  const line = pv.busRun ? pv.busRun.line : nearestLine(lines, pv.x, pv.y, 40);
-  const dir = line ? (pv.busRun ? pv.busRun.dir : lineDirection(line, pv.x, pv.y, pv.angle)) : 0;
+  const own = busLineOf(pv);
+  const line = own ? own.line : nearestLine(lines, pv.x, pv.y, 40);
+  const dir = line ? (own ? own.dir : lineDirection(line, pv.x, pv.y, pv.angle)) : 0;
   const c = getCard();
   if (!line || !dir) { if (typeof document !== 'undefined') document.body.classList.remove('bus-driving'); return; }
   const info = nextStopInfo(line, dir, project(line, pv.x, pv.y).s);
@@ -129,7 +130,7 @@ function driverCard(w, pv) {
 function updateBusBoards(dt, w) {
   const p = w.player;
   for (const v of w.vehicles) {
-    if (!v.isBus || !v.busRun || v.wrecked) continue;
+    if (!v.isBus || !busLineOf(v) || v.wrecked) continue;
     if (Math.hypot(v.x - p.x, v.y - p.y) < BOARD_R) ensureBoard(v);
   }
   driverCard(w, p.inVehicle);
