@@ -73,6 +73,8 @@ if (volledig) {
   const ids = [...volledig.taken];
   for (let i = 0; i < ids.length - 1; i++) GL.doeTaak(w, ids[i]);
   hold = { x: ind.taak.get(ids.at(-1)).x, y: ind.taak.get(ids.at(-1)).y };
+  p.x = hold.x; p.y = hold.y;
+  await sleep(9000); // de wijknaam bij het binnenkomen is dan weg
   const m0 = w.money;
   GL.doeTaak(w, ids.at(-1));
   results.beloning = { wijk: volledig.naam, geld: w.money - m0 };
@@ -108,23 +110,25 @@ const SH = window.__safehuis;
 const SHOP = await imp('shopui');
 const huizen = SH ? SH.lijst() : [];
 results.huizen = { aantal: huizen.length, eigen: huizen.filter((h) => h.eigen).map((h) => h.id), voorbeeld: huizen.slice(0, 4).map((h) => `${h.naam} · ${h.adres}`) };
-const naarHuis = async (h, naam) => {
+const naarHuis = async (h, naam, afstand = 0) => {
   const d = h.deur;
-  hold = { x: d.x, y: d.y };
-  p.x = d.x; p.y = d.y; p.vx = p.vy = 0; p.angle = h.ang + Math.PI; w.camYaw = p.angle;
-  await sleep(5000);
+  hold = { x: d.x + Math.cos(h.ang) * afstand, y: d.y + Math.sin(h.ang) * afstand };
+  p.x = hold.x; p.y = hold.y; p.vx = p.vy = 0; p.angle = h.ang + Math.PI; w.camYaw = p.angle;
+  await sleep(afstand ? 9000 : 3000);
   await cap(naam); results.shots.push(naam);
 };
 const eigen = huizen.find((h) => h.eigen);
 if (eigen) {
-  await naarHuis(eigen, 'gb-huis-eigen-buiten');
+  await naarHuis(eigen, 'gb-huis-eigen-ver', 11);
+  await naarHuis(eigen, 'gb-huis-eigen-deur', 0);
   SH.menu(eigen.id); await sleep(1200); await cap('gb-huis-eigen-menu'); results.shots.push('gb-huis-eigen-menu');
   SHOP.closeShopMenu(); await sleep(500);
 }
 const teKoop = huizen.find((h) => !h.eigen && h.id !== (eigen && eigen.id));
 if (teKoop) {
   w.money = Math.max(w.money, 9000);
-  await naarHuis(teKoop, 'gb-huis-tekoop-buiten');
+  await naarHuis(teKoop, 'gb-huis-tekoop-ver', 11);
+  await naarHuis(teKoop, 'gb-huis-tekoop-deur', 0);
   SH.menu(teKoop.id); await sleep(1200); await cap('gb-huis-tekoop-menu'); results.shots.push('gb-huis-tekoop-menu');
   SHOP.closeShopMenu(); await sleep(500);
   results.prompt = (window.__debug && window.__debug.prompt) ? 'n.v.t.' : null;

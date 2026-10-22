@@ -79,10 +79,33 @@ indeling later groter wordt.
 **Samen spelen:** elke speler telt op zijn eigen apparaat. Een gast draait `updateGameplay` niet, dus zijn missies en bijbanen komen alleen binnen
 via wat hij zelf doet (een vondst, een plek). De beloning is voor de eigen portemonnee en wordt niet gedeeld (`coopDeel` doet hier niets).
 
+## Safehouses (fase 2)
+
+In elke veroverbare **wijk en plaats** (een streek niet) staat één verzonnen woning, bij het hart van het gebied (22 m ernaast, op open begaanbare grond,
+met de voorkant naar de dichtstbijzijnde weg; de plek wordt vastgezet zodra je binnen 200 m komt, als de tegels er zijn). Adres en makelaar komen uit
+een lijst verzonnen straten en kantoren in `gebieden.js` en blijven voor een gebied altijd dezelfde. `safehuizen.js` is de activiteit (`SAFEHUIS` in
+`activities.js`): prompt, E, kaart en minimap lopen via de bestaande activiteitenlaag, met een eigen laag `safehuis` en een eigen legenda-regel.
+
+- **Krijgen of kopen:** een gebied helemaal gedaan geeft de sleutel cadeau (bij de titel en het geld). Kopen kan altijd: wijk €1800, plaats €4200, tot de helft
+  korting naarmate je meer in het gebied deed (`huisPrijs`). Eigendom staat in `huizen` van het profiel `gde-gebieden-v1` (oude profielen zonder het veld
+  blijven geldig); een gekocht huis wordt bij veroveren niet nog eens gegeven.
+- **Wat erin kan** (E bij de deur, een menu zoals de rest van de winkels en het bed): slapen tot ochtend, middag, avond of nacht en opslaan (zelfde regels
+  als het bed thuis: volle gezondheid, `slept`-teller, `saveGame`); de kledingkast van thuis (`wardrobeMenu`); je voertuigen voor de deur laten zetten
+  (`spawnOwnedEntry`, ook kwijtgeraakte); onderduiken als je gezocht wordt (gezocht-niveau op nul en de klok 3 tot 1 uur door: hoe beter ingericht, hoe korter);
+  de deur is dicht als de politie je op dat moment ziet (zoals bij de winkels). Binnen kom je niet: het is een huisje met een deur en geen eigen verdieping.
+- **Snelreisanker:** Pauzemenu › Loopbaan › Veroverd › het gebied › **Reis erheen**. Dat is `w.cheatActions.teleport` met alle bewakers van de kaartteleport:
+  niet in een missie of filmpje, niet met de politie op je hielen, niet op het water; ligt de plek ver weg, dan laadt het spel eerst de tegels.
+- **Inrichting** (vijf stappen, `inrichting()`): vanaf het begin, 25%, 50%, 75% en als het gebied helemaal gedaan is. Het huisje buiten groeit mee (een bankje,
+  een plantenbak) en wie hem bezit krijgt een vlag in de kleur van de laag op het dak.
+- **Samen spelen:** huisjes staan op dezelfde plek voor iedereen in dezelfde wereld; wat je bezit is van jou (eigen profiel). Een ander kan het huisje wel zien en
+  er langs lopen, maar de deur gaat alleen open voor de eigenaar met zijn eigen menu (een koper-menu voor wie het niet heeft). Gasten en gastheer kopen dus elk
+  hun eigen sleutel. **Bezoeken bij een ander** (binnen kijken in het huisje van een medespeler) is niet gedaan.
+
 ## Bekende grenzen
 
 - De catalogus is wat er nu in de code ligt. Komt er een nieuwe missie of baan bij, dan krijgt een gebied er een taak bij: een eerder veroverd gebied blijft veroverd (de titel blijft), maar de balk laat dan een nieuwe taak zien.
 - De minimap kent de laag niet; alleen de grote kaart.
 - Wijken zijn geen echte vlakken: de kaart tekent een schijf op het wijkpunt (de helft van de afstand tot de buur, 180 tot 700 m). Het zijn de gebieden van het HUD, niet de grenzen van het CBS.
 - Er is geen aparte cutscène bij een veroverd gebied: een kaartje met titel, grapje en geld, en een vlag op de kaart.
+- Een safehouse heeft geen binnenkant en geen bezoek van medespelers; de inrichting is buiten te zien en in het menu te lezen.
 - Niet door een mens in beeld bekeken; zie de beeldcheck in het issue.

@@ -125,7 +125,7 @@ function meldVoortgang(w, ind, taakId) {
   if (!gid) return;
   const v = G.voortgang(getProfiel(), ind, gid);
   if (v.voltooid) return;
-  w.addMessage(`${ind.gebied.get(gid).naam}: ${v.klaar} van ${v.totaal} gedaan`, 3, { kind: 'prestatie', kicker: 'Veroveren', key: 'gebied-voortgang' });
+  w.addMessage(`${v.klaar} van ${v.totaal} gedaan`, 3, { kind: 'prestatie', kicker: `Veroveren: ${ind.gebied.get(gid).naam}`, key: 'gebied-voortgang' });
 }
 
 function betaal(w, b) {

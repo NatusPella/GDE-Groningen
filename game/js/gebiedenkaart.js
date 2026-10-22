@@ -64,10 +64,10 @@ export function tekenVeroverd(ctx, toScreen, scale, cw, ch, hover, label, kleurT
   zichtbaar.sort((a, b) => volgorde[a.r.niveau.id] - volgorde[b.r.niveau.id]);
   for (const { r, sx, sy, px } of zichtbaar) {
     const grote = r.niveau.id === 'streek';
-    ctx.globalAlpha = r.alpha * (grote ? 0.55 : 1);
+    ctx.globalAlpha = r.alpha * (grote ? 0.8 : 1);
     ctx.fillStyle = r.kleur;
     ctx.beginPath(); ctx.arc(sx, sy, px, 0, Math.PI * 2); ctx.fill();
-    ctx.globalAlpha = r.voltooid ? 0.85 : 0.5;
+    ctx.globalAlpha = r.voltooid ? 0.9 : grote ? 0.6 : 0.5;
     ctx.strokeStyle = r.kleur;
     ctx.lineWidth = r.voltooid ? 3 : 2;
     ctx.setLineDash(r.voltooid ? [] : [7, 6]);
@@ -80,12 +80,12 @@ export function tekenVeroverd(ctx, toScreen, scale, cw, ch, hover, label, kleurT
   for (const { r, sx, sy, px } of zichtbaar) {
     if (px < 14) continue;
     if (r.voltooid) {
-      const s = Math.max(14, Math.min(26, px * 0.5));
-      tekenVlag(ctx, sx, sy + s * 0.4, s, r.vlag);
-      if (px >= 34) label(ctx, r.titel, sx, sy + s * 0.4 + 14, kleurTekst, 'center');
-      hover.push({ sx, sy: sy - s * 0.2, name: r.titel, sub: `${r.niveau.enkel[0].toUpperCase()}${r.niveau.enkel.slice(1)} veroverd: alles gedaan (${r.totaal} dingen)` });
+      const s = Math.max(16, Math.min(28, px * 0.5));
+      tekenVlag(ctx, sx, sy - px + 3, s, r.vlag);
+      if (px >= 34) label(ctx, r.titel, sx, sy + px + 14, kleurTekst, 'center');
+      hover.push({ sx, sy: sy - px - s * 0.4, name: r.titel, sub: `${r.niveau.enkel[0].toUpperCase()}${r.niveau.enkel.slice(1)} veroverd: alles gedaan (${r.totaal} dingen)` });
     } else if (px >= 22) {
-      label(ctx, `${r.klaar}/${r.totaal}`, sx, sy + 15, kleurTekst, 'center');
+      label(ctx, `${r.klaar}/${r.totaal}`, sx, sy + px + 12, kleurTekst, 'center');
     }
   }
   ctx.restore();
