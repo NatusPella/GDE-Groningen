@@ -8,6 +8,7 @@ import { travelModeOf, offenceOf, marktFietsHint, MARKT } from './roadaccess.js'
 import { weekdayOf } from './calendar.js';
 import { playerBusy } from './busy.js';
 import { noteMoney } from './finance.js';
+import { noteWantedWhy } from './wantedwhy.js';
 
 // Two money fines when an agent is watching: the phone in your hand while
 // riding or driving, and cycling after dark without a light.
@@ -56,7 +57,8 @@ export function roadUnder(map, x, y, z = 0) {
   return best;
 }
 
-const STAR_TEXT = 'Een agent heeft je gezien. Politie! Je hebt een ster';
+// the star of a road offence needs an agent that can see it (#391: it came after 12 s with nobody near, under a card that said an agent had seen you)
+export const STAR_WATCH_M = 80;
 
 export function exempt(world, v) {
   if (!world.player || world.health <= 0 || world.pendingRespawn || world.pigeonMode || world.heliRun || world.trainDriving || world.trainCam) return true;
@@ -104,13 +106,13 @@ export function updateTrafficLaw(dt, world) {
     return;
   }
   state.on += dt;
-  if (!state.fined && state.on >= GRACE_S) {
+  if (!state.fined && state.on >= GRACE_S && agentWatching(world, v ? v.x : p.x, v ? v.y : p.y, STAR_WATCH_M)) {
     state.fined = true;
     state.rearm = REARM_S;
     if ((world.wanted || 0) < 1) {
       world.wanted = 1;
       world.wantedDecayTimer = 0;
-      world.addMessage(STAR_TEXT, 5, { kind: 'politie', key: 'roadlaw-star' });
+      noteWantedWhy(world, kind === 'voetpad' ? (state.mode === 'fiets' ? 'voetpadFiets' : 'voetpadAuto') : kind);
     }
   }
 }

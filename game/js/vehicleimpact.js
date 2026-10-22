@@ -22,10 +22,11 @@ export function recordContact(a, b, x, y, nx, ny, impact, slide) {
 
 // Feedback hook: an 'impact' particle for effects, and world.lastImpact for
 // camera shake when the player is involved. strength is 0..1.
-export function reportImpact(world, x, y, closingSpeed, playerInvolved) {
+export function reportImpact(world, x, y, closingSpeed, playerInvolved, other = null) {
   if (!world) return;
   const strength = clamp(closingSpeed / 14, 0, 1);
   world.particles.push({ kind: 'impact', x, y, strength, until: world.time + 0.4 });
-  if (playerInvolved) world.lastImpact = { strength, time: world.time, x, y };
+  // other: the vehicle that was hit (a car against a car), so that pedestrians.js knows whether it was a police car (#391)
+  if (playerInvolved) world.lastImpact = { strength, time: world.time, x, y, other };
 }
 

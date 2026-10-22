@@ -393,7 +393,7 @@ for (const { name, map } of maps) {
   const mk = (road, inVehicle, extra = {}) => {
     const p = road.pts[Math.floor(road.pts.length / 2)];
     const msgs = [];
-    const w = { map, time: 0, health: 100, wanted: 0, player: { x: p[0], y: p[1], inVehicle }, addMessage: (t, s, o) => msgs.push([t, o && o.kind]), ...extra };
+    const w = { map, time: 0, health: 100, wanted: 0, player: { x: p[0], y: p[1], inVehicle }, addMessage: (t, s, o) => msgs.push([t, o && o.kind]), pedestrians: [], vehicles: [], ...extra };
     if (inVehicle) { inVehicle.x = p[0]; inVehicle.y = p[1]; }
     return { w, msgs };
   };
@@ -403,8 +403,12 @@ for (const { name, map } of maps) {
   run(w, 1);
   ok(msgs.length === 0, 'law: walking on the trunk road gives no warning card (#125)', msgs.map((m) => m[0]).join('|'));
   ok(w.wanted === 0, 'law: and no star yet', w.wanted);
-  run(w, L.GRACE_S);
-  ok(w.wanted === 1 && msgs.length === 1, 'law: after the grace period the police take an interest (one star)', `${w.wanted} ${msgs.length}`);
+  run(w, L.GRACE_S + 10);
+  ok(w.wanted === 0 && msgs.length === 0, 'law: after the grace period no star without an agent in sight (#391)', `${w.wanted} ${msgs.length}`);
+  w.pedestrians.push({ isCop: true, state: 'walk', x: w.player.x + 20, y: w.player.y });
+  run(w, 1);
+  ok(w.wanted === 1 && msgs.length === 1, 'law: with an agent in sight the police take an interest (one star)', `${w.wanted} ${msgs.length}`);
+  ok(msgs[0] && /politie zag het/.test(msgs[0][0]) && msgs[0][1] === 'politie', 'law: the card names the cause', msgs[0] && msgs[0][0]);
   run(w, 60);
   ok(w.wanted === 1, 'law: staying on it gives no second star', w.wanted);
   L.resetTrafficLaw();

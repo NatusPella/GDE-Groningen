@@ -36,6 +36,7 @@ const downKey = () => keyWord(getSettings().keyBinds, 'control');
 import { getVehicleMesh } from './models3d_vehicles.js';
 import { poseHeliRotors, updateHeliDust, ROTOR_Y } from './heli3d.js';
 import { getScene } from './scene3d.js';
+import { levelShadow } from './shadowlevel.js';
 import { unlockAchievement } from './achievements.js';
 import { helipadInfo } from './skyprops.js';
 import { shapeInputs } from './helictl.js';
@@ -433,7 +434,9 @@ export function updateHelis(dt, w) {
       const sh = mesh.userData.shadow;
       if (sh) {
         const alt = Math.max(0, v.z - (v.groundZ ?? v.z));
-        sh.position.y = -alt + 0.03;
+        // the blob is a child of the tilting mesh: straight down in the mesh's own frame slid it sideways by alt x sin(tilt) (30 m up, 20 degrees of roll:
+        // 10 m) and tilted it with the heli (#391). Offset and rotation get the mesh's pitch and roll taken out again, so it lies flat under the heli.
+        levelShadow(sh, mesh, alt - 0.03);
         const k = clamp(1 - alt / 60, 0, 1);
         sh.visible = k > 0.05;
         sh.scale.set(v.model.len * (0.9 + (1 - k) * 0.4), 1, 3.2 * (0.9 + (1 - k) * 0.4));
