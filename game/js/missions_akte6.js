@@ -21,7 +21,7 @@ export const BOURTANGE = {
   gracht: [42481, 22662],    // the northern bridge over the moat (Batterijenstraat)
   brug: [42505, 22712],      // the bridge at the Friesche Poort, where Wubbo's winch is
   bolwerk1: [42583, 22731],  // east bastion (a guardhouse stands at 42595, 22723)
-  bolwerk2: [42434, 22941],  // south bastion (42426, 22938 lies in the moat)
+  bolwerk2: [42435, 22930],  // south bastion (the tip at 42426, 22938 lies in the moat)
   bolwerk3: [42335, 22808],  // west bastion (guardhouse at 42323, 22806)
   poort: [42498, 22892],     // the Munsterse Poort, where Berend rides in
   plein: [42470, 22800],     // the Marktplein, where the Fjord Frituur stands
@@ -114,12 +114,12 @@ export function buildAkte6Defs() {
         { kind: 'scene', target: bourtangeAt('gracht', 'De gracht'), label: 'De gracht', kicker: 'De gracht van Bourtange', script: { ids: ['M30.2'] }, cast: [{ key: 'jelle', pose: 'hips', at: [3.4, 1.2] }] },
         { kind: 'goto', target: bourtangeAt('brug', 'De ophaalbrug'), mode: 'foot', radius: 10, label: 'Naar de ophaalbrug', say: 'Wubbo staat bij de lier. Hij opent een tel te vroeg.' },
         { kind: 'scene', target: bourtangeAt('brug', 'De ophaalbrug'), label: 'De ophaalbrug', kicker: 'De ophaalbrug', script: { ids: ['M30.3'] }, cast: [{ key: 'wubbo', pose: 'point', at: [2.6, 0.6] }, { key: 'berend', pose: 'arms', at: [3.4, -1.6] }] },
-        { kind: 'goto', target: bourtangeAt('bolwerk1', 'Het eerste bolwerk'), mode: 'foot', radius: 12, label: 'Naar het eerste bolwerk, Roelfien strooit meel', say: 'Boven jullie komt meel. Hoofd omlaag, naar het eerste bolwerk.' },
-        { kind: 'hold', target: bourtangeAt('bolwerk1', 'Het eerste bolwerk'), mode: 'foot', radius: 12, time: 8, ticks: ['Een witte wolk. De vlag staat bijna.', 'Nog even.'], label: 'Plant de vlag op het eerste bolwerk', say: 'Blijf op het bolwerk staan tot de vlag staat.', talk: { ids: ['M30.4'], from: 0, to: 1, delay: 1.5 } },
-        { kind: 'goto', target: bourtangeAt('bolwerk2', 'Het tweede bolwerk'), mode: 'foot', radius: 12, label: 'Naar het tweede bolwerk, Tammo en de duiven', say: 'Het tweede bolwerk. De duiven luisteren naar Tammo.' },
-        { kind: 'hold', target: bourtangeAt('bolwerk2', 'Het tweede bolwerk'), mode: 'foot', radius: 12, time: 8, ticks: ['Duiven op de hoeden. Er is een duif op een hoed.', 'Nog even.'], label: 'Plant de vlag op het tweede bolwerk', say: 'Blijf op het bolwerk staan tot de vlag staat.', talk: { ids: ['M30.4'], from: 1, to: 2, delay: 1.5 } },
-        { kind: 'goto', target: bourtangeAt('bolwerk3', 'Het derde bolwerk'), mode: 'foot', radius: 12, label: 'Naar het derde bolwerk, Tinus trekt de toren', say: 'Het derde bolwerk. Tinus trekt de toren, Durk en Douwe duwen het kanon om.' },
-        { kind: 'hold', target: bourtangeAt('bolwerk3', 'Het derde bolwerk'), mode: 'foot', radius: 12, time: 8, ticks: ['De toren leunt. Hij leunt goed.', 'Nog even.'], label: 'Plant de vlag op het derde bolwerk', say: 'Blijf op het bolwerk staan tot de laatste vlag staat.', talk: { ids: ['M30.4'], from: 2, delay: 1.5 } },
+        { kind: 'goto', target: bourtangeAt('bolwerk1', 'Het eerste bolwerk'), mode: 'foot', radius: 20, label: 'Naar het eerste bolwerk, Roelfien strooit meel', say: 'Boven jullie komt meel. Hoofd omlaag, naar het eerste bolwerk.' },
+        { kind: 'hold', target: bourtangeAt('bolwerk1', 'Het eerste bolwerk'), mode: 'foot', radius: 20, time: 8, ticks: ['Een witte wolk. De vlag staat bijna.', 'Nog even.'], label: 'Plant de vlag op het eerste bolwerk', say: 'Blijf op het bolwerk staan tot de vlag staat.', talk: { ids: ['M30.4'], from: 0, to: 1, delay: 1.5 } },
+        { kind: 'goto', target: bourtangeAt('bolwerk2', 'Het tweede bolwerk'), mode: 'foot', radius: 20, label: 'Naar het tweede bolwerk, Tammo en de duiven', say: 'Het tweede bolwerk. De duiven luisteren naar Tammo.' },
+        { kind: 'hold', target: bourtangeAt('bolwerk2', 'Het tweede bolwerk'), mode: 'foot', radius: 20, time: 8, ticks: ['Duiven op de hoeden. Er is een duif op een hoed.', 'Nog even.'], label: 'Plant de vlag op het tweede bolwerk', say: 'Blijf op het bolwerk staan tot de vlag staat.', talk: { ids: ['M30.4'], from: 1, to: 2, delay: 1.5 } },
+        { kind: 'goto', target: bourtangeAt('bolwerk3', 'Het derde bolwerk'), mode: 'foot', radius: 20, label: 'Naar het derde bolwerk, Tinus trekt de toren', say: 'Het derde bolwerk. Tinus trekt de toren, Durk en Douwe duwen het kanon om.' },
+        { kind: 'hold', target: bourtangeAt('bolwerk3', 'Het derde bolwerk'), mode: 'foot', radius: 20, time: 8, ticks: ['De toren leunt. Hij leunt goed.', 'Nog even.'], label: 'Plant de vlag op het derde bolwerk', say: 'Blijf op het bolwerk staan tot de laatste vlag staat.', talk: { ids: ['M30.4'], from: 2, delay: 1.5 } },
         { kind: 'goto', target: bourtangeAt('poort', 'De poort'), mode: 'foot', radius: 12, label: 'Naar de poort: Berend rijdt binnen', say: 'Drie vlaggen. Naar de poort, Berend wil binnenrijden.' },
         { kind: 'scene', target: bourtangeAt('poort', 'De poort'), label: 'De poort', kicker: 'De poort van Bourtange', script: { ids: ['M30.5'] }, cast: [{ key: 'berend', pose: 'arms', at: [3.2, 1.0] }, { key: 'jelle', pose: 'hips', at: [-3.4, -1.4] }] },
         { kind: 'goto', target: bourtangeAt('plein', 'De Fjord Frituur'), mode: 'foot', radius: 9, stop: 0.8, label: 'Naar de Fjord Frituur op het plein', say: 'De Fjord Frituur staat open. Iedereen eet eierballen op de wal.' },
