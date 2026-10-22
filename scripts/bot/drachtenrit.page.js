@@ -58,7 +58,6 @@ function trafficAhead(me) {
   const own = player.inVehicle;
   for (const v of world.vehicles || []) {
     if (v === own || v.wrecked || v.sinking || Math.hypot(v.x - me.x, v.y - me.y) > 40) continue;
-    if (v.isPolice && Math.hypot(v.x - me.x, v.y - me.y) < 8) continue;
     out.push({ x: v.x, y: v.y, r: Math.max(0.9, (v.halfWid || 1) * 0.9) });
   }
   // de pionnen van de afzetting: voor de bot een hindernis, zoals voor een speler die wil slalommen
@@ -67,7 +66,7 @@ function trafficAhead(me) {
 }
 
 while (act.active() && performance.now() - t0 < wall) {
-  await sleep(100);
+  await sleep(50);
   const s = B.status();
   const c = ctx();
   const d = c && c.data && c.data.s;
