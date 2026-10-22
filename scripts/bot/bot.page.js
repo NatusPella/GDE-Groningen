@@ -59,7 +59,8 @@ function dry(x, y) {
 // a car can drive over the point: dry and 1.7 m clear of every building (the game's own wall collision; buildingsNear answers for whole map cells, so it
 // says nothing about a single point). For the straight drive of the stunt (M01).
 function carFree(x, y) {
-  if (!dry(x, y)) return false;
+  // the car is 4 m long: water within 2.2 m of the point sinks the nose or the tail (the pond of M01 is a narrow strip, a point test sailed right over it)
+  if (!dry(x, y) || !dry(x + 2.2, y) || !dry(x - 2.2, y) || !dry(x, y + 2.2) || !dry(x, y - 2.2)) return false;
   try { const [rx, ry] = Co.resolveBuildingCollisions(x, y, 1.7, world.map); return Math.hypot(rx - x, ry - y) < 0.05; } catch (e) { return true; }
 }
 
@@ -653,6 +654,7 @@ while (true) {
           else if (s.t - mem.stuntNear.since > 6) { mem.stuntSkip[best.key] = s.t + 90; B.log('stunt-omweg', { key: best.key, x: Math.round(best.x), y: Math.round(best.y) }); mem.stuntNear = null; }
         } else mem.stuntNear = null;
         aim = { x: best.x, y: best.y, distance: bd }; top = 14;
+        if (s.t - (mem.stuntLogT || -9) >= 3) { mem.stuntLogT = s.t; B.log('stunt-rekwisiet', { soort: best.kind, x: Math.round(best.x), y: Math.round(best.y), d: Math.round(bd), hoek: Math.round(Math.abs(L.normAngle(L.headingTo({ x: s.player.x, y: s.player.y }, best) - s.player.vehicle.angle)) * 100) / 100, v: Math.round((s.player.vehicle.speed || 0) * 10) / 10, score: s.mission.stunt ? s.mission.stunt.score : null }); }
         // a prop close by but behind or beside the car (the turning circle is wider than the distance): the car circles it for ever. A stretch straight on
         // gives a run-up from further away (2.5 s)
         const err0 = Math.abs(L.normAngle(L.headingTo({ x: s.player.x, y: s.player.y }, best) - s.player.vehicle.angle));
