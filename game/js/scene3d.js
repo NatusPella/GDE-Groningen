@@ -94,6 +94,7 @@ import { SECTION, TILE_M, tileOrigin } from './gdt.js';
 import { initRailway3D, updateRailway3D, prewarmRailAt } from './railway3d.js';
 import { updateStationCrowd3D } from './stationlife3d.js';
 import { updateEvenementen3D } from './evenementen3d.js';
+import { updateWerf3D } from './werf3d.js';
 import { today as calendarTodayEv } from './calendarday.js';
 import { railZ } from './railway.js';
 import { cameraFocus } from './tilefocus.js';
@@ -2432,6 +2433,7 @@ export function update3D(dt, world) {
   updateStationCrowd3D(scene, world, railZ);
   updateEvenementen3D(scene, world, calendarTodayEv(world), (x, y) => (world.map.spawnZ ? world.map.spawnZ(x, y) : 0),
     (x, y, m) => !buildingAt(world.map, x, y, m) && !isInWater(world.map, x, y));
+  updateWerf3D(scene, world.werf, (x, y) => (world.map.spawnZ ? world.map.spawnZ(x, y) : 0));
   updateCountryside(dt, world, scene, cam, viewDist);
   updateOmmelandLandmarks(world, scene, focus, setBuildingHidden);
   probe.mark('3d:rail+country');
