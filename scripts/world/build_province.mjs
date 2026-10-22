@@ -682,6 +682,9 @@ async function main() {
   const built = buildProvince({ src, cityKeys, cityCover, fillOld: !args.includes('--no-fill'), viaducts: !args.includes('--flat'), terrain: args.includes('--terrain') ? (await import('./terrain.mjs')).loadReliefRasters() : null, onPack: args.includes('--verbose') ? (pk, s) => console.log(`  pack ${pk}: ${s.tiles} tiles so far`) : null });
   const t2 = performance.now();
   const { index, size } = writeProvince(out, built);
+  // the overlays of the city's tiles go into their tiles (#314): the loader takes them from there
+  const merged = (await import('./merge_overlays.mjs')).mergeOverlays(out);
+  if (merged.merged) console.log(`  ${merged.merged} overlays merged into the city's tiles (${(merged.provinceBytes / 1e6).toFixed(2)} MB out of the province packs)`);
   const raw = Object.values(index.tiles).reduce((a, t) => a + t.raw, 0);
   const s = built.stats;
   const g = built.global;
