@@ -91,14 +91,19 @@ function bouwBalie(w) {
   const mast = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.1, 3.2, 8), hout);
   mast.position.y = 1.6;
   grp.add(mast);
-  const bord = new THREE.Mesh(new THREE.PlaneGeometry(3.4, 1.3), new THREE.MeshBasicMaterial({ side: THREE.DoubleSide, map: canvasTex(512, 192, (g) => {
+  // het bord heeft twee kanten, elk goed leesbaar
+  const tekst = canvasTex(512, 192, (g) => {
     g.fillStyle = '#17304a'; g.fillRect(0, 0, 512, 192);
     g.strokeStyle = '#e7b83a'; g.lineWidth = 8; g.strokeRect(8, 8, 496, 176);
     g.fillStyle = '#f4efe0'; g.font = 'bold 54px Arial'; g.textAlign = 'center';
     g.fillText('VLIEGSCHOOL', 256, 84); g.fillStyle = '#e7b83a'; g.font = 'bold 44px Arial'; g.fillText('De Windwijzer', 256, 142);
-  }) }));
-  bord.position.set(0, 2.9, 0.12);
-  grp.add(bord);
+  });
+  for (const kant of [1, -1]) {
+    const bord = new THREE.Mesh(new THREE.PlaneGeometry(3.4, 1.3), new THREE.MeshBasicMaterial({ map: tekst }));
+    bord.position.set(0, 2.9, 0.12 * kant);
+    bord.rotation.y = kant > 0 ? 0 : Math.PI;
+    grp.add(bord);
+  }
   // een windzak aan een tweede mast, oranje en wit
   const mast2 = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.07, 5, 6), new THREE.MeshStandardMaterial({ color: 0xcfcfcf }));
   mast2.position.set(4, 2.5, 0);
@@ -107,9 +112,11 @@ function bouwBalie(w) {
   zak.rotation.z = Math.PI / 2;
   zak.position.set(5.3, 4.9, 0);
   grp.add(zak);
-  grp.position.set(st.x, gz, st.y);
+  // drie meter van de speler af, langs de baan, zodat niemand in de paal staat; het bord staat dwars op de baan
   const s = w.planeStrip;
-  grp.rotation.y = s ? -s.heading + Math.PI / 2 : 0; // het bord kijkt naar de baan
+  const h = s ? s.heading : 0;
+  grp.position.set(st.x + Math.cos(h) * 3.5, gz, st.y + Math.sin(h) * 3.5);
+  grp.rotation.y = -h;
   scene.add(grp);
   return grp;
 }
