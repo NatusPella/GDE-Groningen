@@ -262,11 +262,18 @@ export function bandFiguren(world, dt) {
     if (d > FIGUUR_WAARSCHUWING && !fig.gewaarschuwd && !snel) { fig.gewaarschuwd = true; if (world.coopMeld) world.coopMeld(fig.slot, 'Blijf bij de groep: te ver weg wordt je teruggezet.'); }
     if (d <= FIGUUR_WAARSCHUWING) fig.gewaarschuwd = false;
     fig.verTijd = d > band ? (fig.verTijd || 0) + dt : 0;
-    if (fig.verTijd >= (d > 300 ? 0.5 : FIGUUR_TERUG_S)) { // een sprong van de gastheer (snelreizen, herstel) haalt de figuur meteen bij
-      fig.verTijd = 0; fig.gewaarschuwd = false; fig.vx = 0; fig.vy = 0;
+    fig.vastMeet = (fig.vastMeet || 0) + dt; // vast in water of een muur (bijvoorbeeld na een sprong van de gastheer): vier keer per seconde meten, want er kunnen tot 16 spelers zijn
+    if (fig.vastMeet >= 0.25) { fig.vastTijd = world.coopVrij && !world.coopVrij(fig.x, fig.y, world) ? (fig.vastTijd || 0) + fig.vastMeet : 0; fig.vastMeet = 0; }
+    if (fig.verTijd >= (d > 300 ? 0.5 : FIGUUR_TERUG_S) || fig.vastTijd >= FIGUUR_TERUG_S) { // een sprong van de gastheer (snelreizen, herstel) haalt de figuur meteen bij
+      fig.verTijd = 0; fig.vastTijd = 0; fig.gewaarschuwd = false; fig.vx = 0; fig.vy = 0;
       if (plek) { fig.inVeh = v; fig.coopVoertuig = true; fig.x = v.x; fig.y = v.y; if (world.coopMeld) world.coopMeld(fig.slot, 'Je rijdt mee. Met E stap je uit als het voertuig stilstaat.'); continue; } // is er plek, dan zit hij weer in het voertuig (geen eindeloos terugzetten)
-      const a = (fig.slot * 1.7) % (Math.PI * 2);
-      fig.x = p.x + Math.cos(a) * 2.2; fig.y = p.y + Math.sin(a) * 2.2;
+      const a0 = (fig.slot * 1.7) % (Math.PI * 2);
+      fig.x = p.x; fig.y = p.y; // niets vrij rond de gastheer: dan op zijn plek
+      for (let i = 0; i < 8; i++) { // de eerste droge plek rond de gastheer, niet in het water of een gebouw
+        const a = a0 + i * Math.PI / 4, x = p.x + Math.cos(a) * 2.2, y = p.y + Math.sin(a) * 2.2;
+        if (!world.coopVrij || world.coopVrij(x, y, world)) { fig.x = x; fig.y = y; break; }
+      }
+      fig.gz = p.gz || 0;
       if (world.coopMeld) world.coopMeld(fig.slot, 'Je staat weer bij de groep.');
     }
   }
