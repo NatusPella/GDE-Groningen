@@ -24,10 +24,11 @@ export const GAP = {
   nav: 0.04, // two moves closer than this are one
   keyClick: 0.6, // the click a key makes (a button, the controller's A) comes this long after the key's own sound
   slider: 0.045,
+  after: 0.25, // after a choice or a way back the menu that closes or opens puts the focus somewhere: that is no move
 };
 
 export function newNav() {
-  return { visible: false, pointerAt: -1e9, openedAt: -1e9, navAt: -1e9, sliderAt: -1e9, keyAt: -1e9 };
+  return { visible: false, pointerAt: -1e9, openedAt: -1e9, navAt: -1e9, sliderAt: -1e9, keyAt: -1e9, doneAt: -1e9 };
 }
 
 // The roots of an element as one word; null when it is in none of them. `matches` answers a selector for the element (el.closest(...)).
@@ -80,7 +81,7 @@ export function decide(st, ev) {
       if (!i || !i.root) return NONE;
       // a menu that has just appeared takes the focus: that is no move (the poll of 'visible' may not have run yet)
       if (!st.visible) { st.openedAt = t; st.visible = true; return NONE; }
-      if (t - st.pointerAt < GAP.pointer || t - st.openedAt < GAP.opened || t - st.navAt < GAP.nav) return NONE;
+      if (t - st.pointerAt < GAP.pointer || t - st.openedAt < GAP.opened || t - st.navAt < GAP.nav || t - st.doneAt < GAP.after) return NONE;
       st.navAt = t;
       return tick(i.root === 'start' ? 1500 : 1800);
     }
@@ -89,8 +90,9 @@ export function decide(st, ev) {
       if (!i || !i.root) return NONE;
       // the key that made this click (a button, the controller's A) has played its sound already
       if (ev.detail === 0 && t - st.keyAt < GAP.keyClick) return NONE;
-      if (i.back) return { sound: 'back' };
+      if (i.back) { st.doneAt = t; return { sound: 'back' }; }
       if (i.ownSound || !i.item) return NONE;
+      st.doneAt = t;
       return { sound: 'select' };
     }
     case 'input': {
@@ -113,11 +115,12 @@ export function decide(st, ev) {
         // a slider, a checkbox or a list make their own sound on change
         if (i.ownSound) return NONE;
         st.keyAt = t;
+        st.doneAt = t;
         return { sound: i.back ? 'back' : 'select' };
       }
       // the pause menu closes on Escape with its own sound (the unfolding phone)
-      if (k === 'Escape') return i.root === 'pause' ? NONE : { sound: 'back' };
-      if (k === 'Backspace') return { sound: 'back' };
+      if (k === 'Escape') { if (i.root === 'pause') return NONE; st.doneAt = t; return { sound: 'back' }; }
+      if (k === 'Backspace') { st.doneAt = t; return { sound: 'back' }; }
       return NONE;
     }
     case 'api': {
@@ -127,8 +130,8 @@ export function decide(st, ev) {
         st.navAt = t;
         return tick(1800);
       }
-      if (ev.which === 'select') { st.keyAt = t; return { sound: 'select' }; }
-      if (ev.which === 'back') return { sound: 'back' };
+      if (ev.which === 'select') { st.keyAt = t; st.doneAt = t; return { sound: 'select' }; }
+      if (ev.which === 'back') { st.doneAt = t; return { sound: 'back' }; }
       if (ev.which === 'toggle') return { sound: 'toggle', on: ev.on !== false };
       return NONE;
     }
