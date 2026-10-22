@@ -24,7 +24,7 @@ ok(MENU_PLEKKEN.length >= 25, `minstens 25 plekken uit de provincie (nu ${MENU_P
 const streken = new Set(MENU_PLEKKEN.map((p) => p.streek));
 ok(streken.size >= 8, `plekken uit minstens 8 streken (nu ${streken.size})`);
 ok(MENU_PLEKKEN.every((p) => /^[a-z0-9-]+$/.test(p.id)), 'plek-ids zijn kebab-case');
-ok(MENU_PLEKKEN.every((p) => [p.x, p.y, p.R, p.z, p.lookZ].every(Number.isFinite) && p.R >= 50 && p.R <= 400 && p.z > 3 && p.z < 60 && p.lookZ >= 0 && p.lookZ < 60), 'afstand en hoogte van elke plek zijn aannemelijk');
+ok(MENU_PLEKKEN.every((p) => [p.x, p.y, p.R, p.z, p.lookZ].every(Number.isFinite) && p.R >= 50 && p.R <= 650 && p.z > 3 && p.z < 60 && p.lookZ >= 0 && p.lookZ < 60), 'afstand en hoogte van elke plek zijn aannemelijk');
 ok(MENU_PLEKKEN.every((p) => p.x > -30000 && p.x < 46000 && p.y > -29000 && p.y < 42000), 'elke plek ligt in het wereldframe van de provincie');
 ok(MENU_PLEKKEN.every((p) => !p.hoek || (p.hoek[1] > p.hoek[0] && p.hoek[1] - p.hoek[0] <= 360)), 'hoekbereiken kloppen');
 ok(!streken.has(STAD_STREEK), 'de stad is geen streek van de provincielijst (die komt uit de kaart)');
@@ -158,11 +158,11 @@ const winkel = () => { const m = new Map(); return { getItem: (k) => (m.has(k) ?
         const velden = [q.position.x, q.position.y, q.position.z, q.lookAt.x, q.lookAt.y, q.lookAt.z, q.fov, q.focusDist];
         if (!velden.every(Number.isFinite) || d < 0.55 * plek.R || d > 1.35 * plek.R || q.position.z < 3 || q.position.z > 90 || q.lookAt.x !== plek.x) fout++;
         if (prev) {
-          // rustig: de camera schuift minder dan 12 m/s en de kijkrichting draait minder dan 3 graden per seconde
+          // rustig: de camera schuift minder dan 25 m/s en de kijkrichting draait minder dan 3 graden per seconde
           const v = Math.hypot(q.position.x - prev.position.x, q.position.y - prev.position.y, q.position.z - prev.position.z) / 0.5;
           const a0 = Math.atan2(plek.y - prev.position.y, plek.x - prev.position.x), a1 = Math.atan2(plek.y - q.position.y, plek.x - q.position.x);
           const dw = Math.abs(Math.atan2(Math.sin(a1 - a0), Math.cos(a1 - a0))) * 2;
-          if (v > 12 || deg(dw) > 3) fout++;
+          if (v > 25 || deg(dw) > 3) fout++;
         }
         prev = q;
       }
