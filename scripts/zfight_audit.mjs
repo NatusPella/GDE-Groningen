@@ -10,6 +10,9 @@
 //   near    12 mm-tol only at long range / grazing angles
 //   node scripts/zfight_audit.mjs [--all] [--r=450] [--area=x0,y0,x1,y1]
 //        [--tol=0.02] [--top=20] [--json] [--module=generic]
+// --vehicles audits the vehicle meshes instead of the city (#382): every traffic model plus the
+// bus with its destination boards, police, ambulance and the other specials, each as a module
+// 'vehicle:<name>' (no map, no building data needed). --list prints every spot.
 // Needs the vendored three.js once: cd desktop && npm run stage
 import './node3d.mjs';
 import fs from 'node:fs';
@@ -22,6 +25,8 @@ const TOP = +opt('top', 20);
 const RADIUS = has('all') ? Infinity : +opt('r', 450);
 const AREA = opt('area', '') ? opt('area').split(',').map(Number) : null;
 const ONLY = opt('module', '');
+const VEH = has('vehicles');
+let DEBUG = +opt('debug', 0); // print the first N visible pairs with their normals, for hunting a pattern
 const MIN_AREA = 0.0004;
 const T0 = Date.now();
 const log = (...a) => { if (!has('json')) console.error(`[${((Date.now() - T0) / 1000).toFixed(1)}s]`, ...a); };
@@ -62,12 +67,15 @@ GeoBuilder.prototype.build = function () {
   return geo;
 };
 
-const { loadCityData } = await import('./lib/loadworld.mjs');
-const data = await loadCityData();
-const map = new GameMap(data);
-MB.setBuildingMap(map);
-try { (await import('../game/js/home.js')).prepareHomeMap(map); } catch (e) { log('prepareHomeMap skipped:', e.message); }
-log('map loaded,', map.buildings.length, 'buildings');
+let map = null;
+if (!VEH) {
+  const { loadCityData } = await import('./lib/loadworld.mjs');
+  const data = await loadCityData();
+  map = new GameMap(data);
+  MB.setBuildingMap(map);
+  try { (await import('../game/js/home.js')).prepareHomeMap(map); } catch (e) { log('prepareHomeMap skipped:', e.message); }
+  log('map loaded,', map.buildings.length, 'buildings');
+}
 
 const CENTRE = { x: 100.63, y: 76.18 };
 function moduleOf(b) {
@@ -143,7 +151,8 @@ function addObject(rootObj, owner) {
         let key = 'm' + mid, name = (m.name || m.type.replace('Mesh', '').replace('Material', '')) + mid;
         if (m.vertexColors && col) {
           const c = [col.getX(ia), col.getY(ia), col.getZ(ia)].map((x) => Math.round(x * 255));
-          key += ':' + c.join(',');
+          // colours within a few levels of each other look the same: not a visible fight
+          key += ':' + c.map((x) => Math.round(x / 6)).join(',');
           name += ' #' + c.map((x) => x.toString(16).padStart(2, '0')).join('');
         } else if (m.color) name += ' #' + m.color.getHexString();
         // textured: same material with different texture coordinates is a different look
@@ -167,9 +176,55 @@ function addObject(rootObj, owner) {
 }
 
 // ------------------------------------------------------------ build
+async function addVehicles() {
+  const { buildVehicleMesh, setHorseMeshBuilder } = await import('../game/js/models3d_vehicles.js');
+  const { buildHorseMesh } = await import('../game/js/countryside.js');
+  setHorseMeshBuilder(buildHorseMesh);
+  const { Vehicle, TRAFFIC_MODELS } = await import('../game/js/vehicle.js');
+  const { attachBusBoards } = await import('../game/js/busboard3d.js');
+  const seen = new Set();
+  const cases = [];
+  for (const m of TRAFFIC_MODELS()) {
+    if (seen.has(m.name)) continue;
+    seen.add(m.name);
+    cases.push([m.name, m, {}]);
+  }
+  const extra = (name, base, flags) => { const m = TRAFFIC_MODELS().find((x) => x.name === base); if (m) cases.push([name, m, flags]); };
+  // models the traffic table does not hold (the same list scripts/seat_audit.mjs seats people in)
+  for (const [n, len, wid, flags = {}] of [['cashvan', 5.2, 2.0], ['foodtruck', 5.4, 2.1], ['truck', 8.5, 2.5], ['truck', 8.5, 2.5, { model: { tank: true } }], ['trekkerlimo', 5.6, 2.0], ['tractor', 4.3, 2.3], ['quad', 2.1, 1.2], ['taxi', 4.6, 1.8], ['escort', 4.0, 1.65, { isHeroCar: true }], ['midibus', 8.4, 2.3]]) {
+    cases.push([n + (flags.model && flags.model.tank ? '-tank' : ''), { name: n, len, wid, color: '#888888' }, flags]);
+  }
+  extra('police', 'sedan', { isPolice: true });
+  extra('ambulance', 'van', { isAmbulance: true });
+  extra('bus-gelede', 'bus', { model: { trailer: 6.8 } });
+  // the destination boards (busboard3d.js attachBusBoards) on every bus the game builds
+  for (const c of cases.slice()) if (/bus/.test(c[0])) cases.push([c[0] + '+borden', c[1], { ...c[2], borden: true }]);
+  let col = 0;
+  for (const [name, model0, flags] of cases) {
+    const model = { ...model0, ...(flags.model || {}) };
+    const v = new Vehicle(0, 0, 0, model);
+    Object.assign(v, flags, { model });
+    delete v.borden;
+    v.isBike = model.name === 'bike';
+    v.isScooter = model.name === 'scooter';
+    let grp;
+    try { grp = buildVehicleMesh(v); } catch (e) { log('build failed', name, e.message); continue; }
+    if (flags.borden) {
+      const c = document.createElement('canvas');
+      attachBusBoards(grp, model, new THREE.Texture(c));
+    }
+    grp.position.set(col++ * 30, 0, -9000);
+    owners.push({ b: null, mod: 'vehicle:' + name, name });
+    const n0 = N;
+    addObject(grp, owners.length - 1);
+    const s = modStat('vehicle:' + name);
+    s.buildings++;
+    s.tris += N - n0;
+  }
+}
 const perModule = {};
 const modStat = (m) => perModule[m] || (perModule[m] = { buildings: 0, tris: 0, pairs: 0, flush: 0, close: 0, near: 0, area: 0 });
-for (const b of map.buildings) {
+for (const b of (VEH ? [] : map.buildings)) {
   const mod = moduleOf(b);
   if (!wanted(b, mod)) continue;
   let grp;
@@ -181,7 +236,8 @@ for (const b of map.buildings) {
   s.buildings++;
   s.tris += N - n0;
 }
-if (!ONLY || ONLY === 'canopies') {
+if (VEH) await addVehicles();
+if (!VEH && (!ONLY || ONLY === 'canopies')) {
   try {
     const grp = (await import('../game/js/canopies3d.js')).buildCanopies(map);
     owners.push({ b: null, mod: 'canopies', name: 'canopies' });
@@ -298,7 +354,7 @@ function heightField(k) {
   return h;
 }
 function insideSolid(x, y, z) {
-  if (y < -1) return false;
+  if (y < -1 || !map) return false;
   for (const b of map.buildingsNear(x, z, 0.5)) {
     if (b.hidden || !pointInPolygon(x, z, b.pts)) continue;
     const k = ownerOf.get(b);
@@ -355,7 +411,12 @@ function openShare(t, ov, sign) {
 }
 // visible share: some side that both triangles show is open
 function pairVisible(i, j, dot, ov) {
-  if (DBL[i] && DBL[j]) return Math.max(openShare(i, ov, 1), openShare(i, ov, -1));
+  if (DBL[i] && DBL[j]) {
+    const up = openShare(i, ov, 1), down = openShare(i, ov, -1);
+    // back to back (a wall top under a slab, a box against a box): both sides have to be open, else one side is
+    // inside a solid and nothing of the pair can be seen from there
+    return dot < 0 ? Math.min(up, down) : Math.max(up, down);
+  }
   if (dot > 0) return openShare(i, ov, 1);
   // opposite facing: i's front with j's back (j double-sided), or j's front with i's back
   return Math.max(DBL[j] ? openShare(i, ov, 1) : 0, DBL[i] ? openShare(j, ov, 1) : 0);
@@ -398,6 +459,7 @@ for (const [, list] of grid) {
       hiddenArea += ov.a * (1 - vis);
       ov.a *= vis;
       const sep = Math.max(Math.abs(sMin), Math.abs(sMax));
+      if (DEBUG > 0 && ov.a > +opt('debugarea', 0) && DEBUG-- > 0) console.error('pair', 'n', [0, 1, 2].map((k) => NRM[i * 3 + k].toFixed(2)).join(','), [0, 1, 2].map((k) => NRM[j * 3 + k].toFixed(2)).join(','), 'dbl', DBL[i], DBL[j], 'sep', sep.toFixed(4), 'area', ov.a.toFixed(2), 'vis', vis, 'at', ov.x.toFixed(2), ov.y.toFixed(2), ov.z.toFixed(2));
       const oi = owners[OWNER[i]], oj = owners[OWNER[j]];
       const mod = OWNER[i] === OWNER[j] ? oi.mod : [oi.mod, oj.mod].sort().join('+');
       const s = modStat(mod);
