@@ -1,5 +1,5 @@
-// H3's stunt evening on screen (stuntavond.js drives it): a brief at the
-// start that says what scores and the target, then a score panel under the
+// H3's stunt evening on screen (stuntavond.js drives it): a short brief at the
+// start (one sentence with the goal, one line on what counts; #392), then a score panel under the
 // top-right block with a progress bar to the target, the combo with its
 // window running out, a "nog X punten" line near the end, and a popup per
 // action ("+120 parasol", "reeks x2", "-250 iemand geraakt"). Lives in #hud,
@@ -24,14 +24,14 @@ const CSS = `
 #hud .stunt-hud .sh-left[data-urgent="1"] { color: #e8c93a; animation: sh-pulse 0.9s ease-in-out infinite alternate; }
 #hud .stunt-hud .sh-left[data-done="1"] { color: var(--gron-green-light); }
 @keyframes sh-pulse { to { opacity: 0.55; } }
-#hud .stunt-pops { position: absolute; top: calc(var(--hud-tr-bottom) + 12px); right: 256px; width: 220px; height: 150px; pointer-events: none; }
+#hud .stunt-pops { position: absolute; top: calc(var(--hud-tr-bottom) + 12px); right: 292px; width: 220px; height: 150px; pointer-events: none; }
 #hud .stunt-pop { position: absolute; right: 0; top: 0; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 28px;
   letter-spacing: 0.5px; color: #f0ede4; text-shadow: var(--hud-shadow); white-space: nowrap; animation: sh-rise 1.5s ease-out forwards; }
 #hud .stunt-pop b { font-weight: normal; color: var(--gron-green-light); }
 #hud .stunt-pop.combo { font-size: 24px; color: var(--gron-green-light); }
 #hud .stunt-pop.bad b, #hud .stunt-pop.bad { color: #d93f3f; }
 @keyframes sh-rise { 0% { transform: translateY(20px) scale(0.85); opacity: 0; } 12% { transform: translateY(0) scale(1.05); opacity: 1; } 70% { opacity: 1; } 100% { transform: translateY(-46px); opacity: 0; } }
-#hud .stunt-brief { position: absolute; left: 50%; top: 22%; transform: translateX(-50%); width: min(440px, 86vw); box-sizing: border-box;
+#hud .stunt-brief { position: absolute; left: 50%; top: 22%; transform: translateX(-50%); width: min(340px, 86vw); box-sizing: border-box;
   padding: 14px 18px 12px; border-radius: 12px; background: rgba(10, 19, 13, 0.88); border: 1px solid rgba(63, 201, 122, 0.3);
   border-top: 3px solid var(--gron-green-light); color: #f0ede4; text-shadow: var(--hud-shadow); animation: hud-rise var(--dur-slow, 320ms) var(--ease-out, ease-out); }
 #hud .stunt-brief.out { opacity: 0; transition: opacity 0.4s; }
@@ -46,7 +46,7 @@ const CSS = `
 @media (max-width: 760px) { #hud .stunt-pops { right: 14px; top: calc(var(--hud-tr-bottom) + 150px); } }
 `;
 
-const BRIEF_TIME = 11;
+const BRIEF_TIME = 6;
 const MAX_POPS = 5;
 
 let els = null;
@@ -85,18 +85,16 @@ function ensure() {
   return els;
 }
 
-// rules: [[label, points], ...] in the order the brief lists them
-export function showStuntHud(target, rules, { hitCost, comboMax, comboS }) {
+// (older callers still pass a rules list and options; the brief no longer lists them)
+export function showStuntHud(target) {
   const e = ensure();
   if (!e) return;
   state = { target, shown: -1, briefT: BRIEF_TIME, briefUp: false };
   e.target.textContent = String(target);
   e.brief.classList.remove('out');
   e.brief.innerHTML = `<h3>Stuntavond: ${target} punten</h3>` +
-    `<p>Jelmer streamt. Doel: rij met de Escapade over de Grote Markt, gooi dingen omver en haal ${target} punten voor de tijd op is. Niemand raken.</p>` +
-    '<ul>' + rules.map(([l, p]) => `<li><span>${l}</span><span>+${p}</span></li>`).join('') +
-    `<li class="bad"><span>Iemand raken</span><span>-${hitCost}</span></li></ul>` +
-    `<div class="sb-foot">Snel achter elkaar scoren is een reeks: tot x${comboMax}, binnen ${comboS} seconden na je vorige punten.</div>`;
+    `<p>Rij over de Grote Markt en sloop spullen voor de tijd om is.</p>` +
+    '<div class="sb-foot">Alles wat je omver rijdt telt. Mensen springen opzij en kosten niets.</div>';
   e.panel.hidden = false;
 }
 
@@ -137,7 +135,7 @@ export function updateStuntHud(dt, s, paused) {
   let text, urgent = false;
   if (!left) text = 'Doel gehaald!';
   else if (left <= s.target * 0.35 || (tl != null && tl <= 30)) { text = `Nog ${left} punten${tl != null ? ` · ${tl}s` : ''}`; urgent = true; }
-  else text = 'Spullen omver, duiven op, niemand raken';
+  else text = 'Sloop spullen, stuur duiven op';
   if (e.left.textContent !== text) e.left.textContent = text;
   e.left.dataset.urgent = urgent ? '1' : '0';
   e.left.dataset.done = left ? '0' : '1';
