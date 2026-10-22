@@ -7,6 +7,8 @@
 //   count as a crime for witnesses (a star is given here only when the police
 //   saw it, or when the heat piles up far past the limit)
 
+import { noteWantedWhy, WANTED_OWN_CARD } from './wantedwhy.js';
+
 const STAR_HEAT = 100;
 const RAMPAGE_HEAT = 220;
 const COOL_PER_S = 7;
@@ -37,6 +39,8 @@ export function reportCrime(world, kind, opts = {}) {
   if ((seen && serious) || heat >= RAMPAGE_HEAT) {
     world.wanted = Math.min(5, (world.wanted || 0) + 1);
     world.wantedDecayTimer = 0;
+    // the cause on the card (#391): what the police saw, or the pile of small offences that was never seen
+    if (!WANTED_OWN_CARD.has(kind)) noteWantedWhy(world, seen ? kind : 'overlast');
     heat = seen ? STAR_HEAT * 0.4 : 0;
   }
   return serious;

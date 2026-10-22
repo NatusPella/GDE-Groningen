@@ -34,6 +34,7 @@ import { hourOf } from './streetlifedata.js';
 import { buildingAt } from './tileplace.js';
 import { groupSpot, crowdPedCap } from './evenementenlive.js';
 import { centreOf } from './evenementen.js';
+import { noteWantedWhy } from './wantedwhy.js';
 
 const WANDER_SPEED = 1.3;
 const FLEE_SPEED = 3.6;
@@ -387,7 +388,7 @@ function gatherEvents(world) {
   }
   for (const ped of world.pedestrians) {
     if (ped._hp !== undefined && ped.health < ped._hp && world.time - lastPlayerAttackAt < 1.2) {
-      if (ped.isCop) { if (world.wanted === 0) world.wanted = 1; }
+      if (ped.isCop) { if (world.wanted === 0) { world.wanted = 1; noteWantedWhy(world, 'agentAangevallen'); } }
       else events.push({ kind: 'hit', x: ped.x, y: ped.y, r: 25, crime: !ped.rager, victim: ped }); // hitting a road-rager is self-defence
     }
     ped._hp = ped.health;
@@ -527,7 +528,7 @@ function blastAt(world, v, scale = 1) {
       if (ped.isCop) world.stats.copKills++;
       else world.stats.pedKills++;
       if (v.reportKills) {
-        if (ped.isCop) world.wanted = Math.min(5, world.wanted + 2);
+        if (ped.isCop) { world.wanted = Math.min(5, world.wanted + 2); noteWantedWhy(world, 'copAanval'); }
         else reportCrime(world, 'pedKill');
       }
     }
