@@ -36,6 +36,8 @@ const panelMat = (hex, glas) => {
   }
   return m;
 };
+// de open deur van een bus kijkt in een verlichte bus (grijsblauw), niet in een zwart gat (#385)
+const BUS_HOLE_MAT = (() => { const m = new THREE.MeshBasicMaterial({ color: 0x59636d }); m.userData.shared = true; return m; })();
 const HOLE_MAT = (() => { const m = new THREE.MeshBasicMaterial({ color: 0x121214 }); m.userData.shared = true; return m; })();
 
 const toHex = (c, fb) => (typeof c === 'number' ? c : typeof c === 'string' ? new THREE.Color(c).getHex() : fb);
@@ -86,7 +88,7 @@ function buildRig(mesh, v, defs) {
       pivot.position.set(baseX, d.y0 + d.h / 2, baseZ);
       panel = new THREE.Mesh(panelGeo(d.w, d.h), panelMat(paint, glas));
       panel.position.x = d.soort === 'scharnier' ? -d.w / 2 : d.soort === 'achterscharnier' ? d.w / 2 : 0;
-      hole = new THREE.Mesh(panelGeo(d.w * 0.92, d.h * 0.92), HOLE_MAT);
+      hole = new THREE.Mesh(panelGeo(d.w * 0.92, d.h * 0.92), v.isBus ? BUS_HOLE_MAT : HOLE_MAT);
       // schuifdeuren (bus): het deurblad zit al in het model op hw+0.014, de opening moet daar vóór liggen
       hole.position.set(cx, d.y0 + d.h / 2, d.side * (hw + (d.soort === 'schuif' ? 0.02 : 0.006)));
     }
@@ -98,7 +100,7 @@ function buildRig(mesh, v, defs) {
   }
   const body = mesh.userData.body || mesh;
   body.add(group);
-  mesh.userData.doorRig = { group, doors, paint };
+  mesh.userData.doorRig = { group, doors, paint, bus: !!v.isBus };
   return mesh.userData.doorRig;
 }
 
@@ -111,7 +113,9 @@ function pose(rig, id, open, dmg) {
   if (!e.pivot.visible) return;
   if (d.soort === 'schuif') {
     e.pivot.position.x = e.baseX + (d.dir || 1) * a;
-    e.pivot.position.z = e.baseZ + d.side * 0.07 * Math.min(1, a / 0.2);
+    // een busdeur schuift het lichaam in (het blad verdwijnt achter de romp); buiten langs de bus gleed het als een grijs
+    // vlak over het wiel en voorbij de neus (#385). Een tram laat zijn deuren buitenlangs schuiven.
+    e.pivot.position.z = e.baseZ + d.side * (rig.bus ? -0.06 : 0.07) * Math.min(1, a / 0.2);
     e.pivot.rotation.y = 0;
   } else if (d.soort === 'kap') {
     e.pivot.rotation.z = a;
