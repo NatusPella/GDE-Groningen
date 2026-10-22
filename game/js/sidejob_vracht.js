@@ -180,7 +180,7 @@ export default {
     const d = c.data, tr = d.tr;
     if (!tr) return {};
     if (d.phase === 'hook') {
-      const h = koppelHulp(v, tr, KP_BACK);
+      const h = koppelHulp(c.vehicle, tr, KP_BACK);
       return { marker: { x: tr.kx, y: tr.ky }, progress: `Rit ${c.streak + 1} · koppelen · ${Math.round(h.dist)} m, ${h.tip}`, goal: { label: `Koppel de ${tr.spec.name.toLowerCase()}`, desc: 'Achteruit, rechtdoor onder de oplegger' } };
     }
     return { marker: { x: d.dest.x, y: d.dest.y }, progress: `Rit ${c.streak + 1} · lading ${d.cargo}% heel`, goal: { label: `Naar ${d.klant.naam}`, desc: `${d.dest.street} · ${d.klant.vracht}. Geen inklappers!` } };
