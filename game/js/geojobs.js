@@ -18,13 +18,14 @@ export function registerKernels(k) { KERNELS = k; }
 // Two workers: the road and shore kernels (roadInit builds the whole network once, 9 to 13 s; roadGeo and shore use it) keep one to
 // themselves, so the props and the terrain are not queued behind that set-up (#247).
 const workers = [null, null];
-const WORKER_OF = { roadInit: 1, roadGeo: 1, shoreInit: 1, shore: 1 }; // shore reads the road worker's map
+const WORKER_OF = { roadPreload: 1, roadInit: 1, roadGeo: 1, shoreInit: 1, shore: 1 }; // shore reads the road worker's map
 const workerOf = (kind) => (FLAGS.perfoff && FLAGS.perfoff.includes('eenworker') ? 0 : WORKER_OF[kind] || 0);
 let failed = !WANT;
 let nextId = 1;
 const open = new Map();
 // set-up jobs that only mean something in the worker (never redone here)
-const WORKER_ONLY = new Set(['roadInit', 'shoreInit']);
+const WORKER_ONLY = new Set(['roadPreload', 'roadInit', 'shoreInit']);
+export const WORKER_ONLY_KINDS = WORKER_ONLY; // (scripts/roadpreload_test.mjs)
 const fallbackHooks = [];
 let fellBack = false;
 // byKind: per job kind the count, the longest round trip (ms, queue wait included) and the most jobs open at once (#247)
@@ -54,7 +55,7 @@ function getWorker(i = 0) {
   try {
     const worker = workers[i] = new Worker(new URL('./geoworker.js', import.meta.url), { type: 'module' });
     worker.onmessage = (e) => {
-      const { id, result, error } = e.data;
+      const { id, result, error, ms } = e.data;
       const j = open.get(id);
       if (!j) return;
       if (error) { fail(error); return; }
@@ -63,6 +64,8 @@ function getWorker(i = 0) {
       const rt = performance.now() - j.t0, ks = kindStat(j.kind);
       geoStats.maxRoundTrip = Math.max(geoStats.maxRoundTrip, rt);
       ks.n++; ks.sumMs += rt; ks.maxMs = Math.max(ks.maxMs, rt);
+      // the round trip minus the kernel's own time: the wait in the queue and for the main thread to take the answer
+      if (ms !== undefined) { ks.execMs = (ks.execMs || 0) + ms; ks.execMax = Math.max(ks.execMax || 0, ms); ks.waitMax = Math.max(ks.waitMax || 0, rt - ms); }
       j.done(result);
     };
     worker.onerror = (e) => { e.preventDefault(); fail(e.message || 'error'); };

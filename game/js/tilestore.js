@@ -88,7 +88,7 @@ export async function decodeCompressed(bytes, aside = null) {
 // 1.5 / 2 / 3 ms). Items run in priority order (lower first); at least one
 // item per call so nothing starves.
 export class FrameQueue {
-  constructor() { this.items = []; this.seq = 0; this.stats = { ran: 0, maxMs: 0, over: 0 }; }
+  constructor() { this.items = []; this.seq = 0; this.stats = { ran: 0, maxMs: 0, over: 0, byKind: {} }; }
   add(fn, priority = 0, label = '') { this.items.push({ fn, priority, seq: this.seq++, label }); }
   get size() { return this.items.length; }
   drop(label) { this.items = this.items.filter((i) => i.label !== label); }
@@ -104,6 +104,12 @@ export class FrameQueue {
       n++;
       const spent = now() - t;
       this.stats.maxMs = Math.max(this.stats.maxMs, spent);
+      // per kind of item ('add', 'drop': the label up to the colon) the count, the total and the longest, and how many took over 5, 20 and 50 ms (#247)
+      const k = it.label.split(':')[0] || '-', ks = this.stats.byKind[k] || (this.stats.byKind[k] = { n: 0, ms: 0, max: 0, over5: 0, over20: 0, over50: 0 });
+      ks.n++; ks.ms += spent; ks.max = Math.max(ks.max, spent);
+      if (spent > 5) ks.over5++;
+      if (spent > 20) ks.over20++;
+      if (spent > 50) ks.over50++;
       if (now() - t0 >= budgetMs) break;
     }
     this.stats.ran += n;
@@ -115,7 +121,12 @@ export class FrameQueue {
 
 // --------------------------------------------------------------- store
 
-const DEFAULTS = { budgetBytes: 150e6, concurrency: 4, holdMs: 10000, unloadMargin: 300 };
+// budgetBytes counts the raw (inflated) bytes of the resident tiles, but a decoded tile is ~26 times as large on the JS heap (rows, points and
+// bounds as objects: 640 kB for the average streamed tile, scripts/perf/tilemem.mjs, #379). 150e6 raw never filled up (all 2930 province tiles
+// are 92 MB raw), so nothing was ever evicted and a long trip piled up 0.6 MB per tile on the heap, up to 2.4 GB for the whole province. 40e6 raw
+// is the pinned city (14e6) plus ~830 tiles (~530 MB of heap) at the hard cap, and from 20e6 the tiles that lie beyond the wanted ring
+// (hysteresis in prefetch) go first.
+const DEFAULTS = { budgetBytes: 40e6, concurrency: 4, holdMs: 10000, unloadMargin: 300 };
 
 export class TileStore {
   // index: parsed index.json; decode(bytes) -> Promise<tile> (default: inflate + decode on this thread)
