@@ -1410,7 +1410,13 @@ function hookShadowPass(shadowMap) {
 // later. Fullscreen passes are never skipped, nor are depth materials (compiling the object does not compile the
 // shadow pass's own material, so a skipped caster would never come back), and without the extension nothing changes.
 const linkPending = new Set();
-const LINK_GUARD_AFTER = 600;
+// The guard works from the first canvas frame on (#247; canvasFrames counts after the frame): the first frames behind the boot screen drew every program of the scene for the
+// first time, and each draw waited for its link one after the other (18 s of a 44 s boot, 14.7 s in one frame on a loaded machine,
+// profile of the boot, docs/PERF-METING Vervolg 12). Now the draws of unlinked programs wait and all links run in parallel; the world
+// fills in over the first seconds. A recording (trailer, frames, video, preview) keeps the old 600 frames: its first shots must be complete.
+// `?perfoff=linkvroeg` is the old behaviour for an A/B.
+const LINK_GUARD_AFTER = 600, LINK_GUARD_EARLY = -1;
+const linkGuardFrom = () => (FLAGS.trailer || FLAGS.frames || FLAGS.video || FLAGS.preview || perfOff('linkvroeg') ? LINK_GUARD_AFTER : LINK_GUARD_EARLY);
 // three sorts the opaque draws by material id, so the materials of one program lie wherever their ids fall and the renderer
 // switches program (and uploads the lights, fog and shadow uniforms again) far more often than there are programs.
 // This sort puts the program first: the id of the program a material was last drawn with, noted after each draw of the
@@ -1444,7 +1450,7 @@ function hookLinkGuard(r) {
   r.renderBufferDirect = function (camera, sc, geometry, material, object, group) {
     if (guard === null) guard = r.extensions.has('KHR_parallel_shader_compile');
     // not in the first seconds: the load screen, the title and the first shots wait for the prewarm, which draws the materials once
-    if (guard && canvasFrames > LINK_GUARD_AFTER && (sc === null || sc === scene) && !material.isMeshDepthMaterial && !material.isMeshDistanceMaterial && !perfOff('linkwacht')) {
+    if (guard && canvasFrames > linkGuardFrom() && (sc === null || sc === scene) && !material.isMeshDepthMaterial && !material.isMeshDistanceMaterial && !perfOff('linkwacht')) {
       const programs = r.properties.get(material).programs;
       let ready = !!programs;
       if (programs) for (const p of programs.values()) if (!programLinked(p)) { ready = false; break; }
