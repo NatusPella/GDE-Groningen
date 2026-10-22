@@ -1,4 +1,4 @@
-import { FLAGS } from './devflags.js';
+import { FLAGS, reseedAutoplay } from './devflags.js';
 import { hasSave, readSave, applySave, startNewSlot, getSaveSummary, ensureActiveSlot } from './savegame.js';
 import { openSaveSlots, isSaveSlotsOpen } from './saveslotsui.js';
 import { listSlots } from './saveslots.js';
@@ -555,6 +555,7 @@ export function runStartScreen(world, { render, relocate, tick, ready }) {
     const startNew = () => {
       startTheme();
       restoreWorld();
+      reseedAutoplay();
       startNewSlot();
       finish('game');
     };

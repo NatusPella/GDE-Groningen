@@ -12,6 +12,9 @@ export const STORY_TEST = q.has('storytest');
 // ?autoplay[=seed] (Spelbot, #186): playerapi.js opens window.__bot; storage stays in memory, Math.random is seeded
 export const AUTOPLAY = q.has('autoplay');
 if (AUTOPLAY) Math.random = seededRandom(Number(q.get('autoplay')) || 1);
+// the menu spends a timing-dependent number of draws before a game starts (it cuts to another viewpoint every few seconds): the bot run starts the game on a
+// fresh seed, so the same seed is the same game (startscreen.js startNew; no effect without ?autoplay)
+export function reseedAutoplay() { if (AUTOPLAY) Math.random = seededRandom(Number(q.get('autoplay')) || 1); }
 // ?testmenu (testmenu.js) leans on the dev storage too: flipping switches and
 // jumping around must never reach the real save.
 export const DEV = q.has('dev') || q.has('testmenu') || STORY_TEST || AUTOPLAY;

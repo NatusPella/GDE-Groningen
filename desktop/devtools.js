@@ -5,7 +5,12 @@
 const { app, ipcMain } = require('electron');
 const path = require('path');
 const fsSync = require('fs');
-const { argValue, hasFlag, findArg } = require('./args.cjs');
+const { argValue, hasFlag, findArg, readArgFile } = require('./args.cjs');
+const REPO_ROOT = path.resolve(__dirname, '..');
+// A harness run (an unattended Electron on a throwaway profile) never opens an error dialog: an uncaught exception in the
+// main process is logged and the run goes on (or ends by its own timeout). Nobody is there to click it away.
+process.on('uncaughtException', (e) => console.error('[devtools] uncaughtException:', e && e.stack || e));
+process.on('unhandledRejection', (e) => console.error('[devtools] unhandledRejection:', e && e.stack || e));
 
 // --trailer[=WxH] plays the trailer for recordings (js/trailer.js), also on a
 // throwaway profile; --trailer-shot=N one shot, --trailer-cut=kort the short
@@ -99,7 +104,8 @@ function attach(win, { gameDir }) {
     try { if (!dbg.isAttached()) dbg.attach('1.3'); await dbg.sendCommand('Emulation.setCPUThrottlingRate', { rate: throttle }); } catch (e) { console.log('[cpu-throttle]', e.message); }
   });
   const evalFile = argValue('--bench-eval');
-  if (evalFile) win.webContents.on('dom-ready', () => win.webContents.executeJavaScript(fsSync.readFileSync(evalFile, 'utf8')).catch((e) => console.log('[bench-eval]', e.message)));
+  const evalSrc = evalFile ? readArgFile(evalFile, '--bench-eval', REPO_ROOT) : null;
+  if (evalSrc) win.webContents.on('dom-ready', () => win.webContents.executeJavaScript(evalSrc).catch((e) => console.log('[bench-eval]', e.message)));
   // --boot-capture=<dir>: the page's console.log('[bootcap] name') saves a screenshot to <dir>/boot-<name>.png
   // (QA: the first loading screen, scripts/qa/boot_shots.mjs)
   const bootCap = argValue('--boot-capture');
@@ -151,6 +157,8 @@ function attach(win, { gameDir }) {
     const apply = () => win.webContents.enableDeviceEmulation({ screenPosition: hasFlag('--emulate-mobile') ? 'mobile' : 'desktop', screenSize: { width: +emu[1], height: +emu[2] }, viewPosition: { x: 0, y: 0 }, viewSize: { width: +emu[1], height: +emu[2] }, deviceScaleFactor: 1, scale: Number(emu[3]) || 0.5 });
     win.webContents.on('did-finish-load', apply);
   }
+  // GDE_BOOT_PROFILE=<ms>: a CPU profile of the first ms of the page (from dom-ready), for what the boot and the menu gate wait for (#247)
+  if (process.env.GDE_BOOT_PROFILE) win.webContents.once('dom-ready', () => runProfile(win, Number(process.env.GDE_BOOT_PROFILE)).catch((err) => console.log('[profile]', err.message)));
   if (storyTest) runStoryTest(win, storyTest.includes('=') ? storyTest.slice(storyTest.indexOf('=') + 1) : path.join(require('os').tmpdir(), 'gde-story-test'));
   if (smoke !== null) {
     win.webContents.on('console-message', function (e, legacyLevel, legacyMessage) {
@@ -187,9 +195,10 @@ function attach(win, { gameDir }) {
         // --perf-script=<file>: after starting a game, run the file's body as an
         // async function in the page and log what it returns
         const scriptArg = argValue('--perf-script');
+        const scriptBody = scriptArg !== null ? readArgFile(scriptArg, '--perf-script', REPO_ROOT) : null; // a missing file skips the script: no dialog
         // --bot-events=<file>: where the Spelbot's events go (see above)
         const botEvents = argValue('--bot-events');
-        if (scriptArg !== null) {
+        if (scriptBody !== null) {
           // console.log('[capture] name') from the script saves a screenshot
           // next to the smoke-test png: <smoke>-<name>.png
           win.webContents.on('console-message', async (e, legacyLevel, legacyMessage) => {
@@ -213,7 +222,7 @@ function attach(win, { gameDir }) {
             const img = await win.webContents.capturePage();
             fsSync.writeFileSync(smoke.replace(/\.png$/, `-${message.slice(10).trim()}.png`), img.toPNG());
           });
-          const body = fsSync.readFileSync(scriptArg, 'utf8');
+          const body = scriptBody;
           await win.webContents.executeJavaScript(`(async () => {
             const key = (k, code) => { for (const t of [window, document]) { t.dispatchEvent(new KeyboardEvent('keydown', { key: k, code, bubbles: true })); t.dispatchEvent(new KeyboardEvent('keyup', { key: k, code, bubbles: true })); } };
             if (!${JSON.stringify(!!process.env.GDE_MENU_TEST)}) { // GDE_MENU_TEST=1: het script krijgt het hoofdmenu zelf (coöp-testbank --menu)
@@ -240,7 +249,8 @@ function attach(win, { gameDir }) {
           const atArg = argValue('--perf-at');
           const spots = atArg ? atArg.split(';').map((s) => s.split(',').map(Number)) : [null];
           const expArg = argValue('--perf-exp');
-          const expFiles = expArg ? expArg.split('+').map((f) => fsSync.readFileSync(f, 'utf8')) : ['null'];
+          const expFiles = expArg ? expArg.split('+').map((f) => readArgFile(f, '--perf-exp', REPO_ROOT)).filter((t) => t !== null) : ['null'];
+          if (!expFiles.length) expFiles.push('null');
           const expSrc = expFiles.pop(), expPre = expFiles.join(';\n');
           await win.webContents.executeJavaScript(`(async () => {
             const key = (k, code) => { for (const t of [window, document]) { t.dispatchEvent(new KeyboardEvent('keydown', { key: k, code, bubbles: true })); t.dispatchEvent(new KeyboardEvent('keyup', { key: k, code, bubbles: true })); } };
