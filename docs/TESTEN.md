@@ -44,6 +44,11 @@ Het onderstaande over duur en belasting zijn schattingen op een gewone ontwikkel
 - **Speeltest van #74 (`scripts/qa/speeltest74.mjs`):** de handmatige speeltests als scripted run met beelden en metingen: achteruitkijken (Q) in een auto op een Ommeland-weg (kijkrichting van de camera ten opzichte van de auto), een GPS-doel in het Ommeland (route, minimap, kaart, afslagbanner), frametijd-pieken bij het rijden met 30 m/s met zichtafstand normaal, ver en heel ver (`--only=heelver`), en een padelpotje met auto-spel (`--only=padel`). De auto rijdt kinematisch langs de langste weg, zodat de wereld streamt zoals bij een echte rit.
 - Eén Electron-instantie per deel, wegwerpprofiel, `--slot` neemt een slot uit `gde-locks`. `ELECTRON_EXE` en `GAME_WORLD` wijzen een Electron en een gestagede wereld aan als de worktree er geen heeft. Het logboek zegt altijd dat niemand de beelden heeft gezien.
 
+## Hengelen overal (#412)
+
+- `node scripts/vis_test.mjs`: de soorten en tabellen, het watertype uit de naam en de soort polygoon, het water bij de speler (een nep-kaart), het visboek en zijn opslag, het vak Hengelen en de balans van het geld met een bot die uren hengelt (in de gewone testreeks).
+- `node scripts/qa/vissen_shots.mjs --game=<gestagede game-map> --slot [--only=plekken,boot,vissen,boeken,diag]`: in het echte spel in één headless Electron: het water herkennen op acht plekken, hengelen vanaf de kant en vanuit een sloep met de echte toetsen (I en Spatie), screenshots van prompt, HUD, Visboek en het vak Hengelen. `diag` toont de echte waterpolygonen rond de plekken.
+
 ## Diepte (z-fighting, #382)
 
 Vlakken die op dezelfde diepte liggen flikkeren of springen door elkaar, vooral borden op bussen en gevels. Drie hulpmiddelen:
