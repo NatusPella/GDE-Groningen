@@ -33,6 +33,7 @@ import { getOmmelandSpots } from './ommelandfun.js';
 import { reachableFacilities, FAC } from './facilities.js';
 import { roadNear, roadKind, tilesIn, withTiles } from './tileplace.js';
 import { respawnArrival } from './respawn.js';
+import { wgsToWorld } from './rdnew.js';
 
 const DRIVE_REACH = 25;
 const WALK_REACH = 45;
@@ -105,7 +106,7 @@ export async function collectSpots(world) {
   const out = [];
   const add = (kind, id, p, mode = 'walk') => { if (p) out.push({ kind, id, x: p.x, y: p.y, mode }); };
   const defs = getMissionDefs() || [];
-  defs.forEach((d, i) => {
+  for (const [i, d] of defs.entries()) {
     const tag = d.id || d.label || `#${i}`;
     add('missie-start', tag, d.start, d.startAt === 'rental' ? 'air' : 'walk');
     if (d.dest) add('missie-doel', tag, d.dest, d.onFoot ? 'walk' : 'drive');
@@ -119,15 +120,19 @@ export async function collectSpots(world) {
       add('missie-heist', `${tag} stroomkast`, resolveMissionTarget(world, d.heist.fuse, d.start));
       add('missie-heist', `${tag} vitrine`, resolveMissionTarget(world, d.heist.vitrine, d.start));
     }
-    (d.stages || []).forEach((st, k) => {
+    for (const [k, st] of (d.stages || []).entries()) {
       const mode = stageMode(st);
       for (const t of [st.target, ...(st.kind === 'pigeon' ? [] : st.targets || [])]) {
         if (!t || RUNTIME.some((r) => t[r])) continue;
-        const p = resolveMissionTarget(world, t, d.start);
+        // a mission resolves its targets (snapped to a road or an open spot) while the player is there and the tiles round the target
+        // are in; resolved here with those tiles pinned, or a province target whose tiles the streamer has dropped (the tile budget,
+        // #379) stays the raw map point: a bastion in the moat, a slalom bend 29 m from the road
+        const raw = t.snap ? (t.at ? { x: t.at[0], y: t.at[1] } : t.ll ? (([x, y]) => ({ x, y }))(wgsToWorld(t.ll[0], t.ll[1])) : null) : null;
+        const p = raw ? await onTiles(world.map, raw, 240, () => resolveMissionTarget(world, t, d.start)) : resolveMissionTarget(world, t, d.start);
         add('missie-doel', `${tag} stage ${k} ${st.kind}${st.label ? ' "' + st.label + '"' : ''}`, p, t.z != null ? 'air' : mode);
       }
-    });
-  });
+    }
+  }
   for (const s of getShopsForRender()) add('winkel', `${s.type} ${s.name || ''}`, s);
   for (const g of getGaragesForRender()) add('garage', g.name, g, 'drive');
   for (const h of getHomeSpots(world)) add('thuis', h.name, h, h.mode);
