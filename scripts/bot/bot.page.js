@@ -19,6 +19,7 @@ const MS = await imp('missions');
 const BK = await imp('bakeround');
 const Co = await imp('collision');
 const Un = await imp('util');
+const TL = await imp('trafficlaw');
 const BAKE_KEYS = { ei: '1', zout: '2', meel: '3', vet: '4', mosterd: '5' };
 for (let i = 0; i < 600 && !window.__bot; i++) await sleep(100);
 const B = window.__bot;
@@ -374,7 +375,7 @@ function meterEnd(s, id, outcome) {
 let lastWanted = 0;
 function track(s) {
   // a rise of the wanted level: where, how fast and what stood near (why the police come)
-  if ((s.wanted || 0) > lastWanted) B.log('gezocht', { van: lastWanted, naar: s.wanted, x: Math.round(s.player.x), y: Math.round(s.player.y), v: s.player.vehicle ? Math.round(s.player.vehicle.speed * 10) / 10 : 0, kind: s.player.vehicle ? s.player.vehicle.kind : 'voet', peds: s.nearby.peds, politie: s.nearby.police, msgs: s.hud.messages.slice(0, 3) });
+  if ((s.wanted || 0) > lastWanted) B.log('gezocht', { van: lastWanted, naar: s.wanted, x: Math.round(s.player.x), y: Math.round(s.player.y), v: s.player.vehicle ? Math.round(s.player.vehicle.speed * 10) / 10 : 0, kind: s.player.vehicle ? s.player.vehicle.kind : 'voet', peds: s.nearby.peds, politie: s.nearby.police, wet: TL.getLawState().kind, waarom: world.stats && world.stats.lastWantedWhy, msgs: s.hud.messages.slice(0, 3) });
   lastWanted = s.wanted || 0;
   const id = s.story.end ? 'einde' : s.story.id;
   if (id === lastStep) meterTick(s);   // a new step starts its own meter below: its first goal belongs after its 'begin'

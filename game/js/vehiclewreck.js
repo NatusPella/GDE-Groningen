@@ -1,6 +1,7 @@
 // Voertuig uitschakelen en de telling van door de speler gesloopte voertuigen: leaf-module,
 // zodat railway.js en breakables.js geen cyclus met vehicle.js vormen (#108).
 import { createShards, dropShards } from './roadshards.js';
+import { noteWantedWhy } from './wantedwhy.js';
 
 // world.stats.playerWrecks is a monotonic counter (sikkomfeed diffs it), so
 // each vehicle may only add to it once. Callers without a world (the
@@ -51,5 +52,6 @@ export function wreckVehicle(world, v, byPlayer) {
     world.stats.kills++;
     world.stats.copKills++;
     world.wanted = Math.min(5, world.wanted + 2);
+    noteWantedWhy(world, 'copAanval');
   }
 }
