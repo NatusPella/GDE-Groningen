@@ -10,7 +10,7 @@ import { drawMapIcon, drawMapIconHalo, drawRoute, drawRoadRoute, forEachPoliceUn
 import { getGaragesForRender } from './garages.js';
 import { getHomeForRender, getHomeGarageForRender, getHomeMooringForRender, getHomeHelipadForRender } from './home.js';
 import { layerOn, setLayer as storeLayer } from './mapfilters.js';
-import { tekenVeroverd, tekenVlag } from './gebiedenkaart.js';
+import { tekenVeroverd, tekenLegendeVlag } from './gebiedenkaart.js';
 import { getHorecaForRender } from './horeca.js';
 import { getShopsForRender, getShopsDecluttered, storyTargetShop, drawStoryShopRing } from './shops.js';
 import { SHOP_TYPES } from './shopdata.js';
@@ -1747,7 +1747,7 @@ function drawLegendIcon(ctx, kind) {
     ctx.fillStyle = kind === 'text-wijk' ? inkA('cream', 0.6) : INK.cream;
     ctx.fillText(kind === 'text-wijk' ? 'WIJK' : 'Abc', 12, 13);
   } else if (kind === 'veroverd') {
-    tekenVlag(ctx, 9, 20, 15, '#e8a33c');
+    tekenLegendeVlag(ctx);
   } else if (kind === 'buildings') {
     ctx.fillStyle = MAP_STYLE.building;
     ctx.fillRect(5, 6, 8, 7);

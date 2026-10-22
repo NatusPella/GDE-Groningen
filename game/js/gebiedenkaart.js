@@ -90,3 +90,8 @@ export function tekenVeroverd(ctx, toScreen, scale, cw, ch, hover, label, kleurT
   }
   ctx.restore();
 }
+
+// Het icoontje in de legenda van de kaart (24 px raster).
+export function tekenLegendeVlag(ctx) {
+  tekenVlag(ctx, 9, 20, 15, G.NIVEAUS[0].vlag);
+}

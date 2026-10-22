@@ -156,7 +156,7 @@ t('de teksten: Nederlands, rustig, geen geweld en geen echte merken', () => {
 t('normaliseer: kapot, oud of vreemd geeft een geldig profiel; getallen en lijsten begrensd', () => {
   for (const raw of [null, undefined, '', '{kapot', 'null', 7, [], { v: 0 }, { v: 2, gedaan: ['x'] }]) assert.deepEqual(G.normaliseer(raw), G.nieuwProfiel());
   const p = G.normaliseer(JSON.stringify({ v: 1, gedaan: ['a', 'a', 5, '', null, 'b'], beloond: 'nee', zaad: true, rommel: 1 }));
-  assert.deepEqual(p, { v: 1, gedaan: ['a', 'b'], beloond: [], zaad: true });
+  assert.deepEqual(p, { v: 1, gedaan: ['a', 'b'], beloond: [], huizen: [], zaad: true });
   assert.deepEqual(G.normaliseer(JSON.parse(JSON.stringify(p))), p, 'heen en terug is stabiel');
   const groot = G.normaliseer({ v: 1, gedaan: Array.from({ length: 5000 }, (_, k) => 'x' + k) });
   assert.equal(groot.gedaan.length, 2000);
@@ -218,6 +218,80 @@ t('kaartKleur: niets gedaan is niet getekend, onderweg loopt van oker naar groen
 t('de tabel van de soorten klopt: alleen bekende soorten, elk met een naam', () => {
   for (const s of G.SOORTEN) assert.ok(s.naam && s.enkel && s.meer);
   assert.deepEqual(new Set(WERELD.taken.filter((x) => G.soortInfo(x.soort)).map((x) => x.soort)), new Set(['missie', 'baan', 'spel', 'vondst', 'geheim']));
+});
+
+
+// ------------------------------------------------------------------ safehouses (fase 2)
+t('huisVan: alleen wijken en plaatsen die te veroveren zijn; een verzonnen adres dat bij het gebied blijft', () => {
+  const i = ind();
+  assert.equal(G.huisVan(i, 's:stad'), null, 'een streek heeft geen woning');
+  assert.equal(G.huisVan(i, 'w:Verweggistan'), null, 'te weinig te doen');
+  assert.equal(G.huisVan(i, 'w:nergens'), null);
+  const h = G.huisVan(i, 'w:Oosterpark');
+  assert.equal(h.id, 'h:w:Oosterpark');
+  assert.equal(h.naam, 'Safehouse Oosterpark');
+  assert.match(h.adres, /^[A-Za-z' ]+ [0-9]{1,2}$/);
+  assert.ok(h.makelaar.length > 8);
+  assert.deepEqual(G.huisVan(ind(), 'w:Oosterpark'), h, 'elke keer hetzelfde adres');
+  assert.notEqual(G.huisVan(i, 'w:Hoornse Plas').adres, h.adres);
+  assert.deepEqual(G.huizenLijst(i).map((x) => x.gebied).sort(), ['w:Hoornse Plas', 'w:Oosterpark']);
+});
+t('huisPrijs: de basisprijs van de laag, tot de helft korting als je bijna klaar bent', () => {
+  const i = ind(), p = G.nieuwProfiel();
+  assert.equal(G.huisPrijs(p, i, 'h:w:Oosterpark'), G.HUIS_PRIJS.wijk);
+  G.markeer(p, i, 'm:a');
+  const een = G.huisPrijs(p, i, 'h:w:Oosterpark');
+  assert.ok(een < G.HUIS_PRIJS.wijk && een > G.HUIS_PRIJS.wijk / 2 && een % 5 === 0, String(een));
+  G.markeer(p, i, 'b:taxi');
+  assert.ok(G.huisPrijs(p, i, 'h:w:Oosterpark') < een);
+  assert.equal(G.huisPrijs(p, i, 'h:s:stad'), null);
+  assert.equal(G.huisPrijs(p, i, 'kapot'), null);
+  assert.ok(G.HUIS_PRIJS.plaats > G.HUIS_PRIJS.wijk);
+});
+t('koopHuis: te weinig geld, genoeg geld, al gekocht en onbekend; de aanroeper trekt het geld af', () => {
+  const i = ind(), p = G.nieuwProfiel();
+  assert.deepEqual(G.koopHuis(p, i, 'h:w:Oosterpark', 100), { ok: false, prijs: 1800, reden: 'geld' });
+  assert.deepEqual(p.huizen, []);
+  const r = G.koopHuis(p, i, 'h:w:Oosterpark', 5000);
+  assert.deepEqual(r, { ok: true, prijs: 1800, reden: '' });
+  assert.deepEqual(p.huizen, ['h:w:Oosterpark']);
+  assert.equal(G.koopHuis(p, i, 'h:w:Oosterpark', 5000).reden, 'al');
+  assert.equal(G.koopHuis(p, i, 'h:s:stad', 5000).reden, 'onbekend');
+  assert.equal(G.koopHuis(p, i, 'h:w:Oosterpark', NaN).ok, false);
+});
+t('een veroverde wijk of plaats geeft de woning cadeau, een streek niet; zaaien ook, zonder geld', () => {
+  const i = ind(), p = G.nieuwProfiel();
+  for (const id of ['m:a', 'b:taxi']) G.markeer(p, i, id);
+  const r = G.markeer(p, i, 'a:kart:2');
+  assert.deepEqual(p.huizen, ['h:w:Oosterpark']);
+  assert.equal(r.beloningen[0].huis, true);
+  assert.equal(G.beloningVan(i, 's:stad').huis, false);
+  const q = G.nieuwProfiel();
+  G.zaai(q, i, ['m:a', 'u:taxi', 's:kartRaces']);
+  assert.deepEqual(q.huizen, ['h:w:Oosterpark']);
+  assert.equal(G.koopHuis(p, i, 'h:w:Oosterpark', 5000).reden, 'al', 'cadeau: niet nog eens kopen');
+});
+t('huizen in het profiel: genormaliseerd, samengevoegd en oude profielen zonder huizen blijven geldig', () => {
+  assert.deepEqual(G.normaliseer({ v: 1, gedaan: ['a'], beloond: [] }).huizen, []);
+  assert.deepEqual(G.normaliseer({ v: 1, huizen: ['h:x', 'h:x', 5, ''] }).huizen, ['h:x']);
+  assert.deepEqual(G.voegSamen({ v: 1, huizen: ['h:a'] }, { v: 1, huizen: ['h:b', 'h:a'] }).huizen.sort(), ['h:a', 'h:b']);
+});
+t('inrichting: vijf stappen die meegroeien met de voortgang; de laatste pas als alles gedaan is', () => {
+  assert.equal(G.inrichting(0, false).niveau, 0);
+  assert.equal(G.inrichting(0.3, false).niveau, 1);
+  assert.equal(G.inrichting(0.5, false).niveau, 2);
+  assert.equal(G.inrichting(0.99, false).niveau, 3);
+  assert.equal(G.inrichting(0.2, true).niveau, 4, 'veroverd is volledig ingericht');
+  assert.equal(G.inrichting(NaN, false).niveau, 0);
+  assert.equal(G.inrichting(0, false).stappen.length, 5);
+  assert.equal(G.ONDERDUIK_UREN.length, 5);
+  assert.ok(G.ONDERDUIK_UREN.every((u, k, a) => k === 0 || u <= a[k - 1]), 'beter ingericht is korter onderduiken');
+});
+t('de woningen zijn verzonnen: geen echte makelaars en geen geweld in de teksten', () => {
+  const src = fs.readFileSync(JS + 'gebieden.js', 'utf8');
+  const blok = src.slice(src.indexOf('// --- safehouses'));
+  for (const w of ['schiet', 'bloed', 'moord', 'wapen', 'inbraak']) assert.ok(!blok.toLowerCase().includes(w), w);
+  for (const echt of ['Funda', 'Pararius', 'Jaap', 'Rabobank']) assert.ok(!blok.includes(echt), echt);
 });
 
 // ------------------------------------------------------------------ de haken van het spel
