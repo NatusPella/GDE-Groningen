@@ -22,6 +22,7 @@ import { STORY_AKTE2 } from './missionstory_akte2.js';
 import { STORY_AKTE6 } from './missionstory_akte6.js';
 import './cutscenes_akte3.js';
 import './cutscenes_akte4.js';
+import './cutscenes_akte6.js';
 
 // Story cutscenes around the mission chain: who asks and why (start), the
 // payoff (success) and a short sting (fail). Tammo and Tessa's relationship
