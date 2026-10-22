@@ -18,9 +18,8 @@ const DOELEN = [
 ];
 const only = (window.__mp && window.__mp.ids ? window.__mp.ids.split(',') : []).filter(Boolean);
 let cam = null;
-let stop = false;
-const hold = () => { if (cam) w.cameraOverride = cam; if (!stop) requestAnimationFrame(hold); };
-requestAnimationFrame(hold);
+// het spel zet w.cameraOverride zelf terug op null: een eigen eigenschap die altijd onze camera geeft
+Object.defineProperty(w, 'cameraOverride', { configurable: true, get: () => cam, set: () => {} });
 const fixWorld = () => {
   w.clock = 14;
   w.weather = { active: false, timer: 1e9, kind: 'helder', peak: 0, intensity: 0, wet: 0, overcast: 0, mist: 0, windAngle: 0.9, elapsed: 0, duration: Infinity };
@@ -46,6 +45,7 @@ for (const [naam, x, y] of DOELEN) {
   console.log('[capture] kerk-' + naam);
   await sleep(900);
 }
-stop = true;
+delete w.cameraOverride;
+w.cameraOverride = null;
 clearInterval(skipper);
 return JSON.stringify({ ...uit, beelden: [{ naam: 'kerken' }] });
