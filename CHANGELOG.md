@@ -6,6 +6,12 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Nieuw
+- **Hoofdmenu: bij elke start een andere keuze oriëntatiepunten uit de hele provincie als achtergrond (#380; in Electron door Claude in beeld bekeken, niet door een mens):** achter Alleen spelen en Samen spelen zie je nu kerken op wierden, molens, borgen, het dorp Oudeschans en de vesting Bourtange, naast het stadsbeeld van voorheen, met een rustige cameramove (om het punt heen, inzoomend, omhoog of zijwaarts), zomerlicht dat van achter de camera komt en geen regen of nacht meer. Elke start begint met een andere plek dan de vorige, een reeks komt uit verschillende streken, en het menu onthoudt wat je zag. De wereld laadt rond de eerste plek mee tijdens het opstarten, een volgende plek wordt alvast ingeladen en de camera wisselt pas als die er is. Het menu wacht nog steeds tot de wereld getekend en rustig is.
+
+### Verbeterd
+- **Hoofdmenu: geen uitlegzinnetjes meer onder de knoppen (#380; de knoppen zelf nog niet in beeld bekeken):** Alleen spelen, Samen spelen en de rest tonen alleen pictogram en naam; de zinnetjes zijn uit het menu en de stijl verwijderd. De knoppen houden hun naam voor schermlezers.
+
 ## [0.38.2] - 2026-10-22
 
 ### Opgelost
