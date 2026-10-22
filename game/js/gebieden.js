@@ -174,7 +174,7 @@ export function kiesTaak(ind, sleutel, x, y) {
 
 // --- het profiel van de speler -------------------------------------------------------------------------------------
 
-export const nieuwProfiel = () => ({ v: SLEUTEL_VERSIE, gedaan: [], beloond: [] });
+export const nieuwProfiel = () => ({ v: SLEUTEL_VERSIE, gedaan: [], beloond: [], huizen: [] });
 
 const lijstVan = (a, max) => (Array.isArray(a) ? [...new Set(a.filter((x) => typeof x === 'string' && x && x.length <= MAX_ID + 2))].slice(0, max) : []);
 
@@ -186,6 +186,7 @@ export function normaliseer(raw) {
   if (!d || typeof d !== 'object' || d.v !== SLEUTEL_VERSIE) return p;
   p.gedaan = lijstVan(d.gedaan, MAX_GEDAAN);
   p.beloond = lijstVan(d.beloond, 400);
+  p.huizen = lijstVan(d.huizen, 400);
   if (d.zaad === true) p.zaad = true;
   return p;
 }
@@ -196,6 +197,7 @@ export function voegSamen(a, b) {
   const p = nieuwProfiel();
   p.gedaan = lijstVan([...x.gedaan, ...y.gedaan], MAX_GEDAAN);
   p.beloond = lijstVan([...x.beloond, ...y.beloond], 400);
+  p.huizen = lijstVan([...x.huizen, ...y.huizen], 400);
   if (x.zaad || y.zaad) p.zaad = true;
   return p;
 }
@@ -226,7 +228,7 @@ export function beloningVan(ind, gebiedId, kies = 0) {
   if (!g) return null;
   const n = g.niveau === 'streek' && g.id === 's:' + STAD_ID ? { ...NIVEAUS[2], titel: () => 'Stadsbaas van Grunn' } : niveauInfo(g.niveau);
   const regels = grap[g.niveau];
-  return { gebied: g.id, naam: g.naam, niveau: g.niveau, titel: n.titel(g.naam), geld: n.geld, vlag: n.vlag, regel: regels[Math.abs(Math.floor(kies)) % regels.length] };
+  return { gebied: g.id, naam: g.naam, niveau: g.niveau, titel: n.titel(g.naam), geld: n.geld, vlag: n.vlag, regel: regels[Math.abs(Math.floor(kies)) % regels.length], huis: g.niveau !== 'streek' };
 }
 
 // Een taak is gedaan. Geeft { nieuw, beloningen }: de gebieden die er nu helemaal klaar door zijn (en nog niet beloond waren).
@@ -240,6 +242,7 @@ export function markeer(p, ind, taakId) {
     if (!g.veroverbaar || p.beloond.includes(gid)) continue;
     if (voortgang(p, ind, gid).klaar >= g.taken.length) {
       p.beloond.push(gid);
+      geefHuis(p, ind, gid);
       uit.beloningen.push(beloningVan(ind, gid, p.beloond.length));
     }
   }
@@ -259,7 +262,7 @@ export function zaai(p, ind, bekend) {
     n++;
   }
   for (const g of ind.gebieden) {
-    if (g.veroverbaar && !p.beloond.includes(g.id) && voortgang(p, ind, g.id).klaar >= g.taken.length) p.beloond.push(g.id);
+    if (g.veroverbaar && !p.beloond.includes(g.id) && voortgang(p, ind, g.id).klaar >= g.taken.length) { p.beloond.push(g.id); geefHuis(p, ind, g.id); }
   }
   p.zaad = true;
   return n;
@@ -293,4 +296,70 @@ export function kaartKleur(v, vlag) {
   const t = Math.min(1, v.deel);
   const r = Math.round(214 - 130 * t), g = Math.round(168 + 22 * t), b = Math.round(60 + 20 * t);
   return { kleur: `rgb(${r},${g},${b})`, alpha: 0.14 + 0.14 * t };
+}
+
+// --- safehouses (fase 2 van #414) -----------------------------------------------------------------------------------
+// In elke veroverbare wijk en plaats staat één verzonnen woning. Je koopt hem (goedkoper naarmate je meer in dat gebied deed) of
+// krijgt hem als het gebied helemaal gedaan is. Wat erin kan: slapen en opslaan, de garage, de kledingkast, een snelreisanker en
+// onderduiken (daar zoekt de politie niet). De inrichting groeit mee met je voortgang. Alle straten en makelaars zijn verzonnen.
+export const HUIS_PRIJS = { wijk: 1800, plaats: 4200 };
+export const HUIS_KORTING_MAX = 0.5;     // bij bijna klaar nog de helft van de prijs
+export const ONDERDUIK_UREN = [3, 3, 2, 2, 1]; // per inrichtingsniveau: hoe lang je onderduikt voor de politie je kwijt is
+
+const STRATEN = ['Kneuterlaan', 'Zoutkeetsteeg', 'Dikke Muurpad', 'Peerdestraat', 'Klaverhofje', 'Wierdeweg', 'Turfmarkt', 'Piepschuimlaan', 'Kwakkelsingel', 'Lantaarnsteeg', 'Boterkoekenlaan', 'Schuurdeurpad', 'Heidekoppad', 'Mosterdgang', 'Spekdijk', 'Notenkraakweg', 'Fietsbelhof', 'Klompenlaan', 'Waterhoenweg', 'Koekoeksbloemstraat'];
+const MAKELAARS = ['Vastgoed Dubbeltje', 'Makelaardij Stevig en Scheef', 'Huisje Boompje Beestje', 'Woonbureau De Wierde', 'Makelaar Zeven Dakpannen', 'Kantoor Kwartje Korting'];
+const hashTekst = (t) => { let h = 2166136261; for (const c of String(t)) h = Math.imul(h ^ c.charCodeAt(0), 16777619) >>> 0; return h; };
+
+export const huisId = (gebiedId) => 'h:' + gebiedId;
+
+// De woning van een gebied, of null (een streek heeft er geen en een gebied met te weinig te doen ook niet).
+export function huisVan(ind, gebiedId) {
+  const g = ind.gebied.get(gebiedId);
+  if (!g || !g.veroverbaar || g.niveau === 'streek') return null;
+  const h = hashTekst(gebiedId);
+  return { id: huisId(gebiedId), gebied: gebiedId, niveau: g.niveau, naam: `Safehouse ${g.naam}`, adres: `${STRATEN[h % STRATEN.length]} ${(h >>> 8) % 98 + 1}`, makelaar: MAKELAARS[(h >>> 16) % MAKELAARS.length], x: g.x, y: g.y };
+}
+export function huizenLijst(ind) {
+  return ind.gebieden.map((g) => huisVan(ind, g.id)).filter(Boolean);
+}
+export const heeftHuis = (p, huisIdent) => p.huizen.includes(huisIdent);
+
+// Gratis bij een veroverd gebied (titel en huis horen bij elkaar).
+export function geefHuis(p, ind, gebiedId) {
+  const h = huisVan(ind, gebiedId);
+  if (!h || heeftHuis(p, h.id)) return false;
+  p.huizen.push(h.id);
+  return true;
+}
+
+// De koopprijs: de basisprijs van de laag, tot de helft korting naarmate je meer in het gebied deed (afgerond op 5).
+export function huisPrijs(p, ind, huisIdent) {
+  const h = ind.gebied.has(huisIdent.slice(2)) ? huisVan(ind, huisIdent.slice(2)) : null;
+  if (!h) return null;
+  const v = voortgang(p, ind, h.gebied);
+  return Math.max(5, Math.round(HUIS_PRIJS[h.niveau] * (1 - HUIS_KORTING_MAX * Math.min(1, v.deel)) / 5) * 5);
+}
+
+// Kopen: { ok, prijs, reden } met reden 'onbekend', 'al' of 'geld'. De aanroeper trekt het geld af als ok.
+export function koopHuis(p, ind, huisIdent, geld) {
+  const prijs = huisPrijs(p, ind, huisIdent);
+  if (prijs == null) return { ok: false, prijs: 0, reden: 'onbekend' };
+  if (heeftHuis(p, huisIdent)) return { ok: false, prijs, reden: 'al' };
+  if (!(geld >= prijs)) return { ok: false, prijs, reden: 'geld' };
+  p.huizen.push(huisIdent);
+  return { ok: true, prijs, reden: '' };
+}
+
+// De inrichting groeit mee: vijf stappen, vanaf het begin, 25%, 50%, 75% en als het gebied helemaal gedaan is.
+const INRICHTING = [
+  ['Een matras, een lamp en een plant die nog leeft', 0],
+  ['Een kledingkast van de kringloop', 0.25],
+  ['Een bank met een plaid die naar vorige bewoners ruikt', 0.5],
+  ['Een prikbord met jouw buurt erop en rode draad', 0.75],
+  ['Een vlag voor de deur en een bordje: hier woont de baas', 1],
+];
+export function inrichting(deel, voltooid) {
+  const d = voltooid ? 1 : Math.max(0, Math.min(1, deel || 0));
+  const stappen = INRICHTING.map(([naam, vanaf]) => ({ naam, klaar: d >= vanaf }));
+  return { niveau: stappen.filter((x) => x.klaar).length - 1, stappen };
 }
