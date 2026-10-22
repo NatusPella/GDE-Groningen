@@ -187,7 +187,7 @@ One icon language on the big map, the minimap and in the world. Every place is a
 
 `node scripts/ui_shots.mjs --sizes=1920x1080 --scenes=scripts/ui/menumeting_scenes.js` meet per pauzemenuscherm (zonder rail en voet, alleen wat in het venster staat) de woorden, de pictogrammen en de kleinste letter.
 
-- **Tekst:** een keuzescherm (Overzicht, Kaart, Telefoon, Spullen, Garage, Prestaties, Instellingen, Foto's) toont hooguit 125 woorden; een naslagscherm (Te doen, Personages, Besturing) hooguit 270.
+- **Tekst:** een keuzescherm (Overzicht, Kaart, Telefoon, Spullen, Garage, Prestaties, Instellingen, Foto's) toont hooguit 125 woorden; een naslagscherm (Te doen, Personages, Loopbaan, Besturing) hooguit 270.
 - **Lettergrootte:** geen tekst onder 13 px, behalve toetsplaatjes (WASD, LT/RT).
 - **Beeld boven tekst:** een scherm met een lijst van dingen (Garage, Prestaties, Personages, Overzicht) heeft pictogrammen of plaatjes per item; onbekende items zijn één regel, geen muur van vraagtekens.
 - **HUD:** de woordbudgetten van `hudtext.js` (`hud_text_audit`, ratchet 0 boven budget), hooguit zes elementen naast de minimap (hudrules.js) en geen overlappende vlakken (`scripts/ui/overlays2_scenes.js`).

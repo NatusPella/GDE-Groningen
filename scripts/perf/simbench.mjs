@@ -1,10 +1,13 @@
 // CPU cost of the traffic simulation without a browser (#58, #246): the city, the game's own AI (vehicle.js updateTrafficAI, the building and vehicle
 // collisions, the population manager, the signals) around a point of the city, seeded, on a virtual clock of 60 steps a second. Prints the CPU ms per
 // step (process.cpuUsage, so other work on the machine does not count) and the functions the time is in (self time, inspector profiler).
-//   GDE_PROVINCE_SRC=<repo>/data/cache/province node scripts/perf/simbench.mjs [--seconds=60] [--target=30] [--at=x,y] [--top=30] [--noprof]
+//   GDE_PROVINCE_SRC=<repo>/data/cache/province node scripts/perf/simbench.mjs [--seconds=60] [--target=30] [--at=x,y] [--top=30] [--noprof] [--cache=<bestand>]
+// --cache bewaart de ingeladen stad bij de eerste run (v8.serialize) en leest hem daarna terug: het inladen kost op een drukke machine 10 minuten, de simulatie 1 minuut.
 // The same seed gives the same cars, so a change that must not alter the traffic can be checked by the "digest" line (a hash of all positions at the end).
 import '../node3d.mjs';
 import inspector from 'node:inspector';
+import fs from 'node:fs';
+import v8 from 'node:v8';
 
 const arg = (k, d) => { const a = process.argv.find((x) => x.startsWith('--' + k + '=')); return a ? a.slice(k.length + 3) : d; };
 const SECONDS = +arg('seconds', 60), TARGET = +arg('target', 30), TOP = +arg('top', 30);
@@ -17,7 +20,11 @@ const TL = await import('../../game/js/trafficlights.js');
 const V = await import('../../game/js/vehicle.js');
 const { loadCityData } = await import('../lib/loadworld.mjs');
 const t0 = performance.now();
-const map = new GameMap(await loadCityData());
+const cacheFile = arg('cache', '');
+let cityData;
+if (cacheFile && fs.existsSync(cacheFile)) cityData = v8.deserialize(fs.readFileSync(cacheFile));
+else { cityData = await loadCityData(); if (cacheFile) fs.writeFileSync(cacheFile, v8.serialize(cityData)); }
+const map = new GameMap(cityData);
 console.log(`city loaded in ${((performance.now() - t0) / 1000).toFixed(0)} s`);
 
 // the busiest part of the ring road region: the middle of the city unless --at=x,y

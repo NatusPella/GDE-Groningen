@@ -46,7 +46,8 @@ t('pings: cooldown, levensduur, maximum, per afzender', () => {
   assert.equal(P.tickPings(p, P.PING_TTL + 1.5).length, 1);
   assert.equal(P.tickPings(p, 100).length, 0);
   for (let i = 0; i < 10; i++) P.addPing(p, { x: i, y: i }, 200 + i * 2);
-  assert.equal(p.lijst.length, P.PING_MAX);
+  assert.equal(p.lijst.length, P.PING_PER_AFZENDER, 'één speler houdt de lijst niet vol');
+  assert.deepEqual(p.lijst.map((q) => q.x), [8, 9], 'de oudste van die speler gaat eerst');
 });
 t('pings van de ander worden gecontroleerd: ongeldige of absurde coördinaten, onbekende soort', () => {
   const p = P.createPings();
@@ -86,8 +87,9 @@ t('N spelers: een speler zonder gegevens heeft geen marker', () => {
 });
 t('pings per afzender: elke speler heeft zijn eigen cooldown', () => {
   const p = P.createPings();
-  for (const van of [1, 2, 3, 4]) assert.ok(P.addPing(p, { x: van, y: 0, van }, 0), `speler ${van}`);
+  for (let van = 1; van <= 16; van++) assert.ok(P.addPing(p, { x: van, y: 0, van }, 0), `speler ${van}`);
   assert.equal(P.addPing(p, { x: 9, y: 0, van: 2 }, 0.5), null);
-  assert.equal(p.lijst.length, P.PING_MAX);
+  assert.equal(p.lijst.length, 16, 'een ping van elke speler van een volle sessie staat er tegelijk');
+  assert.equal(P.PING_MAX, 16);
 });
 console.log(`partnerhud_test: ${n}/${n} ok`);

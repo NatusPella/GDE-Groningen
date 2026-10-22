@@ -157,7 +157,9 @@ function createFlatRoofTexture() {
 const flatRoofTexture = createFlatRoofTexture();
 const FLAT_ROOF_TONES = [0x747478, 0x5e5f63, 0x7e7a73, 0x6c6e6a];
 const flatRoofMaterials = FLAT_ROOF_TONES.map((c) => habboMaterial(c, { map: flatRoofTexture }));
-const detailMaterial = vcMaterial({ side: THREE.DoubleSide });
+// kozijnen, dorpels, deuren en daklijsten liggen een paar mm tot cm voor de gevel; de polygonOffset (in diepte-eenheden, dus
+// meeschalend met de afstand) houdt ze ook op 100 m en verder voor het vlak erachter (#382)
+const detailMaterial = vcMaterial({ side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -2 });
 
 export function setNightFactor(glow, litFrac, shopFrac = litFrac, officeFrac = litFrac) {
   setGlassNight(glow, litFrac, shopFrac, officeFrac);
@@ -1090,7 +1092,8 @@ function buildDetailGeometry(b, box, archetype, depth, fine, fine2, wallHex, roo
     for (const e of open) wallBox(B, e, 0, e.len, 0, plinthH, 0, 0.035, plinthC, G_DETAIL, FACE_FRONT | FACE_TOP);
     if (houseboat) {
       for (const e of edges) {
-        wallBox(B, e, -0.08, e.len + 0.08, plinthH - 0.1, plinthH, 0, 0.1, 0x8a6440, G_DETAIL, FACE_FRONT | FACE_TOP | FACE_BOTTOM);
+        // 1,5 cm boven de plint (hun bovenvlakken vielen samen, #382)
+        wallBox(B, e, -0.08, e.len + 0.08, plinthH - 0.085, plinthH + 0.015, 0, 0.1, 0x8a6440, G_DETAIL, FACE_FRONT | FACE_TOP | FACE_BOTTOM);
         wallBox(B, e, 0, e.len, HOUSEBOAT_DRAFT + 0.03, HOUSEBOAT_DRAFT + 0.15, 0, 0.045, 0x6e2e26, G_DETAIL, FACE_FRONT);
       }
     }

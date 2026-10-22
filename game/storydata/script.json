@@ -145,6 +145,14 @@
    "name": "Boer",
    "voice": "Boer"
   },
+  "willemien": {
+   "name": "Willemien",
+   "voice": "Willemien"
+  },
+  "buurvrouw": {
+   "name": "Buurvrouw",
+   "voice": "Buurvrouw"
+  },
   "kind": {
    "name": "Kind in het publiek",
    "voice": "Kind in het publiek"
@@ -14269,6 +14277,1243 @@
      "channel": "radio",
      "textOnly": false,
      "rec": "lines"
+    }
+   ]
+  },
+  {
+   "id": "M27.1",
+   "title": "Inpakken: intro",
+   "act": 6,
+   "region": "Eemsdelta, Loppersum, Willemiens huis",
+   "vehicle": "te voet",
+   "step": "M27",
+   "kind": "intro",
+   "gameplay": "breekbaar spul in de krant, boeken in kleine dozen, de kat in de mand.",
+   "regie": [
+    "maandag 14 september, ochtend. Een gewoon huis met steunbalken tegen de zijgevel en een bord: DELFSTOF NOORD · VERSTERKING. Een lange haarscheur langs de voordeur, die niet wordt uitgelicht en niet wordt vermeden. Lege dozen in de gang, een keuken waar koffie wordt gezet. Naamkaart: WILLEMIEN. Gameplay: breekbaar spul in de krant, boeken in kleine dozen, de kat in de mand."
+   ],
+   "lines": [
+    {
+     "speaker": "Willemien",
+     "key": "willemien",
+     "text": "Jullie zijn van Trijntje. Kom binnen. Schoenen mogen aan. Het huis is toch even niet van mij.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Hoe lang?",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Willemien",
+     "key": "willemien",
+     "text": "Een paar weken, zeggen ze. Dat zeggen ze al twee jaar. Koffie?",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Graag.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Willemien",
+     "key": "willemien",
+     "text": "Delfstof Noord zet het huis op nieuwe poten. De ploeg is aardig. Het duurt alleen langer dan een kopje koffie.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Oma zei: gewoon dozen.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Willemien",
+     "key": "willemien",
+     "text": "Dat zegt Trijntje van alles. Breekbaar in de krant. Boeken in kleine dozen, anders krijg je ze niet getild. En de kat is het moeilijkst.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    }
+   ]
+  },
+  {
+   "id": "M27.2",
+   "title": "Inpakken: de foto",
+   "act": 6,
+   "region": "Eemsdelta, Loppersum, Willemiens huis",
+   "vehicle": "te voet",
+   "step": "M27",
+   "kind": "key",
+   "regie": [
+    "in een la, onder een stapel bonnetjes, een zwart-witfoto: twee tieners op een fiets voor een klein station."
+   ],
+   "lines": [
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "De kat wil niet in de mand.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Willemien",
+     "key": "willemien",
+     "text": "Hij wil nergens in. Hij woont hier. Hij snapt het nog minder dan ik.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Willemien. Een foto. Twee tieners op een fiets, voor het station.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Willemien",
+     "key": "willemien",
+     "text": "Mijn oma. En Trijntje. Negentienhonderddrieënvijftig. Ze fietsten naar Stad, voor de prijs.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Dat is een eind fietsen.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Willemien",
+     "key": "willemien",
+     "text": "Tegen de wind in. Dat stond er niet bij, maar zo was het.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    }
+   ]
+  },
+  {
+   "id": "M27.3",
+   "title": "Inpakken: outro",
+   "act": 6,
+   "region": "Eemsdelta, Loppersum, voor het huis",
+   "vehicle": "te voet",
+   "step": "M27",
+   "kind": "outro",
+   "regie": [
+    "de dozen staan in de verhuisbus. De camera blijft binnen en kijkt door het lege raam naar buiten, waar Willemien de deur op slot doet en even met haar hand op het kozijn blijft staan."
+   ],
+   "lines": [
+    {
+     "speaker": "Willemien",
+     "key": "willemien",
+     "text": "Het is een huis. Het moet alleen even blijven staan.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Het blijft staan.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Willemien",
+     "key": "willemien",
+     "text": "Dat zeggen ze. Ik zeg het ook. Dan zijn we het eens.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    }
+   ]
+  },
+  {
+   "id": "M27.4",
+   "title": "Inpakken: herhaling",
+   "act": 6,
+   "region": "Eemsdelta, Loppersum",
+   "vehicle": "te voet",
+   "step": "M27",
+   "kind": "replay",
+   "regie": [],
+   "lines": [
+    {
+     "speaker": "Willemien",
+     "key": "willemien",
+     "text": "Nog een doos? Er is altijd nog een doos.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    }
+   ]
+  },
+  {
+   "id": "M28.1",
+   "title": "De wisselwoning: intro",
+   "act": 6,
+   "region": "Eemsdelta, Loppersum, de verhuisbus",
+   "vehicle": "bestelbus",
+   "step": "M28",
+   "kind": "intro",
+   "gameplay": "rij de verhuisbus rustig naar de wisselwoning aan de rand van het dorp.",
+   "regie": [
+    "dinsdag 15 september, ochtend. In de bus: de camera op het dashboard kijkt naar binnen, naar Willemien met de kattenmand op schoot en Tammo achter het stuur. Buiten glijdt het dorp voorbij, met hier en daar een steiger. Gameplay: rij de verhuisbus rustig naar de wisselwoning aan de rand van het dorp."
+   ],
+   "lines": [
+    {
+     "speaker": "Willemien",
+     "key": "willemien",
+     "text": "Rustig rijden. Niet om de spullen. Om mij.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Ik rij altijd rustig.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Willemien",
+     "key": "willemien",
+     "text": "Dat zei Trijntje al. Ze zei: dat is het enige wat hij altijd doet.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    }
+   ]
+  },
+  {
+   "id": "M28.2",
+   "title": "De wisselwoning: onderweg",
+   "act": 6,
+   "region": "Eemsdelta, Loppersum, de rand van het dorp",
+   "vehicle": "bestelbus",
+   "step": "M28",
+   "kind": "key",
+   "regie": [
+    "de radio staat zacht. Rikus draait een rustig nummer, zonder jingles."
+   ],
+   "lines": [
+    {
+     "speaker": "Rikus",
+     "key": "rikus",
+     "text": "Nachtstreek. Een nummer voor iedereen die even ergens anders slaapt. Zonder praatje.",
+     "tag": "NIEUW",
+     "channel": "radio",
+     "textOnly": true
+    },
+    {
+     "speaker": "Willemien",
+     "key": "willemien",
+     "text": "Daar woonde mijn buurvrouw. Die is al terug. Ze zegt dat het nu beter is dan eerst.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "En u?",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Willemien",
+     "key": "willemien",
+     "text": "Ik geloof het als ik het zie. Dat is niet boos. Dat is Gronings.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    }
+   ]
+  },
+  {
+   "id": "M28.3",
+   "title": "De wisselwoning: outro",
+   "act": 6,
+   "region": "Eemsdelta, Loppersum, de wisselwoning",
+   "vehicle": "te voet",
+   "step": "M28",
+   "kind": "outro",
+   "regie": [
+    "een klein, schoon huis in een rij tijdelijke woningen. Willemien tilt een plantje uit de bus en zet het meteen in de vensterbank. De kat gaat uit de mand; de camera volgt de kat die de nieuwe kamer verkent."
+   ],
+   "lines": [
+    {
+     "speaker": "Willemien",
+     "key": "willemien",
+     "text": "Hij vindt het niks.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Hij went wel.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Willemien",
+     "key": "willemien",
+     "text": "Hij niet. Ik wel. Dank je, jong. Zeg tegen Trijntje dat ik niet klaag.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Dat weet ze.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    }
+   ]
+  },
+  {
+   "id": "M28.4",
+   "title": "De wisselwoning: herhaling",
+   "act": 6,
+   "region": "Eemsdelta, Loppersum",
+   "vehicle": "bestelbus",
+   "step": "M28",
+   "kind": "replay",
+   "regie": [],
+   "lines": [
+    {
+     "speaker": "Willemien",
+     "key": "willemien",
+     "text": "Nog een ritje? De kat blijft hier. Die heeft het wel gezien.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    }
+   ]
+  },
+  {
+   "id": "M29.1",
+   "title": "Terug: intro",
+   "act": 6,
+   "region": "Eemsdelta, Loppersum, het erf",
+   "vehicle": "bestelbus",
+   "step": "M29",
+   "kind": "intro",
+   "gameplay": "breng Willemien en haar spullen terug naar huis; daarna het buurtfeest op het erf.",
+   "regie": [
+    "donderdag 17 september, late middag. Een strakke, nieuwe gevel zonder balken; de kat zit al op de stoep. Mensen zetten tafels op het erf. Gameplay: breng Willemien en haar spullen terug naar huis; daarna het buurtfeest op het erf."
+   ],
+   "lines": [
+    {
+     "speaker": "Willemien",
+     "key": "willemien",
+     "text": "Een paar weken, zeiden ze. Dit keer klopte het.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "En hij staat goed.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Willemien",
+     "key": "willemien",
+     "text": "De kat was eerder terug dan ik. Hij liep gewoon. Twee kilometer.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Die wist de weg.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Willemien",
+     "key": "willemien",
+     "text": "Die wist het al die tijd.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    }
+   ]
+  },
+  {
+   "id": "M29.2",
+   "title": "Terug: het feest",
+   "act": 6,
+   "region": "Eemsdelta, Loppersum, het erf",
+   "vehicle": "te voet",
+   "step": "M29",
+   "kind": "key",
+   "gameplay": "loop rond; vier mensen hebben elk één zin en niemand praat over de schade.",
+   "regie": [
+    "avond, lampjes boven het erf, tafels, een barbecue, kinderen. Rikus draait vanaf zijn busje met de antenne. Gameplay: loop rond; vier mensen hebben elk één zin en niemand praat over de schade."
+   ],
+   "lines": [
+    {
+     "speaker": "Rikus",
+     "key": "rikus",
+     "text": "Nachtstreek, op tournee. Vanavond vanaf een erf in Loppersum. Iemand is thuis. Dit nummer is voor haar.",
+     "tag": "NIEUW",
+     "channel": "radio",
+     "textOnly": true
+    },
+    {
+     "speaker": "Buurvrouw",
+     "key": "buurvrouw",
+     "text": "Ik ben de buurvrouw. Ik heb gekookt voor twintig. We zijn met twaalf. Dat is hier normaal.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Boer",
+     "key": "boer",
+     "text": "Ik heb de tafels gebracht. En weer opgehaald. En weer gebracht. Ze wisten niet waar ze moesten.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Waar hangt de foto?",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Willemien",
+     "key": "willemien",
+     "text": "In de gang. Waar je hem ziet als je weggaat. En als je terugkomt.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Dansen?",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Nee.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": false,
+     "rec": "story"
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Tammo.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": false,
+     "rec": "banter",
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "…Voor de grip.",
+     "tag": "BEHOUDEN",
+     "channel": "stem",
+     "textOnly": false,
+     "rec": "lines"
+    }
+   ]
+  },
+  {
+   "id": "M29.3",
+   "title": "Terug: outro",
+   "act": 6,
+   "region": "Eemsdelta, Loppersum, het erf",
+   "vehicle": "te voet",
+   "step": "M29",
+   "kind": "outro",
+   "regie": [
+    "lampjes boven het erf, een trage kraan omhoog van de tafels naar het dak en de lucht, het busje van Rikus met zijn antenne. Geen grote muziek, alleen het nummer van Rikus."
+   ],
+   "lines": [
+    {
+     "speaker": "Willemien",
+     "key": "willemien",
+     "text": "Zeg tegen Trijntje: ik ben thuis.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Ik zal het zeggen.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Willemien",
+     "key": "willemien",
+     "text": "Eén keer is genoeg. Dan is het waar.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    }
+   ]
+  },
+  {
+   "id": "M29.4",
+   "title": "Terug: herhaling",
+   "act": 6,
+   "region": "Eemsdelta, Loppersum",
+   "vehicle": "bestelbus",
+   "step": "M29",
+   "kind": "replay",
+   "regie": [],
+   "lines": [
+    {
+     "speaker": "Willemien",
+     "key": "willemien",
+     "text": "Kom maar binnen. Koffie staat. Het huis ook.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    }
+   ]
+  },
+  {
+   "id": "T5.1",
+   "title": "De weg naar Bourtange: onderweg",
+   "act": 6,
+   "region": "Westerwolde, de heide",
+   "vehicle": "auto",
+   "step": "T5",
+   "kind": "travel",
+   "regie": [
+    "zaterdag 19 september, ochtend. Een rechte weg over de heide, de Fjord Frituur met het luik dicht. Berend heeft gebeld: het Beleg van volgend jaar wordt groter en hij wil één proefbeleg, dit weekend, met mensen die niet weglopen."
+   ],
+   "lines": [
+    {
+     "speaker": "Berend Bos",
+     "key": "berend",
+     "text": "Goidag. Het echte Beleg is volgend jaar. De vesting wil het groter. Ik wil eerst één proef.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Met veertig man en een paard van karton?",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Berend Bos",
+     "key": "berend",
+     "text": "Met jullie. En met iedereen van Trijntjes lijstje. Ik heb ze allemaal gebeld. Ze kwamen nog voor ik was uitgepraat.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Waarom een proef?",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Berend Bos",
+     "key": "berend",
+     "text": "Omdat ik wil weten hoe het is. Eén keer. Waar niemand het ziet.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Hoe het is om te winnen.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Berend Bos",
+     "key": "berend",
+     "text": "Ik zei niks over winnen. Ik tel alleen.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    }
+   ]
+  },
+  {
+   "id": "T5.2",
+   "title": "De weg naar Bourtange: aankomst",
+   "act": 6,
+   "region": "Westerwolde, Bourtange, de hooiberg",
+   "vehicle": "auto",
+   "step": "T5",
+   "kind": "outro",
+   "regie": [
+    "een hooiberg op de heide ten noorden van de vesting, heide in bloei, een kaart op een hooikar met bierviltjes als eenheden."
+   ],
+   "lines": [
+    {
+     "speaker": "Berend Bos",
+     "key": "berend",
+     "text": "Op tijd. Dat is twee minuten te vroeg.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Je hebt de klok bijgehouden.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Berend Bos",
+     "key": "berend",
+     "text": "Ik tel alles.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Dan beginnen we.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    }
+   ]
+  },
+  {
+   "id": "T5.3",
+   "title": "De weg naar Bourtange: herhaling",
+   "act": 6,
+   "region": "Westerwolde, de heide",
+   "vehicle": "auto",
+   "step": "T5",
+   "kind": "replay",
+   "regie": [],
+   "lines": [
+    {
+     "speaker": "Berend Bos",
+     "key": "berend",
+     "text": "Weer naar de heide? Kom mor.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    }
+   ]
+  },
+  {
+   "id": "M30.1",
+   "title": "Het proefbeleg: het krijgsberaad",
+   "act": 6,
+   "region": "Westerwolde, Bourtange, de hooiberg",
+   "vehicle": "te voet",
+   "step": "M30",
+   "kind": "intro",
+   "gameplay": "Tessa leidt het proefbeleg; Tammo zit bij de duiven.",
+   "regie": [
+    "zaterdag 19 september, middag. Een hooiberg op de heide, een grote kaart op een hooikar met bierviltjes. De camera maakt een trage cirkel om de tafel terwijl de vrienden van Oma één voor één in beeld komen: een boot op een aanhanger, een trekker met een houten toren, een gele gewasspuiter aan de horizon, een bus. Gameplay: Tessa leidt het proefbeleg; Tammo zit bij de duiven."
+   ],
+   "lines": [
+    {
+     "speaker": "Berend Bos",
+     "key": "berend",
+     "text": "Allemaal. Het proefbeleg van Bourtange. Zestienhonderdtweeënzeventig verloor ik. Vandaag weet ik het nog niet.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Vier fronten. Water. Land. Lucht. Brug. Wie waar?",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Lammert",
+     "key": "lammert",
+     "text": "Ik heb de sleutel van de sluis. Vrij genomen. Mijn neef houdt de sluis in Delfzijl. Hij meldt alleen.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Kapitein Klaas",
+     "key": "klaas",
+     "text": "Een gracht is ook water. Ik vaar ze allemaal. Behalve de zee. Die is te groot voor mijn geduld.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Roelfien",
+     "key": "roelfien",
+     "text": "Ik vlieg boven. Meel. Zes zakken. Eén keer wit. Daarna sta ik stil.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Wubbo",
+     "key": "wubbo",
+     "text": "Ik doe de lier van de brug. Open of dicht. Vandaag een tel te vroeg. Ik oefen het al vanochtend.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tinus",
+     "key": "tinus",
+     "text": "Trekker heeft een toren. Hij trekt hem. Zonder motor ging het niet. Met motor wel.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Geesje",
+     "key": "geesje",
+     "text": "Ik zie alles vanaf mijn toren. Dit is geen toren. Het is een hooiberg. Ik zie alles toch.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Duivenmelker Bert",
+     "key": "bert",
+     "text": "Veertig duiven. Ze luisteren naar niemand. Behalve naar die jongen. Tammo, kom maar.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Durk",
+     "key": "durk",
+     "text": "Wij zijn de stormram. Wij hebben er ook niets tegen.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Douwe",
+     "key": "douwe",
+     "text": "…tegen.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Zeven mensen die niet weglopen. Ik weet niet wat ik moet zeggen.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Berend Bos",
+     "key": "berend",
+     "text": "Zeg: aanvallen. Dat is wat een generaal zegt.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Aanvallen.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    }
+   ]
+  },
+  {
+   "id": "M30.2",
+   "title": "Het proefbeleg: de gracht",
+   "act": 6,
+   "region": "Westerwolde, Bourtange, de gracht",
+   "vehicle": "te voet",
+   "step": "M30",
+   "kind": "key",
+   "regie": [
+    "de gracht van de vesting, een sluis die wordt opengezet, een boot onder de brug. Jelle staat met zijn polsstok aan de rand."
+   ],
+   "lines": [
+    {
+     "speaker": "Lammert",
+     "key": "lammert",
+     "text": "Sluis open. Het water komt. Het komt niet snel. Het komt op tijd.",
+     "tag": "NIEUW",
+     "channel": "telefoon",
+     "textOnly": true
+    },
+    {
+     "speaker": "Kapitein Klaas",
+     "key": "klaas",
+     "text": "Stuurboord, Tessa. Dat is rechts. Dat zeg ik ook tegen mijn boot.",
+     "tag": "NIEUW",
+     "channel": "telefoon",
+     "textOnly": true
+    },
+    {
+     "speaker": "Jelle Terpstra",
+     "key": "jelle",
+     "text": "Jelle springt. Altijd. Met polsstok.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Jelle Terpstra",
+     "key": "jelle",
+     "text": "Foar mem.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Jelle. Je zou niet meedoen.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Jelle Terpstra",
+     "key": "jelle",
+     "text": "Ik doe niet mee. Ik spring alleen.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Dat is meedoen.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Jelle Terpstra",
+     "key": "jelle",
+     "text": "Oant sjen!",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Jelle ligt in de gracht.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Kapitein Klaas",
+     "key": "klaas",
+     "text": "Hij ligt er elke keer in. Dat is een traditie.",
+     "tag": "NIEUW",
+     "channel": "telefoon",
+     "textOnly": true
+    }
+   ]
+  },
+  {
+   "id": "M30.3",
+   "title": "Het proefbeleg: de ophaalbrug",
+   "act": 6,
+   "region": "Westerwolde, Bourtange, de poort",
+   "vehicle": "te voet",
+   "step": "M30",
+   "kind": "key",
+   "regie": [
+    "de ophaalbrug aan de noordkant. Wubbo bij de lier, Berend op een paard van karton met een bisschopsmijter."
+   ],
+   "lines": [
+    {
+     "speaker": "Wubbo",
+     "key": "wubbo",
+     "text": "Lier. Nu. Een tel te vroeg. Het is gelukt.",
+     "tag": "NIEUW",
+     "channel": "telefoon",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Hij is open. Voor we toeterden.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Wubbo",
+     "key": "wubbo",
+     "text": "Te vroeg. Dat is ook een soort op tijd. Het is mijn beste dag.",
+     "tag": "NIEUW",
+     "channel": "telefoon",
+     "textOnly": true
+    },
+    {
+     "speaker": "Berend Bos",
+     "key": "berend",
+     "text": "Voor Münster! Voor het bisdom! Voor het eerst!",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    }
+   ]
+  },
+  {
+   "id": "M30.4",
+   "title": "Het proefbeleg: de bolwerken",
+   "act": 6,
+   "region": "Westerwolde, Bourtange, de bolwerken",
+   "vehicle": "te voet",
+   "step": "M30",
+   "kind": "key",
+   "gameplay": "plant op elk bolwerk de vlag.",
+   "regie": [
+    "drie bolwerken met kartonnen vlaggen. Meel dwarrelt, duiven zitten op hoeden, een houten toren leunt. Gameplay: plant op elk bolwerk de vlag."
+   ],
+   "lines": [
+    {
+     "speaker": "Roelfien",
+     "key": "roelfien",
+     "text": "Boven jullie. Meel komt. Hoofd omlaag.",
+     "tag": "NIEUW",
+     "channel": "telefoon",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Duiven. Links. Op de hoeden. Nu.",
+     "tag": "NIEUW",
+     "channel": "telefoon",
+     "textOnly": true
+    },
+    {
+     "speaker": "Durk",
+     "key": "durk",
+     "text": "Dat kanon is van karton.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Douwe",
+     "key": "douwe",
+     "text": "…karton.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Durk",
+     "key": "durk",
+     "text": "Dat is onze specialiteit.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tinus",
+     "key": "tinus",
+     "text": "Toren trekt. Hij leunt. Hij leunt goed.",
+     "tag": "NIEUW",
+     "channel": "telefoon",
+     "textOnly": true
+    },
+    {
+     "speaker": "Geesje",
+     "key": "geesje",
+     "text": "Links. Het derde bolwerk. Ze kijken niet. Ze eten.",
+     "tag": "NIEUW",
+     "channel": "telefoon",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Vlag. Vlag. Vlag. Drie.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    }
+   ]
+  },
+  {
+   "id": "M30.5",
+   "title": "Het proefbeleg: de poort",
+   "act": 6,
+   "region": "Westerwolde, Bourtange, de poort",
+   "vehicle": "te voet",
+   "step": "M30",
+   "kind": "key",
+   "regie": [
+    "de poort van de vesting, de ophaalbrug neerwaarts. Een lange track achter Berend op het paard van karton naar binnen; de camera blijft laag en kijkt omhoog naar zijn gezicht. Dan een brede kraanshot over het plein met de drie vlaggen, de gracht met Jelle die zich eruit hijst."
+   ],
+   "lines": [
+    {
+     "speaker": "Berend Bos",
+     "key": "berend",
+     "text": "…Het is open.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Het is open, Berend.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Berend Bos",
+     "key": "berend",
+     "text": "Ik heb gewonnen.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "U heeft gewonnen.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Berend Bos",
+     "key": "berend",
+     "text": "Dit is verkeerd.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Dat is winnen, Berend.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Berend Bos",
+     "key": "berend",
+     "text": "Dan is winnen verkeerd.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Rikus",
+     "key": "rikus",
+     "text": "Grunn. Het beleg van Bourtange is gewonnen door de belegeraar. Het was een proef. Hij zegt dat het verkeerd voelt. Dat is hoe het hoort.",
+     "tag": "NIEUW",
+     "channel": "radio",
+     "textOnly": true
+    },
+    {
+     "speaker": "Berend Bos",
+     "key": "berend",
+     "text": "Volgend jaar verlies ik weer. Dat kan ik.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Oma Trijntje",
+     "key": "trijntje",
+     "text": "Is hij blij?",
+     "tag": "NIEUW",
+     "channel": "telefoon",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Hij zegt van niet.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Oma Trijntje",
+     "key": "trijntje",
+     "text": "Dan is hij blij.",
+     "tag": "NIEUW",
+     "channel": "telefoon",
+     "textOnly": true
+    }
+   ]
+  },
+  {
+   "id": "M30.6",
+   "title": "Het proefbeleg: de kar",
+   "act": 6,
+   "region": "Westerwolde, Bourtange, de poort",
+   "vehicle": "te voet",
+   "step": "M30",
+   "kind": "outro",
+   "regie": [
+    "avond, de zon laag over de heide. De Fjord Frituur staat bij de poort met het luik open, de vrienden eten eierballen op de wal, Jelle zit natgeregend in een deken. Tessa en Tammo staan bij het luik."
+   ],
+   "lines": [
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Elke zomer één ronde langs de plekken waar vrienden wonen. Dan kan ik groeien en jij thuisblijven.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Thuis is waar de kar staat.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Zes.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Kon minder.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": false,
+     "rec": "lines"
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Kon veel minder.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": false,
+     "rec": "lines",
+     "voice": "Anita"
+    }
+   ]
+  },
+  {
+   "id": "M30.7",
+   "title": "Het proefbeleg: herhaling",
+   "act": 6,
+   "region": "Westerwolde, Bourtange, de hooiberg",
+   "vehicle": "te voet",
+   "step": "M30",
+   "kind": "replay",
+   "regie": [],
+   "lines": [
+    {
+     "speaker": "Berend Bos",
+     "key": "berend",
+     "text": "Nog een proefbeleg? Ik win nog steeds niet graag. Doe maar.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
     }
    ]
   }
