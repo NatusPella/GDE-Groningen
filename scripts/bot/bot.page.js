@@ -647,6 +647,11 @@ while (true) {
         // only a prop the car can reach in a straight line over dry land
         if (d < bd && L.segmentFree({ x: s.player.x, y: s.player.y }, q, carFree, 1.5)) { bd = d; best = q; }
       }
+      if (!best && s.t - (mem.stuntLogT || -9) >= 5) {
+        mem.stuntLogT = s.t;
+        const all = Br.propsInRadius(s.player.x, s.player.y, 90), st = all.filter((q) => String(q.key).startsWith('stunt'));
+        B.log('stunt-geen-rekwisiet', { props: all.length, stunt: st.length, overgeslagen: st.filter((q) => (mem.stuntSkip[q.key] || 0) > s.t).length, voorbeeld: st[0] && [st[0].key, Math.round(st[0].x), Math.round(st[0].y)], sleutels: all.slice(0, 3).map((q) => q.key) });
+      }
       if (best) {
         // circling a prop that does not fall (the car orbits it, or a bollard stands in the way): after 6 s within 10 m it is left alone for 90 s and the next one is tried (M01, #312)
         if (bd < 10) {
