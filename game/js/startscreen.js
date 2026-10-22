@@ -1,6 +1,7 @@
 import { FLAGS } from './devflags.js';
 import { hasSave, readSave, applySave, startNewSlot, getSaveSummary, ensureActiveSlot } from './savegame.js';
 import { openSaveSlots, isSaveSlotsOpen } from './saveslotsui.js';
+import { listSlots } from './saveslots.js';
 import { VERSION } from './version.js';
 import { checkWhatsNew, markVersionSeen, compareVersions } from './whatsnew.js';
 import { pointInPolygon } from './util.js';
@@ -507,6 +508,8 @@ export function runStartScreen(world, { render, relocate, tick, ready }) {
           },
         });
       } else if (it.act === 'solo') {
+        // no saved game at all (a first start, a throwaway profile of a test run): a new game starts at once, as the old Nieuw spel did
+        if (!listSlots(null).length) { startNew(); return; }
         // Alleen spelen: the Opgeslagen spellen screen, with Doorgaan (the game played last) and Nieuw spel on top
         openSaveSlots({ mode: 'start', solo: true, eyebrow: 'Alleen spelen', onLoad: continueGame, onNew: () => startNew(), onClose: () => {
           // the card at the right shows the save as it was when the menu opened: rebuild the menu when saves changed
