@@ -6,6 +6,12 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Opgelost
+- **De politie zegt waarom ze komt (#391; door een bot gespeeld, niet door een mens):** elke weg naar een ster zonder eigen kaart noemt nu zijn oorzaak op de berichtenkaart ("Een voetganger geraakt: de politie zag het", "Politiewagen geraakt", "Een agent geraakt", "Te veel overlast", "Dronken achter het stuur", "Auto op het fietspad", "Op de snelweg"). In een bot-run van 25 minuten stonden aanrijding, politiewagen en agent als reden op de kaart; de eenmalige regel van de kaart zelf is niet door een mens gezien.
+- **Geen ster meer van een verkeersovertreding zonder agent (#391):** een auto op een voet- of fietspad kreeg na 12 s een ster, ook als er niemand in de buurt was, onder de kaart "Een agent heeft je gezien". De ster komt nu alleen als een agent of politiewagen binnen 80 m staat.
+- **"Politiewagen geraakt" telt alleen nog bij een botsing met een politiewagen (#391):** elke knal binnen 5 m van een politiewagen (een lantaarnpaal, een muur, een geparkeerde auto) gold als aanrijding met de politie, dubbel zwaar omdat de politie het zag.
+- **De schaduw van de helikopter ligt vlak en recht onder hem (#391; berekend en met een test op vijf standen gecontroleerd, niet in beeld bekeken):** de schaduw hing aan de scheefstaande heli en schoof zijdelings weg met hoogte keer de hoek (30 m hoog, 20 graden gerold: 10 m ernaast) en kantelde mee.
+
 ## [0.39.0] - 2026-10-22
 
 ### Opgelost
