@@ -3,6 +3,7 @@
 import { WANTED_WHY, WANTED_OWN_CARD, wantedWhyText, noteWantedWhy } from '../game/js/wantedwhy.js';
 import { reportCrime } from '../game/js/crime.js';
 import { wordCount, WORD_BUDGET } from '../game/js/hudtext.js';
+import { reportImpact } from '../game/js/vehicleimpact.js';
 let fails = 0, n = 0;
 const ok = (c, name, extra = '') => { n++; if (!c) { fails++; console.log('FAIL', name, extra); } };
 
@@ -37,5 +38,18 @@ const mk = (extra = {}) => { const msgs = []; return { msgs, w: { time: 100, wan
   ok(w.wanted === 1 && msgs.length === 0 && WANTED_OWN_CARD.has('cashVanBlown'), 'geldwagen: een ster, de eigen kaart doet het woord');
 }
 ok(noteWantedWhy({}, 'copAanval') === null, 'zonder addMessage geen fout');
+
+// de botsing onthoudt waartegen: alleen een politiewagen telt als 'politiewagen geraakt'
+{
+  const cop = { isPolice: true };
+  const w = { time: 5, particles: [] };
+  reportImpact(w, 1, 2, 10, true, cop);
+  ok(w.lastImpact && w.lastImpact.other === cop, 'lastImpact kent de andere auto');
+  reportImpact(w, 1, 2, 10, true);
+  ok(w.lastImpact.other === null, 'een paal of muur: geen andere auto');
+  const w2 = { time: 5, particles: [] };
+  reportImpact(w2, 1, 2, 10, false, cop);
+  ok(!w2.lastImpact, 'zonder speler geen lastImpact');
+}
 console.log(`${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);

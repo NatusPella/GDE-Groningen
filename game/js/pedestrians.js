@@ -378,8 +378,8 @@ function gatherEvents(world) {
   }
   const li = world.lastImpact;
   if (li && li.time === world.time && player.inVehicle && world.time - lastCopCrashAt > 2) {
-    const cop = world.vehicles.find((v) => v.isPolice && !v.hijacked && v !== player.inVehicle && !v.wrecked &&
-      dist(v.x, v.y, li.x, li.y) < v.halfLen + 3);
+    // a bump into a police car, not any knock (a lamp post, a wall, a parked car) that happens to lie within 5 m of one (#391)
+    const cop = li.other && li.other.isPolice && !li.other.hijacked && li.other !== player.inVehicle && !li.other.wrecked ? li.other : null;
     if (cop) {
       lastCopCrashAt = world.time;
       reportCrime(world, 'copBump', { seen: true });
