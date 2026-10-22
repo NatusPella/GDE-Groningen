@@ -11,7 +11,7 @@ import { edgeRule } from '../game/js/worldedge.js';
 let bad = 0, n = 0;
 const check = (name, ok, info = '') => { n++; if (!ok) { bad++; console.log('FAIL', name, info); } };
 
-check('agenda heeft tien evenementen met unieke id\'s', AGENDA.length === 10 && new Set(AGENDA.map((e) => e.id)).size === 10);
+check('agenda heeft dertien evenementen met unieke id\'s', AGENDA.length === 13 && new Set(AGENDA.map((e) => e.id)).size === 13);
 for (const ev of AGENDA) {
   check(`${ev.id}: bekende soort`, !!KINDS[ev.kind]);
   check(`${ev.id}: in de zomer`, ev.from >= 1 && ev.to <= LAST_SUMMER_DAY && ev.from <= ev.to, `${ev.from}-${ev.to}`);
