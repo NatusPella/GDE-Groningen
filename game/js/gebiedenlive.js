@@ -21,7 +21,7 @@ const VERVERS_S = 4;
 let profiel = null;
 let opslagOverride = null;
 let poort = null;      // () => true zolang cheats de prestaties blokkeren
-let bronnen = null;    // () => { wijken, plaatsen, streken, stad, taken, bekend() } of null als de wereld er nog niet is
+let bronnen = null;    // () => { grenzen, taken, bekend() } of null als de wereld er nog niet is
 let cache = null;      // { ind, t, sig }
 let timer = 0;
 let vuil = false;
@@ -91,14 +91,14 @@ export function opVeranderen(f) {
 const geblokkeerd = () => { try { return !!(poort && poort()); } catch (e) { return false; } };
 
 // De indeling met alle taken, of null zolang de wereld er niet is. Een paar seconden bewaard (de bronnen vragen om
-// de lijst van bijbanen en spellen); een ander aantal wijken, plaatsen of taken bouwt hem opnieuw.
+// de lijst van bijbanen en spellen); andere grenzen of een ander aantal taken bouwt hem opnieuw.
 export function getIndeling(nuMs = nu()) {
   if (!bronnen) return cache ? cache.ind : null;
   if (cache && nuMs - cache.t < CACHE_MS) return cache.ind;
   let b = null;
   try { b = bronnen(); } catch (e) { b = null; }
   if (!b) return cache ? cache.ind : null;
-  const sig = `${b.wijken.length}|${b.plaatsen.length}|${b.taken.length}`;
+  const sig = `${b.grenzen ? b.grenzen.jaar + ':' + b.grenzen.gemeenten.length + ':' + b.grenzen.buurten.length : 'geen'}|${b.taken.length}`;
   if (cache && cache.sig === sig) { cache.t = nuMs; return cache.ind; }
   const ind = G.bouwIndeling(b);
   cache = { ind, t: nuMs, sig, bekend: b.bekend };
@@ -120,8 +120,9 @@ function zaaiAlsNodig() {
 function meldVoortgang(w, ind, taakId) {
   if (!w || !w.addMessage) return;
   const ids = ind.perTaak.get(taakId) || [];
-  const gid = ids.find((id) => id.startsWith('w:') && ind.gebied.get(id).veroverbaar) || ids.find((id) => id.startsWith('p:') && ind.gebied.get(id).veroverbaar)
-    || ids.find((id) => ind.gebied.get(id).veroverbaar);
+  // het kleinste gebied (de laatste in de lijst, van groot naar klein) dat te veroveren is en nog niet af
+  const p = getProfiel();
+  const gid = [...ids].reverse().find((id) => ind.gebied.get(id).veroverbaar && !G.voortgang(p, ind, id).voltooid);
   if (!gid) return;
   const v = G.voortgang(getProfiel(), ind, gid);
   if (v.voltooid) return;

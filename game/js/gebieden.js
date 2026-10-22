@@ -1,25 +1,21 @@
-// Gebieden veroveren (#414): wijken, plaatsen en streken "doe je" door alles te doen wat er te doen is: de missies, bijbanen,
-// minigames, vondsten en geheimen die er liggen. Veroveren is satire: je neemt een wijk over met werk en service, niet met
-// geweld. Is een gebied helemaal gedaan, dan krijg je een titel (Burgemeester van ...), een vlag op de kaart en wat geld.
+// Gebieden veroveren (#414): de provincie, haar gemeenten, woonplaatsen, wijken en buurten "doe je" door alles te doen wat er te doen
+// is: de missies, bijbanen, minigames, vondsten en geheimen die er liggen. Veroveren is satire: je neemt een buurt over met werk en
+// service, niet met geweld. Is een gebied helemaal gedaan, dan krijg je een titel (Burgemeester van ...), een vlag op de kaart en
+// wat geld. Alles van de provincie gedaan is de hele kaart veroverd.
 //
 // Pure regels, geen DOM, geen THREE, geen opslag en geen klok: gebiedenlive.js houdt het profiel van deze speler bij en
 // hangt de haken van het spel eraan, gebiedenbronnen.js verzamelt wat er te doen is, gebiedenui.js tekent het overzicht
 // (scripts/gebieden_test.mjs, docs/GEBIEDEN.md). Het profiel is van de speler en leeft in zijn eigen opslag
 // (gde-gebieden-v1), nooit in een savegame; samen spelen telt dus per speler. Alle titels zijn verzonnen (constitution 2).
 //
-// Indeling uit de wereldgegevens, drie lagen:
-//   wijk    de 66 wijkpunten van de stad (stad.json, zoals het HUD ze noemt: dichtstbijzijnde punt, tot WIJK_REACH)
-//   plaats  de steden, dorpen en gehuchten van de provincie (worldplaces.js), binnen hun bereik per soort
-//   streek  de acht streken (regioleven.js) en daarnaast de Stad Groningen als geheel. Er zijn geen gemeentegrenzen in de
-//           gegevens; de streken doen de dienst van een gemeente, en dat staat zo in de uitleg.
+// De indeling volgt de ECHTE grenzen (game/grenzen.json, zie grenzen.js): de provincie Groningen, haar gemeenten (Kadaster),
+// de woonplaatsen (BAG) en de wijken en buurten (CBS). Een plek hoort bij precies één gebied per laag (punt-in-polygoon). Een gebied
+// telt alles wat erin ligt; wijk en woonplaats overlappen dus, en een gemeente telt wat in haar woonplaatsen en wijken ligt.
 
-export const SLEUTEL_VERSIE = 1;
+import { grensVan } from './grenzen.js';
+
+export const SLEUTEL_VERSIE = 2;     // 2: de indeling is de echte (v1 was wijkpunten, plaatsen en streken): oude beloningen en huizen vervallen
 export const MIN_TAKEN = 2;          // een gebied met minder dan twee dingen te doen is niet te veroveren
-export const WIJK_REACH = 1800;      // m: verder dan dit van het dichtstbijzijnde wijkpunt hoort bij geen wijk
-export const STAD_ID = 'stad';
-export const STAD_NAAM = 'Stad Groningen';
-// bereik van een plaats per soort (zoals worldplaces.js REACH); de stad Groningen zelf is de streek 'stad' met haar wijken
-export const PLAATS_REACH = { town: 1700, village: 800, hamlet: 350 };
 const MAX_GEDAAN = 2000;
 const MAX_ID = 80;
 
@@ -33,18 +29,23 @@ export const SOORTEN = [
 const SOORT_IDS = new Set(SOORTEN.map((s) => s.id));
 export const soortInfo = (id) => SOORTEN.find((s) => s.id === id) || null;
 
-// De drie lagen: titel van wie het gebied helemaal gedaan heeft, het geld daarbij en de kleur van de vlag.
+// De vijf lagen, van groot naar klein: voorvoegsel van het id, titel van wie het gebied helemaal gedaan heeft, het geld
+// daarbij en de kleur van de vlag. De laag in grenzen.json heet laag.
 export const NIVEAUS = [
-  { id: 'wijk', naam: 'Wijken', enkel: 'wijk', geld: 150, vlag: '#e8a33c', titel: (n) => `Wijkheld van ${n}` },
-  { id: 'plaats', naam: 'Plaatsen', enkel: 'plaats', geld: 400, vlag: '#4fb3a6', titel: (n) => `Burgemeester van ${n}` },
-  { id: 'streek', naam: 'Streken', enkel: 'streek', geld: 1200, vlag: '#d9534f', titel: (n) => `Streekbaas van ${n}` },
+  { id: 'provincie', naam: 'Provincie', enkel: 'provincie', voor: 'pv', laag: 'provincie', geld: 10000, vlag: '#7a5cc7', titel: () => 'Provinciebaas van Grunn' },
+  { id: 'gemeente', naam: 'Gemeenten', enkel: 'gemeente', voor: 'gm', laag: 'gemeenten', geld: 1500, vlag: '#d9534f', titel: (n) => `Gemeentebaas van ${n}` },
+  { id: 'woonplaats', naam: 'Woonplaatsen', enkel: 'woonplaats', voor: 'wp', laag: 'woonplaatsen', geld: 400, vlag: '#4fb3a6', titel: (n) => `Burgemeester van ${n}` },
+  { id: 'wijk', naam: 'Wijken', enkel: 'wijk', voor: 'wk', laag: 'wijken', geld: 150, vlag: '#e8a33c', titel: (n) => `Wijkheld van ${n}` },
+  { id: 'buurt', naam: 'Buurten', enkel: 'buurt', voor: 'bu', laag: 'buurten', geld: 80, vlag: '#b5835a', titel: (n) => `Buurtheld van ${n}` },
 ];
 export const niveauInfo = (id) => NIVEAUS.find((n) => n.id === id) || null;
 
 const grap = {
+  buurt: ['De buren knikken je voortaan toe. Een paar zwaaien.', 'Iemand zet een stoel voor je neer op de stoep.', 'De bakker kent je bestelling al.'],
   wijk: ['De buurt kent je nu bij naam en een paar bij bijnaam.', 'Op het wijkfeest ben jij de ereburger.', 'De buren hangen een vlag uit. Een echte.'],
-  plaats: ['De gemeente stuurt een bos bloemen en geen rekening.', 'Op het dorpsplein komt een bordje met jouw naam. Het is nog niet af, maar de bedoeling telt.', 'De harmonie speelt een lied. Het klinkt bijna als jouw naam.'],
-  streek: ['De hele streek weet nu wie je bent. De koeien keken al eerder.', 'In het streekblad sta je op de voorpagina, net onder het weer.', 'Een streekfeest zonder jou had niet gekund. Dat zeggen ze nu.'],
+  woonplaats: ['De gemeente stuurt een bos bloemen en geen rekening.', 'Op het dorpsplein komt een bordje met jouw naam. Het is nog niet af, maar de bedoeling telt.', 'De harmonie speelt een lied. Het klinkt bijna als jouw naam.'],
+  gemeente: ['In het gemeentehuis hangt een foto van jou, een beetje scheef.', 'De raad vergadert even niet: eerst een kopje koffie met jou.', 'Elke ambtenaar kent je naam. De koffie is gratis.'],
+  provincie: ['Heel Grunn weet nu wie je bent. De koeien keken al eerder.', 'Op elke kaart staat een vlag met jouw naam. De schapen vinden het best.', 'De hele provincie is van jou. Je hoeft er alleen nog even langs te rijden.'],
 };
 
 // Welke minigames meetellen en waarmee de prestaties zeggen dat je er een gedaan hebt (de teller, en soms de plek van de loopbaan).
@@ -73,89 +74,74 @@ const afstand = (ax, ay, bx, by) => Math.hypot(ax - bx, ay - by);
 const naamOk = (s) => typeof s === 'string' && s.length > 0 && s.length <= MAX_ID;
 const getal = (x) => Number.isFinite(x);
 
-// Welke gebieden bij een plek horen: { wijk, plaats, streek } met de id's (of null). Wijk en plaats zijn ondeelbaar: het
-// dichtstbijzijnde wijkpunt, de plaats met de kleinste afstand ten opzichte van zijn bereik. Ligt de plek in een wijk, dan
-// hoort ze bij de streek 'stad'; anders bij de streek met het dichtstbijzijnde hart binnen zijn bereik.
+// Het id van een gebied: voorvoegsel van de laag plus de code uit de grensgegevens (pv:PV20, gm:GM0014, wp:WP1017, wk:WK001400, bu:BU...).
+const gebiedId = (niveau, code) => `${niveau.voor}:${code}`;
+
+// Welke gebieden bij een plek horen: { provincie, gemeente, woonplaats, wijk, buurt } met de id's (of null). De indeling is
+// de echte: punt-in-polygoon in de grenzen van de indeling (ind.grenzen).
 export function gebiedenVan(ind, x, y) {
-  const uit = { wijk: null, plaats: null, streek: null };
-  if (!getal(x) || !getal(y)) return uit;
-  let bd = WIJK_REACH;
-  for (const p of ind.wijken) {
-    const d = afstand(p.x, p.y, x, y);
-    if (d <= bd) { bd = d; uit.wijk = 'w:' + p.naam; }
-  }
-  let bs = 1;
-  for (const p of ind.plaatsen) {
-    const d = afstand(p.x, p.y, x, y) / p.reach;
-    if (d <= bs) { bs = d; uit.plaats = 'p:' + p.naam; }
-  }
-  if (uit.wijk) { uit.streek = 's:' + STAD_ID; return uit; }
-  let sd = Infinity;
-  for (const s of ind.streken) {
-    const d = afstand(s.x, s.y, x, y);
-    if (d <= s.reach && d < sd) { sd = d; uit.streek = 's:' + s.id; }
-  }
+  const uit = { provincie: null, gemeente: null, woonplaats: null, wijk: null, buurt: null };
+  if (!ind.grenzen || !getal(x) || !getal(y)) return uit;
+  const r = grensVan(ind.grenzen, x, y);
+  for (const n of NIVEAUS) if (r[n.id]) uit[n.id] = gebiedId(n, r[n.id].id);
   return uit;
 }
 
-// Bouwt de indeling uit de wereldgegevens en de lijst van dingen te doen.
-//   wijken:  [{ naam, x, y }]                  plaatsen: [{ naam, kind, x, y }]   (steden tellen niet mee)
-//   streken: [{ id, naam, x, y, reach }]       stad: { x, y } het hart van de Stad Groningen
+// De naam die de speler ziet: zonder het wijknummer van het CBS ("Wijk 03 Veendam-kern" wordt "Veendam-kern") en met de gemeente
+// erbij als dezelfde naam in een laag vaker voorkomt ("Centrum (Veendam)").
+export function weergaveNamen(laag, gemeenteNaam) {
+  const kaal = laag.map((g) => { const k = String(g.naam).replace(/^Wijk \d+\s+/, ''); return k.trim() || String(g.naam); });
+  const tel = new Map();
+  for (const k of kaal) tel.set(k, (tel.get(k) || 0) + 1);
+  return laag.map((g, i) => (tel.get(kaal[i]) > 1 && g.gm && gemeenteNaam.get(g.gm) ? `${kaal[i]} (${gemeenteNaam.get(g.gm)})` : kaal[i]).slice(0, MAX_ID));
+}
+
+// Bouwt de indeling uit de grenzen en de lijst van dingen te doen.
+//   grenzen: wat grenzen.js ontvouw maakt van game/grenzen.json, of null (dan zijn er geen gebieden en blijven de taken bewaard)
 //   taken:   [{ id, soort, naam, x, y, sleutels: [string] }]  sleutels: wat het spel meldt als je dit gedaan hebt
+// ind.gebieden: [{ id, niveau, naam, x, y, ouder, taken, veroverbaar, grens }] met grens het gebied uit de grenzen (voor de kaart).
 export function bouwIndeling(invoer) {
-  const { wijken = [], plaatsen = [], streken = [], stad = null, taken = [] } = invoer || {};
-  const w = [];
-  const gezien = new Set();
-  for (const p of wijken) {
-    if (!p || !naamOk(p.naam) || !getal(p.x) || !getal(p.y) || gezien.has(p.naam)) continue;
-    gezien.add(p.naam);
-    w.push({ naam: p.naam, x: p.x, y: p.y });
+  const { grenzen = null, taken = [] } = invoer || {};
+  const ind = { grenzen, gebieden: [], gebied: new Map(), taak: new Map(), perTaak: new Map(), perSleutel: new Map() };
+  const maak = (niveau, grens, naam, ouder) => {
+    const g = { id: gebiedId(niveau, grens.id), niveau: niveau.id, naam, x: grens.c[0], y: grens.c[1], ouder, taken: [], veroverbaar: false, grens };
+    if (ind.gebied.has(g.id)) return;
+    ind.gebieden.push(g);
+    ind.gebied.set(g.id, g);
+  };
+  if (grenzen) {
+    const [pv, gm, wp, wk, bu] = NIVEAUS;
+    const gemNaam = new Map(grenzen.gemeenten.map((g) => [g.id, g.naam]));
+    maak(pv, grenzen.provincie, grenzen.provincie.naam, null);
+    for (const g of grenzen.gemeenten) maak(gm, g, g.naam, gebiedId(pv, grenzen.provincie.id));
+    const pad = (laag, niveau, ouderVan) => { const namen = weergaveNamen(laag, gemNaam); laag.forEach((g, i) => maak(niveau, g, namen[i], ouderVan(g))); };
+    pad(grenzen.woonplaatsen, wp, (g) => gebiedId(gm, g.gm));
+    pad(grenzen.wijken, wk, (g) => gebiedId(gm, g.gm));
+    pad(grenzen.buurten, bu, (g) => (g.wk ? gebiedId(wk, g.wk) : gebiedId(gm, g.gm)));
   }
-  const pl = [];
-  const plNamen = new Set();
-  for (const p of plaatsen) {
-    const reach = p && PLAATS_REACH[p.kind];
-    if (!reach || !naamOk(p.name || p.naam) || !getal(p.x) || !getal(p.y)) continue;
-    const naam = p.name || p.naam;
-    if (plNamen.has(naam)) continue;
-    plNamen.add(naam);
-    pl.push({ naam, kind: p.kind, x: p.x, y: p.y, reach });
-  }
-  const st = [];
-  for (const s of streken) {
-    if (!s || !naamOk(s.id) || !naamOk(s.naam) || !getal(s.x) || !getal(s.y) || !(s.reach > 0)) continue;
-    st.push({ id: s.id, naam: s.naam, x: s.x, y: s.y, reach: s.reach });
-  }
-  const ind = { wijken: w, plaatsen: pl, streken: st, stad: stad && getal(stad.x) && getal(stad.y) ? { x: stad.x, y: stad.y } : null,
-    gebieden: [], gebied: new Map(), taak: new Map(), perTaak: new Map(), perSleutel: new Map() };
-
-  const maak = (id, niveau, naam, x, y, r) => { const g = { id, niveau, naam, x, y, r, taken: [], veroverbaar: false }; ind.gebieden.push(g); ind.gebied.set(id, g); return g; };
-  for (const p of w) {
-    // de schijf op de kaart: de helft van de afstand tot het dichtstbijzijnde andere wijkpunt, tussen 180 en 700 m
-    let dicht = Infinity;
-    for (const q of w) if (q !== p) dicht = Math.min(dicht, afstand(p.x, p.y, q.x, q.y));
-    maak('w:' + p.naam, 'wijk', p.naam, p.x, p.y, Math.max(180, Math.min(700, (Number.isFinite(dicht) ? dicht : 800) / 2)));
-  }
-  for (const p of pl) maak('p:' + p.naam, 'plaats', p.naam, p.x, p.y, Math.min(p.reach, 1200));
-  for (const s of st) maak('s:' + s.id, 'streek', s.naam, s.x, s.y, Math.min(s.reach, 7000));
-  if (ind.stad) maak('s:' + STAD_ID, 'streek', STAD_NAAM, ind.stad.x, ind.stad.y, 3000);
-
   for (const t of taken) {
     if (!t || !naamOk(t.id) || !SOORT_IDS.has(t.soort) || !getal(t.x) || !getal(t.y) || ind.taak.has(t.id)) continue;
     const taak = { id: t.id, soort: t.soort, naam: String(t.naam || t.id).slice(0, 80), x: t.x, y: t.y, sleutels: (t.sleutels || [t.id]).filter(naamOk) };
     const van = gebiedenVan(ind, t.x, t.y);
-    // ook een taak zonder gebied wordt onthouden: de plaatsen van de provincie komen soms later binnen
-    const lijst = [van.wijk, van.plaats, van.streek].filter((id) => id && ind.gebied.has(id));
+    // ook een taak zonder gebied wordt onthouden: de grenzen kunnen later binnenkomen
+    const lijst = NIVEAUS.map((n) => van[n.id]).filter((id) => id && ind.gebied.has(id));
     ind.taak.set(taak.id, taak);
     ind.perTaak.set(taak.id, lijst);
     for (const id of lijst) ind.gebied.get(id).taken.push(taak.id);
-    for (const s of taak.sleutels) {
-      const a = ind.perSleutel.get(s);
-      if (a) a.push(taak.id); else ind.perSleutel.set(s, [taak.id]);
+    for (const sl of taak.sleutels) {
+      const arr = ind.perSleutel.get(sl);
+      if (arr) arr.push(taak.id); else ind.perSleutel.set(sl, [taak.id]);
     }
   }
   for (const g of ind.gebieden) g.veroverbaar = g.taken.length >= MIN_TAKEN;
   return ind;
+}
+
+// De keten van een gebied naar boven, van groot naar klein, inclusief het gebied zelf: provincie > gemeente > wijk > buurt.
+export function keten(ind, gebiedIdent) {
+  const uit = [];
+  for (let g = ind.gebied.get(gebiedIdent); g && uit.length < 6; g = g.ouder ? ind.gebied.get(g.ouder) : null) uit.unshift(g);
+  return uit;
 }
 
 // De taak die bij een melding van het spel hoort: met die sleutel, en van de mogelijke het dichtst bij de speler.
@@ -183,11 +169,14 @@ export function normaliseer(raw) {
   let d = raw;
   if (typeof d === 'string') { try { d = JSON.parse(d); } catch (e) { d = null; } }
   const p = nieuwProfiel();
-  if (!d || typeof d !== 'object' || d.v !== SLEUTEL_VERSIE) return p;
+  if (!d || typeof d !== 'object' || (d.v !== SLEUTEL_VERSIE && d.v !== 1)) return p;
   p.gedaan = lijstVan(d.gedaan, MAX_GEDAAN);
-  p.beloond = lijstVan(d.beloond, 400);
-  p.huizen = lijstVan(d.huizen, 400);
-  if (d.zaad === true) p.zaad = true;
+  // v1 had een andere indeling (wijkpunten, plaatsen, streken): wat je deed (de taken) blijft, de gebieden zijn nieuw en worden opnieuw gezaaid
+  if (d.v === SLEUTEL_VERSIE) {
+    p.beloond = lijstVan(d.beloond, 600);
+    p.huizen = lijstVan(d.huizen, 600);
+    if (d.zaad === true) p.zaad = true;
+  }
   return p;
 }
 
@@ -196,8 +185,8 @@ export function voegSamen(a, b) {
   const x = normaliseer(a), y = normaliseer(b);
   const p = nieuwProfiel();
   p.gedaan = lijstVan([...x.gedaan, ...y.gedaan], MAX_GEDAAN);
-  p.beloond = lijstVan([...x.beloond, ...y.beloond], 400);
-  p.huizen = lijstVan([...x.huizen, ...y.huizen], 400);
+  p.beloond = lijstVan([...x.beloond, ...y.beloond], 600);
+  p.huizen = lijstVan([...x.huizen, ...y.huizen], 600);
   if (x.zaad || y.zaad) p.zaad = true;
   return p;
 }
@@ -226,9 +215,9 @@ export function voortgang(p, ind, gebiedId) {
 export function beloningVan(ind, gebiedId, kies = 0) {
   const g = ind.gebied.get(gebiedId);
   if (!g) return null;
-  const n = g.niveau === 'streek' && g.id === 's:' + STAD_ID ? { ...NIVEAUS[2], titel: () => 'Stadsbaas van Grunn' } : niveauInfo(g.niveau);
+  const n = niveauInfo(g.niveau);
   const regels = grap[g.niveau];
-  return { gebied: g.id, naam: g.naam, niveau: g.niveau, titel: n.titel(g.naam), geld: n.geld, vlag: n.vlag, regel: regels[Math.abs(Math.floor(kies)) % regels.length], huis: g.niveau !== 'streek' };
+  return { gebied: g.id, naam: g.naam, niveau: g.niveau, titel: n.titel(g.naam), geld: n.geld, vlag: n.vlag, regel: regels[Math.abs(Math.floor(kies)) % regels.length], huis: g.niveau in HUIS_PRIJS };
 }
 
 // Een taak is gedaan. Geeft { nieuw, beloningen }: de gebieden die er nu helemaal klaar door zijn (en nog niet beloond waren).
@@ -299,10 +288,10 @@ export function kaartKleur(v, vlag) {
 }
 
 // --- safehouses (fase 2 van #414) -----------------------------------------------------------------------------------
-// In elke veroverbare wijk en plaats staat één verzonnen woning. Je koopt hem (goedkoper naarmate je meer in dat gebied deed) of
+// In elke veroverbare wijk en woonplaats staat één verzonnen woning. Je koopt hem (goedkoper naarmate je meer in dat gebied deed) of
 // krijgt hem als het gebied helemaal gedaan is. Wat erin kan: slapen en opslaan, de garage, de kledingkast, een snelreisanker en
 // onderduiken (daar zoekt de politie niet). De inrichting groeit mee met je voortgang. Alle straten en makelaars zijn verzonnen.
-export const HUIS_PRIJS = { wijk: 1800, plaats: 4200 };
+export const HUIS_PRIJS = { wijk: 1800, woonplaats: 4200 };
 export const HUIS_KORTING_MAX = 0.5;     // bij bijna klaar nog de helft van de prijs
 export const ONDERDUIK_UREN = [3, 3, 2, 2, 1]; // per inrichtingsniveau: hoe lang je onderduikt voor de politie je kwijt is
 
@@ -315,7 +304,7 @@ export const huisId = (gebiedId) => 'h:' + gebiedId;
 // De woning van een gebied, of null (een streek heeft er geen en een gebied met te weinig te doen ook niet).
 export function huisVan(ind, gebiedId) {
   const g = ind.gebied.get(gebiedId);
-  if (!g || !g.veroverbaar || g.niveau === 'streek') return null;
+  if (!g || !g.veroverbaar || !(g.niveau in HUIS_PRIJS)) return null;
   const h = hashTekst(gebiedId);
   return { id: huisId(gebiedId), gebied: gebiedId, niveau: g.niveau, naam: `Safehouse ${g.naam}`, adres: `${STRATEN[h % STRATEN.length]} ${(h >>> 8) % 98 + 1}`, makelaar: MAKELAARS[(h >>> 16) % MAKELAARS.length], x: g.x, y: g.y };
 }

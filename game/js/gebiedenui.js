@@ -37,11 +37,17 @@ export const GEBIEDEN_CSS = `
 
 let gekozen = null;
 
+// " · in Groningen": het gebied erboven (de gemeente bij een woonplaats of wijk, de wijk bij een buurt)
+function ouderTekst(ind, g) {
+  const o = g.ouder && g.niveau !== 'gemeente' ? ind.gebied.get(g.ouder) : null;
+  return o ? ` · in ${o.naam}` : '';
+}
+
 function rij(r, ind) {
   const klaar = r.voltooid;
   const niv = G.niveauInfo(r.gebied.niveau);
   return `<button type="button" class="m-li lb-li gb-li${klaar ? ' klaar' : ''}${gekozen === r.gebied.id ? ' sel' : ''}" data-gebied="${esc(r.gebied.id)}" style="--vlag:${niv.vlag}"${gekozen === r.gebied.id ? ' aria-current="true"' : ''}>` +
-    `<span class="gb-vlag">${VLAG}</span><span class="nm"><span class="one">${esc(r.gebied.naam)}</span><span class="mut one">${klaar ? esc(G.beloningVan(ind, r.gebied.id).titel) : r.klaar > 0 ? 'Bezig' : 'Nog niet begonnen'}</span></span>` +
+    `<span class="gb-vlag">${VLAG}</span><span class="nm"><span class="one">${esc(r.gebied.naam)}</span><span class="mut one">${klaar ? esc(G.beloningVan(ind, r.gebied.id).titel) : esc(`${r.klaar > 0 ? 'Bezig' : 'Nog niet begonnen'}${ouderTekst(ind, r.gebied)}`)}</span></span>` +
     `<span class="gb-tel">${r.klaar} van ${r.totaal}</span><span class="m-bar${r.deel > 0 ? ' on' : ''}"><i data-bar="gb-${esc(r.gebied.id)}" data-w="${(r.deel * 100).toFixed(1)}"></i></span></button>`;
 }
 
@@ -68,7 +74,7 @@ function detail(o, id) {
   const b = G.beloningVan(o.ind, id);
   const kop = v.voltooid
     ? `<p class="gb-titel g"><b>${esc(b.titel)}</b></p><p class="gb-regel mut">Veroverd, zonder een vinger uit te steken tegen iemand. ${esc(b.regel)}</p>`
-    : `<p class="gb-regel mut">Doe alles wat er te doen is en ${esc(niv.enkel === 'wijk' ? 'de buurt' : niv.enkel === 'plaats' ? 'het dorp' : 'de streek')} is van jou. Titel: ${esc(b.titel)}, met €${b.geld} erbij en een vlag op de kaart.</p>`;
+    : `<p class="gb-regel mut">Doe alles wat er te doen is in ${esc(g.naam)} en de ${esc(niv.enkel)} is van jou. Titel: ${esc(b.titel)}, met €${b.geld} erbij en een vlag op de kaart.</p>`;
   const blokken = G.SOORTEN.map((s) => {
     const ids = g.taken.filter((t) => o.ind.taak.get(t).soort === s.id);
     if (!ids.length) return '';
@@ -77,7 +83,8 @@ function detail(o, id) {
       ids.map((t) => `<li class="${gedaan.has(t) ? 'klaar' : ''}">${CHECK}<span>${esc(o.ind.taak.get(t).naam)}</span></li>`).join('') + '</ul>';
   }).join('');
   const bar = `<div class="lb-voort"><span class="m-bar${v.deel > 0 ? ' on' : ''}"><i data-bar="gbd-${esc(id)}" data-w="${(v.deel * 100).toFixed(1)}"></i></span><span class="m-num">${v.klaar} / ${v.totaal}</span></div>`;
-  return `<div class="pm-pane-top"><span class="m-eb">${esc(niv.enkel)}</span><h2 class="m-h2 td-h2">${esc(g.naam)}</h2></div>${kop}${bar}${huisHtml(o, id, v)}${blokken}`;
+  const pad = G.keten(o.ind, id).slice(0, -1).map((x) => esc(x.naam)).join(' › ');
+  return `<div class="pm-pane-top"><span class="m-eb">${esc(niv.enkel)}${pad ? ` · ${pad}` : ''}</span><h2 class="m-h2 td-h2">${esc(g.naam)}</h2></div>${kop}${bar}${huisHtml(o, id, v)}${blokken}`;
 }
 
 // Het overzicht: { lijst, pane, totaal } als html, voor loopbaanui.js.
