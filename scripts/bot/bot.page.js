@@ -601,7 +601,8 @@ while (true) {
       if (ticks % 20 === 0) B.log('colonne', { gaps: gaps.map(Math.round), top: Math.round(top * 10) / 10 });
     }
     // a chase: the fleeing car cruises at 14 and runs at 28, the Fjord Frituur can do 50 (#354)
-    if (s.mission.stage === 'chase' && s.player.vehicle && !s.player.vehicle.boat) top = Math.max(top, 36);
+    // (far behind it, on a long run through a village like M14's 8 km, 36 m/s ended in a crash and a burning car: 26 until it is within 150 m)
+    if (s.mission.stage === 'chase' && s.player.vehicle && !s.player.vehicle.boat) top = Math.max(top, s.target.distance < 150 ? 36 : 26);
     if (act.stunt && s.player.vehicle) {
       let best = null, bd = Infinity;
       mem.stuntSkip = mem.stuntSkip || {};
