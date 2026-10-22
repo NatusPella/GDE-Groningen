@@ -6,6 +6,10 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Opgelost
+- **Bus: het bord met lijn en bestemming zit nu op het bestemmingsvlak voorop en in het raam achter de voordeur (#160, #360; in Electron door Claude in beeld bekeken, niet door een mens):** voorop hing het bord achter het glas, naast een leeg geel vlak; op de zijkant lag het bord half achter de deur en de kozijnen, zodat er "WIN" van WINSUM stond. Nu staat "36 WINSUM" voorop leesbaar op het gele vlak en op beide zijkanten volledig in het raam.
+- **Kaart: het bijschrift van een laag (bv. "Treinrit: 1,6 km richting zuidoosten · ± 1 min") ligt boven de pictogrammen op een donkere band (#180, #360; in Electron door Claude in beeld bekeken, niet door een mens):** de pictogrammen werden erboven getekend en kapten de tekst af.
+
 ## [0.38.2] - 2026-10-22
 
 ### Opgelost

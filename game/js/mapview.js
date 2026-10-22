@@ -1181,17 +1181,13 @@ function drawDynamicMarkers(ctx, world) {
   }
   // the running mission's own layer: area, lines and what counts for it (missionmap.js)
   const layer = getMissionLayer(world);
+  let layerCap = null;
   if (layer) {
     drawLayerAreas(ctx, layer, toScreen, state.scale, t);
     drawLayerLines(ctx, layer, toScreen, Math.max(3, Math.min(6, 2 + z * 0.5)));
     if (layer.kind !== 'heli') for (const it of selectMapItems(layer, z, { skipDrawn: true })) icon(null, it.kind, it.x, it.y, it.label, {}, it.sub);
     const cap = layerCaption(layer);
-    if (cap) {
-      ctx.save();
-      ctx.font = 'bold 14px sans-serif';
-      drawLabel(ctx, `${layer.title ? layer.title + ': ' : ''}${cap}`, state.cw / 2, 56, INK.cream, 'center');
-      ctx.restore();
-    }
+    if (cap) layerCap = `${layer.title ? layer.title + ': ' : ''}${cap}`;
   }
   forEachCashTarget(world, (x, y, loot) => icon(null, 'cash', x, y, loot ? 'Geldbuit' : 'Geldwagen'));
   forEachPoliceUnit(world, (x, y, kind) => icon(null, kind, x, y, kind === 'policeHorse' ? 'Bereden politie' : kind === 'policeBike' ? 'Politie op de fiets' : 'Politie'));
@@ -1221,6 +1217,16 @@ function drawDynamicMarkers(ctx, world) {
     drawMapIconHalo(ctx, q.kind, q.sx, q.sy, sc);
     drawMapIcon(ctx, q.kind, q.sx, q.sy, sc, { t, alpha: mapIconAlpha(q.kind, z), ...q.opts });
     if (q.name) hover.push({ sx: q.sx, sy: q.sy, name: q.name, sub: q.sub, x: q.x, y: q.y, kind: q.kind, ...q.pick });
+  }
+  // het bijschrift van de laag (bv. Treinrit: afstand en richting) boven alle pictogrammen, op een donkere band: de pictogrammen worden hierboven in een rij getekend en lagen er eerst overheen
+  if (layerCap) {
+    ctx.save();
+    ctx.font = 'bold 14px sans-serif';
+    const tw = ctx.measureText(layerCap).width + 24;
+    ctx.fillStyle = inkA('dark', 0.72);
+    ctx.fillRect(state.cw / 2 - tw / 2, 40, tw, 24);
+    drawLabel(ctx, layerCap, state.cw / 2, 56, INK.cream, 'center');
+    ctx.restore();
   }
   state.dynHover = hover;
 }
