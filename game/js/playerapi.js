@@ -52,7 +52,9 @@ export function initPlayerApi(world, input) {
   }
 
   function dialog() {
-    const panel = document.querySelector('#hud .cw-panel:not([hidden])');
+    // two panels can be up (the timing meter of an earlier stage stays shown without answers): the one with answers is the dialog (M26, the jury)
+    const open = [...document.querySelectorAll('#hud .cw-panel:not([hidden])')];
+    const panel = open.find((p) => p.querySelector('.cw-opt')) || open[0];
     if (!panel) return null;
     return {
       kicker: text(panel.querySelector('small')), text: text(panel.querySelector('.cw-text')),

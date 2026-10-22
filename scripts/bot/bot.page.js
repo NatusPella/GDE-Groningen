@@ -467,6 +467,11 @@ while (true) {
     continue;
   }
   const act = L.decide(s, mem);
+  if (s.mission.active && s.mission.stage === 'choice' && act.type !== 'choose' && s.t - (mem.choiceDbgT || -99) > 10) {
+    mem.choiceDbgT = s.t;
+    const pn = document.querySelector('.cw-panel');
+    B.log('keuze-onzichtbaar', { act: act.type, dialog: !!s.blocking.dialog, paneel: !!pn, verborgen: pn && pn.hidden, ouder: pn && pn.parentElement && (pn.parentElement.id || pn.parentElement.tagName), opties: document.querySelectorAll('.cw-opt').length });
+  }
   if (act.type !== 'wait' && act.type !== 'skip' && act.type !== 'choose' && act.type !== 'closemenu') heldSince = null;   // playing is not waiting: the wait clock starts over
   if (act.type === 'shop') {
     // the first two goes: Enter selects the highlighted (story) item, Enter buys; then Escape
