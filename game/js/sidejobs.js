@@ -40,7 +40,7 @@ import lijn from './sidejob_lijn.js';
 import { BIJBAAN_JOBS } from './sidejob_bijbaan.js';
 import { veerdienst } from './sidejob_veer.js';
 import { PANEEL_JOBS } from './sidejob_paneel.js';
-import { loket, studiestaat, vigilantia, promotie, kamerkoning, wolkenhal, helix, niemeyer, bernard } from './sidejob_keuze.js';
+import { loket, studiestaat, vigilantia, promotie, kamerkoning, wolkenhal, helix, niemeyer, bernard, energielabel } from './sidejob_keuze.js';
 import { STAD_JOBS } from './sidejob_stad.js';
 import { SIDEJOB_PAY_MULT, SIDEJOB_LEVEL_BONUS, SIDEJOB_ACCIDENT_FINE } from './economy.js';
 import { playerBusy } from './busy.js';
@@ -49,7 +49,7 @@ import { noteMoney } from './finance.js';
 import { loopbaanLoon, loopbaanTel, loopbaanDeel } from './loopbaanlive.js';
 import { vakVanBaan } from './loopbaan.js';
 
-export const SIDE_JOBS = [bezorger, taxi, bus, rondvaart, fietsdepot, verhuizing, rondvaarttour, boa, rechtbank, cabaret, vracht, loket, studiestaat, vigilantia, promotie, kamerkoning, wolkenhal, helix, niemeyer, bernard, lijn, ...BIJBAAN_JOBS, veerdienst, ...PANEEL_JOBS, ...STAD_JOBS];
+export const SIDE_JOBS = [bezorger, taxi, bus, rondvaart, fietsdepot, verhuizing, rondvaarttour, boa, rechtbank, cabaret, vracht, loket, studiestaat, vigilantia, promotie, kamerkoning, wolkenhal, helix, niemeyer, bernard, energielabel, lijn, ...BIJBAAN_JOBS, veerdienst, ...PANEEL_JOBS, ...STAD_JOBS];
 const BY_ID = new Map(SIDE_JOBS.map((j) => [j.id, j]));
 
 export const JOB_TARGET_COLOR = '#ff9a3c';
@@ -99,7 +99,7 @@ export function getSideJobList() {
 }
 
 // Rough pay per round for the phone's job app until the player has own figures.
-const PAY_GUESS = { lijn: [60, 120], bezorger: [27, 55], taxi: [25, 60], bus: [90, 140], rondvaart: [55, 105], rondvaarttour: [40, 80], fietsdepot: [45, 90], verhuizing: [80, 180], boa: [38, 60], rechtbank: [60, 105], cabaret: [25, 85], vracht: [70, 130], loket: [52, 90], studiestaat: [62, 110], vigilantia: [56, 98], promotie: [58, 100], kamerkoning: [52, 92], wolkenhal: [58, 100], helix: [54, 92], niemeyer: [54, 94], bernard: [48, 84], museumbus: [48, 86], suikerbieten: [50, 90], herstelploeg: [66, 96], oogtv: [69, 93], telefoonrave: [40, 85], vandermeden: [56, 90], schouwburg: [56, 92], bernardrit: [52, 84] };
+const PAY_GUESS = { lijn: [60, 120], bezorger: [27, 55], taxi: [25, 60], bus: [90, 140], rondvaart: [55, 105], rondvaarttour: [40, 80], fietsdepot: [45, 90], verhuizing: [80, 180], boa: [38, 60], rechtbank: [60, 105], cabaret: [25, 85], vracht: [70, 130], loket: [52, 90], studiestaat: [62, 110], vigilantia: [56, 98], promotie: [58, 100], kamerkoning: [52, 92], wolkenhal: [58, 100], helix: [54, 92], niemeyer: [54, 94], bernard: [48, 84], energielabel: [54, 94], museumbus: [48, 86], suikerbieten: [50, 90], herstelploeg: [66, 96], oogtv: [69, 93], telefoonrave: [40, 85], vandermeden: [56, 90], schouwburg: [56, 92], bernardrit: [52, 84] };
 
 // Phone job app: every job with pay, distance and why it can't start now.
 export function getSideJobOffers(w) {
@@ -902,6 +902,13 @@ export function drawJobGlyph(g, glyph, r, bg) {
       g.fillStyle = bg;
       g.beginPath(); g.arc(-0.22, -0.06, 0.12, 0, Math.PI * 2); g.arc(0.22, -0.06, 0.12, 0, Math.PI * 2); g.fill();
       g.fillRect(-0.28, 0.2, 0.56, 0.1);
+      break;
+    case 'energielabel':   // a house with a label bar
+      g.moveTo(-0.8, -0.04); g.lineTo(0, -0.74); g.lineTo(0.8, -0.04); g.closePath();
+      g.fill();
+      g.fillRect(-0.58, -0.04, 1.16, 0.7);
+      g.fillStyle = bg;
+      for (const [i, w] of [[0, 0.3], [1, 0.46], [2, 0.62], [3, 0.78]]) g.fillRect(-0.46, 0.04 + i * 0.15, w, 0.09);
       break;
     case 'bernard':   // an umbrella
       g.moveTo(-0.84, 0.0); g.quadraticCurveTo(0, -1.0, 0.84, 0.0); g.quadraticCurveTo(0.42, -0.14, 0, 0.0); g.quadraticCurveTo(-0.42, -0.14, -0.84, 0.0);

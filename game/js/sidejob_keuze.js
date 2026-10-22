@@ -159,3 +159,4 @@ export const wolkenhal = makeJob(KEUZE_JOBS.wolkenhal);
 export const helix = makeJob(KEUZE_JOBS.helix);
 export const niemeyer = makeJob(KEUZE_JOBS.niemeyer);
 export const bernard = makeJob(KEUZE_JOBS.bernard);
+export const energielabel = makeJob(KEUZE_JOBS.energielabel);
