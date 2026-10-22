@@ -427,7 +427,9 @@ function eindig(w, { afgebroken = false } = {}) {
 
 function sluitAlles(w) {
   if (!game) return;
-  opruimen(w, { naarSchool: false });
+  // midden in een les (een geladen spel, een respawn): eerst het toestel weg en de speler terug op de grond bij de balie
+  if (game.fase !== 'menu' && game.les) opruimen(w);
+  else opruimen(w, { naarSchool: false });
   game = null;
   menuSluit();
   if (board) board.hide();
@@ -609,7 +611,7 @@ export const VLIEGSCHOOL = standActivity({
   glyph,
   isActive: () => !!game,
   start,
-  quit: (w) => { if (game) eindig(w, { afgebroken: true }); },
+  quit: (w) => { if (game) sluitAlles(w); },
   update: (dt, w) => {
     if (!game) return;
     if (game.fase === 'menu') updateMenu(w, dt); else updateVlucht(w, dt);
@@ -636,7 +638,7 @@ export const VLIEGSCHOOL = standActivity({
         return { fase: game.fase, les: game.les.id, st: { ...game.st, p: undefined }, baan: game.baan, c, soort: game.baan.soort };
       },
       finish: () => { if (!game || !game.st || game.fase === 'menu') return false; game.st.fase = 'klaar'; game.st.goed = 99; eindig(w); return true; },
-      quit: () => { if (!game) return false; if (game.fase === 'menu') sluitAlles(w); else eindig(w, { afgebroken: true }); return true; },
+      quit: () => { if (!game) return false; sluitAlles(w); return true; },
       status: () => ({ stand: stand_van_zaken() }),
     };
   },

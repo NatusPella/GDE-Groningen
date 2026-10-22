@@ -1,4 +1,4 @@
-// Scenes voor #207 (animaties) en #397 (vliegschool) en #397 (vliegschool): zwemmen, klimmen uit het water, over een hek springen en fietstrucs (wheelie, zonder handen, stoppie).
+// Scenes voor #207 (animaties) en #397 (vliegschool) en #397 (vliegschool) en #397 (vliegschool): zwemmen, klimmen uit het water, over een hek springen en fietstrucs (wheelie, zonder handen, stoppie).
 // node scripts/ui_shots.mjs --scenes=scripts/ui/shots_scenes_s6.js --only=fietstrucs,stoppie,zwemklim,hek --sizes=1280x720
 // Basis: scripts/ui/shots_scenes_r39.js. Scenes for scripts/ui_shots.mjs (run by desktop --perf-script, one page per
 // window size). Each scene opens a screen and logs "[capture] <name>", which
@@ -406,6 +406,42 @@ if (want('vliegdebug')) {
   info.push('meldingen: ' + msgs.join(' | '));
   V.quit();
   done.push('vliegdebug');
+}
+
+// ---- #397: een les midden in stoppen (quit), de balie sluiten en een les met het cheat-einde (finish) ----
+if (want('vliegquit')) {
+  clearInterval(skipper);
+  w.clock = 14;
+  const A = window.__activities.get('vliegschool');
+  const V = window.__vliegschool;
+  const sp = A.spots()[0];
+  teleport(sp.x, sp.y);
+  await settle();
+  teleport(sp.x, sp.y);
+  await sleep(1500);
+  await press('e', 'KeyE', 120);
+  await sleep(500);
+  info.push('menu: actief ' + A.active() + ' fase ' + JSON.stringify(V.state()));
+  V.start('vt-ringen');
+  await sleep(14000);
+  info.push('in les: ' + JSON.stringify((({ fase, les }) => ({ fase, les }))(V.state() || {})) + ' voertuig ' + !!p.inVehicle + ' kist ' + (w.vehicles.filter((v) => v.schoolKist).length));
+  V.quit();
+  await sleep(800);
+  info.push('na quit: actief ' + A.active() + ' voertuig ' + !!p.inVehicle + ' kisten ' + w.vehicles.filter((v) => v.schoolKist).length + ' afstand tot balie ' + Math.round(Math.hypot(p.x - sp.x, p.y - sp.y)) + ' activityGame ' + w.activityGame);
+  await shot('vq-na-quit', 300);
+  // opnieuw: de balie met E, een les, het einde afdwingen
+  await press('e', 'KeyE', 120);
+  await sleep(500);
+  V.start('hk-hoveren');
+  await sleep(9000);
+  const fin = V.finish();
+  await sleep(1500);
+  info.push('finish ' + fin + ' fase ' + JSON.stringify(V.state()) + ' kisten ' + w.vehicles.filter((v) => v.schoolKist).length);
+  await shot('vq-na-finish', 300);
+  await press('Backspace', 'Backspace', 120);
+  await sleep(600);
+  info.push('na backspace: actief ' + A.active());
+  done.push('vliegquit');
 }
 
 clearInterval(skipper);
