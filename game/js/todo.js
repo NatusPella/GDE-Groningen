@@ -20,6 +20,7 @@ import { getHeliSpotsForRender, HELI_MEDAL_SCORES } from './helirun.js';
 import { getPigeonSpotsForRender } from './pigeonspots.js';
 import { getPigeonSaveData } from './pigeonmode.js';
 import { activityMapIcons } from './activities.js';
+import { LES_IDS } from './vliegschoolrules.js';
 import { isPostgameOpen, CHALLENGES } from './postgame.js';
 import { SET_DONE, SET_EGGS } from './dorpsuitjes.js';
 import { VILLAGES } from './ommelandlines.js';
@@ -198,6 +199,14 @@ function minigameItems(world) {
     'Houd A en D vast voor je handen, laat steeds één hand los om hem hoger te zetten. Rust op de grote grepen, anders geven je armen het op.', [[1, 'binnen 1:20'], [2, 'binnen 0:48'], [3, 'binnen 0:30']]);
   mg('waterski', 'mg:waterski', 'waterski', 'Waterskiën bij het Grunopark', 'Grunopark · achter de boot · gratis', 'waterski', (v) => `Record ${Math.round(v).toLocaleString('nl-NL')} punten`, 'Minigame · Grunopark',
     'Achter de boot over het meer: zwaai om de boeien, spring over de golven en sla een salto of grab voor extra punten. Drie valpogingen.', [[1, '650 punten'], [2, '1.300 punten'], [3, '2.200 punten']]);
+  {
+    const lessen = LES_IDS.map((id) => getChallengeRecord('vlieg-' + id));
+    const gehaald = lessen.filter((r) => r && r.medal > 0).length, goud = lessen.filter((r) => r && r.medal === 3).length;
+    add({ key: 'mg:vliegschool', playId: 'vliegschool', icon: 'act-vliegschool', title: 'Vliegschool De Windwijzer', meta: 'Eelde · dertien lessen · gratis',
+      medal: goud === LES_IDS.length ? 3 : gehaald === LES_IDS.length ? 2 : gehaald > 0 ? 1 : 0, record: gehaald ? `${gehaald} van ${LES_IDS.length} lessen gehaald${goud ? ` · ${goud}× goud` : ''}` : 'Nog niet gevlogen',
+      detail: { kicker: 'Minigame · Groningen Airport Eelde', text: 'Zes lessen met het vliegtuig en zeven met de helikopter: ringen, landen op een markering, laag over water, een slalom langs de molens, een noodlanding, tussen hoge gebouwen door en hoveren. Per les een medaille en een beloning.', rows: [],
+        medals: [[1, 'één les gehaald'], [2, 'alle lessen gehaald'], [3, 'overal goud']] } }, acts.filter((a) => a.layer === 'vliegschool'));
+  }
   const heli = getHeliSpotsForRender();
   const best = getStat('heliBest');
   const hr = getChallengeRecord('ballonjacht');
