@@ -103,7 +103,7 @@ if (want('studentenfietsen')) {
   // close-ups van het voorwiel: het spatbord, de lamp en de banden
   for (const [i, naam] of [[0, 'nieuw'], [1, 'spatbord'], [2, 'zonderlicht'], [3, 'blauw']]) {
     const b = bikes[i];
-    await pose('sf-' + naam, { x: b.x + 2.0, y: b.y - 1.6, z: g + 0.8 }, { x: b.x + 0.5, y: b.y, z: g + 0.5 }, 150);
+    await pose('sf-' + naam, { x: b.x + 1.6, y: b.y - 1.2, z: g + 0.75 }, { x: b.x + 0.5, y: b.y, z: g + 0.42 }, 150);
   }
   info.push('fietsen ' + bikes.map((b) => b.id + ':' + JSON.stringify((b.model.student && Object.keys(b.model.student).filter((k) => b.model.student[k]).join('+')) || 'nieuw')).join(' '));
   for (const b of bikes) { const i = w.vehicles.indexOf(b); if (i >= 0) w.vehicles.splice(i, 1); }
