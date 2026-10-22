@@ -1,11 +1,11 @@
 // Soft-lock safety nets: "Vastgelopen? Zet me vrij" (pause menu), "Missie
-// afbreken", and watchdogs that clear overlays, flags and positions that
+// stoppen", and watchdogs that clear overlays, flags and positions that
 // would otherwise leave the player stuck until a reload.
 import { isInWater } from './util.js';
 import { cinematicState, skipCinematic, skipAllCinematics, isCinematicActive } from './cinematics.js';
 import { isShopOpen, closeShopMenu } from './shopui.js';
 import { isPhoneOpen, isPauseMenuOpen, isMapOpen } from './pausestate.js';
-import { failActiveMission } from './missions.js';
+import { failActiveMission, cancelActiveMission } from './missions.js';
 import { isMissionActive } from './missionquery.js';
 import { respawnPlayer } from './world.js';
 import { respawnFade } from './respawn.js';
@@ -27,7 +27,13 @@ let safeScanT = 0;
 
 export function initSafety(w) {
   world = w;
-  w.safetyActions = { unstuck: () => unstuck(w), abortMission: () => abortMission(w), missionActive: () => isMissionActive() };
+  w.safetyActions = { unstuck: () => unstuck(w), abortMission: () => abortMission(w), cancelMission: () => cancelMission(w), missionActive: () => isMissionActive() };
+}
+
+// "Missie stoppen" in the pause menu (#390, after its confirmation): not a failure, the mission can be started again
+function cancelMission(w = world) {
+  if (!isMissionActive()) return false;
+  return cancelActiveMission(w);
 }
 
 function abortMission(w = world) {

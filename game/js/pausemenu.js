@@ -765,6 +765,12 @@ function goBack() {
   }
   const legend = tab === 'map' && root.querySelector('.mapview-legend:not([hidden])');
   if (legend) { root.querySelector('.mv-layers').click(); root.querySelector('.mv-layers').focus(); return; }
+  const stop = root.querySelector('[data-stop-confirm]');
+  if (stop && !stop.hidden) {
+    stop.hidden = true;
+    root.querySelector('[data-action="mission-stop"]').focus();
+    return;
+  }
   const bench = root.querySelector('[data-bench-confirm]');
   if (tab === 'settings' && !bench.hidden) {
     bench.hidden = true;
@@ -1080,8 +1086,16 @@ function runAction(a) {
     if (world.pigeonActions && world.pigeonActions.stop()) setOpen(false);
   } else if (a === 'job-stop') {
     if (world.sideJobActions && world.sideJobActions.stop()) setOpen(false);
-  } else if (a === 'mission-abort') {
-    if (world.safetyActions && world.safetyActions.abortMission()) setOpen(false);
+  } else if (a === 'mission-stop' || a === 'mission-stop-no') {
+    // "Missie stoppen?" (#390): ask first; Nee brings the focus back to the button
+    const box = root.querySelector('[data-stop-confirm]');
+    if (box) {
+      box.hidden = a === 'mission-stop-no';
+      if (!box.hidden) box.querySelector('[data-action="mission-stop-go"]').focus();
+      else root.querySelector('[data-action="mission-stop"]').focus();
+    }
+  } else if (a === 'mission-stop-go') {
+    if (world.safetyActions && world.safetyActions.cancelMission()) setOpen(false);
   } else if (a === 'unstuck') {
     if (world.safetyActions && world.safetyActions.unstuck()) setOpen(false);
     else status('Even wachten tot je weer op de been bent');
@@ -1283,15 +1297,21 @@ function helpButtons() {
     if (w.pigeonActions && w.pigeonActions.hasHome()) out.push(['pigeon-home', icon('home'), 'Naar huis vliegen']);
   } else if (w.homeActions && w.homeActions.canGoHome()) out.push(['home', icon('home'), 'Naar huis']);
   if (w.sideJobActions && w.sideJobActions.active()) out.push(['job-stop', icon('abort'), `Stoppen met ${w.sideJobActions.name()}`]);
-  if (w.safetyActions && w.safetyActions.missionActive()) out.push(['mission-abort', icon('abort'), 'Missie afbreken']);
   out.push(['unstuck', icon('help'), 'Vastgelopen? Zet me vrij']);
   return out;
+}
+
+// the running mission, for the "Missie stoppen" row of Overzicht (#390): null when no mission runs
+function stopInfo() {
+  const w = world;
+  if (!w || !w.safetyActions || !w.safetyActions.missionActive()) return null;
+  return { title: (w.mission && w.mission.label) || 'de missie' };
 }
 
 function renderOverviewPanel() {
   const el = root.querySelector('[data-panel="overzicht"] .pm-inner');
   const quick = `<div class="ov-quick">${slider('masterVolume', 'Hoofdvolume')}${slider('musicVolume', 'Muziek')}${slider('sfxVolume', 'Effecten')}${toggle('reduceMotion', 'Beweging beperken', 'Minder bewegende beelden en schermschudden')}</div>`;
-  try { renderOverview(el, world, helpButtons(), { play: getPlaySeconds(), quick }); syncControls(); } catch (err) { console.error('overzicht', err); }
+  try { renderOverview(el, world, helpButtons(), { play: getPlaySeconds(), quick, stop: stopInfo() }); syncControls(); } catch (err) { console.error('overzicht', err); }
   const r = getDiscoveredRatio();
   const s = getSaveSummary();
   const ago = s ? Math.round((Date.now() - s.savedAt) / 60000) : -1;

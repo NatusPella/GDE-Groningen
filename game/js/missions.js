@@ -654,6 +654,22 @@ export function failActiveMission(world, reason, bannerReason, coopReden = '') {
   return true;
 }
 
+// Stopping a running mission on purpose (pause menu "Missie stoppen", #390): not a failure. No Sikkom card, no fail count and no help
+// offer in the story (hooks.failed is not called), no stats and no reward, and the checkpoint is dropped so the next try starts at the
+// first stage. Everything a mission leaves behind is cleaned up the way a failure does it (endInFailure: talk, panels, props, the
+// borrowed vehicle, a pigeon, the heli run), and the retry offer stands ("opnieuw beginnen? Enter") as does the marker at the start.
+// In Samen spelen (#371) the host's guests hear that it was stopped (world.coopUitslag, `gestopt`).
+export function cancelActiveMission(world) {
+  if (!chain || chain.phase !== 'active') return false;
+  const def = chain.defs[chain.index];
+  const i = chain.index;
+  chain.checkpoints.delete(i);
+  if (world.coopUitslag) world.coopUitslag(false, def.label, '', 0, true);
+  endInFailure(world, `${def.label} gestopt. Je kunt hem opnieuw starten`);
+  syncPub(world);
+  return true;
+}
+
 function speakerName(world) {
   const c = world.companion;
   if (c && c.character) return c.character === 'tammo' ? 'Tammo' : 'Anita';

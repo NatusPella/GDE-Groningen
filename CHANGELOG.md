@@ -6,6 +6,9 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Nieuw
+- **Een lopende missie stoppen uit het pauzemenu (#390, playtest 22-10; in Electron door een scriptcheck en de spelbot gespeeld en op beeld vastgelegd, niet door een mens bekeken):** Esc › Overzicht toont tijdens een missie bovenaan "Missie bezig" met de knop **Missie stoppen**. Eerst komt de vraag "Missie stoppen?" (Ja, stoppen / Nee, doorgaan; Esc doet hetzelfde als Nee). Stoppen is geen mislukking: geen Sikkom-scherm, geen telling als gefaald in het verhaal en dus geen hulpaanbod, geen beloning en geen verlies, en de missie telt niet als gehaald. Alles wat de missie neerzette wordt opgeruimd (scène, voertuig, duif, helikopterrit) en de opslag blijft zoals hij was. Je kunt de missie opnieuw starten bij zijn start of met Enter, en begint dan bij de eerste stap. In Samen spelen stopt de gastheer voor iedereen en krijgen de gasten de melding "{gastheer} heeft {missie} gestopt, voor jullie allebei". De oude knop "Missie afbreken" (zonder vraag en als mislukking geteld) in "Vastgelopen?" is vervangen. Getest: `coopgaten_test` (gasten met 3, 7 en 15 en de bron), `feature_smoke --only=missiestop` en de spelbot met `--annuleer=<s>`.
+
 ## [0.39.0] - 2026-10-22
 
 ### Opgelost

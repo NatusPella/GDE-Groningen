@@ -783,6 +783,51 @@ const CHECKS = [
     if (btn && SL.listSlots(null).length) { btn.click(); await sleep(1200); await snap('titel-alleen-spelen'); }
     return { knoppen: [...document.querySelectorAll('.ss-item')].map((b) => b.dataset.act) };
   } },
+  { id: 'missiestop', issues: [390], run: async () => {
+    // #390: een lopende missie stoppen uit het pauzemenu: eerst de vraag, dan geen mislukking, opnieuw te starten, opslag heel
+    const S = window.__story; if (!S) return { fout: 'window.__story ontbreekt' };
+    const MS = await imp('missions'), SG = await imp('savegame');
+    const first = S.steps.find((x) => x.kind === 'mission'); if (!first) return { fout: 'geen missie in de stappenlijst' };
+    S.jump(first.id, { start: true });
+    for (let i = 0; i < 40 && !MS.isMissionActive(); i++) await sleep(250);
+    const out = { stap: first.id, actiefVoor: MS.isMissionActive() };
+    if (!out.actiefVoor) return { ...out, fout: 'de missie startte niet' };
+    const geld0 = Math.round(w.money), fails0 = S.view().fails || 0;
+    PM.openPauseMenu('overzicht'); await sleep(900);
+    const knop = () => document.querySelector('[data-action="mission-stop"]');
+    const doos = () => document.querySelector('[data-stop-confirm]');
+    out.knop = !!knop(); out.knopTekst = knop() ? knop().textContent.trim() : '';
+    out.oudeKnopWeg = ![...document.querySelectorAll('[data-action]')].some((b) => /afbreken/i.test(b.textContent));
+    await snap('missiestop-knop');
+    knop().click(); await sleep(400);
+    out.vraagZichtbaar = !!doos() && !doos().hidden; out.vraagTekst = doos() ? doos().textContent.replace(/\s+/g, ' ').trim().slice(0, 120) : '';
+    out.nogActiefNaVraag = MS.isMissionActive();
+    await snap('missiestop-vraag');
+    document.querySelector('[data-action="mission-stop-no"]').click(); await sleep(300);
+    out.nee = { vraagWeg: !!doos() && doos().hidden, nogActief: MS.isMissionActive() };
+    knop().click(); await sleep(300);
+    await tap('Escape', 'Escape'); await sleep(300);
+    out.escSluitVraag = !!doos() && doos().hidden; out.menuNogOpen = PM.isPauseMenuOpen ? PM.isPauseMenuOpen() : null;
+    if (!doos() || doos().hidden) knop().click();
+    await sleep(300);
+    document.querySelector('[data-action="mission-stop-go"]').click(); await sleep(1500);
+    out.actiefNa = MS.isMissionActive(); out.fase = w.mission && w.mission.phase;
+    out.mislukkingen = (S.view().fails || 0) - fails0; out.skipAangeboden = !!S.canSkip(); out.geldVerschil = Math.round(w.money) - geld0;
+    out.menuDicht = PM.isPauseMenuOpen ? !PM.isPauseMenuOpen() : null;
+    await snap('missiestop-gestopt');
+    // een nieuwe start: dezelfde missie vanaf de eerste stap
+    S.jump(first.id, { start: true });
+    for (let i = 0; i < 40 && !MS.isMissionActive(); i++) await sleep(250);
+    const st = MS.missionDebug.state();
+    out.opnieuw = { actief: MS.isMissionActive(), stap: st && st.stage };
+    // de opslag blijft heel
+    let opslag = null;
+    try { SG.saveGame(w); const sum = SG.getSaveSummary(); opslag = !!sum; } catch (e) { opslag = String(e && e.message); }
+    out.opslag = opslag;
+    out.ok = out.vraagZichtbaar && out.nogActiefNaVraag && out.nee.vraagWeg && out.nee.nogActief && out.escSluitVraag && !out.actiefNa && out.mislukkingen === 0 && !out.skipAangeboden && out.geldVerschil === 0 && out.opnieuw.actief && out.opslag === true;
+    if (MS.isMissionActive()) w.safetyActions.cancelMission();
+    return out;
+  } },
 ];
 
 // een controle in het spel begint niet achter het titelscherm (dat soms nog openstaat): Enter erop
