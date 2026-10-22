@@ -5,7 +5,8 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { getScene } from './scene3d.js';
 import { buildPersonMesh, animatePersonWalk } from './models3d_people.js';
 import { JELLE_LOOK } from './storycast.js';
-import { currentStep, getStorySave } from './storyquery.js';
+import { getStorySave } from './storyquery.js';
+import { FINALE_PART } from './storyarc.js';
 import { isMissionActive, getActiveRace } from './missionquery.js';
 import { buildWorldMarker3D, updateWorldMarker3D } from './worldmarker3d.js';
 import { isCinematicActive, playCinematic, showBanner } from './cinematics.js';
@@ -80,8 +81,8 @@ export function isPostgameOpen() {
 function checkOpen() {
   if (forced) return true;
   try {
-    const c = currentStep();
-    return !!(c && c.finale && getStorySave().cards.includes(c.end));
+    // open from the finale card on, also while Deel 4 (the part after it) is being played
+    return getStorySave().cards.includes(FINALE_PART);
   } catch (e) { return false; }
 }
 
