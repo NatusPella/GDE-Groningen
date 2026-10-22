@@ -9,8 +9,8 @@
 export const VRIEND = 'Tjalke Rumsma';
 
 export const RIT = {
-  // het café waar je vertrekt (een verzonnen café uit de kroegentocht) en de plekken op de A7 (RD New, wereldcoördinaten)
-  start: { x: 369.87, y: 113.64, naam: 'Café De Lallende Koe' },
+  // het café waar je vertrekt (verzonnen, aan de westkant van de stad, aan de weg naar de A7: 4,5 km tot de oprit; het centrum zit vol voetgangers en politie) en de plekken op de A7 (RD New, wereldcoördinaten)
+  start: { x: -1369, y: 1144, naam: 'Café De Laatste Ronde' },
   // de afzetting: op de westgaande rijbaan, 15 km na het centrum; richting in radialen (x oost, y zuid), de plek is gemeten op de wegenkaart
   slalom: { x: -12939, y: 4380, heading: 2.55 },
   // het einde: waar de A7 de wereld verlaat
