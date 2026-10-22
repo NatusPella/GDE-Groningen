@@ -7,7 +7,7 @@
 // Tammo and Tessa trade places at its start, behind a short fade. After the
 // built story the last step's character stays.
 
-import { STEPS, STEP_BY_ID, PARTS, CLUES, WHY, CHARACTERS, SPEAKERS, stepAvailable, missionIndexOf, computeMoneyTimeline, partNumber, stepDone, nextStoryStep } from './storyarc.js';
+import { STEPS, STEP_BY_ID, PARTS, CLUES, WHY, CHARACTERS, SPEAKERS, stepAvailable, missionIndexOf, computeMoneyTimeline, partNumber, stepDone, nextStoryStep, FINALE_PART } from './storyarc.js';
 import { tickStoryTravel, rideWith } from './storytravel.js';
 import { askTravel, travelPromptOpen } from './reispanel.js';
 import { gateOn } from './coopgate.js';
@@ -149,9 +149,9 @@ function isDone(step, k) {
   return stepDone(k, doneId, isMissionCompleted);
 }
 
-// The next step to play, or { end: part } where the built story stops.
+// The next step to play, or { end: part } where the built story stops. Deel 4 (PARTS.*.after) starts once the finale card has played.
 export function currentStep() {
-  return nextStoryStep(doneId, isMissionCompleted);
+  return nextStoryStep(doneId, isMissionCompleted, (part) => state.cards.has(part));
 }
 
 // --- goals of activity steps --------------------------------------------------------
@@ -658,12 +658,12 @@ function getEnding() {
   const missions = [];
   STEPS.forEach((s, k) => {
     const i = missionIdx(s);
-    if (i < 0 || !stepAvailable(s)) return;
+    // a continuation (Deel 4) is extra: the credits do not wait for it
+    if (i < 0 || !stepAvailable(s) || PARTS[s.part].after) return;
     const passed = isMissionCompleted(i) && isDone(s, k) && (!state.skipped.has(s.id) || isUnlocked(`m${i + 1}_klaar`));
     missions.push({ code: s.id, title: s.title, passed });
   });
-  const c = currentStep();
-  const finale = !!(c && c.finale && state.cards.has(c.end));
+  const finale = state.cards.has(FINALE_PART);
   return endingProgress({ finale, missions }, getChallengeProgress());
 }
 
@@ -706,7 +706,7 @@ function updateCredits(dt, w) {
 function playEndCard(part) {
   if (PARTS[part] && PARTS[part].finale && currentStep().finale) return playFinale(part);
   const card = {
-    kicker: PARTS[part] ? PARTS[part].end : '', title: 'Alles voor één eierbal', cardFor: 2.4, big: 'Wordt vervolgd…',
+    kicker: PARTS[part] ? PARTS[part].end : '', title: 'Alles voor één eierbal', cardFor: 2.4, big: (PARTS[part] && PARTS[part].big) || 'Wordt vervolgd…',
     lines: ((PARTS[part] && PARTS[part].card) || []).map(([speaker, text], k) => ({ speaker, text, at: 2.6 + k * 2, dur: 1.9 })),
   };
   const pl = world.player, vh = pl.inVehicle;
@@ -718,7 +718,7 @@ function playEndCard(part) {
   }) || playCinematic({ id: 'story-card', priority: 2, duration: 6.5, pause: true, letterbox: true, skippable: true, hideHud: true, ...card });
   if (!ok) return false;
   state.cards.add(part);
-  phone(SERIES, `${PARTS[part].end}. Dit stuk van het nieuwe verhaal is nog niet gebouwd. Tot die tijd is Grunn van jou: alle missies staan in je telefoon, onder Te doen.`, 8, undefined, true);
+  phone(SERIES, PARTS[part].after ? `${PARTS[part].end}. Grunn blijft van jou: alle missies staan in je telefoon, onder Te doen.` : `${PARTS[part].end}. Dit stuk van het nieuwe verhaal is nog niet gebouwd. Tot die tijd is Grunn van jou: alle missies staan in je telefoon, onder Te doen.`, 8, undefined, true);
   return true;
 }
 
@@ -1053,6 +1053,8 @@ export function updateStory(dt, w) {
     else if (!rt.cardPending && step.finale && state.cards.has(step.end)) updateCredits(dt, w);
     return;
   }
+  // Deel 4 is extra: the credits of the main story may roll in the middle of it
+  if (PARTS[step.part].after && state.cards.has(FINALE_PART)) updateCredits(dt, w);
   if (rt.recapPending && !isMissionActive() && !isCinematicActive() && !narrativeBusy() && !w.pigeonMode && !w.pendingRespawn) {
     const part = rt.recapPending;
     rt.recapPending = null;
