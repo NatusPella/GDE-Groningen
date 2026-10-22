@@ -22,7 +22,7 @@ const TEXT_PX = 96;
 const PLATE_COLOR = '#1f3f8f';
 // m voor de gevel: de achterplaat (0,025 dik, middelpunt op 0,02) en de tekst erop; de tekst ligt 7,5 mm voor de plaat
 // (was 1,5 mm: dat is onder de dieptebuffer-resolutie van 70 m, #382) en krijgt daarbij een polygonOffset
-export const PLATE_Z = { back: 0.02, text: 0.04 };
+const PLATE_Z = { back: 0.02, text: 0.04 };
 
 const PLANE_GEO = new THREE.PlaneGeometry(1, 1);
 const PLATE_BACK_GEO = new THREE.BoxGeometry(1, 1, 0.025);

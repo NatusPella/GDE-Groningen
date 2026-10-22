@@ -26,13 +26,13 @@ if (!fs.existsSync(path.join(vendor, 'npm', 'three@0.160.0'))) { console.error(`
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 let slot = null;
 async function takeSlot() {
-  for (let ronde = 0; ronde < 120; ronde++) {
+  for (let ronde = 0; ronde < 1500; ronde++) {
     for (const n of [1, 2, 3]) {
       const dir = path.join(LOCKS, 'electron-' + n);
       try { fs.mkdirSync(dir); slot = dir; return; } catch { /* bezet */ }
     }
-    console.error('geen Electron-slot vrij, wacht 60 s');
-    await sleep(60000);
+    console.error('geen Electron-slot vrij, wacht 8 s');
+    await sleep(8000);
   }
   console.error('geen slot gekregen'); process.exit(3);
 }
