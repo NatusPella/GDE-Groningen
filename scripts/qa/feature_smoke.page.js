@@ -778,7 +778,9 @@ const CHECKS = [
     await sleep(1500);
     await snap('titel');
     const btn = document.querySelector('.ss-item[data-act="solo"]');
-    if (btn) { btn.click(); await sleep(1200); await snap('titel-alleen-spelen'); }
+    // without a saved game Alleen spelen starts a new one: only press it when there is one to show
+    const SL = await imp('saveslots');
+    if (btn && SL.listSlots(null).length) { btn.click(); await sleep(1200); await snap('titel-alleen-spelen'); }
     return { knoppen: [...document.querySelectorAll('.ss-item')].map((b) => b.dataset.act) };
   } },
 ];

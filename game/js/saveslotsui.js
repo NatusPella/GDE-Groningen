@@ -427,6 +427,11 @@ export function openSaveSlots(opts = {}) {
     }
     const dirs = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right' };
     if (dirs[k]) { e.preventDefault(); e.stopPropagation(); move(dirs[k]); return; }
+    // Enter clicks the focused button here itself (and keeps the click from happening twice): a pad or a test script sends it as a key
+    if (k === 'Enter' && !e.repeat) {
+      const b = document.activeElement;
+      if (b && b.tagName === 'BUTTON' && rootEl.contains(b) && !b.disabled) { e.preventDefault(); e.stopPropagation(); b.click(); return; }
+    }
     // the menu key / M open the '…' of the chosen card
     if ((k === 'ContextMenu' || k === 'm' || k === 'M') && !over) { e.preventDefault(); e.stopPropagation(); doAction('more', 0, sel); return; }
     if (k === 'Tab') { e.stopPropagation(); return; }
