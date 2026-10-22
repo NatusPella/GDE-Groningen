@@ -480,25 +480,29 @@ for (const [, list] of grid) {
       // offset is also the nearer plane: "layered", not counted as a fight. When it is the plane behind, the offset
       // pulls it through the other one at range: "bleed", counted as a fight and reported apart.
       const du = POFF[j] - POFF[i];
+      let bleedPair = false;
       if (du !== 0 && dot > 0) {
         const mid = (sMin + sMax) / 2, winnerJ = du < 0;
         if (winnerJ ? mid >= -0.0005 : mid <= 0.0005) { s.layered += ov.a; continue; }
-        s.bleed += ov.a;
+        // the offset is |du| depth steps, 4.3 mm each at the 190 m edge of the detail ring (depth_precision.mjs): a plane
+        // further behind than that stays behind within the ring, so it is an ordinary near/close pair, not a bleed
+        if (sep < Math.abs(du) * 0.0043) { s.bleed += ov.a; bleedPair = true; }
       }
+      const bnd = bleedPair ? 'bleed' : band(sep); // spots and patterns list the bleed pairs first
       s.pairs++;
       s[band(sep)] += ov.a;
       s.area += ov.a;
       // spots: per owner pair, look pair and band
       const la = Math.min(LOOK[i], LOOK[j]), lb = Math.max(LOOK[i], LOOK[j]);
-      const key = `${Math.min(OWNER[i], OWNER[j])}/${Math.max(OWNER[i], OWNER[j])}/${la}/${lb}/${band(sep)}`;
+      const key = `${Math.min(OWNER[i], OWNER[j])}/${Math.max(OWNER[i], OWNER[j])}/${la}/${lb}/${bnd}`;
       let sp = spots.get(key);
-      if (!sp) spots.set(key, sp = { mod, owners: [...new Set([oi.name, oj.name])].join(' | '), looks: `${lookNames[la]}  vs  ${lookNames[lb]}`, band: band(sep), sep: 0, area: 0, n: 0, x: ov.x, y: ov.y, z: ov.z });
+      if (!sp) spots.set(key, sp = { mod, owners: [...new Set([oi.name, oj.name])].join(' | '), looks: `${lookNames[la]}  vs  ${lookNames[lb]}`, band: bnd, sep: 0, area: 0, n: 0, x: ov.x, y: ov.y, z: ov.z });
       sp.area += ov.a;
       sp.n++;
       const sa = siteNames[SITE[i]], sb = siteNames[SITE[j]];
-      const pk = `${band(sep)}|${sa < sb ? sa + '  vs  ' + sb : sb + '  vs  ' + sa}`;
+      const pk = `${bnd}|${sa < sb ? sa + '  vs  ' + sb : sb + '  vs  ' + sa}`;
       let pt = patterns.get(pk);
-      if (!pt) patterns.set(pk, pt = { band: band(sep), sites: pk.slice(pk.indexOf('|') + 1), area: 0, n: 0, owners: new Set(), at: [Math.round(ov.x), Math.round(ov.z), +ov.y.toFixed(1)] });
+      if (!pt) patterns.set(pk, pt = { band: bnd, sites: pk.slice(pk.indexOf('|') + 1), area: 0, n: 0, owners: new Set(), at: [Math.round(ov.x), Math.round(ov.z), +ov.y.toFixed(1)] });
       pt.area += ov.a;
       pt.n++;
       pt.owners.add(OWNER[i]);
@@ -510,7 +514,7 @@ log('tested', tested, 'coplanar candidates;', hiddenPairs, 'pairs (' + Math.roun
 
 const r3 = (x) => Math.round(x * 1000) / 1000;
 const mods = Object.entries(perModule).sort((a, b) => b[1].area - a[1].area);
-const RANK = { flush: 0, close: 1, near: 2 };
+const RANK = { bleed: -1, flush: 0, close: 1, near: 2 };
 const top = [...spots.values()].sort((a, b) => RANK[a.band] - RANK[b.band] || b.area - a.area).slice(0, TOP);
 const total = mods.reduce((t, [, s]) => ({ pairs: t.pairs + s.pairs, flush: t.flush + s.flush, close: t.close + s.close, near: t.near + s.near, layered: t.layered + s.layered, bleed: t.bleed + s.bleed }), { pairs: 0, flush: 0, close: 0, near: 0, layered: 0, bleed: 0 });
 const pats = [...patterns.values()].sort((a, b) => RANK[a.band] - RANK[b.band] || b.area - a.area).slice(0, TOP).map((p) => ({ ...p, owners: p.owners.size }));
