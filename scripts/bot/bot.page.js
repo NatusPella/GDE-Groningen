@@ -18,6 +18,7 @@ const Pg = await imp('pigeonmode');
 const MS = await imp('missions');
 const BK = await imp('bakeround');
 const Co = await imp('collision');
+const Un = await imp('util');
 const BAKE_KEYS = { ei: '1', zout: '2', meel: '3', vet: '4', mosterd: '5' };
 for (let i = 0; i < 600 && !window.__bot; i++) await sleep(100);
 const B = window.__bot;
@@ -49,6 +50,31 @@ function footFree(x, y) {
     const [rx, ry] = Co.resolveWalker(x, y, player.radius || 0.4, world.map, 0, 0, WALK_OPTS, gz, 0);
     return Math.hypot(rx - x, ry - y) < 0.04;
   } catch (e) { return true; }
+}
+
+// no water at the point (the canal beside a road, the pond north of the Grote Markt, #312)
+function dry(x, y) {
+  try { return !Un.isInWater(world.map, x, y); } catch (e) { return true; }
+}
+// a car can drive over the point: dry and 1.7 m clear of every building (the game's own wall collision; buildingsNear answers for whole map cells, so it
+// says nothing about a single point). For the straight drive of the stunt (M01).
+function carFree(x, y) {
+  // the car is 4 m long: water within 2.2 m of the point sinks the nose or the tail (the pond of M01 is a narrow strip, a point test sailed right over it)
+  if (!dry(x, y) || !dry(x + 2.2, y) || !dry(x - 2.2, y) || !dry(x, y + 2.2) || !dry(x, y - 2.2)) return false;
+  try { const [rx, ry] = Co.resolveBuildingCollisions(x, y, 1.7, world.map); return Math.hypot(rx - x, ry - y) < 0.05; } catch (e) { return true; }
+}
+
+// water on the way of a car (the canal beside a road, a pond): a fan of points ahead, 3 headings by a reach of about 1.6 s, as obstacles for avoidance() that
+// steer away and cap the speed. M01 sank in a pond, M10 and M14 went into the canal at a bend at 12 m/s (#312). A bridge is dry (isInWater has the veto).
+function waterAhead(car) {
+  const out = [], sp = Math.abs(car.speed || 0);
+  if (sp < 2) return out;
+  const reach = Math.max(8, Math.min(32, sp * 1.6));
+  for (const da of [-0.45, 0, 0.45]) for (let d = 5; d <= reach; d += 4) {
+    const a = car.angle + da, x = car.x + Math.cos(a) * d, y = car.y + Math.sin(a) * d;
+    if (!dry(x, y)) out.push({ x, y, r: 1.6 });
+  }
+  return out;
 }
 
 function plan(s, mode, tgt) {
@@ -109,6 +135,17 @@ function trafficAhead(me, tgt) {
 // aim for the target over the planned route; returns the distance left
 // stopR: how close on foot (default 0.6 of the marker radius; a vehicle to board needs the bot right next to it, not 5 m away)
 function steerTowards(s, mode, tgt, stopAt, top = 24, stopR = null, direct0 = false) {
+  // a goal on the water that is walked to (the rented boat of M11 lies off a quay): the berth on the shore beside it, not the boat's own spot,
+  // or the walk ends in the water (the bot swam and drowned, #312)
+  if (mode === 'walk' && !s.player.vehicle) {
+    const bk = Math.round(tgt.x) + ',' + Math.round(tgt.y);
+    if (mem.berthKey !== bk) {
+      mem.berthKey = bk; mem.berth = null;
+      try { mem.berth = R.berthFor(world.map, tgt.x, tgt.y); } catch (e) { /* no water here */ }
+      if (mem.berth) B.log('steiger', { doel: [Math.round(tgt.x), Math.round(tgt.y)], steiger: [Math.round(mem.berth.x), Math.round(mem.berth.y)], afstand: Math.round(mem.berth.shoreD) });
+    }
+    if (mem.berth) tgt = { ...tgt, x: mem.berth.x, y: mem.berth.y };
+  }
   const key = mode + ':' + Math.round(tgt.x / 5) + ',' + Math.round(tgt.y / 5);
   if (!follower || key !== followKey || s.t - planAt > 12) { followKey = key; planAt = s.t; plan(s, mode, tgt); }
   const me = { x: s.player.x, y: s.player.y };
@@ -121,13 +158,15 @@ function steerTowards(s, mode, tgt, stopAt, top = 24, stopR = null, direct0 = fa
     const rest = stg && (stg.kind === 'garage' ? 3.5 : stg.stop ? Math.max(3, stg.stop + 2) : 0);
     const mdefE = (M.getMissionDefs() || [])[s.mission.index];
     // in a chase the lane is full of cyclists and walkers (M26, the Hoogstraatje): steer round them instead of through (#354)
-    const avoid = mode === 'drive' && s.mission.active && s.mission.stage === 'chase' ? trafficAhead(me, tgt) : null;
+    const avoid = mode === 'drive' && s.mission.active && (s.mission.stage === 'chase' || L.isStunt(s)) ? trafficAhead(me, tgt) : null;
     const car = { x: me.x, y: me.y, angle: s.player.vehicle.angle, speed: s.player.vehicle.speed };
     const curve = avoid && follower ? L.curveCap(follower.pts, follower.i, car) : null;
-    const c = L.carControls(car, aim, { stopAt: stopAt || !!rest, rest, top: mode === 'boat' ? Math.min(top, 9) : top, gentle: !!(s.mission.active && mdefE && mdefE.eggs), avoid, curveCap: curve });
+    const water = mode === 'drive' && !s.player.vehicle.boat ? waterAhead(car) : [];
+    const obstacles = water.length ? [...(avoid || []), ...water] : avoid;
+    const c = L.carControls(car, aim, { stopAt: stopAt || !!rest, rest, top: mode === 'boat' ? Math.min(top, 9) : top, gentle: !!(s.mission.active && mdefE && mdefE.eggs), avoid: obstacles, curveCap: curve });
     B.stick(c.steer, c.throttle ? -c.throttle : 0);
     // a chase is logged every 3 s: where, how fast, how far from the fleeing car, what stands in the lane (#354)
-    if (avoid) {
+    if (avoid && s.mission.stage === 'chase') {
       if (mem.chaseT0 == null || s.t - mem.chaseLogT > 60) mem.chaseT0 = s.t;
       if (s.t - (mem.chaseLogT || -9) >= (s.t - mem.chaseT0 < 40 ? 1 : 3)) {
         mem.chaseLogT = s.t;
@@ -135,7 +174,9 @@ function steerTowards(s, mode, tgt, stopAt, top = 24, stopR = null, direct0 = fa
       }
     }
     if (!c.reverse && wedge.update(s.t, s.player.vehicle.speed, c.throttle)) wedge.reset(), wedgeOut = true;
-    if (B.input.isDown('shift')) B.up('shift');
+    // a race on a bike (M05, the KEI week): Shift is a sprint of harder pedalling, and held down it starts the next one as soon as the breather is over
+    if (s.player.vehicle.kind === 'fiets' && s.mission.active && s.mission.type === 'checkpoint') B.down('shift');
+    else if (B.input.isDown('shift')) B.up('shift');
   } else {
     const radius = stopR != null ? stopR : (s.mission.triggerRadius || 8) * 0.6;
     if (direct < radius) { B.stick(0, 0); B.up('shift'); return direct; }
@@ -244,6 +285,26 @@ async function detour(s, n) {
   follower = null;
 }
 
+// on foot and not moving for 2 s (a stall pole, a prop, a parked car): a sidestep, alternating sides and longer each time, then a detour point
+// to the side of the line to `goal` that the next plan starts from. True when it did one (the caller skips the tick).
+async function footUnstick(s, goal) {
+  const fp = mem.footPos;
+  if (!fp || Math.hypot(s.player.x - fp.x, s.player.y - fp.y) > 0.5) { mem.footPos = { x: s.player.x, y: s.player.y, t: s.t }; return false; }
+  if (s.t - fp.t <= 2) return false;
+  mem.footPos = null;
+  mem.sidesteps = (mem.sidesteps || 0) + 1;
+  const dir = mem.sidesteps % 2 ? 1 : -1, ms = 700 + 350 * Math.min(8, mem.sidesteps);
+  B.log('zijstap', { x: s.player.x, y: s.player.y, n: mem.sidesteps, ms });
+  B.stick(dir, -0.3);
+  await sleep(ms);
+  B.stick(0, 0);
+  const hx = goal.x - s.player.x, hy = goal.y - s.player.y, hl = Math.hypot(hx, hy) || 1;
+  const off = 7 + 3 * Math.min(6, mem.sidesteps);
+  mem.detour = { x: s.player.x + (-hy / hl) * off * dir + (hx / hl) * 4, y: s.player.y + (hx / hl) * off * dir + (hy / hl) * 4, until: s.t + 12 };
+  follower = null;
+  return true;
+}
+
 // in a vehicle that sits against a kerb, a wall or other traffic: other ways out of it, one after the other, before a cheat is needed
 const vdetours = {};
 async function vdetour(s, n) {
@@ -323,7 +384,11 @@ function track(s) {
   const ph = s.mission.active ? 'active' : 'idle';
   if (ph !== lastPhase && lastPhase) {
     if (ph === 'active') { B.log('mission', { event: 'start', id, label: s.mission.label, msgs: s.hud.messages.slice(0, 3), phase: s.mission.phase }); shot(`${id}-start`); }
-    else { fails[id] = (fails[id] || 0) + 1; B.log('mission', { event: 'fail', id, label: s.mission.label, msgs: s.hud.messages.slice(0, 3), phase: s.mission.phase }); shot(`${id}-fail-${fails[id]}`); }
+    else {
+      fails[id] = (fails[id] || 0) + 1; B.log('mission', { event: 'fail', id, label: s.mission.label, msgs: s.hud.messages.slice(0, 3), phase: s.mission.phase }); shot(`${id}-fail-${fails[id]}`);
+      // where the last 15 s went (x, y, speed, angle per 1.5 s): why a mission failed
+      B.log('val-spoor', { stap: id, spoor: (mem.trail || []).slice(-10) });
+    }
   } else if (ph === 'active' && !lastPhase) B.log('mission', { event: 'start', id, label: s.mission.label, msgs: s.hud.messages.slice(0, 3), phase: s.mission.phase });
   lastPhase = ph;
   // a scene change: the first moment of each cutscene (a few per step)
@@ -376,11 +441,12 @@ while (true) {
     await sleep(2500);
     continue;
   }
+  if (s.t - (mem.trailT ?? -9) >= 1.5) { mem.trailT = s.t; (mem.trail = mem.trail || []).push([Math.round(s.t), Math.round(s.player.x), Math.round(s.player.y), s.player.vehicle ? Math.round(s.player.vehicle.speed * 10) / 10 : 0, s.player.vehicle ? s.player.vehicle.angle : null, s.player.vehicle ? s.player.vehicle.kind : 'voet', s.player.vehicle ? s.player.vehicle.health : null]); if (mem.trail.length > 24) mem.trail.shift(); }
   track(s);
   const stepKey = (s.story.id || '?') + (s.mission.active ? ':' + (s.mission.stage || 'm') : '');
   // each stage of a mission gets its own few tries at boarding and at a prompt
   if (stepKey !== mem.stageKey) { mem.stageKey = stepKey; mem.pressTries = 0; mem.boardTries = 0; mem.planTries = 0; mem.vehTries = 0; mem.nearMiss = 0; }
-  if (ticks++ % 100 === 0) B.log('status', { x: s.player.x, y: s.player.y, step: stepKey, dist: s.target ? s.target.distance : null, veh: s.player.vehicle ? s.player.vehicle.kind : 'te voet', wanted: s.wanted, money: s.player.money, msgs: s.hud.messages.slice(0, 2), sub: s.hud.subtitle && s.hud.subtitle.text });
+  if (ticks++ % 100 === 0) B.log('status', { x: s.player.x, y: s.player.y, step: stepKey, dist: s.target ? s.target.distance : null, veh: s.player.vehicle ? s.player.vehicle.kind : 'te voet', wanted: s.wanted, money: s.player.money, msgs: s.hud.messages.slice(0, 2), sub: s.hud.subtitle && s.hud.subtitle.text, stunt: s.mission.stunt || undefined });
   // a mission that asks for it ('Uitstappen, jong. Fatbikes ontwijk je te voet.'): out of the vehicle
   if (s.hud.messages.some((m) => /uitstappen|te voet/i.test(m))) mem.onFootUntil = s.t + 60;
   s.mission.onFoot = s.t < (mem.onFootUntil || 0);
@@ -467,6 +533,11 @@ while (true) {
     continue;
   }
   const act = L.decide(s, mem);
+  if (s.mission.active && s.mission.stage === 'choice' && act.type !== 'choose' && s.t - (mem.choiceDbgT || -99) > 10) {
+    mem.choiceDbgT = s.t;
+    const pn = document.querySelector('.cw-panel');
+    B.log('keuze-onzichtbaar', { act: act.type, dialog: !!s.blocking.dialog, paneel: !!pn, verborgen: pn && pn.hidden, ouder: pn && pn.parentElement && (pn.parentElement.id || pn.parentElement.tagName), opties: document.querySelectorAll('.cw-opt').length });
+  }
   if (act.type !== 'wait' && act.type !== 'skip' && act.type !== 'choose' && act.type !== 'closemenu') heldSince = null;   // playing is not waiting: the wait clock starts over
   if (act.type === 'shop') {
     // the first two goes: Enter selects the highlighted (story) item, Enter buys; then Escape
@@ -528,6 +599,11 @@ while (true) {
     const vObj = world.vehicles.find((q) => Math.hypot(q.x - v.x, q.y - v.y) < 0.6);
     const big = vObj && Math.max(vObj.halfLen || 0, vObj.halfWid || 0) > 3;
     // when the game keeps picking another vehicle (two cars side by side) walk right up to this one: its outline is then the nearest
+    // walking to a vehicle that stands among others (M14: the tractor limo between cars and a bus): the same sidesteps as on any walk
+    if (!s.player.vehicle && !s.blocking.cinematic && Math.hypot(v.x - s.player.x, v.y - s.player.y) > 3.5) {
+      if (await footUnstick(s, v)) continue;
+      if (mem.detour && s.t < mem.detour.until && Math.hypot(mem.detour.x - s.player.x, mem.detour.y - s.player.y) > 3) { steerTowards(s, 'walk', mem.detour, false, 24, 2.5); continue; }
+    }
     const d = steerTowards(s, 'walk', v, false, 24, big || (mem.nearMiss || 0) >= 2 ? 0.4 : 2.2);
     // the game's own test: this is what lights the prompt and lets E in
     const near = vObj ? V.findEnterableVehicle(player.x, player.y, world.vehicles) === vObj : d < 3.5;
@@ -543,17 +619,37 @@ while (true) {
     // eggs break on a rough road above 8.5 m/s (M09) and a convoy falls apart when the lead car runs away (M23)
     const mdef = (M.getMissionDefs() || [])[s.mission.index];
     if (mdef && mdef.eggs) top = Math.min(top, 7);
-    if (s.mission.stage === 'convoy') top = Math.min(top, 11);
+    if (s.mission.stage === 'convoy') {
+      // the leader waits for the slowest friend (the tractor, the scooter): beyond 170 m for 12 s the column falls apart
+      const members = (world.vehicles || []).filter((v) => v.convoyMember && !v.wrecked);
+      const gaps = members.map((v) => Math.hypot(v.x - s.player.x, v.y - s.player.y));
+      // the friends cruise at 10 m/s (convoy.js) and the tractor tops out at 11: the leader keeps to 8 m/s, or the line stretches by 2 m/s
+      const pace = L.convoyPace(gaps, 8);
+      top = Math.min(top, pace);
+      if (pace < 3) detector.hold(s.t);   // waiting for them is no standing still
+      // a friend that does not come (stuck at a junction): after 20 s of waiting the leader drives back to the furthest one, like a player, until they are within 90 m
+      const worstI = gaps.indexOf(Math.max(...gaps, 0));
+      if (pace < 3 && mem.cvBack == null) { if (mem.cvWait == null) mem.cvWait = s.t; else if (s.t - mem.cvWait > 20) { mem.cvBack = s.t; B.log('colonne-terug', { gap: Math.round(gaps[worstI]), naam: members[worstI] && members[worstI].label }); } }
+      if (pace >= 3) mem.cvWait = null;
+      if (mem.cvBack != null && worstI >= 0 && (Math.max(...gaps) < 90 || s.t - mem.cvBack > 40)) { mem.cvBack = null; mem.cvWait = null; }
+      if (mem.cvBack != null && worstI >= 0) { aim = { x: members[worstI].x, y: members[worstI].y, distance: gaps[worstI] }; top = 8; }
+      if (ticks % 20 === 0) B.log('colonne', { gaps: gaps.map(Math.round), top: Math.round(top * 10) / 10 });
+    }
     // a chase: the fleeing car cruises at 14 and runs at 28, the Fjord Frituur can do 50 (#354)
-    if (s.mission.stage === 'chase' && s.player.vehicle && !s.player.vehicle.boat) top = Math.max(top, 36);
+    // (far behind it, on a long run through a village like M14's 8 km, 36 m/s ended in a crash and a burning car: 26 until it is within 150 m)
+    if (s.mission.stage === 'chase' && s.player.vehicle && !s.player.vehicle.boat) top = Math.max(top, s.target.distance < 150 ? 36 : 26);
     if (act.stunt && s.player.vehicle) {
       let best = null, bd = Infinity;
       mem.stuntSkip = mem.stuntSkip || {};
       for (const q of Br.propsInRadius(s.player.x, s.player.y, 90)) {
         if (!String(q.key).startsWith('stunt') || (mem.stuntSkip[q.key] || 0) > s.t) continue;
         const d = Math.hypot(q.x - s.player.x, q.y - s.player.y);
-        if (d < bd) { bd = d; best = q; }
+        // only a prop the car can reach in a straight line over dry land
+        if (d < bd && L.segmentFree({ x: s.player.x, y: s.player.y }, q, carFree, 1.5)) { bd = d; best = q; }
       }
+      mem.stuntHasProp = !!best;
+      // no props: the drift spot on the open south side of the square (see below)
+      if (!best && s.target.distance < 80) { aim = { x: 170, y: 78, distance: L.distance({ x: s.player.x, y: s.player.y }, { x: 185, y: 92 }) }; top = 13; }
       if (best) {
         // circling a prop that does not fall (the car orbits it, or a bollard stands in the way): after 6 s within 10 m it is left alone for 90 s and the next one is tried (M01, #312)
         if (bd < 10) {
@@ -561,30 +657,70 @@ while (true) {
           else if (s.t - mem.stuntNear.since > 6) { mem.stuntSkip[best.key] = s.t + 90; B.log('stunt-omweg', { key: best.key, x: Math.round(best.x), y: Math.round(best.y) }); mem.stuntNear = null; }
         } else mem.stuntNear = null;
         aim = { x: best.x, y: best.y, distance: bd }; top = 14;
+        if (s.t - (mem.stuntLogT || -9) >= 3) { mem.stuntLogT = s.t; B.log('stunt-rekwisiet', { soort: best.kind, x: Math.round(best.x), y: Math.round(best.y), d: Math.round(bd), hoek: Math.round(Math.abs(L.normAngle(L.headingTo({ x: s.player.x, y: s.player.y }, best) - s.player.vehicle.angle)) * 100) / 100, v: Math.round((s.player.vehicle.speed || 0) * 10) / 10, score: s.mission.stunt ? s.mission.stunt.score : null }); }
+        // a prop close by but behind or beside the car (the turning circle is wider than the distance): the car circles it for ever. A stretch straight on
+        // gives a run-up from further away (2.5 s)
+        const err0 = Math.abs(L.normAngle(L.headingTo({ x: s.player.x, y: s.player.y }, best) - s.player.vehicle.angle));
+        if (bd < 14 && err0 > 1.2 && !mem.runUpUntil) mem.runUpUntil = s.t + 2.5;
+        if (mem.runUpUntil && s.t < mem.runUpUntil) {
+          const ah = s.player.vehicle.angle, ru = { x: s.player.x + Math.cos(ah) * 30, y: s.player.y + Math.sin(ah) * 30 };
+          if (L.segmentFree({ x: s.player.x, y: s.player.y }, ru, carFree, 1.5)) { aim = { ...ru, distance: 30 }; top = 10; }
+        } else if (mem.runUpUntil && s.t > mem.runUpUntil + 4) mem.runUpUntil = null;
+      }
+    }
+    // the straight line to a prop or the square runs through water (the pond north of the Grote Markt lies right on the line from the start): a way round
+    // it over dry land (A* on a grid of 1.6 m, pulled tight), followed point by point; without one the road plan takes over
+    if (act.stunt && s.player.vehicle && s.target.distance < 250) {
+      const me0 = { x: s.player.x, y: s.player.y };
+      if (!L.segmentFree(me0, aim, carFree, 1.5)) {
+        const dk = Math.round(aim.x / 8) + ',' + Math.round(aim.y / 8);
+        if (!mem.stuntDetour || mem.stuntDetour.key !== dk || s.t - mem.stuntDetour.t > 4) {
+          const d = L.detourAround(me0, aim, carFree, { cell: 1.6, margin: 14, maxCells: 120 });
+          mem.stuntDetour = { key: dk, t: s.t, f: d && d.length > 1 ? new L.PathFollower(d, { reach: 5 }) : null };
+          B.log('stunt-detour', { punten: d ? d.length : 0, van: [Math.round(me0.x), Math.round(me0.y)], naar: [Math.round(aim.x), Math.round(aim.y)] });
+        }
+        const nx = mem.stuntDetour.f && mem.stuntDetour.f.next(me0);
+        if (nx) aim = { x: nx.x, y: nx.y, distance: L.distance(me0, nx) };
       }
     }
     // on foot, wedged against a stall pole or a prop: sidestep (alternating sides, longer each time), then plan again
-    if (act.mode !== 'drive' && !s.player.vehicle && !s.blocking.cinematic && s.target.distance > 5) {
-      const fp = mem.footPos;
-      if (!fp || Math.hypot(s.player.x - fp.x, s.player.y - fp.y) > 0.5) mem.footPos = { x: s.player.x, y: s.player.y, t: s.t };
-      else if (s.t - fp.t > 2) {
-        mem.footPos = null;
-        mem.sidesteps = (mem.sidesteps || 0) + 1;
-        const dir = mem.sidesteps % 2 ? 1 : -1, ms = 700 + 350 * Math.min(8, mem.sidesteps);
-        B.log('zijstap', { x: s.player.x, y: s.player.y, n: mem.sidesteps, ms });
-        B.stick(dir, -0.3);
-        await sleep(ms);
-        B.stick(0, 0);
-        // then a detour: a point to the side of the line to the goal, walked to first (the plan from there goes round the obstacle, not back into it)
-        const hx = s.target.x - s.player.x, hy = s.target.y - s.player.y, hl = Math.hypot(hx, hy) || 1;
-        const off = 7 + 3 * Math.min(6, mem.sidesteps);
-        mem.detour = { x: s.player.x + (-hy / hl) * off * dir + (hx / hl) * 4, y: s.player.y + (hx / hl) * off * dir + (hy / hl) * 4, until: s.t + 12 };
-        follower = null;
-        continue;
-      }
-    }
+    if (act.mode !== 'drive' && !s.player.vehicle && !s.blocking.cinematic && s.target.distance > 5 && s.mission.stage !== 'hold' && await footUnstick(s, s.target)) continue;
     if (act.mode !== 'drive' && !s.player.vehicle && mem.detour && s.t < mem.detour.until && Math.hypot(mem.detour.x - s.player.x, mem.detour.y - s.player.y) > 3) { steerTowards(s, 'walk', mem.detour, false, 24, 2.5); continue; }
-    steerTowards(s, act.mode, aim, !act.stunt && s.mission.phase !== 'active' && (s.target.source === 'missiestart' || s.target.source === 'winkel'), top, s.mission.stage === 'lock' || s.mission.stage === 'crack' ? 1 : null, !!(act.stunt && s.player.vehicle && s.target.distance < 250));
+    // The evening's props are not on the square (startStunt places them only on spots without a building cell in buildingsNear, which says yes nearly
+    // everywhere: measured 0 of ~30, #312), so the points come from drifting: Space with a full lock above 9 m/s gives slip, +30 per half second times the
+    // combo (x5 after five in a row within 4 s: about 150 per half second). A run-up to 11.5 m/s, then a slide of at most 5 s, the other way each time, on the
+    // open south side of the square, away from the pond.
+    if (act.stunt && s.player.vehicle && s.target.distance < 80 && !mem.stuntHasProp) {
+      const veh = s.player.vehicle, sp = Math.abs(veh.speed || 0), anchor = { x: 185, y: 92 }, me1 = { x: s.player.x, y: s.player.y }, dz = L.distance(me1, anchor);
+      const D = mem.drift || (mem.drift = { phase: 'aanloop', t: s.t, dir: 1, n: 0 });
+      // walkers on the square: hitting one costs 250 points and the combo (hits 5 = nothing left); no slide with one within 9 m, and a slide stops at 4 m
+      const walkers = (world.pedestrians || []).filter((p) => p.state !== 'dead' && Math.hypot(p.x - me1.x, p.y - me1.y) < 30).map((p) => ({ x: p.x, y: p.y, r: 0.45, d: Math.hypot(p.x - me1.x, p.y - me1.y) }));
+      const nearest = walkers.reduce((m, p) => Math.min(m, p.d), Infinity);
+      if (D.phase === 'glij' && (s.t - D.t > 6 || sp < 4.5 || dz > 38 || nearest < 4)) { D.phase = 'aanloop'; D.t = s.t; B.up(' '); }
+      if (D.phase === 'aanloop' && sp >= 10 && dz < 30 && nearest > 9) { D.phase = 'glij'; D.t = s.t; D.dir = -D.dir; D.n++; B.log('drift', { n: D.n, x: Math.round(me1.x), y: Math.round(me1.y), v: Math.round(sp * 10) / 10, score: s.mission.stunt ? s.mission.stunt.score : null }); }
+      // stuck against a bench or a bike rack in the run-up: the usual ways out of a wedge
+      if (D.phase === 'aanloop' && sp < 1) { if (D.still == null) D.still = s.t; else if (s.t - D.still > 3) { D.still = null; B.log('drift-klem', { x: Math.round(me1.x), y: Math.round(me1.y) }); await vdetour(s, 1 + (D.n + (mem.driftDetours = (mem.driftDetours || 0) + 1)) % 4); continue; } } else D.still = null;
+      if (D.phase === 'glij') { B.down(' '); B.stick(D.dir, -1); mem.drifting = true; }
+      else {
+        if (B.input.isDown(' ')) B.up(' ');
+        // the run-up: full throttle, a full lock towards the spot (carControls slows to a crawl on a large heading error, and then circles for ever)
+        const av = walkers.length ? L.avoidance({ x: me1.x, y: me1.y, angle: veh.angle, speed: veh.speed }, walkers, { look: 20, margin: 1.2 }) : null;
+        const err = L.normAngle(L.headingTo(me1, aim) - veh.angle + (av ? av.bias : 0));
+        B.stick(Math.max(-1, Math.min(1, err * 2)), av && av.cap < 6 ? 0.4 : -1);
+      }
+      continue;
+    }
+    if (mem.drifting) { mem.drifting = false; if (B.input.isDown(' ')) B.up(' '); mem.drift = null; }
+    // inside the arena the road plan leads out of the square (and into the pond): only props, the middle and the way round the water; nothing free: stand still
+    const arena = !!(act.stunt && s.player.vehicle && s.target.distance < 80);
+    if (arena && !L.segmentFree({ x: s.player.x, y: s.player.y }, aim, carFree, 1.5)) {
+      B.stick(0, 0);
+      if (s.t - (mem.stuntWaitLog || -99) > 5) { mem.stuntWaitLog = s.t; B.log('stunt-geen-weg', { x: Math.round(s.player.x), y: Math.round(s.player.y), naar: [Math.round(aim.x), Math.round(aim.y)] }); }
+      if (mem.stuntBlockedFor == null) mem.stuntBlockedFor = s.t; else if (s.t - mem.stuntBlockedFor > 3) { mem.stuntSkip = mem.stuntSkip || {}; await vdetour(s, 1 + (mem.stuntDetours = (mem.stuntDetours || 0) + 1) % 4); mem.stuntBlockedFor = null; }
+      continue;
+    }
+    mem.stuntBlockedFor = null;
+    steerTowards(s, act.mode, aim, !act.stunt && s.mission.phase !== 'active' && (s.target.source === 'missiestart' || s.target.source === 'winkel'), top, s.mission.stage === 'lock' || s.mission.stage === 'crack' ? 1 : null, !!(act.stunt && s.player.vehicle && (arena || s.target.distance < 250) && L.segmentFree({ x: s.player.x, y: s.player.y }, aim, carFree, 1.5)));
     if (wedgeOut) {
       wedgeOut = false;
       B.log('klem', { x: s.player.x, y: s.player.y });
