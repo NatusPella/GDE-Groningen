@@ -360,6 +360,8 @@ export function solve(data, { terrain = flatTerrain, iters = 600, pullPrior = 0.
         g0.of.get(r).forEach((n, i) => { ref0[n] = base0.get(r)[i]; });
       }
       // a street held at its own level under a dyke: nothing over it may stand higher than its voorkeurshoogte
+      // a sunk tunnel's roof: the roads it joins ramp with it
+      for (const r of roads) if (sunkTunnel(r) && CAR.has(r.cat)) { const a = g0.of.get(r); a.forEach((n, i) => { if (i > 0 && i < a.length - 1) hi0[n] = Math.min(hi0[n], base0.get(r)[i] - TUNNEL_DEPTH); }); }
       for (const r of lowered0) g0.of.get(r).forEach((n, i) => { const p = pri0.get(r)[i], b = base0.get(r)[i]; if (p < b - 0.02) hi0[n] = Math.min(hi0[n], p); else if (p > b + 0.02) lo0[n] = Math.max(lo0[n], p); });
     }
     const envLo = envelope(roads, g0, lo0, 1), envHi = envelope(roads, g0, hi0, -1);
@@ -435,6 +437,8 @@ export function solve(data, { terrain = flatTerrain, iters = 600, pullPrior = 0.
   for (const v of view) {
     const r = back.get(v);
     if (!active.has(r) || !r.tunnel || r.bridge || !CAR.has(r.cat)) continue;
+    // (terrain mode: a tunnel the flat profile did not sink stays a flat deck, a car park or underpass of the data has no depth to give)
+    if (onTerrain && !sunkTunnel(r)) continue;
     const a = net.of.get(v), withPrior = r.z && !newPts.has(r) && !onTerrain;
     a.forEach((n, i) => {
       const nd = net.ids[n];
@@ -590,6 +594,9 @@ export function solve(data, { terrain = flatTerrain, iters = 600, pullPrior = 0.
   }
   return { roads: out, pts: newPts, stats: { nodes: N, free: free.reduce((s, f) => s + f, 0), movers: movers.length, couples: cpl.length, active: active.size } };
 }
+
+// A tunnel way the flat solution sank (road.z under -1 m somewhere)
+const sunkTunnel = (r) => !!r.tunnel && !r.bridge && !!r.z && r.z.some((q) => q < -1);
 
 // Does a road that follows the terrain (heights `h` at its vertices) have a crest or a hollow a vehicle would leave the ground over:
 // the grade changes at a vertex by more than 4 % and by more than twice what its class allows (roadprofile.js radiusMin)?
