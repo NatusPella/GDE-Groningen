@@ -247,7 +247,7 @@ if (want('klap')) {
     const others = w.vehicles.filter((q) => q !== car && okV(q));
     for (const q of others) q.parked = true;
     await sleep(300);
-    started = !!(RR && RR.start(null));
+    started = !!(RR && RR.start('klomp')); // een klomp: een klap met geluid (het waterpistool is een plens zonder klap)
     for (const q of others) q.parked = false;
   }
   info.push('klap: ruzie gestart ' + started + ', fase ' + JSON.stringify(RR && RR.state()));
