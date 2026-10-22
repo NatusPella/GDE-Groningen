@@ -61,3 +61,32 @@ export function roadTerrainAt(r, x, y, terrainAt, ver = 0) {
   }
   return out;
 }
+
+// The terrain every vertex of a deck is measured from, without the cache on the road: the height solver
+// (profile.mjs, terrain mode) solves over the same bases the game reads back (#269). `pts` may be a
+// densified copy of the road's own, so nothing here is stored on the road.
+export function deckRefs(pts, terrainAt) {
+  const p = deckProfile(pts, terrainAt);
+  return pts.map((q, i) => {
+    const line = p.len > 0 ? p.a + (p.b - p.a) * (p.cum[i] / p.len) : p.a;
+    return line + Math.max(0, terrainAt(q[0], q[1]) - line - DECK_DEADBAND);
+  });
+}
+
+// The same two bases on a segment of the road that is known (an elevation.js segment: i, ax, ay, ux, uy, len), without the search along
+// the road: the physics asks it for every ribbon that covers a point, every frame (#269).
+const segT = (s, x, y) => Math.max(0, Math.min(1, ((x - s.ax) * s.ux + (y - s.ay) * s.uy) / (s.len || 1)));
+
+export function roadTerrainOnSeg(r, s, x, y, terrainAt, ver = 0) {
+  let v = r._tv;
+  if (!v || v.src !== terrainAt || v.ver !== ver) v = r._tv = { h: r.pts.map((p) => terrainAt(p[0], p[1])), src: terrainAt, ver };
+  return v.h[s.i] + (v.h[s.i + 1] - v.h[s.i]) * segT(s, x, y);
+}
+
+export function deckTerrainOnSeg(r, s, x, y, terrainAt, ground = terrainAt(x, y), ver = 0) {
+  let p = r._deck;
+  if (!p || p.src !== terrainAt || p.ver !== ver) { p = r._deck = deckProfile(r.pts, terrainAt); p.src = terrainAt; p.ver = ver; }
+  const arc = p.cum[s.i] + (p.cum[s.i + 1] - p.cum[s.i]) * segT(s, x, y);
+  const line = p.a + (p.b - p.a) * (p.len > 0 ? arc / p.len : 0);
+  return line + Math.max(0, ground - line - DECK_DEADBAND);
+}

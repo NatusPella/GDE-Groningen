@@ -5,8 +5,10 @@
 // door gaat zakt of blijft, de wegen ertussen krijgen een helling. Daarna krijgt elk
 // tegelstuk van een weg zijn eigen profiel (cutZ) in de heights-sectie.
 import { solve, apply, audit, densify, STEP } from './profile.mjs';
+import { solveTerrainRoads, ahnTerrain } from './terrain_solve.mjs';
 import { nearestOn } from './bridge_audit.mjs';
 import { CAR } from '../../game/js/roadprofile.js';
+import { isDeckRoad, deckRefs, deckTerrainAt, roadTerrainAt } from '../../game/js/deckterrain.js';
 import { MAIN_WATERWAYS, SHIPPING_CLEAR, BRIDGE_DECK_T, BOEZEM_Y } from '../../game/js/waterlevels.js';
 
 const r2 = (v) => Math.round(v * 100) / 100;
@@ -19,6 +21,21 @@ export function cutZ(row, pts) {
 }
 // een stuk zonder noemenswaardig hoogteverschil krijgt geen profiel
 export const isFlat = (z) => !z || z.every((q) => Math.abs(q) < 0.02);
+// the same for the terrain profile (`zt`, terrain_solve.mjs): null when the way has none or is flat over the terrain. A piece is
+// read back by the game from its own base (a deck: the line between the terrain at ITS ends, any other road: the terrain at its vertices),
+// so the piece keeps the heights of the whole way (zt over the way's base) and gives them relative to its own base.
+export function cutZt(row, pts) {
+  if (!row.zt || !row.zt.length) return null;
+  const T = ahnTerrain();
+  if (!T) return null;
+  const deck = isDeckRoad(row);
+  const own = deck ? deckRefs(pts, T) : pts.map((p) => T(p[0], p[1]));
+  return pts.map((p, i) => {
+    const z = nearestOn({ pts: row.pts, z: row.zt }, p[0], p[1]).z;
+    const base = deck ? deckTerrainAt(row, p[0], p[1], T, T(p[0], p[1]), 'zt') : roadTerrainAt(row, p[0], p[1], T, 'zt');
+    return r2(z + base - own[i]);
+  });
+}
 
 // Where a fixed bridge over a shipping waterway has to lie: at least this high over the terrain (the road's surface)
 export const SHIPPING_DECK_Z = Math.round((SHIPPING_CLEAR + BRIDGE_DECK_T + BOEZEM_Y + 0.05) * 100) / 100;
@@ -76,7 +93,10 @@ export function profileFeats(feats, { passes = 6, shipping = true } = {}) {
     if (!res.changed && !res.cleared && !sol.pts.size) break;
   }
   const after = pick(audit(data));
-  return { roads: roads.length, profiled: roads.filter((r) => r.z).length, densified, before, after, pins: pins.length };
+  // the second profile, over the AHN terrain (#269): what ?terrain reads; none where there is no raster data
+  const terrain = ahnTerrain();
+  const zt = terrain ? solveTerrainRoads(data, { terrain, pins, noSink: true }) : null;
+  return { roads: roads.length, profiled: roads.filter((r) => r.z).length, densified, before, after, pins: pins.length, zt };
 }
 
 // Dekken: de bruggen met een auto-klasse die een profiel hebben, voor de statistiek
