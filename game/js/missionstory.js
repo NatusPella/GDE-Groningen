@@ -19,6 +19,7 @@ import { playScript } from './cutscenehost.js';
 import { missionScene, quickScene, sceneSpec, roadAlignment } from './cutscenes_akte1.js';
 import { STORY_AKTE4 } from './missionstory_akte4.js';
 import { STORY_AKTE2 } from './missionstory_akte2.js';
+import { STORY_AKTE6 } from './missionstory_akte6.js';
 import './cutscenes_akte3.js';
 import './cutscenes_akte4.js';
 
@@ -82,6 +83,9 @@ export const NPC = {
   deurwaarder: { name: 'Deurwaarder', shirt: 0x2a2a30, skin: SKIN.woodLight, variant: 'male', seed: 6113 },
   student: { name: 'Student', shirt: 0x8a4fa8, skin: SKIN.woodLight, variant: 'female', seed: 6114 },
   boer: { name: 'Boer', shirt: 0x6a7a3a, skin: SKIN.woodLight, variant: 'male', seed: 6115 },
+  // Deel 4 (docs/verhaal/nieuw/DEEL4.md)
+  willemien: { name: 'Willemien', shirt: 0x8a6f9a, skin: SKIN.woodLight, variant: 'female', seed: 6116, hairStyle: 'bun', look: { age: 'old' } },
+  buurvrouw: { name: 'Buurvrouw', shirt: 0xc27a8a, skin: SKIN.woodMid, variant: 'female', seed: 6117, hairStyle: 'curly' },
 };
 
 // Display name for a story speaker key (T, A, V or an NPC key); missions.js
@@ -1245,7 +1249,7 @@ function playStaged(w, key, tl, { anchor, facing, kicker = '', title = '', cardF
 }
 
 // the entry of mission index i: the main table, or an act's own table keyed by mission id (missionstory_akte4.js)
-const storyOf = (i) => STORY[i] || STORY_AKTE4[MISSION_IDS[i]] || STORY_AKTE2[MISSION_IDS[i]];
+const storyOf = (i) => STORY[i] || STORY_AKTE4[MISSION_IDS[i]] || STORY_AKTE2[MISSION_IDS[i]] || STORY_AKTE6[MISSION_IDS[i]];
 
 function stageLines(i, stage, kind, entry = storyOf(i)) {
   const s = entry;
