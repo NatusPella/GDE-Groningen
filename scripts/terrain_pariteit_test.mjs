@@ -86,10 +86,10 @@ if (process.argv.includes('--stad')) {
       cnt++;
       const d = Math.abs(plain.groundHeightAt(x, y, h) - solved.groundHeightAt(x, y, h));
       if (d > worst) { worst = d; at = [Math.round(x), Math.round(y)]; }
-      if (d > 0.01) bad++;
+      if (d > 0.02) bad++; // (the profile is resampled to the cm on the denser vertices)
     }
   }
-  ok(bad === 0, 'the city: heights along every road equal with and without the terrain pass', `${bad}/${cnt}, worst ${worst.toFixed(3)} m at ${at}`);
+  ok(bad === 0, 'the city: heights along every road equal (to 2 cm) with and without the terrain pass', `${bad}/${cnt}, worst ${worst.toFixed(3)} m at ${at}`);
 }
 
 console.log(`${n - fails}/${n} terrain parity checks passed`);
