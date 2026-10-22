@@ -506,6 +506,8 @@ t('de safehouses hangen aan het spel: een activiteit, een laag op de kaart, de k
   heeft('safehuizen.js', 'cheatActions.teleport', 'snelreizen met de bewakers van de kaartteleport');
   heeft('safehuizen.js', 'policeWatching(w)', 'de deur is dicht als de politie je ziet');
   heeft('safehuizen.js', 'w.wanted = 0', 'onderduiken zet het gezocht-niveau op nul');
+  heeft('safehuizen.js', 'isInWater', 'een huisje staat nooit in het water');
+  heeft('safehuizen.js', 'onbruikbaar', 'een woonplaats zonder droge plek krijgt geen huisje');
   const s = bron('safehuizen.js');
   for (const w of ['winter', 'sneeuw', 'schiet', 'bloed', 'moord']) assert.ok(!s.toLowerCase().includes(w), w);
 });

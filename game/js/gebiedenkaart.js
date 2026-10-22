@@ -135,10 +135,10 @@ export function tekenVeroverd(ctx, toScreen, scale, cw, ch, hover, label, kleurT
     if (r.voltooid) {
       const s = Math.max(16, Math.min(30, diag * 0.12));
       tekenVlag(ctx, sx, sy, s, r.vlag);
-      label(ctx, r.titel, sx, sy + 14, kleurTekst, 'center');
+      label(ctx, r.titel, sx, sy + 30, kleurTekst, 'center'); // onder het icoon van het safehouse in het midden
       hover.push({ sx, sy: sy - s * 0.5, name: r.titel, sub: `${r.niveau.enkel[0].toUpperCase()}${r.niveau.enkel.slice(1)} veroverd: alles gedaan (${r.totaal} dingen)` });
     } else if (r.veroverbaar && r.klaar > 0) {
-      label(ctx, `${g.naam} ${r.klaar}/${r.totaal}`, sx, sy + 15, kleurTekst, 'center');
+      label(ctx, `${g.naam} ${r.klaar}/${r.totaal}`, sx, sy + 26, kleurTekst, 'center');
     }
   }
   ctx.restore();
