@@ -1030,7 +1030,7 @@ function runStats(world, def) {
   if (r.vehicleUsed && !rv) stats.push([def.fragile ? def.fragile.label : 'Schade voertuig', def.fragile ? `${Math.round(cargoLeft(def))}%` : `${Math.round(r.vehDamage)}%`]);
   if (def.type === 'fatbike') stats.push(['Geschept', String(chain.fatbikeHits || 0)]);
   const su = def.type === 'stunt' ? stuntStatus() : null;
-  if (su) stats.push(['Punten', String(su.score)], ['Omver', String(su.broken)], ['Mensen geraakt', String(su.hits)]);
+  if (su) stats.push(['Punten', String(su.score)], ['Omver', String(su.broken)]);
   if (r.hurt > 0.5 || (!rv && !r.vehicleUsed)) stats.push(['Verwondingen', `${Math.round(r.hurt)}%`]);
   if (r.racePos) stats.push(['Positie', `${r.racePos}/${r.raceTotal}`]);
   return stats;
@@ -1198,7 +1198,7 @@ function progressText(world, def, pub) {
     if (vehicleToBoard(world, def)) return `Stap in ${def.vehicleName || 'de auto'}`;
     if (chain.stuntPhase) {
       const s = stuntStatus();
-      return s ? `Stunt op de Grote Markt · punten ${s.score}/${s.target}${s.combo > 1 ? ` · reeks x${s.combo}` : ''} · niemand raken${pub.vehicleDamage != null ? ` · schade ${pub.vehicleDamage}%` : ''}` : 'Rij naar de Grote Markt';
+      return s ? `Stunt op de Grote Markt · punten ${s.score}/${s.target}${s.combo > 1 ? ` · reeks x${s.combo}` : ''}${pub.vehicleDamage != null ? ` · schade ${pub.vehicleDamage}%` : ''}` : 'Rij naar de Grote Markt';
     }
     const stop = nextStop(def);
     const to = def.destName || 'de bestemming';
@@ -1213,7 +1213,7 @@ function progressText(world, def, pub) {
     const s = stuntStatus();
     if (!s) return null;
     if (!world.player.inVehicle) return `Stap in de Escapade · punten ${s.score}/${s.target}`;
-    return `Punten ${s.score}/${s.target}${s.combo > 1 ? ` · reeks x${s.combo}` : ''} · niemand raken`;
+    return `Punten ${s.score}/${s.target}${s.combo > 1 ? ` · reeks x${s.combo}` : ''}`;
   }
   return null;
 }

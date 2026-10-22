@@ -297,11 +297,19 @@ function breakByVehicle(v, p, hit, vx, vy, vn) {
 }
 
 // hit: { vx, vy, speed, lift, nx, ny, byPlayer }
+// Wie wil weten dat een prop sneuvelde (stuntavond.js en omverrijden.js, #392): fn(prop, hit). Geeft een functie om te stoppen.
+const breakListeners = new Set();
+export function onPropBreak(fn) {
+  breakListeners.add(fn);
+  return () => breakListeners.delete(fn);
+}
+
 export function breakProp(p, hit) {
   if (broken.has(p.key)) return;
   removeProp(p);
   broken.set(p.key, { t: world.time, x: p.x, y: p.y, restore: p.onRestore || null });
   if (p.onBreak) p.onBreak(p);
+  for (const f of breakListeners) { try { f(p, hit); } catch (e) { console.warn(e); } }
   audio(p.x, p.y, 0.25 + hit.speed / 18 * clamp(p.mass / 150, 0.3, 1), p.material);
   spawnBody(p, hit);
   burst(p, hit);
