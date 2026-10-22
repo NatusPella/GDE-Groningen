@@ -5,6 +5,7 @@
 // er een open moet of los is. Geen physics.
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { markShared } from './pixelart3d.js';
+import { wantsCabin } from './cabin3d.js';
 import {
   doorsFor, deurVoorRol, ensureDoors, wantDoor, stepDoors, deurStand, reconcileDoors,
   deurDoelVoorAnim, stilstandDeurOpen, DEUR_HOUD_TIJD, MAX_LOSSE_DEUREN,
@@ -38,6 +39,26 @@ const panelMat = (hex, glas) => {
 };
 // de open deur van een bus kijkt in een verlichte bus (grijsblauw), niet in een zwart gat (#385)
 const BUS_HOLE_MAT = (() => { const m = new THREE.MeshBasicMaterial({ color: 0x59636d }); m.userData.shared = true; return m; })();
+// De opening van een portier (#389), in twee stappen met een stencil: eerst een onzichtbaar vlak op de plek van het portier
+// dat alleen daar stencil 1 zet waar het portiergat het dichtstbijzijnde is (dus niet achter een persoon of het deurblad),
+// dan een donker vlak dat binnen die stencil de diepte terugzet naar het verste punt. De cabine (cabin3d.js, renderOrder 11)
+// daarna tekent zich erdoorheen: een echte opening in plaats van een zwart vlak op een dichte carrosserie.
+const CABIN_MARK_MAT = (() => {
+  const m = new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: false, stencilWrite: true, stencilRef: 1, stencilFunc: THREE.AlwaysStencilFunc, stencilZPass: THREE.ReplaceStencilOp });
+  m.userData.shared = true;
+  return m;
+})();
+const CABIN_HOLE_MAT = (() => {
+  const m = new THREE.ShaderMaterial({
+    uniforms: { c: { value: new THREE.Color(0x121214) } },
+    vertexShader: 'void main() { gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+    fragmentShader: 'uniform vec3 c; void main() { gl_FragColor = vec4(c, 1.0); gl_FragDepth = 1.0; }',
+    fog: false, toneMapped: false, depthFunc: THREE.AlwaysDepth,
+    stencilWrite: true, stencilRef: 1, stencilFunc: THREE.EqualStencilFunc, stencilFail: THREE.KeepStencilOp, stencilZFail: THREE.KeepStencilOp, stencilZPass: THREE.KeepStencilOp,
+  });
+  m.userData.shared = true;
+  return m;
+})();
 const HOLE_MAT = (() => { const m = new THREE.MeshBasicMaterial({ color: 0x121214 }); m.userData.shared = true; return m; })();
 
 const toHex = (c, fb) => (typeof c === 'number' ? c : typeof c === 'string' ? new THREE.Color(c).getHex() : fb);
@@ -88,9 +109,20 @@ function buildRig(mesh, v, defs) {
       pivot.position.set(baseX, d.y0 + d.h / 2, baseZ);
       panel = new THREE.Mesh(panelGeo(d.w, d.h), panelMat(paint, glas));
       panel.position.x = d.soort === 'scharnier' ? -d.w / 2 : d.soort === 'achterscharnier' ? d.w / 2 : 0;
-      hole = new THREE.Mesh(panelGeo(d.w * 0.92, d.h * 0.92), v.isBus ? BUS_HOLE_MAT : HOLE_MAT);
+      const cabine = !v.isBus && (d.soort === 'scharnier' || d.soort === 'achterscharnier') && wantsCabin(v);
+      hole = new THREE.Mesh(panelGeo(d.w * 0.92, d.h * 0.92), v.isBus ? BUS_HOLE_MAT : cabine ? CABIN_HOLE_MAT : HOLE_MAT);
+      if (cabine) {
+        hole.renderOrder = 10;
+        // de merkplaat: hetzelfde vlak, een stap eerder (renderOrder 9), volgt de zichtbaarheid van de opening
+        const merk = new THREE.Mesh(hole.geometry, CABIN_MARK_MAT);
+        merk.renderOrder = 9;
+        merk.visible = false;
+        group.add(merk);
+        hole.userData.merk = merk;
+      }
       // schuifdeuren (bus): het deurblad zit al in het model op hw+0.014, de opening moet daar vóór liggen
       hole.position.set(cx, d.y0 + d.h / 2, d.side * (hw + (d.soort === 'schuif' ? 0.02 : 0.006)));
+      if (hole.userData.merk) hole.userData.merk.position.copy(hole.position);
     }
     pivot.add(panel);
     hole.visible = false;
@@ -110,6 +142,7 @@ function pose(rig, id, open, dmg) {
   const d = e.def, a = deurStand(d, open, dmg);
   e.pivot.visible = a > 0.002;
   e.hole.visible = e.pivot.visible || !!e.lost;
+  if (e.hole.userData.merk) e.hole.userData.merk.visible = e.hole.visible;
   if (!e.pivot.visible) return;
   if (d.soort === 'schuif') {
     e.pivot.position.x = e.baseX + (d.dir || 1) * a;
@@ -134,6 +167,7 @@ function laatLos(mesh, rig, id, v) {
   if (!e || e.lost) return;
   e.lost = true;
   e.hole.visible = true;
+  if (e.hole.userData.merk) e.hole.userData.merk.visible = true;
   const parent = mesh.parent;
   if (parent && e.pivot) {
     e.pivot.visible = true;
@@ -191,7 +225,7 @@ export function syncVehicleDoors(mesh, v, dt, vraag = null) {
       for (const id of Object.keys(st.loose)) if (rig.doors[id] && !rig.doors[id].lost) laatLos(mesh, rig, id, v);
     }
     if (!Object.keys(st.loose).length && rig) for (const e of Object.values(rig.doors)) { e.lost = false; if (!e.panel.parent) e.pivot.add(e.panel); }
-    if (!Object.keys(st.loose).length && rig) for (const e of Object.values(rig.doors)) { e.panel.position.copy(e.home); e.panel.quaternion.identity(); e.hole.visible = false; }
+    if (!Object.keys(st.loose).length && rig) for (const e of Object.values(rig.doors)) { e.panel.position.copy(e.home); e.panel.quaternion.identity(); e.hole.visible = false; if (e.hole.userData.merk) e.hole.userData.merk.visible = false; }
   }
   if (vraag) {
     const d = deurVoorRol(defs, vraag.rol, st, vraag.side || 0);

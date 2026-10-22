@@ -187,7 +187,9 @@ class SceneMSAAPass extends Pass {
     super();
     this.scene = scene;
     this.cam = cam;
-    this.target = new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, samples });
+    // stencilBuffer: de portieropening van een voertuig (vehicledoors3d.js) tekent met een stencil (#389); DEPTH24_STENCIL8 kost
+    // evenveel geheugen als de 24-bit diepte van voorheen
+    this.target = new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, samples, stencilBuffer: true });
     this.material = new THREE.ShaderMaterial({
       uniforms: THREE.UniformsUtils.clone(shader.uniforms),
       vertexShader: shader.vertexShader,

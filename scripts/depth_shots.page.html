@@ -51,12 +51,27 @@ try {
 
   // zichtbreedte (m) op het doel => verticale fov, zodat het bord op elke afstand even groot in beeld staat
   const fovFor = (D, viewW) => 2 * Math.atan(viewW / (W / H) / 2 / D) * 180 / Math.PI;
+  // zoals het spel (postfx3d.js SceneMSAAPass): eerst in een MSAA-doel met 24-bit diepte en stencil, dan naar het scherm
+  const rt = new THREE.WebGLRenderTarget(W, H, { type: THREE.HalfFloatType, samples: 4, stencilBuffer: true });
+  const copy = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), new THREE.ShaderMaterial({
+    uniforms: { t: { value: rt.texture } }, depthTest: false, depthWrite: false,
+    vertexShader: 'varying vec2 vUv; void main() { vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }',
+    fragmentShader: ['uniform sampler2D t;', 'varying vec2 vUv;', 'void main() {', '  gl_FragColor = texture2D(t, vUv);', '#include <colorspace_fragment>', '}'].join(String.fromCharCode(10)),
+  }));
+  const copyScene = new THREE.Scene(), copyCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+  copyScene.add(copy);
+  let useRT = false;
+  function render() {
+    if (!useRT) { renderer.render(scene, cam); return; }
+    renderer.setRenderTarget(rt); renderer.render(scene, cam);
+    renderer.setRenderTarget(null); renderer.autoClear = false; renderer.render(copyScene, copyCam); renderer.autoClear = true;
+  }
   function shoot(name, from, at, viewW) {
     cam.position.set(...from);
     cam.lookAt(...at);
     cam.fov = fovFor(from.reduce((s, v, i) => s + (v - at[i]) ** 2, 0) ** 0.5, viewW);
     cam.updateProjectionMatrix();
-    renderer.render(scene, cam);
+    render();
     window.__shots.push({ name, png: canvas.toDataURL('image/png') });
   }
   const clear = (...objs) => objs.forEach((o) => { scene.remove(o); });
@@ -93,6 +108,110 @@ try {
   scene.add(mesh);
   mesh.updateMatrixWorld(true);
   const hl = model.len / 2, hw = model.wid / 2;
+  // voertuigen met open bestuurdersdeur en van opzij (#389): één rij, camera op de deurkant
+  if (wanted('voertuigen')) {
+    scene.remove(mesh);
+    useRT = true;
+    const VD = await import('/game/js/vehicledoors3d.js');
+    let CAB = { syncCabins() {} };
+    try { CAB = await import('/game/js/cabin3d.js'); } catch (e) { console.log('geen cabin3d: ' + e.message); }
+    const { setHorseMeshBuilder } = await import('/game/js/models3d_vehicles.js');
+    const cases = ['hatch', 'sedan', 'van', 'taxi', 'sport', 'wagon', 'escort', 'police', 'ambulance'];
+    const specs = TRAFFIC_MODELS();
+    const row = new THREE.Group(); scene.add(row);
+    let x = 0;
+    const shotsAt = [];
+    for (const name of cases) {
+      const m = name === 'escort' ? { name: 'escort', len: 4.0, wid: 1.65, color: '#a11f1f' } : name === 'police' ? { ...specs.find((s) => s.name === 'sedan'), color: '#1c1c1c' } : name === 'ambulance' ? { ...specs.find((s) => s.name === 'van') } : specs.find((s) => s.name === name);
+      if (!m) continue;
+      const v = new Vehicle(0, 0, 0, m);
+      if (name === 'escort') v.isHeroCar = true;
+      if (name === 'police') v.isPolice = true;
+      if (name === 'ambulance') v.isAmbulance = true;
+      const g = buildVehicleMesh(v);
+      g.position.set(x, 0, 0); row.add(g);
+      v.x = x; v.y = 0;
+      CAB.syncCabins({ vehicles: [v] }, new Map([[v.id, g]]), x, 0);
+      for (let i = 0; i < 40; i++) VD.syncVehicleDoors(g, v, 1 / 30, { id: v.id, rol: 'bijrijder', side: 1, open: true });
+      g.updateMatrixWorld(true);
+      shotsAt.push([name, x, m.wid / 2, m.len]);
+      x += 8;
+    }
+    for (const [name, cx, hwv, lv] of shotsAt) {
+      shoot('voertuig-' + name + '-deur', [cx + 1.5, 1.7, hwv + 4.2], [cx, 0.9, hwv], 5.2);
+      shoot('voertuig-' + name + '-boven', [cx + 0.5, 4.5, hwv + 3.2], [cx, 0.6, 0], 5.5);
+    }
+    scene.remove(row);
+    useRT = false;
+    scene.add(mesh);
+  }
+  // alle bootsoorten, open voertuigen en vrachtwagens van schuin boven, een per beeld (#389)
+  if (wanted('overig')) {
+    scene.remove(mesh);
+    const { BOAT_KINDS } = await import('/game/js/boattypes.js');
+    let CAB = { syncCabins() {} };
+    try { CAB = await import('/game/js/cabin3d.js'); } catch (e) { /* kan ontbreken in de oude boom */ }
+    const row = new THREE.Group(); scene.add(row);
+    const list = [];
+    for (const [k, m] of Object.entries(BOAT_KINDS)) list.push([k, { ...m }, { isBoat: true }]);
+    for (const n of ['tractor', 'quad', 'truck', 'foodtruck', 'cashvan', 'bike', 'scooter']) {
+      const m = TRAFFIC_MODELS().find((s) => s.name === n);
+      if (m) list.push([n, { ...m }, {}]);
+    }
+    list.push(['tractor-x', { name: 'tractor', len: 4.3, wid: 2.3, color: '#3f7d3a' }, {}]);
+    list.push(['quad-x', { name: 'quad', len: 2.1, wid: 1.2, color: '#b8322a' }, {}]);
+    list.push(['truck-x', { name: 'truck', len: 8.5, wid: 2.5, color: '#e8e6e0' }, {}]);
+    for (const [name, m, fl] of list) {
+      const v = new Vehicle(0, 0, 0, m);
+      Object.assign(v, fl);
+      v.isBike = m.name === 'bike'; v.isScooter = m.name === 'scooter';
+      let g;
+      try { g = buildVehicleMesh(v); } catch (e) { console.log('bouwfout ' + name + ': ' + e.message); continue; }
+      row.add(g); g.position.set(0, 0, 0);
+      v.x = 0; v.y = 0;
+      CAB.syncCabins({ vehicles: [v] }, new Map([[v.id, g]]), 0, 0);
+      g.updateMatrixWorld(true);
+      const len = Math.max(2.2, m.len || 3);
+      shoot('overig-' + name, [len * 0.55, len * 0.55 + 1.2, len * 0.9 + 1.5], [0, 0.5, 0], len * 1.25);
+      row.remove(g);
+    }
+    scene.remove(row);
+    scene.add(mesh);
+  }
+  // de botsauto's van de kermis (#389)
+  if (wanted('botsauto')) {
+    scene.remove(mesh);
+    try {
+      const BC = await import('/game/js/bumpercar3d.js');
+      const grp = new THREE.Group(); scene.add(grp);
+      [0xd8262e, 0x2f6fd0, 0xf2c230].forEach((c, i) => { const m = new THREE.Mesh(BC.bumperCarGeometry(c), BC.bumperCarMaterial()); m.position.set(i * 3.2, 0.12, 0); grp.add(m); });
+      grp.updateMatrixWorld(true);
+      shoot('botsauto-schuin', [2.2, 2.6, 5.5], [3.2, 0.9, 0], 7.5);
+      shoot('botsauto-voor', [3.2 + 4.2, 1.5, 1.6], [3.2, 0.7, 0], 3.2);
+      shoot('botsauto-boven', [3.2, 6, 3], [3.2, 0.5, 0], 3.4);
+      shoot('botsauto-rij', [3.2, 1.8, 9], [3.2, 1.2, 0], 10);
+      scene.remove(grp);
+    } catch (e) {
+      // de botsauto van voor #389 (kermis.js buildCar): losse blokken en een torus
+      const grp = new THREE.Group(); scene.add(grp);
+      [0xd8262e, 0x2f6fd0, 0xf2c230].forEach((c, i) => {
+        const g = new THREE.Group(), body = new THREE.MeshStandardMaterial({ color: c, roughness: 0.35, metalness: 0.4 });
+        const bx = (w, h, d, x, y, z, m) => { const q = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m); q.position.set(x, y, z); g.add(q); };
+        bx(1.5, 0.42, 1.05, 0, 0.42, 0, body); bx(0.5, 0.5, 1.05, 0.5, 0.62, 0, body);
+        bx(0.5, 0.45, 0.9, -0.25, 0.75, 0, new THREE.MeshStandardMaterial({ color: 0x2a2a32, roughness: 0.7 }));
+        const ring = new THREE.Mesh(new THREE.TorusGeometry(0.86, 0.13, 6, 20).rotateX(Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0x1c1c1e, roughness: 0.7 })); ring.position.y = 0.28; ring.scale.set(1, 1, 0.72); g.add(ring);
+        const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 3.2, 6), new THREE.MeshStandardMaterial({ color: 0x8a9096 })); pole.position.set(-0.62, 2.0, 0); g.add(pole);
+        g.position.set(i * 3.2, 0.12, 0); grp.add(g);
+      });
+      grp.updateMatrixWorld(true);
+      shoot('botsauto-schuin', [2.2, 2.6, 5.5], [3.2, 0.9, 0], 7.5);
+      shoot('botsauto-voor', [3.2 + 4.2, 1.5, 1.6], [3.2, 0.7, 0], 3.2);
+      shoot('botsauto-boven', [3.2, 6, 3], [3.2, 0.5, 0], 3.4);
+      shoot('botsauto-rij', [3.2, 1.8, 9], [3.2, 1.2, 0], 10);
+      scene.remove(grp);
+    }
+    scene.add(mesh);
+  }
   // zij- en voorkant, schuin van voren (zoals een speler langsrijdt), zoomend op het bord
   // de hele bus: zijkant (stoepkant, de deuren), schuin van voren, bovenop de stoep gezien (#385)
   if (wanted('bus-overzicht')) {

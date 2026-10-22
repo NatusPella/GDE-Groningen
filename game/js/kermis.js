@@ -1,5 +1,6 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { canvasTex } from './canvastex.js';
+import { bumperCarGeometry, bumperCarMaterial } from './bumpercar3d.js';
 import { getScene } from './scene3d.js';
 import { buildPersonMesh, animatePersonWalk, seatPerson, seatedY, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
 import { showBanner } from './cinematics.js';
@@ -241,16 +242,9 @@ function buildTent() {
 }
 
 function buildCar(color, i) {
-  const M = materials();
   const g = new THREE.Group();
-  const body = new THREE.MeshStandardMaterial({ color, roughness: 0.35, metalness: 0.4 });
-  mesh(new THREE.BoxGeometry(1.5, 0.42, 1.05), body, 0, 0.42, 0, g);
-  mesh(new THREE.BoxGeometry(0.5, 0.5, 1.05), body, 0.5, 0.62, 0, g);
-  mesh(new THREE.BoxGeometry(0.5, 0.45, 0.9), M.seat, -0.25, 0.75, 0, g);
-  const ring = mesh(new THREE.TorusGeometry(0.86, 0.13, 6, 20).rotateX(Math.PI / 2), M.rubber, 0, 0.28, 0, g);
-  ring.scale.set(1, 1, 0.72);
-  mesh(new THREE.CylinderGeometry(0.03, 0.03, 3.2, 6), M.pole, -0.62, 2.0, 0, g);
-  mesh(new THREE.BoxGeometry(0.16, 0.05, 0.16), M.pole, -0.62, 3.62, 0, g);
+  // één samengevoegd model per kleur (bumpercar3d.js, #389): chassis, rubberen rand, motorkap, stoel, stuur en paal
+  mesh(bumperCarGeometry(color), bumperCarMaterial(), 0, 0, 0, g);
   getScene().add(g);
   return { mesh: g, idx: i, u: 0, v: 0, a: 0, vu: 0, vv: 0, va: 0, driver: null, rider: null };
 }
