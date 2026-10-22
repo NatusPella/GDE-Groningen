@@ -1471,8 +1471,10 @@ build without `world/` (the dev server) gets stad.json alone: roads, rails and t
   stations, train lines over the track from the OSM route relations, coast
   and border lines, outline, the base map's meta) + `provincie-bus.json` and `provincie-roads.json.gz` (the car roads of
   all packs, the route graph's source: `roadgraph.js`, used by `routing.js`
-  and `police.js`); the city tiles' empty edges get overlay tiles (key `o` +
-  tile key, flag 64, `citycover.mjs`) that load at start; `province_map.mjs` paints the base map pyramid (`provmap/z0-3`, 160 to
+  and `police.js`); the city tiles' empty edges get overlay rows (flag 64,
+  `citycover.mjs`) that `merge_overlays.mjs` puts behind the rows of their city tile (ids from
+  20,000,000 up; `loadTileWorld` splits them again, `splitOverlay`, and puts them in the grids like a streamed tile),
+  with an empty `o` + tile key tile left in `index-provincie.json` for its flags (#314); `province_map.mjs` paints the base map pyramid (`provmap/z0-3`, 160 to
   20 m a pixel, PNG). The stage builds it when the caches are there. In the
   game the tiles always stream; `provinceworld.js` makes the polder blocks
   under the streamed tiles real blocks (`countryfield.js setProvinceBlocks`,
