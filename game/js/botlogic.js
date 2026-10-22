@@ -288,6 +288,8 @@ export function isStunt(s) {
   if (m.stage === 'stunt') return true;
   // the stunt evening runs (M01): its score is on the mission, whatever the message line says by now
   if (m.stunt && !(m.stunt.score >= m.stunt.target)) return true;
+  // before the square is reached the score does not run yet, but the goal is the middle of it (after the stunt the goal is the delivery)
+  if (m.stuntSpec && s.target && Math.hypot(s.target.x - m.stuntSpec.x, s.target.y - m.stuntSpec.y) < 15) return true;
   const words = [m.label, m.type, ...((s.hud && s.hud.messages) || [])].join(' ');
   return /stunt|schans|sprong|spring|driften|drift/i.test(words);
 }

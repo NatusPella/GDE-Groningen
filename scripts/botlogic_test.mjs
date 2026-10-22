@@ -163,6 +163,7 @@ const near = (a, b, e = 1e-6) => Math.abs(a - b) < e;
   const car = { kind: 'auto', speed: 0, angle: 0 };
   ok(L.isStunt({ ...b(), mission: { label: 'Bakkie-stunt' } }) && L.isStunt({ ...b(), mission: { stage: 'stunt' } }) && !L.isStunt(b()), 'stunt herkend aan label of stage');
   ok(L.isStunt({ ...b(), mission: { label: 'Nul krassen', stunt: { score: 200, target: 1500 } } }) && !L.isStunt({ ...b(), mission: { label: 'Nul krassen', stunt: { score: 1500, target: 1500 } } }), 'stunt herkend aan de stuntscore van de missie (M01), niet meer als het doel gehaald is');
+  ok(L.isStunt({ ...b(), mission: { label: 'Nul krassen', stuntSpec: { x: 168, y: 70, radius: 46, target: 1500 } }, target: { x: 168.7, y: 70, distance: 100 } }) && !L.isStunt({ ...b(), mission: { label: 'Nul krassen', stuntSpec: { x: 168, y: 70, radius: 46, target: 1500 } }, target: { x: -22, y: -491, distance: 600 } }), 'stunt herkend aan het doel in het midden van het plein (nog voor de score loopt), niet bij de bezorging');
   const st = L.decide({ ...b(), player: { ...b().player, vehicle: car }, mission: { active: true, label: 'Nul krassen: stunt' } });
   ok(st.mode === 'drive' && st.stunt === true && st.top === 30, 'stunt: snel rijden');
   ok(!L.decide({ ...b(), player: { ...b().player, vehicle: car } }).stunt, 'geen stunt: normaal rijden');
