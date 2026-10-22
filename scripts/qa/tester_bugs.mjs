@@ -1,10 +1,13 @@
 // Meetrondes voor de vier door een tester gemelde bugs (#321 intro-camera, #326 voiceover, #329 titelkaart bij grote
 // gebouwen, #328 muis vastzetten). Eén Electron (slot uit gde-locks, wegwerpprofiel, BelowNormal), sluit zelf af.
-//   node scripts/qa/tester_bugs.mjs --check=intro|audio|caption|lock|achtervolging|cutnabij|pad|padscreens [--out=<map>] [--max=150] [--seed=<n>]
+//   node scripts/qa/tester_bugs.mjs --check=intro|audio|caption|lock|achtervolging|cutnabij|pad|padscreens|padhints|padalles [--out=<map>] [--max=150] [--seed=<n>]
 // Omgeving: GDE_GAME_DIR=<map>\game (met backslashes) voor een gestagede build, ELECTRON_EXE=<pad> als
 // desktop/node_modules ontbreekt. Het slot wordt altijd vrijgegeven. De page-scripts heten tester_<check>.page.js.
 // Bij --check=achtervolging (#117) komt daar de audiotap van scripts/qa/audiotap.js bij: het niveau en elk geluid van de cutscene met de politieauto (M02.intro).
 // Bij --check=pad en padscreens (#151) stuurt een nep-controller het spel; padscreens vraagt --max=700.
+// --check=padhints maakt beelden van dezelfde hints met toetsenbord en controller naast elkaar (shots-<naam>.png); --check=padalles (--max=1800)
+// loopt met alleen een nep-controller door de pauzesecties (focusgraaf: bereikbaar, terug, doodlopers), de missie-stoppen-vraag, kaart, winkel,
+// de A-knop op elke knop, zes soorten voertuigen en trein, de minigames (starten, bedienen, stoppen) en meerdere controllers.
 // Bij --check=audio draait het spel met --stil --audio-graph: de hele geluidsgraaf loopt, maar in een gedempte uitgang (niets te horen).
 // Uitvoer: <out>/run.log, <out>/result.json (de [perf-script]-regel), <out>/frames.json (intro: [t,x,y,h,dx,dy,dz,fov,dak,cine,ov,cut]), beelden <out>/shots-*.png.
 import fs from 'node:fs';
