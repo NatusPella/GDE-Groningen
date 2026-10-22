@@ -44,6 +44,15 @@ Het onderstaande over duur en belasting zijn schattingen op een gewone ontwikkel
 - **Speeltest van #74 (`scripts/qa/speeltest74.mjs`):** de handmatige speeltests als scripted run met beelden en metingen: achteruitkijken (Q) in een auto op een Ommeland-weg (kijkrichting van de camera ten opzichte van de auto), een GPS-doel in het Ommeland (route, minimap, kaart, afslagbanner), frametijd-pieken bij het rijden met 30 m/s met zichtafstand normaal, ver en heel ver (`--only=heelver`), en een padelpotje met auto-spel (`--only=padel`). De auto rijdt kinematisch langs de langste weg, zodat de wereld streamt zoals bij een echte rit.
 - Eén Electron-instantie per deel, wegwerpprofiel, `--slot` neemt een slot uit `gde-locks`. `ELECTRON_EXE` en `GAME_WORLD` wijzen een Electron en een gestagede wereld aan als de worktree er geen heeft. Het logboek zegt altijd dat niemand de beelden heeft gezien.
 
+## Diepte (z-fighting, #382)
+
+Vlakken die op dezelfde diepte liggen flikkeren of springen door elkaar, vooral borden op bussen en gevels. Drie hulpmiddelen:
+
+- `node scripts/depth_precision.mjs`: hoe klein een diepteverschil mag zijn in de 24-bit dieptebuffer, per afstand en voor andere near/far-waarden (met de projectiematrix van three.js). De uitkomst hangt af van z²/near en niet van far: far dynamisch maken helpt dus niet, een hogere near halveert het alleen.
+- `node scripts/zfight_audit.mjs [--vehicles]`: zoekt coplanaire driehoeken met een ander uiterlijk (materiaal, vertexkleur of textuur) in de gebouwen (`--area`, `--module`, `--r`) of in alle voertuigen met de busborden (`--vehicles`). Per bron het aantal paren en de oppervlakte per afstandsklasse (flush < 2 mm, close 2 tot 12 mm, near tot 20 mm). Paren met een verschillende `polygonOffsetUnits` waarvan de voorste het grootste offset heeft, staan als `layered` (opgelost op elke afstand); een offset op het vlak erachter staat als `bleed`. `--debug=N --debugarea=m2` toont de eerste paren met hun normalen. Een volledige run over de stad: ongeveer 8 minuten en 3 GB geheugen (`GDE_PROVINCE_SRC` voor de provincie-extracten buiten de werkboom).
+- `node scripts/vehicle_zfight_test.mjs`: de bewaking in de gewone testreeks; 0 paren voor alle voertuigen zonder berijder.
+- `node scripts/depth_shots.mjs --voor=<map> --out=<map>`: vergelijkingsbeelden voor en na (busborden, gevelborden en platen op 5, 20 en 60 m, de platen ook op 140 en 300 m) in één Electron met een slot uit `gde-locks`, plus een frametijdmeting met en zonder polygonOffset op de borden. `--voor` is een map met `game/js` van een oudere commit (`git archive <commit> game/js | tar -x -C <map>`).
+
 ## Beelden voor de README (`scripts/qa/readme_shots.mjs`)
 
 Maakt de beelden van de galerij in [README.md](../README.md) reproduceerbaar: een kaart van de hele provincie en van de stad, Groningen overdag en bij nacht, een boot bij de zeesluis van Lauwersoog, windturbines bij de Eemshaven, een cutscene uit de opening, een achtervolging, de garage, het scherm Opgeslagen spellen en de wachtkamer van Samen spelen.
