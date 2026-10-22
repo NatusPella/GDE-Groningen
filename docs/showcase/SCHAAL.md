@@ -6,69 +6,69 @@ Alle cijfers komen uit `node scripts/stats/schaal.mjs`; elk cijfer heeft zijn br
 
 | Cijfer | Waarde | Eenheid | Bron | Let op |
 |---|---:|---|---|---|
-| Commits | 3.575 | commits | git rev-list --count HEAD |  |
+| Commits | 3.716 | commits | git rev-list --count HEAD |  |
 | Eerste commit | 2026-09-18 | datum | git log (--format=%cI) |  |
 | Laatste commit (op deze checkout) | 2026-10-21 | datum | git log (--format=%cI) |  |
 | Kalenderdagen van eerste tot laatste commit | 34 | dagen | git log (--format=%cI) |  |
 | Dagen met minstens één commit | 19 | dagen | git log (--format=%cI) |  |
-| Gemiddeld aantal commits per actieve dag | 188,2 | commits | commits / actieve dagen |  |
+| Gemiddeld aantal commits per actieve dag | 195,6 | commits | commits / actieve dagen |  |
 | Drukste dag (2026-10-18) | 1.101 | commits | git log (--format=%cI) |  |
-| Commits tussen 00:00 en 06:00 (lokale tijd van de commit) | 593 | commits | git log (--format=%cI) | de tijdstippen zijn de commit-tijden van de auteur; zegt niets over wie er wakker was |
-| Merge-commits | 909 | commits | git log --merges |  |
+| Commits tussen 00:00 en 06:00 (lokale tijd van de commit) | 603 | commits | git log (--format=%cI) | de tijdstippen zijn de commit-tijden van de auteur; zegt niets over wie er wakker was |
+| Merge-commits | 931 | commits | git log --merges |  |
 | Verschillende git-identiteiten als auteur | 2 | identiteiten | git log (--format=%cI) | namen worden bewust niet bewaard |
-| Commits met een AI als medeauteur in de voetregel | 2.709 | commits | Co-Authored-By: Claude in de commitberichten |  |
-| Verschillende AI-modelnamen in die voetregels | 3 | modellen | idem | per naam: Claude Sonnet 5.5 1829; Claude Opus 5.5 850; Claude Sonnet 5 30 |
-| Commits die een issue noemen (Closes/Refs #n) | 1.594 | commits | regex op de commitberichten |  |
-| Verschillende issues genoemd in commitberichten | 331 | issues | idem |  |
-| Regels programmacode ooit toegevoegd (over alle commits) | 346.197 | regels | git log --numstat, alleen code-extensies | bruto: een regel die vaak is herschreven telt elke keer mee |
-| Regels programmacode ooit verwijderd | 67.047 | regels | idem | zie hierboven |
-| Bestandswijzigingen in programmacode (som over commits) | 9.366 | wijzigingen | idem |  |
+| Commits met een AI als medeauteur in de voetregel | 2.810 | commits | Co-Authored-By: Claude in de commitberichten |  |
+| Verschillende AI-modelnamen in die voetregels | 3 | modellen | idem | per naam: Claude Sonnet 5.5 1930; Claude Opus 5.5 850; Claude Sonnet 5 30 |
+| Commits die een issue noemen (Closes/Refs #n) | 1.692 | commits | regex op de commitberichten |  |
+| Verschillende issues genoemd in commitberichten | 352 | issues | idem |  |
+| Regels programmacode ooit toegevoegd (over alle commits) | 355.707 | regels | git log --numstat, alleen code-extensies | bruto: een regel die vaak is herschreven telt elke keer mee |
+| Regels programmacode ooit verwijderd | 67.874 | regels | idem | zie hierboven |
+| Bestandswijzigingen in programmacode (som over commits) | 9.723 | wijzigingen | idem |  |
 
 ## sessies
 
 | Cijfer | Waarde | Eenheid | Bron | Let op |
 |---|---:|---|---|---|
-| Verschillende sessie-branches (claude/… en worktree-agent-…) die ooit bestonden of zijn gemerged | 389 | branches | git for-each-ref + kopteksten van merge-commits | ondergrens: een sessie die op een bestaande branch werkte, een opgeruimde en nooit gemergede branch of een oude branchnaam telt niet mee |
-| Daarvan gemerged in de hoofdlijn | 354 | branches | git log --merges |  |
-| Branches in deze checkout (lokaal en op afstand) | 249 | branches | git for-each-ref |  |
-| Git-werkbomen (parallelle werkmappen) nu | 71 | werkbomen | git worktree list | momentopname; opgeruimde werkbomen zijn weg |
+| Verschillende sessie-branches (claude/… en worktree-agent-…) die ooit bestonden of zijn gemerged | 394 | branches | git for-each-ref + kopteksten van merge-commits | ondergrens: een sessie die op een bestaande branch werkte, een opgeruimde en nooit gemergede branch of een oude branchnaam telt niet mee |
+| Daarvan gemerged in de hoofdlijn | 365 | branches | git log --merges |  |
+| Branches in deze checkout (lokaal en op afstand) | 255 | branches | git for-each-ref |  |
+| Git-werkbomen (parallelle werkmappen) nu | 76 | werkbomen | git worktree list | momentopname; opgeruimde werkbomen zijn weg |
 | Git-tags (releases) | 48 | tags | git tag |  |
 
 ## code
 
 | Cijfer | Waarde | Eenheid | Bron | Let op |
 |---|---:|---|---|---|
-| Bestanden in git | 4.974 | bestanden | git ls-files |  |
-| JavaScript-bestanden (.js, .mjs, .cjs) | 1.425 | bestanden | git ls-files |  |
-| JavaScript-modules van het spel zelf (game/js/*.js) | 709 | modules | git ls-files game/js |  |
-| Regels JavaScript (alles) | 271.496 | regels | regels van alle .js/.mjs/.cjs in git (incl. lege regels en commentaar) |  |
-| Regels programmacode (JS, Python, HTML, CSS, shell, Java, Gradle) | 279.491 | regels | som van de talen hieronder, zonder Markdown en data |  |
-| Regels documentatie (Markdown) | 44.149 | regels | git ls-files *.md |  |
-| Regels JSON-data in git | 90.726 | regels | git ls-files *.json | gegenereerde en handgemaakte data; geen programmacode |
+| Bestanden in git | 5.070 | bestanden | git ls-files |  |
+| JavaScript-bestanden (.js, .mjs, .cjs) | 1.497 | bestanden | git ls-files |  |
+| JavaScript-modules van het spel zelf (game/js/*.js) | 715 | modules | git ls-files game/js |  |
+| Regels JavaScript (alles) | 280.154 | regels | regels van alle .js/.mjs/.cjs in git (incl. lege regels en commentaar) |  |
+| Regels programmacode (JS, Python, HTML, CSS, shell, Java, Gradle) | 288.172 | regels | som van de talen hieronder, zonder Markdown en data |  |
+| Regels documentatie (Markdown) | 44.866 | regels | git ls-files *.md |  |
+| Regels JSON-data in git | 92.642 | regels | git ls-files *.json | gegenereerde en handgemaakte data; geen programmacode |
 
 ## code_per_taal
 
 | Cijfer | Waarde | Eenheid | Bron | Let op |
 |---|---:|---|---|---|
-| JavaScript: 1425 bestanden | 271.496 | regels | git ls-files + regels tellen | 254079 niet-lege regels |
-| JSON (data): 88 bestanden | 90.726 | regels | git ls-files + regels tellen | 90726 niet-lege regels |
-| Markdown: 106 bestanden | 44.149 | regels | git ls-files + regels tellen | 36891 niet-lege regels |
-| Python: 30 bestanden | 4.333 | regels | git ls-files + regels tellen | 3816 niet-lege regels |
-| CSS: 12 bestanden | 2.479 | regels | git ls-files + regels tellen | 2354 niet-lege regels |
+| JavaScript: 1497 bestanden | 280.154 | regels | git ls-files + regels tellen | 262309 niet-lege regels |
+| JSON (data): 91 bestanden | 92.642 | regels | git ls-files + regels tellen | 92642 niet-lege regels |
+| Markdown: 112 bestanden | 44.866 | regels | git ls-files + regels tellen | 37486 niet-lege regels |
+| Python: 30 bestanden | 4.335 | regels | git ls-files + regels tellen | 3818 niet-lege regels |
+| CSS: 12 bestanden | 2.500 | regels | git ls-files + regels tellen | 2374 niet-lege regels |
+| YAML: 9 bestanden | 446 | regels | git ls-files + regels tellen | 402 niet-lege regels |
 | Tekst: 8 bestanden | 440 | regels | git ls-files + regels tellen | 351 niet-lege regels |
 | Shell: 10 bestanden | 410 | regels | git ls-files + regels tellen | 391 niet-lege regels |
 | XML: 10 bestanden | 314 | regels | git ls-files + regels tellen | 304 niet-lege regels |
-| YAML: 7 bestanden | 257 | regels | git ls-files + regels tellen | 238 niet-lege regels |
 | HTML: 2 bestanden | 232 | regels | git ls-files + regels tellen | 225 niet-lege regels |
 
 ## code_per_soort
 
 | Cijfer | Waarde | Eenheid | Bron | Let op |
 |---|---:|---|---|---|
-| Spelcode (game/js): 709 bestanden | 195.559 | regels | git ls-files + regels tellen | 182174 niet-lege regels |
-| Gereedschap en audits (scripts/, rest): 276 bestanden | 38.937 | regels | git ls-files + regels tellen | 37407 niet-lege regels |
-| Testcode (*_test.mjs): 409 bestanden | 33.903 | regels | git ls-files + regels tellen | 31579 niet-lege regels |
-| Desktop-app (Electron): 14 bestanden | 1.501 | regels | git ls-files + regels tellen | 1417 niet-lege regels |
+| Spelcode (game/js): 715 bestanden | 196.934 | regels | git ls-files + regels tellen | 183470 niet-lege regels |
+| Gereedschap en audits (scripts/, rest): 326 bestanden | 44.684 | regels | git ls-files + regels tellen | 42904 niet-lege regels |
+| Testcode (*_test.mjs): 424 bestanden | 35.246 | regels | git ls-files + regels tellen | 32829 niet-lege regels |
+| Desktop-app (Electron): 15 bestanden | 1.694 | regels | git ls-files + regels tellen | 1604 niet-lege regels |
 | Android: 10 bestanden | 876 | regels | git ls-files + regels tellen | 830 niet-lege regels |
 | Webbouw: 4 bestanden | 473 | regels | git ls-files + regels tellen | 442 niet-lege regels |
 | Overig JavaScript: 3 bestanden | 247 | regels | git ls-files + regels tellen | 230 niet-lege regels |
@@ -77,37 +77,37 @@ Alle cijfers komen uit `node scripts/stats/schaal.mjs`; elk cijfer heeft zijn br
 
 | Cijfer | Waarde | Eenheid | Bron | Let op |
 |---|---:|---|---|---|
-| Testscripts (scripts/**/*_test.mjs) | 409 | scripts | git ls-files |  |
-| Audit- en probe-scripts (*_audit.mjs en scripts in een audits-map) | 34 | scripts | git ls-files |  |
-| Controle-aanroepen in de testscripts (ok(, assert(, check(, eq(, expect() | 8.841 | aanroepen | regex op de bronregels van de *_test.mjs | statische telling van aanroepen in de code, geen uitgevoerde controles: een controle in een lus draait vaker |
-| Volledige testrondes (test_all) met rapport op deze machine | 2 | rondes | tijdelijke map gde-testall | alleen wat nog op schijf staat; het tijdelijke rapportmapje wordt niet bewaard |
-| Items in het laatste testrapport (20261021-142258) | 408 | items | gde-testall/20261021-142258/rapport.json |  |
-| Status PASS (20261021-142258) | 374 | items | idem |  |
-| Status TIMEOUT (20261021-142258) | 4 | items | idem |  |
-| Status SKIP (20261021-142258) | 29 | items | idem |  |
-| Status FAIL (20261021-142258) | 1 | items | idem |  |
-| Duur van die ronde (20261021-142258) | 20 | minuten | gde-testall/20261021-142258/rapport.json |  |
+| Testscripts (scripts/**/*_test.mjs) | 424 | scripts | git ls-files |  |
+| Audit- en probe-scripts (*_audit.mjs en scripts in een audits-map) | 36 | scripts | git ls-files |  |
+| Controle-aanroepen in de testscripts (ok(, assert(, check(, eq(, expect() | 9.297 | aanroepen | regex op de bronregels van de *_test.mjs | statische telling van aanroepen in de code, geen uitgevoerde controles: een controle in een lus draait vaker |
+| Volledige testrondes (test_all) met rapport op deze machine | 3 | rondes | tijdelijke map gde-testall | alleen wat nog op schijf staat; het tijdelijke rapportmapje wordt niet bewaard |
+| Items in het laatste testrapport (20261021-191603) | 422 | items | gde-testall/20261021-191603/rapport.json |  |
+| Status PASS (20261021-191603) | 378 | items | idem |  |
+| Status FAIL (20261021-191603) | 9 | items | idem |  |
+| Status SKIP (20261021-191603) | 28 | items | idem |  |
+| Status TIMEOUT (20261021-191603) | 7 | items | idem |  |
+| Duur van die ronde (20261021-191603) | 27 | minuten | gde-testall/20261021-191603/rapport.json |  |
 
 ## issues
 
 | Cijfer | Waarde | Eenheid | Bron | Let op |
 |---|---:|---|---|---|
-| Issues (geopend, open en gesloten) | 360 | issues | gh issue list --state all | pull requests zijn hier niet bij |
-| Gesloten | 322 | issues | gh issue list --state all |  |
-| Nog open | 38 | issues | gh issue list --state all |  |
-| Bugs (label bug) | 173 | issues | gh issue list --state all |  |
-| Bugs die gesloten zijn | 169 | issues | gh issue list --state all |  |
-| Wensen (label wens) | 187 | issues | gh issue list --state all |  |
-| Wensen die gesloten zijn | 153 | issues | gh issue list --state all |  |
-| Label impact-zeer-hoog | 16 | issues | gh issue list --state all |  |
-| Label impact-hoog | 107 | issues | gh issue list --state all |  |
-| Label impact-midden | 156 | issues | gh issue list --state all |  |
-| Label impact-laag | 81 | issues | gh issue list --state all |  |
-| Label kosten-S | 177 | issues | gh issue list --state all |  |
-| Label kosten-M | 124 | issues | gh issue list --state all |  |
+| Issues (geopend, open en gesloten) | 378 | issues | gh issue list --state all | pull requests zijn hier niet bij |
+| Gesloten | 338 | issues | gh issue list --state all |  |
+| Nog open | 40 | issues | gh issue list --state all |  |
+| Bugs (label bug) | 188 | issues | gh issue list --state all |  |
+| Bugs die gesloten zijn | 179 | issues | gh issue list --state all |  |
+| Wensen (label wens) | 190 | issues | gh issue list --state all |  |
+| Wensen die gesloten zijn | 159 | issues | gh issue list --state all |  |
+| Label impact-zeer-hoog | 19 | issues | gh issue list --state all |  |
+| Label impact-hoog | 112 | issues | gh issue list --state all |  |
+| Label impact-midden | 163 | issues | gh issue list --state all |  |
+| Label impact-laag | 84 | issues | gh issue list --state all |  |
+| Label kosten-S | 190 | issues | gh issue list --state all |  |
+| Label kosten-M | 129 | issues | gh issue list --state all |  |
 | Label kosten-L | 59 | issues | gh issue list --state all |  |
-| Wachten op de eigenaar (label eigenaar) | 21 | issues | gh issue list --state all |  |
-| Mediane tijd van openen tot sluiten | 19,6 | uur | gh issue list --state all |  |
+| Wachten op de eigenaar (label eigenaar) | 22 | issues | gh issue list --state all |  |
+| Mediane tijd van openen tot sluiten | 19,1 | uur | gh issue list --state all |  |
 | Mijlpalen (epics) | 7 | mijlpalen | gh api milestones |  |
 | Pull requests | 1 | pull requests | gh pr list --state all | het project merget vooral direct via branches; weinig PR's is normaal |
 
@@ -176,11 +176,11 @@ Alle cijfers komen uit `node scripts/stats/schaal.mjs`; elk cijfer heeft zijn br
 | Stappen in het verhaal (STEPS) | 32 | stappen | game/js/storyarc.js |  |
 | Scènes in het verhaalscript | 185 | scènes | game/storydata/script.json |  |
 | Sprekende personages in het script | 37 | sprekers | game/storydata/script.json |  |
-| Regels dialoog in het verhaalscript | 1.320 | regels | game/storydata/script.json (scenes[].lines) |  |
-| Woorden dialoog in het verhaalscript | 11.088 | woorden | idem | splitsen op spaties |
+| Regels dialoog in het verhaalscript | 1.337 | regels | game/storydata/script.json (scenes[].lines) |  |
+| Woorden dialoog in het verhaalscript | 11.351 | woorden | idem | splitsen op spaties |
 | Regie-aanwijzingen in het script | 137 | aanwijzingen | idem |  |
-| Geregisseerde cutscenes (SPECS + MORE_SPECS, na het laden van akte 1 t/m 4) | 72 | cutscenes | game/js/cutscenes_akte1..4.js |  |
-| Bijbanen en zijmissies (SIDE_JOBS) | 38 | bijbanen | game/js/sidejobs.js |  |
+| Geregisseerde cutscenes (SPECS + MORE_SPECS, na het laden van akte 1 t/m 4) | 76 | cutscenes | game/js/cutscenes_akte1..4.js |  |
+| Bijbanen en zijmissies (SIDE_JOBS) | 39 | bijbanen | game/js/sidejobs.js |  |
 | Vrijetijdsactiviteiten en minigames (legenda van activities.js) | 17 | activiteiten | game/js/activities.js | zonder de pg_*-minigames van de verhaalmissies |
 | Prestaties (trofeeën) | 187 | prestaties | game/js/achievements.js |  |
 | Voertuigmodellen in het voertuigregister | 28 | modellen | game/js/vehicleregister.js | per klasse: auto 19, tweewieler 3, boot 1, lucht 1, attractie 2, dier 1, ov 1 |
@@ -188,10 +188,10 @@ Alle cijfers komen uit `node scripts/stats/schaal.mjs`; elk cijfer heeft zijn br
 | Minigames in de verhaalmissies (bestanden pg_*.js) | 6 | minigames | game/js/pg_*.js |  |
 | Bijbaanmodules (bestanden sidejob_*.js) | 17 | modules | game/js/sidejob_*.js |  |
 | Stemopnames (game/audio/voicelines) | 3.057 | bestanden | game/audio/voicelines | bestanden, geen zinnen; alle stemmen zijn met AI gemaakt (README) |
-| Geluidsbestanden in game/audio (stemmen, muziek, radio, nieuws) | 3.146 | bestanden | game/audio |  |
-| Grootte van game/audio | 148 | MB | game/audio |  |
-| Muziektracks in de radiolijst (gmusic/manifest.json) | 20 | tracks | game/audio/gmusic/manifest.json | tracks met AI gemaakt (README); meer dan 3 minuten per track is niet gemeten |
-| Muziekbestanden (gmusic + scenario + theme) | 27 | bestanden | game/audio/{gmusic,scenario,theme} |  |
+| Geluidsbestanden in game/audio (stemmen, muziek, radio, nieuws) | 3.148 | bestanden | game/audio |  |
+| Grootte van game/audio | 156 | MB | game/audio |  |
+| Muziektracks in de radiolijst (gmusic/manifest.json) | 22 | tracks | game/audio/gmusic/manifest.json | tracks met AI gemaakt (README); meer dan 3 minuten per track is niet gemeten |
+| Muziekbestanden (gmusic + scenario + theme) | 29 | bestanden | game/audio/{gmusic,scenario,theme} |  |
 | Talen van het spel (tekst) | 1 | taal | AGENTS.md (constitution punt 1) | alleen Nederlands; de stemmen praten Gronings, de ondertitels zijn Nederlands |
 | Los 3D-model als bestand (.glb) | 1 | modellen | game/models | bijna alle voertuigen, gebouwen en figuren worden met code gegenereerd (procedureel), niet gemodelleerd |
 | Doelplatformen met eigen map (desktop, web, android) | 3 | platformen | desktop, web, android | builds: macOS, Windows en (soms) Linux; webversie en Android in ontwikkeling (README) |
@@ -200,7 +200,7 @@ Alle cijfers komen uit `node scripts/stats/schaal.mjs`; elk cijfer heeft zijn br
 
 | Cijfer | Waarde | Eenheid | Bron | Let op |
 |---|---:|---|---|---|
-| game/audio/gmusic | 24 | bestanden | game/audio/gmusic |  |
+| game/audio/gmusic | 26 | bestanden | game/audio/gmusic |  |
 | game/audio/nieuws | 20 | bestanden | game/audio/nieuws |  |
 | game/audio/npc | 30 | bestanden | game/audio/npc |  |
 | game/audio/police | 12 | bestanden | game/audio/police |  |
