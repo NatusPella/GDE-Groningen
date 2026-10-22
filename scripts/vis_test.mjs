@@ -96,8 +96,10 @@ t('het watertype volgt de naam: de Dollard is wad, het Reitdiep een rivier, het 
     [groot('meer', 'Zuidlaardermeer'), 'meer'], [groot('meer', 'Lauwersmeer'), 'meer'], [groot('vijver', 'Paterswoldsemeer'), 'meer'],
     [klein('vijver', 'Hoornse Plas'), 'plas'], [klein('vijver', 'Stadsparkvijver'), 'plas'], [klein('vijver', null), 'plas'], [klein('meer', 'Kleine plas'), 'plas'],
     [smal('diep', 'Reitdiep'), 'rivier'], [smal('diep', 'Hunze'), 'rivier'], [smal('vaart', 'Drentse Aa'), 'rivier'],
-    [smal('kanaal', 'Boterdiep'), 'kanaal'], [smal('kanaal', 'Eemskanaal'), 'kanaal'], [smal('kanaal', 'Van Starkenborghkanaal'), 'kanaal'], [smal('vaart', null), 'kanaal'], [smal('kanaal', null), 'kanaal'],
-    [smal('diep', 'Noorderhaven'), 'gracht'], [smal('diep', 'Zuiderdiep'), 'gracht'], [smal('diep', 'Oosterhaven'), 'gracht'], [smal('diep', 'Diepenring'), 'gracht'], [smal('diep', 'Reitdiepshaven'), 'gracht'],
+    [smal('kanaal', 'Boterdiep'), 'kanaal'], [smal('kanaal', 'Eemskanaal'), 'kanaal'], [smal('kanaal', 'Van Starkenborghkanaal'), 'kanaal'], [smal('vaart', null), 'kanaal'], [poly('kanaal', null, rechthoek(0, 0, 300, 30)), 'kanaal'], [poly('kanaal', 'Winschoterdiep', rechthoek(0, 0, 400, 40)), 'kanaal'],
+    // de stadsgrachten staan in de kaart als smalle kanaalstroken
+    [smal('kanaal', 'Turfsingel'), 'gracht'], [smal('kanaal', 'Schuitendiep'), 'gracht'], [smal('kanaal', null), 'gracht'],
+    [smal('diep', 'Noorderhaven'), 'gracht'], [klein('vijver', 'Scholtengraft'), 'gracht'], [smal('diep', 'Zuiderdiep'), 'gracht'], [smal('diep', 'Oosterhaven'), 'gracht'], [smal('diep', 'Diepenring'), 'gracht'], [smal('diep', 'Reitdiepshaven'), 'gracht'],
     [smal('sloot', null), 'sloot'], [smal('vaart', 'Wetering van Noord'), 'sloot'], [smal('diep', 'Leidijk'), 'sloot'], [smal('sloot', 'Hoofdsloot'), 'sloot'],
   ];
   for (const [p, type] of eis) assert.equal(P.typeVanWater(p), type, `${p.kind} ${p.name || '(naamloos)'}`);
@@ -152,6 +154,21 @@ t('vindHengelplek: aan de kant binnen 3,2 m, in een boot de polygoon eronder, op
   assert.equal(r.type, 'plas');
   r = P.vindHengelplek(k, 109, 50);
   assert.equal(r.type, 'sloot');
+  // een naamloze strook neemt de naam van het water: dezelfde body, de dichtstbijzijnde benoemde polygoon
+  const strook = poly('kanaal', null, rechthoek(0, 200, 100, 220)); strook.body = 7;
+  const bron = poly('kanaal', 'Reitdiep', rechthoek(120, 200, 220, 210)); bron.body = 7;
+  const ander = poly('kanaal', 'Eemskanaal', rechthoek(0, 400, 100, 410)); ander.body = 8;
+  const k2 = kaart([strook, bron, ander]);
+  r = P.vindHengelplek(k2, 50, 198);
+  assert.ok(r && r.type === 'rivier' && r.naam === 'Reitdiep' && r.plek === 'rivier:Reitdiep', JSON.stringify(r && { t: r.type, n: r.naam }));
+  assert.equal(strook._hengelNaam, 'Reitdiep');
+  // zonder body en ver weg blijft het naamloos (en dus een gracht of kanaal naar breedte); vlak ernaast van dezelfde soort neemt het de naam over
+  const buur = poly('kanaal', null, rechthoek(130, 215, 230, 230));
+  r = P.vindHengelplek(kaart([buur, bron]), 180, 213);
+  assert.ok(r && r.naam === 'Reitdiep', 'een buurstrook van dezelfde soort');
+  const los = poly('kanaal', null, rechthoek(0, 600, 100, 620));
+  r = P.vindHengelplek(kaart([los, bron]), 50, 598);
+  assert.ok(r && r.naam === null && r.type === 'kanaal', JSON.stringify(r && { t: r.type, n: r.naam }));
   assert.equal(P.vindHengelplek(null, 0, 0), null);
   assert.equal(P.vindHengelplek({}, 0, 0), null);
 });
