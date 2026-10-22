@@ -18,6 +18,11 @@ nieuwe functies, `y` voor alleen bugfixes.
 - **Samen spelen: de figuur van elke extra speler (plek 2 en hoger, tot 16 spelers) loopt niet meer door muren en water, op het ringdek blijft hij achter de wanden en loopt hij op de juiste hoogte (#366; gemeten met een nepkaart en in Electron met vier spelers, niet in beeld bekeken):** de figuren van plek 2 en hoger gebruiken dezelfde botsingen als Tessa (gebouwen, hekken, rekwisieten, voetgangers, water) en nu ook de wanden en hoogte van de ring. Zit zo'n figuur na een sprong van wie het spel opende in het water of in een muur, of dwaalt hij verder dan ongeveer 110 m weg, dan zet wie het spel opende hem na een paar seconden terug op de eerste droge plek naast zich, met een korte melding.
 ### Verbeterd
 - **De stadskaart gebruikt ongeveer 30 % minder geheugen en kaartvragen zijn 30 tot 55 % sneller (#314; gemeten in Node op de wereld van 0.38.2, niet in beeld bekeken):** gebouwen, wegen, water en groen van de tegels waren door één `delete` per rij trage objecten geworden (204 naar 142 MB voor de stad, 327 naar 231 MB met de overlaytegels, per thread). Er verandert niets aan wat u ziet.
+### Nieuw
+- **Hoofdmenu: bij elke start een andere keuze oriëntatiepunten uit de hele provincie als achtergrond (#380; in Electron door Claude in beeld bekeken, niet door een mens):** achter Alleen spelen en Samen spelen zie je nu kerken op wierden, molens, borgen, het dorp Oudeschans en de vesting Bourtange, naast het stadsbeeld van voorheen, met een rustige cameramove (om het punt heen, inzoomend, omhoog of zijwaarts), zomerlicht dat van achter de camera komt en geen regen of nacht meer. Elke start begint met een andere plek dan de vorige, een reeks komt uit verschillende streken, en het menu onthoudt wat je zag. De wereld laadt rond de eerste plek mee tijdens het opstarten, een volgende plek wordt alvast ingeladen en de camera wisselt pas als die er is. Het menu wacht nog steeds tot de wereld getekend en rustig is.
+
+### Verbeterd
+- **Hoofdmenu: geen uitlegzinnetjes meer onder de knoppen (#380; in Electron op 1920x1080 en 1280x720 door Claude in beeld bekeken, niet door een mens):** Alleen spelen, Samen spelen en de rest tonen alleen pictogram en naam; de zinnetjes zijn uit het menu en de stijl verwijderd. De knoppen houden hun naam voor schermlezers.
 
 ## [0.38.2] - 2026-10-22
 
