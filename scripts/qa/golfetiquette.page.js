@@ -16,15 +16,14 @@ if (window.__debug.input) window.__debug.input.canLock = () => false;
 // naar het hutje bij de eerste tee, te voet
 const spot = pp.spot();
 const ga = (x, y) => { if (p.inVehicle) p.exitVehicle(w.map, w); p.x = x; p.y = y; p.vx = 0; p.vy = 0; p.z = 0; p.vz = 0; p.gz = w.map.groundHeightAt ? w.map.groundHeightAt(x, y, 0) || 0 : 0; };
-ga(spot.x + 6, spot.y + 4);
-for (let i = 0; i < 30; i++) { await sleep(500); }
+const h1 = pp.holes()[0];
+const hoek = Math.atan2(h1.cup.y - h1.tee.y, h1.cup.x - h1.tee.x) + 2.2; // waar Wolfie bij het hutje staat (pitchputt.js hut)
+ga(spot.x + Math.cos(hoek) * 7, spot.y + Math.sin(hoek) * 7);
+p.angle = hoek + Math.PI;
+await sleep(4200);
 stap('hutje');
-// de camera naar Wolfie: kijk vanaf de speler naar het hutje
-w.cameraOverride = { position: { x: spot.x + 7, y: spot.y + 5, z: 2.2 }, lookAt: { x: spot.x, y: spot.y, z: 1.4 }, fov: 55, cut: true };
-await sleep(9000);
-stap('hutje-na');
 console.log('[capture] golf-hutje');
-w.cameraOverride = null;
+await sleep(1500);
 // een ronde starten; de eerste baan: Sir Cedric heeft de eer
 try { pp.start(true); } catch (e) { uit.fout = String(e && e.stack || e); }
 await sleep(1500);

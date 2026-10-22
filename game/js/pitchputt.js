@@ -7,7 +7,7 @@ import { showCard } from './hudcards.js';
 import { activityBlock, iconDisc } from './activitykit.js';
 import { createBoard, key, bubble, clearBubbles, pick, stopPressed, easeCamera, clamp } from './minigamekit.js';
 import { PUTT_LINES } from './minigamelines.js';
-import { WOLFIE, SIR, newEtiquette, beginHole as etqBegin, step as etqStep, holeDone as etqHoleDone, misser as etqMisser, einde as etqEinde, hallo as etqHallo } from './golfetiquette.js';
+import { WOLFIE, SIR, newEtiquette, beginHole as etqBegin, step as etqStep, holeDone as etqHoleDone, misser as etqMisser, einde as etqEinde, hallo as etqHallo, plan as etqPlan, aanDeBeurt as etqBeurt } from './golfetiquette.js';
 import { loadEchtePlekken, golfVenues, nearestOf } from './echteplekken.js';
 import {
   ppHoles, holesFromWorld, venueLayout, slopeAt, onGreen, inBunker, pitch, putt, straightPower, powerForCarry, finishHole, newCard, cardTotals, courseMedal, holeName, relText,
@@ -457,20 +457,15 @@ function end(w, { quit = false } = {}) {
 let etqQ = [];
 let etqNext = { sir: 0, wolfie: 0 };
 function etqSay(w, events) {
-  for (const e of events) {
-    const dur = Math.max(2.6, 1.2 + e.tekst.length * 0.06);
-    const at = Math.max(w.time, etqNext[e.wie] || 0);
-    etqNext[e.wie] = at + dur + 0.4;
-    etqQ.push({ ...e, at });
-  }
+  ({ rij: etqQ, volgende: etqNext } = etqPlan(etqQ, etqNext, events, w.time));
 }
 function etqFlush(w) {
   if (!etqQ.length) return;
   if (!built) { etqQ = []; return; }
-  const due = etqQ.filter((e) => e.at <= w.time);
-  if (!due.length) return;
-  etqQ = etqQ.filter((e) => e.at > w.time);
-  for (const e of due) {
+  const { nu, rest } = etqBeurt(etqQ, w.time);
+  if (!nu.length) return;
+  etqQ = rest;
+  for (const e of nu) {
     const c = e.wie === 'sir' ? built.sir : built.wolfie;
     bubble(w, { x: c.position.x, y: c.position.z, name: e.wie === 'sir' ? SIR : WOLFIE, text: e.tekst, h: 2.1, tag: 'pitchputt' });
   }
