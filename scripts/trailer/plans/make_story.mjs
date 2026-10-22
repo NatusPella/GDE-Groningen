@@ -5,19 +5,23 @@
 // lijst.json: zoals make_plan.mjs, maar een shot is { clip, in, dur, label, sfx, cap, noVoices, voiceGain }
 import fs from 'node:fs';
 import path from 'node:path';
+import { loadCijfers } from './cijfers.mjs';
 
 const args = process.argv.slice(2);
 const list = JSON.parse(fs.readFileSync(args.find((a) => !a.startsWith('--')), 'utf8'));
+const cijf = loadCijfers((args.find((a) => a.startsWith('--cijfers=')) || '').slice(10) || list.cijfers);
 const out = (args.find((a) => a.startsWith('--out=')) || '--out=plan.json').slice(6);
 const clips = [], caps = [], voices = [], sfx = [...(list.sfx || []).map(([kind, at, gain]) => ({ kind, at, gain }))];
 let t = 0;
 const warn = [];
 list.shots.forEach((s, i) => {
   const dur = s.dur ?? (s.beats * 60 / list.bpm);
-  clips.push({ src: s.clip, in: s.in || 0, dur, speed: 1, label: s.label || s.clip });
+  clips.push({ src: s.clip, in: s.in || 0, dur, speed: s.speed || 1, label: s.label || s.clip });
   if (i > 0 && !s.noCutSfx && list.cutSfx !== false) sfx.push({ kind: s.cutSfx || list.cutSfx || 'swish', at: +(t - 0.05).toFixed(4), gain: s.cutGain ?? list.cutGain ?? -13 });
   for (const [kind, off, gain] of s.sfx || []) sfx.push({ kind, at: +(t + off).toFixed(4), gain });
-  if (s.cap) caps.push({ at: +(t + (s.cap[2] ?? 0.3)).toFixed(3), dur: s.cap[3] ?? 1.7, text: s.cap[0], kicker: s.cap[1] || '', pos: s.cap[4] || '' });
+  for (const n of s.nums || []) { const c = String(n[0]).startsWith('=') ? { tekst: String(n[0]).slice(1), label: '' } : cijf.get(n[0]); caps.push({ at: +(t + (n[1] ?? 0.4)).toFixed(3), dur: n[2] ?? 2.6, num: c.tekst + (n[4] || ''), label: (n[3] || c.label).toUpperCase(), pos: n[5] || '' }); }
+  const sub = (x) => String(x || '').replace(/\{([\w.]+)\}/g, (_, id) => cijf.get(id).tekst);
+  if (s.cap) caps.push({ at: +(t + (s.cap[2] ?? 0.3)).toFixed(3), dur: s.cap[3] ?? 1.7, text: sub(s.cap[0]), kicker: sub(s.cap[1]), pos: s.cap[4] || '' });
   const side = path.join(list.clipsDir, s.clip.replace(/\.[^.]+$/, '.json'));
   if (!s.noVoices && fs.existsSync(side)) {
     const ev = (JSON.parse(fs.readFileSync(side, 'utf8')).events || []).filter((e) => e.kind === 'voice');
@@ -33,7 +37,7 @@ list.shots.forEach((s, i) => {
 const plan = {
   name: list.name, clipsDir: list.clipsDir, fps: 60, fadeIn: list.fadeIn ?? 0.3, fadeOut: list.fadeOut ?? 1.0, flash: list.flash || [],
   clips,
-  audio: { music: [{ ...list.music, at: list.hook || 0 }], voices, sfx, duck: list.duck || { depth: 4, attack: 0.25, release: 0.8, pad: 0.05 }, targetLufs: -14, truePeak: -1.2 },
+  audio: { music: Array.isArray(list.music) ? list.music : [{ ...list.music, at: list.hook || 0 }], voices, sfx, duck: list.duck || { depth: 4, attack: 0.25, release: 0.8, pad: 0.05 }, targetLufs: -14, truePeak: -1.2 },
 };
 if (list.captionsDir) plan.captions = { shadow: path.join(list.captionsDir, 'captrack-schaduw.mp4'), text: path.join(list.captionsDir, 'captrack-tekst.mp4') };
 fs.writeFileSync(out, JSON.stringify(plan, null, 1));

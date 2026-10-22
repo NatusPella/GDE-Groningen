@@ -52,14 +52,8 @@
   },
   {
    "clip": "s01-chase.mp4",
-   "beats": 16,
+   "beats": 12,
    "label": "achtervolging",
-   "cap": [
-    "RIJD.",
-    "EEN OPEN WERELD",
-    0.35,
-    1.8
-   ],
    "sfx": [
     [
      "motorloop",
@@ -76,6 +70,12 @@
      3,
      -27
     ]
+   ],
+   "cap": [
+    "RIJD.",
+    "EEN OPEN WERELD",
+    0.35,
+    1.8
    ]
   },
   {
@@ -111,12 +111,6 @@
    "clip": "s04-trekker.mp4",
    "beats": 8,
    "label": "trekker",
-   "cap": [
-    "HEEL GRONINGEN.",
-    "VAN DE STAD TOT DE DIJK",
-    0.3,
-    1.7
-   ],
    "sfx": [
     [
      "motorloop",
@@ -128,18 +122,147 @@
      0,
      -22
     ]
+   ],
+   "cap": [
+    "HEEL GRONINGEN.",
+    "VAN DE STAD TOT DE DIJK",
+    0.3,
+    1.7
+   ]
+  },
+  {
+   "clip": "u09-provincie.mp4",
+   "beats": 12,
+   "label": "provincie",
+   "cap": [
+    "EEN HELE PROVINCIE.",
+    "OP WARE GROOTTE",
+    0.2,
+    2.6
+   ],
+   "nums": [
+    [
+     "wereld.oppervlak_km2",
+     2.4,
+     2.5,
+     "km² speelgebied",
+     "",
+     ""
+    ],
+    [
+     "wereld.dorpen",
+     4,
+     2.3,
+     "dorpen",
+     "",
+     "boven"
+    ]
+   ],
+   "sfx": [
+    [
+     "scherm",
+     0,
+     -18
+    ],
+    [
+     "riser",
+     0.3,
+     -14
+    ]
+   ]
+  },
+  {
+   "clip": "k-lauwersoog.mp4",
+   "beats": 3,
+   "label": "kust",
+   "sfx": [
+    [
+     "wind",
+     0,
+     -22
+    ]
+   ],
+   "cap": [
+    "SNEL DOOR GRUNN.",
+    "VAN DE KUST TOT DE VESTING",
+    0.1,
+    2.4
+   ],
+   "nums": [
+    [
+     "wereld.gebouwen",
+     1,
+     2.3,
+     "gebouwen",
+     "",
+     ""
+    ]
+   ]
+  },
+  {
+   "clip": "k-uithuizen.mp4",
+   "beats": 3,
+   "label": "dorp",
+   "sfx": [
+    [
+     "wind",
+     0,
+     -22
+    ]
+   ]
+  },
+  {
+   "clip": "k-zoutkamp.mp4",
+   "beats": 3,
+   "label": "polder",
+   "sfx": [
+    [
+     "wind",
+     0,
+     -22
+    ]
+   ]
+  },
+  {
+   "clip": "k-appingedam.mp4",
+   "beats": 3,
+   "label": "stad",
+   "sfx": [
+    [
+     "wind",
+     0,
+     -22
+    ]
+   ]
+  },
+  {
+   "clip": "k-bourtange.mp4",
+   "beats": 3,
+   "label": "vesting",
+   "sfx": [
+    [
+     "wind",
+     0,
+     -22
+    ]
+   ]
+  },
+  {
+   "clip": "k-delfzijl.mp4",
+   "beats": 3,
+   "label": "haven",
+   "sfx": [
+    [
+     "wind",
+     0,
+     -22
+    ]
    ]
   },
   {
    "clip": "s05-boot.mp4",
-   "beats": 8,
+   "beats": 4,
    "label": "boot",
-   "cap": [
-    "VAAR.",
-    "",
-    0.3,
-    1.5
-   ],
    "sfx": [
     [
      "water",
@@ -151,18 +274,18 @@
      0,
      -24
     ]
+   ],
+   "cap": [
+    "VAAR.",
+    "",
+    0.3,
+    1.5
    ]
   },
   {
    "clip": "s13-brug.mp4",
-   "beats": 8,
+   "beats": 6,
    "label": "brug",
-   "cap": [
-    "EN DE BRUG GAAT OPEN.",
-    "",
-    0.3,
-    2
-   ],
    "sfx": [
     [
      "bel",
@@ -184,43 +307,93 @@
      0,
      -25
     ]
+   ],
+   "cap": [
+    "EN DE BRUG GAAT OPEN.",
+    "",
+    0.3,
+    2
    ]
   },
   {
    "clip": "s08-heli.mp4",
-   "beats": 8,
+   "beats": 4,
    "label": "heli",
-   "cap": [
-    "VLIEG.",
-    "",
-    0.3,
-    1.5
-   ],
    "sfx": [
     [
      "rotor",
      0,
      -19
     ]
+   ],
+   "cap": [
+    "VLIEG.",
+    "",
+    0.3,
+    1.5
    ]
   },
   {
-   "clip": "u01-kaart.mp4",
-   "beats": 8,
-   "label": "kaart",
+   "clip": "m-kermis.mp4",
+   "beats": 3,
+   "label": "kermis",
    "cap": [
-    "VERKEN.",
-    "DE KAART VAN GRUNN",
-    0.3,
-    1.7
+    "OOK ANDERE SPELLEN.",
+    "{inhoud.activiteiten} MINIGAMES EN ACTIVITEITEN",
+    0.1,
+    2.6,
+    "right"
    ],
+   "nums": [],
    "sfx": [
     [
-     "scherm",
+     "mensen",
      0,
-     -18
+     -23
     ]
    ]
+  },
+  {
+   "clip": "m-kartbaan.mp4",
+   "beats": 3,
+   "label": "kartbaan",
+   "sfx": [
+    [
+     "motorloop",
+     0,
+     -24
+    ]
+   ]
+  },
+  {
+   "clip": "m-zwembad.mp4",
+   "beats": 3,
+   "label": "zwembad"
+  },
+  {
+   "clip": "m-discgolf.mp4",
+   "beats": 3,
+   "label": "discgolf"
+  },
+  {
+   "clip": "m-waterski.mp4",
+   "beats": 3,
+   "label": "waterski"
+  },
+  {
+   "clip": "m-klimtoren.mp4",
+   "beats": 3,
+   "label": "klimtoren"
+  },
+  {
+   "clip": "m-skatepark.mp4",
+   "beats": 3,
+   "label": "skatepark"
+  },
+  {
+   "clip": "m-pitchputt.mp4",
+   "beats": 3,
+   "label": "pitchputt"
   },
   {
    "clip": "u02-garage.mp4",
@@ -242,17 +415,15 @@
      1.9,
      -19
     ]
-   ]
-  },
-  {
-   "clip": "u03-overzicht.mp4",
-   "beats": 4,
-   "label": "overzicht",
-   "sfx": [
+   ],
+   "nums": [
     [
-     "scherm",
-     0,
-     -18
+     "inhoud.voertuigmodellen",
+     1,
+     2.5,
+     "voertuigmodellen",
+     "",
+     ""
     ]
    ]
   },
@@ -265,40 +436,6 @@
      "click",
      0.2,
      -17
-    ]
-   ]
-  },
-  {
-   "clip": "s09-collectie.mp4",
-   "beats": 5,
-   "label": "collectie",
-   "sfx": [
-    [
-     "mensen",
-     0,
-     -25
-    ]
-   ]
-  },
-  {
-   "clip": "s11-leven.mp4",
-   "beats": 8,
-   "label": "leven",
-   "sfx": [
-    [
-     "mensen",
-     0,
-     -23
-    ],
-    [
-     "bel",
-     1,
-     -19
-    ],
-    [
-     "meeuw",
-     2.2,
-     -18
     ]
    ]
   },
@@ -327,20 +464,8 @@
    ]
   },
   {
-   "clip": "u08-verhaal.mp4",
-   "beats": 4,
-   "label": "verhaal",
-   "sfx": [
-    [
-     "tick",
-     0.3,
-     -19
-    ]
-   ]
-  },
-  {
    "clip": "u05-samen.mp4",
-   "beats": 8,
+   "beats": 4,
    "label": "samen-menu",
    "sfx": [
     [
@@ -365,22 +490,49 @@
     0.2,
     2.6
    ],
+   "nums": [
+    [
+     "=4",
+     0.5,
+     2.4,
+     "spelers samen, tot vier",
+     "",
+     ""
+    ]
+   ],
    "sfx": [
     [
      "mensen",
      0,
      -24
+    ]
+   ]
+  },
+  {
+   "clip": "s11-leven.mp4",
+   "beats": 6,
+   "label": "leven",
+   "sfx": [
+    [
+     "mensen",
+     0,
+     -23
     ],
     [
-     "tick",
-     0.1,
+     "bel",
+     1,
      -19
+    ],
+    [
+     "meeuw",
+     2.2,
+     -18
     ]
    ]
   },
   {
    "clip": "s06-nachtrit.mp4",
-   "beats": 8,
+   "beats": 4,
    "label": "nachtrit",
    "sfx": [
     [
@@ -399,12 +551,6 @@
    "clip": "s12-finale.mp4",
    "beats": 12,
    "label": "finale",
-   "cap": [
-    "ZOMER VOL MISDAAD.",
-    "",
-    1.6,
-    2.2
-   ],
    "sfx": [
     [
      "riser",
@@ -421,11 +567,17 @@
      0.2,
      -26
     ]
+   ],
+   "cap": [
+    "ZOMER VOL MISDAAD.",
+    "",
+    1.6,
+    2.2
    ]
   },
   {
    "clip": "s99-titel.mp4",
-   "beats": 16,
+   "beats": 14,
    "label": "titel",
    "noCutSfx": true,
    "sfx": [
