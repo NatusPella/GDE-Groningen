@@ -27,6 +27,7 @@ import { HASH_EVERY, viewOf, hashEvent, leesHashEvent, DesyncMonitor } from './n
 import { PING_TOETSEN, PING_TEKST, pingPlek, pingMarkers, pingRegel } from './coopping.js';
 import { spelersRijen } from './coopspelers.js';
 import { WEER_EVERY, weerEvent, leesWeerEvent, pasWeerToe } from './coopweer.js';
+import { loopbaanGast, GAST_XP_DEEL } from './loopbaanlive.js';
 
 export const CAPS = ['scene', 'spelers']; // wat dit spel kent; uitbreidbaar (net/session.js negotiate)
 export const REMOVE_DELAY = 0.5; // s tussen "je bent verwijderd" en het verbreken
@@ -141,7 +142,7 @@ export function startHost(world, info, opts = {}) {
   world.coopRole = 'host';
   world.coopRoster = lijst(hub.roster);
   world.coopUitslag = (ok, label, reden, loon) => uitslagMelden(world, ok, label, reden, loon); // gelukt of mislukt (#371)
-  world.coopDeel = (bedrag) => deelMetGasten(world, bedrag); // missies, bijbanen en prijzen delen met de gasten (#365)
+  world.coopDeel = (bedrag, info) => deelMetGasten(world, bedrag, info); // missies, bijbanen en prijzen delen met de gasten (#365)
   world.coopMeld = (slot, tekst) => hub.announce({ k: 'melding', tekst: String(tekst).slice(0, 90) }, slot); // een korte melding voor een gast (#291)
   world.coopNet = { role: 'host', hub, fade, route, removing: {}, info, tKlok: 0, tHash: 0, tWeer: 0, tSpelers: 1, hashN: 0, scene, tScene: 0, filmpjeT: 0, sceneNu: null };
   return hub;
@@ -286,12 +287,16 @@ export function uitslagMelden(world, ok, label, reden = '', loon = 0) {
 }
 
 // Missies, bijbanen en prijzen van de gastheer: elke verbonden gast krijgt zijn deel in zijn eigen portemonnee (#365).
-export function deelMetGasten(world, bedrag) {
+// info (loopbaan, #381): { vak, basis, xp }. De gast krijgt de helft van het bedrag voor de loonfactor van de gastheer, en
+// verdient daar op zijn eigen apparaat zijn eigen factor over; de helft van de punten gaat naar zijn eigen loopbaan.
+export function deelMetGasten(world, bedrag, info = null) {
   const n = world.coopNet; if (!n || n.role !== 'host') return 0;
-  const geld = Math.floor(Number(bedrag) * GAST_DEEL);
+  const basis = info && Number(info.basis) > 0 ? Number(info.basis) : Number(bedrag);
+  const geld = Math.floor(basis * GAST_DEEL);
   if (!(geld >= 1)) return 0;
+  const extra = info && typeof info.vak === 'string' && info.vak ? { vak: info.vak.slice(0, 20), xp: Math.max(0, Math.round((Number(info.xp) || 0) * GAST_XP_DEEL)) } : null;
   let k = 0;
-  for (const s of n.hub.roster.spelers) if (s.slot !== 0 && s.verbinding !== 'lost' && payGuest(world, Math.min(geld, MAX_REWARD), s.slot)) k++;
+  for (const s of n.hub.roster.spelers) if (s.slot !== 0 && s.verbinding !== 'lost' && payGuest(world, Math.min(geld, MAX_REWARD), s.slot, extra)) k++;
   return k;
 }
 
@@ -472,7 +477,8 @@ export function handleEvent(world, body, van = 0) {
       if (!n || n.role !== 'client') return false;
       const geld = Math.floor(Number(body.geld));
       if (!Number.isFinite(geld) || geld <= 0) return false;
-      const betaald = Math.min(geld, MAX_REWARD);
+      let betaald = Math.min(geld, MAX_REWARD);
+      if (typeof body.vak === 'string' && body.vak) betaald = Math.min(MAX_REWARD, loopbaanGast(world, betaald, body.vak, Number(body.xp))); // eigen loonfactor en eigen punten (#381)
       world.money = (world.money || 0) + betaald;
       world.coopVerdiend = (world.coopVerdiend || 0) + betaald; // savegame.js zet dit in de eigen save van de gast
       if (world.addMessage) world.addMessage(`Beloning: €${betaald.toLocaleString('nl-NL')}`, 4);
@@ -554,9 +560,9 @@ export function wielLos(world) {
 }
 
 // Host: beloning voor één gast (slot) of voor alle gasten; elk bewaart hem in zijn eigen save.
-export function payGuest(world, geld, slot = null) {
+export function payGuest(world, geld, slot = null, extra = null) {
   const n = world.coopNet; if (!n || n.role !== 'host') return false;
-  return n.hub.announce({ k: 'beloning', geld: Math.max(0, Math.floor(geld)) }, slot);
+  return n.hub.announce({ k: 'beloning', geld: Math.max(0, Math.floor(geld)), ...(extra ? { vak: extra.vak, xp: extra.xp } : {}) }, slot);
 }
 // Host: een speler verwijderen (eerst een bericht, dan verbreken).
 export function removeGuest(world, slot = 1) {
