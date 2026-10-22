@@ -28,6 +28,8 @@ const KIND_OF = new Map([
   [SECTION.TREES, 'trees'], [SECTION.RAILS, 'rails'], [SECTION.CANOPIES, 'canopies'], [SECTION.PASSAGES, 'passageWays'],
   [SECTION.FURNITURE, 'furniture'], [SECTION.PARCELS, 'parcels'],
 ]);
+// the sections whose rows the game keeps without their id (rowsOf)
+const ID_ASIDE = [...KIND_OF.keys()];
 const GRID_OF = { buildings: 'buildingGrid', roads: 'roadGrid', water: 'waterGrid', green: 'greenGrid', trees: 'treeGrid', rails: 'railGrid', parcels: 'parcelGrid' };
 // A province tile's water row carries kind, lv, dp and nav (waterlevels.js
 // annotateProvinceWater): it joins the water grid like the city's, so boats,
@@ -37,12 +39,25 @@ const gridOf = (kind, obj) => (kind === 'water' && obj.flat && obj.nav === undef
 
 // the objects of one tile section as the game holds them, with their ids
 const GID = new WeakMap(); // decoded row -> its id (the game's objects carry no gid field)
+// The rows the game keeps have no id field. A delete of the id (the first key of a decoded row) turns the row into a
+// dictionary-mode object: every building, road and water of the city then weighs ~45 MB more and costs a hash lookup per
+// property read (checked with %HasFastProperties). So the tiles of the store are decoded with the ids aside (`section.gids`,
+// gdt.js readTableG); a row that still has its id (fromTiles with hand-made tiles) is copied without it.
 function rowsOf(kind, section) {
-  return section.rows.map((row) => {
+  const rows = section.rows, gids = section.gids;
+  return rows.map((row, k) => {
     // a tree: [x, y] plus species, height (dm) and flags when the tile has them (greenery.js)
     if (kind === 'trees') return { gid: row.g, obj: row.s !== undefined ? [row.p[0][0], row.p[0][1], row.s, row.h, row.f || 0] : row.p[0] };
+    if (gids) return { gid: gids[k], obj: row };
     let gid = GID.get(row);
-    if (gid === undefined) { gid = row.gid; delete row.gid; GID.set(row, gid); }
+    if (gid === undefined) {
+      if ('gid' in row) {
+        const { gid: id, ...rest } = row;
+        gid = id;
+        row = rows[k] = rest;
+      }
+      GID.set(row, gid);
+    }
     return { gid, obj: row };
   });
 }
@@ -321,7 +336,7 @@ export async function loadTileWorld(base = 'world/', { source = new HttpRangeSou
     const { name, only = null } = typeof x === 'string' ? { name: x } : x;
     try { mergeIndex(index, JSON.parse(new TextDecoder().decode(await source.readAll(name))), { only }); } catch (e) { /* not in this build */ }
   }
-  const decode = (pool && makeWorkerDecoder(new URL('./tileworker.js', import.meta.url), 2)) || decodeCompressed;
+  const decode = (pool && makeWorkerDecoder(new URL('./tileworker.js', import.meta.url), 2, ID_ASIDE)) || ((bytes) => decodeCompressed(bytes, ID_ASIDE));
   const store = new TileStore({ source, index, decode, ...opts });
   const g = index.global;
   const globalBlob = decodeBlob(await inflateRaw(await source.read(index.packs[g.pack].file, g.off, g.len)));
