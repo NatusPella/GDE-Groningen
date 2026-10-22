@@ -20,8 +20,10 @@ const h1 = pp.holes()[0];
 const hoek = Math.atan2(h1.cup.y - h1.tee.y, h1.cup.x - h1.tee.x) + 2.2; // waar Wolfie bij het hutje staat (pitchputt.js hut)
 ga(spot.x + Math.cos(hoek) * 7, spot.y + Math.sin(hoek) * 7);
 p.angle = hoek + Math.PI;
-await sleep(4200);
-stap('hutje');
+// Wolfie zegt hallo kort nadat je bij het hutje staat: wacht tot er een ballon is (hoogstens 14 s)
+for (let i = 0; i < 28 && !(w.extraSpeakers || []).some((e) => e.mgTag === 'pitchputt'); i++) await sleep(500);
+await sleep(300);
+stap('hutje', { hut: pp.hut() });
 console.log('[capture] golf-hutje');
 await sleep(1500);
 // een ronde starten; de eerste baan: Sir Cedric heeft de eer
