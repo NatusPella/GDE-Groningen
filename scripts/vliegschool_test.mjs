@@ -299,6 +299,7 @@ for (const les of R.lessenVan('heli')) {
   check('plekken: versie en bron', plekken.v === 1 && /3D BAG/.test(plekken.bron));
   check('plekken: 1 tot 3 stukken water, ruim en breed genoeg', plekken.water.length >= 1 && plekken.water.every((w) => w.lengte === 1200 && w.vrij >= 1400 && w.halveBreedte >= 100 && Math.abs(d(w.a, w.b) - 1200) < 5), JSON.stringify(plekken.water));
   check('plekken: de velden zijn 420 x 80 en liggen buiten Eelde', plekken.velden.length >= 2 && plekken.velden.every((v) => v.lengte === 420 && v.breedte === 80 && d(v, plekken.eelde) >= 2500));
+  check('plekken: water en velden liggen hooguit 2 km buiten de provinciegrens (het spel draait een toestel terug bij 3 km: worldedge.js)', plekken.water.every((w) => w.rand <= 2000) && plekken.velden.every((v) => v.rand <= 2000), JSON.stringify([plekken.water.map((w) => w.rand), plekken.velden.map((v) => v.rand)]));
   check('plekken: vier molens, onderling 900 tot 3200 m', plekken.molens.length === 4 && plekken.molens.every((m, i) => i === 0 || (d(m, plekken.molens[i - 1]) >= 900 && d(m, plekken.molens[i - 1]) <= 3200)));
   const kl = JSON.parse(fs.readFileSync(path.join(ROOT, 'game/landmarkkits.json'), 'utf8')).items;
   check('plekken: de molens zijn echte molens uit landmarkkits', plekken.molens.every((m) => kl.some((k) => k.k === 'mill' && k.n === m.naam && Math.abs(k.x - m.x) < 0.2 && Math.abs(k.y - m.y) < 0.2)));
