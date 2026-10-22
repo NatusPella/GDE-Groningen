@@ -693,8 +693,8 @@ while (true) {
     if (act.stunt && s.player.vehicle && s.target.distance < 80 && !mem.stuntHasProp) {
       const veh = s.player.vehicle, sp = Math.abs(veh.speed || 0), anchor = { x: 185, y: 92 }, me1 = { x: s.player.x, y: s.player.y }, dz = L.distance(me1, anchor);
       const D = mem.drift || (mem.drift = { phase: 'aanloop', t: s.t, dir: 1, n: 0 });
-      if (D.phase === 'glij' && (s.t - D.t > 5 || sp < 6 || dz > 30)) { D.phase = 'aanloop'; D.t = s.t; B.up(' '); }
-      if (D.phase === 'aanloop' && sp >= 11 && dz < 20) { D.phase = 'glij'; D.t = s.t; D.dir = -D.dir; D.n++; B.log('drift', { n: D.n, x: Math.round(me1.x), y: Math.round(me1.y), v: Math.round(sp * 10) / 10, score: s.mission.stunt ? s.mission.stunt.score : null }); }
+      if (D.phase === 'glij' && (s.t - D.t > 6 || sp < 4.5 || dz > 38)) { D.phase = 'aanloop'; D.t = s.t; B.up(' '); }
+      if (D.phase === 'aanloop' && sp >= 10 && dz < 30) { D.phase = 'glij'; D.t = s.t; D.dir = -D.dir; D.n++; B.log('drift', { n: D.n, x: Math.round(me1.x), y: Math.round(me1.y), v: Math.round(sp * 10) / 10, score: s.mission.stunt ? s.mission.stunt.score : null }); }
       // stuck against a bench or a bike rack in the run-up: the usual ways out of a wedge
       if (D.phase === 'aanloop' && sp < 1) { if (D.still == null) D.still = s.t; else if (s.t - D.still > 3) { D.still = null; B.log('drift-klem', { x: Math.round(me1.x), y: Math.round(me1.y) }); await vdetour(s, 1 + (D.n + (mem.driftDetours = (mem.driftDetours || 0) + 1)) % 4); continue; } } else D.still = null;
       if (D.phase === 'glij') { B.down(' '); B.stick(D.dir, -1); mem.drifting = true; }
