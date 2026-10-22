@@ -5,9 +5,9 @@ import { attachMuseumPlan } from './museumplan.js';
 import { attachInteriorPlans } from './interieurplan.js';
 import { SpatialGrid } from './spatialgrid.js';
 import { deriveBuildings, liftNestedRoofs, isRingRoad } from './derive.js';
-import { deckTerrainAt, isDeckRoad, roadTerrainAt } from './deckterrain.js';
+import { deckTerrainAt, isDeckRoad, roadTerrainAt, deckTerrainOnSeg, roadTerrainOnSeg } from './deckterrain.js';
 import { clearTreesFromRoads } from './treeclear.js';
-import { buildElevation, pickedRibbon, groundHeightAt, surfaceAt, ribbonAt, ribbonZAt, roadZAt, ceilingAt, coveredAt, surfaceHalfWidth, offLevelAt } from './elevation.js';
+import { buildElevation, groundHeightAt, surfaceAt, ribbonAt, ribbonZAt, roadZAt, ceilingAt, coveredAt, surfaceHalfWidth, offLevelAt, resolveElevWalls, elevWallContact } from './elevation.js';
 
 const CELL = 80; // meters per grid cell
 
@@ -227,32 +227,38 @@ export class GameMap {
   // Height of the surface under (x, y) for something at zHint (absolute m):
   // viaduct decks, trench floors and embankments of the ring roads, street
   // level (0) everywhere else. See elevation.js.
+  // With ?terrain (#269) the answer is in absolute metres: elevation.js reads every ribbon over its own base (terrainFrame), so the
+  // ribbons that overlap in plan (a deck over a street on a dyke) compare in one frame, the ground is the terrain.
   groundHeightAt(x, y, zHint = 0) {
     if (!this.terrainOn) return groundHeightAt(this.elev, x, y, zHint);
-    const t = this.terrainAt(x, y);
-    // a bridge or tunnel deck is measured from its own terrain (deckterrain.js): try the
-    // decks here first, the ground and the rest after
-    const list = this.elev.has ? this.elev.grid.at(x, y) : null;
-    if (list) {
-      for (const s of list) {
-        if (!isDeckRoad(s.r)) continue;
-        const dt = this.deckTerrainAt(s.r, x, y, t);
-        if (Math.abs(dt - t) < 0.02) continue;
-        const z = groundHeightAt(this.elev, x, y, zHint - dt);
-        if (pickedRibbon() === s.r) return z + dt;
-      }
-    }
-    const z = groundHeightAt(this.elev, x, y, zHint - t);
-    const pr = pickedRibbon();
-    return z + (pr ? this.terrainBase(pr, x, y) : t);
+    return groundHeightAt(this.elev, x, y, zHint, undefined, this.terrainFrame);
+  }
+
+  // what elevation.js needs to read the profiles over the terrain: base(r, x, y, seg?) the terrain a ribbon's profile is relative
+  // to there (seg: the elevation segment it was found on, no search), ground(x, y) the terrain itself
+  get terrainFrame() {
+    return this._frame || (this._frame = { base: (r, x, y, s) => this.terrainBase(r, x, y, s), ground: (x, y) => this.terrainAt(x, y) });
+  }
+
+  // The wall pieces of the elevation model (barriers, cutting walls) for something at z: elevation.js wallSide reads z relative
+  // to the road's street level, so with ?terrain it gets the frame
+  resolveWalls(x, y, z, radius) {
+    return resolveElevWalls(this.elev, x, y, z, radius, this.terrainOn ? this.terrainFrame : null);
+  }
+  wallContact(x, y, z, band = 1.4, props = false) {
+    return elevWallContact(this.elev, x, y, z, band, props, this.terrainOn ? this.terrainFrame : null);
   }
 
   // what the profile of ribbon r (null: the ground) is relative to at (x, y), m. A deck keeps to the
   // line between its ends (deckterrain.js). Any other road or rail runs on the terrain AT ITS VERTICES,
   // straight in between: the solver (profile.mjs) places its vertices, and the raster's bilinear
   // kinks (25 m cells) laid over a road at 80 km/h would throw a car into the air.
-  terrainBase(r, x, y) {
+  terrainBase(r, x, y, seg = null) {
     const t = this.terrainAt(x, y);
+    if (seg && seg.r === r && r.pts && seg.i + 1 < r.pts.length) {
+      if (isDeckRoad(r)) return deckTerrainOnSeg(r, seg, x, y, this.terrain.at, t, this.terrain.size);
+      return roadTerrainOnSeg(r, seg, x, y, this.terrain.at, this.terrain.size);
+    }
     if (isDeckRoad(r)) return this.deckTerrainAt(r, x, y, t);
     return r && r.pts && r.pts.length > 1 ? roadTerrainAt(r, x, y, this.terrain.at, this.terrain.size) : t;
   }
@@ -270,10 +276,7 @@ export class GameMap {
   // relative heights and the terrain is put back on the answer.
   surfaceAt(x, y, state) {
     if (!this.terrainOn) return surfaceAt(this.elev, x, y, state, this._ground || (this._ground = (gx, gy, gz) => this.groundHeightAt(gx, gy, gz)));
-    state.z = (state.z || 0) - this.terrainBase(state.ribbon, x, y);
-    surfaceAt(this.elev, x, y, state, this._groundRel || (this._groundRel = (gx, gy, gz) => groundHeightAt(this.elev, gx, gy, gz)));
-    state.z += this.terrainBase(state.ribbon, x, y);
-    return state;
+    return surfaceAt(this.elev, x, y, state, this._ground || (this._ground = (gx, gy, gz) => this.groundHeightAt(gx, gy, gz)), this.terrainFrame);
   }
 
   // Height at (x, y) for something at z on `ribbon` (stateless surfaceAt,
@@ -295,8 +298,7 @@ export class GameMap {
   // The ribbon (layer) at (x, y) nearest height z: what something put down
   // there stands on (null at street level)
   ribbonAt(x, y, z) {
-    // (with ?terrain the layers are relative to the terrain, #78)
-    return ribbonAt(this.elev, x, y, this.terrainOn ? z - this.terrainAt(x, y) : z);
+    return ribbonAt(this.elev, x, y, z, this.terrainOn ? this.terrainFrame : null);
   }
 
   // Height of road r at (x, y); 0 for flat roads.
@@ -315,14 +317,12 @@ export class GameMap {
 
   // spawnZ as a surfaceAt state, to keep for whatever is put down there
   spawnState(x, y) {
-    if (!this.elev.has) return { z: 0, ribbon: null, kind: 'ground' };
-    return this.surfaceAt(x, y, { z: 0.3, ribbon: null });
+    if (!this.elev.has) return { z: this.terrainOn ? this.terrainAt(x, y) : 0, ribbon: null, kind: 'ground' };
+    return this.surfaceAt(x, y, { z: 0.3 + (this.terrainOn ? this.terrainAt(x, y) : 0), ribbon: null });
   }
 
   ceilingAt(x, y, z) {
-    if (!this.terrainOn) return ceilingAt(this.elev, x, y, z);
-    const t = this.terrainAt(x, y), c = ceilingAt(this.elev, x, y, z - t);
-    return c + t;
+    return ceilingAt(this.elev, x, y, z, this.terrainOn ? this.terrainFrame : null);
   }
 
   // Inside a covered (tunnel) section: the canal above an aqueduct is not

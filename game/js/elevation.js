@@ -433,11 +433,15 @@ function flatRoadAt(elev, x, y) {
 // the highest surface no more than STEP_UP above it (see STAY_ON for
 // overlapping roads). Falling back to the lowest surface when there is none
 // (standing over an open cut).
-export function groundHeightAt(elev, x, y, zHint = 0, stepUp = STEP_UP) {
+// With `frame` (?terrain, #269: { base(r, x, y): what road r's profile is relative to there, ground(x, y): the terrain }) the
+// profiles are read over their bases and everything here, zHint and the answer included, is absolute: the ribbons that overlap in
+// plan have different bases, so a height only compares between them in absolute metres.
+export function groundHeightAt(elev, x, y, zHint = 0, stepUp = STEP_UP, frame = null) {
   _pick.ribbon = null; _pick.kind = 'ground';
-  if (!elev.has) return 0;
+  const t0 = frame ? frame.ground(x, y) : 0;
+  if (!elev.has) return t0;
   const list = elev.grid.at(x, y);
-  if (!list) return 0;
+  if (!list) return t0;
   let best = -Infinity, lowest = Infinity, bestRoad = false, cap = -Infinity, capRoad = false;
   let bestR = null, capRb = null;
   let ground = true;
@@ -456,6 +460,7 @@ export function groundHeightAt(elev, x, y, zHint = 0, stepUp = STEP_UP) {
       if ((!s.rail && lowerSurfaceAt(elev, x, y, z + 1.5)) || fillPieceAt(s, q.t, x, y) === false) z = null;
     }
     if (z === null) continue;
+    if (frame) z += frame.base(s.r, x, y, s);
     if (z <= lim) {
       // (a hair past the end still counts as on the segment: a point on a
       // vertex is on both of its segments, not on their caps)
@@ -486,7 +491,7 @@ export function groundHeightAt(elev, x, y, zHint = 0, stepUp = STEP_UP) {
     for (const m of _midS) {
       if (m.r === _capR[i]) { joined = true; break; }
       const q = onSeg(m, _capX[i], _capY[i]);
-      if (q.d <= m.hs && Math.abs(q.z - z) < 0.05) { joined = true; break; }
+      if (q.d <= m.hs && Math.abs(q.z + (frame ? frame.base(m.r, _capX[i], _capY[i], m) : 0) - z) < 0.05) { joined = true; break; }
     }
     if (joined) continue;
     _roadZ.push(z); _roadD.push(_capD[i]); _roadR.push(_capR[i]);
@@ -494,11 +499,11 @@ export function groundHeightAt(elev, x, y, zHint = 0, stepUp = STEP_UP) {
   }
   if ((cap > best + 0.5 || best === -Infinity) && cap > best) { best = cap; bestRoad = capRoad; bestR = capRb; }
   if (!ground && onFlatRoad(elev.map, x, y)) ground = true;
-  if (ground && 0 <= lim) {
+  if (ground && t0 <= lim) {
     // a street-level road next to the raised ones is a road surface too
-    const nd = best < OVERLAP_BAND ? flatRoadAt(elev, x, y) : Infinity;
-    if (nd < Infinity) { _roadZ.push(0); _roadD.push(nd); _roadR.push(null); }
-    if (0 > best) { best = 0; bestRoad = nd < Infinity; bestR = null; }
+    const nd = best < t0 + OVERLAP_BAND ? flatRoadAt(elev, x, y) : Infinity;
+    if (nd < Infinity) { _roadZ.push(t0); _roadD.push(nd); _roadR.push(null); }
+    if (t0 > best) { best = t0; bestRoad = nd < Infinity; bestR = null; }
   }
   if (_roadZ.length > (bestRoad ? 1 : 0)) {
     let pick = -1;
@@ -511,36 +516,39 @@ export function groundHeightAt(elev, x, y, zHint = 0, stepUp = STEP_UP) {
     }
   }
   if (best > -Infinity) {
-    _pick.ribbon = bestR; _pick.kind = bestR ? 'road' : best > RAISED ? 'slope' : 'ground';
+    _pick.ribbon = bestR; _pick.kind = bestR ? 'road' : best - t0 > RAISED ? 'slope' : 'ground';
     return best;
   }
   // below every surface here (pushed into the side of a cutting): stay put,
   // the walls move it back; never pop up to the street
-  return Math.min(zHint, lowest < Infinity ? lowest : 0);
+  return Math.min(zHint, lowest < Infinity ? lowest : t0);
 }
 
 // Height of ribbon r (a road or rail with a profile) at (x, y) where (x, y)
 // is on its surface, else null. Past the ribbon's own two ends it is not:
 // whatever carries on from there has the say.
+let _zSeg = null; // the segment of the ribbon the last ribbonZAt answered on (?terrain reads its base there)
 export function ribbonZAt(elev, r, x, y) {
+  _zSeg = null;
   if (!elev.has || !r) return null;
   const list = elev.grid.at(x, y);
   if (!list) return null;
   // the nearest point of the ribbon decides: past one of its two ends (that
   // end vertex is the nearest point and the point lies beyond it) is off it,
   // also where an inner vertex's round cap would still reach
-  let bd = Infinity, bz = null, bh = 0, past = false;
+  let bd = Infinity, bz = null, bh = 0, past = false, bs = null;
   for (const s of list) {
     if (s.r !== r) continue;
     const q = onSeg(s, x, y);
     if (q.d >= bd - 1e-9) continue;
-    bd = q.d; bz = q.z; bh = s.hs; past = false;
+    bd = q.d; bz = q.z; bh = s.hs; past = false; bs = s;
     if ((q.t <= 0 && s.i === 0) || (q.t >= 1 && s.i === s.r.pts.length - 2)) {
       const along = (x - s.ax) * s.ux + (y - s.ay) * s.uy;
       past = along < -0.05 || along > s.len + 0.05;
     }
   }
-  return !past && bz !== null && bd <= bh ? bz : null;
+  if (!past && bz !== null && bd <= bh) { _zSeg = bs; return bz; }
+  return null;
 }
 
 // The one height query (docs/PROVINCIE-PLAN.md 2.11): the surface under
@@ -552,13 +560,14 @@ export function ribbonZAt(elev, r, x, y) {
 // Updates and returns state: { z, ribbon, kind: 'road'|'slope'|'ground' }.
 // `ground` is the stateless query to fall back on (GameMap passes its own,
 // so a patched groundHeightAt, like the home's storey, is honoured).
-export function surfaceAt(elev, x, y, state, ground = null) {
+export function surfaceAt(elev, x, y, state, ground = null, frame = null) {
   const z0 = state.z || 0;
   const own = state.ribbon;
   if (own && elev.has) {
     const zr = ribbonZAt(elev, own, x, y);
-    if (zr !== null && Math.abs(zr - z0) <= STEP_UP) {
-      state.z = zr;
+    const zb = zr !== null && frame ? frame.base(own, x, y, _zSeg) : 0;
+    if (zr !== null && Math.abs(zr + zb - z0) <= STEP_UP) {
+      state.z = zr + zb;
       state.kind = 'road';
       return state;
     }
@@ -567,8 +576,10 @@ export function surfaceAt(elev, x, y, state, ground = null) {
     // main road), at about this height
     let best = null, bz = 0, bk = Infinity;
     for (const r of joinsOf(elev, own)) {
-      const z = ribbonZAt(elev, r, x, y);
-      if (z === null || Math.abs(z - z0) > STEP_UP) continue;
+      let z = ribbonZAt(elev, r, x, y);
+      if (z === null) continue;
+      if (frame) z += frame.base(r, x, y, _zSeg);
+      if (Math.abs(z - z0) > STEP_UP) continue;
       const k = (sameRoad(r, own) ? 0 : 1) * 10 + Math.abs(z - z0);
       if (k < bk) { bk = k; best = r; bz = z; }
     }
@@ -580,7 +591,7 @@ export function surfaceAt(elev, x, y, state, ground = null) {
     }
   }
   _pick.ribbon = null; _pick.kind = 'ground';
-  state.z = ground ? ground(x, y, z0) : groundHeightAt(elev, x, y, z0);
+  state.z = ground ? ground(x, y, z0) : groundHeightAt(elev, x, y, z0, STEP_UP, frame);
   state.ribbon = _pick.ribbon;
   state.kind = _pick.kind;
   return state;
@@ -613,7 +624,7 @@ const sameRoad = (a, b) => (a.ref && a.ref === b.ref) || (a.name && a.name === b
 // The ribbon something put down at (x, y) at about height z stands on: of
 // the ribbons covering the point, the one nearest in height (then nearest
 // its centreline); null at street level.
-export function ribbonAt(elev, x, y, z) {
+export function ribbonAt(elev, x, y, z, frame = null) {
   if (!elev.has) return null;
   const list = elev.grid.at(x, y);
   if (!list) return null;
@@ -621,7 +632,7 @@ export function ribbonAt(elev, x, y, z) {
   for (const s of list) {
     const q = onSeg(s, x, y);
     if (q.d > s.hs) continue;
-    const dz = Math.abs(q.z - z), dd = q.d / s.hs;
+    const dz = Math.abs(q.z + (frame ? frame.base(s.r, x, y, s) : 0) - z), dd = q.d / s.hs;
     if (dz < bz - 0.05 || (dz < bz + 0.05 && dd < bd)) { best = s.r; bz = dz; bd = dd; }
   }
   return bz <= STEP_UP ? best : null;
@@ -675,7 +686,7 @@ export function roadZAt(r, x, y) {
 }
 
 // Lowest ceiling above an entity at z (tunnel roof, viaduct deck), or Infinity.
-export function ceilingAt(elev, x, y, z) {
+export function ceilingAt(elev, x, y, z, frame = null) {
   if (!elev.has) return Infinity;
   const list = elev.grid.at(x, y);
   if (!list) return Infinity;
@@ -683,11 +694,12 @@ export function ceilingAt(elev, x, y, z) {
   for (const s of list) {
     const q = onSeg(s, x, y);
     if (q.d > s.hs + WALL_T) continue;
-    if (s.covered && z < -RAISED) {
-      const under = roofTopAt(elev, x, y, q.z) - ROOF_T;
+    const b = frame ? frame.base(s.r, x, y, s) : 0;
+    if (s.covered && z - b < -RAISED) {
+      const under = roofTopAt(elev, x, y, q.z) - ROOF_T + b;
       if (under > z && under < c) c = under;
-    } else if (q.z - DECK_T > z + 0.5 && q.z > RAISED && q.d <= s.hs) {
-      if (q.z - DECK_T < c) c = q.z - DECK_T;
+    } else if (q.z + b - DECK_T > z + 0.5 && q.z > RAISED && q.d <= s.hs) {
+      if (q.z + b - DECK_T < c) c = q.z + b - DECK_T;
     }
   }
   return c;
@@ -949,6 +961,9 @@ function wallSide(w, z) {
   return w.low && z > w.z - 1.2 && z < (w.over !== undefined ? Math.min(w.z + 2, w.over - 0.6) : w.z + 2) ? 1 : 0;
 }
 
+// what the profile a wall piece stands on is relative to (?terrain, #269): the base of its road at the middle of the piece
+const wallBase = (w, frame) => (w.seg && w.seg.r ? frame.base(w.seg.r, (w.ax + w.bx) / 2, (w.ay + w.by) / 2, w.seg) : 0);
+
 // Knocked-out barrier and fence sections (breakables.js registers the test)
 let wallBroken = null;
 export function setWallBrokenTest(fn) { wallBroken = fn; }
@@ -967,13 +982,13 @@ export function breakableWallsIn(elev, x0, y0, size) {
 }
 
 // Walkers: push a circle of radius back to its allowed side of every wall.
-export function resolveElevWalls(elev, x, y, z, radius) {
+export function resolveElevWalls(elev, x, y, z, radius, frame = null) {
   if (!elev.has) return null;
   const list = elev.wallGrid.at(x, y);
   if (!list) return null;
   let moved = false;
   for (const w of list) {
-    const side = wallSide(w, z);
+    const side = wallSide(w, frame ? z - wallBase(w, frame) : z);
     if (!side || ((w.brk === 'vangrail' || side < 0) && isWallBroken(w))) continue;
     const ex = w.bx - w.ax, ey = w.by - w.ay, el = Math.hypot(ex, ey) || 1;
     const along = ((x - w.ax) * ex + (y - w.ay) * ey) / el;
@@ -992,13 +1007,13 @@ export function resolveElevWalls(elev, x, y, z, radius) {
 // on the wrong side is pushed back. Returns {x, y, nx, ny, depth} or null.
 // props: the breakable sections are left to their props (the player's
 // vehicle, which always has the props around it streamed in).
-export function elevWallContact(elev, x, y, z, band = 1.4, props = false) {
+export function elevWallContact(elev, x, y, z, band = 1.4, props = false, frame = null) {
   if (!elev.has) return null;
   const list = elev.wallGrid.at(x, y);
   if (!list) return null;
   let best = null;
   for (const w of list) {
-    const side = wallSide(w, z);
+    const side = wallSide(w, frame ? z - wallBase(w, frame) : z);
     if (!side) continue;
     // (a cutting's fence is the breakable part, its wall below is not)
     if (w.brk && (w.brk === 'vangrail' || side < 0) && (props || isWallBroken(w))) continue;
