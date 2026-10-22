@@ -249,24 +249,36 @@ function buildCarGeometry(type, L, W, paint, opts) {
     B.box((P.xB + P.xC) / 2, P.roof + 0.05, 0, 0.3, 0.07, W * 0.72, TRIM);
   }
   if (opts.ambulance) {
-    // Dutch ambulance: yellow body, a blue/yellow block band along the sides
-    const n = 8, x0 = -hl + 0.15, x1 = P.xA - 0.1, bw = (x1 - x0) / n;
+    // Nederlandse ambulance (#407): geel met een witte hoge dakkap, een band van rode en witte reflecterende blokken langs de
+    // zijkant (twee rijen op de laadruimte, één op de portieren), een lichtbalk op het cabinedak, blauwe flitsers voor en
+    // achter en rode en witte blokken over de achterdeuren. Het opschrift staat in assembleCar (ambulanceOpschrift).
+    const RED = 0xd2232a, WHITE = 0xf4f2ee;
+    const cargo0 = -hl + 0.1, cargo1 = P.xB - 0.06, n = 9, bw = (cargo1 - cargo0) / n;
     for (const s of [1, -1]) {
       const z = s * (hw + 0.007);
       for (let i = 0; i < n; i++) {
-        for (const [row, y] of [[0, 0.62], [1, 0.84]]) {
-          if ((i + row) % 2) B.box(x0 + bw * (i + 0.5), y, z, bw, 0.22, 0.012, 0x1d4fa3);
-        }
+        for (const [row, y] of [[0, 0.95], [1, 1.17]]) B.box(cargo0 + bw * (i + 0.5), y, z, bw, 0.22, 0.012, (i + row) % 2 ? WHITE : RED);
       }
-      B.box((x0 + x1) / 2, 1.0, z, x1 - x0, 0.05, 0.012, 0x2f8f4e);
+      // op het portier: één rij, onder de raamlijn
+      const door0 = P.xB + 0.02, door1 = P.xA - 0.12, nd = 3, dw = (door1 - door0) / nd;
+      for (let i = 0; i < nd; i++) B.box(door0 + dw * (i + 0.5), 0.92, z, dw, 0.18, 0.012, i % 2 ? WHITE : RED);
     }
-    // the high-roof conversion box over the patient bay: ~2.6 m in all
+    // de hoge dakkap boven de patiëntenruimte, wit; de rand ervoor blauw
     const roofX0 = P.xB - 0.45, rh = 0.48;
-    B.box((roofX0 - hl) / 2, P.roof + rh / 2 - 0.02, 0, roofX0 + hl, rh, W - 0.04, paint);
-    B.box(roofX0 + 0.04, P.roof + rh / 2, 0, 0.08, rh - 0.1, W * 0.7, 0x1d4fa3);
-    B.box(-hl - 0.008, 1.45, 0, 0.012, 0.36, 0.36, 0xf4f2ee);
-    B.box(-hl - 0.012, 1.45, 0, 0.012, 0.28, 0.08, 0x1d4fa3);
-    B.box(-hl - 0.012, 1.45, 0, 0.012, 0.08, 0.28, 0x1d4fa3);
+    B.box((roofX0 - hl) / 2, P.roof + rh / 2 - 0.02, 0, roofX0 + hl, rh, W - 0.04, WHITE);
+    B.box(roofX0 + 0.02, P.roof + rh / 2, 0, 0.04, rh - 0.12, W * 0.7, 0x1d4fa3);
+    // lichtbalk op het cabinedak: donkere balk met blauwe uiteinden (de twee knipperende lampen staan er in assembleCar bovenop)
+    const barX = P.xB - 0.25;
+    B.box(barX, P.roof + 0.03, 0, 0.3, 0.06, W * 0.84, TRIM);
+    for (const s of [1, -1]) B.box(barX, P.roof + 0.1, s * W * 0.4, 0.26, 0.1, 0.12, 0x2f6bff, G_LAMP);
+    // blauwe flitsers in de grille, en boven op de achterdeuren
+    for (const s of [1, -1]) {
+      B.box(hl + 0.012, P.nose + 0.2, s * (hw - 0.62), 0.02, 0.07, 0.22, 0x2f6bff, G_LAMP);
+      B.box(-hl - 0.014, P.tail - 0.14, s * (hw - 0.1), 0.02, 0.09, 0.14, 0x2f6bff, G_LAMP);
+    }
+    // achterdeuren: één rij rode en witte blokken
+    const rn = 8, rw = (W - 0.3) / rn;
+    for (let i = 0; i < rn; i++) B.box(-hl - 0.008, 0.9, -((W - 0.3) / 2) + rw * (i + 0.5), 0.012, 0.2, rw, i % 2 ? WHITE : RED);
   }
   const variant = opts.variant || '';
   if (variant === 'taxi') {
@@ -416,7 +428,56 @@ function assembleCar(type, L, W, paint, { police = false, ambulance = false, wre
     }
     group.userData.policeLamps = lamps;
   }
+  if (ambulance && !wrecked) ambulanceOpschrift(group, P, L, W);
   return group;
+}
+
+// Het opschrift van de ambulance (#407), Nederlands en zonder regionamen of logo's: AMBULANCE in spiegelschrift op de
+// voorkant (leesbaar in de spiegel van de auto ervoor), AMBULANCE langs beide zijkanten van de laadruimte, 112 en
+// AMBULANCE op de achterdeuren. Vlakken met een gedeelde canvastextuur (alleen de letters, het gele plaatwerk
+// schijnt erdoorheen) op 1,2 cm van het plaatwerk, met een polygonOffset.
+const opschriftCache = {};
+function opschriftMateriaal(tekst, spiegel, kleur, w, h, font) {
+  const key = [tekst, spiegel, kleur].join('|');
+  if (opschriftCache[key]) return opschriftCache[key];
+  const c = document.createElement('canvas');
+  c.width = w; c.height = h;
+  const g = c.getContext('2d');
+  g.clearRect(0, 0, w, h);
+  if (spiegel) { g.translate(w, 0); g.scale(-1, 1); }
+  g.fillStyle = kleur;
+  g.font = font;
+  g.textAlign = 'center';
+  g.textBaseline = 'middle';
+  g.fillText(tekst, w / 2, h / 2 + 2, w - 8);
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  t.anisotropy = 4;
+  const m = new THREE.MeshLambertMaterial({ map: t, alphaTest: 0.4, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -8 });
+  m.userData.shared = true;
+  opschriftCache[key] = m;
+  return m;
+}
+function ambulanceOpschrift(group, P, L, W) {
+  const hl = L / 2, hw = W / 2;
+  const BLAUW = '#1d3f8f', ROOD = '#c8102e';
+  const geo = cached('opschrift-vlak', () => markShared(new THREE.PlaneGeometry(1, 1)));
+  const zet = (mat, w, h, x, y, z, ry) => {
+    const m = new THREE.Mesh(geo, mat);
+    m.scale.set(w, h, 1); m.position.set(x, y, z); m.rotation.y = ry;
+    m.userData.noBatch = true;
+    group.add(m);
+  };
+  const tekst = opschriftMateriaal('AMBULANCE', false, ROOD, 512, 64, "bold 56px 'Arial Narrow',Arial,sans-serif");
+  const tekstSpiegel = opschriftMateriaal('AMBULANCE', true, BLAUW, 512, 64, "bold 56px 'Arial Narrow',Arial,sans-serif");
+  const x0 = -hl + 0.1, x1 = P.xB - 0.06, cx = (x0 + x1) / 2, bw = Math.min(2.6, (x1 - x0) * 0.8);
+  zet(tekst, bw, bw / 8, cx, 1.68, hw + 0.012, 0);
+  zet(tekst, bw, bw / 8, cx, 1.68, -hw - 0.012, Math.PI);
+  // voorkant: spiegelschrift boven de grille
+  zet(tekstSpiegel, 1.0, 0.125, hl + 0.014, P.nose + 0.07, 0, Math.PI / 2);
+  // achterdeuren
+  zet(opschriftMateriaal('112', false, ROOD, 256, 128, "bold 104px Arial,sans-serif"), 0.62, 0.31, -hl - 0.014, 1.62, 0, -Math.PI / 2);
+  zet(tekst, 1.3, 0.16, -hl - 0.014, 1.3, 0, -Math.PI / 2);
 }
 
 // Sierdoppen: een lichte schijf op elk wiel, samen één 'onderdeel' dat los kan raken (#205).
