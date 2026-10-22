@@ -16,6 +16,7 @@ import path from 'node:path';
 import zlib from 'node:zlib';
 import { fileURLToPath } from 'node:url';
 import { LAGEN_WEGEN } from './stad_laag.mjs';
+import { loadReliefRasters } from './terrain.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const { GameMap, applyMapExtras } = await import('../../game/js/mapdata.js');
@@ -23,21 +24,20 @@ const G = await import('../../game/js/gdt.js');
 const { edgeRows, globalChains } = await import('../../game/js/navgraph.js');
 const { heightRows } = await import('../../game/js/roadprofile.js');
 const { junctionRows } = await import('../../game/js/junctions.js');
-const { shiftRaster } = await import('../../game/js/terrainraster.js');
 const { splitMeta } = await import('../../game/js/poisections.js');
 const { polygonBounds } = await import('../../game/js/util.js');
 const { heightOf, bagKey, pitchedFits } = await import('../../game/js/buildingheights.js');
 
 export const BUILDER = 1;
 // what a road row gets from the heights section besides its z (tileworld.js attachProfiles)
-export const PROFILE_KEYS = ['pnet', 'st', 'ly'];
+export const PROFILE_KEYS = ['pnet', 'st', 'ly', 'zt', 'stt', 'zf'];
 export const PACK_TILES = 8;
 // margin round an object's bounds when it is put in tiles (a road's ribbon,
 // a rail's ballast)
 const MARGIN = { roads: (r) => (r.width || 4) / 2 + 2, rails: () => 3 };
 
 // keys that are worked out again when a tile is loaded
-const DROP = new Set(['bounds', 'rooms', 'passages']);
+const DROP = new Set(['bounds', 'rooms', 'passages', 'zt']);
 export function cleanRow(o) {
   const out = {};
   for (const k in o) if (!DROP.has(k) && k[0] !== '_' && o[k] !== undefined) out[k] = o[k];
@@ -211,21 +211,10 @@ export function tilesOf(bounds) {
   return out;
 }
 
-// AHN terrain rasters (scripts/world/fetch_ahn.py --fetch; data/world/ahn,
-// not committed): tile key -> raster for the RASTER section; none: flat
+// AHN terrain rasters (scripts/world/fetch_ahn.py --fetch; data/world/ahn, not committed) as the relief (relief.mjs, #269):
+// tile key -> raster for the RASTER section; none: flat
 export function loadTerrainRasters(root = ROOT) {
-  const dir = path.join(root, 'data/world/ahn');
-  const f = path.join(dir, 'index.json');
-  const out = new Map();
-  if (!fs.existsSync(f)) return out;
-  const idx = JSON.parse(fs.readFileSync(f, 'utf8'));
-  for (const [key, t] of Object.entries(idx.tiles || {})) {
-    const bin = path.join(dir, key + '.bin');
-    if (!fs.existsSync(bin)) continue;
-    // one datum: a city raster (relative to its tile's street level) moves to m NAP, the province's already is
-    out.set(key, shiftRaster({ w: t.w, h: t.h, cell: t.cell, x0: t.x0, y0: t.y0, codec: 1, data: new Uint8Array(fs.readFileSync(bin)) }, t.abs === false ? t.street_nap : 0));
-  }
-  return out;
+  return loadReliefRasters(root);
 }
 
 export function build({ map }, attrs = loadAttrs(), terrain = loadTerrainRasters()) {

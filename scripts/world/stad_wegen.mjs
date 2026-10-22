@@ -20,6 +20,7 @@ import { cityRail, cutPathsAtRails } from './stad_spoor.mjs';
 import { dropDuplicateBridges } from './bridgededupe.mjs';
 import * as PR from './profile.mjs';
 import * as RP from './railprofile.mjs';
+import { solveTerrainRoads, ahnTerrain } from './terrain_solve.mjs';
 
 const RING_TYPES = new Set(['motorway', 'motorway_link', 'trunk', 'trunk_link', 'primary', 'primary_link']);
 
@@ -425,7 +426,12 @@ export async function profileCity(d, wegen, { lagen, extras = {}, inside }) {
     solveAll();
   } else if (wantRails) rep.skipped = true;
   if (bus.length) restoreBus(bus);
-  if (wantRoads) { rep.dry = markDryRoads(d); }
+  if (wantRoads) {
+    rep.dry = markDryRoads(d);
+    // the second profile, over the AHN terrain (#269): road.zt, what ?terrain reads (terrain_solve.mjs); none without rasters
+    const ahn = ahnTerrain();
+    if (ahn) rep.zt = solveTerrainRoads(d, { terrain: ahn, protect });
+  }
   return rep;
 }
 

@@ -78,7 +78,7 @@ function packWorld() {
   const stadLaag = path.join(root, 'scripts', 'world', 'stad_laag.mjs');
   if (fs.existsSync(stadLaag)) h.update(fs.readFileSync(stadLaag));
   // wegen en spoor van de stad uit OSM (stad_wegen.mjs en wat het aanroept): de oplossers en het ringprofiel bepalen de stadswegen
-  for (const f of ['stad_wegen.mjs', 'stad_spoor.mjs', 'ring_elevation.mjs', 'profile.mjs', 'railprofile.mjs', 'stad_cache.mjs', 'stad_na.mjs', 'stad_bomen.mjs', 'stad_bomen.json', 'binnenplaatsen.json']) { const q = path.join(root, 'scripts', 'world', f); if (fs.existsSync(q)) h.update(fs.readFileSync(q)); }
+  for (const f of ['stad_wegen.mjs', 'stad_spoor.mjs', 'ring_elevation.mjs', 'profile.mjs', 'terrain_profile.mjs', 'terrain_solve.mjs', 'terrain.mjs', 'relief.mjs', 'railprofile.mjs', 'stad_cache.mjs', 'stad_na.mjs', 'stad_bomen.mjs', 'stad_bomen.json', 'binnenplaatsen.json']) { const q = path.join(root, 'scripts', 'world', f); if (fs.existsSync(q)) h.update(fs.readFileSync(q)); }
   // de dekking van de stadskaart (stad.json): bepaalt welke OSM-rijen de stad krijgt
   const stadCover = path.join(root, 'scripts', 'world', 'citycover.mjs');
   if (fs.existsSync(stadCover)) h.update(fs.readFileSync(stadCover));
@@ -107,7 +107,7 @@ function packWorld() {
     h.update(fs.readFileSync(province));
     h.update(VIADUCTS ? 'viaducts' : 'flat');
     // what the province build runs besides (derive_tiles.mjs: the city's derivation; bag3d.mjs: 3D BAG)
-    for (const f of ['derive_tiles.mjs', 'junction_tiles.mjs', 'building_clearance.mjs', 'bag3d.mjs', 'province_profile.mjs', 'bridgededupe.mjs', 'bridge_audit.mjs', 'profile.mjs']) h.update(fs.readFileSync(path.join(root, 'scripts', 'world', f)));
+    for (const f of ['derive_tiles.mjs', 'junction_tiles.mjs', 'building_clearance.mjs', 'bag3d.mjs', 'province_profile.mjs', 'bridgededupe.mjs', 'bridge_audit.mjs', 'profile.mjs', 'terrain_profile.mjs', 'terrain_solve.mjs', 'terrain.mjs', 'relief.mjs']) h.update(fs.readFileSync(path.join(root, 'scripts', 'world', f)));
     for (const f of ['builderhooks.js', 'greenery.js', 'streetfurniture.js', 'junctions.js', 'waterlevels.js']) h.update(fs.readFileSync(path.join(SRC, 'js', f)));
     const bagP = path.join(root, 'data', 'world', '3dbag_province.json.gz');
     if (fs.existsSync(bagP)) h.update(fs.readFileSync(bagP));
@@ -127,7 +127,7 @@ function packWorld() {
       if (c.status !== 0) { fs.rmSync(cache, { recursive: true, force: true }); throw new Error('building the corridor tiles failed'); }
     }
     if (provDirs.length) {
-      const c = spawnSync(process.execPath, [province, '--out', cache, '--city', path.join(cache, 'index.json'), ...(VIADUCTS ? [] : ['--flat'])], { stdio: 'inherit', cwd: root });
+      const c = spawnSync(process.execPath, [province, '--out', cache, '--city', path.join(cache, 'index.json'), ...(VIADUCTS ? [] : ['--flat']), ...(fs.existsSync(path.join(root, 'data', 'world', 'ahn', 'index.json')) ? ['--terrain'] : [])], { stdio: 'inherit', cwd: root });
       if (c.status !== 0) { fs.rmSync(cache, { recursive: true, force: true }); throw new Error('building the province tiles failed'); }
     }
     for (const d of fs.readdirSync(WCACHE)) if (path.join(WCACHE, d) !== cache) fs.rmSync(path.join(WCACHE, d), { recursive: true, force: true });

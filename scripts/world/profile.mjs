@@ -19,6 +19,8 @@ import {
 } from '../../game/js/roadprofile.js';
 import { railLiftZ } from '../../game/js/elevation.js';
 import { railHeightFn, overAtRailCrossing, LC_ZONE } from '../../game/js/railprofile.js';
+import { isDeckRoad } from '../../game/js/deckterrain.js';
+import { terrainBases, underWindows } from './terrain_profile.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 
@@ -250,15 +252,36 @@ const knotAt = (x, y) => KNOWN_KNOTS.find(([kx, ky, r]) => Math.hypot(x - kx, y 
 // the terrain (a bridge over a shipping canal clears the barges: province_profile.mjs); the road rises, and the roads
 // it joins ramp with it. opts.noSink: nothing is sunk under the terrain (a tunnel under a road stays at street level and
 // the road over it rises instead; a road under a rail stays flat): the province has no cut-away ground to show a trench.
-export function solve(data, { terrain = flatTerrain, iters = 600, pullPrior = 0.05, paths = false, protect = new Set(), couple = true, coupleAll = false, clear = true, pins = [], noSink = false } = {}) {
+// opts.onTerrain (#269, with opts.terrain): solve in absolute heights over the AHN terrain, the way the game reads a profile back with
+// ?terrain: a bridge or tunnel is measured from the line between the terrain at its ends, any other road from the terrain at its
+// vertices (terrain_profile.mjs terrainBases); the flat profiles (road.z) only tell which side of a crossing is up; the
+// clearances are absolute; and a street that passes under a deck is held at its own level under the dyke the deck stands on
+// (underWindows), as AHN has no data under the deck. Only roads that need a profile are solved (decks, what a crossing moves, what
+// a ramp must reach): the others keep to the terrain, steep or not. Returns the same, z relative to the base of each road.
+export function solve(data, { terrain = flatTerrain, iters = 600, pullPrior = 0.05, paths = false, protect = new Set(), couple = true, coupleAll = false, clear = true, pins = [], noSink = false, onTerrain = false } = {}) {
   const roads = data.roads;
   const rails = railItems(data);
   const water = data.water || [];
   // 1. who moves at each crossing that needs it; roads that get a new
   // profile are densified so their ramps have vertices
   const crossings = planCrossings([...roads, ...rails], crossFilter);
-  const active = new Set(roads.filter((r) => r.z));
+  const active = new Set(onTerrain ? [] : roads.filter((r) => r.z));
   const movers = [];
+  // terrain mode: the base and the voorkeurshoogte (abs) of every original road, the streets that pass under a deck lowered
+  const base0 = onTerrain ? terrainBases(roads, terrain) : null;
+  const pri0 = onTerrain ? new Map([...base0].map(([r, a]) => [r, Float64Array.from(a)])) : null;
+  const underSpots = [];
+  const lowered0 = new Set();
+  if (onTerrain) {
+    for (const c of crossings) {
+      const s = separation(c);
+      if (!s || s.up.rail || s.lo.rail || !s.up.bridge || isDeckRoad(s.lo) || knotAt(c.x, c.y)) continue;
+      underSpots.push({ lo: s.lo, x: c.x, y: c.y });
+    }
+    for (const r of underWindows(underSpots, pri0, terrain)) lowered0.add(r);
+  }
+  // abs height of the voorkeurshoogte of road r at vertex i + t along its segment (terrain mode)
+  const priAt = (r, i, t) => { const a = pri0.get(r); return a[i] + (a[Math.min(i + 1, a.length - 1)] - a[i]) * t; };
   // a foot or cycle way that OSM puts on a bridge over the track or in a
   // tunnel under it gets a profile too (the old rail lifts went over them)
   const railCross = crossings.filter((c) => (c.a.rail || c.b.rail) && !(c.a.rail && c.b.rail) && separation(c));
@@ -288,11 +311,21 @@ export function solve(data, { terrain = flatTerrain, iters = 600, pullPrior = 0.
     active.add(road);
   }
   // the pins act like a mover that rises over a fixed height
+  // (terrain mode: the other side's height at the crossing is absolute: its voorkeurshoogte, or terrain + height for a track)
+  const absOf = (other, s, which) => {
+    if (!other.rail) return which === 'lo' ? priAt(other, s.il, s.tl) : priAt(other, s.iu, s.tu);
+    return terrain(s.x, s.y) + (which === 'lo' ? s.zLo : s.zUp);
+  };
   const moverInfo = ({ c, m, pin }) => {
-    if (pin) return { road: pin.road, other: null, zo: pin.minZ, need: 0, reach: pin.reach };
+    if (pin) {
+      let zp = pin.minZ;
+      if (onTerrain) { const P = pin.road.pts; let b = 0, bd = Infinity; P.forEach((p, i) => { const d = Math.hypot(p[0] - pin.x, p[1] - pin.y); if (d < bd) { bd = d; b = i; } }); zp += base0.get(pin.road)[b]; }
+      return { road: pin.road, other: null, zo: zp, need: 0, reach: pin.reach };
+    }
     const s = separation(c);
     const road = m === 'up' ? s.up : s.lo, other = m === 'up' ? s.lo : s.up;
-    return { road, other, s, zo: m === 'up' ? s.zLo : s.zUp, need: s.need, reach: overlapReach(c, road, other) };
+    const zo = onTerrain ? absOf(other, s, m === 'up' ? 'lo' : 'up') : (m === 'up' ? s.zLo : s.zUp);
+    return { road, other, s, zo, need: s.need, reach: overlapReach(c, road, other) };
   };
   for (const pin of pins) {
     if (!roads.includes(pin.road)) continue;
@@ -316,18 +349,29 @@ export function solve(data, { terrain = flatTerrain, iters = 600, pullPrior = 0.
         else hi0[a[i]] = Math.min(hi0[a[i]], zo - need);
       });
     }
+    const ref0 = onTerrain ? new Float64Array(g0.ids.length) : null;
+    if (onTerrain) {
+      for (let n = 0; n < g0.ids.length; n++) ref0[n] = terrain(g0.ids[n].x, g0.ids[n].y);
+      for (const deckPass of [false, true]) for (const r of roads) {
+        if (isDeckRoad(r) !== deckPass) continue;
+        g0.of.get(r).forEach((n, i) => { ref0[n] = base0.get(r)[i]; });
+      }
+      // a street held at its own level under a dyke: nothing over it may stand higher than its voorkeurshoogte
+      for (const r of lowered0) g0.of.get(r).forEach((n, i) => { if (pri0.get(r)[i] < base0.get(r)[i] - 0.02) hi0[n] = Math.min(hi0[n], pri0.get(r)[i]); });
+    }
     const envLo = envelope(roads, g0, lo0, 1), envHi = envelope(roads, g0, hi0, -1);
     let added = 0;
     for (let n = 0; n < g0.ids.length; n++) {
-      const nd = g0.ids[n], t = terrain(nd.x, nd.y);
+      const nd = g0.ids[n], t = onTerrain ? ref0[n] : terrain(nd.x, nd.y);
       if (envLo[n] <= t + 0.02 && envHi[n] >= t - 0.02) continue;
       for (const [r] of nd.roads) if (!active.has(r) && may(r)) { active.add(r); added++; }
     }
     if (!added) break;
   }
+  if (onTerrain) for (const r of lowered0) if (may(r)) active.add(r);
   const newPts = new Map();
   for (const r of active) {
-    if (r.z || protect.has(r)) continue;
+    if ((onTerrain ? r.zt : r.z) || protect.has(r)) continue;
     const P = densify(r.pts, STEP);
     if (P.length !== r.pts.length) newPts.set(r, P);
   }
@@ -337,12 +381,30 @@ export function solve(data, { terrain = flatTerrain, iters = 600, pullPrior = 0.
   const net = buildNetwork(view);
   const N = net.ids.length;
   const z = new Float64Array(N), prior = new Float64Array(N), ter = new Float64Array(N);
+  const lo = new Float64Array(N).fill(-Infinity), hi = new Float64Array(N).fill(Infinity);
   const free = new Uint8Array(N);
   for (let n = 0; n < N; n++) { ter[n] = terrain(net.ids[n].x, net.ids[n].y); z[n] = prior[n] = ter[n]; }
+  // terrain mode: the bases and voorkeurshoogtes of the solver's own view of the roads (the densified copies)
+  let baseV = null;
+  if (onTerrain) {
+    baseV = terrainBases(view, terrain);
+    const priV = new Map([...baseV].map(([v, a]) => [v, Float64Array.from(a)]));
+    const spotsV = underSpots.map((q) => ({ ...q, lo: view[roads.indexOf(q.lo)] }));
+    underWindows(spotsV, priV, terrain);
+    // non-decks first: a deck's own base wins at a node they share
+    for (const deckPass of [false, true]) for (const v of view) {
+      if (isDeckRoad(v) !== deckPass) continue;
+      net.of.get(v).forEach((n, i) => { z[n] = prior[n] = priV.get(v)[i]; });
+    }
+    for (const v of view) {
+      if (!active.has(back.get(v))) continue;
+      net.of.get(v).forEach((n, i) => { if (priV.get(v)[i] < baseV.get(v)[i] - 0.02) hi[n] = Math.min(hi[n], priV.get(v)[i]); });
+    }
+  }
   for (const v of view) {
     const r = back.get(v), a = net.of.get(v);
     if (!active.has(r)) continue;
-    if (r.z && !newPts.has(r)) a.forEach((n, i) => { z[n] = r.z[i] + ter[n]; if (tagged(r) || !(r.z[i] < 0 && r.z[i] > -SMALL)) prior[n] = z[n]; });
+    if (!onTerrain && r.z && !newPts.has(r)) a.forEach((n, i) => { z[n] = r.z[i] + ter[n]; if (tagged(r) || !(r.z[i] < 0 && r.z[i] > -SMALL)) prior[n] = z[n]; });
     for (const n of a) free[n] = 1;
   }
   // a vertex shared with a road that keeps to the terrain stays on it
@@ -350,7 +412,6 @@ export function solve(data, { terrain = flatTerrain, iters = 600, pullPrior = 0.
     if (active.has(back.get(v))) continue;
     for (const n of net.of.get(v)) free[n] = 0;
   }
-  const lo = new Float64Array(N).fill(-Infinity), hi = new Float64Array(N).fill(Infinity);
   // tunnels: deep enough under the terrain (or the canal bed); where the
   // prior profile is shallower (a tunnel way that starts at its portal ramp)
   // no shallower than that
@@ -358,10 +419,10 @@ export function solve(data, { terrain = flatTerrain, iters = 600, pullPrior = 0.
   for (const v of view) {
     const r = back.get(v);
     if (!active.has(r) || !r.tunnel || r.bridge || !CAR.has(r.cat)) continue;
-    const a = net.of.get(v), withPrior = r.z && !newPts.has(r);
+    const a = net.of.get(v), withPrior = r.z && !newPts.has(r) && !onTerrain;
     a.forEach((n, i) => {
       const nd = net.ids[n];
-      const deep = ter[n] - (wet(nd.x, nd.y) ? -UNDER_WATER : TUNNEL_DEPTH);
+      const deep = (onTerrain ? baseV.get(v)[i] : ter[n]) - (wet(nd.x, nd.y) ? -UNDER_WATER : TUNNEL_DEPTH);
       if (!withPrior && (i === 0 || i === a.length - 1)) return;
       hi[n] = Math.min(hi[n], withPrior ? Math.max(deep, prior[n] + 0.2) : deep);
     });
@@ -508,7 +569,7 @@ export function solve(data, { terrain = flatTerrain, iters = 600, pullPrior = 0.
     const r = back.get(v);
     if (!active.has(r)) continue;
     const a = net.of.get(v);
-    const zs = Array.from(a, (n) => Math.round((z[n] - ter[n]) * 100) / 100);
+    const zs = Array.from(a, (n, i) => Math.round((z[n] - (onTerrain ? baseV.get(v)[i] : ter[n])) * 100) / 100);
     out.set(r, zs);
   }
   return { roads: out, pts: newPts, stats: { nodes: N, free: free.reduce((s, f) => s + f, 0), movers: movers.length, couples: cpl.length, active: active.size } };

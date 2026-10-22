@@ -327,7 +327,7 @@ async function boot() {
   // (index-corridor.json) name the places and stream their tiles in
   // (provinceworld.js). The province's tiles win.
   const extra = [{ name: 'index-provincie.json' }, { name: 'index-corridor.json' }];
-  const tiles = await loadTileWorld('world/', { onProgress: onMapProgress, extra });
+  const tiles = await loadTileWorld('world/', { onProgress: onMapProgress, extra, terrain: FLAGS.terrain });
   const corridor = !!tiles;
   if (tiles && FLAGS.terrain) tiles.world.terrainOn = true;
   if (tiles && FLAGS.vlakbruggen) tiles.world.streamProfiles = false;

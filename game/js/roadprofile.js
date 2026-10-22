@@ -203,13 +203,28 @@ export function segmentStructures(r) {
 // The heights rows of a map's roads: road -> { pnet, z, st, ly } for every
 // road with a profile (pnet: its connected network, st: structure per
 // segment, ly: the OSM grade order per segment)
+// With a terrain profile (`zt`, scripts/world/terrain_solve.mjs, the one ?terrain reads) the row carries it
+// next to `z`: zt, its structures stt and, for a road without a flat profile, the grade orders ly. A road with
+// a flat profile and `zt = []` is flat over the terrain; the row has no zt then, only `zf: 1` (#269).
 export function heightRows(roads) {
   const { comp } = profiledNetworks(roads);
   const out = new Map();
   for (const r of roads) {
-    if (!r.z) continue;
-    const st = segmentStructures(r), o = gradeOrder(r);
-    out.set(r, { pnet: comp.get(r), z: r.z, st, ly: st.map(() => o) });
+    const zt = r.zt && r.zt.length ? r.zt : null;
+    if (!r.z && !zt) continue;
+    const o = gradeOrder(r);
+    const row = {};
+    if (r.z) {
+      const st = segmentStructures(r);
+      Object.assign(row, { pnet: comp.get(r), z: r.z, st, ly: st.map(() => o) });
+    }
+    if (zt) {
+      const stt = segmentStructures({ ...r, z: zt });
+      row.zt = zt;
+      row.stt = stt;
+      if (!r.z) { row.pnet = -1; row.ly = stt.map(() => o); }
+    } else if (r.z && r.zt) row.zf = 1;
+    out.set(r, row);
   }
   return out;
 }
