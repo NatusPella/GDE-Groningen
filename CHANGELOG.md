@@ -7,6 +7,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 ## [Unreleased]
 
 ### Opgelost
+- **Controllerhints hebben dezelfde witte keycap als de toetsenbordhints (in Electron met een nep-controller naast de toetsenbordhints door Claude in beeld bekeken, niet door een mens):** de knopjes voor de controller waren donkergrijs met groene tekst en vielen uit de toon naast de witte toetsen. Ze zijn nu wit met donkere tekst en een grijze rand eronder, in de HUD, bij de hints voor instappen en andere acties, in de uitleg en in de menu's; het D-pad is een wit kruis en de knopjes onderin de menu's zijn net zo groot als de toetsen. Het hoofdmenu toont onderin nu ook "kiezen" en "ok" met controllerknoppen zodra je de controller gebruikt.
 - **Vracht-bijbaan: tijdens het koppelen van de oplegger kwamen de koppelmarkering en het doel niet in beeld (statische naamcontrole, niet in beeld bekeken):** de weergave van de bijbaan gebruikte een voertuig dat daar niet bestond; de fout werd stil opgevangen, dus je zag alleen een leeg bord. Een nieuwe controle (`undef_check`) zoekt voortaan elke naam die gebruikt maar nergens geïmporteerd of gedefinieerd is, zoals de oorzaak van de dode controller in 0.36 tot 0.38.1.
 
 ## [0.38.2] - 2026-10-22
