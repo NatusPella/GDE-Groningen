@@ -23,10 +23,13 @@ import { polyArea, MAIN_WATERWAYS, BRIDGE_DECK_T, BOEZEM_Y } from '../../game/js
 import { worldToWgs } from '../../game/js/rdnew.js';
 import { createWaterIndex } from '../../game/js/waterindex.js';
 import { outsideDist } from '../../game/js/worldedge.js';
+import { laadHuizen } from '../lib/huizenindex.mjs';
+import { fileURLToPath } from 'node:url';
 
 export const CELL = 5;
 export const SEA_REACH = 250;
 const CS = 256; // cellen per brok
+export const HUIS_MARGE = 0.15; // m: ruimte tussen een ingevulde cel en de muur van een gebouw (afronding van de rechthoeken in vaarnet_fixes.json)
 // de klasse en de boot waarmee ze worden gecontroleerd
 export const CLASS_KIND = { 1: 'kano', 2: 'sloep', 3: 'rondvaart', 4: 'binnenvaart' };
 
@@ -37,13 +40,19 @@ const NCX = Math.ceil(GW / CS), NCY = Math.ceil(GH / CS);
 // ------------------------------------------------------------------ raster
 
 export class Raster {
-  constructor() { this.chunks = new Array(NCX * NCY).fill(null); this.obs = new Map(); this.list = []; this.rings = new Map(); this.dammen = []; }
+  constructor() { this.chunks = new Array(NCX * NCY).fill(null); this.obs = new Map(); this.list = []; this.rings = new Map(); this.dammen = []; this.huizen = null; }
   // ligt de cel op een dam (game/vaarnet_fixes.json `dammen`: [x, y, straal, naam]): land dat closeGaps niet tot water mag maken (#349)
   onDam(cx, cy) {
     if (!this.dammen.length) return false;
     const [x, y] = cellXY(cx, cy);
     for (const d of this.dammen) if (Math.hypot(x - d[0], y - d[1]) <= d[2]) return true;
     return false;
+  }
+  // ligt (een rand van HUIS_MARGE m rond) de cel op een gebouw: water dat het vaarnet toevoegt mag niet over een huis (#362)
+  opHuis(cx, cy) {
+    if (!this.huizen) return false;
+    const [x, y] = cellXY(cx, cy), h = CELL / 2 + HUIS_MARGE;
+    return this.huizen.raakt([[x - h, y - h], [x + h, y - h], [x + h, y + h], [x - h, y + h]]);
   }
   chunk(cx, cy, make = false) {
     const k = (cy >> 8) * NCX + (cx >> 8);
@@ -190,7 +199,7 @@ function fillObs(R, pts, n) {
 
 // ------------------------------------------------------------------ data
 
-// houseboats: de woonboten van de provincietegels sluiten hun cellen (alleen de route van het vaarnet, vaarnet_graph.mjs: de
+// houseboats: de woonboten en de gebouwen van de provincietegels sluiten hun cellen (alleen de route van het vaarnet, vaarnet_graph.mjs: de
 // audit en de gaten van vaarnet_fixes.json blijven wat ze waren). gameWater: het raster van het spel zelf (vaarnet_graph.mjs): alleen water waar een polygon of een gatenstuk van het spel
 // water heeft; het verbreden en dichten hieronder maakt anders water van land waar een romp niet door kan (#343)
 export async function buildRaster({ worldDir, city = true, fixesOn = !process.argv.includes('--no-fixes'), gatenOn = !process.argv.includes('--fixes'), gameWater = false, houseboats = false } = {}) {
@@ -201,6 +210,7 @@ export async function buildRaster({ worldDir, city = true, fixesOn = !process.ar
   const byName = new Map();
   for (const w of water) if (w.kind === 'meer' && w.name) byName.set(w.name, (byName.get(w.name) || 0) + polyArea(w.pts));
   const R = new Raster();
+  R.huizen = await laadHuizen(worldDir ? (typeof worldDir === 'string' ? worldDir : fileURLToPath(worldDir)) : fileURLToPath(new URL('../../game/world/', import.meta.url)));
   const navPolys = []; // de polygonen van het raster, voor de lijn van een tak (vaarnet_graph.mjs dryAt)
   for (const w of water) {
     if (w.pts.length < 3) continue;
@@ -249,8 +259,24 @@ export async function buildRaster({ worldDir, city = true, fixesOn = !process.ar
   // de woonboten van de provincietegels (die van de stad liggen langs de kade en horen bij de kadewand): als laatste,
   // het verbreden en dichten hierboven maakt van een dichte cel anders weer water
   if (houseboats) for (const h of P.houseboats || []) if (h.pts && h.pts.length > 2) blockRing(R, h.pts);
+  // en de gebouwen: water van een waterpolygon dat onder een gebouw doorloopt (een schuur op de oever die in het polygon steekt) is voor de
+  // route geen vaarwater (#362); de gaten van vaarnet_fixes.json en closeGaps vullen zulke cellen al niet in
+  if (houseboats) closeHuizen(R);
   const heights = setClearances(R);
   return { R, P, cityMap, water, navPolys, dry, locks, closed, mains, wide, places: P.idx.global.places || [] };
+}
+
+// De open cellen die een gebouw raken gaan dicht. Geeft het aantal cellen.
+export function closeHuizen(R) {
+  if (!R.huizen) return 0;
+  let n = 0;
+  for (let ci = 0; ci < R.chunks.length; ci++) {
+    const ch = R.chunks[ci];
+    if (!ch) continue;
+    const bx = (ci % NCX) * CS, by = Math.floor(ci / NCX) * CS;
+    for (let i = 0; i < ch.length; i++) if ((ch[i] & 7) && R.opHuis(bx + (i & 255), by + (i >> 8))) { ch[i] = 0; n++; }
+  }
+  return n;
 }
 
 // Water van klasse 3 met aan alle kanten minstens WIDE_M m water (een vaargeul van
@@ -319,7 +345,8 @@ export function widenMainWaterways(R) {
           // alles ertussen was land of smal water: het wordt hoofdvaarweg, behalve een dam (een dijk waar geen vaarweg is: #349)
           let dam = false;
           for (let q = 1; q < k && !dam; q++) dam = R.onDam(cx + dx * q, cy + dy * q);
-          if (!dam) for (let q = 1; q < k; q++) fill.push([cx + dx * q, cy + dy * q]);
+          // (en geen gebouw: de route van een boot loopt niet door een huis, #362)
+          if (!dam) for (let q = 1; q < k; q++) if (!R.opHuis(cx + dx * q, cy + dy * q)) fill.push([cx + dx * q, cy + dy * q]);
           break;
         }
       }
@@ -371,7 +398,7 @@ export function closeGaps(R) {
       for (let k = 1; k <= K && !b; k++) { const v = R.get(cx + dx * k, cy + dy * k); if ((v & 7) >= 2) b = v; }
       if (a && b) best = Math.max(best, Math.min(a & 7, b & 7));
     }
-    if (best > cur && !R.onDam(cx, cy)) fill.push([cx, cy, best]);
+    if (best > cur && !R.onDam(cx, cy) && !R.opHuis(cx, cy)) fill.push([cx, cy, best]);
   };
   // rasterruis: één gesloten cel tussen twee open
   for (let ci = 0; ci < R.chunks.length; ci++) {
@@ -418,20 +445,32 @@ export function clusterGaps(R, minCells = 12) {
       for (let a = -1; a <= 1; a++) for (let b = -1; b <= 1; b++) { const kk = id(cx + a, cy + b); if (set.has(kk) && !seen.has(kk)) { seen.add(kk); st.push(kk); } }
     }
     if (cells.length < minCells) continue;
-    const P = cells.map(([cx, cy]) => cellXY(cx, cy));
-    let mx = 0, my = 0;
-    for (const p of P) { mx += p[0]; my += p[1]; }
-    mx /= P.length; my /= P.length;
-    let sxx = 0, syy = 0, sxy = 0;
-    for (const p of P) { sxx += (p[0] - mx) ** 2; syy += (p[1] - my) ** 2; sxy += (p[0] - mx) * (p[1] - my); }
-    const ang = 0.5 * Math.atan2(2 * sxy, sxx - syy), c = Math.cos(ang), s = Math.sin(ang);
-    let u0 = Infinity, u1 = -Infinity, v0 = Infinity, v1 = -Infinity;
-    for (const p of P) { const u = (p[0] - mx) * c + (p[1] - my) * s, v = -(p[0] - mx) * s + (p[1] - my) * c; if (u < u0) u0 = u; if (u > u1) u1 = u; if (v < v0) v0 = v; if (v > v1) v1 = v; }
-    const cu = (u0 + u1) / 2, cv = (v0 + v1) / 2;
-    const r1 = (q) => Math.round(q * 10) / 10;
-    out.push([r1(mx + cu * c - cv * s), r1(my + cu * s + cv * c), r1(u1 - u0 + CELL), r1(v1 - v0 + CELL), Math.round(ang * 1000) / 1000, Math.min(...cells.map((q) => q[2]))]);
+    out.push(...gatenVan(R, cells));
   }
   return out.sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+}
+
+// De rechthoek [x, y, lengte, breedte, hoek, nav] om een groep cellen, op hun hoofdrichting. Raakt hij een gebouw (de
+// rechthoek om een bocht of een schuin kanaal dekt veel land, #362), dan wordt de groep langs de lengte doormidden gedeeld,
+// tot elk stuk vrij is; een cel die dan nog een gebouw raakt valt weg (closeGaps vult zulke cellen niet meer in).
+function gatenVan(R, cells) {
+  const P = cells.map(([cx, cy]) => cellXY(cx, cy));
+  let mx = 0, my = 0;
+  for (const p of P) { mx += p[0]; my += p[1]; }
+  mx /= P.length; my /= P.length;
+  let sxx = 0, syy = 0, sxy = 0;
+  for (const p of P) { sxx += (p[0] - mx) ** 2; syy += (p[1] - my) ** 2; sxy += (p[0] - mx) * (p[1] - my); }
+  const ang = 0.5 * Math.atan2(2 * sxy, sxx - syy), c = Math.cos(ang), s = Math.sin(ang);
+  let u0 = Infinity, u1 = -Infinity, v0 = Infinity, v1 = -Infinity;
+  const U = P.map((p) => (p[0] - mx) * c + (p[1] - my) * s);
+  P.forEach((p, i) => { const u = U[i], v = -(p[0] - mx) * s + (p[1] - my) * c; if (u < u0) u0 = u; if (u > u1) u1 = u; if (v < v0) v0 = v; if (v > v1) v1 = v; });
+  const cu = (u0 + u1) / 2, cv = (v0 + v1) / 2;
+  const r1 = (q) => Math.round(q * 10) / 10;
+  const g = [r1(mx + cu * c - cv * s), r1(my + cu * s + cv * c), r1(u1 - u0 + CELL), r1(v1 - v0 + CELL), Math.round(ang * 1000) / 1000, Math.min(...cells.map((q) => q[2]))];
+  if (!R.huizen || !R.huizen.raakt(gatPolygon(g))) return [g];
+  if (cells.length === 1) return [];
+  const order = cells.map((q, i) => i).sort((a, b) => U[a] - U[b] || a - b), half = order.length >> 1;
+  return [...gatenVan(R, order.slice(0, half).map((i) => cells[i])), ...gatenVan(R, order.slice(half).map((i) => cells[i]))];
 }
 
 // ------------------------------------------------------------------ zee
@@ -757,6 +796,38 @@ export function nearestOpenCell(R, x, y, cls, maxR = 400) {
 // vaarweg naar de kust en een tong zee van SEA_TONGUE.wid m breed tot SEA_TONGUE.extra m
 // voorbij de omkeerlijn: [x, y, lengte, breedte, hoek, nav] zoals gaten, maar zee (nav 4).
 export const SEA_TONGUE = { wid: 500, extra: 150, link: 40 };
+// De verbinding van de vaarweg (x, y) naar de kust q: de rechthoek van gap + 20 m lang en SEA_TONGUE.link m breed. Ligt daar een
+// gebouw in (een dorp aan de dijk, #362), dan loopt het water langs een route door de cellen zonder gebouw (kortste weg,
+// SEA_TONGUE.link m breed) en wordt het als gaten opgedeeld; zonder route de stukken van de rechthoek die vrij zijn.
+export function zeeVerbinding(R, [x, y], q, lab) {
+  const gap = Math.hypot(q[0] - x, q[1] - y), ang = Math.atan2(q[1] - y, q[0] - x), r1 = (v) => Math.round(v * 10) / 10;
+  const g = [r1((x + q[0]) / 2), r1((y + q[1]) / 2), r1(gap + 20), SEA_TONGUE.link, Math.round(ang * 1000) / 1000, 4];
+  if (!R.huizen || !R.huizen.raakt(gatPolygon(g))) return [[...g, lab]];
+  const [sx, sy] = cellOf(x, y), [tx, ty] = cellOf(q[0], q[1]), M = 20;
+  const x0 = Math.min(sx, tx) - M, y0 = Math.min(sy, ty) - M, w = Math.abs(sx - tx) + 2 * M + 1, h = Math.abs(sy - ty) + 2 * M + 1;
+  const at = (cx, cy) => (cx - x0) + (cy - y0) * w, inBox = (cx, cy) => cx >= x0 && cy >= y0 && cx < x0 + w && cy < y0 + h;
+  const dead = new Map(), blocked = (cx, cy) => { const k = id(cx, cy); let v = dead.get(k); if (v === undefined) dead.set(k, v = R.opHuis(cx, cy)); return v; };
+  const prev = new Int32Array(w * h).fill(-2), queue = [[sx, sy]];
+  prev[at(sx, sy)] = -1;
+  let goal = null;
+  for (let i = 0; i < queue.length && !goal; i++) {
+    const [cx, cy] = queue[i];
+    if (Math.hypot(cx - tx, cy - ty) <= 3) { goal = [cx, cy]; break; }
+    for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]]) {
+      const nx = cx + dx, ny = cy + dy;
+      if (!inBox(nx, ny) || prev[at(nx, ny)] !== -2 || blocked(nx, ny)) continue;
+      prev[at(nx, ny)] = at(cx, cy);
+      queue.push([nx, ny]);
+    }
+  }
+  if (!goal) return vrijeStukken(R, g).map((p) => [...p, lab]);
+  const rd = Math.round(SEA_TONGUE.link / 2 / CELL), set = new Map();
+  for (let k = at(goal[0], goal[1]); k >= 0; k = prev[k]) {
+    const px = x0 + (k % w), py = y0 + Math.floor(k / w);
+    for (let a = -rd; a <= rd; a++) for (let b = -rd; b <= rd; b++) if (a * a + b * b <= rd * rd && !blocked(px + a, py + b)) set.set(id(px + a, py + b), [px + a, py + b, 4]);
+  }
+  return gatenVan(R, [...set.values()]).map((p) => [...p, lab]);
+}
 export function seaTongues({ R, P }) {
   const coast = coastIndex(P.edge), out = [];
   const start = nearestOpenCell(R, 0, -350, 3);
@@ -780,7 +851,7 @@ export function seaTongues({ R, P }) {
     const r1 = (v) => Math.round(v * 10) / 10, c = Math.cos(best.a), sn = Math.sin(best.a);
     // de verbinding van de vaarweg naar de kust (waar de dijk ligt)
     const gap = Math.hypot(q[0] - x, q[1] - y);
-    if (gap > 6) out.push([r1((x + q[0]) / 2), r1((y + q[1]) / 2), r1(gap + 20), SEA_TONGUE.link, Math.round(Math.atan2(q[1] - y, q[0] - x) * 1000) / 1000, 4, lab]);
+    if (gap > 6) out.push(...zeeVerbinding(R, [x, y], q, lab));
     const L = seaM + SEA_TONGUE.extra + 40;
     out.push([r1(q[0] + c * (L / 2 - 40)), r1(q[1] + sn * (L / 2 - 40)), L, SEA_TONGUE.wid, Math.round(best.a * 1000) / 1000, 4, lab]);
   }
@@ -912,9 +983,18 @@ export function autoLinks(R, comp, cls, { minCells = 300, maxGap = 25, width = 8
     if (used.has(key)) continue;
     used.add(key);
     const [x0, y0] = g.from, [x1, y1] = g.to, r1 = (v) => Math.round(v * 10) / 10;
-    out.push([r1((x0 + x1) / 2), r1((y0 + y1) / 2), r1(Math.hypot(x1 - x0, y1 - y0) + CELL), width, Math.round(Math.atan2(y1 - y0, x1 - x0) * 1000) / 1000, cls]);
+    out.push(...vrijeStukken(R, [r1((x0 + x1) / 2), r1((y0 + y1) / 2), r1(Math.hypot(x1 - x0, y1 - y0) + CELL), width, Math.round(Math.atan2(y1 - y0, x1 - x0) * 1000) / 1000, cls]));
   }
   return out;
+}
+
+// De stukken van een rechthoek [x, y, lengte, breedte, hoek, nav] die geen gebouw raken: een rechthoek die er een raakt
+// wordt langs de lengte doormidden gedeeld (#362); wat bij een lengte van een cel nog raakt, valt weg.
+export function vrijeStukken(R, g) {
+  if (!R.huizen || !R.huizen.raakt(gatPolygon(g))) return [g];
+  if (g[2] <= CELL) return [];
+  const [x, y, L, W, a, nav] = g, c = Math.cos(a), s = Math.sin(a), r1 = (q) => Math.round(q * 10) / 10;
+  return [-1, 1].flatMap((d) => vrijeStukken(R, [r1(x + d * L / 4 * c), r1(y + d * L / 4 * s), r1(L / 2), W, a, nav]));
 }
 
 if (process.argv[1] && process.argv[1].endsWith('vaarnet.mjs')) {
