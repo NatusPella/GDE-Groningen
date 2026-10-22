@@ -67,12 +67,21 @@ function rowsOf(kind, section) {
 // network the tile roads carry), the structure per segment `st`
 // (STRUCT) and the grade order per segment `ly`, joined to the road by gid.
 // Render meshes, colliders and the height query all read this one profile.
-function attachProfiles(tile, roadOf) {
+// With `terrain` (?terrain, #269) a row that carries a terrain profile gives that one instead: zt, its structures stt;
+// a row with `zf` (flat over the terrain) gives none. Rows from before it, and roads without one, keep their flat z.
+function attachProfiles(tile, roadOf, terrain = false) {
   for (const s of tile.sections) {
     if (s.type !== SECTION.HEIGHTS) continue;
     for (const row of s.rows) {
       const r = roadOf(row.gid);
-      if (!r || r.z) continue;
+      if (!r || r.z || r.zAttached) continue;
+      if (terrain && (row.zt || row.zf)) {
+        r.zAttached = true;
+        if (row.zt) { r.z = row.zt; r.st = row.stt; if (r.bridge && !r.tunnel) r.zDeck = true; } else { r.z = undefined; r.st = undefined; }
+        r.pnet = row.pnet;
+        r.ly = row.ly;
+        continue;
+      }
       r.z = row.z;
       r.pnet = row.pnet;
       r.st = row.st;
@@ -110,7 +119,7 @@ function releaseFrom(e, tk) {
 
 export class TileWorld extends GameMap {
   // global: decoded global blob; tiles: decoded tiles of the pinned set
-  static fromTiles(global, tiles) {
+  static fromTiles(global, tiles, { terrain = false } = {}) {
     const info = {};
     for (const s of global.sections) if (s.type === SECTION.META) Object.assign(info, s.json);
     // the places of the meta (shops, horeca, garages, ...) are rows of their tiles (poisections.js)
@@ -132,16 +141,17 @@ export class TileWorld extends GameMap {
       }
     }
     for (const kind of Object.keys(arrays)) for (let i = 0; i < arrays[kind].length; i++) if (!arrays[kind][i]) throw new Error(`tiles lack ${kind} ${i}: the pinned set is not the whole map`);
-    for (const tile of tiles) attachProfiles(tile, (gid) => arrays.roads[gid]);
+    for (const tile of tiles) attachProfiles(tile, (gid) => arrays.roads[gid], terrain);
     // the AHN terrain of the tiles that carry one (terrainraster.js); flat elsewhere
-    const terrain = new TerrainField();
-    for (const tile of tiles) for (const s of tile.sections) if (s.type === SECTION.RASTER) terrain.add(`${tile.i},${tile.j}`, s.raster);
+    const terrainField = new TerrainField();
+    for (const tile of tiles) for (const s of tile.sections) if (s.type === SECTION.RASTER) terrainField.add(`${tile.i},${tile.j}`, s.raster);
     const clipped = (info.clippedWays || []).map((c) => ({ ...c, building: c.building >= 0 ? arrays.buildings[c.building] : null }));
     const map = GameMap.fromParts.call(this, {
       meta: info.meta,
       ...arrays,
       stations: info.stations, levelCrossings: info.levelCrossings, railRoutes: info.railRoutes, railLifts: info.railLifts,
       dryCrossings: info.dryCrossings, clippedWays: clipped,
+      terrain: terrainField, terrainOn: terrain,
     });
     map._res = res;
     // what the streamed path (addTile) puts in its own grids too: the parcels (landUseAt) and the mapped hedges (hedgeNear) of the
@@ -152,7 +162,8 @@ export class TileWorld extends GameMap {
       (map.parcelGrid || (map.parcelGrid = new SpatialGrid(64))).insert(e.obj, e.obj.bounds);
     }
     for (const [, e] of res.furniture || []) if (e.obj.k === 'hedge' && e.obj.pts) (map.hedgeGrid || (map.hedgeGrid = new SpatialGrid(64))).insert(e.obj, polygonBounds(e.obj.pts));
-    map.terrain = terrain;
+    map.terrain = terrainField;
+    map.terrainProfiles = terrain;
     map.tileQueue = new FrameQueue();
     map.store = null;
     map.resident = new Set(tiles.map((t) => `${t.i},${t.j}`));
@@ -202,7 +213,7 @@ export class TileWorld extends GameMap {
     // the profiles of streamed bridges and viaducts (build_province.mjs, #235): the roads of the tile join the elevation
     // model with them (surfaceAt, embankments, walls, a deck a boat sails under: #300). ?vlakbruggen leaves them flat.
     if (this.streamProfiles !== false) {
-      attachProfiles(tile, (gid) => { const e = this._res.roads.get(gid); return e && e.obj; });
+      attachProfiles(tile, (gid) => { const e = this._res.roads.get(gid); return e && e.obj; }, this.terrainProfiles);
       if (newRoads.length && tile.sections.some((s) => s.type === SECTION.HEIGHTS)) this.elevAdded = (this.elevAdded || 0) + extendElevation(this, newRoads);
     }
     // a road over water without a bridge tag is a culvert or a dry deck (mapdata.js markDryRoad)
@@ -327,7 +338,7 @@ export class TileWorld extends GameMap {
 
 // The tile world at `base` (index.json, packs, global blob), the pinned city
 // resident. null when there is no index there (a build without tiles).
-export async function loadTileWorld(base = 'world/', { source = new HttpRangeSource(base), onProgress = null, pool = true, extra = [], ...opts } = {}) {
+export async function loadTileWorld(base = 'world/', { source = new HttpRangeSource(base), onProgress = null, pool = true, extra = [], terrain = false, ...opts } = {}) {
   let index;
   try { index = JSON.parse(new TextDecoder().decode(await source.readAll('index.json'))); } catch (e) { return null; }
   // more tile layers next to the city (index-corridor.json: the proefstrook,
@@ -344,7 +355,7 @@ export async function loadTileWorld(base = 'world/', { source = new HttpRangeSou
   let done = 0;
   for (const k of keys) store.pin(k);
   const tiles = await Promise.all(keys.map((k) => store.request(k, { priority: 0 }).then((t) => { if (onProgress) onProgress(++done / keys.length); return t; })));
-  const world = TileWorld.fromTiles(globalBlob, tiles).attachStore(store);
+  const world = TileWorld.fromTiles(globalBlob, tiles, { terrain }).attachStore(store);
   world.tileIndex = index;
   // the overlays of the city's tiles (scripts/world/build_province.mjs): few and small, held for good
   const overlays = Object.keys(index.tiles).filter((k) => index.tiles[k].ov);

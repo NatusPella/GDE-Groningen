@@ -33,7 +33,7 @@ import { LINES, TOWNS, loadPlaces, corridorTiles, tileSources, packOf } from './
 import { bakeCityRoutes, railLines } from './cityroutes.mjs';
 import { collectFarNodes, finishFarProps } from './farprops.mjs';
 import { dropDuplicateBridges } from './bridgededupe.mjs';
-import { cutZ, isFlat } from './province_profile.mjs';
+import { cutZ, cutZt, isFlat } from './province_profile.mjs';
 import { segmentStructures, gradeOrder } from '../../game/js/roadprofile.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
@@ -404,15 +404,18 @@ export function tileBlob(i, j, list, gid, flags, builder, stats = null, extras =
     }
     for (const piece of clipLine(f.row.pts, box)) {
       // a road's height profile (province_profile.mjs) goes into the heights section, cut to the piece
-      const { z: wayZ, ...flatRow } = f.row;
+      const { z: wayZ, zt: wayZt, ...flatRow } = f.row;
       const r = { gid: gid[f.kind]++, ...flatRow, pts: piece };
       rows[f.kind].push(r);
-      if (wayZ && f.kind === 'roads') {
-        const z = cutZ(f.row, piece);
-        if (!isFlat(z)) {
-          const st = segmentStructures({ ...r, z }), o = gradeOrder(r);
-          heights.push({ gid: r.gid, pnet: 0, z, st, ly: st.map(() => o) });
-        }
+      if ((wayZ || wayZt) && f.kind === 'roads') {
+        const z = wayZ ? cutZ(f.row, piece) : null, o = gradeOrder(r);
+        // the terrain profile of the piece (#269): zt and its structures, or zf for a piece flat over the terrain
+        const zt = wayZt && wayZt.length ? cutZt(f.row, piece) : null;
+        const row = { gid: r.gid };
+        if (z && !isFlat(z)) { const st = segmentStructures({ ...r, z }); Object.assign(row, { pnet: 0, z, st, ly: st.map(() => o) }); }
+        if (zt && (!isFlat(zt) || (f.row.bridge && !f.row.tunnel))) { const stt = segmentStructures({ ...r, z: zt }); Object.assign(row, { zt, stt }); if (!row.z) Object.assign(row, { pnet: -1, ly: stt.map(() => o) }); }
+        else if (wayZt && row.z) row.zf = 1;
+        if (row.z || row.zt || row.zf) heights.push(row);
       }
       if (pieces && f.kind === 'roads') (pieces.get(f.row) || pieces.set(f.row, []).get(f.row)).push(r);
     }
@@ -567,7 +570,7 @@ export function buildCorridor({ root = ROOT, cityKeys = new Set(), sources = loa
   return { blobs, global, stats, keys, want, missing, rail };
 }
 
-const DROP = new Set(['bounds']);
+const DROP = new Set(['bounds', 'zt']);
 export function cleanRow(o) {
   const out = {};
   for (const k in o) if (!DROP.has(k) && k[0] !== '_' && o[k] !== undefined) out[k] = o[k];

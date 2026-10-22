@@ -242,7 +242,7 @@ Debug hooks on `window` (`window.__x`, read by scripts/perf, the story test and 
 | `?cut` | Trailer: montagevariant (vol, kort, ...) |
 | `?frames` | Trailer: sla beeld voor beeld op |
 | `?video` | Trailer: neem video op (alleen desktop) |
-| `?terrain` | Hoogtes volgen het AHN-terrein (dijken, wierden; het terrein wordt nog niet getekend) |
+| `?terrain` | Het AHN-reliëf (dijken, wierden, heuvels) rijst uit de grond; wegen, gebouwen en bomen liggen erop (#269; props, gras, water en spoor blijven vlak) |
 | `?vlakbruggen` | Provinciebruggen en viaducten vlak op straatniveau, zonder de hoogteprofielen uit de tegels (om te vergelijken; standaard hebben ze een profiel, #300) |
 | `?nobatch` | Zet het samenvoegen van meshes uit (scene3d) |
 | `?shaderdebug` | Laat three.js shaderfouten controleren |
@@ -588,9 +588,7 @@ python scripts/world/fetch_ahn.py --province --fetch --limit 20  # een steekproe
 Hervatbaar (gedownloade tegels staan in `data/cache/ahn`, mislukte worden 3x herhaald en genoemd),
 resultaat in `data/world/ahn` (ongecommit; `pack_tiles.mjs` zet het in de RASTER-sectie). De provincie
 is in m NAP (één nulpunt voor alle tegels), gaten (water, onder viaducten) worden uit de omgeving gevuld.
-AHN heeft onder viaducten geen data: daar gelden de viaducthoogteregels van #8. Het spel tekent nog geen
-terrein; met `?terrain` volgen `groundHeightAt`/`surfaceAt` het terrein (profielen zijn relatief aan het
-terrein, `profile.mjs --terrain`). Zonder de vlag verandert er niets. Tests: `terrain_test.mjs`, `scripts/world/fetch_ahn_test.py`.
+AHN heeft onder viaducten geen data: daar gelden de viaducthoogteregels van #8. Met `?terrain` volgen `groundHeightAt`/`surfaceAt` het reliëf en tekent het spel het (zie "Stand 22 oktober" hieronder). Zonder de vlag verandert er niets. Tests: `terrain_test.mjs`, `scripts/world/fetch_ahn_test.py`.
 
 Stand 20 oktober (#269, waarom `?terrain` nog niet standaard is). Een weg die geen dek is meet het terrein op zijn eigen hoekpunten, recht
 ertussen (`deckterrain.js roadTerrainAt`, `GameMap.terrainBase`); de 54 stadstegels hebben nu ook een AHN-raster (10 m, m NAP:
@@ -606,6 +604,39 @@ is, blijft `?terrain` een vlag; zonder de vlag verandert er niets.
 Geprobeerd en weggehaald (21 oktober): het terrein onder een dek vervangen door wat naast het dek ligt (de lagere van beide kanten over de richting van het dek). Dat
 maakte het erger (477 mislukte ritten vlak opgelost, 534 terrein-opgelost): de straat onder een viaduct loopt door de hele aanloopdijk, niet alleen onder het dek,
 dus die straat heeft een eigen profiel nodig (zoals een dek: de lijn tussen zijn uiteinden buiten de dijk), in de oplosser en in het spel. Dat is de volgende stap.
+
+Stand 22 oktober (#269, tweede pas, branch `claude/s11-ahn-ff51c9`): `?terrain` rekent, tekent en meet. Wat er nu is:
+- **Reliëf, geen m NAP** (`scripts/world/relief.mjs`). Het spel is vlak gebouwd (gebouwen, bomen, water, props op y = 0), dus de rasters in de tegels zijn het
+  reliëf: de grond boven een zacht lokaal datum (het openen van het terrein over 250 m, daarna 100 m gemiddeld; een dijk of wierde smaller dan 500 m verdwijnt in
+  het datum, een lange helling niet), min 15 cm ruis, nooit onder 0. De stad ligt zo op 0 waar ze vlak is en op 2 tot 5 m in de oude binnenstad
+  (die staat echt op een terp). `terrain.mjs loadReliefRasters` rekent het uit de rasters van de hele provincie (het datum heeft de buren nodig, ~25 s);
+  `pack_tiles.mjs` en `build_province.mjs --terrain` zetten het in de RASTER-sectie, de stage geeft `--terrain` mee zodra `data/world/ahn` er is.
+- **Tweede profiel `zt`** (`terrain_solve.mjs`, `profile.mjs solve({ onTerrain })`). De oplosser rekent in absolute hoogtes met de basis die het spel terugleest
+  (een dek: de lijn tussen het terrein aan zijn uiteinden; een andere weg: het terrein op zijn hoekpunten), met absolute vrije hoogtes, en houdt een straat
+  onder een viaduct op een dijk op zijn eigen niveau en een weg over een tunnel waarvan AHN de bak toont erboven (`terrain_profile.mjs underWindows`: geen data onder
+  het kunstwerk, de omgeving vult het gat). Alleen wat het nodig heeft is actief: de dekken (ook vlakke), wat een kruising beweegt, de autowegen over een knik in het terrein
+  die scherper is dan hun klasse toestaat en de wegen die daaraan vastzitten; de rest volgt het terrein, steil of niet. `zt` staat naast de vlakke `z` in de
+  HEIGHTS-rij (`zt`, `stt`, `zf` = vlak over het terrein; `roadprofile.js heightRows`); de tegelwereld hecht ze alleen met `?terrain` aan (`tileworld.js`). Stad
+  (`stad_wegen.mjs`) en provincie (`province_profile.mjs`, `build_province.mjs`, `build_corridor.mjs`: een stuk weg houdt de hoogtes van de hele weg, `cutZt`) schrijven ze.
+  `GDE_ZT=0` laat de terreinpas weg.
+- **Eén raam voor de hoogtevraag** (`elevation.js groundHeightAt/surfaceAt/ribbonAt/ceilingAt/wanden` met `frame`; `mapdata.js terrainFrame`). Profielen die in het plan
+  over elkaar liggen (een dek over een straat) hebben een andere basis; ze worden nu in absolute meters vergeleken, het antwoord is absoluut. Zonder raam is elke berekening
+  gelijk aan die van voor. Wanden (`GameMap.resolveWalls/wallContact`) lezen hun hoogte over de basis van hun weg. De wanden zelf worden nog in relatieve hoogtes gebouwd.
+- **Tekenen** (`scene3d.js`): `terrainrelief3d.js` legt waar het reliëf boven 4 cm komt een stuk grond (per tegel, het water uitgespaard, de randen lezen de buren)
+  boven de vlakke grond; `terrainlift.js` tilt wegen (hoekpunt voor hoekpunt, met hun basis), gebouwen (de laagste grond onder de voet) en bomen op; `farlod.js` ook.
+  Straatmeubilair, voertuigen en mensen gebruiken al `groundHeightAt`. **Blijft vlak:** water en oevers (het water ligt op zijn vaste peil, de kade is dus
+  een rand), gras en akkers van het platteland, heggen en hekken, spoor en treinen, daken om op te lopen, de verre weergave van groen.
+- **Gemeten** (stad uit de OSM-bouw, `network_drive_test --terrain`-ritten, 3224): vlak opgelost 419 van 2584 ritten en 118 van 418 watersteken mislukt; nu
+  72 van 3224 en 2 van 418. (Het getal ritten is hoger omdat er nu meer wegen een profiel hebben.) Wat nog mislukt: ritten over knopen van meerdere dekken met verschillende basis (N46 bij 3130,-823 en 1971,-1935, Emmaviaduct, N7 bij -54,1827) en over dienstwegen langs een dijk; twee derde is `springt` (een kuif waar een auto net loskomt).
+- **Gekeken** (Electron, headless, `brug_beeld.mjs --plekken --url-flags=terrain`, stage van 22-10 op deze branch): een heuvel van 31 m (1845,-2330) rijst uit de grond met het kronkelpad en de bomen erop,
+  de N7 in zijn bak, de N46-knoop, het Emmaviaduct en de binnenstad (gebouwen staan rechtop op de terp, geen gezonken of zwevende voet). Zonder de vlag is dezelfde plek vlak. **Nog niet bekeken:** een dorp op een wierde
+  van dichtbij, auto's die in beeld over het reliëf rijden (alleen in `network_drive_test` gemeten), de verre weergave van de provincie, de oever langs water naast een dijk.
+- **Audits en tests:** `terrainprofiel_test.mjs` (reliëf, basis van een dek, oplosser over een dijk, rijen, raam, audits, grond, optillen), `terrain_pariteit_test.mjs`
+  (zonder vlag gelijk; `--stad` meet de hele stad), `scripts/world/terrain_hoogte_audit.mjs` (op de gebouwde tegels: sprongen, voegen, hellingen, vaste bruggen over vaarwater),
+  `network_drive_test.mjs --terrain` (`--zflat` voor de vlakke profielen). Beelden: `scripts/qa/brug_beeld.mjs --plekken=<json> --url-flags=terrain`.
+- **Wat ontbreekt voor standaard:** de wanden (barrières, bakwanden) in absolute hoogtes bouwen (nu klopt het raam bij het lezen, niet bij het bouwen: bij een knoop van dekken met
+  verschillende basis kan een vangrail op de verkeerde rand staan, de laatste mislukte ritten); water, kade, gras, hekken, spoor en daken op het reliëf; de AHN-rasters in de
+  hoofdmap (`data/world/ahn`, nu alleen in de werkboom van deze pas).
 
 ## Samen spelen (issue #95)
 

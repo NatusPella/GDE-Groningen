@@ -7,6 +7,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { TerrainField, shiftRaster } from '../../game/js/terrainraster.js';
+import { reliefRasters } from './relief.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 
@@ -24,8 +25,34 @@ export function loadTerrainRasters(root = ROOT) {
   return out;
 }
 
-export function loadTerrainField(root = ROOT) {
+// The rasters as RELIEF (relief.mjs, #269): the ground above its local datum, which is what the tiles carry, what the height solver
+// takes and what the game reads with ?terrain. Computed from the whole province's rasters once per process.
+const reliefCache = new Map();
+export function loadReliefRasters(root = ROOT) {
+  if (!reliefCache.has(root)) {
+    const nap = loadTerrainRasters(root);
+    reliefCache.set(root, nap.size ? reliefRasters(nap).rasters : nap);
+  }
+  return reliefCache.get(root);
+}
+
+// The terrain field of the solvers and the tests: the relief, or with { nap: true } the heights in m NAP
+export function loadTerrainField(root = ROOT, { nap = false } = {}) {
   const field = new TerrainField();
-  for (const [key, r] of loadTerrainRasters(root)) field.add(key, r);
+  for (const [key, r] of nap ? loadTerrainRasters(root) : loadReliefRasters(root)) field.add(key, r);
   return field;
+}
+
+// The roads of a city map as ?terrain reads them (#269, tileworld.js attachProfiles): where a road has a terrain profile
+// (`zt`, terrain_solve.mjs) it is the profile; `zt = []` is flat over the terrain. Roads without one keep their flat z.
+export function useTerrainProfiles(roads) {
+  let swapped = 0;
+  for (const r of roads) {
+    if (r.zt === undefined) continue;
+    r.zFlat = r.z;
+    r.z = r.zt.length ? r.zt : undefined;
+    if (r.z && r.bridge && !r.tunnel) r.zDeck = true; // (a deck is a ribbon over its line even where it is flat, elevation.js)
+    swapped++;
+  }
+  return swapped;
 }

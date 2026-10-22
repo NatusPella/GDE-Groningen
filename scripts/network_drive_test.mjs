@@ -1,5 +1,5 @@
 // The network drive (docs/PROVINCIE-PLAN.md 2.11, punt 8) as a test:
-//   node scripts/network_drive_test.mjs [--terrain]
+//   node scripts/network_drive_test.mjs [--terrain [--zflat]]
 // every main road (secondary and up, and their slip roads) and every road
 // with a height profile driven both ways at its speed with the player's car
 // (ringcheck.js driveAcross, 25 m on into the ways that carry on): no knock,
@@ -20,10 +20,14 @@ const ok = (cond, name, info = '') => { n++; if (!cond) { fails++; console.log(`
 const root = new URL('../game/', import.meta.url);
 const { loadCityData } = await import('./lib/loadworld.mjs');
 const data = await loadCityData();
+// --terrain: the drive over the AHN terrain, as with ?terrain in the game (#78): with the terrain profiles of the roads (zt, #269);
+// --zflat leaves the flat profiles on the terrain (the situation before zt)
+const onTerrain = process.argv.includes('--terrain');
+const TM = onTerrain ? await import('./world/terrain.mjs') : null;
+if (onTerrain && !process.argv.includes('--zflat')) console.log(`(terrain profiles on ${TM.useTerrainProfiles(data.roads)} roads)`);
 const map = new GameMap(data);
-// --terrain: the drive over the AHN terrain, as with ?terrain in the game (#78)
-if (process.argv.includes('--terrain')) {
-  map.terrain = (await import('./world/terrain.mjs')).loadTerrainField();
+if (onTerrain) {
+  map.terrain = TM.loadTerrainField();
   map.terrainOn = true;
   console.log(`(terrain on: ${map.terrain.size || 0} rasters)`);
 }
