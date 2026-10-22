@@ -8,6 +8,8 @@
 //   flush   < 2 mm   fights at any distance
 //   close   2-12 mm  can fight inside the 140 m detail radius (24-bit depth, near 0.5)
 //   near    12 mm-tol only at long range / grazing angles
+// A pair whose materials differ in polygonOffsetUnits, with the more negative one in front, is "layered" (settled at any
+// distance, not counted); with the more negative one behind it is "bleed" (the offset pulls it through at range).
 //   node scripts/zfight_audit.mjs [--all] [--r=450] [--area=x0,y0,x1,y1]
 //        [--tol=0.02] [--top=20] [--json] [--module=generic]
 // --vehicles audits the vehicle meshes instead of the city (#382): every traffic model plus the
@@ -101,11 +103,11 @@ function wanted(b, mod) {
 // flat arrays: 9 coords, normal, plane offset, look id, owner id, flags
 let cap = 1 << 20, N = 0;
 let P = new Float64Array(cap * 9), NRM = new Float32Array(cap * 3), D = new Float64Array(cap);
-let LOOK = new Int32Array(cap), SITE = new Int32Array(cap), OWNER = new Int32Array(cap), DBL = new Uint8Array(cap);
+let LOOK = new Int32Array(cap), SITE = new Int32Array(cap), OWNER = new Int32Array(cap), DBL = new Uint8Array(cap), POFF = new Int8Array(cap);
 function grow() {
   cap *= 2;
   const g = (A, k) => { const B = new A.constructor(cap * k); B.set(A); return B; };
-  P = g(P, 9); NRM = g(NRM, 3); D = g(D, 1); LOOK = g(LOOK, 1); SITE = g(SITE, 1); OWNER = g(OWNER, 1); DBL = g(DBL, 1);
+  P = g(P, 9); NRM = g(NRM, 3); D = g(D, 1); LOOK = g(LOOK, 1); SITE = g(SITE, 1); OWNER = g(OWNER, 1); DBL = g(DBL, 1); POFF = g(POFF, 1);
 }
 const looks = new Map(), lookNames = [];
 function lookId(key, name) {
@@ -135,6 +137,8 @@ function addObject(rootObj, owner) {
       const m = Array.isArray(o.material) ? o.material[gr.materialIndex] : o.material;
       if (!m || m.visible === false || m.colorWrite === false) continue;
       const dbl = m.side === THREE.DoubleSide ? 1 : 0;
+      // polygonOffsetUnits of the material (negative: drawn nearer the camera by that many depth steps, at any distance)
+      const poff = m.polygonOffset ? Math.max(-100, Math.min(100, Math.round(m.polygonOffsetUnits || 0))) : 0;
       const mid = matId(m);
       const end = Math.min(gr.start + gr.count, idx ? idx.count : pos.count);
       for (let k = gr.start; k + 2 < end; k += 3) {
@@ -169,6 +173,7 @@ function addObject(rootObj, owner) {
         OWNER[N] = owner;
         SITE[N] = sites && sites.length * 3 === (idx ? idx.count : pos.count) ? sites[ia / 3 | 0] : meshSite;
         DBL[N] = dbl;
+        POFF[N] = poff;
         N++;
       }
     }
@@ -210,8 +215,16 @@ async function addVehicles() {
     let grp;
     try { grp = buildVehicleMesh(v); } catch (e) { log('build failed', name, e.message); continue; }
     if (flags.borden) {
-      const c = document.createElement('canvas');
-      attachBusBoards(grp, model, new THREE.Texture(c));
+      const tex = new THREE.Texture(document.createElement('canvas'));
+      if (attachBusBoards) attachBusBoards(grp, model, tex);
+      else {
+        // busboard3d.js from before #382 (an older commit, for the "voor" count): the boards inline, 0.02 m off the hull
+        const hl = model.len / 2, hw = model.wid / 2;
+        for (const [x, z, w, ry] of [[hl + 0.02, 0, Math.min(1.9, model.wid * 0.75), Math.PI / 2], [hl - 1.6, hw + 0.02, 1.5, 0], [hl - 1.6, -hw - 0.02, 1.5, Math.PI]]) {
+          const m = new THREE.Mesh(new THREE.PlaneGeometry(w, w * 20 / 128), new THREE.MeshBasicMaterial({ map: tex }));
+          m.position.set(x, 2.5, z); m.rotation.y = ry; grp.add(m);
+        }
+      }
     }
     grp.position.set(col++ * 30, 0, -9000);
     owners.push({ b: null, mod: 'vehicle:' + name, name });
@@ -223,7 +236,7 @@ async function addVehicles() {
   }
 }
 const perModule = {};
-const modStat = (m) => perModule[m] || (perModule[m] = { buildings: 0, tris: 0, pairs: 0, flush: 0, close: 0, near: 0, area: 0 });
+const modStat = (m) => perModule[m] || (perModule[m] = { buildings: 0, tris: 0, pairs: 0, flush: 0, close: 0, near: 0, area: 0, layered: 0, bleed: 0 });
 for (const b of (VEH ? [] : map.buildings)) {
   const mod = moduleOf(b);
   if (!wanted(b, mod)) continue;
@@ -463,6 +476,15 @@ for (const [, list] of grid) {
       const oi = owners[OWNER[i]], oj = owners[OWNER[j]];
       const mod = OWNER[i] === OWNER[j] ? oi.mod : [oi.mod, oj.mod].sort().join('+');
       const s = modStat(mod);
+      // a polygonOffset difference settles the pair at every distance when the material with the larger (more negative)
+      // offset is also the nearer plane: "layered", not counted as a fight. When it is the plane behind, the offset
+      // pulls it through the other one at range: "bleed", counted as a fight and reported apart.
+      const du = POFF[j] - POFF[i];
+      if (du !== 0 && dot > 0) {
+        const mid = (sMin + sMax) / 2, winnerJ = du < 0;
+        if (winnerJ ? mid >= -0.0005 : mid <= 0.0005) { s.layered += ov.a; continue; }
+        s.bleed += ov.a;
+      }
       s.pairs++;
       s[band(sep)] += ov.a;
       s.area += ov.a;
@@ -490,15 +512,15 @@ const r3 = (x) => Math.round(x * 1000) / 1000;
 const mods = Object.entries(perModule).sort((a, b) => b[1].area - a[1].area);
 const RANK = { flush: 0, close: 1, near: 2 };
 const top = [...spots.values()].sort((a, b) => RANK[a.band] - RANK[b.band] || b.area - a.area).slice(0, TOP);
-const total = mods.reduce((t, [, s]) => ({ pairs: t.pairs + s.pairs, flush: t.flush + s.flush, close: t.close + s.close, near: t.near + s.near }), { pairs: 0, flush: 0, close: 0, near: 0 });
+const total = mods.reduce((t, [, s]) => ({ pairs: t.pairs + s.pairs, flush: t.flush + s.flush, close: t.close + s.close, near: t.near + s.near, layered: t.layered + s.layered, bleed: t.bleed + s.bleed }), { pairs: 0, flush: 0, close: 0, near: 0, layered: 0, bleed: 0 });
 const pats = [...patterns.values()].sort((a, b) => RANK[a.band] - RANK[b.band] || b.area - a.area).slice(0, TOP).map((p) => ({ ...p, owners: p.owners.size }));
 if (has('json')) {
   console.log(JSON.stringify({ tol: TOL, total, modules: Object.fromEntries(mods), top, patterns: pats }, null, 1));
 } else {
   console.log(`z-fight audit (tol ${TOL} m, ${has('all') ? 'whole city' : AREA ? 'area ' + AREA.join(',') : 'generic within ' + RADIUS + ' m of the centre, all special models'})`);
-  console.log('module'.padEnd(34), 'bldgs'.padStart(6), 'tris'.padStart(9), 'pairs'.padStart(7), 'flush m2'.padStart(9), 'close m2'.padStart(9), 'near m2'.padStart(9));
-  for (const [m, s] of mods) console.log(m.padEnd(34), String(s.buildings).padStart(6), String(s.tris).padStart(9), String(s.pairs).padStart(7), s.flush.toFixed(2).padStart(9), s.close.toFixed(2).padStart(9), s.near.toFixed(2).padStart(9));
-  console.log('TOTAL'.padEnd(34), ''.padStart(6), String(N).padStart(9), String(total.pairs).padStart(7), total.flush.toFixed(2).padStart(9), total.close.toFixed(2).padStart(9), total.near.toFixed(2).padStart(9));
+  console.log('module'.padEnd(34), 'bldgs'.padStart(6), 'tris'.padStart(9), 'pairs'.padStart(7), 'flush m2'.padStart(9), 'close m2'.padStart(9), 'near m2'.padStart(9), 'layered'.padStart(9), 'bleed m2'.padStart(9));
+  for (const [m, s] of mods) console.log(m.padEnd(34), String(s.buildings).padStart(6), String(s.tris).padStart(9), String(s.pairs).padStart(7), s.flush.toFixed(2).padStart(9), s.close.toFixed(2).padStart(9), s.near.toFixed(2).padStart(9), s.layered.toFixed(2).padStart(9), s.bleed.toFixed(2).padStart(9));
+  console.log('TOTAL'.padEnd(34), ''.padStart(6), String(N).padStart(9), String(total.pairs).padStart(7), total.flush.toFixed(2).padStart(9), total.close.toFixed(2).padStart(9), total.near.toFixed(2).padStart(9), total.layered.toFixed(2).padStart(9), total.bleed.toFixed(2).padStart(9));
   console.log(`\ntop ${pats.length} patterns (source sites, flush first):`);
   for (const t of pats) console.log(`${t.band.padEnd(5)} ${t.area.toFixed(2).padStart(9)}m2 x${t.n} in ${t.owners} bldgs  e.g. @ ${t.at[0]},${t.at[1]} h${t.at[2]}\n      ${t.sites}`);
   console.log(`\ntop ${top.length} spots (flush first), map x,y and height:`);

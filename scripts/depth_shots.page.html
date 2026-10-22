@@ -144,12 +144,43 @@ try {
     const slabA = new THREE.Mesh(new THREE.BoxGeometry(24, 0.28, 12), mk(0x5c6166));
     const slabB = new THREE.Mesh(new THREE.BoxGeometry(24, 0.28, 12), mk(0xdcdcd8));
     slabA.position.set(0, 5.2, 0);
-    // canopies3d.js: "na" schuift elke luifel een paar mm op (CANOPY_STAGGER); "voor" liet ze exact samenvallen
-    const CS = window.__canopyStagger || 0;
+    // canopies3d.js: "na" schuift elke luifel een paar mm op (CANOPY_STAGGER, 1 cm per volgnummer); "voor" liet ze exact samenvallen
+    let CS = 0;
+    try { CS = (await import('/game/js/canopies3d.js')).CANOPY_STAGGER || 0; } catch (e) { console.log('canopies3d niet te laden: ' + e.message); }
+    window.__info.canopyStagger = CS;
     slabB.position.set(6, 5.2 + CS, 3);
     scene.add(slabA, slabB);
     for (const D of [20, 60, 140, 300]) shoot(`platen-${D}m`, [-D * 0.5, 5.2 + D * 0.12, D * 0.87], [3, 5.2, 1.5], 30);
     clear(slabA, slabB);
+  }
+
+  // ---------------------------------------------------------------- frametijd: 20 bussen met borden en 40 auto's, polygonOffset aan en uit
+  if (wanted('frametijd')) {
+    const group = new THREE.Group();
+    scene.add(group);
+    const specs = TRAFFIC_MODELS();
+    const boardMats = [];
+    for (let i = 0; i < 60; i++) {
+      const isBus = i < 20;
+      const m = isBus ? { ...model } : { ...specs.filter((x) => ['hatch', 'sedan', 'van', 'wagon'].includes(x.name))[i % 8] };
+      const v = new Vehicle(0, 0, 0, m);
+      const mm = buildVehicleMesh(v);
+      if (isBus) { if (na) BB.attachBusBoards(mm, m, tex); (mm.userData.busBoards || []).forEach((b) => boardMats.push(b.material)); }
+      mm.position.set((i % 10) * 14 - 63, 0, -Math.floor(i / 10) * 9);
+      group.add(mm);
+    }
+    group.updateMatrixWorld(true);
+    cam.position.set(0, 9, 40); cam.lookAt(0, 1.5, -20); cam.fov = 64; cam.updateProjectionMatrix();
+    const px = new Uint8Array(4);
+    const frames = (n) => { const t0 = performance.now(); for (let i = 0; i < n; i++) { renderer.render(scene, cam); gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px); } return (performance.now() - t0) / n; };
+    frames(60);
+    const res = { aan: [], uit: [] };
+    for (let r = 0; r < 6; r++) for (const stand of ['aan', 'uit']) {
+      for (const bm of boardMats) bm.polygonOffset = stand === 'aan';
+      res[stand].push(+frames(150).toFixed(3));
+    }
+    window.__info.frametijd = { msPerFrame: res, driehoeken: renderer.info.render.triangles, aanroepen: renderer.info.render.calls, borden: boardMats.length };
+    scene.remove(group);
   }
 } catch (e) {
   console.log('FOUT ' + (e && e.stack || e));
