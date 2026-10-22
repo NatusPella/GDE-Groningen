@@ -18,7 +18,7 @@ export const THEMAS = {
 export const THEMA_IDS = Object.keys(THEMAS);
 
 // De bruid: wit, een jurk en een sluiertje.
-export const BRUID = { clothing: '#f6f3ec', look: { top: 'dress', bottom: 'dress', hat: 'sluier', hatColor: 0xffffff, hairStyle: 'long' } };
+export const BRUID = { clothing: '#f6f3ec', look: { top: 'dress', bottom: 'dress', hat: 'sluier', hatColor: 0xffffff, hairStyle: 'long', bag: null } };
 
 // Waar de gasten lopen ten opzichte van de bruid: kant (+1 links, -1 rechts), k keer de gewone afstand en een stuk erachter (m).
 export const PLEKKEN = [
@@ -49,7 +49,7 @@ export const JUICH_LINES = ['Hoera!', 'Joehoe!', 'Op de bruid!', 'Wooo!', 'Hiep 
 export function gastLook(thema, i, rng = Math.random) {
   const t = THEMAS[thema] || THEMAS.hawaii;
   const clothing = t.tops[Math.floor(rng() * t.tops.length)];
-  const look = { top: 'tee', bottom: t.bottom, hat: t.hat, hatColor: t.hatColor, glasses: t.bril };
+  const look = { top: 'tee', bottom: t.bottom, hat: t.hat, hatColor: t.hatColor, glasses: t.bril, bag: null };
   if (t.rok) { const c = t.rok[(i + Math.floor(rng() * t.rok.length)) % t.rok.length]; look.pants = c; look.skirtColor = c; }
   return { clothing, look };
 }

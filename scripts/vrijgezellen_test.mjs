@@ -31,6 +31,7 @@ const seeded = (seed) => () => { seed = (seed * 1664525 + 1013904223) >>> 0; ret
   }
   check('een groepje heeft een bruid en gasten met het thema en eigen plekken', ok);
   check('de bruid met 3 of 4 gasten, alle drie de thema\'s komen voor', [...maten].sort().join() === '4,5' && thema.size === 3, [...maten].join() + ' ' + [...thema].join());
+  check('niemand draagt een rugzak of tas', Array.from({ length: 50 }, () => V.maakGroep(seeded(Math.random() * 1e6 | 0)).leden).flat().every((x) => x.look.bag === null));
   check('een gekozen thema blijft zo', V.maakGroep(seeded(1), 'tutu').thema === 'tutu' && V.maakGroep(seeded(1), 'bestaatniet').thema !== 'bestaatniet');
   const tutu = V.maakGroep(seeded(2), 'tutu').leden[1];
   check('een tutu is een rok in een vrolijke kleur', tutu.look.bottom === 'skirt' && Number.isFinite(tutu.look.pants) && tutu.look.pants === tutu.look.skirtColor);
@@ -91,6 +92,16 @@ const seeded = (seed) => () => { seed = (seed * 1664525 + 1013904223) >>> 0; ret
   check('de gasten staan niet op elkaar of op de bruid', info.groep.every((a, i) => info.groep.every((b, j) => i === j || Math.hypot(a.x - b.x, a.y - b.y) > 0.6)));
   check('de gasten zijn aan de wereld toegevoegd, de bruid doet de aanroeper', world.pedestrians.length === info.groep.length - 1 && !world.pedestrians.includes(lead));
   check('geen tas', info.groep.every((m) => m.hasBag === false));
+}
+
+// langs een muur: aan de kant van het gebouw staat niemand in de muur, de gasten staan aan de vrije kant
+{
+  const muur = { pts: [[0, 10.3], [40, 10.3], [40, 30], [0, 30]], bounds: [0, 10.3, 40, 30] };
+  const kaart = { buildingsNear: () => [muur], isInWater: () => false, roadsNear: () => [], meta: {} };
+  const lead = new Pedestrian(20, 10, 0);
+  const world = { map: kaart, time: 0, pedestrians: [] };
+  const info = SL.zetVrijgezellenNeer(world, lead, 'hawaii');
+  check('langs een muur komen alle gasten toch mee en geen enkele staat in het gebouw', info.groep.length >= 4 && info.groep.every((m) => m.y < 10.3), info.groep.map((m) => m.y.toFixed(1)).join());
 }
 
 // --- de figuren ----------------------------------------------------------------------------------------------------------

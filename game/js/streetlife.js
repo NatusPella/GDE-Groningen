@@ -6,7 +6,7 @@
 // pedestrians created by the cityprops.js slots (kinds seller, beggar, bernard,
 // magnet); this module dresses them, gives them lines and the E prompt.
 // Text only: no recordings, no voice. All names are invented.
-import { dist } from './util.js';
+import { dist, isInWater } from './util.js';
 import { spawnPedestriansNear, Pedestrian } from './pedestrians.js';
 import { isInsideBuilding } from './pedgeom.js';
 import { makeCompanion } from './pedroutes.js';
@@ -289,9 +289,15 @@ export function zetVrijgezellenNeer(world, lead, thema = null) {
   stel(lead, groep.leden[0], 'bruid');
   for (let i = 1; i < groep.leden.length; i++) {
     const lid = groep.leden[i];
-    const x = lead.x - Math.sin(lead.angle) * 0.85 * lid.side * lid.k - Math.cos(lead.angle) * lid.back;
-    const y = lead.y + Math.cos(lead.angle) * 0.85 * lid.side * lid.k - Math.sin(lead.angle) * lid.back;
-    if (isInsideBuilding(world.map, x, y)) continue;
+    // loopt de bruid langs een muur, dan staat de gast aan de andere kant, dichterbij of achter haar
+    const spot = (side, k, back) => ({ x: lead.x - Math.sin(lead.angle) * 0.85 * side * k - Math.cos(lead.angle) * back, y: lead.y + Math.cos(lead.angle) * 0.85 * side * k - Math.sin(lead.angle) * back });
+    let at = null;
+    for (const [s, k, bk] of [[lid.side, lid.k, lid.back], [-lid.side, lid.k, lid.back], [lid.side, 1, lid.back + 0.8], [-lid.side, 1, lid.back + 0.8], [0, 1, lid.back + 1.4]]) {
+      const c = spot(s, k, bk);
+      if (!isInsideBuilding(world.map, c.x, c.y) && !isInWater(world.map, c.x, c.y)) { at = c; break; }
+    }
+    if (!at) continue;
+    const x = at.x, y = at.y;
     const f = new Pedestrian(x, y, lead.angle);
     makeCompanion(f, lead);
     f.pairSide = lid.side;
