@@ -26,6 +26,7 @@ import { trainPrompt } from './traindrive.js';
 import { heliSpotPrompt, heliSpotSecondary } from './helirun.js';
 import { padelPrompt, padelSecondary } from './padel.js';
 import { activityPrompt, activitySecondary } from './activities.js';
+import { hengelVrijPrompt } from './hengelen.js';
 import { postgamePrompt, postgameSecondary } from './postgame.js';
 import { ommelandPrompt, ommelandSecondary } from './ommelandfun.js';
 import { renderAimReticle } from './aimassist.js';
@@ -348,6 +349,9 @@ function findPrimary(world) {
   if (shop) return shop;
   const thuis = homePrompt(world);
   if (thuis) return thuis;
+  // hengelen overal (#412): in een boot die stilligt gaat het prompt voor de andere, anders pas als er niets anders te doen is
+  const visBoot = hengelVrijPrompt(world, true);
+  if (visBoot) return visBoot;
   if (p.inVehicle) return null;
   if (p.swimming) {
     // E boards a boat alongside, Space climbs out: a quay next to a boat
@@ -413,6 +417,9 @@ function findPrimary(world) {
     const ped = pedInReach(world, WEAPONS[weapon].range + 0.4, Math.PI / 3);
     if (ped) return { id: 'punch-' + (ped.id ?? ''), x: ped.x, y: ped.y, h: 1.75, key: 'LMB', label: 'Slaan', sub: ped.isCop ? 'Een agent? Durf je dat?' : learning('punch') ? 'Klik om uit te delen' : '', learn: learning('punch'), danger: true };
   }
+  // aan de kant bij water en niets anders te doen: hengelen (#412)
+  const vis = hengelVrijPrompt(world, false);
+  if (vis) return vis;
   return null;
 }
 

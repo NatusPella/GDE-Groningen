@@ -73,12 +73,15 @@ export const VAKKEN = [
   { id: 'golf', groep: 'spel', naam: 'Golf', icoon: 'vlag', eenheid: 'rondes', uniek: 'banen',
     wat: 'Discgolf en pitch and putt.',
     titels: ['Eerste worp', 'Rondespeler', 'Mandenjager', 'Baankenner', 'Kampioen van het Stadspark', 'Meester van de mand'] },
+  { id: 'hengelen', groep: 'spel', naam: 'Hengelen', icoon: 'vis', eenheid: 'vangsten', uniek: 'plekken',
+    wat: 'Hengelen op elk water van de provincie: hoe meer soorten en plekken, hoe meer het oplevert.',
+    titels: ['Dobbertjeskijker', 'Aasgooier', 'Visjager', 'Hengelaar van stand', 'Meester van het water', 'Visbaas van het Noorden'] },
   { id: 'race', groep: 'spel', naam: 'Racen', icoon: 'race', eenheid: 'races', uniek: 'banen',
     wat: 'Karten, driften, de regatta en de bruggenrace.',
     titels: ['Beginnend racer', 'Rondjesrijder', 'Podiumjager', 'Raceheld', 'Kampioen van Ulrum', 'Racelegende'] },
   { id: 'buiten', groep: 'spel', naam: 'Buiten', icoon: 'boom', eenheid: 'activiteiten', uniek: 'activiteiten',
-    wat: 'Hengelen, skaten, skiën, klimmen, zwemmen en wandelen.',
-    titels: ['Wandelaar', 'Hengelaar', 'Skater', 'Klimmer', 'Buitensporter', 'Buitenmens van het Noorden'] },
+    wat: 'Skaten, skiën, klimmen, zwemmen en wandelen.',
+    titels: ['Wandelaar', 'Skater', 'Zwemmer', 'Klimmer', 'Buitensporter', 'Buitenmens van het Noorden'] },
 ];
 export const VAK_IDS = VAKKEN.map((v) => v.id);
 const BY_ID = new Map(VAKKEN.map((v) => [v.id, v]));
@@ -111,7 +114,7 @@ export const vakVanUitdaging = (id) => UITDAGING_VAK[id] || 'buiten';
 export const STAT_VAK = {
   discgolfRounds: { vak: 'golf', xp: 40, n: 1, premie: 20 },
   pitchputtRounds: { vak: 'golf', xp: 28, n: 1, premie: 15 },
-  hengelSessions: { vak: 'buiten', xp: 24, n: 1, premie: 10 },
+  hengelSessions: { vak: 'hengelen', xp: 24, n: 1, premie: 10 },
   skateRuns: { vak: 'buiten', xp: 10, n: 1, premie: 10 },
   skiRuns: { vak: 'buiten', xp: 10, n: 1, premie: 10 },
   klimTops: { vak: 'buiten', xp: 15, n: 1, premie: 15 },
@@ -157,7 +160,7 @@ export function normaliseer(raw) {
 // (gde-prestaties-v1) al telden, hooguit tot niveau 3. stats: de levensduur-tellers; sets: de lijsten met plekken.
 const ZAAD_PER_STAT = {
   trainTrips: ['trein', 20], padelMatches: ['padel', 6], kartRaces: ['race', 5], regatta: ['race', 5], driftRuns: ['race', 3],
-  discgolfRounds: ['golf', 6], pitchputtRounds: ['golf', 5], hengelSessions: ['buiten', 4], skateRuns: ['buiten', 3], skiRuns: ['buiten', 3],
+  discgolfRounds: ['golf', 6], pitchputtRounds: ['golf', 5], hengelSessions: ['hengelen', 4], skateRuns: ['buiten', 3], skiRuns: ['buiten', 3],
   klimTops: ['buiten', 5], heliRuns: ['lucht', 7], pannenkoekShifts: ['horeca', 7], botsautoRides: ['kermis', 4], reuzenradRides: ['kermis', 3], carbidGames: ['kermis', 4],
 };
 export const ZAAD_MAX_XP = XP_DREMPELS[2];
@@ -243,7 +246,7 @@ export function tellerTekst(profiel, vak) {
   const info = BY_ID.get(vak);
   if (!v || !info) return '';
   const n = info.eenheid === 'km' ? Math.round(v.n) : Math.floor(v.n);
-  const eenh = n === 1 ? ({ ritten: 'rit', potjes: 'potje', rondes: 'ronde', races: 'race', diensten: 'dienst', optredens: 'optreden', vluchten: 'vlucht', klussen: 'klus', activiteiten: 'activiteit' }[info.eenheid] || info.eenheid) : info.eenheid;
+  const eenh = n === 1 ? ({ ritten: 'rit', potjes: 'potje', rondes: 'ronde', races: 'race', diensten: 'dienst', optredens: 'optreden', vluchten: 'vlucht', klussen: 'klus', activiteiten: 'activiteit', vangsten: 'vangst' }[info.eenheid] || info.eenheid) : info.eenheid;
   return `${n.toLocaleString('nl-NL')} ${eenh}`;
 }
 

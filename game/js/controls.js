@@ -20,6 +20,7 @@ export const KEY_ACTIONS = [
   ['e', 'Instappen (ook vanuit het water in een boot), praten, gebruiken; duif: pikken', 'actie'],
   ['f', 'Instappen (tweede toets); duif: poepen', 'actie'],
   ['k', 'Kusje', 'actie'],
+  ['i', 'Hengelen: aan de waterkant of in een boot die stilligt', 'actie'],
   ['y', 'Samen spelen: het stuur aan je bijrijder geven of terugnemen; als bijrijder om het stuur vragen of het teruggeven', 'actie'],
   ['7', 'Samen spelen: roepen "Kom hier" (een baken voor iedereen)', 'actie'],
   ['8', 'Samen spelen: roepen "Help!"', 'actie'],

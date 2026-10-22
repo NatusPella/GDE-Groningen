@@ -48,7 +48,7 @@ export const HINTS = [
   { id: 'm-zwembad', kind: 'minigame', match: 'zwembad', title: 'Zwembad', body: 'Baantjes zwemmen in het zwembad. De uitleg staat tijdens het zwemmen in beeld.' },
   { id: 'm-klimtoren', kind: 'minigame', match: 'klimtoren', title: 'Klimtoren', body: 'Twaalf meter klimmen, tegen de klok. Een val kost tijd, dus klim rustig en gelijkmatig.' },
   { id: 'm-waterski', kind: 'minigame', match: 'waterski', title: 'Waterskiën', body: 'Achter de boot, over sprongen en langs boeien. De uitleg staat tijdens het skiën in beeld.' },
-  { id: 'm-hengelen', kind: 'minigame', match: 'hengelen', title: 'Hengelen', body: 'Je hebt negentig seconden: de zwaarste vangst telt. De uitleg staat tijdens het hengelen in beeld.' },
+  { id: 'm-hengelen', kind: 'minigame', match: 'hengelen', title: 'Hengelen', body: 'Bij de steiger in Meerstad heb je negentig seconden: de zwaarste vangst telt. Overal aan het water kun je vrij hengelen met {I}; alles wat je vangt komt in je visboek.' },
   { id: 'm-carbid', kind: 'minigame', match: 'carbid', title: 'Carbid schieten', body: 'Melkbus, deksel en een flinke knal. Blijf zelf op afstand.' },
   { id: 'm-kermis', kind: 'minigame', match: 'kermis', title: 'Kermis', body: 'Botsautootjes: botsen mag. Stuur en trap het gas in.' },
   { id: 'm-wandeling', kind: 'minigame', match: 'wandeling', title: 'Wandeling', body: 'Vijf stempelposten langs het Pieterpad, tegen de klok.' },
