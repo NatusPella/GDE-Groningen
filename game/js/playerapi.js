@@ -115,6 +115,8 @@ export function initPlayerApi(world, input) {
         stage: stage ? stage.kind : '', marker: m.marker ? { x: r1(m.marker.x), y: r1(m.marker.y) } : null, distance: Number.isFinite(m.distanceToMarker) ? r1(m.distanceToMarker) : null,
         timeLeft: m.timeLeft ?? null, armed: !!m.armed, triggerRadius: m.triggerRadius ?? null, onFoot: false,
         stunt: m.stunt ? { score: m.stunt.score, target: m.stunt.target, combo: m.stunt.combo, hits: m.stunt.hits } : null,
+        // the stunt of the mission (M01: its score only runs once the square is reached): where and how many points
+        stuntSpec: defs[m.index] && defs[m.index].stunt ? { x: defs[m.index].stunt.center.x, y: defs[m.index].stunt.center.y, radius: defs[m.index].stunt.radius, target: defs[m.index].stunt.target } : null,
       },
       goal: getGoal() ? { kind: getGoal().kind, name: getGoal().name, x: r1(getGoal().x), y: r1(getGoal().y) } : null,
       target: target(),
