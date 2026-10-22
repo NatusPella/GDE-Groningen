@@ -47,6 +47,8 @@ import { getWaterIndex, waterIndexAt } from './waterindex.js';
 import { setTreeMeshBuilder } from './treeprops.js';
 import { propsNearInto } from './breakables.js';
 import { buildTerrainMesh3D, terrainArrays, terrainGroup, createTerrainMaterial, applyWetGround, WET_UNIFORMS } from './terrain3d.js';
+import { ReliefPatches } from './terrainrelief3d.js';
+import { liftRoadGroup, buildingLift } from './terrainlift.js';
 import { runGeo, geoWorkerActive } from './geojobs.js';
 import { applyCutMask, initCutMask, setCutMaskCenter } from './cutmask3d.js';
 import { updatePortals } from './portalcut3d.js';
@@ -155,6 +157,8 @@ const SHADOW_LEVELS = {
 
 let renderer = null, scene = null, cam = null, canvas3 = null;
 let terrainMesh = null;
+// ?terrain (#269): the map (what stands flat is lifted by the relief under it) and the patches of ground that rise above the flat ground
+let liftMap = null, reliefPatches = null;
 let terrainPending = null;
 // resolves once the terrain is in the scene (built in the geometry worker)
 export function terrainReady() {
@@ -892,6 +896,7 @@ function pinShaderPrograms(r) {
 }
 
 export function init3D(map) {
+  liftMap = map;
   preloadLandmarkModels();
   setBuildingMap(map);
   canvas3 = document.getElementById('game3d');
@@ -1830,6 +1835,7 @@ const BUILDING_PREFETCH_MS = 1.5;
 const prefetchedBuildings = new Map();
 function makeBuildingMesh(b) {
   const mesh = enableShadows(buildBuildingMesh(b), true, 2.5);
+  if (liftMap && liftMap.terrainOn) mesh.position.y += buildingLift(liftMap, b);
   if (isSkyline(b)) useSkylineMaterials(mesh);
   freezeStatic(mesh);
   return mesh;
@@ -1969,7 +1975,8 @@ function syncRoads(world, px, py) {
       // at once)
       if (built > 0 && (!r._geoRoad || (r.z && r._geoStruct === undefined)) && performance.now() > deadline) { roadDetailR = Math.max(24, d); break; }
       coldRoads.delete(r);
-      const mesh = freezeStatic(buildRoadGroup(r));
+      const group = buildRoadGroup(r);
+      const mesh = freezeStatic(world.map.terrainOn ? liftRoadGroup(group, world.map, r) : group);
       if (!mesh.name) mesh.name = 'road';
       scene.add(mesh);
       roadMeshes.set(r, mesh);
@@ -2010,7 +2017,7 @@ function syncTrees(world, px, py) {
     m.setColorAt(m.count++, color);
   };
   for (const t of trees) {
-    _treeGroup.position.set(t[0], 0, t[1]);
+    _treeGroup.position.set(t[0], world.map.terrainOn ? world.map.terrainAt(t[0], t[1]) : 0, t[1]);
     _treeGroup.updateMatrix();
     const d = layoutTree(t, trunk, canopy, lobe);
     treeColor(t, _leaf);
@@ -2371,6 +2378,10 @@ export function update3D(dt, world) {
   updateShore(waterNight, cam);
   if (!NO_BATCH) shoreBatcher.update({ scene, meshes: shoreItems, hidden: null, px: focus.x, py: focus.y, detailR: Math.max(DRAW_DIST, viewDist), drawDist: Math.max(DRAW_DIST, viewDist), withDetail: true, compile: batchCompile, ready: batchReady, budgetMs: 2 });
   probe.mark('3d:water');
+  if (world.map.terrainOn) {
+    if (!reliefPatches) reliefPatches = new ReliefPatches(scene);
+    reliefPatches.sync(world);
+  }
   syncRoads(world, focus.x, focus.y);
   // movable bridges (movablebridges3d.js): the static road of a span that is
   // not lying closed is hidden and left out of the road batches

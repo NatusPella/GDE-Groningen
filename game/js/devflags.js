@@ -91,7 +91,7 @@ export const FLAG_DOCS = Object.freeze({
   frames: 'Trailer: sla beeld voor beeld op',
   video: 'Trailer: neem video op (alleen desktop)',
   vlakbruggen: 'Provinciebruggen en viaducten vlak op straatniveau, zonder de hoogteprofielen uit de tegels (om te vergelijken)',
-  terrain: 'Hoogtes volgen het AHN-terrein (dijken, wierden; het terrein wordt nog niet getekend)',
+  terrain: 'Het AHN-reliëf (dijken, wierden, heuvels) rijst uit de grond; wegen, gebouwen en bomen liggen erop (#269; props, gras, water en de verre weergave blijven vlak)',
   nobatch: 'Zet het samenvoegen van meshes uit (scene3d)',
   shaderdebug: 'Laat three.js shaderfouten controleren',
   noworker: 'Geometrie op de hoofdthread in plaats van in de worker',
