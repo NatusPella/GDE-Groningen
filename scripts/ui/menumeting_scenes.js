@@ -74,7 +74,7 @@ for (const [tab] of TABS) {
 }
 // criteria (DESIGN_SYSTEM.md, Menurust): een keuzescherm toont hooguit 125 woorden in het venster, een naslagscherm
 // (lijsten en uitleg) hooguit 270; toetsplaatjes (toetsen en knoppen) tellen niet mee voor de lettergrootte
-const REF = new Set(['todo/verhaal', 'todo/alles', 'verhaal/personages', 'controls/toetsen', 'controls/knoppen', 'controls/overzicht', 'controls/hulp']);
+const REF = new Set(['loopbaan', 'todo/verhaal', 'todo/alles', 'verhaal/personages', 'controls/toetsen', 'controls/knoppen', 'controls/overzicht', 'controls/hulp']);
 let fails = 0;
 for (const r of rows) {
   const id = r.tab + (r.sub ? '/' + r.sub : '');
