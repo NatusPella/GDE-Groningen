@@ -41,6 +41,15 @@ export function windOp(dag, uur) {
 }
 function lerpAngle(a, b, t) { return a + wrap(b - a) * t; }
 
+// De wind van het weer (world.weather.windAngle, waarheen de regen waait): het skûtsje-sprint (pg_skutsje.js) zeilt
+// daarop en kent geen windsterkte. `dir` is hier, net als in windOp, waar de wind vandaan komt; de sterkte is een vaste
+// middenwaarde, alleen voor de windaanwijzer op de minikaart (windmini.js).
+export const WEER_WIND_SNELHEID = (WIND.min + WIND.max) / 2;
+export function weerWindVan(weather) {
+  const a = weather && Number.isFinite(weather.windAngle) ? weather.windAngle : 0.4;
+  return wrap(a + Math.PI);
+}
+
 // Relatieve windhoek van de boot: 0 = wind recht van voren, ±π = recht van achteren.
 export const windHoek = (heading, wind) => wrap(wind.dir - heading);
 
@@ -106,13 +115,16 @@ export function standTekst(z, wind) {
 }
 
 // --- roeien ---------------------------------------------------------------------------------------
-// Ritme: elke slag tussen 0.9 en 1.6 s na de vorige geeft voortstuwing; te snel of te laat niet.
+// Ritme: elke slag tussen 0.9 en 1.6 s na de vorige geeft voortstuwing; te laat een zwakke slag, te snel geen
+// kracht en de riemen haperen (zie roeiStap): wie op de toets hamert, vaart trager dan wie het ritme houdt (#28, in beeld gemeten:
+// hameren gaf een hogere topsnelheid dan het ritme).
 export function roeiSlag(st, nu) {
   const gap = st.laatste == null ? 1.2 : nu - st.laatste;
   const goed = gap >= 0.9 && gap <= 1.6;
+  const teSnel = gap < 0.9;
   st.laatste = nu;
   st.reeks = goed ? (st.reeks || 0) + 1 : 0;
-  const kracht = goed ? 1 + Math.min(st.reeks, 6) * 0.08 : 0.4;
+  const kracht = goed ? 1 + Math.min(st.reeks, 6) * 0.08 : teSnel ? 0 : 0.4;
   return { goed, kracht };
 }
 export function stepRoei(boot, kracht, dt, soort = BOOT_SOORTEN.roeiboot) {

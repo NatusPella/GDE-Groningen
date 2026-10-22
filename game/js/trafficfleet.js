@@ -8,6 +8,7 @@
 import { MODS } from './cheatmods.js';
 import { lookModel } from './streekverkeer.js';
 import { pickStreetBike, shabbyHasLight, distToCentre, SHARE_TINT } from './streetlifedata.js';
+import { studentStaat } from './studentenfiets.js';
 
 const CAR = {
   hatch: { name: 'hatch', len: 3.8, wid: 1.7, maxSpeed: 30, accel: 8.5, brake: 23, turnRate: 3.0 },
@@ -170,7 +171,9 @@ export function pickBikeVariant(map, x, y, rng = Math.random, ctx = {}) {
     return { name: 'bike', senior: true, old: true, len: 1.75, wid: 0.5, maxSpeed: 5.2, accel: 1.6, brake: 5, turnRate: 3.6, color: '#c9ccd0', rider: '#8a8f94' };
   }
   if (rng() < def.oldBike) {
-    return { name: 'bike', old: true, noLight: !shabbyHasLight(prof.key, rng), len: 1.75, wid: 0.5, maxSpeed: 5.4, accel: 2.8, brake: 5, turnRate: 4.4, color: OLD_BIKE_COLORS[Math.floor(rng() * OLD_BIKE_COLORS.length)], rider };
+    // de studentenstaat (#402): welke kleine afwijkingen deze oude fiets heeft; zonder voorlicht is hij ook 's nachts onverlicht
+    const student = studentStaat(prof.key, rng);
+    return { name: 'bike', old: true, student, noLight: student.licht || !shabbyHasLight(prof.key, rng), len: 1.75, wid: 0.5, maxSpeed: 5.4, accel: 2.8, brake: 5, turnRate: 4.4, color: OLD_BIKE_COLORS[Math.floor(rng() * OLD_BIKE_COLORS.length)], rider };
   }
   return null;
 }

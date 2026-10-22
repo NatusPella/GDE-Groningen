@@ -66,7 +66,8 @@ export function updateDrunk(dt, world) {
       st.warned = true;
       world.addMessage('Met drank op achter het stuur? De pliesie kijkt mee.', 3);
     }
-    if (Math.abs(v.speed) > 6 && world.time > st.reportAt) {
+    // world.drunkExempt: a mission that has its own police (the ride to Tjalke, sidejob_tjalke.js) lets the police come at its own moment, not from the first corner
+    if (Math.abs(v.speed) > 6 && world.time > st.reportAt && !world.drunkExempt) {
       st.reportAt = world.time + 6;
       reportCrime(world, 'drunkDriving');
     }
