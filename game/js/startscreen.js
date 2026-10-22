@@ -446,14 +446,6 @@ export function runStartScreen(world, { render, relocate, tick, ready }) {
     const move = relocate || ((x, y) => { p.x = x; p.y = y; });
     // the backdrop (#380): hand-picked viewpoints over the whole province plus the city's own spots; each start shows another
     // series (menuplekken.js), never the first of the last start, and remembers what it showed
-    // the tiles of the player's home stay pinned while the menu looks elsewhere: Nieuw spel finds them in memory
-    let homeKeys = [];
-    try {
-      if (map.store && map.store.keysAround && map.store.pin) {
-        homeKeys = [...map.store.keysAround(home.x, home.y, 400)];
-        for (const k of homeKeys) map.store.pin(k);
-      }
-    } catch (e) { homeKeys = []; }
     const pool = menuPool(map);
     const storage = menuStorage();
     let verleden = leesVerleden(storage);
@@ -543,7 +535,6 @@ export function runStartScreen(world, { render, relocate, tick, ready }) {
       screen.classList.remove('visible');
       fade.remove();
       if (map.releaseShots) map.releaseShots();
-      try { for (const k of homeKeys) map.store.unpin(k); } catch (e) { /* the pins go with the page */ }
       resolve(mode);
     };
     const startNew = () => {
