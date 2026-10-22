@@ -43,12 +43,12 @@ De reeks stond in het F4a-script onder voorbehoud ("alleen als de eigenaar ja ze
 - **De aftiteling en de postgame blijven van akte 5.** `getEnding` telt de missies van een vervolgdeel niet mee en kijkt naar de finalekaart, niet naar de huidige stap. `postgame.js` opent op diezelfde kaart. Wie in Deel 4 zit, krijgt de aftiteling toch op het moment dat de rest klaar is.
 - **Einde van Deel 4:** de eindkaart `Einde van Deel 4` (Rikus, Tessa, Tammo), zonder "Wordt vervolgd".
 - **Kalender:** `NAZOMER_STEP_DAYS` (14, 15, 17, 19, 19 september); `partStartDay` leest nu ook een andere maand dan augustus.
-- **Missies:** `missions_akte6.js` (stages: hold, scene, goto, board; geen timer, geen schade), `missionstory_akte6.js` (NPC's en foutregels), nieuwe NPC's Willemien en Buurvrouw, `speakers.js` (kleuren), `reisbeats.js` (M27 en T5, act 6).
-- **Tests:** `scripts/akte6_test.mjs` (nieuw), `storydata_test`, `storyflow_nieuw_test`, `akte5_test`, `reisbeats_test`; de Electron-verhaaltest loopt na het Ontzet door Deel 4 (zie het changelog en het issue).
+- **Missies:** `missions_akte6.js` (stages: hold, scene, goto, board; geen timer, geen schade), `missionstory_akte6.js` (NPC's en foutregels), `cutscenes_akte6.js` (regie), nieuwe NPC's Willemien en Buurvrouw, `speakers.js` (kleuren), `reisbeats.js` (M27 en T5, act 6).
+- **Tests:** `scripts/akte6_test.mjs` en `scripts/cutscenes_akte6_test.mjs` (nieuw), `cutpreview_test`, `storydata_test`, `storyflow_nieuw_test`, `akte5_test`, `reisbeats_test`; de Electron-verhaaltest loopt na het Ontzet door Deel 4 (zie het changelog en het issue).
 
 ## Wat niet is gedaan
 
-- Geen cutscene-regie met `cutscript` (de scènes spelen als stage-scènes met de cast om de speler heen, zoals M09/M11); geen camerastanden per scène.
+- De regie met `cutscript` (`game/js/cutscenes_akte6.js`: de intro's en outro's van M27-M30 en de scènes M27.2, M29.2, M30.2, M30.3 en M30.5) is alleen met `cutscenes_akte6_test` gecontroleerd (compileert, camera dichtbij, niemand springt, de sprekers komen in beeld). De camerastanden zijn automatisch gedekt; er zijn geen handgemaakte shots. **Niet in beeld bekeken.**
 - Geen mechanica voor het beleg zelf (geen bevelwiel, geen gracht-boten, geen duiven-minispel): de gracht, de brug en de bolwerken zijn plekken om naartoe te lopen, vlaggen te planten en een scène te zien.
 - De plaatsen zijn wereldmeters uit het OSM-uittreksel van de provincie (`data/cache/province`): in Loppersum op de Hofstraat en de Pruimenhof (de tekst noemt geen straat), in Bourtange op de paden rond de vesting (de bolwerken staan waar de wachthuisjes staan; de bruggen zijn die van de Batterijenstraat en de Bisschopsweg). Elk punt is tegen het uittreksel gecontroleerd op: niet in een gebouw, niet in water, op of aan een straat of pad. **Nog niet gelopen en niet in beeld bekeken** op de geladen tegels.
 - Niet gebouwd uit het oude Deel 4: de zeven voorrondes, Ubbo, de Ommelander Ronde, de andere regio's (Hogeland-, Wad-, Westerkwartier-missies), de zijreeksen Randstedelingen, Wubbo en de Wolvenman. Wat daarvan bruikbaar is voor een volgend deel, staat nog in de F4-scripts.

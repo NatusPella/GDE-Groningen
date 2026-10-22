@@ -21,7 +21,7 @@ export const BOURTANGE = {
   gracht: [42481, 22662],    // the northern bridge over the moat (Batterijenstraat)
   brug: [42505, 22712],      // the bridge at the Friesche Poort, where Wubbo's winch is
   bolwerk1: [42583, 22731],  // east bastion (a guardhouse stands at 42595, 22723)
-  bolwerk2: [42426, 22938],  // south bastion
+  bolwerk2: [42434, 22941],  // south bastion (42426, 22938 lies in the moat)
   bolwerk3: [42335, 22808],  // west bastion (guardhouse at 42323, 22806)
   poort: [42498, 22892],     // the Munsterse Poort, where Berend rides in
   plein: [42470, 22800],     // the Marktplein, where the Fjord Frituur stands
