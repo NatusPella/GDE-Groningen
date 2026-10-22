@@ -19,7 +19,9 @@ export const GEBIEDEN_CSS = `
 .gb-li.klaar .gb-vlag svg { fill: currentColor; }
 .gb-li .gb-tel { margin-left: auto; padding-left: 12px; white-space: nowrap; font-size: 15px; opacity: 0.8; }
 .gb-li .m-bar { flex: none; width: 76px; margin-left: 12px; }
-.gb-pane .gb-titel { margin: 0 0 2px; font-size: 24px; }
+.gb-pane { min-width: 0; overflow-x: hidden; }
+.gb-pane .m-h2 { font-size: 32px; overflow-wrap: anywhere; line-height: 1.05; }
+.gb-pane .gb-titel { margin: 0 0 2px; font-size: 22px; overflow-wrap: anywhere; }
 .gb-pane .gb-regel { margin: 4px 0 10px; }
 .gb-soort { list-style: none; margin: 4px 0 8px; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 3px 16px; }
 .gb-soort li { display: flex; gap: 6px; align-items: center; opacity: 0.55; }
@@ -66,7 +68,7 @@ function detail(o, id) {
   const b = G.beloningVan(o.ind, id);
   const kop = v.voltooid
     ? `<p class="gb-titel g"><b>${esc(b.titel)}</b></p><p class="gb-regel mut">Veroverd, zonder een vinger uit te steken tegen iemand. ${esc(b.regel)}</p>`
-    : `<p class="gb-titel"><b>${esc(g.naam)}</b> <span class="mut">· ${esc(niv.enkel)}</span></p><p class="gb-regel mut">Doe alles wat er te doen is en ${esc(niv.enkel === 'wijk' ? 'de buurt' : niv.enkel === 'plaats' ? 'het dorp' : 'de streek')} is van jou. Titel: ${esc(b.titel)}, met €${b.geld} erbij en een vlag op de kaart.</p>`;
+    : `<p class="gb-regel mut">Doe alles wat er te doen is en ${esc(niv.enkel === 'wijk' ? 'de buurt' : niv.enkel === 'plaats' ? 'het dorp' : 'de streek')} is van jou. Titel: ${esc(b.titel)}, met €${b.geld} erbij en een vlag op de kaart.</p>`;
   const blokken = G.SOORTEN.map((s) => {
     const ids = g.taken.filter((t) => o.ind.taak.get(t).soort === s.id);
     if (!ids.length) return '';

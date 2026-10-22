@@ -315,7 +315,8 @@ t('opSleutel: de taak bij de speler is gedaan, de voortgang komt als kaartje, ee
   const w = nepWereld(5, 5);
   assert.deepEqual(Live.opSleutel(w, 'm:a'), []);
   assert.equal(w.berichten.length, 1);
-  assert.match(w.berichten[0].t, /Oosterpark: 1 van 3 gedaan/);
+  assert.equal(w.berichten[0].t, '1 van 3 gedaan');
+  assert.equal(w.berichten[0].o.kicker, 'Veroveren: Oosterpark');
   Live.opSleutel(w, 'm:a');
   assert.equal(w.berichten.length, 1, 'niets nieuws, dus geen kaartje');
   assert.deepEqual(Live.getProfiel().gedaan, ['m:a']);

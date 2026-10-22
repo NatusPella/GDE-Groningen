@@ -170,7 +170,7 @@ function duikOnder(w, h, uren) {
       refreshDayNight(w);
       w.wanted = 0;
       w.wantedDecayTimer = 0;
-      w.addMessage(`${uren} uur onderduiken bij ${h.naam}. De politie zoekt je hier niet en is je kwijt`, 5, { kind: 'tip' });
+      w.addMessage(`${uren} uur onderduiken: de politie is je kwijt`, 5, { kind: 'tip' });
     } catch (e) { console.error('safehuis', e); }
     setTimeout(() => { respawnFade(0, 420); bezig = false; }, 120);
   }, 900);
@@ -184,7 +184,7 @@ function menu(w, h) {
   const inr = G.inrichting(v.deel, v.voltooid);
   const stappen = {
     title: 'De inrichting', note: `Groeit mee met wat je in ${ind.gebied.get(h.gebied).naam} doet: ${v.klaar} van ${v.totaal}`,
-    items: inr.stappen.map((s, i) => ({ id: 'inr-' + i, label: s.naam, desc: s.klaar ? 'Staat er' : 'Komt als je verder komt in dit gebied', verb: 'Bekijken', price: 0, plain: true, disabled: !s.klaar, preview: { kind: 'product', product: 'bed' }, buy: () => 'Gezellig' })),
+    items: inr.stappen.map((s, i) => ({ id: 'inr-' + i, label: s.naam, desc: s.klaar ? 'Staat er' : 'Komt als je verder komt in dit gebied', verb: 'Bekijken', price: 0, disabled: s.klaar ? 'Staat er' : 'Komt nog', preview: { kind: 'product', product: 'bed' }, buy: () => 'Gezellig' })),
   };
   const tag = `${h.adres} · ${h.makelaar}`;
   if (!heeftHuisLive(h.id)) {
@@ -212,13 +212,13 @@ function menu(w, h) {
       { title: 'Slapen en opslaan', note: 'Slapen slaat het spel op en geeft volle gezondheid', items: WAKKER.map(([id, label, desc, uur, msg]) => ({
         id: 'wake-' + id, label, desc, verb: 'Slapen', price: 0, keepFocus: true, preview: { kind: 'product', product: 'bed' }, buy() { slaap(w, h, uur, msg); return 'Welterusten'; } })) },
       { title: 'Onderduiken', note: 'De politie zoekt je hier niet. Hoe beter ingericht, hoe korter het duurt', items: [{
-        id: 'onderduik', label: `Onderduiken (${G.ONDERDUIK_UREN[inr.niveau]} uur)`, desc: w.wanted > 0 ? 'Gezocht niveau naar nul, de klok loopt door' : 'Alleen als de politie je zoekt', verb: 'Onderduiken', price: 0, plain: true, disabled: !(w.wanted > 0),
+        id: 'onderduik', label: `Onderduiken (${G.ONDERDUIK_UREN[inr.niveau]} uur)`, desc: w.wanted > 0 ? 'Gezocht niveau naar nul, de klok loopt door' : 'Alleen als de politie je zoekt', verb: 'Onderduiken', price: 0, plain: true, disabled: w.wanted > 0 ? '' : 'Niet gezocht',
         preview: { kind: 'product', product: 'bed' }, buy() { duikOnder(w, h, G.ONDERDUIK_UREN[inr.niveau]); return 'Even stil zitten'; } }] },
       { title: 'Kledingkast', note: 'Alles wat je ooit kocht, in de kast bij de deur', items: [{
         id: 'kast', label: 'Kleren aantrekken', desc: 'Zelfde kast als thuis', verb: 'Openen', price: 0, plain: true, preview: { kind: 'product', product: 'bed' },
         buy() { setTimeout(() => openShopMenu(w, wardrobeMenu(w)), 0); return 'Kast open'; } }] },
       { title: 'Garage', note: 'Je voertuigen komen hier voor de deur te staan', items: laatBrengen(w, h) },
-      { title: 'Snelreisanker', note: 'Vanuit Loopbaan › Veroverd kom je hier meteen terecht', items: [{ id: 'anker', label: 'Snelreisanker', desc: 'Pauzemenu › Loopbaan › Veroverd › Reis erheen', verb: 'Bekijken', price: 0, plain: true, preview: { kind: 'product', product: 'bed' }, buy: () => 'Jouw huisje staat op de kaart' }] },
+      { title: 'Snelreisanker', note: 'Vanuit Loopbaan › Veroverd kom je hier meteen terecht', items: [{ id: 'anker', label: 'Snelreisanker', desc: 'Pauzemenu › Loopbaan › Veroverd › Reis erheen', verb: 'Bekijken', price: 0, disabled: 'Via Loopbaan', preview: { kind: 'product', product: 'bed' }, buy: () => 'Jouw huisje staat op de kaart' }] },
       stappen,
     ].filter((s) => s.items.length),
   };
