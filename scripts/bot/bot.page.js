@@ -648,6 +648,8 @@ while (true) {
         if (d < bd && L.segmentFree({ x: s.player.x, y: s.player.y }, q, carFree, 1.5)) { bd = d; best = q; }
       }
       mem.stuntHasProp = !!best;
+      // no props: the drift spot on the open south side of the square (see below)
+      if (!best && s.target.distance < 80) { aim = { x: 170, y: 78, distance: L.distance({ x: s.player.x, y: s.player.y }, { x: 185, y: 92 }) }; top = 13; }
       if (best) {
         // circling a prop that does not fall (the car orbits it, or a bollard stands in the way): after 6 s within 10 m it is left alone for 90 s and the next one is tried (M01, #312)
         if (bd < 10) {
@@ -666,26 +668,6 @@ while (true) {
         } else if (mem.runUpUntil && s.t > mem.runUpUntil + 4) mem.runUpUntil = null;
       }
     }
-    // The evening's props are not on the square (startStunt places them only on spots without a building cell in buildingsNear, which says yes nearly
-    // everywhere: measured 0 of ~30, #312), so the points come from drifting: Space with a full lock above 9 m/s gives slip, +30 per half second times the
-    // combo (x5 after five in a row within 4 s: about 150 per half second). A run-up to 11.5 m/s, then a slide of at most 5 s, the other way each time, on the
-    // open south side of the square, away from the pond.
-    if (act.stunt && s.player.vehicle && s.target.distance < 80 && !mem.stuntHasProp) {
-      const veh = s.player.vehicle, sp = Math.abs(veh.speed || 0), anchor = { x: 170, y: 78 }, me1 = { x: s.player.x, y: s.player.y }, dz = L.distance(me1, anchor);
-      const D = mem.drift || (mem.drift = { phase: 'aanloop', t: s.t, dir: 1, n: 0 });
-      if (D.phase === 'glij' && (s.t - D.t > 5 || sp < 6 || dz > 30)) { D.phase = 'aanloop'; D.t = s.t; B.up(' '); }
-      if (D.phase === 'aanloop' && sp >= 11.5 && dz < 22) { D.phase = 'glij'; D.t = s.t; D.dir = -D.dir; D.n++; B.log('drift', { n: D.n, x: Math.round(me1.x), y: Math.round(me1.y), v: Math.round(sp * 10) / 10, score: s.mission.stunt ? s.mission.stunt.score : null }); }
-      // stuck against a bench or a bike rack in the run-up: the usual ways out of a wedge
-      if (D.phase === 'aanloop' && sp < 1) { if (D.still == null) D.still = s.t; else if (s.t - D.still > 3) { D.still = null; B.log('drift-klem', { x: Math.round(me1.x), y: Math.round(me1.y) }); await vdetour(s, 1 + (D.n + (mem.driftDetours = (mem.driftDetours || 0) + 1)) % 4); continue; } } else D.still = null;
-      if (D.phase === 'glij') { B.down(' '); B.stick(D.dir, -1); mem.drifting = true; }
-      else {
-        if (B.input.isDown(' ')) B.up(' ');
-        const c = L.carControls({ x: me1.x, y: me1.y, angle: veh.angle, speed: veh.speed }, anchor, { top: 13, avoid: waterAhead({ x: me1.x, y: me1.y, angle: veh.angle, speed: veh.speed }) });
-        B.stick(c.steer, c.throttle ? -c.throttle : 0);
-      }
-      continue;
-    }
-    if (mem.drifting) { mem.drifting = false; if (B.input.isDown(' ')) B.up(' '); mem.drift = null; }
     // the straight line to a prop or the square runs through water (the pond north of the Grote Markt lies right on the line from the start): a way round
     // it over dry land (A* on a grid of 1.6 m, pulled tight), followed point by point; without one the road plan takes over
     if (act.stunt && s.player.vehicle && s.target.distance < 250) {
@@ -704,6 +686,26 @@ while (true) {
     // on foot, wedged against a stall pole or a prop: sidestep (alternating sides, longer each time), then plan again
     if (act.mode !== 'drive' && !s.player.vehicle && !s.blocking.cinematic && s.target.distance > 5 && s.mission.stage !== 'hold' && await footUnstick(s, s.target)) continue;
     if (act.mode !== 'drive' && !s.player.vehicle && mem.detour && s.t < mem.detour.until && Math.hypot(mem.detour.x - s.player.x, mem.detour.y - s.player.y) > 3) { steerTowards(s, 'walk', mem.detour, false, 24, 2.5); continue; }
+    // The evening's props are not on the square (startStunt places them only on spots without a building cell in buildingsNear, which says yes nearly
+    // everywhere: measured 0 of ~30, #312), so the points come from drifting: Space with a full lock above 9 m/s gives slip, +30 per half second times the
+    // combo (x5 after five in a row within 4 s: about 150 per half second). A run-up to 11.5 m/s, then a slide of at most 5 s, the other way each time, on the
+    // open south side of the square, away from the pond.
+    if (act.stunt && s.player.vehicle && s.target.distance < 80 && !mem.stuntHasProp) {
+      const veh = s.player.vehicle, sp = Math.abs(veh.speed || 0), anchor = { x: 185, y: 92 }, me1 = { x: s.player.x, y: s.player.y }, dz = L.distance(me1, anchor);
+      const D = mem.drift || (mem.drift = { phase: 'aanloop', t: s.t, dir: 1, n: 0 });
+      if (D.phase === 'glij' && (s.t - D.t > 5 || sp < 6 || dz > 30)) { D.phase = 'aanloop'; D.t = s.t; B.up(' '); }
+      if (D.phase === 'aanloop' && sp >= 11.5 && dz < 12) { D.phase = 'glij'; D.t = s.t; D.dir = -D.dir; D.n++; B.log('drift', { n: D.n, x: Math.round(me1.x), y: Math.round(me1.y), v: Math.round(sp * 10) / 10, score: s.mission.stunt ? s.mission.stunt.score : null }); }
+      // stuck against a bench or a bike rack in the run-up: the usual ways out of a wedge
+      if (D.phase === 'aanloop' && sp < 1) { if (D.still == null) D.still = s.t; else if (s.t - D.still > 3) { D.still = null; B.log('drift-klem', { x: Math.round(me1.x), y: Math.round(me1.y) }); await vdetour(s, 1 + (D.n + (mem.driftDetours = (mem.driftDetours || 0) + 1)) % 4); continue; } } else D.still = null;
+      if (D.phase === 'glij') { B.down(' '); B.stick(D.dir, -1); mem.drifting = true; }
+      else {
+        if (B.input.isDown(' ')) B.up(' ');
+        const c = L.carControls({ x: me1.x, y: me1.y, angle: veh.angle, speed: veh.speed }, aim, { top: 13, avoid: waterAhead({ x: me1.x, y: me1.y, angle: veh.angle, speed: veh.speed }) });
+        B.stick(c.steer, c.throttle ? -c.throttle : 0);
+      }
+      continue;
+    }
+    if (mem.drifting) { mem.drifting = false; if (B.input.isDown(' ')) B.up(' '); mem.drift = null; }
     // inside the arena the road plan leads out of the square (and into the pond): only props, the middle and the way round the water; nothing free: stand still
     const arena = !!(act.stunt && s.player.vehicle && s.target.distance < 80);
     if (arena && !L.segmentFree({ x: s.player.x, y: s.player.y }, aim, carFree, 1.5)) {
