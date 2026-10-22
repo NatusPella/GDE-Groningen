@@ -50,5 +50,5 @@ De reeks stond in het F4a-script onder voorbehoud ("alleen als de eigenaar ja ze
 
 - Geen cutscene-regie met `cutscript` (de scènes spelen als stage-scènes met de cast om de speler heen, zoals M09/M11); geen camerastanden per scène.
 - Geen mechanica voor het beleg zelf (geen bevelwiel, geen gracht-boten, geen duiven-minispel): de gracht, de brug en de bolwerken zijn plekken om naartoe te lopen, vlaggen te planten en een scène te zien.
-- De plaatsen (Loppersum als lengte- en breedtegraad, Bourtange als meters vanaf de kerk) zijn schattingen; **nog niet bekeken** in beeld.
+- De plaatsen zijn wereldmeters uit het OSM-uittreksel van de provincie (`data/cache/province`): in Loppersum op de Hofstraat en de Pruimenhof (de tekst noemt geen straat), in Bourtange op de paden rond de vesting (de bolwerken staan waar de wachthuisjes staan; de bruggen zijn die van de Batterijenstraat en de Bisschopsweg). Elk punt is tegen het uittreksel gecontroleerd op: niet in een gebouw, niet in water, op of aan een straat of pad. **Nog niet gelopen en niet in beeld bekeken** op de geladen tegels.
 - Niet gebouwd uit het oude Deel 4: de zeven voorrondes, Ubbo, de Ommelander Ronde, de andere regio's (Hogeland-, Wad-, Westerkwartier-missies), de zijreeksen Randstedelingen, Wubbo en de Wolvenman. Wat daarvan bruikbaar is voor een volgend deel, staat nog in de F4-scripts.

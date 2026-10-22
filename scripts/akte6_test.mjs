@@ -10,7 +10,7 @@ import './node3d.mjs';
 import fs from 'node:fs';
 
 const { STEPS, NEW_MISSION_IDS, CLUES, PARTS, WHY, CHARACTERS, SPEAKERS } = await import('../game/js/storyarc_nieuw.js');
-const { buildAkte6Defs, PLACES, BOURTANGE } = await import('../game/js/missions_akte6.js');
+const { buildAkte6Defs, LOPPERSUM: LP, BOURTANGE, CHURCH: CH } = await import('../game/js/missions_akte6.js');
 const { buildNieuwDefs } = await import('../game/js/missions_nieuw.js');
 const { nextStoryStep, stepAvailable, MISSION_IDS, missionIndexOf, FINALE_PART } = await import('../game/js/storyarc.js');
 const { wgsToWorld } = await import('../game/js/rdnew.js');
@@ -113,17 +113,19 @@ ok(mine[3].stages.filter((q) => q.kind === 'hold').length === 3 && mine[3].stage
 // --- places: near the real town, inside the province
 const inside = (poly, x, y) => { let c = false; for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) { const [xi, yi] = poly[i], [xj, yj] = poly[j]; if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) c = !c; } return c; };
 const LOPPERSUM = wgsToWorld(53.3306, 6.7494);
-for (const [key, [la, lo]] of Object.entries(PLACES)) {
-  const [x, y] = wgsToWorld(la, lo);
+for (const [key, [x, y]] of Object.entries(LP)) {
   ok(Math.hypot(x - LOPPERSUM[0], y - LOPPERSUM[1]) < 1200, `${key}: within 1.2 km of the centre of Loppersum`, `${Math.round(Math.hypot(x - LOPPERSUM[0], y - LOPPERSUM[1]))} m`);
   ok(inside(FALLBACK.outline, x, y), `${key}: inside the province`);
 }
+ok(Math.hypot(LP.huis[0] - LP.bus[0], LP.huis[1] - LP.bus[1]) > 25 && Math.hypot(LP.huis[0] - LP.erf[0], LP.huis[1] - LP.erf[1]) > 25 && Math.hypot(LP.bus[0] - LP.erf[0], LP.bus[1] - LP.erf[1]) > 25, 'M27, M28 and M29 start more than 25 m apart (no two markers on one spot)');
 const CHURCH = [42416.8, 22773.3];
+ok(CH[0] === CHURCH[0] && CH[1] === CHURCH[1], 'the church of the vesting is the one of landmarkkit');
 for (const [key, [x, y]] of Object.entries(BOURTANGE)) {
   ok(Math.hypot(x - CHURCH[0], y - CHURCH[1]) < 600, `${key}: within 600 m of the church of Bourtange`, `${Math.round(Math.hypot(x - CHURCH[0], y - CHURCH[1]))} m`);
   ok(inside(FALLBACK.outline, x, y), `${key}: inside the province`);
 }
-ok(Math.hypot(BOURTANGE.bolwerk1[0] - CHURCH[0], BOURTANGE.bolwerk1[1] - CHURCH[1]) < 200 && BOURTANGE.hooiberg[1] < BOURTANGE.gracht[1] && BOURTANGE.gracht[1] < BOURTANGE.bolwerk3[1], 'Bourtange: the haystack lies north of the moat, the moat north of the south-east bastion');
+ok(['bolwerk1', 'bolwerk2', 'bolwerk3'].every((k) => Math.hypot(BOURTANGE[k][0] - CHURCH[0], BOURTANGE[k][1] - CHURCH[1]) < 220) && BOURTANGE.hooiberg[1] < BOURTANGE.gracht[1] && BOURTANGE.gracht[1] < BOURTANGE.bolwerk2[1], 'Bourtange: the bastions lie within 220 m of the church, the haystack north of the moat, the moat north of the south bastion');
+ok(new Set(['bolwerk1', 'bolwerk2', 'bolwerk3']).size === 3 && ['bolwerk1', 'bolwerk2', 'bolwerk3'].every((a, i, l) => l.every((b, j) => i === j || Math.hypot(BOURTANGE[a][0] - BOURTANGE[b][0], BOURTANGE[a][1] - BOURTANGE[b][1]) > 100)), 'Bourtange: the three bastions lie more than 100 m apart');
 // the church of the script is the landmark of landmarkkit
 {
   const lk = fs.readFileSync(new URL('js/landmarkkit.js', root), 'utf8');
