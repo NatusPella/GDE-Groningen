@@ -157,13 +157,15 @@ function steerTowards(s, mode, tgt, stopAt, top = 24, stopR = null, direct0 = fa
     const stg = M.activeStage();
     const rest = stg && (stg.kind === 'garage' ? 3.5 : stg.stop ? Math.max(3, stg.stop + 2) : 0);
     const mdefE = (M.getMissionDefs() || [])[s.mission.index];
+    // (stopAt measures the distance to the next point of the route, not to the goal: far from it the car crept along at half that distance, 5 m/s over the
+    // 1.8 km from the menu spot to the start of M01, 360 s; it only comes to rest within 70 m of the goal)
     // in a chase the lane is full of cyclists and walkers (M26, the Hoogstraatje): steer round them instead of through (#354)
     const avoid = mode === 'drive' && s.mission.active && (s.mission.stage === 'chase' || L.isStunt(s)) ? trafficAhead(me, tgt) : null;
     const car = { x: me.x, y: me.y, angle: s.player.vehicle.angle, speed: s.player.vehicle.speed };
     const curve = avoid && follower ? L.curveCap(follower.pts, follower.i, car) : null;
-    const water = mode === 'drive' && !s.player.vehicle.boat ? waterAhead(car) : [];
+    const water = mode === 'drive' && !s.player.vehicle.boat && !CFG.zonderWater ? waterAhead(car) : [];
     const obstacles = water.length ? [...(avoid || []), ...water] : avoid;
-    const c = L.carControls(car, aim, { stopAt: stopAt || !!rest, rest, top: mode === 'boat' ? Math.min(top, 9) : top, gentle: !!(s.mission.active && mdefE && mdefE.eggs), avoid: obstacles, curveCap: curve });
+    const c = L.carControls(car, aim, { stopAt: (stopAt && direct < 70) || !!rest, rest, top: mode === 'boat' ? Math.min(top, 9) : top, gentle: !!(s.mission.active && mdefE && mdefE.eggs), avoid: obstacles, curveCap: curve });
     B.stick(c.steer, c.throttle ? -c.throttle : 0);
     // a chase is logged every 3 s: where, how fast, how far from the fleeing car, what stands in the lane (#354)
     if (avoid && s.mission.stage === 'chase') {
@@ -369,7 +371,11 @@ function meterEnd(s, id, outcome) {
   meter = null;
 }
 
+let lastWanted = 0;
 function track(s) {
+  // a rise of the wanted level: where, how fast and what stood near (why the police come)
+  if ((s.wanted || 0) > lastWanted) B.log('gezocht', { van: lastWanted, naar: s.wanted, x: Math.round(s.player.x), y: Math.round(s.player.y), v: s.player.vehicle ? Math.round(s.player.vehicle.speed * 10) / 10 : 0, kind: s.player.vehicle ? s.player.vehicle.kind : 'voet', peds: s.nearby.peds, politie: s.nearby.police, msgs: s.hud.messages.slice(0, 3) });
+  lastWanted = s.wanted || 0;
   const id = s.story.end ? 'einde' : s.story.id;
   if (id === lastStep) meterTick(s);   // a new step starts its own meter below: its first goal belongs after its 'begin'
   if (id !== lastStep) {
@@ -442,6 +448,16 @@ while (true) {
     continue;
   }
   if (s.t - (mem.trailT ?? -9) >= 1.5) { mem.trailT = s.t; (mem.trail = mem.trail || []).push([Math.round(s.t), Math.round(s.player.x), Math.round(s.player.y), s.player.vehicle ? Math.round(s.player.vehicle.speed * 10) / 10 : 0, s.player.vehicle ? s.player.vehicle.angle : null, s.player.vehicle ? s.player.vehicle.kind : 'voet', s.player.vehicle ? s.player.vehicle.health : null]); if (mem.trail.length > 24) mem.trail.shift(); }
+  // a new game starts on a random landmark (the menu spot: seeded, but every run draws another), 0.5 to 2.5 km from the start of M01: a commute of 2 to 15
+  // minutes that says nothing about act 1 and decided whether the 30 minutes of the test run were enough. Once, at the start, the bot is taken to the goal (logged as setup)
+  if (!mem.startTp && s.story.id === 'M01' && !s.mission.active && s.t < 60 && s.target && s.target.distance > 600 && !CFG.zonderStartplek) {
+    mem.startTp = true;
+    const okTp = B.cheat.teleport();
+    B.log('setup', { what: 'startplek', van: [Math.round(s.player.x), Math.round(s.player.y)], afstand: Math.round(s.target.distance), ok: !!okTp });
+    follower = null;
+    await sleep(1500);
+    continue;
+  }
   track(s);
   const stepKey = (s.story.id || '?') + (s.mission.active ? ':' + (s.mission.stage || 'm') : '');
   // each stage of a mission gets its own few tries at boarding and at a prompt
@@ -525,10 +541,13 @@ while (true) {
     s.target = { x: guide.x, y: guide.y, z: null, name: guide.name || '', source: 'winkel', distance: Math.round(Math.hypot(guide.x - s.player.x, guide.y - s.player.y) * 10) / 10 };
   }
   // three failed tries at the same mission: the bot cannot do this one (the eggs, a chase): a cheat to move on, logged as such, instead of hours of retries
-  if (s.mission.active && (fails[s.story.id] || 0) >= 3 && !(mem.failCheat || (mem.failCheat = {}))[s.story.id]) {
+  // M01: the evening's props are not placed on the square (a game bug, #312): the points come from drifting and the three attempts of 240 s took a quarter of
+  // the hour the test run has for the whole of act 1; after one failed attempt it is a cheat, logged as such
+  const failsMax = { M01: 1 }[s.story.id] || 3;
+  if (s.mission.active && (fails[s.story.id] || 0) >= failsMax && !(mem.failCheat || (mem.failCheat = {}))[s.story.id]) {
     mem.failCheat[s.story.id] = true;
     const okw = B.cheat.win();
-    B.log('cheat', { rung: 'win', ok: !!okw, step: stepKey, why: 'driemaal mislukt', mission: { phase: s.mission.phase }, blocking: [] });
+    B.log('cheat', { rung: 'win', ok: !!okw, step: stepKey, why: failsMax === 3 ? 'driemaal mislukt' : `${failsMax}x mislukt (bekende beperking van de bot of het spel)`, mission: { phase: s.mission.phase }, blocking: [] });
     detector.acknowledge(s.t);
     continue;
   }
