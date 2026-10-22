@@ -129,28 +129,48 @@ if (want('bus3')) {
   const near = lines.length && wins ? lines.map((l) => ({ l, d: Math.min(...l.pts.map((q) => Math.hypot(q[0] - wins.x, q[1] - wins.y))) })).sort((x, y) => x.d - y.d)[0] : null;
   info.push('buslijnen ' + lines.length + ' lijn ' + (near ? near.l.ref + ' ' + near.l.from + '-' + near.l.to + ' lengte ' + Math.round(near.l.length) + ' haltes ' + near.l.stops.length : 'geen'));
   const mid = near ? near.l.pts[Math.floor(near.l.pts.length / 2)] : [wins.x, wins.y];
-  teleport(mid[0], mid[1]);
-  const keepB = setInterval(() => { p.x = mid[0]; p.y = mid[1]; p.vx = p.vy = 0; }, 50);
+  const pogingen = near ? [0.5, 0.35, 0.65, 0.2, 0.8].map((f) => near.l.pts[Math.floor(near.l.pts.length * f)]) : [mid];
+  let at = pogingen[0];
+  teleport(at[0], at[1]);
+  const keepB = setInterval(() => { p.x = at[0]; p.y = at[1]; p.vx = p.vy = 0; }, 50);
   await sleep(1500); for (let i = 0; i < 40 && document.querySelector('.ls.on:not(.out)'); i++) await sleep(500); await sleep(3000);
   let bus = null;
-  for (let t2 = 0; t2 < 60 && !bus; t2++) {
+  for (let t2 = 0; t2 < 40 && !bus; t2++) {
     await sleep(1000);
+    if (t2 % 30 === 29 && pogingen[(t2 + 1) / 30]) { at = pogingen[(t2 + 1) / 30]; teleport(at[0], at[1]); await sleep(4000); }
     const buses = w.vehicles.filter((v) => v.isBus);
     bus = buses.find((v) => v.busRun && Math.hypot(v.x - p.x, v.y - p.y) < 250) || null;
     if (t2 % 10 === 9) info.push('t=' + (t2 + 1) + 's stats ' + JSON.stringify(VM.busSpawnStats) + ' bussen ' + buses.length + ' met lijn ' + buses.filter((v) => v.busRun).length + ' dichtbij ' + buses.filter((v) => Math.hypot(v.x - p.x, v.y - p.y) < 250).length + ' lijnen<220m ' + BR.linesNear(lines, p.x, p.y, 220).length);
+  }
+  if (!bus && near) {
+    // de lijnspawner is kans (wrongWay/blocked): dan zetten we zelf een bus met een lijn op de weg
+    const p0 = BR.startAt(near.l, near.l.length * 0.5, 1);
+    const rp0 = map.nearestRoadPoint(p0.x, p0.y, 40, true);
+    info.push('eigen bus op ' + Math.round(p0.x) + ',' + Math.round(p0.y) + ' weg ' + !!rp0);
+    if (rp0) {
+      bus = VM.spawnVehicleOnRoad(map, rp0.road, false, Math.random, false, true, rp0);
+      bus.x = rp0.x; bus.y = rp0.y; bus.angle = p0.angle; bus.speed = 0;
+      bus.busRun = BR.makeRunner(near.l, near.l.length * 0.5, 1);
+      w.vehicles.push(bus);
+      await sleep(2000);
+    }
   }
   clearInterval(keepB);
   info.push('bus op lijn: ' + (bus ? Math.round(bus.x) + ',' + Math.round(bus.y) + ' lijn ' + bus.busRun.line.ref + ' richting ' + bus.busRun.dir : 'geen'));
   if (bus) {
     const gh = (x, y) => (map.groundHeightAt ? map.groundHeightAt(x, y, 0) || 0 : 0);
-    const keep = setInterval(() => { if (bus) bus.speed = 0; }, 50);
-    for (const [name, rel, R, up] of [['voor', 0, 12, 2.4], ['voor-dicht', 0, 9, 2.6], ['voor-schuin', 0.6, 10, 2.4], ['zij', Math.PI / 2, 7, 2.2]]) {
-      const a = bus.angle + rel, g = gh(bus.x, bus.y);
-      const pose = { position: { x: bus.x + Math.cos(a) * R, y: bus.y + Math.sin(a) * R, z: g + up }, lookAt: { x: bus.x + Math.cos(bus.angle) * (rel === 0 || rel === 0.6 ? 5.4 : 1.5), y: bus.y + Math.sin(bus.angle) * (rel === 0 || rel === 0.6 ? 5.4 : 1.5), z: g + 2.4 }, cut: true };
+    // de speler 25 m achter de bus: voertuigen ver van de speler hebben geen mesh, de bus zou onzichtbaar zijn
+    const behind = { x: bus.x - Math.cos(bus.angle) * 25, y: bus.y - Math.sin(bus.angle) * 25 };
+    teleport(behind.x, behind.y);
+    const keep = setInterval(() => { if (bus) { bus.speed = 0; p.x = behind.x; p.y = behind.y; p.vx = p.vy = 0; } }, 50);
+    await sleep(4000);
+    for (const [name, rel, R, up] of [['warm', 0, 12, 2.4], ['voor', 0, 12, 2.4], ['voor-dicht', 0, 9, 2.6], ['voor-schuin', 0.6, 10, 2.4], ['zij', Math.PI / 2, 7, 2.2], ['zij-bord', Math.PI / 2, 4.5, 2.2]]) {
+      const a = bus.angle + rel, g = gh(bus.x, bus.y), fw = name === 'zij-bord' ? 3 : rel === 0 || rel === 0.6 ? 5.4 : 1.5;
+      const pose = { position: { x: bus.x + Math.cos(a) * R, y: bus.y + Math.sin(a) * R, z: g + up }, lookAt: { x: bus.x + Math.cos(bus.angle) * fw, y: bus.y + Math.sin(bus.angle) * fw, z: g + 2.4 }, cut: true };
       if (cine.isCinematicActive()) cine.skipCinematic();
       cine.playCinematic({ id: 'vi-bus', duration: 60, priority: 9, shot: () => pose });
       await sleep(2000);
-      console.log('[capture] bus-' + name);
+      if (name !== 'warm') console.log('[capture] bus-' + name);
       await sleep(500);
       cine.skipCinematic();
       done.push('bus-' + name);
@@ -415,7 +435,7 @@ if (want('kaartlagen')) {
   const holdK = { x: home.x, y: home.y, on: true };
   const keepK = setInterval(() => { if (holdK.on) { p.x = holdK.x; p.y = holdK.y; p.vx = p.vy = 0; } w.clock = 14; }, 50);
   const layerInfo = (name) => { const l = ML.getMissionLayer(w); info.push(name + ' laag ' + (l ? JSON.stringify({ kind: l.kind, items: (l.items || []).length, lines: (l.lines || []).length, areas: (l.areas || []).length, zoom: l.focus || null, notices: l.notice || null }) : 'geen')); };
-  const both = async (name, zoom = 5) => {
+  const both = async (name, zoom = 5, ruim = 0, focus = null) => {
     await sleep(1500);
     console.log('[capture] kl-' + name + '-mini');
     await sleep(600);
@@ -425,6 +445,20 @@ if (want('kaartlagen')) {
     await sleep(2000);
     console.log('[capture] kl-' + name + '-kaart');
     await sleep(600);
+    if (ruim) {
+      // uitgezoomd: de hele lijn met haltes (bij een lange lijn ligt de volgende halte buiten het eerste venster)
+      MV.setMapView(holdK.x, holdK.y, ruim);
+      await sleep(2000);
+      console.log('[capture] kl-' + name + '-kaart-ruim');
+      await sleep(600);
+    }
+    if (focus) {
+      // de kaart op het eerstvolgende punt van de laag (bv. de volgende halte)
+      MV.setMapView(focus.x, focus.y, 4);
+      await sleep(2500);
+      console.log('[capture] kl-' + name + '-kaart-doel');
+      await sleep(600);
+    }
     PM.closePauseMenu();
     await sleep(500);
     done.push('kl-' + name);
@@ -433,17 +467,34 @@ if (want('kaartlagen')) {
   teleport(holdK.x, holdK.y);
   await waitLoad();
 
-  // 1 de bus-bijbaan (Stadsbus lijn 3): haltes en route op de kaart
+  // 1 de buslijn-bijbaan (Streekbus Hunzedal, job 'lijn'): haltes en route op de kaart
   try {
-    const okB = SJ && SJ.start('bus');
-    info.push('bus-bijbaan start ' + okB + ' ' + JSON.stringify((SJ && SJ.ctx && SJ.ctx() && { job: SJ.ctx().job.id, vehicle: !!SJ.ctx().vehicle }) || null));
+    // de bijbaan begint bij zijn eigen plek (SJ.spots(): de eerste halte van de eerste lijn), daar staat de bus klaar
+    const spL = SJ && SJ.spots().find((q) => q.job && q.job.id === 'lijn');
+    info.push('lijn-plek ' + JSON.stringify(spL && { x: Math.round(spL.x), y: Math.round(spL.y) }));
+    if (spL) {
+      holdK.x = spL.x; holdK.y = spL.y;
+      teleport(spL.x, spL.y);
+      await waitLoad();
+    }
+    // het spawnen van de bus kan mislukken zolang de wegen daar nog niet geladen zijn: een paar keer proberen, zonder politie
+    let okB = false;
+    for (let k = 0; k < 4 && okB !== true; k++) {
+      w.wanted = 0; w.wantedDecayTimer = 0;
+      okB = SJ && SJ.start('lijn');
+      if (okB !== true) { info.push('lijn-start poging ' + (k + 1) + ' mislukt: ' + JSON.stringify((w.messages || []).slice(-1).map((q) => q.text))); holdK.on = true; await sleep(6000); }
+    }
+    info.push('bus-bijbaan start ' + okB + ' berichten ' + JSON.stringify((w.messages || []).slice(-2).map((q) => q.text)) + ' ' + JSON.stringify((SJ && SJ.ctx && SJ.ctx() && { job: SJ.ctx().job.id, vehicle: !!SJ.ctx().vehicle }) || null));
     // de intro van de baas (een filmpje) wegdrukken, dan pas de kaart
     for (let k = 0; k < 14; k++) { await sleep(500); if (cine.isCinematicActive()) cine.skipCinematic(); }
     await sleep(2500);
     const v = SJ && SJ.ctx && SJ.ctx() && SJ.ctx().vehicle;
+    info.push('bus-voertuig ' + (v ? Math.round(v.x) + ',' + Math.round(v.y) + ' speler ' + Math.round(p.x) + ',' + Math.round(p.y) : 'geen') + ' sideJob ' + JSON.stringify({ active: w.sideJob && w.sideJob.active, id: w.sideJob && w.sideJob.id, bus: !!(w.sideJob && w.sideJob.bus), marker: w.sideJob && w.sideJob.marker }));
     if (v) { holdK.on = false; p.x = v.x; p.y = v.y; p.enterVehicle(v, w); await sleep(2500); holdK.x = v.x; holdK.y = v.y; }
+    for (let k = 0; k < 20 && !(w.sideJob && w.sideJob.bus); k++) await sleep(500);
+    info.push('na instappen: in voertuig ' + !!p.inVehicle + ' bus-laagdata ' + !!(w.sideJob && w.sideJob.bus) + ' marker ' + JSON.stringify(w.sideJob && w.sideJob.marker) + ' voortgang ' + (w.sideJob && w.sideJob.progress));
     layerInfo('bus');
-    await both('bus', 4);
+    await both('bus', 4, 1.2, w.sideJob && w.sideJob.marker ? { x: w.sideJob.marker.x, y: w.sideJob.marker.y } : null);
     if (SJ) SJ.quit();
     await sleep(1500);
     if (p.inVehicle) p.exitVehicle(map, w);
@@ -456,8 +507,10 @@ if (want('kaartlagen')) {
     info.push('treinen stil ' + trains.length + ' van ' + RW.getTrains().length);
     const t0 = trains.sort((a, b) => Math.hypot(a.cars[0].x - 100, a.cars[0].y - 77) - Math.hypot(b.cars[0].x - 100, b.cars[0].y - 77))[0];
     if (t0) {
+      const MC = await imp('machinist');
       for (const end of [-1, 1]) {
-        if (w.trainDriving) break;
+        // het andere stuurstand als er bij deze kant geen halte meer vooruit is (de dienst start dan niet)
+        if (w.trainDriving) { TD.quitTrainDrive(w); await sleep(1200); }
         const [bx, by] = RW.routePoint(t0.route, t0.c + end * (t0.halfLen - 3));
         teleport(bx, by);
         holdK.x = bx; holdK.y = by;
@@ -470,12 +523,23 @@ if (want('kaartlagen')) {
         info.push('trein einde ' + end + ' @' + Math.round(bx) + ',' + Math.round(by) + ' prompt ' + JSON.stringify(prompt && prompt.label));
         keyEv('keydown', 'e', 'KeyE'); await sleep(120); keyEv('keyup', 'e', 'KeyE');
         await sleep(1500);
+        if (!w.trainDriving) continue;
+        w.wanted = 0; w.wantedDecayTimer = 0;
+        for (let k = 0; k < 2 && !MC.getServiceMapState(w); k++) {
+          keyEv('keydown', 'g', 'KeyG'); await sleep(250); keyEv('keyup', 'g', 'KeyG');
+          await sleep(1500);
+        }
+        info.push('trein einde ' + end + ' dienst ' + !!MC.getServiceMapState(w));
+        if (MC.getServiceMapState(w)) break;
       }
       info.push('trein bestuurd ' + !!w.trainDriving);
       if (w.trainDriving) {
         w.wanted = 0; w.wantedDecayTimer = 0;
-        keyEv('keydown', 'g', 'KeyG'); await sleep(120); keyEv('keyup', 'g', 'KeyG');
-        await sleep(2500);
+        for (let k = 0; k < 4 && !MC.getServiceMapState(w); k++) {
+          keyEv('keydown', 'g', 'KeyG'); await sleep(250); keyEv('keyup', 'g', 'KeyG');
+          await sleep(1500);
+          info.push('G-poging ' + (k + 1) + ' dienst ' + !!MC.getServiceMapState(w) + ' bericht ' + JSON.stringify((w.messages || w.msgs || []).slice(-2)));
+        }
         holdK.x = p.x; holdK.y = p.y;
         layerInfo('trein');
         await both('trein', 3);
@@ -646,18 +710,23 @@ if (want('leven348')) {
       SL.updateStreetLife(61, w);
       await sleep(350);
       for (const q of w.pedestrians) {
+        if (Math.hypot(q.x - o.x, q.y - o.y) > 150) continue; // (alleen figuren in deze wijk: de vorige wijk is nog niet weggepoetst)
         if (q.carry === 'skateboard' && !found.skater) found.skater = q;
         if (q.ontgroening && !found.groep) found.groep = q;
         if (q.carry === 'bezorgtas' && !found.bezorger) found.bezorger = q;
       }
     }
-    for (const q of w.pedestrians) { if (q.carry === 'skateboard') sk++; if (q.ontgroening) og++; if (q.carry === 'bezorgtas') kr++; }
+    for (const q of w.pedestrians) { if (Math.hypot(q.x - o.x, q.y - o.y) > 150) continue; if (q.carry === 'skateboard') sk++; if (q.ontgroening) og++; if (q.carry === 'bezorgtas') kr++; }
     info.push('wijk ' + naam + ' @' + Math.round(o.x) + ',' + Math.round(o.y) + ' profiel ' + prof.key + '/' + prof.wijk + ': skateboarders ' + sk + ', kennismakingsleden ' + og + ', bezorgers ' + kr + ' (14 spawnpogingen)');
     for (const [soort, q] of Object.entries(found)) {
       if (!q) continue;
       const g = gh(q.x, q.y);
-      cine.playCinematic({ id: 'vi-leven', duration: 30, priority: 9, shot: () => ({ position: { x: q.x + 4, y: q.y + 4, z: g + 1.8 }, lookAt: { x: q.x, y: q.y, z: g + 0.9 }, cut: true }) });
+      // een camerastand buiten elk gebouw (anders kijk je over een dak)
+      const inB = (x, y) => map.buildingsNear(x, y, 8).some((b) => b.pts && b.pts.length > 2 && (() => { let ins = false; for (let i = 0, j = b.pts.length - 1; i < b.pts.length; j = i++) { const [xi, yi] = b.pts[i], [xj, yj] = b.pts[j]; if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) ins = !ins; } return ins; })());
+      const off = [[4, 4], [-4, 4], [4, -4], [-4, -4], [6, 0], [-6, 0], [0, 6], [0, -6], [3, 0], [0, 3]].find(([dx, dy]) => !inB(q.x + dx, q.y + dy)) || [4, 4];
+      cine.playCinematic({ id: 'vi-leven', duration: 30, priority: 9, shot: () => ({ position: { x: q.x + off[0], y: q.y + off[1], z: g + 1.8 }, lookAt: { x: q.x, y: q.y, z: g + 0.9 }, cut: true }) });
       await sleep(1500);
+      info.push('leven ' + naam + ' ' + soort + ' @' + Math.round(q.x) + ',' + Math.round(q.y) + ' g ' + g.toFixed(1) + ' z ' + (q.z || 0).toFixed(1));
       console.log('[capture] leven-' + naam + '-' + soort);
       await sleep(500);
       cine.skipCinematic();
@@ -668,44 +737,55 @@ if (want('leven348')) {
   done.push('leven348');
 }
 
-// ---- #348: de zeilregatta met bots en tonnen ----
+// ---- #348: de zeilregatta met bots en tonnen (elke jachthaven tot er een baan komt) ----
 if (want('regatta')) {
   clearInterval(skipper);
   w.clock = 13;
   const R = window.__regatta;
   const BT = await imp('boattypes');
   const VH2 = await imp('vehicle');
-  const gh = (x, y) => (map.groundHeightAt ? map.groundHeightAt(x, y, 0) || 0 : 0);
+  const WL2 = await imp('waterlevels');
   await sleep(1500);
   const ms = R ? R.marinas() : [];
-  info.push('jachthavens ' + JSON.stringify(ms.slice(0, 4)));
-  const m = ms[0];
-  if (m) {
-    teleport(m.x, m.y);
-    await sleep(1500);
-    for (let i = 0; i < 40 && document.querySelector('.ls.on:not(.out)'); i++) await sleep(500);
-    await sleep(3000);
-    const WL2 = await imp('waterlevels');
-    let ws = null;
-    for (let r = 20; r < 600 && !ws; r += 15) for (let a = 0; a < 6.28 && !ws; a += 0.25) { const x = m.x + Math.cos(a) * r, y = m.y + Math.sin(a) * r; const q = WL2.waterAt(map, x, y); if (q && q.navigable && q.depth > 1.5) ws = { x, y }; }
-    info.push('water bij de haven ' + JSON.stringify(ws));
-    const kind = BT.BOAT_KINDS.zeil || BT.BOAT_KINDS.zeilboot || Object.values(BT.BOAT_KINDS).find((k) => k.zeil);
-    info.push('zeilboot-soort ' + (kind ? kind.name : 'geen') + ' van ' + Object.keys(BT.BOAT_KINDS).join(','));
-    if (ws && kind) {
+  info.push('jachthavens ' + JSON.stringify(ms.slice(0, 6)));
+  const kind = BT.BOAT_KINDS.zeil || BT.BOAT_KINDS.zeilboot || Object.values(BT.BOAT_KINDS).find((k) => k.zeil);
+  info.push('zeilboot-soort ' + (kind ? kind.name : 'geen') + ' van ' + Object.keys(BT.BOAT_KINDS).join(','));
+  const keepR = setInterval(() => { w.clock = 13; }, 100);
+  let gelukt = false;
+  for (const m of ms.slice(0, 8)) {
+    if (gelukt || !kind) break;
+    try {
+      if (p.inVehicle) p.exitVehicle(map, w);
+      teleport(m.x, m.y);
+      await sleep(1500);
+      for (let i = 0; i < 40 && document.querySelector('.ls.on:not(.out)'); i++) await sleep(500);
+      await sleep(3000);
+      let ws = null;
+      for (let r = 20; r < 600 && !ws; r += 15) for (let a = 0; a < 6.28 && !ws; a += 0.25) { const x = m.x + Math.cos(a) * r, y = m.y + Math.sin(a) * r; const q = WL2.waterAt(map, x, y); if (q && q.navigable && q.depth > 1.5) ws = { x, y }; }
+      info.push('haven ' + m.name + ' @' + Math.round(m.x) + ',' + Math.round(m.y) + ' water ' + JSON.stringify(ws && { x: Math.round(ws.x), y: Math.round(ws.y), d: Math.round(Math.hypot(ws.x - m.x, ws.y - m.y)) }));
+      if (!ws) continue;
       const boat = new VH2.Vehicle(ws.x, ws.y, 0, { ...kind });
       boat.isBoat = true; boat.speed = 0; w.vehicles.push(boat);
       p.enterVehicle(boat, w);
       await sleep(2500);
-      info.push('start ' + R.start());
+      const TP = await imp('tileplace');
+      const RB = await imp('regattabaan');
+      const okA = (x, y) => { const q = WL2.waterAt(map, x, y); return !!(q && q.navigable && q.depth > 1.5); };
+      const okB = (x, y) => okA(x, y) && !TP.buildingAt(map, x, y);
+      info.push('baan zonder gebouwcontrole ' + !!RB.kiesBaan(m.x, m.y, okA) + ', met gebouwcontrole ' + !!RB.kiesBaan(m.x, m.y, okB) + ', speler ' + Math.round(p.x) + ',' + Math.round(p.y) + ' haven ' + Math.round(m.x) + ',' + Math.round(m.y));
+      const okStart = R.start();
+      info.push('start ' + okStart + ' berichten ' + JSON.stringify((w.messages || []).slice(-2).map((q) => q.text)));
       await sleep(6000);
-      info.push('state ' + JSON.stringify(R.state()));
-      const keepR = setInterval(() => { w.clock = 13; }, 100);
+      const st0 = R.state();
+      info.push('state ' + JSON.stringify(st0 && { ronde: st0.ronde, volgend: st0.volgend, tonnen: st0.tonnen.length }));
+      if (!st0) { p.exitVehicle(map, w); continue; }
+      gelukt = true;
       const bots = w.vehicles.filter((v) => v.isBoat && v !== boat && v.model && v.model.zeil);
       info.push('bots ' + bots.length + ' ' + JSON.stringify(bots.slice(0, 4).map((v) => [Math.round(v.x), Math.round(v.y)])));
-      const g = 0;
-      const st0 = R.state(), t0 = st0.tonnen[0], t1 = st0.tonnen[1] || t0;
+      const t0 = st0.tonnen[0], t1 = st0.tonnen[1] || t0;
       const ang0 = Math.atan2(t1.y - t0.y, t1.x - t0.x);
-      await sleep(8000);
+      info.push('tonnen ' + JSON.stringify(st0.tonnen.map((t) => [Math.round(t.x), Math.round(t.y)])));
+      await sleep(4000);
       for (const [name, px, py, up, lx, ly] of [['ton-hoog', t0.x - 30, t0.y - 30, 38, t0.x, t0.y], ['ton-laag', t0.x - Math.cos(ang0) * 45, t0.y - Math.sin(ang0) * 45, 3.2, t0.x, t0.y], ['ton-bots', t0.x - Math.cos(ang0) * 12 + Math.sin(ang0) * 20, t0.y - Math.sin(ang0) * 12 - Math.cos(ang0) * 20, 2.6, t0.x - Math.cos(ang0) * 18, t0.y - Math.sin(ang0) * 18]]) {
         cine.playCinematic({ id: 'vi-regatta', duration: 30, priority: 9, shot: () => ({ position: { x: px, y: py, z: up }, lookAt: { x: lx, y: ly, z: 0.5 }, cut: true }) });
         await sleep(2600);
@@ -714,11 +794,16 @@ if (want('regatta')) {
         cine.skipCinematic();
         done.push('regatta-' + name);
       }
-      clearInterval(keepR);
+      // en vanaf de boot zelf: HUD met tijd, plaats en wind
+      await sleep(1500);
+      console.log('[capture] regatta-hud');
+      await sleep(500);
+      done.push('regatta-hud');
       R.quit();
       p.exitVehicle(map, w);
-    }
+    } catch (e) { info.push('regatta fout bij ' + m.name + ': ' + e.message); }
   }
+  clearInterval(keepR);
   done.push('regatta');
 }
 

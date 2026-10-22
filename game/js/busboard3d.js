@@ -2,7 +2,7 @@
 // LED-bestemmingsbord op de voorkant en zijkanten van elke bus met een lijn en
 // de tekstkaart "volgende halte" voor de bus die de speler bestuurt. De tekst en
 // regels staan in busboard.js (met tests); dit bestand is de lijm met de scene
-// en het HUD en is nog niet in beeld bekeken. Meldt zich in main.js als kind.
+// en het HUD en is in Electron door Claude in beeld bekeken (niet door een mens). Meldt zich in main.js als kind.
 
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getVehicleMesh } from './models3d_vehicles.js';
@@ -11,7 +11,6 @@ import { nearestLine, project } from './busroutes.js';
 import { boardText, lineDirection, nextStopInfo, stopAnnouncement, roundDist, OPERATOR } from './busboard.js';
 
 const BOARD_R = 140;            // m: alleen bussen in de buurt krijgen een bord
-const ROOF = 3.0;
 // m voor het buitenste vlak van de romp. De zijborden hingen op 0,02 m, precies gelijk met het deurblad
 // (hw + 0,02 = 1,295 m): dat was het flikkerende bord (#382). De buitenste deurlijst ligt op 1,301 m.
 const SIDE_OFF = 0.04;
@@ -44,9 +43,9 @@ function boardTexture(b) {
   return t;
 }
 
-function addBoard(group, tex, x, z, w, ry) {
+function addBoard(group, tex, x, y, z, w, ry) {
   const m = new THREE.Mesh(new THREE.PlaneGeometry(w, w * 20 / 128), new THREE.MeshBasicMaterial({ map: tex, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -4 }));
-  m.position.set(x, ROOF - 0.5, z);
+  m.position.set(x, y, z);
   m.rotation.y = ry;
   group.add(m);
   return m;
@@ -68,10 +67,12 @@ function ensureBoard(v) {
 // De drie borden aan een busmesh; ook door scripts/zfight_audit.mjs --vehicles gebruikt.
 export function attachBusBoards(mesh, model, tex) {
   const hl = model.len / 2, hw = model.wid / 2;
+  // voor: op de plek van het gele bestemmingsvlak van het model (2,8 m); zijkanten: in het raam achter de voordeur
+  // (de deur zit op hl - 1,05 en zou het bord half bedekken), niet over de deur heen
   mesh.userData.busBoards = [
-    addBoard(mesh, tex, hl + FRONT_OFF, 0, Math.min(1.9, model.wid * 0.75), Math.PI / 2),
-    addBoard(mesh, tex, hl - 1.6, hw + SIDE_OFF, 1.5, 0),
-    addBoard(mesh, tex, hl - 1.6, -hw - SIDE_OFF, 1.5, Math.PI),
+    addBoard(mesh, tex, hl + FRONT_OFF, 2.8, 0, Math.min(1.9, model.wid * 0.75), Math.PI / 2),
+    addBoard(mesh, tex, hl - 2.75, 2.4, hw + SIDE_OFF, 1.5, 0),
+    addBoard(mesh, tex, hl - 2.75, 2.4, -hw - SIDE_OFF, 1.5, Math.PI),
   ];
   return mesh.userData.busBoards;
 }
