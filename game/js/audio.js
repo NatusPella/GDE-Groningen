@@ -17,6 +17,7 @@ import { MIN_TRACK_S, normalizeTrack, pickTrack, pushHistory, pickJingle, STATIO
 import { createMusicWatch } from './musicwatch.js';
 import * as speech from './speech.js';
 import { drunkLevel } from './drunk.js';
+import { rammelInterval } from './studentenfiets.js';
 import { KEYS } from './storagekeys.js';
 import { noteSound } from './soundcaptions.js';
 
@@ -933,6 +934,15 @@ function playBell(x, y) {
     playTone({ freq: f * 2.43, type: 'sine', duration: 0.25, gain: 0.025, delay: d, out });
     playNoiseBurst({ duration: 0.012, freq: 5200, q: 2, gain: 0.1, type: 'bandpass', delay: d, out });
   }
+}
+
+// De rammel van een studentenfiets (#402, studentenfiets.js): een losse ketting- en spatbordtik, kort en dof, alleen dichtbij te horen.
+function playRammel(x, y) {
+  const out = spatialOut(x, y, { ref: 3, rolloff: 1.4, range: 28, h: 0.6 });
+  if (!out) return;
+  playNoiseBurst({ duration: 0.03, freq: 3300 + Math.random() * 900, q: 3, gain: 0.1, type: 'bandpass', out });
+  playNoiseBurst({ duration: 0.026, freq: 1700 + Math.random() * 400, q: 4, gain: 0.07, type: 'bandpass', delay: 0.05 + Math.random() * 0.05, out });
+  playTone({ freq: 880 + Math.random() * 300, type: 'square', duration: 0.035, gain: 0.02, delay: 0.03, out });
 }
 
 // Level-crossing bell: one hard metallic strike per event (railway.js repeats it).
@@ -2987,8 +2997,19 @@ function isEngineRunning(v) {
 
 function updateTrafficAudio(dt, world) {
   const running = [];
+  let rammelaars = 0;
+  const pl = world.player;
   for (const v of world.vehicles) {
     if (isEngineRunning(v)) running.push(v);
+    // een studentenfiets met een los spatbord of ketting rammelt, in de buurt van de speler en niet meer dan drie tegelijk
+    if (v.isBike && !v.wrecked && v.model.student && v.model.student.rammel) {
+      v._rammelT = (v._rammelT || 0) - dt;
+      if (v._rammelT <= 0) {
+        const iv = rammelInterval(v.speed);
+        v._rammelT = iv || 0.4;
+        if (iv && rammelaars < 3 && pl && Math.abs(v.x - pl.x) < 30 && Math.abs(v.y - pl.y) < 30) { rammelaars++; playRammel(v.x, v.y); }
+      }
+    }
     const horn = !!v.horn;
     if (horn && !hornWasOn.get(v) && v.driver !== 'player') {
       if (v._mount === 'horse') playWhinny(v.x, v.y);

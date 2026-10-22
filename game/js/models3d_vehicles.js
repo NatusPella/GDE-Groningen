@@ -7,7 +7,8 @@ import { ZEESCHIP_SHAPE, SLEPER_SHAPE, zeeschipFit, sleperFit } from './zeeschip
 import { buildHeliMesh } from './heli3d.js';
 import { buildPlaneMesh } from './plane3d.js';
 import { hash2, hash3 } from './rng.js';
-import { zoneTotals, losseOnderdelen } from './vehicledamage.js';
+import { zoneTotals, losseOnderdelen, fietsStaat } from './vehicledamage.js';
+import { staatSleutel } from './studentenfiets.js';
 
 // Low-poly vehicles. Group origin = vehicle centre at ground level (y=0),
 // facing local +X, right-hand side on +Z; sized off v.model.len/wid.
@@ -32,6 +33,7 @@ const TAIL = 0xa3211b;
 const INDICATOR = 0xd9822b;
 const PLATE = 0xe3bb1c;
 const TIRE = 0x1b1b1c;
+const BLUE_TIRE = 0x2f6fb0; // de blauwe banden van de goedkope leenfiets
 const RIM = 0x9ea2a6;
 
 const geoCache = new Map();
@@ -85,10 +87,11 @@ function carWheelGeometry(r, w) {
   });
 }
 
-function bikeWheelGeometry(r, tire, spokes = true) {
-  return cached(`bwheel|${r}|${tire}|${spokes}`, () => {
+// tireColor: de blauwe banden van de goedkope leenfiets (studentenfiets.js)
+function bikeWheelGeometry(r, tire, spokes = true, tireColor = TIRE) {
+  return cached(`bwheel|${r}|${tire}|${spokes}|${tireColor}`, () => {
     const B = new GeoBuilder(1);
-    B.geo(new THREE.TorusGeometry(r - tire, tire, 4, 16), null, TIRE);
+    B.geo(new THREE.TorusGeometry(r - tire, tire, 4, 16), null, tireColor);
     B.geo(new THREE.TorusGeometry(r - tire * 2 - 0.008, 0.01, 3, 16), null, RIM);
     B.geo(new THREE.CylinderGeometry(0.025, 0.025, 0.1, 6).rotateX(Math.PI / 2), null, RIM);
     if (spokes) {
@@ -923,8 +926,9 @@ function poseRider(rider, legBase, armAngle, lean) {
   ud.legR.rotation.z = legBase;
 }
 
-function buildBikeGeometry(color, fat, stepThrough) {
-  return cached(`bike|${color}|${fat}|${stepThrough}`, () => {
+// st: de studentenstaat als sleutel (staatSleutel: S scheef voorspatbord, L geen voorlicht)
+function buildBikeGeometry(color, fat, stepThrough, st = '') {
+  return cached(`bike|${color}|${fat}|${stepThrough}|${st}`, () => {
     const B = new GeoBuilder(3);
     const r = fat ? 0.3 : 0.34;
     const wb = fat ? 0.52 : 0.56;
@@ -964,14 +968,19 @@ function buildBikeGeometry(color, fat, stepThrough) {
     for (const [x] of [F, R]) {
       const guard = new THREE.TorusGeometry(r + 0.03, fat ? 0.05 : 0.028, 3, 9, Math.PI * 0.85);
       guard.scale(1, 1, fat ? 1.2 : 1);
-      B.geo(guard, composeMatrix(x, r, 0, 0, 0, Math.PI * 0.08), color);
+      // een scheef voorspatbord: omhoog gebogen, een stukje opzij en iets weg van het wiel
+      if (st.includes('S') && x === F[0]) B.geo(guard, composeMatrix(x + 0.06, r + 0.09, 0.07, 0.3, 0.32, Math.PI * 0.08 + 0.5), color);
+      else B.geo(guard, composeMatrix(x, r, 0, 0, 0, Math.PI * 0.08), color);
     }
     if (!fat) {
       B.box(-0.33, 0.44, 0.075, 0.62, 0.13, 0.03, color, 0, 0, 0, 0.07);
       B.box(-0.5, 0.78, 0, 0.44, 0.02, 0.15, 0x2a2a2b);
       for (const s of [1, -1]) tube([-0.66, 0.78, s * 0.07], [R[0], R[1], s * 0.06], 0.01, 0x2a2a2b);
-      B.geo(new THREE.CylinderGeometry(0.045, 0.035, 0.07, 7).rotateZ(Math.PI / 2), composeMatrix(H0[0] + 0.07, H0[1] + 0.04, 0), 0x2a2a2b);
-      B.box(H0[0] + 0.11, H0[1] + 0.04, 0, 0.01, 0.06, 0.06, HEADLAMP, G_LAMP);
+      // geen voorlicht: de dynamo en de lamp zijn eraf
+      if (!st.includes('L')) {
+        B.geo(new THREE.CylinderGeometry(0.045, 0.035, 0.07, 7).rotateZ(Math.PI / 2), composeMatrix(H0[0] + 0.07, H0[1] + 0.04, 0), 0x2a2a2b);
+        B.box(H0[0] + 0.11, H0[1] + 0.04, 0, 0.01, 0.06, 0.06, HEADLAMP, G_LAMP);
+      }
       B.box(-0.73, 0.76, 0, 0.01, 0.04, 0.06, TAIL, G_LAMP);
     }
     for (const s of [1, -1]) B.box(BB[0], BB[1], s * 0.1, 0.1, 0.02, 0.08, 0x2a2a2b);
@@ -1090,6 +1099,19 @@ function buildBakfietsMesh(v) {
   return group;
 }
 
+// Een klap voorop (v.dentLog, vehicledamage.js fietsStaat) maakt het voorspatbord scheef of breekt het voorlicht af: het frame wordt
+// vervangen door de variant met die afwijking. true als er iets veranderde. (De banden en het geluid veranderen niet door een klap.)
+export function updateBikeStaat(mesh, v) {
+  if (!mesh || !v || !v.isBike || v.wrecked || v.model.fat || v.model.cargo) return false;
+  const sleutel = staatSleutel(fietsStaat(v));
+  if (mesh.userData.staatSleutel === undefined || mesh.userData.staatSleutel === sleutel) return false;
+  const frame = mesh.children[0];
+  if (!frame || !frame.isMesh) return false;
+  frame.geometry = buildBikeGeometry(toHex(v.model.color, HABBO_PALETTE.black), false, hash2(v.id || 0, 4.2) < 0.5, sleutel);
+  mesh.userData.staatSleutel = sleutel;
+  return true;
+}
+
 function buildBikeMesh(v) {
   if (v.model.cargo) return buildBakfietsMesh(v);
   const group = new THREE.Group();
@@ -1097,10 +1119,14 @@ function buildBikeMesh(v) {
   const color = v.wrecked ? WRECKED_COLOR : toHex(v.model.color, HABBO_PALETTE.black);
   const stepThrough = hash2(v.id || 0, 4.2) < 0.5;
   const mats = vehicleMaterials();
-  group.add(new THREE.Mesh(buildBikeGeometry(color, fat, stepThrough), mats));
+  // de studentenstaat (#402): scheef spatbord, geen voorlicht, blauwe banden (en een klap voorop maakt het spatbord ook scheef)
+  const staat = !fat && v.isBike ? fietsStaat(v) : null;
+  const sleutel = staat ? staatSleutel(staat) : '';
+  group.add(new THREE.Mesh(buildBikeGeometry(color, fat, stepThrough, sleutel), mats));
+  group.userData.staatSleutel = sleutel;
   const r = fat ? 0.3 : 0.34;
   const wb = fat ? 0.52 : 0.56;
-  const wgeo = bikeWheelGeometry(r, fat ? 0.07 : 0.022);
+  const wgeo = bikeWheelGeometry(r, fat ? 0.07 : 0.022, true, staat && staat.blauw ? BLUE_TIRE : TIRE);
   const wheels = [];
   addWheel(group, wgeo, mats[0], wb, r, 0, wheels);
   addWheel(group, wgeo, mats[0], -wb, r, 0, wheels);
