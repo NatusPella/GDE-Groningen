@@ -22,6 +22,7 @@ const t = (name, fn) => { n++; try { fn(); } catch (e) { fails++; console.log('F
 const PROFIELEN = [
   { vak: 'bus', naam: 'bijbaan: bus, een ronde', min: 1.7, xp: 10, uniek: 0, geld: 90 * SIDEJOB_PAY_MULT, kmPerMin: 0.8, kmVak: 'bus' },
   { vak: 'bezorg', naam: 'bijbaan: bezorger', min: 1.7, xp: 10, uniek: 0, geld: 40 * SIDEJOB_PAY_MULT },
+  { vak: 'landbouw', naam: 'bijbaan: bietenoogst', min: 3.5, xp: 10, uniek: 0, geld: 70 * SIDEJOB_PAY_MULT },
   { vak: 'kantoor', naam: 'bijbaan: balie', min: 2, xp: 10, uniek: 0, geld: 60 * SIDEJOB_PAY_MULT },
   { vak: 'padel', naam: 'padel, een potje', min: 6, xp: 22, uniek: 1 / 3, geld: 200 * 0.5 }, // een medaille van de drie: gemiddeld halve prijs
   { vak: 'race', naam: 'kart, een race', min: 3.5, xp: 12, uniek: 0, geld: 15 },
