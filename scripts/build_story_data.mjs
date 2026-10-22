@@ -60,6 +60,9 @@ export const SPEAKER_TABLE = {
   DEURWAARDER: sp('deurwaarder', 'Deurwaarder'),
   STUDENT: sp('student', 'Student'),
   BOER: sp('boer', 'Boer'),
+  // Deel 4 (09-script-akte6.md): no recordings
+  WILLEMIEN: sp('willemien', 'Willemien'),
+  BUURVROUW: sp('buurvrouw', 'Buurvrouw'),
   'KIND IN HET PUBLIEK': sp('kind', 'Kind in het publiek'),
 };
 

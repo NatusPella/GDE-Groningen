@@ -43,6 +43,9 @@ const SPEAKER_COLORS = {
   Wubbo: '#6f8fb0',
   Tinus: '#b0883a',
   'Mevrouw Hoving': '#a47ab8',
+  // Deel 4
+  Willemien: '#9a86b4',
+  Buurvrouw: '#c4788c',
 };
 // generic NPCs, bijbaan bosses, radio and navigation voices
 const NEUTRAL = '#8a8a8a';

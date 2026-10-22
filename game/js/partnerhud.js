@@ -11,7 +11,8 @@ export const PARTNER = {
 };
 export const PING_COOLDOWN = 1.5;
 export const PING_TTL = 8;
-export const PING_MAX = 4;
+export const PING_MAX = 16;          // samen in beeld: genoeg voor een ping van elke speler (de codec kent tot 16 spelers)
+export const PING_PER_AFZENDER = 2;  // een speler die snel achter elkaar roept houdt de lijst niet voor anderen bezet
 export const CALL_RANGE = 40;      // m: erbij springen kan binnen deze afstand
 export const WORLD_LIMIT = 2e6;    // m: grens voor ontvangen coördinaten (RD New)
 
@@ -59,6 +60,8 @@ export function addPing(p, { x, y, van = 'eigen', soort = 'hier' }, nu) {
   p.laatste[key] = nu;
   const ping = { x, y, van: key, soort, tot: nu + PING_TTL };
   p.lijst.push(ping);
+  const eigen = p.lijst.filter((x) => x.van === key);
+  for (let i = 0; i < eigen.length - PING_PER_AFZENDER; i++) p.lijst.splice(p.lijst.indexOf(eigen[i]), 1);
   while (p.lijst.length > PING_MAX) p.lijst.shift();
   return ping;
 }

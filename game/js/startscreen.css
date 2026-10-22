@@ -18,7 +18,6 @@
 #start-screen .ss-item { position: relative; display: flex; flex-direction: row; align-items: center; gap: 8px; width: 100%; height: 56px; padding: 0 32px; border-radius: 8px; text-align: left;
   font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 36px; letter-spacing: 0.05em; line-height: 1; color: rgba(240, 237, 228, 0.66); background: none; border: 0; cursor: pointer;
   transition: color 0.2s, background 0.2s; text-shadow: 0 2px 12px rgba(0, 0, 0, 0.6); }
-#start-screen .ss-item small { display: none; font-family: 'Arial Narrow', Arial, sans-serif; font-size: 18px; letter-spacing: 0; margin-left: 12px; }
 #start-screen .ss-item:hover { color: var(--ink); }
 #start-screen .ss-item.sel { color: var(--ink); }
 #start-screen .ss-item.sel::before { content: ''; position: absolute; left: 0; top: 10px; bottom: 10px; width: 4px; border-radius: 2px; background: var(--g); }
@@ -30,7 +29,6 @@
 #start-screen .ss-item.ss-hero.sel { background: rgba(63, 201, 122, 0.12); }
 #start-screen .ss-item.ss-hero.sel::before { top: 0; bottom: 0; border-radius: 8px 0 0 8px; }
 #start-screen .ss-hero .ss-label { font-size: 60px; line-height: 0.9; }
-#start-screen .ss-hero small { display: block; margin: 0; font-size: 20px; color: var(--mut); }
 #start-screen .ss-hero:not(.sel) .ss-label { color: rgba(240, 237, 228, 0.88); }
 #start-screen .ss-save { position: absolute; right: 128px; bottom: 128px; max-width: 760px; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; text-align: right; text-shadow: 0 2px 16px rgba(0, 0, 0, 0.5); }
 #start-screen .ss-save .big { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 72px; line-height: 0.9; letter-spacing: 0.04em; }
@@ -93,7 +91,6 @@ html.reduce-motion #start-screen, html.reduce-motion #start-screen * { animation
   #start-screen .ss-item[data-act="exit"] { height: 40px; font-size: 22px; margin-top: 8px; }
   #start-screen .ss-item.ss-hero { padding: 8px 20px 12px; margin-bottom: 8px; }
   #start-screen .ss-hero .ss-label { font-size: 38px; }
-  #start-screen .ss-hero small { font-size: 14px; }
   #start-screen .ss-save, #start-screen .ss-foot { display: none; }
   #start-screen .ss-credit { left: 28px; bottom: 10px; font-size: 13px; height: 20px; }
   #start-screen .ss-news { top: 8px; bottom: 8px; left: 16px; right: 16px; width: auto; }
@@ -110,7 +107,6 @@ html.reduce-motion #start-screen, html.reduce-motion #start-screen * { animation
   #start-screen .ss-item { height: 48px; font-size: 28px; padding: 0 20px; flex: none; }
   #start-screen .ss-item.ss-hero { padding: 10px 20px 14px; }
   #start-screen .ss-hero .ss-label { font-size: 44px; }
-  #start-screen .ss-hero small { font-size: 16px; }
   #start-screen .ss-save, #start-screen .ss-foot { display: none; }
   #start-screen .ss-credit { left: 24px; bottom: 12px; font-size: 14px; }
   #start-screen .ss-news { top: 12px; bottom: 12px; left: 12px; right: 12px; width: auto; }
@@ -128,7 +124,7 @@ html.reduce-motion #start-screen, html.reduce-motion #start-screen * { animation
   #start-screen .ss-item { height: 40px; padding: 0 20px; font-size: 26px; }
   #start-screen .ss-item[data-act="exit"] { height: 36px; font-size: 22px; margin-top: 6px; }
   #start-screen .ss-item.ss-hero { padding: 8px 20px 10px; margin-bottom: 6px; gap: 4px; }
-  #start-screen .ss-hero .ss-label { font-size: 36px; } #start-screen .ss-hero small { font-size: 14px; }
+  #start-screen .ss-hero .ss-label { font-size: 36px; }
   #start-screen .ss-save { display: none; }
   #start-screen .ss-credit { left: 28px; bottom: 8px; height: 22px; font-size: 13px; }
   #start-screen .ss-news { top: 8px; bottom: 8px; left: 16px; right: 16px; width: auto; }

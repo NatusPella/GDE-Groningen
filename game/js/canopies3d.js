@@ -11,6 +11,9 @@ import { isPaddepoelRoof, buildPaddepoelRoof } from './paddepoel3d.js';
 
 const CANOPY_Y = 5.2;
 const SLAB = 0.28;
+// Luifels uit OSM liggen soms over elkaar op dezelfde hoogte (twee dakplaten van een station): elke luifel schuift per
+// volgnummer (8 stappen) 1 cm op, zodat hun boven- en onderkant niet in dezelfde diepte vallen (#382)
+export const CANOPY_STAGGER = 0.01;
 const POST_W = 0.18;
 const POST_SPACING = 7;
 
@@ -99,7 +102,9 @@ function canopyGroup(map, list, props) {
   const group = new THREE.Group();
   const posts = [], gridPosts = [];
   const solid = (kind, ...args) => { const p = addStaticCollider(kind, ...args); if (props) props.push(p); return p; };
+  let k = -1;
   for (const c of list) {
+    k++;
     if (isPaddepoelRoof(c)) { group.add(buildPaddepoelRoof(map)); continue; }
     const pts = c.pts[0][0] === c.pts[c.pts.length - 1][0] && c.pts[0][1] === c.pts[c.pts.length - 1][1] ? c.pts.slice(0, -1) : c.pts;
     if (pts.length < 3) continue;
@@ -116,7 +121,7 @@ function canopyGroup(map, list, props) {
     const geo = new THREE.ExtrudeGeometry(shape, { depth: SLAB, bevelEnabled: false });
     geo.rotateX(Math.PI / 2);
     const base = canopyBase(map, pts);
-    geo.translate(0, base + CANOPY_Y + SLAB, 0);
+    geo.translate(0, base + CANOPY_Y + SLAB + (k % 8) * CANOPY_STAGGER, 0);
     const big = ringArea2(pts) > BIG_CANOPY;
     const slab = new THREE.Mesh(geo, big ? solarMaterial() : slabMat);
     slab.castShadow = true;

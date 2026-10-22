@@ -629,3 +629,23 @@ wegen, water, groen en bomen gelijk zijn. (d) De vaste set die daarna groeit: al
 hele-array-lezers (`passages`, `geokernels`, `scene3d`, `mapdata`, `routing`) heeft verlaten; anders wordt de laadtijd van de stad de prijs voor het weglaten van een tegelsoort.
 Het advies is dus: C1 vóór C2, en C2 pas als de pinned set weer klein is. Punt 4 van het issue (`data/ommeland_raw.json.gz` vervangen door buurprovincie-extracten) vraagt een
 grote download en wacht op akkoord van de eigenaar.
+
+## Vervolg op #314 (22 oktober 2026, s10): de vaste set gemeten, wat ontpinnen werkelijk vraagt, en wat er veilig kon
+
+**Meting van de vaste set** (`scripts/perf/pinned_meet.mjs`, Node, wereld van de 0.38.2-bouw, elke meting een eigen proces; heap na GC):
+
+| | tegels | heap vóór | heap na | verschil |
+|---|---|---|---|---|
+| stad (58 gepinde tegels) | 58 | 204,4 MB | 142,2 MB | -30 % |
+| stad + de 42 overlaytegels, zoals het spel ze laadt | 100 | 327,0 MB | 230,7 MB | -29 % |
+
+Laadtijd van `loadTileWorld` in Node, zonder workers, gepaard in 8 rondes tegen de stand vóór deze ronde: mediaan 3,7 s tegen 2,9 s (gemiddeld 4,0 tegen 2,7 s; de machine was bezet, dus richtinggevend). Kaartvragen (`scripts/perf/mapquery_bench.mjs`, 40.000 vaste punten, mediaan in ms vóór tegen na): `buildingsNear` 1.400 tegen 960, `roadsNear` 540 tegen 295, `nearestRoadPoint` 1.311 tegen 616, `groundHeightAt` 44 tegen 19, een keer langs alle 51.728 gebouwen 22 tegen 4,5 en langs alle wegen 6,7 tegen 3.
+
+**Wat de overlays kosten, en waarom ze blijven.** De 42 overlaytegels (2,3 MB in de pakketten) dragen 27.593 gebouwen, 6.295 wegen en 18.017 bomen: +123 MB heap (+60 % op de stad) in de hoofdthread, en nog eens in de geometrieworker. De hele arrays (`map.buildings`, `map.roads`, ...) bevatten ze niet: die tellen 51.728 en 12.159 met en zonder overlays, de overlays staan alleen in de rasters. Weglaten of per afstand laten streamen houdt de pariteit niet: `scripts/perf/worker_overlay_diff.mjs` bouwt de kaart van de worker (`geokernels.js roadInit`) met en zonder overlays en vergelijkt per weg een hash van wat `roadGeo` maakt (vlakken, markering, kunstwerken): **415 van 12.159 wegen (3,4 %) krijgen een andere vorm zonder overlays** (randwegen, de buren op de rand van de stad; twee runs met overlays zijn bit-voor-bit gelijk). De wegvlakken van de worker hebben de overlays dus nodig (en wat de hoofdthread bij het opstarten uit de rand afleidt, rekent op dezelfde buren). Daarmee blijft de uitkomst van r32 en r43 staan: geen C2, en de overlays niet los streamen.
+
+**Wat C1 (ontpinnen) vraagt.** 37 modules lopen de hele arrays langs op meer dan 60 plaatsen (`passages` 5, `scene3d` 4, `geokernels` 4, `countryedge` 4, `ringcheck` 3, `junctions` 3, `farlod` 3, `elevation` 3, ...), grotendeels bij het opstarten, en bouwen daar afgeleide data uit (wegvlakken, kruispunten, passages, hoogtemodel) die op de buren aan de rand rekent. Dat is een module-voor-module klus met een eigen pariteitsbewijs, niet iets dat in één ronde veilig kon. De volgorde die overblijft: (1) de grootste array-lezers (`passages`, `geokernels`, `scene3d`, `mapdata`, `routing`) per tegel laten vragen, (2) de gids niet meer dicht eisen (`fromTiles`), (3) pas dan de randtegels van de stad streamen en daarna de overlays laten vervallen. De proef van r32 bleef daarbij nodig als meetlat.
+
+**Gedaan (pariteit bewezen, geen verandering in wat de speler ziet).**
+1. *Rijen zonder dictionary-modus.* `rowsOf` haalde de rij-id uit elke rij met `delete row.gid`; omdat `gid` de eerste sleutel is zette dat elk gebouw, elke weg, elk water en elk groenvlak van de tegels in dictionary-modus (`%HasFastProperties`: 0 van 5.000). Nu geeft de decoder de ids apart (`decodeBlob(bytes, aside)`: `section.gids`, aangezet door `loadTileWorld` voor de kaartsecties, ook in de tegelworkers); een rij die nog een id heeft (`fromTiles` met losse tegels) wordt zonder id gekopieerd. Elke kaartrij is nu een snel object (4.996 van 5.000 gebouwen, 4.994 van 5.000 wegen; de rest krijgt later nog een `delete` in `mapdata.js`). De sleutels staan in dezelfde volgorde als voorheen; het bestandsformaat en `decodeBlob` zonder lijst zijn ongewijzigd.
+2. *Boekhouding per object.* Een object wist in welke tegels het ligt met een `Set` per object (ongeveer 150.000 stuks); nu staat de sleutel in `e.t` en komt er alleen een `Set` bij een object dat in meer tegels ligt (`holdIn`/`releaseFrom`, `scripts/tileworld_resident_test.mjs`). De nooit gelezen `_gidOf` is weg.
+3. Meetgereedschap: `pinned_meet.mjs`, `mapquery_bench.mjs`, `worker_overlay_diff.mjs`, `loadcheck.mjs` (Electron A/B op gestagede builds, met `--slot`).

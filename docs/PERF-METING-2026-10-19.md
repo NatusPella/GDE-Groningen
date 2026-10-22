@@ -542,7 +542,19 @@ node scripts/perf/selftime.mjs <profiel> ; node scripts/perf/categories.mjs <pro
 node scripts/perf/personbench.mjs --n=300 --hash          # bouwkosten van een persoon in Node
 ```
 
-## Vervolg 11: de geometrie-worker is niet de rem; de wegenkaart laadt eerder en de tegels laten los (s5, #247, #379, #4)
+## Vervolg 11: de simulatie naar een worker, opnieuw gemeten (s12, #58)
+
+**Uitkomst: geen nieuwe worker gebouwd; de post is te klein en te verweven met de speler.** Gemeten op een zwaar belaste machine (12 Electron-processen, 85 tot 89% CPU), dus alleen aandelen zijn bruikbaar.
+
+**In het spel** (`PERF_ONLY=r46`, varianten `base` en `pauzesim` afwisselend, 4 rondes van 8 s, Hoog, heel ver, te voet, hitchsecties; build van main 0.38.2): de secties `traffic` + `police+collide` + `peds` samen zijn **15, 13, 17 en 11%** van de CPU van de rAF-callback per ronde (mediaan ~14%); alle simulatiesecties samen (ook wildlife, systems, player) ~18%. Gepaard met `pauzesim` zijn de drie grootste secties elk 4 van 4 rondes lager (traffic -6,1 ± 1,6 ms, police+collide -3,4 ± 0,6, peds -4,9 ± 3,3, alles in belaste ms); de totale frametijd is te ruw voor een verschil (de pauzeronden liepen van 51 tot 562 ms per frame). Op de rustiger machine van Vervolg 10 waren dezelfde secties 2,4, 1,8 en 0,9 ms per frame.
+
+**Zonder browser** (`scripts/perf/simbench.mjs`, 30 tot 35 auto's, 7200 stappen van 1/60 s, geseed): 1,35 tot 2,14 ms CPU per stap (gemiddelde 1,77 over vier runs; de spreiding komt van de machine). Dat is de hele auto-AI, botsingen en populatiebeheer. Een worker kan dus hooguit die ~1,3 tot 1,8 ms van de hoofdthread halen, en betaalt daarvan het spiegelen van voertuigen (meshes, lichten, audio, politie, missies, spelerinteractie) en de overdracht terug. Voetgangers: 0,6 tot 0,9 ms, waarvan de ambient-wandelaars al via de bestaande worker lopen (`simbridge.js`). `?simauto` won te voet niets (Vervolg 10). Daarom is de enige weg naar een echte winst het verkeer binnen 150 m ook de worker in, en dat vraagt de overdracht Vehicle <-> agent en een snapshot voor de render (hetzelfde ontwerp als de scène in een worker, #246). Dat is niet veilig voor een release-candidate.
+
+**Goedkoopste winst geprobeerd en teruggedraaid:** drie bit-identieke aanpassingen in `vehicle.js` (`projectOnPath` zonder een resultaatobject per segment, `curveSpeedLimit` die per bemonsteringspunt verder zoekt in plaats van van voren af, `followSpeedLimit` zonder een array en `Math.cos`/`Math.sin` per voertuig). Het digest van de simbench bleef gelijk (-1351418044 in alle 8 runs), maar de tijd niet aantoonbaar korter: oud 1,75, 1,83, 2,14, 1,35 (gem. 1,77) tegen nieuw 1,81, 1,50, 1,89, 1,75 (gem. 1,74) ms per stap, gepaard -0,03 ± 0,17 ms. Niet behouden: risico zonder bewijs.
+
+**Gereedschap:** `simbench.mjs --cache=<bestand>` bewaart de ingeladen stad (v8.serialize): inladen kostte 10 minuten op deze machine (48 s daarna uit de cache), de simulatie zelf 10 s. Vergelijk twee versies van `vehicle.js` met twee checkouts en dezelfde cache.
+
+## Vervolg 12: de geometrie-worker is niet de rem; de wegenkaart laadt eerder en de tegels laten los (s5, #247, #379, #4)
 
 **Uitkomst:** de worker loopt bij snel reizen niet achter (hij is 9% van de tijd bezig). De 11 tot 26 s van het issue is het eenmalige `roadInit` bij het opstarten, en dat is nu 8,4 s eerder klaar. Wat bij het reizen wel groeit is het geheugen: het tegelbudget telde ruwe bytes terwijl een gedecodeerde tegel 26 keer zo groot op de heap is, zodat er nooit een tegel losgelaten werd. De machine was bij alle runs vol (CPU 77 tot 100%, 4 tot 9 Electron-processen, 0,3 tot 2,4 GB vrij): de frametijden (A7 120 tot 180 ms) zeggen niets, de tellingen en de gepaarde koude starts wel.
 

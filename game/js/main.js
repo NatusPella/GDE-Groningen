@@ -127,7 +127,7 @@ import { initSkyProps, updateSkyProps } from './skyprops.js';
 import { initSikkomFeed, updateSikkomFeed } from './sikkomfeed.js';
 import { initPhoneFeed, updatePhoneFeed } from './phonefeed.js';
 import { watchJumps, resetJumpWatch, startLoadScreen } from './loadscreen.js';
-import { initLoading, setLoadProgress, finishLoading, showLoadError, runStartScreen, yieldToPaint } from './startscreen.js';
+import { initLoading, setLoadProgress, finishLoading, showLoadError, runStartScreen, yieldToPaint, planMenuStart } from './startscreen.js';
 import { initPigeonMode, updatePigeonMode, updatePigeonCamera, updatePigeonAfterglow } from './pigeonmode.js';
 import { initPigeonSpots, updatePigeonSpots, tryPigeonSpotInteract } from './pigeonspots.js';
 import { initSideJobs, updateSideJobs, trySideJobInteract } from './sidejobs.js';
@@ -363,6 +363,7 @@ async function boot() {
   setShopSpots(spotsFrom(FAC.all)); // a building's shopfront follows the real shop in it (#156)
   markLoad('ommeland');
   prepareHomeMap(map);
+  planMenuStart(map); // the menu's first viewpoint and its tiles load next to the rest of the boot (#380)
   setLoadProgress(0.55);
   await yieldToPaint();
   markLoad('prepared');

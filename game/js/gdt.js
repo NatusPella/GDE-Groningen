@@ -285,10 +285,17 @@ export function writeTable(w, rows, strings, ox, oy, opts = {}) {
 }
 
 export function readTable(r, strings, ox, oy) {
-  if (r.u8() === 1) return readPts(r, ox, oy).map((L) => L[0]);
+  return readTableG(r, strings, ox, oy, false).rows;
+}
+
+// { rows, gids }: with `aside` the id column (`gid`, a number in every row) is not set on the rows but comes back as `gids`,
+// one per row (tileworld.js rowsOf takes the id out of the rows it keeps: a delete turns a row into a dictionary-mode object)
+function readTableG(r, strings, ox, oy, aside) {
+  if (r.u8() === 1) return { rows: readPts(r, ox, oy).map((L) => L[0]), gids: null };
   const n = r.uv(), nk = r.uv();
   const rows = new Array(n);
   for (let i = 0; i < n; i++) rows[i] = {};
+  let gids = null;
   for (let c = 0; c < nk; c++) {
     const key = strings[r.uv()];
     const kinds = r.bytes(n);
@@ -309,6 +316,7 @@ export function readTable(r, strings, ox, oy) {
     }
     const jsons = new Array(nj);
     for (let i = 0; i < nj; i++) jsons[i] = JSON.parse(strings[r.uv()]);
+    if (aside && key === 'gid' && nn === n) { gids = nums; continue; }
     let a = 0, b = 0, p = 0, l = 0, j = 0;
     for (let i = 0; i < n; i++) {
       switch (kinds[i]) {
@@ -325,7 +333,7 @@ export function readTable(r, strings, ox, oy) {
       }
     }
   }
-  return rows;
+  return { rows, gids };
 }
 
 class StringTable {
@@ -392,7 +400,8 @@ export function blobStrings(bytes, head = blobHeader(bytes)) {
 }
 
 // One section of a blob as data: rows, json, a raster or bytes.
-export function decodeSection(bytes, sec, strings, i, j) {
+// aside: the section types whose id column comes back as `gids` (see readTableG)
+export function decodeSection(bytes, sec, strings, i, j, aside = null) {
   const [ox, oy] = tileOrigin(i, j);
   const r = new Reader(bytes, sec.offset, sec.offset + sec.length);
   switch (sec.type) {
@@ -403,13 +412,16 @@ export function decodeSection(bytes, sec, strings, i, j) {
       return { raster: { w, h, cell, x0, y0, codec, data: r.bytes(sec.rows * (codec === 1 ? 2 : codec === 2 ? 4 : 1)) } };
     }
     case SECTION.BLOB: { const name = strings[r.uv()]; return { name, bytes: r.bytes(r.uv()) }; }
-    default: return { rows: readTable(r, strings, ox, oy) };
+    default: {
+      const t = readTableG(r, strings, ox, oy, !!aside && aside.includes(sec.type));
+      return t.gids ? t : { rows: t.rows };
+    }
   }
 }
 
-export function decodeBlob(bytes) {
+export function decodeBlob(bytes, aside = null) {
   const head = blobHeader(bytes);
   const strings = blobStrings(bytes, head);
-  const sections = head.sections.filter((s) => s.type !== SECTION.STRINGS).map((s) => ({ type: s.type, version: s.version, ...decodeSection(bytes, s, strings, head.i, head.j) }));
+  const sections = head.sections.filter((s) => s.type !== SECTION.STRINGS).map((s) => ({ type: s.type, version: s.version, ...decodeSection(bytes, s, strings, head.i, head.j, aside) }));
   return { ...head, sections };
 }
