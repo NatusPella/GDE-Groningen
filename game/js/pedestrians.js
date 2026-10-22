@@ -943,7 +943,7 @@ function managePopulation(world) {
     let excess = walkers - desired;
     for (let i = world.pedestrians.length - 1; i >= 0 && excess > 0; i--) {
       const p = world.pedestrians[i];
-      if (p.isCop || p.scene || p.nightlife || p.leader || p.carry || p.ontgroening || p.state !== 'wander') continue; // (the ones with a part keep it)
+      if (p.isCop || p.scene || p.nightlife || p.leader || p.carry || p.ontgroening || p.party || p.state !== 'wander') continue; // (the ones with a part keep it)
       if (dist(p.x, p.y, player.x, player.y) < 55 || !isSpawnHidden(world, p.x, p.y)) continue;
       if (FLAGS.simlagen) verlatenPool.afleggen(p.x, p.y);
       world.pedestrians.splice(i, 1);

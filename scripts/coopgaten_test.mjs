@@ -151,7 +151,7 @@ t('#390: de gastheer stopt een missie, de gasten horen dat het gestopt is (geen 
     s.step(1);
     for (const g of s.gs) {
       const m = g.gw.messages.find((x) => /Het proefbeleg/.test(x));
-      assert.match(m, /^Tammo heeft Het proefbeleg gestopt, voor jullie allebei\. Tammo kan hem opnieuw starten\.$/, 'de gast hoort het');
+      assert.match(m, /^Tammo heeft Het proefbeleg gestopt, voor iedereen\. Tammo kan hem opnieuw starten\.$/, 'de gast hoort het');
       assert.doesNotMatch(m, /mislukt/, 'gestopt is geen mislukking');
     }
   }
