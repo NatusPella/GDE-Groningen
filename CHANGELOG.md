@@ -6,6 +6,9 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Opgelost
+- **Water van het vaarnet ligt niet meer over huizen (#362, #5; gemeten op de tegels van de wereld, niet in beeld bekeken):** de stukken water die het vaarnet toevoegt waar de kaart het water onderbreekt lagen op 416 van 1.435 plekken over minstens één gebouw (de regattabaan bij Zuiderstrand en Eendracht lag in een woonblok, een boot kon door een huis varen). `closeGaps` vult nu geen cel onder een gebouw meer in, een rechthoek die er toch een raakt wordt in stukken gedeeld (1.299 gaten werden 3.739 kleinere), de verbinding naar de zee loopt om een dorp heen en twee handgemaakte stukken zijn smaller (Eemskanaal 42 m, een sluisgat 11,1 m). Nu 0 van 3.970 over een gebouw (`gaten_gebouwen_audit.mjs --max=0`, `vaarnet_huizen_test`); het vaarnet is opnieuw gemaakt (ook de cellen onder een gebouw zijn er dicht) en telt 29 takken en 17 km (0,5 %) minder, alle 17 havens en zeetoegangen blijven. Bij de brug over het Reitdiep (Electraweg) loopt de route nu langs de oever in plaats van over water dat het vaarnet over huizen had verzonnen: de romp-controle met een strook van 40 m meldt daar een extra dichte plek (met 120 m strook, zoals in de testronde, 0). Bij Zuiderstrand is er geen vrije regattabaan meer (alleen nog water tussen huizen), bij Eendracht ligt de baan op open water.
+
 ## [0.38.2] - 2026-10-22
 
 ### Opgelost
