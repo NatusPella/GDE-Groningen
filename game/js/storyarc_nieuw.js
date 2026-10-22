@@ -197,7 +197,7 @@ export const PARTS = {
   nazomer: { title: 'Deel 4: Nazomer', name: 'Nazomer', date: '14 september', open: true, after: 'ontzet', end: 'Einde van Deel 4', big: 'Einde van Deel 4', textOnly: true,
     recap: [
       ['Grote Markt', 'Eerder in GDE. Het Ontzet is gewonnen. De Fjord Frituur staat op de Vismarkt en de rij loopt tot de Korenbeurs.'],
-      ['Museum', 'De Gouden Eierbal staat weer in het museum, met een alarm dat het doet en twee namen op het bordje.'],
+      ['Groninger Museum', 'De Gouden Eierbal staat weer in het museum, met een alarm dat het doet en twee namen op het bordje.'],
       ['Paddepoel', "Op de elfde verdieping brandt 's avonds nog maar in één slaapkamer licht."],
     ],
     card: [
