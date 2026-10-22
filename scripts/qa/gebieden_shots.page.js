@@ -41,24 +41,24 @@ results.catalogus = {
   taken: ind.taak.size, perSoort, zonderGebied: zonder.length, zonderVoorbeeld: zonder.slice(0, 12),
   gebieden: ind.gebieden.length,
   perNiveau: G.NIVEAUS.map((n) => { const l = ind.gebieden.filter((g) => g.niveau === n.id); return { niveau: n.id, totaal: l.length, veroverbaar: l.filter((g) => g.veroverbaar).length }; }),
-  streken: ind.gebieden.filter((g) => g.niveau === 'streek').map((g) => `${g.naam}:${g.taken.length}`),
-  plaatsenMetTaken: ind.gebieden.filter((g) => g.niveau === 'plaats' && g.taken.length).map((g) => `${g.naam}:${g.taken.length}`),
-  wijkenMetTaken: ind.gebieden.filter((g) => g.niveau === 'wijk' && g.taken.length).length,
+  gemeenten: ind.gebieden.filter((g) => g.niveau === 'gemeente').map((g) => `${g.naam}:${g.taken.length}`),
+  woonplaatsenMetTaken: ind.gebieden.filter((g) => g.niveau === 'woonplaats' && g.taken.length).map((g) => `${g.naam}:${g.taken.length}`),
   grootsteWijken: ind.gebieden.filter((g) => g.niveau === 'wijk').sort((a, b) => b.taken.length - a.taken.length).slice(0, 8).map((g) => `${g.naam}:${g.taken.length}`),
+  grootsteBuurten: ind.gebieden.filter((g) => g.niveau === 'buurt').sort((a, b) => b.taken.length - a.taken.length).slice(0, 8).map((g) => `${g.naam}:${g.taken.length}`),
   startProfiel: { gedaan: o.profiel.gedaan.length, beloond: o.profiel.beloond.length, zaad: !!o.profiel.zaad },
 };
 
-const stad = ind.gebied.get('s:stad');
+const stad = ind.gebieden.find((g) => g.niveau === 'gemeente' && g.naam === 'Groningen') || ind.gebieden[0];
 hold = { x: stad.x, y: stad.y };
 
 // 1. de kaart zonder voortgang
 PM.openPauseMenu('map'); await sleep(1500);
-MV.setMapView(stad.x, stad.y, 2); await sleep(3500); await cap('gb-kaart-leeg'); results.shots.push('gb-kaart-leeg');
+MV.setMapView(stad.x, stad.y, 2); await sleep(3500); await cap('gb-kaart-leeg'); MV.setMapView(stad.x, stad.y, 0.6); await sleep(3000); await cap('gb-kaart-leeg-wijd'); results.shots.push('gb-kaart-leeg-wijd'); MV.setMapView(stad.x, stad.y, 2); await sleep(1500); results.shots.push('gb-kaart-leeg');
 PM.closePauseMenu(); await sleep(500);
 
 // 2. een paar gebieden spelen: een wijk helemaal, een wijk bijna, een plaats helemaal
 const wijken = ind.gebieden.filter((g) => g.niveau === 'wijk' && g.veroverbaar).sort((a, b) => a.taken.length - b.taken.length);
-const plaatsen = ind.gebieden.filter((g) => g.niveau === 'plaats' && g.veroverbaar).sort((a, b) => a.taken.length - b.taken.length);
+const plaatsen = ind.gebieden.filter((g) => g.niveau === 'woonplaats' && g.veroverbaar && g.naam !== 'Groningen').sort((a, b) => a.taken.length - b.taken.length);
 const volledig = wijken.find((g) => g.taken.length >= 3) || wijken[0];
 const bijna = wijken.find((g) => g !== volledig && g.taken.length >= 4) || wijken.find((g) => g !== volledig);
 const dorp = plaatsen.find((g) => g.taken.length >= 2) || plaatsen[0];
@@ -89,7 +89,7 @@ await sleep(6500);
 PM.openPauseMenu('map'); await sleep(1500);
 if (volledig) { MV.setMapView(volledig.x, volledig.y, 4); await sleep(3500); await cap('gb-kaart-wijk-z4'); results.shots.push('gb-kaart-wijk-z4'); }
 if (bijna) { MV.setMapView(bijna.x, bijna.y, 4); await sleep(3500); await cap('gb-kaart-bijna-z4'); results.shots.push('gb-kaart-bijna-z4'); }
-MV.setMapView(stad.x, stad.y, 2); await sleep(3500); await cap('gb-kaart-stad-z2'); results.shots.push('gb-kaart-stad-z2');
+MV.setMapView(stad.x, stad.y, 2); await sleep(3500); await cap('gb-kaart-stad-z2'); MV.setMapView(stad.x, stad.y, 1); await sleep(3500); await cap('gb-kaart-stad-z1'); results.shots.push('gb-kaart-stad-z1'); results.shots.push('gb-kaart-stad-z2');
 if (dorp) { MV.setMapView(dorp.x, dorp.y, 3); await sleep(3500); await cap('gb-kaart-dorp-z3'); results.shots.push('gb-kaart-dorp-z3'); }
 MV.setMapView(stad.x, stad.y, 0.6); await sleep(3500); await cap('gb-kaart-wijd'); results.shots.push('gb-kaart-wijd');
 PM.closePauseMenu(); await sleep(600);
