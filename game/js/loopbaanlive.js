@@ -71,6 +71,7 @@ function markeer() {
 
 // Eenmalig bij het opstarten (achievementtracker.js): hoe de prestaties heten die al geteld zijn en of cheats de tellers blokkeren.
 export function initLoopbaan({ gate = null, snapshot = null, opslag: st } = {}) {
+  if (vuil) schrijfNu(); // een nieuwe start verliest niets wat nog niet geschreven was
   poort = gate;
   momentopname = snapshot;
   if (st !== undefined) opslagOverride = st;
