@@ -151,6 +151,8 @@ function attach(win, { gameDir }) {
     const apply = () => win.webContents.enableDeviceEmulation({ screenPosition: hasFlag('--emulate-mobile') ? 'mobile' : 'desktop', screenSize: { width: +emu[1], height: +emu[2] }, viewPosition: { x: 0, y: 0 }, viewSize: { width: +emu[1], height: +emu[2] }, deviceScaleFactor: 1, scale: Number(emu[3]) || 0.5 });
     win.webContents.on('did-finish-load', apply);
   }
+  // GDE_BOOT_PROFILE=<ms>: a CPU profile of the first ms of the page (from dom-ready), for what the boot and the menu gate wait for (#247)
+  if (process.env.GDE_BOOT_PROFILE) win.webContents.once('dom-ready', () => runProfile(win, Number(process.env.GDE_BOOT_PROFILE)).catch((err) => console.log('[profile]', err.message)));
   if (storyTest) runStoryTest(win, storyTest.includes('=') ? storyTest.slice(storyTest.indexOf('=') + 1) : path.join(require('os').tmpdir(), 'gde-story-test'));
   if (smoke !== null) {
     win.webContents.on('console-message', function (e, legacyLevel, legacyMessage) {
