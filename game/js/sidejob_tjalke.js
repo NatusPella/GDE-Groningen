@@ -52,6 +52,7 @@ export default {
     d.nextTik = 0;
     d.soberT = 0;
     c.timeLeft = null;
+    c.world.drunkExempt = true;
     addDrunk(c.world, RIT.dronken);
     c.world.drunk = Math.max(c.world.drunk || 0, RIT.dronken);
     c.msg(TEKST.start, 4.5);
@@ -93,6 +94,7 @@ export default {
       else if (e.type === 'tik') c.msg(TEKST.tik[(e.n - 1) % TEKST.tik.length], 1.6);
       else if (e.type === 'slalom-klaar') c.msg(TEKST.slalomKlaar, 3.5);
       else if (e.type === 'politie') {
+        w.drunkExempt = false;
         w.wanted = Math.max(w.wanted || 0, e.sterren);
         w.wantedDecayTimer = 0;
         c.msg(e.ruw ? TEKST.politieRuw : TEKST.politieSchoon, 5);
@@ -130,6 +132,7 @@ export default {
   },
 
   stop(c) {
+    c.world.drunkExempt = false;
     stopPionnen();
     if (c.data.s && !c.data.s.klaar) c.msg(TEKST.weg, 3);
   },
