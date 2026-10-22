@@ -115,13 +115,16 @@ export function standTekst(z, wind) {
 }
 
 // --- roeien ---------------------------------------------------------------------------------------
-// Ritme: elke slag tussen 0.9 en 1.6 s na de vorige geeft voortstuwing; te snel of te laat niet.
+// Ritme: elke slag tussen 0.9 en 1.6 s na de vorige geeft voortstuwing; te laat een zwakke slag, te snel geen
+// kracht en de riemen haperen (zie roeiStap): wie op de toets hamert, vaart trager dan wie het ritme houdt (#28, in beeld gemeten:
+// hameren gaf een hogere topsnelheid dan het ritme).
 export function roeiSlag(st, nu) {
   const gap = st.laatste == null ? 1.2 : nu - st.laatste;
   const goed = gap >= 0.9 && gap <= 1.6;
+  const teSnel = gap < 0.9;
   st.laatste = nu;
   st.reeks = goed ? (st.reeks || 0) + 1 : 0;
-  const kracht = goed ? 1 + Math.min(st.reeks, 6) * 0.08 : 0.4;
+  const kracht = goed ? 1 + Math.min(st.reeks, 6) * 0.08 : teSnel ? 0 : 0.4;
   return { goed, kracht };
 }
 export function stepRoei(boot, kracht, dt, soort = BOOT_SOORTEN.roeiboot) {
