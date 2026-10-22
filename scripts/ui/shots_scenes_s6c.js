@@ -89,7 +89,8 @@ if (want('vrijgezellen')) {
   info.push('weekdag ' + CAL.weekdayOf(w.calendar.day) + ' klok ' + w.clock);
   const groepen = [];
   for (const [i, thema] of ['hawaii', 'konijn', 'tutu'].entries()) {
-    const lead = new PEm.Pedestrian(home.x + 10 * i, home.y + 6, 0);
+    const sp = map.findOpenSpawn(home.x + 12 * i, home.y + 4, 10) || { x: home.x + 12 * i, y: home.y + 4 };
+    const lead = new PEm.Pedestrian(sp.x, sp.y, 0);
     lead.angle = -Math.PI / 2 + 0.0;
     w.pedestrians.push(lead);
     const g = SLm.zetVrijgezellenNeer(w, lead, thema);

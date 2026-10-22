@@ -6,6 +6,8 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Nieuw
+- **Vrijgezellenfeestjes (#403; in Electron door Claude in beeld bekeken, niet door een mens gespeeld):** vooral op vrijdag- en zaterdagavond (en een beetje donderdagavond, zondagmiddag) loopt in het centrum en de studentenwijken soms een vrolijk groepje door de stad: een bruid in wit met een sluiertje en drie of vier gasten die allemaal in hetzelfde thema verkleed zijn (hawaï met bloemenkransen en zonnebrillen, konijnenoren of tutu's met een kroontje). Ze lopen waggelend en wat trager, juichen om de zoveel seconden met de armen omhoog (de hele groep na elkaar) en praten vriendelijk onder elkaar ("Nog één keer vrij!", "Op de aanstaande bruid!"). Maximaal één groepje tegelijk, op een drukke avond twee. Ze lopen als gewone voetgangers en blijven bij elkaar.
 ### Opgelost (samen spelen, playtest 22-10 met meerdere mensen, #388; getest met bots en één Electron-gast tegen een gescripte gastheer, niet door mensen gespeeld)
 - **Samen spelen: de camera van een gast draait weer met de muis:** een gast draait de wereld niet zelf, en daarmee ook niet het stukje dat de camerahoek bijhoudt; de camera stond dus vast. Nu draait hij mee, ook ingezoomd (langzamer).
 - **Samen spelen: niemand deelt nog een camera:** de camera keek vanuit het midden tussen twee spelers en stond daardoor verder weg en scheef. Elke speler heeft een eigen camera.
