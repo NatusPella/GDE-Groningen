@@ -51,6 +51,9 @@ export function roeiStap(v, tik, nu, dt, soort = BOOT_SOORTEN.roeiboot) {
     v.speed = Math.min(soort.maxSpeed, (v.speed || 0) + 0.35 * slag.kracht);
   }
   v.sailTop = v.roeiTop;
+  // de boot volgt de topsnelheid die het ritme geeft, zoals zeilStap dat met de wind doet: zonder dit bleef hij na een
+  // tik van 120 ms op W zo goed als stilstaan (in beeld gemeten: 0,5 m/s bij een top van 2,5)
+  if ((v.speed || 0) < v.sailTop) v.speed = Math.min(v.sailTop, (v.speed || 0) + soort.accel * dt);
   return slag;
 }
 
