@@ -581,7 +581,9 @@ while (true) {
     if (s.mission.stage === 'convoy') {
       // the leader waits for the slowest friend (the tractor, the scooter): beyond 170 m for 12 s the column falls apart
       const gaps = (world.vehicles || []).filter((v) => v.convoyMember && !v.wrecked).map((v) => Math.hypot(v.x - s.player.x, v.y - s.player.y));
-      top = Math.min(top, L.convoyPace(gaps, 11));
+      const pace = L.convoyPace(gaps, 11);
+      top = Math.min(top, pace);
+      if (pace < 3) detector.hold(s.t);   // waiting for them is no standing still
       if (ticks % 20 === 0) B.log('colonne', { gaps: gaps.map(Math.round), top: Math.round(top * 10) / 10 });
     }
     // a chase: the fleeing car cruises at 14 and runs at 28, the Fjord Frituur can do 50 (#354)
