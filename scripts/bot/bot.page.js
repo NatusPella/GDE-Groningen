@@ -142,7 +142,9 @@ function steerTowards(s, mode, tgt, stopAt, top = 24, stopR = null, direct0 = fa
       }
     }
     if (!c.reverse && wedge.update(s.t, s.player.vehicle.speed, c.throttle)) wedge.reset(), wedgeOut = true;
-    if (B.input.isDown('shift')) B.up('shift');
+    // a race on a bike (M05, the KEI week): Shift is a sprint of harder pedalling, and held down it starts the next one as soon as the breather is over
+    if (s.player.vehicle.kind === 'fiets' && s.mission.active && s.mission.type === 'checkpoint') B.down('shift');
+    else if (B.input.isDown('shift')) B.up('shift');
   } else {
     const radius = stopR != null ? stopR : (s.mission.triggerRadius || 8) * 0.6;
     if (direct < radius) { B.stick(0, 0); B.up('shift'); return direct; }
