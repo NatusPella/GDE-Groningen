@@ -95,7 +95,8 @@ ok(fresh.every((d) => d.heroCar), 'the new defs use the Escapade');
 // the finale card (story.js playFinale) is the epilogue and the studio of the script, word for word
 const E = ['E1', 'E2'].flatMap((id) => scene.get(id).lines).map((l) => [l.key === 'rikus' ? 'Rikus' : l.speaker, l.text]);
 ok(JSON.stringify(PARTS.ontzet.card) === JSON.stringify(E), 'PARTS.ontzet.card is E1 + E2 of the script');
-ok(PARTS.ontzet.finale === true && STEPS[STEPS.length - 1].id === 'E' && STEPS[STEPS.length - 1].built, 'the epilogue step is built and last');
+const lastOfAct5 = STEPS.filter((s) => s.part === 'ontzet').pop();
+ok(PARTS.ontzet.finale === true && lastOfAct5.id === 'E' && lastOfAct5.built, 'the epilogue step is built and the last of act 5 (Deel 4 follows it, see akte6_test)');
 ok(PARTS.ontzet.card[PARTS.ontzet.card.length - 1][0] === 'Rikus', 'the card ends in the studio (Rikus)');
 
 console.log(`${n - bad}/${n} act 5 checks passed`);
