@@ -151,7 +151,7 @@ export function bouwBaan(les, env) {
       } else {
         const p = env.pad;
         if (!p) return null;
-        b.merk = { x: p.x, y: p.y, r: Math.max(5, p.r || 6) };
+        b.merk = { x: p.x, y: p.y, r: Math.max(5, p.r || 6), z: p.z || 0 };
         const hoek = (env.strip ? env.strip.heading : 0) + Math.PI;
         const st = naar(p.x, p.y, hoek, 260);
         b.start = startOp(env, 'heli', st, HOEK(st, p), 55, 0);
@@ -450,7 +450,7 @@ export function bordRij(les, baan, st) {
     case 'ringen': return [['Ringen', `${st.goed}/${baan.ringen.length}`], ['Tijd', over + ' s']];
     case 'landen': return [['Afstand', st.tdAfstand != null ? Math.round(st.tdAfstand) + ' m' : '-'], ['Tijd', over + ' s']];
     case 'water': return [['Binnen de lijnen', baan.corridor.lengte > 0 ? Math.round(st.binnen / baan.corridor.lengte * 100) + '%' : '0%'], ['Afgelegd', `${Math.round(Math.min(st.afgelegd, baan.corridor.lengte))}/${Math.round(baan.corridor.lengte)} m`]];
-    case 'slalom': return [['Molens', `${st.goed}/${baan.molens.length}`], ['Volgende', baan.molens[st.i] ? baan.molens[st.i].naam + (baan.molens[st.i].kant > 0 ? ' (links)' : ' (rechts)') : '-']];
+    case 'slalom': return [['Molens', `${st.goed}/${baan.molens.length}`], ['Volgende', baan.molens[st.i] ? baan.molens[st.i].naam + (baan.molens[st.i].kant > 0 ? ' (houd hem links)' : ' (houd hem rechts)') : '-']];
     case 'nood': return [['Tijd', over + ' s'], ['Weiland', baan.veld.naam || 'in beeld']];
     case 'opening': return [['Openingen', `${st.goed}/${baan.poorten.length}`], ['Breedte', baan.poorten[st.i] ? Math.round(baan.poorten[st.i].breedte) + ' m' : '-']];
     case 'hoveren': return [['Stil', `${Math.floor(st.in)}/${baan.nodig} s`], ['Tijd', over + ' s']];
@@ -494,7 +494,7 @@ export function vliegtuigToetsen(c, t) {
   if (!c.onGround) { if (fout > 0.05) k.d = true; else if (fout < -0.05) k.a = true; }
   const vt = t.vaart || 45;
   if (c.speed < vt - 2) k.w = true; else if (c.speed > vt + 3) k.s = true;
-  const dvz = clamp(t.dz * 0.3, -5, 6);
+  const dvz = clamp((t.vz0 || 0) + t.dz * 0.3, -5, 6);
   if (!c.onGround) { if (c.vz < dvz - 0.8) k.spatie = true; else if (c.vz > dvz + 0.8) k.ctrl = true; }
   return k;
 }
@@ -592,7 +592,7 @@ export function richt(les, baan, st, c, env = {}) {
       else { const kijk = clamp(ds * 0.5 + 60, 100, 400); aim = { x: g.x + g.nx * (sa + dirn * kijk), y: g.y + g.ny * (sa + dirn * kijk) }; }
       const d = Math.hypot(c.x - g.x, c.y - g.y);
       const dz = mid + Math.min(45, d * 0.04) - c.agl;
-      return { x: aim.x, y: aim.y, dz, vaart: plane ? 45 : undefined, stil: 6 };
+      return { x: aim.x, y: aim.y, dz, vz0: d < 1125 && ds > 5 && sa * dirn <= 0 ? -0.04 * c.speed : 0, vaart: plane ? 45 : undefined, stil: 6 };
     }
     case 'hoveren': {
       const k = baan.cirkel;

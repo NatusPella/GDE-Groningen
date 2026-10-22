@@ -31,6 +31,9 @@ const PROFIELEN = [
   { vak: 'trein', naam: 'treinreis van 15 km', min: 1.5, xp: 15 * L.KM_XP.trein, uniek: 0.15, geld: 0 },
   { vak: 'buiten', naam: 'hengelen', min: 7, xp: 24, uniek: 0, geld: 10 },
   { vak: 'lucht', naam: 'helikopter, een vlucht', min: 6, xp: 22, uniek: 0, geld: 20 },
+  // de vliegschool: een les duurt twee tot vier minuten; alleen de eerste keer per medaille betaalt (25, 40 en 60 euro), opnieuw doen geeft 6 punten:
+  // gemiddeld over honderd lessen is dat ongeveer 12 punten en 10 euro per les (VLIEGSCHOOL in vliegschoolrules.js)
+  { vak: 'lucht', naam: 'vliegschool, een les', min: 3, xp: 12, uniek: 0.1, geld: 10 },
   { vak: 'horeca', naam: 'pannenkoekenschip, een dienst', min: 8, xp: 30, uniek: 0, geld: 20 },
 ];
 
@@ -60,7 +63,7 @@ t('geld uit missies, winkels, vondsten en reparaties loopt niet via de loopbaan'
 
 t('wat de loopbaan uitbetaalt loopt alleen via loopbaanVerdien of de loonfactor van het vak', () => {
   // elke haak die geld uitbetaalt staat hier; een nieuwe haak moet bewust worden toegevoegd (en hier verantwoord)
-  const haken = ['sidejobs.js', 'machinist.js', 'padel.js', 'driftzone.js', 'kermis.js', 'carbid.js', 'postgame.js', 'kartbaan.js', 'regatta.js', 'stationtravel.js', 'coopnet.js', 'loopbaanlive.js'];
+  const haken = ['sidejobs.js', 'machinist.js', 'padel.js', 'driftzone.js', 'kermis.js', 'carbid.js', 'postgame.js', 'kartbaan.js', 'regatta.js', 'stationtravel.js', 'coopnet.js', 'vliegschool.js', 'loopbaanlive.js'];
   const gevonden = fs.readdirSync(JS).filter((f) => f.endsWith('.js') && !/^loopbaan/.test(f) && /loopbaan(Verdien|Loon|Prijs|Gast)\(/.test(fs.readFileSync(JS + f, 'utf8')));
   assert.deepEqual(gevonden.sort(), haken.filter((f) => !/^loopbaan/.test(f)).sort());
 });
