@@ -58,6 +58,19 @@ function carFree(x, y) {
   try { return !Un.isInWater(world.map, x, y); } catch (e) { return true; }
 }
 
+// water on the way of a car (the canal beside a road, a pond): a fan of points ahead, 3 headings by a reach of about 1.6 s, as obstacles for avoidance() that
+// steer away and cap the speed. M01 sank in a pond, M10 and M14 went into the canal at a bend at 12 m/s (#312). A bridge is dry (isInWater has the veto).
+function waterAhead(car) {
+  const out = [], sp = Math.abs(car.speed || 0);
+  if (sp < 2) return out;
+  const reach = Math.max(8, Math.min(32, sp * 1.6));
+  for (const da of [-0.45, 0, 0.45]) for (let d = 5; d <= reach; d += 4) {
+    const a = car.angle + da, x = car.x + Math.cos(a) * d, y = car.y + Math.sin(a) * d;
+    if (!carFree(x, y)) out.push({ x, y, r: 1.6 });
+  }
+  return out;
+}
+
 function plan(s, mode, tgt) {
   const kind = mode === 'drive' ? 'drive' : 'walk';
   const me = { x: s.player.x, y: s.player.y };
@@ -142,7 +155,9 @@ function steerTowards(s, mode, tgt, stopAt, top = 24, stopR = null, direct0 = fa
     const avoid = mode === 'drive' && s.mission.active && (s.mission.stage === 'chase' || L.isStunt(s)) ? trafficAhead(me, tgt) : null;
     const car = { x: me.x, y: me.y, angle: s.player.vehicle.angle, speed: s.player.vehicle.speed };
     const curve = avoid && follower ? L.curveCap(follower.pts, follower.i, car) : null;
-    const c = L.carControls(car, aim, { stopAt: stopAt || !!rest, rest, top: mode === 'boat' ? Math.min(top, 9) : top, gentle: !!(s.mission.active && mdefE && mdefE.eggs), avoid, curveCap: curve });
+    const water = mode === 'drive' && !s.player.vehicle.boat ? waterAhead(car) : [];
+    const obstacles = water.length ? [...(avoid || []), ...water] : avoid;
+    const c = L.carControls(car, aim, { stopAt: stopAt || !!rest, rest, top: mode === 'boat' ? Math.min(top, 9) : top, gentle: !!(s.mission.active && mdefE && mdefE.eggs), avoid: obstacles, curveCap: curve });
     B.stick(c.steer, c.throttle ? -c.throttle : 0);
     // a chase is logged every 3 s: where, how fast, how far from the fleeing car, what stands in the lane (#354)
     if (avoid && s.mission.stage === 'chase') {
