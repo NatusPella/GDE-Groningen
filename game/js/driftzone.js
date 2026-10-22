@@ -13,6 +13,7 @@ import { activityBlock, iconDisc } from './activitykit.js';
 import { createRecorder, recordGhost, finishGhost, ghostAt, loadGhost, saveGhost } from './ghostreplay.js';
 import { showGhostCar } from './ghostmesh.js';
 import { KEYS } from './storagekeys.js';
+import { loopbaanVerdien } from './loopbaanlive.js';
 
 const DRIFT_ZONES = [
   { id: 'oost', name: 'Rotonde Oost', x: 1997, y: 666, r: 78, spot: { x: 2016.3, y: 722.6 } },
@@ -97,8 +98,7 @@ function finalize(w, why) {
   recordStat(w, 'driftRuns');
   if (medal >= 3) unlockAchievement(w, 'drift_goud');
   if (pts >= 5000) unlockAchievement(w, 'drift_5000');
-  const prize = Math.max(0, (PRIZE[medal] || 0) - (PRIZE[prev] || 0));
-  if (prize) { w.money += prize; if (w.coopDeel) w.coopDeel(prize); } // samen spelen (#365)
+  const prize = loopbaanVerdien(w, 'race', Math.max(0, (PRIZE[medal] || 0) - (PRIZE[prev] || 0)), { xp: 6 + medal * 2, n: 1, uniek: id }); // samen spelen (#365), loopbaan (#381)
   const lines = [`${pts} punten${medal ? ' · ' + MEDALS[medal].toLowerCase() : ''}`];
   if (rec && rec.newBest) lines.push('nieuw record');
   if (ghostSaved) lines.push('spookauto bewaard');

@@ -7,7 +7,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import {
   initAchievements, recordStat, setStatMax, recordUnique, unlockAchievement, recordMissionResult,
   getSaveSet, addToSaveSet, isUnlocked, MISSION_GOALS, GOLD_DAMAGE, SILVER_DAMAGE, MEDALS, EIERBAL_TOTAL, formatMissionTime,
-  ACHIEVEMENTS, getAchievementSummary,
+  ACHIEVEMENTS, getAchievementSummary, setStatListener, achievementsGated, lifetimeSnapshot,
 } from './achievements.js';
 import { vehicleContacts } from './vehicle.js';
 import { getTrains, getLevelCrossings, TRAIN_TYPES } from './railway.js';
@@ -18,6 +18,7 @@ import { getScene } from './scene3d.js';
 import { makeNearMiss, nearMissBonus } from './gamefeel.js';
 import { chipPopup } from './stunthud.js';
 import { noteMoney } from './finance.js';
+import { initLoopbaan, loopbaanOpStat, loopbaanKm, loopbaanTel, getProfiel } from './loopbaanlive.js';
 
 const NEAR_MISS_SPEED = 12;
 const NEAR_MISS_GAP = 0.9;
@@ -40,6 +41,7 @@ const seenKiss = new WeakSet();
 let lastPos = null;
 let prevWater = null;
 const acc = { driven: 0, walked: 0, swum: 0, sailed: 0, coopTime: 0 };
+const loopbaanM = { bus: 0, water: 0 }; // meters met een bus of een boot, voor de loopbaan (#381)
 let accT = 0;
 let slowT = 0;
 let wantedStreak = 0;
@@ -62,6 +64,8 @@ const SPEED_TYPES = (v) => (v.isBoat ? 'boot' : v.isBus ? 'bus' : v.isScooter ? 
 export function initAchievementTracker(w) {
   world = w;
   initAchievements(w);
+  initLoopbaan({ gate: achievementsGated, snapshot: lifetimeSnapshot });
+  setStatListener(loopbaanOpStat);
   contactCursor = vehicleContacts.head;
   w.onRespawn.push((ww, { busted }) => {
     unlockAchievement(ww, busted ? 'opgepakt' : 'wasted');
@@ -77,6 +81,7 @@ export function initAchievementTracker(w) {
       unique: (key, value) => recordUnique(world, key, value),
       mission: (i, time, opts = {}) => finishRun({ index: i, elapsed: time, damage: 0, maxWanted: 0, ...opts }, true),
       eggs: () => eggs.map((e) => ({ id: e.id, x: e.x, y: e.y, found: getSaveSet('eierballen').has(e.id) })),
+      loopbaan: { tel: (vak, o = {}) => loopbaanTel(world, vak, o), profiel: getProfiel },
       summary: getAchievementSummary,
       list: () => ACHIEVEMENTS.map((a) => a.id),
     };
@@ -182,7 +187,7 @@ function trackMovement(dt, w, p, pv) {
   if (lastPos) {
     const d = Math.hypot(p.x - lastPos.x, p.y - lastPos.y);
     if (d > 0 && d < 60 * dt + 1) {
-      if (pv) { if (pv.isBoat) acc.sailed += d; else acc.driven += d; }
+      if (pv) { if (pv.isBoat) { acc.sailed += d; loopbaanM.water += d; } else { acc.driven += d; if (pv.isBus) loopbaanM.bus += d; } }
       else if (p.swimming) acc.swum += d;
       else acc.walked += d;
     }
@@ -193,6 +198,7 @@ function trackMovement(dt, w, p, pv) {
   if (accT > 1) {
     accT = 0;
     for (const k of Object.keys(acc)) if (acc[k] > 0) { recordStat(w, k, Math.round(acc[k] * 10) / 10); acc[k] = 0; }
+    for (const k of Object.keys(loopbaanM)) if (loopbaanM[k] > 0) { loopbaanKm(w, k, loopbaanM[k]); loopbaanM[k] = 0; }
   }
   if (prevWater === 'climb' && !p.water && !p.inVehicle) {
     const lm = (w.map.meta.landmarks || []).find((l) => l.name === 'Martinitoren') || { x: 213.81, y: 9.9 };

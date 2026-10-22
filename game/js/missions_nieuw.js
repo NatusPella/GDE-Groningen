@@ -24,6 +24,7 @@ const AIRSTRIP = makeStrip(AIRSTRIP_SPEC);
 // The def pieces: walk(x, y) / drive(x, y) are missions.js's road spots.
 import { buildAkte4Defs, applyAkte4 } from './missions_akte4.js';
 import { buildAkte2Defs, applyAkte2 } from './missions_akte2.js';
+import { buildAkte6Defs } from './missions_akte6.js';
 
 export function buildNieuwDefs({ map, walk, drive, models = {} }) {
   const list = [];
@@ -180,6 +181,8 @@ export function buildNieuwDefs({ map, walk, drive, models = {} }) {
   list.push(...buildAkte5Defs({ map, walk, drive }));
   // akte 2 (missions_akte2.js): eieren, wierde, after the ids of acts 3 to 5 in NEW_MISSION_IDS
   list.push(...buildAkte2Defs({ models }));
+  // Deel 4 (missions_akte6.js): inpakken, wisselwoning, terug, proefbeleg, after the ids of act 2
+  list.push(...buildAkte6Defs());
   return list;
 }
 

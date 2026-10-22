@@ -39,10 +39,10 @@ const src = fs.readFileSync(new URL('js/missions.js', root), 'utf8');
 // --- the chain
 const first = STEPS.findIndex((s) => s.id === 'M07');
 const story = STEPS.slice(first);
-ok(first > 0 && story.at(-1).id === 'E', 'M07 to E are the last steps of the arc');
-ok(story.map((s) => s.id).join() === 'M07,M08,T1,M09,M10,T2,M11,M12,M13,M14,T3,M15,M16,M17,M18,M19,T4,M20,M21,M22,M23,M24,M25,M26,E', 'acts 2 to 5 in story order');
+ok(first > 0 && story.at(-1).id === 'M30', 'M07 to M30 are the last steps of the arc (Deel 4 follows E)');
+ok(story.map((s) => s.id).join() === 'M07,M08,T1,M09,M10,T2,M11,M12,M13,M14,T3,M15,M16,M17,M18,M19,T4,M20,M21,M22,M23,M24,M25,M26,E,M27,M28,M29,T5,M30', 'acts 2 to 5 and Deel 4 in story order');
 ok(new Set(STEPS.map((s) => s.id)).size === STEPS.length, 'step ids are unique');
-const partOrder = ['kop', 'romp', 'staart', 'zuid', 'ontzet'];
+const partOrder = ['kop', 'romp', 'staart', 'zuid', 'ontzet', 'nazomer'];
 let pi = 0;
 for (const s of STEPS) {
   const k = partOrder.indexOf(s.part);
@@ -61,13 +61,23 @@ for (const p of partOrder) ok(NPARTS[p].card && NPARTS[p].card.length >= 2, `${p
   const seen = [];
   for (let guard = 0; guard < 100; guard++) {
     const nx = nextStoryStep((id) => done.has(id), (i) => passed.has(i));
-    if (nx.finale) { ok(nx.end === 'ontzet', 'the walk ends on the finale of the last part', nx.end); break; }
+    if (nx.finale) { ok(nx.end === 'nazomer', 'the walk ends on the end of Deel 4, the last part', nx.end); break; }
     ok(!nx.end, 'the walk never hits a part end before the finale', JSON.stringify(nx.end));
     seen.push(nx.id);
     done.add(nx.id);
     if (nx.kind === 'mission') passed.add(missionIndexOf(nx.mission));
   }
   ok(seen.join() === STEPS.map((s) => s.id).join(), 'the walk visits every step once, in order', seen.length + '/' + STEPS.length);
+}
+// Deel 4 waits for the finale card of act 5: with the gate the walk stops on that card, and goes on once it has played
+{
+  const done = new Set(STEPS.filter((s) => s.part !== 'nazomer').map((s) => s.id)), passed = new Set(STEPS.filter((s) => s.kind === 'mission' && s.part !== 'nazomer').map((s) => missionIndexOf(s.mission)));
+  const closed = nextStoryStep((id) => done.has(id), (i) => passed.has(i), () => false);
+  ok(closed.finale === true && closed.end === 'ontzet' && closed.next === null, 'before the finale card the story ends on the finale of act 5 (Deel 4 waits)', JSON.stringify(closed.end));
+  const open = nextStoryStep((id) => done.has(id), (i) => passed.has(i), (p) => p === 'ontzet');
+  ok(open.id === 'M27', 'once the finale card has played, Deel 4 starts at M27', open.id || JSON.stringify(open));
+  const mid = new Set([...done, 'M27']);
+  ok(nextStoryStep((id) => mid.has(id), (i) => passed.has(i), () => false).id === 'M28', 'a save that is already in Deel 4 is not held back by the gate');
 }
 // a save in the middle: steps before k done -> k is next (by step ids, by passed missions only, and by passed missions with ids lost)
 STEPS.forEach((st, k) => {
@@ -92,7 +102,7 @@ const byIdx = (id) => defs[MISSION_IDS.indexOf(id)];
 const oud = A.MISSION_IDS.length - NEW_MISSION_IDS.length;
 ok(new Set(MISSION_IDS).size === MISSION_IDS.length, 'MISSION_IDS has no duplicates');
 // frozen: indices live in saves, so this list may only ever grow at the end
-const FROZEN = ['loket', 'bakkiestunt', 'containers', 'dijk', 'graan', 'bruggen', 'wiebelwerk', 'stoom', 'beleg', 'luik', 'colonne', 'eieren', 'wierde'];
+const FROZEN = ['loket', 'bakkiestunt', 'containers', 'dijk', 'graan', 'bruggen', 'wiebelwerk', 'stoom', 'beleg', 'luik', 'colonne', 'eieren', 'wierde', 'inpakken', 'wisselwoning', 'terug', 'proefbeleg'];
 ok(FROZEN.every((id, i) => NEW_MISSION_IDS[i] === id), 'NEW_MISSION_IDS keeps its frozen prefix (add-only)');
 ok(defs.length >= MISSION_IDS.length, 'a def per mission id', `${defs.length}/${MISSION_IDS.length}`);
 ok(MISSION_IDS.slice(0, oud).length === oud && MISSION_IDS.indexOf(NEW_MISSION_IDS[0]) === oud, 'the new ids come after the old ones');
@@ -154,7 +164,7 @@ for (const id of ['traumaduif', 'kroegentocht', 'fjord', 'vlag', 'skutsje']) {
 }
 
 // --- travel
-const TOWN = { Winsum: [53.3301, 6.5203], Warffum: [53.3845, 6.5612], Zoutkamp: [53.3377, 6.2986], Lauwersoog: [53.4063, 6.2053], Eemshaven: [53.4410, 6.8350], Winschoten: [53.1444, 7.0356], Veendam: [53.1058, 6.8756], Stadskanaal: [52.9889, 6.95], 'Ter Apel': [52.8780, 7.0600], Bourtange: [53.0069, 7.1914], Zuidhorn: [53.2481, 6.405] };
+const TOWN = { Winsum: [53.3301, 6.5203], Warffum: [53.3845, 6.5612], Zoutkamp: [53.3377, 6.2986], Lauwersoog: [53.4063, 6.2053], Eemshaven: [53.4410, 6.8350], Winschoten: [53.1444, 7.0356], Veendam: [53.1058, 6.8756], Stadskanaal: [52.9889, 6.95], 'Ter Apel': [52.8780, 7.0600], Bourtange: [53.0069, 7.1914], Zuidhorn: [53.2481, 6.405], Loppersum: [53.3306, 6.7494] };
 for (const st of STEPS.filter((s) => s.goal && s.goal.type === 'reis')) {
   const [x, y] = wgsToWorld(st.goal.at[0], st.goal.at[1]);
   ok(insideOutline(FALLBACK.outline, x, y), `${st.id}: the travel goal is inside the province`);
