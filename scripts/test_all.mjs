@@ -199,6 +199,8 @@ const ZWAAR = [
   ['randaudit', 'scripts/world/randaudit.mjs', [], 600, true],
   ['height_audit', 'scripts/world/height_audit.mjs', ['--strict'], 600, true],
   ['terrain_audit', 'scripts/world/terrain_audit.mjs', [], 600, true],
+  ['terrain_hoogte_audit', 'scripts/world/terrain_hoogte_audit.mjs', [], 900, true],
+  ['terrain_pariteit_stad', 'scripts/terrain_pariteit_test.mjs', ['--stad'], 2400, true],
   ['railprofile', 'scripts/world/railprofile.mjs', ['--strict'], 300, false],
   ['drive_audit', 'scripts/world/drive_audit.mjs', ['--strict'], 1800, true],
   ['bus_audit', 'scripts/bus_audit.mjs', ['--sim'], 1800, true],

@@ -1,7 +1,7 @@
 // Brug-beeld (#235): één headless Electron (wegwerpprofiel) maakt per brug drie beelden (a, b = 4 cm verschoven, c = a) op
 // vaste camerastanden (schuin op vier afstanden, op het dek op vijf plekken, onder het dek) en bij een beweegbare brug
 // een reeks tijdens het openen en sluiten. brug_beeld_analyse.mjs vergelijkt de beelden (flikkering = a-b boven de ruis a-c).
-//   node scripts/qa/brug_beeld.mjs --game-dir=<gestaged game-map> [--lijst=<json [{naam,x,y}]>] [--afstanden=25,60,150,350] [--out=<map>] [--alleen-lijst] [--hud] [--alleen-reeks]
+//   node scripts/qa/brug_beeld.mjs --game-dir=<gestaged game-map> [--lijst=<json [{naam,x,y}]>] [--plekken=<json>] [--url-flags=terrain] [--afstanden=25,60,150,350] [--out=<map>] [--alleen-lijst] [--hud] [--alleen-reeks]
 //   node scripts/qa/brug_beeld.mjs --modus=boot --lijst=<json { open: [{naam,x,y,boot}], bots: [{naam,x,y}] }> ...  (boten bij bruggen: brug_boot.page.js)
 // GDE_DESKTOP=<map> voor een desktop-map met node_modules; ELECTRON_EXE=<pad> als desktop/node_modules/electron/dist ontbreekt.
 // Neemt zelf een Electron-slot uit de slotenmap (GDE_LOCKS, standaard ~/gde-locks) als die map bestaat (--geen-slot slaat dat over).
@@ -49,7 +49,7 @@ if (!flag('geen-slot') && !process.env.GDE_SLOT_VAST && fs.existsSync(LOCKS)) {
 let r;
 try {
   r = spawnSync(electron, ['.', '--windowed', '--stil', '--force-device-scale-factor=1', '--window-size=1600x900',
-    `--smoke-test=${path.join(OUT, 'shots.png')}`, `--perf-script=${script}`],
+    `--smoke-test=${path.join(OUT, 'shots.png')}`, `--perf-script=${script}`, ...(arg('url-flags') ? [`--url-flags=${arg('url-flags')}`] : [])],
     { cwd: process.env.GDE_DESKTOP || path.join(ROOT, 'desktop'), env, encoding: 'utf8', maxBuffer: 1 << 28, timeout: 60 * 60 * 1000, killSignal: 'SIGKILL' });
 } finally {
   if (slot) try { fs.rmdirSync(slot); } catch { /* weg */ }
