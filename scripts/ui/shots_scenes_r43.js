@@ -143,7 +143,11 @@ if (want('bus3')) {
   info.push('bus op lijn: ' + (bus ? Math.round(bus.x) + ',' + Math.round(bus.y) + ' lijn ' + bus.busRun.line.ref + ' richting ' + bus.busRun.dir : 'geen'));
   if (bus) {
     const gh = (x, y) => (map.groundHeightAt ? map.groundHeightAt(x, y, 0) || 0 : 0);
-    const keep = setInterval(() => { if (bus) bus.speed = 0; }, 50);
+    // de speler 25 m achter de bus: voertuigen ver van de speler hebben geen mesh, de bus zou onzichtbaar zijn
+    const behind = { x: bus.x - Math.cos(bus.angle) * 25, y: bus.y - Math.sin(bus.angle) * 25 };
+    teleport(behind.x, behind.y);
+    const keep = setInterval(() => { if (bus) { bus.speed = 0; p.x = behind.x; p.y = behind.y; p.vx = p.vy = 0; } }, 50);
+    await sleep(4000);
     for (const [name, rel, R, up] of [['voor', 0, 12, 2.4], ['voor-dicht', 0, 9, 2.6], ['voor-schuin', 0.6, 10, 2.4], ['zij', Math.PI / 2, 7, 2.2]]) {
       const a = bus.angle + rel, g = gh(bus.x, bus.y);
       const pose = { position: { x: bus.x + Math.cos(a) * R, y: bus.y + Math.sin(a) * R, z: g + up }, lookAt: { x: bus.x + Math.cos(bus.angle) * (rel === 0 || rel === 0.6 ? 5.4 : 1.5), y: bus.y + Math.sin(bus.angle) * (rel === 0 || rel === 0.6 ? 5.4 : 1.5), z: g + 2.4 }, cut: true };
@@ -433,9 +437,19 @@ if (want('kaartlagen')) {
   teleport(holdK.x, holdK.y);
   await waitLoad();
 
-  // 1 de bus-bijbaan (Stadsbus lijn 3): haltes en route op de kaart
+  // 1 de buslijn-bijbaan (Streekbus Hunzedal, job 'lijn'): haltes en route op de kaart
   try {
-    const okB = SJ && SJ.start('bus');
+    const BL = D.world.vehicles && (await imp('vehicle')).getBusLines();
+    const idxB = await fetch('/world/index-provincie.json').then((r) => r.json()).catch(() => null);
+    const winsB = idxB && idxB.global.places.find((q) => q.name === 'Winsum' && q.kind !== 'suburb');
+    const lijnB = BL && winsB ? BL.map((l) => ({ l, d: Math.min(...l.pts.map((q) => Math.hypot(q[0] - winsB.x, q[1] - winsB.y))) })).sort((x, y) => x.d - y.d)[0] : null;
+    if (lijnB) {
+      const mB = lijnB.l.pts[Math.floor(lijnB.l.pts.length / 2)];
+      holdK.x = mB[0]; holdK.y = mB[1];
+      teleport(mB[0], mB[1]);
+      await waitLoad();
+    }
+    const okB = SJ && SJ.start('lijn');
     info.push('bus-bijbaan start ' + okB + ' ' + JSON.stringify((SJ && SJ.ctx && SJ.ctx() && { job: SJ.ctx().job.id, vehicle: !!SJ.ctx().vehicle }) || null));
     // de intro van de baas (een filmpje) wegdrukken, dan pas de kaart
     for (let k = 0; k < 14; k++) { await sleep(500); if (cine.isCinematicActive()) cine.skipCinematic(); }
@@ -474,8 +488,12 @@ if (want('kaartlagen')) {
       info.push('trein bestuurd ' + !!w.trainDriving);
       if (w.trainDriving) {
         w.wanted = 0; w.wantedDecayTimer = 0;
-        keyEv('keydown', 'g', 'KeyG'); await sleep(120); keyEv('keyup', 'g', 'KeyG');
-        await sleep(2500);
+        const MC = await imp('machinist');
+        for (let k = 0; k < 4 && !MC.getServiceMapState(w); k++) {
+          keyEv('keydown', 'g', 'KeyG'); await sleep(250); keyEv('keyup', 'g', 'KeyG');
+          await sleep(1500);
+          info.push('G-poging ' + (k + 1) + ' dienst ' + !!MC.getServiceMapState(w) + ' bericht ' + JSON.stringify((w.messages || w.msgs || []).slice(-2)));
+        }
         holdK.x = p.x; holdK.y = p.y;
         layerInfo('trein');
         await both('trein', 3);
