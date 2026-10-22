@@ -49,6 +49,14 @@ export function boardText(line, dir = 1) {
   return { ref: ledText(ref, 4), dest: ledText(dest), color: lineColor(line.ref), key: `${ref}|${dest}` };
 }
 
+// De lijn en richting van een bus: de lijnbus van de spawner (busRun) of de bus van de bijbaan Streekbus
+// (rideLine, gezet door sidejob_lijn.js): dan volgt het bord de rit, niet de dichtstbijzijnde lijn.
+// null voor een bus zonder eigen lijn.
+export function busLineOf(v) {
+  const r = v && (v.busRun || v.rideLine);
+  return r && r.line && r.dir ? { line: r.line, dir: r.dir } : null;
+}
+
 // Naam van halte i (op volgorde van de lijn, niet van de rit): de uiteinden
 // dragen de plaatsnaam, de haltes ertussen een verzonnen naam.
 export function stopLabel(line, i) {

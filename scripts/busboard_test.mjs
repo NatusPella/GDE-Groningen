@@ -1,6 +1,6 @@
 import assert from 'node:assert';
 import { prepareLine } from '../game/js/busroutes.js';
-import { boardText, ledText, placeOf, lineColor, nextStopInfo, stopAnnouncement, lineEnds, stopLabel, roundDist, BOARD_COLS, LINE_COLORS } from '../game/js/busboard.js';
+import { boardText, busLineOf, ledText, placeOf, lineColor, nextStopInfo, stopAnnouncement, lineEnds, stopLabel, roundDist, BOARD_COLS, LINE_COLORS } from '../game/js/busboard.js';
 
 const raw = { id: 1, ref: '75', from: 'Groningen, Hoofdstation', to: 'Winsum, Busstation', pts: [[0, 0], [2000, 0]], stops: [{ x: 0, y: 0 }, { x: 600, y: 0 }, { x: 1300, y: 0 }, { x: 2000, y: 0 }] };
 const line = prepareLine(raw);
@@ -40,6 +40,17 @@ const tail = nextStopInfo(ring, 1, ring.length - 30);
 assert.ok(tail.wrapped && !tail.last && tail.index === 0 && tail.dist > 30 - 1e-6 && tail.dist < 80);
 assert.strictEqual(roundDist(340), '340 m');
 assert.strictEqual(roundDist(1500), '1,5 km');
+// de bus van de bijbaan (#386): bord en HUD-kaartje volgen de rit (rideLine), niet de dichtstbijzijnde lijn; de lijnspawner (busRun) blijft voorgaan
+const andere = prepareLine({ id: 3, ref: '312', from: 'Groningen, Hoofdstation', to: 'Eemshaven', pts: [[0, 0], [2000, 0]], stops: [{ x: 0, y: 0 }, { x: 900, y: 0 }, { x: 2000, y: 0 }] });
+assert.strictEqual(busLineOf(null), null);
+assert.strictEqual(busLineOf({}), null);
+assert.strictEqual(busLineOf({ rideLine: { line: andere, dir: 0 } }), null);
+const rit = busLineOf({ rideLine: { line: andere, dir: -1 } });
+assert.strictEqual(rit.line, andere);
+assert.strictEqual(rit.dir, -1);
+assert.strictEqual(boardText(rit.line, rit.dir).ref, '312');
+assert.strictEqual(nextStopInfo(rit.line, rit.dir, 1500).index, 1);
+assert.strictEqual(busLineOf({ busRun: { line, dir: 1 }, rideLine: { line: andere, dir: -1 } }).line, line);
 console.log('busboard_test ok');
 import { lineDirection } from '../game/js/busboard.js';
 assert.strictEqual(lineDirection(line, 500, 3, 0), 1);
