@@ -64,7 +64,8 @@ function getWorker(i = 0) {
       const rt = performance.now() - j.t0, ks = kindStat(j.kind);
       geoStats.maxRoundTrip = Math.max(geoStats.maxRoundTrip, rt);
       ks.n++; ks.sumMs += rt; ks.maxMs = Math.max(ks.maxMs, rt);
-      if (ms !== undefined) { ks.execMs = (ks.execMs || 0) + ms; ks.execMax = Math.max(ks.execMax || 0, ms); }
+      // the round trip minus the kernel's own time: the wait in the queue and for the main thread to take the answer
+      if (ms !== undefined) { ks.execMs = (ks.execMs || 0) + ms; ks.execMax = Math.max(ks.execMax || 0, ms); ks.waitMax = Math.max(ks.waitMax || 0, rt - ms); }
       j.done(result);
     };
     worker.onerror = (e) => { e.preventDefault(); fail(e.message || 'error'); };
