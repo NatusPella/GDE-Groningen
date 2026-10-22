@@ -17,7 +17,7 @@ import {
 } from './vehicle.js';
 import { DEAD_DURATION } from './pedconst.js';
 import { attachCarry, carryPose } from './streetlife3d.js';
-import { buildPersonMesh, animatePersonWalk, applyAttackPose, applyHitReaction, setHeldWeapon, seatPose, seatedY, waveOverlay, carryOverlay, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
+import { buildPersonMesh, animatePersonWalk, applyAttackPose, applyHitReaction, setHeldWeapon, seatPose, seatedY, waveOverlay, juichOverlay, carryOverlay, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
 import { syncDoorsNear, vraagVoorAnim } from './vehicledoors3d.js';
 import { syncCabins } from './cabin3d.js';
 import { syncHaltefiguren } from './haltefiguren3d.js';
@@ -26,6 +26,7 @@ import { vehicleSeat, placeSeated, makeSeatTracker, trackSeat, drawTransition, s
 import { updateCarInterior } from './carinterior.js';
 import { updateSwimmers3D } from './swimmers3d.js';
 import { neutralPose, applyPose } from './actoranim.js';
+import { waggel, juichSterkte, juichHoek } from './vrijgezellen.js';
 import { sprongStand, zwemStand, klimStand, fietsHouding } from './bewegingrules.js';
 import { driveRagdoll, syncBikeRider } from './ragdoll.js';
 import { applyWeatherToScene3D } from './weather.js';
@@ -2194,7 +2195,7 @@ function buildPedActor(p) {
 // how many frames a walker's pose stays: 1 (every frame), 2 or 4. Manhattan distance to the player in metres (a Euclid distance of up to 1.4 less).
 const PED_TIER_2 = 55, PED_TIER_4 = 130;
 function pedTier(manhattan, p, now) {
-  if (p.ragdoll || p.pose || p.carry || p.heldWeapon || p.attackFx || p.hitReact || p.greetUntil > now) return 1;
+  if (p.ragdoll || p.pose || p.carry || p.party || p.heldWeapon || p.attackFx || p.hitReact || p.greetUntil > now) return 1;
   if (perfOff('pedtier')) return simLevel() && manhattan > 45 ? 2 : 1;
   return manhattan > PED_TIER_4 ? 4 : manhattan > PED_TIER_2 ? 2 : 1;
 }
@@ -2208,6 +2209,20 @@ function holdSkeleton(mesh, hold) {
     sk.update = function () { if (!this.__held.hold) this.__held.real.call(this); };
   }
   sk.__held.hold = hold;
+}
+// Een vrijgezellenfeestje (vrijgezellen.js, #403): een waggelende looppas (de figuur kantelt zijwaarts om zijn lengteas en schommelt een beetje
+// opzij) en af en toe een juichbeurt met beide armen omhoog (p.cheerFrom..cheerUntil, gezet door streetlife.js).
+function partyPose(mesh, p, now) {
+  if (mesh.rotation.order !== 'YXZ') mesh.rotation.order = 'YXZ';
+  const w = waggel(now, p.waggelSeed || 0, p.speed || 0);
+  mesh.rotation.x = w.kantel;
+  mesh.position.x += -Math.sin(p.angle) * w.zij;
+  mesh.position.z += Math.cos(p.angle) * w.zij;
+  if (p.cheerUntil > now && now >= (p.cheerFrom || 0)) {
+    const k = juichSterkte(now, p.cheerUntil);
+    const h = juichHoek(now, k);
+    juichOverlay(mesh, now, h.links, h.rechts, h.spring, k);
+  }
 }
 function syncPedestrianMeshes(world, player, animDt) {
   pedClock += animDt || 1e-4;
@@ -2295,6 +2310,7 @@ function syncPedestrianMeshes(world, player, animDt) {
       waveOverlay(mesh, world.time + (p._lookSeed || 0), Math.min(1, left / 0.3, (2.4 - left) / 0.3));
     }
     if (p.hitReact) applyHitReaction(mesh, p.hitReact, world.time, p.angle);
+    if (p.party) partyPose(mesh, p, world.time);
   }
 
   for (let i = pedFadingOut.length - 1; i >= 0; i--) {
