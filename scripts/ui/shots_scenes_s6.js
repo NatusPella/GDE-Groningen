@@ -166,24 +166,27 @@ if (want('zwemklim')) {
     await sleep(1800);
     info.push('water ' + p.water + ' tilt ' + (p.swimTilt || 0).toFixed(2) + ' gz ' + (p.gz || 0).toFixed(2) + ' z ' + (p.z || 0).toFixed(2) + ' wade ' + (p.wade || 0).toFixed(2));
     const side = spot.b + Math.PI / 2;
-    const cands = [[side, 2.6], [side + Math.PI, 2.6], [spot.b + Math.PI + 0.9, 3.2], [spot.b + 0.9, 3.2]];
-    for (const [k, [ang, d]] of cands.entries()) await follow('zwem-stil-' + 'abcd'[k], Math.cos(ang) * d, Math.sin(ang) * d, 0.9);
-    // zwemmen in beweging: de bewaker laat los en W beweegt
+    // de gewone spelcamera (een cinematic-camera in de gracht wordt door de kade omhoog gedrukt); de speler kijkt naar de kant
+    const snap = async (name, wait = 700) => { await sleep(wait); console.log('[capture] ' + name); await sleep(700); done.push(name); };
+    w.camYaw = spot.b + Math.PI / 2;
+    await snap('zwem-stil');
     holdB = null;
     keyEv('keydown', 'w', 'KeyW');
-    await sleep(600);
+    await sleep(900);
     info.push('zwemt ' + JSON.stringify({ vx: +p.vx.toFixed(1), water: p.water }));
-    for (const [k, [ang, d]] of cands.entries()) await follow('zwem-beweging-' + 'abcd'[k], Math.cos(ang) * d, Math.sin(ang) * d, 0.9, 30);
+    await snap('zwem-beweging', 100);
     keyEv('keyup', 'w', 'KeyW');
     clearInterval(keepW);
-    p.x = spot.x; p.y = spot.y;
+    p.x = spot.x; p.y = spot.y; p.vx = p.vy = 0;
     await sleep(300);
     p.startClimb({ x: spot.cs.x, y: spot.cs.y });
-    for (const [i, ms] of [[1, 150], [2, 150], [3, 150], [4, 200]]) {
-      await sleep(ms);
-      const [ang, d] = cands[(i - 1) % 4];
-      await follow('klim-' + i + 'abcd'[(i - 1) % 4], Math.cos(ang) * d, Math.sin(ang) * d, 1.1, 20);
+    // het klimmen duurt 0,6 s, korter dan een opname: de voortgang wordt per beeld vastgezet
+    for (const k of [0.15, 0.4, 0.65, 0.9]) {
+      const iv = setInterval(() => { if (p.climb) p.climb.t = k * 0.6; }, 8);
+      await snap('klim-' + Math.round(k * 100), 400);
+      clearInterval(iv);
     }
+    await sleep(1200);
     info.push('na klimmen water ' + p.water + ' z ' + (p.z || 0).toFixed(2));
   }
   done.push('zwemklim');
@@ -235,6 +238,55 @@ if (want('hek')) {
   done.push('hek');
 }
 
+// ---- zwemstand op droog land (poseproef: de gracht heeft geen bruikbare camera, zie zwemklim) ----
+if (want('zwempose')) {
+  clearInterval(skipper);
+  w.clock = 14;
+  const open = map.findOpenSpawn(100, 77, 120) || { x: 100, y: 77 };
+  teleport(open.x, open.y);
+  p.angle = 0; w.camYaw = 0;
+  await settle();
+  teleport(open.x, open.y);
+  // de stand hangt aan player.swimming; op het droge zet het spel dat terug, dus elke 5 ms opnieuw
+  const force = setInterval(() => { p.swimming = true; p.swimTilt = -0.85; }, 5);
+  await sleep(500);
+  keyEv('keydown', 'w', 'KeyW');
+  for (const i of [1, 2, 3]) { await sleep(300); await follow('zwempose-' + i, 0.3, 3.2, 0.7, 30); }
+  keyEv('keyup', 'w', 'KeyW');
+  await sleep(600);
+  await follow('zwempose-stil', 0.3, 3.2, 0.7, 30);
+  clearInterval(force);
+  p.swimming = false; p.swimTilt = 0;
+  await sleep(500);
+  done.push('zwempose');
+}
+
+// ---- op een autodak klimmen (de klimstand; de klim in slow motion) ----
+if (want('autodak')) {
+  clearInterval(skipper);
+  w.clock = 14;
+  const open = map.findOpenSpawn(100, 77, 120) || { x: 100, y: 77 };
+  const car = new VH.Vehicle(open.x + 8, open.y, 0, { name: 'sedan', len: 4.4, wid: 1.8, maxSpeed: 30, accel: 6, brake: 12, turnRate: 1.6, color: '#c0c0c0' });
+  car.parked = true; car.speed = 0; w.vehicles.push(car);
+  teleport(open.x, open.y);
+  p.angle = 0; w.camYaw = 0;
+  await settle();
+  teleport(open.x, open.y);
+  p.angle = 0; w.camYaw = 0;
+  await sleep(500);
+  keyEv('keydown', 'w', 'KeyW');
+  for (let i = 0; i < 80 && !p.vault; i++) {
+    await sleep(40);
+    if (!p.vault && car.x - p.x < 3.2 && !p.__jumped) { p.__jumped = true; keyEv('keydown', ' ', 'Space'); await sleep(50); keyEv('keyup', ' ', 'Space'); }
+  }
+  info.push('autodak: vault ' + (p.vault ? (p.vault.climb ? 'klim' : 'sprong') : 'nee') + ' x ' + (p.x - open.x).toFixed(1));
+  if (p.vault) { p.vault.time = 3.6; keyEv('keyup', 'w', 'KeyW'); }
+  for (let i = 1; i <= 4; i++) { await follow('autodak-' + i, 0.3, 5.0, 1.3, 10); info.push('autodak ' + i + ' u ' + (p.vaultU || 0).toFixed(2) + ' z ' + (p.z || 0).toFixed(2)); }
+  keyEv('keyup', 'w', 'KeyW');
+  await sleep(1500);
+  const ci = w.vehicles.indexOf(car); if (ci >= 0) w.vehicles.splice(ci, 1);
+  done.push('autodak');
+}
 
 clearInterval(skipper);
 return done.concat(info);

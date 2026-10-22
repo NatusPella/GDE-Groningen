@@ -2758,8 +2758,10 @@ export function update3D(dt, world) {
       animatePersonWalk(playerMesh, Math.hypot(player.vx, player.vy), animDt);
       if (player.vault && Number.isFinite(player.vaultU)) vaultPose(playerMesh, player.vaultU, !!player.vault.climb, world.time);
       else if (player.swimming && !player.inVehicle) {
-        // zwemmen (#207): schoolslag bij beweging, rustig watertrappelen als je stilligt
-        zwemStand(world.time * (Math.hypot(player.vx, player.vy) > 0.3 ? 1 : 0.4), bewegPose);
+        // zwemmen (#207): schoolslag bij beweging, rustig watertrappelen als je stilligt; uit het water
+        // klimmen (water 'climb') is hand over hand omhoog, ruim één slag in de klimtijd
+        if (player.water === 'climb' && player.climb) klimStand(player.climb.t * 3.5, bewegPose);
+        else zwemStand(world.time * (Math.hypot(player.vx, player.vy) > 0.3 ? 1 : 0.4), bewegPose);
         applyPose(playerMesh.userData, bewegPose);
       }
       if (player.sofaSeat != null) { seatPose(playerMesh); playerMesh.position.y = seatedY(playerMesh, (player.gz || 0) + player.sofaSeat); }
