@@ -1401,6 +1401,10 @@ build without `world/` (the dev server) gets stad.json alone: roads, rails and t
   object, into the same grids) on the `FrameQueue` (a few ms a frame).
   Until F1 the systems read whole arrays and one elevation model, so the
   city is pinned; the arrays and the elevation model keep to the pinned set.
+  The store decodes the map sections with their row ids aside (`section.gids`,
+  `decodeBlob(bytes, aside)`): the rows the game keeps carry no id field, and a
+  `delete` of it would turn every row into a dictionary-mode object (#314,
+  `scripts/perf/pinned_meet.mjs`, `mapquery_bench.mjs`).
 - **Store.** `TileStore` keeps an LRU of decoded tiles under a byte budget
   (150 MB), pins, a request queue by priority with `AbortController`
   cancellation (`cancel(token)`), at most four reads at once, and
