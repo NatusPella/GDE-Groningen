@@ -22,7 +22,7 @@ const tile = (i) => ({ i, j: 0, sections: [
   { type: G.SECTION.FURNITURE, rows: [{ gid: i * 10 + 4, k: 'hedge', pts: [[i * 1000 + 400, 100], [i * 1000 + 450, 100]], osm: 1 }, { gid: i * 10 + 5, k: 'lamp', pts: [[i * 1000 + 5, 5]] }] },
 ] });
 const state = (tw) => JSON.stringify({
-  res: Object.fromEntries(Object.entries(tw._res).map(([k, m]) => [k, [...m.entries()].map(([g, e]) => [g, [...e.tiles].sort()]).sort((a, b) => a[0] - b[0])])),
+  res: Object.fromEntries(Object.entries(tw._res).map(([k, m]) => [k, [...m.entries()].map(([g, e]) => [g, [e.t, ...(e.more || [])].filter((x) => x !== undefined).sort()]).sort((a, b) => a[0] - b[0])])),
   grids: ['buildingGrid', 'greenGrid', 'hedgeGrid'].map((g) => { const all = new Set(); if (tw[g]) for (const a of tw[g].map.values()) for (const o of a) all.add(o); return all.size; }),
   furniture: tw.furniture ? tw.furniture.length : 0, resident: [...tw.resident].sort(),
 });

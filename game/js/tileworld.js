@@ -28,6 +28,8 @@ const KIND_OF = new Map([
   [SECTION.TREES, 'trees'], [SECTION.RAILS, 'rails'], [SECTION.CANOPIES, 'canopies'], [SECTION.PASSAGES, 'passageWays'],
   [SECTION.FURNITURE, 'furniture'], [SECTION.PARCELS, 'parcels'],
 ]);
+// the sections whose rows the game keeps without their id (rowsOf)
+const ID_ASIDE = [...KIND_OF.keys()];
 const GRID_OF = { buildings: 'buildingGrid', roads: 'roadGrid', water: 'waterGrid', green: 'greenGrid', trees: 'treeGrid', rails: 'railGrid', parcels: 'parcelGrid' };
 // A province tile's water row carries kind, lv, dp and nav (waterlevels.js
 // annotateProvinceWater): it joins the water grid like the city's, so boats,
@@ -37,12 +39,25 @@ const gridOf = (kind, obj) => (kind === 'water' && obj.flat && obj.nav === undef
 
 // the objects of one tile section as the game holds them, with their ids
 const GID = new WeakMap(); // decoded row -> its id (the game's objects carry no gid field)
+// The rows the game keeps have no id field. A delete of the id (the first key of a decoded row) turns the row into a
+// dictionary-mode object: every building, road and water of the city then weighs ~45 MB more and costs a hash lookup per
+// property read (checked with %HasFastProperties). So the tiles of the store are decoded with the ids aside (`section.gids`,
+// gdt.js readTableG); a row that still has its id (fromTiles with hand-made tiles) is copied without it.
 function rowsOf(kind, section) {
-  return section.rows.map((row) => {
+  const rows = section.rows, gids = section.gids;
+  return rows.map((row, k) => {
     // a tree: [x, y] plus species, height (dm) and flags when the tile has them (greenery.js)
     if (kind === 'trees') return { gid: row.g, obj: row.s !== undefined ? [row.p[0][0], row.p[0][1], row.s, row.h, row.f || 0] : row.p[0] };
+    if (gids) return { gid: gids[k], obj: row };
     let gid = GID.get(row);
-    if (gid === undefined) { gid = row.gid; delete row.gid; GID.set(row, gid); }
+    if (gid === undefined) {
+      if ('gid' in row) {
+        const { gid: id, ...rest } = row;
+        gid = id;
+        row = rows[k] = rest;
+      }
+      GID.set(row, gid);
+    }
     return { gid, obj: row };
   });
 }
@@ -75,6 +90,24 @@ function boundsOfObj(kind, o) {
 // a city tile the city's data leaves empty, store key 'o' + the tile's) 'o' + its place.
 const residentKey = (i, j, key) => (key && key[0] === 'o' ? 'o' : '') + `${i},${j}`;
 
+// The tiles an object is resident in. Nearly every object lies in one tile: that key sits in `t`, and only an object that
+// several tiles hold (a road across a border) gets a Set in `more`. A Set per object cost ~190 bytes of the ~150.000 rows
+// of the city and its overlays (scripts/perf/pinned_meet.mjs).
+function holdIn(e, tk) {
+  if (e.t === undefined) e.t = tk;
+  else if (e.t !== tk) (e.more || (e.more = new Set())).add(tk);
+}
+// true when tile tk was the last to hold the object (false: it still lies in another, or tk never held it)
+function releaseFrom(e, tk) {
+  if (e.t === tk) {
+    if (e.more && e.more.size) { e.t = e.more.values().next().value; e.more.delete(e.t); if (!e.more.size) e.more = undefined; return false; }
+    e.t = undefined;
+    return true;
+  }
+  if (e.more && e.more.delete(tk) && !e.more.size) e.more = undefined;
+  return false;
+}
+
 export class TileWorld extends GameMap {
   // global: decoded global blob; tiles: decoded tiles of the pinned set
   static fromTiles(global, tiles) {
@@ -93,8 +126,8 @@ export class TileWorld extends GameMap {
         if (!kind) continue;
         for (const { gid, obj } of rowsOf(kind, s)) {
           let e = res[kind].get(gid);
-          if (!e) { e = { obj, tiles: new Set() }; res[kind].set(gid, e); arrays[kind][gid] = obj; }
-          e.tiles.add(key);
+          if (!e) { e = { obj }; res[kind].set(gid, e); arrays[kind][gid] = obj; }
+          holdIn(e, key);
         }
       }
     }
@@ -119,8 +152,6 @@ export class TileWorld extends GameMap {
       (map.parcelGrid || (map.parcelGrid = new SpatialGrid(64))).insert(e.obj, e.obj.bounds);
     }
     for (const [, e] of res.furniture || []) if (e.obj.k === 'hedge' && e.obj.pts) (map.hedgeGrid || (map.hedgeGrid = new SpatialGrid(64))).insert(e.obj, polygonBounds(e.obj.pts));
-    map._gidOf = new WeakMap();
-    for (const kind of Object.keys(res)) for (const [gid, e] of res[kind]) if (typeof e.obj === 'object') map._gidOf.set(e.obj, gid);
     map.terrain = terrain;
     map.tileQueue = new FrameQueue();
     map.store = null;
@@ -155,9 +186,8 @@ export class TileWorld extends GameMap {
         if (twins && twins.size && twins.has(obj)) continue;
         let e = this._res[kind].get(gid);
         if (!e) {
-          e = { obj, tiles: new Set() };
+          e = { obj };
           this._res[kind].set(gid, e);
-          if (kind !== 'trees') this._gidOf.set(obj, gid);
           if (kind === 'buildings' || kind === 'roads' || kind === 'water' || kind === 'green' || kind === 'rails' || kind === 'parcels') obj.bounds = boundsOfObj(kind, obj);
           if (kind === 'water') { promoteMainWaterway(obj); this._waterVer = (this._waterVer || 0) + 1; newWater.push(obj); }
           if (kind === 'roads') newRoads.push(obj);
@@ -169,7 +199,7 @@ export class TileWorld extends GameMap {
           // the mapped hedges (OSM barrier=hedge): the countryside draws none of its own beside them (hedgeNear)
           if (kind === 'furniture' && obj.k === 'hedge' && obj.pts) (this.hedgeGrid || (this.hedgeGrid = new SpatialGrid(64))).insert(obj, polygonBounds(obj.pts));
         }
-        e.tiles.add(tk);
+        holdIn(e, tk);
         held.push(kind, gid);
       }
     }
@@ -252,7 +282,7 @@ export class TileWorld extends GameMap {
     if (this.terrain) this.terrain.drop(tk);
     const goneRoads = [];
     const release = (kind, gid, e) => {
-      if (!e.tiles.delete(tk) || e.tiles.size) return;
+      if (!releaseFrom(e, tk)) return;
       this._res[kind].delete(gid);
       if (kind === 'roads' && e.obj.z) goneRoads.push(e.obj);
       if (kind === 'water') this._waterVer = (this._waterVer || 0) + 1;
@@ -320,7 +350,7 @@ export async function loadTileWorld(base = 'world/', { source = new HttpRangeSou
     const { name, only = null } = typeof x === 'string' ? { name: x } : x;
     try { mergeIndex(index, JSON.parse(new TextDecoder().decode(await source.readAll(name))), { only }); } catch (e) { /* not in this build */ }
   }
-  const decode = (pool && makeWorkerDecoder(new URL('./tileworker.js', import.meta.url), 2)) || decodeCompressed;
+  const decode = (pool && makeWorkerDecoder(new URL('./tileworker.js', import.meta.url), 2, ID_ASIDE)) || ((bytes) => decodeCompressed(bytes, ID_ASIDE));
   const store = new TileStore({ source, index, decode, ...opts });
   const g = index.global;
   const globalBlob = decodeBlob(await inflateRaw(await source.read(index.packs[g.pack].file, g.off, g.len)));

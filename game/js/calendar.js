@@ -89,17 +89,25 @@ export const DEEL4_STEP_DAYS = {
 // the seven voorrondes of the Ommelander Ronde, in the order they are won by default
 export const VOORRONDE_STEPS = ['O6', 'O10', 'O14', 'O18', 'O22', 'O27', 'O31'];
 
+// Deel 4 "Nazomer" of the story (docs/verhaal/nieuw/DEEL4.md): after the epilogue, still summer (before 22 september)
+export const NAZOMER_STEP_DAYS = { M27: day(9, 14), M28: day(9, 15), M29: day(9, 17), T5: day(9, 19), M30: day(9, 19) };
+
 export const STEP_DAY = new Map();
 {
   let last = 1;
   for (const s of STEPS) {
     if (STEP_DATES[s.id] != null) last = day(8, STEP_DATES[s.id]);
     else if (s.id === 'E') last = EPILOGUE_DAY;
+    else if (NAZOMER_STEP_DAYS[s.id] != null) last = NAZOMER_STEP_DAYS[s.id];
     else if (DEEL4_STEP_DAYS[s.id] != null) last = DEEL4_STEP_DAYS[s.id];
     STEP_DAY.set(s.id, last);
   }
 }
-export const partStartDay = (part) => day(8, parseInt(PARTS[part].date, 10));
+export const partStartDay = (part) => {
+  const [date, month] = PARTS[part].date.split(' ');
+  const m = MONTHS.indexOf(month);
+  return day(m >= 0 ? m + 1 : 8, parseInt(date, 10));
+};
 
 // The days a story view (story.js getStoryView, or { id } / { end, finale })
 // allows: the current step's day at the earliest (the story moves the date on),

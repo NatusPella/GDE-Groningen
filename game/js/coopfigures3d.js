@@ -53,7 +53,7 @@ export function syncFigures(world, dt) {
     let e = meshes.get(f.slot);
     if (needsRebuild(e.char, f)) { dispose(scene, e); e = build(scene, f); meshes.set(f.slot, e); }
     const map = world.map;
-    if (map && map.elev && map.elev.has && map.groundHeightAt) { try { f.gz = map.groundHeightAt(f.x, f.y); } catch (er) { /* hoogte onbekend: vlak */ } }
+    if (map && map.elev && map.elev.has && map.groundHeightAt) { try { f.gz = map.groundHeightAt(f.x, f.y, f.gz || 0); } catch (er) { /* hoogte onbekend: vlak */ } }
     e.mesh.visible = !f.coopVoertuig && !filmpje; // wie meerijdt zit in het voertuig (#372); in een filmpje staan alleen de spelers van de scène in beeld (#376)
     e.mesh.position.set(f.x, (f.gz || 0) + (f.z || 0), f.y);
     e.mesh.rotation.y = -(f.angle || 0);

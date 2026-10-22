@@ -18,6 +18,14 @@ ok(items.map(([a]) => a).join() === 'solo,samen,news,settings,about,exit', 'verd
 ok(/it\.act === 'solo'[\s\S]{0,500}openSaveSlots\(\{ mode: 'start', solo: true/.test(start), 'Alleen spelen opent Opgeslagen spellen met solo');
 ok(/window\.__menuStart\s*=/.test(start), 'het QA-haakje __menuStart bestaat');
 
+// #380: onder de knoppen geen uitlegzinnetjes meer, niet in de opbouw van het menu en niet in de stijl; de knoppen houden hun naam
+const itemsSrc = start.slice(start.indexOf('const items = []'), start.indexOf('const itemHtml'));
+const itemHtmlSrc = start.slice(start.indexOf('const itemHtml'), start.indexOf('menu.innerHTML'));
+ok(!/<small>/.test(itemHtmlSrc) && !/\bsub:/.test(itemsSrc), 'het menu bouwt geen uitlegzinnetjes onder de knoppen');
+ok(/class="ss-item ss-hero"[^`]*aria-label="\$\{it\.label\}"[^`]*title="\$\{it\.label\}"/.test(itemHtmlSrc), 'Alleen spelen en Samen spelen houden aria-label en title');
+ok(!/\.ss-(item|hero) small/.test(read('game/js/startscreen.css')), 'de stijl van het startscherm kent geen small onder de knoppen meer');
+ok(!/Moi! Stap in en rij|Met een vriend of vriendin, tot 4 spelers|Doorgaan, een nieuw spel of een ander/.test(start), 'de zinnetjes zelf staan niet meer in startscreen.js');
+
 const ui = read('game/js/saveslotsui.js');
 ok(/const solo = mode === 'start' && !!opts\.solo/.test(ui), 'saveslotsui kent solo');
 ok(/ssl-hero/.test(ui) && /Doorgaan<\/span>|>Doorgaan</.test(ui) || /Doorgaan/.test(ui), 'Doorgaan staat boven het raster');

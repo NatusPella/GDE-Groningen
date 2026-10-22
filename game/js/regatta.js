@@ -8,6 +8,7 @@ import { WATER_Y } from './util.js';
 import { createRegatta, stepRegatta, regattaMedaille, regattaVoortgang, REGATTA, windHoek } from './zeilrules.js';
 import { kiesBaan, richtTijd } from './regattabaan.js';
 import { maakBots, stepBots, speelPlaats, plaatsTekst } from './regattabots.js';
+import { loopbaanVerdien } from './loopbaanlive.js';
 
 // Zeilregatta (#197): een activiteit die de speler NIET overneemt. Zit je in een zeilboot bij een
 // jachthaven, dan start E de regatta: vier tonnen op open water, twee rondes, in volgorde ronden.
@@ -89,11 +90,12 @@ function finish(w, { quit = false } = {}) {
   const rr = r.reg, rm = regattaMedaille(rr), medal = rm ? 4 - rm : 0;
   const rec = recordChallengeResult(w, 'regatta', { value: rr.tijd, medal, lower: true });
   recordStat(w, 'regatta');
+  const premie = loopbaanVerdien(w, 'race', [0, 15, 25, 40][medal] || 0, { xp: 18 + medal * 3, n: 1, uniek: 'regatta' }); // loopbaan (#381)
   const plaats = speelPlaats(rr, w.player.x, w.player.y, r.bots);
   const stats = [['Plaats', plaatsTekst(plaats, r.bots.length + 1)], ['Tijd', fmtTime(rr.tijd)], ['Richttijd', fmtTime(rr.richttijd)], ['Tonnen', String(rr.gerond)]];
   if (medal) stats.push(['Medaille', MEDALS[medal]]);
   if (rec && rec.newBest) stats.push(['Record', 'Nieuw!']);
-  gameUi.showBanner({ kind: medal ? 'pass' : 'fail', title: medal === 3 ? 'WINNAAR VAN DE REGATTA' : medal ? 'MOOI GEVAREN' : 'UITGEVAREN', reason: medal ? 'Twee rondes langs alle tonnen' : 'Je was niet snel genoeg voor een medaille: let op de wind', reward: 0, stats });
+  gameUi.showBanner({ kind: medal ? 'pass' : 'fail', title: medal === 3 ? 'WINNAAR VAN DE REGATTA' : medal ? 'MOOI GEVAREN' : 'UITGEVAREN', reason: medal ? 'Twee rondes langs alle tonnen' : 'Je was niet snel genoeg voor een medaille: let op de wind', reward: premie, stats });
 }
 
 function start(w) {

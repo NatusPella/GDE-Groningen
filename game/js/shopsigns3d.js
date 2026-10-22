@@ -46,7 +46,7 @@ function build(b) {
   const L = signLayout(f);
   if (!geo) geo = new THREE.PlaneGeometry(1, 1);
   const text = signText(f.name);
-  const mesh = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ map: texFor(text, f.sign) }));
+  const mesh = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ map: texFor(text, f.sign), polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -8 }));
   mesh.scale.set(L.w, L.h, 1);
   mesh.position.set(L.x, L.y, L.z);
   mesh.rotation.y = L.rotY;
