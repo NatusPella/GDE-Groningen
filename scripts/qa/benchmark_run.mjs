@@ -4,6 +4,7 @@
 //   kaart:    een volledige run, de kaart met echte cijfers wordt vastgelegd (screenshot + tekst + knoppen)
 //   annuleer: na 20 s een Escape; de overlay hoort weg te zijn en er hoort geen kaart te komen
 //   annuleer-pad: hetzelfde met knop B van een nagebootste controller (--knop=9: Start; #379)
+//   --heapprof=<ms>: de levende objecten aan het eind van die tijd per aanroepplek (HeapProfiler, desktop/devtools.js), naar de log
 //   --heap [--gc]: legt de JS-heap vast (elke 10 s; met --gc ook na een gedwongen GC, #379)
 //   vergelijk: een run, daarna "Nog een keer": de tweede kaart hoort de vorige run te noemen
 // Eén Electron (slot uit gde-locks, wegwerpprofiel, BelowNormal). GDE_GAME_DIR=<map>\game en ELECTRON_EXE als de worktree geen build heeft.
@@ -38,7 +39,7 @@ if (fs.existsSync(LOCKS) && !process.argv.includes('--geen-slot')) {
 
 const profile = `gde-test-bm-${process.pid}`;
 const script = path.join(OUT, '_page.js');
-fs.writeFileSync(script, `window.__bm = ${JSON.stringify({ modus: MODUS, maxS: MAX, knop: Number(arg('knop', 1)), heap: process.argv.includes('--heap'), gc: process.argv.includes('--gc') })};\n` + fs.readFileSync(path.join(HERE, 'benchmark_run.page.js'), 'utf8'));
+fs.writeFileSync(script, `window.__bm = ${JSON.stringify({ modus: MODUS, maxS: MAX, knop: Number(arg('knop', 1)), heap: process.argv.includes('--heap'), heapprof: Number(arg('heapprof', 0)), gc: process.argv.includes('--gc') })};\n` + fs.readFileSync(path.join(HERE, 'benchmark_run.page.js'), 'utf8'));
 const electron = process.env.ELECTRON_EXE || path.join(ROOT, 'desktop', 'node_modules', 'electron', 'dist', process.platform === 'win32' ? 'electron.exe' : 'Electron');
 // GDE_MENU_TEST: het spel blijft op het titelscherm; de pagina start de benchmark daar zoals de knop dat doet (event gde-benchmark, de route 'bench').
 // --dev-vlag: `--benchmark` zou de lange trailerroute ('vol') draaien, niet de route van de speler.

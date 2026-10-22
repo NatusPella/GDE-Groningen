@@ -23,6 +23,7 @@ const heapNow = (label) => {
   if (r) { row.geometrieen = r.info.memory.geometries; row.textures = r.info.memory.textures; }
   heapLog.push(row);
 };
+if (BM.heapprof) console.log('[heapprof] ' + BM.heapprof + ' live');
 if (BM.heap) { heapNow('titelscherm'); setInterval(() => heapNow('run'), 10000); }
 // het titelscherm, dan het event van de knop (de luisteraar hangt pas aan als het menu er is: opnieuw vragen als het overlay uitblijft)
 for (let i = 0; i < 240; i++) { const ss = document.getElementById('start-screen'); if (ss && ss.classList.contains('visible')) break; await sleep(500); }
@@ -81,6 +82,8 @@ await sleep(1500); // de kaart faded in
 console.log('[capture] benchmark-kaart-echt');
 out.runSeconden = Math.round((performance.now() - t1) / 1000);
 if (BM.heap) heapNow('kaart');
+// het spel moet blijven staan tot het heapprofiel (--heapprof) klaar is
+if (BM.heapprof) await sleep(Math.max(0, BM.heapprof - (performance.now() - t0)) + 4000);
 out.tekst = c.innerText.replace(/\s+/g, ' ').slice(0, 700);
 out.categorieen = [...c.querySelectorAll('.tr-cats span')].map((e) => e.innerText.replace(/\s+/g, ' '));
 out.vergelijking = (c.querySelector('.tr-cmp') || {}).innerText || '';
@@ -97,6 +100,7 @@ if (BM.modus === 'vergelijk') {
   else {
     await sleep(1500);
     console.log('[capture] benchmark-kaart-tweede');
+    if (BM.heap) heapNow('kaart2');
     out.tekst2 = c2.innerText.replace(/\s+/g, ' ').slice(0, 700);
     out.vergelijking2 = (c2.querySelector('.tr-cmp') || {}).innerText || '';
   }
