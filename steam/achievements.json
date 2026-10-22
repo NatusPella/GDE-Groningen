@@ -706,6 +706,30 @@
       "steamApiNaam": ""
     },
     {
+      "id": "vlieg_geslaagd",
+      "titel": "Eerste vlieglesje",
+      "omschrijving": "Haal een les bij Vliegschool De Windwijzer op Eelde",
+      "verborgen": false,
+      "voorstelApiNaam": "ACH_VLIEG_GESLAAGD",
+      "steamApiNaam": ""
+    },
+    {
+      "id": "vlieg_goud",
+      "titel": "Goud in de lucht",
+      "omschrijving": "Haal goud bij een vliegles",
+      "verborgen": false,
+      "voorstelApiNaam": "ACH_VLIEG_GOUD",
+      "steamApiNaam": ""
+    },
+    {
+      "id": "vlieg_brevet",
+      "titel": "Vliegbrevet",
+      "omschrijving": "Haal alle dertien lessen van de vliegschool, met vliegtuig en helikopter",
+      "verborgen": false,
+      "voorstelApiNaam": "ACH_VLIEG_BREVET",
+      "steamApiNaam": ""
+    },
+    {
       "id": "carillon_klaar",
       "titel": "Klokkenspeler",
       "omschrijving": "Speel een deuntje op de klokken van de Martinitoren",
