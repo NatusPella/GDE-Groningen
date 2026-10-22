@@ -625,8 +625,11 @@ Stand 22 oktober (#269, tweede pas, branch `claude/s11-ahn-ff51c9`): `?terrain` 
   boven de vlakke grond; `terrainlift.js` tilt wegen (hoekpunt voor hoekpunt, met hun basis), gebouwen (de laagste grond onder de voet) en bomen op; `farlod.js` ook.
   Straatmeubilair, voertuigen en mensen gebruiken al `groundHeightAt`. **Blijft vlak:** water en oevers (het water ligt op zijn vaste peil, de kade is dus
   een rand), gras en akkers van het platteland, heggen en hekken, spoor en treinen, daken om op te lopen, de verre weergave van groen.
-- **Gemeten** (stad uit de OSM-bouw, `network_drive_test --terrain`-ritten, 3220): vlak opgelost 419 van 2584 ritten en 118 van 418 watersteken mislukt; nu
-  76 van 3220 en 2 van 418. (Het getal ritten is hoger omdat er nu meer wegen een profiel hebben.) Wat nog mislukt: ritten over knopen van meerdere dekken met verschillende basis (N46 bij 3130,-823 en 1971,-1935, Emmaviaduct, N7 bij -54,1827) en over dienstwegen langs een dijk; twee derde is `springt` (een kuif waar een auto net loskomt).
+- **Gemeten** (stad uit de OSM-bouw, `network_drive_test --terrain`-ritten, 3224): vlak opgelost 419 van 2584 ritten en 118 van 418 watersteken mislukt; nu
+  72 van 3224 en 2 van 418. (Het getal ritten is hoger omdat er nu meer wegen een profiel hebben.) Wat nog mislukt: ritten over knopen van meerdere dekken met verschillende basis (N46 bij 3130,-823 en 1971,-1935, Emmaviaduct, N7 bij -54,1827) en over dienstwegen langs een dijk; twee derde is `springt` (een kuif waar een auto net loskomt).
+- **Gekeken** (Electron, headless, `brug_beeld.mjs --plekken --url-flags=terrain`, stage van 22-10 op deze branch): een heuvel van 31 m (1845,-2330) rijst uit de grond met het kronkelpad en de bomen erop,
+  de N7 in zijn bak, de N46-knoop, het Emmaviaduct en de binnenstad (gebouwen staan rechtop op de terp, geen gezonken of zwevende voet). Zonder de vlag is dezelfde plek vlak. **Nog niet bekeken:** een dorp op een wierde
+  van dichtbij, auto's die in beeld over het reliëf rijden (alleen in `network_drive_test` gemeten), de verre weergave van de provincie, de oever langs water naast een dijk.
 - **Audits en tests:** `terrainprofiel_test.mjs` (reliëf, basis van een dek, oplosser over een dijk, rijen, raam, audits, grond, optillen), `terrain_pariteit_test.mjs`
   (zonder vlag gelijk; `--stad` meet de hele stad), `scripts/world/terrain_hoogte_audit.mjs` (op de gebouwde tegels: sprongen, voegen, hellingen, vaste bruggen over vaarwater),
   `network_drive_test.mjs --terrain` (`--zflat` voor de vlakke profielen). Beelden: `scripts/qa/brug_beeld.mjs --plekken=<json> --url-flags=terrain`.
