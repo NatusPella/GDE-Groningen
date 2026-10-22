@@ -138,7 +138,9 @@ ok(G.hash64(gRaw) === index.global.hash && sameBytes(gRaw, built.global), 'globa
 {
   const want = src.map.roads.map((r, gid) => [r, gid]).filter(([r]) => r.z);
   ok(!heights.conflict, 'heights: copies in different tiles agree', heights.conflict);
-  ok(heights.size === want.length && want.every(([r, gid]) => {
+  // (a road that has only a terrain profile, zt without z, has a row too, #269)
+  const tOnly = src.map.roads.filter((r) => !r.z && r.zt && r.zt.length).length;
+  ok(heights.size === want.length + tOnly && want.every(([r, gid]) => {
     const h = heights.get(gid);
     return h && h.z.length === r.z.length && h.z.every((v, i) => v === r.z[i]) && h.st.length === r.pts.length - 1 && Number.isInteger(h.pnet);
   }), `heights: ${want.length} profiles back exactly, with structure and network`, `${heights.size}`);
