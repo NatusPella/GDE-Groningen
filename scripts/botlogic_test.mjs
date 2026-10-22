@@ -20,6 +20,15 @@ const near = (a, b, e = 1e-6) => Math.abs(a - b) < e;
   ok(xs.every((v) => v >= 0 && v < 1), 'waarden in [0, 1)');
 }
 
+// --- colonne (M23): de leider wacht op de laatste ------------------------------------
+{
+  ok(L.convoyPace([10, 20, 30], 11) === 11, 'colonne: bij elkaar, volle snelheid');
+  ok(L.convoyPace([], 11) === 11, 'colonne: zonder leden volle snelheid');
+  ok(L.convoyPace([10, 100], 11) < 11 && L.convoyPace([10, 100], 11) >= 2, 'colonne: 100 m achter, rustig aan');
+  ok(L.convoyPace([10, 125], 11) === 0, 'colonne: ver achter, stilstaan');
+  ok(L.convoyPace([60], 11) > L.convoyPace([90], 11), 'colonne: hoe verder achter, hoe trager');
+}
+
 // --- voetstick: inverse van player.js cameraRelativeMove ----------------------------
 {
   const move = (ax, ay, camYaw) => { const c = Math.cos(camYaw), s = Math.sin(camYaw); return Math.atan2(s * -ay + c * ax, c * -ay - s * ax); };

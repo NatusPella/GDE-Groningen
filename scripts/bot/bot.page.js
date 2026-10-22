@@ -553,7 +553,12 @@ while (true) {
     // eggs break on a rough road above 8.5 m/s (M09) and a convoy falls apart when the lead car runs away (M23)
     const mdef = (M.getMissionDefs() || [])[s.mission.index];
     if (mdef && mdef.eggs) top = Math.min(top, 7);
-    if (s.mission.stage === 'convoy') top = Math.min(top, 11);
+    if (s.mission.stage === 'convoy') {
+      // the leader waits for the slowest friend (the tractor, the scooter): beyond 170 m for 12 s the column falls apart
+      const gaps = (world.vehicles || []).filter((v) => v.convoyMember && !v.wrecked).map((v) => Math.hypot(v.x - s.player.x, v.y - s.player.y));
+      top = Math.min(top, L.convoyPace(gaps, 11));
+      if (ticks % 20 === 0) B.log('colonne', { gaps: gaps.map(Math.round), top: Math.round(top * 10) / 10 });
+    }
     // a chase: the fleeing car cruises at 14 and runs at 28, the Fjord Frituur can do 50 (#354)
     if (s.mission.stage === 'chase' && s.player.vehicle && !s.player.vehicle.boat) top = Math.max(top, 36);
     if (act.stunt && s.player.vehicle) {

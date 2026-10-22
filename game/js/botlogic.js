@@ -85,6 +85,15 @@ export function curveCap(pts, from, car, { look = 60, aLat = 7, brake = 8, floor
   return cap;
 }
 
+// The speed that keeps a convoy together (M23, game/js/convoyrules.js: warning at 90 m, apart after 12 s beyond 170 m): the leader waits for the one
+// furthest behind. gaps: metres from the leader to each member. Full `top` up to 40 m, easing off to a crawl at 100 m, standing still from 120 m.
+export function convoyPace(gaps, top = 11) {
+  const worst = Math.max(0, ...(gaps || []).filter(Number.isFinite));
+  if (worst >= 120) return 0;
+  if (worst <= 40) return top;
+  return Math.max(2, top * (1 - (worst - 40) / 60));
+}
+
 // Steering and pedals for a car at `car` ({x, y, angle, speed}) heading for `target`.
 // steer: -1..1 (positive turns right, like D); throttle: 1 gas, -1 brake/reverse, 0 coast.
 // opts.stopAt: true to come to rest at the target (opts.rest: from that many metres the wanted speed is 0); opts.top: speed limit in m/s.
