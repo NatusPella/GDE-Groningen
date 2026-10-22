@@ -12,6 +12,7 @@ import { loopbaanVerdien, loopbaanTel } from './loopbaanlive.js';
 import { assistGate, assistTime } from './assistlive.js';
 import { pointInPolygon, WATER_Y } from './util.js';
 import { waterAt } from './waterlevels.js';
+import { canvasTex } from './canvastex.js';
 import * as R from './vliegschoolrules.js';
 
 // Vliegschool De Windwijzer bij Groningen Airport Eelde (#397), naast Rotor Roelf: dertien korte lessen met het
@@ -24,7 +25,7 @@ import * as R from './vliegschoolrules.js';
 // `window.__vliegschool` (debug): stand(), start(id), state(), finish(), quit(), lessen().
 const ACCENT = '#e7b83a';
 const DEALER = { x: 1764.51, y: 9959.94 };
-const INTRO_S = 3.2;
+const INTRO_S = 4.5;
 const SCHOOL_HEALTH = 400;
 
 let worldRef = null;
@@ -41,14 +42,83 @@ function laadPlekken() {
 }
 
 // --- de plek van de school ---------------------------------------------------------------------------------------
+// De afstand van een punt tot de dichtstbijzijnde autoweg (m), of 99 als de tegels er (nog) niet zijn.
+function wegAfstand(map, x, y) {
+  let best = 99;
+  for (const r of map.roadsNear ? map.roadsNear(x, y, 40) : []) {
+    if (!(r.cat === 'major' || r.cat === 'normal' || r.cat === 'minor') || r.tunnel) continue;
+    const P = r.pts, hw = (r.width || 6) / 2;
+    for (let i = 0; i < P.length - 1; i++) {
+      const dx = P[i + 1][0] - P[i][0], dy = P[i + 1][1] - P[i][1], L2 = dx * dx + dy * dy || 1e-9;
+      const t = Math.max(0, Math.min(1, ((x - P[i][0]) * dx + (y - P[i][1]) * dy) / L2));
+      best = Math.min(best, Math.hypot(P[i][0] + dx * t - x, P[i][1] + dy * t - y) - hw);
+    }
+  }
+  return best;
+}
+
+// Een open plek naast de baan, ruim van de weg: de eerste keer als de speler er in de buurt is (dan zijn de tegels er) opnieuw gekozen.
 function stand() {
   const w = worldRef;
   const s = w && w.planeStrip;
-  if (standCache && (standCache.strip || !s)) return standCache;
-  const q = s ? s.point(14, -20) : { x: DEALER.x + 22, y: DEALER.y - 14 };
-  const o = (w && w.map && w.map.findOpenSpawn && w.map.findOpenSpawn(q.x, q.y, 25)) || q;
-  standCache = { x: o.x, y: o.y, strip: !!s };
+  const dichtbij = !!(w && w.player && s && Math.hypot(w.player.x - s.x, w.player.y - s.y) < 250);
+  if (standCache && (standCache.zeker || (standCache.strip && !dichtbij) || !s)) return standCache;
+  const kand = s ? [] : [{ x: DEALER.x + 22, y: DEALER.y - 14 }];
+  if (s) for (const langs of [10, 30, 60]) for (const dwars of [-18, 18, -26, 26]) kand.push(s.point(langs, dwars));
+  let beste = null;
+  for (const q of kand) {
+    const o = (w && w.map && w.map.findOpenSpawn && w.map.findOpenSpawn(q.x, q.y, 12)) || q;
+    const weg = dichtbij && w.map ? wegAfstand(w.map, o.x, o.y) : 99;
+    const score = Math.min(weg, 30) * 3 - Math.hypot(o.x - (s ? s.x : DEALER.x), o.y - (s ? s.y : DEALER.y)) * 0.1;
+    if (!beste || score > beste.score) beste = { x: o.x, y: o.y, score };
+  }
+  standCache = { x: beste.x, y: beste.y, strip: !!s, zeker: dichtbij };
+  if (balie) { scene3dRemove(balie); balie = null; }
   return standCache;
+}
+
+// --- het bordje bij de balie --------------------------------------------------------------------------------------------
+let balie = null;
+function scene3dRemove(o) { const sc = getScene(); if (sc && o) sc.remove(o); }
+function bouwBalie(w) {
+  const scene = getScene();
+  if (!scene) return null;
+  const st = stand();
+  const gz = groundAt(w.map)(st.x, st.y);
+  const grp = new THREE.Group();
+  grp.name = 'vliegschool-balie';
+  const hout = new THREE.MeshStandardMaterial({ color: 0x6a4a2c, roughness: 0.9 });
+  const mast = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.1, 3.2, 8), hout);
+  mast.position.y = 1.6;
+  grp.add(mast);
+  const bord = new THREE.Mesh(new THREE.PlaneGeometry(3.4, 1.3), new THREE.MeshBasicMaterial({ side: THREE.DoubleSide, map: canvasTex(512, 192, (g) => {
+    g.fillStyle = '#17304a'; g.fillRect(0, 0, 512, 192);
+    g.strokeStyle = '#e7b83a'; g.lineWidth = 8; g.strokeRect(8, 8, 496, 176);
+    g.fillStyle = '#f4efe0'; g.font = 'bold 54px Arial'; g.textAlign = 'center';
+    g.fillText('VLIEGSCHOOL', 256, 84); g.fillStyle = '#e7b83a'; g.font = 'bold 44px Arial'; g.fillText('De Windwijzer', 256, 142);
+  }) }));
+  bord.position.set(0, 2.9, 0.12);
+  grp.add(bord);
+  // een windzak aan een tweede mast, oranje en wit
+  const mast2 = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.07, 5, 6), new THREE.MeshStandardMaterial({ color: 0xcfcfcf }));
+  mast2.position.set(4, 2.5, 0);
+  grp.add(mast2);
+  const zak = new THREE.Mesh(new THREE.ConeGeometry(0.5, 2.4, 10, 1, true), new THREE.MeshBasicMaterial({ color: 0xff7a2a, side: THREE.DoubleSide }));
+  zak.rotation.z = Math.PI / 2;
+  zak.position.set(5.3, 4.9, 0);
+  grp.add(zak);
+  grp.position.set(st.x, gz, st.y);
+  const s = w.planeStrip;
+  grp.rotation.y = s ? -s.heading + Math.PI / 2 : 0; // het bord kijkt naar de baan
+  scene.add(grp);
+  return grp;
+}
+function updateBalie(w) {
+  if (!w || !w.player) return;
+  const st = stand();
+  const d = Math.hypot(w.player.x - st.x, w.player.y - st.y);
+  if (!balie && d < 600) balie = bouwBalie(w);
+  if (balie) balie.visible = d < 800;
 }
 
 // --- de omgeving voor de regels -----------------------------------------------------------------------------------------
@@ -540,6 +610,7 @@ export const VLIEGSCHOOL = standActivity({
   tick(dt, w) {
     worldRef = w;
     if (!plekken) laadPlekken();
+    updateBalie(w);
     if (!game) return;
     if (game.fase === 'menu') tekenMenu(); else tekenVlucht(w, dt);
   },
