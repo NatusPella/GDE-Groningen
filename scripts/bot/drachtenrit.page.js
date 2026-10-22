@@ -78,6 +78,7 @@ while (act.active() && performance.now() - t0 < wall) {
   if (s.blocking.pauseMenu) { await B.press('escape'); continue; }
   const veh = player.inVehicle;
   if (!veh) {
+    if (!log.uitgestapt) { log.uitgestapt = true; B.log('uitgestapt', { x: Math.round(player.x), y: Math.round(player.y), berichten: s.hud.messages.slice(0, 3), wanted: s.wanted }); }
     // uit de auto (gestopt door de politie, of een botsing): terug in
     const v2 = jobAuto();
     if (v2) { if (Math.hypot(player.x - v2.x, player.y - v2.y) > 3) { player.x = v2.x + 2.5; player.y = v2.y; } await B.press('e', 400); await sleep(800); }
@@ -122,6 +123,7 @@ const c = ctx();
 log.tikken = c && c.data && c.data.s ? c.data.s.pionnen : null;
 const klaar = !act.active();
 const geld = Math.round(world.money - money0);
-B.log('einde-rit', { klaar, geld, sterren: log.sterren, fasen: log.fasen, tikken: log.tikken, wedges, wallS: Math.round((performance.now() - t0) / 1000) });
+const laatste = window.__debug && window.__debug.sidejobs && window.__debug.sidejobs.last ? window.__debug.sidejobs.last() : null;
+B.log('einde-rit', { laatste, berichten: B.status().hud.messages.slice(0, 3), klaar, geld, sterren: log.sterren, fasen: log.fasen, tikken: log.tikken, wedges, wallS: Math.round((performance.now() - t0) / 1000) });
 const ok = klaar && geld >= RIT.PRIJS.basis;
 return JSON.stringify({ result: ok ? 'KLAAR' : 'MISLUKT', reason: ok ? 'de rit is gereden' : `klaar ${klaar}, geld ${geld}, fasen ${log.fasen.map((f) => f[1]).join('>')}`, ...log, geld, wedges });
