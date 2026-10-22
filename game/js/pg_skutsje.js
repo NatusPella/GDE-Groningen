@@ -8,6 +8,7 @@ import { getChallengeRecord } from './achievements.js';
 import { isInWater, boatDryPoints, clamp } from './util.js';
 import { waterPolyAt } from './waterlevels.js';
 import { finish, jelle, setTarget } from './pghost.js';
+import { weerWindVan } from './zeilrules.js';
 
 // Skûtsje-sprint: two skûtsjes, no motors, from the Oosterhaven along the
 // southern Diepenring to the Hoge der A. Speed comes from the wind
@@ -64,8 +65,7 @@ export function jelleSpeed(theta, strike, gap) {
 }
 
 function windFrom(w) {
-  const a = w.weather && Number.isFinite(w.weather.windAngle) ? w.weather.windAngle : 0.4;
-  return a + Math.PI;
+  return weerWindVan(w.weather);
 }
 
 function offWind(heading, wf) {

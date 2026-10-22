@@ -127,9 +127,9 @@ export function pickJingle(keys, lastKey, { chance = 0.6, rng = Math.random } = 
 // in turn (radio.js voices them), `jingles` whether the G-Music jingles run.
 export const STATION_NAME = 'G-Music';
 export const PROGRAMMES = [
-  { id: 'ochtend', from: 6, to: 10, name: 'Proat in de ochtend', sub: 'Geesje met het nieuws, het verkeer en het weer', music: 'gmusic', jingles: true, every: 2, talk: ['ident', 'news', 'traffic', 'weather', 'ad', 'clip', 'traffic', 'cows'] },
-  { id: 'dag', from: 10, to: 18, name: 'De hits', sub: 'Muziek, met af en toe het nieuws', music: 'gmusic', jingles: true, every: 3, talk: ['clip', 'ad', 'news', 'weather', 'cows', 'clip', 'traffic'] },
-  { id: 'avond', from: 18, to: 22, name: 'Avondproat', sub: 'Geesje, de koeien en Kiekdoar', music: 'gmusic', jingles: true, every: 3, talk: ['news', 'cows', 'ad', 'rikus', 'clip', 'weather'] },
+  { id: 'ochtend', from: 6, to: 10, name: 'Proat in de ochtend', sub: 'Geesje met het nieuws, het verkeer en het weer', music: 'gmusic', jingles: true, every: 2, talk: ['ident', 'news', 'traffic', 'weather', 'ad', 'clip', 'traffic', 'cows', 'reclame'] },
+  { id: 'dag', from: 10, to: 18, name: 'De hits', sub: 'Muziek, met af en toe het nieuws', music: 'gmusic', jingles: true, every: 3, talk: ['clip', 'ad', 'news', 'weather', 'cows', 'reclame', 'clip', 'traffic'] },
+  { id: 'avond', from: 18, to: 22, name: 'Avondproat', sub: 'Geesje, de koeien en Kiekdoar', music: 'gmusic', jingles: true, every: 3, talk: ['news', 'cows', 'ad', 'rikus', 'reclame', 'clip', 'weather'] },
   { id: 'nacht', from: 22, to: 6, name: 'Nachtstreek', sub: 'Rikus draait streekmuziek tot de ochtend', music: 'nachtstreek', jingles: false, every: 2, talk: ['rikus', 'rikus', 'clip'] },
 ];
 

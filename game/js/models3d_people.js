@@ -522,6 +522,33 @@ function buildHat(B, L) {
     const brim = new THREE.CylinderGeometry(1, 1, 0.012, 8, 1, false, 0, Math.PI);
     B.geo(brim, composeMatrix(0.07, HEAD_Y + 0.04, 0, 0, 0, -0.3, 0.08, 1, 0.09), 0x111214);
     B.box(0.112, HEAD_Y + 0.1, 0, 0.01, 0.028, 0.022, 0xb8a060);
+  } else if (hat === 'krans') {
+    // een bloemenkrans (vrijgezellenfeest, vrijgezellen.js): een groen bandje met kleine bloemen eromheen
+    B.geo(loftGeometry([{ y: HEAD_Y + 0.06, d: 0.109, w: 0.099 }, { y: HEAD_Y + 0.085, d: 0.111, w: 0.101 }], 10), headTilt(0.05), 0x3f8a3c);
+    const bloem = [L.hatColor, 0xf2c400, 0xffffff, 0xff8a3c];
+    for (let k = 0; k < 9; k++) {
+      const a = (k / 9) * Math.PI * 2;
+      B.box(Math.cos(a) * 0.113, HEAD_Y + 0.082 + (k % 2) * 0.012, Math.sin(a) * 0.103, 0.036, 0.036, 0.036, bloem[k % 4], 0, a * 0.5, 0.3, a);
+    }
+  } else if (hat === 'konijn') {
+    // een bandje met twee lange konijnenoren, roze van binnen
+    B.geo(loftGeometry([{ y: HEAD_Y + 0.06, d: 0.108, w: 0.098 }, { y: HEAD_Y + 0.072, d: 0.109, w: 0.099 }], 10), headTilt(0.05), shade(L.hatColor, 0.8));
+    for (const s of [1, -1]) {
+      B.box(-0.015, HEAD_Y + 0.22, s * 0.055, 0.034, 0.2, 0.05, L.hatColor, 0, 0.18 * s, 0, 0.15);
+      B.box(0.003, HEAD_Y + 0.22, s * 0.058, 0.012, 0.15, 0.03, 0xf2a6c0, 0, 0.18 * s, 0, 0.15);
+    }
+  } else if (hat === 'sluier') {
+    // de sluier van de bruid: een kransje en een lichte sluier tot op de schouders
+    B.geo(loftGeometry([{ y: HEAD_Y + 0.06, d: 0.108, w: 0.098 }, { y: HEAD_Y + 0.07, d: 0.109, w: 0.099 }], 10), headTilt(0.05), 0xf2efe6);
+    B.box(-0.125, HEAD_Y - 0.06, 0, 0.012, 0.34, 0.21, 0xf8f6f0, 0, 0, 0, 0.06);
+    for (const s of [1, -1]) B.box(0.02, HEAD_Y + 0.085, s * 0.075, 0.03, 0.03, 0.03, 0xf4d3de);
+  } else if (hat === 'tiara') {
+    // een gouden kroontje met vijf puntjes
+    B.geo(loftGeometry([{ y: HEAD_Y + 0.07, d: 0.107, w: 0.097 }, { y: HEAD_Y + 0.085, d: 0.108, w: 0.098 }], 10), headTilt(0.05), L.hatColor);
+    for (let k = -2; k <= 2; k++) {
+      const a = k * 0.5;
+      B.box(Math.cos(a) * 0.112, HEAD_Y + 0.112 - Math.abs(k) * 0.008, Math.sin(a) * 0.1, 0.014, 0.034 - Math.abs(k) * 0.006, 0.014, L.hatColor, 0, 0, 0, 0);
+    }
   }
 }
 
@@ -1145,6 +1172,16 @@ export function waveOverlay(mesh, t, k = 1) {
   const x = ud.armR.rotation.x + (0.3 + 0.28 * sway - ud.armR.rotation.x) * k;
   setArm(ud.armR, ud.elbowR, z, (ud.elbowR ? ud.elbowR.rotation.z : 0) * (1 - k) + (0.45 + 0.2 * sway) * k, x);
   if (ud.head) ud.head.rotation.z += 0.12 * k;
+}
+
+// Juichen (vrijgezellenfeest, vrijgezellen.js): beide armen om en om de lucht in, een beetje op en neer. k 0..1.
+export function juichOverlay(mesh, t, links, rechts, spring, k = 1) {
+  const ud = mesh.userData;
+  if (!ud.armR || !ud.armL || k <= 0) return;
+  setArm(ud.armL, ud.elbowL, ud.armL.rotation.z + (links - ud.armL.rotation.z) * k, (ud.elbowL ? ud.elbowL.rotation.z : 0) * (1 - k) + 0.3 * k, 0.15 * k);
+  setArm(ud.armR, ud.elbowR, ud.armR.rotation.z + (rechts - ud.armR.rotation.z) * k, (ud.elbowR ? ud.elbowR.rotation.z : 0) * (1 - k) + 0.3 * k, -0.15 * k);
+  if (ud.head) ud.head.rotation.z += 0.1 * Math.sin(t * 6) * k;
+  mesh.position.y += spring;
 }
 
 // Arms forward under a load (side-job boxes).

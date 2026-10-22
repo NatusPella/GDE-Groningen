@@ -72,9 +72,9 @@ const release = () => { if (slot) { try { fs.rmdirSync(slot); } catch { /* al we
 process.on('exit', release);
 if (flag('slot')) {
   const LOCKS = process.env.GDE_LOCKS || path.join(os.homedir(), 'gde-locks');
-  for (let tries = 0; tries < 720 && !slot; tries++) {
+  for (let tries = 0; tries < 720 * (20000 / (Number(process.env.GDE_LOCK_POLL_MS) || 20000)) && !slot; tries++) {
     for (const n of [1, 2, 3]) { try { fs.mkdirSync(path.join(LOCKS, `electron-${n}`)); slot = path.join(LOCKS, `electron-${n}`); console.log(`slot electron-${n}`); break; } catch { /* bezet */ } }
-    if (!slot) await new Promise((r) => setTimeout(r, 20000));
+    if (!slot) await new Promise((r) => setTimeout(r, Number(process.env.GDE_LOCK_POLL_MS) || 20000));
   }
   if (!slot) { console.error('geen Electron-slot gekregen'); process.exit(4); }
 }
@@ -102,7 +102,7 @@ const t0 = Date.now();
 let r;
 for (let poging = 1; poging <= 2; poging++) {
   const logFd = fs.openSync(path.join(OUT, 'run.log'), 'w');
-  r = spawnSync(electron, ['.', '--windowed', '--stil', '--force-device-scale-factor=1', '--window-size=1280x720', `--autoplay=${seed}`, ...(flag('audio') ? ['--audio-graph'] : []), ...(flag('reizen') ? ['--reizen'] : []),
+  r = spawnSync(electron, ['.', '--windowed', '--stil', '--force-device-scale-factor=1', '--window-size=1280x720', '--disable-renderer-backgrounding', '--disable-backgrounding-occluded-windows', '--disable-features=CalculateNativeWinOcclusion', `--autoplay=${seed}`, ...(flag('audio') ? ['--audio-graph'] : []), ...(flag('reizen') ? ['--reizen'] : []),
     `--smoke-test=${path.join(OUT, 'shots.png')}`, `--perf-script=${script}`, `--bot-events=${events}`],
   { cwd: path.join(ROOT, 'desktop'), env, stdio: ['ignore', logFd, logFd], timeout: (cfg.maxWallS + 240) * 1000, killSignal: 'SIGKILL' });
   fs.closeSync(logFd);
