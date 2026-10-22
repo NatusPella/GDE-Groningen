@@ -116,6 +116,17 @@ function trafficAhead(me, tgt) {
 // aim for the target over the planned route; returns the distance left
 // stopR: how close on foot (default 0.6 of the marker radius; a vehicle to board needs the bot right next to it, not 5 m away)
 function steerTowards(s, mode, tgt, stopAt, top = 24, stopR = null, direct0 = false) {
+  // a goal on the water that is walked to (the rented boat of M11 lies off a quay): the berth on the shore beside it, not the boat's own spot,
+  // or the walk ends in the water (the bot swam and drowned, #312)
+  if (mode === 'walk' && !s.player.vehicle) {
+    const bk = Math.round(tgt.x) + ',' + Math.round(tgt.y);
+    if (mem.berthKey !== bk) {
+      mem.berthKey = bk; mem.berth = null;
+      try { mem.berth = R.berthFor(world.map, tgt.x, tgt.y); } catch (e) { /* no water here */ }
+      if (mem.berth) B.log('steiger', { doel: [Math.round(tgt.x), Math.round(tgt.y)], steiger: [Math.round(mem.berth.x), Math.round(mem.berth.y)], afstand: Math.round(mem.berth.shoreD) });
+    }
+    if (mem.berth) tgt = { ...tgt, x: mem.berth.x, y: mem.berth.y };
+  }
   const key = mode + ':' + Math.round(tgt.x / 5) + ',' + Math.round(tgt.y / 5);
   if (!follower || key !== followKey || s.t - planAt > 12) { followKey = key; planAt = s.t; plan(s, mode, tgt); }
   const me = { x: s.player.x, y: s.player.y };
