@@ -1572,11 +1572,24 @@ export function playClueSting() {
 export function playTextMumble(who = '', text = '', dur = 2.5) {
   if (!ctx || muted || !stingBus) return;
   const n = Math.max(3, Math.min(14, Math.round(String(text).length / 4)));
-  const base = who === 'A' ? 235 : who === 'T' ? 118 : who === 'V' ? 160 : 150;
+  const base = who === 'A' ? 235 : who === 'T' ? 118 : who === 'V' ? 160 : who === 'R' ? 205 : 150;
   const step = Math.min(0.32, Math.max(0.12, (dur * 0.85) / n));
   for (let i = 0; i < n; i++) {
     const f = base * (0.9 + ((i * 7 + text.length) % 5) * 0.06);
     playTone({ freq: f, freqEnd: f * 0.93, type: 'triangle', duration: step * 0.8, gain: 0.018, delay: i * step + (i % 4 === 3 ? 0.08 : 0), filterFreq: 900 + ((i * 3) % 4) * 220, bus: stingBus, prio: 2 });
+  }
+}
+
+// The jingle of a radio advert (radioads.js, #409): a short bright run of notes on the sting bus, 'start' going
+// up, 'tussen' between two adverts and 'end' coming down. No recording; the station voice is playTextMumble('R').
+export function playRadioJingle(kind = 'start') {
+  if (!ctx || muted || !stingBus) return;
+  const notes = kind === 'end' ? [[784, 0], [659.25, 0.12], [523.25, 0.24]]
+    : kind === 'tussen' ? [[659.25, 0], [880, 0.1]]
+      : [[523.25, 0], [659.25, 0.1], [783.99, 0.2], [1046.5, 0.3], [783.99, 0.46], [1046.5, 0.56]];
+  for (const [f, d] of notes) {
+    playTone({ freq: f, type: 'square', duration: 0.16, gain: 0.028, delay: d, filterFreq: 2400, bus: stingBus, prio: 2 });
+    playTone({ freq: f * 2, type: 'sine', duration: 0.12, gain: 0.016, delay: d, bus: stingBus, prio: 2 });
   }
 }
 
