@@ -152,3 +152,27 @@ export function einde(e, goed) {
 export function hallo(rand = Math.random) {
   return { wie: 'wolfie', sleutel: 'hallo', tekst: pick(ETQ_LINES.wolfie.hallo, rand) };
 }
+
+// ---- de ballonnen achter elkaar ----
+
+// Eén ballon per spreker tegelijk, de een na de ander. Een reactie op wat de speler nú doet (de volgorde omdraaien, bewegen bij een slag)
+// wacht niet: die vervangt wat nog in de rij stond.
+export const DRINGEND = new Set(['volgorde', 'stil']);
+export const duur = (tekst) => Math.max(2.6, 1.2 + tekst.length * 0.06);
+
+export function plan(rij, volgende, events, nu) {
+  let q = rij.slice();
+  const nxt = { ...volgende };
+  for (const e of events) {
+    let at;
+    if (DRINGEND.has(e.sleutel)) { q = q.filter((x) => x.wie !== e.wie); at = nu; } else at = Math.max(nu, nxt[e.wie] || 0);
+    nxt[e.wie] = at + duur(e.tekst) + 0.4;
+    q.push({ ...e, at });
+  }
+  return { rij: q, volgende: nxt };
+}
+
+// Wat nu aan de beurt is, en wat nog wacht
+export function aanDeBeurt(rij, nu) {
+  return { nu: rij.filter((e) => e.at <= nu), rest: rij.filter((e) => e.at > nu) };
+}

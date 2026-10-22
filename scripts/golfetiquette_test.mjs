@@ -5,7 +5,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
-  ETQ_LINES, ALLE_ETQ_REGELS, WOLFIE, SIR, PEND_S, SWING_S, sirScore, eerNa, newEtiquette, beginHole, step, holeDone, misser, einde, hallo, vul,
+  ETQ_LINES, ALLE_ETQ_REGELS, WOLFIE, SIR, PEND_S, SWING_S, sirScore, eerNa, newEtiquette, beginHole, step, holeDone, misser, einde, hallo, vul, plan, aanDeBeurt, DRINGEND, duur,
 } from '../game/js/golfetiquette.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -128,6 +128,25 @@ const sleutels = (ev) => ev.map((x) => `${x.wie}:${x.sleutel}`);
   }
   ok(max <= 11, `per baan hoogstens 11 regels (${max})`);
   ok(leeg === 0, 'nooit een lege regel of een open {n}');
+}
+
+// ---- de ballonnen achter elkaar ----
+{
+  const a = { wie: 'sir', sleutel: 'start', tekst: 'Moet je nog huren?' };
+  const b = { wie: 'sir', sleutel: 'eer', tekst: 'De eer is aan mij, vanzelfsprekend.' };
+  const c = { wie: 'wolfie', sleutel: 'huren', tekst: 'Huren? Alles gratis, meneer. De pendule rekent niet af.' };
+  let st = plan([], {}, [a, b, c], 10);
+  const tijd = (k) => st.rij.find((x) => x.sleutel === k).at;
+  ok(tijd('start') === 10 && tijd('huren') === 10, 'twee sprekers praten tegelijk');
+  ok(tijd('eer') >= 10 + duur(a.tekst) + 0.4 - 1e-9, 'dezelfde spreker wacht tot zijn vorige ballon uit is');
+  const { nu, rest } = aanDeBeurt(st.rij, 10.5);
+  ok(nu.length === 2 && rest.length === 1 && rest[0].sleutel === 'eer', 'wat aan de beurt is komt eruit, de rest blijft staan');
+  // een reactie op wat de speler nu doet wacht niet en vervangt wat nog in de rij stond
+  const volg = { wie: 'sir', sleutel: 'volgorde', tekst: 'Pardon. Wij slaan op volgorde, jongeman.' };
+  st = plan(st.rij, st.volgende, [volg], 11);
+  ok(st.rij.filter((x) => x.wie === 'sir').map((x) => x.sleutel).join() === 'volgorde' && st.rij.find((x) => x.sleutel === 'volgorde').at === 11, 'de reactie op de volgorde komt meteen en schuift de rij van Sir Cedric opzij');
+  ok(DRINGEND.has('volgorde') && DRINGEND.has('stil') && !DRINGEND.has('slag'), 'alleen volgorde en stil zijn dringend');
+  ok(duur('Hoi') === 2.6 && duur('x'.repeat(100)) > 6, 'een korte ballon staat minstens 2,6 s, een lange langer');
 }
 
 // ---- in de baan ----
