@@ -587,10 +587,17 @@ while (true) {
     if (mdef && mdef.eggs) top = Math.min(top, 7);
     if (s.mission.stage === 'convoy') {
       // the leader waits for the slowest friend (the tractor, the scooter): beyond 170 m for 12 s the column falls apart
-      const gaps = (world.vehicles || []).filter((v) => v.convoyMember && !v.wrecked).map((v) => Math.hypot(v.x - s.player.x, v.y - s.player.y));
+      const members = (world.vehicles || []).filter((v) => v.convoyMember && !v.wrecked);
+      const gaps = members.map((v) => Math.hypot(v.x - s.player.x, v.y - s.player.y));
       const pace = L.convoyPace(gaps, 11);
       top = Math.min(top, pace);
       if (pace < 3) detector.hold(s.t);   // waiting for them is no standing still
+      // a friend that does not come (stuck at a junction): after 20 s of waiting the leader drives back to the furthest one, like a player, until they are within 90 m
+      const worstI = gaps.indexOf(Math.max(...gaps, 0));
+      if (pace < 3 && mem.cvBack == null) { if (mem.cvWait == null) mem.cvWait = s.t; else if (s.t - mem.cvWait > 20) { mem.cvBack = s.t; B.log('colonne-terug', { gap: Math.round(gaps[worstI]), naam: members[worstI] && members[worstI].label }); } }
+      if (pace >= 3) mem.cvWait = null;
+      if (mem.cvBack != null && worstI >= 0 && (Math.max(...gaps) < 90 || s.t - mem.cvBack > 40)) { mem.cvBack = null; mem.cvWait = null; }
+      if (mem.cvBack != null && worstI >= 0) { aim = { x: members[worstI].x, y: members[worstI].y, distance: gaps[worstI] }; top = 8; }
       if (ticks % 20 === 0) B.log('colonne', { gaps: gaps.map(Math.round), top: Math.round(top * 10) / 10 });
     }
     // a chase: the fleeing car cruises at 14 and runs at 28, the Fjord Frituur can do 50 (#354)
