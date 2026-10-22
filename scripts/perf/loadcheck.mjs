@@ -24,7 +24,7 @@ if (process.argv.includes('--slot')) {
     for (const n of [1, 2, 3]) { try { fs.mkdirSync(path.join(LOCKS, `electron-${n}`)); slot = path.join(LOCKS, `electron-${n}`); break; } catch { /* bezet */ } }
     if (slot) break;
     console.error('geen Electron-slot vrij, wacht 60 s');
-    await sleep(60000);
+    await sleep(+process.env.GDE_SLOT_POLL || 60000);
   }
 }
 const desktop = path.join(HERE, '..', '..', 'desktop');
