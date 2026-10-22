@@ -203,7 +203,7 @@ function attach(win, { gameDir }) {
             // console.log('[profile] 8000') from the script: a CPU profile of that many ms
             if (message.startsWith('[profile] ')) { runProfile(win, Number(message.slice(10)) || 6000).catch((err) => console.log('[profile]', err.message)); return; }
             // console.log('[heapprof] 6000') from the script: sampled allocations (also those collected by now) of that many ms, top call sites by bytes
-            if (message.startsWith('[heapprof] ')) { runHeapProfile(win, Number(message.slice(11)) || 6000).catch((err) => console.log('[heapprof]', err.message)); return; }
+            if (message.startsWith('[heapprof] ')) { runHeapProfile(win, Number(message.slice(11)) || 6000, /live/.test(message)).catch((err) => console.log('[heapprof]', err.message)); return; }
             // console.log('[trace] 6000') from the script: a Chromium trace (all processes, main thread and GPU tracks) of that many ms to GDE_TRACE_OUT (scripts/perf/trace.mjs)
             if (message.startsWith('[trace] ')) { runTrace(Number(message.slice(8)) || 6000).catch((err) => console.log('[trace]', err.message)); return; }
             // testharnas (#95, tekstvelden): echte toetsen en een klembord, zoals een speler ze heeft
@@ -344,12 +344,14 @@ function attach(win, { gameDir }) {
 
 // Allocation profile of the page: where the JS heap grows between two GCs (HeapProfiler sampling, 32 KB interval, with the objects the GCs collected);
 // the top call sites by bytes go to the log, the raw profile to GDE_PROFILE_OUT
-async function runHeapProfile(win, ms) {
+// live (the message '[heapprof] <ms> live'): only the objects still alive when the sampling stops, i.e. what the heap holds at the end (#379)
+async function runHeapProfile(win, ms, live = false) {
   const dbg = win.webContents.debugger;
   if (!dbg.isAttached()) dbg.attach('1.3');
   await dbg.sendCommand('HeapProfiler.enable');
-  await dbg.sendCommand('HeapProfiler.startSampling', { samplingInterval: 32768, includeObjectsCollectedByMajorGC: true, includeObjectsCollectedByMinorGC: true });
+  await dbg.sendCommand('HeapProfiler.startSampling', { samplingInterval: 32768, includeObjectsCollectedByMajorGC: !live, includeObjectsCollectedByMinorGC: !live });
   await new Promise((r) => setTimeout(r, ms));
+  if (live) await dbg.sendCommand('HeapProfiler.collectGarbage');
   const { profile } = await dbg.sendCommand('HeapProfiler.stopSampling');
   if (process.env.GDE_PROFILE_OUT) {
     fsSync.mkdirSync(process.env.GDE_PROFILE_OUT, { recursive: true });

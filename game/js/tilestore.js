@@ -86,7 +86,7 @@ export async function decodeCompressed(bytes) {
 // 1.5 / 2 / 3 ms). Items run in priority order (lower first); at least one
 // item per call so nothing starves.
 export class FrameQueue {
-  constructor() { this.items = []; this.seq = 0; this.stats = { ran: 0, maxMs: 0, over: 0 }; }
+  constructor() { this.items = []; this.seq = 0; this.stats = { ran: 0, maxMs: 0, over: 0, byKind: {} }; }
   add(fn, priority = 0, label = '') { this.items.push({ fn, priority, seq: this.seq++, label }); }
   get size() { return this.items.length; }
   drop(label) { this.items = this.items.filter((i) => i.label !== label); }
@@ -102,6 +102,12 @@ export class FrameQueue {
       n++;
       const spent = now() - t;
       this.stats.maxMs = Math.max(this.stats.maxMs, spent);
+      // per kind of item ('add', 'drop': the label up to the colon) the count, the total and the longest, and how many took over 5, 20 and 50 ms (#247)
+      const k = it.label.split(':')[0] || '-', ks = this.stats.byKind[k] || (this.stats.byKind[k] = { n: 0, ms: 0, max: 0, over5: 0, over20: 0, over50: 0 });
+      ks.n++; ks.ms += spent; ks.max = Math.max(ks.max, spent);
+      if (spent > 5) ks.over5++;
+      if (spent > 20) ks.over20++;
+      if (spent > 50) ks.over50++;
       if (now() - t0 >= budgetMs) break;
     }
     this.stats.ran += n;
