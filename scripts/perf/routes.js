@@ -44,7 +44,9 @@ let wantMenu = false;
 
 let calls = 0, tris = 0, renders = 0;
 const origRender = r.render.bind(r);
-r.render = function (s, c) { origRender(s, c); calls += r.info.render.calls; tris += r.info.render.triangles; renders++; };
+// rt: time inside renderer.render, the game scene (with its shadow pass) apart from the one-quad scenes of the post chain (s13)
+const rt = { scene: 0, quad: 0, quadN: 0 };
+r.render = function (s, c) { const t = performance.now(); origRender(s, c); const d = performance.now() - t; if (s === sc.scene) rt.scene += d; else { rt.quad += d; rt.quadN++; } calls += r.info.render.calls; tris += r.info.render.triangles; renders++; };
 const frameCount = () => H.frames.length;
 // PERF_DIAG=1: draw calls per frame by owner (first named ancestor), shadow pass apart
 const diag = new Map();
@@ -600,7 +602,10 @@ results.routes.renderab = await safe('renderab', async () => {
   fixWorld(); teleport(FOOT[0][0], FOOT[0][1]); w.camYaw = 0.3; p.angle = 0.3; await sleep(window.__perfSettle || 12000);
   const gl = r.getContext();
   const settle = async () => { const builds = () => { const b = sc.batches(); return Object.values(b).reduce((q, e) => q + (e.builds || 0) + (e.dropped || 0), 0); }; let last = builds(), still = 0; for (let i = 0; i < 120 && still < 6; i++) { await sleep(500); const n = builds(); still = n === last ? still + 1 : 0; last = n; } };
-  const sample = () => { const t0 = performance.now(); for (let i = 0; i < 20; i++) r.render(sc.scene, sc.cam); gl.finish(); return (performance.now() - t0) / 20; };
+  // the cull of actors and groups and the matrix-walk switch of update3D go ahead of each render (window.__perfCullPass=1 in the page; s13), as in the game
+  // PERF_AB_NODRAW=1: renderBufferDirect does nothing, so what is timed is the scene walk alone (matrices, culling, render lists, sorting, the shadow pass's walk): no draw call and no GPU in it
+  const noDraw = window.__perfAbNoDraw ? () => {} : null;
+  const sample = () => { const rbd = r.renderBufferDirect; if (noDraw) r.renderBufferDirect = noDraw; const t0 = performance.now(); try { for (let i = 0; i < 20; i++) { if (sc.cullPass) sc.cullPass(); try { r.render(sc.scene, sc.cam); } finally { if (sc.restorePass) sc.restorePass(); } } } finally { r.renderBufferDirect = rbd; } if (!noDraw) gl.finish(); return (performance.now() - t0) / 20; };
   const out = [];
   for (let round = 0; round < ROUNDS; round++) {
     const order = round % 2 ? [...variants].reverse() : variants;
@@ -826,7 +831,7 @@ results.routes.r46 = await safe('r46', async () => {
       if (round === 0 && (window.__perfProfile || '').split(',').includes('heap:' + name)) console.log('[heapprof] ' + Math.min(WIN - 1000, 15000));
       if (round === 0 && name === 'base' && (window.__perfProfile || '').split(',').includes('r46trace')) console.log('[trace] ' + Math.min(WIN - 1500, 6000));
       const frames0 = H.frames.length;
-      const cc0 = calls, tr0 = tris, rn0 = renders;
+      const cc0 = calls, tr0 = tris, rn0 = renders, rt0 = { ...rt };
       const batchNow = () => Object.fromEntries(Object.entries(sc.batches()).filter(([, v]) => v && v.ms !== undefined).map(([k, v]) => [k, [v.ms, v.frames, v.builds, v.dropped]]));
       const bs0 = batchNow();
       // heap per frame (with --enable-precise-memory-info): what rises between two frames is what the frame allocated, a fall is a GC
@@ -842,7 +847,7 @@ results.routes.r46 = await safe('r46', async () => {
       for (const d of dts) hist[d < 12 ? '<12' : d < 15 ? '12-15' : d < 18 ? '15-18' : d < 25 ? '18-25' : d < 36 ? '25-36' : d < 50 ? '36-50' : '>50']++;
       const bs1 = batchNow();
       const batch = Object.fromEntries(Object.keys(bs1).map((k) => [k, { msPerFrame: +((bs1[k][0] - bs0[k][0]) / Math.max(1, bs1[k][1] - bs0[k][1])).toFixed(3), builds: bs1[k][2] - bs0[k][2], dropped: bs1[k][3] - bs0[k][3] }]));
-      const row = { name, round, ...res, hist, callsPerFrame: Math.round((calls - cc0) / Math.max(1, res.frames)), rendersPerFrame: +((renders - rn0) / Math.max(1, res.frames)).toFixed(2), batch };
+      const row = { name, round, ...res, hist, callsPerFrame: Math.round((calls - cc0) / Math.max(1, res.frames)), rendersPerFrame: +((renders - rn0) / Math.max(1, res.frames)).toFixed(2), rt: { scene: +((rt.scene - rt0.scene) / Math.max(1, res.frames)).toFixed(2), quad: +((rt.quad - rt0.quad) / Math.max(1, res.frames)).toFixed(2), quadN: +((rt.quadN - rt0.quadN) / Math.max(1, res.frames)).toFixed(1) }, batch };
       { let up = 0, gcs = 0, gcKB = 0; for (let i = 1; i < heap.length; i++) { const d = heap[i] - heap[i - 1]; if (d >= 0) up += d; else { gcs++; gcKB += -d; } } row.alloc = { kbPerFrame: +(up / 1024 / Math.max(1, heap.length - 1)).toFixed(1), gcs, gcMB: +(gcKB / 1048576).toFixed(1), perSecond: +(gcs / (WIN / 1000)).toFixed(2) }; }
       if (window.__hitch) { const hs = window.__hitch.summary(); row.sections = hs.sections; row.peaks = hs.peaks; row.slowFrames = hs.slow.slice(0, 12).map((q) => [q.gap, q.cpu, (q.sections || []).slice(0, 4)]); }
       const pc = progOff();
@@ -860,6 +865,84 @@ results.routes.r46 = await safe('r46', async () => {
   mover = null;
   if ((window.__perfProfile || '').split(',').includes('r46trace')) await sleep(8000); // the trace file is written after the window
   return { rows: out, flen: FLEN, speed: SPEED };
+});
+// the scene as the main pass walks it (only with PERF_ONLY=s13walk; s13, #246): on a few frames of the walk, at the moment postfx.render starts (the
+// culled groups hidden, the hidden walks switched off), per top-level group: the nodes updateMatrixWorld reaches (matrixWorldAutoUpdate chain, with
+// how many recompose their matrix: matrixAutoUpdate), the nodes projectObject reaches (visible chain), their meshes and the meshes inside the frustum
+results.routes.s13walk = await safe('s13walk', async () => {
+  if (!ONLY.includes('s13walk')) return null;
+  fixWorld(); teleport(FOOT[0][0], FOOT[0][1]); w.camYaw = 0.3; p.angle = 0.3;
+  const FLEN = pathLen(FOOT);
+  let sAcc = 0, tPrev = performance.now();
+  mover = (now) => { sAcc += ((now - tPrev) / 1000) * 3; tPrev = now; const L = FLEN * 2, m = sAcc % L, back = m > FLEN; const q = at(FOOT, back ? L - m : m); p.x = q.x; p.y = q.y; p.angle = back ? q.ang + Math.PI : q.ang; w.camYaw = p.angle; };
+  await sleep(window.__perfSettle || 20000);
+  const THREE_ = sc.THREE, fr = new THREE_.Frustum(), pm = new THREE_.Matrix4(), sph = new THREE_.Sphere();
+  const owners = new Map(); let samples = 0, wantSamples = Number(window.__perfSamples) || 10;
+  const tot = { walkNodes: 0, walkAuto: 0, projNodes: 0, projMeshes: 0, inFrustum: 0, instanced: 0, skinned: 0, lights: 0 };
+  const keyOf = (c) => (c.name || c.type) + '{' + Object.keys(c.userData || {}).filter((k) => k !== 'shadowCasters').slice(0, 3).join('/') + '}' + (c.children[0] ? '>' + (c.children[0].name || c.children[0].type) + '{' + Object.keys(c.children[0].userData || {}).slice(0, 2).join('/') + '}' : '');
+  const census = () => {
+    sc.cam.updateMatrixWorld(); pm.multiplyMatrices(sc.cam.projectionMatrix, sc.cam.matrixWorldInverse); fr.setFromProjectionMatrix(pm);
+    for (const top of sc.scene.children) {
+      const e = owners.get(keyOf(top)) || (() => { const q = { samples: [], tops: 0, walkNodes: 0, walkAuto: 0, projNodes: 0, projMeshes: 0, inFrustum: 0, skinned: 0, instanced: 0, tris: 0 }; owners.set(keyOf(top), q); return q; })();
+      e.tops++;
+      if (e.samples.length < 3 && /^Group{}|^Mesh{}/.test(keyOf(top))) { let m = null; top.traverse((o) => { if (!m && o.isMesh) m = o; }); e.samples.push([top.children.length, Math.round(top.position.x), Math.round(top.position.z), Math.round(Math.hypot(top.position.x - p.x, top.position.z - p.y)), top.matrixAutoUpdate ? 'A' : 'f', top.castShadow ? 'cs' : '', m ? m.geometry.type + ':' + (m.geometry.attributes.position ? m.geometry.attributes.position.count : 0) + ':' + m.material.type + ':' + (m.material.color ? m.material.color.getHexString() : '') + (m.castShadow ? ':cast' : '') + (m.frustumCulled ? '' : ':nofc') + (m.name ? ':' + m.name : '') : '-']); }
+      const walk = (o) => { e.walkNodes++; tot.walkNodes++; if (o.matrixAutoUpdate) { e.walkAuto++; tot.walkAuto++; } for (const c of o.children) if (c.matrixWorldAutoUpdate === true) walk(c); };
+      if (!top.isLight && !top.isCamera && top.matrixWorldAutoUpdate === true) walk(top);
+      if (!top.visible) continue;
+      const proj = (o) => {
+        e.projNodes++; tot.projNodes++;
+        if (o.isMesh || o.isLine || o.isPoints || o.isSprite) {
+          e.projMeshes++; tot.projMeshes++;
+          let inside = true;
+          if (o.frustumCulled && o.geometry && o.geometry.boundingSphere) { sph.copy(o.geometry.boundingSphere).applyMatrix4(o.matrixWorld); inside = fr.intersectsSphere(sph); }
+          if (inside) { e.inFrustum++; tot.inFrustum++; }
+          if (o.isSkinnedMesh) { e.skinned++; tot.skinned++; }
+          if (o.isInstancedMesh) { e.instanced++; tot.instanced++; }
+        }
+        for (const c of o.children) if (c.visible) proj(c);
+      };
+      proj(top);
+    }
+  };
+  let frameNo = 0;
+  const pfx = sc.postfx, pfxRender = pfx.render;
+  pfx.render = function () { if (++frameNo % 25 === 0 && samples < wantSamples) { samples++; census(); } return pfxRender.apply(this, arguments); };
+  for (let i = 0; i < 400 && samples < wantSamples; i++) await sleep(100);
+  pfx.render = pfxRender; mover = null;
+  const per = (x) => +(x / Math.max(1, samples)).toFixed(1);
+  const rows = [...owners].map(([k, e]) => ({ k, tops: per(e.tops), walk: per(e.walkNodes), walkAuto: per(e.walkAuto), proj: per(e.projNodes), meshes: per(e.projMeshes), inFrustum: per(e.inFrustum), skinned: per(e.skinned), instanced: per(e.instanced), samples: e.samples }))
+    .sort((a, b) => (b.walk + b.proj) - (a.walk + a.proj)).slice(0, 40);
+  return { samples, perFrame: Object.fromEntries(Object.entries(tot).map(([k, v]) => [k, per(v)])), rows };
+});
+// nodes the shadow pass and the main pass walk per frame, by variant (only with PERF_ONLY=s13nodes; PERF_S13='a=off1+off2;b=;...'; s13): counted right
+// when the sun's shadow matrices are made inside three's shadow pass (the hook has hidden what it hides by then) and at the start of the main pass walk
+results.routes.s13nodes = await safe('s13nodes', async () => {
+  if (!ONLY.includes('s13nodes')) return null;
+  const variants = (window.__perfAbFor && window.__perfAbFor.renderab) || window.__perfAb;
+  fixWorld(); teleport(FOOT[0][0], FOOT[0][1]); w.camYaw = 0.3; p.angle = 0.3;
+  const FLEN = pathLen(FOOT); let sAcc = 0, tPrev = performance.now();
+  mover = (now) => { sAcc += ((now - tPrev) / 1000) * 3; tPrev = now; const L = FLEN * 2, m2 = sAcc % L, back = m2 > FLEN; const q = at(FOOT, back ? L - m2 : m2); p.x = q.x; p.y = q.y; p.angle = back ? q.ang + Math.PI : q.ang; w.camYaw = p.angle; };
+  await sleep(window.__perfSettle || 20000);
+  let sun = null; for (const o of sc.scene.children) if (o.isDirectionalLight && o.castShadow) sun = o;
+  const visCount = (o) => { let n = 1; for (const c of o.children) if (c.visible) n += visCount(c); return n; };
+  const upd = sun.shadow.updateMatrices.bind(sun.shadow);
+  let nShadow = [], nMain = [], lastN = null;
+  sun.shadow.updateMatrices = function (l) { let n = 0; for (const c of sc.scene.children) if (c.visible) n += visCount(c); lastN = n; return upd(l); };
+  const smOuter = r.shadowMap.render;
+  r.shadowMap.render = function (...a) { lastN = null; const o = smOuter.apply(this, a); if (lastN !== null) nShadow.push(lastN); return o; };
+  const pfx = sc.postfx, pfxRender = pfx.render;
+  pfx.render = function () { let n = 0; for (const c of sc.scene.children) if (c.visible) n += visCount(c); nMain.push(n); return pfxRender.apply(this, arguments); };
+  const out = [];
+  for (let round = 0; round < (window.__perfAbRounds || 4); round++) {
+    for (const [name, off] of (round % 2 ? [...variants].reverse() : variants)) {
+      window.__perfOffDyn = new Set(off); await sleep(2500); nShadow = []; nMain = [];
+      await sleep(6000);
+      const avg = (a) => a.length ? Math.round(a.reduce((x, y) => x + y, 0) / a.length) : null;
+      out.push({ name, round, shadow: avg(nShadow), shadowPasses: nShadow.length, main: avg(nMain), mainFrames: nMain.length });
+    }
+  }
+  pfx.render = pfxRender; sun.shadow.updateMatrices = upd; r.shadowMap.render = smOuter; window.__perfOffDyn = undefined; mover = null;
+  return { rows: out };
 });
 // how long the shader programs take to link after the game started (only with PERF_ONLY=progready): every 500 ms the number of programs of the renderer and how many are linked,
 // until all are (at most 150 s), with the standing camera in the city; a pool adds programs (the batched variant of each batch material and its depth material)
@@ -1208,6 +1291,35 @@ results.routes.vspots = await safe('vspots', async () => {
   }
   return { names };
 });
+// the same frame twice with steps switched (only with PERF_ONLY=s13img; PERF_S13IMG='a,b' = perfoff steps; s13): at a few viewpoints the simulation stands
+// still (coopHold), the scene is drawn with every step on, with the named steps off, and with every step on again; the canvas is read back each time.
+// Nothing moves between the draws (the time uniforms change in update3D only), so a correct cull gives byte-equal canvases; the third is the noise floor
+results.routes.s13img = await safe('s13img', async () => {
+  if (!ONLY.includes('s13img')) return null;
+  const offs = (window.__perfS13img || 'losgroepen,schaduwbereik').split(',').filter(Boolean);
+  fixWorld();
+  const spots = [['markt', FOOT[0][0], FOOT[0][1], 0.3], ['markt2', FOOT[0][0], FOOT[0][1], 3.4], ['straat', FOOT[3][0], FOOT[3][1], 1.9], ['straat2', FOOT[3][0], FOOT[3][1], 4.2], ['kanaal', FOOT[4][0], FOOT[4][1], 2.6], ['winsum', ...placeAt('Winsum'), 2.2], ['hoogezand', ...placeAt('Hoogezand'), 1.0]];
+  const gl = r.getContext(), cvs = r.domElement, W = cvs.width, H = cvs.height;
+  const A = new Uint8Array(W * H * 4), B = new Uint8Array(W * H * 4), C = new Uint8Array(W * H * 4);
+  const shoot = (off, buf) => {
+    window.__perfOffDyn = new Set(off);
+    for (let i = 0; i < 2; i++) { if (sc.cullPass) sc.cullPass(); try { sc.postfx.render(); } finally { if (sc.restorePass) sc.restorePass(); } }
+    gl.readPixels(0, 0, W, H, gl.RGBA, gl.UNSIGNED_BYTE, buf);
+  };
+  const cmp = (X, Y) => { let n = 0, big = 0, mx = 0, x0 = 1e9, y0 = 1e9, x1 = -1, y1 = -1; for (let i = 0; i < X.length; i += 4) { const d = Math.max(Math.abs(X[i] - Y[i]), Math.abs(X[i + 1] - Y[i + 1]), Math.abs(X[i + 2] - Y[i + 2])); if (d > 0) { n++; if (d > mx) mx = d; if (d > 8) big++; const px = (i >> 2) % W, py = ((i >> 2) / W) | 0; if (px < x0) x0 = px; if (px > x1) x1 = px; if (py < y0) y0 = py; if (py > y1) y1 = py; } } return { differ: n, over8: big, max: mx, box: n ? [x0, y0, x1, y1] : null }; };
+  const out = [];
+  for (const [name, x, y, yaw] of spots) {
+    w.coopHold = false;
+    teleport(x, y); w.camYaw = yaw; p.angle = yaw;
+    await sleep(window.__perfSettle || 12000); fixWorld();
+    { const builds = () => { const b = sc.batches(); return Object.values(b).reduce((q, e) => q + e.builds + e.dropped, 0); }; let last = builds(), still = 0; for (let i = 0; i < 60 && still < 6; i++) { await sleep(500); const n = builds(); still = n === last ? still + 1 : 0; last = n; } }
+    fixWorld(); w.coopHold = true; await sleep(800);
+    shoot([], A); shoot(offs, B); shoot([], C);
+    out.push({ name, size: [W, H], offVsOn: cmp(A, B), onVsOn: cmp(A, C) });
+  }
+  window.__perfOffDyn = undefined; w.coopHold = false;
+  return { offs, out };
+});
 // is anything that shows cut? (only with PERF_ONLY=verify): scene3d.js verifyCull looks at every actor and group that sat out the main pass with an exact box
 // against the camera's frustum, and at every group kept out of the shadow pass for a caster; turns on the spot and walks a little at a few places, counting the misses
 results.routes.verify = await safe('verify', async () => {
@@ -1225,7 +1337,7 @@ results.routes.verify = await safe('verify', async () => {
     perSpot.push({ spot: name, actors: V.actors - before.actors, groups: V.groups - before.groups, shadow: V.shadow - before.shadow, checked: V.checked - before.checked });
   }
   window.__perfVerify = undefined;
-  return { kinds: V.kinds, total: { actors: V.actors, groups: V.groups, shadow: V.shadow, checked: V.checked, shadowChecked: V.shadowChecked, frames: V.frames }, perSpot, bad: V.bad };
+  return { kinds: V.kinds, total: { actors: V.actors, groups: V.groups, shadow: V.shadow, checked: V.checked, shadowChecked: V.shadowChecked, boxChecked: V.boxChecked || 0, boxBad: V.boxBad || 0, frames: V.frames }, perSpot, bad: V.bad };
 });
 // draw calls of the vehicles and people in view (only with PERF_ONLY=actors)
 results.routes.actors = await safe('actors', async () => {

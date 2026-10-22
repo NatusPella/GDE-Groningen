@@ -553,3 +553,49 @@ node scripts/perf/personbench.mjs --n=300 --hash          # bouwkosten van een p
 **Goedkoopste winst geprobeerd en teruggedraaid:** drie bit-identieke aanpassingen in `vehicle.js` (`projectOnPath` zonder een resultaatobject per segment, `curveSpeedLimit` die per bemonsteringspunt verder zoekt in plaats van van voren af, `followSpeedLimit` zonder een array en `Math.cos`/`Math.sin` per voertuig). Het digest van de simbench bleef gelijk (-1351418044 in alle 8 runs), maar de tijd niet aantoonbaar korter: oud 1,75, 1,83, 2,14, 1,35 (gem. 1,77) tegen nieuw 1,81, 1,50, 1,89, 1,75 (gem. 1,74) ms per stap, gepaard -0,03 ± 0,17 ms. Niet behouden: risico zonder bewijs.
 
 **Gereedschap:** `simbench.mjs --cache=<bestand>` bewaart de ingeladen stad (v8.serialize): inladen kostte 10 minuten op deze machine (48 s daarna uit de cache), de simulatie zelf 10 s. Vergelijk twee versies van `vehicle.js` met twee checkouts en dezelfde cache.
+
+## Vervolg 12: de scene-wandeling te voet in de stad, per knoop geteld (s13, #246)
+
+**Uitkomst: 60 fps niet gehaald; drie kleine stappen die aantoonbaar minder werk doen (knopen en programma-opzoekingen geteld), met een winst die onder de ruis van deze machine blijft behalve in de schaduwpas.** Meten kon alleen zo: de machine had 8 tot 12 Electron-processen en 76 tot 100% CPU (`machine` in elke JSON), een frame was 55 tot 140 ms in plaats van 21; alleen verhoudingen, tellingen en gepaarde vensters zijn bruikbaar.
+
+### Waar de tijd zit (CPU-profiel, 26 s lopend, Hoog, heel ver; aandeel van de bezette hoofdthread)
+
+`update3D` 69% (waarvan de postketen `render` 65%), `WebGLRenderer.render` 46%: de hoofdpas (`renderScene`) 22%, `projectObject` 10,6%, schaduwpas 7%, `updateMatrixWorld` 5,7%; `setProgram` 13,5% inclusief (uniformen `setValue`/`upload` 6,6%, `getProgram` 2,6%); simulatie (`updateGameplay`) 18%; HUD 5,5%. De 16 `render()`-aanroepen van de postketen zijn niet de kost: 15 quad-renders samen 0,5 tot 0,6 ms op een frame van ~100 ms (`rt` in de r46-rijen), dus een eigen pad zonder `renderer.render` voor die quads is niet gebouwd. Het stuk 'voorpas' van de hoofdpas (matrixwandeling, `projectObject`, sorteren) is ~14% van het frame.
+
+### Wat de scene-wandeling aanraakt (route `s13walk`, 10 frames, stad te voet)
+
+Per frame loopt three ~4500 knopen af voor de matrices (3000 daarvan met `matrixAutoUpdate`, dus samenstellen en vermenigvuldigen) en projecteert ~3800 knopen; 1950 meshes komen in de lijst, 700 zijn in beeld. Per eigenaar: voetgangers 823 knopen (62 personen, ~13 botten en delen per persoon), voertuigen ~530, losse groepen zonder naam 920 (~190 groepen van 5 tot 7 delen, vermoedelijk de kaartautomaten van stations en ander kleinmeubilair, ook op 700 tot 1600 m afstand, die nooit in beeld komen), gebouwdetails 700 doorlopen (400 geprojecteerd), wegen 223, oevers 213, lantaarngroepen 93 (stadbreed, nooit uit beeld te snijden).
+
+### Gedaan (alles achter een `?perfoff=`-stap)
+
+| stap | wat | effect |
+|---|---|---|
+| `losgroepen` (`scene3d.js` `groupCullInfo`, `looseGroupOk`) | losse groepen op het hoogste niveau zonder naam gaan uit de hoofdpas als ze buiten beeld liggen, maar pas nadat twee metingen 300 frames na elkaar dezelfde lokale transformaties zagen (een sprite die wipt telt niet mee), met 3 m marge, en alleen zolang de groep zelf op zijn plek staat | knopen geprojecteerd 3790 naar 3470 (kaartautomaten 920 naar 460), matrixwandeling 4600 naar 4250; `verify`: 0 fout weggesneden op 284.000 controles met een exacte box |
+| `schaduwbereik` (`hookShadowPass`) | een groep met bekende bolgrens die buiten de schaduwbox van de zon valt (een paar tientallen meter rond de speler, gerekt naar de zon) doet niet mee aan de schaduwpas | knopen in de schaduwpas gemiddeld 1830 naar 1370 (-25%; per positie -15% tot -46%); schaduwpas gepaard **-0,8 ± 0,34 ms** (8 van 10 rondes lager, 2,71 naar 1,91 ms op een belaste machine); `verify`: 0 van 149.908 weggesneden groepen had een werper in de box |
+| `dieptevarianten` (`hookLinkGuard`) | de schaduwpas tekent alle gewone werpers met één gedeeld `MeshDepthMaterial`; three zocht het programma opnieuw op bij elke wissel tussen gewoon, gevild, geïnstantieerd en gebatcht (8 tot 12 keer per frame). Nu heeft elke soort een eigen kopie | programma-opzoekingen per frame 32 tot 42 naar 14 tot 24 (-18, deterministisch, `progcalls`); één opzoeking is ~15 µs |
+
+Beeld: route `s13img` tekent hetzelfde frame (simulatie bevroren) met de stappen aan, uit en weer aan en leest het canvas terug. Op zeven plekken (markt twee richtingen, straat twee, kanaal, Winsum, Hoogezand) verschilt aan tegen uit hooguit evenveel pixels als aan tegen aan (de ruisvloer van wat niet stilstaat: 0 tot 6900 pixels van 1,9 miljoen, op de markt en de straat; kanaal, Winsum en Hoogezand 0 of 1 niveau). Niet door een mens bekeken.
+
+### Gemeten winst
+
+- Hele frame, alle drie aan tegen uit, 10 gepaarde rondes: hoofdthread **-4,1 ± 5,0 ms** (5 van 10 lager), 'voorpas' -1,9 ± 2,0 ms (6 van 10), schaduwpas -0,8 ± 0,34 ms (8 van 10). Het frame zelf blijft binnen de ruis (61,9 tegen 54,9 ms; sd per paar 35 ms). Een scene-wandeling zonder tekenaanroepen (`PERF_AB_NODRAW=1`, route `renderab`, 8 rondes, wandtijd per render 8 tot 14 ms op deze machine) gaf voor `losgroepen` alleen -1,4 ms mediaan (5 van 8 lager), in een tweede run met drie varianten +0,9 ms voor de schaduwbox alleen (4 van 8 lager) en +0,3 ms voor beide samen (4 van 8): onder de ruis, dus geen van die metingen toont de winst.
+- Naar schatting op een rustige machine ~0,4 tot 0,7 ms van de ~21 ms (de wandeling is daar ~3 tot 4 ms; deze stappen halen 10 tot 25% van de knopen). Dat is geen schatting die ik gemeten heb.
+
+### Onderzocht, niet gedaan
+
+- Quad-renders van de postketen omzeilen: 0,5 ms op 100 ms, niet de moeite.
+- `prewarmLightVariants` 2,8% van de bezette tijd; geen veilige verkorting gevonden zonder de dag-nachtschakeling te riskeren.
+- Bewegende groepen vastzetten (`matrixAutoUpdate` uit): pas veilig als de eigenaar het zegt (de kaartautomaat wipt met een sprite); `losgroepen` doet het daarom alleen als snoeien.
+- Voetgangersbotten overslaan op vastgehouden frames: niet mogelijk, want een bewegende wortel dwingt `updateMatrixWorld(force)` door de hele boom.
+- Simulatie (`followSpeedLimit` met een lus over alle voertuigen, `updateTrafficAI` 21% eigen tijd in `simbench`): O(n²) per stap, maar #58 (s12) werkt daaraan en een andere volgorde kan het verkeersgedrag veranderen; niet aangeraakt.
+
+### Gereedschap
+
+`scripts/perf/callees.mjs` (wat een functie aanroept), routes `s13walk`, `s13nodes`, `s13img`, `rt` per r46-rij, `PERF_AB_NODRAW=1` en een cull-pass vooraf in `renderab`, `verify` telt ook de schaduwbox.
+
+```
+node scripts/perf/callees.mjs <profiel> setProgram --n=14
+PERF_ONLY=s13walk node scripts/perf/run.mjs <naam> "--preset=quality:hoog,shadows:true,drawDistance:heelver,resolution:1,autoResolution:false"
+PERF_S13IMG='losgroepen,schaduwbereik,dieptevarianten' PERF_ONLY=s13img node scripts/perf/run.mjs <naam> <voorinstelling>
+PERF_AB_NODRAW=1 PERF_AB_RENDERAB='oud=losgroepen+schaduwbereik;nieuw=' PERF_ONLY=renderab node scripts/perf/run.mjs <naam> <voorinstelling>
+```

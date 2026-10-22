@@ -1050,7 +1050,7 @@ export function init3D(map) {
   onSettingsChange(applyViewSettings);
   resize3D();
   window.addEventListener('resize', resize3D);
-  window.__scene3d = { THREE, scene, cam, renderer, postfx, farLod, actors: () => ({ vehicles: vehicleMeshes, peds: pedMeshes, wildlife: wildlifeMeshes, culled: culledActors }), setBlobPool: (on) => { blobPoolOn = !!on; }, dists: () => ({ DRAW_DIST, buildingDetailR, facadeDetailDist, roadDetailR, viewDist }), batches: () => ({ buildings: buildingBatcher.info(), facades: facadeBatcher.info(), roads: roadBatcher.info(), shores: shoreBatcher.info(), pool: drawHub.stats() }) };
+  window.__scene3d = { THREE, scene, cam, renderer, postfx, farLod, actors: () => ({ vehicles: vehicleMeshes, peds: pedMeshes, wildlife: wildlifeMeshes, culled: culledActors }), setBlobPool: (on) => { blobPoolOn = !!on; }, cullPass: () => { cullOffscreenActors(); skipHiddenMatrixWalk(); }, restorePass: restoreCulledActors, dists: () => ({ DRAW_DIST, buildingDetailR, facadeDetailDist, roadDetailR, viewDist }), batches: () => ({ buildings: buildingBatcher.info(), facades: facadeBatcher.info(), roads: roadBatcher.info(), shores: shoreBatcher.info(), pool: drawHub.stats() }) };
 }
 
 // increments each time the scene is drawn to the canvas (blackframe.js)
@@ -1370,6 +1370,10 @@ function hookShadowPass(shadowMap) {
     probe.mark('3d:render:voorpas');
     const kids = scene.children;
     const groups = !perfOff('schaduwgroepen');
+    // the sun's shadow box (a few tens of metres round the player, stretched towards the sun): a group whose sphere lies outside it casts nothing into
+    // the map, and three would walk its nodes for nothing (?perfoff=schaduwbereik)
+    let box = null;
+    if (lights.length === 1 && lights[0] === sun && !perfOff('schaduwbereik')) { sun.shadow.updateMatrices(sun); box = sun.shadow.getFrustum(); }
     for (let i = 0; i < kids.length; i++) {
       const c = kids[i];
       if (!c.visible || c.isLight || c.isCamera) continue;
@@ -1379,6 +1383,12 @@ function hookShadowPass(shadowMap) {
       if (c === terrainMesh || (groups && !groupCastsShadow(c))) {
         if (window.__perfVerify && c !== terrainMesh) { window.__perfVerify.shadowChecked++; if (nodeCasts(c)) { window.__perfVerify.shadow++; if (window.__perfVerify.bad.length < 12) window.__perfVerify.bad.push(['schaduwgroep', c.name || c.type, Math.round(c.position.x), Math.round(c.position.z)]); } }
         c.visible = false; shadowHidden.push(c);
+      } else if (box !== null) {
+        const sp = knownGroupSphere(c);
+        if (sp !== null && !box.intersectsSphere(sp)) {
+          if (window.__perfVerify) verifyShadowBox(c, box);
+          c.visible = false; shadowHidden.push(c);
+        }
       }
     }
     probe.mark('3d:render:schaduwscan');
@@ -1438,8 +1448,24 @@ function hookLinkGuard(r) {
       if (programs) for (const p of programs.values()) if (!programLinked(p)) { ready = false; break; }
       if (!ready) { linkPending.add(object); return undefined; }
     }
+    if (sc === null && material.isMeshDepthMaterial && !perfOff('dieptevarianten')) material = depthVariant(material, object);
     return draw(camera, sc, geometry, material, object, group);
   };
+}
+// The shadow pass draws every plain caster with one shared MeshDepthMaterial, and three asks for its program again each time the kind of object
+// changes (skinned, instanced, batched: 18 times a frame in the city). One copy per kind keeps its program; the copy has the shared one's side and wire.
+const depthKinds = new WeakMap();
+function depthVariant(m, o) {
+  const kind = (o.isSkinnedMesh ? 1 : 0) | (o.isInstancedMesh ? (o.instanceColor ? 4 : 2) : 0) | (o.isBatchedMesh ? 8 : 0);
+  if (kind === 0 || m.map || m.alphaMap || m.displacementMap || m.alphaTest > 0 || m.onBeforeCompile !== THREE.Material.prototype.onBeforeCompile || m.userData.pool) return m;
+  let list = depthKinds.get(m);
+  if (!list) depthKinds.set(m, list = []);
+  let v = list[kind];
+  if (!v) { v = list[kind] = new THREE.MeshDepthMaterial({ depthPacking: m.depthPacking }); v.name = 'depth-variant'; v.userData.depthVariantOf = m; }
+  v.side = m.side;
+  v.wireframe = m.wireframe;
+  v.visible = m.visible;
+  return v;
 }
 function compilePending() {
   if (!linkPending.size) return;
@@ -3137,6 +3163,24 @@ function expandVisible(o, box, root) {
   }
   for (let i = 0; i < o.children.length; i++) expandVisible(o.children[i], box, false);
 }
+// a group kept out of the shadow pass for lying outside the sun's shadow box: the exact box of its casters must lie outside it too
+function expandCasters(o, box) {
+  o.updateWorldMatrix(false, false);
+  const g = o.geometry;
+  if (g && o.isMesh && o.castShadow) {
+    if (!g.boundingBox) g.computeBoundingBox();
+    _vbox.copy(g.boundingBox).applyMatrix4(o.matrixWorld);
+    box.union(_vbox);
+  }
+  for (let i = 0; i < o.children.length; i++) expandCasters(o.children[i], box);
+}
+function verifyShadowBox(c, frustum) {
+  const V = window.__perfVerify;
+  V.boxChecked = (V.boxChecked || 0) + 1;
+  _cullBox.makeEmpty();
+  expandCasters(c, _cullBox);
+  if (!_cullBox.isEmpty() && frustum.intersectsBox(_cullBox)) { V.boxBad = (V.boxBad || 0) + 1; if (V.bad.length < 12) V.bad.push(['schaduwbereik', c.name || c.type, Math.round(c.position.x), Math.round(c.position.z)]); }
+}
 function verifyCull() {
   const V = window.__perfVerify;
   if (!V) return;
@@ -3191,11 +3235,51 @@ function cullableGroup(o) {
   for (let i = 0; i < o.children.length; i++) if (!cullableGroup(o.children[i])) return false;
   return true;
 }
+// The loose groups at the top of the scene without a name (the ticket machines of ~190 stations, street furniture, small props: ~900 of the
+// ~3800 nodes projected a frame, 80% of them outside the view) keep matrixAutoUpdate on, so they are not final the way the named kinds are.
+// One is cut only after two measurements, GROUP_CULL_AGE frames apart, saw the same local transforms (a sprite's bob is left out), and only
+// while the group itself stands where it did; its sphere has a margin of LOOSE_MARGIN for what moves a little inside (?perfoff=losgroepen).
+const LOOSE_MARGIN = 3;
+function looseGroupOk(o, top) {
+  if (o.isLight || o.isCamera || o.isPoints || o.isLine || o.isInstancedMesh || o.isSkinnedMesh || o.isBone) return false;
+  if (o.isMesh && (o.frustumCulled === false || !o.geometry)) return false;
+  if (!o.isSprite && Object.prototype.hasOwnProperty.call(o, 'onBeforeRender')) return false;
+  if (top && o.userData.shadowCasters !== undefined) return false;
+  for (let i = 0; i < o.children.length; i++) if (!looseGroupOk(o.children[i], false)) return false;
+  return true;
+}
+function looseStamp(o) {
+  let s = o.children.length * 1.37 + (o.visible ? 1 : 0.5);
+  if (!o.isSprite) {
+    const p = o.position, q = o.quaternion, c = o.scale;
+    s += p.x * 1.1 + p.y * 1.3 + p.z * 1.7 + q.x * 2.1 + q.y * 2.3 + q.z * 2.9 + q.w * 3.1 + c.x * 0.7 + c.y * 0.9 + c.z * 1.1;
+  }
+  for (let i = 0; i < o.children.length; i++) s += looseStamp(o.children[i]) * 0.5;
+  return s;
+}
 function groupCullInfo(c) {
   let k = groupCull.get(c);
   if (k && k.n === c.children.length && ++k.age <= GROUP_CULL_AGE) return k;
-  if (!k) groupCull.set(c, k = { n: -1, age: 0, sphere: null });
+  if (!k) groupCull.set(c, k = { n: -1, age: 0, sphere: null, loose: c.name === '', stamp: NaN, stable: 0, at: null });
   k.n = c.children.length; k.age = 0; k.sphere = null;
+  if (k.loose) {
+    if (c.children.length && looseGroupOk(c, true)) {
+      const st = looseStamp(c);
+      k.stable = st === k.stamp ? k.stable + 1 : 0;
+      k.stamp = st;
+      if (k.stable >= 1) {
+        c.updateWorldMatrix(true, true);
+        _cullBox.makeEmpty();
+        _cullBox.setFromObject(c);
+        if (!_cullBox.isEmpty()) {
+          k.sphere = _cullBox.getBoundingSphere(new THREE.Sphere());
+          k.sphere.radius += LOOSE_MARGIN;
+          k.at = [c.position.x, c.position.y, c.position.z, c.quaternion.y, c.scale.x];
+        }
+      }
+    } else { k.stamp = NaN; k.stable = 0; }
+    return k;
+  }
   if (c.children.length && !c.userData.shadowCasters && cullableGroup(c)) {
     _cullBox.makeEmpty();
     _cullBox.setFromObject(c);
@@ -3203,19 +3287,26 @@ function groupCullInfo(c) {
   }
   return k;
 }
+// the bounding sphere of a top-level group that is known and still right (the shape cullOffscreenGroups keeps), or null
+function knownGroupSphere(c) {
+  const k = groupCull.get(c);
+  if (!k || !k.sphere || k.n !== c.children.length) return null;
+  if (k.loose && !(c.position.x === k.at[0] && c.position.y === k.at[1] && c.position.z === k.at[2] && c.quaternion.y === k.at[3] && c.scale.x === k.at[4])) return null;
+  return k.sphere;
+}
 function cullOffscreenGroups() {
   const kids = scene.children;
   const deadline = performance.now() + GROUP_CULL_BUDGET_MS;
   let working = true;
   for (let i = 0; i < kids.length; i++) {
     const c = kids[i];
-    if (!c.visible || !GROUP_CULL_NAMES.has(c.name)) continue;
+    if (!c.visible || !(GROUP_CULL_NAMES.has(c.name) || (c.name === '' && c.isGroup && !perfOff('losgroepen')))) continue;
     let k = groupCull.get(c);
     if (!k || k.n !== c.children.length || k.age > GROUP_CULL_AGE) {
       // the groups are looked through a few at a time: one that is not known yet is drawn as before
       if (working && performance.now() < deadline) k = groupCullInfo(c); else { if (performance.now() >= deadline) working = false; continue; }
     } else k.age++;
-    if (k.sphere && !_cullFrustum.intersectsSphere(k.sphere)) { c.visible = false; culledGroups.push(c); }
+    if (k.sphere && !_cullFrustum.intersectsSphere(k.sphere) && (!k.loose || (c.position.x === k.at[0] && c.position.y === k.at[1] && c.position.z === k.at[2] && c.quaternion.y === k.at[3] && c.scale.x === k.at[4]))) { c.visible = false; culledGroups.push(c); }
   }
 }
 
