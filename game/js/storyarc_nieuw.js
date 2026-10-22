@@ -394,7 +394,7 @@ export const CLUES = [
   { step: 'M23', kind: 'clue', title: 'Jelles bruggenvergunningen', text: 'Jelle gaf elke brug op de route een evenementenvergunning om de colonne te splitsen. Wubbo opende ze met zijn eigen sleutel. De colonne is een evenement zonder vergunning: Jelle stuurt een rekening.' },
   { step: 'M25', kind: 'clue', title: 'De notaris', text: 'Morgen om drie uur laat Jelle zich bij de notaris in de Oude Boteringestraat inschrijven als nieuwe bewaarder, met de bal. Dan tekent hij zelf de uitslag. Wij houden hem tegen.' },
   // Deel 4
-  { step: 'M27', kind: 'hart', title: 'Twee meisjes op een fiets', text: 'Een foto uit 1953, in een la in Loppersum: Trijntje en Willemiens oma op een fiets, onderweg naar Stad voor de prijs. Tegen de wind in.' },
+  { step: 'M27', kind: 'hart', title: 'Twee tieners op een fiets', text: 'Een foto uit 1953, in een la in Loppersum: Trijntje en Willemiens oma op een fiets, onderweg naar Stad voor de prijs. Tegen de wind in.' },
   { step: 'M28', kind: 'hart', title: 'Zonder praatje', text: 'Rikus draaide een nummer zonder praatje, voor iedereen die even ergens anders slaapt. Willemien: "Ik geloof het als ik het zie. Dat is niet boos. Dat is Gronings."' },
   { step: 'M29', kind: 'hart', title: 'Voor de grip', text: 'Op het erf in Loppersum vroeg Tessa of Tammo wilde dansen. Hij zei nee. Toen zei hij: "Voor de grip."' },
   { step: 'M30', kind: 'clue', title: 'Dan is winnen verkeerd', text: 'Berend won het proefbeleg van Bourtange, voor het eerst in veertig jaar. Hij zegt dat het verkeerd voelt. Volgend jaar verliest hij weer.' },

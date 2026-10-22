@@ -30,7 +30,7 @@ export const STORY_AKTE6 = {
     npc: 'berend', outroPose: 'hips', ask: 0, textOnly: true,
     intro: [['N', 'Het proefbeleg van Bourtange. Ik tel alleen.']],
     outro: [['N', 'Dan is winnen verkeerd.']],
-    replay: [['N', 'Weer het beleg? Ik win nog steeds niet graag.']],
+    replay: [['N', 'Nog een proefbeleg? Ik win nog steeds niet graag.']],
     fail: [['A', 'De vesting hield stand. Het proefbeleg begint opnieuw.'], ['T', 'Een kartonnen kanon houdt niet alles tegen.']],
   },
 };

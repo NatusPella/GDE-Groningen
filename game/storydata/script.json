@@ -14362,7 +14362,7 @@
    "step": "M27",
    "kind": "key",
    "regie": [
-    "in een la, onder een stapel bonnetjes, een zwart-witfoto: twee meisjes op een fiets voor een klein station."
+    "in een la, onder een stapel bonnetjes, een zwart-witfoto: twee tieners op een fiets voor een klein station."
    ],
    "lines": [
     {
@@ -14384,7 +14384,7 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Willemien. Een foto. Twee meisjes op een fiets, voor het station.",
+     "text": "Willemien. Een foto. Twee tieners op een fiets, voor het station.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
@@ -14928,7 +14928,7 @@
     {
      "speaker": "Tammo",
      "key": "T",
-     "text": "Jij telde ze?",
+     "text": "Je hebt de klok bijgehouden.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
@@ -14988,7 +14988,7 @@
     {
      "speaker": "Berend Bos",
      "key": "berend",
-     "text": "Dames en heren. Het proefbeleg van Bourtange. Zestienhonderdtweeënzeventig verloor ik. Vandaag weet ik het nog niet.",
+     "text": "Allemaal. Het proefbeleg van Bourtange. Zestienhonderdtweeënzeventig verloor ik. Vandaag weet ik het nog niet.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
@@ -15510,7 +15510,7 @@
     {
      "speaker": "Berend Bos",
      "key": "berend",
-     "text": "Weer het beleg? Ik win nog steeds niet graag. Doe maar.",
+     "text": "Nog een proefbeleg? Ik win nog steeds niet graag. Doe maar.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
