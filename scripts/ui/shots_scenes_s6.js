@@ -1,4 +1,4 @@
-// Scenes voor #207 (animaties) en #397 (vliegschool): zwemmen, klimmen uit het water, over een hek springen en fietstrucs (wheelie, zonder handen, stoppie).
+// Scenes voor #207 (animaties) en #397 (vliegschool) en #397 (vliegschool): zwemmen, klimmen uit het water, over een hek springen en fietstrucs (wheelie, zonder handen, stoppie).
 // node scripts/ui_shots.mjs --scenes=scripts/ui/shots_scenes_s6.js --only=fietstrucs,stoppie,zwemklim,hek --sizes=1280x720
 // Basis: scripts/ui/shots_scenes_r39.js. Scenes for scripts/ui_shots.mjs (run by desktop --perf-script, one page per
 // window size). Each scene opens a screen and logs "[capture] <name>", which
@@ -364,6 +364,48 @@ if (want('vliegschool')) {
   V.quit();
   info.push('na afloop actief ' + A.active() + ' in voertuig ' + !!p.inVehicle);
   done.push('vliegschool');
+}
+
+// ---- #397: telemetrie van een les (debuggen van een vlucht): positie, snelheid, toetsen en elke melding van het spel ----
+if (want('vliegdebug')) {
+  clearInterval(skipper);
+  w.clock = 14;
+  const VR = await imp('vliegschoolrules');
+  const id = (window.__shotsTypes || 'hk-nood').split(',')[0];
+  const A = window.__activities.get('vliegschool');
+  const V = window.__vliegschool;
+  const sp = A.spots()[0];
+  teleport(sp.x, sp.y);
+  await settle();
+  teleport(sp.x, sp.y);
+  await sleep(1500);
+  const msgs = [];
+  const add0 = w.addMessage.bind(w);
+  w.addMessage = (t, ...r) => { msgs.push(((performance.now() - T0) / 1000).toFixed(1) + ' ' + String(t).slice(0, 80)); return add0(t, ...r); };
+  const les = VR.lesVan(id);
+  V.start(id);
+  const T0 = performance.now();
+  const KEYMAP = { w: ['w', 'KeyW'], s: ['s', 'KeyS'], a: ['a', 'KeyA'], d: ['d', 'KeyD'], spatie: [' ', 'Space'], ctrl: ['Control', 'ControlLeft'], shift: ['Shift', 'ShiftLeft'] };
+  const held = new Set();
+  const zet = (k) => { for (const n of Object.keys(KEYMAP)) { const aan = !!k[n], was = held.has(n); if (aan && !was) { keyEv('keydown', KEYMAP[n][0], KEYMAP[n][1]); held.add(n); } else if (!aan && was) { keyEv('keyup', KEYMAP[n][0], KEYMAP[n][1]); held.delete(n); } } };
+  let last = null, n = 0;
+  while (performance.now() - T0 < 150000) {
+    const st = V.state();
+    if (!st || st.fase === 'menu') break;
+    if (st.fase === 'vlieg') {
+      const k = VR.piloot(les, st.baan, st.st, st.c, {});
+      zet(k);
+      const c = st.c;
+      if (last && Math.hypot(c.x - last.x, c.y - last.y) > 120) info.push('SPRONG ' + Math.round(Math.hypot(c.x - last.x, c.y - last.y)) + ' m van ' + Math.round(last.x) + ',' + Math.round(last.y) + ' naar ' + Math.round(c.x) + ',' + Math.round(c.y));
+      last = { x: c.x, y: c.y };
+      if ((n++ % 8) === 0) info.push(((performance.now() - T0) / 1000).toFixed(1) + ' x' + Math.round(c.x) + ' y' + Math.round(c.y) + ' z' + c.agl.toFixed(0) + ' v' + c.speed.toFixed(1) + ' h' + c.heading.toFixed(2) + ' ' + Object.keys(k).filter((q) => k[q]).join('+') + ' tijd' + st.st.t.toFixed(0));
+    } else zet({});
+    await sleep(60);
+  }
+  zet({});
+  info.push('meldingen: ' + msgs.join(' | '));
+  V.quit();
+  done.push('vliegdebug');
 }
 
 clearInterval(skipper);
