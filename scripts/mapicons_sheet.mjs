@@ -5,6 +5,7 @@
 // willekeurige poort; geen Electron, geen opslag van het spel.
 //   node scripts/mapicons_sheet.mjs <uitmap> [voor|na] [zoom] [blad]   (schrijft <uitmap>/<naam>-1.png, -2.png ...)
 // zoom (standaard 1) vergroot het blad om te lezen; blad (1-based) rendert alleen dat blad.
+//   node scripts/mapicons_sheet.mjs <uitmap> wind [zoom]   (de windaanwijzer van de minikaart, #399: zes minikaartjes)
 import http from 'node:http';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -83,9 +84,43 @@ try {
 document.getElementById('out').textContent = JSON.stringify(out);
 </script>`;
 
+// de windaanwijzer (#399) op zes minikaartjes: drie windsterktes, vier kaartdraaiingen
+const WIND_PAGE = `<!doctype html><meta charset="utf-8"><title>wind</title>
+<script type="importmap">{"imports":{"three":"/vendor/three.module.js","https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js":"/vendor/three.module.js","three/addons/":"/vendor/addons/"}}</script>
+<style>html,body{margin:0;background:#101512;color:#e8e4d8;font:12px Arial,sans-serif}body{zoom:${ZOOM}}#g{display:grid;grid-template-columns:repeat(3,250px);gap:6px;padding:6px}.c{width:250px}canvas{display:block;width:250px;height:250px}</style>
+<div id="g"></div><pre id="out" style="display:none">running</pre>
+<script type="module">
+const out = { ok: false, errors: [] };
+window.addEventListener('error', (e) => out.errors.push('window: ' + e.message));
+try {
+  const { drawMiniWind, WIND_X, WIND_Y, drawMapIcon } = await import('/js/hud_panel.js');
+  const { MINI_PALETTE } = await import('/js/mapstyle.js');
+  const { windOp } = await import('/js/zeilrules.js');
+  const cases = [[2, 0], [5.5, Math.PI / 2], [9, Math.PI], [2.5, -0.6], [6.5, 2.4], [9, 0.9]];
+  const dpr = 2 * ${ZOOM};
+  for (const [speed, rot] of cases) {
+    const cv = document.createElement('canvas'); cv.width = cv.height = 250 * dpr;
+    const c = cv.getContext('2d'); c.scale(dpr, dpr);
+    const P = MINI_PALETTE;
+    c.fillStyle = P.meadow; c.fillRect(0, 0, 250, 250);
+    c.fillStyle = P.water; c.fillRect(0, 150, 250, 100); c.fillRect(90, 0, 40, 250);
+    c.fillStyle = P.road; c.fillRect(0, 60, 250, 6);
+    c.fillStyle = P.building; for (const [x, y] of [[20, 20], [40, 90], [170, 40], [190, 100], [20, 130]]) c.fillRect(x, y, 28, 20);
+    drawMapIcon(c, 'player', 125, 125, 1.8, { angle: -Math.PI / 2 + rot });
+    drawMiniWind(c, WIND_X, 250 - WIND_Y, { van: 0.5, snelheid: speed }, rot);
+    const d = document.createElement('div'); d.className = 'c'; d.appendChild(cv);
+    const l = document.createElement('div'); l.textContent = 'wind ' + speed + ' m/s, kaart gedraaid ' + Math.round(rot * 180 / Math.PI) + ' graden, wind uit 0,5 rad';
+    d.appendChild(l); document.getElementById('g').appendChild(d);
+  }
+  out.ok = true;
+} catch (e) { out.errors.push('exception: ' + (e && e.stack || e)); }
+document.getElementById('out').textContent = JSON.stringify(out);
+</script>`;
+
 const server = http.createServer((req, res) => {
   const u = decodeURIComponent(req.url.split('?')[0]);
   if (u === '/sheet.html') { res.setHeader('content-type', 'text/html'); res.end(PAGE); return; }
+  if (u === '/wind.html') { res.setHeader('content-type', 'text/html'); res.end(WIND_PAGE); return; }
   const f = u === '/vendor/three.module.js' ? THREE : u.startsWith('/vendor/addons/') ? path.join(path.dirname(THREE), '../examples/jsm', u.slice(15)) : path.join(ROOT, 'game', u);
   fs.readFile(f, (e, b) => {
     if (e) { console.log('404', u); res.statusCode = 404; res.end(); return; }
@@ -103,6 +138,13 @@ const chrome = (args) => new Promise((resolve) => {
   const killer = setTimeout(() => child.kill(), 90000);
   child.on('close', () => { clearTimeout(killer); resolve(dom); });
 });
+if (NAME === 'wind') {
+  const file = path.join(OUT, 'wind.png');
+  await chrome([`--screenshot=${file}`, `--window-size=${(3 * 256 + 12) * ZOOM},${(2 * 276 + 12) * ZOOM}`, `http://127.0.0.1:${port}/wind.html`]);
+  console.log(fs.existsSync(file) ? 'geschreven ' + file : 'MISLUKT ' + file);
+  server.close();
+  process.exit(0);
+}
 const dom = await chrome(['--dump-dom', `http://127.0.0.1:${port}/sheet.html?p=0`]);
 const m = dom.match(/<pre id="out"[^>]*>([\s\S]*?)<\/pre>/);
 let info;

@@ -41,6 +41,15 @@ export function windOp(dag, uur) {
 }
 function lerpAngle(a, b, t) { return a + wrap(b - a) * t; }
 
+// De wind van het weer (world.weather.windAngle, waarheen de regen waait): het skûtsje-sprint (pg_skutsje.js) zeilt
+// daarop en kent geen windsterkte. `dir` is hier, net als in windOp, waar de wind vandaan komt; de sterkte is een vaste
+// middenwaarde, alleen voor de windaanwijzer op de minikaart (windmini.js).
+export const WEER_WIND_SNELHEID = (WIND.min + WIND.max) / 2;
+export function weerWindVan(weather) {
+  const a = weather && Number.isFinite(weather.windAngle) ? weather.windAngle : 0.4;
+  return wrap(a + Math.PI);
+}
+
 // Relatieve windhoek van de boot: 0 = wind recht van voren, ±π = recht van achteren.
 export const windHoek = (heading, wind) => wrap(wind.dir - heading);
 
