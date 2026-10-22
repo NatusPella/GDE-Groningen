@@ -214,7 +214,7 @@ const SECTIONS = [
   ['spullen', 'Spullen', 'Alles wat je hebt'],
   ['garage', 'Garage', 'Jouw voertuigen'],
   ['prestaties', 'Prestaties', 'Blijven bewaard, ook bij een nieuw spel'],
-  ['loopbaan', 'Loopbaan', 'Je vakken, niveaus en titels'],
+  ['loopbaan', 'Loopbaan', 'Van jou, ook als je samen speelt'],
   ['fotos', "Foto's", 'Fotomodus en je galerij'],
   ['samen', 'Samen spelen', 'Iemand uitnodigen of aansluiten'],
   ['spelers', 'Spelers', 'Wie er meespeelt'],
