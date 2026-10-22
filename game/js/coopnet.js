@@ -145,7 +145,7 @@ export function startHost(world, info, opts = {}) {
   if (world.coop) world.coop.leash = Infinity; // geen harde lijn van 38 m om Tessa: ze kon niet verder dan dat van de gastheer, en hij kon niet weten waarom (#388); bandMetgezel doet het werk
   world.coopRole = 'host';
   world.coopRoster = lijst(hub.roster);
-  world.coopUitslag = (ok, label, reden, loon) => uitslagMelden(world, ok, label, reden, loon); // gelukt of mislukt (#371)
+  world.coopUitslag = (ok, label, reden, loon, gestopt) => uitslagMelden(world, ok, label, reden, loon, gestopt); // gelukt, mislukt of gestopt (#371, #390)
   world.coopDeel = (bedrag, info) => deelMetGasten(world, bedrag, info); // missies, bijbanen en prijzen delen met de gasten (#365)
   world.coopMeld = (slot, tekst) => hub.announce({ k: 'melding', tekst: String(tekst).slice(0, 90) }, slot); // een korte melding voor een gast (#291)
   world.coopNet = { role: 'host', hub, fade, route, removing: {}, info, tKlok: 0, tHash: 0, tWeer: 0, tSpelers: 1, hashN: 0, scene, tScene: 0, filmpjeT: 0, sceneNu: null };
@@ -331,9 +331,9 @@ export function bandMetgezel(world, dt) {
 }
 
 // De opdracht van de gastheer is gelukt of mislukt: elke gast leest het (en bij gelukt wat zijn deel was), zodat niemand raadt (#371)
-export function uitslagMelden(world, ok, label, reden = '', loon = 0) {
+export function uitslagMelden(world, ok, label, reden = '', loon = 0, gestopt = false) {
   const n = world.coopNet; if (!n || n.role !== 'host') return false;
-  return n.hub.announce({ k: 'uitslag', ok: !!ok, label: String(label || '').slice(0, 60), reden: String(reden || '').slice(0, 60), deel: ok ? Math.floor(Math.max(0, Number(loon) || 0) * GAST_DEEL) : 0 });
+  return n.hub.announce({ k: 'uitslag', ok: !!ok, ...(gestopt ? { gestopt: true } : null), label: String(label || '').slice(0, 60), reden: String(reden || '').slice(0, 60), deel: ok ? Math.floor(Math.max(0, Number(loon) || 0) * GAST_DEEL) : 0 });
 }
 
 // Missies, bijbanen en prijzen van de gastheer: elke verbonden gast krijgt zijn deel in zijn eigen portemonnee (#365).
@@ -452,11 +452,12 @@ export function handleEvent(world, body, van = 0) {
       if (tekst && world.addMessage) world.addMessage(tekst, 6);
       return true;
     }
-    case 'uitslag': { // gelukt of mislukt, van de gastheer (#371)
+    case 'uitslag': { // gelukt, mislukt of gestopt, van de gastheer (#371, #390)
       if (!n || n.role !== 'client' || typeof body.label !== 'string') return false;
       const naam = openerNaam(world.coopRoster, true);
       const deel = Math.floor(Number(body.deel)) || 0;
-      const tekst = body.ok ? `${body.label} gelukt! ${naam} en jij hebben het samen gedaan.${deel > 0 ? ` Jouw deel: €${deel.toLocaleString('nl-NL')}.` : ''}` : `${body.label} mislukt${body.reden ? ': ' + String(body.reden).slice(0, 60) : ''}. ${naam} probeert het misschien opnieuw.`;
+      // gestopt (#390): de gastheer stopte de missie uit het pauzemenu, voor iedereen; het is geen mislukking
+      const tekst = body.gestopt ? `${naam} heeft ${body.label} gestopt, voor jullie allebei. ${naam} kan hem opnieuw starten.` : body.ok ? `${body.label} gelukt! ${naam} en jij hebben het samen gedaan.${deel > 0 ? ` Jouw deel: €${deel.toLocaleString('nl-NL')}.` : ''}` : `${body.label} mislukt${body.reden ? ': ' + String(body.reden).slice(0, 60) : ''}. ${naam} probeert het misschien opnieuw.`;
       if (world.addMessage) world.addMessage(tekst.slice(0, 160), 5);
       return true;
     }

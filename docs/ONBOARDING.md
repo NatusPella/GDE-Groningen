@@ -34,7 +34,7 @@ of wat er verder kan.
 | Het verhaal | Bel Rikus op Radio Nachtstreek vertelt de klus, de tekst van de stap komt als bericht op de telefoon, de partner zegt iets. De narrative-planner (narrative.js) zorgt dat dit na elkaar komt. | Rustig en in volgorde. |
 | Thuis | "Jullie nieuwe flat! Bed: slapen en opslaan. Koelkast: eierbal. Kast: je kleren." | Goed, één kaart. |
 | Eerste aankoop (k-fiets) | "Voor het verhaal: …" als kaart, de route naar Trap & Toeter, "Voor het verhaal: loop naar binnen (E)" op de doelregel, en een voorschot van Sjoerd als je geld tekortkomt. | Goed: niemand komt vast te zitten. |
-| Vastlopen | Overslaan van een stap na een tijd, Zet me vrij, Missie afbreken. | Goed. |
+| Vastlopen | Overslaan van een stap na een tijd, Zet me vrij, Missie stoppen (met een vraag vooraf). | Goed. |
 
 ### Wat ontbrak
 

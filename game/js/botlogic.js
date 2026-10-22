@@ -556,6 +556,7 @@ export function summarise(events) {
     missions, consoleErrors, nan, warnings: warnings.length,
     stuck: events.filter((e) => e.type === 'stuck'),
     cheats: events.filter((e) => e.type === 'cheat'),
+    annuleer: events.filter((e) => e.type === 'annuleer'),
     minigames: events.filter((e) => e.type === 'minigame'),
     shots: events.filter((e) => e.type === 'shot').map((e) => e.name),
     unbalanced: unbalancedKeys(events),
@@ -585,6 +586,10 @@ export function buildReport(events, meta = {}) {
   const real = S.cheats.filter((c) => isCheat(c.rung));
   if (!real.length) out.push('Geen cheats nodig.');
   for (const e of real) out.push(`- ${fmtS(e.t)} bij ${e.step || '?'}: ${e.rung}${e.why ? ` (${e.why})` : ''}`);
+  if (S.annuleer.length) {
+    out.push('', '## Missie gestopt uit het menu (#390)', '');
+    for (const e of S.annuleer) out.push(`- ${fmtS(e.t)} bij ${e.voor && e.voor.id}: knop ${e.knop ? 'ja' : '**nee**'}, vraag ${e.vraagZichtbaar ? 'ja' : '**nee**'}, na de vraag nog actief ${e.nogActiefNaVraag ? 'ja' : 'nee'}, na Ja ${e.na && e.na.actief ? '**nog actief**' : 'gestopt'} (mislukkingen ${e.voor && e.voor.fails} naar ${e.na && e.na.fails}, geld ${e.voor && e.voor.money} naar ${e.na && e.na.money}): ${e.ok ? 'klopt' : '**klopt niet**'}`);
+  }
   out.push('', '## Consolefouten', '');
   if (!S.consoleErrors.length) out.push('Geen.');
   for (const e of S.consoleErrors.slice(0, 40)) out.push(`- ${fmtS(e.t)} ${String(e.msg).slice(0, 200)}`);
