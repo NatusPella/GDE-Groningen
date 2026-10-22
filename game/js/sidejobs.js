@@ -175,7 +175,7 @@ export function initSideJobs(w) {
   }
   if (scene) buildBeacon(scene);
   w.sideJob = pub;
-  w.sideJobActions = { active: () => !!ctx, stop: () => quitSideJob(), name: () => (ctx ? ctx.job.name : '') };
+  w.sideJobActions = { active: () => !!ctx, stop: () => quitSideJob(), name: () => (ctx ? ctx.job.name : ''), vehicle: () => (ctx ? ctx.vehicle : null) };
   w.onRespawn.push((ww, { busted }) => {
     if (ctx) endShift('dead', busted ? 'Opgepakt: de dienst zit erop' : 'Je bent neergegaan: de dienst zit erop');
   });
@@ -229,11 +229,13 @@ function makeCtx(job, spot) {
   return c;
 }
 
-function startJob(job) {
+function startJob(job, takeover = null) {
   if (!job || ctx) return false;
   const spot = spots.find((s) => s.job === job) || { job, x: world.player.x, y: world.player.y };
-  if (leftover) { removeVehicle(world, leftover); leftover = null; }
+  if (leftover && !(takeover && leftover === takeover.vehicle)) removeVehicle(world, leftover);
+  leftover = null;
   const c = makeCtx(job, spot);
+  c.takeover = takeover; // de dienst van een rijdende bus overnemen (#396): { vehicle, line, dir }
   let ok;
   try { ok = job.start(c); } catch (e) { console.error(e); ok = 'Er ging iets mis bij het klaarzetten'; }
   if (ok !== true) {
@@ -245,7 +247,7 @@ function startJob(job) {
   rec(job.id).shifts++;
   const lvl = c.level;
   const kicker = `Bijbaantje · niveau ${lvl}: ${levelTitle(lvl)}`;
-  const intro = !job.noIntro && !seen.has(job.id) && playMissionIntro(world, { kicker, title: job.name, objective: c.vehicle || null, ...introLines(job) });
+  const intro = !takeover && !job.noIntro && !seen.has(job.id) && playMissionIntro(world, { kicker, title: job.name, objective: c.vehicle || null, ...introLines(job) });
   if (intro) seen.add(job.id);
   else {
     world.addMessage(`${job.name}: ${job.tagline || job.blurb}`, 3.5);
@@ -532,6 +534,17 @@ export function trySideJobInteract(w) {
   if (why) { w.addMessage(why, 2.5); return consume(); }
   startJob(s.job);
   return consume();
+}
+
+// Waarom je de dienst van deze bus nu niet kunt overnemen (tekst), of null als het kan (#396).
+export function busShiftBlock(w) { return blockReason(w); }
+
+// De dienst van een lijnbus overnemen: de bijbaan Streekbus op de lijn, richting en volgende halte van deze bus.
+export function startBusShift(w, vehicle, line, dir) {
+  world = w;
+  const why = blockReason(w);
+  if (why) { w.addMessage(why, 2.5); return false; }
+  return startJob(BY_ID.get('lijn'), { vehicle, line, dir });
 }
 
 export function sideJobPrompt(w) {
