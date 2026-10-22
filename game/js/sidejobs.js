@@ -41,6 +41,7 @@ import lijn from './sidejob_lijn.js';
 import { BIJBAAN_JOBS } from './sidejob_bijbaan.js';
 import { veerdienst } from './sidejob_veer.js';
 import { PANEEL_JOBS } from './sidejob_paneel.js';
+import tjalke from './sidejob_tjalke.js';
 import { loket, studiestaat, vigilantia, promotie, kamerkoning, wolkenhal, helix, niemeyer, bernard } from './sidejob_keuze.js';
 import { STAD_JOBS } from './sidejob_stad.js';
 import { SIDEJOB_PAY_MULT, SIDEJOB_LEVEL_BONUS, SIDEJOB_ACCIDENT_FINE } from './economy.js';
@@ -50,7 +51,7 @@ import { noteMoney } from './finance.js';
 import { loopbaanLoon, loopbaanTel, loopbaanDeel } from './loopbaanlive.js';
 import { vakVanBaan } from './loopbaan.js';
 
-export const SIDE_JOBS = [bezorger, krantenwijk, taxi, bus, rondvaart, fietsdepot, verhuizing, rondvaarttour, boa, rechtbank, cabaret, vracht, loket, studiestaat, vigilantia, promotie, kamerkoning, wolkenhal, helix, niemeyer, bernard, lijn, ...BIJBAAN_JOBS, veerdienst, ...PANEEL_JOBS, ...STAD_JOBS];
+export const SIDE_JOBS = [bezorger, krantenwijk, taxi, bus, rondvaart, fietsdepot, verhuizing, rondvaarttour, boa, rechtbank, cabaret, vracht, loket, studiestaat, vigilantia, promotie, kamerkoning, wolkenhal, helix, niemeyer, bernard, tjalke, lijn, ...BIJBAAN_JOBS, veerdienst, ...PANEEL_JOBS, ...STAD_JOBS];
 const BY_ID = new Map(SIDE_JOBS.map((j) => [j.id, j]));
 
 export const JOB_TARGET_COLOR = '#ff9a3c';
@@ -100,7 +101,7 @@ export function getSideJobList() {
 }
 
 // Rough pay per round for the phone's job app until the player has own figures.
-const PAY_GUESS = { lijn: [60, 120], bezorger: [27, 55], krantenwijk: [24, 46], taxi: [25, 60], bus: [90, 140], rondvaart: [55, 105], rondvaarttour: [40, 80], fietsdepot: [45, 90], verhuizing: [80, 180], boa: [38, 60], rechtbank: [60, 105], cabaret: [25, 85], vracht: [70, 130], loket: [52, 90], studiestaat: [62, 110], vigilantia: [56, 98], promotie: [58, 100], kamerkoning: [52, 92], wolkenhal: [58, 100], helix: [54, 92], niemeyer: [54, 94], bernard: [48, 84], museumbus: [48, 86], suikerbieten: [50, 90], herstelploeg: [66, 96], oogtv: [69, 93], telefoonrave: [40, 85], vandermeden: [56, 90], schouwburg: [56, 92], bernardrit: [52, 84] };
+const PAY_GUESS = { lijn: [60, 120], bezorger: [27, 55], krantenwijk: [24, 46], taxi: [25, 60], bus: [90, 140], rondvaart: [55, 105], rondvaarttour: [40, 80], fietsdepot: [45, 90], verhuizing: [80, 180], boa: [38, 60], rechtbank: [60, 105], cabaret: [25, 85], vracht: [70, 130], loket: [52, 90], studiestaat: [62, 110], vigilantia: [56, 98], promotie: [58, 100], kamerkoning: [52, 92], wolkenhal: [58, 100], helix: [54, 92], niemeyer: [54, 94], bernard: [48, 84], tjalke: [300, 400], museumbus: [48, 86], suikerbieten: [50, 90], herstelploeg: [66, 96], oogtv: [69, 93], telefoonrave: [40, 85], vandermeden: [56, 90], schouwburg: [56, 92], bernardrit: [52, 84] };
 
 // Phone job app: every job with pay, distance and why it can't start now.
 export function getSideJobOffers(w) {
@@ -326,6 +327,8 @@ function completeRound(c, res = {}) {
     world.phoneNotifications.push({ text: 'KIEKDOAR: ' + c.job.sikkom(c), duration: 4, say: say && say.lines[0] });
   }
   c.timeLeft = null;
+  // a job that is played once (job.once: the ride to Tjalke, #411) ends its shift after the pay, not with a next round
+  if (c.job.once) { endShift('quit', c.job.onceText || 'Klaar, in één keer'); return; }
   c.nextRoundAt = world.time + NEXT_ROUND_DELAY;
   c.betweenRounds = true;
 }
@@ -903,6 +906,13 @@ export function drawJobGlyph(g, glyph, r, bg) {
       g.fillStyle = bg;
       g.beginPath(); g.arc(-0.22, -0.06, 0.12, 0, Math.PI * 2); g.arc(0.22, -0.06, 0.12, 0, Math.PI * 2); g.fill();
       g.fillRect(-0.28, 0.2, 0.56, 0.1);
+      break;
+    case 'tjalke':   // a traffic cone with a white band
+      g.moveTo(0, -0.78); g.lineTo(0.5, 0.5); g.lineTo(-0.5, 0.5); g.closePath();
+      g.fill();
+      g.fillRect(-0.74, 0.5, 1.48, 0.2);
+      g.fillStyle = bg;
+      g.fillRect(-0.3, -0.1, 0.6, 0.16);
       break;
     case 'bernard':   // an umbrella
       g.moveTo(-0.84, 0.0); g.quadraticCurveTo(0, -1.0, 0.84, 0.0); g.quadraticCurveTo(0.42, -0.14, 0, 0.0); g.quadraticCurveTo(-0.42, -0.14, -0.84, 0.0);

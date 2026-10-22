@@ -29,6 +29,15 @@ export const BOAT_KINDS = {
   // never in the everyday mix; slow to start, slow to stop, wide to turn.
   spits: { kind: 'binnenvaart', name: 'boat', len: 38.5, wid: 5.05, playerTop: 6, playerAccel: 0.5, maxSpeed: 5.5, accel: 0.35, brake: 0.5, turnRate: 0.3, color: '#2b3f55', cabin: '#e8e6e0' },
   kempenaar: { kind: 'binnenvaart', name: 'boat', len: 50, wid: 6.6, playerTop: 6, playerAccel: 0.45, maxSpeed: 5.8, accel: 0.3, brake: 0.45, turnRate: 0.26, color: '#6b2a24', cabin: '#d8d4c8' },
+  // Sea ships (#398, zeeschip3d.js): the invented fleet of the Wadden Sea and the Eems, and the tug. Not in the everyday mix
+  // (streetlifedata.pickSeaLife); huge, slow to start and slow to stop, and they take the wide turns of a real ship. 'soort'
+  // picks the superstructure and the deck load (vracht, container, tanker).
+  zeeVracht: { kind: 'zeeschip', soort: 'vracht', name: 'boat', len: 86, wid: 13, playerTop: 6, playerAccel: 0.14, maxSpeed: 6.4, accel: 0.1, brake: 0.16, turnRate: 0.11, color: '#2d4a63', cabin: '#e8e6e0' },
+  zeeContainer: { kind: 'zeeschip', soort: 'container', name: 'boat', len: 92, wid: 14.4, playerTop: 6, playerAccel: 0.14, maxSpeed: 7, accel: 0.1, brake: 0.16, turnRate: 0.1, color: '#8b2b24', cabin: '#e8e6e0' },
+  zeeTanker: { kind: 'zeeschip', soort: 'tanker', name: 'boat', len: 98, wid: 15.4, playerTop: 6, playerAccel: 0.12, maxSpeed: 5.8, accel: 0.08, brake: 0.14, turnRate: 0.09, color: '#2a2d33', cabin: '#e8e6e0' },
+  zeeSleper: { kind: 'sleper', name: 'boat', len: 26, wid: 8.6, playerTop: 6, playerAccel: 0.5, maxSpeed: 5, accel: 0.45, brake: 0.6, turnRate: 0.42, color: '#c5922b', cabin: '#e8e6e0' },
+  // the ship the yard launches (werf.js): a fresh red coaster, a little bigger than the ones that sail by already
+  zeeNieuw: { kind: 'zeeschip', soort: 'vracht', name: 'boat', len: 90, wid: 13.6, playerTop: 6, playerAccel: 0.14, maxSpeed: 6.4, accel: 0.1, brake: 0.16, turnRate: 0.11, color: '#b4372c', cabin: '#f2efe6' },
   // Frisian sailing barge (Jelle's): not in the ambient mix
   // Watersport (#197, zeilrules.js): de roeiboot gaat op de roei-romp, de zeilboot op de bijboot-romp met wind als aandrijving (zeilvaren.js)
   roeiboot: { kind: 'skiff', soort: 'roeiboot', name: 'boat', len: 4.4, wid: 1.3, playerTop: 5, playerAccel: 1.6, maxSpeed: 3.2, accel: 1.1, brake: 1.8, turnRate: 1.1, color: '#8a5a2c', cabin: '#f2f0ea' },
@@ -87,6 +96,10 @@ export function boatSeats(v) {
       }
       return s;
     }
+    case 'zeeschip':
+    case 'sleper':
+      // the skipper stands on the bridge wing, the helm of the wheelhouse (a tug: lower)
+      return [{ x: boatKind(v) === 'sleper' ? -hl * 0.15 + 0.6 : -hl + 10.3, z: 0, y: boatKind(v) === 'sleper' ? 5.1 : 9.9, face: 0, pose: { recline: 0.04, ...LEGS_BENCH, arms: 'wheel' } }];
     case 'binnenvaart':
       // the skipper stands at the wheel in the wheelhouse aft
       return [{ x: -hl + 3.6, z: 0, y: 1.9, face: 0, pose: { recline: 0.04, ...LEGS_BENCH, arms: 'wheel' } }];
@@ -172,6 +185,8 @@ export function boatCrewCount(v) {
     case 'skiff': return 1;
     case 'acht': return 9;
     case 'binnenvaart': return 1;
+    case 'zeeschip': return 1;
+    case 'sleper': return 1;
     case 'sup': return 1;
     case 'waterfiets': return r < 0.7 ? 2 : 1;
     case 'dinghy': return r < 0.5 ? 2 : 1;

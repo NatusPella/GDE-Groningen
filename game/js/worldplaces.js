@@ -55,6 +55,9 @@ export const worldTownSigns = () => (PLACES.towns.length ? PLACES.towns : null);
 
 export const worldPlacesReady = () => PLACES.seats.length > 0;
 
+// The towns, villages and hamlets as they are now (gebiedenbronnen.js, #414): [{ name, kind, x, y }].
+export const worldPlaceList = () => PLACES.seats;
+
 // The place of that name ({ name, kind, x, y }), or null.
 export const worldPlaceNamed = (name) => PLACES.list.find((p) => p.name === name) || null;
 
