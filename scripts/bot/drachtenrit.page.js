@@ -13,6 +13,7 @@ const SJ = await imp('sidejobs');
 const Br = await imp('breakables');
 const V = await imp('vehicle');
 const RIT = await imp('drachtenrit');
+const RG = await imp('roadgraph');
 const world = B.world, player = B.player;
 const CFG = window.__botCfg || {};
 B.speed(CFG.speed > 1 ? CFG.speed : 4);
@@ -85,10 +86,25 @@ while (act.active() && performance.now() - t0 < wall) {
   const me = { x: s.player.x, y: s.player.y };
   if (!follower || s.t - planAt > 10) {
     planAt = s.t;
-    let pts = null;
+    const end = RIT.RIT.einde;
+    let pts = null, bron = '';
     try { pts = R.getRouteAhead(1e9); } catch (e) { pts = null; }
+    const nearEnd = (p) => p && p.length > 1 && Math.hypot(p[p.length - 1][0] - end.x, p[p.length - 1][1] - end.y) < 800;
+    if (nearEnd(pts)) bron = 'gps';
+    else {
+      // the game's own route does not reach the end (yet): the city streets to the A7 (the spot where the A7 enters the world data), then the province road net
+      pts = null;
+      try {
+        const E0 = [-4102, 1978];
+        const stad = Math.hypot(me.x - E0[0], me.y - E0[1]) > 600 ? R.planLandRoute(world.map, 'drive', [me.x, me.y], E0) : null;
+        const a = RG.snapRoad(stad ? E0[0] : me.x, stad ? E0[1] : me.y, 600, false), b = RG.snapRoad(end.x, end.y, 600, false);
+        const rest = a && b ? RG.roadPath(a, b, null) : null;
+        if (rest) { pts = [...(stad && stad.pts ? stad.pts : []), ...rest]; bron = stad ? 'stad+provincie' : 'provincie'; }
+      } catch (e) { B.log('routefout', { msg: String(e && e.message || e).slice(0, 160) }); }
+    }
+    B.log('route', { bron: bron || 'recht', punten: pts ? pts.length : 0, van: [Math.round(me.x), Math.round(me.y)] });
     if (pts && pts.length > 1) follower = new L.PathFollower(pts, { reach: 12 });
-    else follower = new L.PathFollower([[me.x, me.y], [RIT.RIT.einde.x, RIT.RIT.einde.y]], { reach: 12 });
+    else follower = new L.PathFollower([[me.x, me.y], [end.x, end.y]], { reach: 12 });
   }
   const aim = follower.next(me) || { x: RIT.RIT.einde.x, y: RIT.RIT.einde.y };
   const car = { x: me.x, y: me.y, angle: veh.angle, speed: veh.speed };
