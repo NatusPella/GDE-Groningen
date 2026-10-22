@@ -11,15 +11,18 @@ const gameDir = new URL('../../game/', import.meta.url);
 // { water: [{ pts, kind, nav, lv, dp, body, name, lock }], bridges: [{ pts, z, width, movable, name, gid, city }], houseboats: [{ pts, osm }], locks, edge, cityTiles }
 export function loadProvinceVaar(worldDir = new URL('world/', gameDir)) {
   const idx = JSON.parse(fs.readFileSync(new URL('index-provincie.json', worldDir)));
+  const cityIdx = JSON.parse(fs.readFileSync(new URL('index.json', worldDir)));
   const packs = {};
   const water = [], bridges = [], houseboats = [], seenW = new Set(), seenB = new Set(), seenH = new Set();
   for (const [key, t] of Object.entries(idx.tiles)) {
     if (!t.n || (!t.n.water && !t.n.roads)) continue;
-    const p = idx.packs[t.pack];
+    // an overlay is merged into its city tile (merge_overlays.mjs): its rows are the ones with an id from GID0 up
+    const src = t.in ? cityIdx : idx, e = t.in ? cityIdx.tiles[t.in] : t;
+    const p = src.packs[e.pack];
     const f = packs[p.file] || (packs[p.file] = fs.readFileSync(new URL(p.file, worldDir)));
-    const bytes = new Uint8Array(zlib.inflateRawSync(f.subarray(t.off, t.off + t.len)));
+    const bytes = new Uint8Array(zlib.inflateRawSync(f.subarray(e.off, e.off + e.len)));
     const head = G.blobHeader(bytes), strings = G.blobStrings(bytes, head);
-    const sec = (type) => { const s = head.sections.find((q) => q.type === type); return s ? G.decodeSection(bytes, s, strings, head.i, head.j).rows : []; };
+    const sec = (type) => { const s = head.sections.find((q) => q.type === type); const rows = s ? G.decodeSection(bytes, s, strings, head.i, head.j).rows : []; return t.in ? rows.filter((r) => r.gid >= 20_000_000) : rows; };
     // the houseboats moored in a canal are a wall for a boat (#343)
     if (t.n.water) for (const b of sec(G.SECTION.BUILDINGS)) {
       if (b.type !== 'houseboat') continue;

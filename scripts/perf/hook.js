@@ -4,6 +4,14 @@
 // through EXT_disjoint_timer_query_webgl2 around each frame's callbacks.
 (() => {
   if (window.__perfHook) return;
+  // the boot timeline of PERF_ONLY=wegenklaar (#247): every 250 ms, until the menu is up, what the menu gate waits for
+  // [ms, buildings + roads still to build, the viewpoint's tiles in, number of load marks]; routes.js hands it in with the gate's report
+  const boot = window.__bootLog = [];
+  const bootIv = setInterval(() => {
+    const st = window.__menuPlekken && window.__menuPlekken.stand ? window.__menuPlekken.stand() : null;
+    boot.push([Math.round(performance.now()), st && st.wacht ? st.wacht.buildings + st.wacht.roads : null, st ? st.tegels : null, window.__loadMarks ? Object.keys(window.__loadMarks).length : 0]);
+    if ((window.__loadMarks && window.__loadMarks.menu) || boot.length > 1200) clearInterval(bootIv);
+  }, 250);
   const H = window.__perfHook = { frames: [], longTasks: [], gpuSum: 0, recording: false, gl: null, ext: null, gpuState: 'off' };
   const raf = window.requestAnimationFrame.bind(window);
   let frameTs = -1, cpu = 0;

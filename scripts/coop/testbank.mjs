@@ -88,7 +88,7 @@ function start(name, cfg, seed, extraArgs = []) {
   const dir = path.join(OUT, name); fs.mkdirSync(dir, { recursive: true });
   const events = path.join(dir, 'events.jsonl'); fs.writeFileSync(events, '');
   const script = path.join(dir, '_page.js');
-  const pcfg = { ...cfg, name, route: ROUTE, preSave: SUITE === 'net' || SUITE === 'basis' || (SUITE === 'opening' && flag('host-save')), durationS: DURATION, viaMenu: MENU, expect: EXPECT, trackerPort, program: P[name] || [], invuln: flag('invuln'), watchOpening: SUITE === 'opening' && !flag('host-save'), tekstTest: SUITE === 'opening', hostSave: flag('host-save'), gateWachtMs: SUITE === 'gastacties' ? 7000 : 0 };
+  const pcfg = { ...cfg, name, route: ROUTE, preSave: SUITE === 'net' || SUITE === 'basis' || (SUITE === 'opening' && flag('host-save')), durationS: DURATION, viaMenu: MENU, expect: EXPECT, maxSpelers: EXPECT > 8 ? 16 : 0, trackerPort, program: P[name] || [], invuln: flag('invuln'), watchOpening: SUITE === 'opening' && !flag('host-save'), tekstTest: SUITE === 'opening', hostSave: flag('host-save'), gateWachtMs: SUITE === 'gastacties' ? 7000 : 0 };
   // de spelbot (bot.page.js) als functie, voor de host die het verhaal speelt
   const bot = `window.__botMain = async () => {\n${botCode}\n};\n`;
   fs.writeFileSync(script, `window.__coopCfg = ${JSON.stringify(pcfg)};\n${bot}` + fs.readFileSync(path.join(HERE, 'coop.page.js'), 'utf8'));
@@ -167,6 +167,7 @@ if (code && MOCK && ROUTE === 'direct') {
     return { mx: dy / d, my: -dx / d, run: d > 14, yaw: 0 };
   };
   for (let i = 0; i < MOCK; i++) {
+    if (i === 1 && EXPECT > 8) await waitFor(host.events, 'max-knop', 90000); // de gastheer kiest "Tot 16 spelers" zodra de eerste gast er is; de rest komt pas daarna (anders is de TCP-kant vol bij 8)
     try {
       const m = await startMockGuest({ stage: STAGE, code: guestCode, wens: undefined, net: SUITE === 'net' && (GASTEN > 0 || i === MOCK - 1) ? { latency: 0.08, jitter: 0.03, loss: 0.05 } : {}, seed: 7 + i });
       m.input = SUITE === 'verhaal' ? volg(m) : spin(i); mocks.push(m); console.log('mockgast', i + 1, 'verbonden');
@@ -361,7 +362,8 @@ if (gW && hW && SUITE !== 'gastacties') { // (bij gastacties staat de host steed
   const d = Math.hypot(gW.companion.x - hW.me.x, gW.companion.y - hW.me.y);
   check(d < 6, `gast ziet Tammo op ${d.toFixed(1)} m van de host`);
 }
-const klokVerschil = (g) => { const h = samples('host').filter((s) => Number.isFinite(s.uur)), q = samples(g).filter((s) => Number.isFinite(s.uur)); if (!h.length || !q.length) return null; return Math.abs(((last(q).uur - last(h).uur + 36) % 24) - 12); };
+// de laatste keer dat de gast echt meespeelde (daarna speelt hij weer in zijn eigen spel, met zijn eigen klok) tegen de host op hetzelfde moment
+const klokVerschil = (g) => { const h = samples('host').filter((s) => Number.isFinite(s.uur)), q = samples(g).filter((s) => Number.isFinite(s.uur) && s.slot >= 0 && (s.status === 'ok' || s.status === 'lag')); if (!h.length || !q.length) return null; const l = last(q), hh = h.reduce((b, x) => (Math.abs(x.wall - l.wall) < Math.abs(b.wall - l.wall) ? x : b), h[0]); return Math.abs(((l.uur - hh.uur + 36) % 24) - 12); };
 for (const g of NAMES.filter((x) => x !== 'host')) { const d = klokVerschil(g); if (d != null) check(d < 0.3, `speelklok ${g}: ${d.toFixed(2)} u verschil`); }
 for (const g of NAMES.filter((x) => x !== 'host')) {
   let vorige = 0; const bad = samples(g).filter((s) => { const nieuw = (s.desyncN || 0) > vorige; vorige = Math.max(vorige, s.desyncN || 0); return nieuw && s.ph !== 'desync' && s.ph !== 'netsim' && !(SUITE === 'net' && s.ph === 'uitval') && !(SUITE === 'gastacties' && s.ph === 'gastrit' && (s.desync || []).every((v) => v === 'wanted')); });
@@ -460,7 +462,7 @@ if (SUITE === 'net') {
   // mockgasten
   for (const [i, m] of [...mocks, mockLate].filter(Boolean).entries()) {
     const l = m.last();
-    check(l && l.status === 'ok' || (l && l.status === 'lag'), `mockgast ${i + 1}: laatste status ${l && l.status}`);
+    check(l && (l.status === 'ok' || l.status === 'lag' || (l.status === 'verbroken' && gst && gst.coopNet === false)), `mockgast ${i + 1}: laatste status ${l && l.status}`); // 'verbroken' mag alleen als de gastheer echt stopte (stopHost) en de gast dat hoorde
     const kinds = {}; for (const [, b] of m.log.events) kinds[b.k] = (kinds[b.k] || 0) + 1;
     note(`mockgast ${i + 1} (${m.sim.latency ? '80 ms, 5% verlies' : 'goed netwerk'}): ${m.log.samples.length} samples, ${m.transport.recv} pakketten, ${JSON.stringify(kinds)}, statussen ${[...new Set(m.log.status.map((s) => s[1]))].join('/')}`);
     check(Object.keys(kinds).includes('klok') && Object.keys(kinds).includes('hash'), `mockgast ${i + 1} kreeg geen klok- en hashberichten van de host`);

@@ -168,7 +168,7 @@ body.pigeon-mode #hud .hud-mission.in-mission:not([hidden]) { display: flex !imp
 @keyframes obj-spin { from { transform: rotate(-90deg) scale(1.6); } }
 @media (prefers-reduced-motion: reduce) { #hud .hud-mission.pop .hud-obj-text, #hud .hud-mission.pop .hud-obj-icon, #hud .hud-place.on { animation: none; opacity: 1; } }
 /* the subtitles of car talk sit in G too, under the objective */
-#banter-sub { bottom: calc(46px * var(--ui, 1)) !important; }
+#banter-sub, #radio-sub { bottom: calc(46px * var(--ui, 1)) !important; }
 
 /* --- zone F: the minimap, the street, you ---------------------------------- */
 #hud .hud-minimap-wrap {
