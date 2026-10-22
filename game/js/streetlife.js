@@ -6,11 +6,13 @@
 // pedestrians created by the cityprops.js slots (kinds seller, beggar, bernard,
 // magnet); this module dresses them, gives them lines and the E prompt.
 // Text only: no recordings, no voice. All names are invented.
-import { dist } from './util.js';
+import { dist, isInWater } from './util.js';
 import { spawnPedestriansNear, Pedestrian } from './pedestrians.js';
 import { isInsideBuilding } from './pedgeom.js';
 import { makeCompanion } from './pedroutes.js';
 import { wijkProfileAt } from './trafficfleet.js';
+import { weekdayOf } from './calendar.js';
+import { maakGroep, vrijgezellenKans, maxGroepjes, volgendeJuich, JUICH_DUUR, BRUID_LINES, GAST_LINES, JUICH_LINES, WAGGEL } from './vrijgezellen.js';
 import {
   NAMES, SELLER_LINES, SELLER_BUY, BEGGAR_ASK, BEGGAR_THANKS, BEGGAR_NO_COIN, BERNARD_LINES,
   GRENADE_REWARD, GRENADE_FOUND, GRENADE_REPORTED, CARRIED, SKATER_MAX, SKATER_PACE, SKATER_LINES, skaterChance,
@@ -33,6 +35,8 @@ let moverTimer = 20;
 let lineAt = -Infinity;
 let skateTimer = 25;
 let groupTimer = 50;
+let partyTimer = 40;
+let partyLineAt = -Infinity;
 let courierTimer = 35;
 let groupLineAt = -Infinity;
 
@@ -46,6 +50,8 @@ export function resetStreetLife() {
   lineAt = -Infinity;
   skateTimer = 25;
   groupTimer = 50;
+  partyTimer = 40;
+  partyLineAt = -Infinity;
   courierTimer = 35;
   groupLineAt = -Infinity;
 }
@@ -259,6 +265,82 @@ function spawnOrientation(world, p, hour) {
   for (const ped of group) world.pedestrians.push(ped);
 }
 
+// Vrijgezellenfeestje (#403): een bruid en drie of vier gasten in een gezamenlijk thema, in het centrum en de studentenwijken, vooral
+// vrijdag- en zaterdagavond. Ze lopen als een brokje achter de bruid aan, waggelen (scene3d.js) en juichen af en toe.
+export const weekdayNow = (world) => (world && world.calendar && Number.isFinite(world.calendar.day) ? weekdayOf(world.calendar.day) : -1);
+export function pickVrijgezellen(map, x, y, hour, weekday, rng = Math.random) {
+  const prof = wijkProfileAt(map, x, y);
+  return rng() < vrijgezellenKans(prof.key, distToCentre(x, y), hour, weekday) * 6;
+}
+
+// Zet het groepje neer rond een leider (de bruid); thema kiest een thema, anders een toevalsthema. Geeft de leden terug.
+export function zetVrijgezellenNeer(world, lead, thema = null) {
+  const groep = maakGroep(Math.random, thema);
+  const leden = [lead];
+  const info = { thema: groep.thema, groep: leden };
+  const stel = (ped, lid, rol) => {
+    ped.party = { rol, thema: groep.thema, groep: leden, cheerAt: world.time + 4 + Math.random() * 6 };
+    ped.hasBag = false;
+    ped.clothing = lid.clothing;
+    ped.look = lid.look;
+    ped.paceMul = WAGGEL.tempo;
+    ped.waggelSeed = Math.random();
+  };
+  stel(lead, groep.leden[0], 'bruid');
+  for (let i = 1; i < groep.leden.length; i++) {
+    const lid = groep.leden[i];
+    // loopt de bruid langs een muur, dan staat de gast aan de andere kant, dichterbij of achter haar
+    const spot = (side, k, back) => ({ x: lead.x - Math.sin(lead.angle) * 0.85 * side * k - Math.cos(lead.angle) * back, y: lead.y + Math.cos(lead.angle) * 0.85 * side * k - Math.sin(lead.angle) * back });
+    let at = null;
+    for (const [s, k, bk] of [[lid.side, lid.k, lid.back], [-lid.side, lid.k, lid.back], [lid.side, 1, lid.back + 0.8], [-lid.side, 1, lid.back + 0.8], [0, 1, lid.back + 1.4]]) {
+      const c = spot(s, k, bk);
+      if (!isInsideBuilding(world.map, c.x, c.y) && !isInWater(world.map, c.x, c.y)) { at = c; break; }
+    }
+    if (!at) continue;
+    const x = at.x, y = at.y;
+    const f = new Pedestrian(x, y, lead.angle);
+    makeCompanion(f, lead);
+    f.pairSide = lid.side;
+    f.pairK = lid.k;
+    f.pairBack = lid.back;
+    stel(f, lid, 'gast');
+    leden.push(f);
+  }
+  for (const m of leden) if (m !== lead) world.pedestrians.push(m);
+  return info;
+}
+
+function spawnVrijgezellen(world, p, hour) {
+  const weekday = weekdayNow(world);
+  let n = 0;
+  for (const ped of world.pedestrians) if (ped.party && ped.party.rol === 'bruid' && ped.state !== 'dead') n++;
+  if (n >= maxGroepjes(weekday, hour) || !pickVrijgezellen(world.map, p.x, p.y, hour, weekday)) return;
+  const lead = spawnPedestriansNear(world.map, p.x, p.y, 1, Math.random, true)[0];
+  if (!lead || !finite(lead.x, lead.y)) return;
+  zetVrijgezellenNeer(world, lead);
+}
+
+// De juichpartijen en de praatjes van de groepjes: de hele groep juicht na elkaar (elk lid een tel later), de bruid en de gasten praten.
+function updateVrijgezellen(world, p) {
+  for (const ped of world.pedestrians) {
+    if (!ped.party || ped.party.rol !== 'bruid' || ped.state === 'dead' || world.time < ped.party.cheerAt) continue;
+    ped.party.cheerAt = volgendeJuich(world.time);
+    ped.party.groep.forEach((m, i) => { m.cheerFrom = world.time + i * 0.12; m.cheerUntil = m.cheerFrom + JUICH_DUUR; });
+    const d = dist(p.x, p.y, ped.x, ped.y);
+    if (d < 25) say(ped.party.groep[Math.floor(Math.random() * ped.party.groep.length)], world, pick(JUICH_LINES), 2.2);
+  }
+  if (world.time - partyLineAt > 9) {
+    for (const ped of world.pedestrians) {
+      if (!ped.party || ped.state === 'dead' || ped.speechUntil > world.time) continue;
+      const d = dist(p.x, p.y, ped.x, ped.y);
+      if (d > 14 || d < 1) continue;
+      partyLineAt = world.time;
+      say(ped, world, pick(ped.party.rol === 'bruid' ? BRUID_LINES : GAST_LINES), 3.4);
+      break;
+    }
+  }
+}
+
 // Dresses ordinary walkers after the district they stand in (once each, a few
 // per call). Scene people, officers, companions and our own groups keep their look.
 const DRESS_PER_CALL = 4;
@@ -266,7 +348,7 @@ export function dressWalkers(world, rng = Math.random) {
   const p = world.player;
   let n = 0;
   for (const ped of world.pedestrians || []) {
-    if (ped._wijkDressed || ped.scene || ped.isCop || ped.leader || ped.ontgroening || ped.carry || ped.look) { ped._wijkDressed = true; continue; }
+    if (ped._wijkDressed || ped.scene || ped.isCop || ped.leader || ped.ontgroening || ped.party || ped.carry || ped.look) { ped._wijkDressed = true; continue; }
     if (!finite(ped.x, ped.y) || dist(p.x, p.y, ped.x, ped.y) > 90) continue;
     ped._wijkDressed = true;
     const key = wijkProfileAt(world.map, ped.x, ped.y).key;
@@ -333,6 +415,12 @@ export function updateStreetLife(dt, world) {
     groupTimer = 60 + Math.random() * 40;
     if (!(world.dayNight && world.dayNight.night > 0.5)) spawnOrientation(world, p, hourOf(world));
   }
+  partyTimer -= dt;
+  if (partyTimer <= 0) {
+    partyTimer = 55 + Math.random() * 40;
+    spawnVrijgezellen(world, p, hourOf(world));
+  }
+  updateVrijgezellen(world, p);
   if (world.time - groupLineAt > 11) {
     for (const ped of world.pedestrians) {
       if (!ped.ontgroening || ped.state === 'dead' || ped.speechUntil > world.time) continue;
