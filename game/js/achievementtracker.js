@@ -18,7 +18,7 @@ import { getScene } from './scene3d.js';
 import { makeNearMiss, nearMissBonus } from './gamefeel.js';
 import { chipPopup } from './stunthud.js';
 import { noteMoney } from './finance.js';
-import { initLoopbaan, loopbaanOpStat, loopbaanKm } from './loopbaanlive.js';
+import { initLoopbaan, loopbaanOpStat, loopbaanKm, loopbaanTel, getProfiel } from './loopbaanlive.js';
 
 const NEAR_MISS_SPEED = 12;
 const NEAR_MISS_GAP = 0.9;
@@ -81,6 +81,7 @@ export function initAchievementTracker(w) {
       unique: (key, value) => recordUnique(world, key, value),
       mission: (i, time, opts = {}) => finishRun({ index: i, elapsed: time, damage: 0, maxWanted: 0, ...opts }, true),
       eggs: () => eggs.map((e) => ({ id: e.id, x: e.x, y: e.y, found: getSaveSet('eierballen').has(e.id) })),
+      loopbaan: { tel: (vak, o = {}) => loopbaanTel(world, vak, o), profiel: getProfiel },
       summary: getAchievementSummary,
       list: () => ACHIEVEMENTS.map((a) => a.id),
     };
