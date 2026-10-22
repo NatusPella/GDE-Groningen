@@ -54,6 +54,8 @@ export const BASE_KEYS = {
   gallery: 'gde-galerij-v1',
   // which summer events the player has seen (evenementen.js, #203)
   eventsSeen: 'gde-evenementen-v1',
+  // which main-menu backdrops were seen lately (menuplekken.js, #380): new, no legacy name
+  menuPlekken: 'gde-menuplekken-v1',
   // co-op (#95): only what a session needs (last mode and connection code); the story stays in the one save
   coopSession: 'gde-coop-sessie',
   // the old key of the hidden setting that played the new story; the story is the only one now, nothing reads it
