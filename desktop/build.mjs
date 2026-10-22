@@ -107,7 +107,7 @@ function packWorld() {
     h.update(fs.readFileSync(province));
     h.update(VIADUCTS ? 'viaducts' : 'flat');
     // what the province build runs besides (derive_tiles.mjs: the city's derivation; bag3d.mjs: 3D BAG)
-    for (const f of ['derive_tiles.mjs', 'junction_tiles.mjs', 'building_clearance.mjs', 'bag3d.mjs', 'province_profile.mjs', 'bridgededupe.mjs', 'bridge_audit.mjs', 'profile.mjs', 'terrain_profile.mjs', 'terrain_solve.mjs', 'terrain.mjs', 'relief.mjs']) h.update(fs.readFileSync(path.join(root, 'scripts', 'world', f)));
+    for (const f of ['derive_tiles.mjs', 'merge_overlays.mjs', 'junction_tiles.mjs', 'building_clearance.mjs', 'bag3d.mjs', 'province_profile.mjs', 'bridgededupe.mjs', 'bridge_audit.mjs', 'profile.mjs', 'terrain_profile.mjs', 'terrain_solve.mjs', 'terrain.mjs', 'relief.mjs']) h.update(fs.readFileSync(path.join(root, 'scripts', 'world', f)));
     for (const f of ['builderhooks.js', 'greenery.js', 'streetfurniture.js', 'junctions.js', 'waterlevels.js']) h.update(fs.readFileSync(path.join(SRC, 'js', f)));
     const bagP = path.join(root, 'data', 'world', '3dbag_province.json.gz');
     if (fs.existsSync(bagP)) h.update(fs.readFileSync(bagP));
