@@ -154,6 +154,7 @@ import { dist } from './util.js';
 import { updateEmergency } from './emergency.js';
 import { updateIndicators } from './indicators.js';
 import { initAchievementTracker, updateAchievementTracker } from './achievementtracker.js';
+import { initOmverrijden } from './omverrijden.js';
 import { probe } from './hitchprobe.js';
 import { initSafety, updateSafety } from './safety.js';
 import { updateCinematics, isCinematicActive, sinceCinematic, setCinematicLinks } from './cinematics.js';
@@ -484,6 +485,7 @@ async function boot() {
 
   window.__debug = { player, map, input, world };
   initAchievementTracker(world);
+  initOmverrijden(world);
   initSafety(world);
   initCheats(world);
   if (DEV) import('./storydev.js').then((m) => m.initStoryDev(world)).catch((e) => console.error('storydev', e));
