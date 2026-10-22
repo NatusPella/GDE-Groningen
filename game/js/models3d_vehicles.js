@@ -907,7 +907,7 @@ function buildBikeGeometry(color, fat, stepThrough, st = '') {
       const guard = new THREE.TorusGeometry(r + 0.03, fat ? 0.05 : 0.028, 3, 9, Math.PI * 0.85);
       guard.scale(1, 1, fat ? 1.2 : 1);
       // een scheef voorspatbord: omhoog gebogen, een stukje opzij en iets weg van het wiel
-      if (st.includes('S') && x === F[0]) B.geo(guard, composeMatrix(x + 0.03, r + 0.05, 0.04, 0.16, 0.2, Math.PI * 0.08 + 0.32), color);
+      if (st.includes('S') && x === F[0]) B.geo(guard, composeMatrix(x + 0.06, r + 0.09, 0.07, 0.3, 0.32, Math.PI * 0.08 + 0.5), color);
       else B.geo(guard, composeMatrix(x, r, 0, 0, 0, Math.PI * 0.08), color);
     }
     if (!fat) {
