@@ -110,11 +110,17 @@ const SH = window.__safehuis;
 const SHOP = await imp('shopui');
 const huizen = SH ? SH.lijst() : [];
 results.huizen = { aantal: huizen.length, eigen: huizen.filter((h) => h.eigen).map((h) => h.id), voorbeeld: huizen.slice(0, 4).map((h) => `${h.naam} · ${h.adres}`) };
-const naarHuis = async (h, naam, afstand = 0) => {
-  const d = h.deur;
-  hold = { x: d.x + Math.cos(h.ang) * afstand, y: d.y + Math.sin(h.ang) * afstand };
-  p.x = hold.x; p.y = hold.y; p.vx = p.vy = 0; p.angle = h.ang + Math.PI; w.camYaw = p.angle;
-  await sleep(afstand ? 9000 : 3000);
+// Het huisje krijgt zijn echte plek pas als je binnen 200 m komt (op droog land): eerst erheen, dan de vaste plek opnieuw lezen.
+const naarHuis = async (h0, naam, afstand = 0) => {
+  const zet = (h, af) => { const d = h.deur; hold = { x: d.x + Math.cos(h.ang) * af, y: d.y + Math.sin(h.ang) * af }; p.x = hold.x; p.y = hold.y; p.vx = p.vy = 0; p.angle = h.ang + Math.PI; w.camYaw = p.angle; };
+  zet(h0, 0);
+  await sleep(4000);
+  const h = SH.lijst().find((q) => q.id === h0.id) || h0;
+  results.plek = results.plek || [];
+  results.plek.push({ id: h.id, naam: h.naam, geplaatst: h.geplaatst, onbruikbaar: h.onbruikbaar, verschoof: Math.round(Math.hypot(h.x - h0.x, h.y - h0.y)) });
+  if (h.onbruikbaar) return;
+  zet(h, afstand);
+  await sleep(afstand ? 8000 : 3000);
   await cap(naam); results.shots.push(naam);
 };
 const eigen = huizen.find((h) => h.eigen);
