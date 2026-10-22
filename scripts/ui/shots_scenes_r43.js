@@ -422,7 +422,7 @@ if (want('kaartlagen')) {
   const holdK = { x: home.x, y: home.y, on: true };
   const keepK = setInterval(() => { if (holdK.on) { p.x = holdK.x; p.y = holdK.y; p.vx = p.vy = 0; } w.clock = 14; }, 50);
   const layerInfo = (name) => { const l = ML.getMissionLayer(w); info.push(name + ' laag ' + (l ? JSON.stringify({ kind: l.kind, items: (l.items || []).length, lines: (l.lines || []).length, areas: (l.areas || []).length, zoom: l.focus || null, notices: l.notice || null }) : 'geen')); };
-  const both = async (name, zoom = 5) => {
+  const both = async (name, zoom = 5, ruim = 0, focus = null) => {
     await sleep(1500);
     console.log('[capture] kl-' + name + '-mini');
     await sleep(600);
@@ -432,6 +432,20 @@ if (want('kaartlagen')) {
     await sleep(2000);
     console.log('[capture] kl-' + name + '-kaart');
     await sleep(600);
+    if (ruim) {
+      // uitgezoomd: de hele lijn met haltes (bij een lange lijn ligt de volgende halte buiten het eerste venster)
+      MV.setMapView(holdK.x, holdK.y, ruim);
+      await sleep(2000);
+      console.log('[capture] kl-' + name + '-kaart-ruim');
+      await sleep(600);
+    }
+    if (focus) {
+      // de kaart op het eerstvolgende punt van de laag (bv. de volgende halte)
+      MV.setMapView(focus.x, focus.y, 4);
+      await sleep(2500);
+      console.log('[capture] kl-' + name + '-kaart-doel');
+      await sleep(600);
+    }
     PM.closePauseMenu();
     await sleep(500);
     done.push('kl-' + name);
@@ -450,7 +464,13 @@ if (want('kaartlagen')) {
       teleport(spL.x, spL.y);
       await waitLoad();
     }
-    const okB = SJ && SJ.start('lijn');
+    // het spawnen van de bus kan mislukken zolang de wegen daar nog niet geladen zijn: een paar keer proberen, zonder politie
+    let okB = false;
+    for (let k = 0; k < 4 && okB !== true; k++) {
+      w.wanted = 0; w.wantedDecayTimer = 0;
+      okB = SJ && SJ.start('lijn');
+      if (okB !== true) { info.push('lijn-start poging ' + (k + 1) + ' mislukt: ' + JSON.stringify((w.messages || []).slice(-1).map((q) => q.text))); holdK.on = true; await sleep(6000); }
+    }
     info.push('bus-bijbaan start ' + okB + ' berichten ' + JSON.stringify((w.messages || []).slice(-2).map((q) => q.text)) + ' ' + JSON.stringify((SJ && SJ.ctx && SJ.ctx() && { job: SJ.ctx().job.id, vehicle: !!SJ.ctx().vehicle }) || null));
     // de intro van de baas (een filmpje) wegdrukken, dan pas de kaart
     for (let k = 0; k < 14; k++) { await sleep(500); if (cine.isCinematicActive()) cine.skipCinematic(); }
@@ -461,7 +481,7 @@ if (want('kaartlagen')) {
     for (let k = 0; k < 20 && !(w.sideJob && w.sideJob.bus); k++) await sleep(500);
     info.push('na instappen: in voertuig ' + !!p.inVehicle + ' bus-laagdata ' + !!(w.sideJob && w.sideJob.bus) + ' marker ' + JSON.stringify(w.sideJob && w.sideJob.marker) + ' voortgang ' + (w.sideJob && w.sideJob.progress));
     layerInfo('bus');
-    await both('bus', 4);
+    await both('bus', 4, 1.2, w.sideJob && w.sideJob.marker ? { x: w.sideJob.marker.x, y: w.sideJob.marker.y } : null);
     if (SJ) SJ.quit();
     await sleep(1500);
     if (p.inVehicle) p.exitVehicle(map, w);
