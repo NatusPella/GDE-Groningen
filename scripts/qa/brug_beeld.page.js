@@ -78,10 +78,15 @@ for (const q of CFG.plekken || []) {
   try {
     hold = { x: q.x, y: q.y };
     await sleep(SETTLE);
-    const gz = map.groundHeightAt ? map.groundHeightAt(q.x, q.y, 0) || 0 : 0;
+    // (met ?terrain staat de grond op het reliëf: de vraag begint daar, niet op 0)
+    const gz = map.groundHeightAt ? map.groundHeightAt(q.x, q.y, map.terrainOn ? map.terrainAt(q.x, q.y) + 0.5 : 0) || 0 : 0;
     const tag = `bb-plek-${(q.naam || 'plek').replace(/[^\w]+/g, '_')}`;
     await start({ position: { x: q.x + 45, y: q.y - 45, z: gz + 55 }, lookAt: { x: q.x, y: q.y, z: gz } });
     await grab(`${tag}-hoog`);
+    // een schuin beeld van 200 m af, laag: het reliëf tegen de horizon
+    zet({ position: { x: q.x + 140, y: q.y - 140, z: gz + 22 }, lookAt: { x: q.x, y: q.y, z: gz + 2 } });
+    await sleep(2500);
+    await grab(`${tag}-ver`);
     zet({ position: { x: q.x + 16, y: q.y - 8, z: gz + 3 }, lookAt: { x: q.x, y: q.y, z: gz + 1 } });
     await sleep(1500);
     await grab(`${tag}-straat`);

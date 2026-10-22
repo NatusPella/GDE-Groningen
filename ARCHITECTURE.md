@@ -1005,7 +1005,7 @@ and `node scripts/world/building_heights.mjs --write`.
 ### Terrain
 
 `js/terrainraster.js` (pure): a height raster per tile (`encodeTerrainRaster`,
-`decodeTerrainRaster`: int16 cm relative to the tile's street level,
+`decodeTerrainRaster`: int16 cm; in the tiles the RELIEF, see below,
 `sampleRaster` bilinear, `TerrainField` over the tiles that carry one; 0, flat,
 elsewhere). `scripts/world/fetch_ahn.py --fetch` asks PDOK's AHN WCS (CC0)
 for each 1 km tile resampled to 5 m (`dtm_05m`; GeoTIFF read by its own
@@ -1017,9 +1017,19 @@ map, ~260 MB for the province at 5 m (~26 GB at AHN's 0.5 m). The packer
 puts a tile's raster in its RASTER section (codec 1, 2 bytes a cell), the
 TileWorld keeps them in `map.terrain` (streamed tiles add and drop theirs),
 `map.terrainAt(x, y)` reads it (flat on a GameMap). The height solvers take
-it as their `terrain` sampler with `--terrain` (`scripts/world/terrain.mjs`);
-until the renderer draws the terrain (F2) the game stays flat.
+it as their `terrain` sampler with `--terrain` (`scripts/world/terrain.mjs`).
 `node scripts/terrain_test.mjs`.
+
+**Relief, `?terrain` (#269).** The world is built flat (buildings, trees, water and props at y = 0), so what the tiles carry is the *relief*:
+the ground above a smooth local datum (`scripts/world/relief.mjs`: the terrain opened over 250 m and smoothed over 100 m, minus 15 cm of noise, never
+below 0), not m NAP; a dyke, a wierde, a hill or the old city's mound stand out at their height, the plain is 0. `loadReliefRasters` computes it from
+the rasters of the whole province, `pack_tiles.mjs` and `build_province.mjs --terrain` write it into the RASTER sections (the stage passes `--terrain`
+when `data/world/ahn` exists). The heights section carries a second profile per road next to `z`: `zt` (m over the road's base, from
+`profile.mjs solve({ onTerrain })` via `terrain_solve.mjs`), `stt` (its structures) and `zf` (flat over the terrain); the base is the line between the terrain at
+the ends of a bridge or tunnel, else the terrain at the road's vertices (`deckterrain.js`). Without the flag the game reads `z` and nothing else changes; with it
+`tileworld.js` reads `zt`, `mapdata.js` answers every height question in absolute metres (`terrainFrame` into `elevation.js`: ribbons that overlap in plan have different
+bases), and `scene3d.js` draws patches of ground where the relief rises (`terrainrelief3d.js`) and lifts roads, buildings, trees and the far LOD
+(`terrainlift.js`). Water, grass, fences, rails and walkable roofs stay flat. Tests: `terrainprofiel_test.mjs`, `terrain_pariteit_test.mjs`, `terrain_hoogte_audit.mjs`.
 
 ## Lanes
 
