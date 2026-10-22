@@ -448,6 +448,16 @@ while (true) {
     continue;
   }
   if (s.t - (mem.trailT ?? -9) >= 1.5) { mem.trailT = s.t; (mem.trail = mem.trail || []).push([Math.round(s.t), Math.round(s.player.x), Math.round(s.player.y), s.player.vehicle ? Math.round(s.player.vehicle.speed * 10) / 10 : 0, s.player.vehicle ? s.player.vehicle.angle : null, s.player.vehicle ? s.player.vehicle.kind : 'voet', s.player.vehicle ? s.player.vehicle.health : null]); if (mem.trail.length > 24) mem.trail.shift(); }
+  // a new game starts on a random landmark (the menu spot: seeded, but every run draws another), 0.5 to 2.5 km from the start of M01: a commute of 2 to 15
+  // minutes that says nothing about act 1 and decided whether the 30 minutes of the test run were enough. Once, at the start, the bot is taken to the goal (logged as setup)
+  if (!mem.startTp && s.story.id === 'M01' && !s.mission.active && s.t < 60 && s.target && s.target.distance > 600 && !CFG.zonderStartplek) {
+    mem.startTp = true;
+    const okTp = B.cheat.teleport();
+    B.log('setup', { what: 'startplek', van: [Math.round(s.player.x), Math.round(s.player.y)], afstand: Math.round(s.target.distance), ok: !!okTp });
+    follower = null;
+    await sleep(1500);
+    continue;
+  }
   track(s);
   const stepKey = (s.story.id || '?') + (s.mission.active ? ':' + (s.mission.stage || 'm') : '');
   // each stage of a mission gets its own few tries at boarding and at a prompt
