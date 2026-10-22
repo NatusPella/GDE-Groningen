@@ -52,7 +52,9 @@ export function initPlayerApi(world, input) {
   }
 
   function dialog() {
-    const panel = document.querySelector('#hud .cw-panel:not([hidden])');
+    // two panels can be up (the timing meter of an earlier stage stays shown without answers): the one with answers is the dialog (M26, the jury)
+    const open = [...document.querySelectorAll('#hud .cw-panel:not([hidden])')];
+    const panel = open.find((p) => p.querySelector('.cw-opt')) || open[0];
     if (!panel) return null;
     return {
       kicker: text(panel.querySelector('small')), text: text(panel.querySelector('.cw-text')),
@@ -105,13 +107,16 @@ export function initPlayerApi(world, input) {
       player: {
         x: r1(player.x), y: r1(player.y), z: r1((player.gz || 0) + (player.z || 0)), angle: Math.round(player.angle * 1000) / 1000,
         camYaw: Math.round((world.camYaw ?? player.angle) * 1000) / 1000, pigeon: !!isPigeonActive(), health: player.health, money: world.money, character: player.character || '',
-        vehicle: v ? { kind: kindOf(v), x: r1(v.x), y: r1(v.y), angle: Math.round(v.angle * 1000) / 1000, speed: r1(v.speed || 0), boat: !!v.isBoat, heli: !!v.isHeli, plane: !!v.isPlane, mission: !!(v.missionCar || v.isHeroCar) } : null,
+        vehicle: v ? { kind: kindOf(v), x: r1(v.x), y: r1(v.y), angle: Math.round(v.angle * 1000) / 1000, speed: r1(v.speed || 0), boat: !!v.isBoat, heli: !!v.isHeli, plane: !!v.isPlane, mission: !!(v.missionCar || v.isHeroCar), health: Math.round(v.health ?? 0) } : null,
       },
       story: view.end ? { end: true, part: view.part, title: view.title } : { end: false, id: view.id, part: view.part, kind: view.kind, title: view.title, lead: view.lead, canSkip: view.canSkip, fails: view.fails, done: view.done, total: view.total },
       mission: {
         active: m.phase === 'active', phase: m.phase || 'idle', index: m.index ?? -1, id: defs[m.index] ? defs[m.index].id : '', code: m.code || '', label: m.label || '', type: m.type || '',
         stage: stage ? stage.kind : '', marker: m.marker ? { x: r1(m.marker.x), y: r1(m.marker.y) } : null, distance: Number.isFinite(m.distanceToMarker) ? r1(m.distanceToMarker) : null,
         timeLeft: m.timeLeft ?? null, armed: !!m.armed, triggerRadius: m.triggerRadius ?? null, onFoot: false,
+        stunt: m.stunt ? { score: m.stunt.score, target: m.stunt.target, combo: m.stunt.combo, hits: m.stunt.hits } : null,
+        // the stunt of the mission (M01: its score only runs once the square is reached): where and how many points
+        stuntSpec: defs[m.index] && defs[m.index].stunt ? { x: defs[m.index].stunt.center.x, y: defs[m.index].stunt.center.y, radius: defs[m.index].stunt.radius, target: defs[m.index].stunt.target } : null,
       },
       goal: getGoal() ? { kind: getGoal().kind, name: getGoal().name, x: r1(getGoal().x), y: r1(getGoal().y) } : null,
       target: target(),

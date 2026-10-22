@@ -1,6 +1,6 @@
 // Fietstrucs en standen (#207): game/js/bewegingrules.js, plus de nieuwe animaties in actoranim.js.
 //   node scripts/bewegingrules_test.mjs
-import { WHEELIE, HOP, createWheelie, stepWheelie, wheelieMeters, zwemStand, klimStand, sprongStand } from '../game/js/bewegingrules.js';
+import { WHEELIE, HOP, createWheelie, stepWheelie, wheelieMeters, zwemStand, klimStand, sprongStand, newStand, fietsHouding, HANDS } from '../game/js/bewegingrules.js';
 import { ANIMS, animateActor } from '../game/js/actoranim.js';
 
 let bad = 0;
@@ -90,6 +90,64 @@ check('zwemmen ziet er anders uit dan staan', JSON.stringify(sw.userData.armL.ro
   const z = createWheelie();
   run(z, 1, { trick: false, throttle: 0, brake: 1, speed: 5, top: 7 });
   check('zonder Ctrl geen stoppie', !z.nose && z.pitch === 0);
+}
+
+// zonder handen: Ctrl vast, trappen boven de wheelie-snelheid, rechtdoor
+{
+  const fast = { trick: true, throttle: 1, speed: 6, top: 7, steer: 0 };
+  const h = createWheelie();
+  run(h, 1, fast);
+  check('zonder handen: handen omhoog', h.hands > 0.95 && h.pitch === 0, h.hands);
+  check('zonder handen: tijd telt', h.handsT > 0.5 && h.handsBest >= h.handsT);
+  run(h, 0.5, { ...fast, steer: 0.8 });
+  check('bocht: stuur weer vast', h.hands < 0.05, h.hands);
+  run(h, 0.6, fast);
+  run(h, 0.5, { ...fast, trick: false });
+  check('Ctrl los: stuur weer vast', h.hands < 0.05);
+  run(h, 0.6, fast);
+  run(h, 0.5, { ...fast, brake: 1 });
+  check('remmen: stuur weer vast', h.hands < 0.05);
+  const l = createWheelie();
+  run(l, 1, { ...fast, speed: 4 });
+  check('in het wheelie-bereik: geen handsfree', l.hands === 0 && l.up);
+  const a = createWheelie();
+  run(a, 1, { ...fast, airborne: true });
+  check('in de lucht: geen handsfree', a.hands === 0);
+  const z = createWheelie();
+  run(z, 1, { ...fast, throttle: 0 });
+  check('zonder trappen: geen handsfree', z.hands === 0);
+  const q = createWheelie();
+  run(q, 1, { trick: true, throttle: 1, speed: 6, top: 7, steer: NaN });
+  check('rare stuurwaarde blijft heel', Number.isFinite(q.hands));
+  check('HANDS redelijk', HANDS.steer > 0 && HANDS.steer < 0.6);
+}
+
+// de houding van de fietser
+{
+  const rest = fietsHouding(createWheelie(), 0.85);
+  check('rust: stuurhouding', rest.lean === 0 && rest.armZ === 0.85 && rest.armX === 0, JSON.stringify(rest));
+  const w = createWheelie(); run(w, 1, go);
+  const wh = fietsHouding(w, 0.85);
+  check('wheelie: achterover en armen gestrekt', wh.lean > 0.2 && wh.armZ > 1 && wh.armX === 0, JSON.stringify(wh));
+  const n = createWheelie(); run(n, 0.8, { trick: true, throttle: 0, brake: 1, speed: 5, top: 7 });
+  check('stoppie: voorover', fietsHouding(n, 0.85).lean < -0.1);
+  const f = createWheelie(); run(f, 1, { trick: true, throttle: 1, speed: 6, top: 7, steer: 0 });
+  const fh = fietsHouding(f, 0.85);
+  check('zonder handen: armen omhoog en open', fh.armZ > 2.6 && fh.armX > 0.4, JSON.stringify(fh));
+  const o = { lean: 9, armZ: 9, armX: 9 };
+  check('eigen uit-object wordt gebruikt', fietsHouding(f, 0.85, o) === o && o.armZ === fh.armZ);
+  check('rare staat blijft heel', Object.values(fietsHouding({ pitch: NaN, hands: undefined }, 0.85)).every((v) => Number.isFinite(v)));
+}
+
+// standen schrijven in een eigen uit-object zonder iets nieuws te maken
+{
+  const o = newStand();
+  check('zwemstand in eigen object', zwemStand(1.3, o) === o && JSON.stringify(o) === JSON.stringify(zwemStand(1.3)));
+  check('klimstand in eigen object', klimStand(0.7, o) === o && JSON.stringify(o) === JSON.stringify(klimStand(0.7)));
+  check('sprongstand in eigen object', sprongStand(0.4, o) === o && JSON.stringify(o) === JSON.stringify(sprongStand(0.4)));
+  const pose = { armL: { x: 0.1, z: 0, e: 0 }, armR: { x: -0.1, z: 0, e: 0 }, legL: { z: 0, k: 0 }, legR: { z: 0, k: 0 }, chest: { x: 0.3, y: 0.2, z: 0 }, head: { x: 1, y: 2, z: 3 } };
+  zwemStand(0.5, pose);
+  check('stand in een hele pose laat de rest met rust', pose.armL.x === 0.1 && pose.chest.x === 0.3 && pose.head.z === 3 && pose.armL.z > 1);
 }
 
 console.log(bad ? `${bad} mislukt` : 'bewegingrules_test: alles goed');

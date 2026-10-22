@@ -1,0 +1,190 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>depth_shots</title>
+<style>html,body{margin:0;background:#000}canvas{display:block}</style>
+<script type="importmap">
+{
+  "imports": {
+    "https://cdn.jsdelivr.net/npm/three@0.160.0/": "/vendor/npm/three@0.160.0/",
+    "three": "/vendor/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "/vendor/npm/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+<canvas id="c" width="1280" height="720"></canvas>
+<script type="module">
+// Zie scripts/depth_shots.mjs. De bus komt uit models3d_vehicles.js van de meegegeven game-map (voor of na), de
+// borden uit busboard3d.js (attachBusBoards bestaat alleen in "na"), de maten van winkelbord en straatnaambord uit
+// shopsign.js en streetsigns.js. De camera heeft de instellingen van het spel: near 0,5, far 1650, 24-bit diepte.
+const q = new URLSearchParams(location.search);
+const ONLY = (q.get('only') || '').split(',').filter(Boolean);
+const wanted = (n) => !ONLY.length || ONLY.includes(n);
+window.__shots = []; window.__info = {}; window.__done = false;
+try {
+  const THREE = await import('three');
+  await import('/game/js/player.js');
+  const { buildVehicleMesh } = await import('/game/js/models3d_vehicles.js');
+  const { Vehicle, TRAFFIC_MODELS } = await import('/game/js/vehicle.js');
+  const BB = await import('/game/js/busboard3d.js');
+  const { SIGN_OFF, SIGN_H } = await import('/game/js/shopsign.js');
+  const na = typeof BB.attachBusBoards === 'function';
+  window.__info = { na };
+
+  const canvas = document.getElementById('c');
+  const W = 1280, H = 720;
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, preserveDrawingBuffer: true });
+  renderer.setPixelRatio(1);
+  renderer.setSize(W, H, false);
+  const gl = renderer.getContext();
+  window.__info.depthBits = gl.getParameter(gl.DEPTH_BITS);
+  window.__info.samples = gl.getParameter(gl.SAMPLES);
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x9cc3e8);
+  scene.add(new THREE.HemisphereLight(0xb4cdea, 0x6f6454, 1.1));
+  const sun = new THREE.DirectionalLight(0xffe3b0, 2.6);
+  sun.position.set(-30, 50, 40);
+  scene.add(sun);
+  const ground = new THREE.Mesh(new THREE.PlaneGeometry(2000, 2000).rotateX(-Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0x55585c, roughness: 1 }));
+  ground.position.y = -0.02;
+  scene.add(ground);
+  const cam = new THREE.PerspectiveCamera(64, W / H, 0.5, 1650);
+
+  // zichtbreedte (m) op het doel => verticale fov, zodat het bord op elke afstand even groot in beeld staat
+  const fovFor = (D, viewW) => 2 * Math.atan(viewW / (W / H) / 2 / D) * 180 / Math.PI;
+  function shoot(name, from, at, viewW) {
+    cam.position.set(...from);
+    cam.lookAt(...at);
+    cam.fov = fovFor(from.reduce((s, v, i) => s + (v - at[i]) ** 2, 0) ** 0.5, viewW);
+    cam.updateProjectionMatrix();
+    renderer.render(scene, cam);
+    window.__shots.push({ name, png: canvas.toDataURL('image/png') });
+  }
+  const clear = (...objs) => objs.forEach((o) => { scene.remove(o); });
+
+  // ---------------------------------------------------------------- de bus met zijn borden
+  function boardTex() {
+    const c = document.createElement('canvas');
+    c.width = 128; c.height = 20;
+    const g = c.getContext('2d');
+    g.fillStyle = '#0b0b0c'; g.fillRect(0, 0, 128, 20);
+    g.fillStyle = '#2f9d6a'; g.fillRect(1, 1, 28, 18);
+    g.fillStyle = '#0b0b0c'; g.font = 'bold 14px monospace'; g.textBaseline = 'middle'; g.textAlign = 'center'; g.fillText('5', 15, 11);
+    g.fillStyle = '#ffb21a'; g.textAlign = 'left'; g.fillText('Centrum', 33, 11, 92);
+    const t = new THREE.CanvasTexture(c);
+    t.magFilter = THREE.NearestFilter; t.minFilter = THREE.NearestFilter; t.colorSpace = THREE.SRGBColorSpace;
+    return t;
+  }
+  const model = { ...TRAFFIC_MODELS().find((m) => m.name === 'bus') };
+  const bus = new Vehicle(0, 0, 0, model);
+  const mesh = buildVehicleMesh(bus);
+  const tex = boardTex();
+  if (na) BB.attachBusBoards(mesh, model, tex);
+  else {
+    // de borden van voor #382 (busboard3d.js ensureBoard): 0,02 m voor de romp, MeshBasicMaterial zonder offset
+    const hl = model.len / 2, hw = model.wid / 2;
+    const add = (x, z, w, ry) => {
+      const m = new THREE.Mesh(new THREE.PlaneGeometry(w, w * 20 / 128), new THREE.MeshBasicMaterial({ map: tex }));
+      m.position.set(x, 2.5, z); m.rotation.y = ry; mesh.add(m);
+    };
+    add(hl + 0.02, 0, Math.min(1.9, model.wid * 0.75), Math.PI / 2);
+    add(hl - 1.6, hw + 0.02, 1.5, 0);
+    add(hl - 1.6, -hw - 0.02, 1.5, Math.PI);
+  }
+  scene.add(mesh);
+  mesh.updateMatrixWorld(true);
+  const hl = model.len / 2, hw = model.wid / 2;
+  // zij- en voorkant, schuin van voren (zoals een speler langsrijdt), zoomend op het bord
+  if (wanted('bord-zij')) for (const D of [5, 20, 60]) {
+    const bx = hl - 1.6;
+    shoot(`bord-zij-${D}m`, [bx - D * 0.5, 2.0, hw + D * 0.87], [bx, 2.5, hw], 4.5);
+  }
+  if (wanted('bord-voor')) for (const D of [5, 20, 60]) shoot(`bord-voor-${D}m`, [hl + D * 0.87, 2.0, -D * 0.5], [hl, 2.5, 0], 4.5);
+  scene.remove(mesh);
+
+  // ---------------------------------------------------------------- een gevel met winkelbord en straatnaambord
+  if (wanted('gevel')) {
+    const wall = new THREE.Mesh(new THREE.BoxGeometry(18, 9, 0.4).translate(0, 4.5, -0.2), new THREE.MeshStandardMaterial({ color: 0x9a5a3c, roughness: 0.9 }));
+    scene.add(wall);
+    const band = new THREE.Mesh(new THREE.BoxGeometry(6, 0.5, 0.12).translate(-3, 3.05, 0.06), new THREE.MeshStandardMaterial({ color: 0x2c3a4c, roughness: 0.7 }));
+    scene.add(band);
+    const sc = document.createElement('canvas'); sc.width = 512; sc.height = 80;
+    const g = sc.getContext('2d');
+    g.fillStyle = '#c23b3b'; g.fillRect(0, 0, 512, 80); g.strokeStyle = '#f2c14a'; g.lineWidth = 3; g.strokeRect(4, 4, 504, 72);
+    g.fillStyle = '#f6f1e4'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.font = 'bold 50px Arial'; g.fillText('WIEBELWERK', 256, 43, 480);
+    const stex = new THREE.CanvasTexture(sc); stex.colorSpace = THREE.SRGBColorSpace;
+    // winkelbord: het vlak van shopsigns3d.js build() op SIGN_OFF van de gevel; "na" heeft er een polygonOffset op
+    const sign = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial(na ? { map: stex, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -8 } : { map: stex }));
+    sign.scale.set(4.5, SIGN_H, 1); sign.position.set(-3, 3.3, SIGN_OFF);
+    scene.add(sign);
+    // straatnaambord (streetsigns.js buildSignMesh, kind 'facade')
+    // de maten van streetsigns.js PLATE_Z: voor #382 lag de tekst 1,5 mm voor de plaat (0,034), erna 7,5 mm (0,04) met polygonOffset
+    const Z = na ? { back: 0.02, text: 0.04 } : { back: 0.02, text: 0.034 };
+    const pc = document.createElement('canvas'); pc.width = 640; pc.height = 140;
+    const pg = pc.getContext('2d');
+    pg.fillStyle = '#1f3f8f'; pg.fillRect(0, 0, 640, 140); pg.strokeStyle = '#fff'; pg.lineWidth = 6; pg.strokeRect(9, 9, 622, 122);
+    pg.fillStyle = '#fff'; pg.textAlign = 'center'; pg.textBaseline = 'middle'; pg.font = 'bold 76px Arial'; pg.fillText('Kijk in \'t Jatstraat', 320, 74, 600);
+    const ptex = new THREE.CanvasTexture(pc); ptex.colorSpace = THREE.SRGBColorSpace;
+    const pw = 0.5 * 640 / 140;
+    const back = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 0.025), new THREE.MeshStandardMaterial({ color: 0x1f3f8f, roughness: 0.5 }));
+    back.scale.set(pw + 0.04, 0.54, 1); back.position.set(4.5, 2.9, Z.back);
+    const text = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshStandardMaterial(na ? { map: ptex, roughness: 0.5, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -8 } : { map: ptex, roughness: 0.5 }));
+    text.scale.set(pw, 0.5, 1); text.position.set(4.5, 2.9, Z.text);
+    scene.add(back, text);
+    // de camera kijkt schuin langs de gevel, zoals een speler op straat
+    for (const D of [5, 20, 60]) {
+      shoot(`gevel-winkelbord-${D}m`, [-3 - D * 0.5, 2.2, D * 0.87], [-3, 3.3, 0], 6);
+      shoot(`gevel-straatbord-${D}m`, [4.5 - D * 0.5, 2.2, D * 0.87], [4.5, 2.9, 0], 3.2);
+    }
+    clear(wall, band, sign, back, text);
+  }
+
+  // ---------------------------------------------------------------- twee platen op dezelfde hoogte (luifels op een station)
+  if (wanted('platen')) {
+    const mk = (c) => new THREE.MeshStandardMaterial({ color: c, roughness: 0.7, metalness: 0.3, flatShading: true, side: THREE.DoubleSide });
+    const slabA = new THREE.Mesh(new THREE.BoxGeometry(24, 0.28, 12), mk(0x5c6166));
+    const slabB = new THREE.Mesh(new THREE.BoxGeometry(24, 0.28, 12), mk(0xdcdcd8));
+    slabA.position.set(0, 5.2, 0);
+    // canopies3d.js: "na" schuift elke luifel een paar mm op (CANOPY_STAGGER, 1 cm per volgnummer); "voor" liet ze exact samenvallen
+    let CS = 0;
+    try { CS = (await import('/game/js/canopies3d.js')).CANOPY_STAGGER || 0; } catch (e) { console.log('canopies3d niet te laden: ' + e.message); }
+    window.__info.canopyStagger = CS;
+    slabB.position.set(6, 5.2 + CS, 3);
+    scene.add(slabA, slabB);
+    for (const D of [20, 60, 140, 300]) shoot(`platen-${D}m`, [-D * 0.5, 5.2 + D * 0.12, D * 0.87], [3, 5.2, 1.5], 30);
+    clear(slabA, slabB);
+  }
+
+  // ---------------------------------------------------------------- frametijd: 20 bussen met borden en 40 auto's, polygonOffset aan en uit
+  if (wanted('frametijd')) {
+    const group = new THREE.Group();
+    scene.add(group);
+    const specs = TRAFFIC_MODELS();
+    const boardMats = [];
+    for (let i = 0; i < 60; i++) {
+      const isBus = i < 20;
+      const m = isBus ? { ...model } : { ...specs.filter((x) => ['hatch', 'sedan', 'van', 'wagon'].includes(x.name))[i % 8] };
+      const v = new Vehicle(0, 0, 0, m);
+      const mm = buildVehicleMesh(v);
+      if (isBus) { if (na) BB.attachBusBoards(mm, m, tex); (mm.userData.busBoards || []).forEach((b) => boardMats.push(b.material)); }
+      mm.position.set((i % 10) * 14 - 63, 0, -Math.floor(i / 10) * 9);
+      group.add(mm);
+    }
+    group.updateMatrixWorld(true);
+    cam.position.set(0, 9, 40); cam.lookAt(0, 1.5, -20); cam.fov = 64; cam.updateProjectionMatrix();
+    const px = new Uint8Array(4);
+    const frames = (n) => { const t0 = performance.now(); for (let i = 0; i < n; i++) { renderer.render(scene, cam); gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px); } return (performance.now() - t0) / n; };
+    frames(60);
+    const res = { aan: [], uit: [] };
+    for (let r = 0; r < 6; r++) for (const stand of ['aan', 'uit']) {
+      for (const bm of boardMats) bm.polygonOffset = stand === 'aan';
+      res[stand].push(+frames(150).toFixed(3));
+    }
+    window.__info.frametijd = { msPerFrame: res, driehoeken: renderer.info.render.triangles, aanroepen: renderer.info.render.calls, borden: boardMats.length };
+    scene.remove(group);
+  }
+} catch (e) {
+  console.log('FOUT ' + (e && e.stack || e));
+  window.__info = { fout: String(e && e.stack || e) };
+}
+window.__done = true;
+</script>

@@ -26,9 +26,11 @@ export function drawMissionLayerIcon(ctx, kind, s) {
       ctx.fillStyle = ICON_RIM.gevaar; ctx.fill(); ctx.stroke();
       ctx.fillStyle = INK.dark; ctx.fillRect(-0.45 * s, -1.6 * s, 0.9 * s, 2.5 * s); ctx.fillRect(-0.45 * s, 1.3 * s, 0.9 * s, 0.8 * s);
       return;
-    case 'mm-rival': // a kart seen from above
-      ctx.roundRect(-3 * s, -2 * s, 6 * s, 4 * s, 1.2 * s);
+    case 'mm-rival': // a kart seen from above: body, four wheels, a nose
+      ctx.roundRect(-2.2 * s, -1.3 * s, 4.4 * s, 2.6 * s, 1 * s);
       ctx.fillStyle = ICON_RIM.rival; ctx.fill(); ctx.stroke();
+      ctx.fillStyle = INK.cream;
+      for (const [wx, wy] of [[-1.7, -1.9], [1.1, -1.9], [-1.7, 1.2], [1.1, 1.2]]) ctx.fillRect(wx * s, wy * s, 1.1 * s, 0.7 * s);
       return;
     case 'mm-halte': // a stop: a ring with a dot
       ctx.arc(0, 0, 3.2 * s, 0, Math.PI * 2); ctx.stroke();
@@ -41,8 +43,12 @@ export function drawMissionLayerIcon(ctx, kind, s) {
       ctx.moveTo(-2.4 * s, -3 * s); ctx.lineTo(-2.4 * s, 3 * s); ctx.moveTo(2.4 * s, -3 * s); ctx.lineTo(2.4 * s, 3 * s); ctx.moveTo(-2.4 * s, 0); ctx.lineTo(2.4 * s, 0);
       ctx.lineWidth = Math.max(1.6, 1.3 * s); ctx.stroke();
       return;
-    case 'mm-brug': // a bridge arch
-      ctx.moveTo(-3.6 * s, 1.8 * s); ctx.quadraticCurveTo(0, -3.6 * s, 3.6 * s, 1.8 * s); ctx.moveTo(-3.6 * s, 1.8 * s); ctx.lineTo(3.6 * s, 1.8 * s);
+    case 'mm-brug': // a bridge: the deck on two piers with the arch under it (an arch alone reads as a bump)
+      ctx.lineWidth = Math.max(1.4, 1.2 * s);
+      ctx.moveTo(-3.8 * s, -1.4 * s); ctx.lineTo(3.8 * s, -1.4 * s);
+      ctx.moveTo(-3.4 * s, 3.2 * s); ctx.lineTo(-3.4 * s, -1.4 * s);
+      ctx.moveTo(3.4 * s, 3.2 * s); ctx.lineTo(3.4 * s, -1.4 * s);
+      ctx.moveTo(-3.4 * s, 3.2 * s); ctx.quadraticCurveTo(0, -5.8 * s, 3.4 * s, 3.2 * s);
       ctx.stroke();
       return;
     case 'mm-subdoel': // an optional goal: a diamond
