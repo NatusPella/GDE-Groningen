@@ -143,6 +143,48 @@ t('#371: ook bij knock-out, arrestatie en afbreken horen de gasten het (failActi
   assert.match(s.gs[0].gw.messages.join(' '), /Het Loket mislukt: opgepakt door de politie\./);
 });
 
+// ------------------------------------------------------------------ #390
+t('#390: de gastheer stopt een missie, de gasten horen dat het gestopt is (geen mislukking), met 3, 8 en 16 spelers', () => {
+  for (const gasten of [3, 7, 15]) {
+    const s = avond(gasten, undefined, gasten + 1); s.step(2);
+    assert.equal(s.hw.coopUitslag(false, 'Het proefbeleg', '', 0, true), true, 'de gastheer meldt het');
+    s.step(1);
+    for (const g of s.gs) {
+      const m = g.gw.messages.find((x) => /Het proefbeleg/.test(x));
+      assert.match(m, /^Tammo heeft Het proefbeleg gestopt, voor jullie allebei\. Tammo kan hem opnieuw starten\.$/, 'de gast hoort het');
+      assert.doesNotMatch(m, /mislukt/, 'gestopt is geen mislukking');
+    }
+  }
+  assert.equal(N.uitslagMelden(avond(1).gs[0].gw, false, 'x', '', 0, true), false, 'een gast kan niet voor iedereen stoppen');
+});
+
+t('#390: Missie stoppen (missions.js, safety.js, pausemenu.js, todoui.js): eerst de vraag, geen mislukking, opnieuw te starten', () => {
+  const m = bron('missions.js');
+  const f = m.slice(m.indexOf('export function cancelActiveMission'), m.indexOf('function speakerName'));
+  assert.ok(f.length > 100, 'cancelActiveMission bestaat');
+  assert.match(f, /chain\.phase !== 'active'\) return false/, 'alleen een lopende missie');
+  assert.match(f, /chain\.checkpoints\.delete\(i\)/, 'een nieuwe poging begint bij de eerste stap (geen checkpoint)');
+  assert.match(f, /world\.coopUitslag\(false, def\.label, '', 0, true\)/, 'de gasten horen het');
+  assert.ok(f.indexOf('coopUitslag') < f.indexOf('endInFailure'), 'voordat de missie wordt opgeruimd');
+  assert.match(f, /endInFailure\(world,/, 'alles wordt opgeruimd als bij een mislukking (voertuig, scène, duif, heli) en de nieuwe poging staat klaar');
+  assert.doesNotMatch(f, /playMissionFailed|playStoryFail|hooks\.failed/, 'geen Sikkom-scherm, geen mislukking in het verhaal, geen hulpaanbod');
+  assert.doesNotMatch(f, /reward|money|payMedal|markMissionCompleted/, 'geen beloning, geen geld, niet als gehaald gemarkeerd');
+  const sf = bron('safety.js');
+  assert.match(sf, /cancelMission: \(\) => cancelMission\(w\)/, 'world.safetyActions.cancelMission');
+  assert.match(sf, /cancelActiveMission\(w\)/, 'safety roept cancelActiveMission aan');
+  const pm = bron('pausemenu.js');
+  assert.match(pm, /a === 'mission-stop-go'[\s\S]{0,120}cancelMission\(\)/, 'pas na Ja, stoppen wordt gestopt');
+  assert.doesNotMatch(pm, /mission-abort|Missie afbreken/, 'de oude knop zonder vraag is weg');
+  assert.match(pm, /a === 'mission-stop' \|\| a === 'mission-stop-no'/, 'de knop en Nee gaan naar de vraag');
+  assert.match(pm, /if \(stop && !stop\.hidden\)/, 'Esc sluit eerst de vraag');
+  const td = bron('todoui.js');
+  for (const tekst of ['Missie stoppen', 'Missie stoppen?', 'Ja, stoppen', 'Nee, doorgaan', 'Missie bezig']) assert.ok(td.includes(tekst), tekst + ' in het menu');
+  assert.match(td, /data-stop-confirm hidden/, 'de vraag staat dicht tot je op de knop drukt');
+  assert.match(bron('helpoverview.js'), /Missie stoppen/, 'de uitleg noemt de nieuwe knop');
+  const cn = bron('coopnet.js');
+  assert.match(cn, /world\.coopUitslag = \(ok, label, reden, loon, gestopt\) => uitslagMelden\(world, ok, label, reden, loon, gestopt\)/, 'de haak geeft gestopt door');
+});
+
 // ------------------------------------------------------------------ #367
 t('#367: drie toetsen, korte Nederlandse teksten, ook op de controller', () => {
   assert.deepEqual(PING_TOETSEN.map((k) => [k.toets, k.tekst]), [['7', 'Kom hier'], ['8', 'Help!'], ['9', 'Kijk daar']]);
