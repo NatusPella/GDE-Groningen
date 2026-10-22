@@ -17,7 +17,7 @@ import { polygonBounds, pointInPolygon } from './util.js';
 import { promoteMainWaterway } from './waterlevels.js';
 import { dropWaterDuplicates } from './waterdupes.js';
 import { addMooredBuilding, dropMooredBuilding } from './waterindex.js';
-import { SECTION, decodeBlob } from './gdt.js';
+import { SECTION, decodeBlob, tileKey } from './gdt.js';
 import { TileStore, FrameQueue, HttpRangeSource, inflateRaw, makeWorkerDecoder, decodeCompressed } from './tilestore.js';
 import { TerrainField } from './terrainraster.js';
 import { extendElevation, shrinkElevation } from './elevation.js';
@@ -36,6 +36,38 @@ const GRID_OF = { buildings: 'buildingGrid', roads: 'roadGrid', water: 'waterGri
 // swimmers and waterAt see it. An older tile has `flat` only: it stays out of
 // the grid, drawn flat, and flatWaterNear finds it.
 const gridOf = (kind, obj) => (kind === 'water' && obj.flat && obj.nav === undefined ? 'flatWaterGrid' : GRID_OF[kind]);
+
+// The ids of the rows the OSM tile build (build_province.mjs) makes start here (GID0); the city's own are below. An overlay of
+// a city tile (the part its data leaves empty) is merged into that tile (scripts/world/merge_overlays.mjs): its rows are the ones
+// from here up, and splitOverlay takes them apart again.
+export const OVERLAY_GID0 = 20_000_000;
+const SPLIT_TYPES = new Set([...KIND_OF.keys(), SECTION.HEIGHTS]);
+
+// A pinned tile as { city, overlay }: city holds the rows below OVERLAY_GID0 (what fromTiles takes into the arrays), overlay a tile
+// of the rows from there up (what addTile takes into the grids, as the overlay tiles it replaces were) or null. A tile without
+// overlay rows comes back as it is.
+export function splitOverlay(tile) {
+  const idOf = (s, k) => (s.gids ? s.gids[k] : s.type === SECTION.TREES ? s.rows[k].g : s.rows[k].gid);
+  const cityS = [], ovS = [];
+  let any = false;
+  for (const s of tile.sections) {
+    if (!SPLIT_TYPES.has(s.type) || !s.rows) { cityS.push(s); continue; }
+    const to = [];
+    let ov = 0;
+    for (let k = 0; k < s.rows.length; k++) { const hi = idOf(s, k) >= OVERLAY_GID0; to.push(hi); if (hi) ov++; }
+    if (!ov) { cityS.push(s); continue; }
+    any = true;
+    const pick = (want) => {
+      const part = { ...s, rows: s.rows.filter((r, k) => to[k] === want) };
+      if (s.gids) part.gids = s.gids.filter((g, k) => to[k] === want);
+      return part;
+    };
+    if (ov < s.rows.length) cityS.push(pick(false));
+    ovS.push(pick(true));
+  }
+  if (!any) return { city: tile, overlay: null };
+  return { city: { ...tile, sections: cityS }, overlay: { ...tile, sections: ovS } };
+}
 
 // the objects of one tile section as the game holds them, with their ids
 const GID = new WeakMap(); // decoded row -> its id (the game's objects carry no gid field)
@@ -369,12 +401,25 @@ export async function loadTileWorld(base = 'world/', { source = new HttpRangeSou
   let done = 0;
   for (const k of keys) store.pin(k);
   const tiles = await Promise.all(keys.map((k) => store.request(k, { priority: 0 }).then((t) => { if (onProgress) onProgress(++done / keys.length); return t; })));
-  const world = TileWorld.fromTiles(globalBlob, tiles, { terrain }).attachStore(store);
+  const split = tiles.map(splitOverlay);
+  const world = TileWorld.fromTiles(globalBlob, split.map((x) => x.city), { terrain }).attachStore(store);
   world.tileIndex = index;
-  // the overlays of the city's tiles (scripts/world/build_province.mjs): few and small, held for good
-  const overlays = Object.keys(index.tiles).filter((k) => index.tiles[k].ov);
-  for (const k of overlays) store.pin(k);
-  await Promise.all(overlays.map((k) => store.request(k, { priority: 0 })));
+  // the overlays of the city's tiles (the rows of build_province.mjs the city's data leaves out, merged into their tile by
+  // scripts/world/merge_overlays.mjs): into the grids like a streamed tile, held for good with the city
+  // (in the order of the stumps in the province index, as the overlay tiles came before: extendElevation builds a viaduct over what is
+  // there, so the order shows in a few walls; a build without the province layer adds them in the order of the pins)
+  const byKey = new Map(split.map((x) => [tileKey(x.city.i, x.city.j), x]));
+  const order = Object.keys(index.tiles).filter((k) => index.tiles[k].ov && index.tiles[k].in).map((k) => index.tiles[k].in);
+  for (const k of [...order, ...byKey.keys()]) {
+    const x = byKey.get(k);
+    if (!x || !x.overlay) continue;
+    byKey.delete(k);
+    world.addTile(x.overlay, 'o' + k);
+  }
+  // a world from before the merge still has its overlays as tiles of their own: pinned as they were
+  const loose = Object.keys(index.tiles).filter((k) => index.tiles[k].ov && !index.tiles[k].in);
+  for (const k of loose) store.pin(k);
+  await Promise.all(loose.map((k) => store.request(k, { priority: 0 })));
   world.tileQueue.run(1e9);
   return { world, store, index, global: globalBlob, source };
 }
@@ -399,7 +444,7 @@ export function mergeIndex(index, extra, { only = null } = {}) {
 // The map at `url` (stad.json) for code that only needs the map: the tile
 // world when the build has tiles, else stad.json alone (dev server).
 export async function loadMapAuto(url = 'stad.json', onProgress = null, { pool = true } = {}) {
-  // with the overlays of the city's tiles, as the game's own map has them (the worker's roads and shores must see the same neighbours)
-  const t = await loadTileWorld(url.replace(/[^/]*$/, '') + 'world/', { onProgress, pool, extra: [{ name: 'index-provincie.json', only: (q) => !!q.ov }] });
+  // the overlays of the city's tiles come with the tiles (the worker's roads and shores see the same neighbours as the game's map)
+  const t = await loadTileWorld(url.replace(/[^/]*$/, '') + 'world/', { onProgress, pool });
   return t ? t.world : loadMap(url, onProgress);
 }
