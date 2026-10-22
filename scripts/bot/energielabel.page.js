@@ -34,7 +34,8 @@ const rondes = [];
 let goed = 0, vragen = 0, fout = 0, ronde = 0, prevN = 0, cur = [];
 const gedaan = new Set();
 const t0 = performance.now();
-let lastT = -1, stilT = 0, lastLog = 0;
+let lastT = -1, stilT = 0, lastLog = 0, lastPress = 0, lastKey = 1;
+const retries = {};
 while (act.active() && rondes.length < 3 && performance.now() - t0 < 600000) {
   const st = B.status();
   // the game clock stands still (the pause menu opened by itself, or the window lost focus): Escape closes the menu, Space starts a paused game again
@@ -49,14 +50,21 @@ while (act.active() && rondes.length < 3 && performance.now() - t0 < 600000) {
   if (n < prevN) ronde++;
   prevN = n;
   const key = ronde + ':' + n;
-  if (gedaan.has(key)) { await sleep(200); continue; }
+  // a key that falls between two frames is not seen (the game reads a press once per frame, a loaded machine runs a few frames a second): the same
+  // question still on screen after 3 s is answered again, with a longer press
+  if (gedaan.has(key)) {
+    if (performance.now() - lastPress > 3000 && (retries[key] = (retries[key] || 0) + 1) <= 12) { lastPress = performance.now(); B.log('opnieuw', { key, toets: lastKey }); await B.press(String(lastKey), 500); }
+    else await sleep(200);
+    continue;
+  }
   gedaan.add(key);
   const c = byQ.get(d.text);
   const i = c ? d.options.findIndex((o) => o.label === c.right) : -1;
   if (i < 0) { fout++; B.log('antwoord-niet-gevonden', { vraag: d.text, opties: d.options.map((o) => o.label) }); }
   vragen++; cur.push(i + 1);
   B.log('antwoord', { ronde, n, vraag: d.text.slice(0, 60), toets: i + 1 });
-  await B.press(String(i < 0 ? 1 : i + 1), 120);
+  lastKey = i < 0 ? 1 : i + 1; lastPress = performance.now();
+  await B.press(String(lastKey), 500);
   if (i >= 0) goed++;
   if (n === 3) { rondes.push(cur); cur = []; await sleep(300); }
 }
