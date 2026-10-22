@@ -935,6 +935,25 @@ function playBell(x, y) {
   }
 }
 
+// De reclametaxi (#404, reklametaxi3d.js): een noot van het goedkope deuntje op de plek van de taxi, met afstandsdemping
+// (spatialOut) en Doppler (dopplerCents) op de snelheid van de taxi; stem 'hat' is een tikje ruis. De taxi speelt zelf
+// geen opname: alles is een korte toon of ruisstoot.
+export function playReklameNoot(x, y, { freq, dur = 0.12, stem = 'lead', gain = 0.09, vx = 0, vy = 0, delay = 0 }) {
+  const out = spatialOut(x, y, { ref: 5, rolloff: 1.2, range: 95, h: 1.7, prio: 0 });
+  if (!out) return;
+  if (stem === 'hat') { playNoiseBurst({ duration: 0.03, freq: 6200, q: 1.5, gain: gain * 0.7, type: 'highpass', delay, out, prio: 0 }); return; }
+  const f = freq * Math.pow(2, clamp(dopplerCents({ x, y }, vx, vy), -250, 250) / 1200);
+  playTone({ freq: f, type: stem === 'bas' ? 'triangle' : 'square', duration: dur, gain: stem === 'bas' ? gain * 1.4 : gain, delay, filterFreq: stem === 'bas' ? 600 : 3400, out, prio: 0 });
+}
+
+// De megafoon van de reclametaxi: een kort kraakje (bandfilter op ruis) bij elke kreet.
+export function playReklameKraak(x, y) {
+  const out = spatialOut(x, y, { ref: 5, rolloff: 1.1, range: 110, h: 1.8, prio: 0 });
+  if (!out) return;
+  playNoiseBurst({ duration: 0.09, freq: 1700, q: 2.5, gain: 0.12, type: 'bandpass', out, prio: 0 });
+  playTone({ freq: 880, freqEnd: 660, type: 'square', duration: 0.08, gain: 0.05, delay: 0.1, filterFreq: 2400, out, prio: 0 });
+}
+
 // Level-crossing bell: one hard metallic strike per event (railway.js repeats it).
 function playCrossingBell(x, y) {
   if (playFx('crossing_bell', x, y)) return;
