@@ -7,6 +7,7 @@ import { showCard } from './hudcards.js';
 import { activityBlock, iconDisc } from './activitykit.js';
 import { createBoard, key, bubble, clearBubbles, pick, stopPressed, easeCamera, clamp } from './minigamekit.js';
 import { PUTT_LINES } from './minigamelines.js';
+import { WOLFIE, SIR, newEtiquette, beginHole as etqBegin, step as etqStep, holeDone as etqHoleDone, misser as etqMisser, einde as etqEinde, hallo as etqHallo } from './golfetiquette.js';
 import { loadEchtePlekken, golfVenues, nearestOf } from './echteplekken.js';
 import {
   ppHoles, holesFromWorld, venueLayout, slopeAt, onGreen, inBunker, pitch, putt, straightPower, powerForCarry, finishHole, newCard, cardTotals, courseMedal, holeName, relText,
@@ -55,7 +56,7 @@ function focus(w) {
   venue = n.item;
   layout(venue.holes);
   if (built) {
-    getScene().remove(built.root, built.ball, built.line, built.ring, built.keeper);
+    getScene().remove(built.root, built.ball, built.line, built.ring, built.keeper, built.sir, built.wolfie);
     built = null;
   }
 }
@@ -70,6 +71,9 @@ let runs = 0;
 let aimLine = null;
 
 const keeperLook = { shirt: 0x5a8a3a, skin: 0xe2b48c, variant: 'male', seed: 8810, look: { age: 'old', hat: null, bag: null, umbrella: null } };
+// the two made-up figures of the golf etiquette (#394, golfetiquette.js): Wolfie, the course hand in a cap and shorts, and Sir Cedric in his tweed
+const wolfieLook = { shirt: 0xc9d8a8, skin: 0xe8c39e, variant: 'male', seed: 8821, look: { age: 'adult', build: 'heavy', hat: 'cap', hatColor: 0xd8c070, top: 'sweater', bottom: 'shorts', shoeType: 'sneaker', bag: null, umbrella: null, glasses: false } };
+const sirLook = { shirt: 0x3a4a6a, skin: 0xf0d2b4, variant: 'male', seed: 8832, look: { age: 'adult', build: 'slim', hat: 'flatcap', hatColor: 0x7a7a52, top: 'blazer', bottom: 'trousers', shoeType: 'boot', bag: null, umbrella: null, glasses: false } };
 
 // --- meshes --------------------------------------------------------------------------------------
 
@@ -164,8 +168,12 @@ function buildCourse(w) {
   ring.visible = false;
   const keeper = buildPersonMesh(keeperLook.shirt, keeperLook.skin, keeperLook);
   keeper.visible = false;
-  getScene().add(root, ball, line, ring, keeper);
-  return { root, holes, ball, line, ring, keeper };
+  const wolfie = buildPersonMesh(wolfieLook.shirt, wolfieLook.skin, wolfieLook);
+  const sir = buildPersonMesh(sirLook.shirt, sirLook.skin, sirLook);
+  wolfie.visible = false;
+  sir.visible = false;
+  getScene().add(root, ball, line, ring, keeper, sir, wolfie);
+  return { root, holes, ball, line, ring, keeper, sir, wolfie };
 }
 
 function updateLod(w) {
@@ -236,7 +244,9 @@ function start(w, { force = false } = {}) {
   ensureBoard();
   board.show();
   runs++;
-  game = { t: 0, hole: 0, strokes: 0, phase: 'aim', phaseT: 0, card: newCard(HOLES), lie: null, yaw: 0, charge: 0, charging: false, anim: null, flash: null, cam: null, said: 0, bunker: false, rng: Math.random };
+  game = { t: 0, hole: 0, strokes: 0, phase: 'aim', phaseT: 0, card: newCard(HOLES), lie: null, yaw: 0, charge: 0, charging: false, anim: null, flash: null, cam: null, said: 0, bunker: false, rng: Math.random, etq: newEtiquette(), misserT: -99 };
+  etqQ = [];
+  etqNext = { sir: 0, wolfie: 0 };
   beginHole(w);
   showCard(w, { kind: 'tip', kicker: 'Pitch & putt', title: 'Zes korte banen', body: '[A] [D] richten (Shift: fijn), houd [Spatie] en laat los. Het witte streepje op de meter is de kracht voor een rechte slag naar de vlag. Lees de pijltjes op de green.', duration: 10, key: 'pitchputt-help', voice: false });
   say(w, 'start', true);
@@ -253,6 +263,7 @@ function beginHole(w) {
   g.phaseT = 0;
   g.cam = null;
   setLie(w);
+  etqSay(w, etqBegin(g.etq, h.par));
 }
 
 const mode = (g) => (onGreen(HOLES[g.hole], g.lie.x, g.lie.y) ? 'putt' : 'pitch');
@@ -273,6 +284,13 @@ function setLie(w) {
     built.keeper.visible = true;
     built.keeper.position.set(g.lie.x - Math.cos(g.yaw) * 1.3 + Math.cos(side) * 2.3, 0, g.lie.y - Math.sin(g.yaw) * 1.3 + Math.sin(side) * 2.3);
     built.keeper.rotation.y = -g.yaw;
+    // Sir Cedric stands beyond the greenkeeper, Wolfie a few steps behind the tee (golfetiquette.js)
+    built.sir.visible = true;
+    built.sir.position.set(g.lie.x - Math.cos(g.yaw) * 0.5 + Math.cos(side) * 4.6, 0, g.lie.y - Math.sin(g.yaw) * 0.5 + Math.sin(side) * 4.6);
+    built.sir.rotation.y = -g.yaw;
+    built.wolfie.visible = true;
+    built.wolfie.position.set(g.lie.x - Math.cos(g.yaw) * 4.2 + Math.cos(side) * 1.2, 0, g.lie.y - Math.sin(g.yaw) * 4.2 + Math.sin(side) * 1.2);
+    built.wolfie.rotation.y = -g.yaw;
     built.ball.visible = true;
     built.ball.position.set(g.lie.x, BALL_R, g.lie.y);
     built.holes.forEach((hh, i) => { hh.arrows.visible = i === g.hole; });
@@ -323,8 +341,8 @@ function ballDone(w) {
   if (res.holed) { holeDone(w, g.strokes, 'cup'); return; }
   g.lie = { x: res.end.x, y: res.end.y };
   const left = Math.hypot(h.cup.x - g.lie.x, h.cup.y - g.lie.y);
-  if (inBunker(h, g.lie.x, g.lie.y)) { g.flash = { text: 'In het zand', t: 2.4, bad: true }; say(w, 'bunker'); }
-  else if (!onGreen(h, g.lie.x, g.lie.y)) { g.flash = { text: `Naast de green, nog ${Math.round(left)} m`, t: 2.4, bad: true }; if (g.strokes === 1) say(w, 'rough'); }
+  if (inBunker(h, g.lie.x, g.lie.y)) { g.flash = { text: 'In het zand', t: 2.4, bad: true }; say(w, 'bunker'); pendule(w); }
+  else if (!onGreen(h, g.lie.x, g.lie.y)) { g.flash = { text: `Naast de green, nog ${Math.round(left)} m`, t: 2.4, bad: true }; if (g.strokes === 1) { say(w, 'rough'); pendule(w); } }
   else g.flash = { text: `Op de green, nog ${left < 10 ? left.toFixed(1) : Math.round(left)} m`, t: 2.4 };
   if (g.strokes >= h.par + MAX_OVER_PAR) { holeDone(w, g.strokes, 'opgepakt'); return; }
   g.phase = 'landed';
@@ -339,6 +357,7 @@ function holeDone(w, strokes, why) {
   g.flash = { text: `${name}: ${strokes} slag${strokes === 1 ? '' : 'en'} (par ${h.par})`, t: 3, bad: strokes > h.par };
   const d = strokes - h.par;
   say(w, strokes === 1 && why !== 'opgepakt' ? 'hole1' : d < 0 ? 'birdie' : d === 0 ? 'par' : 'bogey', true);
+  etqSay(w, etqHoleDone(g.etq, h.par, strokes, why === 'opgepakt' ? 'opgepakt' : 'cup'));
   g.phase = 'holeDone';
   g.phaseT = 0;
   if (built) built.ball.position.set(h.cup.x, 0.02, h.cup.y);
@@ -377,6 +396,11 @@ function updateGame(w, dt) {
   if (stopPressed(input)) { end(w, { quit: true }); return; }
   const p = w.player;
   p.speed = 0; p.moving = false; p.vx = 0; p.vy = 0; p.z = 0;
+  // stand still at a stroke, keep the order of play: Sir Cedric and Wolfie only answer in words, the player's strokes never change (golfetiquette.js)
+  const aiming = g.phase === 'aim';
+  const turning = aiming && (input.isDown('a') || input.isDown('d') || input.isDown('arrowleft') || input.isDown('arrowright'));
+  const charging = aiming && input.isDown(' ');
+  const shotsBefore = g.strokes;
   if (g.phase === 'aim') {
     const putting = mode(g) === 'putt';
     const slow = input.isDown('shift') ? 0.25 : 1;
@@ -399,6 +423,7 @@ function updateGame(w, dt) {
   } else if (g.phase === 'holeDone') {
     if (g.phaseT > 3) nextHole(w);
   }
+  if (game === g) etqSay(w, etqStep(g.etq, dt, { laadt: charging, draait: turning, schiet: g.strokes > shotsBefore }));
 }
 
 function end(w, { quit = false } = {}) {
@@ -409,7 +434,9 @@ function end(w, { quit = false } = {}) {
   w.cameraOverride = null;
   if (board) board.hide();
   clearBubbles(w, 'pitchputt');
-  if (built) { built.line.visible = false; built.ring.visible = false; built.ball.visible = false; built.keeper.visible = !quit; built.keeperUntil = w.time + 14; built.holes.forEach((hh) => { hh.arrows.visible = false; }); }
+  etqQ = [];
+  etqNext = { sir: 0, wolfie: 0 };
+  if (built) { built.line.visible = false; built.ring.visible = false; built.ball.visible = false; built.keeper.visible = !quit; built.sir.visible = !quit; built.wolfie.visible = !quit; built.keeperUntil = w.time + 14; built.holes.forEach((hh) => { hh.arrows.visible = false; }); }
   if (quit) { w.addMessage('Pitch & putt gestopt', 2.5); return; }
   const t = cardTotals(g.card);
   const medal = courseMedal(t.rel);
@@ -423,6 +450,37 @@ function end(w, { quit = false } = {}) {
   if (rec && rec.newBest) stats.push(['Record', 'Nieuw!']);
   showBanner({ kind: medal ? 'pass' : 'fail', title: medal >= 3 ? 'ONDER PAR OP DE CONCOURSLAAN' : medal ? 'NETTE RONDE' : 'DE GREEN WON', reason: medal ? `${relText(t.rel)} t.o.v. par over zes banen` : 'Probeer het nog eens: lees de pijltjes op de green', reward: 0, stats });
   say(w, medal >= 2 ? 'endGood' : 'endPoor', true, true);
+  etqSay(w, etqEinde(g.etq, medal >= 2));
+}
+
+// What Sir Cedric and Wolfie say (golfetiquette.js): text bubbles one after the other per speaker, never a recorded voice (#394).
+let etqQ = [];
+let etqNext = { sir: 0, wolfie: 0 };
+function etqSay(w, events) {
+  for (const e of events) {
+    const dur = Math.max(2.6, 1.2 + e.tekst.length * 0.06);
+    const at = Math.max(w.time, etqNext[e.wie] || 0);
+    etqNext[e.wie] = at + dur + 0.4;
+    etqQ.push({ ...e, at });
+  }
+}
+function etqFlush(w) {
+  if (!etqQ.length) return;
+  if (!built) { etqQ = []; return; }
+  const due = etqQ.filter((e) => e.at <= w.time);
+  if (!due.length) return;
+  etqQ = etqQ.filter((e) => e.at > w.time);
+  for (const e of due) {
+    const c = e.wie === 'sir' ? built.sir : built.wolfie;
+    bubble(w, { x: c.position.x, y: c.position.z, name: e.wie === 'sir' ? SIR : WOLFIE, text: e.tekst, h: 2.1, tag: 'pitchputt' });
+  }
+}
+// "laat de pendule maar doen": Wolfie after a bad lie, at most once in 25 seconds
+function pendule(w) {
+  const g = game;
+  if (!g || g.t - g.misserT < 25) return;
+  g.misserT = g.t;
+  etqSay(w, [etqMisser(g.etq)]);
 }
 
 function say(w, kind, force = false, after = false) {
@@ -462,7 +520,33 @@ function sync3D(w, dt) {
   if (game) previewLine();
   if (built.keeper.visible) {
     animatePersonWalk(built.keeper, 0, dt);
-    if (!game && built.keeperUntil && w.time > built.keeperUntil) { built.keeper.visible = false; built.keeperUntil = 0; clearBubbles(w, 'pitchputt'); }
+    if (!game && built.keeperUntil && w.time > built.keeperUntil) { built.keeper.visible = false; built.sir.visible = false; built.wolfie.visible = false; built.keeperUntil = 0; clearBubbles(w, 'pitchputt'); }
+  }
+  if (built.sir.visible) animatePersonWalk(built.sir, 0, dt);
+  if (built.wolfie.visible) animatePersonWalk(built.wolfie, 0, dt);
+  etqFlush(w);
+  hut(w, dt);
+}
+
+// Wolfie stands at the hut by the first tee while you walk by and says a word now and then
+let hutT = 0, hutNear = false;
+function hut(w, dt) {
+  if (built && built.keeperUntil && w.time > built.keeperUntil) built.keeperUntil = 0; // (a quit leaves it set: the keeper is hidden then)
+  if (game || !built || built.keeperUntil) { hutNear = false; return; }
+  const near = !w.player.inVehicle && Math.hypot(w.player.x - STAND.x, w.player.y - STAND.y) < 16;
+  if (near !== hutNear) {
+    hutNear = near;
+    built.wolfie.visible = near;
+    if (near) {
+      const h = HOLES[0];
+      built.wolfie.position.set(STAND.x + Math.cos(h.heading + 2.2) * 2.4, 0, STAND.y + Math.sin(h.heading + 2.2) * 2.4);
+      built.wolfie.rotation.y = -(h.heading + 2.2 + Math.PI);
+      hutT = 2.5;
+    } else clearBubbles(w, 'pitchputt');
+  }
+  if (near && (hutT -= dt) <= 0) {
+    hutT = 28 + Math.random() * 20;
+    etqSay(w, [etqHallo()]);
   }
 }
 
@@ -544,6 +628,7 @@ export const PITCHPUTT = {
       skip: () => { if (!game) return false; game.phase = 'holeDone'; game.phaseT = 99; return true; },
       finish: () => { if (!game) return false; for (let i = game.hole; i < HOLES.length; i++) { game.hole = i; holeDone(w, HOLES[i].par, 'cup'); } game.hole = HOLES.length - 1; nextHole(w); return true; },
       quit: () => { if (!game) return false; end(w, { quit: true }); return true; },
+      etiquette: () => (game ? { eer: game.etq.eer, boos: game.etq.boos, sirRel: game.etq.sirRel, spelerRel: game.etq.spelerRel, fase: game.etq.hole && game.etq.hole.fase } : null),
     };
   },
   spots: () => venues.filter((v) => Number.isFinite(v.x) && Number.isFinite(v.y)).map((v, i) => ({ id: i ? 'pitchputt-' + v.id : 'pitchputt', name: v.name, x: v.x, y: v.y })),
