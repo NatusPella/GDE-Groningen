@@ -13,16 +13,16 @@ for (const [id, b] of Object.entries(REISBEATS)) {
   ok(ids.has(id), `${id} is a step`);
   ok(needsBeat(b.length), `${id}: a travel beat is only for a jump`, b.length);
   ok(RIDES[b.ride], `${id}: known ride`, b.ride);
-  ok(b.to && b.from && b.act >= 1 && b.act <= 5, `${id}: fields`);
+  ok(b.to && b.from && b.act >= 1 && b.act <= 6, `${id}: fields`);
   const step = STEPS.find((s) => s.id === id);
-  ok(!step || step.part && b.act === ({ kop: 1, romp: 2, staart: 3, zuid: 4, ontzet: 5 })[step.part], `${id}: act matches the step's part`);
+  ok(!step || step.part && b.act === ({ kop: 1, romp: 2, staart: 3, zuid: 4, ontzet: 5, nazomer: 6 })[step.part], `${id}: act matches the step's part`);
   if (b.scene) ok(script.scenes.some((s) => s.id === b.scene), `${id}: scene ${b.scene} exists`);
   const r = travelOptions(beatFor(id, script));
   ok(r.required && r.def === 'meerijden', `${id}: required beat, ride along by default`);
   ok(!!b.scene === r.options.some((o) => o.id === 'overslaan'), `${id}: skip exists exactly when there is trip talk`);
 }
-// the four travel activities all have a beat with their own scene
-for (const t of ['T1', 'T2', 'T3', 'T4']) ok(REISBEATS[t]?.scene, `${t} carries its scene`);
+// the travel activities (T5 is Deel 4's) all have a beat with their own scene
+for (const t of ['T1', 'T2', 'T3', 'T4', 'T5']) ok(REISBEATS[t]?.scene, `${t} carries its scene`);
 // skip lines come from the script, spoken lines only
 const l = beatFor('T1', script).lines;
 ok(l.length === 4 && l[0].startsWith('Tessa: '), 'T1 skip lines', l[0]);

@@ -20,6 +20,16 @@ const near = (a, b, e = 1e-6) => Math.abs(a - b) < e;
   ok(xs.every((v) => v >= 0 && v < 1), 'waarden in [0, 1)');
 }
 
+// --- colonne (M23): de leider wacht op de laatste ------------------------------------
+{
+  ok(L.convoyPace([10, 20, 30], 11) === 11, 'colonne: bij elkaar, volle snelheid');
+  ok(L.convoyPace([], 11) === 11, 'colonne: zonder leden volle snelheid');
+  ok(L.convoyPace([10, 100], 11) === 11, 'colonne: de rij zelf is ongeveer 100 m lang, dat is geen achterstand');
+  ok(L.convoyPace([10, 130], 11) < 11 && L.convoyPace([10, 130], 11) >= 3, 'colonne: 130 m achter, rustig aan');
+  ok(L.convoyPace([10, 165], 11) === 0, 'colonne: ver achter, stilstaan');
+  ok(L.convoyPace([110], 11) > L.convoyPace([140], 11), 'colonne: hoe verder achter, hoe trager');
+}
+
 // --- voetstick: inverse van player.js cameraRelativeMove ----------------------------
 {
   const move = (ax, ay, camYaw) => { const c = Math.cos(camYaw), s = Math.sin(camYaw); return Math.atan2(s * -ay + c * ax, c * -ay - s * ax); };
@@ -152,6 +162,8 @@ const near = (a, b, e = 1e-6) => Math.abs(a - b) < e;
   const b = () => ({ v: 1, t: 1, player: { x: 0, y: 0, angle: 0, camYaw: 0, vehicle: null }, story: {}, mission: { active: true, stage: 'goto' }, hud: { messages: [], prompt: '' }, blocking: {}, nearby: { vehicles: [] }, target: { x: 50, y: 0, distance: 50, source: 'missie' } });
   const car = { kind: 'auto', speed: 0, angle: 0 };
   ok(L.isStunt({ ...b(), mission: { label: 'Bakkie-stunt' } }) && L.isStunt({ ...b(), mission: { stage: 'stunt' } }) && !L.isStunt(b()), 'stunt herkend aan label of stage');
+  ok(L.isStunt({ ...b(), mission: { label: 'Nul krassen', stunt: { score: 200, target: 1500 } } }) && !L.isStunt({ ...b(), mission: { label: 'Nul krassen', stunt: { score: 1500, target: 1500 } } }), 'stunt herkend aan de stuntscore van de missie (M01), niet meer als het doel gehaald is');
+  ok(L.isStunt({ ...b(), mission: { label: 'Nul krassen', stuntSpec: { x: 168, y: 70, radius: 46, target: 1500 } }, target: { x: 168.7, y: 70, distance: 100 } }) && !L.isStunt({ ...b(), mission: { label: 'Nul krassen', stuntSpec: { x: 168, y: 70, radius: 46, target: 1500 } }, target: { x: -22, y: -491, distance: 600 } }), 'stunt herkend aan het doel in het midden van het plein (nog voor de score loopt), niet bij de bezorging');
   const st = L.decide({ ...b(), player: { ...b().player, vehicle: car }, mission: { active: true, label: 'Nul krassen: stunt' } });
   ok(st.mode === 'drive' && st.stunt === true && st.top === 30, 'stunt: snel rijden');
   ok(!L.decide({ ...b(), player: { ...b().player, vehicle: car } }).stunt, 'geen stunt: normaal rijden');
@@ -177,6 +189,8 @@ const near = (a, b, e = 1e-6) => Math.abs(a - b) < e;
   ok(L.decide(onBike, { boardTries: 4 }).type === 'goto', 'board-stage op een fiets: opgeven na vier keer');
   ok(L.decide({ ...onBike, player: { ...onBike.player, vehicle: null } }, { boardWalkUntil: -1 }).vehicle.kind === 'auto', 'board-stage te voet: motorvoertuig boven de fiets');
   ok(L.decide({ ...b(), mission: { active: true, stage: 'hold' }, target: { x: 1, y: 0, distance: 1 } }).type === 'wait', 'hold-stage: stilstaan in de ring');
+ok(L.decide({ ...b(), mission: { active: true, stage: 'hold' }, target: { x: 5, y: 0, distance: 5 } }).type === 'wait', 'hold-stage: ook op 5 m (de ring is 9 m) blijft hij staan');
+ok(L.decide({ ...b(), mission: { active: true, stage: 'hold' }, target: { x: 8, y: 0, distance: 8 } }).type === 'goto', 'hold-stage: buiten 5,5 m loopt hij naar de ring');
   const planS = { ...b(), mission: { active: true, stage: 'plan' }, target: { x: 1, y: 0, distance: 1 } };
   const pm = {};
   ok(L.decide(planS, pm).key === 'a' && pm.planTries === 1, 'plan-stage: A kiezen');

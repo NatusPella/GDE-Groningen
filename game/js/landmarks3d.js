@@ -658,7 +658,7 @@ function academiegebouw(B, ring, srcEdges) {
   band(B, edges, 0, 1.3, 0.1, C.sandstone);
   band(B, edges, 5.2, 0.45, 0.1, C.sandstone);
   band(B, edges, 10.2, 0.45, 0.1, C.sandstone);
-  band(B, edges, eave - 0.9, 0.9, 0.2, C.sandstone);
+  band(B, edges, eave - 0.9, 0.9, 0.18, C.sandstone); // 2 cm achter het voorvlak van de middenrisaliet (0,2), niet gelijk (#382)
   for (const e of edges) {
     if (e.party || e.len < 2.6) continue;
     for (const t of slots(e.len, 3.3, 0.8)) {
@@ -922,7 +922,7 @@ function stadhuis(B, ring) {
   }
   cap(B, rect, () => eave, 0x585c60, G_PLAIN);
   roofRim(B, edges, eave + 0.3, 6, rise, C.slateDark);
-  band(B, edges, 0, 1.9, 0.12, plinth);
+  band(B, edges, 0, 1.9, 0.1, plinth); // het glas van de ramen (0,12) steekt 2 cm uit de plint, niet gelijk (#382)
   band(B, edges, 1.9, 0.3, 0.18, stoneShade);
   band(B, edges, eave - 1.3, 1.3, 0.34, stoneShade);
   band(B, edges, eave - 1.6, 0.3, 0.2, C.white);
