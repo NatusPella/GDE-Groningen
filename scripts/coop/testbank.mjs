@@ -462,7 +462,7 @@ if (SUITE === 'net') {
   // mockgasten
   for (const [i, m] of [...mocks, mockLate].filter(Boolean).entries()) {
     const l = m.last();
-    check(l && l.status === 'ok' || (l && l.status === 'lag'), `mockgast ${i + 1}: laatste status ${l && l.status}`);
+    check(l && (l.status === 'ok' || l.status === 'lag' || (l.status === 'verbroken' && gst && gst.coopNet === false)), `mockgast ${i + 1}: laatste status ${l && l.status}`); // 'verbroken' mag alleen als de gastheer echt stopte (stopHost) en de gast dat hoorde
     const kinds = {}; for (const [, b] of m.log.events) kinds[b.k] = (kinds[b.k] || 0) + 1;
     note(`mockgast ${i + 1} (${m.sim.latency ? '80 ms, 5% verlies' : 'goed netwerk'}): ${m.log.samples.length} samples, ${m.transport.recv} pakketten, ${JSON.stringify(kinds)}, statussen ${[...new Set(m.log.status.map((s) => s[1]))].join('/')}`);
     check(Object.keys(kinds).includes('klok') && Object.keys(kinds).includes('hash'), `mockgast ${i + 1} kreeg geen klok- en hashberichten van de host`);
