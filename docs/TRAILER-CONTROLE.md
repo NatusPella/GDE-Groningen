@@ -1,7 +1,7 @@
 # Trailers: wat is gecontroleerd (#63)
 
 Drie trailers uit het echte spel (geen nagebouwde beelden): een **gameplaytrailer** (78,0 s), een **verhaaltrailer** (87,4 s) en een langere **showcase-trailer** (162,9 s, schaal en proces; staat alleen in het uploadpakket, niet in git), alle 1920x1080 op 60 beelden per seconde, H.264 + AAC. Reproduceren: [scripts/trailer/README.md](../scripts/trailer/README.md).
-Het pakket staat buiten git in `C:UsersabuisGITGDE-uploadpakket2` (de oude map staat er niet meer naast: de eigenaar had hem al vervangen). Er is **niets** geüpload of gepubliceerd (constitution 8); in het pakket staat een uploadplan met alles op Privé.
+Het pakket staat buiten git in `C:UsersabuisGITGDE-uploadpakket2` (het oude pakket `GDE-uploadpakket` is ongemoeid gelaten). Er is **niets** geüpload of gepubliceerd (constitution 8); in het pakket staat een uploadplan met alles op Privé.
 
 ## Eisen van de eigenaar en hoe ze zijn aangepakt
 
