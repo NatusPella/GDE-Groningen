@@ -11,7 +11,7 @@
 //   ride     key of RIDES in reiskeuze.js (trein, bus, boot, heli, lift)
 //   selfMode car or tractor etc. for driving yourself
 //   scene    script.json scene whose lines are the core of the trip talk (optional)
-//   act      1..5, for the act budget
+//   act      1..5 (6: Deel 4), for the act budget
 export const REISBEATS = {
   T1: { act: 2, from: 'Station Grunn', to: 'Warffum', length: 28000, ride: 'trein', scene: 'T1' },
   T2: { act: 2, from: 'Uithuizen', to: 'Zoutkamp', length: 30000, ride: 'bus', scene: 'T2' },
@@ -25,6 +25,9 @@ export const REISBEATS = {
   T4: { act: 4, from: 'Wildervank', to: 'Bourtange', length: 45000, ride: 'bus', scene: 'T4.1' },
   M21: { act: 4, from: 'Bourtange', to: 'Zuidhorn', length: 65000, ride: 'lift' },
   M23: { act: 5, from: "Tinus' schuur", to: 'Grote Markt', length: 25000, ride: 'lift', selfMode: 'auto' },
+  // Deel 4 (act 6): Grote Markt to Loppersum (about 25 km), and Loppersum to Bourtange (about 70 km, by road over Winschoten and Ter Apel)
+  M27: { act: 6, from: 'Grote Markt', to: 'Loppersum', length: 25000, ride: 'lift' },
+  T5: { act: 6, from: 'Loppersum', to: 'Bourtange', length: 70000, ride: 'lift', scene: 'T5.1' },
 };
 
 // the beat in front of a step, as reiskeuze.js wants it (lines from the script:

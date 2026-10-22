@@ -76,8 +76,10 @@ export async function inflateRaw(bytes) {
   return new Uint8Array(zlib.inflateRawSync(bytes));
 }
 
-export async function decodeCompressed(bytes) {
-  return decodeBlob(await inflateRaw(bytes));
+// aside: a list of section types whose row ids come back as `gids` next to the rows (gdt.js decodeSection); the store passes its
+// meta as the second argument to a plain decoder, which is not a list and is ignored
+export async function decodeCompressed(bytes, aside = null) {
+  return decodeBlob(await inflateRaw(bytes), Array.isArray(aside) ? aside : null);
 }
 
 // --------------------------------------------------------------- frame queue
@@ -315,7 +317,7 @@ export class TileStore {
 
 // decode(bytes) running in module workers (tileworker.js); the compressed
 // bytes go over as a transferable, the decoded tile comes back as a clone.
-export function makeWorkerDecoder(url, size = 2) {
+export function makeWorkerDecoder(url, size = 2, aside = null) {
   if (typeof Worker === 'undefined') return null;
   const workers = [];
   const open = new Map();
@@ -338,7 +340,7 @@ export function makeWorkerDecoder(url, size = 2) {
     const id = next++;
     open.set(id, { resolve, reject });
     const copy = bytes.slice();
-    workers[rr++ % workers.length].postMessage({ id, bytes: copy }, [copy.buffer]);
+    workers[rr++ % workers.length].postMessage({ id, bytes: copy, aside }, [copy.buffer]);
   });
   decode.terminate = () => workers.forEach((w) => w.terminate());
   return decode;
