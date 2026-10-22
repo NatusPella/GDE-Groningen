@@ -110,7 +110,7 @@ export function resolveBuildingCollisions(x, y, radius, map, hop = 0, walls = fa
 // under the feet are jumped over.
 export function resolveWalker(x, y, radius, map, vx = 0, vy = 0, opts = null, z = 0, hop = 0) {
   if (map.elev && map.elev.has) {
-    const w = resolveElevWalls(map.elev, x, y, z, radius);
+    const w = map.terrainOn ? map.resolveWalls(x, y, z, radius) : resolveElevWalls(map.elev, x, y, z, radius);
     if (w) [x, y] = w;
     if (z > 4 || z < -3.5) return [x, y];
   }

@@ -11,6 +11,7 @@ import { pointInPolygon, closestPointOnSegment } from './util.js';
 import { waterPolyAt } from './waterlevels.js';
 import { inPassage } from './passages.js';
 import { elevWallContact } from './elevation.js';
+import { roadBaseAt } from './terrainlift.js';
 import { findProps, makeProp, resolvePropCollisions } from './breakables.js';
 import { getSignalPoles, streamTrafficLightProps } from './trafficlights.js';
 import { streamFlitspaalProps } from './flitspaal.js';
@@ -104,7 +105,7 @@ function probe(world, samples, label, cache, edgeIn = EDGE_IN) {
           if (pointInPolygon(x, y, b.pts) && !inPassage(map, b, x, y, 0.35)) hit(q, 'gebouw', b.name || b.type, x, y, zz);
         }
       }
-      if (map.elev && elevWallContact(map.elev, x, y, zz, REACH)) hit(q, 'muur', 'keerwand/vangrail', x, y, zz);
+      if (map.elev && (map.terrainOn ? map.wallContact(x, y, zz, REACH) : elevWallContact(map.elev, x, y, zz, REACH))) hit(q, 'muur', 'keerwand/vangrail', x, y, zz);
       if (overOpenWater(map, x, y, zz)) hit(q, 'water', 'open water zonder brug', x, y, zz);
       if (Math.abs(zz) > 3) continue;
       for (const t of map.treesNear(x, y, 1)) if (Math.hypot(t[0] - x, t[1] - y) < 0.3 + REACH) hit(q, 'boom', 'straatboom', x, y, zz);
@@ -298,8 +299,10 @@ export function waterCrossings(map) {
 export function crossingPath(map, c, reach) {
   const r = c.road, P = r.pts;
   const len = (Q) => Q.slice(1).reduce((a, q, i) => a + Math.hypot(q[0] - Q[i][0], q[1] - Q[i][1]), 0);
-  const zEnd = (w, end) => (w.z ? (end ? w.z[w.z.length - 1] : w.z[0]) : 0);
-  const withZ = (w) => w.pts.map((q, i) => [q[0], q[1], w.z ? w.z[i] : 0]);
+  // (with ?terrain the heights of the path are absolute: the profile over the ground the road is on, terrainlift.js roadBaseAt)
+  const tb = (w, q) => (map.terrainOn ? roadBaseAt(map, w, q[0], q[1]) : 0);
+  const zEnd = (w, end) => (w.z ? (end ? w.z[w.z.length - 1] : w.z[0]) : 0) + tb(w, end ? w.pts[w.pts.length - 1] : w.pts[0]);
+  const withZ = (w) => w.pts.map((q, i) => [q[0], q[1], (w.z ? w.z[i] : 0) + tb(w, q)]);
   const extend = (w, fwd, need) => {
     const out = [];
     let cur = w, guard = 0;
@@ -410,7 +413,7 @@ export async function driveAcross(world, path, speed, opts = {}) {
     const out = new Set();
     for (const p of findProps(car.x, car.y, 4)) if (!p.water && Math.abs((p.z || 0) - (car.z || 0)) < 3 && capsuleDist(car.x, car.y, p) < 3.5) out.add(p.kind);
     for (const b of map.buildingsNear(car.x, car.y, 4)) if (Math.abs(car.z || 0) < 4 && pointInPolygon(car.x + Math.cos(car.angle) * 2.5, car.y + Math.sin(car.angle) * 2.5, b.pts)) out.add('gebouw ' + (b.name || b.type || ''));
-    if (map.elev && elevWallContact(map.elev, car.x + Math.cos(car.angle) * 2.2, car.y + Math.sin(car.angle) * 2.2, car.z || 0)) out.add('muur');
+    if (map.elev && (map.terrainOn ? map.wallContact(car.x + Math.cos(car.angle) * 2.2, car.y + Math.sin(car.angle) * 2.2, car.z || 0) : elevWallContact(map.elev, car.x + Math.cos(car.angle) * 2.2, car.y + Math.sin(car.angle) * 2.2, car.z || 0))) out.add('muur');
     if (!out.size) {
       // nothing ahead: what touches the body (a side scrape)
       for (const b of map.buildingsNear(car.x, car.y, 4)) {
