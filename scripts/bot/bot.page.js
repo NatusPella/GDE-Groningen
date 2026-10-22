@@ -376,6 +376,7 @@ let lastWanted = 0;
 function track(s) {
   // a rise of the wanted level: where, how fast and what stood near (why the police come)
   if ((s.wanted || 0) > lastWanted) B.log('gezocht', { van: lastWanted, naar: s.wanted, x: Math.round(s.player.x), y: Math.round(s.player.y), v: s.player.vehicle ? Math.round(s.player.vehicle.speed * 10) / 10 : 0, kind: s.player.vehicle ? s.player.vehicle.kind : 'voet', peds: s.nearby.peds, politie: s.nearby.police, wet: TL.getLawState().kind, waarom: world.stats && world.stats.lastWantedWhy, msgs: s.hud.messages.slice(0, 3) });
+  if ((s.wanted || 0) > lastWanted && world.stats) world.stats.lastWantedWhy = null;   // the next star names its own cause or none (wantedwhy.js)
   lastWanted = s.wanted || 0;
   const id = s.story.end ? 'einde' : s.story.id;
   if (id === lastStep) meterTick(s);   // a new step starts its own meter below: its first goal belongs after its 'begin'
