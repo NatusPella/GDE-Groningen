@@ -74,39 +74,50 @@ async function loop(rootEl, tot, extra = {}) {
   return { n: alle.length, onbereikbaar: alle.filter((e) => !gezien.has(sleutel(e))).map(label), terugBewogen, stappen, ...extra };
 }
 
-async function graaf(rootEl, tot, startEl = null) {
+async function graaf(rootEl, tot, startEl = null, tabNaam = null) {
+  // schermen die hun kaarten bij elke keuze opnieuw opbouwen: elementen worden telkens op sleutel (label + data-attributen) teruggevonden
   const kand = () => [...rootEl.querySelectorAll(FOCUSABLE)].filter((e) => shown(e) && !e.closest('[aria-hidden="true"]') && !e.closest('.pm-footer'));
-  const els = kand();
-  const start0 = startEl || (document.activeElement && els.includes(document.activeElement) ? document.activeElement : els[0]);
-  const keys = els.map(sleutel);
+  const els0 = kand();
+  const keys = els0.map(sleutel);
+  const labels = els0.map(label);
   const idx = new Map(); keys.forEach((k, i) => { if (!idx.has(k)) idx.set(k, i); });
-  const edges = els.map(() => ({}));
+  const vind = (i) => kand().find((e) => sleutel(e) === keys[i]) || null;
+  const begin = startEl ? keys.indexOf(sleutel(startEl)) : (document.activeElement && idx.has(sleutel(document.activeElement)) ? idx.get(sleutel(document.activeElement)) : 0);
+  const edges = keys.map(() => ({}));
   const snel = async (dir) => { hold(dir, true); await frames(2); hold(dir, false); await frames(2); };
-  let klaar = 0, geenFocus = [];
-  for (let i = 0; i < els.length && Date.now() < tot; i++) {
-    els[i].focus(); await frames(1);
-    if (document.activeElement !== els[i]) { geenFocus.push(label(els[i])); continue; }
+  const tab0 = tabNaam;
+  let klaar = 0; const geenFocus = [], andereSectie = [];
+  for (let i = 0; i < keys.length && Date.now() < tot; i++) {
+    let el = vind(i);
+    if (!el) { geenFocus.push(labels[i] + ' [weg na herbouw]'); continue; }
+    el.focus(); await frames(1);
+    if (!document.activeElement || sleutel(document.activeElement) !== keys[i]) { geenFocus.push(labels[i]); continue; }
     for (const dir of ['up', 'down', 'left', 'right']) {
-      els[i].focus(); await frames(1);
+      el = vind(i); if (!el) break;
+      el.focus(); await frames(1);
       await snel(dir);
       const a = document.activeElement;
-      const to = a === els[i] ? -1 : (a && idx.has(sleutel(a)) ? idx.get(sleutel(a)) : -2);
+      let to;
+      if (tab0 && PM.pauseMenuTab() !== tab0) { to = -3; andereSectie.push(labels[i] + ' ' + dir + ' > ' + PM.pauseMenuTab()); PM.openPauseMenu(tab0); await sleep(500); }
+      else to = a && sleutel(a) === keys[i] ? -1 : (a && idx.has(sleutel(a)) ? idx.get(sleutel(a)) : -2);
       edges[i][dir] = to;
     }
     klaar++;
   }
-  const n = els.length;
+  const n = keys.length;
   const volg = (van, keer) => { const seen = new Set([van]); const todo = [van]; while (todo.length) { const x = todo.pop(); const nb = keer ? edges.flatMap((e, i) => Object.values(e).includes(x) ? [i] : []) : Object.values(edges[x]).filter((t) => t >= 0); for (const y of nb) if (!seen.has(y)) { seen.add(y); todo.push(y); } } return seen; };
-  const s0 = Math.max(0, els.indexOf(start0));
-  const voor = volg(s0, false);
-  const terug = volg(s0, true);
-  const l = (i) => label(els[i]);
-  const vast = []; for (let i = 0; i < n; i++) if (Object.keys(edges[i]).length && Object.values(edges[i]).every((t) => t < 0) && i !== s0) vast.push(l(i));
+  const voor = volg(begin, false);
+  const terug = volg(begin, true);
+  // alleen met de muis bedoeld: de pijltjesknoppen van een kiezer (links/rechts op de rij doet hetzelfde) en verborgen schakelaars
+  const alleenMuis = (l) => /vorige|volgende|^on <input>|^d+ <input>/.test(l);
+  const doelen = (i) => Object.values(edges[i]);
+  const vast = []; for (let i = 0; i < n; i++) if (Object.keys(edges[i]).length === 4 && doelen(i).every((t) => t === -1) && i !== begin) vast.push(labels[i]);
+  const onb = [...Array(n).keys()].filter((i) => !voor.has(i)).map((i) => labels[i]);
   return {
-    n, doorgelopen: klaar, tijdOp: klaar < n - geenFocus.length,
-    onbereikbaar: els.map((e, i) => i).filter((i) => !voor.has(i)).map(l),
-    kanNietTerugNaarBegin: [...voor].filter((i) => !terug.has(i)).map(l),
-    nergensHeen: vast, geenFocus,
+    n, doorgelopen: klaar, tijdOp: Date.now() >= tot,
+    onbereikbaar: onb.filter((l) => !alleenMuis(l)), alleenMuis: onb.filter(alleenMuis),
+    kanNietTerugNaarBegin: [...voor].filter((i) => !terug.has(i)).map((i) => labels[i]),
+    nergensHeen: vast, geenFocus, andereSectie,
   };
 }
 
@@ -181,7 +192,7 @@ for (const id of ['overzicht', 'todo', 'telefoon', 'verhaal', 'spullen', 'garage
     if (!pauzeOpen()) { r.geopend = false; return; }
     r.geopend = true;
     if (id === 'loopbaan' || id === 'samen') await shot('pauze-' + id);
-    Object.assign(r, await graaf(rootEl, tot - 6000));
+    Object.assign(r, await graaf(rootEl, tot - 6000, null, id));
     let b = 0; while (pauzeOpen() && b < 5) { await tap('b'); await sleep(450); b++; }
     r.bTotDicht = pauzeOpen() ? 'niet dicht na 5' : b;
     if (pauzeOpen()) PM.closePauseMenu();
@@ -309,13 +320,14 @@ for (const sec of ['overzicht', 'todo', 'spullen', 'garage', 'prestaties', 'foto
 
 // ============ voertuigen ============
 const OV = await import('/js/ownedvehicles.js');
-async function voertuigTest(r, tot, { naam, id, zoek, direct }) {
+async function voertuigTest(r, tot, { naam, id, zoek, direct, plek }) {
   await sluitPauze();
   const p = w.player;
   if (p.inVehicle) { await tap('y'); await sleep(900); }
   let v = null;
   if (zoek) v = (w.vehicles || []).find((x) => x && Number.isFinite(x.x) && !x.wrecked && !x.driver && zoek(x));
   if (!v && id) {
+    if (plek) { teleport(plek[0], plek[1]); await sleep(2500); }
     let res = OV.deliverOwnedVehicle(w, id, { here: true });
     // boot: naast een jachthaven; heli en bus hebben ruimte nodig: een paar plekken proberen
     const plekken = [];
@@ -364,7 +376,7 @@ async function voertuigTest(r, tot, { naam, id, zoek, direct }) {
   if (p.inVehicle) { try { p.exitVehicle(w.map, w); } catch { /* weg */ } r.uitgestaptMetForce = true; }
 }
 const VOERTUIGEN = [
-  { naam: 'auto', id: 'mug' }, { naam: 'fiets', id: 'stadsfiets', direct: true }, { naam: 'scooter', id: 'brommer', direct: true }, { naam: 'bus', id: 'stadsbus' },
+  { naam: 'auto', id: 'mug', plek: [223, -36] }, { naam: 'fiets', id: 'stadsfiets', direct: true }, { naam: 'scooter', id: 'brommer', direct: true }, { naam: 'bus', id: 'stadsbus' },
   { naam: 'boot', id: 'speedboot', direct: true }, { naam: 'heli', id: 'wiekenwubbo', direct: true },
 ];
 for (const vt of VOERTUIGEN) await sectie('voertuig > ' + vt.naam, 40000, (r, tot) => voertuigTest(r, tot, vt));
@@ -377,8 +389,17 @@ await sectie('voertuig > trein', 150000, async (r) => {
   let t = null;
   for (let i = 0; i < 120 && !t; i++) { t = (RW.getTrains() || []).find((x) => (x.state === 'dwell' || x.state === 'parked') && x.cars && x.cars[0] && !(x.route && x.route.stops && x.route.stops[x.target] && x.route.stops[x.target].offmap)); if (!t) await sleep(1000); }
   if (!t) { r.opmerking = 'geen stilstaande trein gevonden; ctx train alleen met gamepad_live_test bewezen'; return; }
-  const c = t.cars[0];
-  teleport(c.x + 2.5, c.y); await sleep(1500);
+  const TD = await import('/js/traindrive.js');
+  let gevonden = null;
+  const ends = [t.cars[0], t.cars[t.cars.length - 1]];
+  zoek: for (const c of ends) for (let dx = -18; dx <= 18; dx += 3) for (let dy = -18; dy <= 18; dy += 3) {
+    teleport(c.x + dx, c.y + dy); await frames(2);
+    const pr = TD.trainPrompt(w);
+    if (pr && /^trein-/.test(pr.id)) { gevonden = [c.x + dx, c.y + dy, pr.id]; break zoek; }
+  }
+  r.plekMetPrompt = gevonden;
+  if (!gevonden) { r.opmerking = 'geen plek gevonden waar de treinprompt aan gaat (de trein kan al vertrokken zijn)'; return; }
+  await sleep(600);
   await tap('y', 150); await sleep(1200);
   r.instappen = !!w.trainDriving;
   r.ctx = ctxNu();
