@@ -98,7 +98,13 @@ async function titelItem(act, laag) {
   if (laag && vis(laag)) { await tap('b'); await sleep(400); }
 }
 await titelItem('samen', '#samenkeuze');
-await titelItem('saves', '#saveslots');
+// Alleen spelen opens Opgeslagen spellen only when there is a saved game (else it starts a new one): a throwaway one for this check
+const SL = await import('/js/saveslots.js');
+const { SAVE_VERSION } = await import('/js/savemigrate.js');
+const { ARC_ID } = await import('/js/storyarc.js');
+SL.writeSlot(null, 1, { v: SAVE_VERSION, arc: ARC_ID, savedAt: Date.now() - 600000, money: 250, speeltijd: 1200, missions: { index: 0, completed: [], seen: [] }, character: 'tammo' });
+await titelItem('solo', '#saveslots');
+SL.deleteSlot(null, 1);
 await titelItem('news');
 await titelItem('about');
 // Instellingen vanaf de titel is het pauzemenu in "prestart"
@@ -113,8 +119,8 @@ if (await kies('settings')) {
   } else out.schermen.push({ naam: 'titel > settings (prestart)', geopend: false });
 }
 
-// ---- het spel starten (met A op Nieuw spel)
-if (await kies('new')) { await tap('a'); await sleep(1500); if (!document.body.classList.contains('game-started')) await tap('a'); }
+// ---- het spel starten (met A op Alleen spelen: zonder opgeslagen spel begint dat meteen een nieuw spel)
+if (await kies('solo')) { await tap('a'); await sleep(1500); if (!document.body.classList.contains('game-started')) await tap('a'); }
 for (let i = 0; i < 120 && !document.body.classList.contains('game-started'); i++) await sleep(500);
 out.gestart = document.body.classList.contains('game-started');
 await sleep(2500);
