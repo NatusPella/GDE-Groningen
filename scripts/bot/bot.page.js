@@ -569,7 +569,7 @@ while (true) {
       }
     }
     // on foot, wedged against a stall pole or a prop: sidestep (alternating sides, longer each time), then plan again
-    if (act.mode !== 'drive' && !s.player.vehicle && !s.blocking.cinematic && s.target.distance > 5) {
+    if (act.mode !== 'drive' && !s.player.vehicle && !s.blocking.cinematic && s.target.distance > 5 && s.mission.stage !== 'hold') {
       const fp = mem.footPos;
       if (!fp || Math.hypot(s.player.x - fp.x, s.player.y - fp.y) > 0.5) mem.footPos = { x: s.player.x, y: s.player.y, t: s.t };
       else if (s.t - fp.t > 2) {
