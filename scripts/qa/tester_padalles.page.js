@@ -74,6 +74,42 @@ async function loop(rootEl, tot, extra = {}) {
   return { n: alle.length, onbereikbaar: alle.filter((e) => !gezien.has(sleutel(e))).map(label), terugBewogen, stappen, ...extra };
 }
 
+async function graaf(rootEl, tot, startEl = null) {
+  const kand = () => [...rootEl.querySelectorAll(FOCUSABLE)].filter((e) => shown(e) && !e.closest('[aria-hidden="true"]') && !e.closest('.pm-footer'));
+  const els = kand();
+  const start0 = startEl || (document.activeElement && els.includes(document.activeElement) ? document.activeElement : els[0]);
+  const keys = els.map(sleutel);
+  const idx = new Map(); keys.forEach((k, i) => { if (!idx.has(k)) idx.set(k, i); });
+  const edges = els.map(() => ({}));
+  const snel = async (dir) => { hold(dir, true); await frames(2); hold(dir, false); await frames(2); };
+  let klaar = 0, geenFocus = [];
+  for (let i = 0; i < els.length && Date.now() < tot; i++) {
+    els[i].focus(); await frames(1);
+    if (document.activeElement !== els[i]) { geenFocus.push(label(els[i])); continue; }
+    for (const dir of ['up', 'down', 'left', 'right']) {
+      els[i].focus(); await frames(1);
+      await snel(dir);
+      const a = document.activeElement;
+      const to = a === els[i] ? -1 : (a && idx.has(sleutel(a)) ? idx.get(sleutel(a)) : -2);
+      edges[i][dir] = to;
+    }
+    klaar++;
+  }
+  const n = els.length;
+  const volg = (van, keer) => { const seen = new Set([van]); const todo = [van]; while (todo.length) { const x = todo.pop(); const nb = keer ? edges.flatMap((e, i) => Object.values(e).includes(x) ? [i] : []) : Object.values(edges[x]).filter((t) => t >= 0); for (const y of nb) if (!seen.has(y)) { seen.add(y); todo.push(y); } } return seen; };
+  const s0 = Math.max(0, els.indexOf(start0));
+  const voor = volg(s0, false);
+  const terug = volg(s0, true);
+  const l = (i) => label(els[i]);
+  const vast = []; for (let i = 0; i < n; i++) if (Object.keys(edges[i]).length && Object.values(edges[i]).every((t) => t < 0) && i !== s0) vast.push(l(i));
+  return {
+    n, doorgelopen: klaar, tijdOp: klaar < n - geenFocus.length,
+    onbereikbaar: els.map((e, i) => i).filter((i) => !voor.has(i)).map(l),
+    kanNietTerugNaarBegin: [...voor].filter((i) => !terug.has(i)).map(l),
+    nergensHeen: vast, geenFocus,
+  };
+}
+
 // A op elke knop: doet er iets zichtbaars? (snapshot van de pagina voor en na)
 const SKIP = /afsluit|hoofdmenu|verwijder|wis|herstel|opslaan|opgeslagen|laad|nieuw spel|stop|opnieuw|annuleer|ja\b|nee\b|cheat|alles|afleveren/i;
 const snapshot = () => document.body.innerHTML.length + '|' + (document.activeElement ? sleutel(document.activeElement) : '') + '|' + document.body.className + '|' + document.documentElement.className + '|' + !!w.paused + '|' + (w.money | 0);
@@ -138,14 +174,14 @@ const herstel = async () => {
 const teleport = (x, y) => { const p = w.player; if (p.inVehicle) return; p.x = x; p.y = y; p.vx = 0; p.vy = 0; };
 
 // ============ pauzemenu: Loopbaan, Spelers, Overzicht (missie stoppen) ============
-for (const [id, extraSub] of [['loopbaan'], ['spelers']]) {
+for (const id of ['overzicht', 'todo', 'telefoon', 'verhaal', 'spullen', 'garage', 'prestaties', 'loopbaan', 'fotos', 'samen', 'spelers', 'settings', 'controls', 'cheats']) {
   await sectie('pauze > ' + id, 70000, async (r, tot) => {
-    PM.openPauseMenu(id); await sleep(1000);
+    PM.openPauseMenu(id); await sleep(1100);
     const rootEl = document.getElementById('pause-menu');
     if (!pauzeOpen()) { r.geopend = false; return; }
     r.geopend = true;
-    await shot('pauze-' + id);
-    Object.assign(r, await loop(rootEl, tot - 4000));
+    if (id === 'loopbaan' || id === 'samen') await shot('pauze-' + id);
+    Object.assign(r, await graaf(rootEl, tot - 6000));
     let b = 0; while (pauzeOpen() && b < 5) { await tap('b'); await sleep(450); b++; }
     r.bTotDicht = pauzeOpen() ? 'niet dicht na 5' : b;
     if (pauzeOpen()) PM.closePauseMenu();
@@ -255,7 +291,7 @@ await sectie('winkel', 90000, async (r, tot) => {
   if (!r.geopend) { r.opmerking = 'Y bij de winkel opende hem niet (afstand, streaming of een andere hint)'; return; }
   await shot('winkel-pad');
   const paneel = document.querySelector('.sm-panel');
-  Object.assign(r, await loop(paneel ? paneel.parentElement : document.body, tot - 8000));
+  Object.assign(r, await graaf(paneel ? paneel.parentElement : document.body, tot - 8000));
   let b = 0; while (SU.isShopOpen() && b < 4) { await tap('b'); await sleep(450); b++; }
   r.bTotDicht = SU.isShopOpen() ? 'niet dicht na 4' : b;
 });
@@ -303,12 +339,14 @@ async function voertuigTest(r, tot, { naam, id, zoek, direct }) {
   if (!p.inVehicle) return;
   await shot('voertuig-' + naam);
   const q0 = pos();
-  stick(0, 0); hold('rt'); await sleep(2200);
-  r.snelheidMetGas = +(Math.abs(p.inVehicle ? p.inVehicle.speed || 0 : 0)).toFixed(1);
+  await sleep(1500);
+  let vMax = 0, hMax = 0; const tk = setInterval(() => { const vv = p.inVehicle; if (vv) { vMax = Math.max(vMax, Math.abs(vv.speed || 0)); hMax = Math.max(hMax, (vv.z || 0) - (vv.groundZ ?? vv.z ?? 0)); } }, 50);
+  stick(0, 0); hold('rt'); await sleep(v.isHeli ? 7000 : 3000);
+  r.snelheidMetGas = +vMax.toFixed(1); r.hoogteMetGas = +hMax.toFixed(1);
   stick(1, -0.3); await sleep(900); stick(0, 0);
   r.afstandMetGas = +Math.hypot(pos()[0] - q0[0], pos()[1] - q0[1]).toFixed(1);
   hold('rt', false);
-  r.hoogte = +((p.inVehicle && (p.inVehicle.z || p.inVehicle.alt || 0)) || 0).toFixed(1);
+  clearInterval(tk);
   hold('lt'); await sleep(1500); hold('lt', false);
   r.snelheidNaRem = +(p.inVehicle ? p.inVehicle.speed || 0 : 0).toFixed(1);
   for (const k of ['x', 'b', 'lb', 'rb', 'a']) { await tap(k, 100); }
@@ -409,8 +447,7 @@ for (const id of actIds) {
 await sectie('samen: meerdere controllers', 30000, async (r) => {
   await sluitPauze();
   const GP = await import('/js/gamepad.js');
-  const coopVoor = w.coop; w.coop = coopVoor || {}; // zoals in een sessie: speler 1 blijft bij zijn pad
-  try {
+  // zonder sessie: de laatst gebruikte controller wint (met een sessie blijft speler 1 bij zijn pad: padlogic_test en gamepad_live_test)
   r.pad1Index = GP.activePadIndex();
   const pad2 = nieuwPad(1, 'Xbox 360 Controller (XInput STANDARD GAMEPAD)'); const pad3 = nieuwPad(2, 'Wireless Controller (STANDARD GAMEPAD Vendor: 054c Product: 09cc)');
   pads.push(pad2, pad3);
@@ -431,24 +468,6 @@ await sectie('samen: meerdere controllers', 30000, async (r) => {
   pads[0] = pad; window.dispatchEvent(new Event('gamepadconnected')); await sleep(400);
   r.pad1Terug = GP.activePadIndex();
   pads.length = 1; pads[0] = pad;
-  } finally { w.coop = coopVoor; }
-});
-
-await sectie('samen: lobby en roepjes met het pad', 60000, async (r, tot) => {
-  await sluitPauze();
-  PM.openPauseMenu('samen'); await sleep(1000);
-  const rootEl = document.getElementById('pause-menu');
-  r.geopend = pauzeOpen();
-  if (!r.geopend) return;
-  await shot('samen-pauze');
-  Object.assign(r, await loop(rootEl, tot - 20000));
-  await sluitPauze();
-  // te voet: D-pad links, omlaag en rechts zijn de roepjes (7, 8, 9); zonder sessie mag er geen fout komen
-  const toetsen = [];
-  r.ctxVoet = ctxNu();
-  for (const [k, t] of [['left', '7'], ['down', '8'], ['right', '9']]) { hold(k); let down = false; for (let i = 0; i < 6; i++) { await frames(1); if (D.input.isDown(t)) down = true; } hold(k, false); await frames(3); if (down) toetsen.push(t); }
-  r.roepToetsenVanHetPad = toetsen.join(',');
-  r.roepjesOk = toetsen.join(',') === '7,8,9';
 });
 
 out.verstreken = Math.round((Date.now() - T0) / 1000);
