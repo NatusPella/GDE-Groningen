@@ -45,7 +45,7 @@ export class HostHub {
         if (!p) return null;
         hub.pending.delete(ses); hub.sessions.set(p.slot, ses);
         const c = charInfo(p.char);
-        return { slot: p.slot, extra: { char: p.char, naam: c.naam, kleur: c.kleur, max: hub.roster.max, lijst: lijst(hub.roster) } };
+        return { slot: p.slot, extra: { char: p.char, naam: c.naam, kleur: c.kleur, max: hub.roster.max, lijst: lijstEvent(hub.roster).lijst } }; // de korte lijst (zonder naam en kleur): met 16 spelers past de volle lijst niet in een welkomstbericht (MAX_JSON)
       },
       onRelease(slot, why) {
         hub.sessions.delete(slot); verwijder(hub.roster, slot);
