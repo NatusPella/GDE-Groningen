@@ -1577,6 +1577,7 @@ export function preloadRoadWorker() {
 function roadWorkerReady() {
   if (RW.state === 0 && netMap && geoWorkerActive() && typeof location !== 'undefined') {
     RW.state = 1;
+    loadMark('roadsRequested');
     runGeo('roadInit', { url: new URL('stad.json', location.href).href, keys: netMap.roads.map(roadKey) }, (res) => {
       RW.state = res && !res.missing ? 2 : -1;
       loadMark('roadsReady');

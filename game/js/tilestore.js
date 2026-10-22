@@ -119,7 +119,12 @@ export class FrameQueue {
 
 // --------------------------------------------------------------- store
 
-const DEFAULTS = { budgetBytes: 150e6, concurrency: 4, holdMs: 10000, unloadMargin: 300 };
+// budgetBytes counts the raw (inflated) bytes of the resident tiles, but a decoded tile is ~26 times as large on the JS heap (rows, points and
+// bounds as objects: 640 kB for the average streamed tile, scripts/perf/tilemem.mjs, #379). 150e6 raw never filled up (all 2930 province tiles
+// are 92 MB raw), so nothing was ever evicted and a long trip piled up 0.6 MB per tile on the heap, up to 2.4 GB for the whole province. 40e6 raw
+// is the pinned city (14e6) plus ~830 tiles (~530 MB of heap) at the hard cap, and from 20e6 the tiles that lie beyond the wanted ring
+// (hysteresis in prefetch) go first.
+const DEFAULTS = { budgetBytes: 40e6, concurrency: 4, holdMs: 10000, unloadMargin: 300 };
 
 export class TileStore {
   // index: parsed index.json; decode(bytes) -> Promise<tile> (default: inflate + decode on this thread)
