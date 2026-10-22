@@ -3,6 +3,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { HABBO_PALETTE, habboMaterial, GeoBuilder, vcMaterial, markShared, composeMatrix, tubeGeometry } from './pixelart3d.js';
 import { buildPersonMesh, PERSON_RIG, holdPhoneRiding } from './models3d_people.js';
 import { boatKind, boatHasCabin } from './boattypes.js';
+import { ZEESCHIP_SHAPE, SLEPER_SHAPE, zeeschipFit, sleperFit } from './zeeschip3d.js';
 import { buildHeliMesh } from './heli3d.js';
 import { buildPlaneMesh } from './plane3d.js';
 import { hash2, hash3 } from './rng.js';
@@ -1734,6 +1735,9 @@ const HULL_SHAPES = {
     top: (t) => 1.1 + 0.2 * Math.max(0, (t - 0.9) / 0.1) + 0.28 * Math.max(0, (0.08 - t) / 0.08),
     rise: (t) => Math.max(0, (t - 0.9) / 0.1) * 0.3, chine: -0.7, keel: -1.0, floor: 0.35, chineK: 0.93,
   },
+  // sea ships and the tug (#398): zeeschip3d.js
+  zeeschip: ZEESCHIP_SHAPE,
+  sleper: SLEPER_SHAPE,
   // Frisian skûtsje: flat bottom, full round bow with a high sheer, a
   // squarish stern; the hold is decked over with hatches (skutsjeFit)
   skutsje: {
@@ -2261,8 +2265,11 @@ export function animateSkutsjeRig(v, trim, strike, t) {
   return true;
 }
 
-function buildBoatGeometry(kind, L, W, hull, trim, cabin, police) {
-  return cached(`boat|${kind}|${L}|${W}|${hull}|${trim}|${cabin}|${police}`, () => {
+// de hulpjes en kleuren van dit bestand voor zeeschip3d.js
+const SHIP_K = { GLASS, G_GLASS, G_LAMP, NAV_WHITE, NAV_RED, NAV_GREEN, shadeHex, hullAt };
+
+function buildBoatGeometry(kind, L, W, hull, trim, cabin, police, soort = '') {
+  return cached(`boat|${kind}|${L}|${W}|${hull}|${trim}|${cabin}|${police}|${soort}`, () => {
     const B = new GeoBuilder(3);
     const hl = L / 2;
     if (kind === 'waterfiets') {
@@ -2283,12 +2290,14 @@ function buildBoatGeometry(kind, L, W, hull, trim, cabin, police) {
       case 'rubberboot': rubberFit(B, st, L, W, hull, cabin || 0xd8572a); break;
       case 'skutsje': skutsjeFit(B, st, L, W); break;
       case 'binnenvaart': binnenvaartFit(B, st, L, W, hull, cabin || 0xe8e6e0); break;
+      case 'zeeschip': zeeschipFit(B, st, L, W, hull, cabin || 0xe8e6e0, soort, SHIP_K); break;
+      case 'sleper': sleperFit(B, st, L, W, hull, cabin || 0xe8e6e0, SHIP_K); break;
       default: sloepFit(B, st, L, W, hull, cabin, police);
     }
     if (kind === 'kano' || kind === 'kajak') {
       const x = -hl * 0.72;
       B.box(x, hullAt(st, x).top + (kind === 'kajak' ? 0.06 : 0.02), 0, 0.05, 0.05, 0.05, NAV_WHITE, G_LAMP);
-    } else if (kind !== 'sup' && kind !== 'skiff' && kind !== 'acht') navLights(B, st, L, st[0].top + (kind === 'rubberboot' ? 0.42 : 0.06));
+    } else if (kind !== 'sup' && kind !== 'skiff' && kind !== 'acht' && kind !== 'zeeschip' && kind !== 'sleper') navLights(B, st, L, st[0].top + (kind === 'rubberboot' ? 0.42 : 0.06));
     return B.build();
   });
 }
@@ -2300,10 +2309,10 @@ function buildBoatMesh(v) {
   const kind = police ? 'sloep' : boatKind(v);
   const hull = v.wrecked ? WRECKED_COLOR : toHex(v.model.color, 0xe8e6e0);
   const cabinColor = toHex(v.model.cabin, 0x2f3a44);
-  const trims = kind === 'skutsje' ? [0x2a211b] : kind === 'binnenvaart' ? [0xe8e6e0] : kind === 'rondvaart' ? [0xe8e6e0, 0xc9a227] : kind === 'kano' || kind === 'kajak' || kind === 'sup' ? [shadeHex(hull, 0.7), 0x2a2a2b] : kind === 'skiff' || kind === 'acht' ? [0xc8502a, 0x1f4f9a, 0x2f7d46, 0x6a2e8a] : [0x21468b, 0x2f4a3a, 0x6b2a24, 0x9a7048];
+  const trims = kind === 'skutsje' ? [0x2a211b] : kind === 'binnenvaart' || kind === 'zeeschip' || kind === 'sleper' ? [0xe8e6e0] : kind === 'rondvaart' ? [0xe8e6e0, 0xc9a227] : kind === 'kano' || kind === 'kajak' || kind === 'sup' ? [shadeHex(hull, 0.7), 0x2a2a2b] : kind === 'skiff' || kind === 'acht' ? [0xc8502a, 0x1f4f9a, 0x2f7d46, 0x6a2e8a] : [0x21468b, 0x2f4a3a, 0x6b2a24, 0x9a7048];
   const trim = police ? 0x1f3f8f : trims[Math.floor(hash2(v.id || 0, 8.1) * trims.length)];
   const cabin = kind === 'sloep' ? (boatHasCabin(v) ? cabinColor : 0) : cabinColor;
-  group.add(new THREE.Mesh(buildBoatGeometry(kind, len, wid, hull, trim, cabin, police), vehicleMaterials()));
+  group.add(new THREE.Mesh(buildBoatGeometry(kind, len, wid, hull, trim, cabin, police, v.model.soort || ''), vehicleMaterials()));
   if (kind === 'skutsje' && !v.wrecked) {
     const { rig, sternFlag } = buildSkutsjeRig(len);
     group.add(rig, sternFlag);
@@ -2321,6 +2330,9 @@ function buildBoatMesh(v) {
   }
   return group;
 }
+
+// A boat hull mesh outside the vehicle registry (the ship on the slipway of werf3d.js, #398).
+export const buildShipMesh = (v) => buildBoatMesh(v);
 
 // --- wheel spin ---------------------------------------------------------------
 
