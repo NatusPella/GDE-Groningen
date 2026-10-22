@@ -3,10 +3,12 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { HABBO_PALETTE, habboMaterial, GeoBuilder, vcMaterial, markShared, composeMatrix, tubeGeometry } from './pixelart3d.js';
 import { buildPersonMesh, PERSON_RIG, holdPhoneRiding } from './models3d_people.js';
 import { boatKind, boatHasCabin } from './boattypes.js';
+import { ZEESCHIP_SHAPE, SLEPER_SHAPE, zeeschipFit, sleperFit } from './zeeschip3d.js';
 import { buildHeliMesh } from './heli3d.js';
 import { buildPlaneMesh } from './plane3d.js';
 import { hash2, hash3 } from './rng.js';
-import { zoneTotals, losseOnderdelen } from './vehicledamage.js';
+import { zoneTotals, losseOnderdelen, fietsStaat } from './vehicledamage.js';
+import { staatSleutel } from './studentenfiets.js';
 
 // Low-poly vehicles. Group origin = vehicle centre at ground level (y=0),
 // facing local +X, right-hand side on +Z; sized off v.model.len/wid.
@@ -31,6 +33,7 @@ const TAIL = 0xa3211b;
 const INDICATOR = 0xd9822b;
 const PLATE = 0xe3bb1c;
 const TIRE = 0x1b1b1c;
+const BLUE_TIRE = 0x2f6fb0; // de blauwe banden van de goedkope leenfiets
 const RIM = 0x9ea2a6;
 
 const geoCache = new Map();
@@ -84,10 +87,11 @@ function carWheelGeometry(r, w) {
   });
 }
 
-function bikeWheelGeometry(r, tire, spokes = true) {
-  return cached(`bwheel|${r}|${tire}|${spokes}`, () => {
+// tireColor: de blauwe banden van de goedkope leenfiets (studentenfiets.js)
+function bikeWheelGeometry(r, tire, spokes = true, tireColor = TIRE) {
+  return cached(`bwheel|${r}|${tire}|${spokes}|${tireColor}`, () => {
     const B = new GeoBuilder(1);
-    B.geo(new THREE.TorusGeometry(r - tire, tire, 4, 16), null, TIRE);
+    B.geo(new THREE.TorusGeometry(r - tire, tire, 4, 16), null, tireColor);
     B.geo(new THREE.TorusGeometry(r - tire * 2 - 0.008, 0.01, 3, 16), null, RIM);
     B.geo(new THREE.CylinderGeometry(0.025, 0.025, 0.1, 6).rotateX(Math.PI / 2), null, RIM);
     if (spokes) {
@@ -249,24 +253,36 @@ function buildCarGeometry(type, L, W, paint, opts) {
     B.box((P.xB + P.xC) / 2, P.roof + 0.05, 0, 0.3, 0.07, W * 0.72, TRIM);
   }
   if (opts.ambulance) {
-    // Dutch ambulance: yellow body, a blue/yellow block band along the sides
-    const n = 8, x0 = -hl + 0.15, x1 = P.xA - 0.1, bw = (x1 - x0) / n;
+    // Nederlandse ambulance (#407): geel met een witte hoge dakkap, een band van rode en witte reflecterende blokken langs de
+    // zijkant (twee rijen op de laadruimte, één op de portieren), een lichtbalk op het cabinedak, blauwe flitsers voor en
+    // achter en rode en witte blokken over de achterdeuren. Het opschrift staat in assembleCar (ambulanceOpschrift).
+    const RED = 0xd2232a, WHITE = 0xf4f2ee;
+    const cargo0 = -hl + 0.1, cargo1 = P.xB - 0.06, n = 9, bw = (cargo1 - cargo0) / n;
     for (const s of [1, -1]) {
       const z = s * (hw + 0.007);
       for (let i = 0; i < n; i++) {
-        for (const [row, y] of [[0, 0.62], [1, 0.84]]) {
-          if ((i + row) % 2) B.box(x0 + bw * (i + 0.5), y, z, bw, 0.22, 0.012, 0x1d4fa3);
-        }
+        for (const [row, y] of [[0, 0.95], [1, 1.17]]) B.box(cargo0 + bw * (i + 0.5), y, z, bw, 0.22, 0.012, (i + row) % 2 ? WHITE : RED);
       }
-      B.box((x0 + x1) / 2, 1.0, z, x1 - x0, 0.05, 0.012, 0x2f8f4e);
+      // op het portier: één rij, onder de raamlijn
+      const door0 = P.xB + 0.02, door1 = P.xA - 0.12, nd = 3, dw = (door1 - door0) / nd;
+      for (let i = 0; i < nd; i++) B.box(door0 + dw * (i + 0.5), 0.92, z, dw, 0.18, 0.012, i % 2 ? WHITE : RED);
     }
-    // the high-roof conversion box over the patient bay: ~2.6 m in all
+    // de hoge dakkap boven de patiëntenruimte, wit; de rand ervoor blauw
     const roofX0 = P.xB - 0.45, rh = 0.48;
-    B.box((roofX0 - hl) / 2, P.roof + rh / 2 - 0.02, 0, roofX0 + hl, rh, W - 0.04, paint);
-    B.box(roofX0 + 0.04, P.roof + rh / 2, 0, 0.08, rh - 0.1, W * 0.7, 0x1d4fa3);
-    B.box(-hl - 0.008, 1.45, 0, 0.012, 0.36, 0.36, 0xf4f2ee);
-    B.box(-hl - 0.012, 1.45, 0, 0.012, 0.28, 0.08, 0x1d4fa3);
-    B.box(-hl - 0.012, 1.45, 0, 0.012, 0.08, 0.28, 0x1d4fa3);
+    B.box((roofX0 - hl) / 2, P.roof + rh / 2 - 0.02, 0, roofX0 + hl, rh, W - 0.04, WHITE);
+    B.box(roofX0 + 0.02, P.roof + rh / 2, 0, 0.04, rh - 0.12, W * 0.7, 0x1d4fa3);
+    // lichtbalk op het cabinedak: donkere balk met blauwe uiteinden (de twee knipperende lampen staan er in assembleCar bovenop)
+    const barX = P.xB - 0.25;
+    B.box(barX, P.roof + 0.03, 0, 0.3, 0.06, W * 0.84, TRIM);
+    for (const s of [1, -1]) B.box(barX, P.roof + 0.1, s * W * 0.4, 0.26, 0.1, 0.12, 0x2f6bff, G_LAMP);
+    // blauwe flitsers in de grille, en boven op de achterdeuren
+    for (const s of [1, -1]) {
+      B.box(hl + 0.012, P.nose + 0.2, s * (hw - 0.62), 0.02, 0.07, 0.22, 0x2f6bff, G_LAMP);
+      B.box(-hl - 0.014, P.tail - 0.14, s * (hw - 0.1), 0.02, 0.09, 0.14, 0x2f6bff, G_LAMP);
+    }
+    // achterdeuren: één rij rode en witte blokken
+    const rn = 8, rw = (W - 0.3) / rn;
+    for (let i = 0; i < rn; i++) B.box(-hl - 0.008, 0.9, -((W - 0.3) / 2) + rw * (i + 0.5), 0.012, 0.2, rw, i % 2 ? WHITE : RED);
   }
   const variant = opts.variant || '';
   if (variant === 'taxi') {
@@ -416,7 +432,56 @@ function assembleCar(type, L, W, paint, { police = false, ambulance = false, wre
     }
     group.userData.policeLamps = lamps;
   }
+  if (ambulance && !wrecked) ambulanceOpschrift(group, P, L, W);
   return group;
+}
+
+// Het opschrift van de ambulance (#407), Nederlands en zonder regionamen of logo's: AMBULANCE in spiegelschrift op de
+// voorkant (leesbaar in de spiegel van de auto ervoor), AMBULANCE langs beide zijkanten van de laadruimte, 112 en
+// AMBULANCE op de achterdeuren. Vlakken met een gedeelde canvastextuur (alleen de letters, het gele plaatwerk
+// schijnt erdoorheen) op 1,2 cm van het plaatwerk, met een polygonOffset.
+const opschriftCache = {};
+function opschriftMateriaal(tekst, spiegel, kleur, w, h, font) {
+  const key = [tekst, spiegel, kleur].join('|');
+  if (opschriftCache[key]) return opschriftCache[key];
+  const c = document.createElement('canvas');
+  c.width = w; c.height = h;
+  const g = c.getContext('2d');
+  g.clearRect(0, 0, w, h);
+  if (spiegel) { g.translate(w, 0); g.scale(-1, 1); }
+  g.fillStyle = kleur;
+  g.font = font;
+  g.textAlign = 'center';
+  g.textBaseline = 'middle';
+  g.fillText(tekst, w / 2, h / 2 + 2, w - 8);
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  t.anisotropy = 4;
+  const m = new THREE.MeshLambertMaterial({ map: t, alphaTest: 0.4, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -8 });
+  m.userData.shared = true;
+  opschriftCache[key] = m;
+  return m;
+}
+function ambulanceOpschrift(group, P, L, W) {
+  const hl = L / 2, hw = W / 2;
+  const BLAUW = '#1d3f8f', ROOD = '#c8102e';
+  const geo = cached('opschrift-vlak', () => markShared(new THREE.PlaneGeometry(1, 1)));
+  const zet = (mat, w, h, x, y, z, ry) => {
+    const m = new THREE.Mesh(geo, mat);
+    m.scale.set(w, h, 1); m.position.set(x, y, z); m.rotation.y = ry;
+    m.userData.noBatch = true;
+    group.add(m);
+  };
+  const tekst = opschriftMateriaal('AMBULANCE', false, ROOD, 512, 64, "bold 56px 'Arial Narrow',Arial,sans-serif");
+  const tekstSpiegel = opschriftMateriaal('AMBULANCE', true, BLAUW, 512, 64, "bold 56px 'Arial Narrow',Arial,sans-serif");
+  const x0 = -hl + 0.1, x1 = P.xB - 0.06, cx = (x0 + x1) / 2, bw = Math.min(2.6, (x1 - x0) * 0.8);
+  zet(tekst, bw, bw / 8, cx, 1.68, hw + 0.012, 0);
+  zet(tekst, bw, bw / 8, cx, 1.68, -hw - 0.012, Math.PI);
+  // voorkant: spiegelschrift boven de grille
+  zet(tekstSpiegel, 1.0, 0.125, hl + 0.014, P.nose + 0.07, 0, Math.PI / 2);
+  // achterdeuren
+  zet(opschriftMateriaal('112', false, ROOD, 256, 128, "bold 104px Arial,sans-serif"), 0.62, 0.31, -hl - 0.014, 1.62, 0, -Math.PI / 2);
+  zet(tekst, 1.3, 0.16, -hl - 0.014, 1.3, 0, -Math.PI / 2);
 }
 
 // Sierdoppen: een lichte schijf op elk wiel, samen één 'onderdeel' dat los kan raken (#205).
@@ -861,8 +926,9 @@ function poseRider(rider, legBase, armAngle, lean) {
   ud.legR.rotation.z = legBase;
 }
 
-function buildBikeGeometry(color, fat, stepThrough) {
-  return cached(`bike|${color}|${fat}|${stepThrough}`, () => {
+// st: de studentenstaat als sleutel (staatSleutel: S scheef voorspatbord, L geen voorlicht)
+function buildBikeGeometry(color, fat, stepThrough, st = '') {
+  return cached(`bike|${color}|${fat}|${stepThrough}|${st}`, () => {
     const B = new GeoBuilder(3);
     const r = fat ? 0.3 : 0.34;
     const wb = fat ? 0.52 : 0.56;
@@ -902,14 +968,19 @@ function buildBikeGeometry(color, fat, stepThrough) {
     for (const [x] of [F, R]) {
       const guard = new THREE.TorusGeometry(r + 0.03, fat ? 0.05 : 0.028, 3, 9, Math.PI * 0.85);
       guard.scale(1, 1, fat ? 1.2 : 1);
-      B.geo(guard, composeMatrix(x, r, 0, 0, 0, Math.PI * 0.08), color);
+      // een scheef voorspatbord: omhoog gebogen, een stukje opzij en iets weg van het wiel
+      if (st.includes('S') && x === F[0]) B.geo(guard, composeMatrix(x + 0.06, r + 0.09, 0.07, 0.3, 0.32, Math.PI * 0.08 + 0.5), color);
+      else B.geo(guard, composeMatrix(x, r, 0, 0, 0, Math.PI * 0.08), color);
     }
     if (!fat) {
       B.box(-0.33, 0.44, 0.075, 0.62, 0.13, 0.03, color, 0, 0, 0, 0.07);
       B.box(-0.5, 0.78, 0, 0.44, 0.02, 0.15, 0x2a2a2b);
       for (const s of [1, -1]) tube([-0.66, 0.78, s * 0.07], [R[0], R[1], s * 0.06], 0.01, 0x2a2a2b);
-      B.geo(new THREE.CylinderGeometry(0.045, 0.035, 0.07, 7).rotateZ(Math.PI / 2), composeMatrix(H0[0] + 0.07, H0[1] + 0.04, 0), 0x2a2a2b);
-      B.box(H0[0] + 0.11, H0[1] + 0.04, 0, 0.01, 0.06, 0.06, HEADLAMP, G_LAMP);
+      // geen voorlicht: de dynamo en de lamp zijn eraf
+      if (!st.includes('L')) {
+        B.geo(new THREE.CylinderGeometry(0.045, 0.035, 0.07, 7).rotateZ(Math.PI / 2), composeMatrix(H0[0] + 0.07, H0[1] + 0.04, 0), 0x2a2a2b);
+        B.box(H0[0] + 0.11, H0[1] + 0.04, 0, 0.01, 0.06, 0.06, HEADLAMP, G_LAMP);
+      }
       B.box(-0.73, 0.76, 0, 0.01, 0.04, 0.06, TAIL, G_LAMP);
     }
     for (const s of [1, -1]) B.box(BB[0], BB[1], s * 0.1, 0.1, 0.02, 0.08, 0x2a2a2b);
@@ -1028,6 +1099,19 @@ function buildBakfietsMesh(v) {
   return group;
 }
 
+// Een klap voorop (v.dentLog, vehicledamage.js fietsStaat) maakt het voorspatbord scheef of breekt het voorlicht af: het frame wordt
+// vervangen door de variant met die afwijking. true als er iets veranderde. (De banden en het geluid veranderen niet door een klap.)
+export function updateBikeStaat(mesh, v) {
+  if (!mesh || !v || !v.isBike || v.wrecked || v.model.fat || v.model.cargo) return false;
+  const sleutel = staatSleutel(fietsStaat(v));
+  if (mesh.userData.staatSleutel === undefined || mesh.userData.staatSleutel === sleutel) return false;
+  const frame = mesh.children[0];
+  if (!frame || !frame.isMesh) return false;
+  frame.geometry = buildBikeGeometry(toHex(v.model.color, HABBO_PALETTE.black), false, hash2(v.id || 0, 4.2) < 0.5, sleutel);
+  mesh.userData.staatSleutel = sleutel;
+  return true;
+}
+
 function buildBikeMesh(v) {
   if (v.model.cargo) return buildBakfietsMesh(v);
   const group = new THREE.Group();
@@ -1035,10 +1119,14 @@ function buildBikeMesh(v) {
   const color = v.wrecked ? WRECKED_COLOR : toHex(v.model.color, HABBO_PALETTE.black);
   const stepThrough = hash2(v.id || 0, 4.2) < 0.5;
   const mats = vehicleMaterials();
-  group.add(new THREE.Mesh(buildBikeGeometry(color, fat, stepThrough), mats));
+  // de studentenstaat (#402): scheef spatbord, geen voorlicht, blauwe banden (en een klap voorop maakt het spatbord ook scheef)
+  const staat = !fat && v.isBike ? fietsStaat(v) : null;
+  const sleutel = staat ? staatSleutel(staat) : '';
+  group.add(new THREE.Mesh(buildBikeGeometry(color, fat, stepThrough, sleutel), mats));
+  group.userData.staatSleutel = sleutel;
   const r = fat ? 0.3 : 0.34;
   const wb = fat ? 0.52 : 0.56;
-  const wgeo = bikeWheelGeometry(r, fat ? 0.07 : 0.022);
+  const wgeo = bikeWheelGeometry(r, fat ? 0.07 : 0.022, true, staat && staat.blauw ? BLUE_TIRE : TIRE);
   const wheels = [];
   addWheel(group, wgeo, mats[0], wb, r, 0, wheels);
   addWheel(group, wgeo, mats[0], -wb, r, 0, wheels);
@@ -1734,6 +1822,9 @@ const HULL_SHAPES = {
     top: (t) => 1.1 + 0.2 * Math.max(0, (t - 0.9) / 0.1) + 0.28 * Math.max(0, (0.08 - t) / 0.08),
     rise: (t) => Math.max(0, (t - 0.9) / 0.1) * 0.3, chine: -0.7, keel: -1.0, floor: 0.35, chineK: 0.93,
   },
+  // sea ships and the tug (#398): zeeschip3d.js
+  zeeschip: ZEESCHIP_SHAPE,
+  sleper: SLEPER_SHAPE,
   // Frisian skûtsje: flat bottom, full round bow with a high sheer, a
   // squarish stern; the hold is decked over with hatches (skutsjeFit)
   skutsje: {
@@ -2261,8 +2352,11 @@ export function animateSkutsjeRig(v, trim, strike, t) {
   return true;
 }
 
-function buildBoatGeometry(kind, L, W, hull, trim, cabin, police) {
-  return cached(`boat|${kind}|${L}|${W}|${hull}|${trim}|${cabin}|${police}`, () => {
+// de hulpjes en kleuren van dit bestand voor zeeschip3d.js
+const SHIP_K = { GLASS, G_GLASS, G_LAMP, NAV_WHITE, NAV_RED, NAV_GREEN, shadeHex, hullAt };
+
+function buildBoatGeometry(kind, L, W, hull, trim, cabin, police, soort = '') {
+  return cached(`boat|${kind}|${L}|${W}|${hull}|${trim}|${cabin}|${police}|${soort}`, () => {
     const B = new GeoBuilder(3);
     const hl = L / 2;
     if (kind === 'waterfiets') {
@@ -2283,12 +2377,14 @@ function buildBoatGeometry(kind, L, W, hull, trim, cabin, police) {
       case 'rubberboot': rubberFit(B, st, L, W, hull, cabin || 0xd8572a); break;
       case 'skutsje': skutsjeFit(B, st, L, W); break;
       case 'binnenvaart': binnenvaartFit(B, st, L, W, hull, cabin || 0xe8e6e0); break;
+      case 'zeeschip': zeeschipFit(B, st, L, W, hull, cabin || 0xe8e6e0, soort, SHIP_K); break;
+      case 'sleper': sleperFit(B, st, L, W, hull, cabin || 0xe8e6e0, SHIP_K); break;
       default: sloepFit(B, st, L, W, hull, cabin, police);
     }
     if (kind === 'kano' || kind === 'kajak') {
       const x = -hl * 0.72;
       B.box(x, hullAt(st, x).top + (kind === 'kajak' ? 0.06 : 0.02), 0, 0.05, 0.05, 0.05, NAV_WHITE, G_LAMP);
-    } else if (kind !== 'sup' && kind !== 'skiff' && kind !== 'acht') navLights(B, st, L, st[0].top + (kind === 'rubberboot' ? 0.42 : 0.06));
+    } else if (kind !== 'sup' && kind !== 'skiff' && kind !== 'acht' && kind !== 'zeeschip' && kind !== 'sleper') navLights(B, st, L, st[0].top + (kind === 'rubberboot' ? 0.42 : 0.06));
     return B.build();
   });
 }
@@ -2300,10 +2396,10 @@ function buildBoatMesh(v) {
   const kind = police ? 'sloep' : boatKind(v);
   const hull = v.wrecked ? WRECKED_COLOR : toHex(v.model.color, 0xe8e6e0);
   const cabinColor = toHex(v.model.cabin, 0x2f3a44);
-  const trims = kind === 'skutsje' ? [0x2a211b] : kind === 'binnenvaart' ? [0xe8e6e0] : kind === 'rondvaart' ? [0xe8e6e0, 0xc9a227] : kind === 'kano' || kind === 'kajak' || kind === 'sup' ? [shadeHex(hull, 0.7), 0x2a2a2b] : kind === 'skiff' || kind === 'acht' ? [0xc8502a, 0x1f4f9a, 0x2f7d46, 0x6a2e8a] : [0x21468b, 0x2f4a3a, 0x6b2a24, 0x9a7048];
+  const trims = kind === 'skutsje' ? [0x2a211b] : kind === 'binnenvaart' || kind === 'zeeschip' || kind === 'sleper' ? [0xe8e6e0] : kind === 'rondvaart' ? [0xe8e6e0, 0xc9a227] : kind === 'kano' || kind === 'kajak' || kind === 'sup' ? [shadeHex(hull, 0.7), 0x2a2a2b] : kind === 'skiff' || kind === 'acht' ? [0xc8502a, 0x1f4f9a, 0x2f7d46, 0x6a2e8a] : [0x21468b, 0x2f4a3a, 0x6b2a24, 0x9a7048];
   const trim = police ? 0x1f3f8f : trims[Math.floor(hash2(v.id || 0, 8.1) * trims.length)];
   const cabin = kind === 'sloep' ? (boatHasCabin(v) ? cabinColor : 0) : cabinColor;
-  group.add(new THREE.Mesh(buildBoatGeometry(kind, len, wid, hull, trim, cabin, police), vehicleMaterials()));
+  group.add(new THREE.Mesh(buildBoatGeometry(kind, len, wid, hull, trim, cabin, police, v.model.soort || ''), vehicleMaterials()));
   if (kind === 'skutsje' && !v.wrecked) {
     const { rig, sternFlag } = buildSkutsjeRig(len);
     group.add(rig, sternFlag);
@@ -2321,6 +2417,9 @@ function buildBoatMesh(v) {
   }
   return group;
 }
+
+// A boat hull mesh outside the vehicle registry (the ship on the slipway of werf3d.js, #398).
+export const buildShipMesh = (v) => buildBoatMesh(v);
 
 // --- wheel spin ---------------------------------------------------------------
 

@@ -123,7 +123,8 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
 
 /* short windows */
 @media (max-height: 820px) {
-  #pause-menu .pm-rail { --ra-h: 40px; }
+  /* Spel is one more rail button (#416): a little tighter rows keep the rail as long as it was (it scrolls on a low window) */
+  #pause-menu .pm-rail { --ra-h: 36px; }
   #pause-menu .ra { font-size: 26px; }
   #pause-menu .pm-q-head { padding-bottom: 20px; }
   #pause-menu .pm-logo { font-size: 54px; }
