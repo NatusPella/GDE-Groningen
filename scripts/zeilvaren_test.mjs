@@ -66,6 +66,12 @@ check('windpijl: wind van achteren wijst vooruit', Math.abs(Z.windPijlGraden(Mat
   check('hameren levert op den duur minder op dan het ritme', hameren < ritme * 0.5, JSON.stringify([hameren, ritme]));
   check('te laat roeien levert minder op dan het ritme', traag < ritme, JSON.stringify([traag, ritme]));
   check('een goed ritme houdt een flinke topsnelheid vast', ritme > 2, ritme);
+  // de boot volgt de topsnelheid van het ritme (anders staat hij na een tik zo goed als stil, #28)
+  const volg = (gap) => { const q = { speed: 0 }; let tt = 0, next = 0; for (let k = 0; k < 600; k++) { tt = k * 0.05; Z.roeiStap(q, tt >= next, tt, 0.05); if (tt >= next) next = tt + gap; } return q.speed; };
+  check('in een goed ritme komt de boot op snelheid', volg(1.1) > 1.8 && volg(1.1) <= BOOT_SOORTEN.roeiboot.maxSpeed, volg(1.1));
+  check('hameren houdt de boot langzaam', volg(0.3) < volg(1.1) * 0.5, [volg(0.3), volg(1.1)]);
+  const zonder = { speed: 1.5, roeiTop: 0 }; Z.roeiStap(zonder, false, 0, 0.05);
+  check('zonder slagen trekt de roeitop de boot niet vooruit', zonder.speed === 1.5);
 }
 console.log(`zeilvaren_test: ${n - bad}/${n} ok`);
 process.exit(bad ? 1 : 0);

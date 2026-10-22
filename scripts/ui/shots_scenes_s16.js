@@ -231,11 +231,25 @@ if (want('klap')) {
   const idx = await fetch('/world/index-provincie.json').then((r) => r.json()).catch(() => null);
   const gr = idx && idx.global.places.find((z) => z.name === 'Groningen' && z.kind !== 'suburb');
   if (gr) teleport(gr.x, gr.y);
+  // een nieuwe wijk geeft een wijkkaart (busy): eerst laten uitlopen, anders keert de bestuurder meteen terug
+  for (let i = 0; i < 40 && document.querySelector('.ls.on:not(.out)'); i++) await sleep(500);
+  await sleep(14000);
   w.health = w.maxHealth || w.health;
   w.wanted = 0;
   const noWanted = setInterval(() => { w.wanted = 0; }, 100);
-  let started = false;
-  for (let i = 0; i < 90 && !started; i++) { await sleep(700); started = RR && RR.start(null); }
+  // de ruziemaker geeft het op als hij verder dan 32 m van je staat (givesUp): zet je naast een gewone auto, alleen die komt in aanmerking
+  const okV = (v) => v.road && !v.driver && !v.castDriver && !v.racer && !v.countryDrive && !v.parked && !v.isPolice && !v.isBus && !v.isBike && !v.isScooter && !v.isBoat && !v.isHeli && !v.isAmbulance && !v.wrecked && !v.disabled && !v.hijacked && !v.carjacked && !v.driverOut && !v.isHeroCar && !v.missionCar && !v.playerOwned;
+  let car = null, started = false;
+  for (let i = 0; i < 90 && !car; i++) { await sleep(700); car = w.vehicles.filter(okV).sort((a, b) => Math.hypot(a.x - p.x, a.y - p.y) - Math.hypot(b.x - p.x, b.y - p.y))[0] || null; }
+  info.push('klap: auto gevonden ' + !!car);
+  if (car) {
+    teleport(car.x + Math.cos(car.angle + 1.6) * 5, car.y + Math.sin(car.angle + 1.6) * 5);
+    const others = w.vehicles.filter((q) => q !== car && okV(q));
+    for (const q of others) q.parked = true;
+    await sleep(300);
+    started = !!(RR && RR.start(null));
+    for (const q of others) q.parked = false;
+  }
   info.push('klap: ruzie gestart ' + started + ', fase ' + JSON.stringify(RR && RR.state()));
   const t0 = performance.now();
   let fase = '';
