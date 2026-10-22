@@ -1,6 +1,8 @@
 // De plekken van de vliegschool (#397), gemeten op de tegels van de provincie: geen gok.
 //   node scripts/world/vliegplekken.mjs [--world=game/world] [--write]
 // Schrijft (met --write) game/vliegplekken.json, dat vliegschool.js leest:
+// Alles ligt hooguit RAND_MAX m buiten de provinciegrens: Eelde ligt in Drenthe en het spel draait een vliegtuig of helikopter terug als hij
+// 3 km buiten de grens komt (worldedge.js, de 'lucht'-regel; vanaf 2,5 km komt er al een waarschuwing). `rand` staat bij elke plek.
 //   water      rechte stukken open water voor "laag over water": lengte en vrije halve breedte gemeten
 //   velden     vlakke weilanden zonder gebouw, water, weg of spoor, voor de noodlanding
 //   molens     de ketting molens voor de slalom (uit landmarkkits.json: echte molens)
@@ -16,6 +18,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 await import(pathToFileURL(path.join(ROOT, 'scripts/node3d.mjs')).href);
 const G = await import(pathToFileURL(path.join(ROOT, 'game/js/gdt.js')).href);
+const { outsideDist } = await import(pathToFileURL(path.join(ROOT, 'game/js/worldedge.js')).href);
 
 export const EELDE = { x: 1764.51, y: 9959.94 };
 const arg = (n, d) => { const a = process.argv.find((x) => x.startsWith('--' + n + '=')); return a ? a.slice(n.length + 3) : d; };
@@ -96,6 +99,11 @@ function world(cx, cy, r) {
   };
 }
 
+// de afstand buiten de rand van de provincie (m): negatief binnen de provincie
+const EDGE = (index.global && index.global.edge) || null;
+export const RAND_MAX = 2000;
+const buitenRand = (x, y) => { const q = EDGE ? outsideDist(x, y, (EDGE.coast || []).concat(EDGE.border || [])) : null; return q ? Math.round(q.d) : -9999; };
+
 const places = (index.global && index.global.places) || [];
 const nearestPlace = (x, y) => { let best = null, bd = Infinity; for (const p of places) { if (p.kind === 'hamlet' && p.pop === 0) continue; const d = Math.hypot(p.x - x, p.y - y); if (d < bd) { bd = d; best = p; } } return best && bd < 6000 ? best.name : null; };
 
@@ -136,6 +144,7 @@ function findWater(W) {
     const mid = (c.f - c.bk) / 2;
     const a = { x: c.sx + c.ca * (mid - 600), y: c.sy + c.sa * (mid - 600) }, b = { x: c.sx + c.ca * (mid + 600), y: c.sy + c.sa * (mid + 600) };
     if (out.some((o) => Math.hypot(o.a.x - a.x, o.a.y - a.y) < 1500)) continue;
+    if (Math.max(buitenRand(a.x, a.y), buitenRand(b.x, b.y), buitenRand(c.sx - c.ca * (c.bk - 500), c.sy - c.sa * (c.bk - 500))) > RAND_MAX) continue;
     out.push({ a, b, half: c.half, lengte: Math.min(c.len, 3200) });
     if (out.length >= 3) break;
   }
@@ -143,6 +152,7 @@ function findWater(W) {
     id: 'water-' + (i + 1), naam: nearestPlace((o.a.x + o.b.x) / 2, (o.a.y + o.b.y) / 2),
     a: { x: r1(o.a.x), y: r1(o.a.y) }, b: { x: r1(o.b.x), y: r1(o.b.y) }, lengte: 1200, vrij: o.lengte, halveBreedte: o.half,
     afstandEelde: Math.round(Math.hypot((o.a.x + o.b.x) / 2 - EELDE.x, (o.a.y + o.b.y) / 2 - EELDE.y)),
+    rand: Math.max(buitenRand(o.a.x, o.a.y), buitenRand(o.b.x, o.b.y)),
   }));
 }
 
@@ -162,6 +172,7 @@ function findFields(W) {
         }
         if (!ok) continue;
         if (found.some((f) => Math.hypot(f.x - cx, f.y - cy) < 2500)) break;
+        if (buitenRand(cx, cy) > RAND_MAX) break;
         found.push({ x: cx, y: cy, heading: hd, r });
         break;
       }
@@ -169,7 +180,7 @@ function findFields(W) {
     }
     if (found.length >= 4) break;
   }
-  return found.map((f, i) => ({ id: 'veld-' + (i + 1), naam: nearestPlace(f.x, f.y), x: r1(f.x), y: r1(f.y), heading: Math.round(f.heading * 1000) / 1000, lengte: L, breedte: B, afstandEelde: Math.round(f.r) }));
+  return found.map((f, i) => ({ id: 'veld-' + (i + 1), naam: nearestPlace(f.x, f.y), x: r1(f.x), y: r1(f.y), heading: Math.round(f.heading * 1000) / 1000, lengte: L, breedte: B, afstandEelde: Math.round(f.r), rand: buitenRand(f.x, f.y) }));
 }
 
 // --- molens --------------------------------------------------------------------------------------------------------
