@@ -18,8 +18,10 @@ export const SHOT_S = 16;
 const P = (id, streek, soort, x, y, R, z, lookZ, extra = {}) => ({ id, streek, soort, x, y, R, z, lookZ, ...extra });
 export const MENU_PLEKKEN = [
   // Waddenkust en Hogeland
-  P('eemshaven-windpark', 'eemsdelta', 'wind', 18100, -25030, 260, 22, 45, { focus: 260 }),
-  P('menkemaborg', 'hogeland', 'borg', 7566, -20771, 85, 20, 7),
+  P('eemshaven-windpark', 'eemsdelta', 'wind', 17100, -25100, 600, 45, 45, { focus: 300 }),
+  P('weiwerd-windpark', 'eemsdelta', 'wind', 27650, -10830, 520, 38, 45, { focus: 300 }),
+  P('duurkenakker-windpark', 'oldambt', 'wind', 23420, 6250, 520, 38, 45, { focus: 300 }),
+  P('menkemaborg', 'hogeland', 'borg', 7566, -20771, 85, 20, 7, { hoek: [70, 110] }),
   P('uithuizen-jacobikerk', 'hogeland', 'kerk', 6886, -21030, 105, 17, 15),
   P('usquert-kerk', 'hogeland', 'kerk', 2770, -20431, 100, 16, 14),
   P('warffum-kerk-molen', 'hogeland', 'kerk', -500, -19190, 120, 18, 12),
@@ -38,7 +40,7 @@ export const MENU_PLEKKEN = [
   P('appingedam-nicolaikerk', 'fivelingo', 'dorp', 19328, -11524, 100, 20, 8),
   P('delfzijl-molen', 'eemsdelta', 'molen', 23844, -12840, 95, 16, 10),
   // Lauwersmeer, Reitdiep en het Westerkwartier
-  P('lauwersoog-haven', 'lauwers', 'haven', -24250, -20650, 150, 26, 4),
+  P('lauwersoog-haven', 'lauwers', 'haven', -24100, -20500, 230, 32, 4, { hoek: [225, 330] }),
   P('zoutkamp-haven', 'lauwers', 'haven', -17791, -12815, 130, 22, 3),
   P('verhildersum', 'lauwers', 'borg', -11707, -15744, 80, 16, 7),
   P('oldehove-molens', 'lauwers', 'molen', -11380, -9220, 110, 18, 12),
@@ -59,9 +61,8 @@ export const MENU_PLEKKEN = [
   P('ennemaborg', 'oldambt', 'borg', 29082, 2454, 80, 15, 7),
   P('winschoten-molens', 'oldambt', 'molen', 31115, 7375, 110, 17, 11),
   P('oudeschans', 'dollard', 'dorp', 38669, 8239, 125, 24, 4),
-  P('burcht-wedde', 'westerwolde', 'borg', 34316, 16258, 100, 24, 7),
   P('bourtange-vesting', 'westerwolde', 'vesting', 42442, 22704, 170, 44, 1),
-  P('oude-pekela-molen', 'veenkolonien', 'molen', 29993, 12276, 80, 12, 10),
+  P('oude-pekela-molen', 'veenkolonien', 'molen', 29993, 12276, 95, 20, 10),
 ];
 
 // de stad zelf: de oriëntatiepunten van de kaart en de straten en grachten van startscreen.js (EXTRA_SPOTS); samen een streek
