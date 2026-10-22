@@ -33,16 +33,19 @@ if (!act.active()) return JSON.stringify({ result: 'FOUT', reason: 'de baan star
 B.log('bijbaan', { id: 'tjalke', gestart: true });
 for (let i = 0; i < 40 && B.status().blocking.cinematic; i++) { B.down(' '); await sleep(1300); B.up(' '); }
 
-// in de auto: de baan zet hem bij het café neer
-const ctx = () => (window.__debug && window.__debug.sidejobs && window.__debug.sidejobs.ctx ? window.__debug.sidejobs.ctx() : null);
-for (let k = 0; k < 12 && !player.inVehicle; k++) {
-  const c = ctx(); const v = c && c.vehicle;
+// in de auto: de baan zet hem bij het café neer (world.vehicles, vlag sideJob)
+const jobAuto = () => world.vehicles.find((q) => q.sideJob && q.missionCar && !q.wrecked) || null;
+for (let k = 0; k < 14 && !player.inVehicle; k++) {
+  const v = jobAuto();
   if (!v) { await sleep(500); continue; }
-  if (Math.hypot(player.x - v.x, player.y - v.y) > 3) { player.x = v.x + 2.5; player.y = v.y; player.vx = player.vy = 0; await sleep(400); }
-  await B.press('e', 400); await sleep(1200);
+  if (Math.hypot(player.x - v.x, player.y - v.y) > 3) { player.x = v.x + 2.2; player.y = v.y; player.vx = player.vy = 0; await sleep(500); }
+  await B.press('e', 500); await sleep(1200);
+  if (k === 8 && !player.inVehicle) { B.log('setup', { what: 'instappen', waarom: 'E werkte niet na negen keer' }); player.enterVehicle(v, world); await sleep(500); }
 }
-if (!player.inVehicle) return JSON.stringify({ result: 'FOUT', reason: 'niet in de auto gekomen' });
+if (!player.inVehicle) return JSON.stringify({ result: 'FOUT', reason: 'niet in de auto gekomen', auto: !!jobAuto(), x: Math.round(player.x), y: Math.round(player.y) });
+B.log('instappen', { x: Math.round(player.x), y: Math.round(player.y) });
 
+const ctx = () => (window.__debug && window.__debug.sidejobs && window.__debug.sidejobs.ctx ? window.__debug.sidejobs.ctx() : null);
 const log = { fasen: [], sterren: 0, tikken: 0, politieTijd: 0 };
 const wedge = new L.WedgeDetector();
 let follower = null, planAt = -99, lastFase = '', lastStar = 0, t0 = performance.now(), wedges = 0;
@@ -68,14 +71,14 @@ while (act.active() && performance.now() - t0 < wall) {
   const c = ctx();
   const d = c && c.data && c.data.s;
   if (d && d.fase !== lastFase) { lastFase = d.fase; log.fasen.push([Math.round(s.t), d.fase]); B.log('fase', { fase: d.fase, t: Math.round(s.t), pionnen: d.pionnen, wanted: s.wanted }); }
-  if (s.wanted > lastStar) { log.sterren = Math.max(log.sterren, s.wanted); lastStar = s.wanted; B.log('politie', { wanted: s.wanted, x: Math.round(s.player.x), y: Math.round(s.player.y) }); }
+  if (s.wanted > lastStar) { log.sterren = Math.max(log.sterren, s.wanted); lastStar = s.wanted; B.log('politie', { wanted: s.wanted, x: Math.round(s.player.x), y: Math.round(s.player.y), v: Math.round((s.player.vehicle ? s.player.vehicle.speed : 0) * 10) / 10, peds: s.nearby.peds, politie: s.nearby.police, msgs: s.hud.messages.slice(0, 3), dronken: Math.round((world.drunk || 0) * 100) / 100 }); }
   if (s.wanted === 0) lastStar = 0;
   if (s.blocking.cinematic || s.blocking.banner || s.blocking.talk) { B.stick(0, 0); B.down(' '); await sleep(300); B.up(' '); continue; }
   if (s.blocking.pauseMenu) { await B.press('escape'); continue; }
   const veh = player.inVehicle;
   if (!veh) {
     // uit de auto (gestopt door de politie, of een botsing): terug in
-    const c2 = ctx(); const v2 = c2 && c2.vehicle;
+    const v2 = jobAuto();
     if (v2) { if (Math.hypot(player.x - v2.x, player.y - v2.y) > 3) { player.x = v2.x + 2.5; player.y = v2.y; } await B.press('e', 400); await sleep(800); }
     continue;
   }
