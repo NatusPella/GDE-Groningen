@@ -144,12 +144,16 @@ if (want('roeien')) {
       let ws = null;
       for (let r = 20; r < 500 && !ws; r += 12) for (let a = 0; a < 6.28 && !ws; a += 0.3) { const x = m.x + Math.cos(a) * r, y = m.y + Math.sin(a) * r; const q = WL2.waterAt(map, x, y); if (q && q.navigable && q.depth > 2) ws = { x, y, a }; }
       if (!ws) { info.push('roeien: geen water bij ' + m.name); continue; }
-      const boat = new VH2.Vehicle(ws.x, ws.y, 0, { ...BT.BOAT_KINDS.roeiboot });
+      // kijk naar het verste open water (een boot die tegen de kade kijkt, staat stil en laat het ritme niet zien)
+      let bestA = 0, bestD = -1;
+      for (let a = 0; a < 6.28; a += 0.2) { let d = 0; for (let r2 = 4; r2 <= 120; r2 += 4) { const q2 = WL2.waterAt(map, ws.x + Math.cos(a) * r2, ws.y + Math.sin(a) * r2); if (q2 && q2.navigable && q2.depth > 1) d = r2; else break; } if (d > bestD) { bestD = d; bestA = a; } }
+      info.push('roeien: open water ' + bestD + ' m in richting ' + bestA.toFixed(2));
+      const boat = new VH2.Vehicle(ws.x, ws.y, bestA, { ...BT.BOAT_KINDS.roeiboot });
       boat.isBoat = true; boat.speed = 0; w.vehicles.push(boat);
       p.enterVehicle(boat, w);
       gelukt = true;
       info.push('roeien bij ' + m.name + ' @' + Math.round(ws.x) + ',' + Math.round(ws.y) + ', soort ' + (boat.model && boat.model.soort));
-      const sample = (fase) => rows.push([fase, Math.round(performance.now() / 100) / 10, Math.round(boat.speed * 100) / 100, Math.round((boat.sailTop || 0) * 100) / 100, Math.round(((boat.roeiSt && boat.roeiSt.reeks) || 0) * 10) / 10]);
+      const sample = (fase) => rows.push([fase, Math.round(performance.now() / 100) / 10, Math.round(boat.speed * 100) / 100, Math.round(Math.hypot(boat.x - ws.x, boat.y - ws.y)), Math.round((boat.sailTop || 0) * 100) / 100, Math.round(((boat.roeiSt && boat.roeiSt.reeks) || 0) * 10) / 10]);
       await sleep(1500);
       for (let i = 0; i < 6; i++) { await sleep(500); sample('stil'); }
       await shot('roeien-stil', 300);
@@ -163,7 +167,7 @@ if (want('roeien')) {
       p.exitVehicle(map, w);
     } catch (e) { info.push('roeien fout bij ' + m.name + ': ' + e.message); }
   }
-  info.push('roeien-log (fase, t, snelheid, topsnelheid, reeks): ' + JSON.stringify(rows));
+  info.push('roeien-log (fase, t, snelheid, afstand vanaf start, topsnelheid, reeks): ' + JSON.stringify(rows));
   done.push('roeien');
 }
 
@@ -176,7 +180,10 @@ if (want('delfzijl')) {
   if (!q) info.push('Delfzijl: plaats niet in de index');
   else {
     teleport(q.x, q.y);
-    await sleep(1500); for (let i = 0; i < 40 && document.querySelector('.ls.on:not(.out)'); i++) await sleep(500); await sleep(6000);
+    await sleep(1500); for (let i = 0; i < 40 && document.querySelector('.ls.on:not(.out)'); i++) await sleep(500);
+    for (let i = 0; i < 30 && map.buildingsNear(q.x, q.y, 300).length < 40; i++) await sleep(1000);
+    await sleep(6000);
+    info.push('Delfzijl @' + Math.round(q.x) + ',' + Math.round(q.y) + ': gebouwen binnen 300 m ' + map.buildingsNear(q.x, q.y, 300).length + ', binnen 700 m ' + map.buildingsNear(q.x, q.y, 700).length + ', met winkelgevel ' + map.buildingsNear(q.x, q.y, 700).filter((b) => b.shopFront).length + ' (zonder naam)');
     for (const R2 of [220, 450, 700]) {
       const bs0 = map.buildingsNear(q.x, q.y, R2).filter((b) => b.shopFront && b.shopFront.name);
       info.push('Delfzijl binnen ' + R2 + ' m: ' + bs0.length + ' panden met winkelnaam: ' + bs0.slice(0, 8).map((b) => b.shopFront.name + ' (' + Math.round(Math.hypot(b.shopFront.ax - q.x, b.shopFront.ay - q.y)) + ' m)').join(', '));
@@ -225,6 +232,8 @@ if (want('klap')) {
   const gr = idx && idx.global.places.find((z) => z.name === 'Groningen' && z.kind !== 'suburb');
   if (gr) teleport(gr.x, gr.y);
   w.health = w.maxHealth || w.health;
+  w.wanted = 0;
+  const noWanted = setInterval(() => { w.wanted = 0; }, 100);
   let started = false;
   for (let i = 0; i < 90 && !started; i++) { await sleep(700); started = RR && RR.start(null); }
   info.push('klap: ruzie gestart ' + started + ', fase ' + JSON.stringify(RR && RR.state()));
@@ -237,6 +246,7 @@ if (want('klap')) {
     if (events.length >= 2 || ((!st || !st.phase) && i > 8)) break;
   }
   clearInterval(wrapTimer);
+  clearInterval(noWanted);
   const rms = QA ? QA.rms : [];
   const analyse = events.map((e) => ({ t: e.t, sfxVoor: e.q, piek: Math.max(0, ...rms.filter((r) => r.t + (QA ? 0 : 0) >= e.t - 100 && r.t <= e.t + 600).map((r) => r.peak)) }));
   info.push('klap: bonk-events ' + events.length + ' ' + JSON.stringify(analyse) + '; sfx totaal ' + (QA ? QA.sfx.length : -1) + ', laatste sfx ' + JSON.stringify(QA ? QA.sfx.slice(-6) : null) + '; berichten ' + JSON.stringify((w.messages || []).slice(-4).map((q) => q.text)));
