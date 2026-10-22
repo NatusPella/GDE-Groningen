@@ -151,6 +151,7 @@ const SHOT_MIN_S = 12;
 const SHOT_MAX_S = 16;
 const FADE_S = 0.45;
 const BLACK_HOLD_S = 0.3;
+const BLACK_MAX_S = 8;
 const LEVEL_H = 3.1;
 // de stad achter het menu in zomerlicht (#380): ochtend tot de late namiddag, droog
 const SHOT_CLOCKS = [9.5, 11, 12.5, 15, 16.5, 17.8];
@@ -356,6 +357,28 @@ function logoIn(screen) {
   ], { duration: 1800, fill: 'backwards' });
 }
 
+// The backdrop's viewpoints (#380): the hand-picked ones over the whole province plus the city's own spots.
+const menuPool = (map) => [...MENU_PLEKKEN, ...[...(map.meta.landmarks || []), ...EXTRA_SPOTS].map(stadPlek)];
+function menuStorage() {
+  try { return window.localStorage; } catch (e) { return null; /* no storage: every start picks fresh */ }
+}
+// the tiles round a viewpoint, asked for and pinned before the camera cuts there (tileworld.js registerShots); resolves when they are in
+function holdTiles(map, spot) {
+  if (!map || typeof map.registerShots !== 'function') return Promise.resolve();
+  const radius = spot.stad ? 200 : Math.min(600, spot.R + 200);
+  try { return Promise.resolve(map.registerShots([{ at: [spot.x, spot.y] }], { radius, token: 'menu' })).catch(() => {}); } catch (e) { return Promise.resolve(); }
+}
+// The first viewpoint is picked and its tiles are asked for while the boot screen is still up (main.js, once the map is in), so the
+// province round it streams in next to the rest of the loading and the menu does not wait for it afterwards.
+let planned = null;
+export function planMenuStart(map) {
+  if (planned || FLAGS.trailer || FLAGS.preview || FLAGS.attract || FLAGS.benchmark) return;
+  try {
+    const spot = kiesVolgende(menuPool(map), leesVerleden(menuStorage()), Math.random);
+    planned = { spot, tiles: holdTiles(map, spot) };
+  } catch (e) { planned = null; }
+}
+
 // Title screen over the live city, cycling through highlights. Resolves with
 // 'game' (Alleen spelen: Doorgaan / Nieuw spel, or Samen spelen).
 export function runStartScreen(world, { render, relocate, tick, ready }) {
@@ -408,14 +431,23 @@ export function runStartScreen(world, { render, relocate, tick, ready }) {
     const move = relocate || ((x, y) => { p.x = x; p.y = y; });
     // the backdrop (#380): hand-picked viewpoints over the whole province plus the city's own spots; each start shows another
     // series (menuplekken.js), never the first of the last start, and remembers what it showed
-    const pool = [...MENU_PLEKKEN, ...[...(map.meta.landmarks || []), ...EXTRA_SPOTS].map(stadPlek)];
-    let storage = null;
-    try { storage = window.localStorage; } catch (e) { /* no storage: every start picks fresh */ }
+    const pool = menuPool(map);
+    const storage = menuStorage();
     let verleden = leesVerleden(storage);
     let firstPick = true;
     let curSpot = null;
+    // the tiles of the viewpoint that is next: the camera only cuts there when they are in (the world behind the menu is never a hole)
+    let tilesReady = true;
+    let holdId = 0;
+    const hold = (promise) => {
+      tilesReady = false;
+      const id = ++holdId;
+      promise.then(() => { if (id === holdId) tilesReady = true; });
+    };
+    let upcoming = null;
+    let qaHold = false; // a QA script chose the viewpoint: no cuts, no preloading of the next
     const nextSpot = () => {
-      const spot = kiesVolgende(pool, verleden, Math.random);
+      const spot = firstPick && planned ? planned.spot : kiesVolgende(pool, verleden, Math.random);
       verleden = noteer(verleden, spot, { eerste: firstPick });
       firstPick = false;
       bewaarVerleden(storage, verleden);
@@ -444,14 +476,25 @@ export function runStartScreen(world, { render, relocate, tick, ready }) {
       } else {
         const beeld = maakBeeld(spot, Math.random, vast);
         world.clock = beeld.uur;
-        shot = beeld.pose;
+        // a village round the viewpoint: the camera rises over the roofs along its way (as the city shots do), no further than 45 m;
+        // worked out once the tiles of the place are in
+        let zMin = null;
+        shot = (t) => {
+          const q = beeld.pose(t);
+          if (zMin === null && tilesReady) {
+            zMin = 0;
+            for (let u = 0; u <= SHOT_MAX_S + 2; u += 3) { const c = beeld.pose(u).position; zMin = Math.max(zMin, clearance(map, c.x, c.y, 8)); }
+            zMin = Math.min(zMin, 45);
+          }
+          if (zMin && q.position.z < zMin) q.position.z = zMin;
+          return q;
+        };
         window.__menuBeeld = { id: spot.id, uur: beeld.uur, hoek: Math.round(beeld.theta * 180 / Math.PI), beweging: beeld.beweging };
       }
       if (homeWeather) world.weather = pickShotWeather(homeWeather);
       shotT = 0;
       shotDur = SHOT_MIN_S + Math.random() * (SHOT_MAX_S - SHOT_MIN_S);
     };
-    const cut = () => cutTo(nextSpot());
 
     const focus = (i) => {
       sel = (i + buttons.length) % buttons.length;
@@ -473,6 +516,7 @@ export function runStartScreen(world, { render, relocate, tick, ready }) {
       world.cameraOverride = null;
       screen.classList.remove('visible');
       fade.remove();
+      if (map.releaseShots) map.releaseShots();
       resolve(mode);
     };
     const startNew = () => {
@@ -641,20 +685,26 @@ export function runStartScreen(world, { render, relocate, tick, ready }) {
     markVersionSeen(VERSION);
     const intro = pendingTrailer();
     // the first viewpoint is there before the gate starts to look, so the world streams in round it while the boot screen is up (#380)
-    if (!intro) cutTo(nextSpot());
+    if (!intro) {
+      const first = nextSpot();
+      cutTo(first);
+      hold(planned && planned.spot === first ? planned.tiles : holdTiles(map, first));
+    }
     // for the QA scripts (scripts/qa/menuplekken_shots.mjs): the list, and a cut to one viewpoint that stays up
     window.__menuPlekken = {
       lijst: () => pool.map((p) => p.id),
       naar: (id, vast = {}) => {
         const spot = pool.find((p) => p.id === id);
         if (!spot || done) return null;
+        qaHold = true;
+        hold(holdTiles(map, spot));
         cutTo(spot, vast);
         shotDur = 1e9;
         phase = 'show';
         fade.style.opacity = '0';
         return window.__menuBeeld || { id };
       },
-      stand: () => ({ id: curSpot && curSpot.id, t: Math.round(shotT * 10) / 10, wacht: streamPending() }),
+      stand: () => ({ id: curSpot && curSpot.id, t: Math.round(shotT * 10) / 10, wacht: streamPending(), tegels: tilesReady }),
     };
     const playIntro = async () => {
       trailerOn = true;
@@ -713,16 +763,21 @@ export function runStartScreen(world, { render, relocate, tick, ready }) {
       if (hangUntil) { if (now < hangUntil) hangMax = Math.max(hangMax, gap); else hangUntil = 0; }
       if (!gate.isReady()) {
         const sp = streamPending();
-        if (gate.step(now, gap, sp.buildings + sp.roads, extraDone)) gateOpen();
+        if (gate.step(now, gap, sp.buildings + sp.roads, extraDone && tilesReady)) gateOpen();
       }
       const dt = Math.min(0.05, (now - last) / 1000);
       last = now;
       renderDt += dt;
       shotT += dt;
       phaseT += dt;
+      // the next viewpoint's tiles load while this shot plays; the cut waits (black, at most BLACK_MAX_S) until they and what is built on them are in
+      if (phase === 'show' && !upcoming && !qaHold && gate.isReady() && shotT > 2) { upcoming = nextSpot(); hold(holdTiles(map, upcoming)); }
       if (phase === 'show' && shotT > shotDur) { phase = 'out'; phaseT = 0; fade.style.opacity = '1'; }
-      else if (phase === 'out' && phaseT > FADE_S) { cut(); phase = 'black'; phaseT = 0; }
-      else if (phase === 'black' && phaseT > BLACK_HOLD_S) { phase = 'show'; phaseT = 0; fade.style.opacity = '0'; }
+      else if (phase === 'out' && phaseT > FADE_S) { cutTo(upcoming || nextSpot()); upcoming = null; phase = 'black'; phaseT = 0; }
+      else if (phase === 'black' && phaseT > BLACK_HOLD_S) {
+        const sp = streamPending();
+        if ((tilesReady && sp.buildings + sp.roads === 0 && !sp.ahead) || phaseT > BLACK_MAX_S) { phase = 'show'; phaseT = 0; fade.style.opacity = '0'; }
+      }
       pose = shot(shotT);
       world.cameraOverride = { ...pose, cut: true };
       // the menu covers part of the city, the settings sheet most of it; the
