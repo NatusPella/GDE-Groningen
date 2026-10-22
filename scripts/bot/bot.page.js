@@ -139,13 +139,13 @@ function steerTowards(s, mode, tgt, stopAt, top = 24, stopR = null, direct0 = fa
     const rest = stg && (stg.kind === 'garage' ? 3.5 : stg.stop ? Math.max(3, stg.stop + 2) : 0);
     const mdefE = (M.getMissionDefs() || [])[s.mission.index];
     // in a chase the lane is full of cyclists and walkers (M26, the Hoogstraatje): steer round them instead of through (#354)
-    const avoid = mode === 'drive' && s.mission.active && s.mission.stage === 'chase' ? trafficAhead(me, tgt) : null;
+    const avoid = mode === 'drive' && s.mission.active && (s.mission.stage === 'chase' || L.isStunt(s)) ? trafficAhead(me, tgt) : null;
     const car = { x: me.x, y: me.y, angle: s.player.vehicle.angle, speed: s.player.vehicle.speed };
     const curve = avoid && follower ? L.curveCap(follower.pts, follower.i, car) : null;
     const c = L.carControls(car, aim, { stopAt: stopAt || !!rest, rest, top: mode === 'boat' ? Math.min(top, 9) : top, gentle: !!(s.mission.active && mdefE && mdefE.eggs), avoid, curveCap: curve });
     B.stick(c.steer, c.throttle ? -c.throttle : 0);
     // a chase is logged every 3 s: where, how fast, how far from the fleeing car, what stands in the lane (#354)
-    if (avoid) {
+    if (avoid && s.mission.stage === 'chase') {
       if (mem.chaseT0 == null || s.t - mem.chaseLogT > 60) mem.chaseT0 = s.t;
       if (s.t - (mem.chaseLogT || -9) >= (s.t - mem.chaseT0 < 40 ? 1 : 3)) {
         mem.chaseLogT = s.t;
@@ -420,7 +420,7 @@ while (true) {
     await sleep(2500);
     continue;
   }
-  if (s.t - (mem.trailT ?? -9) >= 1.5) { mem.trailT = s.t; (mem.trail = mem.trail || []).push([Math.round(s.t), Math.round(s.player.x), Math.round(s.player.y), s.player.vehicle ? Math.round(s.player.vehicle.speed * 10) / 10 : 0, s.player.vehicle ? s.player.vehicle.angle : null, s.player.vehicle ? s.player.vehicle.kind : 'voet']); if (mem.trail.length > 24) mem.trail.shift(); }
+  if (s.t - (mem.trailT ?? -9) >= 1.5) { mem.trailT = s.t; (mem.trail = mem.trail || []).push([Math.round(s.t), Math.round(s.player.x), Math.round(s.player.y), s.player.vehicle ? Math.round(s.player.vehicle.speed * 10) / 10 : 0, s.player.vehicle ? s.player.vehicle.angle : null, s.player.vehicle ? s.player.vehicle.kind : 'voet', s.player.vehicle ? s.player.vehicle.health : null]); if (mem.trail.length > 24) mem.trail.shift(); }
   track(s);
   const stepKey = (s.story.id || '?') + (s.mission.active ? ':' + (s.mission.stage || 'm') : '');
   // each stage of a mission gets its own few tries at boarding and at a prompt

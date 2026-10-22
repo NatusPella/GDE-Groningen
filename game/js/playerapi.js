@@ -107,7 +107,7 @@ export function initPlayerApi(world, input) {
       player: {
         x: r1(player.x), y: r1(player.y), z: r1((player.gz || 0) + (player.z || 0)), angle: Math.round(player.angle * 1000) / 1000,
         camYaw: Math.round((world.camYaw ?? player.angle) * 1000) / 1000, pigeon: !!isPigeonActive(), health: player.health, money: world.money, character: player.character || '',
-        vehicle: v ? { kind: kindOf(v), x: r1(v.x), y: r1(v.y), angle: Math.round(v.angle * 1000) / 1000, speed: r1(v.speed || 0), boat: !!v.isBoat, heli: !!v.isHeli, plane: !!v.isPlane, mission: !!(v.missionCar || v.isHeroCar) } : null,
+        vehicle: v ? { kind: kindOf(v), x: r1(v.x), y: r1(v.y), angle: Math.round(v.angle * 1000) / 1000, speed: r1(v.speed || 0), boat: !!v.isBoat, heli: !!v.isHeli, plane: !!v.isPlane, mission: !!(v.missionCar || v.isHeroCar), health: Math.round(v.health ?? 0) } : null,
       },
       story: view.end ? { end: true, part: view.part, title: view.title } : { end: false, id: view.id, part: view.part, kind: view.kind, title: view.title, lead: view.lead, canSkip: view.canSkip, fails: view.fails, done: view.done, total: view.total },
       mission: {
