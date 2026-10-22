@@ -602,7 +602,8 @@ while (true) {
       // the leader waits for the slowest friend (the tractor, the scooter): beyond 170 m for 12 s the column falls apart
       const members = (world.vehicles || []).filter((v) => v.convoyMember && !v.wrecked);
       const gaps = members.map((v) => Math.hypot(v.x - s.player.x, v.y - s.player.y));
-      const pace = L.convoyPace(gaps, 11);
+      // the friends cruise at 10 m/s (convoy.js) and the tractor tops out at 11: the leader keeps to 8 m/s, or the line stretches by 2 m/s
+      const pace = L.convoyPace(gaps, 8);
       top = Math.min(top, pace);
       if (pace < 3) detector.hold(s.t);   // waiting for them is no standing still
       // a friend that does not come (stuck at a junction): after 20 s of waiting the leader drives back to the furthest one, like a player, until they are within 90 m
