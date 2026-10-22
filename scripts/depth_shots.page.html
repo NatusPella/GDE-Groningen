@@ -94,6 +94,22 @@ try {
   mesh.updateMatrixWorld(true);
   const hl = model.len / 2, hw = model.wid / 2;
   // zij- en voorkant, schuin van voren (zoals een speler langsrijdt), zoomend op het bord
+  // de hele bus: zijkant (stoepkant, de deuren), schuin van voren, bovenop de stoep gezien (#385)
+  if (wanted('bus-overzicht')) {
+    shoot('bus-zijkant', [0, 2.2, hw + 14], [0, 1.6, 0], 13);
+    shoot('bus-schuin-voor', [hl + 7, 2.0, hw + 7], [0.5, 1.4, 0], 9);
+    shoot('bus-deur', [hl - 1.05 + 1.5, 1.5, hw + 4.5], [hl - 1.05, 1.5, hw], 3.2);
+  }
+  // dezelfde bus bij een halte: stilstaand, deuren open (vehicledoors3d.js syncVehicleDoors, #385)
+  if (wanted('bus-halte')) {
+    const VD = await import('/game/js/vehicledoors3d.js');
+    bus.speed = 0;
+    for (let i = 0; i < 90; i++) VD.syncVehicleDoors(mesh, bus, 1 / 30, null);
+    mesh.updateMatrixWorld(true);
+    shoot('bus-halte-zijkant', [0, 2.2, hw + 14], [0, 1.6, 0], 13);
+    shoot('bus-halte-schuin-voor', [hl + 7, 2.0, hw + 7], [0.5, 1.4, 0], 9);
+    shoot('bus-halte-deur', [hl - 1.05 + 2.5, 1.6, hw + 5], [hl - 1.0, 1.4, hw], 4.5);
+  }
   if (wanted('bord-zij')) for (const D of [5, 20, 60]) {
     const bx = hl - 1.6;
     shoot(`bord-zij-${D}m`, [bx - D * 0.5, 2.0, hw + D * 0.87], [bx, 2.5, hw], 4.5);
