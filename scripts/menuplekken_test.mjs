@@ -182,8 +182,13 @@ const winkel = () => { const m = new Map(); return { getItem: (k) => (m.has(k) ?
   const ss = read('game/js/startscreen.js');
   ok(/from '\.\/menuplekken\.js'/.test(ss) && /kiesVolgende\(pool, verleden/.test(ss), 'startscreen.js kiest met menuplekken.js');
   ok(/window\.__menuStart\s*=/.test(ss) && /makeMenuGate\(\)/.test(ss) && /gate\.step\(/.test(ss), 'de menupoort en __menuStart staan er nog');
-  ok(/if \(!intro\) cutTo\(nextSpot\(\)\)/.test(ss), 'de eerste plek staat klaar voordat de poort kijkt');
-  ok(/try \{ storage = window\.localStorage; \}/.test(ss), 'de opslag wordt veilig gelezen');
+  ok(/if \(!intro\) \{\s*const first = nextSpot\(\);\s*cutTo\(first\);/.test(ss), 'de eerste plek staat klaar voordat de poort kijkt');
+  ok(/function menuStorage\(\) \{\s*try \{ return window\.localStorage; \} catch/.test(ss), 'de opslag wordt veilig gelezen');
+  ok(/extraDone && tilesReady/.test(ss), 'de poort wacht ook op de tegels rond de eerste plek');
+  ok(/registerShots\(\[\{ at: \[spot\.x, spot\.y\] \}\]/.test(ss) && /map\.releaseShots\(\)/.test(ss), 'de tegels rond een plek worden vastgehouden en bij het starten losgelaten');
+  ok(/tilesReady && sp\.buildings \+ sp\.roads === 0/.test(ss) && /BLACK_MAX_S = 8/.test(ss), 'een wissel wacht (hoogstens 8 s) tot de tegels en gebouwen er zijn');
+  const mainSrc = read('game/js/main.js');
+  ok(/planMenuStart\(map\)/.test(mainSrc) && /import \{[^}]*planMenuStart[^}]*\} from '\.\/startscreen\.js'/.test(mainSrc), 'main.js plant de eerste plek tijdens het laden');
   ok(!/rain: 0\.[0-9]|kind: 'storm'/.test(ss.slice(ss.indexOf('const SHOT_WEATHER'), ss.indexOf('const EXTRA_SPOTS'))), 'achter het menu regent het niet (zomerlicht)');
   ok(!/Math\.PI \* 2\) \+ '|sneeuw|winter/i.test(read('game/js/menuplekken.js')), 'geen winter in de plekken');
 }

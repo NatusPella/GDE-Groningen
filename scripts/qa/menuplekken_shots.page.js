@@ -34,8 +34,8 @@ for (const id of ids) {
       let rustig = 0;
       for (let i = 0; i < 150 && rustig < 3; i++) {
         await sleep(400);
-        const s = window.__menuPlekken.stand().wacht;
-        rustig = s.buildings + s.roads === 0 && !s.ahead ? rustig + 1 : 0;
+        const st = window.__menuPlekken.stand(), s = st.wacht;
+        rustig = st.tegels && s.buildings + s.roads === 0 && !s.ahead ? rustig + 1 : 0;
       }
       rec.wacht_ms = Math.round(performance.now() - tw);
       while (window.__menuPlekken.stand().t < cfg.t) await sleep(200);
