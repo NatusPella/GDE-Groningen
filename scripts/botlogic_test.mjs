@@ -177,6 +177,8 @@ const near = (a, b, e = 1e-6) => Math.abs(a - b) < e;
   ok(L.decide(onBike, { boardTries: 4 }).type === 'goto', 'board-stage op een fiets: opgeven na vier keer');
   ok(L.decide({ ...onBike, player: { ...onBike.player, vehicle: null } }, { boardWalkUntil: -1 }).vehicle.kind === 'auto', 'board-stage te voet: motorvoertuig boven de fiets');
   ok(L.decide({ ...b(), mission: { active: true, stage: 'hold' }, target: { x: 1, y: 0, distance: 1 } }).type === 'wait', 'hold-stage: stilstaan in de ring');
+ok(L.decide({ ...b(), mission: { active: true, stage: 'hold' }, target: { x: 5, y: 0, distance: 5 } }).type === 'wait', 'hold-stage: ook op 5 m (de ring is 9 m) blijft hij staan');
+ok(L.decide({ ...b(), mission: { active: true, stage: 'hold' }, target: { x: 8, y: 0, distance: 8 } }).type === 'goto', 'hold-stage: buiten 5,5 m loopt hij naar de ring');
   const planS = { ...b(), mission: { active: true, stage: 'plan' }, target: { x: 1, y: 0, distance: 1 } };
   const pm = {};
   ok(L.decide(planS, pm).key === 'a' && pm.planTries === 1, 'plan-stage: A kiezen');

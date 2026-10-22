@@ -371,8 +371,9 @@ export function decide(s, mem = {}) {
   }
   // the plan panel of a heist (M06 'Kies met A of S'): take the first way in
   if (stage === 'plan' && (mem.planTries || 0) < 3) { mem.planTries = (mem.planTries || 0) + 1; return { type: 'press', key: 'a', why: 'plan' }; }
-  // a hold stage (stand still in the ring): stop walking once inside
-  if (stage === 'hold' && t.distance <= 3.5) return { type: 'wait', why: 'vasthouden' };
+  // a hold stage (stand still in the ring): stop walking once inside (the ring is 9 m wide: closer than 5.5 m counts, M26: after a firework hit the bot
+  // kept walking to 3.5 m, and the wedge sidesteps took it out of the ring again, 135 s for a 30 s stage)
+  if (stage === 'hold' && t.distance <= 5.5) return { type: 'wait', why: 'vasthouden' };
   // at the shop the story sent us to: a shop opens for someone on foot, so get off the bike or out of the car at the door
   if (veh && !veh.plane && t.source === 'winkel' && t.distance < 25 && Math.abs(veh.speed || 0) < 3 && (mem.vehTries || 0) < 6) { mem.vehTries = (mem.vehTries || 0) + 1; return { type: 'press', key: 'e', why: 'uitstappen' }; }
   if (veh && veh.plane) return { type: 'fly' };
