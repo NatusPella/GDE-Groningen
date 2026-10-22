@@ -90,7 +90,7 @@ export function updateMachinist(dt, world, t) {
     if (!svc.paid) {
       svc.paid = true;
       const pay = payFor(r, svc.abandoned);
-      const betaald = loopbaanVerdien(world, 'trein', pay, { xp: pay > 0 ? Math.round(r.made * 4 + r.medal * 8) : 0, n: 0, uniek: 'machinist' }); // samen spelen (#365), loopbaan (#381)
+      const betaald = loopbaanVerdien(world, 'trein', pay, { xp: pay > 0 ? Math.round(r.made * 4 + r.medal * 8) : 0, n: 0, uniek: pay > 0 ? 'machinist' : null }); // samen spelen (#365), loopbaan (#381)
       if (betaald > 0) world.addMessage(`Dienst betaald: €${betaald}`, 3);
     }
     board.set({

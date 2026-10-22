@@ -40,7 +40,7 @@ const teleport = (x, y) => {
 const shot = async (name, wait = 1200) => { await sleep(wait); console.log('[capture] ' + name); await sleep(600); };
 const done = [`viewport ${innerWidth}x${innerHeight} dpr ${devicePixelRatio} ui ${getComputedStyle(document.documentElement).getPropertyValue('--ui')}`];
 const info = [];
-const TABS = [['overzicht'], ['todo'], ['map'], ['telefoon'], ['verhaal'], ['spullen'], ['garage'], ['prestaties'], ['settings'], ['controls'], ['fotos']];
+const TABS = [['overzicht'], ['todo'], ['map'], ['telefoon'], ['verhaal'], ['spullen'], ['garage'], ['prestaties'], ['loopbaan'], ['settings'], ['controls'], ['fotos']];
 const SUBS = { todo: ['verhaal', 'alles'], telefoon: ['contacten', 'berichten'], verhaal: ['personages', 'aanwijzingen'], settings: ['video', 'sound', 'camera', 'display', 'a11y'], controls: ['toetsen', 'knoppen', 'overzicht', 'hulp'] };
 const meet = () => {
   const root = document.querySelector('#pause-menu .pm-sheet, #pause-menu') || document.body;
