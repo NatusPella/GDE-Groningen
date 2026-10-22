@@ -6,6 +6,7 @@
 // - #371 gelukt of mislukt: ook bij knock-out, arrestatie en afbreken, met het deel van de gast in de tekst
 // - #367 roepjes: toetsen, geluid bij de ontvanger, een afzender kan zich niet voor een ander uitgeven, een eigen
 //   afkoeltijd per afzender, het maximum, en de tekenaars (wereld, minimap, kaart) lezen dezelfde markeringen
+// - elke eis ook met 8 en 16 spelers (MAX_PLAYERS in net/codec.js), en een 17e speler wordt netjes geweigerd
 // De meerspelertest met echte TCP-verbindingen staat in scripts/coop/gaten_tcp_test.mjs.
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -21,9 +22,9 @@ const INFO = N.handshakeInfo({ tiles: 'abc', story: 'oud' });
 const toets = () => { const s = new Set(); return { s, wasPressed: (k) => s.delete(k), isDown: () => false, axis: () => [0, 0] }; };
 const mkWorld = (extra = {}) => ({ player: { x: 0, y: 0, angle: 0, character: 'tammo', vx: 0, vy: 0 }, companion: { x: 1, y: 1, angle: 0, character: 'anita' }, coop: { local: true }, money: 0, wanted: 0, camYaw: 0, time: 0, clock: 12, messages: [], addMessage(m) { this.messages.push(m); }, input: toets(), ...extra });
 
-function avond(gasten = 3, hostExtra) {
+function avond(gasten = 3, hostExtra, max) {
   const hw = mkWorld(hostExtra), gs = [];
-  N.startHost(hw, INFO, { seed: 5 });
+  N.startHost(hw, INFO, { seed: 5, max });
   const sluit = (i, wens) => {
     const link = createLink({ latency: 0.03, jitter: 0.01, loss: 0, seed: 11 + i * 7 });
     N.addGuest(hw, link.a);
@@ -184,6 +185,52 @@ t('#367: wereld, minimap en kaart tekenen dezelfde markeringen', () => {
   assert.match(bron('mapview.js'), /world\.coopPingMarks/, 'kaart');
   assert.match(bron('cooppings3d.js'), /world\.coopPingMarks/, 'baken in de wereld');
   assert.match(bron('main.js'), /syncPings\(world\)/, 'elke frame');
+});
+
+// ------------------------------------------------------------------ meer dan vier spelers
+for (const spelers of [8, 16]) {
+  t(`${spelers} spelers: beloning, neergaan, uitslag en roepjes werken voor iedereen`, () => {
+    const s = avond(spelers - 1, undefined, spelers); s.step(4);
+    const gw = s.gs.map((g) => g.gw);
+    assert.equal(s.hw.coopRoster.length, spelers); assert.ok(gw.every((w) => w.coopRoster.length === spelers && w.coopPartners.length === spelers - 1 && w.coopNet.session.status === 'ok'), 'iedereen ziet iedereen');
+    assert.equal(new Set(s.hw.coopRoster.map((r) => r.naam)).size, spelers, 'ieder een eigen naam');
+    assert.equal(new Set(s.hw.coopRoster.map((r) => r.kleur)).size, spelers, 'en een eigen kleur');
+    // #365
+    assert.equal(N.deelMetGasten(s.hw, 1001), spelers - 1); s.step(1.5);
+    assert.ok(gw.every((w) => w.money === 500 && w.coopVerdiend === 500), 'elke gast de helft');
+    // #371
+    s.hw.coopUitslag(true, 'Het Loket', '', 1000); s.hw.coopUitslag(false, 'De Kluis', 'neergeslagen', 0); s.step(1.5);
+    for (const w of gw) { assert.match(w.messages.join(' '), /Het Loket gelukt! Tammo en jij hebben het samen gedaan. Jouw deel: €500./); assert.match(w.messages.join(' '), /De Kluis mislukt: neergeslagen/); }
+    // #369
+    s.hw.pendingRespawn = { busted: true }; s.step(1.5);
+    for (const w of gw) { assert.equal(aantal(w, /Tammo is door de politie gepakt/), 1); assert.equal(w.coopPartners.find((p) => p.naam === 'Tammo').status, 'neer'); }
+    s.hw.pendingRespawn = null; s.hw.companion.state = 'dead'; s.step(1.5);
+    assert.equal(aantal(gw[0], /Je bent geraakt/), 1); assert.equal(gw.slice(1).filter((w) => aantal(w, /Je bent geraakt/)).length, 0, 'alleen Tessa hoort dat');
+    assert.ok(gw.slice(1).every((w) => w.coopPartners.find((p) => p.naam === 'Tessa').status === 'neer'));
+    s.hw.companion.state = 'alive'; s.step(1);
+    // #367: iedereen roept tegelijk en elke speler ziet alle anderen (en zichzelf) terug op de kaart
+    for (const w of [s.hw, ...gw]) { w.audioEvents = []; w.messages.length = 0; w.input.s.add('7'); }
+    s.step(2);
+    for (const w of [s.hw, ...gw]) {
+      assert.equal(w.coopPingMarks.length, spelers, 'een baken per speler bij ' + w.player.character);
+      assert.equal(new Set(w.coopPingMarks.map((m) => m.naam)).size, spelers, 'elk met een eigen naam');
+      assert.equal(w.audioEvents.length, spelers - 1, 'een pling per ander, niet voor jezelf');
+    }
+    assert.equal(aantal(gw[spelers - 2], /^(?!Je riep)[^:]+: Kom hier$/), spelers - 1, 'en een regel per ander');
+    s.step(10); assert.ok([s.hw, ...gw].every((w) => w.coopPingMarks.length === 0), 'na een tijdje weer weg');
+  });
+}
+
+t('een 17e speler wordt netjes geweigerd en de rest merkt niets', () => {
+  const s = avond(15, undefined, 16); s.step(4);
+  assert.equal(s.hw.coopRoster.length, 16);
+  const extra = s.sluit(15, 'daan'); s.step(4);
+  assert.equal(s.hw.coopRoster.length, 16, 'de lijst blijft 16');
+  assert.equal(extra.gw.coopNet, null, 'de 17e speelt weer in zijn eigen spel'); assert.ok(extra.gw.coopWeigering, 'met een reden: ' + extra.gw.coopWeigering);
+  assert.ok(s.gs.slice(0, 15).every((g) => g.gw.coopNet && g.gw.coopNet.session.status === 'ok'));
+  s.hw.coopDeel(100); s.step(1);
+  assert.ok(s.gs.slice(0, 15).every((g) => g.gw.money === 50) && extra.gw.money === 0, 'wie geweigerd is krijgt niets');
+  assert.equal(N.setMaxPlayers(s.hw, 99), 16, 'het maximum is 16');
 });
 
 console.log(`coopgaten_test: ${n}/${n} ok`);
