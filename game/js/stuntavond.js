@@ -3,8 +3,10 @@
 // over (parasols, kliko's, cardboard boards put out for the evening), with
 // drifts and near misses, with every pigeon flock you send up and once with
 // the council's water truck, which sprays the terrace when you nudge it.
-// Points chain into a combo; hitting someone costs points and the combo
-// ("Chat vindt dat niet leuk") and never kills them (world.stuntSafe,
+// Points chain into a combo. Everything else on the square that you ride over
+// scores too (omverrules.js STUNT_PUNTEN: bins, bikes, benches, tables ...).
+// Hitting someone costs nothing (#392: people are always in the way) and never
+// kills them: they get knocked over like in a cartoon (world.stuntSafe,
 // pedestrians.js). missions.js runs it as def type 'stunt'.
 
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
@@ -13,13 +15,14 @@ import { Vehicle } from './vehicle.js';
 import { spawnFxPuff } from './fx3d.js';
 import { isCinematicActive } from './cinematics.js';
 import { showStuntHud, hideStuntHud, updateStuntHud, stuntPopup } from './stunthud.js';
+import { onPropBreak, propsInRadius } from './breakables.js';
+import { stuntPunten } from './omverrules.js';
 
 let sceneMod = null;
 import('./scene3d.js').then((m) => { sceneMod = m; }).catch(() => {});
 
 const COMBO_S = 4;
 const COMBO_MAX = 5;
-const HIT_COST = 250;
 const NEAR_MISS = 40;
 const DRIFT_PER_S = 60;
 const FLOCK = 120;
@@ -34,13 +37,7 @@ const EXTRA = [
   { kind: 'table', label: 'terrastafel', pts: 70, n: 8, opts: { r: 0.38, h: 0.8, mass: 14, material: 'metal', breakSpeed: 0.4, breakCost: 0 } },
 ];
 KINDS.push(...EXTRA);
-const SAY_HIT = ['Chat vindt dat niet leuk.', 'Niemand raken, zei ik!', 'Au. Strafpunten.'];
 const SAY_COMBO = ['Combo!', 'Chat gaat los!', 'Dik feest!'];
-// what the brief lists, in this order (stunthud.js)
-const RULES = [
-  ['Parasol omver', 120], ['Kliko omver', 80], ['Reclamebord omver', 60], ['Terrasstoel omver', 40], ['Terrastafel omver', 70], ['Duivenzwerm de lucht in', FLOCK],
-  ['Waterwagen laten sproeien (één keer)', SPRAY], ['Rakelings langs iemand', NEAR_MISS], ['Driften, per halve seconde', DRIFT_PER_S / 2],
-];
 // the target never asks more than this share of what the square holds, combos not counted
 const REACH_SHARE = 0.55;
 const LATE_HINT_S = 30;
@@ -109,9 +106,12 @@ export function startStunt(w, { center, radius = 45, target = 1500 } = {}) {
   group.name = 'stuntavond';
   if (scene) scene.add(group);
   const id = ++seq;
-  run = { center, radius, target, score: 0, combo: 1, lastAt: -99, saidCombo: 0, events: 0, hits: 0, broken: 0, flocks: new Set(), props: [], group, drift: 0, near: new WeakSet(), lastHit: w.lastPedHitAt || -1, sprayed: false, sprayT: 0, truck: null };
+  run = { center, radius, target, score: 0, combo: 1, lastAt: -99, saidCombo: 0, events: 0, broken: 0, flocks: new Set(), props: [], group, drift: 0, near: new WeakSet(), unlisten: null, sprayed: false, sprayT: 0, truck: null };
   // the props for the evening, on open ground round the square
-  const open = (x, y) => (!w.map.isOpenSpot || w.map.isOpenSpot(x, y)) && !w.map.buildingsNear(x, y, 0.8).length;
+  // open ground (isOpenSpot knows the footprints), not hard against a wall, and not inside another prop. Until #392 this also asked
+  // for no building within 0.8 m by bounding box, which is never true on the Grote Markt: the evening's own props never stood there.
+  const free = (x, y) => !w.map.isOpenSpot || w.map.isOpenSpot(x, y);
+  const open = (x, y) => free(x, y) && free(x + 0.9, y) && free(x - 0.9, y) && free(x, y + 0.9) && free(x, y - 0.9) && !propsInRadius(x, y, 1.1).length;
   let k = 0;
   for (const spec of KINDS) {
     let placed = 0;
@@ -152,12 +152,22 @@ export function startStunt(w, { center, radius = 45, target = 1500 } = {}) {
   const avail = run.props.reduce((n, p) => n + KINDS.find((q) => q.kind === p.kind).pts, 0) + (run.truck ? SPRAY : 0);
   if (avail && run.target > avail * REACH_SHARE) run.target = Math.max(500, Math.floor((avail * REACH_SHARE) / 50) * 50);
   w.stuntSafe = { x: center.x, y: center.y, r: radius + 25 };
-  showStuntHud(run.target, RULES, { hitCost: HIT_COST, comboMax: COMBO_MAX, comboS: COMBO_S });
+  // the square's own street furniture counts too, not only what the evening put out (#392)
+  const mine = run;
+  run.unlisten = onPropBreak((p, hit) => {
+    if (run !== mine || !hit || !hit.byPlayer || !hit.heavy || p.key.startsWith('stunt')) return;
+    const s = stuntPunten(p.kind);
+    if (!s || Math.hypot(p.x - center.x, p.y - center.y) > radius + 10) return;
+    mine.broken++;
+    addPoints(w, s.pts, s.label);
+  });
+  showStuntHud(run.target);
   return true;
 }
 
 export function stopStunt(w) {
   if (!run) return;
+  if (run.unlisten) run.unlisten();
   for (const p of run.props) removeProp(p);
   run.group.removeFromParent();
   disposeGroup(run.group);
@@ -179,22 +189,10 @@ export function updateStunt(dt, w, timeLeft = Infinity) {
   updateStuntHud(dt, { score: R.score, target: R.target, combo: R.combo, comboLeft: Math.max(0, 1 - (w.time - R.lastAt) / COMBO_S), timeLeft }, isCinematicActive());
   if (!R.lateHint && timeLeft <= LATE_HINT_S && R.score < R.target) {
     R.lateHint = true;
-    w.addMessage(`Nog ${R.target - R.score} punten in ${LATE_HINT_S} seconden! Parasols, tafels en kliko's leveren het meest op.`, 4, { kind: 'missie', key: 'stunt-late' });
+    w.addMessage(`Nog ${R.target - R.score} punten in ${LATE_HINT_S} seconden! Parasols, tafels en bankjes leveren het meest op.`, 4, { kind: 'missie', key: 'stunt-late' });
   }
   const p = w.player, v = p.inVehicle;
   const inZone = Math.hypot(p.x - R.center.x, p.y - R.center.y) < R.radius + 10;
-  // someone got hit: points off, the combo gone (pedestrians.js keeps them alive)
-  if ((w.lastPedHitAt || -1) !== R.lastHit) {
-    R.lastHit = w.lastPedHitAt;
-    if (inZone) {
-      R.hits++;
-      R.score = Math.max(0, R.score - HIT_COST);
-      R.combo = 1;
-      R.lastAt = -99;
-      w.addMessage(`${SAY_HIT[R.hits % SAY_HIT.length]} -${HIT_COST}`, 2, { kind: 'gevaar', key: 'stunt' });
-      stuntPopup(`-${HIT_COST} iemand geraakt`, 'bad');
-    }
-  }
   if (v && !v.isBoat && inZone) {
     // drifting through the square
     const slip = Math.hypot(v.driftX || 0, v.driftY || 0);
@@ -238,5 +236,5 @@ export function updateStunt(dt, w, timeLeft = Infinity) {
 
 export function stuntStatus() {
   if (!run) return null;
-  return { score: run.score, target: run.target, combo: run.combo, hits: run.hits, broken: run.broken, flocks: run.flocks.size, sprayed: run.sprayed };
+  return { score: run.score, target: run.target, combo: run.combo, broken: run.broken, props: run.props.length, flocks: run.flocks.size, sprayed: run.sprayed };
 }
