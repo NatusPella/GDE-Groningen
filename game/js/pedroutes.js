@@ -634,7 +634,9 @@ function followLeader(ped, world, dt) {
     if (seat) { goSit(ped, world, seat, false, true); return true; }
   }
   const side = ped.pairSide || 1;
-  const tx = L.x - Math.sin(L.angle) * PAIR_SPACING * side, ty = L.y + Math.cos(L.angle) * PAIR_SPACING * side;
+  // een groepje (vrijgezellen.js) loopt in een brokje: pairK keer de afstand opzij en pairBack meter erachter; een paar heeft geen van beide
+  const k = ped.pairK || 1, back = ped.pairBack || 0;
+  const tx = L.x - Math.sin(L.angle) * PAIR_SPACING * side * k - Math.cos(L.angle) * back, ty = L.y + Math.cos(L.angle) * PAIR_SPACING * side * k - Math.sin(L.angle) * back;
   const d = dist(ped.x, ped.y, tx, ty);
   if (!L.speed && d < 0.6) {
     ped.speed = 0;
