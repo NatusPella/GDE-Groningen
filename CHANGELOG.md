@@ -6,6 +6,9 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Nieuw
+- **Lijnbus: de dienst overnemen, ook van een gekaapte bus (#396; door een bot gespeeld en in Electron door Claude in beeld bekeken, niet door een mens):** rij je een lijnbus, dan staat onder het kaartje "volgende halte" nu ook **G Dienst overnemen**. G start de bijbaan Streekbus op de lijn, de richting en de eerstvolgende halte van die bus: de rit loopt meteen, reizigers die al aan boord zitten blijven zitten en tellen niet voor het loon, en de klok gaat mee met het stuk dat de bus al gereden heeft. Wie de bus kaapte en daarna G drukt, krijgt geen aangifte van de bestuurder meer: je rijdt als buschauffeur. Zonder G rij je gewoon rond. Op een controller is er nog geen knop voor.
+
 ### Opgelost (samen spelen, playtest 22-10 met meerdere mensen, #388; getest met bots en één Electron-gast tegen een gescripte gastheer, niet door mensen gespeeld)
 - **Samen spelen: de camera van een gast draait weer met de muis:** een gast draait de wereld niet zelf, en daarmee ook niet het stukje dat de camerahoek bijhoudt; de camera stond dus vast. Nu draait hij mee, ook ingezoomd (langzamer).
 - **Samen spelen: niemand deelt nog een camera:** de camera keek vanuit het midden tussen twee spelers en stond daardoor verder weg en scheef. Elke speler heeft een eigen camera.
