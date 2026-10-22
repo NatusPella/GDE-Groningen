@@ -1,8 +1,11 @@
 // De échte benchmark in Electron (#159): een page-script start hem vanaf het titelscherm met hetzelfde event als de knop (gde-benchmark,
 // de route van de speler: BENCH_ROUTE), alleen in een testrun met GDE_MENU_TEST; een speler start hem zelf. Het page-script leest de kaart.
-//   node scripts/qa/benchmark_run.mjs [--modus=kaart|annuleer|vergelijk] [--out=<map>] [--max=900]
+//   node scripts/qa/benchmark_run.mjs [--modus=kaart|annuleer|annuleer-pad|vergelijk] [--out=<map>] [--max=900]
 //   kaart:    een volledige run, de kaart met echte cijfers wordt vastgelegd (screenshot + tekst + knoppen)
 //   annuleer: na 20 s een Escape; de overlay hoort weg te zijn en er hoort geen kaart te komen
+//   annuleer-pad: hetzelfde met knop B van een nagebootste controller (--knop=9: Start; #379)
+//   --heapprof=<ms>: de levende objecten aan het eind van die tijd per aanroepplek (HeapProfiler, desktop/devtools.js), naar de log
+//   --heap [--gc]: legt de JS-heap vast (elke 10 s; met --gc ook na een gedwongen GC, #379)
 //   vergelijk: een run, daarna "Nog een keer": de tweede kaart hoort de vorige run te noemen
 // Eén Electron (slot uit gde-locks, wegwerpprofiel, BelowNormal). GDE_GAME_DIR=<map>\game en ELECTRON_EXE als de worktree geen build heeft.
 // Uitvoer: <out>/result.json, run.log (met de [trailer]-regels per shot), shots-*.png.
@@ -36,7 +39,7 @@ if (fs.existsSync(LOCKS) && !process.argv.includes('--geen-slot')) {
 
 const profile = `gde-test-bm-${process.pid}`;
 const script = path.join(OUT, '_page.js');
-fs.writeFileSync(script, `window.__bm = ${JSON.stringify({ modus: MODUS, maxS: MAX })};\n` + fs.readFileSync(path.join(HERE, 'benchmark_run.page.js'), 'utf8'));
+fs.writeFileSync(script, `window.__bm = ${JSON.stringify({ modus: MODUS, maxS: MAX, knop: Number(arg('knop', 1)), heap: process.argv.includes('--heap'), heapprof: Number(arg('heapprof', 0)), gc: process.argv.includes('--gc') })};\n` + fs.readFileSync(path.join(HERE, 'benchmark_run.page.js'), 'utf8'));
 const electron = process.env.ELECTRON_EXE || path.join(ROOT, 'desktop', 'node_modules', 'electron', 'dist', process.platform === 'win32' ? 'electron.exe' : 'Electron');
 // GDE_MENU_TEST: het spel blijft op het titelscherm; de pagina start de benchmark daar zoals de knop dat doet (event gde-benchmark, de route 'bench').
 // --dev-vlag: `--benchmark` zou de lange trailerroute ('vol') draaien, niet de route van de speler.
@@ -45,7 +48,7 @@ delete env.ELECTRON_RUN_AS_NODE;
 let out = '';
 try {
   const child = spawn(electron, ['.', '--windowed', '--stil', '--force-device-scale-factor=1', '--window-size=1600x900',
-    `--smoke-test=${path.join(OUT, 'shots.png')}`, `--perf-script=${script}`], { cwd: path.join(ROOT, 'desktop'), env });
+    `--smoke-test=${path.join(OUT, 'shots.png')}`, `--perf-script=${script}`, ...(process.argv.includes('--gc') ? ['--js-flags=--expose-gc'] : [])], { cwd: path.join(ROOT, 'desktop'), env });
   try { os.setPriority(child.pid, os.constants.priority.PRIORITY_BELOW_NORMAL); } catch { /* geen rechten */ }
   child.stdout.on('data', (d) => { out += d; });
   child.stderr.on('data', (d) => { out += d; });

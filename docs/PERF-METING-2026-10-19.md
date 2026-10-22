@@ -598,4 +598,70 @@ node scripts/perf/callees.mjs <profiel> setProgram --n=14
 PERF_ONLY=s13walk node scripts/perf/run.mjs <naam> "--preset=quality:hoog,shadows:true,drawDistance:heelver,resolution:1,autoResolution:false"
 PERF_S13IMG='losgroepen,schaduwbereik,dieptevarianten' PERF_ONLY=s13img node scripts/perf/run.mjs <naam> <voorinstelling>
 PERF_AB_NODRAW=1 PERF_AB_RENDERAB='oud=losgroepen+schaduwbereik;nieuw=' PERF_ONLY=renderab node scripts/perf/run.mjs <naam> <voorinstelling>
+
+## Vervolg 13: de geometrie-worker is niet de rem; de wegenkaart laadt eerder en de tegels laten los (s5, #247, #379, #4)
+
+**Uitkomst:** de worker loopt bij snel reizen niet achter (hij is 9% van de tijd bezig). De 11 tot 26 s van het issue is het eenmalige `roadInit` bij het opstarten, en dat is nu 8,4 s eerder klaar. Wat bij het reizen wel groeit is het geheugen: het tegelbudget telde ruwe bytes terwijl een gedecodeerde tegel 26 keer zo groot op de heap is, zodat er nooit een tegel losgelaten werd. De machine was bij alle runs vol (CPU 77 tot 100%, 4 tot 9 Electron-processen, 0,3 tot 2,4 GB vrij): de frametijden (A7 120 tot 180 ms) zeggen niets, de tellingen en de gepaarde koude starts wel.
+
+### 1. Wat de worker doet (A7, 60 s, `geoStats.byKind`, nu met `execMs`: de eigen rekentijd van de kernel in de worker)
+
+| soort | jobs | rekentijd totaal | gem. per job | langste | ronde gem. | ronde langste |
+|---|---:|---:|---:|---:|---:|---:|
+| `roadGeo` | 1308 | 2,6 s | 2,0 ms | 126 ms | 146 ms | 3,4 s |
+| `shore` | 252 | 2,3 s | 9,3 ms | 291 ms | 174 ms | 3,4 s |
+| `cityMerge` | 232 | 0,4 s | 1,8 ms | 27 ms | 154 ms | 5,4 s |
+| `roadInit` (eenmalig) | 1 | 8,0 s | | | 42 s | |
+
+Samen 5,3 s rekenen in 60 s: de worker is 9% bezet. Het verschil tussen rekentijd en ronde (146 ms tegen 2 ms) is wachten op de hoofdthread die het antwoord afneemt (`waitMax` per soort, bij 99% CPU tot 3,4 s). Een prioriteitswachtrij of annuleren van verouderd werk in de worker heeft dus niets te winnen: er is geen wachtrij. Het plafond van 8 `roadGeo`-jobs (x2) en de twee workers (r8b) blijven genoeg.
+
+### 2. `roadInit`: de wegenkaart laadt bij het opstarten (`roadPreload`)
+
+`roadInit` laadde de eigen kaart van de worker pas bij het eerste `syncRoads`, kort na het titelscherm, en de wegen kwamen tot dan van de hoofdthread. Nu begint de worker al in `boot()` (`preloadRoadWorker()`, `roadPreload` laadt de tegelwereld) en snoeit `roadInit` die kaart alleen nog op de sleutels. `?perfoff=wegvoorlaad` is het oude gedrag. Vier afwisselende koude starts (`PERF_ONLY=wegenklaar`, tijd van het titelscherm tot de wegenkaart klaar, `roadsReady`):
+
+| | uit | aan |
+|---|---|---|
+| ronde 1 tot 4 | 31,4 / 26,1 / 29,5 / 25,1 s | 19,1 / 18,7 / 19,9 / 20,5 s |
+| gemiddeld | 28,0 s | 19,6 s (-8,4 s) |
+| rekentijd `roadInit` | 3,7 tot 5,1 s | 0,4 tot 0,8 s |
+
+De 19 s die blijft is geen werkertijd: `roadInit` rekent 0,4 tot 0,7 s en het antwoord wacht 20 tot 21 s op een hoofdthread die bij het opstarten bezet is (`roadsReady` valt samen met de `menu`-markering). Op een rustige machine is het dus korter; dat is niet gemeten. Een echte trein of auto die direct na het opstarten gaat rijden is niet gemeten.
+
+### 3. Waar de hoofdthread bij het reizen blijft (CPU-profiel A7, 9,6 s)
+
+Streamen en geometrie is 12,4% van de bezette hoofdthread; daarbinnen `getProgramParameter` 8,1% (672 ms van 718 via `setProgram` naar `getUniforms`: een programma dat bij het eerste tekenen nog linkt), `makeBuildingMesh` 2,3% (223 ms) en `syncBuildingsPass` 3,6% inclusief dat bouwen. De linkwacht (`scene3d.js` `LINK_GUARD_AFTER`, 600 getekende frames) stond in deze runs niet aan: `canvasFrames` was 61 bij de start van de route en 382 aan het eind. Op een machine die 10 fps haalt duurt het dus een minuut voor de wacht werkt; op een gezonde machine (60 fps) 10 s. Niet veranderd, wel de volgende kandidaat. Trage tekenaanroepen (`PERF_DEPTH=1`, aanroepen boven 3 ms in `renderBufferDirect`): 2,2 s in 60 s, de langste 740 tot 766 ms (een poolmateriaal en een onbenoemde mesh zonder programma). De stroomsonde (`res.stream`) laat zien dat de detailstraal van gebouwen op deze machine 64 tot 81% van `DRAW_DIST` bleef (gemiddeld 78 tot 130 gebouwen wachten, hooguit 400) en die van wegen op 100%: de gebouwen zijn het deel dat achterblijft, op de hoofdthread.
+
+### 4. Geheugen (#379): de tegels
+
+- **De heap van de benchmark is echt.** `benchmark_run.mjs --heap --gc` (nieuw: de heap elke 10 s, met en zonder gedwongen GC): 597 tot 640 MB bij het titelscherm, 1,28 tot 1,50 GB aan het eind van de run, na de GC 1 tot 6% lager dan zonder: het is dus levende data, geen afval. De tweede run (`--modus=vergelijk`) eindigt 3% hoger dan de eerste (1445 tegen 1398 MB na de GC): de benchmark groeit niet van run tot run. De 1,5 tot 2,4 GB uit het issue is dezelfde heap zonder GC en na langere sessies.
+- **Een tegel is 26 keer zijn ruwe grootte** (`scripts/perf/tilemem.mjs`, Node, na GC): de vaste stad (100 tegels, 14 MB ruw) 328 MB, daarna 590 tot 790 kB per gestreamde tegel, 24,4 tot 26,3 keer het ruwe formaat, constant tot 400 tegels. Het levende-objectenprofiel van een benchmark-run (`--heapprof=200000`, alleen wat aan het eind nog leeft; 294 MB gesampled) zegt hetzelfde: de tegeldecodering (`tilestore.js` onmessage 99 MB, `tileworld.js` rowsOf 43 MB, addTile en de rasters 40 MB) is ~60% van de groei, de rest zijn three-objecten en gebouwmodellen.
+- **Het budget was nooit bereikt.** `TileStore.budgetBytes` was 150e6 ruwe bytes, de hele provincie (2930 tegels) is 92 MB ruw: in geen enkele run is een tegel losgelaten (`evictions: 0`) en een lange reis hield elke tegel vast, tot ~1,9 GB tegeldata voor de hele provincie. Nu 40e6 (de vaste stad 14e6 plus ~830 tegels, ~530 MB heap, als harde grens; vanaf 20e6 gaan de tegels buiten de gewenste ring als eerste).
+- **Gemeten** (`scripts/perf/streamdrive.mjs`, 172 km: de A7 heen en terug en de spoorlijn naar de Eemshaven heen en terug, 33 m/s, virtuele klok, echte tegels van schijf, 20 Hz):
+
+| | budget 150e6 (oud) | budget 40e6 (nieuw) |
+|---|---:|---:|
+| tegels te laat (binnen 250 m niet binnen) | 0 | 0 |
+| tegels geladen | 499 | 679 (+180 herladen op de terugweg) |
+| tegels verwijderd | 0 | 424 |
+| tegels binnen aan het eind | 499 | 255 |
+| JS-heap aan het eind | 785 MB | 481 MB (-39%; zonder de vaste stad 457 naar 153 MB, -67%) |
+
+  In de benchmark zelf verandert het niets (max na GC 1423 / 1373 MB oud tegen 1495 / 1458 MB nieuw, aan het eind 1366 / 1283 tegen 1390 / 1400 MB, binnen de ruis van de runs): 11 shots in 42 s laten geen tegel lang genoeg ongebruikt (10 s buiten de ring) om te vervallen. Het budget beschermt lange sessies, niet de benchmark.
+- **Loslaten kostte meer dan laden, en is nu goedkoop.** Met het nieuwe budget laat de store echt tegels los (283 in een A7-run van 60 s), en `TileWorld.dropTile` liep over elke rij van de hele wereld (alle `_res`-kaarten): p50 24 ms per tegel, p95 81, hoogste 730 ms (Node, 424 tegels, 14,2 s in totaal; in Electron op de A7 4,7 s in 283 stukken, 56 stukken boven 20 ms, hoogste 212 ms). Nu houdt `addTile` per tegel de lijst van zijn rijen bij en bezoekt `dropTile` alleen die (`world.scanDrops = true` is de oude manier): p50 1,5 ms, p95 10 ms, totaal 1,3 tot 1,7 s (Node), en in Electron op de A7 1,5 s in 276 stukken, hoogste 73 ms, 9 boven 20 ms. De wereld na de rit is identiek (digest van rijen en rasters per soort, `streamdrive.mjs` met en zonder `--scan`, en `tiledrop_test`).
+- **`addTile` blijft het grootste stuk** (Electron A7: 403 stukken, 5,4 s, gemiddeld 13,5 ms, 85 boven 20 ms, 14 boven 50 ms, hoogste 531 ms; Node: p50 4,5 ms, p95 26 tot 50 ms): in het CPU-profiel van Node is 45% daarvan `markDryRoad` (2,8 van 6,3 s: elke nieuwe weg per 2 m bemonsteren tegen de waterpolygonen in zijn bbox), 11% `rowsOf` en 10% `extendElevation`. Niet aangepakt; de luisteraars (verre LOD, kanopieën, beweegbare bruggen) komen in Electron nog bovenop. Dit is de eerstvolgende hakker voor #247: een tegel in twee wachtrijstukken splitsen (rijen invoegen, dan de markeringen en luisteraars) of `markDryRoad` met een polygoon-segmenttest versnellen.
+- Niet gedaan: de tegelrijen als typed arrays in plaats van objecten (het grote ontwerp; haalt de 26 keer omlaag); de basis van 600 MB bij het titelscherm uitzoeken (de vaste stad is 328 MB daarvan).
+
+### 5. Controller en balansrun (#379)
+
+- Annuleren met knop B getest: `benchmark_run.mjs --modus=annuleer-pad` (nagebootste controller via `navigator.getGamepads`, knop 1 na 20 s; `--knop=9` is Start): de annuleerknop stond in beeld, na het indrukken was de overlay weg en er kwam geen kaart (`fouten: []`). Met een echte controller niet geprobeerd.
+- De balansmeting met de retry-regel en `--part=all` (doorlopend) is niet gedraaid: dat is een run van het spelbotscript van uren, niet van deze ronde.
+
+### Herhalen
+
+```
+GDE_PREBUILT_WORLD=<bestaande build>/game/world GDE_STAGE_OUT=<map>/game node desktop/build.mjs
+PERF_ONLY=wegenklaar node scripts/perf/run.mjs <naam> "--preset=..."   # koude start; --url-flags=perfoff=wegvoorlaad is het oude gedrag
+PERF_ONLY=a7 PERF_DEPTH=1 node scripts/perf/run.mjs <naam> ...           # res.stream (stroomsonde), geo.byKind (execMs, waitMax), slowDraws
+node --expose-gc scripts/perf/tilemem.mjs <map met world/>               # heap per tegel
+node --expose-gc scripts/perf/streamdrive.mjs <map met world/> --budget=150e6   # rit over de echte tegels
+node scripts/qa/benchmark_run.mjs --modus=kaart --heap --gc [--heapprof=200000]  # heap van de benchmark; --modus=annuleer-pad
 ```

@@ -184,6 +184,9 @@ export class TileWorld extends GameMap {
     if (this.resident.has(tk)) return false;
     this.resident.add(tk);
     const newRoads = [], newWater = [];
+    // the rows this tile holds, [kind, gid, kind, gid, ...]: dropTile visits these instead of every row of the world (#379, #247)
+    const held = [];
+    (this._tileRows || (this._tileRows = new Map())).set(tk, held);
     for (const s of tile.sections) {
       if (s.type === SECTION.RASTER && this.terrain) { this.terrain.add(tk, s.raster); continue; }
       const kind = KIND_OF.get(s.type);
@@ -208,6 +211,7 @@ export class TileWorld extends GameMap {
           if (kind === 'furniture' && obj.k === 'hedge' && obj.pts) (this.hedgeGrid || (this.hedgeGrid = new SpatialGrid(64))).insert(obj, polygonBounds(obj.pts));
         }
         holdIn(e, tk);
+        held.push(kind, gid);
       }
     }
     // the profiles of streamed bridges and viaducts (build_province.mjs, #235): the roads of the tile join the elevation
@@ -288,18 +292,28 @@ export class TileWorld extends GameMap {
     for (const fn of this._tileListeners || []) fn('drop', null, tk);
     if (this.terrain) this.terrain.drop(tk);
     const goneRoads = [];
-    for (const kind of Object.keys(this._res)) {
-      for (const [gid, e] of this._res[kind]) {
-        if (!releaseFrom(e, tk)) continue;
-        this._res[kind].delete(gid);
-        if (kind === 'roads' && e.obj.z) goneRoads.push(e.obj);
-        if (kind === 'water') this._waterVer = (this._waterVer || 0) + 1;
-        if (kind === 'buildings' && e.obj.type === 'houseboat') dropMooredBuilding(this, e.obj);
-        const grid = gridOf(kind, e.obj);
-        if (grid && this[grid]) this[grid].remove(e.obj, boundsOfObj(kind, e.obj));
-        if (kind === 'furniture' && this.furniture) { const q = this.furniture.indexOf(e.obj); if (q >= 0) this.furniture.splice(q, 1); }
-        if (kind === 'furniture' && e.obj.k === 'hedge' && e.obj.pts && this.hedgeGrid) this.hedgeGrid.remove(e.obj, polygonBounds(e.obj.pts));
+    const release = (kind, gid, e) => {
+      if (!releaseFrom(e, tk)) return;
+      this._res[kind].delete(gid);
+      if (kind === 'roads' && e.obj.z) goneRoads.push(e.obj);
+      if (kind === 'water') this._waterVer = (this._waterVer || 0) + 1;
+      if (kind === 'buildings' && e.obj.type === 'houseboat') dropMooredBuilding(this, e.obj);
+      const grid = gridOf(kind, e.obj);
+      if (grid && this[grid]) this[grid].remove(e.obj, boundsOfObj(kind, e.obj));
+      if (kind === 'furniture' && this.furniture) { const q = this.furniture.indexOf(e.obj); if (q >= 0) this.furniture.splice(q, 1); }
+      if (kind === 'furniture' && e.obj.k === 'hedge' && e.obj.pts && this.hedgeGrid) this.hedgeGrid.remove(e.obj, polygonBounds(e.obj.pts));
+    };
+    const held = this._tileRows && this._tileRows.get(tk);
+    if (held && !this.scanDrops) {
+      this._tileRows.delete(tk);
+      for (let i = 0; i < held.length; i += 2) {
+        const e = this._res[held[i]].get(held[i + 1]);
+        if (e) release(held[i], held[i + 1], e);
       }
+    } else {
+      // a tile that came in with the pinned set (no list) and the A/B of the old way (scanDrops): every row of the world
+      if (this._tileRows) this._tileRows.delete(tk);
+      for (const kind of Object.keys(this._res)) for (const [gid, e] of this._res[kind]) release(kind, gid, e);
     }
     if (goneRoads.length) shrinkElevation(this, goneRoads);
     return true;
