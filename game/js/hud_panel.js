@@ -855,7 +855,10 @@ function updateBars(world) {
 const STAR = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${STAR_PATH}"/></svg>`;
 let wantedKey = '';
 let wantedShown = 0;
+// the police icons on the maps flash only while you are wanted; otherwise they sit still (blue)
+let policeAlert = false;
 function updateWanted(world) {
+  policeAlert = world.wanted > 0;
   const pol = world.police;
   const phase = wantedPhase(world);
   const searching = phase === 'zoeken';
@@ -1643,9 +1646,9 @@ export function drawMapIcon(ctx, kind, x, y, s = 1, opts = {}) {
     case 'policeBike':
     case 'policeHorse':
     case 'police': {
-      // flashing police shield; officers on foot, bike or horse get a smaller
+      // police shield (flashes red/blue only while you are wanted); officers on foot, bike or horse get a smaller
       // one with a glyph instead of the star
-      const blue = Math.floor(t * 6) % 2 === 1;
+      const blue = !policeAlert || Math.floor(t * 6) % 2 === 1;
       if (kind !== 'police') {
         const k = kind === 'policeFoot' ? 0.62 : 0.82;
         ctx.scale(k, k);

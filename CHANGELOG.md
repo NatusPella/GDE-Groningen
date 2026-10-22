@@ -6,6 +6,9 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Opgelost
+- **De politie-iconen op de kaart en de minikaart knipperen alleen nog als je gezocht wordt**; zonder sterren staan ze rustig stil.
+
 ## [0.38.2] - 2026-10-22
 
 ### Opgelost
