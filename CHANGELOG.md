@@ -6,6 +6,10 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Verbeterd (snel reizen en geheugen; gemeten in Node en Electron, niet door een mens in beeld bekeken)
+- **De wegen na het opstarten zijn gemiddeld 8 s eerder klaar (#247):** de geometrie-worker laadt zijn wegenkaart al tijdens het opstarten in plaats van pas bij de eerste weg (vier afwisselende koude starts: 28,0 tegen 19,6 s na het titelscherm).
+- **Lange reizen houden niet meer elke tegel vast (#379):** het geheugenbudget van de kaarttegels rekende met ruwe bytes terwijl een tegel 26 keer zo groot in het geheugen is; er werd nooit een tegel losgelaten. Een rit van 172 km (A7 en spoor, heen en terug, 33 m/s) eindigt met 255 in plaats van 499 tegels en 481 in plaats van 785 MB, zonder één te late tegel; een tegel loslaten kost 1,5 in plaats van 24 ms.
+
 ## [0.38.2] - 2026-10-22
 
 ### Opgelost
