@@ -57,7 +57,7 @@ function segsOfRoad(r) {
     const len = Math.hypot(bx - ax, by - ay);
     if (len < 1e-3) continue;
     const za = Z[i], zb = Z[i + 1];
-    if (Math.abs(za) < 0.02 && Math.abs(zb) < 0.02) continue;
+    if (Math.abs(za) < 0.02 && Math.abs(zb) < 0.02 && !r.zDeck) continue;
     const s = {
       r, i, ax, ay, bx, by, za, zb, len, ux: (bx - ax) / len, uy: (by - ay) / len, hs,
       deck: !!r.bridge && !r.tunnel, covered: !!r.tunnel,
@@ -79,7 +79,7 @@ export function buildElevation(map) {
     }
   }
   if (!segs.length) return EMPTY;
-  const elev = { segs, grid, has: true, walls: [], skirts: [], floors: [], brkWalls: [], wallGrid: new Grid(WALL_CELL), cuts: [], map, flatGrid: new Grid(16) };
+  const elev = { segs, grid, has: true, walls: [], skirts: [], floors: [], brkWalls: [], wallGrid: new Grid(WALL_CELL), cuts: [], map, flatGrid: new Grid(16), frame: map.terrainOn ? map.terrainFrame : null };
   // street-level road ribbons near the raised/sunken ones: they pass under
   // embankments (which then need an abutment, not a slope) and over cuttings
   const near = (x, y) => grid.at(x, y);
@@ -111,7 +111,7 @@ export function buildElevation(map) {
 // is not there yet is built as a deck over nothing, an embankment without the abutment (the loaded tiles of a
 // view are the same set every time the player goes there, and an embankment's slope is only a slope).
 function newElevation(map) {
-  return { segs: [], grid: new Grid(CELL), has: true, walls: [], skirts: [], floors: [], brkWalls: [], wallGrid: new Grid(WALL_CELL), cuts: [], map, flatGrid: new Grid(16), byRoad: new Map(), flatOf: new Map() };
+  return { segs: [], grid: new Grid(CELL), has: true, walls: [], skirts: [], floors: [], brkWalls: [], wallGrid: new Grid(WALL_CELL), cuts: [], map, flatGrid: new Grid(16), byRoad: new Map(), flatOf: new Map(), frame: map.terrainOn ? map.terrainFrame : null };
 }
 const isFlatSeg = (r, i) => !r.z || (Math.abs(r.z[i]) < 0.02 && Math.abs(r.z[i + 1]) < 0.02);
 function addFlatPiece(elev, r, i) {
@@ -757,14 +757,17 @@ function surfaceOf(elev, x, y, except, zNear, tol, rail = false) {
   return surfaceZ(elev, x, y, except, zNear, tol, rail) !== null;
 }
 // the highest such surface's height, or null
+// (?terrain: zNear and the answer are relative to the base of `except`, the road whose walls are built; the others are read over theirs)
 function surfaceZ(elev, x, y, except, zNear, tol, rail = false) {
   const list = elev.grid.at(x, y);
   if (!list) return null;
+  const fr = elev.frame, bx = fr && except ? fr.base(except, x, y) : 0;
   let best = null;
   for (const s of list) {
     if (s.r === except || !!s.rail !== rail) continue;
     const q = onSeg(s, x, y);
-    if (q.d <= s.hs + 0.2 && Math.abs(q.z - zNear) < tol && (best === null || q.z > best)) best = q.z;
+    const qz = fr ? q.z + fr.base(s.r, x, y, s) - bx : q.z;
+    if (q.d <= s.hs + 0.2 && Math.abs(qz - zNear) < tol && (best === null || qz > best)) best = qz;
   }
   return best;
 }
@@ -773,11 +776,13 @@ function surfaceZ(elev, x, y, except, zNear, tol, rail = false) {
 function sunkenNeighbourZ(elev, x, y, except) {
   const list = elev.grid.at(x, y);
   if (!list) return null;
+  const fr = elev.frame, bx = fr && except ? fr.base(except, x, y) : 0;
   let best = null;
   for (const s of list) {
     if (s.r === except || s.rail || s.covered) continue;
     const q = onSeg(s, x, y);
-    if (q.d <= s.hs && q.z < -RAISED && (best === null || q.z > best)) best = q.z;
+    const qz = fr && q.z < -RAISED ? q.z + fr.base(s.r, x, y, s) - bx : q.z;
+    if (q.d <= s.hs && q.z < -RAISED && (best === null || qz > best)) best = qz;
   }
   return best;
 }
@@ -800,6 +805,8 @@ function buildWalls(elev, map, segs = elev.segs) {
         const t0 = k / n, t1 = (k + 1) / n, tm = (t0 + t1) / 2;
         const zr = s.za + (s.zb - s.za) * tm;
         const mx = s.ax + s.ux * s.len * tm + nx * off, my = s.ay + s.uy * s.len * tm + ny * off;
+        // (?terrain: a street-level road beside the piece lies on the terrain, which is gb over this road's base)
+        const gb = elev.frame ? elev.frame.ground(mx, my) - elev.frame.base(s.r, mx, my, s) : 0;
         // a dip of under a metre needs no retaining wall
         const cut = zr < -1.0;
         const raise = zr > 1.2;
@@ -822,7 +829,7 @@ function buildWalls(elev, map, segs = elev.segs) {
           // between them is closed by a wall face up to the other surface
           // (also up to a street-level ribbon overlapping the ramp's edge)
           const zs = surfaceZ(elev, mx, my, s.r, zr, 1.6);
-          const zn = zs !== null ? zs : onFlatRoad(map, mx, my) ? 0 : null;
+          const zn = zs !== null ? zs : onFlatRoad(map, mx, my) ? gb : null;
           if (zn !== null && zn > zr + 0.25 && Math.min(s.za + (s.zb - s.za) * t0, s.za + (s.zb - s.za) * t1) < -CUT_Z) {
             elev.skirts.push({
               ax: s.ax + s.ux * s.len * t0 + nx * off, ay: s.ay + s.uy * s.len * t0 + ny * off,
@@ -849,7 +856,7 @@ function buildWalls(elev, map, segs = elev.segs) {
           // it at about its height is left out; one more than a barrier's
           // reach lower, a deck edge over a slip road going down beside it,
           // keeps it: it stands on this deck, not in that ramp's way)
-          : surfaceOf(elev, mx, my, s.r, zr, cut ? 1.6 : 1.7) || (Math.abs(zr) < (cut ? 1.6 : 1.7) && onFlatRoad(map, mx, my));
+          : surfaceOf(elev, mx, my, s.r, zr, cut ? 1.6 : 1.7) || (Math.abs(zr - gb) < (cut ? 1.6 : 1.7) && onFlatRoad(map, mx, my));
         const piece = {
           ax: s.ax + s.ux * s.len * t0 + nx * off, ay: s.ay + s.uy * s.len * t0 + ny * off,
           bx: s.ax + s.ux * s.len * t1 + nx * off, by: s.ay + s.uy * s.len * t1 + ny * off,

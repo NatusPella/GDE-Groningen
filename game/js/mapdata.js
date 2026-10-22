@@ -157,6 +157,8 @@ export class GameMap {
     }
 
     markDryCrossings(this);
+    // (?terrain: the terrain goes in before the elevation model, which builds its walls in the frame of the terrain)
+    if (data.terrain) { this.terrain = data.terrain; this.terrainOn = !!data.terrainOn; }
     this.elev = buildElevation(this);
     this.trees = this.trees.filter((t) => !onCarriageway(this, t[0], t[1]) && !this.offStreetLevel(t[0], t[1]));
     // (and one on the kerb or close to the carriageway is set beside the road, or goes: treeclear.js, #324; the same as fromParts does for tiles of an older build)
@@ -215,6 +217,8 @@ export class GameMap {
       g.bounds = polygonBounds(g.pts);
       m.greenGrid.insert(g, g.bounds);
     }
+    // (?terrain: the elevation model builds its walls in the frame of the terrain, so the terrain is in before it)
+    if (p.terrain) { m.terrain = p.terrain; m.terrainOn = !!p.terrainOn; }
     m.elev = buildElevation(m);
     // (a mapped tree on the kerb or the carriageway is set beside the road, or goes: treeclear.js, #324)
     m.treeClearStats = { moved: 0, removed: 0 };

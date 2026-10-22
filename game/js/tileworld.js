@@ -62,7 +62,7 @@ function attachProfiles(tile, roadOf, terrain = false) {
       if (!r || r.z || r.zAttached) continue;
       if (terrain && (row.zt || row.zf)) {
         r.zAttached = true;
-        if (row.zt) { r.z = row.zt; r.st = row.stt; } else { r.z = undefined; r.st = undefined; }
+        if (row.zt) { r.z = row.zt; r.st = row.stt; if (r.bridge && !r.tunnel) r.zDeck = true; } else { r.z = undefined; r.st = undefined; }
         r.pnet = row.pnet;
         r.ly = row.ly;
         continue;
@@ -118,6 +118,7 @@ export class TileWorld extends GameMap {
       ...arrays,
       stations: info.stations, levelCrossings: info.levelCrossings, railRoutes: info.railRoutes, railLifts: info.railLifts,
       dryCrossings: info.dryCrossings, clippedWays: clipped,
+      terrain: terrainField, terrainOn: terrain,
     });
     map._res = res;
     // what the streamed path (addTile) puts in its own grids too: the parcels (landUseAt) and the mapped hedges (hedgeNear) of the

@@ -273,10 +273,13 @@ export function solve(data, { terrain = flatTerrain, iters = 600, pullPrior = 0.
   const underSpots = [];
   const lowered0 = new Set();
   if (onTerrain) {
-    for (const c of crossings) {
-      const s = separation(c);
-      if (!s || s.up.rail || s.lo.rail || !s.up.bridge || isDeckRoad(s.lo) || knotAt(c.x, c.y)) continue;
-      underSpots.push({ lo: s.lo, x: c.x, y: c.y });
+    // every crossing of a deck with a road that is no deck, whether or not either has a flat profile (a cycle tunnel under a trunk road has
+    // none): a street under a viaduct on a dyke (held down), a road over a tunnel whose cutting AHN shows (held up)
+    for (const c of planCrossings(roads, (p, q) => isDeckRoad(p) !== isDeckRoad(q))) {
+      const D = isDeckRoad(c.a) ? c.a : c.b, other = D === c.a ? c.b : c.a;
+      if (knotAt(c.x, c.y)) continue;
+      if (D.bridge && !D.tunnel) underSpots.push({ lo: other, x: c.x, y: c.y, mode: 'dyke' });
+      else if (D.tunnel && !D.bridge) underSpots.push({ lo: other, x: c.x, y: c.y, mode: 'hole' });
     }
     for (const r of underWindows(underSpots, pri0, terrain)) lowered0.add(r);
   }
@@ -357,7 +360,7 @@ export function solve(data, { terrain = flatTerrain, iters = 600, pullPrior = 0.
         g0.of.get(r).forEach((n, i) => { ref0[n] = base0.get(r)[i]; });
       }
       // a street held at its own level under a dyke: nothing over it may stand higher than its voorkeurshoogte
-      for (const r of lowered0) g0.of.get(r).forEach((n, i) => { if (pri0.get(r)[i] < base0.get(r)[i] - 0.02) hi0[n] = Math.min(hi0[n], pri0.get(r)[i]); });
+      for (const r of lowered0) g0.of.get(r).forEach((n, i) => { const p = pri0.get(r)[i], b = base0.get(r)[i]; if (p < b - 0.02) hi0[n] = Math.min(hi0[n], p); else if (p > b + 0.02) lo0[n] = Math.max(lo0[n], p); });
     }
     const envLo = envelope(roads, g0, lo0, 1), envHi = envelope(roads, g0, hi0, -1);
     let added = 0;
@@ -369,6 +372,19 @@ export function solve(data, { terrain = flatTerrain, iters = 600, pullPrior = 0.
     if (!added) break;
   }
   if (onTerrain) for (const r of lowered0) if (may(r)) active.add(r);
+  // every deck gets a terrain profile, a flat one too: a bridge drives over the line between its ends, not over the ground under it
+  if (onTerrain) for (const r of roads) if (isDeckRoad(r) && !r.rail) active.add(r);
+  // a car road that runs over a crest or a hollow of the terrain sharper than its class allows gets a profile of its own (the solver's
+  // vertical curves round it), and so do the car roads that join the decks and those roads at an end: they carry the curve on
+  if (onTerrain) {
+    for (const r of roads) if (CAR.has(r.cat) && !isDeckRoad(r) && !r.rail && terrainKink(r, base0.get(r))) active.add(r);
+    const endKeys = new Set();
+    for (const r of active) { endKeys.add(nodeKey(r.pts[0])); endKeys.add(nodeKey(r.pts[r.pts.length - 1])); }
+    for (const r of roads) {
+      if (active.has(r) || !CAR.has(r.cat) || r.rail || r.pts.length < 2) continue;
+      if (endKeys.has(nodeKey(r.pts[0])) || endKeys.has(nodeKey(r.pts[r.pts.length - 1]))) active.add(r);
+    }
+  }
   const newPts = new Map();
   for (const r of active) {
     if ((onTerrain ? r.zt : r.z) || protect.has(r)) continue;
@@ -398,7 +414,7 @@ export function solve(data, { terrain = flatTerrain, iters = 600, pullPrior = 0.
     }
     for (const v of view) {
       if (!active.has(back.get(v))) continue;
-      net.of.get(v).forEach((n, i) => { if (priV.get(v)[i] < baseV.get(v)[i] - 0.02) hi[n] = Math.min(hi[n], priV.get(v)[i]); });
+      net.of.get(v).forEach((n, i) => { const p = priV.get(v)[i], b = baseV.get(v)[i]; if (p < b - 0.02) hi[n] = Math.min(hi[n], p); else if (p > b + 0.02) lo[n] = Math.max(lo[n], p); });
     }
   }
   for (const v of view) {
@@ -575,6 +591,19 @@ export function solve(data, { terrain = flatTerrain, iters = 600, pullPrior = 0.
   return { roads: out, pts: newPts, stats: { nodes: N, free: free.reduce((s, f) => s + f, 0), movers: movers.length, couples: cpl.length, active: active.size } };
 }
 
+// Does a road that follows the terrain (heights `h` at its vertices) have a crest or a hollow a vehicle would leave the ground over:
+// the grade changes at a vertex by more than 4 % and by more than twice what its class allows (roadprofile.js radiusMin)?
+export function terrainKink(r, h, minChange = 0.04) {
+  const P = r.pts, k = 1 / radiusMin(r);
+  for (let i = 1; i + 1 < P.length; i++) {
+    const La = Math.hypot(P[i][0] - P[i - 1][0], P[i][1] - P[i - 1][1]), Lc = Math.hypot(P[i + 1][0] - P[i][0], P[i + 1][1] - P[i][1]);
+    if (La < 0.5 || Lc < 0.5) continue;
+    const d = Math.abs((h[i + 1] - h[i]) / Lc - (h[i] - h[i - 1]) / La);
+    if (d > minChange && d > k * (La + Lc)) return true;
+  }
+  return false;
+}
+
 // Grade envelope over the whole network from per-node bounds: sign 1 gives the
 // lowest height the lower bounds allow (b - g * distance), -1 the highest the
 // upper bounds allow. A max-heap Dijkstra over every road's segments.
@@ -646,7 +675,7 @@ export function densify(P, step) {
   return out;
 }
 
-function wetTest(water) {
+export function wetTest(water) {
   const boxes = water.map((w) => {
     let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
     for (const p of w.pts) { x0 = Math.min(x0, p[0]); y0 = Math.min(y0, p[1]); x1 = Math.max(x1, p[0]); y1 = Math.max(y1, p[1]); }

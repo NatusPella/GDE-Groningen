@@ -51,6 +51,7 @@ export function useTerrainProfiles(roads) {
     if (r.zt === undefined) continue;
     r.zFlat = r.z;
     r.z = r.zt.length ? r.zt : undefined;
+    if (r.z && r.bridge && !r.tunnel) r.zDeck = true; // (a deck is a ribbon over its line even where it is flat, elevation.js)
     swapped++;
   }
   return swapped;

@@ -52,8 +52,9 @@ export function terrainBases(roads, terrain) {
 }
 
 // The foot of the dyke each way from arc position sc of a street: the first sample, going out, from which the ground no longer
-// falls (it may be flat on the top of the dyke first: that is not the foot while it falls further on). Returns { s0, s1, h0, h1 } (arc positions and terrain there), or null when the street is too short to have one.
-export function dykeFeet(P, cum, terrain, sc, { reach = FOOT_REACH, step = FOOT_STEP } = {}) {
+// falls (it may be flat on the top of the dyke first: that is not the foot while it falls further on). With `hole` the same
+// for a cutting under a road: the first sample from which the ground no longer rises. Returns { s0, s1, h0, h1 } (arc positions and terrain there), or null when the street is too short to have one.
+export function dykeFeet(P, cum, terrain, sc, { reach = FOOT_REACH, step = FOOT_STEP, hole = false } = {}) {
   const L = cum[cum.length - 1];
   const T = (s) => { const [x, y] = pointAt(P, cum, s); return terrain(x, y); };
   const walk = (dir) => {
@@ -61,10 +62,10 @@ export function dykeFeet(P, cum, terrain, sc, { reach = FOOT_REACH, step = FOOT_
     for (let k = 0; k * step <= reach; k++) {
       s = sc + dir * k * step;
       if (s < 0 || s > L) { s = Math.max(0, Math.min(L, s)); break; }
-      // lowest ground over the next FOOT_LOOK m outward
-      let low = Infinity;
-      for (let q = 0; q <= FOOT_LOOK; q += step) low = Math.min(low, T(Math.max(0, Math.min(L, s + dir * q))));
-      if (T(s) - low < FOOT_DROP) break;
+      // lowest (a hole: highest) ground over the next FOOT_LOOK m outward
+      let ext = hole ? -Infinity : Infinity;
+      for (let q = 0; q <= FOOT_LOOK; q += step) { const h = T(Math.max(0, Math.min(L, s + dir * q))); ext = hole ? Math.max(ext, h) : Math.min(ext, h); }
+      if (hole ? ext - T(s) < FOOT_DROP : T(s) - ext < FOOT_DROP) break;
     }
     return [s, T(s)];
   };
@@ -74,19 +75,22 @@ export function dykeFeet(P, cum, terrain, sc, { reach = FOOT_REACH, step = FOOT_
 }
 
 // Where a street passes under a deck (a crossing without a shared vertex whose upper road is a bridge), its voorkeurshoogte:
-// min(terrain, the line between the terrain at the two feet of the dyke). `list` gives the roads whose `pri` rows are lowered
-// (the originals for the estimates, the solver's densified copies for the node priors): pri: Map(road -> Float64Array, abs).
-// `spots` are { lo (a road of `list`), x, y }. Returns the roads that were lowered by more than UNDER_MIN anywhere.
+// min(terrain, the line between the terrain at the two feet of the dyke). The same the other way round for a road over a tunnel
+// (mode 'hole'): the terrain there is the cutting, the road keeps to max(terrain, the line between the feet of the cutting).
+// `pri`: Map(road -> Float64Array, abs) of the roads whose rows are changed (the originals for the estimates, the solver's densified
+// copies for the node priors). `spots` are { lo (a road of `pri`), x, y, mode? }. Returns the roads that were moved by more than
+// UNDER_MIN anywhere.
 export function underWindows(spots, pri, terrain) {
   const lowered = new Set();
   const cache = new Map();
-  for (const { lo, x, y } of spots) {
+  for (const { lo, x, y, mode } of spots) {
     const row = pri.get(lo);
     if (!row) continue;
+    const hole = mode === 'hole';
     let c = cache.get(lo);
     if (!c) cache.set(lo, (c = cumulative(lo.pts)));
     const sc = arcOf(lo.pts, c, x, y);
-    const f = dykeFeet(lo.pts, c, terrain, sc);
+    const f = dykeFeet(lo.pts, c, terrain, sc, { hole });
     if (!f) continue;
     const span = f.s1 - f.s0 || 1;
     for (let i = 0; i < lo.pts.length; i++) {
@@ -94,7 +98,8 @@ export function underWindows(spots, pri, terrain) {
       if (s < f.s0 || s > f.s1) continue;
       const line = f.h0 + (f.h1 - f.h0) * ((s - f.s0) / span);
       const t = terrain(lo.pts[i][0], lo.pts[i][1]);
-      if (t - line > UNDER_MIN && line < row[i]) { row[i] = line; lowered.add(lo); }
+      if (hole) { if (line - t > UNDER_MIN && line > row[i]) { row[i] = line; lowered.add(lo); } }
+      else if (t - line > UNDER_MIN && line < row[i]) { row[i] = line; lowered.add(lo); }
     }
   }
   return lowered;
