@@ -3,6 +3,7 @@
 // al gedaan hebt. De gegevens komen uit gebiedenlive.js (en gebieden.js); dit bestand is alleen HTML. Niet door een mens in beeld bekeken.
 import * as G from './gebieden.js';
 import { getOverzicht } from './gebiedenlive.js';
+import { reisNaarHuis } from './safehuizen.js';
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const CHECK = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7"/></svg>';
@@ -26,6 +27,10 @@ export const GEBIEDEN_CSS = `
 .gb-soort svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; flex: none; }
 .gb-soort li:not(.klaar) svg { visibility: hidden; }
 .gb-leeg { opacity: 0.7; max-width: 46ch; }
+.gb-huis { margin: 6px 0 4px; }
+.gb-huis p { margin: 3px 0; }
+.gb-reis { margin-top: 8px; }
+.gb-reisstatus { min-height: 1.3em; margin: 6px 0 0; }
 `;
 
 let gekozen = null;
@@ -36,6 +41,20 @@ function rij(r, ind) {
   return `<button type="button" class="m-li lb-li gb-li${klaar ? ' klaar' : ''}${gekozen === r.gebied.id ? ' sel' : ''}" data-gebied="${esc(r.gebied.id)}" style="--vlag:${niv.vlag}"${gekozen === r.gebied.id ? ' aria-current="true"' : ''}>` +
     `<span class="gb-vlag">${VLAG}</span><span class="nm"><span class="one">${esc(r.gebied.naam)}</span><span class="mut one">${klaar ? esc(G.beloningVan(ind, r.gebied.id).titel) : r.klaar > 0 ? 'Bezig' : 'Nog niet begonnen'}</span></span>` +
     `<span class="gb-tel">${r.klaar} van ${r.totaal}</span><span class="m-bar${r.deel > 0 ? ' on' : ''}"><i data-bar="gb-${esc(r.gebied.id)}" data-w="${(r.deel * 100).toFixed(1)}"></i></span></button>`;
+}
+
+// Het safehouse van het gebied: wat het kost of dat het van jou is, wat erin staat, en de knop om erheen te reizen.
+function huisHtml(o, id, v) {
+  const h = G.huisVan(o.ind, id);
+  if (!h) return '';
+  const eigen = G.heeftHuis(o.profiel, h.id);
+  const inr = G.inrichting(v.deel, v.voltooid);
+  if (!eigen) {
+    return `<h3 class="m-eb">Safehouse</h3><div class="gb-huis"><p><b>${esc(h.naam)}</b> <span class="mut">· ${esc(h.adres)} · ${esc(h.makelaar)}</span></p><p class="mut">Te koop voor €${G.huisPrijs(o.profiel, o.ind, h.id).toLocaleString('nl-NL')}, en hoe meer je hier doet, hoe lager de prijs. Veroveren is gratis: dan krijg je de sleutel. Het huisje staat bij het midden van het gebied.</p></div>`;
+  }
+  return `<h3 class="m-eb">Safehouse</h3><div class="gb-huis"><p><b>${esc(h.naam)}</b> <span class="mut">· ${esc(h.adres)}</span></p>` +
+    `<p class="mut">Slapen en opslaan, kledingkast, garage en onderduiken (${G.ONDERDUIK_UREN[inr.niveau]} uur). De inrichting: ${inr.stappen.filter((x) => x.klaar).map((x) => esc(x.naam.toLowerCase())).join('; ')}.</p>` +
+    `<button type="button" class="m-bp gb-reis" data-reis="${esc(h.id)}">Reis erheen</button><p class="mut gb-reisstatus" aria-live="polite"></p></div>`;
 }
 
 function detail(o, id) {
@@ -56,7 +75,7 @@ function detail(o, id) {
       ids.map((t) => `<li class="${gedaan.has(t) ? 'klaar' : ''}">${CHECK}<span>${esc(o.ind.taak.get(t).naam)}</span></li>`).join('') + '</ul>';
   }).join('');
   const bar = `<div class="lb-voort"><span class="m-bar${v.deel > 0 ? ' on' : ''}"><i data-bar="gbd-${esc(id)}" data-w="${(v.deel * 100).toFixed(1)}"></i></span><span class="m-num">${v.klaar} / ${v.totaal}</span></div>`;
-  return `<div class="pm-pane-top"><span class="m-eb">${esc(niv.enkel)}</span><h2 class="m-h2 td-h2">${esc(g.naam)}</h2></div>${kop}${bar}${blokken}`;
+  return `<div class="pm-pane-top"><span class="m-eb">${esc(niv.enkel)}</span><h2 class="m-h2 td-h2">${esc(g.naam)}</h2></div>${kop}${bar}${huisHtml(o, id, v)}${blokken}`;
 }
 
 // Het overzicht: { lijst, pane, totaal } als html, voor loopbaanui.js.
@@ -77,4 +96,13 @@ export function kiesGebied(id) { gekozen = id; return detailHtml(); }
 export function detailHtml() {
   const o = getOverzicht();
   return o ? detail(o, gekozen) : '';
+}
+
+// Klik op "Reis erheen": de sprong met de bewakers van de kaartteleport; lukt het niet, dan staat de reden in beeld (de melding van het spel).
+export function reisNaar(huisIdent, knop, sluit) {
+  const ok = reisNaarHuis(huisIdent);
+  if (ok && sluit) { sluit(); return true; }
+  const st = knop && knop.parentElement && knop.parentElement.querySelector('.gb-reisstatus');
+  if (st) st.textContent = ok ? '' : 'Nu even niet: tijdens een missie, met de politie op je hielen of op het water kan het niet.';
+  return ok;
 }

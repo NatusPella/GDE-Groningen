@@ -6,7 +6,7 @@ import * as L from './loopbaan.js';
 import { getProfiel } from './loopbaanlive.js';
 import { SIDE_JOBS } from './sidejobs.js';
 import { fillBars } from './motion.js';
-import { gebiedenHtml, kiesGebied, GEBIEDEN_CSS } from './gebiedenui.js';
+import { gebiedenHtml, kiesGebied, reisNaar, GEBIEDEN_CSS } from './gebiedenui.js';
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const nl = (n) => Math.round(n).toLocaleString('nl-NL');
@@ -117,8 +117,10 @@ function detailHtml(profiel, id) {
 const tabs = () => '<nav class="m-tablist" role="tablist" aria-label="Weergave">' + [['vakken', 'Vakken'], ['gebieden', 'Veroverd']].map(([id, t]) =>
   `<button type="button" role="tab" class="m-tab" data-lbview="${id}" aria-selected="${weergave === id}">${t}</button>`).join('') + '</nav>';
 
-export function renderLoopbaanPanel(el) {
+let sluitMenu = null; // pausemenu.js: sluit het menu na een snelreis
+export function renderLoopbaanPanel(el, sluit = null) {
   if (!el) return;
+  if (sluit) sluitMenu = sluit;
   zetCss();
   if (weergave === 'gebieden') {
     const g = gebiedenHtml();
@@ -154,6 +156,8 @@ export function renderLoopbaanPanel(el) {
     el.addEventListener('click', (e) => {
       const t = e.target.closest('[data-lbview]');
       if (t) { if (t.dataset.lbview !== weergave) { weergave = t.dataset.lbview; gebied = null; renderLoopbaanPanel(el); } return; }
+      const r = e.target.closest('[data-reis]');
+      if (r) { reisNaar(r.dataset.reis, r, sluitMenu); return; }
       const g = e.target.closest('[data-gebied]');
       if (g) { kiesG(g.dataset.gebied); return; }
       const b = e.target.closest('[data-vak]');
