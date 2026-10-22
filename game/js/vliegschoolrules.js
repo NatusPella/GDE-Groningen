@@ -505,7 +505,8 @@ export function heliToetsen(c, t) {
   const stil = t.stil === undefined ? 6 : t.stil;
   const fout = hoekVerschil(Math.atan2(dy, dx), c.heading);
   if (d > stil) { if (fout > 0.08) k.d = true; else if (fout < -0.08) k.a = true; }
-  const vt = t.vaart === undefined ? Math.min(30, d * 0.35) : t.vaart;
+  // in een scherpe bocht eerst afremmen, dan pas gas: anders vliegt hij met de neus ernaast langs het doel
+  const vt = t.vaart === undefined ? Math.min(30, d * 0.35, Math.abs(fout) > 0.5 ? 6 : 30) : t.vaart;
   if (d > stil && Math.abs(fout) < 0.5 && c.speed < vt) k.w = true;
   else if (c.speed > vt + 3 || (d <= stil && c.speed > 1.2)) k.s = true;
   if (t.vaart === undefined && d > 600 && Math.abs(fout) < 0.3) k.shift = true;
@@ -520,7 +521,9 @@ export function richt(les, baan, st, c, env = {}) {
   switch (baan.soort) {
     case 'ringen': {
       const g = baan.ringen[Math.min(st.i, baan.ringen.length - 1)];
-      return { x: g.x, y: g.y, dz: g.z - c.z, vaart: plane ? 45 : undefined, stil: 12 };
+      // dwars door de ring heen, een stuk erachter: de helikopter blijft niet voor de ring hangen
+      const na = plane ? 80 : 40;
+      return { x: g.x + g.nx * na, y: g.y + g.ny * na, dz: g.z - c.z, vaart: plane ? 45 : undefined, stil: 4 };
     }
     case 'landen': {
       const m = baan.merk;
@@ -554,7 +557,11 @@ export function richt(les, baan, st, c, env = {}) {
       const ex = m.x - van.x, ey = m.y - van.y, el = Math.hypot(ex, ey) || 1;
       const zij = (klein.dmin + klein.dmax) / 2 * 0.8;
       const px = m.kant > 0 ? ey / el : -ey / el, py = m.kant > 0 ? -ex / el : ex / el;
-      const aim = { x: m.x + px * zij + ex / el * 150, y: m.y + py * zij + ey / el * 150 };
+      // de lijn zijwaarts langs de molen: op die lijn insluiten (een puntje voor je uit), niet recht op de molen af
+      const ox = m.x + px * zij, oy = m.y + py * zij, ux = ex / el, uy = ey / el;
+      const lang = (c.x - ox) * ux + (c.y - oy) * uy, dwars = -(c.x - ox) * uy + (c.y - oy) * ux;
+      const kijk = clamp(Math.abs(dwars) * 2 + 100, 100, 350);
+      const aim = { x: ox + ux * (lang + kijk), y: oy + uy * (lang + kijk) };
       return { x: aim.x, y: aim.y, dz: (plane ? 60 : 30) - c.agl, vaart: plane ? 45 : undefined, stil: 10 };
     }
     case 'nood': {
