@@ -186,6 +186,7 @@ const ICONS = {
   prestaties: '<path d="M7 3h10v3a5 5 0 0 1-10 0zM7 5H4v1a3 3 0 0 0 3 3M17 5h3v1a3 3 0 0 1-3 3M12 11v5M8 20h8l-1-4H9z"/>',
   loopbaan: '<path d="M3 20h5v-5h5v-5h5V5h3M3 20h18"/>',
   streken: '<rect x="4" y="4" width="16" height="16" rx="3.5"/><circle cx="9" cy="9" r="1.1"/><circle cx="15" cy="9" r="1.1"/><circle cx="12" cy="12" r="1.1"/><circle cx="9" cy="15" r="1.1"/><circle cx="15" cy="15" r="1.1"/>',
+  spel: '<rect x="3" y="7.5" width="18" height="10" rx="5"/><path d="M8 10.5v4M6 12.5h4"/><circle cx="15" cy="11.5" r="0.9"/><circle cx="17.5" cy="13.5" r="0.9"/>',
   settings: '<path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/>',
   controls: '<rect x="2.5" y="6" width="19" height="12" rx="2"/><path d="M6 10h1M9.5 10h1M13 10h1M16.5 10h1M7 14h10"/>',
   spullen: '<path d="M7 8V6a5 5 0 0 1 10 0v2"/><rect x="4" y="8" width="16" height="13" rx="3"/><path d="M4 13h16M10 13v2h4v-2"/>',
@@ -218,18 +219,20 @@ const SECTIONS = [
   ['fotos', "Foto's", 'Fotomodus en je galerij'],
   ['samen', 'Samen spelen', 'Iemand uitnodigen of aansluiten'],
   ['spelers', 'Spelers', 'Wie er meespeelt'],
+  ['spel', 'Spel', 'Hoe het spel zich gedraagt; beeld en geluid staan bij Instellingen'],
   ['settings', 'Instellingen', 'Wijzigingen worden meteen bewaard'],
   ['controls', 'Besturing', 'Alle toetsen, per situatie'],
   ['streken', 'Cheats', 'Een beetje vals spelen'],
 ];
 // the rail's three groups: playing, collected, system
-const RAIL_GROUPS = [['overzicht', 'todo', 'map', 'telefoon'], ['verhaal', 'spullen', 'garage', 'prestaties', 'loopbaan', 'fotos', 'samen', 'spelers'], ['settings', 'controls', 'streken']];
-const PRESTART_SECTIONS = ['settings', 'controls'];
+const RAIL_GROUPS = [['overzicht', 'todo', 'map', 'telefoon'], ['verhaal', 'spullen', 'garage', 'prestaties', 'loopbaan', 'fotos', 'samen', 'spelers'], ['spel', 'settings', 'controls', 'streken']];
+const PRESTART_SECTIONS = ['spel', 'settings', 'controls'];
 const SUBTABS = {
   todo: [['verhaal', 'Verhaal'], ['alles', 'Alles'], ['dichtbij', 'Dichtbij']],
   telefoon: [['contacten', 'Contacten'], ['berichten', 'Berichten']],
   verhaal: [['personages', 'Personages'], ['aanwijzingen', 'Aanwijzingen']],
-  settings: [['video', 'Beeld'], ['sound', 'Geluid & ondertitels'], ['camera', 'Camera & controller'], ['display', 'Interface'], ['a11y', 'Toegankelijkheid'], ['fouten', 'Foutrapport']],
+  spel: [['spelen', 'Spelen'], ['camera', 'Camera & richten'], ['hints', 'Hints & uitleg']],
+  settings: [['video', 'Beeld'], ['sound', 'Geluid & ondertitels'], ['camera', 'Muis & controller'], ['display', 'Interface'], ['a11y', 'Toegankelijkheid'], ['fouten', 'Foutrapport']],
   controls: [['toetsen', 'Toetsenbord en muis'], ['knoppen', 'Controller'], ['overzicht', 'Alle toetsen'], ['hulp', 'Hulp']],
 };
 // old tab names (saved preferences, other modules)
@@ -250,6 +253,7 @@ const HINTS = {
   fotos: [[['F8'], 'fotomodus'], [['Esc'], BACK, 'back']],
   spelers: [[['↑', '↓'], 'kiezen'], [['Enter'], 'roepen of erheen'], [['Esc'], BACK, 'back']],
   streken: [[['↑', '↓'], 'kiezen'], [['Enter'], 'aan of uit'], [['Esc'], BACK, 'back']],
+  spel: [[['↑', '↓'], 'kiezen'], [['←', '→'], 'wijzigen'], [['Q', 'E'], 'tabblad'], [['Esc'], BACK, 'back']],
   settings: [[['↑', '↓'], 'kiezen'], [['←', '→'], 'wijzigen'], [['Q', 'E'], 'tabblad'], [['Esc'], BACK, 'back']],
   controls: [[['↑', '↓'], 'kiezen'], [['Enter'], 'toets wijzigen'], [['Q', 'E'], 'onderdeel'], [['Esc'], BACK, 'back']],
 };
@@ -378,38 +382,21 @@ function settingsHtml() {
         <div class="pm-subprev" data-sub-preview><span class="pm-subtxt"><b>Tammo:</b> Rustig an, rustig an.</span></div>
         <p class="mut">Muziek is de radio (G-Music, 's nachts Nachtstreek) en de titelsong, stemmen zijn Tammo, Tessa, de politie, de mensen op straat en de praatjes op de radio. Kleurenblind, interfacegrootte en beweging beperken vind je onder Toegankelijkheid.</p></aside>`)}
     ${tab('camera', `
-      ${slider('fov', 'Beeldhoek', 50, 90, 1)}
-      ${slider('cameraDistance', 'Camera-afstand', 0.8, 1.6, 0.05)}
       ${slider('mouseSensitivity', 'Muisgevoeligheid', 0.3, 2.5, 0.05)}
       ${toggle('invertY', 'Omhoog/omlaag omkeren', 'Geldt voor de muis en de stick')}
-      ${toggle('autoAim', 'Automatisch richten', 'Rechtermuisknop zoekt zelf het beste doelwit')}
       <div class="m-gh"><span>Controller</span></div>
       ${picker('padLayout', 'Knoppen tonen als', [['auto', 'Automatisch'], ['xbox', 'Letterknoppen (A B X Y)'], ['ps', 'Vormknoppen'], ['switch', 'Wisselende letters'], ['deck', 'Handheld']], 'Automatisch kiest wat er aangesloten is')}
       ${slider('padLookSensitivity', 'Camera met de rechterstick', 0.3, 2.5, 0.05)}
       ${toggle('rumble', 'Trillen', 'Bij klappen, schoten en botsingen, als je controller dat kan')}
       <div class="m-li pm-row">${rowName('Knoppen indelen', 'Onder Besturing › Controller')}<button type="button" class="m-bg" data-goto-sub="controls:knoppen">Indelen</button></div>
-      <div class="m-li pm-row">${rowName('Controller testen', 'Welk pad wordt herkend en welke knop doet wat')}<button type="button" class="m-bg" data-pad-test>Testen</button></div>`, `${pane('Camera & controller', 'Meekijken', '<p>Alle gangbare controllers werken meteen. De hints in beeld wisselen vanzelf tussen toetsen en knoppen, naar wat je het laatst gebruikte.</p><p class="mut">De camera-afstand en beeldhoek gelden te voet en in elk voertuig.</p>')}`)}
+      <div class="m-li pm-row">${rowName('Controller testen', 'Welk pad wordt herkend en welke knop doet wat')}<button type="button" class="m-bg" data-pad-test>Testen</button></div>`, `${pane('Muis & controller', 'Meekijken', '<p>Alle gangbare controllers werken meteen. De hints in beeld wisselen vanzelf tussen toetsen en knoppen, naar wat je het laatst gebruikte.</p><p class="mut">Camera-afstand, beeldhoek en automatisch richten staan onder Spel.</p>')}`)}
     ${tab('display', `
       ${picker('hudMode', 'HUD', [['slim', 'Slim'], ['alles', 'Altijd alles'], ['minimaal', 'Minimaal']], 'Slim toont alleen wat nu telt')}
       ${toggle('showMinimap', 'Minimap')}
-      ${toggle('mapShiftTeleport', 'Shift+klik op de kaart verplaatst je', 'Niet tijdens een missie of met de politie achter je aan')}
       ${slider('minimapZoom', 'Inzoomen op het kaartje', 0.6, 1.6, 0.05)}
       ${picker('minimapNorth', 'Minimap met noord boven', [['nooit', 'Nooit'], ['lucht', 'In de lucht'], ['altijd', 'Altijd']], 'Standaard draait de kaart mee')}
-      ${toggle('showHints', 'Toetshints')}
-      ${picker('hintSource', 'Hints tonen voor', [['auto', 'Automatisch'], ['keys', 'Toetsenbord'], ['pad', 'Controller']], 'Automatisch volgt wat je het laatst gebruikte')}
       ${picker('touchControls', 'Aanraakbediening', [['auto', 'Automatisch'], ['aan', 'Aan'], ['uit', 'Uit']], 'Knoppen op het scherm voor telefoon en tablet; wisselen werkt na een herstart')}
-      ${disclosure('display', 'Meer opties', 'Uitleg, kaart, filmpjes, bloed', `
-        ${toggle('onboardingTips', 'Uitleg voor nieuwe spelers', 'Korte tips, elk één keer: je eerste klus, geld en winkels, de telefoon, de kaart en Te doen')}
-        ${toggle('showFog', 'Verkende gebieden op de kaart')}
-        ${toggle('cinematicMoments', 'Filmische momenten', 'Bij bezienswaardigheden, crashes en vijf sterren; intro’s, missies en de filmcamera (V) staan altijd aan')}
-        ${toggle('wijkFilm', 'Filmpje bij nieuwe wijken', 'Uit: een korte naamkaart met wat er te zien is; aan: de volledige rondvlucht')}
-        ${picker('drunkFx', 'Dronken effecten', [['aan', 'Aan'], ['mild', 'Mild'], ['uit', 'Uit']])}
-        ${picker('ruzie', 'Verkeersruzie', [['uit', 'Uit'], ['weinig', 'Weinig'], ['normaal', 'Normaal'], ['veel', 'Veel']], 'Hoe vaak een boze bestuurder uitstapt na een botsing of getoeter. Zonder bloed; sommigen hebben iets in de hand')}
-        ${picker('shiftMode', 'Schakelen', [['auto', 'Automaat'], ['manual', 'Handmatig'], ['clutch', 'Handmatig + koppeling']], 'Automaat is de standaard; handmatig schakel je met . en , (of de bumpers), met koppeling houd je ook J ingedrukt')}
-        ${toggle('speedFeel', 'Snelheidsgevoel', 'Beeld wordt wijder bij hoge snelheid en een zware klap vertraagt even; uit is rustiger')}
-        ${toggle('driftAssist', 'Driften met hulp', 'Helpt tegensturen en houdt een slip beheersbaar; uit is realistischer')}
-        ${toggle('bikeAssist', 'Motor met hulp', 'Houdt een motor of brommer rechtop in bochten; uit is realistischer')}
-        ${toggle('gore', 'Bloed en ledematen', 'Uit: mensen vallen gewoon om, zonder bloed of rondvliegende ledematen')}`)}`, `${pane('Interface', 'Wat je ziet', '<p>Slim toont alleen wat nu telt; Altijd alles houdt alles in beeld; Minimaal laat alleen sterren, doel en ondertitels over.</p>')}`)}
+      ${toggle('showFog', 'Verkende gebieden op de kaart')}`, `${pane('Interface', 'Wat je ziet', '<p>Slim toont alleen wat nu telt; Altijd alles houdt alles in beeld; Minimaal laat alleen sterren, doel en ondertitels over.</p>')}`)}
     ${tab('a11y', `
       ${picker('colorBlind', 'Kleurenblind', [['uit', 'Uit'], ['deuteranopie', 'Deuteranopie'], ['protanopie', 'Protanopie'], ['tritanopie', 'Tritanopie']], 'Andere kleuren voor markers, routes, kaart en HUD')}
       ${slider('uiScale', 'Grootte interface', 0.8, 1.5, 0.05)}
@@ -431,6 +418,35 @@ function settingsHtml() {
       </div>
       <p class="pm-status" data-errlog-status role="status"></p>
       <ol class="pm-errlog" data-errlog></ol></div>`)}`;
+}
+// Spel (#416): how the game itself plays, apart from the system settings of Instellingen. The same keys in the same settings (settings.js):
+// only the place in the menu changed, nothing is lost and nothing is saved differently.
+function spelHtml() {
+  const tab = (id, rows, side = '') => `<div data-of="spel" data-sub="${id}" class="pm-settab" hidden><div class="m-list pm-slist">${rows}</div>${side}</div>`;
+  return `${subtabsHtml('spel', 'Onderdeel')}
+    ${tab('spelen', `
+      <div class="m-li pm-row pm-ingame">${rowName('Missie stoppen', 'Staat bij Overzicht zodra er een missie loopt, met een vraag erbij')}<button type="button" class="m-bg" data-goto="overzicht">Naar Overzicht</button></div>
+      <div class="m-gh"><span>Verkeer en geweld</span></div>
+      ${picker('ruzie', 'Verkeersruzie', [['uit', 'Uit'], ['weinig', 'Weinig'], ['normaal', 'Normaal'], ['veel', 'Veel']], 'Hoe vaak een boze bestuurder uitstapt na een botsing of getoeter. Zonder bloed; sommigen hebben iets in de hand')}
+      ${picker('drunkFx', 'Dronken effecten', [['aan', 'Aan'], ['mild', 'Mild'], ['uit', 'Uit']])}
+      ${toggle('gore', 'Bloed en ledematen', 'Uit: mensen vallen gewoon om, zonder bloed of rondvliegende ledematen')}
+      <div class="m-gh"><span>Rijden</span></div>
+      ${picker('shiftMode', 'Schakelen', [['auto', 'Automaat'], ['manual', 'Handmatig'], ['clutch', 'Handmatig + koppeling']], 'Automaat is de standaard; handmatig schakel je met . en , (of de bumpers), met koppeling houd je ook J ingedrukt')}
+      ${toggle('speedFeel', 'Snelheidsgevoel', 'Beeld wordt wijder bij hoge snelheid en een zware klap vertraagt even; uit is rustiger')}
+      ${toggle('driftAssist', 'Driften met hulp', 'Helpt tegensturen en houdt een slip beheersbaar; uit is realistischer')}
+      ${toggle('bikeAssist', 'Motor met hulp', 'Houdt een motor of brommer rechtop in bochten; uit is realistischer')}
+      <div class="m-gh"><span>Kaart</span></div>
+      ${toggle('mapShiftTeleport', 'Shift+klik op de kaart verplaatst je', 'Niet tijdens een missie of met de politie achter je aan')}`, `${pane('Spel', 'Zo speelt het', '<p>Hoe het verkeer, het geweld en het rijden aanvoelen. Alles wordt meteen bewaard.</p><p class="mut">Beeld, geluid, besturing en toegankelijkheid staan onder Instellingen.</p>')}`)}
+    ${tab('camera', `
+      ${slider('fov', 'Beeldhoek', 50, 90, 1)}
+      ${slider('cameraDistance', 'Camera-afstand', 0.8, 1.6, 0.05)}
+      ${toggle('autoAim', 'Automatisch richten', 'Rechtermuisknop zoekt zelf het beste doelwit')}
+      ${toggle('cinematicMoments', 'Filmische momenten', 'Bij bezienswaardigheden, crashes en vijf sterren; intro’s, missies en de filmcamera (V) staan altijd aan')}
+      ${toggle('wijkFilm', 'Filmpje bij nieuwe wijken', 'Uit: een korte naamkaart met wat er te zien is; aan: de volledige rondvlucht')}`, `${pane('Camera & richten', 'Meekijken', '<p>De camera-afstand en beeldhoek gelden te voet en in elk voertuig.</p>')}`)}
+    ${tab('hints', `
+      ${toggle('showHints', 'Toetshints')}
+      ${picker('hintSource', 'Hints tonen voor', [['auto', 'Automatisch'], ['keys', 'Toetsenbord'], ['pad', 'Controller']], 'Automatisch volgt wat je het laatst gebruikte')}
+      ${toggle('onboardingTips', 'Uitleg voor nieuwe spelers', 'Korte tips, elk één keer: je eerste klus, geld en winkels, de telefoon, de kaart en Te doen')}`, `${pane('Hints & uitleg', 'Hulp in beeld', '<p>Toetshints en korte tips voor nieuwe spelers. Je kunt ze altijd uitzetten.</p>')}`)}`;
 }
 export function initPauseMenu(w) {
   world = w;
@@ -509,6 +525,7 @@ export function initPauseMenu(w) {
           <section data-panel="streken" class="pm-panel pm-col" hidden><div class="pm-inner pm-streken"></div></section>
           <section data-panel="samen" class="pm-panel pm-col" hidden><div class="pm-inner pm-samen"></div></section>
           <section data-panel="spelers" class="pm-panel pm-col" hidden><div class="pm-inner pm-spelers"></div></section>
+          <section data-panel="spel" class="pm-panel pm-col pm-tabbed" hidden><div class="pm-inner pm-settings">${spelHtml()}</div></section>
           <section data-panel="settings" class="pm-panel pm-col pm-tabbed" hidden><div class="pm-inner pm-settings">${settingsHtml()}</div></section>
           <section data-panel="controls" class="pm-panel pm-col pm-tabbed" hidden><div class="pm-inner pm-cinner">
             ${subtabsHtml('controls', 'Besturing')}
@@ -816,7 +833,7 @@ function cycleSubtab(dir) {
   if (tab === 'todo') renderTodoPanel();
   if (tab === 'verhaal') renderVerhaalPanel();
   if (tab === 'telefoon') renderPhone();
-  if (tab === 'settings') syncControls();
+  if (tab === 'settings' || tab === 'spel') syncControls();
   if (tab === 'controls') renderBinds();
   focusEl(root.querySelector(`[data-subtab="${next}"][data-of="${tab}"]`));
 }
@@ -1504,6 +1521,7 @@ function showTab(name, how) {
   if (name === 'loopbaan') renderLoopbaanPanel(root.querySelector('[data-panel="loopbaan"] .pm-inner'));
   if (name === 'controls') { const q = root.querySelector('[data-controls-search]'); q.value = ''; filterControls(''); showSubtab('controls', pref.sub.controls || 'toetsen'); bindMsg = ''; renderBinds(); }
   if (prev === 'controls' && name !== 'controls') cancelRebind();
+  if (name === 'spel') { showSubtab('spel', pref.sub.spel || 'spelen'); syncControls(); }
   if (name === 'settings') { showSubtab('settings', pref.sub.settings || 'video'); syncControls(); syncDesktopControls(); }
   if (prev !== name) { const p = activePanel(); if (p) p.scrollTop = 0; }
 }
