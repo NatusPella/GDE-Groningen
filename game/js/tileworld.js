@@ -75,6 +75,24 @@ function boundsOfObj(kind, o) {
 // a city tile the city's data leaves empty, store key 'o' + the tile's) 'o' + its place.
 const residentKey = (i, j, key) => (key && key[0] === 'o' ? 'o' : '') + `${i},${j}`;
 
+// The tiles an object is resident in. Nearly every object lies in one tile: that key sits in `t`, and only an object that
+// several tiles hold (a road across a border) gets a Set in `more`. A Set per object cost ~190 bytes of the ~150.000 rows
+// of the city and its overlays (scripts/perf/pinned_meet.mjs).
+function holdIn(e, tk) {
+  if (e.t === undefined) e.t = tk;
+  else if (e.t !== tk) (e.more || (e.more = new Set())).add(tk);
+}
+// true when tile tk was the last to hold the object (false: it still lies in another, or tk never held it)
+function releaseFrom(e, tk) {
+  if (e.t === tk) {
+    if (e.more && e.more.size) { e.t = e.more.values().next().value; e.more.delete(e.t); if (!e.more.size) e.more = undefined; return false; }
+    e.t = undefined;
+    return true;
+  }
+  if (e.more && e.more.delete(tk) && !e.more.size) e.more = undefined;
+  return false;
+}
+
 export class TileWorld extends GameMap {
   // global: decoded global blob; tiles: decoded tiles of the pinned set
   static fromTiles(global, tiles) {
@@ -93,8 +111,8 @@ export class TileWorld extends GameMap {
         if (!kind) continue;
         for (const { gid, obj } of rowsOf(kind, s)) {
           let e = res[kind].get(gid);
-          if (!e) { e = { obj, tiles: new Set() }; res[kind].set(gid, e); arrays[kind][gid] = obj; }
-          e.tiles.add(key);
+          if (!e) { e = { obj }; res[kind].set(gid, e); arrays[kind][gid] = obj; }
+          holdIn(e, key);
         }
       }
     }
@@ -119,8 +137,6 @@ export class TileWorld extends GameMap {
       (map.parcelGrid || (map.parcelGrid = new SpatialGrid(64))).insert(e.obj, e.obj.bounds);
     }
     for (const [, e] of res.furniture || []) if (e.obj.k === 'hedge' && e.obj.pts) (map.hedgeGrid || (map.hedgeGrid = new SpatialGrid(64))).insert(e.obj, polygonBounds(e.obj.pts));
-    map._gidOf = new WeakMap();
-    for (const kind of Object.keys(res)) for (const [gid, e] of res[kind]) if (typeof e.obj === 'object') map._gidOf.set(e.obj, gid);
     map.terrain = terrain;
     map.tileQueue = new FrameQueue();
     map.store = null;
@@ -152,9 +168,8 @@ export class TileWorld extends GameMap {
         if (twins && twins.size && twins.has(obj)) continue;
         let e = this._res[kind].get(gid);
         if (!e) {
-          e = { obj, tiles: new Set() };
+          e = { obj };
           this._res[kind].set(gid, e);
-          if (kind !== 'trees') this._gidOf.set(obj, gid);
           if (kind === 'buildings' || kind === 'roads' || kind === 'water' || kind === 'green' || kind === 'rails' || kind === 'parcels') obj.bounds = boundsOfObj(kind, obj);
           if (kind === 'water') { promoteMainWaterway(obj); this._waterVer = (this._waterVer || 0) + 1; newWater.push(obj); }
           if (kind === 'roads') newRoads.push(obj);
@@ -166,7 +181,7 @@ export class TileWorld extends GameMap {
           // the mapped hedges (OSM barrier=hedge): the countryside draws none of its own beside them (hedgeNear)
           if (kind === 'furniture' && obj.k === 'hedge' && obj.pts) (this.hedgeGrid || (this.hedgeGrid = new SpatialGrid(64))).insert(obj, polygonBounds(obj.pts));
         }
-        e.tiles.add(tk);
+        holdIn(e, tk);
       }
     }
     // the profiles of streamed bridges and viaducts (build_province.mjs, #235): the roads of the tile join the elevation
@@ -249,7 +264,7 @@ export class TileWorld extends GameMap {
     const goneRoads = [];
     for (const kind of Object.keys(this._res)) {
       for (const [gid, e] of this._res[kind]) {
-        if (!e.tiles.delete(tk) || e.tiles.size) continue;
+        if (!releaseFrom(e, tk)) continue;
         this._res[kind].delete(gid);
         if (kind === 'roads' && e.obj.z) goneRoads.push(e.obj);
         if (kind === 'water') this._waterVer = (this._waterVer || 0) + 1;
