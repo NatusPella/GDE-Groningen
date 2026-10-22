@@ -6,7 +6,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { createTerrainMaterial } from './terrain3d.js';
 
 export const RELIEF_MIN = 0.04;     // m: a cell whose corners are all below this stays flat ground
-const LIFT = 0.012;                 // m over the flat ground: no z-fight where the relief is 0
+const LIFT = -0.1;                  // m under the relief: roads and paths laid on it (drawn between their vertices, the ground bulges over them) stay in sight
 
 // The patch of one decoded raster R (terrainraster.js: x0, y0, cell, w, h, z) over the field it belongs to, as plain arrays, or
 // null where nothing rises. `wet(x, y)` tells water: no ground there. The heights are the field's (bilinear), so the patches of

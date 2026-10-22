@@ -379,6 +379,8 @@ export function solve(data, { terrain = flatTerrain, iters = 600, pullPrior = 0.
   // a car road that runs over a crest or a hollow of the terrain sharper than its class allows gets a profile of its own (the solver's
   // vertical curves round it), and so do the car roads that join the decks and those roads at an end: they carry the curve on
   if (onTerrain) {
+    // (a road that has a terrain profile from an earlier pass stays in: its joints were solved with it free)
+    for (const r of roads) if (r.zt && r.zt.length) active.add(r);
     for (const r of roads) if (CAR.has(r.cat) && !isDeckRoad(r) && !r.rail && terrainKink(r, base0.get(r))) active.add(r);
     const endKeys = new Set();
     for (const r of active) { endKeys.add(nodeKey(r.pts[0])); endKeys.add(nodeKey(r.pts[r.pts.length - 1])); }
