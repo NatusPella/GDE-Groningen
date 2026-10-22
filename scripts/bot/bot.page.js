@@ -244,6 +244,26 @@ async function detour(s, n) {
   follower = null;
 }
 
+// on foot and not moving for 2 s (a stall pole, a prop, a parked car): a sidestep, alternating sides and longer each time, then a detour point
+// to the side of the line to `goal` that the next plan starts from. True when it did one (the caller skips the tick).
+async function footUnstick(s, goal) {
+  const fp = mem.footPos;
+  if (!fp || Math.hypot(s.player.x - fp.x, s.player.y - fp.y) > 0.5) { mem.footPos = { x: s.player.x, y: s.player.y, t: s.t }; return false; }
+  if (s.t - fp.t <= 2) return false;
+  mem.footPos = null;
+  mem.sidesteps = (mem.sidesteps || 0) + 1;
+  const dir = mem.sidesteps % 2 ? 1 : -1, ms = 700 + 350 * Math.min(8, mem.sidesteps);
+  B.log('zijstap', { x: s.player.x, y: s.player.y, n: mem.sidesteps, ms });
+  B.stick(dir, -0.3);
+  await sleep(ms);
+  B.stick(0, 0);
+  const hx = goal.x - s.player.x, hy = goal.y - s.player.y, hl = Math.hypot(hx, hy) || 1;
+  const off = 7 + 3 * Math.min(6, mem.sidesteps);
+  mem.detour = { x: s.player.x + (-hy / hl) * off * dir + (hx / hl) * 4, y: s.player.y + (hx / hl) * off * dir + (hy / hl) * 4, until: s.t + 12 };
+  follower = null;
+  return true;
+}
+
 // in a vehicle that sits against a kerb, a wall or other traffic: other ways out of it, one after the other, before a cheat is needed
 const vdetours = {};
 async function vdetour(s, n) {
@@ -538,6 +558,11 @@ while (true) {
     const vObj = world.vehicles.find((q) => Math.hypot(q.x - v.x, q.y - v.y) < 0.6);
     const big = vObj && Math.max(vObj.halfLen || 0, vObj.halfWid || 0) > 3;
     // when the game keeps picking another vehicle (two cars side by side) walk right up to this one: its outline is then the nearest
+    // walking to a vehicle that stands among others (M14: the tractor limo between cars and a bus): the same sidesteps as on any walk
+    if (!s.player.vehicle && !s.blocking.cinematic && Math.hypot(v.x - s.player.x, v.y - s.player.y) > 3.5) {
+      if (await footUnstick(s, v)) continue;
+      if (mem.detour && s.t < mem.detour.until && Math.hypot(mem.detour.x - s.player.x, mem.detour.y - s.player.y) > 3) { steerTowards(s, 'walk', mem.detour, false, 24, 2.5); continue; }
+    }
     const d = steerTowards(s, 'walk', v, false, 24, big || (mem.nearMiss || 0) >= 2 ? 0.4 : 2.2);
     // the game's own test: this is what lights the prompt and lets E in
     const near = vObj ? V.findEnterableVehicle(player.x, player.y, world.vehicles) === vObj : d < 3.5;
@@ -579,25 +604,7 @@ while (true) {
       }
     }
     // on foot, wedged against a stall pole or a prop: sidestep (alternating sides, longer each time), then plan again
-    if (act.mode !== 'drive' && !s.player.vehicle && !s.blocking.cinematic && s.target.distance > 5 && s.mission.stage !== 'hold') {
-      const fp = mem.footPos;
-      if (!fp || Math.hypot(s.player.x - fp.x, s.player.y - fp.y) > 0.5) mem.footPos = { x: s.player.x, y: s.player.y, t: s.t };
-      else if (s.t - fp.t > 2) {
-        mem.footPos = null;
-        mem.sidesteps = (mem.sidesteps || 0) + 1;
-        const dir = mem.sidesteps % 2 ? 1 : -1, ms = 700 + 350 * Math.min(8, mem.sidesteps);
-        B.log('zijstap', { x: s.player.x, y: s.player.y, n: mem.sidesteps, ms });
-        B.stick(dir, -0.3);
-        await sleep(ms);
-        B.stick(0, 0);
-        // then a detour: a point to the side of the line to the goal, walked to first (the plan from there goes round the obstacle, not back into it)
-        const hx = s.target.x - s.player.x, hy = s.target.y - s.player.y, hl = Math.hypot(hx, hy) || 1;
-        const off = 7 + 3 * Math.min(6, mem.sidesteps);
-        mem.detour = { x: s.player.x + (-hy / hl) * off * dir + (hx / hl) * 4, y: s.player.y + (hx / hl) * off * dir + (hy / hl) * 4, until: s.t + 12 };
-        follower = null;
-        continue;
-      }
-    }
+    if (act.mode !== 'drive' && !s.player.vehicle && !s.blocking.cinematic && s.target.distance > 5 && s.mission.stage !== 'hold' && await footUnstick(s, s.target)) continue;
     if (act.mode !== 'drive' && !s.player.vehicle && mem.detour && s.t < mem.detour.until && Math.hypot(mem.detour.x - s.player.x, mem.detour.y - s.player.y) > 3) { steerTowards(s, 'walk', mem.detour, false, 24, 2.5); continue; }
     steerTowards(s, act.mode, aim, !act.stunt && s.mission.phase !== 'active' && (s.target.source === 'missiestart' || s.target.source === 'winkel'), top, s.mission.stage === 'lock' || s.mission.stage === 'crack' ? 1 : null, !!(act.stunt && s.player.vehicle && s.target.distance < 250));
     if (wedgeOut) {
