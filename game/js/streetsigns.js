@@ -20,6 +20,9 @@ const ROAD_TEXT_H = 1.8;
 const ROAD_INSET = 7;
 const TEXT_PX = 96;
 const PLATE_COLOR = '#1f3f8f';
+// m voor de gevel: de achterplaat (0,025 dik, middelpunt op 0,02) en de tekst erop; de tekst ligt 7,5 mm voor de plaat
+// (was 1,5 mm: dat is onder de dieptebuffer-resolutie van 70 m, #382) en krijgt daarbij een polygonOffset
+export const PLATE_Z = { back: 0.02, text: 0.04 };
 
 const PLANE_GEO = new THREE.PlaneGeometry(1, 1);
 const PLATE_BACK_GEO = new THREE.BoxGeometry(1, 1, 0.025);
@@ -129,7 +132,7 @@ function textTexture(name, kind) {
       map: tex, transparent: true, depthWrite: false, roughness: 0.8,
       polygonOffset: true, polygonOffsetFactor: -8, polygonOffsetUnits: -34,
     })
-    : new THREE.MeshStandardMaterial({ map: tex, roughness: 0.5 });
+    : new THREE.MeshStandardMaterial({ map: tex, roughness: 0.5, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -8 });
   entry = { material, aspect: canvas.width / canvas.height, users: 1, key };
   textures.set(key, entry);
   return entry;
@@ -151,11 +154,11 @@ function buildSignMesh(sign) {
     const w = PLATE_H * face.aspect;
     const back = new THREE.Mesh(PLATE_BACK_GEO, PLATE_BACK_MAT);
     back.scale.set(w + 0.04, PLATE_H + 0.04, 1);
-    back.position.z = 0.02;
+    back.position.z = PLATE_Z.back;
     g.add(back);
     const text = new THREE.Mesh(PLANE_GEO, face.material);
     text.scale.set(w, PLATE_H, 1);
-    text.position.z = 0.034;
+    text.position.z = PLATE_Z.text;
     g.add(text);
     g.position.set(sign.x, PLATE_Y, sign.y);
     g.rotation.y = Math.atan2(sign.nx, sign.ny);
