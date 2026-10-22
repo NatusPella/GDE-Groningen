@@ -51,6 +51,7 @@ import { hudPixelRatio, sizeSquareCanvas, getUiScale, onUiScaleChange } from './
 import { initCards, updateCards } from './hudcards.js';
 import { markerColors, onPaletteChange } from './a11y.js';
 import { drawMissionGlyph } from './missionicons.js';
+import { drawMapGlyph } from './mapglyphs.js';
 import { decideHud, zones, hudNow, P3, PLACE_SHOW, E_SHOW, DEFER_MAX, GPS_NEAR } from './hudrules.js';
 import { vehicleKind, speedoLook, meterLevel, hudEdge, distanceOwner, vehicleLabelOwner } from './hudlook.js';
 import { nextTurn, turnText, etaText } from './hudgps.js';
@@ -1321,8 +1322,20 @@ function pulseAt(t, speed = 5) {
 // vorm per medespeler (coopplayers.js): n hoeken, star = ster, rot = vaste draaiing
 const PARTNER_VORMEN = {
   driehoek: { n: 3 }, ruit: { n: 4, rot: 0 }, vierkant: { n: 4, rot: Math.PI / 4 }, cirkel: { n: 0 }, vijfhoek: { n: 5 }, ster: { n: 5, star: true },
-  plus: { plus: true }, kruis: { kruis: true }, maan: { n: 6 }, hart: { n: 6, star: true }, bliksem: { n: 7 }, druppel: { n: 8 }, blok: { n: 4, star: true },
-  golf: { n: 7, star: true }, schild: { n: 3, rot: Math.PI / 2 }, bloem: { n: 8, star: true },
+  plus: { plus: true }, kruis: { kruis: true }, maan: { pad: true }, hart: { pad: true }, bliksem: { pad: true }, druppel: { pad: true }, blok: { pad: true },
+  golf: { pad: true }, schild: { pad: true }, bloem: { pad: true },
+};
+// the shapes that are no regular polygon: a real moon, heart, bolt, drop, block, wave, shield and flower (#383),
+// each inside +-5.6 units; 'golf' and 'bloem' also set their own outline
+const PARTNER_PADEN = {
+  maan: (g, s) => { g.moveTo(1.8 * s, -5.2 * s); g.bezierCurveTo(-6.8 * s, -4.8 * s, -6.8 * s, 4.8 * s, 1.8 * s, 5.2 * s); g.bezierCurveTo(-1.8 * s, 3.2 * s, -1.8 * s, -3.2 * s, 1.8 * s, -5.2 * s); },
+  hart: (g, s) => { g.moveTo(0, 5.2 * s); g.bezierCurveTo(-7 * s, 0.4 * s, -5.2 * s, -5 * s, -2.4 * s, -4.8 * s); g.bezierCurveTo(-1 * s, -4.7 * s, 0, -3.6 * s, 0, -2.6 * s); g.bezierCurveTo(0, -3.6 * s, 1 * s, -4.7 * s, 2.4 * s, -4.8 * s); g.bezierCurveTo(5.2 * s, -5 * s, 7 * s, 0.4 * s, 0, 5.2 * s); },
+  bliksem: (g, s) => { g.moveTo(1.8 * s, -5.8 * s); g.lineTo(-3.4 * s, 0.8 * s); g.lineTo(-0.4 * s, 0.8 * s); g.lineTo(-1.8 * s, 5.8 * s); g.lineTo(3.6 * s, -1.2 * s); g.lineTo(0.6 * s, -1.2 * s); },
+  druppel: (g, s) => { g.moveTo(0, -5.8 * s); g.bezierCurveTo(3.4 * s, -1.8 * s, 4.6 * s, 0.4 * s, 4.6 * s, 1.8 * s); g.arc(0, 1.8 * s, 4.6 * s, 0, Math.PI); g.bezierCurveTo(-4.6 * s, 0.4 * s, -3.4 * s, -1.8 * s, 0, -5.8 * s); },
+  blok: (g, s) => { g.rect(-4.4 * s, -2 * s, 8.8 * s, 6.4 * s); g.rect(-3 * s, -4.6 * s, 2.4 * s, 2.6 * s); g.rect(0.6 * s, -4.6 * s, 2.4 * s, 2.6 * s); },
+  schild: (g, s) => { g.moveTo(-4.6 * s, -4.8 * s); g.lineTo(4.6 * s, -4.8 * s); g.lineTo(4.6 * s, 0.6 * s); g.quadraticCurveTo(4.4 * s, 3.8 * s, 0, 5.8 * s); g.quadraticCurveTo(-4.4 * s, 3.8 * s, -4.6 * s, 0.6 * s); },
+  golf: (g, s) => { g.moveTo(-5.4 * s, 2 * s); g.bezierCurveTo(-4.4 * s, -3.8 * s, -1.6 * s, -3.8 * s, 0, 0); g.bezierCurveTo(1.6 * s, 3.8 * s, 4.4 * s, 3.8 * s, 5.4 * s, -2 * s); g.lineTo(5.4 * s, 1.8 * s); g.bezierCurveTo(4.4 * s, 7.4 * s, 1.6 * s, 7.4 * s, 0, 3.8 * s); g.bezierCurveTo(-1.6 * s, 0.2 * s, -4.4 * s, 0.2 * s, -5.4 * s, 5.8 * s); },
+  bloem: (g, s) => { for (let i = 0; i < 5; i++) { const a = -Math.PI / 2 + i * Math.PI * 2 / 5, x = Math.cos(a) * 2.9 * s, y = Math.sin(a) * 2.9 * s; g.moveTo(x + 2.6 * s, y); g.arc(x, y, 2.6 * s, 0, Math.PI * 2); } g.moveTo(2.8 * s, 0); g.arc(0, 0, 2.8 * s, 0, Math.PI * 2); },
 };
 export function drawMapIcon(ctx, kind, x, y, s = 1, opts = {}) {
   if (!opts.raw && drawFlatMapIcon(ctx, kind, x, y, s, opts)) return;
@@ -1361,7 +1374,8 @@ export function drawMapIcon(ctx, kind, x, y, s = 1, opts = {}) {
       const f = PARTNER_VORMEN[opts.vorm] || PARTNER_VORMEN.cirkel;
       ctx.rotate(f.rot ?? (f.n === 3 ? (opts.angle ?? -Math.PI / 2) : 0));
       ctx.beginPath();
-      if (f.plus) { ctx.rect(-1.6 * s, -5.2 * s, 3.2 * s, 10.4 * s); ctx.rect(-5.2 * s, -1.6 * s, 10.4 * s, 3.2 * s); }
+      if (f.pad) PARTNER_PADEN[opts.vorm](ctx, s);
+      else if (f.plus) { ctx.rect(-1.6 * s, -5.2 * s, 3.2 * s, 10.4 * s); ctx.rect(-5.2 * s, -1.6 * s, 10.4 * s, 3.2 * s); }
       else if (f.kruis) { ctx.rotate(Math.PI / 4); ctx.rect(-1.6 * s, -5.2 * s, 3.2 * s, 10.4 * s); ctx.rect(-5.2 * s, -1.6 * s, 10.4 * s, 3.2 * s); }
       else if (!f.n) ctx.arc(0, 0, 4.8 * s, 0, Math.PI * 2);
       else for (let i = 0; i < (f.star ? f.n * 2 : f.n); i++) {
@@ -1369,9 +1383,10 @@ export function drawMapIcon(ctx, kind, x, y, s = 1, opts = {}) {
         if (i) ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r); else ctx.moveTo(Math.cos(a) * r, Math.sin(a) * r);
       }
       ctx.closePath();
+      if (f.pad) outline(ctx, s, C.dark, 2.4); // under the fill: only the outer half shows, so a thin shape stays coloured
       ctx.fillStyle = opts.kleur || C.greenLight;
       ctx.fill();
-      outline(ctx, s, C.dark, 1.4);
+      if (!f.pad) outline(ctx, s, C.dark, 1.4);
       break;
     }
     case 'companion': {
@@ -1662,24 +1677,7 @@ export function drawMapIcon(ctx, kind, x, y, s = 1, opts = {}) {
       ctx.fillStyle = blue ? C.policeBlue : C.red;
       ctx.fill();
       outline(ctx, s, C.dark, 1.2);
-      if (kind === 'policeBike' || kind === 'policeHorse') {
-        ctx.strokeStyle = C.cream;
-        ctx.lineWidth = 0.9 * s;
-        ctx.beginPath();
-        if (kind === 'policeBike') {
-          ctx.lineWidth = 0.7 * s;
-          ctx.arc(-1.6 * s, 0.2 * s, 0.9 * s, 0, Math.PI * 2);
-          ctx.moveTo(2.5 * s, 0.2 * s);
-          ctx.arc(1.6 * s, 0.2 * s, 0.9 * s, 0, Math.PI * 2);
-          ctx.moveTo(-1.6 * s, 0.2 * s);
-          ctx.lineTo(-0.3 * s, -1.7 * s);
-          ctx.lineTo(1.6 * s, 0.2 * s);
-        } else {
-          ctx.arc(0, -0.2 * s, 1.7 * s, Math.PI * 0.8, Math.PI * 2.2, false);
-        }
-        ctx.stroke();
-        break;
-      }
+      if (kind === 'policeBike' || kind === 'policeHorse') break; // no glyph: a small arch or two rings read as a bump (#383)
       if (kind === 'policeFoot') break;
       ctx.beginPath();
       for (let i = 0; i < 10; i++) {
@@ -1692,6 +1690,7 @@ export function drawMapIcon(ctx, kind, x, y, s = 1, opts = {}) {
       break;
     }
     default:
+      if (drawMapGlyph(ctx, kind, s)) break;
       if (drawOmmelandMapIcon(ctx, kind, s)) break;
       if (kind.startsWith('shop-')) drawShopMapIcon(ctx, kind.slice(5), s);
       else if (kind === 'pigeon') drawPigeonMapIcon(ctx, s);
