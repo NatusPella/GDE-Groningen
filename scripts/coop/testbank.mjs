@@ -88,7 +88,7 @@ function start(name, cfg, seed, extraArgs = []) {
   const dir = path.join(OUT, name); fs.mkdirSync(dir, { recursive: true });
   const events = path.join(dir, 'events.jsonl'); fs.writeFileSync(events, '');
   const script = path.join(dir, '_page.js');
-  const pcfg = { ...cfg, name, route: ROUTE, preSave: SUITE === 'net' || SUITE === 'basis' || (SUITE === 'opening' && flag('host-save')), durationS: DURATION, viaMenu: MENU, expect: EXPECT, trackerPort, program: P[name] || [], invuln: flag('invuln'), watchOpening: SUITE === 'opening' && !flag('host-save'), tekstTest: SUITE === 'opening', hostSave: flag('host-save'), gateWachtMs: SUITE === 'gastacties' ? 7000 : 0 };
+  const pcfg = { ...cfg, name, route: ROUTE, preSave: SUITE === 'net' || SUITE === 'basis' || (SUITE === 'opening' && flag('host-save')), durationS: DURATION, viaMenu: MENU, expect: EXPECT, maxSpelers: EXPECT > 8 ? 16 : 0, trackerPort, program: P[name] || [], invuln: flag('invuln'), watchOpening: SUITE === 'opening' && !flag('host-save'), tekstTest: SUITE === 'opening', hostSave: flag('host-save'), gateWachtMs: SUITE === 'gastacties' ? 7000 : 0 };
   // de spelbot (bot.page.js) als functie, voor de host die het verhaal speelt
   const bot = `window.__botMain = async () => {\n${botCode}\n};\n`;
   fs.writeFileSync(script, `window.__coopCfg = ${JSON.stringify(pcfg)};\n${bot}` + fs.readFileSync(path.join(HERE, 'coop.page.js'), 'utf8'));
@@ -130,6 +130,7 @@ await takeSlots(1 + GASTEN);
 console.log('uitvoer:', OUT);
 const host = start('host', { role: 'host', waitS: 300, joinWaitS: 400 }, 11);
 const code = await waitFor(host.events, 'code', 240000);
+if (EXPECT > 8) await waitFor(host.events, 'max-knop', 60000); // de gastheer kiest eerst "Tot 16 spelers" en pas daarna komen de gasten (anders is de TCP-kant nog vol bij 8)
 const problems = [];
 const notes = [];
 let guest = null, guest2 = null;
@@ -361,7 +362,8 @@ if (gW && hW && SUITE !== 'gastacties') { // (bij gastacties staat de host steed
   const d = Math.hypot(gW.companion.x - hW.me.x, gW.companion.y - hW.me.y);
   check(d < 6, `gast ziet Tammo op ${d.toFixed(1)} m van de host`);
 }
-const klokVerschil = (g) => { const h = samples('host').filter((s) => Number.isFinite(s.uur)), q = samples(g).filter((s) => Number.isFinite(s.uur)); if (!h.length || !q.length) return null; return Math.abs(((last(q).uur - last(h).uur + 36) % 24) - 12); };
+// de laatste keer dat de gast echt meespeelde (daarna speelt hij weer in zijn eigen spel, met zijn eigen klok) tegen de host op hetzelfde moment
+const klokVerschil = (g) => { const h = samples('host').filter((s) => Number.isFinite(s.uur)), q = samples(g).filter((s) => Number.isFinite(s.uur) && s.slot >= 0 && (s.status === 'ok' || s.status === 'lag')); if (!h.length || !q.length) return null; const l = last(q), hh = h.reduce((b, x) => (Math.abs(x.wall - l.wall) < Math.abs(b.wall - l.wall) ? x : b), h[0]); return Math.abs(((l.uur - hh.uur + 36) % 24) - 12); };
 for (const g of NAMES.filter((x) => x !== 'host')) { const d = klokVerschil(g); if (d != null) check(d < 0.3, `speelklok ${g}: ${d.toFixed(2)} u verschil`); }
 for (const g of NAMES.filter((x) => x !== 'host')) {
   let vorige = 0; const bad = samples(g).filter((s) => { const nieuw = (s.desyncN || 0) > vorige; vorige = Math.max(vorige, s.desyncN || 0); return nieuw && s.ph !== 'desync' && s.ph !== 'netsim' && !(SUITE === 'net' && s.ph === 'uitval') && !(SUITE === 'gastacties' && s.ph === 'gastrit' && (s.desync || []).every((v) => v === 'wanted')); });

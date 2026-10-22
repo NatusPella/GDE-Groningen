@@ -212,6 +212,10 @@ async function connect() {
     const code = await until(() => { const c = panel().querySelector('.coop-code'); return c && c.textContent.trim(); }, 40000, 'code van de host');
     log('code', { code, net: netNow() });
     shot('host-code');
+    if (CFG.maxSpelers) { // meer dan 8 spelers: de knop "Tot 16 spelers" van de lobby, zoals een speler
+      const knop = await until(() => panel().querySelector(`[data-act="max-${CFG.maxSpelers}"]`), 15000, 'knop max-' + CFG.maxSpelers).catch(() => null);
+      if (knop) knop.click(); log('max-knop', { max: CFG.maxSpelers, gevonden: !!knop }); await sleep(400);
+    }
     { const b0 = panel().querySelector('[data-act="start-spel"]'); log('start-alleen', { knop: !!b0, uit: !!(b0 && b0.disabled), tekst: panel().innerText.slice(0, 500) }); } // alleen jij: Spel starten staat uit
     await until(() => title() === 'Je speelt samen', CFG.waitS ? CFG.waitS * 1000 : 120000, 'een gast');
   } else {
@@ -532,7 +536,16 @@ const PHASES = {
   // een ritje: de host zet een voertuig naast zich neer (cheat 'voertuig hier' of een voertuig in de buurt), stapt in en rijdt; Tessa (de gast)
   // stapt via de volg-AI als passagier mee. De gasten kijken: staat Tessa als passagier, rijdt het voertuig mee, stapt ze weer uit?
   async rit({ s = 24 }) {
-    if (CFG.role !== 'host') { await sleep(s * 1000); return; }
+    if (CFG.role !== 'host') { // Tessa gaat niet meer vanzelf mee (#388): zodra de host in een voertuig zit stapt de gast zelf in met E
+      const t0 = performance.now(); let gedrukt = 0, erin = false;
+      while (performance.now() - t0 < s * 1000) {
+        const p = (W().coopPartners || []).find((q) => q.slot === 0);
+        if (p && /voertuig|rijdt/.test(p.status) && !W().coopInVoertuig && !W().companion.inVehicle && window.__bot && gedrukt < 8) { await window.__bot.press('e', 150); gedrukt++; await sleep(1500); } else await sleep(500);
+        erin = erin || !!W().coopInVoertuig;
+      }
+      log('rit-gast', { gedrukt, erin });
+      return;
+    }
     const w = W(), B = window.__bot;
     let via = '';
     const voorLijst = new Set(w.vehicles || []);
@@ -582,11 +595,14 @@ const PHASES = {
       await sleep((s - 3) * 1000);
       log('filmpje-na', { actief: C.isCinematicActive() });
     } else {
-      await sleep(3500);
+      // de fasen van de host duren soms langer dan gepland (een rit): de gast wacht tot het filmpje echt begint
+      const w0 = performance.now(); while (!(W().coopScene && W().coopScene.filmpje) && performance.now() - w0 < (s + 12) * 1000) await sleep(200);
+      await sleep(1500);
       const x = W();
       log('filmpje-gast', { sc: x.coopScene || null, sceneEl: !!document.getElementById('coop-scene'), input: x.coopNet && x.coopNet.session ? [x.coopNet.session.pendingInput.mx, x.coopNet.session.pendingInput.my] : null });
       shot('filmpje-gast');
-      await sleep((s - 3.5) * 1000 + 2500);
+      const w1 = performance.now(); while (W().coopScene && W().coopScene.filmpje && performance.now() - w1 < (s + 6) * 1000) await sleep(200);
+      await sleep(2500);
       log('filmpje-gast-na', { sc: W().coopScene || null, sceneEl: !!document.getElementById('coop-scene') });
     }
   },

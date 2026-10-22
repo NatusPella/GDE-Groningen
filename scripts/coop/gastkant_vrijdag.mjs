@@ -72,6 +72,7 @@ const readEvents = () => fs.readFileSync(events, 'utf8').split(/\r?\n/).filter(B
   const W = await import(pathToFileURL(path.join(ROOT, 'game', 'js', 'weatherstate.js')).href);
   const ws = W.createWeatherState(5); host.world.weatherState = ws;
   globalThis.__mocks = mocks;
+  { const wall = (readEvents().find((e) => e.type === 'allen-erbij') || {}).wall; if (wall) { const gap = (Date.now() - wall) / 1000, at0 = host.at; host.at = (s, fn) => at0.call(host, Math.max(0, s - gap), fn); } } // de tijdlijn van de gast loopt vanaf "allen-erbij"; de headless gasten kosten tijd om te verbinden
   host.at(8, (h) => { ws.regions.stad.kind = 'onweer'; ws.regions.stad.rain = 0.85; ws.regions.stad.overcast = 0.95; });
   host.at(26, (h) => h.log.push('roep ' + h.N.sendPing(h.world, h.world.companion.x + 3, h.world.companion.y, 'gevaar')));
   host.at(32, (h) => h.mission({ phase: 'active', label: 'Het Loket', type: 'stages', index: 3, progressText: 'Rij naar het loket', marker: { x: -1200, y: -1020 } }));

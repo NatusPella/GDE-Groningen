@@ -37,9 +37,9 @@ for (const s of ['SIGINT', 'SIGTERM']) process.on(s, () => { release(); process.
 
 // ---- het programma van de gast (seconden na "verbonden") en het draaiboek van de host, op dezelfde tijdlijn
 const PROGRAM = [
-  [0, 'wacht', { s: 6 }], [8, 'gastcamera', {}], [16, 'gastloop', { s: 30, naam: 'gastloop' }], [50, 'wacht', { s: 6 }], [58, 'gastloop', { s: 12, naam: 'gastpauze', rennen: false }], [74, 'wacht', { s: 8 }],
+  [0, 'wacht', { s: 6 }], [8, 'gastcamera', {}], [16, 'gastloop', { s: 30, naam: 'gastloop' }], [50, 'wacht', { s: 6 }], [58, 'gastloop', { s: 12, naam: 'gastpauze', rennen: false }], [74, 'wacht', { s: 26 }],
 ];
-const HOST_STOP = 90;
+const HOST_STOP = 106;
 const code = {};
 const started = Date.now();
 await takeSlot();
@@ -67,8 +67,10 @@ const readEvents = () => fs.readFileSync(events, 'utf8').split(/\r?\n/).filter(B
   const W = await import(pathToFileURL(path.join(ROOT, 'game', 'js', 'weatherstate.js')).href);
   const ws = W.createWeatherState(5); host.world.weatherState = ws;
   globalThis.__mocks = mocks;
+  { const wall = (readEvents().find((e) => e.type === 'allen-erbij') || {}).wall; if (wall) { const gap = (Date.now() - wall) / 1000, at0 = host.at; host.at = (s, fn) => at0.call(host, Math.max(0, s - gap), fn); } } // de tijdlijn van de gast loopt vanaf "allen-erbij"; de headless gasten kosten tijd om te verbinden
   host.at(57, (h) => { h.state.pauze = true; h.log.push('pauze aan'); }); // het pauzemenu van de gastheer
   host.at(71, (h) => { h.state.pauze = false; h.log.push('pauze uit'); });
+  host.at(78, (h) => { h.walk = false; h.world.player.x += 2500; h.log.push('teleport +2500 m'); }); // een kaartdoel ver weg of een teleport van de gastheer: de gast gaat mee
   host.at(HOST_STOP, async (h) => { h.log.push('host stopt'); await h.stop(); });
 })();
 const res = await done;
@@ -95,6 +97,10 @@ notes.push('afstand tot de gastheer: ' + afst.map((d) => Math.round(d)).join(' '
 const pz = of('gastpauze')[0];
 check(pz && pz.verplaatst > 12, 'pauze: de gast loopt niet door terwijl de gastheer pauzeert: ' + JSON.stringify(pz));
 check(S.some((s) => s.sc && s.sc[1] === 1), 'pauze: de gast ziet niet dat de gastheer pauzeert');
+// teleport van de gastheer: de gast staat daarna weer bij hem, het laadscherm blokkeert niets meer en de gast kan weer lopen
+const tp = S.filter((s) => s.t >= (of('allen-erbij')[0] || { t: 0 }).t + 92 && s.me && s.companion);
+check(tp.length > 3 && tp.some((s) => Math.hypot(s.me.x - s.companion.x, s.me.y - s.companion.y) < 40 && s.me.x > -1287 + 2000), 'teleport: de gast staat niet bij de gastheer: ' + JSON.stringify(tp.slice(-1).map((s) => [s.me, s.companion])));
+check(tp.length && !tp[tp.length - 1].uiPaused && !tp[tp.length - 1].paused, 'teleport: de gast zit na de sprong vast in een laadscherm of menu: ' + JSON.stringify(tp.slice(-1).map((s) => [s.uiPaused, s.paused])));
 for (const e of E.filter((x) => x.type === 'console' && x.level === 'error')) problems.push('consolefout: ' + String(e.msg).slice(0, 160));
 for (const e of E.filter((x) => x.type === 'jserror')) problems.push(`jserror: ${e.msg} ${e.file}:${e.line}`);
 notes.push('gastcamera: ' + JSON.stringify(cam), 'gastloop: ' + JSON.stringify(lp), 'gastpauze: ' + JSON.stringify(pz), 'draaiboek: ' + host.log.join('; '));
