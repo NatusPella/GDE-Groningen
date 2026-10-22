@@ -15,6 +15,8 @@ import { VILLAGES } from './ommelandlines.js';
 import { setStoryOutfit, storyOutfit } from './shops.js';
 import { playerBusy } from './busy.js';
 import { noteMoney } from './finance.js';
+import { loopbaanTel, loopbaanPrijs } from './loopbaanlive.js';
+import { kmPunten } from './loopbaan.js';
 
 // Fast travel by train between the on-map stations (map.stations): a ticket
 // machine at each, a small menu, a short skippable ride cinematic.
@@ -396,7 +398,7 @@ function planTrip(a, b) {
 
 function tripInfo(legs) {
   const len = legs.reduce((n, l) => n + l.len, 0);
-  const price = Math.max(4, Math.min(8, Math.round(3 + len / 900)));
+  const price = loopbaanPrijs('trein', Math.max(4, Math.min(8, Math.round(3 + len / 900)))); // vaste reizigers krijgen korting (#381)
   const minutes = Math.round(3 + len / 450) + (legs.length > 1 ? 4 : 0);
   return { len, price, minutes };
 }
@@ -829,6 +831,7 @@ function arrive(w) {
   recordStat(w, 'trainTrips');
   if (rode && !(info.clockMinutes > 0)) recordStat(w, 'trainRidesWatched');
   recordUnique(w, 'trainStations', to.name);
+  loopbaanTel(w, 'trein', { ...kmPunten('trein', info.len), uniek: to.name });
   if (VILLAGES[to.name]) unlockAchievement(w, 'trein_dorp');
   w.addMessage(`Aangekomen in ${to.name}. Reistijd ${info.minutes} minuten, €${info.price} armer.`, 4);
   saveGame(w, { toast: false });

@@ -350,6 +350,16 @@ export function setAchievementGate(fn) {
   gate = fn;
 }
 const gated = () => !!(gate && gate());
+export const achievementsGated = gated;
+
+// loopbaanlive.js (#381) hears every counted stat, and reads what was counted before there was a career.
+let statListener = null;
+export function setStatListener(fn) {
+  statListener = typeof fn === 'function' ? fn : null;
+}
+export function lifetimeSnapshot() {
+  return { stats: { ...life.stats }, sets: Object.fromEntries(Object.entries(life.sets).map(([k, v]) => [k, v.slice()])) };
+}
 
 // --- progress --------------------------------------------------------------
 
@@ -390,6 +400,7 @@ export function recordStat(w, key, n = 1) {
   life.stats[key] = (life.stats[key] || 0) + n;
   markDirty();
   checkGoals((a) => a.stat === key);
+  if (statListener) statListener(world, key, n);
 }
 
 export function setStatMax(w, key, value) {

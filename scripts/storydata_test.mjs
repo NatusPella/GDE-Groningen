@@ -29,7 +29,7 @@ const manifest = (m) => manifests[m] || (manifests[m] = withEllipsisAliases(JSON
 ok(scenes.length >= 150, 'scenes in the script', String(scenes.length));
 ok(new Set(scenes.map((s) => s.id)).size === scenes.length, 'scene ids are unique');
 for (const s of scenes) {
-  ok(/^[A-Z]\d+(\.\d+b?)?$/.test(s.id) && s.title && KINDS.has(s.kind) && Number.isInteger(s.act) && s.act >= 1 && s.act <= 5, `${s.id}: id, title, kind, act`, `${s.id} ${s.kind}`);
+  ok(/^[A-Z]\d+(\.\d+b?)?$/.test(s.id) && s.title && KINDS.has(s.kind) && Number.isInteger(s.act) && s.act >= 1 && s.act <= 6,`${s.id}: id, title, kind, act`, `${s.id} ${s.kind}`);
   ok(Array.isArray(s.lines) && Array.isArray(s.regie), `${s.id}: lines and regie`);
   if (s.lines.length === 0) ok(s.kind === 'key' || s.kind === 'intro' || s.kind === 'outro', `${s.id}: an empty scene is only allowed for a mission scene`, s.kind);
 }
@@ -65,18 +65,19 @@ for (const st of STEPS) {
   ok(own.every((q) => (st.scenes || []).includes(q.id)), `${st.id}: lists every scene of the script that is its own`, own.filter((q) => !(st.scenes || []).includes(q.id)).map((q) => q.id).join());
 }
 const missions = STEPS.filter((s) => s.kind === 'mission');
-ok(missions.length === 26 && missions.map((s) => s.id).join() === [...Array(26)].map((_, i) => 'M' + String(i + 1).padStart(2, '0')).join(), '26 main missions, M01-M26 in order');
-ok(STEPS.filter((s) => /^T\d$/.test(s.id)).length === 4 && STEPS[0].id === 'M00' && STEPS[STEPS.length - 1].id === 'E', 'four travel beats, the opening first and the epilogue last');
+// 26 missions of the five acts and the four of Deel 4 (M27-M30, after the epilogue E)
+ok(missions.length === 30 && missions.map((s) => s.id).join() === [...Array(30)].map((_, i) => 'M' + String(i + 1).padStart(2, '0')).join(), '30 main missions, M01-M30 in order');
+ok(STEPS.filter((s) => /^T\d$/.test(s.id)).length === 5 && STEPS[0].id === 'M00' && STEPS.filter((s) => s.part === 'ontzet').pop().id === 'E' && STEPS[STEPS.length - 1].id === 'M30', 'five travel beats, the opening first, the epilogue last of the five acts and Deel 4 after it');
 for (const m of missions) {
   const sc = scenes.filter((q) => q.step === m.id && /^M\d\d\.\d$/.test(q.id));
   ok(sc.some((q) => q.kind === 'intro'), `${m.id}: has an intro`);
   ok(sc.some((q) => q.kind === 'outro'), `${m.id}: has an outro`);
   ok(sc.some((q) => q.kind === 'intro') && sc.find((q) => q.kind === 'intro').id <= sc.find((q) => q.kind === 'outro').id, `${m.id}: the intro comes before the outro`);
 }
-ok(['kop', 'romp', 'staart', 'zuid', 'ontzet'].every((p) => PARTS[p] && STEPS.some((s) => s.part === p)), 'five acts, each with steps');
+ok(['kop', 'romp', 'staart', 'zuid', 'ontzet', 'nazomer'].every((p) => PARTS[p] && STEPS.some((s) => s.part === p)), 'five acts and Deel 4, each with steps');
 ok(NEW_MISSION_IDS.join().startsWith('loket,bakkiestunt') && new Set(NEW_MISSION_IDS).size === NEW_MISSION_IDS.length, 'the new defs appended to MISSION_IDS');
 const act = (k) => scenes.filter((s) => s.act === k);
-ok([1, 2, 3, 4, 5].every((k) => act(k).length > 10), 'every act has scenes');
+ok([1, 2, 3, 4, 5].every((k) => act(k).length > 10) && act(6).length >= 20, 'every act has scenes (act 6 is Deel 4)');
 
 // recordings: textOnly is exactly "no recording for the exact text"; a recorded line resolves in its manifest
 let recorded = 0, textOnly = 0, behouden = 0, behoudenText = 0;

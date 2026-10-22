@@ -70,6 +70,8 @@ export const BASE_KEYS = {
   hudSeen: 'gde-hud-gezien',
   // which steps were cleared with help on, and for which steps the help offer was shown (assistlive.js, #215): new, no legacy name
   help: 'gde-hulp-v1',
+  // the career of this player per trade (loopbaan.js, #381): new, no legacy name, never part of a savegame (everyone has their own, also when playing together)
+  loopbaan: 'gde-loopbaan-v1',
 };
 
 export const KEYS = Object.fromEntries(Object.entries(BASE_KEYS).map(([k, v]) => [k, ARC_KEYS.includes(k) ? v + ARC_SUFFIX : v]));

@@ -1,6 +1,7 @@
 // Map icon rules (game/js/mapicons.js): categories by zoom, size by zoom, and
 // the thinning where icons would overlap. Run: node scripts/mapicons_test.mjs
 import { mapCategory, mapKindVisible, mapIconScale, placeIcons, mapPriority, mapRimColor, miniIconScale, iconGapPx, MIN_ICON_PX, ICON_UNITS, hexContrast, haloRim, haloOutline, HALO_DARK, HALO_LIGHT, GRAPHIC_CONTRAST, FLAT_FILL, FLAT_INK, mapFillColor, BADGE_SHAPE, badgeShape, badgeGlyphColor, shadeHex, stateLook, mapIconAlpha, GLYPH_LIGHT } from '../game/js/mapicons.js';
+import { drawMapGlyph, MAP_GLYPH_KINDS } from '../game/js/mapglyphs.js';
 import { MAP_PALETTE, MINI_PALETTE, nightPalette, toRgba } from '../game/js/mapstyle.js';
 
 let n = 0, fails = 0;
@@ -110,6 +111,13 @@ ok(mapIconAlpha('player', 0.1) === 1 && mapIconAlpha('hospital', 0.9) < 1 && map
 ok(mapKindVisible('garage', 1.1) && !mapKindVisible('garage', 1.0), 'garages show from zoom 1.1');
 ok(mapPriority('garage') > mapPriority('shop') && mapPriority('garage') > mapPriority('fun'), 'a garage outranks shops and fun on the map');
 ok(MIN_ICON_PX >= 21 && mapIconScale(1) * ICON_UNITS >= 21 && miniIconScale(150) * ICON_UNITS >= 21, 'icons keep their size (21 px at least, full map and minimap)');
+
+// The bold glyphs (#383): a kind without its own readable drawing gets a cream silhouette, drawn on any 2D context
+const calls = [];
+const stub = new Proxy({}, { get: (t, k) => (k in t ? t[k] : (...a) => { calls.push(k); }), set: (t, k, v) => { t[k] = v; return true; } });
+ok(MAP_GLYPH_KINDS.length >= 10 && MAP_GLYPH_KINDS.every((k) => mapCategory(k) && mapFillColor(k)), 'every bold glyph kind has a category and a badge colour');
+ok(MAP_GLYPH_KINDS.every((k) => drawMapGlyph(stub, k, 1) === true) && calls.includes('fill'), 'every bold glyph draws');
+ok(drawMapGlyph(stub, 'hospital', 1) === false && drawMapGlyph(stub, 'act-kermis', 1) === false, 'other kinds keep their own drawing');
 
 console.log(`${n} checks, ${fails} failed`);
 process.exit(fails ? 1 : 0);

@@ -420,6 +420,70 @@ const PHASES = {
     B.stick(0, 0);
     log('gelopen', { van: [Math.round(x0), Math.round(y0)], naar: [Math.round(W().player.x), Math.round(W().player.y)] });
   },
+  // samen spelen (#366): de figuren van plek 2 en hoger lopen op de echte wereld tegen een gebouw en een gracht aan en dwalen weg:
+  // nooit in een gebouw of in het water, en te ver weg wordt na een paar seconden bij de groep gezet (stepFigures/bandFiguren in coopnet.js)
+  async figuren({ s = 10 }) {
+    if (CFG.role !== 'host') { await sleep((3 * s + 6) * 1000); return; }
+    const Co = await imp('companion'), U = await imp('util'), w = W(), map = w.map, p = w.player;
+    const figs = Object.values(w.coopFigures || {}).filter((f) => f.slot >= 2);
+    log('figuren-start', { slots: figs.map((f) => f.slot), host: [Math.round(p.x), Math.round(p.y)] });
+    if (!figs.length) return;
+    const stuur = (f, dx, dy) => { const d = Math.hypot(dx, dy) || 1; const inv = { mx: dy / d, my: -dx / d, yaw: 0, buttons: 1 }; Object.defineProperty(f, 'input', { configurable: true, get: () => inv, set: () => {} }); }; // camerahoek 0: wereld-x = -my, wereld-y = mx; de gast zelf stuurt elke 50 ms nul
+    const los = (f) => { delete f.input; f.input = null; };
+    const vrij = (x, y) => Co.figuurVrij(x, y, w);
+    const nat = (x, y) => { try { return !!map.waterNear(x, y, 0.5).length; } catch (e) { return false; } };
+    const lijn = (a, b) => { for (let i = 1; i <= 40; i++) { const x = a[0] + (b[0] - a[0]) * i / 40, y = a[1] + (b[1] - a[1]) * i / 40; if (nat(x, y)) return true; } return false; };
+    // een gebouw: een droge startplek in een kring om een gebouw bij de gastheer, lopend naar het midden
+    const run = async (naam, f, start, doel, sec) => {
+      f.x = start[0]; f.y = start[1]; f.vx = 0; f.vy = 0; f.verTijd = 0; f.vastTijd = 0; f.gz = p.gz || 0;
+      const x0 = f.x, y0 = f.y; let binnen = 0, inWater = 0, minD = 1e9, maxHost = 0, teruggezet = false; const end = performance.now() + sec * 1000;
+      while (performance.now() < end) {
+        stuur(f, doel[0] - f.x, doel[1] - f.y); await sleep(100);
+        if (!vrij(f.x, f.y)) binnen++;
+        if (U.isInWater(map, f.x, f.y)) inWater++;
+        minD = Math.min(minD, Math.hypot(doel[0] - f.x, doel[1] - f.y)); maxHost = Math.max(maxHost, Math.hypot(f.x - p.x, f.y - p.y));
+      }
+      los(f); log(naam, { slot: f.slot, van: [Math.round(x0), Math.round(y0)], naar: [Math.round(f.x), Math.round(f.y)], gelopen: Math.round(Math.hypot(f.x - x0, f.y - y0)), binnen, inWater, minD: Math.round(minD * 10) / 10, maxHost: Math.round(maxHost) });
+    };
+    const f1 = figs[0], f2 = figs[1] || figs[0];
+    // 1. een gebouw
+    let gek = null;
+    for (const b of map.buildingsNear(p.x, p.y, 60).slice().sort((a, c) => Math.hypot((a.bounds[0] + a.bounds[2]) / 2 - p.x, (a.bounds[1] + a.bounds[3]) / 2 - p.y) - Math.hypot((c.bounds[0] + c.bounds[2]) / 2 - p.x, (c.bounds[1] + c.bounds[3]) / 2 - p.y))) {
+      const cx = (b.bounds[0] + b.bounds[2]) / 2, cy = (b.bounds[1] + b.bounds[3]) / 2, R = Math.hypot(b.bounds[2] - b.bounds[0], b.bounds[3] - b.bounds[1]) / 2;
+      for (let k = 0; k < 8 && !gek; k++) { const a = k * Math.PI / 4, st = [cx + Math.cos(a) * (R + 7), cy + Math.sin(a) * (R + 7)]; if (vrij(st[0], st[1]) && Math.hypot(st[0] - p.x, st[1] - p.y) < 90) gek = { st, doel: [cx, cy] }; }
+      if (gek) break;
+    }
+    log('figuren-gebouw', { gevonden: !!gek });
+    if (gek) await run('figuur-gebouw', f1, gek.st, gek.doel, s);
+    // 2. het water: een gracht of vaart bij de gastheer
+    let nt = null;
+    try {
+      for (const poly of map.waterNear(p.x, p.y, 90)) {
+        const P = poly.pts, c = [P.reduce((q, v) => q + v[0], 0) / P.length, P.reduce((q, v) => q + v[1], 0) / P.length];
+        for (const v of P.filter((_, i) => i % Math.max(1, Math.floor(P.length / 40)) === 0)) {
+          const d = Math.hypot(v[0] - c[0], v[1] - c[1]) || 1, st = [v[0] + (v[0] - c[0]) / d * 6, v[1] + (v[1] - c[1]) / d * 6];
+          if (vrij(st[0], st[1]) && Math.hypot(st[0] - p.x, st[1] - p.y) < 90 && lijn(st, c)) { nt = { st, doel: c }; break; }
+        }
+        if (nt) break;
+      }
+    } catch (e) { log('figuren-water-fout', { msg: String(e && e.message || e) }); }
+    log('figuren-water', { gevonden: !!nt });
+    if (nt) await run('figuur-water', f2, nt.st, nt.doel, s);
+    // 3. wegdwalen: een kleine 60 m van de gastheer en dan rechtdoor weg; na ~110 m en een paar seconden zet de gastheer hem terug
+    let weg = null;
+    for (let k = 0; k < 8 && !weg; k++) { const a = k * Math.PI / 4, st = [p.x + Math.cos(a) * 60, p.y + Math.sin(a) * 60]; if (vrij(st[0], st[1])) weg = { st, dir: [Math.cos(a), Math.sin(a)] }; }
+    if (weg) {
+      const f = f1; f.x = weg.st[0]; f.y = weg.st[1]; f.vx = 0; f.vy = 0; f.verTijd = 0; f.vastTijd = 0; f.gz = p.gz || 0;
+      let maxD = 0, terug = null; const end = performance.now() + 22000, t0 = performance.now();
+      while (performance.now() < end) {
+        stuur(f, weg.dir[0], weg.dir[1]); await sleep(100);
+        const d = Math.hypot(f.x - p.x, f.y - p.y); maxD = Math.max(maxD, d);
+        if (maxD > 100 && d < 8 && !terug) terug = Math.round((performance.now() - t0) / 100) / 10;
+      }
+      los(f); log('figuur-weg', { maxD: Math.round(maxD), terugNa: terug, eind: Math.round(Math.hypot(f.x - p.x, f.y - p.y)) });
+    } else log('figuur-weg', { geenStart: true });
+    for (const f of figs) los(f);
+  },
   // aanraakbediening (--url-flags=touch=1): met de duim op de stick, eerst half, dan vol, dan rennen met de sprinttoets
   async touch({ s = 12 }) {
     const left = document.querySelector('#touch-ui .t-left');
