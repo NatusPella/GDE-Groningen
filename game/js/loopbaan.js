@@ -96,7 +96,7 @@ const BAAN_VAK = {
   taxi: 'taxi', taxinacht: 'taxi', bernard: 'taxi', bernardrit: 'taxi',
   bezorger: 'bezorg', fietssoep: 'bezorg', verhuizing: 'bezorg',
   vracht: 'vracht', melkrit: 'vracht', suikerbieten: 'vracht',
-  bietenoogst: 'landbouw', balenrit: 'landbouw',
+  bietenoogst: 'landbouw', balenrit: 'landbouw', boerderij: 'landbouw',
   rondvaart: 'water', rondvaarttour: 'water', veerdienst: 'water', strandpost: 'water',
   boa: 'handhaving', rechtbank: 'handhaving', fietsdepot: 'handhaving', berging: 'handhaving', brugdienst: 'handhaving', herstelploeg: 'handhaving',
   loket: 'kantoor', studiestaat: 'kantoor', wolkenhal: 'kantoor', vandermeden: 'kantoor',

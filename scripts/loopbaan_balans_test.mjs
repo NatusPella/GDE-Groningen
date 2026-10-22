@@ -23,6 +23,7 @@ const PROFIELEN = [
   { vak: 'bus', naam: 'bijbaan: bus, een ronde', min: 1.7, xp: 10, uniek: 0, geld: 90 * SIDEJOB_PAY_MULT, kmPerMin: 0.8, kmVak: 'bus' },
   { vak: 'bezorg', naam: 'bijbaan: bezorger', min: 1.7, xp: 10, uniek: 0, geld: 40 * SIDEJOB_PAY_MULT },
   { vak: 'landbouw', naam: 'bijbaan: bietenoogst', min: 3.5, xp: 10, uniek: 0, geld: 70 * SIDEJOB_PAY_MULT },
+  { vak: 'landbouw', naam: 'eigen boerderij, een ronde (ploegen, zaaien, oogsten, afleveren)', min: 10, xp: 60, uniek: 0, geld: 330 },
   { vak: 'kantoor', naam: 'bijbaan: balie', min: 2, xp: 10, uniek: 0, geld: 60 * SIDEJOB_PAY_MULT },
   { vak: 'padel', naam: 'padel, een potje', min: 6, xp: 22, uniek: 1 / 3, geld: 200 * 0.5 }, // een medaille van de drie: gemiddeld halve prijs
   { vak: 'race', naam: 'kart, een race', min: 3.5, xp: 12, uniek: 0, geld: 15 },
@@ -61,7 +62,7 @@ t('geld uit missies, winkels, vondsten en reparaties loopt niet via de loopbaan'
 
 t('wat de loopbaan uitbetaalt loopt alleen via loopbaanVerdien of de loonfactor van het vak', () => {
   // elke haak die geld uitbetaalt staat hier; een nieuwe haak moet bewust worden toegevoegd (en hier verantwoord)
-  const haken = ['sidejobs.js', 'machinist.js', 'padel.js', 'driftzone.js', 'kermis.js', 'carbid.js', 'postgame.js', 'kartbaan.js', 'regatta.js', 'stationtravel.js', 'coopnet.js', 'loopbaanlive.js'];
+  const haken = ['sidejobs.js', 'machinist.js', 'padel.js', 'driftzone.js', 'kermis.js', 'carbid.js', 'postgame.js', 'kartbaan.js', 'regatta.js', 'stationtravel.js', 'coopnet.js', 'loopbaanlive.js', 'boerderijlive.js'];
   const gevonden = fs.readdirSync(JS).filter((f) => f.endsWith('.js') && !/^loopbaan/.test(f) && /loopbaan(Verdien|Loon|Prijs|Gast)\(/.test(fs.readFileSync(JS + f, 'utf8')));
   assert.deepEqual(gevonden.sort(), haken.filter((f) => !/^loopbaan/.test(f)).sort());
 });
