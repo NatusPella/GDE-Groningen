@@ -52,10 +52,15 @@ function footFree(x, y) {
   } catch (e) { return true; }
 }
 
-// a car can drive over the point: no water (the stunt drive goes in a straight line, M01: a pond lies north of the Grote Markt, #312; buildingsNear
-// answers for whole map cells, so it says nothing about a single point)
-function carFree(x, y) {
+// no water at the point (the canal beside a road, the pond north of the Grote Markt, #312)
+function dry(x, y) {
   try { return !Un.isInWater(world.map, x, y); } catch (e) { return true; }
+}
+// a car can drive over the point: dry and 1.7 m clear of every building (the game's own wall collision; buildingsNear answers for whole map cells, so it
+// says nothing about a single point). For the straight drive of the stunt (M01).
+function carFree(x, y) {
+  if (!dry(x, y)) return false;
+  try { const [rx, ry] = Co.resolveBuildingCollisions(x, y, 1.7, world.map); return Math.hypot(rx - x, ry - y) < 0.05; } catch (e) { return true; }
 }
 
 // water on the way of a car (the canal beside a road, a pond): a fan of points ahead, 3 headings by a reach of about 1.6 s, as obstacles for avoidance() that
@@ -66,7 +71,7 @@ function waterAhead(car) {
   const reach = Math.max(8, Math.min(32, sp * 1.6));
   for (const da of [-0.45, 0, 0.45]) for (let d = 5; d <= reach; d += 4) {
     const a = car.angle + da, x = car.x + Math.cos(a) * d, y = car.y + Math.sin(a) * d;
-    if (!carFree(x, y)) out.push({ x, y, r: 1.6 });
+    if (!dry(x, y)) out.push({ x, y, r: 1.6 });
   }
   return out;
 }
