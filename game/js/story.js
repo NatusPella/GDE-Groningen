@@ -1257,6 +1257,8 @@ export function devJumpTo(id, opts = {}) {
     state.done.add(s.id);
     if (s.unlocks) state.flags.add(s.unlocks);
   }
+  // a jump into Deel 4: the finale card of act 5 has played, or the gate (nextStoryStep) would send the story back to it
+  if (PARTS[STEPS[k].part].after) state.cards.add(PARTS[STEPS[k].part].after);
   const completed = prior.filter((s) => s.kind === 'mission' && missionIdx(s) >= 0).map(missionIdx);
   const prog = getMissionProgress();
   setMissionProgress(world, { index: prog.index, completed, seen: completed });

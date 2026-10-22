@@ -13,10 +13,10 @@ TESSA: Oma zei: gewoon dozen. [NIEUW]
 WILLEMIEN: Dat zegt Trijntje van alles. Breekbaar in de krant. Boeken in kleine dozen, anders krijg je ze niet getild. En de kat is het moeilijkst. [NIEUW]
 
 ## [M27.2] Inpakken: de foto – Eemsdelta, Loppersum, Willemiens huis – te voet
-(regie: in een la, onder een stapel bonnetjes, een zwart-witfoto: twee meisjes op een fiets voor een klein station.)
+(regie: in een la, onder een stapel bonnetjes, een zwart-witfoto: twee tieners op een fiets voor een klein station.)
 TAMMO: De kat wil niet in de mand. [NIEUW]
 WILLEMIEN: Hij wil nergens in. Hij woont hier. Hij snapt het nog minder dan ik. [NIEUW]
-TESSA: Willemien. Een foto. Twee meisjes op een fiets, voor het station. [NIEUW]
+TESSA: Willemien. Een foto. Twee tieners op een fiets, voor het station. [NIEUW]
 WILLEMIEN: Mijn oma. En Trijntje. Negentienhonderddrieënvijftig. Ze fietsten naar Stad, voor de prijs. [NIEUW]
 TAMMO: Dat is een eind fietsen. [NIEUW]
 WILLEMIEN: Tegen de wind in. Dat stond er niet bij, maar zo was het. [NIEUW]
@@ -95,7 +95,7 @@ BEREND: Ik zei niks over winnen. Ik tel alleen. [NIEUW]
 ## [T5.2] De weg naar Bourtange: aankomst – Westerwolde, Bourtange, de hooiberg – auto
 (regie: een hooiberg op de heide ten noorden van de vesting, heide in bloei, een kaart op een hooikar met bierviltjes als eenheden.)
 BEREND: Op tijd. Dat is twee minuten te vroeg. [NIEUW]
-TAMMO: Jij telde ze? [NIEUW]
+TAMMO: Je hebt de klok bijgehouden. [NIEUW]
 BEREND: Ik tel alles. [NIEUW]
 TESSA: Dan beginnen we. [NIEUW]
 
@@ -104,7 +104,7 @@ BEREND: Weer naar de heide? Kom mor. [NIEUW]
 
 ## [M30.1] Het proefbeleg: het krijgsberaad – Westerwolde, Bourtange, de hooiberg – te voet
 (regie: zaterdag 19 september, middag. Een hooiberg op de heide, een grote kaart op een hooikar met bierviltjes. De camera maakt een trage cirkel om de tafel terwijl de vrienden van Oma één voor één in beeld komen: een boot op een aanhanger, een trekker met een houten toren, een gele gewasspuiter aan de horizon, een bus. Gameplay: Tessa leidt het proefbeleg; Tammo zit bij de duiven.)
-BEREND: Dames en heren. Het proefbeleg van Bourtange. Zestienhonderdtweeënzeventig verloor ik. Vandaag weet ik het nog niet. [NIEUW]
+BEREND: Allemaal. Het proefbeleg van Bourtange. Zestienhonderdtweeënzeventig verloor ik. Vandaag weet ik het nog niet. [NIEUW]
 TESSA: Vier fronten. Water. Land. Lucht. Brug. Wie waar? [NIEUW]
 LAMMERT: Ik heb de sleutel van de sluis. Vrij genomen. Mijn neef houdt de sluis in Delfzijl. Hij meldt alleen. [NIEUW]
 KAPITEIN KLAAS: Een gracht is ook water. Ik vaar ze allemaal. Behalve de zee. Die is te groot voor mijn geduld. [NIEUW]
@@ -174,4 +174,4 @@ TAMMO: Kon minder. [NIEUW]
 TESSA: Kon veel minder. [NIEUW]
 
 ## [M30.7] Het proefbeleg: herhaling – Westerwolde, Bourtange, de hooiberg – te voet
-BEREND: Weer het beleg? Ik win nog steeds niet graag. Doe maar. [NIEUW]
+BEREND: Nog een proefbeleg? Ik win nog steeds niet graag. Doe maar. [NIEUW]
