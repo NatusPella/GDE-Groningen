@@ -103,6 +103,37 @@ results.tabTerug = await klik('[data-lbview="vakken"]');
 await cap('gb-loopbaan-vakken'); results.shots.push('gb-loopbaan-vakken');
 PM.closePauseMenu(); await sleep(400);
 
+// 5. de safehouses: de woning bij de veroverde wijk (cadeau), een die te koop is, het menu en de kaart
+const SH = window.__safehuis;
+const SHOP = await imp('shopui');
+const huizen = SH ? SH.lijst() : [];
+results.huizen = { aantal: huizen.length, eigen: huizen.filter((h) => h.eigen).map((h) => h.id), voorbeeld: huizen.slice(0, 4).map((h) => `${h.naam} · ${h.adres}`) };
+const naarHuis = async (h, naam) => {
+  const d = h.deur;
+  hold = { x: d.x, y: d.y };
+  p.x = d.x; p.y = d.y; p.vx = p.vy = 0; p.angle = h.ang + Math.PI; w.camYaw = p.angle;
+  await sleep(5000);
+  await cap(naam); results.shots.push(naam);
+};
+const eigen = huizen.find((h) => h.eigen);
+if (eigen) {
+  await naarHuis(eigen, 'gb-huis-eigen-buiten');
+  SH.menu(eigen.id); await sleep(1200); await cap('gb-huis-eigen-menu'); results.shots.push('gb-huis-eigen-menu');
+  SHOP.closeShopMenu(); await sleep(500);
+}
+const teKoop = huizen.find((h) => !h.eigen && h.id !== (eigen && eigen.id));
+if (teKoop) {
+  w.money = Math.max(w.money, 9000);
+  await naarHuis(teKoop, 'gb-huis-tekoop-buiten');
+  SH.menu(teKoop.id); await sleep(1200); await cap('gb-huis-tekoop-menu'); results.shots.push('gb-huis-tekoop-menu');
+  SHOP.closeShopMenu(); await sleep(500);
+  results.prompt = (window.__debug && window.__debug.prompt) ? 'n.v.t.' : null;
+}
+PM.openPauseMenu('map'); await sleep(1500);
+if (eigen) { MV.setMapView(eigen.x, eigen.y, 4); await sleep(3500); await cap('gb-kaart-huizen-z4'); results.shots.push('gb-kaart-huizen-z4'); }
+PM.closePauseMenu(); await sleep(600);
+results.huizenNa = SH ? SH.lijst().map((h) => ({ id: h.id, geplaatst: h.geplaatst, mesh: h.mesh, eigen: h.eigen })).slice(0, 6) : null;
+
 const na = GL.getOverzicht();
 results.eind = { gedaan: na.profiel.gedaan.length, beloond: na.profiel.beloond, samenvatting: G.samenvatting(na.profiel, na.ind) };
 done = true;

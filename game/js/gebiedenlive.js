@@ -131,7 +131,7 @@ function meldVoortgang(w, ind, taakId) {
 function betaal(w, b) {
   if (!w) return;
   if (b.geld > 0) { noteMoney('Overig inkomsten'); w.money = (w.money || 0) + b.geld; }
-  if (w.addMessage) w.addMessage(`${b.titel}! ${b.regel} (+€${b.geld})`, 7, { kind: 'prestatie', kicker: `${G.niveauInfo(b.niveau).enkel[0].toUpperCase()}${G.niveauInfo(b.niveau).enkel.slice(1)} veroverd`, key: 'gebied-' + b.gebied });
+  if (w.addMessage) w.addMessage(`${b.titel}! ${b.regel} (+€${b.geld})${b.huis ? ' En de sleutel van je safehouse ligt op de mat.' : ''}`, 7, { kind: 'prestatie', kicker: `${G.niveauInfo(b.niveau).enkel[0].toUpperCase()}${G.niveauInfo(b.niveau).enkel.slice(1)} veroverd`, key: 'gebied-' + b.gebied });
 }
 
 // Een taak is gedaan. Geeft de beloningen terug (gebieden die er nu helemaal klaar door zijn).
@@ -174,6 +174,16 @@ export function updateGebieden(dt, w, klaarMissies) {
     if (ind.perSleutel.has('m:' + id)) opSleutel(w, 'm:' + id);
   }
 }
+
+// Safehouses (fase 2): kopen met je eigen geld; cadeau bij een veroverd gebied (gebieden.js geefHuis).
+export function koopHuisLive(w, huisIdent) {
+  const ind = getIndeling();
+  if (!ind || !w) return { ok: false, prijs: 0, reden: 'onbekend' };
+  const r = G.koopHuis(getProfiel(), ind, huisIdent, w.money);
+  if (r.ok) { noteMoney('Overige uitgaven'); w.money -= r.prijs; markeer(); }
+  return r;
+}
+export const heeftHuisLive = (huisIdent) => G.heeftHuis(getProfiel(), huisIdent);
 
 // Voor het scherm, de kaart en de tests.
 export function getOverzicht() {

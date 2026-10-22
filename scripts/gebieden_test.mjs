@@ -472,6 +472,19 @@ t('de haken staan op hun plek: loopbaanTel, loopbaanOpStat, de vondsten en het t
   assert.match(bron('mapview.js'), /layerOn\('veroverd'\)/);
   assert.match(bron('loopbaanui.js'), /gebiedenHtml/);
 });
+t('de safehouses hangen aan het spel: een activiteit, een laag op de kaart, de knop Reis erheen en de teksten', () => {
+  const heeft = (f, s, m) => assert.ok(bron(f).includes(s), m || `${f}: ${s}`);
+  heeft('activities.js', 'EVENEMENTEN, REGATTA_GAME, SAFEHUIS]');
+  heeft('mapview.js', "layers: ['safehuis']");
+  heeft('mapview.js', "filter((l) => l !== 'safehuis')", 'de laag hoort niet bij de schakelaar van de minigames');
+  heeft('loopbaanui.js', 'data-reis');
+  heeft('pausemenu.js', "'[data-panel=\"loopbaan\"] .pm-inner'), closePauseMenu)");
+  heeft('safehuizen.js', 'cheatActions.teleport', 'snelreizen met de bewakers van de kaartteleport');
+  heeft('safehuizen.js', 'policeWatching(w)', 'de deur is dicht als de politie je ziet');
+  heeft('safehuizen.js', 'w.wanted = 0', 'onderduiken zet het gezocht-niveau op nul');
+  const s = bron('safehuizen.js');
+  for (const w of ['winter', 'sneeuw', 'schiet', 'bloed', 'moord']) assert.ok(!s.toLowerCase().includes(w), w);
+});
 t('de bronnen zijn alleen de bronnen: gebieden.js en gebiedenlive.js importeren geen DOM of spelmodules', () => {
   const imports = (f) => [...bron(f).matchAll(/^import .* from '(.+?)';/gm)].map((m) => m[1]);
   assert.deepEqual(imports('gebieden.js'), []);

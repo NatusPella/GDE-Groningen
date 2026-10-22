@@ -1704,7 +1704,7 @@ const LEGEND = [
     { kind: 'route', label: 'Route', note: 'doorgetrokken: verhaal of missie, streepjes: jouw doel, puntjes: klus, streep-punt: opknappen of repareren' },
   ] },
   { group: 'Te doen', rows: [
-    { kind: 'padel', label: 'Minigames', note: 'padel, carbid, botsauto\'s, driftzones, discgolf, pitch & putt, skatepark, karten, zwemmen, klimmen, waterskiën, duiven, ballonjacht', layers: ['padel', 'duif', 'heli', ...ACTIVITY_LEGEND.map((l) => l.layer)] },
+    { kind: 'padel', label: 'Minigames', note: 'padel, carbid, botsauto\'s, driftzones, discgolf, pitch & putt, skatepark, karten, zwemmen, klimmen, waterskiën, duiven, ballonjacht', layers: ['padel', 'duif', 'heli', ...ACTIVITY_LEGEND.map((l) => l.layer).filter((l) => l !== 'safehuis')] },
     { kind: 'sj-taxi', label: 'Bijbaantjes', note: 'start bij de baas', layers: ['bijbaan', 'rondvaarttour'] },
     { kind: 'missionIdle', label: 'Klussen', note: 'gespeelde missies, om opnieuw te spelen', layers: ['klussen'] },
     { kind: 'dorp', label: 'Ommeland', note: 'dorpsuitjes waar je in de buurt was, gevonden wereldeinden', layers: ['ommeland'] },
@@ -1726,6 +1726,7 @@ const LEGEND = [
     { kind: 'companion', label: 'Maat', layers: ['companion'] },
     { kind: 'flitspaal', label: 'Flitspaal', layers: ['flitspaal'] },
     { kind: 'landmark', label: 'Bezienswaardigheid', layers: ['landmark'] },
+    { kind: 'act-safehuis', label: 'Safehouse', note: 'een huisje om te kopen of te krijgen in elk gebied dat je kunt veroveren: slapen, kleren, garage, onderduiken', layers: ['safehuis'] },
     { kind: 'veroverd', label: 'Veroverd', note: 'wijken, plaatsen en streken die je aan het doen bent (de kleur loopt mee) of helemaal gedaan hebt (een vlag)', layers: ['veroverd'] },
     { kind: 'text-street', label: 'Straatnamen', layers: ['streets'] },
     { kind: 'text-wijk', label: 'Wijknamen (oranje met driehoek: \'s nachts opletten)', layers: ['wijken'] },
