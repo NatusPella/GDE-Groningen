@@ -851,7 +851,11 @@ const PHASES = {
     window.__gastMsgs = window.__gastMsgs || [];
     if (!w.__msgHaak) { const o = w.addMessage.bind(w); w.addMessage = (t, ...a) => { window.__gastMsgs.push(String(t)); return o(t, ...a); }; w.__msgHaak = true; }
     const t0 = performance.now(); const sec = () => Math.round((performance.now() - t0) / 100) / 10;
-    for (let i = 0; i < 80 && !w.coopInVoertuig; i++) await sleep(300);
+    for (let i = 0; i < 80 && !w.coopInVoertuig; i++) { // Tessa gaat niet meer vanzelf mee (#388): zodra de host in het voertuig zit stapt de gast in met E
+      const p = (w.coopPartners || []).find((q) => q.slot === 0);
+      if (p && /voertuig|rijdt/.test(p.status) && i % 7 === 0) await B.press('e', 150);
+      await sleep(300);
+    }
     log('gastrit-gast-in', { inVoertuig: !!w.coopInVoertuig, t: sec() });
     await sleep(5000);
     // de host geeft het stuur: de gast hoort het en stuurt vooruit
