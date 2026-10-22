@@ -39,6 +39,7 @@ const teleport = (x, y) => {
 const shot = async (name, wait = 1200) => { await sleep(wait); console.log('[capture] ' + name); await sleep(600); };
 const done = [`viewport ${innerWidth}x${innerHeight} dpr ${devicePixelRatio} ui ${getComputedStyle(document.documentElement).getPropertyValue('--ui')}`];
 const info = [];
+const info = [];
 const A = D.achievements.loopbaan;
 // a player who has done a bit of everything: different levels per trade
 const geef = (vak, xp, n, uniek) => { A.tel(vak, { xp, n }); (uniek || []).forEach((u) => A.tel(vak, { uniek: u })); };
@@ -62,10 +63,21 @@ kies('lucht').focus(); await shot('menu-loopbaan-nul', 800);
 PM.closePauseMenu();
 await sleep(500);
 // the card for a new level (bus: 150 -> 300 is level 4, the next step is level 5 at 560)
+// the card waits while a phone message or a district card holds the HUD: wait until it is up
+const kaartje = async (naam) => {
+  let st = null;
+  for (let i = 0; i < 80; i++) {
+    st = window.__cards && window.__cards.state();
+    if (st && st.visible.some((c) => c.kicker === 'Loopbaan')) break;
+    await sleep(500);
+  }
+  info.push(naam + ': ' + JSON.stringify(st && st.visible.map((c) => ({ k: c.kicker, t: c.title, b: c.body }))));
+  await shot(naam, 700);
+};
 A.tel('bus', { xp: 160 });
-await shot('niveau-omhoog', 900);
-await sleep(5500);
+await kaartje('niveau-omhoog');
+await sleep(7000);
 A.tel('trein', { xp: 640 });
-await shot('niveau-omhoog-spoor', 900);
+await kaartje('niveau-omhoog-spoor');
 clearInterval(skipper);
-return ['loopbaan-scenes klaar', JSON.stringify(A.profiel().vakken.bus)];
+return ['loopbaan-scenes klaar', JSON.stringify(A.profiel().vakken.bus)].concat(info);

@@ -39,11 +39,15 @@ const CSS = `
 .lb-li .lb-niv { margin-left: auto; padding-left: 12px; white-space: nowrap; font-size: 15px; opacity: 0.8; }
 .lb-li .m-bar { flex: none; width: 76px; margin-left: 12px; }
 .lb-li.nul .pa-ico { opacity: 0.4; }
-.lb-pane p { margin: 6px 0; }
-.lb-titel { font-size: 24px; }
-.lb-voort { display: flex; align-items: center; gap: 14px; margin: 10px 0 2px; }
+.m-pane.lb-pane { gap: 12px; }
+.lb-pane .pa-ico svg { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.lb-pane .lb-blok p { margin: 4px 0; }
+.lb-pane p.lb-titel { margin: 0 0 2px; font-size: 24px; }
+.lb-pane .lb-kop p { margin: 0; }
+.lb-voort { display: flex; align-items: center; gap: 14px; margin: 0 0 4px; }
 .lb-voort .m-bar { flex: 1; max-width: 360px; height: 6px; }
-.lb-trap { list-style: none; margin: 10px 0 4px; padding: 0; display: grid; gap: 3px; }
+.lb-pane .m-num { font-size: 26px; }
+.lb-trap { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 3px 28px; max-width: 640px; }
 .lb-trap li { display: flex; gap: 10px; align-items: baseline; opacity: 0.45; }
 .lb-trap li.bereikt { opacity: 0.85; }
 .lb-trap li.nu { opacity: 1; color: var(--g, #3fc97a); }
@@ -54,7 +58,6 @@ const CSS = `
 .lb-banen li.klaar { opacity: 1; }
 .lb-banen svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; flex: none; }
 .lb-banen li:not(.klaar) svg { visibility: hidden; }
-.lb-voet { margin-top: 18px; max-width: 640px; }
 `;
 let cssAan = false;
 function zetCss() {
@@ -102,11 +105,11 @@ function detailHtml(profiel, id) {
     banenHtml = '<h3 class="m-eb">Banen</h3><ul class="lb-banen">' + banen.map((b) => `<li class="${v.uniek.includes(b) ? 'klaar' : ''}">${CHECK}<span>${esc(namen.get(b) || b)}</span></li>`).join('') + '</ul>';
   }
   return `<div class="pm-pane-top"><span class="m-eb">${esc(groep)}</span><h2 class="m-h2 td-h2">${loopbaanIcoon(info.icoon, 'pa-ico big')}${esc(info.naam)}</h2></div>` +
-    `<p class="lb-titel"><b>${esc(d.titel)}</b> <span class="mut">· niveau ${d.niveau} van ${L.MAX_NIVEAU}</span></p>` +
-    `<p>${esc(info.wat)}</p>${voort}<p class="mut">${doel}</p>` +
+    `<div class="lb-kop"><p class="lb-titel"><b>${esc(d.titel)}</b> <span class="mut">· niveau ${d.niveau} van ${L.MAX_NIVEAU}</span></p><p class="mut">${esc(info.wat)}</p></div>` +
+    `<div class="lb-blok">${voort}<p class="mut">${doel}</p>` +
     `<p>${v.xp > 0 ? esc(telt.join(' · ')) : 'Nog niet begonnen.'}</p>` +
-    `<p class="${factor > 1 ? 'g' : 'mut'}">${factor > 1 ? `Dit vak betaalt nu ${L.percentage(factor)}% meer. ` : ''}${esc(L.loonTekst(id))}</p>` +
-    banenHtml + trap;
+    `<p class="${factor > 1 ? 'g' : 'mut'}">${factor > 1 ? `Dit vak betaalt nu ${L.percentage(factor)}% meer. ` : ''}${esc(L.loonTekst(id))}</p></div>` +
+    trap + banenHtml;
 }
 
 export function renderLoopbaanPanel(el) {
@@ -117,8 +120,7 @@ export function renderLoopbaanPanel(el) {
   const sam = L.samenvatting(profiel);
   const lijst = L.GROEPEN.map((g) => `<div class="lb-groep">${esc(g.naam)}</div>` + L.VAKKEN.filter((v) => v.groep === g.id).map((v) => rij(profiel, v)).join('')).join('');
   el.innerHTML = `<div class="m-tabs"><span class="m-grow"></span><span class="pa-total"><span class="m-num">${sam.som - L.VAKKEN.length}</span><span class="mut">van ${sam.max - L.VAKKEN.length} niveaus omhoog${sam.hoogste ? ` · hoogste titel: ${esc(sam.hoogste.titel)}` : ''}</span></span></div>` +
-    `<div class="m-main"><div class="m-list pa-list lb-list">${lijst}</div><aside class="m-pane pa-pane lb-pane" aria-live="polite">${detailHtml(profiel, gekozen)}</aside></div>` +
-    `<p class="mut lb-voet">Je loopbaan is van jou en blijft bij je, ook als je samen speelt.</p>`;
+    `<div class="m-main"><div class="m-list pa-list lb-list">${lijst}</div><aside class="m-pane pa-pane lb-pane" aria-live="polite">${detailHtml(profiel, gekozen)}</aside></div>`;
   fillBars(el, bars);
   if (!el.dataset.bound) {
     el.dataset.bound = '1';
