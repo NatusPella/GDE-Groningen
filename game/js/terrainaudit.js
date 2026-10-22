@@ -132,7 +132,7 @@ export function auditSurface(roads, terrainAt, opt = {}) {
     }
     for (let i = 0; i + 1 < H.length; i++) {
       const dz = Math.abs(H[i + 1] - H[i]), L = C[i + 1] - C[i];
-      if (dz >= o.jump && L <= o.jumpLen) jumps.push({ road: label(r), dz, len: L, x: r.pts[i][0], y: r.pts[i][1], prof: !!r.z });
+      if (dz >= o.jump && L <= o.jumpLen) jumps.push({ road: label(r), dz, len: L, x: r.pts[i][0], y: r.pts[i][1], prof: r.ours !== undefined ? r.ours : !!r.z });
     }
     // the grade a vehicle meets: read over o.win metres
     if (CARCAT.has(r.cat) && C[C.length - 1] >= o.win) {
@@ -143,14 +143,14 @@ export function auditSurface(roads, terrainAt, opt = {}) {
         if (g > worst) { worst = g; const t = s + o.win / 2; let i = 0; while (i < C.length - 2 && C[i + 1] < t) i++; wx = r.pts[i][0]; wy = r.pts[i][1]; }
       }
       grades.push(worst);
-      if (worst > o.carGrade) steep.push({ road: label(r), grade: worst, x: wx, y: wy, prof: !!r.z });
+      if (worst > o.carGrade) steep.push({ road: label(r), grade: worst, x: wx, y: wy, prof: r.ours !== undefined ? r.ours : !!r.z });
     }
   }
   for (const [k, list] of nodes) {
     if (list.length < 2) continue;
     let lo = Infinity, hi = -Infinity;
     for (const [, h] of list) { lo = Math.min(lo, h); hi = Math.max(hi, h); }
-    if (hi - lo > o.joint) joints.push({ d: hi - lo, at: k.split(',').map((q) => Math.round(Number(q)) / 100), roads: [...new Set(list.map(([r]) => label(r)))].join(' / '), prof: list.some(([r]) => !!r.z) });
+    if (hi - lo > o.joint) joints.push({ d: hi - lo, at: k.split(',').map((q) => Math.round(Number(q)) / 100), roads: [...new Set(list.map(([r]) => label(r)))].join(' / '), prof: list.some(([r]) => (r.ours !== undefined ? r.ours : !!r.z)) });
   }
   jumps.sort((a, b) => b.dz - a.dz); joints.sort((a, b) => b.d - a.d); steep.sort((a, b) => b.grade - a.grade);
   return { jumps, joints, steep, stats: { pieces: n, km, p95Grade: pct(grades, 0.95), maxGrade: grades.length ? Math.max(...grades) : 0 } };
@@ -179,7 +179,7 @@ export function auditWaterLevels(roads, terrainAt, wetAt, { shippingMin = 0, ste
     if (wetLen < step) continue;
     if (r.bridge && !r.dryCrossing) {
       decks++;
-      if (nav >= 4 && !r.movable && minH < shippingMin - clear) low.push({ road: label(r), h: minH, need: shippingMin, x: at[0], y: at[1] });
+      if (nav >= 4 && !r.movable && minH < shippingMin - clear) low.push({ road: label(r), gid: r.gid, h: minH, need: shippingMin, x: at[0], y: at[1] });
     } else if (!r.tunnel && !r.dryCrossing && !r.ford && wetLen >= 3 * step) dry.push({ road: label(r), wet: wetLen, x: at[0], y: at[1] });
   }
   low.sort((a, b) => a.h - b.h); dry.sort((a, b) => b.wet - a.wet);

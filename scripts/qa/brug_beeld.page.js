@@ -87,6 +87,16 @@ for (const q of CFG.plekken || []) {
     zet({ position: { x: q.x + 140, y: q.y - 140, z: gz + 22 }, lookAt: { x: q.x, y: q.y, z: gz + 2 } });
     await sleep(2500);
     await grab(`${tag}-ver`);
+    // ?terrain (#269): de stukken grond en wat het reliëf hier is; een beeld zonder de stukken laat zien wat ze doen
+    if (map.terrainOn) {
+      const rp = S3.scene.getObjectByName('reliefpatches');
+      let maxY = 0, tri = 0;
+      if (rp) rp.traverse((o) => { if (o.isMesh) { tri += o.geometry.index.count / 3; const p = o.geometry.attributes.position; for (let i = 0; i < p.count; i++) maxY = Math.max(maxY, p.getY(i)); } });
+      rep.relief = { reliefHier: +map.terrainAt(q.x, q.y).toFixed(2), grond: +gz.toFixed(2), stukken: rp ? rp.children.length : -1, driehoeken: tri, hoogste: +maxY.toFixed(2) };
+      if (rp) {
+        rp.visible = false; await sleep(1500); await grab(`${tag}-ver-zonderstukken`); rp.visible = true;
+      }
+    }
     zet({ position: { x: q.x + 16, y: q.y - 8, z: gz + 3 }, lookAt: { x: q.x, y: q.y, z: gz + 1 } });
     await sleep(1500);
     await grab(`${tag}-straat`);
