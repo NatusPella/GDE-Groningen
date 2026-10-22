@@ -18,6 +18,21 @@ import { makeMenuGate, GATE } from './menuready.js';
 import { isAdvisorSampling, startGfxAdvisor } from './gfxprofile.js';
 import { ABOUT_HTML } from './credits.js';
 import { startLoadScreen, setLoadTips } from './loadscreen.js';
+import { padGlyphInner } from './glyphs.js';
+import { onDeviceChange, getDevice } from './inputdevice.js';
+
+// the footer hints (static HTML in index.html) show the controller buttons when a controller was used last
+let footKb = null;
+function syncFoot() {
+  const foot = document.querySelector('#start-screen .ss-foot');
+  if (!foot) return;
+  if (footKb === null) footKb = foot.innerHTML;
+  const pg = (slot) => `<span class="pm-pad-g" data-g-raw>${padGlyphInner(slot)}</span>`;
+  foot.innerHTML = getDevice() === 'pad'
+    ? `<span class="m-hint">${pg('dpad')}<span>kiezen</span></span><span class="m-hint">${pg('a')}<span>ok</span></span>`
+    : footKb;
+}
+onDeviceChange(syncFoot);
 
 export const TIPS = [
   'Tip: in Grunn neemt een fietser altijd voorrang, of die nou voorrang heeft of niet.',
