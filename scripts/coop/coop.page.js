@@ -348,7 +348,9 @@ const PHASES = {
   // de host kijkt wat er gebeurt als een gast wegvalt
   async uitvalHost({ s = 8, wie = 'gast' }) {
     if (CFG.role !== 'host') { await sleep((s + 20) * 1000); return; }
-    await sleep((s - 1) * 1000);
+    // de fasen van gast en gastheer lopen niet gelijk (een rit duurt soms langer): wacht tot de speler echt als weg te boek staat (de gast sluit zijn verbinding 8 s)
+    { const w0 = performance.now(); while (performance.now() - w0 < (s + 40) * 1000 && !(W().coopRoster || []).some((r) => r.slot === 1 && r.verbinding === 'lost')) await sleep(200); }
+    await sleep(500);
     log('uitval-host', { hold: !!document.querySelector('.coop-hold'), uiPaused: !!W().coopHold, paused: !!W().paused, roster: (W().coopRoster || []).map((r) => [r.slot, r.verbinding]) });
     shot('uitval-host-hold');
     await sleep(21000);
