@@ -59,6 +59,7 @@ export default {
     const d = c.data;
     const plan = planRide(d.line, c.vehicle.x, c.vehicle.y);
     d.ride = makeRide(d.line, { ...plan, max: MAX_STOPS });
+    c.vehicle.rideLine = { line: d.line, dir: d.ride.dir }; // het bord en het HUD-kaartje volgen de rit (busboard3d.js, #386)
     const first = startRide(d.ride);
     queueHalte(c.world, c.vehicle, { board: first[0].board, alight: 0 });
     const last = d.ride.table[d.ride.table.length - 1];
