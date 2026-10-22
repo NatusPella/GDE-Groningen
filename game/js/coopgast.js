@@ -20,13 +20,23 @@ export const GAST_REGELS = [
   { actie: 'winkelen', mag: 'ja', regel: 'Winkels met spullen voor jezelf (kleding, kapper, tabak en loterij, avondwinkel, snackbar, woonwarenhuis) en automaten: op je eigen scherm, met je eigen geld; wat je koopt is van jou en gaat in je eigen opgeslagen spel.' },
   { actie: 'eten', mag: 'ja', regel: 'Eten en drinken bij een horecaplek en de muurkroket: met je eigen geld en je eigen gezondheid.' },
   { actie: 'voertuig-kopen', mag: 'nee', regel: 'Voertuigen, boten, helikopters, wapens, tuning en lak kopen kan alleen in je eigen spel: ze zouden in de wereld van de ander verschijnen.' },
-  { actie: 'bijrijden', mag: 'ja', regel: 'De eerste gast (Tessa) rijdt mee als wie het spel opende in een voertuig zit en dicht bij is; met E stap je uit (als het voertuig bijna stilstaat) en weer in. De derde en vierde speler stappen ook met E in (auto: drie extra plekken, bus: zes) en zijn dan niet meer te zien; fietsen, scooters en helikopters hebben geen plek.' },
+  { actie: 'bijrijden', mag: 'ja', regel: 'De eerste gast (Tessa) stapt zelf in met E als wie het spel opende in een voertuig zit en dicht bij is (ze gaat niet vanzelf mee); met E stap je uit (als het voertuig bijna stilstaat). Blijft ze te ver achter, dan rijdt ze na een paar seconden mee. De derde en vierde speler stappen ook met E in (auto: drie extra plekken, bus: zes) en zijn dan niet meer te zien; fietsen, scooters en helikopters hebben geen plek.' },
   { actie: 'sturen', mag: 'deels', regel: 'Met Y (controller: D-pad omhoog) geeft de bestuurder het stuur aan zijn bijrijder (en neemt het terug); de bijrijder kan met Y om het stuur vragen. De bestuurder blijft de bestuurder: schade en politie zijn van hem.' },
   { actie: 'eigen-voertuig', mag: 'nee', regel: 'Zelf een voertuig nemen en ermee rijden kan alleen in je eigen spel.' },
   { actie: 'gesprekken', mag: 'nee', regel: 'Praten met voorbijgangers en personages kan alleen in je eigen spel; wat de ander zegt zie je als ondertitel.' },
   { actie: 'bijbanen', mag: 'nee', regel: 'Een bijbaan of minigame start en speelt wie het spel opende; jij kijkt mee. Samen een opdracht doen kan alleen waar de opdracht dat zegt.' },
   { actie: 'missies', mag: 'deels', regel: 'Missies en het verhaal speelt wie het spel opende; jij loopt mee en krijgt je deel als beloning in je eigen geld.' },
 ];
+
+// De camera van een gast draait met de muis (#388). Een gast draait updateGameplay niet, dus de camerahoek op de grond die player.js
+// bijhoudt (MOUSE_TURN_PER_PX) bleef staan: de camera kon niet draaien. Zelfde formule, hier puur en getest.
+export const MUIS_DRAAI_PER_PX = 0.0025;
+export function gastKijkHoek(camYaw, dx, gevoeligheid = 1) {
+  const a = Number.isFinite(camYaw) ? camYaw : 0;
+  const d = Number.isFinite(dx) ? dx : 0, g = Number.isFinite(gevoeligheid) ? gevoeligheid : 1;
+  const r = a + d * MUIS_DRAAI_PER_PX * g;
+  return Math.atan2(Math.sin(r), Math.cos(r));
+}
 
 // Een voertuig staat bijna stil: dan kan een bijrijder veilig uitstappen
 export const UITSTAP_MAX_SNELHEID = 2;

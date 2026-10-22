@@ -235,14 +235,10 @@ t('een extra speler hoort dat hij in de open wereld meeloopt', () => {
   assert.match(s.gs[0].gw.messages.join(' '), /Doe mee waar het kan/);
   assert.match(s.gs[1].gw.messages.join(' '), /Jij loopt mee in de open wereld/);
 });
-t('gedeelde camera: alleen de eerste twee delen hem; extra spelers hebben hun eigen camera', () => {
+t('camera: niemand deelt een camera (#388); sharedCamera blijft beschikbaar voor een scherm met twee spelers', () => {
+  assert.equal(N.CAMERA_DELEN, false);
   const s = sessie(2); s.step(3, () => { s.hw.player.x = 0; s.hw.companion.x = 10; s.hw.companion.y = 0; });
-  const [tessa, bram] = s.gs.map((g) => g.gw);
-  assert.ok(s.hw.coopCam && Math.abs(s.hw.coopCam.x - 5) < 6, 'de host deelt met Tessa');
-  assert.ok(tessa.coopCam, 'Tessa deelt met Tammo');
-  assert.equal(bram.coopCam, null, 'plek 2 heeft een eigen camera');
-  s.step(1, () => { s.hw.companion.x = 400; });
-  assert.equal(s.hw.coopCam, null, 'te ver uit elkaar: ieder zijn eigen camera');
+  for (const w of [s.hw, ...s.gs.map((g) => g.gw)]) assert.equal(w.coopCam, null, 'ieder zijn eigen camera, ook dicht bij elkaar');
 });
 t('gedeelde speelklok: de tijd van de dag van de gast volgt die van de host, ook met 3 gasten', () => {
   const s = sessie(3, { hostExtra: { clock: 9 }, gastExtra: [{ clock: 20 }, { clock: 3 }, { clock: 12 }] });

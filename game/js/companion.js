@@ -754,7 +754,7 @@ function coopGastGebruik(c, p, world) {
     return;
   }
   const v = p.inVehicle;
-  if (!v) return;
+  if (!v) { if ((world.vehicles || []).some((q) => dist(c.x, c.y, q.x, q.y) < 6)) meld('Je kunt alleen meerijden als de ander in een voertuig zit.'); return; } // E bij een geparkeerd voertuig deed niets (#388)
   const canRide = !v.sinking && !v.riderOff && !(v.isHeli && (!v.onGround || Math.abs((v.z || 0) - (c.gz || 0)) > 2.5));
   if (!canRide || v.passenger) { meld(v.passenger ? 'Er is geen plek meer in dit voertuig.' : 'Hier kun je nu niet instappen.'); return; }
   if (dist(c.x, c.y, v.x, v.y) >= (v.isBoat ? BOARD_DIST + 2.5 : BOARD_DIST) + 2) { meld('Loop naar het voertuig om in te stappen.'); return; }
@@ -777,7 +777,7 @@ function stepCompanion(dt, world) {
   if (isKnockedDown(c, world)) { c.vx = 0; c.vy = 0; return; }
   if (world.companionHold && holdCompanion(c, world.companionHold, dt, world)) return;
   // samen spelen (#291): de gast drukte op E: als bijrijder uitstappen (bijna stilstaand) of weer instappen
-  if (!p.inVehicle) c.coopUit = false; // de host stapte uit: ze loopt weer gewoon mee
+  if (!p.inVehicle) c.coopUit = !!(world.coop && world.coop.remote); // de host stapte uit: ze loopt weer gewoon mee; een echte speler stapt zelf in met E, ze gaat niet vanzelf mee als de ander instapt (#388)
   if (world.coopGebruik) { world.coopGebruik = false; coopGastGebruik(c, p, world); }
   // mini co-op (coop.js): a second human steers the companion on foot (ook naast het voertuig van de host als ze zelf is uitgestapt)
   if (world.coop && (!p.inVehicle || c.coopUit) && !c.inVehicle && !c.water && coopStep(c, dt, world, moveWithCollisions)) return;

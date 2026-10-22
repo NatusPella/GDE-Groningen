@@ -39,6 +39,7 @@ import { tileIndexOf, tileOrigin, TILE_M } from './gdt.js';
 import { ensureCountryEdge } from './countryplan.js';
 import { getSettings, onSettingsChange } from './settings.js';
 import { wantsTeleport, plekNaam } from './kaartteleport.js';
+import { ALLEEN_EIGEN_SPEL } from './coopgast.js';
 import { DEV } from './devflags.js';
 import { getGoal, setGoal, clearGoal, missionOnMap } from './goal.js';
 import { getMissionLayer } from './missionmaplive.js';
@@ -1528,6 +1529,7 @@ function updateTooltip(sx, sy) {
 // rijden of meerijden.
 function teleportTo(world, target) {
   if (!world.cheatActions) return;
+  if (world.coopRole === 'client' && world.coopNet) { world.addMessage(ALLEEN_EIGEN_SPEL, 3); return; } // (#388)
   if (!world.cheatActions.teleport(target.x, target.y, target.name)) return;
   if (state.teleport) setMapTeleport(false);
   if (closeHandler) closeHandler();
@@ -1646,6 +1648,7 @@ function cardAction(world, act) {
     const o = opts.find((x) => x.id === gekozen);
     hideCard();
     if (!o || !o.ride) return;
+    if (world.coopRole === 'client' && world.coopNet) { world.addMessage(ALLEEN_EIGEN_SPEL, 3); return; } // een rit verplaatst alleen zijn eigen figuur, de wereld is van de ander (#388)
     if (closeHandler) closeHandler();
     else closeMap();
     startMeerijden(world, o, dest);
