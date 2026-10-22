@@ -14,6 +14,7 @@ import { addStaticCollider } from './breakables.js';
 import { CARBID_LINES } from './funlines.js';
 import { ROELF_LOOK, HILJE_LOOK } from './storycast.js';
 import { rand } from './rng.js';
+import { loopbaanVerdien } from './loopbaanlive.js';
 
 // Carbid schieten, the Groningen New Year's bang, on a meadow off the
 // Beijumerweg between Beijum and Zuidwolde. Boer Roelf and Hilje have a
@@ -548,8 +549,7 @@ function end(w, { quit = false } = {}) {
   recordStat(w, 'carbidGames');
   unlockAchievement(w, 'carbid_klaar');
   if (medal >= 3) unlockAchievement(w, 'carbid_goud');
-  const prize = PRIZE[medal] || 0;
-  if (prize) { w.money += prize; if (w.coopDeel) w.coopDeel(prize); } // samen spelen (#365)
+  const prize = loopbaanVerdien(w, 'buiten', PRIZE[medal] || 0, { xp: 12, n: 1, uniek: 'carbid' }); // samen spelen (#365), loopbaan (#381)
   const stats = [['Punten', String(g.score)], ['Raak', String(g.hits)], ['Verste schot', `${g.best} m`]];
   if (medal) stats.push(['Medaille', MEDALS[medal]]);
   if (rec && rec.newBest) stats.push(['Record', 'Nieuw!']);

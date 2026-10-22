@@ -28,6 +28,8 @@ import { getOwnedEntries, spawnOwnedEntry } from './shops.js';
 import { findParkingSpot } from './ownedvehicles.js';
 import { Vehicle } from './vehicle.js';
 import { playerBusy } from './busy.js';
+import { loopbaanVerdien } from './loopbaanlive.js';
+import { vakVanUitdaging } from './loopbaan.js';
 
 // The post-game: once the story's ending card has played (story.js, read
 // only), Jelle Terpstra challenges Tammo and Tessa to three replayable duels
@@ -333,8 +335,8 @@ function finish(r, res) {
   let rec = null;
   if (res.value != null && !res.aborted) rec = recordChallengeResult(w, def.id, { value: res.value, medal: res.medal | 0, lower: !!res.lower });
   const medal = res.medal | 0;
-  const prize = res.reward != null ? res.reward : PRIZE[medal];
-  if (prize > 0) { w.money += prize; if (w.coopDeel) w.coopDeel(prize); } // samen spelen (#365)
+  const prizeBase = res.reward != null ? res.reward : PRIZE[medal];
+  const prize = loopbaanVerdien(w, vakVanUitdaging(def.id), prizeBase > 0 ? prizeBase : 0, res.aborted ? {} : { xp: 10 + medal * 4, n: 1, uniek: def.id }); // samen spelen (#365), loopbaan (#381)
   if (!res.aborted) {
     if (res.success || medal > 0) {
       unlockAchievement(w, `${def.id}_klaar`);
