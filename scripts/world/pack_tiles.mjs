@@ -99,6 +99,9 @@ export function joinAttrs(buildings, attrs) {
     const bb = b.bounds || (() => { const xs = b.pts.map((p) => p[0]), ys = b.pts.map((p) => p[1]); return [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)]; })();
     const area = polyArea(b.pts) || 1;
     const o = pick(gOsm, b, bb, area);
+    // a building of the OSM tile build that the city's own tables do not know (the city tiles now reach their edges, #314) keeps the
+    // measured height and roof its row already has from the province build (3D BAG by id there), instead of falling back to the default
+    if (!o && !pick(gBag, b, bb, area) && !(b.bag && byBag.get(bagKey(b.bag))) && b.hm !== undefined && b.hsrc && b.hsrc !== 'default') { src[b.hsrc] = (src[b.hsrc] || 0) + 1; out.set(b, {}); continue; }
     const f = {};
     if (o) {
       stats.matched++;
@@ -132,19 +135,19 @@ export function cityTileKeys(d) {
   return [...keys];
 }
 
-// { data, fromOsm, tiles, mask }: data is de kaart zonder de lagen die uit OSM komen (fromOsm), tiles de stadstegels, mask de dekking
+// { data, fromOsm, tiles }: data is de kaart zonder de lagen die uit OSM komen (fromOsm), tiles de stadstegels (de dekking: stad_dekking.mjs)
 export const readStad = (game = path.join(ROOT, 'game')) => stadOf(JSON.parse(fs.readFileSync(path.join(game, 'stad.json'), 'utf8')));
 export function stadOf(d) {
   if (d.format !== STAD_FORMAT) throw new Error(`stad.json heeft formaat ${d.format}, verwacht ${STAD_FORMAT}`);
-  const { format, fromOsm, tiles, cover, ...data } = d;
-  return { data, fromOsm, tiles, mask: cover };
+  const { format, fromOsm, tiles, cover, ...data } = d; // (`cover`: het oude masker van een stad.json van voor #314, wordt genegeerd)
+  return { data, fromOsm, tiles };
 }
 
 // De stad als GameMap: stad.json + de lagen uit de OSM-bouw (altijd de lagen die stad.json mist, plus wat STAD_LAAG vraagt),
 // dan mapextras (patches op gebouwen en wegen). city en osm laten tests een eigen stad en eigen OSM-lagen opgeven.
 export async function loadSourcesLaag(...args) {
-  const { data, lagen, report } = await loadCityDataLaag(...args);
-  return { map: new GameMap(data), lagen, report };
+  const { data, lagen, report, tiles } = await loadCityDataLaag(...args);
+  return { map: new GameMap(data), lagen, report, tiles };
 }
 // dezelfde stad als de ruwe kaartdata (voor tests die zelf in de lijsten kijken), mapextras erin
 export async function loadCityDataLaag(game = path.join(ROOT, 'game'), lagen = parseLagen(process.env.STAD_LAAG), { city = readStad(game), osm = null, extras = true } = {}) {
@@ -153,9 +156,9 @@ export async function loadCityDataLaag(game = path.join(ROOT, 'game'), lagen = p
   const extrasData = JSON.parse(fs.readFileSync(path.join(game, 'mapextras.json'), 'utf8'));
   const report = {};
   if (all.length) {
-    const cover = (await import('./citycover.mjs')).cityCoverFromMask(city.mask);
+    const cover = (await import('./stad_dekking.mjs')).dekkingVanTegels(city.tiles);
     const run = osm || (await import('./stad_cache.mjs')).osmCityLayersCached;
-    const rows = await run(new Set(city.tiles), (x, y) => cover.inside(x, y), all, data, city.mask);
+    const rows = await run(new Set(city.tiles), (x, y) => cover.inside(x, y), all, data);
     for (const l of all) if (!LAGEN_WEGEN.includes(l)) data[l] = rows[l];
     // wegen en spoor: hele wegen uit de OSM-bouw met hun hoogteprofiel (stad_wegen.mjs); legt ook het profiel van de busbanen in de extras terug
     if (rows.wegen) {
@@ -166,7 +169,7 @@ export async function loadCityDataLaag(game = path.join(ROOT, 'game'), lagen = p
     if (!osm) { const na = await (await import('./stad_na.mjs')).tidyCity(data, extrasData); if (process.env.GDE_STAD_LOG) console.log('stad_na', JSON.stringify(na)); }
   }
   if (extras) applyMapExtras(data, extrasData);
-  return { data, lagen: all, report };
+  return { data, lagen: all, report, tiles: city.tiles };
 }
 export function parseLagen(raw) {
   const ok = ['water', 'green', 'trees', 'buildings', ...LAGEN_WEGEN];
@@ -217,7 +220,11 @@ export function loadTerrainRasters(root = ROOT) {
   return loadReliefRasters(root);
 }
 
-export function build({ map }, attrs = loadAttrs(), terrain = loadTerrainRasters()) {
+// tiles: de stadstegels (stad.json). Een rij die over de rand van de stad reikt staat alleen in de stadstegels: de tegels ernaast zijn van de
+// provinciebouw (de stad is altijd resident), anders werd elke tegel waar een gebouw of weg overheen steekt een stadstegel.
+export function build({ map, tiles: cityTiles = null }, attrs = loadAttrs(), terrain = loadTerrainRasters()) {
+  const only = cityTiles ? new Set(cityTiles) : null;
+  const allowed = (i, j) => !only || only.has(G.tileKey(i, j));
   const joined = joinAttrs(map.buildings, attrs);
   const tiles = new Map();
   const tileOf = (i, j) => {
@@ -233,6 +240,7 @@ export function build({ map }, attrs = loadAttrs(), terrain = loadTerrainRasters
     counts[kind] = list.length;
     list.forEach((o, gid) => {
       for (const [i, j] of tilesOf(boundsOf(kind, o))) {
+        if (!allowed(i, j)) continue;
         const t = tileOf(i, j);
         if (kind === 'roads' && profiles.has(o)) {
           // the profile goes in the heights section, the ribbon without it
@@ -248,12 +256,14 @@ export function build({ map }, attrs = loadAttrs(), terrain = loadTerrainRasters
   // the junction model (junctions.js): a junction sits in the tile of its node
   for (const row of junctionRows(map)) {
     const [i, j] = G.tileIndexOf(row.p[0][0], row.p[0][1]);
+    if (!allowed(i, j)) continue;
     const t = tileOf(i, j);
     (t.kinds.junctions || (t.kinds.junctions = [])).push(row);
   }
   // the route graph: an edge sits in the tile of its midpoint (navgraph.js)
   for (const e of edgeRows(map.roads)) {
     const [i, j] = G.tileIndexOf((e.a[0] + e.b[0]) / 2, (e.a[1] + e.b[1]) / 2);
+    if (!allowed(i, j)) continue;
     const t = tileOf(i, j);
     const { a, b, ...rest } = e;
     (t.kinds.nav || (t.kinds.nav = [])).push({ ...rest, p: [a, b] });

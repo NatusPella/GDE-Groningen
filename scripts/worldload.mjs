@@ -1,5 +1,5 @@
 // The built game/world as the game loads it, in Node: the city's tiles pinned,
-// the province layer and the overlays merged, the other tiles streaming in on
+// the province layer merged, the other tiles streaming in on
 // request (needs game/world: desktop stage, or pack_tiles + build_corridor +
 // build_province). For the scripts that place things on the tiles.
 //   import './node3d.mjs';  (first)   const { loadGameWorld, loadArea } = await import('./worldload.mjs');
@@ -37,9 +37,8 @@ export async function loadArea(T, [x0, y0, x1, y1]) {
   const keys = [];
   const [i0, j0] = G.tileIndexOf(x0, y0), [i1, j1] = G.tileIndexOf(x1, y1);
   for (let i = i0; i <= i1; i++) for (let j = j0; j <= j1; j++) { const k = G.tileKey(i, j); if (T.store.has(k)) keys.push(k); }
-  const ov = Object.keys(T.index.tiles).filter((k) => k[0] === 'o');
-  for (const k of [...keys, ...ov]) T.store.pin(k);
-  await Promise.all([...keys, ...ov].map((k) => T.store.request(k, { priority: -1 })));
+  for (const k of keys) T.store.pin(k);
+  await Promise.all(keys.map((k) => T.store.request(k, { priority: -1 })));
   T.world.tileQueue.run(1e9);
   return keys.length;
 }

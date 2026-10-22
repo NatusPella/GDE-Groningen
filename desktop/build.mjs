@@ -79,8 +79,8 @@ function packWorld() {
   if (fs.existsSync(stadLaag)) h.update(fs.readFileSync(stadLaag));
   // wegen en spoor van de stad uit OSM (stad_wegen.mjs en wat het aanroept): de oplossers en het ringprofiel bepalen de stadswegen
   for (const f of ['stad_wegen.mjs', 'stad_spoor.mjs', 'ring_elevation.mjs', 'profile.mjs', 'terrain_profile.mjs', 'terrain_solve.mjs', 'terrain.mjs', 'relief.mjs', 'railprofile.mjs', 'stad_cache.mjs', 'stad_na.mjs', 'stad_bomen.mjs', 'stad_bomen.json', 'binnenplaatsen.json']) { const q = path.join(root, 'scripts', 'world', f); if (fs.existsSync(q)) h.update(fs.readFileSync(q)); }
-  // de dekking van de stadskaart (stad.json): bepaalt welke OSM-rijen de stad krijgt
-  const stadCover = path.join(root, 'scripts', 'world', 'citycover.mjs');
+  // de dekking van de stad (de stadstegels zelf): bepaalt welke OSM-rijen de stad krijgt en welke de tegels ernaast laten vallen
+  const stadCover = path.join(root, 'scripts', 'world', 'stad_dekking.mjs');
   if (fs.existsSync(stadCover)) h.update(fs.readFileSync(stadCover));
   // what else goes into the rows when the checkout has it: the height chain,
   // the profiles, junctions and routes, the building attributes, the 3D BAG

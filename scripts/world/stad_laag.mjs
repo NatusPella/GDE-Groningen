@@ -2,16 +2,16 @@
 // Wegen en spoor (roads, rails) zijn hele wegen met hoogteprofiel en gaan via stad_wegen.mjs (collect-haak in buildProvince).
 // loadSources (pack_tiles.mjs) vervangt de laag in de stadsdata vóór de GameMap, zodat de
 // afleiding (droge kruisingen, woonboten, ...) en de gids van de vaste stadsset vanzelf kloppen.
-// Alleen rijen met hun zwaartepunt binnen de dekking van de stadskaart (citycover.mjs): daarbuiten dekken de
-// overlaytegels van build_province.mjs, dus geen dubbele rijen (#212).
+// Alleen rijen met hun zwaartepunt binnen de dekking van de stad (stad_dekking.mjs: de stadstegels zelf): in de tegels ernaast laat
+// build_province.mjs weg wat de stad neemt (outsideCover), dus geen dubbele rijen (#212, #314).
 import fs from 'node:fs';
 import '../node3d.mjs';
 import * as G from '../../game/js/gdt.js';
 
 // laag -> [tegelsectie, rij -> GameMap-object, zwaartepunt]
 const centroid = (pts) => { let x = 0, y = 0; for (const p of pts) { x += p[0]; y += p[1]; } return [x / pts.length, y / pts.length]; };
-// de plaatsen waarmee een rij bij de stad of bij de overlaytegel hoort: het midden van de omtrek én het zwaartepunt van de hoekpunten.
-// outsideCover (build_province.mjs) laat de overlay alles weg waarvan een van de twee in de dekking ligt, de stad neemt alles waarvan
+// de plaatsen waarmee een rij bij de stad of bij de tegels ernaast hoort: het midden van de omtrek én het zwaartepunt van de hoekpunten.
+// outsideCover (build_province.mjs) laat de tegels naast de stad alles weg waarvan een van de twee in de dekking ligt, de stad neemt alles waarvan
 // een van de twee erin ligt: zo staat een rij nooit in beide (Kardingerplas als vijver en als kanaal) of in geen van beide, en een
 // kanaal dat uit stukken bestaat blijft in de stad bij elkaar
 const middle = (pts) => { let a = Infinity, b = Infinity, c = -Infinity, d = -Infinity; for (const p of pts) { if (p[0] < a) a = p[0]; if (p[0] > c) c = p[0]; if (p[1] < b) b = p[1]; if (p[1] > d) d = p[1]; } return [(a + c) / 2, (b + d) / 2]; };
