@@ -5,7 +5,7 @@ Voor wie aan `loopbaan.js`, `loopbaanlive.js`, `loopbaanui.js` of een vak werkt 
 
 ## Wat de speler ziet
 
-Pauzemenu › **Loopbaan**: zestien vakken in drie groepen (vervoer, werk, sport en spel). Per vak een icoon, het niveau (1 tot 6), de
+Pauzemenu › **Loopbaan**: zeventien vakken in drie groepen (vervoer, werk, sport en spel). Per vak een icoon, het niveau (1 tot 6), de
 functietitel van dat niveau en een balk naar het volgende. Rechts staat wat je in het gekozen vak gedaan hebt (kilometers, ritten,
 potjes, verschillende plekken), wat er nog nodig is voor de volgende titel en hoeveel meer het vak betaalt. Voor de vakken met
 bijbanen staan alle bijbanen eronder, met een vinkje voor wat je al gedaan hebt. Een niveau omhoog komt als een kaartje: *"Kaartjesknipper: Spoor niveau 3, 10% meer loon"*.
@@ -80,3 +80,21 @@ tijden per gebeurtenis die in de test staan (geschat uit de speeltesten); een ni
 4. Draai `node scripts/loopbaan_test.mjs`, `loopbaan_balans_test.mjs` en `loopbaan_coop_test.mjs`.
 
 Niet door een mens in beeld bekeken: zie het changelog voor wat Claude in beeld heeft gezien.
+
+## Hengelen overal in de provincie (#412)
+
+Vak **Hengelen** (`hengelen`, groep sport en spel, eenheid vangsten, uniek: plekken): titels Dobbertjeskijker tot Visbaas van het Noorden. Het vak
+hoort bij `hengelen.js`; de soorten en het geld staan in `visdata.js`, het water in `hengelplek.js`, het visboek in `visboek.js` (opslag
+`gde-visboek-v1`, per speler, nooit in een savegame) en het scherm in `visboekui.js` (pauzemenu › Visboek). Test: `scripts/vis_test.mjs`.
+
+- **Waar:** op elk water waar je aan de kant staat (binnen 3,2 m van de rand) of met een boot die bijna stilligt: **I** hengelt vrij, zonder klok. Aan
+  het meer in Meerstad blijft de wedstrijd van negentig seconden (E bij de steiger), met dezelfde vissen als altijd.
+- **Welke vis:** het watertype (stadsgracht, plas, meer, kanaal, rivier, sloot, Waddenzee en Dollard) volgt uit de naam en de soort van de
+  waterpolygoon. Elk type heeft zijn eigen lijst van echte Nederlandse soorten (29 in totaal) met een gewicht; 's nachts en in de schemer bijten paling,
+  snoekbaars en meerval beter, regen helpt brasem en zeeforel. Het is altijd zomer: er is geen seizoen.
+- **Geld:** een vangst is `(0,2 + 0,2 per kg)` euro keer de zeldzaamheid (1 tot 8) keer een groei van `1 + 0,03 per ontdekte soort + 0,02 per plek` (hooguit 1,8).
+  De kas loopt in hele euro's naar de portemonnee via `loopbaanVerdien` (dus met de loonfactor van het niveau, hooguit +30%) en wordt bij het stoppen
+  afgerond. Zonder niveaus: 120 tot 270 euro per uur, met alles ontdekt tot ongeveer 400; `loopbaan_balans_test.mjs` en `vis_test.mjs` bewaken de verhouding
+  met de bijbanen. De gasten bij samen spelen krijgen er niets van (`deel: false`): ze hengelen op hun eigen apparaat in hun eigen boek.
+- **Punten:** een vangst geeft 1 tot 15 punten naar zeldzaamheid, een nieuwe soort 6 extra en een nieuw water 8.
+- **Prestaties:** tien, twintig en alle soorten, vijf en vijftien wateren, honderd vissen, per watertype alle soorten, en de meerval.

@@ -18,6 +18,7 @@ import { getScene } from './scene3d.js';
 import { makeNearMiss, nearMissBonus } from './gamefeel.js';
 import { chipPopup } from './stunthud.js';
 import { noteMoney } from './finance.js';
+import { initVisboek } from './visboeklive.js';
 import { initLoopbaan, loopbaanOpStat, loopbaanKm, loopbaanTel, getProfiel } from './loopbaanlive.js';
 
 const NEAR_MISS_SPEED = 12;
@@ -65,6 +66,7 @@ export function initAchievementTracker(w) {
   world = w;
   initAchievements(w);
   initLoopbaan({ gate: achievementsGated, snapshot: lifetimeSnapshot });
+  initVisboek({ snapshot: lifetimeSnapshot });
   setStatListener(loopbaanOpStat);
   contactCursor = vehicleContacts.head;
   w.onRespawn.push((ww, { busted }) => {
