@@ -142,6 +142,7 @@ async function faseLicht(prev) {
   // 2. de losse controles
   const losse = [
     ['import_check', ['scripts/import_check.mjs']],
+    ['undef_check', ['scripts/undef_check.mjs']],
     ['voice_coverage', ['scripts/voice_coverage.mjs', '--quiet']],
     ['text_audit', ['scripts/text_audit.mjs']],
   ].filter(([id]) => wilDit(id));

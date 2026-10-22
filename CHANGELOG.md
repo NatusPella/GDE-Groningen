@@ -6,6 +6,9 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Opgelost
+- **Vracht-bijbaan: tijdens het koppelen van de oplegger kwamen de koppelmarkering en het doel niet in beeld (statische naamcontrole, niet in beeld bekeken):** de weergave van de bijbaan gebruikte een voertuig dat daar niet bestond; de fout werd stil opgevangen, dus je zag alleen een leeg bord. Een nieuwe controle (`undef_check`) zoekt voortaan elke naam die gebruikt maar nergens geïmporteerd of gedefinieerd is, zoals de oorzaak van de dode controller in 0.36 tot 0.38.1.
+
 ## [0.38.2] - 2026-10-22
 
 ### Opgelost
