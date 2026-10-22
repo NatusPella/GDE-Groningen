@@ -121,6 +121,17 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
 #pause-menu[data-active-tab="map"].visible:not(.prestart) { background: #13221a; -webkit-backdrop-filter: none; backdrop-filter: none; }
 #pause-menu .pm-map { position: absolute; inset: 0; }
 
+/* the rail has 14 rows (15 in a session) plus the save and quit rows: on windows below full HD it scrolls instead of cutting
+   Spel opslaan and Afsluiten off (focus, the pad and the wheel bring them into view), and the rows get a little smaller first */
+#pause-menu .pm-rail { overflow-y: auto; scrollbar-width: none; }
+#pause-menu .pm-rail::-webkit-scrollbar { display: none; }
+#pause-menu .pm-rail > * { flex-shrink: 0; }
+@media (max-height: 1000px) {
+  #pause-menu .pm-rail { --ra-h: 38px; }
+  #pause-menu .pm-rail-sp { height: 12px; }
+  #pause-menu .pm-logo { font-size: 54px; }
+}
+
 /* short windows */
 @media (max-height: 820px) {
   /* Spel is one more rail button (#416): a little tighter rows keep the rail as long as it was (it scrolls on a low window) */
