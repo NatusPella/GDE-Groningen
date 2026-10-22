@@ -109,8 +109,8 @@ for (const j of surf.steep.slice(0, listN)) console.log(`  helling ${f(j.grade *
 const wet = auditWaterLevels(pieces, T, wetAt, { shippingMin: SHIPPING_DECK_Z });
 // (the city's bridges lie at street level over water that lies lower: only a bridge that is lower than it is without the flag counts)
 const wetFlat = flat ? null : auditWaterLevels(flatPieces, () => 0, wetAt, { shippingMin: SHIPPING_DECK_Z });
-const lowFlat = new Set((wetFlat ? wetFlat.low : []).map((q) => q.gid + '@' + Math.round(q.x / 40) + ',' + Math.round(q.y / 40)));
-const lowNew = wet.low.filter((q) => !lowFlat.has(q.gid + '@' + Math.round(q.x / 40) + ',' + Math.round(q.y / 40)));
+const lowFlat = new Set((wetFlat ? wetFlat.low : []).map((q) => q.gid + '@' + q.road));
+const lowNew = wet.low.filter((q) => !lowFlat.has(q.gid + '@' + q.road));
 console.log(`bruggen over water: ${wet.decks}; vaste bruggen over vaarwater onder hun hoogte (${f(SHIPPING_DECK_Z)} m): ${wet.low.length}${wetFlat ? `, zonder de vlag ${wetFlat.low.length}, alleen met de vlag ${lowNew.length}` : ''}; autowegen door water zonder dek: ${wet.dry.length}${wetFlat ? ` (zonder de vlag ${wetFlat.dry.length})` : ''}`);
 if (lowNew.length) fail(`${lowNew.length} vaste bruggen over vaarwater alleen met de vlag te laag, de laagste ${f(lowNew[0].h)} m bij ${Math.round(lowNew[0].x)},${Math.round(lowNew[0].y)} (${lowNew[0].road})`);
 for (const j of lowNew.slice(0, listN)) console.log(`  brug ${f(j.h)} m (nodig ${f(j.need)}): ${j.road} op ${Math.round(j.x)},${Math.round(j.y)}`);
