@@ -10,6 +10,7 @@
 import { KEYS } from './storagekeys.js';
 import { noteMoney } from './finance.js';
 import * as L from './loopbaan.js';
+import { gebiedenOpUniek, gebiedenOpStat } from './gebiedenlive.js';
 
 const SCHRIJF_VERTRAGING_MS = 1500;
 // Een gast krijgt de helft van de punten van de gastheer bij een gedeelde beloning (net als het geld, coopnet.js GAST_DEEL).
@@ -120,6 +121,7 @@ export function loopbaanTel(w, vak, opties = {}) {
   const r = L.tel(getProfiel(), vak, opties);
   if (r.xp > 0 || (opties.n || 0) > 0) markeer();
   if (r.omhoog) meldOmhoog(w, r.omhoog);
+  if (typeof opties.uniek === 'string' && opties.uniek) gebiedenOpUniek(w, opties.uniek); // gebieden veroveren (#414)
   return r;
 }
 
@@ -144,6 +146,7 @@ export function loopbaanVerdien(w, vak, basis, { xp = 0, n = 0, uniek = null, ru
 // achievements.js recordStat: een gebeurtenis die de prestaties al telden en die geen eigen haak heeft.
 // Met premie (zie STAT_VAK) is dit ook geld voor vakken die anders niets uitbetalen.
 export function loopbaanOpStat(w, key, n = 1) {
+  if (w && n > 0) gebiedenOpStat(w, key); // gebieden veroveren (#414): ook tellers zonder vak
   const r = L.STAT_VAK[key];
   if (!r || !w || !(n > 0)) return;
   const keer = Math.max(1, Math.round(n));
