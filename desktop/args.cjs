@@ -19,4 +19,18 @@ function argValue(name, argv = process.argv) {
   return a ? a.slice(name.length + 1) : null;
 }
 
-module.exports = { argValue, hasFlag, findArg };
+// The text of a script file named by a switch (--bench-eval, --perf-script, --perf-exp), or null with a warning when it
+// does not exist: a missing file must never be an uncaught exception in the main process (that opens an error dialog nobody
+// can click away). A relative path is tried from the current folder, then from the repo root (`root`), because
+// the desktop shell runs in desktop/ while the scripts are written as scripts/qa/x.js.
+function readArgFile(file, what, root, fs = require('fs'), warn = (m) => console.warn(m)) {
+  const path = require('path');
+  const tries = path.isAbsolute(file) || !root ? [file] : [file, path.resolve(root, file)];
+  for (const f of tries) {
+    try { if (fs.existsSync(f) && fs.statSync(f).isFile()) return fs.readFileSync(f, 'utf8'); } catch (e) { /* unreadable: try the next, then warn */ }
+  }
+  warn(`[devtools] ${what}: bestand niet gevonden, overgeslagen: ${file}`);
+  return null;
+}
+
+module.exports = { argValue, hasFlag, findArg, readArgFile };
