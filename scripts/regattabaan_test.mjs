@@ -21,6 +21,15 @@ check('ton op het land maakt de baan onvrij', !baanIsVrij(b1.tonnen, (x, y) => M
 // een ton direct langs de kant (water alleen op de baan zelf) is geen goede baan
 const smal = (x, y) => { const q = b1.tonnen[0]; return Math.hypot(x - q.x, y - q.y) < 5; };
 check('ton zonder water eromheen is onvrij', !baanIsVrij(b1.tonnen, (x, y) => b1.tonnen.some((q) => Math.hypot(x - q.x, y - q.y) < 5) || (Math.abs(x) > 1e9)));
+// smal vaarwater (een gracht van 30 m breed en 600 m lang): geen ronde baan, wel een heen-en-weer-baan (#384)
+const gracht = (x, y) => Math.abs(y) < 15 && x > -100 && x < 500;
+const b3 = kiesBaan(0, 0, gracht);
+check('gracht: baan gevonden', !!b3 && b3.vorm === 'lijn', JSON.stringify(b3 && b3.vorm));
+check('gracht: alle tonnen in het water, op minstens 45 m van elkaar', b3 && b3.tonnen.every((t, i) => gracht(t.x, t.y) && b3.tonnen.every((q, j) => i === j || Math.hypot(t.x - q.x, t.y - q.y) >= 45)));
+check('gracht: omtrek vrij', b3 && baanIsVrij(b3.tonnen, gracht, 12, 6));
+const b4 = kiesBaan(0, 0, (x, y) => Math.abs(y) < 5 && x > -100 && x < 500);
+check('sloot van 10 m: geen baan', b4 === null);
+check('open water kiest de ronde baan', b1.vorm === 'rond');
 const tijd = richtTijd(b1.tonnen);
 check('richttijd redelijk (2 tot 10 minuten)', tijd > 120 && tijd < 600, tijd);
 // een hele regatta langs de tonnen geeft goud bij de richttijd
