@@ -1,6 +1,6 @@
 // Opnames van de standpunten achter het hoofdmenu (#380): per plek een of meer beelden, zoals de camera ze kiest of met een vaste
 // kant en tijdstip, in één Electron-instantie (wegwerpprofiel, geen echte opslag).
-//   node scripts/qa/menuplekken_shots.mjs --meet   (alleen de laadtijd van het menu: de laadmarkeringen en de poort, geen opnames)
+//   node scripts/qa/menuplekken_shots.mjs --meet [--start]   (alleen de laadtijd van het menu: de laadmarkeringen en de poort; met --start daarna Nieuw spel en hoe lang het duurt voor de startplek is ingeladen)
 //   node scripts/qa/menuplekken_shots.mjs [--out=<map>] [--ids=a,b] [--hoeken=270,315] [--uur=9.5] [--beweging=baan] [--t=3] [--menu] [--w=1280x720]
 // Zonder --ids alle plekken. Per plek en hoek: shots-<id>[-<hoek>].png; menuplekken.json met per beeld hoe lang de wereld erbij
 // moest laden (wacht_ms), het uur en de camerakant. --menu laat het menu zelf in beeld (anders is alleen de wereld te zien).
@@ -34,7 +34,7 @@ const slot = (() => {
 if (!slot) { console.error('geen Electron-slot gekregen'); process.exit(2); }
 const profile = `gde-test-mp-${process.pid}`;
 try {
-  const jobs = { ids: arg('ids', ''), hoeken: arg('hoeken', '').split(',').filter(Boolean).map(Number), uur: arg('uur', ''), beweging: arg('beweging', ''), t: Number(arg('t', 3)), menu: process.argv.includes('--menu') };
+  const jobs = { ids: arg('ids', ''), hoeken: arg('hoeken', '').split(',').filter(Boolean).map(Number), uur: arg('uur', ''), beweging: arg('beweging', ''), t: Number(arg('t', 3)), menu: process.argv.includes('--menu'), start: process.argv.includes('--start') };
   const script = path.join(OUT, '_page.js');
   fs.writeFileSync(script, `window.__mp = ${JSON.stringify(jobs)};\n` + fs.readFileSync(path.join(HERE, process.argv.includes('--meet') ? 'menuplekken_laad.page.js' : 'menuplekken_shots.page.js'), 'utf8'));
   const electron = process.env.ELECTRON_EXE || path.join(ROOT, 'desktop', 'node_modules', 'electron', 'dist', process.platform === 'win32' ? 'electron.exe' : 'Electron');
@@ -50,6 +50,7 @@ try {
   for (const l of (r.stdout || '').split('\n')) { const m = l.match(/^\[perf-script\] (.*)$/); if (m) try { full = JSON.parse(m[1]); } catch { /* laatste regel telt */ } }
   fs.writeFileSync(path.join(OUT, 'menuplekken.json'), JSON.stringify(full, null, 1));
   console.log('start:', JSON.stringify(full.start || {}));
+  if (full.spel) console.log('spel:', JSON.stringify(full.spel));
   for (const b of full.beelden || []) console.log(b.naam, b.fout ? 'FOUT ' + b.fout : `uur ${b.uur} hoek ${b.hoek} ${b.beweging} wacht ${b.wacht_ms} ms`);
   console.log(`uitvoer: ${OUT}, exit ${r.status}${r.signal ? ' ' + r.signal : ''}`);
   process.exitCode = r.status === 0 && (full.beelden || []).length ? 0 : 1;
