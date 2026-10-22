@@ -215,6 +215,7 @@ export const ACHIEVEMENTS = [
   { id: 'sj_alle', cat: 'bijbaan', title: 'Duizendpoot', desc: 'Rond bij alle zes bijbaantjes een klus af', set: 'sjJobs', goal: 6 },
   { id: 'sj_geld', cat: 'bijbaan', title: 'Eerlijk verdiend', desc: 'Verdien in totaal €5.000 met bijbaantjes', stat: 'sjEarned', goal: 5000, unit: '€' },
   { id: 'sj_bezorger', cat: 'bijbaan', title: 'Nog warm!', desc: 'Bezorg 8 bestellingen op rij in één dienst', stat: 'sj_bezorger_streak', goal: 8 },
+  { id: 'sj_krantenwijk', cat: 'bijbaan', title: 'Elke bus raak', desc: 'Bezorg 4 wijken op rij in één dienst', stat: 'sj_krantenwijk_streak', goal: 4 },
   { id: 'sj_taxi', cat: 'bijbaan', title: 'Moi, waar mag het heen?', desc: 'Rijd 6 taxiritten op rij in één dienst', stat: 'sj_taxi_streak', goal: 6 },
   { id: 'sj_bus', cat: 'bijbaan', title: 'Keurig op tijd', desc: 'Rijd een hele buslijn zonder één keer te laat te zijn' },
   { id: 'sj_rondvaart', cat: 'bijbaan', title: 'Links ziet u...', desc: 'Vaar een rondvaart zonder één stukje uitleg te missen' },
