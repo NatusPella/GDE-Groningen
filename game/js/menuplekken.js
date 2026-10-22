@@ -18,9 +18,6 @@ export const SHOT_S = 16;
 const P = (id, streek, soort, x, y, R, z, lookZ, extra = {}) => ({ id, streek, soort, x, y, R, z, lookZ, ...extra });
 export const MENU_PLEKKEN = [
   // Waddenkust en Hogeland
-  P('eemshaven-windpark', 'eemsdelta', 'wind', 17100, -25100, 600, 45, 45, { focus: 300 }),
-  P('weiwerd-windpark', 'eemsdelta', 'wind', 27650, -10830, 520, 38, 45, { focus: 300 }),
-  P('duurkenakker-windpark', 'oldambt', 'wind', 23420, 6250, 520, 38, 45, { focus: 300 }),
   P('menkemaborg', 'hogeland', 'borg', 7566, -20771, 85, 20, 7, { hoek: [70, 110] }),
   P('uithuizen-jacobikerk', 'hogeland', 'kerk', 6886, -21030, 105, 17, 15),
   P('usquert-kerk', 'hogeland', 'kerk', 2770, -20431, 100, 16, 14),
@@ -40,7 +37,6 @@ export const MENU_PLEKKEN = [
   P('appingedam-nicolaikerk', 'fivelingo', 'dorp', 19328, -11524, 100, 20, 8),
   P('delfzijl-molen', 'eemsdelta', 'molen', 23844, -12840, 95, 16, 10),
   // Lauwersmeer, Reitdiep en het Westerkwartier
-  P('lauwersoog-haven', 'lauwers', 'haven', -24100, -20500, 230, 32, 4, { hoek: [225, 330] }),
   P('zoutkamp-haven', 'lauwers', 'haven', -17791, -12815, 130, 22, 3),
   P('verhildersum', 'lauwers', 'borg', -11707, -15744, 80, 16, 7),
   P('oldehove-molens', 'lauwers', 'molen', -11380, -9220, 110, 18, 12),
