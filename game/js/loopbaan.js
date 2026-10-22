@@ -95,7 +95,7 @@ const BAAN_VAK = {
   cabaret: 'podium', promotie: 'podium', oogtv: 'podium', telefoonrave: 'podium', schouwburg: 'podium',
   vigilantia: 'horeca', niemeyer: 'horeca',
   kermisdraai: 'kermis',
-  kamerkoning: 'klus', helix: 'klus',
+  kamerkoning: 'klus', helix: 'klus', energielabel: 'klus',
 };
 export const BAAN_IDS = Object.keys(BAAN_VAK);
 export const vakVanBaan = (id) => BAAN_VAK[id] || 'klus';
