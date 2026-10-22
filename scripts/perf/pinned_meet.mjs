@@ -1,5 +1,6 @@
 // De vaste (gepinde) set van de stad meten (#314): laadtijd van loadTileWorld, heap van de wereld, lengtes van de hele arrays,
-// het aantal tegels en bestanden, met en zonder de overlaytegels van de stad (die het spel erbij vastpint).
+// het aantal tegels en bestanden. Variant 'worker' laadt de stad zoals de geometrieworker (loadMapAuto: de stadstegels, en bij een
+// wereld van voor de samenvoeging de overlaytegels uit index-provincie.json), 'spel' zoals main.js (met index-provincie.json).
 //   GAME_WORLD=<wereldmap> node scripts/perf/pinned_meet.mjs [rondes]
 // Elke meting is een eigen proces (een tweede ronde in hetzelfde proces erft de vorige: caches, GC). Zonder wereld: SKIP.
 // Een drukke machine maakt de ms onbruikbaar; de aantallen en de heap niet.
@@ -19,7 +20,8 @@ if (VAR) {
   const { loadTileWorld } = await import('../../game/js/tileworld.js');
   const files = {};
   for (const f of fs.readdirSync(dir)) if (/\.(gdp|json|gz)$/.test(f)) files[f] = new Uint8Array(fs.readFileSync(path.join(dir, f)));
-  const extra = VAR === 'stad+overlays' ? [{ name: 'index-provincie.json', only: (q) => !!q.ov }] : [];
+  const loose = fs.existsSync(path.join(dir, 'index-provincie.json')) && Object.values(JSON.parse(fs.readFileSync(path.join(dir, 'index-provincie.json'), 'utf8')).tiles).some((t) => t.ov && !t.in);
+  const extra = VAR === 'spel' ? [{ name: 'index-provincie.json' }] : loose ? [{ name: 'index-provincie.json', only: (q) => !!q.ov }] : [];
   const heap = () => { for (let i = 0; i < 4; i++) global.gc(); return process.memoryUsage().heapUsed; };
   const h0 = heap();
   const t0 = performance.now();
@@ -38,14 +40,15 @@ const rondes = +process.argv[2] || 3;
 const index = JSON.parse(fs.readFileSync(path.join(dir, 'index.json'), 'utf8'));
 let prov = null;
 try { prov = JSON.parse(fs.readFileSync(path.join(dir, 'index-provincie.json'), 'utf8')); } catch (e) { /* geen provincie */ }
-const ovl = prov ? Object.values(prov.tiles).filter((t) => t.ov) : [];
+const ovl = prov ? Object.values(prov.tiles).filter((t) => t.ov && !t.in) : [];
+const merged = prov ? Object.values(prov.tiles).filter((t) => t.ov && t.in).length : 0;
 const out = {
   wereld: dir, stadstegels: Object.keys(index.tiles).length, gepind: index.pins.city.tiles.length, packs: Object.keys(index.packs).length,
-  overlaytegels: ovl.length, overlayKB: Math.round(ovl.reduce((s, t) => s + t.len, 0) / 1024), provTegels: prov ? Object.keys(prov.tiles).length : 0,
+  overlaytegels: ovl.length, samengevoegd: merged, overlayKB: Math.round(ovl.reduce((s, t) => s + t.len, 0) / 1024), provTegels: prov ? Object.keys(prov.tiles).length : 0,
   bestanden: fs.readdirSync(dir).length, counts: index.counts, varianten: {},
 };
 const me = fileURLToPath(import.meta.url);
-for (const naam of prov ? ['stad', 'stad+overlays'] : ['stad']) {
+for (const naam of prov ? ['worker', 'spel'] : ['worker']) {
   const rs = [];
   for (let k = 0; k < rondes; k++) {
     const r = spawnSync(process.execPath, ['--expose-gc', me], { env: { ...process.env, PINNED_VARIANT: naam }, encoding: 'utf8' });
