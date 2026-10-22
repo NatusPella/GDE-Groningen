@@ -1,6 +1,6 @@
 import { boxOf, withTiles } from './tileplace.js';
 import { edgeDistance } from './countryfield.js';
-import { landmarkParams, kitCoversBuilding, COVER_KINDS, wierdeOnRoad, wierdeRadius } from './landmarkkit.js';
+import { landmarkParams, kitCoversBuilding, COVER_KINDS, wierdeOnRoad, wierdeRadius, setKitList } from './landmarkkit.js';
 import { createLandmarkLayer } from './landmarklayer3d.js';
 
 // The landmark kits in today's Ommeland (LK1): the candidates from
@@ -98,6 +98,7 @@ export function updateOmmelandLandmarks(world, scene, focus, hideBuilding = null
       // a church without an outline of its own is fitted to the tiles' church there
       const lone = j.items.filter((it) => (it.k === 'church' || it.k === 'chapel') && !it.o).map((it) => [it.x, it.y]);
       S.list = await withTiles(world.map, lone, () => prepareLandmarks(j.items, world.map), { radius: 60, token: 'kits', slice: 6 });
+      setKitList(S.list); // (the tiles' own church kits leave the churches of this list alone, #406)
       S.layer = createLandmarkLayer(scene, S.list);
     }).catch((e) => console.warn('landmark kits not loaded', e && e.message));
   }
