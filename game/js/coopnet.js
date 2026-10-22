@@ -372,6 +372,7 @@ export function handleEvent(world, body, van = 0) {
     case 'ping': { // de host stuurt door met 'van'; een gast stuurt zonder
       const afz = n && n.role === 'client' && Number.isInteger(body.van) ? body.van : van;
       const ok = !!(world.coopPings && addPing(world.coopPings, { x: body.x, y: body.y, soort: body.soort, van: afz }, now(world)));
+      if (ok && afz !== 'eigen' && (world.audioEvents || (world.audioEvents = [])).length < 64) world.audioEvents.push({ kind: 'notify', x: world.player ? world.player.x : 0, y: world.player ? world.player.y : 0 }); // een bestaand geluidje: iemand roept (#367)
       if (ok && world.addMessage) world.addMessage(pingRegel(afz, PING_TEKST[body.soort] ? body.soort : 'hier', world.coopRoster, n && n.role === 'client' && n.session ? n.session.slot : 0), 3);
       return ok;
     }
@@ -390,7 +391,8 @@ export function handleEvent(world, body, van = 0) {
     case 'uitslag': { // gelukt of mislukt, van de gastheer (#371)
       if (!n || n.role !== 'client' || typeof body.label !== 'string') return false;
       const naam = openerNaam(world.coopRoster, true);
-      const tekst = body.ok ? `${body.label} gelukt! ${naam} en jij hebben het samen gedaan.` : `${body.label} mislukt${body.reden ? ': ' + String(body.reden).slice(0, 60) : ''}. ${naam} probeert het misschien opnieuw.`;
+      const deel = Math.floor(Number(body.deel)) || 0;
+      const tekst = body.ok ? `${body.label} gelukt! ${naam} en jij hebben het samen gedaan.${deel > 0 ? ` Jouw deel: €${deel.toLocaleString('nl-NL')}.` : ''}` : `${body.label} mislukt${body.reden ? ': ' + String(body.reden).slice(0, 60) : ''}. ${naam} probeert het misschien opnieuw.`;
       if (world.addMessage) world.addMessage(tekst.slice(0, 160), 5);
       return true;
     }

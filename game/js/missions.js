@@ -626,7 +626,7 @@ export function initMissions(world) {
   setMuseumCaseStolen(() => isMissionCompleted(missionIndexById('museumkraak')));
   syncPub(world);
   world.onRespawn.push((w, { busted }) => {
-    failActiveMission(w, busted ? 'Missie mislukt: opgepakt' : 'Missie mislukt: knock-out', busted ? 'Opgepakt door de politie' : 'Je bent knock-out');
+    failActiveMission(w, busted ? 'Missie mislukt: opgepakt' : 'Missie mislukt: knock-out', busted ? 'Opgepakt door de politie' : 'Je bent knock-out', busted ? 'opgepakt door de politie' : 'neergeslagen');
   });
 }
 
@@ -642,11 +642,12 @@ export function activeStage() {
   return (def && def.stages && def.stages[chain.stageIndex]) || null;
 }
 
-export function failActiveMission(world, reason, bannerReason) {
+export function failActiveMission(world, reason, bannerReason, coopReden = '') {
   if (!chain || chain.phase !== 'active') return false;
   const def = chain.defs[chain.index];
   playMissionFailed(world, { reason: bannerReason || reason, stats: runStats(world, def) }, false);
   const i = chain.index;
+  if (world.coopUitslag) world.coopUitslag(false, def.label, coopReden || String(bannerReason || reason || '').toLowerCase()); // samen spelen (#371): ook knock-out, arrestatie en afbreken horen de gasten
   endInFailure(world, reason);
   syncPub(world);
   hooks.failed(world, i);
