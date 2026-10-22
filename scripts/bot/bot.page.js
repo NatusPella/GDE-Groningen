@@ -650,7 +650,7 @@ while (true) {
       if (!best && s.t - (mem.stuntLogT || -9) >= 5) {
         mem.stuntLogT = s.t;
         const all = Br.propsInRadius(s.player.x, s.player.y, 90), st = all.filter((q) => String(q.key).startsWith('stunt'));
-        B.log('stunt-geen-rekwisiet', { props: all.length, stunt: st.length, overgeslagen: st.filter((q) => (mem.stuntSkip[q.key] || 0) > s.t).length, voorbeeld: st[0] && [st[0].key, Math.round(st[0].x), Math.round(st[0].y)], sleutels: all.slice(0, 3).map((q) => q.key) });
+        B.log('stunt-geen-rekwisiet', { props: all.length, stunt: st.length, overgeslagen: st.filter((q) => (mem.stuntSkip[q.key] || 0) > s.t).length, voorbeeld: st[0] && [st[0].key, Math.round(st[0].x), Math.round(st[0].y)], sleutels: all.slice(0, 3).map((q) => q.key), plein: (() => { const h = {}; for (const q of Br.propsInRadius(168.7, 70, 46)) h[q.kind + (String(q.key).startsWith('stunt') ? '*' : '')] = (h[q.kind + (String(q.key).startsWith('stunt') ? '*' : '')] || 0) + 1; return h; })() });
       }
       if (best) {
         // circling a prop that does not fall (the car orbits it, or a bollard stands in the way): after 6 s within 10 m it is left alone for 90 s and the next one is tried (M01, #312)
