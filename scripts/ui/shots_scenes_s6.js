@@ -1,4 +1,4 @@
-// Scenes voor #207 (animaties): zwemmen, klimmen uit het water, over een hek springen en fietstrucs (wheelie, zonder handen, stoppie).
+// Scenes voor #207 (animaties) en #397 (vliegschool): zwemmen, klimmen uit het water, over een hek springen en fietstrucs (wheelie, zonder handen, stoppie).
 // node scripts/ui_shots.mjs --scenes=scripts/ui/shots_scenes_s6.js --only=fietstrucs,stoppie,zwemklim,hek --sizes=1280x720
 // Basis: scripts/ui/shots_scenes_r39.js. Scenes for scripts/ui_shots.mjs (run by desktop --perf-script, one page per
 // window size). Each scene opens a screen and logs "[capture] <name>", which
@@ -286,6 +286,84 @@ if (want('autodak')) {
   await sleep(1500);
   const ci = w.vehicles.indexOf(car); if (ci >= 0) w.vehicles.splice(ci, 1);
   done.push('autodak');
+}
+
+// ---- #397: de vliegschool: het menu met echte toetsen, daarna elke les met de piloot uit de regels (ook echte toetsen) ----
+// node scripts/ui_shots.mjs --scenes=scripts/ui/shots_scenes_s6.js --only=vliegschool --types=vt-ringen,hk-landen --sizes=1280x720 --timeout=1500
+if (want('vliegschool')) {
+  clearInterval(skipper);
+  w.clock = 14;
+  const VR = await imp('vliegschoolrules');
+  const ACH = await imp('achievements');
+  const ids = (window.__shotsTypes || 'vt-ringen').split(',').filter(Boolean);
+  const A = window.__activities.get('vliegschool');
+  const V = window.__vliegschool;
+  const sp = A.spots()[0];
+  info.push('vliegschool plek ' + Math.round(sp.x) + ',' + Math.round(sp.y) + ' geladen ' + V.geladen());
+  teleport(sp.x, sp.y);
+  await settle();
+  teleport(sp.x, sp.y);
+  await sleep(1500);
+  info.push('prompt ' + JSON.stringify(A.prompt(w)).slice(0, 140));
+  await follow('vs-school', 6, 6, 2.2, 30);
+  await press('e', 'KeyE', 120);
+  await sleep(700);
+  info.push('menu actief ' + A.active());
+  await shot('vs-menu', 200);
+  const KEYMAP = { w: ['w', 'KeyW'], s: ['s', 'KeyS'], a: ['a', 'KeyA'], d: ['d', 'KeyD'], spatie: [' ', 'Space'], ctrl: ['Control', 'ControlLeft'], shift: ['Shift', 'ShiftLeft'] };
+  const held = new Set();
+  const zetToetsen = (k) => {
+    for (const name of Object.keys(KEYMAP)) {
+      const aan = !!k[name], was = held.has(name);
+      if (aan && !was) { keyEv('keydown', KEYMAP[name][0], KEYMAP[name][1]); held.add(name); }
+      else if (!aan && was) { keyEv('keyup', KEYMAP[name][0], KEYMAP[name][1]); held.delete(name); }
+    }
+  };
+  let eerste = true;
+  for (const id of ids) {
+    const les = VR.lesVan(id);
+    if (eerste) {
+      // de eerste les kiest de speler met toetsen: 1 = vliegtuig, 2 = helikopter, dan het cijfer van de les
+      const lijst = VR.lessenVan(les.kist);
+      await press(les.kist === 'vliegtuig' ? '1' : '2', les.kist === 'vliegtuig' ? 'Digit1' : 'Digit2', 120);
+      await sleep(500);
+      await shot('vs-menu-' + les.kist, 200);
+      const n = lijst.findIndex((l) => l.id === id) + 1;
+      await press(String(n), 'Digit' + n, 120);
+      await sleep(800);
+      eerste = false;
+    } else V.start(id);
+    let st = V.state();
+    info.push(id + ' gestart: ' + (st ? st.fase : 'niets'));
+    if (!st || st.fase === 'menu') { info.push(id + ' kon niet starten'); continue; }
+    const t0 = performance.now();
+    let k = 0, laatsteLog = 0, fase0 = null;
+    while (performance.now() - t0 < 360000) {
+      st = V.state();
+      if (!st || st.fase === 'menu') break;
+      const nu = (performance.now() - t0) / 1000;
+      if (st.fase === 'intro' && nu > 1.2 && !fase0) { fase0 = 1; await shot('vs-' + id + '-intro', 100); }
+      if (st.fase === 'vlieg') {
+        zetToetsen(VR.piloot(les, st.baan, st.st, st.c, {}));
+        if (nu - laatsteLog > 8) {
+          laatsteLog = nu;
+          info.push(id + ' t=' + nu.toFixed(0) + ' x=' + Math.round(st.c.x) + ' y=' + Math.round(st.c.y) + ' agl=' + st.c.agl.toFixed(0) + ' v=' + st.c.speed.toFixed(0) + ' i=' + st.st.i + ' goed=' + st.st.goed + ' fout=' + st.st.fout);
+          if (k < 3) { k++; await shot('vs-' + id + '-' + k, 50); }
+        }
+      } else zetToetsen({});
+      await sleep(60);
+    }
+    zetToetsen({});
+    await sleep(1500);
+    await shot('vs-' + id + '-uitslag', 100);
+    const rec = ACH.getChallengeRecord('vlieg-' + id);
+    info.push(id + ' uitslag ' + JSON.stringify(rec) + ' geld ' + Math.round(w.money));
+  }
+  zetToetsen({});
+  await sleep(500);
+  V.quit();
+  info.push('na afloop actief ' + A.active() + ' in voertuig ' + !!p.inVehicle);
+  done.push('vliegschool');
 }
 
 clearInterval(skipper);

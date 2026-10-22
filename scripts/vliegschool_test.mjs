@@ -8,6 +8,7 @@ import { fileURLToPath } from 'node:url';
 import { makePlane, stepPlane, PLANE } from '../game/js/arcadeplane.js';
 import { planeInput, makeStrip } from '../game/js/planecontrol.js';
 import * as R from '../game/js/vliegschoolrules.js';
+import { shapeInputs } from '../game/js/helictl.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const plekken = JSON.parse(fs.readFileSync(path.join(ROOT, 'game/vliegplekken.json'), 'utf8'));
@@ -92,7 +93,76 @@ for (const les of R.lessenVan('vliegtuig')) {
   const r = vlieg(les);
   vt[les.id] = r;
   const lijst = r.events.filter((e) => e.k === 'goed' || e.k === 'fout').map((e) => `${e.k}:${e.tekst}`).join(' | ');
-  check(`${les.id}: de piloot haalt minstens brons`, r.uit.medaille >= 1, `${r.st.fase} ${r.st.reden} t=${r.st.t.toFixed(0)} ${JSON.stringify(r.uit)} ${lijst}`);
+  check(`${les.id}: de piloot haalt goud (het is te halen)`, r.uit.medaille === 3, `${r.st.fase} ${r.st.reden} t=${r.st.t.toFixed(0)} ${JSON.stringify(r.uit)} ${lijst}`);
+  if (process.argv.includes('--uitleg')) console.log(les.id, r.st.fase, r.st.reden, JSON.stringify(r.uit), lijst);
+}
+
+// --- een helikopter zonder wereld: de vliegregels van heliflight.js (flyHeli) op vlakke grond, zonder gebouwen ----
+// Dezelfde constanten (kruissnelheid, optrekken, hoveren, stijgen en zakken, de landingshulp, de landing- en crashgrenzen) en
+// dezelfde asvorming (helictl.js). Een afwijking van flyHeli zou deze test oneerlijk maken; de Electron-scene vliegt de echte.
+function stapHeli(v, k, dt) {
+  const CRUISE = 30, BOOST = 40, BACK = 9, SIDE = 11, CLIMB = 8, SINK = 7, ACC = 7, BOOST_ACC = 9.5, COAST = 3.5, HOVER = 13, V_ACC = 12, YAW_RATE = 1.45, YAW_ACC = 6;
+  const ca = Math.cos(v.angle), sa = Math.sin(v.angle);
+  let vx = ca * v.speed + v.driftX, vy = sa * v.speed + v.driftY, vz = v.vz;
+  const raw = { up: (k.spatie ? 1 : 0) - (k.ctrl ? 1 : 0), yaw: (k.d ? 1 : 0) - (k.a ? 1 : 0), fwd: (k.w ? 1 : 0) - (k.s ? 1 : 0), side: 0 };
+  const hover = raw.fwd < 0 && vx * ca + vy * sa > 2;
+  const q = shapeInputs(v.ctl, raw, dt);
+  const boost = !!k.shift;
+  v.yawRate += (q.yaw * YAW_RATE - v.yawRate) * Math.min(1, dt * YAW_ACC);
+  v.angle += v.yawRate * dt;
+  const c = Math.cos(v.angle), s = Math.sin(v.angle);
+  const fwdSpeed = hover ? 0 : q.fwd > 0 ? q.fwd * (boost ? BOOST : CRUISE) : q.fwd * BACK;
+  let tvx = c * fwdSpeed - s * q.side * SIDE, tvy = s * fwdSpeed + c * q.side * SIDE;
+  const steering = q.fwd !== 0 || q.side !== 0;
+  let rate = hover ? HOVER : steering ? (boost ? BOOST_ACC : ACC) : COAST;
+  if (v.onGround) { tvx = 0; tvy = 0; rate = 10; }
+  let dx = tvx - vx, dy = tvy - vy;
+  const dl = Math.hypot(dx, dy), step = rate * dt;
+  if (dl > step) { dx *= step / dl; dy *= step / dl; }
+  vx += dx; vy += dy;
+  let tvz = q.up > 0 ? CLIMB * q.up : q.up < 0 ? -SINK : 0;
+  if (tvz < 0) tvz = Math.max(tvz, -(1.6 + Math.max(0, v.z) * 0.55));
+  vz += Math.max(-V_ACC * dt * (hover ? 1.3 : 1), Math.min(V_ACC * dt * (hover ? 1.3 : 1), tvz - vz));
+  if (v.onGround && q.up > 0) v.onGround = false;
+  let nz = v.z + vz * dt;
+  v.touch = null;
+  if (nz <= 0.02 && !(vz > 0 && !v.onGround)) {
+    const impact = -vz, hs = Math.hypot(vx, vy);
+    nz = 0;
+    if (!v.onGround) {
+      if (impact > 11 || hs > 19) { v.touch = 'hard'; vz = Math.max(1.5, impact * 0.25); vx *= 0.3; vy *= 0.3; }
+      else if (impact > 4.5 || hs > 7) { v.touch = 'hard'; vz = impact * 0.3; vx *= 0.4; vy *= 0.4; }
+      else { v.onGround = true; v.touch = 'zacht'; vz = 0; }
+    } else vz = Math.max(0, vz);
+  } else if (nz > 0.35) v.onGround = false;
+  if (v.onGround) { const fr = Math.max(0, 1 - dt * 6); vx *= fr; vy *= fr; nz = 0; }
+  v.x += vx * dt; v.y += vy * dt; v.z = nz; v.vz = vz;
+  v.speed = vx * c + vy * s; v.driftX = vx - c * v.speed; v.driftY = vy - s * v.speed;
+  return v;
+}
+
+function vliegHeli(les, { maxS = 330, dt = 1 / 30, opts = {} } = {}) {
+  const baan = R.bouwBaan(les, env);
+  const st = R.nieuweStaat(les, baan);
+  const sp = baan.start;
+  const v = { x: sp.x, y: sp.y, z: sp.z, angle: sp.heading, speed: 0, driftX: 0, driftY: 0, vz: 0, yawRate: 0, onGround: false, ctl: {}, touch: null };
+  const spoor = process.argv.includes('--spoor=' + les.id);
+  let volgT = 0;
+  const events = [];
+  for (let t = 0; t < maxS && st.fase === 'vlieg'; t += dt) {
+    const c = { x: v.x, y: v.y, z: v.z, agl: v.z, speed: Math.hypot(v.vx !== undefined ? v.vx : v.speed * Math.cos(v.angle) + v.driftX, v.speed * Math.sin(v.angle) + v.driftY), vz: v.vz, heading: v.angle, onGround: v.onGround, touchdown: v.touch, crashed: false };
+    for (const e of R.stap(les, baan, st, c, dt, opts)) { events.push(e); if (spoor) console.log('  ev', t.toFixed(1), e.k, e.tekst); }
+    if (spoor && t >= volgT) { volgT += 4; console.log('  t', t.toFixed(0), 'x', c.x.toFixed(0), 'y', c.y.toFixed(0), 'z', c.z.toFixed(1), 'v', c.speed.toFixed(1), 'vz', c.vz.toFixed(1), 'h', c.heading.toFixed(2), 'i', st.i, 'in', st.in.toFixed(1)); }
+    if (st.fase !== 'vlieg') break;
+    stapHeli(v, R.piloot(les, baan, st, c, env), dt);
+  }
+  return { baan, st, uit: R.beoordeel(les, baan, st), events };
+}
+
+for (const les of R.lessenVan('heli')) {
+  const r = vliegHeli(les);
+  const lijst = r.events.filter((e) => e.k === 'goed' || e.k === 'fout').map((e) => `${e.k}:${e.tekst}`).join(' | ');
+  check(`${les.id}: de piloot haalt goud met de heli (het is te halen)`, r.uit.medaille === 3, `${r.st.fase} ${r.st.reden} t=${r.st.t.toFixed(0)} ${JSON.stringify(r.uit)} ${lijst}`);
   if (process.argv.includes('--uitleg')) console.log(les.id, r.st.fase, r.st.reden, JSON.stringify(r.uit), lijst);
 }
 
