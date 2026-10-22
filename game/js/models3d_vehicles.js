@@ -198,7 +198,7 @@ function buildCarGeometry(type, L, W, paint, opts) {
     for (const s of [1, -1]) {
       sideStrip(B, P.xA + 0.02, P.belt - 0.01, P.xB + 0.03, P.roof - 0.12, s * pz, 0.07, 0.05, paint);
       sideStrip(B, xK + 0.04, P.belt, xK + 0.04, P.roof - 0.02, s * pz, 0.08, 0.05, paint);
-      sideStrip(B, P.xA + 0.02, P.belt + 0.005, xK, P.belt + 0.005, s * (pz + 0.01), 0.025, 0.03, TRIM);
+      sideStrip(B, P.xA + 0.02, P.belt + 0.005, xK, P.belt + 0.005, s * (pz + 0.02), 0.025, 0.03, TRIM);
       sideStrip(B, -hl + 1.6, 1.0, -hl + 1.6, P.roof - 0.1, s * (hw + 0.004), 0.015, 0.01, shadeHex(paint, 0.7));
     }
     B.box(-hl - 0.004, (P.belt + P.roof) / 2 + 0.2, 0, 0.012, 0.5, W * 0.06, TRIM);
@@ -214,7 +214,7 @@ function buildCarGeometry(type, L, W, paint, opts) {
       sideStrip(B, P.xC - 0.02, P.roof - 0.05, P.xD, P.belt - 0.01, s * pz, type === 'sedan' || type === 'sport' ? 0.09 : 0.16, 0.05, paint);
       const bx = (P.xB + P.xC) / 2 + 0.15;
       sideStrip(B, bx, P.belt, bx - 0.06, P.roof - 0.06, s * (pz + 0.005), 0.07, 0.04, TRIM);
-      sideStrip(B, P.xA + 0.02, P.belt + 0.005, P.xD, P.belt + 0.005, s * (pz + 0.01), 0.025, 0.03, TRIM);
+      sideStrip(B, P.xA + 0.02, P.belt + 0.005, P.xD, P.belt + 0.005, s * (pz + 0.02), 0.025, 0.03, TRIM);
     }
   }
 
@@ -272,7 +272,7 @@ function buildCarGeometry(type, L, W, paint, opts) {
   if (variant === 'taxi') {
     B.box((P.xB + P.xC) / 2 + 0.15, P.roof + 0.1, 0, 0.28, 0.16, 0.62, 0xf0c24e);
     B.box((P.xB + P.xC) / 2 + 0.15, P.roof + 0.1, 0, 0.3, 0.07, 0.64, TRIM);
-    for (const x of [hl + 0.086, -hl - 0.009]) B.box(x, x > 0 ? 0.38 : Math.min(0.6, P.tail - 0.22), 0, 0.013, 0.1, 0.48, 0x2f5fb0);
+    for (const x of [hl + 0.0915, -hl - 0.0145]) B.box(x, x > 0 ? 0.38 : Math.min(0.6, P.tail - 0.22), 0, 0.013, 0.12, 0.52, 0x2f5fb0);
     for (const s of [1, -1]) B.box((P.xB + P.xC) / 2, P.belt - 0.12, s * (hw + 0.008), 0.9, 0.12, 0.012, 0xf0c24e);
   } else if (variant === 'rust') {
     const rust = [0x8a4a26, 0x6e3b20, 0x9a5a2e];
@@ -307,9 +307,9 @@ function buildCarGeometry(type, L, W, paint, opts) {
     for (const s of [1, -1]) {
       const z = s * (hw + 0.008);
       B.box((bay0 + bay1) / 2, (sill + P.roof) / 2 + 0.12, s * (hw + 0.004), bay1 - bay0, P.roof - sill - 0.35, 0.012, STEEL);
-      B.box((bay0 + bay1) / 2, 1.28, z, bay1 - bay0, 0.34, 0.012, GREEN);
-      B.box((bay0 + bay1) / 2, 1.08, z, bay1 - bay0, 0.05, 0.012, GOLD);
-      B.box((bay0 + bay1) / 2, 1.48, z, bay1 - bay0, 0.05, 0.012, GOLD);
+      B.box((bay0 + bay1) / 2, 1.28, z, bay1 - bay0 - 0.02, 0.34, 0.012, GREEN);
+      B.box((bay0 + bay1) / 2, 1.08, z, bay1 - bay0 - 0.02, 0.05, 0.012, GOLD);
+      B.box((bay0 + bay1) / 2, 1.48, z, bay1 - bay0 - 0.02, 0.05, 0.012, GOLD);
       const lx = (bay0 + bay1) / 2 + 0.4;
       B.box(lx, 1.28, s * (hw + 0.012), 0.44, 0.44, 0.012, GOLD);
       B.box(lx, 1.28, s * (hw + 0.016), 0.08, 0.3, 0.012, GREEN);
@@ -634,7 +634,7 @@ function buildTrekkerLimoMesh(v) {
     for (const s of [1, -1]) {
       for (const px of [tx0 + 0.03, tx0 + 1.17]) B.box(px, 1.9, s * (cz - 0.03), 0.06, 0.8, 0.06, tractor);
       B.box(tx0 + 0.6, 1.9, s * cz, 1.1, 0.8, 0.02, GLASS, G_GLASS);
-      B.box(tx0 + 0.55, 1.35, s * (hw - 0.12), 1.3, 0.12, 0.34, shadeHex(tractor, 0.75));
+      B.box(tx0 + 0.5, 1.35, s * (hw - 0.12), 1.3, 0.12, 0.34, shadeHex(tractor, 0.75));
       B.box(hl + 0.01, 0.95, s * (W * 0.2), 0.02, 0.14, 0.2, HEADLAMP, G_LAMP);
       // flag poles with red leaves on white and blue
       B.box(hl - 0.2, 1.75, s * (W * 0.28), 0.04, 1.3, 0.04, CHROME);
@@ -694,7 +694,7 @@ function buildTractorMesh(v) {
     B.box((hx0 + hl) / 2, 1.27, 0, hl - hx0, 0.76, W * 0.55, paint);
     B.box((hx0 + hl) / 2 + 0.05, 1.66, 0, hl - hx0 - 0.25, 0.04, W * 0.5, shadeHex(paint, 0.85));
     B.box((C.x0 + hl) / 2, 0.78, 0, hl - C.x0 - 0.2, 0.5, W * 0.42, 0x2a2a2a);
-    B.box(hl - 0.04, 1.2, 0, 0.08, 0.5, W * 0.48, 0x2a2a2a);
+    B.box(hl - 0.05, 1.2, 0, 0.08, 0.5, W * 0.48, 0x2a2a2a);
     // cab: solid up to the belt, glass all round above it, the roof
     B.box(cx, (C.floor + C.belt) / 2, 0, cl, C.belt - C.floor, W * 0.86, paint);
     B.box(cx, C.roof + 0.08, 0, cl, 0.16, W * 0.86, paint);
@@ -751,7 +751,7 @@ function buildQuadMesh(v) {
     B.box(0.44, 1.16, 0, 0.06, 0.04, W * 0.72, 0x2a2a2a);
     for (const s of [1, -1]) {
       B.box(hl - 0.08, 0.74, s * 0.2, 0.02, 0.1, 0.16, HEADLAMP, G_LAMP);
-      B.box(-hl + 0.12, 0.72, s * 0.24, 0.02, 0.08, 0.1, TAIL, G_LAMP);
+      B.box(-hl + 0.105, 0.72, s * 0.24, 0.02, 0.08, 0.1, TAIL, G_LAMP);
       B.box(-0.05, 0.42, s * (W * 0.26), 0.4, 0.04, 0.22, 0x2a2a2a);
     }
     return B.build();
@@ -809,7 +809,7 @@ function buildFoodtruckMesh(v) {
     // the hatch: a dark opening with a steel counter, the flap propped up as the awning
     const x0 = -hl + 0.55, x1 = hl - 1.45;
     const cx = (x0 + x1) / 2, cl = x1 - x0;
-    B.box(cx, 1.45, hw + 0.004, cl, 0.8, 0.01, 0x1c1d20);
+    B.box(cx, 1.45, hw + 0.007, cl, 0.8, 0.01, 0x1c1d20);
     B.box(cx, 1.3, hw + 0.012, cl * 0.9, 0.35, 0.01, 0xf2c230, G_LAMP);
     B.box(cx, 1.03, hw + 0.16, cl + 0.1, 0.05, 0.32, CHROME);
     for (let i = 0; i < 6; i++) {
@@ -824,7 +824,7 @@ function buildFoodtruckMesh(v) {
     for (const x of [-0.3 - L * 0.26, -0.3 + L * 0.26]) B.box(x, 2.22, 0, 0.06, 0.2, 0.06, 0x2a2a2b);
     B.box(-hl + 0.7, 2.18, -hw * 0.45, 0.5, 0.18, 0.5, CHROME);
     B.geo(new THREE.SphereGeometry(0.42, 12, 9), composeMatrix(hl - 1.25, 2.55, 0, 0, 0, 0, 1, 0.92, 1), 0xb8742c);
-    B.geo(new THREE.SphereGeometry(0.43, 12, 9, 0, Math.PI * 2, 0, 0.9), composeMatrix(hl - 1.25, 2.55, 0, 0, 0, 0, 1, 0.92, 1), 0xd89a44);
+    B.geo(new THREE.SphereGeometry(0.45, 12, 9, 0, Math.PI * 2, 0, 0.9), composeMatrix(hl - 1.25, 2.55, 0, 0, 0, 0, 1, 0.92, 1), 0xd89a44);
     B.box(hl - 1.25, 2.12, 0, 0.5, 0.06, 0.5, 0x2a2a2b);
     return B.build();
   });
