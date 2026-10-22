@@ -150,6 +150,12 @@ function sceneSig() {
   } catch (e) { return null; }
 }
 
+// een kaartbeeld (titel, cijfers, grafiek): alleen de animaties en de overlay vooruit, het spel zelf draait niet mee en tekent niet opnieuw
+async function cardFrame(dtMs = STEP_MS) { ST.vnow += dtMs; stepAnimations(dtMs); await present(); await gd.clip('frame'); rec.frames++; }
+
+// het laatste opgenomen beeld n keer herhalen (zie desktop/clipvideo.js, 'repeat'): voor stukken waar niets verandert
+async function repeatFrame(n) { if (n <= 0) return; await gd.clip('repeat', { n }); rec.frames += n; }
+
 // zet de wereld één beeld verder (1/60 s) en wacht tot alle streaming klaar is; dan is het beeld klaar voor opname
 // De doelmarkeringen van het spel (zuil, ring en pictogram, userData.wm) horen niet in een trailer: de camera vliegt er anders dwars doorheen.
 function hideMarkers() {
@@ -279,7 +285,7 @@ function hud(on, mode = '') {
     hudStyle.id = 'clip-hud-style';
     document.head.appendChild(hudStyle);
   }
-  const list = ['#hud', '#minimap', '.minimap', '#prompts', '.prompts', '#subtitles', '#toast-layer', '#wijk-card', '.wijk-card'];
+  const list = ['#hud', '#minimap', '.minimap', '#prompts', '.prompts', '#subtitles', '#toast-layer', '#wijk-card', '.wijk-card', '#train-fade'];
   if (mode !== 'verhaal') list.push('#cine');
   hudStyle.textContent = list.join(', ') + ' { visibility: hidden !important; }';
   hudStyle.disabled = !!on;
@@ -600,6 +606,7 @@ function overlay() {
   #clip-ov .cl-end { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: radial-gradient(ellipse at center, #10281a 0%, #07130c 70%); animation: clFade 0.6s both; }
   #clip-ov .cl-end .gde-logo { font-size: min(34vh, 380px); animation: clPop 0.8s cubic-bezier(.2,.9,.2,1) both; }
   #clip-ov .cl-end .cl-line { margin-top: 5vh; font-size: min(4.2vh, 44px); letter-spacing: 0.28em; color: #cfe8d8; animation: clUp 0.7s 0.5s cubic-bezier(.2,.8,.2,1) both; }
+  #clip-ov .cl-end .cl-sub { margin-top: 2.2vh; font-size: min(3.2vh, 34px); letter-spacing: 0.2em; color: #3fc97a; text-transform: uppercase; animation: clUp 0.7s 1.0s cubic-bezier(.2,.8,.2,1) both; }
   #clip-ov .cl-end .cl-age { position: absolute; left: 3.2vw; bottom: 5vh; display: flex; align-items: center; gap: 1.4vw; animation: clFade 0.6s 0.9s both; }
   #clip-ov .cl-end .cl-pegi { width: 5vh; height: 6vh; border-radius: 5px; background: #d93f3f; display: flex; align-items: center; justify-content: center; box-shadow: inset 0 0 0 3px #f0ede4; color: #fff; font-size: 3.2vh; line-height: 0.9; }
   #clip-ov .cl-end .cl-age span { font-size: 2.4vh; letter-spacing: 0.12em; color: #a9c4b4; font-family: 'Arial Narrow', Arial, sans-serif; text-transform: uppercase; }
@@ -633,12 +640,12 @@ function clearCaption(now = false) {
   const sc = r.querySelector('.cl-scrim'); if (sc) sc.remove();
 }
 // titelkaart: logo van het spel, regel eronder, leeftijdsbord. lines: tekst onder het logo
-async function endCard({ line = '', age = true } = {}) {
+async function endCard({ line = '', sub = '', age = true } = {}) {
   const r = overlay();
   const { logoHtml } = await import('/js/logo.js');
   const el = document.createElement('div');
   el.className = 'cl-end';
-  el.innerHTML = logoHtml({ sub: true }) + (line ? '<div class="cl-line">' + line + '</div>' : '') + (age ? '<div class="cl-age"><div class="cl-pegi">18</div><span>Bevat geweld, alcohol en gesimuleerd gokken</span></div>' : '');
+  el.innerHTML = logoHtml({ sub: true }) + (line ? '<div class="cl-line">' + line + '</div>' : '') + (sub ? '<div class="cl-sub">' + sub + '</div>' : '') + (age ? '<div class="cl-age"><div class="cl-pegi">18</div><span>Bevat geweld, alcohol en gesimuleerd gokken</span></div>' : '');
   r.appendChild(el);
   return el;
 }
@@ -754,5 +761,5 @@ async function runAll(names, only = '') {
 
 const clipApi = {
   world, player, M, vnow: () => ST.vnow, sleep, advance, settle, pending, cam, releaseCam, spline, hud, weather, clock, placePlayer,
-  rig, cutCam, overlay, caption, clearCaption, endCard, thumbOverlay, clearOverlay, cueRunner, findRow, roadPts, press, resetUi, clearArea, calmPolice, spawn, enter, leave, route, driver, mark, groundZ, safeZ, rt, camera, freeClock, begin, play, end, png, lerp, clamp01, smooth, smoother, skipCinematics, installVirtualTime, runCallbacks, present,
+  rig, cutCam, overlay, caption, clearCaption, endCard, thumbOverlay, clearOverlay, cueRunner, findRow, roadPts, press, resetUi, clearArea, calmPolice, spawn, enter, leave, route, driver, mark, groundZ, safeZ, rt, camera, freeClock, repeatFrame, cardFrame, begin, play, end, png, lerp, clamp01, smooth, smoother, skipCinematics, installVirtualTime, runCallbacks, present,
 };

@@ -287,7 +287,8 @@ shot('s99-titel', async (c) => {
   c.hud(false);
   await c.settle({ label: 's99', frames: 5 });
   await c.begin('s99-titel');
-  const run = c.cueRunner([[0.0, () => c.endCard({ line: 'EEN GAME VAN NATUSPELLA' })]]);
+  const sub = (window.__args && window.__args.sub) || '';
+  const run = c.cueRunner([[0.0, () => c.endCard({ line: 'EEN GAME VAN NATUSPELLA', sub })]]);
   await c.play(4 * 4 * BEAT, (t) => run(t));
   const r = await c.end();
   c.clearOverlay();
@@ -397,3 +398,182 @@ shot('s13-brug', async (c) => {
   const r = await c.end();
   return { ...r, waited: n, state: b.state, open: +b.open.toFixed(2) };
 });
+
+// U09 de kaart van de hele provincie (kaartscherm M): uitgezoomd over Groningen met Friesland, Drenthe en Duitsland, daarna inzoomen naar de stad.
+// De mistkaart is vooraf ingesteld (shots/seedfog.page.js) zodat "x% van Grunn verkend" in beeld staat. Een warme doorloop laadt alle basiskaarttegels.
+// De mist van de stadskaart laten verdwijnen zoals na een paar uur spelen: de speler "staat" even op een rij plekken (het spel onthult de mist rond de speler,
+// mapview.js updateFog); daarna staat hij weer op zijn plek en laadt de wereld opnieuw rond hem.
+async function exploreCity(c, discs = [[110, 70, 1200], [250, -330, 700], [-300, 100, 600], [-1280, -1070, 900], [450, 160, 450]]) {
+  const p = c.player, home = { x: p.x, y: p.y };
+  let n = 0;
+  for (const [cx, cy, r] of discs) {
+    for (let y = -r; y <= r; y += 70) for (let x = -r; x <= r; x += 70) {
+      if (x * x + y * y > r * r) continue;
+      p.x = cx + x; p.y = cy + y; c.runCallbacks(16.7); n++;
+    }
+  }
+  p.x = home.x; p.y = home.y;
+  c.placePlayer(home.x, home.y);
+  return n;
+}
+shot('u09-provincie', async (c) => {
+  const pm = await import('/js/pausemenu.js');
+  const mv = await import('/js/mapview.js');
+  const pmap = await import('/js/provincemap.js');
+  stand(c, { x: 110, y: 70, a: 0.5, clock: 17.6 });
+  if (mv.getDiscoveredRatio() < 0.05) await exploreCity(c);
+  await c.settle({ label: 'u09-wereld', frames: 60 });
+  const D = 3 * 4 * BEAT;
+  const b = pmap.provinceMapBounds();
+  const c0 = { x: (b[0] + b[2]) / 2, y: (b[1] + b[3]) / 2 }, c1 = { x: 110, y: 70 };
+  const z0 = 0.01, z1 = 3.2; // z0 wordt vanzelf op de uitgezoomde stand gezet
+  const path = (t) => { const k = Math.max(0, Math.min(1, (t - 0.9) / (D - 0.9))), e = k * k * (3 - 2 * k); return [c0.x + (c1.x - c0.x) * e, c0.y + (c1.y - c0.y) * e, z0 * Math.pow(z1 / z0, e)]; };
+  c.releaseCam(); c.hud(false);
+  await c.settle({ label: 'u09', frames: 20 });
+  pm.openPauseMenu('map');
+  for (let i = 0; i < 50; i++) await c.advance({ capture: false });
+  // warme doorloop: alle tegels van elk niveau één keer geladen
+  for (let pass = 0; pass < 2; pass++) {
+    for (let i = 0; i < Math.round(D * 60); i += 2) { mv.setMapView(...path(i / 60)); await c.advance({ capture: false }); if (i % 20 === 0) await c.sleep(40); }
+  }
+  mv.setMapView(...path(0));
+  for (let i = 0; i < 90; i++) await c.advance({ capture: false });
+  await c.sleep(1500);
+  await c.begin('u09-provincie');
+  await c.play(D, (t) => mv.setMapView(...path(t)));
+  const r = await c.end();
+  await c.resetUi();
+  return { ...r, ratio: +mv.getDiscoveredRatio().toFixed(3) };
+});
+
+// S14 luchtopname boven de provincie: een vrije camera (geen voertuig) vliegt hoog langs een lijn; de speler loopt onder de camera mee zodat het spel de wereld
+// eromheen laadt (lock-step: elk beeld pas na het streamen). from/to en look zijn kaartmeters {x, y}; z0/z1 hoogtes.
+async function luchtRun(c, { name, from, to, ahead = 700, side = 0, z0, z1, dur, clock = 17.8, weather = 'helder', fov = 54, fovEnd = null, wait = 120, thumb = null }) {
+  await c.resetUi();
+  c.calmPolice(); c.leave(); c.releaseCam(); c.hud(false); c.clock(clock); c.weather(weather);
+  c.placePlayer(from.x, from.y, 0);
+  const L = (a, b, k) => a + (b - a) * k;
+  const dl = Math.hypot(to.x - from.x, to.y - from.y) || 1, dx = (to.x - from.x) / dl, dy = (to.y - from.y) / dl;
+  const pose = (t) => { const u = Math.min(1, t / dur), k = u; return { position: { x: L(from.x, to.x, k), y: L(from.y, to.y, k), z: L(z0, z1, c.smooth(u)) }, lookAt: { x: L(from.x, to.x, k) + dx * ahead - dy * side, y: L(from.y, to.y, k) + dy * ahead + dx * side, z: 0 }, fov: L(fov, fovEnd ?? fov, u) }; };
+  c.camera(pose);
+  const follow = (t) => { const u = Math.min(1, t / dur); c.player.x = L(from.x, to.x, u); c.player.y = L(from.y, to.y, u); };
+  for (let i = 0; i < 60; i++) await c.advance({ capture: false });
+  await c.settle({ label: name, frames: wait, max: 3600 });
+  await c.begin(name);
+  await c.play(dur, (t) => follow(t));
+  return c.end();
+}
+const W = async (lat, lon) => (await import('/js/rdnew.js')).wgsToWorld(lat, lon);
+
+// Reisreeks door de provincie: korte vluchten (1,5 tot 2 s) laag boven een streek, elk een eigen opname. hdg in graden (0 = noord, 90 = oost).
+async function streekRun(c, { name, lat, lon, hdg, z = 22, speed = 60, dur = 2, ahead = 70, side = 0, clock = 15.5, weather = 'helder', fov = 62, back = 0 }) {
+  const [x, y] = await W(lat, lon);
+  const a = (hdg - 90) * Math.PI / 180, dx = Math.cos(a), dy = Math.sin(a);
+  const from = { x: x - dx * back, y: y - dy * back }, to = { x: from.x + dx * speed * dur, y: from.y + dy * speed * dur };
+  return luchtRun(c, { name, from, to, ahead, side, z0: z, z1: z, dur, clock, weather, fov, wait: 150 });
+}
+const STREKEN = {
+  'k-eemshaven': { lat: 53.4395, lon: 6.835, hdg: 250, z: 30, ahead: 120 },
+  'k-delfzijl': { lat: 53.3303, lon: 6.9187, hdg: 200, z: 28, ahead: 110 },
+  'k-dijk': { lat: 53.3769, lon: 6.4097, hdg: 280, z: 18, ahead: 90, side: 40 },
+  'k-veenkolonie': { lat: 53.1067, lon: 6.8788, hdg: 150, z: 20, ahead: 90 },
+  'k-bourtange': { lat: 53.0073, lon: 7.1917, hdg: 90, z: 22, ahead: 80 },
+  'k-winsum': { lat: 53.3333, lon: 6.5167, hdg: 0, z: 22, ahead: 90 },
+  'k-appingedam': { lat: 53.3217, lon: 6.8586, hdg: 90, z: 24, ahead: 100 },
+  'k-uithuizen': { lat: 53.4086, lon: 6.6747, hdg: 180, z: 26, ahead: 100 },
+  'k-zoutkamp': { lat: 53.3317, lon: 6.2919, hdg: 60, z: 24, ahead: 100 },
+  'k-lauwersoog': { lat: 53.4047, lon: 6.2058, hdg: 120, z: 28, ahead: 110 },
+};
+for (const [k, v] of Object.entries(STREKEN)) shot(k, async (c) => streekRun(c, { name: k, ...v }));
+
+// Minigames (activities.js, window.__activities): naar de plek, starten zoals een speler (E), een korte besturing, de eigen HUD van de minigame in beeld.
+// plan: [[van, tot, toets], ...] in seconden na de start van de opname.
+async function miniRun(c, { name, id, dur = 3 * BEAT, plan = [], clock = 15.5, weather = 'helder', pre = 2.2, start = 'interact', at = null, hudOn = true, thumb = null }) {
+  await c.resetUi();
+  c.calmPolice(); c.leave(); c.releaseCam(); c.clock(clock); c.weather(weather);
+  const A = window.__activities, a = A.get(id);
+  let spot = at || a.spots()[0];
+  if (!spot) { try { spot = a.spots(true)[0]; } catch (e) { /* geen */ } }
+  if (!spot) throw new Error('geen plek voor ' + id);
+  c.hud(hudOn);
+  c.placePlayer(spot.x, spot.y, 0);
+  c.player.x = spot.x; c.player.y = spot.y;
+  await c.settle({ label: name, frames: 150, max: 3600 });
+  c.player.x = spot.x; c.player.y = spot.y;
+  const inp = c.M.inp, held = new Set();
+  const key = (k, on) => { if (on === held.has(k)) return; if (on) held.add(k); else held.delete(k); inp.sendKey(on ? 'keydown' : 'keyup', k); };
+  try {
+    // zoals de spelbot (scripts/bot/minigames.page.js): wachten op de aanwijzing, dan de toets die de minigame start, anders interact() of een stap opzij
+    const order = c.M.bot && c.M.bot.startAttempts ? c.M.bot.startAttempts(id) : ['e', ' ', 'f', 'interact', 'jitter'];
+    let jit = 0;
+    for (const st of order) {
+      if (a.active()) break;
+      if (st === 'interact') { try { a.interact(c.world); } catch (e) { /* weg */ } for (let i = 0; i < 90; i++) await c.advance({ capture: false }); continue; }
+      if (st === 'jitter') { const o = [[3, 0], [0, 3], [-3, 0], [0, -3]][jit++ % 4]; c.player.x = spot.x + o[0]; c.player.y = spot.y + o[1]; for (let i = 0; i < 60; i++) await c.advance({ capture: false }); continue; }
+      for (let i = 0; i < 90 && !a.prompt(c.world); i++) await c.advance({ capture: false });
+      await c.press(st, 3);
+      for (let i = 0; i < 90 && !a.active(); i++) await c.advance({ capture: false });
+    }
+    for (let i = 0; i < Math.round(pre * 60); i++) await c.advance({ capture: false });
+    const ok = a.active();
+    await c.begin(name);
+    await c.play(dur, (t) => { const w = new Set(plan.filter(([f, u]) => t >= f && t < u).map((p) => p[2])); for (const k of [...held]) if (!w.has(k)) key(k, false); for (const k of w) key(k, true); });
+    const r = await c.end();
+    return { ...r, active: ok };
+  } finally {
+    for (const k of [...held]) key(k, false);
+    for (let i = 0; i < 3 && a.active(); i++) { await c.press('backspace'); }
+    if (a.active()) { try { a.quit(c.world); } catch (e) { /* weg */ } }
+    c.hud(false);
+  }
+}
+const MINI = {
+  'm-carillon': { id: 'carillon', plan: [[0.3, 0.5, 'arrowright'], [0.8, 1.0, 'enter'], [1.2, 1.4, 'e']] },
+  'm-discgolf': { id: 'discgolf', plan: [[0.2, 1.0, ' '], [1.2, 1.4, 'd']], clock: 14 },
+  'm-pitchputt': { id: 'pitchputt', plan: [[0.2, 0.9, ' ']] },
+  'm-klimtoren': { id: 'klimtoren', plan: [[0.2, 0.4, ' '], [0.9, 1.1, ' ']] },
+  'm-hengelen': { id: 'hengelen', plan: [[0.2, 0.4, ' ']] },
+  'm-waterski': { id: 'waterski', plan: [[0.2, 0.4, 'e'], [0.7, 1.0, 'a'], [1.3, 1.6, 'd']] },
+  'm-skatepark': { id: 'skatepark', plan: [[0.0, 1.0, 'w'], [1.0, 1.2, ' ']] },
+  'm-kermis': { id: 'kermis', plan: [[0.0, 1.0, 'w'], [1.0, 1.5, 'd']] },
+  'm-hoogvlieger': { id: 'hoogvlieger', plan: [[0.0, 0.6, 'w']] },
+  'm-zwembad': { id: 'zwembad', plan: [[0.2, 0.5, ' '], [0.9, 1.1, 'a']] },
+  'm-pannenkoek': { id: 'pannenkoek', plan: [[0.2, 0.5, ' ']] },
+  'm-carbid': { id: 'carbid', plan: [[0.2, 0.4, 'f'], [0.8, 1.0, 'arrowright']] },
+  'm-kartbaan': { id: 'kartbaan', plan: [[0.0, 2.0, 'w']] },
+};
+for (const [k, v] of Object.entries(MINI)) shot(k, async (c) => miniRun(c, { name: k, ...v }));
+
+// X1 een dag in vier seconden: de Grote Markt vanaf een vaste camera, de klok loopt van de vroege ochtend tot de late avond (verkeer, licht, lantaarns)
+shot('x-daguur', async (c) => {
+  await c.resetUi();
+  c.calmPolice(); c.leave(); c.releaseCam(); c.hud(false); c.weather('helder');
+  c.placePlayer(130, 95, 0);
+  c.camera(c.rig.dolly({ x: 150, y: 150, z: 34 }, { x: 156, y: 144, z: 38 }, { x: 214, y: 10, z: 20 }, { x: 214, y: 10, z: 24 }, { dur: 3.6, fov: 58, ease: 'lin' }));
+  c.clock(5.6);
+  await c.settle({ label: 'x-daguur', frames: 120, max: 3600 });
+  await c.begin('x-daguur');
+  await c.play(3.6, (t) => c.clock(5.6 + 16.4 * (t / 3.6)));
+  return c.end();
+});
+
+// X2 een trein langs de dijk: een rijdende trein (railway.js) van opzij gevolgd
+shot('x-trein', async (c) => {
+  await c.resetUi();
+  c.calmPolice(); c.leave(); c.releaseCam(); c.hud(false); c.clock(16.2); c.weather('helder');
+  const R = await import('/js/railway.js');
+  const pick = (window.__args && window.__args.trein) | 0;
+  const run = R.getTrains().filter((t) => t.state === 'run').sort((a, b) => b.v - a.v)[pick];
+  if (!run) throw new Error('geen rijdende trein');
+  const at = () => { const q = R.routePoint(run.route, run.c), q2 = R.routePoint(run.route, run.c + 3 * (run.dir || 1)); return { x: q[0], y: q[1], a: Math.atan2(q2[1] - q[1], q2[0] - q[0]), z: R.railZ(q[0], q[1]) || 0 }; };
+  const p0 = at();
+  c.placePlayer(p0.x, p0.y, 0);
+  const pose = (t) => { const p = at(), a = p.a; const nx = -Math.sin(a), ny = Math.cos(a); c.player.x = p.x; c.player.y = p.y; return { position: { x: p.x + nx * 17 + Math.cos(a) * 6, y: p.y + ny * 17 + Math.sin(a) * 6, z: p.z + 3.2 }, lookAt: { x: p.x, y: p.y, z: p.z + 2 }, fov: 50 }; };
+  c.camera(pose);
+  await c.settle({ label: 'x-trein', frames: 240, max: 3600 });
+  await c.begin('x-trein');
+  await c.play(2.4, null);
+  const r = await c.end();
+  return { ...r, route: run.route && run.route.name, v: +run.v.toFixed(1) };
+});
+shot('k-schapen', async (c) => streekRun(c, { name: 'k-schapen', lat: 53.3317, lon: 6.2919, hdg: 60, z: 6, speed: 7, dur: 2.2, ahead: 28, fov: 58 }));
