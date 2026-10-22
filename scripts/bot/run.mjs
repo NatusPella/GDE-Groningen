@@ -6,6 +6,7 @@
 //   node scripts/bot/run.mjs --mode=minigames [--only=kartbaan,duif] [--play=40]   (fase 3: elke minigame kort spelen)
 //   node scripts/bot/run.mjs --mode=missions --only=M03,M04 [--per-step=600] [--skip-stages=N|M24:2,M26:7]   (elke stap los, via een sprong; --skip-stages voltooit eerst de eerste N stappen van de missie met de objective-cheat, om een latere stap los te testen)
 //   --watch=<s>   kijkt elke cutscene (hooguit s seconden) in plaats van hem over te slaan, met een beeld om de 2,5 s (shots-<stap>-szene<n>-<k>.png)
+//   --page=<bestand>   een eigen paginascript in plaats van bot.page.js (een meting in het echte spel, bv. waar water ligt); het krijgt window.__botCfg en window.__bot
 //   --reizen zet de reisbeats aan (standaard uit in de bot; de bot kiest dan de eerste optie, Meerijden)
 //   --from=T1 springt eerst naar die stap en speelt dan door (de sprong van een sweep slaat reisstappen over, dit niet)
 //   --skip-from slaat die stap na de sprong over (cheat): de volgende stap, bv. een reisstap, begint dan bij jouw plek
@@ -86,7 +87,7 @@ if (replayFile) {
   const rl = L.RunLog.parse(fs.readFileSync(path.resolve(replayFile), 'utf8'));
   pre += `window.__botReplay = ${JSON.stringify(rl.inputs())};\n`;
 }
-fs.writeFileSync(script, pre + fs.readFileSync(path.join(HERE, replayFile ? 'replay.page.js' : cfg.mode === 'minigames' ? 'minigames.page.js' : cfg.mode === 'bruggen' ? 'bruggen.page.js' : 'bot.page.js'), 'utf8'));
+fs.writeFileSync(script, pre + fs.readFileSync(arg('page') ? path.resolve(arg('page')) : path.join(HERE, replayFile ? 'replay.page.js' : cfg.mode === 'minigames' ? 'minigames.page.js' : cfg.mode === 'bruggen' ? 'bruggen.page.js' : 'bot.page.js'), 'utf8'));
 const events = path.join(OUT, 'events.jsonl');
 fs.writeFileSync(events, JSON.stringify({ type: 'meta', replay: L.REPLAY_VERSION, seed, ...cfg, started: new Date().toISOString() }) + '\n');
 
