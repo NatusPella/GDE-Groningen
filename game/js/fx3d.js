@@ -1,6 +1,6 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { vehicleContacts, surfaceUnder } from './vehicle.js';
-import { getVehicleMesh, pruneVehicleMeshes, applyVehicleDamage, vehicleDamageParts } from './models3d_vehicles.js';
+import { getVehicleMesh, pruneVehicleMeshes, applyVehicleDamage, vehicleDamageParts, updateBikeStaat } from './models3d_vehicles.js';
 import { rand } from './rng.js';
 import { nieuwLos } from './vehicledamage.js';
 
@@ -677,7 +677,22 @@ function looseParts(v, ids, ca, sa) {
   }
 }
 
+// Een fiets krijgt geen deuken maar een logboek van klappen (v.dentLog): vanaf een bepaalde sterkte voorop is het voorspatbord scheef en
+// het voorlicht los (studentenfiets.js, vehicledamage.js fietsStaat); het frame wordt dan door de variant met die afwijking vervangen.
+function dentBike(v, x, y, strength) {
+  if (!(strength > 0.05) || simTime - (v._dentT || -1) < 0.12) return;
+  v._dentT = simTime;
+  const dx = x - v.x, dy = y - v.y;
+  const ca = Math.cos(v.angle), sa = Math.sin(v.angle);
+  if (!v.dentLog) v.dentLog = [];
+  v.dentLog.push([dx * ca + dy * sa, -dx * sa + dy * ca, Math.min(1, strength)]);
+  if (v.dentLog.length > 12) v.dentLog.shift();
+  const mesh = getVehicleMesh(v.id);
+  if (mesh) updateBikeStaat(mesh, v);
+}
+
 function dentVehicle(v, x, y, strength, world) {
+  if (v.isBike && !v.wrecked && !v.model.fat) { dentBike(v, x, y, strength); return; }
   if (v.wrecked || v.isBike || v.isScooter || v.isBoat) return;
   if (simTime - (v._dentT || -1) < 0.12) return;
   v._dentT = simTime;

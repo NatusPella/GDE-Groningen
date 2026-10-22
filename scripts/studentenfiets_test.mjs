@@ -7,7 +7,7 @@ const THREE = await import('three');
 await import('../game/js/player.js');
 const SF = await import('../game/js/studentenfiets.js');
 const DM = await import('../game/js/vehicledamage.js');
-const { buildVehicleMesh } = await import('../game/js/models3d_vehicles.js');
+const { buildVehicleMesh, updateBikeStaat } = await import('../game/js/models3d_vehicles.js');
 const { vehicleDisplayName: vehicleName } = await import('../game/js/vehiclenames.js');
 const T = await import('../game/js/trafficfleet.js');
 
@@ -105,6 +105,21 @@ if (vehicleName) {
   check('blauwe banden zijn blauw, gewone banden niet', heeftBlauw(bike(3, { blauw: true })) && !heeftBlauw(bike(3, null)) && !heeftBlauw(bike(3, { rammel: true })));
   const geraakt = body(bike(2, null, { dentLog: [[0.8, 0, 1.4]] }));
   check('een geraakte fiets krijgt bij een nieuw mesh een scheef spatbord en geen voorlicht', geraakt.attributes.position.count < vorm.attributes.position.count);
+  // een klap tijdens het rijden: het frame van het bestaande mesh wordt vervangen
+  const levend = bike(2, null);
+  const mesh = buildVehicleMesh(levend);
+  const voor = mesh.children[0].geometry.attributes.position.count;
+  check('zonder klap verandert het mesh niet', updateBikeStaat(mesh, levend) === false);
+  levend.dentLog = [[0.8, 0, 0.7]];
+  const scheefGeraakt = updateBikeStaat(mesh, levend);
+  const naScheef = mesh.children[0].geometry.attributes.position.count;
+  levend.dentLog = [[0.8, 0, 0.7], [0.8, 0.1, 0.6]];
+  const lichtLos = updateBikeStaat(mesh, levend);
+  const naLicht = mesh.children[0].geometry.attributes.position.count;
+  check('een klap voorop maakt het spatbord scheef, een tweede breekt het voorlicht af, en daarna verandert er niets meer', scheefGeraakt && naScheef === voor && lichtLos && naLicht < voor && updateBikeStaat(mesh, levend) === false, [voor, naScheef, naLicht]);
+  const rug = bike(2, null, { dentLog: [[-0.8, 0, 2]] });
+  check('een klap achterop verandert niets', updateBikeStaat(buildVehicleMesh(rug), rug) === false);
+  check('een wrak, fatbike en bakfiets doen niet mee', updateBikeStaat(buildVehicleMesh(bike(5, null)), { ...bike(5, null), wrecked: true, dentLog: [[0.8, 0, 2]] }) === false && updateBikeStaat(null, levend) === false);
   const fat = { id: 9, isBike: true, model: { name: 'bike', fat: true, student: { licht: true }, len: 1.9, wid: 0.7, color: '#4a5a6a', rider: '#2f5c8a' } };
   const fatPlain = { ...fat, model: { ...fat.model, student: undefined } };
   check('een fatbike doet niet mee', hash(body(fat)) === hash(body(fatPlain)));

@@ -1037,6 +1037,19 @@ function buildBakfietsMesh(v) {
   return group;
 }
 
+// Een klap voorop (v.dentLog, vehicledamage.js fietsStaat) maakt het voorspatbord scheef of breekt het voorlicht af: het frame wordt
+// vervangen door de variant met die afwijking. true als er iets veranderde. (De banden en het geluid veranderen niet door een klap.)
+export function updateBikeStaat(mesh, v) {
+  if (!mesh || !v || !v.isBike || v.wrecked || v.model.fat || v.model.cargo) return false;
+  const sleutel = staatSleutel(fietsStaat(v));
+  if (mesh.userData.staatSleutel === undefined || mesh.userData.staatSleutel === sleutel) return false;
+  const frame = mesh.children[0];
+  if (!frame || !frame.isMesh) return false;
+  frame.geometry = buildBikeGeometry(toHex(v.model.color, HABBO_PALETTE.black), false, hash2(v.id || 0, 4.2) < 0.5, sleutel);
+  mesh.userData.staatSleutel = sleutel;
+  return true;
+}
+
 function buildBikeMesh(v) {
   if (v.model.cargo) return buildBakfietsMesh(v);
   const group = new THREE.Group();
@@ -1046,7 +1059,9 @@ function buildBikeMesh(v) {
   const mats = vehicleMaterials();
   // de studentenstaat (#402): scheef spatbord, geen voorlicht, blauwe banden (en een klap voorop maakt het spatbord ook scheef)
   const staat = !fat && v.isBike ? fietsStaat(v) : null;
-  group.add(new THREE.Mesh(buildBikeGeometry(color, fat, stepThrough, staat ? staatSleutel(staat) : ''), mats));
+  const sleutel = staat ? staatSleutel(staat) : '';
+  group.add(new THREE.Mesh(buildBikeGeometry(color, fat, stepThrough, sleutel), mats));
+  group.userData.staatSleutel = sleutel;
   const r = fat ? 0.3 : 0.34;
   const wb = fat ? 0.52 : 0.56;
   const wgeo = bikeWheelGeometry(r, fat ? 0.07 : 0.022, true, staat && staat.blauw ? BLUE_TIRE : TIRE);
