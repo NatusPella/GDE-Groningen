@@ -15,7 +15,7 @@ ok(items[0] && items[0][0] === 'solo' && items[0][1] === 'Alleen spelen', 'het e
 ok(items[1] && items[1][0] === 'samen' && items[1][1] === 'Samen spelen', 'het tweede item is Samen spelen');
 ok(!items.some(([a, l]) => /^(new|continue|saves)$/.test(a) || /Nieuw spel|Hervatten|Doorgaan|Opgeslagen spellen/.test(l)), 'Nieuw spel, Doorgaan, Hervatten en Opgeslagen spellen staan niet los in het hoofdmenu');
 ok(items.map(([a]) => a).join() === 'solo,samen,news,settings,about,exit', 'verder alleen wat er was: nieuws, instellingen, over, afsluiten');
-ok(/it\.act === 'solo'[\s\S]{0,200}openSaveSlots\(\{ mode: 'start', solo: true/.test(start), 'Alleen spelen opent Opgeslagen spellen met solo');
+ok(/it\.act === 'solo'[\s\S]{0,500}openSaveSlots\(\{ mode: 'start', solo: true/.test(start), 'Alleen spelen opent Opgeslagen spellen met solo');
 ok(/window\.__menuStart\s*=/.test(start), 'het QA-haakje __menuStart bestaat');
 
 const ui = read('game/js/saveslotsui.js');

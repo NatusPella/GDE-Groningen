@@ -27,7 +27,7 @@ of wat er verder kan.
 
 | Moment | Wat de speler ziet | Oordeel |
 |---|---|---|
-| Startscherm | Alleen spelen en Samen spelen, daaronder Wat is er nieuw, Instellingen, Over. Alleen spelen opent Opgeslagen spellen: bovenaan Doorgaan (het laatst gespeelde spel), als eerste kaart Nieuw spel ("Moi! Stap in en rij"). Zonder savegame is Nieuw spel de eerste keuze. | Duidelijk. |
+| Startscherm | Alleen spelen en Samen spelen, daaronder Wat is er nieuw, Instellingen, Over. Alleen spelen opent Opgeslagen spellen: bovenaan Doorgaan (het laatst gespeelde spel), als eerste kaart Nieuw spel ("Moi! Stap in en rij"). Zonder opgeslagen spel start Alleen spelen meteen een nieuw spel. | Duidelijk. |
 | Opening | De montage (trailerparodie, de keukentafel, de verhuisdag) met "Houd SPATIE ingedrukt om over te slaan" rechtsonder. | Goed, al is hij lang voor iemand die meteen wil spelen. Overslaan staat in beeld. |
 | Na de opening | De doelregel bovenin: "Berend telt de krassen · Volg de gele route naar de marker", met de gele route op de minimap en een label in de wereld. | Het belangrijkste is er: wat en waarheen. |
 | Besturing | Toetshints linksonder komen één voor één binnen (lopen, rondkijken, rennen, springen, bukken); in de auto gas, handrem, toeter, radio, filmcamera. Bij de Escapade: "Jouw ouwe Escapade · Loop erheen, dan E". | Te veel: WASD en de muis snapt iedereen (de maker: "daar hoeven niet meer controls uitgelegd te worden"). Ze nemen de plek in van wat wél uitleg nodig heeft. |

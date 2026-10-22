@@ -36,8 +36,10 @@ if (what === 'play') {
   const solo = ss.querySelector('.ss-item[data-act="solo"]');
   solo.click(); await sleep(900);
   const root = document.getElementById('saveslots');
-  const btn = how === 'doorgaan' ? root.querySelector('.ssl-hero') : root.querySelector('.ssl-new .ssl-main');
-  btn.click(); await sleep(700);
+  if (root) {
+    const btn = how === 'doorgaan' ? root.querySelector('.ssl-hero') : root.querySelector('.ssl-new .ssl-main');
+    btn.click(); await sleep(700);
+  }
   if (how === 'nieuw' && count >= 8) { const ja = document.querySelector('[data-do="newfull-ok"]'); if (!ja) return ['geen vraag bij 8 spellen']; ja.click(); await sleep(700); }
   let gone = false;
   for (let i = 0; i < 60 && !gone; i++) { await sleep(1000); gone = !ss.classList.contains('visible') && !document.getElementById('saveslots') && document.body.classList.contains('game-started'); }
@@ -66,10 +68,18 @@ const lastBtn = [...document.querySelectorAll('#start-screen .ss-item')].pop().g
 check(lastBtn.bottom <= innerHeight - 8 && menuBox.top >= 0, `het menu valt buiten beeld (laatste knop tot ${Math.round(lastBtn.bottom)} van ${innerHeight})`);
 await shot('hoofdmenu-' + count);
 
-// Alleen spelen opens Opgeslagen spellen
+// Alleen spelen opens Opgeslagen spellen (without a saved game it starts a new game at once: nothing left to take pictures of)
 key('Enter');
 await sleep(900);
 const root = document.getElementById('saveslots');
+if (count === 0) {
+  check(!root, 'zonder opgeslagen spel opent Alleen spelen toch een scherm');
+  let started = false;
+  for (let i = 0; i < 60 && !started; i++) { await sleep(1000); started = !ss.classList.contains('visible') && document.body.classList.contains('game-started'); }
+  check(started, 'zonder opgeslagen spel start Alleen spelen niet meteen een nieuw spel');
+  log.push(bad.length ? 'PROBLEMEN: ' + bad.join(' ; ') : 'alle controles goed');
+  return log;
+}
 check(!!root, 'Enter op Alleen spelen opent Opgeslagen spellen niet');
 if (root) {
   const title = root.querySelector('#ssl-title').textContent;
