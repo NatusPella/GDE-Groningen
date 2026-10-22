@@ -19,6 +19,7 @@ import { DEAD_DURATION } from './pedconst.js';
 import { attachCarry, carryPose } from './streetlife3d.js';
 import { buildPersonMesh, animatePersonWalk, applyAttackPose, applyHitReaction, setHeldWeapon, seatPose, seatedY, waveOverlay, carryOverlay, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
 import { syncDoorsNear, vraagVoorAnim } from './vehicledoors3d.js';
+import { syncCabins } from './cabin3d.js';
 import { syncHaltefiguren } from './haltefiguren3d.js';
 import { seatedOf } from './occupants.js';
 import { vehicleSeat, placeSeated, makeSeatTracker, trackSeat, drawTransition, syncBoatCrew } from './seating3d.js';
@@ -2861,6 +2862,7 @@ export function update3D(dt, world) {
   // instant snap on teleport (respawn/mission warp) instead of a long lerp
   // that would otherwise glide the camera straight through geometry
   syncDoorsNear(world, vehicleMeshes, player.x, player.y, animDt, doorAsk);
+  syncCabins(world, vehicleMeshes, player.x, player.y);
   syncHaltefiguren(world, scene, (shirt, skin) => enableShadows(buildPersonActor(shirt, skin, {}), false), animDt);
   probe.mark('3d:players');
   // a stolen train (traindrive.js) is followed like a very long vehicle
