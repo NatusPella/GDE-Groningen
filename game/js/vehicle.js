@@ -2714,7 +2714,7 @@ export function resolveVehicleVehicleCollisions(vehicles, world = null) {
       if (relN < IMPACT_EVENT_SPEED) continue;
       // Only the player's own driving should ever count as a player wreck.
       const playerInvolved = a.driver === 'player' || b.driver === 'player';
-      reportImpact(world, hx, hy, relN, playerInvolved);
+      reportImpact(world, hx, hy, relN, playerInvolved, a.driver === 'player' ? b : a);
       if (relN > HARD_HIT_CLOSING_SPEED) {
         const base = (relN - HARD_HIT_CLOSING_SPEED) * IMPACT_DAMAGE_PER_MPS;
         applyImpactDamage(a, clamp(base * clamp(2 * mB / (mA + mB), 0.25, 1.6), 0, MAX_IMPACT_DAMAGE) * (isMountHorse(b) ? HORSE_SOFT : 1), playerInvolved, world);

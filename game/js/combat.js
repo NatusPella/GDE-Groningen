@@ -19,6 +19,7 @@ import { propsInRadius } from './breakables.js';
 import { getSettings } from './settings.js';
 import { assistDamage } from './assistlive.js';
 import { squirtWater, throwExplosive, updateThrowables } from './throwables.js';
+import { noteWantedWhy } from './wantedwhy.js';
 
 export { WEAPONS, WEAPON_KEYS, isMeleeWeapon, isRangedWeapon, isGunWeapon };
 
@@ -426,6 +427,7 @@ function damagePed(world, ped, damage, byPlayer, dx, dy, melee, weapon = WEAPONS
   if (ped.isCop) {
     world.stats.copKills++;
     world.wanted = Math.min(5, world.wanted + 2);
+    noteWantedWhy(world, 'copAanval');
   } else {
     world.stats.pedKills++;
     reportCrime(world, 'pedKill');
