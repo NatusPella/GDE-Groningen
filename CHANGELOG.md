@@ -7,6 +7,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 ## [Unreleased]
 
 ### Opgelost
+- **Kroeg 't Scheve Toorntje stond in het water (verhaaltest, "all spots reachable"; gemeten op de stadstegels, niet in beeld bekeken):** de watergaten en -koppelingen van het vaarnet komen na de start in de wereld en dekten de plek van het café (2164,6, -758,1). Na het laden van die patches stappen cafés in het water naar de dichtstbijzijnde open grond (`refitHoreca`, vaarload.js); 1 van de 470 stadscafés. `water_spots_test` controleert cafés en garages.
 - **Hoofdmenu op 1280x720 en 1366x768: Afsluiten staat weer in beeld (gemeten in Electron, door Claude in beeld bekeken, niet door een mens):** het nieuwe hoofdmenu met twee grote keuzes en vier kleine liep op een laag scherm onder de rand (Afsluiten stond voor een deel buiten beeld en de regel 'Made with' lag over Over). Onder 820 px hoogte zijn de rijen kleiner en begint het menu hoger.
 
 ### Nieuw

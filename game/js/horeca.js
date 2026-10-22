@@ -30,6 +30,22 @@ export function initHoreca(world) {
   spots = (world.map.meta.horeca || []).map((h) => ({ x: h.x, y: h.y, name: cafeName(h), osmName: h.name, lastUsed: -Infinity }));
 }
 
+// The waterway fixes put water into the world after the start (vaarload.js: patches over the holes under bridges and in locks):
+// a café that ends up in it steps out to the nearest open ground, like at the start (Kroeg 't Scheve Toorntje stond zo in het water).
+export function refitHoreca(map) {
+  let n = 0;
+  for (const s of spots) {
+    if (s.place || !isInWater(map, s.x, s.y)) continue;
+    const o = map.findOpenSpawn(s.x, s.y, 80);
+    if (!o || isInWater(map, o.x, o.y)) continue;
+    const h = (map.meta.horeca || []).find((q) => q.x === s.x && q.y === s.y);
+    if (h) { h.x = o.x; h.y = o.y; }
+    s.x = o.x; s.y = o.y;
+    n++;
+  }
+  return n;
+}
+
 // Out in the Ommelanden: the real cafés, pubs and restaurants (facilities.js),
 // at their street door; their tiles are in while this runs (main.js).
 export function initCountryHoreca(world) {
