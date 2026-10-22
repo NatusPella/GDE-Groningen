@@ -13,12 +13,15 @@ const OSM_ATTRIBUTION = '© OpenStreetMap-bijdragers';
 // terrain heights (scripts/world/fetch_ahn.py; CC0, credit is a courtesy)
 const AHN_ATTRIBUTION = 'Actueel Hoogtebestand Nederland (AHN) via PDOK';
 const BAG3D_ATTRIBUTION = '3DBAG door de 3D geoinformation onderzoeksgroep (TU Delft) en 3DGI';
+// gemeente-, woonplaats-, wijk- en buurtgrenzen (scripts/world/fetch_grenzen.mjs -> game/grenzen.json; CC BY 4.0 en Public Domain Mark)
+const GRENZEN_ATTRIBUTION = 'Gemeentegrenzen: Kadaster (Bestuurlijke Gebieden), woonplaatsen: Kadaster (BAG), wijken en buurten: CBS (Gebiedsindelingen), via PDOK';
 
 // [title, kicker] cards for the end credits (story.js)
 export const THIRD_PARTY_CARDS = [
   [OSM_ATTRIBUTION, 'kaartdata (ODbL) · openstreetmap.org/copyright'],
   ['3DBAG', 'gebouwhoogtes en daken (CC BY 4.0) · TU Delft en 3DGI · 3dbag.nl'],
   ['AHN', 'terreinhoogte (CC0) · ahn.nl · pdok.nl'],
+  ['Kadaster · CBS', 'gemeente-, woonplaats-, wijk- en buurtgrenzen (CC BY 4.0, Public Domain) · pdok.nl'],
   ['Google Gemini', 'muziek en stemmen, gemaakt met AI'],
   ['three.js · Bebas Neue · Big Shoulders Display', 'MIT-licentie · SIL Open Font License'],
   ['Fanparodie', 'alles verzonnen'],
@@ -31,6 +34,7 @@ export const ABOUT_HTML = `
 <p>Straten, gebouwen, water en plekken: kaartdata ${OSM_ATTRIBUTION}, beschikbaar onder de Open Database License (ODbL). Zie openstreetmap.org/copyright.</p>
 <p>Gebouwhoogtes en dakvormen: ${BAG3D_ATTRIBUTION}, onder CC BY 4.0. Zie 3dbag.nl.</p>
 <p>Terreinhoogte (dijken, wierden, hellingen): ${AHN_ATTRIBUTION}, CC0. Zie ahn.nl en pdok.nl.</p>
+<p>Grenzen van gemeenten, woonplaatsen, wijken en buurten (gebieden veroveren): ${GRENZEN_ATTRIBUTION}. Gemeenten, wijken en buurten onder CC BY 4.0, woonplaatsen als Public Domain Mark. Zie pdok.nl.</p>
 <h4>Muziek en stemmen</h4>
 <p>De muziek (G-Music, Nachtstreek, het titelnummer) en alle stemmen zijn gemaakt met Google Gemini (muziek en Gemini TTS via OpenRouter). De Martinitoren is gemodelleerd met Claude Design. Geluidseffecten worden in het spel zelf gesynthetiseerd.</p>
 <h4>Software en lettertypes</h4>
