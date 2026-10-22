@@ -653,6 +653,14 @@ while (true) {
           else if (s.t - mem.stuntNear.since > 6) { mem.stuntSkip[best.key] = s.t + 90; B.log('stunt-omweg', { key: best.key, x: Math.round(best.x), y: Math.round(best.y) }); mem.stuntNear = null; }
         } else mem.stuntNear = null;
         aim = { x: best.x, y: best.y, distance: bd }; top = 14;
+        // a prop close by but behind or beside the car (the turning circle is wider than the distance): the car circles it for ever. A stretch straight on
+        // gives a run-up from further away (2.5 s)
+        const err0 = Math.abs(L.normAngle(L.headingTo({ x: s.player.x, y: s.player.y }, best) - s.player.vehicle.angle));
+        if (bd < 14 && err0 > 1.2 && !mem.runUpUntil) mem.runUpUntil = s.t + 2.5;
+        if (mem.runUpUntil && s.t < mem.runUpUntil) {
+          const ah = s.player.vehicle.angle, ru = { x: s.player.x + Math.cos(ah) * 30, y: s.player.y + Math.sin(ah) * 30 };
+          if (L.segmentFree({ x: s.player.x, y: s.player.y }, ru, carFree, 1.5)) { aim = { ...ru, distance: 30 }; top = 10; }
+        } else if (mem.runUpUntil && s.t > mem.runUpUntil + 4) mem.runUpUntil = null;
       }
     }
     // the straight line to a prop or the square runs through water (the pond north of the Grote Markt lies right on the line from the start): a way round
@@ -673,7 +681,16 @@ while (true) {
     // on foot, wedged against a stall pole or a prop: sidestep (alternating sides, longer each time), then plan again
     if (act.mode !== 'drive' && !s.player.vehicle && !s.blocking.cinematic && s.target.distance > 5 && s.mission.stage !== 'hold' && await footUnstick(s, s.target)) continue;
     if (act.mode !== 'drive' && !s.player.vehicle && mem.detour && s.t < mem.detour.until && Math.hypot(mem.detour.x - s.player.x, mem.detour.y - s.player.y) > 3) { steerTowards(s, 'walk', mem.detour, false, 24, 2.5); continue; }
-    steerTowards(s, act.mode, aim, !act.stunt && s.mission.phase !== 'active' && (s.target.source === 'missiestart' || s.target.source === 'winkel'), top, s.mission.stage === 'lock' || s.mission.stage === 'crack' ? 1 : null, !!(act.stunt && s.player.vehicle && s.target.distance < 250 && L.segmentFree({ x: s.player.x, y: s.player.y }, aim, carFree, 1.5)));
+    // inside the arena the road plan leads out of the square (and into the pond): only props, the middle and the way round the water; nothing free: stand still
+    const arena = !!(act.stunt && s.player.vehicle && s.target.distance < 80);
+    if (arena && !L.segmentFree({ x: s.player.x, y: s.player.y }, aim, carFree, 1.5)) {
+      B.stick(0, 0);
+      if (s.t - (mem.stuntWaitLog || -99) > 5) { mem.stuntWaitLog = s.t; B.log('stunt-geen-weg', { x: Math.round(s.player.x), y: Math.round(s.player.y), naar: [Math.round(aim.x), Math.round(aim.y)] }); }
+      if (mem.stuntBlockedFor == null) mem.stuntBlockedFor = s.t; else if (s.t - mem.stuntBlockedFor > 3) { mem.stuntSkip = mem.stuntSkip || {}; await vdetour(s, 1 + (mem.stuntDetours = (mem.stuntDetours || 0) + 1) % 4); mem.stuntBlockedFor = null; }
+      continue;
+    }
+    mem.stuntBlockedFor = null;
+    steerTowards(s, act.mode, aim, !act.stunt && s.mission.phase !== 'active' && (s.target.source === 'missiestart' || s.target.source === 'winkel'), top, s.mission.stage === 'lock' || s.mission.stage === 'crack' ? 1 : null, !!(act.stunt && s.player.vehicle && (arena || s.target.distance < 250) && L.segmentFree({ x: s.player.x, y: s.player.y }, aim, carFree, 1.5)));
     if (wedgeOut) {
       wedgeOut = false;
       B.log('klem', { x: s.player.x, y: s.player.y });
