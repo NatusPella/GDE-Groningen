@@ -723,9 +723,16 @@ function startWitnessCall(world, ev) {
   activeCall = { ped: best, x: ev.x, y: ev.y, kind: ev.kind };
 }
 
+// De speler rijdt de dienst van de bus waarin hij zit (busboard3d.js, #396): een kaping van die bus wordt niet meer aangegeven.
+function rijdtDienst(world, car) {
+  const a = world.sideJobActions;
+  return !!(a && a.vehicle && car && a.vehicle() === car);
+}
+
 function updateWitnessCall(world) {
   if (!activeCall) return;
   const { ped } = activeCall;
+  if (activeCall.kind === 'theft' && rijdtDienst(world, world.player.inVehicle)) { activeCall = null; return; }
   if (ped.state === 'dead' || !world.pedestrians.includes(ped) || world.wanted > 0) { activeCall = null; return; }
   if (ped.state !== 'call') { activeCall = null; return; }
   if (world.time < ped.stateUntil) return;
@@ -766,8 +773,7 @@ function reclaimCar(world, ped, car) {
 
 function reportCarTheft(world, ped, car) {
   if (world.wanted > 0 || world.player.inVehicle !== car) return;
-  // wie de dienst van een gekaapte lijnbus heeft overgenomen (busboard3d.js, #396) rijdt nu als buschauffeur: geen aangifte
-  if (world.sideJobActions && world.sideJobActions.vehicle && world.sideJobActions.vehicle() === car) return;
+  if (rijdtDienst(world, car)) return; // geen aangifte van wie de dienst van deze bus overnam
   world.wanted = 1;
   world.policeTip = { x: ped.x, y: ped.y, time: world.time };
   world.wantedProfile = profileOf(world);

@@ -65,6 +65,9 @@ check('nog geen dienst', !(world.sideJob && world.sideJob.active));
 // zonder G blijft het rondrijden: na een paar seconden nog geen dienst
 await sleep(3000);
 check('zonder G geen dienst', !(world.sideJob && world.sideJob.active));
+for (let i = 0; i < 120 && document.querySelector('.ls.on:not(.out)'); i++) await sleep(500); // het laadscherm na het verspringen
+await sleep(2500);
+B.shot('busdienst-1-aanbod');
 
 world.wanted = 0;
 await B.press('g');
@@ -73,6 +76,8 @@ const SJ = window.__debug && window.__debug.sidejobs;
 const c = SJ && SJ.ctx();
 check('dienst gestart op de lijn van de bus', c && c.job.id === 'lijn' && c.vehicle === bus && c.data.line === line, c ? c.job.id : 'geen ctx, berichten ' + JSON.stringify((world.messages || []).slice(-3).map((q) => q.text)) + ' status ' + JSON.stringify(B.status().blocking));
 if (!c) return JSON.stringify({ result: 'KLAAR', reason: 'de dienst startte niet', checks });
+await sleep(1000);
+B.shot('busdienst-2-dienst');
 check('aanbod weg tijdens de dienst', !card() || !card().classList.contains('offer'));
 const ride = c && c.data.ride;
 check('rit loopt al (geen start bij halte 1)', ride && ride.phase === 'drive' && ride.next === 1, ride && ride.phase);
@@ -80,12 +85,15 @@ check('de eerste doelhalte is de eerstvolgende vooruit', ride && ride.table[1].s
 check('reizigers aan boord, niet betaald', ride && ride.onBoard > 0 && ride.passengers === 0, ride && ride.onBoard);
 check('het HUD-kaartje volgt de lijn van de rit', card() && card().textContent.includes('lijn ' + String(line.ref).slice(0, 4)), card() && card().textContent);
 
+// de rit voor de test tot drie haltes inkorten (het spel draait headless op een deel van de echte tijd; elke halte kost ruim 9 speltijdseconden)
+ride.table.length = Math.min(ride.table.length, 3);
+
 // de bus langs de haltes zetten: elke halte staat hij stil binnen de straal, de rit telt ze af
 const money0 = world.money;
 const t0 = Date.now();
 let gehaald = 0;
 let sterren = 0;
-for (let i = 0; i < 400 && SJ.ctx() === c && c.data.ride === ride && !ride.done; i++) {
+for (let i = 0; i < 1200 && SJ.ctx() === c && c.data.ride === ride && !ride.done; i++) {
   const row = ride.phase === 'dwell' ? null : ride.table[ride.next];
   if (row) {
     const p = RD.stopPos(ride, row);
@@ -98,7 +106,7 @@ for (let i = 0; i < 400 && SJ.ctx() === c && c.data.ride === ride && !ride.done;
   await sleep(500);
   if (world.wanted > 0 && !sterren) { sterren = world.wanted; B.log('busdienst', { naam: 'sterren-reden', info: JSON.stringify((world.messages || []).slice(-4).map((q) => q.text)) }); }
   gehaald = ride.next;
-  if (Date.now() - t0 > 240000) break;
+  if (Date.now() - t0 > 420000) break;
 }
 check('geen sterren door de aangifte van de bestuurder (de bus is gekaapt)', sterren === 0, sterren);
 check('de rit is afgemaakt', ride && ride.done, `halte ${gehaald}/${ride && ride.table.length - 1}, einde: ${JSON.stringify(SJ.last())}, reden ${world.stats && world.stats.lastWantedWhy}, ritfout ${ride && ride.failed}`);
