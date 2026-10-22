@@ -29,11 +29,17 @@ for (const sub of ['spelen', 'camera', 'hints']) {
 // de rail: alle knoppen binnen het scherm
 {
   const rail = root().querySelector('.pm-rail');
+  // de rail scrolt op een laag venster (pm-game: overflow-y auto, zoals voor Spel): na het naar beneden scrollen is de onderste knop in beeld
+  const inner = rail.querySelector('.pm-game');
+  const overloop = inner.scrollHeight - inner.clientHeight;
+  inner.scrollTop = inner.scrollHeight;
+  await sleep(200);
   const knoppen = [...rail.querySelectorAll('.ra, .m-bt')].filter(zichtbaar);
   const laagste = Math.max(...knoppen.map((b) => b.getBoundingClientRect().bottom));
+  check('de rail scrolt hoogstens ' + Math.round(overloop) + ' px (info) en de onderste knop is dan in beeld', laagste <= innerHeight + 1, 'onderkant ' + Math.round(laagste) + ' van ' + innerHeight + ', scroll ' + Math.round(overloop) + ' px');
+  inner.scrollTop = 0;
   const spelKnop = [...rail.querySelectorAll('.ra')].find((b) => b.dataset.goto === 'spel');
   check('de rail heeft een knop Spel', zichtbaar(spelKnop), spelKnop && spelKnop.textContent.trim());
-  check('de onderste knop van de rail blijft in beeld', laagste <= innerHeight + 1, `onderkant ${Math.round(laagste)} van ${innerHeight}`);
   const volgorde = [...rail.querySelectorAll('.ra[data-goto]')].filter(zichtbaar).map((b) => b.dataset.goto);
   check('Spel staat vóór Instellingen in de rail', volgorde.indexOf('spel') >= 0 && volgorde.indexOf('spel') + 1 === volgorde.indexOf('settings'), volgorde.join(','));
 }
