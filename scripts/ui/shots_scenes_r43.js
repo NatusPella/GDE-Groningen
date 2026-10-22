@@ -135,12 +135,25 @@ if (want('bus3')) {
   const keepB = setInterval(() => { p.x = at[0]; p.y = at[1]; p.vx = p.vy = 0; }, 50);
   await sleep(1500); for (let i = 0; i < 40 && document.querySelector('.ls.on:not(.out)'); i++) await sleep(500); await sleep(3000);
   let bus = null;
-  for (let t2 = 0; t2 < 150 && !bus; t2++) {
+  for (let t2 = 0; t2 < 40 && !bus; t2++) {
     await sleep(1000);
     if (t2 % 30 === 29 && pogingen[(t2 + 1) / 30]) { at = pogingen[(t2 + 1) / 30]; teleport(at[0], at[1]); await sleep(4000); }
     const buses = w.vehicles.filter((v) => v.isBus);
     bus = buses.find((v) => v.busRun && Math.hypot(v.x - p.x, v.y - p.y) < 250) || null;
     if (t2 % 10 === 9) info.push('t=' + (t2 + 1) + 's stats ' + JSON.stringify(VM.busSpawnStats) + ' bussen ' + buses.length + ' met lijn ' + buses.filter((v) => v.busRun).length + ' dichtbij ' + buses.filter((v) => Math.hypot(v.x - p.x, v.y - p.y) < 250).length + ' lijnen<220m ' + BR.linesNear(lines, p.x, p.y, 220).length);
+  }
+  if (!bus && near) {
+    // de lijnspawner is kans (wrongWay/blocked): dan zetten we zelf een bus met een lijn op de weg
+    const p0 = BR.startAt(near.l, near.l.length * 0.5, 1);
+    const rp0 = map.nearestRoadPoint(p0.x, p0.y, 40, true);
+    info.push('eigen bus op ' + Math.round(p0.x) + ',' + Math.round(p0.y) + ' weg ' + !!rp0);
+    if (rp0) {
+      bus = VM.spawnVehicleOnRoad(map, rp0.road, false, Math.random, false, true, rp0);
+      bus.x = rp0.x; bus.y = rp0.y; bus.angle = p0.angle; bus.speed = 0;
+      bus.busRun = BR.makeRunner(near.l, near.l.length * 0.5, 1);
+      w.vehicles.push(bus);
+      await sleep(2000);
+    }
   }
   clearInterval(keepB);
   info.push('bus op lijn: ' + (bus ? Math.round(bus.x) + ',' + Math.round(bus.y) + ' lijn ' + bus.busRun.line.ref + ' richting ' + bus.busRun.dir : 'geen'));
