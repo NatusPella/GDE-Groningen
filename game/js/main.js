@@ -94,6 +94,7 @@ import { buildMovableBridges, addMovableRoads, updateMovableBridges, getMovableB
 import { updateSluizen, getSluizen } from './sluizen.js';
 import { updateBridgeHits, resetBridgeDamage, startBridgeCrashDemo, stepBridgeCrashDemo } from './bridgehitworld.js';
 import { geoWorkerActive } from './geojobs.js';
+import { preloadRoadWorker } from './roadsurface.js';
 import { init3D, update3D, resize3D, getScene, getRenderer, setMenuCover, MENU_FRAME_S, refreshRenderScale, terrainReady, canvasFrameCount, prewarmStreamAt, getCamera, getFollowPose, setRouteLinks } from './scene3d.js';
 import { checkFrame } from './blackframe.js';
 import { noteFrame, hideAdvice, classifyGpu, readGpu, dynamicScale, cpuLevel } from './gfxprofile.js';
@@ -317,6 +318,7 @@ async function boot() {
   markLoad('boot');
   // the geometry worker loads its modules while the map downloads
   geoWorkerActive();
+  preloadRoadWorker();
   initA11y();
   initGlyphs();
   initTheme();

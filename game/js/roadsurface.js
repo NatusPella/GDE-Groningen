@@ -7,6 +7,7 @@ import { getWaterIndex } from './waterindex.js';
 import { allSignals, yieldArms } from './junctions.js';
 import { groundHeightAt } from './elevation.js';
 import { runGeo, geoWorkerActive } from './geojobs.js';
+import { perfOff } from './devflags.js';
 import { geometryFromPlain } from './geoplain.js';
 import { planBlends, blendAttributes, linearOf } from './surfaceblend.js';
 import { laneLayout } from './lanes.js';
@@ -1564,11 +1565,21 @@ export const roadKey = (r) => r._gkey || (r._gkey = r.cat + ':' + r.type + ':' +
 // road it does not know, here as before. False while a road's surfaces are
 // on their way (the request goes out on the first call).
 const RW = { state: 0 };
+// perf runs read the moments of the load from window.__loadMarks (main.js)
+const loadMark = (k) => { if (typeof window !== 'undefined' && window.__loadMarks) window.__loadMarks[k] = Math.round(performance.now()); };
+// The worker starts loading its copy of the map at boot, while the main thread still loads its own (`?perfoff=wegvoorlaad`: only with the first road sync)
+let preloadSent = false;
+export function preloadRoadWorker() {
+  if (preloadSent || perfOff('wegvoorlaad') || !geoWorkerActive() || typeof location === 'undefined') return;
+  preloadSent = true;
+  runGeo('roadPreload', { url: new URL('stad.json', location.href).href }, () => loadMark('roadsPreloaded'));
+}
 function roadWorkerReady() {
   if (RW.state === 0 && netMap && geoWorkerActive() && typeof location !== 'undefined') {
     RW.state = 1;
     runGeo('roadInit', { url: new URL('stad.json', location.href).href, keys: netMap.roads.map(roadKey) }, (res) => {
       RW.state = res && !res.missing ? 2 : -1;
+      loadMark('roadsReady');
     });
   }
   return RW.state === 2 && geoWorkerActive();
