@@ -276,6 +276,8 @@ export const isCheat = (rung) => rung !== 'nudge';
 export function isStunt(s) {
   const m = s.mission || {};
   if (m.stage === 'stunt') return true;
+  // the stunt evening runs (M01): its score is on the mission, whatever the message line says by now
+  if (m.stunt && !(m.stunt.score >= m.stunt.target)) return true;
   const words = [m.label, m.type, ...((s.hud && s.hud.messages) || [])].join(' ');
   return /stunt|schans|sprong|spring|driften|drift/i.test(words);
 }

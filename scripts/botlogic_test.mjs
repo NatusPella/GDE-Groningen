@@ -152,6 +152,7 @@ const near = (a, b, e = 1e-6) => Math.abs(a - b) < e;
   const b = () => ({ v: 1, t: 1, player: { x: 0, y: 0, angle: 0, camYaw: 0, vehicle: null }, story: {}, mission: { active: true, stage: 'goto' }, hud: { messages: [], prompt: '' }, blocking: {}, nearby: { vehicles: [] }, target: { x: 50, y: 0, distance: 50, source: 'missie' } });
   const car = { kind: 'auto', speed: 0, angle: 0 };
   ok(L.isStunt({ ...b(), mission: { label: 'Bakkie-stunt' } }) && L.isStunt({ ...b(), mission: { stage: 'stunt' } }) && !L.isStunt(b()), 'stunt herkend aan label of stage');
+  ok(L.isStunt({ ...b(), mission: { label: 'Nul krassen', stunt: { score: 200, target: 1500 } } }) && !L.isStunt({ ...b(), mission: { label: 'Nul krassen', stunt: { score: 1500, target: 1500 } } }), 'stunt herkend aan de stuntscore van de missie (M01), niet meer als het doel gehaald is');
   const st = L.decide({ ...b(), player: { ...b().player, vehicle: car }, mission: { active: true, label: 'Nul krassen: stunt' } });
   ok(st.mode === 'drive' && st.stunt === true && st.top === 30, 'stunt: snel rijden');
   ok(!L.decide({ ...b(), player: { ...b().player, vehicle: car } }).stunt, 'geen stunt: normaal rijden');

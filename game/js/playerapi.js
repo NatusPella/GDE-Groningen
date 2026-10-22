@@ -114,6 +114,7 @@ export function initPlayerApi(world, input) {
         active: m.phase === 'active', phase: m.phase || 'idle', index: m.index ?? -1, id: defs[m.index] ? defs[m.index].id : '', code: m.code || '', label: m.label || '', type: m.type || '',
         stage: stage ? stage.kind : '', marker: m.marker ? { x: r1(m.marker.x), y: r1(m.marker.y) } : null, distance: Number.isFinite(m.distanceToMarker) ? r1(m.distanceToMarker) : null,
         timeLeft: m.timeLeft ?? null, armed: !!m.armed, triggerRadius: m.triggerRadius ?? null, onFoot: false,
+        stunt: m.stunt ? { score: m.stunt.score, target: m.stunt.target, combo: m.stunt.combo, hits: m.stunt.hits } : null,
       },
       goal: getGoal() ? { kind: getGoal().kind, name: getGoal().name, x: r1(getGoal().x), y: r1(getGoal().y) } : null,
       target: target(),
