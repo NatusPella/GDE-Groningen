@@ -259,8 +259,9 @@ export const SAFEHUIS = {
   secondary(w) {
     const p = w.player;
     const lijst = [];
+    const hier = dichtbij(w);
     for (const h of huizen) {
-      if (Math.hypot(p.x - h.x, p.y - h.y) > 70 || h === dichtbij(w)) continue;
+      if (Math.hypot(p.x - h.x, p.y - h.y) > 70 || h === hier) continue;
       lijst.push({ id: h.id + '-2', x: h.x, y: h.y, h: 4.6, label: h.naam, sub: heeftHuisLive(h.id) ? h.adres : `Te koop · ${h.adres}`, kind: 'place' });
     }
     return lijst;
