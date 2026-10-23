@@ -69,28 +69,32 @@ for (const s0 of G.sites()) {
     const fr = hp.frame; const c = Math.cos(fr.angle), sn = Math.sin(fr.angle);
     tele(fr.x + u * c - v * sn, fr.y + u * sn + v * c);
     if (G.inside() !== id) { heights.push('buiten'); break; }
-    p.gz = map.groundHeightAt(p.x, p.y, -5); await sleep(300);
-    heights.push(+(map.groundHeightAt(p.x, p.y, -5)).toFixed(2));
+    p.gz = map.groundHeightAt(p.x, p.y, -6.8); await sleep(300);
+    heights.push(+(map.groundHeightAt(p.x, p.y, -6.8)).toFixed(2));
   }
   r.hoogtes = heights;
   // het plafond voor de camera
   r.plafond = map.ceilingAt(hp.frame.x + 10, hp.frame.y, -4);
   // 5. te voet naar de uitrit
   tele(hp.exit[0], hp.exit[1]);
-  p.gz = -5; p.x = hp.exit[0]; p.y = hp.exit[1];
+  p.gz = -6.8; p.x = hp.exit[0]; p.y = hp.exit[1];
   for (let i = 0; i < 40 && G.inside() === id; i++) await sleep(100);
   await sleep(2200);
   note('te voet buiten', { dist: Math.round(Math.hypot(p.x - gate.out[0], p.y - gate.out[1])) });
   r.voetBuiten = G.inside() === null;
   r.naUitrit = { x: +p.x.toFixed(1), y: +p.y.toFixed(1), gz: +(p.gz || 0).toFixed(2) };
   await shot('garage-' + id + '-na-uitrit');
-  // 6. met een auto erin: een eigen wagen op de poort-ingangszone, snelheid 4 m/s
-  const car = new VEH.Vehicle(gate.zone[0] - Math.cos(gate.angle) * 0.5, gate.zone[1] - Math.sin(gate.angle) * 0.5, gate.angle + Math.PI, VEH.MODELS[3]);
+  // 6. met een auto erin: gewoon op de opening af rijden, zonder iets in te drukken (de snelheid wordt vastgehouden), vanaf 12 m ervoor
+  const car = new VEH.Vehicle(gate.x + Math.cos(gate.angle) * 12, gate.y + Math.sin(gate.angle) * 12, gate.angle + Math.PI, VEH.MODELS[3]);
   w.vehicles.push(car);
   tele(car.x, car.y, car.angle);
   p.enterVehicle(car, w);
-  car.speed = 4;
-  for (let i = 0; i < 40 && G.inside() !== id; i++) await sleep(100);
+  const reach = [];
+  for (let i = 0; i < 80 && G.inside() !== id; i++) {
+    car.speed = 5; await sleep(100);
+    if (i % 8 === 0) reach.push([+Math.hypot(car.x - gate.x, car.y - gate.y).toFixed(1), +car.speed.toFixed(1)]);
+  }
+  r.rijdErin = reach;
   await sleep(2500);
   note('met auto binnen', { autoZ: +(car.z || 0).toFixed(2), speed: +car.speed.toFixed(1) });
   r.autoBinnen = G.inside() === id;
@@ -101,7 +105,7 @@ for (const s0 of G.sites()) {
   r.geparkeerd = parked.length;
   // 7. met de auto naar de uitrit
   const fr = hp.frame;
-  car.x = fr.x + 6 * Math.cos(fr.angle); car.y = fr.y + 6 * Math.sin(fr.angle); car.angle = fr.angle + Math.PI; car.speed = 5; car.z = -5; p.x = car.x; p.y = car.y; p.gz = -5;
+  car.x = fr.x + 6 * Math.cos(fr.angle); car.y = fr.y + 6 * Math.sin(fr.angle); car.angle = fr.angle + Math.PI; car.speed = 5; car.z = -6.8; p.x = car.x; p.y = car.y; p.gz = -6.8;
   for (let i = 0; i < 50 && G.inside() === id; i++) { await sleep(100); car.speed = 5; }
   await sleep(2500);
   note('met auto buiten', { dist: Math.round(Math.hypot(car.x - gate.out[0], car.y - gate.out[1])), autoZ: +(car.z || 0).toFixed(2) });

@@ -10,7 +10,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ### Nieuw
 - **Parkeergarages (#418):** in 36 van de 48 gekarteerde parkeergarages (en bij de garages die alleen als punt bekend zijn, zoals in de binnenstad, op de plek van de ingang) staan nu geparkeerde auto's om te stelen, en je eigen auto kan er ook parkeren. Alleen op vrije grond, nooit in een gebouw of in het water. Niet in beeld bekeken; de verdiepingen van de garage zelf zijn niet nagebouwd.
-- **Parkeergarages onder het Forum en de Ossenmarkt (#418; plattegrond getest in Node, het spel in Electron nog niet bekeken):** een poort op straat (rij of loop erin) zet je met je auto in een ondergrondse hal met ruim vijftig geparkeerde auto's om te jatten, met garagelicht; bij de uitrit sta je weer buiten.
+- **Parkeergarages onder het Forum en de Ossenmarkt (#418):** een inrit met slagboom en bord op straat (gewoon op de opening af rijden of lopen, zonder iets in te drukken) brengt je met een korte zwarte overgang met je auto in een ondergrondse hal met ruim vijftig geparkeerde auto's om te jatten, met garagelicht; bij de uitrit sta je weer voor de inrit. Te grote voertuigen (bus, trailer) mogen er niet in. In Electron bekeken: inrit, hal, in- en uitrijden en te voet.
 - **Parkeergarages (#418):** in 36 van de 48 gekarteerde parkeergarages (en bij de garages die alleen als punt bekend zijn, zoals in de binnenstad, op de plek van de ingang) staan nu geparkeerde auto's om te stelen, en je eigen auto kan er ook parkeren. Alleen op vrije grond, nooit in een gebouw of in het water. Niet in beeld bekeken; de verdiepingen van de garage zelf zijn niet nagebouwd.
 
 ### Opgelost
