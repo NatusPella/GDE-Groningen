@@ -288,6 +288,40 @@ export const KEUZE_JOBS = {
     pay: { base: 22, perRight: 13, tipAll: 16 },
     verdicts: ['Bernhard knikt dankbaar. De paraplu gaat open, uit pure vreugde.', 'Een paar dingen gelukt. Bernhard doet alsof het precies zo bedoeld was.', 'Bernhard zwaait vriendelijk. Hij heeft het toch nooit zo precies genomen.'],
   },
+  // "Aan de deur: het label" (#408): a made-up label seller (Wattje & Zoon Labelwerk, nobody real) rings the bell with a pitch that sounds official; the
+  // player at the door answers three of his lines. The right answer is the one that unmasks the trick (ask for proof, no haste, no signing, no account
+  // number); the wrong ones fall for it or are plain silly. Dry satire of door-to-door pressure, the seller leaves unharmed with his folder.
+  energielabel: {
+    id: 'energielabel',
+    name: 'Aan de deur: het label',
+    boss: 'Meneer Wattje',
+    building: 'Archipelflat',
+    wgs: [53.2372, 6.5678],
+    color: '#6fae3c',
+    blurb: 'Een verzonnen labelverkoper staat aan de deur: ontmasker zijn praatje',
+    tagline: 'Drie praatjes aan de deur. Een fout antwoord kost alleen een handtekening.',
+    intro: [
+      'Meneer Wattje van Wattje & Zoon Labelwerk (een verzonnen bedrijf, met een heel grote map) belt aan.',
+      'Hij heeft een praatje dat officieel klinkt en een pen die al klaarligt. Kies het antwoord dat zijn truc ontmaskert: 1, 2 of 3.',
+    ],
+    say: {
+      arrive: 'Meneer Wattje glimlacht met te veel tanden. "Goedemorgen, wij komen uw huis redden. Uw pen ligt al klaar."',
+      quit: 'Je doet de deur dicht. Meneer Wattje schuift een folder onder de mat door en loopt naar de buren.',
+      deskTitle: 'AAN DE DEUR · LABEL',
+    },
+    cases: [
+      C('"Wij zijn van het energielabel en u moet nu tekenen." Wat doe je?', 'Vragen om een legitimatie en zeggen dat je er even over nadenkt', ['Tekenen, het klinkt officieel', 'Een label ophangen dat je zelf hebt gekleurd']),
+      C('"Het label is gratis, alleen het formulier kost €149." Wat zeg je?', 'Dat gratis en €149 niet allebei kunnen kloppen', ['Betalen, het formulier is vast mooi', 'Vragen of hij ook kan pinnen']),
+      C('"Met dit label wordt uw tent A++++ en krijgt u er een zonnepaneel bij." Wat zeg je?', 'Dat een tent geen label nodig heeft en dat je niets tekent', ['Tekenen: een zonnepaneel op een tent is toch mooi', 'Vragen of het zonnepaneel ook de tent verwarmt']),
+      C('"Een label moet vandaag, anders vervalt uw huis." Wat doe je?', 'Rustig zeggen dat een huis niet vervalt en een label geen haast heeft', ['Snel tekenen voordat het huis vervalt', 'Je huis vast verhuizen naar de buren']),
+      C('"Noem even uw rekeningnummer, dan regelen wij de rest." Wat doe je?', 'Niets noemen: wie iets echts regelt, vraagt dat niet aan de deur', ['Je rekeningnummer opzeggen, dan onthoudt hij het wel', 'Het op zijn klembord schrijven, met een mooi handschrift']),
+      C('"Uw hele straat heeft al getekend." Wat doe je?', 'Bij de buren aanbellen en vragen of dat klopt', ['Tekenen: de hele straat kan niet gek zijn', 'Zeggen dat de straat niet bestaat']),
+      C('Hij zet zijn voet tussen de deur en zegt: "Even binnen kijken kost niets." Wat doe je?', 'Vriendelijk maar stevig zeggen dat je de deur nu sluit', ['Hem een kopje thee inschenken en alvast tekenen', 'Zelf ook een voet tussen de deur zetten, voor de gezelligheid']),
+      C('Hij zwaait met een klembord vol stempels. Welk stempel mag je geloven?', 'Geen enkel: een eigen stempel bewijst niets, een echt label komt van een erkende adviseur', ['Het grootste, want dat kost het meeste inkt', 'Het stempel met de zon: die ziet er warm uit']),
+    ],
+    pay: { base: 26, perRight: 14, tipAll: 18 },
+    verdicts: ['Meneer Wattje druipt af met zijn map onder zijn arm. De buurt klapt zachtjes achter de gordijnen.', 'Bijna ontmaskerd. Hij blijft nog even staan, maar zijn pen is opgedroogd.', 'Je tekent bijna. Gelukkig bel je eerst de buren: die kennen hem al.'],
+  },
 };
 
 export const KEUZE_IDS = Object.keys(KEUZE_JOBS);
