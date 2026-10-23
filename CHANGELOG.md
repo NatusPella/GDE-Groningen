@@ -6,6 +6,12 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Nieuw
+- Samen spelen (#429): wie hengelt, pannenkoeken bakt of de beiaard speelt als gast is nu te zien voor wie het spel opende en voor de andere gasten: een staande speler met hengel, pan of klepels in de hand (nog niet in beeld bekeken).
+- Samen spelen (#434): wordt een gast gezocht, dan staan zijn sterren ook in het scherm van wie het spel opende. Zijn twee spelers gezocht, dan jaagt de politie op het hoogste niveau, bij gelijk niveau op wie al gejaagd werd of anders op wie het dichtst bij de politie staat; verdwijnt dat doelwit, dan komt de ander aan de beurt.
+- Samen spelen (#429): een gast die aansluit terwijl een opdracht loopt krijgt ook de vraag 'Meedoen met ...?' (J of N) en hoort wat er speelt.
+- Samen spelen (#429): aansluiten terwijl je eigen opening of een filmpje nog loopt stopt dat filmpje en sluit meteen aan, in plaats van 'Wacht tot het filmpje of het herstel klaar is.'
+
 ## [0.46.0] - 2026-10-23
 
 ### Nieuw
