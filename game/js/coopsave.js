@@ -40,7 +40,7 @@ export function clearSession(storage) { try { storage.removeItem(KEYS.coopSessio
 // niets te doen is. Het geld blijft een geheel getal en nooit negatief.
 // Wat een gast in de wereld van de host zelf doet (winkelen, eten, #291) verandert zijn eigen geld en spullen; die velden
 // komen in zijn eigen save, de rest van die save (verhaal, plek, personage, missies) blijft zoals hij was.
-export const GAST_VELDEN = ['money', 'health', 'armor', 'weapon', 'ammo', 'stats', 'shops', 'meubels', 'financien'];
+export const GAST_VELDEN = ['money', 'health', 'armor', 'weapon', 'ammo', 'stats', 'shops', 'meubels', 'financien', 'prestaties'];
 // data = de save in de slot, mine = de toestand van de gast nu (savegame.js serialize), earned = verdiend in deze sessie.
 // Geeft de nieuwe save, of null als er niets te bewaren is. Het geld blijft een geheel getal en nooit negatief.
 export function applyGuestChanges(data, mine, earned = 0) {
