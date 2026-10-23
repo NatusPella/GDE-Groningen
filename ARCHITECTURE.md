@@ -236,6 +236,14 @@ feeds it the AudioContext clock; debug `window.__speech.speechState()`):
   `heal()`, `poke(what)`. `--stil --audio-graph` (`?stil&audiograf`) runs
   the graph into a muted sink; `scripts/audio_check.js` is the desktop
   `--perf-script` check of that state machine.
+- Bluetooth speakers on NPC cyclists (#401, `bikespeaker.js` + `updateBikeSpeakers` in audio.js):
+  about 12% of the traffic bikes carry one (`v.btSpeaker`, fixed per bike); at most 2 play at once,
+  within 55 m of the listener (stop at 70 m). Each voice is its own media element on a G-Music record
+  (not the one on the radio), through a small-speaker filter and a panner into `musicBus`, so it scales
+  with the music volume and is silent in menus and cutscenes. Doppler: `playbackRate` with
+  `preservesPitch = false`, from `dopplerRate()` with a game speed of sound of 90 m/s (a bike at 5 m/s
+  is inaudible at 343). Pure tests: `scripts/bikespeaker_test.mjs`; in the real game with the audio graph:
+  `scripts/bikespeaker_check.page.js` (`--stil --audio-graph --perf-script=`).
 
 Skipping a cutscene stops its voice. `node scripts/voice_coverage.mjs` lists spoken lines without a
 recording per area and exits 1 if any are missing; new spoken tables are
