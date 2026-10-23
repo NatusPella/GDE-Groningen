@@ -861,7 +861,8 @@ let wantedShown = 0;
 // the police icons on the maps flash only while you are wanted; otherwise they sit still (blue)
 let policeAlert = false;
 function updateWanted(world) {
-  policeAlert = world.wanted > 0;
+  const ster = Math.max(world.wanted | 0, world.coopHudWanted | 0); // samen spelen: de sterren van een gezochte gast staan ook in het scherm van de host (#434)
+  policeAlert = ster > 0;
   const pol = world.police;
   const phase = wantedPhase(world);
   const searching = phase === 'zoeken';
@@ -873,19 +874,19 @@ function updateWanted(world) {
     if (els.searchBar.style.width !== w) els.searchBar.style.width = w;
   }
   els.search.hidden = !(searching && world.wanted > 0);
-  const key = world.wanted + (searching ? 's' : '');
-  els.mmWrap.classList.toggle('wanted', world.wanted > 0);
+  const key = ster + (searching ? 's' : '');
+  els.mmWrap.classList.toggle('wanted', ster > 0);
   if (key === wantedKey) return;
   wantedKey = key;
   if (!els.wanted.children.length) els.wanted.innerHTML = STAR.repeat(5);
   const stars = [...els.wanted.children];
-  stars.forEach((st, i) => st.classList.toggle('on', i < world.wanted));
+  stars.forEach((st, i) => st.classList.toggle('on', i < ster));
   // a new star pops in, one at a time
-  for (let i = wantedShown; i < world.wanted; i++) pop(stars[i]);
-  wantedShown = world.wanted;
-  els.wanted.classList.toggle('searching', searching && world.wanted > 0);
-  els.wanted.classList.toggle('chase', world.wanted > 0 && !searching);
-  els.wanted.setAttribute('aria-label', `Gezocht: ${world.wanted} van 5, ${wantedPhase(world) === 'zoeken' ? 'politie zoekt je' : 'achtervolging'}`);
+  for (let i = wantedShown; i < ster; i++) pop(stars[i]);
+  wantedShown = ster;
+  els.wanted.classList.toggle('searching', searching && ster > 0);
+  els.wanted.classList.toggle('chase', ster > 0 && !searching);
+  els.wanted.setAttribute('aria-label', `Gezocht: ${ster} van 5, ${wantedPhase(world) === 'zoeken' ? 'politie zoekt je' : 'achtervolging'}`);
 }
 
 

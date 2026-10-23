@@ -29,6 +29,16 @@ export function begin(st, sleutel, slots, regel = null) {
   }
   return uit;
 }
+// Een gast sluit aan terwijl de opdracht al loopt: dezelfde uitnodiging als wie erbij was. Wie al gekozen heeft (opnieuw aangesloten) wordt niet nogmaals gevraagd.
+export function laat(st, slot, regel = null) {
+  if (!st.opdracht || !(slot >= 1)) return null;
+  const k = st.keuze[slot];
+  if (k === 'ja' || k === 'nee' || k === 'verplicht') return null;
+  const verplicht = verplichtVoor(slot, regel);
+  st.keuze[slot] = verplicht ? 'verplicht' : 'wacht';
+  if (!verplicht) st.rest[slot] = MEEDOEN_WACHT; else delete st.rest[slot];
+  return { slot, verplicht, sec: MEEDOEN_WACHT };
+}
 export function einde(st) { st.opdracht = null; st.keuze = {}; st.rest = {}; }
 
 // Het antwoord van een gast; een verplichte rol of een late of onbekende speler verandert niets.

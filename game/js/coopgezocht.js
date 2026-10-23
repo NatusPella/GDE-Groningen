@@ -52,7 +52,17 @@ export function doelwitProxy(world, slot, level = 0) {
   };
 }
 
-// Wie jaagt de politie nu? { slot, level } of null als niemand gezocht wordt. Hoogste niveau wint; gelijk: wie al gejaagd werd, anders de host.
+// Afstand van een speler tot de dichtstbijzijnde politie (voertuig of agent te voet); Infinity als er geen politie is.
+export function politieAfstand(world, slot) {
+  const q = plekVan(world, slot); if (!q) return Infinity;
+  let d = Infinity;
+  for (const v of world.vehicles || []) if (v && v.isPolice && !v.wrecked && !v.disabled && !v.hijacked) d = Math.min(d, Math.hypot(v.x - q.x, v.y - q.y));
+  for (const c of world.pedestrians || []) if (c && c.isCop && c.state !== 'dead') d = Math.min(d, Math.hypot(c.x - q.x, c.y - q.y));
+  return d;
+}
+
+// Wie jaagt de politie nu? { slot, level } of null als niemand gezocht wordt. Hoogste niveau wint; gelijk: wie al gejaagd werd, anders wie het
+// dichtst bij de politie staat (zonder politie in de buurt: de host). Verdwijnt het doelwit (geen sterren meer, weg of gepakt), dan is de volgende aan de beurt.
 export function kiesDoelwit(world) {
   const kand = [{ slot: 0, level: world.wanted | 0 }];
   for (const [s, n] of Object.entries(world.coopWanted || {})) { const slot = +s; if ((n | 0) > 0 && lichaamVan(world, slot)) kand.push({ slot, level: n | 0 }); }
@@ -60,10 +70,16 @@ export function kiesDoelwit(world) {
   let best = null;
   for (const k of kand) {
     if (k.level <= 0) continue;
-    if (!best || k.level > best.level || (k.level === best.level && k.slot === vorig && best.slot !== vorig)) best = k;
+    if (!best) { best = k; continue; }
+    if (k.level !== best.level) { if (k.level > best.level) best = k; continue; }
+    if (k.slot === vorig || best.slot === vorig) { if (k.slot === vorig) best = k; continue; }
+    if (politieAfstand(world, k.slot) < politieAfstand(world, best.slot)) best = k;
   }
   return best;
 }
+
+// De sterren die de politie van een gast in het scherm van de host zet: het niveau van het doelwit als dat een gast is, anders 0 (de host ziet dan zijn eigen niveau).
+export function hudWanted(world) { const d = kiesDoelwit(world); return d && d.slot > 0 ? d.level : 0; }
 
 // Het niveau dat iedereen op zijn scherm ziet (het snapshot en de desync-hash van coopnet.js): dat van het doelwit van de politie.
 export function zichtbaarWanted(world) {
