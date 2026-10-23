@@ -2,6 +2,12 @@
   "note": "Bewust toegestane gevallen voor scripts/text_audit.mjs. Elke regel heeft een reden (why). term = het gevonden woord (hoofdletterongevoelig), file/ctx maken het smaller.",
   "allow": [
     {
+      "rule": "persoonsgegevens",
+      "term": "050-555 01 23",
+      "file": "reklametaxi.js",
+      "why": "bewust nep-telefoonnummer van de verzonnen reclametaxi (Rinkelbel, #404): 555-reeks, hoort bij niemand"
+    },
+    {
       "rule": "merk",
       "term": "Windows",
       "file": "helpoverview.js",
