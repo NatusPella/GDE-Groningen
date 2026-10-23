@@ -1462,7 +1462,7 @@ function syncNavBadges() {
   if (vNav && unread) vNav.toggleAttribute('data-new', true);
 }
 
-if (typeof document !== 'undefined') document.addEventListener('gde-nieuw-gezien', () => { if (root) syncNavBadges(); });
+if (typeof document !== 'undefined') document.addEventListener('nieuwgezien', () => { if (root) syncNavBadges(); });
 
 // Berichten en bellen staan onder een personage (verhaalui.js, phone.js): opnieuw tekenen na een gesprek of bericht
 function renderPhone() {

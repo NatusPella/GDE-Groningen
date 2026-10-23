@@ -15,7 +15,6 @@ import { wgsToWorld } from './rdnew.js';
 import { spawnJobVehicle, vehicleSpeed } from './sidejobkit.js';
 import { TRACTOR_MODEL } from './vehicle.js';
 import { ankerMetWeg } from './bijbaananker.js';
-import { setUserWaypoint } from './routing.js';
 
 const fabriek = () => { const [x, y] = wgsToWorld(53.2336, 6.4977); return { x, y }; };
 const PLANT_STAP = 2;
@@ -289,7 +288,7 @@ export default {
     ruimVeld(d);
     // de volgende klus als doel op de kaart: je akker, met wat er nu moet gebeuren
     const b = getBoerderij(), taak = b.perceel ? B.volgendeTaak(b) : null;
-    if (taak) setUserWaypoint(b.perceel.x, b.perceel.y, `Je akker: ${B.TAKEN[taak].naam.toLowerCase()}`);
+    if (taak) import('./routing.js').then((r) => r.setUserWaypoint(b.perceel.x, b.perceel.y, `Je akker: ${B.TAKEN[taak].naam.toLowerCase()}`)).catch(() => {}); // uitgesteld geladen: een vaste import maakte een kring met routing, shops en sidejobs
   },
 };
 

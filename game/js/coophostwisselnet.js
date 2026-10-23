@@ -8,7 +8,9 @@
 // geeft hw-verbind(kamer) aan de rest, verlaat zijn hub en sluit zelf aan; de nieuwe host verlaat de sessie van de oude, start zijn hub
 // met de momentopname en de anderen komen binnen. Tot hw-draait blijft de oude host host: elke fout, time-out of weigering ervoor
 // laat zijn sessie ongemoeid (de toestandsmachine garandeert dat; hier wordt alleen opgeruimd).
-import * as N from './coopnet.js';
+// coopnet.js geeft zijn functies door met zetCoopNet (een vaste import terug maakte een kring met coopnet.js)
+let N = {};
+export function zetCoopNet(api) { N = api; }
 import { OudeHost, NieuweHost, HW, HERSTEL, TIJD, maakMomentopname, leesVerbind, bodTekst, pauzeTekst, mislukTekst, vraagWachtTekst, jijTekst, gemistTekst, verbindMisluktTekst,
   HerstelOntvanger, maakHerstel, rangschik, herstelInterval, beurtOp, STILTE_S, BEURT_S, weggevallenTekst, jijOvernameTekst, sluitAanTekst, overnameMisluktTekst, overTekst, terugHostTekst } from './coophostwissel.js';
 import { weerEvent, leesWeerEvent, pasWeerToe } from './coopweer.js';
