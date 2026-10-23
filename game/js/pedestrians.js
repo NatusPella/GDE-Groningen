@@ -34,7 +34,7 @@ import { hourOf } from './streetlifedata.js';
 import { buildingAt } from './tileplace.js';
 import { groupSpot, crowdPedCap } from './evenementenlive.js';
 import { centreOf } from './evenementen.js';
-import { noteWantedWhy } from './wantedwhy.js';
+import { noteWantedWhy, noteWitnessHint, witnessCallStands } from './wantedwhy.js';
 
 const WANDER_SPEED = 1.3;
 const FLEE_SPEED = 3.6;
@@ -720,7 +720,8 @@ function startWitnessCall(world, ev) {
   setState(best, 'call', world.time + CALL_MIN + Math.random() * (CALL_MAX - CALL_MIN), 'call');
   best.fleeFrom = { x: ev.x, y: ev.y };
   say(best, world, CALL_LINES[ev.kind] || CALL_LINES.shot, 3.5, null);
-  activeCall = { ped: best, x: ev.x, y: ev.y, kind: ev.kind };
+  activeCall = { ped: best, x: ev.x, y: ev.y, kind: ev.kind, vehicle: ev.kind === 'theft' ? ev.vehicle : null };
+  noteWitnessHint(world);
 }
 
 // De speler rijdt de dienst van de bus waarin hij zit (busboard3d.js, #396): een kaping van die bus wordt niet meer aangegeven.
@@ -736,10 +737,11 @@ function updateWitnessCall(world) {
   if (ped.state === 'dead' || !world.pedestrians.includes(ped) || world.wanted > 0) { activeCall = null; return; }
   if (ped.state !== 'call') { activeCall = null; return; }
   if (world.time < ped.stateUntil) return;
+  if (!witnessCallStands(activeCall, world)) { activeCall = null; setState(ped, 'wander'); return; }
   world.wanted = 1;
   world.policeTip = { x: activeCall.x, y: activeCall.y, time: world.time };
   world.wantedProfile = profileOf(world);
-  world.addMessage('Een getuige heeft de politie gebeld!', 3);
+  noteWantedWhy(world, activeCall.kind === 'theft' ? 'getuigeDiefstal' : 'getuige');
   say(ped, world, 'Ze komen der aan!', 2.2, null);
   startFlee(ped, world, world.player.x, world.player.y, true);
   activeCall = null;
@@ -777,7 +779,7 @@ function reportCarTheft(world, ped, car) {
   world.wanted = 1;
   world.policeTip = { x: ped.x, y: ped.y, time: world.time };
   world.wantedProfile = profileOf(world);
-  world.addMessage('De bestuurder heeft de diefstal gemeld!', 3);
+  noteWantedWhy(world, 'bestuurder');
 }
 
 function processEvents(world, events) {

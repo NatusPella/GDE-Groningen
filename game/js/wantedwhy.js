@@ -13,6 +13,9 @@ export const WANTED_WHY = {
   voetpadAuto: 'Auto op het voetpad: de politie zag het',
   voetpadFiets: 'Fiets op het voetpad: de politie zag het',
   snelweg: 'Op de snelweg: de politie zag het',
+  getuigeDiefstal: 'Een getuige heeft de politie gebeld: je stal een auto',
+  getuige: 'Een getuige heeft de politie gebeld: ze zagen wat je deed',
+  bestuurder: 'De bestuurder heeft de diefstal gemeld: de politie komt',
 };
 
 // kinds that tell their own story (a card of their own: the cash van, the tuned moped) and need no extra line
@@ -27,4 +30,21 @@ export function noteWantedWhy(world, kind) {
   world.addMessage(text, 4, { kind: 'politie', key: 'wanted-why' });
   if (world.stats) world.stats.lastWantedWhy = kind;
   return text;
+}
+
+// Een getuige belt (#391): eerst een korte waarschuwing zolang het bellen duurt, zodat de speler nog weg kan komen; daarna pas de ster.
+export const WITNESS_HINT = 'Een getuige belt de politie. Maak dat je wegkomt';
+
+export function noteWitnessHint(world) {
+  if (!world || typeof world.addMessage !== 'function') return null;
+  world.addMessage(WITNESS_HINT, 3, { kind: 'politie', key: 'witness-hint' });
+  return WITNESS_HINT;
+}
+
+// Het telefoontje van een getuige van een autodiefstal telt alleen als de dief nog in die auto zit (zoals de melding van de bestuurder):
+// wie al is uitgestapt of in iets anders zit, krijgt geen achtervolging om een auto die hij niet meer heeft.
+export function witnessCallStands(call, world) {
+  if (!call) return false;
+  if (call.kind === 'theft' && call.vehicle) return !!(world && world.player && world.player.inVehicle === call.vehicle);
+  return true;
 }

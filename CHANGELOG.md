@@ -6,6 +6,9 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Opgelost
+- **Politie: een achtervolging komt niet meer uit het niets (#391):** een getuige van een autodiefstal waarschuwt je nu eerst met een korte regel ("Een getuige belt de politie"), zodat je nog weg kunt komen. De ster komt alleen als je dan nog in die auto zit: je krijgt geen achtervolging meer om een auto die je al hebt verlaten. En de kaart noemt de reden: de getuige zag je een auto stelen, of de bestuurder meldde de gestolen auto. Niet in beeld bekeken.
+
 ## [0.41.1] - 2026-10-23
 
 ### Nieuw
