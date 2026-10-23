@@ -109,6 +109,7 @@ function sampleNow(n) {
     verdiend: x.coopVerdiend || 0, ri: x.coop && x.coop.remoteInput ? [Math.round(x.coop.remoteInput.mx * 100) / 100, Math.round(x.coop.remoteInput.my * 100) / 100, x.coop.remoteInput.buttons | 0] : null,
     hm: hm ? (hm.actief ? hm.label + ' | ' + (hm.stap || '') : '-') : null,
     weer: x.weatherState && x.weatherState.regions ? Object.entries(x.weatherState.regions).map(([id, r]) => id + ':' + r.kind + ':' + Math.round(r.rain * 100)).join(',') : null, wx: x.weather ? [x.weather.kind || '', Math.round((x.weather.intensity || 0) * 100)] : null, pm: (x.coopPingMarks || []).map((m) => m.tekst + '|' + m.naam).join(';'), voert: x.coopInVoertuig ? 1 : 0,
+    hostMesh: x.coopHostMeshes || null,
     hostEnt: x.coopHost ? [x.coopHost.voertuigen.length, x.coopHost.doelen.length, (x.coopHost.voetgangers || []).length] : null,
     vs: x.player && x.player.inVehicle ? [Math.round((x.player.inVehicle.speed || 0) * 10) / 10, x.player.inVehicle.wrecked ? 1 : 0, Math.round(x.player.inVehicle.health ?? -1), x.coopWielSlot ?? null] : null,
     veh: x.player && x.player.inVehicle ? 1 : 0, vehC: x.companion && x.companion.inVehicle ? 1 : 0, nVeh: (x.vehicles || []).length,
@@ -301,6 +302,8 @@ const PHASES = {
   async wacht({ s = 10 }) { await sleep(s * 1000); },
   async kijk({ s = 10 }) { await sleep(s * 1000); }, // zelfde als wacht, onder een eigen fasenaam (de testbank leest er de invoer van een andere speler in)
   async shot({ name }) { shot(name); await sleep(600); },
+  // vier schermafbeeldingen rondom de gast, om de voertuigen van de gastheer als modellen te zien (coopentities3d.js)
+  async kijk({ naam = 'kijk' }) { const w = W(); for (let i = 0; i < 4; i++) { w.camYaw = i * Math.PI / 2; await sleep(500); shot(naam + '-' + i); await sleep(300); } },
   // de spelerslijst bij Tab (#377): Tab vasthouden, schermafbeelding, loslaten
   async tab({ name = 'g-tab' }) {
     for (const t of [window, document]) t.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', code: 'Tab', bubbles: true }));
@@ -442,8 +445,11 @@ const PHASES = {
     const p0 = [w.player.x, w.player.y];
     let max = 0; const end = performance.now() + s * 1000;
     if (rennen) B.down('shift');
-    B.stick(0, -1);
-    while (performance.now() < end) { max = Math.max(max, afstand()); await sleep(100); }
+    let hoek = -Math.PI / 2, last = [w.player.x, w.player.y], lastT = performance.now(); B.stick(Math.cos(hoek), Math.sin(hoek));
+    while (performance.now() < end) { // staat de gast tegen een gebouw of water, dan draait hij 70 graden door (de wereld verandert)
+      max = Math.max(max, afstand()); await sleep(100);
+      if (performance.now() - lastT > 1500) { if (Math.hypot(w.player.x - last[0], w.player.y - last[1]) < 3) { hoek += 1.2; B.stick(Math.cos(hoek), Math.sin(hoek)); } last = [w.player.x, w.player.y]; lastT = performance.now(); }
+    }
     B.stick(0, 0); if (rennen) B.up('shift');
     log(naam, { max: Math.round(max), einde: Math.round(afstand()), verplaatst: Math.round(Math.hypot(w.player.x - p0[0], w.player.y - p0[1])), pauzeHost: !!(w.coopScene && w.coopScene.pauze) });
   },

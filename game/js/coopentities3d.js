@@ -5,6 +5,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getScene } from './scene3d.js';
 import { buildVehicleMesh } from './models3d_vehicles.js';
+import { buildPersonMesh, animatePersonWalk } from './models3d_people.js';
 
 const voertuigen = new Map(); // id -> mesh
 const voetgangers = new Map(); // id -> mesh (de voetgangers van de host in de buurt, als eenvoudige poppetjes)
@@ -43,7 +44,20 @@ function bouw(v) {
   const dak = new THREE.Mesh(new THREE.BoxGeometry(v.len * 0.5, v.hoogte * 0.4, v.wid * 0.9), mat('#cfd8dc'));
   dak.position.set(-v.len * 0.05, v.hoogte * 0.85, 0); dak.castShadow = true;
   g.add(romp, dak);
+  g.userData.blok = true;
   return g;
+}
+
+// Voetgangers van de gastheer: dezelfde bouwer als de gastheer (kleding, haar, politie-uniform), vaste variatie op het id; terugval op het blokpoppetje.
+const SHIRTS = [0xb8473a, 0x3a6ea5, 0x4f8a5b, 0xd9b44a, 0x7a5a9a, 0xe8e6e0, 0x8a8f96, 0xc77d3a];
+const HUIDEN = [0xf0c8a0, 0xd9aa82, 0xb98560, 0x8a5a3c, 0x5c3a28];
+function echtePop(p) {
+  const h = (p.id * 2654435761) >>> 0;
+  try {
+    const m = buildPersonMesh(p.agent ? 0x1c3fae : SHIRTS[h % SHIRTS.length], HUIDEN[(h >>> 8) % HUIDEN.length], { seed: p.id * 3.7 + 11 });
+    m.traverse((o) => { if (o.isMesh) o.castShadow = true; });
+    return m;
+  } catch (e) { return null; }
 }
 
 function bouwPop(agent) {
@@ -52,13 +66,14 @@ function bouwPop(agent) {
   const benen = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.65, 0.25), mat(agent ? '#1c2f5a' : '#5a5f66')); benen.position.y = 0.33;
   const hoofd = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.26, 0.26), mat('#d9b99b')); hoofd.position.y = 1.55;
   g.add(romp, benen, hoofd);
+  g.userData.blok = true;
   return g;
 }
 
 export const hasHostEntities = () => voertuigen.size > 0 || voetgangers.size > 0 || !!beacon;
 
 // Elke frame (main.js), alleen op een gast.
-export function syncHostEntities(world) {
+export function syncHostEntities(world, dt = 1 / 60) {
   const scene = getScene(); if (!scene) return;
   const host = world.coopHost || { voertuigen: [], doelen: [], voetgangers: [] };
   const seen = new Set();
@@ -74,11 +89,17 @@ export function syncHostEntities(world) {
   for (const p of host.voetgangers || []) {
     zienP.add(p.id);
     let m = voetgangers.get(p.id);
-    if (!m) { m = bouwPop(p.agent); scene.add(m); voetgangers.set(p.id, m); }
+    if (!m) { m = echtePop(p) || bouwPop(p.agent); scene.add(m); voetgangers.set(p.id, m); }
     const gz = world.map && world.map.groundHeightAt && world.map.elev && world.map.elev.has ? (() => { try { return world.map.groundHeightAt(p.x, p.y); } catch (er) { return 0; } })() : 0;
+    const sn = m.userData.vorig && dt > 0 ? Math.hypot(p.x - m.position.x, p.y - m.position.z) / dt : 0; m.userData.vorig = true; // de snapshot heeft geen snelheid: de afgelegde weg, gladgestreken
+    const v = m.userData.v = (m.userData.v || 0) + (Math.min(sn, 12) - (m.userData.v || 0)) * Math.min(1, dt * 4);
     m.position.set(p.x, gz, p.y); m.rotation.y = -p.angle;
+    if (!m.userData.blok) { try { animatePersonWalk(m, Math.min(v, 6), dt); } catch (e) { /* zonder loopanimatie */ } }
   }
-  for (const [id, m] of voetgangers) if (!zienP.has(id)) { scene.remove(m); m.traverse((o) => { if (o.geometry) o.geometry.dispose(); }); voetgangers.delete(id); }
+  for (const [id, m] of voetgangers) if (!zienP.has(id)) { scene.remove(m); if (m.userData.blok) m.traverse((o) => { if (o.geometry) o.geometry.dispose(); }); voetgangers.delete(id); }
+  let echt = 0; for (const m of voertuigen.values()) if (!m.userData.blok) echt++;
+  let echtP = 0; for (const m of voetgangers.values()) if (!m.userData.blok) echtP++;
+  world.coopHostMeshes = [echt, voertuigen.size - echt, echtP, voetgangers.size - echtP]; // [echte modellen, blokken], voor de testbank
   const doel = host.doelen[0];
   if (doel && !beacon) {
     beacon = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.2, 60, 16, 1, true), new THREE.MeshBasicMaterial({ color: 0x3fc97a, transparent: true, opacity: 0.35, depthWrite: false, side: THREE.DoubleSide }));
