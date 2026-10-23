@@ -68,7 +68,7 @@ export function startMeerijden(world, optie, dest) {
       const dt = Math.min(0.1, (now - last) / 1000);
       last = now;
       let padA = false;
-      try { const pad = (navigator.getGamepads ? [...navigator.getGamepads()] : []).find((g) => g && g.connected); padA = !!(pad && pad.buttons[0]?.pressed); } catch (e) { /* none */ }
+      try { const pad = (navigator.getGamepads ? [...navigator.getGamepads()] : []).find((g) => g && g.connected); padA = !!(pad && pad.buttons[document.documentElement.dataset.pad === 'switch' ? 1 : 0]?.pressed); } catch (e) { /* none */ }
       stepRit(rit, dt, { skip: skipKey || padA });
       q('.rr-lijn').textContent = (plan.lines[0] || optie.label).toUpperCase();
       q('.rr-tekst').textContent = ondertitel(rit);

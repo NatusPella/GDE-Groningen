@@ -396,7 +396,7 @@ function settingsHtml() {
       ${slider('mouseSensitivity', 'Muisgevoeligheid', 0.3, 2.5, 0.05)}
       ${toggle('invertY', 'Omhoog/omlaag omkeren', 'Geldt voor de muis en de stick')}
       <div class="m-gh"><span>Controller</span></div>
-      ${picker('padLayout', 'Knoppen tonen als', [['auto', 'Automatisch'], ['xbox', 'Letterknoppen (A B X Y)'], ['ps', 'Vormknoppen'], ['switch', 'Wisselende letters'], ['deck', 'Handheld']], 'Automatisch kiest wat er aangesloten is')}
+      ${picker('padLayout', 'Controllerindeling', [['auto', 'Automatisch'], ['xbox', 'Onderste knop bevestigt (A B X Y)'], ['switch', 'Rechterknop bevestigt (A en B, X en Y omgewisseld)'], ['ps', 'Vormknoppen'], ['deck', 'Handheld']], 'Automatisch kiest wat er aangesloten is. Meldt je controller zich anders dan hij is (bijvoorbeeld via Steam), kies dan zelf; knoppen en hints volgen je keuze')}
       ${slider('padLookSensitivity', 'Camera met de rechterstick', 0.3, 2.5, 0.05)}
       ${toggle('rumble', 'Trillen', 'Bij klappen, schoten en botsingen, als je controller dat kan')}
       <div class="m-li pm-row">${rowName('Knoppen indelen', 'Onder Besturing › Controller')}<button type="button" class="m-bg" data-goto-sub="controls:knoppen">Indelen</button></div>
