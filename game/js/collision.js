@@ -12,7 +12,7 @@ import { resolveRailings } from './bridgerails.js';
 import { resolveElevWalls } from './elevation.js';
 import { pushOutOfWaterObstacles } from './waterindex.js';
 import { passagesOf, nearestCorridor, inPassage } from './passages.js';
-import { rectDist, clampToRect } from './museumplan.js';
+import { rectDist, clampToRect, inDoorway } from './museumplan.js';
 
 export { passagesOf, inPassage };
 
@@ -51,6 +51,7 @@ export function resolveBuildingCollisions(x, y, radius, map, hop = 0, walls = fa
         let best = null, bd = Infinity;
         for (const r of b.rooms) { if (r.shut) continue; const rd = rectDist(r, x, y); if (rd < bd) { bd = rd; best = r; } }
         if (bd <= -radius) continue;
+        if (inside && inDoorway(b.rooms, x, y, radius)) continue;
         if (inside ? bd < PASSAGE_SLACK : rectDist(best, bestX, bestY) < 0) {
           if (inside) [x, y] = clampToRect(best, x, y, radius);
           continue;
