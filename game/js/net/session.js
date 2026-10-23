@@ -13,6 +13,7 @@ export const INPUT_HZ = 30;
 export const EXTRA_HZ = 5;       // voetgangers, dieren, lichten: traag veranderend, dus een kwart van het snapshottempo
 export const LAG_AFTER = 0.6;      // s zonder bericht: status 'lag'
 export const LOST_AFTER = 5;       // s zonder bericht: verbinding verloren
+export const HELLO_TIMEOUT = 30;   // s zonder welkom van de host (die laadt, hangt of is weg): de gast geeft het op met een duidelijke melding
 export const RESUME_WINDOW = 120;  // s waarin de gast kan hervatten
 export const INTERP_DELAY = 0.1;   // s: de client toont de wereld iets in het verleden
 export const MAX_EXTRAPOLATE = 0.25;
@@ -228,7 +229,7 @@ export class ClientSession extends Base {
     super(link, 'client', rand);
     this.cfg = cfg; this.slot = null; this.seed = null; this.caps = []; this.token = cfg.token || null;
     this.buf = new SnapBuffer(); this.inputSeq = 0; this.inputAcc = 0; this.pendingInput = neutral();
-    this.helloAt = -1; this.rejected = null; this.lastSnapSeq = null; this.lastExtraSeq = null; this.onextra = null; this.onlost = null; this.onresync = null; this.joined = false;
+    this.helloAt = -1; this.wachtHello = 0; this.rejected = null; this.lastSnapSeq = null; this.lastExtraSeq = null; this.onextra = null; this.onlost = null; this.onresync = null; this.joined = false;
   }
   _raw(buf) {
     const h = readHeader(buf); if (!h) return;
@@ -266,6 +267,7 @@ export class ClientSession extends Base {
   tick(dt) {
     this._tickCommon(dt);
     if (!this.joined) {
+      if (this.status === 'verbinden') { this.wachtHello += dt; if (this.wachtHello >= HELLO_TIMEOUT) { this.rejected = 'time-out'; this.remoteVersion = ''; this._setStatus('geweigerd'); return; } }
       if (this.status !== 'geweigerd' && this.status !== 'verbroken' && this.now - this.helloAt >= 1) {
         this.helloAt = this.now;
         this._emit(encodeJson(T.HELLO, 0, this.tickN, 0, { ...this.cfg.info, caps: this.cfg.caps || [], token: this.token || undefined }));
@@ -301,7 +303,7 @@ export class ClientSession extends Base {
     if ('onstate' in link) { const prev = link.onstate; link.onstate = (s) => { if (prev) prev(s); this._linkState(s); }; } // ketenen: rtcroom zet er zelf ook een
   }
   // na een vervangen transport (nieuwe handmatige code) hervatten met hetzelfde token
-  reconnect(link) { this._attach(link); this.helloAt = -1; this.joined = false; this._setStatus('verbinden'); } // de betrouwbare stroom loopt door: het welkom zegt of de host opnieuw begon
+  reconnect(link) { this._attach(link); this.helloAt = -1; this.wachtHello = 0; this.joined = false; this._setStatus('verbinden'); } // de betrouwbare stroom loopt door: het welkom zegt of de host opnieuw begon
   world() { return this.buf.sample(); }
   // de gast vraagt de host om zijn toestand opnieuw (desync, net/desync.js); het antwoord komt als 'resync' bij onresync
   requestResync() { this._emit(encodeSimple(T.RESYNC, 0, 0, 0)); }

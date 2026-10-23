@@ -24,13 +24,14 @@ export function checkHandshake(local, remote) {
 // Nederlandse melding voor het lobbyscherm.
 export const REASON_TEXT = {
   spel: 'Dit is niet hetzelfde spel.',
-  protocol: 'De versies van samen spelen passen niet bij elkaar.',
+  protocol: 'De ander speelt een andere versie van samen spelen. Installeer allebei dezelfde versie, het liefst de nieuwste, en probeer het opnieuw.',
   versie: 'Andere versie van het spel. Installeer allebei dezelfde versie, het liefst de nieuwste, en probeer het opnieuw.',
   tegels: 'De wereldbestanden zijn verschillend. Werk beide spellen bij.',
   verhaal: 'Het verhaal is verschillend. Kies op beide kanten hetzelfde verhaal.',
   vol: 'De sessie zit al vol.',
   token: 'Deze verbinding kan niet hervat worden.',
   gesloten: 'De verbinding is gesloten. Zit het spel vol, of is het spel gestopt?',
+  'time-out': 'De gastheer antwoordt niet. Staat het spel open en is het klaar met laden? Probeer het over een halve minuut opnieuw.',
 };
 
 export const RTO_TRAAG = 2; // s tussen herhalingen bij een weggevallen gast
