@@ -59,6 +59,26 @@ export function scenePlan(rule, x, y) {
   };
 }
 
+// Te voet of in een voertuig op land word je op de weg teruggezet, niet in een weiland (#436): het dichtstbijzijnde
+// wegpunt binnen `reach` m van de terugzetplek, gedraaid langs de weg naar binnen (het dichtst bij de kijkrichting).
+// Een brug of tunnel telt niet. map.nearestRoadPoint(x, y, r, drivable) -> { x, y, road: { pts } } | null.
+// Geen weg in de buurt: de plek blijft zoals hij was.
+export const SNAP_REACH_M = 400;
+export function snapSpotToRoad(map, spot, drivable = true, reach = SNAP_REACH_M) {
+  if (!map || typeof map.nearestRoadPoint !== 'function') return spot;
+  const rp = map.nearestRoadPoint(spot.x, spot.y, reach, drivable);
+  if (!rp || !rp.road || rp.road.bridge || rp.road.tunnel || !(rp.road.pts && rp.road.pts.length > 1)) return spot;
+  const pts = rp.road.pts;
+  let bi = 0, bd = Infinity;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const d = Math.hypot((pts[i][0] + pts[i + 1][0]) / 2 - rp.x, (pts[i][1] + pts[i + 1][1]) / 2 - rp.y);
+    if (d < bd) { bd = d; bi = i; }
+  }
+  const along = Math.atan2(pts[bi + 1][1] - pts[bi][1], pts[bi + 1][0] - pts[bi][0]);
+  const flip = Math.cos(along - spot.angle) < 0;
+  return { x: rp.x, y: rp.y, angle: flip ? along + Math.PI : along };
+}
+
 export function createEdgeWatch() {
   return { phase: 'idle', t: 0, cool: 0, plan: null, warnAt: {} };
 }
