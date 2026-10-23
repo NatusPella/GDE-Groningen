@@ -42,10 +42,10 @@ import { helpHtml } from './helpoverview.js';
 import { DEV, FLAGS } from './devflags.js';
 import { renderOverview, renderTodo, renderTodoStory, todoClick, todoFocus, todoEnter, todoSummary, selectTodo, foldNote } from './todoui.js';
 import { isPlayAheadOpen } from './todo.js';
-import { renderVerhaal, verhaalClick, verhaalSummary, disposeVerhaalViewer } from './verhaalui.js';
+import { renderVerhaal, verhaalClick, verhaalSummary, disposeVerhaalViewer, selectVerhaalCharacter } from './verhaalui.js';
 import { anyFresh } from './characters.js';
 import { renderSpullen, spullenClick, spullenFocus } from './spullen.js';
-import { renderPhonePanel, phoneClick, phoneUnread, selectPhoneThread, PHONE_NAME } from './phone.js';
+import { phoneClick, phoneUnread, selectPhoneThread, characterForSender } from './phone.js';
 import { getErrorLog, errorReport, clearErrorLog, onErrorLogChange } from './errorlog.js';
 import { KEYS } from './storagekeys.js';
 import { renderFotoPanel, fotoClick } from './fotomodusui.js';
@@ -212,40 +212,39 @@ const qBtn = (action, ic, label, cls = 'pm-secondary', extra = '') =>
 
 // [id, label, hint under the title in the sheet]
 const SECTIONS = [
-  ['overzicht', 'Overzicht', ''],
-  ['todo', 'Te doen', 'Wat je nu kunt doen: missies, bijbaantjes, minigames en meer'],
+  ['spel', 'Spel', 'Opslaan, stoppen, spelopties en waar je bent'],
+  ['verhaal', 'Verhaal', 'Opdrachten, personages, aanwijzingen en berichten'],
+  ['loopbaan', 'Loopbanen', 'Je vakken, bijbanen, vissen en boerderij'],
+  ['todo', 'Activiteiten', 'Klussen, minigames en evenementen in de buurt'],
   ['map', 'Kaart', 'Kies een doel of zoek een plek'],
-  ['telefoon', 'Telefoon', 'Bellen en berichten'],
-  ['verhaal', 'Verhaal', 'Opdrachten, personages en aanwijzingen'],
   ['spullen', 'Spullen', 'Alles wat je hebt'],
   ['garage', 'Garage', 'Jouw voertuigen'],
   ['prestaties', 'Prestaties', 'Blijven bewaard, ook bij een nieuw spel'],
-  ['loopbaan', 'Loopbaan', 'Je vakken en bezigheden, van jou'],
+  ['fotos', "Foto's", 'Fotomodus en je galerij'],
+  ['samen', 'Samen spelen', 'Uitnodigen, aansluiten en wie er meespeelt'],
+  ['settings', 'Instellingen', 'Beeld, geluid, besturing, hulp en cheats'],
+  // onderdelen onder een ander onderdeel (CHILD), niet los in de rail
   ['visboek', 'Visboek', 'Alle vis van de provincie, van jou'],
   ['boerderij', 'Boerderij', 'Je eigen akker, gewassen en machines'],
-  ['fotos', "Foto's", 'Fotomodus en je galerij'],
-  ['samen', 'Samen spelen', 'Iemand uitnodigen of aansluiten'],
-  ['spelers', 'Spelers', 'Wie er meespeelt'],
-  ['spel', 'Spel', 'Hoe het spel zich gedraagt; beeld en geluid staan bij Instellingen'],
-  ['settings', 'Instellingen', 'Wijzigingen worden meteen bewaard'],
+  ['spelers', 'Spelers', 'Wie er meespeelt en wat je kunt'],
   ['controls', 'Besturing', 'Toetsen en knoppen aanpassen en nalezen'],
   ['streken', 'Cheats', 'Een beetje vals spelen'],
 ];
 // the rail's three groups: playing, collected, system
-const RAIL_GROUPS = [['overzicht', 'todo', 'map', 'telefoon'], ['verhaal', 'spullen', 'garage', 'prestaties', 'loopbaan', 'fotos', 'samen', 'spelers'], ['spel', 'settings', 'streken']];
+const RAIL_GROUPS = [['spel', 'verhaal', 'loopbaan', 'todo'], ['map', 'spullen', 'garage', 'prestaties', 'fotos', 'samen'], ['settings']];
 // Onderdelen zonder eigen plek in de rail die onder een ander onderdeel hangen (#430): Vissen en Farmen horen bij Loopbaan
 // (de tegels Bezigheden), de toetsen en knoppen bij Instellingen > Besturing. De rail markeert de ouder; Terug gaat naar de ouder.
-const CHILD = { visboek: 'loopbaan', boerderij: 'loopbaan', controls: 'settings' };
+const CHILD = { visboek: 'loopbaan', boerderij: 'loopbaan', controls: 'settings', streken: 'settings', spelers: 'samen' };
 const PRESTART_SECTIONS = ['spel', 'settings', 'controls'];
 const SUBTABS = {
   todo: [['alles', 'Alles'], ['dichtbij', 'Dichtbij']],
-  telefoon: [['contacten', 'Contacten'], ['berichten', 'Berichten']],
   verhaal: [['opdrachten', 'Opdrachten'], ['personages', 'Personages'], ['aanwijzingen', 'Aanwijzingen']],
-  spel: [['acties', 'Opslaan & stoppen'], ['spelen', 'Spelen'], ['camera', 'Camera & richten'], ['hints', 'Hints & uitleg']],
-  settings: [['video', 'Beeld'], ['sound', 'Geluid & ondertitels'], ['besturing', 'Besturing'], ['display', 'Interface'], ['a11y', 'Toegankelijkheid'], ['fouten', 'Foutrapport']],
+  spel: [['overzicht', 'Overzicht'], ['acties', 'Opslaan & stoppen'], ['spelen', 'Spelen'], ['camera', 'Camera & richten'], ['hints', 'Hints & uitleg']],
+  settings: [['video', 'Beeld'], ['sound', 'Geluid & ondertitels'], ['besturing', 'Besturing'], ['display', 'Interface'], ['a11y', 'Toegankelijkheid'], ['fouten', 'Foutrapport'], ['cheats', 'Cheats']],
   controls: [['toetsen', 'Toetsenbord en muis'], ['knoppen', 'Controller'], ['overzicht', 'Toetsenoverzicht'], ['hulp', 'Hulp']],
 };
 // old tab names (saved preferences, other modules)
+// de oude plekken: de telefoon is nu Verhaal > Contacten en Berichten, Overzicht is Spel > Overzicht (#430)
 const SUB_ALIAS = { settings: { controller: 'besturing', camera: 'besturing' } };
 
 // The footer: two to four hints, [keys, label, action]. ' back' is filled in.
@@ -254,17 +253,17 @@ const HINTS = {
   overzicht: [[['↑', '↓'], 'kiezen'], [['Enter'], 'ok'], [['Esc'], 'doorgaan', 'resume']],
   todo: [[['↑', '↓'], 'kiezen'], [['Enter'], 'zet als doel'], [['Q', 'E'], 'weergave'], [['Esc'], BACK, 'back']],
   map: [[['Klik'], 'doel kiezen'], [['Scroll'], 'zoomen'], [['M'], 'sluiten', 'resume'], [['Esc'], BACK, 'back']],
-  telefoon: [[['↑', '↓'], 'kiezen'], [['Enter'], 'bellen of lezen'], [['Q', 'E'], 'tabblad'], [['Esc'], BACK, 'back']],
-  verhaal: [[['↑', '↓'], 'kiezen'], [['Enter'], 'zet als doel'], [['Q', 'E'], 'tabblad'], [['Esc'], BACK, 'back']],
+  verhaal: [[['↑', '↓'], 'kiezen'], [['Enter'], 'kiezen of bellen'], [['Q', 'E'], 'tabblad'], [['Esc'], BACK, 'back']],
   spullen: [[['↑', '↓'], 'kiezen'], [['Enter'], 'gebruiken'], [['Esc'], BACK, 'back']],
   garage: [[['↑', '↓'], 'kiezen'], [['Enter'], 'laten afleveren'], [['Q', 'E'], 'soort'], [['Esc'], BACK, 'back']],
   prestaties: [[['↑', '↓'], 'kiezen'], [['Enter'], 'openen'], [['Q', 'E'], 'weergave'], [['Esc'], BACK, 'back']],
-  loopbaan: [[['↑', '↓'], 'kiezen'], [['Esc'], BACK, 'back']],
+  loopbaan: [[['↑', '↓'], 'kiezen'], [['Enter'], 'openen'], [['Esc'], BACK, 'back']],
   visboek: [[['↑', '↓'], 'kiezen'], [['Esc'], BACK, 'back']],
   boerderij: [[['↑', '↓'], 'kiezen'], [['Enter'], 'doen'], [['Esc'], BACK, 'back']],
   fotos: [[['F8'], 'fotomodus'], [['Esc'], BACK, 'back']],
   spelers: [[['↑', '↓'], 'kiezen'], [['Enter'], 'roepen of erheen'], [['Esc'], BACK, 'back']],
   streken: [[['↑', '↓'], 'kiezen'], [['Enter'], 'aan of uit'], [['Esc'], BACK, 'back']],
+  samen: [[['↑', '↓'], 'kiezen'], [['Enter'], 'ok'], [['Esc'], BACK, 'back']],
   spel: [[['↑', '↓'], 'kiezen'], [['Enter'], 'ok'], [['Q', 'E'], 'tabblad'], [['Esc'], BACK, 'back']],
   settings: [[['↑', '↓'], 'kiezen'], [['←', '→'], 'wijzigen'], [['Q', 'E'], 'tabblad'], [['Esc'], BACK, 'back']],
   controls: [[['↑', '↓'], 'kiezen'], [['Enter'], 'toets wijzigen'], [['Q', 'E'], 'onderdeel'], [['Esc'], BACK, 'back']],
@@ -276,7 +275,12 @@ const pg =(slot) => `<span class="pm-pad-g" data-g-raw>${padGlyphInner(slot)}</s
 const PAD_KEYS = { '↑': 'dpad', '↓': null, '←': 'dpad', '→': null, Enter: 'a', Esc: 'b', Q: 'lb', E: 'rb', Klik: 'a', Scroll: 'rt', M: 'view' };
 const PAD_LABEL = { 'zet als doel': 'zet als doel', 'toets wijzigen': 'indelen' };
 
+// HOME is Spel > Overzicht: de plek waar het menu opent en waar Esc naartoe leidt
 const HOME = 'overzicht';
+const atHome = () => tab === 'spel' && !prestart && (pref.sub.spel || 'overzicht') === 'overzicht';
+const OV_SUB = '[data-of="spel"][data-sub="overzicht"]';
+// de tekst onder de titel is vast; wat er wisselt (voortgang, datum) staat erboven
+function sheetNote(t) { const eb = sheet && sheet.querySelector('.pm-sheet-eb'); if (!eb) return; eb.textContent = t || ''; eb.hidden = !t; }
 let root = null;
 let sheet = null;
 let open = false;
@@ -323,10 +327,11 @@ const CHEV_R = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.5 6l6 6-
 const plain = (t) => String(t).replace(/<[^>]*>/g, '').replace(/&shy;/g, '');
 
 // the tabs of a section that are there in the main menu too (Opslaan & stoppen of Spel needs a running game)
-const subsOf = (of) => SUBTABS[of].filter(([id]) => !(prestart && of === 'spel' && id === 'acties'));
+const inGameOnly = (of, id) => (of === 'spel' && (id === 'acties' || id === 'overzicht')) || (of === 'settings' && id === 'cheats');
+const subsOf = (of) => SUBTABS[of].filter(([id]) => !(prestart && inGameOnly(of, id)));
 function subtabsHtml(of, label) {
   return `<div class="m-tabs"><nav class="m-tablist" role="tablist" aria-label="${label}">` + SUBTABS[of].map(([id, text]) =>
-    `<button type="button" role="tab" class="m-tab${of === 'spel' && id === 'acties' ? ' pm-ingame' : ''}" data-of="${of}" data-subtab="${id}" aria-selected="false">${esc(text)}<small data-count="${id}"></small></button>`).join('') + '</nav>' +
+    `<button type="button" role="tab" class="m-tab${inGameOnly(of, id) ? ' pm-ingame' : ''}" data-of="${of}" data-subtab="${id}" aria-selected="false">${esc(text)}<small data-count="${id}"></small></button>`).join('') + '</nav>' +
     (of === 'todo' ? '<span class="m-grow"></span><button type="button" class="m-bt" data-todo-sort aria-pressed="false" hidden>Dichtbij eerst</button>' : '') +
     (of === 'controls' ? '<span class="m-grow"></span><button type="button" class="m-bt" data-goto-sub="settings:besturing">Terug naar Instellingen</button>' : '') + '</div>';
 }
@@ -431,6 +436,7 @@ function settingsHtml() {
       ${picker('helpDamage', 'Minder schade', [['normaal', 'Normaal'], ['minder', 'Minder'], ['veel minder', 'Veel minder']], 'Je eigen voertuig houdt meer over na een klap')}
       ${picker('helpGates', 'Ruimere vliegpoorten', [['normaal', 'Normaal'], ['ruimer', 'Ruimer'], ['ruim', 'Ruim']], 'Grotere ringen en een bredere hoogteband')}
       ${toggle('helpOffer', 'Hulp aanbieden', 'Na twee keer mislukken van dezelfde stap vraagt het spel of je hulp wilt')}`, `${pane('Toegankelijkheid', 'Lekker lezen', '<p>Vormen en patronen helpen altijd, ook als je geen kleurenstand kiest. Menu’s, kaarten en tellers springen meteen naar hun nieuwe stand als je beweging beperkt.</p><p class="mut">Ondertitels stel je in onder Geluid & ondertitels.</p>')}`)}
+    ${tab('cheats', `<div class="m-li pm-row">${rowName('Cheats', 'Een beetje vals spelen')}<button type="button" class="m-bg" data-goto="streken">Openen</button></div>`, `${pane('Cheats', 'Vals spelen', '<p>Geld, wapens, teleporteren en meer. Handig om iets uit te proberen.</p>')}`)}
     ${tab('fouten', `<div class="m-list pm-slist pm-wide">
       <p class="pm-note">Gaat er iets mis, dan schrijft het spel dat hier op. Alleen op dit apparaat: er wordt niets verstuurd. Wil je helpen? Kopieer het rapport en stuur het zelf mee met je melding. Er staat niets persoonlijks in: de melding, waar in de code, de versie, je verhaalstap, een paar instellingen en het soort videokaart.</p>
       <div class="m-acts pm-errlog-actions">
@@ -446,6 +452,7 @@ function settingsHtml() {
 function spelHtml() {
   const tab = (id, rows, side = '') => `<div data-of="spel" data-sub="${id}" class="pm-settab" hidden><div class="m-list pm-slist">${rows}</div>${side}</div>`;
   return `${subtabsHtml('spel', 'Onderdeel')}
+    <div data-of="spel" data-sub="overzicht" class="pm-ov pm-spelov" hidden></div>
     ${tab('acties', `
       <div class="m-li pm-row">${rowName('Verder spelen', 'Terug naar het spel')}<button type="button" class="m-bp" data-action="resume">Doorgaan</button></div>
       <div class="m-gh"><span>Opslaan en laden</span></div>
@@ -453,7 +460,7 @@ function spelHtml() {
       <div class="m-li pm-row">${rowName('Opgeslagen spellen', 'Kiezen, laden, hernoemen, exporteren en verwijderen')}<button type="button" class="m-bg" data-action="saves" title="Opgeslagen spellen kiezen, laden, hernoemen, exporteren en verwijderen">Opgeslagen spellen</button></div>
       <p class="pm-status" data-game-status role="status"></p>
       <div class="m-gh"><span>Stoppen</span></div>
-<div class="m-li pm-row">${rowName('Missie stoppen', 'Staat bij Overzicht zodra er een missie loopt, met een vraag erbij')}<button type="button" class="m-bg" data-goto="overzicht">Naar Overzicht</button></div>
+<div class="m-li pm-row">${rowName('Missie stoppen', 'Staat bij Overzicht zodra er een missie loopt, met een vraag erbij')}<button type="button" class="m-bg" data-goto-sub="spel:overzicht">Naar Overzicht</button></div>
       <div class="m-li pm-row">${rowName('Hoofdmenu', 'Slaat op en gaat terug naar het hoofdmenu')}<button type="button" class="m-bg" data-action="menu" title="Opslaan en terug naar het hoofdmenu">Naar het hoofdmenu</button></div>
       ${DESKTOP ? `<div class="m-li pm-row">${rowName('Spel sluiten', 'Slaat op en sluit het spel')}<button type="button" class="m-bg" data-action="exit" title="Opslaan en het spel sluiten">Afsluiten</button></div>` : ''}
       <div class="m-gh"><span>Opnieuw beginnen</span></div>
@@ -485,7 +492,7 @@ function spelHtml() {
     ${tab('hints', `
       ${toggle('showHints', 'Toetshints')}
       ${picker('hintSource', 'Hints tonen voor', [['auto', 'Automatisch'], ['keys', 'Toetsenbord'], ['pad', 'Controller']], 'Automatisch volgt wat je het laatst gebruikte')}
-      ${toggle('onboardingTips', 'Uitleg voor nieuwe spelers', 'Korte tips, elk één keer: je eerste klus, geld en winkels, de telefoon, de kaart en Te doen')}`, `${pane('Hints & uitleg', 'Hulp in beeld', '<p>Toetshints en korte tips voor nieuwe spelers. Je kunt ze altijd uitzetten.</p>')}`)}`;
+      ${toggle('onboardingTips', 'Uitleg voor nieuwe spelers', 'Korte tips, elk één keer: je eerste klus, geld en winkels, de telefoon, de kaart en Activiteiten')}`, `${pane('Hints & uitleg', 'Hulp in beeld', '<p>Toetshints en korte tips voor nieuwe spelers. Je kunt ze altijd uitzetten.</p>')}`)}`;
 }
 export function initPauseMenu(w) {
   world = w;
@@ -523,13 +530,6 @@ export function initPauseMenu(w) {
           <div class="m-hr pm-sheet-r"><span class="mut pm-sheet-sub"></span><button type="button" class="m-bt" data-action="reset" hidden>Standaard herstellen</button></div>
         </header>
         <div class="pm-sheet-body">
-          <section data-panel="overzicht" class="pm-panel pm-col" hidden><div class="pm-inner pm-ov"></div></section>
-          <section data-panel="telefoon" class="pm-panel pm-col pm-tabbed" hidden><div class="pm-inner pm-phone">
-            ${subtabsHtml('telefoon', 'Telefoon')}
-            <div class="m-main"><div class="m-list td-list">
-              <div data-of="telefoon" data-sub="contacten"></div><div data-of="telefoon" data-sub="berichten" hidden></div>
-            </div><aside class="m-pane td-detail ph-detail" aria-label="Gesprek" aria-live="polite"></aside></div>
-          </div></section>
           <section data-panel="todo" class="pm-panel pm-col pm-tabbed" hidden><div class="pm-inner pm-todo">
             ${subtabsHtml('todo', 'Weergave')}
             <div class="m-main"><div class="m-list td-list">
@@ -548,8 +548,8 @@ export function initPauseMenu(w) {
           <section data-panel="boerderij" class="pm-panel pm-col" hidden><div class="pm-inner pm-ach pm-boerderij"></div></section>
           <section data-panel="fotos" class="pm-panel pm-col" hidden><div class="pm-inner pm-fotos"></div></section>
           <section data-panel="streken" class="pm-panel pm-col" hidden><div class="pm-inner pm-streken"></div></section>
-          <section data-panel="samen" class="pm-panel pm-col" hidden><div class="pm-inner pm-samen"></div></section>
-          <section data-panel="spelers" class="pm-panel pm-col" hidden><div class="pm-inner pm-spelers"></div></section>
+          <section data-panel="samen" class="pm-panel pm-col" hidden><div class="pm-up" data-spelers-nav hidden><button type="button" class="m-bg" data-goto="spelers">Spelers en acties</button></div><div class="pm-inner pm-samen"></div></section>
+          <section data-panel="spelers" class="pm-panel pm-col" hidden><div class="pm-up"><button type="button" class="m-bt" data-goto="samen">Terug naar Samen spelen</button></div><div class="pm-inner pm-spelers"></div></section>
           <section data-panel="spel" class="pm-panel pm-col pm-tabbed" hidden><div class="pm-inner pm-settings">${spelHtml()}</div></section>
           <section data-panel="settings" class="pm-panel pm-col pm-tabbed" hidden><div class="pm-inner pm-settings">${settingsHtml()}</div></section>
           <section data-panel="controls" class="pm-panel pm-col pm-tabbed" hidden><div class="pm-inner pm-cinner">
@@ -596,7 +596,7 @@ export function initPauseMenu(w) {
     const rp = e.target.closest('[data-rebind-pad]');
     if (rp) return startPadRebind(rp);
     const st = e.target.closest('[data-subtab]');
-    if (st) { showSubtab(st.dataset.of, st.dataset.subtab); if (st.dataset.of === 'todo') renderTodoPanel(); if (st.dataset.of === 'verhaal') renderVerhaalPanel(); if (st.dataset.of === 'controls') renderBinds(); if (st.dataset.of === 'telefoon') renderPhone(); return; }
+    if (st) { showSubtab(st.dataset.of, st.dataset.subtab); if (st.dataset.of === 'todo') renderTodoPanel(); if (st.dataset.of === 'verhaal') renderVerhaalPanel(); if (st.dataset.of === 'controls') renderBinds(); if (st.dataset.of === 'spel') afterSpelSub(); return; }
     if (e.target.closest('[data-story-skip]')) {
       if (skipCurrent()) setOpen(false);
       else rerenderTodo();
@@ -604,8 +604,10 @@ export function initPauseMenu(w) {
     }
     const panel = activePanel();
     if (panel && tab === 'spullen' && spullenClick(e, world, panel, spullenApi)) return;
-    if (panel && tab === 'telefoon' && phoneClick(e, world, panel, phoneApi)) return;
-    if (panel && (tab === 'overzicht' || tab === 'todo') && todoClick(e, world, panel, todoApi)) return;
+    if (tab === 'verhaal' && pref.sub.verhaal === 'personages' && root.querySelector('[data-vh-phone]') && phoneClick(e, world, root.querySelector('[data-vh-phone]'), phoneApi)) return;
+    if (panel && tab === 'todo' && todoClick(e, world, panel, todoApi)) return;
+    if (tab === 'spel' && pref.sub.spel === 'overzicht' && todoClick(e, world, root.querySelector(OV_SUB), todoApi)) return;
+    if (panel && tab === 'loopbaan' && todoClick(e, world, panel, todoApi)) return;
     const gd = e.target.closest('[data-garage-deliver]');
     if (gd) return garageDeliver(gd.dataset.garageDeliver);
     const gf = e.target.closest('[data-garage-find]');
@@ -684,7 +686,7 @@ const spullenApi = {
 };
 
 function renderSpullenPanel() {
-  try { sheet.querySelector('.pm-sheet-sub').textContent = renderSpullen(root.querySelector('[data-panel="spullen"]'), world); } catch (err) { console.error('spullen', err); }
+  try { sheetNote(renderSpullen(root.querySelector('[data-panel="spullen"]'), world)); } catch (err) { console.error('spullen', err); }
 }
 
 const phoneApi = {
@@ -712,7 +714,7 @@ const cheatsApi = {
 function renderCheats(focusSel) {
   const panel = root.querySelector('[data-panel="streken"]');
   const sub = renderCheatsPanel(panel.querySelector('.pm-inner'), world);
-  if (tab === 'streken') sheet.querySelector('.pm-sheet-sub').textContent = sub;
+  if (tab === 'streken') sheetNote(sub);
   const back = focusSel && panel.querySelector(focusSel);
   if (back) back.focus({ preventScroll: true });
 }
@@ -828,11 +830,20 @@ function goBack() {
     focusEl(root.querySelector(`[data-panel="${CHILD[from]}"] [data-goto="${from}"], [data-panel="${CHILD[from]}"] [data-goto-sub^="${from}:"]`) || root.querySelector(`.pm-game [data-goto="${CHILD[from]}"]`));
     return;
   }
-  if (tab !== HOME && !prestart && origin === 'home') {
-    const from = tab;
-    showTab(HOME);
-    focusEl(root.querySelector(`.pm-game [data-goto="${from}"]`));
-    return;
+  if (!prestart && origin === 'home') {
+    // Spel: eerst terug naar het tabblad Overzicht, dan pas dicht
+    if (tab === 'spel' && !atHome()) {
+      showSubtab('spel', 'overzicht');
+      afterSpelSub();
+      focusEl(root.querySelector('[data-of="spel"][data-subtab="overzicht"]'));
+      return;
+    }
+    if (tab !== 'spel') {
+      const from = tab;
+      showTab(HOME);
+      focusEl(root.querySelector(`.pm-game [data-goto="${from}"]`));
+      return;
+    }
   }
   setOpen(false);
 }
@@ -866,7 +877,7 @@ function cycleSubtab(dir) {
   showSubtab(tab, next);
   if (tab === 'todo') renderTodoPanel();
   if (tab === 'verhaal') renderVerhaalPanel();
-  if (tab === 'telefoon') renderPhone();
+  if (tab === 'spel') afterSpelSub();
   if (tab === 'settings' || tab === 'spel') syncControls();
   if (tab === 'controls') renderBinds();
   focusEl(root.querySelector(`[data-subtab="${next}"][data-of="${tab}"]`));
@@ -1105,7 +1116,7 @@ function moveFocus(dir) {
     showSubtab(best.dataset.of, best.dataset.subtab);
     if (prevSub === 'todo') renderTodoPanel();
     if (prevSub === 'verhaal') renderVerhaalPanel();
-    if (prevSub === 'telefoon') renderPhone();
+    if (prevSub === 'spel') afterSpelSub();
   }
 }
 
@@ -1360,14 +1371,14 @@ function stopInfo() {
 }
 
 function renderOverviewPanel() {
-  const el = root.querySelector('[data-panel="overzicht"] .pm-inner');
+  const el = root.querySelector(OV_SUB);
   const quick = `<div class="ov-quick">${slider('masterVolume', 'Hoofdvolume')}${slider('musicVolume', 'Muziek')}${slider('sfxVolume', 'Effecten')}${toggle('reduceMotion', 'Beweging beperken', 'Minder bewegende beelden en schermschudden')}</div>`;
   try { renderOverview(el, world, helpButtons(), { play: getPlaySeconds(), quick, stop: stopInfo() }); syncControls(); } catch (err) { console.error('overzicht', err); }
   const r = getDiscoveredRatio();
   const s = getSaveSummary();
   const ago = s ? Math.round((Date.now() - s.savedAt) / 60000) : -1;
-  sheet.querySelector('.pm-sheet-sub').textContent = [`${storyDate(world).long} ${getClockText(world)}`.trim(), r >= 0.01 ? `${Math.round(r * 100)}% van Grunn verkend` : '',
-    ago < 0 ? '' : ago < 1 ? 'net opgeslagen' : ago < 120 ? `laatst opgeslagen ${ago} min geleden` : ''].filter(Boolean).join(' · ');
+  sheetNote([`${storyDate(world).long} ${getClockText(world)}`.trim(), r >= 0.01 ? `${Math.round(r * 100)}% van Grunn verkend` : '',
+    ago < 0 ? '' : ago < 1 ? 'net opgeslagen' : ago < 120 ? `laatst opgeslagen ${ago} min geleden` : ''].filter(Boolean).join(' · '));
 }
 
 function renderTodoPanel() {
@@ -1377,7 +1388,7 @@ function renderTodoPanel() {
     renderTodo(panel, world, view);
     const sum = todoSummary(world);
     for (const [id] of SUBTABS.todo) { const c = panel.querySelector(`[data-count="${id}"]`); if (c) c.textContent = sum[id]; }
-    if (tab === 'todo') sheet.querySelector('.pm-sheet-sub').textContent = sum.subTodo;
+    if (tab === 'todo') sheetNote(sum.subTodo);
   } catch (err) { console.error('te doen', err); }
 }
 
@@ -1387,7 +1398,8 @@ function rerenderTodo(keep) {
   if (!open) return;
   const el = keep && keep.nodeType === 1 ? keep : document.activeElement;
   const sel = el && root.contains(el) ? [...el.attributes].filter((a) => a.name.startsWith('data-')).map((a) => `[${a.name}="${CSS.escape(a.value)}"]`).join('') : '';
-  if (tab === 'overzicht') renderOverviewPanel();
+  if (tab === 'spel') renderOverviewPanel();
+  else if (tab === 'loopbaan') renderLoopbaanPanel(root.querySelector('[data-panel="loopbaan"] .pm-inner'), closePauseMenu, world);
   else if (tab === 'todo') renderTodoPanel();
   else if (tab === 'verhaal') renderVerhaalPanel();
   const back = sel && activePanel().querySelector(sel);
@@ -1403,34 +1415,34 @@ function syncNavBadges() {
   const vNav = root.querySelector('[data-goto="verhaal"]');
   if (vNav) vNav.toggleAttribute('data-new', fresh || met);
   const vPeople = root.querySelector('[data-of="verhaal"][data-subtab="personages"]');
-  if (vPeople) vPeople.toggleAttribute('data-new', met);
+  if (vPeople) vPeople.toggleAttribute('data-new', met || unread);
   const vClues = root.querySelector('[data-of="verhaal"][data-subtab="aanwijzingen"]');
   if (vClues) vClues.toggleAttribute('data-new', fresh);
   const unreadN = world ? phoneUnread(world) : 0;
   const unread = unreadN > 0;
-  const pNav = root.querySelector('[data-goto="telefoon"]');
-  if (pNav) pNav.toggleAttribute('data-new', unread);
   const setN = (id, text, label) => { const n = root.querySelector(`[data-n="${id}"]`); if (n) { n.textContent = text; if (label) n.setAttribute('aria-label', label); else n.removeAttribute('aria-label'); } };
-  setN('telefoon', unread ? String(unreadN) : '', unread ? `${unreadN} ongelezen` : '');
   // unseen achievements: a quiet dot on the rail, never a HUD notice (#168)
   const aNav = root.querySelector('[data-goto="prestaties"]');
   if (aNav) aNav.toggleAttribute('data-new', unseenAchievementCount() > 0);
   setN('todo', fresh ? 'nieuw' : '');
-  setN('verhaal', fresh || met ? 'nieuw' : '');
-  const pSub = root.querySelector('[data-of="telefoon"][data-subtab="berichten"]');
-  if (pSub) pSub.toggleAttribute('data-new', unread);
+  setN('verhaal', unread ? String(unreadN) : fresh || met ? 'nieuw' : '', unread ? `${unreadN} ongelezen` : '');
+  if (vNav && unread) vNav.toggleAttribute('data-new', true);
 }
 
+// Berichten en bellen staan onder een personage (verhaalui.js, phone.js): opnieuw tekenen na een gesprek of bericht
 function renderPhone() {
-  const panel = root.querySelector('[data-panel="telefoon"]');
+  const block = root.querySelector('[data-vh-phone]');
   try {
-    renderPhonePanel(panel, world, pref.sub.telefoon || 'contacten');
-    const n = phoneUnread(world);
-    const c = panel.querySelector('[data-count="berichten"]');
-    if (c) c.textContent = n ? String(n) : '';
-    if (tab === 'telefoon') sheet.querySelector('.pm-sheet-sub').textContent = `${PHONE_NAME} · ${n ? `${n} ongelezen` : 'geen nieuwe berichten'}`;
+    if (block && tab === 'verhaal') renderVerhaal(activePanel(), 'personages', world);
   } catch (err) { console.error('telefoon', err); }
   syncNavBadges();
+}
+
+// Spel: het tabblad Overzicht tekent zich opnieuw, de rest houdt zijn vaste inhoud (#430)
+function afterSpelSub() {
+  if (pref.sub.spel === 'overzicht') renderOverviewPanel();
+  else sheetNote('');
+  syncFooter();
 }
 
 function renderVerhaalPanel() {
@@ -1442,8 +1454,8 @@ function renderVerhaalPanel() {
       disposeVerhaalViewer();
       for (const sub of panel.querySelectorAll('[data-of="verhaal"][data-sub]:not([data-keep])')) sub.innerHTML = '';
       renderTodoStory(panel.querySelector('[data-sub="opdrachten"]'), world);
-    } else renderVerhaal(panel, view);
-    if (tab === 'verhaal') sheet.querySelector('.pm-sheet-sub').textContent = view === 'opdrachten' ? todoSummary(world).sub : verhaalSummary();
+    } else renderVerhaal(panel, view, world);
+    if (tab === 'verhaal') sheetNote(view === 'opdrachten' ? todoSummary(world).sub : verhaalSummary());
   } catch (err) { console.error('verhaal', err); }
   syncNavBadges();
 }
@@ -1483,10 +1495,9 @@ export function pauseMenuTab() {
 // The sheet's subtitle for the garage and prestaties comes from their own
 // heading (hidden in the sheet, the sheet title says it already).
 function syncSheetSub() {
-  const subEl = sheet.querySelector('.pm-sheet-sub');
   if (tab === 'garage' || tab === 'prestaties') {
     const s = activePanel().querySelector('.pm-inner');
-    if (s && s.dataset.sub) subEl.textContent = s.dataset.sub;
+    if (s && s.dataset.sub) sheetNote(s.dataset.sub);
   }
 }
 
@@ -1504,14 +1515,18 @@ function syncFooter() {
   if (!root) return;
   const pad = isPadActive();
   const back = prestart ? 'terug naar het hoofdmenu' : origin !== 'home' ? 'doorgaan' : 'terug';
-  let hints = HINTS[tab] || HINTS.overzicht;
+  let hints = HINTS[atHome() ? 'overzicht' : tab] || HINTS.overzicht;
   if (prestart) hints = hints.map(([k, l, a]) => [k, l, a === 'resume' ? 'back' : a]);
   root.querySelector('.pm-footer').innerHTML = hints.map((h) => hintHtml(h, pad, back)).join('');
 }
 
 function showTab(name, how) {
   const ids = sectionIds();
-  if (name === 'game' || name === 'missions') name = name === 'game' ? HOME : 'todo';
+  // de oude namen: Overzicht is Spel > Overzicht, de telefoon is Verhaal > Contacten of Berichten, cheats zijn een onderdeel van Instellingen
+  if (name === 'overzicht' || name === 'game') { pref.sub.spel = 'overzicht'; name = 'spel'; }
+  if (name === 'telefoon') { pref.sub.verhaal = 'personages'; name = 'verhaal'; }
+  if (name === 'missions') name = 'todo';
+  if (name === 'cheats') name = 'streken';
   if (name === 'jobs') { pref.sub.todo = 'alles'; name = 'todo'; }
   if (!ids.includes(name)) name = prestart ? 'settings' : HOME;
   if (how) origin = how;
@@ -1534,22 +1549,21 @@ function showTab(name, how) {
   const [, label, hint] = sectionOf(name);
   sheet.querySelector('.pm-sheet-title').textContent = label;
   sheet.querySelector('.pm-sheet-sub').textContent = SHEET_NOTE[name] || hint;
+  if (name !== 'map') sheetNote('');
   root.querySelector('[data-action="reset"]').hidden = name !== 'settings';
   if (prev !== name) {
     sheet.classList.remove('pm-enter', 'pm-swap');
     void sheet.offsetWidth;
     sheet.classList.add('pm-swap');
   }
-  if (!prestart && name !== HOME && pref.last !== name) { pref.last = name; savePref(); }
+  if (!prestart && !atHome() && pref.last !== name) { pref.last = name; savePref(); }
   if (name === 'map') {
     const r = getDiscoveredRatio();
     sheet.querySelector('.pm-sheet-eb').hidden = r < 0.01;
     if (r >= 0.01) sheet.querySelector('.pm-sheet-eb').textContent = `${Math.round(r * 100)}% van Grunn verkend`;
   } else sheet.querySelector('.pm-sheet-eb').hidden = true;
-  if (name === HOME) renderOverviewPanel();
   if (name === 'todo') { showSubtab('todo', pref.sub.todo || 'alles'); renderTodoPanel(); }
   if (name === 'spullen') renderSpullenPanel();
-  if (name === 'telefoon') { showSubtab('telefoon', pref.sub.telefoon || 'contacten'); renderPhone(); }
   if (name === 'garage') { renderGaragePanel(garageEl(), world); syncSheetSub(); }
   if (name === 'verhaal') { showSubtab('verhaal', pref.sub.verhaal || 'opdrachten'); renderVerhaalPanel(); }
   if (name === 'streken') { if (prev !== 'streken') resetCheatsPanel(); renderCheats(); }
@@ -1557,12 +1571,13 @@ function showTab(name, how) {
   if (name === 'spelers') renderSpelersPanel(root.querySelector('[data-panel="spelers"] .pm-inner'), world, closePauseMenu);
   if (name === 'samen') renderSamenPanel(root.querySelector('[data-panel="samen"] .pm-inner'), world, closePauseMenu);
   if (name === 'prestaties') { renderAchievementsPanel(root.querySelector('[data-panel="prestaties"] .pm-inner')); syncSheetSub(); }
-  if (name === 'loopbaan') renderLoopbaanPanel(root.querySelector('[data-panel="loopbaan"] .pm-inner'), closePauseMenu);
+  if (name === 'loopbaan') renderLoopbaanPanel(root.querySelector('[data-panel="loopbaan"] .pm-inner'), closePauseMenu, world);
   if (name === 'visboek') renderVisboekPanel(root.querySelector('[data-panel="visboek"] .pm-inner'));
   if (name === 'boerderij') renderBoerderijPanel(root.querySelector('[data-panel="boerderij"] .pm-inner'), world);
   if (name === 'controls') { const q = root.querySelector('[data-controls-search]'); q.value = ''; filterControls(''); showSubtab('controls', pref.sub.controls || 'toetsen'); bindMsg = ''; renderBinds(); }
   if (prev === 'controls' && name !== 'controls') cancelRebind();
-  if (name === 'spel') { showSubtab('spel', pref.sub.spel || subsOf('spel')[0][0]); syncControls(); syncSaveButtons(); }
+  if (name === 'spel') { showSubtab('spel', pref.sub.spel || subsOf('spel')[0][0]); syncControls(); syncSaveButtons(); afterSpelSub(); }
+  if (name === 'samen') root.querySelector('[data-spelers-nav]').hidden = !(world && world.coopNet);
   if (name === 'settings') { showSubtab('settings', pref.sub.settings || 'video'); syncControls(); syncDesktopControls(); }
   if (prev !== name) { const p = activePanel(); if (p) p.scrollTop = 0; }
 }
@@ -1572,10 +1587,13 @@ function showTab(name, how) {
 // opens Te doen on one item.
 export function openPauseMenu(name = HOME, opts = {}) {
   if (opts.prestart) prestart = { onClose: opts.onClose || null };
+  if (name === 'overzicht') { pref.sub.spel = 'overzicht'; name = 'spel'; }
+  if (name === 'cheats') name = 'streken';
   if (opts.sub && SUBTABS[name]) pref.sub[name] = opts.sub;
   if (opts.select) selectTodo(opts.select);
   if (opts.view) pref.sub.todo = opts.view;
-  if (opts.thread) { selectPhoneThread(opts.thread); pref.sub.telefoon = 'berichten'; }
+  if (opts.thread) { selectPhoneThread(opts.thread); selectVerhaalCharacter(characterForSender(opts.thread)); pref.sub.verhaal = 'personages'; if (name === 'telefoon') name = 'verhaal'; }
+  if (name === 'telefoon') { pref.sub.verhaal = 'personages'; name = 'verhaal'; }
   setOpen(true, name, 'direct');
 }
 
@@ -1605,7 +1623,7 @@ function setOpen(value, name = HOME, how = 'direct') {
     refreshInfo();
     syncRail();
     showTab(name, how);
-    if (tab === HOME) focusEl(root.querySelector('[data-action="resume"]'));
+    if (atHome()) focusEl(root.querySelector(`${OV_SUB} [data-action="resume"]`) || root.querySelector('[data-action="resume"]'));
     else focusSheet();
   } else {
     if (world) setMapActive(world, false);

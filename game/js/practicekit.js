@@ -12,7 +12,7 @@ export const STEPS = [
   { id: 'instappen', title: 'Instappen', body: 'Loop naar een fiets of auto en stap in met {E}.', need: { enter: 1 } },
   { id: 'rijden', title: 'Rijden', body: 'Rijd een stukje met {WASD}. Rem op tijd en let op het verkeer.', need: { drive: 40 } },
   { id: 'uitstappen', title: 'Uitstappen', body: 'Stap weer uit met {E}.', need: { exit: 1 } },
-  { id: 'menu', title: 'Het menu', body: 'Open het menu met {ESC}. Onder Te doen staat alles wat nog openstaat.', need: { menu: 1 } },
+  { id: 'menu', title: 'Het menu', body: 'Open het menu met {ESC}. Onder Verhaal en Activiteiten staat alles wat nog openstaat.', need: { menu: 1 } },
 ];
 export const DONE = { title: 'Oefenronde klaar', body: 'Dat was het. Onder {ESC} › Instellingen › Besturing › Hulp staat alles nog een keer, en je kunt de oefenronde daar opnieuw doen.' };
 

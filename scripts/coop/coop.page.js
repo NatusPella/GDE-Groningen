@@ -326,8 +326,8 @@ const PHASES = {
   // het onderdeel Spelers in het pauzemenu (#377)
   async spelersmenu({ name = 'g-spelersmenu' }) {
     await esc();
-    await until(() => document.querySelector('.ra[data-goto="spelers"]'), 8000, 'rail-knop Spelers');
-    document.querySelector('.ra[data-goto="spelers"]').click();
+    await until(() => document.querySelector('.ra[data-goto="samen"]'), 8000, 'rail-knop Samen');
+    document.querySelector('.ra[data-goto="samen"]').click(); await sleep(600); await until(() => document.querySelector('#pause-menu [data-spelers-nav] [data-goto="spelers"]'), 8000, 'knop Spelers'); document.querySelector('#pause-menu [data-spelers-nav] [data-goto="spelers"]').click();
     await sleep(1200);
     const p = document.querySelector('#pause-menu [data-panel="spelers"]');
     const rail = document.querySelector('#pause-menu .pm-rail .pm-game'), opsl = document.querySelector('#pause-menu [data-action="save"]');
