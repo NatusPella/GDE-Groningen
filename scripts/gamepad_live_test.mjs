@@ -171,7 +171,7 @@ pad2.buttons[0].pressed = false; pad2.buttons[0].value = 0; frame(2);
 {
   const { bindButton } = await import('../game/js/controls.js');
   const { capturePadButton } = await import('../game/js/gamepad.js');
-  pads[0] = pad; zet('foot'); reset();
+  pads[0] = null; frame(2); pads[0] = pad; press('lb'); frame(2); press('lb', false); zet('foot'); reset(); // eerste knop: het Xbox-pad wordt weer herkend
   setSetting('padBinds', bindButton({}, 'a', 'b').binds);
   press('b'); frame(2);
   ok(seen.some((s) => s[0] === 'down' && s[1] === ' '), 'herbinden: de fysieke B doet nu wat A deed (spatie)', seen);
@@ -184,6 +184,33 @@ pad2.buttons[0].pressed = false; pad2.buttons[0].value = 0; frame(2);
   reset(); press('x'); frame(2); press('x', false); frame(2);
   ok(gevangen === 'x' && !seen.some((s) => s[0] === 'down'), 'herbinden: de volgende knop gaat naar het herbindscherm', [gevangen, seen]);
   setSetting('padBinds', {});
+  reset();
+}
+
+// Nintendo-indeling (#151): de keuze 'switch' zet bevestigen op de rechterknop en terug op de onderste; Automatisch laat alles zoals het was
+{
+  const { capturePadButton } = await import('../game/js/gamepad.js');
+  setSetting('padLayout', 'switch'); zet('foot'); reset();
+  ok(padState().family === 'switch', 'Nintendo: de keuze bepaalt de indeling, ook bij een pad dat zich als Xbox meldt', padState());
+  press('b'); frame(2); press('b', false); frame(2);
+  ok(seen.some((s) => s[0] === 'down' && s[1] === ' '), 'Nintendo: de rechterknop doet wat A deed (spatie)', seen);
+  seen.length = 0; press('a'); frame(2); press('a', false); frame(2);
+  ok(seen.some((s) => s[0] === 'down' && s[1] === 'Control'), 'Nintendo: de onderste knop doet wat B deed (Control)', seen);
+  seen.length = 0; press('y'); frame(2); press('y', false); frame(2);
+  ok(seen.some((s) => s[0] === 'down' && s[1] === 'f'), 'Nintendo: de bovenste knop doet wat X deed (f)', seen);
+  zet('menu'); reset(); press('b'); frame(2);
+  ok(seen.some((s) => s[0] === 'down' && s[1] === 'Enter'), 'Nintendo: in het menu bevestigt de rechterknop (Enter)', seen);
+  press('b', false); frame(2); seen.length = 0; press('a'); frame(2);
+  ok(seen.some((s) => s[0] === 'down' && s[1] === 'Escape'), 'Nintendo: in het menu gaat de onderste knop terug', seen);
+  press('a', false); frame(2);
+  // de herbindscherm slaat op wat de speler fysiek indrukt, met de wissel teruggerekend
+  let gevangen = null; capturePadButton((b) => { gevangen = b; });
+  reset(); press('b'); frame(2); press('b', false); frame(2);
+  ok(gevangen === 'a', 'Nintendo: herbinden slaat de rechterknop op als het spel-A (wissel teruggerekend)', gevangen);
+  setSetting('padLayout', 'auto'); zet('foot'); reset();
+  press('lb'); frame(2); press('lb', false); frame(2);
+  press('a'); frame(2); press('a', false); frame(2);
+  ok(padState().family === 'xbox' && seen.some((s) => s[0] === 'down' && s[1] === ' '), 'Automatisch: terug naar de gewone indeling, onderste knop is A', [padState().family, seen]);
   reset();
 }
 

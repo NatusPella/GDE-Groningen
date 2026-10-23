@@ -173,11 +173,20 @@ export function normalizePadBinds(binds) {
 }
 
 // physical button -> the slot it plays
-export function buttonSlots(binds) {
+export function buttonSlots(binds, layout) {
   const m = {};
-  for (const s of PAD_BUTTONS) m[physicalButton(binds, s)] = s;
+  for (const s of PAD_BUTTONS) m[nintendoSwap(physicalButton(binds, s), layout)] = s;
   return m;
 }
+
+// Nintendo-indeling ('switch'): bevestigen zit op de rechterknop en terug op de
+// onderste (A/B en X/Y wisselen van plek). Alleen de vier gezichtsknoppen.
+const NINTENDO_SWAP = { a: 'b', b: 'a', x: 'y', y: 'x' };
+export function nintendoSwap(phys, layout) {
+  return layout === 'switch' && NINTENDO_SWAP[phys] ? NINTENDO_SWAP[phys] : phys;
+}
+// Het label van een spelknop in de hints: bij Nintendo staat 'a' op de rechterknop.
+export function glyphFaceSlot(slot, family) { return nintendoSwap(slot, family); }
 
 // What each button does per situation. A string is a key (held while the
 // button is); '@...' are the mouse stand-ins: @fire (left button), @aim
@@ -289,7 +298,7 @@ export function padInfo(id, mapping = '') {
   else if (/pro controller/.test(s)) name = 'Controller met wisselende letters';
   let note = '';
   if (!id) note = 'Geen controller gevonden. Druk op een knop.';
-  else if (!standard) note = 'Dit pad meldt geen standaardindeling: de knoppen kunnen verkeerd liggen. Zet de controller in de standaardmodus (letterknoppen), of kies bij Knoppen tonen als de juiste indeling.';
+  else if (!standard) note = 'Dit pad meldt geen standaardindeling: de knoppen kunnen verkeerd liggen. Zet de controller in de standaardmodus (letterknoppen), of kies bij Controllerindeling de juiste indeling.';
   return { family, name: id ? name : '', standard, note };
 }
 

@@ -6,7 +6,7 @@
 // so modules that write hints need to know nothing about this. Inside an
 // element with `data-pad-ctx` (the Besturing table) that situation is used
 // instead of the current one; `data-g-raw` opts a keycap out.
-import { PAD_LAYOUTS, PAD_MAPS, padSlotFor, physicalKey, tokenKey, keyName } from './controls.js';
+import { PAD_LAYOUTS, PAD_MAPS, glyphFaceSlot, padSlotFor, physicalKey, tokenKey, keyName } from './controls.js';
 import { getSettings, onSettingsChange } from './settings.js';
 import { onPadChange, padState } from './gamepad.js';
 import { touchLabelForToken } from './touchlogic.js';
@@ -33,9 +33,9 @@ export function padGlyphInner(slot, family = padState().family) {
   const L = PAD_LAYOUTS[family] || PAD_LAYOUTS.xbox;
   const label = SLOT_WORDS[slot] || slot;
   if (['a', 'b', 'x', 'y'].includes(slot)) {
-    const t = L[slot];
+    const t = L[glyphFaceSlot(slot, family)];
     const inner = PS_SHAPES[t] ? `<svg viewBox="0 0 20 20" aria-hidden="true">${PS_SHAPES[t]}</svg>` : t;
-    return `<span class="pad-g pad-face" data-slot="${slot}" role="img" aria-label="${label}">${inner}</span>`;
+    return `<span class="pad-g pad-face" data-slot="${slot}" role="img" aria-label="${SLOT_WORDS[glyphFaceSlot(slot, family)]}">${inner}</span>`;
   }
   if (['up', 'down', 'left', 'right', 'dpad'].includes(slot)) return `<span class="pad-g pad-dp" role="img" aria-label="${label}">${DPAD(slot === 'dpad' ? '' : slot)}</span>`;
   if (slot === 'lstick' || slot === 'rstick' || slot === 'ls' || slot === 'rs') {

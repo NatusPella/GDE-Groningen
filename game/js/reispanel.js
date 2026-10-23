@@ -61,7 +61,8 @@ export function askTravel(beat) {
       let pad = null;
       try { pad = (navigator.getGamepads ? [...navigator.getGamepads()] : []).find((g) => g && g.connected); } catch (e) { /* none */ }
       if (!pad) return;
-      const now = { up: pad.buttons[12]?.pressed || (pad.axes[1] || 0) < -0.6, down: pad.buttons[13]?.pressed || (pad.axes[1] || 0) > 0.6, a: pad.buttons[0]?.pressed, b: pad.buttons[1]?.pressed };
+      const nint = document.documentElement.dataset.pad === 'switch'; // Nintendo-indeling: bevestigen rechts
+      const now = { up: pad.buttons[12]?.pressed || (pad.axes[1] || 0) < -0.6, down: pad.buttons[13]?.pressed || (pad.axes[1] || 0) > 0.6, a: pad.buttons[nint ? 1 : 0]?.pressed, b: pad.buttons[nint ? 0 : 1]?.pressed };
       if (now.up && !held.up) { pick = cyclePick(beat, pick, -1); p.set(panelState(beat, pick, loadSeen())); }
       if (now.down && !held.down) { pick = cyclePick(beat, pick, 1); p.set(panelState(beat, pick, loadSeen())); }
       if (now.a && !held.a) { finish(pick); return; }
