@@ -6,6 +6,16 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Nieuw
+- Boerderij (#437): de bietenoogst bij Hoogkerk heet nu 'Loonwerk: bietenoogst' en staat onder Boerderij, met een verwijzing naar je eigen akker. Bij het ploegen, zaaien, bemesten en oogsten staat uitgelegd wat je moet doen: de machine werkt vanzelf zodra je in de rij rijdt (geen knop nodig), welke snelheid in km/u de rij wil en dat harder rijden slordig werk is. Stoppen kan altijd via Esc, en na je dienst staat je akker met de volgende klus als doel op de kaart.
+- Hengelen (#437): de hengel zwiept uit, de lijn hangt door, het dobbertje dobbert, trilt en zakt bij een beet, er komt een plons en een gevangen vis springt even op voordat hij terug het water in gaat. Werkt ook vanuit een boot.
+- Pitch en put (#436): de bal is veel kleiner dan het hol, en de camera staat altijd over de schouder van de speler. Er is een beurtmodel voor meer spelers klaar (wie het verst van het hol ligt slaat); het koppelen aan meerdere spelers volgt.
+- Wapens (#437): een gekocht wapen blijft van jou als de patronen op zijn, en een net gekocht wapen neem je meteen in de hand. Een leeg wapen klikt alleen.
+- Pootje baden (#437): bij het strand staat nu wat het oplevert (+30 gezondheid en een poosje fit).
+
+### Opgelost
+- Discgolf (#436): de schijf springt niet meer van de boom of de mand naar de grond, en de voorbeeldlijn bij de mand knippert niet meer.
+
 ## [0.44.0] - 2026-10-23
 
 ### Nieuw
