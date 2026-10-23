@@ -7,7 +7,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 ## [Unreleased]
 
 ### Nieuw
-- Samen spelen (#439): in het onderdeel Spelers staat bij elke speler de knop 'Spel overdragen'. Het overdragen zelf werkt nog niet: je krijgt de melding 'Nog niet beschikbaar' en je houdt het spel.
+- Samen spelen (#439): wie het spel opende kan het overdragen aan een andere speler (Spel, Spelers, knop 'Spel overdragen'). Die speler krijgt de vraag met J of N (zonder antwoord is het nee), daarna staat het spel bij iedereen heel even stil. Tijd van de dag, weer, gezocht niveau, de lopende opdracht en kapotte dingen gaan mee; verkeer, voetgangers en dieren ontstaan opnieuw. De anderen en wie het spel opende sluiten vanzelf aan bij de nieuwe speler, zonder nieuwe code. Ieders eigen geld en voortgang blijven van zichzelf. Lukt het niet (nee, geen antwoord, niet bereikbaar, speler valt weg), dan zie je 'Jij houdt het spel.' en gaat het spel gewoon door. Alleen met een kamercode; getest met nepverbindingen, nog niet over echt internet en nog niet in beeld bekeken.
 
 ## [0.45.0] - 2026-10-23
 
