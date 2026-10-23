@@ -6,6 +6,9 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Nieuw
+- Samen spelen (#429, eerste stap): bij het begin van een opdracht van de gastheer vraagt het spel elke gast "Meedoen met ...?": J is ja, N is nee, en wie niets zegt doet na 10 seconden mee. Wie niet meedoet loopt vrij rond (geen "Je kijkt even mee", de opdracht houdt hem niet op zijn plek) en krijgt geen deel van de beloning; waar het verhaal jouw rol nodig heeft is meedoen verplicht.
+
 ## [0.43.0] - 2026-10-23
 
 ### Nieuw
