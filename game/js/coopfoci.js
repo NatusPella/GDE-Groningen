@@ -51,6 +51,15 @@ export function bouwFoci(host, reg, { max = FOCI_MAX, samenvoeg = SAMENVOEG_M, m
   return { foci, bediend, buiten };
 }
 
+// Wie dicht bij een losse groep spelers is (binnen 200 m) blijft echt op de hoofdthread: de simulatiewerker neemt wat buiten 150 m van de
+// gastheer is over, en dan zagen de gasten die voertuigen en voetgangers niet meer. Zonder losse groepen: dezelfde lijst, zonder kopie.
+export function nietBijFoci(world, lijst) {
+  const f = world.coopFoci;
+  if (!f || f.length < 2) return lijst;
+  const los = f.filter((q) => !q.host);
+  return lijst.filter((o) => { for (const q of los) if (Math.hypot(o.x - q.x, o.y - q.y) < 200) return false; return true; });
+}
+
 // Het aandeel van verkeer en voetgangers per focus: een speler alleen krijgt alles, meerdere foci delen het totaalbudget
 export function aandeel(n) { return n <= 1 ? 1 : Math.min(1, TOTAAL_BEVOLKING / n); }
 

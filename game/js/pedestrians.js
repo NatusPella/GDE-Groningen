@@ -3,7 +3,7 @@ export { isInsideBuilding, isOnRoad, lineOfSight, setPedPose, pushAudioEvent };
 import { DEAD_DURATION } from './pedconst.js';
 export { DEAD_DURATION };
 import { scaledTarget, farAIDist, skipFar, takeDt } from './simload.js';
-import { aandeel } from './coopfoci.js';
+import { aandeel, nietBijFoci } from './coopfoci.js';
 import { inClearZone } from './clearzone.js';
 import { openDriverDoor } from './vehicledoors.js';
 import { profileOf } from './signalement.js';
@@ -1171,7 +1171,7 @@ export function updatePedestrians(dt, world) {
   const farAI = farAIDist();
   // ver weg lopende wandelaars worden door de simulatieworker gestuurd (simbridge.js, #58)
   const simBridge = FLAGS.simworker && map.roads ? getSimBridge(map) : null;
-  if (simBridge) simBridge.update(dt, player, peds, world.time);
+  if (simBridge) simBridge.update(dt, player, nietBijFoci(world, peds), world.time);
   for (let i = peds.length - 1; i >= 0; i--) {
     const ped = peds[i];
     if (ped.scripted) continue; // posed by its owner (fierljep.js)
