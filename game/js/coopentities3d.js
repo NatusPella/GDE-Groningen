@@ -4,6 +4,7 @@
 // gegevens komen uit world.coopHost (coopnet.js). Niet in beeld bekeken.
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getScene } from './scene3d.js';
+import { buildVehicleMesh } from './models3d_vehicles.js';
 
 const voertuigen = new Map(); // id -> mesh
 const voetgangers = new Map(); // id -> mesh (de voetgangers van de host in de buurt, als eenvoudige poppetjes)
@@ -11,7 +12,31 @@ let beacon = null;
 const MATS = {};
 const mat = (c) => (MATS[c] ||= new THREE.MeshStandardMaterial({ color: c, roughness: 0.7 }));
 
+// De snapshot kent alleen de soort, niet het model of de kleur: een gast tekent het echte model van
+// die soort (zelfde bouwer als de host), met een stabiele variatie op het id. Lukt dat niet, dan het blok.
+const AUTO_MODELLEN = ['hatch', 'sedan', 'wagon', 'suv', 'sport'];
+const AUTO_KLEUREN = ['#9aa3ad', '#b33a3a', '#2f5f9a', '#e8e6e0', '#3d7a52', '#c9a227', '#222428'];
+function echteMesh(v) {
+  const h = (v.id * 2654435761) >>> 0;
+  const model = { name: 'hatch', len: v.len, wid: v.wid, color: v.kleur };
+  const pv = { id: v.id, model, wrecked: false };
+  switch (v.soort) {
+    case 'auto': model.name = AUTO_MODELLEN[h % AUTO_MODELLEN.length]; model.color = AUTO_KLEUREN[(h >>> 8) % AUTO_KLEUREN.length]; break;
+    case 'bakkie': model.name = 'van'; model.color = AUTO_KLEUREN[(h >>> 8) % AUTO_KLEUREN.length]; break;
+    case 'politie': pv.isPolice = true; model.name = 'wagon'; break;
+    case 'bus': pv.isBus = true; model.name = 'bus'; break;
+    case 'vracht': model.name = 'truck'; break;
+    case 'fiets': pv.isBike = true; break;
+    case 'scooter': pv.isScooter = true; break;
+    case 'motor': pv.isScooter = true; model.motorbike = true; break;
+    default: return null;
+  }
+  try { return buildVehicleMesh(pv); } catch (e) { return null; }
+}
+
 function bouw(v) {
+  const echt = echteMesh(v);
+  if (echt) return echt;
   const g = new THREE.Group();
   const romp = new THREE.Mesh(new THREE.BoxGeometry(v.len, v.hoogte * 0.55, v.wid), mat(v.kleur));
   romp.position.y = v.hoogte * 0.45; romp.castShadow = true;
@@ -44,7 +69,7 @@ export function syncHostEntities(world) {
     const gz = world.map && world.map.groundHeightAt && world.map.elev && world.map.elev.has ? (() => { try { return world.map.groundHeightAt(v.x, v.y); } catch (e) { return 0; } })() : 0;
     m.position.set(v.x, gz, v.y); m.rotation.y = -v.angle;
   }
-  for (const [id, m] of voertuigen) if (!seen.has(id)) { scene.remove(m); m.traverse((o) => { if (o.geometry) o.geometry.dispose(); }); voertuigen.delete(id); }
+  for (const [id, m] of voertuigen) if (!seen.has(id)) { scene.remove(m); if (!m.userData.vehicleId) m.traverse((o) => { if (o.geometry) o.geometry.dispose(); }); voertuigen.delete(id); } // echte modellen delen hun geometrie
   const zienP = new Set();
   for (const p of host.voetgangers || []) {
     zienP.add(p.id);
