@@ -966,14 +966,8 @@ export function generateClutter(ctx) {
         row(ctx, P.bollards[inner ? 0 : 1], 'bollard', cx, cy, -ty, tx, n, 1.4, Math.atan2(ty, tx), 0.12);
       }
     }
-    S((r) => (r.cat === 'minor' || r.cat === 'normal') && !r.bridge, 24, (r, x, y, segA) => {
-      if (rng.next() > (inner ? 0.3 : 0.1)) return;
-      const side = rng.next() < 0.5 ? 1 : -1;
-      const nx = -Math.sin(segA) * side, ny = Math.cos(segA) * side;
-      const off = (r.width || 5) / 2 + 0.3;
-      const n = 4 + Math.floor(rng.next() * 6);
-      row(ctx, pick(rng, P.bollards), 'bollard', x + nx * off, y + ny * off, Math.cos(segA), Math.sin(segA), n, 1.6, segA, 0.12);
-    });
+    // (rows of four to nine posts along the kerb of a street are gone: they stood in front of shop windows, in the Folkingestraat
+    // among others (#419), and no street has them; the posts at the mouth of a pedestrian street above and the mapped ones stay)
   }
 
   // Planters in pedestrian areas.
