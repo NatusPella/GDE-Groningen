@@ -30,6 +30,7 @@ import { reportCrime } from './crime.js';
 import { shift as shiftGear } from './gearbox.js';
 import { wielInvoer } from './coopgast.js';
 import { buildingAt } from './tileplace.js';
+import { isMissieVoertuig } from './missievoertuig.js';
 export { resolveBuildingCollisions };
 
 const BIKE_SPRINT_S = 2.5;
@@ -789,8 +790,8 @@ export class Player {
 
   enterVehicle(v, world) {
     if (!v || v.driver || v.wrecked || v.sinking) return;
-    const own = v.isHeroCar || v.playerOwned || v.missionCar;
     const driven = !!v.road || !!v.countryDrive; // an AI driver: city traffic or an Ommeland road user
+    const own = v.isHeroCar || v.playerOwned || v.missionCar || isMissieVoertuig(world, v, driven);
     const stolen = !own && (driven || v.parked || (v.isPolice && !v.hijacked));
     v.carjacked = !own && driven; // its AI driver gets pulled out (pedestrians.js)
     v.driver = 'player';
