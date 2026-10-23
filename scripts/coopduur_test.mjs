@@ -140,7 +140,7 @@ t('een gastheer die niet antwoordt (laadt, hangt of is weg): de gast geeft het n
   assert.equal(ses.status, 'verbinden', 'de eerste seconden blijft hij proberen (elke seconde een hallo)');
   for (let s = 0; s < 3; s += 0.1) { ses.tick(0.1); link.advance(0.1); }
   assert.equal(ses.status, 'geweigerd'); assert.equal(ses.rejected, 'time-out');
-  assert.match(REASON_TEXT['time-out'], /gastheer antwoordt niet/);
+  assert.match(REASON_TEXT['time-out'], /ander antwoordt niet/);
   const lob = (reden, ander) => L.view([{ t: 'kies', rol: 'gast' }, { t: 'verbinden' }, { t: 'status', status: 'geweigerd', reason: reden, ander }].reduce((x, e) => L.reduce(x, e), L.createLobby({ direct: true, rtc: true }))).lines[0];
   assert.match(lob('time-out', ''), /antwoordt niet/); assert.match(lob('protocol', '0.42.0'), /versie 0\.42\.0/, 'een ander protocol toont de versie van de ander');
   // een andere versie van het protocol toont de versies en wat te doen
