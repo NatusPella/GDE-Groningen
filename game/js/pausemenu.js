@@ -369,7 +369,8 @@ function settingsHtml() {
   return `${subtabsHtml('settings', 'Onderdeel')}
     ${tab('video', `
       <div class="pm-advice" data-bench-banner hidden></div>
-      ${picker('preset', 'Voorinstelling', presets, '', 'data-preset-pick')}
+      <div class="m-li pm-row"><span class="nm" id="pm-l-presetknoppen">Voorinstelling</span><span class="pm-chips" role="radiogroup" aria-labelledby="pm-l-presetknoppen">${presets.map(([n, l]) => `<button type="button" class="m-chip" role="radio" data-preset-btn="${n}" aria-checked="false"${n === 'eigen' ? ' aria-disabled="true"' : ''}>${l}</button>`).join('')}</span></div>
+      <div hidden>${picker('preset', 'Voorinstelling', presets, '', 'data-preset-pick')}</div>
       ${picker('resolution', 'Resolutie', [['1', '100%'], ['0.85', '85%'], ['0.75', '75%'], ['0.6', '60%']])}
       ${toggle('autoResolution', 'Automatische resolutie', 'bij haperen')}
       ${toggle('zuinig', 'Zuinige modus', '30 beelden per seconde, spaart batterij en warmte')}
@@ -484,7 +485,8 @@ function spelHtml() {
       ${toggle('driftAssist', 'Driften met hulp', 'Helpt tegensturen en houdt een slip beheersbaar; uit is realistischer')}
       ${toggle('bikeAssist', 'Motor met hulp', 'Houdt een motor of brommer rechtop in bochten; uit is realistischer')}
       <div class="m-gh"><span>Kaart</span></div>
-      ${toggle('mapShiftTeleport', 'Shift+klik op de kaart verplaatst je', 'Niet tijdens een missie of met de politie achter je aan')}`, `${pane('Spel', 'Zo speelt het', '<p>Hoe het verkeer, het geweld en het rijden aanvoelen. Alles wordt meteen bewaard.</p><p class="mut">Beeld, geluid, besturing en toegankelijkheid staan onder Instellingen.</p>')}`)}
+      <div class="m-li pm-row pm-ingame">${rowName('Cheats', 'Een beetje vals spelen')}<button type="button" class="m-bg" data-goto="streken">Openen</button></div>
+      ${toggle('mapShiftTeleport','Shift+klik op de kaart verplaatst je', 'Niet tijdens een missie of met de politie achter je aan')}`, `${pane('Spel', 'Zo speelt het', '<p>Hoe het verkeer, het geweld en het rijden aanvoelen. Alles wordt meteen bewaard.</p><p class="mut">Beeld, geluid, besturing en toegankelijkheid staan onder Instellingen.</p>')}`)}
     ${tab('camera', `
       ${slider('fov', 'Beeldhoek', 50, 90, 1)}
       ${slider('cameraDistance', 'Camera-afstand', 0.8, 1.6, 0.05)}
@@ -587,6 +589,8 @@ export function initPauseMenu(w) {
     if (hint) { if (hint.dataset.hint === 'back') goBack(); else runAction(hint.dataset.hint); return; }
     const fold = e.target.closest('[data-fold]');
     if (fold) { toggleFold(fold); return; }
+    const pb = e.target.closest('[data-preset-btn]');
+    if (pb) { if (pb.dataset.presetBtn !== 'eigen') applyPreset(pb.dataset.presetBtn); syncControls(); return; } // de voorinstellingen zijn weer knoppen (#435)
     const pick = e.target.closest('[data-pick]');
     if (pick) { stepPicker(pick.closest('.m-pk'), Number(pick.dataset.pick)); return; }
     if (e.target.closest('[data-pad-test]')) { openPadTest(); return; }
@@ -1323,6 +1327,7 @@ function syncPresets(st) {
   const pk = root.querySelector('[data-preset-pick]');
   const { options, i } = pickerState(pk);
   pk.querySelector('output').textContent = options[i][1];
+  for (const b of root.querySelectorAll('[data-preset-btn]')) b.setAttribute('aria-checked', String(b.dataset.presetBtn === cur));
   const [prev, next] = pk.querySelectorAll('[data-pick]');
   prev.setAttribute('aria-disabled', String(i === 0));
   next.setAttribute('aria-disabled', String(i === options.length - 1));
