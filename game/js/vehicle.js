@@ -1,3 +1,4 @@
+import { minAfstand } from './coopfoci.js';
 import { linesNear, project as projectOnLine, makeRunner, stepRunner, startAt, busMagWeg } from './busroutes.js';
 import { assistDamage } from './assistlive.js';
 import { closestPointOnSegment, normalizeAngle, clamp, lerp, pointInPolygon, inMapWater, WATER_Y, keepBoatOffShore, boatDryPoints } from './util.js';
@@ -957,6 +958,11 @@ export function spawnHeroCarNear(map, x, y, rng = Math.random) {
 // the time they're on screen.
 // Wrecks stay where they died (smoking) until the player is far away; only
 // when too many pile up does the farthest one go, so the scene stays light.
+// samen spelen, spelers uit elkaar (#429): met meer dan een focus (world.coopFoci, coopfoci.js) ruimt een voertuig pas op als het bij geen enkele focus
+// in de buurt is, en telt elke focus zijn eigen voertuigen voor zijn doelaantal
+const meerFoci = (world) => !!(world.coopFoci && world.coopFoci.length > 1);
+const focusAfstand = (world, v, player) => (meerFoci(world) ? minAfstand(world.coopFoci, v.x, v.y) : Math.hypot(v.x - player.x, v.y - player.y));
+const lokaalTelt = (world, v, player, dist) => !meerFoci(world) || Math.hypot(v.x - player.x, v.y - player.y) <= dist;
 const MAX_WRECKS = 12;
 function pruneWrecks(world) {
   const { player, vehicles } = world;
@@ -991,13 +997,12 @@ export function dedupeVehicles(vehicles) {
 
 export function manageTrafficPopulation(world, opts = {}) {
   const { map, vehicles } = world;
-  const player = world.cameraOverride && world.streamFocus ? world.streamFocus : world.player; // in a cutscene the traffic fills round the camera's view (#157)
-  dedupeVehicles(vehicles);
+  const player = opts.focus || (world.cameraOverride && world.streamFocus ? world.streamFocus : world.player); // in a cutscene the traffic fills round the camera's view (#157)
+  if (!opts.focus) dedupeVehicles(vehicles);
   // ?simlagen (issue #18): doelaantal en afstanden per streek uit simlagen.js
   const lagen = FLAGS.simlagen ? verkeerOpties(wijkProfileAt(map, player.x, player.y).key, hourOf(world)) : null;
   const { target: targetOpt = lagen ? lagen.target : 30, spawnMin = lagen ? lagen.spawnMin : 70, spawnMax = lagen ? lagen.spawnMax : 170, despawnDist = lagen ? lagen.despawnDist : 260 } = opts;
-  pruneWrecks(world);
-  vehicleHooks.manageParkedCars(world);
+  if (!opts.focus) { pruneWrecks(world); vehicleHooks.manageParkedCars(world); }
   for (let i = vehicles.length - 1; i >= 0; i--) {
     const v = vehicles[i];
     if (v.road && !v.homeStored && v.driver !== 'player' && !v.missionCar && !v.isBoat && inPrivateGarage(map, v.x, v.y)) { vehicles.splice(i, 1); continue; }
@@ -1008,11 +1013,11 @@ export function manageTrafficPopulation(world, opts = {}) {
     // real connection) is cleared the same way rather than left oscillating.
     // een bus die ver van zijn lijn is geraakt (een omweg zonder einde) verdwijnt als niemand kijkt (#322)
     const verdwaald = !!v.busRun && Math.hypot(v.x - player.x, v.y - player.y) > 60 && projectOnLine(v.busRun.line, v.x, v.y).d > BUS_VERDWAALD_M;
-    if ((!v.wrecked && ((v.deadEndBounces || 0) > 2 || (v.stuckFor || 0) > 25 || ((v.waitFor || 0) > 45 && Math.hypot(v.x - player.x, v.y - player.y) > 70))) || verdwaald || Math.hypot(v.x - player.x, v.y - player.y) > despawnDist) vehicles.splice(i, 1);
+    if ((!v.wrecked && ((v.deadEndBounces || 0) > 2 || (v.stuckFor || 0) > 25 || ((v.waitFor || 0) > 45 && Math.hypot(v.x - player.x, v.y - player.y) > 70))) || verdwaald || focusAfstand(world, v, player) > despawnDist) vehicles.splice(i, 1);
   }
 
   let count = 0;
-  for (const v of vehicles) if (!v.wrecked && !v.isPolice && !v.isHeroCar && !v.isBike && !v.isBus && !v.isScooter && !v.isBoat && !v.parked && v.driver !== 'player') count++;
+  for (const v of vehicles) if (!v.wrecked && !v.isPolice && !v.isHeroCar && !v.isBike && !v.isBus && !v.isScooter && !v.isBoat && !v.parked && v.driver !== 'player' && lokaalTelt(world, v, player, despawnDist)) count++;
 
   const candidates = map.roadsNear(player.x, player.y, spawnMax).filter((r) => r.cat !== 'foot' && r.cat !== 'cycle' && r.width >= 3 && !r.busOnly);
   // a hamlet with two short roads takes fewer cars than a city street grid (#265): the target follows the road length in range
@@ -1044,17 +1049,17 @@ export function manageTrafficPopulation(world, opts = {}) {
 // Same idea as manageTrafficPopulation but for cyclists - fietsers are the
 // single most Groningen-defining detail of the streetscape, so they get
 // their own population target, favoring dedicated cycleways when present.
-export function manageBikePopulation(world, { target = 16, spawnMin = 40, spawnMax = 140, despawnDist = 220 } = {}) {
+export function manageBikePopulation(world, { target = 16, spawnMin = 40, spawnMax = 140, despawnDist = 220, focus = null } = {}) {
   const { map, vehicles } = world;
-  const player = world.cameraOverride && world.streamFocus ? world.streamFocus : world.player; // in a cutscene the traffic fills round the camera's view (#157)
+  const player = focus || (world.cameraOverride && world.streamFocus ? world.streamFocus : world.player); // in a cutscene the traffic fills round the camera's view (#157)
   for (let i = vehicles.length - 1; i >= 0; i--) {
     const v = vehicles[i];
     if (!v.isBike || v.driver === 'player') continue;
-    if ((!v.wrecked && ((v.deadEndBounces || 0) > 2 || (v.stuckFor || 0) > 25 || ((v.waitFor || 0) > 45 && Math.hypot(v.x - player.x, v.y - player.y) > 70))) || Math.hypot(v.x - player.x, v.y - player.y) > despawnDist) vehicles.splice(i, 1);
+    if ((!v.wrecked && ((v.deadEndBounces || 0) > 2 || (v.stuckFor || 0) > 25 || ((v.waitFor || 0) > 45 && Math.hypot(v.x - player.x, v.y - player.y) > 70))) || focusAfstand(world, v, player) > despawnDist) vehicles.splice(i, 1);
   }
 
   let count = 0;
-  for (const v of vehicles) if (v.isBike && !v.wrecked && v.driver !== 'player' && v.road) count++;
+  for (const v of vehicles) if (v.isBike && !v.wrecked && v.driver !== 'player' && v.road && lokaalTelt(world, v, player, despawnDist)) count++;
 
   const candidates = map.roadsNear(player.x, player.y, spawnMax)
     .filter((r) => r.cat === 'cycle' || r.cat === 'normal' || r.cat === 'minor');
@@ -1074,16 +1079,17 @@ export function manageBikePopulation(world, { target = 16, spawnMin = 40, spawnM
 
 // Deelscooters follow the same lane/road-preference rules as bikes (cycle
 // lanes, or normal/minor streets when there's no dedicated cycleway).
-export function manageScooterPopulation(world, { target = 10, spawnMin = 40, spawnMax = 140, despawnDist = 220 } = {}) {
-  const { map, player, vehicles } = world;
+export function manageScooterPopulation(world, { target = 10, spawnMin = 40, spawnMax = 140, despawnDist = 220, focus = null } = {}) {
+  const { map, vehicles } = world;
+  const player = focus || world.player;
   for (let i = vehicles.length - 1; i >= 0; i--) {
     const v = vehicles[i];
     if (!v.isScooter || v.isMotor || v.driver === 'player') continue;
-    if ((!v.wrecked && ((v.deadEndBounces || 0) > 2 || (v.stuckFor || 0) > 25 || ((v.waitFor || 0) > 45 && Math.hypot(v.x - player.x, v.y - player.y) > 70))) || Math.hypot(v.x - player.x, v.y - player.y) > despawnDist) vehicles.splice(i, 1);
+    if ((!v.wrecked && ((v.deadEndBounces || 0) > 2 || (v.stuckFor || 0) > 25 || ((v.waitFor || 0) > 45 && Math.hypot(v.x - player.x, v.y - player.y) > 70))) || focusAfstand(world, v, player) > despawnDist) vehicles.splice(i, 1);
   }
 
   let count = 0;
-  for (const v of vehicles) if (v.isScooter && !v.isMotor && !v.wrecked && v.driver !== 'player' && v.road) count++;
+  for (const v of vehicles) if (v.isScooter && !v.isMotor && !v.wrecked && v.driver !== 'player' && v.road && lokaalTelt(world, v, player, despawnDist)) count++;
 
   const candidates = map.roadsNear(player.x, player.y, spawnMax)
     .filter((r) => r.cat === 'cycle' || r.cat === 'normal' || r.cat === 'minor');
@@ -1100,17 +1106,18 @@ export function manageScooterPopulation(world, { target = 10, spawnMin = 40, spa
 
 // Brommers and motorbikes in the everyday traffic (motortraffic.js): they ride
 // the normal roads only, never the fietspad, and a legal brommer stays at 45.
-export function manageMotorPopulation(world, { target = null, spawnMin = 50, spawnMax = 150, despawnDist = 230 } = {}) {
-  const { map, player, vehicles } = world;
+export function manageMotorPopulation(world, { target = null, spawnMin = 50, spawnMax = 150, despawnDist = 230, focus = null } = {}) {
+  const { map, vehicles } = world;
+  const player = focus || world.player;
   for (let i = vehicles.length - 1; i >= 0; i--) {
     const v = vehicles[i];
     if (!v.isMotor || v.driver === 'player') continue;
-    if ((!v.wrecked && ((v.deadEndBounces || 0) > 2 || (v.stuckFor || 0) > 25 || ((v.waitFor || 0) > 45 && Math.hypot(v.x - player.x, v.y - player.y) > 70))) || Math.hypot(v.x - player.x, v.y - player.y) > despawnDist) vehicles.splice(i, 1);
+    if ((!v.wrecked && ((v.deadEndBounces || 0) > 2 || (v.stuckFor || 0) > 25 || ((v.waitFor || 0) > 45 && Math.hypot(v.x - player.x, v.y - player.y) > 70))) || focusAfstand(world, v, player) > despawnDist) vehicles.splice(i, 1);
   }
   const prof = wijkProfileAt(map, player.x, player.y).key;
   const want = target ?? motorTarget(prof, hourOf(world));
   let count = 0;
-  for (const v of vehicles) if (v.isMotor && !v.wrecked && v.driver !== 'player' && v.road) count++;
+  for (const v of vehicles) if (v.isMotor && !v.wrecked && v.driver !== 'player' && v.road && lokaalTelt(world, v, player, despawnDist)) count++;
   const candidates = map.roadsNear(player.x, player.y, spawnMax).filter((r) => (r.cat === 'normal' || r.cat === 'minor') && r.width >= 3 && !r.busOnly);
   let guard = 0;
   while (count < want && candidates.length && guard++ < want * 5) {
@@ -1163,7 +1170,7 @@ export function manageBusPopulation(world, { target = 4, spawnMin = 90, spawnMax
     // buses spawned before the line data had loaded (or before the player came near a line) have no line:
     // out of sight they make room for the line's own buses (#160), else they fill the quota for ever
     if (line && !v.busRun && !v.wrecked && Math.hypot(v.x - player.x, v.y - player.y) > spawnMin * 0.7) { vehicles.splice(i, 1); continue; }
-    if ((!v.wrecked && ((v.deadEndBounces || 0) > 2 || (v.stuckFor || 0) > 25 || ((v.waitFor || 0) > 45 && Math.hypot(v.x - player.x, v.y - player.y) > 70))) || Math.hypot(v.x - player.x, v.y - player.y) > despawnDist) vehicles.splice(i, 1);
+    if ((!v.wrecked && ((v.deadEndBounces || 0) > 2 || (v.stuckFor || 0) > 25 || ((v.waitFor || 0) > 45 && Math.hypot(v.x - player.x, v.y - player.y) > 70))) || focusAfstand(world, v, player) > despawnDist) vehicles.splice(i, 1);
   }
 
   let count = 0;

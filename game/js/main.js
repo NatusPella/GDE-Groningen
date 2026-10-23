@@ -114,6 +114,7 @@ import { noteFrame, hideAdvice, classifyGpu, readGpu, dynamicScale, cpuLevel } f
 import { updateStreetSigns } from './streetsigns.js';
 import { updatePhotoMode, wireFotoKey } from './fotomodusui.js';
 import { initPauseMenu, isPauseMenuOpen, openPauseMenu, pauseMenuCover } from './pausemenu.js';
+import { aandeel, tegelFoci } from './coopfoci.js';
 import { wantsOpenSamen, takeOpenSamen, samenGate } from './samenpanel.js';
 import { gateOn, setGate } from './coopgate.js';
 import { updateGastLokaal } from './coopgastlokaal.js';
@@ -606,6 +607,7 @@ async function boot() {
       const tf = tileFocus(world.player, world.cameraOverride, tileFollow, dt);
       // a boat on the waterway network: the tiles of its route ahead come early (#184)
       if (tf && world.player.inVehicle && world.player.inVehicle.isBoat && !world.cameraOverride) tf.opts = vaarPrefetch(tf.opts, tf.x, tf.y);
+      if (tf && world.coopFoci && world.coopFoci.length > 1) tf.opts = { ...tf.opts, foci: tegelFoci(world.coopFoci) }; // spelers uit elkaar: ook tegels rond de losse groepen (#429)
       if (tf) world.map.follow(tf.x, tf.y, tf.opts, 1.5);
       // the open sea as water rows round the player (#233)
       if (tf && world.map.addWaterPatches) ensureSeaRows(world.map, world.player.x, world.player.y);
@@ -663,6 +665,15 @@ async function boot() {
     probe.mark('hud');
   }
 
+  // samen spelen, spelers uit elkaar (#429): verkeer rond een losse groep spelers, met zijn deel van het totaalbudget (coopfoci.js)
+  function verkeerRondFocus(world, f, fa) {
+    const key = wijkProfileAt(world.map, f.x, f.y).key;
+    manageTrafficPopulation(world, { target: Math.round(scaledTarget(30) * MODS.cars * fa), focus: f });
+    manageBikePopulation(world, { target: Math.round(scaledTarget(16) * MODS.bikes * fa), focus: f });
+    manageScooterPopulation(world, { target: Math.round(scaledTarget(10) * MODS.scooters * fa), focus: f });
+    manageMotorPopulation(world, { target: Math.round(scaledTarget(motorTarget(key, hourOf(world))) * MODS.motors * fa), focus: f });
+  }
+
   function updateGameplay(dt) {
     world.time += dt;
     // samen spelen (#95): een gast draait de wereld van de host niet zelf; die komt via het net (coopnet.js, coopworld.js)
@@ -678,14 +689,16 @@ async function boot() {
     trafficTimer -= dt;
     if (trafficTimer <= 0) {
       trafficTimer = 1.5;
-      manageTrafficPopulation(world, { target: Math.round(scaledTarget(30) * MODS.cars) });
+      const fociN = world.coopFoci && world.coopFoci.length > 1 ? world.coopFoci.length : 1, fa = aandeel(fociN); // spelers uit elkaar (#429): de foci delen het budget
+      manageTrafficPopulation(world, { target: Math.round(scaledTarget(30) * MODS.cars * fa) });
       // the centre is full of bikes: eight more cyclists while you are in it
       const inCentre = Math.hypot(world.player.x - CITY_CENTRE.x, world.player.y - CITY_CENTRE.y) < CITY_CENTRE.r;
       const rush = bikeBoost(wijkProfileAt(world.map, world.player.x, world.player.y).key, Math.hypot(world.player.x - CITY_CENTRE.x, world.player.y - CITY_CENTRE.y), hourOf(world));
-      manageBikePopulation(world, { target: Math.round((scaledTarget(16) + (inCentre ? scaledTarget(8) : 0) + (rush ? scaledTarget(rush) : 0)) * MODS.bikes) });
+      manageBikePopulation(world, { target: Math.round((scaledTarget(16) + (inCentre ? scaledTarget(8) : 0) + (rush ? scaledTarget(rush) : 0)) * MODS.bikes * fa) });
       manageBusPopulation(world);
-      manageScooterPopulation(world, { target: Math.round(scaledTarget(10) * MODS.scooters) });
-      manageMotorPopulation(world, { target: Math.round(scaledTarget(motorTarget(wijkProfileAt(world.map, world.player.x, world.player.y).key, hourOf(world))) * MODS.motors) });
+      manageScooterPopulation(world, { target: Math.round(scaledTarget(10) * MODS.scooters * fa) });
+      manageMotorPopulation(world, { target: Math.round(scaledTarget(motorTarget(wijkProfileAt(world.map, world.player.x, world.player.y).key, hourOf(world))) * MODS.motors * fa) });
+      if (fociN > 1) for (const f of world.coopFoci) if (!f.host) verkeerRondFocus(world, f, fa);
       manageBoatPopulation(world, { target: boatTarget() });
       tickRowingCoaches(world);
       if (simLevel() || MODS.fading) thinTraffic(world);

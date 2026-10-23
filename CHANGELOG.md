@@ -7,6 +7,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 ## [Unreleased]
 
 ### Nieuw
+- Samen spelen (#429): jullie mogen in kleinere groepen los van elkaar door de wereld lopen, bijvoorbeeld twee in de stad en twee in Delfzijl. De gastheer laadt de wereld en het verkeer, de voetgangers en de dieren ook rond elke groep, en wie los loopt wordt niet meer bij de groep gezet. Is de wereld rond een speler nog niet geladen, dan wacht hij even. Staan er te veel groepen uit elkaar voor het geheugen (meer dan acht), dan zegt het spel dat. Met B kom je altijd weer bij de groep.
 - Samen spelen (#429, eerste stap): bij het begin van een opdracht van de gastheer vraagt het spel elke gast "Meedoen met ...?": J is ja, N is nee, en wie niets zegt doet na 10 seconden mee. Wie niet meedoet loopt vrij rond (geen "Je kijkt even mee", de opdracht houdt hem niet op zijn plek) en krijgt geen deel van de beloning; waar het verhaal jouw rol nodig heeft is meedoen verplicht.
 
 ## [0.43.0] - 2026-10-23

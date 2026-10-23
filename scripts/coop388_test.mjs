@@ -65,7 +65,7 @@ t('niemand deelt een camera: ook Tessa en wie het spel opende hebben hun eigen',
   for (const w of [s.hw, ...s.gs.map((g) => g.gw)]) assert.equal(w.coopCam, null);
 });
 
-t('Tessa kan verder dan 38 m: geen harde lijn meer; na 80 m een melding, na 110 m (4 s) bij de groep gezet', () => {
+t('Tessa kan verder dan 38 m: geen harde lijn meer; los van de groep (eigen focus, #429) wordt ze niet teruggezet en B brengt haar terug', () => {
   const s = avond(); s.step(3);
   const g = s.gs[0].gw, c = s.hw.companion;
   assert.equal(s.hw.coop.leash, Infinity, 'de lijn staat uit in een sessie');
@@ -75,10 +75,12 @@ t('Tessa kan verder dan 38 m: geen harde lijn meer; na 80 m een melding, na 110 
   let max = 0;
   s.step(21, () => { max = Math.max(max, Math.hypot(c.x - s.hw.player.x, c.y - s.hw.player.y)); });
   assert.ok(max > LEASH_DIST * 2, 'ze loopt veel verder dan de oude 38 m: ' + max.toFixed(0));
-  assert.equal(aantal(g, /Blijf bij de groep/), 1, 'één melding bij 80 m');
+  assert.equal(aantal(g, /Blijf bij de groep/), 0, 'los lopen is toegestaan: geen waarschuwing');
   g.input.axis = () => [0, 0];
   s.step(8);
-  assert.ok(Math.hypot(c.x - s.hw.player.x, c.y - s.hw.player.y) < 5, 'weer bij de groep: ' + c.x);
+  assert.ok(Math.hypot(c.x - s.hw.player.x, c.y - s.hw.player.y) > 80, 'ze blijft staan waar ze is: ' + c.x);
+  assert.equal(N.bijGroepGebaar(g), true); s.step(1);
+  assert.ok(Math.hypot(c.x - s.hw.player.x, c.y - s.hw.player.y) < 5, 'B: weer bij de groep: ' + c.x);
   assert.equal(aantal(g, /Je staat weer bij de groep/), 1);
   // een sprong van de gastheer (snelreizen, teleport): meteen mee
   s.hw.player.x = 5000; s.hw.player.y = 0; s.step(1.2);
@@ -120,7 +122,7 @@ t('de gastheer stapt in: Tessa gaat niet vanzelf mee, leest wat ze moet doen en 
   assert.ok(!c.inVehicle, 'niet vanzelf in het voertuig'); assert.notEqual(auto.passenger, 'companion'); assert.ok(Math.hypot(c.x - auto.x, c.y) < 130, 'wel weer bij de gastheer in de buurt'); assert.match(g.messages.join(' '), /Je staat weer bij de groep/);
   // niet geschikt: ze wordt bij de groep gezet
   const heli = { id: 8, x: 500, y: 0, angle: 0, speed: 0, isHeli: true }; c.inVehicle = null; auto.passenger = null; s.hw.player.inVehicle = heli; s.hw.player.x = 500; c.x = 300; c.y = 0;
-  s.step(4.5); assert.equal(c.inVehicle, null, 'niet in een helikopter'); assert.ok(Math.hypot(c.x - 500, c.y) < 5);
+  s.step(4.5); assert.equal(c.inVehicle, null, 'niet in een helikopter'); assert.ok(Math.hypot(c.x - 500, c.y) > 100, 'ze loopt los (eigen focus, #429); B brengt haar bij de gastheer');
   const c1 = bron('companion.js');
   assert.match(c1, /c\.coopUit = !!\(world\.coop && world\.coop\.remote\)/, 'companion.js: een echte speler stapt zelf in');
   assert.match(c1, /Je kunt alleen meerijden als de ander in een voertuig zit/, 'E bij een geparkeerd voertuig geeft een melding');
