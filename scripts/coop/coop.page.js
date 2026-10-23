@@ -556,6 +556,63 @@ const PHASES = {
     B.stick(0, 0);
     log('gelopen', { van: [Math.round(x0), Math.round(y0)], naar: [Math.round(W().player.x), Math.round(W().player.y)] });
   },
+  // samen spelen, spelers uit elkaar (#429): twee figuren lopen 500 m en ver weg (Delfzijl) los van de gastheer; de gastheer laadt en bevolkt de wereld
+  // rond hen (coopfoci.js), zet ze niet terug, en meet beeldsnelheid, tegels en geheugen met en zonder die extra foci
+  async uitelkaar({ s = 20 }) {
+    if (CFG.role !== 'host') { await sleep((s * 2 + 70) * 1000); return; }
+    const Co = await imp('companion'), Net = await imp('coopnet'), Wd = await imp('coopworld'), w = W(), map = w.map, p = w.player;
+    const figs = Object.values(w.coopFigures || {}).filter((f) => f.slot >= 2);
+    log('uitelkaar-start', { slots: figs.map((f) => f.slot), host: [Math.round(p.x), Math.round(p.y)] });
+    if (figs.length < 2) return;
+    const fps = (ms) => new Promise((res) => { let n = 0; const t0 = performance.now(); const f = () => { n++; const d = performance.now() - t0; if (d >= ms) res(Math.round(n / (d / 1000) * 10) / 10); else requestAnimationFrame(f); }; requestAnimationFrame(f); });
+    const heap = () => Math.round((performance.memory ? performance.memory.usedJSHeapSize : 0) / 1e6);
+    const stand = () => ({ tegels: map.resident ? map.resident.size : null, tegelMB: map.store ? Math.round(map.store.residentBytes / 1e5) / 10 : null, heapMB: heap(), voertuigen: w.vehicles.length, voetgangers: w.pedestrians.length, dieren: (w.wildlife || []).length, foci: w.coopFoci ? w.coopFoci.length : 1 });
+    await sleep(2000);
+    const basis = { fps: await fps(5000), ...stand() }; log('uitelkaar-basis', basis);
+    // een droge plek bij een weg in de buurt van het doel; wacht tot de wereld daar geladen is
+    const plaats = async (f, doel) => {
+      f.x = doel[0]; f.y = doel[1]; f.vx = 0; f.vy = 0; f.verTijd = 0; f.vastTijd = 0; f.gz = 0; f.input = null;
+      const t0 = performance.now(); let geladenNa = null;
+      while (performance.now() - t0 < 40000) { if (Net.tegelGeladen(w, f.x, f.y) && w.coopFoci) { geladenNa = Math.round((performance.now() - t0) / 100) / 10; break; } await sleep(200); }
+      for (let k = 0; k < 8; k++) { await sleep(250); const info = w.coopFociInfo; log('uitelkaar-dbg', { slot: f.slot, x: Math.round(f.x), y: Math.round(f.y), wacht: !!f.wacht, verTijd: f.verTijd, los: Net.losVoor(w, f.slot, f.x, f.y), geladen: Net.tegelGeladen(w, f.x, f.y), bediend: info ? [...info.bediend] : null, buiten: info ? [...info.buiten] : null, foci: info ? info.foci.map((q) => [Math.round(q.x), Math.round(q.y), q.slots.join('+')]) : null }); }
+      let m = [f.x, f.y];
+      try { const rd = map.roadsNear(f.x, f.y, 600).filter((r) => r.cat !== 'foot' && r.cat !== 'cycle' && r.width >= 3); if (rd.length) m = rd[0].pts[Math.floor(rd[0].pts.length / 2)]; } catch (e) { /* geen wegen */ }
+      let gezet = false;
+      for (let r = 0; r < 120 && !gezet; r += 6) for (let k = 0; k < 8 && !gezet; k++) { const x = m[0] + Math.cos(k * Math.PI / 4) * r, y = m[1] + Math.sin(k * Math.PI / 4) * r; if (Co.figuurVrij(x, y, w)) { f.x = x; f.y = y; gezet = true; } }
+      f.vastTijd = 0; f.verTijd = 0;
+      return { geladenNa, gezet, op: [Math.round(f.x), Math.round(f.y)], afstandHost: Math.round(Math.hypot(f.x - p.x, f.y - p.y)) };
+    };
+    const [a, b] = figs;
+    log('uitelkaar-a', { slot: a.slot, ...await plaats(a, [p.x + 500, p.y]) });
+    log('uitelkaar-b', { slot: b.slot, ...await plaats(b, [23100, -12200]) }); // Delfzijl: de brug Midscheeps
+    const rondom = (f) => ({ voertuigen: w.vehicles.filter((v) => Math.hypot(v.x - f.x, v.y - f.y) <= 150 && !v.wrecked).length, voetgangers: w.pedestrians.filter((q) => Math.hypot(q.x - f.x, q.y - f.y) <= 70).length, dieren: (w.wildlife || []).filter((q) => Math.hypot(q.x - f.x, q.y - f.y) <= 150).length });
+    try { // de bevolkingsroutines los aanroepen: ze horen verkeer rond de groep te zetten
+      const V = await imp('vehicle'), fa = { x: a.x, y: a.y }, nabij = () => w.vehicles.filter((v) => Math.hypot(v.x - fa.x, v.y - fa.y) <= 170).length;
+      const v0 = nabij(); V.manageTrafficPopulation(w, { target: 12, spawnMin: 12, focus: fa });
+      log('uitelkaar-dbg-verkeer', { voor: v0, na: nabij(), wegen: map.roadsNear(fa.x, fa.y, 170).length, foci: w.coopFoci ? w.coopFoci.length : 1 });
+    } catch (e) { log('uitelkaar-dbg-verkeer', { fout: String(e && e.stack || e) }); }
+    const t0 = performance.now(); let minA = 0, minB = 0, teruggezet = false;
+    const ax = a.x, ay = a.y, bx = b.x, by = b.y;
+    for (let i = 0; i < s; i++) {
+      await sleep(1000);
+      if (Math.hypot(a.x - p.x, a.y - p.y) < 60 || Math.hypot(b.x - p.x, b.y - p.y) < 60) teruggezet = true;
+      const ra = rondom(a), rb = rondom(b);
+      minA = i ? Math.min(minA, ra.voertuigen + ra.voetgangers) : ra.voertuigen + ra.voetgangers; minB = i ? Math.min(minB, rb.voertuigen + rb.voetgangers) : rb.voertuigen + rb.voetgangers;
+      if (i % 5 === 4) log('uitelkaar-sample', { t: Math.round((performance.now() - t0) / 1000), a: ra, b: rb, ...stand(), wachtA: !!a.wacht, wachtB: !!b.wacht });
+    }
+    const ents = Wd.verzamelEntiteiten(w, [p, a, b]);
+    const dichtbij = (f) => ents.filter((e) => Math.hypot(e.x - f.x, e.z - f.y) <= 150).length;
+    log('uitelkaar-meet', { s, teruggezet, afA: Math.round(Math.hypot(a.x - ax, a.y - ay)), afB: Math.round(Math.hypot(b.x - bx, b.y - by)), minA, minB, snapshot: ents.length, snapshotRondA: dichtbij(a), snapshotRondB: dichtbij(b), snapshotRondHost: ents.filter((e) => Math.hypot(e.x - p.x, e.z - p.y) <= 150).length, fociN: w.coopFoci ? w.coopFoci.length : 1, rondA: rondom(a), rondB: rondom(b) });
+    const meet = { fps: await fps(5000), ...stand() }; log('uitelkaar-last', meet);
+    // B: bij de groep komen
+    log('uitelkaar-bijgroep', { gelukt: Net.bijGroepHost(w, a.slot), afstand: Math.round(Math.hypot(a.x - p.x, a.y - p.y)) });
+    // beide spelers lopen terug naar de gastheer: de extra foci verdwijnen
+    b.x = p.x + 3; b.y = p.y; a.x = p.x - 3; a.y = p.y;
+    await sleep(2500);
+    log('uitelkaar-uit', { bTerugNa: 0, fociN: w.coopFoci ? w.coopFoci.length : 1 });
+    await sleep(2000);
+    log('uitelkaar-na', { fps: await fps(5000), ...stand() });
+  },
   // samen spelen (#366): de figuren van plek 2 en hoger lopen op de echte wereld tegen een gebouw en een gracht aan en dwalen weg:
   // nooit in een gebouw of in het water, en te ver weg wordt na een paar seconden bij de groep gezet (stepFigures/bandFiguren in coopnet.js)
   async figuren({ s = 10 }) {

@@ -259,7 +259,7 @@ export class TileStore {
   // `ahead` seconds of travel, ordered by (distance - speed * 8 s * cos to the
   // heading). Unwanted queued loads are cancelled; resident tiles outside
   // radius + unloadMargin for holdMs become evictable at once.
-  prefetch(x, y, { vx = 0, vy = 0, radius = 1500, ahead = 10, tokenPrefix = 'pf', extra = [] } = {}) {
+  prefetch(x, y, { vx = 0, vy = 0, radius = 1500, ahead = 10, tokenPrefix = 'pf', extra = [], foci = [] } = {}) {
     this.gen++;
     const speed = Math.hypot(vx, vy);
     const r = radius + speed * ahead;
@@ -280,6 +280,17 @@ export class TileStore {
     };
     for (let i = i0; i <= i1; i++) for (let j = j0; j <= j1; j++) consider(i, j);
     for (const [i, j, bonus] of extra) consider(i, j, bonus ?? 500);
+    // samen spelen, spelers uit elkaar (#429, coopfoci.js): ook rond elke losse groep, met een eigen (kleinere) straal; de ene wensenlijst is de unie
+    for (const f of foci) {
+      const fr = f.radius || 800, [fi0, fj0] = tileIndexOf(f.x - fr, f.y - fr), [fi1, fj1] = tileIndexOf(f.x + fr, f.y + fr);
+      for (let i = fi0; i <= fi1; i++) for (let j = fj0; j <= fj1; j++) {
+        const key = tileKey(i, j);
+        if (!this.index.tiles[key]) continue;
+        const [ox, oy] = tileOrigin(i, j), d = Math.hypot(ox + TILE_M / 2 - f.x, oy + TILE_M / 2 - f.y);
+        if (d - half > fr) continue;
+        if (!want.has(key) || d < want.get(key)) want.set(key, d);
+      }
+    }
     const now = this.now();
     for (const e of this.entries.values()) {
       const was = e.wanted;

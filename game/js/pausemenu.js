@@ -1413,12 +1413,12 @@ function syncNavBadges() {
   const met = anyFresh();
   const vNav = root.querySelector('[data-goto="verhaal"]');
   if (vNav) vNav.toggleAttribute('data-new', fresh || met);
+  const unreadN = world ? phoneUnread(world) : 0;
+  const unread = unreadN > 0;
   const vPeople = root.querySelector('[data-of="verhaal"][data-subtab="personages"]');
   if (vPeople) vPeople.toggleAttribute('data-new', met || unread);
   const vClues = root.querySelector('[data-of="verhaal"][data-subtab="aanwijzingen"]');
   if (vClues) vClues.toggleAttribute('data-new', fresh);
-  const unreadN = world ? phoneUnread(world) : 0;
-  const unread = unreadN > 0;
   const setN = (id, text, label) => { const n = root.querySelector(`[data-n="${id}"]`); if (n) { n.textContent = text; if (label) n.setAttribute('aria-label', label); else n.removeAttribute('aria-label'); } };
   // unseen achievements: a quiet dot on the rail, never a HUD notice (#168)
   const aNav = root.querySelector('[data-goto="prestaties"]');

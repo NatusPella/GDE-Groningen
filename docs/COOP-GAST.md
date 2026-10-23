@@ -21,7 +21,7 @@ starten. De gast krijgt dan een korte melding ("Dat kan alleen in je eigen spel"
 
 | Actie | Mag een gast | De regel |
 |---|---|---|
-| Lopen en rennen | ja | Zoals altijd, met de muis draait je camera. Je kunt zo ver van wie het spel opende als de wereld daar geladen is: na 80 m een melding, na 110 m (of meteen bij een sprong) zet het spel je bij de groep. Pauzeert wie het spel opende, dan loop je door. |
+| Lopen en rennen | ja | Zoals altijd, met de muis draait je camera. Je kunt zo ver van wie het spel opende als de wereld daar geladen is: na 80 m een melding, na 110 m (of meteen bij een sprong) zet het spel je bij de groep. Pauzeert wie het spel opende, dan loop je door. Staat een speler meer dan 150 m van de anderen, dan laadt het spel de wereld en zet het verkeer, voetgangers en dieren ook rond hem (hoogstens acht gebieden samen); dan geldt die grens niet meer en is er geen vaste maximale afstand. Met B kom je weer bij de groep (#429). |
 | Winkelen | ja | Winkels met spullen voor jezelf (kleding, kapper, tabak en loterij, avondwinkel, snackbar, woonwarenhuis) en automaten: op je eigen scherm, met je eigen geld; wat je koopt is van jou en gaat in je eigen opgeslagen spel. |
 | Eten | ja | Eten en drinken bij een horecaplek en de muurkroket: met je eigen geld en je eigen gezondheid. |
 | Voertuigen, boten, helikopters, wapens, tuning en lak kopen | nee | Kan alleen in je eigen spel: ze zouden in de wereld van de ander verschijnen. Bij zo'n winkel zie je "Alleen in je eigen spel" en na E een melding. |
@@ -53,6 +53,10 @@ host in een voertuig zit met een vrije plek binnen bereik. Een weigering komt al
 
 **Berichten.** Gast → host: `gebruik`, `wielvraag` (met `terug` om het stuur terug te geven). Host → gast: `wiel` (aan of uit),
 `melding` (een korte tekst, alleen voor die gast).
+
+## Spelers uit elkaar (#429)
+
+Zie `game/js/coopfoci.js`. De gastheer houdt een register bij van de plekken van alle spelers. `bouwFoci` voegt spelers binnen 150 m samen tot een focus en houdt hoogstens `FOCI_MAX` (8) bij; wie er niet meer bij kan krijgt een melding en valt terug op de oude band. Rond elke focus laden de tegels (`tilestore.js` `prefetch`, `foci`; de straal krimpt van 800 m naar 400 m naarmate er meer groepen zijn, `tegelStraal`), en verkeer, voetgangers en dieren delen een totaalbudget van anderhalf keer wat een speler alleen krijgt (`aandeel`). Verhaalmissies, filmpjes, bijbanen en gesprekken blijven bij de gastheer. De band (`bandFiguren`, `bandMetgezel`) zet een speler met een eigen focus niet terug, ook niet als hij ver weg is, ook niet als hij ver weg is (geen vaste maximale afstand). Een sprong van de gastheer haalt iedereen nog bij. Is de tegel onder hem nog niet geladen, dan staat hij stil en wordt hij na 10 s bij de groep gezet. B (bericht `bijgroep`) zet je lichaam naast de gastheer. Het snapshot verdeelt zijn plekken eerlijk over de groepen (`coopworld.js` `groepenVan`). Het formaat verandert niet: PROTO en CODEC_VERSION blijven 2.
 
 ## Niet gedaan
 
