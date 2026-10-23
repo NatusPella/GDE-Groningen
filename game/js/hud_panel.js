@@ -8,6 +8,7 @@ import { simLevel } from './simload.js';
 import { getGaragesForRender } from './garages.js';
 import { getHomeForRender, getHomeGarageForRender, getHomeMooringForRender, getHomeHelipadForRender } from './home.js';
 import { minimapShows } from './mapfilters.js';
+import { tekenVeroverdMini } from './gebiedenkaart.js';
 import { GLYPH_LIGHT as GLYPH_CREAM, mapCategory, mapFillColor, FLAT_INK, haloRim, HALO_DARK, HALO_LIGHT, mapPriority, miniIconScale, iconGapPx, badgeShape, badgeGlyphColor, shadeHex, stateLook, BADGE_UNITS } from './mapicons.js';
 import { facilitiesOf } from './facilities.js';
 import { getHorecaForRender } from './horeca.js';
@@ -2321,6 +2322,8 @@ function drawMinimap(dt, world) {
 
   ctx.fillStyle = MINI_STYLE.water;
   fillPolys(ctx, view.water);
+  // gebieden veroveren (#414, #423): boven het groen en het water, onder de wegen en gebouwen
+  if (minimapShows('veroverd')) tekenVeroverdMini(ctx, mmScale, player.x, player.y, MM_RADIUS_M);
 
   const emph = mode.emph;
   const landAlpha = 1 - dimLand;

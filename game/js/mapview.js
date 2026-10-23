@@ -10,7 +10,7 @@ import { drawMapIcon, drawMapIconHalo, drawRoute, drawRoadRoute, forEachPoliceUn
 import { getGaragesForRender } from './garages.js';
 import { getHomeForRender, getHomeGarageForRender, getHomeMooringForRender, getHomeHelipadForRender } from './home.js';
 import { layerOn, setLayer as storeLayer } from './mapfilters.js';
-import { tekenVeroverd, tekenLegendeVlag } from './gebiedenkaart.js';
+import { tekenVeroverd, tekenLegenda, tekenLegendeVlag } from './gebiedenkaart.js';
 import { getHorecaForRender } from './horeca.js';
 import { getShopsForRender, getShopsDecluttered, storyTargetShop, drawStoryShopRing } from './shops.js';
 import { SHOP_TYPES } from './shopdata.js';
@@ -845,7 +845,10 @@ function drawStaticOverlay(ctx) {
   const onScreen = (sx, sy, m = 20) => sx > -m && sy > -m && sx < state.cw + m && sy < state.ch + m;
 
   // gebieden veroveren (#414): wat je gedaan hebt kleurt mee, een veroverd gebied krijgt een vlag
-  if (layerOn('veroverd')) tekenVeroverd(ctx, toScreen, state.scale, state.cw, state.ch, hover, drawLabel, inkA('cream', 0.9));
+  if (layerOn('veroverd')) {
+    const laagId = tekenVeroverd(ctx, toScreen, state.scale, state.cw, state.ch, hover, drawLabel, inkA('cream', 0.9));
+    tekenLegenda(ctx, state.cw, state.ch, laagId, inkA('cream', 0.92));
+  }
 
   if (layerOn('landmark')) {
     ctx.font = '14px ' + FONT;
