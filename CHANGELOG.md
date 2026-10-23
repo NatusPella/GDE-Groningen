@@ -6,6 +6,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Opgelost
 - Samen spelen: een gast ziet de voertuigen en voetgangers van de gastheer nu als echte modellen en personen (kleding, haar, politie-uniform) in plaats van blokken.
 - **Controllerindeling kiezen (#151; niet met een echte controller of in beeld bekeken):** onder Instellingen › Muis & controller kies je nu bij Controllerindeling "Rechterknop bevestigt". Dat helpt als je controller zich anders meldt dan hij is (bijvoorbeeld via Steam): A en B en X en Y wisselen dan echt van plek, in de menu's en in het spel, en de knopsymbolen in beeld volgen je keuze. Automatisch blijft de standaard.
 - **Minigames en nagesprek: de oude zwarte toetsknoppen met groene tekst zijn weg (#151; niet in beeld bekeken):** de hints bij de duivenmodus en het scherm na het spel hebben nu dezelfde witte toetskap als de rest van het spel.
@@ -15,7 +16,6 @@ nieuwe functies, `y` voor alleen bugfixes.
 ### Nieuw
 - **Parkeergarages (#418):** in 36 van de 48 gekarteerde parkeergarages (en bij de garages die alleen als punt bekend zijn, zoals in de binnenstad, op de plek van de ingang) staan nu geparkeerde auto's om te stelen, en je eigen auto kan er ook parkeren. Alleen op vrije grond, nooit in een gebouw of in het water. Niet in beeld bekeken; de verdiepingen van de garage zelf zijn niet nagebouwd.
 - **Parkeergarages onder het Forum en de Ossenmarkt (#418):** een inrit met slagboom en bord op straat (gewoon op de opening af rijden of lopen, zonder iets in te drukken) brengt je met een korte zwarte overgang met je auto in een ondergrondse hal met ruim vijftig geparkeerde auto's om te jatten, met garagelicht; bij de uitrit sta je weer voor de inrit. Te grote voertuigen (bus, trailer) mogen er niet in. In Electron bekeken: inrit, hal, in- en uitrijden en te voet.
-- **Parkeergarages (#418):** in 36 van de 48 gekarteerde parkeergarages (en bij de garages die alleen als punt bekend zijn, zoals in de binnenstad, op de plek van de ingang) staan nu geparkeerde auto's om te stelen, en je eigen auto kan er ook parkeren. Alleen op vrije grond, nooit in een gebouw of in het water. Niet in beeld bekeken; de verdiepingen van de garage zelf zijn niet nagebouwd.
 
 ### Opgelost
 - Controller: de knop onderin het pauzemenu voor de kaart (M) toont nu de juiste knop (Overzicht/Min) in plaats van Y.
