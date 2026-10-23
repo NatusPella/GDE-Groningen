@@ -2861,8 +2861,8 @@ export function update3D(dt, world) {
       companionMesh = buildPersonActor(appearance.shirt, appearance.skin, appearance);
       scene.add(companionMesh);
     }
-    const cv = comp.inVehicle;
-    const cAnim = trackSeat(companionSeatTr, comp, animDt, false);
+    const cv = comp.coopBestuurt ? null : comp.inVehicle; // een gast die zelf stuurt: coopzitten3d.js zet hem op stoel 0 (#434)
+    const cAnim = comp.coopBestuurt ? null : trackSeat(companionSeatTr, comp, animDt, false);
     if (cAnim && !doorAsk.has(cAnim.v)) doorAsk.set(cAnim.v, vraagVoorAnim(cAnim, 'bijrijder'));
     if (cAnim && !hidePlayers) {
       drawTransition(cAnim, companionMesh, vehicleMeshes.get(cAnim.v.id), comp, vehicleSeat(cAnim.v, false), animDt, world.time);
@@ -2871,7 +2871,7 @@ export function update3D(dt, world) {
       placeSeated(companionMesh, vehicleMeshes.get(cv.id), cv, vehicleSeat(cv, false), world.time);
       if (companionMesh.userData.shadow) companionMesh.userData.shadow.visible = false;
     } else {
-      companionMesh.visible = !hidePlayers && !comp.coopVoertuig; // samen spelen: de gastheer in een voertuig is bij een gast een blok (#372)
+      companionMesh.visible = !hidePlayers && !comp.coopVoertuig && !comp.coopBestuurt; // samen spelen: de gastheer in een voertuig is bij een gast een blok (#372)
       if (!driveRagdoll(comp, companionMesh, world, animDt)) {
         companionMesh.position.set(comp.x, (comp.gz || 0) + (comp.z || 0), comp.y);
         companionMesh.rotation.x = 0;

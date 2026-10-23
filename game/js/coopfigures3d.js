@@ -6,6 +6,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getScene, getVehicleMesh } from './scene3d.js';
 import { syncZitters, aantalZitters } from './coopzitten3d.js';
+import { bestuurdersLijst } from './coopbestuur.js';
 import { isCinematicActive } from './cinematics.js';
 import { buildPersonMesh, animatePersonWalk } from './models3d_people.js';
 import { figuurLook } from './coopplayers.js';
@@ -65,7 +66,7 @@ export function syncFigures(world, dt) {
   }
   // bij de gastheer: de extra spelers in zijn voertuig zitten op hun stoel in zijn model (bij een gast doet coopentities3d.js dit voor iedereen, #434)
   if (world.coopRole !== 'client') {
-    const lijst = Object.values(world.coopFigures || {}).filter((f) => f && f.inVeh && f.stoel != null && f.char).map((f) => ({ slot: f.slot, char: f.char, voertuig: f.inVeh, stoel: f.stoel }));
+    const lijst = Object.values(world.coopFigures || {}).filter((f) => f && f.inVeh && f.stoel != null && f.char && !f.coopBestuurt).map((f) => ({ slot: f.slot, char: f.char, voertuig: f.inVeh, stoel: f.stoel })).concat(bestuurdersLijst(world)); // plus de gasten die zelf een voertuig besturen (#434)
     if (lijst.length || hasZitters()) syncZitters(filmpje ? [] : lijst, (v) => { const mesh = getVehicleMesh(v.id); return mesh ? { mesh, v } : null; });
   }
 }

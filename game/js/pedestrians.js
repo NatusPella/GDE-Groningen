@@ -656,9 +656,9 @@ function throwRider(world, b, u, vx, vy, closing, push) {
   if (dead) { killPed(ped, world); bleedPed(ped, world, { vehicle: u }); }
   if (u.driver === 'player') {
     world.lastPedHitAt = world.time;
-    const serious = reportCrime(world, dead ? 'pedKill' : 'pedHit');
-    if (dead) { world.stats.kills++; world.stats[ped.isCop ? 'copKills' : 'pedKills']++; }
-    pendingEvents.push({ kind: 'hit', x: bx, y: by, r: 30, crime: serious });
+    const serious = reportCrime(world, dead ? 'pedKill' : 'pedHit', { vehicle: u });
+    if (dead && !u.coopBestuurder) { world.stats.kills++; world.stats[ped.isCop ? 'copKills' : 'pedKills']++; }
+    pendingEvents.push({ kind: 'hit', x: bx, y: by, r: 30, crime: serious && !u.coopBestuurder }); // een gast als dader: zijn getuigen tellen bij zijn eigen niveau (coopgezocht.js)
   }
 }
 
@@ -1050,9 +1050,9 @@ function checkVehicleImpact(ped, world) {
       // knocking someone over on a bike or scooter is a scene, not a crime
       const crime = dead || !light || ped.isCop;
       world.lastPedHitAt = world.time;
-      const serious = crime && (ped.isCop ? reportCrime(world, dead ? 'pedKill' : 'copHit', { seen: true }) : reportCrime(world, dead ? 'pedKill' : 'pedHit'));
-      if (dead) { world.stats.kills++; world.stats[ped.isCop ? 'copKills' : 'pedKills']++; }
-      pendingEvents.push({ kind: 'hit', x: ped.x, y: ped.y, r: 30, crime: serious });
+      const serious = crime && (ped.isCop ? reportCrime(world, dead ? 'pedKill' : 'copHit', { seen: true, vehicle: v }) : reportCrime(world, dead ? 'pedKill' : 'pedHit', { vehicle: v }));
+      if (dead && !v.coopBestuurder) { world.stats.kills++; world.stats[ped.isCop ? 'copKills' : 'pedKills']++; }
+      pendingEvents.push({ kind: 'hit', x: ped.x, y: ped.y, r: 30, crime: serious && !v.coopBestuurder }); // (#434, zie boven)
     }
     return;
   }
