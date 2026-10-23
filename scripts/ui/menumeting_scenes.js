@@ -40,7 +40,7 @@ const teleport = (x, y) => {
 const shot = async (name, wait = 1200) => { await sleep(wait); console.log('[capture] ' + name); await sleep(600); };
 const done = [`viewport ${innerWidth}x${innerHeight} dpr ${devicePixelRatio} ui ${getComputedStyle(document.documentElement).getPropertyValue('--ui')}`];
 const info = [];
-const TABS = [['overzicht'], ['todo'], ['map'], ['telefoon'], ['verhaal'], ['spullen'], ['garage'], ['prestaties'], ['loopbaan'], ['settings'], ['controls'], ['fotos']];
+const TABS = [['overzicht'], ['todo'], ['map'], ['telefoon'], ['verhaal'], ['spullen'], ['garage'], ['prestaties'], ['loopbaan'], ['boerderij'], ['settings'], ['controls'], ['fotos']];
 const SUBS = { todo: ['verhaal', 'alles'], telefoon: ['contacten', 'berichten'], verhaal: ['personages', 'aanwijzingen'], settings: ['video', 'sound', 'camera', 'display', 'a11y'], controls: ['toetsen', 'knoppen', 'overzicht', 'hulp'] };
 const meet = () => {
   const root = document.querySelector('#pause-menu .pm-sheet, #pause-menu') || document.body;
@@ -74,7 +74,7 @@ for (const [tab] of TABS) {
 }
 // criteria (DESIGN_SYSTEM.md, Menurust): een keuzescherm toont hooguit 125 woorden in het venster, een naslagscherm
 // (lijsten en uitleg) hooguit 270; toetsplaatjes (toetsen en knoppen) tellen niet mee voor de lettergrootte
-const REF = new Set(['loopbaan', 'todo/verhaal', 'todo/alles', 'verhaal/personages', 'controls/toetsen', 'controls/knoppen', 'controls/overzicht', 'controls/hulp']);
+const REF = new Set(['loopbaan', 'boerderij', 'todo/verhaal', 'todo/alles', 'verhaal/personages', 'controls/toetsen', 'controls/knoppen', 'controls/overzicht', 'controls/hulp']);
 let fails = 0;
 for (const r of rows) {
   const id = r.tab + (r.sub ? '/' + r.sub : '');

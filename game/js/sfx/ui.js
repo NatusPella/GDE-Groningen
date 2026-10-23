@@ -2,20 +2,21 @@ import { clamp } from '../util.js';
 import { isPauseMenuOpen, isMapOpen } from '../pausestate.js';
 import { getUserWaypoint } from '../goal.js';
 import { sfxLinks } from '../latehooks.js';
+import { ROOTS, ITEMS, newNav, decide, infoOf } from './menunav.js';
+import { setMenuSoundSink } from '../menusound.js';
 
 // Menu/phone/map interface sounds, pickup chimes, mission/wanted stingers.
 // Stingers go through their own bus and briefly duck G-Music.
 
 let K = null;
-let pointerAt = -1;
-let navAt = -1;
-let sliderAt = -1;
-let openedAt = -1;
+// the rules of the menu sounds (menunav.js): when a menu is on screen, what a key, a click or a move of the focus sounds like
+const nav = newNav();
 const st = {
   pause: false, zoom: null, zoomAt: 0, waypoint: null, notif: null, saved: false,
   money: null, wanted: 0, stingAt: -10, pingAt: -10, buzzAt: -10, busyAt: -10, roadblocks: new WeakSet(), messages: new WeakSet(),
 };
 let savedEl = null;
+let menuPollAt = -1;
 
 const wpKey = (w) => (w ? `${Math.round(w.x / 40)},${Math.round(w.y / 40)}` : null);
 
@@ -66,6 +67,7 @@ function ping() {
 export function initUiSfx(kit) {
   K = kit;
   K.bank.warm(['cashreg', 'rack', 'spray']);
+  setMenuSoundSink(menuApi);
 }
 
 export function uiWorldInit(world) {
@@ -78,57 +80,57 @@ export function uiWorldInit(world) {
   for (const v of world.vehicles) if (v._roadblock) st.roadblocks.add(v._roadblock);
 }
 
-function startVisible() {
-  const s = document.getElementById('start-screen');
-  return !!(s && s.classList.contains('visible'));
+// Is a menu on screen: one of the roots (menunav.js ROOTS) that is shown and has something to choose. Asked a few times a second and at
+// a key (a layout read each frame would cost the game).
+function menuOnScreen() {
+  if (typeof document === 'undefined') return false;
+  for (const r of document.querySelectorAll(ROOTS)) {
+    // a closed menu is display: none (no boxes) or hidden
+    if (r.hidden || r.closest('[hidden]') || !r.getClientRects().length) continue;
+    if (r.querySelector(ITEMS)) return true;
+  }
+  return false;
 }
 
 export function isUiGestureTarget(kind, e) {
-  if (kind === 'key') return startVisible() || isPauseMenuOpen();
+  if (kind === 'key') return menuOnScreen();
   const el = e.target;
-  return !!(el && el.closest && el.closest('#pause-menu, #start-screen, .phone'));
+  return !!(el && el.closest && el.closest(ROOTS));
+}
+
+const closestOf = (el) => (sel) => !!(el && el.closest && el.closest(sel));
+const infoFor = (el) => infoOf(closestOf(el), el && (el.type === 'range' || el.type === 'checkbox') ? el.type : '');
+
+// the sounds the rules can answer with: the ones the main menu always had, on the UI bus
+function play(r) {
+  switch (r.sound) {
+    case 'tick': tick(r.f); break;
+    case 'select': select(); break;
+    case 'back': back(); break;
+    case 'toggle': toggleSnd(r.on); break;
+    case 'slider': K.tone({ freq: 400 + r.u * 900, type: 'sine', duration: 0.035, gain: 0.05, bus: ui(), prio: 2 }); break;
+    default: break;
+  }
+}
+
+// for a menu that moves without DOM focus (menusound.js): 'move' | 'select' | 'back' | 'toggle' | 'open'
+function menuApi(which, on) {
+  if (!K || K.muted()) return;
+  play(decide(nav, { kind: 'api', t: t(), which, on }));
 }
 
 export function uiDomEvent(kind, e) {
   if (!K || K.muted()) return;
   const now = t();
-  if (kind === 'pointer') { pointerAt = now; return; }
+  if (kind === 'pointer') { decide(nav, { kind: 'pointer', t: now }); return; }
   const el = e.target && e.target.closest ? e.target : null;
-  const inPause = el && el.closest('#pause-menu');
-  const inStart = el && el.closest('#start-screen');
-  const inPhone = el && el.closest('.phone');
-  if (kind === 'focus') {
-    if (!(inPause || inStart) || now - pointerAt < 0.3 || now - openedAt < 0.15 || now - navAt < 0.04) return;
-    navAt = now;
-    tick(inStart ? 1500 : 1800);
-    return;
-  }
-  if (kind === 'click') {
-    if (!(inPause || inStart || inPhone)) return;
-    if (el.closest('[data-back], [data-action="cancel"], [data-action="resume"]')) back();
-    else if (el.closest('input[type="checkbox"], input[type="range"], select')) return;
-    else if (el.closest('button, [data-idx], [data-mission], [data-tab], .ss-item')) select();
-    return;
-  }
-  if (kind === 'input') {
-    if (!inPause) return;
-    if (el.type === 'range') {
-      if (now - sliderAt < 0.045) return;
-      sliderAt = now;
-      const lo = Number(el.min) || 0, hi = Number(el.max) || 1;
-      const u = clamp((Number(el.value) - lo) / ((hi - lo) || 1), 0, 1);
-      K.tone({ freq: 400 + u * 900, type: 'sine', duration: 0.035, gain: 0.05, bus: ui(), prio: 2 });
-    } else if (el.type === 'checkbox') toggleSnd(el.checked);
-    else tick(1400);
-    return;
-  }
-  if (kind === 'key') {
-    const k = e.key;
-    if (startVisible() && !isPauseMenuOpen() && !e.repeat) {
-      if (k === 'Enter' || k === ' ') select();
-      else if (k === 'Escape') back();
-    }
-  }
+  if (kind === 'key') decide(nav, { kind: 'visible', t: now, visible: menuOnScreen() });
+  const info = kind === 'key' ? infoFor(document.activeElement && document.activeElement !== document.body ? document.activeElement : el) : infoFor(el);
+  const ev = { kind, t: now, info };
+  if (kind === 'click') ev.detail = e.detail;
+  else if (kind === 'input') { ev.checked = el && el.checked; if (el && el.type === 'range') { const lo = Number(el.min) || 0, hi = Number(el.max) || 1; ev.u = clamp((Number(el.value) - lo) / ((hi - lo) || 1), 0, 1); } }
+  else if (kind === 'key') { ev.key = e.key; ev.repeat = e.repeat; }
+  play(decide(nav, ev));
 }
 
 // --- stingers -----------------------------------------------------------
@@ -202,7 +204,9 @@ export function updateUiSfx(dt, world) {
 
   const pause = isPauseMenuOpen();
   // the pause menu is the phone: unfolding it in play sounds like one, on the title screen a whoosh
-  if (pause !== st.pause) { st.pause = pause; openedAt = now; if (!muted) (document.body.classList.contains('game-started') ? phoneSnd(pause) : whoosh(pause)); }
+  if (pause !== st.pause) { st.pause = pause; decide(nav, { kind: 'api', t: now, which: 'open' }); if (!muted) (document.body.classList.contains('game-started') ? phoneSnd(pause) : whoosh(pause)); }
+  // a menu that appears takes the focus: that first focus is no move
+  if (now - menuPollAt > 0.25) { menuPollAt = now; decide(nav, { kind: 'visible', t: now, visible: menuOnScreen() }); }
 
   if (isMapOpen()) {
     const s = sfxLinks.mapStats();

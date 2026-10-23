@@ -9,6 +9,7 @@
 //   option { label, ok, reply, fail }                     ok === false counts as wrong; reply is shown after the pick;
 //                                                          fail: ends the mission with that reason (the wrong way out)
 // Keys 1-3 pick. Nothing here imports game code but the panel; the stage state lives in S (missions.js).
+import { menuSound } from './menusound.js';
 import { createChoicePanel, keycap } from './choicepanel.js';
 
 const REPLY_S = 2.6;
@@ -88,6 +89,7 @@ export function updateChoice(dt, world, st, S) {
       if (world.input.wasPressed(k)) { world.input.consume(k); key = k; break; }
     }
   }
+  if (key) menuSound('select'); // the answer, heard like every menu's choice (#413)
   const r = stepChoice(st, S, key, dt);
   if (r) { closeChoice(); return r; }
   paint(st, S, st.rounds[Math.min(S.ci, st.rounds.length - 1)]);

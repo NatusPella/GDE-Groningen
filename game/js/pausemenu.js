@@ -23,6 +23,7 @@ import { storyDate } from './calendarday.js';
 import { isCinematicActive } from './cinematics.js';
 import { renderAchievementsPanel } from './achievementsui.js';
 import { renderLoopbaanPanel } from './loopbaanui.js';
+import { renderBoerderijPanel } from './boerderijui.js';
 import { unseenAchievementCount } from './achievements.js';
 import { renderGaragePanel, selectGarageVehicle, disposeGarageViewer } from './garageui.js';
 import { deliverOwnedVehicle, locateOwnedVehicle } from './ownedvehicles.js';
@@ -185,6 +186,7 @@ const ICONS = {
   fotos: '<path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/>',
   prestaties: '<path d="M7 3h10v3a5 5 0 0 1-10 0zM7 5H4v1a3 3 0 0 0 3 3M17 5h3v1a3 3 0 0 1-3 3M12 11v5M8 20h8l-1-4H9z"/>',
   loopbaan: '<path d="M3 20h5v-5h5v-5h5V5h3M3 20h18"/>',
+  boerderij: '<path d="M3 20h18M5 20v-8l7-5 7 5v8M10 20v-5h4v5"/>',
   streken: '<rect x="4" y="4" width="16" height="16" rx="3.5"/><circle cx="9" cy="9" r="1.1"/><circle cx="15" cy="9" r="1.1"/><circle cx="12" cy="12" r="1.1"/><circle cx="9" cy="15" r="1.1"/><circle cx="15" cy="15" r="1.1"/>',
   spel: '<rect x="3" y="7.5" width="18" height="10" rx="5"/><path d="M8 10.5v4M6 12.5h4"/><circle cx="15" cy="11.5" r="0.9"/><circle cx="17.5" cy="13.5" r="0.9"/>',
   settings: '<path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/>',
@@ -216,6 +218,7 @@ const SECTIONS = [
   ['garage', 'Garage', 'Jouw voertuigen'],
   ['prestaties', 'Prestaties', 'Blijven bewaard, ook bij een nieuw spel'],
   ['loopbaan', 'Loopbaan', 'Van jou, ook als je samen speelt'],
+  ['boerderij', 'Boerderij', 'Je eigen akker, gewassen en machines'],
   ['fotos', "Foto's", 'Fotomodus en je galerij'],
   ['samen', 'Samen spelen', 'Iemand uitnodigen of aansluiten'],
   ['spelers', 'Spelers', 'Wie er meespeelt'],
@@ -225,7 +228,7 @@ const SECTIONS = [
   ['streken', 'Cheats', 'Een beetje vals spelen'],
 ];
 // the rail's three groups: playing, collected, system
-const RAIL_GROUPS = [['overzicht', 'todo', 'map', 'telefoon'], ['verhaal', 'spullen', 'garage', 'prestaties', 'loopbaan', 'fotos', 'samen', 'spelers'], ['spel', 'settings', 'controls', 'streken']];
+const RAIL_GROUPS = [['overzicht', 'todo', 'map', 'telefoon'], ['verhaal', 'spullen', 'garage', 'prestaties', 'loopbaan', 'boerderij', 'fotos', 'samen', 'spelers'], ['spel', 'settings', 'controls', 'streken']];
 const PRESTART_SECTIONS = ['spel', 'settings', 'controls'];
 const SUBTABS = {
   todo: [['verhaal', 'Verhaal'], ['alles', 'Alles'], ['dichtbij', 'Dichtbij']],
@@ -250,6 +253,7 @@ const HINTS = {
   garage: [[['↑', '↓'], 'kiezen'], [['Enter'], 'laten afleveren'], [['Q', 'E'], 'soort'], [['Esc'], BACK, 'back']],
   prestaties: [[['↑', '↓'], 'kiezen'], [['Enter'], 'openen'], [['Q', 'E'], 'weergave'], [['Esc'], BACK, 'back']],
   loopbaan: [[['↑', '↓'], 'kiezen'], [['Esc'], BACK, 'back']],
+  boerderij: [[['↑', '↓'], 'kiezen'], [['Enter'], 'doen'], [['Esc'], BACK, 'back']],
   fotos: [[['F8'], 'fotomodus'], [['Esc'], BACK, 'back']],
   spelers: [[['↑', '↓'], 'kiezen'], [['Enter'], 'roepen of erheen'], [['Esc'], BACK, 'back']],
   streken: [[['↑', '↓'], 'kiezen'], [['Enter'], 'aan of uit'], [['Esc'], BACK, 'back']],
@@ -521,6 +525,7 @@ export function initPauseMenu(w) {
           </div></section>
           <section data-panel="prestaties" class="pm-panel pm-col" hidden><div class="pm-inner pm-ach"></div></section>
           <section data-panel="loopbaan" class="pm-panel pm-col" hidden><div class="pm-inner pm-ach pm-loopbaan"></div></section>
+          <section data-panel="boerderij" class="pm-panel pm-col" hidden><div class="pm-inner pm-ach pm-boerderij"></div></section>
           <section data-panel="fotos" class="pm-panel pm-col" hidden><div class="pm-inner pm-fotos"></div></section>
           <section data-panel="streken" class="pm-panel pm-col" hidden><div class="pm-inner pm-streken"></div></section>
           <section data-panel="samen" class="pm-panel pm-col" hidden><div class="pm-inner pm-samen"></div></section>
@@ -1519,6 +1524,7 @@ function showTab(name, how) {
   if (name === 'samen') renderSamenPanel(root.querySelector('[data-panel="samen"] .pm-inner'), world, closePauseMenu);
   if (name === 'prestaties') { renderAchievementsPanel(root.querySelector('[data-panel="prestaties"] .pm-inner')); syncSheetSub(); }
   if (name === 'loopbaan') renderLoopbaanPanel(root.querySelector('[data-panel="loopbaan"] .pm-inner'), closePauseMenu);
+  if (name === 'boerderij') renderBoerderijPanel(root.querySelector('[data-panel="boerderij"] .pm-inner'), world);
   if (name === 'controls') { const q = root.querySelector('[data-controls-search]'); q.value = ''; filterControls(''); showSubtab('controls', pref.sub.controls || 'toetsen'); bindMsg = ''; renderBinds(); }
   if (prev === 'controls' && name !== 'controls') cancelRebind();
   if (name === 'spel') { showSubtab('spel', pref.sub.spel || 'spelen'); syncControls(); }

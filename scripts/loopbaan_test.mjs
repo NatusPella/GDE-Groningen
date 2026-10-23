@@ -14,7 +14,7 @@ const t = (name, fn) => { n++; try { fn(); } catch (e) { fails++; console.log('F
 
 // ------------------------------------------------------------------ de tabel
 t('de vakken: unieke id\'s, een bekende groep, zes verschillende titels van een kaartlengte', () => {
-  assert.equal(L.VAKKEN.length, 16);
+  assert.equal(L.VAKKEN.length, 18);
   assert.equal(new Set(L.VAK_IDS).size, L.VAK_IDS.length);
   const groepen = new Set(L.GROEPEN.map((g) => g.id));
   const titels = new Set();
@@ -135,7 +135,7 @@ t('tellerTekst en samenvatting', () => {
   assert.equal(L.samenvatting(p).hoogste, null);
   L.tel(p, 'padel', { xp: 60 });
   const s = L.samenvatting(p);
-  assert.equal(s.hoogste.vak, 'padel'); assert.equal(s.hoogste.titel, 'Clublid'); assert.equal(s.som, 16 + 1); assert.equal(s.max, 96); assert.equal(s.aantal, 1);
+  assert.equal(s.hoogste.vak, 'padel'); assert.equal(s.hoogste.titel, 'Clublid'); assert.equal(s.som, 18 + 1); assert.equal(s.max, 108); assert.equal(s.aantal, 1);
 });
 
 // ------------------------------------------------------------------ de banen
