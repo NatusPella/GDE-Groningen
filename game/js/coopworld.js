@@ -20,6 +20,7 @@ export const RADIUS_VOETGANGER = 70; // m rond elke speler: verder weg zijn de v
 export const MAX_VOETGANGERS = 20;
 export const ID_DOEL = 0xfffe;
 export const RADIUS = 150;      // m rond elke speler
+export const TREIN_RADIUS = 450; // m rond elke speler: een trein rijdt tot 40 m/s, de gast ziet hem dan ruim voor hij langskomt (#434)
 export const MAX_ENTITEITEN = 60;
 const PED_ID0 = 0x8000; // voetgangers hebben geen vast id in het spel: ze krijgen er hier een (apart van de voertuig-id's)
 const pedIds = new WeakMap(); let pedSeq = 0;
@@ -88,6 +89,9 @@ function verweef(items, bij, groepen) {
   return uit;
 }
 
+// Alleen boten en schepen krijgen extra bereik (halve lengte, hoogstens 100 m): een binnenvaartschip of zeeschip is tientallen meters lang.
+const halveLengte = (v) => (v.isBoat && v.model && Number.isFinite(v.model.len) ? Math.min(100, v.model.len / 2) : 0);
+
 // Voertuigen dicht bij een van de spelers (nabije eerst), plus het doel van de lopende opdracht.
 // bij = [{x, y}] (de lichamen van alle spelers). Geeft hoogstens MAX_ENTITEITEN entiteiten.
 export function verzamelEntiteiten(world, bij, { radius = RADIUS, max = MAX_ENTITEITEN, treinen = world.treinen } = {}) {
@@ -101,14 +105,14 @@ export function verzamelEntiteiten(world, bij, { radius = RADIUS, max = MAX_ENTI
     if (!t || !Number.isFinite(t.x) || !Number.isFinite(t.y)) continue;
     let d = Infinity;
     for (const p of bij) d = Math.min(d, Math.hypot(t.x - p.x, t.y - p.y));
-    if (d <= radius + (t.halfLen || 0) && out.length < max - 12) out.push({ id: ID_TREIN0 + t.id, kind: SOORT_TREIN, x: t.x, z: t.y, angle: 0, speed: t.v || 0, fl: 0, steer: 0, vz: 0 });
+    if (d <= Math.max(radius, TREIN_RADIUS) + (t.halfLen || 0) && out.length < max - 12) out.push({ id: ID_TREIN0 + t.id, kind: SOORT_TREIN, x: t.x, z: t.y, angle: 0, speed: t.v || 0, fl: 0, steer: 0, vz: 0 });
   }
   const near = [];
   for (const v of world.vehicles || []) {
     if (!v || !Number.isFinite(v.x) || !Number.isFinite(v.y) || v.wrecked) continue;
     let d = Infinity;
     for (const p of bij) d = Math.min(d, Math.hypot(v.x - p.x, v.y - p.y));
-    if (d <= radius) near.push({ d, v });
+    if (d <= radius + halveLengte(v)) near.push({ d, v }); // een groot schip telt vanaf zijn romp, niet vanaf zijn midden: anders verdwijnt het bij de gast (#434)
   }
   near.sort((a, b) => a.d - b.d);
   const groepen = groepenVan(bij), nearV = verweef(near, bij, groepen);

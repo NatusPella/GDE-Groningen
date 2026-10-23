@@ -84,6 +84,14 @@ export function updateActivityGame(dt, w) {
 }
 
 // main.js: every frame, minigame or not
+// Samen spelen (#434): een gast draait de wereld niet, maar bouwt wel wat de host ook bouwt en waar zijn lichaam tegenaan botst (een safehouse: gastTick)
+export function tickActivitiesGast(dt, w) {
+  for (const a of LIST) {
+    if (!a.gastTick) continue;
+    try { a.tick(dt, w); } catch (e) { console.error('activity', a.id, e); }
+  }
+}
+
 export function updateActivitiesWorld(dt, w) {
   for (const a of LIST) {
     try { a.tick(dt, w); } catch (e) { console.error('activity', a.id, e); }
