@@ -252,7 +252,7 @@ function stepFigures(world, dt) {
 // De anderen blijven lopen (stepFigures draait altijd); Tessa nu ook. Een wachtscherm bij wegvallen (coopHold) pauzeert wel voor iedereen (#388).
 export function stapMetgezelInPauze(world, dt) {
   const c = world.companion, p = world.player;
-  if (!world.paused || world.coopHold || !c || !p || !world.coop || !world.coop.remote) return false;
+  if (!world.paused || world.coopHold || !c || !p || !world.coop || !world.coop.remote || coopWereldDoorloop(world)) return false; // loopt de wereld door achter het menu (#434), dan stapt updateGameplay haar al
   if (c.inVehicle || c.water || c.state === 'dead' || world.companionHold || (p.inVehicle && !c.coopUit)) return false;
   return coopStep(c, dt, world, world.coopMove || ((q, d) => { q.x += q.vx * d; q.y += q.vy * d; }));
 }
@@ -812,6 +812,12 @@ export function openHek(world) {
 export function genoegSpelers(world, min = 2) {
   const n = world.coopNet;
   return !!(n && n.role === 'host' && n.hub && n.hub.roster.spelers.filter((p) => p.verbinding !== 'lost').length >= min);
+}
+
+// Samen spelen: staat er minstens één gast in de sessie, dan loopt de wereld van wie het spel opende door achter het pauzemenu, de kaart en de winkel.
+// Alleen de lokale invoer staat dan stil (main.js zet input.blocked); alleen de pauze door een menu telt, geen filmpje, wachtscherm of minigame-scherm (#434).
+export function coopWereldDoorloop(world, menuOpen = true) {
+  return !!(menuOpen && world && world.paused && !world.coopHold && !world.uiPaused && world.coopRole === 'host' && genoegSpelers(world, 2));
 }
 
 export function stopCoopNet(world) {
