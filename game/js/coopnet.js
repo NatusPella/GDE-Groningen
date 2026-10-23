@@ -877,7 +877,12 @@ export function wielLos(world) {
 // Host: beloning voor één gast (slot) of voor alle gasten; elk bewaart hem in zijn eigen save.
 export function payGuest(world, geld, slot = null, extra = null) {
   const n = world.coopNet; if (!n || n.role !== 'host') return false;
-  return n.hub.announce({ k: 'beloning', geld: Math.max(0, Math.floor(geld)), ...(extra ? { vak: extra.vak, xp: extra.xp } : {}) }, slot);
+  const ok = n.hub.announce({ k: 'beloning', geld: Math.max(0, Math.floor(geld)), ...(extra ? { vak: extra.vak, xp: extra.xp } : {}) }, slot);
+  if (ok) { // wat elke gast in deze sessie verdiende: het gaat mee in de momentopname van het overdragen (#439, gastGeld); het geld zelf staat in de save van de gast
+    const b = n.betaald || (n.betaald = {}), g = Math.max(0, Math.floor(geld));
+    for (const s of slot != null ? [slot] : n.hub.roster.spelers.filter((x) => x.slot !== 0).map((x) => x.slot)) b[s] = (b[s] || 0) + g;
+  }
+  return ok;
 }
 // Host: een speler verwijderen (eerst een bericht, dan verbreken).
 export function removeGuest(world, slot = 1) {
