@@ -142,11 +142,11 @@ void main() {
   vec3 color = mix(body, sky, clamp(fresnel * 0.95, 0.0, 0.9));
 
 #if WATER_Q > 0
-  float spec = pow(max(dot(r, uSunDir), 0.0), 90.0) * 2.4 + pow(max(dot(r, uSunDir), 0.0), 900.0) * 6.0;
+  float spec = pow(max(dot(r, uSunDir), 0.0), 220.0) * 1.2 + pow(max(dot(r, uSunDir), 0.0), 900.0) * 4.0; // smallere lobbe: geen brede gele gloed op het water (#436)
 #else
   float spec = pow(max(dot(r, uSunDir), 0.0), 220.0) * 3.0;
 #endif
-  color += uSunColor * uSunStrength * spec;
+  color += mix(uSunColor, vec3(1.0), 0.45) * uSunStrength * spec; // de zon in het water is wit met een zweem, niet geel
 
   float alpha = uOpacity + fresnel * 0.1;
 
