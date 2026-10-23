@@ -6,6 +6,8 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+## [0.46.0] - 2026-10-23
+
 ### Nieuw
 - Samen spelen (#429, #434): een gast kan nu zelf hengelen (I aan het water, E bij de steiger in Meerstad), pannenkoeken bakken en de beiaard spelen, op zijn eigen scherm en met zijn eigen vangst, visboek, loopbaan en geld. Er verdwijnt niets uit de wereld van wie het spel opende; je lichaam blijft staan zolang je speelt. Bij discgolf, pitch en put, skatepark, kartbaan en de andere minigames die iets in de wereld neerzetten staat nu "Alleen bij wie het spel opende".
 - Samen spelen (#429): je eigen akker groeit ook door terwijl je meespeelt, en in het pauzemenu (Boerderij) zet je de akker op je kaart. De klussen met de trekker doe je in je eigen spel.
