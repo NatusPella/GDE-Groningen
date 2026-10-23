@@ -109,7 +109,7 @@ function driverCard(w, pv) {
   const on = !!(pv && pv.isBus && lines.length);
   if (typeof document !== 'undefined') document.body.classList.toggle('bus-driving', on);
   if (!on) { last = { idx: -1, near: false, line: null }; return null; }
-  const own = busLineOf(pv);
+  const own = pv.boardLine && !pv.busRun && !pv.rideLine ? null : busLineOf(pv); // een bord-lijn van losse bus is geen dienst om over te nemen
   const line = own ? own.line : nearestLine(lines, pv.x, pv.y, 40);
   const dir = line ? (own ? own.dir : lineDirection(line, pv.x, pv.y, pv.angle)) : 0;
   const c = getCard();
@@ -135,10 +135,24 @@ function driverCard(w, pv) {
   return offer ? { line, dir } : null;
 }
 
+// Een bus buiten een dienst (verdwaald, geparkeerd, verhaalbus) rijdt toch onder een lijn: de dichtstbijzijnde, in de
+// rijrichting (#436). Eén keer per bus; zonder lijndata blijft het bord weg.
+function giveBoardLine(v) {
+  if (v.boardLineTried) return;
+  v.boardLineTried = true;
+  const lines = getBusLines();
+  const line = lines.length ? nearestLine(lines, v.x, v.y, 4000) : null;
+  if (!line) { v.boardLineTried = false; return; }
+  const dir = lineDirection(line, v.x, v.y, v.angle, 4000) || 1;
+  v.boardLine = { line, dir };
+}
+
 function updateBusBoards(dt, w) {
   const p = w.player;
   for (const v of w.vehicles) {
-    if (!v.isBus || !busLineOf(v) || v.wrecked) continue;
+    if (!v.isBus || v.wrecked) continue;
+    if (!busLineOf(v)) giveBoardLine(v);
+    if (!busLineOf(v)) continue;
     if (Math.hypot(v.x - p.x, v.y - p.y) < BOARD_R) ensureBoard(v);
   }
   const offer = driverCard(w, p.inVehicle);
