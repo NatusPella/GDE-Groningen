@@ -775,7 +775,8 @@ function stepCompanion(dt, world) {
     return;
   }
   if (isKnockedDown(c, world)) { c.vx = 0; c.vy = 0; return; }
-  if (world.companionHold && holdCompanion(c, world.companionHold, dt, world)) return;
+  // samen spelen (#429): een gast die niet meedoet met de opdracht wordt niet geparkeerd; zijn speler loopt vrij (coopStep hieronder)
+  if (world.companionHold && !(world.coopVrijLopen && world.coop && world.coop.remote) && holdCompanion(c, world.companionHold, dt, world)) return;
   // samen spelen (#291): de gast drukte op E: als bijrijder uitstappen (bijna stilstaand) of weer instappen
   if (!p.inVehicle) c.coopUit = !!(world.coop && world.coop.remote); // de host stapte uit: ze loopt weer gewoon mee; een echte speler stapt zelf in met E, ze gaat niet vanzelf mee als de ander instapt (#388)
   if (world.coopGebruik) { world.coopGebruik = false; coopGastGebruik(c, p, world); }
