@@ -10,8 +10,8 @@
 // Lokaal frame van de poort: a naar buiten (de kant waar de straat ligt), b dwars.
 // Een frame is { x, y, angle }: lokaal (p, q) ligt op x + p cos(angle) - q sin(angle), y + p sin(angle) + q cos(angle).
 
-export const FLOOR_Z = -5.0;
-export const CEIL_Z = -1.6;      // 3,4 m boven de vloer
+export const FLOOR_Z = -6.8;
+export const CEIL_Z = -3.4;      // 3,4 m boven de vloer, onder het water en de kanaalbodem van de kaart (-2,3 en -2,8): die zie je anders dwars door de hal
 // onder deze hoogte tellen de gebouwen boven de hal niet mee (vehicle.js offLevel)
 export const HALL_L = 46;
 export const HALL_W = 32;
@@ -63,19 +63,20 @@ export function hallLayout() {
 
 // De poort in lokale getallen (a naar buiten, b dwars): een blok van 11 bij 9 m met aan de buitenkant een opening van 6,4 m.
 export const GATE = {
-  depth: 9, width: 11, height: 4.2, opening: 6.4, openingH: 3.4, wall: 0.5,
+  depth: 8, width: 10, height: 4.2, opening: 6.2, openingH: 3.4, wall: 0.5,
   // de zone achter de opening waarin de overgang begint (binnen de poort, de auto er helemaal in)
   zone: { a0: -3.6, a1: -1.2, b0: -2.9, b1: 2.9 },
   // waar je weer staat na de uitrit: voor de opening, kijkend naar buiten
   out: { a: 4.2, b: -1.6 },
-  // vrije ruimte die de plek nodig heeft: de poort zelf en een strook ervoor (waar de auto's en mensen aankomen)
-  clearA0: -9, clearA1: 9, clearB: 7,
+  // vrije ruimte die de plek nodig heeft: het gebouw zelf (alles vrij) en een strook ervoor (waar de auto's en mensen aankomen; daar mag de straat liggen)
+  clearA0: -8.3, clearA1: 0.6, clearB: 5.3, frontA1: 6, frontB: 4,
 };
 
 // ---- de plek van de poort -------------------------------------------------------------------------------------------------------------------
 
 // Zoekt een vrije plek voor de poort rond (cx, cy), liefst dicht bij de hal en met de opening naar een straat.
 //   free(x, y)        mag er gebouwd worden (geen gebouw, geen water, geen autoweg)
+//   opts.approach(x, y) mag er voor de opening gereden en gelopen worden (geen gebouw, geen water; een weg mag): standaard free
 //   roadDir(x, y)     { x, y, dist, angle } het dichtstbijzijnde stuk weg (angle: de richting van de weg) of null
 //   opts: { radius, step, maxRoad, penalty(f, probe) }; penalty telt erbij op (bijvoorbeeld voetpaden onder de poort)
 // Een generator (elke 60 kandidaten een yield, zodat het spel er een stukje per beeld aan kan werken); planGate loopt hem uit.
@@ -83,8 +84,10 @@ export const GATE = {
 export function* planGateSteps(free, roadDir, cx, cy, opts = {}) {
   const radius = opts.radius || 140, step = opts.step || 3, maxRoad = opts.maxRoad || 60;
   let best = null, count = 0;
-  const probe = [];
-  for (let a = GATE.clearA0; a <= GATE.clearA1; a += 3) for (let b = -GATE.clearB; b <= GATE.clearB; b += 3) probe.push([a, b]);
+  const probe = [], front = [];
+  for (let a = GATE.clearA0; a <= GATE.clearA1; a += 2.9) for (let b = -GATE.clearB; b <= GATE.clearB; b += 2.65) probe.push([a, b]);
+  for (let a = 2; a <= GATE.frontA1; a += 2) for (let b = -GATE.frontB; b <= GATE.frontB; b += 2) front.push([a, b]);
+  const approach = opts.approach || free;
   const diff = (p, q) => Math.abs(Math.atan2(Math.sin(p - q), Math.cos(p - q)));
   for (let dx = -radius; dx <= radius; dx += step) {
     for (let dy = -radius; dy <= radius; dy += step) {
@@ -104,6 +107,11 @@ export function* planGateSteps(free, roadDir, cx, cy, opts = {}) {
       for (const [a, b] of probe) {
         const [px, py] = toWorld(f, a, b);
         if (!free(px, py)) { ok = false; break; }
+      }
+      for (const [a, b] of front) {
+        if (!ok) break;
+        const [px, py] = toWorld(f, a, b);
+        if (!approach(px, py)) ok = false;
       }
       if (!ok) continue;
       const score = d + road.dist * 0.6 + (opts.penalty ? opts.penalty(f, probe) : 0);
