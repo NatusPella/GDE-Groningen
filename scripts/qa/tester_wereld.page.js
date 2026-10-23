@@ -66,4 +66,110 @@ if (deel === 'trein') {
   out.stapFoutMax = maxErr; out.stapFoutGem = n ? sum / n : 0;
   await shot('trein-' + t.route.name.replace(/\s+/g, '_'));
 }
+if (deel === 'gans') {
+  // staat de gans op zijn poten? onderkant romp en poten in meters boven het gras, met de hoogte die animateGans geeft
+  const W = await import('./js/wildlife.js');
+  const THREE = window.__scene3d.THREE;
+  const m = W.buildWildlifeMesh3D({ kind: 'gans' });
+  W.animateWildlifeMesh3D(m, { kind: 'gans', speed: 0, bobSeed: 0.3, stride: 0 }, 1);
+  m.updateMatrixWorld(true);
+  const rij = [];
+  m.traverse((o) => { if (o.isMesh) { const g = o.geometry; g.computeBoundingBox(); const b = g.boundingBox.clone().applyMatrix4(o.matrixWorld); rij.push([o.isSkinnedMesh ? 'romp' : 'poot', +b.min.y.toFixed(3), +b.max.y.toFixed(3)]); } });
+  out.gans = { schaal: m.scale.x, y: m.position.y, delen: rij };
+  // een gans op een stuk gras voor de speler, een rustige en een opgeschrikte
+  const p = world.player;
+  const mkGans = (dx, dy, vlucht) => ({ kind: 'gans', x: p.x + dx, y: p.y + dy, angle: p.angle || 0, speed: vlucht ? 3.2 : 0, stride: 0, bobSeed: Math.random(), fleeT: vlucht ? 1e6 : 0, wanderTarget: { x: p.x + dx, y: p.y + dy }, waypointTimer: 1e6, homeX: p.x + dx, homeY: p.y + dy, homeRadius: 1, stateTimer: 1e6 });
+  const g1 = mkGans(Math.cos(p.angle || 0) * 5, Math.sin(p.angle || 0) * 5, false);
+  const g2 = mkGans(Math.cos((p.angle || 0) + 0.4) * 7, Math.sin((p.angle || 0) + 0.4) * 7, true);
+  world.wildlife = (world.wildlife || []).concat([g1, g2]);
+  out.speler = { x: p.x, y: p.y, angle: p.angle };
+  await sleep(1500);
+  await shot('gans');
+}
+if (deel === 'bord') {
+  // de bordenatlassen (plaatsnaamborden, wegwijzers, portaalborden): bevat elke getekende cel inkt, en wat staat er op?
+  const WP = await import('./js/worldplaces.js');
+  const S3 = window.__scene3d;
+  const towns = (WP.worldTownSigns() || []).filter((t) => t.kind === 'village' || t.kind === 'town').slice(0, 400);
+  out.plaatsen = towns.length;
+  const stap = Math.max(1, Math.floor(towns.length / 8));
+  const res = [];
+  for (let i = 0; i < towns.length && res.length < 8; i += stap) {
+    const t = towns[i];
+    const rp = world.map.nearestRoadPoint(t.x + 700, t.y, 600, true);
+    world.player.x = rp ? rp.x : t.x + 700; world.player.y = rp ? rp.y : t.y;
+    await sleep(5000);
+    const stat = { plaats: t.n || t.name, kind: t.kind, borden: 0, leeg: 0, meshes: [] };
+    S3.scene.traverse((o) => {
+      if (!o.isMesh || !/^furniture:(boards|signs)$/.test(o.name)) return;
+      const img = o.material.map && o.material.map.image;
+      const uv = o.geometry.attributes.uv;
+      const pos = o.geometry.attributes.position;
+      if (!img || !uv) return;
+      const cols = o.name.endsWith('boards') ? 4 : 4, rows = 16;
+      const cw = img.width / cols, ch = img.height / rows;
+      const g = img.getContext('2d');
+      const seen = new Set();
+      for (let q = 0; q + 5 < uv.count; q += 6) {
+        let u = 9, v = 9; for (let z = 0; z < 6; z++) { u = Math.min(u, uv.getX(q + z)); v = Math.min(v, uv.getY(q + z)); }
+        if (Math.hypot(pos.getX(q) - world.player.x, pos.getZ(q) - world.player.y) > 250) continue;
+        const col = Math.floor(u * cols + 1e-4), row = Math.round((1 - v) * rows) - 1;
+        if (col === 3 && row === 15) continue;
+        const key = col + "," + row; if (seen.has(key)) continue; seen.add(key);
+        const px = g.getImageData(col * cw, row * ch, cw, ch).data;
+        const kleuren = new Map();
+        for (let k = 0; k < px.length; k += 16) { const c = px[k] + ',' + px[k + 1] + ',' + px[k + 2] + ',' + px[k + 3]; kleuren.set(c, (kleuren.get(c) || 0) + 1); }
+        stat.borden++;
+        if (kleuren.size < 6) { stat.leeg++; if (stat.meshes.length < 4) stat.meshes.push([o.name, col, row, [...kleuren.keys()].slice(0, 3).join('|')].join(' ')); }
+      }
+    });
+    res.push(stat);
+    if (res.length === 2) await shot('bord-' + stat.plaats);
+  }
+  out.res = res;
+}
+if (deel === 'auto') {
+  // wat staat er om de speler heen en wie kan er niet in? (E: findEnterableVehicle)
+  const Vh = await import('./js/vehicle.js');
+  const PC = await import('./js/parkedcars.js');
+  await sleep(10000);
+  const alle = [...world.vehicles, ...PC.sleepingParkedCars(world)];
+  const tel = {}; const voorbeeld = [];
+  for (const v of alle) {
+    const kleur = String(v.model && v.model.color || '?').toLowerCase();
+    const sleutel = [v.isPolice ? 'politie' : v.isBus ? 'bus' : v.isBoat ? 'boot' : v.isBike ? 'fiets' : v.isScooter ? 'scooter' : 'auto', v.driver ? 'driver=' + v.driver : 'vrij', v.parked ? 'geparkeerd' : v.road ? 'verkeer' : 'los', v.disabled ? 'kapot' : ''].join(' ');
+    // staat de speler ernaast: kan E hem pakken?
+    const p = world.player; const was = [p.x, p.y, p.gz, p.z];
+    p.x = v.x; p.y = v.y;
+    const f = Vh.findEnterableVehicle(p.x, p.y, alle.filter((q) => !q.sleeping), 1.8);
+    p.x = was[0]; p.y = was[1];
+    const ok = f === v;
+    tel[sleutel + (ok ? ' OK' : ' NIET')] = (tel[sleutel + (ok ? ' OK' : ' NIET')] || 0) + 1;
+    if (!ok && voorbeeld.length < 20) voorbeeld.push([sleutel, kleur, v.model && v.model.name, Math.round(v.x), Math.round(v.y), 'wakker=' + world.vehicles.includes(v), 'gevonden=' + (f ? f.id : null)].join(' | '));
+  }
+  out.aantal = alle.length; out.tel = tel; out.voorbeeld = voorbeeld;
+}
+if (deel === 'taxi') {
+  const V = await import('./js/models3d_vehicles.js');
+  // de stad in: waar de taxi's rijden (het begin van een nieuw spel is dat al)
+  out.speler = { x: world.player.x, y: world.player.y };
+  const taxis = () => world.vehicles.filter((v) => v.isTaxi);
+  out.taxis0 = taxis().length;
+  const log = []; let keer = 0, zonder = 0, flips = 0, vorige = null;
+  const t0 = performance.now();
+  while (performance.now() - t0 < (window.__tb.maxS - 40) * 1000) {
+    if (window.__reklametaxi && !(window.__reklametaxi.staat().taxi)) window.__reklametaxi.nu();
+    const s = window.__reklametaxi ? window.__reklametaxi.staat() : null;
+    if (s && s.taxi != null) {
+      const v = world.vehicles.find((q) => q.id === s.taxi);
+      const mesh = v ? V.getVehicleMesh(v.id) : null;
+      const kind = mesh ? mesh.children.filter((c) => c.isGroup).length : -1;
+      const toestand = s.bord ? 'bord' : mesh ? 'geen-bord-wel-mesh' : 'geen-mesh';
+      if (toestand !== vorige) { flips++; if (log.length < 40) log.push([Math.round(performance.now() - t0), s.taxi, toestand, v ? Math.round(Math.hypot(v.x - world.player.x, v.y - world.player.y)) : null, v ? Math.round(v.speed * 10) / 10 : null].join(' ')); vorige = toestand; }
+      keer++; if (!s.bord) zonder++;
+    } else vorige = null;
+    await sleep(100);
+  }
+  out.metingen = keer; out.zonderBord = zonder; out.wissels = flips; out.log = log;
+}
 return JSON.stringify({ results: { wereld: out } });
