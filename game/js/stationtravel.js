@@ -724,9 +724,13 @@ function rideShot(w, tt) {
     pos = { x: car.x - fx * 45 - nx * 22, y: car.y - fy * 45 - ny * 22, z: z0 + 32 };
     at = { x: car.x + fx * 35, y: car.y + fy * 35, z: z0 };
   }
+  // per seconde, niet per beeld: de camera achter een trein van 22 m/s liep bij elke afwijkende beeldtijd een meter voor of achter (stotterend beeld, #436)
+  const camDt = r.lastTT == null ? 0 : Math.max(0, Math.min(0.1, tt - r.lastTT));
+  r.lastTT = tt;
+  const camK = 1 - Math.exp(-camDt * 17);
   const cut = view !== r.view;
   if (cut || !r.cam) r.cam = { pos: { ...pos }, at: { ...at } };
-  else for (const k of ['x', 'y', 'z']) { r.cam.pos[k] += (pos[k] - r.cam.pos[k]) * 0.25; r.cam.at[k] += (at[k] - r.cam.at[k]) * 0.25; }
+  else for (const k of ['x', 'y', 'z']) { r.cam.pos[k] += (pos[k] - r.cam.pos[k]) * camK; r.cam.at[k] += (at[k] - r.cam.at[k]) * camK; }
   r.view = view;
   // the hidden player (and companion) ride along, clear of the track, so
   // the world streams round the train; the tiles follow it too
