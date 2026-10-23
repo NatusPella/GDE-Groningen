@@ -79,7 +79,7 @@ export const VAKKEN = [
   { id: 'golf', groep: 'spel', naam: 'Golf', icoon: 'vlag', eenheid: 'rondes', uniek: 'banen',
     wat: 'Discgolf en pitch and putt.',
     titels: ['Eerste worp', 'Rondespeler', 'Mandenjager', 'Baankenner', 'Kampioen van het Stadspark', 'Meester van de mand'] },
-  { id: 'hengelen', groep: 'spel', naam: 'Hengelen', icoon: 'vis', eenheid: 'vangsten', uniek: 'plekken',
+  { id: 'hengelen', groep: 'spel', naam: 'Vissen', icoon: 'vis', eenheid: 'vangsten', uniek: 'plekken',
     wat: 'Hengelen op elk water van de provincie: hoe meer soorten en plekken, hoe meer het oplevert.',
     titels: ['Dobbertjeskijker', 'Aasgooier', 'Visjager', 'Hengelaar van stand', 'Meester van het water', 'Visbaas van het Noorden'] },
   { id: 'race', groep: 'spel', naam: 'Racen', icoon: 'race', eenheid: 'races', uniek: 'banen',

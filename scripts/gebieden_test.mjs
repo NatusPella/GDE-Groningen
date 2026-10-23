@@ -491,7 +491,7 @@ t('de haken staan op hun plek: loopbaanTel, loopbaanOpStat, de vondsten, het tik
   const tr = bron('achievementtracker.js');
   for (const s of ['initGebieden({ gate: achievementsGated', 'setUniekListener(gebiedenOpVondst)', 'updateGebieden(dt, w,']) assert.ok(tr.includes(s), s);
   assert.ok(bron('mapview.js').includes("layerOn('veroverd')"));
-  assert.ok(bron('loopbaanui.js').includes('gebiedenHtml'));
+  assert.ok(bron('veroverdpanel.js').includes('gebiedenHtml'));
   const gb = bron('gebiedenbronnen.js');
   assert.ok(gb.includes("'grenzen.json'") && gb.includes('ontvouw'), 'de bronnen laden game/grenzen.json');
   assert.ok(!gb.includes('neighbourhoodPoints') && !gb.includes('STREKEN'), 'de oude indeling (wijkpunten en streken) is weg');
@@ -501,8 +501,8 @@ t('de safehouses hangen aan het spel: een activiteit, een laag op de kaart, de k
   assert.match(bron('activities.js'), /SAFEHUIS[,\]]/, 'activities.js: SAFEHUIS staat in de lijst');
   heeft('mapview.js', "layers: ['safehuis']");
   heeft('mapview.js', "filter((l) => l !== 'safehuis')", 'de laag hoort niet bij de schakelaar van de minigames');
-  heeft('loopbaanui.js', 'data-reis');
-  heeft('pausemenu.js', "'[data-panel=\"loopbaan\"] .pm-inner'), closePauseMenu)");
+  heeft('gebiedenui.js', 'data-reis');
+  heeft('pausemenu.js', "'[data-panel=\"loopbaan\"] .pm-inner'), closePauseMenu, world)");
   heeft('safehuizen.js', 'cheatActions.teleport', 'snelreizen met de bewakers van de kaartteleport');
   heeft('safehuizen.js', 'policeWatching(w)', 'de deur is dicht als de politie je ziet');
   heeft('safehuizen.js', 'w.wanted = 0', 'onderduiken zet het gezocht-niveau op nul');
