@@ -761,6 +761,11 @@ function resolveContacts(world) {
         const push = pushOut(car, hl, c.x, c.y, c.radius || 0.35);
         if (push) hitCompanion(c, t, car, push, world);
       }
+      if (world.coopFigures) for (const f of Object.values(world.coopFigures)) { // de derde en vierde speler (#434): een trein rijdt niet door ze heen, ze worden opzij gezet
+        if (!f || f.inVeh || !Number.isFinite(f.x) || Math.abs(f.x - car.x) > reach || Math.abs(f.y - car.y) > reach || inRailBridgeZone(f.x, f.y)) continue;
+        const push = pushOut(car, hl, f.x, f.y, 0.35);
+        if (push) { f.x += push.nx * push.depth; f.y += push.ny * push.depth; }
+      }
       for (const ped of world.pedestrians) {
         if (Math.abs(ped.x - car.x) > reach || Math.abs(ped.y - car.y) > reach) continue;
         const push = pushOut(car, hl, ped.x, ped.y, ped.radius || 0.35);

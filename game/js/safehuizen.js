@@ -258,6 +258,7 @@ const kanNiet = (w) => {
 export const SAFEHUIS = {
   id: 'safehuis',
   layer: 'safehuis',
+  gastTick: true, // ook bij een gast bouwen: het huisje heeft muren die zijn lichaam tegenhouden (#434)
   legend: { kind: 'act-safehuis', label: 'Safehouse', note: 'een huisje om te kopen of te krijgen in elk gebied dat je kunt veroveren' },
   init(w) { wereld = w; window.__safehuis = { lijst: () => huizen.map((h) => ({ id: h.id, naam: h.naam, adres: h.adres, x: h.x, y: h.y, ang: h.ang, deur: deur(h), gebied: h.gebied, geplaatst: h.geplaatst, onbruikbaar: !!h.onbruikbaar, mesh: !!h.mesh, eigen: heeftHuisLive(h.id) })), menu: (id) => { const h = huizen.find((q) => q.id === id); return h ? openShopMenu(w, menu(w, h)) : null; }, }; },
   spots: (voorCheck) => (voorCheck ? [] : huizen.filter((h) => !h.onbruikbaar)).map((h) => ({ id: h.id, name: h.naam, ...deur(h), mode: 'walk' })),

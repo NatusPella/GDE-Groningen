@@ -468,9 +468,9 @@ const HENK_CALL = {
   kaart: 'Volg de roze lijn op je kaart, dan sta je zo bij mij. Tot zo!',
 };
 
-export function updateGarages(dt, w) {
+export function updateGarages(dt, w, gast = false) {
   world = w;
-  mechanicCall(w);
+  if (!gast) mechanicCall(w); // een gast (#434) bouwt en opent alleen de garages: Henk belt de eigenaar van het spel
   const scene = getScene();
   const p = w.player;
   const pv = p.inVehicle;

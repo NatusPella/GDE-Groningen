@@ -27,7 +27,9 @@ t('alleen voertuigen dicht bij een speler, nabije eerst; wrakken en rommel niet'
 t('het doel van de lopende opdracht gaat mee, alleen als hij actief is', () => {
   const world = { vehicles: [], mission: { phase: 'active', marker: { x: 12, y: 34 } } };
   assert.deepEqual(W.verzamelEntiteiten(world, [{ x: 0, y: 0 }]), [{ id: W.ID_DOEL, kind: W.SOORT_DOEL, x: 12, z: 34, angle: 0 }]);
-  assert.deepEqual(W.verzamelEntiteiten({ vehicles: [], mission: { phase: 'idle', marker: { x: 1, y: 1 } } }, [{ x: 0, y: 0 }]), []);
+  assert.deepEqual(W.verzamelEntiteiten({ vehicles: [], mission: { phase: 'cooldown', marker: { x: 1, y: 1 } } }, [{ x: 0, y: 0 }]), []);
+  // niet actief maar wel klaar om te beginnen: de gast ziet het beginpunt, geen doel (#434)
+  assert.deepEqual(W.verzamelEntiteiten({ vehicles: [], mission: { phase: 'idle', index: 3, marker: { x: 1, y: 1 } } }, [{ x: 0, y: 0 }]), [{ id: W.ID_START0 + 3, kind: W.SOORT_START, x: 1, z: 1, angle: 0 }]);
 });
 t('maximum aantal entiteiten (de codec kent er 64)', () => {
   const world = { vehicles: Array.from({ length: 200 }, (_, i) => veh(i + 1, i, 0)) };

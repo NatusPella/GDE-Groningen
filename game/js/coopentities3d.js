@@ -12,13 +12,14 @@ import { syncVehicleDoors } from './vehicledoors3d.js';
 import { standVers, MISC_DEUREN, leesDeuren } from './coopextra.js';
 import { WATER_Y } from './util.js';
 import { surfaceLiftAt } from './waterlevels.js';
+import { gladBoot } from './coopboot.js';
 import { ruimMeshOp } from './coopruim.js';
 
 const voertuigen = new Map(); // id -> mesh
 const hornWas = new Map(); // id -> de toeter stond aan (de vorige keer)
 // een voertuig weg uit de scene: een blok heeft eigen geometrie (de materialen zijn gedeeld), echte modellen delen hun geometrie
 const ruimVoertuig = (scene, m) => ruimMeshOp(scene, m, { geometrie: !m.userData.vehicleId });
-let beacon = null;
+let beacon = null, startBaken = null, startHint = -1e9;
 const MATS = {};
 const mat = (c) => (MATS[c] ||= new THREE.MeshStandardMaterial({ color: c, roughness: 0.7 }));
 
@@ -127,7 +128,8 @@ function bouw(v) {
   return g;
 }
 
-export const hasHostEntities = () => voertuigen.size > 0 || !!beacon;
+export const startHintTekst = () => 'Hier begint een opdracht. Hij start zodra wie het spel opende bij de marker staat: dan kun je meedoen.';
+export const hasHostEntities = () => voertuigen.size > 0 || !!beacon || !!startBaken;
 
 // Elke frame (main.js), alleen op een gast.
 export function syncHostEntities(world, dt = 1 / 60) {
@@ -162,8 +164,13 @@ export function syncHostEntities(world, dt = 1 / 60) {
     const gz = world.map && world.map.groundHeightAt && world.map.elev && world.map.elev.has ? (() => { try { return world.map.groundHeightAt(v.x, v.y); } catch (e) { return 0; } })() : 0;
     let y = v.hoogteZ || gz;
     const spec = m.userData.spec;
-    if (spec && spec.isBoat) { let lift = 0; try { lift = world.map ? surfaceLiftAt(world.map, v.x, v.y) : 0; } catch (e) { lift = 0; } y = WATER_Y + (Number.isFinite(lift) ? lift : 0); }
-    m.position.set(v.x, y, v.y); m.rotation.y = -v.angle;
+    let px = v.x, py = v.y, hoek = v.angle;
+    if (spec && spec.isBoat) { // een boot beweegt glad (coopboot.js): geen sprongen en geen slingerende koers (#434)
+      const g = gladBoot(m.userData.glad || (m.userData.glad = {}), v.x, v.y, v.angle, v.snelheid, dt);
+      px = g.x; py = g.y; hoek = g.angle;
+      let lift = 0; try { lift = world.map ? surfaceLiftAt(world.map, px, py) : 0; } catch (e) { lift = 0; } y = WATER_Y + (Number.isFinite(lift) ? lift : 0);
+    }
+    m.position.set(px, y, py); m.rotation.y = -hoek;
     if (spec && !m.userData.blok) animeerVoertuig(m, spec, v, klok, dt, deuren);
     // geluid: de toeter bij het aangaan van de vlag (met de toonhoogte van dit voertuig) en de sirene zolang hij aan staat, met de bestaande geluiden (audio.js)
     const toet = !!v.toeter;
@@ -196,6 +203,20 @@ export function syncHostEntities(world, dt = 1 / 60) {
     scene.add(beacon);
   }
   if (beacon) { beacon.visible = !!doel; if (doel) beacon.position.set(doel.x, 30, doel.y); }
+  // het beginpunt van de volgende opdracht van wie het spel opende: een gele zuil, zoals de gast ook zijn eigen opdrachten ziet (#434)
+  const start = !doel && host.starts && host.starts[0];
+  if (start && !startBaken) {
+    startBaken = new THREE.Mesh(new THREE.CylinderGeometry(1.4, 1.4, 40, 16, 1, true), new THREE.MeshBasicMaterial({ color: 0xffd23f, transparent: true, opacity: 0.35, depthWrite: false, side: THREE.DoubleSide }));
+    scene.add(startBaken);
+  }
+  if (startBaken) {
+    startBaken.visible = !!start;
+    if (start) {
+      startBaken.position.set(start.x, 20, start.y);
+      const p = world.player;
+      if (p && Math.hypot(start.x - p.x, start.y - p.y) < 25 && world.time - startHint > 40 && world.addMessage) { startHint = world.time; world.addMessage(startHintTekst(), 5); }
+    }
+  }
 }
 
 export function clearHostEntities() {
@@ -204,4 +225,6 @@ export function clearHostEntities() {
   voertuigen.clear(); wacht.clear();
   if (beacon && scene) ruimMeshOp(scene, beacon, { materiaal: true });
   beacon = null;
+  if (startBaken && scene) ruimMeshOp(scene, startBaken, { materiaal: true });
+  startBaken = null;
 }
