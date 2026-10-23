@@ -13,14 +13,26 @@ export function lerpAngle(a, b, k) { const d = ((b - a + Math.PI) % (2 * Math.PI
 
 // De nieuwe weergavetijd: loopt met de klok mee, een tikje sneller of langzamer richting (laatste - vertraging) en springt alleen
 // als we ver achter de laatste snapshot zitten. Zo schuift hij zacht mee met aankomstjitter in plaats van te klemmen.
-export function volgTijd(renderT, laatste, dt, vertraging = INTERP_DELAY) {
+// tempo: hoeveel hosttijd er per seconde van onze klok voorbijkomt (1 = gelijk; een host die trager draait dan zijn klok, is lager).
+export function volgTijd(renderT, laatste, dt, vertraging = INTERP_DELAY, tempo = 1) {
   if (!Number.isFinite(laatste)) return renderT;
   const doel = laatste - vertraging;
   if (renderT == null || !Number.isFinite(renderT)) return doel;
   if (renderT < laatste - ACHTER_MAX) return doel;
   const fout = doel - renderT;
-  const snelheid = 1 + Math.min(BIJSTUUR, Math.max(-BIJSTUUR, fout * 1.5));
+  const snelheid = (Number.isFinite(tempo) ? tempo : 1) * (1 + Math.min(BIJSTUUR, Math.max(-BIJSTUUR, fout * 1.5)));
   return Math.min(laatste + EXTRA_MAX, renderT + dt * snelheid);
+}
+
+// Het tempo van de hostklok ten opzichte van onze klok, uit de laatste anderhalve seconde aan snapshots (marks: [onze tijd, hosttijd]).
+// Zacht bijgesteld (een derde per snapshot) en begrensd; te weinig gegevens: ongewijzigd.
+export function schatTempo(marks, wall, hostT, huidig = 1) {
+  marks.push([wall, hostT]);
+  while (marks.length > 40 || (marks.length > 2 && wall - marks[0][0] > 1.5)) marks.shift();
+  const a = marks[0], b = marks[marks.length - 1], span = b[0] - a[0];
+  if (marks.length < 5 || span < 0.4) return huidig;
+  const r = (b[1] - a[1]) / span;
+  return Math.min(1.5, Math.max(0.3, huidig + (r - huidig) * 0.33));
 }
 
 // Eén positie tussen twee toestanden a en b (k van 0 tot 1; boven 1 is voorspellen met de snelheid tussen a en b).

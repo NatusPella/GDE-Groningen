@@ -32,23 +32,44 @@ t('stilstand bij vertraging: een lange gat zet de weergavetijd terug bij de laat
   assert.equal(volgTijd(0, 5, 1 / 60), 5 - INTERP_DELAY);
   assert.equal(volgTijd(null, 5, 1 / 60), 5 - INTERP_DELAY);
 });
-t('glad bij jitter: weergegeven stap per frame wijkt weinig af van de echte snelheid (pakketten 0 tot 80 ms te laat, af en toe weg)', () => {
+// Een host die elke `interval` s een snapshot stuurt terwijl zijn simulatieklok `simStap` s opschuift (een trage host: het spel kapt dt af op 0,05 s,
+// dus 15 beelden per seconde lopen op 0,75 van de echte tijd), met aankomstjitter en verlies. oud: de oude weergavetijd (vast tussen laatste - 0,25 en
+// laatste - 0,05, geen voorspelling) en seq / 20 als tijd; nieuw: SnapBuffer met de tijd uit de kop.
+function speel({ interval, simStap, jitter = 0.08, verlies = 0.1, v = 12, oud = false, seconden = 19 }) {
   let seed = 7; const rnd = () => (seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296;
-  const b = new SnapBuffer(); const v = 12; // m/s
-  const aankomst = []; // [tijd van aankomst, snapshot]
-  for (let i = 0; i < 400; i++) if (rnd() > 0.1) aankomst.push([i * 0.05 + rnd() * 0.08, snap(i * 0.05, i * 0.05 * v, 0)]);
+  const aankomst = [];
+  for (let i = 0; i < seconden / interval; i++) if (rnd() > verlies) aankomst.push([i * interval + rnd() * jitter, { hostT: oud ? i * 0.05 : (i + 1) * simStap, x: (i + 1) * simStap * v }]);
   aankomst.sort((p, q) => p[0] - q[0]);
-  const dt = 1 / 60; let k = 0, vorige = null, maxAfw = 0, stil = 0;
-  for (let T = 0; T < 19; T += dt) {
-    while (k < aankomst.length && aankomst[k][0] <= T) b.push(aankomst[k++][1]);
-    if (!b.snaps.length) continue;
-    b.advance(dt);
-    const x = ex(b).x;
-    if (vorige != null && T > 1) { const stap = (x - vorige) / dt; maxAfw = Math.max(maxAfw, Math.abs(stap - v)); if (stap < 0.3 * v) stil++; }
+  const b = new SnapBuffer(), snaps = [];
+  const dt = 1 / 60; let k = 0, r = null, vorige = null, stil = 0, n = 0, maxAfw = 0;
+  const verwacht = v * simStap / interval; // m/s in echte tijd
+  for (let T = 0; T < seconden; T += dt) {
+    while (k < aankomst.length && aankomst[k][0] <= T) { const s = aankomst[k++][1]; if (oud) { if (!snaps.length || s.hostT > snaps[snaps.length - 1].hostT) snaps.push(s); } else b.push(snap(s.hostT, s.x, 0)); }
+    let x;
+    if (oud) {
+      if (!snaps.length) continue;
+      const L = snaps[snaps.length - 1].hostT; if (r == null) r = L - 0.1;
+      r = Math.min(L - 0.05, Math.max(L - 0.25, r + dt));
+      x = snaps[0].x;
+      for (let i = snaps.length - 1; i > 0; i--) if (snaps[i - 1].hostT <= r) { const a = snaps[i - 1], c = snaps[i], kk = Math.min(1, Math.max(0, (r - a.hostT) / (c.hostT - a.hostT))); x = a.x + (c.x - a.x) * kk; break; }
+    } else { if (!b.snaps.length) continue; b.advance(dt); x = ex(b).x; }
+    if (vorige != null && T > 2) { const stap = (x - vorige) / dt; n++; if (stap < 0.3 * verwacht) stil++; maxAfw = Math.max(maxAfw, Math.abs(stap - verwacht)); }
     vorige = x;
   }
-  assert.equal(stil, 0, 'nooit bijna stil: ' + stil);
-  assert.ok(maxAfw < 0.6 * v, 'grootste afwijking van de snelheid ' + maxAfw.toFixed(1) + ' m/s');
+  return { stil, n, maxAfw, verwacht };
+}
+t('glad bij jitter: een host van 20 beelden per seconde, pakketten 0 tot 80 ms te laat en 10% weg: nooit stil, afwijking beperkt', () => {
+  const r = speel({ interval: 0.05, simStap: 0.05 });
+  assert.equal(r.stil, 0, 'stil: ' + r.stil);
+  assert.ok(r.maxAfw < 0.6 * r.verwacht, 'grootste afwijking ' + r.maxAfw.toFixed(1) + ' m/s van ' + r.verwacht);
+});
+t('trage host (15 beelden per seconde met een simulatiestap van 0,05 s): de weergavetijd loopt in zijn tempo mee, ook dan nooit stil', () => {
+  const nieuw = speel({ interval: 1 / 15, simStap: 0.05 });
+  assert.equal(nieuw.stil, 0, 'stil: ' + nieuw.stil + ' van ' + nieuw.n);
+  assert.ok(nieuw.maxAfw < 0.75 * nieuw.verwacht, 'afwijking ' + nieuw.maxAfw.toFixed(1) + ' van ' + nieuw.verwacht);
+  const oud = speel({ interval: 1 / 15, simStap: 0.05, oud: true });
+  console.log('   oude weergavetijd, trage host: ' + oud.stil + ' van ' + oud.n + ' beelden (bijna) stil; nu ' + nieuw.stil);
+  assert.ok(oud.stil > nieuw.stil + 50, 'de oude aanpak stond stil: ' + oud.stil);
 });
 t('oud gedrag blijft: instappen en teleport glijden niet; spelers met een voertuigwissel blijven staan', () => {
   const b = new SnapBuffer();

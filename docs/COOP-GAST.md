@@ -58,6 +58,16 @@ host in een voertuig zit met een vrije plek binnen bereik. Een weigering komt al
 
 Zie `game/js/coopfoci.js`. De gastheer houdt een register bij van de plekken van alle spelers. `bouwFoci` voegt spelers binnen 150 m samen tot een focus en houdt hoogstens `FOCI_MAX` (8) bij; wie er niet meer bij kan krijgt een melding en valt terug op de oude band. Rond elke focus laden de tegels (`tilestore.js` `prefetch`, `foci`; de straal krimpt van 800 m naar 400 m naarmate er meer groepen zijn, `tegelStraal`), en verkeer, voetgangers en dieren delen een totaalbudget van anderhalf keer wat een speler alleen krijgt (`aandeel`). Verhaalmissies, filmpjes, bijbanen en gesprekken blijven bij de gastheer. De band (`bandFiguren`, `bandMetgezel`) zet een speler met een eigen focus niet terug, ook niet als hij ver weg is, ook niet als hij ver weg is (geen vaste maximale afstand). Een sprong van de gastheer haalt iedereen nog bij. Is de tegel onder hem nog niet geladen, dan staat hij stil en wordt hij na 10 s bij de groep gezet. B (bericht `bijgroep`) zet je lichaam naast de gastheer. Het snapshot verdeelt zijn plekken eerlijk over de groepen (`coopworld.js` `groepenVan`). Het formaat verandert niet: PROTO en CODEC_VERSION blijven 2.
 
+## Bewegen, springen, meerijden en wapens (#434)
+
+**Vloeiend bewegen.** `game/js/net/interp.js`. Snapshots komen met 20 Hz; de gast toont de wereld 0,12 s in het verleden en tekent voertuigen, mensen, boten, treinen en de figuren van andere spelers tussen twee snapshots. De weergavetijd loopt zacht mee met aankomstjitter en met het tempo van de klok van de host (een trage host kapt zijn stap af op 0,05 s en loopt dan op 0,75 van de echte tijd), komt er even geen snapshot dan gaat de beweging tot 0,25 s door met de laatste snelheid, en een sprong van meer dan 20 m tussen twee snapshots is een teleport (geen glijden). Met de mogelijkheid `snaptijd` (CAPS) staat de tijd van een snapshot in zijn kop (ms van de sessieklok van de host): dan rekent de gast niet meer met `seq / 20`. Een oudere host zonder die mogelijkheid werkt nog, met de oude tijd.
+
+**Springen en bukken.** Een gast stuurt ze als knoppen in de invoer (bit 2 en 3; Spatie met het stuur blijft de handrem). De gastheer laat het lichaam van de gast springen en bukken (`coopspeler.js` `stapSprong`, dezelfde sprong als `player.js`: ongeveer 0,6 m) en zet hoogte en bukvlag in het snapshot; iedereen ziet het.
+
+**Meerijden.** Wie in een voertuig zit staat in het snapshot met het voertuig (`vehicle`), `driver` en een stoelnummer (`seat`: 0 bestuurder, 1 bijrijder voorin, 2 en hoger achterin). `coopzitten3d.js` zet die speler als echt persoonsmodel op zijn stoel in het voertuigmodel (zelfde stoelen en houdingen als het spel), en een bestuurder op een fiets met de trapbeweging mee.
+
+**Wapen en aanval** van de gastheer staan in het snapshot (`weapon`, `attack`) en bij de gast op de figuur van de gastheer, met dezelfde houdingen als bij voetgangers. Het formaat van het snapshot is niet gewijzigd: de nieuwe velden zitten in bytes die al gereserveerd waren (de drie reservebytes en een vlagbit per speler), een oudere ontvanger slaat ze over. PROTO en CODEC_VERSION blijven 2.
+
 ## Niet gedaan
 
 Zelf een voertuig kiezen en besturen, gesprekken met voorbijgangers, bijbanen en minigames meedoen, en het stuur met een controller (Y heeft

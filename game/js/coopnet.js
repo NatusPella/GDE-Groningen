@@ -36,7 +36,7 @@ import { loopbaanGast, GAST_XP_DEEL } from './loopbaanlive.js';
 import { maakRegister, zetPlek, leegRegister, bouwFoci, losBesluit, FOCI_MAX, MAX_AFSTAND, ONGELADEN_S } from './coopfoci.js';
 import { tileIndexOf, tileKey } from './gdt.js';
 
-export const CAPS = ['scene', 'spelers']; // wat dit spel kent; uitbreidbaar (net/session.js negotiate)
+export const CAPS = ['scene', 'spelers', 'snaptijd']; // wat dit spel kent; uitbreidbaar (net/session.js negotiate). snaptijd: de tijd van een snapshot (ms van de klok van de host) staat in de kop, #434
 export const REMOVE_DELAY = 0.5; // s tussen "je bent verwijderd" en het verbreken
 export const MAX_REWARD = 1000000;
 export const GAST_DEEL = 0.5; // een gast krijgt de helft van wat de gastheer verdient met een missie, bijbaan of prijs (#365)
