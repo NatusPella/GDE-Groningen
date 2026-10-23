@@ -6,6 +6,7 @@
 // of rtc.js). Geen IP-adressen of namen in berichten, geen telemetrie.
 
 import { T, encodeInput, decodeInput, encodeSnapshot, decodeSnapshot, encodeJson, decodeJson, encodeSimple, readHeader, encodeExtra, decodeExtra } from './codec.js';
+import { volgTijd, mixPositie, mixEntiteiten, lerp } from './interp.js';
 import { PROTO, Reliable, checkHandshake, seqNewer, seqDiff } from './protocol.js';
 
 export const SNAP_HZ = 20;
@@ -15,8 +16,7 @@ export const LAG_AFTER = 0.6;      // s zonder bericht: status 'lag'
 export const LOST_AFTER = 5;       // s zonder bericht: verbinding verloren
 export const HELLO_TIMEOUT = 30;   // s zonder welkom van de host (die laadt, hangt of is weg): de gast geeft het op met een duidelijke melding
 export const RESUME_WINDOW = 120;  // s waarin de gast kan hervatten
-export const INTERP_DELAY = 0.1;   // s: de client toont de wereld iets in het verleden
-export const MAX_EXTRAPOLATE = 0.25;
+export { INTERP_DELAY, EXTRA_MAX as MAX_EXTRAPOLATE } from './interp.js'; // de client toont de wereld iets in het verleden en voorspelt hoogstens even (net/interp.js, #434)
 export const STALE_INPUT = 0.5;    // s zonder invoer: de host neutraliseert (geen vastzittende toets)
 const PING_EVERY = 1;
 
@@ -185,11 +185,10 @@ export class SnapBuffer {
   }
   clear() { this.snaps.length = 0; this.renderT = null; }
   get latestT() { return this.snaps.length ? this.snaps[this.snaps.length - 1].hostT : null; }
-  // schuif de weergavetijd op met dt; blijf tussen laatste-0.25 en laatste-0.05
+  // schuif de weergavetijd op met dt, zacht richting laatste - vertraging; blijft er een snapshot weg, dan voorspelt sample() even door (#434)
   advance(dt) {
     const L = this.latestT; if (L == null) return null;
-    if (this.renderT == null) this.renderT = L - INTERP_DELAY;
-    this.renderT = Math.min(L - 0.05, Math.max(L - 0.25, this.renderT + dt));
+    this.renderT = volgTijd(this.renderT, L, dt);
     return this.renderT;
   }
   sample() {
@@ -200,7 +199,7 @@ export class SnapBuffer {
     for (let i = s.length - 1; i > 0; i--) {
       if (s[i - 1].hostT <= t) {
         const a = s[i - 1], b = s[i], k = (t - a.hostT) / (b.hostT - a.hostT);
-        return mix(a, b, Math.min(1, Math.max(0, k)));
+        return mix(a, b, Math.max(0, k)); // k boven 1: voorspellen met de snelheid tussen de laatste twee (net/interp.js)
       }
     }
     return s[s.length - 1];
@@ -208,19 +207,14 @@ export class SnapBuffer {
   // aantal seconden dat we al zonder nieuwe toestand zitten (voor de lag-balk)
   starved(hostNow) { return this.latestT == null ? 0 : Math.max(0, hostNow - this.latestT); }
 }
-const lerp = (a, b, k) => a + (b - a) * k;
-function lerpAngle(a, b, k) { let d = ((b - a + Math.PI) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI) - Math.PI; return a + d * k; }
 function mix(a, b, k) {
+  const pa = new Map(a.players.map((p) => [p.slot, p]));
   const players = b.players.map((pb) => {
-    const pa = a.players.find((p) => p.slot === pb.slot);
-    if (!pa || pb.vehicle !== pa.vehicle || pb.alive !== pa.alive) return pb; // geen interpolatie over een sprong (instappen, respawn)
-    return { ...pb, x: lerp(pa.x, pb.x, k), y: lerp(pa.y, pb.y, k), z: lerp(pa.z, pb.z, k), angle: lerpAngle(pa.angle, pb.angle, k) };
+    const p = pa.get(pb.slot);
+    if (!p || pb.vehicle !== p.vehicle || pb.alive !== p.alive || pb.inVeh !== p.inVeh) return pb; // geen interpolatie over een sprong (instappen, respawn)
+    return mixPositie(p, pb, k, 'y', ['z']);
   });
-  const entities = b.entities.map((eb) => {
-    const ea = a.entities.find((e) => e.id === eb.id);
-    return ea ? { ...eb, x: lerp(ea.x, eb.x, k), z: lerp(ea.z, eb.z, k), angle: lerpAngle(ea.angle, eb.angle, k) } : eb;
-  });
-  return { ...b, players, entities, hostT: lerp(a.hostT, b.hostT, k) };
+  return { ...b, players, entities: mixEntiteiten(a.entities, b.entities, k), hostT: lerp(a.hostT, b.hostT, Math.min(1, k)) };
 }
 
 export class ClientSession extends Base {
