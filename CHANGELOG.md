@@ -23,6 +23,12 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ### Opgelost
 - Garage (#435): de 3D-voorbeelden van de voertuigen worden opnieuw getekend als de grafische kaart de verbinding even kwijt was, en lege plaatjes blijven niet hangen.
+### Opgelost
+- Meerijden in de trein (#436): de camera volgt de trein nu per seconde in plaats van per beeld, zodat het beeld niet meer stottert als een beeld langer duurt.
+- Treinen (#436): een trein rijdt niet meer dwars door een auto of speler heen die onder een brug op het spoor staat; alleen wat echt op de brug (hoger dan het spoor) rijdt blijft heel.
+- Verkeer (#436): een wesp of fiets glipt niet meer door een bus heen als twee wachtende voertuigen elkaar moeten laten voorgaan.
+- Dieren (#436, #433): een dier wordt nooit groter dan zijn eigen model, alleen de duif bij de cheat Reuzenduif; de gans heeft poten en slaat met zijn vleugels als hij schrikt.
+- Reclametaxi (#436): het dakbord blijft aan zijn taxi hangen.
 
 ## [0.46.0] - 2026-10-23
 

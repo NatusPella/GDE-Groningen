@@ -744,7 +744,7 @@ function resolveContacts(world) {
       for (const v of high ? [] : world.vehicles) {
         if (v.isBoat || v.sinking || v.onTrain) continue;
         if (Math.abs(v.x - car.x) > reach + v.halfLen || Math.abs(v.y - car.y) > reach + v.halfLen) continue;
-        if (inRailBridgeZone(v.x, v.y)) continue;
+        if (Math.abs((v.z || 0) - (car.z || 0)) > 2.5) continue; // een viaduct erboven (of een spoordijk): de zone van een brug hielp ook wie eronder op het spoor stond, een auto reed dwars door de trein (#436)
         const fx = Math.cos(v.angle), fy = Math.sin(v.angle);
         const r = v.halfWid;
         const off = Math.max(0, v.halfLen - r);
@@ -753,12 +753,12 @@ function resolveContacts(world) {
           if (push) { hitVehicle(v, t, car, push, world); break; }
         }
       }
-      if (!p.inVehicle && !world.trainDriving && Math.abs((p.gz || 0) + (p.z || 0) - (car.z || 0)) < 3.5 && Math.abs(p.x - car.x) < reach && Math.abs(p.y - car.y) < reach && !inRailBridgeZone(p.x, p.y)) {
+      if (!p.inVehicle && !world.trainDriving && Math.abs((p.gz || 0) + (p.z || 0) - (car.z || 0)) < 3.5 && Math.abs(p.x - car.x) < reach && Math.abs(p.y - car.y) < reach) {
         const push = pushOut(car, hl, p.x, p.y, p.radius || 0.35);
         if (push) hitPlayer(t, car, push, world);
       }
       const c = world.companion;
-      if (c && !c.inVehicle && !world.trainDriving && !c.water && c.state !== 'dead' && Math.abs((c.gz || 0) + (c.z || 0) - (car.z || 0)) < 3.5 && Math.abs(c.x - car.x) < reach && Math.abs(c.y - car.y) < reach && !inRailBridgeZone(c.x, c.y)) {
+      if (c && !c.inVehicle && !world.trainDriving && !c.water && c.state !== 'dead' && Math.abs((c.gz || 0) + (c.z || 0) - (car.z || 0)) < 3.5 && Math.abs(c.x - car.x) < reach && Math.abs(c.y - car.y) < reach) {
         const push = pushOut(car, hl, c.x, c.y, c.radius || 0.35);
         if (push) hitCompanion(c, t, car, push, world);
       }

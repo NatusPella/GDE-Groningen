@@ -2650,7 +2650,12 @@ export function update3D(dt, world) {
       if (mesh) {
         const y = (a.kind === 'seagull' ? 6 + Math.sin(world.time * 2 + (a.flapSeed || 0)) * 1.2 : 0) + (a.lift || 0);
         mesh.position.set(a.x, y, a.y);
-        if (a.kind === 'pigeon' && mesh.userData.pigeonScale !== MODS.pigeonScale) { mesh.scale.setScalar(MODS.pigeonScale); mesh.userData.pigeonScale = MODS.pigeonScale; }   // Reuzenduif (cheat)
+        // een dier wordt nooit groter dan zijn eigen bouw (alleen de Reuzenduif-cheat maakt een duif tot 6x): een ongeldige of dubbel toegepaste schaal gaf een reuzenvogel (#433)
+        const baseScale = mesh.userData.baseScale || (mesh.userData.baseScale = mesh.scale.x > 0 && mesh.scale.x < 8 ? mesh.scale.x : 1);
+        if (a.kind === 'pigeon') {
+          const want = Math.min(6, Math.max(1, Number.isFinite(MODS.pigeonScale) ? MODS.pigeonScale : 1));
+          if (mesh.userData.pigeonScale !== want) { mesh.scale.setScalar(want); mesh.userData.pigeonScale = want; }   // Reuzenduif (cheat)
+        } else if (!(Math.abs(mesh.scale.x - baseScale) < 1e-4 && Math.abs(mesh.scale.y - baseScale) < 1e-4 && Math.abs(mesh.scale.z - baseScale) < 1e-4)) mesh.scale.setScalar(baseScale);
         mesh.rotation.y = -a.angle - (a.draai || 0);   // a.lift en a.draai: een schaap in de straal van een schotel (#333)
         animateWildlifeMesh3D(mesh, a, world.time);
       }

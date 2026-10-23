@@ -43,7 +43,7 @@ process.on('SIGINT', () => { release(); process.exit(130); });
 const profile = `gde-test-tb-${process.pid}`;
 const pageFile = path.join(HERE, `tester_${CHECK}.page.js`);
 const script = path.join(OUT, '_page.js');
-fs.writeFileSync(script, `window.__tb = ${JSON.stringify({ maxS: MAX, seed: Number(arg('seed', 1)), every: Number(arg('every', 1500)), ...JSON.parse(arg('opts', '{}')) })};\n` + fs.readFileSync(pageFile, 'utf8'));
+fs.writeFileSync(script, `window.__tb = ${JSON.stringify({ maxS: MAX, seed: Number(arg('seed', 1)), every: Number(arg('every', 1500)), deel: arg('deel', undefined), ...JSON.parse(arg('opts', '{}')) })};\n` + fs.readFileSync(pageFile, 'utf8'));
 const electron = process.env.ELECTRON_EXE || path.join(ROOT, 'desktop', 'node_modules', 'electron', 'dist', process.platform === 'win32' ? 'electron.exe' : 'Electron');
 const env = { ...process.env, GDE_TEST_PROFILE: profile, GDE_MENU_TEST: '1' };
 delete env.ELECTRON_RUN_AS_NODE;
