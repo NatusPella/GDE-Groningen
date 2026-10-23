@@ -6,6 +6,9 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Nieuw
+- Samen spelen (#438): openbare sessies. Wie het spel opent kan in de wachtkamer kiezen voor Maak deze sessie openbaar, na een melding die uitlegt wat er openbaar wordt (de naam van de sessie, het aantal spelers, de versie en de kamercode; geen IP-adres) en hoe je het weer uitzet. Spelers openen de lijst via Openbare sessies, in het hoofdmenu bij Samen spelen en in de wachtkamer, ook na een melding, en sluiten met een klik aan. Een sessie is standaard privé en alleen met de kamercode te bereiken. De lijst ververst zichzelf, laat een andere versie als niet aan te sluiten zien en kent Melden om een sessie op jouw apparaat te verbergen.
+
 ## [0.46.0] - 2026-10-23
 
 ### Nieuw
