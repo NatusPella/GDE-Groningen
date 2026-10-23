@@ -634,7 +634,7 @@ async function boot() {
     if (world.coopNet || world.coopPartner !== undefined) updatePartnerChip(world);
     if (world.coopNet || hasFigureMeshes()) syncFigures(world, dt); // de figuren van de andere spelers (#95)
     if (world.coopNet || hasPingMeshes()) syncPings(world); // de roepjes van de spelers (#367)
-    if (world.coopRole === 'client') syncHostEntities(world); else if (hasHostEntities()) clearHostEntities(); // voertuigen en doel van de host bij een gast
+    if (world.coopRole === 'client') syncHostEntities(world, dt); else if (hasHostEntities()) clearHostEntities(); // voertuigen en doel van de host bij een gast
     if (world.coopScene || hasHostScene()) updateHostScene(world); // filmpje, regel en keuze van de host bij een gast
     probe.mark('phone+save');
     updateSafety(dt, world);
