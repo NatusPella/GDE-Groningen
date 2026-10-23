@@ -8,6 +8,7 @@ import { getScene } from './scene3d.js';
 import { isCinematicActive } from './cinematics.js';
 import { buildPersonMesh, animatePersonWalk } from './models3d_people.js';
 import { figuurLook } from './coopplayers.js';
+import { ruimMeshOp } from './coopruim.js';
 import { planFigures, needsRebuild, walkSpeed, labelSpec, LABEL_Y } from './coopfigures.js';
 
 const meshes = new Map(); // plek -> { mesh, char, label, prev }
@@ -34,9 +35,8 @@ function build(scene, fig) {
   return { mesh, char: fig.char, label, prev: null };
 }
 function dispose(scene, e) {
-  scene.remove(e.mesh);
-  e.mesh.traverse((o) => { if (o.geometry) o.geometry.dispose?.(); });
-  if (e.label) { e.label.material.map.dispose(); e.label.material.dispose(); }
+  if (e.label) { e.mesh.remove(e.label); ruimMeshOp(null, e.label, { geometrie: false, materiaal: true }); } // het label heeft een eigen kaart en materiaal
+  ruimMeshOp(scene, e.mesh);
 }
 
 export const hasFigureMeshes = () => meshes.size > 0;
