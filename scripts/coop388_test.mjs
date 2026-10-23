@@ -114,10 +114,10 @@ t('de gastheer stapt in: Tessa gaat niet vanzelf mee, leest wat ze moet doen en 
   s.step(2); assert.equal(aantal(g, /zit in een voertuig/), 1, 'niet steeds opnieuw');
   s.hw.player.inVehicle = null; s.step(0.5); s.hw.player.inVehicle = auto; s.step(0.5);
   assert.equal(aantal(g, /zit in een voertuig/), 2, 'wel bij een volgende keer instappen');
-  // de gastheer rijdt snel weg en Tessa blijft te voet achter: na een paar seconden zit ze mee (geen eindeloos terugzetten)
+  // de gastheer rijdt snel weg en Tessa blijft te voet achter: ze wordt bij hem gezet, maar niet vanzelf in het voertuig (instappen doet ze zelf met E)
   auto.speed = 20; c.x = -60; c.y = 0;
   s.step(6, () => { auto.x += 20 / 60; s.hw.player.x = auto.x; });
-  assert.equal(c.inVehicle, auto, 'ze rijdt mee'); assert.equal(auto.passenger, 'companion'); assert.match(g.messages.join(' '), /Je rijdt mee/);
+  assert.ok(!c.inVehicle, 'niet vanzelf in het voertuig'); assert.notEqual(auto.passenger, 'companion'); assert.ok(Math.hypot(c.x - auto.x, c.y) < 130, 'wel weer bij de gastheer in de buurt'); assert.match(g.messages.join(' '), /Je staat weer bij de groep/);
   // niet geschikt: ze wordt bij de groep gezet
   const heli = { id: 8, x: 500, y: 0, angle: 0, speed: 0, isHeli: true }; c.inVehicle = null; auto.passenger = null; s.hw.player.inVehicle = heli; s.hw.player.x = 500; c.x = 300; c.y = 0;
   s.step(4.5); assert.equal(c.inVehicle, null, 'niet in een helikopter'); assert.ok(Math.hypot(c.x - 500, c.y) < 5);

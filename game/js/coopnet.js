@@ -283,7 +283,7 @@ export function bandFiguren(world, dt) {
   for (const fig of Object.values(figures(world))) {
     if (fig.inVeh) continue;
     const d = Math.hypot(fig.x - p.x, fig.y - p.y), band = snel ? 35 : FIGUUR_BAND;
-    const plek = !!v && figuurPlekken(v) > Object.values(figures(world)).filter((f) => f.inVeh === v).length;
+    const plek = false; // niemand wordt vanzelf in een voertuig gezet: te ver weg betekent naast de gastheer, instappen doet de speler zelf met E
     if (d > FIGUUR_WAARSCHUWING && !fig.gewaarschuwd && !snel) { fig.gewaarschuwd = true; if (world.coopMeld) world.coopMeld(fig.slot, 'Blijf bij de groep: te ver weg wordt je teruggezet.'); }
     if (d <= FIGUUR_WAARSCHUWING) fig.gewaarschuwd = false;
     fig.verTijd = d > band ? (fig.verTijd || 0) + dt : 0;
@@ -317,7 +317,7 @@ export function bandMetgezel(world, dt) {
   c.verTijd = d > band ? (c.verTijd || 0) + dt : 0;
   if (c.verTijd < (d > 300 ? 0.5 : FIGUUR_TERUG_S)) return false;
   c.verTijd = 0; c.gewaarschuwd = false; c.vx = 0; c.vy = 0;
-  const plek = !!v && !v.passenger && !v.sinking && !v.riderOff && !v.isHeli && !v.isPlane;
+  const plek = false; // geen automatisch meerijden: te ver weg betekent naast de gastheer, instappen doet ze zelf met E
   if (plek) { c.inVehicle = v; v.passenger = 'companion'; c.coopUit = false; if (world.coopMeld) world.coopMeld(1, 'Je rijdt mee. Met E stap je uit als het voertuig stilstaat.'); return true; }
   const a0 = Math.PI * 1.7;
   c.x = p.x; c.y = p.y;
