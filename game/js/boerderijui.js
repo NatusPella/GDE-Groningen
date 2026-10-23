@@ -5,6 +5,8 @@
 import * as B from './boerderij.js';
 import { getBoerderij, kiesGewas, koopMachine } from './boerderijlive.js';
 import { fillBars } from './motion.js';
+import { setUserWaypoint } from './routing.js';
+import { wgsToWorld } from './rdnew.js';
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const euro = (n) => `€${Math.round(n).toLocaleString('nl-NL')}`;
@@ -43,6 +45,7 @@ function zetCss() {
 }
 
 let gekozen = 'perceel';
+let gast = false; // samen spelen: de klussen op het land (de trekker) doe je in je eigen spel (#429)
 let melding = '';
 const bars = new Map();
 
@@ -64,7 +67,8 @@ function perceel(b) {
     `<div><p>${volgende ? `Volgende klus: <b>${esc(volgende)}</b>${k && k.totaal ? ` (kost ${euro(k.totaal)})` : ''}.` : wacht ? 'Nu is er niets te doen: het gewas groeit.' : 'Nu is er niets te doen.'}</p>` +
     (s.schuurKg ? `<p>In de schuur: ${nl(s.schuurKg)} kg ${esc(B.GEWASSEN[s.schuurGewas].naam.toLowerCase())}, klaar om af te leveren.</p>` : '') +
     `<p class="mut">${waar}</p></div>` +
-    `<p class="mut">Werk doe je op het land: start de bijbaan Eigen boerderij bij Hoogkerk (zie de kaart). Het gewas groeit in speltijd, ook als je iets anders doet.</p>`;
+    (gast ? `<p class="mut">Je speelt mee in het spel van een ander. De klussen op het land (de trekker) doe je in je eigen spel; je gewas groeit ondertussen gewoon door, en je kunt gewassen kiezen en machines kopen.</p><p><button type="button" class="m-bt" data-bd-weg="1">Zet de akker op je kaart</button></p>`
+      : `<p class="mut">Werk doe je op het land: start de bijbaan Eigen boerderij bij Hoogkerk (zie de kaart). Het gewas groeit in speltijd, ook als je iets anders doet.</p>`);
 }
 
 function gewas(b) {
@@ -105,6 +109,7 @@ export function renderBoerderijPanel(el, world) {
   if (!el) return;
   zetCss();
   const b = getBoerderij();
+  gast = !!(world && world.coopRole === 'client');
   const geld = (world && world.money) || 0;
   const s = B.samenvatting(b);
   const rijen = ONDERDELEN.map(([id, naam]) => {
@@ -121,7 +126,9 @@ export function renderBoerderijPanel(el, world) {
       const o = e.target.closest('[data-bd]');
       const g = e.target.closest('[data-bd-gewas]');
       const k = e.target.closest('[data-bd-koop]');
-      if (o) { gekozen = o.dataset.bd; melding = ''; opnieuw(); const nu = el.querySelector(`[data-bd="${gekozen}"]`); if (nu) nu.focus({ preventScroll: true }); }
+      const w = e.target.closest('[data-bd-weg]');
+      if (w) { const q = getBoerderij().perceel || (([x, y]) => ({ x, y }))(wgsToWorld(53.2336, 6.4977)); setUserWaypoint(q.x, q.y, 'Eigen akker'); if (world && world.addMessage) world.addMessage('De akker staat op je kaart.', 3); }
+      else if (o) { gekozen = o.dataset.bd; melding = ''; opnieuw(); const nu = el.querySelector(`[data-bd="${gekozen}"]`); if (nu) nu.focus({ preventScroll: true }); }
       else if (g) { kiesGewas(g.dataset.bdGewas); opnieuw(); const nu = el.querySelector(`[data-bd-gewas="${g.dataset.bdGewas}"]`); if (nu) nu.focus({ preventScroll: true }); }
       else if (k) {
         const r = koopMachine(world, k.dataset.bdKoop);
