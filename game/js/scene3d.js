@@ -2832,7 +2832,7 @@ export function update3D(dt, world) {
       }
       if (player.sofaSeat != null) { seatPose(playerMesh); playerMesh.position.y = seatedY(playerMesh, (player.gz || 0) + player.sofaSeat); }
       if (player.carrying) carryOverlay(playerMesh);
-      const gun = isRangedWeapon(world.weapon) && (world.ammo[world.weapon] || 0) > 0 ? world.weapon : null;
+      const gun = isRangedWeapon(world.weapon) && Number.isFinite(world.ammo[world.weapon]) ? world.weapon : null;
       const aiming = gun && !world.paused && (world.input.mouse.down || world.input.mouse.rightDown) ? gun : null;
       applyAttackPose(playerMesh, getCombatEffect(), world.time, aiming);
       applyHitReaction(playerMesh, player.hitReact, world.time, player.angle);

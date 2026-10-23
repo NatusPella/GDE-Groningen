@@ -15,11 +15,13 @@ import { wgsToWorld } from './rdnew.js';
 import { spawnJobVehicle, vehicleSpeed } from './sidejobkit.js';
 import { TRACTOR_MODEL } from './vehicle.js';
 import { ankerMetWeg } from './bijbaananker.js';
+import { setUserWaypoint } from './routing.js';
 
 const fabriek = () => { const [x, y] = wgsToWorld(53.2336, 6.4977); return { x, y }; };
 const PLANT_STAP = 2;
 const SOORT = { struik: [new THREE.IcosahedronGeometry(0.42, 0), 0.55], kegel: [new THREE.ConeGeometry(0.34, 0.55, 6), 0.5] };
 const NUL = new THREE.Matrix4().makeScale(0, 0, 0);
+const kmh = (ms) => Math.round(ms * 3.6);
 const pct = (f) => `${Math.round(f * 100)}%`;
 
 // De machine achter de trekker, laag-poly: een ploeg met scharen, een zaai- en strooimachine met een bak, een rooier met een band.
@@ -110,7 +112,15 @@ function placeStrook(strook, r, hoogte, p) {
   strook.visible = p > 0.01;
 }
 
-const MELDING = { tehard: 'Te hard: het werk wordt slordig.', scheef: 'Blijf in de rij.', lading: 'Rustig: de oogst rolt van de kar.' };
+// Wat de machine doet, in gewone woorden: de ploeg, zaaier, strooier en rooier hebben geen knop; ze werken zodra je in de rij rijdt.
+const UITLEG = {
+  ploegen: 'De ploeg zakt vanzelf zodra je in de rij rijdt: gewoon rechtdoor rijden met gas, geen knop nodig.',
+  zaaien: 'De zaaimachine zaait vanzelf zodra je in de rij rijdt: gewoon rechtdoor rijden.',
+  bemesten: 'De strooier strooit vanzelf zodra je in de rij rijdt: gewoon rechtdoor rijden.',
+  oogsten: 'De rooier rooit vanzelf zodra je in de rij rijdt: gewoon rechtdoor rijden.',
+};
+const STOPHINT = 'Stoppen kan altijd: Esc en dan Stoppen met de dienst.';
+const MELDING = { tehard: 'Te hard: het werk wordt slordig (de helft van die meters telt). Gas terug.', scheef: 'Blijf in de rij.', lading: 'Rustig: de oogst rolt van de kar.' };
 
 function stelTaakIn(c, taak) {
   const d = c.data, b = getBoerderij();
@@ -131,13 +141,14 @@ export default {
   name: 'Eigen boerderij',
   color: '#8fb04a',
   glyph: 'suikerbieten',
+  kicker: 'Boerderij',
   boss: 'Boerderij De Zonnehoek',
   vehicleWord: 'de trekker',
   blurb: 'Je eigen akker bij Hoogkerk: ploegen, zaaien, oogsten en afleveren',
   tagline: 'Boerderij De Zonnehoek: je eigen land, je eigen gewassen en een zonnige dag',
   intro: [
     'Boerderij De Zonnehoek is van jou: één akker bij Hoogkerk, een trekker en machines die je huurt of koopt.',
-    'Ploegen, zaaien, het gewas laten groeien (dat gaat vanzelf met de speltijd), oogsten en afleveren. Rij recht door de rij, niet te hard en niet te langzaam.',
+    'Ploegen, zaaien, het gewas laten groeien (dat gaat vanzelf met de speltijd), oogsten en afleveren. Rij recht door de rij, niet te hard en niet te langzaam. De machine werkt vanzelf: je hoeft geen knop te drukken. Stoppen kan altijd via Esc.',
   ],
   sikkom: (c) => `Boerderij De Zonnehoek: ${c.streak} klussen op eigen land`,
 
@@ -186,6 +197,7 @@ export default {
     if (m) bits.push(k.huur ? `${m.toLowerCase()} gehuurd €${k.huur}` : `eigen ${m.toLowerCase()} gekoppeld`);
     if (k.materiaal) bits.push(`${taak === 'zaaien' ? 'zaaigoed' : 'mest'} €${k.materiaal}`);
     c.msg(bits.join(' · '), 3.5);
+    if (UITLEG[taak]) c.msg(`${UITLEG[taak]} ${STOPHINT}`, 6);
   },
 
   timeout: () => 'de zon zakt',
@@ -267,7 +279,7 @@ export default {
       marker: naarBegin ? { x: rij.ax, y: rij.ay } : { x: rij.bx, y: rij.by },
       dots: d.rijen.slice(s.rij + 1).map((r) => ({ x: r.ax, y: r.ay })),
       progress: `Boerderij · ${naam} · rij ${Math.min(s.rij + 1, RIJEN)}/${RIJEN} · ${pct(fractie(s))}`,
-      goal: { label: naarBegin ? 'Naar het begin van de rij' : `${naam}: rij tot het eind`, desc: `Rij recht door met ${band.vMin} tot ${Math.floor(s.vMax)} meter per seconde` },
+      goal: { label: naarBegin ? 'Naar het begin van de rij' : `${naam}: rij tot het eind`, desc: `${UITLEG[d.taak]} Houd ${kmh(band.vMin)} tot ${kmh(s.vMax)} km/u aan; harder is slordig werk. ${STOPHINT}` },
     };
   },
 
@@ -275,6 +287,9 @@ export default {
     const d = c.data;
     if (d.machine) { c.removeMesh(d.machine); d.machine = null; }
     ruimVeld(d);
+    // de volgende klus als doel op de kaart: je akker, met wat er nu moet gebeuren
+    const b = getBoerderij(), taak = b.perceel ? B.volgendeTaak(b) : null;
+    if (taak) setUserWaypoint(b.perceel.x, b.perceel.y, `Je akker: ${B.TAKEN[taak].naam.toLowerCase()}`);
   },
 };
 

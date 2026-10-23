@@ -121,8 +121,10 @@ export function simulateFlight(p, env = {}) {
         if (rng() < catchP) { x = b.x; y = b.y; z = 0.6; holed = true; reason = 'chains'; path.push([x, y, 0.8]); break; }
         // it rattles out and drops next to the basket
         const a = rng() * Math.PI * 2;
+        const ox = x, oy = y, oz = Math.max(0.3, z);
         x = b.x + Math.cos(a) * 0.5; y = b.y + Math.sin(a) * 0.5; z = 0;
-        reason = 'rattle'; path.push([x, y, 0.3], [x, y, 0]);
+        // geen sprong: eerst naar de mand, dan zakt hij langs de ketting naar de grond (#436)
+        reason = 'rattle'; path.push([ox, oy, oz], [b.x, b.y, Math.max(0.5, oz * 0.8)], [(b.x + x) / 2, (b.y + y) / 2, 0.3], [x, y, 0]);
         break;
       }
     }
@@ -136,8 +138,10 @@ export function simulateFlight(p, env = {}) {
       if (hit) {
         // against a trunk: the disc drops at its foot
         const a = Math.atan2(y - hit.y, x - hit.x);
+        const ox = x, oy = y, oz = Math.max(0.5, z);
         x = hit.x + Math.cos(a) * (hit.r + 0.5); y = hit.y + Math.sin(a) * (hit.r + 0.5); z = 0;
-        reason = 'tree'; path.push([x, y, 0.4], [x, y, 0]);
+        // geen sprong: de schijf valt langs de stam in een paar stappen naar zijn voet (#436)
+        reason = 'tree'; path.push([ox, oy, oz], [(ox + x) / 2, (oy + y) / 2, oz * 0.4], [x, y, 0.4], [x, y, 0]);
         break;
       }
     }

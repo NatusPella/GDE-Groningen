@@ -923,12 +923,12 @@ function pandSections(world, shop) {
   const sell = [];
   for (const w of WEAPON_STOCK) {
     const n = world.ammo[w.key] || 0;
-    if (n <= 0) continue;
+    if (!Number.isFinite(world.ammo[w.key]) || (w.melee && n <= 0)) continue;
     const income = Math.round(w.melee ? w.gun * 0.4 : w.gun * 0.3 + n * 0.4);
     sell.push({
       id: 's-' + w.key, preview: { kind: 'weapon', weapon: w.key }, label: `${w.label.split(' ')[0]} verkopen`, desc: w.melee ? 'Nauwelijks gebruikt, zegt de verkoper' : `Met ${n} ${w.unit || 'patronen'}, geen vragen`, price: 0, income,
       buy() {
-        world.ammo[w.key] = 0;
+        delete world.ammo[w.key];
         if (world.weapon === w.key) world.weapon = 'fists';
         noteMoney('Verkoop');
         world.money += income;
@@ -1042,7 +1042,7 @@ function rentBoat(world, shop, r) {
 
 function weaponItem(world, w) {
   const have = world.ammo[w.key] || 0;
-  const owned = have > 0;
+  const owned = Number.isFinite(world.ammo[w.key]) && (have > 0 || !w.melee); // een wapen met 0 patronen blijft van jou (#437)
   if (w.melee) {
     return {
       id: 'w-' + w.key, label: w.label, desc: w.desc, price: owned ? 0 : w.gun, tag: owned ? 'In bezit' : '',
@@ -1068,7 +1068,8 @@ function weaponItem(world, w) {
     buy() {
       if (!pay(world, price)) return null;
       world.ammo[w.key] = Math.min(w.cap, have + w.ammo);
-      if (world.weapon === 'fists' || !(world.ammo[world.weapon] > 0)) world.weapon = w.key;
+      // een net gekocht wapen neem je meteen in de hand; patronen erbij laten je wapen zoals het was
+      if (!owned || world.weapon === 'fists' || !(world.ammo[world.weapon] > 0)) world.weapon = w.key;
       return owned ? `${w.ammo} ${unit} erbij` : `${w.label} gekocht. Voorzichtig ermee, jong`;
     },
   };

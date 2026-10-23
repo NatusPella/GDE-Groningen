@@ -574,7 +574,7 @@ function previewLine(w) {
   const power = g.charging ? Math.max(0.12, g.charge) : 1;
   const sig = [g.yaw.toFixed(3), g.loft.toFixed(3), g.release, g.disc, power.toFixed(2), g.lie.x, g.hole].join('|');
   if (aim && aim.sig === sig) return;
-  const res = simulateFlight({ x: g.lie.x, y: g.lie.y, yaw: g.yaw, power, loft: g.loft, release: g.release, disc: g.disc }, { trees: g.trees, basket: COURSE[g.hole].basket });
+  const res = simulateFlight({ x: g.lie.x, y: g.lie.y, yaw: g.yaw, power, loft: g.loft, release: g.release, disc: g.disc }, { trees: g.trees, basket: COURSE[g.hole].basket, rng: makeRng(7) }); // vaste rng: de voorbeeldlijn bij de mand knippert niet bij elke frame
   aim = { sig, res };
   const pos = built.line.geometry.attributes.position;
   const path = res.path;
