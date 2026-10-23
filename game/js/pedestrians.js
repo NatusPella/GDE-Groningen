@@ -368,7 +368,7 @@ function gatherEvents(world) {
     if (v.wrecked && !seenWrecks.has(v)) {
       seenWrecks.add(v);
       if (!v.sinking && !v.isBike && !v.isScooter) blastAt(world, v);
-      if (dist(v.x, v.y, player.x, player.y) < 150) events.push({ kind: 'boom', x: v.x, y: v.y, r: 50, crime: !!v.wreckedByPlayer });
+      if (dist(v.x, v.y, player.x, player.y) < 150) events.push({ kind: 'boom', x: v.x, y: v.y, r: 50, crime: !!v.wreckedByPlayer && !v.coopBestuurder && !v.wreckedByGast }); // het wrak van een gast is zijn zaak (coopgezocht.js), geen getuige voor de host
     }
     if (!v.wrecked && v.driver !== 'player' && (v.road || v.countryDrive) && Math.abs(v.x - player.x) < v.halfLen + 6 && Math.abs(v.y - player.y) < v.halfLen + 6) aiDrivenAt.set(v, world.time);
   }
@@ -532,7 +532,7 @@ function blastAt(world, v, scale = 1) {
       else world.stats.pedKills++;
       if (v.reportKills) {
         if (ped.isCop) { world.wanted = Math.min(5, world.wanted + 2); noteWantedWhy(world, 'copAanval'); }
-        else reportCrime(world, 'pedKill');
+        else reportCrime(world, 'pedKill', { vehicle: v });
       }
     }
   }
@@ -656,9 +656,9 @@ function throwRider(world, b, u, vx, vy, closing, push) {
   if (dead) { killPed(ped, world); bleedPed(ped, world, { vehicle: u }); }
   if (u.driver === 'player') {
     world.lastPedHitAt = world.time;
-    const serious = reportCrime(world, dead ? 'pedKill' : 'pedHit');
-    if (dead) { world.stats.kills++; world.stats[ped.isCop ? 'copKills' : 'pedKills']++; }
-    pendingEvents.push({ kind: 'hit', x: bx, y: by, r: 30, crime: serious });
+    const serious = reportCrime(world, dead ? 'pedKill' : 'pedHit', { vehicle: u });
+    if (dead && !u.coopBestuurder) { world.stats.kills++; world.stats[ped.isCop ? 'copKills' : 'pedKills']++; }
+    pendingEvents.push({ kind: 'hit', x: bx, y: by, r: 30, crime: serious && !u.coopBestuurder }); // een gast als dader: zijn getuigen tellen bij zijn eigen niveau (coopgezocht.js)
   }
 }
 
@@ -1050,9 +1050,9 @@ function checkVehicleImpact(ped, world) {
       // knocking someone over on a bike or scooter is a scene, not a crime
       const crime = dead || !light || ped.isCop;
       world.lastPedHitAt = world.time;
-      const serious = crime && (ped.isCop ? reportCrime(world, dead ? 'pedKill' : 'copHit', { seen: true }) : reportCrime(world, dead ? 'pedKill' : 'pedHit'));
-      if (dead) { world.stats.kills++; world.stats[ped.isCop ? 'copKills' : 'pedKills']++; }
-      pendingEvents.push({ kind: 'hit', x: ped.x, y: ped.y, r: 30, crime: serious });
+      const serious = crime && (ped.isCop ? reportCrime(world, dead ? 'pedKill' : 'copHit', { seen: true, vehicle: v }) : reportCrime(world, dead ? 'pedKill' : 'pedHit', { vehicle: v }));
+      if (dead && !v.coopBestuurder) { world.stats.kills++; world.stats[ped.isCop ? 'copKills' : 'pedKills']++; }
+      pendingEvents.push({ kind: 'hit', x: ped.x, y: ped.y, r: 30, crime: serious && !v.coopBestuurder }); // (#434, zie boven)
     }
     return;
   }
@@ -1099,8 +1099,10 @@ function faceToward(ped, x, y) {
   ped.angle = Math.atan2(y - ped.y, x - ped.x);
 }
 
-function updateCop(ped, world, dPlayer, dt) {
-  const { player } = world;
+// doel: wie de agent op de korrel heeft: de speler, of met een gast als doelwit van de politie (coopgezocht.js) zijn lichaam of voertuig, met zijn niveau
+function updateCop(ped, world, dPlayer, dt, doel = world.player) {
+  const player = doel;
+  const wanted = doel === world.player ? world.wanted : doel.level | 0;
   ped._losT = (ped._losT || 0) - dt;
   if (ped._losT <= 0) {
     ped._losT = 0.3;
@@ -1113,7 +1115,7 @@ function updateCop(ped, world, dPlayer, dt) {
     return;
   }
   if (ped.state === 'return') setState(ped, 'wander');
-  if (world.wanted === 0) {
+  if (wanted === 0) {
     if (ped.state !== 'wander') setState(ped, 'wander');
     ped.guard = null;
   } else if (ped.state !== 'seek' && canSee && dPlayer < COP_SEEK_TRIGGER_RADIUS + (ped.guard ? 6 : 0)) {
@@ -1226,7 +1228,8 @@ export function updatePedestrians(dt, world) {
     }
 
     const dPlayer = dist(ped.x, ped.y, player.x, player.y);
-    if (ped.isCop) updateCop(ped, world, dPlayer, dt);
+    const jacht = ped.isCop && world.coopJachtDoel || null; // een gast die de politie zoekt (#434)
+    if (ped.isCop) updateCop(ped, world, jacht ? dist(ped.x, ped.y, jacht.x, jacht.y) : dPlayer, dt, jacht || player);
     else if (aiming && dPlayer < FLEE_TRIGGER_RADIUS && ped.state !== 'flee' && ped.state !== 'cower') {
       startFlee(ped, world, player.x, player.y, true);
       if (Math.random() < 0.3) say(ped, world, pick(SCREAMS), 2, 'shout', 0.8);
@@ -1317,10 +1320,11 @@ export function updatePedestrians(dt, world) {
         if (ped.guard) { ped.x = ped.guard.x; ped.y = ped.guard.y; ped.angle = ped.guard.angle; }
         break;
       case 'seek': {
-        faceToward(ped, player.x, player.y);
-        if (dPlayer < COP_HOLD_DIST) { moving = false; break; }
+        const doel = world.coopJachtDoel || player, dDoel = doel === player ? dPlayer : dist(ped.x, ped.y, doel.x, doel.y);
+        faceToward(ped, doel.x, doel.y);
+        if (dDoel < COP_HOLD_DIST) { moving = false; break; }
         ped.angle = steerClear(map, ped, ped.angle);
-        ped.speed = dPlayer < COP_SPRINT_RADIUS ? COP_SPRINT_SPEED : COP_JOG_SPEED;
+        ped.speed = dDoel < COP_SPRINT_RADIUS ? COP_SPRINT_SPEED : COP_JOG_SPEED;
         break;
       }
       case 'return': {

@@ -99,6 +99,17 @@ export async function startNodeHost({ stage, tiles = '-', story = 'nieuw', max =
       w.vehicles = w.vehicles.filter((v) => v !== car); h.drive = null; h.walk = true;
     }
   };
+  // #434: de gast bestuurt een voertuig van de gastheer (coopbestuur.js): de echte koppeling en stoelen, met een eenvoudige natuurkunde in plaats van player.js
+  const Bst = await imp('coopbestuur.js');
+  Bst.zetBestuurHaken({
+    vind: (x, y, lijst) => lijst.filter((v) => Math.hypot(v.x - x, v.y - y) < 5).sort((a, b) => Math.hypot(a.x - x, a.y - y) - Math.hypot(b.x - x, b.y - y))[0] || null,
+    enter: (l, v) => { v.driver = 'player'; l.inVehicle = v; },
+    exit: (l) => { const v = l.inVehicle; v.driver = null; l.inVehicle = null; l.x = v.x + 2.5; l.y = v.y + 2; },
+    drive: (l, dt, inv) => { const v = l.inVehicle, [ax, ay] = inv.axis(); const doel = inv.isDown(' ') ? 0 : -ay * 14; v.speed = (v.speed || 0) + (doel - (v.speed || 0)) * Math.min(1, dt * (inv.isDown(' ') ? 4 : 1.2)); v.angle += ax * dt * 1.4 * Math.min(1, Math.abs(v.speed) / 4); v.x += Math.cos(v.angle) * v.speed * dt; v.y += Math.sin(v.angle) * v.speed * dt; l.x = v.x; l.y = v.y; l.angle = v.angle; },
+    los: () => ({ ok: true, wacht: false }),
+    bijGroep: () => true,
+  });
+  h.parkeerAuto = (afstand = 2.5) => { const c = world.companion, car = { id: 198, x: c.x + afstand, y: c.y, angle: 0, speed: 0, halfLen: 2.1, halfWid: 0.9, model: { len: 4.2 }, parkeer: true }; world.vehicles.push(car); return car; };
   // #434: een wapen in de hand van de gastheer en een aanval (een zwaai met de knuppel, elke 1,5 s opnieuw)
   const CE = await imp('combateffect.js');
   h.wapen = (key) => { world.weapon = key; };

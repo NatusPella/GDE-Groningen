@@ -581,6 +581,33 @@ const PHASES = {
     B.down('control'); await sleep(900); const buk = !!w.player.crouching; const bukCompanion = !!(w.companion && w.companion.crouching); B.up('control'); await sleep(600);
     log('gastspring', { zmax: Math.round(zmax * 100) / 100, hoog, buk, na: !!w.player.crouching, zNa: w.player.z || 0, bukCompanion });
   },
+  // #434: de gast stapt zelf in een vrij voertuig van de gastheer (E), rijdt (stick), remt (Spatie) en stapt uit (E); wat hij en de host ervan zien
+  async gastbestuur({ s = 16 }) {
+    const w = W(), B = window.__bot;
+    if (CFG.role === 'host' || !B) { await sleep(s * 1000); return; }
+    const msgs = []; const am = w.addMessage; w.addMessage = function (t, ...r) { msgs.push(String(t).slice(0, 70)); return am.call(this, t, ...r); };
+    const t0 = performance.now(), sec = () => Math.round((performance.now() - t0) / 100) / 10;
+    for (let i = 0; i < 30 && !(w.coopHost && w.coopHost.voertuigen.some((v) => v.id === 198)); i++) await sleep(250); // de auto van de gastheer staat naast je
+    log('gastbestuur-auto', { gezien: !!(w.coopHost && w.coopHost.voertuigen.some((v) => v.id === 198)), t: sec() });
+    for (let i = 0; i < 8 && !w.coopBestuurder; i++) { await B.press('e', 150); await sleep(900); }
+    await sleep(600);
+    log('gastbestuur-in', { bestuurder: !!w.coopBestuurder, inVoertuig: !!w.coopInVoertuig, zitters: (w.coopZitters || []).map((z) => [z.slot, z.stoel, z.bestuurder]), meldingen: msgs.slice(-3), t: sec() });
+    shot('gastbestuur-in'); await sleep(500);
+    const p0 = [w.player.x, w.player.y]; let vmax = 0, last = [w.player.x, w.player.y], lt = performance.now();
+    B.stick(0, -1); const t1 = performance.now() + 3200;
+    while (performance.now() < t1) { await sleep(100); const nu = performance.now(), d = Math.hypot(w.player.x - last[0], w.player.y - last[1]) / ((nu - lt) / 1000); vmax = Math.max(vmax, d); last = [w.player.x, w.player.y]; lt = nu; }
+    const afstand = Math.hypot(w.player.x - p0[0], w.player.y - p0[1]);
+    log('gastbestuur-rijdt', { m: Math.round(afstand * 10) / 10, vmax: Math.round(vmax * 10) / 10, bestuurder: !!w.coopBestuurder, t: sec() });
+    shot('gastbestuur-rijdt');
+    B.stick(0, 0); B.down(' '); await sleep(2600);
+    const q0 = [w.player.x, w.player.y]; await sleep(800); const na = Math.hypot(w.player.x - q0[0], w.player.y - q0[1]) / 0.8;
+    B.up(' ');
+    log('gastbestuur-remt', { snelheid: Math.round(na * 10) / 10, t: sec() });
+    for (let i = 0; i < 8 && w.coopBestuurder; i++) { await B.press('e', 150); await sleep(900); }
+    await sleep(500);
+    log('gastbestuur-uit', { bestuurder: !!w.coopBestuurder, inVoertuig: !!w.coopInVoertuig, meldingen: msgs.slice(-3), t: sec() });
+    w.addMessage = am;
+  },
   // #434: wat de gast ziet van wie er meerijdt, en het wapen en de aanval van de gastheer; camera naar het voertuig of de gastheer
   async zit({ s = 8, naam = 'zit', kijk = 'zelf', pitch = null }) {
     const w = W();
@@ -683,6 +710,58 @@ const PHASES = {
     log('uitelkaar-uit', { bTerugNa: 0, fociN: w.coopFoci ? w.coopFoci.length : 1 });
     await sleep(2000);
     log('uitelkaar-na', { fps: await fps(5000), ...stand() });
+  },
+  // samen spelen (#434): twee gasten (headless, plek 1 en 2) stappen als bestuurder in een geparkeerde auto naast hen en rijden; de host ziet ze zitten,
+  // een voetganger en een getuige voor de auto geven de gast een gezocht-niveau (niet de host), de politie jaagt op hem en pakt hem (boete bij de gast)
+  async bestuur({ s = 60 }) {
+    if (CFG.role !== 'host') { await sleep((s + 10) * 1000); return; }
+    const V = await imp('vehicle'), Pd = await imp('pedestrians'), Zt = await imp('coopzitten3d'), w = W(), p = w.player;
+    const hostWanted0 = w.wanted | 0;
+    const gasten = [{ naam: 'tessa', slot: 1, l: w.companion }, ...Object.values(w.coopFigures || {}).filter((f) => f.slot >= 2).map((f) => ({ naam: 'fig' + f.slot, slot: f.slot, l: f }))];
+    log('bestuur-start', { gasten: gasten.map((g) => [g.naam, g.slot, !!g.l]), remote: !!(w.coop && w.coop.remote), host: [Math.round(p.x), Math.round(p.y)] });
+    // een geparkeerde auto naast elke gast; een derde auto en een helikopter bij de eerste, voor de weigeringen
+    const maak = (x, y, extra = {}) => { const v = new V.Vehicle(x, y, 0, V.MODELS[0]); v.parked = true; Object.assign(v, extra); w.vehicles.push(v); return v; };
+    const auto = {};
+    for (const g of gasten) { g.l.x = g.slot === 1 ? p.x + 14 : p.x - 30; g.l.y = p.y - 6; /* twee groepjes ver uit elkaar, zodat hun auto's de politie niet in de weg staan */ g.l.vx = 0; g.l.vy = 0; auto[g.slot] = maak(g.l.x + 2.4, g.l.y); }
+    const heli = maak(p.x + 6, p.y + 14, { isHeli: true, onGround: true });
+    await sleep(1500);
+    const t0 = performance.now(), sec = () => Math.round((performance.now() - t0) / 100) / 10;
+    let gevolgd = null, politie0 = 0, maxPolitie = 0, peds = 0, gepakt = 0; const berichten = [];
+    const am = w.addMessage; w.addMessage = function (t, ...r) { try { if (r[1] && r[1].kind === 'politie') berichten.push([sec(), String(t).slice(0, 60), w.wanted | 0]); } catch (e) { /* alleen meten */ } return am.call(this, t, ...r); };
+    const orig = w.coopGepakt; if (orig) w.coopGepakt = (slot, lvl) => { gepakt++; log('bestuur-gepakt', { t: sec(), slot, lvl }); return orig(slot, lvl); };
+    const meet = (extra = {}) => {
+      const rij = {}; for (const g of gasten) { const v = auto[g.slot]; rij[g.slot] = { x: Math.round(v.x), y: Math.round(v.y), sp: Math.round((v.speed || 0) * 10) / 10, drv: v.driver, b: v.coopBestuurder ?? null, hp: Math.round(v.health), hb: !!v.handbrake, inV: !!(g.l.inVehicle || g.l.inVeh), bt: !!g.l.coopBestuurt }; }
+      const dg = gasten.find((g) => g.slot === w.coopDoelwit), a = dg ? (dg.l.inVehicle || dg.l.inVeh || dg.l) : auto[1], cops = w.vehicles.filter((v) => v.isPolice && !v.wrecked && !v.hijacked), dmin = cops.length ? Math.min(...cops.map((v) => Math.hypot(v.x - a.x, v.y - a.y))) : null;
+      return { t: sec(), rij, wanted: w.wanted | 0, coopWanted: { ...(w.coopWanted || {}) }, doel: w.coopDoelwit, cops: cops.length, copMin: dmin == null ? null : Math.round(dmin), zitters: Zt.aantalZitters(), hostIn: !!p.inVehicle, ...extra };
+    };
+    // de host kijkt mee: 9 m achter de auto van Tessa, zodat de schermafbeeldingen de bestuurder in de auto laten zien
+    const volg = setInterval(() => { const a = auto[1]; if (!a || !(a.driver === 'player')) return; p.x = a.x - Math.cos(a.angle) * 9; p.y = a.y - Math.sin(a.angle) * 9; p.vx = 0; p.vy = 0; w.camYaw = a.angle; }, 200);
+    // een voetganger vooruit en een getuige ernaast, zodat de auto van Tessa iemand aanrijdt (en iemand het ziet)
+    const lokaas = setInterval(() => {
+      const a = auto[1]; if (!a || a.driver !== 'player' || Math.abs(a.speed) < 4 || peds >= 6) return;
+      const hx = Math.cos(a.angle), hy = Math.sin(a.angle);
+      const maakPed = (d, zij) => { const q = new Pd.Pedestrian(a.x + hx * d - hy * zij, a.y + hy * d + hx * zij, 0); q.state = 'idle'; w.pedestrians.push(q); peds++; return q; };
+      if (!w.pedestrians.some((q) => !q.isCop && Math.hypot(q.x - (a.x + hx * 14), q.y - (a.y + hy * 14)) < 6)) { maakPed(14, 0); maakPed(16, 9); }
+    }, 700);
+    let genomen = {};
+    const shots = [];
+    const eind = performance.now() + s * 1000;
+    while (performance.now() < eind) {
+      // met een ster blijft een auto die stilstaat voor de politie een tijd ongemoeid (zoals bij de host); drie sterren houden hem erop zodat de politie komt en pakt
+      if (sec() > 6 && sec() < 85 && !gepakt) for (const g of gasten) if (((w.coopWanted || {})[g.slot] | 0) < 3 && ((w.coopWanted || {})[g.slot] | 0) > 0) w.coopWanted[g.slot] = 3;
+      const m = meet();
+      log('bestuur-sample', m);
+      if (!genomen.instap && auto[1].driver === 'player' && auto[1].coopBestuurder === 1) { genomen.instap = true; const a = auto[1]; p.x = a.x - 3.2; p.y = a.y - 9; w.camYaw = Math.PI / 2; await sleep(700); shot('bestuur-instap'); log('bestuur-instap', meet()); }
+      if (!genomen.rijdt && auto[1].driver === 'player' && Math.abs(auto[1].speed) > 8) { genomen.rijdt = true; await sleep(500); shot('bestuur-rijdt'); log('bestuur-rijdt', meet()); }
+      if (!genomen.gezocht && (w.coopWanted || {})[1] > 0) { genomen.gezocht = true; shot('bestuur-gezocht'); log('bestuur-gezocht', meet()); }
+      if (!genomen.politie && (m.cops > 0) && auto[1].driver === 'player') { genomen.politie = true; await sleep(800); shot('bestuur-politie'); log('bestuur-politie', meet()); }
+      if (gepakt && !genomen.gepakt) { genomen.gepakt = true; await sleep(600); shot('bestuur-gepakt'); log('bestuur-na-gepakt', meet()); }
+      maxPolitie = Math.max(maxPolitie, m.cops);
+      await sleep(1000);
+    }
+    clearInterval(volg); clearInterval(lokaas);
+    w.addMessage = am;
+    log('bestuur-eind', { ...meet(), berichten, gepakt, maxPolitie, peds, hostWanted0, heli: { driver: heli.driver, b: heli.coopBestuurder ?? null }, killed: (w.stats && w.stats.pedKills) | 0 });
   },
   // samen spelen (#366): de figuren van plek 2 en hoger lopen op de echte wereld tegen een gebouw en een gracht aan en dwalen weg:
   // nooit in een gebouw of in het water, en te ver weg wordt na een paar seconden bij de groep gezet (stepFigures/bandFiguren in coopnet.js)
