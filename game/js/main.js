@@ -80,6 +80,14 @@ import { initTrafficLights, updateTrafficLights, trafficSignalsNear, trafficLigh
 import { initRailway, updateRailway, setRailExtraWorld, getTrains, getRoutes, routePoint } from './railway.js';
 import { updateZeilvaren } from './zeilvaren.js';
 import { updateEvenementen } from './evenementenlive.js';
+import { updateWerf } from './werflive.js';
+import { manageSeaShips } from './zeeschepen.js';
+import { Vehicle as WerfVehicle, getVaarNet as werfVaarNet, spawnBoatOnWater as werfSpawnBoat, isShip as werfIsShip } from './vehicle.js';
+import { waterAt as werfWaterAt, waterPolyAt as werfWaterPolyAt } from './waterlevels.js';
+import { buildingAt as werfBuildingAt } from './tileplace.js';
+import { planVaarRoute as werfPlanRoute } from './vaarnet.js';
+// de dingen die de werf van de wereld nodig heeft (werflive.js houdt ze buiten de module zodat een test ze kan nabootsen)
+const WERF_ENV = { Vehicle: WerfVehicle, getVaarNet: werfVaarNet, waterAt: werfWaterAt, waterPolyAt: werfWaterPolyAt, buildingAt: werfBuildingAt, planVaarRoute: werfPlanRoute, spawnBoatOnWater: werfSpawnBoat, isShip: werfIsShip };
 import { routePenalty } from './evenementen.js';
 import { setRouteClosures, getActiveRoute, getRouteAhead, getUserWaypoint } from './routing.js';
 let routeSigDone = '';
@@ -147,6 +155,7 @@ import { updateEmergency } from './emergency.js';
 import { updateIndicators } from './indicators.js';
 import { initAchievementTracker, updateAchievementTracker } from './achievementtracker.js';
 import { initOmverrijden } from './omverrijden.js';
+import { initBoerderij, boerderijTijd } from './boerderijlive.js';
 import { probe } from './hitchprobe.js';
 import { initSafety, updateSafety } from './safety.js';
 import { updateCinematics, isCinematicActive, sinceCinematic, setCinematicLinks } from './cinematics.js';
@@ -478,6 +487,7 @@ async function boot() {
   window.__debug = { player, map, input, world };
   initAchievementTracker(world);
   initOmverrijden(world);
+  initBoerderij();
   initSafety(world);
   initCheats(world);
   if (DEV) import('./storydev.js').then((m) => m.initStoryDev(world)).catch((e) => console.error('storydev', e));
@@ -746,6 +756,8 @@ async function boot() {
     tickBurningVehicles(world, dt);
     updateRailway(dt, world);
     updateEvenementen(dt, world, calendarToday(world));
+    updateWerf(dt, world, calendarToday(world), WERF_ENV); // een zeeschip wordt te water gelaten (#398)
+    manageSeaShips(world, dt, WERF_ENV);
     // de routeplanner mijdt dichte afsluitingen van evenementen (#203)
     if (world.eventRouteSig !== routeSigDone) {
       routeSigDone = world.eventRouteSig;
@@ -811,6 +823,7 @@ async function boot() {
     updateRoadRage(dt, world);
     updateClearZones(dt, world);
     updateDayNight(dt, world);
+    boerderijTijd(world); // de gewassen groeien in speltijd (#415)
     updateCalendar(dt, world);
     updateCheats(dt, world);
     updateRegioLeven(dt, world);

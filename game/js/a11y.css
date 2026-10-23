@@ -41,7 +41,7 @@ html.pad-active .map-pad-reticle { display: block; }
 
 /* --- subtitle size (Instellingen > Toegankelijk) ---------------------------- */
 html:is(.sub-klein, .sub-groot, .sub-extragroot) #cine .cine-sub { font-size: calc(clamp(calc(16px * var(--ui, 1)), 1.6vw, calc(21px * var(--ui, 1))) * var(--sub-scale, 1)); }
-html:is(.sub-klein, .sub-groot, .sub-extragroot) :is(#banter-sub, #rv-sub) { font-size: calc(clamp(15px, 1.5vw, 20px) * var(--sub-scale, 1)) !important; }
+html:is(.sub-klein, .sub-groot, .sub-extragroot) :is(#banter-sub, #radio-sub, #rv-sub) { font-size: calc(clamp(15px, 1.5vw, 20px) * var(--sub-scale, 1)) !important; }
 html:is(.sub-klein, .sub-groot, .sub-extragroot) #pg-sub { font-size: calc(clamp(15px, 1.5vw, 20px) * var(--sub-scale, 1)); }
 html:is(.sub-klein, .sub-groot, .sub-extragroot) :is(#intro-montage .im-sub, #trailer .tr-sub) { font-size: calc(clamp(17px, 1.7vw, 23px) * var(--sub-scale, 1)); }
 html:is(.sub-klein, .sub-groot, .sub-extragroot) #hud .pf-say { font-size: calc(19px * var(--sub-scale, 1)); }
@@ -53,13 +53,13 @@ html:is(.sub-klein, .sub-groot, .sub-extragroot) #hud .sc-bubble .nl-sub { font-
 html:is(.sub-klein, .sub-groot, .sub-extragroot) #name-card .nc-name { font-size: calc(clamp(44px, 7vw, 96px) * min(var(--sub-scale, 1), 1.25)); }
 html:is(.sub-klein, .sub-groot, .sub-extragroot) #name-card .nc-line { font-size: calc(clamp(16px, 1.6vw, 22px) * var(--sub-scale, 1)); max-width: calc(36ch * 1); }
 /* bigger lines need the width: keep them inside the screen */
-html:is(.sub-groot, .sub-extragroot) :is(#cine .cine-sub, #banter-sub, #rv-sub, #pg-sub, #intro-montage .im-sub, #trailer .tr-sub) { width: min(92vw, calc(980px * var(--sub-scale, 1))) !important; }
+html:is(.sub-groot, .sub-extragroot) :is(#cine .cine-sub, #banter-sub, #radio-sub, #rv-sub, #pg-sub, #intro-montage .im-sub, #trailer .tr-sub) { width: min(92vw, calc(980px * var(--sub-scale, 1))) !important; }
 @media (max-height: 640px) {
   html:is(.sub-klein, .sub-groot, .sub-extragroot) #hud .pf-say { font-size: calc(16px * var(--sub-scale, 1)); }
 }
 
 /* the background box behind subtitles */
-html.sub-box :is(#cine .cine-sub, #banter-sub, #rv-sub, #pg-sub, #intro-montage .im-sub, #trailer .tr-sub) {
+html.sub-box :is(#cine .cine-sub, #banter-sub, #radio-sub, #rv-sub, #pg-sub, #intro-montage .im-sub, #trailer .tr-sub) {
   width: fit-content !important; max-width: min(92vw, calc(980px * var(--sub-scale, 1)));
   padding: 0.3em 0.75em 0.35em; border-radius: 6px; box-sizing: border-box;
   background: rgba(12, 20, 14, 0.84); text-shadow: none;
@@ -108,7 +108,7 @@ html:is(.cb-deuteranopie, .cb-protanopie, .cb-tritanopie) #hud .hud-race .hr-row
 html:is(.cb-deuteranopie, .cb-protanopie, .cb-tritanopie) #hud .hud-wanted svg.on { fill: var(--mk-mission); stroke: #f0ede4; stroke-width: 1.4; }
 
 /* --- subtitle contrast "Hoog" (a11ylogic.js subtitleStyle): white on a nearly opaque dark box, heavier letters --- */
-html.subc-hoog :is(#cine .cine-sub, #banter-sub, #rv-sub, #pg-sub, #intro-montage .im-sub, #trailer .tr-sub) {
+html.subc-hoog :is(#cine .cine-sub, #banter-sub, #radio-sub, #rv-sub, #pg-sub, #intro-montage .im-sub, #trailer .tr-sub) {
   color: #fff !important; font-weight: 700; width: fit-content !important; max-width: min(92vw, calc(980px * var(--sub-scale, 1)));
   padding: 0.3em 0.75em 0.35em; border-radius: 6px; box-sizing: border-box; background: rgba(12, 20, 14, 0.96); text-shadow: none;
 }

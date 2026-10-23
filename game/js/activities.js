@@ -33,6 +33,7 @@ import { WANDELING } from './wandeling.js';
 import { SNACKKETEN } from './snackketen.js';
 import { EVENEMENTEN } from './evenementenact.js';
 import { REGATTA_GAME } from './regatta.js';
+import { SAFEHUIS } from './safehuizen.js';
 import { isShopOpen } from './shopui.js';
 import { isCinematicActive, showBanner } from './cinematics.js';
 import { getScene } from './scene3d.js';
@@ -43,7 +44,7 @@ export { activityBlock, iconDisc } from './activitykit.js';
 
 Object.assign(gameUi, { getScene, showBanner, showCard });
 
-const LIST = [CARBID, KERMIS, HOOGVLIEGER, GEHEIMEN, DRIFT_ZONE, DISCGOLF, PITCHPUTT, SKATEPARK, KARTBAAN, ZWEMBAD, KLIMTOREN, WATERSKI, CARILLON_GAME, PANNENKOEK, HENGELEN, WANDELING, SNACKKETEN, EVENEMENTEN, REGATTA_GAME];
+const LIST = [CARBID, KERMIS, HOOGVLIEGER, GEHEIMEN, DRIFT_ZONE, DISCGOLF, PITCHPUTT, SKATEPARK, KARTBAAN, ZWEMBAD, KLIMTOREN, WATERSKI, CARILLON_GAME, PANNENKOEK, HENGELEN, WANDELING, SNACKKETEN, EVENEMENTEN, REGATTA_GAME, SAFEHUIS];
 
 export function initActivities(w) {
   for (const a of LIST) {

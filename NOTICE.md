@@ -71,6 +71,22 @@ domein). Een vermelding is niet verplicht maar wordt gegeven:
 `scripts/world/fetch_ahn.py`; de afgeleide rasters (`data/world/ahn/`) zitten
 in de kaarttegels (`game/world/`, bij het bouwen gemaakt).
 
+## Grenzen van gemeenten, woonplaatsen, wijken en buurten — Kadaster en CBS (PDOK)
+
+De echte grenzen waarop "gebieden veroveren" rust (`game/grenzen.json`, gemaakt met
+`scripts/world/fetch_grenzen.mjs` en `scripts/world/grenzen.mjs`; het spel zelf
+haalt niets van het netwerk):
+
+- Provincie- en gemeentegrenzen: Kadaster, PDOK Bestuurlijke Gebieden, onder
+  [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/deed.nl).
+- Woonplaatsen: Kadaster, BAG (Basisregistratie Adressen en Gebouwen), via PDOK, onder de
+  [Public Domain Mark 1.0](https://creativecommons.org/publicdomain/mark/1.0/deed.nl).
+- Wijken en buurten: CBS, Gebiedsindelingen (gegeneraliseerd, peiljaar 2025), via PDOK, onder
+  [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/deed.nl).
+
+De grenzen zijn vereenvoudigd (Douglas-Peucker, 10 tot 40 m) en op hele meters afgerond;
+het zijn dus geen officiële grenzen meer en ze zijn niet bruikbaar voor juridische doeleinden.
+
 ## Software
 
 | Onderdeel | Licentie | Copyright | Tekst |

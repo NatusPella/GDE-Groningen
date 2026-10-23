@@ -1133,6 +1133,8 @@ function kitBuilder(B, b, ring) {
   const item = b._kitItem;
   const p = landmarkParams(item);
   if (!p) return false;
+  // a church of the tiles (landmarkkit.js churchItemFromBuilding, #406): the tower to the west, no mound (nothing here knows the roads round it)
+  if (p.kit === 'church') { p.wierde = false; if (Math.cos(p.angle) < 0) p.angle += Math.PI; }
   const src = landmarkGeometry(p, LOD_FULL).geometry;
   const pos = src.attributes.position, col = src.attributes.color, uv = src.attributes.uv;
   const ca = Math.cos(p.angle), sa = Math.sin(p.angle);
