@@ -29,8 +29,21 @@ starten. De gast krijgt dan een korte melding ("Dat kan alleen in je eigen spel"
 | Sturen | deels | Met **Y** geeft de bestuurder het stuur aan zijn bijrijder (en neemt het terug); de bijrijder kan met Y om het stuur vragen en het teruggeven. De bestuurder blijft de bestuurder: schade en politie zijn van hem. Alleen auto's, fietsen en boten (geen helikopter of vliegtuig). |
 | Zelf een voertuig nemen en ermee rijden | nee | Kan alleen in je eigen spel. |
 | Gesprekken met voorbijgangers en personages | nee | Kan alleen in je eigen spel; wat de ander zegt zie je als ondertitel. |
-| Bijbanen en minigames | nee | Een bijbaan of minigame start en speelt wie het spel opende; jij kijkt mee. |
-| Missies en het verhaal | deels | Dat speelt wie het spel opende. Bij het begin van een opdracht vraagt het spel "Meedoen?" (J of N, zonder antwoord doe je na 10 s mee): meedoen betekent meelopen en je deel van de beloning in je eigen geld; niet meedoen betekent vrij rondlopen en winkelen, zonder deel (#429). Waar het verhaal jouw rol nodig heeft is meedoen verplicht. |
+| Bijbanen | nee | Een bijbaan (trekker, taxi, bezorging) start en speelt wie het spel opende: het voertuig zou in zijn wereld verschijnen. Bij zo een plek krijg je "Alleen bij wie het spel opende". |
+| Hengelen | ja | Hengelen aan elk water (I) en de wedstrijd in Meerstad (E) draaien op je eigen scherm. De vangst, het visboek, het loopbaanpunt en het geld komen in je eigen spel; er verdwijnt niets uit de wereld van wie het spel opende. Je lichaam blijft staan zolang je hengelt. De anderen zien je (nog) zonder hengel. Vanaf een boot kan het nog niet. |
+| Boerderij | deels | Je eigen akker staat in het pauzemenu (Boerderij): het gewas groeit ook terwijl je meespeelt, je kiest gewassen, koopt machines met je eigen geld en zet de akker op je kaart. De klussen op het land (trekker) doe je in je eigen spel: de trekker zou in de wereld van wie het spel opende staan. |
+| Minigames | deels | Pannenkoeken bakken en de beiaard speel je zelf, op je eigen scherm. Discgolf, pitch en put, skatepark, kartbaan, zwemmen, klimmen, waterskiën, vliegles, botsautootjes en padel zetten je lichaam of een voertuig in de wereld: die starten bij wie het spel opende, en jij krijgt "Alleen bij wie het spel opende". |
+| Missies en het verhaal | deels | Dat speelt wie het spel opende. Bij het begin van een opdracht vraagt het spel "Meedoen?" (J of N, zonder antwoord doe je na 10 s mee): meedoen betekent meelopen en je deel van de beloning in je eigen geld; niet meedoen betekent vrij rondlopen, winkelen, hengelen en boeren, zonder deel (#429). Waar het verhaal jouw rol nodig heeft is meedoen verplicht. |
+
+## Zelf een activiteit doen (#429, #434)
+
+Een gast kiest per opdracht of hij meedoet (J of N). Wie niet meedoet is vrij en kan nu ook zelf iets doen dat de wereld van wie het spel opende niet raakt. De lijst staat in `GAST_ACTIVITEITEN` (`coopgast.js`): hengelen, pannenkoeken bakken en de beiaard. Hoe het werkt:
+
+- `updateGastLokaal` (`coopgastlokaal.js`) draait een lokale activiteit door `updateActivitiesGast` (`activities.js`); E bij een plek start hem (`tryActivityInteractGast`), de I-toets bij het water start vrij hengelen via `tickActivitiesGast`. Bij een andere activiteit (discgolf enzovoort) staat er "Alleen bij wie het spel opende".
+- Zolang zo'n activiteit loopt staat het lichaam van de gast bij de host stil: `input.stil` (`input.js`) zet zijn stick en zijn sprong-, ren- en bukknop op nul, en telt per beeld af, zodat het niet blijft hangen. Spatie en de letters voor de minigame komen wel aan.
+- De voortgang is van de gast: het visboek en de loopbaan staan in zijn eigen opslag (`gde-visboek-v1`, `gde-loopbaan-v1`), de boerderij in `gde-boerderij-v1`, het geld en de prestaties gaan mee in `saveGuestEarnings` (`GAST_VELDEN`, `coopsave.js`).
+- De gast meldt een wisseling als `{ k: 'bezig', a: 'hengelen' | null }`, een gewoon JSON-bericht (geen nieuw formaat; PROTO en CODEC_VERSION blijven 2). Een host die het nog niet kent, slaat het over. De host laat de andere spelers dit nog niet zien: dat (een staande speler met hengel) vraagt een handler in `coopnet.js` en de tekenkant in `hengelanim.js`.
+- De boerderij groeit bij een gast in `updateGameplay` (`boerderijTijd`); het sprongetje naar de klok van de host telt niet mee (`boerderijKlokNul`).
 
 ## Hoe het werkt
 
@@ -71,5 +84,5 @@ Zie `game/js/coopfoci.js`. De gastheer houdt een register bij van de plekken van
 
 ## Niet gedaan
 
-Zelf een voertuig kiezen en besturen, gesprekken met voorbijgangers, bijbanen en minigames meedoen, en het stuur met een controller (Y heeft
+Zelf een voertuig kiezen en besturen, gesprekken met voorbijgangers, bijbanen en de minigames die je lichaam of een voertuig verplaatsen, en het stuur met een controller (Y heeft
 geen knop op een pad). Dat blijven aparte wensen.

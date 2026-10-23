@@ -97,4 +97,22 @@ t('de knoppen van de gast: Spatie is alleen handrem als hij het stuur heeft', ()
   step(1); assert.equal(gw.coopNet.session.pendingInput.buttons & 2, 0, 'zonder stuur geen handrem (Spatie springt te voet)');
   gw.coopWiel = true; step(1); assert.equal(gw.coopNet.session.pendingInput.buttons & 2, 2);
 });
+t('lokale activiteiten van een gast: hengelen, pannenkoeken en de beiaard; de rest blijft bij wie het spel opende', () => {
+  for (const id of ['hengelen', 'pannenkoek', 'carillon']) assert.equal(G.activiteitMagLokaal(id), true, id);
+  for (const id of ['discgolf', 'pitchputt', 'skatepark', 'kartbaan', 'zwembad', 'klimtoren', 'waterski', 'vliegschool', 'kermis', 'carbid', 'snackketen']) assert.equal(G.activiteitMagLokaal(id), false, id);
+  assert.equal(G.MELDING_ALLEEN_OPENER, 'Alleen bij wie het spel opende.');
+  assert.doesNotMatch(G.MELDING_ALLEEN_OPENER, /gastheer|host/i);
+});
+t('het bezig-bericht is klein en zegt alleen een bekende activiteit; een onbekende telt als niets', () => {
+  assert.deepEqual(G.bezigEvent('hengelen'), { k: 'bezig', a: 'hengelen' });
+  assert.deepEqual(G.bezigEvent(null), { k: 'bezig', a: null });
+  assert.deepEqual(G.bezigEvent('discgolf'), { k: 'bezig', a: null });
+  assert.ok(JSON.stringify(G.bezigEvent('pannenkoek')).length < 40);
+});
+t('de tabel kent hengelen, boerderij en minigames en noemt geen gastheer', () => {
+  const ids = G.GAST_REGELS.map((r) => r.actie);
+  for (const k of ['hengelen', 'boerderij', 'minigames']) assert.ok(ids.includes(k), k);
+  assert.equal(G.GAST_REGELS.find((r) => r.actie === 'hengelen').mag, 'ja');
+  for (const r of G.GAST_REGELS) assert.doesNotMatch(r.regel, /gastheer|host/i, r.actie);
+});
 console.log(`coopgast_test: ${n}/${n} ok`);
