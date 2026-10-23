@@ -73,6 +73,19 @@ ok(I('Xbox 360 Controller (XInput STANDARD GAMEPAD)', 'standard').standard, 'inf
 ok(I('', '').name === '' && I('', '').note !== '', 'info: no pad');
 // de Switch-indeling zet de onderste knop op B
 ok(C.PAD_LAYOUTS.switch.a === 'B' && C.PAD_LAYOUTS.switch.b === 'A' && C.PAD_LAYOUTS.switch.x === 'Y' && C.PAD_LAYOUTS.switch.y === 'X', 'switch layout swaps A/B and X/Y labels');
+// Nintendo-indeling: de vier gezichtsknoppen wisselen, de rest en andere indelingen niet
+{
+  const nin = C.buttonSlots({}, 'switch');
+  ok(nin.b === 'a' && nin.a === 'b' && nin.y === 'x' && nin.x === 'y' && nin.lb === 'lb' && nin.up === 'up', 'Nintendo: a/b en x/y wisselen, de rest niet', nin);
+  const std = C.buttonSlots({});
+  ok(std.a === 'a' && std.b === 'b' && C.buttonSlots({}, 'ps').a === 'a' && C.buttonSlots({}, 'auto').x === 'x', 'andere indelingen wisselen niet');
+  const bound = C.buttonSlots(C.bindButton({}, 'a', 'x').binds, 'switch');
+  ok(Object.keys(bound).length === Object.keys(nin).length && new Set(Object.values(bound)).size === Object.keys(bound).length, 'Nintendo met eigen herbinding blijft een wisseling zonder dubbelen');
+  ok(C.nintendoSwap('a', 'switch') === 'b' && C.nintendoSwap('a', 'xbox') === 'a' && C.nintendoSwap('lt', 'switch') === 'lt', 'nintendoSwap');
+  // de hint voor de bevestigknop (a) toont bij Nintendo het label van de rechterknop: A
+  const lab = (fam) => C.PAD_LAYOUTS[fam][C.glyphFaceSlot('a', fam)];
+  ok(lab('switch') === 'A' && lab('xbox') === 'A' && lab('ps') === 'cross', 'hint voor bevestigen: A bij letter- en Nintendo-indeling, kruis bij vormknoppen');
+}
 // controllertest: knoplabels per indeling
 const T = await import('../game/js/padtest.js');
 ok(T.padTestLabel(0, 'xbox') === 'A' && T.padTestLabel(0, 'switch') === 'B' && T.padTestLabel(0, 'ps') === 'cross', 'padtest: bottom button label per layout');
