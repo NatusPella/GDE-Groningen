@@ -219,6 +219,7 @@ const vehicleFireMeshes = new Map();
 let impactSparkEffects = [];
 let vehicleExplosionEffects = [];
 const vehicleMeshes = new Map();
+export const getVehicleMesh = (id) => vehicleMeshes.get(id); // voor coopzitten3d.js: de extra spelers zitten in het model van de gastheer (#434)
 const doorAsk = new Map(); // voertuig -> deurvraag uit de in-/uitstapanimatie (vehicledoors3d.js)
 const pedMeshes = new Map();
 const wildlifeMeshes = new Map();
@@ -2881,6 +2882,10 @@ export function update3D(dt, world) {
         animatePersonWalk(companionMesh, Math.hypot(comp.vx, comp.vy), animDt);
         if (comp.sofaSeat != null) { seatPose(companionMesh); companionMesh.position.y = seatedY(companionMesh, (comp.gz || 0) + comp.sofaSeat); }
         if (comp.carrying) carryOverlay(companionMesh);
+        if (world.coopRole === 'client') { // het wapen en de aanval van de gastheer, zoals een voetganger ze heeft (#434)
+          setHeldWeapon(companionMesh, comp.coopWapen || null);
+          if (comp.coopWapen || comp.coopFx) applyAttackPose(companionMesh, comp.coopFx, world.time, null);
+        }
       }
     }
   }
