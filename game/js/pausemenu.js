@@ -165,6 +165,22 @@ function filterControls(q) {
     any = any || n > 0;
   }
   panel.querySelector('.pm-cempty').hidden = any;
+  filterBinds(words);
+}
+// dezelfde zoekopdracht op de rijen van Toetsenbord en muis en van Controller (#435)
+function filterBinds(words) {
+  const panel = root.querySelector('[data-panel="controls"]');
+  for (const sub of panel.querySelectorAll('[data-sub="toetsen"], [data-sub="knoppen"]')) {
+    let kop = null, n = 0;
+    const sluitKop = () => { if (kop) kop.hidden = !n; };
+    for (const el of sub.querySelectorAll('.m-gh, .pm-bind')) {
+      if (el.classList.contains('m-gh')) { sluitKop(); kop = el; n = 0; continue; }
+      const hit = words.every((w) => el.textContent.toLowerCase().includes(w));
+      el.hidden = !hit;
+      if (hit) n++;
+    }
+    sluitKop();
+  }
 }
 
 const ICONS = {
@@ -557,10 +573,10 @@ export function initPauseMenu(w) {
           <section data-panel="settings" class="pm-panel pm-col pm-tabbed" hidden><div class="pm-inner pm-settings">${settingsHtml()}</div></section>
           <section data-panel="controls" class="pm-panel pm-col pm-tabbed" hidden><div class="pm-inner pm-cinner">
             ${subtabsHtml('controls', 'Besturing')}
+            <label class="m-inp pm-csearch">${icon('search')}
+              <input type="search" data-controls-search placeholder="Zoek een toets of actie, bijv. toeter, duif of Q" aria-label="Zoek in de besturing" autocomplete="off" spellcheck="false"></label>
             <div data-of="controls" data-sub="overzicht" class="pm-csub" hidden>
               <div class="m-main"><div class="m-list pm-clist">
-                <label class="m-inp pm-csearch">${icon('search')}
-                  <input type="search" data-controls-search placeholder="Zoek een toets of actie, bijv. toeter, duif of Q" aria-label="Zoek in de besturing" autocomplete="off" spellcheck="false"></label>
                 <div class="pm-cgrid">${controlsHtml()}</div>
                 <p class="m-note pm-cempty" hidden>Niks gevonden. Probeer een ander woord of een toets.</p>
               </div></div>
@@ -944,6 +960,8 @@ function renderBinds() {
   const p = root.querySelector('[data-of="controls"][data-sub="knoppen"]');
   if (k && !k.hidden) k.innerHTML = bindRowsKeys();
   if (p && !p.hidden) p.innerHTML = bindRowsPad();
+  const zoek = root.querySelector('[data-controls-search]');
+  if (zoek && zoek.value) filterBinds(zoek.value.toLowerCase().trim().split(/\s+/).filter(Boolean));
   if (keep) {
     const el = root.querySelector(`[data-rebind-key="${CSS.escape(keep)}"], [data-rebind-pad="${CSS.escape(keep)}"], [data-action="${CSS.escape(keep)}"]`);
     if (el) el.focus({ preventScroll: true });
