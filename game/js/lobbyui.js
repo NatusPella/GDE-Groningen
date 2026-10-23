@@ -188,7 +188,7 @@ export function mountLobby(root, hooks, opts = {}) {
   async function act(a) {
     const input = root.querySelector('.coop-input');
     try {
-      if (a === 'start-spel') { if (hooks.startSpel) hooks.startSpel(); }
+      if (a === 'start-spel') { if (hooks.startSpel) hooks.startSpel(); if (state.rol === ROLES.HOST) set({ t: 'gate', aan: false }); } // het spel loopt: Spel starten verdwijnt (#434)
       else if (a === 'diag') set({ t: 'diag' });
       else if (a === 'diag-go') await diagnose();
       else if (a === 'diag-terug') set({ t: 'diag-terug' });
