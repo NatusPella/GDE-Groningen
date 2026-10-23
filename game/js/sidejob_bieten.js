@@ -110,12 +110,13 @@ function ruim(c) {
 
 export default {
   id: 'bietenoogst',
-  name: 'Bietenoogst',
+  name: 'Loonwerk: bietenoogst',
+  kicker: 'Boerderij',
   color: '#8a9a3a',
   glyph: 'suikerbieten',
   boss: 'Boer Zonnehoek',
   vehicleWord: 'de trekker',
-  blurb: 'Bieten rooien en naar de hoop in Hoogkerk brengen',
+  blurb: 'Loonwerk voor de boer: bieten rooien en naar de hoop brengen (je eigen akker is Eigen boerderij)',
   tagline: 'Akkerbouw Zonnehoek: vier rijen, één trekker en een zonnige dag',
   intro: [
     'Akkerbouw Zonnehoek: het is bietentijd en de zon schijnt. Vier rijen op het land, één trekker met een rooier.',
