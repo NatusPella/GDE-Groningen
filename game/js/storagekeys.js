@@ -74,6 +74,8 @@ export const BASE_KEYS = {
   help: 'gde-hulp-v1',
   // the career of this player per trade (loopbaan.js, #381): new, no legacy name, never part of a savegame (everyone has their own, also when playing together)
   loopbaan: 'gde-loopbaan-v1',
+  // the farm of this player (boerderij.js, #415): new, no legacy name, never part of a savegame (everyone has their own, also when playing together)
+  boerderij: 'gde-boerderij-v1',
   // what this player did per wijk, plaats and streek (gebieden.js, #414): new, no legacy name, never part of a savegame
   gebieden: 'gde-gebieden-v1',
 };

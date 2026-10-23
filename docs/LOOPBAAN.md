@@ -5,15 +5,15 @@ Voor wie aan `loopbaan.js`, `loopbaanlive.js`, `loopbaanui.js` of een vak werkt 
 
 ## Wat de speler ziet
 
-Pauzemenu › **Loopbaan**: zestien vakken in drie groepen (vervoer, werk, sport en spel). Per vak een icoon, het niveau (1 tot 6), de
+Pauzemenu › **Loopbaan**: achttien vakken in drie groepen (vervoer, werk, sport en spel). Per vak een icoon, het niveau (1 tot 6), de
 functietitel van dat niveau en een balk naar het volgende. Rechts staat wat je in het gekozen vak gedaan hebt (kilometers, ritten,
 potjes, verschillende plekken), wat er nog nodig is voor de volgende titel en hoeveel meer het vak betaalt. Voor de vakken met
 bijbanen staan alle bijbanen eronder, met een vinkje voor wat je al gedaan hebt. Een niveau omhoog komt als een kaartje: *"Kaartjesknipper: Spoor niveau 3, 10% meer loon"*.
 
 | Groep | Vakken (titel op niveau 1 → 6, bijvoorbeeld bij Spoor: Perronstaander → Spoorbaas van het Noorden) |
 |---|---|
-| Vervoer | Spoor (km), Bus (km), Taxi, Bezorging, Water (km), Lucht |
-| Werk | Handhaving, Kantoor, Podium, Horeca, Kermis, Klussen |
+| Vervoer | Spoor (km), Bus (km), Taxi, Bezorging, Vrachtwagen, Water (km), Lucht |
+| Werk | Handhaving, Kantoor, Podium, Horeca, Kermis, Landbouw (Bietenoogst, Balenrit), Klussen |
 | Sport en spel | Padel, Golf (disc en pitch and putt), Racen (kart, drift, regatta, bruggenrace), Buiten (hengelen, skaten, skiën, klimmen) |
 
 Alle titels zijn verzonnen (geen echte bedrijven of beroepsorganisaties) en staan in `VAKKEN` in `loopbaan.js`.
@@ -71,6 +71,14 @@ tijden per gebeurtenis die in de test staan (geschat uit de speeltesten); een ni
   Een gast draait `updateGameplay` niet, dus zijn tellers (kilometers, potjes) lopen niet; wat hij als meekijker verdient telt wel.
   Een beloning zonder `vak` (een missie) werkt zoals voor de loopbaan.
 - Niet gedaan: de titel bij de naam van een speler (optioneel in het ontwerp) en punten voor kilometers die een gast als passagier maakt.
+
+## Bietenoogst (#393)
+
+Bijbaan "Bietenoogst" van het verzonnen Akkerbouw Zonnehoek (`sidejob_bieten.js`, regels in `bietenrules.js`, vak Landbouw): eerst vier rijen
+bieten rooien met de trekker, recht door de rij en tussen 2 en 6 à 7 m/s (te hard rooit slordig, daarbuiten niets), daarna de oogst naar de
+bietenhoop van Suikerhal Hoogkerk brengen zonder dat de kar leeg strooit. De adapter zoekt bij de fabriek een vrije, vlakke akker zonder water,
+gebouwen of wegen (`vindAkker`), zet de rijen neer en laat de bieten verdwijnen terwijl je rooit. Altijd een zonnige dag. Het vak Vrachtwagen
+bevat de vracht-bijbaan, de melkrit en Suikerbieten naar de fabriek. Ploegen en zaaien zijn bewust niet gemaakt: dat zijn voorjaar en herfst.
 
 ## Een haak toevoegen
 

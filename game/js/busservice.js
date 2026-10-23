@@ -5,7 +5,7 @@
 
 import { DWELL } from './busroutes.js';
 
-const CRUISE = 8.5;      // m/s gemiddeld tussen haltes, met optrekken en remmen
+export const CRUISE = 8.5;      // m/s gemiddeld tussen haltes, met optrekken en remmen
 const EARLY_OK = 12;     // s: zo ver voor de tijd mag je nog net aankomen
 const LATE_OK = 10;      // s: zo laat is nog "op tijd"
 export const CAPACITY = 40;
