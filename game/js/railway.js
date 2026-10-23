@@ -136,6 +136,19 @@ function projectOnRoute(route, x, y) {
   return { s: at, d: Math.sqrt(best) };
 }
 
+// Samen spelen (#428): een gast speelt geen eigen dienstregeling, de host stuurt waar een trein staat (het midden van de trein
+// en zijn snelheid met teken). Zet de dienstregeltrein van die route daar neer; de wagons volgen uit de route.
+export function zetTreinVanHost(routeIdx, x, y, v) {
+  const route = routes[routeIdx];
+  if (!route) return;
+  const t = trains.find((q) => q.route === route && q.state !== 'mission' && q.state !== 'player');
+  if (!t) return;
+  t.c = projectOnRoute(route, x, y).s;
+  t.v = Math.abs(v);
+  if (Math.abs(v) > 0.05) t.dir = v > 0 ? 1 : -1;
+  placeCars(t);
+}
+
 function nearLevelCrossing(x, y) {
   for (const c of crossings) if (Math.hypot(c.x - x, c.y - y) < LEVEL_RADIUS) return true;
   return false;
