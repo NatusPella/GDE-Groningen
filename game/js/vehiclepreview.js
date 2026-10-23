@@ -232,6 +232,9 @@ function sharedGl() {
   try {
     const canvas = document.createElement('canvas');
     watchContext(canvas, 'voorbeelden');
+    // verloren context (#435: voorbeelden 'weg'): de gedeelde renderer valt weg en wordt bij de volgende vraag opnieuw gemaakt;
+    // plaatjes die leeg of zwart uitvielen worden dan ook opnieuw getekend
+    canvas.addEventListener('webglcontextlost', (e) => { e.preventDefault(); if (gl && gl.canvas === canvas) { gl = null; forgetBlankShots(); } });
     const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.setClearColor(0x000000, 0);
@@ -328,6 +331,8 @@ export function createSharedPreview(canvas, { interactive = false, active = () =
 // --- snapshots ----------------------------------------------------------------------
 
 const shots = new Map();
+// a still that came out empty (no WebGL at that moment) is not kept: the next ask draws it again
+function forgetBlankShots() { for (const [k, v] of shots) if (!v) shots.delete(k); }
 const queue = [];
 let pumping = false;
 const SHOT_BUDGET_MS = 6;
@@ -389,10 +394,11 @@ function pump(deadline) {
     if (n ? performance.now() - t0 >= SHOT_BUDGET_MS || left < MIN_IDLE_MS : left < MIN_IDLE_MS) break;
     const job = queue.shift();
     if (!shots.has(job.key)) {
-      shots.set(job.key, shoot(job.spec, job.w, job.h, job.angle, job.zoom));
+      const url = shoot(job.spec, job.w, job.h, job.angle, job.zoom);
+      if (url || glFailed) shots.set(job.key, url);
       if (job.keep) keepShot(job.key, shots.get(job.key));
     }
-    for (const cb of job.cbs) cb(shots.get(job.key));
+    for (const cb of job.cbs) cb(shots.has(job.key) ? shots.get(job.key) : '');
     n++;
   }
   if (queue.length) idle(pump);

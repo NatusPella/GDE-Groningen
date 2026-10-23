@@ -75,6 +75,8 @@ const CSS = `
 #pause-menu .vh-clue p { font-size: 18px; line-height: 1.35; color: rgba(240,237,228,0.85); }
 #pause-menu .vh-clue[data-unknown] b { color: var(--mut); }
 #pause-menu .vh-clue.vh-rest { grid-column: 1 / -1; }
+#pause-menu .vh-gk { grid-column: 1 / -1; display: flex; gap: 10px; align-items: baseline; margin-top: 14px; font-size: 18px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--mut); }
+#pause-menu .vh-gk em { font-style: normal; color: #3fc97a; letter-spacing: 0; text-transform: none; }
 #pause-menu .vh-plakje[data-state="gered"] b::after { content: ' · gered'; color: #3fc97a; }
 #pause-menu .vh-plakje[data-state="verloren"] b::after { content: ' · verloren'; color: #e0604a; }
 #pause-menu .vh-plakje[data-state="geblokkeerd"] b::after { content: ' · geblokkeerd'; color: #e8b84a; }
@@ -196,12 +198,22 @@ function plakjesHtml(list) {
     '<div class="vh-clues">' + list.map((p) => `<div class="vh-clue vh-plakje" data-state="${p.state}"><b>${p.n} · ${esc(p.name)}</b><p>${esc(p.text)}</p></div>`).join('') + '</div></section>';
 }
 
+// De volgorde van de delen bij Aanwijzingen: het deel waar je nu in zit, dan de delen met gevonden aanwijzingen (het nieuwste deel eerst), dan de rest.
+function partOrder(steps, found, cur) {
+  const score = (part) => {
+    if (cur && cur.part === part) return 0;
+    const mine = steps.filter((s) => s.part === part);
+    return CLUES.some((c) => mine.some((s) => s.id === c.step) && found.has(c.title)) ? 1 : 2;
+  };
+  return Object.keys(PARTS).reverse().map((part, i) => ({ part, i, sc: score(part) })).sort((a, b) => a.sc - b.sc || a.i - b.i).map((x) => x.part);
+}
+
 function cluesHtml() {
   const steps = getStorySteps();
   const jr = getStoryJournal();
   const found = new Map(jr.found.map((c) => [c.title, c]));
   const cur = steps.find((s) => s.current);
-  return '<div class="vh-parts">' + plakjesHtml(jr.plakjes) + Object.keys(PARTS).map((part) => {
+  return '<div class="vh-parts">' + plakjesHtml(jr.plakjes) + partOrder(steps, found, cur).map((part) => { // waar je bent en wat je vond bovenaan (#435)
     const list = steps.filter((s) => s.part === part);
     const clues = CLUES.filter((c) => list.some((s) => s.id === c.step));
     if (!clues.length) return '';
@@ -212,9 +224,14 @@ function cluesHtml() {
     return `<section class="vh-part"${here ? ' data-cur' : ''}><div class="m-gh"><span>${esc(PARTS[part].title)}</span><span>${known.length} van ${clues.length}</span></div>` +
       `<span class="m-bar vh-pbar"><i data-bar="clue-${part}" data-w="${Math.round((known.length / clues.length) * 100)}"></i></span>` +
       (here && WHY[part] ? `<p class="vh-why"><b>Waar het om draait:</b> ${esc(WHY[part])}</p>` : '') +
-      '<div class="vh-clues">' + clues.filter((c) => found.has(c.title)).map((c) => {
-        const f = found.get(c.title);
-        return `<div class="vh-clue"${f.isNew ? ' data-new' : ''}><b>${c.kind === 'hart' ? '<em>&#9829;</em>' : ''}${esc(c.title)}</b><p>${esc(c.text)}</p></div>`;
+      // per opdracht gegroepeerd, de nieuwste opdracht eerst (#435)
+      '<div class="vh-clues">' + [...list].reverse().map((st) => {
+        const mine = clues.filter((c) => c.step === st.id && found.has(c.title));
+        if (!mine.length) return '';
+        return `<div class="vh-gk"><span>${esc(st.title)}</span>${mine.some((c) => found.get(c.title).isNew) ? '<em>nieuw</em>' : ''}</div>` + mine.map((c) => {
+          const f = found.get(c.title);
+          return `<div class="vh-clue"${f.isNew ? ' data-new' : ''}><b>${c.kind === 'hart' ? '<em>&#9829;</em>' : ''}${esc(c.title)}</b><p>${esc(c.text)}</p></div>`;
+        }).join('');
       }).join('') +
       // de nog niet gevonden aanwijzingen als één rustige regel, geen muur van vraagtekens (#92)
       (known.length < clues.length ? `<div class="vh-clue vh-rest" data-unknown><b>${clues.length - known.length} nog te ontdekken</b></div>` : '') + '</div></section>';

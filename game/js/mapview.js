@@ -33,7 +33,7 @@ import { drawRailsOnMap } from './railway.js';
 import { drawCountryBase, drawCountryDetail, villageLabels, syncMapPhase, MAP_STYLE } from './countrymap.js';
 import { drawProvinceBase, provinceMapOn, provinceMapBounds, onProvinceMapLoad } from './provincemap.js';
 import { ROAD_ORDER, ZOOM, EMPHASIS, INK, inkA, inkCss, roadWidthPx, layersAtZoom, modeLook, baseFilter } from './mapstyle.js';
-import { drawSea, drawOutside, regionLabels, regionEdgeLabels, areaNameAt } from './regions.js';
+import { drawSea, drawOutside, regionLabels, regionEdgeLabels, areaNameAt, regionBorderColor } from './regions.js';
 import { borderPlaceLabels } from './borderplaces.js';
 import { worldPlaceLabels, worldPlacesReady } from './worldplaces.js';
 import { tileIndexOf, tileOrigin, TILE_M } from './gdt.js';
@@ -48,7 +48,7 @@ import { selectMapItems } from './missionmap.js';
 import { drawLayerAreas, drawLayerLines, layerCaption } from './missionmapdraw.js';
 import { getTodoItems, chooseTodo, mapIconUrl } from './todo.js';
 import { getMissionList } from './missionquery.js';
-import { MEDALS } from './achievements.js';
+import { MEDALS, setStatMax } from './achievements.js';
 import { nicknameOf, FLAVOUR_MAP_PLACES } from './flavourlines.js';
 import {
   updateRouting, getActiveRoute, getRouteAhead, getRoutes, dismissCareRoute, setUserWaypoint, clearUserWaypoint, getUserWaypoint, formatDistance, setRoutePrefs, getRoutePrefs,
@@ -348,6 +348,8 @@ function saveFog() {
     for (let i = 0; i < f.bits.length; i++) bin += String.fromCharCode(f.bits[i]);
     localStorage.setItem(FOG_KEY, `${f.w}x${f.h}:${btoa(bin)}`);
   } catch (e) { /* ignore */ }
+  // de prestaties 'kaart verkend' (#435): het percentage dat je ooit hebt gezien
+  try { setStatMax(null, 'kaartVerkend', Math.round(getDiscoveredRatio() * 100)); } catch (e) { /* prestaties nog niet klaar */ }
 }
 
 function updateFog(world) {
@@ -878,7 +880,8 @@ function drawStaticOverlay(ctx) {
       const label = r.name.toUpperCase().split('').join(' ');
       const w = ctx.measureText(label).width;
       const a = names.regionAlpha;
-      ctx.fillStyle = r.land ? inkA('cream', a.toFixed(2)) : inkA('seaLabel', (a + 0.1).toFixed(2));
+      if (r.land && r.id !== 'groningen') { ctx.lineJoin = 'round'; ctx.lineWidth = 5; ctx.strokeStyle = inkA('dark', 0.8); ctx.strokeText(label, sx, sy); }
+      ctx.fillStyle = r.land ? (r.id === 'groningen' ? inkA('cream', a.toFixed(2)) : regionBorderColor(r.id)) : inkA('seaLabel', (a + 0.1).toFixed(2));
       ctx.fillText(label, sx, sy);
       boxes.push([sx - w / 2, sy - size / 2, sx + w / 2, sy + size / 2]);
       named.add(r.id);
@@ -895,7 +898,10 @@ function drawStaticOverlay(ctx) {
       const box = [sx - w / 2, sy - 10, sx + w / 2, sy + 10];
       if (collides(boxes, box)) continue;
       boxes.push(box);
-      ctx.fillStyle = r.land ? inkA('cream', 0.4) : inkA('seaLabel', 0.5);
+      // de naam van een buurgebied in de kleur van zijn grens, goed leesbaar (#435)
+      ctx.lineJoin = 'round'; ctx.lineWidth = 4; ctx.strokeStyle = inkA('dark', 0.8);
+      ctx.strokeText(label, sx, sy);
+      ctx.fillStyle = r.land ? regionBorderColor(r.id) : inkA('seaLabel', 0.7);
       ctx.fillText(label, sx, sy);
     }
   }

@@ -7,6 +7,7 @@
 // Alleen canvas; de gegevens komen uit gebiedenlive.js (en gebieden.js).
 import * as G from './gebieden.js';
 import { getOverzicht } from './gebiedenlive.js';
+import { landBorders } from './regions.js';
 
 let laag = null;   // { t, lijst, typisch }
 
@@ -144,6 +145,12 @@ export function tekenVeroverd(ctx, toScreen, scale, cw, ch, hover, label, kleurT
     const ks = stijl(r, kleurTekst);
     if (ks.vul) { ctx.globalAlpha = ks.alpha * 0.55; ctx.fillStyle = ks.vul; ctx.fill('evenodd'); }
     lijn(ctx, { lijn: r.voltooid ? r.vlag : kleurTekst, lijnAlpha: r.voltooid ? 1 : 0.85 }, 2.2, dikte, false);
+  }
+  // 2b. de landgrenzen met Friesland, Drenthe en Duitsland in hun eigen kleur, boven de provinciegrens (#435): zo blijft te zien waar elk buurgebied begint
+  for (const b of landBorders()) {
+    ctx.beginPath();
+    b.pts.forEach(([x, y], i) => { const [sx, sy] = toScreen(x, y); if (i) ctx.lineTo(sx, sy); else ctx.moveTo(sx, sy); });
+    lijn(ctx, { lijn: b.color, lijnAlpha: 0.95 }, 2.6, dikte, false);
   }
   ctx.globalAlpha = 1;
   // 3. labels op belang, zonder overlap: veroverd, dan bezig (het verst gevorderd eerst), dan onveroverd
