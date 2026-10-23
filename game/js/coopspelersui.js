@@ -4,7 +4,7 @@
 // Niet door een mens in beeld bekeken.
 import { pingGebaar } from './coopnet.js';
 import { PING_TOETSEN } from './coopping.js';
-import { VORM_TEKEN, kanEruitZetten, eruitKnopTekst, eruitGezetTekst } from './coopspelers.js';
+import { VORM_TEKEN, kanEruitZetten, kanOverdragen, overdragenKnopTekst, nogNietTekst, eruitKnopTekst, eruitGezetTekst } from './coopspelers.js';
 import { removeGuest } from './coopnet.js';
 import { setUserWaypoint } from './routing.js';
 
@@ -13,10 +13,11 @@ const STIP = { ok: '#3fc97a', lag: '#f2c94c', lost: '#ff5a4f' };
 
 function rijHtml(r, acties, rol = null, bevestig = null) {
   const eruit = acties && kanEruitZetten(rol, r) ? `<button type="button" class="cs-eruit" data-eruit="${r.slot}">${eruitKnopTekst(bevestig === r.slot)}</button>` : '';
+  const geef = acties && kanOverdragen(rol, r) ? `<button type="button" class="cs-naar" data-geef="${r.slot}">${overdragenKnopTekst}</button>` : '';
   const naar = acties && !r.jij && r.x != null ? `<button type="button" class="cs-naar" data-naar="${r.slot}">Ga erheen</button>` : '';
   return `<li class="cs-rij" data-slot="${r.slot}"><span class="cs-vorm" style="color:${esc(r.kleur)}" aria-hidden="true">${VORM_TEKEN[r.vorm] || '●'}</span>` +
     `<span class="cs-naam">${esc(r.naam)}${r.jij ? ' <small>(jij)</small>' : ''}</span><span class="cs-doet">${esc(r.doet)}${r.afstandTekst ? ' · ' + esc(r.afstandTekst) : ''}</span>` +
-    `<span class="cs-net" title="Verbinding"><i style="background:${STIP[r.verbinding] || STIP.ok}" aria-hidden="true"></i>${esc(r.verbindingTekst)}${r.ms != null ? ` <small>${r.ms} ms</small>` : ''}</span>${naar}${eruit}</li>`;
+    `<span class="cs-net" title="Verbinding"><i style="background:${STIP[r.verbinding] || STIP.ok}" aria-hidden="true"></i>${esc(r.verbindingTekst)}${r.ms != null ? ` <small>${r.ms} ms</small>` : ''}</span>${naar}${geef}${eruit}</li>`;
 }
 const roepHint = () => PING_TOETSEN.map((k) => `<b>${k.toets}</b> ${esc(k.tekst)}`).join(' · ');
 
@@ -103,6 +104,7 @@ export function renderSpelersPanel(root, world, sluit = () => {}) {
         if (r && removeGuest(world, slot) && world.addMessage) world.addMessage(eruitGezetTekst(r), 4);
         teken(); return;
       }
+      if (e.target.closest('[data-geef]')) { if (world.addMessage) world.addMessage(nogNietTekst, 4); return; } // #439: nog niet beschikbaar
       const n = e.target.closest('[data-naar]');
       if (n) {
         const r = (world.coopSpelers || []).find((x) => x.slot === +n.getAttribute('data-naar'));

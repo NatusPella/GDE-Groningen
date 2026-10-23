@@ -6,6 +6,9 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Nieuw
+- Samen spelen (#439): in het onderdeel Spelers staat bij elke speler de knop 'Spel overdragen'. Het overdragen zelf werkt nog niet: je krijgt de melding 'Nog niet beschikbaar' en je houdt het spel.
+
 ## [0.45.0] - 2026-10-23
 
 ### Opgelost
