@@ -29,6 +29,7 @@ import { missionIconInner } from './missionicons.js';
 import { zones, mayShow, cardPrio, cardZone, hudNow } from './hudrules.js';
 import { enqueueCard } from './hudbus.js';
 import { CAL_ICONS } from './calendar.js';
+import { menuMelding } from './menumelding.js';
 
 // the HUD's attention budget: one prominent card at a time
 const MAX_VISIBLE = 1;
@@ -163,6 +164,7 @@ function fromMessage(text, dur, opts = {}) {
   if (opts.exact && dur < 2 && String(text).length <= 12) { showCount(text, dur); return; }
   const c = classify(text, opts);
   if (!c) return;
+  if (!opts.exact && menuMelding(text)) return; // pauzemenu of kaart open: de melding staat direct in beeld, niet pas na Escape (#435)
   showCard(world, { ...c, text, duration: dur, key: opts.key || text, say: opts.say, kicker: opts.kicker, important: opts.important });
 }
 

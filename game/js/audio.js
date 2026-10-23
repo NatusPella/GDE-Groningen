@@ -3351,7 +3351,7 @@ export function updateAudio(dt, world) {
     muted = !muted;
     saveMuted();
     applyOutputGains(0.05);
-    world.addMessage(muted ? 'Geluid uit' : 'Geluid aan', 1.5, { key: 'mute' });
+    world.addMessage(muted ? 'Geluid uit. Druk op U voor geluid.' : 'Geluid aan', 2.5, { key: 'mute' });
   }
 
   speech.tick();

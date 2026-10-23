@@ -258,6 +258,10 @@ export function noteSpoken(world, speaker) {
 const fresh = new Set();
 export const isFresh = (id) => fresh.has(id);
 export const anyFresh = () => fresh.size > 0;
+// één personage bekeken: alleen zijn bolletje gaat weg (#435)
+export function markCharacterSeen(id) {
+  return fresh.delete(id);
+}
 export function markCharactersSeen() {
   fresh.clear();
 }

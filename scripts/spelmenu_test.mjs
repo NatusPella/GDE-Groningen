@@ -91,8 +91,9 @@ ok(/aria-current', String\(b\.dataset\.goto === \(CHILD\[name\] \|\| name\)\)/.t
 ok(/if \(CHILD\[tab\] && origin === 'home'\)/.test(pm), 'Esc en Terug gaan van een onderdeel naar zijn ouder');
 ok(/ids = sectionIds\(\)\.filter\(\(id\) => !CHILD\[id\]\)/.test(pm), 'Q en E tussen onderdelen slaan de kinderen over');
 const lb = read('game/js/loopbaanui.js');
-ok(/data-goto="\$\{id\}"/.test(lb) && /'visboek', 'Vissen'/.test(lb) && /'boerderij', 'Boerderij'/.test(lb) && /Bezigheden/.test(lb), 'Loopbaan heeft de sectie Bezigheden met grote tegels voor Vissen en Boerderij');
-ok((lb.match(/bezighedenHtml\(\) \+/g) || []).length === 2, 'de tegels staan in beide weergaven van Loopbaan');
+ok(lb.includes("VAK_LINK = { hengelen: ['visboek'") && lb.includes("landbouw: ['boerderij'") && !lb.includes('Bezigheden'), 'Vissen en Boerderij zijn gewone loopbanen met een knop naar visboek en boerderij, geen aparte tegels (#435)');
+ok(lb.includes('volgendeKlusHtml(id, v, banen)') && lb.includes('data-todo-goal="job:') && !lb.includes('data-lbview'), 'elke loopbaan heeft een knop naar de volgende klus en Veroverd is geen weergave van Loopbaan meer');
+ok(pm.includes("['veroverd', 'Veroverd']") && pm.includes('renderVeroverdPanel(panel'), 'Veroverd is een tabblad onder Verhaal (#435)');
 // Besturing: alles bij elkaar in Instellingen
 const bes = settingsSrc.slice(settingsSrc.indexOf("tab('besturing'"), settingsSrc.indexOf("tab('display'"));
 for (const k of ['mouseSensitivity', 'invertY', 'padLayout', 'padLookSensitivity', 'rumble', 'touchControls']) ok(keysOf(bes).includes(k), 'Besturing heeft ' + k);
@@ -102,7 +103,7 @@ ok(/\['overzicht', 'Toetsenoverzicht'\]/.test(pm) && !/'Alle toetsen'\]/.test(pm
 ok(/data-goto-sub="settings:besturing"/.test(pm.slice(pm.indexOf('function subtabsHtml'), pm.indexOf('function subtabsHtml') + 1200)), 'toetsen en knoppen hebben een knop terug naar Instellingen');
 // Te doen: losse activiteiten; Verhaal: de opdrachten
 ok(/todo: \[\['alles', 'Alles'\], \['dichtbij', 'Dichtbij'\]\]/.test(pm), 'Te doen heeft Alles en Dichtbij (losse activiteiten)');
-ok(pm.includes("verhaal: [['opdrachten', 'Opdrachten'], ['personages', 'Personages'], ['aanwijzingen', 'Aanwijzingen']]"),'Verhaal heeft Opdrachten, Personages, en Aanwijzingen (geen aparte Berichten)');
+ok(pm.includes("verhaal: [['opdrachten', 'Opdrachten'], ['personages', 'Personages'], ['aanwijzingen', 'Aanwijzingen'], ['veroverd', 'Veroverd']]"),'Verhaal heeft Opdrachten, Personages, en Aanwijzingen (geen aparte Berichten)');
 ok(/data-of="verhaal" data-sub="opdrachten" data-keep/.test(pm) && /renderTodoStory\(/.test(pm) && /export function renderTodoStory/.test(read('game/js/todoui.js')), 'de verhaalopdrachten staan onder Verhaal, met dezelfde lijst en details');
 ok(/data-todo-view="verhaal"/.test(read('game/js/todoui.js')) && /view === 'verhaal'\) \{ pref\.sub\.verhaal = 'opdrachten'/.test(pm), 'Alle opdrachten in Overzicht leidt naar Verhaal > Opdrachten');
 // elke actie bereikbaar, geen dubbele data-actions of panelen
@@ -150,6 +151,15 @@ ok(verw.length >= 6, 'verwijzingen naar tabbladen gevonden', String(verw.length)
 for (const [sec, sb] of verw) ok((SUBS[sec] || []).includes(sb), 'verwijzing ' + sec + ':' + sb + ' bestaat');
 const hintsSrc = pm.slice(pm.indexOf('const HINTS = {'), pm.indexOf('// a line in the sheet header'));
 for (const id of ['visboek', 'boerderij', 'controls', 'loopbaan', 'verhaal', 'todo', 'settings']) ok(new RegExp('^  ' + id + ': \\[', 'm').test(hintsSrc), 'voetregel (Esc Terug) voor ' + id);
+
+// --- #435: de rest van de checklist ------------------------------------------------------------------------------------------------
+const td = read('game/js/todoui.js');
+ok(td.includes('function nextHtml(cur)') && td.includes('return nextHtml(cur) + PART_IDS.map('), 'Verhaal > Opdrachten begint met de volgende stap en een knop naar het doel');
+ok(td.includes("it.group !== 'missies';") && td.includes("g !== 'missies'"), 'Activiteiten bevat geen verhaalmissies meer');
+ok(pm.includes('class="ra pm-exit" data-action="exit"'), 'Afsluiten staat als eigen knop in de rail van het pauzemenu (alleen desktop)');
+ok(pm.includes("icon('spelers', 'pm-ic n-ic')"), 'de teller bij Spel heeft een poppetje-icoon');
+ok(read('game/js/hudcards.js').includes('menuMelding(text)'), 'meldingen staan direct in beeld als het menu open is');
+ok(pm.includes("[['U'], 'Geluid uit of weer aan;"), 'Besturing legt de dempknop uit');
 
 console.log(`${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);

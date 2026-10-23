@@ -11,6 +11,7 @@ import { setPauseMenuOpen, setPauseMenuTabState, setPauseMenuControls } from './
 import { PRESET_ORDER, presetLabel, describePreset, describeChanges, currentPreset, applyPreset, getBenchResult, dismissBenchBanner, GEAR_SVG } from './gfxprofile.js';
 import { mountMapView, setMapActive, setMapCloseHandler, setMapView, getDiscoveredRatio, setMapTeleport } from './mapview.js';
 import { renderSamenPanel } from './samenpanel.js';
+import { renderVeroverdPanel } from './veroverdpanel.js';
 import { renderSpelersPanel } from './coopspelersui.js';
 import { renderCheatsPanel, cheatsClick, resetCheatsPanel, cheatsFocus } from './cheatsui.js';
 import { skipCurrent, getStoryJournal, markCluesSeen } from './story.js';
@@ -26,7 +27,7 @@ import { renderLoopbaanPanel } from './loopbaanui.js';
 import { renderVisboekPanel } from './visboekui.js';
 import { renderBoerderijPanel } from './boerderijui.js';
 import { unseenAchievementCount } from './achievements.js';
-import { renderGaragePanel, selectGarageVehicle, disposeGarageViewer } from './garageui.js';
+import { renderGaragePanel, selectGarageVehicle, disposeGarageViewer, garageNaarWinkel } from './garageui.js';
 import { deliverOwnedVehicle, locateOwnedVehicle } from './ownedvehicles.js';
 import { isShopOpen, closeShopMenu } from './shopui.js';
 import { benchmarkViaReload } from './trailerstate.js';
@@ -118,7 +119,7 @@ const CONTROL_GROUPS = [
     [['ARROWS'], 'In het menu: kiezen, Enter: ok'],
     [['Q', 'E'], 'In het menu: vorige of volgende sectie'],
     [['[', ']'], 'In het menu: vorig of volgend tabblad'],
-    [['U'], 'Geluid aan/uit'],
+    [['U'], 'Geluid uit of weer aan; staat het uit, dan zie je linksboven een luidspreker met streep en "U"'],
     [['O'], 'Verhaalstap overslaan (als dat in beeld staat)'],
     ...(DESKTOP ? [[['F11'], 'Volledig scherm (ook Alt+Enter)']] : []),
   ]],
@@ -164,6 +165,22 @@ function filterControls(q) {
     any = any || n > 0;
   }
   panel.querySelector('.pm-cempty').hidden = any;
+  filterBinds(words);
+}
+// dezelfde zoekopdracht op de rijen van Toetsenbord en muis en van Controller (#435)
+function filterBinds(words) {
+  const panel = root.querySelector('[data-panel="controls"]');
+  for (const sub of panel.querySelectorAll('[data-sub="toetsen"], [data-sub="knoppen"]')) {
+    let kop = null, n = 0;
+    const sluitKop = () => { if (kop) kop.hidden = !n; };
+    for (const el of sub.querySelectorAll('.m-gh, .pm-bind')) {
+      if (el.classList.contains('m-gh')) { sluitKop(); kop = el; n = 0; continue; }
+      const hit = words.every((w) => el.textContent.toLowerCase().includes(w));
+      el.hidden = !hit;
+      if (hit) n++;
+    }
+    sluitKop();
+  }
 }
 
 const ICONS = {
@@ -236,7 +253,7 @@ const CHILD = { visboek: 'loopbaan', boerderij: 'loopbaan', controls: 'settings'
 const PRESTART_SECTIONS = ['spel', 'settings', 'controls'];
 const SUBTABS = {
   todo: [['alles', 'Alles'], ['dichtbij', 'Dichtbij']],
-  verhaal: [['opdrachten', 'Opdrachten'], ['personages', 'Personages'], ['aanwijzingen', 'Aanwijzingen']],
+  verhaal: [['opdrachten', 'Opdrachten'], ['personages', 'Personages'], ['aanwijzingen', 'Aanwijzingen'], ['veroverd', 'Veroverd']],
   spel: [['overzicht', 'Overzicht'], ['samen', 'Samen spelen'], ['spelers', 'Spelers'], ['acties', 'Opslaan & stoppen'], ['spelen', 'Spelen'], ['camera', 'Camera & richten'], ['hints', 'Hints & uitleg']],
   settings: [['video', 'Beeld'], ['sound', 'Geluid & ondertitels'], ['besturing', 'Besturing'], ['display', 'Interface'], ['a11y', 'Toegankelijkheid'], ['fouten', 'Foutrapport'], ['cheats', 'Cheats']],
   controls: [['toetsen', 'Toetsenbord en muis'], ['knoppen', 'Controller'], ['overzicht', 'Toetsenoverzicht'], ['hulp', 'Hulp']],
@@ -368,7 +385,8 @@ function settingsHtml() {
   return `${subtabsHtml('settings', 'Onderdeel')}
     ${tab('video', `
       <div class="pm-advice" data-bench-banner hidden></div>
-      ${picker('preset', 'Voorinstelling', presets, '', 'data-preset-pick')}
+      <div class="m-li pm-row"><span class="nm" id="pm-l-presetknoppen">Voorinstelling</span><span class="pm-chips" role="radiogroup" aria-labelledby="pm-l-presetknoppen">${presets.map(([n, l]) => `<button type="button" class="m-chip" role="radio" data-preset-btn="${n}" aria-checked="false"${n === 'eigen' ? ' aria-disabled="true"' : ''}>${l}</button>`).join('')}</span></div>
+      <div hidden>${picker('preset', 'Voorinstelling', presets, '', 'data-preset-pick')}</div>
       ${picker('resolution', 'Resolutie', [['1', '100%'], ['0.85', '85%'], ['0.75', '75%'], ['0.6', '60%']])}
       ${toggle('autoResolution', 'Automatische resolutie', 'bij haperen')}
       ${toggle('zuinig', 'Zuinige modus', '30 beelden per seconde, spaart batterij en warmte')}
@@ -483,7 +501,8 @@ function spelHtml() {
       ${toggle('driftAssist', 'Driften met hulp', 'Helpt tegensturen en houdt een slip beheersbaar; uit is realistischer')}
       ${toggle('bikeAssist', 'Motor met hulp', 'Houdt een motor of brommer rechtop in bochten; uit is realistischer')}
       <div class="m-gh"><span>Kaart</span></div>
-      ${toggle('mapShiftTeleport', 'Shift+klik op de kaart verplaatst je', 'Niet tijdens een missie of met de politie achter je aan')}`, `${pane('Spel', 'Zo speelt het', '<p>Hoe het verkeer, het geweld en het rijden aanvoelen. Alles wordt meteen bewaard.</p><p class="mut">Beeld, geluid, besturing en toegankelijkheid staan onder Instellingen.</p>')}`)}
+      <div class="m-li pm-row pm-ingame">${rowName('Cheats', 'Een beetje vals spelen')}<button type="button" class="m-bg" data-goto="streken">Openen</button></div>
+      ${toggle('mapShiftTeleport','Shift+klik op de kaart verplaatst je', 'Niet tijdens een missie of met de politie achter je aan')}`, `${pane('Spel', 'Zo speelt het', '<p>Hoe het verkeer, het geweld en het rijden aanvoelen. Alles wordt meteen bewaard.</p><p class="mut">Beeld, geluid, besturing en toegankelijkheid staan onder Instellingen.</p>')}`)}
     ${tab('camera', `
       ${slider('fov', 'Beeldhoek', 50, 90, 1)}
       ${slider('cameraDistance', 'Camera-afstand', 0.8, 1.6, 0.05)}
@@ -521,6 +540,7 @@ export function initPauseMenu(w) {
           <div class="pm-q-head">${logoHtml({ sub: false, cls: 'pm-logo', decorative: true })}<b id="pm-title" class="pm-sr">Pauze</b><span class="mut pm-q-info" data-info="when"></span></div>
           ${RAIL_GROUPS.map((g) => g.map(railBtn).join('')).join('<span class="pm-rail-sp"></span>')}
           <span class="pm-rail-gap"></span>
+          ${DESKTOP ? `<button type="button" class="ra pm-exit" data-action="exit" title="Opslaan en het spel sluiten">${icon('exit', 'pm-ic ra-ic')}<span class="ra-t">Afsluiten</span></button>` : ''}
           <button type="button" class="ra pm-back" data-action="resume">Terug</button>
           <p class="pm-ver">${versionLabel(VERSION)}</p>
         </div>
@@ -541,7 +561,7 @@ export function initPauseMenu(w) {
           <section data-panel="spullen" class="pm-panel pm-col pm-tabbed" hidden><div class="pm-inner pm-spullen"><div class="m-main"><div class="m-list td-list"></div><aside class="m-pane td-detail" aria-label="Details"></aside></div></div></section>
           <section data-panel="garage" class="pm-panel pm-col" hidden><div class="pm-inner pm-garage"></div></section>
           <section data-panel="verhaal" class="pm-panel pm-col pm-tabbed" hidden><div class="pm-inner pm-verhaal">${subtabsHtml('verhaal', 'Verhaal')}
-            <div class="m-main pm-vbody"><div data-of="verhaal" data-sub="opdrachten" data-keep class="pm-vsub pm-vopd"><div class="m-main"><div class="m-list td-list"></div><aside class="m-pane td-detail" aria-label="Details"></aside></div></div><div data-of="verhaal" data-sub="personages" class="pm-vsub" hidden></div><div data-of="verhaal" data-sub="aanwijzingen" class="pm-vsub" hidden></div></div>
+            <div class="m-main pm-vbody"><div data-of="verhaal" data-sub="opdrachten" data-keep class="pm-vsub pm-vopd"><div class="m-main"><div class="m-list td-list"></div><aside class="m-pane td-detail" aria-label="Details"></aside></div></div><div data-of="verhaal" data-sub="personages" class="pm-vsub" hidden></div><div data-of="verhaal" data-sub="aanwijzingen" class="pm-vsub" hidden></div><div data-of="verhaal" data-sub="veroverd" class="pm-vsub pm-veroverd" hidden></div></div>
           </div></section>
           <section data-panel="prestaties" class="pm-panel pm-col" hidden><div class="pm-inner pm-ach"></div></section>
           <section data-panel="loopbaan" class="pm-panel pm-col" hidden><div class="pm-inner pm-ach pm-loopbaan"></div></section>
@@ -553,10 +573,10 @@ export function initPauseMenu(w) {
           <section data-panel="settings" class="pm-panel pm-col pm-tabbed" hidden><div class="pm-inner pm-settings">${settingsHtml()}</div></section>
           <section data-panel="controls" class="pm-panel pm-col pm-tabbed" hidden><div class="pm-inner pm-cinner">
             ${subtabsHtml('controls', 'Besturing')}
+            <label class="m-inp pm-csearch">${icon('search')}
+              <input type="search" data-controls-search placeholder="Zoek een toets of actie, bijv. toeter, duif of Q" aria-label="Zoek in de besturing" autocomplete="off" spellcheck="false"></label>
             <div data-of="controls" data-sub="overzicht" class="pm-csub" hidden>
               <div class="m-main"><div class="m-list pm-clist">
-                <label class="m-inp pm-csearch">${icon('search')}
-                  <input type="search" data-controls-search placeholder="Zoek een toets of actie, bijv. toeter, duif of Q" aria-label="Zoek in de besturing" autocomplete="off" spellcheck="false"></label>
                 <div class="pm-cgrid">${controlsHtml()}</div>
                 <p class="m-note pm-cempty" hidden>Niks gevonden. Probeer een ander woord of een toets.</p>
               </div></div>
@@ -585,6 +605,8 @@ export function initPauseMenu(w) {
     if (hint) { if (hint.dataset.hint === 'back') goBack(); else runAction(hint.dataset.hint); return; }
     const fold = e.target.closest('[data-fold]');
     if (fold) { toggleFold(fold); return; }
+    const pb = e.target.closest('[data-preset-btn]');
+    if (pb) { if (pb.dataset.presetBtn !== 'eigen') applyPreset(pb.dataset.presetBtn); syncControls(); return; } // de voorinstellingen zijn weer knoppen (#435)
     const pick = e.target.closest('[data-pick]');
     if (pick) { stepPicker(pick.closest('.m-pk'), Number(pick.dataset.pick)); return; }
     if (e.target.closest('[data-pad-test]')) { openPadTest(); return; }
@@ -609,6 +631,8 @@ export function initPauseMenu(w) {
     if (panel && tab === 'loopbaan' && todoClick(e, world, panel, todoApi)) return;
     const gd = e.target.closest('[data-garage-deliver]');
     if (gd) return garageDeliver(gd.dataset.garageDeliver);
+    const gw = e.target.closest('[data-garage-shop]');
+    if (gw) { const r = garageNaarWinkel(world, gw.dataset.garageShop); renderGaragePanel(garageEl(), world, r.text); return; }
     const gf = e.target.closest('[data-garage-find]');
     if (gf) return garageFind(gf.dataset.garageFind);
     const gs = e.target.closest('[data-garage-select]');
@@ -936,6 +960,8 @@ function renderBinds() {
   const p = root.querySelector('[data-of="controls"][data-sub="knoppen"]');
   if (k && !k.hidden) k.innerHTML = bindRowsKeys();
   if (p && !p.hidden) p.innerHTML = bindRowsPad();
+  const zoek = root.querySelector('[data-controls-search]');
+  if (zoek && zoek.value) filterBinds(zoek.value.toLowerCase().trim().split(/\s+/).filter(Boolean));
   if (keep) {
     const el = root.querySelector(`[data-rebind-key="${CSS.escape(keep)}"], [data-rebind-pad="${CSS.escape(keep)}"], [data-action="${CSS.escape(keep)}"]`);
     if (el) el.focus({ preventScroll: true });
@@ -1268,10 +1294,11 @@ function showSubtab(of, name) {
   if (!subs.some(([id]) => id === name)) name = subs[0][0];
   for (const b of root.querySelectorAll(`[data-subtab][data-of="${of}"]`)) b.setAttribute('aria-selected', String(b.dataset.subtab === name));
   for (const p of root.querySelectorAll(`[data-sub][data-of="${of}"]`)) p.hidden = p.dataset.sub !== name;
+  if (of === 'verhaal' && pref.sub[of] === 'aanwijzingen' && name !== 'aanwijzingen') { markCluesSeen(); syncNavBadges(); } // nieuw blijft staan zolang je op het tabblad bent, weg als je het verlaat (#435)
   if (pref.sub[of] !== name) { pref.sub[of] = name; savePref(); }
   const panel = root.querySelector(`[data-panel="${of}"]`);
   if (panel) panel.scrollTop = 0;
-  if ((of === 'todo' && name === 'verhaal') || (of === 'verhaal' && name === 'aanwijzingen')) { markCluesSeen(); syncNavBadges(); }
+  if (of === 'todo' && name === 'verhaal') { markCluesSeen(); syncNavBadges(); }
   if (of === 'settings') root.querySelector('[data-bench-confirm]').hidden = true;
   if (of === 'settings' && name === 'fouten') { errlogStatus(''); renderErrorLog(); }
 }
@@ -1318,6 +1345,7 @@ function syncPresets(st) {
   const pk = root.querySelector('[data-preset-pick]');
   const { options, i } = pickerState(pk);
   pk.querySelector('output').textContent = options[i][1];
+  for (const b of root.querySelectorAll('[data-preset-btn]')) b.setAttribute('aria-checked', String(b.dataset.presetBtn === cur));
   const [prev, next] = pk.querySelectorAll('[data-pick]');
   prev.setAttribute('aria-disabled', String(i === 0));
   next.setAttribute('aria-disabled', String(i === options.length - 1));
@@ -1419,7 +1447,8 @@ function syncNavBadges() {
   if (vPeople) vPeople.toggleAttribute('data-new', met || unread);
   const vClues = root.querySelector('[data-of="verhaal"][data-subtab="aanwijzingen"]');
   if (vClues) vClues.toggleAttribute('data-new', fresh);
-  const setN = (id, text, label) => { const n = root.querySelector(`[data-n="${id}"]`); if (n) { n.textContent = text; if (label) n.setAttribute('aria-label', label); else n.removeAttribute('aria-label'); } };
+  const setN = (id, text, label) => { const n = root.querySelector(`[data-n="${id}"]`); if (n) { if (id === 'spel' && text) n.innerHTML = `${icon('spelers', 'pm-ic n-ic')}${text}`; else n.textContent = text; // het aantal spelers met een poppetje (#435)
+         if (label) n.setAttribute('aria-label', label); else n.removeAttribute('aria-label'); } };
   // unseen achievements: a quiet dot on the rail, never a HUD notice (#168)
   const aNav = root.querySelector('[data-goto="prestaties"]');
   if (aNav) aNav.toggleAttribute('data-new', unseenAchievementCount() > 0);
@@ -1430,6 +1459,8 @@ function syncNavBadges() {
   setN('verhaal', unread ? String(unreadN) : fresh || met ? 'nieuw' : '', unread ? `${unreadN} ongelezen` : '');
   if (vNav && unread) vNav.toggleAttribute('data-new', true);
 }
+
+if (typeof document !== 'undefined') document.addEventListener('gde-nieuw-gezien', () => { if (root) syncNavBadges(); });
 
 // Berichten en bellen staan onder een personage (verhaalui.js, phone.js): opnieuw tekenen na een gesprek of bericht
 function renderPhone() {
@@ -1462,6 +1493,10 @@ function renderVerhaalPanel() {
       disposeVerhaalViewer();
       for (const sub of panel.querySelectorAll('[data-of="verhaal"][data-sub]:not([data-keep])')) sub.innerHTML = '';
       renderTodoStory(panel.querySelector('[data-sub="opdrachten"]'), world);
+    } else if (view === 'veroverd') {
+      disposeVerhaalViewer();
+      for (const sub of panel.querySelectorAll('[data-of="verhaal"][data-sub]:not([data-keep]):not([data-sub="veroverd"])')) sub.innerHTML = '';
+      renderVeroverdPanel(panel.querySelector('[data-sub="veroverd"]'), closePauseMenu);
     } else renderVerhaal(panel, view, world);
     if (tab === 'verhaal') sheetNote(view === 'opdrachten' ? todoSummary(world).sub : verhaalSummary());
   } catch (err) { console.error('verhaal', err); }
@@ -1617,6 +1652,7 @@ function setOpen(value, name = HOME, how = 'direct') {
     if (value) { showTab(name, how); focusSheet(); }
     return;
   }
+  if (!value) { try { markCluesSeen(); } catch (e) { /* verhaal niet klaar */ } }
   open = value;
   setPauseMenuOpen(value);
   if (open && isShopOpen()) closeShopMenu();
