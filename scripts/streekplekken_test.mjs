@@ -44,6 +44,10 @@ ok(kitFor({ id: 1, t: 'onbekend' }).length === 0, 'onbekend type geeft niets');
 const top = (p) => Math.max(...kitFor(p).map((q) => q.y + q.h));
 ok(top({ id: 3, t: 'schoorsteen', h: 80 }) > top({ id: 3, t: 'schoorsteen', h: 30 }), 'hogere schoorsteen is hoger');
 ok(top({ id: 5, t: 'mast', h: 100 }) > top({ id: 5, t: 'mast', h: 30 }), 'hogere mast is hoger');
+// een plaquette of een zuil zonder hoogte is een laag steentje, geen zuil van vijf meter op een plein van acht (#419)
+ok(classifyLand({ historic: 'memorial', memorial: 'stolperstein' }).sub === 'plaquette', 'struikelsteen is een plaquette');
+ok(top({ id: 20, t: 'monument', sub: 'plaquette' }) < 1.5 && top({ id: 21, t: 'monument', sub: 'zuil' }) < 1.5, 'plaquette en zuil zonder hoogte zijn laag');
+ok(top({ id: 22, t: 'monument', sub: 'zuil', h: 9 }) >= 8, 'een zuil met een hoogte blijft hoog');
 // een lang perron heeft meer onderdelen dan een kort, en een overkapping krijgt een dak
 ok(kitFor({ id: 1, t: 'perron', l: 200, w: 5 }).length > kitFor({ id: 1, t: 'perron', l: 30, w: 5 }).length, 'langer perron, meer onderdelen');
 ok(kitFor({ id: 2, t: 'perron', sub: 'overkapt', l: 30, w: 6 }).some((q) => q.y > 3), 'overkapt perron heeft een dak');
