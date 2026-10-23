@@ -9,6 +9,7 @@ import * as F from './fotomodus.js';
 import { getRenderer } from './scene3d.js';
 import { storyDate } from './calendarday.js';
 import { wijkProfileAt } from './trafficfleet.js';
+import { inProvinceData } from './provinceworld.js';
 
 let photo = null;
 let saved = null;
@@ -103,6 +104,7 @@ function stopPhotoMode(world) {
 }
 
 function buildOverlay() {
+  barInfo = '';
   overlay = document.createElement('div');
   overlay.id = 'foto-ui';
   overlay.innerHTML = '<div class="foto-look"></div><div class="foto-grid" hidden></div><div class="foto-dof" hidden></div><div class="foto-pad">' +
@@ -143,13 +145,21 @@ function wireTouch(el) {
 
 const KEYBTN = (k, label) => `<span class="foto-key"><kbd>${k}</kbd> ${label}</span>`;
 
+// De knoppenbalk onderin (#435): een infostrook, twee rijen toetsen (bewegen, instellen) en twee knoppen.
+// Staat één keer in de overlay: alleen de infostrook wisselt per frame, zodat een klik op een knop niet onder de muis wegvalt.
+const BAR_HTML =
+  '<div class="foto-info" aria-live="off"></div>' +
+  '<div class="foto-row foto-row-move"><span class="foto-lbl">Camera</span>' + KEYBTN('W A S D', 'Lopen') + KEYBTN('Muis slepen', 'Kijken') + KEYBTN('Pijlen', 'Kijken') + KEYBTN('Spatie', 'Omhoog') + KEYBTN('Ctrl', 'Omlaag') + KEYBTN('Shift', 'Sneller') + '</div>' +
+  '<div class="foto-row"><span class="foto-lbl">Beeld</span>' + KEYBTN('F', 'Filter') + KEYBTN('T', 'Weer') + KEYBTN(', .', 'Tijd') + KEYBTN('[ ]', 'Zoom') + KEYBTN('C V', 'Kantelen') + KEYBTN('Z X', 'Scherpte') + KEYBTN('G', 'Raster') + '</div>' +
+  '<div class="foto-acts"><button type="button" class="foto-btn foto-go" data-foto-shoot>Foto maken <kbd>Enter</kbd></button><button type="button" class="foto-btn" data-foto-stop>Terug <kbd>Esc</kbd></button></div>';
+
+let barInfo = '';
 function renderBar() {
   const p = photo.p;
   const bar = overlay.querySelector('.foto-bar');
-  bar.innerHTML =
-    `<span class="foto-info">${esc(F.hourLabel(p.hour))} · ${esc(F.weatherLabel(p))} · ${esc(F.FILTERS.find((f) => f.id === p.filter).naam)} · beeldhoek ${Math.round(p.fov)}°${p.cam.roll ? ` · kanteling ${Math.round(p.cam.roll * 57.3)}°` : ''}${p.dof > 0 ? ` · scherptediepte ${Math.round(p.dof * 10)}` : ''}</span>` +
-    KEYBTN('Enter', 'Foto') + KEYBTN('F', 'Filter') + KEYBTN('T', 'Weer') + KEYBTN(', .', 'Tijd') + KEYBTN('[ ]', 'Inzoomen') + KEYBTN('C V', 'Kantelen') + KEYBTN('Z X', 'Scherptediepte') + KEYBTN('G', 'Raster') +
-    '<button type="button" class="foto-btn" data-foto-shoot>Foto maken</button><button type="button" class="foto-btn" data-foto-stop>Terug</button>';
+  if (!bar.firstChild) bar.innerHTML = BAR_HTML;
+  const info = `${F.hourLabel(p.hour)} · ${F.weatherLabel(p)} · ${F.FILTERS.find((f) => f.id === p.filter).naam} · beeldhoek ${Math.round(p.fov)}°${p.cam.roll ? ` · kanteling ${Math.round(p.cam.roll * 57.3)}°` : ''}${p.dof > 0 ? ` · scherpte ${Math.round(p.dof * 10)}` : ''}`;
+  if (info !== barInfo) { barInfo = info; bar.querySelector('.foto-info').textContent = info; }
   overlay.querySelector('.foto-grid').hidden = !p.grid;
   const dof = overlay.querySelector('.foto-dof');
   dof.hidden = p.dof <= 0;
@@ -183,12 +193,19 @@ export function updatePhotoMode(dt, world) {
   // een cutscene of banner die eindigt haalt de HUD-klasse weg: in de fotomodus blijft de HUD verborgen
   if (!document.body.classList.contains('cine-hide-hud')) document.body.classList.add('cine-hide-hud');
   const d = (k) => (keysDown.has(k) ? 1 : 0);
+  const vorige = { x: p.cam.x, y: p.cam.y };
   F.stepFreeCam(p, {
     fwd: d('w') - d('s'), right: d('d') - d('a'), up: d(' ') - d('control'),
     yawRate: (d('arrowright') - d('arrowleft')) * 1.2 + lookDx * 0.004 / Math.max(0.001, Math.min(dt, 0.05)), pitchRate: (d('arrowup') - d('arrowdown')) * 0.9 - lookDy * 0.003 / Math.max(0.001, Math.min(dt, 0.05)),
     boost: keysDown.has('shift'),
   }, Math.min(dt, 0.05));
   lookDx = 0; lookDy = 0;
+  // de camera is los van Tammo, maar blijft in de wereld: buiten de data of onder de grond kan ze niet
+  if (inProvinceData(p.cam.x, p.cam.y) === false) { p.cam.x = vorige.x; p.cam.y = vorige.y; }
+  try {
+    const g = w.map && w.map.groundHeightAt ? w.map.groundHeightAt(p.cam.x, p.cam.y, 0) : 0;
+    if (Number.isFinite(g) && p.cam.z < g + 0.8) p.cam.z = g + 0.8;
+  } catch (e) { /* zonder hoogte blijft de laagste stand van clampPhoto */ }
   w.cameraOverride = pose(p);
   const r = getRenderer();
   if (r) { r.domElement.style.filter = F.filterCss(p); r.domElement.style.transform = rollCss(p); }

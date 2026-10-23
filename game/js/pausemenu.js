@@ -49,7 +49,7 @@ import { renderSpullen, spullenClick, spullenFocus } from './spullen.js';
 import { phoneClick, phoneUnread, selectPhoneThread, characterForSender } from './phone.js';
 import { getErrorLog, errorReport, clearErrorLog, onErrorLogChange } from './errorlog.js';
 import { KEYS } from './storagekeys.js';
-import { renderFotoPanel, fotoClick } from './fotomodusui.js';
+import { renderFotoPanel, fotoClick, isPhotoMode } from './fotomodusui.js';
 // Running inside the desktop app (desktop/preload.js): window mode + quit.
 const DESKTOP = typeof window !== 'undefined' && window.gdeDesktop && window.gdeDesktop.isDesktop ? window.gdeDesktop : null;
 
@@ -756,6 +756,8 @@ function onKey(e) {
   const k = e.key;
   const lower = k.length === 1 ? k.toLowerCase() : k;
   if (!open) {
+    // de fotomodus heeft zijn eigen Escape en M (#435): anders komt het pauzemenu over de foto heen
+    if (isPhotoMode()) return;
     if (e.repeat || !started()) return;
     if (k === 'Escape' && document.body.classList.contains('mg-board')) return;
     if (k === 'Escape' || (lower === 'm' && !isCinematicActive())) {
