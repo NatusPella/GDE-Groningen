@@ -4,16 +4,21 @@
 // (world.coopHost.voetgangers). De host blijft leidend: de gast leest alleen. Alleen three.js en bestaande bouwers.
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getScene } from './scene3d.js';
-import { buildPersonMesh, animatePersonWalk, waveOverlay, juichOverlay } from './models3d_people.js';
+import { buildPersonMesh, animatePersonWalk, waveOverlay, juichOverlay, setHeldWeapon, applyAttackPose, applyHitReaction } from './models3d_people.js';
 import { attachCarry, carryPose } from './streetlife3d.js';
 import { juichHoek } from './vrijgezellen.js';
 import { buildWildlifeMesh3D, animateWildlifeMesh3D } from './wildlife.js';
 import { getTrafficControllers, updateTrafficLights } from './trafficlights.js';
 import { breakPropByKey, restorePropByKey, isPropBroken } from './breakables.js';
-import { V_GROET, V_FEEST, lichtVerschil, standVers, MISC_KERMIS, MISC_STUNT, MISC_PUNTEN, leesStunt, leesPunten } from './coopextra.js';
+import { V_GROET, V_FEEST, V_WAPEN, V_AANVAL, V_GERAAKT, V_LIGT, lichtVerschil, standVers, MISC_KERMIS, MISC_STUNT, MISC_PUNTEN, MISC_PEDS, MISC_WERELD, MISC_SPREKERS, leesStunt, leesPunten, leesPeds, leesWereld, leesSprekers, WERELD_BRUG, WERELD_SLUIS, WERELD_GARAGE } from './coopextra.js';
+import { getMovableBridges, BRIDGE_TIMING } from './movablebridges.js';
+import { getSluizen, signalOf } from './sluizen.js';
+import { LOCK_TIMING } from './locks.js';
+import { zetGaragePoortVanHost } from './home.js';
 import { KERMIS, setKermisOverride } from './kermis.js';
 import { stuntPropMesh } from './stuntavond.js';
 import { buildWaypointDotMesh3D } from './missionmarker3d.js';
+import { gastOverwegen } from './railway.js';
 
 const EEND = ['drake', 'hen', 'swan', 'goose'];
 const hex = (s) => parseInt(String(s).replace('#', ''), 16);
@@ -37,10 +42,13 @@ function bouwPop(p, ui) {
 const sigVan = (ui) => (ui ? `${ui.kleding}|${ui.huid}|${ui.zaad}|${ui.draagt || ''}|${ui.look ? JSON.stringify(ui.look) : ''}` : 'terug');
 
 export function syncGastVoetgangers(world, lijst, dt) {
-  const scene = getScene(); if (!scene) return { echt: 0, rest: 0 };
+  const scene = getScene(); if (!scene) return { echt: 0, rest: 0, ligt: 0, wapen: 0, vecht: 0 };
   const stand = world.coopExtra, vers = stand && standVers(stand, world.time);
   const nu = world.time || 0;
   const gezien = new Set();
+  const mp = vers ? stand.misc.get(MISC_PEDS) : null; // wie een wapen draagt of vecht (wapen, soort slag)
+  const pedX = mp ? (mp.lijst || (mp.lijst = leesPeds(mp.data) || new Map())) : null;
+  let ligt = 0, wapens = 0, vecht = 0;
   for (const p of lijst || []) {
     gezien.add(p.id);
     const ui = vers ? stand.uiterlijk.get(p.id) : null, vs = vers ? stand.voetgangers.get(p.id) : null;
@@ -54,7 +62,7 @@ export function syncGastVoetgangers(world, lijst, dt) {
       let m = null; try { m = bouwPop(p, ui); } catch (er) { m = null; }
       if (!m) continue;
       scene.add(m);
-      e = { mesh: m, sig: sigVan(ui), v: 0, vorig: null }; pop.set(p.id, e);
+      e = { mesh: m, sig: sigVan(ui), v: 0, vorig: null, eerste: true }; pop.set(p.id, e);
     } else if (ui && e.sig !== sigVan(ui)) { // het uiterlijk kwam later binnen (of veranderde): opnieuw bouwen, op dezelfde plek
       let m = null; try { m = bouwPop(p, ui); } catch (er) { m = null; }
       if (m) { m.position.copy(e.mesh.position); m.rotation.copy(e.mesh.rotation); verwijder(scene, e.mesh); scene.add(m); e.mesh = m; e.sig = sigVan(ui); }
@@ -64,10 +72,31 @@ export function syncGastVoetgangers(world, lijst, dt) {
     const snel = dt > 0 ? afstand / dt : 0; e.vorig = { x: p.x, y: p.y };
     const doel = vs ? vs.speed : Math.min(snel, 12);
     e.v += (doel - e.v) * Math.min(1, dt * 6);
+    if (vs && (vs.flags & V_LIGT)) { // dood of omgevallen: achterover vallen en liggen, zoals bij de host (scene3d.js)
+      if (e.lig == null) e.lig = e.eerste ? nu - 1 : nu;
+      const val = Math.min(1, (nu - e.lig) / 0.3);
+      m.position.set(p.x, 0.14 * val + grond(world, p.x, p.y), p.y); m.rotation.set(0, -p.angle, val * val * Math.PI / 2);
+      try { animatePersonWalk(m, 0, dt); } catch (er) { /* */ }
+      e.eerste = false; ligt++;
+      continue;
+    }
+    if (e.lig != null) { e.lig = null; m.rotation.set(0, -p.angle, 0); }
+    e.eerste = false;
     m.position.set(p.x, grond(world, p.x, p.y), p.y); m.rotation.y = -p.angle;
     try { animatePersonWalk(m, Math.min(e.v, 8), dt); } catch (er) { /* zonder loopanimatie */ }
     const ui2 = ui || (stand && stand.uiterlijk.get(p.id));
     if (ui2 && ui2.draagt) { try { carryPose(m, ui2.draagt); } catch (er) { /* */ } }
+    if (vs) { // een wapen in de hand en een vechtbeweging, een klap die aankomt
+      const wp = pedX ? pedX.get(p.id) : null;
+      const wapen = (vs.flags & V_WAPEN) && wp ? wp.wapen : '';
+      if (wapen !== (e.wapen || '')) { e.wapen = wapen; try { setHeldWeapon(m, wapen || null); } catch (er) { /* */ } }
+      const slaat = !!((vs.flags & V_AANVAL) && wp && wp.fx);
+      if (slaat) { if (!e.fx || nu - e.fx.start > 0.8) e.fx = { type: wp.fx, swing: wp.swing || undefined, start: nu }; } else e.fx = null;
+      if (wapen || e.fx) { try { applyAttackPose(m, e.fx, nu, null); } catch (er) { /* */ } }
+      if (wapen) wapens++; if (slaat) vecht++;
+      if (vs.flags & V_GERAAKT) { if (!e.klap || nu - e.klap > 0.8) e.klap = nu; }
+      if (e.klap && nu - e.klap < 0.6) { try { applyHitReaction(m, { t: e.klap, dx: Math.cos(p.angle), dy: Math.sin(p.angle), k: 0.7 }, nu, p.angle); } catch (er) { /* */ } }
+    }
     if (vs) {
       if (vs.flags & V_GROET) { try { waveOverlay(m, nu + p.id * 0.37, 1); } catch (er) { /* */ } }
       if (vs.flags & V_FEEST) { try { const h = juichHoek(nu + p.id * 0.37, 1); juichOverlay(m, nu, h.links, h.rechts, h.spring, 1); } catch (er) { /* */ } }
@@ -76,7 +105,7 @@ export function syncGastVoetgangers(world, lijst, dt) {
   for (const [id, e] of pop) if (!gezien.has(id)) { verwijder(scene, e.mesh); pop.delete(id); }
   for (const id of wacht.keys()) if (!gezien.has(id)) wacht.delete(id);
   let terug = 0; for (const e of pop.values()) if (e.sig === 'terug') terug++;
-  return { echt: pop.size - terug, rest: terug };
+  return { echt: pop.size - terug, rest: terug, ligt, wapen: wapens, vecht };
 }
 
 // Wat voetgangers zeggen: als tekstballon (scene3d.js syncSpeechBubbles leest world.extraSpeakers)
@@ -94,7 +123,18 @@ export function syncGastSpraak(world, lijst) {
     if (!world.extraSpeakers.includes(o)) world.extraSpeakers.push(o);
   }
   for (const [id, o] of sprekers) if (nu > o.speechUntil + 3) sprekers.delete(id);
+  // wie praat zonder voetganger te zijn (een opdrachtgever, een kermisbaas): met naam, zoals bij de host
+  const ms = stand.misc.get(MISC_SPREKERS), sl = ms && nu - ms.at < 2 ? (ms.lijst || (ms.lijst = leesSprekers(ms.data) || [])) : [];
+  for (const s of sl) {
+    const sleutel = s.naam + '|' + s.tekst;
+    let o = losSprekers.get(sleutel);
+    if (!o) { o = { x: s.x, y: s.y, h: s.h || 2.1, female: s.vrouw, speechName: s.naam || undefined, speechText: s.tekst, speechUntil: nu + 1 }; losSprekers.set(sleutel, o); }
+    o.x = s.x; o.y = s.y; o.speechUntil = nu + 1;
+    if (!world.extraSpeakers.includes(o)) world.extraSpeakers.push(o);
+  }
+  for (const [k, o] of losSprekers) if (nu > o.speechUntil + 3) losSprekers.delete(k);
 }
+const losSprekers = new Map(); // naam|tekst -> { x, y, h, female, speechName, speechText, speechUntil }
 
 // ----------------------------------------------------------- dieren
 const dieren = new Map(); // id -> { mesh, a }
@@ -167,6 +207,38 @@ export function syncGastKapot(world, dt) {
   for (const key of [...mijnKapot]) if (!nu.has(key)) { restorePropByKey(key); mijnKapot.delete(key); }
 }
 
+// ----------------------------------------------------------- bruggen en sluizen die de host beweegt
+// updateMovableBridges en updateSluizen draaien niet bij een gast: de toestand komt van de host (MISC_WERELD) en de gast laat de delen zelf naar die
+// toestand lopen, op de snelheid van de host (BRIDGE_TIMING, LOCK_TIMING). Een brug die niet meer gemeld wordt, is dicht.
+const gedreven = new Set();
+const stapNaar = (b, k, doel, d) => { const v = b[k] || 0; b[k] = Math.abs(doel - v) <= d ? doel : v + Math.sign(doel - v) * d; };
+const dichtstbij = (lijst, x, y, max) => { let best = null, bd = max; for (const o of lijst || []) { const d = Math.hypot(o.x - x, o.y - y); if (d < bd) { bd = d; best = o; } } return best; };
+export function syncGastWereld(world, dt) {
+  const stand = world.coopExtra, m = stand && standVers(stand, world.time) ? stand.misc.get(MISC_WERELD) : null;
+  const lijst = m ? (m.lijst || (m.lijst = leesWereld(m.data) || [])) : [];
+  const nu = new Set(); let n = 0, garage = 0;
+  for (const e of lijst) {
+    if (e.soort === WERELD_GARAGE) { garage = e.a > 0.5 ? 1 : 0; n++; continue; }
+    if (e.soort === WERELD_BRUG) {
+      const b = dichtstbij(getMovableBridges(), e.x, e.y, 4); if (!b) continue;
+      nu.add(b); gedreven.add(b); n++;
+      b.state = e.staat; b.warn = true; b.t = (b.t || 0) + dt; b.flash = (b.flash || 0) + dt;
+      stapNaar(b, 'open', e.a, dt / BRIDGE_TIMING.MOVE_S * 1.5); stapNaar(b, 'boom', e.b, dt / BRIDGE_TIMING.BOOMS_S * 1.5);
+      if (b.r) b.r._open = e.staat === 'opening' || e.staat === 'open' || e.staat === 'closing';
+    } else if (e.soort === WERELD_SLUIS) {
+      const l = dichtstbij(getSluizen(), e.x, e.y, 6); if (!l || !l.gate) continue;
+      n++; l.state = e.staat; l.at = e.kant; l.clock = (l.clock || 0) + dt;
+      stapNaar(l.gate, 0, e.a, dt / LOCK_TIMING.GATE_S * 1.5); stapNaar(l.gate, 1, e.b, dt / LOCK_TIMING.GATE_S * 1.5);
+      stapNaar(l, 'level', e.peil, Math.max(0.05, LOCK_TIMING.FILL_MS * 3) * dt);
+      l.t = e.staat === 'opening' ? l.gate[1 - l.at] * LOCK_TIMING.GATE_S : e.staat === 'closing' ? (1 - l.gate[l.at]) * LOCK_TIMING.GATE_S : l.t || 0;
+      if (l.sig) { l.sig[0] = signalOf(l, 0); l.sig[1] = signalOf(l, 1); }
+    }
+  }
+  for (const b of [...gedreven]) if (!nu.has(b)) { b.state = 'closed'; b.open = 0; b.boom = 0; b.warn = false; b.snapped = null; if (b.r) b.r._open = false; gedreven.delete(b); }
+  zetGaragePoortVanHost(garage); // de garagepoort volgt de host (staat hij dicht of is er geen bericht, dan dicht)
+  return n;
+}
+
 // ----------------------------------------------------------- kermis, stuntavond en de punten van een opdracht (misc)
 // De kermis staat of staat niet zoals bij de host (de tijd van de dag is al gelijk, de kalender niet altijd); de rest van de kermis draait de gast zelf.
 let kermisAan = false;
@@ -207,7 +279,9 @@ export function syncGastPunten(world) {
 export function clearExtra() {
   const scene = getScene();
   if (scene) { for (const e of pop.values()) verwijder(scene, e.mesh); for (const e of dieren.values()) verwijder(scene, e.mesh); }
-  pop.clear(); wacht.clear(); dieren.clear(); sprekers.clear();
+  pop.clear(); wacht.clear(); dieren.clear(); sprekers.clear(); losSprekers.clear();
+  for (const b of gedreven) { b.state = 'closed'; b.open = 0; b.boom = 0; b.warn = false; if (b.r) b.r._open = false; }
+  gedreven.clear(); zetGaragePoortVanHost(null);
   if (scene) { if (stunt.groep) scene.remove(stunt.groep); for (const m of punten.meshes) scene.remove(m); }
   stunt.groep = null; stunt.meshes = []; stunt.sig = ''; punten.meshes = []; punten.sig = '';
   if (kermisAan) { kermisAan = false; setKermisOverride(null); }
@@ -226,9 +300,13 @@ export function syncExtra(world, dt) {
   syncGastSpraak(world, lijst);
   const nd = syncGastDieren(world, dt);
   syncGastLichten(world, dt);
+  try { gastOverwegen(dt, world); } catch (e) { /* zonder overwegen */ }
   syncGastKapot(world, dt);
+  const nw = syncGastWereld(world, dt);
   syncGastKermis(world, dt);
   const ns = syncGastStunt(world), np = syncGastPunten(world);
+  let doodDier = 0; for (const e of dieren.values()) if (e.a.dead) doodDier++;
+  world.coopExtraDbg = { ligt: r.ligt, wapen: r.wapen, vecht: r.vecht, wereld: nw, sprekers: losSprekers.size, doodDier }; // voor de testbank
   world.coopExtraMeshes = [r.echt, nd, stand0(world), ns, np, kermisAan ? 1 : 0]; // voor de testbank: [voetgangers met hun echte uiterlijk, dieren, kapotte objecten, stuntdingen, punten, kermis]
   if (Array.isArray(world.coopHostMeshes)) { world.coopHostMeshes[2] = r.echt; world.coopHostMeshes[3] = r.rest; } // zelfde plekken als vroeger: [voertuigen echt, blokken, voetgangers echt, eenvoudig]
 }

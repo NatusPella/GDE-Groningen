@@ -6,6 +6,13 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Nieuw
+- **Samen spelen: boten, schepen en treinen van de gastheer bij de gast (#428; in Electron met een gescripte gastheer in beeld bekeken, niet met twee echte spelers):** een sloep, een rondvaartboot, een zeilboot, een binnenvaartschip en een groot zeeschip liggen bij de gast op het water zoals bij de gastheer, in de juiste richting en met een rustige deining. Een trein van de gastheer rijdt langs bij de gast met al zijn wagons, ook op een viaduct; treinen die de gastheer niet heeft, tekent de gast niet meer (die stonden stil op een verzonnen plek), en de slagbomen van een overweg gaan dicht als er een trein van de gastheer aankomt.
+- **Samen spelen: deuren, poorten en bruggen (#428):** een deur van een voertuig die bij de gastheer open staat (in- en uitstappen, een bus bij de halte, een bestelbus) staat ook bij de gast open. Een brug die opengaat (met de slagbomen) en een sluis met zijn deuren en zijn waterpeil volgen de gastheer, en de poort van de privégarage staat open of dicht zoals bij de gastheer. Schuifdeuren van winkels en gewone gebouwdeuren hebben geen toestand die de gastheer deelt en doen niets nieuws.
+- **Samen spelen: gevallen en dode mensen, wapens en gevechten, dode dieren (#428):** een dode of omgevallen voetganger ligt ook bij de gast op de grond, iemand met een knuppel of ander wapen in de hand heeft dat wapen ook bij de gast en slaat; wie een klap krijgt, schrikt mee. Dode dieren liggen er ook.
+- **Samen spelen: toeter en sirene als geluid bij de gast (#428):** de toeter van een voertuig van de gastheer klinkt bij de gast (diep bij een boot, laag bij een bus) en de sirene van de politie of een ambulance klinkt als die bij de gastheer aan staat, met de geluiden die er al zijn.
+- **Samen spelen: wie praat en mensen van een opdracht (#428):** iemand die praat zonder voetganger te zijn (een kermisbaas, een opdrachtgever) heeft bij de gast een tekstballon met zijn naam. Mensen die bij een opdracht horen, een baan doen, een wapen dragen of op de grond liggen komen tot 110 m mee, ook als er veel gewone voetgangers dichterbij zijn.
+
 ## [0.43.0] - 2026-10-23
 
 ### Nieuw
