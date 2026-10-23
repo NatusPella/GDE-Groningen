@@ -40,6 +40,11 @@ nieuwe functies, `y` voor alleen bugfixes.
 - Garage (#435): het tabblad Auto's staat vooraan en Alles achteraan; bij een voertuig dat te koop is zet "Naar de winkel" een route uit.
 - Fotomodus (#435): kantelen kan nu met C en V, want E is instappen. Besturing: zoeken werkt ook bij Toetsenbord en Controller en de dempknop (U) staat met uitleg in beeld.
 - Uitleg (#435): de besturing van een nieuw voertuig komt sneller in beeld en de trekker heeft uitleg.
+### Verbeterd
+- Samen spelen (#434): voertuigen, mensen, boten en treinen bewegen bij een gast vloeiend in plaats van "een meter en dan stil". De gast tekent tussen twee berichten van wie het spel opende, loopt door met de laatste snelheid als er even een bericht ontbreekt, en springt alleen als er echt iemand wordt verplaatst. Ook een trage computer van wie het spel opende geeft nu een gelijkmatig beeld.
+- Samen spelen (#434): een gast kan springen (Spatie) en bukken (Ctrl) en iedereen ziet dat. Het bukken maakt je langzamer, net als in je eigen spel.
+- Samen spelen (#434): wie meerijdt zit nu voor iedereen zichtbaar op een eigen stoel: de bestuurder, de bijrijder voorin en de andere spelers achterin; een bestuurder op een fiets trapt zichtbaar mee.
+- Samen spelen (#434): de gast ziet het wapen in de hand van wie het spel opende en ziet de slag of het schot.
 
 ## [0.44.0] - 2026-10-23
 

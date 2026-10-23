@@ -68,7 +68,7 @@ export async function startMockGuest(opts) {
     const now = Date.now(), dt = Math.min(0.1, (now - last) / 1000); last = now;
     const t = (now - g.t0) / 1000;
     const i = g.input ? g.input(t) : { mx: 0, my: 0, run: false, yaw: 0 };
-    session.setInput(i.mx || 0, i.my || 0, i.run ? 1 : 0, i.yaw || 0);
+    session.setInput(i.mx || 0, i.my || 0, i.buttons != null ? i.buttons : i.run ? 1 : 0, i.yaw || 0); // buttons: de knoppenbyte zelf (4 springen, 8 bukken, #434)
     session.tick(dt);
     const w = session.world();
     if (w && (log.samples.length === 0 || t - log.samples[log.samples.length - 1].t >= 1)) { kort(log.samples); log.samples.push({ t: +t.toFixed(1), status: session.status, slot: session.slot, hostT: +w.hostT.toFixed(2), players: w.players.map((p) => ({ slot: p.slot, x: +p.x.toFixed(1), y: +p.y.toFixed(1) })), shared: w.shared, mission: w.mission, entities: w.entities.length }); }

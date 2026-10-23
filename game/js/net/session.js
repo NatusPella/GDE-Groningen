@@ -6,6 +6,7 @@
 // of rtc.js). Geen IP-adressen of namen in berichten, geen telemetrie.
 
 import { T, encodeInput, decodeInput, encodeSnapshot, decodeSnapshot, encodeJson, decodeJson, encodeSimple, readHeader, encodeExtra, decodeExtra } from './codec.js';
+import { volgTijd, schatTempo, mixPositie, mixEntiteiten, lerp, INTERP_DELAY } from './interp.js';
 import { PROTO, Reliable, checkHandshake, seqNewer, seqDiff } from './protocol.js';
 
 export const SNAP_HZ = 20;
@@ -15,8 +16,8 @@ export const LAG_AFTER = 0.6;      // s zonder bericht: status 'lag'
 export const LOST_AFTER = 5;       // s zonder bericht: verbinding verloren
 export const HELLO_TIMEOUT = 30;   // s zonder welkom van de host (die laadt, hangt of is weg): de gast geeft het op met een duidelijke melding
 export const RESUME_WINDOW = 120;  // s waarin de gast kan hervatten
-export const INTERP_DELAY = 0.1;   // s: de client toont de wereld iets in het verleden
-export const MAX_EXTRAPOLATE = 0.25;
+export { INTERP_DELAY, EXTRA_MAX as MAX_EXTRAPOLATE } from './interp.js'; // de client toont de wereld iets in het verleden en voorspelt hoogstens even (net/interp.js, #434)
+
 export const STALE_INPUT = 0.5;    // s zonder invoer: de host neutraliseert (geen vastzittende toets)
 const PING_EVERY = 1;
 
@@ -152,7 +153,9 @@ export class HostSession extends Base {
     while (this.snapAcc >= 1 / SNAP_HZ) {
       this.snapAcc -= 1 / SNAP_HZ;
       this.snapSeq = (this.snapSeq + 1) & 0xffff;
-      this._emit(encodeSnapshot(this.snapSeq, this.tickN, this.guest.lastInputSeq ?? 0, this.cfg.sim.snapshot()));
+      // de kop draagt de tijd van dit moment (ms van de klok van de host) als de gast dat kent: dan weet hij precies wanneer de toestand gold, ook als de host
+      // een beeld te laat is (een gast die het niet kent rekent met seq / SNAP_HZ en hoort bij een oudere host de teller)
+      this._emit(encodeSnapshot(this.snapSeq, this.caps.includes('snaptijd') ? Math.round(this.now * 1000) : this.tickN, this.guest.lastInputSeq ?? 0, this.cfg.sim.snapshot()));
     }
     // de extra wereld van de host (coopextra.js), per gast op maat: alleen wat dicht bij de spelers is
     this.extraAcc += dt;
@@ -176,20 +179,21 @@ const neutral = () => ({ mx: 0, my: 0, buttons: 0, yaw: 0 });
 
 // ---------------------------------------------------------------- client
 export class SnapBuffer {
-  constructor() { this.snaps = []; this.renderT = null; }
+  constructor() { this.snaps = []; this.renderT = null; this.wall = 0; this.rate = 1; this.marks = []; }
   push(s) {
     const t = s.hostT;
     if (this.snaps.length && t <= this.snaps[this.snaps.length - 1].hostT) return false; // oud of dubbel
     this.snaps.push(s); if (this.snaps.length > 40) this.snaps.shift();
+    this.rate = schatTempo(this.marks, this.wall, t, this.rate); // een host met weinig beelden per seconde loopt trager dan onze klok: de weergavetijd loopt in zijn tempo mee (#434)
     return true;
   }
-  clear() { this.snaps.length = 0; this.renderT = null; }
+  clear() { this.snaps.length = 0; this.renderT = null; this.marks.length = 0; this.rate = 1; }
   get latestT() { return this.snaps.length ? this.snaps[this.snaps.length - 1].hostT : null; }
-  // schuif de weergavetijd op met dt; blijf tussen laatste-0.25 en laatste-0.05
+  // schuif de weergavetijd op met dt, zacht richting laatste - vertraging; blijft er een snapshot weg, dan voorspelt sample() even door (#434)
   advance(dt) {
     const L = this.latestT; if (L == null) return null;
-    if (this.renderT == null) this.renderT = L - INTERP_DELAY;
-    this.renderT = Math.min(L - 0.05, Math.max(L - 0.25, this.renderT + dt));
+    this.wall += dt;
+    this.renderT = volgTijd(this.renderT, L, dt, INTERP_DELAY, this.rate);
     return this.renderT;
   }
   sample() {
@@ -200,7 +204,7 @@ export class SnapBuffer {
     for (let i = s.length - 1; i > 0; i--) {
       if (s[i - 1].hostT <= t) {
         const a = s[i - 1], b = s[i], k = (t - a.hostT) / (b.hostT - a.hostT);
-        return mix(a, b, Math.min(1, Math.max(0, k)));
+        return mix(a, b, Math.max(0, k)); // k boven 1: voorspellen met de snelheid tussen de laatste twee (net/interp.js)
       }
     }
     return s[s.length - 1];
@@ -208,19 +212,14 @@ export class SnapBuffer {
   // aantal seconden dat we al zonder nieuwe toestand zitten (voor de lag-balk)
   starved(hostNow) { return this.latestT == null ? 0 : Math.max(0, hostNow - this.latestT); }
 }
-const lerp = (a, b, k) => a + (b - a) * k;
-function lerpAngle(a, b, k) { let d = ((b - a + Math.PI) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI) - Math.PI; return a + d * k; }
 function mix(a, b, k) {
+  const pa = new Map(a.players.map((p) => [p.slot, p]));
   const players = b.players.map((pb) => {
-    const pa = a.players.find((p) => p.slot === pb.slot);
-    if (!pa || pb.vehicle !== pa.vehicle || pb.alive !== pa.alive) return pb; // geen interpolatie over een sprong (instappen, respawn)
-    return { ...pb, x: lerp(pa.x, pb.x, k), y: lerp(pa.y, pb.y, k), z: lerp(pa.z, pb.z, k), angle: lerpAngle(pa.angle, pb.angle, k) };
+    const p = pa.get(pb.slot);
+    if (!p || pb.vehicle !== p.vehicle || pb.alive !== p.alive || pb.inVeh !== p.inVeh) return pb; // geen interpolatie over een sprong (instappen, respawn)
+    return mixPositie(p, pb, k, 'y', ['z']);
   });
-  const entities = b.entities.map((eb) => {
-    const ea = a.entities.find((e) => e.id === eb.id);
-    return ea ? { ...eb, x: lerp(ea.x, eb.x, k), z: lerp(ea.z, eb.z, k), angle: lerpAngle(ea.angle, eb.angle, k) } : eb;
-  });
-  return { ...b, players, entities, hostT: lerp(a.hostT, b.hostT, k) };
+  return { ...b, players, entities: mixEntiteiten(a.entities, b.entities, k), hostT: lerp(a.hostT, b.hostT, Math.min(1, k)) };
 }
 
 export class ClientSession extends Base {
@@ -248,7 +247,7 @@ export class ClientSession extends Base {
       if (this.lastSnapSeq != null && !seqNewer(s.seq, this.lastSnapSeq)) return;
       this._unwrapped = this.lastSnapSeq == null ? s.seq : this._unwrapped + seqDiff(s.seq, this.lastSnapSeq);
       this.lastSnapSeq = s.seq;
-      s.hostT = this._unwrapped / SNAP_HZ; // de host stuurt precies SNAP_HZ snapshots per seconde
+      s.hostT = this.caps.includes('snaptijd') ? s.tick / 1000 : this._unwrapped / SNAP_HZ; // de tijd uit de kop; zonder: de host stuurt SNAP_HZ snapshots per seconde
       this.buf.push(s);
       if (this.status === 'lag') this._setStatus('ok');
     } else if (h.type === T.EXTRA && this.joined) {

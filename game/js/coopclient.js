@@ -8,6 +8,7 @@
 // Niet in een echt spel gezien: extra figuren hebben nog geen model in de wereld (zie #95).
 
 import { charInfo, slotChar } from './coopplayers.js';
+import { knoppen, wapenNaam, leesAanval } from './coopspeler.js';
 
 export const CHAR_OF_SLOT = ['tammo', 'anita'];
 
@@ -52,6 +53,7 @@ export function setFixedCharacters(world, me, char = null) {
 export function applyHostState(world, me, sample, roster = null, dt = 0) {
   if (!sample) return 0;
   let n = 0;
+  const zitters = []; world.coopZitters = zitters; // wie in een voertuig zit, voor coopzitten3d.js (#434)
   for (const p of sample.players) {
     if (!Number.isFinite(p.x) || !Number.isFinite(p.y)) continue;
     let b = bodyFor(world, me, p.slot);
@@ -60,7 +62,15 @@ export function applyHostState(world, me, sample, roster = null, dt = 0) {
     const vx = dt > 0 && Number.isFinite(b.x) ? (p.x - b.x) / dt : 0, vy = dt > 0 && Number.isFinite(b.y) ? (p.y - b.y) / dt : 0;
     const ok = Math.hypot(vx, vy) < 40; // een sprong (teleport) is geen rennen
     b.x = p.x; b.y = p.y; b.angle = p.angle;
-    if (b !== world.player) b.coopVoertuig = !!p.inVeh; // wie in een voertuig zit, tekenen we niet (het voertuig is een blok, #372)
+    if (b !== world.player) b.coopVoertuig = !!p.inVeh; // wie in een voertuig zit, tekenen we niet los: coopzitten3d.js zet hem op zijn stoel in het voertuig (#372, #434)
+    b.z = !p.inVeh && Number.isFinite(p.z) ? p.z : 0; b.crouching = !!p.crouch && !p.inVeh; // springen en bukken (#434)
+    if (!p.inVeh && p.vehicle == null) { // wapen en aanval van de gastheer, voor de aanvalshoudingen van het model
+      b.coopWapen = wapenNaam(p.weapon | 0);
+      const a = leesAanval(p.attack);
+      if (a && (!b.coopAanvalActief || b.coopAanvalTeken !== a.teken)) b.coopFx = { type: a.type, swing: a.swing, start: world.time || 0 };
+      b.coopAanvalActief = !!a; b.coopAanvalTeken = a ? a.teken : false;
+    }
+    if (p.inVeh && p.vehicle != null) zitters.push({ slot: p.slot, char: b.char || b.character || 'tammo', voertuig: p.vehicle, stoel: p.seat | 0, bestuurder: !!p.driver });
     if (b.vx !== undefined) { b.vx = ok ? vx : 0; b.vy = ok ? vy : 0; }
     n++;
   }
@@ -72,7 +82,7 @@ export function applyHostState(world, me, sample, roster = null, dt = 0) {
 // Invoer van de gast: schermrichting (axis x rechts, y omlaag) en de eigen camerahoek,
 // zodat de host de richting in wereldruimte kan bepalen (coopglue.js).
 // run: rennen (bit 0); handrem: Spatie (bit 1, voor wie het stuur heeft, #291)
-export function makeClientInput(axis, run, camYaw, handrem = false) {
+export function makeClientInput(axis, run, camYaw, handrem = false, springen = false, bukken = false) {
   const [x, y] = axis || [0, 0];
-  return { mx: x, my: y, buttons: (run ? 1 : 0) | (handrem ? 2 : 0), yaw: Number.isFinite(camYaw) ? camYaw : 0 };
+  return { mx: x, my: y, buttons: knoppen({ rennen: run, handrem, springen: springen && !handrem, bukken }), yaw: Number.isFinite(camYaw) ? camYaw : 0 };
 }
