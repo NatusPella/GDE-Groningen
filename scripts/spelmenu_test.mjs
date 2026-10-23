@@ -91,8 +91,9 @@ ok(/aria-current', String\(b\.dataset\.goto === \(CHILD\[name\] \|\| name\)\)/.t
 ok(/if \(CHILD\[tab\] && origin === 'home'\)/.test(pm), 'Esc en Terug gaan van een onderdeel naar zijn ouder');
 ok(/ids = sectionIds\(\)\.filter\(\(id\) => !CHILD\[id\]\)/.test(pm), 'Q en E tussen onderdelen slaan de kinderen over');
 const lb = read('game/js/loopbaanui.js');
-ok(/data-goto="\$\{id\}"/.test(lb) && /'visboek', 'Vissen'/.test(lb) && /'boerderij', 'Boerderij'/.test(lb) && /Bezigheden/.test(lb), 'Loopbaan heeft de sectie Bezigheden met grote tegels voor Vissen en Boerderij');
-ok((lb.match(/bezighedenHtml\(\) \+/g) || []).length === 2, 'de tegels staan in beide weergaven van Loopbaan');
+ok(lb.includes("VAK_LINK = { hengelen: ['visboek'") && lb.includes("landbouw: ['boerderij'") && !lb.includes('Bezigheden'), 'Vissen en Boerderij zijn gewone loopbanen met een knop naar visboek en boerderij, geen aparte tegels (#435)');
+ok(lb.includes('volgendeKlusHtml(id, v, banen)') && lb.includes('data-todo-goal="job:') && !lb.includes('data-lbview'), 'elke loopbaan heeft een knop naar de volgende klus en Veroverd is geen weergave van Loopbaan meer');
+ok(pm.includes("['veroverd', 'Veroverd']") && pm.includes('renderVeroverdPanel(panel'), 'Veroverd is een tabblad onder Verhaal (#435)');
 // Besturing: alles bij elkaar in Instellingen
 const bes = settingsSrc.slice(settingsSrc.indexOf("tab('besturing'"), settingsSrc.indexOf("tab('display'"));
 for (const k of ['mouseSensitivity', 'invertY', 'padLayout', 'padLookSensitivity', 'rumble', 'touchControls']) ok(keysOf(bes).includes(k), 'Besturing heeft ' + k);
@@ -102,7 +103,7 @@ ok(/\['overzicht', 'Toetsenoverzicht'\]/.test(pm) && !/'Alle toetsen'\]/.test(pm
 ok(/data-goto-sub="settings:besturing"/.test(pm.slice(pm.indexOf('function subtabsHtml'), pm.indexOf('function subtabsHtml') + 1200)), 'toetsen en knoppen hebben een knop terug naar Instellingen');
 // Te doen: losse activiteiten; Verhaal: de opdrachten
 ok(/todo: \[\['alles', 'Alles'\], \['dichtbij', 'Dichtbij'\]\]/.test(pm), 'Te doen heeft Alles en Dichtbij (losse activiteiten)');
-ok(pm.includes("verhaal: [['opdrachten', 'Opdrachten'], ['personages', 'Personages'], ['aanwijzingen', 'Aanwijzingen']]"),'Verhaal heeft Opdrachten, Personages, en Aanwijzingen (geen aparte Berichten)');
+ok(pm.includes("verhaal: [['opdrachten', 'Opdrachten'], ['personages', 'Personages'], ['aanwijzingen', 'Aanwijzingen'], ['veroverd', 'Veroverd']]"),'Verhaal heeft Opdrachten, Personages, en Aanwijzingen (geen aparte Berichten)');
 ok(/data-of="verhaal" data-sub="opdrachten" data-keep/.test(pm) && /renderTodoStory\(/.test(pm) && /export function renderTodoStory/.test(read('game/js/todoui.js')), 'de verhaalopdrachten staan onder Verhaal, met dezelfde lijst en details');
 ok(/data-todo-view="verhaal"/.test(read('game/js/todoui.js')) && /view === 'verhaal'\) \{ pref\.sub\.verhaal = 'opdrachten'/.test(pm), 'Alle opdrachten in Overzicht leidt naar Verhaal > Opdrachten');
 // elke actie bereikbaar, geen dubbele data-actions of panelen
