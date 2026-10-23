@@ -13,7 +13,10 @@ export const BAY_D = 5.0;
 const AISLE = 6.0;
 const PARALLEL_L = 6.0;
 const MAX_BAYS = 300;
-const LOT_KINDS = ['parking', 'streetpark'];
+// garagepark: the multi-storey and underground garages (#418); the mapped ones without an
+// outline (Forum, Ossenmarkt) get a few bays at their entrance instead
+const LOT_KINDS = ['parking', 'streetpark', 'garagepark'];
+const ENTRANCE_BAYS = 4;
 const CAR = { len: 4.4, wid: 1.8 };
 
 // Solid ground for a car's corner: no building, water or through road.
@@ -61,12 +64,36 @@ function frameOf(poly) {
 
 const at = (f, u, v) => [u * f.ux - v * f.uy, u * f.uy + v * f.ux];
 
+// A garage mapped as a point: up to ENTRANCE_BAYS parallel bays beside the nearest street,
+// on ground that is free (no building, water or through road), fixed order so the same
+// garage always gives the same bays.
+function entranceBays(map, f, out) {
+  const r = map.nearestRoadPoint ? map.nearestRoadPoint(f.x, f.y, 40, true) : null;
+  let ang = 0;
+  if (r && r.road && r.road.pts && r.road.pts.length > 1) {
+    const P = r.road.pts;
+    let best = Infinity;
+    for (let i = 0; i < P.length - 1; i++) {
+      const d = closestPointOnSegment(f.x, f.y, P[i][0], P[i][1], P[i + 1][0], P[i + 1][1]).dist2;
+      if (d < best) { best = d; ang = Math.atan2(P[i + 1][1] - P[i][1], P[i + 1][0] - P[i][0]); }
+    }
+  }
+  const ux = Math.cos(ang), uy = Math.sin(ang);
+  for (const [du, dv] of [[0, 0], [PARALLEL_L, 0], [-PARALLEL_L, 0], [0, 2.8], [PARALLEL_L, 2.8], [-PARALLEL_L, 2.8], [0, -2.8], [PARALLEL_L, -2.8], [-PARALLEL_L, -2.8]]) {
+    if (out.length >= ENTRANCE_BAYS) break;
+    const x = f.x + du * ux - dv * uy, y = f.y + du * uy + dv * ux;
+    if (boxFree(map, null, x, y, ang, CAR.len, CAR.wid)) out.push({ x, y, angle: ang, len: PARALLEL_L, wid: 2.3 });
+  }
+  return out;
+}
+
 // Bays of lot f: [{x, y, angle, len, wid}] (angle: the way a car stands in it).
 export function lotBays(map, f) {
   if (f._bays) return f._bays;
   const out = [];
   f._bays = out;
   const poly = f.poly;
+  if (f.kind === 'garagepark' && (!poly || poly.length < 4)) return entranceBays(map, f, out);
   if (!poly || poly.length < 4) return out;
   const F = frameOf(poly);
   const depth = F.v1 - F.v0;
@@ -129,10 +156,10 @@ export function laneBays(map, lane) {
 export function lotsNear(x, y, r) {
   if (!FAC.ready) return [];
   return facilitiesIn(LOT_KINDS, x - r - 150, y - r - 150, x + r + 150, y + r + 150).filter((f) => {
-    if (!f.poly) return false;
+    if (!f.poly && f.kind !== 'garagepark') return false;
     if (!f._box) {
       let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
-      for (const [px, py] of f.poly) { x0 = Math.min(x0, px); y0 = Math.min(y0, py); x1 = Math.max(x1, px); y1 = Math.max(y1, py); }
+      for (const [px, py] of f.poly || [[f.x - 12, f.y - 12], [f.x + 12, f.y + 12]]) { x0 = Math.min(x0, px); y0 = Math.min(y0, py); x1 = Math.max(x1, px); y1 = Math.max(y1, py); }
       f._box = [x0, y0, x1, y1];
     }
     const [x0, y0, x1, y1] = f._box;

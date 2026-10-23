@@ -6,6 +6,9 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Nieuw
+- **Parkeergarages (#418):** in 36 van de 48 gekarteerde parkeergarages (en bij de garages die alleen als punt bekend zijn, zoals in de binnenstad, op de plek van de ingang) staan nu geparkeerde auto's om te stelen, en je eigen auto kan er ook parkeren. Alleen op vrije grond, nooit in een gebouw of in het water. Niet in beeld bekeken; de verdiepingen van de garage zelf zijn niet nagebouwd.
+
 ## [0.41.1] - 2026-10-23
 
 ### Nieuw

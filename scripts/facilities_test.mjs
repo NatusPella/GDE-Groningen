@@ -174,6 +174,17 @@ for (const s of sites) console.log(`  ${s.kind.padEnd(9)} ${s.name}`);
     bays += B.length;
     for (const b of B) if ((F.edgeDistance(b.x, b.y) > 0 && buildingAt(b.x, b.y, 0) >= 0) || isInWater(map, b.x, b.y)) bad++;
   }
+  // the parking garages (#418): bays on the outline, or at the entrance for a garage mapped as a point
+  let garages = 0, garageBays = 0, garageBad = 0;
+  for (const f of Fac.facilitiesOf('garagepark')) {
+    const B = L.lotBays(map, f);
+    if (B.length) garages++;
+    garageBays += B.length;
+    for (const b of B) if ((F.edgeDistance(b.x, b.y) > 0 && buildingAt(b.x, b.y, 0) >= 0) || isInWater(map, b.x, b.y)) garageBad++;
+  }
+  console.log(`parking garages: ${garageBays} bays at ${garages} of ${Fac.facilitiesOf('garagepark').length}`);
+  if (garages < 20) fail('too few parking garages with bays');
+  if (garageBad) fail(`${garageBad} garage bays in a building or the water`);
   for (const l of Fac.FAC.lanes) laneBays += L.laneBays(map, l).length;
   console.log(`parking: ${bays} bays on ${lots} lots, ${laneBays} along parking lanes (${Math.round(performance.now() - t1)} ms)`);
   if (lots < 100 || bays < 2000) fail('too few parking bays');
