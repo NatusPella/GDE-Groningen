@@ -149,5 +149,49 @@ if (want('borden')) {
   done.push('borden');
 }
 
+// ---- #404: de reclametaxi met dakbord, tekstband en tekstballon ----
+if (want('reklametaxi')) {
+  clearInterval(skipper);
+  w.clock = 14;
+  const TF = await imp('trafficfleet');
+  const gh = (x, y) => (map.groundHeightAt ? map.groundHeightAt(x, y, 0) || 0 : 0);
+  const home = map.findOpenSpawn(100, 77, 60) || { x: 100, y: 77 };
+  const keepT = setInterval(() => { p.x = home.x; p.y = home.y; p.vx = p.vy = 0; w.clock = 14; }, 50);
+  teleport(home.x, home.y);
+  await sleep(1500); for (let i = 0; i < 40 && document.querySelector('.ls.on:not(.out)'); i++) await sleep(500); await sleep(3000);
+  const rp = map.nearestRoadPoint(home.x + 60, home.y, 120, true);
+  info.push('weg voor de taxi ' + JSON.stringify(rp && { x: Math.round(rp.x), y: Math.round(rp.y), d: Math.round(Math.hypot(rp.x - home.x, rp.y - home.y)) }));
+  const taxi = VH.spawnVehicleOnRoad(map, rp.road, false, Math.random, false, false, rp, false, { ...TF.carModel('taxi', Math.random), color: '#e8e6e0' });
+  TF.applyFleetFlags(taxi, 'taxi');
+  w.vehicles.push(taxi);
+  info.push('taxi ' + Math.round(taxi.x) + ',' + Math.round(taxi.y) + ' afstand ' + Math.round(Math.hypot(taxi.x - home.x, taxi.y - home.y)) + ' snelheid ' + (taxi.speed || 0).toFixed(1));
+  await sleep(1500);
+  window.__reklametaxi.nu();
+  for (let i = 0; i < 30 && !window.__reklametaxi.staat().taxi; i++) { taxi.speed = Math.max(taxi.speed || 0, 6); await sleep(500); }
+  info.push('staat na start ' + JSON.stringify(window.__reklametaxi.staat()));
+  // de taxi blijft in beeld staan voor de opnames
+  const keepV = setInterval(() => { taxi.speed = 0.4; }, 50);
+  await sleep(3500);
+  info.push('staat 3,5 s later ' + JSON.stringify(window.__reklametaxi.staat()));
+  const cam = async (naam, dx, dy, dz, tz, wait = 1800) => {
+    const g = gh(taxi.x, taxi.y);
+    const pose = { position: { x: taxi.x + dx, y: taxi.y + dy, z: g + dz }, lookAt: { x: taxi.x, y: taxi.y, z: g + tz }, cut: true };
+    if (cine.isCinematicActive()) cine.skipCinematic();
+    cine.playCinematic({ id: 'vi-reklame', duration: 30, priority: 9, shot: () => pose });
+    await sleep(wait);
+    console.log('[capture] reklametaxi-' + naam);
+    await sleep(500);
+    cine.skipCinematic();
+    done.push('reklametaxi-' + naam);
+  };
+  await cam('schuin', 6, 5, 2.6, 1.7);
+  await cam('bord', 0, 4.2, 2.2, 1.9);
+  await cam('ver', 18, 10, 3.5, 1.5);
+  info.push('staat aan het eind ' + JSON.stringify(window.__reklametaxi.staat()));
+  clearInterval(keepV);
+  clearInterval(keepT);
+  done.push('reklametaxi');
+}
+
 clearInterval(skipper);
 return done.concat(info);
