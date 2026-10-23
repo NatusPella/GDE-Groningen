@@ -8,6 +8,8 @@
 import { getGarageCatalog, whereText } from './ownedvehicles.js';
 import { createSharedPreview, renderSnapshot, cancelSnapshots } from './vehiclepreview.js';
 import { reducedMotion } from './motion.js';
+import { getShopsForRender, SHOP_TYPES } from './shops.js';
+import { setUserWaypoint } from './routing.js';
 import {
   GARAGE_3Q_ANGLE, GARAGE_PIC_W, GARAGE_PIC_H, garagePicZoom, TURN_SPEED, TURN_FPS,
   garagePreviewSpec as previewSpec, garageCardLook, turntableTarget,
@@ -42,7 +44,7 @@ const PIN = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-6.5-6-
 
 const GROUP_LABEL = { owned: 'van jou', sale: 'te koop', locked: 'op slot' };
 const GROUP_HEAD = { owned: 'Van jou', sale: 'Te koop', locked: 'Op slot' };
-const view = { cat: 'all', filter: 'all', sort: 'naam' };
+const view = { cat: 'autos', filter: 'all', sort: 'naam' };
 
 let viewer = null;
 let selected = null;
@@ -77,7 +79,9 @@ function viewerHtml(e, msg) {
   rows.push(['Topsnelheid', `${e.topSpeed} km/u`], ['Trekkracht', `${e.accelScore} / 10`]);
   rows.push(['Lak', `<span class="gar-dot" style="background:${esc(e.color)}"></span>${esc(e.paint)}`]);
   if (e.owned && e.kind !== 'boat' && e.kind !== 'heli') rows.push(['Upgrades', e.upgrades.length ? esc(e.upgrades.join(', ')) : `Nog niks: ${e.kind === 'bike' || e.kind === 'scooter' ? 'Spaak & Band' : 'Knal & Kolder Tuning'} helpt je graag`]);
-  const acts = !e.owned ? '' : '<div class="m-acts td-acts">' +
+  // te koop: een knop die een waypoint naar de dichtstbijzijnde winkel zet (#435)
+  const koop = !e.owned && !e.locked && e.spec && e.spec.shop && !e.spec.unlock;
+  const acts = koop ? `<div class="m-acts td-acts"><button type="button" class="m-bp" data-garage-shop="${esc(e.spec.shop)}">${PIN}Naar de winkel</button></div>` : !e.owned ? '' : '<div class="m-acts td-acts">' +
     (e.status !== 'driving' ? `<button type="button" class="m-bp gar-go" data-garage-deliver="${esc(e.id)}">Laten afleveren${e.fee ? ` · ${esc(e.feeLabel)}` : ''}</button>` : '') +
     (e.status === 'near' || e.status === 'far' ? `<button type="button" class="m-bg" data-garage-find="${esc(e.id)}">${PIN}Waar staat hij?</button>` : '') + '</div>';
   return `<div class="gar-stage"><canvas aria-label="3D-model van ${esc(e.model)}"></canvas><span class="gar-hint">Sleep om te draaien</span></div>` +
@@ -85,6 +89,19 @@ function viewerHtml(e, msg) {
     (e.meme ? `<p class="mut">${esc(e.meme)}</p>` : '') +
     `<div class="m-facts td-stack">${rows.map(([k, v]) => `<div class="m-fact"><span>${k}</span><span class="${String(v).length > 13 ? 'td-fv' : 'm-num'}">${v}</span></div>`).join('')}</div>` +
     `<p class="gar-msg g" role="status">${esc(msg || '')}</p><span class="m-grow"></span>` + acts;
+}
+
+// Waypoint naar de dichtstbijzijnde winkel van dit soort (autodealer, fietsenwinkel, ...); geeft de melding terug.
+export function garageNaarWinkel(world, type) {
+  let best = null, bd = Infinity;
+  for (const s of getShopsForRender()) {
+    if (s.type !== type) continue;
+    const d = Math.hypot(s.x - world.player.x, s.y - world.player.y);
+    if (d < bd) { bd = d; best = s; }
+  }
+  if (!best) return { ok: false, text: 'Deze winkel staat nog niet op de kaart.' };
+  setUserWaypoint(best.x, best.y, best.name || (SHOP_TYPES[type] || {}).chain || 'Winkel');
+  return { ok: true, text: `Route naar ${best.name || (SHOP_TYPES[type] || {}).chain || 'de winkel'} staat op de kaart.`, x: best.x, y: best.y };
 }
 
 // Shows vehicle `id` in the viewer (pausemenu.js: a click or Enter on a
