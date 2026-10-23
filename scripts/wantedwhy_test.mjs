@@ -1,6 +1,6 @@
 // De aanleiding van een ster op de kaart (#391): elke weg naar een ster zonder eigen kaart noemt zijn oorzaak, in hooguit 14 woorden.
 //   node scripts/wantedwhy_test.mjs
-import { WANTED_WHY, WANTED_OWN_CARD, wantedWhyText, noteWantedWhy } from '../game/js/wantedwhy.js';
+import { WANTED_WHY, WANTED_OWN_CARD, wantedWhyText, noteWantedWhy, WITNESS_HINT, noteWitnessHint, witnessCallStands } from '../game/js/wantedwhy.js';
 import { reportCrime } from '../game/js/crime.js';
 import { wordCount, WORD_BUDGET } from '../game/js/hudtext.js';
 import { reportImpact } from '../game/js/vehicleimpact.js';
@@ -50,6 +50,21 @@ ok(noteWantedWhy({}, 'copAanval') === null, 'zonder addMessage geen fout');
   const w2 = { time: 5, particles: [] };
   reportImpact(w2, 1, 2, 10, false, cop);
   ok(!w2.lastImpact, 'zonder speler geen lastImpact');
+}
+// een getuige belt (#391): eerst een hint, de ster alleen als de dief nog in die auto zit
+{
+  const { w, msgs } = mk();
+  ok(wordCount(WITNESS_HINT) <= WORD_BUDGET.cardBody, 'budget: hint van de getuige');
+  ok(noteWitnessHint(w) === WITNESS_HINT && msgs[0][1] === 'politie', 'de hint staat op de politiekaart');
+  ok(noteWitnessHint({}) === null, 'hint zonder addMessage geeft geen fout');
+  const car = { id: 1 }, other = { id: 2 };
+  const call = { kind: 'theft', vehicle: car };
+  ok(witnessCallStands(call, { player: { inVehicle: car } }), 'dief nog in de auto: het telefoontje telt');
+  ok(!witnessCallStands(call, { player: { inVehicle: null } }), 'uitgestapt: geen achtervolging om die auto');
+  ok(!witnessCallStands(call, { player: { inVehicle: other } }), 'in een andere auto: de melding vervalt');
+  ok(witnessCallStands({ kind: 'shot' }, { player: { inVehicle: null } }), 'een schietpartij te voet blijft staan');
+  ok(!witnessCallStands(null, w), 'zonder telefoontje niets');
+  for (const k of ['getuigeDiefstal', 'getuige', 'bestuurder']) ok(wantedWhyText(k) && /politie/.test(wantedWhyText(k)), `oorzaak: ${k}`);
 }
 console.log(`${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);
