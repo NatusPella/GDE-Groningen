@@ -34,6 +34,11 @@ const CITY_CENTRE = { x: 100.63, y: 76.18 };
 const CITY_CENTRE_R = 650;
 const PART_CACHE_MAX = 800;
 const MAX_WINDOWS = 420;
+// een groot gebouw (concertzaal, complex) heeft meer gevel dan 420 ramen dekken: het budget groeit mee, tot een plafond (#421)
+const MAX_WINDOWS_BIG = 1300;
+// publieksgebouw (geen woning, geen loods) met een groot grondvlak: lange gevels krijgen brede glaspuien
+const GLASS_FACADE_AREA = 2500;
+const GLASS_FACADE_EDGE = 20;
 
 
 function shade(hex, f) {
@@ -1100,18 +1105,25 @@ function buildDetailGeometry(b, box, archetype, depth, fine, fine2, wallHex, roo
   }
 
   let windows = 0;
+  // het budget volgt de gevel: anders blijft de lange straatmuur van een groot gebouw kaal als de eerste muren het op hebben (#421)
+  let wanted = 0;
+  for (const e of open) wanted += Math.max(1, Math.floor((e.len - 0.4) / style.bay)) * floorCount;
+  const maxWindows = Math.min(MAX_WINDOWS_BIG, Math.max(MAX_WINDOWS, Math.ceil(wanted * 1.05)));
+  const glassHall = !industrial && !houseboat && (archetype === 'generic' || archetype === 'retail') && ringArea(b.pts || []) > GLASS_FACADE_AREA;
   const doorWide = archetype === 'apartments' || archetype === 'retail';
   for (const e of open) {
-    const n = Math.max(1, Math.floor((e.len - 0.4) / style.bay));
+    const glassWall = glassHall && e.len >= GLASS_FACADE_EDGE;
+    const bayW = glassWall ? 3.6 : style.bay;
+    const n = Math.max(1, Math.floor((e.len - 0.4) / bayW));
     const bw = e.len / n;
-    let w = Math.min(style.w, bw - 0.55);
+    let w = Math.min(glassWall ? 1.7 : style.w, bw - 0.55);
     if (w < 0.45) continue;
     const doorHere = e === mainEdge && !shopEdge && !houseboat;
     const doorBay = doorWide ? Math.floor(n / 2) : (r(13) < 0.5 ? 0 : n - 1);
     for (let f = 0; f < floorCount; f++) {
       if (f === 0 && e === shopEdge) continue;
       if (industrial && f < floorCount - 1 && floorCount > 1) continue;
-      const winH = Math.min(1.9, Math.max(0.8, floorH * style.hRatio));
+      const winH = Math.min(glassWall ? 2.3 : 1.9, Math.max(0.8, floorH * (glassWall ? 0.66 : style.hRatio)));
       const y0 = f * floorH + Math.max(0.55, (floorH - winH) * 0.55);
       const y1 = Math.min(y0 + winH, (f + 1) * floorH - 0.3);
       if (y1 - y0 < 0.6) continue;
@@ -1122,7 +1134,7 @@ function buildDetailGeometry(b, box, archetype, depth, fine, fine2, wallHex, roo
           if (dw > 0.7) addDoor(B, e, c, dw, S, { h: Math.min(2.25, floorH - 0.65), canopy: archetype === 'apartments' });
           continue;
         }
-        if (windows >= MAX_WINDOWS) continue;
+        if (windows >= maxWindows) continue;
         if (industrial) {
           wallQuad(B, e, c - w, c + w, y0, y0 + 0.7, 0.03, GLASS_TONES[2], G_GLASS, edgePaneUV(e, 0.3 + hash2(seed + c, y0) * 0.7, PANE_OFFICE, 2 * w, 0.7));
           wallBox(B, e, c - w - 0.05, c + w + 0.05, y0 - 0.06, y0, 0, 0.06, S.frame, G_DETAIL, FACE_FRONT | FACE_TOP);
