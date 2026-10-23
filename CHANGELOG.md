@@ -6,22 +6,20 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
-### Nieuw
+## [0.45.0] - 2026-10-23
+
+### Opgelost
 - Boerderij (#437): de bietenoogst bij Hoogkerk heet nu 'Loonwerk: bietenoogst' en staat onder Boerderij, met een verwijzing naar je eigen akker. Bij het ploegen, zaaien, bemesten en oogsten staat uitgelegd wat je moet doen: de machine werkt vanzelf zodra je in de rij rijdt (geen knop nodig), welke snelheid in km/u de rij wil en dat harder rijden slordig werk is. Stoppen kan altijd via Esc, en na je dienst staat je akker met de volgende klus als doel op de kaart.
 - Hengelen (#437): de hengel zwiept uit, de lijn hangt door, het dobbertje dobbert, trilt en zakt bij een beet, er komt een plons en een gevangen vis springt even op voordat hij terug het water in gaat. Werkt ook vanuit een boot.
 - Pitch en put (#436): de bal is veel kleiner dan het hol, en de camera staat altijd over de schouder van de speler. Er is een beurtmodel voor meer spelers klaar (wie het verst van het hol ligt slaat); het koppelen aan meerdere spelers volgt.
 - Wapens (#437): een gekocht wapen blijft van jou als de patronen op zijn, en een net gekocht wapen neem je meteen in de hand. Een leeg wapen klikt alleen.
 - Pootje baden (#437): bij het strand staat nu wat het oplevert (+30 gezondheid en een poosje fit).
-
-### Opgelost
 - Discgolf (#436): de schijf springt niet meer van de boom of de mand naar de grond, en de voorbeeldlijn bij de mand knippert niet meer.
-### Opgelost
 - Samen spelen (#434): zodra er een gast in het spel is, loopt de wereld van wie het spel opende door achter het pauzemenu, de kaart en de winkel (alleen je eigen invoer staat stil). Solo blijft pauzeren zoals altijd.
 - Samen spelen (#434): een gast ziet de garages en safehouses waar zijn lichaam tegenaan botst, dus geen onzichtbaar huisje meer midden op de weg.
 - Samen spelen (#434): een gast ziet waar de volgende opdracht van wie het spel opende begint (gele zuil, kaart en minimap) en leest dat hij meedoet zodra die speler bij de marker staat.
 - Samen spelen (#434): boten bewegen bij een gast glad zonder sprongen of slingerende koers, grote schepen verdwijnen niet meer zodra hun midden te ver weg is, en een speler die bij de groep wordt gezet terwijl de ander op het water zit komt in de boot in plaats van in zee.
 - Samen spelen (#434): treinen zijn voor een gast al van ver te zien, het vertrekbord van het station verschijnt ook bij een gast, en een trein rijdt niet meer door de derde en vierde speler heen.
-### Opgelost
 - **Playtest 23-10 (#436), treinen:** G (dienst rijden) werkte niet als je bij de kop van de lijn instapte: er was dan geen halte meer voor je. De cabine draait nu om als de trein stilstaat en de dienst gaat de andere kant op. Het kaartjesmenu heet nu "Snel reizen (kaartje)" en "Als passagier meerijden" en zegt erbij dat je zelf rijdt door een stilstaande trein te nemen (E, daarna G). De balk op het machinistenbord heeft een uitleg (remweg tegenover de afstand tot de halte). Een trein raakt ook wie op een perron of dijk op dezelfde hoogte staat. Niet in beeld bekeken.
 - **Bussen (#436):** elke rijdende bus draagt een lijn en bestemming op het bord, ook een bus buiten zijn dienst (de dichtstbijzijnde lijn). Niet in beeld bekeken.
 - **Grens (#436):** bij een terugzetting aan de rand van de wereld sta je (te voet, in de auto of op de fiets) op de weg, niet in een weiland. De wegwijzers met stadsnamen (Centrum, Hoofdstation, Noorderplantsoen) staan niet meer ver van Stad, dus ook niet in Friesland.
@@ -40,7 +38,6 @@ nieuwe functies, `y` voor alleen bugfixes.
 - Garage (#435): het tabblad Auto's staat vooraan en Alles achteraan; bij een voertuig dat te koop is zet "Naar de winkel" een route uit.
 - Fotomodus (#435): kantelen kan nu met C en V, want E is instappen. Besturing: zoeken werkt ook bij Toetsenbord en Controller en de dempknop (U) staat met uitleg in beeld.
 - Uitleg (#435): de besturing van een nieuw voertuig komt sneller in beeld en de trekker heeft uitleg.
-### Verbeterd
 - Samen spelen (#434): voertuigen, mensen, boten en treinen bewegen bij een gast vloeiend in plaats van "een meter en dan stil". De gast tekent tussen twee berichten van wie het spel opende, loopt door met de laatste snelheid als er even een bericht ontbreekt, en springt alleen als er echt iemand wordt verplaatst. Ook een trage computer van wie het spel opende geeft nu een gelijkmatig beeld.
 - Samen spelen (#434): een gast kan springen (Spatie) en bukken (Ctrl) en iedereen ziet dat. Het bukken maakt je langzamer, net als in je eigen spel.
 - Samen spelen (#434): wie meerijdt zit nu voor iedereen zichtbaar op een eigen stoel: de bestuurder, de bijrijder voorin en de andere spelers achterin; een bestuurder op een fiets trapt zichtbaar mee.
