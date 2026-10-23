@@ -30,7 +30,7 @@ starten. De gast krijgt dan een korte melding ("Dat kan alleen in je eigen spel"
 | Zelf een voertuig nemen en ermee rijden | nee | Kan alleen in je eigen spel. |
 | Gesprekken met voorbijgangers en personages | nee | Kan alleen in je eigen spel; wat de ander zegt zie je als ondertitel. |
 | Bijbanen en minigames | nee | Een bijbaan of minigame start en speelt wie het spel opende; jij kijkt mee. |
-| Missies en het verhaal | deels | Dat speelt wie het spel opende; jij loopt mee en krijgt je deel als beloning in je eigen geld. |
+| Missies en het verhaal | deels | Dat speelt wie het spel opende. Bij het begin van een opdracht vraagt het spel "Meedoen?" (J of N, zonder antwoord doe je na 10 s mee): meedoen betekent meelopen en je deel van de beloning in je eigen geld; niet meedoen betekent vrij rondlopen en winkelen, zonder deel (#429). Waar het verhaal jouw rol nodig heeft is meedoen verplicht. |
 
 ## Hoe het werkt
 
