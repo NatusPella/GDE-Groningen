@@ -57,6 +57,7 @@ import { updatePractice } from './practice.js';
 import { initMotion } from './motion.js';
 import { initHud, updateHud } from './hud_panel.js';
 import { initGarages, initCountryGarages, updateGarages, tryGarageInteract } from './garages.js';
+import { initParkeergarages, updateParkeergarages } from './parkeergarage.js';
 import { initHoreca, initCountryHoreca, updateHoreca, tryHorecaInteract } from './horeca.js';
 import { initShops, initCountryShops, updateShops, tryShopInteract, COUNTRY_SHOP_KINDS, getShopsForRender } from './shops.js';
 import { initSnackMachines, updateSnackMachines, tryMachineInteract } from './snackautomaat.js';
@@ -412,6 +413,7 @@ async function boot() {
   world.pedestrians = spawnPedestriansNear(map, player.x, player.y, PED_TARGET, Math.random);
   initMissions(world);
   initGarages(world);
+  initParkeergarages(world);
   initHoreca(world);
   initShops(world);
   setShopSpots(spotsFrom(FAC.all, getShopsForRender()));
@@ -806,6 +808,7 @@ async function boot() {
       updateSikkomFeed(dt, world);
       updatePhoneFeed(dt, world);
       updateGarages(dt, world);
+      updateParkeergarages(dt, world);
       updateHoreca(dt, world);
       updateShops(dt, world);
       updateParkingLots3D(world);
