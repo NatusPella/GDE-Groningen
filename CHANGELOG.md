@@ -6,6 +6,8 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+## [0.41.0] - 2026-10-23
+
 ### Opgelost
 - **Het poortje van Portal Groningen bij de H.N. Werkmanbrug is begaanbaar (#420; gemeten in Node met `passage_thin_test` en `passage_open_audit`, nog niet in beeld bekeken):** het poortje is een gebouwtje van 4 bij 1 m met een voetpad erdoor dat OSM als doorgang markeert, maar het spel hield een voetpad dat een metertje in een gevel steekt voor een stoep in de muur, dus je kon er niet doorheen. Een door OSM gemapte doorgang telt nu altijd als doorgang, ook door een dunne gevel (zeven gemapte doorgangen in de stad gingen open, de andere korte poortjes ook).
 - **Geen willekeurige rijen zwarte palen meer langs de straat (#419; niet in beeld bekeken):** in de Folkingestraat stonden rijen van vier tot negen palen voor de winkelruiten; die kwamen uit een toevalsregel voor straatspullen en bestaan nergens. De palen aan de mond van een voetgangersstraat en de gemapte palen blijven.
