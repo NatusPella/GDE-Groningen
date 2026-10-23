@@ -6,6 +6,10 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Nieuw
+- Samen spelen (#439): valt wie het spel opende weg (12 seconden niets gehoord, zonder afscheid), dan neemt de speler met de beste verbinding het over. Iedereen krijgt elke ~10 seconden een compacte herstelstand; de groep kiest samen dezelfde opvolger (laagste ping, bij gelijk de laagste plek), die de kamer opent waar de anderen vanzelf aansluiten, met de lopende opdracht, de tijd, het weer en de kapotte objecten. Lukt het niet, dan is de volgende aan de beurt. Alleen met een kamercode en alleen als er gasten zijn.
+- Samen spelen (#439): bij het spel overdragen wordt de lopende opdracht echt hervat, gaan kapotte objecten en voertuigen van spelers mee en komt de nieuwe speler op de plek waar het spel stond. Lukt het aansluiten bij de nieuwe speler niet, dan neemt wie het spel opende het weer over.
+
 ## [0.46.0] - 2026-10-23
 
 ### Nieuw
