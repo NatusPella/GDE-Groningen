@@ -6,6 +6,10 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Opgelost
+
+- Controller: de knop onderin het pauzemenu voor de kaart (M) toont nu de juiste knop (Overzicht/Min) in plaats van Y.
+
 ## [0.42.0] - 2026-10-23
 
 ### Nieuw
