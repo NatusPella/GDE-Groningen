@@ -284,7 +284,7 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
 #pause-menu .m-disc .m-bar + .bebas { margin-left: 0; }
 
 /* Besturing */
-#pause-menu .pm-csearch { margin: 0 0 16px 24px; max-width: 520px; }
+#pause-menu .pm-csearch { margin: 0 0 16px 24px; max-width: 520px; flex: none; }
 #pause-menu .pm-clist { width: auto; flex: 1; padding-right: 0; overflow-y: auto; }
 #pause-menu .pm-cgrid { columns: 2 380px; column-gap: 64px; padding-left: 24px; }
 #pause-menu .pm-cgroup { break-inside: avoid; margin: 0 0 24px; padding: 0; }
