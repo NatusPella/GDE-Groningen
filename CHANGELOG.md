@@ -6,10 +6,6 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
-### Opgelost
-
-- Controller: de knop onderin het pauzemenu voor de kaart (M) toont nu de juiste knop (Overzicht/Min) in plaats van Y.
-
 ## [0.42.0] - 2026-10-23
 
 ### Nieuw
@@ -18,6 +14,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 - **Parkeergarages (#418):** in 36 van de 48 gekarteerde parkeergarages (en bij de garages die alleen als punt bekend zijn, zoals in de binnenstad, op de plek van de ingang) staan nu geparkeerde auto's om te stelen, en je eigen auto kan er ook parkeren. Alleen op vrije grond, nooit in een gebouw of in het water. Niet in beeld bekeken; de verdiepingen van de garage zelf zijn niet nagebouwd.
 
 ### Opgelost
+- Controller: de knop onderin het pauzemenu voor de kaart (M) toont nu de juiste knop (Overzicht/Min) in plaats van Y.
 - **Samen spelen: een gast wordt nooit vanzelf in een voertuig gezet (playtest 22-10):** blijft een gast ver achter terwijl de gastheer wegrijdt, dan wordt hij naast de gastheer gezet en stapt hij zelf in met E; vroeger zat hij na een paar seconden vanzelf in het voertuig.
 - **Samen spelen: een gast ziet echte voertuigen (auto, bakkie, politie, bus, vrachtwagen, fiets, scooter en motor) in plaats van blokken (playtest 22-10; nog niet in beeld bekeken, boten, helikopters en treinen blijven blokken):** de gast bouwt het echte model van de soort met dezelfde bouwer als de host, met een vaste variatie in model en kleur per voertuig; lukt dat niet, dan valt hij terug op het blok.
 - **Machinist: de weg naar een treinrit is uitgelegd en de kaping is vergeven (#424; door een bot gespeeld, niet door een mens):** bij een stilstaande trein zegt de aanwijzing nu "Daarna G: de dienst rijden", de melding na het instappen zegt "Druk G: dan rijd je de dienst en is het geregeld", en de station-icoontjes op de kaart noemen de machinist-dienst. G in een gekaapte trein haalt de twee sterren van de kaping weg ("Je staat als machinist genoteerd"): eerder bleef de politie je tijdens de dienst opjagen, waardoor het voor niemand een dienst leek. Stap je aan het eind van de lijn aan de verkeerde kant in, dan staat er "Einde van de lijn: stap aan de andere kant van de trein in" in plaats van "Geen halte meer vooruit".
@@ -29,7 +26,6 @@ nieuwe functies, `y` voor alleen bugfixes.
 - **De Oosterpoort heeft ramen aan de lange straatgevel (#421; in Electron door Claude in beeld bekeken, niet door een mens):** een groot gebouw had een vast budget van 420 ramen en de eerste muren van de omtrek namen dat op, zodat de lange muur langs de Trompsingel kaal bleef. Het budget groeit nu mee met de gevel (tot 1300 ramen) en lange gevels van grote publieksgebouwen krijgen bredere en hogere ramen.
 - **De grote grijze zuil midden in de Folkingestraat is weg (#419; in Electron door Claude in beeld bekeken, niet door een mens):** het waren twee gedenktekens uit de kaartdata (puntjes zonder hoogte) die als monument van vijf meter op een plein van acht meter werden getekend. Een gedenkteken zonder hoogte, een plaquette of een struikelsteen is nu een laag steentje.
 - **Prinsentuin en Martinikerkhof: geen heggen en bomen meer over de weg (#324; in Electron met de echte tegels door Claude in beeld bekeken, niet door een mens):** de stad had van deze twee parken naast de echte tegels nog een tweede, losse parkkit uit het landschap (een rechthoek met heggen, zandpad, vijvertje en willekeurige dennen, op de plaats van het park maar niet op zijn vorm). Die rechthoek liep over de Turfsingel, voetpaden en klinkers en zette dennen midden op de rijbaan en een heg dwars over het pad. Binnen de stad wordt dat kit niet meer getekend; het park komt uit de tegels.
-- **Grote Markt: geen "water" of sloot meer waarin je auto verdwijnt (#327; de aanpassing zit in de wereldbouw en is nog niet in beeld bekeken, alleen getest op de regel):** aan de noordwestkant van de Grote Markt lag een klein, los vijvertje van zo'n 120 m² (OSM, met een eilandje) op het peil van de grachten, dus 2,3 m onder straat: een put met scheve groene randen waar een auto in verdween. Een klein water dat aan geen gracht hangt (minder dan 400 m²) ligt nu op straatniveau (ondiep bekken). Een wereld moet opnieuw gebouwd worden om het te zien.
 - **Politie: een achtervolging komt niet meer uit het niets (#391):** een getuige van een autodiefstal waarschuwt je nu eerst met een korte regel ("Een getuige belt de politie"), zodat je nog weg kunt komen. De ster komt alleen als je dan nog in die auto zit: je krijgt geen achtervolging meer om een auto die je al hebt verlaten. En de kaart noemt de reden: de getuige zag je een auto stelen, of de bestuurder meldde de gestolen auto. Niet in beeld bekeken.
 - **Een auto die bij je missie hoort is nooit autodiefstal:** instappen in de auto die een missie of bijbaan je geeft of aanwijst gaf soms toch een getuige, ster of achtervolging. Is er geen vlag meer op zo'n voertuig (bijvoorbeeld een auto die niet kon verschijnen en een andere die er staat), dan telt een voertuig bij de missiemarker tijdens een actieve missie ook niet als gestolen, zolang er geen voorbijganger in zat. Een auto met een bestuurder erin blijft een carjack. Geen wijziging in boetes of sterren.
 
