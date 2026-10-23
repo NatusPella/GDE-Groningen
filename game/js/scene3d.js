@@ -441,6 +441,9 @@ function updateCamTreeHiding(map, ex, ey, ez, cx, cy, cz) {
 }
 
 const _noTargets = [];
+// objects another module wants the camera kept out of (parkeergarage.js: the entrance building and the hall): fn(px, py, out) pushes them
+const camTargetSources = [];
+export function addCamTargetSource(fn) { camTargetSources.push(fn); }
 function nearbyCamTargets(px, py) {
   camTargetList.length = 0;
   for (const [b, mesh] of buildingMeshes) {
@@ -459,6 +462,7 @@ function nearbyCamTargets(px, py) {
     if (py < miny - CAM_TARGET_RADIUS || py > maxy + CAM_TARGET_RADIUS) continue;
     camTargetList.push(g);
   }
+  for (let i = 0; i < camTargetSources.length; i++) camTargetSources[i](px, py, camTargetList);
   return camTargetList;
 }
 
