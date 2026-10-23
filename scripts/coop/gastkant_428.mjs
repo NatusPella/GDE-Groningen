@@ -37,7 +37,7 @@ for (const s of ['SIGINT', 'SIGTERM']) process.on(s, () => { release(); process.
 
 // ---- het programma van de gast (seconden na "verbonden") en het draaiboek van de host, op dezelfde tijdlijn
 const PROGRAM = [
-  [0, 'wacht', { s: 8 }], [8, 'wereld428', { stap: 'props' }], [10, 'wacht', { s: 10 }], [20, 'wereld428', { stap: 'kijk', naam: 'w428a' }], [28, 'wacht', { s: 12 }], [40, 'wereld428', { stap: 'kijk', naam: 'w428b' }], [48, 'wacht', { s: 8 }],
+  [0, 'wacht', { s: 8 }], [8, 'wereld428', { stap: 'props' }], [10, 'wacht', { s: 10 }], [20, 'wereld428', { stap: 'kijk', naam: 'w428a' }], [28, 'wacht', { s: 12 }], [40, 'wereld428', { stap: 'kijk', naam: 'w428b', rond: 8 }], [48, 'wacht', { s: 8 }],
 ];
 const HOST_STOP = 62;
 const code = {};
@@ -97,12 +97,13 @@ check(W1 && W1.meshes && W1.meshes[1] >= 7, 'dieren: de gast tekent niet alle di
 check(W1 && W1.stand && W1.stand[1] >= 12, 'uiterlijk: te weinig uiterlijken binnen: ' + JSON.stringify(W1 && W1.stand));
 check(W1 && W1.sprekers >= 1, 'praten: geen tekstballon van een voetganger: ' + JSON.stringify(W1 && W1.sprekers));
 check(W1 && W1.lokaalPeds === 0 && W1.lokaalDieren === 0, 'de gast heeft nog eigen voetgangers of dieren (lokaal verzonnen): ' + JSON.stringify(W1 && [W1.lokaalPeds, W1.lokaalDieren]));
-if (W1 && W1.lichtHost) { const n = W1.lichtHost.filter((t) => t != null).length; check(n >= 3, 'lichten: de host stuurde er te weinig: ' + JSON.stringify(W1.lichtHost)); const ok = W1.lichtHost.every((t, i) => t == null || Math.min(Math.abs(t - W1.lichtT[i]), 40 - Math.abs(t - W1.lichtT[i])) < 3); check(ok, 'lichten: de klok van de gast loopt niet gelijk met de host: ' + JSON.stringify([W1.lichtT, W1.lichtHost])); }
+if (W1 && W1.lichtHost) { const n = W1.lichtHost.filter((t) => t != null).length; check(n >= 3, 'lichten: de host stuurde er te weinig: ' + JSON.stringify(W1.lichtHost)); const ok = W1.lichtHost.every((t, i) => { if (t == null) return true; const c = W1.lichtC[i] || 15, d = Math.abs(t - W1.lichtT[i]) % c; return Math.min(d, c - d) < 3; }); check(ok, 'lichten: de klok van de gast loopt niet gelijk met de host: ' + JSON.stringify([W1.lichtT, W1.lichtHost, W1.lichtC])); }
 check(PR && PR.keys.length > 0, 'kapot: de gast heeft geen props om kapot te melden: ' + JSON.stringify(PR));
 if (PR && PR.keys.length) {
   check(W1 && W1.kapot.length === PR.keys.length && W1.kapot.every(([, kapot]) => kapot), 'kapot: de props zijn bij de gast niet kapot gegaan: ' + JSON.stringify(W1 && W1.kapot));
   check(W2 && W2.kapot.length === 0, 'kapot: de lijst is niet leeg na "weer heel": ' + JSON.stringify(W2 && W2.kapot));
 }
+check(W1 && W1.meshes && W1.meshes[3] >= 15 && W1.meshes[4] === 3 && W1.meshes[5] === 1, 'misc: stuntdingen, punten of kermis ontbreken bij de gast: ' + JSON.stringify(W1 && [W1.meshes, W1.misc]));
 check(S.every((s) => !s.me || (Number.isFinite(s.me.x) && Number.isFinite(s.me.y))), 'NaN in de positie van de gast');
 const bytes = W2 ? W2.bytes : 0; const secs = (S.length ? S[S.length - 1].t - S[0].t : 1) || 1;
 notes.push('extra wereld: ' + bytes + ' B in ' + Math.round(secs) + ' s = ' + Math.round(bytes / secs) + ' B/s naar deze gast');

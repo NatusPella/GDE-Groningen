@@ -80,7 +80,11 @@ export function kermisWheel() {
 }
 
 // The kermis is in town this evening (or all day in the Zomerkermis).
+// Samen spelen (#428): een gast volgt de host (coopextra3d.js); null = zelf bepalen
+let kermisOverride = null;
+export function setKermisOverride(v) { kermisOverride = v == null ? null : !!v; }
 export function kermisOn(w) {
+  if (kermisOverride != null) return kermisOverride;
   const h = ((w.clock % 24) + 24) % 24;
   if (h >= 19 || h < 1) return true;
   return isToday('kermis', w);

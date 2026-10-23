@@ -15,6 +15,9 @@ import { updatePartnerChip } from './coophud.js';
 import { syncFigures, hasFigureMeshes } from './coopfigures3d.js';
 import { syncHostEntities, hasHostEntities, clearHostEntities } from './coopentities3d.js';
 import { syncExtra, hasExtra, clearExtra } from './coopextra3d.js';
+import { maakMisc } from './coopextra.js';
+import { kermisOn } from './kermis.js';
+import { stuntSnapshot } from './stuntavond.js';
 import { syncPings, hasPingMeshes } from './cooppings3d.js';
 import { updateHostScene, hasHostScene } from './coopscene.js';
 import { loadMap } from './mapdata.js';
@@ -422,7 +425,7 @@ async function boot() {
   initHome(world);
   parkHeroAtHome(world);
   initTrafficLights(world);
-  world.coopExtraDeps = { controllers: getTrafficControllers, gebroken: brokenKeysNear }; // wat de host de gasten vertelt (coopnet.js, coopextra.js)
+  world.coopExtraDeps = { controllers: getTrafficControllers, gebroken: brokenKeysNear, misc: (bij, g, nu) => maakMisc({ kermis: kermisOn(world), stunt: stuntSnapshot(), punten: world.mission && world.mission.phase === 'active' ? world.mission.remainingWaypoints : null }, g, nu) }; // wat de host de gasten vertelt (coopnet.js, coopextra.js)
   initRailway(world);
   buildMovableBridges(world.map);
   // the province's movable bridges come with the streamed tiles, not with map.roads (#235)

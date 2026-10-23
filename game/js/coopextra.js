@@ -43,7 +43,7 @@ const EEND_VARIANTEN = ['drake', 'hen', 'swan', 'goose'];
 export const KAPOT_SOORTEN = ['bench', 'bin', 'chair', 'table', 'parasol', 'bike', 'rail', 'stall', 'lamp', 'trafficlight', 'flitspaal', 'tree', 'vangrail', 'hek'];
 
 // tags voor misc
-export const MISC_KERMIS = 1, MISC_STUNT = 2, MISC_DEUR = 3;
+export const MISC_KERMIS = 1, MISC_STUNT = 2, MISC_PUNTEN = 3;
 
 const u8 = (v, lo = 0, hi = 255) => Math.min(hi, Math.max(lo, Math.round(v) | 0));
 const hexNaarRgb = (h, d) => {
@@ -223,6 +223,7 @@ export function codeerExtra(data, oorsprong) {
     }
     w.b[posAt] = n; if (!n) { mask &= ~B_MISC; w.o = posAt; }
   }
+  if (!mask) return new Uint8Array(0); // niets te melden: geen bericht
   w.b[maskAt] = mask;
   return w.uit();
 }
@@ -306,7 +307,7 @@ export function pasExtraToe(stand, bericht, nu) {
   if (bericht.kapot) { stand.kapot = bericht.kapot; stand.kapotAt = nu; }
   const mIds = new Set();
   for (const m of bericht.misc) { stand.misc.set(m.tag, { data: m.data, at: nu }); mIds.add(m.tag); }
-  for (const [tag, e] of stand.misc) if (!mIds.has(tag) && nu - e.at > 3) stand.misc.delete(tag);
+  for (const [tag, e] of stand.misc) if (!mIds.has(tag) && nu - e.at > MISC_TTL) stand.misc.delete(tag);
   return stand;
 }
 
@@ -319,3 +320,60 @@ export function lichtVerschil(lokaal, host, cyclus) {
 
 // Of de gast de nieuwste stand van de host nog mag vertrouwen (anders tekent hij niets extra's)
 export const standVers = (stand, nu) => nu - stand.at < 3;
+
+// ----------------------------------------------------------- misc: kermis, stuntavond en de punten van een opdracht
+// De host levert de bronnen aan (main.js); hier zit het coderen. Elk stukje gaat hoogstens elke MISC_EVERY s, of meteen als het verandert;
+// een gast laat een stukje vervallen als het MISC_TTL s niet meer kwam (dan is het er ook niet meer).
+export const MISC_EVERY = 1.5;
+export const MISC_TTL = 4;
+export const STUNT_SOORTEN = ['parasol', 'kliko', 'stoepbord', 'chair', 'table'];
+export const MAX_STUNT = 80;
+export const MAX_PUNTEN = 12;
+
+export function codeerStunt(s) {
+  if (!s || !Number.isFinite(s.x) || !Number.isFinite(s.y)) return null;
+  const props = s.props.filter((p) => STUNT_SOORTEN.includes(p.kind) && Math.abs(p.x - s.x) < 63 && Math.abs(p.y - s.y) < 63).slice(0, MAX_STUNT);
+  const b = new Uint8Array(9 + props.length * 3); const v = new DataView(b.buffer);
+  v.setFloat32(0, s.x); v.setFloat32(4, s.y); v.setUint8(8, props.length);
+  props.forEach((p, i) => { const o = 9 + i * 3; v.setUint8(o, STUNT_SOORTEN.indexOf(p.kind) | (p.alive ? 0 : 128)); v.setInt8(o + 1, Math.round((p.x - s.x) * 2)); v.setInt8(o + 2, Math.round((p.y - s.y) * 2)); });
+  return b;
+}
+export function leesStunt(b) {
+  if (!(b instanceof Uint8Array) || b.length < 9) return null;
+  const v = new DataView(b.buffer, b.byteOffset, b.byteLength);
+  const x = v.getFloat32(0), y = v.getFloat32(4), n = v.getUint8(8);
+  if (!Number.isFinite(x) || !Number.isFinite(y) || n > MAX_STUNT || b.length !== 9 + n * 3) return null;
+  const props = [];
+  for (let i = 0; i < n; i++) { const o = 9 + i * 3, k = v.getUint8(o); const kind = STUNT_SOORTEN[k & 127]; if (kind) props.push({ i, kind, x: x + v.getInt8(o + 1) / 2, y: y + v.getInt8(o + 2) / 2, alive: !(k & 128) }); }
+  return { x, y, props };
+}
+export function codeerPunten(lijst) {
+  const l = (lijst || []).filter((p) => p && Number.isFinite(p.x) && Number.isFinite(p.y)).slice(0, MAX_PUNTEN);
+  const b = new Uint8Array(1 + l.length * 12); const v = new DataView(b.buffer);
+  v.setUint8(0, l.length);
+  l.forEach((p, i) => { v.setFloat32(1 + i * 12, p.x); v.setFloat32(5 + i * 12, p.y); v.setFloat32(9 + i * 12, Number.isFinite(p.z) ? p.z : 0); });
+  return b;
+}
+export function leesPunten(b) {
+  if (!(b instanceof Uint8Array) || b.length < 1) return null;
+  const v = new DataView(b.buffer, b.byteOffset, b.byteLength); const n = v.getUint8(0);
+  if (n > MAX_PUNTEN || b.length !== 1 + n * 12) return null;
+  const out = []; for (let i = 0; i < n; i++) out.push({ x: v.getFloat32(1 + i * 12), y: v.getFloat32(5 + i * 12), z: v.getFloat32(9 + i * 12) });
+  return out.every((p) => Number.isFinite(p.x) && Number.isFinite(p.y) && Number.isFinite(p.z)) ? out : null;
+}
+
+const stuk = (g, tag, now, data) => {
+  const m = g.misc || (g.misc = new Map()); const hash = Array.from(data).join(',');
+  const was = m.get(tag);
+  if (was && was.hash === hash && now - was.at < MISC_EVERY) return null;
+  m.set(tag, { hash, at: now });
+  return { tag, data };
+};
+// bronnen: { kermis: bool, stunt: { x, y, props: [{kind, x, y, alive}] } | null, punten: [{x, y, z}] | null }
+export function maakMisc(bronnen, geheugen, now) {
+  const uit = [];
+  const k = stuk(geheugen, MISC_KERMIS, now, Uint8Array.of(bronnen.kermis ? 1 : 0)); if (k) uit.push(k);
+  const sb = codeerStunt(bronnen.stunt); if (sb) { const s = stuk(geheugen, MISC_STUNT, now, sb); if (s) uit.push(s); }
+  if (bronnen.punten && bronnen.punten.length) { const p = stuk(geheugen, MISC_PUNTEN, now, codeerPunten(bronnen.punten)); if (p) uit.push(p); }
+  return uit;
+}
