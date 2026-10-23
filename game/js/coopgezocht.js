@@ -43,11 +43,11 @@ export function getuigeDichtbij(world, x, y, r = GETUIGE_AFSTAND) {
 }
 
 // Het lichaam van een gast als "world.player" voor police.js: plek, snelheid, voertuig en water zijn wat de politie leest.
-export function doelwitProxy(world, slot) {
+export function doelwitProxy(world, slot, level = 0) {
   const l = lichaamVan(world, slot); if (!l) return null;
   const v = l.inVehicle || l.inVeh || null, q = v && Number.isFinite(v.x) ? v : l;
   return {
-    coopSlot: slot, x: q.x, y: q.y, angle: q.angle || 0, vx: v ? 0 : l.vx || 0, vy: v ? 0 : l.vy || 0, z: v ? 0 : l.z || 0, gz: v ? v.z || 0 : l.gz || 0,
+    coopSlot: slot, level, x: q.x, y: q.y, angle: q.angle || 0, vx: v ? 0 : l.vx || 0, vy: v ? 0 : l.vy || 0, z: v ? 0 : l.z || 0, gz: v ? v.z || 0 : l.gz || 0,
     radius: l.radius || 0.4, inVehicle: v && typeof v === 'object' ? v : null, water: v ? null : l.water || null, swimming: !!l.swimming, state: 'ok', character: l.character || l.char || 'tammo',
   };
 }
@@ -80,9 +80,11 @@ export function politieMetDoelwit(dt, world, update) {
     world.coopDoelwit = nieuw;
     if (world.coopDoelwitMeld) world.coopDoelwitMeld(nieuw, was, d ? d.level : 0);
   }
+  world.coopJachtDoel = null;
   if (!d || d.slot === 0) { update(dt, world); return 0; }
-  const proxy = doelwitProxy(world, d.slot);
+  const proxy = doelwitProxy(world, d.slot, d.level);
   if (!proxy) { update(dt, world); return 0; }
+  world.coopJachtDoel = proxy; // de agenten te voet (pedestrians.js updateCop) jagen ook op hem
   const eigenSpeler = world.player, eigenWanted = world.wanted, voor = d.level;
   world.player = proxy; world.wanted = d.level;
   try { update(dt, world); } finally {

@@ -100,6 +100,12 @@ t('de gast valt weg: het voertuig staat stil en de stoel is vrij', () => {
   assert.equal(B.bestuurLos(w, 1), false, 'niets meer te doen');
   assert.equal(B.bestuurGebruik(w, 1).gedaan, true, 'iemand anders (of hij zelf) kan weer instappen');
   v.wrecked = true; B.bestuurTick(w, 0.05); assert.equal(w.companion.inVehicle, null, 'kapot: de gast staat buiten');
+  assert.equal(v.wreckedByGast, 1, 'het wrak is van de gast: geen getuige voor de host');
+  const z = auto(8, 2, 1); const w2 = mkWorld(); w2.vehicles = [z]; B.bestuurGebruik(w2, 1); meldingen.length = 0;
+  z.sinking = { phase: 'fall' }; B.bestuurTick(w2, 0.05);
+  assert.equal(z.driver, null); assert.equal(z.wreckedByGast, 1, 'ook een zinkend voertuig: het wrak komt later'); assert.ok(meldingen.some(([, m]) => /zinkt/.test(m)));
+  const w3 = mkWorld(); const b = auto(9, 2, 1); w3.vehicles = [b]; w3.coopWanted = {}; b.disabled = false; b.wrecked = true; b.wreckedByGast = 1;
+  reportCrime(w3, 'pedKill', { vehicle: b }); assert.equal(w3.wanted, 0, 'een ontploffing van het wrak van de gast telt bij de gast');
 });
 
 t('een helikopter of vliegtuig: een melding, geen bestuurder', () => {
