@@ -1631,6 +1631,14 @@ export function playHeartbeat(strength = 0.5) {
   playTone({ freq: 54, freqEnd: 38, type: 'sine', duration: 0.14, gain: g * 0.75, delay: 0.19, bus: uiBus, prio: 2 });
 }
 
+// Zwaar ademen als je bijna dood bent (lowhealth.js, #436): een korte ruisstoot die oploopt en afloopt, geen woorden.
+export function playHeavyBreath(strength = 0.5) {
+  if (!ctx || muted || !uiBus) return;
+  const s = Math.max(0, Math.min(1, strength));
+  playNoiseBurst({ duration: 0.5, freq: 520, freqEnd: 900, q: 0.7, gain: 0.035 + 0.05 * s, bus: uiBus, prio: 2 });
+  playNoiseBurst({ duration: 0.55, freq: 820, freqEnd: 420, q: 0.7, gain: 0.03 + 0.04 * s, delay: 0.62, bus: uiBus, prio: 2 });
+}
+
 // Two glasses touching (H11's toasts, missionstory.js playToast): a bright
 // ting with a short second ring, softer for small jenever glasses.
 export function playGlassClink(small = false) {
