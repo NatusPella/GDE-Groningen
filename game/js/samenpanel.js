@@ -11,6 +11,16 @@ import { readHostScene } from './coopscene.js';
 import { setGate } from './coopgate.js';
 import { saveGame, hasSave } from './savegame.js';
 import { nameOf, activeSlot } from './saveslots.js';
+import { isCinematicActive, skipCinematic } from './cinematics.js';
+
+// Aansluiten als gast terwijl je eigen opening of een filmpje nog loopt (bijvoorbeeld bij opnieuw aansluiten): wie op Aansluiten drukt
+// kiest ervoor, dus je eigen filmpje stopt en je sluit meteen aan. Herstel na een val of een nieuwe start wacht nog wel (#429).
+function eigenFilmpjeOverslaan(world, kan) {
+  if (kan.ok || !kan.filmpje || !isCinematicActive()) return kan;
+  try { skipCinematic(); } catch (e) { return kan; }
+  if (world.cameraOverride) world.cameraOverride = null;
+  return canJoin(world);
+}
 
 let view = null, mountedOn = null;
 
@@ -46,7 +56,7 @@ export function renderSamenPanel(root, world, sluit = () => {}) {
     setMax: (n) => setMaxPlayers(world, n),
     kick: (slot) => removeGuest(world, slot),
     onCode: (code) => { if (ls) writeSession(ls, toSession(readSession(ls), { code })); },
-    canJoin: () => canJoin(world),
+    canJoin: () => eigenFilmpjeOverslaan(world, canJoin(world)),
     joined: () => {},
     // 'Spel starten' (alleen de gastheer, in de wachtkamer van een nieuw spel): het menu sluit en de opening begint
     startSpel: () => {
