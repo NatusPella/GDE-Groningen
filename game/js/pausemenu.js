@@ -270,7 +270,7 @@ const HINTS = {
 const SHEET_NOTE = {};
 // a fixed controller glyph (the menu's own buttons)
 const pg =(slot) => `<span class="pm-pad-g" data-g-raw>${padGlyphInner(slot)}</span>`;
-const PAD_KEYS = { '↑': 'dpad', '↓': null, '←': 'dpad', '→': null, Enter: 'a', Esc: 'b', Q: 'lb', E: 'rb', Klik: 'a', Scroll: 'rt', M: 'y' };
+const PAD_KEYS = { '↑': 'dpad', '↓': null, '←': 'dpad', '→': null, Enter: 'a', Esc: 'b', Q: 'lb', E: 'rb', Klik: 'a', Scroll: 'rt', M: 'view' };
 const PAD_LABEL = { 'zet als doel': 'zet als doel', 'toets wijzigen': 'indelen' };
 
 const HOME = 'overzicht';
