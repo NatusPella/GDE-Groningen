@@ -626,7 +626,7 @@ export function tickCoopNet(world, dt) {
     s.tick(dt);
     n.lokaal += dt;
     const uit = world.coopUitnodiging; // Meedoen met deze opdracht? J of N; zonder antwoord doet de gast mee (#429)
-    if (uit) { uit.rest -= dt; if (uit.rest <= 0) world.coopUitnodiging = null; else if (inp && inp.wasPressed) { if (inp.wasPressed('j')) gastMeedoen(world, true); else if (inp.wasPressed('n')) gastMeedoen(world, false); } }
+    if (uit) { uit.rest -= dt; if (uit.rest <= 0) world.coopUitnodiging = null; else if (world.coopWisselUi && world.coopWisselUi.vraag) world.coopUitnodiging = null; /* een vraag om het spel over te nemen gaat voor: J en N zijn van die vraag (je doet dan mee) */ else if (inp && inp.wasPressed) { if (inp.wasPressed('j')) gastMeedoen(world, true); else if (inp.wasPressed('n')) gastMeedoen(world, false); } }
     // de gedeelde speelklok: de tijd van de dag volgt de host (net/speelklok.js)
     if (n.klok.last && Number.isFinite(world.clock)) world.clock = n.klok.step(world.clock, dt, n.lokaal);
     if (s.joined && !n.fixed) { // eerst weten we welke plek en figuur we hebben
