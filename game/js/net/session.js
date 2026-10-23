@@ -234,7 +234,7 @@ export class ClientSession extends Base {
       if (m.body.resumed) { this.rel.reset(); this.buf.clear(); }
       this._setStatus('ok');
     } else if (h.type === T.SNAP && this.joined) {
-      const s = decodeSnapshot(buf); if (!s) return;
+      const s = decodeSnapshot(buf, this.looks || (this.looks = new Map())); if (!s) return; // looks: het laatst bekende uiterlijk per voertuig (#428)
       if (this.lastSnapSeq != null && !seqNewer(s.seq, this.lastSnapSeq)) return;
       this._unwrapped = this.lastSnapSeq == null ? s.seq : this._unwrapped + seqDiff(s.seq, this.lastSnapSeq);
       this.lastSnapSeq = s.seq;
