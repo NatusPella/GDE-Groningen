@@ -6,6 +6,9 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+- **Controllerindeling kiezen (#151; niet met een echte controller of in beeld bekeken):** onder Instellingen › Muis & controller kies je nu bij Controllerindeling "Rechterknop bevestigt". Dat helpt als je controller zich anders meldt dan hij is (bijvoorbeeld via Steam): A en B en X en Y wisselen dan echt van plek, in de menu's en in het spel, en de knopsymbolen in beeld volgen je keuze. Automatisch blijft de standaard.
+- **Minigames en nagesprek: de oude zwarte toetsknoppen met groene tekst zijn weg (#151; niet in beeld bekeken):** de hints bij de duivenmodus en het scherm na het spel hebben nu dezelfde witte toetskap als de rest van het spel.
+
 ## [0.42.0] - 2026-10-23
 
 ### Nieuw
