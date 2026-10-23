@@ -38,7 +38,7 @@ export const HELP_TOPICS = [
     'Valt iemands verbinding weg, dan pauzeert het spel en komt het vanzelf terug zodra die weer verbonden is.',
   ] },
   { id: 'toetsen', title: 'Toetsen en controller', lines: [
-    'Alle toetsen en knoppen staan onder Besturing. Je kunt ze zelf anders zetten, voor toetsenbord en controller.',
+    'Alle toetsen en knoppen staan onder Instellingen, bij Besturing. Je kunt ze zelf anders zetten, voor toetsenbord en controller.',
     'Zet de uitleg uit onder Instellingen › Interface › Meer opties.',
   ] },
 ];
