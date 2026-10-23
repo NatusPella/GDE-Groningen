@@ -6,6 +6,8 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+- Samen spelen: de tests voor drie en vier spelers volgen nu het nieuwe meerijden (naast de gastheer gezet, zelf instappen met E) en dekken wegvallen en terugkomen van een speler.
+
 ## [0.43.0] - 2026-10-23
 
 ### Nieuw
