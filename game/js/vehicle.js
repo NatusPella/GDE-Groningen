@@ -2081,7 +2081,7 @@ function followSpeedLimit(v, path, world, decel, chase) {
   const corridor = v.halfLen + 3 + Math.abs(v.speed) * 0.8;
   const creeping = world.time < (v.creepUntil || 0);
   for (const o of world.vehicles) {
-    if (o === v || o.isBoat || o.sinking || o.id === ignoring) continue;
+    if (o === v || o.isBoat || o.sinking || o.id === ignoring || Math.abs((o.z || 0) - (v.z || 0)) > 3) continue;   // (a car in the garage under the street is no leader, parkeergarage.js)
     if (chase && v.chaseDodge && o.driver === 'player') continue;
     const dx = o.x - v.x, dy = o.y - v.y;
     if (dx * dx + dy * dy > (PATH_LEN + 5) ** 2) continue;
