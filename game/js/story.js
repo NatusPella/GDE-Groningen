@@ -1062,7 +1062,7 @@ export function updateStory(dt, w) {
   }
   if (rt.clueToasts.length && !isCinematicActive() && !w.pigeonMode) {
     const c = rt.clueToasts.shift();
-    w.addMessage(c.kind === 'taal' ? `Gronings geleerd: ${c.title}. Lees terug in het pauzemenu, Te doen: "Wat weten we?"` : `Nieuwe aanwijzing: ${c.title}. Lees terug in het pauzemenu, Te doen: "Wat weten we?"`, 4.5);
+    w.addMessage(c.kind === 'taal' ? `Gronings geleerd: ${c.title}. Lees terug in het pauzemenu, Verhaal: "Aanwijzingen"` : `Nieuwe aanwijzing: ${c.title}. Lees terug in het pauzemenu, Verhaal: "Aanwijzingen"`, 4.5);
     playClueSting();
   }
   // the next step's text waits until a scene has been over for a moment, and

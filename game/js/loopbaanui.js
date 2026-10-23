@@ -7,6 +7,7 @@ import { getProfiel } from './loopbaanlive.js';
 import { SIDE_JOBS } from './sidejobs.js';
 import { fillBars } from './motion.js';
 import { boekVoortgang } from './visboeklive.js';
+import { baanDoelen } from './todoui.js';
 import { gebiedenHtml, kiesGebied, reisNaar, GEBIEDEN_CSS } from './gebiedenui.js';
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -70,6 +71,8 @@ const CSS = `
 .lb-trap .bonus { margin-left: auto; opacity: 0.8; }
 .lb-banen { list-style: none; margin: 4px 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 3px 16px; }
 .lb-banen li { display: flex; gap: 6px; align-items: center; opacity: 0.55; }
+.lb-banen li:has(.lb-doel) { opacity: 1; }
+.lb-banen .lb-doel { margin-left: auto; height: 40px; }
 .lb-banen li.klaar { opacity: 1; }
 .lb-banen svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; flex: none; }
 .lb-banen li:not(.klaar) svg { visibility: hidden; }
@@ -118,7 +121,7 @@ function detailHtml(profiel, id) {
   let banenHtml = '';
   if (banen.length) {
     const namen = new Map(SIDE_JOBS.map((j) => [j.id, j.name]));
-    banenHtml = '<h3 class="m-eb">Banen</h3><ul class="lb-banen">' + banen.map((b) => `<li class="${v.uniek.includes(b) ? 'klaar' : ''}">${CHECK}<span>${esc(namen.get(b) || b)}</span></li>`).join('') + '</ul>';
+    banenHtml = '<h3 class="m-eb">Banen</h3><ul class="lb-banen">' + banen.map((b) => `<li class="${v.uniek.includes(b) ? 'klaar' : ''}">${CHECK}<span>${esc(namen.get(b) || b)}</span>${doelen.has(b) ? `<button type="button" class="m-bt lb-doel" data-todo-goal="job:${esc(b)}">Zet als doel</button>` : ''}</li>`).join('') + '</ul>';
   }
   return `<div class="pm-pane-top"><span class="m-eb">${esc(groep)}</span><h2 class="m-h2 td-h2">${loopbaanIcoon(info.icoon, 'pa-ico big')}${esc(info.naam)}</h2></div>` +
     `<div class="lb-kop"><p class="lb-titel"><b>${esc(d.titel)}</b> <span class="mut">· niveau ${d.niveau} van ${L.MAX_NIVEAU}</span></p><p class="mut">${esc(info.wat)}</p></div>` +
@@ -143,10 +146,14 @@ function bezighedenHtml() {
     `<button type="button" class="lb-tegel" data-goto="${id}"><svg viewBox="0 0 24 24" aria-hidden="true">${ICONEN[ic]}</svg><span class="nm"><b>${naam}</b><span class="mut">${esc(id === 'visboek' ? vis : tekst)}</span></span><span class="lb-pijl" aria-hidden="true">\u203A</span></button>`).join('') + '</div></section>';
 }
 
-let sluitMenu = null; // pausemenu.js: sluit het menu na een snelreis
-export function renderLoopbaanPanel(el, sluit = null) {
+let sluitMenu = null;
+let wereld = null;
+let doelen = new Set(); // de bijbanen die nu te kiezen zijn (todoui.js) // pausemenu.js: sluit het menu na een snelreis
+export function renderLoopbaanPanel(el, sluit = null, w = null) {
   if (!el) return;
   if (sluit) sluitMenu = sluit;
+  if (w) wereld = w;
+  try { doelen = wereld ? baanDoelen(wereld) : new Set(); } catch (e) { doelen = new Set(); }
   zetCss();
   if (weergave === 'gebieden') {
     const g = gebiedenHtml();

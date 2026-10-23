@@ -58,7 +58,7 @@ ok(KEYS.hintsGezien === 'gde-hints-gezien', 'storage key registered');
 ok(HELP_TOPICS.length >= 6 && new Set(HELP_TOPICS.map((t) => t.id)).size === HELP_TOPICS.length, 'help topics');
 const html = helpHtml((t) => `<kbd>${t}</kbd>`, (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;'));
 ok(html.includes('<kbd>E</kbd>') && html.includes('<kbd>ESC</kbd>') && !html.includes('{'), 'help tokens become keys');
-ok(helpPlain().includes('Te doen') && !/[{}]/.test(helpPlain()), 'help text mentions Te doen, plain text has no tokens');
+ok(helpPlain().includes('Activiteiten') && !/[{}]/.test(helpPlain()), 'help text mentions Activiteiten, plain text has no tokens');
 ok(HELP_TOPICS.every((t) => t.lines.every((l) => !/\b(the|and|press)\b/i.test(l))), 'help is Dutch');
 console.log(fails ? `${fails} of ${n} failed` : `hintkit_test: ${n} checks ok`);
 process.exit(fails ? 1 : 0);

@@ -468,3 +468,13 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
 }
 /* Verhaal > Opdrachten: dezelfde lijst met details als eerst onder Te doen (#430) */
 #pause-menu .pm-vopd:not([hidden]) > .m-main { flex: 1; min-height: 0; padding: 0; }
+/* Spel > Overzicht, en de knoppen naar een onderdeel (Spelers) (#430) */
+#pause-menu .pm-spelov:not([hidden]) { flex: 1; min-height: 0; }
+#pause-menu .pm-up { flex: none; padding: 20px 64px 0; }
+#pause-menu .pm-up[hidden] { display: none; }
+/* Berichten en bellen bij een personage (#430) */
+#pause-menu .vh-viewer { overflow-y: auto; scrollbar-width: thin; }
+#pause-menu .vh-phone { display: flex; flex-direction: column; gap: 12px; }
+#pause-menu .vh-phone .ph-thread { flex: none; overflow: visible; }
+#pause-menu .vh-phone .ph-detail:empty { display: none; }
+#pause-menu .vh-phone h4 { margin: 8px 0 0; }

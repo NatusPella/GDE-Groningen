@@ -6,7 +6,7 @@
 // screen); Esc while one is up opens its thread here.
 import { dualHtml } from './subtitles.js';
 import { speakerHtml } from './speakers.js';
-import { noteSpoken } from './characters.js';
+import { noteSpoken, CHARACTERS, hasMet } from './characters.js';
 import { initCinematics, updateCinematics, cinematicPausesGameplay } from './cinematics.js';
 import { getNextMission } from './missions.js';
 import { getMissionList } from './missionquery.js';
@@ -260,7 +260,8 @@ function renderDetail(focusActs = false) {
   if (!panel || !panel.isConnected) return;
   const aside = panel.querySelector('.td-detail');
   const sub = panel.dataset.phSub;
-  if (sub === 'berichten') aside.innerHTML = thread ? threadHtml(thread) : '<p class="mut">Kies een gesprek om het te lezen.</p>';
+  if (sub === 'personage') aside.innerHTML = call ? callHtml() : note ? `<p class="mut">${esc(note)}</p>` : '';
+  else if (sub === 'berichten') aside.innerHTML = thread ? threadHtml(thread) : '<p class="mut">Kies een gesprek om het te lezen.</p>';
   else if (call) aside.innerHTML = callHtml();
   else aside.innerHTML = `<p class="mut">${note ? esc(note) : 'Kies iemand om te bellen.'}</p>`;
   for (const b of panel.querySelectorAll('[data-ph-contact]')) {
@@ -273,6 +274,48 @@ function renderDetail(focusActs = false) {
     const first = aside.querySelector('[data-ph-act]');
     if (first && !keep) first.focus({ preventScroll: true });
   }
+}
+
+// --- Verhaal > Personages (#430): de berichten, sms's, app-teksten en gesprekken staan bij het personage zelf; wat van niemand
+// is (nieuws, meldingen, een contact dat geen personage is) staat onder Overig. De telefoon is geen eigen onderdeel meer.
+export const OVERIG = '__overig';
+const lc = (x) => String(x || '').toLowerCase();
+// het personage (dat je kent) bij een afzender of contactnaam, of null
+function characterOf(name) {
+  const n = lc(name);
+  const c = CHARACTERS.find((ch) => lc(ch.name) === n || ch.speakers.some((sp) => lc(sp) === n) || lc(ch.name).split(' ')[0] === n);
+  return c && hasMet(c.id) ? c.id : null;
+}
+export const characterForSender = (name) => characterOf(name) || OVERIG;
+export function phoneUnreadFor(w, id) {
+  return ((w && w.phoneHistory) || []).filter((e) => !e.read && characterForSender(senderOf(e)) === id).length;
+}
+function markReadFor(id) {
+  for (const e of (world && world.phoneHistory) || []) if (characterForSender(senderOf(e)) === id) e.read = true;
+}
+function messagesHtml(id) {
+  const items = ((world && world.phoneHistory) || []).filter((e) => characterForSender(senderOf(e)) === id);
+  if (!items.length) return '<p class="m-note">Nog geen berichten.</p>';
+  let last = null;
+  return '<div class="ph-thread">' + items.map((e) => {
+    const from = senderOf(e);
+    const kop = id === OVERIG && from !== last ? `<h4 class="m-eb">${esc(from === 'Kiekdoar' ? 'Nieuws (Kiekdoar)' : from)}</h4>` : '';
+    last = from;
+    return `${kop}<div class="ph-msg"><span class="mut">${esc(e.at || '')}</span><p>${dualHtml(bodyOf(e))}</p></div>`;
+  }).join('') + '</div>';
+}
+// Het blok onder een personage: bellen (als het een contact is), het gesprek, en de berichten, nieuwste eerst.
+export function renderCharacterPhone(block, w, id) {
+  if (!block) return;
+  world = w;
+  panelRef = block;
+  block.dataset.phSub = 'personage';
+  block.dataset.phChar = id;
+  markReadFor(id);
+  const bel = contacts(w).map((c, i) => ({ c, i })).filter(({ c }) => characterForSender(c.speaker || c.name) === id)
+    .map(({ c, i }) => `<button type="button" class="m-bg ph-bel" data-ph-contact="${i}"${callIdx === i && call ? ' aria-current="true"' : ''}>Bel ${esc(c.name)}</button>`).join('');
+  block.innerHTML = `<h3 class="m-eb">${id === OVERIG ? 'Berichten en contacten' : 'Berichten'}</h3>${bel ? `<div class="m-acts ph-acts">${bel}</div>` : ''}<div class="td-detail ph-detail" aria-live="polite"></div>${messagesHtml(id)}`;
+  renderDetail();
 }
 
 // Draws the section's list for `sub` ('contacten' | 'berichten').
