@@ -7,10 +7,14 @@ import { getScene } from './scene3d.js';
 import { buildVehicleMesh, updateVehicleWheelSpin, applyFlatTire, updateIndicatorLamps, updatePoliceLamps, applyVehicleDamage, setBusRearAngle, updateBikeStaat } from './models3d_vehicles.js';
 import { poseHeliRotors } from './heli3d.js';
 import { uiterlijkSpec } from './coopworld.js';
+import { doorsFor, ensureDoors, wantDoor } from './vehicledoors.js';
+import { syncVehicleDoors } from './vehicledoors3d.js';
+import { standVers, MISC_DEUREN, leesDeuren } from './coopextra.js';
 import { WATER_Y } from './util.js';
 import { surfaceLiftAt } from './waterlevels.js';
 
 const voertuigen = new Map(); // id -> mesh
+const hornWas = new Map(); // id -> de toeter stond aan (de vorige keer)
 let beacon = null;
 const MATS = {};
 const mat = (c) => (MATS[c] ||= new THREE.MeshStandardMaterial({ color: c, roughness: 0.7 }));
@@ -68,11 +72,24 @@ function pasSchadeToe(m, look) {
   ud.dentSleutel = dentSleutel(look);
   return true;
 }
+// Open deuren van de host (MISC_DEUREN): de gast vraagt precies die deuren open en laat ze met dezelfde regels (vehicledoors.js) bewegen
+let deurenOpen = 0;
+function zetDeuren(m, spec, dt, deuren) {
+  const defs = doorsFor(spec); if (!defs.length) return;
+  const mask = deuren ? deuren.get(spec.id) || 0 : 0;
+  if (mask || spec.doors) {
+    const st = ensureDoors(spec);
+    defs.forEach((d, i) => { if (mask & (1 << i)) wantDoor(st, d.id, true, 0); else if (st.want[d.id]) wantDoor(st, d.id, false); });
+  }
+  syncVehicleDoors(m, spec, dt, null);
+  if (spec.doors && Object.values(spec.doors.open).some((x) => x > 0.3)) deurenOpen++;
+}
 // Wielen, sturen, richtingaanwijzers, zwaailicht, lekke band, rotor en de achterkant van een gelede bus, uit de staat van de host
-function animeerVoertuig(m, spec, v, klok, dt) {
+function animeerVoertuig(m, spec, v, klok, dt, deuren) {
   const ud = m.userData;
   spec.indicator = v.ind; spec.flat = v.lek; spec.sirenOn = v.sirene; spec.speed = v.snelheid; spec.steer = v.stuur; spec.horn = v.toeter;
   try {
+    zetDeuren(m, spec, dt, deuren);
     updateVehicleWheelSpin(m, v.snelheid, dt, v.stuur);
     if (v.lek || ud.flatIdx >= 0) applyFlatTire(m, spec);
     if (v.ind || ud.indLamps) updateIndicatorLamps(m, spec, klok);
@@ -115,6 +132,10 @@ export function syncHostEntities(world, dt = 1 / 60) {
   const host = world.coopHost || { voertuigen: [], doelen: [], voetgangers: [] };
   const seen = new Set();
   const klok = performance.now() / 1000;
+  const stand = world.coopExtra, md = stand && standVers(stand, world.time) ? stand.misc.get(MISC_DEUREN) : null;
+  const deuren = md ? (md.kaart || (md.kaart = leesDeuren(md.data) || new Map())) : null;
+  const sirenes = [];
+  deurenOpen = 0;
   for (const v of host.voertuigen) {
     seen.add(v.id);
     let m = voertuigen.get(v.id);
@@ -140,13 +161,26 @@ export function syncHostEntities(world, dt = 1 / 60) {
     const spec = m.userData.spec;
     if (spec && spec.isBoat) { let lift = 0; try { lift = world.map ? surfaceLiftAt(world.map, v.x, v.y) : 0; } catch (e) { lift = 0; } y = WATER_Y + (Number.isFinite(lift) ? lift : 0); }
     m.position.set(v.x, y, v.y); m.rotation.y = -v.angle;
-    if (spec && !m.userData.blok) animeerVoertuig(m, spec, v, klok, dt);
+    if (spec && !m.userData.blok) animeerVoertuig(m, spec, v, klok, dt, deuren);
+    // geluid: de toeter bij het aangaan van de vlag (met de toonhoogte van dit voertuig) en de sirene zolang hij aan staat, met de bestaande geluiden (audio.js)
+    const toet = !!v.toeter;
+    if (toet && !hornWas.get(v.id) && world.player && Math.hypot(v.x - world.player.x, v.y - world.player.y) < 130) {
+      world.coopHoornDbg = (world.coopHoornDbg || 0) + 1; // voor de testbank
+      (world.audioEvents || (world.audioEvents = [])).push(spec && (spec.isBike) ? { kind: 'bell', x: v.x, y: v.y } : { kind: 'horn', x: v.x, y: v.y, low: spec ? (spec.isBoat ? 0.45 : spec.isBus ? 0.7 : spec.model && spec.model.name === 'van' ? 0.85 : spec.isHeroCar ? 0.96 : 1) : 1 });
+    }
+    hornWas.set(v.id, toet);
+    if (v.sirene) sirenes.push({ x: v.x, y: v.y, angle: v.angle, speed: v.snelheid, sirenOn: true, isPolice: !!(spec && spec.isPolice), id: v.id });
   }
+  for (const id of hornWas.keys()) if (!seen.has(id)) hornWas.delete(id);
+  world.coopSirenUnits = sirenes; world.coopDeurenDbg = deurenOpen; world.coopSirenDbg = sirenes.length;
   if (klok - dbgT > 1) { // voor de testbank (eenmaal per seconde): wat de gast per voertuig laat zien
     dbgT = klok;
     const o = {};
     for (const [id, m] of voertuigen) { const u = m.userData; o[id] = [u.blok ? 'blok' : u.gok ? 'gok' : 'echt', u.wheels ? +u.wheels[0].rotation.z.toFixed(2) : null, u.frontWheels ? +u.frontWheels[0].rotation.y.toFixed(2) : null, u.indLamps ? u.indLamps.filter((l) => l.visible).length : 0, u.policeLamps ? +u.policeLamps[0].material.emissiveIntensity.toFixed(1) : null, u.rotorHoek ? +u.rotorHoek.toFixed(1) : null, u.dentLijst ? u.dentLijst.length : 0]; }
     world.coopHostDbg = o;
+    const pos = {}; // waar de gast ze tekent (boten en schepen: x, hoogte, y, richting), voor de testbank
+    for (const [id, m] of voertuigen) if (m.userData.spec && m.userData.spec.isBoat) pos[id] = [+m.position.x.toFixed(1), +m.position.y.toFixed(2), +m.position.z.toFixed(1), +m.rotation.y.toFixed(2), +m.rotation.x.toFixed(3)];
+    world.coopHostPos = pos;
   }
   for (const [id, m] of voertuigen) if (!seen.has(id)) { scene.remove(m); if (!m.userData.vehicleId) m.traverse((o) => { if (o.geometry) o.geometry.dispose(); }); voertuigen.delete(id); } // echte modellen delen hun geometrie
   for (const id of wacht.keys()) if (!seen.has(id)) wacht.delete(id);

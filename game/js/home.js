@@ -1266,6 +1266,11 @@ function parkOnPad(w) {
 // Every frame whatever the player is doing (flying the heli home, a pigeon,
 // padel, an activity): the garage streams in near, its merged shell stands
 // in for it further away.
+// Samen spelen (#428): de garagepoort van de host. De host meldt hoever hij open staat (coopextra.js MISC_WERELD); een gast laat zijn poort
+// precies zo staan (override: 1 open, 0 dicht, null: de poort volgt de speler zelf, zoals altijd).
+let poortOverride = null;
+export function zetGaragePoortVanHost(v) { poortOverride = v; }
+export function garagePoortToestand() { return home && home.garage && home.garage.door ? { x: home.garage.door.cx, y: home.garage.door.cy, open: doorOpen } : null; }
 export function updateHomeExterior(dt, w) {
   if (!home) return;
   world = w;
@@ -1302,7 +1307,7 @@ function streamExterior(w, dt, scene) {
   if (exterior.userData.pad) exterior.userData.pad.visible = !inside;
   const who = p.inVehicle || p;
   const dd = home.garage.door;
-  const want = Math.hypot(who.x - dd.cx, who.y - dd.cy) < DOOR_OPEN_M || inPoly(PLINTH, who.x, who.y) ? 1 : 0;
+  const want = poortOverride != null ? poortOverride : Math.hypot(who.x - dd.cx, who.y - dd.cy) < DOOR_OPEN_M || inPoly(PLINTH, who.x, who.y) ? 1 : 0;
   doorOpen += Math.max(-dt * 0.8, Math.min(dt * 0.8, want - doorOpen));
   setGarageDoor(exterior, doorOpen, GARAGE_H);
   // walls down only once you are really inside (through the roller door)
