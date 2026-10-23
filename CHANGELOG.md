@@ -6,6 +6,9 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Opgelost
+- **Machinist: de weg naar een treinrit is uitgelegd en de kaping is vergeven (#424; door een bot gespeeld, niet door een mens):** bij een stilstaande trein zegt de aanwijzing nu "Daarna G: de dienst rijden", de melding na het instappen zegt "Druk G: dan rijd je de dienst en is het geregeld", en de station-icoontjes op de kaart noemen de machinist-dienst. G in een gekaapte trein haalt de twee sterren van de kaping weg ("Je staat als machinist genoteerd"): eerder bleef de politie je tijdens de dienst opjagen, waardoor het voor niemand een dienst leek. Stap je aan het eind van de lijn aan de verkeerde kant in, dan staat er "Einde van de lijn: stap aan de andere kant van de trein in" in plaats van "Geen halte meer vooruit".
+
 ## [0.41.1] - 2026-10-23
 
 ### Nieuw

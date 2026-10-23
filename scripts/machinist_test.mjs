@@ -169,5 +169,11 @@ function ok_pay() {
   if (R.payFor({ made: 4, score: 80, medal: 2 }, true) !== 0 || R.payFor(null) !== 0) fail('abandoned pays nothing');
   if (R.payFor({ made: 0, score: 0, medal: 0 }) !== 0) fail('no halten, no pay');
 }
+// de dienst starten in een gekaapte trein vergeeft de sterren van de kaping (#424), andere sterren blijven
+{
+  if (R.wantedNaDienst(2, 2) !== 0 || R.wantedNaDienst(1, 2) !== 0) fail('de sterren van de kaping gaan weg');
+  if (R.wantedNaDienst(3, 2) !== 3) fail('meer sterren dan de kaping blijven');
+  if (R.wantedNaDienst(0, 2) !== 0 || R.wantedNaDienst(2, 0) !== 2) fail('niets te vergeven: niets verandert');
+}
 console.log(fails ? `${fails} failure(s)` : 'machinist: ok');
 process.exit(fails ? 1 : 0);
