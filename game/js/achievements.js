@@ -134,6 +134,9 @@ export const ACHIEVEMENTS = [
   { id: 'klim_foutloos', cat: 'verkennen', title: 'Niet één keer gevallen', desc: 'Klim de toren zonder te vallen' },
   { id: 'ski_klaar', cat: 'verkennen', title: 'Achter de boot', desc: 'Skie een ronde bij het Grunopark' },
   { id: 'ski_goud', cat: 'verkennen', title: 'Koning van het meer', desc: 'Haal goud bij het waterskiën', medal: true },
+  { id: 'vlieg_geslaagd', cat: 'verkennen', title: 'Eerste vlieglesje', desc: 'Haal een les bij Vliegschool De Windwijzer op Eelde' },
+  { id: 'vlieg_goud', cat: 'verkennen', title: 'Goud in de lucht', desc: 'Haal goud bij een vliegles', medal: true },
+  { id: 'vlieg_brevet', cat: 'verkennen', title: 'Vliegbrevet', desc: 'Haal alle dertien lessen van de vliegschool, met vliegtuig en helikopter' },
   { id: 'carillon_klaar', cat: 'verkennen', title: 'Klokkenspeler', desc: 'Speel een deuntje op de klokken van de Martinitoren' },
   { id: 'carillon_goud', cat: 'verkennen', title: 'Stadsbeiaardier', desc: 'Haal goud op het klokkenspel', medal: true },
   { id: 'snackketen_eerste', cat: 'verkennen', title: 'Eigen snackbar', desc: 'Koop je eerste Kroketkoning-snackbar' },
@@ -215,6 +218,7 @@ export const ACHIEVEMENTS = [
   { id: 'sj_alle', cat: 'bijbaan', title: 'Duizendpoot', desc: 'Rond bij alle zes bijbaantjes een klus af', set: 'sjJobs', goal: 6 },
   { id: 'sj_geld', cat: 'bijbaan', title: 'Eerlijk verdiend', desc: 'Verdien in totaal €5.000 met bijbaantjes', stat: 'sjEarned', goal: 5000, unit: '€' },
   { id: 'sj_bezorger', cat: 'bijbaan', title: 'Nog warm!', desc: 'Bezorg 8 bestellingen op rij in één dienst', stat: 'sj_bezorger_streak', goal: 8 },
+  { id: 'sj_krantenwijk', cat: 'bijbaan', title: 'Elke bus raak', desc: 'Bezorg 4 wijken op rij in één dienst', stat: 'sj_krantenwijk_streak', goal: 4 },
   { id: 'sj_taxi', cat: 'bijbaan', title: 'Moi, waar mag het heen?', desc: 'Rijd 6 taxiritten op rij in één dienst', stat: 'sj_taxi_streak', goal: 6 },
   { id: 'sj_bus', cat: 'bijbaan', title: 'Keurig op tijd', desc: 'Rijd een hele buslijn zonder één keer te laat te zijn' },
   { id: 'sj_rondvaart', cat: 'bijbaan', title: 'Links ziet u...', desc: 'Vaar een rondvaart zonder één stukje uitleg te missen' },
@@ -237,6 +241,20 @@ export const ACHIEVEMENTS = [
   { id: 'reizen_25', cat: 'spoor', title: 'Vaste klant op het spoor', desc: 'Reis 25 keer met de trein', stat: 'trainTrips', goal: 25 },
   { id: 'slapen_5', cat: 'sociaal', title: 'Goed uitgerust', desc: 'Slaap vijf keer in je eigen bed', stat: 'slept', goal: 5 },
   { id: 'hengel_5', cat: 'verkennen', title: 'Geduldige visser', desc: 'Hengel vijf rondes in Meerstad', stat: 'hengelSessions', goal: 5 },
+  { id: 'vis_10', cat: 'verkennen', title: 'Tien soorten', desc: 'Vang tien verschillende vissoorten voor je visboek', set: 'vissoorten', goal: 10 },
+  { id: 'vis_20', cat: 'verkennen', title: 'Twintig soorten', desc: 'Vang twintig verschillende vissoorten voor je visboek', set: 'vissoorten', goal: 20 },
+  { id: 'vis_alles', cat: 'verkennen', title: 'Alle vis van het Noorden', desc: 'Vang alle 29 vissoorten uit het visboek' },
+  { id: 'vis_plekken_5', cat: 'verkennen', title: 'Vijf viswateren', desc: 'Hengel op vijf verschillende wateren', set: 'visplekken', goal: 5 },
+  { id: 'vis_plekken_15', cat: 'verkennen', title: 'Vaste bezoeker van het water', desc: 'Hengel op vijftien verschillende wateren', set: 'visplekken', goal: 15 },
+  { id: 'vis_100', cat: 'verkennen', title: 'Honderd vissen', desc: 'Vang honderd vissen', stat: 'visVangsten', goal: 100 },
+  { id: 'vis_gracht', cat: 'verkennen', title: 'Grachtenvisser', desc: 'Vang alle soorten van de stadsgrachten' },
+  { id: 'vis_plas', cat: 'verkennen', title: 'Plasvisser', desc: 'Vang alle soorten van de plassen en vijvers' },
+  { id: 'vis_meer', cat: 'verkennen', title: 'Heer van het meer', desc: 'Vang alle soorten van de meren' },
+  { id: 'vis_kanaal', cat: 'verkennen', title: 'Kanaaljager', desc: 'Vang alle soorten van de kanalen en vaarten' },
+  { id: 'vis_rivier', cat: 'verkennen', title: 'Riviermeester', desc: 'Vang alle soorten van de rivieren en diepen' },
+  { id: 'vis_sloot', cat: 'verkennen', title: 'Slootjesspringer', desc: 'Vang alle soorten van de sloten' },
+  { id: 'vis_wad', cat: 'verkennen', title: 'Waddenvisser', desc: 'Vang alle soorten van de Waddenzee en de Dollard' },
+  { id: 'vis_meerval', cat: 'verkennen', title: 'De reus van het Noorden', desc: 'Vang een meerval', hidden: true },
   { id: 'skate_10', cat: 'verkennen', title: 'Skatepark-vaste', desc: 'Skate tien rondes in het Stadspark', stat: 'skateRuns', goal: 10 },
   { id: 'drift_5000', cat: 'rijden', title: 'Rookwolk', desc: 'Haal 5000 punten in één driftronde', hidden: true },
   { id: 'trein_meerijden_5', cat: 'spoor', title: 'Raampje open', desc: 'Kijk vijf treinritten helemaal uit zonder over te slaan', stat: 'trainRidesWatched', goal: 5 },
@@ -357,6 +375,11 @@ let statListener = null;
 export function setStatListener(fn) {
   statListener = typeof fn === 'function' ? fn : null;
 }
+// gebiedenlive.js (#414) hears every new unique (a find, a secret) too.
+let uniekListener = null;
+export function setUniekListener(fn) {
+  uniekListener = typeof fn === 'function' ? fn : null;
+}
 export function lifetimeSnapshot() {
   return { stats: { ...life.stats }, sets: Object.fromEntries(Object.entries(life.sets).map(([k, v]) => [k, v.slice()])) };
 }
@@ -419,6 +442,7 @@ export function recordUnique(w, key, value) {
   list.push(value);
   markDirty();
   checkGoals((a) => a.set === key);
+  if (uniekListener) uniekListener(world, key, value);
   return true;
 }
 

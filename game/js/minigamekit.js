@@ -140,7 +140,7 @@ export function createBoard(title, accent) {
       if (s.cells) {
         el.cells.hidden = false;
         el.cells.innerHTML = s.cells.map((c) => `<i class="${c.cls || ''}"${c.key ? ` data-k="${c.key}"` : ''}>${c.t}</i>`).join('');
-      } else el.cells.hidden = true;
+      } else { el.cells.hidden = true; el.cells.innerHTML = ''; } // .mg-cells heeft display:flex: hidden alleen verbergt niets, dus ook leegmaken
       if (s.meter) {
         el.meter.hidden = false;
         el.bar.style.width = `${Math.round(clamp(s.meter.v, 0, 1) * 100)}%`;

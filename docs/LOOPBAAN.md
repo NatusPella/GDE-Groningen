@@ -5,15 +5,15 @@ Voor wie aan `loopbaan.js`, `loopbaanlive.js`, `loopbaanui.js` of een vak werkt 
 
 ## Wat de speler ziet
 
-Pauzemenu › **Loopbaan**: zestien vakken in drie groepen (vervoer, werk, sport en spel). Per vak een icoon, het niveau (1 tot 6), de
+Pauzemenu › **Loopbaan**: negentien vakken in drie groepen (vervoer, werk, sport en spel). Per vak een icoon, het niveau (1 tot 6), de
 functietitel van dat niveau en een balk naar het volgende. Rechts staat wat je in het gekozen vak gedaan hebt (kilometers, ritten,
 potjes, verschillende plekken), wat er nog nodig is voor de volgende titel en hoeveel meer het vak betaalt. Voor de vakken met
 bijbanen staan alle bijbanen eronder, met een vinkje voor wat je al gedaan hebt. Een niveau omhoog komt als een kaartje: *"Kaartjesknipper: Spoor niveau 3, 10% meer loon"*.
 
 | Groep | Vakken (titel op niveau 1 → 6, bijvoorbeeld bij Spoor: Perronstaander → Spoorbaas van het Noorden) |
 |---|---|
-| Vervoer | Spoor (km), Bus (km), Taxi, Bezorging, Water (km), Lucht |
-| Werk | Handhaving, Kantoor, Podium, Horeca, Kermis, Klussen |
+| Vervoer | Spoor (km), Bus (km), Taxi, Bezorging, Vrachtwagen, Water (km), Lucht |
+| Werk | Handhaving, Kantoor, Podium, Horeca, Kermis, Landbouw (Bietenoogst, Balenrit), Klussen |
 | Sport en spel | Padel, Golf (disc en pitch and putt), Racen (kart, drift, regatta, bruggenrace), Buiten (hengelen, skaten, skiën, klimmen) |
 
 Alle titels zijn verzonnen (geen echte bedrijven of beroepsorganisaties) en staan in `VAKKEN` in `loopbaan.js`.
@@ -36,6 +36,7 @@ Waar de punten vandaan komen (de haken zijn klein en staan bij de bestaande plek
 - **Spoor**: kilometers van elke treinreis (`stationtravel.js`, 1,5 punt per km, plus het station als nieuwe plek), een dienst als machinist
   (`machinist.js`, loon met de factor) en korting op het kaartje (`loopbaanPrijs`: de prijs gedeeld door de factor).
 - **Bus en Water**: kilometers die je zelf in een bus of een boot rijdt (`achievementtracker.js`, 3 punten per km), naast de ronden van de bijbanen.
+- **Lucht, vliegschool** (`vliegschool.js`): elke afgeronde les met een medaille betaalt `loopbaanVerdien(w, 'lucht', ...)`: 25, 40 en 60 euro voor de eerste keer dat je brons, zilver en goud haalt (nooit opnieuw voor dezelfde medaille, dus geen geld te kweken), 14 tot 28 punten voor een nieuwe medaille en 6 punten voor opnieuw doen; elke les is een nieuwe plek (8 punten extra, één keer). Een les zonder medaille geeft 2 punten.
 - **Padel, Racen, Kermis, Buiten**: de plek die de prijs uitbetaalt roept `loopbaanVerdien` aan (`padel.js`, `driftzone.js`,
   `kermis.js`, `carbid.js`, `postgame.js`); kart en regatta betaalden niets en krijgen een kleine **premie** (tot €30, afnemend per plaats).
 - **De rest** (discgolf, pitch and putt, hengelen, skaten, skiën, klimmen, helikopter, pannenkoekenschip, reuzenrad, zwemmen, wandelen):
@@ -71,6 +72,14 @@ tijden per gebeurtenis die in de test staan (geschat uit de speeltesten); een ni
   Een beloning zonder `vak` (een missie) werkt zoals voor de loopbaan.
 - Niet gedaan: de titel bij de naam van een speler (optioneel in het ontwerp) en punten voor kilometers die een gast als passagier maakt.
 
+## Bietenoogst (#393)
+
+Bijbaan "Bietenoogst" van het verzonnen Akkerbouw Zonnehoek (`sidejob_bieten.js`, regels in `bietenrules.js`, vak Landbouw): eerst vier rijen
+bieten rooien met de trekker, recht door de rij en tussen 2 en 6 à 7 m/s (te hard rooit slordig, daarbuiten niets), daarna de oogst naar de
+bietenhoop van Suikerhal Hoogkerk brengen zonder dat de kar leeg strooit. De adapter zoekt bij de fabriek een vrije, vlakke akker zonder water,
+gebouwen of wegen (`vindAkker`), zet de rijen neer en laat de bieten verdwijnen terwijl je rooit. Altijd een zonnige dag. Het vak Vrachtwagen
+bevat de vracht-bijbaan, de melkrit en Suikerbieten naar de fabriek. Ploegen en zaaien zijn bewust niet gemaakt: dat zijn voorjaar en herfst.
+
 ## Een haak toevoegen
 
 1. Vak en eenheid staan in `VAKKEN`; een nieuwe bijbaan komt in `BAAN_VAK` (de test controleert dat elke bijbaan uit de bron er staat).
@@ -80,3 +89,21 @@ tijden per gebeurtenis die in de test staan (geschat uit de speeltesten); een ni
 4. Draai `node scripts/loopbaan_test.mjs`, `loopbaan_balans_test.mjs` en `loopbaan_coop_test.mjs`.
 
 Niet door een mens in beeld bekeken: zie het changelog voor wat Claude in beeld heeft gezien.
+
+## Hengelen overal in de provincie (#412)
+
+Vak **Hengelen** (`hengelen`, groep sport en spel, eenheid vangsten, uniek: plekken): titels Dobbertjeskijker tot Visbaas van het Noorden. Het vak
+hoort bij `hengelen.js`; de soorten en het geld staan in `visdata.js`, het water in `hengelplek.js`, het visboek in `visboek.js` (opslag
+`gde-visboek-v1`, per speler, nooit in een savegame) en het scherm in `visboekui.js` (pauzemenu › Visboek). Test: `scripts/vis_test.mjs`.
+
+- **Waar:** op elk water waar je aan de kant staat (binnen 3,2 m van de rand) of met een boot die bijna stilligt: **I** hengelt vrij, zonder klok. Aan
+  het meer in Meerstad blijft de wedstrijd van negentig seconden (E bij de steiger), met dezelfde vissen als altijd.
+- **Welke vis:** het watertype (stadsgracht, plas, meer, kanaal, rivier, sloot, Waddenzee en Dollard) volgt uit de naam en de soort van de
+  waterpolygoon. Elk type heeft zijn eigen lijst van echte Nederlandse soorten (29 in totaal) met een gewicht; 's nachts en in de schemer bijten paling,
+  snoekbaars en meerval beter, regen helpt brasem en zeeforel. Het is altijd zomer: er is geen seizoen.
+- **Geld:** een vangst is `(0,2 + 0,2 per kg)` euro keer de zeldzaamheid (1 tot 8) keer een groei van `1 + 0,03 per ontdekte soort + 0,02 per plek` (hooguit 1,8).
+  De kas loopt in hele euro's naar de portemonnee via `loopbaanVerdien` (dus met de loonfactor van het niveau, hooguit +30%) en wordt bij het stoppen
+  afgerond. Zonder niveaus: 120 tot 270 euro per uur, met alles ontdekt tot ongeveer 400; `loopbaan_balans_test.mjs` en `vis_test.mjs` bewaken de verhouding
+  met de bijbanen. De gasten bij samen spelen krijgen er niets van (`deel: false`): ze hengelen op hun eigen apparaat in hun eigen boek.
+- **Punten:** een vangst geeft 1 tot 15 punten naar zeldzaamheid, een nieuwe soort 6 extra en een nieuw water 8.
+- **Prestaties:** tien, twintig en alle soorten, vijf en vijftien wateren, honderd vissen, per watertype alle soorten, en de meerval.

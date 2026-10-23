@@ -251,8 +251,10 @@ async function neemSlot(max = 3, wachtMs = 90 * 60e3) {
       try { if (Date.now() - fs.statSync(d).mtimeMs > 90 * 60e3) fs.rmdirSync(d); } catch { /* weg */ }
     }
     if (Date.now() - t0 > wachtMs) throw new Error('geen Electron-slot vrijgekomen');
-    log('wacht op een Electron-slot...');
-    await slaap(60e3);
+    // GDE_LOCK_POLL_MS: andere sessies pollen elke seconde, een poll per minuut wint nooit een slot
+    const poll = Number(process.env.GDE_LOCK_POLL_MS) || 60e3;
+    if (poll >= 60e3 || Math.floor((Date.now() - t0) / poll) % Math.round(60e3 / poll) === 0) log('wacht op een Electron-slot...');
+    await slaap(poll);
   }
 }
 const geefSlot = (d) => { if (d) try { fs.rmdirSync(d); } catch { /* al weg */ } };
@@ -373,8 +375,8 @@ async function faseElectron(prev, staat) {
   });
 
   const botSweep = (naam, mode) => stap(naam, async () => {
-    const d = stapDir(naam), ms = 45 * 60e3;
-    const r = await runCmd(process.execPath, ['scripts/bot/run.mjs', `--mode=${mode}`, `--out=${d}`, '--force'], { ms, env: env(naam) });
+    const d = stapDir(naam), ms = (mode === 'missions' ? 70 : 45) * 60e3; // missies: de bot speelt eerlijk, akte 1 (M00 tot M06) past niet meer in de standaard 30 minuten (#387)
+    const r = await runCmd(process.execPath, ['scripts/bot/run.mjs', `--mode=${mode}`, `--out=${d}`, '--force', ...(mode === 'missions' ? ['--max-wall=3600'] : [])], { ms, env: env(naam) });
     fs.writeFileSync(path.join(d, 'sweep.log'), r.out);
     let analyse = '';
     if (fs.existsSync(path.join(d, 'events.jsonl'))) {

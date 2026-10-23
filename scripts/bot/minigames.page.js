@@ -54,6 +54,8 @@ const PLAN = {
   waterski: [[['e'], 150], [[' '], 150], [['a'], 300], [['d'], 300]],
   carillon: [[['arrowright'], 150], [['enter'], 150], [['e'], 150], [['q'], 150]],
   skatepark: [[['w'], 800], [[' '], 150], [['e'], 150]],
+  // de vliegschool kiest met cijfers: 1 = vliegtuig, dan les 1 (ringen); daarna gas en een bocht (de echte vlucht: scripts/ui/shots_scenes_s6.js --only=vliegschool)
+  vliegschool: [[['1'], 200], [['1'], 200], [['w'], 1500], [['d'], 400], [['w'], 1500], [['a'], 400]],
 };
 const DEFAULT_PLAN = [[['w'], 800], [[' '], 150], [['e'], 150], [['d'], 300], [['a'], 300]];
 

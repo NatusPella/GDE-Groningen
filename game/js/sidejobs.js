@@ -26,6 +26,7 @@ import { dist, isInWater } from './util.js';
 import { releaseVehicle, removeVehicle, removePed, euro } from './sidejobkit.js';
 import { jobVoiceFor, sayJobLine, sayDuoJobLine } from './sidejobvoice.js';
 import bezorger from './sidejob_bezorger.js';
+import krantenwijk from './sidejob_krantenwijk.js';
 import taxi from './sidejob_taxi.js';
 import bus from './sidejob_bus.js';
 import rondvaart from './sidejob_rondvaart.js';
@@ -40,8 +41,11 @@ import lijn from './sidejob_lijn.js';
 import { BIJBAAN_JOBS } from './sidejob_bijbaan.js';
 import { veerdienst } from './sidejob_veer.js';
 import { PANEEL_JOBS } from './sidejob_paneel.js';
-import { loket, studiestaat, vigilantia, promotie, kamerkoning, wolkenhal, helix, niemeyer, bernard } from './sidejob_keuze.js';
+import tjalke from './sidejob_tjalke.js';
+import { loket, studiestaat, vigilantia, promotie, kamerkoning, wolkenhal, helix, niemeyer, bernard, energielabel } from './sidejob_keuze.js';
 import { STAD_JOBS } from './sidejob_stad.js';
+import bietenoogst from './sidejob_bieten.js';
+import boerderij from './sidejob_boerderij.js';
 import { SIDEJOB_PAY_MULT, SIDEJOB_LEVEL_BONUS, SIDEJOB_ACCIDENT_FINE } from './economy.js';
 import { playerBusy } from './busy.js';
 import { jobBonusHook } from './latehooks.js';
@@ -49,7 +53,7 @@ import { noteMoney } from './finance.js';
 import { loopbaanLoon, loopbaanTel, loopbaanDeel } from './loopbaanlive.js';
 import { vakVanBaan } from './loopbaan.js';
 
-export const SIDE_JOBS = [bezorger, taxi, bus, rondvaart, fietsdepot, verhuizing, rondvaarttour, boa, rechtbank, cabaret, vracht, loket, studiestaat, vigilantia, promotie, kamerkoning, wolkenhal, helix, niemeyer, bernard, lijn, ...BIJBAAN_JOBS, veerdienst, ...PANEEL_JOBS, ...STAD_JOBS];
+export const SIDE_JOBS = [bezorger, krantenwijk, taxi, bus, rondvaart, fietsdepot, verhuizing, rondvaarttour, boa, rechtbank, cabaret, vracht, loket, studiestaat, vigilantia, promotie, kamerkoning, wolkenhal, helix, niemeyer, bernard, energielabel, tjalke, lijn, ...BIJBAAN_JOBS, veerdienst, ...PANEEL_JOBS, ...STAD_JOBS, bietenoogst, boerderij];
 const BY_ID = new Map(SIDE_JOBS.map((j) => [j.id, j]));
 
 export const JOB_TARGET_COLOR = '#ff9a3c';
@@ -99,7 +103,7 @@ export function getSideJobList() {
 }
 
 // Rough pay per round for the phone's job app until the player has own figures.
-const PAY_GUESS = { lijn: [60, 120], bezorger: [27, 55], taxi: [25, 60], bus: [90, 140], rondvaart: [55, 105], rondvaarttour: [40, 80], fietsdepot: [45, 90], verhuizing: [80, 180], boa: [38, 60], rechtbank: [60, 105], cabaret: [25, 85], vracht: [70, 130], loket: [52, 90], studiestaat: [62, 110], vigilantia: [56, 98], promotie: [58, 100], kamerkoning: [52, 92], wolkenhal: [58, 100], helix: [54, 92], niemeyer: [54, 94], bernard: [48, 84], museumbus: [48, 86], suikerbieten: [50, 90], herstelploeg: [66, 96], oogtv: [69, 93], telefoonrave: [40, 85], vandermeden: [56, 90], schouwburg: [56, 92], bernardrit: [52, 84] };
+const PAY_GUESS = { lijn: [60, 120], bezorger: [27, 55], krantenwijk: [24, 46], taxi: [25, 60], bus: [90, 140], rondvaart: [55, 105], rondvaarttour: [40, 80], fietsdepot: [45, 90], verhuizing: [80, 180], boa: [38, 60], rechtbank: [60, 105], cabaret: [25, 85], vracht: [70, 130], loket: [52, 90], studiestaat: [62, 110], vigilantia: [56, 98], promotie: [58, 100], kamerkoning: [52, 92], wolkenhal: [58, 100], helix: [54, 92], niemeyer: [54, 94], bernard: [48, 84], energielabel: [54, 94], tjalke: [300, 400], museumbus: [48, 86], suikerbieten: [50, 90], bietenoogst: [70, 110], boerderij: [40, 250], herstelploeg: [66, 96], oogtv: [69, 93], telefoonrave: [40, 85], vandermeden: [56, 90], schouwburg: [56, 92], bernardrit: [52, 84] };
 
 // Phone job app: every job with pay, distance and why it can't start now.
 export function getSideJobOffers(w) {
@@ -175,7 +179,7 @@ export function initSideJobs(w) {
   }
   if (scene) buildBeacon(scene);
   w.sideJob = pub;
-  w.sideJobActions = { active: () => !!ctx, stop: () => quitSideJob(), name: () => (ctx ? ctx.job.name : '') };
+  w.sideJobActions = { active: () => !!ctx, stop: () => quitSideJob(), name: () => (ctx ? ctx.job.name : ''), vehicle: () => (ctx ? ctx.vehicle : null) };
   w.onRespawn.push((ww, { busted }) => {
     if (ctx) endShift('dead', busted ? 'Opgepakt: de dienst zit erop' : 'Je bent neergegaan: de dienst zit erop');
   });
@@ -219,6 +223,7 @@ function makeCtx(job, spot) {
     complete: (res) => completeRound(c, res),
     fail: (reason) => endShift('fail', reason),
     skip: (text) => skipRound(c, text),
+    quit: (reason) => endShift('quit', reason),
     pay: (base) => payFor(c, base),
     addMesh: (m) => { const sc = getScene(); if (sc) sc.add(m); c.meshes.push(m); return m; },
     removeMesh: (m) => { if (m && m.parent) m.parent.remove(m); const i = c.meshes.indexOf(m); if (i >= 0) c.meshes.splice(i, 1); },
@@ -229,11 +234,13 @@ function makeCtx(job, spot) {
   return c;
 }
 
-function startJob(job) {
+function startJob(job, takeover = null) {
   if (!job || ctx) return false;
   const spot = spots.find((s) => s.job === job) || { job, x: world.player.x, y: world.player.y };
-  if (leftover) { removeVehicle(world, leftover); leftover = null; }
+  if (leftover && !(takeover && leftover === takeover.vehicle)) removeVehicle(world, leftover);
+  leftover = null;
   const c = makeCtx(job, spot);
+  c.takeover = takeover; // de dienst van een rijdende bus overnemen (#396): { vehicle, line, dir }
   let ok;
   try { ok = job.start(c); } catch (e) { console.error(e); ok = 'Er ging iets mis bij het klaarzetten'; }
   if (ok !== true) {
@@ -245,7 +252,7 @@ function startJob(job) {
   rec(job.id).shifts++;
   const lvl = c.level;
   const kicker = `Bijbaantje · niveau ${lvl}: ${levelTitle(lvl)}`;
-  const intro = !job.noIntro && !seen.has(job.id) && playMissionIntro(world, { kicker, title: job.name, objective: c.vehicle || null, ...introLines(job) });
+  const intro = !takeover && !job.noIntro && !seen.has(job.id) && playMissionIntro(world, { kicker, title: job.name, objective: c.vehicle || null, ...introLines(job) });
   if (intro) seen.add(job.id);
   else {
     world.addMessage(`${job.name}: ${job.tagline || job.blurb}`, 3.5);
@@ -325,6 +332,8 @@ function completeRound(c, res = {}) {
     world.phoneNotifications.push({ text: 'KIEKDOAR: ' + c.job.sikkom(c), duration: 4, say: say && say.lines[0] });
   }
   c.timeLeft = null;
+  // a job that is played once (job.once: the ride to Tjalke, #411) ends its shift after the pay, not with a next round
+  if (c.job.once) { endShift('quit', c.job.onceText || 'Klaar, in één keer'); return; }
   c.nextRoundAt = world.time + NEXT_ROUND_DELAY;
   c.betweenRounds = true;
 }
@@ -532,6 +541,17 @@ export function trySideJobInteract(w) {
   if (why) { w.addMessage(why, 2.5); return consume(); }
   startJob(s.job);
   return consume();
+}
+
+// Waarom je de dienst van deze bus nu niet kunt overnemen (tekst), of null als het kan (#396).
+export function busShiftBlock(w) { return blockReason(w); }
+
+// De dienst van een lijnbus overnemen: de bijbaan Streekbus op de lijn, richting en volgende halte van deze bus.
+export function startBusShift(w, vehicle, line, dir) {
+  world = w;
+  const why = blockReason(w);
+  if (why) { w.addMessage(why, 2.5); return false; }
+  return startJob(BY_ID.get('lijn'), { vehicle, line, dir });
 }
 
 export function sideJobPrompt(w) {
@@ -903,11 +923,33 @@ export function drawJobGlyph(g, glyph, r, bg) {
       g.beginPath(); g.arc(-0.22, -0.06, 0.12, 0, Math.PI * 2); g.arc(0.22, -0.06, 0.12, 0, Math.PI * 2); g.fill();
       g.fillRect(-0.28, 0.2, 0.56, 0.1);
       break;
+    case 'energielabel':   // a house with a label bar
+      g.moveTo(-0.8, -0.04); g.lineTo(0, -0.74); g.lineTo(0.8, -0.04); g.closePath();
+      g.fill();
+      g.fillRect(-0.58, -0.04, 1.16, 0.7);
+      g.fillStyle = bg;
+      for (const [i, w] of [[0, 0.3], [1, 0.46], [2, 0.62], [3, 0.78]]) g.fillRect(-0.46, 0.04 + i * 0.15, w, 0.09);
+      break;
+    case 'tjalke':   // a traffic cone with a white band
+      g.moveTo(0, -0.78); g.lineTo(0.5, 0.5); g.lineTo(-0.5, 0.5); g.closePath();
+      g.fill();
+      g.fillRect(-0.74, 0.5, 1.48, 0.2);
+      g.fillStyle = bg;
+      g.fillRect(-0.3, -0.1, 0.6, 0.16);
+      break;
     case 'bernard':   // an umbrella
       g.moveTo(-0.84, 0.0); g.quadraticCurveTo(0, -1.0, 0.84, 0.0); g.quadraticCurveTo(0.42, -0.14, 0, 0.0); g.quadraticCurveTo(-0.42, -0.14, -0.84, 0.0);
       g.fill();
       g.lineWidth = 0.12;
       g.beginPath(); g.moveTo(0, 0.0); g.lineTo(0, 0.6); g.quadraticCurveTo(0, 0.82, 0.22, 0.82); g.stroke();
+      break;
+    case 'krant':   // a rolled-up newspaper with a band
+      g.roundRect(-0.78, -0.3, 1.56, 0.6, 0.3);
+      g.fill();
+      g.fillStyle = bg;
+      g.fillRect(-0.12, -0.3, 0.24, 0.6);
+      g.fillStyle = '#f2ede0';
+      g.fillRect(-0.62, -0.08, 0.34, 0.06); g.fillRect(0.28, 0.06, 0.34, 0.06);
       break;
     default:
       g.arc(0, 0, 0.5, 0, Math.PI * 2); g.fill();

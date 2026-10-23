@@ -23,8 +23,13 @@ export function pickFish(rand) {
   return FISH[0];
 }
 
-export function createHengel(rand) {
-  return { phase: 'idle', t: 0, left: HENGEL.duration, timer: 0, fish: null, bite: 0, kg: 0, catches: [], lost: 0, scared: 0, rand, flash: null };
+// opts (hengelen overal, #412): kies(rand) -> { id, name, kg, window } kiest de vis van dit water in plaats van de vaste
+// Meerstad-lijst, duur is de tijd (Infinity: vrij hengelen zonder klok) en wacht is [min, max] seconden tot de beet.
+export function createHengel(rand, opts = {}) {
+  return {
+    phase: 'idle', t: 0, left: opts.duur ?? HENGEL.duration, timer: 0, fish: null, bite: 0, kg: 0, catches: [], lost: 0, scared: 0, rand, flash: null,
+    kies: opts.kies || null, wacht: opts.wacht || [HENGEL.waitMin, HENGEL.waitMax], vangsten: [],
+  };
 }
 
 // inp: { cast: bool } (Spatie); returns events
@@ -39,7 +44,7 @@ export function stepHengel(st, inp, dt) {
     if (press) { st.phase = 'cast'; st.timer = HENGEL.castT; ev.push({ type: 'cast' }); }
   } else if (st.phase === 'cast') {
     st.timer -= dt;
-    if (st.timer <= 0) { st.phase = 'wait'; st.timer = HENGEL.waitMin + st.rand() * (HENGEL.waitMax - HENGEL.waitMin); st.fish = pickFish(st.rand); }
+    if (st.timer <= 0) { st.phase = 'wait'; st.timer = st.wacht[0] + st.rand() * (st.wacht[1] - st.wacht[0]); st.fish = st.kies ? st.kies(st.rand) : pickFish(st.rand); }
   } else if (st.phase === 'wait') {
     st.timer -= dt;
     if (press) { st.phase = 'scare'; st.timer = HENGEL.scareT; st.scared++; ev.push({ type: 'early' }); }
@@ -49,6 +54,7 @@ export function stepHengel(st, inp, dt) {
     if (press) {
       st.kg = Math.round((st.kg + st.fish.kg) * 100) / 100;
       st.catches.push(st.fish.id);
+      st.vangsten.push({ id: st.fish.id, kg: st.fish.kg });
       ev.push({ type: 'catch', fish: st.fish.id, kg: st.fish.kg });
       st.phase = 'idle'; st.fish = null;
     } else if (st.bite <= 0) { st.lost++; ev.push({ type: 'lost', fish: st.fish.id }); st.phase = 'idle'; st.fish = null; }

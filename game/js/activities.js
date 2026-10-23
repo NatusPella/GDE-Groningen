@@ -3,7 +3,7 @@
 // (kermis.js), the hidden little things around town (geheimen.js), the
 // drift zones, and Minigames batch 1: discgolf and pitch & putt around the
 // Stadspark, the skatepark there and the kart track at Kardinge; batch 2: the
-// swimming pool, the climbing tower and the water-ski lake (standactivity.js). One
+// swimming pool, the climbing tower and the water-ski lake (standactivity.js); the flying school on Eelde (vliegschool.js). One
 // list, so the prompts, the E key, the frame loop, the maps, Ubbo and the
 // spot check each have a single hook here instead of one per activity.
 //
@@ -33,6 +33,8 @@ import { WANDELING } from './wandeling.js';
 import { SNACKKETEN } from './snackketen.js';
 import { EVENEMENTEN } from './evenementenact.js';
 import { REGATTA_GAME } from './regatta.js';
+import { VLIEGSCHOOL } from './vliegschool.js';
+import { SAFEHUIS } from './safehuizen.js';
 import { isShopOpen } from './shopui.js';
 import { isCinematicActive, showBanner } from './cinematics.js';
 import { getScene } from './scene3d.js';
@@ -43,7 +45,7 @@ export { activityBlock, iconDisc } from './activitykit.js';
 
 Object.assign(gameUi, { getScene, showBanner, showCard });
 
-const LIST = [CARBID, KERMIS, HOOGVLIEGER, GEHEIMEN, DRIFT_ZONE, DISCGOLF, PITCHPUTT, SKATEPARK, KARTBAAN, ZWEMBAD, KLIMTOREN, WATERSKI, CARILLON_GAME, PANNENKOEK, HENGELEN, WANDELING, SNACKKETEN, EVENEMENTEN, REGATTA_GAME];
+const LIST = [CARBID, KERMIS, HOOGVLIEGER, GEHEIMEN, DRIFT_ZONE, DISCGOLF, PITCHPUTT, SKATEPARK, KARTBAAN, ZWEMBAD, KLIMTOREN, WATERSKI, CARILLON_GAME, PANNENKOEK, HENGELEN, WANDELING, SNACKKETEN, EVENEMENTEN, REGATTA_GAME, VLIEGSCHOOL, SAFEHUIS];
 
 export function initActivities(w) {
   for (const a of LIST) {
