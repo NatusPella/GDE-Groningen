@@ -69,7 +69,7 @@ export function trainPrompt(world) {
   const parked = b.t.state === 'parked';
   return {
     id: 'trein-kapen', x: b.x, y: b.y, h: b.t.cfg.height + 0.6, key: 'E', label: parked ? 'Instappen' : 'Trein kapen',
-    sub: parked ? 'Rij verder met de gekaapte trein' : `${b.t.cfg.label} stelen: de politie ziet het`, ring: true,
+    sub: parked ? 'Daarna G: de dienst rijden, of rij zelf verder' : `${b.t.cfg.label} stelen (twee sterren). Daarna G: de dienst rijden`, ring: true,
   };
 }
 
@@ -106,7 +106,8 @@ function board(world, { t, cab }) {
   if (fresh) {
     world.wanted = Math.max(world.wanted, STEAL_STARS);
     world.wantedDecayTimer = 0;
-    world.addMessage('Trein gekaapt! De meldkamer weet het al', 3.5);
+    world.trainSteal = STEAL_STARS; // G (de dienst rijden) maakt van de dief een machinist (machinist.js, #424)
+    world.addMessage('Trein gekaapt! Druk G: dan rijd je de dienst en is het geregeld', 4);
   } else world.addMessage('Weer aan de knoppen', 2);
 }
 
@@ -119,6 +120,7 @@ function stopDriving(world, placeOutside) {
   const t = world.trainDriving;
   world.trainDriving = null;
   world.trainCam = null;
+  world.trainSteal = 0;
   endService(world);
   if (!t) return;
   const car = cabCar(t);

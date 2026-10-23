@@ -7,7 +7,7 @@ import { createBoard, key } from './minigamekit.js';
 import { driveRange, routePoint } from './railway.js';
 import { loopbaanVerdien } from './loopbaanlive.js';
 import {
-  startService, stepService, abandonService, boardView, doorsOpen, MEDAL_NAMES, STOPPED_V, payFor,
+  startService, stepService, abandonService, boardView, doorsOpen, MEDAL_NAMES, STOPPED_V, payFor, wantedNaDienst,
 } from './machinistrules.js';
 
 const ACCENT = '#3a7bd5';
@@ -53,10 +53,15 @@ function begin(world, t) {
   });
   if (svc.finished) {
     svc = null;
-    world.addMessage('Geen halte meer vooruit op dit spoor', 2.5);
+    world.addMessage('Einde van de lijn: stap aan de andere kant van de trein in', 3.5);
     return;
   }
-  world.addMessage(`Dienst: ${svc.plan.length} halten, eerst ${svc.plan[0].name}`, 3);
+  // een gekaapte trein: als machinist ben je niet langer gezocht voor die kaping (#424)
+  const na = wantedNaDienst(world.wanted, world.trainSteal || 0);
+  const vergeven = na !== world.wanted;
+  if (vergeven) { world.wanted = na; world.wantedDecayTimer = 0; }
+  world.trainSteal = 0;
+  world.addMessage(`Dienst: ${svc.plan.length} halten, eerst ${svc.plan[0].name}${vergeven ? '. Je staat als machinist genoteerd' : ''}`, 3.5);
 }
 
 // Called by traindrive.js each frame while the player drives t, after the
