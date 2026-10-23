@@ -46,6 +46,10 @@ export function rijTekst(r) {
 
 // Eruit zetten (#434): alleen wie het spel opende, en nooit zichzelf of plek 0. Tessa (plek 1) wordt daarna weer een AI-metgezel.
 export const kanEruitZetten = (rol, r) => rol === 'host' && !!r && !r.jij && r.slot !== 0;
+// Het spel overdragen (#439): de knop staat er, de overdracht zelf komt later (coophostwissel.js is de pure basis). Tot dan een duidelijke melding.
+export const kanOverdragen = (rol, r) => kanEruitZetten(rol, r);
+export const overdragenKnopTekst = 'Spel overdragen';
+export const nogNietTekst = 'Nog niet beschikbaar: het spel overdragen komt later. Jij houdt het spel.';
 export const eruitKnopTekst = (bevestig) => (bevestig ? 'Zeker weten?' : 'Eruit zetten');
 export const eruitGezetTekst = (r) => `${r.naam} is uit het spel gezet.${r.slot === 1 ? ' Tessa loopt weer zelf mee.' : ''}`;
 // wat de weggestuurde gast ziet; 'spel gestopt' is stoppen voor iedereen
