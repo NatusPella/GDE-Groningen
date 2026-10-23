@@ -13,7 +13,7 @@ export const CALM_UNTIL = 600;
 export const GAP = 40;
 export const GAP_CALM = 90;
 // a hint only starts when the player has been in it this long (a stray tap on E does not count)
-export const SETTLE = 2.5;
+export const SETTLE = 1.2;
 
 // vehicle kind from the flags on a Vehicle (vehicle.js), most specific first
 export function vehicleKind(v) {
@@ -22,6 +22,7 @@ export function vehicleKind(v) {
   if (v.isPlane) return 'vliegtuig';
   if (v.isBoat) return 'boot';
   if (v.isBus) return 'bus';
+  if (v.model && v.model.name === 'tractor') return 'trekker';
   if (v.isScooter) return 'scooter';
   if (v.isBike) return v.model && v.model.fat ? 'fatbike' : 'fiets';
   if (v.model && v.model.motorbike) return 'motor';
@@ -36,6 +37,7 @@ export const HINTS = [
   { id: 'v-motor', kind: 'vehicle', match: 'motor', title: 'Motor', body: 'Met {SHIFT} en gas steigert hij; remmen met {SHIFT} geeft een stoppie. Doe dat liever niet in de stad.' },
   { id: 'v-boot', kind: 'vehicle', match: 'boot', title: 'Aan het roer', body: 'Gas en sturen met {WASD}. Een boot remt langzaam en glijdt door de bocht, dus begin op tijd. Uitstappen met {E} kan bij de wal.' },
   { id: 'v-bus', kind: 'vehicle', match: 'bus', title: 'Een bus', body: 'Lang en zwaar: neem bochten ruim en rem op tijd. Met {H} toeter je.' },
+  { id: 'v-trekker', kind: 'vehicle', match: 'trekker', title: 'Trekker', body: 'Gas en sturen met {WASD}, rem met {SPACE}. Bij werk op het land zakt de machine achter je vanzelf zodra je op de rij rijdt: er is geen knop voor. Rij recht en rustig.' },
   { id: 'v-vracht', kind: 'vehicle', match: 'vracht', title: 'Vrachtwagen', body: 'Lang, zwaar en traag in de bocht. Houd ruim afstand en neem bochten breed.' },
   { id: 'v-heli', kind: 'vehicle', match: 'heli', title: 'Helikopter', body: 'Omhoog met {SPACE}, omlaag met {CTRL}. Landen: laag en langzaam boven een vlak stuk, dan pas uitstappen met {E}.' },
   { id: 'v-vliegtuig', kind: 'vehicle', match: 'vliegtuig', title: 'Vliegtuig', body: 'Eerst snelheid maken, dan optrekken. Landen doe je laag, langzaam en recht op de baan.' },
