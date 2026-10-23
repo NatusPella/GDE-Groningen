@@ -6,6 +6,8 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+## [0.47.0] - 2026-10-24
+
 ### Nieuw
 - Samen spelen (#429): wie hengelt, pannenkoeken bakt of de beiaard speelt als gast is nu te zien voor wie het spel opende en voor de andere gasten: een staande speler met hengel, pan of klepels in de hand (nog niet in beeld bekeken).
 - Samen spelen (#434): wordt een gast gezocht, dan staan zijn sterren ook in het scherm van wie het spel opende. Zijn twee spelers gezocht, dan jaagt de politie op het hoogste niveau, bij gelijk niveau op wie al gejaagd werd of anders op wie het dichtst bij de politie staat; verdwijnt dat doelwit, dan komt de ander aan de beurt.
@@ -20,10 +22,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 - Prestaties (#435): De hele kaart verkend (en een kwart en de helft), en prestaties voor het veroveren van buurten, wijken, woonplaatsen, gemeenten en de provincie: ze volgen de gebiedenvoortgang.
 - Verhaal > Aanwijzingen (#435): per opdracht gegroepeerd, het deel waar je nu in zit bovenaan.
 - Shift zonder sprint (#435): op de fiets of in het water zegt het spel nu waarom er niets gebeurt (even uitpuffen, buiten adem).
-
-### Opgelost
 - Garage (#435): de 3D-voorbeelden van de voertuigen worden opnieuw getekend als de grafische kaart de verbinding even kwijt was, en lege plaatjes blijven niet hangen.
-### Opgelost
 - Meerijden in de trein (#436): de camera volgt de trein nu per seconde in plaats van per beeld, zodat het beeld niet meer stottert als een beeld langer duurt.
 - Treinen (#436): een trein rijdt niet meer dwars door een auto of speler heen die onder een brug op het spoor staat; alleen wat echt op de brug (hoger dan het spoor) rijdt blijft heel.
 - Verkeer (#436): een wesp of fiets glipt niet meer door een bus heen als twee wachtende voertuigen elkaar moeten laten voorgaan.
