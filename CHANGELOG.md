@@ -6,6 +6,9 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Opgelost
+- **Je kunt het Forum in lopen (gemeld door een playtester; gemeten in Node met `forum_ingang_test`, nog niet in beeld bekeken):** de twee straatdeuren van het Forum lagen maar 10 cm over de foyer en de expo heen, waardoor je 0,4 m voor het einde van de deur werd vastgehouden en er een onzichtbare muur stond. Een doorgang tussen twee overlappende kamers is nu altijd begaanbaar, hoe dun de overlap ook is.
+
 ## [0.41.1] - 2026-10-23
 
 ### Nieuw
