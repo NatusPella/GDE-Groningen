@@ -673,6 +673,8 @@ const PHASES = {
   // opnieuw aansluiten na het verlaten, via het pauzemenu en de lobby (dezelfde code), zoals een speler
   async opnieuw() {
     if (net()) { log('opnieuw-al-verbonden', {}); return; }
+    // een nieuw spel van de gast zonder opening: na het verlaten speelt zijn eigen verhaal de opening (de gast speelde hem niet, de gastheer wel); een speler wacht of slaat hem over, anders weigert canJoin
+    try { const c = await import('/js/cinematics.js'); if (c.isCinematicActive()) { log('opnieuw-opening-over', { id: c.cinematicState().id }); c.skipAllCinematics(); await until(() => !W().cameraOverride && !c.isCinematicActive(), 8000, 'eigen opening overgeslagen'); } } catch (e) { log('opnieuw-opening-fout', { msg: String(e && e.message) }); }
     await openSamen();
     await act('kies-gast');
     const input = await until(() => panel().querySelector('.coop-input'), 5000, 'invoerveld');
