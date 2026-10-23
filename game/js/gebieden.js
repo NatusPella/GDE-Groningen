@@ -36,7 +36,7 @@ export const NIVEAUS = [
   { id: 'gemeente', naam: 'Gemeenten', enkel: 'gemeente', voor: 'gm', laag: 'gemeenten', geld: 1500, vlag: '#d9534f', titel: (n) => `Gemeentebaas van ${n}` },
   { id: 'woonplaats', naam: 'Woonplaatsen', enkel: 'woonplaats', voor: 'wp', laag: 'woonplaatsen', geld: 400, vlag: '#4fb3a6', titel: (n) => `Burgemeester van ${n}` },
   { id: 'wijk', naam: 'Wijken', enkel: 'wijk', voor: 'wk', laag: 'wijken', geld: 150, vlag: '#e8a33c', titel: (n) => `Wijkheld van ${n}` },
-  { id: 'buurt', naam: 'Buurten', enkel: 'buurt', voor: 'bu', laag: 'buurten', geld: 80, vlag: '#b5835a', titel: (n) => `Buurtheld van ${n}` },
+  { id: 'buurt', naam: 'Buurten', enkel: 'buurt', voor: 'bu', laag: 'buurten', geld: 80, vlag: '#d96ba0', titel: (n) => `Buurtheld van ${n}` },
 ];
 export const niveauInfo = (id) => NIVEAUS.find((n) => n.id === id) || null;
 

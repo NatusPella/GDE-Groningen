@@ -1,7 +1,9 @@
-// Gebieden veroveren (#414): de kaartlaag "Veroverd" van de grote kaart (mapview.js). De echte grenzen van de provincie, de gemeenten,
-// woonplaatsen, wijken en buurten (grenzen.js) in de kleur van je voortgang: wat je aan het doen bent kleurt mee van oker naar
-// groen, een veroverd gebied krijgt de kleur van zijn vlag, een vlag en zijn titel bij het aanwijzen. Welke laag je ziet hangt van
-// de zoom: de laag waarvan de gebieden ongeveer een handpalm groot in beeld staan, met de grenzen van de laag erboven dikker.
+// Gebieden veroveren (#414, #423): de kaartlaag "Veroverd" van de grote kaart (mapview.js) en de minikaart (hud_panel.js). De echte grenzen van de provincie,
+// gemeenten, woonplaatsen, wijken en buurten (grenzen.js), per zoomniveau één laag die ongeveer een handpalm groot in beeld staat:
+//   ver uit   gemeenten, met de provinciegrens erom      midden   woonplaatsen, met de gemeentegrens erom      dichtbij   wijken (en buurten), met de grens van het gebied erboven
+// Drie toestanden, nooit alleen met kleur: onveroverd (stippellijn, geen vulling), bezig (vulling van oker naar groen, doorgetrokken lijn, "6 van 80 · 8%")
+// en veroverd (vulling en lijn in de kleur van de vlag, een vlag en "veroverd"). De grenslijnen hebben een donkere onderlijn voor contrast en worden dikker
+// naarmate je dichterbij zoomt. Namen met voortgang worden op belang gezet (veroverd, bezig, onveroverd) en vallen weg als ze een ander label raken.
 // Alleen canvas; de gegevens komen uit gebiedenlive.js (en gebieden.js).
 import * as G from './gebieden.js';
 import { getOverzicht } from './gebiedenlive.js';
@@ -9,7 +11,7 @@ import { getOverzicht } from './gebiedenlive.js';
 let laag = null;   // { t, lijst, typisch }
 
 // Alle gebieden met hun voortgang en kleur, 1 seconde bewaard:
-// { lijst: [{ gebied, niveau, klaar, totaal, deel, voltooid, veroverbaar, kleur, alpha, vlag, titel }], typisch: { niveau: grootte in m } }
+// { lijst: [{ gebied, niveau, klaar, totaal, deel, pct, voltooid, veroverbaar, kleur, alpha, vlag, titel }], typisch: { niveau: grootte in m } }
 export function kaartLaag(nu = (typeof performance !== 'undefined' ? performance.now() : Date.now())) {
   if (laag && nu - laag.t < 1000) return laag;
   const o = getOverzicht();
@@ -20,7 +22,7 @@ export function kaartLaag(nu = (typeof performance !== 'undefined' ? performance
       const n = G.niveauInfo(g.niveau);
       const v = G.voortgang(o.profiel, o.ind, g.id);
       const k = G.kaartKleur(v, n.vlag);
-      lijst.push({ gebied: g, niveau: n, ...v, kleur: k ? k.kleur : null, alpha: k ? k.alpha : 0, vlag: n.vlag, titel: v.voltooid ? G.beloningVan(o.ind, g.id).titel : null });
+      lijst.push({ gebied: g, niveau: n, ...v, pct: Math.floor(v.deel * 100), kleur: k ? k.kleur : null, alpha: k ? k.alpha : 0, vlag: n.vlag, titel: v.voltooid ? G.beloningVan(o.ind, g.id).titel : null });
       const b = g.grens.b;
       const a = diag.get(n.id) || [];
       a.push(Math.hypot(b[2] - b[0], b[3] - b[1]));
@@ -53,17 +55,29 @@ export function tekenVlag(ctx, x, y, s, kleur) {
   ctx.restore();
 }
 
-// De laag die bij deze zoom past: die waarvan de gebieden ongeveer DOEL px groot zijn (op logschaal het dichtst erbij).
-const DOEL_PX = 240;
+// De laag die bij deze zoom past, op vaste drempels in schermpixels per meter (de gebieden van een laag zijn niet even groot: een wijk buiten de stad is groter dan een woonplaats,
+// dus de grootte is geen goede maat): ver uit gemeenten (tot de hele provincie), dan woonplaatsen, dan wijken, helemaal dichtbij buurten. Op de grote kaart is een zoom van 1 ongeveer 0,09 px per meter:
+// gemeenten tot zoom 0,7, woonplaatsen tot 1,7, wijken tot 4 en daarboven buurten. De provincie is nooit de hoofdlaag: ver uit zijn het de gemeenten met de provinciegrens erom.
+export const DREMPELS = [[0.06, 'gemeente'], [0.15, 'woonplaats'], [0.35, 'wijk']];
 export function kiesLaag(typisch, scale) {
-  let best = null, bd = Infinity;
-  for (const n of G.NIVEAUS) {
-    const t = typisch[n.id];
-    if (!(t > 0)) continue;
-    const d = Math.abs(Math.log(t * scale / DOEL_PX));
-    if (d < bd) { bd = d; best = n.id; }
-  }
-  return best;
+  if (!typisch || !(scale > 0)) return null;
+  let id = 'buurt';
+  for (const [grens, naam] of DREMPELS) if (scale < grens) { id = naam; break; }
+  return typisch[id] > 0 ? id : null;
+}
+// De laag waarvan de grens als kader om de hoofdlaag staat.
+export const KADER = { gemeente: 'provincie', woonplaats: 'gemeente', wijk: 'gemeente', buurt: 'wijk' };
+export const laagNaam = (id) => (G.niveauInfo(id) || { naam: '' }).naam;
+
+// De dikte van een grenslijn in schermpixels: dunner ver uit, dikker dichtbij (de lijn schaalt mee met de zoom).
+export const lijnDikte = (scale) => Math.max(1.1, Math.min(3.4, 1 + Math.log2(1 + scale * 40) * 0.45));
+
+// Het uiterlijk van een gebied: { vul, alpha, lijn, lijnAlpha, breed, streep } (breed: veelvoud van lijnDikte; streep: gestippeld).
+export function stijl(r, kleurTekst = '#f2ead8') {
+  if (r.voltooid) return { vul: r.vlag, alpha: 0.38, lijn: r.vlag, lijnAlpha: 1, breed: 1.8, streep: false };
+  if (r.veroverbaar && r.klaar > 0) return { vul: r.kleur, alpha: Math.max(0.24, r.alpha + 0.1), lijn: r.kleur, lijnAlpha: 0.95, breed: 1.3, streep: false };
+  if (r.veroverbaar) return { vul: null, alpha: 0, lijn: kleurTekst, lijnAlpha: 0.7, breed: 1, streep: true };
+  return { vul: null, alpha: 0, lijn: kleurTekst, lijnAlpha: 0.2, breed: 0.7, streep: false };
 }
 
 function pad(ctx, grens, toScreen) {
@@ -79,66 +93,143 @@ function pad(ctx, grens, toScreen) {
   }
 }
 
-// Tekent de laag op de statische overlay. toScreen(x, y) -> [sx, sy]; scale: px per meter; hover: de lijst van aanwijsbare
-// dingen van mapview.js; label(ctx, tekst, x, y, kleur, uitlijning) tekent een naam met rand.
+// Een grenslijn met een donkere onderlijn: leesbaar op licht en donker land.
+function lijn(ctx, s, breed, dikte, streep) {
+  const w = dikte * breed;
+  ctx.setLineDash(streep ? [w * 4, w * 3] : []);
+  ctx.globalAlpha = 0.55 * Math.min(1, s.lijnAlpha + 0.2);
+  ctx.strokeStyle = 'rgb(8,14,10)'; ctx.lineWidth = w + 2.4; ctx.stroke();
+  ctx.globalAlpha = s.lijnAlpha;
+  ctx.strokeStyle = s.lijn; ctx.lineWidth = w; ctx.stroke();
+  ctx.setLineDash([]);
+}
+
+// Tekent de laag op de statische overlay van de grote kaart. toScreen(x, y) -> [sx, sy]; scale: px per meter; hover: de lijst van aanwijsbare dingen van
+// mapview.js; label(ctx, tekst, x, y, kleur, uitlijning) tekent een naam met rand. Geeft de naam van de getoonde laag (voor de legenda).
 export function tekenVeroverd(ctx, toScreen, scale, cw, ch, hover, label, kleurTekst = '#f2ead8') {
   const { lijst, typisch } = kaartLaag();
-  if (!lijst.length) return;
+  if (!lijst.length) return null;
   const hoofd = kiesLaag(typisch, scale);
-  if (!hoofd) return;
-  const idx = G.NIVEAUS.findIndex((n) => n.id === hoofd);
-  const boven = idx > 0 ? G.NIVEAUS[idx - 1].id : null;
-  // wat in beeld is: de doos van het gebied in schermpixels
+  if (!hoofd) return null;
+  const kader = KADER[hoofd];
+  const dikte = lijnDikte(scale);
   const zicht = [];
   for (const r of lijst) {
-    if (r.niveau.id !== hoofd && r.niveau.id !== boven) continue;
+    if (r.niveau.id !== hoofd && r.niveau.id !== kader) continue;
     const b = r.gebied.grens.b;
     const [x0, y0] = toScreen(b[0], b[1]), [x1, y1] = toScreen(b[2], b[3]);
     const l = Math.min(x0, x1), t = Math.min(y0, y1), rr = Math.max(x0, x1), bb = Math.max(y0, y1);
     if (rr < 0 || bb < 0 || l > cw || t > ch) continue;
-    zicht.push({ r, diag: Math.hypot(rr - l, bb - t) });
+    zicht.push({ r, diag: Math.hypot(rr - l, bb - t), hoofd: r.niveau.id === hoofd });
   }
   ctx.save();
   ctx.lineJoin = 'round';
-  // 1. de gebieden van de hoofdlaag: kleur naar voortgang, dunne grens
-  for (const { r } of zicht) {
-    if (r.niveau.id !== hoofd) continue;
+  // 1. vullingen en grenzen van de hoofdlaag
+  for (const { r, hoofd: isHoofd } of zicht) {
+    if (!isHoofd) continue;
+    const s = stijl(r, kleurTekst);
     pad(ctx, r.gebied.grens, toScreen);
-    if (r.kleur) { ctx.globalAlpha = r.alpha; ctx.fillStyle = r.kleur; ctx.fill('evenodd'); }
-    ctx.globalAlpha = r.voltooid ? 0.85 : r.kleur ? 0.55 : 0.28;
-    ctx.strokeStyle = r.voltooid ? r.vlag : r.kleur || kleurTekst;
-    ctx.lineWidth = r.voltooid ? 2.4 : 1.2;
-    ctx.stroke();
+    if (s.vul) { ctx.globalAlpha = s.alpha; ctx.fillStyle = s.vul; ctx.fill('evenodd'); }
+    lijn(ctx, s, s.breed, dikte, s.streep);
   }
-  // 2. de grenzen van de laag erboven, dikker (de gemeente om haar woonplaatsen)
-  if (boven) {
-    for (const { r } of zicht) {
-      if (r.niveau.id !== boven) continue;
-      pad(ctx, r.gebied.grens, toScreen);
-      ctx.globalAlpha = r.voltooid ? 0.9 : 0.5;
-      ctx.strokeStyle = r.voltooid ? r.vlag : kleurTekst;
-      ctx.lineWidth = r.voltooid ? 3.4 : 2.2;
-      ctx.setLineDash(r.voltooid ? [] : [10, 6]);
-      ctx.stroke();
-      ctx.setLineDash([]);
-    }
+  // 2. de grens van de laag erboven, dikker en doorgetrokken (de gemeente om haar woonplaatsen, de provincie om de gemeenten), met een lichte vulling als daar iets gedaan is
+  for (const { r, hoofd: isHoofd } of zicht) {
+    if (isHoofd) continue;
+    pad(ctx, r.gebied.grens, toScreen);
+    const ks = stijl(r, kleurTekst);
+    if (ks.vul) { ctx.globalAlpha = ks.alpha * 0.55; ctx.fillStyle = ks.vul; ctx.fill('evenodd'); }
+    lijn(ctx, { lijn: r.voltooid ? r.vlag : kleurTekst, lijnAlpha: r.voltooid ? 1 : 0.85 }, 2.2, dikte, false);
   }
   ctx.globalAlpha = 1;
-  // 3. vlaggen en tellers: bij het binnenpunt van het gebied
+  // 3. labels op belang, zonder overlap: veroverd, dan bezig (het verst gevorderd eerst), dan onveroverd
   ctx.textBaseline = 'middle';
-  ctx.font = '13px sans-serif';
-  for (const { r, diag } of zicht) {
+  const kand = [];
+  for (const z of zicht) {
+    const r = z.r;
+    if (!z.hoofd || z.diag < 90) continue;
+    if (!r.voltooid && !r.veroverbaar) continue;
+    kand.push({ r, diag: z.diag, prio: r.voltooid ? 3 : r.klaar > 0 ? 2 + r.deel : 1 });
+  }
+  kand.sort((a, b) => b.prio - a.prio || b.diag - a.diag);
+  const geplaatst = [];
+  for (const { r, diag } of kand) {
     const g = r.gebied;
-    if (diag < 70) continue;
     const [sx, sy] = toScreen(g.x, g.y);
-    if (sx < 0 || sy < 0 || sx > cw || sy > ch) continue;
-    if (r.voltooid) {
-      const s = Math.max(16, Math.min(30, diag * 0.12));
-      tekenVlag(ctx, sx, sy, s, r.vlag);
-      label(ctx, r.titel, sx, sy + 30, kleurTekst, 'center'); // onder het icoon van het safehouse in het midden
-      hover.push({ sx, sy: sy - s * 0.5, name: r.titel, sub: `${r.niveau.enkel[0].toUpperCase()}${r.niveau.enkel.slice(1)} veroverd: alles gedaan (${r.totaal} dingen)` });
-    } else if (r.veroverbaar && r.klaar > 0) {
-      label(ctx, `${g.naam} ${r.klaar}/${r.totaal}`, sx, sy + 26, kleurTekst, 'center');
+    if (sx < 30 || sy < 20 || sx > cw - 30 || sy > ch - 20) continue;
+    const regel2 = r.voltooid ? 'veroverd' : `${r.klaar} van ${r.totaal} · ${r.pct}%`;
+    ctx.font = '600 13px sans-serif';
+    const w1 = ctx.measureText(g.naam).width;
+    ctx.font = '11px sans-serif';
+    const w2 = ctx.measureText(regel2).width;
+    const vlag = r.voltooid ? Math.max(16, Math.min(26, diag * 0.1)) : 0;
+    const bw = Math.max(w1, w2) + 10, bh = 32 + vlag;
+    const doos = [sx - bw / 2, sy - 16 - vlag, sx + bw / 2, sy - 16 - vlag + bh];
+    if (geplaatst.some((p) => doos[0] < p[2] && doos[2] > p[0] && doos[1] < p[3] && doos[3] > p[1])) continue;
+    geplaatst.push(doos);
+    if (r.voltooid) tekenVlag(ctx, sx, sy - 6, vlag, r.vlag);
+    ctx.font = '600 13px sans-serif';
+    label(ctx, g.naam, sx, sy + 2, kleurTekst, 'center');
+    ctx.font = '11px sans-serif';
+    label(ctx, regel2, sx, sy + 16, r.voltooid ? r.vlag : kleurTekst, 'center');
+    if (r.voltooid) hover.push({ sx, sy: sy - vlag * 0.5, name: r.titel, sub: `${r.niveau.enkel[0].toUpperCase()}${r.niveau.enkel.slice(1)} veroverd: alles gedaan (${r.totaal} dingen)` });
+  }
+  ctx.restore();
+  return hoofd;
+}
+
+// De legenda linksonder: welke laag je ziet en wat de drie toestanden zijn.
+export function tekenLegenda(ctx, cw, ch, hoofd, kleurTekst = '#f2ead8') {
+  if (!hoofd) return;
+  const x = 16, rij = 20, h = 30 + rij * 3 + 8, y = ch - 56 - h;
+  ctx.save();
+  ctx.globalAlpha = 1;
+  ctx.fillStyle = 'rgba(10,18,13,0.92)';
+  ctx.strokeStyle = 'rgba(242,234,216,0.45)';
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.roundRect(x, y, 176, h, 8); ctx.fill(); ctx.stroke();
+  ctx.textBaseline = 'middle';
+  ctx.textAlign = 'left';
+  ctx.fillStyle = kleurTekst;
+  ctx.font = '600 12px sans-serif';
+  ctx.fillText(`Veroverd · ${laagNaam(hoofd).toLowerCase()}`, x + 10, y + 16);
+  const rijen = [['Nog niet begonnen', null], ['Bezig', 'rgb(150,184,70)'], ['Veroverd', G.niveauInfo(hoofd).vlag]];
+  rijen.forEach(([tekst, kleur], i) => {
+    const cy = y + 38 + i * rij;
+    ctx.beginPath(); ctx.roundRect(x + 10, cy - 7, 24, 14, 3);
+    if (kleur) { ctx.globalAlpha = i === 2 ? 0.55 : 0.45; ctx.fillStyle = kleur; ctx.fill(); ctx.globalAlpha = 1; }
+    ctx.setLineDash(kleur ? [] : [4, 3]);
+    ctx.strokeStyle = kleur || kleurTekst; ctx.lineWidth = 1.6; ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = kleurTekst; ctx.font = '12px sans-serif';
+    ctx.fillText(tekst, x + 44, cy);
+  });
+  ctx.restore();
+}
+
+// De minikaart (hud_panel.js): ctx staat in wereldmeters rond de speler, scale is px per meter; geen labels, wel dezelfde lagen en toestanden.
+export function tekenVeroverdMini(ctx, scale, px, py, straal) {
+  const { lijst, typisch } = kaartLaag();
+  if (!lijst.length) return;
+  const hoofd = kiesLaag(typisch, scale);
+  if (!hoofd) return;
+  const kader = KADER[hoofd];
+  const id = (x, y) => [x, y];
+  const dikte = Math.max(1, lijnDikte(scale) * 0.8) / scale;
+  ctx.save();
+  ctx.lineJoin = 'round';
+  const buiten = (b) => b[2] < px - straal || b[0] > px + straal || b[3] < py - straal || b[1] > py + straal;
+  for (const r of lijst) {
+    if (r.niveau.id !== hoofd && r.niveau.id !== kader) continue;
+    if (buiten(r.gebied.grens.b)) continue;
+    pad(ctx, r.gebied.grens, id);
+    if (r.niveau.id === kader) { const ks = stijl(r); if (ks.vul) { ctx.globalAlpha = ks.alpha * 0.55; ctx.fillStyle = ks.vul; ctx.fill('evenodd'); } }
+    if (r.niveau.id === hoofd) {
+      const s = stijl(r);
+      if (s.vul) { ctx.globalAlpha = s.alpha; ctx.fillStyle = s.vul; ctx.fill('evenodd'); }
+      ctx.setLineDash(s.streep ? [dikte * 4, dikte * 3] : []);
+      ctx.globalAlpha = s.lijnAlpha; ctx.strokeStyle = s.lijn; ctx.lineWidth = dikte * s.breed; ctx.stroke();
+      ctx.setLineDash([]);
+    } else {
+      ctx.globalAlpha = 0.85; ctx.strokeStyle = r.voltooid ? r.vlag : '#f2ead8'; ctx.lineWidth = dikte * 2; ctx.stroke();
     }
   }
   ctx.restore();
