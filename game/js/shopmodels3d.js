@@ -152,6 +152,20 @@ const BUILD = {
     add(g, box(4.1, 2.4, 0.22), w, 0, 1.2, -2.5);
     for (let i = 0; i < 5; i++) add(g, box(0.5, 1.6, 0.05), mat(0xd8c8a0), -1.6 + i * 0.8, 1.35, -2.37);
   },
+  // een klein huisje (safehouse, #436): witte muren, rood dak, deur en twee ramen
+  huisje(g) {
+    const wall = mat(0xe8dcc0, 0.9), roof = mat(0xa8442a, 0.85), dark = mat(0x3a2a1a, 0.7);
+    add(g, box(5.4, 2.6, 4.4), wall, 0, 1.3);
+    add(g, box(5.6, 0.12, 2.7), roof, 0, 3.15, 1.0, -0.62);
+    add(g, box(5.6, 0.12, 2.7), roof, 0, 3.15, -1.0, 0.62);
+    add(g, box(5.4, 0.3, 0.12), wall, 0, 2.75, 2.2);
+    add(g, box(1.0, 1.9, 0.08), dark, 0, 0.95, 2.22);
+    for (const x of [-1.8, 1.8]) {
+      add(g, box(1.1, 0.9, 0.08), mat(0x9ccbe8, 0.2), x, 1.5, 2.22);
+      add(g, box(1.2, 0.08, 0.1), mat(WHITE, 0.6), x, 0.98, 2.24);
+    }
+    add(g, box(0.6, 1.4, 0.6), mat(0x8a4a3a, 0.9), 1.6, 3.5, -0.4);
+  },
   tv(g) {
     add(g, box(3.4, 1.0, 1.0), mat(0x2a2c30, 0.6), 0, 0.5);
     add(g, box(0.5, 0.5, 0.3), mat(0x1b1c1f, 0.5), 0, 1.25);

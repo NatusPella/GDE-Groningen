@@ -452,7 +452,7 @@ function menuFor(w, here) {
         return [{ title: 'Vertrekken', note: 'Onderduiken: kies een dorp in het Ommeland, daar zoekt niemand jullie', items: trips }];
       }
       // only stations inside the map: the off-map ends of the lines aren't offered
-      return [{ title: 'Vertrekken', note: board, items: trips }, { title: 'Meerijden', note: 'De hele rit in de trein, halte voor halte. Houd Spatie ingedrukt om naar je halte te springen.', items: rideItems(w, here) }];
+      return [{ title: 'Snel reizen (kaartje)', note: `${board}. Een korte scène en je staat er. Zelf rijden? Loop naar een stilstaande trein, druk E en daarna G.`, items: trips }, { title: 'Als passagier meerijden', note: 'Je zit in de trein en ziet elke halte langskomen. Houd Spatie ingedrukt om naar je halte te springen.', items: rideItems(w, here) }];
     },
   };
 }

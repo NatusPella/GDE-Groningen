@@ -51,9 +51,10 @@ export function boardText(line, dir = 1) {
 
 // De lijn en richting van een bus: de lijnbus van de spawner (busRun) of de bus van de bijbaan Streekbus
 // (rideLine, gezet door sidejob_lijn.js): dan volgt het bord de rit, niet de dichtstbijzijnde lijn.
-// null voor een bus zonder eigen lijn.
+// Een bus zonder dienst van de spawner krijgt van busboard3d.js een boardLine (de dichtstbijzijnde lijn), zodat geen bus
+// zonder lijnbeschrijving rijdt (#436). null voor een bus zonder lijn.
 export function busLineOf(v) {
-  const r = v && (v.busRun || v.rideLine);
+  const r = v && (v.busRun || v.rideLine || v.boardLine);
   return r && r.line && r.dir ? { line: r.line, dir: r.dir } : null;
 }
 

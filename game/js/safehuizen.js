@@ -205,7 +205,7 @@ function menu(w, h) {
       name: h.naam, type: 'eikea', color: '#b8741c', tagline: `Te koop: ${tag}`,
       sections: () => [
         { title: 'Te koop', note: `Gratis als je ${ind.gebied.get(h.gebied).naam} helemaal veroverd hebt. Hoe meer je al deed, hoe lager de prijs`, items: [{
-          id: 'koop', label: `Koop ${h.naam}`, desc: `${tag}. Slapen en opslaan, garage, kledingkast en onderduiken`, verb: 'Kopen', price: prijs, preview: { kind: 'product', product: 'bed' },
+          id: 'koop', label: `Koop ${h.naam}`, desc: `${tag}. Slapen en opslaan, garage, kledingkast en onderduiken`, verb: 'Kopen', price: prijs, preview: { kind: 'product', product: 'huisje' },
           buy() {
             const r = koopHuisLive(w, h.id);
             if (!r.ok) return r.reden === 'geld' ? null : 'Dit huisje is al van jou';

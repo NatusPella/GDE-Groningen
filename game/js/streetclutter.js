@@ -43,6 +43,7 @@ const R = {
   kiosk: [512, 440, 400, 60],
   abriPoster: [128, 256, 128, 192],
 };
+const SIGNPOST_MAX_D = 9000; // m van het centrum
 const BLADE_NAMES = ['Centrum', 'Hoofdstation', 'Zernike', 'Haren', 'Noorderplantsoen', 'Hoogkerk'];
 const CHALK_LINES = [
   ['Koffie &', 'appeltaart', '€ 4,50'],
@@ -1040,7 +1041,9 @@ export function generateClutter(ctx) {
     });
   }
 
-  if (!inner && rng.next() < 0.35) {
+  // de wegwijzers wijzen naar Stad (Centrum, Hoofdstation, Haren ...): buiten de omgeving van de stad staan ze niet, ook
+  // niet in Friesland (#436). De rng wordt wel altijd getrokken, zodat de rest van de tegel niet verspringt.
+  if (!inner && rng.next() < 0.35 && centreD < SIGNPOST_MAX_D) {
     const s = spot((r) => (r.cat === 'cycle' || hasSidewalk(r)) && !r.bridge, (r) => (r.width || 4) / 2 + (hasSidewalk(r) ? 0.9 : 0.7), 0.4);
     if (s) items.push(item(pick(rng, P.signposts), 'signpost', s.x, s.y, s.segA));
   }
