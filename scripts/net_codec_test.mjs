@@ -102,4 +102,20 @@ t('json: rondreis, grens, kapotte lengte', () => {
   assert.throws(() => K.encodeJson(K.T.EVENT, 0, 0, 0, { x: 'a'.repeat(3000) }));
   assert.equal(K.decodeJson(b.subarray(0, b.length - 1)), null);
 });
+t('extra (#428): kop, lengte, afkappen en een oude gast die het type niet kent', () => {
+  const lading = Uint8Array.from({ length: 200 }, (_, i) => (i * 7) & 255);
+  const b = K.encodeExtra(65534, 12, 0, lading);
+  assert.equal(K.readHeader(b).type, K.T.EXTRA); assert.equal(K.T.EXTRA, 11);
+  const d = K.decodeExtra(b);
+  assert.equal(d.seq, 65534); assert.equal(d.tick, 12); assert.deepEqual([...d.payload], [...lading]);
+  assert.equal(K.decodeExtra(b.subarray(0, 20)), null);
+  assert.equal(K.decodeExtra(K.encodeSimple(K.T.PING, 0, 0, 0)), null, 'een ander type is geen extra');
+  assert.equal(K.encodeExtra(1, 1, 0, new Uint8Array(K.MAX_EXTRA + 500)).length, 13 + K.MAX_EXTRA);
+  const kapot = b.slice(); kapot[11] = 0xff; kapot[12] = 0xff; // lengte klopt niet
+  assert.equal(K.decodeExtra(kapot), null);
+  let s = 77; const rnd = () => (s = (s * 1103515245 + 12345) >>> 0) / 2 ** 32;
+  for (let i = 0; i < 1500; i++) { const r = b.slice(); for (let j = 0; j < 3; j++) r[Math.floor(rnd() * r.length)] = Math.floor(rnd() * 256); K.decodeExtra(r); K.decodeSnapshot(r); }
+  // snapshot en extra raken elkaar niet
+  assert.equal(K.decodeSnapshot(b), null); assert.equal(K.decodeExtra(K.encodeSnapshot(1, 1, 0, SNAP)), null);
+});
 console.log(`net_codec_test: ${n}/${n} ok`);

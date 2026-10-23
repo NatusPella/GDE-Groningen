@@ -68,6 +68,36 @@ export function isPropBroken(key) {
   return broken.has(key);
 }
 
+// Samen spelen (#428, coopextra.js): wat bij de gastheer kapot is. De sleutel van een gewone prop is soort@x10,y10 (propKey);
+// props van een opdracht of de stuntavond hebben een eigen sleutel en gaan niet mee.
+const KEY_RE = /^([a-z]+)@(-?\d+),(-?\d+)$/;
+export function brokenKeysNear(points, r) {
+  const out = [];
+  for (const [key, b] of broken) {
+    const m = KEY_RE.exec(key); if (!m) continue;
+    let near = false;
+    for (const q of points) if (Math.hypot(b.x - q.x, b.y - q.y) <= r) { near = true; break; }
+    if (near) out.push({ key, kind: m[1], x10: +m[2], y10: +m[3] });
+  }
+  return out;
+}
+// Een gast breekt hetzelfde ding dat bij de gastheer kapot is (de prop moet bij hem ingeladen zijn; anders volgt dat bij de volgende melding).
+export function breakPropByKey(key, x, y, dx = 0, dy = 1) {
+  if (broken.has(key) || !world) return false;
+  const p = propsNear(x, y, 0.6, []).find((q) => q.key === key);
+  if (!p) return false;
+  const n = Math.hypot(dx, dy) || 1;
+  breakProp(p, { vx: dx / n * 3, vy: dy / n * 3, nx: dx / n, ny: dy / n, speed: 3, lift: 0.5, byPlayer: false });
+  return true;
+}
+// De gastheer heeft het weer heel gemaakt (of ruimt het op): de gast ook.
+export function restorePropByKey(key) {
+  const b = broken.get(key); if (!b) return false;
+  broken.delete(key);
+  if (b.restore) b.restore();
+  return true;
+}
+
 export function propsInRadius(x, y, r, kinds = null) {
   const out = [];
   propsNear(x, y, r, out);

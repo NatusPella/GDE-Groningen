@@ -15,7 +15,7 @@ import { Vehicle } from './vehicle.js';
 import { spawnFxPuff } from './fx3d.js';
 import { isCinematicActive } from './cinematics.js';
 import { showStuntHud, hideStuntHud, updateStuntHud, stuntPopup } from './stunthud.js';
-import { onPropBreak, propsInRadius } from './breakables.js';
+import { onPropBreak, propsInRadius, isPropBroken } from './breakables.js';
 import { stuntPunten } from './omverrules.js';
 
 let sceneMod = null;
@@ -233,6 +233,13 @@ export function updateStunt(dt, w, timeLeft = Infinity) {
   }
   return R.score >= R.target ? 'done' : null;
 }
+
+// Samen spelen (#428): wat de stuntavond neerzet, voor de gasten (coopextra.js): het midden en per ding de soort, de plek en of het nog staat.
+export function stuntSnapshot() {
+  if (!run) return null;
+  return { x: run.center.x, y: run.center.y, props: run.props.map((p) => ({ kind: p.kind, x: p.x, y: p.y, alive: !isPropBroken(p.key) })) };
+}
+export const stuntPropMesh = (kind, k = 0) => propMesh(kind, k);
 
 export function stuntStatus() {
   if (!run) return null;
