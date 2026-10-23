@@ -5,10 +5,11 @@
 
 export const MAGIC = 0x47;
 export const CODEC_VERSION = 1;
-export const T = { HELLO: 1, WELCOME: 2, INPUT: 3, SNAP: 4, EVENT: 5, ACK: 6, PING: 7, PONG: 8, BYE: 9, RESYNC: 10 };
+export const T = { HELLO: 1, WELCOME: 2, INPUT: 3, SNAP: 4, EVENT: 5, ACK: 6, PING: 7, PONG: 8, BYE: 9, RESYNC: 10, EXTRA: 11 };
 export const MAX_PLAYERS = 16; // de host in het midden en tot 15 gasten (sterntopologie)
 export const MAX_ENTITIES = 64;
 export const MAX_JSON = 2048;
+export const MAX_EXTRA = 1100; // bytes nuttige lading van een EXTRA-bericht (coopextra.js): past met de kop in één pakket
 export const NO_VEHICLE = 0xffff;
 const TAU = Math.PI * 2;
 
@@ -27,7 +28,7 @@ export function readHeader(buf) {
   const v = new DataView(buf.buffer, buf.byteOffset, buf.byteLength);
   if (v.getUint8(0) !== MAGIC || v.getUint8(1) !== CODEC_VERSION) return null;
   const type = v.getUint8(2);
-  if (type < 1 || type > 10) return null;
+  if (type < 1 || type > 11) return null;
   return { type, seq: v.getUint16(3), tick: v.getUint32(5), ack: v.getUint16(9), v };
 }
 
@@ -146,4 +147,21 @@ export function decodeJson(buf) {
 }
 export function encodeSimple(type, seq, tick, ack) {
   const b = new Uint8Array(11); header(new DataView(b.buffer), type, seq, tick, ack); return b;
+}
+
+// --- extra wereld: host -> client, onbetrouwbaar, laag tempo (coopextra.js: voetgangers, dieren, verkeerslichten, kapotte objecten) ---
+// De lading is een eigen binair formaat van coopextra.js; hier alleen de kop en een lengte.
+export function encodeExtra(seq, tick, ack, payload) {
+  const n = Math.min(payload.length, MAX_EXTRA);
+  const b = new Uint8Array(11 + 2 + n); const v = new DataView(b.buffer);
+  const o = header(v, T.EXTRA, seq, tick, ack);
+  v.setUint16(o, n); b.set(payload.subarray(0, n), o + 2);
+  return b;
+}
+export function decodeExtra(buf) {
+  const h = readHeader(buf);
+  if (!h || h.type !== T.EXTRA || buf.length < 13) return null;
+  const n = h.v.getUint16(11);
+  if (n > MAX_EXTRA || buf.length !== 13 + n) return null;
+  return { seq: h.seq, tick: h.tick, payload: buf.subarray(13) };
 }

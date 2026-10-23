@@ -19,7 +19,7 @@ export const RADIUS = 150;      // m rond elke speler
 export const MAX_ENTITEITEN = 60;
 const PED_ID0 = 0x8000; // voetgangers hebben geen vast id in het spel: ze krijgen er hier een (apart van de voertuig-id's)
 const pedIds = new WeakMap(); let pedSeq = 0;
-const pedId = (p) => { let id = pedIds.get(p); if (id == null) { id = PED_ID0 + (pedSeq++ % 0x7ff0); pedIds.set(p, id); } return id; };
+export const pedId = (p) => { let id = pedIds.get(p); if (id == null) { id = PED_ID0 + (pedSeq++ % 0x7ff0); pedIds.set(p, id); } return id; };
 
 // lengte, breedte, hoogte (m) en kleur van het blok waarmee een gast een voertuig tekent
 export const VOERTUIG_MATEN = {

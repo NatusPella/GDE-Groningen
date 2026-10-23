@@ -9,7 +9,7 @@
 // van de host zijn er voor gasten nog niet bij, en extra figuren hebben nog geen
 // model in de wereld (ze bestaan als gegevens en in de snapshots).
 
-import { ClientSession } from './net/session.js';
+import { ClientSession, PROTO } from './net/session.js';
 import { HostHub } from './net/hub.js';
 import { VERSION } from './version.js';
 import { setFixedCharacters, applyHostState, makeClientInput, ensureFigure, removeFigure, figures } from './coopclient.js';
@@ -42,7 +42,7 @@ export const FIGUUR_TERUG_S = 4;  // s te ver weg voor de gastheer de figuur bij
 
 // De tegelhash komt van de aanroeper (manifest van de wereld); story = verhaalboog.
 export function handshakeInfo({ tiles, story }) {
-  return { game: 'gde', proto: 1, version: String(VERSION), tiles: String(tiles), story: String(story) };
+  return { game: 'gde', proto: PROTO, version: String(VERSION), tiles: String(tiles), story: String(story) };
 }
 
 // Kan deze speler nu aansluiten? De gast verlaat zijn wereld, dus niet midden in iets.
