@@ -44,6 +44,8 @@ export function classifyLand(tags) {
   if (t.historic === 'wayside_cross' || t.historic === 'wayside_shrine') return { type: 'monument', sub: 'kruis', name };
   if (t.man_made === 'obelisk') return { type: 'monument', sub: 'obelisk', name };
   if (t.historic === 'monument' || t.historic === 'memorial') {
+    // een plaquette, struikelsteen of spookfiets is een tegel in de stoep, geen zuil van vijf meter (#419)
+    if (['plaque', 'stolperstein', 'ghost_bike', 'bench', 'plate'].includes(t.memorial)) return { type: 'monument', sub: 'plaquette', name };
     return { type: 'monument', sub: t.memorial === 'statue' || t.memorial === 'bust' ? 'beeld' : 'zuil', name };
   }
   if (t.leisure === 'park' || (t.leisure === 'garden' && t.access !== 'private') || (t.landuse === 'recreation_ground' && name)) {
@@ -106,6 +108,12 @@ export function kitFor(plek) {
       break;
     }
     case 'monument': {
+      // een plaquette, en een zuil als punt zonder hoogte (in de data staan zo ook de gedenktekens in de Folkingestraat), is een
+      // laag steentje van een meter; het plein van acht meter en de grote zuil zijn er alleen voor echte, hoge monumenten (#419)
+      if (plek.sub === 'plaquette' || (plek.sub === 'zuil' && !plek.h && !(plek.l > 0))) {
+        o.push(box(0, 0, 0, 0.5, 0.12, 0.5, 0x9a8f80), box(0, 0.12, 0, 0.36, 0.55, 0.16, KLEUR.steen), box(0, 0.67, 0, 0.42, 0.06, 0.2, KLEUR.beton));
+        break;
+      }
       const h = Math.min(30, Math.max(4, plek.h || (plek.sub === 'kruis' ? 4.5 : plek.sub === 'obelisk' ? 12 : 5.5)));
       // een plein van klinkers met vier paaltjes, zodat het monument ook van ver als plek leest
       o.push(box(0, 0, 0, 8, 0.12, 8, 0x9a8f80));
