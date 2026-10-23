@@ -1,3 +1,4 @@
+import { aandeel, minAfstand } from './coopfoci.js';
 import { dist, angleLerp, pointInPolygon, SeededRng, isInWater, WATER_Y } from './util.js';
 import { waterPolyAt, waterNearby, BRIDGE_DRY } from './waterlevels.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
@@ -262,12 +263,15 @@ function releaseAnimal(a) {
   if (a.kind === 'dog' && a.owner) setLeashHolder(a.owner._lookSeed, false);
 }
 
-function maintain(world) {
+// focus: een losse groep spelers (samen spelen, spelers uit elkaar, #429, coopfoci.js); n = het aantal foci, die delen het totaalbudget
+function maintain(world, focus = null, n = 1) {
   const list = world.wildlife;
-  const { map, player } = world;
+  const { map } = world;
+  const player = focus || world.player;
+  const lokaal = n > 1, hier = (a) => dist(a.x, a.y, player.x, player.y) <= DESPAWN_DIST;
   for (let i = list.length - 1; i >= 0; i--) {
     const a = list[i];
-    if (a.gone || dist(a.x, a.y, player.x, player.y) > DESPAWN_DIST) {
+    if (a.gone || (lokaal ? minAfstand(world.coopFoci, a.x, a.y) : dist(a.x, a.y, player.x, player.y)) > DESPAWN_DIST) {
       releaseAnimal(a);
       list.splice(i, 1);
     }
@@ -277,11 +281,12 @@ function maintain(world) {
   // #330: vee hoort op weide en dijk. Wie de bebouwde kom in komt (of de stad in rijdt), laat het achter.
   for (let i = list.length - 1; i >= 0; i--) {
     const a = list[i];
-    if ((a.kind === 'cow' || a.kind === 'sheep' || a.kind === 'gans') && biotoopVanPlek(streekId, urbanWeight(a.x, a.y), inBebouwdeKom(a.x, a.y)) === 'stad') list.splice(i, 1);
+    if ((a.kind === 'cow' || a.kind === 'sheep' || a.kind === 'gans') && (!lokaal || hier(a)) && biotoopVanPlek(streekId, urbanWeight(a.x, a.y), inBebouwdeKom(a.x, a.y)) === 'stad') list.splice(i, 1);
   }
   const LIMITS = wildlifeLimits(streekId, getSettings().quality, BASE_LIMITS);   // #193
+  if (lokaal) for (const k of Object.keys(LIMITS)) LIMITS[k] = Math.ceil(LIMITS[k] * aandeel(n)); // de foci delen het budget
   const count = { seagull: 0, grazer: 0, duck: 0, pigeon: 0, cat: 0, dog: 0, reiger: 0, zeehond: 0, vis: 0 };
-  for (const a of list) count[a.kind === 'cow' || a.kind === 'sheep' || a.kind === 'gans' ? 'grazer' : a.kind]++;
+  for (const a of list) if (!lokaal || hier(a)) count[a.kind === 'cow' || a.kind === 'sheep' || a.kind === 'gans' ? 'grazer' : a.kind]++;
   const rng = Math.random;
   const waterClose = waterNearby(map, player.x, player.y, BIAS_SEARCH_RADIUS);
   const greenPolys = map.greenNear(player.x, player.y, BIAS_SEARCH_RADIUS);
@@ -310,7 +315,7 @@ function maintain(world) {
   if (count.duck < LIMITS.duck - 1 && waterClose) list.push(...spawnDucks(map, player.x, player.y, rng));
   if (count.pigeon < LIMITS.pigeon * MODS.pigeons - 5) list.push(...spawnPigeonFlock(map, player.x, player.y, rng));
   if (count.cat < LIMITS.cat && rng() < 0.35) list.push(...spawnCat(map, player.x, player.y, rng));
-  if (count.dog < LIMITS.dog && rng() < 0.5) list.push(...spawnDog(world, rng));
+  if (!focus && count.dog < LIMITS.dog && rng() < 0.5) list.push(...spawnDog(world, rng));
 }
 
 // --- behaviour ---------------------------------------------------------------
@@ -680,7 +685,9 @@ export function updateWildlife(dt, world) {
   maintainTimer -= dt;
   if (maintainTimer <= 0) {
     maintainTimer = MAINTAIN_INTERVAL;
-    maintain(world);
+    const foci = world.coopFoci && world.coopFoci.length > 1 ? world.coopFoci : null;
+    maintain(world, null, foci ? foci.length : 1);
+    if (foci) for (const f of foci) if (!f.host) maintain(world, f, foci.length);
   }
   for (const a of list) {
     if (a.dead) {

@@ -66,6 +66,28 @@ export function voertuigSoort(v) {
   return VOERTUIG_SOORTEN.indexOf('auto');
 }
 
+// Spelers uit elkaar (#429): spelers dichter dan SAMEN_M bij elkaar vormen een groep. Staan er meer groepen, dan krijgt elke groep een eerlijk deel
+// van het budget (om en om, nabije eerst) en vult een drukke groep het snapshot niet alleen. Een groep: de volgorde blijft zoals ze was.
+export const SAMEN_M = 150;
+export function groepenVan(bij) {
+  const reps = [], van = [];
+  for (const b of bij) {
+    let k = reps.findIndex((r) => Math.hypot(r.x - b.x, r.y - b.y) <= SAMEN_M);
+    if (k < 0) { reps.push(b); k = reps.length - 1; }
+    van.push(k);
+  }
+  return { n: reps.length, van };
+}
+const dichtsteGroep = (bij, groepen, x, y) => { let bd = Infinity, bk = 0; for (let i = 0; i < bij.length; i++) { const d = Math.hypot(x - bij[i].x, y - bij[i].y); if (d < bd) { bd = d; bk = groepen.van[i]; } } return bk; };
+function verweef(items, bij, groepen) {
+  if (groepen.n < 2) return items;
+  const rijen = Array.from({ length: groepen.n }, () => []);
+  for (const it of items) rijen[dichtsteGroep(bij, groepen, it.v ? it.v.x : it.p.x, it.v ? it.v.y : it.p.y)].push(it); // items zijn al nabije eerst
+  const uit = [];
+  for (let k = 0; uit.length < items.length; k++) for (const r of rijen) if (k < r.length) uit.push(r[k]);
+  return uit;
+}
+
 // Voertuigen dicht bij een van de spelers (nabije eerst), plus het doel van de lopende opdracht.
 // bij = [{x, y}] (de lichamen van alle spelers). Geeft hoogstens MAX_ENTITEITEN entiteiten.
 export function verzamelEntiteiten(world, bij, { radius = RADIUS, max = MAX_ENTITEITEN, treinen = world.treinen } = {}) {
@@ -89,13 +111,14 @@ export function verzamelEntiteiten(world, bij, { radius = RADIUS, max = MAX_ENTI
     if (d <= radius) near.push({ d, v });
   }
   near.sort((a, b) => a.d - b.d);
-  const peds = kiesVoetgangers(world, bij);
-  const nPed = Math.min(peds.length, MAX_VOETGANGERS, Math.max(0, max - out.length - 12)); // voertuigen houden minstens 12 plekken
-  for (const { v } of near) {
+  const groepen = groepenVan(bij), nearV = verweef(near, bij, groepen);
+  const pedsV = verweef(kiesVoetgangers(world, bij), bij, groepen);
+  const nPed = Math.min(pedsV.length, MAX_VOETGANGERS, Math.max(0, max - out.length - 12)); // voertuigen houden minstens 12 plekken
+  for (const { v } of nearV) {
     if (out.length >= max - nPed) break;
     out.push({ id: vid(v, out.length), kind: voertuigSoort(v), x: v.x, z: v.y, angle: v.angle || 0, ...voertuigStaat(v, world), _v: v });
   }
-  for (const { p } of peds.slice(0, nPed)) out.push({ id: pedId(p), kind: p.isCop ? SOORT_AGENT : SOORT_VOETGANGER, x: p.x, z: p.y, angle: p.angle || 0 });
+  for (const { p } of pedsV.slice(0, nPed)) out.push({ id: pedId(p), kind: p.isCop ? SOORT_AGENT : SOORT_VOETGANGER, x: p.x, z: p.y, angle: p.angle || 0 });
   const looks = kiesUiterlijken(world, out);
   for (const e of out) delete e._v;
   Object.defineProperty(out, 'looks', { value: looks, enumerable: false }); // voor de snapshot (coopnet.js): de uiterlijkrecords van dit moment

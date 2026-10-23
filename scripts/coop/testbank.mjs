@@ -27,8 +27,8 @@ if (!STAGE || !fs.existsSync(path.join(STAGE, 'index.html'))) { console.error('-
 const SUITE = arg('suite', 'basis');
 const DURATION = Number(arg('duration', 20));
 const MENU = flag('menu') || SUITE !== 'basis';
-const GASTEN = Math.max(0, Math.min(2, Number(arg('gasten', SUITE === 'verhaal' ? 2 : SUITE === 'figuren' ? 0 : 1))));  // 0: alleen de host in Electron en headless gasten (mock) erbij
-const MOCK = Math.max(0, Number(arg('mock', SUITE === 'figuren' ? 3 : SUITE === 'net' ? (GASTEN > 1 ? 1 : GASTEN === 1 ? 2 : 3) : GASTEN === 0 ? 1 : 0)) || 0); // vier spelers: host + Electron-gasten + headless gasten
+const GASTEN = Math.max(0, Math.min(2, Number(arg('gasten', SUITE === 'verhaal' ? 2 : SUITE === 'figuren' || SUITE === 'uitelkaar' ? 0 : 1))));  // 0: alleen de host in Electron en headless gasten (mock) erbij
+const MOCK = Math.max(0, Number(arg('mock', SUITE === 'figuren' || SUITE === 'uitelkaar' ? 3 : SUITE === 'net' ? (GASTEN > 1 ? 1 : GASTEN === 1 ? 2 : 3) : GASTEN === 0 ? 1 : 0)) || 0); // vier spelers: host + Electron-gasten + headless gasten
 const SECOND = GASTEN > 1 ? 'gast2' : 'gast'; // wie in de suite 'net' een slecht netwerk krijgt en later vertrekt
 const PUBLIEK = flag('publiek'); // de kamercode-route over de echte openbare brokers en STUN-servers (alleen internet nodig, geen nep-tracker)
 const ROUTE = arg('route', SUITE === 'kamer' ? 'kamer' : 'direct');
@@ -53,6 +53,7 @@ const P = {
   verhaal: Object.fromEntries(['host', 'gast', 'gast2'].map((me) => [me, [[0, 'verhaal', { s: Number(arg('verhaal-s', 3600)), until: arg('until', 'T1'), speed: Number(arg('speed', 1)) || 1 }], ...(me === 'host' ? [[0, 'stopHost', {}]] : [])]])), // de host stopt als het verhaal klaar is: de gasten lopen tot dan mee
   opening: flag('host-save') ? Object.fromEntries(['host', 'gast', 'gast2'].map((me) => [me, [[0, 'wacht', { s: 8 }], [9, 'betaal', me === 'host' ? { geld: 250 } : {}], [16, 'opgeslagen', {}], [20, 'wacht', { s: 3 }], ...(me === 'host' ? [[24, 'stopHost', {}]] : [])]])) : Object.fromEntries(['host', 'gast', 'gast2'].map((me) => [me, [[0, 'opening', { s: Number(arg('opening-s', 400)), skip: flag('skip') }], ...(me === 'host' ? [[0, 'stopHost', {}]] : [])]])), // nieuw spel samen: het hek, de opening, overslaan (alleen de gastheer)
   gastacties: Object.fromEntries(['host', 'gast', 'gast2'].map((me) => [me, [[14, 'gastwinkel', { s: 50 }], [66, 'gastrit', { s: 90 }], ...(me === 'host' ? [[160, 'stopHost', {}]] : [])]])), // #291: winkelen en een rit met het stuur
+  uitelkaar: { host: [[0, 'wacht', { s: 6 }], [8, 'uitelkaar', { s: 20 }], [150, 'stopHost', {}]] }, // #429: twee figuren los van de gastheer (500 m en Delfzijl) in dezelfde sessie
   figuren: { host: [[0, 'wacht', { s: 6 }], [8, 'figuren', { s: 8 }], [70, 'stopHost', {}]] }, // #366: de host met drie headless gasten (vier spelers); de figuren van plek 2 en 3 lopen op de echte wereld
   touch: { host: [[0, 'kijk', { s: 16 }]], gast: [[0, 'touch', { s: 12 }]], gast2: [[0, 'wacht', { s: 16 }]] },
 }[SUITE];
@@ -292,6 +293,22 @@ if (GASTEN === 0) { // alleen de host in Electron: wat de headless gasten en de 
     check(wg && wg.terugNa != null, 'figuren: wegdwalen: de figuur werd niet bij de groep gezet: ' + JSON.stringify(wg));
     const g2 = st && mocks.find((m) => m.session.slot === st.slots[0]), meld = g2 ? g2.log.events.map(([, b]) => b).filter((b) => b.k === 'melding').map((b) => b.tekst).join(' | ') : '';
     check(/Blijf bij de groep/.test(meld) && /weer bij de groep/.test(meld), 'figuren: de gast kreeg de meldingen niet: ' + meld);
+  }
+  if (SUITE === 'uitelkaar') { // #429: spelers mogen uit elkaar: de wereld rond elke groep is levend
+    const e1 = (n) => of(H, n)[0], st = e1('uitelkaar-start'), a = e1('uitelkaar-a'), b = e1('uitelkaar-b'), m = e1('uitelkaar-meet'), basis = e1('uitelkaar-basis'), last = e1('uitelkaar-last'), na = e1('uitelkaar-na');
+    check(st && st.slots.length >= 2, 'uitelkaar: de host heeft geen figuren voor plek 2 en 3: ' + JSON.stringify(st));
+    for (const [n, x] of [['a', a], ['b', b], ['meet', m], ['basis', basis], ['last', last], ['na', na], ['bijgroep', e1('uitelkaar-bijgroep')], ['uit', e1('uitelkaar-uit')]]) note(`uitelkaar-${n}: ${JSON.stringify(x)}`);
+    for (const e of of(H, 'uitelkaar-sample')) note('uitelkaar-sample: ' + JSON.stringify(e));
+    for (const e of [...of(H, 'uitelkaar-dbg'), ...of(H, 'uitelkaar-dbg-verkeer')]) note('uitelkaar-dbg: ' + JSON.stringify(e));
+    check(a && a.gezet && b && b.gezet, 'uitelkaar: geen droge plek gevonden: ' + JSON.stringify([a, b]));
+    check(b && b.geladenNa != null, 'uitelkaar: de wereld rond de tweede groep (Delfzijl) werd niet geladen: ' + JSON.stringify(b));
+    check(m && !m.teruggezet, 'uitelkaar: een speler werd bij de groep gezet terwijl hij los mocht lopen: ' + JSON.stringify(m));
+    check(m && m.fociN === 3, 'uitelkaar: verwacht drie foci (gastheer en twee groepen): ' + (m && m.fociN));
+    check(m && m.minA >= 1 && m.minB >= 1, 'uitelkaar: rond een speler is de wereld niet levend (verkeer of voetgangers): ' + JSON.stringify(m));
+    check(m && m.snapshotRondA >= 1 && m.snapshotRondB >= 1, 'uitelkaar: het snapshot bevat niets rond een van de spelers: ' + JSON.stringify(m));
+    const bt = e1('uitelkaar-bijgroep'); check(bt && bt.gelukt && bt.afstand < 4, 'uitelkaar: B zette de speler niet bij de groep: ' + JSON.stringify(bt));
+    const ui = e1('uitelkaar-uit'); check(ui && ui.bTerugNa != null && ui.fociN === 1, 'uitelkaar: de extra foci verdwenen niet: ' + JSON.stringify(ui));
+    if (basis && last) { note(`beeldsnelheid host: ${basis.fps} zonder, ${last.fps} met drie foci, ${na && na.fps} na; heap ${basis.heapMB} MB, ${last.heapMB} MB, ${na && na.heapMB} MB; tegels ${basis.tegels}, ${last.tegels}, ${na && na.tegels}`); check(last.fps > basis.fps * 0.5, 'uitelkaar: de beeldsnelheid viel in elkaar: ' + JSON.stringify([basis.fps, last.fps])); }
   }
   if (SUITE === 'verhaal') {
     const steps0 = of(H, 'step').filter((e) => e.event === 'begin').map((e) => e.id);

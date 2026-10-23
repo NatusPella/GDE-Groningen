@@ -31,6 +31,8 @@ import { spelersRijen } from './coopspelers.js';
 import { maakMeedoen, opdrachtSleutel, begin as meedoenBegin, einde as meedoenEinde, antwoord as meedoenAntwoord, tik as meedoenTik, loopVrij, krijgtDeel, maakUitnodiging, uitnodigingTekst } from './coopmeedoen.js';
 import { WEER_EVERY, weerEvent, leesWeerEvent, pasWeerToe } from './coopweer.js';
 import { loopbaanGast, GAST_XP_DEEL } from './loopbaanlive.js';
+import { maakRegister, zetPlek, leegRegister, bouwFoci, losBesluit, FOCI_MAX, MAX_AFSTAND, ONGELADEN_S } from './coopfoci.js';
+import { tileIndexOf, tileKey } from './gdt.js';
 
 export const CAPS = ['scene', 'spelers']; // wat dit spel kent; uitbreidbaar (net/session.js negotiate)
 export const REMOVE_DELAY = 0.5; // s tussen "je bent verwijderd" en het verbreken
@@ -132,6 +134,8 @@ function endCoop(world) {
   if (world.coop) { world.coop.remote = false; world.coop.remoteInput = null; world.coop.fixedChars = false; if (world.coop.prevLocal !== undefined) { world.coop.local = world.coop.prevLocal; world.coop.prevLocal = undefined; } }
   world.coopPartner = null; world.coopPartners = []; world.coopRoster = null; world.coopFigures = {}; world.coopHost = null; world.coopExtra = null; world.coopHostMissie = null; world.coopCam = null; world.coopScene = null;
   world.coopVrijLopen = false; world.coopUitnodiging = null; world.coopMeedoenNee = false; // (#429)
+  world.coopFoci = null; world.coopFociInfo = null; // spelers uit elkaar (#429)
+  if (world.companion) world.companion.coopWacht = false;
   world.coopMeld = null; world.coopDeel = null; world.coopUitslag = null; world.coopPingMarks = []; world.coopSpelers = []; world.coopGebruik = false; world.coopWielSlot = null; world.coopWielVraag = null; world.coopWiel = false; world.coopInVoertuig = false; // (#291)
   if (world.companion) world.companion.coopUit = false;
 }
@@ -189,7 +193,7 @@ export function startHost(world, info, opts = {}) {
   world.coopUitslag = (ok, label, reden, loon, gestopt) => uitslagMelden(world, ok, label, reden, loon, gestopt); // gelukt, mislukt of gestopt (#371, #390)
   world.coopDeel = (bedrag, info) => deelMetGasten(world, bedrag, info); // missies, bijbanen en prijzen delen met de gasten (#365)
   world.coopMeld = (slot, tekst) => hub.announce({ k: 'melding', tekst: String(tekst).slice(0, 90) }, slot); // een korte melding voor een gast (#291)
-  world.coopNet = { role: 'host', hub, fade, route, removing: {}, info, tKlok: 0, tHash: 0, tWeer: 0, tSpelers: 1, hashN: 0, scene, tScene: 0, filmpjeT: 0, sceneNu: null, meedoen: maakMeedoen() };
+  world.coopNet = { role: 'host', hub, fade, route, removing: {}, info, tKlok: 0, tHash: 0, tWeer: 0, tSpelers: 1, hashN: 0, scene, tScene: 0, filmpjeT: 0, sceneNu: null, meedoen: maakMeedoen(), foci: maakRegister() };
   return hub;
 }
 
@@ -231,6 +235,7 @@ function stepFigures(world, dt) {
       if (world.player.inVehicle !== v || v.wrecked || v.sinking) figUit(world, fig);
       else { fig.x = v.x; fig.y = v.y; fig.angle = v.angle || 0; fig.vx = 0; fig.vy = 0; continue; }
     }
+    if (fig.wacht) { fig.vx = 0; fig.vy = 0; continue; } // de wereld rond hem wordt nog geladen (bandFiguren, #429)
     if (!fig.input) { fig.vx *= Math.max(0, 1 - 10 * dt); fig.vy *= Math.max(0, 1 - 10 * dt); continue; }
     const m = fig.input;
     const len = Math.hypot(m.mx, m.my), sx = len > 1 ? 1 / len : 1;
@@ -317,30 +322,91 @@ export function meldNeer(world, n) {
   }
 }
 
+// Spelers uit elkaar (#429, coopfoci.js): de gastheer laadt en simuleert de wereld ook rond elke losse groep spelers. Dan zet de band een speler die los loopt niet terug zolang hij een eigen focus heeft, binnen de maximale afstand
+// blijft en de wereld rond hem geladen is. Is de wereld daar nog niet geladen, dan staat hij even stil; duurt dat te lang, dan zet de band hem terug.
+export function tegelGeladen(world, x, y) {
+  const m = world.map; if (!m || !m.store || !m.resident || !m.store.index) return true; // zonder tegels (tests, een kleine wereld): alles is er
+  const [i, j] = tileIndexOf(x, y);
+  if (!m.store.index.tiles[tileKey(i, j)]) return true; // daar is niets te laden (zee, buiten de kaart)
+  return m.resident.has(`${i},${j}`);
+}
+export const LOS_TEKST = 'Je loopt los van de groep. Druk op B om bij de groep te komen.';
+export const BUDGET_TEKST = 'Te veel groepen uit elkaar voor het geheugen van het spel. Druk op B om bij de groep te komen, anders word je zo teruggezet.';
+export const LOS_MELD_M = 300; // m: vanaf hier zegt het spel een keer hoe je bij de groep komt
+export const WACHT_TEKST = 'De wereld hier wordt nog geladen. Even wachten.';
+
+// Is deze speler los van de gastheer toegestaan? { ok, wacht }; zie coopfoci.js losBesluit
+export function losVoor(world, slot, x, y) {
+  const p = world.player, info = world.coopFociInfo, n = world.coopNet;
+  if (!info || !p || (n && n.sprong > 0)) return { ok: false, wacht: false }; // een sprong van de gastheer (snelreizen, herstel) haalt iedereen bij, zoals altijd
+  if (p.inVehicle && Math.abs(p.inVehicle.speed || 0) > 6 && Math.hypot(x - p.x, y - p.y) < 400) return { ok: false, wacht: false }; // rijdt de gastheer snel weg, dan raakt wie dichtbij is het eerst achter: bij hem gezet, zoals altijd
+  const r = losBesluit({ aan: true, slot, bediend: info.bediend, dHost: Math.hypot(x - p.x, y - p.y), maxAfstand: MAX_AFSTAND, geladen: tegelGeladen(world, x, y) });
+  return { ok: r.ok, wacht: r.wacht };
+}
+
+const buitenBudget = (world, slot) => !!(world.coopFociInfo && world.coopFociInfo.buiten.has(slot));
+
+// Elke host-tick: de plekken van alle spelers in het register, de foci daaruit (world.coopFoci: alleen met meer dan een focus, zodat alles
+// bij een groep precies zo blijft als voorheen) en wie er bediend wordt. Uit (standaard): geen foci.
+export const SPRONG_M = 300, SPRONG_S = 0.8;
+export function werkFoci(world, dt = 0) {
+  const n = world.coopNet; if (!n || n.role !== 'host' || !n.foci) return null;
+  const p = world.player;
+  if (p && Number.isFinite(p.x) && n.hostLast && Math.hypot(p.x - n.hostLast.x, p.y - n.hostLast.y) > SPRONG_M) n.sprong = SPRONG_S; else if (n.sprong > 0) n.sprong -= dt;
+  if (p && Number.isFinite(p.x)) n.hostLast = { x: p.x, y: p.y };
+  if (!p || !Number.isFinite(p.x) || !Number.isFinite(p.y)) { world.coopFoci = null; world.coopFociInfo = null; return null; }
+  leegRegister(n.foci);
+  const c = world.companion;
+  const weg = new Set(n.hub.roster.spelers.filter((s) => s.verbinding === 'lost').map((s) => s.slot));
+  if (c && world.coop && world.coop.remote && !c.inVehicle && !weg.has(1)) zetPlek(n.foci, 1, c.x, c.y);
+  for (const fig of Object.values(figures(world))) if (!fig.inVeh && !weg.has(fig.slot)) zetPlek(n.foci, fig.slot, fig.x, fig.y);
+  const info = bouwFoci({ x: p.x, y: p.y }, n.foci, { max: FOCI_MAX, maxAfstand: MAX_AFSTAND });
+  world.coopFociInfo = info;
+  world.coopFoci = info.foci.length > 1 ? info.foci : null;
+  return info;
+}
+
+// Een speler zet de band terug naast de gastheer (de eerste droge plek rond hem)
+function zetBijGroep(world, lichaam, a0) {
+  const p = world.player;
+  lichaam.x = p.x; lichaam.y = p.y; // niets vrij rond de gastheer: dan op zijn plek
+  for (let i = 0; i < 8; i++) { // de eerste droge plek rond de gastheer, niet in het water of een gebouw
+    const a = a0 + i * Math.PI / 4, x = p.x + Math.cos(a) * 2.2, y = p.y + Math.sin(a) * 2.2;
+    if (!world.coopVrij || world.coopVrij(x, y, world)) { lichaam.x = x; lichaam.y = y; break; }
+  }
+  lichaam.gz = p.gz || 0; lichaam.vx = 0; lichaam.vy = 0;
+}
+
 // Een extra speler (plek 2 en hoger) heeft geen band zoals Tessa; loopt hij te ver van de gastheer, dan is de wereld daar niet geladen
-// (geen gebouwen, geen grond). Eerst een melding, daarna zet de gastheer hem bij de groep (#366).
+// (geen gebouwen, geen grond). Eerst een melding, daarna zet de gastheer hem bij de groep (#366). Met spelers uit elkaar (#429)
+// geldt dat alleen voor wie geen eigen focus heeft (te veel groepen voor het budget).
 export function bandFiguren(world, dt) {
   const p = world.player; if (!p || !Number.isFinite(p.x)) return;
   const v = p.inVehicle, snel = !!v && Math.abs(v.speed || 0) > 6; // rijdt de gastheer weg, dan raakt een speler te voet het eerst achter
   for (const fig of Object.values(figures(world))) {
-    if (fig.inVeh) continue;
-    const d = Math.hypot(fig.x - p.x, fig.y - p.y), band = snel ? 35 : FIGUUR_BAND;
+    if (fig.inVeh) { fig.wacht = false; continue; }
+    const d = Math.hypot(fig.x - p.x, fig.y - p.y), los = losVoor(world, fig.slot, fig.x, fig.y), band = snel ? 35 : FIGUUR_BAND;
     const plek = false; // niemand wordt vanzelf in een voertuig gezet: te ver weg betekent naast de gastheer, instappen doet de speler zelf met E
-    if (d > FIGUUR_WAARSCHUWING && !fig.gewaarschuwd && !snel) { fig.gewaarschuwd = true; if (world.coopMeld) world.coopMeld(fig.slot, 'Blijf bij de groep: te ver weg wordt je teruggezet.'); }
-    if (d <= FIGUUR_WAARSCHUWING) fig.gewaarschuwd = false;
-    fig.verTijd = d > band ? (fig.verTijd || 0) + dt : 0;
+    if (los.ok) { // los van de groep, maar de wereld is voor hem geladen: niet terugzetten, wel een keer zeggen hoe hij terugkomt
+      if (d > LOS_MELD_M && !fig.losGemeld) { fig.losGemeld = true; if (world.coopMeld) world.coopMeld(fig.slot, LOS_TEKST); }
+      if (d <= LOS_MELD_M) fig.losGemeld = false;
+      fig.gewaarschuwd = false;
+      if (los.wacht && !fig.wacht && world.coopMeld) world.coopMeld(fig.slot, WACHT_TEKST);
+      fig.wacht = los.wacht; fig.ongeladen = los.wacht ? (fig.ongeladen || 0) + dt : 0;
+      if (fig.wacht) { fig.vx = 0; fig.vy = 0; }
+      fig.verTijd = los.wacht && fig.ongeladen >= ONGELADEN_S ? FIGUUR_TERUG_S : 0;
+    } else {
+      fig.wacht = false; fig.ongeladen = 0; fig.losGemeld = false;
+      if (d > FIGUUR_WAARSCHUWING && !fig.gewaarschuwd && !snel) { fig.gewaarschuwd = true; if (world.coopMeld) world.coopMeld(fig.slot, buitenBudget(world, fig.slot) ? BUDGET_TEKST : 'Blijf bij de groep: te ver weg wordt je teruggezet.'); }
+      if (d <= FIGUUR_WAARSCHUWING) fig.gewaarschuwd = false;
+      fig.verTijd = d > band ? (fig.verTijd || 0) + dt : 0;
+    }
     fig.vastMeet = (fig.vastMeet || 0) + dt; // vast in water of een muur (bijvoorbeeld na een sprong van de gastheer): vier keer per seconde meten, want er kunnen tot 16 spelers zijn
     if (fig.vastMeet >= 0.25) { fig.vastTijd = world.coopVrij && !world.coopVrij(fig.x, fig.y, world) ? (fig.vastTijd || 0) + fig.vastMeet : 0; fig.vastMeet = 0; }
-    if (fig.verTijd >= (d > 300 ? 0.5 : FIGUUR_TERUG_S) || fig.vastTijd >= FIGUUR_TERUG_S) { // een sprong van de gastheer (snelreizen, herstel) haalt de figuur meteen bij
-      fig.verTijd = 0; fig.vastTijd = 0; fig.gewaarschuwd = false; fig.vx = 0; fig.vy = 0;
+    if (fig.verTijd >= (d > 300 && !los.ok ? 0.5 : FIGUUR_TERUG_S) || fig.vastTijd >= FIGUUR_TERUG_S) { // een sprong van de gastheer (snelreizen, herstel) haalt de figuur meteen bij
+      fig.verTijd = 0; fig.vastTijd = 0; fig.gewaarschuwd = false; fig.losGemeld = false; fig.wacht = false; fig.ongeladen = 0; fig.vx = 0; fig.vy = 0;
       if (plek) { fig.inVeh = v; fig.coopVoertuig = true; fig.x = v.x; fig.y = v.y; if (world.coopMeld) world.coopMeld(fig.slot, 'Je rijdt mee. Met E stap je uit als het voertuig stilstaat.'); continue; } // is er plek, dan zit hij weer in het voertuig (geen eindeloos terugzetten)
-      const a0 = (fig.slot * 1.7) % (Math.PI * 2);
-      fig.x = p.x; fig.y = p.y; // niets vrij rond de gastheer: dan op zijn plek
-      for (let i = 0; i < 8; i++) { // de eerste droge plek rond de gastheer, niet in het water of een gebouw
-        const a = a0 + i * Math.PI / 4, x = p.x + Math.cos(a) * 2.2, y = p.y + Math.sin(a) * 2.2;
-        if (!world.coopVrij || world.coopVrij(x, y, world)) { fig.x = x; fig.y = y; break; }
-      }
-      fig.gz = p.gz || 0;
+      zetBijGroep(world, fig, (fig.slot * 1.7) % (Math.PI * 2));
       if (world.coopMeld) world.coopMeld(fig.slot, 'Je staat weer bij de groep.');
     }
   }
@@ -348,27 +414,52 @@ export function bandFiguren(world, dt) {
 
 // De speler van Tessa (plek 1) heeft dezelfde band als een extra speler (#388): eerst een melding, dan zet de gastheer haar bij de groep, of
 // laat haar meerijden als hij wegrijdt en er plek is. Vroeger hield een harde lijn van 38 m haar vast: wie het paarse lijntje volgde of
-// verder liep kon alleen nog terug.
+// verder liep kon alleen nog terug. Met spelers uit elkaar (#429) zie bandFiguren.
 export function bandMetgezel(world, dt) {
   const c = world.companion, p = world.player;
-  if (!c || !p || !world.coop || !world.coop.remote || c.inVehicle || c.state === 'dead' || !Number.isFinite(p.x) || !Number.isFinite(c.x)) return false;
+  if (!c || !p || !world.coop || !world.coop.remote || c.inVehicle || c.state === 'dead' || !Number.isFinite(p.x) || !Number.isFinite(c.x)) { if (c) c.coopWacht = false; return false; }
   const v = p.inVehicle, snel = !!v && Math.abs(v.speed || 0) > 6;
-  const d = Math.hypot(c.x - p.x, c.y - p.y), band = snel ? 35 : FIGUUR_BAND;
-  if (d > FIGUUR_WAARSCHUWING && !c.gewaarschuwd && !snel) { c.gewaarschuwd = true; if (world.coopMeld) world.coopMeld(1, 'Blijf bij de groep: te ver weg wordt je teruggezet.'); }
-  if (d <= FIGUUR_WAARSCHUWING) c.gewaarschuwd = false;
-  c.verTijd = d > band ? (c.verTijd || 0) + dt : 0;
-  if (c.verTijd < (d > 300 ? 0.5 : FIGUUR_TERUG_S)) return false;
-  c.verTijd = 0; c.gewaarschuwd = false; c.vx = 0; c.vy = 0;
+  const d = Math.hypot(c.x - p.x, c.y - p.y), los = losVoor(world, 1, c.x, c.y), band = snel ? 35 : FIGUUR_BAND;
+  if (los.ok) {
+    if (d > LOS_MELD_M && !c.losGemeld) { c.losGemeld = true; if (world.coopMeld) world.coopMeld(1, LOS_TEKST); }
+    if (d <= LOS_MELD_M) c.losGemeld = false;
+    c.gewaarschuwd = false;
+    if (los.wacht && !c.coopWacht && world.coopMeld) world.coopMeld(1, WACHT_TEKST);
+    c.coopWacht = los.wacht; c.ongeladen = los.wacht ? (c.ongeladen || 0) + dt : 0;
+    if (c.coopWacht) { c.vx = 0; c.vy = 0; }
+    c.verTijd = los.wacht && c.ongeladen >= ONGELADEN_S ? FIGUUR_TERUG_S : 0;
+  } else {
+    c.coopWacht = false; c.ongeladen = 0; c.losGemeld = false;
+    if (d > FIGUUR_WAARSCHUWING && !c.gewaarschuwd && !snel) { c.gewaarschuwd = true; if (world.coopMeld) world.coopMeld(1, buitenBudget(world, 1) ? BUDGET_TEKST : 'Blijf bij de groep: te ver weg wordt je teruggezet.'); }
+    if (d <= FIGUUR_WAARSCHUWING) c.gewaarschuwd = false;
+    c.verTijd = d > band ? (c.verTijd || 0) + dt : 0;
+  }
+  if (c.verTijd < (d > 300 && !los.ok ? 0.5 : FIGUUR_TERUG_S)) return false;
+  c.verTijd = 0; c.gewaarschuwd = false; c.losGemeld = false; c.coopWacht = false; c.ongeladen = 0; c.vx = 0; c.vy = 0;
   const plek = false; // geen automatisch meerijden: te ver weg betekent naast de gastheer, instappen doet ze zelf met E
   if (plek) { c.inVehicle = v; v.passenger = 'companion'; c.coopUit = false; if (world.coopMeld) world.coopMeld(1, 'Je rijdt mee. Met E stap je uit als het voertuig stilstaat.'); return true; }
-  const a0 = Math.PI * 1.7;
-  c.x = p.x; c.y = p.y;
-  for (let i = 0; i < 8; i++) {
-    const a = a0 + i * Math.PI / 4, x = p.x + Math.cos(a) * 2.2, y = p.y + Math.sin(a) * 2.2;
-    if (!world.coopVrij || world.coopVrij(x, y, world)) { c.x = x; c.y = y; break; }
-  }
-  c.gz = p.gz || 0;
+  zetBijGroep(world, c, Math.PI * 1.7);
   if (world.coopMeld) world.coopMeld(1, 'Je staat weer bij de groep.');
+  return true;
+}
+
+// B (gast): "Bij de groep komen": de gastheer zet je lichaam naast zich. Een gast die los loopt kan zo altijd terug (#429).
+export const BIJ_GROEP_WACHT_S = 3;
+export function bijGroepGebaar(world) {
+  const n = world.coopNet; if (!n || n.role !== 'client' || !n.joined) return false;
+  const nu = Date.now() / 1000;
+  if (n.bijGroepT && nu - n.bijGroepT < BIJ_GROEP_WACHT_S) return false;
+  n.bijGroepT = nu;
+  return n.session.sendEvent({ k: 'bijgroep' });
+}
+// De host zet het lichaam van deze gast naast zich, tenzij hij in een voertuig zit of de gastheer zelf een voertuig neemt.
+export function bijGroepHost(world, slot) {
+  const n = world.coopNet; if (!n || n.role !== 'host' || slot < 1 || !world.player) return false;
+  const lichaam = slot === 1 ? world.companion : figures(world)[slot];
+  if (!lichaam || lichaam.inVehicle || lichaam.inVeh || (slot === 1 && lichaam.state === 'dead')) return false;
+  zetBijGroep(world, lichaam, slot === 1 ? Math.PI * 1.7 : (slot * 1.7) % (Math.PI * 2));
+  lichaam.verTijd = 0; lichaam.wacht = false; lichaam.coopWacht = false; lichaam.ongeladen = 0;
+  if (world.coopMeld) world.coopMeld(slot, 'Je staat weer bij de groep.');
   return true;
 }
 
@@ -431,6 +522,7 @@ export function tickCoopNet(world, dt) {
     const inp = world.input;
     const m = makeClientInput(inp && inp.axis ? inp.axis() : [0, 0], !!(inp && inp.isDown && inp.isDown('shift')), world.camYaw, !!(world.coopWiel && inp && inp.isDown && inp.isDown(' ')));
     if (inp && inp.wasPressed && inp.wasPressed('y')) wielGebaar(world); // Y: om het stuur vragen (#291)
+    if (inp && inp.wasPressed && inp.wasPressed('b') && !world.paused) bijGroepGebaar(world); // B: bij de groep komen (#429)
     if ((world.coopScene && world.coopScene.filmpje) || world.paused) s.setInput(0, 0, 0, m.yaw); // de gastheer kijkt een filmpje, of de gast zit zelf in een menu, de kaart of een winkel: zijn figuur staat stil (#373)
     else s.setInput(m.mx, m.my, m.buttons, m.yaw);
     s.tick(dt);
@@ -462,6 +554,7 @@ export function tickCoopNet(world, dt) {
   n.hub.tick(dt);
   if (world.input && world.input.wasPressed && world.input.wasPressed('y')) wielGebaar(world); // Y: het stuur geven of terugnemen (#291)
   if (world.coopWielSlot != null && !(world.player.inVehicle && world.companion && world.companion.inVehicle === world.player.inVehicle)) wielLos(world);
+  werkFoci(world, dt); // spelers uit elkaar: de foci van dit moment, voor de band, de tegels en de bevolking (#429)
   stepFigures(world, dt);
   stapMetgezelInPauze(world, dt);
   n.tKlok += dt; n.tHash += dt; n.tWeer += dt;
@@ -567,6 +660,7 @@ export function handleEvent(world, body, van = 0) {
       world.coopGebruik = true;
       return true;
     }
+    case 'bijgroep': return bijGroepHost(world, van); // een gast die los loopt wil terug bij de groep (#429)
     case 'wielvraag': { // de gast vraagt om het stuur; de bestuurder geeft het met Y
       if (!n || n.role !== 'host' || van !== 1) return false;
       if (body.terug) { if (wielLos(world) && world.addMessage) world.addMessage(WIEL_HOST_TEKST.terug(gastNaam(world, 1)), 4); return true; } // de bijrijder geeft het stuur terug

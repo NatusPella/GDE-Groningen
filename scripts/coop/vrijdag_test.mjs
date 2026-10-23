@@ -206,7 +206,7 @@ t('roepen kan niet in een menu, bij het wachtscherm of voor je er echt bij bent'
   g.input.s.clear(); g.paused = false; g.coopHold = true; g.input.s.add('7'); s.step(0.5); assert.equal(g.coopPings.lijst.length, 0);
 });
 
-t('derde en vierde speler: botsingen en een band — wie te ver weg is wordt na een paar seconden bij de groep gezet, met een melding', () => {
+t('derde en vierde speler: botsingen en los lopen — met een eigen focus (#429) niet teruggezet; B zet hem bij de groep', () => {
   const s = avond(3); s.step(3);
   const bram = s.gs[1].gw, f = s.hw.coopFigures[2];
   s.hw.coopMove = (fig, dt) => { const nx = fig.x + fig.vx * dt; fig.x = nx > 30 ? 30 : nx; fig.y += fig.vy * dt; }; // een muur op x = 30
@@ -214,11 +214,12 @@ t('derde en vierde speler: botsingen en een band — wie te ver weg is wordt na 
   s.hw.player.x = 0; s.hw.player.y = 0; f.x = 5; f.y = 0;
   s.step(6, () => { s.hw.companion.x = 0; s.hw.companion.y = 0; });
   assert.ok(f.x <= 30.01, 'de figuur loopt niet door de muur: ' + f.x);
-  s.hw.coopMove = null; bram.input.axis = () => [0, 0]; f.x = 150; f.y = 0; f.gewaarschuwd = false;
-  s.step(1.5, () => { s.hw.companion.x = 0; s.hw.companion.y = 0; });
-  assert.match(bram.messages.join(' '), /Blijf bij de groep/);
-  s.step(5, () => { s.hw.companion.x = 0; s.hw.companion.y = 0; });
-  assert.ok(Math.hypot(f.x - s.hw.player.x, f.y - s.hw.player.y) < 5, 'weer bij de groep: ' + f.x);
+  s.hw.coopMove = null; bram.input.axis = () => [0, 0]; f.x = 400; f.y = 0; f.gewaarschuwd = false;
+  s.step(6, () => { s.hw.companion.x = 0; s.hw.companion.y = 0; });
+  assert.ok(f.x > 399, 'los van de groep: niet teruggezet');
+  assert.doesNotMatch(bram.messages.join(' '), /Blijf bij de groep/);
+  assert.equal(N.bijGroepGebaar(bram), true); s.step(1, () => { s.hw.companion.x = 0; s.hw.companion.y = 0; });
+  assert.ok(Math.hypot(f.x - s.hw.player.x, f.y - s.hw.player.y) < 5, 'B: weer bij de groep: ' + f.x);
   assert.match(bram.messages.join(' '), /weer bij de groep/);
   assert.ok(N.FIGUUR_BAND > N.FIGUUR_WAARSCHUWING);
 });

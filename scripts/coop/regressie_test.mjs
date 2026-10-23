@@ -124,7 +124,7 @@ for (const spelers of AANTALLEN) {
   const c = s.hw.companion; let ver = 0; s.step(24, () => { ver = Math.max(ver, Math.hypot(c.x - s.hw.player.x, c.y - s.hw.player.y)); });
   ok(ver > 76, `${spelers}: Tessa kan ver voorbij de oude lijn van 38 m: ${ver.toFixed(0)}`);
   match(tekst(tessa), /Blijf bij de groep/, `${spelers}: met een waarschuwing`);
-  tessa.input.axis = () => [0, 0]; tessa.input.isDown = () => false; s.step(7);
+  tessa.input.axis = () => [0, 0]; tessa.input.isDown = () => false; s.step(1); N.bijGroepGebaar(tessa); s.step(2);
   ok(Math.hypot(c.x - s.hw.player.x, c.y - s.hw.player.y) < 6, `${spelers}: en daarna weer bij de groep`);
 
   // ---- 7. in- en uitstappen
