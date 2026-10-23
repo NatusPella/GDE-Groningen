@@ -56,6 +56,7 @@ body:has(#pause-menu.prestart.visible) #start-screen .ss-foot { visibility: hidd
 #pause-menu .pm-confirm .m-bg.danger:hover { background: rgba(217, 63, 63, 0.14); }
 #pause-menu .pm-confirm .m-acts { gap: 16px; }
 #pause-menu .pm-slist .pm-confirm { margin: 4px 24px 12px; }
+#pause-menu .pm-slist .pm-status { margin: 4px 24px 8px; }
 
 /* the panel */
 #pause-menu .pm-sheet { left: 416px; right: 80px; top: var(--mt); bottom: var(--mb); }

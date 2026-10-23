@@ -18,13 +18,36 @@ const check = (naam, ok, info = '') => uit.controles.push({ naam, ok: !!ok, info
 const root = () => document.getElementById('pause-menu');
 const zichtbaar = (el) => !!el && el.getClientRects().length > 0 && !el.closest('[hidden]');
 
-for (const sub of ['spelen', 'camera', 'hints']) {
+for (const sub of ['acties', 'spelen', 'camera', 'hints']) {
   PM.openPauseMenu('spel', { sub });
   await sleep(1100);
   const rij = [...root().querySelectorAll(`[data-of="spel"][data-sub="${sub}"] .pm-row`)].filter(zichtbaar).map((r) => (r.querySelector('.nm') || r).textContent.trim().slice(0, 40));
   check(`Spel > ${sub}: rijen zichtbaar`, rij.length >= 3, rij.join(' | '));
+  if (sub === 'acties') {
+    const acties = [...root().querySelectorAll('[data-panel="spel"] [data-action]')].filter(zichtbaar).map((b) => b.dataset.action);
+    check('Opslaan & stoppen: de acties zijn zichtbaar', ['resume', 'save', 'saves', 'menu', 'restart'].every((a) => acties.includes(a)), acties.join(','));
+    check('de rail heeft geen opslaan, laden of afsluiten meer', !root().querySelector('.pm-rail [data-action="save"], .pm-rail [data-action="restart"], .pm-rail [data-action="menu"]'));
+  }
   console.log('[capture] spel-' + sub);
   await sleep(500);
+}
+// de knoppen werken: Spel opslaan meldt het, Opnieuw beginnen vraagt eerst, Annuleren sluit de vraag
+{
+  PM.openPauseMenu('spel', { sub: 'acties' });
+  await sleep(900);
+  const status = () => (root().querySelector('[data-game-status]') || {}).textContent || '';
+  root().querySelector('[data-action="save"]').click();
+  await sleep(500);
+  check('Spel opslaan meldt dat het gelukt is', /Opgeslagen om|Laatst opgeslagen/.test(status()), status());
+  const vraag = root().querySelector('[data-restart-confirm]');
+  root().querySelector('[data-action="restart"]').click();
+  await sleep(400);
+  check('Opnieuw beginnen vraagt eerst (Laatste spel laden, Nieuw spel, Annuleren)', !vraag.hidden && !!vraag.querySelector('[data-action="load"]') && !!vraag.querySelector('[data-action="new"]'));
+  console.log('[capture] spel-acties-vraag');
+  await sleep(500);
+  root().querySelector('[data-action="cancel"]').click();
+  await sleep(300);
+  check('Annuleren sluit de vraag', vraag.hidden);
 }
 // de rail: alle knoppen binnen het scherm
 {

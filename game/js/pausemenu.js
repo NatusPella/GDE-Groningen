@@ -238,7 +238,7 @@ const SUBTABS = {
   todo: [['verhaal', 'Verhaal'], ['alles', 'Alles'], ['dichtbij', 'Dichtbij']],
   telefoon: [['contacten', 'Contacten'], ['berichten', 'Berichten']],
   verhaal: [['personages', 'Personages'], ['aanwijzingen', 'Aanwijzingen']],
-  spel: [['spelen', 'Spelen'], ['camera', 'Camera & richten'], ['hints', 'Hints & uitleg']],
+  spel: [['acties', 'Opslaan & stoppen'], ['spelen', 'Spelen'], ['camera', 'Camera & richten'], ['hints', 'Hints & uitleg']],
   settings: [['video', 'Beeld'], ['sound', 'Geluid & ondertitels'], ['camera', 'Muis & controller'], ['display', 'Interface'], ['a11y', 'Toegankelijkheid'], ['fouten', 'Foutrapport']],
   controls: [['toetsen', 'Toetsenbord en muis'], ['knoppen', 'Controller'], ['overzicht', 'Alle toetsen'], ['hulp', 'Hulp']],
 };
@@ -262,7 +262,7 @@ const HINTS = {
   fotos: [[['F8'], 'fotomodus'], [['Esc'], BACK, 'back']],
   spelers: [[['↑', '↓'], 'kiezen'], [['Enter'], 'roepen of erheen'], [['Esc'], BACK, 'back']],
   streken: [[['↑', '↓'], 'kiezen'], [['Enter'], 'aan of uit'], [['Esc'], BACK, 'back']],
-  spel: [[['↑', '↓'], 'kiezen'], [['←', '→'], 'wijzigen'], [['Q', 'E'], 'tabblad'], [['Esc'], BACK, 'back']],
+  spel: [[['↑', '↓'], 'kiezen'], [['Enter'], 'ok'], [['Q', 'E'], 'tabblad'], [['Esc'], BACK, 'back']],
   settings: [[['↑', '↓'], 'kiezen'], [['←', '→'], 'wijzigen'], [['Q', 'E'], 'tabblad'], [['Esc'], BACK, 'back']],
   controls: [[['↑', '↓'], 'kiezen'], [['Enter'], 'toets wijzigen'], [['Q', 'E'], 'onderdeel'], [['Esc'], BACK, 'back']],
 };
@@ -319,9 +319,11 @@ const CHEV_L = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 6l-6 
 const CHEV_R = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.5 6l6 6-6 6"/></svg>';
 const plain = (t) => String(t).replace(/<[^>]*>/g, '').replace(/&shy;/g, '');
 
+// the tabs of a section that are there in the main menu too (Opslaan & stoppen of Spel needs a running game)
+const subsOf = (of) => SUBTABS[of].filter(([id]) => !(prestart && of === 'spel' && id === 'acties'));
 function subtabsHtml(of, label) {
   return `<div class="m-tabs"><nav class="m-tablist" role="tablist" aria-label="${label}">` + SUBTABS[of].map(([id, text]) =>
-    `<button type="button" role="tab" class="m-tab" data-of="${of}" data-subtab="${id}" aria-selected="false">${esc(text)}<small data-count="${id}"></small></button>`).join('') + '</nav>' +
+    `<button type="button" role="tab" class="m-tab${of === 'spel' && id === 'acties' ? ' pm-ingame' : ''}" data-of="${of}" data-subtab="${id}" aria-selected="false">${esc(text)}<small data-count="${id}"></small></button>`).join('') + '</nav>' +
     (of === 'todo' ? '<span class="m-grow"></span><button type="button" class="m-bt" data-todo-sort aria-pressed="false" hidden>Dichtbij eerst</button>' : '') + '</div>';
 }
 
@@ -433,8 +435,25 @@ function settingsHtml() {
 function spelHtml() {
   const tab = (id, rows, side = '') => `<div data-of="spel" data-sub="${id}" class="pm-settab" hidden><div class="m-list pm-slist">${rows}</div>${side}</div>`;
   return `${subtabsHtml('spel', 'Onderdeel')}
+    ${tab('acties', `
+      <div class="m-li pm-row">${rowName('Verder spelen', 'Terug naar het spel')}<button type="button" class="m-bp" data-action="resume">Doorgaan</button></div>
+      <div class="m-gh"><span>Opslaan en laden</span></div>
+      <div class="m-li pm-row">${rowName('Opslaan', 'Bewaart waar je nu bent')}<button type="button" class="m-bg" data-action="save">Spel opslaan</button></div>
+      <div class="m-li pm-row">${rowName('Opgeslagen spellen', 'Kiezen, laden, hernoemen, exporteren en verwijderen')}<button type="button" class="m-bg" data-action="saves" title="Opgeslagen spellen kiezen, laden, hernoemen, exporteren en verwijderen">Opgeslagen spellen</button></div>
+      <p class="pm-status" data-game-status role="status"></p>
+      <div class="m-gh"><span>Stoppen</span></div>
+<div class="m-li pm-row">${rowName('Missie stoppen', 'Staat bij Overzicht zodra er een missie loopt, met een vraag erbij')}<button type="button" class="m-bg" data-goto="overzicht">Naar Overzicht</button></div>
+      <div class="m-li pm-row">${rowName('Hoofdmenu', 'Slaat op en gaat terug naar het hoofdmenu')}<button type="button" class="m-bg" data-action="menu" title="Opslaan en terug naar het hoofdmenu">Naar het hoofdmenu</button></div>
+      ${DESKTOP ? `<div class="m-li pm-row">${rowName('Spel sluiten', 'Slaat op en sluit het spel')}<button type="button" class="m-bg" data-action="exit" title="Opslaan en het spel sluiten">Afsluiten</button></div>` : ''}
+      <div class="m-gh"><span>Opnieuw beginnen</span></div>
+      <div class="m-li pm-row">${rowName('Opnieuw beginnen', 'Alles sinds je laatste savegame gaat verloren')}<button type="button" class="m-bg danger" data-action="restart">Opnieuw beginnen</button></div>
+      <div class="pm-confirm" data-restart-confirm hidden>
+        <p>Opnieuw beginnen? Alles sinds je laatste savegame gaat verloren. Je andere savegames blijven staan.</p>
+        <button type="button" class="m-bg" data-action="load">Laatste spel laden</button>
+        <button type="button" class="m-bg danger" data-action="new">Nieuw spel (nieuwe plek)</button>
+        <button type="button" class="m-bt" data-action="cancel">Annuleren</button>
+      </div>`, `${pane('Spel', 'Je spel', '<p>Opslaan, laden, opnieuw beginnen en stoppen. Je spel wordt ook vanzelf bewaard.</p><p class="mut">Hoe het spel speelt staat bij de andere tabbladen; beeld en geluid onder Instellingen.</p>')}`)}
     ${tab('spelen', `
-      <div class="m-li pm-row pm-ingame">${rowName('Missie stoppen', 'Staat bij Overzicht zodra er een missie loopt, met een vraag erbij')}<button type="button" class="m-bg" data-goto="overzicht">Naar Overzicht</button></div>
       <div class="m-gh"><span>Verkeer en geweld</span></div>
       ${picker('ruzie', 'Verkeersruzie', [['uit', 'Uit'], ['weinig', 'Weinig'], ['normaal', 'Normaal'], ['veel', 'Veel']], 'Hoe vaak een boze bestuurder uitstapt na een botsing of getoeter. Zonder bloed; sommigen hebben iets in de hand')}
       ${picker('drunkFx', 'Dronken effecten', [['aan', 'Aan'], ['mild', 'Mild'], ['uit', 'Uit']])}
@@ -484,23 +503,7 @@ export function initPauseMenu(w) {
           ${RAIL_GROUPS.map((g) => g.map(railBtn).join('')).join('<span class="pm-rail-sp"></span>')}
           <span class="pm-rail-gap"></span>
           <button type="button" class="ra pm-back" data-action="resume">Terug</button>
-          <div class="pm-rail-acts pm-ingame">
-            <button type="button" class="m-bt" data-action="save">Spel opslaan</button>
-            <button type="button" class="m-bt" data-action="saves" title="Opgeslagen spellen kiezen, laden, hernoemen, exporteren en verwijderen">Opgeslagen spellen</button>
-            <button type="button" class="m-bt" data-action="menu" title="Opslaan en terug naar het hoofdmenu">Naar het hoofdmenu</button>
-            ${DESKTOP ? '<button type="button" class="m-bt" data-action="exit" title="Opslaan en het spel sluiten">Afsluiten</button>' : ''}
-          </div>
           <p class="pm-ver">${versionLabel(VERSION)}</p>
-          <div class="pm-rail-foot pm-ingame">
-            <p class="pm-status" role="status"></p>
-            <button type="button" class="m-bt danger" data-action="restart">Opnieuw beginnen</button>
-            <div class="pm-confirm" hidden>
-              <p>Opnieuw beginnen? Alles sinds je laatste savegame gaat verloren. Je andere savegames blijven staan.</p>
-              <button type="button" class="m-bg" data-action="load">Laatste spel laden</button>
-              <button type="button" class="m-bg danger" data-action="new">Nieuw spel (nieuwe plek)</button>
-              <button type="button" class="m-bt" data-action="cancel">Annuleren</button>
-            </div>
-          </div>
         </div>
       </nav>
       <section class="pm-sheet m-panel" aria-labelledby="pm-sheet-title">
@@ -785,7 +788,7 @@ function onKey(e) {
 
 // Esc/Backspace: close an open confirm, then back to Overzicht, then close.
 function goBack() {
-  const confirmEl = root.querySelector('.pm-game .pm-confirm');
+  const confirmEl = root.querySelector('[data-restart-confirm]');
   if (!confirmEl.hidden) {
     confirmEl.hidden = true;
     root.querySelector('[data-action="restart"]').focus();
@@ -836,7 +839,7 @@ function visibleFocusables(scope) {
 }
 
 function cycleSubtab(dir) {
-  const subs = SUBTABS[tab];
+  const subs = subsOf(tab);
   const cur = pref.sub[tab] || subs[0][0];
   const i = Math.max(0, subs.findIndex(([id]) => id === cur));
   const next = subs[(i + dir + subs.length) % subs.length][0];
@@ -1087,7 +1090,7 @@ function moveFocus(dir) {
 }
 
 function runAction(a) {
-  const confirmEl = root.querySelector('.pm-game .pm-confirm');
+  const confirmEl = root.querySelector('[data-restart-confirm]');
   if (a === 'resume') setOpen(false);
   else if (a === 'save') status(saveGame(world) ? `Opgeslagen om ${new Date().toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' })}` : 'Opslaan mislukt');
   else if (a === 'load') {
@@ -1095,7 +1098,7 @@ function runAction(a) {
     else status('Geen savegame gevonden');
   } else if (a === 'saves') {
     if (world && world.pigeonMode) { status('Je bent een duif. Stop de duif-modus om savegames te gebruiken.'); return; }
-    openSaveSlots({ mode: 'game', world, onLoad: () => setOpen(false), onClose: () => { syncSaveButtons(); const b = root.querySelector('.pm-rail-acts [data-action="saves"]'); if (b) b.focus(); } });
+    openSaveSlots({ mode: 'game', world, onLoad: () => setOpen(false), onClose: () => { syncSaveButtons(); const b = root.querySelector('[data-panel="spel"] [data-action="saves"]'); if (b) b.focus(); } });
   } else if (a === 'restart') {
     confirmEl.hidden = false;
     syncSaveButtons();
@@ -1180,7 +1183,7 @@ function runAction(a) {
 }
 
 function status(text) {
-  root.querySelector('.pm-status').textContent = text;
+  root.querySelector('[data-game-status]').textContent = text;
 }
 
 const garageEl = () => root.querySelector('[data-panel="garage"] .pm-inner');
@@ -1230,7 +1233,7 @@ function renderErrorLog() {
 onErrorLogChange(() => renderErrorLog());
 
 function showSubtab(of, name) {
-  const subs = SUBTABS[of];
+  const subs = subsOf(of);
   if (SUB_ALIAS[of] && SUB_ALIAS[of][name]) name = SUB_ALIAS[of][name];
   if (!subs.some(([id]) => id === name)) name = subs[0][0];
   for (const b of root.querySelectorAll(`[data-subtab][data-of="${of}"]`)) b.setAttribute('aria-selected', String(b.dataset.subtab === name));
@@ -1425,7 +1428,7 @@ function syncSaveButtons() {
   const saved = hasSave();
   for (const b of root.querySelectorAll('[data-action="load"]')) b.disabled = !saved;
   const s = getSaveSummary();
-  if (s && !root.querySelector('.pm-status').textContent) {
+  if (s && !root.querySelector('[data-game-status]').textContent) {
     const d = new Date(s.savedAt);
     status(`Laatst opgeslagen: ${d.toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' })} ${d.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' })}`);
   }
@@ -1433,9 +1436,9 @@ function syncSaveButtons() {
 
 function syncRail() {
   const pigeon = !!(world && world.pigeonMode);
-  for (const b of root.querySelectorAll('.pm-rail-acts [data-action="save"], .pm-rail-acts [data-action="saves"]')) b.disabled = pigeon;
-  root.querySelector('.pm-game .pm-confirm').hidden = true;
-  root.querySelector('.pm-status').textContent = '';
+  for (const b of root.querySelectorAll('[data-panel="spel"] [data-action="save"], [data-panel="spel"] [data-action="saves"]')) b.disabled = pigeon;
+  root.querySelector('[data-restart-confirm]').hidden = true;
+  root.querySelector('[data-game-status]').textContent = '';
   syncSaveButtons();
 }
 
@@ -1534,7 +1537,7 @@ function showTab(name, how) {
   if (name === 'boerderij') renderBoerderijPanel(root.querySelector('[data-panel="boerderij"] .pm-inner'), world);
   if (name === 'controls') { const q = root.querySelector('[data-controls-search]'); q.value = ''; filterControls(''); showSubtab('controls', pref.sub.controls || 'toetsen'); bindMsg = ''; renderBinds(); }
   if (prev === 'controls' && name !== 'controls') cancelRebind();
-  if (name === 'spel') { showSubtab('spel', pref.sub.spel || 'spelen'); syncControls(); }
+  if (name === 'spel') { showSubtab('spel', pref.sub.spel || subsOf('spel')[0][0]); syncControls(); syncSaveButtons(); }
   if (name === 'settings') { showSubtab('settings', pref.sub.settings || 'video'); syncControls(); syncDesktopControls(); }
   if (prev !== name) { const p = activePanel(); if (p) p.scrollTop = 0; }
 }
