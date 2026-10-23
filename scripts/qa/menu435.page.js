@@ -30,5 +30,23 @@ for (const [id, naam, opts] of [['spullen', 'spullen', {}], ['prestaties', 'pres
   try { PM.openPauseMenu(id, opts); } catch (e) { check(naam + ' openen', false, e.message); continue; }
   await shot(naam, 2500);
 }
+if (stappen.includes('kaartzoom')) {
+  const MV = await import('/js/mapview.js');
+  PM.openPauseMenu('map'); await sleep(2500);
+  for (const z of [0.55, 1.2, 3]) { MV.setMapView(w.player.x, w.player.y, z); await shot('kaartzoom-' + z, 2500); }
+}
+if (stappen.includes('kaartgrens')) {
+  const MV = await import('/js/mapview.js');
+  const RG = await import('/js/regions.js');
+  PM.openPauseMenu('map'); await sleep(2500);
+  const lijnen = RG.landBorders();
+  check('landgrenzen bekend', lijnen.length > 0, lijnen.map((l) => l.kind + ':' + l.pts.length).join(','));
+  for (const kind of ['friesland', 'drenthe', 'duitsland']) {
+    const l = lijnen.find((x) => x.kind === kind);
+    if (!l) { check('grens ' + kind, false, 'geen lijn'); continue; }
+    const m = l.pts[Math.floor(l.pts.length / 2)];
+    MV.setMapView(m[0], m[1], 0.7); await shot('kaartgrens-' + kind, 3500);
+  }
+}
 clearInterval(skipper);
 return JSON.stringify({ ...uit, beelden: [{ naam: 'menu435' }] });
