@@ -2,7 +2,7 @@ import { clamp, closestPointOnSegment, pointInPolygon, isInWater } from './util.
 import { spawnVehicleOnRoad, updateTrafficAI, resolveVehicleBuildingCollision, spawnPoliceBoatOnWater, attachToNearestRoad, maxCurvature } from './vehicle.js';
 import { requestRespawn } from './world.js';
 import { mulberry32 } from './rng.js';
-import { bustFine } from './economy.js';
+import { bustFineIn } from './economy.js';
 import { spawnCopPedestriansNear, makeCopPedestrian, isSpawnHidden } from './pedestrians.js';
 import { isInsideBuilding } from './pedgeom.js';
 import { edgeDistance, ROAD_W } from './countryfield.js';
@@ -461,7 +461,7 @@ function updateBust(dt, world) {
     bust.t = 0;
     bust.progress = 0;
     bust.mode = null;
-    requestRespawn(world, { busted: true, moneyPenalty: bustFine(world.wanted, world.money) });
+    requestRespawn(world, { busted: true, moneyPenalty: bustFineIn(world.wanted, world.money, p.inVehicle) });
   }
 }
 

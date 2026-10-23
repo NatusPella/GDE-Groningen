@@ -2,7 +2,7 @@
 // tegenover wat je verdient, en de zwaarte loopt op met de sterren.
 //   node scripts/wanted_balance_test.mjs
 import { OFFENCE_FINE } from '../game/js/offences.js';
-import { bustFine, SPEED_FINE, platesCost, klusloon } from '../game/js/economy.js';
+import { bustFine, bustFineIn, isBorrowedMissionCar, SPEED_FINE, platesCost, klusloon } from '../game/js/economy.js';
 import { levelOf } from '../game/js/wantedlevels.js';
 
 let bad = 0;
@@ -18,6 +18,9 @@ check('de flitspaal is niet duurder dan een agent-boete', Math.max(...SPEED_FINE
 check('arrestatie kost per ster €60', bustFine(1, 1000) === 60 && bustFine(5, 10000) === 300);
 check('arrestatie nooit meer dan een vijfde van je geld', [0, 10, 100, 500].every((m) => bustFine(5, m) <= Math.floor(m * 0.2)));
 check('arrestatie op vijf sterren is minder dan een gemiddelde missie', bustFine(5, 1e6) < MEDIAN_REWARD);
+// geleende missie-auto: gepakt worden kost geen boete (#306); eigen auto of te voet wel
+check('opgepakt in een geleende missie-auto kost niets', bustFineIn(4, 1000, { missionCar: true }) === 0);
+check('opgepakt in een eigen of gewone auto of te voet kost de boete', bustFineIn(4, 1000, { missionCar: true, playerOwned: true }) === 200 && bustFineIn(4, 1000, { missionCar: true, isHeroCar: true }) === 200 && bustFineIn(4, 1000, {}) === 200 && bustFineIn(4, 1000, null) === 200 && !isBorrowedMissionCar(null));
 check('de nummerborden-kosten blijven onder een gemiddelde missie', platesCost(5) < MEDIAN_REWARD);
 check('de klusloon-rekenregel geeft een positief bedrag', sidejob > 0);
 
