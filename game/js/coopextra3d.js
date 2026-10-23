@@ -10,7 +10,10 @@ import { juichHoek } from './vrijgezellen.js';
 import { buildWildlifeMesh3D, animateWildlifeMesh3D } from './wildlife.js';
 import { getTrafficControllers, updateTrafficLights } from './trafficlights.js';
 import { breakPropByKey, restorePropByKey, isPropBroken } from './breakables.js';
-import { V_GROET, V_FEEST, lichtVerschil, standVers } from './coopextra.js';
+import { V_GROET, V_FEEST, lichtVerschil, standVers, MISC_KERMIS, MISC_STUNT, MISC_PUNTEN, leesStunt, leesPunten } from './coopextra.js';
+import { KERMIS, setKermisOverride } from './kermis.js';
+import { stuntPropMesh } from './stuntavond.js';
+import { buildWaypointDotMesh3D } from './missionmarker3d.js';
 
 const EEND = ['drake', 'hen', 'swan', 'goose'];
 const hex = (s) => parseInt(String(s).replace('#', ''), 16);
@@ -164,14 +167,54 @@ export function syncGastKapot(world, dt) {
   for (const key of [...mijnKapot]) if (!nu.has(key)) { restorePropByKey(key); mijnKapot.delete(key); }
 }
 
+// ----------------------------------------------------------- kermis, stuntavond en de punten van een opdracht (misc)
+// De kermis staat of staat niet zoals bij de host (de tijd van de dag is al gelijk, de kalender niet altijd); de rest van de kermis draait de gast zelf.
+let kermisAan = false;
+export function syncGastKermis(world, dt) {
+  const stand = world.coopExtra, m = stand && standVers(stand, world.time) ? stand.misc.get(MISC_KERMIS) : null;
+  if (m) { kermisAan = true; setKermisOverride(m.data[0] === 1); } else if (kermisAan) { kermisAan = false; setKermisOverride(null); }
+  if (m) { try { KERMIS.tick(dt, world); } catch (e) { /* zonder kermis */ } }
+}
+const stunt = { groep: null, meshes: [], sig: '' };
+export function syncGastStunt(world) {
+  const scene = getScene(); if (!scene) return 0;
+  const stand = world.coopExtra, m = stand && standVers(stand, world.time) ? stand.misc.get(MISC_STUNT) : null;
+  const s = m ? leesStunt(m.data) : null;
+  if (!s) { if (stunt.groep) { scene.remove(stunt.groep); stunt.groep = null; stunt.meshes = []; stunt.sig = ''; } return 0; }
+  const sig = s.x + ',' + s.y + ',' + s.props.length;
+  if (sig !== stunt.sig) { // een nieuwe avond: opnieuw opbouwen
+    if (stunt.groep) scene.remove(stunt.groep);
+    stunt.groep = new THREE.Group(); stunt.groep.name = 'stuntavond-gast'; stunt.meshes = []; stunt.sig = sig;
+    s.props.forEach((p, i) => { const mesh = stuntPropMesh(p.kind, i); mesh.position.set(p.x, grond(world, p.x, p.y), p.y); stunt.groep.add(mesh); stunt.meshes.push(mesh); });
+    scene.add(stunt.groep);
+  }
+  s.props.forEach((p, i) => { if (stunt.meshes[i]) stunt.meshes[i].visible = p.alive; });
+  return stunt.meshes.length;
+}
+const punten = { meshes: [], sig: '' };
+export function syncGastPunten(world) {
+  const scene = getScene(); if (!scene) return 0;
+  const stand = world.coopExtra, m = stand && standVers(stand, world.time) ? stand.misc.get(MISC_PUNTEN) : null;
+  const l = m ? leesPunten(m.data) : null;
+  const sig = l ? l.map((p) => p.x.toFixed(1) + ',' + p.y.toFixed(1)).join(';') : '';
+  if (sig === punten.sig) return punten.meshes.length;
+  for (const mesh of punten.meshes) scene.remove(mesh);
+  punten.meshes = []; punten.sig = sig;
+  for (const p of l || []) { let mesh = null; try { mesh = buildWaypointDotMesh3D(); } catch (e) { mesh = null; } if (mesh) { mesh.position.set(p.x, 0.4 + p.z, p.y); scene.add(mesh); punten.meshes.push(mesh); } }
+  return punten.meshes.length;
+}
+
 export function clearExtra() {
   const scene = getScene();
   if (scene) { for (const e of pop.values()) verwijder(scene, e.mesh); for (const e of dieren.values()) verwijder(scene, e.mesh); }
   pop.clear(); wacht.clear(); dieren.clear(); sprekers.clear();
+  if (scene) { if (stunt.groep) scene.remove(stunt.groep); for (const m of punten.meshes) scene.remove(m); }
+  stunt.groep = null; stunt.meshes = []; stunt.sig = ''; punten.meshes = []; punten.sig = '';
+  if (kermisAan) { kermisAan = false; setKermisOverride(null); }
   for (const key of mijnKapot) restorePropByKey(key);
   mijnKapot.clear();
 }
-export const hasExtra = () => pop.size > 0 || dieren.size > 0 || mijnKapot.size > 0;
+export const hasExtra = () => pop.size > 0 || dieren.size > 0 || mijnKapot.size > 0 || !!stunt.groep || punten.meshes.length > 0 || kermisAan;
 
 // Elke frame (main.js), alleen op een gast
 export function syncExtra(world, dt) {
@@ -184,7 +227,9 @@ export function syncExtra(world, dt) {
   const nd = syncGastDieren(world, dt);
   syncGastLichten(world, dt);
   syncGastKapot(world, dt);
-  world.coopExtraMeshes = [r.echt, nd, stand0(world)]; // voor de testbank: [voetgangers met hun echte uiterlijk, dieren, kapotte objecten]
+  syncGastKermis(world, dt);
+  const ns = syncGastStunt(world), np = syncGastPunten(world);
+  world.coopExtraMeshes = [r.echt, nd, stand0(world), ns, np, kermisAan ? 1 : 0]; // voor de testbank: [voetgangers met hun echte uiterlijk, dieren, kapotte objecten, stuntdingen, punten, kermis]
   if (Array.isArray(world.coopHostMeshes)) { world.coopHostMeshes[2] = r.echt; world.coopHostMeshes[3] = r.rest; } // zelfde plekken als vroeger: [voertuigen echt, blokken, voetgangers echt, eenvoudig]
 }
 const stand0 = (world) => mijnKapot.size;

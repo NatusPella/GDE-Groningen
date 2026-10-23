@@ -426,13 +426,15 @@ const PHASES = {
   },
   // samen spelen (#428): de rest van de wereld van de host bij de gast (voetgangers, dieren, lichten, kapotte objecten). stap 'props': kies een paar
   // props bij de gast (de testbank vertelt de nep-host dat ze kapot zijn); stap 'kijk': meet wat de gast tekent en maak schermafbeeldingen.
-  async wereld428({ stap = 'kijk', naam = 'w428' }) {
+  async wereld428({ stap = 'kijk', naam = 'w428', rond = 4 }) {
     const w = W();
     if (CFG.role === 'host') { await sleep(4000); return; }
     const B = await import('./js/breakables.js'), T = await import('./js/trafficlights.js');
     if (stap === 'props') {
-      const lijst = B.findProps(w.player.x, w.player.y, 45).filter((p) => /^[a-z]+@-?d+,-?d+$/.test(p.key) && ['bin', 'bench', 'table', 'parasol', 'lamp', 'chair'].includes(p.kind)).slice(0, 4);
-      log('w428-props', { keys: lijst.map((p) => ({ key: p.key, x10: Math.round(p.x * 10), y10: Math.round(p.y * 10) })), alle: B.findProps(w.player.x, w.player.y, 45).length });
+      const alle = B.findProps(w.player.x, w.player.y, 45), soorten = {};
+      for (const p of alle) soorten[p.kind] = (soorten[p.kind] || 0) + 1;
+      const lijst = alle.filter((p) => /^[a-z]+@-?d+,-?d+$/.test(p.key)).sort((a, b) => Math.hypot(a.x - w.player.x, a.y - w.player.y) - Math.hypot(b.x - w.player.x, b.y - w.player.y)).slice(0, 4);
+      log('w428-props', { keys: lijst.map((p) => ({ key: p.key, x10: Math.round(p.x * 10), y10: Math.round(p.y * 10) })), alle: alle.length, soorten });
       return;
     }
     const cs = T.getTrafficControllers();
@@ -440,11 +442,11 @@ const PHASES = {
     log('w428', {
       meshes: w.coopExtraMeshes || null, hostMesh: w.coopHostMeshes || null, bytes: w.coopExtraBytes || 0,
       stand: e ? [e.voetgangers.size, e.uiterlijk.size, e.dieren.size, e.lichten.size, e.kapot.length, e.spraak.size] : null,
-      lichtT: [0, 1, 2, 3, 4].map((i) => (cs[i] ? Math.round(cs[i].t * 10) / 10 : null)), lichtHost: e ? [0, 1, 2, 3, 4].map((i) => (e.lichten.get(i) ? e.lichten.get(i).t : null)) : null,
+      lichtT: [0, 1, 2, 3, 4].map((i) => (cs[i] ? Math.round(cs[i].t * 10) / 10 : null)), lichtC: [0, 1, 2, 3, 4].map((i) => (cs[i] ? Math.round(cs[i].cycle * 10) / 10 : null)), lichtHost: e ? [0, 1, 2, 3, 4].map((i) => (e.lichten.get(i) ? e.lichten.get(i).t : null)) : null,
       kapot: (e ? e.kapot : []).map((k) => [k.key, B.isPropBroken(k.key)]), lokaalPeds: (w.pedestrians || []).length, lokaalDieren: (w.wildlife || []).length, lokaalVoertuigen: (w.vehicles || []).length,
-      sprekers: (w.extraSpeakers || []).length,
+      sprekers: (w.extraSpeakers || []).length, misc: e ? [...e.misc.keys()] : null,
     });
-    for (let i = 0; i < 4; i++) { w.camYaw = i * Math.PI / 2; await sleep(500); shot(naam + '-' + i); await sleep(300); }
+    for (let i = 0; i < rond; i++) { w.camYaw = i * Math.PI * 2 / rond; await sleep(500); shot(naam + '-' + i); await sleep(300); }
   },
   // samen spelen (#388): de camera van de gast draait met de muis (hij draaide nooit omdat updateGameplay niet draait voor een gast)
   async gastcamera() {

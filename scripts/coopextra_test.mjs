@@ -144,4 +144,32 @@ t('een oude gast (proto 1) wordt niet toegelaten tot een host met proto 2', () =
   assert.equal(checkHandshake({ game: 'gde', proto: 2, version: '1', tiles: 'a', story: 's' }, { game: 'gde', proto: 1, version: '1', tiles: 'a', story: 's' }).reason, 'protocol');
 });
 
+t('misc: kermis, stuntavond en punten: coderen, lezen en afremmen', () => {
+  const stunt = { x: 173.5, y: 108.25, props: [{ kind: 'parasol', x: 180, y: 110, alive: true }, { kind: 'table', x: 150.5, y: 100, alive: false }, { kind: 'kliko', x: 400, y: 100, alive: true }, { kind: 'onzin', x: 175, y: 105, alive: true }] };
+  const s = X.leesStunt(X.codeerStunt(stunt));
+  assert.equal(s.props.length, 2, 'wat ver weg is of onbekend, gaat niet mee');
+  near(s.x, 173.5, 1e-4); assert.equal(s.props[0].kind, 'parasol'); near(s.props[0].x, 180, 0.3); assert.equal(s.props[1].alive, false); near(s.props[1].y, 100, 0.3);
+  const volle = { x: 0, y: 0, props: Array.from({ length: 120 }, (_, i) => ({ kind: 'chair', x: (i % 10) - 5, y: Math.floor(i / 10) - 6, alive: true })) };
+  assert.ok(X.codeerStunt(volle).length <= 255, 'past in een misc-stukje');
+  assert.equal(X.leesStunt(new Uint8Array(4)), null);
+  const p = X.leesPunten(X.codeerPunten([{ x: 1.5, y: -2, z: 0.5 }, { x: 10, y: 20 }]));
+  assert.equal(p.length, 2); near(p[0].x, 1.5, 1e-6); near(p[1].z, 0, 1e-6);
+  assert.equal(X.leesPunten(Uint8Array.of(3, 1, 2)), null);
+  const g = X.nieuwGeheugen();
+  const bron = { kermis: true, stunt, punten: [{ x: 5, y: 6, z: 0 }] };
+  const a = X.maakMisc(bron, g, 10); assert.deepEqual(a.map((m) => m.tag), [X.MISC_KERMIS, X.MISC_STUNT, X.MISC_PUNTEN]);
+  assert.equal(X.maakMisc(bron, g, 10.3).length, 0, 'ongewijzigd: niets nieuws binnen anderhalve seconde');
+  assert.equal(X.maakMisc({ ...bron, kermis: false }, g, 10.4)[0].data[0], 0, 'een verandering gaat meteen');
+  assert.equal(X.maakMisc(bron, g, 12).length, 3, 'en na een tijd ter controle weer alles');
+  // over het bericht en de stand: een stukje vervalt als het te lang wegblijft
+  const st = X.nieuweStand(); const w = wereld(2, 0);
+  const u = X.verzamelExtra(w, BIJ, X.nieuwGeheugen(), { ...DEPS, misc: (bij, gh, nu) => X.maakMisc(bron, gh, nu) });
+  X.pasExtraToe(st, X.leesExtra(X.codeerExtra(u, BIJ[0])), 20);
+  assert.ok(st.misc.has(X.MISC_KERMIS) && st.misc.has(X.MISC_STUNT));
+  X.pasExtraToe(st, X.leesExtra(X.codeerExtra(X.verzamelExtra(w, BIJ, X.nieuwGeheugen(), DEPS), BIJ[0])), 22);
+  assert.ok(st.misc.has(X.MISC_KERMIS), 'blijft staan tot MISC_TTL');
+  X.pasExtraToe(st, X.leesExtra(X.codeerExtra(X.verzamelExtra(w, BIJ, X.nieuwGeheugen(), DEPS), BIJ[0])), 25);
+  assert.ok(!st.misc.has(X.MISC_KERMIS), 'en daarna is het weg');
+});
+
 console.log(`coopextra_test: ${n}/${n} ok`);
