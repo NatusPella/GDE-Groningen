@@ -19,15 +19,18 @@ import { getScene } from './scene3d.js';
 import { addStaticCollider, removeProp } from './breakables.js';
 import { iconDisc } from './activitykit.js';
 import { playerBusy } from './busy.js';
-import { isInWater } from './util.js';
+import { isInWater, pointInPolygon } from './util.js';
+import { inPassage } from './passages.js';
+import { pushOutOfPlan } from './countryplan.js';
+import { countryWeight } from './countryfield.js';
+import { coveredByTiles } from './provinceworld.js';
 import { provinceLandAt } from './regions.js';
+import { puntInGebied } from './grenzen.js';
+import { HX, HZ, deurVan, droogeKandidaten, zoekPlek } from './safehuisplek.js';
 
-const DEUR_AFSTAND = 3.2;   // m van het midden van het huisje tot de plek bij de deur
 const GEBRUIK_R = 2.2;
 const STREAM_IN = 200;
 const STREAM_UIT = 260;
-const SNAP_R = 60;
-const HX = 2.25, HZ = 2.75; // halve diepte (naar voren) en halve breedte van het huisje
 const MUREN = ['#d9c7a3', '#c9a98a', '#b9c7b0', '#d8b8b0', '#c4cdd6', '#e0d2a0'];
 const WAKKER = [
   ['ochtend', 'Tot de ochtend', 'Wakker om half acht, fris en uitgerust', 7.5, 'Goeiemorgen, Grunn! Uitgeslapen en opgeslagen'],
@@ -56,36 +59,26 @@ function ververs(w) {
   for (const h of huizen) opruimen(h);
   huizen = lijst.map((h) => {
     const ang = hashHoek(h.id);
-    return { ...h, ang, x: h.x + Math.cos(ang) * 22, y: h.y + Math.sin(ang) * 22, geplaatst: false, mesh: null, props: null };
+    const o = { ...h, ang, grens: ind.gebied.get(h.gebied).grens, x0: h.x, y0: h.y };
+    // ligt het binnenpunt op zee (de Eems), neem dan alvast het dichtstbijzijnde land van het gebied (het raster van de provincie, zonder tegels)
+    if (!provinceLandAt(h.x, h.y)) { const k = droogeKandidaten(o, DEPS)[0]; if (k) { o.x0 = k[0]; o.y0 = k[1]; } }
+    return { ...o, x: o.x0 + Math.cos(ang) * 22, y: o.y0 + Math.sin(ang) * 22, geplaatst: false, mesh: null, props: null };
   });
 }
-// Droog land: binnen het land van de provincie (niet de Eems of de Waddenzee), niet in het water en ook geen water vlak ernaast (de kade).
-const droog = (map, x, y) => provinceLandAt(x, y) && !isInWater(map, x, y) && ![[6, 0], [-6, 0], [0, 6], [0, -6]].some(([dx, dy]) => isInWater(map, x + dx, y + dy));
-// Het binnenpunt van een woonplaats of wijk kan in het water vallen (Delfzijl ligt deels in de Eems): zoek in ringen om dat punt naar de
-// dichtstbijzijnde open, droge plek. Lukt dat niet, dan is het huisje onbruikbaar: geen huisje, geen deur en geen icoon.
-const ZOEK_RINGEN = [0, 40, 80, 140, 220, 320, 450, 650, 900, 1300, 1800];
+// Waar een huisje mag staan (safehuisplek.js, dezelfde eisen als de spotcheck): hier komen de echte functies van het spel binnen.
+const DEPS = { isInWater, pointInPolygon, inPassage, provinceLandAt, puntInGebied, landSolid: (x, y) => countryWeight(x, y) > 0.5 && !coveredByTiles(x, y) && !!pushOutOfPlan({ x, y }, 0.35) };
+// Het binnenpunt van een woonplaats of wijk kan in het water vallen: Delfzijl en Termunten liggen als gebied deels in de Eems en de Dollard, en het binnenpunt van zo'n
+// gebied ligt dan ver op zee. Bij het indelen nemen we daarom alvast het dichtstbijzijnde land van het gebied (het landraster van de provincie, dat geen tegels
+// nodig heeft). Komt de speler binnen 200 m, dan zoeken we met de tegels erbij de plek (zoekPlek); vindt dat niets, dan is het huisje onbruikbaar: geen huisje,
+// geen deur en geen icoon.
 function plaats(h, w) {
   if (h.geplaatst || !w.map || !w.map.findOpenSpawn) return;
   h.geplaatst = true;
-  const x0 = h.x, y0 = h.y;
-  let gevonden = null;
-  for (const r of ZOEK_RINGEN) {
-    for (let k = 0; k < (r ? 12 : 1) && !gevonden; k++) {
-      const a = (k / 12) * Math.PI * 2 + hashHoek(h.id);
-      const cx = x0 + Math.cos(a) * r, cy = y0 + Math.sin(a) * r;
-      const sp = w.map.findOpenSpawn(cx, cy, SNAP_R);
-      const q = sp ? { x: sp.x, y: sp.y } : { x: cx, y: cy };
-      if (droog(w.map, q.x, q.y)) gevonden = q;
-    }
-    if (gevonden) break;
-  }
-  if (!gevonden) { h.onbruikbaar = true; return; }
-  h.x = gevonden.x; h.y = gevonden.y;
-  // het huisje kijkt naar de dichtstbijzijnde weg, anders zoals het viel
-  const rd = w.map.nearestRoadPoint ? w.map.nearestRoadPoint(h.x, h.y, 80, false, true) : null;
-  if (rd) h.ang = Math.atan2(rd.y - h.y, rd.x - h.x);
+  const q = zoekPlek(h, w.map, DEPS, hashHoek(h.id));
+  if (!q) { h.onbruikbaar = true; return; }
+  h.x = q.x; h.y = q.y; h.ang = q.ang;
 }
-const deur = (h) => ({ x: h.x + Math.cos(h.ang) * DEUR_AFSTAND, y: h.y + Math.sin(h.ang) * DEUR_AFSTAND });
+const deur = (h) => deurVan(h.x, h.y, h.ang);
 
 // --- het huisje in 3D ------------------------------------------------------------------------------------------------
 
@@ -266,8 +259,8 @@ export const SAFEHUIS = {
   id: 'safehuis',
   layer: 'safehuis',
   legend: { kind: 'act-safehuis', label: 'Safehouse', note: 'een huisje om te kopen of te krijgen in elk gebied dat je kunt veroveren' },
-  init(w) { wereld = w; window.__safehuis = { lijst: () => huizen.map((h) => ({ id: h.id, naam: h.naam, adres: h.adres, x: h.x, y: h.y, ang: h.ang, deur: deur(h), gebied: h.gebied, geplaatst: h.geplaatst, onbruikbaar: !!h.onbruikbaar, mesh: !!h.mesh, eigen: heeftHuisLive(h.id) })), menu: (id) => { const h = huizen.find((q) => q.id === id); return h ? openShopMenu(w, menu(w, h)) : null; } }; },
-  spots: () => huizen.filter((h) => !h.onbruikbaar).map((h) => ({ id: h.id, name: h.naam, ...deur(h), mode: 'walk' })),
+  init(w) { wereld = w; window.__safehuis = { lijst: () => huizen.map((h) => ({ id: h.id, naam: h.naam, adres: h.adres, x: h.x, y: h.y, ang: h.ang, deur: deur(h), gebied: h.gebied, geplaatst: h.geplaatst, onbruikbaar: !!h.onbruikbaar, mesh: !!h.mesh, eigen: heeftHuisLive(h.id) })), menu: (id) => { const h = huizen.find((q) => q.id === id); return h ? openShopMenu(w, menu(w, h)) : null; }, }; },
+  spots: (voorCheck) => (voorCheck ? [] : huizen.filter((h) => !h.onbruikbaar)).map((h) => ({ id: h.id, name: h.naam, ...deur(h), mode: 'walk' })),
   prompt(w) {
     const h = kanNiet(w) === 'x' ? null : dichtbij(w);
     if (!h) return null;
@@ -340,4 +333,17 @@ export function reisNaarHuis(huisIdent) {
   if (!h || h.onbruikbaar || !wereld || !heeftHuisLive(huisIdent)) return false;
   const d = deur(h);
   return !!(wereld.cheatActions && wereld.cheatActions.teleport(d.x, d.y, h.naam));
+}
+
+// Voor spotcheck.js (de verhaaltest): elk huisje met de tegels eromheen plaatsen en de plek bij de deur geven. Een onbruikbaar huisje (geen droge, vrije plek in zijn
+// gebied) bestaat niet in het spel en telt niet mee. onTiles(map, punt, straal, fn) laadt eerst de tegels.
+export async function safehuisCheckSpots(world, onTiles) {
+  if (!world || !world.map) return [];
+  ververs(world);
+  const uit = [];
+  for (const h of huizen) {
+    const d = await onTiles(world.map, { x: h.x, y: h.y }, 240, () => { plaats(h, world); return h.onbruikbaar ? null : deur(h); });
+    if (d) uit.push({ kind: 'safehuis', id: h.naam, x: d.x, y: d.y, mode: 'walk' });
+  }
+  return uit;
 }
