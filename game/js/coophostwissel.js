@@ -66,7 +66,8 @@ export function leesMomentopname(json) {
 }
 
 // ---- de berichten (JSON-gebeurtenissen; k begint met 'hw-') -------------------------------------------------------------
-export const HW = { PAUZE: 'hw-pauze', BOD: 'hw-bod', STUK: 'hw-stuk', JA: 'hw-ja', NEE: 'hw-nee', GELADEN: 'hw-geladen', DRAAIT: 'hw-draait', VERBIND: 'hw-verbind', ANNULEER: 'hw-annuleer' };
+export const HW = { PAUZE: 'hw-pauze', BOD: 'hw-bod', STUK: 'hw-stuk', JA: 'hw-ja', NEE: 'hw-nee', GELADEN: 'hw-geladen', DRAAIT: 'hw-draait', VERBIND: 'hw-verbind', ANNULEER: 'hw-annuleer', AANGESLOTEN: 'hw-aangesloten' };
+export const HERSTEL = { KOP: 'hw-hk', STUK: 'hw-hs' }; // variant 2: de herstelmomentopname voor als wie het spel opende wegvalt (JSON-gebeurtenissen, PROTO blijft 2)
 const KIND = new Set(Object.values(HW));
 export const isHostwissel = (b) => !!b && typeof b === 'object' && KIND.has(b.k);
 const idOk = (v) => Number.isInteger(v) && v > 0 && v <= 0xffffff;
@@ -76,20 +77,20 @@ const idOk = (v) => Number.isInteger(v) && v > 0 && v <= 0xffffff;
 //       en overal vóór 'klaar': 'mislukt' of 'geannuleerd' (de oude host blijft host)
 export class OudeHost {
   constructor({ ver, naam = '' } = {}) { this.ver = ver; this.naam = tekst(naam, 40); this.reset(); }
-  reset() { this.fase = 'rust'; this.id = 0; this.doel = -1; this.pak = null; this.volgend = 0; this.sinds = 0; this.reden = ''; this.kamer = ''; this.genegeerd = 0; }
+  reset() { this.fase = 'rust'; this.id = 0; this.doel = -1; this.pak = null; this.volgend = 0; this.sinds = 0; this.reden = ''; this.kamer = ''; this.terug = ''; this.genegeerd = 0; }
   get isHost() { return this.fase !== 'klaar'; } // alleen na het bevestigde 'hw-draait' is de oude host geen host meer
   get bezig() { return this.fase === 'aangeboden' || this.fase === 'sturen' || this.fase === 'laden' || this.fase === 'wacht-draait'; }
   _stop(fase, reden, nu, uit) { this.fase = fase; this.reden = reden; this.sinds = nu; if (uit && this.id) uit.push({ k: HW.ANNULEER, id: this.id, reden }); }
 
   // Voorbereiden en aanbieden in één keer: de momentopname (al gemaakt met maakMomentopname) en de speler die host moet worden.
   // Geeft { uit: [berichten voor `doel`] } of { fout }.
-  bied(doelSlot, momentopname, id, nu) {
+  bied(doelSlot, momentopname, id, nu, terug = '') {
     if (this.bezig || this.fase === 'klaar') return { fout: 'bezig' };
     if (!Number.isInteger(doelSlot) || doelSlot <= 0 || !idOk(id)) return { fout: 'ongeldig' };
     const pak = codeerMomentopname(momentopname);
     if (!pak) { this.fase = 'mislukt'; this.reden = 'te-groot'; return { fout: 'te-groot' }; }
-    this.reset(); this.id = id; this.doel = doelSlot; this.pak = pak; this.fase = 'aangeboden'; this.sinds = nu;
-    return { uit: [{ k: HW.BOD, id, naam: this.naam, n: pak.stukken.length, len: pak.len, sum: pak.sum, ver: this.ver }] };
+    this.reset(); this.id = id; this.doel = doelSlot; this.pak = pak; this.fase = 'aangeboden'; this.sinds = nu; this.terug = tekst(terug, 64);
+    return { uit: [{ k: HW.BOD, id, naam: this.naam, n: pak.stukken.length, len: pak.len, sum: pak.sum, ver: this.ver, ...(this.terug ? { terug: this.terug } : {}) }] };
   }
   // Een bericht van `van` (plek). Geeft { uit: [...] } met wat nu verstuurd moet worden (naar het doel, of 'rest' voor de anderen).
   ontvang(b, van, nu) {
@@ -104,7 +105,7 @@ export class OudeHost {
       const kamer = tekst(b.kamer, 64);
       if (!kamer) { this._stop('mislukt', 'geen-kamer', nu, uit); return { uit }; }
       this.kamer = kamer; this.fase = 'klaar'; this.sinds = nu;
-      uit.push({ k: HW.VERBIND, id: this.id, kamer, naam: this.naam, naar: 'rest' }); // de anderen (en wie het spel opende, nu als gast) verbinden met de nieuwe host
+      uit.push({ k: HW.VERBIND, id: this.id, kamer, naam: this.naam, naar: 'rest', ...(this.terug ? { terug: this.terug } : {}) }); // de anderen (en wie het spel opende, nu als gast) verbinden met de nieuwe host
     } else this.genegeerd++;
     return { uit };
   }
@@ -134,7 +135,7 @@ export class OudeHost {
 // fase: 'rust' → 'gevraagd' (melding J/N) → 'ontvangt' → 'geladen' (wereld laden, hub starten) → 'host'; of 'geweigerd', 'mislukt', 'geannuleerd'
 export class NieuweHost {
   constructor({ ver } = {}) { this.ver = ver; this.reset(); }
-  reset() { this.fase = 'rust'; this.id = 0; this.van = -1; this.naam = ''; this.n = 0; this.len = 0; this.sum = ''; this.stukken = new Map(); this.sinds = 0; this.reden = ''; this.momentopname = null; this.genegeerd = 0; }
+  reset() { this.fase = 'rust'; this.id = 0; this.van = -1; this.naam = ''; this.n = 0; this.len = 0; this.sum = ''; this.terug = ''; this.stukken = new Map(); this.sinds = 0; this.reden = ''; this.momentopname = null; this.genegeerd = 0; }
   get bezig() { return this.fase === 'gevraagd' || this.fase === 'ontvangt' || this.fase === 'geladen'; }
   _nee(reden, nu, uit) { if (this.id) uit.push({ k: HW.NEE, id: this.id, reden }); this.fase = reden === 'geweigerd' ? 'geweigerd' : 'mislukt'; this.reden = reden; this.sinds = nu; }
 
@@ -144,7 +145,7 @@ export class NieuweHost {
     if (b.k === HW.BOD) {
       if (this.bezig) { this.genegeerd++; return { uit: [{ k: HW.NEE, id: b.id, reden: 'bezig' }].filter((x) => idOk(x.id)) }; }
       if (!idOk(b.id) || !Number.isInteger(b.n) || b.n < 1 || b.n > MAX_STUKKEN || !Number.isInteger(b.len) || b.len < 1 || b.len > MAX_LEN || b.len > b.n * STUK || b.len <= (b.n - 1) * STUK || typeof b.sum !== 'string' || b.sum.length !== 8) { this.genegeerd++; return { uit }; }
-      this.reset(); this.id = b.id; this.van = van; this.naam = tekst(b.naam, 40); this.n = b.n; this.len = b.len; this.sum = b.sum; this.sinds = nu;
+      this.reset(); this.id = b.id; this.van = van; this.naam = tekst(b.naam, 40); this.n = b.n; this.len = b.len; this.sum = b.sum; this.terug = tekst(b.terug, 64); this.sinds = nu;
       if (!this.ver || !checkHandshake(this.ver, b.ver).ok) { this._nee('versie', nu, uit); return { uit }; }
       this.fase = 'gevraagd';
       return { uit };
@@ -203,7 +204,73 @@ export class NieuweHost {
 export function leesVerbind(b, van, verwachtId = 0) {
   if (!b || b.k !== HW.VERBIND || van !== 0 || !idOk(b.id) || (verwachtId && b.id !== verwachtId)) return null;
   const kamer = tekst(b.kamer, 64);
-  return kamer ? { id: b.id, kamer, naam: tekst(b.naam, 40) } : null;
+  const terug = tekst(b.terug, 64);
+  return kamer ? { id: b.id, kamer, naam: tekst(b.naam, 40), ...(terug ? { terug } : {}) } : null;
+}
+
+// ---- variant 2: overname bij wegvallen -------------------------------------------------------------------------------------------
+// Wie het spel opende stuurt elke paar seconden een compacte herstelmomentopname naar de gasten (dezelfde momentopname als bij het overdragen,
+// plus de rangorde van opvolgers en per opvolger een kamercode die alleen de groep kent). Valt hij weg (12 s niets gehoord, geen BYE), dan kiest
+// iedere gast met die lijst dezelfde opvolger: de beste verbinding (laagste ping, bij gelijk de laagste plek). Die opent de kamer en de rest sluit
+// daar aan; lukt dat niet binnen een beurt, dan is de volgende aan de beurt.
+export const HERSTEL_S = 10;        // s tussen twee herstelmomentopnames (bij meer dan 3 gasten langer: het bandbreedtebudget)
+export const STILTE_S = 12;         // s zonder enig bericht van wie het spel opende voor de groep het wegvallen aanneemt
+export const BEURT_S = 30;          // s per opvolger om de kamer te openen en de anderen binnen te krijgen
+export const MAX_RANG = 8;          // opvolgers in de lijst
+export const MAX_HERSTEL_STUKKEN = 12; // een herstelmomentopname groter dan dit (ca. 9,6 KB) gaat niet mee: dan blijft de vorige gelden
+const PING_BAK = 20;                // ms: pings binnen dezelfde bak gelden als even goed (dan beslist de plek)
+export const herstelInterval = (gasten) => HERSTEL_S + 2.5 * Math.max(0, gasten - 3);
+export const beurtIndex = (sinds) => Math.max(0, Math.floor(sinds / BEURT_S));
+// Welke beurt is het `sinds` seconden na het begin? Elk lijstitem heeft zijn eigen `duur` (anders BEURT_S); na de laatste: lijst.length.
+export function beurtOp(lijst, sinds) {
+  let t = Math.max(0, sinds);
+  for (let i = 0; i < lijst.length; i++) { const d = lijst[i].duur || BEURT_S; if (t < d) return i; t -= d; }
+  return lijst.length;
+}
+const bak = (ping) => (Number.isFinite(ping) && ping > 0 ? Math.round(ping / PING_BAK) : 9999); // een onbekende ping is de slechtste
+
+// Kandidaten [{ slot, ping (ms), kamer }] op volgorde: laagste ping, bij gelijk de laagste plek. `vorige` (de vorige lijst) houdt de lijst rustig:
+// de vorige nummer één blijft eerste zolang hij hooguit één bak slechter is. Zo verschillen de lijsten van twee gasten niet door één meting.
+export function rangschik(kandidaten, vorige = []) {
+  const lijst = (kandidaten || []).filter((k) => k && Number.isInteger(k.slot) && k.slot >= 1).slice().sort((a, b) => bak(a.ping) - bak(b.ping) || a.slot - b.slot);
+  const was = vorige && vorige[0] ? lijst.findIndex((k) => k.slot === vorige[0].slot) : -1;
+  if (was > 0 && bak(lijst[was].ping) - bak(lijst[0].ping) <= 1) lijst.unshift(lijst.splice(was, 1)[0]);
+  return lijst.slice(0, MAX_RANG);
+}
+
+// De herstelmomentopname in één kop en stukken (JSON-gebeurtenissen). null als hij te groot is.
+export function maakHerstel(id, m, rang) {
+  const pak = codeerMomentopname(m);
+  if (!pak || pak.stukken.length > MAX_HERSTEL_STUKKEN || !idOk(id)) return null;
+  const kop = { k: HERSTEL.KOP, id, n: pak.stukken.length, len: pak.len, sum: pak.sum, rang: (rang || []).slice(0, MAX_RANG).map((r) => [r.slot, Math.max(0, Math.round(num(r.ping))), tekst(r.kamer, 64)]) };
+  return { kop, stukken: pak.stukken.map((d, i) => ({ k: HERSTEL.STUK, id, i, d })) };
+}
+
+// De gast die de herstelmomentopnames ontvangt. neem(bericht) geeft { id, m, rang } zodra een nieuwe compleet en geldig is, anders null.
+export class HerstelOntvanger {
+  constructor() { this.id = 0; this.kop = null; this.stukken = new Map(); this.laatste = 0; }
+  neem(b) {
+    if (!b || typeof b !== 'object') return null;
+    if (b.k === HERSTEL.KOP) {
+      if (!idOk(b.id) || b.id <= this.laatste || !Number.isInteger(b.n) || b.n < 1 || b.n > MAX_HERSTEL_STUKKEN || !Number.isInteger(b.len) || b.len < 1 || b.len > b.n * STUK || b.len <= (b.n - 1) * STUK || typeof b.sum !== 'string' || b.sum.length !== 8 || !Array.isArray(b.rang) || b.rang.length > MAX_RANG) return null;
+      const rang = [];
+      for (const r of b.rang) { if (!Array.isArray(r) || !Number.isInteger(r[0]) || r[0] < 1 || r[0] > 32 || typeof r[2] !== 'string' || !r[2] || r[2].length > 64) return null; rang.push({ slot: r[0], ping: num(r[1]), kamer: r[2] }); }
+      if (b.id === this.id) return null;
+      this.id = b.id; this.kop = { n: b.n, len: b.len, sum: b.sum, rang }; this.stukken = new Map();
+      return null;
+    }
+    if (b.k !== HERSTEL.STUK || !this.kop || b.id !== this.id) return null;
+    const k = this.kop;
+    if (!Number.isInteger(b.i) || b.i < 0 || b.i >= k.n || typeof b.d !== 'string' || b.d.length > STUK || (b.i < k.n - 1 && b.d.length !== STUK)) return null;
+    if (!this.stukken.has(b.i)) this.stukken.set(b.i, b.d);
+    if (this.stukken.size < k.n) return null;
+    let json = ''; for (let i = 0; i < k.n; i++) json += this.stukken.get(i);
+    const klaar = this.kop; this.kop = null; this.stukken = new Map();
+    const m = json.length === klaar.len && controlegetal(json) === klaar.sum ? leesMomentopname(json) : null;
+    if (!m) return null;
+    this.laatste = this.id;
+    return { id: this.id, m, rang: klaar.rang };
+  }
 }
 
 // ---- teksten voor de spelers (zonder rolnaam, met namen) ---------------------------------------------------------------------
@@ -231,3 +298,8 @@ export const mislukTekst = (reden) => ({
   weg: 'De ander is weggevallen. Jij houdt het spel.',
   geannuleerd: 'De overdracht is gestopt. Jij houdt het spel.',
 }[reden] || 'De overdracht is mislukt. Jij houdt het spel.');
+export const weggevallenTekst = (naam) => `Wie het spel opende is weggevallen. ${naam || 'De ander'} neemt het over. Even wachten.`;
+export const jijOvernameTekst = 'Wie het spel opende is weggevallen. Jij neemt het over: de anderen verbinden nu met jou.';
+export const sluitAanTekst = (naam) => `${naam || 'De ander'} heeft het spel overgenomen. Je speelt weer mee.`;
+export const overnameMisluktTekst = 'Wie het spel opende is weggevallen en niemand kon het overnemen. Je speelt weer in je eigen spel.';
+export const terugHostTekst = 'Verbinden met het nieuwe spel lukte niet. Jij houdt het spel weer.';
