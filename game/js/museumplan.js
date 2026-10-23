@@ -50,6 +50,34 @@ export function clampToRect(r, x, y, m) {
   return [r.cx + a * r.ux - c * r.uy, r.cy + a * r.uy + c * r.ux];
 }
 
+// Do two oriented rectangles share ground (separating axis test)?
+export function rectsOverlap(p, q) {
+  for (const r of [p, q]) {
+    for (const [ax, ay] of [[r.ux, r.uy], [-r.uy, r.ux]]) {
+      const rad = (s) => Math.abs(ax * s.ux + ay * s.uy) * s.hl + Math.abs(-ax * s.uy + ay * s.ux) * s.hw;
+      if (Math.abs((q.cx - p.cx) * ax + (q.cy - p.cy) * ay) > rad(p) + rad(q)) return false;
+    }
+  }
+  return true;
+}
+
+// The doorway between two rooms is the strip where they overlap, however thin.
+// A walker (radius m) is free there when it is within m of both rooms: clamping
+// it into one room alone would keep its centre m short of that room's end, and
+// with an overlap thinner than that it could never cross into the other
+// (the Forum's street doors overlapped the foyer by 10 cm).
+const LINKS = new WeakMap();
+export function inDoorway(rooms, x, y, m) {
+  let links = LINKS.get(rooms);
+  if (!links) {
+    links = [];
+    for (let i = 0; i < rooms.length; i++) for (let j = i + 1; j < rooms.length; j++) if (rectsOverlap(rooms[i], rooms[j])) links.push([rooms[i], rooms[j]]);
+    LINKS.set(rooms, links);
+  }
+  for (const [p, q] of links) if (!p.shut && !q.shut && rectDist(p, x, y) < m && rectDist(q, x, y) < m) return true;
+  return false;
+}
+
 // Rect corners, counter-clockwise: [[x, y] x4]
 export function rectCorners(r) {
   const P = (a, c) => [r.cx + a * r.ux - c * r.uy, r.cy + a * r.uy + c * r.ux];
