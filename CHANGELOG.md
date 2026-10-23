@@ -6,6 +6,8 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+## [0.41.1] - 2026-10-23
+
 ### Nieuw
 - **Pauzemenu: alle spel-acties staan onder Spel, Instellingen is alleen voor het systeem (#416; in Electron op 1280x720 door Claude in beeld bekeken, niet door een mens):** Spel opslaan, Opgeslagen spellen, Doorgaan, Naar het hoofdmenu, Afsluiten en Opnieuw beginnen (met de vraag Laatste spel laden, Nieuw spel of Annuleren) stonden links in de rail; ze staan nu in het nieuwe eerste tabblad **Opslaan & stoppen** van Spel, in drie groepen (Opslaan en laden, Stoppen, Opnieuw beginnen). Missie stoppen staat er ook, als verwijzing naar Overzicht, waar de vraag bij staat. Spelen, Camera & richten en Hints & uitleg blijven de tabbladen met de spelopties, en Instellingen houdt beeld, geluid, muis & controller, interface en toegankelijkheid. In het hoofdmenu voor de start is het tabblad Opslaan & stoppen er niet. De knoppen hebben dezelfde namen en acties als voorheen en de opslagsleutels veranderen niet, dus een bestaand spel of instellingenbestand blijft zoals het was. Toetsenbord en controller werken met pijltjes en Q en E voor de tabbladen, met dezelfde menugeluiden.
 
