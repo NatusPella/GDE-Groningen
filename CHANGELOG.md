@@ -7,6 +7,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 ## [Unreleased]
 
 ### Opgelost
+- Samen spelen (#428): een gast ziet voertuigen precies zoals de gastheer ze heeft: hetzelfde model en dezelfde kleur, deuken en een lekke band, richtingaanwijzers en gevaarlichten, het zwaailicht van de politie, draaiende en sturende wielen, een helikopter met draaiende rotor, boten, schepen en vliegtuigen als echt model, en de treinen van de dienstregeling rijden mee met de gastheer. De gast en de gastheer moeten wel dezelfde versie hebben (het netwerkformaat is vernieuwd, oude versies weigeren elkaar netjes). Nog niet in beeld bekeken: boten op het water en de treinen.
 - Samen spelen: een gast ziet de voertuigen en voetgangers van de gastheer nu als echte modellen en personen (kleding, haar, politie-uniform) in plaats van blokken.
 - **Controllerindeling kiezen (#151; niet met een echte controller of in beeld bekeken):** onder Instellingen › Muis & controller kies je nu bij Controllerindeling "Rechterknop bevestigt". Dat helpt als je controller zich anders meldt dan hij is (bijvoorbeeld via Steam): A en B en X en Y wisselen dan echt van plek, in de menu's en in het spel, en de knopsymbolen in beeld volgen je keuze. Automatisch blijft de standaard.
 - **Minigames en nagesprek: de oude zwarte toetsknoppen met groene tekst zijn weg (#151; niet in beeld bekeken):** de hints bij de duivenmodus en het scherm na het spel hebben nu dezelfde witte toetskap als de rest van het spel.
