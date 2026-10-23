@@ -18,7 +18,7 @@ const RE_PLAS = /plas\b|vijver|kolk\b|poel\b|zwemwater|recreatieplas|waterpartij
 const RE_RIVIER = /reitdiep|hunze|\baa\b|\bee\b|\bae\b|rivier|beek\b|\bzijl\b|spaarbekken|kleine aa|drentse aa|oude diep|\bdiep\b(?!ering)/i;
 const RE_KANAAL = /kanaal|vaart(?!uig)|boterdiep|winschoterdiep|starkenborgh|hunsingo/i;
 const RE_SLOOT = /sloot|greppel|wetering|tocht\b|leidijk|spui|droogmakerij|wijk\b/i;
-const RE_GRACHT = /gra[cf]t|singel|haven|diepenring|kade|binnenstad/i;
+const RE_GRACHT = /gra[cf]t|singel|haven|diepenring|kade\b|binnenstad/i;
 
 // Het watertype van een polygoon ({ kind, name, pts }); `naam` laat de naam van het water zelf overschrijven (de naam van een
 // buurpolygoon van hetzelfde water, zie naamVan). Een polygoon zonder naam gaat op soort en breedte; de stadsgrachten staan in de
