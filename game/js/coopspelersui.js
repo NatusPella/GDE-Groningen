@@ -76,14 +76,14 @@ export function renderSpelersPanel(root, world, sluit = () => {}) {
   const teken = () => {
     if (!root.isConnected || root.closest('[hidden]')) { if (timer) { clearInterval(timer); timer = null; } return; }
     const rijen = (world.coopNet && world.coopSpelers) || [];
-    if (!rijen.length) { root.innerHTML = '<p>Je speelt niet samen. Open Samen spelen om iemand uit te nodigen of aan te sluiten.</p>'; return; }
+    if (!rijen.length) { root.innerHTML = '<p>Je speelt niet samen. Open Spel › Samen spelen om iemand uit te nodigen of aan te sluiten.</p>'; return; }
     const zittend = root.contains(document.activeElement) && document.activeElement.matches('button');
     const key = JSON.stringify(rijen.map((r) => [r.slot, r.doet, r.verbinding, r.ms, r.afstandTekst]));
     if (root.dataset.key === key && root.dataset.klaar) return;
     if (zittend && root.dataset.klaar) return; // de focus op een knop blijft staan
     root.dataset.key = key; root.dataset.klaar = '1';
     root.innerHTML = `<ul class="cs-lijst">${rijen.map((r) => rijHtml(r, true)).join('')}</ul>` +
-      `<p>Roepen kan ook in het spel: ${roepHint()}. Iemand uitnodigen: kies Samen spelen in het menu.</p>` +
+      `<p>Roepen kan ook in het spel: ${roepHint()}. Iemand uitnodigen: kies Samen spelen onder Spel.</p>` +
       `<div class="cs-roep">${PING_TOETSEN.map((k) => `<button type="button" data-ping="${k.soort}">${esc(k.tekst)} <small>(${k.toets})</small></button>`).join('')}</div>`;
   };
   if (!root.dataset.gebonden) {

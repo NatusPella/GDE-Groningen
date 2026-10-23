@@ -66,8 +66,8 @@ const shot = (name) => { console.log('[capture] ' + name); };
 const esc = async () => { if (window.__bot) await window.__bot.press('escape', 120); else key('Escape', 'Escape'); };
 const openSamen = async () => { // het pauzemenu, onderdeel Samen (zoals een speler)
   await esc();
-  await until(() => document.querySelector('.ra[data-goto="samen"]'), 8000, 'rail-knop Samen');
-  document.querySelector('.ra[data-goto="samen"]').click();
+  await until(() => document.querySelector('.ra[data-goto="spel"]'), 8000, 'rail-knop Spel');
+  document.querySelector('.ra[data-goto="spel"]').click(); await sleep(400); await until(() => document.querySelector('#pause-menu [data-of="spel"][data-subtab="samen"]'), 8000, 'tabblad Samen spelen'); document.querySelector('#pause-menu [data-of="spel"][data-subtab="samen"]').click();
   await until(() => panel() && !panel().closest('[hidden]'), 5000, 'paneel Samen');
 };
 // terug het spel in zoals een speler: de knop Doorgaan van het overzicht (Escape in het pauzemenu gaat een stap terug)
@@ -76,7 +76,7 @@ const closeMenu = async () => {
     if (!document.querySelector('#pause-menu.visible')) break; // niet op world.paused: een filmpje pauzeert de wereld ook, en Escape zou dan het menu juist openen
     const resume = [...document.querySelectorAll('#pause-menu [data-action="resume"]')].find((b) => b.offsetParent);
     if (resume) resume.click();
-    else { const ov = document.querySelector('#pause-menu .ra[data-goto="overzicht"]'); if (ov && ov.getAttribute('aria-current') !== 'true') ov.click(); else await esc(); }
+    else { const ov = document.querySelector('#pause-menu .ra[data-goto="spel"]'); if (ov && ov.getAttribute('aria-current') !== 'true') ov.click(); else await esc(); }
     await sleep(900);
   }
   log('menu-dicht', { paused: !!(W() || {}).paused, startScherm: !!document.querySelector('#start-screen.visible'), pauzemenu: !!document.querySelector('#pause-menu.visible'), body: document.body.className });
@@ -326,10 +326,10 @@ const PHASES = {
   // het onderdeel Spelers in het pauzemenu (#377)
   async spelersmenu({ name = 'g-spelersmenu' }) {
     await esc();
-    await until(() => document.querySelector('.ra[data-goto="samen"]'), 8000, 'rail-knop Samen');
-    document.querySelector('.ra[data-goto="samen"]').click(); await sleep(600); await until(() => document.querySelector('#pause-menu [data-spelers-nav] [data-goto="spelers"]'), 8000, 'knop Spelers'); document.querySelector('#pause-menu [data-spelers-nav] [data-goto="spelers"]').click();
+    await until(() => document.querySelector('.ra[data-goto="spel"]'), 8000, 'rail-knop Spel');
+    document.querySelector('.ra[data-goto="spel"]').click(); await sleep(400); await until(() => document.querySelector('#pause-menu [data-of="spel"][data-subtab="spelers"]'), 8000, 'tabblad Spelers'); document.querySelector('#pause-menu [data-of="spel"][data-subtab="spelers"]').click();
     await sleep(1200);
-    const p = document.querySelector('#pause-menu [data-panel="spelers"]');
+    const p = document.querySelector('#pause-menu [data-of="spel"][data-sub="spelers"]');
     const rail = document.querySelector('#pause-menu .pm-rail .pm-game'), opsl = document.querySelector('#pause-menu [data-action="save"]');
     const first = document.querySelector('#pause-menu .pm-game .ra'), second = document.querySelectorAll('#pause-menu .pm-game .ra')[1];
     log('spelersmenu', { zichtbaar: !!p && !p.hidden, rijen: p ? p.querySelectorAll('.cs-rij').length : 0, roep: p ? p.querySelectorAll('[data-ping]').length : 0,
@@ -663,9 +663,9 @@ const PHASES = {
   // het pauzemenu open terwijl je samen speelt: ligt het partnerlabel er niet overheen? (alleen een schermafbeelding en een controle)
   async menushot() {
     await openSamen(); await sleep(900);
-    // geen permanent label meer (#377): niets van de spelerslijst ligt over het menu; het onderdeel Spelers staat in de rail
+    // geen permanent label meer (#377): niets van de spelerslijst ligt over het menu; Spelers is een tabblad van Spel
     const lijst = document.getElementById('coop-spelers');
-    const rail = document.querySelector('#pause-menu [data-goto="spelers"]');
+    const rail = document.querySelector('#pause-menu [data-of="spel"][data-subtab="spelers"]');
     log('menushot', { chip: true, chipZichtbaar: !!(lijst && getComputedStyle(lijst).display !== 'none') || !!document.querySelector('.coop-chip'), railSpelers: !!rail && !rail.hidden });
     shot('g-pauzemenu');
     await sleep(500); await closeMenu();

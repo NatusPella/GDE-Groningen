@@ -48,10 +48,10 @@ ok(!/localStorage\.(setItem|getItem)\([^)]*spel/i.test(pm), 'Spel bewaart niets 
 // de tabbladen van Spel, de sectie en alles eromheen
 const sub = (pm.match(/spel: \[((?:\[[^\]]+\],? ?)+)\],/) || [])[1] || '';
 const subIds = [...sub.matchAll(/\['(\w+)', '([^']+)'\]/g)].map((x) => x[1]);
-ok(subIds.join() === 'overzicht,acties,spelen,camera,hints', 'Spel heeft de tabbladen Overzicht, Opslaan & stoppen, Spelen, Camera & richten en Hints & uitleg', subIds.join());
-ok(subIds.every((id) => id === 'overzicht' || spelSrc.includes(`tab('${id}'`)) && spelSrc.includes('data-sub="overzicht" class="pm-ov pm-spelov"'),'elk tabblad heeft zijn inhoud (Overzicht tekent zich in Spel)');
+ok(subIds.join() === 'overzicht,samen,spelers,acties,spelen,camera,hints', 'Spel heeft de tabbladen Overzicht, Samen spelen, Spelers, Opslaan & stoppen, Spelen, Camera & richten en Hints & uitleg', subIds.join());
+ok(subIds.every((id) => ['overzicht', 'samen', 'spelers'].includes(id) || spelSrc.includes(`tab('${id}'`)) && spelSrc.includes('data-sub="overzicht" class="pm-ov pm-spelov"'),'elk tabblad heeft zijn inhoud (Overzicht tekent zich in Spel)');
 ok(/\['spel', 'Spel', '/.test(pm), "'spel' staat in de sectielijst");
-ok(pm.includes("RAIL_GROUPS = [['spel', 'verhaal', 'loopbaan', 'todo'], ['map', 'spullen', 'garage', 'prestaties', 'fotos', 'samen'], ['settings']];"), 'de rail: Spel, Verhaal, Loopbanen, Activiteiten | Kaart, Spullen, Garage, Prestaties, Foto’s, Samen spelen | Instellingen (#430)');
+ok(pm.includes("RAIL_GROUPS = [['spel', 'verhaal', 'loopbaan', 'todo'], ['map', 'spullen', 'garage', 'prestaties', 'fotos'], ['settings']];"), 'de rail: Spel, Verhaal, Loopbanen, Activiteiten | Kaart, Spullen, Garage, Prestaties, Foto’s | Instellingen (#430)');
 ok(/PRESTART_SECTIONS = \['spel', 'settings', 'controls'\]/.test(pm), 'ook in het hoofdmenu (voor de start) zijn de speelopties bereikbaar');
 ok(/^\s*spel: \[\[\['↑', '↓'\], 'kiezen'\]/m.test(pm), 'Spel heeft zijn voetregel');
 ok(/^\s*spel: '<rect/m.test(pm), 'Spel heeft een icoon in dezelfde lijnstijl');
@@ -107,10 +107,10 @@ ok(/data-of="verhaal" data-sub="opdrachten" data-keep/.test(pm) && /renderTodoSt
 ok(/data-todo-view="verhaal"/.test(read('game/js/todoui.js')) && /view === 'verhaal'\) \{ pref\.sub\.verhaal = 'opdrachten'/.test(pm), 'Alle opdrachten in Overzicht leidt naar Verhaal > Opdrachten');
 // elke actie bereikbaar, geen dubbele data-actions of panelen
 const panels = [...pm.matchAll(/data-panel="(\w+)" class/g)].map((x) => x[1]);
-ok(new Set(panels).size === panels.length && panels.length === 16, 'elk paneel staat één keer in het blad', String(panels.length));
+ok(new Set(panels).size === panels.length && panels.length === 14, 'elk paneel staat één keer in het blad', String(panels.length));
 // --- #430 definitief: Spel (met Overzicht), Verhaal (met de telefoon), Loopbanen, Activiteiten, Samen spelen (met Spelers), Instellingen (met Cheats)
 const secties = new Function('return ' + pm.slice(pm.indexOf('const SECTIONS = [') + 'const SECTIONS = '.length, pm.indexOf('];', pm.indexOf('const SECTIONS = [')) + 1))();
-ok(secties.map((x) => x[0]).slice(0, 11).join() === 'spel,verhaal,loopbaan,todo,map,spullen,garage,prestaties,fotos,samen,settings', 'de secties staan in de volgorde van de eigenaar', secties.map((x) => x[0]).join());
+ok(secties.map((x) => x[0]).slice(0, 10).join() === 'spel,verhaal,loopbaan,todo,map,spullen,garage,prestaties,fotos,settings', 'de secties staan in de volgorde van de eigenaar', secties.map((x) => x[0]).join());
 ok(!panels.includes('overzicht') && !panels.includes('telefoon'), 'Overzicht en Telefoon zijn geen eigen paneel meer');
 for (const [id, titel, zin] of secties) ok(zin.split(/\s+/).length <= 8 && zin.length > 3, `onder ${titel} staat één korte zin (max 8 woorden)`, zin);
 ok(secties.find((x) => x[0] === 'loopbaan')[1] === 'Loopbanen' && secties.find((x) => x[0] === 'todo')[1] === 'Activiteiten', 'Loopbaan heet Loopbanen en Te doen heet Activiteiten');
@@ -126,8 +126,11 @@ ok(pm.includes("[data-of=\"verhaal\"][data-subtab=\"personages\"]") && pm.includ
 ok(!/data-goto="telefoon"/.test(pm) && !/'telefoon'\)/.test(pm.slice(pm.indexOf('function syncNavBadges'), pm.indexOf('function renderPhone'))), 'er is geen rijknop of teller voor de telefoon meer; ongelezen berichten tellen bij Verhaal');
 // oude namen verwijzen door
 for (const [oud, nieuw] of [["name === 'overzicht' || name === 'game'", "name = 'spel'"], ["name === 'telefoon'", "name = 'verhaal'"], ["name === 'cheats'", "name = 'streken'"], ["name === 'missions'", "name = 'todo'"]]) ok(pm.includes(oud) && pm.includes(nieuw), 'oude naam ' + oud.split("'")[1] + ' verwijst door');
-ok(/CHILD = \{[^}]*streken: 'settings'[^}]*spelers: 'samen'/.test(pm), 'Cheats hangen onder Instellingen en Spelers onder Samen spelen');
-ok(pm.includes('data-spelers-nav') && pm.includes('data-goto="spelers"') && pm.includes("root.querySelector('[data-spelers-nav]').hidden = !(world && world.coopNet)"), 'Samen spelen heeft de knop naar het speleroverzicht, alleen als je samen speelt');
+ok(/CHILD = {[^}]*streken: 'settings'/.test(pm) && !/spelers: 'samen'/.test(pm), 'Cheats hangen onder Instellingen; Samen spelen en Spelers zijn geen onderdeel of rijknop meer');
+ok(pm.includes("['samen', 'Samen spelen'], ['spelers', 'Spelers']") && pm.includes('data-of="spel" data-sub="samen"') && pm.includes('data-of="spel" data-sub="spelers"') && pm.includes('renderSamenPanel(root.querySelector') && pm.includes('renderSpelersPanel(root.querySelector') && pm.includes("id === 'spelers' && !(world && world.coopNet)"), 'Samen spelen en Spelers zijn tabbladen van Spel (Spelers alleen als je samen speelt)');
+ok(pm.includes("name === 'samen' || name === 'samenspelen' || name === 'spelers'") && pm.includes("setN('spel', coopN") && pm.includes('world.coopSpelers.length'), 'de oude namen samen, samenspelen en spelers verwijzen naar Spel > Samen spelen; de rijknop Spel toont het aantal spelers');
+ok(read('game/js/main.js').includes("openPauseMenu('samen')"), 'de coöp-melding opent nog openPauseMenu(samen), dat nu naar Spel > Samen spelen gaat');
+ok(!read('scripts/coop/coop.page.js').includes('.ra[data-goto="samen"]') && !read('scripts/coop/coop.page.js').includes('.ra[data-goto="spelers"]'), 'de coöp-QA zoekt geen oude rijknoppen meer');
 ok(settingsSrc.includes("tab('cheats'") && settingsSrc.includes('data-goto="streken"') && /\['fouten', 'Foutrapport'\], \['cheats', 'Cheats'\]/.test(pm), 'Instellingen heeft het tabblad Cheats');
 ok(pm.includes('const inGameOnly') && /prestart && inGameOnly/.test(pm), 'voor de start zijn Overzicht, Opslaan & stoppen en Cheats er niet');
 ok(pm.includes("if (tab === 'spel' && !atHome())"), 'Esc in Spel gaat eerst terug naar Overzicht en sluit dan pas');
