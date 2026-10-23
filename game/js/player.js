@@ -867,7 +867,7 @@ export class Player {
       if (v._copHeatT <= 0) {
         v._copHeatT = 5;
         if (!v._copHint) { v._copHint = true; world.addMessage('Opgevoerde brommer: de politie let op je', 4, { kind: 'tip', key: 'moped-tuned' }); }
-        reportCrime(world, 'tunedMoped');
+        reportCrime(world, 'tunedMoped', { vehicle: v });
       }
     }
     v.gripK = world && !v.isBoat ? roadGrip(world, v.x, v.y, v.surface) * MODS.grip : 1;
@@ -882,7 +882,7 @@ export class Player {
         v.sprintRest = burst + BIKE_SPRINT_REST_S;
       }
     }
-    const steerIn = world ? Math.max(-1, Math.min(1, ax + drunkSteer(world, v))) : ax;
+    const steerIn = world ? Math.max(-1, Math.min(1, ax + (v.coopBestuurder ? 0 : drunkSteer(world, v)))) : ax; // een gast die stuurt (coopbestuur.js) is niet dronken van wat de host dronk
     const st = getSettings();
     v.shiftMode = st.shiftMode;
     v.driftAssist = st.driftAssist;

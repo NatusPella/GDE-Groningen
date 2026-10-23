@@ -461,7 +461,9 @@ function updateBust(dt, world) {
     bust.t = 0;
     bust.progress = 0;
     bust.mode = null;
-    requestRespawn(world, { busted: true, moneyPenalty: bustFineIn(world.wanted, world.money, p.inVehicle) });
+    // samen spelen (#434): is het doelwit een gast, dan wordt hij gepakt (coopnet.js) en niet de host
+    if (p.coopSlot != null && world.coopGepakt) world.coopGepakt(p.coopSlot, world.wanted);
+    else requestRespawn(world, { busted: true, moneyPenalty: bustFineIn(world.wanted, world.money, p.inVehicle) });
   }
 }
 
