@@ -3,7 +3,7 @@
 // nieuwe verbinding terugkomt, een gast die later aansluit of weggaat, een gastheer die even niet reageert, een verkeerde versie
 // en een verbinding die nooit hallo zegt. Elke minuut meet hij het geheugen (JS-heap na gc), de wachtrijen en tabellen van hub,
 // sessie en extra wereld, de frametijd van de koppeling, de bytes per gast en de meldingen (desync, consolefouten).
-//   node scripts/coop/duurtest.mjs --modus=mem [--min=40] [--gasten=7]    in het geheugen, op een virtuele klok (sneller dan echte tijd)
+//   node scripts/coop/duurtest.mjs --modus=mem [--min=40] [--gasten=7]    (--gasten tot 15: 16 spelers) in het geheugen, op een virtuele klok (sneller dan echte tijd)
 //   node scripts/coop/duurtest.mjs --modus=tcp [--min=10] [--gasten=7]    echte TCP op 127.0.0.1 (coopcore.cjs), echte klok
 // Uitkomst: een tabel per minuut, een oordeel (heap-helling na opwarmen, begrensde tabellen) en met --uit=<bestand> alles als json.
 // Zonder Electron en zonder echt internet. De heap is die van het hele proces (gastheer en gasten samen).
@@ -24,7 +24,7 @@ const N = await imp('coopnet.js');
 const { createLink } = await imp('net/memtransport.js');
 const { pingEvent } = await imp('partnerhud.js');
 const X = await imp('coopextra.js');
-const MODUS = arg('modus', 'mem'), MIN = Number(arg('min', MODUS === 'mem' ? 40 : 10)), DOEL = Math.min(7, Math.max(3, Number(arg('gasten', 7))));
+const MODUS = arg('modus', 'mem'), MIN = Number(arg('min', MODUS === 'mem' ? 40 : 10)), DOEL = Math.min(15, Math.max(3, Number(arg('gasten', 7)))); // gasten (de gastheer erbij: tot 16 spelers, MAX_PLAYERS)
 const UIT = arg('uit', null);
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const START = { x: -1287, y: -1066 };
@@ -83,7 +83,7 @@ function rit(w, aan) {
 // ---------------------------------------------------------------- rig 1: in het geheugen, op een virtuele klok
 async function memRig() {
   const hw = maakHostWereld(); const gs = []; let t = 0; const DT = 1 / 30; let stal = 0;
-  N.startHost(hw, INFO, { seed: 5, max: 8, scene: () => ({ filmpje: false, pauze: !!hw.paused, regel: null, keuze: null }) });
+  N.startHost(hw, INFO, { seed: 5, max: Math.max(8, DOEL + 1), scene: () => ({ filmpje: false, pauze: !!hw.paused, regel: null, keuze: null }) });
   const bytes = { op: 0, neer: 0 };
   const koppel = (g) => { // nieuwe verbinding voor g (bytes tellen)
     const link = createLink({ latency: 0.04, jitter: 0.015, loss: 0.01, seed: 11 + (g.nr * 7) + (g.keer = (g.keer || 0) + 1) });
@@ -140,7 +140,7 @@ async function tcpRig() {
   const { startNodeHost } = await import(pathToFileURL(path.join(HERE, 'nodehost.mjs')).href);
   const { startMockGuest } = await import(pathToFileURL(path.join(HERE, 'mockclient.mjs')).href);
   const stage = path.join(ROOT, 'game');
-  const h = await startNodeHost({ stage, max: 8 });
+  const h = await startNodeHost({ stage, max: Math.max(8, DOEL + 1) });
   const world = h.world, gs = []; let nr = 0; const t0 = Date.now();
   // de nodehost beweegt zelf; wij sturen alleen verloop, ritten en opdrachten
   const maak = async (token) => {
@@ -250,18 +250,18 @@ try {
   const problemen = [];
   if (slot.ok !== slot.spelers - 1) problemen.push(`aan het eind ziet ${slot.ok} van ${slot.spelers - 1} gasten de volle lijst`);
   if (meld.fouten.length) problemen.push(`${meld.fouten.length} consolefouten: ${meld.fouten[0]}`);
-  const na = rijen.filter((x) => x.min >= 5).map((x) => [x.min, x.heap]);
+  const na = rijen.filter((x) => x.min >= Math.max(5, MIN / 2)).map((x) => [x.min, x.heap]); // de tweede helft: de eerste helft is opwarmen en spelers die nog aansluiten
   const hl = +helling(na).toFixed(3);
-  if (hl > 0.5) problemen.push(`de heap groeit ${hl} MB per minuut na 5 minuten`);
+  if (hl > 0.5) problemen.push(`de heap groeit ${hl} MB per minuut in de tweede helft`);
   const max = (f) => Math.max(0, ...rijen.map(f));
   if (max((x) => x.host.wachtend || 0) > 4) problemen.push(`wachtende verbindingen bij de hub tot ${max((x) => x.host.wachtend || 0)}`);
   if (max((x) => x.host.relPending || 0) > 32) problemen.push('wachtrij van betrouwbare berichten boven 32');
-  if (max((x) => x.host.geheugens || 0) > 8) problemen.push('meer extra-geheugens dan plekken');
+  if (max((x) => x.host.geheugens || 0) > Math.max(8, DOEL + 1)) problemen.push('meer extra-geheugens dan plekken');
   if (max((x) => x.gast.snaps) > 40) problemen.push('snapshotbuffer boven 40');
   if (max((x) => x.gast.looks) > 400) problemen.push('uiterlijkencache boven 400');
   if (MODUS === 'mem' && max((x) => x.gast.extra) > 400) problemen.push(`extra-tabellen bij een gast tot ${max((x) => x.gast.extra)}`);
   if (meld.desync) problemen.push(`${meld.desync} desync-meldingen`);
-  console.log(`\nheap-helling na 5 min: ${hl} MB/min; piek ${max((x) => x.heap)} MB; hoogste wachtend ${max((x) => x.host.wachtend || 0)}; hoogste relPending ${max((x) => x.host.relPending || 0)}; desync ${meld.desync}; fouten ${meld.fouten.length}`);
+  console.log(`\nheap-helling in de tweede helft: ${hl} MB/min; piek ${max((x) => x.heap)} MB; hoogste wachtend ${max((x) => x.host.wachtend || 0)}; hoogste relPending ${max((x) => x.host.relPending || 0)}; desync ${meld.desync}; fouten ${meld.fouten.length}`);
   if (meld.waarsch.size) console.log('waarschuwingen:', JSON.stringify([...meld.waarsch]));
   if (log.length) console.log('scriptfouten:\n  ' + log.slice(0, 8).join('\n  '));
   const bw = rijen.length ? rijen[rijen.length - 1] : null; void bw;

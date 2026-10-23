@@ -456,6 +456,27 @@ const PHASES = {
     });
     for (let i = 0; i < rond; i++) { w.camYaw = i * Math.PI * 2 / rond; await sleep(500); shot(naam + '-' + i); await sleep(300); }
   },
+  // samen spelen (#428, duurtest): geheugen, scene en tabellen van de gast, elke `elke` seconden, `s` seconden lang (de gastheer laat voertuigen en voetgangers verlopen)
+  async duurmeting({ s = 60, elke = 5 }) {
+    if (CFG.role === 'host') { await sleep(s * 1000); return; }
+    const w = W(), S3 = await import('./js/scene3d.js');
+    const t0 = Date.now();
+    while (Date.now() - t0 < s * 1000) {
+      const sc = S3.getScene(), r = S3.getRenderer(), ses = w.coopNet && w.coopNet.session, e = w.coopExtra;
+      let kids = 0; const mats = new Set(), geos = new Set(); if (sc) sc.traverse((o) => { kids++; if (o.geometry) geos.add(o.geometry); if (o.material) for (const m of Array.isArray(o.material) ? o.material : [o.material]) mats.add(m); });
+      let gc = false; if (typeof window.gc === 'function') { window.gc(); gc = true; }
+      log('duur', {
+        t: Math.round((Date.now() - t0) / 1000), heapMB: performance.memory ? +(performance.memory.usedJSHeapSize / 1048576).toFixed(1) : null, gc,
+        geometries: r ? r.info.memory.geometries : null, textures: r ? r.info.memory.textures : null, programs: r ? r.info.programs.length : null, calls: r ? r.info.render.calls : null,
+        sceneKinderen: kids, sceneMaterialen: mats.size, sceneGeometrieen: geos.size,
+        hostMesh: w.coopHostMeshes || null, extraMesh: w.coopExtraMeshes || null, figuren: Object.keys(w.coopFigures || {}).length,
+        stand: e ? [e.voetgangers.size, e.uiterlijk.size, e.spraak.size, e.dieren.size, e.lichten.size, e.misc.size, e.kapot.length] : null,
+        snaps: ses ? ses.buf.snaps.length : null, relP: ses ? ses.rel.pending.length : null, relA: ses ? ses.rel.ahead.size : null, looks: ses && ses.looks ? ses.looks.size : null,
+        sprekers: (w.extraSpeakers || []).length, status: ses ? ses.status : null, bubbels: document.querySelectorAll('.speech-bubble, .bubble').length, domEls: document.getElementsByTagName('*').length,
+      });
+      await sleep(elke * 1000);
+    }
+  },
   // samen spelen (#388): de camera van de gast draait met de muis (hij draaide nooit omdat updateGameplay niet draait voor een gast)
   async gastcamera() {
     const w = W();

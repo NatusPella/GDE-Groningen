@@ -31,7 +31,7 @@ export const REASON_TEXT = {
   vol: 'De sessie zit al vol.',
   token: 'Deze verbinding kan niet hervat worden.',
   gesloten: 'De verbinding is gesloten. Zit het spel vol, of is het spel gestopt?',
-  'time-out': 'De gastheer antwoordt niet. Staat het spel open en is het klaar met laden? Probeer het over een halve minuut opnieuw.',
+  'time-out': 'De ander antwoordt niet. Staat het spel open en is het klaar met laden? Probeer het over een halve minuut opnieuw.',
 };
 
 export const RTO_TRAAG = 2; // s tussen herhalingen bij een weggevallen gast
