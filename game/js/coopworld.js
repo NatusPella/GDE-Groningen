@@ -32,6 +32,25 @@ export const VOERTUIG_MATEN = {
   heli: [9, 2.4, 3, '#b0b0b0'], trein: [20, 3, 3.5, '#d0d0d0'], vracht: [9, 2.5, 3.4, '#8a7a5a'], overig: [4, 1.8, 1.5, '#888'],
 };
 
+// Wie van de voetgangers gaat mee: dichtbij, plus wie ertoe doet (een opdracht, een baan, een wapen, een gevecht, een gesprek, een gevallen of dode)
+// tot BELANGRIJK_RADIUS. Zowel de snapshot (hier) als het EXTRA-bericht (coopextra.js) gebruiken dit, zodat de id's kloppen.
+export const BELANGRIJK_RADIUS = 110;
+export const belangrijkePed = (p, now) => !!(p.missionCrowd || p.jobPed || p.scripted || p.heldWeapon || p.attackFx || (p.speechText && now < p.speechUntil) || p.state === 'dead' || p.ragdoll);
+export function kiesVoetgangers(world, bij, { radius = RADIUS_VOETGANGER, max = MAX_VOETGANGERS } = {}) {
+  const now = Number.isFinite(world.time) ? world.time : 0;
+  const lijst = [];
+  for (const p of world.pedestrians || []) {
+    if (!p || !Number.isFinite(p.x) || !Number.isFinite(p.y) || p.gibbed || p.hideMesh || (p.health <= 0 && p.state !== 'dead')) continue;
+    let d = Infinity;
+    for (const b of bij) d = Math.min(d, Math.hypot(p.x - b.x, p.y - b.y));
+    const belangrijk = belangrijkePed(p, now);
+    if (d <= radius || (belangrijk && d <= BELANGRIJK_RADIUS)) lijst.push({ d: belangrijk ? d - 60 : d, p });
+  }
+  lijst.sort((a, b) => a.d - b.d);
+  return lijst.slice(0, max);
+}
+
+export const voertuigId = (v, i) => (Number.isInteger(v.id) ? vid(v, i) : null); // het id dat een voertuig in de snapshot heeft (null: geen vast id)
 const vid = (v, i) => { const id = (Number.isInteger(v.id) ? v.id : i) & 0xffff; return id === ID_DOEL ? 0xfffd : id; };
 
 export function voertuigSoort(v) {
@@ -93,15 +112,7 @@ export function verzamelEntiteiten(world, bij, { radius = RADIUS, max = MAX_ENTI
   }
   near.sort((a, b) => a.d - b.d);
   const groepen = groepenVan(bij), nearV = verweef(near, bij, groepen);
-  const peds = [];
-  for (const p of world.pedestrians || []) {
-    if (!p || !Number.isFinite(p.x) || !Number.isFinite(p.y) || p.state === 'dead' || p.health <= 0) continue;
-    let d = Infinity;
-    for (const b of bij) d = Math.min(d, Math.hypot(p.x - b.x, p.y - b.y));
-    if (d <= RADIUS_VOETGANGER) peds.push({ d, p });
-  }
-  peds.sort((a, b) => a.d - b.d);
-  const pedsV = verweef(peds, bij, groepen);
+  const pedsV = verweef(kiesVoetgangers(world, bij), bij, groepen);
   const nPed = Math.min(pedsV.length, MAX_VOETGANGERS, Math.max(0, max - out.length - 12)); // voertuigen houden minstens 12 plekken
   for (const { v } of nearV) {
     if (out.length >= max - nPed) break;

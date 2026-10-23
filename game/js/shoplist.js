@@ -77,7 +77,7 @@ export function shortfall(it, money = 0) {
 const euro = (n) => '€' + Math.round(n).toLocaleString('nl-NL');
 export function brokeMessage(it, money = 0) {
   const k = shortfall(it, money);
-  return k > 0 ? `Te weinig geld: je mist nog ${euro(k)}. Bijverdienen? Kijk in je telefoon onder Te doen › Dichtbij` : 'Te weinig geld. Bijverdienen? Kijk in je telefoon onder Te doen › Dichtbij';
+  return k > 0 ? `Te weinig geld: je mist nog ${euro(k)}. Bijverdienen? Kijk in het menu onder Loopbanen of Activiteiten` : 'Te weinig geld. Bijverdienen? Kijk in het menu onder Loopbanen of Activiteiten';
 }
 
 // Message for a refused press on an item: why it can't be bought now.

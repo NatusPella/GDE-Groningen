@@ -13,6 +13,8 @@ export const rtcSupported = () => typeof RTCPeerConnection !== 'undefined';
 const MAX_SDP = 20000;
 
 export const defaultPc = (iceServers) => new RTCPeerConnection({ iceServers, iceCandidatePoolSize: 0 });
+const GEEN_RTC = 'Een kamercode werkt niet op dit apparaat. Gebruik het IP-adres, of probeer een andere computer.';
+const maakPc = (pcFactory, iceServers) => { try { return pcFactory(iceServers); } catch (e) { throw new Error(GEEN_RTC); } }; // zonder dit kwam een Engelse systeemmelding bij de speler
 
 function waitGathered(pc, ms) {
   return new Promise((resolve) => {
@@ -50,7 +52,7 @@ function readSdp(text, type) {
 // Geeft { transport, cancel() }. onstate: 'wacht' | 'verbinden' | 'open' | 'fout' (info = Nederlandse tekst).
 export async function hostRoom(room, env) {
   const { pcFactory = defaultPc, signaler, iceServers = ICE_SERVERS, timeouts = TIMEOUTS, onstate = () => {} } = env;
-  const pc = pcFactory(iceServers);
+  const pc = maakPc(pcFactory, iceServers);
   const ch = pc.createDataChannel('gde-coop', { ordered: false, maxRetransmits: 0 });
   const transport = wrapChannel(ch, pc);
   let ended = false, timer = null;
@@ -62,12 +64,16 @@ export async function hostRoom(room, env) {
   // Eén timer voor allebei liet de uitnodiging na 30 s verlopen, ook als de vriend de code nog moest overnemen.
   const MELDING = 'Er kwam geen verbinding tot stand. Controleer de code en probeer het opnieuw.';
   timer = setTimeout(() => fail(MELDING), timeouts.wait ?? timeouts.connect);
-  await pc.setLocalDescription(await pc.createOffer());
-  await waitGathered(pc, timeouts.gather);
-  const blob = await encryptBlob(room, JSON.stringify({ type: 'offer', sdp: pc.localDescription.sdp }));
-  signaler.host(await topicFor(room), blob, async (ablob) => {
+  let blob, topic;
+  try {
+    await pc.setLocalDescription(await pc.createOffer());
+    await waitGathered(pc, timeouts.gather);
+    blob = await encryptBlob(room, JSON.stringify({ type: 'offer', sdp: pc.localDescription.sdp }));
+    topic = await topicFor(room);
+  } catch (e) { fail('Het aanbod voor je medespeler kon niet worden gemaakt. Probeer het opnieuw, of gebruik het IP-adres.'); return { transport, cancel }; }
+  signaler.host(topic, blob, async (ablob) => {
     if (ended) return;
-    const txt = await decryptBlob(room, ablob);
+    let txt = null; try { txt = await decryptBlob(room, ablob); } catch (e) { txt = null; }
     const ans = txt && readSdp(txt, 'answer');
     if (!ans) return; // verkeerde code of geknoeid bericht: negeren
     onstate('verbinden');
@@ -80,7 +86,7 @@ export async function hostRoom(room, env) {
 
 export async function joinRoom(room, env) {
   const { pcFactory = defaultPc, signaler, iceServers = ICE_SERVERS, timeouts = TIMEOUTS, onstate = () => {} } = env;
-  const pc = pcFactory(iceServers);
+  const pc = maakPc(pcFactory, iceServers);
   let ended = false, transport = null;
   const fail = (txt) => { if (!ended) { ended = true; onstate('fout', txt); cancel(); } };
   const cancel = () => { ended = true; clearTimeout(timer); try { signaler.close(); } catch (e) { /* weg */ } if (!transport || !transport.isOpen()) { try { pc.close(); } catch (e) { /* weg */ } } };
@@ -96,7 +102,7 @@ export async function joinRoom(room, env) {
   onstate('wacht');
   signaler.join(await topicFor(room), async (blob, reply) => {
     if (ended) return;
-    const txt = await decryptBlob(room, blob);
+    let txt = null; try { txt = await decryptBlob(room, blob); } catch (e) { txt = null; }
     const off = txt && readSdp(txt, 'offer');
     if (!off) { fail('De kamercode klopt niet, of het bericht is beschadigd.'); return; }
     try {

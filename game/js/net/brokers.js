@@ -15,21 +15,35 @@ const bin = (hex) => hex.match(/../g).map((h) => String.fromCharCode(parseInt(h,
 const rid = (rand, n = 20) => { let s = ''; for (let i = 0; i < n; i++) s += String.fromCharCode(97 + Math.floor(rand() * 26)); return s; };
 const defaultTimers = () => ({ setTimeout: (...a) => setTimeout(...a), clearTimeout: (...a) => clearTimeout(...a), setInterval: (...a) => setInterval(...a), clearInterval: (...a) => clearInterval(...a) });
 
+const HERSTEL_MAX = 6, HERSTEL_WACHT = 2000; // pogingen en eerste wachttijd (ms) na een weggevallen broker
+
 class Backend {
   constructor(name, opts) {
     this.name = name; this.url = opts.url; this.open = opts.socket; this.timers = opts.timers || defaultTimers();
     this.rand = opts.rand || Math.random; this.status = 'bezig'; this.onstatus = null; this.ws = null; this.closed = false; this.ivs = [];
   }
-  _set(s) { if (this.status !== s) { this.status = s; if (this.onstatus) this.onstatus(this.name, s); } }
+  _set(s) { if (s === 'ok') this.pogingen = 0; if (this.status !== s) { this.status = s; if (this.onstatus) this.onstatus(this.name, s); } }
+  // Een broker die wegvalt terwijl de host wacht (de uitnodiging staat minuten open) wordt opnieuw geprobeerd, met oplopende wachttijd:
+  // een verbinding die stilletjes dicht was, liet de uitnodiging anders onbereikbaar terwijl de status 'ok' bleef.
+  _herstel() {
+    if (this.closed) return;
+    this.pogingen = (this.pogingen || 0) + 1;
+    if (this.pogingen > HERSTEL_MAX) { this._set('fout'); return; }
+    for (const i of this.ivs) this.timers.clearInterval(i);
+    this.ivs = []; this._set('bezig');
+    this._hersteld = this.timers.setTimeout(() => { if (!this.closed) this._connect(...this._args); }, HERSTEL_WACHT * 2 ** (this.pogingen - 1));
+  }
   _connect(timeoutMs, onopen, onmessage) {
+    this._args = [timeoutMs, onopen, onmessage];
     let ws;
     try { ws = this.open(this.url); } catch (e) { this._set('fout'); return; }
     this.ws = ws;
     const t = this.timers.setTimeout(() => { if (this.status === 'bezig') { this._set('fout'); this.close(); } }, timeoutMs);
     ws.onopen = () => { if (!this.closed) onopen(); };
     ws.onmessage = (e) => { if (!this.closed) onmessage(e.data); };
-    ws.onerror = () => { this.timers.clearTimeout(t); if (!this.closed) this._set('fout'); };
-    ws.onclose = () => { this.timers.clearTimeout(t); if (!this.closed && this.status !== 'ok') this._set('fout'); };
+    const weg = () => { this.timers.clearTimeout(t); if (this.closed || ws !== this.ws) return; if (this.status === 'ok' || this.pogingen > 0) this._herstel(); else this._set('fout'); };
+    ws.onerror = weg;
+    ws.onclose = weg;
     this._t = t;
   }
   _every(ms, f) { this.ivs.push(this.timers.setInterval(f, ms)); }
@@ -40,6 +54,7 @@ class Backend {
     for (const i of this.ivs) this.timers.clearInterval(i);
     this.ivs = [];
     if (this._t) this.timers.clearTimeout(this._t);
+    if (this._hersteld) this.timers.clearTimeout(this._hersteld);
     try { if (this.ws) this.ws.close(); } catch (e) { /* al dicht */ }
   }
 }
@@ -152,13 +167,12 @@ export class PeerJsBackend extends Backend {
   _url(id) { const c = this.cfg; return `${c.secure ? 'wss' : 'ws'}://${c.host}:${c.port}${c.path}peerjs?key=${c.key}&id=${id}&token=${rid(this.rand, 12)}`; }
   host(topic, offerBlob, onAnswer, timeoutMs = 6000) {
     this.id = 'gde' + topic.slice(0, 24); this.url = this._url(this.id);
-    this._connect(timeoutMs, () => {}, (data) => {
+    this._connect(timeoutMs, () => { this._every(5000, () => { try { this._send(JSON.stringify({ type: 'HEARTBEAT' })); } catch (e) { /* weg */ } }); }, (data) => {
       let m; try { m = JSON.parse(data); } catch (e) { return; }
       if (m.type === 'OPEN') this._set('ok');
       else if (m.type === 'OFFER' && m.payload && m.payload.gde === 'hallo' && m.src) this._send(JSON.stringify({ type: 'OFFER', dst: m.src, payload: { gde: 'aanbod', blob: offerBlob } }));
       else if (m.type === 'ANSWER' && m.payload && m.payload.gde === 'antwoord' && m.payload.blob) onAnswer(m.payload.blob);
     });
-    this._every(5000, () => { try { this._send(JSON.stringify({ type: 'HEARTBEAT' })); } catch (e) { /* weg */ } });
   }
   join(topic, onOffer, timeoutMs = 6000) {
     const hostId = 'gde' + topic.slice(0, 24);

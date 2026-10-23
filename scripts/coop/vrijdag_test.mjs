@@ -9,6 +9,7 @@ import assert from 'node:assert/strict';
 import { createLink } from '../../game/js/net/memtransport.js';
 import * as N from '../../game/js/coopnet.js';
 import { createWeatherState, stepWeather, regionWeather, REGION_IDS } from '../../game/js/weatherstate.js';
+import { planFigures } from '../../game/js/coopfigures.js';
 import { pingMarkers, pingPlek, KIJK_AFSTAND, PING_TOETSEN } from '../../game/js/coopping.js';
 
 let n = 0;
@@ -253,18 +254,21 @@ t('meerijden met vier: ook de 3e en 4e speler stappen mee in het voertuig van de
   assert.match(bram.messages.join(' '), /Loop naar het voertuig/);
 });
 
-t('de gastheer rijdt weg: een speler te voet die achterblijft zit na een paar seconden gewoon mee (geen eindeloos terugzetten); zonder plek wordt hij bij de groep gezet', () => {
+t('de gastheer rijdt weg: een speler te voet die achterblijft wordt naast de gastheer gezet (niet vanzelf in het voertuig, geen eindeloos terugzetten) en stapt zelf in met E; zonder plek blijft hij bij de groep', () => {
   const s = avond(3); s.step(3);
   const bram = s.gs[1].gw, lotte = s.gs[2].gw, fb = s.hw.coopFigures[2], fl = s.hw.coopFigures[3];
   const auto = { id: 7, x: 0, y: 0, angle: 0, speed: 20, halfWid: 1, model: { len: 4 } }; s.hw.vehicles = [auto]; s.hw.player.inVehicle = auto;
   fb.x = 5; fb.y = 3; fl.x = 6; fl.y = -3;
   s.step(8, () => { auto.x += 20 / 60; s.hw.player.x = auto.x; s.hw.player.y = 0; });
-  assert.equal(fb.inVeh, auto, 'Bram rijdt mee'); assert.equal(fl.inVeh, auto, 'Lotte rijdt mee');
-  assert.match(bram.messages.join(' '), /Je rijdt mee/); assert.doesNotMatch(bram.messages.join(' '), /Blijf bij de groep/, 'geen waarschuwing zolang de gastheer wegrijdt');
-  assert.equal(bram.coopInVoertuig, true);
+  assert.ok(!fb.inVeh, 'Bram wordt niet vanzelf in het voertuig gezet'); assert.ok(!fl.inVeh, 'Lotte ook niet');
+  assert.match(bram.messages.join(' '), /Je staat weer bij de groep/, 'naast de gastheer gezet');
+  auto.speed = 0; s.step(6);
+  fb.x = auto.x + 4; fb.y = 2; s.step(0.5); // Bram loopt naar het voertuig
+  bram.coopNet.session.sendEvent({ k: 'gebruik' }); s.step(1.5);
+  assert.equal(fb.inVeh, auto, 'met E stapt Bram in'); assert.equal(bram.coopInVoertuig, true);
   const fiets = { id: 8, x: auto.x, y: 0, angle: 0, speed: 20, isBike: true }; s.hw.player.inVehicle = fiets; fb.inVeh = null; fb.coopVoertuig = false; fb.x = auto.x - 60; fb.y = 0; fb.verTijd = 0;
   s.step(6, () => { fiets.x += 20 / 60; s.hw.player.x = fiets.x; });
-  assert.equal(fb.inVeh, null, 'op een fiets is geen plek'); assert.match(bram.messages.join(' '), /Je staat weer bij de groep/, 'wel bij de groep gezet');
+  assert.ok(!fb.inVeh, 'op een fiets is geen plek'); assert.match(bram.messages.join(' '), /Je staat weer bij de groep/, 'wel bij de groep gezet');
 });
 
 t('Tessa valt weg: het spel pauzeert voor de gastheer; een extra speler niet; geen dubbele of verdwenen figuren', () => {
@@ -306,6 +310,31 @@ t('verkeer: met vier spelers blijft het per speler klein (gastheer naar gast en 
   assert.ok(perGast.neer < 24 * 1024, 'naar een gast minder dan 24 kB/s');
   assert.ok(perGast.op < 4 * 1024, 'van een gast minder dan 4 kB/s');
   assert.ok(s.bytes.neer / 20 < 80 * 1024, 'de gastheer verstuurt met drie gasten minder dan 80 kB/s');
+});
+
+t('wegvallen en rollen zonder crash: dubbel stoppen, tikken na stoppen, de gastheer stopt midden in een rit, een speler komt terug op dezelfde wereld; de figuren en roepjes blijven leeg en netjes', () => {
+  const s = avond(3); s.step(3);
+  const auto = { id: 7, x: 10, y: 0, angle: 0, speed: 0, halfWid: 1, model: { len: 4 } };
+  s.hw.vehicles = [auto]; s.hw.player.inVehicle = auto; s.hw.player.x = 10; s.hw.coopFigures[2].x = 11; s.hw.coopFigures[2].y = 1;
+  s.gs[1].gw.coopNet.session.sendEvent({ k: 'gebruik' }); s.step(1.5);
+  assert.ok(s.hw.coopFigures[2].inVeh, 'Bram zit in het voertuig');
+  N.stopCoopNet(s.gs[1].gw); N.stopCoopNet(s.gs[1].gw); // twee keer stoppen mag
+  N.tickCoopNet(s.gs[1].gw, 1 / 60); // tikken na stoppen mag
+  s.step(4);
+  const bw = s.gs[1].gw;
+  assert.equal(bw.coopNet, null); assert.equal(bw.coopRole, null); assert.equal(bw.coopPartner, null); assert.deepEqual(bw.coopPartners, []); assert.deepEqual(bw.coopFigures, {}); assert.equal(bw.coopInVoertuig, false);
+  assert.deepEqual(s.hw.coopRoster.map((r) => r.slot), [0, 1, 3], 'Bram is uit de lijst; het voertuig van de gastheer blijft heel');
+  assert.ok(!Object.values(s.hw.coopFigures).some((f) => f.inVeh && f.slot === 2));
+  s.hw.player.inVehicle = null; s.step(2); // de gastheer stapt uit zonder dat een weggevallen figuur hem hindert
+  const terug = s.sluit(4, 'bram'); s.step(4); // dezelfde wereld, nieuwe verbinding
+  assert.equal(terug.gw.coopNet.session.status, 'ok'); assert.equal(s.hw.coopRoster.length, 4);
+  N.stopCoopNet(s.hw); s.step(1); N.stopCoopNet(s.hw); N.tickCoopNet(s.hw, 1 / 60); // de gastheer stopt, daarna nog een keer en een tik
+  s.step(3);
+  for (const g of [...s.gs, terug]) { assert.equal(g.gw.coopPartner, null); assert.deepEqual(g.gw.coopFigures, {}); assert.equal(g.gw.coopRole, null); }
+  assert.deepEqual(s.hw.coopFigures, {}); assert.equal(s.hw.coopRoster, null); assert.equal(s.hw.coopPartner, null);
+  // een gast die zonder host start (of een wereld zonder figuren) breekt het plan voor de 3D-figuren niet
+  assert.deepEqual(planFigures([2, 3], null), { add: [], keep: [], remove: [2, 3] });
+  assert.deepEqual(planFigures([], undefined), { add: [], keep: [], remove: [] });
 });
 
 console.log(`vrijdag_test: ${n}/${n} ok`);

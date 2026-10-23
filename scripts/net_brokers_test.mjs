@@ -141,4 +141,26 @@ await t('sluiten ruimt het vastgehouden MQTT-aanbod op', async () => {
   h.close(); await tick(10);
   assert.equal(net.retained.has(`gde/coop/${topic}/o`), false);
 });
+await t('een broker die wegvalt terwijl de host wacht, wordt opnieuw verbonden en het aanbod staat er weer (de duurtest-review: de status bleef stil op ok)', async () => {
+  const net = fakeNet(); const sockets = [];
+  const socket = (u) => { const w = net.socket(u); sockets.push(w); return w; };
+  const snel = { setTimeout: (f, ms) => setTimeout(f, ms / 200), clearTimeout, setInterval: (f, ms) => setInterval(f, ms / 200), clearInterval }; // de wachttijd van 2 s wordt 10 ms
+  const topic = await topicFor('R7R7R7R7R7');
+  const b = new B.MqttBackend({ url: 'wss://m1.test/mqtt', socket, timers: snel, rand: makeRng(3) });
+  const stat = []; b.onstatus = (nm, st) => stat.push(st);
+  b.host(topic, 'blob', () => {}, 40000); await waitFor(() => b.status === 'ok');
+  net.retained.clear(); net.subs.length = 0; // de broker startte opnieuw op en weet niets meer
+  sockets[0].onclose();
+  assert.equal(b.status, 'bezig', 'niet langer ok: er wordt hersteld');
+  await waitFor(() => net.retained.get(`gde/coop/${topic}/o`) === 'blob' && b.status === 'ok');
+  assert.equal(sockets.length, 2); assert.deepEqual(stat, ['ok', 'bezig', 'ok']);
+  assert.equal(b.ivs.length, 1, 'geen dubbele ping-timers na het herstel');
+  // een broker die blijft wegblijven geeft het na een paar pogingen op (dan springt de terugval in)
+  const dood = new B.MqttBackend({ url: 'wss://m1.test/mqtt', socket: (u) => { const w = net.socket(u); sockets.push(w); return w; }, timers: snel, rand: makeRng(4) });
+  dood.host(topic, 'blob', () => {}, 40000); await waitFor(() => dood.status === 'ok');
+  dood.open = () => { const w = { send() {}, close() {}, readyState: 1 }; setTimeout(() => w.onerror && w.onerror(new Error('weg')), 0); return w; }; // elke nieuwe poging mislukt
+  dood.ws.onclose();
+  await waitFor(() => dood.status === 'fout', 3000);
+  b.close(); dood.close();
+});
 console.log(`net_brokers_test: ${n}/${n} ok`);

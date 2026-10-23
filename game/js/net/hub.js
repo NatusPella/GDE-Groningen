@@ -9,6 +9,8 @@ import { T, encodeJson, readHeader, decodeJson } from './codec.js';
 import { checkHandshake } from './protocol.js';
 import { createRoster, wijsPlekToe, verwijder, zetMax, zetVerbinding, lijst, lijstEvent, charInfo, heeftPlek } from '../coopplayers.js';
 
+export const PENDING_MAX = 20; // s: een verbinding die in zo lang geen geldige hello stuurde (of geweigerd is), wordt gesloten en vergeten
+
 export class HostHub {
   // cfg: { info, seed, sim, caps, max, onJoin(slot, char), onLeave(slot, why), onLost(slot), onResumed(slot), onEvent(slot, body) }
   constructor(cfg) {
@@ -49,12 +51,14 @@ export class HostHub {
       },
       onRelease(slot, why) {
         hub.sessions.delete(slot); verwijder(hub.roster, slot);
+        if (hub.cfg.sim.vergeet) hub.cfg.sim.vergeet(slot); // wat de extra wereld die plek vertelde, geldt niet voor de volgende speler
+        if (why === 'verlopen') { try { ses.link.close && ses.link.close(); } catch (e) { /* weg */ } } // niet teruggekomen binnen het venster: de verbinding zelf ook dicht
         if (hub.cfg.onLeave) hub.cfg.onLeave(slot, why);
         hub._announceList();
       },
     };
     ses = new HostSession(link, cfg, this.cfg.rand);
-    this.pending.add(ses);
+    this.pending.add(ses); ses.pendingSinds = 0;
     ses.onjoin = (slot) => { if (this.cfg.onJoin) this.cfg.onJoin(slot, this.roster.spelers.find((s) => s.slot === slot).char); this._announceList(); };
     ses.onlost = (slot) => { zetVerbinding(this.roster, slot, 'lost'); if (this.cfg.onLost) this.cfg.onLost(slot); this._announceList(); };
     ses.onstatus = (st) => {
@@ -86,6 +90,16 @@ export class HostHub {
   tick(dt) {
     this.tickN++;
     for (const s of [...this.pending, ...this.sessions.values()]) s.tick(dt);
+    for (const s of [...this.pending]) { // een geweigerde of stille verbinding blijft niet eeuwig staan (elke nieuwe poging was er een erbij)
+      s.pendingSinds += dt;
+      if (s.pendingSinds >= PENDING_MAX || (s.link && s.link.isOpen && !s.link.isOpen())) { this.pending.delete(s); try { s.link.close && s.link.close(); } catch (e) { /* weg */ } }
+    }
+  }
+  // voor de duurtest en de diagnose: wat de hub vasthoudt
+  stats() {
+    let relPending = 0, relAhead = 0;
+    for (const s of [...this.pending, ...this.sessions.values()]) { relPending = Math.max(relPending, s.rel.pending.length); relAhead = Math.max(relAhead, s.rel.ahead.size); }
+    return { sessies: this.sessions.size, wachtend: this.pending.size, relPending, relAhead };
   }
   // naar één speler of naar iedereen (betrouwbaar)
   announce(body, slot = null) {

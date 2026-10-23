@@ -98,6 +98,10 @@ check(W1 && W1.stand && W1.stand[1] >= 12, 'uiterlijk: te weinig uiterlijken bin
 check(W1 && W1.sprekers >= 1, 'praten: geen tekstballon van een voetganger: ' + JSON.stringify(W1 && W1.sprekers));
 check(W1 && W1.lokaalPeds === 0 && W1.lokaalDieren === 0, 'de gast heeft nog eigen voetgangers of dieren (lokaal verzonnen): ' + JSON.stringify(W1 && [W1.lokaalPeds, W1.lokaalDieren]));
 if (W1 && W1.lichtHost) { const n = W1.lichtHost.filter((t) => t != null).length; check(n >= 3, 'lichten: de host stuurde er te weinig: ' + JSON.stringify(W1.lichtHost)); const ok = W1.lichtHost.every((t, i) => { if (t == null) return true; const c = W1.lichtC[i] || 15, d = Math.abs(t - W1.lichtT[i]) % c; return Math.min(d, c - d) < 3; }); check(ok, 'lichten: de klok van de gast loopt niet gelijk met de host: ' + JSON.stringify([W1.lichtT, W1.lichtHost, W1.lichtC])); }
+check(W1 && W1.dbg && W1.dbg.ligt >= 2, 'dood en omgevallen: de gast laat niet twee mensen op de grond liggen: ' + JSON.stringify(W1 && W1.dbg));
+check(W1 && W1.dbg && W1.dbg.wapen >= 1 && W1.dbg.vecht >= 1, 'wapen en gevecht: de gast ziet geen man met een wapen die slaat: ' + JSON.stringify(W1 && W1.dbg));
+check(W1 && W1.dbg && W1.dbg.doodDier >= 1, 'dode dieren: de gast laat geen dood dier liggen: ' + JSON.stringify(W1 && W1.dbg));
+check(W1 && W1.dbg && W1.dbg.sprekers >= 1, 'sprekers: de gast hoort de kermisbaas niet (spreker zonder voetganger): ' + JSON.stringify(W1 && W1.dbg));
 check(PR && PR.keys.length > 0, 'kapot: de gast heeft geen props om kapot te melden: ' + JSON.stringify(PR));
 if (PR && PR.keys.length) {
   check(W1 && W1.kapot.length === PR.keys.length && W1.kapot.every(([, kapot]) => kapot), 'kapot: de props zijn bij de gast niet kapot gegaan: ' + JSON.stringify(W1 && W1.kapot));

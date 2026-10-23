@@ -140,13 +140,33 @@ function projectOnRoute(route, x, y) {
 // en zijn snelheid met teken). Zet de dienstregeltrein van die route daar neer; de wagons volgen uit de route.
 export function zetTreinVanHost(routeIdx, x, y, v) {
   const route = routes[routeIdx];
-  if (!route) return;
+  if (!route) return null;
   const t = trains.find((q) => q.route === route && q.state !== 'mission' && q.state !== 'player');
-  if (!t) return;
+  if (!t) return null;
   t.c = projectOnRoute(route, x, y).s;
   t.v = Math.abs(v);
   if (Math.abs(v) > 0.05) t.dir = v > 0 ? 1 : -1;
   placeCars(t);
+  return t;
+}
+// Alle treinen van de host in één keer: lijst = [{ route, x, y, v }]. De gast speelt de rest van de dienstregeling niet: een trein die de host
+// niet noemt, staat bij de gast niet getekend (gastWeg) en laat de overwegen met rust, in plaats van stil te staan op een verzonnen plek.
+export function zetTreinenVanHost(lijst) {
+  const gekozen = new Set();
+  for (const h of lijst || []) { const t = zetTreinVanHost(h.route, h.x, h.y, h.v); if (t) gekozen.add(t); }
+  for (const t of trains) if (t.state !== 'mission' && t.state !== 'player') t.gastWeg = !gekozen.has(t);
+}
+// De overwegen van een gast: de slagbomen, het knipperlicht en de bel volgen de treinen die de host stuurt (elke frame; updateRailway draait niet bij een gast)
+export function gastOverwegen(dt, world) {
+  for (const c of crossings) c.threat = false;
+  for (const t of trains) {
+    if (t.gastWeg) continue;
+    for (const rc of t.route.crossings) {
+      const rel = (rc.s - t.c) * t.dir;
+      if (Math.abs(rc.s - t.c) < t.halfLen + WARN_CLEAR_M || (rel > 0 && t.v > 0.5 && (rel - t.halfLen) / t.v < WARN_AHEAD_S)) rc.crossing.threat = true;
+    }
+  }
+  stapOverwegen(dt, world);
 }
 
 function nearLevelCrossing(x, y) {
@@ -578,6 +598,10 @@ function updateCrossings(dt, world) {
   for (const t of trains) {
     for (const rc of t.route.crossings) if (trainThreatens(t, rc.s)) rc.crossing.threat = true;
   }
+  stapOverwegen(dt, world);
+}
+
+function stapOverwegen(dt, world) {
   for (const c of crossings) {
     if (c.threat && !c.warn) { c.warn = true; c.warnAt = world.time; }
     else if (!c.threat && c.warn) c.warn = false;
