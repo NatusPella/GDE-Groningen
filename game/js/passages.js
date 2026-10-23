@@ -104,7 +104,8 @@ function computePassages(map, b) {
       // width) is a pavement drawn a little into the wall, not a passage
       // (a street that clips a corner stays open for the traffic on it, but
       // there is nothing to show)
-      const graze = run.length > 1 && runDepth(run, b.pts) <= Math.max(1.0, passageHalfWidth(r));
+      // (unless OSM maps it as a passage: a poortje through a wall of a metre, as Portal Groningen at the Werkmanbrug, is one)
+      const graze = run.length > 1 && runDepth(run, b.pts) <= Math.max(1.0, passageHalfWidth(r)) && !mappedKind(map, run);
       if (run.length > 1 && (!graze || (r.cat !== 'foot' && r.cat !== 'cycle'))) runs.push({ pts: run, r, s0, s1, graze });
       run = null;
     };
@@ -167,14 +168,16 @@ function computePassages(map, b) {
       if (ra.s0) ends.push(ra.pts[0]);
       if (ra.s1) ends.push(ra.pts[ra.pts.length - 1]);
     }
-    if (ends.length < 2 || !ends.some((e) => Math.hypot(e[0] - ends[0][0], e[1] - ends[0][1]) > 1.5)) continue;
+    const mapped = g.map((ra) => mappedKind(map, ra.pts)).find(Boolean) || null;
+    // (ends further apart than 1,5 m; a mapped passage through a thin wall, 0,4 m)
+    const apart = mapped ? 0.4 : 1.5;
+    if (ends.length < 2 || !ends.some((e) => Math.hypot(e[0] - ends[0][0], e[1] - ends[0][1]) > apart)) continue;
     // how far the passage takes you: its longest piece or the span between its ends
     let len = Math.max(...g.map((ra) => pathLength(ra.pts)));
     for (const a of ends) for (const e of ends) len = Math.max(len, Math.hypot(a[0] - e[0], a[1] - e[1]));
-    const mapped = g.map((ra) => mappedKind(map, ra.pts)).find(Boolean) || null;
     for (const ra of g) {
       if (!keepRun(ra.r, len, mapped)) continue;
-      out.push({ pts: ra.pts, hw: passageHalfWidth(ra.r), len, mapped, cat: ra.r.cat, road: ra.r, shown: len >= CLIP_MIN && !ra.graze });
+      out.push({ pts: ra.pts, hw: passageHalfWidth(ra.r), len, mapped, cat: ra.r.cat, road: ra.r, shown: (len >= CLIP_MIN || !!mapped) && !ra.graze });
     }
   }
   linkDoors(b, doors, out);
