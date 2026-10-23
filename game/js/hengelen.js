@@ -95,7 +95,8 @@ function einde(w, { quit = false } = {}) {
     const waar = plekNaam(g.plek.type, g.plek.naam);
     if (g.vangsten > 0) {
       const soorten = g.soorten.size;
-      w.addMessage(`Hengelen klaar op ${waar}: ${g.vangsten} vis${g.vangsten === 1 ? '' : 'sen'} (${soorten} soort${soorten === 1 ? '' : 'en'}), ${kgTekst(s.kg)}${g.betaald > 0 ? `, ${euro(g.betaald)} van de visboer` : ''}`, 5, { kind: 'tip', kicker: 'Hengelen', key: 'hengel-vrij-klaar' });
+      const vis = `${g.vangsten} vis${g.vangsten === 1 ? '' : 'sen'}`, soortTekst = `${soorten} soort${soorten === 1 ? '' : 'en'}`, betaald = g.betaald > 0 ? `, ${euro(g.betaald)} van de visboer` : '';
+      w.addMessage(`Hengelen klaar op ${waar}: ${vis} (${soortTekst}), ${kgTekst(s.kg)}${betaald}`, 5, { kind: 'tip', kicker: 'Hengelen', key: 'hengel-vrij-klaar' });
     } else if (!quit) w.addMessage('Niets aan de haak. Probeer een andere plek.', 3);
     return;
   }

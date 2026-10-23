@@ -498,7 +498,7 @@ t('de haken staan op hun plek: loopbaanTel, loopbaanOpStat, de vondsten, het tik
 });
 t('de safehouses hangen aan het spel: een activiteit, een laag op de kaart, de knop Reis erheen en de teksten', () => {
   const heeft = (f, s, m) => assert.ok(bron(f).includes(s), m || `${f}: ${s}`);
-  heeft('activities.js', 'EVENEMENTEN, REGATTA_GAME, SAFEHUIS]');
+  assert.match(bron('activities.js'), /SAFEHUIS[,\]]/, 'activities.js: SAFEHUIS staat in de lijst');
   heeft('mapview.js', "layers: ['safehuis']");
   heeft('mapview.js', "filter((l) => l !== 'safehuis')", 'de laag hoort niet bij de schakelaar van de minigames');
   heeft('loopbaanui.js', 'data-reis');

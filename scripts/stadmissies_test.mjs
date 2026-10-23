@@ -130,7 +130,7 @@ ok(stapStadRonde(r.over ? r : Object.assign(r, { over: 'done' }), { dir: 1 }, 1)
 // bedrading in de spelcode
 const read = (p) => fs.readFileSync(new URL(`../game/js/${p}`, import.meta.url), 'utf8');
 const jobs = read('sidejobs.js'), adapter = read('sidejob_stad.js');
-ok(/\.\.\.STAD_JOBS\]/.test(jobs) && /from '\.\/sidejob_stad\.js'/.test(jobs), 'STAD_JOBS staan in SIDE_JOBS');
+ok(/\.\.\.STAD_JOBS[,\]]/.test(jobs) && /from '\.\/sidejob_stad\.js'/.test(jobs), 'STAD_JOBS staan in SIDE_JOBS');
 for (const id of STAD_MISSIE_IDS) {
   ok(new RegExp(`${id}: \\[\\d+, \\d+\\]`).test(jobs), 'betaalschatting', id);
   ok(new RegExp(`case '${id}':`).test(jobs), 'kaartpictogram (glyph)', id);

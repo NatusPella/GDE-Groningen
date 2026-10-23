@@ -145,7 +145,7 @@ The city is built from OpenStreetMap: the real streets, canals, bridges and buil
 | Auto, brommer, fiets, boot, skûtsje, trein, helikopter en duif | Car, moped, bike, boat, sailing barge, train, helicopter and pigeon |
 | Zes bijbaantjes en minigames op de kermis | Six side jobs and fairground minigames |
 | De stad en het Ommeland, met dag, nacht en zomerweer | The city and the countryside, with day, night and summer weather |
-| 190 prestaties in het spel | 190 in-game achievements |
+| 205 prestaties in het spel | 205 in-game achievements |
 | Controller, Steam Deck, vrij in te delen toetsen | Controller and Steam Deck support, rebindable controls |
 | Gratis, offline, geen aankopen, geen data | Free, offline, no purchases, no data collected |
 

@@ -27,7 +27,7 @@ Betekenis van de status:
 | Minstens vier schermafbeeldingen voor alle leeftijden | open | Alle tien zijn opnames uit het spel; de achtervolging (09) kan als niet-geschikt worden gemarkeerd. Dat is een vinkje bij het uploaden: eigenaar. |
 | Geen verwijzingen naar andere winkels | klaar | Gezocht (20 okt) in `game/js`, `game/index.html`, `game/storydata` en `docs/steam/`: geen itch.io, GOG, Epic, App Store, Google Play of andere winkel in de speltekst of winkelpagina. |
 | AI-melding (vooraf gemaakt: muziek, stemmen, één model, code-hulp; tijdens het spelen: niets) | klaar | Tekst in `docs/steam/winkelpagina.md`; de eigenaar vinkt het aan in de inhoudsvragenlijst. De opnames blijven staan (besluit 20 okt: geen nieuwe TTS). |
-| Prestaties | klaar | 190 (21 verborgen) in `steam/achievements.json`, gelijk aan `game/js/achievements.js` (test). |
+| Prestaties | klaar | 205 (22 verborgen) in `steam/achievements.json`, gelijk aan `game/js/achievements.js` (test). |
 | Privacyverklaring op een openbare URL | **eigenaar** | Steam eist een URL als het spel gegevens verwerkt; samen spelen stuurt een IP-adres naar een openbare STUN-server (alleen na toestemming). De tekst staat in `docs/PRIVACY-EN-CREDITS.md`; de repo is privé, dus de eigenaar moet hem ergens openbaar zetten. |
 | Naamcheck "GDE Groningen" | **eigenaar** | `docs/MERKENCHECK.md`: de registers zijn niet geraadpleegd (15 minuten met de hand). |
 | Steam Cloud | **open** | De saves staan in `localStorage` van het Electron-profiel (leveldb), niet als losse bestanden; Auto-Cloud op die map is te fragiel. Eerst een opslagbestand in `userData` (een schrijf-IPC), dan Auto-Cloud. Geen blokkade voor de eerste uitgave. |

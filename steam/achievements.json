@@ -1314,6 +1314,14 @@
       "steamApiNaam": ""
     },
     {
+      "id": "sj_krantenwijk",
+      "titel": "Elke bus raak",
+      "omschrijving": "Bezorg 4 wijken op rij in één dienst",
+      "verborgen": false,
+      "voorstelApiNaam": "ACH_SJ_KRANTENWIJK",
+      "steamApiNaam": ""
+    },
+    {
       "id": "sj_taxi",
       "titel": "Moi, waar mag het heen?",
       "omschrijving": "Rijd 6 taxiritten op rij in één dienst",
@@ -1471,6 +1479,118 @@
       "omschrijving": "Hengel vijf rondes in Meerstad",
       "verborgen": false,
       "voorstelApiNaam": "ACH_HENGEL_5",
+      "steamApiNaam": ""
+    },
+    {
+      "id": "vis_10",
+      "titel": "Tien soorten",
+      "omschrijving": "Vang tien verschillende vissoorten voor je visboek",
+      "verborgen": false,
+      "voorstelApiNaam": "ACH_VIS_10",
+      "steamApiNaam": ""
+    },
+    {
+      "id": "vis_20",
+      "titel": "Twintig soorten",
+      "omschrijving": "Vang twintig verschillende vissoorten voor je visboek",
+      "verborgen": false,
+      "voorstelApiNaam": "ACH_VIS_20",
+      "steamApiNaam": ""
+    },
+    {
+      "id": "vis_alles",
+      "titel": "Alle vis van het Noorden",
+      "omschrijving": "Vang alle 29 vissoorten uit het visboek",
+      "verborgen": false,
+      "voorstelApiNaam": "ACH_VIS_ALLES",
+      "steamApiNaam": ""
+    },
+    {
+      "id": "vis_plekken_5",
+      "titel": "Vijf viswateren",
+      "omschrijving": "Hengel op vijf verschillende wateren",
+      "verborgen": false,
+      "voorstelApiNaam": "ACH_VIS_PLEKKEN_5",
+      "steamApiNaam": ""
+    },
+    {
+      "id": "vis_plekken_15",
+      "titel": "Vaste bezoeker van het water",
+      "omschrijving": "Hengel op vijftien verschillende wateren",
+      "verborgen": false,
+      "voorstelApiNaam": "ACH_VIS_PLEKKEN_15",
+      "steamApiNaam": ""
+    },
+    {
+      "id": "vis_100",
+      "titel": "Honderd vissen",
+      "omschrijving": "Vang honderd vissen",
+      "verborgen": false,
+      "voorstelApiNaam": "ACH_VIS_100",
+      "steamApiNaam": ""
+    },
+    {
+      "id": "vis_gracht",
+      "titel": "Grachtenvisser",
+      "omschrijving": "Vang alle soorten van de stadsgrachten",
+      "verborgen": false,
+      "voorstelApiNaam": "ACH_VIS_GRACHT",
+      "steamApiNaam": ""
+    },
+    {
+      "id": "vis_plas",
+      "titel": "Plasvisser",
+      "omschrijving": "Vang alle soorten van de plassen en vijvers",
+      "verborgen": false,
+      "voorstelApiNaam": "ACH_VIS_PLAS",
+      "steamApiNaam": ""
+    },
+    {
+      "id": "vis_meer",
+      "titel": "Heer van het meer",
+      "omschrijving": "Vang alle soorten van de meren",
+      "verborgen": false,
+      "voorstelApiNaam": "ACH_VIS_MEER",
+      "steamApiNaam": ""
+    },
+    {
+      "id": "vis_kanaal",
+      "titel": "Kanaaljager",
+      "omschrijving": "Vang alle soorten van de kanalen en vaarten",
+      "verborgen": false,
+      "voorstelApiNaam": "ACH_VIS_KANAAL",
+      "steamApiNaam": ""
+    },
+    {
+      "id": "vis_rivier",
+      "titel": "Riviermeester",
+      "omschrijving": "Vang alle soorten van de rivieren en diepen",
+      "verborgen": false,
+      "voorstelApiNaam": "ACH_VIS_RIVIER",
+      "steamApiNaam": ""
+    },
+    {
+      "id": "vis_sloot",
+      "titel": "Slootjesspringer",
+      "omschrijving": "Vang alle soorten van de sloten",
+      "verborgen": false,
+      "voorstelApiNaam": "ACH_VIS_SLOOT",
+      "steamApiNaam": ""
+    },
+    {
+      "id": "vis_wad",
+      "titel": "Waddenvisser",
+      "omschrijving": "Vang alle soorten van de Waddenzee en de Dollard",
+      "verborgen": false,
+      "voorstelApiNaam": "ACH_VIS_WAD",
+      "steamApiNaam": ""
+    },
+    {
+      "id": "vis_meerval",
+      "titel": "De reus van het Noorden",
+      "omschrijving": "Vang een meerval",
+      "verborgen": true,
+      "voorstelApiNaam": "ACH_VIS_MEERVAL",
       "steamApiNaam": ""
     },
     {
