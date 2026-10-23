@@ -1114,6 +1114,8 @@ function drawDynamicMarkers(ctx, world) {
   // samen spelen: het doel van de opdracht van de gastheer staat ook op de kaart van een gast (#368)
   const gastDoel = world.coopRole === 'client' && !showMission && world.coopHost && world.coopHost.doelen && world.coopHost.doelen[0];
   if (gastDoel) icon(null, missionMapKind(-1, true), gastDoel.x, gastDoel.y, (world.coopHostMissie && world.coopHostMissie.label) || 'Opdracht', {}, 'Missiedoel van ' + (((world.coopRoster || []).find((r) => r.slot === 0) || {}).naam || 'de ander'));
+  const gastStart = world.coopRole === 'client' && !showMission && !gastDoel && world.coopHost && world.coopHost.starts && world.coopHost.starts[0]; // (#434)
+  if (gastStart) icon(null, missionMapKind(gastStart.index, false), gastStart.x, gastStart.y, 'Opdracht', {}, 'Begint zodra ' + (((world.coopRoster || []).find((r) => r.slot === 0) || {}).naam || 'de ander') + ' bij de marker staat');
   // the story's step stays on the map while a goal of your own waits it out
   const sg = world.storyGuide;
   if (sg && !world.storyFreePlay && !(showMission && Math.hypot(m.marker.x - sg.x, m.marker.y - sg.y) < 4) && !(sg.buy && storyTargetShop(world))) {

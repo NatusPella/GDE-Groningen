@@ -2460,6 +2460,8 @@ function drawMinimap(dt, world) {
   // samen spelen: het doel van de opdracht van de gastheer staat ook op de minimap van een gast (#368)
   const gastDoel = world.coopRole === 'client' && !showMission && !job && world.coopHost && world.coopHost.doelen && world.coopHost.doelen[0];
   if (gastDoel && !icon(missionMapKind(-1, true), gastDoel.x, gastDoel.y)) missionEdge = edgeAngle(gastDoel.x, gastDoel.y);
+  const gastStart = world.coopRole === 'client' && !showMission && !job && !gastDoel && world.coopHost && world.coopHost.starts && world.coopHost.starts[0]; // het beginpunt van de volgende opdracht van de gastheer (#434)
+  if (gastStart && !icon(missionMapKind(gastStart.index, false), gastStart.x, gastStart.y)) missionEdge = edgeAngle(gastStart.x, gastStart.y);
 
   let wpEdge = null;
   if (wp && !busyGame && !icon('userWaypoint', wp.x, wp.y)) wpEdge = edgeAngle(wp.x, wp.y);
