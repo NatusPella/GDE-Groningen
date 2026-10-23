@@ -14,7 +14,7 @@ const require = createRequire(import.meta.url);
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, '..', '..');
 const { createCoopCore } = require(path.join(ROOT, 'desktop', 'coopcore.cjs'));
-const { ClientSession } = await import(pathToFileURL(path.join(ROOT, 'game', 'js', 'net', 'session.js')).href);
+const { ClientSession, PROTO } = await import(pathToFileURL(path.join(ROOT, 'game', 'js', 'net', 'session.js')).href);
 const { makeRng } = await import(pathToFileURL(path.join(ROOT, 'game', 'js', 'net', 'memtransport.js')).href);
 
 // Een transport bovenop de coopcore van deze checkout, met netwerksimulatie. De simulatie zit tussen de socket en de sessie.
@@ -53,7 +53,7 @@ export async function startMockGuest(opts) {
   const core = createCoopCore({ gameDir: path.join(opts.stage || path.join(ROOT, 'game')), emit: (k, p) => { if (hook.fn) hook.fn(k, p); }, localIp: '127.0.0.1', upnp: false });
   const tr = makeTransport(core, hook, sim, rng);
   const { VERSION } = await import(pathToFileURL(path.join(opts.stage || path.join(ROOT, 'game'), 'js', 'version.js')).href);
-  const info = { game: 'gde', proto: 1, version: String(VERSION), tiles: String((opts.info && opts.info.tiles) || '-'), story: String((opts.info && opts.info.story) || 'nieuw'), char: opts.wens || undefined };
+  const info = { game: 'gde', proto: PROTO, version: String(VERSION), tiles: String((opts.info && opts.info.tiles) || '-'), story: String((opts.info && opts.info.story) || 'nieuw'), char: opts.wens || undefined };
   const session = new ClientSession(tr, { info, caps: ['scene', 'spelers'] });
   const log = { status: [], events: [], samples: [], resync: 0 };
   session.onstatus = (s) => log.status.push([+session.now.toFixed(2), s]);

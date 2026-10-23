@@ -5,11 +5,12 @@
 // tick(dt), het transport is elk object met send/onmessage (memtransport.js
 // of rtc.js). Geen IP-adressen of namen in berichten, geen telemetrie.
 
-import { T, encodeInput, decodeInput, encodeSnapshot, decodeSnapshot, encodeJson, decodeJson, encodeSimple, readHeader } from './codec.js';
+import { T, encodeInput, decodeInput, encodeSnapshot, decodeSnapshot, encodeJson, decodeJson, encodeSimple, readHeader, encodeExtra, decodeExtra } from './codec.js';
 import { PROTO, Reliable, checkHandshake, seqNewer, seqDiff } from './protocol.js';
 
 export const SNAP_HZ = 20;
 export const INPUT_HZ = 30;
+export const EXTRA_HZ = 5;       // voetgangers, dieren, lichten: traag veranderend, dus een kwart van het snapshottempo
 export const LAG_AFTER = 0.6;      // s zonder bericht: status 'lag'
 export const LOST_AFTER = 5;       // s zonder bericht: verbinding verloren
 export const RESUME_WINDOW = 120;  // s waarin de gast kan hervatten
@@ -65,7 +66,7 @@ export class HostSession extends Base {
     super(link, 'host', rand);
     this.cfg = cfg; this.caps = []; this.slot = 1; this.extra = {}; // zonder hub is de gast altijd slot 1 (host = slot 0); een hub wijst plekken toe (cfg.assign)
     this.guest = null;             // { token, lastInputSeq, input, lastInputAt, joined }
-    this.snapAcc = 0; this.snapSeq = 0; this.lostAt = null;
+    this.snapAcc = 0; this.snapSeq = 0; this.extraAcc = 0; this.extraSeq = 0; this.lostAt = null;
     this.onlost = null; this.onjoin = null; this.onrelease = null; this.rejected = [];
   }
   _raw(buf) {
@@ -152,6 +153,13 @@ export class HostSession extends Base {
       this.snapSeq = (this.snapSeq + 1) & 0xffff;
       this._emit(encodeSnapshot(this.snapSeq, this.tickN, this.guest.lastInputSeq ?? 0, this.cfg.sim.snapshot()));
     }
+    // de extra wereld van de host (coopextra.js), per gast op maat: alleen wat dicht bij de spelers is
+    this.extraAcc += dt;
+    if (this.extraAcc >= 1 / EXTRA_HZ) {
+      this.extraAcc = 0;
+      const lading = this.cfg.sim.extra ? this.cfg.sim.extra(this.slot, this.tickN) : null;
+      if (lading && lading.length) { this.extraSeq = (this.extraSeq + 1) & 0xffff; this._emit(encodeExtra(this.extraSeq, this.tickN, 0, lading)); }
+    }
   }
   // gebeurtenis voor de gast (missie, cutscene-start, geld): betrouwbaar
   announce(body) { return this.guest ? this.sendEvent(body) : false; }
@@ -220,7 +228,7 @@ export class ClientSession extends Base {
     super(link, 'client', rand);
     this.cfg = cfg; this.slot = null; this.seed = null; this.caps = []; this.token = cfg.token || null;
     this.buf = new SnapBuffer(); this.inputSeq = 0; this.inputAcc = 0; this.pendingInput = neutral();
-    this.helloAt = -1; this.rejected = null; this.lastSnapSeq = null; this.onlost = null; this.onresync = null; this.joined = false;
+    this.helloAt = -1; this.rejected = null; this.lastSnapSeq = null; this.lastExtraSeq = null; this.onextra = null; this.onlost = null; this.onresync = null; this.joined = false;
   }
   _raw(buf) {
     const h = readHeader(buf); if (!h) return;
@@ -230,7 +238,7 @@ export class ClientSession extends Base {
       const m = decodeJson(buf); if (!m) return;
       if (!m.body.ok) { this.rejected = m.body.reason; this.remoteVersion = typeof m.body.version === 'string' ? m.body.version.slice(0, 20) : ''; this._setStatus('geweigerd'); return; }
       this.welcome = m.body; // inclusief wat de hub meegaf: personage, lijst van spelers
-      this.slot = m.body.slot; this.seed = m.body.seed; this.caps = Array.isArray(m.body.caps) ? m.body.caps : []; this.token = m.body.token; this.joined = true;
+      this.lastExtraSeq = null; this.slot = m.body.slot; this.seed = m.body.seed; this.caps = Array.isArray(m.body.caps) ? m.body.caps : []; this.token = m.body.token; this.joined = true;
       if (m.body.resumed) { this.rel.reset(); this.buf.clear(); }
       this._setStatus('ok');
     } else if (h.type === T.SNAP && this.joined) {
@@ -241,6 +249,11 @@ export class ClientSession extends Base {
       s.hostT = this._unwrapped / SNAP_HZ; // de host stuurt precies SNAP_HZ snapshots per seconde
       this.buf.push(s);
       if (this.status === 'lag') this._setStatus('ok');
+    } else if (h.type === T.EXTRA && this.joined) {
+      const x = decodeExtra(buf); if (!x) return;
+      if (this.lastExtraSeq != null && !seqNewer(x.seq, this.lastExtraSeq)) return; // oud of dubbel
+      this.lastExtraSeq = x.seq;
+      if (this.onextra) this.onextra(x.payload, x.seq);
     } else if (h.type === T.BYE) { this.joined = false; this._setStatus('verbroken'); }
   }
   _onEvent(b) {
