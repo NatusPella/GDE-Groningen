@@ -6,6 +6,9 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Opgelost
+- **Gebieden op de kaart zijn per zoomniveau duidelijk (#423; in Electron door Claude in beeld bekeken, niet door een mens):** de kaartlaag Veroverd toont per zoom één laag: ver uit de gemeenten (met de provinciegrens erom), daarna de woonplaatsen, dan de wijken en helemaal dichtbij de buurten, telkens met de grens van de laag erboven dikker. Onveroverd, bezig en veroverd zijn ook zonder kleur te zien: een stippellijn zonder vulling, een doorgetrokken lijn met vulling van oker naar groen en "6 van 80 · 8%", en vulling en lijn in de kleur van de vlag met een vlag en "veroverd". De grenslijnen hebben een donkere onderlijn voor contrast en worden dikker naarmate je inzoomt; namen met voortgang worden op belang gezet (veroverd, bezig, dan onveroverd) en vallen weg als ze een ander label raken. Linksonder staat een legenda met de laag die je ziet en de drie toestanden. De minikaart toont dezelfde grenzen en toestanden zonder labels. Test: `gebieden_kaart_test.mjs`.
+
 ## [0.41.1] - 2026-10-23
 
 ### Nieuw
