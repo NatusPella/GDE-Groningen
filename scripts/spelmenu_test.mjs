@@ -48,7 +48,7 @@ ok(!/localStorage\.(setItem|getItem)\([^)]*spel/i.test(pm), 'Spel bewaart niets 
 // de tabbladen van Spel, de sectie en alles eromheen
 const sub = (pm.match(/spel: \[((?:\[[^\]]+\],? ?)+)\],/) || [])[1] || '';
 const subIds = [...sub.matchAll(/\['(\w+)', '([^']+)'\]/g)].map((x) => x[1]);
-ok(subIds.join() === 'spelen,camera,hints', 'Spel heeft de tabbladen Spelen, Camera & richten en Hints & uitleg', subIds.join());
+ok(subIds.join() === 'acties,spelen,camera,hints', 'Spel heeft de tabbladen Opslaan & stoppen, Spelen, Camera & richten en Hints & uitleg', subIds.join());
 ok(subIds.every((id) => new RegExp(`tab\\('${id}'`).test(spelSrc)), 'elk tabblad heeft zijn inhoud');
 ok(/\['spel', 'Spel', '/.test(pm), "'spel' staat in de sectielijst");
 ok(/\['spel', 'settings', 'controls', 'streken'\]/.test(pm), 'de rail toont Spel vóór Instellingen');
@@ -56,11 +56,22 @@ ok(/PRESTART_SECTIONS = \['spel', 'settings', 'controls'\]/.test(pm), 'ook in he
 ok(/^\s*spel: \[\[\['↑', '↓'\], 'kiezen'\]/m.test(pm), 'Spel heeft zijn voetregel');
 ok(/^\s*spel: '<rect/m.test(pm), 'Spel heeft een icoon in dezelfde lijnstijl');
 ok(/data-panel="spel" class="pm-panel pm-col pm-tabbed"/.test(pm) && /\$\{spelHtml\(\)\}/.test(pm), 'het paneel van Spel staat in het blad');
-ok(/if \(name === 'spel'\) \{ showSubtab\('spel', pref\.sub\.spel \|\| 'spelen'\); syncControls\(\); \}/.test(pm), 'Spel laat zijn tabblad en de waarden van de regelaars zien');
+ok(/if \(name === 'spel'\) \{ showSubtab\('spel', pref\.sub\.spel \|\| subsOf\('spel'\)\[0\]\[0\]\); syncControls\(\); syncSaveButtons\(\); \}/.test(pm), 'Spel laat zijn tabblad, de waarden van de regelaars en de opslagknoppen zien');
 ok(/tab === 'settings' \|\| tab === 'spel'\) syncControls\(\)/.test(pm), 'Q en E tussen de tabbladen van Spel vullen de regelaars');
 ok(/SUBTABS\[tab\]/.test(pm) && /\['camera', 'Muis & controller'\]/.test(pm), 'Instellingen houdt zijn tabblad camera (sleutel) onder de naam Muis & controller');
 ok(/enterSection\(go\.dataset\.goto\)/.test(pm) && /data-goto="overzicht"/.test(spelSrc), 'Missie stoppen verwijst naar Overzicht (de knop met de vraag, #390)');
-ok(/pm-ingame/.test(spelSrc.slice(spelSrc.indexOf('Missie stoppen') - 120, spelSrc.indexOf('Missie stoppen'))), 'die regel staat alleen in het spel, niet in het hoofdmenu');
+// de spel-acties van de oude rail (Spel opslaan, Opgeslagen spellen, Naar het hoofdmenu, Afsluiten, Opnieuw beginnen, Laatste spel laden, Nieuw spel, Annuleren, Doorgaan) staan nu onder Spel > Opslaan & stoppen, met dezelfde data-action
+const ACTIES = ['resume', 'save', 'saves', 'menu', 'exit', 'restart', 'load', 'new', 'cancel'];
+const actiesTab = spelSrc.slice(spelSrc.indexOf("tab('acties'"), spelSrc.indexOf("tab('spelen'"));
+for (const a of ACTIES) ok(new RegExp('data-action="' + a + '"').test(actiesTab), 'Spel > Opslaan & stoppen heeft data-action="' + a + '"');
+ok(!/pm-rail-acts|pm-rail-foot/.test(pm.slice(pm.indexOf('<nav class="pm-rail"'), pm.indexOf('</nav>', pm.indexOf('<nav class="pm-rail"')))), 'de rail heeft geen spel-acties meer');
+ok(/data-restart-confirm/.test(actiesTab) && /Laatste spel laden/.test(actiesTab) && /Nieuw spel \(nieuwe plek\)/.test(actiesTab) && /Annuleren/.test(actiesTab), 'de vraag bij Opnieuw beginnen staat er met haar drie knoppen');
+ok(/Spel opslaan<\/button>/.test(actiesTab) && /Naar het hoofdmenu<\/button>/.test(actiesTab) && /Opgeslagen spellen<\/button>/.test(actiesTab) && /Opnieuw beginnen<\/button>/.test(actiesTab) && /Afsluiten<\/button>/.test(actiesTab), 'de knoppen houden hun tekst (de tests en harnassen zoeken erop)');
+ok(!/querySelector\('\.pm-game \.pm-confirm'\)|querySelector\('\.pm-status'\)|\.pm-rail-acts/.test(pm), 'de code zoekt de vraag, de statusregel en de knoppen niet meer in de rail');
+ok(/data-game-status/.test(actiesTab) && /\[data-game-status\]/.test(pm), 'de statusregel van opslaan en laden staat onder de knoppen');
+ok(/pm-ingame/.test(pm.slice(pm.indexOf('function subtabsHtml'), pm.indexOf('function subtabsHtml') + 500)) && /const subsOf = /.test(pm), 'het tabblad Opslaan & stoppen is er in het hoofdmenu (voor de start) niet');
+ok(/#pause-menu \[data-panel="spel"\] \[data-action\]/.test(read('desktop/devtools.js')), 'de smoke-test van Electron meldt ook de acties onder Spel (pauseButtons)');
+ok(/data-action="menu"[^>]*>Naar het hoofdmenu</.test(pm), 'het pauzemenu heeft Naar het hoofdmenu (alleenspelen_test)');
 // Standaard herstellen blijft bij Instellingen (het zet alles terug, ook Spel)
 ok(/\[data-action="reset"\]'\)\.hidden = name !== 'settings'/.test(pm), 'Standaard herstellen blijft bij Instellingen');
 // oude opgeslagen keuzes (pref.sub) breken niets: een onbekend tabblad valt terug op het eerste
