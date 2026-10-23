@@ -6,6 +6,13 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Opgelost
+- Samen spelen (#434): zodra er een gast in het spel is, loopt de wereld van wie het spel opende door achter het pauzemenu, de kaart en de winkel (alleen je eigen invoer staat stil). Solo blijft pauzeren zoals altijd.
+- Samen spelen (#434): een gast ziet de garages en safehouses waar zijn lichaam tegenaan botst, dus geen onzichtbaar huisje meer midden op de weg.
+- Samen spelen (#434): een gast ziet waar de volgende opdracht van wie het spel opende begint (gele zuil, kaart en minimap) en leest dat hij meedoet zodra die speler bij de marker staat.
+- Samen spelen (#434): boten bewegen bij een gast glad zonder sprongen of slingerende koers, grote schepen verdwijnen niet meer zodra hun midden te ver weg is, en een speler die bij de groep wordt gezet terwijl de ander op het water zit komt in de boot in plaats van in zee.
+- Samen spelen (#434): treinen zijn voor een gast al van ver te zien, het vertrekbord van het station verschijnt ook bij een gast, en een trein rijdt niet meer door de derde en vierde speler heen.
+
 ## [0.44.0] - 2026-10-23
 
 ### Nieuw

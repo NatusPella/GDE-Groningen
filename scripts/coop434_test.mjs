@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import { createLink } from '../game/js/net/memtransport.js';
 import * as N from '../game/js/coopnet.js';
-import { verzamelEntiteiten, ID_TREIN0 } from '../game/js/coopworld.js';
+import { verzamelEntiteiten, leesEntiteiten, ID_TREIN0, SOORT_START, SOORT_DOEL } from '../game/js/coopworld.js';
 import { gladBoot } from '../game/js/coopboot.js';
 
 let n = 0;
@@ -81,6 +81,23 @@ t('de band zet een gast in de boot als er geen droge plek is', () => {
   assert.equal(N.zetInBoot(w, fig), true); assert.equal(fig.inVeh, boot);
   const w2 = mk(); w2.player.inVehicle = { x: 0, y: 0, model: { len: 4 } }; // een auto: nooit
   assert.equal(N.zetInBoot(w2, w2.companion), false);
+});
+
+t('missiemarkers: de gast ziet het begin van de volgende opdracht en daarna het doel', () => {
+  const w = { vehicles: [], pedestrians: [], time: 1, wanted: 0, mission: { phase: 'idle', index: 7, marker: { x: 100, y: 50 } } };
+  const lees = (ents) => leesEntiteiten(JSON.parse(JSON.stringify(ents)));
+  let e = verzamelEntiteiten(w, [{ x: 0, y: 0 }]);
+  assert.equal(e.filter((q) => q.kind === SOORT_START).length, 1);
+  assert.deepEqual(lees(e).starts, [{ index: 7, x: 100, y: 50 }]);
+  assert.equal(lees(e).doelen.length, 0);
+  w.mission.marker = { x: 900, y: 0 }; // veel te ver weg: geen zuil in beeld
+  assert.equal(verzamelEntiteiten(w, [{ x: 0, y: 0 }]).filter((q) => q.kind === SOORT_START).length, 0);
+  w.mission = { phase: 'active', index: 7, marker: { x: 120, y: 60 } };
+  e = verzamelEntiteiten(w, [{ x: 0, y: 0 }]);
+  assert.equal(e.filter((q) => q.kind === SOORT_START).length, 0, 'tijdens de opdracht alleen het doel');
+  assert.equal(e.filter((q) => q.kind === SOORT_DOEL).length, 1);
+  w.mission = { phase: 'cooldown', index: 8, marker: { x: 10, y: 10 } };
+  assert.equal(verzamelEntiteiten(w, [{ x: 0, y: 0 }]).length, 0);
 });
 
 console.log(`coop434_test: ${n} tests ok`);

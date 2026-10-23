@@ -252,7 +252,7 @@ function stepFigures(world, dt) {
 // De anderen blijven lopen (stepFigures draait altijd); Tessa nu ook. Een wachtscherm bij wegvallen (coopHold) pauzeert wel voor iedereen (#388).
 export function stapMetgezelInPauze(world, dt) {
   const c = world.companion, p = world.player;
-  if (!world.paused || world.coopHold || !c || !p || !world.coop || !world.coop.remote || coopWereldDoorloop(world)) return false; // loopt de wereld door achter het menu (#434), dan stapt updateGameplay haar al
+  if (!world.paused || world.coopHold || !c || !p || !world.coop || !world.coop.remote || world.coopDoorloopNu) return false; // loopt de wereld door achter het menu (#434), dan stapt updateGameplay haar al
   if (c.inVehicle || c.water || c.state === 'dead' || world.companionHold || (p.inVehicle && !c.coopUit)) return false;
   return coopStep(c, dt, world, world.coopMove || ((q, d) => { q.x += q.vx * d; q.y += q.vy * d; }));
 }

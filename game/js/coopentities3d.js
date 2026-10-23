@@ -19,7 +19,7 @@ const voertuigen = new Map(); // id -> mesh
 const hornWas = new Map(); // id -> de toeter stond aan (de vorige keer)
 // een voertuig weg uit de scene: een blok heeft eigen geometrie (de materialen zijn gedeeld), echte modellen delen hun geometrie
 const ruimVoertuig = (scene, m) => ruimMeshOp(scene, m, { geometrie: !m.userData.vehicleId });
-let beacon = null;
+let beacon = null, startBaken = null, startHint = -1e9;
 const MATS = {};
 const mat = (c) => (MATS[c] ||= new THREE.MeshStandardMaterial({ color: c, roughness: 0.7 }));
 
@@ -128,7 +128,8 @@ function bouw(v) {
   return g;
 }
 
-export const hasHostEntities = () => voertuigen.size > 0 || !!beacon;
+export const startHintTekst = () => 'Hier begint een opdracht. Hij start zodra wie het spel opende bij de marker staat: dan kun je meedoen.';
+export const hasHostEntities = () => voertuigen.size > 0 || !!beacon || !!startBaken;
 
 // Elke frame (main.js), alleen op een gast.
 export function syncHostEntities(world, dt = 1 / 60) {
@@ -202,6 +203,20 @@ export function syncHostEntities(world, dt = 1 / 60) {
     scene.add(beacon);
   }
   if (beacon) { beacon.visible = !!doel; if (doel) beacon.position.set(doel.x, 30, doel.y); }
+  // het beginpunt van de volgende opdracht van wie het spel opende: een gele zuil, zoals de gast ook zijn eigen opdrachten ziet (#434)
+  const start = !doel && host.starts && host.starts[0];
+  if (start && !startBaken) {
+    startBaken = new THREE.Mesh(new THREE.CylinderGeometry(1.4, 1.4, 40, 16, 1, true), new THREE.MeshBasicMaterial({ color: 0xffd23f, transparent: true, opacity: 0.35, depthWrite: false, side: THREE.DoubleSide }));
+    scene.add(startBaken);
+  }
+  if (startBaken) {
+    startBaken.visible = !!start;
+    if (start) {
+      startBaken.position.set(start.x, 20, start.y);
+      const p = world.player;
+      if (p && Math.hypot(start.x - p.x, start.y - p.y) < 25 && world.time - startHint > 40 && world.addMessage) { startHint = world.time; world.addMessage(startHintTekst(), 5); }
+    }
+  }
 }
 
 export function clearHostEntities() {
@@ -210,4 +225,6 @@ export function clearHostEntities() {
   voertuigen.clear(); wacht.clear();
   if (beacon && scene) ruimMeshOp(scene, beacon, { materiaal: true });
   beacon = null;
+  if (startBaken && scene) ruimMeshOp(scene, startBaken, { materiaal: true });
+  startBaken = null;
 }
