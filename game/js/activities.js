@@ -36,6 +36,7 @@ import { REGATTA_GAME } from './regatta.js';
 import { VLIEGSCHOOL } from './vliegschool.js';
 import { SAFEHUIS } from './safehuizen.js';
 import { isShopOpen } from './shopui.js';
+import { GAST_ACTIVITEITEN, MELDING_ALLEEN_OPENER } from './coopgast.js';
 import { isCinematicActive, showBanner } from './cinematics.js';
 import { getScene } from './scene3d.js';
 import { showCard } from './hudcards.js';
@@ -87,9 +88,35 @@ export function updateActivityGame(dt, w) {
 // Samen spelen (#434): een gast draait de wereld niet, maar bouwt wel wat de host ook bouwt en waar zijn lichaam tegenaan botst (een safehouse: gastTick)
 export function tickActivitiesGast(dt, w) {
   for (const a of LIST) {
-    if (!a.gastTick) continue;
+    if (!a.gastTick && !(GAST_ACTIVITEITEN.has(a.id) && (a.active() || !w.coopInVoertuig))) continue; // hengelen, pannenkoek, beiaard: ook bij een gast (#429)
     try { a.tick(dt, w); } catch (e) { console.error('activity', a.id, e); }
   }
+}
+
+// Samen spelen (#429, #434): een gast speelt een lokale activiteit (GAST_ACTIVITEITEN) op zijn eigen scherm. Zijn lichaam bij de host staat
+// stil zolang de activiteit loopt (input.stil), de rest van de wereld komt gewoon via het net. Geeft het id van die activiteit terug, of null.
+export function updateActivitiesGast(dt, w) {
+  const a = current();
+  if (!a || !GAST_ACTIVITEITEN.has(a.id)) return null;
+  if (w.input) w.input.stil = 2;
+  w.activityGame = a.id;
+  w.minigameUntil = w.time + 0.25;
+  a.update(dt, w);
+  return a.id;
+}
+
+// E bij een gast: een lokale activiteit start op zijn eigen scherm; bij een andere activiteit hoort hij dat dit alleen bij wie het spel opende kan.
+export function tryActivityInteractGast(w) {
+  const input = w.input;
+  if (!input || current() || isShopOpen() || isCinematicActive() || w.coopInVoertuig) return false;
+  for (const a of LIST) {
+    if (!a.interact) continue;
+    if (GAST_ACTIVITEITEN.has(a.id)) { if (a.interact(w)) return true; continue; }
+    let dichtbij = false;
+    try { dichtbij = !!(a.prompt && a.prompt(w)); } catch (e) { dichtbij = false; }
+    if (dichtbij) { w.addMessage(MELDING_ALLEEN_OPENER, 3); return true; }
+  }
+  return false;
 }
 
 export function updateActivitiesWorld(dt, w) {

@@ -12,6 +12,16 @@ export const WINKELS_GAST = new Set(['kleding', 'kapper', 'tabak', 'super', 'sna
 export const winkelMagVoorGast = (type) => WINKELS_GAST.has(type);
 
 export const ALLEEN_EIGEN_SPEL = 'Dat kan alleen in je eigen spel.';
+// Activiteiten die een gast zelf speelt, op zijn eigen scherm, met zijn eigen voortgang en geld (#429, #434): ze veranderen de wereld van wie
+// het spel opende niet (geen voertuig, geen personage, geen verplaatsing van zijn lichaam). Hengelen is alleen de minigame en de vangst in
+// het eigen visboek; pannenkoeken bakken en de beiaard zijn losse spelletjes bij een vaste plek. Al het andere (discgolf, pitch en put,
+// skatepark, kartbaan, zwemmen, klimmen, vliegles, botsautootjes, padel enzovoort) zet zijn lichaam of een voertuig ergens neer en blijft bij wie het spel opende.
+export const GAST_ACTIVITEITEN = new Set(['hengelen', 'pannenkoek', 'carillon']);
+export const activiteitMagLokaal = (id) => GAST_ACTIVITEITEN.has(id);
+// Wat een gast aan de host meldt als hij zo'n activiteit speelt (alleen bij een wisseling; een oudere host negeert het bericht)
+export const bezigEvent = (id) => ({ k: 'bezig', a: GAST_ACTIVITEITEN.has(id) ? id : null });
+export const MELDING_ALLEEN_OPENER = 'Alleen bij wie het spel opende.';
+
 export const MELDING_WINKEL = (naam) => `${naam}: dat kan alleen in je eigen spel.`;
 
 // De tabel van de regels (docs/COOP-GAST.md en de tests lezen hem). mag: ja | nee | deels
@@ -24,7 +34,10 @@ export const GAST_REGELS = [
   { actie: 'sturen', mag: 'deels', regel: 'Met Y (controller: D-pad omhoog) geeft de bestuurder het stuur aan zijn bijrijder (en neemt het terug); de bijrijder kan met Y om het stuur vragen. De bestuurder blijft de bestuurder: schade en politie zijn van hem.' },
   { actie: 'eigen-voertuig', mag: 'nee', regel: 'Zelf een voertuig nemen en ermee rijden kan alleen in je eigen spel.' },
   { actie: 'gesprekken', mag: 'nee', regel: 'Praten met voorbijgangers en personages kan alleen in je eigen spel; wat de ander zegt zie je als ondertitel.' },
-  { actie: 'bijbanen', mag: 'nee', regel: 'Een bijbaan of minigame start en speelt wie het spel opende; jij kijkt mee. Samen een opdracht doen kan alleen waar de opdracht dat zegt.' },
+  { actie: 'bijbanen', mag: 'nee', regel: 'Een bijbaan start en speelt wie het spel opende (een trekker, taxi of bezorgwagen zou in zijn wereld verschijnen); bij zo een plek zie je "Alleen bij wie het spel opende". Samen een opdracht doen kan alleen waar de opdracht dat zegt.' },
+  { actie: 'hengelen', mag: 'ja', regel: 'Hengelen aan elk water (I) en de wedstrijd in Meerstad (E): de minigame draait op je eigen scherm; wat je vangt komt in je eigen visboek, de loopbaan en je eigen geld. Er verdwijnt geen vis uit de wereld van wie het spel opende. Je blijft staan; de anderen zien je zonder hengel.' },
+  { actie: 'boerderij', mag: 'deels', regel: 'Je eigen akker (pauzemenu, Boerderij): je gewas groeit ook terwijl je meespeelt, je kiest gewassen en koopt machines met je eigen geld. De klussen op het land (trekker) doe je in je eigen spel: de trekker zou in de wereld van wie het spel opende staan.' },
+  { actie: 'minigames', mag: 'deels', regel: 'Pannenkoeken bakken en de beiaard speel je zelf, op je eigen scherm. Discgolf, pitch en put, skatepark, kartbaan, zwemmen, klimmen, vliegles, botsautootjes en padel zetten je lichaam of een voertuig in de wereld en blijven bij wie het spel opende: je krijgt "Alleen bij wie het spel opende".' },
   { actie: 'missies', mag: 'deels', regel: 'Missies en het verhaal speelt wie het spel opende; jij loopt mee en krijgt je deel als beloning in je eigen geld.' },
 ];
 

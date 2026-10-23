@@ -1,23 +1,38 @@
 // Samen spelen (#291): wat een gast zelf op zijn eigen scherm doet terwijl de wereld van de host via het net binnenkomt.
 // updateGameplay (main.js) draait voor een gast de wereld niet; alleen deze interacties lopen lokaal, met zijn eigen geld
-// en spullen (winkels voor spullen voor jezelf, de muurkroket, horeca; docs/COOP-GAST.md). Wat hier niet door E wordt
-// opgepakt, gaat als "gebruik" naar de host: in- of uitstappen als bijrijder.
+// en spullen (winkels voor spullen voor jezelf, de muurkroket, horeca) en een paar losse activiteiten (hengelen, pannenkoeken
+// bakken, de beiaard; GAST_ACTIVITEITEN in coopgast.js, #429; docs/COOP-GAST.md). Wat hier niet door E wordt opgepakt, gaat als
+// "gebruik" naar de host: in- of uitstappen als bijrijder.
 import { tryShopInteract } from './shops.js';
 import { tryMachineInteract } from './snackautomaat.js';
 import { tryHorecaInteract } from './horeca.js';
 import { gastGebruik } from './coopnet.js';
 import { isShopOpen } from './shopui.js';
-import { gastKijkHoek } from './coopgast.js';
+import { gastKijkHoek, bezigEvent } from './coopgast.js';
+import { updateActivitiesGast, tryActivityInteractGast } from './activities.js';
 import { getSettings } from './settings.js';
 
-export function updateGastLokaal(world) {
+// meld de host (alleen bij een wisseling) dat deze gast een activiteit speelt: hij staat dan stil. Een host zonder dit bericht negeert het.
+function meldBezig(world, id) {
+  const nu = id || null;
+  if ((world.coopBezig || null) === nu) return;
+  world.coopBezig = nu;
+  const n = world.coopNet;
+  try { if (n && n.role === 'client' && n.session && n.session.sendEvent) n.session.sendEvent(bezigEvent(nu)); } catch (e) { /* de verbinding is er even niet */ }
+}
+
+export function updateGastLokaal(world, dt = 1 / 60) {
   const input = world.input;
   if (!input || world.paused || isShopOpen()) return false;
   // de muis draait de camera (player.js doet dat niet voor een gast, #388); niet tijdens een filmpje met een eigen camera
   if (input.lookActive && input.lookActive() && !world.cameraOverride && input.mouse) world.camYaw = gastKijkHoek(world.camYaw ?? (world.player && world.player.angle), input.mouse.dx, getSettings().mouseSensitivity * (world.scoped ? 0.3 : 1));
+  const bezig = updateActivitiesGast(dt, world); // hengelen, pannenkoeken bakken, de beiaard: op je eigen scherm (#429)
+  meldBezig(world, bezig);
+  if (bezig) return true;
   const e = input.wasPressed('e') || input.wasPressed('f');
   if (!e) { tryShopInteract(world); return false; } // R: lak en tuning (een melding)
   if (tryShopInteract(world) || tryMachineInteract(world) || tryHorecaInteract(world)) return true;
+  if (tryActivityInteractGast(world)) { input.consume('e'); input.consume('f'); return true; } // een lokale activiteit start; de andere geven een melding
   input.consume('e');
   input.consume('f');
   return gastGebruik(world);

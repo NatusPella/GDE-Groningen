@@ -84,6 +84,9 @@ export function boerderijTijd(w, nu = w && w.time) {
   return uren;
 }
 
+// Een gast die net aansluit krijgt de klok van de gastheer: dat sprongetje telt niet als groeitijd (main.js, #429).
+export function boerderijKlokNul() { vorigeKlok = null; }
+
 // Het perceel van de speler staat vast zodra het gevonden is: bewaar het, zodat het er de volgende keer nog ligt.
 export function zetPerceel(perceel) {
   const b = getBoerderij();
