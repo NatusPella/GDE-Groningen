@@ -577,7 +577,7 @@ export function runStartScreen(world, { render, relocate, tick, ready }) {
         openSamenKeuze({
           onClose: () => focus(sel),
           onKies: (rol) => {
-            if (rol === 'gast') { requestOpenSamen({ rol: 'gast', gate: true }); if (save) continueGame(); else startNew(); return; }
+            if (rol === 'gast' || rol === 'lijst') { requestOpenSamen({ rol: 'gast', gate: true, lijst: rol === 'lijst' }); if (save) continueGame(); else startNew(); return; }
             openSaveSlots({
               mode: 'start', eyebrow: 'Samen spelen', titel: 'Kies jullie spel', loadLabel: 'Dit spel spelen',
               hint: 'Jij opent het spel: de anderen spelen mee in het spel dat je hier kiest. Kies een lege plek voor een nieuw spel.',

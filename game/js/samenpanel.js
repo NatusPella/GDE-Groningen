@@ -45,7 +45,7 @@ export function renderSamenPanel(root, world, sluit = () => {}) {
   const ls = store();
   const info = () => handshakeInfo({ tiles: '-', story: 'nieuw' });
   koppelWissel(world, { fade: fadeFlash, scene: () => readHostScene(world), onHold: (rol, slot, reden) => openHold(world, rol, slot, reden) }); // het spel overdragen (#439): de route en het scherm
-  const keuze = startOpts.rol || null, gate = !!startOpts.gate; startOpts = { ...startOpts, rol: null };
+  const keuze = startOpts.rol || null, gate = !!startOpts.gate, lijst = !!startOpts.lijst; startOpts = { ...startOpts, rol: null, lijst: false };
   let spelNaam = ''; try { spelNaam = ls ? nameOf(ls, activeSlot(ls)) : ''; } catch (e) { /* geen naam */ }
   view = mountLobby(root, {
     laatsteCode: ls ? readSession(ls).laatsteCode : '',
@@ -67,5 +67,5 @@ export function renderSamenPanel(root, world, sluit = () => {}) {
     },
     // 'Iedereen stoppen' (host) of 'Spel verlaten' (gast); bij 'terug' is er nog geen sessie
     disconnect: (a) => { setGate(false); if (a === 'verbreek') stopCoopNet(world); }, // Stoppen of Terug: geen wachtkamer meer, je speelt weer je eigen spel
-  }, { keuze, startGate: gate, spelNaam });
+  }, { keuze, startGate: gate, spelNaam, lijst });
 }

@@ -90,6 +90,26 @@ export class TrackerBackend extends Backend {
       }
     });
   }
+  // Openbare sessielijst (#438, net/serverlijst.js): onversleutelde aankondigingen op een vast onderwerp. tekst() geeft elke keer de
+  // aankondiging van dat moment (of null: dan wordt er niets geplaatst). De tracker geeft het door aan wie op hetzelfde onderwerp luistert.
+  kondig(topic, tekst, timeoutMs = 6000, every = 15000) {
+    this.hash = bin(topic);
+    const zet = () => { const t = tekst(); if (t) this._announce({ event: 'started', offers: [{ offer_id: rid(this.rand), offer: { type: 'offer', sdp: t } }] }); };
+    this._connect(timeoutMs, () => { zet(); this._every(every, zet); }, (data) => {
+      let m; try { m = JSON.parse(data); } catch (e) { return; }
+      if (m && m.info_hash === this.hash) this._set('ok');
+    });
+  }
+  luister(topic, onTekst, timeoutMs = 6000, every = 10000) {
+    this.hash = bin(topic);
+    const vraag = () => this._announce({ event: 'started', offers: [], numwant: 20 });
+    this._connect(timeoutMs, () => { vraag(); this._every(every, vraag); }, (data) => {
+      let m; try { m = JSON.parse(data); } catch (e) { return; }
+      if (!m || m.info_hash !== this.hash) return;
+      this._set('ok');
+      if (m.offer && typeof m.offer.sdp === 'string' && m.peer_id !== this.peerId) onTekst(m.offer.sdp);
+    });
+  }
 }
 
 // ------------------------------------------------------------------ MQTT 3.1.1 over WebSocket
@@ -152,7 +172,19 @@ export class MqttBackend extends Backend {
       onOffer(p.payload, (answer) => this._send(mqtt.publish(this.base + '/a', answer, false)));
     });
   }
+  // Openbare sessielijst (#438): elke host een eigen vastgehouden onderwerp onder het vaste onderwerp van de lijst; wie luistert abonneert zich op allemaal
+  kondig(topic, tekst, timeoutMs = 6000, every = 15000) {
+    this.lijstTopic = `gde/lijst/${topic}/${this.clientId}`;
+    const zet = () => { const t = tekst(); if (t) this._send(mqtt.publish(this.lijstTopic, t, true)); };
+    this._run(timeoutMs, () => { zet(); this._every(every, zet); }, () => {});
+  }
+  luister(topic, onTekst, timeoutMs = 6000) {
+    const basis = `gde/lijst/${topic}/`;
+    this._run(timeoutMs, () => this._send(mqtt.subscribe(1, basis + '#')), (p) => { if (p.topic.startsWith(basis) && p.topic !== basis + this.clientId && p.payload) onTekst(p.payload); });
+  }
   close() {
+    // een aankondiging van de lijst en het vastgehouden aanbod opruimen (een leeg bericht wist het)
+    try { if (this.lijstTopic && this.ws && !this.closed) this._send(mqtt.publish(this.lijstTopic, '', true)); } catch (e) { /* weg */ }
     // het vastgehouden aanbod opruimen (een leeg bericht wist het)
     try { if (this.base && this.ws && this.hosting && !this.closed) this._send(mqtt.publish(this.base + '/o', '', true)); } catch (e) { /* weg */ }
     super.close();
@@ -230,4 +262,17 @@ export class MultiSignaler {
     for (const b of this.backends) b.close();
     if (this.fallback) this.fallback.close();
   }
+}
+
+// ------------------------------------------------------------------ de openbare sessielijst (#438)
+// Dezelfde brokers, geen PeerJS-terugval (daar is geen onderwerp voor iedereen). kondig(topic, tekst()) voor een host,
+// luister(topic, onTekst(tekst)) voor wie de lijst bekijkt. Alles wat binnenkomt is van iedereen: net/serverlijst.js controleert het.
+export class LijstSignaler extends MultiSignaler {
+  constructor(cfg, env, { brokerTimeout = 6000, interval = 15000 } = {}) { super(cfg, env, { fallbackAfter: 0, brokerTimeout }); this.interval = interval; }
+  _check() { /* geen terugval */ }
+  kondig(topic, tekst) { this.backends = this._make(); this.hosting = true; for (const b of this.backends) b.kondig(topic, tekst, this.brokerTimeout, this.interval); }
+  luister(topic, onTekst) { this.backends = this._make(); for (const b of this.backends) b.luister(topic, onTekst, this.brokerTimeout, 10000); }
+  // true zodra minstens één broker antwoordt
+  bereikbaar() { return this.backends.some((b) => b.status === 'ok'); }
+  alleFout() { return this.backends.length > 0 && this.backends.every((b) => b.status === 'fout'); }
 }

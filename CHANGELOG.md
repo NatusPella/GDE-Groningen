@@ -11,6 +11,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 - Samen spelen (#434): wordt een gast gezocht, dan staan zijn sterren ook in het scherm van wie het spel opende. Zijn twee spelers gezocht, dan jaagt de politie op het hoogste niveau, bij gelijk niveau op wie al gejaagd werd of anders op wie het dichtst bij de politie staat; verdwijnt dat doelwit, dan komt de ander aan de beurt.
 - Samen spelen (#429): een gast die aansluit terwijl een opdracht loopt krijgt ook de vraag 'Meedoen met ...?' (J of N) en hoort wat er speelt.
 - Samen spelen (#429): aansluiten terwijl je eigen opening of een filmpje nog loopt stopt dat filmpje en sluit meteen aan, in plaats van 'Wacht tot het filmpje of het herstel klaar is.'
+- Samen spelen (#438): openbare sessies. Wie het spel opent kan in de wachtkamer kiezen voor Maak deze sessie openbaar, na een melding die uitlegt wat er openbaar wordt (de naam van de sessie, het aantal spelers, de versie en de kamercode; geen IP-adres) en hoe je het weer uitzet. Spelers openen de lijst via Openbare sessies, in het hoofdmenu bij Samen spelen en in de wachtkamer, ook na een melding, en sluiten met een klik aan. Een sessie is standaard privé en alleen met de kamercode te bereiken. De lijst ververst zichzelf, laat een andere versie als niet aan te sluiten zien en kent Melden om een sessie op jouw apparaat te verbergen.
 
 ## [0.46.0] - 2026-10-23
 
