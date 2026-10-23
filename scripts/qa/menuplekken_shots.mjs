@@ -4,6 +4,7 @@
 //   node scripts/qa/menuplekken_shots.mjs [--out=<map>] [--ids=a,b] [--hoeken=270,315] [--uur=9.5] [--beweging=baan] [--t=3] [--menu] [--w=1280x720]
 // Zonder --ids alle plekken. Per plek en hoek: shots-<id>[-<hoek>].png; menuplekken.json met per beeld hoe lang de wereld erbij
 // moest laden (wacht_ms), het uur en de camerakant. --menu laat het menu zelf in beeld (anders is alleen de wereld te zien).
+// --audio-graph laat de geluidsgraaf lopen in een gedempte uitvoer (menugeluid.page.js meet de tonen). --page=<bestand in scripts/qa> draait een ander paginascript (bv. golfetiquette.page.js); --nomenu laat het testharnas het menu zelf wegdrukken en een spel starten.
 // Neemt zelf een Electron-slot (<GDE_LOCKS>/README.txt, standaard ~/gde-locks) en geeft het weer vrij.
 // Vereist een gestagede wereld (cd desktop && npm run stage, of GDE_GAME_DIR/ELECTRON_EXE: docs/ONTWIKKELEN.md).
 import fs from 'node:fs';
@@ -36,12 +37,12 @@ const profile = `gde-test-mp-${process.pid}`;
 try {
   const jobs = { ids: arg('ids', ''), hoeken: arg('hoeken', '').split(',').filter(Boolean).map(Number), uur: arg('uur', ''), beweging: arg('beweging', ''), t: Number(arg('t', 3)), menu: process.argv.includes('--menu'), start: process.argv.includes('--start') };
   const script = path.join(OUT, '_page.js');
-  fs.writeFileSync(script, `window.__mp = ${JSON.stringify(jobs)};\n` + fs.readFileSync(path.join(HERE, process.argv.includes('--meet') ? 'menuplekken_laad.page.js' : 'menuplekken_shots.page.js'), 'utf8'));
+  fs.writeFileSync(script, `window.__mp = ${JSON.stringify(jobs)};\n` + fs.readFileSync(path.join(HERE, arg('page', process.argv.includes('--meet') ? 'menuplekken_laad.page.js' : 'menuplekken_shots.page.js')), 'utf8'));
   const electron = process.env.ELECTRON_EXE || path.join(ROOT, 'desktop', 'node_modules', 'electron', 'dist', process.platform === 'win32' ? 'electron.exe' : 'Electron');
-  const env = { ...process.env, GDE_TEST_PROFILE: profile, GDE_MENU_TEST: '1' };
+  const env = { ...process.env, GDE_TEST_PROFILE: profile, ...(process.argv.includes('--nomenu') ? {} : { GDE_MENU_TEST: '1' }) };
   delete env.ELECTRON_RUN_AS_NODE;
   const r = spawnSync(electron, ['.', '--windowed', '--stil', '--force-device-scale-factor=1', `--window-size=${arg('w', '1280x720')}`,
-    `--smoke-test=${path.join(OUT, 'shots.png')}`, `--perf-script=${script}`],
+    `--smoke-test=${path.join(OUT, 'shots.png')}`, `--perf-script=${script}`, ...(process.argv.includes('--audio-graph') ? ['--audio-graph'] : [])],
   { cwd: path.join(ROOT, 'desktop'), env, encoding: 'utf8', maxBuffer: 1 << 28, timeout: 45 * 60 * 1000, killSignal: 'SIGKILL' });
   if (r.error) console.error('Electron starten mislukt:', r.error.message);
   fs.writeFileSync(path.join(OUT, 'run.log'), `${r.stdout || ''}\n${r.stderr || ''}`);

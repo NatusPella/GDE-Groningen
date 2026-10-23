@@ -59,7 +59,7 @@ function buildMeshes(tonnen, bots) {
   const botList = (bots || []).map((b) => {
     const boot = new THREE.Group();
     const romp = new THREE.Mesh(new THREE.BoxGeometry(4.4, 0.7, 1.6), new THREE.MeshLambertMaterial({ color: 0xf2ede0 }));
-    const zeil = new THREE.Mesh(new THREE.BoxGeometry(0.1, 4.2, 2.2), new THREE.MeshLambertMaterial({ color: 0xe8453c }));
+    const zeil = new THREE.Mesh(new THREE.BoxGeometry(0.1, 4.2, 2.2), new THREE.MeshLambertMaterial({ color: 0xe8453c, emissive: 0x7a2018 })); // emissive: de platte zijkant bleef anders bijna zwart in de schaduw
     zeil.position.set(0, 2.6, 0);
     boot.add(romp, zeil);
     boot.position.set(b.x, WATER_Y + 0.3, b.y);

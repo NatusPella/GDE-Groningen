@@ -9,7 +9,7 @@
 // Rikus, all recordings the game already has. The talk goes through the
 // speech channel's 'radio' class, so any other voice (a "Bel Rikus" call,
 // banter, a card line) cuts it off. `window.__radio` debug.
-import { setRadioOn, setRadioProgramme, onRadioBreak, radioInBreak, playLineVoice } from './audio.js';
+import { setRadioOn, setRadioProgramme, onRadioBreak, radioInBreak, playLineVoice, playRadioJingle, playTextMumble } from './audio.js';
 import { lineVoiceFor, NARRATOR } from './linevoice.js';
 import { smsVoiceFor, SMS_SAY } from './smsvoice.js';
 import { NACHTSTREEK, KROLBRUG_FAULTS, COW_FEED, PLANTSOEN_NEWS, EVENT_DAYS } from './flavourlines.js';
@@ -17,6 +17,9 @@ import { RADIO_HOST, RADIO_GRUNN, KERMIS_NEWS } from './funlines.js';
 import { STATION_NAME, programmeAt, normalizeRadio } from './musicpick.js';
 import { talkActive } from './storytalk.js';
 import { playerBusy } from './busy.js';
+import { radioMayTalk } from './speech.js';
+import { createAdState, noteBreak, planAdBlock, commitAdBlock, blockLines } from './radioads.js';
+import { showRadioSub, hideRadioSub } from './radiosub.js';
 
 // the recorded Kiekdoar headlines in audio/nieuws (text from its tts.json)
 const NEWS_CLIPS = [
@@ -37,6 +40,9 @@ let on = true;
 let playing = true;
 let prog = programmeAt(12);
 const R = { queue: [], nextAt: 0, rot: {}, played: 0, done: null, breakUntil: 0 };
+// the adverts (radioads.js, #409): when the last block ran, how many breaks ago, which ones were heard
+const ADS = createAdState();
+let subOn = false;
 
 const pick = (a) => a[Math.floor(Math.random() * a.length)];
 
@@ -54,7 +60,7 @@ export function applyRadioSave(v) {
 
 export function setRadio(value, { announce: show = true } = {}) {
   on = !!value;
-  if (!on) { R.done = null; R.queue = []; playing = false; setRadioOn(false); }
+  if (!on) { R.done = null; R.queue = []; playing = false; setRadioOn(false); hideSub(); }
   if (show && world) announce(world);
   return on;
 }
@@ -71,6 +77,9 @@ export function initRadio(w) {
     queue: () => R.queue.map((l) => l.speaker + ': ' + l.text),
     inBreak: () => radioInBreak(),
     played: () => R.played,
+    ads: () => ({ blocks: ADS.blocks, since: ADS.breaks, history: [...ADS.history] }),
+    // debug and scripts/qa/tester_radioads.page.js: start an advert block now, as if the gate were open
+    adBlock: () => { ADS.breaks = Infinity; ADS.lastAt = -Infinity; R.queue = segment('reclame', world); R.done = R.done || (() => {}); R.nextAt = world.time; R.breakUntil = world.time + BREAK_MAX; return R.queue.length; },
     ducked: () => ducked(world),
   };
 }
@@ -87,6 +96,7 @@ const ducked = (w) => !!((w.mission && w.mission.phase === 'active') || talkActi
 const busy = (w) => w.paused || playerBusy(w, ['activityGame', 'padel', 'heliRun', 'pigeon']).busy || ducked(w);
 
 export function updateRadio(dt, w) {
+  if (subOn && w.paused) hideSub();
   if (!busy(w) && w.input.wasPressed('n')) setRadio(!on);
   const want = on || playerBusy(w, ['activityGame', 'heliRun', 'pigeon']).busy;
   if (want !== playing) { playing = want; setRadioOn(want); }
@@ -107,6 +117,7 @@ export function updateRadio(dt, w) {
 function startBreak(done) {
   const w = world;
   if (!w || !on || busy(w)) { done(); return; }
+  noteBreak(ADS);
   const kinds = prog.talk;
   const i = R.rot[prog.id] || 0;
   R.rot[prog.id] = i + 1;
@@ -116,7 +127,13 @@ function startBreak(done) {
   R.breakUntil = w.time + BREAK_MAX;
 }
 
+function hideSub() {
+  subOn = false;
+  hideRadioSub();
+}
+
 function endBreak() {
+  hideSub();
   const done = R.done;
   R.done = null;
   R.queue = [];
@@ -155,6 +172,13 @@ function segment(kind, w) {
   if (kind === 'news') return [host(pick(G.news)), news()];
   if (kind === 'clip') return [clip(pick(NEWS_CLIPS))];
   if (kind === 'ad') return [host(pick(G.ads))];
+  if (kind === 'reclame') {
+    // an advert block now and then (not at night, not twice in a row): without one the recorded advert goes out instead
+    const block = planAdBlock(ADS, { now: w.time, progId: prog.id });
+    if (!block) return [host(pick(G.ads))];
+    commitAdBlock(ADS, block, w.time);
+    return blockLines(block);
+  }
   if (kind === 'traffic') { const t = pick(KROLBRUG_FAULTS); return [host(pick(G.traffic)), { speaker: 'Verkeersinformatie', text: t, voice: () => lineVoiceFor('Verkeersinformatie', t) }]; }
   if (kind === 'weather') return storm ? [host(pick(G.weatherRain)), clip(STORM_CLIP)] : [host(pick(wet ? G.weatherRain : G.weatherSun))];
   if (kind === 'cows') {
@@ -170,6 +194,7 @@ function talk(w) {
   if (w.time < R.nextAt) return;
   if (!R.queue.length) { endBreak(); return; }
   const line = R.queue[0];
+  if (line.textOnly) return talkText(w, line);
   const v = line.voice();
   if (!v) { R.queue.shift(); R.nextAt = w.time + 0.3; return; }
   // false: the channel is taken (a call, banter, a card line): try again soon
@@ -177,4 +202,18 @@ function talk(w) {
   R.queue.shift();
   R.played++;
   R.nextAt = w.time + v.dur + (R.queue.length ? 0.5 : 1.2);
+}
+
+// A line without a recording (the adverts): a jingle, or the subtitle with a soft mumble under it for the station's voice.
+// It waits for the same silence as a recorded line (speech.js radioMayTalk), and talk() is not called during a call or a mission.
+function talkText(w, line) {
+  if (!radioMayTalk()) { R.nextAt = w.time + 1.2; return; }
+  R.queue.shift();
+  R.played++;
+  if (line.jingle) { hideSub(); playRadioJingle(line.jingle); } else {
+    subOn = true;
+    showRadioSub(line.speaker, line.text);
+    playTextMumble('R', line.text, line.dur);
+  }
+  R.nextAt = w.time + line.dur;
 }
