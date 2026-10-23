@@ -161,7 +161,7 @@ import { updateEmergency } from './emergency.js';
 import { updateIndicators } from './indicators.js';
 import { initAchievementTracker, updateAchievementTracker } from './achievementtracker.js';
 import { initOmverrijden } from './omverrijden.js';
-import { initBoerderij, boerderijTijd } from './boerderijlive.js';
+import { initBoerderij, boerderijTijd, boerderijKlokNul } from './boerderijlive.js';
 import { probe } from './hitchprobe.js';
 import { initSafety, updateSafety } from './safety.js';
 import { updateCinematics, isCinematicActive, sinceCinematic, setCinematicLinks } from './cinematics.js';
@@ -684,7 +684,7 @@ async function boot() {
   function updateGameplay(dt) {
     world.time += dt;
     // samen spelen (#95): een gast draait de wereld van de host niet zelf; die komt via het net (coopnet.js, coopworld.js)
-    if (world.coopRole === 'client' && world.coopNet && world.coopNet.joined) { updateGastLokaal(world); updateWeather(dt, world); refreshDayNight(world); try { updateHomeExterior(dt, world); } catch (e) { /* zonder garage */ } try { updateGarages(dt, world, true); tickActivitiesGast(dt, world); updateStationLife(dt, world, { routes: getRoutes(), point: routePoint, day: calendarToday(world), createBoard: createStationBoard, trains: getTrains().filter((t) => !t.gastWeg), schaal: 86400 / DAY_LENGTH_S, driving: false }); } catch (e) { console.error('gast: gebouwen', e); } return; } // een gast ziet ook de garages en safehouses waar zijn lichaam tegenaan botst (#434) // het weer en de dagstand volgen de gastheer (#378) // winkelen en in- of uitstappen (#291)
+    if (world.coopRole === 'client' && world.coopNet && world.coopNet.joined) { updateGastLokaal(world, dt); try { if (world.coopBoerNet !== world.coopNet) { world.coopBoerNet = world.coopNet; boerderijKlokNul(); } boerderijTijd(world); } catch (e) { /* zonder boerderij */ } updateWeather(dt, world); refreshDayNight(world); try { updateHomeExterior(dt, world); } catch (e) { /* zonder garage */ } try { updateGarages(dt, world, true); tickActivitiesGast(dt, world); updateStationLife(dt, world, { routes: getRoutes(), point: routePoint, day: calendarToday(world), createBoard: createStationBoard, trains: getTrains().filter((t) => !t.gastWeg), schaal: 86400 / DAY_LENGTH_S, driving: false }); } catch (e) { console.error('gast: gebouwen', e); } return; } // een gast ziet ook de garages en safehouses waar zijn lichaam tegenaan botst (#434) // het weer en de dagstand volgen de gastheer (#378) // winkelen en in- of uitstappen (#291)
     // money must stay a number: a NaN from any price or reward is undone
     if (Number.isFinite(world.money)) world._goodMoney = world.money;
     else {

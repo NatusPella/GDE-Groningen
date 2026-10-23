@@ -59,6 +59,7 @@ export class Input {
     this._remapByCode = new Map();
     this.captureKey = null;
     this.blocked = false; // samen spelen: de wereld loopt door achter een menu, de lokale invoer staat stil (main.js)
+    this.stil = 0; // samen spelen: een gast speelt lokaal een activiteit (hengelen); zijn lichaam bij de host staat stil zolang dit > 0 (aftellend per beeld, coopgastlokaal.js)
     onSettingsChange((st, key) => { if (!key || key === 'keyBinds') this._remap = keyTranslation(st.keyBinds); });
 
     // capture, and registered before every other key listener: a rebound key
@@ -232,7 +233,7 @@ export class Input {
 
   // zolang een tekstveld focus heeft, staat de spelbesturing stil (ook een controller of een toets die al ingedrukt was)
   get typing() { return typeof document !== 'undefined' && isTextField(document.activeElement); }
-  isDown(k) { return !this.typing && !this.blocked && (this.keys.has(k) || this.padKeys.has(k)); }
+  isDown(k) { if (this.stil > 0 && (k === ' ' || k === 'shift' || k === 'control')) return false; return !this.typing && !this.blocked && (this.keys.has(k) || this.padKeys.has(k)); }
   wasPressed(k) { return !this.typing && !this.blocked && this._justPressed.has(k); }
   // swallow a key press so later handlers this frame don't act on it too
   consume(k) { this._justPressed.delete(k); }
@@ -252,6 +253,7 @@ export class Input {
   }
 
   endFrame() {
+    if (this.stil > 0) this.stil--;
     this._justPressed.clear();
     this.mouse.wheel = 0;
     this.mouse.dx = 0;
@@ -259,7 +261,7 @@ export class Input {
   }
 
   axis() {
-    if (this.typing || this.blocked) return [0, 0];
+    if (this.typing || this.blocked || this.stil > 0) return [0, 0];
     // per axis: a pad stick (or the touch steering, sideways only) wins on its own axis; the other axis still
     // follows the keys, so touch steering plus the gas button (W) drives (#227)
     let x = this.padAxis[0], y = this.padAxis[1];
