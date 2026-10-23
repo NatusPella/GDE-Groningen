@@ -60,7 +60,8 @@ function focus(w) {
     built = null;
   }
 }
-const BALL_R = 0.16;
+// de bal is een derde van de put (CUP_R * 1,4 = 15 cm straal): groter dan een echte bal voor het oog, maar hij past duidelijk in het hol (#436)
+const BALL_R = 0.05;
 const CHARGE_PITCH = 1.5, CHARGE_PUTT = 1.7;
 
 let game = null;
@@ -556,12 +557,15 @@ function camera(w) {
     pos = { x: a.x - Math.cos(g.yaw) * (putting ? 3.2 : 11), y: a.y - Math.sin(g.yaw) * (putting ? 3.2 : 11), z: putting ? 1.5 : 5 + a.z * 0.5 };
     at = { x: a.x + Math.cos(g.yaw) * 2, y: a.y + Math.sin(g.yaw) * 2, z: a.z * 0.5 };
   } else if (g.phase === 'holeDone') {
-    pos = { x: h.cup.x - 4, y: h.cup.y - 4, z: 2.2 };
+    // altijd van achter de speler langs zijn schouder naar het hol (nooit van voren: Tamo staat met zijn gezicht naar het hol)
+    const ux = Math.cos(g.yaw), uy = Math.sin(g.yaw);
+    pos = { x: g.lie.x - ux * 3.2 - uy * 1.3, y: g.lie.y - uy * 3.2 + ux * 1.3, z: 2.1 };
     at = { x: h.cup.x, y: h.cup.y, z: 0.4 };
   } else {
     const back = putting ? 3.4 : 9;
     const to = putting ? { x: g.lie.x + Math.cos(g.yaw) * Math.min(14, Math.hypot(h.cup.x - g.lie.x, h.cup.y - g.lie.y)) * 0.6, y: g.lie.y + Math.sin(g.yaw) * Math.min(14, Math.hypot(h.cup.x - g.lie.x, h.cup.y - g.lie.y)) * 0.6 } : { x: g.lie.x + Math.cos(g.yaw) * 30, y: g.lie.y + Math.sin(g.yaw) * 30 };
-    pos = { x: g.lie.x - Math.cos(g.yaw) * back, y: g.lie.y - Math.sin(g.yaw) * back, z: putting ? 1.7 : 4.4 };
+    // een stukje opzij van de lijn (over de schouder), zodat de speler nooit tussen camera en hol in beeld staat met zijn gezicht naar ons
+    pos = { x: g.lie.x - Math.cos(g.yaw) * back - Math.sin(g.yaw) * 0.9, y: g.lie.y - Math.sin(g.yaw) * back + Math.cos(g.yaw) * 0.9, z: putting ? 1.7 : 4.4 };
     at = { x: to.x, y: to.y, z: putting ? 0.2 : 1.5 };
   }
   const c = easeCamera(g, pos, at, g.phase === 'ball' ? 0.2 : 0.1);
