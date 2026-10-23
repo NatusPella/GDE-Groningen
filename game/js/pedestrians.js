@@ -3,6 +3,7 @@ export { isInsideBuilding, isOnRoad, lineOfSight, setPedPose, pushAudioEvent };
 import { DEAD_DURATION } from './pedconst.js';
 export { DEAD_DURATION };
 import { scaledTarget, farAIDist, skipFar, takeDt } from './simload.js';
+import { aandeel } from './coopfoci.js';
 import { inClearZone } from './clearzone.js';
 import { openDriverDoor } from './vehicledoors.js';
 import { profileOf } from './signalement.js';
@@ -934,9 +935,11 @@ function spawnEventGroup(world, inEvent) {
 // Voetgangers die uit beeld verdwijnen blijven als getal per cel bestaan (simlagen
 // AbstractPool, #18) en komen eerst terug als de speler weer dichterbij komt.
 export const verlatenPool = new AbstractPool(100);
-function managePopulation(world) {
-  const { player } = world;
-  for (let i = world.pedestrians.length - 1; i >= 0; i--) if (world.pedestrians[i]._vanish) world.pedestrians.splice(i, 1);
+// focus: een losse groep spelers (samen spelen, spelers uit elkaar, #429, coopfoci.js); n = het aantal foci, die delen het totaalbudget
+function managePopulation(world, focus = null, n = 1) {
+  const player = focus || world.player;
+  const lokaal = n > 1;
+  if (!focus) for (let i = world.pedestrians.length - 1; i >= 0; i--) if (world.pedestrians[i]._vanish) world.pedestrians.splice(i, 1);
   const night = dayState(world).isNight;
   const inCentre = dist(player.x, player.y, CITY_CENTRE.x, CITY_CENTRE.y) < CITY_CENTRE.r;
   const hot = night && hotspotNear(player.x, player.y);
@@ -948,7 +951,7 @@ function managePopulation(world) {
     else walkers++;
   }
   // simlagen (issue #18): doel per streek en tijd van de dag uit simlagen.js
-  const desired = scaledTarget(FLAGS.simlagen ? voetgangerOpties(wijkProfileAt(world.map, player.x, player.y).key, hourOf(world)).target : !night ? POP_DAY : inCentre ? POP_NIGHT_CENTRE : POP_NIGHT_OUT);
+  const desired = Math.round(aandeel(n) * scaledTarget(FLAGS.simlagen ? voetgangerOpties(wijkProfileAt(world.map, player.x, player.y).key, hourOf(world)).target : !night ? POP_DAY : inCentre ? POP_NIGHT_CENTRE : POP_NIGHT_OUT));
   spawnBudget = Math.max(0, desired - walkers);
 
   if (walkers > desired + 3) {
@@ -956,7 +959,7 @@ function managePopulation(world) {
     for (let i = world.pedestrians.length - 1; i >= 0 && excess > 0; i--) {
       const p = world.pedestrians[i];
       if (p.isCop || p.scene || p.nightlife || p.leader || p.carry || p.ontgroening || p.party || p.state !== 'wander') continue; // (the ones with a part keep it)
-      if (dist(p.x, p.y, player.x, player.y) < 55 || !isSpawnHidden(world, p.x, p.y)) continue;
+      if (dist(p.x, p.y, player.x, player.y) < 55 || (lokaal && dist(p.x, p.y, player.x, player.y) > 150) || !isSpawnHidden(world, p.x, p.y)) continue;
       if (FLAGS.simlagen) verlatenPool.afleggen(p.x, p.y);
       world.pedestrians.splice(i, 1);
       excess--;
@@ -974,6 +977,7 @@ function managePopulation(world) {
     world.pedestrians.push(...add);
   }
 
+  if (focus) return; // de rest (nachtleven, evenementen, het verhaal) blijft rond de gastheer
   if (hot && nightlife < NIGHTLIFE_EXTRA) spawnNightGroup(world);
   if (world.eventsNow && world.eventsNow.length) {
     let inEvent = 0;
@@ -1149,7 +1153,9 @@ export function updatePedestrians(dt, world) {
   popTimer -= dt;
   if (popTimer <= 0) {
     popTimer = 2;
-    managePopulation(world);
+    const foci = world.coopFoci && world.coopFoci.length > 1 ? world.coopFoci : null;
+    managePopulation(world, null, foci ? foci.length : 1);
+    if (foci) for (const f of foci) if (!f.host) managePopulation(world, f, foci.length);
     prunePoseSources(new Set(peds));
   }
 
