@@ -3,7 +3,7 @@
 // De gegevens komen uit world.coopExtra (coopextra.js, gevuld door coopnet.js); de plekken van voetgangers uit de snapshot
 // (world.coopHost.voetgangers). De host blijft leidend: de gast leest alleen. Alleen three.js en bestaande bouwers.
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-import { getScene } from './scene3d.js';
+import { getScene, disposeObject } from './scene3d.js';
 import { buildPersonMesh, animatePersonWalk, waveOverlay, juichOverlay } from './models3d_people.js';
 import { attachCarry, carryPose } from './streetlife3d.js';
 import { juichHoek } from './vrijgezellen.js';
@@ -18,7 +18,7 @@ import { buildWaypointDotMesh3D } from './missionmarker3d.js';
 const EEND = ['drake', 'hen', 'swan', 'goose'];
 const hex = (s) => parseInt(String(s).replace('#', ''), 16);
 const grond = (world, x, y) => { try { return world.map && world.map.groundHeightAt && world.map.elev && world.map.elev.has ? world.map.groundHeightAt(x, y) : 0; } catch (e) { return 0; } };
-const verwijder = (scene, m) => { scene.remove(m); m.traverse((o) => { if (o.isSkinnedMesh) { if (o.geometry) o.geometry.dispose(); if (o.skeleton) o.skeleton.dispose(); } else if (o.userData && o.userData.blok && o.geometry) o.geometry.dispose(); }); };
+const verwijder = (scene, m) => { scene.remove(m); disposeObject(m); }; // dezelfde opruiming als voor de voetgangers en dieren van het eigen spel (gedeelde geometrie en materialen blijven)
 
 // ----------------------------------------------------------- voetgangers
 const pop = new Map(); // id -> { mesh, sig, v, vorig }
