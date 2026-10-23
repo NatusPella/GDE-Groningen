@@ -64,7 +64,7 @@ for (const sub of ['acties', 'spelen', 'camera', 'hints']) {
   const spelKnop = [...rail.querySelectorAll('.ra')].find((b) => b.dataset.goto === 'spel');
   check('de rail heeft een knop Spel', zichtbaar(spelKnop), spelKnop && spelKnop.textContent.trim());
   const volgorde = [...rail.querySelectorAll('.ra[data-goto]')].filter(zichtbaar).map((b) => b.dataset.goto);
-  check('Spel staat vóór Instellingen in de rail', volgorde.indexOf('spel') >= 0 && volgorde.indexOf('spel') + 1 === volgorde.indexOf('settings'), volgorde.join(','));
+  check('de rail: Spel, Verhaal, Loopbanen, Activiteiten, Kaart, Spullen, Garage, Prestaties, Foto2019s, Instellingen', volgorde.join(',') === 'spel,verhaal,loopbaan,todo,map,spullen,garage,prestaties,fotos,settings', volgorde.join(','));
 }
 // een regelaar onder Spel: dezelfde instelling, meteen bewaard
 {

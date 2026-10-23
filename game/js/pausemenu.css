@@ -478,3 +478,6 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
 #pause-menu .vh-phone .ph-thread { flex: none; overflow: visible; }
 #pause-menu .vh-phone .ph-detail:empty { display: none; }
 #pause-menu .vh-phone h4 { margin: 8px 0 0; }
+/* Samen spelen en Spelers als tabblad van Spel (#430) */
+#pause-menu .pm-spelcoop[hidden] { display: none; }
+#pause-menu .pm-spelcoop:not([hidden]) { flex: 1; min-height: 0; }

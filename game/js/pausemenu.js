@@ -212,7 +212,7 @@ const qBtn = (action, ic, label, cls = 'pm-secondary', extra = '') =>
 
 // [id, label, hint under the title in the sheet]
 const SECTIONS = [
-  ['spel', 'Spel', 'Opslaan, stoppen, spelopties en waar je bent'],
+  ['spel', 'Spel', 'Opslaan, stoppen, samen spelen en waar je bent'],
   ['verhaal', 'Verhaal', 'Opdrachten, personages, aanwijzingen en berichten'],
   ['loopbaan', 'Loopbanen', 'Je vakken, bijbanen, vissen en boerderij'],
   ['todo', 'Activiteiten', 'Klussen, minigames en evenementen in de buurt'],
@@ -221,25 +221,23 @@ const SECTIONS = [
   ['garage', 'Garage', 'Jouw voertuigen'],
   ['prestaties', 'Prestaties', 'Blijven bewaard, ook bij een nieuw spel'],
   ['fotos', "Foto's", 'Fotomodus en je galerij'],
-  ['samen', 'Samen spelen', 'Uitnodigen, aansluiten en wie er meespeelt'],
   ['settings', 'Instellingen', 'Beeld, geluid, besturing, hulp en cheats'],
   // onderdelen onder een ander onderdeel (CHILD), niet los in de rail
   ['visboek', 'Visboek', 'Alle vis van de provincie, van jou'],
   ['boerderij', 'Boerderij', 'Je eigen akker, gewassen en machines'],
-  ['spelers', 'Spelers', 'Wie er meespeelt en wat je kunt'],
   ['controls', 'Besturing', 'Toetsen en knoppen aanpassen en nalezen'],
   ['streken', 'Cheats', 'Een beetje vals spelen'],
 ];
 // the rail's three groups: playing, collected, system
-const RAIL_GROUPS = [['spel', 'verhaal', 'loopbaan', 'todo'], ['map', 'spullen', 'garage', 'prestaties', 'fotos', 'samen'], ['settings']];
+const RAIL_GROUPS = [['spel', 'verhaal', 'loopbaan', 'todo'], ['map', 'spullen', 'garage', 'prestaties', 'fotos'], ['settings']];
 // Onderdelen zonder eigen plek in de rail die onder een ander onderdeel hangen (#430): Vissen en Farmen horen bij Loopbaan
 // (de tegels Bezigheden), de toetsen en knoppen bij Instellingen > Besturing. De rail markeert de ouder; Terug gaat naar de ouder.
-const CHILD = { visboek: 'loopbaan', boerderij: 'loopbaan', controls: 'settings', streken: 'settings', spelers: 'samen' };
+const CHILD = { visboek: 'loopbaan', boerderij: 'loopbaan', controls: 'settings', streken: 'settings' };
 const PRESTART_SECTIONS = ['spel', 'settings', 'controls'];
 const SUBTABS = {
   todo: [['alles', 'Alles'], ['dichtbij', 'Dichtbij']],
   verhaal: [['opdrachten', 'Opdrachten'], ['personages', 'Personages'], ['aanwijzingen', 'Aanwijzingen']],
-  spel: [['overzicht', 'Overzicht'], ['acties', 'Opslaan & stoppen'], ['spelen', 'Spelen'], ['camera', 'Camera & richten'], ['hints', 'Hints & uitleg']],
+  spel: [['overzicht', 'Overzicht'], ['samen', 'Samen spelen'], ['spelers', 'Spelers'], ['acties', 'Opslaan & stoppen'], ['spelen', 'Spelen'], ['camera', 'Camera & richten'], ['hints', 'Hints & uitleg']],
   settings: [['video', 'Beeld'], ['sound', 'Geluid & ondertitels'], ['besturing', 'Besturing'], ['display', 'Interface'], ['a11y', 'Toegankelijkheid'], ['fouten', 'Foutrapport'], ['cheats', 'Cheats']],
   controls: [['toetsen', 'Toetsenbord en muis'], ['knoppen', 'Controller'], ['overzicht', 'Toetsenoverzicht'], ['hulp', 'Hulp']],
 };
@@ -318,7 +316,7 @@ export function pauseMenuCover() {
 const started = () => document.body.classList.contains('game-started');
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 // 'Spelers' staat alleen in het menu zolang je samen speelt (#377)
-const sectionIds = () => (prestart ? PRESTART_SECTIONS : SECTIONS.map(([id]) => id).filter((id) => id !== 'spelers' || !!(world && world.coopNet)));
+const sectionIds = () => (prestart ? PRESTART_SECTIONS : SECTIONS.map(([id]) => id));
 const sectionOf = (id) => SECTIONS.find(([s]) => s === id);
 const key = (k) => `<span class="hud-key">${k}</span>`;
 
@@ -327,8 +325,9 @@ const CHEV_R = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.5 6l6 6-
 const plain = (t) => String(t).replace(/<[^>]*>/g, '').replace(/&shy;/g, '');
 
 // the tabs of a section that are there in the main menu too (Opslaan & stoppen of Spel needs a running game)
-const inGameOnly = (of, id) => (of === 'spel' && (id === 'acties' || id === 'overzicht')) || (of === 'settings' && id === 'cheats');
-const subsOf = (of) => SUBTABS[of].filter(([id]) => !(prestart && inGameOnly(of, id)));
+const inGameOnly = (of, id) => (of === 'spel' && (id === 'acties' || id === 'overzicht' || id === 'samen' || id === 'spelers')) || (of === 'settings' && id === 'cheats');
+// Spelers (wie er meespeelt) is er alleen zolang je samen speelt
+const subsOf = (of) => SUBTABS[of].filter(([id]) => !(prestart && inGameOnly(of, id)) && !(of === 'spel' && id === 'spelers' && !(world && world.coopNet)));
 function subtabsHtml(of, label) {
   return `<div class="m-tabs"><nav class="m-tablist" role="tablist" aria-label="${label}">` + SUBTABS[of].map(([id, text]) =>
     `<button type="button" role="tab" class="m-tab${inGameOnly(of, id) ? ' pm-ingame' : ''}" data-of="${of}" data-subtab="${id}" aria-selected="false">${esc(text)}<small data-count="${id}"></small></button>`).join('') + '</nav>' +
@@ -453,6 +452,8 @@ function spelHtml() {
   const tab = (id, rows, side = '') => `<div data-of="spel" data-sub="${id}" class="pm-settab" hidden><div class="m-list pm-slist">${rows}</div>${side}</div>`;
   return `${subtabsHtml('spel', 'Onderdeel')}
     <div data-of="spel" data-sub="overzicht" class="pm-ov pm-spelov" hidden></div>
+    <div data-of="spel" data-sub="samen" class="pm-samen pm-spelcoop" hidden></div>
+    <div data-of="spel" data-sub="spelers" class="pm-spelers pm-spelcoop" hidden></div>
     ${tab('acties', `
       <div class="m-li pm-row">${rowName('Verder spelen', 'Terug naar het spel')}<button type="button" class="m-bp" data-action="resume">Doorgaan</button></div>
       <div class="m-gh"><span>Opslaan en laden</span></div>
@@ -548,8 +549,6 @@ export function initPauseMenu(w) {
           <section data-panel="boerderij" class="pm-panel pm-col" hidden><div class="pm-inner pm-ach pm-boerderij"></div></section>
           <section data-panel="fotos" class="pm-panel pm-col" hidden><div class="pm-inner pm-fotos"></div></section>
           <section data-panel="streken" class="pm-panel pm-col" hidden><div class="pm-inner pm-streken"></div></section>
-          <section data-panel="samen" class="pm-panel pm-col" hidden><div class="pm-up" data-spelers-nav hidden><button type="button" class="m-bg" data-goto="spelers">Spelers en acties</button></div><div class="pm-inner pm-samen"></div></section>
-          <section data-panel="spelers" class="pm-panel pm-col" hidden><div class="pm-up"><button type="button" class="m-bt" data-goto="samen">Terug naar Samen spelen</button></div><div class="pm-inner pm-spelers"></div></section>
           <section data-panel="spel" class="pm-panel pm-col pm-tabbed" hidden><div class="pm-inner pm-settings">${spelHtml()}</div></section>
           <section data-panel="settings" class="pm-panel pm-col pm-tabbed" hidden><div class="pm-inner pm-settings">${settingsHtml()}</div></section>
           <section data-panel="controls" class="pm-panel pm-col pm-tabbed" hidden><div class="pm-inner pm-cinner">
@@ -1424,6 +1423,9 @@ function syncNavBadges() {
   // unseen achievements: a quiet dot on the rail, never a HUD notice (#168)
   const aNav = root.querySelector('[data-goto="prestaties"]');
   if (aNav) aNav.toggleAttribute('data-new', unseenAchievementCount() > 0);
+  // samen spelen is geen rijknop meer: de rail toont bij Spel hoeveel spelers er zijn
+  const coopN = world && world.coopNet && world.coopSpelers ? world.coopSpelers.length : 0;
+  setN('spel', coopN ? String(coopN) : '', coopN ? `${coopN} spelers` : '');
   setN('todo', fresh ? 'nieuw' : '');
   setN('verhaal', unread ? String(unreadN) : fresh || met ? 'nieuw' : '', unread ? `${unreadN} ongelezen` : '');
   if (vNav && unread) vNav.toggleAttribute('data-new', true);
@@ -1440,8 +1442,14 @@ function renderPhone() {
 
 // Spel: het tabblad Overzicht tekent zich opnieuw, de rest houdt zijn vaste inhoud (#430)
 function afterSpelSub() {
-  if (pref.sub.spel === 'overzicht') renderOverviewPanel();
-  else sheetNote('');
+  const sub = pref.sub.spel;
+  if (sub === 'overzicht') renderOverviewPanel();
+  else {
+    sheetNote('');
+    // Samen spelen en het speleroverzicht (samenpanel.js, coopspelersui.js) tekenen zich in hun eigen tabblad
+    if (sub === 'samen') renderSamenPanel(root.querySelector('[data-of="spel"][data-sub="samen"]'), world, closePauseMenu);
+    if (sub === 'spelers') renderSpelersPanel(root.querySelector('[data-of="spel"][data-sub="spelers"]'), world, closePauseMenu);
+  }
   syncFooter();
 }
 
@@ -1527,6 +1535,7 @@ function showTab(name, how) {
   if (name === 'telefoon') { pref.sub.verhaal = 'personages'; name = 'verhaal'; }
   if (name === 'missions') name = 'todo';
   if (name === 'cheats') name = 'streken';
+  if (name === 'samen' || name === 'samenspelen' || name === 'spelers') { pref.sub.spel = name === 'spelers' && world && world.coopNet ? 'spelers' : 'samen'; name = 'spel'; }
   if (name === 'jobs') { pref.sub.todo = 'alles'; name = 'todo'; }
   if (!ids.includes(name)) name = prestart ? 'settings' : HOME;
   if (how) origin = how;
@@ -1568,8 +1577,6 @@ function showTab(name, how) {
   if (name === 'verhaal') { showSubtab('verhaal', pref.sub.verhaal || 'opdrachten'); renderVerhaalPanel(); }
   if (name === 'streken') { if (prev !== 'streken') resetCheatsPanel(); renderCheats(); }
   if (name === 'fotos') renderFotoPanel(root.querySelector('[data-panel="fotos"] .pm-inner'));
-  if (name === 'spelers') renderSpelersPanel(root.querySelector('[data-panel="spelers"] .pm-inner'), world, closePauseMenu);
-  if (name === 'samen') renderSamenPanel(root.querySelector('[data-panel="samen"] .pm-inner'), world, closePauseMenu);
   if (name === 'prestaties') { renderAchievementsPanel(root.querySelector('[data-panel="prestaties"] .pm-inner')); syncSheetSub(); }
   if (name === 'loopbaan') renderLoopbaanPanel(root.querySelector('[data-panel="loopbaan"] .pm-inner'), closePauseMenu, world);
   if (name === 'visboek') renderVisboekPanel(root.querySelector('[data-panel="visboek"] .pm-inner'));
@@ -1577,7 +1584,7 @@ function showTab(name, how) {
   if (name === 'controls') { const q = root.querySelector('[data-controls-search]'); q.value = ''; filterControls(''); showSubtab('controls', pref.sub.controls || 'toetsen'); bindMsg = ''; renderBinds(); }
   if (prev === 'controls' && name !== 'controls') cancelRebind();
   if (name === 'spel') { showSubtab('spel', pref.sub.spel || subsOf('spel')[0][0]); syncControls(); syncSaveButtons(); afterSpelSub(); }
-  if (name === 'samen') root.querySelector('[data-spelers-nav]').hidden = !(world && world.coopNet);
+  if (name === 'spel') { const sp = root.querySelector('[data-of="spel"][data-subtab="spelers"]'); if (sp) sp.hidden = !(world && world.coopNet); }
   if (name === 'settings') { showSubtab('settings', pref.sub.settings || 'video'); syncControls(); syncDesktopControls(); }
   if (prev !== name) { const p = activePanel(); if (p) p.scrollTop = 0; }
 }
@@ -1589,6 +1596,7 @@ export function openPauseMenu(name = HOME, opts = {}) {
   if (opts.prestart) prestart = { onClose: opts.onClose || null };
   if (name === 'overzicht') { pref.sub.spel = 'overzicht'; name = 'spel'; }
   if (name === 'cheats') name = 'streken';
+  if (name === 'samen' || name === 'samenspelen' || name === 'spelers') { pref.sub.spel = name === 'spelers' && world && world.coopNet ? 'spelers' : 'samen'; name = 'spel'; }
   if (opts.sub && SUBTABS[name]) pref.sub[name] = opts.sub;
   if (opts.select) selectTodo(opts.select);
   if (opts.view) pref.sub.todo = opts.view;
