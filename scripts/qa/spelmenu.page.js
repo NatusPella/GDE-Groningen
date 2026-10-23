@@ -109,7 +109,7 @@ PM.openPauseMenu('spel', { prestart: true });
 await sleep(1100);
 {
   const volgorde = [...root().querySelectorAll('.pm-rail .ra[data-goto]')].filter(zichtbaar).map((b) => b.dataset.goto);
-  check('voor de start: Spel, Instellingen en Besturing in de rail', volgorde.join(',') === 'spel,settings,controls', volgorde.join(','));
+  check('voor de start: Spel en Instellingen in de rail (Besturing hangt onder Instellingen)', volgorde.join(',') === 'spel,settings', volgorde.join(','));
   const missie = [...root().querySelectorAll('[data-of="spel"] .pm-ingame')].some(zichtbaar);
   check('voor de start staat Missie stoppen er niet', !missie);
 }

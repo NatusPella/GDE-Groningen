@@ -466,3 +466,5 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
 @media (max-width: 760px) and (orientation: portrait) {
   #pause-menu .pm-samen, #pause-menu .pm-fotos .foto-panel { padding: 12px; }
 }
+/* Verhaal > Opdrachten: dezelfde lijst met details als eerst onder Te doen (#430) */
+#pause-menu .pm-vopd:not([hidden]) > .m-main { flex: 1; min-height: 0; padding: 0; }

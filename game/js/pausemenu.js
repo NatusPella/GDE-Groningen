@@ -40,7 +40,7 @@ import { isHelpOfferOpen } from './assistlive.js';
 import { getUiScale } from './uiscale.js';
 import { helpHtml } from './helpoverview.js';
 import { DEV, FLAGS } from './devflags.js';
-import { renderOverview, renderTodo, todoClick, todoFocus, todoEnter, todoSummary, selectTodo, foldNote } from './todoui.js';
+import { renderOverview, renderTodo, renderTodoStory, todoClick, todoFocus, todoEnter, todoSummary, selectTodo, foldNote } from './todoui.js';
 import { isPlayAheadOpen } from './todo.js';
 import { renderVerhaal, verhaalClick, verhaalSummary, disposeVerhaalViewer } from './verhaalui.js';
 import { anyFresh } from './characters.js';
@@ -213,14 +213,14 @@ const qBtn = (action, ic, label, cls = 'pm-secondary', extra = '') =>
 // [id, label, hint under the title in the sheet]
 const SECTIONS = [
   ['overzicht', 'Overzicht', ''],
-  ['todo', 'Te doen', 'Verhaal, missies, minigames en meer'],
+  ['todo', 'Te doen', 'Wat je nu kunt doen: missies, bijbaantjes, minigames en meer'],
   ['map', 'Kaart', 'Kies een doel of zoek een plek'],
   ['telefoon', 'Telefoon', 'Bellen en berichten'],
-  ['verhaal', 'Verhaal', 'Personages en aanwijzingen'],
+  ['verhaal', 'Verhaal', 'Opdrachten, personages en aanwijzingen'],
   ['spullen', 'Spullen', 'Alles wat je hebt'],
   ['garage', 'Garage', 'Jouw voertuigen'],
   ['prestaties', 'Prestaties', 'Blijven bewaard, ook bij een nieuw spel'],
-  ['loopbaan', 'Loopbaan', 'Van jou, ook als je samen speelt'],
+  ['loopbaan', 'Loopbaan', 'Je vakken en bezigheden, van jou'],
   ['visboek', 'Visboek', 'Alle vis van de provincie, van jou'],
   ['boerderij', 'Boerderij', 'Je eigen akker, gewassen en machines'],
   ['fotos', "Foto's", 'Fotomodus en je galerij'],
@@ -228,22 +228,25 @@ const SECTIONS = [
   ['spelers', 'Spelers', 'Wie er meespeelt'],
   ['spel', 'Spel', 'Hoe het spel zich gedraagt; beeld en geluid staan bij Instellingen'],
   ['settings', 'Instellingen', 'Wijzigingen worden meteen bewaard'],
-  ['controls', 'Besturing', 'Alle toetsen, per situatie'],
+  ['controls', 'Besturing', 'Toetsen en knoppen aanpassen en nalezen'],
   ['streken', 'Cheats', 'Een beetje vals spelen'],
 ];
 // the rail's three groups: playing, collected, system
-const RAIL_GROUPS = [['overzicht', 'todo', 'map', 'telefoon'], ['verhaal', 'spullen', 'garage', 'prestaties', 'loopbaan', 'visboek', 'boerderij', 'fotos', 'samen', 'spelers'], ['spel', 'settings', 'controls', 'streken']];
+const RAIL_GROUPS = [['overzicht', 'todo', 'map', 'telefoon'], ['verhaal', 'spullen', 'garage', 'prestaties', 'loopbaan', 'fotos', 'samen', 'spelers'], ['spel', 'settings', 'streken']];
+// Onderdelen zonder eigen plek in de rail die onder een ander onderdeel hangen (#430): Vissen en Farmen horen bij Loopbaan
+// (de tegels Bezigheden), de toetsen en knoppen bij Instellingen > Besturing. De rail markeert de ouder; Terug gaat naar de ouder.
+const CHILD = { visboek: 'loopbaan', boerderij: 'loopbaan', controls: 'settings' };
 const PRESTART_SECTIONS = ['spel', 'settings', 'controls'];
 const SUBTABS = {
-  todo: [['verhaal', 'Verhaal'], ['alles', 'Alles'], ['dichtbij', 'Dichtbij']],
+  todo: [['alles', 'Alles'], ['dichtbij', 'Dichtbij']],
   telefoon: [['contacten', 'Contacten'], ['berichten', 'Berichten']],
-  verhaal: [['personages', 'Personages'], ['aanwijzingen', 'Aanwijzingen']],
+  verhaal: [['opdrachten', 'Opdrachten'], ['personages', 'Personages'], ['aanwijzingen', 'Aanwijzingen']],
   spel: [['acties', 'Opslaan & stoppen'], ['spelen', 'Spelen'], ['camera', 'Camera & richten'], ['hints', 'Hints & uitleg']],
-  settings: [['video', 'Beeld'], ['sound', 'Geluid & ondertitels'], ['camera', 'Muis & controller'], ['display', 'Interface'], ['a11y', 'Toegankelijkheid'], ['fouten', 'Foutrapport']],
-  controls: [['toetsen', 'Toetsenbord en muis'], ['knoppen', 'Controller'], ['overzicht', 'Alle toetsen'], ['hulp', 'Hulp']],
+  settings: [['video', 'Beeld'], ['sound', 'Geluid & ondertitels'], ['besturing', 'Besturing'], ['display', 'Interface'], ['a11y', 'Toegankelijkheid'], ['fouten', 'Foutrapport']],
+  controls: [['toetsen', 'Toetsenbord en muis'], ['knoppen', 'Controller'], ['overzicht', 'Toetsenoverzicht'], ['hulp', 'Hulp']],
 };
 // old tab names (saved preferences, other modules)
-const SUB_ALIAS = { settings: { controller: 'camera' } };
+const SUB_ALIAS = { settings: { controller: 'besturing', camera: 'besturing' } };
 
 // The footer: two to four hints, [keys, label, action]. ' back' is filled in.
 const BACK = '\u0000';
@@ -252,7 +255,7 @@ const HINTS = {
   todo: [[['↑', '↓'], 'kiezen'], [['Enter'], 'zet als doel'], [['Q', 'E'], 'weergave'], [['Esc'], BACK, 'back']],
   map: [[['Klik'], 'doel kiezen'], [['Scroll'], 'zoomen'], [['M'], 'sluiten', 'resume'], [['Esc'], BACK, 'back']],
   telefoon: [[['↑', '↓'], 'kiezen'], [['Enter'], 'bellen of lezen'], [['Q', 'E'], 'tabblad'], [['Esc'], BACK, 'back']],
-  verhaal: [[['↑', '↓'], 'kiezen'], [['Q', 'E'], 'tabblad'], [['Esc'], BACK, 'back']],
+  verhaal: [[['↑', '↓'], 'kiezen'], [['Enter'], 'zet als doel'], [['Q', 'E'], 'tabblad'], [['Esc'], BACK, 'back']],
   spullen: [[['↑', '↓'], 'kiezen'], [['Enter'], 'gebruiken'], [['Esc'], BACK, 'back']],
   garage: [[['↑', '↓'], 'kiezen'], [['Enter'], 'laten afleveren'], [['Q', 'E'], 'soort'], [['Esc'], BACK, 'back']],
   prestaties: [[['↑', '↓'], 'kiezen'], [['Enter'], 'openen'], [['Q', 'E'], 'weergave'], [['Esc'], BACK, 'back']],
@@ -324,7 +327,8 @@ const subsOf = (of) => SUBTABS[of].filter(([id]) => !(prestart && of === 'spel' 
 function subtabsHtml(of, label) {
   return `<div class="m-tabs"><nav class="m-tablist" role="tablist" aria-label="${label}">` + SUBTABS[of].map(([id, text]) =>
     `<button type="button" role="tab" class="m-tab${of === 'spel' && id === 'acties' ? ' pm-ingame' : ''}" data-of="${of}" data-subtab="${id}" aria-selected="false">${esc(text)}<small data-count="${id}"></small></button>`).join('') + '</nav>' +
-    (of === 'todo' ? '<span class="m-grow"></span><button type="button" class="m-bt" data-todo-sort aria-pressed="false" hidden>Dichtbij eerst</button>' : '') + '</div>';
+    (of === 'todo' ? '<span class="m-grow"></span><button type="button" class="m-bt" data-todo-sort aria-pressed="false" hidden>Dichtbij eerst</button>' : '') +
+    (of === 'controls' ? '<span class="m-grow"></span><button type="button" class="m-bt" data-goto-sub="settings:besturing">Terug naar Instellingen</button>' : '') + '</div>';
 }
 
 const rowName = (label, note) => `<span class="nm">${label}${note ? `<span class="mut">${note}</span>` : ''}</span>`;
@@ -392,21 +396,28 @@ function settingsHtml() {
       <aside class="m-pane"><div class="pm-pane-top"><span class="m-eb">Zo ziet het eruit</span></div>
         <div class="pm-subprev" data-sub-preview><span class="pm-subtxt"><b>Tammo:</b> Rustig an, rustig an.</span></div>
         <p class="mut">Muziek is de radio (G-Music, 's nachts Nachtstreek) en de titelsong, stemmen zijn Tammo, Tessa, de politie, de mensen op straat en de praatjes op de radio. Kleurenblind, interfacegrootte en beweging beperken vind je onder Toegankelijkheid.</p></aside>`)}
-    ${tab('camera', `
+    ${tab('besturing', `
+      <div class="m-gh"><span>Muis en toetsenbord</span></div>
       ${slider('mouseSensitivity', 'Muisgevoeligheid', 0.3, 2.5, 0.05)}
       ${toggle('invertY', 'Omhoog/omlaag omkeren', 'Geldt voor de muis en de stick')}
+      <div class="m-li pm-row">${rowName('Toetsen aanpassen', 'Elke toets een andere functie geven')}<button type="button" class="m-bg" data-goto-sub="controls:toetsen">Aanpassen</button></div>
       <div class="m-gh"><span>Controller</span></div>
       ${picker('padLayout', 'Controllerindeling', [['auto', 'Automatisch'], ['xbox', 'Onderste knop bevestigt (A B X Y)'], ['switch', 'Rechterknop bevestigt (A en B, X en Y omgewisseld)'], ['ps', 'Vormknoppen'], ['deck', 'Handheld']], 'Automatisch kiest wat er aangesloten is. Meldt je controller zich anders dan hij is (bijvoorbeeld via een koppelprogramma), kies dan zelf; knoppen en hints volgen je keuze')}
       ${slider('padLookSensitivity', 'Camera met de rechterstick', 0.3, 2.5, 0.05)}
       ${toggle('rumble', 'Trillen', 'Bij klappen, schoten en botsingen, als je controller dat kan')}
-      <div class="m-li pm-row">${rowName('Knoppen indelen', 'Onder Besturing › Controller')}<button type="button" class="m-bg" data-goto-sub="controls:knoppen">Indelen</button></div>
-      <div class="m-li pm-row">${rowName('Controller testen', 'Welk pad wordt herkend en welke knop doet wat')}<button type="button" class="m-bg" data-pad-test>Testen</button></div>`, `${pane('Muis & controller', 'Meekijken', '<p>Alle gangbare controllers werken meteen. De hints in beeld wisselen vanzelf tussen toetsen en knoppen, naar wat je het laatst gebruikte.</p><p class="mut">Camera-afstand, beeldhoek en automatisch richten staan onder Spel.</p>')}`)}
+      <div class="m-li pm-row">${rowName('Knoppen indelen', 'Elke knop een andere functie geven')}<button type="button" class="m-bg" data-goto-sub="controls:knoppen">Indelen</button></div>
+      <div class="m-li pm-row">${rowName('Controller testen', 'Welk pad wordt herkend en welke knop doet wat')}<button type="button" class="m-bg" data-pad-test>Testen</button></div>
+      <div class="m-gh"><span>Aanraken</span></div>
+      ${picker('touchControls', 'Aanraakbediening', [['auto', 'Automatisch'], ['aan', 'Aan'], ['uit', 'Uit']], 'Knoppen op het scherm voor telefoon en tablet; wisselen werkt na een herstart')}
+      <div class="m-gh"><span>Overzicht en hulp</span></div>
+      <div class="m-li pm-row">${rowName('Toetsenoverzicht', 'Alle toetsen en knoppen, per situatie')}<button type="button" class="m-bg" data-goto-sub="controls:overzicht">Bekijken</button></div>
+      <div class="m-li pm-row">${rowName('Toetshints in beeld', 'Aan of uit, en voor toetsenbord of controller')}<button type="button" class="m-bg" data-goto-sub="spel:hints">Hints</button></div>
+      <div class="m-li pm-row">${rowName('Hulp en oefenronde', 'Uitleg over de besturing en een rustige oefenronde')}<button type="button" class="m-bg" data-goto-sub="controls:hulp">Openen</button></div>`, `${pane('Besturing', 'Hoe je speelt', '<p>Alle gangbare controllers werken meteen. De hints in beeld wisselen vanzelf tussen toetsen en knoppen, naar wat je het laatst gebruikte.</p><p class="mut">Camera-afstand, beeldhoek en automatisch richten staan onder Spel.</p>')}`)}
     ${tab('display', `
       ${picker('hudMode', 'HUD', [['slim', 'Slim'], ['alles', 'Altijd alles'], ['minimaal', 'Minimaal']], 'Slim toont alleen wat nu telt')}
       ${toggle('showMinimap', 'Minimap')}
       ${slider('minimapZoom', 'Inzoomen op het kaartje', 0.6, 1.6, 0.05)}
       ${picker('minimapNorth', 'Minimap met noord boven', [['nooit', 'Nooit'], ['lucht', 'In de lucht'], ['altijd', 'Altijd']], 'Standaard draait de kaart mee')}
-      ${picker('touchControls', 'Aanraakbediening', [['auto', 'Automatisch'], ['aan', 'Aan'], ['uit', 'Uit']], 'Knoppen op het scherm voor telefoon en tablet; wisselen werkt na een herstart')}
       ${toggle('showFog', 'Verkende gebieden op de kaart')}`, `${pane('Interface', 'Wat je ziet', '<p>Slim toont alleen wat nu telt; Altijd alles houdt alles in beeld; Minimaal laat alleen sterren, doel en ondertitels over.</p>')}`)}
     ${tab('a11y', `
       ${picker('colorBlind', 'Kleurenblind', [['uit', 'Uit'], ['deuteranopie', 'Deuteranopie'], ['protanopie', 'Protanopie'], ['tritanopie', 'Tritanopie']], 'Andere kleuren voor markers, routes, kaart en HUD')}
@@ -522,14 +533,14 @@ export function initPauseMenu(w) {
           <section data-panel="todo" class="pm-panel pm-col pm-tabbed" hidden><div class="pm-inner pm-todo">
             ${subtabsHtml('todo', 'Weergave')}
             <div class="m-main"><div class="m-list td-list">
-              <div data-of="todo" data-sub="verhaal"></div><div data-of="todo" data-sub="alles" hidden></div><div data-of="todo" data-sub="dichtbij" hidden></div>
+              <div data-of="todo" data-sub="alles"></div><div data-of="todo" data-sub="dichtbij" hidden></div>
             </div><aside class="m-pane td-detail" aria-label="Details"></aside></div>
           </div></section>
           <section data-panel="map" class="pm-panel pm-map" hidden></section>
           <section data-panel="spullen" class="pm-panel pm-col pm-tabbed" hidden><div class="pm-inner pm-spullen"><div class="m-main"><div class="m-list td-list"></div><aside class="m-pane td-detail" aria-label="Details"></aside></div></div></section>
           <section data-panel="garage" class="pm-panel pm-col" hidden><div class="pm-inner pm-garage"></div></section>
           <section data-panel="verhaal" class="pm-panel pm-col pm-tabbed" hidden><div class="pm-inner pm-verhaal">${subtabsHtml('verhaal', 'Verhaal')}
-            <div class="m-main pm-vbody"><div data-of="verhaal" data-sub="personages" class="pm-vsub"></div><div data-of="verhaal" data-sub="aanwijzingen" class="pm-vsub" hidden></div></div>
+            <div class="m-main pm-vbody"><div data-of="verhaal" data-sub="opdrachten" data-keep class="pm-vsub pm-vopd"><div class="m-main"><div class="m-list td-list"></div><aside class="m-pane td-detail" aria-label="Details"></aside></div></div><div data-of="verhaal" data-sub="personages" class="pm-vsub" hidden></div><div data-of="verhaal" data-sub="aanwijzingen" class="pm-vsub" hidden></div></div>
           </div></section>
           <section data-panel="prestaties" class="pm-panel pm-col" hidden><div class="pm-inner pm-ach"></div></section>
           <section data-panel="loopbaan" class="pm-panel pm-col" hidden><div class="pm-inner pm-ach pm-loopbaan"></div></section>
@@ -602,6 +613,7 @@ export function initPauseMenu(w) {
     const gs = e.target.closest('[data-garage-select]');
     if (gs) return selectGarageVehicle(garageEl(), gs.dataset.garageSelect);
     if (tab === 'fotos' && fotoClick(e, world, root.querySelector('[data-panel="fotos"] .pm-inner'), { close: () => closePauseMenu() })) return;
+    if (tab === 'verhaal' && pref.sub.verhaal === 'opdrachten' && todoClick(e, world, root.querySelector('[data-of="verhaal"][data-sub="opdrachten"]'), todoApi)) return;
     if (tab === 'verhaal' && verhaalClick(e, activePanel())) return;
     if (tab === 'streken' && cheatsClick(e, world, cheatsApi)) return;
     const action = e.target.closest('[data-action]');
@@ -627,6 +639,7 @@ export function initPauseMenu(w) {
     const p = activePanel();
     if (p && p.contains(e.target)) lastFocus[tab] = e.target;
     if (tab === 'todo' && p) todoFocus(p, world, e.target);
+    if (tab === 'verhaal' && p && pref.sub.verhaal === 'opdrachten') todoFocus(root.querySelector('[data-of="verhaal"][data-sub="opdrachten"]'), world, e.target);
     if (tab === 'spullen' && p) spullenFocus(p, e.target);
     if (tab === 'streken' && p) cheatsFocus(p, e.target);
   });
@@ -685,7 +698,7 @@ const phoneApi = {
 
 const todoApi = {
   rerender: (keep) => rerenderTodo(keep),
-  showView: (view) => { pref.sub.todo = view; enterSection('todo'); },
+  showView: (view) => { if (view === 'verhaal') { pref.sub.verhaal = 'opdrachten'; enterSection('verhaal'); return; } pref.sub.todo = view; enterSection('todo'); },
   showOnMap: (x, y) => { enterSection('map'); setMapView(x, y, 3); },
   close: () => setOpen(false),
 };
@@ -773,7 +786,7 @@ function onKey(e) {
     } else if (t.dataset && t.dataset.garageSelect) {
       consume(e);
       selectGarageVehicle(garageEl(), t.dataset.garageSelect);
-    } else if (k === 'Enter' && t.dataset && t.dataset.todo && tab === 'todo') {
+    } else if (k === 'Enter' && t.dataset && t.dataset.todo && (tab === 'todo' || tab === 'verhaal')) {
       // Enter on a card: straight to "Zet als doel" (a click only shows its details)
       consume(e);
       if (!todoEnter(world, t.dataset.todo, todoApi)) t.click();
@@ -808,6 +821,13 @@ function goBack() {
     root.querySelector('[data-action="bench"]').focus();
     return;
   }
+  // een onderdeel onder een ander (Visboek, Boerderij, toetsen en knoppen): Terug gaat naar het onderdeel erboven, met de focus op de knop die erheen leidde
+  if (CHILD[tab] && origin === 'home') {
+    const from = tab;
+    showTab(CHILD[from]);
+    focusEl(root.querySelector(`[data-panel="${CHILD[from]}"] [data-goto="${from}"], [data-panel="${CHILD[from]}"] [data-goto-sub^="${from}:"]`) || root.querySelector(`.pm-game [data-goto="${CHILD[from]}"]`));
+    return;
+  }
   if (tab !== HOME && !prestart && origin === 'home') {
     const from = tab;
     showTab(HOME);
@@ -818,8 +838,8 @@ function goBack() {
 }
 
 function cycleSection(dir) {
-  const ids = sectionIds();
-  const i = Math.max(0, ids.indexOf(tab));
+  const ids = sectionIds().filter((id) => !CHILD[id]);
+  const i = Math.max(0, ids.indexOf(CHILD[tab] || tab));
   enterSection(ids[(i + dir + ids.length) % ids.length]);
 }
 
@@ -1352,12 +1372,12 @@ function renderOverviewPanel() {
 
 function renderTodoPanel() {
   const panel = root.querySelector('[data-panel="todo"]');
-  const view = pref.sub.todo || 'verhaal';
+  const view = pref.sub.todo || 'alles';
   try {
     renderTodo(panel, world, view);
     const sum = todoSummary(world);
     for (const [id] of SUBTABS.todo) { const c = panel.querySelector(`[data-count="${id}"]`); if (c) c.textContent = sum[id]; }
-    if (tab === 'todo') sheet.querySelector('.pm-sheet-sub').textContent = sum.sub;
+    if (tab === 'todo') sheet.querySelector('.pm-sheet-sub').textContent = sum.subTodo;
   } catch (err) { console.error('te doen', err); }
 }
 
@@ -1369,6 +1389,7 @@ function rerenderTodo(keep) {
   const sel = el && root.contains(el) ? [...el.attributes].filter((a) => a.name.startsWith('data-')).map((a) => `[${a.name}="${CSS.escape(a.value)}"]`).join('') : '';
   if (tab === 'overzicht') renderOverviewPanel();
   else if (tab === 'todo') renderTodoPanel();
+  else if (tab === 'verhaal') renderVerhaalPanel();
   const back = sel && activePanel().querySelector(sel);
   if (back) back.focus({ preventScroll: true });
 }
@@ -1377,9 +1398,7 @@ function syncNavBadges() {
   let fresh = false;
   try { fresh = getStoryJournal().found.some((c) => c.isNew); } catch (e) { /* story not ready */ }
   const nav = root.querySelector('[data-goto="todo"]');
-  if (nav) nav.toggleAttribute('data-new', fresh);
-  const sub = root.querySelector('[data-of="todo"][data-subtab="verhaal"]');
-  if (sub) sub.toggleAttribute('data-new', fresh);
+  if (nav) nav.toggleAttribute('data-new', false);
   const met = anyFresh();
   const vNav = root.querySelector('[data-goto="verhaal"]');
   if (vNav) vNav.toggleAttribute('data-new', fresh || met);
@@ -1417,8 +1436,14 @@ function renderPhone() {
 function renderVerhaalPanel() {
   const panel = root.querySelector('[data-panel="verhaal"]');
   try {
-    renderVerhaal(panel, pref.sub.verhaal || 'personages');
-    if (tab === 'verhaal') sheet.querySelector('.pm-sheet-sub').textContent = verhaalSummary();
+    const view = pref.sub.verhaal || 'opdrachten';
+    if (view === 'opdrachten') {
+      // de lijst met opdrachten is van Te doen (todoui.js); het 3D-model van Personages gaat weg
+      disposeVerhaalViewer();
+      for (const sub of panel.querySelectorAll('[data-of="verhaal"][data-sub]:not([data-keep])')) sub.innerHTML = '';
+      renderTodoStory(panel.querySelector('[data-sub="opdrachten"]'), world);
+    } else renderVerhaal(panel, view);
+    if (tab === 'verhaal') sheet.querySelector('.pm-sheet-sub').textContent = view === 'opdrachten' ? todoSummary(world).sub : verhaalSummary();
   } catch (err) { console.error('verhaal', err); }
   syncNavBadges();
 }
@@ -1496,7 +1521,7 @@ function showTab(name, how) {
   root.dataset.activeTab = name;
   root.dataset.coop = world && world.coopNet ? '1' : '0';
   for (const b of root.querySelectorAll('.pm-game [data-goto]')) {
-    b.setAttribute('aria-current', String(b.dataset.goto === name));
+    b.setAttribute('aria-current', String(b.dataset.goto === (CHILD[name] || name)));
     b.hidden = !ids.includes(b.dataset.goto);
   }
   for (const p of root.querySelectorAll('[data-panel]')) p.hidden = p.dataset.panel !== name;
@@ -1522,11 +1547,11 @@ function showTab(name, how) {
     if (r >= 0.01) sheet.querySelector('.pm-sheet-eb').textContent = `${Math.round(r * 100)}% van Grunn verkend`;
   } else sheet.querySelector('.pm-sheet-eb').hidden = true;
   if (name === HOME) renderOverviewPanel();
-  if (name === 'todo') { showSubtab('todo', pref.sub.todo || 'verhaal'); renderTodoPanel(); }
+  if (name === 'todo') { showSubtab('todo', pref.sub.todo || 'alles'); renderTodoPanel(); }
   if (name === 'spullen') renderSpullenPanel();
   if (name === 'telefoon') { showSubtab('telefoon', pref.sub.telefoon || 'contacten'); renderPhone(); }
   if (name === 'garage') { renderGaragePanel(garageEl(), world); syncSheetSub(); }
-  if (name === 'verhaal') { showSubtab('verhaal', pref.sub.verhaal || 'personages'); renderVerhaalPanel(); }
+  if (name === 'verhaal') { showSubtab('verhaal', pref.sub.verhaal || 'opdrachten'); renderVerhaalPanel(); }
   if (name === 'streken') { if (prev !== 'streken') resetCheatsPanel(); renderCheats(); }
   if (name === 'fotos') renderFotoPanel(root.querySelector('[data-panel="fotos"] .pm-inner'));
   if (name === 'spelers') renderSpelersPanel(root.querySelector('[data-panel="spelers"] .pm-inner'), world, closePauseMenu);
