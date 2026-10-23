@@ -1078,6 +1078,9 @@ function buildBakfietsMesh(v) {
   addWheel(group, bikeWheelGeometry(0.25, 0.022), mats[0], 1.0, 0.25, 0, wheels);
   group.userData.wheels = wheels;
   group.userData.wheelRadius = 0.32;
+  group.userData.spinStep = 0.26; // 8 spaken (45 graden), en het kleine voorwiel draait sneller (spinK)
+  wheels[0].userData.spinK = 0.32 / 0.34;
+  wheels[1].userData.spinK = 0.32 / 0.25;
   const rider = riderFor(v, toHex(v.model.rider, HABBO_PALETTE.roofBlue));
   rider.position.set(-0.68, 1.02 - 0.93 * rider.scale.y, 0);
   poseRider(rider, 0.33, 0.7, -0.05);
@@ -1235,7 +1238,8 @@ function buildMopedMesh(v) {
 // moped is the scooter family with model.geared: tank, frame and two pipes.
 
 const MOTO_SPEC = {
-  sport: { r: 0.3, tire: 0.1, fx: 0.7, rx: -0.68, seat: { x: -0.3, y: 0.8, lean: -0.5, arm: 1.2, leg: 1.25 } },
+  // het achterwiel van een sportmotor is breder en groter dan het voorwiel (rr, rtire; #436)
+  sport: { r: 0.3, tire: 0.1, rr: 0.34, rtire: 0.13, fx: 0.7, rx: -0.68, seat: { x: -0.3, y: 0.8, lean: -0.5, arm: 1.2, leg: 1.25 } },
   naked: { r: 0.31, tire: 0.09, fx: 0.7, rx: -0.68, seat: { x: -0.3, y: 0.82, lean: -0.2, arm: 0.95, leg: 1.2 } },
   old: { r: 0.33, tire: 0.06, fx: 0.72, rx: -0.7, seat: { x: -0.28, y: 0.84, lean: -0.05, arm: 0.85, leg: 1.15 } },
   moped: { r: 0.24, tire: 0.06, fx: 0.55, rx: -0.52, seat: { x: -0.2, y: 0.78, lean: -0.04, arm: 0.9, leg: 1.2 } },
@@ -1254,7 +1258,7 @@ function buildMotorbikeGeometry(kind, color) {
     const s = MOTO_SPEC[kind];
     const dark = 0x2a2b2e, black = 0x1b1b1c, steel = 0x3a3c40;
     const tube = (a, b, rr, c = dark) => B.geo(tubeGeometry(a, b, rr, rr, 6), null, c);
-    const F = [s.fx, s.r, 0], R = [s.rx, s.r, 0];
+    const F = [s.fx, s.r, 0], R = [s.rx, s.rr || s.r, 0];
     const head = [s.fx - 0.2, 0.92, 0];
     const old = kind === 'old', sport = kind === 'sport';
     // engine and gearbox
@@ -1379,9 +1383,11 @@ function buildMotorbikeMesh(v) {
   body.scale.x = sx;
   group.add(body);
   const wgeo = bikeWheelGeometry(s.r, s.tire, false);
+  const rgeo = s.rr ? bikeWheelGeometry(s.rr, s.rtire, false) : wgeo;
   const wheels = [];
   addWheel(group, wgeo, mats[0], s.fx * sx, s.r, 0, wheels);
-  addWheel(group, wgeo, mats[0], s.rx * sx, s.r, 0, wheels);
+  addWheel(group, rgeo, mats[0], s.rx * sx, s.rr || s.r, 0, wheels);
+  if (s.rr) wheels[1].userData.spinK = s.r / s.rr; // groter wiel, lagere hoeksnelheid
   group.userData.wheels = wheels;
   group.userData.wheelRadius = s.r;
   group.userData.spinStep = 0.28;
@@ -2437,7 +2443,7 @@ export function updateVehicleWheelSpin(mesh, speed, dt, steer = 0) {
   const delta = (speed / ud.wheelRadius) * dt;
   const cap = ud.spinStep || SPIN_STEP;
   const shown = Math.max(-cap, Math.min(cap, delta));
-  for (const w of wheels) w.rotation.z -= shown;
+  for (const w of wheels) w.rotation.z -= shown * (w.userData.spinK || 1);
   const fw = ud.frontWheels;
   if (fw) {
     const a = -steer * MAX_STEER_ANGLE;
