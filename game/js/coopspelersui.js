@@ -4,8 +4,9 @@
 // Niet door een mens in beeld bekeken.
 import { pingGebaar } from './coopnet.js';
 import { PING_TOETSEN } from './coopping.js';
-import { VORM_TEKEN, kanEruitZetten, kanOverdragen, overdragenKnopTekst, nogNietTekst, eruitKnopTekst, eruitGezetTekst } from './coopspelers.js';
+import { VORM_TEKEN, kanEruitZetten, kanOverdragen, overdragenKnopTekst, eruitKnopTekst, eruitGezetTekst } from './coopspelers.js';
 import { removeGuest } from './coopnet.js';
+import { biedOver } from './coophostwisselnet.js';
 import { setUserWaypoint } from './routing.js';
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -104,7 +105,8 @@ export function renderSpelersPanel(root, world, sluit = () => {}) {
         if (r && removeGuest(world, slot) && world.addMessage) world.addMessage(eruitGezetTekst(r), 4);
         teken(); return;
       }
-      if (e.target.closest('[data-geef]')) { if (world.addMessage) world.addMessage(nogNietTekst, 4); return; } // #439: nog niet beschikbaar
+      const geef = e.target.closest('[data-geef]');
+      if (geef) { if (biedOver(world, +geef.getAttribute('data-geef')).ok) sluit(); return; } // #439: het spel overdragen; bij een reden blijft het menu staan (de melding staat al in beeld)
       const n = e.target.closest('[data-naar]');
       if (n) {
         const r = (world.coopSpelers || []).find((x) => x.slot === +n.getAttribute('data-naar'));
