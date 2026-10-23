@@ -1,7 +1,8 @@
 // Samen spelen (#439): de overdracht van het spel (coophostwissel.js): formaat van de momentopname, alle paden van de toestandsmachine,
 // time-outs, ongeldige berichten en: een mislukte overdracht laat de oude host host. Puur, zonder netwerk.
 import assert from 'node:assert/strict';
-import { maakMomentopname, codeerMomentopname, leesMomentopname, controlegetal, OudeHost, NieuweHost, leesVerbind, isHostwissel, HW, TIJD, STUK, MAX_LEN, bodTekst, pauzeTekst, mislukTekst } from '../game/js/coophostwissel.js';
+import { maakMomentopname, codeerMomentopname, leesMomentopname, controlegetal, OudeHost, NieuweHost, leesVerbind, isHostwissel, HW, TIJD, STUK, MAX_LEN, bodTekst, pauzeTekst, mislukTekst,
+  HERSTEL, beurtOp, terugHostTekst, HerstelOntvanger, maakHerstel, rangschik, herstelInterval, beurtIndex, HERSTEL_S, STILTE_S, BEURT_S, MAX_RANG, MAX_HERSTEL_STUKKEN, weggevallenTekst, jijOvernameTekst, sluitAanTekst, overnameMisluktTekst } from '../game/js/coophostwissel.js';
 import { encodeJson, decodeJson, T, MAX_JSON, CODEC_VERSION } from '../game/js/net/codec.js';
 import { Reliable, PROTO } from '../game/js/net/protocol.js';
 
@@ -217,5 +218,63 @@ for (const tot of ['aangeboden', 'sturen', 'laden', 'wacht-draait']) {
 }
 ok(isHostwissel({ k: 'hw-bod' }) && !isHostwissel({ k: 'cut' }) && !isHostwissel(null), 'herkennen');
 ok(bodTekst('Noor').includes('Noor') && pauzeTekst('Noor').includes('Noor neemt het spel over') && !/gastheer|gastgever/i.test(bodTekst('x') + pauzeTekst('x') + mislukTekst('x')), 'teksten zonder rolnaam');
+
+// ---- variant 2: de kandidaatkeuze en de herstelmomentopname
+const k = (slot, ping, kamer = 'K' + slot) => ({ slot, ping, kamer });
+gelijk(rangschik([k(3, 80), k(1, 45), k(2, 12)]).map((x) => x.slot), [2, 1, 3], 'laagste ping eerst');
+gelijk(rangschik([k(3, 40), k(1, 41), k(2, 39)]).map((x) => x.slot), [1, 2, 3], 'binnen dezelfde bak beslist de plek');
+gelijk(rangschik([k(2, 0), k(3, 90), k(1, null)]).map((x) => x.slot), [3, 1, 2], 'een onbekende ping is de slechtste (daarna de plek)');
+gelijk(rangschik([k(2, 30), k(1, 30)]).map((x) => x.slot), rangschik([k(1, 30), k(2, 30)]).map((x) => x.slot), 'dezelfde lijst, welke volgorde ze ook binnenkomen');
+gelijk(rangschik([k(2, 50), k(3, 62), k(1, 120)], [k(3, 70)]).map((x) => x.slot), [3, 2, 1], 'hysterese: de vorige nummer één blijft eerste binnen één bak');
+gelijk(rangschik([k(2, 10), k(3, 62)], [k(3, 70)]).map((x) => x.slot), [2, 3], 'een duidelijk betere verbinding wint wel');
+gelijk(rangschik([k(2, 10)], [k(3, 70)]).map((x) => x.slot), [2], 'de vorige nummer één is weg: hij verdwijnt uit de lijst');
+ok(rangschik([k(0, 1), k(-1, 2), null, { slot: 'x' }, k(4, 5)]).length === 1, 'plek 0 (wie het spel opende) en rommel zijn nooit opvolger');
+ok(rangschik(Array.from({ length: 20 }, (_, i) => k(i + 1, 10 + i))).length === MAX_RANG, 'hoogstens MAX_RANG opvolgers');
+ok(herstelInterval(0) === HERSTEL_S && herstelInterval(3) === HERSTEL_S && herstelInterval(7) === HERSTEL_S + 10, 'meer gasten: minder vaak (het bandbreedtebudget)');
+ok(beurtIndex(0) === 0 && beurtIndex(BEURT_S - 0.1) === 0 && beurtIndex(BEURT_S) === 1 && beurtIndex(-5) === 0 && STILTE_S === 12, 'beurten van 30 s, stilte van 12 s');
+
+const bl = [{ slot: 1, duur: 40 }, { slot: 2 }, { slot: 3, duur: 10 }];
+ok(beurtOp(bl, 0) === 0 && beurtOp(bl, 39.9) === 0 && beurtOp(bl, 40) === 1 && beurtOp(bl, 69.9) === 1 && beurtOp(bl, 70) === 2 && beurtOp(bl, 79.9) === 2 && beurtOp(bl, 80) === 3 && beurtOp(bl, -5) === 0 && beurtOp([], 1) === 0, 'beurten met eigen duur (standaard BEURT_S)');
+{ // het bod draagt de terugvalkamer; het verbinden voor de rest ook; zonder terugvalkamer blijft het bericht zoals het was
+  const oh = new OudeHost({ ver: VER, naam: 'Tammo' }), nh = new NieuweHost({ ver: VER });
+  const bod = oh.bied(2, m, 5, 0, 'TERUGKAMER').uit[0];
+  ok(bod.terug === 'TERUGKAMER' && !('terug' in new OudeHost({ ver: VER }).bied(2, m, 6, 0).uit[0]), 'terug in het bod, alleen als die er is');
+  nh.ontvang(bod, 0, 0); ok(nh.terug === 'TERUGKAMER', 'de nieuwe host kent de terugvalkamer');
+}
+ok(!/gastheer|host\b/i.test(terugHostTekst) && terugHostTekst.includes('Jij houdt het spel weer'), 'tekst van de terugval');
+const rang = [k(2, 12, 'KAMERTWEE'), k(1, 45, 'KAMEREEN')];
+const mh = maakMomentopname(inv({ kapot: Array.from({ length: 40 }, (_, i) => 'kliko@' + i + ',' + i) }));
+const hp = maakHerstel(7, mh, rang);
+ok(hp && hp.kop.k === HERSTEL.KOP && hp.stukken.every((b) => b.k === HERSTEL.STUK && b.id === 7 && b.d.length <= STUK) && hp.kop.n === hp.stukken.length, 'kop en stukken');
+for (const b of [hp.kop, ...hp.stukken]) ok(decodeJson(encodeJson(T.EVENT, 1, 0, 0, { seq: 1, body: b })) !== null, 'elk bericht past in MAX_JSON');
+{
+  const r = new HerstelOntvanger(); let klaar = null;
+  for (const b of [hp.kop, ...hp.stukken.slice().reverse()]) klaar = r.neem(JSON.parse(JSON.stringify(b))) || klaar; // stukken in omgekeerde volgorde
+  ok(klaar && klaar.id === 7 && klaar.m.tijd.uur === mh.tijd.uur && klaar.m.kapot.length === 40, 'heel terug, ook als de stukken omgekeerd aankomen');
+  gelijk(klaar.rang, [{ slot: 2, ping: 12, kamer: 'KAMERTWEE' }, { slot: 1, ping: 45, kamer: 'KAMEREEN' }], 'de lijst met kamers komt mee');
+  ok(r.neem(hp.kop) === null && r.neem(hp.stukken[0]) === null, 'een oudere of dubbele ronde telt niet');
+  const hp2 = maakHerstel(8, mh, [k(1, 5, 'NIEUW')]);
+  let k2 = null; for (const b of [hp2.kop, ...hp2.stukken]) k2 = r.neem(b) || k2;
+  ok(k2 && k2.id === 8 && k2.rang[0].kamer === 'NIEUW', 'een nieuwere ronde vervangt de vorige');
+}
+{
+  const r = new HerstelOntvanger(); r.neem(hp.kop);
+  const stuk = { ...hp.stukken[0], d: hp.stukken[0].d.slice(0, -1) + (hp.stukken[0].d.slice(-1) === 'x' ? 'y' : 'x') };
+  let uit = null; for (const b of [stuk, ...hp.stukken.slice(1)]) uit = r.neem(b) || uit;
+  ok(uit === null, 'een beschadigd stuk (controlegetal) wordt niet gebruikt');
+  const r2 = new HerstelOntvanger(); r2.neem(hp.kop); let u2 = null; for (const b of hp.stukken.slice(1)) u2 = r2.neem(b) || u2;
+  ok(u2 === null, 'een ontbrekend stuk: nooit klaar');
+  for (const slecht of [{ k: HERSTEL.KOP, id: 0 }, { k: HERSTEL.KOP, id: 9, n: 99, len: 5, sum: '00000000', rang: [] }, { k: HERSTEL.KOP, id: 9, n: 1, len: 5, sum: '00000000', rang: [[0, 1, 'x']] }, { k: HERSTEL.KOP, id: 9, n: 1, len: 5, sum: '00000000', rang: [[1, 1, '']] }, { k: HERSTEL.KOP, id: 9, n: 1, len: 5, sum: '00000000', rang: 'nee' }, { k: HERSTEL.STUK, id: 4, i: 0, d: 'x' }, null, 5, { k: 'iets' }]) ok(new HerstelOntvanger().neem(slecht) === null, 'onzin wordt genegeerd');
+}
+ok(maakHerstel(1, maakMomentopname(inv({ kapot: [], extra: 'x' })), []) !== null, 'zonder opvolgers kan ook');
+const flink = maakMomentopname(inv()); flink.opdracht = { id: 'x', stap: 1, staat: 'a', t: 0 }; flink.voertuigen = Array.from({ length: 16 }, (_, i) => ({ id: 'v' + i, soort: 'auto', x: 1, y: 1, z: 0, hoek: 0, schade: 0 }));
+ok(maakHerstel(1, flink, rang) !== null && MAX_HERSTEL_STUKKEN * STUK >= 9000, 'een volle momentopname (400 kapot, 16 voertuigen) blijft binnen het budget');
+ok(maakHerstel(0, mh, rang) === null, 'zonder geldig id geen herstel');
+{
+  const grote = maakMomentopname(inv()); grote.spelers = Array.from({ length: 16 }, (_, i) => ({ slot: i, naam: 'N'.repeat(40), char: 'c'.repeat(30), geld: 1e9, health: 100, x: 123456.78, y: -123456.78, z: 1.25, voertuig: 'v'.repeat(40) }));
+  grote.kapot = Array.from({ length: 400 }, (_, i) => 'kliko@' + (i * 1000) + ',' + (i * 1000)); grote.voertuigen = flink.voertuigen;
+  ok(maakHerstel(1, grote, rang) === null, 'een veel te grote herstelmomentopname gaat niet mee (de gasten houden de vorige)');
+}
+ok(!/gastheer|gastgever|\bhost\b/i.test(weggevallenTekst('Noor') + jijOvernameTekst + sluitAanTekst('Noor') + overnameMisluktTekst) && weggevallenTekst('Noor').includes('Noor neemt het over'), 'teksten zonder rolnaam, met namen');
 
 console.log(`coophostwissel_test: ${n} controles gelukt`);

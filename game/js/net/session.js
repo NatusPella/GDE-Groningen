@@ -59,6 +59,7 @@ class Base {
     }
   }
   _quiet() { return this.now - this.lastRecv; }
+  stilte() { return this._quiet(); } // s zonder enig bericht van de ander (de overname bij wegvallen, coophostwisselnet.js)
 }
 
 // ---------------------------------------------------------------- host
