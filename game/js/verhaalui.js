@@ -159,7 +159,7 @@ function selectCharacter(panel, id) {
   const box = panel.querySelector('.vh-viewer');
   if (!box || (!c && id !== OVERIG)) return;
   selected = id;
-  for (const b of panel.querySelectorAll('[data-char]')) { b.classList.toggle('sel', b.dataset.char === id); if (b.dataset.char === id) { b.removeAttribute('data-msg'); if (markCharacterSeen(id)) { b.removeAttribute('data-new'); document.dispatchEvent(new Event('gde-nieuw-gezien')); } } }
+  for (const b of panel.querySelectorAll('[data-char]')) { b.classList.toggle('sel', b.dataset.char === id); if (b.dataset.char === id) { b.removeAttribute('data-msg'); if (markCharacterSeen(id)) { b.removeAttribute('data-new'); document.dispatchEvent(new Event('nieuwgezien')); } } }
   disposeVerhaalViewer();
   if (id === OVERIG) {
     box.innerHTML = '<div><span class="vh-kicker">Berichten en contacten</span><h3>Overig</h3></div><p class="vh-bio">Nieuws, meldingen en contacten die geen personage zijn.</p><div class="vh-phone" data-vh-phone></div>';

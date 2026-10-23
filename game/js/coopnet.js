@@ -36,7 +36,7 @@ import { WEER_EVERY, weerEvent, leesWeerEvent, pasWeerToe } from './coopweer.js'
 import { loopbaanGast, GAST_XP_DEEL } from './loopbaanlive.js';
 import { maakRegister, zetPlek, leegRegister, bouwFoci, losBesluit, FOCI_MAX, MAX_AFSTAND, ONGELADEN_S } from './coopfoci.js';
 import { tileIndexOf, tileKey } from './gdt.js';
-import { wisselEvent, wisselTik } from './coophostwisselnet.js'; // het spel overdragen (#439); die module importeert dit bestand terug, maar gebruikt het pas bij een aanroep
+import { wisselEvent, wisselTik, zetCoopNet } from './coophostwisselnet.js'; // het spel overdragen (#439); die module importeert dit bestand terug, maar gebruikt het pas bij een aanroep
 import { zichtbaarWanted, GEZOCHT_TEKST, hudWanted } from './coopgezocht.js';
 import { bustFineIn } from './economy.js';
 import { zetBestuurHaken, bestuurGebruik, bestuurTick, bestuurLos, bestuurAllesLos, bestuurt } from './coopbestuur.js';
@@ -958,3 +958,6 @@ export function stopCoopNet(world) {
   endCoop(world);
   world.coopRole = null; // eigen save mag weer (gast: met zijn eigen voortgang)
 }
+
+// de overdracht (coophostwisselnet.js) gebruikt deze functies zonder coopnet.js zelf te importeren
+zetCoopNet({ addGuest, stopCoopNet, startHost, startClient, canJoin });

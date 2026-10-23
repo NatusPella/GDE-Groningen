@@ -28,7 +28,8 @@ export function wisselRoute(world, opts = {}) {
     clientOpts: () => ({ fade: opts.fade, route: 'kamer', onHold: opts.onHold }),
     // de nieuwe host opent een kamer en blijft aanbiedingen klaarzetten, één per speler, zoals de wachtkamer doet
     opKamer: async ({ aanvaard, kamer }) => {
-      const room = kamer || makeRoom(); // een opvolger gebruikt de code die de groep al kent let gestopt = false, handle = null;
+      const room = kamer || makeRoom(); // een opvolger gebruikt de code die de groep al kent
+      let gestopt = false, handle = null;
       const open = async () => {
         if (gestopt) return;
         if (handle && handle.cancel) handle.cancel();
