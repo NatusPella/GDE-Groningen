@@ -11,7 +11,7 @@ export const SOUND_LABELS = {
   bell: 'kerkklok', crossing_bell: 'overwegbel', train_horn: 'treinfluit', horn: 'claxon', shout: 'geschreeuw',
   alarm: 'alarm', whistle: 'fluitje', splash: 'plons', siren: 'sirene', explosion: 'explosie',
   shot: 'schot', swing: 'zwaai', coo: 'duif', caw: 'kraai', bell_note: 'klokkenspel', stall: 'motor slaat af',
-  grind: 'versnellingsbak knarst', camera_shutter: 'camera', gore: 'vervelend geluid', bonk: 'bonk',
+  grind: 'versnellingsbak knarst', camera_shutter: 'camera', gore: 'vervelend geluid', bonk: 'bonk', reklametaxi: 'reclametaxi met megafoon',
 };
 
 const COOLDOWN_S = 2.2;

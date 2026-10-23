@@ -3,6 +3,7 @@
 //   node scripts/qa/gebieden_shots.mjs --game-dir=<gestagede game> --out=<map> [--slot]
 // --game-dir: een map die `GDE_STAGE_OUT=<map> node desktop/build.mjs` maakte (standaard desktop/build/game).
 // ELECTRON_EXE=<pad naar electron.exe> als desktop/node_modules/electron/dist ontbreekt.
+// --page=<bestand>: een ander page-script dan gebieden_shots.page.js (bijvoorbeeld een sonde).
 // --slot: neemt een Electron-slot volgens $GDE_LOCKS/README.txt (standaard ~/gde-locks) en geeft het vrij.
 // Uitvoer: shots-gb-*.png, result.json, run.log.
 import fs from 'node:fs';
@@ -36,7 +37,7 @@ fs.mkdirSync(OUT, { recursive: true });
 const electron = process.env.ELECTRON_EXE || path.join(ROOT, 'desktop', 'node_modules', 'electron', 'dist', process.platform === 'win32' ? 'electron.exe' : 'Electron');
 const profile = `gde-test-gb-${process.pid}`;
 const script = path.join(OUT, '_page.js');
-fs.writeFileSync(script, fs.readFileSync(path.join(HERE, 'gebieden_shots.page.js'), 'utf8'));
+fs.writeFileSync(script, fs.readFileSync(arg('page', '') ? path.resolve(arg('page', '')) : path.join(HERE, 'gebieden_shots.page.js'), 'utf8'));
 const env = { ...process.env, GDE_TEST_PROFILE: profile };
 if (GAME) env.GDE_GAME_DIR = GAME;
 delete env.ELECTRON_RUN_AS_NODE;
