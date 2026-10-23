@@ -16,6 +16,9 @@ nieuwe functies, `y` voor alleen bugfixes.
 ### Nieuw
 - **Parkeergarages (#418):** in 36 van de 48 gekarteerde parkeergarages (en bij de garages die alleen als punt bekend zijn, zoals in de binnenstad, op de plek van de ingang) staan nu geparkeerde auto's om te stelen, en je eigen auto kan er ook parkeren. Alleen op vrije grond, nooit in een gebouw of in het water. Niet in beeld bekeken; de verdiepingen van de garage zelf zijn niet nagebouwd.
 - **Je kunt het Forum in lopen (gemeld door een playtester; gemeten in Node met `forum_ingang_test`, nog niet in beeld bekeken):** de twee straatdeuren van het Forum lagen maar 10 cm over de foyer en de expo heen, waardoor je 0,4 m voor het einde van de deur werd vastgehouden en er een onzichtbare muur stond. Een doorgang tussen twee overlappende kamers is nu altijd begaanbaar, hoe dun de overlap ook is.
+### Opgelost (samen spelen; in Node getest, nog niet door een mens in beeld bekeken)
+- **Samen spelen: een gast die midden in een spel aansluit bij een gastheer in de wachtkamer wacht ook in de wachtkamer (#388):** kwam je via het pauzemenu in plaats van via het hoofdmenu, dan liep je al rond terwijl het spel van de ander nog stilstond, en begon het openingsfilmpje pas na het spelen. Nu opent de wachtkamer ook bij jou, en sluit hij samen met die van de gastheer zodra die Spel starten kiest; daarna volgt meteen het filmpje.
+- **Samen spelen: de lobby zegt eerlijk welk personage je speelt (#388):** de eerste gast speelt altijd Tessa, omdat zij bij het verhaal hoort; een gekozen figuur krijg je alleen als je als derde of later meedoet. Het scherm Aansluiten zegt dat nu vooraf, en na het verbinden staat er wie jij speelt, met de reden als je een andere figuur koos (of als die al bezet was).
 
 ## [0.41.1] - 2026-10-23
 

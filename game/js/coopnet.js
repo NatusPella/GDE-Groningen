@@ -18,7 +18,7 @@ import { partnersInfo, createPings, addPing, tickPings, pingEvent } from './part
 import { holdBeleid, leesLijstEvent, lijst } from './coopplayers.js';
 import { cameraRelative, stepSlot2, sharedCamera } from './coop.js';
 import { coopStep } from './coopglue.js';
-import { gateOn, setGate } from './coopgate.js';
+import { gateOn, setGate, hekBericht } from './coopgate.js';
 import { WIEL_TEKST, WIEL_HOST_TEKST, WIEL_VERZOEK_S, kanUitstappen } from './coopgast.js';
 import { nieuwCutVerzamelaar, cutGastSpeel, cutGastStop, leesCutTijd, cutSpoor } from './coopcut.js';
 import { verzamelEntiteiten, leesEntiteiten, missieBericht, leesMissieBericht, missieTekst, sceneBericht, leesSceneBericht, sceneLeeg, filmpjeTekst } from './coopworld.js';
@@ -479,7 +479,7 @@ export function handleEvent(world, body, van = 0) {
     }
     case 'hek': { // het spel is nog niet begonnen (aan) of begint nu (uit): de wachtkamer
       if (!n || n.role !== 'client') return false;
-      world.coopHek = !!body.aan;
+      hekBericht(world, body.aan);
       return true;
     }
     case 'gebruik': { // de gast drukte op E bij de host: als bijrijder in- of uitstappen (alleen plek 1, de metgezel)

@@ -131,6 +131,16 @@ export const MIN_SPELERS = 2;
 // De regel voor de gast: wat er van zijn voortgang wordt bewaard (docs/COOP-OPSLAAN.md)
 export const GAST_BEWAREN = (naam, opener = 'de ander') => `Je speelt mee in het spel van ${opener}. Wat je verdient bewaren we in je eigen spel${naam ? ` (${naam})` : ''}; het verhaal en de wereld zijn van ${opener}.`;
 
+// Wie jij bent in dit spel, en als je een figuur wenste maar kreeg wat de plek bepaalt: eerlijk zeggen waarom (plek 1 is Tessa, een verhaalrol).
+export function jijRegel(s, lijst, ik) {
+  const p = (lijst || []).find((x) => x && x.slot === ik);
+  if (!p || !p.naam) return '';
+  const wens = s.wens && EXTRA_CHARS.find((c) => c.id === s.wens);
+  if (!wens || wens.id === p.char) return `Jij speelt ${p.naam}.`;
+  if (ik === 1) return `Je koos ${wens.naam}, maar als eerste gast speel je Tessa: zij hoort bij het verhaal. Een eigen figuur kan als je als derde of later meedoet. Jij speelt Tessa.`;
+  return `Je koos ${wens.naam}, maar die was al bezet. Jij speelt ${p.naam}.`;
+}
+
 const PARTNER_NAME = { host: 'Tessa', gast: 'Tammo' }; // de ander van deze rol
 
 // Wat de UI toont. buttons: [{ act, label, primary? }]; input: een tekstvak; code: de code met kopieerknop.
@@ -141,7 +151,7 @@ export function view(s) {
   switch (s.step) {
     case 'start':
       return V({
-        lines: ['Speel samen met een vriend in de open wereld: opdrachten, minigames en het verhaal. Iedereen houdt zijn eigen voortgang. Wie het spel opent speelt Tammo, wie meedoet speelt Tessa.'],
+        lines: ['Speel samen met een vriend in de open wereld: opdrachten, minigames en het verhaal. Iedereen houdt zijn eigen voortgang. Wie het spel opent speelt Tammo, wie als eerste meedoet speelt Tessa, wie daarna komt een eigen figuur.'],
         buttons: [{ act: 'kies-host', label: 'Iemand uitnodigen', primary: true }, { act: 'kies-gast', label: 'Code of adres invoeren' }, { act: 'diag', label: 'Verbinding testen' }],
       });
     case 'methode': {
@@ -172,7 +182,7 @@ export function view(s) {
     }
     case 'gast-typt':
       return V({
-        title: 'Aansluiten', lines: ['Voer de kamercode of de koppelcode in die je kreeg. Als eerste gast speel je Tessa. Kom je er later bij, dan speel je een eigen figuur: kies er hieronder een, of laat het kiezen.', GAST_BEWAREN(s.caps.spelNaam)],
+        title: 'Aansluiten', lines: ['Voer de kamercode of de koppelcode in die je kreeg. De eerste gast speelt altijd Tessa: zij hoort bij het verhaal, dus daar kies je niets. Kom je als derde of later, dan speel je een eigen figuur: kies er hieronder een (die krijg je als hij vrij is), of laat het kiezen.', GAST_BEWAREN(s.caps.spelNaam)],
         input: { placeholder: 'Kamercode of GDE2-…', value: s.caps.laatsteCode || '' },
         wensen: EXTRA_CHARS.map((c) => ({ act: 'wens-' + c.id, id: c.id, naam: c.naam, kleur: c.kleur, gekozen: s.wens === c.id })),
         buttons: [{ act: 'koppel', label: 'Verder', primary: true }, { act: 'diag', label: 'Verbinding testen' }, { act: 'terug', label: 'Terug' }],
@@ -202,6 +212,7 @@ export function view(s) {
         buttons.push({ act: 'verbreek', label: 'Iedereen stoppen' });
       } else {
         lines.push(`${opener} heeft het spel geopend.`);
+        const jij = jijRegel(s, lijst, ik); if (jij) lines.push(jij);
         if (s.caps.startGate) lines.push(`Wacht tot ${opener} het spel start.`);
         lines.push(GAST_BEWAREN(s.caps.spelNaam, opener));
         lines.push('Je kunt er elk moment uit; je komt terug waar je was.');
