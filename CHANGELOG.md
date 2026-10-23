@@ -14,6 +14,15 @@ nieuwe functies, `y` voor alleen bugfixes.
 - Samen spelen (#438): openbare sessies. Wie het spel opent kan in de wachtkamer kiezen voor Maak deze sessie openbaar, na een melding die uitlegt wat er openbaar wordt (de naam van de sessie, het aantal spelers, de versie en de kamercode; geen IP-adres) en hoe je het weer uitzet. Spelers openen de lijst via Openbare sessies, in het hoofdmenu bij Samen spelen en in de wachtkamer, ook na een melding, en sluiten met een klik aan. Een sessie is standaard privé en alleen met de kamercode te bereiken. De lijst ververst zichzelf, laat een andere versie als niet aan te sluiten zien en kent Melden om een sessie op jouw apparaat te verbergen.
 - Samen spelen (#439): valt wie het spel opende weg (12 seconden niets gehoord, zonder afscheid), dan neemt de speler met de beste verbinding het over. Iedereen krijgt elke ~10 seconden een compacte herstelstand; de groep kiest samen dezelfde opvolger (laagste ping, bij gelijk de laagste plek), die de kamer opent waar de anderen vanzelf aansluiten, met de lopende opdracht, de tijd, het weer en de kapotte objecten. Lukt het niet, dan is de volgende aan de beurt. Alleen met een kamercode en alleen als er gasten zijn.
 - Samen spelen (#439): bij het spel overdragen wordt de lopende opdracht echt hervat, gaan kapotte objecten en voertuigen van spelers mee en komt de nieuwe speler op de plek waar het spel stond. Lukt het aansluiten bij de nieuwe speler niet, dan neemt wie het spel opende het weer over.
+- Fotomodus (#435): een nette knoppenbalk onderin met alle toetsen en de knoppen Foto maken en Terug, een vrije camera (WASD, muis slepen of pijlen) die los staat van Tammo en over de hele wereld kan, en Escape sluit de fotomodus zonder dat het pauzemenu eroverheen komt.
+- Kaart (#435): de grens met Friesland, Drenthe en Duitsland staat weer in een eigen kleur op de kaart, met de naam van het buurgebied in dezelfde kleur.
+- Spullen (#435): pictogrammen bij elke categorie en elk ding, en een lege categorie (Werpspul, Thuis, Upgrades) legt uit waar je het vindt.
+- Prestaties (#435): De hele kaart verkend (en een kwart en de helft), en prestaties voor het veroveren van buurten, wijken, woonplaatsen, gemeenten en de provincie: ze volgen de gebiedenvoortgang.
+- Verhaal > Aanwijzingen (#435): per opdracht gegroepeerd, het deel waar je nu in zit bovenaan.
+- Shift zonder sprint (#435): op de fiets of in het water zegt het spel nu waarom er niets gebeurt (even uitpuffen, buiten adem).
+
+### Opgelost
+- Garage (#435): de 3D-voorbeelden van de voertuigen worden opnieuw getekend als de grafische kaart de verbinding even kwijt was, en lege plaatjes blijven niet hangen.
 
 ## [0.46.0] - 2026-10-23
 

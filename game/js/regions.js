@@ -236,6 +236,10 @@ export function outsidePath(frame) {
 }
 
 const BORDER_COLOR = { friesland: INK.borderFriesland, drenthe: INK.borderDrenthe, duitsland: INK.borderDuitsland };
+// De kleur van de grens met een buurgebied (Friesland, Drenthe, Duitsland), voor de kaartlagen en de namen (#435).
+export const regionBorderColor = (id) => BORDER_COLOR[id] || INK.borderOther;
+// De landgrenzen als lijnen { kind, color, pts } in wereldmeters: mapview.js legt ze boven de provinciegrens van de Veroverd-laag.
+export const landBorders = () => S.border.map((b) => ({ kind: b.kind, color: regionBorderColor(b.kind), pts: b.pts }));
 const { fill: SEA_FILL, edge: SEA_EDGE } = seaStyle(MAP_PALETTE);
 const TINT = inkA('tintMap', 0.5);
 

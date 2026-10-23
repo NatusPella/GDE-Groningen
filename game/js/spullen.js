@@ -34,6 +34,15 @@ const SECTIONS = [
   ['upgrade', 'Upgrades'],
 ];
 
+// Wat er staat als een categorie nog leeg is: waar je het vindt (#435)
+const EMPTY = {
+  werp: 'Nog niets om te gooien. Pang & Zo verkoopt het.',
+  thuis: 'Nog geen meubels. EIKEA heeft ze; thuis zet je ze neer.',
+  upgrade: 'Nog geen upgrades. Knal & Kolder Tuning en Spaak & Band helpen je graag.',
+};
+// Categorieen die ook leeg zichtbaar blijven, zodat je weet dat ze bestaan
+const ALWAYS = new Set(['werp', 'thuis', 'upgrade']);
+
 let sel = null;
 let byKey = new Map();
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -135,18 +144,18 @@ function homeRoute(what) {
 
 function card(it) {
   return `<button type="button" class="m-li" data-spul="${esc(it.key)}"${sel === it.key ? ' aria-current="true"' : ''}>` +
-    `<span class="nm"><span class="one">${esc(it.title)}</span><span class="mut one">${esc(it.sub || '')}</span></span>` +
+    `${svg(it.icon)}<span class="nm"><span class="one">${esc(it.title)}</span><span class="mut one">${esc(it.sub || '')}</span></span>` +
     `${it.side ? `<span class="t g">${esc(it.side)}</span>` : ''}</button>`;
 }
 
 function detailHtml() {
   const it = byKey.get(sel);
-  if (!it) return '<p class="mut">Kies iets om te zien wat het doet.</p>';
+  if (!it) return '<p class="mut">Kies iets om te zien wat het doet, of wat je ermee kunt.</p>';
   const rows = [['Hoe', it.how], ['Doet', it.perk], ...(it.rows || [])].filter(([, v]) => v).map(([k, v]) => `<div class="m-fact"><span>${esc(k)}</span><span class="td-fv">${esc(v)}</span></div>`).join('');
   let btns = '';
   if (it.act) btns += `<button type="button" class="m-bp" data-spul-act="${esc(it.key)}">${esc(it.act.label)}</button>`;
   if (it.link) btns += `<button type="button" class="${it.act ? 'm-bg' : 'm-bp'}" data-goto="${it.link[0]}">${esc(it.link[1])}</button>`;
-  return `<div class="pm-pane-top"><span class="m-eb">${esc((SECTIONS.find(([c]) => c === it.cat) || [, ''])[1])}</span><h2 class="m-h2 td-h2">${esc(it.title)}</h2></div>` +
+  return `<div class="pm-pane-top"><span class="m-eb sp-gh">${svg(it.icon)}${esc((SECTIONS.find(([c]) => c === it.cat) || [, ''])[1])}</span><h2 class="m-h2 td-h2">${esc(it.title)}</h2></div>` +
     `${it.sub ? `<p>${esc(it.sub)}</p>` : ''}${rows ? `<div class="m-facts td-stack">${rows}</div>` : ''}<span class="m-grow"></span>${btns ? `<div class="m-acts td-acts">${btns}</div>` : ''}`;
 }
 
@@ -158,8 +167,9 @@ export function renderSpullen(panel, w) {
   const list = panel.querySelector('.td-list');
   list.innerHTML = SECTIONS.map(([cat, label]) => {
     const mine = items.filter((it) => it.cat === cat);
-    if (!mine.length) return '';
-    return `<div class="m-gh"><span>${label}</span>${counts[cat] ? `<span>${esc(counts[cat])}</span>` : ''}</div>${mine.map(card).join('')}`;
+    if (!mine.length && !ALWAYS.has(cat)) return '';
+    const kop = `<div class="m-gh"><span class="sp-gh">${svg(cat)}${label}</span>${counts[cat] ? `<span>${esc(counts[cat])}</span>` : ''}</div>`;
+    return kop + (mine.length ? mine.map(card).join('') : `<p class="mut sp-leeg">${esc(EMPTY[cat] || '')}</p>`);
   }).join('');
   panel.querySelector('.td-detail').innerHTML = detailHtml();
   const owned = items.filter((it) => it.cat !== 'geld' && it.cat !== 'kaart').length;

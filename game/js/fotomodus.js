@@ -32,7 +32,7 @@ export const LIMITS = {
   focus: [0.5, 200],     // meter
   roll: [-0.5, 0.5],     // radialen, kleine kanteling
   height: [0.3, 60],     // m boven de grond
-  roamRadius: 80,        // m: de vrije camera blijft dichtbij de speler
+  roamRadius: 40000,     // m: de vrije camera is los van de speler; de rand van de wereld stopt hem (fotomodusui.js)
   speed: [0.5, 12],      // m/s
 };
 

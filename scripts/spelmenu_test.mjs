@@ -161,5 +161,19 @@ ok(pm.includes("icon('spelers', 'pm-ic n-ic')"), 'de teller bij Spel heeft een p
 ok(read('game/js/hudcards.js').includes('menuMelding(text)'), 'meldingen staan direct in beeld als het menu open is');
 ok(pm.includes("[['U'], 'Geluid uit of weer aan;"), 'Besturing legt de dempknop uit');
 
+// #435 (vervolg): garage, fotomodus, kaart, Spullen, Prestaties, Shift en Aanwijzingen
+const vp = read('game/js/vehiclepreview.js'), fu = read('game/js/fotomodusui.js'), sp = read('game/js/spullen.js'), vu = read('game/js/verhaalui.js');
+ok(vp.includes("'webglcontextlost'") && vp.includes('forgetBlankShots'), 'de gedeelde voorbeeldrenderer herstelt na een verloren WebGL-context');
+ok(pm.includes('if (isPhotoMode()) return;'), 'het pauzemenu opent niet over de fotomodus (Escape en M horen bij de fotomodus)');
+ok(fu.includes('BAR_HTML') && fu.includes("KEYBTN('W A S D', 'Lopen')") && fu.includes('data-foto-stop'), 'de fotomodus heeft een knoppenbalk met sleutelhints en Terug');
+ok(fu.includes("inProvinceData(p.cam.x, p.cam.y) === false"), 'de vrije camera van de fotomodus blijft binnen de wereld');
+ok(read('game/js/gebiedenkaart.js').includes('landBorders()') && read('game/js/regions.js').includes('export const landBorders'), 'de kaart tekent de landgrenzen in de kleur van het buurgebied');
+ok(sp.includes('const EMPTY =') && sp.includes('svg(it.icon)') && sp.includes('ALWAYS.has(cat)'), 'Spullen: pictogrammen en een uitleg bij een lege categorie');
+const ac = read('game/js/achievements.js');
+ok(ac.includes("id: 'kaart_alle'") && ac.includes("stat: 'gebied_provincie'") && read('game/js/achievementtracker.js').includes('syncGebiedStats') && read('game/js/mapview.js').includes("'kaartVerkend'"), 'Prestaties: de hele kaart verkend en de gebiedenvoortgang tellen mee');
+ok(read('game/js/player.js').includes('Even uitpuffen'), 'Shift zonder sprint zegt waarom');
+ok(vu.includes('vh-gk') && vu.includes('function partOrder('), 'Aanwijzingen: per opdracht gegroepeerd, nieuwste bovenaan');
+ok(pm.includes("setN('spel', coopN ? String(coopN) : ''") && read('game/js/coopspelers.js').includes('rijen.sort((a, b) => (a.jij'), 'de Spel-teller telt jezelf mee (de lijst begint met jou)');
+
 console.log(`${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);

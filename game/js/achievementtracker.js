@@ -64,6 +64,17 @@ let eggGroup = null;
 
 const SPEED_TYPES = (v) => (v.isBoat ? 'boot' : v.isBus ? 'bus' : v.isScooter ? 'scooter' : v.isBike ? (v.model && v.model.fat ? 'fatbike' : 'fiets') : v.isPolice ? 'politieauto' : 'auto');
 
+// De prestaties volgen de gebiedenvoortgang (#435): per laag het aantal veroverde gebieden, elke paar seconden.
+let gebiedStatT = 0;
+function syncGebiedStats(dt, w) {
+  gebiedStatT -= dt;
+  if (gebiedStatT > 0) return;
+  gebiedStatT = 5;
+  const o = getOverzicht();
+  if (!o) return;
+  for (const n of o.overzicht) setStatMax(w, `gebied_${n.niveau.id}`, n.voltooid);
+}
+
 export function initAchievementTracker(w) {
   world = w;
   initAchievements(w);
@@ -110,6 +121,7 @@ export function updateAchievementTracker(dt, w) {
     trackRail(dt, w, p, pv);
     trackMission(dt, w, pv);
     updateGebieden(dt, w, () => getMissionList().filter((m) => m.done).map((m) => m.id));
+    syncGebiedStats(dt, w);
     updateEierballen(dt, w, p, pv);
   }
   if (eggGroup) eggGroup.visible = !w.pigeonMode;
