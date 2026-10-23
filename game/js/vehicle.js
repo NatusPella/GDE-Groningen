@@ -2693,7 +2693,8 @@ export function resolveVehicleVehicleCollisions(vehicles, world = null) {
       // one on the viaduct, the other on the street below (or in the cutting)
       if (Math.abs((a.z || 0) - (b.z || 0)) > 2.5) continue;
       // a waiting cycle being broken: the chosen vehicle slips past its partner
-      if (world && ((a.ignoreId === b.id && world.time < a.ignoreUntil) || (b.ignoreId === a.id && world.time < b.ignoreUntil))) continue;
+      // (maar een wesp of fiets glipt nooit door een bus heen: de bus is zo lang dat het zichtbaar door elkaar heen rijden was, #436)
+      if (world && !((a.isBus && (b.isScooter || b.isBike)) || (b.isBus && (a.isScooter || a.isBike))) && ((a.ignoreId === b.id && world.time < a.ignoreUntil) || (b.ignoreId === a.id && world.time < b.ignoreUntil))) continue;
       const reach = a.halfLen + b.halfLen + 0.2;
       const cdx = b.x - a.x, cdy = b.y - a.y;
       if (cdx * cdx + cdy * cdy > reach * reach) continue;
