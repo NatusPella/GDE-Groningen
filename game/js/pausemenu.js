@@ -1269,10 +1269,11 @@ function showSubtab(of, name) {
   if (!subs.some(([id]) => id === name)) name = subs[0][0];
   for (const b of root.querySelectorAll(`[data-subtab][data-of="${of}"]`)) b.setAttribute('aria-selected', String(b.dataset.subtab === name));
   for (const p of root.querySelectorAll(`[data-sub][data-of="${of}"]`)) p.hidden = p.dataset.sub !== name;
+  if (of === 'verhaal' && pref.sub[of] === 'aanwijzingen' && name !== 'aanwijzingen') { markCluesSeen(); syncNavBadges(); } // nieuw blijft staan zolang je op het tabblad bent, weg als je het verlaat (#435)
   if (pref.sub[of] !== name) { pref.sub[of] = name; savePref(); }
   const panel = root.querySelector(`[data-panel="${of}"]`);
   if (panel) panel.scrollTop = 0;
-  if ((of === 'todo' && name === 'verhaal') || (of === 'verhaal' && name === 'aanwijzingen')) { markCluesSeen(); syncNavBadges(); }
+  if (of === 'todo' && name === 'verhaal') { markCluesSeen(); syncNavBadges(); }
   if (of === 'settings') root.querySelector('[data-bench-confirm]').hidden = true;
   if (of === 'settings' && name === 'fouten') { errlogStatus(''); renderErrorLog(); }
 }
@@ -1431,6 +1432,8 @@ function syncNavBadges() {
   setN('verhaal', unread ? String(unreadN) : fresh || met ? 'nieuw' : '', unread ? `${unreadN} ongelezen` : '');
   if (vNav && unread) vNav.toggleAttribute('data-new', true);
 }
+
+if (typeof document !== 'undefined') document.addEventListener('gde-nieuw-gezien', () => { if (root) syncNavBadges(); });
 
 // Berichten en bellen staan onder een personage (verhaalui.js, phone.js): opnieuw tekenen na een gesprek of bericht
 function renderPhone() {
@@ -1618,6 +1621,7 @@ function setOpen(value, name = HOME, how = 'direct') {
     if (value) { showTab(name, how); focusSheet(); }
     return;
   }
+  if (!value) { try { markCluesSeen(); } catch (e) { /* verhaal niet klaar */ } }
   open = value;
   setPauseMenuOpen(value);
   if (open && isShopOpen()) closeShopMenu();
