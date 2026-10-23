@@ -9,8 +9,11 @@ import { poseHeliRotors } from './heli3d.js';
 import { uiterlijkSpec } from './coopworld.js';
 import { WATER_Y } from './util.js';
 import { surfaceLiftAt } from './waterlevels.js';
+import { ruimMeshOp } from './coopruim.js';
 
 const voertuigen = new Map(); // id -> mesh
+// een voertuig weg uit de scene: een blok heeft eigen geometrie (de materialen zijn gedeeld), echte modellen delen hun geometrie
+const ruimVoertuig = (scene, m) => ruimMeshOp(scene, m, { geometrie: !m.userData.vehicleId });
 let beacon = null;
 const MATS = {};
 const mat = (c) => (MATS[c] ||= new THREE.MeshStandardMaterial({ color: c, roughness: 0.7 }));
@@ -120,9 +123,9 @@ export function syncHostEntities(world, dt = 1 / 60) {
     let m = voertuigen.get(v.id);
     const sleutel = v.look ? lookSleutel(v.look) : '';
     if (m && v.look && (m.userData.gok || m.userData.lookSleutel !== sleutel)) { // het uiterlijk is anders dan getekend: opnieuw bouwen
-      scene.remove(m); voertuigen.delete(v.id); m = null;
+      ruimVoertuig(scene, m); voertuigen.delete(v.id); m = null;
     } else if (m && v.look && m.userData.dentSleutel !== dentSleutel(v.look)) { // alleen nieuwe deuken erbij, anders opnieuw bouwen
-      if (!pasSchadeToe(m, v.look)) { scene.remove(m); voertuigen.delete(v.id); m = null; }
+      if (!pasSchadeToe(m, v.look)) { ruimVoertuig(scene, m); voertuigen.delete(v.id); m = null; }
     }
     if (!m) {
       const spec = v.look ? uiterlijkSpec(v.look) : null;
@@ -148,7 +151,7 @@ export function syncHostEntities(world, dt = 1 / 60) {
     for (const [id, m] of voertuigen) { const u = m.userData; o[id] = [u.blok ? 'blok' : u.gok ? 'gok' : 'echt', u.wheels ? +u.wheels[0].rotation.z.toFixed(2) : null, u.frontWheels ? +u.frontWheels[0].rotation.y.toFixed(2) : null, u.indLamps ? u.indLamps.filter((l) => l.visible).length : 0, u.policeLamps ? +u.policeLamps[0].material.emissiveIntensity.toFixed(1) : null, u.rotorHoek ? +u.rotorHoek.toFixed(1) : null, u.dentLijst ? u.dentLijst.length : 0]; }
     world.coopHostDbg = o;
   }
-  for (const [id, m] of voertuigen) if (!seen.has(id)) { scene.remove(m); if (!m.userData.vehicleId) m.traverse((o) => { if (o.geometry) o.geometry.dispose(); }); voertuigen.delete(id); } // echte modellen delen hun geometrie
+  for (const [id, m] of voertuigen) if (!seen.has(id)) { ruimVoertuig(scene, m); voertuigen.delete(id); }
   for (const id of wacht.keys()) if (!seen.has(id)) wacht.delete(id);
   // de voetgangers (uiterlijk, lopen, praten) tekent coopextra3d.js (#428), samen met dieren, verkeerslichten en kapotte objecten
   let echt = 0; for (const m of voertuigen.values()) if (!m.userData.blok) echt++;
@@ -163,8 +166,8 @@ export function syncHostEntities(world, dt = 1 / 60) {
 
 export function clearHostEntities() {
   const scene = getScene();
-  for (const m of voertuigen.values()) if (scene) scene.remove(m);
-  voertuigen.clear();
-  if (beacon && scene) scene.remove(beacon);
+  if (scene) for (const m of voertuigen.values()) ruimVoertuig(scene, m);
+  voertuigen.clear(); wacht.clear();
+  if (beacon && scene) ruimMeshOp(scene, beacon, { materiaal: true });
   beacon = null;
 }
