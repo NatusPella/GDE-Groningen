@@ -114,7 +114,7 @@ import { noteFrame, hideAdvice, classifyGpu, readGpu, dynamicScale, cpuLevel } f
 import { updateStreetSigns } from './streetsigns.js';
 import { updatePhotoMode, wireFotoKey } from './fotomodusui.js';
 import { initPauseMenu, isPauseMenuOpen, openPauseMenu, pauseMenuCover } from './pausemenu.js';
-import { aandeel, tegelFoci } from './coopfoci.js';
+import { aandeel, tegelFoci, nietBijFoci } from './coopfoci.js';
 import { wantsOpenSamen, takeOpenSamen, samenGate } from './samenpanel.js';
 import { gateOn, setGate } from './coopgate.js';
 import { updateGastLokaal } from './coopgastlokaal.js';
@@ -750,7 +750,7 @@ async function boot() {
     const farAI = farAIDist();
     // ?simauto (#58): ver weg rijdende gewone auto's worden door de simulatieworker gestuurd (simbridge.js)
     const simCars = FLAGS.simworker && FLAGS.simauto && map.roads ? getSimBridge(map) : null;
-    if (simCars) simCars.updateCars(dt, player, world.vehicles);
+    if (simCars) simCars.updateCars(dt, player, nietBijFoci(world, world.vehicles));
     for (let i = 0; i < world.vehicles.length; i++) {
       const v = world.vehicles[i];
       // police.js drives its own units; an abandoned or burning one just rolls out here
