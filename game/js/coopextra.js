@@ -10,10 +10,13 @@
 //   dieren       soort, stand en plek van koeien, schapen, vogels, honden en katten binnen DIER_RADIUS van een speler;
 //   lichten      de klok van elk verkeerslichtencomplex binnen LICHT_RADIUS (de gast loopt zelf mee tussen twee berichten);
 //   kapot        de sleutels van kapotte objecten (alleen als de lijst verandert, en elke KAPOT_VERVERS s ter controle);
-//   misc         losse stukjes (tag, lading): kermis, stuntavond, enzovoort, door de host aangeleverd (deps.misc).
+//   misc         losse stukjes (tag, lading): kermis, stuntavond, enzovoort, door de host aangeleverd (deps.misc). Ook hier (#428):
+//                MISC_PEDS (wapen in de hand en vechtbeweging), MISC_DEUREN (open deuren van voertuigen), MISC_WERELD (bruggen en sluizen die
+//                bewegen), MISC_SPREKERS (wie er praat zonder voetganger te zijn: een opdrachtgever, een kermisbaas). Een gast die een tag niet kent, slaat hem over.
 // De host blijft leidend; een gast leest alleen. Posities van dieren staan als i16 in 0,05 m ten opzichte van het lichaam
 // van de gast (bereik 1,6 km: wat verder weg is, gaat niet mee).
-import { pedId } from './coopworld.js';
+import { pedId, kiesVoetgangers, voertuigId } from './coopworld.js';
+import { doorsFor } from './vehicledoors.js';
 
 export const EXTRA_VERSIE = 1;
 export const MAX_LADING = 1100;                 // gelijk aan MAX_EXTRA in net/codec.js
@@ -34,7 +37,7 @@ const POS_EENHEID = 0.05;
 // bits van het eerste veld (mask)
 export const B_VOETGANGERS = 1, B_UITERLIJK = 2, B_SPRAAK = 4, B_DIEREN = 8, B_LICHTEN = 16, B_KAPOT = 32, B_MISC = 64;
 // vlaggen per voetganger
-export const V_GROET = 1, V_FEEST = 2, V_WAPEN = 4, V_AANVAL = 8, V_GERAAKT = 16, V_SPREEKT = 32, V_TAS = 64;
+export const V_GROET = 1, V_FEEST = 2, V_WAPEN = 4, V_AANVAL = 8, V_GERAAKT = 16, V_SPREEKT = 32, V_TAS = 64, V_LIGT = 128; // V_LIGT: dood of omgevallen (ligt op de grond)
 // vlaggen per dier
 export const D_DOOD = 1;
 
@@ -43,7 +46,7 @@ const EEND_VARIANTEN = ['drake', 'hen', 'swan', 'goose'];
 export const KAPOT_SOORTEN = ['bench', 'bin', 'chair', 'table', 'parasol', 'bike', 'rail', 'stall', 'lamp', 'trafficlight', 'flitspaal', 'tree', 'vangrail', 'hek'];
 
 // tags voor misc
-export const MISC_KERMIS = 1, MISC_STUNT = 2, MISC_PUNTEN = 3;
+export const MISC_KERMIS = 1, MISC_STUNT = 2, MISC_PUNTEN = 3, MISC_PEDS = 4, MISC_DEUREN = 5, MISC_WERELD = 6, MISC_SPREKERS = 7;
 
 const u8 = (v, lo = 0, hi = 255) => Math.min(hi, Math.max(lo, Math.round(v) | 0));
 const hexNaarRgb = (h, d) => {
@@ -78,19 +81,15 @@ export function verzamelExtra(world, bij, geheugen, deps = {}) {
   const uit = { voetgangers: [], uiterlijk: [], spraak: [], dieren: [], lichten: [], kapot: null, misc: [] };
 
   // voetgangers: dezelfde selectie als de snapshot (coopworld.js), want de id's moeten kloppen
-  const peds = [];
-  for (const p of world.pedestrians || []) {
-    if (!p || !Number.isFinite(p.x) || !Number.isFinite(p.y) || p.state === 'dead' || p.health <= 0) continue;
-    const d = dichtbij(bij, p.x, p.y);
-    if (d <= RADIUS_VOETGANGER_EXTRA) peds.push({ d, p });
-  }
-  peds.sort((a, b) => a.d - b.d);
-  const nodig = [];
-  for (const { p } of peds.slice(0, 20)) {
+  const nodig = [], gewapend = [];
+  for (const { p } of kiesVoetgangers(world, bij)) {
     const id = pedId(p);
     const spreekt = !!(p.speechText && now < p.speechUntil);
-    const vl = (p.greetUntil > now ? V_GROET : 0) | (p.party ? V_FEEST : 0) | (p.heldWeapon ? V_WAPEN : 0) | (p.attackFx ? V_AANVAL : 0) | (p.hitReact ? V_GERAAKT : 0) | (spreekt ? V_SPREEKT : 0) | (p.hasBag ? V_TAS : 0);
+    const ligt = p.state === 'dead' || !!p.ragdoll;
+    const vecht = !!(p.attackFx && p.attackFx.start !== undefined && now - p.attackFx.start < 1.2);
+    const vl = (p.greetUntil > now ? V_GROET : 0) | (p.party ? V_FEEST : 0) | (p.heldWeapon ? V_WAPEN : 0) | (vecht ? V_AANVAL : 0) | (p.hitReact && now - p.hitReact.t < 0.6 ? V_GERAAKT : 0) | (spreekt ? V_SPREEKT : 0) | (p.hasBag ? V_TAS : 0) | (ligt ? V_LIGT : 0);
     uit.voetgangers.push({ id, speed: u8((p.speed || 0) * 10), flags: vl });
+    if ((p.heldWeapon || vecht) && gewapend.length < MAX_GEWAPEND) gewapend.push({ id, wapen: typeof p.heldWeapon === 'string' ? p.heldWeapon.slice(0, 16) : '', fx: vecht ? p.attackFx.type : '', swing: vecht ? p.attackFx.swing || '' : '' });
     if (spreekt && uit.spraak.length < MAX_SPRAAK) uit.spraak.push({ id, tekst: String(p.speechText).slice(0, SPRAAK_MAX_TEKENS) });
     const t = geheugen.looks.get(id);
     if (t == null || now - t >= LOOK_VERVERS) nodig.push({ id, p, t: t == null ? -1e9 : t });
@@ -134,6 +133,12 @@ export function verzamelExtra(world, bij, geheugen, deps = {}) {
     }
   }
   if (deps.misc) uit.misc = deps.misc(bij, geheugen, now) || [];
+  // wie een wapen heeft of vecht, de open deuren van voertuigen en wat de host nog meer beweegt: elk als een eigen stukje (alleen bij een verandering, en elke MISC_EVERY s)
+  const st = (tag, data, leeg) => { if (data.length && !leeg) { const s = stuk(geheugen, tag, now, data); if (s) uit.misc.push(s); } else if (geheugen.misc && geheugen.misc.get(tag) && geheugen.misc.get(tag).vol) { geheugen.misc.set(tag, { hash: '', at: now, vol: false }); const s = { tag, data: Uint8Array.of(0) }; uit.misc.push(s); } };
+  const pk = codeerPeds(gewapend); st(MISC_PEDS, pk, !gewapend.length);
+  const dl = deurMasker(world, bij); st(MISC_DEUREN, codeerDeuren(dl), !dl.length);
+  if (deps.wereld) { const wl = deps.wereld(bij) || []; st(MISC_WERELD, codeerWereld(wl), !wl.length); }
+  if (deps.sprekers) { const sl = deps.sprekers(bij, now) || []; st(MISC_SPREKERS, codeerSprekers(sl), !sl.length); }
   geheugen.n++;
   return uit;
 }
@@ -366,9 +371,143 @@ const stuk = (g, tag, now, data) => {
   const m = g.misc || (g.misc = new Map()); const hash = Array.from(data).join(',');
   const was = m.get(tag);
   if (was && was.hash === hash && now - was.at < MISC_EVERY) return null;
-  m.set(tag, { hash, at: now });
+  m.set(tag, { hash, at: now, vol: data.length > 1 });
   return { tag, data };
 };
+
+// ----------------------------------------------------------- wapen en gevecht, deuren van voertuigen, bruggen en sluizen, sprekers (#428)
+export const MAX_GEWAPEND = 8;
+export const FX_SOORTEN = ['', 'melee', 'muzzle', 'throw', 'squirt'];
+export const SWINGS = ['', 'bat', 'slap', 'sweep', 'stab', 'overhead', 'thrust', 'jab'];
+export function codeerPeds(lijst) {
+  const delen = lijst.map((g) => { const w = enc.encode(g.wapen || ''); return { id: g.id, w, fx: Math.max(0, FX_SOORTEN.indexOf(g.fx)), sw: Math.max(0, SWINGS.indexOf(g.swing)) }; });
+  const b = new Uint8Array(1 + delen.reduce((n, d) => n + 5 + d.w.length, 0)); const v = new DataView(b.buffer); let o = 0;
+  v.setUint8(o++, delen.length);
+  for (const d of delen) { v.setUint16(o, d.id); v.setUint8(o + 2, d.w.length); b.set(d.w, o + 3); o += 3 + d.w.length; v.setUint8(o++, d.fx); v.setUint8(o++, d.sw); }
+  return b;
+}
+export function leesPeds(b) {
+  if (!(b instanceof Uint8Array) || b.length < 1) return null;
+  const v = new DataView(b.buffer, b.byteOffset, b.byteLength); let o = 1; const n = v.getUint8(0); const uit = new Map();
+  if (n > MAX_GEWAPEND) return null;
+  for (let i = 0; i < n; i++) {
+    if (o + 3 > b.length) return null;
+    const id = v.getUint16(o), l = v.getUint8(o + 2); o += 3; if (o + l + 2 > b.length) return null;
+    const wapen = dec.decode(b.subarray(o, o + l)); o += l;
+    uit.set(id, { wapen: /^[a-z]{0,16}$/.test(wapen) ? wapen : '', fx: FX_SOORTEN[v.getUint8(o)] || '', swing: SWINGS[v.getUint8(o + 1)] || '' }); o += 2;
+  }
+  return o === b.length ? uit : null;
+}
+
+// Open deuren: voor elk voertuig in de buurt met een open deur het id en een masker (bit i = deur i van doorsFor(voertuig), open of gevraagd)
+export const MAX_DEUREN = 24;
+export function deurMasker(world, bij, radius = 150) {
+  const uit = [];
+  for (const v of world.vehicles || []) {
+    if (!v || !v.doors || v.wrecked || !Number.isFinite(v.x)) continue;
+    const id = voertuigId(v, 0); if (id == null) continue;
+    let m = 0; const defs = doorsFor(v);
+    for (let i = 0; i < defs.length && i < 8; i++) { const d = defs[i].id; if ((v.doors.want[d] || 0) > 0.5 || (v.doors.open[d] || 0) > 0.3) m |= 1 << i; }
+    if (m && dichtbij(bij, v.x, v.y) <= radius) uit.push({ id, mask: m });
+    if (uit.length >= MAX_DEUREN) break;
+  }
+  return uit;
+}
+export function codeerDeuren(lijst) {
+  const l = lijst.slice(0, MAX_DEUREN); const b = new Uint8Array(1 + l.length * 3); const v = new DataView(b.buffer);
+  v.setUint8(0, l.length); l.forEach((d, i) => { v.setUint16(1 + i * 3, d.id); v.setUint8(3 + i * 3, d.mask); });
+  return b;
+}
+export function leesDeuren(b) {
+  if (!(b instanceof Uint8Array) || b.length < 1) return null;
+  const v = new DataView(b.buffer, b.byteOffset, b.byteLength); const n = v.getUint8(0);
+  if (n > MAX_DEUREN || b.length !== 1 + n * 3) return null;
+  const uit = new Map(); for (let i = 0; i < n; i++) uit.set(v.getUint16(1 + i * 3), v.getUint8(3 + i * 3));
+  return uit;
+}
+
+// Bruggen en sluizen die bewegen: soort, toestand (en bij een sluis de kant waar hij staat), plek, en twee waarden (brug: open en slagbomen; sluis: de twee deuren) en het waterpeil (cm)
+export const WERELD_BRUG = 0, WERELD_SLUIS = 1, WERELD_GARAGE = 2;
+export const BRUG_TOESTANDEN = ['closed', 'warn', 'booms', 'clear', 'opening', 'open', 'closing', 'up'];
+export const SLUIS_TOESTANDEN = ['ready', 'closing', 'levelling', 'opening'];
+export const WERELD_RADIUS = 220, MAX_WERELD = 10;
+export const q255 = (x) => Math.max(0, Math.min(255, Math.round((Number.isFinite(x) ? x : 0) * 255)));
+// bruggen: getMovableBridges(), sluizen: getSluizen(); alleen wat beweegt (bruggen) of wat dichtbij is (sluizen)
+export function maakWereldLijst(bruggen, sluizen, bij, garage = null) {
+  const uit = [];
+  if (garage && Number.isFinite(garage.x) && garage.open > 0.02 && dichtbij(bij, garage.x, garage.y) <= WERELD_RADIUS) uit.push({ soort: WERELD_GARAGE, staat: 0, x: garage.x, y: garage.y, a: q255(garage.open), b: 0, peil: 0 });
+  for (const b of bruggen || []) {
+    if (!b || b.state === 'closed' || !Number.isFinite(b.x) || dichtbij(bij, b.x, b.y) > WERELD_RADIUS) continue;
+    uit.push({ soort: WERELD_BRUG, staat: Math.max(0, BRUG_TOESTANDEN.indexOf(b.state)), x: b.x, y: b.y, a: q255(b.open), b: q255(b.boom), peil: 0 });
+  }
+  for (const l of sluizen || []) {
+    if (!l || !Number.isFinite(l.x) || dichtbij(bij, l.x, l.y) > WERELD_RADIUS) continue;
+    uit.push({ soort: WERELD_SLUIS, staat: Math.max(0, SLUIS_TOESTANDEN.indexOf(l.state)) | ((l.at ? 1 : 0) << 4), x: l.x, y: l.y, a: q255(l.gate && l.gate[0]), b: q255(l.gate && l.gate[1]), peil: Math.round((Number.isFinite(l.level) ? l.level : 0) * 100) });
+  }
+  return uit.slice(0, MAX_WERELD);
+}
+export function codeerWereld(lijst) {
+  const l = lijst.slice(0, MAX_WERELD); const b = new Uint8Array(1 + l.length * 17); const v = new DataView(b.buffer); v.setUint8(0, l.length);
+  l.forEach((e, i) => { const o = 1 + i * 17; v.setUint8(o, e.soort); v.setUint8(o + 1, e.staat); v.setFloat32(o + 2, e.x); v.setFloat32(o + 6, e.y); v.setUint8(o + 10, e.a); v.setUint8(o + 11, e.b); v.setInt16(o + 12, Math.max(-32768, Math.min(32767, e.peil))); });
+  return b;
+}
+export function leesWereld(b) {
+  if (!(b instanceof Uint8Array) || b.length < 1) return null;
+  const v = new DataView(b.buffer, b.byteOffset, b.byteLength); const n = v.getUint8(0);
+  if (n > MAX_WERELD || b.length !== 1 + n * 17) return null;
+  const uit = [];
+  for (let i = 0; i < n; i++) {
+    const o = 1 + i * 17, soort = v.getUint8(o), s = v.getUint8(o + 1);
+    const e = { soort, x: v.getFloat32(o + 2), y: v.getFloat32(o + 6), a: v.getUint8(o + 10) / 255, b: v.getUint8(o + 11) / 255, peil: v.getInt16(o + 12) / 100 };
+    if (!Number.isFinite(e.x) || !Number.isFinite(e.y)) return null;
+    if (soort === WERELD_BRUG) e.staat = BRUG_TOESTANDEN[s & 15]; else if (soort === WERELD_SLUIS) { e.staat = SLUIS_TOESTANDEN[s & 15]; e.kant = (s >> 4) & 1; } else if (soort === WERELD_GARAGE) e.staat = 'open'; else continue;
+    if (!e.staat) continue;
+    uit.push(e);
+  }
+  return uit;
+}
+
+// Sprekers die geen voetganger zijn (een opdrachtgever, een kermisbaas, een bestuurder): plek, hoogte, naam en tekst. Hoogstens MAX_SPREKERS en 250 bytes.
+export const MAX_SPREKERS = 2;
+export function maakSprekersLijst(extraSpeakers, now, bij, radius = 90) {
+  const uit = [];
+  for (const s of extraSpeakers || []) {
+    if (!s || !s.speechText || !(s.speechUntil > now)) continue;
+    const p = s.follow && Number.isFinite(s.follow.x) ? s.follow : s; if (!Number.isFinite(p.x) || !Number.isFinite(p.y)) continue;
+    if (dichtbij(bij, p.x, p.y) > radius) continue;
+    uit.push({ x: p.x, y: p.y, h: Number.isFinite(s.h) ? s.h : 2.1, vrouw: !!s.female, naam: String(s.speechName || '').slice(0, 24), tekst: String(s.speechText).slice(0, SPRAAK_MAX_TEKENS) });
+    if (uit.length >= MAX_SPREKERS) break;
+  }
+  return uit;
+}
+export function codeerSprekers(lijst) {
+  const delen = []; let n = 1;
+  for (const s of lijst.slice(0, MAX_SPREKERS)) {
+    const nm = enc.encode(s.naam || ''), tx = enc.encode(s.tekst || '');
+    const len = 10 + 1 + nm.length + 1 + tx.length; if (nm.length > 80 || tx.length > 110 || n + len > 250) continue;
+    delen.push({ s, nm, tx }); n += len;
+  }
+  const b = new Uint8Array(n); const v = new DataView(b.buffer); v.setUint8(0, delen.length); let o = 1;
+  for (const { s, nm, tx } of delen) {
+    v.setFloat32(o, s.x); v.setFloat32(o + 4, s.y); v.setUint8(o + 8, Math.max(0, Math.min(255, Math.round((s.h || 2.1) * 10)))); v.setUint8(o + 9, s.vrouw ? 1 : 0); o += 10;
+    v.setUint8(o++, nm.length); b.set(nm, o); o += nm.length; v.setUint8(o++, tx.length); b.set(tx, o); o += tx.length;
+  }
+  return b;
+}
+export function leesSprekers(b) {
+  if (!(b instanceof Uint8Array) || b.length < 1) return null;
+  const v = new DataView(b.buffer, b.byteOffset, b.byteLength); const n = v.getUint8(0); let o = 1; const uit = [];
+  if (n > MAX_SPREKERS) return null;
+  for (let i = 0; i < n; i++) {
+    if (o + 11 > b.length) return null;
+    const x = v.getFloat32(o), y = v.getFloat32(o + 4), h = v.getUint8(o + 8) / 10, vrouw = !!(v.getUint8(o + 9) & 1); o += 10;
+    const nl = v.getUint8(o++); if (o + nl + 1 > b.length) return null; const naam = dec.decode(b.subarray(o, o + nl)); o += nl;
+    const tl = v.getUint8(o++); if (o + tl > b.length) return null; const tekst = dec.decode(b.subarray(o, o + tl)); o += tl;
+    if (!Number.isFinite(x) || !Number.isFinite(y)) return null;
+    uit.push({ x, y, h, vrouw, naam: naam.slice(0, 24), tekst: tekst.slice(0, SPRAAK_MAX_TEKENS) });
+  }
+  return o === b.length ? uit : null;
+}
 // bronnen: { kermis: bool, stunt: { x, y, props: [{kind, x, y, alive}] } | null, punten: [{x, y, z}] | null }
 export function maakMisc(bronnen, geheugen, now) {
   const uit = [];

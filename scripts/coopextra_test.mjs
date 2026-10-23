@@ -6,7 +6,7 @@ import { encodeExtra, decodeExtra, MAX_EXTRA } from '../game/js/net/codec.js';
 import { createLink, makeRng } from '../game/js/net/memtransport.js';
 import { HostSession, ClientSession, EXTRA_HZ } from '../game/js/net/session.js';
 import { checkHandshake, PROTO } from '../game/js/net/protocol.js';
-import { pedId } from '../game/js/coopworld.js';
+import { pedId, kiesVoetgangers } from '../game/js/coopworld.js';
 
 let n = 0;
 const t = (name, f) => { f(); n++; };
@@ -59,7 +59,8 @@ t('verzamelen: dood, ver weg en vlaggen', () => {
   w.pedestrians[0].state = 'dead'; w.pedestrians[1].x = 9000; w.pedestrians[2].greetUntil = 105; w.pedestrians[2].speechText = 'Goedemorgen!'; w.pedestrians[2].speechUntil = 103;
   w.pedestrians[3].party = true; w.pedestrians[3].speed = 3.4;
   const u = X.verzamelExtra(w, BIJ, X.nieuwGeheugen(), DEPS);
-  assert.equal(u.voetgangers.length, 2);
+  assert.equal(u.voetgangers.length, 3, 'de dode ligt er nog (V_LIGT), alleen wie ver weg is, blijft thuis');
+  assert.ok(u.voetgangers.find((p) => p.id === pedId(w.pedestrians[0])).flags & X.V_LIGT, 'een dode ligt op de grond');
   const a = u.voetgangers.find((p) => p.id === pedId(w.pedestrians[2]));
   assert.ok(a.flags & X.V_GROET); assert.ok(a.flags & X.V_SPREEKT); assert.equal(u.spraak[0].tekst, 'Goedemorgen!');
   const b = u.voetgangers.find((p) => p.id === pedId(w.pedestrians[3]));
@@ -170,6 +171,106 @@ t('misc: kermis, stuntavond en punten: coderen, lezen en afremmen', () => {
   assert.ok(st.misc.has(X.MISC_KERMIS), 'blijft staan tot MISC_TTL');
   X.pasExtraToe(st, X.leesExtra(X.codeerExtra(X.verzamelExtra(w, BIJ, X.nieuwGeheugen(), DEPS), BIJ[0])), 25);
   assert.ok(!st.misc.has(X.MISC_KERMIS), 'en daarna is het weg');
+});
+
+// ---------------------------------------------------------------- #428: gevallen mensen, wapens, deuren, bruggen en sluizen, sprekers
+t('gevallen en dode mensen, wie ertoe doet, wapen en gevecht', () => {
+  const w = wereld(5, 0);
+  w.pedestrians[0].ragdoll = { t: 99 };                                  // omgevallen: ligt
+  w.pedestrians[1].state = 'dead'; w.pedestrians[1].deadUntil = 120;      // dood
+  w.pedestrians[2].heldWeapon = 'knuppel'; w.pedestrians[2].attackFx = { type: 'melee', swing: 'bat', start: 99.8 };
+  w.pedestrians[3].x = 100 + 95; w.pedestrians[3].y = 200; w.pedestrians[3].missionCrowd = true;  // 95 m: net buiten het gewone bereik, maar telt mee
+  w.pedestrians[4].x = 100 + 95; w.pedestrians[4].y = 205;               // gewoon en te ver
+  w.pedestrians[3].hitReact = { t: 99.9, dx: 1, dy: 0, k: 0.7 };
+  const g = X.nieuwGeheugen();
+  const u = X.verzamelExtra(w, [{ x: 100, y: 200 }], g, DEPS);
+  const vl = (i) => (u.voetgangers.find((p) => p.id === pedId(w.pedestrians[i])) || {}).flags;
+  assert.ok(vl(0) & X.V_LIGT, 'omgevallen'); assert.ok(vl(1) & X.V_LIGT, 'dood');
+  assert.ok((vl(2) & X.V_WAPEN) && (vl(2) & X.V_AANVAL), 'wapen en klap');
+  assert.ok(vl(3) !== undefined, 'iemand van een opdracht op 95 m komt mee'); assert.ok(vl(3) & X.V_GERAAKT, 'en wordt geraakt');
+  assert.equal(vl(4), undefined, 'een gewone voetganger op 95 m niet');
+  const mp = u.misc.find((m) => m.tag === X.MISC_PEDS); assert.ok(mp, 'het wapen gaat mee als stukje');
+  const px = X.leesPeds(mp.data); const e = px.get(pedId(w.pedestrians[2]));
+  assert.deepEqual(e, { wapen: 'knuppel', fx: 'melee', swing: 'bat' });
+  // de snapshot (coopworld.js) kiest dezelfde mensen
+  const wl = require_kies(w);
+  assert.deepEqual(wl.sort(), [0, 1, 2, 3].map((i) => pedId(w.pedestrians[i])).sort());
+});
+function require_kies(w) { return kiesVoetgangers(w, [{ x: 100, y: 200 }]).map(({ p }) => pedId(p)); }
+
+t('deuren: masker per voertuig, coderen, lezen', () => {
+  const v1 = { id: 7, x: 105, y: 205, model: { name: 'sedan' }, doors: { open: { vl: 1 }, want: { vl: 1, ar: 1 }, loose: {}, hold: {}, dmg: {} } };
+  const v2 = { id: 8, x: 108, y: 205, model: { name: 'hatch' } };                       // geen deurstand: dicht
+  const v3 = { id: 9, x: 5000, y: 5000, model: { name: 'sedan' }, doors: { open: { vl: 1 }, want: {}, loose: {}, hold: {}, dmg: {} } }; // ver weg
+  const l = X.deurMasker({ vehicles: [v1, v2, v3] }, [{ x: 100, y: 200 }]);
+  assert.equal(l.length, 1); assert.equal(l[0].id, 7); assert.equal(l[0].mask, 0b1001, 'voordeur links (0) en rechtsachter (3)');
+  const m = X.leesDeuren(X.codeerDeuren(l)); assert.equal(m.get(7), 0b1001);
+  assert.equal(X.leesDeuren(Uint8Array.of(2, 0, 7)), null, 'afgekapt');
+  assert.equal(X.codeerDeuren([]).length, 1, 'geen open deuren: één byte');
+});
+
+t('bruggen en sluizen: coderen, lezen, alleen wat beweegt', () => {
+  const brug = (state, open, boom, x = 100) => ({ state, open, boom, x, y: 200 });
+  const sl = { x: 130, y: 205, state: 'opening', at: 1, gate: [0.25, 0.5], level: -1.234 };
+  const l = X.maakWereldLijst([brug('closed', 0, 0), brug('opening', 0.4, 1), brug('open', 1, 1, 9000)], [sl, { ...sl, x: 8000 }], [{ x: 100, y: 200 }]);
+  assert.equal(l.length, 2, 'een gesloten brug, een verre brug en een verre sluis blijven thuis');
+  const r = X.leesWereld(X.codeerWereld(l));
+  assert.equal(r.length, 2);
+  assert.equal(r[0].soort, X.WERELD_BRUG); assert.equal(r[0].staat, 'opening'); near(r[0].a, 0.4, 0.005); near(r[0].b, 1, 0.005);
+  assert.equal(r[1].soort, X.WERELD_SLUIS); assert.equal(r[1].staat, 'opening'); assert.equal(r[1].kant, 1); near(r[1].a, 0.25, 0.005); near(r[1].b, 0.5, 0.005); near(r[1].peil, -1.23, 0.01);
+  assert.equal(X.leesWereld(Uint8Array.of(1, 0, 0)), null, 'te kort');
+  assert.equal(X.leesWereld(Uint8Array.of(0)).length, 0, 'leeg mag');
+});
+
+t('sprekers zonder voetganger: naam en tekst komen mee, binnen de grenzen', () => {
+  const sp = [{ x: 101, y: 201, h: 2.3, female: false, speechName: 'Kermisbaas Jan', speechText: 'Kom maar binnen, joh!', speechUntil: 105 },
+    { x: 0, y: 0, follow: { x: 103, y: 202 }, h: 2.2, female: true, speechName: 'Hilje', speechText: 'Moi! ' + 'x'.repeat(200), speechUntil: 105 },
+    { x: 9000, y: 9000, speechText: 'ver weg', speechUntil: 105 }, { x: 100, y: 200, speechText: 'verlopen', speechUntil: 90 }];
+  const l = X.maakSprekersLijst(sp, 100, [{ x: 100, y: 200 }]);
+  assert.equal(l.length, 2); assert.equal(l[1].x, 103, 'volgt de voetganger'); assert.equal(l[1].tekst.length, X.SPRAAK_MAX_TEKENS);
+  const r = X.leesSprekers(X.codeerSprekers(l));
+  assert.equal(r.length, 2); assert.equal(r[0].naam, 'Kermisbaas Jan'); assert.equal(r[0].tekst, 'Kom maar binnen, joh!'); assert.equal(r[1].vrouw, true); near(r[0].h, 2.3, 0.06);
+  assert.ok(X.codeerSprekers(l).length <= 255, 'past in één stukje');
+  assert.equal(X.leesSprekers(Uint8Array.of(1, 0, 0)), null);
+});
+
+t('alles in één bericht: de nieuwe stukjes gaan mee, komen aan, en blijven binnen het budget', () => {
+  const w = wereld(12, 6); w.pedestrians[2].heldWeapon = 'pistol'; w.pedestrians[3].state = 'dead';
+  w.vehicles = [{ id: 7, x: 105, y: 205, model: { name: 'sedan' }, doors: { open: { vl: 1 }, want: { vl: 1 }, loose: {}, hold: {}, dmg: {} } }];
+  w.extraSpeakers = [{ x: 101, y: 201, h: 2.3, speechName: 'Kermisbaas Jan', speechText: 'Kom maar binnen, joh!', speechUntil: 105 }];
+  const deps = { ...DEPS, wereld: (bij) => X.maakWereldLijst([{ state: 'booms', open: 0, boom: 0.5, x: 110, y: 205 }], [], bij), sprekers: (bij, nu) => X.maakSprekersLijst(w.extraSpeakers, nu, bij) };
+  const g = X.nieuwGeheugen(); const st = X.nieuweStand();
+  const buf = X.codeerExtra(X.verzamelExtra(w, BIJ, g, deps), BIJ[0]);
+  assert.ok(buf.length <= X.MAX_LADING, 'binnen het pakket: ' + buf.length);
+  const b = X.leesExtra(buf); assert.ok(b, 'leesbaar');
+  X.pasExtraToe(st, b, 10);
+  for (const tag of [X.MISC_PEDS, X.MISC_DEUREN, X.MISC_WERELD, X.MISC_SPREKERS]) assert.ok(st.misc.has(tag), 'stukje ' + tag);
+  assert.equal(X.leesDeuren(st.misc.get(X.MISC_DEUREN).data).get(7), 1);
+  // niets veranderd: binnen MISC_EVERY geen nieuwe stukjes (bandbreedte)
+  w.time = 100.5; const klein = X.codeerExtra(X.verzamelExtra(w, BIJ, g, deps), BIJ[0]);
+  assert.ok(klein.length < buf.length - 20, 'volgende keer zonder de stukjes: ' + klein.length + ' < ' + buf.length);
+  // de deur gaat dicht en er is geen wapen meer: één leeg stukje zodat de gast het weet
+  w.vehicles[0].doors.want.vl = 0; w.vehicles[0].doors.open.vl = 0; w.pedestrians[2].heldWeapon = null; w.time = 100.6;
+  const u = X.verzamelExtra(w, BIJ, g, deps);
+  const d = u.misc.find((m) => m.tag === X.MISC_DEUREN); assert.ok(d && X.leesDeuren(d.data).size === 0, 'leeg stukje voor de deuren');
+  assert.ok(u.misc.find((m) => m.tag === X.MISC_PEDS && X.leesPeds(m.data).size === 0), 'leeg stukje voor de wapens');
+  w.time = 102; const u2 = X.verzamelExtra(w, BIJ, g, deps);
+  assert.ok(!u2.misc.find((m) => m.tag === X.MISC_DEUREN), 'en daarna niets meer');
+});
+
+t('garagepoort van de host, en een stukje dat deze versie niet kent', () => {
+  const l = X.maakWereldLijst([], [], [{ x: 100, y: 200 }], { x: 110, y: 205, open: 0.75 });
+  assert.equal(l.length, 1); assert.equal(l[0].soort, X.WERELD_GARAGE);
+  const r = X.leesWereld(X.codeerWereld(l)); assert.equal(r[0].soort, X.WERELD_GARAGE); near(r[0].a, 0.75, 0.005);
+  assert.equal(X.maakWereldLijst([], [], [{ x: 100, y: 200 }], { x: 110, y: 205, open: 0 }).length, 0, 'dicht: niets te melden');
+  assert.equal(X.maakWereldLijst([], [], [{ x: 100, y: 200 }], { x: 9000, y: 205, open: 1 }).length, 0, 'ver weg: niets te melden');
+  // een nieuwere host kent een stukje (tag 99) dat deze gast niet kent: het mag de rest niet breken
+  const w = wereld(2, 0); const g = X.nieuwGeheugen();
+  const u = X.verzamelExtra(w, BIJ, g, { ...DEPS, misc: () => [{ tag: 99, data: Uint8Array.of(1, 2, 3) }] });
+  const b = X.leesExtra(X.codeerExtra(u, BIJ[0])); assert.ok(b && b.misc.some((m) => m.tag === 99), 'wordt gelezen');
+  const st = X.nieuweStand(); X.pasExtraToe(st, b, 5); assert.equal(st.voetgangers.size, 2, 'en de rest komt gewoon aan');
+  assert.equal(X.leesDeuren(Uint8Array.of(0)).size, 0); assert.equal(X.leesPeds(Uint8Array.of(0)).size, 0);
+  assert.equal(X.leesPeds(Uint8Array.of(1, 0, 5, 200, 1, 2)), null, 'een wapennaam die langer is dan het stukje: afgewezen');
 });
 
 console.log(`coopextra_test: ${n}/${n} ok`);

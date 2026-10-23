@@ -126,20 +126,22 @@ t('tekst voor de gast: Nederlands; extra spelers lopen mee in de open wereld', (
   assert.match(W.missieTekst(m, 'hoofdrol'), /Doe mee waar het kan/);
   assert.equal(W.missieTekst({ actief: false }), '');
 });
-t('voetgangers van de host: dichtbij, met een vast id, agenten herkenbaar, doden en verre niet; voertuigen houden hun plekken', () => {
+t('voetgangers van de host: dichtbij, met een vast id, agenten herkenbaar, een dode ligt er nog (#428), verre niet; voertuigen houden hun plekken', () => {
   const ped = (x, y, extra = {}) => ({ x, y, angle: 1, state: 'wander', health: 30, isCop: false, ...extra });
-  const a = ped(10, 0), b = ped(30, 5, { isCop: true }), dood = ped(5, 5, { state: 'dead' }), ver = ped(300, 0), kapot = ped(1, 1, { health: 0 });
+  const a = ped(10, 0), b = ped(30, 5, { isCop: true }), dood = ped(5, 5, { state: 'dead', health: 0 }), ver = ped(300, 0), kapot = ped(1, 1, { health: 0 });
   const world = { vehicles: Array.from({ length: 60 }, (_, i) => veh(i + 1, 5 + i, 3)), pedestrians: [a, b, dood, ver, kapot, null, ped(NaN, 0)] };
   const e = W.verzamelEntiteiten(world, [{ x: 0, y: 0 }]);
   const peds = e.filter((x) => x.kind === W.SOORT_VOETGANGER || x.kind === W.SOORT_AGENT);
-  assert.deepEqual(peds.map((p) => p.kind).sort(), [W.SOORT_VOETGANGER, W.SOORT_AGENT], 'een voetganger en een agent; geen dode, geen verre, geen rommel');
+  assert.deepEqual(peds.map((p) => p.kind).sort(), [W.SOORT_VOETGANGER, W.SOORT_VOETGANGER, W.SOORT_AGENT], 'een voetganger, de dode (die ligt) en een agent; geen verre, geen rommel, geen lijk zonder staat');
+  const mp = W.verzamelEntiteiten({ ...world, pedestrians: [ped(90, 0, { missionCrowd: true }), ped(90, 2)] }, [{ x: 0, y: 0 }]).filter((x) => x.kind === W.SOORT_VOETGANGER);
+  assert.equal(mp.length, 1, 'iemand van een opdracht op 90 m gaat mee, een gewone voetganger niet');
   assert.ok(e.length <= W.MAX_ENTITEITEN && e.filter((x) => x.kind < 12).length >= 12, 'de voertuigen houden minstens 12 plekken');
   const id1 = peds.find((p) => p.kind === W.SOORT_VOETGANGER).id;
   assert.equal(W.verzamelEntiteiten(world, [{ x: 0, y: 0 }]).find((x) => x.kind === W.SOORT_VOETGANGER).id, id1, 'zelfde voetganger, zelfde id');
   assert.ok(id1 >= 0x8000 && !e.some((x) => x.kind < 12 && x.id === id1), 'voetgangers delen geen id met voertuigen');
   const veel = { vehicles: [], pedestrians: Array.from({ length: 80 }, (_, i) => ped(i % 40, Math.floor(i / 40))) };
   assert.equal(W.verzamelEntiteiten(veel, [{ x: 0, y: 0 }]).length, W.MAX_VOETGANGERS, 'niet meer dan 20 voetgangers');
-  const g = W.leesEntiteiten(e); assert.equal(g.voetgangers.length, 2); assert.equal(g.voetgangers.filter((p) => p.agent).length, 1);
+  const g = W.leesEntiteiten(e); assert.equal(g.voetgangers.length, 3); assert.equal(g.voetgangers.filter((p) => p.agent).length, 1);
   const snap = { players: [], shared: { money: 0, wanted: 0, clock: 0 }, mission: { stage: 0, state: 'run', present: 3 }, entities: e };
   const back = decodeSnapshot(encodeSnapshot(1, 1, 0, snap)); assert.equal(back.entities.length, e.length, 'past in een snapshot');
 });

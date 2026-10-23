@@ -94,7 +94,7 @@ export function hostSim(world, roster) {
       const oorsprong = f && Number.isFinite(f.x) && Number.isFinite(f.y) ? f : bij[0];
       let g = geheugens.get(slot); if (!g) geheugens.set(slot, g = nieuwGeheugen());
       const d = world.coopExtraDeps || {};
-      const deps = { controllers: d.controllers ? d.controllers() : [], gebroken: d.gebroken, misc: d.misc };
+      const deps = { controllers: d.controllers ? d.controllers() : [], gebroken: d.gebroken, misc: d.misc, wereld: d.wereld, sprekers: d.sprekers };
       return codeerExtra(verzamelExtra(world, bij, g, deps), oorsprong);
     },
     applyInput(slot, input) {
@@ -449,7 +449,7 @@ export function tickCoopNet(world, dt) {
       world.coopInVoertuig = !!(ik && ik.inVeh);
       if (!world.coopInVoertuig) world.coopWiel = false;
       world.coopHost = sample ? leesEntiteiten(sample.entities) : { voertuigen: [], doelen: [], voetgangers: [], treinen: [] };
-      if (sample && rails) for (const t of world.coopHost.treinen) rails.zetTreinVanHost(t.route, t.x, t.y, t.v); // de gast speelt geen eigen dienstregeling: de treinen staan waar de host ze heeft
+      if (sample && rails) { if (rails.zetTreinenVanHost) rails.zetTreinenVanHost(world.coopHost.treinen); else for (const t of world.coopHost.treinen) rails.zetTreinVanHost(t.route, t.x, t.y, t.v); } // de gast speelt geen eigen dienstregeling: de treinen staan waar de host ze heeft
       world.coopPartners = partnersInfo(s.slot, sample ? sample.players : [], world.coopRoster || []);
       world.coopPartner = world.coopPartners[0] || null;
       world.coopCam = CAMERA_DELEN && s.slot === 1 ? sharedCamera(world.player, world.companion) : null; // alleen Tessa zou de camera delen met Tammo (uit, #388)
