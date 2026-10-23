@@ -582,14 +582,23 @@ const PHASES = {
     log('gastspring', { zmax: Math.round(zmax * 100) / 100, hoog, buk, na: !!w.player.crouching, zNa: w.player.z || 0, bukCompanion });
   },
   // #434: wat de gast ziet van wie er meerijdt, en het wapen en de aanval van de gastheer; camera naar het voertuig of de gastheer
-  async zit({ s = 8, naam = 'zit', kijk = 'zelf' }) {
+  async zit({ s = 8, naam = 'zit', kijk = 'zelf', pitch = null }) {
     const w = W();
     if (CFG.role === 'host') { await sleep(s * 1000); return; }
     await sleep(s * 1000 / 2);
+    if (pitch != null) { // de camera kijkt schuin omlaag, zodat de zitters in beeld komen
+      const S = await import('./js/scene3d.js'), cam = S.getCamera(), m = w.input.mouse, was = m.locked; m.locked = true;
+      const hoek = () => { const p = w.player, dx = cam.position.x - p.x, dz = cam.position.z - p.y, dy = cam.position.y - ((p.gz || 0) + 1.3); return Math.atan2(dy, Math.hypot(dx, dz)) * 180 / Math.PI; };
+      for (let i = 0; i < 80 && Math.abs(hoek() - pitch) > 3; i++) { window.dispatchEvent(new MouseEvent('mousemove', { movementX: 0, movementY: hoek() < pitch ? 12 : -12, clientX: 400, clientY: 300 })); await sleep(50); }
+      m.locked = was; await sleep(400);
+    }
     const c = w.companion; if (c && kijk === 'host') w.camYaw = Math.atan2(c.y - w.player.y, c.x - w.player.x);
     await sleep(s * 1000 / 2);
-    log(naam, { zitters: (w.coopZitters || []).map((z) => [z.slot, z.voertuig, z.stoel, z.bestuurder]), dbg: w.coopZittersDbg ?? null, inVoertuig: !!w.coopInVoertuig, wapen: c ? c.coopWapen || '' : null, fx: c && c.coopFx ? c.coopFx.type : null, hostZichtbaar: c ? c.coopVoertuig : null });
-    shot(naam);
+    const guns = []; { const SC = (await import('./js/scene3d.js')).getScene(); if (SC) SC.traverse((o) => { if (o.userData && o.userData.gunKey) guns.push(o.userData.gunKey); }); } // modellen met een wapen in de hand
+    const fietsen = []; { const SC = (await import('./js/scene3d.js')).getScene(); if (SC) SC.traverse((o) => { if (o.userData && o.userData.riderLegs && o.userData.wheels) fietsen.push([o, o.userData.pedalPhase || 0]); }); await sleep(350); } // de trappers van de fietsen in beeld
+    const pedaal = fietsen.map(([o, p0]) => Math.abs((o.userData.pedalPhase || 0) - p0) > 0.05);
+    log(naam, { guns, pedaal, zitters: (w.coopZitters || []).map((z) => [z.slot, z.voertuig, z.stoel, z.bestuurder]), dbg: w.coopZittersDbg ?? null, inVoertuig: !!w.coopInVoertuig, wapen: c ? c.coopWapen || '' : null, fx: c && c.coopFx ? c.coopFx.type : null, hostZichtbaar: c ? c.coopVoertuig : null });
+    for (let i = 0; i < (kijk === 'host' ? 4 : 1); i++) { shot(kijk === 'host' ? naam + '-' + i : naam); await sleep(350); } // bij een aanval meer beelden vlak na elkaar
     await sleep(600);
   },
   // samen spelen (#388): de gast rent van de gastheer weg (ver voorbij de oude lijn van 38 m) en wordt na de waarschuwing bij de groep gezet;
