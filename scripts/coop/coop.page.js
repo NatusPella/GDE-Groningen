@@ -530,6 +530,68 @@ const PHASES = {
     log('gastcamera', { yaw0: Math.round(y0 * 1000) / 1000, yaw1: Math.round(y1 * 1000) / 1000, lookActief: !!w.input.lookActive() });
     shot('gastcamera');
   },
+  // #434: vloeiend bewegen bij de gast: per beeld de plek van een voertuig, een voetganger en het lichaam van de gastheer zoals ze getekend worden,
+  // en de snelheid tussen twee beelden (stappen per rAF). Een goed tempo heeft geen stilstand en geen sprongen.
+  async gloed({ s = 12, naam = 'gloed' }) {
+    const w = W();
+    if (CFG.role === 'host') { await sleep(s * 1000); return; }
+    const reeks = { auto: [], ped: [], host: [] };
+    let vorige = performance.now(); const eind = vorige + s * 1000;
+    await new Promise((res) => {
+      const f = (nu) => {
+        const dt = (nu - vorige) / 1000; vorige = nu;
+        const h = w.coopHost;
+        const v = h && h.voertuigen.find((q) => q.id === 100), p = h && h.voetgangers[0], c = w.companion;
+        if (dt > 0.001) { if (v) reeks.auto.push([v.x, v.y, dt]); if (p) reeks.ped.push([p.x, p.y, dt, p.id]); if (c) reeks.host.push([c.x, c.y, dt]); }
+        if (nu < eind) requestAnimationFrame(f); else res();
+      };
+      requestAnimationFrame(f);
+    });
+    const stat = (r) => {
+      const v = []; for (let i = 1; i < r.length; i++) { if (r[i][3] !== undefined && r[i][3] !== r[i - 1][3]) continue; v.push(Math.hypot(r[i][0] - r[i - 1][0], r[i][1] - r[i - 1][1]) / r[i][2]); }
+      const gesorteerd = [...v].sort((a, b) => a - b), med = gesorteerd[Math.floor(v.length / 2)] || 0;
+      const dts = r.map((x) => x[2]).sort((a, b) => a - b);
+      return { n: v.length, med: +med.toFixed(2), stil: v.filter((x) => x < 0.25 * med).length, sprong: v.filter((x) => x > 2.5 * med).length, p5: +(gesorteerd[Math.floor(v.length * 0.05)] / (med || 1)).toFixed(2), p95: +(gesorteerd[Math.floor(v.length * 0.95)] / (med || 1)).toFixed(2), maxDt: +(dts[dts.length - 1] * 1000).toFixed(0) };
+    };
+    log(naam, { auto: stat(reeks.auto), ped: stat(reeks.ped), host: stat(reeks.host) });
+  },
+  // #434: de camera van de gast kijkt omhoog en omlaag met de muis (hoogte van de camera ten opzichte van het hoofd van de figuur, in graden)
+  async gastpitch() {
+    const w = W();
+    if (CFG.role === 'host') { await sleep(6000); return; }
+    const S = await import('./js/scene3d.js'), cam = S.getCamera();
+    const m = w.input.mouse, was = m.locked; m.locked = true; // een echte vergrendelde muis kan een test niet krijgen: de pagina meldt hem als vergrendeld
+    const hoek = () => { const p = w.player, dx = cam.position.x - p.x, dz = cam.position.z - p.y, dy = cam.position.y - ((p.gz || 0) + 1.3); return Math.round(Math.atan2(dy, Math.hypot(dx, dz)) * 1800 / Math.PI) / 10; };
+    await sleep(500); const a0 = hoek();
+    for (let i = 0; i < 24; i++) { window.dispatchEvent(new MouseEvent('mousemove', { movementX: 0, movementY: 30, clientX: 400, clientY: 300 })); await sleep(40); }
+    await sleep(500); const a1 = hoek();
+    for (let i = 0; i < 48; i++) { window.dispatchEvent(new MouseEvent('mousemove', { movementX: 0, movementY: -30, clientX: 400, clientY: 300 })); await sleep(40); }
+    await sleep(500); const a2 = hoek();
+    for (let i = 0; i < 60 && Math.abs(hoek() - a0) > 2; i++) { window.dispatchEvent(new MouseEvent('mousemove', { movementX: 0, movementY: hoek() < a0 ? 12 : -12, clientX: 400, clientY: 300 })); await sleep(60); } // terug naar de gewone stand voor de beelden erna
+    m.locked = was;
+    log('gastpitch', { a0, a1, a2, lookActief: !!w.input.lookActive() });
+  },
+  // #434: springen en bukken van de gast: de hoogte en de bukvlag van zijn eigen lichaam (komt van de gastheer terug), en wat de gastheer ervan ziet
+  async gastspring() {
+    const w = W(), B = window.__bot;
+    if (CFG.role === 'host' || !B) { await sleep(5000); return; }
+    let zmax = 0, hoog = 0; const t1 = performance.now() + 1400;
+    B.down(' '); await sleep(120); B.up(' ');
+    while (performance.now() < t1) { const z = w.player.z || 0; zmax = Math.max(zmax, z); if (z > 0.05) hoog++; await sleep(16); }
+    B.down('control'); await sleep(900); const buk = !!w.player.crouching; const bukCompanion = !!(w.companion && w.companion.crouching); B.up('control'); await sleep(600);
+    log('gastspring', { zmax: Math.round(zmax * 100) / 100, hoog, buk, na: !!w.player.crouching, zNa: w.player.z || 0, bukCompanion });
+  },
+  // #434: wat de gast ziet van wie er meerijdt, en het wapen en de aanval van de gastheer; camera naar het voertuig of de gastheer
+  async zit({ s = 8, naam = 'zit', kijk = 'zelf' }) {
+    const w = W();
+    if (CFG.role === 'host') { await sleep(s * 1000); return; }
+    await sleep(s * 1000 / 2);
+    const c = w.companion; if (c && kijk === 'host') w.camYaw = Math.atan2(c.y - w.player.y, c.x - w.player.x);
+    await sleep(s * 1000 / 2);
+    log(naam, { zitters: (w.coopZitters || []).map((z) => [z.slot, z.voertuig, z.stoel, z.bestuurder]), dbg: w.coopZittersDbg ?? null, inVoertuig: !!w.coopInVoertuig, wapen: c ? c.coopWapen || '' : null, fx: c && c.coopFx ? c.coopFx.type : null, hostZichtbaar: c ? c.coopVoertuig : null });
+    shot(naam);
+    await sleep(600);
+  },
   // samen spelen (#388): de gast rent van de gastheer weg (ver voorbij de oude lijn van 38 m) en wordt na de waarschuwing bij de groep gezet;
   // of de gast loopt door terwijl het spel van de gastheer op pauze staat
   async gastloop({ s = 30, naam = 'gastloop', rennen = true }) {

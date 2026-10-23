@@ -6,7 +6,7 @@
 // of rtc.js). Geen IP-adressen of namen in berichten, geen telemetrie.
 
 import { T, encodeInput, decodeInput, encodeSnapshot, decodeSnapshot, encodeJson, decodeJson, encodeSimple, readHeader, encodeExtra, decodeExtra } from './codec.js';
-import { volgTijd, mixPositie, mixEntiteiten, lerp } from './interp.js';
+import { volgTijd, schatTempo, mixPositie, mixEntiteiten, lerp, INTERP_DELAY } from './interp.js';
 import { PROTO, Reliable, checkHandshake, seqNewer, seqDiff } from './protocol.js';
 
 export const SNAP_HZ = 20;
@@ -17,6 +17,7 @@ export const LOST_AFTER = 5;       // s zonder bericht: verbinding verloren
 export const HELLO_TIMEOUT = 30;   // s zonder welkom van de host (die laadt, hangt of is weg): de gast geeft het op met een duidelijke melding
 export const RESUME_WINDOW = 120;  // s waarin de gast kan hervatten
 export { INTERP_DELAY, EXTRA_MAX as MAX_EXTRAPOLATE } from './interp.js'; // de client toont de wereld iets in het verleden en voorspelt hoogstens even (net/interp.js, #434)
+
 export const STALE_INPUT = 0.5;    // s zonder invoer: de host neutraliseert (geen vastzittende toets)
 const PING_EVERY = 1;
 
@@ -152,7 +153,9 @@ export class HostSession extends Base {
     while (this.snapAcc >= 1 / SNAP_HZ) {
       this.snapAcc -= 1 / SNAP_HZ;
       this.snapSeq = (this.snapSeq + 1) & 0xffff;
-      this._emit(encodeSnapshot(this.snapSeq, this.tickN, this.guest.lastInputSeq ?? 0, this.cfg.sim.snapshot()));
+      // de kop draagt de tijd van dit moment (ms van de klok van de host) als de gast dat kent: dan weet hij precies wanneer de toestand gold, ook als de host
+      // een beeld te laat is (een gast die het niet kent rekent met seq / SNAP_HZ en hoort bij een oudere host de teller)
+      this._emit(encodeSnapshot(this.snapSeq, this.caps.includes('snaptijd') ? Math.round(this.now * 1000) : this.tickN, this.guest.lastInputSeq ?? 0, this.cfg.sim.snapshot()));
     }
     // de extra wereld van de host (coopextra.js), per gast op maat: alleen wat dicht bij de spelers is
     this.extraAcc += dt;
@@ -176,19 +179,21 @@ const neutral = () => ({ mx: 0, my: 0, buttons: 0, yaw: 0 });
 
 // ---------------------------------------------------------------- client
 export class SnapBuffer {
-  constructor() { this.snaps = []; this.renderT = null; }
+  constructor() { this.snaps = []; this.renderT = null; this.wall = 0; this.rate = 1; this.marks = []; }
   push(s) {
     const t = s.hostT;
     if (this.snaps.length && t <= this.snaps[this.snaps.length - 1].hostT) return false; // oud of dubbel
     this.snaps.push(s); if (this.snaps.length > 40) this.snaps.shift();
+    this.rate = schatTempo(this.marks, this.wall, t, this.rate); // een host met weinig beelden per seconde loopt trager dan onze klok: de weergavetijd loopt in zijn tempo mee (#434)
     return true;
   }
-  clear() { this.snaps.length = 0; this.renderT = null; }
+  clear() { this.snaps.length = 0; this.renderT = null; this.marks.length = 0; this.rate = 1; }
   get latestT() { return this.snaps.length ? this.snaps[this.snaps.length - 1].hostT : null; }
   // schuif de weergavetijd op met dt, zacht richting laatste - vertraging; blijft er een snapshot weg, dan voorspelt sample() even door (#434)
   advance(dt) {
     const L = this.latestT; if (L == null) return null;
-    this.renderT = volgTijd(this.renderT, L, dt);
+    this.wall += dt;
+    this.renderT = volgTijd(this.renderT, L, dt, INTERP_DELAY, this.rate);
     return this.renderT;
   }
   sample() {
@@ -242,7 +247,7 @@ export class ClientSession extends Base {
       if (this.lastSnapSeq != null && !seqNewer(s.seq, this.lastSnapSeq)) return;
       this._unwrapped = this.lastSnapSeq == null ? s.seq : this._unwrapped + seqDiff(s.seq, this.lastSnapSeq);
       this.lastSnapSeq = s.seq;
-      s.hostT = this._unwrapped / SNAP_HZ; // de host stuurt precies SNAP_HZ snapshots per seconde
+      s.hostT = this.caps.includes('snaptijd') ? s.tick / 1000 : this._unwrapped / SNAP_HZ; // de tijd uit de kop; zonder: de host stuurt SNAP_HZ snapshots per seconde
       this.buf.push(s);
       if (this.status === 'lag') this._setStatus('ok');
     } else if (h.type === T.EXTRA && this.joined) {

@@ -88,10 +88,10 @@ export async function startNodeHost({ stage, tiles = '-', story = 'nieuw', max =
   }, 16);
   h.walk = true;
   // een voertuig voor de rit: Tammo stapt in, Tessa (de gast) rijdt mee en haar eigen x en y blijven staan zoals in het spel
-  h.rit = (aan) => {
+  h.rit = (aan, sjabloon = {}) => { // sjabloon: eigenschappen van het voertuig (bijvoorbeeld een fiets: { isBike: true, model: { len: 1.8, wid: 0.6, name: 'bike' } })
     const w = world;
     if (aan) {
-      const car = { id: 199, x: w.player.x + 3, y: w.player.y, angle: 0, model: { len: 4.2 } };
+      const car = { id: 199, x: w.player.x + 3, y: w.player.y, angle: 0, model: { len: 4.2 }, ...sjabloon };
       w.vehicles.push(car); h.drive = { car }; h.walk = false;
       w.player.inVehicle = car; w.companion.inVehicle = car; // de metgezel behoudt zijn oude x en y
     } else if (h.drive) {
@@ -99,10 +99,14 @@ export async function startNodeHost({ stage, tiles = '-', story = 'nieuw', max =
       w.vehicles = w.vehicles.filter((v) => v !== car); h.drive = null; h.walk = true;
     }
   };
+  // #434: een wapen in de hand van de gastheer en een aanval (een zwaai met de knuppel, elke 1,5 s opnieuw)
+  const CE = await imp('combateffect.js');
+  h.wapen = (key) => { world.weapon = key; };
+  h.slaan = (aan) => { if (h.slaanTimer) { clearInterval(h.slaanTimer); h.slaanTimer = null; CE.setCombatEffect(null); } if (aan) h.slaanTimer = setInterval(() => CE.setCombatEffect({ type: 'melee', swing: 'bat', start: world.time }), 1500); };
   h.mission = (m) => { world.mission = m || { phase: 'idle' }; };
   h.pay = (geld, slot = 1) => N.payGuest(world, geld, slot);
   h.at = (sec, fn) => { const t = setTimeout(async () => { try { await fn(h); } catch (e) { h.log.push('fout ' + e.message); } }, sec * 1000); h.timers.push(t); return t; };
   h.roster = () => (world.coopRoster || []).map((r) => [r.slot, r.verbinding]);
-  h.stop = async () => { clearInterval(h.timer); for (const t of h.timers) clearTimeout(t); try { N.stopCoopNet(world); } catch (e) { /* al weg */ } await new Promise((r) => setTimeout(r, 600)); try { await core.stop(); } catch (e) { /* al weg */ } };
+  h.stop = async () => { h.slaan(false); clearInterval(h.timer); for (const t of h.timers) clearTimeout(t); try { N.stopCoopNet(world); } catch (e) { /* al weg */ } await new Promise((r) => setTimeout(r, 600)); try { await core.stop(); } catch (e) { /* al weg */ } };
   return h;
 }
