@@ -118,6 +118,8 @@ export function hostSim(world, roster) {
       };
     },
     fullState() { return { wanted: world.wanted | 0 }; }, // het geld van de host is van de host
+    vergeet(slot) { geheugens.delete(slot); }, // een plek komt vrij: de volgende speler krijgt alles opnieuw te horen
+    stats() { let looks = 0; for (const g of geheugens.values()) looks += g.looks.size; return { geheugens: geheugens.size, looks }; }, // voor de duurtest
   };
 }
 

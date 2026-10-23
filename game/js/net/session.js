@@ -37,10 +37,10 @@ class Base {
   _setStatus(s) { if (s !== this.status) { this.status = s; if (this.onstatus) this.onstatus(s); } }
   // geeft event-bodies door; ACK en ping zijn intern
   _common(h, buf) {
-    if (h.type === T.ACK) { this.rel.onAck(h.ack); return true; }
+    if (h.type === T.ACK) { this.rel.onAck(h.ack, h.seq); return true; }
     if (h.type === T.EVENT) {
       const m = decodeJson(buf); if (!m) return true;
-      for (const b of this.rel.receive({ seq: m.seq, body: m.body }, (x) => this._emit(x))) this._onEvent(b);
+      for (const b of this.rel.receive({ seq: m.seq, body: m.body, epoch: m.ack }, (x) => this._emit(x))) this._onEvent(b);
       return true;
     }
     if (h.type === T.PING) { this._emit(encodeSimple(T.PONG, 0, h.tick, 0)); return true; }
@@ -51,7 +51,7 @@ class Base {
   sendEvent(body) { return this.rel.send(body, this.now, (x) => this._emit(x), this.tickN); }
   _tickCommon(dt) {
     this.now += dt; this.tickN++;
-    this.rel.tick(this.now, (x) => this._emit(x));
+    this.rel.tick(this.now, (x) => this._emit(x), this.status === 'lost');
     if (this.now - this.pingT >= PING_EVERY && this.status !== 'verbinden') {
       this.pingT = this.now; this._emit(encodeSimple(T.PING, 0, Math.floor(this.now * 1000), 0));
     }
@@ -237,9 +237,10 @@ export class ClientSession extends Base {
     if (h.type === T.WELCOME) {
       const m = decodeJson(buf); if (!m) return;
       if (!m.body.ok) { this.rejected = m.body.reason; this.remoteVersion = typeof m.body.version === 'string' ? m.body.version.slice(0, 20) : ''; this._setStatus('geweigerd'); return; }
+      if (this.token && m.body.token !== this.token) this.rel.reset(); // een nieuwe sessie (te lang weg geweest): onze eigen stroom naar de host begint ook opnieuw; de stroom van de host volgt vanzelf (tijdperk)
       this.welcome = m.body; // inclusief wat de hub meegaf: personage, lijst van spelers
       this.lastExtraSeq = null; this.slot = m.body.slot; this.seed = m.body.seed; this.caps = Array.isArray(m.body.caps) ? m.body.caps : []; this.token = m.body.token; this.joined = true;
-      if (m.body.resumed) { this.rel.reset(); this.buf.clear(); }
+      if (m.body.resumed) this.buf.clear();
       this._setStatus('ok');
     } else if (h.type === T.SNAP && this.joined) {
       const s = decodeSnapshot(buf, this.looks || (this.looks = new Map())); if (!s) return; // looks: het laatst bekende uiterlijk per voertuig (#428)
@@ -300,7 +301,7 @@ export class ClientSession extends Base {
     if ('onstate' in link) { const prev = link.onstate; link.onstate = (s) => { if (prev) prev(s); this._linkState(s); }; } // ketenen: rtcroom zet er zelf ook een
   }
   // na een vervangen transport (nieuwe handmatige code) hervatten met hetzelfde token
-  reconnect(link) { this._attach(link); this.helloAt = -1; this.joined = false; this.rel.reset(); this._setStatus('verbinden'); }
+  reconnect(link) { this._attach(link); this.helloAt = -1; this.joined = false; this._setStatus('verbinden'); } // de betrouwbare stroom loopt door: het welkom zegt of de host opnieuw begon
   world() { return this.buf.sample(); }
   // de gast vraagt de host om zijn toestand opnieuw (desync, net/desync.js); het antwoord komt als 'resync' bij onresync
   requestResync() { this._emit(encodeSimple(T.RESYNC, 0, 0, 0)); }
