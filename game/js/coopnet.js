@@ -35,6 +35,7 @@ import { WEER_EVERY, weerEvent, leesWeerEvent, pasWeerToe } from './coopweer.js'
 import { loopbaanGast, GAST_XP_DEEL } from './loopbaanlive.js';
 import { maakRegister, zetPlek, leegRegister, bouwFoci, losBesluit, FOCI_MAX, MAX_AFSTAND, ONGELADEN_S } from './coopfoci.js';
 import { tileIndexOf, tileKey } from './gdt.js';
+import { wisselEvent, wisselTik } from './coophostwisselnet.js'; // het spel overdragen (#439); die module importeert dit bestand terug, maar gebruikt het pas bij een aanroep
 
 export const CAPS = ['scene', 'spelers', 'snaptijd']; // wat dit spel kent; uitbreidbaar (net/session.js negotiate). snaptijd: de tijd van een snapshot (ms van de klok van de host) staat in de kop, #434
 export const REMOVE_DELAY = 0.5; // s tussen "je bent verwijderd" en het verbreken
@@ -249,7 +250,7 @@ export function startClient(world, transport, info, opts = {}) {
   // de host is de baas: bij een desync (net/desync.js) zet de gast zijn wanted weer gelijk aan dat van de host
   session.onresync = (st) => { if (st && Number.isFinite(st.wanted)) world.wanted = st.wanted | 0; };
   world.coopRole = 'client';
-  world.coopNet = { role: 'client', session, stash, fade, joined: false, fixed: false, route, info, klok: new KlokVolger(), desync: new DesyncMonitor(), lokaal: 0, tSpelers: 1 };
+  world.coopNet = { role: 'client', wens, session, stash, fade, joined: false, fixed: false, route, info, klok: new KlokVolger(), desync: new DesyncMonitor(), lokaal: 0, tSpelers: 1 };
   return session;
 }
 
@@ -550,6 +551,7 @@ export function deelMetGasten(world, bedrag, info = null) {
 }
 
 export function tickCoopNet(world, dt) {
+  if (world.coopWissel) wisselTik(world, dt); // het spel overdragen (#439): ook als de sessie even weg is
   const n = world.coopNet; if (!n) return;
   if (world.coopPings) {
     tickPings(world.coopPings, now(world));
@@ -784,7 +786,7 @@ export function handleEvent(world, body, van = 0) {
       if (world.addMessage) world.addMessage(wegMelding(body.reden, openerNaam(world.coopRoster, body.reden === 'spel gestopt')), 6);
       stopCoopNet(world);
       return true;
-    default: return false;
+    default: return typeof body.k === 'string' && body.k.startsWith('hw-') ? wisselEvent(world, body, van) : false; // het spel overdragen (#439)
   }
 }
 // Een roepje op een toets (7 = Kom hier, 8 = Help!, 9 = Kijk daar): op je plek, of voor 'Kijk daar' een stuk vooruit (#367)
