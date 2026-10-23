@@ -36,16 +36,16 @@ for (const s of ['SIGINT', 'SIGTERM']) process.on(s, () => { release(); process.
 // het programma van de gast (seconden na "allen-erbij") en het draaiboek van de host, op dezelfde tijdlijn
 const PROGRAM = [
   [0, 'wacht', { s: 6 }], [6, 'gloed', { s: 12 }], [20, 'gastpitch', {}], [27, 'gastspring', {}], [35, 'zit', { s: 5, naam: 'wapen', kijk: 'host' }],
-  [43, 'zit', { s: 10, naam: 'auto' }], [56, 'zit', { s: 8, naam: 'fiets' }], [66, 'wacht', { s: 4 }],
+  [43, 'zit', { s: 6, naam: 'auto', pitch: 14 }], [58, 'zit', { s: 6, naam: 'fiets', pitch: 18 }], [70, 'wacht', { s: 4 }],
 ];
-const HOST_STOP = 74;
+const HOST_STOP = 76;
 const started = Date.now();
 await takeSlot();
 console.log('uitvoer:', OUT);
 const host = await startNodeHost({ stage: STAGE, max: 4 });
 const events = path.join(OUT, 'events.jsonl'); fs.writeFileSync(events, '');
 const script = path.join(OUT, '_page.js');
-fs.writeFileSync(script, `window.__coopCfg = ${JSON.stringify({ name: 'gast', role: 'gast', route: 'direct', code: host.code, viaMenu: true, expect: 2 + MOCK, preSave: true, program: PROGRAM })};\n` + fs.readFileSync(path.join(HERE, 'coop.page.js'), 'utf8'));
+fs.writeFileSync(script, `window.__coopCfg = ${JSON.stringify({ name: 'gast', role: 'gast', route: 'direct', code: host.code, viaMenu: true, expect: 2, preSave: true, program: PROGRAM })};\n` + fs.readFileSync(path.join(HERE, 'coop.page.js'), 'utf8'));
 const profile = `gde-test-gastkant434-${process.pid}`;
 const env = { ...process.env, GDE_TEST_PROFILE: profile, GDE_GAME_DIR: STAGE, GDE_COOP_TEST: '1', GDE_MENU_TEST: '1' };
 delete env.ELECTRON_RUN_AS_NODE;
@@ -66,12 +66,12 @@ const hostMeting = { zmax: 0, buk: false, sprongen: 0 };
   { const wall = (readEvents().find((e) => e.type === 'allen-erbij') || {}).wall; if (wall) { const gap = (Date.now() - wall) / 1000, at0 = host.at; host.at = (s, fn) => at0.call(host, Math.max(0, s - gap), fn); } }
   const c = host.world.companion; let was = 0; // wat de gastheer van het lichaam van de gast heeft: hoogte en bukken
   setInterval(() => { const z = c.z || 0; hostMeting.zmax = Math.max(hostMeting.zmax, z); if (z > 0.05 && !was) hostMeting.sprongen++; was = z > 0.05 ? 1 : 0; if (c.crouching) hostMeting.buk = true; }, 20).unref();
-  host.at(33, (h) => { h.wapen('knuppel'); h.slaan(true); h.log.push('wapen en aanval aan'); });
-  host.at(41, (h) => { h.slaan(false); h.wapen('fists'); h.rit(true); h.log.push('in de auto'); });
-  host.at(44, (h) => { for (const m of mocks) m.session.sendEvent({ k: 'gebruik' }); h.log.push('de anderen stappen in'); });
-  host.at(54, (h) => { for (const m of mocks) m.session.sendEvent({ k: 'gebruik' }); h.rit(false); h.log.push('uit de auto'); });
-  host.at(55, (h) => { h.rit(true, { isBike: true, model: { len: 1.8, wid: 0.6, name: 'bike' } }); h.log.push('op de fiets'); });
-  host.at(65, (h) => { h.rit(false); h.log.push('van de fiets'); });
+  host.at(33, (h) => { h.world.companion.x += 8; h.world.companion.y += 8; h.wapen('knuppel'); h.slaan(true); h.log.push('wapen en aanval aan'); });
+  host.at(41, (h) => { h.slaan(false); h.wapen('fists'); h.world.companion.x = h.world.player.x - 2; h.world.companion.y = h.world.player.y + 1; h.rit(true); h.log.push('in de auto'); });
+  host.at(44, (h) => { const car = h.drive && h.drive.car; for (const f of Object.values(h.world.coopFigures || {})) if (car) { f.x = car.x - 1; f.y = car.y + 1; f.vx = 0; f.vy = 0; } for (const m of mocks) m.session.sendEvent({ k: 'gebruik' }); h.log.push('de anderen stappen in'); });
+  host.at(56, (h) => { for (const m of mocks) m.session.sendEvent({ k: 'gebruik' }); h.rit(false); h.log.push('uit de auto'); });
+  host.at(57, (h) => { h.rit(true, { isBike: true, model: { len: 1.8, wid: 0.6, name: 'bike' } }); h.log.push('op de fiets'); });
+  host.at(70, (h) => { h.rit(false); h.log.push('van de fiets'); });
   host.at(HOST_STOP, async (h) => { h.log.push('host stopt'); await h.stop(); });
 })();
 const res = await done;
@@ -101,14 +101,14 @@ check(sp && sp.buk === true && sp.na === false && sp.zNa === 0, 'bukken: de gast
 check(hostMeting.zmax > 0.3 && hostMeting.sprongen >= 1 && hostMeting.buk, 'de gastheer ziet de sprong of het bukken van de gast niet: ' + JSON.stringify(hostMeting));
 notes.push('gastspring: ' + JSON.stringify(sp), 'gastheer ziet: ' + JSON.stringify(hostMeting));
 const wp = of('wapen')[0];
-check(wp && wp.wapen === 'knuppel' && wp.fx === 'melee', 'wapen: de gast ziet het wapen of de aanval van de gastheer niet: ' + JSON.stringify(wp));
+check(wp && wp.wapen === 'knuppel' && wp.fx === 'melee' && wp.guns.includes('knuppel'), 'wapen: de gast ziet het wapen of de aanval van de gastheer niet: ' + JSON.stringify(wp));
 notes.push('wapen: ' + JSON.stringify(wp));
 const au = of('auto')[0];
 check(au && au.zitters.some((z) => z[2] === 0) && au.zitters.some((z) => z[2] === 1) && au.dbg >= 2, 'auto: bestuurder en bijrijder zijn niet te zien in het voertuig: ' + JSON.stringify(au));
 if (MOCK) check(au && au.zitters.some((z) => z[2] >= 2) && au.dbg >= 3, 'auto: de extra spelers zitten niet achterin: ' + JSON.stringify(au));
 notes.push('auto: ' + JSON.stringify(au));
 const fi = of('fiets')[0];
-check(fi && fi.zitters.some((z) => z[2] === 0) && fi.dbg >= 1, 'fiets: de bestuurder is niet te zien op de fiets: ' + JSON.stringify(fi));
+check(fi && fi.zitters.some((z) => z[2] === 0) && fi.dbg >= 1 && fi.pedaal.some((x) => x), 'fiets: de bestuurder is niet te zien op de fiets: ' + JSON.stringify(fi));
 notes.push('fiets: ' + JSON.stringify(fi));
 for (const e of E.filter((x) => x.type === 'console' && x.level === 'error')) problems.push('consolefout: ' + String(e.msg).slice(0, 160));
 for (const e of E.filter((x) => x.type === 'jserror')) problems.push(`jserror: ${e.msg} ${e.file}:${e.line}`);
