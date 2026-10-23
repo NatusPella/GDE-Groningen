@@ -252,7 +252,7 @@ function stepFigures(world, dt) {
 // De anderen blijven lopen (stepFigures draait altijd); Tessa nu ook. Een wachtscherm bij wegvallen (coopHold) pauzeert wel voor iedereen (#388).
 export function stapMetgezelInPauze(world, dt) {
   const c = world.companion, p = world.player;
-  if (!world.paused || world.coopHold || !c || !p || !world.coop || !world.coop.remote) return false;
+  if (!world.paused || world.coopHold || !c || !p || !world.coop || !world.coop.remote || world.coopDoorloopNu) return false; // loopt de wereld door achter het menu (#434), dan stapt updateGameplay haar al
   if (c.inVehicle || c.water || c.state === 'dead' || world.companionHold || (p.inVehicle && !c.coopUit)) return false;
   return coopStep(c, dt, world, world.coopMove || ((q, d) => { q.x += q.vx * d; q.y += q.vy * d; }));
 }
@@ -370,12 +370,29 @@ export function werkFoci(world, dt = 0) {
 function zetBijGroep(world, lichaam, a0) {
   const p = world.player;
   lichaam.x = p.x; lichaam.y = p.y; // niets vrij rond de gastheer: dan op zijn plek
+  let droog = false;
   for (let i = 0; i < 8; i++) { // de eerste droge plek rond de gastheer, niet in het water of een gebouw
     const a = a0 + i * Math.PI / 4, x = p.x + Math.cos(a) * 2.2, y = p.y + Math.sin(a) * 2.2;
-    if (!world.coopVrij || world.coopVrij(x, y, world)) { lichaam.x = x; lichaam.y = y; break; }
+    if (!world.coopVrij || world.coopVrij(x, y, world)) { lichaam.x = x; lichaam.y = y; droog = true; break; }
   }
   lichaam.gz = p.gz || 0; lichaam.vx = 0; lichaam.vy = 0;
+  return droog;
 }
+// Zit de gastheer op het water in een boot en is er rond hem geen droge plek, dan zet de band een speler in de boot (een plek, anders naast de boot in het water)
+// in plaats van in zee; een boot ligt niet aan de kant. Geeft true als de speler in de boot zit (#434).
+export function zetInBoot(world, lichaam) {
+  const v = world.player && world.player.inVehicle;
+  if (!v || !v.isBoat || v.sinking || v.wrecked || !figuurPlekken(v)) return false;
+  if (lichaam === world.companion) {
+    if (v.passenger) return false;
+    lichaam.inVehicle = v; v.passenger = 'companion'; lichaam.coopUit = false; lichaam.vx = 0; lichaam.vy = 0;
+    return true;
+  }
+  if (Object.values(figures(world)).filter((f) => f.inVeh === v).length >= figuurPlekken(v)) return false;
+  lichaam.inVeh = v; lichaam.coopVoertuig = true; lichaam.x = v.x; lichaam.y = v.y; lichaam.vx = 0; lichaam.vy = 0;
+  return true;
+}
+const BOOT_MELD = 'Je zit weer in de boot.';
 
 // Een extra speler (plek 2 en hoger) heeft geen band zoals Tessa; loopt hij te ver van de gastheer, dan is de wereld daar niet geladen
 // (geen gebouwen, geen grond). Eerst een melding, daarna zet de gastheer hem bij de groep (#366). Met spelers uit elkaar (#429)
@@ -406,7 +423,7 @@ export function bandFiguren(world, dt) {
     if (fig.verTijd >= (d > 300 && !los.ok ? 0.5 : FIGUUR_TERUG_S) || fig.vastTijd >= FIGUUR_TERUG_S) { // een sprong van de gastheer (snelreizen, herstel) haalt de figuur meteen bij
       fig.verTijd = 0; fig.vastTijd = 0; fig.gewaarschuwd = false; fig.losGemeld = false; fig.wacht = false; fig.ongeladen = 0; fig.vx = 0; fig.vy = 0;
       if (plek) { fig.inVeh = v; fig.coopVoertuig = true; fig.x = v.x; fig.y = v.y; if (world.coopMeld) world.coopMeld(fig.slot, 'Je rijdt mee. Met E stap je uit als het voertuig stilstaat.'); continue; } // is er plek, dan zit hij weer in het voertuig (geen eindeloos terugzetten)
-      zetBijGroep(world, fig, (fig.slot * 1.7) % (Math.PI * 2));
+      if (!zetBijGroep(world, fig, (fig.slot * 1.7) % (Math.PI * 2)) && zetInBoot(world, fig)) { if (world.coopMeld) world.coopMeld(fig.slot, BOOT_MELD); continue; }
       if (world.coopMeld) world.coopMeld(fig.slot, 'Je staat weer bij de groep.');
     }
   }
@@ -438,7 +455,7 @@ export function bandMetgezel(world, dt) {
   c.verTijd = 0; c.gewaarschuwd = false; c.losGemeld = false; c.coopWacht = false; c.ongeladen = 0; c.vx = 0; c.vy = 0;
   const plek = false; // geen automatisch meerijden: te ver weg betekent naast de gastheer, instappen doet ze zelf met E
   if (plek) { c.inVehicle = v; v.passenger = 'companion'; c.coopUit = false; if (world.coopMeld) world.coopMeld(1, 'Je rijdt mee. Met E stap je uit als het voertuig stilstaat.'); return true; }
-  zetBijGroep(world, c, Math.PI * 1.7);
+  if (!zetBijGroep(world, c, Math.PI * 1.7) && zetInBoot(world, c)) { if (world.coopMeld) world.coopMeld(1, BOOT_MELD); return true; }
   if (world.coopMeld) world.coopMeld(1, 'Je staat weer bij de groep.');
   return true;
 }
@@ -457,8 +474,9 @@ export function bijGroepHost(world, slot) {
   const n = world.coopNet; if (!n || n.role !== 'host' || slot < 1 || !world.player) return false;
   const lichaam = slot === 1 ? world.companion : figures(world)[slot];
   if (!lichaam || lichaam.inVehicle || lichaam.inVeh || (slot === 1 && lichaam.state === 'dead')) return false;
-  zetBijGroep(world, lichaam, slot === 1 ? Math.PI * 1.7 : (slot * 1.7) % (Math.PI * 2));
+  const droog = zetBijGroep(world, lichaam, slot === 1 ? Math.PI * 1.7 : (slot * 1.7) % (Math.PI * 2));
   lichaam.verTijd = 0; lichaam.wacht = false; lichaam.coopWacht = false; lichaam.ongeladen = 0;
+  if (!droog && zetInBoot(world, lichaam)) { if (world.coopMeld) world.coopMeld(slot, BOOT_MELD); return true; }
   if (world.coopMeld) world.coopMeld(slot, 'Je staat weer bij de groep.');
   return true;
 }
@@ -812,6 +830,12 @@ export function openHek(world) {
 export function genoegSpelers(world, min = 2) {
   const n = world.coopNet;
   return !!(n && n.role === 'host' && n.hub && n.hub.roster.spelers.filter((p) => p.verbinding !== 'lost').length >= min);
+}
+
+// Samen spelen: staat er minstens één gast in de sessie, dan loopt de wereld van wie het spel opende door achter het pauzemenu, de kaart en de winkel.
+// Alleen de lokale invoer staat dan stil (main.js zet input.blocked); alleen de pauze door een menu telt, geen filmpje, wachtscherm of minigame-scherm (#434).
+export function coopWereldDoorloop(world, menuOpen = true) {
+  return !!(menuOpen && world && world.paused && !world.coopHold && !world.uiPaused && world.coopRole === 'host' && genoegSpelers(world, 2));
 }
 
 export function stopCoopNet(world) {

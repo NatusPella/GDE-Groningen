@@ -9,7 +9,7 @@ import './geokernels.js'; // registers the geometry kernels with geojobs.js
 import { setErrorContext } from './errorlog.js';
 import { DEV, STORY_TEST, FLAGS } from './devflags.js';
 import { bindCoop } from './coopglue.js';
-import { tickCoopNet, setCoopTreinen } from './coopnet.js';
+import { tickCoopNet, setCoopTreinen, coopWereldDoorloop } from './coopnet.js';
 import { isHoldOpen, checkHold } from './coophold.js';
 import { updatePartnerChip } from './coophud.js';
 import { syncFigures, hasFigureMeshes } from './coopfigures3d.js';
@@ -148,7 +148,7 @@ import { initSideJobs, updateSideJobs, trySideJobInteract } from './sidejobs.js'
 import { updateCashVan } from './cashvan.js';
 import { initHeliRun, updateHeliRun, tryHeliSpotInteract, updateHeliSpot } from './helirun.js';
 import { initPadel, updatePadel, tryPadelInteract, updatePadelWorld, padelCamera } from './padel.js';
-import { initActivities, isActivityActive, updateActivityGame, tryActivityInteract, updateActivitiesWorld, activityCamera } from './activities.js';
+import { initActivities, isActivityActive, updateActivityGame, tryActivityInteract, updateActivitiesWorld, tickActivitiesGast, activityCamera } from './activities.js';
 import { initRadio, updateRadio } from './radio.js';
 import { updatePoleVaults } from './fierljep.js';
 import { initPostgame, updatePostgame, tryPostgameInteract } from './postgame.js';
@@ -601,7 +601,14 @@ async function boot() {
     const gameDt = dt * Math.max(0, Math.min(1, world.timeScale ?? 1)) * MODS.slow * dipScale(feelDip, nowS);
     // dev mode time scale (storydev.js): whole extra gameplay steps per frame
     const reps = world.devTimeScale > 1 ? Math.min(8, Math.round(world.devTimeScale)) : 1;
+    const doorloop = world.paused && coopWereldDoorloop(world, isMapOpen() || isPauseMenuOpen() || isShopOpen());
+    world.coopDoorloopNu = doorloop; // coopnet.js stapMetgezelInPauze: updateGameplay stapt Tessa dan al
     if (!world.paused) for (let r = 0; r < reps; r++) updateGameplay(gameDt);
+    else if (doorloop) { // samen spelen (#434): de wereld loopt door achter een menu; alleen jouw eigen invoer staat stil
+      const m = input.mouse, bewaard = { down: m.down, rightDown: m.rightDown, middleDown: m.middleDown, dx: m.dx, dy: m.dy, wheel: m.wheel };
+      input.blocked = true; m.down = m.rightDown = m.middleDown = false; m.dx = m.dy = m.wheel = 0;
+      try { updateGameplay(gameDt); } finally { input.blocked = false; Object.assign(m, bewaard); }
+    }
     // the tiles follow the camera or the player (speed and heading prefetch)
     if (world.map.follow) {
       const tf = tileFocus(world.player, world.cameraOverride, tileFollow, dt);
@@ -619,7 +626,7 @@ async function boot() {
     updatePractice(world.paused ? 0 : dt, world);
     probe.mark('audio');
     updateStreetSigns(dt, world, getScene());
-    const animDt = world.paused ? 0 : gameDt;
+    const animDt = world.paused && !doorloop ? 0 : gameDt;
     updateFx3D(animDt, world, getScene());
     updateGore3D(animDt, world, getScene());
     updateKnockFx3D(animDt, world, getScene());
@@ -677,7 +684,7 @@ async function boot() {
   function updateGameplay(dt) {
     world.time += dt;
     // samen spelen (#95): een gast draait de wereld van de host niet zelf; die komt via het net (coopnet.js, coopworld.js)
-    if (world.coopRole === 'client' && world.coopNet && world.coopNet.joined) { updateGastLokaal(world); updateWeather(dt, world); refreshDayNight(world); try { updateHomeExterior(dt, world); } catch (e) { /* zonder garage */ } return; } // het weer en de dagstand volgen de gastheer (#378) // winkelen en in- of uitstappen (#291)
+    if (world.coopRole === 'client' && world.coopNet && world.coopNet.joined) { updateGastLokaal(world); updateWeather(dt, world); refreshDayNight(world); try { updateHomeExterior(dt, world); } catch (e) { /* zonder garage */ } try { updateGarages(dt, world, true); tickActivitiesGast(dt, world); updateStationLife(dt, world, { routes: getRoutes(), point: routePoint, day: calendarToday(world), createBoard: createStationBoard, trains: getTrains().filter((t) => !t.gastWeg), schaal: 86400 / DAY_LENGTH_S, driving: false }); } catch (e) { console.error('gast: gebouwen', e); } return; } // een gast ziet ook de garages en safehouses waar zijn lichaam tegenaan botst (#434) // het weer en de dagstand volgen de gastheer (#378) // winkelen en in- of uitstappen (#291)
     // money must stay a number: a NaN from any price or reward is undone
     if (Number.isFinite(world.money)) world._goodMoney = world.money;
     else {

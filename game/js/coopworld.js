@@ -14,12 +14,14 @@ import { VEH_KINDS, MAX_LOOKS, FL_SIREN, FL_HORN, FL_FLAT } from './net/codec.js
 
 export const VOERTUIG_SOORTEN = ['auto', 'bakkie', 'bus', 'politie', 'motor', 'scooter', 'fiets', 'boot', 'heli', 'trein', 'vracht', 'overig'];
 export const SOORT_DOEL = 100;
+export const SOORT_START = 101, ID_START0 = 0xff00, START_RADIUS = 350; // het beginpunt van de volgende opdracht van wie het spel opende (id = ID_START0 + het nummer van de opdracht), voor de gasten (#434)
 export const SOORT_VOETGANGER = 12, SOORT_AGENT = 13;
 export const SOORT_TREIN = 9, ID_TREIN0 = 0x7000; // een trein: id = ID_TREIN0 + het nummer van de route (de gast heeft dezelfde routes uit de wereld)
 export const RADIUS_VOETGANGER = 70; // m rond elke speler: verder weg zijn de voetgangers van de host toch maar stippen
 export const MAX_VOETGANGERS = 20;
 export const ID_DOEL = 0xfffe;
 export const RADIUS = 150;      // m rond elke speler
+export const TREIN_RADIUS = 450; // m rond elke speler: een trein rijdt tot 40 m/s, de gast ziet hem dan ruim voor hij langskomt (#434)
 export const MAX_ENTITEITEN = 60;
 const PED_ID0 = 0x8000; // voetgangers hebben geen vast id in het spel: ze krijgen er hier een (apart van de voertuig-id's)
 const pedIds = new WeakMap(); let pedSeq = 0;
@@ -88,6 +90,9 @@ function verweef(items, bij, groepen) {
   return uit;
 }
 
+// Alleen boten en schepen krijgen extra bereik (halve lengte, hoogstens 100 m): een binnenvaartschip of zeeschip is tientallen meters lang.
+const halveLengte = (v) => (v.isBoat && v.model && Number.isFinite(v.model.len) ? Math.min(100, v.model.len / 2) : 0);
+
 // Voertuigen dicht bij een van de spelers (nabije eerst), plus het doel van de lopende opdracht.
 // bij = [{x, y}] (de lichamen van alle spelers). Geeft hoogstens MAX_ENTITEITEN entiteiten.
 export function verzamelEntiteiten(world, bij, { radius = RADIUS, max = MAX_ENTITEITEN, treinen = world.treinen } = {}) {
@@ -96,19 +101,22 @@ export function verzamelEntiteiten(world, bij, { radius = RADIUS, max = MAX_ENTI
   if (m && m.phase === 'active' && m.marker && Number.isFinite(m.marker.x) && Number.isFinite(m.marker.y)) {
     out.push({ id: ID_DOEL, kind: SOORT_DOEL, x: m.marker.x, z: m.marker.y, angle: 0 });
   }
+  else if (m && m.phase === 'idle' && m.marker && Number.isFinite(m.marker.x) && Number.isFinite(m.marker.y) && bij.some((p) => Math.hypot(m.marker.x - p.x, m.marker.y - p.y) <= START_RADIUS)) {
+    out.push({ id: ID_START0 + Math.min(250, Math.max(0, m.index | 0)), kind: SOORT_START, x: m.marker.x, z: m.marker.y, angle: 0 }); // een gast ziet waar de volgende opdracht begint (#434)
+  }
   // treinen: [{ id: routenummer, x, y, v: snelheid met teken, halfLen }] van de host (coopnet.js); een trein in de buurt gaat voor
   for (const t of treinen || []) {
     if (!t || !Number.isFinite(t.x) || !Number.isFinite(t.y)) continue;
     let d = Infinity;
     for (const p of bij) d = Math.min(d, Math.hypot(t.x - p.x, t.y - p.y));
-    if (d <= radius + (t.halfLen || 0) && out.length < max - 12) out.push({ id: ID_TREIN0 + t.id, kind: SOORT_TREIN, x: t.x, z: t.y, angle: 0, speed: t.v || 0, fl: 0, steer: 0, vz: 0 });
+    if (d <= Math.max(radius, TREIN_RADIUS) + (t.halfLen || 0) && out.length < max - 12) out.push({ id: ID_TREIN0 + t.id, kind: SOORT_TREIN, x: t.x, z: t.y, angle: 0, speed: t.v || 0, fl: 0, steer: 0, vz: 0 });
   }
   const near = [];
   for (const v of world.vehicles || []) {
     if (!v || !Number.isFinite(v.x) || !Number.isFinite(v.y) || v.wrecked) continue;
     let d = Infinity;
     for (const p of bij) d = Math.min(d, Math.hypot(v.x - p.x, v.y - p.y));
-    if (d <= radius) near.push({ d, v });
+    if (d <= radius + halveLengte(v)) near.push({ d, v }); // een groot schip telt vanaf zijn romp, niet vanaf zijn midden: anders verdwijnt het bij de gast (#434)
   }
   near.sort((a, b) => a.d - b.d);
   const groepen = groepenVan(bij), nearV = verweef(near, bij, groepen);
@@ -242,9 +250,10 @@ export function uiterlijkSpec(look) {
 
 // Wat een gast met de entiteiten doet: voertuigen tekenen, het doel aangeven.
 export function leesEntiteiten(entities) {
-  const voertuigen = [], doelen = [], voetgangers = [], treinen = [];
+  const voertuigen = [], doelen = [], voetgangers = [], treinen = [], starts = [];
   for (const e of entities || []) {
     if (e.kind === SOORT_DOEL) doelen.push({ x: e.x, y: e.z });
+    else if (e.kind === SOORT_START) starts.push({ index: e.id - ID_START0, x: e.x, y: e.z });
     else if (e.kind === SOORT_TREIN) { if (e.id >= ID_TREIN0) treinen.push({ route: e.id - ID_TREIN0, x: e.x, y: e.z, v: e.speed || 0 }); }
     else if (e.kind === SOORT_VOETGANGER || e.kind === SOORT_AGENT) voetgangers.push({ id: e.id, x: e.x, y: e.z, angle: e.angle, agent: e.kind === SOORT_AGENT });
     else if (e.kind >= 0 && e.kind < VOERTUIG_SOORTEN.length) {
@@ -256,7 +265,7 @@ export function leesEntiteiten(entities) {
         snelheid: e.speed || 0, stuur: e.steer || 0, hoogteZ: e.vz || 0, rotor: e.rotor || 0, look: e.look || null });
     }
   }
-  return { voertuigen, doelen, voetgangers, treinen };
+  return { voertuigen, doelen, voetgangers, treinen, starts };
 }
 
 // ----------------------------------------------------------- opdracht van de host
