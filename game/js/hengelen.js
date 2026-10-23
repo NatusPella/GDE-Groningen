@@ -12,6 +12,7 @@ import { kiesVis, vangstGewicht, vangstWaarde, vangstXp, NIEUWE_SOORT_XP, soort 
 import { vindHengelplek, plekNaam, plekSleutel } from './hengelplek.js';
 import { boekVangst, boekVoortgang } from './visboeklive.js';
 import { loopbaanTel, loopbaanVerdien } from './loopbaanlive.js';
+import { maakHengelAnim } from './hengelanim.js';
 
 // Hengelen overal in de provincie (#412), met het wedstrijdje aan het Meerstad-meer als begin. [Spatie] gooit uit; als het
 // dobbertje zakt ("Beet!") druk je meteen weer [Spatie]; te vroeg trekken schrikt de vis af. Twee manieren:
@@ -84,6 +85,7 @@ function einde(w, { quit = false } = {}) {
   if (!g) return;
   game = null;
   w.cameraOverride = null;
+  if (g.anim) { g.anim.dispose(); g.anim = null; }
   if (board) board.hide();
   if (boardVrij) boardVrij.hide();
   clearBubbles(w, 'hengelen');
@@ -123,7 +125,9 @@ function updateGame(w, dt) {
   let cast = false;
   if (input.wasPressed(' ')) { input.consume(' '); cast = true; }
   const at = g.plek;
-  for (const e of stepHengel(g.s, { cast }, dt)) {
+  const evs = stepHengel(g.s, { cast }, dt);
+  try { if (g.anim === undefined) g.anim = maakHengelAnim(); if (g.anim) g.anim.update(dt, w, g.s, evs, at); } catch (e) { g.anim = null; }
+  for (const e of evs) {
     if (e.type === 'cast') pushAudioEvent(w, { kind: 'splash', x: at.x, y: at.y });
     else if (e.type === 'early') { g.flash = { text: 'Te vroeg! De vis schrikt', bad: true, t: 0 }; say(w, 'early'); }
     else if (e.type === 'bite') { g.flash = { text: 'BEET! Nu Spatie!', bad: false, t: 0 }; }
