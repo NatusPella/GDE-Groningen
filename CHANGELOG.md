@@ -6,11 +6,14 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
-### Opgelost
+## [0.43.0] - 2026-10-23
+
+### Nieuw
 - Samen spelen (#428): een gast ziet voertuigen precies zoals de gastheer ze heeft: hetzelfde model en dezelfde kleur, deuken en een lekke band, richtingaanwijzers en gevaarlichten, het zwaailicht van de politie, draaiende en sturende wielen, een helikopter met draaiende rotor, boten, schepen en vliegtuigen als echt model, en de treinen van de dienstregeling rijden mee met de gastheer. De gast en de gastheer moeten wel dezelfde versie hebben (het netwerkformaat is vernieuwd, oude versies weigeren elkaar netjes). Nog niet in beeld bekeken: boten op het water en de treinen.
-- Samen spelen: een gast ziet de voertuigen en voetgangers van de gastheer nu als echte modellen en personen (kleding, haar, politie-uniform) in plaats van blokken.
 - **Samen spelen: een gast ziet dezelfde mensen, dieren, verkeerslichten en kapotte spullen als de gastheer (#428; in Electron met een gescripte gastheer in beeld bekeken, niet met twee echte spelers):** voetgangers hebben precies de kleding, huidskleur, het haar en de last van de gastheer (ook de agenten), lopen of rennen op dezelfde snelheid, zwaaien, juichen en praten met een tekstballon. Koeien, schapen, honden, katten, eenden en vogels binnen 90 m van een speler staan er ook, met dezelfde soort en kleur. De verkeerslichten lopen gelijk met die van de gastheer. Een bank, bak, lantaarn of boom die bij de gastheer kapot is, is het bij de gast ook (en weer heel als het bij de gastheer weer heel is). De kermis staat als de gastheer hem heeft, de dingen van de stuntavond (parasols, klikos, borden, stoelen en tafels) staan er en vallen weg als ze omver zijn, en de volgende punten van een opdracht zijn te zien. Wat een gast zelf bij het laden aan mensen en dieren kreeg, is weg: hij ziet alleen die van de gastheer. Dit gaat in een eigen, zuinig bericht (ongeveer 1 tot 6 kB/s per gast); beide spelers moeten dezelfde versie hebben (protocol 2). Nog niet: dode of omgevallen dieren en mensen met een wapen of een vechtbeweging worden niet getoond, en geparkeerde auto's uit de eigen wereld van de gast staan nog stil in beeld (de voertuigen komen in een apart deel van #428).
 - **Controllerindeling kiezen (#151; niet met een echte controller of in beeld bekeken):** onder Instellingen › Muis & controller kies je nu bij Controllerindeling "Rechterknop bevestigt". Dat helpt als je controller zich anders meldt dan hij is (bijvoorbeeld via Steam): A en B en X en Y wisselen dan echt van plek, in de menu's en in het spel, en de knopsymbolen in beeld volgen je keuze. Automatisch blijft de standaard.
+
+### Opgelost
 - **Minigames en nagesprek: de oude zwarte toetsknoppen met groene tekst zijn weg (#151; niet in beeld bekeken):** de hints bij de duivenmodus en het scherm na het spel hebben nu dezelfde witte toetskap als de rest van het spel.
 
 ## [0.42.0] - 2026-10-23
