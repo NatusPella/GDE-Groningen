@@ -433,7 +433,7 @@ const PHASES = {
     if (stap === 'props') {
       const alle = B.findProps(w.player.x, w.player.y, 45), soorten = {};
       for (const p of alle) soorten[p.kind] = (soorten[p.kind] || 0) + 1;
-      const lijst = alle.filter((p) => /^[a-z]+@-?d+,-?d+$/.test(p.key)).sort((a, b) => Math.hypot(a.x - w.player.x, a.y - w.player.y) - Math.hypot(b.x - w.player.x, b.y - w.player.y)).slice(0, 4);
+      const lijst = alle.filter((p) => ['bench', 'bin', 'chair', 'table', 'parasol', 'bike', 'stall', 'lamp', 'tree'].includes(p.kind) && /^[a-z]+@-?\d+,-?\d+$/.test(p.key)).sort((a, b) => Math.hypot(a.x - w.player.x, a.y - w.player.y) - Math.hypot(b.x - w.player.x, b.y - w.player.y)).slice(0, 4);
       log('w428-props', { keys: lijst.map((p) => ({ key: p.key, x10: Math.round(p.x * 10), y10: Math.round(p.y * 10) })), alle: alle.length, soorten });
       return;
     }
