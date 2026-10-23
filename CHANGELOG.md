@@ -6,6 +6,9 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+- **Prinsentuin en Martinikerkhof: geen heggen en bomen meer over de weg (#324; in Electron met de echte tegels door Claude in beeld bekeken, niet door een mens):** de stad had van deze twee parken naast de echte tegels nog een tweede, losse parkkit uit het landschap (een rechthoek met heggen, zandpad, vijvertje en willekeurige dennen, op de plaats van het park maar niet op zijn vorm). Die rechthoek liep over de Turfsingel, voetpaden en klinkers en zette dennen midden op de rijbaan en een heg dwars over het pad. Binnen de stad wordt dat kit niet meer getekend; het park komt uit de tegels.
+- **Grote Markt: geen "water" of sloot meer waarin je auto verdwijnt (#327; de aanpassing zit in de wereldbouw en is nog niet in beeld bekeken, alleen getest op de regel):** aan de noordwestkant van de Grote Markt lag een klein, los vijvertje van zo'n 120 m² (OSM, met een eilandje) op het peil van de grachten, dus 2,3 m onder straat: een put met scheve groene randen waar een auto in verdween. Een klein water dat aan geen gracht hangt (minder dan 400 m²) ligt nu op straatniveau (ondiep bekken). Een wereld moet opnieuw gebouwd worden om het te zien.
+
 ## [0.41.1] - 2026-10-23
 
 ### Nieuw

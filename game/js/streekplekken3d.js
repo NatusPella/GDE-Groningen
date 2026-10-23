@@ -1,6 +1,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getScene } from './scene3d.js';
 import { CEL, celVan, partsToWorld } from './streekplekken.js';
+import { edgeDistance } from './countryfield.js';
 
 // Landplekken (#21, #23, #164, #198, scripts/world/streekplekken.mjs -> game/streekplekken.json): perrons,
 // schoorstenen, zendmasten, monumenten en parken, per cel van 512 m als InstancedMesh (een per
@@ -36,9 +37,14 @@ function load() {
 const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _p = new THREE.Vector3(), _s = new THREE.Vector3(), _c = new THREE.Color();
 const UP = new THREE.Vector3(0, 1, 0);
 
+// De stad heeft zijn eigen parken (tegels met gras, heggen, bomen en paden op de echte plek): het parkkit is een
+// rechthoek en liep daar over wegen, voetpaden en bestrate pleinen (Prinsentuin, Martinikerkhof, #324).
+const PARK_IN_STAD = -30;
+const inStad = (p) => p.t === 'park' && edgeDistance(p.x, p.y) < PARK_IN_STAD;
+
 function celGroup(lijst) {
   const per = { box: [], cyl: [], cone: [] };
-  for (const p of lijst) for (const q of partsToWorld(p)) per[q.s].push(q);
+  for (const p of lijst) { if (inStad(p)) continue; for (const q of partsToWorld(p)) per[q.s].push(q); }
   const g = new THREE.Group();
   g.name = 'streekplekken';
   for (const s of Object.keys(per)) {
