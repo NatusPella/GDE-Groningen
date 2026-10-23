@@ -11,7 +11,7 @@ export const HELP_TOPICS = [
     'Shift + klik op de kaart zet je meteen op die plek (uit te zetten bij {ESC} Instellingen › Interface).',
   ] },
   { id: 'todo', title: 'Wat kan ik nog meer?', lines: [
-    '{ESC} › Te doen laat alles zien wat openstaat: missies, bijbaantjes en plekken. Kies iets en de route gaat erheen.',
+    '{ESC} › Activiteiten laat zien wat er te doen is: klussen, minigames en evenementen. Bijbanen staan onder Loopbanen. Kies iets en de route gaat erheen.',
   ] },
   { id: 'geld', title: 'Geld en winkels', lines: [
     'Geld verdien je met missies en bijbaantjes; je saldo staat rechtsboven.',
@@ -38,7 +38,7 @@ export const HELP_TOPICS = [
     'Valt iemands verbinding weg, dan pauzeert het spel en komt het vanzelf terug zodra die weer verbonden is.',
   ] },
   { id: 'toetsen', title: 'Toetsen en controller', lines: [
-    'Alle toetsen en knoppen staan onder Besturing. Je kunt ze zelf anders zetten, voor toetsenbord en controller.',
+    'Alle toetsen en knoppen staan onder Instellingen, bij Besturing. Je kunt ze zelf anders zetten, voor toetsenbord en controller.',
     'Zet de uitleg uit onder Instellingen › Interface › Meer opties.',
   ] },
 ];

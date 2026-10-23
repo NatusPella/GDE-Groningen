@@ -66,8 +66,8 @@ const shot = (name) => { console.log('[capture] ' + name); };
 const esc = async () => { if (window.__bot) await window.__bot.press('escape', 120); else key('Escape', 'Escape'); };
 const openSamen = async () => { // het pauzemenu, onderdeel Samen (zoals een speler)
   await esc();
-  await until(() => document.querySelector('.ra[data-goto="samen"]'), 8000, 'rail-knop Samen');
-  document.querySelector('.ra[data-goto="samen"]').click();
+  await until(() => document.querySelector('.ra[data-goto="spel"]'), 8000, 'rail-knop Spel');
+  document.querySelector('.ra[data-goto="spel"]').click(); await sleep(400); await until(() => document.querySelector('#pause-menu [data-of="spel"][data-subtab="samen"]'), 8000, 'tabblad Samen spelen'); document.querySelector('#pause-menu [data-of="spel"][data-subtab="samen"]').click();
   await until(() => panel() && !panel().closest('[hidden]'), 5000, 'paneel Samen');
 };
 // terug het spel in zoals een speler: de knop Doorgaan van het overzicht (Escape in het pauzemenu gaat een stap terug)
@@ -76,7 +76,7 @@ const closeMenu = async () => {
     if (!document.querySelector('#pause-menu.visible')) break; // niet op world.paused: een filmpje pauzeert de wereld ook, en Escape zou dan het menu juist openen
     const resume = [...document.querySelectorAll('#pause-menu [data-action="resume"]')].find((b) => b.offsetParent);
     if (resume) resume.click();
-    else { const ov = document.querySelector('#pause-menu .ra[data-goto="overzicht"]'); if (ov && ov.getAttribute('aria-current') !== 'true') ov.click(); else await esc(); }
+    else { const ov = document.querySelector('#pause-menu .ra[data-goto="spel"]'); if (ov && ov.getAttribute('aria-current') !== 'true') ov.click(); else await esc(); }
     await sleep(900);
   }
   log('menu-dicht', { paused: !!(W() || {}).paused, startScherm: !!document.querySelector('#start-screen.visible'), pauzemenu: !!document.querySelector('#pause-menu.visible'), body: document.body.className });
@@ -109,7 +109,7 @@ function sampleNow(n) {
     verdiend: x.coopVerdiend || 0, ri: x.coop && x.coop.remoteInput ? [Math.round(x.coop.remoteInput.mx * 100) / 100, Math.round(x.coop.remoteInput.my * 100) / 100, x.coop.remoteInput.buttons | 0] : null,
     hm: hm ? (hm.actief ? hm.label + ' | ' + (hm.stap || '') : '-') : null,
     weer: x.weatherState && x.weatherState.regions ? Object.entries(x.weatherState.regions).map(([id, r]) => id + ':' + r.kind + ':' + Math.round(r.rain * 100)).join(',') : null, wx: x.weather ? [x.weather.kind || '', Math.round((x.weather.intensity || 0) * 100)] : null, pm: (x.coopPingMarks || []).map((m) => m.tekst + '|' + m.naam).join(';'), voert: x.coopInVoertuig ? 1 : 0,
-    hostMesh: x.coopHostMeshes || null, hostDbg: x.coopHostDbg || null, extra: x.coopExtraMeshes || null, extraB: x.coopExtraBytes || 0, extraS: x.coopExtra ? [x.coopExtra.voetgangers.size, x.coopExtra.uiterlijk.size, x.coopExtra.dieren.size, x.coopExtra.lichten.size, x.coopExtra.kapot.length] : null,
+    hostMesh: x.coopHostMeshes || null, hostDbg: x.coopHostDbg || null, deuren: x.coopDeurenDbg ?? null, geluid: [x.coopHoornDbg || 0, x.coopSirenDbg || 0], extraDbg: x.coopExtraDbg || null, extra: x.coopExtraMeshes || null, extraB: x.coopExtraBytes || 0, extraS: x.coopExtra ? [x.coopExtra.voetgangers.size, x.coopExtra.uiterlijk.size, x.coopExtra.dieren.size, x.coopExtra.lichten.size, x.coopExtra.kapot.length] : null,
     hostEnt: x.coopHost ? [x.coopHost.voertuigen.length, x.coopHost.doelen.length, (x.coopHost.voetgangers || []).length] : null,
     vs: x.player && x.player.inVehicle ? [Math.round((x.player.inVehicle.speed || 0) * 10) / 10, x.player.inVehicle.wrecked ? 1 : 0, Math.round(x.player.inVehicle.health ?? -1), x.coopWielSlot ?? null] : null,
     veh: x.player && x.player.inVehicle ? 1 : 0, vehC: x.companion && x.companion.inVehicle ? 1 : 0, nVeh: (x.vehicles || []).length,
@@ -312,6 +312,47 @@ const PHASES = {
     log('water', best || { geen: true });
     if (best) { w.camYaw = Math.atan2(best.y - me.y, best.x - me.x); await sleep(6000); shot(naam); await sleep(600); }
   },
+  // boten en treinen bij de gast (#428): zoek water en spoor rond de gast; de gescripte gastheer zet de gast en de voertuigen erheen; daarna beeld en meting
+  async zoek428({ soort = 'water' }) {
+    const w = W(); const me = w.player; window.__k428 = window.__k428 || {};
+    if (soort === 'water') {
+      const { isInWater } = await import('./js/util.js'); let best = null;
+      // breed water: 40 m door in de kijkrichting en 10 m opzij; anders (verder zoeken) het eerste water met 14 m erachter
+      const breed = (x, y, a) => [0, 10, 20, 30, 40].every((d) => isInWater(w.map, x + Math.cos(a) * d, y + Math.sin(a) * d)) && [-10, 10].every((l) => isInWater(w.map, x + Math.cos(a) * 30 - Math.sin(a) * l, y + Math.sin(a) * 30 + Math.cos(a) * l));
+      for (let r = 8; r <= 500 && !best; r += 8) for (let a = 0; a < 6.283 && !best; a += 0.2) { const x = me.x + Math.cos(a) * r, y = me.y + Math.sin(a) * r; if (breed(x, y, a)) best = { x, y, a, r, breed: true }; }
+      for (let r = 4; r <= 120 && !best; r += 3) for (let a = 0; a < 6.283 && !best; a += 0.15) { const x = me.x + Math.cos(a) * r, y = me.y + Math.sin(a) * r; if (isInWater(w.map, x, y) && isInWater(w.map, x + Math.cos(a) * 14, y + Math.sin(a) * 14)) best = { x, y, a, r }; }
+      if (best) best.zet = [best.x - Math.cos(best.a) * 5, best.y - Math.sin(best.a) * 5];
+      window.__k428.water = best; log('zoek428-water', best || { geen: true }); // de gastheer brengt de gast erheen (de plek van de gast is van de gastheer)
+    } else if (soort === 'brug') { // een beweegbare brug en een sluis in de buurt (de gescripte gastheer laat ze bewegen)
+      const M = await import('./js/movablebridges.js'), S = await import('./js/sluizen.js'); let best = null, sl = null;
+      for (const b of M.getMovableBridges()) { const d = Math.hypot(b.x - me.x, b.y - me.y); if (d < 3000 && (!best || d < best.d)) best = { soort: 'brug', x: b.x, y: b.y, d, naam: b.name, len: b.len }; }
+      for (const l of S.getSluizen()) { const d = Math.hypot(l.x - me.x, l.y - me.y); if (d < 6000 && (!sl || d < sl.d)) sl = { soort: 'sluis', x: l.x, y: l.y, d, naam: l.name }; }
+      if (best) best.zet = [best.x + 14, best.y + 14];
+      window.__k428.brug = best; log('zoek428-brug', { brug: best, sluis: sl, aantal: [M.getMovableBridges().length, S.getSluizen().length] });
+    } else {
+      const R = await import('./js/railway.js'); const routes = R.getRoutes(); let best = null;
+      routes.forEach((rt, idx) => { for (let c = 0; c < rt.len; c += 8) { const p = R.routePoint(rt, c), d = Math.hypot(p[0] - me.x, p[1] - me.y); if (!best || d < best.d) best = { idx, c, d, x: p[0], y: p[1], len: rt.len, naam: rt.name }; } });
+      let kruis = null; // liever een overweg erbij (slagbomen): de dichtstbijzijnde binnen 900 m
+      routes.forEach((rt, idx) => { for (const rc of rt.crossings || []) { const p = R.routePoint(rt, rc.s), d = Math.hypot(p[0] - me.x, p[1] - me.y); if (d < 900 && (!kruis || d < kruis.d)) kruis = { idx, c: rc.s, d, x: p[0], y: p[1], len: rt.len, naam: rt.name, overweg: true }; } });
+      if (kruis) best = kruis;
+      if (best) { const rt = routes[best.idx], c0 = Math.max(0, best.c - 400), pts = []; for (let c = c0; c <= Math.min(rt.len, best.c + 400); c += 6) pts.push(R.routePoint(rt, c).map((v) => Math.round(v * 100) / 100)); best.c0 = c0; best.pts = pts; }
+      if (best) { const rt = routes[best.idx], a = R.routePoint(rt, best.c), b = R.routePoint(rt, best.c + 4), ang = Math.atan2(b[1] - a[1], b[0] - a[0]); best.zet = [a[0] - Math.sin(ang) * 11, a[1] + Math.cos(ang) * 11]; }
+      window.__k428.spoor = best; log('zoek428-spoor', best ? { ...best, aantalRoutes: routes.length, treinen: R.getTrains().length } : { geen: true });
+    }
+  },
+  async toon428({ soort = 'water', naam = 'toon', n = 3 }) {
+    const w = W(); const me = w.player; const doel = (window.__k428 || {})[soort];
+    if (!doel) { log('toon428', { soort, geen: true }); return; }
+    const a0 = soort === 'water' ? doel.a : Math.atan2(doel.y - me.y, doel.x - me.x);
+    const R = await import('./js/railway.js');
+    for (let i = 0; i < n; i++) {
+      w.camYaw = a0 + (i === 1 ? 0.6 : i === 2 ? -0.6 : 0); await sleep(1200); shot(naam + '-' + i);
+      const treinen = R.getTrains().filter((t) => !t.gastWeg && Math.hypot(t.cars[0].x - me.x, t.cars[0].y - me.y) < 300).map((t) => ({ route: R.getRoutes().indexOf(t.route), c: Math.round(t.c), v: Math.round(t.v * 10) / 10, dir: t.dir, state: t.state, auto: t.cars.length, auto0: [t.cars[0].x, t.cars[0].y, t.cars[0].z].map((v) => Math.round(v * 10) / 10) }));
+      log('toon428', { soort, i, ik: [Math.round(me.x), Math.round(me.y)], pos: w.coopHostPos || null, treinen, boomMax: (R.getLevelCrossings() || []).map((c) => Math.round(c.boom * 100) / 100).filter((b) => b > 0), deuren: w.coopDeurenDbg || null,
+        bruggen: soort === 'brug' ? (await import('./js/movablebridges.js')).getMovableBridges().filter((b) => b.state !== 'closed' || b.open > 0).map((b) => [b.state, Math.round(b.open * 100) / 100, Math.round(b.boom * 100) / 100, Math.round(b.x), Math.round(b.y)]) : null });
+      await sleep(400);
+    }
+  },
   // de spelerslijst bij Tab (#377): Tab vasthouden, schermafbeelding, loslaten
   async tab({ name = 'g-tab' }) {
     for (const t of [window, document]) t.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', code: 'Tab', bubbles: true }));
@@ -326,10 +367,10 @@ const PHASES = {
   // het onderdeel Spelers in het pauzemenu (#377)
   async spelersmenu({ name = 'g-spelersmenu' }) {
     await esc();
-    await until(() => document.querySelector('.ra[data-goto="spelers"]'), 8000, 'rail-knop Spelers');
-    document.querySelector('.ra[data-goto="spelers"]').click();
+    await until(() => document.querySelector('.ra[data-goto="spel"]'), 8000, 'rail-knop Spel');
+    document.querySelector('.ra[data-goto="spel"]').click(); await sleep(400); await until(() => document.querySelector('#pause-menu [data-of="spel"][data-subtab="spelers"]'), 8000, 'tabblad Spelers'); document.querySelector('#pause-menu [data-of="spel"][data-subtab="spelers"]').click();
     await sleep(1200);
-    const p = document.querySelector('#pause-menu [data-panel="spelers"]');
+    const p = document.querySelector('#pause-menu [data-of="spel"][data-sub="spelers"]');
     const rail = document.querySelector('#pause-menu .pm-rail .pm-game'), opsl = document.querySelector('#pause-menu [data-action="save"]');
     const first = document.querySelector('#pause-menu .pm-game .ra'), second = document.querySelectorAll('#pause-menu .pm-game .ra')[1];
     log('spelersmenu', { zichtbaar: !!p && !p.hidden, rijen: p ? p.querySelectorAll('.cs-rij').length : 0, roep: p ? p.querySelectorAll('[data-ping]').length : 0,
@@ -448,13 +489,34 @@ const PHASES = {
     const cs = T.getTrafficControllers();
     const e = w.coopExtra;
     log('w428', {
-      meshes: w.coopExtraMeshes || null, hostMesh: w.coopHostMeshes || null, bytes: w.coopExtraBytes || 0,
+      meshes: w.coopExtraMeshes || null, hostMesh: w.coopHostMeshes || null, bytes: w.coopExtraBytes || 0, dbg: w.coopExtraDbg || null,
       stand: e ? [e.voetgangers.size, e.uiterlijk.size, e.dieren.size, e.lichten.size, e.kapot.length, e.spraak.size] : null,
       lichtT: [0, 1, 2, 3, 4].map((i) => (cs[i] ? Math.round(cs[i].t * 10) / 10 : null)), lichtC: [0, 1, 2, 3, 4].map((i) => (cs[i] ? Math.round(cs[i].cycle * 10) / 10 : null)), lichtHost: e ? [0, 1, 2, 3, 4].map((i) => (e.lichten.get(i) ? e.lichten.get(i).t : null)) : null,
       kapot: (e ? e.kapot : []).map((k) => [k.key, B.isPropBroken(k.key)]), lokaalPeds: (w.pedestrians || []).length, lokaalDieren: (w.wildlife || []).length, lokaalVoertuigen: (w.vehicles || []).length,
       sprekers: (w.extraSpeakers || []).length, misc: e ? [...e.misc.keys()] : null,
     });
     for (let i = 0; i < rond; i++) { w.camYaw = i * Math.PI * 2 / rond; await sleep(500); shot(naam + '-' + i); await sleep(300); }
+  },
+  // samen spelen (#428, duurtest): geheugen, scene en tabellen van de gast, elke `elke` seconden, `s` seconden lang (de gastheer laat voertuigen en voetgangers verlopen)
+  async duurmeting({ s = 60, elke = 5 }) {
+    if (CFG.role === 'host') { await sleep(s * 1000); return; }
+    const w = W(), S3 = await import('./js/scene3d.js');
+    const t0 = Date.now();
+    while (Date.now() - t0 < s * 1000) {
+      const sc = S3.getScene(), r = S3.getRenderer(), ses = w.coopNet && w.coopNet.session, e = w.coopExtra;
+      let kids = 0; const mats = new Set(), geos = new Set(); if (sc) sc.traverse((o) => { kids++; if (o.geometry) geos.add(o.geometry); if (o.material) for (const m of Array.isArray(o.material) ? o.material : [o.material]) mats.add(m); });
+      let gc = false; if (typeof window.gc === 'function') { window.gc(); gc = true; }
+      log('duur', {
+        t: Math.round((Date.now() - t0) / 1000), heapMB: performance.memory ? +(performance.memory.usedJSHeapSize / 1048576).toFixed(1) : null, gc,
+        geometries: r ? r.info.memory.geometries : null, textures: r ? r.info.memory.textures : null, programs: r ? r.info.programs.length : null, calls: r ? r.info.render.calls : null,
+        sceneKinderen: kids, sceneMaterialen: mats.size, sceneGeometrieen: geos.size,
+        hostMesh: w.coopHostMeshes || null, extraMesh: w.coopExtraMeshes || null, figuren: Object.keys(w.coopFigures || {}).length,
+        stand: e ? [e.voetgangers.size, e.uiterlijk.size, e.spraak.size, e.dieren.size, e.lichten.size, e.misc.size, e.kapot.length] : null,
+        snaps: ses ? ses.buf.snaps.length : null, relP: ses ? ses.rel.pending.length : null, relA: ses ? ses.rel.ahead.size : null, looks: ses && ses.looks ? ses.looks.size : null,
+        sprekers: (w.extraSpeakers || []).length, status: ses ? ses.status : null, bubbels: document.querySelectorAll('.speech-bubble, .bubble').length, domEls: document.getElementsByTagName('*').length,
+      });
+      await sleep(elke * 1000);
+    }
   },
   // samen spelen (#388): de camera van de gast draait met de muis (hij draaide nooit omdat updateGameplay niet draait voor een gast)
   async gastcamera() {
@@ -720,9 +782,9 @@ const PHASES = {
   // het pauzemenu open terwijl je samen speelt: ligt het partnerlabel er niet overheen? (alleen een schermafbeelding en een controle)
   async menushot() {
     await openSamen(); await sleep(900);
-    // geen permanent label meer (#377): niets van de spelerslijst ligt over het menu; het onderdeel Spelers staat in de rail
+    // geen permanent label meer (#377): niets van de spelerslijst ligt over het menu; Spelers is een tabblad van Spel
     const lijst = document.getElementById('coop-spelers');
-    const rail = document.querySelector('#pause-menu [data-goto="spelers"]');
+    const rail = document.querySelector('#pause-menu [data-of="spel"][data-subtab="spelers"]');
     log('menushot', { chip: true, chipZichtbaar: !!(lijst && getComputedStyle(lijst).display !== 'none') || !!document.querySelector('.coop-chip'), railSpelers: !!rail && !rail.hidden });
     shot('g-pauzemenu');
     await sleep(500); await closeMenu();
@@ -730,6 +792,8 @@ const PHASES = {
   // opnieuw aansluiten na het verlaten, via het pauzemenu en de lobby (dezelfde code), zoals een speler
   async opnieuw() {
     if (net()) { log('opnieuw-al-verbonden', {}); return; }
+    // een nieuw spel van de gast zonder opening: na het verlaten speelt zijn eigen verhaal de opening (de gast speelde hem niet, de gastheer wel); een speler wacht of slaat hem over, anders weigert canJoin
+    try { const c = await import('/js/cinematics.js'); if (c.isCinematicActive()) { log('opnieuw-opening-over', { id: c.cinematicState().id }); c.skipAllCinematics(); await until(() => !W().cameraOverride && !c.isCinematicActive(), 8000, 'eigen opening overgeslagen'); } } catch (e) { log('opnieuw-opening-fout', { msg: String(e && e.message) }); }
     await openSamen();
     await act('kies-gast');
     const input = await until(() => panel().querySelector('.coop-input'), 5000, 'invoerveld');

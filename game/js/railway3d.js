@@ -722,7 +722,7 @@ function updateTrains(px, py, night) {
   for (const t of all) {
     let view = trainViews.get(t);
     const mid = t.cars[t.cars.length >> 1];
-    const near = Math.abs(mid.x - px) < VIEW + t.halfLen && Math.abs(mid.y - py) < VIEW + t.halfLen;
+    const near = !t.gastWeg && Math.abs(mid.x - px) < VIEW + t.halfLen && Math.abs(mid.y - py) < VIEW + t.halfLen; // gastWeg: een gast tekent alleen de treinen van de host (#428)
     if (!view) {
       if (!near) continue;
       view = buildTrainView(t);

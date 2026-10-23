@@ -64,7 +64,7 @@ for (const sub of ['acties', 'spelen', 'camera', 'hints']) {
   const spelKnop = [...rail.querySelectorAll('.ra')].find((b) => b.dataset.goto === 'spel');
   check('de rail heeft een knop Spel', zichtbaar(spelKnop), spelKnop && spelKnop.textContent.trim());
   const volgorde = [...rail.querySelectorAll('.ra[data-goto]')].filter(zichtbaar).map((b) => b.dataset.goto);
-  check('Spel staat vóór Instellingen in de rail', volgorde.indexOf('spel') >= 0 && volgorde.indexOf('spel') + 1 === volgorde.indexOf('settings'), volgorde.join(','));
+  check('de rail: Spel, Verhaal, Loopbanen, Activiteiten, Kaart, Spullen, Garage, Prestaties, Foto2019s, Instellingen', volgorde.join(',') === 'spel,verhaal,loopbaan,todo,map,spullen,garage,prestaties,fotos,settings', volgorde.join(','));
 }
 // een regelaar onder Spel: dezelfde instelling, meteen bewaard
 {
@@ -109,7 +109,7 @@ PM.openPauseMenu('spel', { prestart: true });
 await sleep(1100);
 {
   const volgorde = [...root().querySelectorAll('.pm-rail .ra[data-goto]')].filter(zichtbaar).map((b) => b.dataset.goto);
-  check('voor de start: Spel, Instellingen en Besturing in de rail', volgorde.join(',') === 'spel,settings,controls', volgorde.join(','));
+  check('voor de start: Spel en Instellingen in de rail (Besturing hangt onder Instellingen)', volgorde.join(',') === 'spel,settings', volgorde.join(','));
   const missie = [...root().querySelectorAll('[data-of="spel"] .pm-ingame')].some(zichtbaar);
   check('voor de start staat Missie stoppen er niet', !missie);
 }

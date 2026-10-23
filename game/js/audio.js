@@ -2779,7 +2779,7 @@ function playAudioEvents(world) {
       case 'crossing_bell': playCrossingBell(x, y); break;
       case 'train_horn': playTrainHorn(x, y); break;
       case 'train_clack': playTrainClack(x, y, clamp(e.strength ?? 0.5, 0, 1)); break;
-      case 'horn': playHorn(x, y, e.strength ? 0.15 + clamp(e.strength, 0, 1) * 0.65 : 0.4); break;
+      case 'horn': playHorn(x, y, e.strength ? 0.15 + clamp(e.strength, 0, 1) * 0.65 : 0.4, e.low || 1); break;
       case 'shout': playShout(x, y, clamp(e.strength ?? 0.5, 0, 1)); break;
       case 'hiccup': playHiccup(x, y, !!e.female); break;
       case 'weapon': playWeaponSfx(e, x, y); break;
@@ -2967,7 +2967,7 @@ function updateSiren(dt, world) {
   const chaseActive = world.wanted > 0;
   const intensity = clamp(world.wanted / 5, 0, 1);
   // ambulances on a call and a player-switched siren sound without a chase too
-  const units = world.vehicles.filter((v) => !v.wrecked && !v.sinking &&
+  const units = (world.coopSirenUnits && world.coopSirenUnits.length ? world.vehicles.concat(world.coopSirenUnits) : world.vehicles).filter((v) => !v.wrecked && !v.sinking &&
     (v.sirenOn || (chaseActive && v.isPolice && !v._mount && !v._commandeered && !v.hijacked && v.driver !== 'player')));
   const targetGain = chaseActive ? 0.18 + intensity * 0.22 : units.length ? 0.22 : 0;
   sirenState.gain += (targetGain - sirenState.gain) * Math.min(1, dt * 2.2);

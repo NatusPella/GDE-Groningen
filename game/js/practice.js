@@ -37,7 +37,7 @@ function maybeOffer(dt, w) {
   if (playT < OFFER_AFTER || w.paused || isPauseMenuOpen() || isCinematicActive() || offered()) return;
   if ((w.wanted || 0) > 0 || getSettings().onboardingTips === false || cardsBusy() || !mayStart('card')) return;
   if (playerBusy(w).busy) return;
-  showCard(w, { kind: 'tip', kicker: 'Oefenronde', title: 'Even oefenen?', body: 'Wil je de basis rustig oefenen, zonder gevolgen? Open het menu en kies Besturing, dan Hulp, dan Oefenen.', key: 'oefen-aanbod', important: false, voice: false, duration: 10 });
+  showCard(w, { kind: 'tip', kicker: 'Oefenronde', title: 'Even oefenen?', body: 'Wil je de basis rustig oefenen, zonder gevolgen? Open het menu en kies Instellingen, dan Besturing, dan Hulp en Oefenen.', key: 'oefen-aanbod', important: false, voice: false, duration: 10 });
   try { localStorage.setItem(KEYS.oefenronde, '0'); } catch (e) { /* memory only */ }
 }
 

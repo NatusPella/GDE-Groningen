@@ -15,7 +15,7 @@ import { updatePartnerChip } from './coophud.js';
 import { syncFigures, hasFigureMeshes } from './coopfigures3d.js';
 import { syncHostEntities, hasHostEntities, clearHostEntities } from './coopentities3d.js';
 import { syncExtra, hasExtra, clearExtra } from './coopextra3d.js';
-import { maakMisc } from './coopextra.js';
+import { maakMisc, maakWereldLijst, maakSprekersLijst } from './coopextra.js';
 import { kermisOn } from './kermis.js';
 import { stuntSnapshot } from './stuntavond.js';
 import { syncPings, hasPingMeshes } from './cooppings3d.js';
@@ -82,7 +82,7 @@ import { updateNarrative } from './narrative.js';
 import { initStoryContact, updateStoryContact } from './storycontact.js';
 import { initTheme } from './theme.js';
 import { initTrafficLights, updateTrafficLights, trafficSignalsNear, trafficLightPhaseFor } from './trafficlights.js';
-import { initRailway, updateRailway, setRailExtraWorld, getTrains, getRoutes, routePoint, zetTreinVanHost } from './railway.js';
+import { initRailway, updateRailway, setRailExtraWorld, getTrains, getRoutes, routePoint, zetTreinVanHost, zetTreinenVanHost } from './railway.js';
 import { updateZeilvaren } from './zeilvaren.js';
 import { updateEvenementen } from './evenementenlive.js';
 import { updateWerf } from './werflive.js';
@@ -167,7 +167,7 @@ import { initSafety, updateSafety } from './safety.js';
 import { updateCinematics, isCinematicActive, sinceCinematic, setCinematicLinks } from './cinematics.js';
 import { initFlavour, updateFlavour } from './flavour.js';
 import { initFlavour3D, updateFlavour3D } from './flavour3d.js';
-import { prepareHomeMap, initHome, updateHome, updateHomeExterior, tryHomeInteract, homeSpawnPoint, parkHeroAtHome } from './home.js';
+import { prepareHomeMap, initHome, updateHome, updateHomeExterior, tryHomeInteract, homeSpawnPoint, parkHeroAtHome, garagePoortToestand } from './home.js';
 import { updateDrunk } from './drunk.js';
 import { updateHelis } from './heliflight.js';
 import { planeKind } from './planeflight.js';
@@ -426,9 +426,9 @@ async function boot() {
   initHome(world);
   parkHeroAtHome(world);
   initTrafficLights(world);
-  world.coopExtraDeps = { controllers: getTrafficControllers, gebroken: brokenKeysNear, misc: (bij, g, nu) => maakMisc({ kermis: kermisOn(world), stunt: stuntSnapshot(), punten: world.mission && world.mission.phase === 'active' ? world.mission.remainingWaypoints : null }, g, nu) }; // wat de host de gasten vertelt (coopnet.js, coopextra.js)
+  world.coopExtraDeps = { controllers: getTrafficControllers, gebroken: brokenKeysNear, misc: (bij, g, nu) => maakMisc({ kermis: kermisOn(world), stunt: stuntSnapshot(), punten: world.mission && world.mission.phase === 'active' ? world.mission.remainingWaypoints : null }, g, nu), wereld: (bij) => maakWereldLijst(getMovableBridges(), getSluizen(), bij, garagePoortToestand()), sprekers: (bij, nu) => maakSprekersLijst(world.extraSpeakers, nu, bij) }; // wat de host de gasten vertelt (coopnet.js, coopextra.js)
   initRailway(world);
-  setCoopTreinen({ getTrains, getRoutes, routePoint, zetTreinVanHost }); // samen spelen: de host stuurt zijn treinen (#428)
+  setCoopTreinen({ getTrains, getRoutes, routePoint, zetTreinVanHost, zetTreinenVanHost }); // samen spelen: de host stuurt zijn treinen (#428)
   buildMovableBridges(world.map);
   // the province's movable bridges come with the streamed tiles, not with map.roads (#235)
   if (world.map.onTiles) {
@@ -642,7 +642,7 @@ async function boot() {
     if (world.coopNet || world.coopPartner !== undefined) updatePartnerChip(world);
     if (world.coopNet || hasFigureMeshes()) syncFigures(world, dt); // de figuren van de andere spelers (#95)
     if (world.coopNet || hasPingMeshes()) syncPings(world); // de roepjes van de spelers (#367)
-    if (world.coopRole === 'client') { syncHostEntities(world, dt); syncExtra(world, dt); } else { if (hasHostEntities()) clearHostEntities(); if (hasExtra()) clearExtra(); } // voertuigen, doel, voetgangers, dieren, lichten en kapotte objecten van de host bij een gast (#428)
+    if (world.coopRole === 'client') { syncHostEntities(world, dt); syncExtra(world, dt); } else { if (hasHostEntities()) clearHostEntities(); if (hasExtra()) clearExtra(); if (world.coopSirenUnits) world.coopSirenUnits = null; } // voertuigen, doel, voetgangers, dieren, lichten en kapotte objecten van de host bij een gast (#428)
     if (world.coopScene || hasHostScene()) updateHostScene(world); // filmpje, regel en keuze van de host bij een gast
     probe.mark('phone+save');
     updateSafety(dt, world);
@@ -677,7 +677,7 @@ async function boot() {
   function updateGameplay(dt) {
     world.time += dt;
     // samen spelen (#95): een gast draait de wereld van de host niet zelf; die komt via het net (coopnet.js, coopworld.js)
-    if (world.coopRole === 'client' && world.coopNet && world.coopNet.joined) { updateGastLokaal(world); updateWeather(dt, world); refreshDayNight(world); return; } // het weer en de dagstand volgen de gastheer (#378) // winkelen en in- of uitstappen (#291)
+    if (world.coopRole === 'client' && world.coopNet && world.coopNet.joined) { updateGastLokaal(world); updateWeather(dt, world); refreshDayNight(world); try { updateHomeExterior(dt, world); } catch (e) { /* zonder garage */ } return; } // het weer en de dagstand volgen de gastheer (#378) // winkelen en in- of uitstappen (#291)
     // money must stay a number: a NaN from any price or reward is undone
     if (Number.isFinite(world.money)) world._goodMoney = world.money;
     else {
