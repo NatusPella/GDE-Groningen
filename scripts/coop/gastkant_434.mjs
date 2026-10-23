@@ -36,9 +36,9 @@ for (const s of ['SIGINT', 'SIGTERM']) process.on(s, () => { release(); process.
 // het programma van de gast (seconden na "allen-erbij") en het draaiboek van de host, op dezelfde tijdlijn
 const PROGRAM = [
   [0, 'wacht', { s: 6 }], [6, 'gloed', { s: 12 }], [20, 'gastpitch', {}], [27, 'gastspring', {}], [35, 'zit', { s: 5, naam: 'wapen', kijk: 'host' }],
-  [43, 'zit', { s: 6, naam: 'auto', pitch: 14 }], [58, 'zit', { s: 6, naam: 'fiets', pitch: 18 }], [70, 'wacht', { s: 4 }],
+  [43, 'zit', { s: 6, naam: 'auto', pitch: 14 }], [58, 'zit', { s: 6, naam: 'fiets', pitch: 18 }], [70, 'wacht', { s: 4 }], [75, 'gastbestuur', { s: 16 }],
 ];
-const HOST_STOP = 76;
+const HOST_STOP = 96;
 const started = Date.now();
 await takeSlot();
 console.log('uitvoer:', OUT);
@@ -58,6 +58,7 @@ process.on('exit', () => { try { child.kill(); } catch (e) { /* weg */ } });
 const readEvents = () => fs.readFileSync(events, 'utf8').split(/\r?\n/).filter(Boolean).map((l) => { try { return JSON.parse(l); } catch (e) { return null; } }).filter(Boolean);
 
 const hostMeting = { zmax: 0, buk: false, sprongen: 0 };
+const hostBestuur = []; // wat de gastheer van de auto ziet waar de gast in rijdt
 (async () => {
   for (let i = 0; i < 1200 && !readEvents().some((e) => e.type === 'allen-erbij'); i++) await new Promise((r) => setTimeout(r, 500));
   const mocks = [];
@@ -72,6 +73,8 @@ const hostMeting = { zmax: 0, buk: false, sprongen: 0 };
   host.at(56, (h) => { for (const m of mocks) m.session.sendEvent({ k: 'gebruik' }); h.rit(false); h.log.push('uit de auto'); });
   host.at(57, (h) => { h.rit(true, { isBike: true, model: { len: 1.8, wid: 0.6, name: 'bike' } }); h.log.push('op de fiets'); });
   host.at(70, (h) => { h.rit(false); h.log.push('van de fiets'); });
+  host.at(74, (h) => { h.parkeerAuto(2.5); h.log.push('een vrije auto naast de gast'); });
+  for (const sec of [78, 80, 82]) host.at(sec, (h) => { const car = h.world.vehicles.find((v) => v.id === 198); if (car) hostBestuur.push({ rij: car.coopBestuurder ?? null, driver: car.driver, speed: Math.round((car.speed || 0) * 10) / 10, mx: Math.round(car.x - h.world.companion.x), zit: !!h.world.companion.coopBestuurt }); });
   host.at(HOST_STOP, async (h) => { h.log.push('host stopt'); await h.stop(); });
 })();
 const res = await done;
@@ -107,6 +110,13 @@ const au = of('auto')[0];
 check(au && au.zitters.some((z) => z[2] === 0) && au.zitters.some((z) => z[2] === 1) && au.dbg >= 2, 'auto: bestuurder en bijrijder zijn niet te zien in het voertuig: ' + JSON.stringify(au));
 if (MOCK) check(au && au.zitters.some((z) => z[2] >= 2) && au.dbg >= 3, 'auto: de extra spelers zitten niet achterin: ' + JSON.stringify(au));
 notes.push('auto: ' + JSON.stringify(au));
+const gb = { auto: of('gastbestuur-auto')[0], in: of('gastbestuur-in')[0], rijdt: of('gastbestuur-rijdt')[0], remt: of('gastbestuur-remt')[0], uit: of('gastbestuur-uit')[0] };
+check(gb.auto && gb.auto.gezien, 'gastbestuur: de gast ziet de auto naast zich niet: ' + JSON.stringify(gb.auto));
+check(gb.in && gb.in.bestuurder && gb.in.inVoertuig && gb.in.zitters.some((z) => z[1] === 0 && z[2]), 'gastbestuur: de gast stapte niet in als bestuurder (E): ' + JSON.stringify(gb.in));
+check(gb.rijdt && gb.rijdt.m > 8 && gb.rijdt.vmax > 4, 'gastbestuur: de auto reed niet met de stick van de gast: ' + JSON.stringify(gb.rijdt));
+check(gb.remt && gb.remt.snelheid < 2, 'gastbestuur: de handrem (Spatie) werkt niet: ' + JSON.stringify(gb.remt));
+check(gb.uit && !gb.uit.bestuurder && !gb.uit.inVoertuig, 'gastbestuur: de gast stapte niet uit (E): ' + JSON.stringify(gb.uit));
+notes.push('gastbestuur: ' + JSON.stringify(gb), 'gastheer ziet de auto van de gast: ' + JSON.stringify(hostBestuur));
 const fi = of('fiets')[0];
 check(fi && fi.zitters.some((z) => z[2] === 0) && fi.dbg >= 1 && fi.pedaal.some((x) => x), 'fiets: de bestuurder is niet te zien op de fiets: ' + JSON.stringify(fi));
 notes.push('fiets: ' + JSON.stringify(fi));

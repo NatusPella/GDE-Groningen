@@ -10,6 +10,11 @@ import { setErrorContext } from './errorlog.js';
 import { DEV, STORY_TEST, FLAGS } from './devflags.js';
 import { bindCoop } from './coopglue.js';
 import { tickCoopNet, setCoopTreinen, coopWereldDoorloop } from './coopnet.js';
+import { zetBestuurHaken } from './coopbestuur.js';
+import { politieMetDoelwit } from './coopgezocht.js';
+import { reportCrime } from './crime.js';
+import { findEnterableVehicle } from './vehicle.js';
+import { findRideableProp, rideProp } from './rideprops.js';
 import { isHoldOpen, checkHold } from './coophold.js';
 import { updatePartnerChip } from './coophud.js';
 import { syncFigures, hasFigureMeshes } from './coopfigures3d.js';
@@ -429,6 +434,8 @@ async function boot() {
   world.coopExtraDeps = { controllers: getTrafficControllers, gebroken: brokenKeysNear, misc: (bij, g, nu) => maakMisc({ kermis: kermisOn(world), stunt: stuntSnapshot(), punten: world.mission && world.mission.phase === 'active' ? world.mission.remainingWaypoints : null }, g, nu), wereld: (bij) => maakWereldLijst(getMovableBridges(), getSluizen(), bij, garagePoortToestand()), sprekers: (bij, nu) => maakSprekersLijst(world.extraSpeakers, nu, bij) }; // wat de host de gasten vertelt (coopnet.js, coopextra.js)
   initRailway(world);
   setCoopTreinen({ getTrains, getRoutes, routePoint, zetTreinVanHost, zetTreinenVanHost }); // samen spelen: de host stuurt zijn treinen (#428)
+  // samen spelen (#434): een gast stapt in en rijdt een vrij voertuig van de host met de besturing van player.js (coopbestuur.js)
+  zetBestuurHaken({ misdaad: (w, slot, kind) => reportCrime(w, kind, { dader: slot }), vind: findEnterableVehicle, vindProp: findRideableProp, rijProp: rideProp, enter: (l, v, w) => Player.prototype.enterVehicle.call(l, v, w), exit: (l, map, w, th) => Player.prototype.exitVehicle.call(l, map, w, th), drive: (l, dt, inv, map, w) => Player.prototype.driveVehicle.call(l, dt, inv, map, w) });
   buildMovableBridges(world.map);
   // the province's movable bridges come with the streamed tiles, not with map.roads (#235)
   if (world.map.onTiles) {
@@ -779,7 +786,7 @@ async function boot() {
     }
     probe.mark('traffic');
 
-    if (!world.pigeonMode && !world.heliRun) updatePolice(dt, world);
+    if (!world.pigeonMode && !world.heliRun) politieMetDoelwit(dt, world, updatePolice); // met een gast die gezocht wordt jaagt de politie op hem (#434)
     updateTrafficLaw(dt, world);
     updateOffences(dt, world, { signalsNear: trafficSignalsNear, phaseFor: trafficLightPhaseFor });
     updateMotorPolice(dt, world);
