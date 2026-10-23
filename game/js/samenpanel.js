@@ -5,6 +5,7 @@ import { mountLobby } from './lobbyui.js';
 import { startHost, startClient, addGuest, stopCoopNet, handshakeInfo, canJoin, removeGuest, setMaxPlayers, openHek, genoegSpelers } from './coopnet.js';
 import { fadeFlash } from './coophud.js';
 import { openHold } from './coophold.js';
+import { koppelWissel } from './coophostwisselui.js';
 import { readSession, writeSession, toSession } from './coopsave.js';
 import { readHostScene } from './coopscene.js';
 import { setGate } from './coopgate.js';
@@ -33,6 +34,7 @@ export function renderSamenPanel(root, world, sluit = () => {}) {
   mountedOn = root;
   const ls = store();
   const info = () => handshakeInfo({ tiles: '-', story: 'nieuw' });
+  koppelWissel(world, { fade: fadeFlash, scene: () => readHostScene(world), onHold: (rol, slot, reden) => openHold(world, rol, slot, reden) }); // het spel overdragen (#439): de route en het scherm
   const keuze = startOpts.rol || null, gate = !!startOpts.gate; startOpts = { ...startOpts, rol: null };
   let spelNaam = ''; try { spelNaam = ls ? nameOf(ls, activeSlot(ls)) : ''; } catch (e) { /* geen naam */ }
   view = mountLobby(root, {
