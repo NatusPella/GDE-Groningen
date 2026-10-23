@@ -25,4 +25,11 @@ assert.equal(slaan(b, 'b', { x: 1, y: 1 }, { x: 10, y: 0 }, { opgepakt: true }),
 assert.deepEqual(stand(b).map((x) => x.totaal), [2, 2], 'eerst gelijk');
 slaan(b, 'a', { x: 10, y: 0 }, { x: 10, y: 0 }, { inHol: true });
 assert.equal(stand(b)[0].id, 'b', 'b heeft de laagste stand');
+// discgolf: een boom of de mand laat de schijf niet over een grote afstand springen (#436)
+import { simulateFlight } from '../game/js/discgolfrules.js';
+const boom = { x: 20, y: 0, r: 0.4, h: 12 };
+const vlucht = simulateFlight({ x: 0, y: 0, yaw: 0, power: 0.9, loft: 0.15, release: 0, disc: 'driver' }, { trees: [boom], rng: () => 0.5 });
+assert.equal(vlucht.reason, 'tree');
+const na = vlucht.path.slice(-4);
+for (let i = 1; i < na.length; i++) assert.ok(Math.hypot(na[i][0] - na[i - 1][0], na[i][1] - na[i - 1][1], na[i][2] - na[i - 1][2]) < 3, 'de schijf springt niet');
 console.log('golfbeurt_test ok');
