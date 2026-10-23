@@ -442,6 +442,78 @@
       "steamApiNaam": ""
     },
     {
+      "id": "kaart_25",
+      "titel": "Kaartlezer",
+      "omschrijving": "Verken een kwart van de kaart",
+      "verborgen": false,
+      "voorstelApiNaam": "ACH_KAART_25",
+      "steamApiNaam": ""
+    },
+    {
+      "id": "kaart_50",
+      "titel": "Halve kaart gezien",
+      "omschrijving": "Verken de helft van de kaart",
+      "verborgen": false,
+      "voorstelApiNaam": "ACH_KAART_50",
+      "steamApiNaam": ""
+    },
+    {
+      "id": "kaart_alle",
+      "titel": "De hele kaart verkend",
+      "omschrijving": "Verken de hele kaart, tot in de uiterste hoek",
+      "verborgen": false,
+      "voorstelApiNaam": "ACH_KAART_ALLE",
+      "steamApiNaam": ""
+    },
+    {
+      "id": "gebied_buurt",
+      "titel": "Buurtheld",
+      "omschrijving": "Verover een buurt: doe alles wat er te doen is (Veroverd, op de kaart)",
+      "verborgen": false,
+      "voorstelApiNaam": "ACH_GEBIED_BUURT",
+      "steamApiNaam": ""
+    },
+    {
+      "id": "gebied_wijk",
+      "titel": "Wijkheld",
+      "omschrijving": "Verover een hele wijk",
+      "verborgen": false,
+      "voorstelApiNaam": "ACH_GEBIED_WIJK",
+      "steamApiNaam": ""
+    },
+    {
+      "id": "gebied_wijk_5",
+      "titel": "Wijk voor wijk",
+      "omschrijving": "Verover vijf wijken",
+      "verborgen": false,
+      "voorstelApiNaam": "ACH_GEBIED_WIJK_5",
+      "steamApiNaam": ""
+    },
+    {
+      "id": "gebied_woonplaats",
+      "titel": "Burgemeester",
+      "omschrijving": "Verover een hele woonplaats",
+      "verborgen": false,
+      "voorstelApiNaam": "ACH_GEBIED_WOONPLAATS",
+      "steamApiNaam": ""
+    },
+    {
+      "id": "gebied_gemeente",
+      "titel": "Gemeentebaas",
+      "omschrijving": "Verover een hele gemeente",
+      "verborgen": false,
+      "voorstelApiNaam": "ACH_GEBIED_GEMEENTE",
+      "steamApiNaam": ""
+    },
+    {
+      "id": "gebied_provincie",
+      "titel": "Provinciebaas van Grunn",
+      "omschrijving": "Verover de hele provincie",
+      "verborgen": false,
+      "voorstelApiNaam": "ACH_GEBIED_PROVINCIE",
+      "steamApiNaam": ""
+    },
+    {
       "id": "ommelanden",
       "titel": "Ommelander",
       "omschrijving": "Trek de stad uit, De Ommelanden in",
