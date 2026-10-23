@@ -17,6 +17,7 @@ import { MIN_TRACK_S, normalizeTrack, pickTrack, pushHistory, pickJingle, STATIO
 import { createMusicWatch } from './musicwatch.js';
 import * as speech from './speech.js';
 import { drunkLevel } from './drunk.js';
+import { SPEAKER_MAX, SPEAKER_STOP, SPEAKER_LEVEL, SPEAKER_REF, SPEAKER_ROLLOFF, dopplerRate, edgeFade, pannerGain, pickSpeakers, pickSpeakerTrack } from './bikespeaker.js';
 import { rammelInterval } from './studentenfiets.js';
 import { KEYS } from './storagekeys.js';
 import { noteSound } from './soundcaptions.js';
@@ -3014,6 +3015,76 @@ function isEngineRunning(v) {
   return v.isBoat || v.racer || v.countryDrive || (!!v.road && !v.isHeroCar);
 }
 
+// Fietsers met een Bluetooth-speakertje (#401, bikespeaker.js): een NPC-fietser in de buurt draait een record uit de G-Music-bibliotheek.
+// Een eigen element per stem, door een klein-speakerfilter en een panner (afstandsdemping) naar de muziekbus: het volume schaalt dus
+// mee met het muziekvolume en zwijgt in een filmpje of als de muziek uit is. Doppler via playbackRate (zonder toonhoogtebehoud).
+const bikeSpeakers = { voices: [], active: [], t: 0 };
+
+// de afspeelsnelheid door het Doppler-effect voor deze fiets en de luisteraar (de camera)
+function bikeSpeakerRate(v) {
+  const sp = Number.isFinite(v.speed) ? v.speed : 0, a = Number.isFinite(v.angle) ? v.angle : 0;
+  return dopplerRate({ x: v.x, y: v.y }, { x: Math.cos(a) * sp, y: Math.sin(a) * sp }, { x: listenerPos.x, y: listenerPos.z }, listenerVel);
+}
+
+function startBikeSpeaker(v) {
+  const lib = gmusicTracks.map((el) => (el.gmusicBad || !el.gmusicTrack ? null : { id: el.gmusicTrack.id, duration: el.duration }));
+  const pick = pickSpeakerTrack(lib, Math.random, gmusicCurrentEl && gmusicCurrentEl.gmusicTrack ? gmusicCurrentEl.gmusicTrack.id : null, MIN_TRACK_S);
+  if (!pick) return null;
+  const el = new Audio(gmusicTracks[pick.index].src);
+  el.loop = true;
+  el.preservesPitch = false;
+  el.webkitPreservesPitch = false;
+  const rate0 = bikeSpeakerRate(v); // meteen op de goede toonhoogte, niet vanaf 1 erheen glijden
+  el.defaultPlaybackRate = rate0; el.playbackRate = rate0;
+  try { el.currentTime = pick.start; } catch (e) { /* beginpunt komt na de metadata */ }
+  const src = ctx.createMediaElementSource(el);
+  const hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 220; // een speakertje heeft geen bas en geen hoge top
+  const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 6500;
+  const gain = ctx.createGain(); gain.gain.value = 0;
+  const panner = makePanner({ ref: SPEAKER_REF, rolloff: SPEAKER_ROLLOFF, maxDist: SPEAKER_STOP + 10 });
+  src.connect(hp).connect(lp).connect(gain).connect(panner).connect(musicBus);
+  const p = el.play(); if (p && p.catch) p.catch(() => {});
+  const voice = { v, el, nodes: [src, hp, lp, gain, panner], gain, panner, level: 0, rate: rate0, fresh: true, track: gmusicTracks[pick.index].gmusicTitle || '?', ending: false };
+  bikeSpeakers.voices.push(voice);
+  return voice;
+}
+
+function stopBikeSpeaker(voice) {
+  try { voice.el.pause(); voice.el.removeAttribute('src'); voice.el.load(); } catch (e) { /* ignore */ }
+  for (const n of voice.nodes) { try { n.disconnect(); } catch (e) { /* ignore */ } }
+  const i = bikeSpeakers.voices.indexOf(voice); if (i >= 0) bikeSpeakers.voices.splice(i, 1);
+}
+
+function updateBikeSpeakers(dt, world) {
+  const B = bikeSpeakers;
+  const mv = getSettings().musicVolume;
+  // aan als er muziek te horen is: niet in een menu, de telefoon of een filmpje (muziekbus op 0), niet gedempt, volume niet op nul
+  const on = !menuAudio && !muted && !world.paused && gmusicTracks.length > 0 && musicState.gain > 0.05 && !(Number.isFinite(mv) && mv < 0.01);
+  B.t -= dt;
+  if (B.t <= 0) {
+    B.t = 0.25;
+    B.active = on ? pickSpeakers(world.vehicles, { x: listenerPos.x, y: listenerPos.z }, B.active, { max: SPEAKER_MAX }) : [];
+  }
+  for (const voice of B.voices.slice()) if (!B.active.includes(voice.v)) voice.ending = true;
+  for (const v of B.active) {
+    if (B.voices.some((x) => x.v === v) || B.voices.length >= SPEAKER_MAX) continue;
+    startBikeSpeaker(v);
+  }
+  const t = ctx.currentTime;
+  for (const voice of B.voices.slice()) {
+    const v = voice.v, d = distToListener(v.x, v.y, 1.2);
+    if (voice.ending && voice.level < 0.01) { stopBikeSpeaker(voice); continue; }
+    const target = voice.ending ? 0 : SPEAKER_LEVEL * edgeFade(d);
+    voice.level += (target - voice.level) * Math.min(1, dt * (voice.ending ? 6 : 2.5));
+    voice.gain.gain.setTargetAtTime(voice.level, t, 0.05);
+    setPannerPos(voice.panner, v.x, v.y, 1.2, !voice.fresh);
+    voice.fresh = false;
+    voice.rate += (bikeSpeakerRate(v) - voice.rate) * Math.min(1, dt * 10);
+    if (Math.abs(voice.el.playbackRate - voice.rate) > 0.002) voice.el.playbackRate = voice.rate;
+    if (voice.el.paused && !voice.el.ended && !voice.ending) { const p = voice.el.play(); if (p && p.catch) p.catch(() => {}); }
+  }
+}
+
 function updateTrafficAudio(dt, world) {
   const running = [];
   let rammelaars = 0;
@@ -3361,6 +3432,7 @@ function updateWorldAudio(dt, world) {
   updatePlayerHorn(world);
   updateSiren(dt, world);
   updateTrafficAudio(dt, world);
+  guarded('bikespeaker', () => updateBikeSpeakers(dt, world));
   updateAmbience(dt, world);
   updateFoley(dt, world);
   updateSkySfx(dt, world, kit);
@@ -3498,6 +3570,7 @@ function audioState() {
       paused: gmusicCurrentEl ? gmusicCurrentEl.paused : null, error: !!(gmusicCurrentEl && gmusicCurrentEl.error),
       tracks: gmusicTracks.length, queue: gmusicQueue.length, history: gmusicHistory.slice(-8),
     },
+    bikeSpeakers: bikeSpeakers.voices.map((q) => { const d = distToListener(q.v.x, q.v.y, 1.2); return { track: q.track, d: +d.toFixed(1), rate: +q.el.playbackRate.toFixed(3), level: +q.level.toFixed(3), vol: +(q.level * pannerGain(d, SPEAKER_REF, SPEAKER_ROLLOFF)).toFixed(3), ending: q.ending, paused: q.el.paused, lis: [+listenerPos.x.toFixed(1), +listenerPos.z.toFixed(1), +listenerVel.x.toFixed(1), +listenerVel.y.toFixed(1)] }; }),
     scenario: scenarioNow ? scenarioNow.key : null, storyScene, sceneLive: storyProbe ? !!storyProbe() : null, voiceEls: liveVoiceEls, activeVoices,
     synth: !!synth.player, speech: speech.speechState(), watchdog: { ...watch }, log: audioLog.slice(-12),
   };
