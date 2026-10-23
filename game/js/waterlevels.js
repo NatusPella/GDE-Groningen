@@ -19,6 +19,7 @@ import { pointInPolygon as inPolygon } from './polygon.js';
 // keep their own peil; until the renderer draws per body (F2) they are drawn
 // at the same height.
 export const BOEZEM_Y = -2.3;
+export const SMALL_POND_AREA = 400, SMALL_POND_LEVEL = -0.35, SMALL_POND_DEPTH = 0.5;
 export const BOEZEM_NAP = -0.93;
 
 // The water of a body that lies at its own peil is drawn there (#299): the Lauwersmeer, held at
@@ -388,6 +389,9 @@ export function annotateWater(water, cell = 2.5, apart = null, focus = null) {
     w.lv = K.level !== undefined && !b.boezem ? K.level : BOEZEM_Y;
     w.dp = K.depth;
     w.nav = K.nav;
+    // a small pond that hangs on no canal (a basin on a square, a pool in a garden) is not the boezem: at the canal's
+    // level (2.3 m under the street) it was a pit the size of a house on the Grote Markt (#327), so it lies at street level
+    if (kind === 'vijver' && !b.boezem && b.area < SMALL_POND_AREA) { w.lv = SMALL_POND_LEVEL; w.dp = SMALL_POND_DEPTH; }
     b.polys.push(i);
     if (rank[kind] > rank[b.kind]) b.kind = kind;
     b.nav = Math.max(b.nav, K.nav);
