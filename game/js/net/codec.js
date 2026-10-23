@@ -61,7 +61,7 @@ export function decodeInput(buf) {
 // in 'looks': hoogstens MAX_LOOKS records per snapshot, zodat 60 voertuigen binnen een pakket blijven.
 // --- voertuigstaat en uiterlijk (#428) ---
 const LOOK_DENTS = 8;
-const LOOK_MAX = 2 + 1 + 2 + 1 + 1 + 3 + 3 + 1 + 1 + LOOK_DENTS * 3 + 1; // lengte van het grootste record, zonder id en lengtebyte
+const LOOK_MAX = 2 + 1 + 2 + 2 + 1 + 3 + 3 + 1 + 1 + LOOK_DENTS * 3 + 1; // lengte van het grootste record, zonder id en lengtebyte
 function writeVehicleDyn(v, o, e) {
   let fl = (e.fl || 0) & 0xff;
   const z = Number(e.vz) || 0;
@@ -84,15 +84,17 @@ function readVehicleDyn(v, o, e) {
 }
 // look: { id, model (u8: index in de modellenlijst van coopworld.js), fl (u16 uiterlijkvlaggen), len (m), wid (m), color (u24),
 //         color2 (u24: bijkleur, bv. de cabine van een boot), extra (u8: bv. de bootsoort), dents: [[lx, lz, sterkte], ...] }
-const quant = (x, step, max) => clamp(Math.round((Number(x) || 0) / step), 0, max);
+// breedte in een byte: tot 8 m in stappen van 5 cm, daarboven in stappen van 25 cm (een zeeschip is 15 m breed)
+const quantWid = (w) => { w = Number(w) || 0; return w <= 8 ? clamp(Math.round(w / 0.05), 0, 160) : clamp(160 + Math.round((w - 8) / 0.25), 160, 255); };
+const dequantWid = (q) => (q <= 160 ? q * 0.05 : 8 + (q - 160) * 0.25);
 function writeLook(b, v, o, l) {
   v.setUint16(o, l.id & 0xffff); o += 2;
   const lenAt = o++;
   const start = o;
   v.setUint8(o++, l.model & 0xff);
   v.setUint16(o, l.fl & 0xffff); o += 2;
-  v.setUint8(o++, quant(l.len, 0.2, 255));
-  v.setUint8(o++, quant(l.wid, 0.05, 255));
+  v.setUint16(o, clamp(Math.round((Number(l.len) || 0) * 100), 0, 65535)); o += 2;
+  v.setUint8(o++, quantWid(l.wid));
   const c = (l.color | 0) & 0xffffff, c2 = (l.color2 | 0) & 0xffffff;
   v.setUint8(o++, c >> 16); v.setUint16(o, c & 0xffff); o += 2;
   v.setUint8(o++, c2 >> 16); v.setUint16(o, c2 & 0xffff); o += 2;
@@ -110,9 +112,9 @@ function writeLook(b, v, o, l) {
 function readLook(buf, v, o) {
   const id = v.getUint16(o); o += 2;
   const n = v.getUint8(o++); const end = o + n;
-  if (n < 14 || end > buf.length) return null;
+  if (n < 14 || end > buf.length) return null; // 14 = het record zonder deuken
   const l = { id, model: v.getUint8(o++), fl: v.getUint16(o) }; o += 2;
-  l.len = v.getUint8(o++) * 0.2; l.wid = v.getUint8(o++) * 0.05;
+  l.len = v.getUint16(o) / 100; o += 2; l.wid = dequantWid(v.getUint8(o++));
   l.color = (v.getUint8(o++) << 16) | v.getUint16(o); o += 2;
   l.color2 = (v.getUint8(o++) << 16) | v.getUint16(o); o += 2;
   l.extra = v.getUint8(o++);

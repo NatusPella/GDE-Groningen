@@ -58,6 +58,23 @@ export function canJoin(world) {
 // Een passagier (de metgezel in het voertuig van de host) behoudt zijn eigen x en y van vóór het instappen; zijn plek is die van het voertuig.
 const posOf = (b) => (b && b.inVehicle && Number.isFinite(b.inVehicle.x) && Number.isFinite(b.inVehicle.y) ? b.inVehicle : b);
 
+// De treinen van de gewone dienstregeling (geen opdrachttreinen), met hun plek op de route, voor de gasten (#428).
+// railway.js trekt three.js mee: main.js geeft de spoorwegen door (setCoopTreinen), zodat dit bestand in Node testbaar blijft.
+let rails = null;
+export function setCoopTreinen(r) { rails = r; }
+function hostTreinen() {
+  if (!rails) return [];
+  const { getTrains, getRoutes, routePoint } = rails;
+  const routes = getRoutes(), uit = [];
+  for (const t of getTrains()) {
+    const i = routes.indexOf(t.route);
+    if (i < 0 || (t.state !== 'run' && t.state !== 'dwell')) continue;
+    const p = routePoint(t.route, t.c);
+    uit.push({ id: i, x: p[0], y: p[1], v: t.v * t.dir, halfLen: t.halfLen });
+  }
+  return uit;
+}
+
 // sim-adapter voor de host: plek 0 = world.player, plek 1 = world.companion, plek 2+ = figuren
 export function hostSim(world, roster) {
   return {
@@ -71,12 +88,14 @@ export function hostSim(world, roster) {
       const body = (b, slot) => { const q = posOf(b); return b && ({ slot, x: q.x, y: q.y, z: b.z || 0, angle: q.angle || 0, alive: slot === 0 ? !world.pendingRespawn : slot === 1 ? b.state !== 'dead' : true, inVeh: !!(b.inVehicle || b.inVeh), driver: false, run: false, health: 100, vehicle: null }); };
       const players = [body(p, 0), body(c, 1)];
       for (const s of roster().spelers) if (s.slot >= 2) players.push(body(figures(world)[s.slot], s.slot));
+      const ents = verzamelEntiteiten(world, players.filter(Boolean), { treinen: hostTreinen() });
       return {
         players: players.filter(Boolean),
         shared: { money: world.money || 0, wanted: world.wanted | 0, clock: Number(world.time) || 0 },
         mission: { stage: (world.mission && world.mission.index) | 0, state: world.mission && world.mission.phase === 'active' ? 'run' : 'none', present: 3 },
         // voertuigen dicht bij een speler en het doel van de opdracht: de gasten zien de wereld van de host
-        entities: verzamelEntiteiten(world, players.filter(Boolean)),
+        entities: ents,
+        looks: ents.looks, // het uiterlijk van een paar voertuigen (roulerend, #428)
       };
     },
     fullState() { return { wanted: world.wanted | 0 }; }, // het geld van de host is van de host
@@ -388,7 +407,8 @@ export function tickCoopNet(world, dt) {
       const ik = sample && sample.players.find((q) => q.slot === s.slot);
       world.coopInVoertuig = !!(ik && ik.inVeh);
       if (!world.coopInVoertuig) world.coopWiel = false;
-      world.coopHost = sample ? leesEntiteiten(sample.entities) : { voertuigen: [], doelen: [], voetgangers: [] };
+      world.coopHost = sample ? leesEntiteiten(sample.entities) : { voertuigen: [], doelen: [], voetgangers: [], treinen: [] };
+      if (sample && rails) for (const t of world.coopHost.treinen) rails.zetTreinVanHost(t.route, t.x, t.y, t.v); // de gast speelt geen eigen dienstregeling: de treinen staan waar de host ze heeft
       world.coopPartners = partnersInfo(s.slot, sample ? sample.players : [], world.coopRoster || []);
       world.coopPartner = world.coopPartners[0] || null;
       world.coopCam = CAMERA_DELEN && s.slot === 1 ? sharedCamera(world.player, world.companion) : null; // alleen Tessa zou de camera delen met Tammo (uit, #388)
