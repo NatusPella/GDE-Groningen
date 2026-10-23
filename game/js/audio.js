@@ -17,6 +17,8 @@ import { MIN_TRACK_S, normalizeTrack, pickTrack, pushHistory, pickJingle, STATIO
 import { createMusicWatch } from './musicwatch.js';
 import * as speech from './speech.js';
 import { drunkLevel } from './drunk.js';
+import { SPEAKER_MAX, SPEAKER_STOP, SPEAKER_LEVEL, SPEAKER_REF, SPEAKER_ROLLOFF, dopplerRate, edgeFade, pannerGain, pickSpeakers, pickSpeakerTrack } from './bikespeaker.js';
+import { rammelInterval } from './studentenfiets.js';
 import { KEYS } from './storagekeys.js';
 import { noteSound } from './soundcaptions.js';
 
@@ -935,6 +937,34 @@ function playBell(x, y) {
   }
 }
 
+// De reclametaxi (#404, reklametaxi3d.js): een noot van het goedkope deuntje op de plek van de taxi, met afstandsdemping
+// (spatialOut) en Doppler (dopplerCents) op de snelheid van de taxi; stem 'hat' is een tikje ruis. De taxi speelt zelf
+// geen opname: alles is een korte toon of ruisstoot.
+export function playReklameNoot(x, y, { freq, dur = 0.12, stem = 'lead', gain = 0.09, vx = 0, vy = 0, delay = 0 }) {
+  const out = spatialOut(x, y, { ref: 5, rolloff: 1.2, range: 95, h: 1.7, prio: 0 });
+  if (!out) return;
+  if (stem === 'hat') { playNoiseBurst({ duration: 0.03, freq: 6200, q: 1.5, gain: gain * 0.7, type: 'highpass', delay, out, prio: 0 }); return; }
+  const f = freq * Math.pow(2, clamp(dopplerCents({ x, y }, vx, vy), -250, 250) / 1200);
+  playTone({ freq: f, type: stem === 'bas' ? 'triangle' : 'square', duration: dur, gain: stem === 'bas' ? gain * 1.4 : gain, delay, filterFreq: stem === 'bas' ? 600 : 3400, out, prio: 0 });
+}
+
+// De megafoon van de reclametaxi: een kort kraakje (bandfilter op ruis) bij elke kreet.
+export function playReklameKraak(x, y) {
+  const out = spatialOut(x, y, { ref: 5, rolloff: 1.1, range: 110, h: 1.8, prio: 0 });
+  if (!out) return;
+  playNoiseBurst({ duration: 0.09, freq: 1700, q: 2.5, gain: 0.12, type: 'bandpass', out, prio: 0 });
+  playTone({ freq: 880, freqEnd: 660, type: 'square', duration: 0.08, gain: 0.05, delay: 0.1, filterFreq: 2400, out, prio: 0 });
+}
+
+// De rammel van een studentenfiets (#402, studentenfiets.js): een losse ketting- en spatbordtik, kort en dof, alleen dichtbij te horen.
+function playRammel(x, y) {
+  const out = spatialOut(x, y, { ref: 3, rolloff: 1.4, range: 28, h: 0.6 });
+  if (!out) return;
+  playNoiseBurst({ duration: 0.03, freq: 3300 + Math.random() * 900, q: 3, gain: 0.1, type: 'bandpass', out });
+  playNoiseBurst({ duration: 0.026, freq: 1700 + Math.random() * 400, q: 4, gain: 0.07, type: 'bandpass', delay: 0.05 + Math.random() * 0.05, out });
+  playTone({ freq: 880 + Math.random() * 300, type: 'square', duration: 0.035, gain: 0.02, delay: 0.03, out });
+}
+
 // Level-crossing bell: one hard metallic strike per event (railway.js repeats it).
 function playCrossingBell(x, y) {
   if (playFx('crossing_bell', x, y)) return;
@@ -1572,11 +1602,24 @@ export function playClueSting() {
 export function playTextMumble(who = '', text = '', dur = 2.5) {
   if (!ctx || muted || !stingBus) return;
   const n = Math.max(3, Math.min(14, Math.round(String(text).length / 4)));
-  const base = who === 'A' ? 235 : who === 'T' ? 118 : who === 'V' ? 160 : 150;
+  const base = who === 'A' ? 235 : who === 'T' ? 118 : who === 'V' ? 160 : who === 'R' ? 205 : 150;
   const step = Math.min(0.32, Math.max(0.12, (dur * 0.85) / n));
   for (let i = 0; i < n; i++) {
     const f = base * (0.9 + ((i * 7 + text.length) % 5) * 0.06);
     playTone({ freq: f, freqEnd: f * 0.93, type: 'triangle', duration: step * 0.8, gain: 0.018, delay: i * step + (i % 4 === 3 ? 0.08 : 0), filterFreq: 900 + ((i * 3) % 4) * 220, bus: stingBus, prio: 2 });
+  }
+}
+
+// The jingle of a radio advert (radioads.js, #409): a short bright run of notes on the sting bus, 'start' going
+// up, 'tussen' between two adverts and 'end' coming down. No recording; the station voice is playTextMumble('R').
+export function playRadioJingle(kind = 'start') {
+  if (!ctx || muted || !stingBus) return;
+  const notes = kind === 'end' ? [[784, 0], [659.25, 0.12], [523.25, 0.24]]
+    : kind === 'tussen' ? [[659.25, 0], [880, 0.1]]
+      : [[523.25, 0], [659.25, 0.1], [783.99, 0.2], [1046.5, 0.3], [783.99, 0.46], [1046.5, 0.56]];
+  for (const [f, d] of notes) {
+    playTone({ freq: f, type: 'square', duration: 0.16, gain: 0.028, delay: d, filterFreq: 2400, bus: stingBus, prio: 2 });
+    playTone({ freq: f * 2, type: 'sine', duration: 0.12, gain: 0.016, delay: d, bus: stingBus, prio: 2 });
   }
 }
 
@@ -2972,10 +3015,91 @@ function isEngineRunning(v) {
   return v.isBoat || v.racer || v.countryDrive || (!!v.road && !v.isHeroCar);
 }
 
+// Fietsers met een Bluetooth-speakertje (#401, bikespeaker.js): een NPC-fietser in de buurt draait een record uit de G-Music-bibliotheek.
+// Een eigen element per stem, door een klein-speakerfilter en een panner (afstandsdemping) naar de muziekbus: het volume schaalt dus
+// mee met het muziekvolume en zwijgt in een filmpje of als de muziek uit is. Doppler via playbackRate (zonder toonhoogtebehoud).
+const bikeSpeakers = { voices: [], active: [], t: 0 };
+
+// de afspeelsnelheid door het Doppler-effect voor deze fiets en de luisteraar (de camera)
+function bikeSpeakerRate(v) {
+  const sp = Number.isFinite(v.speed) ? v.speed : 0, a = Number.isFinite(v.angle) ? v.angle : 0;
+  return dopplerRate({ x: v.x, y: v.y }, { x: Math.cos(a) * sp, y: Math.sin(a) * sp }, { x: listenerPos.x, y: listenerPos.z }, listenerVel);
+}
+
+function startBikeSpeaker(v) {
+  const lib = gmusicTracks.map((el) => (el.gmusicBad || !el.gmusicTrack ? null : { id: el.gmusicTrack.id, duration: el.duration }));
+  const pick = pickSpeakerTrack(lib, Math.random, gmusicCurrentEl && gmusicCurrentEl.gmusicTrack ? gmusicCurrentEl.gmusicTrack.id : null, MIN_TRACK_S);
+  if (!pick) return null;
+  const el = new Audio(gmusicTracks[pick.index].src);
+  el.loop = true;
+  el.preservesPitch = false;
+  el.webkitPreservesPitch = false;
+  const rate0 = bikeSpeakerRate(v); // meteen op de goede toonhoogte, niet vanaf 1 erheen glijden
+  el.defaultPlaybackRate = rate0; el.playbackRate = rate0;
+  try { el.currentTime = pick.start; } catch (e) { /* beginpunt komt na de metadata */ }
+  const src = ctx.createMediaElementSource(el);
+  const hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 220; // een speakertje heeft geen bas en geen hoge top
+  const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 6500;
+  const gain = ctx.createGain(); gain.gain.value = 0;
+  const panner = makePanner({ ref: SPEAKER_REF, rolloff: SPEAKER_ROLLOFF, maxDist: SPEAKER_STOP + 10 });
+  src.connect(hp).connect(lp).connect(gain).connect(panner).connect(musicBus);
+  const p = el.play(); if (p && p.catch) p.catch(() => {});
+  const voice = { v, el, nodes: [src, hp, lp, gain, panner], gain, panner, level: 0, rate: rate0, fresh: true, track: gmusicTracks[pick.index].gmusicTitle || '?', ending: false };
+  bikeSpeakers.voices.push(voice);
+  return voice;
+}
+
+function stopBikeSpeaker(voice) {
+  try { voice.el.pause(); voice.el.removeAttribute('src'); voice.el.load(); } catch (e) { /* ignore */ }
+  for (const n of voice.nodes) { try { n.disconnect(); } catch (e) { /* ignore */ } }
+  const i = bikeSpeakers.voices.indexOf(voice); if (i >= 0) bikeSpeakers.voices.splice(i, 1);
+}
+
+function updateBikeSpeakers(dt, world) {
+  const B = bikeSpeakers;
+  const mv = getSettings().musicVolume;
+  // aan als er muziek te horen is: niet in een menu, de telefoon of een filmpje (muziekbus op 0), niet gedempt, volume niet op nul
+  const on = !menuAudio && !muted && !world.paused && gmusicTracks.length > 0 && musicState.gain > 0.05 && !(Number.isFinite(mv) && mv < 0.01);
+  B.t -= dt;
+  if (B.t <= 0) {
+    B.t = 0.25;
+    B.active = on ? pickSpeakers(world.vehicles, { x: listenerPos.x, y: listenerPos.z }, B.active, { max: SPEAKER_MAX }) : [];
+  }
+  for (const voice of B.voices.slice()) if (!B.active.includes(voice.v)) voice.ending = true;
+  for (const v of B.active) {
+    if (B.voices.some((x) => x.v === v) || B.voices.length >= SPEAKER_MAX) continue;
+    startBikeSpeaker(v);
+  }
+  const t = ctx.currentTime;
+  for (const voice of B.voices.slice()) {
+    const v = voice.v, d = distToListener(v.x, v.y, 1.2);
+    if (voice.ending && voice.level < 0.01) { stopBikeSpeaker(voice); continue; }
+    const target = voice.ending ? 0 : SPEAKER_LEVEL * edgeFade(d);
+    voice.level += (target - voice.level) * Math.min(1, dt * (voice.ending ? 6 : 2.5));
+    voice.gain.gain.setTargetAtTime(voice.level, t, 0.05);
+    setPannerPos(voice.panner, v.x, v.y, 1.2, !voice.fresh);
+    voice.fresh = false;
+    voice.rate += (bikeSpeakerRate(v) - voice.rate) * Math.min(1, dt * 10);
+    if (Math.abs(voice.el.playbackRate - voice.rate) > 0.002) voice.el.playbackRate = voice.rate;
+    if (voice.el.paused && !voice.el.ended && !voice.ending) { const p = voice.el.play(); if (p && p.catch) p.catch(() => {}); }
+  }
+}
+
 function updateTrafficAudio(dt, world) {
   const running = [];
+  let rammelaars = 0;
+  const pl = world.player;
   for (const v of world.vehicles) {
     if (isEngineRunning(v)) running.push(v);
+    // een studentenfiets met een los spatbord of ketting rammelt, in de buurt van de speler en niet meer dan drie tegelijk
+    if (v.isBike && !v.wrecked && v.model.student && v.model.student.rammel) {
+      v._rammelT = (v._rammelT || 0) - dt;
+      if (v._rammelT <= 0) {
+        const iv = rammelInterval(v.speed);
+        v._rammelT = iv || 0.4;
+        if (iv && rammelaars < 3 && pl && Math.abs(v.x - pl.x) < 30 && Math.abs(v.y - pl.y) < 30) { rammelaars++; playRammel(v.x, v.y); }
+      }
+    }
     const horn = !!v.horn;
     if (horn && !hornWasOn.get(v) && v.driver !== 'player') {
       if (v._mount === 'horse') playWhinny(v.x, v.y);
@@ -3308,6 +3432,7 @@ function updateWorldAudio(dt, world) {
   updatePlayerHorn(world);
   updateSiren(dt, world);
   updateTrafficAudio(dt, world);
+  guarded('bikespeaker', () => updateBikeSpeakers(dt, world));
   updateAmbience(dt, world);
   updateFoley(dt, world);
   updateSkySfx(dt, world, kit);
@@ -3445,6 +3570,7 @@ function audioState() {
       paused: gmusicCurrentEl ? gmusicCurrentEl.paused : null, error: !!(gmusicCurrentEl && gmusicCurrentEl.error),
       tracks: gmusicTracks.length, queue: gmusicQueue.length, history: gmusicHistory.slice(-8),
     },
+    bikeSpeakers: bikeSpeakers.voices.map((q) => { const d = distToListener(q.v.x, q.v.y, 1.2); return { track: q.track, d: +d.toFixed(1), rate: +q.el.playbackRate.toFixed(3), level: +q.level.toFixed(3), vol: +(q.level * pannerGain(d, SPEAKER_REF, SPEAKER_ROLLOFF)).toFixed(3), ending: q.ending, paused: q.el.paused, lis: [+listenerPos.x.toFixed(1), +listenerPos.z.toFixed(1), +listenerVel.x.toFixed(1), +listenerVel.y.toFixed(1)] }; }),
     scenario: scenarioNow ? scenarioNow.key : null, storyScene, sceneLive: storyProbe ? !!storyProbe() : null, voiceEls: liveVoiceEls, activeVoices,
     synth: !!synth.player, speech: speech.speechState(), watchdog: { ...watch }, log: audioLog.slice(-12),
   };

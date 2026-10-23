@@ -17,7 +17,7 @@ import {
 } from './vehicle.js';
 import { DEAD_DURATION } from './pedconst.js';
 import { attachCarry, carryPose } from './streetlife3d.js';
-import { buildPersonMesh, animatePersonWalk, applyAttackPose, applyHitReaction, setHeldWeapon, seatPose, seatedY, waveOverlay, carryOverlay, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
+import { buildPersonMesh, animatePersonWalk, applyAttackPose, applyHitReaction, setHeldWeapon, seatPose, seatedY, waveOverlay, juichOverlay, carryOverlay, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
 import { syncDoorsNear, vraagVoorAnim } from './vehicledoors3d.js';
 import { syncCabins } from './cabin3d.js';
 import { syncHaltefiguren } from './haltefiguren3d.js';
@@ -26,6 +26,7 @@ import { vehicleSeat, placeSeated, makeSeatTracker, trackSeat, drawTransition, s
 import { updateCarInterior } from './carinterior.js';
 import { updateSwimmers3D } from './swimmers3d.js';
 import { neutralPose, applyPose } from './actoranim.js';
+import { waggel, juichSterkte, juichHoek } from './vrijgezellen.js';
 import { sprongStand, zwemStand, klimStand, fietsHouding } from './bewegingrules.js';
 import { driveRagdoll, syncBikeRider } from './ragdoll.js';
 import { applyWeatherToScene3D } from './weather.js';
@@ -94,6 +95,7 @@ import { SECTION, TILE_M, tileOrigin } from './gdt.js';
 import { initRailway3D, updateRailway3D, prewarmRailAt } from './railway3d.js';
 import { updateStationCrowd3D } from './stationlife3d.js';
 import { updateEvenementen3D } from './evenementen3d.js';
+import { updateWerf3D } from './werf3d.js';
 import { today as calendarTodayEv } from './calendarday.js';
 import { railZ } from './railway.js';
 import { cameraFocus } from './tilefocus.js';
@@ -1409,7 +1411,13 @@ function hookShadowPass(shadowMap) {
 // later. Fullscreen passes are never skipped, nor are depth materials (compiling the object does not compile the
 // shadow pass's own material, so a skipped caster would never come back), and without the extension nothing changes.
 const linkPending = new Set();
-const LINK_GUARD_AFTER = 600;
+// The guard works from the first canvas frame on (#247; canvasFrames counts after the frame): the first frames behind the boot screen drew every program of the scene for the
+// first time, and each draw waited for its link one after the other (18 s of a 44 s boot, 14.7 s in one frame on a loaded machine,
+// profile of the boot, docs/PERF-METING Vervolg 12). Now the draws of unlinked programs wait and all links run in parallel; the world
+// fills in over the first seconds. A recording (trailer, frames, video, preview) keeps the old 600 frames: its first shots must be complete.
+// `?perfoff=linkvroeg` is the old behaviour for an A/B.
+const LINK_GUARD_AFTER = 600, LINK_GUARD_EARLY = -1;
+const linkGuardFrom = () => (FLAGS.trailer || FLAGS.frames || FLAGS.video || FLAGS.preview || perfOff('linkvroeg') ? LINK_GUARD_AFTER : LINK_GUARD_EARLY);
 // three sorts the opaque draws by material id, so the materials of one program lie wherever their ids fall and the renderer
 // switches program (and uploads the lights, fog and shadow uniforms again) far more often than there are programs.
 // This sort puts the program first: the id of the program a material was last drawn with, noted after each draw of the
@@ -1443,7 +1451,7 @@ function hookLinkGuard(r) {
   r.renderBufferDirect = function (camera, sc, geometry, material, object, group) {
     if (guard === null) guard = r.extensions.has('KHR_parallel_shader_compile');
     // not in the first seconds: the load screen, the title and the first shots wait for the prewarm, which draws the materials once
-    if (guard && canvasFrames > LINK_GUARD_AFTER && (sc === null || sc === scene) && !material.isMeshDepthMaterial && !material.isMeshDistanceMaterial && !perfOff('linkwacht')) {
+    if (guard && canvasFrames > linkGuardFrom() && (sc === null || sc === scene) && !material.isMeshDepthMaterial && !material.isMeshDistanceMaterial && !perfOff('linkwacht')) {
       const programs = r.properties.get(material).programs;
       let ready = !!programs;
       if (programs) for (const p of programs.values()) if (!programLinked(p)) { ready = false; break; }
@@ -2194,7 +2202,7 @@ function buildPedActor(p) {
 // how many frames a walker's pose stays: 1 (every frame), 2 or 4. Manhattan distance to the player in metres (a Euclid distance of up to 1.4 less).
 const PED_TIER_2 = 55, PED_TIER_4 = 130;
 function pedTier(manhattan, p, now) {
-  if (p.ragdoll || p.pose || p.carry || p.heldWeapon || p.attackFx || p.hitReact || p.greetUntil > now) return 1;
+  if (p.ragdoll || p.pose || p.carry || p.party || p.heldWeapon || p.attackFx || p.hitReact || p.greetUntil > now) return 1;
   if (perfOff('pedtier')) return simLevel() && manhattan > 45 ? 2 : 1;
   return manhattan > PED_TIER_4 ? 4 : manhattan > PED_TIER_2 ? 2 : 1;
 }
@@ -2208,6 +2216,20 @@ function holdSkeleton(mesh, hold) {
     sk.update = function () { if (!this.__held.hold) this.__held.real.call(this); };
   }
   sk.__held.hold = hold;
+}
+// Een vrijgezellenfeestje (vrijgezellen.js, #403): een waggelende looppas (de figuur kantelt zijwaarts om zijn lengteas en schommelt een beetje
+// opzij) en af en toe een juichbeurt met beide armen omhoog (p.cheerFrom..cheerUntil, gezet door streetlife.js).
+function partyPose(mesh, p, now) {
+  if (mesh.rotation.order !== 'YXZ') mesh.rotation.order = 'YXZ';
+  const w = waggel(now, p.waggelSeed || 0, p.speed || 0);
+  mesh.rotation.x = w.kantel;
+  mesh.position.x += -Math.sin(p.angle) * w.zij;
+  mesh.position.z += Math.cos(p.angle) * w.zij;
+  if (p.cheerUntil > now && now >= (p.cheerFrom || 0)) {
+    const k = juichSterkte(now, p.cheerUntil);
+    const h = juichHoek(now, k);
+    juichOverlay(mesh, now, h.links, h.rechts, h.spring, k);
+  }
 }
 function syncPedestrianMeshes(world, player, animDt) {
   pedClock += animDt || 1e-4;
@@ -2295,6 +2317,7 @@ function syncPedestrianMeshes(world, player, animDt) {
       waveOverlay(mesh, world.time + (p._lookSeed || 0), Math.min(1, left / 0.3, (2.4 - left) / 0.3));
     }
     if (p.hitReact) applyHitReaction(mesh, p.hitReact, world.time, p.angle);
+    if (p.party) partyPose(mesh, p, world.time);
   }
 
   for (let i = pedFadingOut.length - 1; i >= 0; i--) {
@@ -2432,6 +2455,7 @@ export function update3D(dt, world) {
   updateStationCrowd3D(scene, world, railZ);
   updateEvenementen3D(scene, world, calendarTodayEv(world), (x, y) => (world.map.spawnZ ? world.map.spawnZ(x, y) : 0),
     (x, y, m) => !buildingAt(world.map, x, y, m) && !isInWater(world.map, x, y));
+  updateWerf3D(scene, world.werf, (x, y) => (world.map.spawnZ ? world.map.spawnZ(x, y) : 0));
   updateCountryside(dt, world, scene, cam, viewDist);
   updateOmmelandLandmarks(world, scene, focus, setBuildingHidden);
   probe.mark('3d:rail+country');

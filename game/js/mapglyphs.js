@@ -60,6 +60,15 @@ function peak(g) {
   g.beginPath(); g.moveTo(-3.6, 2.9); g.lineTo(-0.9, -2.7); g.lineTo(0.5, -0.1); g.lineTo(1.5, -1.6); g.lineTo(3.6, 2.9); g.closePath(); g.fill();
 }
 
+function vliegtuig(g) {
+  g.fillStyle = CREAM;
+  g.beginPath();
+  g.moveTo(0, -3.7); g.lineTo(0.7, -1.5); g.lineTo(3.7, 0.5); g.lineTo(3.7, 1.5); g.lineTo(0.7, 0.8);
+  g.lineTo(0.5, 2.6); g.lineTo(1.7, 3.4); g.lineTo(1.7, 3.9); g.lineTo(0, 3.4); g.lineTo(-1.7, 3.9); g.lineTo(-1.7, 3.4);
+  g.lineTo(-0.5, 2.6); g.lineTo(-0.7, 0.8); g.lineTo(-3.7, 1.5); g.lineTo(-3.7, 0.5); g.lineTo(-0.7, -1.5);
+  g.closePath(); g.fill();
+}
+
 function waterSki(g) {
   g.save();
   g.rotate(-0.5);
@@ -109,6 +118,7 @@ const GLYPHS = {
   'act-kartbaan': chequeredFlag,
   'act-klimtoren': peak,
   'act-waterski': waterSki,
+  'act-vliegschool': vliegtuig,
   'act-pannenkoek': fryingPan,
   'act-hengelen': fish,
   'act-snackketen': crown,

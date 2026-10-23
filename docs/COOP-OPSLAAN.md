@@ -35,6 +35,7 @@ Precies:
 |---|---|
 | Geld dat de host de gast geeft (beloningen na een missie) en wat de gast zelf verdient (`world.coopVerdiend`) | In het **actieve opgeslagen spel van de gast** (`saveGuestEarnings` in `savegame.js`, `applyGuestEarnings` in `coopsave.js`). Het geld is een geheel getal en nooit negatief. |
 | Je loopbaan (niveaus en titels per vak, `docs/LOOPBAAN.md`) | **Van jou**, op je eigen apparaat (`gde-loopbaan-v1`), nooit in een opgeslagen spel. Wat je als gast verdient rekent met je eigen niveau; de punten gaan mee met de beloning. |
+| Je veroverde gebieden (wijken, plaatsen en streken met hun titel, `docs/GEBIEDEN.md`) | **Van jou**, op je eigen apparaat (`gde-gebieden-v1`), nooit in een opgeslagen spel. Elke speler telt wat hij zelf doet; een beloning voor een veroverd gebied is voor je eigen portemonnee en wordt niet gedeeld. |
 | Missies, verhaalstap, prestaties, voertuigen, winkelaankopen, de wereld, de klok | Van de **host**. Een gast bewaart niets daarvan (een gast slaat het spel van de host nooit over zijn eigen spel heen). |
 | De rest van de eigen save van de gast (verhaal, woningen, prestaties) | Blijft precies zoals hij was; hij komt na het samen spelen terug waar hij was (`stopCoopNet` zet plek, personage en gezochtniveau terug). |
 

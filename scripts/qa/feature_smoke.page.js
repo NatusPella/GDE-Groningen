@@ -614,7 +614,7 @@ const CHECKS = [
     const SJ = await imp('sidejobs');
     const RT = await imp('routing');
     const act = w.sideJobActions; if (!act) return { fout: 'world.sideJobActions ontbreekt (bijbanen niet gestart)' };
-    const KEUZE = ['loket', 'studiestaat', 'vigilantia', 'promotie', 'kamerkoning', 'wolkenhal', 'helix', 'niemeyer', 'bernard'];
+    const KEUZE = ['loket', 'studiestaat', 'vigilantia', 'promotie', 'kamerkoning', 'wolkenhal', 'helix', 'niemeyer', 'bernard', 'energielabel'];
     const RITTEN = ['museumbus', 'suikerbieten', 'herstelploeg', 'oogtv', 'vandermeden', 'schouwburg', 'bernardrit'];
     const IDS = JOBS.length ? JOBS : [...KEUZE, 'rechtbank', 'boa', 'cabaret', ...RITTEN, 'telefoonrave'];
     const alle = SJ.getSideJobSpotsForRender();
@@ -826,6 +826,85 @@ const CHECKS = [
     out.opslag = opslag;
     out.ok = out.vraagZichtbaar && out.nogActiefNaVraag && out.nee.vraagWeg && out.nee.nogActief && out.escSluitVraag && !out.actiefNa && out.mislukkingen === 0 && !out.skipAangeboden && out.geldVerschil === 0 && out.opnieuw.actief && out.opslag === true;
     if (MS.isMissionActive()) w.safetyActions.cancelMission();
+    return out;
+  } },
+  { id: 'krantenwijk', issues: [405], run: async () => {
+    // #405: een krant- en folderronde: start bij de drukkerij, naar een wijk, elke brievenbus met E, en (in een vijverwijk) de luie weg
+    // met de stapel in de papiercontainer; beelden van de wijk, een worp, een geland krantje en de container
+    const SJ = await imp('sidejobs');
+    const sp = SJ.getSideJobSpotsForRender().find((q) => q.job.id === 'krantenwijk');
+    if (!sp) return { fout: 'geen startplek voor de krantenwijk in de kaart' };
+    w.wanted = 0; w.health = 100;
+    await go(sp.x, sp.y, 0, 4000);
+    if (!D.sidejobs || !D.sidejobs.start('krantenwijk')) return { fout: 'de baan startte niet', meldingen: (w.messages || []).slice(-3).map((m) => (m.text || '').slice(0, 80)) };
+    await sleep(1500);
+    const out = { start: { x: Math.round(sp.x), y: Math.round(sp.y) }, rondes: [] };
+    const geld0 = Math.round(w.money);
+    let vijverGehad = false, nettGehad = false;
+    for (let ronde = 0; ronde < 10 && !(vijverGehad && nettGehad); ronde++) {
+      let c = D.sidejobs.ctx();
+      for (let i = 0; i < 20 && (!c || !c.data.huizen || !c.data.huizen.length); i++) { await sleep(500); c = D.sidejobs.ctx(); }
+      if (!c || !c.data.huizen || !c.data.huizen.length) { out.rondes.push({ fout: 'geen ronde' }); break; }
+      const d = c.data, r = { wijk: d.wijk.name, straat: d.straat, huizen: d.huizen.length, vijver: !!d.vijver, stapel: d.stapel };
+      const staat = (h) => ({ x: h.x - Math.cos(h.face) * 5, y: h.y - Math.sin(h.face) * 5, a: h.face + Math.PI });
+      if (d.vijver && vijverGehad) { r.overgeslagen = 'tweede vijverronde: netjes bezorgd'; }
+      const geld = Math.round(w.money);
+      const eerste = staat(d.huizen[0]);
+      await go(eerste.x, eerste.y, eerste.a, 2500);
+      await sleep(1500); if (cine.isCinematicActive()) cine.skipCinematic(); await sleep(500);
+      r.fase = d.phase;
+      if (ronde === 0) { out.wijkPub = { goal: w.sideJob && w.sideJob.goal, progress: w.sideJob && w.sideJob.progress }; await snap('krantenwijk-wijk', 300); }
+      if (d.vijver && !vijverGehad) {
+        // de luie weg
+        vijverGehad = true;
+        const dc = d.container;
+        const huis0 = d.huizen[0];
+        const hoek = Math.atan2(huis0.y - dc.y, huis0.x - dc.x);
+        await go(dc.x + Math.cos(hoek) * 4, dc.y + Math.sin(hoek) * 4, hoek + Math.PI, 2500);
+        await sleep(1500); if (cine.isCinematicActive()) cine.skipCinematic(); await sleep(500);
+        await snap('krantenwijk-container-voor', 400);
+        await shotAt('krantenwijk-container-dichtbij', { position: { x: dc.x + Math.cos(hoek) * 5.5 + Math.sin(hoek) * 2.5, y: dc.y + Math.sin(hoek) * 5.5 - Math.cos(hoek) * 2.5, z: gh(dc.x, dc.y) + 2.0 }, lookAt: { x: dc.x, y: dc.y, z: gh(dc.x, dc.y) + 0.8 }, fov: 50 }, 1500);
+        const prompt = c.job.prompt(c);
+        r.prompt = prompt && { label: prompt.label, sub: prompt.sub };
+        await tap('e', 'KeyE', 160);
+        await sleep(300); await snap('krantenwijk-container-worp', 100);
+        await sleep(1800);
+        r.container = { fase: d.phase, lui: d.lui, stapel: d.stapel, geldVerschil: Math.round(w.money) - geld };
+        await snap('krantenwijk-container-na', 400);
+        out.rondes.push(r);
+        await sleep(2600);
+        continue;
+      }
+      // netjes bezorgen: elk huis, vanaf vijf meter, stilstaand
+      nettGehad = true;
+      let gooien = 0;
+      for (const h of d.huizen) {
+        const q = staat(h);
+        await go(q.x, q.y, q.a, 1200);
+        await tap('e', 'KeyE', 160);
+        gooien++;
+        if (gooien === 2) await snap('krantenwijk-worp', 120);
+        await sleep(1300);
+        if (gooien === 2) {
+          const hh = d.huizen[0];
+          await shotAt('krantenwijk-brievenbus', { position: { x: hh.x - Math.cos(hh.face) * 4.2 + Math.sin(hh.face) * 2.2, y: hh.y - Math.sin(hh.face) * 4.2 - Math.cos(hh.face) * 2.2, z: gh(hh.x, hh.y) + 1.7 }, lookAt: { x: hh.x, y: hh.y, z: gh(hh.x, hh.y) + 0.6 }, fov: 50 }, 1500);
+        }
+      }
+      await sleep(800);
+      r.worpen = { ...d.worpen };
+      r.stapelOver = d.stapel;
+      r.huizenStatus = d.huizen.map((h) => h.status);
+      r.geldVerschil = Math.round(w.money) - geld;
+      r.fase = d.phase;
+      await snap('krantenwijk-geland', 300);
+      out.rondes.push(r);
+      await sleep(2600);
+    }
+    out.geldTotaal = Math.round(w.money) - geld0;
+    out.vijverGehad = vijverGehad; out.nettGehad = nettGehad;
+    out.laatste = D.sidejobs.last && D.sidejobs.last();
+    D.sidejobs.quit(); await sleep(2500);
+    out.ok = nettGehad && out.geldTotaal > 0 && out.rondes.every((q) => !q.fout) && (!vijverGehad || out.rondes.some((q) => q.container && q.container.fase === 'klaar' && q.container.geldVerschil > 0));
     return out;
   } },
 ];

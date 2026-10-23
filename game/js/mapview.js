@@ -10,6 +10,7 @@ import { drawMapIcon, drawMapIconHalo, drawRoute, drawRoadRoute, forEachPoliceUn
 import { getGaragesForRender } from './garages.js';
 import { getHomeForRender, getHomeGarageForRender, getHomeMooringForRender, getHomeHelipadForRender } from './home.js';
 import { layerOn, setLayer as storeLayer } from './mapfilters.js';
+import { tekenVeroverd, tekenLegendeVlag } from './gebiedenkaart.js';
 import { getHorecaForRender } from './horeca.js';
 import { getShopsForRender, getShopsDecluttered, storyTargetShop, drawStoryShopRing } from './shops.js';
 import { SHOP_TYPES } from './shopdata.js';
@@ -843,6 +844,9 @@ function drawStaticOverlay(ctx) {
   const names = layersAtZoom(z).labels; // which names show at this zoom (mapstyle.js)
   const onScreen = (sx, sy, m = 20) => sx > -m && sy > -m && sx < state.cw + m && sy < state.ch + m;
 
+  // gebieden veroveren (#414): wat je gedaan hebt kleurt mee, een veroverd gebied krijgt een vlag
+  if (layerOn('veroverd')) tekenVeroverd(ctx, toScreen, state.scale, state.cw, state.ch, hover, drawLabel, inkA('cream', 0.9));
+
   if (layerOn('landmark')) {
     ctx.font = '14px ' + FONT;
     ctx.textBaseline = 'middle';
@@ -1156,7 +1160,7 @@ function drawDynamicMarkers(ctx, world) {
     ctx.restore();
   }
   for (const ps of getPadelSpotsForRender()) icon('padel', 'padel', ps.x, ps.y, ps.name, {}, world.time < ps.nextAt ? 'Baan even bezet' : 'Potje padel: volle gezondheid', play('padel', 'Padel', ps.name, ps.x, ps.y, 'mg:padel'));
-  const ACT_PLAY = { carbid: ['carbid', 'Carbid schieten', 'mg:carbid'], kermis: ['kermis', "Botsauto's", 'mg:botsauto'], drift: ['drift', 'Driftzone', 'mg:drift'], discgolf: ['discgolf', 'Discgolf', 'mg:discgolf'], pitchputt: ['pitchputt', 'Pitch & putt', 'mg:pitchputt'], skatepark: ['skatepark', 'Skatepark', 'mg:skatepark'], kartbaan: ['kartbaan', 'Karten bij Kardinge', 'mg:kartbaan'], zwembad: ['zwembad', 'Zwembad', 'mg:zwembad'], klimtoren: ['klimtoren', 'Klimtoren Zernike', 'mg:klimtoren'], waterski: ['waterski', 'Waterskiën', 'mg:waterski'] };
+  const ACT_PLAY = { carbid: ['carbid', 'Carbid schieten', 'mg:carbid'], kermis: ['kermis', "Botsauto's", 'mg:botsauto'], drift: ['drift', 'Driftzone', 'mg:drift'], discgolf: ['discgolf', 'Discgolf', 'mg:discgolf'], pitchputt: ['pitchputt', 'Pitch & putt', 'mg:pitchputt'], skatepark: ['skatepark', 'Skatepark', 'mg:skatepark'], kartbaan: ['kartbaan', 'Karten bij Kardinge', 'mg:kartbaan'], zwembad: ['zwembad', 'Zwembad', 'mg:zwembad'], klimtoren: ['klimtoren', 'Klimtoren Zernike', 'mg:klimtoren'], waterski: ['waterski', 'Waterskiën', 'mg:waterski'], vliegschool: ['vliegschool', 'Vliegschool', 'mg:vliegschool'] };
   for (const a of activityMapIcons(world)) {
     const ap = ACT_PLAY[a.layer];
     icon(a.layer, a.kind, a.x, a.y, a.name, {}, a.sub, ap ? play(ap[0], ap[1], a.name, a.x, a.y, ap[2]) : null);
@@ -1700,7 +1704,7 @@ const LEGEND = [
     { kind: 'route', label: 'Route', note: 'doorgetrokken: verhaal of missie, streepjes: jouw doel, puntjes: klus, streep-punt: opknappen of repareren' },
   ] },
   { group: 'Te doen', rows: [
-    { kind: 'padel', label: 'Minigames', note: 'padel, carbid, botsauto\'s, driftzones, discgolf, pitch & putt, skatepark, karten, zwemmen, klimmen, waterskiën, duiven, ballonjacht', layers: ['padel', 'duif', 'heli', ...ACTIVITY_LEGEND.map((l) => l.layer)] },
+    { kind: 'padel', label: 'Minigames', note: 'padel, carbid, botsauto\'s, driftzones, discgolf, pitch & putt, skatepark, karten, zwemmen, klimmen, waterskiën, vlieglessen, duiven, ballonjacht', layers: ['padel', 'duif', 'heli', ...ACTIVITY_LEGEND.map((l) => l.layer).filter((l) => l !== 'safehuis')] },
     { kind: 'sj-taxi', label: 'Bijbaantjes', note: 'start bij de baas', layers: ['bijbaan', 'rondvaarttour'] },
     { kind: 'missionIdle', label: 'Klussen', note: 'gespeelde missies, om opnieuw te spelen', layers: ['klussen'] },
     { kind: 'dorp', label: 'Ommeland', note: 'dorpsuitjes waar je in de buurt was, gevonden wereldeinden', layers: ['ommeland'] },
@@ -1722,6 +1726,8 @@ const LEGEND = [
     { kind: 'companion', label: 'Maat', layers: ['companion'] },
     { kind: 'flitspaal', label: 'Flitspaal', layers: ['flitspaal'] },
     { kind: 'landmark', label: 'Bezienswaardigheid', layers: ['landmark'] },
+    { kind: 'act-safehuis', label: 'Safehouse', note: 'een huisje om te kopen of te krijgen in elk gebied dat je kunt veroveren: slapen, kleren, garage, onderduiken', layers: ['safehuis'] },
+    { kind: 'veroverd', label: 'Veroverd', note: 'wijken, plaatsen en streken die je aan het doen bent (de kleur loopt mee) of helemaal gedaan hebt (een vlag)', layers: ['veroverd'] },
     { kind: 'text-street', label: 'Straatnamen', layers: ['streets'] },
     { kind: 'text-wijk', label: 'Wijknamen (oranje met driehoek: \'s nachts opletten)', layers: ['wijken'] },
     { kind: 'buildings', label: 'Gebouwen', layers: ['buildings'] },
@@ -1741,6 +1747,8 @@ function drawLegendIcon(ctx, kind) {
     ctx.textBaseline = 'middle';
     ctx.fillStyle = kind === 'text-wijk' ? inkA('cream', 0.6) : INK.cream;
     ctx.fillText(kind === 'text-wijk' ? 'WIJK' : 'Abc', 12, 13);
+  } else if (kind === 'veroverd') {
+    tekenLegendeVlag(ctx);
   } else if (kind === 'buildings') {
     ctx.fillStyle = MAP_STYLE.building;
     ctx.fillRect(5, 6, 8, 7);

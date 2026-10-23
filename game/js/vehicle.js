@@ -1267,7 +1267,7 @@ export function manageBoatPopulation(world, { target = 4, spawnMin = 20, spawnMa
   for (let i = vehicles.length - 1; i >= 0; i--) {
     const v = vehicles[i];
     // your own boat at the jetty is home.js's to stash, not ours to sweep away
-    if (!v.isBoat || v.isPolice || v.driver === 'player' || v.playerOwned || v.homeStored || v.moored || v.missionCar) continue;
+    if (!v.isBoat || v.isPolice || v.driver === 'player' || v.playerOwned || v.homeStored || v.moored || v.missionCar || isShip(v)) continue; // (the sea ships are zeeschepen.js's and werflive.js's)
     const away = Math.hypot(v.x - player.x, v.y - player.y);
     // a boat that could not get free after three tries goes once the player cannot see it
     if (away > despawnDist || (v.stuckAway && away > BOAT_SWEEP_DIST)) vehicles.splice(i, 1);
@@ -1346,7 +1346,10 @@ function lowBridgeAt(map, v, x, y) {
   const w = waterAt(map, x, y);
   return !!w && !passesUnder(airDraftOf(v), w.clearanceAbove);
 }
-const isBarge = (v) => v.model.kind === 'binnenvaart';
+// sea ships and the tug (#398) sail like barges: class 4 water, no low bridges, the right of way of the big ones; they need more room
+export const isShip = (v) => v.model.kind === 'zeeschip' || v.model.kind === 'sleper';
+const isBarge = (v) => v.model.kind === 'binnenvaart' || isShip(v);
+const bargeClear = (v) => Math.max(BARGE_MIN_CLEAR, (v.model.wid || 0) / 2 + 2.5);
 // ...along a line, sampled every 3 m (a deck is 5 m or more wide)
 function lowBridgeRay(map, v, x0, y0, x1, y1) {
   const d = Math.hypot(x1 - x0, y1 - y0), n = Math.max(1, Math.ceil(d / 3));
@@ -1365,7 +1368,7 @@ function pickBoatWaypoint(v, rng, map) {
     let clear = q.d >= 3;
     for (let t = 3; t < d && clear; t += 3) {
       if (waterClearance(map, v.x + (x - v.x) * t / d, v.y + (y - v.y) * t / d, 3) < 1.8) clear = false;
-      else if (isBarge(v) && (lowBridgeAt(map, v, v.x + (x - v.x) * t / d, v.y + (y - v.y) * t / d) || waterClearance(map, v.x + (x - v.x) * t / d, v.y + (y - v.y) * t / d, BARGE_MIN_CLEAR + 1) < BARGE_MIN_CLEAR)) clear = false;
+      else if (isBarge(v) && (lowBridgeAt(map, v, v.x + (x - v.x) * t / d, v.y + (y - v.y) * t / d) || waterClearance(map, v.x + (x - v.x) * t / d, v.y + (y - v.y) * t / d, bargeClear(v) + 1) < bargeClear(v))) clear = false;
     }
     if (clear) return [x, y];
     if (!fallback) fallback = [x, y];
@@ -1381,6 +1384,7 @@ function pickBoatWaypoint(v, rng, map) {
 // and asks the lock (sluizen.js), a movable bridge opens for a boat that needs it (movablebridges.js).
 let vaarNet = null;
 export function setVaarNet(net) { vaarNet = net; }
+export const getVaarNet = () => vaarNet;
 const VAAR_REACH = 150, VAAR_RETRY_S = 45, VAAR_ARRIVE = 14;
 // a tour boat sails the city, its harbours and the Reitdiep (#296), not out to the Waddenzee: trips up to this long (m)
 export const TOUR_TRIP_MAX = 12000;

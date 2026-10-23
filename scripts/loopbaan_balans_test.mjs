@@ -22,6 +22,8 @@ const t = (name, fn) => { n++; try { fn(); } catch (e) { fails++; console.log('F
 const PROFIELEN = [
   { vak: 'bus', naam: 'bijbaan: bus, een ronde', min: 1.7, xp: 10, uniek: 0, geld: 90 * SIDEJOB_PAY_MULT, kmPerMin: 0.8, kmVak: 'bus' },
   { vak: 'bezorg', naam: 'bijbaan: bezorger', min: 1.7, xp: 10, uniek: 0, geld: 40 * SIDEJOB_PAY_MULT },
+  { vak: 'landbouw', naam: 'bijbaan: bietenoogst', min: 3.5, xp: 10, uniek: 0, geld: 70 * SIDEJOB_PAY_MULT },
+  { vak: 'landbouw', naam: 'eigen boerderij, een ronde (ploegen, zaaien, oogsten, afleveren)', min: 10, xp: 60, uniek: 0, geld: 330 },
   { vak: 'kantoor', naam: 'bijbaan: balie', min: 2, xp: 10, uniek: 0, geld: 60 * SIDEJOB_PAY_MULT },
   { vak: 'padel', naam: 'padel, een potje', min: 6, xp: 22, uniek: 1 / 3, geld: 200 * 0.5 }, // een medaille van de drie: gemiddeld halve prijs
   { vak: 'race', naam: 'kart, een race', min: 3.5, xp: 12, uniek: 0, geld: 15 },
@@ -29,8 +31,14 @@ const PROFIELEN = [
   { vak: 'golf', naam: 'discgolf, een ronde', min: 12, xp: 40, uniek: 0, geld: 20 },
   { vak: 'trein', naam: 'machinist, een dienst', min: 8, xp: 55, uniek: 0, geld: 160 },
   { vak: 'trein', naam: 'treinreis van 15 km', min: 1.5, xp: 15 * L.KM_XP.trein, uniek: 0.15, geld: 0 },
-  { vak: 'buiten', naam: 'hengelen', min: 7, xp: 24, uniek: 0, geld: 10 },
+  { vak: 'hengelen', naam: 'hengelen, de wedstrijd in Meerstad', min: 7, xp: 24, uniek: 0, geld: 10 },
+  // vrij hengelen (visdata.js): een vangst per ongeveer 11 s (wachttijd 4,5 tot 11 s, uitgooien, binnenhalen), gemiddeld 1,9 punt en
+  // 0,6 euro per vis (vis_test.mjs rekent het na), een nieuwe plek zo nu en dan
+  { vak: 'hengelen', naam: 'hengelen, vrij op elk water', min: 11 / 60, xp: 1.9, uniek: 0.02, geld: 0.6 },
   { vak: 'lucht', naam: 'helikopter, een vlucht', min: 6, xp: 22, uniek: 0, geld: 20 },
+  // de vliegschool: een les duurt twee tot vier minuten; alleen de eerste keer per medaille betaalt (25, 40 en 60 euro), opnieuw doen geeft 6 punten:
+  // gemiddeld over honderd lessen is dat ongeveer 12 punten en 10 euro per les (VLIEGSCHOOL in vliegschoolrules.js)
+  { vak: 'lucht', naam: 'vliegschool, een les', min: 3, xp: 12, uniek: 0.1, geld: 10 },
   { vak: 'horeca', naam: 'pannenkoekenschip, een dienst', min: 8, xp: 30, uniek: 0, geld: 20 },
 ];
 
@@ -60,14 +68,14 @@ t('geld uit missies, winkels, vondsten en reparaties loopt niet via de loopbaan'
 
 t('wat de loopbaan uitbetaalt loopt alleen via loopbaanVerdien of de loonfactor van het vak', () => {
   // elke haak die geld uitbetaalt staat hier; een nieuwe haak moet bewust worden toegevoegd (en hier verantwoord)
-  const haken = ['sidejobs.js', 'machinist.js', 'padel.js', 'driftzone.js', 'kermis.js', 'carbid.js', 'postgame.js', 'kartbaan.js', 'regatta.js', 'stationtravel.js', 'coopnet.js', 'loopbaanlive.js'];
+  const haken = ['sidejobs.js', 'machinist.js', 'padel.js', 'driftzone.js', 'kermis.js', 'carbid.js', 'postgame.js', 'kartbaan.js', 'regatta.js', 'stationtravel.js', 'coopnet.js', 'hengelen.js', 'vliegschool.js', 'loopbaanlive.js', 'boerderijlive.js'];
   const gevonden = fs.readdirSync(JS).filter((f) => f.endsWith('.js') && !/^loopbaan/.test(f) && /loopbaan(Verdien|Loon|Prijs|Gast)\(/.test(fs.readFileSync(JS + f, 'utf8')));
   assert.deepEqual(gevonden.sort(), haken.filter((f) => !/^loopbaan/.test(f)).sort());
 });
 
 t('de premies voor vakken die niets uitbetaalden zijn klein: hooguit 900 euro per uur op het hoogste niveau', () => {
   const top = L.LOON_FACTOR[L.MAX_NIVEAU - 1];
-  for (const p of PROFIELEN.filter((x) => ['race', 'golf', 'buiten', 'lucht', 'horeca'].includes(x.vak))) assert.ok(perUur(p, top) <= 900, `${p.naam}: ${Math.round(perUur(p, top))} euro per uur`);
+  for (const p of PROFIELEN.filter((x) => ['race', 'golf', 'buiten', 'hengelen', 'lucht', 'horeca'].includes(x.vak))) assert.ok(perUur(p, top) <= 900, `${p.naam}: ${Math.round(perUur(p, top))} euro per uur`);
   for (const [key, r] of Object.entries(L.STAT_VAK)) if (r.premie) assert.ok(r.premie <= 40, key);
   // en de kartpremie (eerste plaats) blijft onder een kwart van wat één bijbaanronde betaalt
   const kart = fs.readFileSync(JS + 'kartbaan.js', 'utf8').match(/\[0, (\d+), (\d+), (\d+), (\d+)\]\[pos\]/);
@@ -76,7 +84,7 @@ t('de premies voor vakken die niets uitbetaalden zijn klein: hooguit 900 euro pe
 
 t('de premie van een bijbaan van het zwaarste vak blijft de grootste inkomstenbron: een bijbaanronde levert meer per minuut dan elke premie', () => {
   const bij = PROFIELEN.filter((p) => ['bus', 'bezorg', 'kantoor'].includes(p.vak)).map((p) => p.geld / p.min);
-  const premie = PROFIELEN.filter((p) => ['race', 'golf', 'buiten', 'lucht', 'horeca'].includes(p.vak)).map((p) => p.geld / p.min);
+  const premie = PROFIELEN.filter((p) => ['race', 'golf', 'buiten', 'hengelen', 'lucht', 'horeca'].includes(p.vak)).map((p) => p.geld / p.min);
   assert.ok(Math.min(...bij) > Math.max(...premie) * 2, `bijbaan ${Math.round(Math.min(...bij))} per minuut tegen premie ${Math.round(Math.max(...premie))}`);
 });
 

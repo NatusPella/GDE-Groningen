@@ -7,7 +7,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import {
   initAchievements, recordStat, setStatMax, recordUnique, unlockAchievement, recordMissionResult,
   getSaveSet, addToSaveSet, isUnlocked, MISSION_GOALS, GOLD_DAMAGE, SILVER_DAMAGE, MEDALS, EIERBAL_TOTAL, formatMissionTime,
-  ACHIEVEMENTS, getAchievementSummary, setStatListener, achievementsGated, lifetimeSnapshot,
+  ACHIEVEMENTS, getAchievementSummary, setStatListener, setUniekListener, achievementsGated, lifetimeSnapshot,
 } from './achievements.js';
 import { vehicleContacts } from './vehicle.js';
 import { getTrains, getLevelCrossings, TRAIN_TYPES } from './railway.js';
@@ -18,7 +18,10 @@ import { getScene } from './scene3d.js';
 import { makeNearMiss, nearMissBonus } from './gamefeel.js';
 import { chipPopup } from './stunthud.js';
 import { noteMoney } from './finance.js';
+import { initVisboek } from './visboeklive.js';
 import { initLoopbaan, loopbaanOpStat, loopbaanKm, loopbaanTel, getProfiel } from './loopbaanlive.js';
+import { initGebieden, updateGebieden, gebiedenOpVondst, getOverzicht } from './gebiedenlive.js';
+import { maakBron } from './gebiedenbronnen.js';
 
 const NEAR_MISS_SPEED = 12;
 const NEAR_MISS_GAP = 0.9;
@@ -65,7 +68,10 @@ export function initAchievementTracker(w) {
   world = w;
   initAchievements(w);
   initLoopbaan({ gate: achievementsGated, snapshot: lifetimeSnapshot });
+  initVisboek({ snapshot: lifetimeSnapshot });
   setStatListener(loopbaanOpStat);
+  initGebieden({ gate: achievementsGated, bron: maakBron(w) }); // gebieden veroveren (#414)
+  setUniekListener(gebiedenOpVondst);
   contactCursor = vehicleContacts.head;
   w.onRespawn.push((ww, { busted }) => {
     unlockAchievement(ww, busted ? 'opgepakt' : 'wasted');
@@ -82,6 +88,7 @@ export function initAchievementTracker(w) {
       mission: (i, time, opts = {}) => finishRun({ index: i, elapsed: time, damage: 0, maxWanted: 0, ...opts }, true),
       eggs: () => eggs.map((e) => ({ id: e.id, x: e.x, y: e.y, found: getSaveSet('eierballen').has(e.id) })),
       loopbaan: { tel: (vak, o = {}) => loopbaanTel(world, vak, o), profiel: getProfiel },
+      gebieden: getOverzicht,
       summary: getAchievementSummary,
       list: () => ACHIEVEMENTS.map((a) => a.id),
     };
@@ -102,6 +109,7 @@ export function updateAchievementTracker(dt, w) {
     trackSocial(w);
     trackRail(dt, w, p, pv);
     trackMission(dt, w, pv);
+    updateGebieden(dt, w, () => getMissionList().filter((m) => m.done).map((m) => m.id));
     updateEierballen(dt, w, p, pv);
   }
   if (eggGroup) eggGroup.visible = !w.pigeonMode;
