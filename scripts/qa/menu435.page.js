@@ -25,10 +25,17 @@ if (stappen.includes('garage')) {
   const ph = [...root().querySelectorAll('.gar-ph')].map((p) => (p.querySelector('canvas,img') || p.style.backgroundImage ? 'beeld' : 'leeg'));
   check('garage: kaartplaatjes', ph.filter((x) => x === 'beeld').length > 0, ph.join(','));
 }
-for (const [id, naam, opts] of [['spullen', 'spullen', {}], ['prestaties', 'prestaties', {}], ['map', 'kaart', {}], ['verhaal', 'aanwijzingen', { sub: 'hints' }]]) {
+for (const [id, naam, opts] of [['spullen', 'spullen', {}], ['prestaties', 'prestaties', {}], ['map', 'kaart', {}], ['verhaal', 'aanwijzingen', { sub: 'aanwijzingen' }]]) {
   if (!stappen.includes(naam)) continue;
   try { PM.openPauseMenu(id, opts); } catch (e) { check(naam + ' openen', false, e.message); continue; }
   await shot(naam, 2500);
+}
+if (stappen.includes('aanwijzingen2')) {
+  const ST = await import('/js/story.js');
+  for (let i = 0; i < 6; i++) { try { ST.skipCurrent({ force: true }); } catch (e) { check('skip ' + i, false, e.message); } await sleep(300); }
+  PM.openPauseMenu('verhaal', { sub: 'aanwijzingen' }); await shot('aanwijzingen-gevuld', 2500);
+  const g = [...root().querySelectorAll('.vh-gk')].map((x) => x.textContent);
+  check('aanwijzingen per opdracht', g.length > 0, g.join(' | '));
 }
 if (stappen.includes('kaartzoom')) {
   const MV = await import('/js/mapview.js');

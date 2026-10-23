@@ -216,7 +216,7 @@ export function initHud(world) {
       '<div class="hud-id-main">' +
         '<div class="hud-name-row"><div class="hud-character"></div><span class="hud-mate"><span class="hud-mate-pic" aria-hidden="true"><img alt=""></span><span class="hud-mate-txt"></span></span><div class="hud-status">' +
           '<span class="hud-chip drunk" role="status" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h11l-1.3 15.2A3 3 0 0 1 12.7 21h-2.4a3 3 0 0 1-3-2.8zM7.4 7.5h8.2"/></svg>Aangeschoten</span>' +
-          '<span class="hud-chip hud-mute" role="status" aria-label="Geluid uit, druk op U voor geluid" title="Geluid uit: druk op U voor geluid" hidden>🔇 <small>U = geluid</small></span>' +
+          '<span class="hud-chip hud-mute" role="status" aria-label="Geluid uit, druk op U voor geluid" title="Geluid uit: druk op U voor geluid" hidden>🔇 <small>U: geluid</small></span>' +
         '</div></div>' +
         '<div class="hud-meter hp" role="meter" aria-label="Gezondheid" aria-valuemin="0" aria-valuemax="100"><div class="hud-bar"><div class="hud-bar-ghost"></div><div class="hud-bar-fill health"></div></div><b></b></div>' +
         '<div class="hud-meter ar" hidden role="meter" aria-label="Bescherming" aria-valuemin="0" aria-valuemax="100"><div class="hud-bar"><div class="hud-bar-ghost"></div><div class="hud-bar-fill armor"></div></div><b></b></div>' +

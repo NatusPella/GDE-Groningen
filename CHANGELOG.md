@@ -6,6 +6,17 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Nieuw
+- Fotomodus (#435): een nette knoppenbalk onderin met alle toetsen en de knoppen Foto maken en Terug, een vrije camera (WASD, muis slepen of pijlen) die los staat van Tammo en over de hele wereld kan, en Escape sluit de fotomodus zonder dat het pauzemenu eroverheen komt.
+- Kaart (#435): de grens met Friesland, Drenthe en Duitsland staat weer in een eigen kleur op de kaart, met de naam van het buurgebied in dezelfde kleur.
+- Spullen (#435): pictogrammen bij elke categorie en elk ding, en een lege categorie (Werpspul, Thuis, Upgrades) legt uit waar je het vindt.
+- Prestaties (#435): De hele kaart verkend (en een kwart en de helft), en prestaties voor het veroveren van buurten, wijken, woonplaatsen, gemeenten en de provincie: ze volgen de gebiedenvoortgang.
+- Verhaal > Aanwijzingen (#435): per opdracht gegroepeerd, het deel waar je nu in zit bovenaan.
+- Shift zonder sprint (#435): op de fiets of in het water zegt het spel nu waarom er niets gebeurt (even uitpuffen, buiten adem).
+
+### Opgelost
+- Garage (#435): de 3D-voorbeelden van de voertuigen worden opnieuw getekend als de grafische kaart de verbinding even kwijt was, en lege plaatjes blijven niet hangen.
+
 ## [0.46.0] - 2026-10-23
 
 ### Nieuw
