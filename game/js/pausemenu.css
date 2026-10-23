@@ -32,6 +32,7 @@ body:has(#pause-menu.prestart.visible) #start-screen .ss-foot { visibility: hidd
 #pause-menu .ra[aria-current="true"]::before { content: ''; position: absolute; left: 0; top: 10px; bottom: 10px; width: 4px; border-radius: 2px; background: var(--g); }
 #pause-menu .ra .n { margin-left: auto; font-family: 'Arial Narrow', Arial, sans-serif; font-size: 18px; letter-spacing: 0; color: var(--g); }
 #pause-menu .ra .n:empty { display: none; }
+#pause-menu .ra .n .n-ic { width: 16px; height: 16px; margin: 0 4px -2px 0; stroke: currentColor; fill: none; stroke-width: 1.8; vertical-align: baseline; }
 #pause-menu .ra:focus-visible { outline: 2px solid var(--ink); outline-offset: -2px; border-radius: 8px; }
 #pause-menu .pm-rail-sp { height: 24px; }
 #pause-menu .pm-rail-gap { flex: 1; min-height: 12px; }

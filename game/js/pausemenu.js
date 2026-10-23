@@ -1421,7 +1421,8 @@ function syncNavBadges() {
   if (vPeople) vPeople.toggleAttribute('data-new', met || unread);
   const vClues = root.querySelector('[data-of="verhaal"][data-subtab="aanwijzingen"]');
   if (vClues) vClues.toggleAttribute('data-new', fresh);
-  const setN = (id, text, label) => { const n = root.querySelector(`[data-n="${id}"]`); if (n) { n.textContent = text; if (label) n.setAttribute('aria-label', label); else n.removeAttribute('aria-label'); } };
+  const setN = (id, text, label) => { const n = root.querySelector(`[data-n="${id}"]`); if (n) { if (id === 'spel' && text) n.innerHTML = `${icon('spelers', 'pm-ic n-ic')}${text}`; else n.textContent = text; // het aantal spelers met een poppetje (#435)
+         if (label) n.setAttribute('aria-label', label); else n.removeAttribute('aria-label'); } };
   // unseen achievements: a quiet dot on the rail, never a HUD notice (#168)
   const aNav = root.querySelector('[data-goto="prestaties"]');
   if (aNav) aNav.toggleAttribute('data-new', unseenAchievementCount() > 0);
