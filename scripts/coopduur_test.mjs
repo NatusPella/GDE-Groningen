@@ -4,7 +4,10 @@ import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { Reliable, RTO_TRAAG } from '../game/js/net/protocol.js';
+import { Reliable, RTO_TRAAG, REASON_TEXT } from '../game/js/net/protocol.js';
+import { ClientSession, HELLO_TIMEOUT } from '../game/js/net/session.js';
+import { hostRoom, joinRoom } from '../game/js/net/rtcroom.js';
+import * as L from '../game/js/lobby.js';
 import { T, readHeader, decodeJson } from '../game/js/net/codec.js';
 import { createLink } from '../game/js/net/memtransport.js';
 import { ipcTransport, listenForGuests } from '../game/js/net/ipctransport.js';
@@ -128,6 +131,36 @@ t('ruimMeshOp: eigen geometrie vrij, gedeelde niet; materialen met kaart alleen 
   ruimMeshOp(null, mesh('d'), { geometrie: false, materiaal: true }); assert.deepEqual(tel, { g: 2, m: 1, k: 1 });
   assert.equal(ruimMeshOp(scene, null), 0);
 });
+
+t('een gastheer die niet antwoordt (laadt, hangt of is weg): de gast geeft het na HELLO_TIMEOUT op met reden time-out en een Nederlandse melding; een gast die al meespeelde niet', () => {
+  const link = createLink({ latency: 0.02, seed: 2 }); // aan de andere kant luistert niemand
+  const ses = new ClientSession(link.b, { info: INFO, caps: [] }); const st = [];
+  ses.onstatus = (x) => st.push(x);
+  for (let s = 0; s < HELLO_TIMEOUT - 1; s += 0.1) { ses.tick(0.1); link.advance(0.1); }
+  assert.equal(ses.status, 'verbinden', 'de eerste seconden blijft hij proberen (elke seconde een hallo)');
+  for (let s = 0; s < 3; s += 0.1) { ses.tick(0.1); link.advance(0.1); }
+  assert.equal(ses.status, 'geweigerd'); assert.equal(ses.rejected, 'time-out');
+  assert.match(REASON_TEXT['time-out'], /gastheer antwoordt niet/);
+  const lob = (reden, ander) => L.view([{ t: 'kies', rol: 'gast' }, { t: 'verbinden' }, { t: 'status', status: 'geweigerd', reason: reden, ander }].reduce((x, e) => L.reduce(x, e), L.createLobby({ direct: true, rtc: true }))).lines[0];
+  assert.match(lob('time-out', ''), /antwoordt niet/); assert.match(lob('protocol', '0.42.0'), /versie 0\.42\.0/, 'een ander protocol toont de versie van de ander');
+  // een andere versie van het protocol toont de versies en wat te doen
+  assert.match(L.versieTekst('0.43.0', '0.42.0'), /0\.42\.0.*0\.43\.0/);
+  assert.match(REASON_TEXT.protocol, /dezelfde versie/);
+});
+
+const wacht = (ms) => new Promise((r) => setTimeout(r, ms));
+{ // de kamercodeverbinding: een fout bij het voorbereiden geeft een Nederlandse melding, geen systeemmelding
+  const stappen = [];
+  const pcKapot = () => ({ createDataChannel: () => ({ readyState: 'connecting' }), async createOffer() { throw new Error("Failed to execute 'createOffer' on 'RTCPeerConnection'"); }, setLocalDescription() {}, close() {}, iceGatheringState: 'complete', addEventListener() {}, removeEventListener() {} });
+  const sig = { host() { stappen.push('host'); }, join() {}, close() { stappen.push('dicht'); } };
+  const h = await hostRoom('ABCDE12345', { pcFactory: pcKapot, signaler: sig, timeouts: { wait: 5000, connect: 5000, gather: 10 }, onstate: (s, info) => stappen.push([s, info]) });
+  assert.ok(stappen.some((x) => Array.isArray(x) && x[0] === 'fout' && /aanbod .* kon niet worden gemaakt/.test(x[1])), JSON.stringify(stappen));
+  assert.ok(stappen.includes('dicht') && !stappen.includes('host'), 'de signaleerder is gesloten en er stond niets op de brokers');
+  h.cancel();
+  await assert.rejects(() => hostRoom('ABCDE12345', { pcFactory: () => { throw new Error('RTCPeerConnection is not defined'); }, signaler: sig, onstate() {} }), /Een kamercode werkt niet op dit apparaat/);
+  await assert.rejects(() => joinRoom('ABCDE12345', { pcFactory: () => { throw new Error('x'); }, signaler: sig, onstate() {} }), /Een kamercode werkt niet op dit apparaat/);
+  n++;
+}
 
 t('de duurtest in het geheugen (6 minuten virtueel, 7 spelers met wegvallen, terugkomen, weggaan, pauze en een stille gastheer) eindigt zonder problemen', () => {
   const r = spawnSync(process.execPath, ['--expose-gc', path.join(ROOT, 'scripts', 'coop', 'duurtest.mjs'), '--modus=mem', '--min=6'], { encoding: 'utf8', timeout: 120000 });
