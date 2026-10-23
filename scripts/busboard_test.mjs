@@ -1,6 +1,6 @@
 import assert from 'node:assert';
 import { prepareLine } from '../game/js/busroutes.js';
-import { boardText, busLineOf, ledText, placeOf, lineColor, nextStopInfo, stopAnnouncement, lineEnds, stopLabel, roundDist, BOARD_COLS, LINE_COLORS } from '../game/js/busboard.js';
+import { boardText, busLineOf, takeOverOffer, ledText, placeOf, lineColor, nextStopInfo, stopAnnouncement, lineEnds, stopLabel, roundDist, BOARD_COLS, LINE_COLORS } from '../game/js/busboard.js';
 
 const raw = { id: 1, ref: '75', from: 'Groningen, Hoofdstation', to: 'Winsum, Busstation', pts: [[0, 0], [2000, 0]], stops: [{ x: 0, y: 0 }, { x: 600, y: 0 }, { x: 1300, y: 0 }, { x: 2000, y: 0 }] };
 const line = prepareLine(raw);
@@ -51,6 +51,15 @@ assert.strictEqual(rit.dir, -1);
 assert.strictEqual(boardText(rit.line, rit.dir).ref, '312');
 assert.strictEqual(nextStopInfo(rit.line, rit.dir, 1500).index, 1);
 assert.strictEqual(busLineOf({ busRun: { line, dir: 1 }, rideLine: { line: andere, dir: -1 } }).line, line);
+// de dienst overnemen (#396): alleen in een lijnbus die nog niet bij een bijbaan hoort, zonder lopende dienst
+assert.strictEqual(takeOverOffer({ isBus: true, line, dir: 1 }), true);
+assert.strictEqual(takeOverOffer({ isBus: true, line, dir: -1 }), true);
+assert.strictEqual(takeOverOffer({ isBus: false, line, dir: 1 }), false);
+assert.strictEqual(takeOverOffer({ isBus: true, line, dir: 0 }), false);
+assert.strictEqual(takeOverOffer({ isBus: true, line: null, dir: 1 }), false);
+assert.strictEqual(takeOverOffer({ isBus: true, jobVehicle: true, line, dir: 1 }), false);
+assert.strictEqual(takeOverOffer({ isBus: true, shiftActive: true, line, dir: 1 }), false);
+assert.strictEqual(takeOverOffer(), false);
 console.log('busboard_test ok');
 import { lineDirection } from '../game/js/busboard.js';
 assert.strictEqual(lineDirection(line, 500, 3, 0), 1);

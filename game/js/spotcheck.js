@@ -26,6 +26,7 @@ import { getStationsForRender } from './stationtravel.js';
 import { getEierballen } from './achievementtracker.js';
 import { CHALLENGES } from './postgame.js';
 import { activitySpots } from './activities.js';
+import { safehuisCheckSpots } from './safehuizen.js';
 import { ensureCountryEdge, pushOutOfPlan } from './countryplan.js';
 import { countryWeight } from './countryfield.js';
 import { coveredByTiles } from './provinceworld.js';
@@ -142,6 +143,7 @@ export async function collectSpots(world) {
   for (const h of getHeliSpotsForRender()) add('heli', 'traumaheli', h);
   for (const p of getPadelSpotsForRender()) add('padel', p.name, p);
   for (const a of activitySpots()) add(a.kind, a.id, a, a.mode);
+  for (const h of await safehuisCheckSpots(world, onTiles)) add(h.kind, h.id, h, h.mode); // #414: de safehouses, met de tegels erbij geplaatst
   for (const s of getStationsForRender() || []) add('station', s.name, s);
   for (const e of getEierballen()) add('eierbal', e.id, e);
   for (const c of CHALLENGES) {

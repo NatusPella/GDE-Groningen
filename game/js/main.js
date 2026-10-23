@@ -155,6 +155,7 @@ import { updateEmergency } from './emergency.js';
 import { updateIndicators } from './indicators.js';
 import { initAchievementTracker, updateAchievementTracker } from './achievementtracker.js';
 import { initOmverrijden } from './omverrijden.js';
+import { initBoerderij, boerderijTijd } from './boerderijlive.js';
 import { probe } from './hitchprobe.js';
 import { initSafety, updateSafety } from './safety.js';
 import { updateCinematics, isCinematicActive, sinceCinematic, setCinematicLinks } from './cinematics.js';
@@ -165,6 +166,7 @@ import { updateDrunk } from './drunk.js';
 import { updateHelis } from './heliflight.js';
 import { planeKind } from './planeflight.js';
 import { busBoardKind } from './busboard3d.js';
+import { reklameTaxiKind } from './reklametaxi3d.js';
 import { shopSignKind } from './shopsigns3d.js';
 import { loadBusLines } from './busroutes.js';
 import { setBusLines, attachToNearestRoad } from './vehicle.js';
@@ -193,6 +195,7 @@ registerActivityKind({ id: 'postgame', initPhase: 'late', tickRank: 0, init: ini
 registerActivityKind({ id: 'sidejobs', initPhase: 'late', tickRank: -1, init: initSideJobs, slot: 'job', interact: trySideJobInteract, tickPhase: 'late', tick: updateSideJobs });
 registerActivityKind(planeKind);
 registerActivityKind(busBoardKind);
+registerActivityKind(reklameTaxiKind);
 registerActivityKind(shopSignKind);
 registerActivityKind({ id: 'ommeland', initPhase: 'early', init: initOmmelandFun, slot: 'uitje', interact: tryOmmelandInteract, tickPhase: 'late', tick: updateOmmelandFun });
 
@@ -486,6 +489,7 @@ async function boot() {
   window.__debug = { player, map, input, world };
   initAchievementTracker(world);
   initOmverrijden(world);
+  initBoerderij();
   initSafety(world);
   initCheats(world);
   if (DEV) import('./storydev.js').then((m) => m.initStoryDev(world)).catch((e) => console.error('storydev', e));
@@ -821,6 +825,7 @@ async function boot() {
     updateRoadRage(dt, world);
     updateClearZones(dt, world);
     updateDayNight(dt, world);
+    boerderijTijd(world); // de gewassen groeien in speltijd (#415)
     updateCalendar(dt, world);
     updateCheats(dt, world);
     updateRegioLeven(dt, world);
