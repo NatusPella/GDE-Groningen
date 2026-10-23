@@ -2,6 +2,8 @@
 import assert from 'node:assert/strict';
 import { createLink } from '../game/js/net/memtransport.js';
 import * as N from '../game/js/coopnet.js';
+import { verzamelEntiteiten, ID_TREIN0 } from '../game/js/coopworld.js';
+import { gladBoot } from '../game/js/coopboot.js';
 
 let n = 0;
 const t = (name, f) => { f(); n++; };
@@ -26,6 +28,59 @@ t('wereld loopt door achter het menu, alleen met minstens een gast', () => {
   hw.uiPaused = true; assert.equal(N.coopWereldDoorloop(hw), false, 'een minigame-scherm pauzeert'); hw.uiPaused = false;
   assert.equal(N.coopWereldDoorloop(gw), false, 'een gast draait de wereld niet');
   hw.paused = false; assert.equal(N.coopWereldDoorloop(hw), false);
+});
+
+t('boten: een groot schip blijft in de snapshot zolang zijn romp dichtbij is; treinen ruim van tevoren', () => {
+  const schip = { id: 7, x: 190, y: 0, angle: 0, isBoat: true, model: { len: 92 }, speed: 3 };
+  const rondvaart = { id: 8, x: 230, y: 10, angle: 0, isBoat: true, model: { len: 6 }, speed: 3 };
+  const auto = { id: 9, x: 160, y: 0, angle: 0, model: { len: 4 }, speed: 3 };
+  const w = { vehicles: [schip, rondvaart, auto], pedestrians: [], time: 1, wanted: 0 };
+  const e = verzamelEntiteiten(w, [{ x: 0, y: 0 }], { treinen: [{ id: 3, x: 400, y: 0, v: 30, halfLen: 50 }, { id: 4, x: 900, y: 0, v: 30, halfLen: 50 }] });
+  const ids = e.map((q) => q.id);
+  assert.ok(ids.includes(7), 'schip met romp binnen 150 m');
+  assert.ok(!ids.includes(8), 'kleine boot op 230 m: te ver');
+  assert.ok(!ids.includes(9), 'auto op 160 m: te ver');
+  assert.ok(ids.includes(ID_TREIN0 + 3), 'trein op 400 m');
+  assert.ok(!ids.includes(ID_TREIN0 + 4), 'trein op 900 m: nog niet');
+});
+
+t('boten bij de gast: glad en zonder sprong', () => {
+  const st = {};
+  let g = gladBoot(st, 0, 0, 0, 4, 0.016);
+  assert.deepEqual([g.x, g.y, g.angle], [0, 0, 0], 'eerste keer: precies waar de host zegt');
+  // snapshots van 10 Hz op een boot van 4 m/s: de getekende plek loopt gelijkmatig mee, zonder achterstand bij constante snelheid
+  let x = 0, vorig = 0, maxStap = 0;
+  for (let k = 1; k <= 300; k++) {
+    if (k % 6 === 0) x = 4 * (k / 60); // een nieuwe snapshot
+    g = gladBoot(st, x, 0, 0, 4, 1 / 60);
+    if (k > 60) maxStap = Math.max(maxStap, Math.abs(g.x - vorig));
+    vorig = g.x;
+  }
+  assert.ok(maxStap < 0.12, 'geen sprongen: ' + maxStap);
+  assert.ok(Math.abs(g.x - 20) < 0.5, 'loopt niet achter: ' + g.x);
+  // een slingerende koers van +-0.08 rad rond 1 wordt rustiger
+  let min = 9, max = -9;
+  for (let k = 0; k < 240; k++) { g = gladBoot(st, 20, 0, 1 + (k % 12 < 6 ? 0.08 : -0.08), 0, 1 / 60); if (k > 120) { min = Math.min(min, g.angle); max = Math.max(max, g.angle); } }
+  assert.ok(max - min < 0.1, 'koers gladgestreken: ' + (max - min));
+  // de overgang van 359 naar 1 graad is geen draai van bijna een toer
+  const st2 = {}; gladBoot(st2, 0, 0, 6.2, 0, 1 / 60);
+  assert.ok(Math.abs(gladBoot(st2, 0, 0, 0.1, 0, 1 / 60).angle - 6.2) < 0.2);
+  // een sprong (teleport) zet de boot meteen goed
+  assert.equal(gladBoot(st, 500, 0, 0, 0, 1 / 60).x, 500);
+});
+
+t('de band zet een gast in de boot als er geen droge plek is', () => {
+  const boot = { isBoat: true, x: 100, y: 100, speed: 5, angle: 0, model: { len: 6 } };
+  const mk = (extra = {}) => ({ player: { x: 100, y: 100, inVehicle: boot }, companion: { x: 400, y: 100, state: 'ok' }, coopFigures: {}, coop: { remote: true }, coopVrij: () => false, time: 0, ...extra });
+  const w = mk();
+  assert.equal(N.zetInBoot(w, w.companion), true);
+  assert.equal(w.companion.inVehicle, boot);
+  assert.equal(boot.passenger, 'companion');
+  assert.equal(N.zetInBoot(w, w.companion), false, 'de plek van Tessa is bezet');
+  const fig = { slot: 2, x: 0, y: 0 }; w.coopFigures[2] = fig;
+  assert.equal(N.zetInBoot(w, fig), true); assert.equal(fig.inVeh, boot);
+  const w2 = mk(); w2.player.inVehicle = { x: 0, y: 0, model: { len: 4 } }; // een auto: nooit
+  assert.equal(N.zetInBoot(w2, w2.companion), false);
 });
 
 console.log(`coop434_test: ${n} tests ok`);

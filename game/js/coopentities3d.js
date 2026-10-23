@@ -12,6 +12,7 @@ import { syncVehicleDoors } from './vehicledoors3d.js';
 import { standVers, MISC_DEUREN, leesDeuren } from './coopextra.js';
 import { WATER_Y } from './util.js';
 import { surfaceLiftAt } from './waterlevels.js';
+import { gladBoot } from './coopboot.js';
 import { ruimMeshOp } from './coopruim.js';
 
 const voertuigen = new Map(); // id -> mesh
@@ -162,8 +163,13 @@ export function syncHostEntities(world, dt = 1 / 60) {
     const gz = world.map && world.map.groundHeightAt && world.map.elev && world.map.elev.has ? (() => { try { return world.map.groundHeightAt(v.x, v.y); } catch (e) { return 0; } })() : 0;
     let y = v.hoogteZ || gz;
     const spec = m.userData.spec;
-    if (spec && spec.isBoat) { let lift = 0; try { lift = world.map ? surfaceLiftAt(world.map, v.x, v.y) : 0; } catch (e) { lift = 0; } y = WATER_Y + (Number.isFinite(lift) ? lift : 0); }
-    m.position.set(v.x, y, v.y); m.rotation.y = -v.angle;
+    let px = v.x, py = v.y, hoek = v.angle;
+    if (spec && spec.isBoat) { // een boot beweegt glad (coopboot.js): geen sprongen en geen slingerende koers (#434)
+      const g = gladBoot(m.userData.glad || (m.userData.glad = {}), v.x, v.y, v.angle, v.snelheid, dt);
+      px = g.x; py = g.y; hoek = g.angle;
+      let lift = 0; try { lift = world.map ? surfaceLiftAt(world.map, px, py) : 0; } catch (e) { lift = 0; } y = WATER_Y + (Number.isFinite(lift) ? lift : 0);
+    }
+    m.position.set(px, y, py); m.rotation.y = -hoek;
     if (spec && !m.userData.blok) animeerVoertuig(m, spec, v, klok, dt, deuren);
     // geluid: de toeter bij het aangaan van de vlag (met de toonhoogte van dit voertuig) en de sirene zolang hij aan staat, met de bestaande geluiden (audio.js)
     const toet = !!v.toeter;
