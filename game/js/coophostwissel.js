@@ -2,7 +2,7 @@
 // de overdracht (voorbereiden, aanbieden, accepteren, annuleren, mislukken). Geen netwerk, geen DOM, geen klok: wie het gebruikt geeft
 // `nu` (seconden) mee en verstuurt de berichten die terugkomen (JSON-gebeurtenissen met `k`, via Reliable; codec en PROTO veranderen niet).
 // Grondregel: tot de nieuwe host zegt dat zijn hub draait (`hw-draait`) blijft de oude host host. Elke fout, time-out of annulering ervoor
-// laat de oude sessie ongemoeid. Docs en ontwerp: issue #439. Nog niet verbonden met coopnet.js of de UI (zie coopspelers.js `nogNietTekst`).
+// laat de oude sessie ongemoeid. Docs en ontwerp: issue #439. De koppeling met de wereld en het netwerk staat in coophostwisselnet.js.
 import { checkHandshake } from './net/protocol.js';
 
 export const MOMENTOPNAME_V = 1;
@@ -28,6 +28,7 @@ export function maakMomentopname(inv = {}) {
     zaad: num(inv.zaad) >>> 0,
     tijd: { dag: Math.max(0, Math.floor(num(t.dag))), uur: Math.min(24, Math.max(0, r2(t.uur))), tempo: r2(t.tempo || 1) },
     weer: tekst(inv.weer, 30),
+    weerstaat: inv.weerstaat && typeof inv.weerstaat === 'object' && JSON.stringify(inv.weerstaat).length <= 700 ? JSON.parse(JSON.stringify(inv.weerstaat)) : null, // de weermachine (coopweer.js weerEvent zonder k)
     wanted: { niveau: Math.min(5, Math.max(0, Math.floor(num(w.niveau)))), hitte: r2(w.hitte) },
     opdracht: o ? { id: tekst(o.id), stap: Math.max(0, Math.floor(num(o.stap))), staat: tekst(o.staat, 30), t: r2(o.t) } : null,
     spelers: (inv.spelers || []).slice(0, MAX_SPELERS).map((p) => ({
@@ -65,7 +66,7 @@ export function leesMomentopname(json) {
 }
 
 // ---- de berichten (JSON-gebeurtenissen; k begint met 'hw-') -------------------------------------------------------------
-export const HW = { BOD: 'hw-bod', STUK: 'hw-stuk', JA: 'hw-ja', NEE: 'hw-nee', GELADEN: 'hw-geladen', DRAAIT: 'hw-draait', VERBIND: 'hw-verbind', ANNULEER: 'hw-annuleer' };
+export const HW = { PAUZE: 'hw-pauze', BOD: 'hw-bod', STUK: 'hw-stuk', JA: 'hw-ja', NEE: 'hw-nee', GELADEN: 'hw-geladen', DRAAIT: 'hw-draait', VERBIND: 'hw-verbind', ANNULEER: 'hw-annuleer' };
 const KIND = new Set(Object.values(HW));
 export const isHostwissel = (b) => !!b && typeof b === 'object' && KIND.has(b.k);
 const idOk = (v) => Number.isInteger(v) && v > 0 && v <= 0xffffff;
@@ -206,13 +207,27 @@ export function leesVerbind(b, van, verwachtId = 0) {
 }
 
 // ---- teksten voor de spelers (zonder rolnaam, met namen) ---------------------------------------------------------------------
+export const vraagWachtTekst = (naam) => `Je vroeg ${naam || 'de ander'} het spel over te nemen. Wachten op het antwoord.`;
 export const bodTekst = (naam) => `${naam || 'De ander'} wil het spel aan je overdragen: jij houdt de wereld dan draaiend. J = ja, N = nee.`;
 export const pauzeTekst = (naam) => `${naam || 'De ander'} neemt het spel over. Even wachten, het duurt een paar seconden.`;
+export const overTekst = (naam) => `${naam || 'De ander'} heeft het spel overgenomen. Je speelt nu mee in dat spel.`;
+export const verbindMisluktTekst = 'Verbinden met het nieuwe spel lukte niet. Je speelt weer in je eigen spel.';
+// wat de speler leest die het spel zou krijgen (de ander houdt het spel)
+export const gemistTekst = (reden) => ({
+  geweigerd: 'Je hebt het spel niet overgenomen.',
+  'time-out': 'Er kwam geen antwoord of het duurde te lang. De ander houdt het spel.',
+  geannuleerd: 'De overdracht is gestopt. De ander houdt het spel.',
+  onbereikbaar: 'De anderen kunnen jou niet bereiken, dus het overnemen kan niet. De ander houdt het spel.',
+  versie: 'Jullie spelen een andere versie van het spel. De ander houdt het spel.',
+}[reden] || 'De overdracht is niet gelukt. De ander houdt het spel.');
+export const jijTekst = 'Je hebt het spel overgenomen. De anderen verbinden nu met jou.';
 export const mislukTekst = (reden) => ({
   geweigerd: 'De ander wilde het spel niet overnemen. Jij houdt het spel.',
   versie: 'De ander speelt een andere versie van het spel. Jij houdt het spel.',
   'time-out': 'De overdracht duurde te lang. Jij houdt het spel.',
   'te-groot': 'Het spel is nu te groot om over te dragen. Jij houdt het spel.',
   bezig: 'De ander is al met iets anders bezig. Jij houdt het spel.',
+  onbereikbaar: 'De ander is voor de anderen niet bereikbaar. Jij houdt het spel.',
+  weg: 'De ander is weggevallen. Jij houdt het spel.',
   geannuleerd: 'De overdracht is gestopt. Jij houdt het spel.',
 }[reden] || 'De overdracht is mislukt. Jij houdt het spel.');
