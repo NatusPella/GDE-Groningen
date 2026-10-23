@@ -152,5 +152,14 @@ for (const [sec, sb] of verw) ok((SUBS[sec] || []).includes(sb), 'verwijzing ' +
 const hintsSrc = pm.slice(pm.indexOf('const HINTS = {'), pm.indexOf('// a line in the sheet header'));
 for (const id of ['visboek', 'boerderij', 'controls', 'loopbaan', 'verhaal', 'todo', 'settings']) ok(new RegExp('^  ' + id + ': \\[', 'm').test(hintsSrc), 'voetregel (Esc Terug) voor ' + id);
 
+// --- #435: de rest van de checklist ------------------------------------------------------------------------------------------------
+const td = read('game/js/todoui.js');
+ok(td.includes('function nextHtml(cur)') && td.includes('return nextHtml(cur) + PART_IDS.map('), 'Verhaal > Opdrachten begint met de volgende stap en een knop naar het doel');
+ok(td.includes("it.group !== 'missies';") && td.includes("g !== 'missies'"), 'Activiteiten bevat geen verhaalmissies meer');
+ok(pm.includes('class="ra pm-exit" data-action="exit"'), 'Afsluiten staat als eigen knop in de rail van het pauzemenu (alleen desktop)');
+ok(pm.includes("icon('spelers', 'pm-ic n-ic')"), 'de teller bij Spel heeft een poppetje-icoon');
+ok(read('game/js/hudcards.js').includes('menuMelding(text)'), 'meldingen staan direct in beeld als het menu open is');
+ok(pm.includes("[['U'], 'Geluid uit of weer aan;"), 'Besturing legt de dempknop uit');
+
 console.log(`${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);
