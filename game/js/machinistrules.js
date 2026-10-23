@@ -106,6 +106,12 @@ export function payFor(result, abandoned = false) {
   return Math.round(result.made * (6 + result.score / 8) + result.medal * 20);
 }
 
+// Wie de dienst begint (G) in een trein die hij net kaapte (#424), is geen dieven meer maar de machinist: de sterren van
+// de kaping (stealStars) gaan weg, een ster door iets anders blijft staan. Meer sterren dan de kaping gaf: niets verandert.
+export function wantedNaDienst(wanted, stealStars) {
+  return stealStars > 0 && wanted > 0 && wanted <= stealStars ? 0 : wanted;
+}
+
 // The service ends early (Backspace): what was done counts, the rest scores 0.
 export function abandonService(svc) {
   if (svc.finished) return;
