@@ -30,13 +30,14 @@ import { KLOK_EVERY, klokEvent, leesKlokEvent, KlokVolger } from './net/speelklo
 import { HASH_EVERY, viewOf, hashEvent, leesHashEvent, DesyncMonitor } from './net/desync.js';
 import { PING_TOETSEN, PING_TEKST, pingPlek, pingMarkers, pingRegel } from './coopping.js';
 import { spelersRijen, wegMelding } from './coopspelers.js';
-import { maakMeedoen, opdrachtSleutel, begin as meedoenBegin, einde as meedoenEinde, antwoord as meedoenAntwoord, tik as meedoenTik, loopVrij, krijgtDeel, maakUitnodiging, uitnodigingTekst } from './coopmeedoen.js';
+import { maakMeedoen, opdrachtSleutel, begin as meedoenBegin, einde as meedoenEinde, antwoord as meedoenAntwoord, tik as meedoenTik, loopVrij, krijgtDeel, maakUitnodiging, uitnodigingTekst, laat as meedoenLaat } from './coopmeedoen.js';
+import { zetBezig, bezigVanEvent, leesBezigVan, bezigId } from './coopbezig.js';
 import { WEER_EVERY, weerEvent, leesWeerEvent, pasWeerToe } from './coopweer.js';
 import { loopbaanGast, GAST_XP_DEEL } from './loopbaanlive.js';
 import { maakRegister, zetPlek, leegRegister, bouwFoci, losBesluit, FOCI_MAX, MAX_AFSTAND, ONGELADEN_S } from './coopfoci.js';
 import { tileIndexOf, tileKey } from './gdt.js';
 import { wisselEvent, wisselTik } from './coophostwisselnet.js'; // het spel overdragen (#439); die module importeert dit bestand terug, maar gebruikt het pas bij een aanroep
-import { zichtbaarWanted, GEZOCHT_TEKST } from './coopgezocht.js';
+import { zichtbaarWanted, GEZOCHT_TEKST, hudWanted } from './coopgezocht.js';
 import { bustFineIn } from './economy.js';
 import { zetBestuurHaken, bestuurGebruik, bestuurTick, bestuurLos, bestuurAllesLos, bestuurt } from './coopbestuur.js';
 
@@ -61,7 +62,7 @@ export function canJoin(world) {
   if (!p) return { ok: false, reason: 'Het spel is nog niet klaar.' };
   if (p.inVehicle) return { ok: false, reason: 'Stap eerst uit je voertuig.' };
   if (world.pigeonMode) return { ok: false, reason: 'Stop eerst met de duif-modus.' };
-  if (world.cameraOverride || world.pendingRespawn || p.ragdoll) return { ok: false, reason: 'Wacht tot het filmpje of het herstel klaar is.' };
+  if (world.cameraOverride || world.pendingRespawn || p.ragdoll) return { ok: false, reason: 'Wacht tot het filmpje of het herstel klaar is.', filmpje: !!world.cameraOverride && !world.pendingRespawn && !p.ragdoll }; // filmpje: je eigen opening of scène, die je kunt overslaan (samenpanel.js)
   return { ok: true };
 }
 
@@ -168,6 +169,7 @@ function endCoop(world) {
   world.coopPartner = null; world.coopPartners = []; world.coopRoster = null; world.coopFigures = {}; world.coopHost = null; world.coopExtra = null; world.coopHostMissie = null; world.coopCam = null; world.coopScene = null;
   world.coopVrijLopen = false; world.coopUitnodiging = null; world.coopMeedoenNee = false; // (#429)
   world.coopFoci = null; world.coopFociInfo = null; // spelers uit elkaar (#429)
+  world.coopBezigVan = {}; world.coopHudWanted = 0; // wie bezig is en de sterren in het scherm van de host (#429, #434)
   world.coopWanted = null; world.coopHeat = null; world.coopDoelwit = 0; world.coopWantedMeld = null; world.coopGepakt = null; world.coopStil = false; // (#434)
   if (world.companion) world.companion.coopWacht = false;
   world.coopMeld = null; world.coopDeel = null; world.coopUitslag = null; world.coopPingMarks = []; world.coopSpelers = []; world.coopGebruik = false; world.coopWielSlot = null; world.coopWielVraag = null; world.coopWiel = false; world.coopInVoertuig = false; world.coopBestuurder = false; // (#291, #434)
@@ -197,6 +199,8 @@ export function startHost(world, info, opts = {}) {
     sim: hostSim(world, () => hub.roster),
     onJoin: (slot, char) => {
       if (world.coopNet && world.coopNet.missie) hub.announce(missieBericht(null, world.mission).event || { k: 'missie', actief: false }, slot);
+      nodigLaatUit(world, slot); // een opdracht loopt al: ook jij mag kiezen (#429)
+      if (world.coopNet) bezigVoorNieuwe(world, world.coopNet, slot);
       const we = weerEvent(world.weatherState); if (we) hub.announce(we, slot); // het weer van de gastheer (#364)
       hub.announce({ k: 'hek', aan: gateOn() }, slot); // is het spel nog niet begonnen? dan wacht de nieuwe speler in de wachtkamer
       if (world.coopNet && world.coopNet.sceneNu && !sceneLeeg(world.coopNet.sceneNu)) hub.announce({ k: 'scene', ...world.coopNet.sceneNu }, slot); // wie midden in een filmpje aansluit, hoort het meteen
@@ -204,13 +208,13 @@ export function startHost(world, info, opts = {}) {
       if (fade) fade('in'); // de gast komt met een korte fade naast je staan
     },
     onLeave: (slot) => {
-      bestuurLos(world, slot);
+      bestuurLos(world, slot); bezigWeg(world, slot);
       if (world.coopWanted) delete world.coopWanted[slot]; // een gast die weggaat neemt zijn sterren mee (#434) // het voertuig van een gast die weggaat staat stil en de stoel is vrij (#434)
       if (slot === 1 && world.coop) { world.coop.remote = false; world.coop.remoteInput = null; }
       if (slot >= 2) removeFigure(world, slot);
     },
     onLost: (slot) => {
-      bestuurLos(world, slot);
+      bestuurLos(world, slot); bezigWeg(world, slot);
       if (slot === 1 && world.coop) { world.coop.remote = false; world.coop.remoteInput = null; }
       const f = slot >= 2 ? figures(world)[slot] : null; if (f) f.input = null;
       // pauze per speler: Tessa houdt het spel op, een extra speler pas als de opdracht hem nodig heeft
@@ -557,6 +561,21 @@ function nodigUit(world, n, huidig) {
   const slots = n.hub.roster.spelers.filter((s) => s.slot !== 0 && s.verbinding !== 'lost').map((s) => s.slot);
   for (const u of meedoenBegin(n.meedoen, sl, slots, regel)) n.hub.announce({ k: 'meedoen', label: String(huidig.label || '').slice(0, 80), verplicht: u.verplicht, sec: u.sec }, u.slot);
 }
+// Een gast die laat aansluit terwijl een opdracht loopt krijgt dezelfde uitnodiging als wie erbij was, na de melding wat er speelt (#429).
+function nodigLaatUit(world, slot) {
+  const n = world.coopNet, m = n && n.missie; if (!m || !n.meedoen || !n.meedoen.opdracht) return false;
+  const u = meedoenLaat(n.meedoen, slot, world.coopStapRegel ? world.coopStapRegel() : null); if (!u) return false;
+  return n.hub.announce({ k: 'meedoen', label: String(m.label || '').slice(0, 80), verplicht: u.verplicht, sec: u.sec }, slot);
+}
+// Wie hengelt, pannenkoeken bakt of de beiaard speelt: bewaar het per plek en geef het door aan de andere gasten (#429).
+function bezigMelden(world, n, slot, a) {
+  if (!zetBezig(world, slot, a)) return false;
+  for (const s of n.hub.roster.spelers) if (s.slot !== 0 && s.slot !== slot && s.verbinding !== 'lost') n.hub.announce(bezigVanEvent(slot, bezigId(a)), s.slot);
+  return true;
+}
+// Een gast die aansluit hoort wie er al bezig is; een gast die weggaat is niet meer bezig.
+function bezigVoorNieuwe(world, n, slot) { for (const [s, e] of Object.entries(world.coopBezigVan || {})) if (+s !== slot) n.hub.announce(bezigVanEvent(+s, e.a), slot); }
+function bezigWeg(world, slot) { const n = world.coopNet; if (n && n.role === 'host') bezigMelden(world, n, slot, null); }
 // De gast antwoordt op de uitnodiging (J of N): een bericht naar de gastheer.
 export function gastMeedoen(world, ja) {
   const n = world.coopNet, u = world.coopUitnodiging; if (!n || n.role !== 'client' || !n.joined || !u || u.verplicht) return false;
@@ -656,6 +675,7 @@ export function tickCoopNet(world, dt) {
   if (mb.event) { n.hub.announce(mb.event); }
   nodigUit(world, n, mb.huidig); n.missie = mb.huidig;
   world.coopVrijLopen = loopVrij(n.meedoen, 1); // Tessa wordt niet vastgezet als haar speler niet meedoet (#429)
+  world.coopHudWanted = world.coopWanted ? hudWanted(world) : 0; // de sterren van een gezochte gast in het scherm van de host (#434)
   meldNeer(world, n); // de gastheer of Tessa gaat neer of wordt gearresteerd (#369)
   for (const slot of meedoenTik(n.meedoen, dt)) world.coopMeld && world.coopMeld(slot, 'Je doet mee.');
   const c = world.companion;
@@ -673,6 +693,11 @@ export function handleEvent(world, body, van = 0) {
   if (!body || typeof body !== 'object') return false;
   const n = world.coopNet;
   switch (body.k) {
+    case 'bezig': return !!n && n.role === 'host' && van >= 1 && bezigMelden(world, n, van, body.a); // een gast hengelt, bakt of speelt de beiaard: de anderen zien het (#429)
+    case 'bezigvan': { // van de host: een andere gast is bezig (of niet meer)
+      const b = leesBezigVan(body); if (!n || n.role !== 'client' || !b) return false;
+      zetBezig(world, b.slot, b.a); return true;
+    }
     case 'ping': { // de host stuurt door met 'van'; een gast stuurt zonder
       const afz = n && n.role === 'client' && Number.isInteger(body.van) ? body.van : van;
       const ok = !!(world.coopPings && addPing(world.coopPings, { x: body.x, y: body.y, soort: body.soort, van: afz }, now(world)));

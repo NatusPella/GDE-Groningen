@@ -39,6 +39,13 @@ export function invoerVan(world, slot) {
   if (slot === 1) return world.coop ? world.coop.remoteInput : null;
   const f = figures(world)[slot]; return f ? f.input : null;
 }
+// Een gast met een wapen slaat of schiet een voetganger of agent in de wereld van wie het spel opende: dat is een misdaad van de gast
+// (zijn eigen niveau, met getuigen zoals bij het rijden). Nog niet aangesloten op een aanval-invoer van de gast (zie docs/COOP-GAST.md).
+export function gastAanval(world, slot, slachtoffer, { gedood = false } = {}) {
+  if (!(slot > 0) || !slachtoffer || !haken.misdaad) return false;
+  haken.misdaad(world, slot, slachtoffer.isCop ? 'copHit' : gedood ? 'pedKill' : 'pedHit');
+  return true;
+}
 export const bestuurt = (lichaam) => !!(lichaam && lichaam.coopBestuurt);
 export const bestuurderVan = (world, slot) => (rijders(world)[slot] || null);
 

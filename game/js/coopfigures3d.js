@@ -11,6 +11,7 @@ import { isCinematicActive } from './cinematics.js';
 import { buildPersonMesh, animatePersonWalk } from './models3d_people.js';
 import { figuurLook } from './coopplayers.js';
 import { ruimMeshOp } from './coopruim.js';
+import { syncBezig, hasBezigMeshes } from './coopbezig3d.js';
 import { planFigures, needsRebuild, walkSpeed, labelSpec, LABEL_Y } from './coopfigures.js';
 
 const meshes = new Map(); // plek -> { mesh, char, label, prev }
@@ -42,13 +43,14 @@ function dispose(scene, e) {
 }
 
 const hasZitters = () => aantalZitters() > 0;
-export const hasFigureMeshes = () => meshes.size > 0 || hasZitters();
+export const hasFigureMeshes = () => meshes.size > 0 || hasZitters() || hasBezigMeshes();
 
 // Elke frame (main.js): maak, verplaats en ruim op volgens world.coopFigures.
 export function syncFigures(world, dt) {
   const scene = getScene();
   if (!scene) return;
   const filmpje = isCinematicActive() || !!world.cinematicHidePlayers;
+  syncBezig(world, dt); // wie hengelt, pannenkoeken bakt of de beiaard speelt, met zijn gereedschap (#429)
   const plan = planFigures([...meshes.keys()], world.coopFigures);
   for (const slot of plan.remove) { dispose(scene, meshes.get(slot)); meshes.delete(slot); }
   for (const f of plan.add) meshes.set(f.slot, build(scene, f));
