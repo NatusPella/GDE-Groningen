@@ -47,6 +47,7 @@ export const HINTS = [
   { id: 'm-kartbaan', kind: 'minigame', match: 'kartbaan', title: 'Kartbaan', body: 'Drie ronden tegen drie rijders. Een schone bocht is sneller dan een harde.' },
   { id: 'm-zwembad', kind: 'minigame', match: 'zwembad', title: 'Zwembad', body: 'Baantjes zwemmen in het zwembad. De uitleg staat tijdens het zwemmen in beeld.' },
   { id: 'm-klimtoren', kind: 'minigame', match: 'klimtoren', title: 'Klimtoren', body: 'Twaalf meter klimmen, tegen de klok. Een val kost tijd, dus klim rustig en gelijkmatig.' },
+  { id: 'm-vliegschool', kind: 'minigame', match: 'vliegschool', title: 'Vliegschool', body: 'Dertien korte lessen met het vliegtuig en de helikopter op Eelde, met een medaille per les. Kies een toestel en een les; de uitleg staat in beeld.' },
   { id: 'm-waterski', kind: 'minigame', match: 'waterski', title: 'Waterskiën', body: 'Achter de boot, over sprongen en langs boeien. De uitleg staat tijdens het skiën in beeld.' },
   { id: 'm-hengelen', kind: 'minigame', match: 'hengelen', title: 'Hengelen', body: 'Bij de steiger in Meerstad heb je negentig seconden: de zwaarste vangst telt. Overal aan het water kun je vrij hengelen met {I}; alles wat je vangt komt in je visboek.' },
   { id: 'm-carbid', kind: 'minigame', match: 'carbid', title: 'Carbid schieten', body: 'Melkbus, deksel en een flinke knal. Blijf zelf op afstand.' },

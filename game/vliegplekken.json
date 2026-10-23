@@ -1,0 +1,185 @@
+{
+ "v": 1,
+ "bron": "tegels van de provincie (OSM en 3D BAG) en landmarkkits.json",
+ "eelde": {
+  "x": 1764.51,
+  "y": 9959.94
+ },
+ "water": [
+  {
+   "id": "water-1",
+   "naam": "De Tip",
+   "a": {
+    "x": 8835.4,
+    "y": 9474.8
+   },
+   "b": {
+    "x": 8730.8,
+    "y": 10670.2
+   },
+   "lengte": 1200,
+   "vrij": 3200,
+   "halveBreedte": 400,
+   "afstandEelde": 7019,
+   "rand": -170
+  },
+  {
+   "id": "water-2",
+   "naam": "De Tip",
+   "a": {
+    "x": 9012.7,
+    "y": 11045.2
+   },
+   "b": {
+    "x": 9423.1,
+    "y": 9917.5
+   },
+   "lengte": 1200,
+   "vrij": 3200,
+   "halveBreedte": 340,
+   "afstandEelde": 7472,
+   "rand": 244
+  },
+  {
+   "id": "water-3",
+   "naam": "Lettelbert",
+   "a": {
+    "x": -7945.1,
+    "y": 4338.2
+   },
+   "b": {
+    "x": -9126.9,
+    "y": 4546.6
+   },
+   "lengte": 1200,
+   "vrij": 2120,
+   "halveBreedte": 280,
+   "afstandEelde": 11685,
+   "rand": 650
+  }
+ ],
+ "velden": [
+  {
+   "id": "veld-1",
+   "naam": "Glimmen",
+   "x": 3744.4,
+   "y": 11939.8,
+   "heading": 0,
+   "lengte": 420,
+   "breedte": 80,
+   "afstandEelde": 2800,
+   "rand": 805
+  },
+  {
+   "id": "veld-2",
+   "naam": "Neerwold",
+   "x": -660.4,
+   "y": 8559.9,
+   "heading": 0,
+   "lengte": 420,
+   "breedte": 80,
+   "afstandEelde": 2800,
+   "rand": 1809
+  },
+  {
+   "id": "veld-3",
+   "naam": "Tupi",
+   "x": 5020.8,
+   "y": 8079.9,
+   "heading": 0.393,
+   "lengte": 420,
+   "breedte": 80,
+   "afstandEelde": 3760,
+   "rand": -1974
+  },
+  {
+   "id": "veld-4",
+   "naam": "Noordlaren",
+   "x": 6439.6,
+   "y": 11212.6,
+   "heading": 2.749,
+   "lengte": 420,
+   "breedte": 80,
+   "afstandEelde": 4840,
+   "rand": -504
+  }
+ ],
+ "molens": [
+  {
+   "naam": "De Witte Molen",
+   "x": 2706.4,
+   "y": 8176.5
+  },
+  {
+   "naam": "De Hoop",
+   "x": 2524.8,
+   "y": 5097.1
+  },
+  {
+   "naam": "De Helper",
+   "x": 737.3,
+   "y": 4805.4
+  },
+  {
+   "naam": "Helpermolen",
+   "x": 902.5,
+   "y": 2197.7
+  }
+ ],
+ "openingen": [
+  {
+   "id": "opening-1",
+   "naam": "Villabuurt",
+   "x": 1302.8,
+   "y": 3079.3,
+   "nx": 0.302,
+   "ny": 0.953,
+   "breedte": 65,
+   "hoogte": 11,
+   "daken": [
+    14,
+    16.3
+   ],
+   "namen": [
+    null,
+    "Villa Sonnevanck"
+   ]
+  },
+  {
+   "id": "opening-2",
+   "naam": "Corpus den Hoorn",
+   "x": -227.4,
+   "y": 2880.5,
+   "nx": -0.953,
+   "ny": 0.302,
+   "breedte": 38.6,
+   "hoogte": 22.9,
+   "daken": [
+    25.9,
+    44.6
+   ],
+   "namen": [
+    "Heymanscentrum",
+    null
+   ]
+  },
+  {
+   "id": "opening-3",
+   "naam": "Coendersborg",
+   "x": 1398.6,
+   "y": 2339.5,
+   "nx": 0.222,
+   "ny": 0.975,
+   "breedte": 25.7,
+   "hoogte": 11.3,
+   "daken": [
+    14.3,
+    15.5
+   ],
+   "namen": [
+    null,
+    null
+   ]
+  }
+ ]
+}

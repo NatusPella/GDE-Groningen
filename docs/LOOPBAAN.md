@@ -36,6 +36,7 @@ Waar de punten vandaan komen (de haken zijn klein en staan bij de bestaande plek
 - **Spoor**: kilometers van elke treinreis (`stationtravel.js`, 1,5 punt per km, plus het station als nieuwe plek), een dienst als machinist
   (`machinist.js`, loon met de factor) en korting op het kaartje (`loopbaanPrijs`: de prijs gedeeld door de factor).
 - **Bus en Water**: kilometers die je zelf in een bus of een boot rijdt (`achievementtracker.js`, 3 punten per km), naast de ronden van de bijbanen.
+- **Lucht, vliegschool** (`vliegschool.js`): elke afgeronde les met een medaille betaalt `loopbaanVerdien(w, 'lucht', ...)`: 25, 40 en 60 euro voor de eerste keer dat je brons, zilver en goud haalt (nooit opnieuw voor dezelfde medaille, dus geen geld te kweken), 14 tot 28 punten voor een nieuwe medaille en 6 punten voor opnieuw doen; elke les is een nieuwe plek (8 punten extra, één keer). Een les zonder medaille geeft 2 punten.
 - **Padel, Racen, Kermis, Buiten**: de plek die de prijs uitbetaalt roept `loopbaanVerdien` aan (`padel.js`, `driftzone.js`,
   `kermis.js`, `carbid.js`, `postgame.js`); kart en regatta betaalden niets en krijgen een kleine **premie** (tot €30, afnemend per plaats).
 - **De rest** (discgolf, pitch and putt, hengelen, skaten, skiën, klimmen, helikopter, pannenkoekenschip, reuzenrad, zwemmen, wandelen):
