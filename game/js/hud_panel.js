@@ -2316,13 +2316,14 @@ function drawMinimap(dt, world) {
   const view = minimapView(world.map, player.x - MM_RADIUS_M, player.y - MM_RADIUS_M, player.x + MM_RADIUS_M, player.y + MM_RADIUS_M);
 
   if (edgeDistance(player.x, player.y) < 0) drawNeighbourhoodBorders(ctx, dt, world, player, MM_RADIUS_M);
-  if (minimapShows('veroverd')) tekenVeroverdMini(ctx, mmScale, player.x, player.y, MM_RADIUS_M); // gebieden veroveren (#414, #423)
 
   ctx.fillStyle = MINI_STYLE.park;
   fillPolys(ctx, view.green);
 
   ctx.fillStyle = MINI_STYLE.water;
   fillPolys(ctx, view.water);
+  // gebieden veroveren (#414, #423): boven het groen en het water, onder de wegen en gebouwen
+  if (minimapShows('veroverd')) tekenVeroverdMini(ctx, mmScale, player.x, player.y, MM_RADIUS_M);
 
   const emph = mode.emph;
   const landAlpha = 1 - dimLand;
