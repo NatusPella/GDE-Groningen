@@ -140,7 +140,7 @@ function heroHtml(world) {
     `${it && !goal ? `<button type="button" class="m-bg" data-todo-goal="${esc(it.key)}">Zet als doel</button>` : ''}` +
     `${it && goal ? `<button type="button" class="m-bg" data-todo-goal="${esc(it.key)}">Terug naar het verhaal</button>` : ''}` +
     `<button type="button" class="m-bg" data-goto="map">${svg(ICON.pin)}Kaart</button>` +
-    `<button type="button" class="m-bg" data-todo-view="verhaal">Alle missies</button>` +
+    `<button type="button" class="m-bg" data-todo-view="verhaal">Alle opdrachten</button>` +
     `${sv.canSkip ? `<button type="button" class="m-bt" data-story-skip>${esc(sv.skipLabel)}</button>` : ''}</div>${goalLine(world)}</article>`;
 }
 
@@ -323,9 +323,22 @@ export function todoSummary(world) {
   const end = getStoryView().ending;
   const toEnd = end && !end.done ? ` · nog ${end.count} tot het einde` : '';
   return {
-    verhaal: '', alles: String(items.filter((it) => it.group !== 'verhaal').length), dichtbij: String(items.filter((it) => it.dist != null && it.dist < 600).length || ''),
+    verhaal: '', opdrachten: '', alles: String(items.filter((it) => it.group !== 'verhaal').length), dichtbij: String(items.filter((it) => it.dist != null && it.dist < 600).length || ''),
+    subTodo: `${items.filter((it) => it.group !== 'verhaal').length} dingen te doen · ${items.filter((it) => it.dist != null && it.dist < 600).length} dichtbij`,
     sub: `${sDone} van ${steps.length} verhaalstappen · ${ms.filter((it) => it.status === 'klaar').length} van ${ms.length} missies · ${jr.total - jr.found.length} aanwijzingen te vinden${toEnd}`,
   };
+}
+
+// Verhaal > Opdrachten (#430): de verhaalstappen en missies, met dezelfde lijst en dezelfde details als eerst onder Te doen.
+export function renderTodoStory(el, world) {
+  refresh(world);
+  if (!ui.sel || !byKey.has(ui.sel)) {
+    const cur = items.find((it) => it.status === 'nu' && (it.goal === 'story' || it.group === 'missies')) || items[0];
+    ui.sel = cur ? cur.key : null;
+  }
+  el.querySelector('.td-list').innerHTML = storyHtml();
+  el.querySelector('.td-detail').innerHTML = detailHtml(world);
+  animateChanges(el);
 }
 
 export function renderTodo(panel, world, view) {

@@ -14,7 +14,7 @@ export const STEPS = [
   { id: 'uitstappen', title: 'Uitstappen', body: 'Stap weer uit met {E}.', need: { exit: 1 } },
   { id: 'menu', title: 'Het menu', body: 'Open het menu met {ESC}. Onder Te doen staat alles wat nog openstaat.', need: { menu: 1 } },
 ];
-export const DONE = { title: 'Oefenronde klaar', body: 'Dat was het. Onder {ESC} › Besturing › Hulp staat alles nog een keer, en je kunt de oefenronde daar opnieuw doen.' };
+export const DONE = { title: 'Oefenronde klaar', body: 'Dat was het. Onder {ESC} › Instellingen › Besturing › Hulp staat alles nog een keer, en je kunt de oefenronde daar opnieuw doen.' };
 
 export function startPractice() {
   return { i: 0, prog: {}, done: false, was: { veh: false, map: false, menu: false } };

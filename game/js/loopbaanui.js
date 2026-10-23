@@ -6,6 +6,7 @@ import * as L from './loopbaan.js';
 import { getProfiel } from './loopbaanlive.js';
 import { SIDE_JOBS } from './sidejobs.js';
 import { fillBars } from './motion.js';
+import { boekVoortgang } from './visboeklive.js';
 import { gebiedenHtml, kiesGebied, reisNaar, GEBIEDEN_CSS } from './gebiedenui.js';
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -37,6 +38,16 @@ const ICONEN = {
 const loopbaanIcoon = (naam, cls = 'pa-ico') => `<span class="${cls}"><svg viewBox="0 0 24 24" aria-hidden="true">${ICONEN[naam] || ICONEN.hamer}</svg></span>`;
 
 const CSS = `
+.lb-bez { flex: none; padding: 20px 64px 0; }
+.lb-bez h3 { margin: 0 0 10px; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-weight: normal; font-size: 20px; letter-spacing: 0.18em; text-transform: uppercase; opacity: 0.68; }
+.lb-bez-rij { display: grid; grid-template-columns: repeat(2, minmax(0, 420px)); gap: 16px; }
+.lb-tegel { display: flex; align-items: center; gap: 18px; min-height: 84px; padding: 14px 20px; border-radius: 12px; text-align: left; background: rgba(63, 201, 122, 0.12); box-shadow: inset 0 0 0 1.5px rgba(63, 201, 122, 0.55); color: inherit; font: inherit; cursor: pointer; transition: background 0.2s; }
+.lb-tegel:hover, .lb-tegel:focus-visible { background: rgba(63, 201, 122, 0.22); }
+.lb-tegel svg { width: 44px; height: 44px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.lb-tegel .nm { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.lb-tegel b { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-weight: normal; font-size: 30px; letter-spacing: 0.06em; line-height: 1.05; }
+.lb-tegel .mut { font-size: 18px; }
+.lb-tegel .lb-pijl { margin-left: auto; opacity: 0.7; font-size: 28px; }
 .lb-groep { margin: 14px 0 4px; font: 14px "Arial Narrow", Arial, sans-serif; letter-spacing: 0.14em; text-transform: uppercase; opacity: 0.55; }
 .lb-groep:first-child { margin-top: 0; }
 .lb-li .nm { min-width: 0; }
@@ -120,6 +131,18 @@ function detailHtml(profiel, id) {
 const tabs = () => '<nav class="m-tablist" role="tablist" aria-label="Weergave">' + [['vakken', 'Vakken'], ['gebieden', 'Veroverd']].map(([id, t]) =>
   `<button type="button" role="tab" class="m-tab" data-lbview="${id}" aria-selected="${weergave === id}">${t}</button>`).join('') + '</nav>';
 
+// Bezigheden (#430): vissen en de boerderij zijn onderdelen van de loopbaan; groot en bovenaan, zodat je ze vindt.
+const BEZIGHEDEN = [
+  ['visboek', 'Vissen', 'vis', 'Je visboek: alle vis van de provincie'],
+  ['boerderij', 'Boerderij', 'trekker', 'Je eigen akker, gewassen en machines'],
+];
+function bezighedenHtml() {
+  let vis = BEZIGHEDEN[0][3];
+  try { const v = boekVoortgang(); if (v && v.totaal) vis = `Visboek: ${v.gevangen} van ${v.totaal} soorten`; } catch (e) { /* geen visboek: de vaste tekst */ }
+  return '<section class="lb-bez" aria-labelledby="lb-bez-t"><h3 id="lb-bez-t">Bezigheden</h3><div class="lb-bez-rij">' + BEZIGHEDEN.map(([id, naam, ic, tekst]) =>
+    `<button type="button" class="lb-tegel" data-goto="${id}"><svg viewBox="0 0 24 24" aria-hidden="true">${ICONEN[ic]}</svg><span class="nm"><b>${naam}</b><span class="mut">${esc(id === 'visboek' ? vis : tekst)}</span></span><span class="lb-pijl" aria-hidden="true">\u203A</span></button>`).join('') + '</div></section>';
+}
+
 let sluitMenu = null; // pausemenu.js: sluit het menu na een snelreis
 export function renderLoopbaanPanel(el, sluit = null) {
   if (!el) return;
@@ -127,7 +150,7 @@ export function renderLoopbaanPanel(el, sluit = null) {
   zetCss();
   if (weergave === 'gebieden') {
     const g = gebiedenHtml();
-    el.innerHTML = `<div class="m-tabs">${tabs()}<span class="m-grow"></span><span class="pa-total">${g.totaal}</span></div>` +
+    el.innerHTML = bezighedenHtml() + `<div class="m-tabs">${tabs()}<span class="m-grow"></span><span class="pa-total">${g.totaal}</span></div>` +
       `<div class="m-main"><div class="m-list pa-list lb-list">${g.lijst}</div><aside class="m-pane pa-pane lb-pane gb-pane" aria-live="polite">${g.pane}</aside></div>`;
     fillBars(el, bars);
   } else {
@@ -135,7 +158,7 @@ export function renderLoopbaanPanel(el, sluit = null) {
     if (!L.vakInfo(gekozen)) gekozen = L.VAK_IDS[0];
     const sam = L.samenvatting(profiel);
     const lijst = L.GROEPEN.map((g) => `<div class="lb-groep">${esc(g.naam)}</div>` + L.VAKKEN.filter((v) => v.groep === g.id).map((v) => rij(profiel, v)).join('')).join('');
-    el.innerHTML = `<div class="m-tabs">${tabs()}<span class="m-grow"></span><span class="pa-total"><span class="m-num">${sam.som - L.VAKKEN.length}</span><span class="mut">van ${sam.max - L.VAKKEN.length} niveaus omhoog${sam.hoogste ? ` · hoogste titel: ${esc(sam.hoogste.titel)}` : ''}</span></span></div>` +
+    el.innerHTML = bezighedenHtml() + `<div class="m-tabs">${tabs()}<span class="m-grow"></span><span class="pa-total"><span class="m-num">${sam.som - L.VAKKEN.length}</span><span class="mut">van ${sam.max - L.VAKKEN.length} niveaus omhoog${sam.hoogste ? ` · hoogste titel: ${esc(sam.hoogste.titel)}` : ''}</span></span></div>` +
       `<div class="m-main"><div class="m-list pa-list lb-list">${lijst}</div><aside class="m-pane pa-pane lb-pane" aria-live="polite">${detailHtml(profiel, gekozen)}</aside></div>`;
     fillBars(el, bars);
   }

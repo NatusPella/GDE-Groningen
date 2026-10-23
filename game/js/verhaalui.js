@@ -216,7 +216,7 @@ export function renderVerhaal(panel, view) {
   const el = panel.querySelector(`[data-of="verhaal"][data-sub="${view}"]`);
   if (!el) return;
   disposeVerhaalViewer();
-  for (const sub of panel.querySelectorAll('[data-of="verhaal"][data-sub]')) if (sub !== el) sub.innerHTML = '';
+  for (const sub of panel.querySelectorAll('[data-of="verhaal"][data-sub]')) if (sub !== el && !sub.hasAttribute('data-keep')) sub.innerHTML = '';
   if (view === 'aanwijzingen') {
     el.innerHTML = cluesHtml();
     fillBars(el, bars);
