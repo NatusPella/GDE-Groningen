@@ -4,7 +4,7 @@
 // are machinistrules.js, the physics railway.js (state 'player'), the boarding
 // and keys traindrive.js. Pays per halte plus a medal bonus (payFor).
 import { createBoard, key } from './minigamekit.js';
-import { driveRange, routePoint } from './railway.js';
+import { driveRange, routePoint, hijackTrain } from './railway.js';
 import { loopbaanVerdien } from './loopbaanlive.js';
 import {
   startService, stepService, abandonService, boardView, doorsOpen, MEDAL_NAMES, STOPPED_V, payFor, wantedNaDienst,
@@ -17,7 +17,7 @@ let svc = null;
 let board = null;
 
 const HELP_IDLE = `${key('G')} dienst rijden: halte voor halte, op tijd en op de streep`;
-const HELP_RUN = `${key('W')} gas &middot; ${key('S')} rem &middot; ${key('Spatie')} noodrem &middot; ${key('H')} toeter &middot; ${key('Backspace')} stoppen`;
+const HELP_RUN = `Balk: remweg tegenover de afstand tot de halte (rood: nu remmen) &middot; ${key('W')} gas &middot; ${key('S')} rem &middot; ${key('Spatie')} noodrem &middot; ${key('H')} toeter &middot; ${key('Backspace')} stoppen`;
 
 
 // The service as the map layer reads it (missionmaplive.js, #180): the halten
@@ -47,13 +47,23 @@ export function endService(world) {
 
 function begin(world, t) {
   const [lo, hi] = driveRange(t.route);
-  svc = startService({
-    stops: t.route.stops, c: t.c, dir: t.cab, vmax: t.cfg.vmax * LINE_SPEED_K, time: world.time,
+  const plan = (cab) => startService({
+    stops: t.route.stops, c: t.c, dir: cab, vmax: t.cfg.vmax * LINE_SPEED_K, time: world.time,
     range: [lo + t.halfLen, hi - t.halfLen],
   });
+  svc = plan(t.cab);
+  // geen halte meer voor je (je stapte in bij de kop van de lijn): als de trein stilstaat draai je de cabine om (#436)
+  if (svc.finished && t.v < 1) {
+    const andere = plan(-t.cab);
+    if (!andere.finished) {
+      hijackTrain(t, -t.cab);
+      svc = andere;
+      world.addMessage('Einde van de lijn aan deze kant: je rijdt de andere kant op', 3);
+    }
+  }
   if (svc.finished) {
     svc = null;
-    world.addMessage('Einde van de lijn: stap aan de andere kant van de trein in', 3.5);
+    world.addMessage('Geen halte meer voor je: stap in bij de andere kant van de lijn', 3.5);
     return;
   }
   // een gekaapte trein: als machinist ben je niet langer gezocht voor die kaping (#424)
