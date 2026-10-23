@@ -63,7 +63,7 @@ const readEvents = () => fs.readFileSync(events, 'utf8').split(/\r?\n/).filter(B
   // vier groepen in de vier windrichtingen, 8 m van de gast: de vier camerastanden van 'kijk' zien elk een groep
   const mk = (id, groep, nr, extra, model) => { const a = groep * Math.PI / 2, r = 8 + (nr >> 1) * 4, t = ((nr % 2) ? 1 : -1) * (2.5 + (nr >> 1) * 2); return { id, x: S0.x + Math.cos(a) * r - Math.sin(a) * t, y: S0.y + 2 + Math.sin(a) * r + Math.cos(a) * t, angle: a + Math.PI / 2 + 0.4, speed: 0, steer: 0, z: 0, parkeer: true, model: { maxSpeed: 30, ...model }, ...extra }; };
   w.vehicles = [
-    mk(301, 0, 0, { speed: 0, indicator: 'left', dentLog: [[2.0, 0.2, 0.9], [1.8, -0.5, 0.7], [-0.5, 0.9, 0.6]], flat: true }, { name: 'sedan', len: 4.3, wid: 1.8, color: '#7a1f1f' }),
+    mk(301, 0, 0, { speed: 0, indicator: 'left', dentLog: [[2.0, 0.2, 0.9], [1.8, -0.5, 0.7], [-0.5, 0.9, 0.6]], flat: true, doors: { open: { vl: 1, ar: 1 }, want: { vl: 1, ar: 1 }, loose: {}, hold: {}, dmg: {} } }, { name: 'sedan', len: 4.3, wid: 1.8, color: '#7a1f1f' }),
     mk(302, 0, 1, { isPolice: true, sirenOn: true }, { name: 'police', len: 4.3, wid: 1.8, color: '#1c1c1c' }),
     mk(309, 0, 3, { isHeli: true, z: 6, rotor: 1 }, { name: 'heli', len: 8.8, wid: 2.1, color: '#e8e6e0' }),
     mk(304, 1, 0, { isBike: true }, { name: 'bike', len: 1.75, wid: 0.5, color: '#2b2b2b', rider: '#7a2e2e' }),
@@ -81,6 +81,8 @@ const readEvents = () => fs.readFileSync(events, 'utf8').split(/\r?\n/).filter(B
   const rijd = { id: 320, x: S0.x - 8, y: S0.y + 8, angle: 0, speed: 6, steer: 0.8, z: 0, parkeer: false, model: { name: 'hatch', len: 3.8, wid: 1.7, color: '#4a8fd0' } };
   w.vehicles.push(rijd);
   w.wanted = 0;
+  host.at(12, (h) => { h.world.vehicles[1].horn = true; h.log.push('toeter aan'); }); host.at(13, (h) => { h.world.vehicles[1].horn = false; });
+  host.at(14, (h) => { h.world.vehicles[1].horn = true; }); host.at(15, (h) => { h.world.vehicles[1].horn = false; });
   host.at(20, (h) => { // nieuwe klap op de rode sedan (gedeukt tijdens het spel) en een andere kleur lak: de gast past het aan
     h.world.vehicles[0].dentLog.push([-2.0, 0.1, 0.8]);
     h.log.push('nieuwe deuk');
@@ -116,6 +118,9 @@ check((last[320] || [])[2] < -0.1 || (last[320] || [])[2] > 0.1, 'sturen: de voo
 check(dbg.some((d) => d[301] && d[301][3] > 0) || dbg.some((d) => d[307] && d[307][3] > 0), 'richtingaanwijzers: nooit aan gezien');
 check(dbg.some((d) => d[302] && d[302][4] > 1), 'zwaailicht: de politieauto flitst niet');
 check((last[309] || [])[5] > 0, 'heli: de rotor draait niet');
+check(S.some((s) => s.deuren >= 1), 'deuren: de open deuren van de sedan komen niet aan: ' + JSON.stringify(S.map((s) => s.deuren).filter((x) => x != null).slice(-3)));
+check(S.some((s) => s.geluid && s.geluid[0] >= 2), 'toeter: de gast hoort de toeter niet (twee keer aan): ' + JSON.stringify(S.map((s) => s.geluid).filter(Boolean).slice(-2)));
+check(S.some((s) => s.geluid && s.geluid[1] >= 1), 'sirene: de gast hoort de sirene van de politieauto niet: ' + JSON.stringify(S.map((s) => s.geluid).filter(Boolean).slice(-2)));
 for (const e of E.filter((x) => x.type === 'console' && x.level === 'error')) problems.push('consolefout: ' + String(e.msg).slice(0, 160));
 for (const e of E.filter((x) => x.type === 'jserror')) problems.push(`jserror: ${e.msg} ${e.file}:${e.line}`);
 notes.push('laatste staat per voertuig [soort, wielrot, voorwielhoek, richtingaanwijzers aan, zwaailicht, rotor, deuken]: ' + JSON.stringify(last), 'draaiboek: ' + host.log.join('; '));
