@@ -33,7 +33,7 @@ export function closePadTest() {
 }
 
 // de indelingen waar de speler uit kiest als de letters op zijn knoppen anders zijn dan het spel denkt
-const LAYOUT_CHOICES = [['auto', 'Automatisch'], ['xbox', 'Onderste knop A'], ['switch', 'Onderste knop B'], ['ps', 'Vormknoppen'], ['deck', 'Handheld']];
+const LAYOUT_CHOICES = [['auto', 'Automatisch'], ['xbox', 'Onderste knop bevestigt'], ['switch', 'Rechterknop bevestigt'], ['ps', 'Vormknoppen'], ['deck', 'Handheld']];
 
 function onKey(e) {
   if (e.key === 'Escape' || e.key === 'Backspace') { e.preventDefault(); e.stopPropagation(); closePadTest(); return; }

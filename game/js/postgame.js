@@ -450,7 +450,7 @@ const CSS = `
 #pg-panel .pg-order span.ok { background: rgba(93,255,122,0.2); border-color: rgba(93,255,122,0.6); }
 #pg-panel .pg-order span.bad { background: rgba(255,90,60,0.25); border-color: rgba(255,90,60,0.7); }
 #pg-panel .pg-menu { display: grid; grid-template-columns: 1fr 1fr; gap: 3px 10px; margin-top: 8px; font-size: 13px; color: rgba(240,237,228,0.85); }
-#pg-panel .pg-menu kbd { display: inline-flex; align-items: center; justify-content: center; min-width: 20px; height: 20px; padding: 0 5px; margin-right: 5px; box-sizing: border-box; border-radius: 4px; background: linear-gradient(180deg, #4a4f47, #2a2e28); border: 1px solid rgba(255,255,255,0.35); border-bottom: 2px solid rgba(0,0,0,0.6); color: #3fc97a; font: inherit; font-size: 12px; }
+#pg-panel .pg-menu kbd { display: inline-flex; align-items: center; justify-content: center; min-width: 20px; height: 20px; padding: 0 5px; margin-right: 5px; box-sizing: border-box; background: #fbfaf5; border: 0; border-radius: 5px; color: #0c140e; font-weight: bold; text-shadow: none; box-shadow: 0 2px 0 #a9a69b, 0 0 0 1px rgba(0, 0, 0, 0.18); font: bold 12px system-ui, sans-serif; }
 #pg-panel .pg-slot > div:not(.pg-menu) kbd { display: inline-block; min-width: 12px; margin: 0 3px; padding: 1px 6px; border: 1px solid rgba(240,237,228,0.6); border-bottom-width: 3px; border-radius: 5px; background: rgba(255,255,255,0.08); color: #f3efe4; font: bold 12px/1.2 system-ui, sans-serif; text-align: center; }
 #pg-panel .pg-patience { height: 5px; margin-top: 6px; border-radius: 3px; background: linear-gradient(90deg, #5dff7a, #f2c230); }
 #pg-sub { position: fixed; left: 50%; bottom: 22vh; transform: translateX(-50%); width: min(86vw, 760px); text-align: center; z-index: 40; pointer-events: none;

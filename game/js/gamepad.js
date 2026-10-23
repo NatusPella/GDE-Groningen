@@ -7,7 +7,7 @@
 // steering, the camera, the mouse buttons). The last input used decides
 // which glyphs the hints show: `pad-active` on <html> plus `data-pad` with
 // the controller family; any real key or mouse use switches back.
-import { PAD_BUTTONS, PAD_MAPS, PAD_COOP, GAME_PAD_CTX, buttonSlots, padFamily } from './controls.js';
+import { PAD_BUTTONS, PAD_MAPS, PAD_COOP, GAME_PAD_CTX, buttonSlots, nintendoSwap, padFamily } from './controls.js';
 import { getSettings, onSettingsChange } from './settings.js';
 import { sendKey } from './input.js';
 import { playerBusy } from './busy.js';
@@ -85,6 +85,7 @@ function setActive(on, id) {
   active = on;
   if (on) noteDevice('pad');
   family = fam;
+  slotMap = buttonSlots(padBinds, family);
   if (input) input.padLook = on;
   const html = document.documentElement;
   html.classList.toggle('pad-active', on);
@@ -364,7 +365,7 @@ function poll(now) {
         const cb = capture;
         capture = null;
         captureBlock = new Set(pad.buttons.map((x, j) => (x && (x.pressed || x.value > TRIGGER_OFF) ? j : -1)).filter((j) => j >= 0));
-        cb(PAD_BUTTONS[i]);
+        cb(nintendoSwap(PAD_BUTTONS[i], family)); // opgeslagen als vóór de Nintendo-wissel
         break;
       }
     }
@@ -406,9 +407,9 @@ export function initGamepad(inp, w, h = {}) {
   world = w;
   hooks = h;
   onSettingsChange((st, key) => {
-    if (!key || key === 'padBinds') { padBinds = { ...st.padBinds }; slotMap = buttonSlots(padBinds); }
-    if (key === 'hintSource') { family = layoutFor(currentPad() && currentPad().id); document.documentElement.dataset.pad = family; emit(); }
-    if (key === 'padLayout' && active) { family = layoutFor(currentPad() && currentPad().id); document.documentElement.dataset.pad = family; emit(); }
+    if (!key || key === 'padBinds') { padBinds = { ...st.padBinds }; slotMap = buttonSlots(padBinds, family); }
+    if (key === 'hintSource') { family = layoutFor(currentPad() && currentPad().id); slotMap = buttonSlots(padBinds, family); document.documentElement.dataset.pad = family; emit(); }
+    if (key === 'padLayout' && active) { family = layoutFor(currentPad() && currentPad().id); slotMap = buttonSlots(padBinds, family); document.documentElement.dataset.pad = family; emit(); }
   });
   // real keys, clicks, mouse sweeps and touches are noticed by inputdevice.js; they hand the hints back
   onDeviceChange((d) => { if (d !== 'pad' && active) setActive(false); });
