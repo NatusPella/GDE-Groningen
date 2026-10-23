@@ -118,7 +118,7 @@ const CONTROL_GROUPS = [
     [['ARROWS'], 'In het menu: kiezen, Enter: ok'],
     [['Q', 'E'], 'In het menu: vorige of volgende sectie'],
     [['[', ']'], 'In het menu: vorig of volgend tabblad'],
-    [['U'], 'Geluid aan/uit'],
+    [['U'], 'Geluid uit of weer aan; staat het uit, dan zie je linksboven een luidspreker met streep en "U"'],
     [['O'], 'Verhaalstap overslaan (als dat in beeld staat)'],
     ...(DESKTOP ? [[['F11'], 'Volledig scherm (ook Alt+Enter)']] : []),
   ]],
@@ -521,6 +521,7 @@ export function initPauseMenu(w) {
           <div class="pm-q-head">${logoHtml({ sub: false, cls: 'pm-logo', decorative: true })}<b id="pm-title" class="pm-sr">Pauze</b><span class="mut pm-q-info" data-info="when"></span></div>
           ${RAIL_GROUPS.map((g) => g.map(railBtn).join('')).join('<span class="pm-rail-sp"></span>')}
           <span class="pm-rail-gap"></span>
+          ${DESKTOP ? `<button type="button" class="ra pm-exit" data-action="exit" title="Opslaan en het spel sluiten">${icon('exit', 'pm-ic ra-ic')}<span class="ra-t">Afsluiten</span></button>` : ''}
           <button type="button" class="ra pm-back" data-action="resume">Terug</button>
           <p class="pm-ver">${versionLabel(VERSION)}</p>
         </div>
