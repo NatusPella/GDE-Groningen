@@ -165,7 +165,7 @@ t('host verwijdert één speler: bericht, dan verbreken; de rest speelt door', (
   assert.equal(N.removeGuest(s.hw, 2), true); assert.equal(N.removeGuest(s.hw, 9), false);
   s.step(2);
   assert.equal(b.coopNet, null); assert.equal(b.player.x, 5); assert.equal(b.coopRole, null);
-  assert.match(b.messages.join(' '), /uit het spel van Tammo gehaald/);
+  assert.match(b.messages.join(' '), /Tammo heeft je uit het spel gezet/);
   assert.equal(a.coopNet.session.status, 'ok'); assert.deepEqual(s.hw.coopRoster.map((r) => r.slot), [0, 1]);
 });
 t('pings: komen bij iedereen aan met de afzender; cooldown; ongeldige of onbekende worden genegeerd', () => {

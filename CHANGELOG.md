@@ -29,6 +29,17 @@ nieuwe functies, `y` voor alleen bugfixes.
 - **Voertuigen (#436):** een sportmotor heeft een groter en breder achterwiel dan voorwiel; de wielen van de bakfiets draaien op hun eigen maat en niet meer door elkaar. Niet in beeld bekeken.
 - **Doodgaan (#436):** een zware klap geeft een korte rode flits, een lichte schok van het beeld en zwaar ademen; bij gezondheid 0 blijft het scherm rood tot de herstart. Zonder getoond geweld: alleen een rode rand en geluid. `lowhealth_test`.
 - **Water (#436):** de zon in het water geeft een kleinere, witte weerkaatsing in plaats van een brede gele gloed. Niet in beeld bekeken.
+- Samen spelen (#434): bij elke speler in Spel > Spelers staat de knop "Eruit zetten" (met een vraag erachter) voor wie het spel opende. De weggestuurde speler keert terug naar zijn eigen spel met een duidelijke melding en Tessa loopt weer zelf mee.
+- Samen spelen (#434): de vier knoppen "Tot 4, 8, 12, 16 spelers" zijn één instelling geworden en "Spel starten" verdwijnt zodra het spel loopt.
+- Menu (#435): Afsluiten staat ook in het pauzemenu, de teller bij Spel heeft een poppetje, de voorinstellingen bij Beeld zijn weer knoppen en Cheats staan ook onder Spel > Spelen.
+- Menu (#435): meldingen over waarom iets niet mag staan direct in beeld terwijl het menu of de kaart open is, niet pas na Escape.
+- Menu (#435): het bolletje bij Personages en Aanwijzingen verdwijnt per personage, of zodra je het tabblad verlaat, en niet meer bij het openen.
+- Loopbanen (#435): Veroverd is een tabblad onder Verhaal, Hengelen heet Vissen en heeft een knop naar het visboek (Landbouw naar de boerderij), en bij elke loopbaan staat een knop naar de volgende klus.
+- Verhaal en Activiteiten (#435): Opdrachten begint met de volgende stap en een knop naar het doel; Activiteiten bevat geen verhaalmissies meer.
+- Kaart (#435): legenda en lagen staan de eerste keer open, ook een gemeente zonder voortgang heeft zijn naam en is aan te wijzen en de provinciegrens staat op elke zoom.
+- Garage (#435): het tabblad Auto's staat vooraan en Alles achteraan; bij een voertuig dat te koop is zet "Naar de winkel" een route uit.
+- Fotomodus (#435): kantelen kan nu met C en V, want E is instappen. Besturing: zoeken werkt ook bij Toetsenbord en Controller en de dempknop (U) staat met uitleg in beeld.
+- Uitleg (#435): de besturing van een nieuw voertuig komt sneller in beeld en de trekker heeft uitleg.
 
 ## [0.44.0] - 2026-10-23
 

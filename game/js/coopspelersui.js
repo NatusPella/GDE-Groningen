@@ -4,17 +4,19 @@
 // Niet door een mens in beeld bekeken.
 import { pingGebaar } from './coopnet.js';
 import { PING_TOETSEN } from './coopping.js';
-import { VORM_TEKEN } from './coopspelers.js';
+import { VORM_TEKEN, kanEruitZetten, eruitKnopTekst, eruitGezetTekst } from './coopspelers.js';
+import { removeGuest } from './coopnet.js';
 import { setUserWaypoint } from './routing.js';
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const STIP = { ok: '#3fc97a', lag: '#f2c94c', lost: '#ff5a4f' };
 
-function rijHtml(r, acties) {
+function rijHtml(r, acties, rol = null, bevestig = null) {
+  const eruit = acties && kanEruitZetten(rol, r) ? `<button type="button" class="cs-eruit" data-eruit="${r.slot}">${eruitKnopTekst(bevestig === r.slot)}</button>` : '';
   const naar = acties && !r.jij && r.x != null ? `<button type="button" class="cs-naar" data-naar="${r.slot}">Ga erheen</button>` : '';
   return `<li class="cs-rij" data-slot="${r.slot}"><span class="cs-vorm" style="color:${esc(r.kleur)}" aria-hidden="true">${VORM_TEKEN[r.vorm] || '●'}</span>` +
     `<span class="cs-naam">${esc(r.naam)}${r.jij ? ' <small>(jij)</small>' : ''}</span><span class="cs-doet">${esc(r.doet)}${r.afstandTekst ? ' · ' + esc(r.afstandTekst) : ''}</span>` +
-    `<span class="cs-net" title="Verbinding"><i style="background:${STIP[r.verbinding] || STIP.ok}" aria-hidden="true"></i>${esc(r.verbindingTekst)}${r.ms != null ? ` <small>${r.ms} ms</small>` : ''}</span>${naar}</li>`;
+    `<span class="cs-net" title="Verbinding"><i style="background:${STIP[r.verbinding] || STIP.ok}" aria-hidden="true"></i>${esc(r.verbindingTekst)}${r.ms != null ? ` <small>${r.ms} ms</small>` : ''}</span>${naar}${eruit}</li>`;
 }
 const roepHint = () => PING_TOETSEN.map((k) => `<b>${k.toets}</b> ${esc(k.tekst)}`).join(' · ');
 
@@ -25,6 +27,7 @@ const CSS = `
 .cs-naam { font-weight: bold; } .cs-naam small, .cs-net small { font-weight: normal; opacity: 0.7; }
 .cs-doet { opacity: 0.85; }
 .cs-net { white-space: nowrap; opacity: 0.9; } .cs-net i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; }
+.cs-eruit { grid-column: 2 / -1; justify-self: start; margin: 0 0 4px; padding: 3px 10px; border: 0; border-radius: 4px; background: rgba(255,90,79,0.28); color: inherit; font: inherit; cursor: pointer; } .cs-naar + .cs-eruit { grid-column: auto; }
 .cs-naar { grid-column: 2 / -1; justify-self: start; margin: 0 0 4px; padding: 3px 10px; border: 0; border-radius: 4px; background: rgba(240,237,228,0.14); color: inherit; font: inherit; cursor: pointer; }
 .cs-naar:hover, .cs-naar:focus-visible { background: rgba(63,201,122,0.35); outline: none; }
 #coop-spelers { position: fixed; left: 50%; top: 104px; transform: translateX(-50%); z-index: 700; width: min(560px, 62vw); max-height: calc(100vh - 124px); overflow: hidden; padding: 12px 16px 10px; background: rgba(12,20,14,0.88); color: #f0ede4; border-radius: 8px; box-shadow: 0 0 0 1px rgba(240,237,228,0.14); pointer-events: none; }
@@ -68,7 +71,7 @@ export function updateSpelersOverlay(world) {
 export const spelersOverlayZichtbaar = () => !!overlay && overlay.style.display !== 'none';
 
 // ---- het onderdeel Spelers in het pauzemenu
-let timer = null;
+let timer = null, bevestig = null;
 export function renderSpelersPanel(root, world, sluit = () => {}) {
   if (!root) return;
   zorgVoorStijl();
@@ -78,11 +81,12 @@ export function renderSpelersPanel(root, world, sluit = () => {}) {
     const rijen = (world.coopNet && world.coopSpelers) || [];
     if (!rijen.length) { root.innerHTML = '<p>Je speelt niet samen. Open Spel › Samen spelen om iemand uit te nodigen of aan te sluiten.</p>'; return; }
     const zittend = root.contains(document.activeElement) && document.activeElement.matches('button');
-    const key = JSON.stringify(rijen.map((r) => [r.slot, r.doet, r.verbinding, r.ms, r.afstandTekst]));
+    const rol = world.coopNet && world.coopNet.role;
+    const key = JSON.stringify([bevestig, ...rijen.map((r) => [r.slot, r.doet, r.verbinding, r.ms, r.afstandTekst])]);
     if (root.dataset.key === key && root.dataset.klaar) return;
     if (zittend && root.dataset.klaar) return; // de focus op een knop blijft staan
     root.dataset.key = key; root.dataset.klaar = '1';
-    root.innerHTML = `<ul class="cs-lijst">${rijen.map((r) => rijHtml(r, true)).join('')}</ul>` +
+    root.innerHTML = `<ul class="cs-lijst">${rijen.map((r) => rijHtml(r, true, rol, bevestig)).join('')}</ul>` +
       `<p>Roepen kan ook in het spel: ${roepHint()}. Iemand uitnodigen: kies Samen spelen onder Spel.</p>` +
       `<div class="cs-roep">${PING_TOETSEN.map((k) => `<button type="button" data-ping="${k.soort}">${esc(k.tekst)} <small>(${k.toets})</small></button>`).join('')}</div>`;
   };
@@ -91,6 +95,14 @@ export function renderSpelersPanel(root, world, sluit = () => {}) {
     root.addEventListener('click', (e) => {
       const p = e.target.closest('[data-ping]');
       if (p && world.player) { if (pingGebaar(world, p.getAttribute('data-ping'))) sluit(); return; }
+      const k = e.target.closest('[data-eruit]');
+      if (k) { // twee keer klikken: eerst vragen, dan eruit zetten (#434)
+        const slot = +k.getAttribute('data-eruit'), r = (world.coopSpelers || []).find((x) => x.slot === slot);
+        if (bevestig !== slot) { bevestig = slot; root.dataset.klaar = ''; teken(); return; }
+        bevestig = null; root.dataset.klaar = '';
+        if (r && removeGuest(world, slot) && world.addMessage) world.addMessage(eruitGezetTekst(r), 4);
+        teken(); return;
+      }
       const n = e.target.closest('[data-naar]');
       if (n) {
         const r = (world.coopSpelers || []).find((x) => x.slot === +n.getAttribute('data-naar'));

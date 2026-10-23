@@ -1,6 +1,6 @@
 // Samen spelen (#377): de spelerslijst (game/js/coopspelers.js) voor Tab en het pauzemenu.
 import assert from 'node:assert/strict';
-import { spelersRijen, rijTekst, afstandTekst, VORM_TEKEN } from '../game/js/coopspelers.js';
+import { spelersRijen, rijTekst, afstandTekst, VORM_TEKEN, kanEruitZetten, eruitKnopTekst, eruitGezetTekst, wegMelding } from '../game/js/coopspelers.js';
 
 let n = 0;
 const t = (name, f) => { f(); n++; };
@@ -44,6 +44,21 @@ t('een gast kent van de lijst alleen plek en personage: naam, kleur en vorm kome
   const r = spelersRijen({ mijnSlot: 1, roster: [{ slot: 0, char: 'tammo', verbinding: 'ok' }, { slot: 1, char: 'anita', verbinding: 'ok' }, { slot: 2, char: 'rik', verbinding: 'ok' }] });
   assert.deepEqual(r.map((x) => x.naam), ['Tessa', 'Tammo', 'Rik']);
   assert.ok(r.every((x) => /^#/.test(x.kleur) && VORM_TEKEN[x.vorm]));
+});
+
+// Eruit zetten (#434): een knop per speler voor wie het spel opende; nooit bij jezelf, nooit voor een gast
+t('eruit zetten', () => {
+  const r = spelersRijen({ mijnSlot: 0, roster });
+  const jij = r.find((x) => x.jij), anderen = r.filter((x) => !x.jij);
+  assert.equal(kanEruitZetten('host', jij), false);
+  assert.ok(anderen.length === 3 && anderen.every((x) => kanEruitZetten('host', x)));
+  assert.ok(anderen.every((x) => !kanEruitZetten('gast', x)));
+  assert.equal(kanEruitZetten('host', null), false);
+  assert.equal(eruitKnopTekst(false), 'Eruit zetten'); assert.equal(eruitKnopTekst(true), 'Zeker weten?');
+  assert.match(eruitGezetTekst(anderen.find((x) => x.slot === 1)), /Tessa loopt weer zelf mee/);
+  assert.doesNotMatch(eruitGezetTekst(anderen.find((x) => x.slot === 2)), /Tessa/);
+  assert.match(wegMelding('verwijderd', 'Tammo'), /Tammo heeft je uit het spel gezet. Je speelt weer in je eigen spel/);
+  assert.match(wegMelding('spel gestopt', 'Tammo'), /het spel gestopt/);
 });
 
 console.log(`coopspelers_test: ${n}/${n} ok`);

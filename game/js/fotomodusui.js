@@ -38,19 +38,19 @@ function onKey(e) {
   if (e.type === 'keyup') { keysDown.delete(k); return; }
   keysDown.add(k);
   if (k === 'escape' || k === 'f8') { stopPhotoMode(photo.world); e.stopImmediatePropagation(); e.preventDefault(); return; }
-  if (e.repeat) { if (',.[]qezx'.includes(k) && k.length === 1) stepSetting(k); return; }
+  if (e.repeat) { if (',.[]cvzx'.includes(k) && k.length === 1) stepSetting(k); return; }
   if (k === 'enter') shoot = true;
   else if (k === 'f') { F.cycleFilter(photo.p, e.shiftKey ? -1 : 1); say(F.FILTERS.find((x) => x.id === photo.p.filter).naam); }
   else if (k === 'g') photo.p.grid = !photo.p.grid;
   else if (k === 't') { F.cycleWeather(photo.p, 1); applyWeather(); say(`Weer: ${F.weatherLabel(photo.p)}`); }
   else stepSetting(k);
-  if (['m', 'tab', 'p', 'v', 'r', 'o', 'n', 'u'].includes(k) || k === 'f' || k === 'g' || k === 't') e.stopImmediatePropagation();
+  if (['m', 'tab', 'p', 'v', 'c', 'e', 'q', 'r', 'o', 'n', 'u'].includes(k) || k === 'f' || k === 'g' || k === 't') e.stopImmediatePropagation();
 }
 function stepSetting(k) {
   const p = photo.p;
   if (k === ',') p.hour -= 0.25; else if (k === '.') p.hour += 0.25;
   else if (k === '[') p.fov += 3; else if (k === ']') p.fov -= 3;
-  else if (k === 'q') p.cam.roll -= 0.03; else if (k === 'e') p.cam.roll += 0.03;
+  else if (k === 'c') p.cam.roll -= 0.03; else if (k === 'v') p.cam.roll += 0.03; // kantelen op C en V: E is in het spel instappen (#435)
   else if (k === 'z') p.dof -= 0.1; else if (k === 'x') p.dof += 0.1;
   else return;
   F.clampPhoto(p);
@@ -148,7 +148,7 @@ function renderBar() {
   const bar = overlay.querySelector('.foto-bar');
   bar.innerHTML =
     `<span class="foto-info">${esc(F.hourLabel(p.hour))} · ${esc(F.weatherLabel(p))} · ${esc(F.FILTERS.find((f) => f.id === p.filter).naam)} · beeldhoek ${Math.round(p.fov)}°${p.cam.roll ? ` · kanteling ${Math.round(p.cam.roll * 57.3)}°` : ''}${p.dof > 0 ? ` · scherptediepte ${Math.round(p.dof * 10)}` : ''}</span>` +
-    KEYBTN('Enter', 'Foto') + KEYBTN('F', 'Filter') + KEYBTN('T', 'Weer') + KEYBTN(', .', 'Tijd') + KEYBTN('[ ]', 'Inzoomen') + KEYBTN('Q E', 'Kantelen') + KEYBTN('Z X', 'Scherptediepte') + KEYBTN('G', 'Raster') +
+    KEYBTN('Enter', 'Foto') + KEYBTN('F', 'Filter') + KEYBTN('T', 'Weer') + KEYBTN(', .', 'Tijd') + KEYBTN('[ ]', 'Inzoomen') + KEYBTN('C V', 'Kantelen') + KEYBTN('Z X', 'Scherptediepte') + KEYBTN('G', 'Raster') +
     '<button type="button" class="foto-btn" data-foto-shoot>Foto maken</button><button type="button" class="foto-btn" data-foto-stop>Terug</button>';
   overlay.querySelector('.foto-grid').hidden = !p.grid;
   const dof = overlay.querySelector('.foto-dof');

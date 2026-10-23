@@ -206,8 +206,8 @@ export function view(s) {
         buttons.push({ act: 'start-spel', label: 'Spel starten', primary: true, disabled: !genoeg });
       }
       if (host) {
-        for (const p of lijst) if (p.slot !== 0) buttons.push({ act: 'kick-' + p.slot, label: `${p.naam} verwijderen` });
-        for (const m of [4, 8, 12, 16]) if (m !== s.max && m >= lijst.length) buttons.push({ act: 'max-' + m, label: `Tot ${m} spelers` });
+        for (const p of lijst) if (p.slot !== 0) buttons.push({ act: 'kick-' + p.slot, label: `${p.naam} eruit zetten` });
+        const volgende = volgendeMax(s.max, lijst.length); if (volgende !== s.max) buttons.push({ act: 'max-' + volgende, label: `Maximaal ${s.max} spelers: wijzig naar ${volgende}` }); // één instelling in plaats van vier knoppen (#434)
         lines.push(s.code && lijst.length < s.max ? 'Er is nog plek: geef de code aan de volgende speler.' : 'Je kunt een speler er elk moment uit halen.');
         buttons.push({ act: 'verbreek', label: 'Iedereen stoppen' });
       } else {
@@ -247,6 +247,12 @@ export function view(s) {
     default:
       return V({});
   }
+}
+
+// het maximum is één instelling: elke druk gaat naar de volgende stap (4, 8, 12, 16) en weer rond; nooit onder het aantal spelers
+export function volgendeMax(max, aantal = 0) {
+  const stappen = [4, 8, 12, 16].filter((m) => m >= aantal);
+  return stappen.find((m) => m > max) || stappen[0] || max;
 }
 
 // Verbindingsstatus voor het partnerlabel: kleur-onafhankelijk (tekst erbij).

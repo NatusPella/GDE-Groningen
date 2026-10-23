@@ -27,7 +27,7 @@ import { verhaalRol, openerNaam, charInfo } from './coopplayers.js';
 import { KLOK_EVERY, klokEvent, leesKlokEvent, KlokVolger } from './net/speelklok.js';
 import { HASH_EVERY, viewOf, hashEvent, leesHashEvent, DesyncMonitor } from './net/desync.js';
 import { PING_TOETSEN, PING_TEKST, pingPlek, pingMarkers, pingRegel } from './coopping.js';
-import { spelersRijen } from './coopspelers.js';
+import { spelersRijen, wegMelding } from './coopspelers.js';
 import { maakMeedoen, opdrachtSleutel, begin as meedoenBegin, einde as meedoenEinde, antwoord as meedoenAntwoord, tik as meedoenTik, loopVrij, krijgtDeel, maakUitnodiging, uitnodigingTekst } from './coopmeedoen.js';
 import { WEER_EVERY, weerEvent, leesWeerEvent, pasWeerToe } from './coopweer.js';
 import { loopbaanGast, GAST_XP_DEEL } from './loopbaanlive.js';
@@ -751,7 +751,7 @@ export function handleEvent(world, body, van = 0) {
     }
     case 'weg': // de host heeft deze speler verwijderd
       if (!n || n.role !== 'client') return false;
-      if (world.addMessage) world.addMessage(body.reden === 'spel gestopt' ? `${openerNaam(world.coopRoster, true)} heeft het spel gestopt. Je speelt weer in je eigen spel.` : `Je bent uit het spel van ${openerNaam(world.coopRoster)} gehaald.`, 4);
+      if (world.addMessage) world.addMessage(wegMelding(body.reden, openerNaam(world.coopRoster, body.reden === 'spel gestopt')), 6);
       stopCoopNet(world);
       return true;
     default: return false;

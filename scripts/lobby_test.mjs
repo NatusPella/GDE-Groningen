@@ -119,7 +119,9 @@ t('N spelers: de host ziet de lijst, kan iedereen apart verwijderen en het maxim
   const v = L.view(s);
   assert.match(v.lines[0], /Spelers \(4 van 4\): Tammo, Tessa, Bram, Lotte/);
   assert.deepEqual(v.buttons.filter((b) => b.act.startsWith('kick-')).map((b) => b.act), ['kick-1', 'kick-2', 'kick-3']);
-  assert.deepEqual(v.buttons.filter((b) => b.act.startsWith('max-')).map((b) => b.act), ['max-8', 'max-12', 'max-16']);
+  assert.deepEqual(v.buttons.filter((b) => b.act.startsWith('max-')).map((b) => b.act), ['max-8'], 'één limietknop, geen rij van vier (#434)');
+  assert.equal(L.volgendeMax(4, 4), 8); assert.equal(L.volgendeMax(16, 3), 4); assert.equal(L.volgendeMax(8, 9), 12); assert.equal(L.volgendeMax(16, 16), 16);
+  assert.ok(v.buttons.filter((b) => b.act.startsWith('kick-')).every((b) => /eruit zetten$/.test(b.label)));
   assert.equal(v.code, null, 'vol: de code hoeft niet meer getoond');
   const s6 = L.reduce(s, { t: 'spelers', lijst: LIJST(4), max: 8 });
   assert.equal(L.view(s6).code, 'K3J9D-8F2MN', 'er is weer plek: de code blijft zichtbaar');

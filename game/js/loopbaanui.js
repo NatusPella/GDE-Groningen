@@ -8,7 +8,6 @@ import { SIDE_JOBS } from './sidejobs.js';
 import { fillBars } from './motion.js';
 import { boekVoortgang } from './visboeklive.js';
 import { baanDoelen } from './todoui.js';
-import { gebiedenHtml, kiesGebied, reisNaar, GEBIEDEN_CSS } from './gebiedenui.js';
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const nl = (n) => Math.round(n).toLocaleString('nl-NL');
@@ -82,12 +81,11 @@ function zetCss() {
   if (cssAan || typeof document === 'undefined') return;
   cssAan = true;
   const el = document.createElement('style');
-  el.textContent = CSS + GEBIEDEN_CSS;
+  el.textContent = CSS;
   document.head.appendChild(el);
 }
 
 let gekozen = 'trein';
-let weergave = 'vakken'; // 'vakken' of 'gebieden' (gebiedenui.js)
 const bars = new Map();
 
 function rij(profiel, info) {
@@ -128,47 +126,40 @@ function detailHtml(profiel, id) {
     `<div class="lb-blok">${voort}<p class="mut">${doel}</p>` +
     `<p>${v.xp > 0 ? esc(telt.join(' · ')) : 'Nog niet begonnen.'}</p>` +
     `<p class="${factor > 1 ? 'g' : 'mut'}">${factor > 1 ? `Dit vak betaalt nu ${L.percentage(factor)}% meer. ` : ''}${esc(L.loonTekst(id))}</p></div>` +
-    trap + banenHtml;
+    volgendeKlusHtml(id, v, banen) + linkHtml(id) + trap + banenHtml;
 }
 
-const tabs = () => '<nav class="m-tablist" role="tablist" aria-label="Weergave">' + [['vakken', 'Vakken'], ['gebieden', 'Veroverd']].map(([id, t]) =>
-  `<button type="button" role="tab" class="m-tab" data-lbview="${id}" aria-selected="${weergave === id}">${t}</button>`).join('') + '</nav>';
-
-// Bezigheden (#430): vissen en de boerderij zijn onderdelen van de loopbaan; groot en bovenaan, zodat je ze vindt.
-const BEZIGHEDEN = [
-  ['visboek', 'Vissen', 'vis', 'Je visboek: alle vis van de provincie'],
-  ['boerderij', 'Boerderij', 'trekker', 'Je eigen akker, gewassen en machines'],
-];
-function bezighedenHtml() {
-  let vis = BEZIGHEDEN[0][3];
-  try { const v = boekVoortgang(); if (v && v.totaal) vis = `Visboek: ${v.gevangen} van ${v.totaal} soorten`; } catch (e) { /* geen visboek: de vaste tekst */ }
-  return '<section class="lb-bez" aria-labelledby="lb-bez-t"><h3 id="lb-bez-t">Bezigheden</h3><div class="lb-bez-rij">' + BEZIGHEDEN.map(([id, naam, ic, tekst]) =>
-    `<button type="button" class="lb-tegel" data-goto="${id}"><svg viewBox="0 0 24 24" aria-hidden="true">${ICONEN[ic]}</svg><span class="nm"><b>${naam}</b><span class="mut">${esc(id === 'visboek' ? vis : tekst)}</span></span><span class="lb-pijl" aria-hidden="true">\u203A</span></button>`).join('') + '</div></section>';
+// Vissen en de boerderij zijn gewoon loopbanen (#435): geen eigen tegels meer, wel een knop in het vak naar het visboek of de boerderij.
+// Per loopbaan een knop naar de volgende klus: de eerste baan die je nog niet gedaan hebt en die nu te kiezen is (anders de eerste die te kiezen is)
+function volgendeKlusHtml(id, v, banen) {
+  const kies = banen.find((b) => !v.uniek.includes(b) && doelen.has(b)) || banen.find((b) => doelen.has(b));
+  if (!kies) return '';
+  const naam = (SIDE_JOBS.find((j) => j.id === kies) || {}).name || kies;
+  return `<p class="lb-link"><button type="button" class="m-bt" data-todo-goal="job:${esc(kies)}">Naar de volgende klus: ${esc(naam)}</button></p>`;
+}
+const VAK_LINK = { hengelen: ['visboek', 'Open je visboek'], landbouw: ['boerderij', 'Open je boerderij'] };
+function linkHtml(id) {
+  const l = VAK_LINK[id];
+  if (!l) return '';
+  let tekst = '';
+  if (id === 'hengelen') { try { const v = boekVoortgang(); if (v && v.totaal) tekst = `<span class="mut">Visboek: ${v.gevangen} van ${v.totaal} soorten</span>`; } catch (e) { /* geen visboek */ } }
+  return `<p class="lb-link"><button type="button" class="m-bt" data-goto="${l[0]}">${l[1]}</button> ${tekst}</p>`;
 }
 
-let sluitMenu = null;
 let wereld = null;
 let doelen = new Set(); // de bijbanen die nu te kiezen zijn (todoui.js) // pausemenu.js: sluit het menu na een snelreis
 export function renderLoopbaanPanel(el, sluit = null, w = null) {
   if (!el) return;
-  if (sluit) sluitMenu = sluit;
   if (w) wereld = w;
   try { doelen = wereld ? baanDoelen(wereld) : new Set(); } catch (e) { doelen = new Set(); }
   zetCss();
-  if (weergave === 'gebieden') {
-    const g = gebiedenHtml();
-    el.innerHTML = bezighedenHtml() + `<div class="m-tabs">${tabs()}<span class="m-grow"></span><span class="pa-total">${g.totaal}</span></div>` +
-      `<div class="m-main"><div class="m-list pa-list lb-list">${g.lijst}</div><aside class="m-pane pa-pane lb-pane gb-pane" aria-live="polite">${g.pane}</aside></div>`;
-    fillBars(el, bars);
-  } else {
-    const profiel = getProfiel();
-    if (!L.vakInfo(gekozen)) gekozen = L.VAK_IDS[0];
-    const sam = L.samenvatting(profiel);
-    const lijst = L.GROEPEN.map((g) => `<div class="lb-groep">${esc(g.naam)}</div>` + L.VAKKEN.filter((v) => v.groep === g.id).map((v) => rij(profiel, v)).join('')).join('');
-    el.innerHTML = bezighedenHtml() + `<div class="m-tabs">${tabs()}<span class="m-grow"></span><span class="pa-total"><span class="m-num">${sam.som - L.VAKKEN.length}</span><span class="mut">van ${sam.max - L.VAKKEN.length} niveaus omhoog${sam.hoogste ? ` · hoogste titel: ${esc(sam.hoogste.titel)}` : ''}</span></span></div>` +
-      `<div class="m-main"><div class="m-list pa-list lb-list">${lijst}</div><aside class="m-pane pa-pane lb-pane" aria-live="polite">${detailHtml(profiel, gekozen)}</aside></div>`;
-    fillBars(el, bars);
-  }
+  const profiel = getProfiel();
+  if (!L.vakInfo(gekozen)) gekozen = L.VAK_IDS[0];
+  const sam = L.samenvatting(profiel);
+  const lijst = L.GROEPEN.map((g) => `<div class="lb-groep">${esc(g.naam)}</div>` + L.VAKKEN.filter((v) => v.groep === g.id).map((v) => rij(profiel, v)).join('')).join('');
+  el.innerHTML = `<div class="m-tabs"><span class="m-grow"></span><span class="pa-total"><span class="m-num">${sam.som - L.VAKKEN.length}</span><span class="mut">van ${sam.max - L.VAKKEN.length} niveaus omhoog${sam.hoogste ? ` · hoogste titel: ${esc(sam.hoogste.titel)}` : ''}</span></span></div>` +
+    `<div class="m-main"><div class="m-list pa-list lb-list">${lijst}</div><aside class="m-pane pa-pane lb-pane" aria-live="polite">${detailHtml(profiel, gekozen)}</aside></div>`;
+  fillBars(el, bars);
   if (!el.dataset.bound) {
     el.dataset.bound = '1';
     const kies = (id) => {
@@ -178,27 +169,11 @@ export function renderLoopbaanPanel(el, sluit = null, w = null) {
       el.querySelector('.lb-pane').innerHTML = detailHtml(getProfiel(), gekozen);
       queueMicrotask(() => fillBars(el, bars));
     };
-    let gebied = null;
-    const kiesG = (id) => {
-      if (!id || id === gebied) return;
-      gebied = id;
-      for (const b of el.querySelectorAll('[data-gebied]')) { const aan = b.dataset.gebied === id; b.classList.toggle('sel', aan); b.toggleAttribute('aria-current', aan); }
-      el.querySelector('.lb-pane').innerHTML = kiesGebied(id);
-      queueMicrotask(() => fillBars(el, bars));
-    };
     el.addEventListener('click', (e) => {
-      const t = e.target.closest('[data-lbview]');
-      if (t) { if (t.dataset.lbview !== weergave) { weergave = t.dataset.lbview; gebied = null; renderLoopbaanPanel(el); } return; }
-      const r = e.target.closest('[data-reis]');
-      if (r) { reisNaar(r.dataset.reis, r, sluitMenu); return; }
-      const g = e.target.closest('[data-gebied]');
-      if (g) { kiesG(g.dataset.gebied); return; }
       const b = e.target.closest('[data-vak]');
       if (b) kies(b.dataset.vak);
     });
     el.addEventListener('focusin', (e) => {
-      const g = e.target.closest && e.target.closest('[data-gebied]');
-      if (g) { kiesG(g.dataset.gebied); return; }
       const b = e.target.closest && e.target.closest('[data-vak]');
       if (b) kies(b.dataset.vak);
     });

@@ -3,7 +3,7 @@
 // silhouette and "???") and Aanwijzingen (the clues per story part).
 // pausemenu.js owns the shell, keys and focus. The portraits and the viewer
 // draw through vehiclepreview.js's shared renderer, like the garage.
-import { CHARACTERS, CHARACTER_BY_ID, hasMet, isFresh, metCount, markCharactersSeen } from './characters.js';
+import { CHARACTERS, CHARACTER_BY_ID, hasMet, isFresh, metCount, markCharacterSeen } from './characters.js';
 import { createSharedPreview, renderSnapshot, PORTRAIT_ANGLE } from './vehiclepreview.js';
 import { TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
 import { NPC } from './missionstory.js';
@@ -157,7 +157,7 @@ function selectCharacter(panel, id) {
   const box = panel.querySelector('.vh-viewer');
   if (!box || (!c && id !== OVERIG)) return;
   selected = id;
-  for (const b of panel.querySelectorAll('[data-char]')) { b.classList.toggle('sel', b.dataset.char === id); if (b.dataset.char === id) b.removeAttribute('data-msg'); }
+  for (const b of panel.querySelectorAll('[data-char]')) { b.classList.toggle('sel', b.dataset.char === id); if (b.dataset.char === id) { b.removeAttribute('data-msg'); if (markCharacterSeen(id)) { b.removeAttribute('data-new'); document.dispatchEvent(new Event('gde-nieuw-gezien')); } } }
   disposeVerhaalViewer();
   if (id === OVERIG) {
     box.innerHTML = '<div><span class="vh-kicker">Berichten en contacten</span><h3>Overig</h3></div><p class="vh-bio">Nieuws, meldingen en contacten die geen personage zijn.</p><div class="vh-phone" data-vh-phone></div>';
@@ -244,8 +244,7 @@ export function renderVerhaal(panel, view, w = null) {
   loadPics(el);
   if (!CHARACTER_BY_ID.has(selected) && selected !== OVERIG) selected = 'tammo';
   selectCharacter(el, selected);
-  for (const n of el.querySelectorAll('.vh-card[data-new]')) pop(n);
-  markCharactersSeen();
+  for (const n of el.querySelectorAll('.vh-card[data-new]')) pop(n); // elk personage blijft nieuw tot je hem opent (#435)
 }
 
 // Clicks inside the section; true when handled.

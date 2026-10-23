@@ -165,7 +165,7 @@ function watchCinematic(dt, w) {
     cineSeen = null;
     // a scene that ended with an error can leave the players hidden
     // (a padel match, the bumper cars, a heli run or a post-game challenge hide them on purpose and draw their own)
-    const owned = playerBusy(w, ['padel', 'activityGame', 'heliRun', 'challenge']).busy;
+    const owned = playerBusy(w, ['padel', 'activityGame', 'heliRun', 'challenge']).busy || document.body.classList.contains('foto-actief'); // de fotomodus verbergt de HUD zelf (#435)
     cineT = !owned && (w.cinematicHidePlayers || w.cinematicHideNav || document.body.classList.contains('cine-hide-hud')) ? cineT + dt : 0;
     if (cineT > 3) { console.warn('[safety] scene leftovers cleared'); clearSceneLeftovers(w); cineT = 0; }
     return;

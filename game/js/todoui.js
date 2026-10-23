@@ -215,13 +215,23 @@ function stepRow(s) {
     : `<div class="m-li off" data-st="${st}">${inner}</div>`;
 }
 
+// Bovenaan Opdrachten: wat je nu moet doen, met een knop naar de plek (#435); daaronder de lijst per deel.
+function nextHtml(cur) {
+  if (!cur) return '';
+  const it = byKey.get(cur.kind === 'mission' ? 'm:' + cur.mission : 'st:' + cur.id);
+  const titel = cur.kind === 'mission' ? `${cur.id} · ${cur.title}` : cur.title;
+  const goal = getGoal();
+  return `<section class="td-next" aria-label="Volgende stap"><span class="m-eb">Volgende stap</span><b class="td-next-t">${esc(titel)}</b>${cur.lead ? `<p class="mut">${esc(cur.lead)}</p>` : ''}` +
+    (it ? `<button type="button" class="m-bp" data-todo-goal="${esc(it.key)}">${svg(ICON.flag)}${goal ? 'Terug naar het verhaal' : 'Zet als doel'}</button>` : '') + '</section>';
+}
+
 function storyHtml() {
   const steps = getStorySteps();
   const jr = getStoryJournal();
   const found = new Set(jr.found.map((c) => c.title));
   const cur = steps.find((s) => s.current);
   if (!ui.open) ui.open = new Set([cur ? cur.part : PART_IDS[PART_IDS.length - 1]]);
-  return PART_IDS.map((part) => {
+  return nextHtml(cur) + PART_IDS.map((part) => {
     const P = PARTS[part];
     const list = steps.filter((s) => s.part === part);
     const done = list.filter((s) => s.done).length;
@@ -331,8 +341,9 @@ export function todoSummary(world) {
 
 // Verhaal > Opdrachten (#430): de verhaalstappen en missies, met dezelfde lijst en dezelfde details als eerst onder Te doen.
 // Bijbanen horen bij een loopbaan (loopbaan.js) en staan onder Loopbanen; Activiteiten heeft ze niet nog een keer (#430).
-const isActiviteit = (it) => it.group !== 'verhaal' && it.group !== 'bijbaantjes';
-const SHOWN = GROUPS.filter(([g]) => g !== 'bijbaantjes');
+// Verhaalmissies staan onder Verhaal > Opdrachten, niet onder Activiteiten (#435)
+const isActiviteit = (it) => it.group !== 'verhaal' && it.group !== 'bijbaantjes' && it.group !== 'missies';
+const SHOWN = GROUPS.filter(([g]) => g !== 'bijbaantjes' && g !== 'missies');
 // De bijbanen die nu te kiezen zijn, voor de lijst met banen bij een loopbaan.
 export function baanDoelen(world) {
   refresh(world);
@@ -352,8 +363,9 @@ export function renderTodoStory(el, world) {
 
 export function renderTodo(panel, world, view) {
   refresh(world);
-  if (!ui.sel || !byKey.has(ui.sel)) {
-    const cur = items.find((it) => it.status === 'nu' && (it.goal === 'story' || it.group === 'missies')) || items[0];
+  if (!ui.sel || !byKey.has(ui.sel) || (view !== 'verhaal' && !isActiviteit(byKey.get(ui.sel)))) { // Activiteiten kiest nooit een verhaalitem (#435)
+    const eigen = items.filter(isActiviteit);
+    const cur = eigen.find((it) => it.status === 'nu') || eigen[0] || items[0];
     ui.sel = cur ? cur.key : null;
   }
   const list = panel.querySelector(`[data-of="todo"][data-sub="${view}"]`);

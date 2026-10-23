@@ -43,3 +43,12 @@ export function rijTekst(r) {
   const naam = r.jij ? `${r.naam} (jij)` : r.naam;
   return [naam, r.doet, r.verbindingTekst + (r.ms != null ? ` ${r.ms} ms` : ''), r.afstandTekst].filter(Boolean).join(' · ');
 }
+
+// Eruit zetten (#434): alleen wie het spel opende, en nooit zichzelf of plek 0. Tessa (plek 1) wordt daarna weer een AI-metgezel.
+export const kanEruitZetten = (rol, r) => rol === 'host' && !!r && !r.jij && r.slot !== 0;
+export const eruitKnopTekst = (bevestig) => (bevestig ? 'Zeker weten?' : 'Eruit zetten');
+export const eruitGezetTekst = (r) => `${r.naam} is uit het spel gezet.${r.slot === 1 ? ' Tessa loopt weer zelf mee.' : ''}`;
+// wat de weggestuurde gast ziet; 'spel gestopt' is stoppen voor iedereen
+export const wegMelding = (reden, opener) => (reden === 'spel gestopt'
+  ? `${opener} heeft het spel gestopt. Je speelt weer in je eigen spel.`
+  : `${opener} heeft je uit het spel gezet. Je speelt weer in je eigen spel, waar je gebleven was.`);
