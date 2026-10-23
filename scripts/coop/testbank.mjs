@@ -27,8 +27,8 @@ if (!STAGE || !fs.existsSync(path.join(STAGE, 'index.html'))) { console.error('-
 const SUITE = arg('suite', 'basis');
 const DURATION = Number(arg('duration', 20));
 const MENU = flag('menu') || SUITE !== 'basis';
-const GASTEN = Math.max(0, Math.min(2, Number(arg('gasten', SUITE === 'verhaal' ? 2 : SUITE === 'figuren' || SUITE === 'uitelkaar' ? 0 : 1))));  // 0: alleen de host in Electron en headless gasten (mock) erbij
-const MOCK = Math.max(0, Number(arg('mock', SUITE === 'figuren' || SUITE === 'uitelkaar' ? 3 : SUITE === 'net' ? (GASTEN > 1 ? 1 : GASTEN === 1 ? 2 : 3) : GASTEN === 0 ? 1 : 0)) || 0); // vier spelers: host + Electron-gasten + headless gasten
+const GASTEN = Math.max(0, Math.min(2, Number(arg('gasten', SUITE === 'verhaal' ? 2 : SUITE === 'figuren' || SUITE === 'uitelkaar' || SUITE === 'bestuur' ? 0 : 1))));  // 0: alleen de host in Electron en headless gasten (mock) erbij
+const MOCK = Math.max(0, Number(arg('mock', SUITE === 'figuren' || SUITE === 'uitelkaar' ? 3 : SUITE === 'bestuur' ? 2 : SUITE === 'net' ? (GASTEN > 1 ? 1 : GASTEN === 1 ? 2 : 3) : GASTEN === 0 ? 1 : 0)) || 0); // vier spelers: host + Electron-gasten + headless gasten
 const SECOND = GASTEN > 1 ? 'gast2' : 'gast'; // wie in de suite 'net' een slecht netwerk krijgt en later vertrekt
 const PUBLIEK = flag('publiek'); // de kamercode-route over de echte openbare brokers en STUN-servers (alleen internet nodig, geen nep-tracker)
 const ROUTE = arg('route', SUITE === 'kamer' ? 'kamer' : 'direct');
@@ -54,6 +54,7 @@ const P = {
   opening: flag('host-save') ? Object.fromEntries(['host', 'gast', 'gast2'].map((me) => [me, [[0, 'wacht', { s: 8 }], [9, 'betaal', me === 'host' ? { geld: 250 } : {}], [16, 'opgeslagen', {}], [20, 'wacht', { s: 3 }], ...(me === 'host' ? [[24, 'stopHost', {}]] : [])]])) : Object.fromEntries(['host', 'gast', 'gast2'].map((me) => [me, [[0, 'opening', { s: Number(arg('opening-s', 400)), skip: flag('skip') }], ...(me === 'host' ? [[0, 'stopHost', {}]] : [])]])), // nieuw spel samen: het hek, de opening, overslaan (alleen de gastheer)
   gastacties: Object.fromEntries(['host', 'gast', 'gast2'].map((me) => [me, [[14, 'gastwinkel', { s: 50 }], [66, 'gastrit', { s: 90 }], ...(me === 'host' ? [[160, 'stopHost', {}]] : [])]])), // #291: winkelen en een rit met het stuur
   uitelkaar: { host: [[0, 'wacht', { s: 6 }], [8, 'uitelkaar', { s: 20 }], [150, 'stopHost', {}]] }, // #429: twee figuren los van de gastheer (500 m en Delfzijl) in dezelfde sessie
+  bestuur: { host: [[0, 'wacht', { s: 6 }], [8, 'bestuur', { s: Number(arg('bestuur-s', 150)) }], [8 + Number(arg('bestuur-s', 150)) + 6, 'stopHost', {}]] }, // #434: twee headless gasten bestuurden een auto, misdaad en politie
   figuren: { host: [[0, 'wacht', { s: 6 }], [8, 'figuren', { s: 8 }], [70, 'stopHost', {}]] }, // #366: de host met drie headless gasten (vier spelers); de figuren van plek 2 en 3 lopen op de echte wereld
   touch: { host: [[0, 'kijk', { s: 16 }]], gast: [[0, 'touch', { s: 12 }]], gast2: [[0, 'wacht', { s: 16 }]] },
 }[SUITE];
@@ -157,6 +158,30 @@ if (code && MOCK && ROUTE === 'direct') {
   if (GASTEN > 0) await waitFor(host.events, 'verbonden', 240000);
   if (guest) await waitFor(guest.events, 'verbonden', 240000);
   if (guest2) await waitFor(guest2.events, 'verbonden', 240000);
+  // #434 (suite 'bestuur'): een headless gast die zelf een voertuig neemt: E bij een voertuig dichtbij, rijden, stoppen met de handrem, E om uit te stappen
+  const { leesEntiteiten } = await import(new URL('../../game/js/coopworld.js', import.meta.url).href);
+  const bestuurBot = (m, i) => {
+    const st = { last: 0, reed: null, klaar: false, gezien: 0, ingestapt: false, tel: [] }; m.bot = st;
+    const rust = { mx: 0, my: 0, buttons: 0, yaw: 0 };
+    return (t) => {
+      const w = m.session.world(); if (!w || st.klaar) return rust;
+      const ik = w.players.find((p) => p.slot === m.session.slot); if (!ik) return rust;
+      if (m.log.events.some(([, e]) => e && e.k === 'gepakt')) { st.klaar = true; st.gepakt = true; return rust; }
+      const nu = Date.now() / 1000, E = () => { if (nu - st.last > 1.5) { st.last = nu; m.session.sendEvent({ k: 'gebruik' }); st.tel.push(Math.round(t)); } };
+      if (!ik.inVeh) {
+        if (st.ingestapt) { st.klaar = true; return rust; } // uitgestapt: klaar
+        const e = w.entities && leesEntiteiten(w.entities), dichtbij = e && e.voertuigen.some((v) => Math.hypot(v.x - ik.x, v.y - ik.y) < 6);
+        if (dichtbij) { st.gezien++; if (st.gezien > 20) E(); }
+        return rust;
+      }
+      if (!ik.driver) return rust;
+      st.ingestapt = true; if (st.reed == null) st.reed = t;
+      const s = t - st.reed;
+      if (s < 3) return { mx: Math.sin(s * 0.8 + i) * 0.1, my: -1, buttons: 0, yaw: 0 }; // een paar seconden gas, een beetje zwenken
+      if (s < 3 + 100) return { mx: 0, my: 0, buttons: 2, yaw: 0 }; // stilstaan met de handrem: de politie pakt hem
+      E(); return { mx: 0, my: 0, buttons: 2, yaw: 0 };
+    };
+  };
   const spin = (i) => (t) => ({ mx: Math.cos(t / 3 + i), my: Math.sin(t / 3 + i), run: false, yaw: 0 });
   // een headless gast die achter Tammo aanloopt (camerahoek 0: wereld-x = -my, wereld-y = mx), zoals een speler die meespeelt
   const volg = (m) => () => {
@@ -171,7 +196,7 @@ if (code && MOCK && ROUTE === 'direct') {
     if (i === 1 && EXPECT > 8) await waitFor(host.events, 'max-knop', 90000); // de gastheer kiest "Tot 16 spelers" zodra de eerste gast er is; de rest komt pas daarna (anders is de TCP-kant vol bij 8)
     try {
       const m = await startMockGuest({ stage: STAGE, code: guestCode, wens: undefined, net: SUITE === 'net' && (GASTEN > 0 || i === MOCK - 1) ? { latency: 0.08, jitter: 0.03, loss: 0.05 } : {}, seed: 7 + i });
-      m.input = SUITE === 'verhaal' ? volg(m) : spin(i); mocks.push(m); console.log('mockgast', i + 1, 'verbonden');
+      m.input = SUITE === 'verhaal' ? volg(m) : SUITE === 'bestuur' ? bestuurBot(m, i) : spin(i); mocks.push(m); console.log('mockgast', i + 1, 'verbonden');
       setTimeout(() => console.log('mockgast', i + 1, 'plek', m.session.slot, 'status', m.session.status), 8000);
     } catch (e) { problems.push('mockgast: ' + e.message); }
   }
@@ -293,6 +318,23 @@ if (GASTEN === 0) { // alleen de host in Electron: wat de headless gasten en de 
     check(wg && wg.terugNa != null, 'figuren: wegdwalen: de figuur werd niet bij de groep gezet: ' + JSON.stringify(wg));
     const g2 = st && mocks.find((m) => m.session.slot === st.slots[0]), meld = g2 ? g2.log.events.map(([, b]) => b).filter((b) => b.k === 'melding').map((b) => b.tekst).join(' | ') : '';
     check(/Blijf bij de groep/.test(meld) && /weer bij de groep/.test(meld), 'figuren: de gast kreeg de meldingen niet: ' + meld);
+  }
+  if (SUITE === 'bestuur') { // #434: een gast bestuurt een voertuig van de host; politie en gezocht-niveau per speler
+    const e1 = (n) => of(H, n)[0], st = e1('bestuur-start'), sam = of(H, 'bestuur-sample'), eind = e1('bestuur-eind');
+    note('bestuur-start: ' + JSON.stringify(st)); for (const n of ['bestuur-instap', 'bestuur-rijdt', 'bestuur-gezocht', 'bestuur-politie', 'bestuur-gepakt', 'bestuur-na-gepakt']) for (const e of of(H, n)) note(n + ': ' + JSON.stringify(e));
+    note('bestuur-eind: ' + JSON.stringify(eind)); note('bots: ' + JSON.stringify(mocks.map((m) => m.bot && { reed: m.bot.reed, gepakt: m.bot.gepakt, ingestapt: m.bot.ingestapt, e: m.bot.tel })));
+    check(st && st.gasten.length >= 2 && st.remote, 'bestuur: de host heeft geen twee gasten: ' + JSON.stringify(st));
+    for (const slot of [1, 2]) check(sam.some((e) => e.rij[slot] && e.rij[slot].b === slot && e.rij[slot].drv === 'player' && e.rij[slot].inV && e.rij[slot].bt), 'bestuur: plek ' + slot + ' werd nooit bestuurder van zijn auto');
+    check(sam.some((e) => e.rij[1] && e.rij[1].b === 1 && Math.abs(e.rij[1].sp) > 5) || of(H, 'bestuur-rijdt').some((e) => e.rij[1] && Math.abs(e.rij[1].sp) > 5), 'bestuur: de auto van plek 1 reed nooit sneller dan 5 m/s (de invoer van de gast kwam niet aan)');
+    check(sam.some((e) => e.rij[1] && e.rij[1].b === 1 && e.zitters >= 1), 'bestuur: de host tekent de bestuurder niet in de auto (coopzitten3d)');
+    check(sam.every((e) => !e.hostIn), 'bestuur: de host zat zelf in een voertuig');
+    check(eind && eind.heli && !eind.heli.driver && eind.heli.b == null, 'bestuur: een helikopter kreeg een bestuurder: ' + JSON.stringify(eind && eind.heli));
+    check(sam.some((e) => (e.coopWanted[1] | 0) > 0), 'bestuur: de gast kreeg geen gezocht-niveau na een aanrijding met getuige');
+    check(sam.every((e) => e.wanted === (eind ? eind.hostWanted0 : 0)), 'bestuur: het niveau van de host veranderde door een misdaad van de gast');
+    check(sam.some((e) => (e.doel === 1 || e.doel === 2) && e.cops > 0), 'bestuur: de politie kwam niet op een gast af (doelwit 1 of 2)');
+    check(sam.some((e) => e.copMin != null && e.copMin < 25 && ((e.coopWanted[1] | 0) > 0 || (e.coopWanted[2] | 0) > 0)), 'bestuur: geen politieauto kwam bij de auto van de gast: ' + JSON.stringify(sam.map((e) => e.copMin)));
+    const gp = of(H, 'bestuur-gepakt'), mgp = mocks[0] && mocks[0].log.events.some(([, e]) => e && e.k === 'gepakt');
+    if (!gp.length) note('bestuur: de gast is in de tijd niet gepakt (de politie kwam niet dicht genoeg of te laat)'); else check(mgp, 'bestuur: gepakt kwam niet bij de gast aan');
   }
   if (SUITE === 'uitelkaar') { // #429: spelers mogen uit elkaar: de wereld rond elke groep is levend
     const e1 = (n) => of(H, n)[0], st = e1('uitelkaar-start'), a = e1('uitelkaar-a'), b = e1('uitelkaar-b'), m = e1('uitelkaar-meet'), basis = e1('uitelkaar-basis'), last = e1('uitelkaar-last'), na = e1('uitelkaar-na');

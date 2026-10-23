@@ -49,7 +49,7 @@ function gastMisdaad(world, slot, kind, opts) {
 }
 
 export function reportCrime(world, kind, opts = {}) {
-  const dader = opts.dader ?? (opts.vehicle && opts.vehicle.coopBestuurder) ?? 0;
+  const dader = opts.dader ?? ((opts.vehicle && (opts.vehicle.coopBestuurder || opts.vehicle.wreckedByGast)) || 0);
   if (dader > 0) return gastMisdaad(world, dader, kind, opts);
   const now = world.time || 0;
   heat = Math.max(0, heat - (now - heatAt) * COOL_PER_S);

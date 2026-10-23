@@ -13,6 +13,7 @@ export const BESTUUR_TEKST = {
   slot: 'Dat slot zit dicht.',
   vlieg: 'Een helikopter of vliegtuig besturen kan alleen in je eigen spel.',
   kapot: 'Je voertuig is kapot. Je staat weer buiten.',
+  zinkt: 'Je voertuig zinkt. Je staat weer bij de groep.',
   ver: 'Te ver van de groep: je voertuig staat stil en je staat weer bij de groep.',
   wacht: 'De wereld hier wordt nog geladen. Even wachten.',
 };
@@ -95,7 +96,7 @@ export function bestuurInstappen(world, slot) {
   const auto = !v.isBike && !v.isScooter && !v.isBoat; // een fiets of boot meenemen is geen misdaad, een auto van een ander wel
   haken.enter(proxy, v, world);
   if (proxy.inVehicle !== v) return { gedaan: true }; // enterVehicle weigerde (er zat al iemand in)
-  v.coopBestuurder = slot;
+  v.coopBestuurder = slot; v.wreckedByGast = null;
   v.speed = Math.abs(v.speed || 0) < 0.5 ? 0 : v.speed;
   if (slot === 1) l.inVehicle = v; else { l.inVeh = v; l.coopVoertuig = true; l.stoel = 0; }
   l.coopBestuurt = true; l.vx = 0; l.vy = 0;
@@ -109,7 +110,10 @@ export function bestuurInstappen(world, slot) {
 function klaar(world, slot, r, l) {
   const v = r.v;
   delete rijders(world)[slot];
-  if (v) { v.coopBestuurder = null; if (v.driver === 'player') v.driver = null; v.horn = false; v.throttle = 0; }
+  if (v) { // het wrak van een gast (ook als het pas daarna zinkt of ontploft) is zijn zaak, geen getuige voor de host
+    if (v.wrecked || v.sinking || v.disabled) v.wreckedByGast = slot;
+    v.coopBestuurder = null; if (v.driver === 'player') v.driver = null; v.horn = false; v.throttle = 0;
+  }
   if (!l) return;
   l.coopBestuurt = false;
   if (slot === 1) { l.inVehicle = null; l.coopUit = true; } else { l.inVeh = null; l.coopVoertuig = false; l.stoel = undefined; }
@@ -149,7 +153,7 @@ export function bestuurTick(world, dt) {
       haken.exit && r.proxy.inVehicle === v && haken.exit(r.proxy, world.map, world);
       klaar(world, +slot, r, l);
       if (haken.bijGroep && v.sinking) haken.bijGroep(world, l, (+slot * 1.7) % (Math.PI * 2));
-      stoot(world, +slot, BESTUUR_TEKST.kapot);
+      stoot(world, +slot, v.sinking ? BESTUUR_TEKST.zinkt : BESTUUR_TEKST.kapot);
       continue;
     }
     // de wereld rond het voertuig moet geladen zijn; anders staat het stil en zet de host de gast na een paar seconden bij de groep

@@ -7,6 +7,8 @@ nieuwe functies, `y` voor alleen bugfixes.
 ## [Unreleased]
 
 ### Nieuw
+- Samen spelen (#434): een gast stapt met E zelf in een vrije auto, fiets, scooter of boot en bestuurt hem; met E stap je uit zodra je bijna stilstaat. Wie meerijdt of toekijkt ziet de bestuurder in het voertuig. Valt de gast weg, dan staat het voertuig stil en is de stoel vrij. Een helikopter of vliegtuig besturen kan alleen in je eigen spel.
+- Samen spelen (#434): ook een gast kan door de politie gezocht worden. Een voetganger aanrijden of een geparkeerde auto stelen terwijl iemand toekijkt levert eigen sterren op. De politie jaagt op wie de meeste sterren heeft en pakt die gast: de boete gaat van het eigen geld af en het voertuig blijft staan. Wie het spel opende wordt er niet voor gepakt. De politie jaagt nog op één speler tegelijk.
 - Samen spelen (#439): in het onderdeel Spelers staat bij elke speler de knop 'Spel overdragen'. Het overdragen zelf werkt nog niet: je krijgt de melding 'Nog niet beschikbaar' en je houdt het spel.
 
 ## [0.45.0] - 2026-10-23
