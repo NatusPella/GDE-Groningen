@@ -21,6 +21,13 @@ export function bustFine(wanted, money) {
   return Math.min(wanted * 60, Math.floor(Math.max(0, money) * 0.2));
 }
 
+// In a car the mission lent you (not your own, not the Escapade) the arrest is free: the
+// getaway is the mission's, so no fine on top of the restart (#306).
+export const isBorrowedMissionCar = (v) => !!v && !!v.missionCar && !v.playerOwned && !v.isHeroCar;
+export function bustFineIn(wanted, money, vehicle) {
+  return isBorrowedMissionCar(vehicle) ? 0 : bustFine(wanted, money);
+}
+
 export const SPEED_FINE = [20, 45];
 export const SIDEJOB_ACCIDENT_FINE = 10;
 
