@@ -150,7 +150,7 @@ const KEYBTN = (k, label) => `<span class="foto-key"><kbd>${k}</kbd> ${label}</s
 const BAR_HTML =
   '<div class="foto-info" aria-live="off"></div>' +
   '<div class="foto-row foto-row-move"><span class="foto-lbl">Camera</span>' + KEYBTN('W A S D', 'Lopen') + KEYBTN('Muis slepen', 'Kijken') + KEYBTN('Pijlen', 'Kijken') + KEYBTN('Spatie', 'Omhoog') + KEYBTN('Ctrl', 'Omlaag') + KEYBTN('Shift', 'Sneller') + '</div>' +
-  '<div class="foto-row"><span class="foto-lbl">Beeld</span>' + KEYBTN('F', 'Filter') + KEYBTN('T', 'Weer') + KEYBTN(', .', 'Tijd') + KEYBTN('[ ]', 'Zoom') + KEYBTN('C V', 'Kantelen') + KEYBTN('Z X', 'Scherpte') + KEYBTN('G', 'Raster') + '</div>' +
+  '<div class="foto-row"><span class="foto-lbl">Beeld</span>' + KEYBTN('F', 'Filter') + KEYBTN('T', 'Weer') + KEYBTN(', .', 'Tijd') + KEYBTN('[ ]', 'Inzoomen') + KEYBTN('C V', 'Kantelen') + KEYBTN('Z X', 'Scherpte') + KEYBTN('G', 'Raster') + '</div>' +
   '<div class="foto-acts"><button type="button" class="foto-btn foto-go" data-foto-shoot>Foto maken <kbd>Enter</kbd></button><button type="button" class="foto-btn" data-foto-stop>Terug <kbd>Esc</kbd></button></div>';
 
 let barInfo = '';

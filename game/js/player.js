@@ -557,6 +557,7 @@ export class Player {
     if (dir) this.angle = turnToward(this.angle, dir.angle, FACE_TURN_RATE * 0.6 * dt);
     const throttle = dir ? 1 : 0;
     const sprint = input.isDown('shift') && throttle > 0 && this.swimStamina > 0;
+    if (input.isDown('shift') && throttle > 0 && this.swimStamina <= 0 && input.wasPressed && input.wasPressed('shift')) world.addMessage('Buiten adem: zwem even rustig door.', 2, { kind: 'tip' }); // (#435)
     this.swimStamina = clamp(this.swimStamina + (sprint ? -dt / 6 : dt / 5), 0, 1);
     const algae = world.algaeAt && world.algaeAt(this.x, this.y);
     if (algae) this.swimStamina = clamp(this.swimStamina - dt * 0.32, 0, 1);
@@ -880,6 +881,9 @@ export class Player {
         const burst = v._mount === 'horse' ? HORSE_GALLOP_S : BIKE_SPRINT_S;
         v.sprintT = burst;
         v.sprintRest = burst + BIKE_SPRINT_REST_S;
+      } else if (world && v.sprintRest > 0 && !v.sprintT && throttle > 0 && input.wasPressed && input.wasPressed('shift')) {
+        // Shift terwijl de sprint nog niet terug is: zeg waarom er niets gebeurt (#435)
+        world.addMessage(v._mount === 'horse' ? 'Je paard hijgt nog: even uitrusten voor de volgende galop.' : 'Even uitpuffen: je sprint is nog niet terug.', 2, { kind: 'tip' });
       }
     }
     const steerIn = world ? Math.max(-1, Math.min(1, ax + (v.coopBestuurder ? 0 : drunkSteer(world, v)))) : ax; // een gast die stuurt (coopbestuur.js) is niet dronken van wat de host dronk
