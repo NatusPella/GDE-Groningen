@@ -6,6 +6,10 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Opgelost
+- **De Oosterpoort heeft ramen aan de lange straatgevel (#421; in Electron door Claude in beeld bekeken, niet door een mens):** een groot gebouw had een vast budget van 420 ramen en de eerste muren van de omtrek namen dat op, zodat de lange muur langs de Trompsingel kaal bleef. Het budget groeit nu mee met de gevel (tot 1300 ramen) en lange gevels van grote publieksgebouwen krijgen bredere en hogere ramen.
+- **De grote grijze zuil midden in de Folkingestraat is weg (#419; in Electron door Claude in beeld bekeken, niet door een mens):** het waren twee gedenktekens uit de kaartdata (puntjes zonder hoogte) die als monument van vijf meter op een plein van acht meter werden getekend. Een gedenkteken zonder hoogte, een plaquette of een struikelsteen is nu een laag steentje.
+
 ## [0.41.1] - 2026-10-23
 
 ### Nieuw
