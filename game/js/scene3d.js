@@ -614,7 +614,7 @@ function setRoofBoxes(mesh, v) {
 
 // Actors/effects build their own geometries per instance, so on despawn both
 // geometry and material must be freed or GPU memory grows all session.
-function disposeObject(root) {
+export function disposeObject(root) {
   root.traverse((o) => {
     if (o.geometry && !SHARED_GEOMETRIES.has(o.geometry) && !o.geometry.userData.shared) o.geometry.dispose();
     // the bone texture three.js makes for a skinned mesh on its first draw

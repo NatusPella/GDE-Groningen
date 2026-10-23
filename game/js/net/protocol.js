@@ -24,40 +24,51 @@ export function checkHandshake(local, remote) {
 // Nederlandse melding voor het lobbyscherm.
 export const REASON_TEXT = {
   spel: 'Dit is niet hetzelfde spel.',
-  protocol: 'De versies van samen spelen passen niet bij elkaar.',
+  protocol: 'De ander speelt een andere versie van samen spelen. Installeer allebei dezelfde versie, het liefst de nieuwste, en probeer het opnieuw.',
   versie: 'Andere versie van het spel. Installeer allebei dezelfde versie, het liefst de nieuwste, en probeer het opnieuw.',
   tegels: 'De wereldbestanden zijn verschillend. Werk beide spellen bij.',
   verhaal: 'Het verhaal is verschillend. Kies op beide kanten hetzelfde verhaal.',
   vol: 'De sessie zit al vol.',
   token: 'Deze verbinding kan niet hervat worden.',
   gesloten: 'De verbinding is gesloten. Zit het spel vol, of is het spel gestopt?',
+  'time-out': 'De ander antwoordt niet. Staat het spel open en is het klaar met laden? Probeer het over een halve minuut opnieuw.',
 };
+
+export const RTO_TRAAG = 2; // s tussen herhalingen bij een weggevallen gast
 
 // Betrouwbare gebeurtenissen: in volgorde, zonder dubbele aflevering.
 export class Reliable {
   constructor({ rto = 0.2, maxPending = 32, maxAhead = 32 } = {}) {
-    this.rto = rto; this.maxPending = maxPending; this.maxAhead = maxAhead;
+    this.rto = rto; this.maxPending = maxPending; this.maxAhead = maxAhead; this.sendEpoch = 1; this.recvEpoch = 1;
     this.nextSend = 1; this.pending = []; // { seq, bytes, at }
     this.expected = 1; this.ahead = new Map();
+    // Een tijdperk per richting: begint de zender opnieuw (hervatten, nieuwe sessie), dan krijgt de stroom een nieuw tijdperk en volgnummer 1.
+    // De ontvanger stapt over op het eerste bericht (nummer 1) van een ander tijdperk en negeert de rest tot dan; een bevestiging van een ander tijdperk telt niet mee.
+    // Zonder dit kon een bericht dat vóór het welkom aankwam als 'oud' worden bevestigd, waarna de zender het weggooide en de stroom voorgoed vastliep.
   }
   // geeft false als de wachtrij vol is (de ander reageert niet)
   send(body, now, emit, tick = 0) {
     if (this.pending.length >= this.maxPending) return false;
     const seq = this.nextSend; this.nextSend = (this.nextSend + 1) & 0xffff || 1;
-    const bytes = encodeJson(T.EVENT, seq, tick, 0, body);
+    const bytes = encodeJson(T.EVENT, seq, tick, this.sendEpoch, body);
     this.pending.push({ seq, bytes, at: now });
     emit(bytes); return true;
   }
   // bevestiging: cumulatief, alles vóór `expected` is binnen
-  onAck(expected) {
+  onAck(expected, epoch = this.sendEpoch) {
+    if (epoch !== this.sendEpoch) return;
     this.pending = this.pending.filter((p) => seqNewer(p.seq, expected - 1 & 0xffff));
   }
-  tick(now, emit) {
-    for (const p of this.pending) if (now - p.at >= this.rto) { p.at = now; emit(p.bytes); }
+  // traag: de ander reageert niet (weggevallen): dan hoogstens eens per RTO_TRAAG, niet 5 keer per seconde 32 berichten
+  tick(now, emit, traag = false) {
+    const rto = traag ? RTO_TRAAG : this.rto;
+    for (const p of this.pending) if (now - p.at >= rto) { p.at = now; emit(p.bytes); }
   }
   // ontvangt een EVENT; geeft de lijst nu af te leveren bodies; emit stuurt de ACK
   receive(msg, emit) {
     const out = [];
+    const e = msg.epoch === undefined ? this.recvEpoch : msg.epoch;
+    if (e !== this.recvEpoch) { if (msg.seq !== 1) return out; this.recvEpoch = e; this.expected = 1; this.ahead.clear(); }
     const d = seqDiff(msg.seq, this.expected);
     if (d === 0) {
       out.push(msg.body); this.expected = (this.expected + 1) & 0xffff || 1;
@@ -67,10 +78,11 @@ export class Reliable {
       }
     } else if (d > 0 && d <= this.maxAhead) this.ahead.set(msg.seq, msg.body);
     // d < 0: dubbel, alleen bevestigen
-    emit(encodeSimple(T.ACK, 0, 0, this.expected));
+    emit(encodeSimple(T.ACK, this.recvEpoch, 0, this.expected));
     return out;
   }
-  reset() { this.pending = []; this.ahead.clear(); }
+  // de zendkant helemaal opnieuw (hervatten met een nieuw welkom): nieuw tijdperk, volgnummer 1, niets meer in de wachtrij. De ontvangkant blijft zoals hij was: wat de ander nog stuurt komt gewoon aan.
+  reset() { this.pending = []; this.nextSend = 1; this.sendEpoch = this.sendEpoch % 255 + 1; }
 }
 
 export { T, decodeJson, readHeader };

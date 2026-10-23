@@ -54,10 +54,11 @@ export async function startMockGuest(opts) {
   const tr = makeTransport(core, hook, sim, rng);
   const { VERSION } = await import(pathToFileURL(path.join(opts.stage || path.join(ROOT, 'game'), 'js', 'version.js')).href);
   const info = { game: 'gde', proto: PROTO, version: String(VERSION), tiles: String((opts.info && opts.info.tiles) || '-'), story: String((opts.info && opts.info.story) || 'nieuw'), char: opts.wens || undefined };
-  const session = new ClientSession(tr, { info, caps: ['scene', 'spelers'] });
+  const session = new ClientSession(tr, { info, caps: ['scene', 'spelers'], token: opts.token || undefined });
   const log = { status: [], events: [], samples: [], resync: 0 };
-  session.onstatus = (s) => log.status.push([+session.now.toFixed(2), s]);
-  session.onevent = (b) => log.events.push([+session.now.toFixed(2), b]);
+  const kort = (l) => { if (opts.maxLog && l.length > opts.maxLog) l.splice(0, l.length - opts.maxLog); }; // een duurtest houdt niet alles bij
+  session.onstatus = (s) => { log.status.push([+session.now.toFixed(2), s]); kort(log.status); };
+  session.onevent = (b) => { log.events.push([+session.now.toFixed(2), b]); kort(log.events); };
   session.onresync = (st) => { log.resync++; log.lastResync = st; };
   const r = await core.join(opts.code);
   if (!r.ok) throw new Error('mockgast kan niet verbinden: ' + (r.reason || r.text));
@@ -70,7 +71,7 @@ export async function startMockGuest(opts) {
     session.setInput(i.mx || 0, i.my || 0, i.run ? 1 : 0, i.yaw || 0);
     session.tick(dt);
     const w = session.world();
-    if (w && (log.samples.length === 0 || t - log.samples[log.samples.length - 1].t >= 1)) log.samples.push({ t: +t.toFixed(1), status: session.status, slot: session.slot, hostT: +w.hostT.toFixed(2), players: w.players.map((p) => ({ slot: p.slot, x: +p.x.toFixed(1), y: +p.y.toFixed(1) })), shared: w.shared, mission: w.mission, entities: w.entities.length });
+    if (w && (log.samples.length === 0 || t - log.samples[log.samples.length - 1].t >= 1)) { kort(log.samples); log.samples.push({ t: +t.toFixed(1), status: session.status, slot: session.slot, hostT: +w.hostT.toFixed(2), players: w.players.map((p) => ({ slot: p.slot, x: +p.x.toFixed(1), y: +p.y.toFixed(1) })), shared: w.shared, mission: w.mission, entities: w.entities.length }); }
   }, 1000 / 60);
   g.stop = async () => { g.stopped = true; clearInterval(g.timer); try { session.leave(); } catch (e) { /* al weg */ } await new Promise((res) => setTimeout(res, 200)); try { await core.stop(); } catch (e) { /* al weg */ } };
   // een tijdelijke verbreking van het netwerk (kabel eruit) of herstel

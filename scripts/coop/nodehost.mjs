@@ -84,7 +84,7 @@ export async function startNodeHost({ stage, tiles = '-', story = 'nieuw', max =
     if (world.pedestrians[13] && world.pedestrians[13].hitReact) world.pedestrians[13].hitReact.t = world.time;
     if (!world.companion.inVehicle && !state.pauze) coopStep(world.companion, dt, world, move); // de gast bestuurt Tessa; staat het spel van de host op pauze, dan stapt coopnet.js haar zelf (stapMetgezelInPauze, #388)
     world.paused = state.pauze;
-    N.tickCoopNet(world, dt);
+    if (!h.stalled) { const t0 = performance.now(); N.tickCoopNet(world, dt); if (h.tickMs) h.tickMs(performance.now() - t0); } // h.stalled: de gastheer reageert even niet (duurtest)
   }, 16);
   h.walk = true;
   // een voertuig voor de rit: Tammo stapt in, Tessa (de gast) rijdt mee en haar eigen x en y blijven staan zoals in het spel

@@ -6,6 +6,14 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Opgelost
+- Samen spelen (#428, duurtest): na een wegval van een gast van meer dan een paar seconden kwamen er van de gastheer geen meldingen meer aan (de lijst met spelers, opdrachten, het weer); de verbinding leek gewoon goed. Dat is hersteld: de berichten beginnen na het terugkomen opnieuw te tellen.
+- Samen spelen: een gast die weg is, kreeg vijf keer per seconde dezelfde berichten nogmaals. Dat is nu eens per twee seconden, zodat een slechte verbinding niet nog slechter wordt.
+- Samen spelen: afgewezen verbindingen (andere versie, spel vol) bleven bij wie het spel opende staan en een speler die vaak terugkwam liet luisteraars achter. Die worden nu opgeruimd, en een nieuwe speler op een vrijgekomen plek ziet de voetgangers en voertuigen direct goed.
+- Samen spelen: voertuigen, het doelbaken en de figuren van andere spelers geven hun geheugen weer vrij als ze verdwijnen of opnieuw worden gebouwd, zodat een lange sessie niet steeds trager wordt.
+- Samen spelen via een kamercode: een broker die wegvalt terwijl je op een medespeler wacht, wordt opnieuw geprobeerd. Lukt het voorbereiden van de verbinding niet, dan zie je een Nederlandse melding in plaats van een systeemmelding.
+- Samen spelen: antwoordt de ander na 30 seconden niet (bijvoorbeeld omdat het spel nog laadt), dan zie je "De ander antwoordt niet" in plaats van eindeloos te wachten. Bij een andere versie van samen spelen staan nu beide versienummers in de melding.
+
 ### Nieuw
 - Pauzemenu (#430): nieuwe indeling. Spel (met het oude Overzicht: waar je bent, Samen spelen, opslaan, laden, opnieuw beginnen, stoppen), Verhaal (Opdrachten, Personages, Aanwijzingen), Loopbanen, Activiteiten (het oude Te doen), Kaart, Spullen, Garage, Prestaties, Foto's en Instellingen. Onder elke titel staat één korte zin over wat erin zit.
 - Pauzemenu (#430): Loopbanen heeft bovenaan de sectie Bezigheden met grote tegels voor Vissen en Boerderij. Bijbanen staan alleen nog bij hun loopbaan (met Zet als doel) en niet meer dubbel onder Activiteiten.
