@@ -723,9 +723,16 @@ function startWitnessCall(world, ev) {
   activeCall = { ped: best, x: ev.x, y: ev.y, kind: ev.kind };
 }
 
+// De speler rijdt de dienst van de bus waarin hij zit (busboard3d.js, #396): een kaping van die bus wordt niet meer aangegeven.
+function rijdtDienst(world, car) {
+  const a = world.sideJobActions;
+  return !!(a && a.vehicle && car && a.vehicle() === car);
+}
+
 function updateWitnessCall(world) {
   if (!activeCall) return;
   const { ped } = activeCall;
+  if (activeCall.kind === 'theft' && rijdtDienst(world, world.player.inVehicle)) { activeCall = null; return; }
   if (ped.state === 'dead' || !world.pedestrians.includes(ped) || world.wanted > 0) { activeCall = null; return; }
   if (ped.state !== 'call') { activeCall = null; return; }
   if (world.time < ped.stateUntil) return;
@@ -766,6 +773,7 @@ function reclaimCar(world, ped, car) {
 
 function reportCarTheft(world, ped, car) {
   if (world.wanted > 0 || world.player.inVehicle !== car) return;
+  if (rijdtDienst(world, car)) return; // geen aangifte van wie de dienst van deze bus overnam
   world.wanted = 1;
   world.policeTip = { x: ped.x, y: ped.y, time: world.time };
   world.wantedProfile = profileOf(world);
@@ -943,7 +951,7 @@ function managePopulation(world) {
     let excess = walkers - desired;
     for (let i = world.pedestrians.length - 1; i >= 0 && excess > 0; i--) {
       const p = world.pedestrians[i];
-      if (p.isCop || p.scene || p.nightlife || p.leader || p.carry || p.ontgroening || p.state !== 'wander') continue; // (the ones with a part keep it)
+      if (p.isCop || p.scene || p.nightlife || p.leader || p.carry || p.ontgroening || p.party || p.state !== 'wander') continue; // (the ones with a part keep it)
       if (dist(p.x, p.y, player.x, player.y) < 55 || !isSpawnHidden(world, p.x, p.y)) continue;
       if (FLAGS.simlagen) verlatenPool.afleggen(p.x, p.y);
       world.pedestrians.splice(i, 1);

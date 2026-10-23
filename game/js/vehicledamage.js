@@ -7,6 +7,8 @@
 // reparatie (dentLog leeg) zet alles in één keer terug. Bloedloos: alleen plaatwerk, glas,
 // rook en vuur; een bestuurder wordt hier nooit getoond of geraakt.
 
+import { staatTekst } from './studentenfiets.js';
+
 const ZONES = ['voor', 'achter', 'zijkant'];
 
 // Welke zone een klap raakte; len en wid zijn de maten van het model.
@@ -48,6 +50,19 @@ export function nieuwLos(vorigLog, nieuwLog, len, wid) {
 }
 
 export const onderdelenPrijs = (ids) => ids.reduce((s, id) => s + (ONDERDELEN[id] ? ONDERDELEN[id].price : 0), 0);
+
+// Een fiets (#402): wat eraan mankeert is de studentenstaat van het model (model.student: een scheef voorspatbord, geen voorlicht,
+// blauwe banden, rammelt) plus wat een klap voorop erbij maakt: vanaf FIETS_SPATBORD_AT is het voorspatbord scheef, vanaf
+// FIETS_LICHT_AT is het voorlicht los. Een nieuwe fiets heeft niets; bij het opnieuw opbouwen van het mesh staan ze er weer op.
+export const FIETS_SPATBORD_AT = 0.6;
+export const FIETS_LICHT_AT = 1.2;
+export function fietsStaat(v, len = 1.75, wid = 0.5) {
+  const s = { spatbord: false, licht: false, blauw: false, rammel: false, ...((v && v.model && v.model.student) || {}) };
+  const t = zoneTotals(v && v.dentLog, len, wid);
+  if (t.voor >= FIETS_SPATBORD_AT) s.spatbord = true;
+  if (t.voor >= FIETS_LICHT_AT) s.licht = true;
+  return s;
+}
 
 // De fases van een voertuig, van heel tot wrak.
 export const SMOKE_HEALTH = 55; // vanaf hier rookt de motorkap
@@ -94,5 +109,6 @@ export function schadeTekst(v, len, wid) {
   const zones = ZONES.filter((z) => t[z] >= DENT_FROM);
   const join = (a) => (a.length > 1 ? `${a.slice(0, -1).join(', ')} en ${a[a.length - 1]}` : a[0]);
   const los = losseOnderdelen(t).map((id) => ONDERDELEN[id].label.toLowerCase());
-  return [faseTekst(fase) + (zones.length ? ` (deuken ${join(zones)})` : ''), los.length ? `Los: ${join(los)}` : ''].filter(Boolean).join('. ');
+  const fiets = v && v.isBike ? staatTekst(fietsStaat(v, len, wid)) : '';
+  return [faseTekst(fase) + (zones.length ? ` (deuken ${join(zones)})` : ''), los.length ? `Los: ${join(los)}` : '', fiets ? `Fiets: ${fiets}` : ''].filter(Boolean).join('. ');
 }

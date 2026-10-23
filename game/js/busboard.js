@@ -57,6 +57,12 @@ export function busLineOf(v) {
   return r && r.line && r.dir ? { line: r.line, dir: r.dir } : null;
 }
 
+// Mag de speler in deze bus de lijndienst overnemen (#396)? Een bus op een lijn (line, dir), geen bus die al bij
+// een bijbaan hoort (jobVehicle), en nog geen dienst bezig.
+export function takeOverOffer({ isBus = false, jobVehicle = false, shiftActive = false, line = null, dir = 0 } = {}) {
+  return !!(isBus && !jobVehicle && !shiftActive && line && dir);
+}
+
 // Naam van halte i (op volgorde van de lijn, niet van de rit): de uiteinden
 // dragen de plaatsnaam, de haltes ertussen een verzonnen naam.
 export function stopLabel(line, i) {

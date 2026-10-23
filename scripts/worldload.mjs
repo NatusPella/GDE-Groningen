@@ -37,9 +37,9 @@ export async function loadArea(T, [x0, y0, x1, y1]) {
   const keys = [];
   const [i0, j0] = G.tileIndexOf(x0, y0), [i1, j1] = G.tileIndexOf(x1, y1);
   for (let i = i0; i <= i1; i++) for (let j = j0; j <= j1; j++) { const k = G.tileKey(i, j); if (T.store.has(k)) keys.push(k); }
-  const ov = Object.keys(T.index.tiles).filter((k) => k[0] === 'o');
-  for (const k of [...keys, ...ov]) T.store.pin(k);
-  await Promise.all([...keys, ...ov].map((k) => T.store.request(k, { priority: -1 })));
+  // (the overlays of the city's tiles come with those tiles)
+  for (const k of keys) T.store.pin(k);
+  await Promise.all(keys.map((k) => T.store.request(k, { priority: -1 })));
   T.world.tileQueue.run(1e9);
   return keys.length;
 }

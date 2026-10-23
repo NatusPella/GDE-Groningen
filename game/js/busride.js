@@ -3,8 +3,8 @@
 // krijgt alleen positie, snelheid en dt, en geeft gebeurtenissen terug die de
 // bijbaan (sidejob_lijn.js) in meldingen en geld omzet. Tests: scripts/busride_test.mjs.
 
-import { STOP_RADIUS } from './busroutes.js';
-import { buildTimetable, punctuality, holdSeconds, stopExchange, tripScore, CAPACITY } from './busservice.js';
+import { STOP_RADIUS, DWELL } from './busroutes.js';
+import { buildTimetable, punctuality, holdSeconds, stopExchange, tripScore, CAPACITY, CRUISE } from './busservice.js';
 
 const STOP_SPEED = 1.5;     // m/s: zo langzaam moet de bus staan om te halteren
 const BOARD_TIME = 3;       // s minimaal halteren
@@ -37,6 +37,26 @@ export function makeRide(line, { dir = 1, rng = Math.random, demand = 1, first =
     t: 0, phase: 'drive', dwellLeft: 0, onBoard: 0, passengers: 0,
     deltas: [], hardBrakes: 0, prevSpeed: 0, earlyFlag: false, done: false, failed: null,
   };
+}
+
+// De dienst overnemen van een bus die al rijdt (#396): de rit begint bij de halte die de bus net voorbij is,
+// met reizigers aan boord, en de eerstvolgende halte is het doel. s = boogafstand van de bus op de lijn,
+// dir = rijrichting. De klok loopt mee met wat de bus al van het stuk tussen de haltes heeft gereden, zodat
+// hij niet te vroeg of te laat begint. null als er geen halte meer vooruit ligt.
+export function takeOverRide(line, { dir = 1, s = 0, rng = Math.random, demand = 1, max = Infinity } = {}) {
+  const full = buildTimetable(line, { dir });
+  const nxt = full.findIndex((r) => (dir > 0 ? r.s > s + 1 : r.s < s - 1));
+  if (nxt < 0) return null;
+  const first = Math.max(0, nxt - 1);
+  const ride = makeRide(line, { dir, rng, demand, first, max });
+  if (ride.table.length < 2) return null;
+  const done = dir > 0 ? s - full[first].s : full[first].s - s; // m voorbij de vorige halte (kan negatief zijn: nog voor de eerste)
+  ride.next = 1;
+  ride.phase = 'drive';
+  ride.t = DWELL + done / CRUISE;
+  ride.onBoard = Math.min(CAPACITY, Math.round((6 + 14 * rng()) * demand));
+  ride.passengers = 0; // alleen wie na de overname instapt telt voor het loon
+  return ride;
 }
 
 export function rideStop(ride) { return ride.table[ride.next] || null; }

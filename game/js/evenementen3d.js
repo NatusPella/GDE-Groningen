@@ -5,6 +5,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { activeEvents, centreOf } from './evenementen.js';
 import { propLayout, crowdSpots, crowdCount, fitLayout, MAX_CROWD } from './evenementenlive.js';
+import { buitenGolf } from './werf.js';
 
 const SHOW_R = 420;
 
@@ -37,7 +38,9 @@ const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), p3 = new THREE.Vecto
 function build(scene, ev, ground, free) {
   const c = centreOf(ev), group = new THREE.Group();
   // props en menigte staan niet in huizen of water (free(x, y, marge) uit scene3d.js)
-  fitLayout(ev, propLayout(ev), (dx, dy) => free(c.x + dx, c.y + dy, 3)).forEach((pl, i) => {
+  // (bij een tewaterlating blijven menigte en hekken buiten de golf over de kade: werf.js)
+  const vrij = (dx, dy, m) => free(c.x + dx, c.y + dy, m) && (ev.kind !== 'tewaterlating' || buitenGolf(c.x + dx, c.y + dy));
+  fitLayout(ev, propLayout(ev), (dx, dy) => vrij(dx, dy, 3)).forEach((pl, i) => {
     const m = makeProp(pl.prop, i);
     const x = c.x + pl.dx, y = c.y + pl.dy;
     m.position.set(x, ground(x, y), y);
@@ -46,7 +49,7 @@ function build(scene, ev, ground, free) {
   });
   const body = new THREE.InstancedMesh(new THREE.BoxGeometry(0.5, 1.1, 0.32), mat(0xffffff), MAX_CROWD);
   const head = new THREE.InstancedMesh(new THREE.BoxGeometry(0.3, 0.3, 0.3), mat(0xd9b08c), MAX_CROWD);
-  const spots = fitLayout(ev, crowdSpots(ev), (dx, dy) => free(c.x + dx, c.y + dy, 0.8));
+  const spots = fitLayout(ev, crowdSpots(ev), (dx, dy) => vrij(dx, dy, 0.8));
   const n = Math.min(spots.length, crowdCount(ev));
   spots.slice(0, n).forEach((s, i) => {
     const x = c.x + s.dx, y = c.y + s.dy, z = ground(x, y);

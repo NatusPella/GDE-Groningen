@@ -68,7 +68,7 @@ export const BOAT_CLASS = {
   kano: 1, kajak: 1, sup: 1, waterfiets: 1,
   sloep: 2, rubberboot: 2, dinghy: 2, skiff: 2,
   acht: 3, rondvaart: 3, skutsje: 3,
-  binnenvaart: 4,
+  binnenvaart: 4, zeeschip: 4, sleper: 4,
 };
 // Air draft (m above the water of the highest fixed point, people seated or
 // kneeling) and draft (m below it) per boat kind; a sloep with a wheelhouse
@@ -77,10 +77,11 @@ export const BOAT_CLASS = {
 export const AIR_DRAFT = {
   kano: 1.0, kajak: 1.0, sup: 1.0, waterfiets: 1.5, sloep: 1.3, sloepCabin: 1.75, rubberboot: 1.2, dinghy: 1.1,
   skiff: 0.9, acht: 1.0, rondvaart: 1.6, skutsje: 2.6, binnenvaart: 4.2,
+  zeeschip: 4.2, sleper: 4.2, // (de masten gestreken: het schip komt onder de vaste bruggen van het vaarnet door, #398)
 };
 export const DRAFT = {
   kano: 0.2, kajak: 0.2, sup: 0.15, waterfiets: 0.3, sloep: 0.6, sloepCabin: 0.7, rubberboot: 0.3, dinghy: 0.4,
-  skiff: 0.2, acht: 0.3, rondvaart: 0.9, skutsje: 1.0, binnenvaart: 2.6,
+  skiff: 0.2, acht: 0.3, rondvaart: 0.9, skutsje: 1.0, binnenvaart: 2.6, zeeschip: 3.6, sleper: 2.2,
 };
 // a walker stands in water up to this deep (wades); deeper, he swims
 export const WADE_MAX = 1.2;

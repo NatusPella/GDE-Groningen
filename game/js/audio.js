@@ -18,6 +18,7 @@ import { createMusicWatch } from './musicwatch.js';
 import * as speech from './speech.js';
 import { drunkLevel } from './drunk.js';
 import { SPEAKER_MAX, SPEAKER_STOP, SPEAKER_LEVEL, SPEAKER_REF, SPEAKER_ROLLOFF, dopplerRate, edgeFade, pannerGain, pickSpeakers, pickSpeakerTrack } from './bikespeaker.js';
+import { rammelInterval } from './studentenfiets.js';
 import { KEYS } from './storagekeys.js';
 import { noteSound } from './soundcaptions.js';
 
@@ -936,6 +937,34 @@ function playBell(x, y) {
   }
 }
 
+// De reclametaxi (#404, reklametaxi3d.js): een noot van het goedkope deuntje op de plek van de taxi, met afstandsdemping
+// (spatialOut) en Doppler (dopplerCents) op de snelheid van de taxi; stem 'hat' is een tikje ruis. De taxi speelt zelf
+// geen opname: alles is een korte toon of ruisstoot.
+export function playReklameNoot(x, y, { freq, dur = 0.12, stem = 'lead', gain = 0.09, vx = 0, vy = 0, delay = 0 }) {
+  const out = spatialOut(x, y, { ref: 5, rolloff: 1.2, range: 95, h: 1.7, prio: 0 });
+  if (!out) return;
+  if (stem === 'hat') { playNoiseBurst({ duration: 0.03, freq: 6200, q: 1.5, gain: gain * 0.7, type: 'highpass', delay, out, prio: 0 }); return; }
+  const f = freq * Math.pow(2, clamp(dopplerCents({ x, y }, vx, vy), -250, 250) / 1200);
+  playTone({ freq: f, type: stem === 'bas' ? 'triangle' : 'square', duration: dur, gain: stem === 'bas' ? gain * 1.4 : gain, delay, filterFreq: stem === 'bas' ? 600 : 3400, out, prio: 0 });
+}
+
+// De megafoon van de reclametaxi: een kort kraakje (bandfilter op ruis) bij elke kreet.
+export function playReklameKraak(x, y) {
+  const out = spatialOut(x, y, { ref: 5, rolloff: 1.1, range: 110, h: 1.8, prio: 0 });
+  if (!out) return;
+  playNoiseBurst({ duration: 0.09, freq: 1700, q: 2.5, gain: 0.12, type: 'bandpass', out, prio: 0 });
+  playTone({ freq: 880, freqEnd: 660, type: 'square', duration: 0.08, gain: 0.05, delay: 0.1, filterFreq: 2400, out, prio: 0 });
+}
+
+// De rammel van een studentenfiets (#402, studentenfiets.js): een losse ketting- en spatbordtik, kort en dof, alleen dichtbij te horen.
+function playRammel(x, y) {
+  const out = spatialOut(x, y, { ref: 3, rolloff: 1.4, range: 28, h: 0.6 });
+  if (!out) return;
+  playNoiseBurst({ duration: 0.03, freq: 3300 + Math.random() * 900, q: 3, gain: 0.1, type: 'bandpass', out });
+  playNoiseBurst({ duration: 0.026, freq: 1700 + Math.random() * 400, q: 4, gain: 0.07, type: 'bandpass', delay: 0.05 + Math.random() * 0.05, out });
+  playTone({ freq: 880 + Math.random() * 300, type: 'square', duration: 0.035, gain: 0.02, delay: 0.03, out });
+}
+
 // Level-crossing bell: one hard metallic strike per event (railway.js repeats it).
 function playCrossingBell(x, y) {
   if (playFx('crossing_bell', x, y)) return;
@@ -1573,11 +1602,24 @@ export function playClueSting() {
 export function playTextMumble(who = '', text = '', dur = 2.5) {
   if (!ctx || muted || !stingBus) return;
   const n = Math.max(3, Math.min(14, Math.round(String(text).length / 4)));
-  const base = who === 'A' ? 235 : who === 'T' ? 118 : who === 'V' ? 160 : 150;
+  const base = who === 'A' ? 235 : who === 'T' ? 118 : who === 'V' ? 160 : who === 'R' ? 205 : 150;
   const step = Math.min(0.32, Math.max(0.12, (dur * 0.85) / n));
   for (let i = 0; i < n; i++) {
     const f = base * (0.9 + ((i * 7 + text.length) % 5) * 0.06);
     playTone({ freq: f, freqEnd: f * 0.93, type: 'triangle', duration: step * 0.8, gain: 0.018, delay: i * step + (i % 4 === 3 ? 0.08 : 0), filterFreq: 900 + ((i * 3) % 4) * 220, bus: stingBus, prio: 2 });
+  }
+}
+
+// The jingle of a radio advert (radioads.js, #409): a short bright run of notes on the sting bus, 'start' going
+// up, 'tussen' between two adverts and 'end' coming down. No recording; the station voice is playTextMumble('R').
+export function playRadioJingle(kind = 'start') {
+  if (!ctx || muted || !stingBus) return;
+  const notes = kind === 'end' ? [[784, 0], [659.25, 0.12], [523.25, 0.24]]
+    : kind === 'tussen' ? [[659.25, 0], [880, 0.1]]
+      : [[523.25, 0], [659.25, 0.1], [783.99, 0.2], [1046.5, 0.3], [783.99, 0.46], [1046.5, 0.56]];
+  for (const [f, d] of notes) {
+    playTone({ freq: f, type: 'square', duration: 0.16, gain: 0.028, delay: d, filterFreq: 2400, bus: stingBus, prio: 2 });
+    playTone({ freq: f * 2, type: 'sine', duration: 0.12, gain: 0.016, delay: d, bus: stingBus, prio: 2 });
   }
 }
 
@@ -3045,8 +3087,19 @@ function updateBikeSpeakers(dt, world) {
 
 function updateTrafficAudio(dt, world) {
   const running = [];
+  let rammelaars = 0;
+  const pl = world.player;
   for (const v of world.vehicles) {
     if (isEngineRunning(v)) running.push(v);
+    // een studentenfiets met een los spatbord of ketting rammelt, in de buurt van de speler en niet meer dan drie tegelijk
+    if (v.isBike && !v.wrecked && v.model.student && v.model.student.rammel) {
+      v._rammelT = (v._rammelT || 0) - dt;
+      if (v._rammelT <= 0) {
+        const iv = rammelInterval(v.speed);
+        v._rammelT = iv || 0.4;
+        if (iv && rammelaars < 3 && pl && Math.abs(v.x - pl.x) < 30 && Math.abs(v.y - pl.y) < 30) { rammelaars++; playRammel(v.x, v.y); }
+      }
+    }
     const horn = !!v.horn;
     if (horn && !hornWasOn.get(v) && v.driver !== 'player') {
       if (v._mount === 'horse') playWhinny(v.x, v.y);
