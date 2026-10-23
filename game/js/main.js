@@ -575,6 +575,7 @@ async function boot() {
       if (klaar) { gateMenu = samenGate(); takeOpenSamen(); samenSince = null; openPauseMenu('samen'); }
     }
     // het hek gaat pas open met minstens twee spelers en een druk op Spel starten (samenpanel.js); tot dan blijft iedereen in de wachtkamer
+    if (world.coopHekMenu) { world.coopHekMenu = false; if (gateOn()) gateMenu = true; } // een gast die midden in een spel aansloot bij een gastheer in de wachtkamer (coopgate.js)
     if (gateOn() && gateMenu && !isPauseMenuOpen()) openPauseMenu('samen');
     if (!gateOn()) gateMenu = false;
     updateMapView(dt, world);
