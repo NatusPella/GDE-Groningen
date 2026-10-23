@@ -35,6 +35,7 @@ import { buildingAt } from './tileplace.js';
 import { groupSpot, crowdPedCap } from './evenementenlive.js';
 import { centreOf } from './evenementen.js';
 import { noteWantedWhy } from './wantedwhy.js';
+import { isMissieVoertuig } from './missievoertuig.js';
 
 const WANDER_SPEED = 1.3;
 const FLEE_SPEED = 3.6;
@@ -396,8 +397,9 @@ function gatherEvents(world) {
   const v = player.inVehicle;
   if (v && v !== prevInVehicle) {
     // the job's own car/boat/bike is handed to you, never stolen
-    if (!v.isHeroCar && !v.missionCar && !v.playerOwned && !ownedVehicles.has(v)) {
-      const hadDriver = !!v.carjacked || world.time - (aiDrivenAt.get(v) ?? -Infinity) < 1.5 || seatedOf(v).driver === 'waiting';
+    // (vangnet: ook een wagen bij de missiemarker zonder bestuurder, zie missievoertuig.js)
+    const hadDriver = !!v.carjacked || world.time - (aiDrivenAt.get(v) ?? -Infinity) < 1.5 || seatedOf(v).driver === 'waiting';
+    if (!ownedVehicles.has(v) && !isMissieVoertuig(world, v, hadDriver)) {
       events.push({ kind: 'theft', x: v.x, y: v.y, r: 30, crime: hadDriver || !v.petty, vehicle: v, hadDriver });
     }
     ownedVehicles.add(v);

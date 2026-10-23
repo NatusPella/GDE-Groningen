@@ -6,6 +6,9 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Opgelost
+- **Een auto die bij je missie hoort is nooit autodiefstal:** instappen in de auto die een missie of bijbaan je geeft of aanwijst gaf soms toch een getuige, ster of achtervolging. Is er geen vlag meer op zo'n voertuig (bijvoorbeeld een auto die niet kon verschijnen en een andere die er staat), dan telt een voertuig bij de missiemarker tijdens een actieve missie ook niet als gestolen, zolang er geen voorbijganger in zat. Een auto met een bestuurder erin blijft een carjack. Geen wijziging in boetes of sterren.
+
 ## [0.41.1] - 2026-10-23
 
 ### Nieuw
