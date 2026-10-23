@@ -115,12 +115,12 @@ export function tekenVeroverd(ctx, toScreen, scale, cw, ch, hover, label, kleurT
   const dikte = lijnDikte(scale);
   const zicht = [];
   for (const r of lijst) {
-    if (r.niveau.id !== hoofd && r.niveau.id !== kader) continue;
+    if (r.niveau.id !== hoofd && r.niveau.id !== kader && r.niveau.id !== 'provincie') continue; // de provinciegrens (met Drenthe, Friesland en Duitsland erachter) staat op elke zoom (#435)
     const b = r.gebied.grens.b;
     const [x0, y0] = toScreen(b[0], b[1]), [x1, y1] = toScreen(b[2], b[3]);
     const l = Math.min(x0, x1), t = Math.min(y0, y1), rr = Math.max(x0, x1), bb = Math.max(y0, y1);
     if (rr < 0 || bb < 0 || l > cw || t > ch) continue;
-    zicht.push({ r, diag: Math.hypot(rr - l, bb - t), hoofd: r.niveau.id === hoofd });
+    zicht.push({ r, diag: Math.hypot(rr - l, bb - t), hoofd: r.niveau.id === hoofd, rand: r.niveau.id === 'provincie' && kader !== 'provincie' });
   }
   ctx.save();
   ctx.lineJoin = 'round';
@@ -133,8 +133,13 @@ export function tekenVeroverd(ctx, toScreen, scale, cw, ch, hover, label, kleurT
     lijn(ctx, s, s.breed, dikte, s.streep);
   }
   // 2. de grens van de laag erboven, dikker en doorgetrokken (de gemeente om haar woonplaatsen, de provincie om de gemeenten), met een lichte vulling als daar iets gedaan is
-  for (const { r, hoofd: isHoofd } of zicht) {
+  for (const { r, hoofd: isHoofd, rand } of zicht) {
     if (isHoofd) continue;
+    if (rand) { // alleen de rand van de provincie: dik en doorgetrokken, zonder vulling
+      pad(ctx, r.gebied.grens, toScreen);
+      lijn(ctx, { lijn: kleurTekst, lijnAlpha: 0.9 }, 2.6, dikte, false);
+      continue;
+    }
     pad(ctx, r.gebied.grens, toScreen);
     const ks = stijl(r, kleurTekst);
     if (ks.vul) { ctx.globalAlpha = ks.alpha * 0.55; ctx.fillStyle = ks.vul; ctx.fill('evenodd'); }
@@ -147,16 +152,17 @@ export function tekenVeroverd(ctx, toScreen, scale, cw, ch, hover, label, kleurT
   for (const z of zicht) {
     const r = z.r;
     if (!z.hoofd || z.diag < 90) continue;
-    if (!r.voltooid && !r.veroverbaar) continue;
-    kand.push({ r, diag: z.diag, prio: r.voltooid ? 3 : r.klaar > 0 ? 2 + r.deel : 1 });
+    // ook een gebied waar niets te veroveren valt (de gemeente Groningen) heeft zijn naam en is aan te wijzen (#435)
+    kand.push({ r, diag: z.diag, prio: r.voltooid ? 3 : r.klaar > 0 ? 2 + r.deel : r.veroverbaar ? 1 : 0 });
   }
   kand.sort((a, b) => b.prio - a.prio || b.diag - a.diag);
   const geplaatst = [];
   for (const { r, diag } of kand) {
+    if (geplaatst.length >= 6) break; // nooit een volle kaart: de belangrijkste zes namen
     const g = r.gebied;
     const [sx, sy] = toScreen(g.x, g.y);
     if (sx < 30 || sy < 20 || sx > cw - 30 || sy > ch - 20) continue;
-    const regel2 = r.voltooid ? 'veroverd' : `${r.klaar} van ${r.totaal} · ${r.pct}%`;
+    const regel2 = r.voltooid ? 'veroverd' : r.veroverbaar ? `${r.klaar} van ${r.totaal} · ${r.pct}%` : '';
     ctx.font = '600 13px sans-serif';
     const w1 = ctx.measureText(g.naam).width;
     ctx.font = '11px sans-serif';
@@ -170,8 +176,9 @@ export function tekenVeroverd(ctx, toScreen, scale, cw, ch, hover, label, kleurT
     ctx.font = '600 13px sans-serif';
     label(ctx, g.naam, sx, sy + 2, kleurTekst, 'center');
     ctx.font = '11px sans-serif';
-    label(ctx, regel2, sx, sy + 16, r.voltooid ? r.vlag : kleurTekst, 'center');
+    if (regel2) label(ctx, regel2, sx, sy + 16, r.voltooid ? r.vlag : kleurTekst, 'center');
     if (r.voltooid) hover.push({ sx, sy: sy - vlag * 0.5, name: r.titel, sub: `${r.niveau.enkel[0].toUpperCase()}${r.niveau.enkel.slice(1)} veroverd: alles gedaan (${r.totaal} dingen)` });
+    else hover.push({ sx, sy, name: g.naam, sub: r.veroverbaar ? `${r.niveau.enkel[0].toUpperCase()}${r.niveau.enkel.slice(1)}: ${r.klaar} van ${r.totaal} gedaan` : `${r.niveau.enkel[0].toUpperCase()}${r.niveau.enkel.slice(1)}` }); // aanwijsbaar en aan te klikken (#435)
   }
   ctx.restore();
   return hoofd;

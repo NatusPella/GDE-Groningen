@@ -239,7 +239,7 @@ function injectStyles() {
     .mapview-legend .mv-grp-head { display: flex; justify-content: space-between; width: 100%; padding: 8px 12px; background: none; border: 0; cursor: pointer; font: 16px 'Bebas Neue', 'Arial Narrow', sans-serif; letter-spacing: 1px; color: ink(cream 0.62); }
     .mapview-legend .mv-grp-head:focus-visible { outline: 2px solid ink(cream); }
     .mapview-legend ul { list-style: none; margin: 0; padding: 0 8px 8px; }
-    .mapview-legend ul[hidden] { display: none; }
+    .mapview-legend ul[hidden], .mapview-legend[hidden] { display: none; }
     .mapview-legend li {
       display: grid; grid-template-columns: 30px minmax(0, 1fr) auto; align-items: center; gap: 10px; font-size: 18px; letter-spacing: 0.3px; line-height: 1;
       padding: 4px; border-radius: 6px; user-select: none; transition: background var(--dur-fast, 120ms);
@@ -2277,6 +2277,7 @@ export function setMapActive(world, on) {
   if (!state || on === state.open) return;
   if (on) {
     openMap(world);
+    if (!state.legendGezien) { state.legendGezien = true; toggleLegend(true); } // legenda en filters staan de eerste keer open: ze zaten achter de knop Lagen (#435)
     centreOn(world.player.x, world.player.y, 2);
     state.canvas.focus({ preventScroll: true });
   } else closeMap();
