@@ -27,11 +27,31 @@ export function bruikbaar(map, x, y, d) {
   return !!map.canWalkOut(x, y, STAND_REACH);
 }
 
+// Ligt een punt op een rijweg (een weg die geen voetpad of fietspad is)? Een huisje op de rijbaan sluit de weg af (#436: Hoogkerk).
+export const WEG_MARGE = 0.4; // m naast de rand van de rijbaan waar het huisje nog te dicht staat
+export function opRijweg(map, x, y) {
+  if (!map.roadsNear) return false;
+  for (const r of map.roadsNear(x, y, 12)) {
+    if (!r.pts || r.cat === 'foot' || r.cat === 'cycle' || r.bridge || r.tunnel) continue;
+    const lim = (r.width || 5) / 2 + WEG_MARGE;
+    for (let i = 0; i < r.pts.length - 1; i++) {
+      const [ax, ay] = r.pts[i], [bx, by] = r.pts[i + 1];
+      const dx = bx - ax, dy = by - ay, l2 = dx * dx + dy * dy || 1;
+      const t = Math.max(0, Math.min(1, ((x - ax) * dx + (y - ay) * dy) / l2));
+      if (Math.hypot(x - (ax + dx * t), y - (ay + dy * t)) < lim) return true;
+    }
+  }
+  return false;
+}
+
 // Staat een huisje met zijn midden op (x, y) en zijn voorkant naar ang goed: het midden, de vier hoeken en de plek bij de deur.
 export function huisVrij(map, x, y, ang, d) {
   const fx = Math.cos(ang), fy = Math.sin(ang), rx = -fy, ry = fx;
   const punten = [[x, y], [x + fx * HX + rx * HZ, y + fy * HX + ry * HZ], [x + fx * HX - rx * HZ, y + fy * HX - ry * HZ], [x - fx * HX + rx * HZ, y - fy * HX + ry * HZ], [x - fx * HX - rx * HZ, y - fy * HX - ry * HZ],
     [x + fx * DEUR_AFSTAND, y + fy * DEUR_AFSTAND]];
+  // ook de middens van de zijden: een huisje van 4,5 bij 5,5 m kan met alleen de hoeken op een smalle weg liggen
+  const zijden = [[x + fx * HX, y + fy * HX], [x - fx * HX, y - fy * HX], [x + rx * HZ, y + ry * HZ], [x - rx * HZ, y - ry * HZ]];
+  if ([[x, y], ...zijden, ...punten.slice(1, 5)].some(([px, py]) => opRijweg(map, px, py))) return false;
   return punten.every(([px, py]) => droog(map, px, py, d) && bruikbaar(map, px, py, d));
 }
 

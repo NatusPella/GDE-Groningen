@@ -9,7 +9,7 @@
 import { getScene } from './scene3d.js';
 import { regionEdgeLayer } from './regions.js';
 import { edgeRule } from './worldedge.js';
-import { createEdgeWatch, stepEdgeWatch } from './edgescene.js';
+import { createEdgeWatch, stepEdgeWatch, snapSpotToRoad } from './edgescene.js';
 import { buildProp, disposeProp, animateProp } from './ommelandprops3d.js';
 import { WATER_Y } from './util.js';
 
@@ -57,8 +57,11 @@ function clearScene() {
   props = [];
 }
 
-function putBack(w, spot) {
+function putBack(w, plannedSpot) {
   const p = w.player, v = p.inVehicle;
+  // over land (te voet, auto, fiets): terug op de weg, niet in een weiland (#436)
+  const mode = modeOf(p, v);
+  const spot = mode === 'foot' || mode === 'car' || mode === 'bike' ? snapSpotToRoad(w.map, plannedSpot, mode !== 'foot') : plannedSpot;
   if (v) {
     v.x = spot.x; v.y = spot.y; v.angle = spot.angle;
     v.speed = 0; v.vx = 0; v.vy = 0; v.driftX = 0; v.driftY = 0;

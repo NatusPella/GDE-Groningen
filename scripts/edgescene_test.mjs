@@ -86,6 +86,20 @@ for (const kind of used) {
   try { const pr = P.buildProp(kind, { hw: 3 }, {}); ok(pr.group.children.length > 0, kind + ' builds'); P.disposeProp(pr); } catch (e) { ok(false, kind + ' builds: ' + e.message); }
 }
 
+// terugzetten op de weg (#436)
+{
+  const road = { pts: [[0, 0], [100, 0]] };
+  const map = { nearestRoadPoint: (x) => ({ x: Math.max(0, Math.min(100, x)), y: 0, road }) };
+  const a = S.snapSpotToRoad(map, { x: 30, y: 40, angle: 0.2 });
+  ok(a.y === 0, 'terugzetten: op de weg');
+  ok(Math.abs(a.angle) < 1e-9, 'terugzetten: langs de weg, naar binnen');
+  const b = S.snapSpotToRoad(map, { x: 30, y: 40, angle: Math.PI - 0.2 });
+  ok(Math.abs(Math.abs(b.angle) - Math.PI) < 1e-9, 'terugzetten: andere kant op als de kijkrichting dat vraagt');
+  const brug = { nearestRoadPoint: () => ({ x: 1, y: 1, road: { pts: [[0, 0], [9, 9]], bridge: true } }) };
+  ok(S.snapSpotToRoad(brug, { x: 5, y: 5, angle: 0 }).x === 5, 'terugzetten: niet op een brug');
+  ok(S.snapSpotToRoad({ nearestRoadPoint: () => null }, { x: 5, y: 5, angle: 0 }).x === 5, 'terugzetten: geen weg, de plek blijft');
+}
 if (fails) { console.log(fails + ' failed'); process.exit(1); }
 console.log('edgescene: all passed');
 process.exit(0); // overlayhold.js start een interval bij het laden
+

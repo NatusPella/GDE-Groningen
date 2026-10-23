@@ -737,10 +737,11 @@ function resolveContacts(world) {
   const p = world.player;
   for (const t of trains) {
     for (const car of t.cars) {
-      if (car.z > 2.2) continue;
+      // a car up on an embankment hits only whoever stands up there too (a platform: #436), not what is under it
+      const high = car.z > 2.2;
       const hl = car.len / 2;
       const reach = hl + 4;
-      for (const v of world.vehicles) {
+      for (const v of high ? [] : world.vehicles) {
         if (v.isBoat || v.sinking || v.onTrain) continue;
         if (Math.abs(v.x - car.x) > reach + v.halfLen || Math.abs(v.y - car.y) > reach + v.halfLen) continue;
         if (inRailBridgeZone(v.x, v.y)) continue;
@@ -752,12 +753,12 @@ function resolveContacts(world) {
           if (push) { hitVehicle(v, t, car, push, world); break; }
         }
       }
-      if (!p.inVehicle && !world.trainDriving && (p.z || 0) < 3.5 && Math.abs(p.x - car.x) < reach && Math.abs(p.y - car.y) < reach && !inRailBridgeZone(p.x, p.y)) {
+      if (!p.inVehicle && !world.trainDriving && Math.abs((p.gz || 0) + (p.z || 0) - (car.z || 0)) < 3.5 && Math.abs(p.x - car.x) < reach && Math.abs(p.y - car.y) < reach && !inRailBridgeZone(p.x, p.y)) {
         const push = pushOut(car, hl, p.x, p.y, p.radius || 0.35);
         if (push) hitPlayer(t, car, push, world);
       }
       const c = world.companion;
-      if (c && !c.inVehicle && !world.trainDriving && !c.water && c.state !== 'dead' && Math.abs(c.x - car.x) < reach && Math.abs(c.y - car.y) < reach && !inRailBridgeZone(c.x, c.y)) {
+      if (c && !c.inVehicle && !world.trainDriving && !c.water && c.state !== 'dead' && Math.abs((c.gz || 0) + (c.z || 0) - (car.z || 0)) < 3.5 && Math.abs(c.x - car.x) < reach && Math.abs(c.y - car.y) < reach && !inRailBridgeZone(c.x, c.y)) {
         const push = pushOut(car, hl, c.x, c.y, c.radius || 0.35);
         if (push) hitCompanion(c, t, car, push, world);
       }
@@ -766,7 +767,7 @@ function resolveContacts(world) {
         const push = pushOut(car, hl, f.x, f.y, 0.35);
         if (push) { f.x += push.nx * push.depth; f.y += push.ny * push.depth; }
       }
-      for (const ped of world.pedestrians) {
+      for (const ped of high ? [] : world.pedestrians) {
         if (Math.abs(ped.x - car.x) > reach || Math.abs(ped.y - car.y) > reach) continue;
         const push = pushOut(car, hl, ped.x, ped.y, ped.radius || 0.35);
         if (push && !inRailBridgeZone(ped.x, ped.y)) hitPedestrian(ped, t, car, push, world);
