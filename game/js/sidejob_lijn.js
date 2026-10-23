@@ -6,7 +6,8 @@ import { getBusLines } from './vehicle.js';
 import { startAt, nearestLine } from './busroutes.js';
 import { spawnJobVehicle, pick } from './sidejobkit.js';
 import { queueHalte } from './haltefiguren.js';
-import { makeRide, planRide, startRide, updateRide, rideStop, stopPos } from './busride.js';
+import { makeRide, planRide, startRide, takeOverRide, updateRide, rideStop, stopPos } from './busride.js';
+import { project } from './busroutes.js';
 
 const COACH = { name: 'bus', len: 11.5, wid: 2.55, maxSpeed: 22, accel: 2.6, brake: 9, turnRate: 1.1, color: '#2e8b6a' };
 
@@ -41,6 +42,16 @@ export default {
   },
 
   start(c) {
+    // de dienst overnemen van de bus waar je al in zit (busboard3d.js, #396): die bus, die lijn, die richting
+    const tk = c.takeover;
+    if (tk) {
+      const ride = takeOverRide(tk.line, { dir: tk.dir, s: project(tk.line, tk.vehicle.x, tk.vehicle.y).s, max: MAX_STOPS });
+      if (!ride) return 'Geen halte meer vooruit op deze lijn';
+      c.data.line = tk.line;
+      c.data.pending = ride;
+      c.vehicle = tk.vehicle;
+      return true;
+    }
     const lines = getBusLines();
     if (!lines.length) return 'Geen buslijn in de buurt';
     const line = nearestLine(lines, c.spot.x, c.spot.y, 3000) || lines[0];
@@ -57,6 +68,16 @@ export default {
 
   round(c) {
     const d = c.data;
+    if (d.pending) {
+      // eerste ronde na een overname: de rit loopt al, er stapt niemand in bij de start
+      d.ride = d.pending;
+      d.pending = null;
+      c.vehicle.rideLine = { line: d.line, dir: d.ride.dir };
+      const nu = rideStop(d.ride), last = d.ride.table[d.ride.table.length - 1];
+      c.timeLeft = last.arrive - d.ride.t + 120;
+      c.msg(`Dienst overgenomen: eerst ${nu.name}, dan ${last.name}.`, 3.5);
+      return;
+    }
     const plan = planRide(d.line, c.vehicle.x, c.vehicle.y);
     d.ride = makeRide(d.line, { ...plan, max: MAX_STOPS });
     c.vehicle.rideLine = { line: d.line, dir: d.ride.dir }; // het bord en het HUD-kaartje volgen de rit (busboard3d.js, #386)
