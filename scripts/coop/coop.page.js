@@ -109,7 +109,7 @@ function sampleNow(n) {
     verdiend: x.coopVerdiend || 0, ri: x.coop && x.coop.remoteInput ? [Math.round(x.coop.remoteInput.mx * 100) / 100, Math.round(x.coop.remoteInput.my * 100) / 100, x.coop.remoteInput.buttons | 0] : null,
     hm: hm ? (hm.actief ? hm.label + ' | ' + (hm.stap || '') : '-') : null,
     weer: x.weatherState && x.weatherState.regions ? Object.entries(x.weatherState.regions).map(([id, r]) => id + ':' + r.kind + ':' + Math.round(r.rain * 100)).join(',') : null, wx: x.weather ? [x.weather.kind || '', Math.round((x.weather.intensity || 0) * 100)] : null, pm: (x.coopPingMarks || []).map((m) => m.tekst + '|' + m.naam).join(';'), voert: x.coopInVoertuig ? 1 : 0,
-    hostMesh: x.coopHostMeshes || null,
+    hostMesh: x.coopHostMeshes || null, extra: x.coopExtraMeshes || null, extraB: x.coopExtraBytes || 0, extraS: x.coopExtra ? [x.coopExtra.voetgangers.size, x.coopExtra.uiterlijk.size, x.coopExtra.dieren.size, x.coopExtra.lichten.size, x.coopExtra.kapot.length] : null,
     hostEnt: x.coopHost ? [x.coopHost.voertuigen.length, x.coopHost.doelen.length, (x.coopHost.voetgangers || []).length] : null,
     vs: x.player && x.player.inVehicle ? [Math.round((x.player.inVehicle.speed || 0) * 10) / 10, x.player.inVehicle.wrecked ? 1 : 0, Math.round(x.player.inVehicle.health ?? -1), x.coopWielSlot ?? null] : null,
     veh: x.player && x.player.inVehicle ? 1 : 0, vehC: x.companion && x.companion.inVehicle ? 1 : 0, nVeh: (x.vehicles || []).length,
@@ -423,6 +423,28 @@ const PHASES = {
     const ok = C.payGuest(W(), geld, 1);
     log('betaald', { ok, geld });
     await sleep(3000);
+  },
+  // samen spelen (#428): de rest van de wereld van de host bij de gast (voetgangers, dieren, lichten, kapotte objecten). stap 'props': kies een paar
+  // props bij de gast (de testbank vertelt de nep-host dat ze kapot zijn); stap 'kijk': meet wat de gast tekent en maak schermafbeeldingen.
+  async wereld428({ stap = 'kijk', naam = 'w428' }) {
+    const w = W();
+    if (CFG.role === 'host') { await sleep(4000); return; }
+    const B = await import('./js/breakables.js'), T = await import('./js/trafficlights.js');
+    if (stap === 'props') {
+      const lijst = B.findProps(w.player.x, w.player.y, 45).filter((p) => /^[a-z]+@-?d+,-?d+$/.test(p.key) && ['bin', 'bench', 'table', 'parasol', 'lamp', 'chair'].includes(p.kind)).slice(0, 4);
+      log('w428-props', { keys: lijst.map((p) => ({ key: p.key, x10: Math.round(p.x * 10), y10: Math.round(p.y * 10) })), alle: B.findProps(w.player.x, w.player.y, 45).length });
+      return;
+    }
+    const cs = T.getTrafficControllers();
+    const e = w.coopExtra;
+    log('w428', {
+      meshes: w.coopExtraMeshes || null, hostMesh: w.coopHostMeshes || null, bytes: w.coopExtraBytes || 0,
+      stand: e ? [e.voetgangers.size, e.uiterlijk.size, e.dieren.size, e.lichten.size, e.kapot.length, e.spraak.size] : null,
+      lichtT: [0, 1, 2, 3, 4].map((i) => (cs[i] ? Math.round(cs[i].t * 10) / 10 : null)), lichtHost: e ? [0, 1, 2, 3, 4].map((i) => (e.lichten.get(i) ? e.lichten.get(i).t : null)) : null,
+      kapot: (e ? e.kapot : []).map((k) => [k.key, B.isPropBroken(k.key)]), lokaalPeds: (w.pedestrians || []).length, lokaalDieren: (w.wildlife || []).length, lokaalVoertuigen: (w.vehicles || []).length,
+      sprekers: (w.extraSpeakers || []).length,
+    });
+    for (let i = 0; i < 4; i++) { w.camYaw = i * Math.PI / 2; await sleep(500); shot(naam + '-' + i); await sleep(300); }
   },
   // samen spelen (#388): de camera van de gast draait met de muis (hij draaide nooit omdat updateGameplay niet draait voor een gast)
   async gastcamera() {

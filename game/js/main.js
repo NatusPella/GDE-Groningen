@@ -2,9 +2,9 @@
 import './storagekeys.js';
 import './oudmigratie.js';
 import { streamTreeProps } from './treeprops.js';
-import { streamTrafficLightProps } from './trafficlights.js';
+import { streamTrafficLightProps, getTrafficControllers } from './trafficlights.js';
 import { streamFlitspaalProps } from './flitspaal.js';
-import { addPropStreamer } from './breakables.js';
+import { addPropStreamer, brokenKeysNear } from './breakables.js';
 import './geokernels.js'; // registers the geometry kernels with geojobs.js
 import { setErrorContext } from './errorlog.js';
 import { DEV, STORY_TEST, FLAGS } from './devflags.js';
@@ -14,6 +14,7 @@ import { isHoldOpen, checkHold } from './coophold.js';
 import { updatePartnerChip } from './coophud.js';
 import { syncFigures, hasFigureMeshes } from './coopfigures3d.js';
 import { syncHostEntities, hasHostEntities, clearHostEntities } from './coopentities3d.js';
+import { syncExtra, hasExtra, clearExtra } from './coopextra3d.js';
 import { syncPings, hasPingMeshes } from './cooppings3d.js';
 import { updateHostScene, hasHostScene } from './coopscene.js';
 import { loadMap } from './mapdata.js';
@@ -421,6 +422,7 @@ async function boot() {
   initHome(world);
   parkHeroAtHome(world);
   initTrafficLights(world);
+  world.coopExtraDeps = { controllers: getTrafficControllers, gebroken: brokenKeysNear }; // wat de host de gasten vertelt (coopnet.js, coopextra.js)
   initRailway(world);
   buildMovableBridges(world.map);
   // the province's movable bridges come with the streamed tiles, not with map.roads (#235)
@@ -634,7 +636,7 @@ async function boot() {
     if (world.coopNet || world.coopPartner !== undefined) updatePartnerChip(world);
     if (world.coopNet || hasFigureMeshes()) syncFigures(world, dt); // de figuren van de andere spelers (#95)
     if (world.coopNet || hasPingMeshes()) syncPings(world); // de roepjes van de spelers (#367)
-    if (world.coopRole === 'client') syncHostEntities(world, dt); else if (hasHostEntities()) clearHostEntities(); // voertuigen en doel van de host bij een gast
+    if (world.coopRole === 'client') { syncHostEntities(world, dt); syncExtra(world, dt); } else { if (hasHostEntities()) clearHostEntities(); if (hasExtra()) clearExtra(); } // voertuigen, doel, voetgangers, dieren, lichten en kapotte objecten van de host bij een gast (#428)
     if (world.coopScene || hasHostScene()) updateHostScene(world); // filmpje, regel en keuze van de host bij een gast
     probe.mark('phone+save');
     updateSafety(dt, world);

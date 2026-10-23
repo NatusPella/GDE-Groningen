@@ -21,6 +21,7 @@ import { coopStep } from './coopglue.js';
 import { gateOn, setGate, hekBericht } from './coopgate.js';
 import { WIEL_TEKST, WIEL_HOST_TEKST, WIEL_VERZOEK_S, kanUitstappen } from './coopgast.js';
 import { nieuwCutVerzamelaar, cutGastSpeel, cutGastStop, leesCutTijd, cutSpoor } from './coopcut.js';
+import { verzamelExtra, codeerExtra, leesExtra, nieuwGeheugen, nieuweStand, pasExtraToe } from './coopextra.js';
 import { verzamelEntiteiten, leesEntiteiten, missieBericht, leesMissieBericht, missieTekst, sceneBericht, leesSceneBericht, sceneLeeg, filmpjeTekst } from './coopworld.js';
 import { verhaalRol, openerNaam, charInfo } from './coopplayers.js';
 import { KLOK_EVERY, klokEvent, leesKlokEvent, KlokVolger } from './net/speelklok.js';
@@ -60,7 +61,24 @@ const posOf = (b) => (b && b.inVehicle && Number.isFinite(b.inVehicle.x) && Numb
 
 // sim-adapter voor de host: plek 0 = world.player, plek 1 = world.companion, plek 2+ = figuren
 export function hostSim(world, roster) {
+  const geheugens = new Map(); // per gast wat de extra wereld (coopextra.js) hem al vertelde
+  const lichamen = () => {
+    const p = world.player, c = world.companion;
+    const l = [p, c].filter(Boolean).map(posOf);
+    for (const s of roster().spelers) if (s.slot >= 2) { const f = figures(world)[s.slot]; if (f) l.push(f); }
+    return l.filter((q) => q && Number.isFinite(q.x) && Number.isFinite(q.y));
+  };
   return {
+    // voetgangers (uiterlijk, lopen), dieren, verkeerslichten en kapotte objecten van de host (#428), per gast op maat
+    extra(slot) {
+      const bij = lichamen(); if (!bij.length) return null;
+      const f = slot === 1 ? posOf(world.companion) : figures(world)[slot];
+      const oorsprong = f && Number.isFinite(f.x) && Number.isFinite(f.y) ? f : bij[0];
+      let g = geheugens.get(slot); if (!g) geheugens.set(slot, g = nieuwGeheugen());
+      const d = world.coopExtraDeps || {};
+      const deps = { controllers: d.controllers ? d.controllers() : [], gebroken: d.gebroken, misc: d.misc };
+      return codeerExtra(verzamelExtra(world, bij, g, deps), oorsprong);
+    },
     applyInput(slot, input) {
       if (!world.coop || slot < 1) return;
       if (slot === 1) { world.coop.remote = true; world.coop.remoteInput = input; return; }
@@ -90,7 +108,7 @@ function prepareCoop(world) {
 function endCoop(world) {
   if (world.coop) { delete world.coop.leash; }
   if (world.coop) { world.coop.remote = false; world.coop.remoteInput = null; world.coop.fixedChars = false; if (world.coop.prevLocal !== undefined) { world.coop.local = world.coop.prevLocal; world.coop.prevLocal = undefined; } }
-  world.coopPartner = null; world.coopPartners = []; world.coopRoster = null; world.coopFigures = {}; world.coopHost = null; world.coopHostMissie = null; world.coopCam = null; world.coopScene = null;
+  world.coopPartner = null; world.coopPartners = []; world.coopRoster = null; world.coopFigures = {}; world.coopHost = null; world.coopExtra = null; world.coopHostMissie = null; world.coopCam = null; world.coopScene = null;
   world.coopMeld = null; world.coopDeel = null; world.coopUitslag = null; world.coopPingMarks = []; world.coopSpelers = []; world.coopGebruik = false; world.coopWielSlot = null; world.coopWielVraag = null; world.coopWiel = false; world.coopInVoertuig = false; // (#291)
   if (world.companion) world.companion.coopUit = false;
 }
@@ -172,6 +190,7 @@ export function startClient(world, transport, info, opts = {}) {
   world.coop.local = false;
   session.onlost = () => { if (onHold) onHold('client', session.slot, `Verbinding met ${openerNaam(world.coopRoster)} is weg.`); };
   session.onevent = (b) => handleEvent(world, b, 0);
+  session.onextra = (lading) => { const m = leesExtra(lading); if (m) { world.coopExtra = pasExtraToe(world.coopExtra || nieuweStand(), m, now(world)); world.coopExtraBytes = (world.coopExtraBytes || 0) + lading.length; } }; // de rest van de wereld van de host (#428, coopextra3d.js)
   // de host is de baas: bij een desync (net/desync.js) zet de gast zijn wanted weer gelijk aan dat van de host
   session.onresync = (st) => { if (st && Number.isFinite(st.wanted)) world.wanted = st.wanted | 0; };
   world.coopRole = 'client';
