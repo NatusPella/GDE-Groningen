@@ -233,7 +233,7 @@ export function view(s) {
       });
     }
     case 'geweigerd':
-      return V({ title: 'Koppelen mislukt', lines: [s.reason === 'versie' ? versieTekst(s.caps.versie, s.andereVersie) : (REASON_TEXT[s.reason] || 'Koppelen is niet gelukt.')], buttons: [{ act: 'terug', label: 'Terug', primary: true }, { act: 'diag', label: 'Verbinding testen' }] });
+      return V({ title: 'Koppelen mislukt', lines: [s.reason === 'versie' || s.reason === 'protocol' ? versieTekst(s.caps.versie, s.andereVersie) : (REASON_TEXT[s.reason] || 'Koppelen is niet gelukt.')], buttons: [{ act: 'terug', label: 'Terug', primary: true }, { act: 'diag', label: 'Verbinding testen' }] });
     case 'diag-vraag':
       return V({ title: 'Verbinding testen', lines: [DIAG_TEXT], buttons: [{ act: 'diag-go', label: 'Test starten', primary: true }, { act: 'diag-terug', label: 'Annuleren' }] });
     case 'diag-bezig':
