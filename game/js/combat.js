@@ -23,7 +23,14 @@ import { noteWantedWhy } from './wantedwhy.js';
 
 export { WEAPONS, WEAPON_KEYS, isMeleeWeapon, isRangedWeapon, isGunWeapon };
 
+// Een wapen is van jou zodra je het hebt gekocht of gevonden, ook als de patronen op zijn (#437): de sleutel staat dan in world.ammo (met 0).
 export function hasWeapon(world, key) {
+  const w = WEAPONS[key];
+  return !!w && (w.ammo === Infinity || Number.isFinite(world.ammo[key]));
+}
+
+// Er zit nog iets in om mee te schieten of te slaan.
+export function hasAmmo(world, key) {
   const w = WEAPONS[key];
   return !!w && (w.ammo === Infinity || (world.ammo[key] || 0) > 0);
 }
@@ -92,6 +99,12 @@ export function updateCombat(dt, world) {
   }
 
   if (!input.mouse.down || fireTimer > 0 || !usable || !hasWeapon(world, world.weapon)) return;
+  if (!hasAmmo(world, world.weapon)) {
+    // leeg: alleen het klikje, het wapen blijft in je hand en in je bezit
+    fireTimer = 0.5;
+    weaponSound(world, { sub: 'empty', weapon: world.weapon, x: p.x, y: p.y });
+    return;
+  }
 
   // aim = current facing: on foot player.js turns the body to the camera
   // heading while the mouse button is held; driving, the car's heading

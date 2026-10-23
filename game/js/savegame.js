@@ -389,7 +389,7 @@ export function applySave(w, d) {
       ammo[k] = v === 'inf' ? Infinity : Math.max(0, num(v, 0));
     }
     w.ammo = ammo;
-    w.weapon = WEAPONS[d.weapon] && (WEAPONS[d.weapon].ammo === Infinity || ammo[d.weapon] > 0) ? d.weapon : 'fists';
+    w.weapon = WEAPONS[d.weapon] && (WEAPONS[d.weapon].ammo === Infinity || Number.isFinite(ammo[d.weapon])) ? d.weapon : 'fists';
     for (const k of Object.keys(w.stats)) delete w.stats[k];
     Object.assign(w.stats, statsFromSave(d.stats));
     if (d.character === 'tammo' || d.character === 'anita') {
