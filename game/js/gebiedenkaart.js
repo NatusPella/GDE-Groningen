@@ -56,9 +56,9 @@ export function tekenVlag(ctx, x, y, s, kleur) {
 }
 
 // De laag die bij deze zoom past, op vaste drempels in schermpixels per meter (de gebieden van een laag zijn niet even groot: een wijk buiten de stad is groter dan een woonplaats,
-// dus de grootte is geen goede maat): ver uit gemeenten (tot de hele provincie), dan woonplaatsen, dan wijken, helemaal dichtbij buurten. Op de grote kaart is dat ongeveer
-// zoom 0,6 en lager, 0,6 tot 1,3, 1,3 tot 3 en daarboven. De provincie is nooit de hoofdlaag: ver uit zijn het de gemeenten met de provinciegrens erom.
-export const DREMPELS = [[0.025, 'gemeente'], [0.08, 'woonplaats'], [0.25, 'wijk']];
+// dus de grootte is geen goede maat): ver uit gemeenten (tot de hele provincie), dan woonplaatsen, dan wijken, helemaal dichtbij buurten. Op de grote kaart is een zoom van 1 ongeveer 0,09 px per meter:
+// gemeenten tot zoom 0,7, woonplaatsen tot 1,7, wijken tot 4 en daarboven buurten. De provincie is nooit de hoofdlaag: ver uit zijn het de gemeenten met de provinciegrens erom.
+export const DREMPELS = [[0.06, 'gemeente'], [0.15, 'woonplaats'], [0.35, 'wijk']];
 export function kiesLaag(typisch, scale) {
   if (!typisch || !(scale > 0)) return null;
   let id = 'buurt';
@@ -132,10 +132,12 @@ export function tekenVeroverd(ctx, toScreen, scale, cw, ch, hover, label, kleurT
     if (s.vul) { ctx.globalAlpha = s.alpha; ctx.fillStyle = s.vul; ctx.fill('evenodd'); }
     lijn(ctx, s, s.breed, dikte, s.streep);
   }
-  // 2. de grens van de laag erboven, dikker en doorgetrokken (de gemeente om haar woonplaatsen, de provincie om de gemeenten)
+  // 2. de grens van de laag erboven, dikker en doorgetrokken (de gemeente om haar woonplaatsen, de provincie om de gemeenten), met een lichte vulling als daar iets gedaan is
   for (const { r, hoofd: isHoofd } of zicht) {
     if (isHoofd) continue;
     pad(ctx, r.gebied.grens, toScreen);
+    const ks = stijl(r, kleurTekst);
+    if (ks.vul) { ctx.globalAlpha = ks.alpha * 0.55; ctx.fillStyle = ks.vul; ctx.fill('evenodd'); }
     lijn(ctx, { lijn: r.voltooid ? r.vlag : kleurTekst, lijnAlpha: r.voltooid ? 1 : 0.85 }, 2.2, dikte, false);
   }
   ctx.globalAlpha = 1;
@@ -181,8 +183,8 @@ export function tekenLegenda(ctx, cw, ch, hoofd, kleurTekst = '#f2ead8') {
   const x = 16, rij = 20, h = 30 + rij * 3 + 8, y = ch - 56 - h;
   ctx.save();
   ctx.globalAlpha = 1;
-  ctx.fillStyle = 'rgba(10,18,13,0.82)';
-  ctx.strokeStyle = 'rgba(242,234,216,0.25)';
+  ctx.fillStyle = 'rgba(10,18,13,0.92)';
+  ctx.strokeStyle = 'rgba(242,234,216,0.45)';
   ctx.lineWidth = 1;
   ctx.beginPath(); ctx.roundRect(x, y, 176, h, 8); ctx.fill(); ctx.stroke();
   ctx.textBaseline = 'middle';
@@ -219,6 +221,7 @@ export function tekenVeroverdMini(ctx, scale, px, py, straal) {
     if (r.niveau.id !== hoofd && r.niveau.id !== kader) continue;
     if (buiten(r.gebied.grens.b)) continue;
     pad(ctx, r.gebied.grens, id);
+    if (r.niveau.id === kader) { const ks = stijl(r); if (ks.vul) { ctx.globalAlpha = ks.alpha * 0.55; ctx.fillStyle = ks.vul; ctx.fill('evenodd'); } }
     if (r.niveau.id === hoofd) {
       const s = stijl(r);
       if (s.vul) { ctx.globalAlpha = s.alpha; ctx.fillStyle = s.vul; ctx.fill('evenodd'); }

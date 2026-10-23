@@ -46,10 +46,10 @@ t('kiesLaag: ver uit gemeenten, midden woonplaatsen, dichtbij wijken en nog dich
   const { typisch } = K.kaartLaag();
   assert.ok(typisch.gemeente > typisch.buurt && typisch.provincie > typisch.gemeente, JSON.stringify(typisch));
   assert.equal(K.kiesLaag(typisch, 0.004), 'gemeente');
-  assert.equal(K.kiesLaag(typisch, 0.02), 'gemeente');
-  assert.equal(K.kiesLaag(typisch, 0.05), 'woonplaats');
-  assert.equal(K.kiesLaag(typisch, 0.15), 'wijk');
-  assert.equal(K.kiesLaag(typisch, 0.4), 'buurt');
+  assert.equal(K.kiesLaag(typisch, 0.045), 'gemeente', 'zoom 0,5 van de grote kaart');
+  assert.equal(K.kiesLaag(typisch, 0.09), 'woonplaats', 'zoom 1');
+  assert.equal(K.kiesLaag(typisch, 0.22), 'wijk', 'zoom 2,5');
+  assert.equal(K.kiesLaag(typisch, 0.45), 'buurt', 'zoom 5');
   assert.equal(K.kiesLaag(typisch, 1.4), 'buurt');
   assert.equal(K.kiesLaag(typisch, 0), null);
   for (const sc of [0.001, 0.01, 0.1, 1, 5]) assert.notEqual(K.kiesLaag(typisch, sc), 'provincie');
@@ -75,7 +75,7 @@ t('de drie toestanden zijn ook zonder kleur te onderscheiden: stippellijn, doorg
   assert.equal(new Set([nog, bezig, klaar].map((s) => `${s.streep}|${!!s.vul}|${s.breed}`)).size, 3);
 });
 t('op vier zoomniveaus: de goede laag, grenzen, vulling voor wat gedaan is, en een legenda met de drie toestanden', () => {
-  const uit = [[0.006, 'gemeente'], [0.05, 'woonplaats'], [0.15, 'wijk'], [0.5, 'buurt']].map(([sc, verwacht]) => ({ sc, verwacht, ...teken(sc) }));
+  const uit = [[0.006, 'gemeente'], [0.1, 'woonplaats'], [0.22, 'wijk'], [0.5, 'buurt']].map(([sc, verwacht]) => ({ sc, verwacht, ...teken(sc) }));
   for (const u of uit) {
     assert.equal(u.laagId, u.verwacht, `zoom ${u.sc}`);
     assert.ok(u.log.lijnen.length > 0, `zoom ${u.sc}: geen grenzen`);
@@ -87,7 +87,7 @@ t('op vier zoomniveaus: de goede laag, grenzen, vulling voor wat gedaan is, en e
   for (let i = 1; i < dikten.length; i++) assert.ok(dikten[i] >= dikten[i - 1], 'dichterbij zijn de lijnen niet dunner: ' + dikten.join(' '));
 });
 t('labels vallen niet over elkaar en hebben naam en voortgang met percentage', () => {
-  for (const sc of [0.006, 0.05, 0.15, 0.5]) {
+  for (const sc of [0.006, 0.1, 0.22, 0.5]) {
     const { labels } = teken(sc);
     const doos = labels.map((l) => [l.x - l.w / 2, l.y - 7, l.x + l.w / 2, l.y + 7]);
     for (let i = 0; i < doos.length; i++) for (let j = i + 1; j < doos.length; j++) {
@@ -96,7 +96,7 @@ t('labels vallen niet over elkaar en hebben naam en voortgang met percentage', (
     }
     for (const l of labels) assert.ok(l.x >= 0 && l.x <= 1280 && l.y >= 0 && l.y <= 720);
   }
-  const wijken = teken(0.15).labels.map((l) => l.tekst);
+  const wijken = teken(0.22).labels.map((l) => l.tekst);
   assert.ok(wijken.some((x) => /^\d+ van \d+ · \d+%$/.test(x) || x === 'veroverd'), 'voortgang met percentage: ' + wijken.join(' | '));
 });
 t('een veroverd gebied krijgt een vlag, een titel bij het aanwijzen en een eigen vulling; een volle kaart heeft niet meer labels dan er plek voor is', () => {
@@ -104,7 +104,7 @@ t('een veroverd gebied krijgt een vlag, een titel bij het aanwijzen en een eigen
   const klaar = o.ind.gebieden.filter((g) => G.voortgang(o.profiel, o.ind, g.id).voltooid);
   assert.ok(klaar.length >= 1, 'de proef heeft minstens één veroverd gebied');
   const kleinste = klaar.sort((a, b) => a.grens.b[2] - a.grens.b[0] - (b.grens.b[2] - b.grens.b[0]))[0];
-  const sc = { buurt: 0.5, wijk: 0.15, woonplaats: 0.05, gemeente: 0.006 }[kleinste.niveau];
+  const sc = { buurt: 0.5, wijk: 0.22, woonplaats: 0.1, gemeente: 0.006 }[kleinste.niveau];
   const r = teken(sc, kleinste.x, kleinste.y);
   assert.ok(r.labels.some((l) => l.tekst === 'veroverd'), 'het veroverde gebied zegt het');
   assert.ok(r.hover.some((h) => /veroverd/i.test(h.sub)), 'en heeft een titel bij het aanwijzen');
