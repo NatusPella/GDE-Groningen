@@ -252,18 +252,21 @@ t('meerijden met vier: ook de 3e en 4e speler stappen mee in het voertuig van de
   assert.match(bram.messages.join(' '), /Loop naar het voertuig/);
 });
 
-t('de gastheer rijdt weg: een speler te voet die achterblijft zit na een paar seconden gewoon mee (geen eindeloos terugzetten); zonder plek wordt hij bij de groep gezet', () => {
+t('de gastheer rijdt weg: een speler te voet die achterblijft wordt naast de gastheer gezet (niet vanzelf in het voertuig, geen eindeloos terugzetten) en stapt zelf in met E; zonder plek blijft hij bij de groep', () => {
   const s = avond(3); s.step(3);
   const bram = s.gs[1].gw, lotte = s.gs[2].gw, fb = s.hw.coopFigures[2], fl = s.hw.coopFigures[3];
   const auto = { id: 7, x: 0, y: 0, angle: 0, speed: 20, halfWid: 1, model: { len: 4 } }; s.hw.vehicles = [auto]; s.hw.player.inVehicle = auto;
   fb.x = 5; fb.y = 3; fl.x = 6; fl.y = -3;
   s.step(8, () => { auto.x += 20 / 60; s.hw.player.x = auto.x; s.hw.player.y = 0; });
-  assert.equal(fb.inVeh, auto, 'Bram rijdt mee'); assert.equal(fl.inVeh, auto, 'Lotte rijdt mee');
-  assert.match(bram.messages.join(' '), /Je rijdt mee/); assert.doesNotMatch(bram.messages.join(' '), /Blijf bij de groep/, 'geen waarschuwing zolang de gastheer wegrijdt');
-  assert.equal(bram.coopInVoertuig, true);
+  assert.ok(!fb.inVeh, 'Bram wordt niet vanzelf in het voertuig gezet'); assert.ok(!fl.inVeh, 'Lotte ook niet');
+  assert.match(bram.messages.join(' '), /Je staat weer bij de groep/, 'naast de gastheer gezet');
+  auto.speed = 0; s.step(6);
+  fb.x = auto.x + 4; fb.y = 2; s.step(0.5); // Bram loopt naar het voertuig
+  bram.coopNet.session.sendEvent({ k: 'gebruik' }); s.step(1.5);
+  assert.equal(fb.inVeh, auto, 'met E stapt Bram in'); assert.equal(bram.coopInVoertuig, true);
   const fiets = { id: 8, x: auto.x, y: 0, angle: 0, speed: 20, isBike: true }; s.hw.player.inVehicle = fiets; fb.inVeh = null; fb.coopVoertuig = false; fb.x = auto.x - 60; fb.y = 0; fb.verTijd = 0;
   s.step(6, () => { fiets.x += 20 / 60; s.hw.player.x = fiets.x; });
-  assert.equal(fb.inVeh, null, 'op een fiets is geen plek'); assert.match(bram.messages.join(' '), /Je staat weer bij de groep/, 'wel bij de groep gezet');
+  assert.ok(!fb.inVeh, 'op een fiets is geen plek'); assert.match(bram.messages.join(' '), /Je staat weer bij de groep/, 'wel bij de groep gezet');
 });
 
 t('Tessa valt weg: het spel pauzeert voor de gastheer; een extra speler niet; geen dubbele of verdwenen figuren', () => {
