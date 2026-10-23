@@ -173,7 +173,7 @@ const CSS = `
 #trailer .tr-skip { right: 3vw; bottom: calc(var(--bar) * 0.5); transform: translateY(50%); display: flex; align-items: center; gap: 6px; font: 16px 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.3px; color: rgba(240, 237, 228, 0.92); text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8); opacity: 0; transition: opacity 0.25s; }
 #trailer.skippable .tr-skip { opacity: 1; }
 body.trailer-rec #trailer .tr-skip, body.trailer-rec #trailer .tr-fps { display: none; }
-#trailer .tr-skip .key { display: inline-flex; align-items: center; justify-content: center; height: 20px; padding: 0 5px; background: linear-gradient(180deg, #4a4f47, #2a2e28); border: 1px solid rgba(255, 255, 255, 0.35); border-bottom: 2px solid rgba(0, 0, 0, 0.6); border-radius: 4px; color: #3fc97a; font: 11px 'Bebas Neue', 'Arial Narrow', sans-serif; letter-spacing: 1px; }
+#trailer .tr-skip .key { display: inline-flex; align-items: center; justify-content: center; height: 20px; padding: 0 5px; background: #fbfaf5; border: 0; border-radius: 5px; color: #0c140e; font-weight: bold; text-shadow: none; box-shadow: 0 2px 0 #a9a69b, 0 0 0 1px rgba(0, 0, 0, 0.18); font: 11px 'Bebas Neue', 'Arial Narrow', sans-serif; letter-spacing: 1px; }
 #trailer .tr-skip svg { width: 20px; height: 20px; transform: rotate(-90deg); }
 #trailer .tr-skip circle { fill: none; stroke: rgba(240, 237, 228, 0.25); stroke-width: 3; }
 #trailer .tr-skip .fill { stroke: #3fc97a; stroke-linecap: round; stroke-dasharray: 62.8; stroke-dashoffset: calc(62.8 * (1 - var(--hold, 0))); }
