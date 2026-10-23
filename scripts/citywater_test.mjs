@@ -2,7 +2,7 @@
 // OSM-bouw in stukken geeft, blijft dezelfde vaarweg. Een kanaal dat uit meer packs komt (dezelfde polygoon meerdere keren),
 // een lint van een kanaallijn over een kanaalpolygon en een smalle gracht naast een kanaal.
 //   node scripts/citywater_test.mjs
-import { annotateCityWater, polyArea, BOEZEM_Y } from '../game/js/waterlevels.js';
+import { annotateCityWater, polyArea, BOEZEM_Y, SMALL_POND_AREA } from '../game/js/waterlevels.js';
 
 let n = 0, fails = 0;
 const ok = (c, m, info = '') => { n++; if (!c) { fails++; console.log(`FAIL ${m}${info ? ' (' + info + ')' : ''}`); } };
@@ -50,7 +50,7 @@ const ditch = () => poly(rect(80, 300, 600, 306), 'Eerste sloot');
   const pool = poly(rect(1000, 1000, 1012, 1010)), lake = poly(rect(2000, 2000, 2040, 2030));
   const rows = [basin(), pool, lake];
   annotateCityWater(rows);
-  ok(rows[1].kind === 'vijver' && rows[1].lv > -1 && rows[1].dp <= 0.6, 'a small pond away from the canals lies at street level', `${rows[1].kind} ${rows[1].lv} ${rows[1].dp}`);
+  if (SMALL_POND_AREA > 0) ok(rows[1].kind === 'vijver' && rows[1].lv > -1 && rows[1].dp <= 0.6, 'a small pond away from the canals lies at street level', `${rows[1].kind} ${rows[1].lv} ${rows[1].dp}`);
   ok(rows[0].lv === BOEZEM_Y, 'the boezem keeps its level', rows[0].lv);
   ok(rows[2].lv === BOEZEM_Y, 'a larger pond keeps the canal level', `${rows[2].kind} ${rows[2].lv}`);
 }

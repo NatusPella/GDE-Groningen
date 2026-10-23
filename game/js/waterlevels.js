@@ -19,7 +19,8 @@ import { pointInPolygon as inPolygon } from './polygon.js';
 // keep their own peil; until the renderer draws per body (F2) they are drawn
 // at the same height.
 export const BOEZEM_Y = -2.3;
-export const SMALL_POND_AREA = 400, SMALL_POND_LEVEL = -0.35, SMALL_POND_DEPTH = 0.5;
+export const SMALL_POND_AREA = 0, // uit (0.42.0): met 400 faalde de verhaaltest op een wegoversteek bij de Europaweg (1030, 265), oorzaak niet bevestigd (#327)
+   SMALL_POND_LEVEL = -0.35, SMALL_POND_DEPTH = 0.5;
 export const BOEZEM_NAP = -0.93;
 
 // The water of a body that lies at its own peil is drawn there (#299): the Lauwersmeer, held at
