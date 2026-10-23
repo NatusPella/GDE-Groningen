@@ -89,7 +89,7 @@ function speel(pionnen, verloop = []) {
 
 // de aanmelding bij het sidejob-contract: lijst, loon, pictogram, eenmalig
 const sj = readFileSync(new URL('../game/js/sidejobs.js', import.meta.url), 'utf8');
-ok(/SIDE_JOBS = \[[^\]]*bernard, tjalke/.test(sj), 'de rit staat in de lijst met zijmissies');
+ok(/SIDE_JOBS = \[[^\]]*\btjalke\b/.test(sj), 'de rit staat in de lijst met zijmissies');
 ok(sj.includes('tjalke: [300, 400]'), 'de telefoon kent het loon');
 ok(sj.includes("case 'tjalke':"), 'er is een kaartpictogram');
 ok(sj.includes('c.job.once'), 'het contract kent een baan van één keer');
