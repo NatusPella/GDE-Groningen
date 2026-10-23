@@ -4,7 +4,11 @@
 // gegevens komen uit world.coopHost (coopnet.js). Niet in beeld bekeken.
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getScene } from './scene3d.js';
-import { buildVehicleMesh } from './models3d_vehicles.js';
+import { buildVehicleMesh, updateVehicleWheelSpin, applyFlatTire, updateIndicatorLamps, updatePoliceLamps, applyVehicleDamage, setBusRearAngle, updateBikeStaat } from './models3d_vehicles.js';
+import { poseHeliRotors } from './heli3d.js';
+import { uiterlijkSpec } from './coopworld.js';
+import { WATER_Y } from './util.js';
+import { surfaceLiftAt } from './waterlevels.js';
 import { buildPersonMesh, animatePersonWalk } from './models3d_people.js';
 
 const voertuigen = new Map(); // id -> mesh
@@ -33,6 +37,63 @@ function echteMesh(v) {
     default: return null;
   }
   try { return buildVehicleMesh(pv); } catch (e) { return null; }
+}
+
+// Het echte model van de host (look uit de snapshot, #428): dezelfde bouwer als de host, met deuken, lampen en wielen.
+let dbgT = 0;
+const wacht = new Map(); // id -> tijdstip waarop we het voertuig voor het eerst zagen zonder uiterlijk
+const lookSleutel = (l) => [l.model, l.fl, l.len, l.wid, l.color, l.color2, l.extra].join('|');
+const dentSleutel = (l) => l.dents.map((d) => d.map((n) => n.toFixed(2)).join(',')).join(';');
+function echtMeshVanLook(spec) {
+  try { return buildVehicleMesh(spec); } catch (e) { return null; }
+}
+// Een nieuwe deuk bij een bestaand model: alleen de nieuwe klappen toepassen (de host stuurt de laatste 8, dus het venster schuift).
+// false = opnieuw bouwen (iets anders veranderd of de schade is hersteld).
+function pasSchadeToe(m, look) {
+  const ud = m.userData, spec = ud.spec;
+  if (!spec || ud.gok) return false;
+  const oud = ud.dentLijst || [], nieuw = look.dents;
+  const gelijk = (a, b) => a.every((x, i) => Math.abs(x - b[i]) < 0.06);
+  let overlap = -1;
+  for (let k = Math.min(oud.length, nieuw.length); k >= 0; k--) { // de langste staart van oud die het begin van nieuw is
+    let ok = true;
+    for (let i = 0; i < k; i++) if (!gelijk(oud[oud.length - k + i], nieuw[i])) { ok = false; break; }
+    if (ok) { overlap = k; break; }
+  }
+  if (overlap < 0 || (overlap === 0 && oud.length)) return false;
+  try {
+    for (const d of nieuw.slice(overlap)) applyVehicleDamage(m, spec, d[0], d[1], d[2]);
+    spec.dentLog = nieuw.map((d) => d.slice());
+    if (spec.isBike) updateBikeStaat(m, spec); // een fiets krijgt geen deuken maar een scheef spatbord (fietsStaat)
+  } catch (e) { return false; }
+  ud.dentLijst = nieuw.map((d) => d.slice());
+  ud.dentSleutel = dentSleutel(look);
+  return true;
+}
+// Wielen, sturen, richtingaanwijzers, zwaailicht, lekke band, rotor en de achterkant van een gelede bus, uit de staat van de host
+function animeerVoertuig(m, spec, v, klok, dt) {
+  const ud = m.userData;
+  spec.indicator = v.ind; spec.flat = v.lek; spec.sirenOn = v.sirene; spec.speed = v.snelheid; spec.steer = v.stuur; spec.horn = v.toeter;
+  try {
+    updateVehicleWheelSpin(m, v.snelheid, dt, v.stuur);
+    if (v.lek || ud.flatIdx >= 0) applyFlatTire(m, spec);
+    if (v.ind || ud.indLamps) updateIndicatorLamps(m, spec, klok);
+    if (spec.isPolice || spec.isAmbulance || v.sirene) updatePoliceLamps(m, klok, v.sirene, spec.id);
+    if (spec.isHeli) { ud.rotorHoek = ((ud.rotorHoek || 0) + dt * 30 * v.rotor) % (Math.PI * 2); poseHeliRotors(m, ud.rotorHoek, v.rotor); }
+    if (spec.isBus && ud.busSections) { // de achterkant volgt de voorkant met vertraging: sneller bij meer snelheid
+      const k = Math.min(1, dt * Math.abs(v.snelheid) / Math.max(2, spec.model.len * 0.6));
+      let d = v.angle - (ud.busAchter ?? v.angle); d = Math.atan2(Math.sin(d), Math.cos(d));
+      ud.busAchter = (ud.busAchter ?? v.angle) + d * k;
+      setBusRearAngle(m, v.angle, ud.busAchter);
+    }
+    if (spec.isBoat) { // een boot ligt niet stil op het water: een rustige deining, in de maat van de host
+      m.rotation.order = 'YXZ';
+      const t = klok * 1.3 + spec.id * 1.7;
+      m.rotation.z = Math.sin(t) * 0.012 * Math.min(1, 3.2 / spec.model.len + 0.2);
+      m.rotation.x = Math.sin(t * 0.8 + 1) * 0.01;
+      m.position.y += Math.sin(t * 0.9) * 0.025;
+    }
+  } catch (e) { /* een onderdeel dat niet past, laat de rest gewoon staan */ }
 }
 
 function bouw(v) {
@@ -77,14 +138,42 @@ export function syncHostEntities(world, dt = 1 / 60) {
   const scene = getScene(); if (!scene) return;
   const host = world.coopHost || { voertuigen: [], doelen: [], voetgangers: [] };
   const seen = new Set();
+  const klok = performance.now() / 1000;
   for (const v of host.voertuigen) {
     seen.add(v.id);
     let m = voertuigen.get(v.id);
-    if (!m) { m = bouw(v); scene.add(m); voertuigen.set(v.id, m); }
+    const sleutel = v.look ? lookSleutel(v.look) : '';
+    if (m && v.look && (m.userData.gok || m.userData.lookSleutel !== sleutel)) { // het uiterlijk is anders dan getekend: opnieuw bouwen
+      scene.remove(m); voertuigen.delete(v.id); m = null;
+    } else if (m && v.look && m.userData.dentSleutel !== dentSleutel(v.look)) { // alleen nieuwe deuken erbij, anders opnieuw bouwen
+      if (!pasSchadeToe(m, v.look)) { scene.remove(m); voertuigen.delete(v.id); m = null; }
+    }
+    if (!m) {
+      const spec = v.look ? uiterlijkSpec(v.look) : null;
+      if (!spec) { // het uiterlijk is nog onderweg (hoogstens een paar snapshots): even wachten, daarna een gok op het id
+        const sinds = wacht.get(v.id) ?? (wacht.set(v.id, klok), klok);
+        if (klok - sinds < 1.2) continue;
+      }
+      m = spec ? echtMeshVanLook(spec) : null;
+      if (m) { const u = m.userData; u.lookSleutel = sleutel; u.dentSleutel = dentSleutel(v.look); u.dentLijst = v.look.dents.map((d) => d.slice()); u.spec = spec; u.gok = false; }
+      else { m = bouw(v); m.userData.gok = true; }
+      scene.add(m); voertuigen.set(v.id, m); wacht.delete(v.id);
+    }
     const gz = world.map && world.map.groundHeightAt && world.map.elev && world.map.elev.has ? (() => { try { return world.map.groundHeightAt(v.x, v.y); } catch (e) { return 0; } })() : 0;
-    m.position.set(v.x, gz, v.y); m.rotation.y = -v.angle;
+    let y = v.hoogteZ || gz;
+    const spec = m.userData.spec;
+    if (spec && spec.isBoat) { let lift = 0; try { lift = world.map ? surfaceLiftAt(world.map, v.x, v.y) : 0; } catch (e) { lift = 0; } y = WATER_Y + (Number.isFinite(lift) ? lift : 0); }
+    m.position.set(v.x, y, v.y); m.rotation.y = -v.angle;
+    if (spec && !m.userData.blok) animeerVoertuig(m, spec, v, klok, dt);
+  }
+  if (klok - dbgT > 1) { // voor de testbank (eenmaal per seconde): wat de gast per voertuig laat zien
+    dbgT = klok;
+    const o = {};
+    for (const [id, m] of voertuigen) { const u = m.userData; o[id] = [u.blok ? 'blok' : u.gok ? 'gok' : 'echt', u.wheels ? +u.wheels[0].rotation.z.toFixed(2) : null, u.frontWheels ? +u.frontWheels[0].rotation.y.toFixed(2) : null, u.indLamps ? u.indLamps.filter((l) => l.visible).length : 0, u.policeLamps ? +u.policeLamps[0].material.emissiveIntensity.toFixed(1) : null, u.rotorHoek ? +u.rotorHoek.toFixed(1) : null, u.dentLijst ? u.dentLijst.length : 0]; }
+    world.coopHostDbg = o;
   }
   for (const [id, m] of voertuigen) if (!seen.has(id)) { scene.remove(m); if (!m.userData.vehicleId) m.traverse((o) => { if (o.geometry) o.geometry.dispose(); }); voertuigen.delete(id); } // echte modellen delen hun geometrie
+  for (const id of wacht.keys()) if (!seen.has(id)) wacht.delete(id);
   const zienP = new Set();
   for (const p of host.voetgangers || []) {
     zienP.add(p.id);

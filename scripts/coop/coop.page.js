@@ -109,7 +109,7 @@ function sampleNow(n) {
     verdiend: x.coopVerdiend || 0, ri: x.coop && x.coop.remoteInput ? [Math.round(x.coop.remoteInput.mx * 100) / 100, Math.round(x.coop.remoteInput.my * 100) / 100, x.coop.remoteInput.buttons | 0] : null,
     hm: hm ? (hm.actief ? hm.label + ' | ' + (hm.stap || '') : '-') : null,
     weer: x.weatherState && x.weatherState.regions ? Object.entries(x.weatherState.regions).map(([id, r]) => id + ':' + r.kind + ':' + Math.round(r.rain * 100)).join(',') : null, wx: x.weather ? [x.weather.kind || '', Math.round((x.weather.intensity || 0) * 100)] : null, pm: (x.coopPingMarks || []).map((m) => m.tekst + '|' + m.naam).join(';'), voert: x.coopInVoertuig ? 1 : 0,
-    hostMesh: x.coopHostMeshes || null,
+    hostMesh: x.coopHostMeshes || null, hostDbg: x.coopHostDbg || null,
     hostEnt: x.coopHost ? [x.coopHost.voertuigen.length, x.coopHost.doelen.length, (x.coopHost.voetgangers || []).length] : null,
     vs: x.player && x.player.inVehicle ? [Math.round((x.player.inVehicle.speed || 0) * 10) / 10, x.player.inVehicle.wrecked ? 1 : 0, Math.round(x.player.inVehicle.health ?? -1), x.coopWielSlot ?? null] : null,
     veh: x.player && x.player.inVehicle ? 1 : 0, vehC: x.companion && x.companion.inVehicle ? 1 : 0, nVeh: (x.vehicles || []).length,
@@ -304,6 +304,14 @@ const PHASES = {
   async shot({ name }) { shot(name); await sleep(600); },
   // vier schermafbeeldingen rondom de gast, om de voertuigen van de gastheer als modellen te zien (coopentities3d.js)
   async kijk({ naam = 'kijk' }) { const w = W(); for (let i = 0; i < 4; i++) { w.camYaw = i * Math.PI / 2; await sleep(500); shot(naam + '-' + i); await sleep(300); } },
+  // water zoeken (#428): het dichtstbijzijnde water rond de gast, als plek voor de boten van de gescripte gastheer; daarna kijkt de camera erheen
+  async water({ naam = 'water' }) {
+    const w = W(); const { isInWater } = await import('./js/util.js');
+    const me = w.player; let best = null;
+    for (let r = 4; r <= 90 && !best; r += 3) for (let a = 0; a < 6.283 && !best; a += 0.15) { const x = me.x + Math.cos(a) * r, y = me.y + Math.sin(a) * r; if (isInWater(w.map, x, y) && isInWater(w.map, x + Math.cos(a) * 6, y + Math.sin(a) * 6)) best = { x, y, a, r }; }
+    log('water', best || { geen: true });
+    if (best) { w.camYaw = Math.atan2(best.y - me.y, best.x - me.x); await sleep(6000); shot(naam); await sleep(600); }
+  },
   // de spelerslijst bij Tab (#377): Tab vasthouden, schermafbeelding, loslaten
   async tab({ name = 'g-tab' }) {
     for (const t of [window, document]) t.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', code: 'Tab', bubbles: true }));

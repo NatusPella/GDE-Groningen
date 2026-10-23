@@ -55,7 +55,7 @@ export async function startNodeHost({ stage, tiles = '-', story = 'nieuw', max =
     if (h.drive) { // in het voertuig: rijdt rechtdoor
       const car = h.drive.car; car.x += Math.cos(car.angle) * 9 * dt; car.y += Math.sin(car.angle) * 9 * dt; p.x = car.x; p.y = car.y; p.angle = car.angle;
     } else if (h.walk) { p.x = START.x + 4 + Math.cos(h.t / 4) * 6; p.y = START.y + Math.sin(h.t / 4) * 6; p.angle = h.t / 4 + Math.PI / 2; }
-    for (const v of world.vehicles) { if (v.id === 100 + 99) continue; v.x += Math.cos(v.angle) * 4 * dt; if (Math.abs(v.x - START.x) > 90) v.angle += Math.PI; }
+    for (const v of world.vehicles) { if (v.id === 100 + 99 || v.parkeer) continue; v.x += Math.cos(v.angle) * 4 * dt; if (Math.abs(v.x - START.x) > 90) v.angle += Math.PI; }
     for (const q of world.pedestrians) { q.x += Math.cos(q.angle) * 0.8 * dt; q.y += Math.sin(q.angle) * 0.8 * dt; q.angle += 0.2 * dt; }
     if (!world.companion.inVehicle && !state.pauze) coopStep(world.companion, dt, world, move); // de gast bestuurt Tessa; staat het spel van de host op pauze, dan stapt coopnet.js haar zelf (stapMetgezelInPauze, #388)
     world.paused = state.pauze;

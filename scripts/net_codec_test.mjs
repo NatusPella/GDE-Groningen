@@ -65,6 +65,36 @@ t('fuzz: willekeurige bytes crashen niet', () => {
     K.decodeSnapshot(b); K.decodeInput(b); K.decodeJson(b);
   }
 });
+t('voertuigstaat en uiterlijk: rondreis, versie 2, oude snapshots geweigerd (#428)', () => {
+  assert.equal(K.CODEC_VERSION, 2);
+  const look = { id: 7, model: 2, fl: 1 | 16, len: 4.4, wid: 1.8, color: 0x7a1f1f, color2: 0x12294f, extra: 5, dents: [[1.2, -0.3, 0.6], [-1.5, 0.4, 0.4]] };
+  const snap = { ...SNAP, entities: [
+    { id: 7, kind: 1, x: 1, z: 2, angle: 1, fl: 2 | K.FL_SIREN | K.FL_HORN | K.FL_FLAT, speed: 13.5, steer: -0.5, vz: 6.4 },
+    { id: 8, kind: K.KIND_HELI, x: 3, z: 4, angle: 0, fl: 0, speed: 0, steer: 0, vz: 31.2, rotor: 0.5 },
+    { id: 9, kind: 12, x: 5, z: 6, angle: 0 }, // een voetganger heeft geen voertuigstaat
+  ], looks: [look] };
+  const cache = new Map();
+  const d = K.decodeSnapshot(K.encodeSnapshot(1, 1, 0, snap), cache);
+  const [a, h, p] = d.entities;
+  assert.equal(a.fl & K.FL_IND_MASK, 2); assert.ok(a.fl & K.FL_SIREN && a.fl & K.FL_HORN && a.fl & K.FL_FLAT && a.fl & K.FL_HASZ);
+  near(a.speed, 13.5, 0.26); near(a.steer, -0.5, 0.01); near(a.vz, 6.4, 0.06);
+  near(h.rotor, 0.5, 0.01); near(h.vz, 31.2, 0.06); assert.equal(p.fl, undefined);
+  const l = d.looks[0];
+  assert.deepEqual([l.id, l.model, l.fl, l.extra, l.color, l.color2], [7, 2, 17, 5, 0x7a1f1f, 0x12294f]);
+  near(l.len, 4.4, 0.006); near(l.wid, 1.8, 0.03); assert.equal(l.dents.length, 2); near(l.dents[0][0], 1.2, 0.06); near(l.dents[1][1], 0.4, 0.03); near(l.dents[1][2], 0.4, 0.01);
+  assert.equal(a.look.id, 7, 'de cache koppelt het uiterlijk aan het voertuig'); assert.equal(h.look, null);
+  // een volgende snapshot zonder uiterlijkrecord gebruikt het onthouden uiterlijk
+  const d2 = K.decodeSnapshot(K.encodeSnapshot(2, 2, 0, { ...snap, looks: [] }), cache);
+  assert.equal(d2.entities[0].look.color, 0x7a1f1f);
+  // een voertuig zonder staat (oude aanroeper) krijgt neutrale waarden
+  const kaal = K.decodeSnapshot(K.encodeSnapshot(1, 1, 0, SNAP)).entities[0];
+  assert.deepEqual([kaal.fl, kaal.speed, kaal.steer, kaal.vz], [0, 0, 0, 0]);
+  // een snapshot van versie 1 wordt netjes geweigerd
+  const oud = K.encodeSnapshot(1, 1, 0, snap); oud[1] = 1; assert.equal(K.decodeSnapshot(oud), null);
+  // te veel uiterlijkrecords of afgeknotte records
+  const veel = K.encodeSnapshot(1, 1, 0, { ...snap, looks: Array(K.MAX_LOOKS + 3).fill(look) }); assert.equal(K.decodeSnapshot(veel).looks.length, K.MAX_LOOKS);
+  const goed = K.encodeSnapshot(1, 1, 0, snap); assert.equal(K.decodeSnapshot(goed.subarray(0, goed.length - 3)), null);
+});
 t('json: rondreis, grens, kapotte lengte', () => {
   const b = K.encodeJson(K.T.EVENT, 3, 1, 0, { kind: 'stage', n: 2 });
   const d = K.decodeJson(b);

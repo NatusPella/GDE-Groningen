@@ -5,7 +5,7 @@
 
 import { T, encodeJson, decodeJson, encodeSimple, readHeader } from './codec.js';
 
-export const PROTO = 1;
+export const PROTO = 2; // 2: voertuigstaat en uiterlijk in de snapshot (codec 2, #428); oude en nieuwe versies weigeren elkaar
 
 // Volgnummers zijn u16 met omslag: a is eerder dan b?
 export const seqDiff = (a, b) => ((a - b) << 16) >> 16; // >0: a is nieuwer dan b
