@@ -191,7 +191,7 @@ export function renderOverview(el, world, help, extra = {}) {
     '<div class="m-acts"><button type="button" class="m-bp" data-action="mission-stop-go">Ja, stoppen</button><button type="button" class="m-bt" data-action="mission-stop-no">Nee, doorgaan</button></div></div></div>' : '';
   el.innerHTML = heroHtml(world) + stopHtml + tilesHtml(world, extra) +
     '<div class="ov-cols"><section aria-label="Dichtbij" class="ov-col"><div class="m-gh"><span>Dichtbij</span></div>' +
-    (near.length ? `<div class="ov-rows">${near.map((it) => row(it)).join('')}</div>` : '<p class="m-note">Niks in de buurt. Kijk bij Te doen.</p>') +
+    (near.length ? `<div class="ov-rows">${near.map((it) => row(it)).join('')}</div>` : '<p class="m-note">Niks in de buurt. Kijk bij Activiteiten.</p>') +
     '</section><section aria-label="Bijna binnen" class="ov-col"><div class="m-gh"><span>Bijna binnen</span></div>' +
     (ach.length ? `<div class="ov-rows">${ach.map((a) => `<button type="button" class="m-li ov-a" data-goto="prestaties"><span class="nm"><span class="ov-a-t"><span class="one">${dualHtml(a.title)}</span>` +
       `<span class="v"><span data-num="ach-${esc(a.id)}" data-to="${a.progress.cur}">${a.progress.cur}</span>/${a.progress.goal}</span></span>` +
@@ -258,11 +258,11 @@ function storyHtml() {
 const SHOW_FIRST = 4;
 
 function allHtml() {
-  const counts = Object.fromEntries(GROUPS.map(([g]) => [g, items.filter((it) => it.group === g).length]));
-  const total = items.filter((it) => it.group !== 'verhaal').length;
+  const counts = Object.fromEntries(SHOWN.map(([g]) => [g, items.filter((it) => it.group === g).length]));
+  const total = items.filter(isActiviteit).length;
   const chips = `<div class="m-chips" role="radiogroup" aria-label="Soort"><button type="button" class="m-chip" role="radio" data-todo-kind="alles" aria-checked="${ui.kind === 'alles'}">Alles <span>${total}</span></button>` +
-    GROUPS.map(([g, label]) => `<button type="button" class="m-chip" role="radio" data-todo-kind="${g}" aria-checked="${ui.kind === g}">${label} <span>${counts[g]}</span></button>`).join('') + '</div>';
-  const groups = GROUPS.filter(([g]) => ui.kind === 'alles' || ui.kind === g).map(([g, label, sub]) => {
+    SHOWN.map(([g, label]) => `<button type="button" class="m-chip" role="radio" data-todo-kind="${g}" aria-checked="${ui.kind === g}">${label} <span>${counts[g]}</span></button>`).join('') + '</div>';
+  const groups = SHOWN.filter(([g]) => ui.kind === 'alles' || ui.kind === g).map(([g, label, sub]) => {
     let list = items.filter((it) => it.group === g);
     if (ui.near) list = [...list].sort((a, b) => (a.dist ?? Infinity) - (b.dist ?? Infinity));
     if (!list.length) return '';
@@ -279,7 +279,7 @@ function allHtml() {
 }
 
 function nearHtml() {
-  const list = items.filter((it) => it.dist != null).sort((a, b) => a.dist - b.dist);
+  const list = items.filter((it) => it.dist != null && isActiviteit(it)).sort((a, b) => a.dist - b.dist);
   return `<div class="m-gh"><span>Dichtbij</span><span>alles met een plek, dichtstbij eerst</span></div>${list.map((it) => row(it)).join('')}`;
 }
 
@@ -323,13 +323,22 @@ export function todoSummary(world) {
   const end = getStoryView().ending;
   const toEnd = end && !end.done ? ` · nog ${end.count} tot het einde` : '';
   return {
-    verhaal: '', opdrachten: '', alles: String(items.filter((it) => it.group !== 'verhaal').length), dichtbij: String(items.filter((it) => it.dist != null && it.dist < 600).length || ''),
-    subTodo: `${items.filter((it) => it.group !== 'verhaal').length} dingen te doen · ${items.filter((it) => it.dist != null && it.dist < 600).length} dichtbij`,
+    verhaal: '', opdrachten: '', alles: String(items.filter(isActiviteit).length), dichtbij: String(items.filter((it) => isActiviteit(it) && it.dist != null && it.dist < 600).length || ''),
+    subTodo: `${items.filter(isActiviteit).length} dingen te doen · ${items.filter((it) => isActiviteit(it) && it.dist != null && it.dist < 600).length} dichtbij`,
     sub: `${sDone} van ${steps.length} verhaalstappen · ${ms.filter((it) => it.status === 'klaar').length} van ${ms.length} missies · ${jr.total - jr.found.length} aanwijzingen te vinden${toEnd}`,
   };
 }
 
 // Verhaal > Opdrachten (#430): de verhaalstappen en missies, met dezelfde lijst en dezelfde details als eerst onder Te doen.
+// Bijbanen horen bij een loopbaan (loopbaan.js) en staan onder Loopbanen; Activiteiten heeft ze niet nog een keer (#430).
+const isActiviteit = (it) => it.group !== 'verhaal' && it.group !== 'bijbaantjes';
+const SHOWN = GROUPS.filter(([g]) => g !== 'bijbaantjes');
+// De bijbanen die nu te kiezen zijn, voor de lijst met banen bij een loopbaan.
+export function baanDoelen(world) {
+  refresh(world);
+  return new Set(items.filter((it) => it.group === 'bijbaantjes').map((it) => it.key.slice(4)));
+}
+
 export function renderTodoStory(el, world) {
   refresh(world);
   if (!ui.sel || !byKey.has(ui.sel)) {

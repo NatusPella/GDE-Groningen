@@ -11,7 +11,7 @@ export const HELP_TOPICS = [
     'Shift + klik op de kaart zet je meteen op die plek (uit te zetten bij {ESC} Instellingen › Interface).',
   ] },
   { id: 'todo', title: 'Wat kan ik nog meer?', lines: [
-    '{ESC} › Te doen laat alles zien wat openstaat: missies, bijbaantjes en plekken. Kies iets en de route gaat erheen.',
+    '{ESC} › Activiteiten laat zien wat er te doen is: klussen, minigames en evenementen. Bijbanen staan onder Loopbanen. Kies iets en de route gaat erheen.',
   ] },
   { id: 'geld', title: 'Geld en winkels', lines: [
     'Geld verdien je met missies en bijbaantjes; je saldo staat rechtsboven.',

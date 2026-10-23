@@ -12,11 +12,15 @@ import { PARTS, CLUES, WHY } from './storyarc.js';
 import { speakerColor } from './speakers.js';
 import { dutchFor } from './subtitles.js';
 import { fillBars, pop } from './motion.js';
+import { renderCharacterPhone, phoneUnreadFor, OVERIG } from './phone.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const PIC = 120;
 const bars = new Map();
 let selected = 'tammo';
+let worldRef = null;
+// Esc op een bericht (pausemenu.js): het personage waar het bij hoort staat open
+export function selectVerhaalCharacter(id) { selected = id; }
 let viewer = null;
 
 const CSS = `
@@ -100,7 +104,7 @@ const initial = (name) => esc(String(name).replace(/^(Oma|Ome|Dokter|Kapitein|Sc
 function charCard(c) {
   const met = hasMet(c.id);
   const look = lookOf(c);
-  return `<button type="button" class="vh-card${c.id === selected ? ' sel' : ''}" data-char="${c.id}" style="--spk:${speakerColor(c.speakers[0])}"${met ? '' : ' data-locked'}${isFresh(c.id) ? ' data-new' : ''}>` +
+  return `<button type="button" class="vh-card${c.id === selected ? ' sel' : ''}" data-char="${c.id}" style="--spk:${speakerColor(c.speakers[0])}"${met ? '' : ' data-locked'}${isFresh(c.id) || (met && worldRef && phoneUnreadFor(worldRef, c.id)) ? ' data-new' : ''}>` +
     `<span class="vh-pic"${look ? ` data-pic="${c.id}"` : ''}>${look ? '' : `<b>${met ? initial(c.name) : '?'}</b>`}</span>` +
     `<span class="vh-name"><b>${met ? esc(c.name) : '???'}</b><small>${met ? esc(c.role) : 'Nog niet ontmoet'}</small></span></button>`;
 }
@@ -130,7 +134,8 @@ function viewerHtml(c) {
     `<div><span class="vh-kicker">${esc(c.role)}</span><h3>${esc(c.name)}</h3></div>` +
     `<p class="vh-quote" style="--spk:${speakerColor(c.speakers[0])}">“${esc(c.quote)}”${dutchFor(c.quote) ? `<small>${esc(dutchFor(c.quote))}</small>` : ''}</p>` +
     `<p class="vh-bio">${esc(c.bio)}</p>` +
-    `<dl class="vh-facts"><dt>${c.always ? 'In het duo' : 'Voor het duo'}</dt><dd>${esc(c.relation)}</dd>${steps ? `<dt>Samen</dt><dd>${steps}</dd>` : ''}</dl>`;
+    `<dl class="vh-facts"><dt>${c.always ? 'In het duo' : 'Voor het duo'}</dt><dd>${esc(c.relation)}</dd>${steps ? `<dt>Samen</dt><dd>${steps}</dd>` : ''}</dl>` +
+    '<div class="vh-phone" data-vh-phone></div>';
 }
 
 function loadPics(el) {
@@ -150,11 +155,17 @@ function loadPics(el) {
 function selectCharacter(panel, id) {
   const c = CHARACTER_BY_ID.get(id);
   const box = panel.querySelector('.vh-viewer');
-  if (!c || !box) return;
+  if (!box || (!c && id !== OVERIG)) return;
   selected = id;
-  for (const b of panel.querySelectorAll('[data-char]')) b.classList.toggle('sel', b.dataset.char === id);
+  for (const b of panel.querySelectorAll('[data-char]')) { b.classList.toggle('sel', b.dataset.char === id); if (b.dataset.char === id) b.removeAttribute('data-msg'); }
   disposeVerhaalViewer();
+  if (id === OVERIG) {
+    box.innerHTML = '<div><span class="vh-kicker">Berichten en contacten</span><h3>Overig</h3></div><p class="vh-bio">Nieuws, meldingen en contacten die geen personage zijn.</p><div class="vh-phone" data-vh-phone></div>';
+    renderCharacterPhone(box.querySelector('[data-vh-phone]'), worldRef, OVERIG);
+    return;
+  }
   box.innerHTML = viewerHtml(c);
+  if (hasMet(id)) renderCharacterPhone(box.querySelector('[data-vh-phone]'), worldRef, id);
   const canvas = box.querySelector('canvas');
   if (!canvas) return;
   const met = hasMet(id);
@@ -166,9 +177,14 @@ export function disposeVerhaalViewer() {
   if (viewer) { viewer.dispose(); viewer = null; }
 }
 
+function overigCard() {
+  const n = worldRef ? phoneUnreadFor(worldRef, OVERIG) : 0;
+  return `<button type="button" class="vh-card${selected === OVERIG ? ' sel' : ''}" data-char="${OVERIG}"${n ? ' data-new' : ''}><span class="vh-pic"><b>…</b></span><span class="vh-name"><b>Overig</b><small>Nieuws en meldingen</small></span></button>`;
+}
+
 function peopleHtml() {
   const n = metCount();
-  return `<div class="vh-layout"><div class="vh-left"><div class="m-gh"><span>Personages</span><span>${n} van ${CHARACTERS.length} ontmoet · wie je spreekt, komt erbij</span></div><div class="vh-grid">${CHARACTERS.map(charCard).join('')}</div></div><aside class="vh-viewer m-pane" aria-live="polite" aria-label="Personage"></aside></div>`;
+  return `<div class="vh-layout"><div class="vh-left"><div class="m-gh"><span>Personages</span><span>${n} van ${CHARACTERS.length} ontmoet · wie je spreekt, komt erbij</span></div><div class="vh-grid">${CHARACTERS.map(charCard).join('')}${overigCard()}</div></div><aside class="vh-viewer m-pane" aria-live="polite" aria-label="Personage"></aside></div>`;
 }
 
 // The plakjesbord of the new story: Jelle buys Grunn up slice by slice; each slice shows how it ended.
@@ -211,7 +227,8 @@ export function verhaalSummary() {
   return `${metCount()} van ${CHARACTERS.length} personages ontmoet · ${jr.found.length} van ${jr.total} aanwijzingen`;
 }
 
-export function renderVerhaal(panel, view) {
+export function renderVerhaal(panel, view, w = null) {
+  if (w) worldRef = w;
   ensureStyle();
   const el = panel.querySelector(`[data-of="verhaal"][data-sub="${view}"]`);
   if (!el) return;
@@ -225,7 +242,7 @@ export function renderVerhaal(panel, view) {
   }
   el.innerHTML = peopleHtml();
   loadPics(el);
-  if (!CHARACTER_BY_ID.has(selected)) selected = 'tammo';
+  if (!CHARACTER_BY_ID.has(selected) && selected !== OVERIG) selected = 'tammo';
   selectCharacter(el, selected);
   for (const n of el.querySelectorAll('.vh-card[data-new]')) pop(n);
   markCharactersSeen();
