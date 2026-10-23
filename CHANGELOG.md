@@ -7,10 +7,10 @@ nieuwe functies, `y` voor alleen bugfixes.
 ## [Unreleased]
 
 ### Nieuw
-- Pauzemenu (#430): nieuwe indeling. Spel (met het oude Overzicht: waar je bent, opslaan, laden, opnieuw beginnen, stoppen), Verhaal (Opdrachten, Personages, Aanwijzingen), Loopbanen, Activiteiten (het oude Te doen), Kaart, Spullen, Garage, Prestaties, Foto's, Samen spelen en Instellingen. Onder elke titel staat één korte zin over wat erin zit.
+- Pauzemenu (#430): nieuwe indeling. Spel (met het oude Overzicht: waar je bent, Samen spelen, opslaan, laden, opnieuw beginnen, stoppen), Verhaal (Opdrachten, Personages, Aanwijzingen), Loopbanen, Activiteiten (het oude Te doen), Kaart, Spullen, Garage, Prestaties, Foto's en Instellingen. Onder elke titel staat één korte zin over wat erin zit.
 - Pauzemenu (#430): Loopbanen heeft bovenaan de sectie Bezigheden met grote tegels voor Vissen en Boerderij. Bijbanen staan alleen nog bij hun loopbaan (met Zet als doel) en niet meer dubbel onder Activiteiten.
 - Pauzemenu (#430): alle besturing staat onder Instellingen > Besturing: muis en toetsenbord, controller (indeling, knoppen indelen, Controller testen) en aanraakbediening, met knoppen naar het Toetsenoverzicht, de toetshints en de Hulp met oefenronde. Cheats zijn nu een tabblad van Instellingen.
-- Pauzemenu (#430): de telefoon is geen eigen onderdeel meer. Berichten, sms'jes en gesprekken staan bij het personage onder Verhaal > Personages (nieuwste eerst, met bellen als je die persoon kunt bellen). Nieuws, meldingen en contacten zonder personage staan onder Overig. Spelers staat onder Samen spelen.
+- Pauzemenu (#430): de telefoon is geen eigen onderdeel meer. Berichten, sms'jes en gesprekken staan bij het personage onder Verhaal > Personages (nieuwste eerst, met bellen als je die persoon kunt bellen). Nieuws, meldingen en contacten zonder personage staan onder Overig. Samen spelen en het speleroverzicht (Spelers, alleen als je samen speelt) zijn tabbladen van Spel; de rijknop Spel toont dan het aantal spelers.
 - Samen spelen (#429, eerste stap): bij het begin van een opdracht van wie het spel opende vraagt het spel elke gast "Meedoen met ...?": J is ja, N is nee, en wie niets zegt doet na 10 seconden mee. Wie niet meedoet loopt vrij rond (geen "Je kijkt even mee", de opdracht houdt hem niet op zijn plek) en krijgt geen deel van de beloning; waar het verhaal jouw rol nodig heeft is meedoen verplicht.
 
 ## [0.43.0] - 2026-10-23
