@@ -255,7 +255,7 @@ function teleport(w, x, y, name) {
   return teleportNow(w, x, y, name);
 }
 
-function teleportNow(w, x, y, name) {
+function teleportNow(w, x, y, name, stil = false) {
   const p = w.player, v = p.inVehicle, map = w.map;
   const spot = teleportSpot(map, x, y, !!(v && !v.isBike && !v.isScooter));
   if (!spot) { w.addMessage('Daar kun je niet staan', 3); return false; }
@@ -273,8 +273,15 @@ function teleportNow(w, x, y, name) {
   w.camYaw = p.angle;
   placeCompanion(w, p.x, p.y, p.angle);
   lastSpeed = 0;
-  w.addMessage(`Je staat nu ${name ? 'bij ' + name : 'ergens anders'}`, 3, { kind: 'tip' });
+  if (!stil) w.addMessage(`Je staat nu ${name ? 'bij ' + name : 'ergens anders'}`, 3, { kind: 'tip' });
   return true;
+}
+
+// Samen spelen (#439): de nieuwe host komt op de plek waar het spel stond (coophostwisselwereld.js), met de tegels erbij en zonder streken-melding.
+export function verplaatsStil(w, x, y) {
+  if (!w || !w.map || !Number.isFinite(x) || !Number.isFinite(y)) return false;
+  if (!tilesIn(w.map, [[x, y]], 400)) { withTiles(w.map, [[x, y]], () => teleportNow(w, x, y, '', true), { radius: 400, token: 'overdracht' }).catch(() => {}); return true; }
+  return teleportNow(w, x, y, '', true);
 }
 
 // --- voertuig hier ---------------------------------------------------------------
