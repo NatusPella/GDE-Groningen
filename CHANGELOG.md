@@ -6,6 +6,15 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Opgelost
+- **Playtest 23-10 (#436), treinen:** G (dienst rijden) werkte niet als je bij de kop van de lijn instapte: er was dan geen halte meer voor je. De cabine draait nu om als de trein stilstaat en de dienst gaat de andere kant op. Het kaartjesmenu heet nu "Snel reizen (kaartje)" en "Als passagier meerijden" en zegt erbij dat je zelf rijdt door een stilstaande trein te nemen (E, daarna G). De balk op het machinistenbord heeft een uitleg (remweg tegenover de afstand tot de halte). Een trein raakt ook wie op een perron of dijk op dezelfde hoogte staat. Niet in beeld bekeken.
+- **Bussen (#436):** elke rijdende bus draagt een lijn en bestemming op het bord, ook een bus buiten zijn dienst (de dichtstbijzijnde lijn). Niet in beeld bekeken.
+- **Grens (#436):** bij een terugzetting aan de rand van de wereld sta je (te voet, in de auto of op de fiets) op de weg, niet in een weiland. De wegwijzers met stadsnamen (Centrum, Hoofdstation, Noorderplantsoen) staan niet meer ver van Stad, dus ook niet in Friesland.
+- **Safehouse (#436):** een huisje staat niet meer op de rijbaan, ook niet op de rand ervan; het koopmenu toont een huisje in plaats van een bed. Alleen met nepdata gemeten (`safehuisweg_test`); de echte plekken zijn niet opnieuw bekeken.
+- **Voertuigen (#436):** een sportmotor heeft een groter en breder achterwiel dan voorwiel; de wielen van de bakfiets draaien op hun eigen maat en niet meer door elkaar. Niet in beeld bekeken.
+- **Doodgaan (#436):** een zware klap geeft een korte rode flits, een lichte schok van het beeld en zwaar ademen; bij gezondheid 0 blijft het scherm rood tot de herstart. Zonder getoond geweld: alleen een rode rand en geluid. `lowhealth_test`.
+- **Water (#436):** de zon in het water geeft een kleinere, witte weerkaatsing in plaats van een brede gele gloed. Niet in beeld bekeken.
+
 ## [0.44.0] - 2026-10-23
 
 ### Nieuw
