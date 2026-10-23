@@ -57,10 +57,21 @@ function inBuilding(x, y, pad = 0) {
 
 const carRoad = (r) => r.cat !== 'foot' && r.cat !== 'cycle' && !r.z && !r.bridge;
 
+// treesNear geeft alle bomen in de cellen rond het punt: hier telt alleen wat echt binnen r ligt
+function treeAt(x, y, r) {
+  for (const t of map.treesNear(x, y, r)) if (Math.hypot(t[0] - x, t[1] - y) < r) return true;
+  return false;
+}
+
+// het stuk voor de opening: geen gebouw, geen water, geen boom; een weg is juist goed
+function approachFree(x, y) {
+  return !inBuilding(x, y, 0.6) && !isInWater(map, x, y) && !treeAt(x, y, 1.2);
+}
+
 // vrij voor de poort: geen gebouw (met een meter marge), geen water, geen weg voor auto's, geen boom
 function gateFree(x, y) {
   if (inBuilding(x, y, 1.2) || isInWater(map, x, y)) return false;
-  if (map.treesNear(x, y, 1.2).length) return false;
+  if (treeAt(x, y, 1.6)) return false;
   if (map.reservedAt && map.reservedAt(x, y)) return false;
   for (const r of map.roadsNear(x, y, 12)) {
     if (!carRoad(r)) continue;
@@ -447,7 +458,7 @@ function leave(site, to) {
 
 function startPlan(site) {
   const c = P.toWorld(site.hall, P.HALL_L / 2, 0);
-  site.planGen = P.planGateSteps(gateFree, nearestCarRoad, c[0], c[1], { radius: 140, step: 4, maxRoad: 50, penalty: footPenalty });
+  site.planGen = P.planGateSteps(gateFree, nearestCarRoad, c[0], c[1], { radius: 140, step: 3, maxRoad: 30, penalty: footPenalty, approach: approachFree });
 }
 
 // de generator van garageplan.js, met de regels van deze kaart: liever niet op een voetpad of fietspad (voetgangers lopen er door)
@@ -504,6 +515,21 @@ export function initParkeergarages(w) {
     inside: () => (st.inside ? st.inside.id : null),
     enter: (id) => { const s = sites.find((q) => q.id === id); if (s) enter(s); },
     leave: () => { if (st.inside) leave(st.inside); },
+    diag: (id, radius = 140, step = 4) => {
+      const s = sites.find((q) => q.id === id); if (!s) return null;
+      const c = P.toWorld(s.hall, P.HALL_L / 2, 0);
+      const n = { cells: 0, bld: 0, water: 0, tree: 0, resv: 0, road: 0, free: 0, c };
+      for (let dx = -radius; dx <= radius; dx += step) for (let dy = -radius; dy <= radius; dy += step) {
+        const x = c[0] + dx, y = c[1] + dy; n.cells++;
+        if (inBuilding(x, y, 1.2)) { n.bld++; continue; }
+        if (isInWater(map, x, y)) { n.water++; continue; }
+        if (treeAt(x, y, 1.6)) { n.tree++; continue; }
+        if (map.reservedAt && map.reservedAt(x, y)) { n.resv++; continue; }
+        if (!gateFree(x, y)) { n.road++; continue; }
+        n.free++;
+      }
+      return n;
+    },
     plan: (id) => { const s = sites.find((q) => q.id === id); if (s && !s.planned && !s.planGen) startPlan(s); },
     gatePoint: (id) => { const s = sites.find((q) => q.id === id); return s && s.gate ? { x: s.gate.x, y: s.gate.y, angle: s.gate.angle, zone: P.toWorld(s.gate, -2.4, 0), out: P.toWorld(s.gate, P.GATE.out.a, P.GATE.out.b) } : null; },
     hallPoint: (id) => { const s = sites.find((q) => q.id === id); return s ? { arrive: P.toWorld(s.hall, s.layout.arrive.u, s.layout.arrive.v), exit: P.toWorld(s.hall, 1.2, 0), frame: s.hall } : null; },
