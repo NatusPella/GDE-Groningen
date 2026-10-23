@@ -6,6 +6,8 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+- Samen spelen: een gast ziet de voertuigen en voetgangers van de gastheer nu als echte modellen en personen (kleding, haar, politie-uniform) in plaats van blokken.
+
 ## [0.42.0] - 2026-10-23
 
 ### Nieuw

@@ -37,7 +37,7 @@ for (const s of ['SIGINT', 'SIGTERM']) process.on(s, () => { release(); process.
 
 // ---- het programma van de gast (seconden na "verbonden") en het draaiboek van de host, op dezelfde tijdlijn
 const PROGRAM = [
-  [0, 'wacht', { s: 6 }], [8, 'gastcamera', {}], [16, 'gastloop', { s: 30, naam: 'gastloop' }], [50, 'wacht', { s: 6 }], [58, 'gastloop', { s: 12, naam: 'gastpauze', rennen: false }], [74, 'wacht', { s: 26 }],
+  [0, 'wacht', { s: 6 }], [6, 'kijk', {}], [12, 'gastcamera', {}], [16, 'gastloop', { s: 30, naam: 'gastloop' }], [50, 'wacht', { s: 6 }], [58, 'gastloop', { s: 12, naam: 'gastpauze', rennen: false }], [74, 'wacht', { s: 26 }],
 ];
 const HOST_STOP = 106;
 const code = {};
@@ -94,6 +94,12 @@ const afst = S.filter((s) => s.me && s.companion && s.t >= (lp ? lp.t - 31 : 0) 
 const terug = afst.some((d, i) => i && afst[i - 1] - d > 60); // de gast rent door: na 110 m en 4 s zet het spel hem bij de groep (een val van meer dan 60 m tussen twee samples)
 check(terug, 'band: de gast wordt niet bij de groep gezet: ' + afst.map((d) => Math.round(d)).join(' '));
 notes.push('afstand tot de gastheer: ' + afst.map((d) => Math.round(d)).join(' '));
+// voertuigen van de gastheer als echte modellen (geen blokken), de gast zit nooit vanzelf in een voertuig, geen NaN
+const hm = S.filter((s) => s.hostMesh && s.hostEnt && s.hostEnt[0] > 0).slice(-1)[0];
+check(hm && hm.hostMesh[0] > 0 && hm.hostMesh[1] === 0, 'voertuigen: de gast tekent geen echte modellen: ' + JSON.stringify(hm && hm.hostMesh));
+check(hm && hm.hostMesh[2] > 0 && hm.hostMesh[3] === 0, 'voetgangers: de gast tekent geen echte personen: ' + JSON.stringify(hm && hm.hostMesh));
+check(S.every((s) => !s.veh && !s.voert), 'voertuig: de gast zit vanzelf in een voertuig');
+check(S.every((s) => !s.me || (Number.isFinite(s.me.x) && Number.isFinite(s.me.y))), 'NaN in de positie van de gast');
 const pz = of('gastpauze')[0];
 check(pz && pz.verplaatst > 12, 'pauze: de gast loopt niet door terwijl de gastheer pauzeert: ' + JSON.stringify(pz));
 check(S.some((s) => s.sc && s.sc[1] === 1), 'pauze: de gast ziet niet dat de gastheer pauzeert');
