@@ -86,7 +86,7 @@ function finish(w, { quit = false } = {}) {
   const plas = !!r.plas, rec = recordChallengeResult(w, plas ? PLAS.record : 'regatta', { value: rr.tijd, medal, lower: true });
   recordStat(w, 'regatta');
   const bel = plas ? plasBeloning(medal) : { geld: [0, 15, 25, 40][medal] || 0, xp: 18 + medal * 3 };
-  const premie = loopbaanVerdien(w, 'race', bel.geld, { xp: bel.xp, n: 1, uniek: plas ? PLAS.record : 'regatta' }); // loopbaan (#381)
+  const premie = loopbaanVerdien(w, 'race', bel.geld, { xp: bel.xp, n: 1, uniek: 'regatta', ...(plas ? { uniek: PLAS.record } : null) }); // loopbaan (#381)
   const plaats = speelPlaats(rr, w.player.x, w.player.y, r.bots);
   const stats = [['Plaats', plaatsTekst(plaats, r.bots.length + 1)], ['Tijd', fmtTime(rr.tijd)], ['Richttijd', fmtTime(rr.richttijd)], ['Tonnen', String(rr.gerond)]];
   if (medal) stats.push(['Medaille', MEDALS[medal]]);
