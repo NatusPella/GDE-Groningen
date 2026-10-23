@@ -62,7 +62,7 @@ const LESSONS = [
   {
     id: 'tedoen',
     when: (w) => w.stats.missionsDone > startDone && !busy(w),
-    card: () => ({ title: 'Te doen', body: 'Missie binnen, en het spel heeft opgeslagen. Alles wat nog openstaat staat onder {ESC} › Te doen: kies iets en de route gaat erheen.' }),
+    card: () => ({ title: 'Activiteiten', body: 'Missie binnen, en het spel heeft opgeslagen. Alles wat nog openstaat staat onder {ESC} › Verhaal en Activiteiten: kies iets en de route gaat erheen.' }),
   },
 ];
 

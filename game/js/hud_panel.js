@@ -1146,7 +1146,7 @@ function currentObjective(world) {
     const first = r && r.kind === 'user' && r.target && /^Eerst: /.test(r.target.name) ? r.target.name : '';
     const sub = [first || goal.sub, formatDistance(d), wait ? `verhaal wacht: ${wait.code}` : ''].filter(Boolean).join(' · ');
     // the HUD takes no clicks: say where the goal can be dropped, the first few times
-    return { kind: 'goal', title: `Doel: ${goal.name}`, sub, hint: goalHints <= GOAL_HINTS ? `${sub} · wissen via Te doen of de kaart` : '', timer: '' };
+    return { kind: 'goal', title: `Doel: ${goal.name}`, sub, hint: goalHints <= GOAL_HINTS ? `${sub} · wissen via Activiteiten of de kaart` : '', timer: '' };
   }
   // between missions: the next story step, so it is always clear where to go
   const g = world.storyGuide;
