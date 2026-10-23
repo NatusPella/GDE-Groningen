@@ -6,6 +6,10 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Opgelost (samen spelen; in Node getest, nog niet door een mens in beeld bekeken)
+- **Samen spelen: een gast die midden in een spel aansluit bij een gastheer in de wachtkamer wacht ook in de wachtkamer (#388):** kwam je via het pauzemenu in plaats van via het hoofdmenu, dan liep je al rond terwijl het spel van de ander nog stilstond, en begon het openingsfilmpje pas na het spelen. Nu opent de wachtkamer ook bij jou, en sluit hij samen met die van de gastheer zodra die Spel starten kiest; daarna volgt meteen het filmpje.
+- **Samen spelen: de lobby zegt eerlijk welk personage je speelt (#388):** de eerste gast speelt altijd Tessa, omdat zij bij het verhaal hoort; een gekozen figuur krijg je alleen als je als derde of later meedoet. Het scherm Aansluiten zegt dat nu vooraf, en na het verbinden staat er wie jij speelt, met de reden als je een andere figuur koos (of als die al bezet was).
+
 ## [0.41.1] - 2026-10-23
 
 ### Nieuw

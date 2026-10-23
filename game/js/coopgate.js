@@ -4,3 +4,12 @@
 let gate = false;
 export const gateOn = () => gate;
 export const setGate = (aan) => { gate = !!aan; };
+// Een gast hoort van de gastheer of het spel nog niet begonnen is (aan) of nu begint (uit). Ook een gast die niet via het hoofdmenu kwam
+// (maar via het pauzemenu, in een spel dat al liep) wacht dan in de wachtkamer: anders loopt hij rond terwijl de wereld van de gastheer stilstaat
+// en begint het filmpje pas na het spelen. world.coopHekMenu vraagt main.js het menu Samen spelen te openen.
+export function hekBericht(world, aan) {
+  world.coopHek = !!aan;
+  if (aan && !gate) { gate = true; world.coopHekMenu = true; }
+  else if (!aan && gate) { gate = false; world.coopHekMenu = false; }
+  return gate;
+}

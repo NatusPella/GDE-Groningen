@@ -1,6 +1,7 @@
 // Samen spelen (#95): uitnodigscherm als toestandsmachine (game/js/lobby.js).
 import assert from 'node:assert/strict';
 import * as L from '../game/js/lobby.js';
+import * as G from '../game/js/coopgate.js';
 import { REASON_TEXT } from '../game/js/net/protocol.js';
 import { makeCode } from '../game/js/net/pairing.js';
 
@@ -172,5 +173,23 @@ t('Spel starten: uit zolang je alleen bent, aan met minstens twee spelers; een g
   assert.match(gast.lines.join(' '), /Wacht tot Tammo het spel start/); assert.match(gast.lines.join(' '), /Tammo heeft het spel geopend/); assert.doesNotMatch(gast.lines.join(' '), /gastheer|gastgever/i); assert.equal(gast.buttons.some((b) => b.act === 'start-spel'), false, 'een gast heeft geen Spel starten');
   const open = L.view(L.reduce(L.reduce(run(GATE, { t: 'kies', rol: 'gast' }, { t: 'status', status: 'ok' }), { t: 'spelers', lijst: lijst(2), max: 8 }), { t: 'gate', aan: false }));
   assert.doesNotMatch(open.lines.join(' '), /Wacht tot/, 'na het starten staat de wachttekst er niet meer');
+});
+t('jouw figuur: plek 1 is Tessa (uitleg als je iets anders koos), plek 2 en hoger krijgt de gewenste figuur', () => {
+  const lijst = (chars) => chars.map((c, i) => ({ slot: i, char: c, naam: { tammo: 'Tammo', anita: 'Tessa', bram: 'Bram', rik: 'Rik' }[c] }));
+  const gast = (wens, chars, slot) => L.view(L.reduce(L.reduce(run(APP, { t: 'kies', rol: 'gast' }, ...(wens ? [{ t: 'wens', char: wens }] : []), { t: 'status', status: 'ok', partner: { slot } }), { t: 'spelers', lijst: lijst(chars), max: 8 }), { t: 'status', status: 'ok', partner: { slot } })).lines.join(' ');
+  assert.match(gast(null, ['tammo', 'anita'], 1), /Jij speelt Tessa\./);
+  const misleid = gast('bram', ['tammo', 'anita'], 1);
+  assert.match(misleid, /Je koos Bram, maar als eerste gast speel je Tessa/); assert.match(misleid, /derde of later/);
+  assert.match(gast('bram', ['tammo', 'anita', 'bram'], 2), /Jij speelt Bram\./); assert.doesNotMatch(gast('bram', ['tammo', 'anita', 'bram'], 2), /Je koos/);
+  assert.match(gast('bram', ['tammo', 'anita', 'bram', 'rik'], 3), /Je koos Bram, maar die was al bezet\. Jij speelt Rik/);
+  assert.match(L.view(run(APP, { t: 'kies', rol: 'gast' })).lines.join(' '), /eerste gast speelt altijd Tessa/);
+});
+t('hekBericht: een gast die midden in een spel aansluit bij een gastheer in de wachtkamer wacht ook (en gaat mee open)', () => {
+  const w = {};
+  G.setGate(false);
+  assert.equal(G.hekBericht(w, true), true); assert.equal(G.gateOn(), true); assert.equal(w.coopHekMenu, true, 'main.js opent het menu');
+  w.coopHekMenu = false; assert.equal(G.hekBericht(w, true), true); assert.equal(w.coopHekMenu, false, 'al in de wachtkamer: niet nogmaals openen');
+  assert.equal(G.hekBericht(w, false), false); assert.equal(G.gateOn(), false); assert.equal(w.coopHek, false);
+  assert.equal(G.hekBericht(w, false), false, 'geen hek meer: er verandert niets');
 });
 console.log(`lobby_test: ${n}/${n} ok`);
