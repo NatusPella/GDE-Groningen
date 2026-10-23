@@ -67,7 +67,7 @@ besluit.
    op een bètatak; zelf live zetten.
 7. **Steam Input** configureren: het actiebestand uploaden en per situatie een
    standaardindeling kiezen, of de sjabloon "Gamepad" laten staan.
-8. **Prestaties** in Steamworks aanmaken (205 stuks, 22 verborgen), de
+8. **Prestaties** in Steamworks aanmaken (214 stuks, 22 verborgen), de
    API-namen in `steam/achievements.json` invullen (veld `steamApiNaam`) en
    daarna de koppeling in het spel laten bouwen (dat is nog niet gedaan:
    er is bewust geen Steam-bibliotheek in het spel).
