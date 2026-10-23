@@ -22,7 +22,9 @@ import { gateOn, setGate, hekBericht } from './coopgate.js';
 import { WIEL_TEKST, WIEL_HOST_TEKST, WIEL_VERZOEK_S, kanUitstappen } from './coopgast.js';
 import { nieuwCutVerzamelaar, cutGastSpeel, cutGastStop, leesCutTijd, cutSpoor } from './coopcut.js';
 import { verzamelExtra, codeerExtra, leesExtra, nieuwGeheugen, nieuweStand, pasExtraToe } from './coopextra.js';
-import { verzamelEntiteiten, leesEntiteiten, missieBericht, leesMissieBericht, missieTekst, sceneBericht, leesSceneBericht, sceneLeeg, filmpjeTekst } from './coopworld.js';
+import { wapenCode, aanvalCode, volgendeStoel, stapSprong, BUK_TEMPO } from './coopspeler.js';
+import { getCombatEffect } from './combateffect.js';
+import { voertuigId, verzamelEntiteiten, leesEntiteiten, missieBericht, leesMissieBericht, missieTekst, sceneBericht, leesSceneBericht, sceneLeeg, filmpjeTekst } from './coopworld.js';
 import { verhaalRol, openerNaam, charInfo } from './coopplayers.js';
 import { KLOK_EVERY, klokEvent, leesKlokEvent, KlokVolger } from './net/speelklok.js';
 import { HASH_EVERY, viewOf, hashEvent, leesHashEvent, DesyncMonitor } from './net/desync.js';
@@ -61,6 +63,32 @@ export function canJoin(world) {
 
 // Een passagier (de metgezel in het voertuig van de host) behoudt zijn eigen x en y van vóór het instappen; zijn plek is die van het voertuig.
 const posOf = (b) => (b && b.inVehicle && Number.isFinite(b.inVehicle.x) && Number.isFinite(b.inVehicle.y) ? b.inVehicle : b);
+
+// De springknop van de gast: ingedrukt, of net aangetikt (een tik korter dan een invoerpakket van 1/30 s gaat anders verloren)
+function springKnop(n, inp, dt) {
+  if (inp && inp.wasPressed && inp.wasPressed(' ')) n.springTik = 0.1;
+  else if (n.springTik > 0) n.springTik -= dt;
+  return !!(inp && inp.isDown && inp.isDown(' ')) || n.springTik > 0;
+}
+
+// Een extra speler in het voertuig van de gastheer krijgt een eigen stoel (2 en hoger; 0 is de bestuurder, 1 de bijrijder voorin, #434).
+const vrijeStoel = (world, fig, v) => volgendeStoel(Object.values(figures(world)).filter((f) => f !== fig && f.inVeh === v).map((f) => f.stoel));
+
+// De record van één speler in het snapshot: plek, hoogte (springen), bukken, het voertuig met stoel, en wapen en aanval van de gastheer (#434).
+export function spelerRecord(world, b, slot) {
+  if (!b) return b;
+  const q = posOf(b), veh = b.inVehicle || b.inVeh;
+  const vo = veh && typeof veh === 'object' ? veh : null, inV = !!veh;
+  const r = { slot, x: q.x, y: q.y, z: b.z || 0, angle: q.angle || 0, alive: slot === 0 ? !world.pendingRespawn : slot === 1 ? b.state !== 'dead' : true, inVeh: inV, driver: slot === 0 && inV, run: false, health: 100,
+    vehicle: vo ? voertuigId(vo, 0) : null, crouch: !inV && !!b.crouching, seat: slot === 0 ? 0 : slot === 1 ? 1 : (b.stoel | 0) || 2, weapon: 0, attack: 0 };
+  if (slot === 0 && !inV && !(b.swimming || b.vault)) { // wat de gastheer in de hand heeft en zijn laatste aanval: de gast tekent het op de figuur van de gastheer
+    r.weapon = wapenCode(world.weapon);
+    const fx = getCombatEffect(), a = world.coopAanval || (world.coopAanval = { start: null, teller: 0 });
+    if (fx && fx.start !== undefined && fx.start !== a.start) { a.start = fx.start; a.teller++; }
+    r.attack = aanvalCode(fx, world.time || 0, a.teller);
+  }
+  return r;
+}
 
 // De treinen van de gewone dienstregeling (geen opdrachttreinen), met hun plek op de route, voor de gasten (#428).
 // railway.js trekt three.js mee: main.js geeft de spoorwegen door (setCoopTreinen), zodat dit bestand in Node testbaar blijft.
@@ -106,7 +134,7 @@ export function hostSim(world, roster) {
     },
     snapshot() {
       const p = world.player, c = world.companion;
-      const body = (b, slot) => { const q = posOf(b); return b && ({ slot, x: q.x, y: q.y, z: b.z || 0, angle: q.angle || 0, alive: slot === 0 ? !world.pendingRespawn : slot === 1 ? b.state !== 'dead' : true, inVeh: !!(b.inVehicle || b.inVeh), driver: false, run: false, health: 100, vehicle: null }); };
+      const body = (b, slot) => spelerRecord(world, b, slot);
       const players = [body(p, 0), body(c, 1)];
       for (const s of roster().spelers) if (s.slot >= 2) players.push(body(figures(world)[s.slot], s.slot));
       const ents = verzamelEntiteiten(world, players.filter(Boolean), { treinen: hostTreinen() });
@@ -239,7 +267,9 @@ function stepFigures(world, dt) {
     if (!fig.input) { fig.vx *= Math.max(0, 1 - 10 * dt); fig.vy *= Math.max(0, 1 - 10 * dt); continue; }
     const m = fig.input;
     const len = Math.hypot(m.mx, m.my), sx = len > 1 ? 1 / len : 1;
-    const dir = cameraRelative({ x: m.mx * sx, y: m.my * sx, run: !!((m.buttons || 0) & 1), active: !!(m.mx || m.my) }, m.yaw || 0);
+    const sp = stapSprong(fig.sprong || (fig.sprong = {}), m.buttons, dt); // springen en bukken (#434)
+    fig.z = sp.z; fig.crouching = sp.bukt;
+    const dir = cameraRelative({ x: m.mx * sx * (sp.bukt ? BUK_TEMPO : 1), y: m.my * sx * (sp.bukt ? BUK_TEMPO : 1), run: !!((m.buttons || 0) & 1) && !sp.bukt, active: !!(m.mx || m.my) }, m.yaw || 0);
     stepSlot2(fig, dir, dt, null);
     if (world.coopMove) world.coopMove(fig, dt, world); // botsingen met gebouwen: companion.js zet deze haak
     else { fig.x += fig.vx * dt; fig.y += fig.vy * dt; }
@@ -283,7 +313,7 @@ export function figGebruik(world, slot) {
   if (!plekken) { meld('Hier kun je niet meerijden.'); return false; }
   if (Math.hypot(fig.x - v.x, fig.y - v.y) > FIGUUR_INSTAP_AFSTAND) { meld('Loop naar het voertuig om in te stappen.'); return false; }
   if (Object.values(figures(world)).filter((f) => f.inVeh === v).length >= plekken) { meld('Er is geen plek meer in dit voertuig.'); return false; }
-  fig.inVeh = v; fig.coopVoertuig = true; fig.vx = 0; fig.vy = 0;
+  fig.inVeh = v; fig.coopVoertuig = true; fig.vx = 0; fig.vy = 0; fig.stoel = vrijeStoel(world, fig, v);
   return true;
 }
 
@@ -405,7 +435,7 @@ export function bandFiguren(world, dt) {
     if (fig.vastMeet >= 0.25) { fig.vastTijd = world.coopVrij && !world.coopVrij(fig.x, fig.y, world) ? (fig.vastTijd || 0) + fig.vastMeet : 0; fig.vastMeet = 0; }
     if (fig.verTijd >= (d > 300 && !los.ok ? 0.5 : FIGUUR_TERUG_S) || fig.vastTijd >= FIGUUR_TERUG_S) { // een sprong van de gastheer (snelreizen, herstel) haalt de figuur meteen bij
       fig.verTijd = 0; fig.vastTijd = 0; fig.gewaarschuwd = false; fig.losGemeld = false; fig.wacht = false; fig.ongeladen = 0; fig.vx = 0; fig.vy = 0;
-      if (plek) { fig.inVeh = v; fig.coopVoertuig = true; fig.x = v.x; fig.y = v.y; if (world.coopMeld) world.coopMeld(fig.slot, 'Je rijdt mee. Met E stap je uit als het voertuig stilstaat.'); continue; } // is er plek, dan zit hij weer in het voertuig (geen eindeloos terugzetten)
+      if (plek) { fig.inVeh = v; fig.coopVoertuig = true; fig.stoel = vrijeStoel(world, fig, v); fig.x = v.x; fig.y = v.y; if (world.coopMeld) world.coopMeld(fig.slot, 'Je rijdt mee. Met E stap je uit als het voertuig stilstaat.'); continue; } // is er plek, dan zit hij weer in het voertuig (geen eindeloos terugzetten)
       zetBijGroep(world, fig, (fig.slot * 1.7) % (Math.PI * 2));
       if (world.coopMeld) world.coopMeld(fig.slot, 'Je staat weer bij de groep.');
     }
@@ -520,7 +550,7 @@ export function tickCoopNet(world, dt) {
       stopCoopNet(world); return;
     }
     const inp = world.input;
-    const m = makeClientInput(inp && inp.axis ? inp.axis() : [0, 0], !!(inp && inp.isDown && inp.isDown('shift')), world.camYaw, !!(world.coopWiel && inp && inp.isDown && inp.isDown(' ')));
+    const m = makeClientInput(inp && inp.axis ? inp.axis() : [0, 0], !!(inp && inp.isDown && inp.isDown('shift')), world.camYaw, !!(world.coopWiel && inp && inp.isDown && inp.isDown(' ')), !world.coopInVoertuig && springKnop(n, inp, dt), !world.coopInVoertuig && !!(inp && inp.isDown && inp.isDown('control'))); // springen en bukken te voet (#434)
     if (inp && inp.wasPressed && inp.wasPressed('y')) wielGebaar(world); // Y: om het stuur vragen (#291)
     if (inp && inp.wasPressed && inp.wasPressed('b') && !world.paused) bijGroepGebaar(world); // B: bij de groep komen (#429)
     if ((world.coopScene && world.coopScene.filmpje) || world.paused) s.setInput(0, 0, 0, m.yaw); // de gastheer kijkt een filmpje, of de gast zit zelf in een menu, de kaart of een winkel: zijn figuur staat stil (#373)

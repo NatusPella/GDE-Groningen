@@ -13,6 +13,7 @@ import { standVers, MISC_DEUREN, leesDeuren } from './coopextra.js';
 import { WATER_Y } from './util.js';
 import { surfaceLiftAt } from './waterlevels.js';
 import { ruimMeshOp } from './coopruim.js';
+import { syncZitters, clearZitters } from './coopzitten3d.js';
 
 const voertuigen = new Map(); // id -> mesh
 const hornWas = new Map(); // id -> de toeter stond aan (de vorige keer)
@@ -41,8 +42,11 @@ function echteMesh(v) {
     case 'motor': pv.isScooter = true; model.motorbike = true; break;
     default: return null;
   }
-  try { return buildVehicleMesh(pv); } catch (e) { return null; }
+  try { const m = buildVehicleMesh(pv); m.userData.gokSpec = pv; return m; } catch (e) { return null; } // gokSpec: voor de stoelen van de zitters (coopzitten3d.js)
 }
+
+// De voertuigmodellen en hun gegevens voor coopzitten3d.js (wie meerijdt zit op zijn stoel in dit model)
+export const zoekGastVoertuig = (id) => { const m = voertuigen.get(id); return m ? { mesh: m, v: m.userData.spec || m.userData.gokSpec || null } : null; };
 
 // Het echte model van de host (look uit de snapshot, #428): dezelfde bouwer als de host, met deuken, lampen en wielen.
 let dbgT = 0;
@@ -176,6 +180,7 @@ export function syncHostEntities(world, dt = 1 / 60) {
   }
   for (const id of hornWas.keys()) if (!seen.has(id)) hornWas.delete(id);
   world.coopSirenUnits = sirenes; world.coopDeurenDbg = deurenOpen; world.coopSirenDbg = sirenes.length;
+  world.coopZittersDbg = syncZitters(world.coopZitters, zoekGastVoertuig); // wie meerijdt, op zijn stoel (#434)
   if (klok - dbgT > 1) { // voor de testbank (eenmaal per seconde): wat de gast per voertuig laat zien
     dbgT = klok;
     const o = {};
@@ -199,6 +204,7 @@ export function syncHostEntities(world, dt = 1 / 60) {
 }
 
 export function clearHostEntities() {
+  clearZitters();
   const scene = getScene();
   if (scene) for (const m of voertuigen.values()) ruimVoertuig(scene, m);
   voertuigen.clear(); wacht.clear();

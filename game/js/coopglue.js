@@ -2,6 +2,7 @@
 // actief na bindCoop(), dus alleen met ?coop; zonder blijft world.coop leeg.
 import { readP2, remoteP2, stepSlot2, assignDevices, leash } from './coop.js';
 import { activePadIndex } from './gamepad.js';
+import { stapSprong, BUK_TEMPO } from './coopspeler.js';
 
 export function bindCoop(world, input) {
   world.coop = { input, devices: null };
@@ -30,11 +31,15 @@ export function coopStep(c, dt, world, move) {
   // online: de gast stuurt de metgezel via het net (net/session.js), anders het eigen toetsenbord of pad
   const inp = world.coop.remote ? remoteP2(world.coop.remoteInput) : readP2(snapshot(world.coop));
   const yaw = (world.coop.remote ? (world.coop.remoteInput && world.coop.remoteInput.yaw) : world.camYaw) || 0, cs = Math.cos(yaw), sn = Math.sin(yaw);
-  stepSlot2(c, { ...inp, x: cs * -inp.y - sn * inp.x, y: sn * -inp.y + cs * inp.x }, dt, null);
+  // springen en bukken van de gast (#434): knoppen in de invoer; een sprong zet c.z, bukken vertraagt en zet c.crouching
+  const sp = world.coop.remote ? stapSprong(c.sprong || (c.sprong = {}), world.coop.remoteInput && world.coop.remoteInput.buttons, dt) : null;
+  if (sp && (sp.z > 0 || c.sprongActief)) { c.z = sp.z; c.sprongActief = sp.z > 0; }
+  const buk = !!(sp && sp.bukt), k = buk ? BUK_TEMPO : 1;
+  stepSlot2(c, { ...inp, run: inp.run && !buk, x: (cs * -inp.y - sn * inp.x) * k, y: (sn * -inp.y + cs * inp.x) * k }, dt, null);
   move(c, dt, world);
   const l = leash(world.player, c, world.coop.leash); // in een sessie Infinity (coopnet.js): daar doet de band het werk (#388)
   if (l.clamped) { c.x = l.x; c.y = l.y; }
-  c.crouching = false;
+  c.crouching = buk;
   c.pose = null;
   return true;
 }

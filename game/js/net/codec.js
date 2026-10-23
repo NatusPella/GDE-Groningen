@@ -139,10 +139,11 @@ export function encodeSnapshot(seq, tick, ackInput, snap) {
     v.setUint8(o++, p.slot & 0xff);
     v.setFloat32(o, p.x); o += 4; v.setFloat32(o, p.y); o += 4; v.setFloat32(o, p.z || 0); o += 4;
     v.setUint16(o, quantAngle(p.angle || 0)); o += 2;
-    v.setUint8(o++, (p.alive ? 1 : 0) | (p.inVeh ? 2 : 0) | (p.driver ? 4 : 0) | (p.run ? 8 : 0));
+    v.setUint8(o++, (p.alive ? 1 : 0) | (p.inVeh ? 2 : 0) | (p.driver ? 4 : 0) | (p.run ? 8 : 0) | (p.crouch ? 16 : 0));
     v.setUint8(o++, clamp(Math.round(p.health ?? 100), 0, 255));
     v.setUint16(o, p.vehicle == null ? NO_VEHICLE : p.vehicle & 0xffff); o += 2;
-    o += 3; // gereserveerd (uitlijning, toekomstige animatie-index)
+    // de drie gereserveerde bytes (#434, zelfde wireversie: een oudere ontvanger slaat ze over): stoel in het voertuig, wapen in de hand, aanval
+    v.setUint8(o++, clamp(p.seat | 0, 0, 255)); v.setUint8(o++, clamp(p.weapon | 0, 0, 255)); v.setUint8(o++, clamp(p.attack | 0, 0, 255));
   }
   const sh = snap.shared || {};
   v.setUint32(o, clamp(Math.floor(sh.money || 0), 0, 0xffffffff)); o += 4;
@@ -176,10 +177,10 @@ export function decodeSnapshot(buf, looksCache = null) {
       p.x = v.getFloat32(o); o += 4; p.y = v.getFloat32(o); o += 4; p.z = v.getFloat32(o); o += 4;
       p.angle = dequantAngle(v.getUint16(o)); o += 2;
       const f = v.getUint8(o++);
-      p.alive = !!(f & 1); p.inVeh = !!(f & 2); p.driver = !!(f & 4); p.run = !!(f & 8);
+      p.alive = !!(f & 1); p.inVeh = !!(f & 2); p.driver = !!(f & 4); p.run = !!(f & 8); p.crouch = !!(f & 16);
       p.health = v.getUint8(o++);
       const veh = v.getUint16(o); o += 2; p.vehicle = veh === NO_VEHICLE ? null : veh;
-      o += 3;
+      p.seat = v.getUint8(o++); p.weapon = v.getUint8(o++); p.attack = v.getUint8(o++);
       if (p.slot >= MAX_PLAYERS || !inWorld(p.x) || !inWorld(p.y) || !inWorld(p.z)) return null;
       players.push(p);
     }
