@@ -41,8 +41,8 @@ same(garageSections(garageShown(V, view())).map((s) => [s.group, s.items.length]
 same(garageSections(garageShown(V, view({ filter: 'owned' }))).map((s) => s.group), ['owned'], 'empty groups dropped');
 
 const tabs = garageTabCounts(V);
-same(tabs.map((t) => t.id), ['all', 'autos', 'bussen', 'fietsen', 'luchtvaart', 'speciaal'], 'tabs without empty categories');
-ok(tabs[0].total === 7 && tabs[0].owned === 2, 'all tab counts');
+same(tabs.map((t) => t.id), ['autos', 'bussen', 'fietsen', 'luchtvaart', 'speciaal', 'all'], 'tabs without empty categories');
+ok(tabs.at(-1).total === 7 && tabs.at(-1).owned === 2, 'all tab counts');
 
 ok(cycleOption(GARAGE_SORTS, 'naam') === 'prijs' && cycleOption(GARAGE_SORTS, 'snelheid') === 'naam', 'sort cycles and wraps');
 ok(cycleOption(GARAGE_FILTERS, 'locked') === 'all' && cycleOption(GARAGE_FILTERS, 'zzz') === 'all', 'filter wraps, unknown starts over');

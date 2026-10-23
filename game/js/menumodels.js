@@ -4,8 +4,8 @@
 // and achievementsui.js only draw what these return; scripts/menumodels_test.mjs covers them.
 
 const GARAGE_CATS = [
-  ['all', 'Alles'], ['autos', "Auto's"], ['bussen', 'Bussen'], ['fietsen', 'Fietsen'],
-  ['scooters', 'Scooters'], ['boten', 'Boten'], ['luchtvaart', 'Lucht'], ['speciaal', 'Speciaal'],
+  ['autos', "Auto's"], ['bussen', 'Bussen'], ['fietsen', 'Fietsen'],
+  ['scooters', 'Scooters'], ['boten', 'Boten'], ['luchtvaart', 'Lucht'], ['speciaal', 'Speciaal'], ['all', 'Alles'], // Auto's eerst, Alles achteraan (#435)
 ];
 export const GARAGE_FILTERS = [['all', 'alles'], ['owned', 'van jou'], ['sale', 'te koop'], ['locked', 'op slot']];
 export const GARAGE_SORTS = [['naam', 'Op naam'], ['prijs', 'Op prijs'], ['snelheid', 'Op snelheid']];

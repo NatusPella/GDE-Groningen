@@ -27,7 +27,7 @@ import { renderLoopbaanPanel } from './loopbaanui.js';
 import { renderVisboekPanel } from './visboekui.js';
 import { renderBoerderijPanel } from './boerderijui.js';
 import { unseenAchievementCount } from './achievements.js';
-import { renderGaragePanel, selectGarageVehicle, disposeGarageViewer } from './garageui.js';
+import { renderGaragePanel, selectGarageVehicle, disposeGarageViewer, garageNaarWinkel } from './garageui.js';
 import { deliverOwnedVehicle, locateOwnedVehicle } from './ownedvehicles.js';
 import { isShopOpen, closeShopMenu } from './shopui.js';
 import { benchmarkViaReload } from './trailerstate.js';
@@ -611,6 +611,8 @@ export function initPauseMenu(w) {
     if (panel && tab === 'loopbaan' && todoClick(e, world, panel, todoApi)) return;
     const gd = e.target.closest('[data-garage-deliver]');
     if (gd) return garageDeliver(gd.dataset.garageDeliver);
+    const gw = e.target.closest('[data-garage-shop]');
+    if (gw) { const r = garageNaarWinkel(world, gw.dataset.garageShop); renderGaragePanel(garageEl(), world, r.text); return; }
     const gf = e.target.closest('[data-garage-find]');
     if (gf) return garageFind(gf.dataset.garageFind);
     const gs = e.target.closest('[data-garage-select]');
