@@ -4,6 +4,7 @@
 export const SAMEN_KEUZES = [
   { act: 'host', label: 'Een spel openen', sub: 'Jij kiest het spel en nodigt tot drie anderen uit' },
   { act: 'gast', label: 'Meedoen', sub: 'Speel mee in het spel van een ander, met een kamercode of een IP-adres' },
+  { act: 'lijst', label: 'Openbare sessies', sub: 'Zie welke spelers een open sessie hebben en sluit met een klik aan' },
 ];
 
 let rootEl = null;

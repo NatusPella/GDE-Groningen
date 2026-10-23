@@ -14,6 +14,7 @@
 import { REASON_TEXT } from './net/protocol.js';
 import { parseRoom } from './net/sigcrypto.js';
 import { parseCode } from './net/pairing.js';
+import { schoonNaam } from './net/serverlijst.js';
 import { EXTRA_CHARS, DEFAULT_MAX, MIN_MAX, ABS_MAX, advies, openerNaam } from './coopplayers.js';
 
 export const ROLES = { HOST: 'host', GAST: 'gast' };
@@ -27,6 +28,19 @@ export const CONSENT_DETAIL = {
   kamer: 'Je kamercode versleutelt wat er via die servers gaat: zij zien alleen onleesbare berichten. Er wordt verder niets verstuurd.',
   direct: 'Iedereen met de code kan zolang de poort open staat proberen te verbinden. Geef de code alleen aan je medespeler. Windows kan nu vragen of GDE Groningen het netwerk mag gebruiken: kies Toestaan (privé netwerk), anders kan de ander je niet bereiken.',
 };
+
+// Openbare sessies (#438): standaard is een sessie privé (alleen met de kamercode). De host kiest zelf om hem in de lijst te zetten,
+// per sessie, na deze toestemming; wie de lijst opent geeft eerst toestemming voor het verbinden met de openbare servers.
+export const OPENBAAR_TEXT = [
+  'Een openbare sessie staat in de lijst Openbare sessies, die iedereen kan zien die dit spel heeft. Zo kunnen spelers aansluiten zonder dat je ze een kamercode geeft.',
+  'Dit wordt openbaar: de naam van je sessie, het aantal spelers en het maximum, de versie van het spel en de kamercode waarmee anderen aansluiten. Je IP-adres, een wachtwoord en andere gegevens staan er niet bij. De naam wordt gecontroleerd op scheldwoorden en echte merken en namen.',
+  'Dit gaat elke 15 seconden naar dezelfde openbare servers als de kamercode, en die zien het onversleuteld. Uitzetten kan altijd: kies Sessie weer privé maken. Dan stopt het, je sessie verdwijnt binnen een minuut uit de lijsten en je krijgt een nieuwe kamercode, zodat de oude niet meer werkt.',
+];
+export const LIJST_TEXT = [
+  'De lijst met openbare sessies wordt opgehaald via dezelfde openbare servers als de kamercode. Die servers zien dan je IP-adres, zoals bij elke website.',
+  'Wat in de lijst staat is door spelers zelf geplaatst: de naam, het aantal spelers, de versie en de kamercode, onversleuteld. Sluit je aan, dan loopt dat via de gewone versleutelde kamercode en deel je je IP-adres met de ander.',
+  'Staat er iets vervelends in? Kies Melden: die sessie verdwijnt dan uit jouw lijst. Er wordt niets verstuurd.',
+];
 
 // Wat "Verbinding testen" doet, vóór de speler het toestaat (het neemt contact op met openbare servers)
 export const DIAG_TEXT = 'De test neemt contact op met dezelfde openbare servers als de kamercode: internet, servers om elkaar te vinden en servers voor de kamercode. In de app test hij ook of je router automatisch een poort opent. Er wordt niets van jou verstuurd.';
@@ -53,11 +67,12 @@ export function classifyInput(text) {
 export function createLobby(caps = {}) {
   return {
     // keuze: de rol die al in het hoofdmenu is gekozen (Gastheer worden / Meedoen): dan slaat de lobby de rolkeuze over
-    step: caps.start || (caps.keuze ? (caps.keuze === ROLES.HOST ? 'methode' : 'gast-typt') : 'start'), rol: caps.rol || caps.keuze || null, route: null, invoer: null,
+    step: caps.start || (caps.keuze === ROLES.GAST && caps.lijst && caps.rtc !== false ? 'lijst-vraag' : caps.keuze ? (caps.keuze === ROLES.HOST ? 'methode' : 'gast-typt') : 'start'), rol: caps.rol || caps.keuze || null, route: null, invoer: null,
     code: '', lanCode: '', note: '', error: '', reason: null, status: null, partner: null,
     spelers: [], max: DEFAULT_MAX, wens: null, holdSlot: null, holdNaam: caps.holdNaam || '',
-    caps: { direct: !!caps.direct, rtc: caps.rtc !== false, laatsteCode: caps.laatsteCode || '', startGate: !!caps.startGate, spelNaam: String(caps.spelNaam || ''), versie: String(caps.versie || ''), opslaan: !!caps.opslaan },
-    diag: null, terugNaar: 'start', andereVersie: '',
+    caps: { direct: !!caps.direct, rtc: caps.rtc !== false, laatsteCode: caps.laatsteCode || '', startGate: !!caps.startGate, spelNaam: String(caps.spelNaam || ''), lijst: !!caps.lijst, versie: String(caps.versie || ''), opslaan: !!caps.opslaan },
+    diag: null, terugNaar: caps.keuze === ROLES.GAST && caps.lijst ? 'gast-typt' : 'start', andereVersie: '',
+    openbaar: false, openbaarNaam: '', lijst: [], // openbaar: alleen voor deze sessie (een nieuwe lobby is weer privé)
   };
 }
 const fresh = (s) => createLobby(s.caps);
@@ -95,6 +110,30 @@ export function reduce(s, ev) {
     case 'diag-go': n.step = 'diag-bezig'; n.diag = null; return n;
     case 'diag-klaar': n.step = 'diag-uit'; n.diag = ev.beoordeling || null; return n;
     case 'diag-terug': n.step = s.terugNaar || 'start'; return n;
+    case 'openbaar-vraag': // alleen de host, alleen de kamercode-route (de IP-route heeft een adres in de code: nooit openbaar)
+      if (s.rol !== ROLES.HOST || s.route !== ROUTES.KAMER || !['host-wacht', 'verbonden'].includes(s.step)) return s;
+      n.step = 'openbaar-vraag'; return n;
+    case 'openbaar-ja': {
+      if (s.step !== 'openbaar-vraag') return s;
+      const r = schoonNaam(ev.naam);
+      if (!r.ok) return { ...n, error: r.reason };
+      n.openbaar = true; n.openbaarNaam = r.naam; n.step = s.spelers.length > 1 ? 'verbonden' : 'host-wacht'; return n;
+    }
+    case 'openbaar-terug': if (s.step !== 'openbaar-vraag') return s; n.step = s.spelers.length > 1 ? 'verbonden' : 'host-wacht'; return n;
+    case 'privaat': n.openbaar = false; return n;
+    case 'lijst-vraag': // Openbare sessies bekijken: eerst de toestemming
+      if (!s.caps.rtc || !['start', 'gast-typt'].includes(s.step)) return s;
+      n.terugNaar = s.step; n.step = 'lijst-vraag'; return n;
+    case 'lijst-go': if (s.step !== 'lijst-vraag') return s; n.step = 'lijst'; n.lijst = []; return n;
+    case 'lijst-data': if (s.step !== 'lijst') return s; n.lijst = Array.isArray(ev.lijst) ? ev.lijst.slice(0, 20) : []; return n;
+    case 'lijst-kies': { // aansluiten bij een sessie uit de lijst: dezelfde route als een ingevoerde kamercode, met dezelfde toestemming
+      if (s.step !== 'lijst') return s;
+      const e = s.lijst[ev.i];
+      if (!e) return s;
+      if (!e.kan) return { ...n, error: e.anders ? 'Deze sessie speelt een andere versie: je kunt er niet bij aansluiten.' : 'Deze sessie zit vol.' };
+      n.rol = ROLES.GAST; n.route = ROUTES.KAMER; n.invoer = { ok: true, route: ROUTES.KAMER, room: e.room }; n.step = 'toestemming'; return n;
+    }
+    case 'lijst-terug': if (s.step !== 'lijst' && s.step !== 'lijst-vraag') return s; n.step = s.terugNaar || 'start'; return n;
     case 'wens': // alleen gast: gewenste figuur voor plek 2 en hoger
       n.wens = EXTRA_CHARS.some((c) => c.id === ev.char) ? ev.char : null; return n;
     case 'gate': n.caps = { ...s.caps, startGate: !!ev.aan }; return n;
@@ -152,7 +191,7 @@ export function view(s) {
     case 'start':
       return V({
         lines: ['Speel samen met een vriend in de open wereld: opdrachten, minigames en het verhaal. Iedereen houdt zijn eigen voortgang. Wie het spel opent speelt Tammo, wie als eerste meedoet speelt Tessa, wie daarna komt een eigen figuur.'],
-        buttons: [{ act: 'kies-host', label: 'Iemand uitnodigen', primary: true }, { act: 'kies-gast', label: 'Code of adres invoeren' }, { act: 'diag', label: 'Verbinding testen' }],
+        buttons: [{ act: 'kies-host', label: 'Iemand uitnodigen', primary: true }, { act: 'kies-gast', label: 'Code of adres invoeren' }, ...(s.caps.rtc ? [{ act: 'lijst', label: 'Openbare sessies' }] : []), { act: 'diag', label: 'Verbinding testen' }],
       });
     case 'methode': {
       const buttons = [{ act: 'route-kamer', label: 'Kamercode', primary: true }];
@@ -178,14 +217,15 @@ export function view(s) {
       if (s.note) lines.push(s.note);
       if (s.lanCode && s.lanCode !== s.code) lines.push('Op hetzelfde netwerk werkt ook de lokale code: ' + s.lanCode);
       if (s.caps.startGate) lines.push('Wacht op een medespeler: je kunt het spel starten zodra er minstens twee spelers zijn.');
-      return V({ title: 'Iemand uitnodigen', lines, code: s.code, buttons: [...(s.caps.startGate ? [{ act: 'start-spel', label: 'Spel starten', primary: true, disabled: true }] : []), { act: 'kopieer', label: 'Kopieer', primary: !s.caps.startGate }, { act: 'diag', label: 'Verbinding testen' }, { act: 'terug', label: 'Stoppen' }] });
+      if (s.openbaar) lines.push(openbaarRegel(s));
+      return V({ title: 'Iemand uitnodigen', lines, code: s.code, buttons: [...(s.caps.startGate ? [{ act: 'start-spel', label: 'Spel starten', primary: true, disabled: true }] : []), { act: 'kopieer', label: 'Kopieer', primary: !s.caps.startGate }, ...openbaarKnop(s), { act: 'diag', label: 'Verbinding testen' }, { act: 'terug', label: 'Stoppen' }] });
     }
     case 'gast-typt':
       return V({
         title: 'Aansluiten', lines: ['Voer de kamercode of de koppelcode in die je kreeg. De eerste gast speelt altijd Tessa: zij hoort bij het verhaal, dus daar kies je niets. Kom je als derde of later, dan speel je een eigen figuur: kies er hieronder een (die krijg je als hij vrij is), of laat het kiezen.', GAST_BEWAREN(s.caps.spelNaam)],
         input: { placeholder: 'Kamercode of GDE2-…', value: s.caps.laatsteCode || '' },
         wensen: EXTRA_CHARS.map((c) => ({ act: 'wens-' + c.id, id: c.id, naam: c.naam, kleur: c.kleur, gekozen: s.wens === c.id })),
-        buttons: [{ act: 'koppel', label: 'Verder', primary: true }, { act: 'diag', label: 'Verbinding testen' }, { act: 'terug', label: 'Terug' }],
+        buttons: [{ act: 'koppel', label: 'Verder', primary: true }, ...(s.caps.rtc ? [{ act: 'lijst', label: 'Openbare sessies' }] : []), { act: 'diag', label: 'Verbinding testen' }, { act: 'terug', label: 'Terug' }],
       });
     case 'verbinden':
       return V({ title: 'Verbinden…', lines: ['Even geduld. Dit duurt een paar seconden.'], buttons: [{ act: 'terug', label: 'Annuleren' }] });
@@ -209,6 +249,8 @@ export function view(s) {
         for (const p of lijst) if (p.slot !== 0) buttons.push({ act: 'kick-' + p.slot, label: `${p.naam} eruit zetten` });
         const volgende = volgendeMax(s.max, lijst.length); if (volgende !== s.max) buttons.push({ act: 'max-' + volgende, label: `Maximaal ${s.max} spelers: wijzig naar ${volgende}` }); // één instelling in plaats van vier knoppen (#434)
         lines.push(s.code && lijst.length < s.max ? 'Er is nog plek: geef de code aan de volgende speler.' : 'Je kunt een speler er elk moment uit halen.');
+        if (s.openbaar) lines.push(openbaarRegel(s));
+        buttons.push(...openbaarKnop(s));
         buttons.push({ act: 'verbreek', label: 'Iedereen stoppen' });
       } else {
         lines.push(`${opener} heeft het spel geopend.`);
@@ -234,6 +276,14 @@ export function view(s) {
     }
     case 'geweigerd':
       return V({ title: 'Koppelen mislukt', lines: [s.reason === 'versie' || s.reason === 'protocol' ? versieTekst(s.caps.versie, s.andereVersie) : (REASON_TEXT[s.reason] || 'Koppelen is niet gelukt.')], buttons: [{ act: 'terug', label: 'Terug', primary: true }, { act: 'diag', label: 'Verbinding testen' }] });
+    case 'openbaar-vraag':
+      return V({ title: 'Maak deze sessie openbaar', lines: OPENBAAR_TEXT, input: { placeholder: 'Naam van je sessie (hoogstens 24 tekens)', value: s.openbaarNaam || '', maxLength: 24 }, buttons: [{ act: 'openbaar-ja', label: 'Akkoord en openbaar maken', primary: true }, { act: 'openbaar-terug', label: 'Annuleren' }] });
+    case 'lijst-vraag':
+      return V({ title: 'Openbare sessies', lines: LIJST_TEXT, buttons: [{ act: 'lijst-go', label: 'Akkoord en lijst tonen', primary: true }, { act: 'lijst-terug', label: 'Annuleren' }] });
+    case 'lijst': {
+      const sessies = (s.lijst || []).map((e, i) => ({ act: 'sluit-' + i, meld: 'meld-' + i, naam: e.naam, kan: !!e.kan, tekst: `${e.naam} · ${e.spelers} van ${e.max} spelers · versie ${e.versie}${e.anders ? ' · Andere versie: niet aan te sluiten' : e.vol ? ' · Vol' : ''}` }));
+      return V({ title: 'Openbare sessies', lines: [sessies.length ? 'Kies een sessie om aan te sluiten. De lijst ververst zichzelf elke paar seconden.' : 'We zoeken openbare sessies. Er zijn er nu geen gevonden; de lijst ververst zichzelf elke paar seconden, dus even geduld kan helpen.'], sessies, buttons: [{ act: 'lijst-terug', label: 'Terug', primary: true }] });
+    }
     case 'diag-vraag':
       return V({ title: 'Verbinding testen', lines: [DIAG_TEXT], buttons: [{ act: 'diag-go', label: 'Test starten', primary: true }, { act: 'diag-terug', label: 'Annuleren' }] });
     case 'diag-bezig':
@@ -248,6 +298,10 @@ export function view(s) {
       return V({});
   }
 }
+
+// De knop en de regel voor een openbare sessie (alleen de kamercode-route: de IP-route zet een adres in de code)
+const openbaarKnop = (s) => s.rol === ROLES.HOST && s.route === ROUTES.KAMER ? [s.openbaar ? { act: 'privaat', label: 'Sessie weer privé maken' } : { act: 'openbaar', label: 'Maak deze sessie openbaar' }] : [];
+const openbaarRegel = (s) => `Deze sessie staat openbaar in de lijst Openbare sessies, als "${s.openbaarNaam}". Kies Sessie weer privé maken om hem te verbergen.`;
 
 // het maximum is één instelling: elke druk gaat naar de volgende stap (4, 8, 12, 16) en weer rond; nooit onder het aantal spelers
 export function volgendeMax(max, aantal = 0) {

@@ -13,13 +13,22 @@
 import { createLobby, reduce, view, ROLES, ROUTES } from './lobby.js';
 import { ipcTransport, listenForGuests, onlineSupported } from './net/ipctransport.js';
 import { hostRoom, joinRoom, rtcSupported } from './net/rtcroom.js';
-import { MultiSignaler } from './net/brokers.js';
+import { MultiSignaler, LijstSignaler } from './net/brokers.js';
 import * as CONFIG from './net/netconfig.js';
-import { makeRoom, formatRoom } from './net/sigcrypto.js';
+import { makeRoom, formatRoom, topicFor } from './net/sigcrypto.js';
+import { LIJST, Serverlijst, maakAankondiger, maakId } from './net/serverlijst.js';
+import { PROTO } from './net/protocol.js';
 import { lijst as rosterLijst, charInfo } from './coopplayers.js';
 import { meet, beoordeel, foutrapport, verbindingslog } from './net/diagnose.js';
 import { maakEnv } from './net/diagnoseenv.js';
 import { VERSION } from './version.js';
+
+const newLijstSignaler = () => new LijstSignaler(CONFIG, { socket: (url) => { const ws = new WebSocket(url); ws.binaryType = 'arraybuffer'; return ws; } }, { brokerTimeout: CONFIG.TIMEOUTS.broker, interval: LIJST.interval });
+const rnd = () => { try { return crypto.getRandomValues(new Uint32Array(1))[0] / 4294967296; } catch (e) { return Math.random(); } };
+// Gemelde sessies (#438) blijven op dit apparaat verborgen: alleen id's, hoogstens 50, en nooit stuk als de opslag ontbreekt
+const VERBORGEN_SLEUTEL = 'gde-serverlijst-verborgen';
+const leesVerborgen = () => { try { const a = JSON.parse(localStorage.getItem(VERBORGEN_SLEUTEL) || '[]'); return Array.isArray(a) ? a.filter((x) => typeof x === 'string').slice(-50) : []; } catch (e) { return []; } };
+const schrijfVerborgen = (ids) => { try { localStorage.setItem(VERBORGEN_SLEUTEL, JSON.stringify(ids.slice(-50))); } catch (e) { /* geen opslag: dan alleen in dit scherm */ } };
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
@@ -29,15 +38,16 @@ const newSignaler = () => new MultiSignaler(CONFIG, { socket: (url) => { const w
 export function mountLobby(root, hooks, opts = {}) {
   const direct = onlineSupported();
   const api = direct ? window.gdeDesktop.coop : null;
-  let state = createLobby({ direct, rtc: rtcSupported(), laatsteCode: hooks.laatsteCode, versie: VERSION, opslaan: !!(typeof window !== 'undefined' && window.gdeDesktop && window.gdeDesktop.saveTextFile), start: opts.start, rol: opts.rol, keuze: opts.keuze, holdNaam: opts.holdNaam, startGate: opts.startGate, spelNaam: opts.spelNaam });
+  let state = createLobby({ direct, rtc: rtcSupported(), laatsteCode: hooks.laatsteCode, versie: VERSION, lijst: !!opts.lijst, opslaan: !!(typeof window !== 'undefined' && window.gdeDesktop && window.gdeDesktop.saveTextFile), start: opts.start, rol: opts.rol, keuze: opts.keuze, holdNaam: opts.holdNaam, startGate: opts.startGate, spelNaam: opts.spelNaam });
   state.route = opts.route || null;
   if (opts.holdSlot != null) state = reduce(state, { t: 'hold', slot: opts.holdSlot, naam: opts.holdNaam });
   let lastDiag = null;
   let hub = opts.hub || null, session = opts.session || null, handle = null, room = null, stopListen = null, joinedOnce = false, wacht = false;
 
-  const LOGT = { kies: 'rol gekozen', route: 'route gekozen', akkoord: 'toestemming gegeven', code: 'code gemaakt', fout: 'fout', status: 'status', verbinden: 'verbinden', hervat: 'opnieuw verbinden', verbreek: 'verbroken door speler', spelers: 'spelerslijst' };
+  const LOGT = { kies: 'rol gekozen', route: 'route gekozen', akkoord: 'toestemming gegeven', code: 'code gemaakt', fout: 'fout', status: 'status', verbinden: 'verbinden', hervat: 'opnieuw verbinden', verbreek: 'verbroken door speler', spelers: 'spelerslijst', 'openbaar-ja': 'sessie openbaar gemaakt', privaat: 'sessie weer privé', 'lijst-go': 'lijst met openbare sessies geopend' };
   // Automatisch herstel (kamercode-route, wachtscherm in het spel): de gastheer zet na een paar seconden zelf een nieuw aanbod klaar onder
   // dezelfde kamercode, de gast voert die code zelf opnieuw in; beide met hetzelfde token, dus dezelfde plek. Een paar pogingen, daarna handmatig.
+  let aankondiger = null, luis = null;
   let autoTimer = null, autoTries = 0;
   const AUTO = { eerste: 3000, tussen: 20000, max: 5, ...(opts.auto || {}) };
   const AUTO_EERSTE = AUTO.eerste, AUTO_TUSSEN = AUTO.tussen, AUTO_MAX = AUTO.max;
@@ -63,6 +73,8 @@ export function mountLobby(root, hooks, opts = {}) {
   const set = (ev) => {
     const was = state.step;
     state = reduce(state, ev);
+    if (luis && state.step !== 'lijst') stopLuisteren(); // de lijst wordt alleen opgehaald zolang je hem bekijkt
+    if (aankondiger && !state.openbaar) stopAankondiging(); // en een sessie staat alleen in de lijst zolang dit scherm hem openbaar houdt
     if (state.step === 'verbroken' && was !== 'verbroken') planAuto(AUTO_EERSTE);
     if (state.step === 'verbonden') autoTries = 0;
     if (LOGT[ev.t]) verbindingslog.add(LOGT[ev.t], ev.t === 'fout' ? ev.msg : ev.t === 'status' ? `${ev.status}${ev.reason ? ' (' + ev.reason + ')' : ''}` : ev.t === 'route' || ev.t === 'kies' ? String(ev.route || ev.rol) : ev.t === 'spelers' ? `${(ev.lijst || []).length} spelers` : '');
@@ -83,11 +95,13 @@ export function mountLobby(root, hooks, opts = {}) {
   function draw() {
     const v = view(state);
     const wensen = v.wensen ? `<div class="coop-wensen" role="group" aria-label="Kies een figuur">${v.wensen.map((w) => `<button type="button" class="m-bg coop-wens" data-act="${w.act}" aria-pressed="${w.gekozen}"><span class="ss-label"><span style="color:${w.kleur}" aria-hidden="true">●</span> ${esc(w.naam)}${w.gekozen ? ' ✓' : ''}</span></button>`).join('')}</div>` : '';
+    const sessies = v.sessies ? `<div class="coop-sessies" role="list">${v.sessies.map((x) => `<div class="coop-sessie" role="listitem" style="display:flex;gap:8px;align-items:stretch;margin:6px 0"><button type="button" class="${x.kan ? 'm-bp' : 'm-bg'} coop-btn" data-act="${x.act}" style="flex:1;text-align:left"${x.kan ? '' : ' aria-disabled="true"'}><span class="ss-label">${esc(x.tekst)}</span></button><button type="button" class="m-bt coop-btn" data-act="${x.meld}" aria-label="Melden: ${esc(x.naam)}"><span class="ss-label">Melden</span></button></div>`).join('')}</div>` : '';
     root.innerHTML =
       `<h3 class="coop-title">${esc(v.title)}</h3>` +
       v.lines.map((l) => `<p>${esc(l)}</p>`).join('') +
+      sessies +
       (v.code ? `<pre class="coop-code" tabindex="0" aria-label="Jouw code">${esc(v.code)}</pre>` : '') +
-      (v.input ? `<input class="coop-input" type="text" spellcheck="false" autocomplete="off" placeholder="${esc(v.input.placeholder)}" value="${esc(v.input.value || '')}">` : '') +
+      (v.input ? `<input class="coop-input" type="text" spellcheck="false" autocomplete="off" placeholder="${esc(v.input.placeholder)}"${v.input.maxLength ? ` maxlength="${v.input.maxLength}"` : ''} value="${esc(v.input.value || '')}">` : '') +
       wensen +
       (v.error ? `<p class="coop-error" role="alert">${esc(v.error)}</p>` : '') +
       `<div class="coop-btns">${v.buttons.map((b) => `<button type="button" class="${b.primary ? 'm-bp' : 'm-bg'} coop-btn" data-act="${b.act}"${b.disabled ? ' disabled aria-disabled="true"' : ''}><span class="ss-label">${esc(b.label)}</span></button>`).join('')}</div>`;
@@ -135,6 +149,46 @@ export function mountLobby(root, hooks, opts = {}) {
     await openRoom();
   }
 
+  // ----- openbare sessie (#438): de host kondigt elke 15 s aan zolang dit scherm de sessie openbaar houdt
+  async function startAankondiging() {
+    stopAankondiging();
+    if (!room) return;
+    const sig = newLijstSignaler();
+    aankondiger = sig;
+    const maak = maakAankondiger({ naam: state.openbaarNaam, versie: VERSION, proto: PROTO, room: () => room, id: maakId(rnd),
+      hub: () => (hub && hub.roster ? { spelers: Math.max(1, hub.roster.spelers.length), max: hub.roster.max } : null) });
+    const topic = await topicFor(LIJST.sleutel);
+    if (aankondiger === sig) sig.kondig(topic, maak); // intussen weer privé gemaakt: niets plaatsen
+  }
+  function stopAankondiging() { const s = aankondiger; aankondiger = null; if (s) { try { s.close(); } catch (e) { /* weg */ } } }
+  // Weer privé: de oude kamercode is openbaar geweest en werkt niet meer; wie nog kan aansluiten krijgt een nieuwe
+  async function nieuweKamer() {
+    room = null; wacht = false;
+    if (handle && handle.cancel) handle.cancel();
+    handle = null;
+    if (hub && hub.vrijePlekken) await openRoom();
+  }
+
+  // ----- de lijst met openbare sessies bekijken (#438)
+  async function startLuisteren() {
+    stopLuisteren();
+    const sig = newLijstSignaler(), lijst = new Serverlijst({ proto: PROTO, versie: VERSION, verborgen: leesVerborgen() });
+    const l = { sig, lijst, timer: null, laatste: '' };
+    luis = l;
+    const topic = await topicFor(LIJST.sleutel);
+    if (luis !== l) return; // intussen terug: niet verbinden
+    sig.luister(topic, (tekst) => lijst.ontvang(tekst));
+    const tik = () => {
+      if (luis !== l || state.step !== 'lijst') return;
+      const nu = lijst.lijst(), json = JSON.stringify(nu);
+      if (json !== l.laatste) { l.laatste = json; set({ t: 'lijst-data', lijst: nu }); }
+      if (sig.alleFout() && !state.error) set({ t: 'fout', msg: 'Er is geen verbinding met de openbare servers. Controleer je internet en probeer het later opnieuw.' });
+    };
+    l.timer = setInterval(tik, opts.lijstMs || 2000);
+    setTimeout(tik, 400);
+  }
+  function stopLuisteren() { const l = luis; luis = null; if (l) { clearInterval(l.timer); try { l.sig.close(); } catch (e) { /* weg */ } } }
+
   // ----- gast
   const nameOf = (char) => (charInfo(char) || {}).naam || '?';
   function watch(sess) {
@@ -181,6 +235,7 @@ export function mountLobby(root, hooks, opts = {}) {
     autoTries = AUTO_MAX; // na sluiten geen pogingen meer
     if (handle && handle.cancel) handle.cancel();
     handle = null; wacht = false;
+    stopAankondiging(); stopLuisteren();
     if (stopListen) { stopListen(); stopListen = null; }
     if (api && state.route === ROUTES.DIRECT && !opts.start) api.stop();
   }
@@ -189,6 +244,18 @@ export function mountLobby(root, hooks, opts = {}) {
     const input = root.querySelector('.coop-input');
     try {
       if (a === 'start-spel') { if (hooks.startSpel) hooks.startSpel(); if (state.rol === ROLES.HOST) set({ t: 'gate', aan: false }); } // het spel loopt: Spel starten verdwijnt (#434)
+      else if (a === 'openbaar') set({ t: 'openbaar-vraag' });
+      else if (a === 'openbaar-ja') { set({ t: 'openbaar-ja', naam: input ? input.value : '' }); if (state.openbaar) await startAankondiging(); }
+      else if (a === 'openbaar-terug') set({ t: 'openbaar-terug' });
+      else if (a === 'privaat') { set({ t: 'privaat' }); await nieuweKamer(); }
+      else if (a === 'lijst') set({ t: 'lijst-vraag' });
+      else if (a === 'lijst-go') { set({ t: 'lijst-go' }); await startLuisteren(); }
+      else if (a === 'lijst-terug') set({ t: 'lijst-terug' });
+      else if (a.startsWith('sluit-')) set({ t: 'lijst-kies', i: +a.slice(6) });
+      else if (a.startsWith('meld-')) {
+        const e = state.lijst[+a.slice(5)];
+        if (e && luis) { schrijfVerborgen(luis.lijst.meld(e.id)); luis.laatste = ''; set({ t: 'lijst-data', lijst: luis.lijst.lijst() }); }
+      }
       else if (a === 'diag') set({ t: 'diag' });
       else if (a === 'diag-go') await diagnose();
       else if (a === 'diag-terug') set({ t: 'diag-terug' });
