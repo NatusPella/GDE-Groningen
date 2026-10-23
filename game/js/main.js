@@ -9,7 +9,7 @@ import './geokernels.js'; // registers the geometry kernels with geojobs.js
 import { setErrorContext } from './errorlog.js';
 import { DEV, STORY_TEST, FLAGS } from './devflags.js';
 import { bindCoop } from './coopglue.js';
-import { tickCoopNet } from './coopnet.js';
+import { tickCoopNet, setCoopTreinen } from './coopnet.js';
 import { isHoldOpen, checkHold } from './coophold.js';
 import { updatePartnerChip } from './coophud.js';
 import { syncFigures, hasFigureMeshes } from './coopfigures3d.js';
@@ -78,7 +78,7 @@ import { updateNarrative } from './narrative.js';
 import { initStoryContact, updateStoryContact } from './storycontact.js';
 import { initTheme } from './theme.js';
 import { initTrafficLights, updateTrafficLights, trafficSignalsNear, trafficLightPhaseFor } from './trafficlights.js';
-import { initRailway, updateRailway, setRailExtraWorld, getTrains, getRoutes, routePoint } from './railway.js';
+import { initRailway, updateRailway, setRailExtraWorld, getTrains, getRoutes, routePoint, zetTreinVanHost } from './railway.js';
 import { updateZeilvaren } from './zeilvaren.js';
 import { updateEvenementen } from './evenementenlive.js';
 import { updateWerf } from './werflive.js';
@@ -422,6 +422,7 @@ async function boot() {
   parkHeroAtHome(world);
   initTrafficLights(world);
   initRailway(world);
+  setCoopTreinen({ getTrains, getRoutes, routePoint, zetTreinVanHost }); // samen spelen: de host stuurt zijn treinen (#428)
   buildMovableBridges(world.map);
   // the province's movable bridges come with the streamed tiles, not with map.roads (#235)
   if (world.map.onTiles) {
