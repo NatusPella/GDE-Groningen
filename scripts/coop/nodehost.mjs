@@ -41,6 +41,10 @@ export async function startNodeHost({ stage, tiles = '-', story = 'nieuw', max =
     world.pedestrians.push(q);
   }
   world.pedestrians[3].speechText = 'Moi, mooi weer vandaag!'; world.pedestrians[3].speechUntil = 1e9;
+  // #428: een dode en een omgevallen man, een man met een knuppel die slaat, iemand die een klap krijgt; een dood dier; een spreker zonder voetganger
+  world.pedestrians[10].state = 'dead'; world.pedestrians[10].health = 0; world.pedestrians[10].deadUntil = 1e9; world.pedestrians[11].ragdoll = { t: 0 };
+  world.pedestrians[12].heldWeapon = 'knuppel'; world.pedestrians[12].attackFx = { type: 'melee', swing: 'bat', start: 0 }; world.pedestrians[13].hitReact = { t: 0, dx: 1, dy: 0, k: 0.7 };
+  world.extraSpeakers = [{ x: START.x + 3, y: START.y + 4, h: 2.3, female: false, speechName: 'Kermisbaas Jan', speechText: 'Hoi, kom maar binnen!', speechUntil: 1e9 }];
   world.pedestrians[4].greetUntil = 1e9; world.pedestrians[8].party = true; world.pedestrians[9].speed = 3.4;
   const DIER = [['cow', { variant: 'red' }], ['cow', {}], ['sheep', {}], ['sheep', {}], ['dog', { breed: 2, color: 0.6 }], ['cat', { variant: 1 }], ['duck', { variant: 'swan' }], ['pigeon', {}], ['seagull', {}]];
   DIER.forEach(([kind, extra], i) => world.wildlife.push({ kind, x: START.x - 4 + (i % 5) * 4, y: START.y + 15 + Math.floor(i / 5) * 4, angle: i, speed: i % 3 ? 0.5 : 0, bobSeed: 0.7 + i, ...extra }));
@@ -57,7 +61,9 @@ export async function startNodeHost({ stage, tiles = '-', story = 'nieuw', max =
   listenForGuests(api, (tr) => N.addGuest(world, tr));
   const hosted = await core.host({ max });
 
-  const h = { code: hosted.code, world, state, core, N, t: 0, log: [], timers: [], kapot: [] };
+  const h = { code: hosted.code, world, state, core, N, t: 0, log: [], timers: [], kapot: [], wereld: [] };
+  world.coopExtraDeps.wereld = () => h.wereld; // bruggen en sluizen die de gast moet laten bewegen (testbank: [{ soort, staat (index), x, y, a, b, peil }])
+  world.coopExtraDeps.sprekers = (bij, nu) => X.maakSprekersLijst(world.extraSpeakers, nu, bij);
   // Tammo loopt rondjes; de voertuigen rijden heen en weer; Tessa wordt door de gast bestuurd (coopStep), of rijdt mee als passagier
   const move = (c, dt) => { c.x += c.vx * dt; c.y += c.vy * dt; };
   h.drive = null; // { car, until } : de host rijdt een stuk met Tessa als passagier
@@ -70,9 +76,12 @@ export async function startNodeHost({ stage, tiles = '-', story = 'nieuw', max =
       const car = h.drive.car; car.x += Math.cos(car.angle) * 9 * dt; car.y += Math.sin(car.angle) * 9 * dt; p.x = car.x; p.y = car.y; p.angle = car.angle;
     } else if (h.walk) { p.x = START.x + 4 + Math.cos(h.t / 4) * 6; p.y = START.y + Math.sin(h.t / 4) * 6; p.angle = h.t / 4 + Math.PI / 2; }
     for (const v of world.vehicles) { if (v.id === 100 + 99 || v.parkeer) continue; v.x += Math.cos(v.angle) * 4 * dt; if (Math.abs(v.x - START.x) > 90) v.angle += Math.PI; }
+    if (world.wildlife[1]) world.wildlife[1].dead = true;
     for (const q of world.pedestrians) { q.x += Math.cos(q.angle) * 0.8 * dt; q.y += Math.sin(q.angle) * 0.8 * dt; q.angle += 0.2 * dt; }
     for (const a of world.wildlife) { if (a.speed) { a.x += Math.cos(a.angle) * a.speed * dt; a.y += Math.sin(a.angle) * a.speed * dt; a.angle += 0.15 * dt; } }
     h.lichtT = (h.lichtT || 0) + dt;
+    if (world.pedestrians[12] && world.pedestrians[12].attackFx) world.pedestrians[12].attackFx.start = world.time; // blijven vechten en geraakt worden
+    if (world.pedestrians[13] && world.pedestrians[13].hitReact) world.pedestrians[13].hitReact.t = world.time;
     if (!world.companion.inVehicle && !state.pauze) coopStep(world.companion, dt, world, move); // de gast bestuurt Tessa; staat het spel van de host op pauze, dan stapt coopnet.js haar zelf (stapMetgezelInPauze, #388)
     world.paused = state.pauze;
     N.tickCoopNet(world, dt);
