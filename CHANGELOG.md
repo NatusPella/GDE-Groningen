@@ -6,6 +6,9 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Intern
+- **Delfzijl heeft wel winkelgevels en winkelborden, alleen niet rond de plaatsknoop (#422; in Node op de echte tegels gemeten, niet in beeld bekeken):** de winkels van Delfzijl staan in `shopplaces.json` (35 winkels met een verzonnen naam) en 103 panden krijgen een winkelgevel, net als in Appingedam, Winschoten en Zoutkamp; de winkelstraat ligt alleen 840 m oostelijk van de plaatsknoop van de index (binnen 300 m daarvan geen enkele gevel, binnen 700 m zes). Er is dus niets stuk in de bouw; de beeldscene `delfzijl` en het nieuwe `scripts/shopfront_audit.mjs` meten nu rond het midden van de winkels.
+
 ## [0.41.1] - 2026-10-23
 
 ### Nieuw

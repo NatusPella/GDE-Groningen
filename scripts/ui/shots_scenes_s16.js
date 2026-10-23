@@ -176,9 +176,16 @@ if (want('delfzijl')) {
   clearInterval(skipper);
   const idx = await fetch('/world/index-provincie.json').then((r) => r.json()).catch(() => null);
   const SS3 = await imp('shopsigns3d');
-  const q = idx && idx.global.places.find((z) => z.name === 'Delfzijl' && z.kind !== 'suburb');
+  const node = idx && idx.global.places.find((z) => z.name === 'Delfzijl' && z.kind !== 'suburb');
+  // de plaatsknoop van de index ligt in Delfzijl 840 m ten westen van de winkelstraat (#422, scripts/shopfront_audit.mjs):
+  // de panden worden pas gebouwd bij de speler, dus meet rond het midden van de echte winkels
+  const FACD = await imp('facilities');
+  const mine = node ? FACD.FAC.all.filter((f) => f.sp && f.place === 'Delfzijl') : [];
+  const med = (a) => a.slice().sort((u, v) => u - v)[Math.floor(a.length / 2)];
+  const q = node && (mine.length >= 5 ? { x: med(mine.map((f) => f.x)), y: med(mine.map((f) => f.y)) } : node);
   if (!q) info.push('Delfzijl: plaats niet in de index');
   else {
+    if (q !== node) info.push('Delfzijl: winkelmidden ' + Math.round(q.x) + ',' + Math.round(q.y) + ' (' + Math.round(Math.hypot(q.x - node.x, q.y - node.y)) + ' m van de plaatsknoop)');
     teleport(q.x, q.y);
     await sleep(1500); for (let i = 0; i < 40 && document.querySelector('.ls.on:not(.out)'); i++) await sleep(500);
     for (let i = 0; i < 30 && map.buildingsNear(q.x, q.y, 300).length < 40; i++) await sleep(1000);
