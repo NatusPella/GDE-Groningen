@@ -651,7 +651,7 @@ async function boot() {
       updatePhone(dt, world);
       updateSaveGame(dt, world);
     }
-    if (world.coopNet) tickCoopNet(world, dt); // samen spelen (#95), alleen na een bewuste uitnodiging
+    if (world.coopNet || world.coopWissel) tickCoopNet(world, dt); // samen spelen (#95), alleen na een bewuste uitnodiging
     if (isHoldOpen()) checkHold(world);
     if (world.coopNet || world.coopPartner !== undefined) updatePartnerChip(world);
     if (world.coopNet || hasFigureMeshes()) syncFigures(world, dt); // de figuren van de andere spelers (#95)

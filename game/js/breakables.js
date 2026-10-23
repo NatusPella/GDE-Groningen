@@ -81,6 +81,12 @@ export function brokenKeysNear(points, r) {
   }
   return out;
 }
+// Alle sleutels van kapotte gewone props (hoogstens `max`), voor het overdragen van het spel (#439, coophostwisselwereld.js).
+export function brokenKeysAll(max = 400) {
+  const out = [];
+  for (const key of broken.keys()) { if (!KEY_RE.test(key)) continue; out.push(key); if (out.length >= max) break; }
+  return out;
+}
 // Een gast breekt hetzelfde ding dat bij de gastheer kapot is (de prop moet bij hem ingeladen zijn; anders volgt dat bij de volgende melding).
 export function breakPropByKey(key, x, y, dx = 0, dy = 1) {
   if (broken.has(key) || !world) return false;
