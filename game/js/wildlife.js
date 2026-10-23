@@ -1447,12 +1447,36 @@ export function buildDogMesh3D(breed = 0, colorT = 0) {
   return group;
 }
 
+// Een gans op het land: de eendenromp met twee oranje poten, anders zweeft hij een handbreed boven het gras (#436); de romp staat 0,2 m hoog (animateGans).
+const GANS_LEG = markShared(new THREE.MeshStandardMaterial({ color: 0xd9803a, roughness: 0.8, flatShading: true }));
+const GANS_LEG_GEO = markShared(new THREE.BoxGeometry(0.02, 0.1, 0.02).translate(0, -0.05, 0));
+const GANS_WING = markShared(new THREE.MeshStandardMaterial({ color: 0x6e6658, roughness: 0.9, flatShading: true, side: THREE.DoubleSide }));
+const GANS_WING_GEO_R = markShared(new THREE.BoxGeometry(0.16, 0.012, 0.3).translate(0, 0, 0.15));
+const GANS_WING_GEO_L = markShared(new THREE.BoxGeometry(0.16, 0.012, 0.3).translate(0, 0, -0.15));
+function buildGansMesh3D() {
+  const g = buildDuckMesh3D('goose');
+  for (const s of [1, -1]) {
+    const leg = new THREE.Mesh(GANS_LEG_GEO, GANS_LEG);
+    leg.position.set(0, 0, s * 0.03);
+    g.add(leg);
+  }
+  // twee vleugels die alleen te zien zijn als de gans opschrikt en wegvlucht (animateGans)
+  g.userData.gansWings = [1, -1].map((side) => {
+    const w = new THREE.Mesh(side > 0 ? GANS_WING_GEO_R : GANS_WING_GEO_L, GANS_WING);
+    w.position.set(-0.01, 0.11, side * 0.045);
+    w.visible = false;
+    g.add(w);
+    return w;
+  });
+  return g;
+}
+
 export function buildWildlifeMesh3D(a) {
   switch (a.kind) {
     case 'seagull': return buildSeagullMesh3D();
     case 'sheep': return buildSheepMesh3D();
     case 'duck': return buildDuckMesh3D(a.variant);
-    case 'gans': return buildDuckMesh3D('goose');
+    case 'gans': return buildGansMesh3D();
     case 'reiger': return buildDuckMesh3D('reiger');
     case 'zeehond': return buildSealMesh3D();
     case 'vis': return buildFishMesh3D();
@@ -1546,11 +1570,19 @@ function animateGans(mesh, a, time) {
   const seed = a.bobSeed || 0;
   const walking = a.speed > 0.05;
   mesh.visible = true;
-  mesh.position.y = walking ? Math.abs(Math.sin(time * (a.fleeT > 0 ? 9 : 4) + seed)) * 0.02 : 0;
+  mesh.position.y = 0.2 + (walking ? Math.abs(Math.sin(time * (a.fleeT > 0 ? 9 : 4) + seed)) * 0.02 : 0);   // op zijn poten: de romp 0,2 m hoog (buildGansMesh3D)
   const graze = walking ? 0 : Math.max(0, Math.sin(time * 0.3 + seed * 3)) ** 0.5;
   b.head.rotation.set(0, (1 - graze) * Math.sin(time * 0.5 + seed) * 0.5, -0.9 * graze);
   b.tail.rotation.set(0, walking ? Math.sin(time * 6 + seed) * 0.2 : 0, 0);
   b.body.rotation.set(0, 0, walking ? 0 : -0.15 * graze);
+  // een opgeschrikte gans slaat met zijn vleugels terwijl hij wegrent (#436)
+  const wings = mesh.userData.gansWings;
+  if (wings) {
+    const flee = a.fleeT > 0;
+    const up = 0.35 + Math.sin(time * 20 + seed * 7) * 0.8;
+    wings[0].visible = wings[1].visible = flee;
+    if (flee) { wings[0].rotation.x = -up; wings[1].rotation.x = up; }
+  }
 }
 
 function animateReiger(mesh, a, time) {

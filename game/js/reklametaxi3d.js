@@ -91,6 +91,8 @@ function tick(dt, w) {
   // het dakbord: de mesh van een taxi ver weg bestaat niet altijd; hij komt erbij zodra hij er is
   if (bord && bord.mesh !== getVehicleMesh(taxi.id)) haalBordWeg();
   if (!bord) bord = maakBord(taxi);
+  else if (bord.groep.parent !== bord.mesh) bord.mesh.add(bord.groep); // het dakbord hangt altijd aan de mesh van deze taxi (een opruimronde van de mesh nam het soms mee, #436)
+  if (bord) bord.groep.visible = true;
   if (bord) bord.tex.offset.x = (bord.tex.offset.x + dt * BAND_SNELHEID) % 1;
   // het deuntje: de noten van dit beeld, op de plek van de taxi met zijn snelheid voor de Doppler
   const t0 = st.songT - dt;
