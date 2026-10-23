@@ -39,7 +39,7 @@ export class HostHub {
     let ses = null;
     const cfg = {
       info: this.cfg.info, seed: this.cfg.seed, caps: this.cfg.caps,
-      sim: { applyInput: (slot, input, seq) => this.cfg.sim.applyInput(slot, input, seq), snapshot: () => this._snapshot(), fullState: () => this.cfg.sim.fullState() },
+      sim: { applyInput: (slot, input, seq) => this.cfg.sim.applyInput(slot, input, seq), snapshot: () => this._snapshot(), fullState: () => this.cfg.sim.fullState(), extra: (slot, tick) => (this.cfg.sim.extra ? this.cfg.sim.extra(slot, tick) : null) },
       assign(hello) {
         const p = wijsPlekToe(hub.roster, hello && hello.char);
         if (!p) return null;

@@ -5,7 +5,7 @@
 
 import { T, encodeJson, decodeJson, encodeSimple, readHeader } from './codec.js';
 
-export const PROTO = 1;
+export const PROTO = 2; // 2: bericht EXTRA (net/codec.js, coopextra.js): voetgangers, dieren, verkeerslichten en objecten van de host
 
 // Volgnummers zijn u16 met omslag: a is eerder dan b?
 export const seqDiff = (a, b) => ((a - b) << 16) >> 16; // >0: a is nieuwer dan b
