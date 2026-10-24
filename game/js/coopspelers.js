@@ -54,6 +54,8 @@ export const overdragenKnopTekst = 'Spel overdragen';
 export const eruitKnopTekst = (bevestig) => (bevestig ? 'Zeker weten?' : 'Eruit zetten');
 export const eruitGezetTekst = (r) => `${r.naam} is uit het spel gezet.${r.slot === 1 ? ' Tessa loopt weer zelf mee.' : ''}`;
 // wat de weggestuurde gast ziet; 'spel gestopt' is stoppen voor iedereen
-export const wegMelding = (reden, opener) => (reden === 'spel gestopt'
+// Alleen een kamercode (nooit een koppelcode van de IP-route: die bevat een adres) komt in beeld, zodat wie eruit gezet is weet hoe hij opnieuw kan aansluiten.
+const KAMERCODE = /^[A-HJ-NP-Z2-9]{5}-[A-HJ-NP-Z2-9]{5}$/;
+export const wegMelding = (reden, opener, code = '') => (reden === 'spel gestopt'
   ? `${opener} heeft het spel gestopt. Je speelt weer in je eigen spel.`
-  : `${opener} heeft je uit het spel gezet. Je speelt weer in je eigen spel, waar je gebleven was.`);
+  : `${opener} heeft je uit het spel gezet. Je speelt weer in je eigen spel, waar je gebleven was.${KAMERCODE.test(code || '') ? ` Opnieuw aansluiten kan met de kamercode ${code}: die staat klaar bij Samen spelen in het pauzemenu.` : ''}`);

@@ -59,6 +59,10 @@ t('eruit zetten', () => {
   assert.doesNotMatch(eruitGezetTekst(anderen.find((x) => x.slot === 2)), /Tessa/);
   assert.match(wegMelding('verwijderd', 'Tammo'), /Tammo heeft je uit het spel gezet. Je speelt weer in je eigen spel/);
   assert.match(wegMelding('spel gestopt', 'Tammo'), /het spel gestopt/);
+  assert.match(wegMelding('verwijderd', 'Tammo', 'ABCDE-FGHJK'), /Opnieuw aansluiten kan met de kamercode ABCDE-FGHJK/, 'een gekickte gast ziet de kamercode (#434)');
+  assert.doesNotMatch(wegMelding('verwijderd', 'Tammo', 'GDE2-192.168.1.5:41000-AAAAAAAA-0000'), /GDE2|192\.168/, 'een koppelcode met een adres komt nooit in beeld');
+  assert.doesNotMatch(wegMelding('verwijderd', 'Tammo'), /kamercode/, 'zonder bekende code geen belofte');
+  assert.doesNotMatch(wegMelding('spel gestopt', 'Tammo', 'ABCDE-FGHJK'), /ABCDE/, 'bij stoppen voor iedereen is er niets om opnieuw bij aan te sluiten');
 });
 
 console.log(`coopspelers_test: ${n}/${n} ok`);
