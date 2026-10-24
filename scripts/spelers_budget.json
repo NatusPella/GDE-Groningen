@@ -1,6 +1,5 @@
 {
   "achievements.js": 4,
-  "aimassist.js": 5,
   "audio.js": 26,
   "banter.js": 1,
   "boatwake3d.js": 2,
@@ -9,7 +8,6 @@
   "cinematics.js": 3,
   "cityprops.js": 2,
   "clearzonesweep.js": 2,
-  "combat.js": 7,
   "companion.js": 4,
   "convoy.js": 4,
   "coopbestuur.js": 1,
@@ -61,6 +59,7 @@
   "missionmaplive.js": 3,
   "missions.js": 66,
   "movablebridges.js": 3,
+  "net/koploos.js": 2,
   "offences.js": 1,
   "ommelandfun.js": 1,
   "ownedvehicles.js": 10,
@@ -151,6 +150,5 @@
   "world.js": 1,
   "worldevents.js": 2,
   "zeeschepen.js": 1,
-  "zeilvaren.js": 2,
-  "net/koploos.js": 2
+  "zeilvaren.js": 2
 }

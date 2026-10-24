@@ -9,6 +9,7 @@ import { getSettings } from './settings.js';
 import { getCamera } from './scene3d.js';
 import { propsInRadius } from './breakables.js';
 import { wallOnPath } from './wallpath.js';
+import { hoofdspeler } from './spelersregister.js';
 
 const LOCK_CONE = 0.45; // rad either side of the camera heading
 const KEEP_CONE = 0.8; // a held lock survives this far off-centre
@@ -27,9 +28,11 @@ const state = {
 
 
 // Distance to the locked target this frame (throwables aim their arc at it), else null.
+// Mikken is van de speler achter dit scherm (#446), niet van een meespeler.
 export function aimedTargetDistance(world) {
   if (!state.target || state.time !== world.time) return null;
-  return Math.hypot(state.x - world.player.x, state.y - world.player.y);
+  const p = hoofdspeler(world);
+  return Math.hypot(state.x - p.x, state.y - p.y);
 }
 
 const alive = (t, kind) => kind === 'ped' ? t.state !== 'dead' && !t.hidden && !t.inVehicle
@@ -49,7 +52,7 @@ function isHostile(world, t, kind) {
 
 // Every lockable target in front: { t, kind, off (signed rad), d, score }.
 function candidates(world, yaw, cone, range) {
-  const p = world.player;
+  const p = hoofdspeler(world);
   const own = p.inVehicle;
   const out = [];
   const consider = (t, kind) => {
@@ -119,7 +122,7 @@ function cycle(list) {
 // comes from aimFireAngle().
 export function updateAim(dt, world, weaponRange) {
   const { input } = world;
-  const p = world.player;
+  const p = hoofdspeler(world);
   const armed = weaponRange > 0 && !world.scoped;
   const aiming = armed && input.mouse.rightDown && getSettings().autoAim !== false && !world.paused;
   const wasAiming = state.wasAiming;
@@ -188,7 +191,7 @@ export function updateAim(dt, world, weaponRange) {
 // Direction a shot leaves in: at the locked target (led for its motion), or
 // the given heading bent slightly toward a target near the crosshair.
 export function aimFireAngle(world, angle, weapon) {
-  const p = world.player;
+  const p = hoofdspeler(world);
   if (state.target && state.time === world.time) {
     const d = Math.hypot(state.x - p.x, state.y - p.y);
     const lead = Math.min(0.6, d / (weapon.speed || 55));
