@@ -93,7 +93,10 @@ for (const spelers of AANTALLEN) {
   for (const w of gw) w.input.axis = () => [0, 0];
 
   // ---- 4. de opdracht van de gastheer: stap, gelukt, mislukt, gestopt (#390)
+  const wasPressed0 = gw.map((w) => w.input.wasPressed);
+  gw.forEach((w, i) => { let eens = true; const f = wasPressed0[i]; w.input.wasPressed = (k) => { if (k === 'j' && eens) { eens = false; return true; } return f(k); }; }); // zonder antwoord kijk je mee (#452): iedereen zegt J
   s.hw.mission = { phase: 'active', label: 'Het Loket', type: 'stages', index: 3, progressText: 'Stap in de auto', marker: { x: 30, y: 30 } }; s.step(3);
+  gw.forEach((w, i) => { w.input.wasPressed = wasPressed0[i]; });
   for (const w of gw) { match(tekst(w), /Tammo speelt: Het Loket/, `${spelers}: opdracht gemeld`); eq(w.coopHost.doelen.length, 1, `${spelers}: het doel staat op de kaart`); }
   s.hw.mission.progressText = 'Rij naar het loket'; s.step(2);
   ok(gw.every((w) => /volgende stap: Rij naar het loket/.test(tekst(w))), `${spelers}: de volgende stap`);

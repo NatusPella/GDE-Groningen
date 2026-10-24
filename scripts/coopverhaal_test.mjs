@@ -129,8 +129,8 @@ t('meedoen: een spoilerwaarschuwing krijgt geen standaard-ja en geen deel zolang
   assert.equal(st.stap, 'M06');
   assert.equal(M.bevestig(st, 2), true); assert.equal(M.bevestig(st, 9), false);
   assert.equal(M.krijgtDeel(st, 2), false); assert.equal(M.loopVrij(st, 2), true);
-  assert.deepEqual(M.meespelers(st).sort(), [1, 3], 'wie een spoiler moet bevestigen speelt nog niet mee');
-  assert.deepEqual(M.tik(st, 11), [1, 3], 'de anderen doen na 10 s vanzelf mee');
+  assert.deepEqual(M.meespelers(st).sort(), [], 'wie niet antwoordt of een spoiler moet bevestigen speelt niet mee (#452)');
+  assert.deepEqual(M.tik(st, 11), [], 'zonder antwoord doet niemand vanzelf mee (#452)'); assert.equal(st.keuze[1], 'wacht');
   assert.deepEqual(M.tik(st, 28), []); assert.equal(st.keuze[2], 'wacht');
   assert.deepEqual(M.tik(st, 2), []); assert.equal(st.keuze[2], 'nee', 'na het vangnet van de host: nee');
   assert.equal(M.krijgtDeel(st, 2), false);
@@ -184,8 +184,9 @@ t('host plus twee gasten: dezelfde stand telt mee, wie nog niet zover is bevesti
   assert.ok(b.messages.some((m) => /Spoilerwaarschuwing/.test(m)), 'gast B: spoilerwaarschuwing');
   assert.equal(hw.coopNet.meedoen.keuze[1], 'wacht'); assert.equal(hw.coopNet.meedoen.keuze[2], 'wacht');
   assert.equal(hw.coopNet.meedoen.spoiler[2], true, 'de host weet dat B moet bevestigen'); assert.equal(hw.coopNet.meedoen.spoiler[1], undefined);
-  step(12); // A doet zonder antwoord mee; B is nog aan het kiezen
-  assert.equal(hw.coopNet.meedoen.keuze[1], 'ja'); assert.equal(hw.coopNet.meedoen.keuze[2], 'wacht', 'geen standaard-ja bij een spoiler');
+  step(12); // A antwoordt niet: toeschouwer, geen standaard-ja; B is nog aan het kiezen (#452)
+  assert.equal(hw.coopNet.meedoen.keuze[1], 'wacht'); assert.equal(hw.coopNet.meedoen.keuze[2], 'wacht', 'geen standaard-ja bij een spoiler');
+  druk(a, 'j'); step(1); assert.equal(hw.coopNet.meedoen.keuze[1], 'ja');
   druk(b, 'j'); step(1);
   assert.equal(hw.coopNet.meedoen.keuze[2], 'ja'); assert.equal(b.coopMeedoenJa, 'M06');
   gelukt(hw); step(1);
@@ -203,9 +204,9 @@ t('wie nee zegt, een spoiler niet bevestigt of nooit werd gevraagd, krijgt geen 
   const { hw, gs, step } = avond([saveVoor('M02'), saveVoor('M02'), saveVoor('M08')]);
   const [b, c, d] = [gs[0].gw, gs[1].gw, gs[2].gw];
   startM06(hw); step(1);
-  druk(b, 'n'); step(1); // c zwijgt
+  druk(b, 'n'); druk(d, 'j'); step(1); // c zwijgt
   assert.ok(d.messages.some((m) => /al gedaan: je krijgt alleen de beloning/.test(m)), 'D: al gedaan, alleen de beloning');
-  step(35); // c: na 30 s zonder antwoord zegt zijn spel zelf nee; D doet na 10 s mee
+  step(35); // c: na 30 s zonder antwoord zegt zijn spel zelf nee; D zei J
   assert.equal(hw.coopNet.meedoen.keuze[2], 'nee'); assert.equal(hw.coopNet.meedoen.keuze[3], 'ja');
   gelukt(hw); step(1);
   assert.ok(!stapDone(b.save, 'M06') && !stapDone(c.save, 'M06'), 'geen verhaalstap zonder meedoen');
