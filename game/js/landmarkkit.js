@@ -151,7 +151,9 @@ function churchParams(item, t, box, h) {
   const postwar = (y && y >= 1940) || (!y && POSTWAR.test(n));
   const medieval = (y && y < 1600) || (!y && !postwar && !catholic && !jewish);
   let len = box ? box.len : 24, wid = box ? box.wid : 10;
-  if (item.k === 'chapel' || jewish) { len = Math.min(len, 18); wid = Math.min(wid, 10); }
+  // a chapel stays modest, but not smaller than its own building (#406): a chapel of 40 m in the tiles then no longer
+  // holds its kit and the game draws a second, box-shaped chapel beside it
+  if (item.k === 'chapel' || jewish) { len = Math.min(len, 30); wid = Math.min(wid, 18); }
   len = clamp(len, 10, 60); wid = clamp(wid, 6, 24);
   const p = { kit: 'church', len, wid, wierde: false, ruin: false, lean: 0, buttress: false };
   if (jewish) Object.assign(p, { tower: 'none', choir: 'flat', brick: 'yellow', roof: 'slate', windows: 'round' });
@@ -830,8 +832,14 @@ const CHURCH_WORD = /(?<![\p{L}])(?:\p{L}*kerk|\p{L}*kerkje|kapel|synagoge|basil
 const CHURCH_BODY = /(?<![\p{L}])(?:hervormde|gereformeerde|doopsgezinde|protestantse|baptisten|evangelische|apostolische|christelijke)\s+gemeente(?![\p{L}])|(?<![\p{L}])parochie(?![\p{L}])/iu;
 // names with a church word that are no church: a school, a club, a farm, a parish hall, the town hall, a smithy, a museum
 const NOT_CHURCH = /school|vereniging|(?<![\p{L}])vv(?![\p{L}])|boerderij|dorpshuis|gemeentehuis|gemeentewerf|gemeentewerken|pastorie|parochiehuis|verzorgings|centre|center|centrum|kerkhof|molen|café|restaurant|winkel|smid|garage|camping|hotel|museum/iu;
-// tile types a church can be mapped as; church, chapel, cathedral, synagogue and mosque rows keep their own archetype
+// tile types a church can be mapped as; a row whose type already says church, chapel, synagogue or mosque
+// keeps out of churchKindOfName (CHURCH_TYPE below sends church, chapel and cathedral to the kit)
 const CHURCH_AS = new Set(['yes', 'house', 'retail', 'commercial', 'apartments', 'public', 'civic', 'office', 'detached']);
+// A row OSM itself maps as a church, chapel or cathedral has no name to go by. Its own archetype
+// (models3d_buildings.js addChurchDetail) is a straight box of the tower's height over the whole footprint, with
+// housing windows on every storey and no roof at all when the outline is no rectangle (#406). It gets the church
+// kit on its own outline as well; a kit of landmarkkits.json on the same footprint still draws it and wins.
+const CHURCH_TYPE = new Set(['church', 'chapel', 'cathedral']);
 export function churchKindOfName(type, name) {
   if (!name || !CHURCH_AS.has(type)) return null;
   // a congregation or parish named by its denomination is a church whatever the place is called (Protestantse gemeente Roodeschool)
@@ -844,7 +852,7 @@ export function setKitList(list) { KIT_LIST = list || null; }
 
 export function kitItemFromBuilding(b, ring = null) {
   const type = b.type, name = b.name || '';
-  const churchK = churchKindOfName(type, name);
+  const churchK = churchKindOfName(type, name) || (CHURCH_TYPE.has(type) ? (type === 'chapel' || /kapel|kerkje/i.test(name) ? 'chapel' : 'church') : null);
   if (churchK) return churchItemFromBuilding(b, ring || b.pts, churchK);
   // a name that says what it is: a museum, a town hall, a farm mapped as a house or a shed
   const named = name && (/museum/i.test(name) ? 'museum' : /stadhuis|gemeentehuis/i.test(name) ? 'townhall'
