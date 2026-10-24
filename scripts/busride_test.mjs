@@ -1,6 +1,6 @@
 import assert from 'node:assert';
 import { prepareLine, pointAt } from '../game/js/busroutes.js';
-import { makeRide, planRide, startRide, takeOverRide, updateRide, rideStop, stopPos } from '../game/js/busride.js';
+import { makeRide, planRide, startRide, takeOverRide, takeOverService, updateRide, rideStop, stopPos } from '../game/js/busride.js';
 
 const line = prepareLine({ id: 'x', ref: '5', pts: [[0, 0], [1500, 0]], stops: [{ x: 0, y: 0 }, { x: 500, y: 0 }, { x: 1000, y: 0 }, { x: 1500, y: 0 }] });
 const mk = () => { let s = 3; return () => (s = (s * 16807) % 2147483647) / 2147483647; };
@@ -100,5 +100,14 @@ assert.deepStrictEqual(stopPos(g2.ride, g2.ride.table[1]), { x: 500, y: 0 });
   // op de voorlaatste halte nog net een rit van twee haltes, daarna niet meer
   assert.strictEqual(takeOverRide(line, { dir: 1, s: 1200, rng: mk() }).table.length, 2);
   assert.strictEqual(takeOverRide(line, { dir: 1, s: 1499.5, rng: mk() }), null, 'binnen 1 m van de laatste halte: er is niets meer te rijden');
+  // overnemen met keerpunt (#396): op de heenweg gewoon door, aan het eind van de lijn de dienst terug
+  const heen = takeOverService(line, { dir: 1, s: 700, rng: mk() });
+  assert.ok(heen && !heen.keer && heen.dir === 1 && heen.ride.table[0].s === 500 && heen.ride.table[1].s === 1000);
+  const keer = takeOverService(line, { dir: 1, s: 1499.5, rng: mk() });
+  assert.ok(keer && keer.keer && keer.dir === -1, 'aan de eindhalte keer je om');
+  assert.strictEqual(keer.ride.table[0].s, 1500);
+  assert.strictEqual(keer.ride.table[1].s, 1000, 'de terugweg begint bij de vorige halte');
+  assert.ok(keer.ride.onBoard > 0 && keer.ride.passengers === 0, 'de reizigers blijven zitten, zonder loon');
+  assert.ok(driveFrom(keer.ride, 1499.5, -1, 8.5).done, 'de terugrit wordt afgemaakt');
 }
 console.log('busride_test ok');
