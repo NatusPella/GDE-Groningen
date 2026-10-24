@@ -6,6 +6,9 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Nieuw
+- **Samen spelen: bijbanen samen doen (#452):** Grunn Taxi, de Hap & Rap bezorger en de krantenwijk kun je samen doen. Druk als gast E bij het startpunt: wie het spel opende start de baan voor je. De anderen krijgen Meedoen? (J of N, zonder antwoord kijk je mee; wie later komt kijkt mee tot de volgende baan). Je ziet het doel en de marker, rijdt mee als passagier, bezorgt als tweede bezorger (wie het eerst bij de deur staat haalt op en geeft af) of gooit kranten mee (E). Iedereen die meedoet krijgt bij elke ronde de volledige beloning in het eigen geld en de eigen loopbaan, ook als iemand anders wegvalt. De andere bijbanen blijven bij wie het spel opende.
+
 ## [0.48.0] - 2026-10-24
 
 ### Nieuw
