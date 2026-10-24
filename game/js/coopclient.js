@@ -54,7 +54,10 @@ export function applyHostState(world, me, sample, roster = null, dt = 0) {
   for (const p of sample.players) {
     if (!Number.isFinite(p.x) || !Number.isFinite(p.y)) continue;
     let b = bodyFor(world, me, p.slot);
-    if (!b) { const r = roster && roster.find((x) => x.slot === p.slot); b = ensureFigure(world, p.slot, r && r.char, r && r.avatar); }
+    const r = roster && roster.find((x) => x.slot === p.slot);
+    if (!b) { b = ensureFigure(world, p.slot, r && r.char, r && r.avatar); }
+    // (#455) de online-avatar uit de spelerslijst blijft kloppen, ook als hij pas later binnenkwam
+    else if (r && r.avatar && figures(world)[p.slot] === b) { b.avatar = { ...(b.avatar || {}), ...r.avatar }; const av = avatarVan(b, p.slot); b.naam = av.naam; b.kleur = av.kleur; }
     // snelheid uit de verplaatsing, zodat het model loopt (de gast simuleert zelf niets)
     const vx = dt > 0 && Number.isFinite(b.x) ? (p.x - b.x) / dt : 0, vy = dt > 0 && Number.isFinite(b.y) ? (p.y - b.y) / dt : 0;
     const ok = Math.hypot(vx, vy) < 40; // een sprong (teleport) is geen rennen

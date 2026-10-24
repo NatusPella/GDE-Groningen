@@ -93,9 +93,10 @@ export function partnersInfo(mySlot, players, roster, naam = (id) => charInfo(id
   for (const r of roster || []) {
     if (r.slot === mySlot) continue;
     const c = naam(r.char) || {};
+    const av = r.avatar && typeof r.avatar === 'object' ? r.avatar : {}; // (#455) de online-avatar gaat voor de figuur
     const sample = (players || []).find((p) => p.slot === r.slot) || null;
     const st = partnerInfo('host', sample, r.verbinding || 'ok');
-    out.push({ ...st, slot: r.slot, naam: c.naam || st.naam, kleur: c.kleur || st.kleur, vorm: c.vorm || st.vorm });
+    out.push({ ...st, slot: r.slot, naam: av.naam || c.naam || st.naam, kleur: av.kleur || c.kleur || st.kleur, vorm: c.vorm || st.vorm });
   }
   return out;
 }
