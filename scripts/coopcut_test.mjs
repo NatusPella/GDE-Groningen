@@ -1,6 +1,6 @@
 // Samen spelen (#95): cutscenes samen bekijken (coopcut.js): de scène gaat in stukjes naar de gasten en komt heel aan.
 import assert from 'node:assert/strict';
-import { gastCine, cutPakket, cutStukken, cutEinde, nieuwCutVerzamelaar, leesCutPakket, cutHostStart, cutHostEnd, cutHostId, cutHostTik, cutGastTempo, cutGastTik, leesCutTijd, cutTijd, cutsceneScène, CUT_CHUNK } from '../game/js/coopcut.js';
+import { gastCine, cutPakket, cutStukken, cutEinde, nieuwCutVerzamelaar, leesCutPakket, cutHostStart, cutHostEnd, cutHostId, cutHostTik, cutGastTempo, cutGastTik, leesCutTijd, cutTijd, cutsceneScene, CUT_CHUNK } from '../game/js/coopcut.js';
 import { openingActs, END_CARD } from '../game/js/cutscenes.js';
 import { encodeJson, decodeJson, T } from '../game/js/net/codec.js';
 import { Reliable } from '../game/js/net/protocol.js';
@@ -109,9 +109,9 @@ for (const [i, act] of acts.entries()) {
   const v = nieuwCutVerzamelaar(); let uit = null; for (const s of cutStukken(11, p)) uit = v.voegToe(s) || uit;
   ok(uit && uit.rol === 'tammo', 'de rol komt mee door de stukjes');
   ok(cutPakket({ def: {}, lines: [], duration: 3, rol: 'geen-rol' }).rol === undefined, 'alleen een echte verhaalrol');
-  const eigen = cutsceneScène(uit, { character: 'anita' });
+  const eigen = cutsceneScene(uit, { character: 'anita' });
   ok(eigen.hoofdrol === 'tammo' && eigen.eigen === 'anita' && eigen.tijdelijk === true, 'een Tessa-speler speelt lokaal tijdelijk Tammo');
   ok(eigen.metgezel === 'anita' && eigen.metgezelEenmalig === true && eigen.avatarsZichtbaar === false, 'de metgezel staat er één keer en avatar-figuren niet');
-  ok(cutsceneScène({ rol: 'tammo' }, { character: 'tammo' }).tijdelijk === false, 'eigen rol: geen wissel');
+  ok(cutsceneScene({ rol: 'tammo' }, { character: 'tammo' }).tijdelijk === false, 'eigen rol: geen wissel');
 }
 console.log(`coopcut_test: ${n} ok`);

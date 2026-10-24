@@ -97,7 +97,7 @@ export function cutHostStart(w, id, pakket) {
   const stukken = cutStukken(id, { ...pakket, ...(isVerhaalrol(rol) ? { rol } : {}) });
   if (!stukken.length) return false;
   n.cutNu = id; n.cutTikAt = null; n.cutLaatsteT = null;
-  w.coopCutRol = cutsceneScène({ rol }, w.player || {}); // de gastheer speelt de hoofdrol lokaal zelf (#455)
+  w.coopCutRol = cutsceneScene({ rol }, w.player || {}); // de gastheer speelt de hoofdrol lokaal zelf (#455)
   let ok = true; for (const s of stukken) ok = n.hub.announce(s) && ok;
   cutSpoor(w, 'host-start', id, stukken.length, ok);
   return ok;
@@ -134,7 +134,7 @@ export const gastCine = (p, klaar) => ({ ...p.cine, cutId: p.id, skippable: true
 // (#455) Rollen in de scène: de scène vraagt een hoofdrol (p.rol, anders de eigen
 // rol). Elke client speelt die lokaal zelf; de andere verhaalrol is de metgezel en
 // staat er één keer. De online-avatars van medespelers staan niet in de scène.
-export function cutsceneScène(p, profiel = {}) {
+export function cutsceneScene(p, profiel = {}) {
   const eigen = eigenVerhaalrol(profiel);
   const hoofdrol = p && isVerhaalrol(p.rol) ? p.rol : eigen;
   return { hoofdrol, eigen, tijdelijk: hoofdrol !== eigen, metgezel: andereVerhaalrol(hoofdrol), avatarsZichtbaar: false, metgezelEenmalig: true };
@@ -146,7 +146,7 @@ export async function cutGastSpeel(w, p) {
   if (!w.coopNet || w.coopRole !== 'client') { cutSpoor(w, 'gast-geen-gast', p.id); return false; }
   if (w.coopCutBezig != null && w.coopCutBezig !== p.id) { try { (await import('./cinematics.js')).skipCinematic(); } catch (e) { /* al weg */ } } // de vorige scène is bij de gastheer al klaar
   w.coopCutBezig = p.id;
-  const scène = cutsceneScène(p, w.player || {});
+  const scène = cutsceneScene(p, w.player || {});
   w.coopCutRol = scène;
   cutSpoor(w, 'gast-rol', p.id, scène.hoofdrol, scène.eigen, !!scène.tijdelijk);
   if (!w.coopCutHost || w.coopCutHost.id !== p.id) w.coopCutHost = null; // zijn eerste tijdbericht kan al binnen zijn
