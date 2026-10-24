@@ -111,14 +111,16 @@ function placeStrook(strook, r, hoogte, p) {
   strook.visible = p > 0.01;
 }
 
-// Wat de machine doet, in gewone woorden: de ploeg, zaaier, strooier en rooier hebben geen knop; ze werken zodra je in de rij rijdt.
+// Wat de machine doet, in gewone woorden en met de toets erbij: de ploeg, zaaier, strooier en rooier hebben geen eigen knop;
+// ze werken zodra je in de rij rijdt. Gas geven is W (of het pijltje omhoog), sturen met A en D.
 const UITLEG = {
-  ploegen: 'De ploeg zakt vanzelf zodra je in de rij rijdt: gewoon rechtdoor rijden met gas, geen knop nodig.',
-  zaaien: 'De zaaimachine zaait vanzelf zodra je in de rij rijdt: gewoon rechtdoor rijden.',
-  bemesten: 'De strooier strooit vanzelf zodra je in de rij rijdt: gewoon rechtdoor rijden.',
-  oogsten: 'De rooier rooit vanzelf zodra je in de rij rijdt: gewoon rechtdoor rijden.',
+  ploegen: 'De ploeg zakt vanzelf zodra je in de rij rijdt: gas geven met W en recht door, er is geen knop voor de ploeg.',
+  zaaien: 'De zaaimachine zaait vanzelf zodra je in de rij rijdt: gas geven met W en recht door.',
+  bemesten: 'De strooier strooit vanzelf zodra je in de rij rijdt: gas geven met W en recht door.',
+  oogsten: 'De rooier rooit vanzelf zodra je in de rij rijdt: gas geven met W en recht door.',
 };
-const STOPHINT = 'Stoppen kan altijd: Esc en dan Stoppen met de dienst.';
+// De knop in het pausemenu heet "Stoppen met <naam van de baan>" (pausemenu.js): noem die naam, dan zoekt de speler niet.
+const stopHint = (c) => `Stoppen kan altijd: Esc en dan Stoppen met ${c.job ? c.job.name : 'deze dienst'}.`;
 const MELDING = { tehard: 'Te hard: het werk wordt slordig (de helft van die meters telt). Gas terug.', scheef: 'Blijf in de rij.', lading: 'Rustig: de oogst rolt van de kar.' };
 
 function stelTaakIn(c, taak) {
@@ -128,6 +130,7 @@ function stelTaakIn(c, taak) {
   const eigen = d.machineId && b.machines[d.machineId] === 'eigen';
   d.ronde = init(taak, { eigen });
   d.prev = null; d.melT = 0;
+  d.uitleg = false;
   d.laad = taak === 'afleveren' ? 'laden' : null;
   d.laadT = 0;
   if (d.machine) { c.removeMesh(d.machine); d.machine = null; }
@@ -196,7 +199,7 @@ export default {
     if (m) bits.push(k.huur ? `${m.toLowerCase()} gehuurd €${k.huur}` : `eigen ${m.toLowerCase()} gekoppeld`);
     if (k.materiaal) bits.push(`${taak === 'zaaien' ? 'zaaigoed' : 'mest'} €${k.materiaal}`);
     c.msg(bits.join(' · '), 3.5);
-    if (UITLEG[taak]) c.msg(`${UITLEG[taak]} ${STOPHINT}`, 6);
+    if (UITLEG[taak]) c.msg(`${B.TAKEN[taak].naam}: ${UITLEG[taak]}`, 6);
   },
 
   timeout: () => 'de zon zakt',
@@ -230,11 +233,17 @@ export default {
       const rij = d.rijen[s.rij];
       const pos = rijPositie(rij, v.x, v.y);
       input.along = pos.along; input.across = pos.across;
+      // De uitleg komt pas als je echt bij rij 1 staat (#437): bij de start van de dienst sta je nog bij het startpunt, ver van het perceel.
+      if (!d.uitleg && s.rij === 0 && Math.abs(pos.across) <= s.tol && pos.along > -1 && pos.along <= s.len) {
+        d.uitleg = true;
+        c.msg(`Rij 1 van ${RIJEN}: ${UITLEG[d.taak]} ${stopHint(c)}`, 8);
+      }
     }
     for (const e of step(s, input, dt)) {
       const vaak = e.type === 'tehard' || e.type === 'scheef' || e.type === 'lading';
       if (MELDING[e.type] && (!vaak || d.melT < c.world.time)) { c.msg(MELDING[e.type], 2.2); if (vaak) d.melT = c.world.time + 3; }
-      if (e.type === 'rij') c.msg(`Rij ${e.n} van ${RIJEN}.`, 2);
+      // de rij die nu begint, niet de rij die net klaar is: na de eerste rij begin je aan rij 2
+      if (e.type === 'rij' && s.rij < RIJEN) c.msg(`Rij ${s.rij + 1} van ${RIJEN}${s.rij + 1 === RIJEN ? ', de laatste' : ''}.`, 2.5);
       if (e.type === 'fail') {
         if (s.soort === 'rit' && b.schuur.kg > 0) b.schuur.kg = Math.floor(b.schuur.kg * 0.5); // de helft bleef op de weg liggen
         c.fail(e.why); return;
@@ -278,7 +287,7 @@ export default {
       marker: naarBegin ? { x: rij.ax, y: rij.ay } : { x: rij.bx, y: rij.by },
       dots: d.rijen.slice(s.rij + 1).map((r) => ({ x: r.ax, y: r.ay })),
       progress: `Boerderij · ${naam} · rij ${Math.min(s.rij + 1, RIJEN)}/${RIJEN} · ${pct(fractie(s))}`,
-      goal: { label: naarBegin ? 'Naar het begin van de rij' : `${naam}: rij tot het eind`, desc: `${UITLEG[d.taak]} Houd ${kmh(band.vMin)} tot ${kmh(s.vMax)} km/u aan; harder is slordig werk. ${STOPHINT}` },
+      goal: { label: naarBegin ? 'Naar het begin van de rij' : `${naam}: rij tot het eind`, desc: `${UITLEG[d.taak]} Houd ${kmh(band.vMin)} tot ${kmh(s.vMax)} km/u aan; harder is slordig werk. ${stopHint(c)}` },
     };
   },
 
