@@ -42,6 +42,8 @@ import { tileIndexOf, tileKey } from './gdt.js';
 import { wisselEvent, wisselTik, zetCoopNet } from './coophostwisselnet.js'; // het spel overdragen (#439); die module importeert dit bestand terug, maar gebruikt het pas bij een aanroep
 import { zichtbaarWanted, GEZOCHT_TEKST, hudWanted } from './coopgezocht.js';
 import { bustFineIn } from './economy.js';
+import { gebeurtenisId, maakBoekhouding } from './coopbeloning.js'; // beloningen per gebeurtenis, één keer toegekend (#448)
+import { saveGame as bewaarNu } from './savehook.js';
 import { zetBestuurHaken, bestuurGebruik, bestuurTick, bestuurLos, bestuurAllesLos, bestuurt } from './coopbestuur.js';
 
 export const CAPS = ['scene', 'spelers', 'snaptijd']; // wat dit spel kent; uitbreidbaar (net/session.js negotiate). snaptijd: de tijd van een snapshot (ms van de klok van de host) staat in de kop, #434
@@ -605,7 +607,8 @@ export function deelMetGasten(world, bedrag, info = null) {
   if (!(geld >= 1)) return 0;
   const extra = info && typeof info.vak === 'string' && info.vak ? { vak: info.vak.slice(0, 20), xp: Math.max(0, Math.round((Number(info.xp) || 0) * GAST_XP_DEEL)) } : null;
   let k = 0;
-  for (const s of n.hub.roster.spelers) if (s.slot !== 0 && s.verbinding !== 'lost' && krijgtDeel(n.meedoen, s.slot) && payGuest(world, Math.min(geld, MAX_REWARD), s.slot, extra)) k++;
+  const id = gebeurtenisId(n.sessieId || (n.sessieId = Math.random().toString(36).slice(2, 8)), 'b', n.beloningTeller = (n.beloningTeller || 0) + 1); // één id per gebeurtenis, voor alle gasten (#448)
+  for (const s of n.hub.roster.spelers) if (s.slot !== 0 && s.verbinding !== 'lost' && krijgtDeel(n.meedoen, s.slot) && payGuest(world, Math.min(geld, MAX_REWARD), s.slot, extra, id)) k++;
   return k;
 }
 
@@ -857,6 +860,10 @@ export function handleEvent(world, body, van = 0) {
       if (!n || n.role !== 'client') return false;
       const geld = Math.floor(Number(body.geld));
       if (!Number.isFinite(geld) || geld <= 0) return false;
+      if (typeof body.id === 'string' && body.id) { // dezelfde gebeurtenis geeft nooit twee keer geld (#448)
+        const boek = world.coopBoek || (world.coopBoek = maakBoekhouding());
+        if (!boek.claim(body.id.slice(0, 48))) return false;
+      }
       let betaald = Math.min(geld, MAX_REWARD);
       if (typeof body.vak === 'string' && body.vak) betaald = Math.min(MAX_REWARD, loopbaanGast(world, betaald, body.vak, Number(body.xp))); // eigen loonfactor en eigen punten (#381)
       world.money = (world.money || 0) + betaald;
@@ -940,9 +947,9 @@ export function wielLos(world) {
 }
 
 // Host: beloning voor één gast (slot) of voor alle gasten; elk bewaart hem in zijn eigen save.
-export function payGuest(world, geld, slot = null, extra = null) {
+export function payGuest(world, geld, slot = null, extra = null, id = null) {
   const n = world.coopNet; if (!n || n.role !== 'host') return false;
-  const ok = n.hub.announce({ k: 'beloning', geld: Math.max(0, Math.floor(geld)), ...(extra ? { vak: extra.vak, xp: extra.xp } : {}) }, slot);
+  const ok = n.hub.announce({ k: 'beloning', geld: Math.max(0, Math.floor(geld)), ...(extra ? { vak: extra.vak, xp: extra.xp } : {}), ...(typeof id === 'string' && id ? { id: id.slice(0, 48) } : {}) }, slot);
   if (ok) { // wat elke gast in deze sessie verdiende: het gaat mee in de momentopname van het overdragen (#439, gastGeld); het geld zelf staat in de save van de gast
     const b = n.betaald || (n.betaald = {}), g = Math.max(0, Math.floor(geld));
     for (const s of slot != null ? [slot] : n.hub.roster.spelers.filter((x) => x.slot !== 0).map((x) => x.slot)) b[s] = (b[s] || 0) + g;
@@ -982,6 +989,7 @@ export function coopWereldDoorloop(world, menuOpen = true) {
 export function stopCoopNet(world) {
   const n = world.coopNet; if (!n) return;
   setGate(false); // zonder samen spelen is er geen wachtkamer meer
+  try { if (world.coopRole) bewaarNu(world, { toast: false }); } catch (e) { /* een laatste checkpoint: mislukt het, dan staat de vorige er nog (#448) */ }
   if (world.coopCutBezig != null) cutGastStop(world, null, true); // een scène van de gastheer stopt met het samen spelen
   if (n.role === 'host') { try { n.hub.announce({ k: 'weg', reden: 'spel gestopt' }); n.hub.closeAll(); } catch (e) { /* al weg */ } } else { try { if (n.session.status !== 'geweigerd' && n.session.status !== 'verbroken') n.session.leave(); } catch (e) { /* al weg */ } }
   world.coopNet = null;
@@ -991,6 +999,7 @@ export function stopCoopNet(world) {
     p.x = s.x; p.y = s.y; p.angle = s.angle; if (p.vx !== undefined) { p.vx = 0; p.vy = 0; }
     world.wanted = s.wanted;
     p.character = s.character; p.coopChar = s.coopChar;
+    world.coopBoek = null;
     world.coopVerdiend = 0; // het geld zit al in world.money en gaat met de gewone save mee; bleef dit staan, dan kwam het bij een volgende sessie nogmaals in de save
     if (world.companion && s.companion) { world.companion.x = s.companion.x; world.companion.y = s.companion.y; world.companion.character = s.companion.character; }
     if (world.coop) world.coop.prevLocal = s.prevLocal;

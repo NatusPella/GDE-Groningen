@@ -29,6 +29,7 @@ import { applyGuestChanges, applyGuestStory } from './coopsave.js';
 import { verhaalStatus } from './coopverhaal.js';
 import { getRenderer, afterNextFrame } from './scene3d.js';
 import { readSlot, writeSlotRaw, writeThumb, activeSlot, setActive, createSlot, deleteSlot, nameOf, pickActive } from './saveslots.js';
+import { maakCheckpoint } from './coopcheckpoint.js';
 import { registerSaveGame, registerSaveTimers, registerGastVerhaal } from './savehook.js';
 import { STEPS, PARTS, stepDone, stepAvailable, nextStoryStep, ARC_ID } from './storyarc.js';
 
@@ -505,10 +506,22 @@ export function initSaveGame(w) {
 }
 let hiddenSaveBound = false;
 
+// Samen spelen (#448): elke speler (ook een gast, in zijn eigen save) schrijft zijn voortgang elke minuut en na elke gelukte opdracht weg,
+// ook achter het pauzemenu; een sessie die wegvalt of crasht kost dan hooguit een minuut.
+const coopCheckpoint = maakCheckpoint();
+function coopCheckpointTik(dt, w) {
+  if (!w.coopRole) { coopCheckpoint.reset(); return; }
+  coopCheckpoint.opdrachtGelukt(w.stats ? w.stats.missionsDone : 0);
+  const bezig = isCinematicActive() || w.pendingRespawn || w.health <= 0;
+  if (coopCheckpoint.tik(dt, bezig)) saveGame(w, { toast: false });
+}
+
 export function updateSaveGame(dt, w) {
   world = w;
   if (toastTimer > 0 && (toastTimer -= dt) <= 0) toastEl.classList.remove('visible');
-  if (!document.body.classList.contains('game-started') || w.paused) return;
+  if (!document.body.classList.contains('game-started')) return;
+  coopCheckpointTik(dt, w);
+  if (w.paused) return;
   if (restoredMoney >= 0) {
     w.addMessage(`We hebben je geld hersteld: €${restoredMoney.toLocaleString('nl-NL')}`, 6, { key: 'money-restored' });
     restoredMoney = -1;
