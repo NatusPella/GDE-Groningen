@@ -53,6 +53,7 @@ export function mapCategory(kind) {
   if (kind === 'garage') return 'garage';
   if (kind.startsWith('sj-')) return 'job';
   if (kind.startsWith('shop-')) return 'shop';
+  if (kind.startsWith('perceel-')) return 'ommeland';
   if (kind === 'dorp' || kind === 'dorpKlaar' || kind === 'wereldeinde') return 'ommeland';
   if (kind === 'companion') return 'companion';
   if (kind === 'eierbalTip') return 'tip';

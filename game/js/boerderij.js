@@ -7,6 +7,8 @@
 // meer kent (graan, uien, koolzaad, gras) en eggen, een veestapel en meer percelen zijn de uitbreiding (docs/BOERDERIJ.md).
 // De boerderij is van de speler en leeft in zijn eigen opslag (gde-boerderij-v1), nooit in een savegame. Alle namen zijn verzonnen.
 
+import { nieuwBedrijf, normaliseerBedrijf, actiefPerceel, bodemFactor } from './percelen.js';
+
 export const VERSIE = 1;
 export const MAX_UREN = 1e7;
 
@@ -49,6 +51,7 @@ export function nieuweBoerderij() {
     schuur: { gewas: null, kg: 0, kwaliteit: 1 },
     machines: Object.fromEntries(MACHINE_IDS.map((m) => [m, 'huur'])),
     totaal: { oogsten: 0, leveringen: 0, omzet: 0, uitgaven: 0 },
+    bedrijf: nieuwBedrijf(),                 // percelen, erven, opslag en machinepark (percelen.js, #415 stap 1): oude opslag mist dit en krijgt het leeg
   };
 }
 
@@ -76,6 +79,7 @@ export function normaliseer(raw) {
   if (s && typeof s === 'object' && GEWASSEN[s.gewas] && s.kg > 0) b.schuur = { gewas: s.gewas, kg: Math.round(getal(s.kg, 0, 1e6)), kwaliteit: getal(s.kwaliteit, 0, 1, 1) };
   if (d.machines && typeof d.machines === 'object') for (const m of MACHINE_IDS) if (d.machines[m] === 'eigen') b.machines[m] = 'eigen';
   if (d.totaal && typeof d.totaal === 'object') for (const k of Object.keys(b.totaal)) b.totaal[k] = Math.round(getal(d.totaal[k], 0, 1e9));
+  b.bedrijf = normaliseerBedrijf(d.bedrijf);
   return b;
 }
 
@@ -184,7 +188,7 @@ export function opbrengstKg(b) {
   const g = GEWASSEN[v.gewas];
   if (!g) return 0;
   const bodem = 0.6 + 0.4 * v.bodem, zaai = 0.5 + 0.5 * v.zaai, mest = 1 + MEST_BONUS * v.mest;
-  return g.kgBasis * bodem * zaai * mest * groei(b);
+  return g.kgBasis * bodem * zaai * mest * groei(b) * bodemFactor(actiefPerceel(b.bedrijf).bodem);
 }
 
 // Het afleveren: de lading wordt verkocht tegen de prijs van het gewas, met de kwaliteit die de rit overleefde (0..1). Geeft het
