@@ -1261,15 +1261,26 @@ function endOnline(w, { quit = false, extern = false } = {}) {
 }
 
 registreerWedstrijd('padel', {
-  naam: 'Padel', soort: 'live', live: livePadel,
+  naam: 'Padel', soort: 'live', live: livePadel, minSpelers: 2,
   maak: (deeln) => maakPadel(deeln),
   start: (w, sim) => startOnline(w, sim, uitnodigSite || nearestAny(w), 'host'),
   plek: () => (uitnodigSite ? { x: uitnodigSite.x, y: uitnodigSite.y } : null),
   extra: () => { const s = uitnodigSite; return s ? { v: `${Math.round(s.x)},${Math.round(s.y)}` } : null; },
   eind: () => {},
   solo: (w) => (uitnodigSite ? startMatch(w, uitnodigSite) : false),
+  // a guest asks at a court (#452): the match is on the court he stands at; a court that is still busy refuses
+  gastPlek: (w, x, y) => {
+    if (game) return false;
+    let best = null, bd = USE_RADIUS + 1.5;
+    for (const s of sites) { const d = Math.hypot(s.x - x, s.y - y); if (d < bd) { bd = d; best = s; } }
+    if (!best) return false;
+    uitnodigSite = best;
+    return true;
+  },
+  blok: (w) => (uitnodigSite && w.time < uitnodigSite.nextAt && !storyTwins() ? `Baan bezet: nog ${Math.ceil((uitnodigSite.nextAt - w.time) / 60)} min` : null),
 });
 zetWedGastHaken('padel', {
+  dichtbij: (w) => !!nearestSpot(w),
   spiegel: (st, mijn) => maakPadelSpiegel(st, mijn),
   voerIn: voerInPadel,
   start: (w, st, sp) => startOnline(w, sp, siteVan(st.v), 'gast'),
