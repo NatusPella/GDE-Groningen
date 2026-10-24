@@ -1,5 +1,5 @@
 // Samen een bus rijden, de lijm met het spel (#444, coöp): bij de gastheer (die de wereld draait) bepaalt dit wie er aan boord zit,
-// laat een medespeler de deuren (O) bedienen en de kaartjes valideren (E), betaalt elke halte gelijk uit met samenwerkingsbonus
+// laat een medespeler de deuren (O) bedienen en de kaartjes valideren (E), betaalt elke halte het volle bedrag aan elke meespeler uit
 // (world.coopDeel, coopnet.js) en laat de bus veilig afremmen als de chauffeur wegvalt. De regels staan in buscoop.js (met tests).
 // Importeert coopnet.js niet (coopnet.js importeert dit bestand).
 import {
@@ -80,8 +80,8 @@ export function busCoopValideerE(world, slot) {
   return busCoopActie(world, slot, 'valideer');
 }
 
-// Een halte is afgerond (de deuren zijn dicht en de bus vertrekt): de wereld verdient samen, gelijk verdeeld over wie meedoet, met
-// samenwerkingsbonus. Alleen als er echt meer dan één speler meedoet (solo blijft alles zoals het was). Geeft het bedrag of 0.
+// Een halte is afgerond (de deuren zijn dicht en de bus vertrekt): de wereld verdient samen, het volle bedrag voor elke meespeler, zonder
+// verdeling. Alleen als er echt meer dan één speler meedoet (solo blijft alles zoals het was). Geeft het bedrag of 0.
 export function busCoopBetaal(world, bus, uitw, sat) {
   const bc = bus && bus.busBediend && bus.busBediend.coop;
   if (!bc || !bc.begonnen || bc.deelnemers.length < 2 || !world.coopDeel) return 0;
@@ -90,7 +90,7 @@ export function busCoopBetaal(world, bus, uitw, sat) {
   const boord = aanBoord(world, bus).filter((s) => doetMee(bc, s));
   const slots = bc.deelnemers.filter((s) => s === 0 || boord.includes(s) || s === bc.chauffeur);
   if (slots.length < 2) return 0;
-  world.money = (world.money || 0) + bedrag; // de gastheer krijgt eerst alles; coopDeel herverdeelt (zijn deel en de bonus)
+  world.money = (world.money || 0) + bedrag; // de gastheer krijgt eerst alles; coopDeel geeft elke meespelende gast hetzelfde bedrag
   world.coopDeel(bedrag, { ...loopbaanDeel('bus', bedrag, 1), slots: slots.filter((s) => s !== 0) });
   if (world.addMessage) world.addMessage(BUSCOOP_TEKST.halte(bedrag), 2.4);
   haltebeloning(bc, { board: uitw.board, alight: uitw.alight, sat, slots }); // boekt het volgnummer van de halte
