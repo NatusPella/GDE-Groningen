@@ -34,6 +34,7 @@ import { buildingAt } from './tileplace.js';
 import { isMissieVoertuig } from './missievoertuig.js';
 import { bedienTrekker } from './voertuigbediening.js';
 import { seatedOf } from './occupants.js';
+import { bijInstapdeur, uitstapPunt } from './vehicledoors.js';
 export { resolveBuildingCollisions };
 
 const BIKE_SPRINT_S = 2.5;
@@ -765,7 +766,15 @@ export class Player {
       return;
     }
     const v = findEnterableVehicle(this.x, this.y, this.sameLevel(vehicles));
-    if (v) this.enterVehicle(v, world);
+    if (v && this.deurVrij(v, world)) this.enterVehicle(v, world);
+  }
+
+  // Alleen bij een deur instappen (#459): bij een auto, bus of trein loop je eerst naar
+  // de deur waar je in wilt; een fiets, step, boot of quad heeft geen deur.
+  deurVrij(v, world) {
+    if (bijInstapdeur(v, this.x, this.y)) return true;
+    if (world) world.addMessage('Loop naar een deur om in te stappen.', 2);
+    return false;
   }
 
   // vehicles on the player's level (not on the viaduct overhead / in the cutting below)
@@ -784,7 +793,7 @@ export class Player {
       else this.takeProp(world, pr.prop);
       return;
     }
-    if (v) this.enterVehicle(v, world);
+    if (v && this.deurVrij(v, world)) this.enterVehicle(v, world);
   }
 
   takeProp(world, prop) {
@@ -815,6 +824,20 @@ export class Player {
     if (world && stolen && !v.isBike && !v.isScooter && !v.isBoat) playAutoGejatLine(world);
   }
 
+  // Zet de speler naast de deur van zijn stoel (#459), ter hoogte van die deur in plaats
+  // van het midden van de flank. Gebouwen en water laten hem daar niet: dan de gewone
+  // uitstapplek (findExitSpot). geeft true als het punt ingenomen is.
+  stapNaastDeur(v, map, uit) {
+    if (!uit) return false;
+    const nx = -Math.sin(v.angle), ny = Math.cos(v.angle);
+    const off = v.halfWid + 0.7;
+    const ex = v.x + nx * off * uit.kant + Math.cos(v.angle) * uit.langs;
+    const ey = v.y + ny * off * uit.kant + Math.sin(v.angle) * uit.langs;
+    if (buildingAt(map, ex, ey) || isInWater(map, ex, ey)) return false;
+    [this.x, this.y] = resolveBuildingCollisions(ex, ey, this.radius, map);
+    return true;
+  }
+
   exitVehicle(map, world = null, thrown = false) {
     const v = this.inVehicle;
     if (v.sinking && world) { this.ejectIntoWater(v, world); return; }
@@ -828,7 +851,13 @@ export class Player {
     pushVehicleAudio(world, v, v.wrecked || v.disabled || bail ? null : 'engine_stop', bail ? null : 'door_close');
     if (bail || v.disabled) v.rollingFree = true;
     else stopVehicle(v);
-    [this.x, this.y] = findExitSpot(v, this.radius, map, EXIT_LEFT_FIRST);
+    // uitstappen aan de kant van je stoel (#459): bij de deur van die stoel in plaats van
+    // altijd links; een bus en trein hebben hun deuren rechts
+    const uit = uitstapPunt(v, 'bestuurder');
+    const kant = uit ? uit.kant : -1;
+    const eerste = kant > 0 ? EXIT_RIGHT_FIRST : EXIT_LEFT_FIRST;
+    const tweede = kant > 0 ? EXIT_LEFT_FIRST : EXIT_RIGHT_FIRST;
+    if (!this.stapNaastDeur(v, map, uit)) [this.x, this.y] = findExitSpot(v, this.radius, map, eerste);
     this.angle = v.angle;
     this.z = 0;
     this.vz = 0;
@@ -837,7 +866,7 @@ export class Player {
       // never step out over the barrier of a viaduct or into the cutting
       let g = map.groundHeightAt(this.x, this.y, this.gz);
       if (Math.abs(g - this.gz) > 0.8) {
-        [this.x, this.y] = findExitSpot(v, this.radius, map, [-EXIT_LEFT_FIRST[0]]);
+        [this.x, this.y] = findExitSpot(v, this.radius, map, [tweede[0]]);
         g = map.groundHeightAt(this.x, this.y, this.gz);
         if (Math.abs(g - this.gz) > 0.8) { this.x = v.x; this.y = v.y; g = this.gz; }
       }
