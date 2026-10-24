@@ -42,7 +42,7 @@ const GAME = [
   ['Menu', 'Prestatie (groot)', { kind: 'achievement' }],
 ];
 
-const GROUP_OF = { explosie: 'Knallen', wapen: 'Wapens', winkel: 'Winkel', brug: 'Bruggen', spoor: 'Spoor', water: 'Water', kermis: 'Kermis', deur: 'Deuren', voertuig: 'Voertuigen' };
+const GROUP_OF = { explosie: 'Knallen', wapen: 'Wapens', winkel: 'Winkel', brug: 'Bruggen', spoor: 'Spoor', water: 'Water', kermis: 'Kermis', deur: 'Deuren', voertuig: 'Voertuigen', sport: 'Sport' };
 
 export const FX_LIST = [
   ...Object.entries(FX_INFO).map(([name, i]) => ({ id: `fx:${name}`, group: GROUP_OF[i.cat] || 'Overig', label: i.label, buf: name, ev: { kind: 'fx', name } })),

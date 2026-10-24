@@ -16,6 +16,9 @@ export const CATEGORIES = {
   water: { level: 0.75, speech: 0.55 },
   brug: { level: 0.75, speech: 0.6 },
   kermis: { level: 0.7, speech: 0.5 },
+  // de minigames (#460): discgolf, skatepark en klimtoren. Wat je zelf doet is
+  // dichtbij en hoort vooraan; een stem eroverheen dempt het een beetje
+  sport: { level: 0.8, speech: 0.65 },
   winkel: { level: 0.7, speech: 0.6 },
   deur: { level: 0.7, speech: 0.6 },
   voetstap: { level: 0.55, speech: 0.5 },
