@@ -96,7 +96,10 @@ t('een missie krijgt de slechtste status van zijn stappen', () => {
 t('onbekende onderdelen: geen status en geen waarschuwing', () => {
   assert.equal(S.samenStatus('activiteit', 'bestaat-niet'), null);
   assert.equal(S.samenStatus('bestaat-niet', 'x'), null);
-  assert.equal(S.samenStatus('bijbaan', 'toString'), null, 'geen sleutels van Object.prototype');
+  assert.equal(S.samenStatus('activiteit', 'toString'), null, 'geen sleutels van Object.prototype');
+  assert.equal(S.samenStatus('bijbaan', 'loket-nieuw'), 'nee', 'een bijbaan die niet in BIJBAAN_REGELS staat blijft bij wie het spel opende');
+  assert.equal(S.samenStatus('bijbaan', ''), null);
+  assert.equal(S.samenStatus('missie', 7), null);
   assert.equal(S.samenWaarschuwing(samen(), 'activiteit', 'bestaat-niet'), null);
 });
 

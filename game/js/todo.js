@@ -31,6 +31,7 @@ import { getGoal, setGoal, clearGoal } from './goal.js';
 import { drawMapIcon } from './hud_panel.js';
 import { klusloon } from './economy.js';
 import { zachtePauze } from './coopgroep.js';
+import { samenWaarschuwing } from './coopstatus.js';
 
 export const GROUPS = [
   ['missies', 'Missies', 'het verhaal en je klussen'],
@@ -361,6 +362,8 @@ export function playMission(world, i, after = null) {
     world.addMessage(activeMissionIndex() === i ? 'Deze missie loopt al' : 'Maak eerst je huidige missie af', 3);
     return false;
   }
+  const sw = samenWaarschuwing(world, 'missie', null, m.samen); // samen spelen: een route naar een opdracht die nog niet (helemaal) samen werkt meldt dat; de route wordt wel gezet
+  if (sw) world.addMessage(sw.tekst, 3);
   const cur = getStorySteps().find((s) => s.current && s.mission === i);
   if (cur) {
     clearGoal({ quiet: true });

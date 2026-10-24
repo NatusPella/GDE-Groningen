@@ -45,6 +45,7 @@ import { zachtAlleen, stemBegin, stemAntwoord, stemVerval, stemTik, stemEvent, s
 import { zichtbaarWanted, GEZOCHT_TEKST, hudWanted } from './coopgezocht.js';
 import { bustFineIn } from './economy.js';
 import { gebeurtenisId, maakBoekhouding } from './coopbeloning.js'; // beloningen per gebeurtenis, één keer toegekend (#448)
+import { samenWaarschuwing } from './coopstatus.js'; // wat nog niet samen werkt: een melding voor de gast
 import { teamDown } from './cooproles.js'; // een opdracht faalt pas als alle meespelers neer zijn (#452)
 import { saveGame as bewaarNu } from './savehook.js';
 import { wedHostTik, wedHandleGast, wedHandleHost, wedGastReset, zetWedHaken } from './coopwedstrijd.js';
@@ -614,7 +615,11 @@ function nodigUit(world, n, huidig) {
   const regel = world.coopStapRegel ? world.coopStapRegel() : null;
   const slots = n.hub.roster.spelers.filter((s) => s.slot !== 0 && s.verbinding !== 'lost').map((s) => s.slot);
   const stap = stapVanMissie(huidig.index); // een verhaalopdracht: de gast ziet of hij hem al deed of dat zijn verhaal meespringt (#429)
-  for (const u of meedoenBegin(n.meedoen, sl, slots, regel, stap)) n.hub.announce({ k: 'meedoen', label: String(huidig.label || '').slice(0, 80), verplicht: u.verplicht, sec: u.sec, ...(stap ? { stap } : null) }, u.slot);
+  const sw = samenWaarschuwing(world, 'missie', null, world.mission ? world.mission.samen : null); // een opdracht die nog niet (helemaal) samen werkt: de gast hoort het ook, hij mag toch meedoen
+  for (const u of meedoenBegin(n.meedoen, sl, slots, regel, stap)) {
+    n.hub.announce({ k: 'meedoen', label: String(huidig.label || '').slice(0, 80), verplicht: u.verplicht, sec: u.sec, ...(stap ? { stap } : null) }, u.slot);
+    if (sw && world.coopMeld) world.coopMeld(u.slot, sw.start);
+  }
 }
 // Een gast die laat aansluit terwijl een opdracht loopt krijgt dezelfde uitnodiging als wie erbij was, na de melding wat er speelt (#429).
 function nodigLaatUit(world, slot) {

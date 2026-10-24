@@ -7,6 +7,7 @@ import { isShopOpen } from './shopui.js';
 import { startPigeonMode, isPigeonActive, addPigeonLoft, buildPigeonBird, posePigeonBird } from './pigeonmode.js';
 import { isInWater } from './util.js';
 import { playerBusy } from './busy.js';
+import { waarschuwVoorStart } from './coopstatus.js';
 
 // Places in the city where Tammo, the duivenfluisteraar, can steer a pigeon:
 // a badge + a few pecking pigeons at each; E and he whistles one up (eyes
@@ -226,6 +227,7 @@ export function tryPigeonSpotInteract(w) {
   input.consume('f');
   const why = blockReason(w);
   if (why) { w.addMessage(why, 2.5); return true; }
+  waarschuwVoorStart(w, 'minigame', 'duif'); // samen spelen: een melding als dit nog niet samen werkt; de start gaat door
   const p = w.player;
   if (p.character === 'anita') {
     if (!tammoNearby(w)) { anitaSays(w); return true; }
