@@ -73,21 +73,20 @@ iets bij komt (stemlijnen in `game/audio`) verandert dit antwoord naar "ja".
 ## 6. Interactie, privacy, locatie
 
 Het spel heeft sinds 0.38 (#95, #316-#318) een modus **Samen spelen** (peer-to-peer, tot een
-paar spelers, met een kamercode). Er is geen tekstchat, geen spraak, geen publieke
-lobby, geen profielen en geen uitwisseling van eigen inhoud; spelers zien elkaar
+paar spelers, met een kamercode). Er is geen tekstchat, geen spraak, geen profielen en geen uitwisseling van eigen inhoud; spelers zien elkaar
 alleen als figuren in de wereld en delen de voortgang van het verhaal.
 
 | Vraag | Antwoord | Toelichting |
 |---|---|---|
 | Spelers kunnen met elkaar communiceren (chat, voice, berichten) | Nee | Alleen speltoestand en posities; geen tekst of spraak (`game/js/net/` bevat geen chat- of microfooncode). |
-| Gebruikers kunnen elkaar ontmoeten of vinden | Alleen met een kamercode die je zelf deelt | Geen zoekfunctie, geen openbare lijst. |
+| Gebruikers kunnen elkaar ontmoeten of vinden | Ja, optioneel: met een kamercode, of via een lijst met openbare sessies (#438, standaard uit) | De lijst toont alleen de sessienaam (gefilterd, max. 24 tekens), het aantal spelers, de versie en de kamercode; geen IP-adres, geen profiel, geen chat. De host zet dit zelf aan na een melding. Bij een vraag over "sociale interactie" of "gebruikers ontmoeten": Ja, beperkt. |
 | Online multiplayer | **Ja, optioneel** (Samen spelen) | Peer-to-peer (WebRTC). Het hele spel werkt ook volledig offline voor één speler. |
 | Gebruikersgegenereerde inhoud delen of ontvangen | Nee | |
 | Deelt de game gegevens met derden | Alleen na toestemming in het spel | IP-adres naar openbare STUN-servers; versleutelde signalering (kamercode als sleutel) via openbare brokers. Geen account, geen telemetrie. Zie `game/js/net/netconfig.js`, `net/consent.js` en [PRIVACY-EN-CREDITS.md](PRIVACY-EN-CREDITS.md). |
 | Deelt de game de **locatie** van de gebruiker | Nee | Geen geolocatie; het IP-adres bij Samen spelen is geen locatiegegeven dat het spel gebruikt. |
 | Verzamelt of deelt persoonsgegevens, account, e-mail | Nee | Opslag is lokaal (savegame op het apparaat). |
 | Digitale aankopen, abonnement | Nee | |
-| Internetverbinding nodig | Alleen voor Samen spelen, en in de **webversie** voor het laden van three.js (CDN) en lettertypen (Google Fonts) | De desktopversie draait zonder internet. Beantwoord een vraag over "verbinding met internet" voor de webversie met Ja. |
+| Internetverbinding nodig | Alleen voor Samen spelen | De desktopversie draait zonder internet. De webbuild (`web/build.mjs`) levert three.js en de lettertypen zelf mee (24 okt gemeten: geen externe laad-URL's); alleen de losse dev-server (`game/index.html`) haalt ze nog van een CDN. Een vraag over "verbinding met internet" voor Samen spelen: Ja. |
 | Verwijzingen naar of links naar internet, sociale media | Beperkt | Externe links openen in de systeembrowser (`desktop/main.js`). Vermeld ze als "link naar externe pagina". |
 
 ## 7. Overig

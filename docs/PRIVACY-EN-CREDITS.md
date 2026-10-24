@@ -13,7 +13,7 @@ verstuurd. De eigenaar beslist wat waar komt te staan.
 | Saves en instellingen | Alleen lokaal op het apparaat (`gde-save-v1`, `gde-settings`, `gde-prestaties-v1` in localStorage) | `game/js/storagekeys.js` |
 | Foutrapport | Wordt alleen gekopieerd door de speler, niet verstuurd; bevat geen persoonsgegevens | CONTRIBUTING.md |
 | Desktopapp (Electron) | Alleen offline spelen; externe links openen in de systeembrowser | `desktop/main.js` |
-| Webversie | Haalt `three` van de jsDelivr-CDN en lettertypen van Google Fonts, tenzij de webbuild ze meelevert (`desktop/build.mjs` vendort ze). Dan ziet die dienst het IP-adres van de bezoeker | `game/index.html` |
+| Webversie | Haalt `three` van de jsDelivr-CDN en lettertypen van Google Fonts, tenzij de webbuild ze meelevert (`desktop/build.mjs` vendort ze; de webbuild van 24 okt heeft geen externe laad-URL's). Dan ziet die dienst het IP-adres van de bezoeker | `game/index.html` |
 | Samen spelen (#95) | **Alleen na toestemming** van de speler (`net/consent.js`): het IP-adres gaat naar een openbare STUN-server, en versleutelde signalering (met de kamercode als sleutel) via openbare brokers. Er gaat geen telemetrie of account mee. Spelers die samen spelen zien elkaars IP-adres niet in het spel, maar WebRTC maakt een directe verbinding | `game/js/net/netconfig.js`, AGENTS.md punt 4 |
 
 Openstaand (eigenaar): de SECURITY.md-zin "het spel stuurt niets naar een

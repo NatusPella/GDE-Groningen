@@ -68,3 +68,11 @@ openen) en meldt bestand, patroonnaam en blob, nooit de waarde.
 Geen workflow die publiceert, geen Pages-configuratie, geen zichtbaarheids-
 wijziging, geen upload, geen post. SHA-256 in de releasenotes
 (`desktop/release.sh`) en opruimen van oude opslagsleutels zijn code-werk voor later.
+
+## 6. Lokale controles van 24 oktober (versie 0.47.0, nog niets openbaar gemaakt)
+
+- `node scripts/publish_check.mjs --history`: 0 FAIL, 14 WARN (alleen handmatige workflows met schrijfrechten, `workflow_dispatch`). Bij deze ronde zijn 17 FAIL weggehaald: hardgecodeerde thuispaden in scripts en docs (nu `USERPROFILE`, `LOCALAPPDATA` of `<home>`) en een vals alarm op `token: '...'` in een tegelaanroep (`withTiles`).
+- `node scripts/secrets_scan.mjs`: werkboom en alle 4334 commits, 0 sleutelachtige treffers (de ene van deze ronde was het valse alarm hierboven). Geen `.env`, sleutel- of certificaatbestand ooit in de geschiedenis. gitleaks is niet geïnstalleerd: draai het alsnog vlak voor Public.
+- Aanvullende historiescan (e-mailadressen, IP's, thuispaden, wachtwoordachtige toewijzingen; alleen soort en bestand): e-mail in de OSM-extracten `data/*_raw.json` en in `desktop/package-lock.json` (auteurs van npm-pakketten); een verwijderd script met een noreply-adres van een co-auteurregel; IP's alleen als testwaarden, SVG-getallen en de SSDP-groep; thuispaden van de eigenaar in 38 bestanden **in de geschiedenis** (in de werkboom nu weggehaald). Wachtwoorden: alleen de woorden in de scanregels en docs zelf.
+- `node scripts/text_audit.mjs`: 0 bevindingen; `node scripts/merkenregister_check.mjs`: 45 rijen, 0 afwijkingen.
+- Besluit voor de eigenaar: de thuispaden en OSM-contactgegevens staan in de geschiedenis. Openbaar maken zonder herschrijven laat ze zichtbaar; herschrijven mag alleen met akkoord (constitution 8).
