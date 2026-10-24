@@ -2,7 +2,7 @@
 // Een gast heeft geen voertuig in zijn eigen spel; coopnet.js zet world.coopBoot (plek en snelheid van de boot van de host) en hengelen.js leest dat.
 import './node3d.mjs';
 import assert from 'node:assert/strict';
-const { HENGELEN, hengelVrijPrompt } = await import('../game/js/hengelen.js');
+const { HENGELEN, hengelVrijPrompt, HENGEL_POSE } = await import('../game/js/hengelen.js');
 const { GAST_ACTIVITEITEN } = await import('../game/js/coopgast.js');
 
 let n = 0;
@@ -31,6 +31,31 @@ t('zonder boot of niet als gast verandert er niets: aan de kant geen bootprompt,
   assert.equal(kijk(wereld({ coopRole: 'host', coopBoot: { x: 1000, y: 700, speed: 0 } })), null, 'alleen een gast leest world.coopBoot');
   const w = wereld({ player: { x: 1000, y: 1498, vx: 0, vy: 0 } }); HENGELEN.tick(0.5, w);
   assert.equal(hengelVrijPrompt(w, false) !== null, true, 'aan de kant van het meer: het gewone prompt');
+});
+
+// Vissen vanuit een boot (#437): de eigen boot van de speler, stil genoeg en op het water.
+const inBoot = (speed, x = 1000, y = 700, extra = {}) => wereld({ player: { x, y, vx: 0, vy: 0, inVehicle: { isBoat: true, x, y, speed } }, ...extra });
+
+t('de eigen boot: stilliggen op het water geeft het bootprompt, varen of op het droge niet', () => {
+  const stil = inBoot(0.3); const p = kijk(stil);
+  assert.ok(p, 'een prompt vanuit de boot'); assert.equal(p.id, 'hengel-vrij'); assert.equal(p.key, 'I');
+  assert.equal(hengelVrijPrompt(stil, false), null, 'het prompt voor de kant is het niet');
+  assert.equal(kijk(inBoot(3)), null, 'sneller dan 1,2 m/s: je vaart');
+  assert.equal(kijk(inBoot(0, 5000, 5000)), null, 'de boot ligt op het droge');
+});
+
+t('een gast die zelf een boot bestuurt hengelt ook vanaf het water', () => {
+  assert.ok(kijk(inBoot(0.2, 1000, 700, { coopRole: 'client' })), 'stil: wel');
+  assert.equal(kijk(inBoot(4, 1000, 700, { coopRole: 'client' })), null, 'varend: niet');
+});
+
+t('de hengelhouding volgt de fase: uitwerpen, klaar, de ruk bij een beet en het binnenhalen (#437)', () => {
+  assert.equal(HENGEL_POSE.cast, 'hengel-uit');
+  assert.equal(HENGEL_POSE.idle, 'hengel');
+  assert.equal(HENGEL_POSE.wait, 'hengel');
+  assert.equal(HENGEL_POSE.bite, 'hengel-ruk');
+  assert.equal(HENGEL_POSE.scare, 'hengel-haal');
+  for (const fase of ['idle', 'cast', 'wait', 'bite', 'scare']) assert.ok(HENGEL_POSE[fase], fase);
 });
 
 console.log(`coophengelboot_test: ${n}/${n} ok`);
