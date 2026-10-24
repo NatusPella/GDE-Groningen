@@ -432,7 +432,7 @@ function menuFor(w, here) {
         trips.push({
           id: 'trein-' + dest.short, label: dest.name,
           desc: `${lineLabel(legs[0])} · ${spoor(here, legs[0])}${via}${VILLAGES[dest.name] ? ` · Te doen: ${VILLAGES[dest.name].teaser.toLowerCase()}` : ''}`,
-          cols: [`${info.minutes} min`], verb: 'Instappen ·',
+          cols: [`${info.minutes} min`], verb: 'Snel reizen ·',
           route: { from: here.short, to: dest.short, minutes: info.minutes, text: `${lineLabel(legs[0])}, ${spoor(here, legs[0])}${via}.`, teaser: VILLAGES[dest.name] ? `Te doen: ${VILLAGES[dest.name].teaser.toLowerCase()}` : '', board },
           price: info.price, swatch: [legs[0].train.type === 'virm' ? '#ffc917' : '#00a3ad'],
           disabled: w.money < info.price ? 'Te weinig geld' : null,
@@ -449,10 +449,10 @@ function menuFor(w, here) {
         const isVillage = (it) => !!VILLAGES[it.label];
         for (const it of trips) if (isVillage(it)) it.tag = 'Onderduiken';
         trips.sort((a, b) => isVillage(b) - isVillage(a));
-        return [{ title: 'Vertrekken', note: 'Onderduiken: kies een dorp in het Ommeland, daar zoekt niemand jullie', items: trips }];
+        return [{ title: 'Onderduiken: snel reizen naar een dorp', note: 'Kies een dorp in het Ommeland, daar zoekt niemand jullie. Je koopt een kaartje en staat er na een korte scène.', items: trips }];
       }
       // only stations inside the map: the off-map ends of the lines aren't offered
-      return [{ title: 'Snel reizen (kaartje)', note: `${board}. Een korte scène en je staat er. Zelf rijden? Loop naar een stilstaande trein, druk E en daarna G.`, items: trips }, { title: 'Als passagier meerijden', note: 'Je zit in de trein en ziet elke halte langskomen. Houd Spatie ingedrukt om naar je halte te springen.', items: rideItems(w, here) }];
+      return [{ title: 'Snel reizen met een kaartje', note: `${board}. Een korte scène en je staat er.`, items: trips }, { title: 'Als passagier meegaan', note: 'Je zit in de trein en ziet elke halte langskomen. Houd Spatie ingedrukt om naar je halte te springen.', items: rideItems(w, here) }, { title: 'Zelf de trein besturen', note: 'Zonder kaartje: loop naar een stilstaande trein, druk E om in te stappen en daarna G om zelf te rijden.', items: [{ id: 'zelf-besturen', label: 'Zelf de trein besturen', desc: 'Loop naar een stilstaande trein, druk E en daarna G', cols: [], verb: 'Zo werkt het', price: 0, swatch: ['#ffc917'], buy() { return 'Loop naar een stilstaande trein, druk E en daarna G'; } }] }];
     },
   };
 }
@@ -630,7 +630,7 @@ function rideItems(w, here) {
     out.push({
       id: 'rit-' + dest.short, label: dest.name,
       desc: `${lineLabel(leg)} · ${spoor(here, leg)} · de hele rit, ongeveer ${min} min`,
-      cols: [`${min} min`], verb: 'Meerijden ·',
+      cols: [`${min} min`], verb: 'Meegaan ·',
       route: { from: here.short, to: dest.short, minutes: min, text: `${lineLabel(leg)}, ${spoor(here, leg)}. Houd Spatie ingedrukt om naar ${dest.short} te springen.`, teaser: '', board: '' },
       price: info.price, swatch: [leg.train.type === 'virm' ? '#ffc917' : '#00a3ad'],
       disabled: w.money < info.price ? 'Te weinig geld' : null,

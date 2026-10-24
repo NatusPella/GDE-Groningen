@@ -10,6 +10,12 @@ export const HELP_TOPICS = [
     'Open de kaart met {M}, kies een plek of missie en de route gaat erheen. Het verhaal wacht zolang.',
     'Shift + klik op de kaart zet je meteen op die plek (uit te zetten bij {ESC} Instellingen › Interface).',
   ] },
+  { id: 'kaart', title: 'De kaart: waypoint en reizen', lines: [
+    'Klik op een plek of een icoon op de kaart en kies uit drie dingen: Zet waypoint, Reis erheen (met de kosten en de duur) of Info. Met een controller kies je een plek met {ENTER} onder het kruisje.',
+    'Er is één waypoint tegelijk, met een lijn en de afstand op de kaart en een baken in de wereld. Klik er nog eens op of kies Haal weg om hem te wissen ({DELETE}).',
+    'Snel reizen kost tijd en geld; je staat er na een korte rit. Zelf gaan zet een waypoint en je rijdt of loopt zelf. Bij het station kies je zelf de trein besturen of als passagier meegaan.',
+    'In Samen spelen kan een gast een waypoint zetten. Reizen kan alleen in je eigen spel.',
+  ] },
   { id: 'todo', title: 'Wat kan ik nog meer?', lines: [
     '{ESC} › Activiteiten laat zien wat er te doen is: klussen, minigames en evenementen. Bijbanen staan onder Loopbanen. Kies iets en de route gaat erheen.',
   ] },
