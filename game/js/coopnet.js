@@ -1294,8 +1294,7 @@ export function stopCoopNet(world) {
   const n = world.coopNet; if (!n) return;
   if (n.stem) { const f = n.stem.nee; n.stem = null; if (f) { try { f(); } catch (e) { /* de vraag vervalt met de sessie */ } } } // een lopende stemming over een tijdsprong vervalt (#452)
   setGate(false); // zonder samen spelen is er geen wachtkamer meer
-  try { if (world.coopRole && !isKoploos(n)) bewaarNu(world, { toast: false }); } catch (e) { /* een laatste checkpoint: mislukt het, dan staat de vorige er nog (#448) */ } // een gastheer zonder speler bewaart geen spel van iemand (#450)
-  verrekenEinde(world); // de laatste verrekening: de eigen save van host en gast, met de beloningen en hun ids (#448)
+  if (!isKoploos(n)) verrekenEinde(world); // de laatste verrekening: de eigen save van host en gast, met de beloningen en hun ids (#448); een gastheer zonder speler bewaart niets (#450)
   if (world.coopCutBezig != null) cutGastStop(world, null, true); // een scène van de gastheer stopt met het samen spelen
   if (n.role === 'host') bezorgAllesWeg(world, (s) => bestuurLos(world, s)); // de eigen voertuigen van de gasten gaan mee terug (#449)
   if (n.role === 'host') { try { n.hub.announce({ k: 'weg', reden: 'spel gestopt' }); n.hub.closeAll(); } catch (e) { /* al weg */ } } else { try { if (n.session.status !== 'geweigerd' && n.session.status !== 'verbroken') n.session.leave(); } catch (e) { /* al weg */ } }
