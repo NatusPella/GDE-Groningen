@@ -44,6 +44,7 @@ import { wisselEvent, wisselTik, zetCoopNet } from './coophostwisselnet.js'; // 
 import { zichtbaarWanted, GEZOCHT_TEKST, hudWanted } from './coopgezocht.js';
 import { bustFineIn } from './economy.js';
 import { gebeurtenisId, maakBoekhouding, samenwerkingsBonus, verdeelGelijk } from './coopbeloning.js'; // beloningen per gebeurtenis, één keer toegekend (#448)
+import { teamDown } from './cooproles.js'; // een opdracht faalt pas als alle meespelers neer zijn (#452)
 import { saveGame as bewaarNu } from './savehook.js';
 import { zetBestuurHaken, bestuurGebruik, bestuurTick, bestuurLos, bestuurAllesLos, bestuurt } from './coopbestuur.js';
 
@@ -180,8 +181,14 @@ function endCoop(world) {
   world.coopBezigVan = {}; world.coopHudWanted = 0; // wie bezig is en de sterren in het scherm van de host (#429, #434)
   world.coopWanted = null; world.coopHeat = null; world.coopDoelwit = 0; world.coopWantedMeld = null; world.coopGepakt = null; world.coopStil = false; // (#434)
   if (world.companion) world.companion.coopWacht = false;
+  world.coopOpdrachtDoor = null; // (#452)
   world.coopMeld = null; world.coopDeel = null; world.coopUitslag = null; world.coopPingMarks = []; world.coopSpelers = []; world.coopGebruik = false; world.coopWielSlot = null; world.coopWielVraag = null; world.coopWiel = false; world.coopInVoertuig = false; world.coopBestuurder = false; // (#291, #434)
   if (world.companion) { world.companion.coopUit = false; world.companion.coopBestuurt = false; }
+}
+// Per meespeler (wie ja zei of verplicht meedoet, en verbonden is): staat hij nog? Tessa (plek 1) is neer als ze dood is; een extra speler gaat niet neer.
+function meedoendeStatus(world, n) {
+  const verbonden = new Set(n.hub.roster.spelers.filter((s) => s.slot !== 0 && s.verbinding !== 'lost').map((s) => s.slot));
+  return meespelers(n.meedoen).filter((s) => verbonden.has(s)).map((s) => (s === 1 ? !(world.companion && world.companion.state === 'dead') : true));
 }
 const now = (world) => (Number.isFinite(world.time) ? world.time : Date.now() / 1000);
 
@@ -242,6 +249,8 @@ export function startHost(world, info, opts = {}) {
   world.coopUitslag = (ok, label, reden, loon, gestopt) => uitslagMelden(world, ok, label, reden, loon, gestopt); // gelukt, mislukt of gestopt (#371, #390)
   world.coopDeel = (bedrag, info) => deelMetGasten(world, bedrag, info); // missies, bijbanen en prijzen delen met de gasten (#365)
   world.coopSchade = (slot, schade) => hub.announce({ k: 'schade', n: Math.round(Number(schade) || 0) }, slot); // een kogel van de politie raakt een gast (#434)
+  // De gastheer gaat neer of wordt opgepakt: loopt de opdracht dan door? Ja zolang een meespeler (die ja zei, verbonden en niet neer) nog staat (#452).
+  world.coopOpdrachtDoor = () => { const n = world.coopNet; if (!n || n.role !== 'host') return false; return !teamDown(meedoendeStatus(world, n)); };
   world.coopMeld = (slot, tekst) => hub.announce({ k: 'melding', tekst: String(tekst).slice(0, 90) }, slot); // een korte melding voor een gast (#291)
   world.coopWanted = {}; world.coopHeat = {}; world.coopDoelwit = 0; // een gezocht-niveau per gast (#434, coopgezocht.js)
   world.coopWantedMeld = (slot, na, voor) => gezochtMelden(world, slot, na, voor);

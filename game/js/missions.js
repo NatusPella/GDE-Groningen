@@ -627,6 +627,8 @@ export function initMissions(world) {
   setMuseumCaseStolen(() => isMissionCompleted(missionIndexById('museumkraak')));
   syncPub(world);
   world.onRespawn.push((w, { busted }) => {
+    // samen spelen (#452): gaat alleen de gastheer neer en staat een meespeler nog, dan loopt de opdracht door; zonder meespelers (of alleen) faalt hij als altijd
+    if (w.coopOpdrachtDoor && w.coopOpdrachtDoor()) return;
     failActiveMission(w, busted ? 'Missie mislukt: opgepakt' : 'Missie mislukt: knock-out', busted ? 'Opgepakt door de politie' : 'Je bent knock-out', busted ? 'opgepakt door de politie' : 'neergeslagen');
   });
 }
