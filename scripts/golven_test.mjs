@@ -1,7 +1,9 @@
 // Golven op zee en kielzog (#417): de golfhoogte groeit met kust en wind, het kielzog is een V achter snelle boten, kleine
 // vaartuigen wiebelen en de speler valt nat (zonder schade) in het water bij een te grote golf.
 //   node scripts/golven_test.mjs
+import fs from 'node:fs';
 import { windSterkte, seaExtraVoorWind, golfAmplitude, kielzogHoogte, kielzogOp, golfBelasting, golfWip, updateGolven, omvalDrempel } from '../game/js/golven.js';
+import { KIELZOG_VELD_MAX, KIELZOG_VELD_REIK, KIELZOG_VELD_TOP, KIELZOG_VELD_HOEK, kielzogGolf, kielzogSterkte, bouwKielzogVeld, setKielzogVeld, kielzogVeld, veldHoogte, KIELZOG_GLSL } from '../game/js/kielzogveld.js';
 
 let n = 0, bad = 0;
 const check = (name, ok, info = '') => { n++; if (!ok) { bad++; console.log('FAIL', name, info); } };
@@ -78,6 +80,39 @@ for (const [regen, verwacht] of [[0, 0], [1, 1]]) {
   const doelen = w.vehicles.filter((v) => v._golf).length;
   check('hooguit 6 doelen per frame', doelen <= 6, String(doelen));
   check('een frame kost minder dan 0,2 ms', ms < 0.2, ms.toFixed(3) + ' ms');
+}
+// Het golfveld (#417): het kielzog tilt het wateroppervlak zelf op, met een vaste vorm en een bovengrens; de shader
+// (water3d.js) en de drijfkracht (waterSwellAt) lezen dezelfde formule uit kielzogveld.js.
+{
+  const boot = { x: 0, y: 0, cx: 1, cy: 0, sterkte: 0.2 };
+  check('geen golf voor de boot', kielzogGolf(boot, 8, 0) === 0);
+  check('golf achter de boot', kielzogGolf(boot, -6, 0) > 0.02);
+  check('golf buiten de V is nul', kielzogGolf(boot, -6, 20) === 0);
+  check('golf dooft uit met de afstand', kielzogGolf(boot, -4, 0) > kielzogGolf(boot, -40, 0));
+  check('voorbij de reikwijdte is er niets', kielzogGolf(boot, -KIELZOG_VELD_REIK - 1, 0) === 0);
+  check('harder varen, hogere golf', kielzogSterkte(11, 8) > kielzogSterkte(6, 8));
+  check('langer schip, hogere golf', kielzogSterkte(9, 12) > kielzogSterkte(9, 4));
+  check('de golf heeft een bovengrens', kielzogSterkte(80, 60) <= KIELZOG_VELD_TOP && kielzogSterkte(80, 60) > 0.1);
+
+  const vlot = { id: 1, isBoat: true, x: 0, y: 0, angle: 0, speed: 9, model: { len: 8 } };
+  const veld = bouwKielzogVeld([vlot, { ...vlot, id: 2, speed: 1 }, { ...vlot, id: 3, isBoat: false, speed: 9 }, { ...vlot, id: 4, x: 900, y: 0 }], 0, 0);
+  check('alleen varende boten in de buurt komen in het veld', veld.length === 1 && veld[0].sterkte > 0);
+  check('hooguit vier golven in het veld', bouwKielzogVeld(Array.from({ length: 12 }, (_, i) => ({ ...vlot, id: i })), 0, 0).length === KIELZOG_VELD_MAX);
+  setKielzogVeld(Array.from({ length: 6 }, () => ({ x: 0, y: 0, cx: 1, cy: 0, sterkte: Math.min(KIELZOG_VELD_TOP, kielzogSterkte(9, 8)) })));
+  check('opgetelde golven blijven onder de bovengrens', veldHoogte(-6, 0) > 0 && veldHoogte(-6, 0) <= KIELZOG_VELD_TOP + 1e-9, String(veldHoogte(-6, 0)));
+  check('het veld is de bron voor deze frame', kielzogVeld().length === 6);
+  setKielzogVeld(null);
+  check('een leeg veld is vlak water', veldHoogte(-6, 0) === 0 && kielzogVeld().length === 0);
+
+  const g = { w: { ...vlot, _golf: undefined }, s: sup() };
+  const w2 = { time: 5, player: g.s, vehicles: [g.w, g.s], particles: [], addMessage: () => {}, weather: { intensity: 0 } };
+  updateGolven(w2, 0.05);
+  check('updateGolven zet het kielzog in het wateroppervlak', kielzogVeld().length === 1 && veldHoogte(-6, 0) > 0, String(kielzogVeld().length));
+  setKielzogVeld(null);
+
+  check('de shader gebruikt dezelfde getallen als de CPU', KIELZOG_GLSL.includes(KIELZOG_VELD_HOEK.toFixed(2)) && KIELZOG_GLSL.includes(KIELZOG_VELD_REIK.toFixed(2)) && KIELZOG_GLSL.includes(KIELZOG_VELD_TOP.toFixed(2)));
+  const wsrc = fs.readFileSync(new URL('../game/js/water3d.js', import.meta.url), 'utf8');
+  check('het wateroppervlak tilt op met het golfveld', /KIELZOG_GLSL/.test(wsrc) && /kielzogVeld\(wp0\.xz\)/.test(wsrc) && /veldHoogte\(x, z\)/.test(wsrc));
 }
 console.log(`golven_test: ${n - bad}/${n}`);
 process.exit(bad ? 1 : 0);
