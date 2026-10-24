@@ -66,6 +66,17 @@ t('cutscene: start bij beiden klaar of time-out, overslaan vraagt beide', () => 
   const c = R.createCutscene('z', rule); assert.equal(R.holdSkip(c, 0, true, 1), true, 'alleen: één stem');
   assert.deepEqual(R.cutsceneCast(1, R.coopRule(STEPS[0], 1)), ['mens', 'npc']);
 });
+t('rollen per speler (#455): eigen verhaalrol, tijdelijk de rol van de stap, metgezel alleen als die nodig is', () => {
+  const m03 = STEPS.find((s) => s.id === 'M03'), m21 = STEPS.find((s) => s.id === 'M21');
+  assert.equal(R.eigenVerhaalrol({ character: 'anita' }), 'anita');
+  assert.equal(R.eigenVerhaalrol({}), 'tammo');
+  const tammoInTessa = R.rolVoorSpeler(m21, { character: 'tammo' });
+  assert.deepEqual(tammoInTessa, { rol: 'anita', eigen: 'tammo', tijdelijk: true });
+  assert.equal(R.metgezelVoorSpeler(m03, { character: 'anita' }), 'tammo', 'de andere verhaalrol is de metgezel');
+  assert.equal(R.metgezelVoorSpeler(m21, { character: 'tammo' }), null, 'een solo-stap heeft geen metgezel');
+  const cs = R.cutsceneRol(m03, { character: 'anita' });
+  assert.equal(cs.rol, 'anita'); assert.equal(cs.metgezel, 'tammo'); assert.equal(cs.avatarsZichtbaar, false); assert.equal(cs.metgezelEenmalig, true);
+});
 t('registry: nieuwe functies registreren hun regel; onbekende krijgen een veilige standaard', () => {
   assert.deepEqual(R.coopRegel('scene', 'nog-niet-bestaand'), { spelers: 'een', wacht: false });
   assert.equal(R.isGeregistreerd('minigame', 'padel'), true);

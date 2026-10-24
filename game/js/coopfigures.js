@@ -15,8 +15,11 @@ export function planFigures(have, figuren) {
   };
 }
 
+// De figuur die voor deze speler getekend wordt: zijn online-avatar, nooit zijn verhaalrol (#455).
+export const figuurChar = (f) => (f && f.avatar && f.avatar.char) || (f && f.char) || '';
+
 // Een model moet opnieuw gebouwd worden als de figuur van personage is veranderd (andere speler op dezelfde plek).
-export const needsRebuild = (modelChar, figuur) => modelChar !== figuur.char;
+export const needsRebuild = (modelChar, figuur) => modelChar !== figuurChar(figuur);
 
 // Loopsnelheid voor de animatie uit de verplaatsing sinds het vorige frame (op een client heeft een figuur geen snelheid).
 export function walkSpeed(prev, cur, dt) {
@@ -27,4 +30,7 @@ export function walkSpeed(prev, cur, dt) {
 
 // Hoogte van het label boven de figuur en tekst/kleur van het label (naam en kleur uit de lijst met spelers).
 export const LABEL_Y = 2.35;
-export function labelSpec(figuur) { return { tekst: figuur.naam || '?', kleur: figuur.kleur || '#ffffff' }; }
+export function labelSpec(figuur) {
+  const av = figuur && figuur.avatar;
+  return { tekst: (av && av.naam) || (figuur && figuur.naam) || '?', kleur: (av && av.kleur) || (figuur && figuur.kleur) || '#ffffff' };
+}
