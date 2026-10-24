@@ -13,7 +13,7 @@ banden, UI, omgeving, vuurwerk, bellen) zijn geen muziek en blijven.
 |---|---|---|---|
 | 20 G-Music-nummers `game/audio/gmusic/*.mp3` (dag- en nachtpool) | Gemini | behouden | `credits.js` ("muziek ... gemaakt met Google Gemini"), `NOTICE.md`, `docs/LICENTIES.md` §3/§4; mp3's in git sinds 26 sep 2026 |
 | Titelnummer `game/audio/theme/miles_past_the_city_square.mp3` | Gemini | behouden | LICENTIES.md ("volgens de eigenaar"), credits |
-| Scenario-loops `game/audio/scenario` (race, achtervolging) | Gemini | behouden | NOTICE.md, LICENTIES.md |
+| Scenario-loops `game/audio/scenario` (race, achtervolging, kart, padel, golf, klimtoren, trein, bus) | Gemini | behouden | NOTICE.md, LICENTIES.md |
 | G-Music-jingles `game/audio/gmusic/jingles/*.wav` | Gemini TTS | behouden | `tts.json` per map gelogd, LICENTIES.md §4 |
 | Zeven synthnummers `game/js/synthmusic.js` (drill, post-punk, hardstyle, phonk, levenslied, R&B, zomerhit) met `scripts/synthmusic_test.mjs` en de renderplanning in `audio.js` | Claude | **verwijderd** | commit 317e0315, #66, CHANGELOG 0.36.0 ("helemaal door het spel zelf gemaakt"); niet in credits |
 | Kermisorgel (walsje in 3/4, `kermis.js` `updateOrgan`) | Claude | **verwijderd** | oscillatoren met vaste melodie `MEL`/`BASS`; de kermis zelf (botsauto's, reuzenrad) blijft |

@@ -972,14 +972,14 @@
     "inhoud.audio_bestanden": {
       "groep": "inhoud",
       "label": "Geluidsbestanden in game/audio (stemmen, muziek, radio, nieuws)",
-      "waarde": 3148,
+      "waarde": 3154,
       "eenheid": "bestanden",
       "bron": "game/audio"
     },
     "inhoud.audio_mb": {
       "groep": "inhoud",
       "label": "Grootte van game/audio",
-      "waarde": 156,
+      "waarde": 180,
       "eenheid": "MB",
       "bron": "game/audio"
     },
@@ -1014,7 +1014,7 @@
     "inhoud_audio.scenario": {
       "groep": "inhoud_audio",
       "label": "game/audio/scenario",
-      "waarde": 2,
+      "waarde": 8,
       "eenheid": "bestanden",
       "bron": "game/audio/scenario"
     },
@@ -1036,7 +1036,7 @@
     "inhoud.muziekbestanden": {
       "groep": "inhoud",
       "label": "Muziekbestanden (gmusic + scenario + theme)",
-      "waarde": 29,
+      "waarde": 35,
       "eenheid": "bestanden",
       "bron": "game/audio/{gmusic,scenario,theme}"
     },
