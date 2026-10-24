@@ -6,6 +6,8 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+## [0.50.0] - 2026-10-24
+
 ### Nieuw
 - Eigen muziek bij het boerenwerk (trekker, maaidorser, laadmachine), het vliegen (vliegtuig en helikopter), een lopende verhaalmissie het fietsen, je safehouse (het menu van je huis), de fotomodus en het pauzemenu: zolang je het doet, vervangt een eigen loop de radio. Een achtervolging gaat voor.
 - Eigen muziek voor de PvP-arena staat klaar (wordt gekoppeld zodra de PvP-minigame er is, #454).
