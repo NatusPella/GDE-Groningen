@@ -43,7 +43,7 @@ export const INK = {
   panelTop: '#17301f', panelCard: '#10261a', panelDeep: '#0a130d', selected: '#5fb4d9',
   medalBronze: '#c8834a', medalSilver: '#cfd6dc',
   // markers drawn by hand (hud_panel.js): home badges, a locked place, the heli run
-  homeBlue: '#2f6fb0', eierbal: '#b06a28', locked: '#8d9489',
+  homeBlue: '#2f6fb0', eierbal: '#b06a28', locked: '#8d9489', passiefGrijs: '#9a9a9a',
   ringNext: '#ffc21a', ringLater: '#ffe9a0', heliDone: '#5dff7a', heliMiss: '#ff5a3c', balloon: '#ff7ab6',
   // the default route colours (a11y.js swaps them for the colour-blind palettes)
   routeUser: '#c068ff', routeJob: '#ff9a3c', routeCare: '#ff5fb4',
