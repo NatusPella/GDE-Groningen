@@ -13,6 +13,7 @@ import { vindHengelplek, plekNaam, plekSleutel } from './hengelplek.js';
 import { boekVangst, boekVoortgang } from './visboeklive.js';
 import { loopbaanTel, loopbaanVerdien } from './loopbaanlive.js';
 import { maakHengelAnim } from './hengelanim.js';
+import { TAMMO_APPEARANCE, ANITA_APPEARANCE, registerPoseSource, unregisterPoseSource } from './models3d_people.js';
 import { registreerWedstrijd, zetWedGastHaken, wedNodigUit, wedNuStarten, wedHostPunt, wedGastPunt, wedScoreStop, wedGastVerlaat, wedGastReset, wedScoreRijen } from './coopwedstrijd.js';
 
 // Hengelen overal in de provincie (#412), met het wedstrijdje aan het Meerstad-meer als begin. [Spatie] gooit uit; als het
@@ -47,7 +48,28 @@ function say(w, kind, ttl = 0) {
 const euro = (v) => '€' + Math.round(v).toLocaleString('nl-NL');
 const kgTekst = (v) => v.toFixed(v < 1 ? 2 : 1).replace('.', ',') + ' kg';
 
+// De hengelhouding van de speler (#437): het lichaam gaat mee met de fase van het hengelen. De houdingen staan in
+// models3d_people.js (hengelHouding), net als de andere acteurhoudingen; via de posehook volgt elke tekening van deze
+// speler (Tammo of Tessa) de houding. De hengel zelf, de lijn en het dobbertje tekent hengelanim.js.
+export const HENGEL_POSE = { idle: 'hengel', cast: 'hengel-uit', wait: 'hengel', bite: 'hengel-ruk', scare: 'hengel-haal' };
+const houding = { state: 'actief', pose: 'hengel' };
+let houdingSeed = null;
+function zetHouding(w, pose) {
+  const seed = w.player && w.player.character === 'anita' ? ANITA_APPEARANCE.seed : TAMMO_APPEARANCE.seed;
+  if (houdingSeed !== null && houdingSeed !== seed) unregisterPoseSource(houdingSeed);
+  houdingSeed = seed;
+  houding.pose = pose || 'hengel';
+  registerPoseSource(seed, houding); // elke stap opnieuw: de posehook ruimt bronnen van verdwenen voetgangers op
+}
+function stopHouding() {
+  if (houdingSeed !== null) unregisterPoseSource(houdingSeed);
+  houdingSeed = null;
+}
+
 // Een vangst: het visboek, de prestaties, de punten in het vak en de kas. Geeft wat er nieuw aan was terug (voor de melding).
+// De vangst is van de speler die hem binnenhaalt: de minigame draait lokaal, ook bij een gast (GAST_ACTIVITEITEN), dus het
+// geld gaat rechtstreeks in zijn eigen portemonnee en boek (`deel: false`). Er is niets te verdelen en de gastheer hoeft
+// geen beloning te sturen; de bestaande coopdeel-laag blijft voor de gezamenlijke opdrachten en bijbanen.
 function verwerkVangst(w, g, e) {
   const s = soortVan(e.fish);
   if (!s) return null;
@@ -93,6 +115,7 @@ function einde(w, { quit = false, extern = false, uitslag = null } = {}) {
   game = null;
   w.cameraOverride = null;
   if (g.anim) { g.anim.dispose(); g.anim = null; }
+  stopHouding();
   if (board) board.hide();
   if (boardVrij) boardVrij.hide();
   clearBubbles(w, 'hengelen');
@@ -160,11 +183,16 @@ function updateGame(w, dt) {
     else if (e.type === 'catch') {
       const s = soortVan(e.fish) || FISH.find((x) => x.id === e.fish);
       const r = verwerkVangst(w, g, e);
+      g.haalT = 0.9; // de ruk is voorbij: even binnenhalen voordat je weer klaarstaat
       const naam = (s && (s.naam || s.name)) || e.fish;
       g.flash = { text: `${r && r.nieuweSoort ? 'Nieuw: ' : ''}${naam} van ${kgTekst(e.kg)}!`, bad: false, t: 0 };
     } else if (e.type === 'lost') { g.flash = { text: 'Ontsnapt', bad: true, t: 0 }; say(w, 'lost'); }
     else if (e.type === 'done') { einde(w); return; }
   }
+  // de hengelhouding (#437): de fase kiest de beweging van het lichaam; in een boot zit je en houdt de pose rust
+  if (g.haalT > 0) g.haalT = Math.max(0, g.haalT - dt);
+  const pose = g.haalT > 0 ? 'hengel-haal' : (HENGEL_POSE[g.s.phase] || 'hengel');
+  if (p.inVehicle || gastBoot(w)) stopHouding(); else zetHouding(w, pose);
   if (g.flash && g.flash.text !== 'BEET! Nu Spatie!' && (g.flash.t += dt) > 1.8) g.flash = null;
   if (g.s.phase === 'done') { einde(w); return; }
   if (g.s.phase !== 'bite' && g.flash && g.flash.text === 'BEET! Nu Spatie!') g.flash = null;
@@ -206,7 +234,7 @@ function start(w, { online = null } = {}) {
   if (p.inVehicle) p.exitVehicle(w.map, w);
   if (!board) board = createBoard('HENGELEN MEERSTAD', ACCENT);
   board.show();
-  game = { mode: 'wedstrijd', s: createHengel(Math.random), flash: null, plek: MEERSTAD, kas: 0, betaald: 0, vangsten: 0, soorten: new Map(), nieuw: [], online };
+  game = { mode: 'wedstrijd', s: createHengel(Math.random), flash: null, plek: MEERSTAD, kas: 0, betaald: 0, vangsten: 0, soorten: new Map(), nieuw: [], haalT: 0, online };
   if (online !== 'gast') showCard(w, { kind: 'tip', kicker: 'Hengelen', title: 'Geduld aan het meer', body: '[Spatie] gooit uit. Zakt het dobbertje (Beet!), druk dan meteen weer [Spatie]. Te vroeg trekken schrikt de vis af; grote vissen zijn minder lang onder.', key: 'hengel-help', voice: false, duration: 7 });
   say(w, 'start');
   return true;
@@ -230,7 +258,7 @@ function startVrij(w, plek) {
     const s = kiesVis(plek.type, rand, { uur: hourOf(w), regen });
     return { id: s.id, name: s.naam, kg: vangstGewicht(s, rand), window: s.venster };
   };
-  game = { mode: 'vrij', s: createHengel(Math.random, { kies, duur: Infinity, wacht: VRIJ_WACHT }), flash: null, plek, kas: 0, betaald: 0, vangsten: 0, soorten: new Map(), nieuw: [] };
+  game = { mode: 'vrij', s: createHengel(Math.random, { kies, duur: Infinity, wacht: VRIJ_WACHT }), flash: null, plek, kas: 0, betaald: 0, vangsten: 0, soorten: new Map(), nieuw: [], haalT: 0 };
   const t = watertype(plek.type);
   showCard(w, { kind: 'tip', kicker: 'Hengelen', title: plekNaam(plek.type, plek.naam), body: `${t ? t.wat + ' ' : ''}[Spatie] gooit uit, bij Beet weer [Spatie]. Elk water heeft zijn eigen vis: alles wat je vangt komt in je visboek in het pauzemenu.`, key: 'hengel-vrij-help', voice: false, duration: 8 });
   if (!p.inVehicle) { p.vx = p.vy = 0; }
@@ -266,7 +294,13 @@ export function hengelVrijPrompt(w, alleenBoot = false) {
 }
 
 function tick(dt, w) {
-  if (game) { updateHud(w); return; }
+  if (game) {
+    // de posehook ruimt elke paar seconden bronnen van verdwenen voetgangers op (pedestrians.js); deze stap komt na die
+    // opruiming en vóór het tekenen, zodat de hengelhouding geen enkele foto overslaat
+    if (houdingSeed !== null && !w.player.inVehicle && !gastBoot(w)) registerPoseSource(houdingSeed, houding);
+    updateHud(w);
+    return;
+  }
   zoekT -= dt;
   if (zoekT <= 0) { zoekT = ZOEK_TUSSENTIJD; plekNu = zoekPlek(w); }
   if (!plekNu || !w.input || w.paused || isCinematicActive()) return;
