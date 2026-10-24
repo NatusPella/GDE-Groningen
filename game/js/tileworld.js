@@ -181,7 +181,7 @@ export class TileWorld extends GameMap {
     const map = GameMap.fromParts.call(this, {
       meta: info.meta,
       ...arrays,
-      stations: info.stations, levelCrossings: info.levelCrossings, railRoutes: info.railRoutes, railLifts: info.railLifts,
+      stations: info.stations, levelCrossings: info.levelCrossings, railRoutes: info.railRoutes, railLifts: info.railLifts, perrons: info.perrons,
       dryCrossings: info.dryCrossings, clippedWays: clipped,
       terrain: terrainField, terrainOn: terrain,
     });

@@ -12,6 +12,7 @@
 // (extendElevation, shrinkElevation: #300).
 import { closestPointOnSegment } from './util.js';
 import { SpatialGrid } from './spatialgrid.js';
+import { buildPerrons, perronHitAt, perronWallSide, wallBox } from './perrons.js';
 
 export const DECK_T = 1.0;           // viaduct deck thickness below the road surface
 export const EMB_SLOPE = 0.6;        // embankment side slope (rise per metre)
@@ -98,6 +99,18 @@ export function buildElevation(map) {
   buildWalls(elev, map);
   joinWallEnds(elev);
   buildCuts(elev);
+  return elev;
+}
+
+// De perrons van de kaart (map.perrons, perrons.js) komen als vloer en randen in het hoogtemodel; een kaart zonder weg met profiel
+// (een leeg model) krijgt er een eigen model voor. Geeft het model terug.
+export function addPerrons(map, elev) {
+  const rows = map.perrons || [];
+  if (!rows.length) return elev;
+  if (!elev || !elev.has) elev = newElevation(map);
+  const P = buildPerrons(rows);
+  elev.perrons = P;
+  for (const w of P.walls) { const b = wallBox(w); elev.wallGrid.insert(w, b[0], b[1], b[2], b[3]); }
   return elev;
 }
 
@@ -437,6 +450,19 @@ function flatRoadAt(elev, x, y) {
 // profiles are read over their bases and everything here, zHint and the answer included, is absolute: the ribbons that overlap in
 // plan have different bases, so a height only compares between them in absolute metres.
 export function groundHeightAt(elev, x, y, zHint = 0, stepUp = STEP_UP, frame = null) {
+  const g = groundHeightBase(elev, x, y, zHint, stepUp, frame);
+  // een perron of trap (#436) is een vloer als de rest: het hoogste vlak binnen een stap telt
+  if (elev.perrons) {
+    const h = perronHitAt(elev.perrons, x, y, (frame ? zHint - frame.ground(x, y) : zHint) + stepUp);
+    if (h) {
+      const pz = h.z + (frame ? frame.ground(x, y) : 0);
+      if (pz > g) { _pick.ribbon = null; _pick.kind = 'ground'; return pz; }
+    }
+  }
+  return g;
+}
+
+function groundHeightBase(elev, x, y, zHint, stepUp, frame) {
   _pick.ribbon = null; _pick.kind = 'ground';
   const t0 = frame ? frame.ground(x, y) : 0;
   if (!elev.has) return t0;
@@ -563,6 +589,14 @@ export function ribbonZAt(elev, r, x, y) {
 export function surfaceAt(elev, x, y, state, ground = null, frame = null) {
   const z0 = state.z || 0;
   const own = state.ribbon;
+  // een perron of trap: wie er staat blijft erop (tenzij de vloer van zijn eigen spoor of weg hoger ligt)
+  if (elev.perrons && !frame) {
+    const ph = perronHitAt(elev.perrons, x, y, z0 + STEP_UP);
+    if (ph) {
+      const zr = own && elev.has ? ribbonZAt(elev, own, x, y) : null;
+      if (zr === null || zr <= ph.z) { state.z = ph.z; state.ribbon = null; state.kind = 'ground'; return state; }
+    }
+  }
   if (own && elev.has) {
     const zr = ribbonZAt(elev, own, x, y);
     const zb = zr !== null && frame ? frame.base(own, x, y, _zSeg) : 0;
@@ -953,7 +987,9 @@ function buildWalls(elev, map, segs = elev.segs) {
 
 // Does a wall piece block something at height z (absolute)?
 // Returns +1 (must stay on the road side), -1 (must stay outside) or 0.
-function wallSide(w, z) {
+function wallSide(w, z, veh = false) {
+  // een perronrand (perrons.js): wie lager staat dan het perron min één stap blijft eronder, een voertuig al bij 0,3 m
+  if (w.kind === 'perron') return perronWallSide(w, z, veh);
   // (a road in a cutting passes under the deck the embankment ends at)
   if (w.kind === 'retain') return z < w.z - 1.2 && z > -2 ? -1 : 0;
   if (w.parapet) return z > w.z - 0.6 && z < w.z + 3 ? 1 : 0;
@@ -1020,7 +1056,7 @@ export function elevWallContact(elev, x, y, z, band = 1.4, props = false, frame 
   if (!list) return null;
   let best = null;
   for (const w of list) {
-    const side = wallSide(w, frame ? z - wallBase(w, frame) : z);
+    const side = wallSide(w, frame ? z - wallBase(w, frame) : z, true);
     if (!side) continue;
     // (a cutting's fence is the breakable part, its wall below is not)
     if (w.brk && (w.brk === 'vangrail' || side < 0) && (props || isWallBroken(w))) continue;
