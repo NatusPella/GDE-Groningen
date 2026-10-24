@@ -75,19 +75,20 @@ async function ronde(spelers) {
     await until(() => guests.every((g, i) => gebeurt(g, 'missie', van[i]).some((b) => b.actief === true)), 6000, 'opdracht gemeld');
     await until(() => guests.every((g) => g.last().entities >= 1), 6000, 'het doel zit in de momentopname');
     van = guests.map(evenAantal);
+    for (const sp of world.coopNet.hub.roster.spelers) if (sp.slot !== 0) world.coopNet.meedoen.keuze[sp.slot] = 'ja'; // elke gast zegt J (geen antwoord is nee, #452)
     world.coopUitslag(true, 'Het Loket', '', 1000); world.coopUitslag(false, 'De Kluis', 'te laat', 0); world.coopUitslag(false, 'Het Loket', '', 0, true);
     world.mission = { phase: 'idle' };
     await until(() => guests.every((g, i) => gebeurt(g, 'uitslag', van[i]).length === 3), 6000, 'drie uitslagen');
     for (const [i, g] of guests.entries()) {
       const [a, b, c] = gebeurt(g, 'uitslag', van[i]);
-      eq(`${a.ok}|${a.deel}|${b.ok}|${b.reden}|${c.gestopt}`, 'true|500|false|te laat|true', `${spelers}: gelukt met deel 500, mislukt met reden, gestopt`);
+      eq(`${a.ok}|${a.deel}|${b.ok}|${b.reden}|${c.gestopt}`, 'true|1000|false|te laat|true', `${spelers}: gelukt met deel 1000, mislukt met reden, gestopt`);
     }
 
     // de beloning (met een vak, zoals een bijbaan: de loopbaan van de gast)
     van = guests.map(evenAantal);
     eq(N.deelMetGasten(world, 1000, { vak: 'bijbaan', basis: 1000, xp: 20 }), gasten, `${spelers}: elke verbonden gast betaald`);
     await until(() => guests.every((g, i) => gebeurt(g, 'beloning', van[i]).length === 1), 6000, 'beloning aangekomen');
-    ok(guests.every((g, i) => gebeurt(g, 'beloning', van[i])[0].geld === 500), `${spelers}: elke gast €500`);
+    ok(guests.every((g, i) => gebeurt(g, 'beloning', van[i])[0].geld === 1000), `${spelers}: elke gast €1000`);
 
     // neergaan en gepakt
     van = guests.map(evenAantal); world.pendingRespawn = { busted: true };
