@@ -234,3 +234,62 @@ De zeven nummers die het spel zelf synthetiseerde (`synthmusic.js`) zijn weg:
 de eigenaar besloot op 18 oktober 2026 (#66) dat muziek niet door Claude
 wordt gemaakt. Nieuwe muziek komt via Gemini op verzoek van de eigenaar; zie
 `docs/MUZIEK-OPRUIMING.md` en het wensenlijstje voor Gemini.
+
+## Korte geluidjes (stings): in code gemaakt
+
+Op 24 oktober 2026 besloot de eigenaar dat de korte stings in code worden gemaakt, niet als bestanden. Ze staan als
+nootdata in `game/js/stings.js` (MIDI-nootnummers, duur, golfvorm) en worden in `audio.js` (`playSting`) met WebAudio
+gespeeld, op dezelfde manier als de golfgeluiden (`playGolfEvent`). Het zijn dus **geen opnames en geen AI-muziek**: alles
+is procedureel en de melodieën zijn verzonnen (geen bestaand liedje, geen merk).
+
+| Sting | Duur | Waar |
+|---|---|---|
+| `kart_countdown` | 3,7 s | kartrace (eenspeler en samen), bij het eerste startlicht: drie pieptonen en een felle go |
+| `kart_finish` | 2,3 s | je eigen finish in de kartrace |
+| `winnaar` | 3,2 s | uitslag van een wedstrijd tegen elkaar, voor de winnaar (bij een teamuitslag: het eigen team) |
+| `verliezer` | 2,9 s | dezelfde uitslag, voor wie niet won |
+| `meedoen` | 2,2 s | het kaartje Meedoen? als er een nieuwe uitnodiging in beeld komt |
+| `speler_sluit_aan` | 2,0 s | een speler verbindt met de sessie (host en gasten) |
+| `trein_vertrek` | 2,7 s | machinist: deuren dicht en vertrek |
+| `halte` | 2,6 s | aankomst op een halte, als machinist en als buschauffeur op een lijndienst |
+
+Regels: alleen voor jezelf, via de stingbus (dus onder het effectenvolume), niet bij pauze, menu of filmpje, en niet als
+het effectenvolume op nul staat. De radio en de scenarioloop gaan er even 45% zachter van. Nooit twee stings tegelijk: de
+hoogste prioriteit wint (en breekt een lopende af), daarna een afkoeling van 0,6 s. Een meerijdende passagier in de trein
+(een filmpje) hoort geen `halte`. Voorbeelden om te beluisteren: `node scripts/audio/render_previews.mjs` schrijft WAV-bestanden
+(buiten git). Getest met `scripts/stings_test.mjs`; nog niet in het spel beluisterd.
+
+## Nog te maken: eigen muziek
+
+Onderdelen zonder eigen loop gebruiken nu de radio (G-Music, met de scenario-loops als er een is). Dit is de lijst van
+wat een eigen loop verdient, met een stijlomschrijving voor een Gemini-prompt (Engels; geen bestaande melodie, geen
+artiestennamen). Loops van 1,5 tot 2,5 minuten, naadloos herhaalbaar, rond -16 LUFS (ze liggen onder het geluid van het spel).
+
+| Onderdeel | Gebruikt nu | Stijlomschrijving (prompt) |
+|---|---|---|
+| PvP-arena (#454) | de radio | *Tense but playful Dutch arcade battle loop, driving 4/4 at 140 BPM, punchy electro-funk bass, chiptune stabs and a snappy snare, short riffs that repeat, summery and cheeky rather than grim, no vocals, seamless loop.* |
+| Skatepark | de radio | *Sunny skate-punk instrumental, fast 4/4 at 170 BPM, bright overdriven guitar, bouncy bass, handclaps, carefree summer feel, no vocals, seamless loop.* |
+| Botsauto | de radio | *Fairground dodgem music: bright carnival organ and brass-band stabs over a bouncy oom-pah beat at 130 BPM, cheerful and slightly chaotic, no vocals, seamless loop.* |
+| Waterski | de radio | *Breezy surf-rock instrumental at 150 BPM, twangy reverb guitar, tambourine, driving drums, bright summer sun on the water, no vocals, seamless loop.* |
+| Rondvaart | de radio | *Relaxed canal-boat accordion waltz with light clarinet and upright bass, 3/4 at 95 BPM, warm and lazy, a little nostalgic, no vocals, seamless loop.* |
+| Trekker en landbouw | de radio | *Rustic countryside shuffle: banjo-less acoustic guitar, fiddle, soft brushed drums and a tuba bass at 105 BPM, slow and steady like a tractor on a summer field, no vocals, seamless loop.* |
+| Vliegschool | de radio | *Hopeful uplifting instrumental pop at 118 BPM, bright synth arpeggios, soaring strings, light drums, the feeling of lifting off over flat green land, no vocals, seamless loop.* |
+| Helikopter | de radio | *Cinematic but playful action-comedy loop at 125 BPM, pulsing low synth, rotor-like rhythmic percussion, brass hits, a hint of spy-movie swagger, no vocals, seamless loop.* |
+
+Overige onderdelen die nu nog de radio gebruiken en later een loop kunnen krijgen: de bijbanen (taxi, bezorgen, bietenoogst),
+dorpsuitjes en de andere minigames zonder eigen loop. Voeg ze hier toe als ze erbij komen.
+
+### Stings die nu synthetisch zijn en een echte versie verdienen
+
+Alle acht stings hierboven zijn nu procedureel. Als de eigenaar ze wil vervangen door echte opnames: een korte Gemini-prompt
+per sting, 2 tot 4 s, zomers, Hollandse arcade-sfeer.
+- `kart_countdown`: *three rising arcade beeps one second apart and a bright "go" chord, 3.5 s.*
+- `kart_finish`: *short triumphant brass fanfare with a snare roll, 2.5 s.*
+- `winnaar`: *cheerful glockenspiel and xylophone victory motif, 3 s.*
+- `verliezer`: *comic descending sad-trombone "wah wah wah waaah", 3 s.*
+- `meedoen`: *two soft rising chime notes, an inviting question, 2 s.*
+- `speler_sluit_aan`: *a short welcoming ping with a long gentle ring-out, 2 s.*
+- `trein_vertrek`: *two bright station bells and a small steam-whistle toot, 3 s.*
+- `halte`: *three soft descending bus-stop chime notes, 2.5 s.*
+Ook de andere procedurele geluiden zonder opname (`notify`, `prestatie`, `achievement`, de golfgeluiden, padel, radiojingles)
+kunnen later een echte versie krijgen; zie `scripts/audio/render_previews.mjs` voor de lijst die nu te beluisteren is.
