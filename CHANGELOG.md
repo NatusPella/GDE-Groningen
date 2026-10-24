@@ -6,6 +6,9 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Nieuw
+- Samen spelen: bij een verhaalopdracht tellen nu alle meespelers mee, niet alleen de gastheer. Een gast die meedoet kan het doel bereiken, een plek bezetten, instappen of de achtervolging bijhouden, en de opdracht loopt door als de gastheer neergaat of wordt opgepakt zolang een meespeler nog staat.
+
 ## [0.48.0] - 2026-10-24
 
 ### Nieuw

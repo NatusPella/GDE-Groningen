@@ -82,3 +82,64 @@ export function spelerVan(world, entiteit) {
   if (Number.isInteger(entiteit.slot)) for (const r of reg) if (r.slot === entiteit.slot) return r;
   return null;
 }
+
+// ---- de meespelers van de lopende opdracht (#452)
+// Verhaalstappen (missions.js, heist.js) kijken niet meer alleen naar de gastheer: elke speler die J zei (of verplicht meedoet), verbonden is en
+// nog staat telt mee. world.coopMeespelers() (de gastheer, coopnet.js) geeft hun plekken; zonder samen spelen is het altijd alleen de hoofdspeler,
+// zodat een eenspelerspel exact doet wat het deed. De gastheer die net is neergegaan of opgepakt (world.pendingRespawn) telt niet mee zolang een ander staat.
+const GAST_VOERTUIG_M = 8; // m: een gast in een voertuig hoort bij het voertuig dat zo dichtbij staat
+
+export function opdrachtSpelers(world) {
+  const reg = register(world);
+  const f = world.coopMeespelers;
+  const slots = reg.length > 1 && typeof f === 'function' ? f() : null;
+  if (!Array.isArray(slots) || !slots.length) return [reg[0]];
+  const uit = [];
+  for (let i = 1; i < reg.length; i++) {
+    const r = reg[i];
+    if (slots.includes(r.slot) && bruikbaar(r) && !(r.partner && (r.partner.status === 'neer' || r.partner.status === 'weg'))) uit.push(r);
+  }
+  if (!uit.length || !world.pendingRespawn) uit.unshift(reg[0]);
+  return uit;
+}
+
+// Het voertuig waarin deze speler zit (of null). Een gast kent alleen "in een voertuig": het dichtstbijzijnde voertuig binnen GAST_VOERTUIG_M.
+export function inVoertuig(world, r) {
+  if (!r) return null;
+  if (r.lokaal) { const e = r.entiteit; return e ? e.inVehicle || null : null; }
+  const st = r.partner && r.partner.status;
+  if (st !== 'voertuig' && st !== 'rijdt') return null;
+  let best = null, bd = GAST_VOERTUIG_M;
+  for (const v of world.vehicles || LEEG) { const d = Math.hypot(v.x - r.x, v.y - r.y); if (d < bd) { bd = d; best = v; } }
+  return best;
+}
+
+// Het record als entiteit met x, y, angle en inVehicle, zodat een stap-check dezelfde code kan houden: de gastheer is world.player zelf,
+// een gast een vaste proxy die steeds zijn actuele plek leest (gast: true).
+export function acteur(world, r) {
+  if (!r || r.lokaal) return hoofdspeler(world);
+  if (!r._acteur) r._acteur = { gast: true, slot: r.slot, get x() { return r.x; }, get y() { return r.y; }, get angle() { return (r.partner && r.partner.heading) || 0; }, get inVehicle() { return inVoertuig(world, r); } };
+  return r._acteur;
+}
+
+// De meespeler het dichtst bij (x, y), als record (de hoofdspeler als niemand een bruikbare plek heeft).
+export function dichtstbijzijndeMeespeler(world, x, y) {
+  const l = opdrachtSpelers(world);
+  if (l.length === 1) return l[0];
+  let best = l[0], bd = Infinity;
+  for (const r of l) { const d = Math.hypot(r.x - x, r.y - y); if (d < bd) { bd = d; best = r; } }
+  return best;
+}
+export function afstandMeespeler(world, x, y) { const r = dichtstbijzijndeMeespeler(world, x, y); return Math.hypot(r.x - x, r.y - y); }
+
+// Zit een meespeler in dit voertuig? Geeft het record of null.
+export function meespelerInVoertuig(world, v) {
+  if (!v) return null;
+  for (const r of opdrachtSpelers(world)) if (inVoertuig(world, r) === v) return r;
+  return null;
+}
+// Zijn alle meespelers binnen straal van (x, y)? Zonder meespelers (alleen) is dat de hoofdspeler.
+export function iedereenBinnen(world, x, y, straal) {
+  for (const r of opdrachtSpelers(world)) if (!(Math.hypot(r.x - x, r.y - y) <= straal)) return false;
+  return true;
+}
