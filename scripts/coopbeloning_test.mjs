@@ -6,11 +6,12 @@ import { maakCheckpoint } from '../game/js/coopcheckpoint.js';
 let n = 0;
 const t = (name, f) => { f(); n++; };
 
-t('samenwerkingsbonus: x1,5 vanaf twee deelnemers, niet voor één, begrensd', () => {
+t('geen samenwerkingsbonus meer (#452): factor 1, de bonus is altijd 0', () => {
+  assert.equal(B.BONUS_FACTOR, 1);
   assert.deepEqual(B.samenwerkingsBonus(600, 1), { totaal: 600, bonus: 0 });
-  assert.deepEqual(B.samenwerkingsBonus(600, 2), { totaal: 900, bonus: 300 });
-  assert.deepEqual(B.samenwerkingsBonus(601, 4), { totaal: 901, bonus: 300 });
-  assert.equal(B.samenwerkingsBonus(10_000_000, 2).bonus, B.BONUS_MAX);
+  assert.deepEqual(B.samenwerkingsBonus(600, 2), { totaal: 600, bonus: 0 });
+  assert.deepEqual(B.samenwerkingsBonus(601, 4), { totaal: 601, bonus: 0 });
+  assert.equal(B.samenwerkingsBonus(10_000_000, 2).bonus, 0);
   for (const x of [0, -5, NaN, 'abc', null]) assert.deepEqual(B.samenwerkingsBonus(x, 3), { totaal: 0, bonus: 0 });
 });
 t('gelijk verdelen: hele euro\'s, de som klopt, geen dubbele slots', () => {
@@ -20,9 +21,9 @@ t('gelijk verdelen: hele euro\'s, de som klopt, geen dubbele slots', () => {
   assert.deepEqual(B.verdeelGelijk(50, []), {});
   for (const [b, k] of [[999, 4], [1, 3], [1_000_001, 5]]) assert.equal(Object.values(B.verdeelGelijk(b, Array.from({ length: k }, (_, i) => i))).reduce((a, c) => a + c, 0), b);
 });
-t('gebeurtenis: bonus erbij en gelijk verdeeld; zonder id of deelnemers niets', () => {
+t('gebeurtenis: elke deelnemer krijgt het volle bedrag, geen bonus; zonder id of deelnemers niets', () => {
   const r = B.beloningVoorGebeurtenis({ id: 'a:b:1', totaal: 600, deelnemers: [0, 1] });
-  assert.deepEqual(r.bedragen, { 0: 450, 1: 450 }); assert.equal(r.bonus, 300); assert.equal(r.totaal, 900);
+  assert.deepEqual(r.bedragen, { 0: 600, 1: 600 }); assert.equal(r.bonus, 0); assert.equal(r.totaal, 600);
   assert.deepEqual(B.beloningVoorGebeurtenis({ id: 'a:b:2', totaal: 600, deelnemers: [0] }).bedragen, { 0: 600 });
   assert.equal(B.beloningVoorGebeurtenis({ totaal: 5, deelnemers: [0] }), null);
   assert.equal(B.beloningVoorGebeurtenis({ id: 'x', totaal: 5, deelnemers: [] }), null);

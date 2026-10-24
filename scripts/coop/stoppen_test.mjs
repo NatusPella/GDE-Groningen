@@ -47,14 +47,14 @@ function avond() {
 await t('host en gast stoppen midden in de tweede opdracht: de beloning van de eerste staat in beide saves, de gast schrijft zelf', async () => {
   const a = avond();
   a.loop(100); // 100 s samen spelen, één checkpoint op 60 s
-  const r = a.opdrachtKlaar('s:b:1', 600); // opdracht 1 lukt: 600 + bonus 300, 450 elk
-  assert.deepEqual(r.bedragen, { 0: 450, 1: 450 });
+  const r = a.opdrachtKlaar('s:b:1', 600); // opdracht 1 lukt: 600 voor elke speler (geen verdeling, geen bonus)
+  assert.deepEqual(r.bedragen, { 0: 600, 1: 600 });
   a.loop(1); // het checkpoint na de gelukte opdracht volgt meteen, niet pas na een minuut
-  assert.equal(a.h.op().money, 1450); assert.equal(a.g.op().money, 650);
+  assert.equal(a.h.op().money, 1600); assert.equal(a.g.op().money, 800);
   a.loop(20); // opdracht 2 loopt, niemand schrijft iets nieuws (geen verandering)
   a.h.w.money += 40; a.g.w.money += 25; // iets verdiend midden in de opdracht, nog niet in een checkpoint
   a.h.w.levend = a.g.w.levend = false; // allebei weg zonder afscheid
-  assert.equal(a.h.op().money, 1450, 'host: de beloning van opdracht 1 staat er, alleen de laatste seconden ontbreken'); assert.equal(a.g.op().money, 650);
+  assert.equal(a.h.op().money, 1600, 'host: de beloning van opdracht 1 staat er, alleen de laatste seconden ontbreken'); assert.equal(a.g.op().money, 800);
   assert.equal(readSlot(a.g.ls, 1).state, 'ok'); assert.equal(readSlot(a.h.ls, 1).state, 'ok');
   assert.equal(a.h.op().missions.completed.length, 2); // de gelukte opdracht staat ook in de save van de host
 });
@@ -75,19 +75,19 @@ await t('alleen de gast valt weg: het geld van de gast blijft, de host verliest 
   a.loop(5); a.opdrachtKlaar('s:b:1', 500); a.loop(1);
   a.g.w.levend = false; const hostVoor = a.h.op().money;
   a.loop(70);
-  assert.equal(a.g.op().money, 200 + 375); assert.equal(a.h.op().money, hostVoor);
+  assert.equal(a.g.op().money, 200 + 500); assert.equal(a.h.op().money, hostVoor);
 });
 
-await t('dubbel toekennen: dezelfde gebeurtenis (ook na opnieuw sturen of herstart) geeft geen tweede keer geld of bonus', async () => {
+await t('dubbel toekennen: dezelfde gebeurtenis (ook na opnieuw sturen of herstart) geeft geen tweede keer geld', async () => {
   const a = avond();
   a.loop(1); a.opdrachtKlaar('s:b:1', 600); a.loop(1);
-  assert.equal(a.g.ontvang('s:b:1', 450), false, 'opnieuw gestuurd binnen de sessie');
-  assert.equal(a.g.w.money, 650);
+  assert.equal(a.g.ontvang('s:b:1', 600), false, 'opnieuw gestuurd binnen de sessie');
+  assert.equal(a.g.w.money, 800);
   // na een crash komt de gast terug uit zijn save; het bericht wordt nog eens gestuurd: de id staat in zijn save, dus geen tweede keer
-  const eerst = pasGebeurtenisToe(a.g.op(), 's:b:2', 450); assert.equal(eerst.money, 1100);
+  const eerst = pasGebeurtenisToe(a.g.op(), 's:b:2', 450); assert.equal(eerst.money, 1250);
   assert.equal(writeSlotRaw(a.g.ls, 1, JSON.stringify(eerst)), true);
   assert.equal(pasGebeurtenisToe(a.g.op(), 's:b:2', 450), null);
-  assert.equal(a.g.op().money, 1100);
+  assert.equal(a.g.op().money, 1250);
 });
 
 await t('een schijf die midden in het schrijven wegvalt laat de vorige save heel; de herstelkopie springt bij een kapotte hoofdsave in', async () => {

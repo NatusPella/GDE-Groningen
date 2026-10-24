@@ -1,4 +1,4 @@
-// Samen spelen (#452 punt 6): de beloning gaat gelijk over alle meespelers, de gastheer inbegrepen, met een samenwerkingsbonus.
+// Samen spelen (#452 punt 6): elke meespelende speler krijgt de volledige beloning (geen verdeling, geen bonus).
 //   node scripts/coopdeel_test.mjs
 import assert from 'node:assert/strict';
 import { createLink } from '../game/js/net/memtransport.js';
@@ -22,37 +22,39 @@ function sessie(gasten) {
   return { hw, gs: gs.map((g) => g.gw), step };
 }
 
-t('met één speler verandert er niets: geen gasten, geen bonus, geen aanpassing van het geld van de gastheer', () => {
+t('met één speler verandert er niets: geen gasten, geen aanpassing van het geld van de gastheer', () => {
   const { hw, step } = sessie(0);
   hw.money = 500; assert.equal(hw.coopDeel(100), 0); step(1);
   assert.equal(hw.money, 500); assert.equal(hw.messages.some((m) => /Samenwerkbonus/.test(m)), false);
 });
 
-t('twee spelers: 100 x 1,5 = 150, gelijk verdeeld: 75 voor de gast en 75 voor de gastheer, met een regel Samenwerkbonus', () => {
+t('twee spelers: elke speler krijgt het volle bedrag (100 en 100), geen bonus en geen regel Samenwerkbonus', () => {
   const { hw, gs, step } = sessie(1);
   hw.money = 100; // de opdracht gaf de gastheer net 100
   assert.equal(hw.coopDeel(100), 1); step(1);
-  assert.equal(gs[0].money, 75); assert.equal(hw.money, 75, 'geen 100% meer voor de gastheer');
-  assert.ok(gs[0].messages.some((m) => /Samenwerkbonus: €25/.test(m)), 'gast: regel in de uitbetaling');
-  assert.ok(hw.messages.some((m) => /Samenwerkbonus: €25/.test(m)), 'gastheer: dezelfde regel');
+  assert.equal(gs[0].money, 100); assert.equal(hw.money, 100, 'de gastheer houdt zijn volle bedrag');
+  assert.equal(gs[0].messages.some((m) => /Samenwerkbonus/.test(m)) || hw.messages.some((m) => /Samenwerkbonus/.test(m)), false);
+  assert.ok(gs[0].messages.some((m) => /^Beloning: €100$/.test(m)));
 });
 
-t('drie spelers: 400 x 1,5 = 600, 200 voor iedereen; de som klopt altijd en een gast die nee zei krijgt niets', () => {
+t('drie spelers: 400 voor iedereen; wie nee zei of niet antwoordde krijgt niets', () => {
   const { hw, gs, step } = sessie(2);
   hw.money = 400; assert.equal(hw.coopDeel(400), 2); step(1);
-  assert.deepEqual([hw.money, gs[0].money, gs[1].money], [200, 200, 200]);
+  assert.deepEqual([hw.money, gs[0].money, gs[1].money], [400, 400, 400]);
   const b = sessie(2); b.hw.money = 400;
   b.hw.mission = { phase: 'active', label: 'X', type: 'checkpoint', index: 1, progressText: 'a' }; b.step(1);
   b.gs[1].input.wasPressed = (k) => k === 'n'; b.step(1); b.gs[1].input.wasPressed = () => false;
   b.gs[0].input.wasPressed = (k) => k === 'j'; b.step(1); b.gs[0].input.wasPressed = () => false;
   assert.equal(b.hw.coopDeel(400), 1); b.step(1);
-  assert.deepEqual([b.hw.money, b.gs[0].money, b.gs[1].money], [300, 300, 0], 'twee spelers delen 600; wie nee zei krijgt niets');
+  assert.deepEqual([b.hw.money, b.gs[0].money, b.gs[1].money], [400, 400, 0], 'wie J zei krijgt het volle bedrag, wie nee zei niets');
 });
 
-t('de som van de uitbetaling is het totaal na de bonus, ook als het niet gelijk opgaat', () => {
-  const { hw, gs, step } = sessie(3);
-  hw.money = 101; N.deelMetGasten(hw, 101); step(1);
-  assert.equal(hw.money + gs.reduce((a, g) => a + g.money, 0), 101 + Math.floor(101 * 0.5), '101 x 1,5, afgerond');
+t('hetzelfde bericht geeft nooit twee keer geld (idempotente id)', () => {
+  const { hw, gs, step } = sessie(1);
+  hw.coopDeel(250); step(1);
+  const ev = { k: 'beloning', geld: 250, id: 'x:b:1' };
+  assert.equal(N.handleEvent(gs[0], ev, 0), true); assert.equal(N.handleEvent(gs[0], ev, 0), false);
+  assert.equal(gs[0].money, 500, 'één keer uit de opdracht, één keer uit het losse bericht; het tweede losse bericht telt niet');
 });
 
 console.log(`coopdeel_test: ${n}/${n} ok`);
