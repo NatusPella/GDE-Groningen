@@ -6,7 +6,7 @@ import * as M from '../game/js/coopmeedoen.js';
 import * as S from '../game/js/coopsave.js';
 import { createLink } from '../game/js/net/memtransport.js';
 import * as N from '../game/js/coopnet.js';
-import { registerGastVerhaal } from '../game/js/savehook.js';
+import { registerGastVerhaal, registerGastBoek } from '../game/js/savehook.js';
 import { STEPS, STEP_BY_ID, PARTS, MISSION_IDS, missionIndexOf, stepDone, nextStoryStep, stepAvailable } from '../game/js/storyarc.js';
 import { KEYS, BASE_KEYS } from '../game/js/storagekeys.js';
 
@@ -43,6 +43,7 @@ t('dezelfde stand: de stap telt als gedaan, niets wordt overgeslagen, geen extra
   assert.deepEqual(was, kopie, 'de invoer blijft zoals hij was');
   assert.equal(r.status, 'normaal'); assert.deepEqual(r.overgeslagen, []); assert.equal(r.bonus, 0);
   assert.ok(stapDone(r.save, 'M06')); assert.ok(r.save.missions.completed.includes(missionIndexOf('M06')));
+  assert.deepEqual(r.missies, [missionIndexOf('M06')], 'de missie-index voor zijn eigen prestaties (#429)');
   assert.equal(volgende(r.save).id, 'M07');
   assert.equal(r.save.money, 300, 'het geld is niet aan de verhaalstap: het deel van de beloning komt apart');
   assert.deepEqual(r.save.story.skipped, []);
@@ -63,6 +64,7 @@ t('vooruit: de stappen ertussen zijn overgeslagen met een deel van het geld, de 
   assert.deepEqual(r.save.story.skipped, ['M02', 'M03', 'M04', 'M05'], 'overgeslagen, de opdracht zelf niet');
   const loon = STEP_BY_ID.get('M02').reward + STEP_BY_ID.get('M03').reward + STEP_BY_ID.get('M04').reward + STEP_BY_ID.get('M05').reward;
   assert.ok(r.bonus > 0 && r.bonus <= loon / 2 + 20 && r.bonus % 5 === 0, 'de helft van de beloningen, op 5');
+  assert.deepEqual(r.missies, ['M02', 'M03', 'M04', 'M05', 'M06'].map(missionIndexOf), 'ook de overgeslagen missies zijn voor zijn eigen prestaties');
   for (const id of ['M02', 'M03', 'M04', 'M05', 'M06']) assert.ok(stapDone(r.save, id), id);
   assert.equal(volgende(r.save).id, 'M07');
   assert.ok(r.save.missions.index === missionIndexOf('M07'), 'de volgende missie is de eerstvolgende open');
@@ -244,6 +246,18 @@ t('een opdracht die geen verhaalstap is (bijbaan, ander spel) verandert het verh
   assert.equal(hw.coopNet.meedoen.stap, null);
   druk(gs[0].gw, 'j'); step(1); hw.coopUitslag(true, 'Bezorgen', '', 100); step(1);
   assert.equal(gs[0].gw.schrijvingen || 0, 0);
+});
+
+t('de beloningen die al in zijn eigen save staan geeft een gast niet nog eens (#429)', () => {
+  registerGastBoek(() => ['s:b:7']); // savegame.js leest de ids uit zijn eigen opgeslagen spel
+  const { gs } = avond([saveVoor('M02')]);
+  const b = gs[0].gw; b.money = 0;
+  assert.equal(b.coopBoek.heeft('s:b:7'), true, 'zijn boek begint met de ids uit zijn eigen save');
+  assert.equal(N.handleEvent(b, { k: 'beloning', geld: 100, id: 's:b:7' }, 0), false, 'dezelfde id geeft na een herstart niets meer');
+  assert.equal(b.money, 0);
+  assert.equal(N.handleEvent(b, { k: 'beloning', geld: 100, id: 's:b:8' }, 0), true);
+  assert.equal(b.money, 100, 'een nieuwe gebeurtenis betaalt gewoon');
+  registerGastBoek(() => []);
 });
 
 console.log(`coopverhaal_test: ${n}/${n} ok`);

@@ -64,9 +64,10 @@ const rondOp5 = (n) => Math.round(n / 5) * 5;
 // de uitbetaling van één overgeslagen missie (gelijk aan story.js skipCurrent)
 export const sprongLoon = (step) => (step && step.kind === 'mission' ? rondOp5(((step.reward || 0) * SPRONG_DEEL)) : 0);
 
-// De nieuwe opgeslagen gegevens nadat de gast stapId meespeelde en het lukte. Geeft { save, status, overgeslagen, bonus } terug,
+// De nieuwe opgeslagen gegevens nadat de gast stapId meespeelde en het lukte. Geeft { save, status, overgeslagen, bonus, missies } terug,
 // of null als er niets te schrijven is (al gedaan, onbekende stap, geen opgeslagen spel): dubbel toepassen verandert dus niets.
 // bonus = het geld van de overgeslagen missies; de beloning van de opdracht zelf komt apart als zijn deel.
+// missies = de missie-indexen die er in zijn eigen save bij kwamen (voor zijn eigen prestaties, #429).
 export function pasVerhaalToe(data, stapId) {
   const status = verhaalStatus(data, stapId);
   if (status !== 'normaal' && status !== 'vooruit') return null;
@@ -83,10 +84,12 @@ export function pasVerhaalToe(data, stapId) {
   const completed = new Set(lijst(m0.completed).filter(Number.isInteger));
   const seen = new Set(lijst(m0.seen).filter(Number.isInteger));
   let bonus = 0;
+  const missies = [];
   const klaar = (step) => {
     done.add(step.id); delete fails[step.id];
     if (step.unlocks) flags.add(step.unlocks);
     const i = step.kind === 'mission' ? missionIndexOf(step.mission) : -1;
+    if (i >= 0 && !completed.has(i)) missies.push(i);
     if (i >= 0) { completed.add(i); seen.add(i); }
   };
   for (const id of over) { const step = STEP_BY_ID.get(id); skipped.add(id); klaar(step); bonus += sprongLoon(step); }
@@ -102,7 +105,7 @@ export function pasVerhaalToe(data, stapId) {
     story: { ...s0, v: 1, done: [...done], skipped: [...skipped], fails, waived: lijst(s0.waived).filter((x) => typeof x === 'string'), voorschot: lijst(s0.voorschot).filter((id) => STEP_BY_ID.has(id)), cards: [...kaarten], flags: [...flags] },
     missions: { ...m0, index, completed: [...completed], seen: [...seen], medals: isObj(m0.medals) ? { ...m0.medals } : {} },
   };
-  return { save, status, overgeslagen: over, bonus };
+  return { save, status, overgeslagen: over, bonus, missies };
 }
 
 // De tekst die de gast ziet bij een verhaalopdracht (vooruit: spoilerwaarschuwing en bevestiging).

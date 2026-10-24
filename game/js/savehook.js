@@ -16,3 +16,8 @@ export function registerGastVerhaal(impl) { gastImpl = impl; }
 export const gastVerhaalStatus = (w, stap) => (gastImpl ? gastImpl.status(w, stap) : null);
 export const gastVerhaalSchrijf = (w, stap) => (gastImpl ? gastImpl.schrijf(w, stap) : null);
 export const gastVerhaalHerlaad = (w) => (gastImpl ? gastImpl.herlaad(w) : false);
+// De beloningen die een gast al kreeg staan in zijn eigen save (coopbeloning.js); bij het aansluiten begint zijn boek ermee,
+// zodat een bericht dat na een herstart of een nieuwe verbinding nog eens langskomt niets dubbel geeft (#429).
+let gastBoekImpl = null;
+export function registerGastBoek(fn) { gastBoekImpl = fn; }
+export const gastBoekIds = () => (gastBoekImpl ? gastBoekImpl() || [] : []);

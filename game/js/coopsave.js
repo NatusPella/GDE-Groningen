@@ -7,6 +7,7 @@
 import { runMigrations } from './savemigrate.js';
 import { KEYS } from './storagekeys.js';
 import { pasVerhaalToe } from './coopverhaal.js';
+import { voegGebeurtenissenToe } from './coopbeloning.js';
 
 export const SESSION_VERSION = 1;
 export const SESSION_MIGRATIONS = {}; // stap n -> n + 1
@@ -42,11 +43,12 @@ export function clearSession(storage) { try { storage.removeItem(KEYS.coopSessio
 // Wat een gast in de wereld van de host zelf doet (winkelen, eten, #291) verandert zijn eigen geld en spullen; die velden
 // komen in zijn eigen save, de rest van die save (verhaal, plek, personage, missies) blijft zoals hij was.
 export const GAST_VELDEN = ['money', 'health', 'armor', 'weapon', 'ammo', 'stats', 'shops', 'meubels', 'financien', 'prestaties'];
-// data = de save in de slot, mine = de toestand van de gast nu (savegame.js serialize), earned = verdiend in deze sessie.
+// data = de save in de slot, mine = de toestand van de gast nu (savegame.js serialize), earned = verdiend in deze sessie,
+// ids = de gebeurtenis-ids die hij in deze sessie kreeg (coopbeloning.js): ze gaan mee zijn eigen save in (#429).
 // Geeft de nieuwe save, of null als er niets te bewaren is. Het geld blijft een geheel getal en nooit negatief.
-export function applyGuestChanges(data, mine, earned = 0) {
+export function applyGuestChanges(data, mine, earned = 0, ids = []) {
   if (!isObj(data)) return null;
-  const next = { ...data };
+  let next = { ...data };
   if (isObj(mine)) for (const k of GAST_VELDEN) if (mine[k] !== undefined) next[k] = mine[k];
   if (!isObj(mine) || !Number.isFinite(mine.money)) {
     const e = Math.floor(Number(earned));
@@ -55,7 +57,20 @@ export function applyGuestChanges(data, mine, earned = 0) {
   }
   next.money = Math.max(0, Math.floor(Number(next.money) || 0));
   next.moneyBackup = next.money;
+  if (Array.isArray(ids) && ids.length) next = voegGebeurtenissenToe(next, ids) || next;
   return JSON.stringify(next) === JSON.stringify(data) ? null : next;
+}
+
+// De prestaties van een gast (#429): de opdrachten die hij meespeelde staan in zijn eigen prestaties als gedaan, zonder
+// tijd of medaille (die zijn van de wereld van de gastheer). Pure functie: dezelfde save terug als er niets bij komt.
+export function applyGuestAchievements(data, ids) {
+  if (!isObj(data) || !Array.isArray(ids) || !ids.length) return data;
+  const p = isObj(data.prestaties) ? data.prestaties : {};
+  const unlocked = Array.isArray(p.unlocked) ? p.unlocked.filter((id) => typeof id === 'string' && id) : [];
+  const nieuw = [];
+  for (const id of ids) if (typeof id === 'string' && id && !unlocked.includes(id) && !nieuw.includes(id)) nieuw.push(id);
+  if (!nieuw.length) return data;
+  return { ...data, prestaties: { ...p, unlocked: [...unlocked, ...nieuw] } };
 }
 
 export function applyGuestEarnings(data, earned) {
