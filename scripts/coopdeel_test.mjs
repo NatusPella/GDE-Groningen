@@ -3,6 +3,7 @@
 import assert from 'node:assert/strict';
 import { createLink } from '../game/js/net/memtransport.js';
 import * as N from '../game/js/coopnet.js';
+import { registerSaveGame, registerSaveTimers, registerGastBoek } from '../game/js/savehook.js';
 
 let n = 0;
 const t = (name, f) => { f(); n++; };
@@ -55,6 +56,60 @@ t('hetzelfde bericht geeft nooit twee keer geld (idempotente id)', () => {
   const ev = { k: 'beloning', geld: 250, id: 'x:b:1' };
   assert.equal(N.handleEvent(gs[0], ev, 0), true); assert.equal(N.handleEvent(gs[0], ev, 0), false);
   assert.equal(gs[0].money, 500, 'één keer uit de opdracht, één keer uit het losse bericht; het tweede losse bericht telt niet');
+});
+
+// (#448) verrekening: checkpoint bij binnenkomst, per gebeurtenis meteen naar de eigen save, en een gast die later
+// terugkomt houdt wat hij had zonder dezelfde gebeurtenis nog eens te krijgen.
+t('checkpoint bij binnenkomst: een gast bewaart eerst zijn eigen spel en speelt dan pas mee', () => {
+  let saves = 0;
+  registerSaveGame(() => { saves++; return true; });
+  try {
+    const hw = mkWorld(); N.startHost(hw, INFO, { seed: 3 });
+    const link = createLink({ latency: 0.02, seed: 7 }); N.addGuest(hw, link.a);
+    saves = 0; const gw = mkWorld(); N.startClient(gw, link.b, INFO, {});
+    assert.equal(saves, 1, 'de gast schrijft zijn eigen save voordat hij meespeelt');
+    assert.equal(gw.coopRole, 'client', 'en is daarna gewoon gast');
+  } finally { registerSaveGame(null); }
+});
+
+t('elke sessie heeft vanaf de start een eigen id: gebeurtenis-ids van twee sessies botsen nooit', () => {
+  const a = sessie(0), b = sessie(0);
+  assert.match(a.hw.coopNet.sessieId, /^[a-z0-9]{6}$/, 'de gastheer heeft meteen een sessie-id, ook vóór de eerste uitbetaling');
+  assert.notEqual(a.hw.coopNet.sessieId, b.hw.coopNet.sessieId);
+});
+
+t('een uitbetaling zet de eigen save van de gastheer meteen klaar, niet pas na een minuut', () => {
+  let seintjes = 0; registerSaveTimers(() => { seintjes++; }, () => {});
+  try {
+    const { hw } = sessie(1);
+    assert.equal(hw.coopDeel(100), 1); const na = seintjes; assert.ok(na >= 1);
+    hw.coopDeel(0); assert.equal(seintjes, na, 'zonder bedrag geen seintje');
+    const solo = sessie(0); solo.hw.coopDeel(400); assert.ok(seintjes > na, 'de gastheer verdient ook zonder gasten in zijn eigen wereld');
+  } finally { registerSaveTimers(null, null); }
+});
+
+t('het einde van de sessie verrekent nog een keer: de eigen save van de gast krijgt de laatste beloning', () => {
+  const a = sessie(1), gw = a.gs[0];
+  gw.coopVerdiend = 150;
+  const gezien = []; registerSaveGame((w, o) => { gezien.push([w, o]); return true; });
+  try { N.stopCoopNet(gw); } finally { registerSaveGame(null); }
+  assert.deepEqual(gezien.map(([w]) => w), [gw], 'één laatste schrijfbeurt voor deze speler');
+  assert.equal(gezien[0][1].toast, false);
+  assert.equal(gw.coopVerdiend, 0, 'het geld zit in world.money; de teller gaat niet mee naar een volgende sessie');
+});
+
+t('een gast die later terugkomt houdt zijn geld en krijgt dezelfde gebeurtenis niet nog eens', () => {
+  const a = sessie(1), gw = a.gs[0], ev = { k: 'beloning', geld: 300, id: 'terug:b:1' };
+  assert.equal(N.handleEvent(gw, ev, 0), true); assert.equal(gw.money, 300);
+  const eigen = ['terug:b:1']; // wat savegame.js in zijn eigen save zet (coopGebeurtenissen)
+  registerGastBoek(() => eigen);
+  try {
+    const hw2 = mkWorld(); N.startHost(hw2, INFO, { seed: 9 });
+    const link = createLink({ latency: 0.02, seed: 11 }); N.addGuest(hw2, link.a);
+    const terug = mkWorld({ money: gw.money }); N.startClient(terug, link.b, INFO, {});
+    assert.equal(N.handleEvent(terug, ev, 0), false, 'dezelfde id telt bij het terugkomen niet nog eens');
+    assert.equal(terug.money, 300, 'en zijn geld blijft staan');
+  } finally { registerGastBoek(null); }
 });
 
 console.log(`coopdeel_test: ${n}/${n} ok`);
