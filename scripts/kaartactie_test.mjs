@@ -46,11 +46,10 @@ ok(keuzes.every((r) => r.uitleg && r.kosten && r.duur), 'elke keuze heeft een zi
 ok(keuzes.filter((r) => r.aanbevolen).length === 1, 'precies één keuze is aanbevolen', keuzes.map((r) => r.id + r.aanbevolen));
 ok(keuzes.at(-1).id === 'zelf' && keuzes.at(-1).kosten === 'gratis', 'Zelf gaan is er altijd en is gratis');
 ok(K.reisKeuzes([], 500).find((r) => r.id === 'zelf').aanbevolen, 'zonder ov is Zelf gaan de aanbevolen keuze');
-const html = UI.actiesHtml(m, null) + UI.reisHtml(keuzes, 'trein') + UI.infoHtml(K.infoRegels({ spot, afstand: 3000 })) + UI.uitlegHtml() + UI.hintHtml();
+const html = UI.actiesHtml(m, null) + UI.reisHtml(keuzes, 'trein') + UI.infoHtml(K.infoRegels({ spot, afstand: 3000 })) + UI.uitlegHtml();
 for (const id of ['waypoint', 'reis', 'info']) ok(html.includes(`data-card="${id}"`), `knop data-card=${id}`);
 ok(html.includes('aanbevolen') && html.includes('data-card="zelf"') && html.includes('data-card="kies:trein"'), 'de reiskeuze: aanbevolen, Zelf gaan en Snel reizen klikbaar');
 ok(html.includes('data-act="uitleg-sluit"') && html.includes('Besturing'), 'de uitleg is te sluiten en zegt waar je hem terugvindt');
-ok(/<kbd>ENTER<\/kbd>/.test(html) && /<kbd>DELETE<\/kbd>/.test(html), 'de hints gebruiken toetsen die voor een controller worden omgezet');
 
 // 5. het keuzevenster bij een verhaalrit: Snel reizen, Zelf gaan, Overslaan, uitgelegd en met aanbevolen
 const beat = { to: 'Zoutkamp', length: 9000, ride: 'bus', lines: ['Het ritje.'] };
@@ -66,6 +65,7 @@ ok(HELP_TOPICS.some((x) => x.id === 'kaart') && /Haal weg/.test(helpPlain()) && 
 
 // 7. bronchecks: het station, de kaart en de opslag
 const read = (f) => fs.readFileSync(new URL('../' + f, import.meta.url), 'utf8');
+ok(read('game/js/pausemenu.js').includes("[['Klik'], 'plek kiezen']"), 'de voetregel van de kaart zegt plek kiezen (de knoppen volgen de controller)');
 const st = read('game/js/stationtravel.js');
 ok(st.includes("'Als passagier meegaan'") && st.includes("'Zelf de trein besturen'") && !st.includes("title: 'Vertrekken'") && !st.includes("title: 'Als passagier meerijden'"), 'station: Zelf de trein besturen of Als passagier meegaan, geen vertrekken of meerijden');
 const mv = read('game/js/mapview.js');

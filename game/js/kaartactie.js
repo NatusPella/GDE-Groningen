@@ -99,6 +99,3 @@ export const KAART_UITLEG = [
   'Reis erheen is snel reizen: dat kost tijd en geld. Zelf gaan zet een waypoint en je rijdt of loopt zelf.',
 ];
 
-// De hints onder de kaart met toetsen die glyphs.js voor een controller omzet (data-pad-ctx menu):
-// A klikt onder het kruisje, X wist het waypoint, Y gaat naar jezelf, B sluit.
-export const KAART_HINT_TOKENS = [['ENTER', 'plek kiezen'], ['DELETE', 'waypoint wissen'], ['SPACE', 'naar jezelf'], ['ESC', 'terug']];

@@ -24,7 +24,7 @@ import { getStationsForRender } from './stationtravel.js';
 import { reisOptiesVoor, tekenLijnen, lijnLagen } from './reiskaart.js';
 import { kaartRijen } from './ovkaart.js';
 import { actieModel, reisKeuzes, infoRegels, GAST_REIS_MELDING, UITLEG_ID } from './kaartactie.js';
-import { actiesHtml, reisHtml, infoHtml, uitlegHtml, hintHtml, KAART_ACTIE_CSS } from './kaartactieui.js';
+import { actiesHtml, reisHtml, infoHtml, uitlegHtml, KAART_ACTIE_CSS } from './kaartactieui.js';
 import { markSeen, parseSeen } from './hudtext.js';
 import { optieRegel } from './ovopties.js';
 import { startMeerijden } from './reisrit.js';
@@ -1625,7 +1625,7 @@ function showCard(world, h, sx, sy) {
   state.card = { h, it, gekozen, stap, model };
 }
 
-// De uitleg bij de kaart en de hints eronder (#445): de eerste keer open, te sluiten, terug te vinden bij Besturing, Hulp.
+// De uitleg bij de kaart (#445; de toetsen en knoppen staan in de voetregel van het pauzemenu): de eerste keer open, te sluiten, terug te vinden bij Besturing, Hulp.
 function kaartGezien() {
   try { return !!parseSeen(localStorage.getItem(KEYS.hudSeen))[UITLEG_ID]; } catch (e) { return false; }
 }
@@ -1634,11 +1634,6 @@ function initKaartUitleg(overlay) {
   st.textContent = KAART_ACTIE_CSS;
   document.head.appendChild(st);
   const body = overlay.querySelector('.mapview-body');
-  const hint = document.createElement('div');
-  hint.className = 'mv-hint';
-  hint.dataset.padCtx = 'menu';
-  hint.innerHTML = hintHtml();
-  body.appendChild(hint);
   if (!kaartGezien()) body.insertAdjacentHTML('beforeend', uitlegHtml());
 }
 function sluitKaartUitleg(btn) {
