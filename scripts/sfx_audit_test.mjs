@@ -8,6 +8,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { FX_INFO } from '../game/js/sfx/fxbank.js';
 import { LINK_RULES, SELF_PUSHED } from '../game/js/sfx/linkups.js';
+import { MINIGAME_FX } from '../game/js/sfx/minigamefoley.js';
 
 const JS = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'game', 'js');
 const files = fs.readdirSync(JS).filter((f) => f.endsWith('.js'));
@@ -42,7 +43,7 @@ const cut = src['cutscenes.js'];
 for (const m of cut.matchAll(/fx:\s*'sfx',\s*kind:\s*'([a-z_]+)'/g)) ok(handled.has(m[1]), `cutscene sfx '${m[1]}' is handled`);
 
 // 3. every effect in the bank is reachable: a rule, a self push, a handler or cutaudio
-const reach = new Set([...LINK_RULES.flatMap((r) => [r.fx, ...(r.also || [])]), ...SELF_PUSHED.map((s) => s.fx)]);
+const reach = new Set([...LINK_RULES.flatMap((r) => [r.fx, ...(r.also || [])]), ...SELF_PUSHED.map((s) => s.fx), ...Object.keys(MINIGAME_FX)]);
 const cutaudio = src['cutaudio.js'] + src['sidejob_vracht.js'];
 for (const name of Object.keys(FX_INFO)) {
   const used = reach.has(name) || new RegExp(`['"\`]${name.replace(/_\d$/, '')}`).test(audio + cutaudio);
@@ -67,6 +68,10 @@ const MUST = [
   ['kermis', 'kermis.js', /kermis_ding/],
   ['cutscene-voertuigen', 'cutaudio.js', /siren_pass/],
   ['voertuigdelen', 'sfx/linkups.js', /part_rip/],
+  // minigames die alleen een stem hadden (#460)
+  ['discgolf-foley', 'discgolf.js', /discgolfFx\(/],
+  ['skatepark-foley', 'skatepark.js', /skateFx\(/],
+  ['klimtoren-foley', 'klimtoren.js', /climbFx\(/],
 ];
 for (const [what, f, re] of MUST) ok(re.test(src[f] ?? fs.readFileSync(path.join(JS, f), 'utf8')), `${what}: ${f} makes a sound`);
 

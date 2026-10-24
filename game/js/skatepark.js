@@ -8,6 +8,7 @@ import { activityBlock, iconDisc } from './activitykit.js';
 import { createBoard, key, bubble, clearBubbles, pick, stopPressed, easeCamera, geo, frame, clamp } from './minigamekit.js';
 import { SKATE_LINES } from './minigamelines.js';
 import { loopbaanVerdien } from './loopbaanlive.js';
+import { skateFx, pushFoley } from './sfx/minigamefoley.js';
 import { registreerWedstrijd, zetWedGastHaken, wedNodigUit, wedNuStarten, wedHostPunt, wedGastPunt, wedScoreStop, wedGastVerlaat, wedGastReset, wedScoreRijen } from './coopwedstrijd.js';
 import {
   FEATURES, PARK, RUN_S, MEDAL_AT, SKATE, createBoard as createBoardState, createCombo, stepBoard, scoreEvents, tickCombo, bankCombo, skateMedal, TRICK_NAMES,
@@ -358,6 +359,8 @@ function updateGame(w, dt) {
 
 function onEvent(w, e) {
   const g = game;
+  // #460: de pop, het staal, de landing en de val
+  pushFoley(w, skateFx(e));
   if (e.type === 'land' && e.height > 1.1 && !g.bigAir) { say(w, 'big'); }
   if (e.type === 'bail') say(w, 'bail');
   if (e.type === 'grind') say(w, 'grind');

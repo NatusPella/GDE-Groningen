@@ -370,3 +370,123 @@ defSample('empty_click', 0.3, (c, sr, R) => {
   addPartials(d, sr, 0, 1900 + R() * 200, [[1, 0.6, 0.02], [2.4, 0.3, 0.015]], 0.35, R);
   click(d, sr, R, 0.07, 2300, 0.45);
 }, { rate: 22050, peak: 0.8 });
+
+// Minigames that had a voice but no foley (#460): discgolf, the skatepark and
+// the climbing tower. One set per game, all synth and all short; the event ->
+// effect table is sfx/minigamefoley.js, the level and reach are here.
+FX_INFO.disc_whoosh = { cat: 'sport', label: 'Discgolf: de disc verlaat de hand', gain: 0.85, ref: 4, range: 45 };
+FX_INFO.disc_ketting = { cat: 'sport', label: 'Discgolf: disc in de kettingen', gain: 1.15, ref: 6, range: 70 };
+FX_INFO.disc_boom = { cat: 'sport', label: 'Discgolf: disc tegen een boom', gain: 0.75, ref: 5, range: 55 };
+FX_INFO.skate_pop = { cat: 'sport', label: 'Skateboard: de tail tikt op het beton', gain: 0.85, ref: 4, range: 45 };
+FX_INFO.skate_land = { cat: 'sport', label: 'Skateboard: landing', gain: 0.75, ref: 4, range: 45 };
+FX_INFO.skate_grind = { cat: 'sport', label: 'Skateboard over een leuning', gain: 0.7, ref: 5, range: 55 };
+FX_INFO.skate_val = { cat: 'sport', label: 'Skateboard: val op het beton', gain: 0.8, ref: 5, range: 60 };
+FX_INFO.klim_greep = { cat: 'sport', label: 'Klimtoren: hand op de greep', gain: 0.8, ref: 2.5, range: 25 };
+FX_INFO.klim_kalk = { cat: 'sport', label: 'Klimtoren: magnesium', gain: 0.6, ref: 2.5, range: 20 };
+FX_INFO.klim_val = { cat: 'sport', label: 'Klimtoren: val op de mat', gain: 0.7, ref: 4, range: 45 };
+
+defSample('disc_whoosh', 0.55, (c, sr, R) => {
+  const d = c[0], j = () => 0.9 + R() * 0.2;
+  // a disc leaving the hand: a band of air that opens while the arm swings
+  // through and falls away, with the rim hissing over the top
+  for (let k = 0; k < 4; k++) {
+    nb(d, sr, 0.008 + k * 0.045, R, { f: (680 + k * 430) * j(), q: 1.1, tau: 0.055 + k * 0.02, amp: 0.45 + k * 0.12, attack: 0.02 });
+  }
+  nb(d, sr, 0.02, R, { type: 'hp', f: 2600 * j(), q: 0.7, tau: 0.14, amp: 0.18, attack: 0.03, len: 0.4 });
+  thump(d, sr, 0, 120, 0.03, 0.2);
+}, { rate: 22050, peak: 0.7 });
+
+defSample('disc_ketting', 1.4, (c, sr, R) => {
+  const d = c[0];
+  // the signature of disc golf: the disc hits the chains. A hard clank high up,
+  // a little body, then the loose links settling one after another
+  thump(d, sr, 0, 150 + R() * 30, 0.03, 0.35);
+  nb(d, sr, 0, R, { type: 'hp', f: 5200, q: 0.8, tau: 0.006, amp: 0.9 });
+  nb(d, sr, 0, R, { f: 3400, q: 1.6, tau: 0.02, amp: 0.8 });
+  addPartials(d, sr, 0, 1240 + R() * 120, [[1, 0.45, 0.1], [1.51, 0.5, 0.12], [2.76, 0.45, 0.08], [4.1, 0.3, 0.05], [6.4, 0.2, 0.03]], 0.8, R);
+  for (let k = 0; k < 26; k++) {
+    const t = 0.04 + Math.pow(R(), 1.3) * 0.9;
+    const a = Math.max(0.05, 1 - t / 1.05) * (0.3 + R() * 0.4);
+    click(d, sr, R, t, 3600 + R() * 3000, a);
+    nb(d, sr, t, R, { f: 5200 + R() * 4000, q: 3, tau: 0.007, amp: a * 0.8 });
+  }
+}, { rate: 22050, peak: 0.85 });
+
+defSample('disc_boom', 0.7, (c, sr, R) => {
+  const d = c[0];
+  // a disc into a trunk: a dull wooden knock, a short body, then leaves
+  thump(d, sr, 0, 170 + R() * 40, 0.05, 0.9);
+  nb(d, sr, 0, R, { type: 'lp', f: 1600, q: 0.8, tau: 0.03, amp: 0.9 });
+  addPartials(d, sr, 0, 320 + R() * 90, [[1, 0.4, 0.08], [2.3, 0.2, 0.05]], 0.6, R);
+  nb(d, sr, 0.05, R, { type: 'hp', f: 4200, q: 0.9, tau: 0.22, amp: 0.14, attack: 0.03, len: 0.5 });
+}, { rate: 22050, peak: 0.8 });
+
+defSample('skate_pop', 0.35, (c, sr, R) => {
+  const d = c[0];
+  // the tail snapping the deck on the concrete: a sharp tik, the deck's own note
+  click(d, sr, R, 0, 3000 + R() * 500, 1);
+  nb(d, sr, 0, R, { type: 'hp', f: 3800, q: 0.8, tau: 0.008, amp: 0.7 });
+  nb(d, sr, 0, R, { f: 2400, q: 1.6, tau: 0.012, amp: 0.8 });
+  thump(d, sr, 0.004, 150, 0.015, 0.22);
+  addPartials(d, sr, 0.003, 660 + R() * 80, [[1, 0.35, 0.05], [2.7, 0.22, 0.03]], 0.45, R);
+}, { rate: 22050, peak: 0.8 });
+
+defSample('skate_land', 0.45, (c, sr, R) => {
+  const d = c[0];
+  // four wheels come down together: a low bump, the trucks chattering
+  thump(d, sr, 0, 95, 0.05, 1);
+  nb(d, sr, 0, R, { type: 'lp', f: 1200, q: 0.8, tau: 0.04, amp: 0.9 });
+  for (let k = 0; k < 5; k++) click(d, sr, R, 0.01 + k * 0.012 + R() * 0.01, 2200 + R() * 1800, 0.35 - k * 0.05);
+  nb(d, sr, 0.02, R, { f: 3000, q: 1.2, tau: 0.06, amp: 0.3 });
+}, { rate: 22050, peak: 0.85 });
+
+defSample('skate_grind', 1, (c, sr, R, len) => {
+  const d = c[0], bp = bq('bp', 2600, 1.4, sr), hp = bq('hp', 5200, 0.7, sr);
+  // steel on steel: a band of noise that wanders with the speed, a hard sheen
+  // on top and the deck rattling along
+  for (let i = 0; i < d.length; i++) {
+    const t = i / sr;
+    if ((i & 63) === 0) bp.set(2300 + 700 * Math.sin(t * 9) + 400 * Math.sin(t * 31), 1.4);
+    const n = R() * 2 - 1, e = Math.min(1, t / 0.05) * Math.min(1, (len - t) / 0.12);
+    d[i] = (bp.run(n) * 1.1 + hp.run(n) * 0.35) * e * (0.7 + 0.3 * Math.sin(t * 61));
+  }
+  thump(d, sr, 0, 80, 0.05, 0.3);
+}, { rate: 22050, peak: 0.75 });
+
+defSample('skate_val', 0.9, (c, sr, R) => {
+  const d = c[0];
+  // a bail: the body on the concrete, then the board clattering off on its own
+  thump(d, sr, 0, 85, 0.09, 1.2);
+  nb(d, sr, 0, R, { type: 'lp', f: 900, q: 0.7, tau: 0.09, amp: 1.1 });
+  nb(d, sr, 0.02, R, { f: 2600, q: 1.1, tau: 0.05, amp: 0.5 });
+  for (let k = 0; k < 4; k++) {
+    const t = 0.12 + k * 0.13 + R() * 0.04;
+    click(d, sr, R, t, 1800 + R() * 1600, 0.4 - k * 0.08);
+    thump(d, sr, t, 120, 0.03, 0.3 - k * 0.06);
+  }
+}, { rate: 22050, peak: 0.85 });
+
+defSample('klim_greep', 0.3, (c, sr, R) => {
+  const d = c[0];
+  // a chalked hand closing on a resin hold: a soft thwack and a little squeak
+  thump(d, sr, 0, 210 + R() * 40, 0.02, 0.6);
+  nb(d, sr, 0, R, { type: 'lp', f: 1400, q: 1.2, tau: 0.02, amp: 0.9 });
+  addTone(d, sr, 0.004, 0.07, R, { f0: 620 + R() * 120, f1: 380, amp: 0.14, attack: 0.002, release: 0.02, shape: 'rich' });
+}, { rate: 22050, peak: 0.7 });
+
+defSample('klim_kalk', 0.5, (c, sr, R) => {
+  const d = c[0];
+  // chalk between the hands: a dry puff, no tone at all
+  nb(d, sr, 0, R, { type: 'hp', f: 2400, q: 0.9, tau: 0.12, amp: 0.7, attack: 0.02, len: 0.4 });
+  nb(d, sr, 0.01, R, { f: 1500, q: 1.1, tau: 0.06, amp: 0.4, attack: 0.02 });
+  thump(d, sr, 0, 240, 0.01, 0.2);
+}, { rate: 22050, peak: 0.6 });
+
+defSample('klim_val', 0.8, (c, sr, R) => {
+  const d = c[0];
+  // off the wall onto the mat: a deep soft landing, the rope and the mat settling
+  thump(d, sr, 0, 70, 0.09, 1.3);
+  nb(d, sr, 0, R, { type: 'lp', f: 600, q: 0.8, tau: 0.1, amp: 1 });
+  nb(d, sr, 0.01, R, { f: 1200, q: 1, tau: 0.05, amp: 0.35 });
+  for (let k = 0; k < 3; k++) click(d, sr, R, 0.2 + k * 0.15 + R() * 0.05, 1600 + R() * 900, 0.15 - k * 0.04);
+}, { rate: 22050, peak: 0.8 });

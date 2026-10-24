@@ -12,6 +12,7 @@ import { DISC_LINES } from './minigamelines.js';
 import { DISCEXT_LINES } from './minigamelines3.js';
 import { fullRound, roundMedal, ctpPoints, ctpRound, CTP } from './discgolfext.js';
 import { loopbaanVerdien } from './loopbaanlive.js';
+import { discgolfFx, pushFoley } from './sfx/minigamefoley.js';
 import { registreerWedstrijd, zetWedGastHaken, wedNodigUit, wedNuStarten, wedHostScore, wedGastScore, wedScoreStop, wedGastVerlaat, wedGastReset, wedScoreRijen } from './coopwedstrijd.js';
 import {
   courseHoles, simulateFlight, DISCS, DISC_ORDER, RELEASES, suggestDisc, newCard, finishHole, cardTotals, courseMedal, holeName, relText,
@@ -388,6 +389,8 @@ function throwDisc(w, power, over = {}) {
   g.cam = null;
   g.flash = null;
   if (built) { built.line.visible = false; built.marker.visible = false; }
+  // #460: de disc verlaat de hand
+  pushFoley(w, discgolfFx({ type: 'worp', power }), g.lie.x, g.lie.y);
   return res;
 }
 
@@ -397,6 +400,8 @@ function afterFlight(w) {
   const res = g.flight.res;
   g.flight = null;
   if (built) built.disc.visible = false;
+  // #460: de kettingen, een boom of het water
+  pushFoley(w, discgolfFx({ type: 'landing', reason: res.reason, holed: !!res.holed }), res.end && res.end.x, res.end && res.end.y);
   if (g.ctp) { ctpThrown(w, res, h); return; }
   if (res.holed) { holeDone(w, g.strokes, res.reason); return; }
   const bad = res.reason === 'water';
