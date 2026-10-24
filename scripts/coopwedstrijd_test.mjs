@@ -3,6 +3,7 @@
 //   node scripts/coopwedstrijd_test.mjs
 import * as W from '../game/js/coopwedstrijd.js';
 import * as S from '../game/js/coopwedstrijdscore.js';
+import * as P from '../game/js/coopwedstrijdpunt.js';
 import { bestInput, KART, LAPS } from '../game/js/kartrace.js';
 import { KARTBAAN_TRACK } from '../game/js/kartbaanspoor.js';
 
@@ -531,6 +532,98 @@ const BANEN = [{ par: 2 }, { par: 3 }, { par: 2 }, { par: 3 }, { par: 2 }, { par
   const rijen = W.wedScoreRijen(world);
   check('de stand van de host staat op volgorde: boven eerst', rijen.length === 2 && rijen[0].slot === 0 && rijen[0].banen === 1 && rijen[1].banen === 0 && rijen[0].naam === 'Tammo', JSON.stringify(rijen));
   check('stoppen: de host hoort het en het scherm is vrij', W.wedGastVerlaat(world) && verzonden.at(-1).a === 'weg' && !G.score && world.coopWedstrijd === false);
+}
+
+// ---- punten met beurten (skatepark, hengelen): pure regels
+const kgFormat = (g) => `${(g / 1000).toFixed(1).replace('.', ',')} kg`;
+{
+  const sc = P.maakPunt('hengelen', MENSEN, { beurten: 3, format: kgFormat });
+  check('een wedstrijd met beurten begint met lege kaarten', sc.punt === true && sc.beurten === 3 && P.beurtenGespeeld(sc, 0) === 0 && P.totaalVan(sc, 1) === 0);
+  check('alleen de eerstvolgende beurt telt', !P.meldPunt(sc, 0, 1, 400) && P.meldPunt(sc, 0, 0, 1200) && !P.meldPunt(sc, 0, 0, 900) && P.meldPunt(sc, 0, 1, 800));
+  check('onzin telt niet (negatief, te veel, geen geheel getal, onbekende speler of beurt)', !P.meldPunt(sc, 0, 2, -1) && !P.meldPunt(sc, 0, 2, P.MAX_PUNT + 1) && !P.meldPunt(sc, 0, 2, 1.5) && !P.meldPunt(sc, 0, 2, '3') && !P.meldPunt(sc, 9, 0, 3) && !P.meldPunt(sc, 1, 3, 3));
+  P.meldPunt(sc, 1, 0, 500); P.meldPunt(sc, 1, 1, 500);
+  const st = P.standPunt(sc);
+  check('de live stand: de hoogste som bovenaan', st[0].slot === 0 && st[0].punten === 2000 && st[0].banen === 2 && st[1].punten === 1000, JSON.stringify(st));
+  const ev = P.standEventPunt(sc);
+  const ls = W.leesWed(JSON.parse(JSON.stringify(ev)));
+  check('de stand gaat als gewoon stand-bericht en wordt gelezen', ls && ls.f === 'sc' && ls.rijen.length === 2 && ls.rijen[0].slot === 0 && ls.rijen[0].banen === 2 && ls.rijen[0].slagen === 2000);
+  check('de standmelding is dezelfde vorm als bij golf en tijd', ls.rijen.every((r) => 'slot' in r && 'banen' in r && 'slagen' in r && 'rel' in r && 'weg' in r));
+  P.meldPunt(sc, 0, 2, 100); P.meldPunt(sc, 1, 2, 2000);
+  check('als iedereen klaar is eindigt de wedstrijd', P.tikPunt(sc, 0.1).some((e) => e.type === 'klaar' && e.reden === 'allen klaar') && sc.fase === 'klaar');
+  const u = P.uitslagPunt(sc);
+  check('de uitslag: de hoogste som wint, in de eenheid van het spel', u[0].slot === 1 && u[0].plek === 1 && u[0].fin && u[0].tekst === '3,0 kg' && u[1].tekst === '2,1 kg', JSON.stringify(u.map((r) => r.tekst)));
+  check('de winnaar en de beloning per plek', P.winnaars(u).join() === '1' && P.beloningPunt(u[0]).geld === P.PRIJZEN_PUNT[1] && P.beloningPunt(u[0]).xp === 14);
+  check('na het einde telt een melding niet meer', !P.meldPunt(sc, 0, 0, 5));
+}
+{
+  const sc = P.maakPunt('skatepark', [...MENSEN, { slot: 2, naam: 'Rik', char: 'rik' }]);
+  P.meldPunt(sc, 0, 0, 4000);
+  check('de eerste die klaar is start de korte klok voor de anderen', sc.eersteKlaar === 0 && P.tikPunt(sc, 60).length === 0);
+  const ev = P.tikPunt(sc, P.NA_EERSTE_PUNT_S);
+  check('na de korte klok eindigt de wedstrijd, ook als niet iedereen een beurt had', ev[0] && ev[0].reden === 'tijd na de eerste' && sc.fase === 'klaar');
+  const u = P.uitslagPunt(sc);
+  check('wie niets meldde staat onderaan met een paar punten en zonder geld', u.at(-1).slot === 2 && u.at(-1).tekst === '0 punten (0 van 1 beurt)' && P.beloningPunt(u.at(-1)).geld === 0 && P.beloningPunt(u.at(-1)).xp === 6);
+  const tie = P.maakPunt('skatepark', MENSEN);
+  P.meldPunt(tie, 0, 0, 1500); P.meldPunt(tie, 1, 0, 1500);
+  const ut = P.uitslagPunt(tie);
+  check('gelijke sommen delen een plek en samen winnen ze', ut[0].plek === 1 && ut[1].plek === 1 && P.winnaars(ut).length === 2);
+  const weg = P.maakPunt('hengelen', MENSEN, { beurten: 2, cap: 100 });
+  check('wie wegvalt telt niet meer mee', P.verlaatPunt(weg, 1) && !P.verlaatPunt(weg, 1) && !P.meldPunt(weg, 1, 0, 500));
+  P.meldPunt(weg, 0, 0, 500); P.meldPunt(weg, 0, 1, 400);
+  const uw = P.uitslagPunt(weg);
+  check('wie wegviel staat onderaan, zonder beloning, en de rest is klaar', uw.at(-1).weg && uw.at(-1).tekst === 'niet meer erbij' && P.beloningPunt(uw.at(-1)).geld === 0 && P.tikPunt(weg, 0.1)[0].reden === 'allen klaar');
+  const cap = P.maakPunt('skatepark', MENSEN, { cap: 50 });
+  P.tikPunt(cap, 51);
+  check('de tijdslimiet van de hele wedstrijd', cap.fase === 'klaar');
+  check('een gast stuurt zijn punten in het goede formaat', W.leesGast({ k: 'wedgast', a: 'punt', b: 1, p: 2400 }).punten === 2400 && W.leesGast({ k: 'wedgast', a: 'punt', b: -1, p: 3 }) === null && W.leesGast({ k: 'wedgast', a: 'punt', b: 2, p: -3 }) === null && W.leesGast({ k: 'wedgast', a: 'punt', b: 0, p: 'x' }) === null);
+}
+
+// ---- de host en de gast met een nephub: punten met beurten (skatepark)
+{
+  const betaald = [];
+  W.zetWedHaken({ betaalGast: (w, slot, geld, extra) => { betaald.push([slot, geld, extra]); return true; } });
+  let gestart = null, eind = null;
+  W.registreerWedstrijd('skatepark', { naam: 'Skatepark Stadspark', soort: 'punt', vak: 'buiten', opties: () => ({ beurten: 1, format: (p) => `${p.toLocaleString('nl-NL')} punten` }), start: (w, sc) => { gestart = sc; return true; }, plek: () => ({ x: 100, y: 200 }), eind: (w, res) => { eind = res || 'gestopt'; }, solo: () => 'solo' });
+  const { world, log, hub } = nepWereld(ROSTER());
+  check('de uitnodiging voor het skatepark gaat naar elke gast', W.wedNodigUit(world, 'skatepark').ok && log.filter(([, b]) => b.f === 'uit' && b.label === 'Skatepark Stadspark').length === 3);
+  W.wedHandleGast(world, { k: 'wedgast', a: 'ja' }, 1); W.wedHandleGast(world, { k: 'wedgast', a: 'ja' }, 2); W.wedHandleGast(world, { k: 'wedgast', a: 'nee' }, 3);
+  W.wedHostTik(world, 0.1);
+  check('de wedstrijd begint met wie ja zei', gestart && gestart.punt === true && gestart.beurten === 1 && gestart.deeln.map((d) => d.slot).join() === '0,1,2');
+  const st = log.find(([s, b]) => s === 1 && b.f === 'start');
+  const lees = W.leesWed(st[1]);
+  check('de start vertelt dat het om punten met beurten gaat', lees && lees.punt === true && lees.beurten === 1 && !lees.banen && !lees.tijd && lees.deeln.length === 3, JSON.stringify(lees));
+  check('de lichamen van de gasten staan stil bij de ingang', world.companion.coopWedstrijd === true && world.coopFigures[2].coopWedstrijd === true);
+  check('een gast meldt zijn punten, een golfmelding telt hier niet', W.wedHandleGast(world, { k: 'wedgast', a: 'punt', b: 0, p: 2400 }, 1) && !W.wedHandleGast(world, { k: 'wedgast', a: 'score', b: 0, s: 3 }, 2));
+  check('de host meldt zijn eigen beurt, maar een tweede keer niet', W.wedHostPunt(world, 0, 1800) && !W.wedHostPunt(world, 0, 1800));
+  const n0 = log.length; W.wedHostTik(world, 0.6);
+  const sc1 = log.slice(n0).filter(([, b]) => b.f === 'sc');
+  check('de stand gaat naar wie meedoet, niet naar wie nee zei', sc1.length === 2 && sc1.every(([s]) => s === 1 || s === 2));
+  const rijen = W.wedScoreRijen(world);
+  check('de host ziet de live stand voor het bord, de hoogste eerst', rijen.length === 3 && rijen[0].slot === 1 && rijen[0].slagen === 2400 && rijen[1].slot === 0 && rijen[2].banen === 0, JSON.stringify(rijen));
+  // gast 2 valt weg; de rest is daarmee klaar
+  hub.roster.spelers.find((s) => s.slot === 2).verbinding = 'lost';
+  W.wedHostTik(world, 0.1);
+  check('als wie nog bezig was wegvalt, eindigt de wedstrijd met de uitslag voor de host', eind && eind !== 'gestopt' && eind.jij.plek === 2 && eind.rijen.length === 3, JSON.stringify(eind && eind.jij));
+  const ge = log.filter(([s, b]) => s === 1 && b.f === 'eind').pop();
+  const gl = W.leesWed(ge[1]);
+  check('de gast krijgt zijn uitslag met punten en zijn eigen plek', gl && gl.rijen[0].tekst === '2.400 punten' && gl.jij.plek === 1 && gl.jij.geld === P.PRIJZEN_PUNT[1], JSON.stringify(gl && gl.jij));
+  check('de beloning per plek gaat naar de eigen portemonnee en het vak buiten', betaald.length === 1 && betaald[0][0] === 1 && betaald[0][1] === P.PRIJZEN_PUNT[1] && betaald[0][2].vak === 'buiten');
+  check('lichamen vrij en een rematch kan', world.companion.coopWedstrijd === false && W.wedHandleGast(world, { k: 'wedgast', a: 'nogmaals' }, 1) && W.wedOpnieuw(world).ok);
+}
+{ // het scherm van de gast bij punten met beurten (hengelen)
+  const ev = []; const verzonden = [];
+  W.zetWedGastHaken('hengelen', { start: (w, st) => { ev.push(['start', !!st.punt, st.beurten]); return true; }, eind: (w, uit) => { ev.push(['eind', !!uit.gestopt]); }, tik: () => true });
+  const world = { coopNet: { role: 'client', session: { slot: 1, sendEvent: (b) => { verzonden.push(b); return true; } } }, messages: [], addMessage(t) { this.messages.push(t); } };
+  W.wedHandleHost(world, W.startEvent('hengelen', MENSEN, 0, { punt: 1, beurten: 1, v: 'meerstad' }));
+  const G = world.coopWedGast;
+  check('de start zet de gast op zijn eigen scherm met een puntenwedstrijd', ev[0] && ev[0][1] === true && G.score && G.score.punt === true && G.score.beurten === 1 && G.score.tijd === false && world.coopWedstrijd === true);
+  check('de gast meldt zijn vangst in grammen', W.wedGastPunt(world, 0, 3456) && verzonden.at(-1).a === 'punt' && verzonden.at(-1).b === 0 && verzonden.at(-1).p === 3456);
+  W.wedHandleHost(world, { k: 'wed', f: 'sc', n: 3, r: [[0, 1, 2100, 0, 0], [1, 1, 3456, 0, 0]], t: 90 });
+  const rijen = W.wedScoreRijen(world);
+  check('de stand van de host staat op volgorde: de zwaarste vangst eerst', rijen.length === 2 && rijen[0].slot === 1 && rijen[0].slagen === 3456 && rijen[0].naam === 'Tessa', JSON.stringify(rijen));
+  check('stoppen: de host hoort het en het scherm is vrij', W.wedGastVerlaat(world) && verzonden.at(-1).a === 'weg' && !G.score && world.coopWedstrijd === false);
+  const fout = W.leesWed({ k: 'wed', f: 'start', id: 'hengelen', deeln: [[0, 'a', '']], punt: 1, beurten: 99 });
+  check('een onzinnig aantal beurten wordt begrensd', fout && fout.punt === true && fout.beurten === P.MAX_BEURTEN_PUNT);
 }
 
 console.log(bad ? `${bad} van ${n} controles mislukt` : `ok: ${n} controles`);

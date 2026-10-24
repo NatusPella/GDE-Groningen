@@ -57,7 +57,7 @@ t('elke activiteit uit activities.js heeft een status; GAST_ACTIVITEITEN en de w
   for (const f of alleJs) for (const m of lees(f).matchAll(/registreerWedstrijd\('([a-z]+)'/g)) wed.add(m[1]);
   assert.ok(wed.size >= 5, 'de wedstrijden zijn gevonden: ' + [...wed].join());
   for (const id of wed) assert.equal(S.samenStatus('activiteit', id) || S.samenStatus('minigame', id), 'werkt', 'wedstrijd: ' + id);
-  for (const id of ['skatepark', 'kermis', 'waterski']) assert.equal(S.samenStatus('activiteit', id), 'nee', id);
+  for (const id of ['kermis', 'zwembad', 'waterski']) assert.equal(S.samenStatus('activiteit', id), 'nee', id);
 });
 
 t('elke minigame en elk voertuig uit cooproles.js heeft een status', () => {
@@ -119,7 +119,7 @@ t('twee of meer spelers: nee grijs, deels met markering, werkt niets; de start m
   for (const extra of [1, 2, 3]) {
     const w = wereld(extra);
     assert.equal(S.meerdereSpelers(w), true, 'spelers ' + (extra + 1));
-    const nee = S.samenWaarschuwing(w, 'activiteit', 'skatepark');
+    const nee = S.samenWaarschuwing(w, 'activiteit', 'kermis');
     assert.deepEqual([nee.status, nee.grijs, nee.deels, nee.tekst], ['nee', true, false, 'Dit werkt nog niet samen.']);
     const deels = S.samenWaarschuwing(w, 'activiteit', 'safehuis');
     assert.deepEqual([deels.status, deels.grijs, deels.deels, deels.tekst], ['deels', false, true, 'Dit werkt nog maar deels samen.']);

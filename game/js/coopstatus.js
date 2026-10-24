@@ -46,7 +46,7 @@ const BIJBAAN = {
 const ACTIVITEIT = {
   discgolf: WERKT, pitchputt: WERKT, kartbaan: WERKT, klimtoren: WERKT, hengelen: WERKT, pannenkoek: WERKT, carillon: WERKT,
   safehuis: DEELS, geheimen: DEELS, wandeling: DEELS, snackketen: DEELS, evenementen: DEELS,
-  carbid: NEE, kermis: NEE, hoogvlieger: NEE, drift: NEE, skatepark: NEE, zwembad: NEE, waterski: NEE, regatta: NEE, vliegschool: NEE,
+  carbid: NEE, kermis: NEE, hoogvlieger: NEE, drift: NEE, skatepark: WERKT, zwembad: NEE, waterski: NEE, regatta: NEE, vliegschool: NEE,
 };
 
 // Minigames (cooproles.js, registerCoop('minigame')) en wat verder een eigen plek op de kaart heeft (de heli, de duif)
