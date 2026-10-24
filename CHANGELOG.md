@@ -6,6 +6,10 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Opgelost
+- Grote Markt (#327): het vijvertje op het plein ligt weer op straatniveau in plaats van als put op het niveau van de gracht, zodat er geen gat of water meer is waar een auto in verdwijnt. Een kleine vijver naast een weg of onder een brug blijft zoals hij was.
+- Samen spelen (#433): een dier dat een gast ziet, wordt nooit groter dan zijn eigen bouw, en een dier van een onbekende soort wordt niet getekend.
+
 ## [0.47.0] - 2026-10-24
 
 ### Nieuw
