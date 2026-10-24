@@ -329,7 +329,7 @@ if (want('vliegschool')) {
       await sleep(500);
       await shot('vs-menu-' + les.kist, 200);
       const n = lijst.findIndex((l) => l.id === id) + 1;
-      await press(String(n), 'Digit' + n, 120);
+      if (n <= 9) await press(String(n), 'Digit' + n, 120); else V.start(id);
       await sleep(800);
       eerste = false;
     } else V.start(id);

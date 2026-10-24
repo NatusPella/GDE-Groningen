@@ -796,7 +796,7 @@
     {
       "id": "vlieg_brevet",
       "titel": "Vliegbrevet",
-      "omschrijving": "Haal alle dertien lessen van de vliegschool, met vliegtuig en helikopter",
+      "omschrijving": "Haal alle lessen van de vliegschool, met vliegtuig en helikopter",
       "verborgen": false,
       "voorstelApiNaam": "ACH_VLIEG_BREVET",
       "steamApiNaam": ""

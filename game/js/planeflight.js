@@ -8,6 +8,7 @@ import { Vehicle } from './vehicle.js';
 import { isInWater } from './util.js';
 import { getVehicleMesh } from './models3d_vehicles.js';
 import { attachPlane, flyPlaneVehicle, idlePlane, makeStrip, planeStatus } from './planecontrol.js';
+import { instrumentData, maakPaneel, zomerWind, UITLEG_INSTAPPEN } from './instrumenten.js';
 
 export const PLANE_MODEL = { name: 'plane', len: 8, wid: 10.6, maxSpeed: 70, accel: 14, brake: 10, turnRate: 1, color: '#e9e4d3' };
 const DEALER = { x: 1764.51, y: 9959.94 };   // Rotor Roelf op Eelde, zie shops.js
@@ -16,6 +17,7 @@ let strip = null;
 let plane = null;
 let hud = null;
 let msgAt = -Infinity;
+let uitgelegd = null;
 
 const groundOf = (map) => (x, y) => (map.groundHeightAt ? map.groundHeightAt(x, y, 0) : 0);
 
@@ -59,37 +61,19 @@ function initPlanes(w) {
   w.planeStrip = strip;
 }
 
-function card() {
-  if (hud || typeof document === 'undefined') return hud;
-  const root = document.getElementById('hud');
-  if (!root) return null;
-  const st = document.createElement('style');
-  st.textContent = `#hud .hud-plane{position:absolute;right:var(--hud-edge,46px);bottom:var(--hud-edge,46px);display:none;min-width:188px;padding:8px 16px 10px 12px;color:#f0ede4;text-shadow:var(--hud-shadow);background:linear-gradient(90deg,rgba(12,20,14,.86),rgba(23,48,31,.55) 80%,rgba(23,48,31,.1));border-left:3px solid #3fc97a}
-body.plane-flying #hud .hud-plane{display:block}
-body.plane-flying #hud .hud-speedo{display:none}
-#hud .hud-plane small{display:block;font-size:13px;letter-spacing:3px;text-transform:uppercase;color:#3fc97a}
-#hud .hud-plane .hp-row{display:flex;gap:16px;align-items:baseline;margin-top:2px}
-#hud .hud-plane .hp-row b{font-weight:normal;font-size:30px;letter-spacing:1px}
-#hud .hud-plane .hp-row span{font-size:12px;letter-spacing:1px;color:rgba(240,237,228,.65)}
-#hud .hud-plane .hp-st{margin-top:5px;font-size:15px}`;
-  document.head.appendChild(st);
-  const el = document.createElement('div');
-  el.className = 'hud-plane';
-  el.innerHTML = '<small>Kist Kees</small><div class="hp-row"><div><b data-k="speed">0</b><span>km/u</span></div><div><b data-k="alt">0</b><span>m hoogte</span></div><div><b data-k="thr">0</b><span>% gas</span></div></div><div class="hp-st" data-k="st"></div>';
-  root.appendChild(el);
-  hud = { el, q: (k) => el.querySelector(`[data-k="${k}"]`) };
-  return hud;
+// De wind van dit moment (zomerbries). In de lessen van de vliegschool staat hij zachter, zodat smalle openingen te halen blijven.
+export function windNu(w, v) {
+  const k = v && v.schoolKist ? 0.4 : 1;
+  const wd = zomerWind(w.time || 0, w.windAngle || 0);
+  return { x: wd.x * k, y: wd.y * k, speed: wd.speed * k, dir: wd.dir };
 }
 
-function showCard(mine) {
-  const h = card();
+function showCard(mine, w) {
   if (typeof document !== 'undefined') document.body.classList.toggle('plane-flying', !!mine);
-  if (!h || !mine) return;
-  const s = planeStatus(mine);
-  h.q('speed').textContent = s.speed;
-  h.q('alt').textContent = s.alt;
-  h.q('thr').textContent = s.throttle;
-  h.q('st').textContent = s.state;
+  if (!mine) return;
+  if (!hud) hud = maakPaneel();
+  if (!hud) return;
+  hud.zet(instrumentData(mine, windNu(w, mine)), planeStatus(mine).state, mine.schoolKist ? 'Schoolkist' : 'Kist Kees');
 }
 
 function updatePlanes(dt, w) {
@@ -106,12 +90,15 @@ function updatePlanes(dt, w) {
     msgAt = w.time;
     w.addMessage(pv.plane.landing === 'zacht' ? 'Zachte landing!' : 'Harde landing, maar heel', 3, { kind: 'tip' });
   }
-  showCard(pv && pv.isPlane ? pv : null);
+  // uitleg bij het instappen: een keer per sessie per toestel, in tekst
+  if (pv && pv.isPlane && pv !== uitgelegd) { uitgelegd = pv; w.addMessage(UITLEG_INSTAPPEN, 9, { kind: 'tip' }); }
+  else if (!(pv && pv.isPlane)) uitgelegd = null;
+  showCard(pv && pv.isPlane ? pv : null, w);
 }
 
 export function flyPlane(v, dt, w) {
   const s = w.planeStrip;
-  flyPlaneVehicle(v, dt, (k) => w.input.isDown(k), groundOf(w.map), s ? (x, y) => s.contains(x, y) : () => false);
+  flyPlaneVehicle(v, dt, (k) => w.input.isDown(k), groundOf(w.map), s ? (x, y) => s.contains(x, y) : () => false, windNu(w, v));
 }
 
 export const planeKind = { id: 'planes', initPhase: 'late', init: initPlanes, tickPhase: 'world', tick: updatePlanes };
