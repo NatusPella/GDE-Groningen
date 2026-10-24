@@ -5,7 +5,8 @@ import fs from 'node:fs';
 import { createRequire } from 'node:module';
 import { prepareLine } from '../game/js/busroutes.js';
 import { worldToWgs } from '../game/js/rdnew.js';
-import { LIVE_BRON, VERZOEK, leesVoertuigen, haalLiveBussen, koppelAanLijn, maakLiveBussen, peilNaarHoek, brugAlsFetch, inGebied } from '../game/js/livebussen.js';
+import { LIVE_BRON, VERZOEK, leesVoertuigen, haalLiveBussen, koppelAanLijn, peilNaarHoek, brugAlsFetch, inGebied } from '../game/js/livebussen.js';
+import { maakLiveBussen, maakBusLive, kiesFetch } from '../game/js/buslive.js';
 
 // --- een kleine protobuf-schrijver voor het nepbestand ---
 const vi = (n) => { const o = []; while (n > 127) { o.push((n % 128) | 128); n = Math.floor(n / 128); } o.push(n); return o; };
@@ -159,6 +160,51 @@ const bus = (id, x, y, bearing, speed = 8) => { const [lat, lon] = ll(x, y); ret
   let n = 0;
   const lb2 = maakLiveBussen({ fetchFn: async () => { n++; return respons(feed()); }, nu: () => t });
   assert.strictEqual(lb2.tick(true, [], t), null); assert.strictEqual(n, 0);
+}
+
+// --- de bedrading (buslive.js): de brug, de uitzetter en de terugval ---
+{
+  // de brug van Electron gaat voor de directe fetch, en zonder een van beide is er geen bron
+  let viaBrug = 0, viaFetch = 0;
+  const brug = async () => { viaBrug++; return { ok: true, status: 200, bytes: feed(voertuig(bus('9', 100, 1, 90))) }; };
+  const omg = { gdeDesktop: { liveBussen: brug }, fetch: async () => { viaFetch++; throw new Error('x'); } };
+  const via = await haalLiveBussen({ fetchFn: kiesFetch(omg) });
+  assert.ok(via.ok && via.voertuigen[0].id === '9');
+  assert.strictEqual(viaBrug, 1); assert.strictEqual(viaFetch, 0, 'de brug gaat voor de directe fetch');
+  let direct = 0;
+  await haalLiveBussen({ fetchFn: kiesFetch({ fetch: async (u, o) => { direct++; return respons(feed(voertuig(bus('8', 100, 1, 90)))); } }) });
+  assert.strictEqual(direct, 1, 'zonder brug vraagt de webversie het zelf op');
+  assert.strictEqual(kiesFetch({}), null, 'zonder netwerk geen bron');
+
+  // de uitzetter: uit = geen opvraag; aan = wel; een devrun vraagt nooit op
+  let t = 2_000_000, opgevraagd = 0, gezet = 'niets';
+  const zonderNet = maakBusLive({ fetchFn: null, nu: () => t, instellingen: () => ({ liveBussen: true }), toegestaan: () => true });
+  assert.strictEqual(zonderNet.tick([line], t), null, 'zonder netwerk geen opvraag');
+  assert.strictEqual(zonderNet.bron.stand().aan, false);
+  const f = async () => { opgevraagd++; return respons(feed(voertuig(bus('A', 1000, 2, 90, 8)))); };
+  let inst = { liveBussen: false };
+  const bl = maakBusLive({ fetchFn: f, nu: () => t, instellingen: () => inst, toegestaan: () => true, zetBron: (b) => { gezet = b; } });
+  assert.ok(gezet && typeof gezet.positie === 'function' && typeof gezet.kandidaten === 'function', 'de bron is aan de bus-AI gegeven');
+  assert.strictEqual(bl.tick([line], t), null);
+  assert.strictEqual(opgevraagd, 0, 'instelling uit: geen opvraag, de bussen rijden hun eigen dienst');
+  inst = { liveBussen: true };
+  await bl.tick([line], t);
+  assert.strictEqual(opgevraagd, 1);
+  assert.ok(bl.bron.positie('A', t), 'de echte bus is bekend');
+  const bl2 = maakBusLive({ fetchFn: async () => { opgevraagd++; return respons(feed()); }, nu: () => t, instellingen: () => ({ liveBussen: true }), toegestaan: () => false });
+  assert.strictEqual(bl2.tick([line], t), null);
+  assert.strictEqual(opgevraagd, 1, 'een test- of devrun vraagt nooit op');
+  // de speler zet de optie tijdens het spel uit: de bussen vallen terug op hun eigen dienst
+  inst = { liveBussen: false };
+  bl.tick([line], t);
+  assert.strictEqual(bl.bron.positie('A', t), null);
+  assert.strictEqual(bl.stand().aantal, 0);
+  bl.stop();
+  assert.strictEqual(gezet, null, 'stoppen geeft de eigen dienst terug');
+  // buslive.js leest zelf geen opslag of instellingen en heeft geen eigen url: het krijgt alles van buiten
+  const bron = fs.readFileSync(new URL('../game/js/buslive.js', import.meta.url), 'utf8');
+  assert.ok(!/localStorage|sessionStorage|storagekeys|document\.cookie|navigator\./.test(bron), 'buslive.js leest geen opslag');
+  assert.ok(!/https?:\/\//.test(bron), 'geen eigen url: de bron komt uit livebussen.js');
 }
 
 // --- de desktop-opvraag (main-proces) heeft dezelfde url en grenzen ---
