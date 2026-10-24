@@ -2,6 +2,7 @@
 import assert from 'node:assert/strict';
 import * as S from '../game/js/coopsave.js';
 import { BASE_KEYS, KEYS } from '../game/js/storagekeys.js';
+import { missieKlaarId } from '../game/js/achievements.js';
 
 let n = 0;
 const t = (name, f) => { f(); n++; };
@@ -38,5 +39,30 @@ t('eigen voortgang van een gast: verdiend geld erbij in zijn eigen save, de rest
   assert.equal(r.money, 290); assert.equal(r.moneyBackup, 290); assert.deepEqual(r.story, d.story); assert.equal(d.money, 40, 'invoer niet aangepast');
   assert.equal(S.applyGuestEarnings(d, 0), null); assert.equal(S.applyGuestEarnings(d, -5), null); assert.equal(S.applyGuestEarnings(null, 5), null);
   assert.equal(S.applyGuestEarnings({ money: null }, 10).money, 10);
+});
+t('de gast bewaart niets van de host: alleen zijn eigen velden en de ids van zijn beloningen (#429)', () => {
+  const host = { money: 9999, story: { done: ['host'] }, missions: { completed: [1] }, prestaties: { unlocked: ['m1_klaar'] }, pos: { x: 1, y: 2 } };
+  const mine = { money: 100, health: 80, stats: { missionsDone: 0 }, prestaties: { unlocked: [] } };
+  const r = S.applyGuestChanges(host, mine, 0, ['s:b:1']);
+  assert.equal(r.money, 100, 'zijn eigen geld, niet dat van de host');
+  assert.deepEqual(r.story, host.story); assert.deepEqual(r.missions, host.missions, 'verhaal en missies van de host komen er niet in');
+  assert.deepEqual(r.pos, host.pos);
+  assert.deepEqual(r.prestaties, { unlocked: [] }, 'zijn eigen prestaties');
+  assert.deepEqual(r.coopGebeurtenissen, ['s:b:1'], 'de id van zijn beloning gaat mee zijn eigen save in');
+  assert.deepEqual(S.applyGuestChanges(r, mine, 0, ['s:b:1']), null, 'dezelfde id en dezelfde stand: niets te schrijven');
+  assert.deepEqual(S.applyGuestChanges(r, { ...mine, money: 120 }, 0, ['s:b:2']).coopGebeurtenissen, ['s:b:1', 's:b:2'], 'de ids blijven staan');
+  assert.equal(S.applyGuestChanges(null, mine, 0, ['x']), null);
+});
+t('prestaties per speler: een meegespeelde opdracht staat als gedaan in zijn eigen prestaties (#429)', () => {
+  const d = { prestaties: { eierballen: ['e1'], unlocked: ['m1_klaar'] } };
+  const r = S.applyGuestAchievements(d, ['m1_klaar', 'm3_klaar', 'm3_klaar', '', null]);
+  assert.deepEqual(r.prestaties, { eierballen: ['e1'], unlocked: ['m1_klaar', 'm3_klaar'] });
+  assert.deepEqual(d.prestaties.unlocked, ['m1_klaar'], 'invoer niet aangepast');
+  assert.equal(S.applyGuestAchievements(d, ['m1_klaar']), d, 'niets nieuws: dezelfde save');
+  assert.deepEqual(S.applyGuestAchievements({}, ['m2_klaar']).prestaties, { unlocked: ['m2_klaar'] });
+  assert.equal(S.applyGuestAchievements(null, ['m2_klaar']), null); assert.equal(S.applyGuestAchievements(d, []), d);
+  // de id van een meegespeelde missie komt uit achievements.js, geen verzonnen sleutel in de save
+  assert.equal(missieKlaarId(0), 'm1_klaar'); assert.equal(missieKlaarId(7), 'm8_klaar'); assert.equal(missieKlaarId(999), null);
+  assert.deepEqual(S.applyGuestAchievements({ prestaties: { unlocked: [] } }, [missieKlaarId(2)]).prestaties.unlocked, ['m3_klaar']);
 });
 console.log(`coopsave_test: ${n}/${n} ok`);

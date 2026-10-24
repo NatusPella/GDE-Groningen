@@ -44,6 +44,18 @@ t('pasGebeurtenisToe: geld en id in één nieuwe save, tweede keer niets, invoer
   assert.equal(B.pasGebeurtenisToe({ money: -5 }, 'e', 3).money, 3);
   assert.equal(B.pasGebeurtenisToe(null, 'e', 3), null); assert.equal(B.pasGebeurtenisToe(d, '', 3), null);
 });
+t('ids in de eigen save (#429): lezen, erbij zetten zonder dubbel, hooguit ID_MAX, invoer ongemoeid', () => {
+  assert.deepEqual(B.gebeurtenissenVan(null), []); assert.deepEqual(B.gebeurtenissenVan({ coopGebeurtenissen: 'x' }), []);
+  assert.deepEqual(B.gebeurtenissenVan({ coopGebeurtenissen: ['a', 5, '', 'b'] }), ['a', 'b']);
+  const d = { money: 40, coopGebeurtenissen: ['a'] };
+  const r = B.voegGebeurtenissenToe(d, ['a', 'b', 'b', '', 7]);
+  assert.deepEqual(r.coopGebeurtenissen, ['a', 'b']); assert.equal(r.money, 40); assert.deepEqual(d.coopGebeurtenissen, ['a'], 'invoer niet aangepast');
+  assert.equal(B.voegGebeurtenissenToe(r, ['a']), null, 'niets nieuws: niets te schrijven');
+  assert.equal(B.voegGebeurtenissenToe(null, ['a']), null); assert.equal(B.voegGebeurtenissenToe(d, []), null);
+  const veel = B.voegGebeurtenissenToe({}, Array.from({ length: B.ID_MAX + 30 }, (_, i) => 'x' + i));
+  assert.equal(veel.coopGebeurtenissen.length, B.ID_MAX);
+  assert.equal(B.maakBoekhouding(B.gebeurtenissenVan(veel)).heeft('x' + (B.ID_MAX + 29)), true, 'een nieuwe sessie begint met deze ids');
+});
 t('checkpoint: elke 60 s, meteen bij een gelukte opdracht, blijft open tijdens een filmpje', () => {
   const c = maakCheckpoint(60);
   let k = 0; for (let s = 0; s < 150; s++) if (c.tik(1)) k++;

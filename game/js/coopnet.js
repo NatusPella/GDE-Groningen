@@ -35,7 +35,7 @@ import { PING_TOETSEN, PING_TEKST, pingPlek, pingMarkers, pingRegel } from './co
 import { spelersRijen, wegMelding } from './coopspelers.js';
 import { maakMeedoen, opdrachtSleutel, standVan, begin as meedoenBegin, einde as meedoenEinde, antwoord as meedoenAntwoord, tik as meedoenTik, loopVrij, krijgtDeel, maakUitnodiging, uitnodigingTekst, toeschouwerTekst, LATE_GRENS, laat as meedoenLaat, bevestig as meedoenBevestig, meespelers } from './coopmeedoen.js';
 import { stapVanMissie, geldigeStap, uitslagTekst } from './coopverhaal.js';
-import { gastVerhaalStatus, gastVerhaalSchrijf, gastVerhaalHerlaad } from './savehook.js';
+import { gastVerhaalStatus, gastVerhaalSchrijf, gastVerhaalHerlaad, gastBoekIds } from './savehook.js';
 import { zetBezig, bezigVanEvent, leesBezigVan, bezigId } from './coopbezig.js';
 import { WEER_EVERY, weerEvent, leesWeerEvent, pasWeerToe } from './coopweer.js';
 import { loopbaanGast } from './loopbaanlive.js';
@@ -343,6 +343,8 @@ export function startClient(world, transport, info, opts = {}) {
   session.onresync = (st) => { if (st && Number.isFinite(st.wanted)) world.wanted = st.wanted | 0; };
   world.coopRole = 'client';
   world.coopNet = { role: 'client', wens, code, session, stash, fade, joined: false, fixed: false, route, info, klok: new KlokVolger(), desync: new DesyncMonitor(), lokaal: 0, tSpelers: 1 };
+  // de beloningen die al in zijn eigen save staan (#429): een bericht dat nog eens langskomt geeft nooit twee keer geld
+  world.coopBoek = maakBoekhouding([...(world.coopBoek ? world.coopBoek.ids() : []), ...gastBoekIds()]);
   return session;
 }
 
@@ -1257,7 +1259,8 @@ export function stopCoopNet(world) {
     p.x = s.x; p.y = s.y; p.angle = s.angle; if (p.vx !== undefined) { p.vx = 0; p.vy = 0; }
     world.wanted = s.wanted;
     p.character = s.character; p.coopChar = s.coopChar;
-    world.coopBoek = null;
+    // het boek met zijn beloningen blijft (#429): het geld staat in zijn save, dus de ids die erbij horen blijven erbij
+    // (een opnieuw gestuurd bericht na een herstart of een nieuwe verbinding geeft daardoor niets dubbel)
     world.coopVerdiend = 0; // het geld zit al in world.money en gaat met de gewone save mee; bleef dit staan, dan kwam het bij een volgende sessie nogmaals in de save
     if (world.companion && s.companion) { world.companion.x = s.companion.x; world.companion.y = s.companion.y; world.companion.character = s.companion.character; }
     if (world.coop) world.coop.prevLocal = s.prevLocal;
