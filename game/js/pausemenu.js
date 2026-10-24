@@ -15,7 +15,7 @@ import { renderVeroverdPanel } from './veroverdpanel.js';
 import { renderSpelersPanel } from './coopspelersui.js';
 import { renderCheatsPanel, cheatsClick, resetCheatsPanel, cheatsFocus } from './cheatsui.js';
 import { skipCurrent, getStoryJournal, markCluesSeen } from './story.js';
-import { saveGame, hasSave, loadLatestSave, startNewSlot, getSaveSummary, getPlaySeconds } from './savegame.js';
+import { saveGame, hasSave, loadLatestSave, startNewSlot, coopSessieLoopt, COOP_LADEN_TEKST, COOP_NIEUW_TEKST, getSaveSummary, getPlaySeconds } from './savegame.js';
 import { openSaveSlots, isSaveSlotsOpen } from './saveslotsui.js';
 import { getClockText } from './clocktext.js';
 import { VERSION } from './version.js';
@@ -1153,6 +1153,7 @@ function runAction(a) {
   if (a === 'resume') setOpen(false);
   else if (a === 'save') status(saveGame(world) ? `Opgeslagen om ${new Date().toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' })}` : 'Opslaan mislukt');
   else if (a === 'load') {
+    if (coopSessieLoopt(world)) { status(COOP_LADEN_TEKST); return; }
     if (loadLatestSave(world)) setOpen(false);
     else status('Geen savegame gevonden');
   } else if (a === 'saves') {
@@ -1194,6 +1195,7 @@ function runAction(a) {
   } else if (a === 'pigeon-home') {
     if (world.pigeonActions && world.pigeonActions.home()) setOpen(false);
   } else if (a === 'new') {
+    if (coopSessieLoopt(world)) { status(COOP_NIEUW_TEKST); return; }
     startNewSlot();
     location.reload();
   } else if (a === 'bench' || a === 'bench-cancel') {

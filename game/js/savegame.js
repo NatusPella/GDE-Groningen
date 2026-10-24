@@ -177,6 +177,7 @@ export function startNewSlot(name) {
 
 // Switches to another slot and loads it. false (and the old slot stays active) when the slot cannot be loaded.
 export function loadSlot(w, n) {
+  if (coopSessieLoopt(w)) return false;
   const d = readSave(n);
   if (!d || !w) return false;
   const was = activeSlot();
@@ -393,8 +394,15 @@ function placeAt(w, x, y) {
   }
 }
 
+// Samen spelen: zolang er een sessie loopt wordt er niets geladen, want dat vervangt geld en wereld onder de sessie (#452).
+export const COOP_LADEN_TEKST = 'Samen spelen loopt nog. Stop eerst de sessie om een ander spel te laden.';
+export const COOP_NIEUW_TEKST = 'Samen spelen loopt nog. Stop eerst de sessie om een nieuw spel te beginnen.';
+export const COOP_WISSEN_TEKST = 'Samen spelen loopt nog. Stop eerst de sessie om dit spel te verwijderen.';
+export const coopSessieLoopt = (w) => !!(w && w.coopNet);
+
 export function applySave(w, d) {
   if (!w || !d) return false;
+  if (coopSessieLoopt(w)) return false;
   const m = d.v !== VERSION && migrateSave(d);
   if (m) d = m.data;
   try {
