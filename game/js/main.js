@@ -160,6 +160,7 @@ import { initPostgame, updatePostgame, tryPostgameInteract } from './postgame.js
 import { initStationTravel, tryStationInteract } from './stationtravel.js';
 import { initOmmelandFun, updateOmmelandFun, tryOmmelandInteract } from './ommelandfun.js';
 import { tryAaien, updateAaien } from './aaien.js';
+import { tryControle, updateControle } from './kaartjescontrole.js';
 import { registerActivityKind, initActivityKinds, interactActivityKinds, tickActivityKinds } from './activityhub.js';
 import { tryTrainInteract, updateTrainDriving } from './traindrive.js';
 import { dist } from './util.js';
@@ -211,6 +212,7 @@ registerActivityKind(reklameTaxiKind);
 registerActivityKind(shopSignKind);
 registerActivityKind({ id: 'ommeland', initPhase: 'early', init: initOmmelandFun, slot: 'uitje', interact: tryOmmelandInteract, tickPhase: 'late', tick: updateOmmelandFun });
 registerActivityKind({ id: 'aaien', slot: 'uitje', interact: tryAaien, tickPhase: 'world', tick: updateAaien });
+registerActivityKind({ id: 'kaartjes', slot: 'uitje', interact: tryControle, tickPhase: 'world', tick: updateControle });
 
 // More life on the water: small paddle and pedal craft make up most of the
 // mix (boattypes.js), cheap meshes; Laag keeps a smaller fleet.

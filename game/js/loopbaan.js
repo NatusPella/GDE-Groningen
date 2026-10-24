@@ -30,7 +30,7 @@ export const GROEPEN = [
 // eenheid: wat de teller telt; uniek: wat we per vak onthouden voor de variatie.
 export const VAKKEN = [
   { id: 'trein', groep: 'vervoer', naam: 'Spoor', icoon: 'trein', eenheid: 'km', uniek: 'stations',
-    wat: 'Reizen per trein en een dienst als machinist.',
+    wat: 'Reizen per trein, kaartjes controleren op het perron (vanaf Kaartjesknipper) en een dienst als machinist.',
     titels: ['Perronstaander', 'Vaste reiziger', 'Kaartjesknipper', 'Conducteur', 'Machinist', 'Spoorbaas van het Noorden'] },
   { id: 'bus', groep: 'vervoer', naam: 'Bus', icoon: 'bus', eenheid: 'km', uniek: 'lijnen',
     wat: 'Rijden met een bus en lijndiensten in stad en streek.',
