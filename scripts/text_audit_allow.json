@@ -292,6 +292,12 @@
     },
     {
       "rule": "url",
+      "term": "https://gtfs.ovapi.nl/nl/vehiclePositions.pb",
+      "file": "livebussen.js",
+      "why": "live bussen (#395, constitutie 4 sinds 24-10): een leesopvraag (GET) naar openbare buslocaties, zonder gegevens van de speler, met uitzetter in Instellingen en terugval op de eigen dienst; alleen tijdens het spel, nooit bij het laden"
+    },
+    {
+      "rule": "url",
       "term": "http://schemas.xmlsoap.org/soap/envelope/",
       "file": "upnp.js",
       "why": "XML-naamruimte van het UPnP-protocol (samen spelen, poort openen); geen verbinding en geen tekst voor de speler"

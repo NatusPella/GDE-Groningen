@@ -500,6 +500,7 @@ function spelHtml() {
       ${toggle('speedFeel', 'Snelheidsgevoel', 'Beeld wordt wijder bij hoge snelheid en een zware klap vertraagt even; uit is rustiger')}
       ${toggle('driftAssist', 'Driften met hulp', 'Helpt tegensturen en houdt een slip beheersbaar; uit is realistischer')}
       ${toggle('bikeAssist', 'Motor met hulp', 'Houdt een motor of brommer rechtop in bochten; uit is realistischer')}
+      ${toggle('liveBussen', 'Live bussen', 'Bussen rijden waar ze in het echt rijden. Het spel haalt alleen publieke buslocaties op; er worden geen gegevens van jou verstuurd. Uit: de bussen rijden hun eigen dienst')}
       <div class="m-gh"><span>Kaart</span></div>
       <div class="m-li pm-row pm-ingame">${rowName('Cheats', 'Een beetje vals spelen')}<button type="button" class="m-bg" data-goto="streken">Openen</button></div>
       ${toggle('mapShiftTeleport','Shift+klik op de kaart verplaatst je', 'Niet tijdens een missie of met de politie achter je aan')}`, `${pane('Spel', 'Zo speelt het', '<p>Hoe het verkeer, het geweld en het rijden aanvoelen. Alles wordt meteen bewaard.</p><p class="mut">Beeld, geluid, besturing en toegankelijkheid staan onder Instellingen.</p>')}`)}

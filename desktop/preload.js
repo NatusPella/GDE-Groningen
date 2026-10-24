@@ -31,6 +31,8 @@ contextBridge.exposeInMainWorld('gdeDesktop', {
     diagnose: () => ipcRenderer.invoke('gde:coop-diagnose'),
     onEvent: (fn) => { coopListeners.add(fn); return () => coopListeners.delete(fn); },
   },
+  // Live bussen (#395): één vaste leesopvraag (GET) naar de open buslocaties, zonder gegevens van de speler; main.js doet hem (geen CORS in het main-proces)
+  liveBussen: () => ipcRenderer.invoke('gde:live-bussen'),
   // only answered in a --trailer-frames run (main.js)
   captureFrame: (n) => ipcRenderer.invoke('gde:capture-frame', n),
   // only in a --clip run (clipvideo.js): begin / frame / png / end of a clip, one frame at a time
