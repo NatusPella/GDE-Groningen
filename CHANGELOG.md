@@ -6,6 +6,11 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Opgelost
+- Perrons (#436): de perrons van Groningen Noord, Hoofdstation en Europapark zijn nu een echte vlakke vloer op de hoogte van het spoor plus 1,02 m (op Noord, op de dijk, dus 6,62 m hoog), met een gele rand en een gemetselde zijkant. Je loopt erop, je rijdt er niet doorheen en een auto komt er nooit op; de rand is alleen bij de trap open.
+- Perrons (#436): een trap (hoog perron, zoals Groningen Noord) of een helling (laag perron) van straatniveau naar het perron, op de plek waar OSM de trap tekent of anders waar niets in de weg staat, met een blauw bord Naar perron en paaltjes aan de voet: een fiets past ertussen, een auto niet.
+- Perrons (#436): een trein raakt niemand die op het perron staat, wel wie op het spoor staat. In Electron bij Noord (trap op gelopen tot 6,62 m) en Europapark bekeken en gemeten; de landelijke haltes houden hun eigen perron.
+
 ## [0.47.0] - 2026-10-24
 
 ### Nieuw
