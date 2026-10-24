@@ -2521,7 +2521,7 @@ export function showBenchmarkResults(res) {
   resultEl.innerHTML = `<div class="tr-res">
     <h2 id="tr-res-title">Benchmark</h2>
     <div class="tr-meta">${meta}</div>
-    ${stats ? `<div class="tr-nums"><div><b>${r(stats.avg)}</b><span>fps gemiddeld</span></div><div><b>${r(stats.p95)}<small> ms</small></b><span>p95-frametijd</span></div><div><b>${r(stats.low1)}</b><span>laagste 1%</span></div>${mem ? `<div title="De JavaScript-heap van het spel, de hoogste stand tijdens de run. Niet het beeldgeheugen van de videokaart."><b>${mem[0]}<small> ${mem[1]}</small></b><span>JS-heap (piek)</span></div>` : ''}</div>
+    ${stats ? `<div class="tr-nums"><div><b>${r(stats.avg)}</b><span>fps gemiddeld</span></div><div><b>${r(stats.p95)}<small> ms</small></b><span>p95-frametijd</span></div><div><b>${r(stats.low1)}</b><span>laagste 1%</span></div>${mem ? `<div title="De JavaScript-heap van het spel, de hoogste stand tijdens de meting. Niet het beeldgeheugen van de videokaart."><b>${mem[0]}<small> ${mem[1]}</small></b><span>JS-heap (piek)</span></div>` : ''}</div>
     <p class="tr-cmp ${diff ? diff.verdict : ''}">${compareText(diff)}</p>
     ${Object.keys(stats.cats).length ? `<div class="tr-cats">${Object.entries(stats.cats).map(([c, v]) => `<span class="${c === weakestCategory(stats.cats) && stats.cats[c].avg < 60 ? 'weak' : ''}">${BENCH_CATEGORIES[c]}<b>${r(v.avg)} fps</b></span>`).join('')}</div>` : ''}` : ''}
     <p class="tr-advice">${adv.text}${adv.what ? `<small>${adv.what}</small>` : ''}</p>
