@@ -30,7 +30,7 @@ function maakGroep(beeld) {
 }
 function ruim(scene, e) {
   if (e.hengel) e.hengel.dispose();
-  if (e.groep) ruimMeshOp(scene, e.groep);
+  if (e.groep) ruimMeshOp(scene, e.groep, { materiaal: true }); // de materialen zijn per prop nieuw (mat in maakGroep)
 }
 
 // Elke frame (coopfigures3d.js syncFigures): maak, verplaats en ruim op volgens world.coopBezigVan.
