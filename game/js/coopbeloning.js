@@ -59,14 +59,34 @@ export function maakBoekhouding(ids = []) {
   };
 }
 
+// De ids die in de save van een speler staan: wat hij al kreeg (#429). Een gast leest ze bij het aansluiten, zodat
+// een bericht dat na een herstart of een nieuwe verbinding nog eens langskomt niets dubbel geeft.
+export function gebeurtenissenVan(data) {
+  if (!data || typeof data !== 'object' || Array.isArray(data)) return [];
+  return (Array.isArray(data.coopGebeurtenissen) ? data.coopGebeurtenissen : []).filter((s) => typeof s === 'string' && s).slice(-ID_MAX);
+}
+
+// Dezelfde save met ids erbij; wat er al staat telt niet en de laatste ID_MAX blijven staan.
+// Geeft null als er niets bij komt (dan hoeft er niets geschreven te worden).
+export function voegGebeurtenissenToe(data, ids) {
+  if (!data || typeof data !== 'object' || Array.isArray(data)) return null;
+  const al = gebeurtenissenVan(data), nieuw = [];
+  for (const id of Array.isArray(ids) ? ids : []) {
+    if (typeof id !== 'string' || !id) continue;
+    const k = id.slice(0, 48);
+    if (!al.includes(k) && !nieuw.includes(k)) nieuw.push(k);
+  }
+  if (!nieuw.length) return null;
+  return { ...data, coopGebeurtenissen: [...al, ...nieuw].slice(-ID_MAX) };
+}
+
 // Een gebeurtenis in de save van een speler: geld erbij en de id erbij, in dezelfde nieuwe save (dus in één schrijfbeurt).
 // Geeft de nieuwe save, of null als de id er al staat of er niets te geven is. Het geld blijft een geheel getal en nooit negatief.
 export function pasGebeurtenisToe(data, id, bedrag) {
   const e = geheel(bedrag);
   if (!data || typeof data !== 'object' || Array.isArray(data) || typeof id !== 'string' || !id) return null;
-  const al = Array.isArray(data.coopGebeurtenissen) ? data.coopGebeurtenissen.filter((s) => typeof s === 'string') : [];
-  if (al.includes(id)) return null;
+  if (gebeurtenissenVan(data).includes(id.slice(0, 48))) return null;
   const base = Number.isFinite(data.money) && data.money >= 0 ? Math.floor(data.money) : 0;
   const money = base + e;
-  return { ...data, money, moneyBackup: money, coopGebeurtenissen: [...al, id].slice(-ID_MAX) };
+  return { ...data, money, moneyBackup: money, coopGebeurtenissen: [...gebeurtenissenVan(data), id.slice(0, 48)].slice(-ID_MAX) };
 }

@@ -3,7 +3,7 @@ import { spawnHeroCarNear } from './vehicle.js';
 import { WEAPONS } from './combat.js';
 import { isCinematicActive, skipAllCinematics } from './cinematics.js';
 import { getShopSave, applyShopSave } from './shops.js';
-import { getAchievementSaveData, applyAchievementSaveData, getChallengeRecord, EIERBAL_TOTAL } from './achievements.js';
+import { getAchievementSaveData, applyAchievementSaveData, getChallengeRecord, EIERBAL_TOTAL, missieKlaarId } from './achievements.js';
 import { PG_PRIZE, EIERBAL_FIND_PAY, EIERBAL_ALL_BONUS } from './economy.js';
 import { getPigeonSaveData, applyPigeonSaveData } from './pigeonmode.js';
 import { getSideJobSave, applySideJobSave } from './sidejobs.js';
@@ -25,12 +25,13 @@ import { quitTrainDrive } from './traindrive.js';
 import { statsFromSave } from './world.js';
 import { getRadioSave, applyRadioSave } from './radio.js';
 import { KEYS, slotKey } from './storagekeys.js';
-import { applyGuestChanges, applyGuestStory } from './coopsave.js';
+import { applyGuestChanges, applyGuestStory, applyGuestAchievements } from './coopsave.js';
 import { verhaalStatus } from './coopverhaal.js';
+import { gebeurtenissenVan, maakBoekhouding } from './coopbeloning.js';
 import { getRenderer, afterNextFrame } from './scene3d.js';
 import { readSlot, writeSlotRaw, writeThumb, activeSlot, setActive, createSlot, deleteSlot, nameOf, pickActive } from './saveslots.js';
 import { maakCheckpoint } from './coopcheckpoint.js';
-import { registerSaveGame, registerSaveTimers, registerGastVerhaal } from './savehook.js';
+import { registerSaveGame, registerSaveTimers, registerGastVerhaal, registerGastBoek } from './savehook.js';
 import { STEPS, PARTS, stepDone, stepAvailable, nextStoryStep, ARC_ID } from './storyarc.js';
 
 // Several saves (saveslots.js): slot 1 is the old single save under its old key, the version inside
@@ -195,6 +196,9 @@ function serialize(w) {
   const ammo = {};
   for (const [k, v] of Object.entries(w.ammo || {})) ammo[k] = v === Infinity ? 'inf' : num(v, 0);
   const pos = p.inVehicle && p.inVehicle.isBoat ? null : { x: Math.round(p.x * 10) / 10, y: Math.round(p.y * 10) / 10 };
+  // de beloningen die deze speler al kreeg (#429): een gast bewaart ze in zijn eigen save, zodat een herhaald bericht na
+  // een herstart of een nieuwe verbinding niets dubbel geeft (coopbeloning.js, startClient in coopnet.js)
+  const coopIds = w.coopBoek ? w.coopBoek.ids() : [];
   return {
     v: VERSION,
     arc: ARC_ID,
@@ -230,6 +234,7 @@ function serialize(w) {
     streken: getCheatSave(),
     // the day of the summer and the special days already announced (calendarday.js)
     kalender: getCalendarSave(w),
+    ...(coopIds.length ? { coopGebeurtenissen: coopIds } : {}),
   };
 }
 
@@ -289,9 +294,11 @@ function saveGuestEarnings(w) {
   const earned = w.coopVerdiend || 0;
   try {
     const r = readSlot(null, saveTarget());
-    // het verdiende geld en wat de gast zelf kocht of at (#291): zijn eigen geld en spullen in zijn eigen opgeslagen spel
+    // het verdiende geld en wat de gast zelf kocht of at (#291): zijn eigen geld en spullen in zijn eigen opgeslagen spel,
+    // met de ids van de beloningen die hij kreeg (#429): een herhaald bericht geeft daarna nooit twee keer geld
     const ok = r.state === 'ok' || r.state === 'hersteld';
-    const next = ok ? applyGuestChanges(r.data, serialize(w), earned) : null;
+    const ids = w.coopBoek ? w.coopBoek.ids() : [];
+    const next = ok ? applyGuestChanges(r.data, serialize(w), earned, ids) : null;
     if (ok && !next) { w.coopVerdiend = 0; return false; } // niets te bewaren (het verdiende geld stond er al in)
     if (!next || !writeSlotRaw(null, saveTarget(), JSON.stringify(next))) return false;
     w.coopVerdiend = 0;
@@ -301,8 +308,8 @@ function saveGuestEarnings(w) {
 
 // Samen spelen (#429): het verhaal van een gast in zijn eigen opgeslagen spel. Het schrijven is één writeSlotRaw (met teruglezen ter controle
 // en herstelkopie) en gebeurt pas bij de uitslag van de gastheer; een crash ervoor laat de oude save heel. Het geld van de overgeslagen
-// missies gaat in dezelfde schrijfbeurt mee en daarna pas in het geld van het lopende spel. Het geheugen (verhaal, missies) volgt
-// pas bij het terugkeren naar het eigen spel (herlaad), zodat een gewone save daarna de sprong niet overschrijft.
+// missies en de prestaties van de meegespeelde opdrachten gaan in dezelfde schrijfbeurt mee en daarna pas in het lopende spel. Het geheugen
+// (verhaal, missies, prestaties) volgt pas bij het terugkeren naar het eigen spel (herlaad), zodat een gewone save daarna de sprong niet overschrijft.
 const gastData = () => { const r = readSlot(null, saveTarget()); return r.state === 'ok' || r.state === 'hersteld' ? r.data : null; };
 registerGastVerhaal({
   status: (w, stap) => verhaalStatus(gastData(), stap),
@@ -311,8 +318,11 @@ registerGastVerhaal({
       const r = applyGuestStory(gastData(), stap);
       if (!r) return null;
       const mine = { ...serialize(w), money: Math.max(0, Math.floor(num(w.money, 0))) + r.bonus };
-      const next = applyGuestChanges(r.save, mine, 0) || r.save;
+      let next = applyGuestChanges(r.save, mine, 0) || r.save;
+      const klaar = r.missies.map(missieKlaarId).filter(Boolean); // zijn eigen prestaties: de opdracht als gedaan (#429)
+      next = applyGuestAchievements(next, klaar);
       if (!writeSlotRaw(null, saveTarget(), JSON.stringify(next))) return null;
+      if (klaar.length) applyAchievementSaveData(next.prestaties); // meteen ook in zijn lopende spel, anders schrijft de volgende checkpoint het weer weg
       w.money = num(w.money, 0) + r.bonus;
       if (Number.isFinite(w._goodMoney)) w._goodMoney += r.bonus;
       w.coopVerhaalNieuw = true;
@@ -326,9 +336,12 @@ registerGastVerhaal({
     if (!d) return false;
     setMissionProgress(w, d.missions);
     applyStorySave(d.story);
+    applyAchievementSaveData(d.prestaties); // de prestatie van de meegespeelde opdracht telt ook in zijn eigen spel (#429)
     return true;
   },
 });
+// De beloningen die deze gast al kreeg staan in zijn eigen save (coopbeloning.js): zijn boek begint ermee (#429).
+registerGastBoek(() => gebeurtenissenVan(gastData()));
 
 export function markDirty() {
   dirtyIn = SAVE_DEBOUNCE;
@@ -456,6 +469,9 @@ export function applySave(w, d) {
     applyCheatSave(d.streken, d);
     applyCalendarSave(w, d.kalender);
     applyHomeOnLoad(w, d);
+    // de beloningen die al in deze save staan (#429): wie later weer aansluit telt ze niet nog eens
+    const coopIds = gebeurtenissenVan(d);
+    w.coopBoek = coopIds.length ? maakBoekhouding(coopIds) : null;
     playSeconds = Math.max(0, num(d.speeltijd, 0));
     w.loadedFromSave = true;
     w.loadCount = (w.loadCount || 0) + 1;
