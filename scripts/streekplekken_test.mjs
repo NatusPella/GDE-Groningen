@@ -2,7 +2,7 @@
 // classificatie uit OSM-tags, kits, celbudget, audit per streek, drempels en het gebouwde bestand.
 //   node scripts/streekplekken_test.mjs
 import fs from 'node:fs';
-import { puntInVlak, classifyLand, kitFor, partsToWorld, tileBudget, auditLand, checkDrempels, telKandidaten, streekId, LAND_TYPES, LAND_BUDGET, STREEK_IDS, celVan } from '../game/js/streekplekken.js';
+import { puntInVlak, classifyLand, gedenknaam, kitFor, partsToWorld, tileBudget, auditLand, checkDrempels, telKandidaten, streekId, LAND_TYPES, LAND_BUDGET, STREEK_IDS, celVan } from '../game/js/streekplekken.js';
 import { collectLand, dedupeLand, finishLand, filterVlakken } from './world/streekplekken.mjs';
 import { wgsToWorld } from '../game/js/rdnew.js';
 
@@ -60,6 +60,14 @@ ok(partsToWorld({ id: 3, t: 'schoorsteen', x: 5, y: 6, a: 0, h: 40 }).length > 3
 const wp = partsToWorld({ x: 1000, y: 2000, a: Math.PI / 2 }, [{ s: 'box', x: 10, y: 0, z: 0, w: 1, h: 1, d: 1, c: 0 }])[0];
 ok(Math.abs(wp.x - 1000) < 1e-6 && Math.abs(wp.z - 2010) < 1e-6, 'partsToWorld draait mee');
 
+// persoonsnamen op gedenktekens vallen weg, type en soort blijven (#419)
+ok(classifyLand({ historic: 'memorial', memorial: 'statue', name: 'Samuel Woltjer' }).name === '' && classifyLand({ historic: 'memorial', memorial: 'statue', name: 'Samuel Woltjer' }).sub === 'beeld', 'beeld met persoonsnaam: naam weg, type blijft');
+ok(classifyLand({ historic: 'memorial', name: 'De Families Van Gelder' }).name === '' && classifyLand({ historic: 'monument', name: 'Pieter vd Mei' }).name === '', 'familie en achternaam: naam weg');
+ok(classifyLand({ historic: 'memorial', memorial: 'stolperstein', name: 'Levi Wolff' }).name === '' && classifyLand({ historic: 'memorial', memorial: 'plaque', name: 'Gompel Dwinger' }).sub === 'plaquette', 'struikelsteen: naam weg, plaquette blijft');
+ok(classifyLand({ historic: 'monument', name: 'Graaf Adolfmonument' }).name === '' && classifyLand({ historic: 'memorial', name: 'Grafmonument Familie Scholten' }).name === '', 'titel of familie in de naam: naam weg');
+ok(classifyLand({ historic: 'memorial', name: 'Oorlogsmonument Bedum' }).name === 'Oorlogsmonument Bedum' && classifyLand({ historic: 'memorial', name: 'Joods Monument' }).name === 'Joods Monument', 'een naam die zegt wat het is blijft');
+ok(classifyLand({ man_made: 'obelisk', name: 'Hendrik De Vries' }).name === '' && classifyLand({ historic: 'wayside_cross', name: 'Jozeph Kroon' }).name === '', 'obelisk en kruis: naam weg');
+ok(classifyLand({ leisure: 'park', name: 'Noorderplantsoen' }).name === 'Noorderplantsoen', 'een park houdt zijn naam');
 // celbudget: veel parken in een cel -> binnen het budget, benoemde blijven
 const velen = Array.from({ length: 30 }, (_, i) => ({ id: i + 1, t: 'park', sub: 'park', x: 10 + i, y: 10, a: 0, l: 120, w: 80, n: i === 29 ? 'Sterrebos' : undefined }));
 const b = tileBudget(velen);
@@ -127,6 +135,9 @@ if (fs.existsSync(bestand)) {
   ok(Object.keys(dd.min).every((t) => LAND_TYPES[t]) && STREEK_IDS.every((s) => dd.min.mast[s] !== undefined), 'drempelbestand dekt alle streken');
   const ver = j.plekken.reduce((a, p) => { a[p.t] = (a[p.t] || 0) + 1; return a; }, {});
   ok(Object.keys(LAND_TYPES).every((t) => (ver[t] || 0) >= 20), 'bestand: van elk type minstens 20 ' + JSON.stringify(ver));
+  // geen persoonsnaam op een gedenkteken (constitutie 2 en 4, #419): een naam in het bestand zegt wat het is, geen wie
+  ok(j.plekken.filter((p) => p.t === 'monument' && p.n).every((p) => gedenknaam(p.n) === p.n), 'bestand: gedenktekens zonder persoonsnaam');
+  ok(!j.plekken.some((p) => p.t === 'monument' && /Gelder|Woltjer|Gudema|Frank|Familie|Famil/.test(p.n || '')), 'bestand: de bekende persoonsnamen zijn weg');
 }
 
 console.log(fails ? `${fails} van ${n} mislukt` : `ok: ${n} checks`);

@@ -29,6 +29,12 @@ const KLEUR = {
 
 const tagNum = (v, d) => { const n = parseFloat(String(v ?? '').replace(',', '.')); return Number.isFinite(n) && n > 0 ? n : d; };
 
+// Een gedenkteken houdt zijn type en zijn plaats, maar nooit de naam van een persoon (voor- en achternaam, familie, titel en naam; constitutie 2 en 4,
+// #419). Een naam blijft alleen staan als hij zegt wat het is (Oorlogsmonument, Joods monument, Bevrijdingsmonument) of een jaartal of datum is;
+// al het andere vervalt, ook als we niet kunnen zien of het een persoon is. De naam is alleen een sorteersleutel, het spel toont hem niet.
+const GEDENKWOORD = /monument|gedenk|oorlog|verzet|bevrijd|herdenk|slachtoffer|omgekomen|verdronken|joods|stolperstein|naald|zuil|obelisk|kruis|heksenverbranding|\b1[89]\d\d\b|\b20\d\d\b/i;
+const PERSOONSDEEL = /\b(?:familie|families|gebroeders|zusters|echtpaar|graaf|gravin|koning|koningin|prins|prinses|jonkheer|baron|burgemeester|pastoor|generaal|dominee)(?![\p{L}])|^(?:de\s+)?(?:dr|mr|ir|prof|ds|meester)\b|,/iu;
+export const gedenknaam = (name) => { const n = String(name || '').trim(); return n && GEDENKWOORD.test(n) && !PERSOONSDEEL.test(n) ? n : ''; };
 // -> { type, sub, name } of null. `tags` = OSM-tags.
 export function classifyLand(tags) {
   if (!tags) return null;
@@ -41,12 +47,12 @@ export function classifyLand(tags) {
   if (t.man_made === 'mast' || t.man_made === 'communications_tower' || t['tower:type'] === 'communication') {
     return { type: 'mast', sub: t.man_made === 'communications_tower' || t['tower:type'] === 'communication' ? 'toren' : 'mast', name };
   }
-  if (t.historic === 'wayside_cross' || t.historic === 'wayside_shrine') return { type: 'monument', sub: 'kruis', name };
-  if (t.man_made === 'obelisk') return { type: 'monument', sub: 'obelisk', name };
+  if (t.historic === 'wayside_cross' || t.historic === 'wayside_shrine') return { type: 'monument', sub: 'kruis', name: gedenknaam(name) };
+  if (t.man_made === 'obelisk') return { type: 'monument', sub: 'obelisk', name: gedenknaam(name) };
   if (t.historic === 'monument' || t.historic === 'memorial') {
     // een plaquette, struikelsteen of spookfiets is een tegel in de stoep, geen zuil van vijf meter (#419)
-    if (['plaque', 'stolperstein', 'ghost_bike', 'bench', 'plate'].includes(t.memorial)) return { type: 'monument', sub: 'plaquette', name };
-    return { type: 'monument', sub: t.memorial === 'statue' || t.memorial === 'bust' ? 'beeld' : 'zuil', name };
+    if (['plaque', 'stolperstein', 'ghost_bike', 'bench', 'plate'].includes(t.memorial)) return { type: 'monument', sub: 'plaquette', name: '' };
+    return { type: 'monument', sub: t.memorial === 'statue' || t.memorial === 'bust' ? 'beeld' : 'zuil', name: gedenknaam(name) };
   }
   if (t.leisure === 'park' || (t.leisure === 'garden' && t.access !== 'private') || (t.landuse === 'recreation_ground' && name)) {
     return { type: 'park', sub: t.leisure === 'garden' ? 'tuin' : 'park', name };
