@@ -67,9 +67,11 @@ export const REGISTER = {
 };
 
 // De status van één onderdeel, of null als het onderdeel onbekend is (dan waarschuwt niets).
+// Uitzondering: een bijbaan die hier niet staat blijft bij wie het spel opende (docs/COOP-GAST.md), dus 'nee'; dat zijn er veel (paneel-, stad- en keuzebanen).
 export function samenStatus(soort, id) {
   const t = REGISTER[soort];
-  return t && Object.prototype.hasOwnProperty.call(t, id) ? t[id] : null;
+  if (t && typeof id === 'string' && Object.prototype.hasOwnProperty.call(t, id)) return t[id];
+  return soort === 'bijbaan' && typeof id === 'string' && id ? NEE : null;
 }
 
 const SLECHTST = { [WERKT]: 0, [DEELS]: 1, [NEE]: 2 };

@@ -23,6 +23,7 @@ import { storyLines } from './storytext.js';
 import { getSettings } from './settings.js';
 import { keyWord, keyName, physicalKey } from './controls.js';
 import { playerBusy } from './busy.js';
+import { waarschuwVoorStart } from './coopstatus.js';
 const downKey = () => keyWord(getSettings().keyBinds, 'control');
 // the key help under the heli HUD, in the player's own key bindings
 const kbd = (k) => `<kbd>${k === 'backspace' ? '⌫' : keyName(physicalKey(getSettings().keyBinds, k))}</kbd>`;
@@ -1012,6 +1013,7 @@ export function tryHeliSpotInteract(w) {
   input.consume('f');
   const why = blockReason(w);
   if (why) { w.addMessage(why, 2.5); return true; }
+  waarschuwVoorStart(w, 'minigame', 'heli'); // samen spelen: een melding als dit nog niet samen werkt; de start gaat door
   startHeliRun({ variant: 'ballonjacht' });
   return true;
 }
