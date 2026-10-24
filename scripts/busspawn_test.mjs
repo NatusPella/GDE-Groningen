@@ -89,6 +89,33 @@ const rondje = (w, n = 60) => { for (let i = 0; i < n; i++) V.manageBusPopulatio
   const b2 = w2.vehicles.filter((v) => v.isBus);
   ok(b2.length > 0 && b2.every((v) => v.road === hoofd), 'zonder lijn rijdt een bus alleen over de hoofdweg', b2.map((v) => v.road.name).join());
 }
+// 4. live bussen (#395, livebussen.js): een echte bus op de lijn in bereik wordt een bus met liveId, één per id; de echte bus
+//    bepaalt de snelheid; is de echte bus weg of keert hij om, dan rijdt hij zijn eigen dienst
+{
+  const hoofd = road('Hoofdweg', 0, { type: 'tertiary', width: 8 });
+  const kaartje = kaart([hoofd]);
+  const lijn = B.prepareLine({ id: 'a', ref: '1', pts: [[-600, 0], [600, 0]], stops: [] });
+  V.setBusLines([lijn]);
+  let echt = { id: 'live-1', line: lijn, dir: 1, s: 750, x: 150, y: 0, angle: 0, speed: 0 };
+  V.setLiveBussen({ positie: (id) => (echt && id === echt.id ? echt : null), kandidaten: () => (echt ? [{ ...echt, d: 150 }] : []) });
+  const w = wereld(kaartje);
+  rondje(w, 20);
+  const live = w.vehicles.filter((v) => v.liveId === 'live-1');
+  ok(live.length === 1, 'één bus per live voertuig', String(live.length));
+  ok(live[0] && live[0].busRun.line === lijn && live[0].busRun.dir === 1, 'de live bus rijdt zijn eigen lijn en richting');
+  ok(live[0] && Math.abs(live[0].x - 150) < 40, 'hij begint bij de plek van de echte bus', live[0] && String(live[0].x));
+  if (live[0]) {
+    V.updateTrafficAI(live[0], 0.05, kaartje, w);
+    ok(live[0].liveScale != null && live[0].liveScale < 0.5, 'een stilstaande echte bus: de live bus rijdt niet door', String(live[0].liveScale));
+    echt = { ...echt, s: 900, x: 300, speed: 10 };
+    V.updateTrafficAI(live[0], 0.05, kaartje, w);
+    ok(live[0].liveScale > 0.5, 'een rijdende echte bus ver vooruit: hij rijdt door', String(live[0].liveScale));
+    echt = null;
+    V.updateTrafficAI(live[0], 0.05, kaartje, w);
+    ok(live[0].liveId == null && live[0].liveScale == null, 'echte bus weg: terug naar de eigen dienst');
+  }
+  V.setLiveBussen(null);
+}
 V.setBusLines([]);
 console.log(`busspawn_test: ${n - bad}/${n} ok`);
 process.exit(bad ? 1 : 0);
