@@ -95,6 +95,7 @@ check('rijdend gaan de deuren niet open', bed.doorWant === false, bed.doorWant);
 // de halteknop: laat de bus een paar seconden staan, ver van de halte
 bus.speed = 0;
 for (let i = 0; i < 24 && !ride.request; i++) { bus.speed = 0; await sleep(500); }
+await sleep(400);
 const stopLamp = document.querySelector('.hud-busbed .bb-stop');
 check('de halteknop-lamp volgt het verzoek', !ride.nextEx || ((ride.nextEx.alight > 0) === (!!ride.request && stopLamp.classList.contains('on'))), `alight ${ride.nextEx && ride.nextEx.alight}, request ${ride.request}`);
 B.shot('busbed-3-halteknop');
@@ -123,22 +124,30 @@ check('K: de bus knielt', bed.kneelWant && bed.kneelAmt > 0.9, bed.kneelAmt);
 await B.press('o');
 await sleep(1200);
 check('O: de deuren gaan open en reizigers stappen in en uit', ride.doorsOpened && bed.doorOpen === 1, `open ${bed.doorOpen}, opened ${ride.doorsOpened}`);
+check('de schuifdeuren van de bus staan open (vehicledoors)', !!bus.doors && Object.values(bus.doors.open).some((x) => x > 0.9), bus.doors && JSON.stringify(bus.doors.open));
 check('HUD: de deurknop zegt dicht', /Deuren dicht/.test(hudRow().textContent), hudRow().textContent);
 B.shot('busbed-5-deuren-open-kneel');
-// binnenzicht: een camera in het gangpad achter de bestuurder, kijkend naar achteren (stoelen, stangen, reizigers)
-{
-  const c = Math.cos(bus.angle), s = Math.sin(bus.angle), hl = bus.model.len / 2;
-  const at = (lx, lz) => ({ x: bus.x + c * lx - s * lz, y: bus.y + s * lx + c * lz });
-  const pos = at(hl - 2.3, 0.1), look = at(-2, -0.2);
-  world.cameraOverride = { position: { x: pos.x, y: pos.y, z: (bus.z || 0) + 1.75 }, lookAt: { x: look.x, y: look.y, z: (bus.z || 0) + 1.2 }, fov: 80, cut: true, interior: true };
+// beelden met een eigen camera (lokale voertuigcoördinaten: x vooruit, z rechts = stoepkant): binnen in het gangpad
+// kijkend naar achteren, en buiten bij de open voordeur. cinematics.js zet cameraOverride elk beeld terug: de eigenschap wordt vastgezet.
+async function camShot(naam, van, naar, { interior = false, fov = 75 } = {}) {
+  const c = Math.cos(bus.angle), s = Math.sin(bus.angle);
+  const at = (p) => ({ x: bus.x + c * p[0] - s * p[1], y: bus.y + s * p[0] + c * p[1], z: (bus.z || 0) + p[2] });
+  const eigen = { position: at(van), lookAt: at(naar), fov, cut: true, interior };
+  Object.defineProperty(world, 'cameraOverride', { get: () => eigen, set: () => {}, configurable: true });
   await sleep(2500);
-  B.shot('busbed-7-binnenzicht');
+  B.shot(naam);
+  delete world.cameraOverride;
+  world.cameraOverride = null;
+  await sleep(1200);
+}
+{
+  const hl = bus.model.len / 2;
+  await camShot('busbed-7-binnenzicht', [hl - 2.3, 0.1, 1.75], [-2, -0.2, 1.2], { interior: true, fov: 80 });
+  await camShot('busbed-8-deur-buiten', [hl - 1.05, 6.5, 1.6], [hl - 1.2, 0, 1.0], { fov: 60 });
   const MV = await imp('models3d_vehicles');
   const mesh = MV.getVehicleMesh(bus.id);
   const ud = mesh && mesh.userData;
   check('de passagiersruimte is gebouwd (stoelen en reizigers)', !!(ud && ud.busInt && ud.busInt.visible && ud.busPas && ud.busPas.visible), ud && `int ${!!ud.busInt} pas ${ud.busPasN}`);
-  world.cameraOverride = null;
-  await sleep(1500);
 }
 // de bus mag niet weg met open deuren: wacht de tijd uit, de fase blijft halteren
 await sleep(9000);
