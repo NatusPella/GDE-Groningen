@@ -6,6 +6,7 @@
 import { STOP_RADIUS, DWELL } from './busroutes.js';
 import { buildTimetable, punctuality, holdSeconds, stopExchange, tripScore, CAPACITY, CRUISE } from './busservice.js';
 import { makeTevredenheid, stepTevredenheid, stoot, deurenOpen, deurenDicht } from './busbestuur.js';
+import { uitslagUitPunten } from './simdienst.js';
 
 const STOP_SPEED = 1.5;     // m/s: zo langzaam moet de bus staan om te halteren
 const BOARD_TIME = 3;       // s minimaal halteren
@@ -205,4 +206,48 @@ export function updateRide(ride, bus, dt) {
   if (ride.dwellLeft <= 0 || sp > 3) ride.phase = 'drive';
   if (ride.phase === 'drive' && !ride.earlyFlag) ev.push({ type: 'depart', stop: row, next: rideStop(ride) });
   return ev;
+}
+
+// --- de bus in de gedeelde dienstvorm (#444) ---------------------------------------------
+// De regels blijven in busride.js, busservice.js en busbestuur.js staan; dit is de schil
+// waarmee de HUD en het loopbaanscherm elke sim op dezelfde manier lezen als de trein, het
+// vliegtuig en het schip (simdienst.js).
+export function maakBusdienst(line, opts = {}) {
+  const ride = makeRide(line, opts);
+  return { ride, start: startRide(ride) };
+}
+
+// 0 tot 1: de gehaalde halten van de dienstregeling.
+export function busVoortgang(ride) {
+  if (!ride) return 0;
+  if (ride.done) return 1;
+  const n = ride.table.length - 1;
+  return n > 0 ? Math.max(0, Math.min(1, (ride.next - 1) / n)) : 1;
+}
+
+// Punten en medaille uit de score van de rit: punctualiteit (55), tevredenheid (30) en een
+// zachte rit (15). Zonder tevredenheid (een oude, automatische rit) telt 80 als norm.
+export function busUitslag(ride) {
+  if (!ride || !ride.score) return null;
+  const s = ride.score;
+  const sat = s.satisfaction != null ? s.satisfaction : 80;
+  const punten = 55 * s.share + 30 * sat / 100 + 15 * s.smooth;
+  return uitslagUitPunten('bus', punten, {
+    naam: 'Lijndienst', gehaald: ride.done ? ride.table.length - 1 : ride.next - 1, totaal: ride.table.length - 1,
+    punctueel: Math.round(s.share * 100), veilig: Math.round(s.smooth * 100),
+    tevredenheid: s.satisfaction, loon: s.pay, perfect: !!s.perfect,
+    gemist: ride.skipped || 0, klaar: !!ride.done, mislukt: ride.failed || null, afgebroken: false,
+  });
+}
+
+// Wat de HUD van één beeld nodig heeft (geen opmaak, alleen cijfers).
+export function busStand(ride) {
+  if (!ride) return null;
+  const row = ride.done || ride.failed ? null : (ride.phase === 'dwell' ? ride.table[ride.next - 1] : rideStop(ride));
+  return {
+    vervoer: 'bus', naam: 'Lijndienst', voortgang: busVoortgang(ride),
+    volgende: row ? row.name : null, gehaald: ride.next - 1, totaal: ride.table.length - 1,
+    tevredenheid: Math.round(ride.tevreden.sat), opgestapt: ride.passengers,
+    klaar: !!ride.done, mislukt: ride.failed || null,
+  };
 }

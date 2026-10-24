@@ -1,7 +1,10 @@
 // Arcade-vliegtuig (#15): pure vliegmodel, zonder THREE of wereld. heliflight.js
 // is aan Vehicle, kaart en toetsen gekoppeld en vliegt alleen rotoren; dit is het
 // vastevleugelmodel ernaast. Een stap neemt stuurinvoer in [-1, 1] en geeft de
-// nieuwe staat. Tests: scripts/arcadeplane_test.mjs.
+// nieuwe staat. Onderaan staat de vluchtdienst (#444): een route tussen twee velden
+// met poorten, een checklist, een klok en een uitslag met medaille.
+// Tests: scripts/arcadeplane_test.mjs en scripts/vluchtdienst_test.mjs.
+import { maakDienst, stapDienst, dienstVoortgang, dienstUitslag, dienstStand } from './simdienst.js';
 
 export const PLANE = {
   stall: 22,        // m/s: eronder zakt de neus en valt hij
@@ -93,3 +96,79 @@ export function stepPlane(p, inp, dt, groundAt, onRunway = () => true, spec = PL
   }
   return p;
 }
+
+// --- vluchtdienst (#444): een route tussen twee velden met een puntentelling ------------
+// De regels: vlieg de poorten in volgorde langs (binnen poortR, langzamer dan poortV en op de
+// hoogte van de poort), houd de checklist bij het opstijgen in orde en land op de bestemming.
+// Een crash of een gemiste poort kost punten, net als te laat aankomen; er is nooit leed.
+export const VLUCHT = {
+  poortR: 220,        // m: zo dicht bij een poort telt hij
+  poortV: 62,         // m/s: langzamer dan dit door de poort
+  hoogteMarge: 60,    // m: zoveel mag je van de hoogte van een poort zitten
+  veldR: 320,         // m: het veld waar je neerkomt
+  landBonus: 4,       // punten voor een zachte landing
+  checklistBonus: 3,  // punten voor een vlucht die met een kloppende checklist begon
+};
+
+// De checklist van een vlucht, tegen de staat van het vliegtuig (arcadeplane.js).
+export const CHECKLIST = [
+  { id: 'kleppen', tekst: 'Kleppen op 0 of 1', ok: (p) => (p.flaps || 0) <= 1 },
+  { id: 'gestel', tekst: 'Landingsgestel uit', ok: (p) => !!p.gear },
+  { id: 'waterpas', tekst: 'Vleugels waterpas', ok: (p) => Math.abs(p.roll || 0) < 0.2 },
+];
+
+export function checklist(p) {
+  return CHECKLIST.map((i) => ({ id: i.id, tekst: i.tekst, ok: !!i.ok(p) }));
+}
+
+// route: [{ x, y, naam?, z?, zMarge?, stopR?, stopV? }]; van en naar: { x, y, naam }.
+export function maakVluchtdienst({ van = null, naar = null, route = [], maxTijd = null } = {}) {
+  if (!naar || !Number.isFinite(naar.x) || !Number.isFinite(naar.y)) throw new Error('een vlucht heeft een bestemming nodig');
+  const halten = route.map((p, k) => ({
+    x: p.x, y: p.y, z: p.z != null ? p.z : null, zMarge: p.zMarge != null ? p.zMarge : VLUCHT.hoogteMarge,
+    naam: p.naam || `Poort ${k + 1}`, stopR: p.stopR != null ? p.stopR : VLUCHT.poortR,
+    stopV: p.stopV != null ? p.stopV : VLUCHT.poortV, wacht: 0,
+  }));
+  // Het veld telt pas als je er echt staat: stil en binnen veldR, hoe snel je er ook aan kwam.
+  halten.push({ x: naar.x, y: naar.y, naam: naar.naam || 'Bestemming', stopR: naar.stopR != null ? naar.stopR : VLUCHT.veldR, stopV: Infinity, stil: true, wacht: 0 });
+  const d = maakDienst({ vervoer: 'vliegtuig', naam: `${(van && van.naam) || 'Vertrek'} – ${naar.naam || 'Bestemming'}`, halten, maxTijd });
+  d.landing = null;
+  d.checklist = null;
+  d.checklistOk = false;
+  return d;
+}
+
+// Eén beeld van de dienst bij de staat van het vliegtuig (p uit makePlane/stepPlane).
+export function vluchtStap(d, p, { dt = 0 } = {}) {
+  if (d.klaar || d.mislukt || !p) return [];
+  const ev = [];
+  if (p.crashed) {
+    d.mislukt = 'crash';
+    ev.push({ soort: 'mislukt', reden: 'crash' });
+    return ev;
+  }
+  // De checklist wordt één keer beoordeeld, op het moment dat de kist van de baan komt.
+  if (!p.onGround && !d.checklist) {
+    d.checklist = checklist(p);
+    d.checklistOk = d.checklist.every((i) => i.ok);
+  }
+  const h = d.halten[d.i];
+  const inBand = !h || h.z == null || Math.abs((p.z || 0) - h.z) <= (h.zMarge != null ? h.zMarge : VLUCHT.hoogteMarge);
+  for (const e of stapDienst(d, { x: p.x, y: p.y, v: p.speed || 0, dt, stil: !!p.onGround, stop: inBand })) {
+    if (e.soort === 'halte' && e.laatste) {
+      d.landing = p.landing || 'hard';
+      d.bonus = (d.landing === 'zacht' ? VLUCHT.landBonus : 0) + (d.checklistOk ? VLUCHT.checklistBonus : 0);
+    }
+    if (e.soort === 'klaar') e.uitslag = vluchtUitslag(d);
+    ev.push(e);
+  }
+  return ev;
+}
+
+// De uitslag met de landing en de checklist erbij (de rest komt uit simdienst.js).
+export function vluchtUitslag(d) {
+  return { ...dienstUitslag(d), landing: d.landing || null, checklist: d.checklist || null };
+}
+
+export const vluchtVoortgang = dienstVoortgang;
+export const vluchtStand = dienstStand;
