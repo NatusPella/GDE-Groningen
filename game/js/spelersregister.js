@@ -56,6 +56,8 @@ export function naasteSpeler(world, x, y) { return dichtstbijzijndeSpeler(world,
 
 export function hoofdspeler(world) { return world.player; }
 export function spelers(world) { return register(world); }
+// Spelen er twee of meer mensen in deze sessie? Eenspeler en een sessie van één: nee (de waarschuwingen van coopstatus.js zwijgen dan).
+export function meerdereSpelers(world) { return !!world && register(world).length >= 2; }
 export function voorElkeSpeler(world, fn) { const reg = register(world); for (let i = 0; i < reg.length; i++) fn(reg[i], i); }
 
 // De speler die het dichtst bij (x, y) is; een speler zonder bekende plek doet niet mee. Geeft het record of null.
