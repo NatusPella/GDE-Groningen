@@ -158,6 +158,14 @@ export function reduce(s, ev) {
     case 'hervat': // de host wacht weer op dezelfde gast; de gast voert de code opnieuw in
       if (s.step !== 'verbroken') return s;
       n.step = s.rol === ROLES.HOST ? 'host-maakt-code' : 'gast-typt'; return n;
+    case 'adopteer': { // de sessie loopt al (na het overdragen van het spel, of het paneel is opnieuw getekend): het paneel kent rol, kamercode en spelers weer
+      n.rol = ev.rol === ROLES.HOST ? ROLES.HOST : ROLES.GAST; n.route = ev.route === ROUTES.DIRECT ? ROUTES.DIRECT : ROUTES.KAMER; n.code = String(ev.code || '');
+      n.spelers = Array.isArray(ev.lijst) ? ev.lijst : []; n.max = Math.min(ABS_MAX, Math.max(MIN_MAX, ev.max | 0 || DEFAULT_MAX));
+      n.partner = ev.slot != null ? { slot: ev.slot } : null; n.status = 'ok'; n.step = 'verbonden'; return n;
+    }
+    case 'laatste-code': // de code waarmee deze speler aansloot: na eruit gezet worden staat hij weer klaar om opnieuw aan te sluiten
+      if (typeof ev.code !== 'string' || !ev.code) return s;
+      n.caps = { ...s.caps, laatsteCode: ev.code }; return n;
     case 'verbreek': return fresh(s);
     case 'terug': return s.step === 'verbonden' ? s : fresh(s);
     default: return s;

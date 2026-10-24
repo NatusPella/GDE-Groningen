@@ -10,6 +10,7 @@
 // hooks: { startHost(route, onChange) -> hub, addGuest(transport), startClient(transport, route, wens) -> session,
 //          setMax(n), kick(slot), joined(rol), disconnect(act, rol, slot), onCode(code), canJoin() -> {ok, reason}, laatsteCode, resumed() }
 // opts:  { start: 'verbroken', rol, route, session (gast), hub (host), holdSlot, holdNaam }  (hervatten in het spel)
+//        { adopt: { code, route }, rol, session | hub }  (de sessie loopt al: na het overdragen van het spel kent het paneel rol, kamercode en spelers)
 import { createLobby, reduce, view, ROLES, ROUTES } from './lobby.js';
 import { ipcTransport, listenForGuests, onlineSupported } from './net/ipctransport.js';
 import { hostRoom, joinRoom, rtcSupported } from './net/rtcroom.js';
@@ -41,8 +42,14 @@ export function mountLobby(root, hooks, opts = {}) {
   let state = createLobby({ direct, rtc: rtcSupported(), laatsteCode: hooks.laatsteCode, versie: VERSION, lijst: !!opts.lijst, opslaan: !!(typeof window !== 'undefined' && window.gdeDesktop && window.gdeDesktop.saveTextFile), start: opts.start, rol: opts.rol, keuze: opts.keuze, holdNaam: opts.holdNaam, startGate: opts.startGate, spelNaam: opts.spelNaam });
   state.route = opts.route || null;
   if (opts.holdSlot != null) state = reduce(state, { t: 'hold', slot: opts.holdSlot, naam: opts.holdNaam });
+  if (opts.adopt) { // de sessie loopt al (coophostwisselnet.js wisselde hem om): geen beginscherm, wel de kamercode, de spelers en Iedereen stoppen of Spel verlaten
+    const host = opts.rol === ROLES.HOST, bron = host ? opts.hub : opts.session;
+    const lijst = host ? (bron && bron.roster ? rosterLijst(bron.roster) : []) : (bron && bron.welcome && Array.isArray(bron.welcome.lijst) ? bron.welcome.lijst : []);
+    const max = host ? (bron && bron.roster ? bron.roster.max : 0) : (bron && bron.welcome ? bron.welcome.max : 0);
+    state = reduce(state, { t: 'adopteer', rol: opts.rol, route: opts.adopt.route, code: opts.adopt.code, lijst, max, slot: host ? 0 : bron && bron.slot });
+  }
   let lastDiag = null;
-  let hub = opts.hub || null, session = opts.session || null, handle = null, room = null, stopListen = null, joinedOnce = false, wacht = false;
+  let hub = opts.hub || null, session = opts.session || null, handle = null, room = null, stopListen = null, joinedOnce = !!opts.adopt, wacht = false;
 
   const LOGT = { kies: 'rol gekozen', route: 'route gekozen', akkoord: 'toestemming gegeven', code: 'code gemaakt', fout: 'fout', status: 'status', verbinden: 'verbinden', hervat: 'opnieuw verbinden', verbreek: 'verbroken door speler', spelers: 'spelerslijst', 'openbaar-ja': 'sessie openbaar gemaakt', privaat: 'sessie weer privé', 'lijst-go': 'lijst met openbare sessies geopend' };
   // Automatisch herstel (kamercode-route, wachtscherm in het spel): de gastheer zet na een paar seconden zelf een nieuw aanbod klaar onder
@@ -115,7 +122,7 @@ export function mountLobby(root, hooks, opts = {}) {
       if (p && p.verbinding === 'ok' && hooks.resumed) hooks.resumed();
     }
     if (!joinedOnce && roster.spelers.length > 1) { joinedOnce = true; if (hooks.joined) hooks.joined(ROLES.HOST); }
-    if (hub && hub.vrijePlekken && !wacht && state.route === ROUTES.KAMER && !opts.start) openRoom().catch((e) => set({ t: 'fout', msg: e.message }));
+    if (hub && hub.vrijePlekken && !wacht && state.route === ROUTES.KAMER && !opts.start && !opts.adopt) openRoom().catch((e) => set({ t: 'fout', msg: e.message }));
   }
   function ensureHub() {
     if (hub) return hub;
@@ -220,6 +227,7 @@ export function mountLobby(root, hooks, opts = {}) {
       const r = await api.join(inv.code);
       if (!r.ok) { set({ t: 'kies', rol: ROLES.GAST }); return set({ t: 'fout', msg: r.reason }); }
       if (hooks.onCode) hooks.onCode(inv.code);
+      set({ t: 'laatste-code', code: inv.code });
       return bind(tr);
     }
     handle = await joinRoom(inv.room, {
@@ -227,6 +235,7 @@ export function mountLobby(root, hooks, opts = {}) {
       onstate: (s, info) => { if (s === 'fout') { set({ t: 'kies', rol: ROLES.GAST }); set({ t: 'fout', msg: info }); } },
     });
     if (hooks.onCode) hooks.onCode(inv.room.slice(0, 5) + '-' + inv.room.slice(5));
+    set({ t: 'laatste-code', code: inv.room.slice(0, 5) + '-' + inv.room.slice(5) }); // wordt de gast eruit gezet, dan staat de code klaar om opnieuw aan te sluiten
     handle.opened.then(bind).catch((e) => set({ t: 'fout', msg: e && e.message ? e.message : 'Er ging iets mis.' }));
   }
 
@@ -237,7 +246,7 @@ export function mountLobby(root, hooks, opts = {}) {
     handle = null; wacht = false;
     stopAankondiging(); stopLuisteren();
     if (stopListen) { stopListen(); stopListen = null; }
-    if (api && state.route === ROUTES.DIRECT && !opts.start) api.stop();
+    if (api && state.route === ROUTES.DIRECT && !opts.start && !opts.adopt) api.stop();
   }
 
   async function act(a) {
@@ -293,8 +302,8 @@ export function mountLobby(root, hooks, opts = {}) {
     }
   }
 
-  if (hub && opts.start) { const prev = hub.onchange; hub.onchange = (r) => { if (prev) prev(r); onRoster(r); }; }
-  if (session && opts.start) watch(session); // wachtscherm van een gast: zodra de verbinding van zelf terugkomt (zelfde token), sluit het scherm
+  if (hub && (opts.start || opts.adopt)) { const prev = hub.onchange; hub.onchange = (r) => { if (prev) prev(r); onRoster(r); }; }
+  if (session && (opts.start || opts.adopt)) watch(session); // wachtscherm van een gast: zodra de verbinding van zelf terugkomt (zelfde token), sluit het scherm
   root.addEventListener('click', (e) => {
     const b = e.target.closest && e.target.closest('[data-act]');
     if (b && root.contains(b)) act(b.dataset.act);
