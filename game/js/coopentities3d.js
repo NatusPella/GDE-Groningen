@@ -92,13 +92,26 @@ function zetDeuren(m, spec, dt, deuren) {
   syncVehicleDoors(m, spec, dt, null);
   if (spec.doors && Object.values(spec.doors.open).some((x) => x > 0.3)) deurenOpen++;
 }
-// Wielen, sturen, richtingaanwijzers, zwaailicht, lekke band, rotor en de achterkant van een gelede bus, uit de staat van de host
+// De snelheid waarmee de wielen en de trappers draaien: die uit de snapshot, en meldt de host er geen (een voertuig waar hij zelf op
+// rijdt, of een auto die een script verzet), dan de verplaatsing sinds het vorige beeld, zoals scene3d.js bij een stilstaande wereld
+// (#434). Met teken, zodat de trappers dezelfde kant op gaan als de wielen. ud.spinX/spinY onthouden waar we hem vorige keer tekenden.
+export function tekensnelheid(ud, x, z, angle, gemeld, dt) {
+  const lx = ud.spinX, lz = ud.spinY;
+  ud.spinX = x; ud.spinY = z;
+  const v = Number(gemeld) || 0;
+  if (Math.abs(v) >= 0.1 || lx == null || !(dt > 0)) return v;
+  const d = ((x - lx) * Math.cos(angle || 0) + (z - lz) * Math.sin(angle || 0)) / dt;
+  return Number.isFinite(d) && Math.abs(d) < 40 ? d : 0; // een sprong (teleport) is geen snelheid
+}
+// Wielen, sturen, richtingaanwijzers, zwaailicht, lekke band, rotor en de achterkant van een gelede bus, uit de staat van de host.
+// Een model dat nog een gok is (het uiterlijk is nog niet binnen) laat al wel de wielen en de trappers draaien (#434).
 function animeerVoertuig(m, spec, v, klok, dt, deuren) {
   const ud = m.userData;
+  try { updateVehicleWheelSpin(m, tekensnelheid(ud, m.position.x, m.position.z, v.angle, v.snelheid, dt), dt, v.stuur); } catch (e) { /* een onderdeel dat niet past, laat de rest gewoon staan */ }
+  if (!spec) return;
   spec.indicator = v.ind; spec.flat = v.lek; spec.sirenOn = v.sirene; spec.speed = v.snelheid; spec.steer = v.stuur; spec.horn = v.toeter;
   try {
     zetDeuren(m, spec, dt, deuren);
-    updateVehicleWheelSpin(m, v.snelheid, dt, v.stuur);
     if (v.lek || ud.flatIdx >= 0) applyFlatTire(m, spec);
     if (v.ind || ud.indLamps) updateIndicatorLamps(m, spec, klok);
     if (spec.isPolice || spec.isAmbulance || v.sirene) updatePoliceLamps(m, klok, v.sirene, spec.id);
@@ -175,7 +188,7 @@ export function syncHostEntities(world, dt = 1 / 60) {
       let lift = 0; try { lift = world.map ? surfaceLiftAt(world.map, px, py) : 0; } catch (e) { lift = 0; } y = WATER_Y + (Number.isFinite(lift) ? lift : 0);
     }
     m.position.set(px, y, py); m.rotation.y = -hoek;
-    if (spec && !m.userData.blok) animeerVoertuig(m, spec, v, klok, dt, deuren);
+    if (!m.userData.blok) animeerVoertuig(m, spec, v, klok, dt, deuren);
     // geluid: de toeter bij het aangaan van de vlag (met de toonhoogte van dit voertuig) en de sirene zolang hij aan staat, met de bestaande geluiden (audio.js)
     const toet = !!v.toeter;
     if (toet && !hornWas.get(v.id) && world.player && Math.hypot(v.x - world.player.x, v.y - world.player.y) < 130) {
