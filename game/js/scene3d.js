@@ -1823,7 +1823,7 @@ function noteStreamJump(px, py) {
 const streamFocus = { x: 0, y: 0 };
 const lastOverrideFocus = { x: 0, y: 0 };
 function updateStreamFocus(world) {
-  const o = world.cameraOverride, p = world.player;
+  const o = world.cameraOverride || (world.trainCam && world.trainCam.eye) || null, p = world.player; // de binnencamera van de trein telt mee (traindrive.js), anders blijft de focus hangen
   const cf = cameraFocus(o);
   if (cf) {
     streamFocus.x = lastOverrideFocus.x = cf.x;
@@ -3802,7 +3802,8 @@ function guardCinematicCamera(dt, world) {
 }
 
 function applyCameraOverride(dt, world, lx, ly, lz) {
-  const o = world.cameraOverride;
+  // binnen in de trein (traindrive.js, #442): de ogen van de machinist of van wie rondloopt, een harde cut
+  const o = world.cameraOverride || (world.trainCam && world.trainCam.eye) || null;
   const valid = !!(o && o.position && o.lookAt);
   _camLook.set(lx, ly, lz);
   if (valid) {

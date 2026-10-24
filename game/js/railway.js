@@ -440,7 +440,18 @@ function stepDriven(t, dt, world) {
   let u = (t.pv || 0) * t.cab;
   const toward = (target, rate) => { u = u > target ? Math.max(target, u - rate * dt) : Math.min(target, u + rate * dt); };
   if (ctl.emergency) toward(0, DRIVE_EBRAKE);
-  else if (ctl.throttle && !ctl.brake) {
+  else if (ctl.power !== undefined) {
+    // tractiehendel (treincabine.js): power 0..1 trekt, brakeF 0..1 remt; de rem laat de trein nooit achteruit rijden
+    if (ctl.brakeF > 0) toward(0, DRIVE_BRAKE * ctl.brakeF);
+    else if (ctl.power > 0) {
+      if (u < -0.2) toward(0, DRIVE_BRAKE);
+      else {
+        const cap = vmax * (0.4 + 0.6 * ctl.power);
+        if (u < cap) u = Math.min(cap, u + DRIVE_ACCEL * ctl.power * Math.max(0.08, 1 - (u / vmax) ** 2) * dt);
+        else toward(0, 0.05 + 0.0004 * u * u);
+      }
+    } else toward(0, 0.05 + 0.0004 * u * u);
+  } else if (ctl.throttle && !ctl.brake) {
     if (u < -0.2) toward(0, DRIVE_BRAKE);
     else u = Math.min(vmax, u + DRIVE_ACCEL * Math.max(0.08, 1 - (u / vmax) ** 2) * dt);
   } else if (ctl.brake) {
