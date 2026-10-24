@@ -34,6 +34,7 @@ for (const nm of KERK) check(`'${nm}' is een kerk`, !!K.churchKindOfName('yes', 
 for (const nm of GEEN) check(`'${nm}' is geen kerk`, !K.churchKindOfName('yes', nm), String(K.churchKindOfName('yes', nm)));
 check('een kapel of kerkje is een kapel, een kerk een kerk', K.churchKindOfName('yes', 'Het Kerkje') === 'chapel' && K.churchKindOfName('yes', 'Kapel Asingaborg') === 'chapel' && K.churchKindOfName('yes', 'Liudgerkerk') === 'church');
 // de tegeltypes: een kerk als huis, winkel of flat mag; een rij die al kerk, kapel of synagoge heet houdt zijn eigen archetype
+// (churchKindOfName gaat over de naam; kitItemFromBuilding geeft zo'n rij daarna alsnog een kit, zie hieronder)
 for (const t of ['house', 'retail', 'apartments', 'commercial', 'office', 'public', 'civic']) check(`kerk als ${t}`, K.churchKindOfName(t, 'Zuiderkerk') === 'church');
 for (const t of ['church', 'chapel', 'cathedral', 'synagogue', 'mosque', 'school', 'farm', 'industrial', 'shed', 'garage']) check(`type ${t} blijft zoals het was`, K.churchKindOfName(t, 'Liudgerkerk') === null);
 check('zonder naam geen kerk', !K.churchKindOfName('yes', '') && !K.churchKindOfName('yes', null) && !K.churchKindOfName('yes', undefined));
@@ -54,6 +55,30 @@ check('zonder naam geen kerk', !K.churchKindOfName('yes', '') && !K.churchKindOf
   check('te klein (22 m2) of te groot (4677 m2) is geen kerk', !K.kitItemFromBuilding(row('Kerk van Test', 'yes', 6, 3.6)) && !K.kitItemFromBuilding(row('Kerk van Test', 'yes', 90, 52)));
   check('zonder punten geen item', !K.kitItemFromBuilding({ type: 'yes', name: 'Kerk van Test', pts: [] }));
   check('andere kits blijven zoals ze waren (boerderij, flat, museum)', K.kitItemFromBuilding({ type: 'farm', name: '', hm: 8, pts: rect(0, 0, 30, 16) }).k === 'farm' && K.kitItemFromBuilding({ type: 'yes', name: 'Museum Test', hm: 8, pts: rect(0, 0, 30, 16) }).k === 'museum');
+}
+
+// ---- een rij die OSM zelf kerk, kapel of kathedraal noemt (#406) ----
+{
+  // zo'n rij kreeg het archetype kerk: de hoogte van de toren over de hele voetafdruk, een herhalend
+  // woonhuispatroon en geen dak als de omtrek geen rechthoek is (models3d_buildings.js addChurchDetail)
+  const kerk = { type: 'church', name: '', hm: 10.7, pts: rect(0, 0, 35, 16, 0.4) };
+  const it = K.kitItemFromBuilding(kerk);
+  check('een kerk zonder naam krijgt een kerkkit op zijn eigen omtrek', it && it.k === 'church' && it.o.length === 8, JSON.stringify(it && it.k));
+  const p = it && K.landmarkParams(it);
+  check('met de lengte en breedte van de omtrek, en een toren', p && p.kit === 'church' && Math.abs(p.len - 35) < 1 && Math.abs(p.wid - 16) < 1 && p.tower !== 'none', p && JSON.stringify({ len: p.len, wid: p.wid, tower: p.tower }));
+  const kapel = { type: 'chapel', name: '', hm: 11, pts: rect(0, 0, 12, 8) };
+  check('een kapel wordt een kapelkit', K.kitItemFromBuilding(kapel).k === 'chapel');
+  const kathedraal = { type: 'cathedral', name: '', hm: 40, pts: rect(0, 0, 40, 18) };
+  check('een kathedraal wordt een kerkkit', K.kitItemFromBuilding(kathedraal).k === 'church');
+  check('een kerk van 70 x 50 m blijft te groot voor een kit', !K.kitItemFromBuilding({ type: 'church', name: '', hm: 12, pts: rect(0, 0, 70, 50) }));
+  // een kerk uit landmarkkits.json op dezelfde plek tekent hem: het tegelgebouw krijgt geen tweede kit
+  K.setKitList([{ kind: 'church', x: 0, y: 0, angle: 0.4, len: 35, wid: 16 }]);
+  check('een dekkende kit wint van de eigen kit van een kerk zonder naam', K.kitItemFromBuilding(kerk) === null);
+  K.setKitList(null);
+  // een kapel van 40 m in de tegels: de kapelkit mag niet zo klein worden dat hij zijn eigen gebouw niet meer dekt
+  const groot = { type: 'chapel', name: '', pts: rect(0, 0, 40, 20) };
+  const kap = K.landmarkParams({ k: 'chapel', n: '', t: { building: 'chapel' }, x: 0, y: 0, o: groot.pts.flat() });
+  check('een grote kapel dekt zijn eigen tegelgebouw', K.kitCoversBuilding(kap, groot), `${kap.len} x ${kap.wid}`);
 }
 
 // ---- het model: een eindige kerk op de voetafdruk ----
