@@ -6,7 +6,8 @@ import { getScene, prewarmStreamAt } from './scene3d.js';
 import { speakerHtml } from './speakers.js';
 import { getSettings, QUALITY_PRESETS, withTempSettings } from './settings.js';
 import { PRESET_ORDER, GFX_PRESETS, currentPreset, describePreset, presetLabel, applyPreset, setBenchResult } from './gfxprofile.js';
-import { BENCH_ROUTE, BENCH_CATEGORIES, frameStats, categoryStats, routeHitches, weakestCategory, recommendProfile, profileWord, compareRuns, compareText, packRun, readLastRun, writeLastRun } from './benchstats.js';
+import { BENCH_ROUTE, BENCH_CATEGORIES, frameStats, categoryStats, routeHitches, weakestCategory, recommendProfile, profileWord, compareRuns, compareText, packRun, readLastRun, writeLastRun, heapMb, heapPeak, memText } from './benchstats.js';
+import { onBenchmarkStop } from './gamepad.js';
 import { refreshDayNight } from './daynight.js';
 import { makeActor, stage, seat } from './intromontage.js';
 import { makeBirds, scatterBirds, updateBirds } from './birds.js';
@@ -2030,14 +2031,6 @@ function enterShot(r, i) {
   r.stats[i] = r.stats[i] || { label: s.label, id: s.id, ms: [] };
 }
 
-// B (1) or Start (9) on any connected pad: the controller's way to stop the benchmark (#159)
-function padCancelPressed() {
-  try {
-    for (const p of (navigator.getGamepads ? navigator.getGamepads() : [])) if (p && p.connected && ((p.buttons[1] && p.buttons[1].pressed) || (p.buttons[9] && p.buttons[9].pressed))) return true;
-  } catch (e) { /* no pad API */ }
-  return false;
-}
-
 // ?benchmark: one line per shot with its fps, draw calls and GPU memory
 function logShot(r, i) {
   const st = r.stats[i], ren = window.__scene3d && window.__scene3d.renderer;
@@ -2140,6 +2133,8 @@ function frame(r, dt, realMs) {
   if (r.mode === 'benchmark') {
     // title cards are not measured, also when a picture runs behind them
     if (!s.black && !s.card && !frozen && st / k > MEASURE_AFTER_CUT_S) r.stats[i].ms.push(realMs);
+    // the JS heap during the run (#379): one sample a second, the card shows the peak
+    if (r.heap && r.T - r.heap.at >= 1) { r.heap.at = r.T; r.heap.peak = heapPeak([r.heap.peak, heapMb()]); }
     r.fpsAcc += realMs; r.fpsN++;
     if (r.fpsAcc > 500) {
       ui.fps.textContent = `BENCHMARK${r.label ? ` · ${r.label}` : ''} · ${Math.round(1000 / (r.fpsAcc / r.fpsN))} fps`;
@@ -2189,8 +2184,11 @@ function computeStats(r) {
   const min = all.reduce((a, b) => a + b, 0) / 60000;
   const spikes = [50, 100, 200].map((ms) => +(all.filter((x) => x > ms).length / Math.max(min, 1e-6)).toFixed(1));
   const fs = frameStats(all);
-  const heap = typeof performance !== 'undefined' && performance.memory ? performance.memory.usedJSHeapSize / 1048576 : 0;
-  return { avg: 1000 / mean, low: 1000 / worst, low1: fs.low1, p95: fs.p95, slow33: fs.slow33, hitches: routeHitches(r.stats.filter(Boolean)), cats: categoryStats(r.stats.filter(Boolean)), memory: heap, heaviest: shots[0] || null, frames: all.length, shots, spikes };
+  // #379: the highest JS heap of the run (a sample a second) plus the end; 0
+  // when the browser has no performance.memory
+  const heapNow = heapMb();
+  const heap = r.heap ? heapPeak([r.heap.start, r.heap.peak, heapNow]) : heapNow;
+  return { avg: 1000 / mean, low: 1000 / worst, low1: fs.low1, p95: fs.p95, slow33: fs.slow33, hitches: routeHitches(r.stats.filter(Boolean)), cats: categoryStats(r.stats.filter(Boolean)), memory: heap, memoryNow: heapNow, heaviest: shots[0] || null, frames: all.length, shots, spikes };
 }
 
 // runTrailer(world, { mode, cut, shot, frames, env: { tick, render, relocate } })
@@ -2207,7 +2205,7 @@ export function runTrailer(world, { mode = 'opname', cut = 'vol', shot = null, f
     const shots = shot != null && all[shot - 1] ? [all[shot - 1]] : all;
     const starts = [];
     let total = 0;
-    const r = { w: world, env, mode, cut, durs, beats, shots, starts, idx: -1, state: {}, cars: [], T: 0, pose: null, stats: [], fpsAcc: 0, fpsN: 0, done: false, camIdx: 0, black: { from: 1, to: 1, t0: 0, dur: 0 } };
+    const r = { w: world, env, mode, cut, durs, beats, shots, starts, idx: -1, state: {}, cars: [], T: 0, pose: null, stats: [], fpsAcc: 0, fpsN: 0, done: false, camIdx: 0, black: { from: 1, to: 1, t0: 0, dur: 0 }, heap: mode === 'benchmark' ? { start: heapMb(), peak: 0, at: 0 } : null };
     const pl = world.player;
     r.savedPlayer = { x: pl.x, y: pl.y, angle: pl.angle, inVehicle: pl.inVehicle || null };
     r.savedCamYaw = world.camYaw;
@@ -2282,6 +2280,7 @@ export function runTrailer(world, { mode = 'opname', cut = 'vol', shot = null, f
     let holdSince = null;
     let swallow = false;
     let frozen = null;
+    let padOff = null;
     const onKey = (e) => {
       if (e.key === ' ') {
         e.preventDefault();
@@ -2304,6 +2303,7 @@ export function runTrailer(world, { mode = 'opname', cut = 'vol', shot = null, f
     const end = (skipped, aborted = false) => {
       if (r.done) return;
       r.done = true;
+      if (padOff) padOff();
       if (BENCH_RUNS) logShot(r, r.idx);
       if (nativeRender) ren.render = nativeRender;
       setThemeDuck(false);
@@ -2338,11 +2338,14 @@ export function runTrailer(world, { mode = 'opname', cut = 'vol', shot = null, f
       running = null;
       setTrailerRunning(false);
       const stats = mode === 'benchmark' ? computeStats(r) : null;
-      if (stats) console.log('[trailer] benchmark', JSON.stringify({ avg: +stats.avg.toFixed(1), low: +stats.low.toFixed(1), spikesPerMin: stats.spikes, shots: stats.shots.map((x) => `${x.label}: ${x.fps.toFixed(1)}`) }));
+      if (stats) console.log('[trailer] benchmark', JSON.stringify({ avg: +stats.avg.toFixed(1), low: +stats.low.toFixed(1), spikesPerMin: stats.spikes, heapMb: Math.round(stats.memory), shots: stats.shots.map((x) => `${x.label}: ${x.fps.toFixed(1)}`) }));
       if (window.__trailer) window.__trailer.lastStats = stats;
       resolve({ skipped, aborted, stats, continuation: handOff ? last.continuation() : null, pose: r.pose });
     };
     r.end = end;
+    // the benchmark stops on a controller too: B or Start (the ESC hint in the
+    // corner), through gamepad.js so the press does not reach the menu (#379)
+    if (mode === 'benchmark') padOff = onBenchmarkStop(() => end(true, true));
 
     let last = performance.now();
     const loop = (now) => {
@@ -2357,8 +2360,6 @@ export function runTrailer(world, { mode = 'opname', cut = 'vol', shot = null, f
       try { frame(r, hold ? 0 : dt, realMs); } catch (e) { console.error('trailer', r.shots[r.idx] && r.shots[r.idx].label, e && e.stack); }
       probe.end();
       if (hold) { requestAnimationFrame(loop); return; }
-      // the benchmark stops on a controller too: B or Start (the ESC hint in the corner)
-      if (mode === 'benchmark' && padCancelPressed()) { end(true, true); return; }
       if (holdSince != null) {
         const k = Math.min(1, (now - holdSince) / (SKIP_HOLD_S * 1000));
         ui.skip.style.setProperty('--hold', String(k));
@@ -2514,11 +2515,13 @@ export function showBenchmarkResults(res) {
   const st = getSettings();
   const r = Math.round;
   const adv = stats ? advise(stats) : { text: 'Er is niets gemeten. Probeer het nog een keer.', apply: null };
+  // #379: the JS heap only when the browser gives it (performance.memory)
+  const mem = stats && stats.memory > 0 ? memText(stats.memory).split(' ') : null;
   const meta = `Kwaliteit ${st.quality} · schaduwen ${st.shadows && QUALITY_PRESETS[st.quality].shadows ? 'aan' : 'uit'} · zichtafstand ${st.drawDistance} · resolutie ${Math.round(st.resolution * 100)}%${st.autoResolution ? ' (auto)' : ''} · ${innerWidth}×${innerHeight}`;
   resultEl.innerHTML = `<div class="tr-res">
     <h2 id="tr-res-title">Benchmark</h2>
     <div class="tr-meta">${meta}</div>
-    ${stats ? `<div class="tr-nums"><div><b>${r(stats.avg)}</b><span>fps gemiddeld</span></div><div><b>${r(stats.p95)}<small> ms</small></b><span>p95-frametijd</span></div><div><b>${r(stats.low1)}</b><span>laagste 1%</span></div>${stats.memory > 0 ? `<div><b>${r(stats.memory)}<small> MB</small></b><span>geheugen</span></div>` : ''}</div>
+    ${stats ? `<div class="tr-nums"><div><b>${r(stats.avg)}</b><span>fps gemiddeld</span></div><div><b>${r(stats.p95)}<small> ms</small></b><span>p95-frametijd</span></div><div><b>${r(stats.low1)}</b><span>laagste 1%</span></div>${mem ? `<div title="De JavaScript-heap van het spel, de hoogste stand tijdens de run. Niet het beeldgeheugen van de videokaart."><b>${mem[0]}<small> ${mem[1]}</small></b><span>JS-heap (piek)</span></div>` : ''}</div>
     <p class="tr-cmp ${diff ? diff.verdict : ''}">${compareText(diff)}</p>
     ${Object.keys(stats.cats).length ? `<div class="tr-cats">${Object.entries(stats.cats).map(([c, v]) => `<span class="${c === weakestCategory(stats.cats) && stats.cats[c].avg < 60 ? 'weak' : ''}">${BENCH_CATEGORIES[c]}<b>${r(v.avg)} fps</b></span>`).join('')}</div>` : ''}` : ''}
     <p class="tr-advice">${adv.text}${adv.what ? `<small>${adv.what}</small>` : ''}</p>
