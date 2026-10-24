@@ -14,6 +14,7 @@ import { HostHub } from './net/hub.js';
 import { VERSION } from './version.js';
 import { setFixedCharacters, applyHostState, makeClientInput, ensureFigure, removeFigure, figures } from './coopclient.js';
 import { bindCoop } from './coopglue.js';
+import { ververs } from './spelersregister.js';
 import { partnersInfo, createPings, addPing, tickPings, pingEvent } from './partnerhud.js';
 import { holdBeleid, leesLijstEvent, lijst } from './coopplayers.js';
 import { cameraRelative, stepSlot2, sharedCamera } from './coop.js';
@@ -172,7 +173,7 @@ function endCoop(world) {
   bestuurAllesLos(world); wapenAllesWeg(world); gastWapenWeg(world); world.coopWapens = null; world.coopSchade = null; world.coopBoot = null; world.coopZit = null; // (#434) // een gast die stuurde laat het voertuig stil achter (#434)
   if (world.coop) { delete world.coop.leash; }
   if (world.coop) { world.coop.remote = false; world.coop.remoteInput = null; world.coop.fixedChars = false; if (world.coop.prevLocal !== undefined) { world.coop.local = world.coop.prevLocal; world.coop.prevLocal = undefined; } }
-  world.coopPartner = null; world.coopPartners = []; world.coopRoster = null; world.coopFigures = {}; world.coopHost = null; world.coopExtra = null; world.coopHostMissie = null; world.coopCam = null; world.coopScene = null;
+  world.players = null; world.coopPartner = null; world.coopPartners = []; world.coopRoster = null; world.coopFigures = {}; world.coopHost = null; world.coopExtra = null; world.coopHostMissie = null; world.coopCam = null; world.coopScene = null;
   world.coopVrijLopen = false; world.coopUitnodiging = null; world.coopMeedoenNee = false; world.coopMeedoenJa = null; // (#429)
   world.coopFoci = null; world.coopFociInfo = null; // spelers uit elkaar (#429)
   world.coopBezigVan = {}; world.coopHudWanted = 0; // wie bezig is en de sterren in het scherm van de host (#429, #434)
@@ -657,7 +658,7 @@ export function tickCoopNet(world, dt) {
       world.coopZit = mijnVoertuig ? mijnVoertuig.soort : null; // de soort, voor het geluid in de cabine (sfx/ambience.js, #434)
       world.coopBoot = mijnVoertuig && mijnVoertuig.soort === 'boot' ? { x: mijnVoertuig.x, y: mijnVoertuig.y, speed: Math.abs(mijnVoertuig.snelheid || 0) } : null; // zit hij in een boot, dan kan hij vanaf het water hengelen (hengelen.js, #434)
       if (sample && rails) { if (rails.zetTreinenVanHost) rails.zetTreinenVanHost(world.coopHost.treinen); else for (const t of world.coopHost.treinen) rails.zetTreinVanHost(t.route, t.x, t.y, t.v); } // de gast speelt geen eigen dienstregeling: de treinen staan waar de host ze heeft
-      world.coopPartners = partnersInfo(s.slot, sample ? sample.players : [], world.coopRoster || []);
+      world.coopPartners = partnersInfo(s.slot, sample ? sample.players : [], world.coopRoster || []); ververs(world, s.slot); // register world.players (#446)
       world.coopPartner = world.coopPartners[0] || null;
       world.coopCam = CAMERA_DELEN && s.slot === 1 ? sharedCamera(world.player, world.companion) : null; // alleen Tessa zou de camera delen met Tammo (uit, #388)
     }
@@ -695,7 +696,7 @@ export function tickCoopNet(world, dt) {
   for (const slot of meedoenTik(n.meedoen, dt)) world.coopMeld && world.coopMeld(slot, 'Je doet mee.');
   const c = world.companion;
   const players = [c ? { slot: 1, x: posOf(c).x, y: posOf(c).y, angle: posOf(c).angle, alive: c.state !== 'dead', inVeh: !!c.inVehicle } : null, ...Object.values(figures(world)).map((f) => ({ slot: f.slot, x: f.x, y: f.y, angle: f.angle, alive: true, inVeh: !!f.inVeh }))].filter(Boolean);
-  world.coopPartners = partnersInfo(0, players, world.coopRoster || []);
+  world.coopPartners = partnersInfo(0, players, world.coopRoster || []); ververs(world, 0); // register world.players (#446)
   world.coopPartner = world.coopPartners[0] || null;
   // gedeelde camera met Tessa (plek 1) zolang zij echt meespeelt; extra spelers hebben hun eigen camera
   const tessa = n.hub.roster.spelers.find((x) => x.slot === 1);
