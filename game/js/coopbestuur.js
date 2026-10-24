@@ -6,12 +6,14 @@
 // Schade, politie en diefstalgevolgen horen bij de gast: voertuig.coopBestuurder is zijn plek (coopgezocht.js).
 import { figures } from './coopclient.js';
 import { kanUitstappen, wielInvoer } from './coopgast.js';
+import { magGebruiken } from './coopbezit.js'; // de rechten op een eigen voertuig van een medespeler (#449); dit bestand en coopbezit.js wijzen naar elkaar, net als coopnet.js en coophostwisselnet.js
 
 export const BESTUUR_TEKST = {
   in: 'Je rijdt. Met E stap je uit als het voertuig bijna stilstaat.',
   uit: 'Stap uit als het voertuig bijna stilstaat.',
   slot: 'Dat slot zit dicht.',
   vlieg: 'Een helikopter of vliegtuig besturen kan alleen in je eigen spel.',
+  gedeeld: 'Deze is van een ander en wordt niet gedeeld.',
   kapot: 'Je voertuig is kapot. Je staat weer buiten.',
   zinkt: 'Je voertuig zinkt. Je staat weer bij de groep.',
   ver: 'Te ver van de groep: je voertuig staat stil en je staat weer bij de groep.',
@@ -57,16 +59,18 @@ export const bestuurt = (lichaam) => !!(lichaam && lichaam.coopBestuurt);
 export const bestuurderVan = (world, slot) => (rijders(world)[slot] || null);
 
 // Mag een gast dit voertuig besturen? Geparkeerde auto, fiets, scooter en boot die vrij zijn (niemand erin, geen verkeer, geen opdrachtauto of eigen auto van de host, behalve een machine van de boerderij van de host: #415);
-// een helikopter of vliegtuig niet. Geeft null als het mag, anders de reden.
-export function weigerReden(v) {
+// een helikopter of vliegtuig niet. Een eigen voertuig dat een gast meenam (#449, coopbezit.js) mag wel, als
+// die hem deelt (recht 'ik' is alleen voor de eigenaar). Geeft null als het mag, anders de reden.
+export function weigerReden(v, slot = null) {
   if (!v) return 'geen';
   if (v.isHeli || v.isPlane) return 'vlieg';
   if (v.driver || v.passenger || v.wrecked || v.sinking || v.disabled) return 'bezet';
   if (v.road || v.countryDrive) return 'verkeer';
+  if (v.coopBezit) return magGebruiken(v.coopBezit.recht, slot, v.coopBezit.slot) ? null : 'gedeeld';
   if (v.isPolice || v.isBus || v.isHeroCar || (v.playerOwned && !v.farm) || v.missionCar || v.storyCar || v.scripted || v.racer || v.cineTemp || v.homeStored || v._mount || v.isAmbulance) return 'niet';
   return null;
 }
-export const magBesturen = (v) => weigerReden(v) === null;
+export const magBesturen = (v, slot = null) => weigerReden(v, slot) === null;
 
 function zelfdeNiveau(v, l) { return Math.abs((v.z || 0) - (l.gz || 0)) <= 2; }
 function stoot(world, slot, tekst) { if (world.coopMeld) world.coopMeld(slot, tekst); }
@@ -93,7 +97,7 @@ export function bestuurGebruik(world, slot) {
 export function bestuurInstappen(world, slot) {
   const l = lichaamVan(world, slot); if (!l || !haken.vind || !haken.enter) return { gedaan: false };
   const alle = (world.vehicles || []).filter((q) => q && !q.wrecked && zelfdeNiveau(q, l));
-  const vrij = alle.filter(magBesturen);
+  const vrij = alle.filter((q) => magBesturen(q, slot));
   let v = haken.vind(l.x, l.y, vrij);
   const pr = haken.vindProp ? haken.vindProp(l.x, l.y) : null; // een fiets of scooter die tegen een muur staat
   if (pr && (!v || pr.dist < Math.hypot(v.x - l.x, v.y - l.y) - (v.halfLen || 0))) {
@@ -104,10 +108,13 @@ export function bestuurInstappen(world, slot) {
   if (!v) {
     const vlieg = haken.vind(l.x, l.y, alle.filter((q) => (q.isHeli || q.isPlane) && !q.driver));
     if (vlieg) { stoot(world, slot, BESTUUR_TEKST.vlieg); return { gedaan: true }; }
+    // een eigen voertuig van een andere speler dat niet gedeeld is (#449)
+    const gedeeld = haken.vind(l.x, l.y, alle.filter((q) => q.coopBezit && !magGebruiken(q.coopBezit.recht, slot, q.coopBezit.slot)));
+    if (gedeeld) { stoot(world, slot, BESTUUR_TEKST.gedeeld); return { gedaan: true }; }
     return { gedaan: false };
   }
   const proxy = maakProxy(world, slot, l, v);
-  const auto = !v.isBike && !v.isScooter && !v.isBoat && !v.farm; // een fiets of boot meenemen is geen misdaad, een auto van een ander wel; de machines van de boerderij van de host zijn voor iedereen (#415)
+  const auto = !v.isBike && !v.isScooter && !v.isBoat && !v.farm && !v.coopBezit; // een fiets of boot meenemen is geen misdaad, een auto van een ander wel; de machines van de boerderij van de host en een gedeeld voertuig van een medespeler zijn voor iedereen (#415, #449)
   haken.enter(proxy, v, world);
   if (proxy.inVehicle !== v) return { gedaan: true }; // enterVehicle weigerde (er zat al iemand in)
   v.coopBestuurder = slot; v.wreckedByGast = null;

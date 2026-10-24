@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import { createLink } from '../game/js/net/memtransport.js';
 import * as N from '../game/js/coopnet.js';
 import { coopStep } from '../game/js/coopglue.js';
+import { zetDeelHaken, nieuweDeelStaat } from '../game/js/coopbezit.js';
 
 let n = 0;
 const t = (name, f) => { f(); n++; console.log('ok  ' + name); };
@@ -85,4 +86,28 @@ t('de oude host die gast wordt: zijn eigen lijst (verkeer en eigen auto) gaat op
   assert.equal(N.zetEigenVoertuigenOpzij({ vehicles: undefined }, {}), 0, 'een wereld zonder lijst breekt niets');
 });
 
-console.log(`coopvoertuigen_test: ${n}/4 ok`);
+t('de gast bezorgt zijn eigen auto: de host zet hem neer, iedereen ziet hem en hij gaat weg als de gast gaat (#449)', () => {
+  const s = avond(); s.step(3);
+  // de wereldhaken van main.js, met een nepwereld: geen kaart, geen parkeerplek zoeken
+  zetDeelHaken({
+    spec: (key) => (key === 'hero' ? { label: 'Fjord Escapade', kind: 'car', color: '#a11f1f', model: { name: 'escort', len: 4, wid: 1.65, maxSpeed: 50 } } : null),
+    plek: () => ({ x: 500, y: 44, angle: 0 }),
+    maak: (w, g, x, y, a) => { const v = { x, y, angle: a, model: { ...g.spec.model }, upgrades: g.upgrades, health: g.health }; w.vehicles.push(v); return v; },
+  });
+  s.hw.coop.remote = true; // de gast zit op de plek van de metgezel (zoals in een echte sessie)
+  s.gw.coopBezit = nieuweDeelStaat();
+  const r = s.gw.coopBezitVraag({ id: 'hero', kind: 'car', label: 'Fjord Escapade', model: 'Escapade', color: '#a11f1f', upgrades: [], dents: [], health: 100, flat: false });
+  assert.equal(r.ok, true);
+  s.step(1);
+  const bezorgd = s.hw.vehicles.filter((v) => v.coopBezit);
+  assert.equal(bezorgd.length, 1, 'de host heeft er een kopie bij');
+  assert.equal(bezorgd[0].coopBezit.slot, 1);
+  assert.equal(bezorgd[0].coopBezit.recht, 'iedereen', 'de standaard: de gast deelt hem');
+  assert.equal(s.gw.vehicles.length, 0, 'de gast zet niets in zijn eigen wereld');
+  s.step(2);
+  assert.equal(s.hw.vehicles.filter((v) => v.coopBezit).length, 1, 'de volgende ticks zetten er geen tweede bij');
+  N.stopCoopNet(s.hw); // de sessie stopt: de kopie gaat mee terug
+  assert.equal(s.hw.vehicles.filter((v) => v.coopBezit).length, 0);
+});
+
+console.log(`coopvoertuigen_test: ${n}/5 ok`);
