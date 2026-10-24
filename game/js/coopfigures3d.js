@@ -9,10 +9,10 @@ import { syncZitters, aantalZitters } from './coopzitten3d.js';
 import { bestuurdersLijst } from './coopbestuur.js';
 import { isCinematicActive } from './cinematics.js';
 import { buildPersonMesh, animatePersonWalk, setHeldWeapon, applyAttackPose } from './models3d_people.js';
-import { figuurLook } from './coopplayers.js';
+import { avatarVan, avatarLook, avatarLabel } from './coopspeler.js';
 import { ruimMeshOp } from './coopruim.js';
 import { syncBezig, hasBezigMeshes } from './coopbezig3d.js';
-import { planFigures, needsRebuild, walkSpeed, labelSpec, LABEL_Y } from './coopfigures.js';
+import { planFigures, walkSpeed, LABEL_Y } from './coopfigures.js';
 
 const meshes = new Map(); // plek -> { mesh, char, label, prev }
 
@@ -29,13 +29,14 @@ function makeLabel(spec) {
 }
 
 function build(scene, fig) {
-  const look = figuurLook(fig.char);
+  const av = avatarVan(fig, fig.slot); // (#455) altijd de online-avatar, nooit Tammo of Tessa
+  const look = avatarLook(av);
   const mesh = buildPersonMesh(look.shirt, look.skin, look.opts);
   mesh.traverse((o) => { if (o.isMesh) o.castShadow = true; });
-  const label = makeLabel(labelSpec(fig));
+  const label = makeLabel(avatarLabel(av));
   mesh.add(label);
   scene.add(mesh);
-  return { mesh, char: fig.char, label, prev: null };
+  return { mesh, char: av.char, label, prev: null };
 }
 function dispose(scene, e) {
   if (e.label) { e.mesh.remove(e.label); ruimMeshOp(null, e.label, { geometrie: false, materiaal: true }); } // het label heeft een eigen kaart en materiaal
@@ -56,7 +57,8 @@ export function syncFigures(world, dt) {
   for (const f of plan.add) meshes.set(f.slot, build(scene, f));
   for (const f of [...plan.keep, ...plan.add]) {
     let e = meshes.get(f.slot);
-    if (needsRebuild(e.char, f)) { dispose(scene, e); e = build(scene, f); meshes.set(f.slot, e); }
+    const avatarChar = avatarVan(f, f.slot).char; // (#455) de avatar bepaalt het model, niet de verhaalrol
+    if (e.char !== avatarChar) { dispose(scene, e); e = build(scene, f); meshes.set(f.slot, e); }
     const map = world.map;
     if (map && map.elev && map.elev.has && map.groundHeightAt) { try { f.gz = map.groundHeightAt(f.x, f.y, f.gz || 0); } catch (er) { /* hoogte onbekend: vlak */ } }
     e.mesh.visible = !f.coopVoertuig && !filmpje; // wie meerijdt zit in het voertuig (#372); in een filmpje staan alleen de spelers van de scène in beeld (#376)
@@ -71,7 +73,7 @@ export function syncFigures(world, dt) {
   }
   // bij de gastheer: de extra spelers in zijn voertuig zitten op hun stoel in zijn model (bij een gast doet coopentities3d.js dit voor iedereen, #434)
   if (world.coopRole !== 'client') {
-    const lijst = Object.values(world.coopFigures || {}).filter((f) => f && f.inVeh && f.stoel != null && f.char && !f.coopBestuurt).map((f) => ({ slot: f.slot, char: f.char, voertuig: f.inVeh, stoel: f.stoel })).concat(bestuurdersLijst(world)); // plus de gasten die zelf een voertuig besturen (#434)
+    const lijst = Object.values(world.coopFigures || {}).filter((f) => f && f.inVeh && f.stoel != null && f.char && !f.coopBestuurt).map((f) => ({ slot: f.slot, char: avatarVan(f, f.slot).char, voertuig: f.inVeh, stoel: f.stoel })).concat(bestuurdersLijst(world)); // plus de gasten die zelf een voertuig besturen (#434)
     if (lijst.length || hasZitters()) syncZitters(filmpje ? [] : lijst, (v) => { const mesh = getVehicleMesh(v.id); return mesh ? { mesh, v } : null; }, filmpje ? null : world);
   }
 }

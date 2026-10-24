@@ -32,11 +32,11 @@ function sessie(gasten = 1, { hostExtra, gastExtra = [], opts = {}, wens = [] } 
   return { hw, gs, fades, holds, step };
 }
 
-t('vaste personages: host Tammo, gast Tessa, extra spelers een eigen figuur', () => {
+t('rollen per speler (#455): de eigen verhaalrol blijft, de ander is de metgezel, extra spelers een eigen figuur', () => {
   const h = mkWorld(), g = mkWorld(), x = mkWorld();
   C.setFixedCharacters(h, 0); C.setFixedCharacters(g, 1); C.setFixedCharacters(x, 2, 'bram');
-  assert.deepEqual([h.player.character, h.companion.character], ['tammo', 'anita']);
-  assert.deepEqual([g.player.character, g.companion.character], ['anita', 'tammo']);
+  assert.deepEqual([h.player.character, h.companion.character], ['anita', 'tammo'], 'de host houdt zijn eigen rol');
+  assert.deepEqual([g.player.character, g.companion.character], ['anita', 'tammo'], 'de gast houdt zijn eigen rol, geen plekrol');
   assert.equal(x.player.coopChar, 'bram'); assert.equal(x.companion.character, 'tammo');
   assert.equal(C.mySlotOf('host'), 0); assert.equal(C.mySlotOf('client'), 1); assert.equal(C.mySlotOf(3), 3);
 });
@@ -236,11 +236,12 @@ t('de wereld van de host: voertuigen en doel komen bij de gasten aan, en de opdr
   s.hw.mission = { phase: 'idle' }; s.step(1);
   assert.equal(gw.coopHostMissie.actief, false);
 });
-t('een extra speler hoort dat hij in de open wereld meeloopt', () => {
+t('elke speler is gelijkwaardig: ook een extra speler krijgt de uitnodiging om mee te doen (#455)', () => {
   const s = sessie(2, { hostExtra: { mission: { phase: 'active', label: 'Kluisklus', index: 1, marker: { x: 1, y: 1 } } } });
   s.step(3);
   assert.match(s.gs[0].gw.messages.join(' '), /Doe mee waar het kan/);
-  assert.match(s.gs[1].gw.messages.join(' '), /Jij loopt mee in de open wereld/);
+  assert.match(s.gs[1].gw.messages.join(' '), /Doe mee waar het kan/);
+  assert.doesNotMatch(s.gs[1].gw.messages.join(' '), /open wereld/);
 });
 t('camera: niemand deelt een camera (#388); sharedCamera blijft beschikbaar voor een scherm met twee spelers', () => {
   assert.equal(N.CAMERA_DELEN, false);

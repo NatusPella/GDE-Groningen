@@ -7,20 +7,18 @@
 // - een client toont de toestand van de host (posities, wanted) en stuurt alleen invoer; geld en spullen blijven eigen.
 // Niet in een echt spel gezien: extra figuren hebben nog geen model in de wereld (zie #95).
 
-import { charInfo, slotChar } from './coopplayers.js';
-import { knoppen, wapenNaam, leesAanval } from './coopspeler.js';
-
-export const CHAR_OF_SLOT = ['tammo', 'anita'];
+import { knoppen, wapenNaam, leesAanval, avatarVan } from './coopspeler.js';
+import { eigenVerhaalrol, andereVerhaalrol } from './cooproles.js';
 
 // 'host' = plek 0, 'client' = plek 1 (zoals voor er meer spelers waren), een getal is de plek zelf
 export const mySlotOf = (me) => (me === 'host' ? 0 : me === 'client' ? 1 : me | 0);
 
 export function figures(world) { return world.coopFigures || (world.coopFigures = {}); }
-export function ensureFigure(world, slot, char) {
+export function ensureFigure(world, slot, char, avatar = null) {
   const f = figures(world);
   if (!f[slot]) {
-    const c = charInfo(char) || charInfo(slotChar(slot)) || {};
-    f[slot] = { slot, char: char || slotChar(slot), naam: c.naam || '?', kleur: c.kleur || '#cccccc', x: 0, y: 0, angle: 0, vx: 0, vy: 0, input: null };
+    const av = avatarVan({ ...(char ? { char } : {}), ...(avatar && typeof avatar === 'object' ? avatar : {}) }, slot); // (#455) anderen zie je als hun online-avatar
+    f[slot] = { slot, char: av.char, naam: av.naam, kleur: av.kleur, avatar: av, x: 0, y: 0, angle: 0, vx: 0, vy: 0, input: null };
   }
   return f[slot];
 }
@@ -35,17 +33,16 @@ export function bodyFor(world, me, slot) {
   return figures(world)[slot] || null;                       // alle anderen: figuren
 }
 
-// Zet de lichamen op hun vaste personage en schakel de verhaalwissel uit (story.js kijkt naar world.coop.fixedChars).
-// Extra spelers houden het model van het lichaam; hun figuur staat in world.player.coopChar voor een eigen uiterlijk.
+// Zet de lichamen op hun eigen verhaalrol (#455): de rol hoort bij de speler, niet
+// bij de plek, dus plek 0 en 1 hebben geen vaste Tammo/Tessa meer. De tweede
+// verhaalrol is lokaal de metgezel. Extra spelers houden een eigen online-avatar.
+// story.js kijkt naar world.coop.fixedChars om de verhaalwissel niet te dubbelen.
 export function setFixedCharacters(world, me, char = null) {
   const mine = mySlotOf(me);
-  if (mine < 2) {
-    if (world.player) world.player.character = CHAR_OF_SLOT[mine];
-    if (world.companion) world.companion.character = CHAR_OF_SLOT[1 - mine];
-  } else {
-    if (world.companion) world.companion.character = 'tammo';
-    if (world.player) world.player.coopChar = char || slotChar(mine);
-  }
+  const rol = eigenVerhaalrol(world.player);
+  if (world.player) world.player.character = rol;
+  if (world.companion) world.companion.character = andereVerhaalrol(rol);
+  if (world.player) world.player.coopChar = avatarVan({ ...(char ? { char } : {}), slot: mine }, mine).char;
   if (world.coop) world.coop.fixedChars = true;
 }
 
@@ -57,7 +54,7 @@ export function applyHostState(world, me, sample, roster = null, dt = 0) {
   for (const p of sample.players) {
     if (!Number.isFinite(p.x) || !Number.isFinite(p.y)) continue;
     let b = bodyFor(world, me, p.slot);
-    if (!b) { const r = roster && roster.find((x) => x.slot === p.slot); b = ensureFigure(world, p.slot, r && r.char); }
+    if (!b) { const r = roster && roster.find((x) => x.slot === p.slot); b = ensureFigure(world, p.slot, r && r.char, r && r.avatar); }
     // snelheid uit de verplaatsing, zodat het model loopt (de gast simuleert zelf niets)
     const vx = dt > 0 && Number.isFinite(b.x) ? (p.x - b.x) / dt : 0, vy = dt > 0 && Number.isFinite(b.y) ? (p.y - b.y) / dt : 0;
     const ok = Math.hypot(vx, vy) < 40; // een sprong (teleport) is geen rennen

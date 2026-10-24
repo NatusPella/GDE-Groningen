@@ -133,6 +133,47 @@ export function companionMode(rule, humans) {
   return rule.presence === 'een' ? 'wacht' : 'volg';
 }
 
+// ---- rollen per speler (#455)
+// De rol hoort bij de speler, niet bij de plek. Iedereen is lokaal de hoofdpersoon
+// van zijn eigen verhaal (Tammo of Tessa, wat de stap vraagt); anderen ziet hij als
+// hun online-avatar. De tweede verhaalrol is in het eigen beeld een computerfiguur.
+export const STORY_ROLES = ['tammo', 'anita']; // 'anita' is het id van Tessa in storyarc
+export const isVerhaalrol = (id) => STORY_ROLES.includes(id);
+export const andereVerhaalrol = (id) => (id === 'tammo' ? 'anita' : 'tammo');
+
+// De eigen verhaalrol uit het profiel (de eigen save): 'tammo' als er niets bekend is.
+export function eigenVerhaalrol(profiel = {}) {
+  const r = profiel && (profiel.verhaalrol || profiel.rol || profiel.character);
+  return isVerhaalrol(r) ? r : 'tammo';
+}
+
+// De rol die deze speler in deze stap lokaal speelt: de stap vraagt een rol
+// (step.player). Wijkt die af van zijn eigen verhaal, dan speelt hij hem tijdelijk
+// (model, stem, geluiden, ondertiteling en HUD-naam) en daarna weer zijn eigen rol.
+export function rolVoorSpeler(step, profiel = {}) {
+  const eigen = eigenVerhaalrol(profiel);
+  const vraag = step && step.player;
+  const rol = isVerhaalrol(vraag) ? vraag : eigen;
+  return { rol, eigen, tijdelijk: rol !== eigen };
+}
+
+// De metgezel in het eigen beeld: de andere verhaalrol, en alleen bij een stap die
+// twee mensen vraagt (een opdracht of scène). In de open wereld is hij er niet.
+export function metgezelVoorSpeler(step, profiel = {}, regel = null) {
+  const { rol } = rolVoorSpeler(step, profiel);
+  const r = regel || (step ? coopRule(step, 2) : null);
+  const nodig = !r || r.presence === 'beide' || r.needsTwo;
+  return nodig ? andereVerhaalrol(rol) : null;
+}
+
+// Cutscene-cast per speler: de lokale speler staat op de gescripte plek van de
+// hoofdrol, de andere verhaalrol is de metgezel. Online-avatars van medespelers
+// staan niet in de scène (coopfigures3d verbergt ze), dus de metgezel staat er één keer.
+export function cutsceneRol(step, profiel = {}, regel = null) {
+  const r = rolVoorSpeler(step, profiel);
+  return { ...r, metgezel: metgezelVoorSpeler(step, profiel, regel), avatarsZichtbaar: false, metgezelEenmalig: true };
+}
+
 // ---------------------------------------------------------------- uitbreidbaar
 // Elke nieuwe scène, missie, minigame of voertuig registreert zijn coöp-regel
 // hier; de netcode kent alleen deze regel en hoeft nooit aangepast te worden.

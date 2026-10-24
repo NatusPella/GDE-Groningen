@@ -93,21 +93,40 @@ export function verwijder(r, slot) {
 }
 export function zetVerbinding(r, slot, v) { const s = speler(r, slot); if (s) s.verbinding = v; return !!s; }
 
+// Online-avatar per speler (#455): een eigen figuur, naam en kleur, los van de
+// verhaalrol. De speler vult de naam zelf in bij Samen spelen; het filter zelf
+// (verboden woorden, geen echte personen) staat in coopspeler.avatarVan en
+// net/serverlijst.schoonNaam. Hier bewaren we alleen wat veilig door het net kan.
+export function zetAvatar(r, slot, avatar = {}) {
+  const s = speler(r, slot);
+  if (!s || !avatar || typeof avatar !== 'object') return null;
+  const c = charInfo(avatar.char);
+  const char = c && !MAIN_CHARS.some((m) => m.id === c.id) ? c.id : null;
+  const naam = typeof avatar.naam === 'string' && avatar.naam.trim() ? avatar.naam.trim().slice(0, 24) : null;
+  const kleur = /^#[0-9a-f]{6}$/i.test(avatar.kleur || '') ? avatar.kleur : null;
+  s.avatar = { ...(s.avatar || {}), ...(char ? { char } : {}), ...(naam ? { naam } : {}), ...(kleur ? { kleur } : {}) };
+  return s.avatar;
+}
+
 // Wat de ander ziet: naam, kleur, vorm per speler (de volgorde is de slotvolgorde).
+// Een eigen online-avatar gaat voor de naam en kleur van de figuur (#455).
 export function lijst(r) {
   return [...r.spelers].sort((a, b) => a.slot - b.slot).map((s) => {
     const c = charInfo(s.char) || {};
-    return { slot: s.slot, char: s.char, naam: c.naam || '?', kleur: c.kleur || '#cccccc', vorm: c.vorm || 'cirkel', rol: s.rol, verbinding: s.verbinding, hoofdrol: s.slot < 2 };
+    const av = s.avatar || {};
+    return { slot: s.slot, char: av.char || s.char, naam: av.naam || c.naam || '?', kleur: av.kleur || c.kleur || '#cccccc', vorm: c.vorm || 'cirkel', rol: s.rol, verbinding: s.verbinding, hoofdrol: false, avatar: s.avatar || null };
   });
 }
 // Kort bericht met de lijst voor alle spelers (reliable event); de ontvanger controleert het.
-export const lijstEvent = (r) => ({ k: 'spelers', max: r.max, lijst: lijst(r).map(({ slot, char, rol, verbinding }) => ({ slot, char, rol, verbinding })) });
+export const lijstEvent = (r) => ({ k: 'spelers', max: r.max, lijst: lijst(r).map(({ slot, char, rol, verbinding, avatar }) => ({ slot, char, rol, verbinding, ...(avatar ? { avatar } : {}) })) });
 export function leesLijstEvent(b) {
   if (!b || b.k !== 'spelers' || !Array.isArray(b.lijst) || b.lijst.length > ABS_MAX) return null;
   const seen = new Set(); const out = [];
   for (const s of b.lijst) {
     if (!s || !Number.isInteger(s.slot) || s.slot < 0 || s.slot >= ABS_MAX || seen.has(s.slot) || !charInfo(s.char)) return null;
-    seen.add(s.slot); out.push({ slot: s.slot, char: s.char, rol: s.rol === 'host' ? 'host' : 'gast', verbinding: ['ok', 'lag', 'lost'].includes(s.verbinding) ? s.verbinding : 'ok' });
+    if (s.avatar !== undefined && (!s.avatar || typeof s.avatar !== 'object')) return null;
+    const av = s.avatar && typeof s.avatar === 'object' ? s.avatar : null;
+    seen.add(s.slot); out.push({ slot: s.slot, char: s.char, rol: s.rol === 'host' ? 'host' : 'gast', verbinding: ['ok', 'lag', 'lost'].includes(s.verbinding) ? s.verbinding : 'ok', ...(av ? { avatar: { ...(charInfo(av.char) && !MAIN_CHARS.some((m) => m.id === av.char) ? { char: av.char } : {}), ...(typeof av.naam === 'string' ? { naam: av.naam.slice(0, 24) } : {}), ...(/^#[0-9a-f]{6}$/i.test(av.kleur || '') ? { kleur: av.kleur } : {}) } } : {}) });
   }
   return { max: clampMax(b.max), spelers: out };
 }
@@ -127,5 +146,6 @@ export function vereistVoor(opdrachtActief, regel, extra = []) {
   return [...v];
 }
 
-// Rol van een slot in het hoofdverhaal: hoofdpersonen spelen mee, extra spelers lopen in de open wereld.
-export function verhaalRol(slot) { return slot === 0 ? 'host-hoofdrol' : slot === 1 ? 'gast-hoofdrol' : 'wereld'; }
+// Rol van een speler in het hoofdverhaal (#455): iedereen is lokaal de hoofdpersoon
+// van zijn eigen verhaal, dus er zijn geen bijrollen of plekken met een eigen rol meer.
+export const verhaalRol = () => 'hoofdrol';
