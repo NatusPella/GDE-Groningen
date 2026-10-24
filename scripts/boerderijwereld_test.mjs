@@ -171,10 +171,12 @@ await t('cultiveren, zaaien (aftakas nodig), bemesten en spuiten met de juiste w
   rijRijen(v, rig);
   assert.equal(B.fase(b), 'geploegd', 'zonder aftakas wordt er niet gezaaid');
   druk('g');
+  w.money = 40;                         // precies genoeg voor het zaaigoed: het werk mag niet stoppen omdat het geld op is
   const geld = w.money;
   rijRijen(v, rig);
   assert.equal(B.fase(b), 'groeit'); assert.equal(b.veld.gewas, 'aardappelen');
   assert.equal(w.money, geld - 40, 'zaaigoed kost €40, geen huur');
+  w.money = 200000;
   druk('t'); druk('g');
   wissel('mestwaaier'); druk('g');
   const g2 = w.money;
