@@ -65,10 +65,10 @@ const ok = (c, m) => { n++; if (!c) { fails++; console.log('FAIL ' + m); } };
   ok(JSON.stringify(T.splitReward(c, 40)) === JSON.stringify({ 0: 40 }), 'alleen: alles voor jou');
   T.board(c, 1, 'conducteur');
   const s2 = T.splitReward(c, 40);
-  ok(s2[0] + s2[1] === Math.round(40 * (1 + T.COOP_BONUS)) && Math.abs(s2[0] - s2[1]) <= 1, `twee spelers delen gelijk met bonus: ${JSON.stringify(s2)}`);
+  ok(s2[0] === 40 && s2[1] === 40, `twee spelers: elk het volle bedrag: ${JSON.stringify(s2)}`);
   T.board(c, 2);
   const s3 = T.splitReward(c, 40);
-  ok(s3[0] + s3[1] + s3[2] === 46 && s3[1] === s3[2] && s3[0] >= s3[1], `drie aan boord: gelijke delen, de rest bij de machinist: ${JSON.stringify(s3)}`);
+  ok(s3[0] === 40 && s3[1] === 40 && s3[2] === 40, `drie aan boord: elk het volle bedrag: ${JSON.stringify(s3)}`);
   ok(Object.keys(T.splitReward(T.newCrew(), 40)).length === 0 && Object.keys(T.splitReward(c, 0)).length === 0, 'niemand of niets: niets');
 }
 
