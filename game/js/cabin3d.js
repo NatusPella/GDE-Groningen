@@ -48,10 +48,8 @@ export function buildCabinGeometry(seat, len, wid, klasse) {
   B.box(d.x + sh - 0.08, d.y + d.h + 0.02, 0, d.d * 0.7, 0.05, d.w, GREY);
   const b = L.binnacle;
   B.box(b.x + sh, b.y, b.z, b.d, b.h, b.w, GREY);
-  const w = L.wheel;
-  // stuurring recht gezet: vier dunne latjes en de naaf, kolom
-  B.box(w.x + sh, w.y, w.z, 0.03, w.r * 2, 0.03, DARK, 0, 0, 0, w.tilt);
-  B.box(w.x + sh, w.y, w.z, 0.03, 0.03, w.r * 2, DARK, 0, 0, 0, w.tilt);
+  const w = { ...L.wheel, ...K.wheel };
+  // de stuurring en spaken zijn een eigen, meedraaiend onderdeel (autointerieur.js, #442); hier de kolom en de naaf
   B.box(w.x + sh + 0.06, w.y - 0.2, w.z, 0.05, 0.3, 0.05, DARK);
   B.box(w.x + sh, w.y, w.z, 0.05, 0.05, 0.05, TRIM);
   const seatAt = (x, z, color) => {
@@ -77,6 +75,16 @@ function geometryFor(v) {
   let g = geoCache.get(key);
   if (!g) { g = markShared(buildCabinGeometry(seat, v.model.len, v.model.wid, klasse)); geoCache.set(key, g); }
   return g;
+}
+
+// Waar het stuur zit in de cabine (voertuiglokaal), voor het meedraaiende stuur van autointerieur.js; dezelfde
+// verschuiving als de schil, zodat een korte neus het stuur niet door de voorkant duwt.
+export function cabinWheelPose(seat, len, wid, klasse) {
+  const L = interiorLayout(seat, len, wid);
+  const K = klasseStijl(klasse, L, seat);
+  const sh = -Math.max(0, L.dash.x + L.dash.d / 2 - (len / 2 - 0.12));
+  const w = { ...L.wheel, ...K.wheel };
+  return { x: w.x + sh, y: w.y, z: w.z, r: w.r, tilt: w.tilt };
 }
 
 // auto's, bestelbussen en vrachtwagens (geen bus: die heeft zijn eigen stoelen; geen wrak)
