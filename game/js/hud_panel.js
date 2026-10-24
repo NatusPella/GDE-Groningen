@@ -26,7 +26,8 @@ import { vehicleDisplayName } from './vehiclenames.js';
 import { findEnterableVehicle, HERO_CAR_MODEL } from './vehicle.js';
 import { tickLowHealth } from './lowhealth.js';
 import { cinematicAllowsDamageFx, isBannerUp, isCinematicActive, wijkBlurb } from './cinematics.js';
-import { isMuted, engineReadout } from './audio.js';
+import { isMuted, engineReadout, toggleMute } from './audio.js';
+import { dempHint, dempMelding } from './coopgeluid.js';
 import { gearboxReadout } from './gearbox.js';
 import { drawRailsOnMap, drawTrainsOnMap } from './railway.js';
 import { drawCountryMinimap, villageLabels, syncMapPhase } from './countrymap.js';
@@ -218,7 +219,7 @@ export function initHud(world) {
       '<div class="hud-id-main">' +
         '<div class="hud-name-row"><div class="hud-character"></div><span class="hud-mate"><span class="hud-mate-pic" aria-hidden="true"><img alt=""></span><span class="hud-mate-txt"></span></span><div class="hud-status">' +
           '<span class="hud-chip drunk" role="status" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h11l-1.3 15.2A3 3 0 0 1 12.7 21h-2.4a3 3 0 0 1-3-2.8zM7.4 7.5h8.2"/></svg>Aangeschoten</span>' +
-          '<span class="hud-chip hud-mute" role="status" aria-label="Geluid uit, druk op U voor geluid" title="Geluid uit: druk op U voor geluid" hidden>🔇 <small>U: geluid</small></span>' +
+          '<button type="button" class="hud-chip hud-mute" tabindex="-1" style="pointer-events:auto;position:relative;z-index:21;min-height:0;cursor:pointer;color:#f0ede4" aria-label="Geluid uit: U: geluid" title="Geluid uit: U: geluid" hidden>🔇 <small>U: geluid</small></button>' +
         '</div></div>' +
         '<div class="hud-meter hp" role="meter" aria-label="Gezondheid" aria-valuemin="0" aria-valuemax="100"><div class="hud-bar"><div class="hud-bar-ghost"></div><div class="hud-bar-fill health"></div></div><b></b></div>' +
         '<div class="hud-meter ar" hidden role="meter" aria-label="Bescherming" aria-valuemin="0" aria-valuemax="100"><div class="hud-bar"><div class="hud-bar-ghost"></div><div class="hud-bar-fill armor"></div></div><b></b></div>' +
@@ -306,6 +307,15 @@ export function initHud(world) {
     mmCtx: mmCanvas.getContext('2d'),
     vis: {},
   };
+  // De dempindicator is ook de knop (#434): wie de toets niet kent of geen
+  // toetsenbord heeft (touch, een gast op een tablet), zet het geluid hier
+  // weer aan. Daarna laat de knop de focus los, zodat Spatie weer springt.
+  els.mute.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    toggleMute();
+    els.mute.blur();
+  });
   initPrompts(root);
   fitEdge(root);
   onUiScaleChange(() => fitEdge(root));
@@ -381,12 +391,30 @@ function updateVehicleName(dt, world) {
   } else if (!v) els.vehName.classList.remove('on');
 }
 
+// De dempindicator (#434): alleen zichtbaar als het geluid uit staat, met de
+// toets erbij (of de tik op een touch-toestel). Dezelfde knop zet het weer aan,
+// zodat een gast nooit in stilte blijft zitten zonder te weten hoe het moet.
+let muteHint = '';
+function updateMute() {
+  const demp = isMuted();
+  els.mute.hidden = !demp;
+  if (!demp) return;
+  const touch = document.documentElement.classList.contains('touch-device');
+  const hint = dempHint({ touch });
+  if (hint === muteHint) return;
+  muteHint = hint;
+  els.mute.querySelector('small').textContent = hint;
+  const label = dempMelding(true, { touch });
+  els.mute.title = label;
+  els.mute.setAttribute('aria-label', label);
+}
+
 export function updateHud(dt, world) {
   sense(dt, world);
   updateVehicleName(dt, world);
   updateCharacter(dt, world);
   updateBars(world);
-  els.mute.hidden = !isMuted();
+  updateMute();
   updateWanted(world);
   updateMoneyWeapon(dt, world);
   updateClock(world);

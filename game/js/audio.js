@@ -24,6 +24,7 @@ import { KEYS } from './storagekeys.js';
 import { noteSound } from './soundcaptions.js';
 import { stingNoten, stingDuur, createStingGate } from './stings.js';
 import { GMUSIC_VOLUME, masterGain, musicVolume, musicBusGain, volumeValue } from './sfx/volume.js';
+import { dempMelding, stemNiveau } from './coopgeluid.js';
 
 // the camera comes from main.js (setAudioCamera): audio.js does not import scene3d.js (#108)
 let getCamera = () => null;
@@ -266,6 +267,39 @@ onSettingsChange((st) => {
 
 export function isMuted() {
   return muted;
+}
+
+// Dempen is per speler (#434): elke gast hoort zijn eigen uitgang en houdt zijn
+// eigen stand. Dezelfde toets, de knop en de indicator op de HUD zetten hem
+// weer aan. Bij het aanzetten vragen we de browser om een verse start: een
+// context die het OS of de tab tijdens het dempen liet vallen, start alleen in
+// een echte handeling weer, en een gast die niet meer hoort hoe hij terug moet,
+// blijft anders stil zitten.
+export function setMuted(on) {
+  const next = !!on;
+  if (next === muted) return muted;
+  muted = next;
+  saveMuted();
+  if (ctx) applyOutputGains(0.05);
+  refreshThemeVolume(); // the theme song is its own media element: mute it now, not 250 ms later
+  if (!muted) {
+    if (!ctx) ensureCtx();
+    unlockAudio();
+    resumeCtx('unmute');
+  }
+  const world = lastWorld;
+  if (world && world.addMessage) world.addMessage(dempMelding(muted, { touch: isTouchDevice() }), 2.5, { key: 'mute' });
+  return muted;
+}
+
+export function toggleMute() {
+  return setMuted(!muted);
+}
+
+// touch-device is the class of touch.js: there the U key does not exist, so
+// the indicator says tap instead.
+function isTouchDevice() {
+  return typeof document !== 'undefined' && !!document.documentElement && document.documentElement.classList.contains('touch-device');
 }
 
 function buildNoiseBuffer(seconds) {
@@ -1279,20 +1313,29 @@ function playMissionJingle() {
 // A missing/unplayable file (network hiccup, or an asymmetric-script key
 // with no recording for this character) fails silently, never throws.
 // pos = {x, y} places the clip in the world; omitted = plain stereo.
-function playClip(src, pos = null) {
+function playClip(src, pos = null, gain = 1) {
   if (!ctx || muted) return null;
   const el = newVoiceEl(src);
   const nodes = [];
   try {
     const node = ctx.createMediaElementSource(el);
     nodes.push(node);
+    let out = node;
+    // de pratende mensen staan onder de effecten (#434); al het andere op 1
+    if (gain !== 1) {
+      const g = ctx.createGain();
+      g.gain.value = gain;
+      node.connect(g);
+      nodes.push(g);
+      out = g;
+    }
     if (pos) {
       const panner = makePanner({ ref: 4, rolloff: 1.2, model: distToListener(pos.x, pos.y, pos.h ?? 1.6) < HRTF_NEAR ? 'HRTF' : 'equalpower' });
       setPannerPos(panner, pos.x, pos.y, pos.h ?? 1.6);
-      node.connect(panner).connect(voiceBus);
+      out.connect(panner).connect(voiceBus);
       nodes.push(panner);
     } else {
-      node.connect(voiceBus);
+      out.connect(voiceBus);
     }
   } catch (e) {
     // ignore - playback still works without the Web Audio graph attached
@@ -1325,12 +1368,12 @@ function releaseEl(el) {
 // Every voice below asks speech.js for the one talking channel first
 // (priorities, holds, queue and gaps live there); a clip reports its real
 // length and its end back so the next line starts right after it.
-function speakClip(cls, src, { pos = null, guess = 2, owner = null, onEnd = null } = {}) {
+function speakClip(cls, src, { pos = null, guess = 2, owner = null, onEnd = null, gain = 1 } = {}) {
   if (!ctx || muted) return null;
   let el = null;
   const tok = speech.begin(cls, guess, { owner, stop: () => { if (el) { el.pause(); el.dispatchEvent(new Event('ended')); } } });
   if (!tok) return null;
-  el = playClip(src, pos);
+  el = playClip(src, pos, gain);
   if (!el) { speech.end(tok); return null; }
   el.addEventListener('loadedmetadata', () => { if (Number.isFinite(el.duration)) speech.extend(tok, el.duration); }, { once: true });
   const done = () => { speech.end(tok); if (onEnd) onEnd(); };
@@ -1344,8 +1387,8 @@ function speakClip(cls, src, { pos = null, guess = 2, owner = null, onEnd = null
 // plain stereo), ducks the ambience for duck = [level, seconds] and reports
 // the clip's end through onEnd. Returns the element, or null when the channel
 // is taken or nothing can play.
-function playVoice(src, { cls = 'react', owner = null, pos = null, dur = 2, onEnd = null, duck = null } = {}) {
-  const el = speakClip(cls, src, { pos, guess: dur, owner, onEnd });
+function playVoice(src, { cls = 'react', owner = null, pos = null, dur = 2, onEnd = null, duck = null, gain = 1 } = {}) {
+  const el = speakClip(cls, src, { pos, guess: dur, owner, onEnd, gain });
   if (el && duck) duckAmbience(duck[0], duck[1]);
   return el;
 }
@@ -1375,7 +1418,8 @@ function playNpcSpokenClip(src, pos) {
   if (!ctx) return false;
   const now = ctx.currentTime;
   if (now - lastNpcSpokenAt < NPC_SPOKEN_MIN_GAP) return false;
-  if (!playVoice(src, { cls: 'ambient', pos, dur: 1.2 })) return false;
+  // de ambient stemmen onder de effecten (#434, coopgeluid.js)
+  if (!playVoice(src, { cls: 'ambient', pos, dur: 1.2, gain: stemNiveau(1) })) return false;
   lastNpcSpokenAt = now;
   return true;
 }
@@ -3519,8 +3563,13 @@ let lastDeathAt = -Infinity;
 
 export function updateAudio(dt, world) {
   const events = world.audioEvents || (world.audioEvents = []);
-  if (!ctx || !worldReady) { events.length = 0; return; }
   lastWorld = world;
+  // Dempen en weer aanzetten werkt ook zonder (of voor) een audio-context: een
+  // gast met een bewaarde dempstand zat anders vast, want de toets werd pas na
+  // de ctx-controle bekeken (#434). ?stil is een test- of trailersessie: daar
+  // verandert de toets niets en wordt er niets bewaard.
+  if (!menuAudio && !SILENT_MODE && world.input && world.input.wasPressed('u')) toggleMute();
+  if (!ctx || !worldReady) { events.length = 0; return; }
   // a busy frame (shots, footsteps, birds) used to swallow everything past the
   // first eight (rockets, the jachtgeweer): the rest now plays next frame
   guarded('linkups', () => runLinkups(world));
@@ -3529,14 +3578,6 @@ export function updateAudio(dt, world) {
   events.splice(0, played);
   if (events.length > MAX_EVENTS_PER_FRAME * 3) events.splice(0, events.length - MAX_EVENTS_PER_FRAME * 3);
   if (ctx.state !== 'running') resumeCtx('frame');
-
-  if (!menuAudio && world.input.wasPressed('u')) {
-    muted = !muted;
-    saveMuted();
-    applyOutputGains(0.05);
-    refreshThemeVolume(); // the theme song is its own media element: mute it now, not 250 ms later
-    world.addMessage(muted ? 'Geluid uit. Druk op U voor geluid.' : 'Geluid aan', 2.5, { key: 'mute' });
-  }
 
   speech.tick();
   guarded('watchdog', () => watchdog(world));
