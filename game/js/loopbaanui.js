@@ -1,7 +1,8 @@
-// Loopbaan (#381): het onderdeel Loopbaan van het pauzemenu. Links alle vakken in drie groepen (vervoer, werk, sport en spel),
-// elk met een icoon, het niveau, de functietitel en een voortgangsbalk; rechts wat je in het gekozen vak bereikt hebt, het
-// volgende doel, wat het vak betaalt en welke banen erbij horen. De gegevens komen uit loopbaanlive.js (en loopbaan.js);
-// dit bestand is alleen DOM. Niet door een mens in beeld bekeken.
+// Loopbaan (#381): het onderdeel Loopbanen van het pauzemenu. Eén overzicht: links alle vakken in drie groepen (vervoer, werk,
+// sport en spel), elk met een icoon, het niveau, de functietitel en een voortgangsbalk; rechts wat je in het gekozen vak bereikt
+// hebt, het volgende doel, wat het vak betaalt en de bezigheden die erbij horen (vissen, boeren, taxi, bus, krant, vracht, ...),
+// elk met hun eigen stand. Elke bezigheid staat er één keer: de volgende klus is een label in de lijst, geen tweede knop (#430).
+// De gegevens komen uit loopbaanlive.js (en loopbaan.js); dit bestand is alleen DOM. Niet door een mens in beeld bekeken.
 import * as L from './loopbaan.js';
 import { getProfiel } from './loopbaanlive.js';
 import { SIDE_JOBS } from './sidejobs.js';
@@ -38,16 +39,6 @@ const ICONEN = {
 const loopbaanIcoon = (naam, cls = 'pa-ico') => `<span class="${cls}"><svg viewBox="0 0 24 24" aria-hidden="true">${ICONEN[naam] || ICONEN.hamer}</svg></span>`;
 
 const CSS = `
-.lb-bez { flex: none; padding: 20px 64px 0; }
-.lb-bez h3 { margin: 0 0 10px; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-weight: normal; font-size: 20px; letter-spacing: 0.18em; text-transform: uppercase; opacity: 0.68; }
-.lb-bez-rij { display: grid; grid-template-columns: repeat(2, minmax(0, 420px)); gap: 16px; }
-.lb-tegel { display: flex; align-items: center; gap: 18px; min-height: 84px; padding: 14px 20px; border-radius: 12px; text-align: left; background: rgba(63, 201, 122, 0.12); box-shadow: inset 0 0 0 1.5px rgba(63, 201, 122, 0.55); color: inherit; font: inherit; cursor: pointer; transition: background 0.2s; }
-.lb-tegel:hover, .lb-tegel:focus-visible { background: rgba(63, 201, 122, 0.22); }
-.lb-tegel svg { width: 44px; height: 44px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
-.lb-tegel .nm { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.lb-tegel b { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-weight: normal; font-size: 30px; letter-spacing: 0.06em; line-height: 1.05; }
-.lb-tegel .mut { font-size: 18px; }
-.lb-tegel .lb-pijl { margin-left: auto; opacity: 0.7; font-size: 28px; }
 .lb-groep { margin: 14px 0 4px; font: 14px "Arial Narrow", Arial, sans-serif; letter-spacing: 0.14em; text-transform: uppercase; opacity: 0.55; }
 .lb-groep:first-child { margin-top: 0; }
 .lb-li .nm { min-width: 0; }
@@ -68,13 +59,19 @@ const CSS = `
 .lb-trap li.nu { opacity: 1; color: var(--g, #3fc97a); }
 .lb-trap .nr { min-width: 1.6em; text-align: right; opacity: 0.8; }
 .lb-trap .bonus { margin-left: auto; opacity: 0.8; }
-.lb-banen { list-style: none; margin: 4px 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 3px 16px; }
-.lb-banen li { display: flex; gap: 6px; align-items: center; opacity: 0.55; }
+.lb-banen { list-style: none; margin: 4px 0; padding: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 2px 0; }
+.lb-banen li { display: flex; gap: 8px; align-items: center; opacity: 0.6; min-height: 34px; }
 .lb-banen li:has(.lb-doel) { opacity: 1; }
-.lb-banen .lb-doel { margin-left: auto; height: 40px; }
+.lb-banen .lb-doel { margin-left: auto; height: 34px; white-space: nowrap; }
 .lb-banen li.klaar { opacity: 1; }
 .lb-banen svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; flex: none; }
 .lb-banen li:not(.klaar) svg { visibility: hidden; }
+.lb-bz { display: flex; flex-direction: column; min-width: 0; line-height: 1.25; }
+.lb-bz > span:first-child { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lb-bz .mut { font-size: 14px; }
+.lb-volg { flex: none; padding: 1px 8px; border-radius: 999px; font: 12px "Arial Narrow", Arial, sans-serif; letter-spacing: 0.08em; text-transform: uppercase; background: rgba(63, 201, 122, 0.18); color: var(--g, #3fc97a); }
+.lb-bz-link { border-top: 1px solid rgba(255, 255, 255, 0.09); padding-top: 4px; margin-top: 2px; }
+.lb-leeg { margin: 4px 0 0; }
 `;
 let cssAan = false;
 function zetCss() {
@@ -91,10 +88,23 @@ const bars = new Map();
 function rij(profiel, info) {
   const d = L.volgendDoel(profiel, info.id);
   const nul = profiel.vakken[info.id].xp <= 0;
-  return `<button type="button" class="m-li lb-li${nul ? ' nul' : ''}${gekozen === info.id ? ' sel' : ''}" data-vak="${info.id}"${gekozen === info.id ? ' aria-current="true"' : ''}>` +
-    `${loopbaanIcoon(info.icoon)}<span class="nm"><span class="one">${esc(info.naam)}</span><span class="mut one">${esc(nul ? 'Nog niet begonnen' : d.titel)}</span></span>` +
+  const aantal = bezighedenAantal(info.id);
+  const namen = bezighedenNamen(info.id);
+  const onder = `${nul ? 'Nog niet begonnen' : d.titel}${aantal ? ` · ${aantal} ${aantal === 1 ? 'bezigheid' : 'bezigheden'}` : ''}`;
+  return `<button type="button" class="m-li lb-li${nul ? ' nul' : ''}${gekozen === info.id ? ' sel' : ''}" data-vak="${info.id}" title="${esc(namen.length ? 'Bezigheden: ' + namen.join(', ') : 'Geen aparte bijbaan')}"${gekozen === info.id ? ' aria-current="true"' : ''}>` +
+    `${loopbaanIcoon(info.icoon)}<span class="nm"><span class="one">${esc(info.naam)}</span><span class="mut one">${esc(onder)}</span></span>` +
     `<span class="lb-niv">niveau ${d.niveau}</span><span class="m-bar${d.deel > 0 ? ' on' : ''}"><i data-bar="lb-${info.id}" data-w="${(d.deel * 100).toFixed(1)}"></i></span></button>`;
 }
+
+// Elke bezigheid van een loopbaan staat er één keer: de bijbanen uit loopbaan.js (BAAN_VAK) en, bij Vissen en Landbouw, het
+// visboek of de boerderij als eigen bezigheid. Zo zie je bij elk vak wat je er kunt doen, zonder dubbele regels (#430).
+const VAK_LINK = {
+  hengelen: { id: 'visboek', naam: 'Visboek', knop: 'Open je visboek', stand: () => { try { const v = boekVoortgang(); return v && v.totaal ? `${v.gevangen} van ${v.totaal} soorten` : 'Nog geen vis gevangen'; } catch (e) { return 'Al je vis van de provincie'; } } },
+  landbouw: { id: 'boerderij', naam: 'Boerderij', knop: 'Open je boerderij', stand: () => 'Je akker, gewassen en machines' },
+};
+const NAMEN = new Map(SIDE_JOBS.map((j) => [j.id, j.name]));
+const bezighedenAantal = (id) => L.banenVan(id).length + (VAK_LINK[id] ? 1 : 0);
+const bezighedenNamen = (id) => [...L.banenVan(id).map((b) => NAMEN.get(b) || b), ...(VAK_LINK[id] ? [VAK_LINK[id].naam] : [])];
 
 function detailHtml(profiel, id) {
   const info = L.vakInfo(id);
@@ -116,34 +126,31 @@ function detailHtml(profiel, id) {
     return `<li class="${cls}"><span class="nr">${niv}</span><span>${esc(t)}</span><span class="bonus">${plus ? `+${plus}%` : 'basis'}</span></li>`;
   }).join('') + '</ol>';
   const banen = L.banenVan(id);
-  let banenHtml = '';
-  if (banen.length) {
-    const namen = new Map(SIDE_JOBS.map((j) => [j.id, j.name]));
-    banenHtml = '<h3 class="m-eb">Banen</h3><ul class="lb-banen">' + banen.map((b) => `<li class="${v.uniek.includes(b) ? 'klaar' : ''}">${CHECK}<span>${esc(namen.get(b) || b)}</span>${doelen.has(b) ? `<button type="button" class="m-bt lb-doel" data-todo-goal="job:${esc(b)}">Zet als doel</button>` : ''}</li>`).join('') + '</ul>';
-  }
+  const bezigheden = bezighedenHtml(id, v, banen);
   return `<div class="pm-pane-top"><span class="m-eb">${esc(groep)}</span><h2 class="m-h2 td-h2">${loopbaanIcoon(info.icoon, 'pa-ico big')}${esc(info.naam)}</h2></div>` +
     `<div class="lb-kop"><p class="lb-titel"><b>${esc(d.titel)}</b> <span class="mut">· niveau ${d.niveau} van ${L.MAX_NIVEAU}</span></p><p class="mut">${esc(info.wat)}</p></div>` +
     `<div class="lb-blok">${voort}<p class="mut">${doel}</p>` +
     `<p>${v.xp > 0 ? esc(telt.join(' · ')) : 'Nog niet begonnen.'}</p>` +
     `<p class="${factor > 1 ? 'g' : 'mut'}">${factor > 1 ? `Dit vak betaalt nu ${L.percentage(factor)}% meer. ` : ''}${esc(L.loonTekst(id))}</p></div>` +
-    volgendeKlusHtml(id, v, banen) + linkHtml(id) + trap + banenHtml;
+    bezigheden + trap;
 }
 
-// Vissen en de boerderij zijn gewoon loopbanen (#435): geen eigen tegels meer, wel een knop in het vak naar het visboek of de boerderij.
-// Per loopbaan een knop naar de volgende klus: de eerste baan die je nog niet gedaan hebt en die nu te kiezen is (anders de eerste die te kiezen is)
-function volgendeKlusHtml(id, v, banen) {
-  const kies = banen.find((b) => !v.uniek.includes(b) && doelen.has(b)) || banen.find((b) => doelen.has(b));
-  if (!kies) return '';
-  const naam = (SIDE_JOBS.find((j) => j.id === kies) || {}).name || kies;
-  return `<p class="lb-link"><button type="button" class="m-bt" data-todo-goal="job:${esc(kies)}">Naar de volgende klus: ${esc(naam)}</button></p>`;
-}
-const VAK_LINK = { hengelen: ['visboek', 'Open je visboek'], landbouw: ['boerderij', 'Open je boerderij'] };
-function linkHtml(id) {
-  const l = VAK_LINK[id];
-  if (!l) return '';
-  let tekst = '';
-  if (id === 'hengelen') { try { const v = boekVoortgang(); if (v && v.totaal) tekst = `<span class="mut">Visboek: ${v.gevangen} van ${v.totaal} soorten</span>`; } catch (e) { /* geen visboek */ } }
-  return `<p class="lb-link"><button type="button" class="m-bt" data-goto="${l[0]}">${l[1]}</button> ${tekst}</p>`;
+// De bezigheden van dit vak, elk met hun eigen stand en één actie. De eerste klus die je nog niet deed en die nu te kiezen is,
+// krijgt het label Volgende klus; de knop Ernaartoe staat in dezelfde regel (geen tweede vermelding) (#430).
+function bezighedenHtml(id, v, banen) {
+  const volgende = banen.find((b) => !v.uniek.includes(b) && doelen.has(b)) || banen.find((b) => doelen.has(b));
+  const rijen = banen.map((b) => {
+    const klaar = v.uniek.includes(b);
+    const stand = klaar ? 'Gedaan' : doelen.has(b) ? 'Nu te kiezen' : 'Nog niet gedaan';
+    return `<li class="${klaar ? 'klaar' : ''}">${CHECK}<span class="lb-bz"><span>${esc(NAMEN.get(b) || b)}</span><span class="mut">${stand}</span></span>` +
+      `${b === volgende ? '<span class="lb-volg">Volgende klus</span>' : ''}` +
+      `${doelen.has(b) ? `<button type="button" class="m-bt lb-doel" data-todo-goal="job:${esc(b)}">Zet als doel</button>` : ''}</li>`;
+  });
+  const link = VAK_LINK[id];
+  if (link) rijen.push(`<li class="lb-bz-link">${CHECK}<span class="lb-bz"><span>${esc(link.naam)}</span><span class="mut">${esc(link.stand())}</span></span>` +
+    `<button type="button" class="m-bt lb-doel" data-goto="${link.id}">${esc(link.knop)}</button></li>`);
+  if (!rijen.length) return '<h3 class="m-eb">Bezigheden</h3><p class="mut lb-leeg">Geen aparte bijbaan: je verdient hier met het spel zelf.</p>';
+  return `<h3 class="m-eb">Bezigheden</h3><ul class="lb-banen">${rijen.join('')}</ul>`;
 }
 
 let wereld = null;

@@ -5,6 +5,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { KEYS } from '../game/js/storagekeys.js';
+import * as LB from '../game/js/loopbaan.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const read = (f) => fs.readFileSync(path.join(root, f), 'utf8');
@@ -12,6 +13,7 @@ let n = 0, fails = 0;
 const ok = (c, name, info = '') => { n++; if (!c) { fails++; console.log('FAIL ' + name + (info ? ' :: ' + info : '')); } };
 
 const pm = read('game/js/pausemenu.js');
+const lbSrc = read('game/js/loopbaan.js');
 const a = pm.indexOf('function settingsHtml()');
 const m = pm.indexOf('function spelHtml()');
 const b = pm.indexOf('export function initPauseMenu(');
@@ -91,8 +93,18 @@ ok(/aria-current', String\(b\.dataset\.goto === \(CHILD\[name\] \|\| name\)\)/.t
 ok(/if \(CHILD\[tab\] && origin === 'home'\)/.test(pm), 'Esc en Terug gaan van een onderdeel naar zijn ouder');
 ok(/ids = sectionIds\(\)\.filter\(\(id\) => !CHILD\[id\]\)/.test(pm), 'Q en E tussen onderdelen slaan de kinderen over');
 const lb = read('game/js/loopbaanui.js');
-ok(lb.includes("VAK_LINK = { hengelen: ['visboek'") && lb.includes("landbouw: ['boerderij'") && !lb.includes('Bezigheden'), 'Vissen en Boerderij zijn gewone loopbanen met een knop naar visboek en boerderij, geen aparte tegels (#435)');
-ok(lb.includes('volgendeKlusHtml(id, v, banen)') && lb.includes('data-todo-goal="job:') && !lb.includes('data-lbview'), 'elke loopbaan heeft een knop naar de volgende klus en Veroverd is geen weergave van Loopbaan meer');
+ok(/VAK_LINK = \{[\s\S]*?hengelen: \{ id: 'visboek'[\s\S]*?landbouw: \{ id: 'boerderij'/.test(lb) && lb.includes('bezighedenHtml(id, v, banen)') && !lb.includes('lb-tegel') && !lb.includes('lb-bez-rij'), 'Vissen en Boerderij zijn bezigheden van hun loopbaan, geen aparte tegels (#430)');
+ok(lb.includes('data-todo-goal="job:') && lb.includes('Volgende klus') && !lb.includes('volgendeKlusHtml') && !lb.includes('Naar de volgende klus:') && !lb.includes('data-lbview'), 'elke bezigheid staat er één keer: Volgende klus is een label, geen tweede knop; Veroverd is geen weergave van Loopbaan');
+// één overzicht: elke loopbaan toont zijn bezigheden en voortgang, en geen bezigheid valt onder twee loopbanen
+ok(lb.includes('bezighedenAantal(info.id)') && /const bezighedenAantal = \(id\) => L\.banenVan\(id\)\.length/.test(lb), 'elke loopbaan in de lijst zegt hoeveel bezigheden erbij horen, met de voortgangsbalk ernaast');
+{
+  const baanVak = lbSrc.slice(lbSrc.indexOf('const BAAN_VAK = {'), lbSrc.indexOf('export const BAAN_IDS'));
+  const paren = [...baanVak.matchAll(/([a-z]+):\s*'([a-z]+)'/g)].map((x) => [x[1], x[2]]);
+  const ids = paren.map((p) => p[0]);
+  ok(paren.length > 30 && new Set(ids).size === ids.length && paren.every(([, v]) => LB.VAK_IDS.includes(v)), 'elke bezigheid hangt aan precies één loopbaan en die bestaat', ids.filter((id, i) => ids.indexOf(id) !== i).join(', '));
+  ok(LB.BAAN_IDS.every((b) => LB.banenVan(LB.vakVanBaan(b)).includes(b)), 'elke bezigheid is via zijn loopbaan te vinden');
+  ok(lb.includes('Bezigheden'), 'de bezigheden hebben een eigen kop in het loopbaanpaneel');
+}
 ok(pm.includes("['veroverd', 'Veroverd']") && pm.includes('renderVeroverdPanel(panel'), 'Veroverd is een tabblad onder Verhaal (#435)');
 // Besturing: alles bij elkaar in Instellingen
 const bes = settingsSrc.slice(settingsSrc.indexOf("tab('besturing'"), settingsSrc.indexOf("tab('display'"));
@@ -100,6 +112,20 @@ for (const k of ['mouseSensitivity', 'invertY', 'padLayout', 'padLookSensitivity
 ok(/data-pad-test/.test(bes) && /data-goto-sub="controls:knoppen"/.test(bes) && /data-goto-sub="controls:toetsen"/.test(bes) && /data-goto-sub="controls:overzicht"/.test(bes) && /data-goto-sub="controls:hulp"/.test(bes) && /data-goto-sub="spel:hints"/.test(bes), 'Besturing verwijst naar Controller testen, Knoppen indelen, Toetsen, Toetsenoverzicht, Hulp en Hints');
 ok(!/touchControls/.test(settingsSrc.slice(settingsSrc.indexOf("tab('display'"), settingsSrc.indexOf("tab('a11y'"))), 'Interface heeft de aanraakbediening niet meer');
 ok(/\['overzicht', 'Toetsenoverzicht'\]/.test(pm) && !/'Alle toetsen'\]/.test(pm), "'Alle toetsen' heet Toetsenoverzicht en staat onder Besturing");
+// de besturing staat per situatie bij elkaar en elke regel staat er één keer (#430)
+const cgSrc = pm.slice(pm.indexOf('const CONTROL_GROUPS = '), pm.indexOf('const GROUP_ICONS = '));
+const groepen = new Function('DESKTOP', cgSrc.replace('const CONTROL_GROUPS = ', 'return ') + ';')(false);
+ok(groepen.map((g) => g[1]).join() === 'Te voet,Vervoer,Vechten,Duif,Samen spelen,Menu en radio', 'het Toetsenoverzicht heeft één blok per situatie', groepen.map((g) => g[1]).join());
+ok(!/Helikopter/.test(cgSrc) && /heli en vliegtuig/.test(cgSrc), 'de helikopter staat bij het vervoer, niet als losse situatie met dubbele WASD- en E-regels');
+for (const [gid, titel, rijen] of groepen) {
+  const gezien = new Set();
+  for (const [keys, desc] of rijen) {
+    const k = keys.join('+') + '|' + desc;
+    ok(!gezien.has(k) && desc.length > 3, `geen dubbele regel in ${titel}`, desc);
+    gezien.add(k);
+  }
+  ok(new Set(rijen.map(([k]) => k.join('+'))).size === rijen.length, `elke toets staat één keer in ${titel}`, rijen.map(([k]) => k.join('+')).join(' '));
+}
 ok(/data-goto-sub="settings:besturing"/.test(pm.slice(pm.indexOf('function subtabsHtml'), pm.indexOf('function subtabsHtml') + 1200)), 'toetsen en knoppen hebben een knop terug naar Instellingen');
 // Te doen: losse activiteiten; Verhaal: de opdrachten
 ok(/todo: \[\['alles', 'Alles'\], \['dichtbij', 'Dichtbij'\]\]/.test(pm), 'Te doen heeft Alles en Dichtbij (losse activiteiten)');
