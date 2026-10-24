@@ -144,12 +144,13 @@ t('opzeggen: terug naar de verhuurder; gekocht kun je niet opzeggen; actief perc
   assert.equal(PC.zegOp(bd, 'perceel', 'leekster-veld').ok, false);
 });
 
-t('actief perceel: alleen een akker die van jou is', () => {
+t('actief perceel: alleen een perceel dat van jou is (ook een weiland: daar teel je gras)', () => {
   const bd = PC.nieuwBedrijf();
   assert.equal(PC.zetActief(bd, 'wierdeakker'), false);
   PC.koop(bd, 'perceel', 'wierdeakker', 1e6);
   PC.huur(bd, 'perceel', 'dijkweide', 'dag', 0, 1e6);
-  assert.equal(PC.zetActief(bd, 'dijkweide'), false);                          // weiland
+  assert.equal(PC.zetActief(bd, 'dijkweide'), true);                           // weiland
+  assert.equal(PC.zetActief(bd, 'zandkamp'), false);                           // niet van jou
   assert.ok(PC.zetActief(bd, 'wierdeakker'));
 });
 
@@ -164,8 +165,10 @@ t('bodem beïnvloedt de opbrengst; de Zonnehoek blijft precies zoals voorheen', 
     return B.opbrengstKg(b);
   };
   assert.equal(opbr(PC.START_PERCEEL), B.GEWASSEN.aardappelen.kgBasis);        // zoals voor #415 stap 1
+  const perHa = (id) => opbr(id) / PC.perceelDef(id).ha;                       // de opbrengst gaat ook naar de grootte (stap 2)
   assert.ok(opbr('bedumer-klei') > opbr(PC.START_PERCEEL));
-  assert.ok(opbr('zandkamp') < opbr(PC.START_PERCEEL));
+  assert.ok(perHa('zandkamp') < perHa(PC.START_PERCEEL));
+  assert.ok(perHa('bedumer-klei') > perHa(PC.START_PERCEEL));
   assert.equal(PC.bodemNaam(0.3), 'zwak');
   assert.equal(PC.bodemNaam(0.95), 'uitstekend');
 });
@@ -250,7 +253,7 @@ t('normaliseren: onbekende id\'s, te veel opslag, vreemde machines en slechte ge
     machinepark: { machines: [{ uid: 'a', type: 'ploeg-3', erf: 'weidehof' }, { uid: 'b', type: 'trekker-klein', erf: 'spook' }, null], werktuigen: [{ uid: 'c', type: 'ploeg-3', erf: 'weidehof' }] },
   });
   assert.equal(bd.thuis, PC.START_ERF);
-  assert.equal(bd.actief, PC.START_PERCEEL);                                    // weiland kan niet actief zijn
+  assert.equal(bd.actief, 'dijkweide');                                         // weiland mag actief zijn (gras)
   assert.equal(bd.percelen.spook, undefined);
   const dw = bd.percelen.dijkweide;
   assert.ok(dw.betaling === 'dag' && Number.isFinite(dw.volgende) && dw.schuld === 0 && dw.achterstand === PC.MAX_ACHTERSTAND);
