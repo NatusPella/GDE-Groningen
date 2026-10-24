@@ -5,7 +5,7 @@
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
-import { medalFrom, fmtTime, frame, makeRng, geo, angDiff } from '../game/js/minigamekit.js';
+import { medalFrom, fmtTime, frame, makeRng, geo, angDiff, mgThema, MG_THEMA, mgIcoon } from '../game/js/minigamekit.js';
 import * as DG from '../game/js/discgolfrules.js';
 import * as PP from '../game/js/puttinglogic.js';
 import * as SK from '../game/js/skatetricks.js';
@@ -30,6 +30,30 @@ const gauss = (rng) => (rng() + rng() + rng() + rng() - 2) / 0.58;
   check('angDiff wraps', Math.abs(angDiff(3.1, -3.1) - (3.1 + 3.1 - Math.PI * 2)) < 1e-9);
   const g = geo(53.2194, 6.5665);
   check('geo gives the game frame', Number.isFinite(g.x) && Math.abs(g.x) < 500 && Math.abs(g.y) < 500, JSON.stringify(g));
+}
+
+// --- per minigame its own HUD theme (#453) -------------------------------------------------------
+
+{
+  const ids = Object.keys(MG_THEMA);
+  check('a theme for at least three games', ids.length >= 3, ids.join());
+  check('every theme has a title, an accent and an icon', ids.every((id) => MG_THEMA[id].titel && /^#[0-9a-f]{6}$/.test(MG_THEMA[id].accent) && mgIcoon(MG_THEMA[id].icoon, 16).startsWith('<svg class="mg-ic"')), JSON.stringify(MG_THEMA));
+  check('the accents differ per game', new Set(ids.map((id) => MG_THEMA[id].accent)).size === ids.length);
+  check('the titles differ per game', new Set(ids.map((id) => MG_THEMA[id].titel)).size === ids.length);
+  // design system: geen blauw accent, en elk icoon heeft een eigen vorm naast zijn kleur
+  const blue = (hex) => { const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16)); return b > r + 40 && b > g + 20; };
+  check('no blue accent (design system)', ids.every((id) => !blue(MG_THEMA[id].accent)), ids.map((id) => MG_THEMA[id].accent).join());
+  const icons = ids.map((id) => mgIcoon(MG_THEMA[id].icoon, 16));
+  check('every icon is a flat low-poly svg, hidden from screen readers', icons.every((s) => /<polygon|<ellipse|<rect/.test(s) && /aria-hidden="true"/.test(s) && !/stroke=|<image|<text/.test(s)));
+  check('every icon has its own shapes', new Set(icons).size === ids.length);
+  check('an unknown game has no theme and no icon', mgThema('bestaatniet') === null && mgIcoon('bestaatniet') === '');
+  check('the discgolf theme is its own', mgThema('discgolf').titel === 'DISCGOLF STADSPARK' && mgThema('discgolf').accent === '#f08a2e');
+  // de vier spellen van de eerste lading halen hun bord uit de tabel, niet uit een losse kleur van zichzelf
+  const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+  for (const id of ['discgolf', 'pitchputt', 'skatepark', 'kartbaan']) {
+    const src = fs.readFileSync(path.join(root, 'game/js', id + '.js'), 'utf8');
+    check(`${id} uses its theme`, src.includes(`mgThema('${id}')`) && src.includes(`createBoard('${id}')`), id);
+  }
 }
 
 // --- discgolf ------------------------------------------------------------------------------------

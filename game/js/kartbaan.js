@@ -9,7 +9,7 @@ import { showCard } from './hudcards.js';
 import { spawnFxPuff, spawnFxSpark } from './fx3d.js';
 import { ambientOut } from './audio.js';
 import { activityBlock, iconDisc } from './activitykit.js';
-import { createBoard, key, bubble, clearBubbles, pick, stopPressed, easeCamera, fmtTime, angDiff, clamp } from './minigamekit.js';
+import { createBoard, mgThema, key, bubble, clearBubbles, pick, stopPressed, easeCamera, fmtTime, angDiff, clamp } from './minigamekit.js';
 import { KART_LINES, KART_RIVALS } from './minigamelines.js';
 import {
   createKart, stepKart, updateProgress, collideKarts, aiInput, rankKarts, positionMedal, bestLap, pointAt, locate, KART, LAPS, RUNOFF,
@@ -33,7 +33,7 @@ import { figuurLook } from './coopplayers.js';
 // Finish first for gold, second silver, third bronze; records for the race time and
 // the best lap. Money-neutral. Rules, the kart and the drivers: kartrace.js.
 // `window.__kartbaan` debug.
-const ACCENT = '#f2b82a';
+const ACCENT = mgThema('kartbaan').accent; // één bron voor het HUD-thema: minigamekit.js (#453)
 const ORIGIN = KARTBAAN_ORIGIN;
 const ROT = KARTBAAN_ROT;
 const FR = KARTBAAN_FRAME;
@@ -766,7 +766,7 @@ function camera(w) {
 }
 
 function ensureBoard() {
-  if (!board) board = createBoard('KARTEN IN ULRUM', ACCENT);
+  if (!board) board = createBoard('kartbaan');
   return board;
 }
 
@@ -784,7 +784,7 @@ function updateHud() {
   const kmh = Math.round(Math.abs(me.f) * 3.6);
   const row = `<span>Ronde <b>${lap}</b>/${LAPS}</span><span>Plaats <b>${pos}</b>/4</span><span>Tijd <b>${fmtTime(t)}</b></span><span><b>${kmh}</b> km/u</span>${best != null ? `<span>Beste <b>${fmtTime(best)}</b></span>` : ''}`;
   let flash = g.flash ? g.flash.text : g.phase === 'grid' ? (g.lights ? 'Startlichten...' : 'Rijders, op uw plaatsen') : me.finished ? `Gefinisht als ${ordinal(pos)}` : me.drift ? 'Drift...' : '';
-  const meter = me.drift ? { v: me.driftT / KART.charge2, mark: KART.charge1 / KART.charge2, color: me.driftT >= KART.charge2 ? '#ff7a2a' : me.driftT >= KART.charge1 ? '#4aa8ff' : '#f2f0e6' } : null;
+  const meter = me.drift ? { v: me.driftT / KART.charge2, mark: KART.charge1 / KART.charge2, color: me.driftT >= KART.charge2 ? '#ff9a3c' : me.driftT >= KART.charge1 ? ACCENT : '#f2f0e6' } : null;
   const help = `${key('W')} gas · ${key('S')} rem · ${key('A')}${key('D')} sturen · houd ${key('SPATIE')} (handrem) in een bocht voor een drift · ${key('BACKSPACE')} stoppen`;
   const cells = g.online ? rank.map((k, i) => ({ t: `${i + 1}. ${k.name}${k.finished ? ' ✓' : ''}`, cls: k === me ? 'on' : '' })) : null; // the live standings against the others (#443)
   board.set({ row, meter, flash, bad: !!(g.flash && g.flash.bad), help, ...(cells ? { cells } : null) });

@@ -5,7 +5,7 @@ import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { golfIcon, GOLF_ICONEN } from '../game/js/golficons.js';
-import { golfRij, krachtTekst, scoreTabel, scoreCel, afstandTekst, GOLF_CSS } from '../game/js/golfhud.js';
+import { golfRij, krachtTekst, scoreTabel, scoreCel, afstandTekst, GOLF_CSS, klasseVan, klasseIcoon } from '../game/js/golfhud.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const read = (f) => fs.readFileSync(path.join(root, f), 'utf8');
@@ -59,6 +59,12 @@ ok(new Set(GOLF_ICONEN.map((i) => golfIcon(i))).size === GOLF_ICONEN.length, 'el
   ok(scoreTabel({ spelers: [], nummers: [], huidigeBaan: 0 }) === '', 'zonder spelers niets');
   ok(scoreCel({ done: true, strokes: 2, par: 3 }, 0, 1).cls === 'good' && scoreCel({ done: true, strokes: 5, par: 3 }, 0, 1).cls === 'bad', 'cellen onder en boven par');
   ok(scoreCel({ done: false, n: 2 }, 1, 1, 0).t === '·' && scoreCel({ done: false, n: 2 }, 1, 1, 2).t === '2' && scoreCel({ done: false, n: 4 }, 3, 1).t === '-', 'bezig, onderweg en nog niet');
+  // #453: de klasse van een baan met een eigen icoon (vlag onder par, bal op par, zand erboven)
+  ok(klasseVan(2, 4) === 'eagle' && klasseVan(3, 4) === 'birdie' && klasseVan(4, 4) === 'par' && klasseVan(5, 4) === 'bogey' && klasseVan(7, 4) === 'dubbel', 'de klassen van een baan');
+  ok(/gf-ic/.test(klasseIcoon(3, 4)) && /gf-ic/.test(klasseIcoon(4, 4)) && /gf-ic/.test(klasseIcoon(6, 4)), 'elk een icoon');
+  ok(new Set([klasseIcoon(3, 4), klasseIcoon(4, 4), klasseIcoon(6, 4)]).size === 3, 'onder, op en boven par zien er anders uit');
+  ok(/gf-ic/.test(scoreCel({ done: true, strokes: 2, par: 3 }, 0, 1).ic) && !scoreCel({ done: false, n: 2 }, 0, 1).ic, 'een afgeronde cel heeft het icoon, een open cel niet');
+  ok(/gf-ic/.test(html) && html.includes('<td class="good"><svg'), 'het scorebord toont het klasse-icoon in de cel');
 }
 
 // de tekst is minstens 12 px en volgt het ontwerp (geen blauw, geen zwarte vlakken)

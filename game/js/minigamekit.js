@@ -65,7 +65,8 @@ const CSS = `
 #hud .mg-board[hidden] { display: none; }
 #hud .mg-board { position: absolute; top: var(--hud-top, 14px); left: 50%; transform: translateX(-50%); min-width: 360px; max-width: min(760px, calc(100vw / var(--ui, 1) - 2 * (var(--hud-edge, 46px) + 360px)), calc(100vw - 32px)); padding: 8px 18px 9px 12px; color: #f0ede4; text-shadow: var(--hud-shadow); pointer-events: none; z-index: 4;
   background: linear-gradient(90deg, rgba(12,20,14,0.9), rgba(24,34,28,0.66) 80%, rgba(24,34,28,0.2)); border-left: 3px solid var(--mg-acc, #6cc070); }
-#hud .mg-board small { display: block; font-size: 12px; letter-spacing: 3px; color: var(--mg-acc, #6cc070); }
+#hud .mg-board small { display: flex; align-items: center; gap: 6px; font-size: 12px; letter-spacing: 3px; color: var(--mg-acc, #6cc070); }
+#hud .mg-board .mg-ic { flex: none; }
 #hud .mg-board .mg-row { display: flex; flex-wrap: wrap; gap: 4px 16px; align-items: baseline; font-size: 20px; letter-spacing: 1px; }
 #hud .mg-board .mg-row b { font-weight: normal; color: #ffd23f; font-size: 24px; }
 #hud .mg-board .mg-cells { display: flex; gap: 3px; margin: 5px 0 2px; }
@@ -100,9 +101,45 @@ let inputMod = null;
 
 export const key = (t) => `<span class="hud-key">${t}</span>`;
 
+// --- Per-game HUD theme (#453) -------------------------------------------------------------------
+// One table for the HUD of every minigame: its title, its accent (the board's border, title and meters) and its icon.
+// The icons are flat low-poly SVG shapes in the design tokens (cream, the greens, the one red) with their own form
+// next to the colour, and hidden from screen readers because the title already names the game. A game without a row
+// here keeps the neutral board: createBoard(title, accent) still works as before.
+const MG_ICONEN = {
+  // discgolf: een hoekige schijf (de basket staat op de baan, niet in het bord)
+  disc: `<polygon points="4,17 11,14 18,17 12,20" fill="#17301f"/><polygon points="11,5 18,8.5 18,15.5 11,19 4,15.5 4,8.5" fill="#f0ede4"/><polygon points="11,5 18,8.5 11,12" fill="#ffffff"/><polygon points="11,12 18,15.5 11,19" fill="#cfcbbd"/><polygon points="11,12 4,15.5 4,8.5" fill="#d9d5c6"/>`,
+  // golf: de vlag in de hole
+  vlag: `<ellipse cx="12" cy="20.5" rx="6" ry="2" fill="#17301f"/><polygon points="12,3 12,20 13.2,20 13.2,3" fill="#f0ede4"/><polygon points="13.2,3.5 21,6.8 13.2,10.2" fill="#d93f3f"/><polygon points="13.2,3.5 21,6.8 13.2,6.8" fill="#ec6b5a"/>`,
+  // skatepark: een deck met twee wielen
+  skate: `<polygon points="3,10 20,7.5 21.5,11.5 4.5,14" fill="#f0ede4"/><polygon points="4.5,14 21.5,11.5 21.5,12.8 4.5,15.3" fill="#cfcbbd"/><polygon points="7,15.3 9.4,15 9.4,18 7,18.3" fill="#17301f"/><polygon points="16,13.6 18.4,13.3 18.4,16.3 16,16.6" fill="#17301f"/>`,
+  // karten: de geblokte finishvlag
+  kart: `<polygon points="3,2.5 4.6,2.5 4.6,21.5 3,21.5" fill="#cfcbbd"/><polygon points="4.6,3 21,3 21,13.5 4.6,13.5" fill="#f0ede4"/><polygon points="4.6,3 8.7,3 8.7,8.2 4.6,8.2" fill="#17301f"/><polygon points="12.8,3 16.9,3 16.9,8.2 12.8,8.2" fill="#17301f"/><polygon points="8.7,8.2 12.8,8.2 12.8,13.5 8.7,13.5" fill="#17301f"/><polygon points="16.9,8.2 21,8.2 21,13.5 16.9,13.5" fill="#17301f"/>`,
+};
+
+export const MG_THEMA = {
+  discgolf: { titel: 'DISCGOLF STADSPARK', accent: '#f08a2e', icoon: 'disc' },
+  pitchputt: { titel: 'PITCH & PUTT', accent: '#46b36a', icoon: 'vlag' },
+  skatepark: { titel: 'SKATEPARK STADSPARK', accent: '#e8523a', icoon: 'skate' },
+  kartbaan: { titel: 'KARTEN IN ULRUM', accent: '#f2b82a', icoon: 'kart' },
+};
+
+export function mgIcoon(naam, px = 16) {
+  const v = MG_ICONEN[naam];
+  if (!v) return '';
+  return `<svg class="mg-ic" width="${px}" height="${px}" viewBox="0 0 24 24" aria-hidden="true" focusable="false">${v}</svg>`;
+}
+
+// The HUD theme of an activity, or null for one that has none (yet).
+export const mgThema = (id) => MG_THEMA[id] || null;
+
 // A board at the top centre for one game: title, a row of figures, optional
 // cells (a scorecard) and meter, a flash line and one line of key hints.
+// Leave `accent` out and pass an id from MG_THEMA for the game's own title, colour and icon.
 export function createBoard(title, accent) {
+  const thema = MG_THEMA[title];
+  const titel = thema ? thema.titel : title;
+  const kleur = thema ? thema.accent : accent;
   if (!cssDone && typeof document !== 'undefined') {
     const st = document.createElement('style');
     st.textContent = CSS;
@@ -111,9 +148,10 @@ export function createBoard(title, accent) {
   }
   const root = document.createElement('div');
   root.className = 'mg-board';
-  root.style.setProperty('--mg-acc', accent);
+  root.style.setProperty('--mg-acc', kleur || '#6cc070');
+  if (thema) root.dataset.mg = title;
   root.hidden = true;
-  root.innerHTML = `<small>${title}</small><div class="mg-row"></div><div class="mg-cells" hidden></div><div class="mg-extra" hidden></div><div class="mg-meter" hidden><span class="mg-bar"><i></i><em></em></span><span class="mg-meter-t"></span></div><div class="mg-flash"></div><div class="mg-help"></div>`;
+  root.innerHTML = `<small>${thema ? mgIcoon(thema.icoon) : ''}<span>${titel}</span></small><div class="mg-row"></div><div class="mg-cells" hidden></div><div class="mg-extra" hidden></div><div class="mg-meter" hidden><span class="mg-bar"><i></i><em></em></span><span class="mg-meter-t"></span></div><div class="mg-flash"></div><div class="mg-help"></div>`;
   (document.getElementById('hud') || document.body).appendChild(root);
   const q = (s) => root.querySelector(s);
   const el = { row: q('.mg-row'), cells: q('.mg-cells'), extra: q('.mg-extra'), meter: q('.mg-meter'), bar: q('.mg-meter i'), mark: q('.mg-meter em'), meterT: q('.mg-meter-t'), flash: q('.mg-flash'), help: q('.mg-help') };
