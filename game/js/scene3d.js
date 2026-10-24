@@ -2931,13 +2931,14 @@ export function update3D(dt, world) {
   const looking = world.input.lookActive ? world.input.lookActive() : mouse.locked;
   const lookK = MOUSE_LOOK_PER_PX * getSettings().mouseSensitivity;
   if (looking) {
-    lookPitchTarget += mouse.dy * lookK * (getSettings().invertY ? -1 : 1);
+    // zelfde gevoeligheid als links/rechts, ook door de scope (player.js: x 0.3)
+    lookPitchTarget += mouse.dy * lookK * (world.scoped ? 0.3 : 1) * (getSettings().invertY ? -1 : 1);
     lookPitchTarget = Math.min(PITCH_LOOK_MAX_DEG, Math.max(PITCH_LOOK_MIN_DEG, lookPitchTarget * 180 / Math.PI)) * Math.PI / 180;
   } else {
     const pitchT = Math.min(1, Math.max(0, (mouse.y || 0) / (innerHeight || 1)));
     lookPitchTarget = (PITCH_MIN_DEG + (PITCH_MAX_DEG - PITCH_MIN_DEG) * pitchT) * Math.PI / 180;
   }
-  followPitch += (lookPitchTarget - followPitch) * Math.min(1, dt * (looking ? 14 : 6));
+  followPitch += (lookPitchTarget - followPitch) * Math.min(1, dt * (looking ? 30 : 6));
   // on foot the camera yaw is world.camYaw (orbited by the mouse in
   // player.js, independent of the facing); in a vehicle the mouse orbits
   // around the car and the camera eases back behind it after a moment idle
