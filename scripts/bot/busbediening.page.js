@@ -142,8 +142,15 @@ async function camShot(naam, van, naar, { interior = false, fov = 75 } = {}) {
 }
 {
   const hl = bus.model.len / 2;
+  // samen spelen (#444): twee medespelers als nepfiguren op een stoel en een staanplek (coopzitten3d.js), de reizigers van het spel eromheen
+  const CZ = await imp('coopzitten3d');
+  const MV0 = await imp('models3d_vehicles');
+  CZ.syncZitters([{ slot: 2, char: 'tammo', voertuig: bus.id, stoel: 2 }, { slot: 3, char: 'tessa', voertuig: bus.id, stoel: 3 }], (id) => { const mesh = MV0.getVehicleMesh(id); return mesh ? { mesh, v: bus } : null; });
+  world.coopZitters = [{ voertuig: bus.id, stoel: 2 }, { voertuig: bus.id, stoel: 3 }];
+  check('twee medespelers zitten in de bus (coopzitten3d)', CZ.aantalZitters() === 2, CZ.aantalZitters());
   await camShot('busbed-7-binnenzicht', [hl - 2.3, 0.1, 1.75], [-2, -0.2, 1.2], { interior: true, fov: 80 });
   await camShot('busbed-8-deur-buiten', [hl - 1.05, 6.5, 1.6], [hl - 1.2, 0, 1.0], { fov: 60 });
+  CZ.clearZitters(); world.coopZitters = [];
   const MV = await imp('models3d_vehicles');
   const mesh = MV.getVehicleMesh(bus.id);
   const ud = mesh && mesh.userData;

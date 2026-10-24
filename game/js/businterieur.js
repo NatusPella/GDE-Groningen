@@ -49,16 +49,31 @@ export function busInterieur(len, wid, { trailer = 0 } = {}) {
 
 // Wie zit en wie staat bij n reizigers: eerst zitplaatsen (verspreid over de bus), daarna de staanplaatsen.
 // Geeft { zit: [indexen in seats], sta: [indexen in stand] }. n boven de capaciteit wordt afgekapt.
-export function bezetting(layout, n) {
-  const ns = layout.seats.length;
+// bezet: stoelindexen waar een medespeler zit (coöp, #444): daar zit geen reiziger van het spel.
+export function bezetting(layout, n, bezet = []) {
+  const weg = new Set(bezet);
+  const vrij = layout.seats.map((_, i) => i).filter((i) => !weg.has(i));
+  const ns = vrij.length;
   const aantal = Math.max(0, Math.min(Math.round(n), ns + layout.stand.length));
   const stap = [7, 5, 3, 11, 13, 17].find((p) => ggd(p, ns) === 1) || 1; // een vaste, goed verdeelde volgorde
   const zit = [];
-  for (let i = 0; i < Math.min(aantal, Math.floor(ns * 0.8)); i++) zit.push((i * stap) % ns);
+  for (let i = 0; i < Math.min(aantal, Math.floor(ns * 0.8)); i++) zit.push(vrij[(i * stap) % ns]);
   const sta = [];
   for (let i = 0; i < aantal - zit.length && i < layout.stand.length; i++) sta.push(i);
   return { zit, sta };
 }
+
+// De plek van een medespeler op stoelnummer 2 en hoger (coopzitten3d.js: 0 bestuurder, 1 bijrijder): eerst de zitplaatsen vooraan,
+// daarna de staanplaatsen. Geeft { soort: 'zit' | 'sta', index, x, z, kant } of null als de bus vol is.
+export function coopPlek(layout, stoel) {
+  const k = Math.max(0, (stoel | 0) - 2);
+  const ns = layout.seats.length;
+  if (k < ns) { const s = layout.seats[k]; return { soort: 'zit', index: k, x: s.x, z: s.z, kant: s.kant }; }
+  const st = layout.stand[k - ns];
+  return st ? { soort: 'sta', index: k - ns, x: st.x, z: st.z, kant: st.z >= 0 ? 1 : -1 } : null;
+}
+// Welke stoelen zijn bezet door medespelers (stoelnummers uit de lijst { stoel }), als stoelindexen in layout.seats.
+export const coopBezet = (layout, stoelen) => (stoelen || []).map((s) => coopPlek(layout, s)).filter((p) => p && p.soort === 'zit').map((p) => p.index);
 
 // Hoeveel reizigers zitten er in een bus zonder lopende rit (verdwaalde bus): stabiel per voertuig.
 export function ruimteReizigers(id) {

@@ -8,6 +8,8 @@ import { spawnJobVehicle, pick } from './sidejobkit.js';
 import { queueHalte } from './haltefiguren.js';
 import { makeRide, planRide, startRide, takeOverRide, updateRide, rideStop, stopPos } from './busride.js';
 import { project } from './busroutes.js';
+import { busCoopStart, busCoopTik, busCoopBetaal } from './coopbus.js';
+import { nieuweHalte } from './buscoop.js';
 import { makeBediening, voorligger, kleeft, stoot, waardering, tevredenWoord, ritPunten } from './busbestuur.js';
 
 const COACH = { name: 'bus', len: 11.5, wid: 2.55, maxSpeed: 22, accel: 2.6, brake: 9, turnRate: 1.1, color: '#2e8b6a' };
@@ -80,6 +82,7 @@ export default {
       c.vehicle.rideLine = { line: d.line, dir: d.ride.dir };
       c.vehicle.busBediend = c.vehicle.busBediend || makeBediening(); // deuren (O) en kneel (K) bedien je zelf (#444)
       koppelRit(c.vehicle.busBediend, d.ride);
+      busCoopStart(c.world, c.vehicle, 0); // samen rijden: wie er aan boord zit doet mee (coopbus.js, #444)
       const nu = rideStop(d.ride), last = d.ride.table[d.ride.table.length - 1];
       c.timeLeft = last.arrive - d.ride.t + 120;
       c.msg(`Dienst overgenomen: eerst ${nu.name}, dan ${last.name}.`, 3.5);
@@ -91,6 +94,7 @@ export default {
     c.vehicle.rideLine = { line: d.line, dir: d.ride.dir }; // het bord en het HUD-kaartje volgen de rit (busboard3d.js, #386)
     koppelRit(c.vehicle.busBediend, d.ride); // voor het HUD: halteknop en tevredenheid (busbestuurhud.js)
     const first = startRide(d.ride);
+    busCoopStart(c.world, c.vehicle, first[0].board); // samen rijden: wie er aan boord zit doet mee, later instappers niet (coopbus.js, #444)
     queueHalte(c.world, c.vehicle, { board: first[0].board, alight: 0 });
     const last = d.ride.table[d.ride.table.length - 1];
     c.timeLeft = last.arrive + 120;
@@ -109,6 +113,8 @@ export default {
     bus.x = v.x; bus.y = v.y; bus.speed = v.speed || 0; bus.doors = bed || null;
     d.klefT = (d.klefT || 0) - dt;
     if (d.klefT <= 0) { d.klefT = 0.25; bus.tailgate = kleeft(bus.speed, voorligger(v, c.world.vehicles || [])); }
+    const bc = bed && bed.coop;
+    if (bc) busCoopTik(c.world, v, dt);
     for (const e of updateRide(d.ride, bus, dt)) {
       if (e.type === 'arrive') {
         const txt = e.state === 'op tijd' ? 'op tijd' : e.state === 'vroeg' ? 'te vroeg' : 'te laat';
@@ -117,7 +123,9 @@ export default {
           queueHalte(c.world, v, e);
           c.msg(`${e.stop.name}: ${txt}. ${e.alight} uit, ${e.board} in.`, 3);
         }
+      } else if (e.type === 'depart') { if (bc && bc.laatste) { busCoopBetaal(c.world, v, bc.laatste, d.ride.tevreden.sat); bc.laatste = null; }
       } else if (e.type === 'doorsopen') {
+        if (bc) { nieuweHalte(bc, e.board); bc.laatste = { board: e.board, alight: e.alight }; }
         queueHalte(c.world, v, e);
         c.msg(e.last ? `${e.stop.name}: eindhalte, ${e.alight} reizigers stappen uit.` : `${e.alight} uit, ${e.board} in.${e.kneel ? ' Lage instap, fijn.' : ''} Sluit de deuren met O.`, 3);
       } else if (e.type === 'request') c.msg(`Een reiziger drukte op de halteknop: stoppen bij ${e.stop.name}.`, 2.6);
@@ -128,7 +136,7 @@ export default {
       else if (e.type === 'fail') { c.fail('je bent te laat voor de dienstregeling'); return; }
       else if (e.type === 'done') {
         const sat = d.ride.tevreden.sat;
-        c.complete({ base: 30 + e.score.pay, tip: e.score.perfect ? 15 : 0, text: `${e.score.perfect ? 'Perfecte rit!' : 'Rit gereden.'} ${tevredenWoord(sat)}.`, flawless: e.score.perfect, xp: ritPunten({ share: e.score.share, sat, haltes: d.ride.table.length }) });
+        c.complete({ base: 30 + e.score.pay, tip: e.score.perfect ? 15 : 0, text: `${e.score.perfect ? 'Perfecte rit!' : 'Rit gereden.'} ${tevredenWoord(sat)}.`, flawless: e.score.perfect, xp: ritPunten({ share: e.score.share, sat, haltes: d.ride.table.length }), coopSlots: bc ? bc.deelnemers.filter((s) => s !== 0) : null });
         return;
       }
     }

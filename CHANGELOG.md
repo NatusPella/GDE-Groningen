@@ -9,6 +9,8 @@ nieuwe functies, `y` voor alleen bugfixes.
 ## [0.48.0] - 2026-10-24
 
 ### Nieuw
+- Samen een bus rijden: medespelers stappen in de lijnbus en zitten op een stoel of staan in het gangpad, voor iedereen te zien, met de reizigers van het spel eromheen. De chauffeur rijdt (het stuur geven kan met Y), een tweede speler is hulpje: die opent en sluit de deuren met O en valideert met E de kaartjes van wie instapt. Elke halte wordt gelijk verdeeld met samenwerkingsbonus; tevredenheid telt voor allen. Wie na het begin van de dienst instapt rijdt mee zonder rol en deel. Valt de chauffeur weg, dan neemt een medespeler het stuur of remt de bus veilig af.
+- Op een controller en met aanraking bedien je in een bus de deuren (LB) en de kneel (RB); de radio staat daar niet.
 - Buslijn rijden met een echte bediening (#444, #396): in de bus van de bijbaan Streekbus bedien je de deuren zelf met O (alleen bij stilstand, open deuren slaan onderweg dicht) en laat je de bus knielen met K voor een lage instap. Reizigers stappen pas in en uit als de deuren open staan, en de bus vertrekt pas met dichte deuren. Wie met dichte deuren de halte voorbijrijdt laat de reizigers staan.
 - Een reiziger drukt onderweg op de halteknop: het lampje STOP in het busbalkje licht op en de melding noemt de halte. Het balkje toont ook afstand, verwachte tijd en vertraging ten opzichte van de dienstregeling.
 - Passagierstevredenheid in de lijndienst: rustig optrekken en remmen, op tijd rijden, geen bumperklever en geen open deuren onderweg. De sterren staan in het busbalkje en tellen mee in het loon, de fooi bij een perfecte rit en de loopbaanpunten voor Bus.
