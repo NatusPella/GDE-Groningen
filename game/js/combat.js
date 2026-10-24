@@ -172,11 +172,11 @@ function meleeAttack(world, angle, weapon) {
 
 // Samen spelen (#434): de slag of het schot van een gast met een wapen, vanuit zijn lichaam bij wie het spel opende (coopwapen.js wapenTick).
 // Geeft { fx, wacht } (het effect voor de aanvalshouding; wacht: een slag die pas na het uithalen landt) of null als het wapen niet kan.
-export function gastAanvalUitvoeren(world, slot, l, key, angle) {
+export function gastAanvalUitvoeren(world, slot, l, key, angle, kijker = false) {
   const weapon = WEAPONS[key];
   if (!weapon || !l || !(weapon.kind === 'melee' || weapon.kind === 'gun')) return null;
   const ctx = { dader: slot, p: { x: l.x, y: l.y, gz: l.gz || 0, z: l.z || 0, crouching: !!l.crouching, inVehicle: null } };
-  if (weapon.kind === 'gun') { fireGun(world, angle, weapon, false, ctx, key); return { fx: { type: 'muzzle', swing: undefined } }; }
+  if (weapon.kind === 'gun') { fireGun(world, angle, weapon, !!kijker && !!weapon.scope, ctx, key); return { fx: { type: 'muzzle', swing: undefined } }; }
   weaponSound(world, { sub: 'swing', weapon: key, x: l.x, y: l.y });
   const fx = { type: 'melee', swing: weapon.swing };
   if (weapon.windup) return { fx, wacht: { at: (world.time || 0) + weapon.windup, angle, key } };
@@ -257,7 +257,7 @@ function fireGun(world, angle, weapon, scoped = false, ctx = null, key = world.w
   const rx = -Math.sin(angle) * 0.2, ry = Math.cos(angle) * 0.2;
   if (scoped && shots === 1) {
     const s = scopeShot(p, angle, base, weapon.speed);
-    world.bullets.push({ ...s, damage: weapon.damage, owner: 'player', range: weapon.range, traveled: 0, pellet: false, _shotFx: true });
+    world.bullets.push({ ...s, damage: weapon.damage, owner: 'player', range: weapon.range, traveled: 0, pellet: false, _shotFx: true, ...(ctx ? { dader: ctx.dader } : {}) });
   }
   for (let i = scoped && shots === 1 ? shots : 0; i < shots; i++) {
     const a = angle + (weapon.spread ? (Math.random() - 0.5) * weapon.spread : 0) + (Math.random() - 0.5) * 0.02;
