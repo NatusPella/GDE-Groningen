@@ -563,9 +563,14 @@ function werkStapWereld(dt, w, v, rig, m, imp, gast = false) {
     return;
   }
   const taak = set.taak;
-  const mag = B.magTaak(b, taak, w.money || 0, { vrij: true });
+  const mag = B.magTaak(b, taak, Infinity, { vrij: true });          // het geld voor het materiaal gaat bij het begin van het werk (neemTaak)
   const past = WT.pastBij(set, taak, b.veld.gewas);
-  if (!mag.ok) { if (werkt && speed >= 1) zeg(w, 'mag-' + taak, mag.reden, 7); S.werk = S.werk && S.werk.taak === taak ? null : S.werk; return; }
+  if (!mag.ok) {
+    const reden = taak === 'oogsten' && b.schuur.kg > 0 ? 'Eerst de schuur leeg: laad de oogst op de aanhanger bij je erf, of laat de loonwerker afleveren (menu: Boerderij > Perceel).' : mag.reden;
+    if (werkt && speed >= 1) zeg(w, 'mag-' + taak, reden, 7);
+    S.werk = S.werk && S.werk.taak === taak ? null : S.werk;
+    return;
+  }
   if (taak === 'oogsten' && !past.ok) { if (werkt && speed >= 1) zeg(w, 'past', past.reden, 7); return; }
   if (!S.werk || S.werk.taak !== taak || S.werk.id !== id) {
     if (!werkt || speed < (WT.BANDEN[taak] || { vMin: 2 }).vMin) { zegUitleg(w, set, rig, speed); return; }
