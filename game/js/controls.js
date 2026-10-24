@@ -214,7 +214,7 @@ export const PAD_MAPS = {
   // the plane: like the helicopter, with the flaps on LB and the landing gear on X
   plane: { a: ' ', b: 'control', x: 'g', y: 'e', lb: 'k', rb: 'shift', lt: 'control', rt: ' ', ls: 'shift', rs: null, up: null, down: 'v', left: 'o', right: 'backspace', view: 'm', start: 'escape', stick: 'move' },
   pigeon: { a: ' ', b: 'control', x: 'f', y: 'e', lb: 'c', rb: 'q', lt: 'shift', rt: '@fire', ls: 'shift', rs: null, up: null, down: 'x', left: 'o', right: null, view: 'm', start: 'escape', stick: 'move' },
-  train: { a: ' ', b: 'backspace', x: 'h', y: 'e', lb: null, rb: 'g', lt: 's', rt: 'w', ls: null, rs: null, up: null, down: null, left: 'o', right: null, view: 'm', start: 'escape', stick: 'move' },
+  train: { a: ' ', b: 'backspace', x: 'h', y: 'e', lb: 'k', rb: 'g', lt: 's', rt: 'w', ls: 'o', rs: null, up: null, down: null, left: 'o', right: null, view: 'm', start: 'escape', stick: 'move' },
   // carbid, botsauto's, padel and the other games on foot: B stops the game
   minigame: { ...FOOT, b: 'backspace', lt: '@aim', rt: '@fire', stick: 'move' },
   // the carillon: eight bells on the D-pad and the face buttons (A S D F J K L ;), the bumpers pick a tune

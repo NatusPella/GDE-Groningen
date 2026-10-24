@@ -14,6 +14,7 @@ export const MISS_BEYOND = 40;
 export const STOPPED_V = 0.25;
 export const MEDAL_AT = [50, 70, 88];
 export const MEDAL_NAMES = ['Geen medaille', 'Brons', 'Zilver', 'Goud'];
+export const FAULTLESS_BONUS = 25; // een rit zonder fouten: alles gehaald, op tijd, geen sein of waakzaamheidsrem
 
 // Remweg at the service brake.
 export const brakeDist = (v, a = BRAKE) => (v * v) / (2 * a);
@@ -50,18 +51,20 @@ export function upcomingStops(stops, c, dir, range) {
 }
 
 // A service: the timetable from the moment the player takes the train.
-export function startService({ stops, c, dir, vmax, time, limit = 6, range }) {
+export function startService({ stops, c, dir, vmax, time, limit = 6, range, storingen = false }) {
   const ahead = upcomingStops(stops, c, dir, range).slice(0, limit);
   let at = time, prev = c;
   const plan = ahead.map((st) => {
     at += runTime(Math.abs(st.s - prev), vmax) + (prev === c ? 0 : DOORS_S);
     prev = st.s;
-    return { ...st, due: at, score: null, errM: null, lateS: null, medal: 0 };
+    return { ...st, due: at, dep: at + 6, score: null, errM: null, lateS: null, medal: 0, punct: 0, comfort: 0, early: false };
   });
   return {
     plan, i: 0, vmax, dir, start: time, doorsUntil: 0, overStop: 0, ebStop: 0, ebHeld: false, moved: false,
     limit: vmax, toStop: Infinity, finished: !plan.length, result: null, abandoned: false,
     flash: '', flashBad: false, flashUntil: 0,
+    // dienstregeling, storingen en veiligheid (#444): een rood sein of een overweg op een lange etappe
+    storingen: storingen ? planStoringen(plan, c, dir) : [], faults: [], safetyPen: 0, deadman: 0, holdUntil: 0, opened: 0, sein: null,
   };
 }
 
@@ -69,7 +72,7 @@ export const currentStop = (svc) => (svc.finished ? null : svc.plan[svc.i]);
 export const doorsOpen = (svc, time) => time < svc.doorsUntil;
 
 // Points for one stop: place 50, punctuality 40, comfort 10, minus speeding.
-export function scoreStop({ errM, lateS, over, ebrakes }) {
+export function scoreParts({ errM, lateS, over, ebrakes }) {
   const a = Math.abs(errM);
   let place = 0;
   if (a <= STOP_TOL[2]) place = 50;
@@ -80,6 +83,10 @@ export function scoreStop({ errM, lateS, over, ebrakes }) {
   const punctual = Math.round(40 * clamp(1 - late / 80, 0, 1));
   const comfort = Math.max(0, 10 - ebrakes * 5);
   const penalty = Math.min(30, Math.round(over * 2));
+  return { place, punctual, comfort, penalty };
+}
+export function scoreStop(x) {
+  const { place, punctual, comfort, penalty } = scoreParts(x);
   return Math.max(0, place + punctual + comfort - penalty);
 }
 
@@ -91,9 +98,16 @@ export const stopMedal = (errM) => {
 function finish(svc) {
   svc.finished = true;
   const made = svc.plan.filter((p) => p.errM != null);
-  const score = svc.plan.length ? Math.round(svc.plan.reduce((s, p) => s + (p.score || 0), 0) / svc.plan.length) : 0;
+  const n = svc.plan.length;
+  const avg = n ? svc.plan.reduce((s, p) => s + (p.score || 0), 0) / n : 0;
+  // een sein genegeerd of een waakzaamheidsrem telt mee in de eindscore (de helft van de strafpunten)
+  const score = Math.max(0, Math.round(avg - svc.safetyPen * 0.5));
+  const pct = (key, max) => (n ? Math.round(svc.plan.reduce((s, p) => s + (p[key] || 0), 0) / n / max * 100) : 0);
+  const punct = pct('punct', 40), comfort = pct('comfort', 10);
+  const veilig = clamp(100 - svc.safetyPen - Math.round(svc.plan.reduce((s, p) => s + (p.pen || 0), 0) / Math.max(1, n)), 0, 100);
   svc.result = {
-    score, medal: medalFrom(score, MEDAL_AT), stops: svc.plan.length, made: made.length,
+    score, medal: medalFrom(score, MEDAL_AT), stops: n, made: made.length, punct, comfort, veilig,
+    faults: svc.faults.length, faultless: !svc.abandoned && made.length === n && n > 0 && veilig === 100 && punct >= 90,
     avgErr: made.length ? made.reduce((s, p) => s + Math.abs(p.errM), 0) / made.length : 0,
     avgLate: made.length ? made.reduce((s, p) => s + Math.max(0, p.lateS), 0) / made.length : 0,
   };
@@ -103,7 +117,7 @@ function finish(svc) {
 // plus een bonus voor de medaille. Een gestopte dienst betaalt niets.
 export function payFor(result, abandoned = false) {
   if (!result || abandoned) return 0;
-  return Math.round(result.made * (6 + result.score / 8) + result.medal * 20);
+  return Math.round(result.made * (6 + result.score / 8) + result.medal * 20) + (result.faultless ? FAULTLESS_BONUS : 0);
 }
 
 // Wie de dienst begint (G) in een trein die hij net kaapte (#424), is geen dieven meer maar de machinist: de sterren van
@@ -136,8 +150,15 @@ export function stepService(svc, dt, s) {
   const ev = [];
   if (svc.finished) return ev;
   const st = svc.plan[svc.i];
+  svc.lastC = s.c;
   const toStop = (st.s - s.c) * svc.dir;
-  const lim = speedLimit(svc.vmax, toStop);
+  let lim = speedLimit(svc.vmax, toStop);
+  svc.sein = null;
+  if (svc.storingen.length) {
+    const r = stepStoringen(svc, { nose: s.nose != null ? s.nose : s.c, v: s.v, time: s.time, dt }, ev);
+    lim = Math.min(lim, r.limit);
+    svc.sein = r.sein;
+  }
   svc.limit = lim;
   svc.toStop = toStop;
   if (s.v > lim + 1 && !doorsOpen(svc, s.time)) svc.overStop += dt;
@@ -154,8 +175,14 @@ export function stepService(svc, dt, s) {
     st.errM = -toStop;
     st.lateS = s.time - st.due;
     st.medal = stopMedal(st.errM);
-    st.score = scoreStop({ errM: st.errM, lateS: st.lateS, over: svc.overStop, ebrakes: svc.ebStop });
-    svc.doorsUntil = s.time + DOORS_S;
+    const parts = scoreParts({ errM: st.errM, lateS: st.lateS, over: svc.overStop, ebrakes: svc.ebStop });
+    st.score = Math.max(0, parts.place + parts.punctual + parts.comfort - parts.penalty);
+    st.punct = parts.punctual; st.comfort = parts.comfort; st.pen = parts.penalty;
+    // te vroeg aangekomen: de deuren blijven open tot het vertrek (hooguit 25 s), anders loopt de dienstregeling uit
+    svc.opened = s.time;
+    svc.doorsUntil = Math.max(s.time + DOORS_S, Math.min(s.time + 25, st.dep));
+    svc.holdUntil = svc.doorsUntil;
+    svc.served = st;
     svc.flash = `${st.name}: ${st.score} punten`;
     svc.flashBad = st.score < MEDAL_AT[0];
     svc.flashUntil = s.time + 5;
@@ -164,6 +191,111 @@ export function stepService(svc, dt, s) {
   }
   if (s.v > 1.5) svc.moved = true;
   return ev;
+}
+
+export const EARLY_PEN = 10;
+export const BOARD_MIN_S = 5; // zo lang blijven de deuren minstens open voor je ze zelf dicht mag doen
+
+// De deurknop (O) op een halte. Dicht: kan na BOARD_MIN_S; voor de vertrektijd is te vroeg (strafpunten bij de
+// punctualiteit van die halte). Open: alleen stilstaand op het perron, voor de halte die je net deed.
+export function pressDoors(svc, { time, v }) {
+  if (svc.finished) return { ok: false, msg: 'Geen dienst: de deuren gaan vanzelf' };
+  const st = svc.served;
+  if (doorsOpen(svc, time)) {
+    if (time - svc.opened < BOARD_MIN_S) return { ok: false, msg: 'Wacht even: er stappen nog reizigers in' };
+    const early = time < st.dep - 12;
+    svc.doorsUntil = time;
+    if (early && !st.early) {
+      st.early = true;
+      st.score = Math.max(0, st.score - EARLY_PEN);
+      st.punct = Math.max(0, st.punct - EARLY_PEN);
+      svc.flash = 'Te vroeg vertrokken'; svc.flashBad = true; svc.flashUntil = time + 4;
+      return { ok: true, early: true, msg: 'Deuren dicht, maar voor de vertrektijd' };
+    }
+    return { ok: true, msg: 'Deuren dicht' };
+  }
+  if (!st || v > STOPPED_V || Math.abs(st.s - svc.lastC) > PLATFORM_WINDOW) return { ok: false, msg: 'De deuren gaan alleen open stilstaand aan het perron' };
+  if (svc.reopened === st) return { ok: false, msg: 'De deuren zijn al een keer open geweest' };
+  svc.reopened = st;
+  svc.opened = time;
+  svc.doorsUntil = time + 6;
+  return { ok: true, msg: 'Deuren open' };
+}
+
+// --- storingen: een rood sein en een overweg op een lange etappe ---------------------------------------
+export const SEIN_TRIGGER = 300;   // m voor het sein springt het op rood
+export const SEIN_WAIT = 5;        // s stilstaan voor het sein voor het groen wordt
+export const SEIN_MAX_RED = 50;    // s: daarna groen, wat je ook doet (nooit een vastgelopen dienst)
+export const OVERWEG_NEAR = 220;   // m voor de overweg gaat de slagboom dicht
+export const OVERWEG_LIMIT = 15;   // m/s door de overweg (54 km/u)
+export const SEIN_PEN = 40, OVERWEG_PEN = 20, DEADMAN_PEN = 25;
+
+// Een storing in elke lange etappe: om en om een sein en een overweg. s = booglengte (zoals de halten).
+export function planStoringen(plan, c, dir) {
+  const out = [];
+  let prev = c;
+  plan.forEach((st, i) => {
+    const d = Math.abs(st.s - prev);
+    if (d > (i === 0 ? 900 : 500)) {
+      const kind = out.length % 2 ? 'overweg' : 'sein';
+      out.push({ kind, s: prev + dir * d * (kind === 'sein' ? 0.45 : 0.62), state: 'wacht', trigAt: 0, wait: 0, passed: false, bad: false });
+    }
+    prev = st.s;
+  });
+  return out;
+}
+
+function addFault(svc, kind, pen, time, ev, text) {
+  svc.faults.push({ kind, pen, at: time });
+  svc.safetyPen += pen;
+  svc.flash = text; svc.flashBad = true; svc.flashUntil = time + 4;
+  ev.push({ kind, pen });
+}
+
+// Per beeld: s = { nose (booglengte van de neus), v, time }. Geeft { limit, sein } terug: de snelheid die de
+// storing toestaat en de tekst voor het bord (of null).
+function stepStoringen(svc, s, ev) {
+  let limit = Infinity, text = null;
+  const dt = s.dt || 0;
+  for (const g of svc.storingen) {
+    if (g.passed) continue;
+    const to = (g.s - s.nose) * svc.dir;
+    if (g.kind === 'sein') {
+      if (g.state === 'wacht' && to < SEIN_TRIGGER && to > 0) { g.state = 'rood'; g.trigAt = s.time; ev.push({ kind: 'sein-rood', g }); }
+      if (g.state === 'rood') {
+        if (to < 90 && s.v < 1) g.wait += dt;
+        if (g.wait >= SEIN_WAIT || s.time - g.trigAt > SEIN_MAX_RED) { g.state = 'groen'; ev.push({ kind: 'sein-groen', g }); }
+      }
+      if (g.state === 'rood') {
+        limit = Math.min(limit, Math.sqrt(2 * BRAKE * Math.max(0, to - 12)));
+        text = to < 90 && s.v < 1 ? `Sein op rood: wacht nog ${Math.max(0, Math.ceil(SEIN_WAIT - g.wait))} s` : `Sein op rood, over ${Math.max(0, Math.round(to))} m: stop ervoor`;
+      }
+      if (to < -2) {
+        g.passed = true;
+        if (g.state === 'rood') { g.bad = true; addFault(svc, 'sein-genegeerd', SEIN_PEN, s.time, ev, 'Sein op rood genegeerd'); }
+      }
+    } else {
+      if (g.state === 'wacht' && to < OVERWEG_NEAR && to > 0) { g.state = 'dicht'; ev.push({ kind: 'overweg-dicht', g }); }
+      if (g.state === 'dicht') {
+        limit = Math.min(limit, OVERWEG_LIMIT);
+        text = `Overweg dicht over ${Math.max(0, Math.round(to))} m: max ${kmh(OVERWEG_LIMIT)} km/u`;
+        if (to < 0 && !g.fast && s.v > OVERWEG_LIMIT + 2) g.fast = true;
+      }
+      if (to < -2) {
+        g.passed = true;
+        if (g.fast) { g.bad = true; addFault(svc, 'overweg-te-hard', OVERWEG_PEN, s.time, ev, 'Te hard door de overweg'); }
+        else if (g.state === 'dicht') ev.push({ kind: 'overweg-vrij', g });
+      }
+    }
+  }
+  return { limit, sein: text };
+}
+
+// De waakzaamheidsrem (treincabine.js) heeft ingegrepen: dat is een veiligheidsfout.
+export function deadmanFault(svc, time) {
+  if (svc.finished) return;
+  svc.deadman++;
+  addFault(svc, 'waakzaam', DEADMAN_PEN, time, [], 'Waakzaamheidsrem: je reageerde niet');
 }
 
 // What a good driver does: throttle and brake of a clean run, for the test.
@@ -206,5 +338,7 @@ export function boardView(svc, s) {
     tooFast: s.v > svc.limit + 1 && !open, brakeM: Math.round(bd), brakeFrac: frac,
     delayS: s.time - st.due, delay: delayText(s.time - st.due),
     flash: s.time < svc.flashUntil ? svc.flash : '', bad: svc.flashBad,
+    dueIn: Math.round(st.due - s.time), depIn: open && svc.served ? Math.max(0, Math.round(svc.served.dep - s.time)) : null,
+    storing: svc.sein, faults: svc.faults.length, vmaxKmh: kmh(svc.vmax), stopIndex: svc.i, stopCount: svc.plan.length,
   };
 }

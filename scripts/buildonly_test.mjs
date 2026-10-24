@@ -11,6 +11,7 @@ const KEEP = {
   'coopactivities.js': 'coop (#95) wordt nog aangesloten',
   'cooproles.js': 'coop (#95) wordt nog aangesloten',
   'coopstate.js': 'coop (#95) wordt nog aangesloten',
+  'treincoop.js': 'coop (#444): de rollen in de trein, wordt nog aangesloten op de coöp-laag',
   'cutpreview.js': 'game/cutpreview.html is een meegeleverde ontwikkelpagina',
   'cutpreviewui.js': 'game/cutpreview.html is een meegeleverde ontwikkelpagina',
 };

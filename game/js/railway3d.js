@@ -2,6 +2,7 @@
 // crossings with half barriers and flashing lights, and the trains from
 // railway.js.
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import { syncTreinInterieur } from './treininterieur.js';
 import { getTrains, getLevelCrossings, nearLevelCrossing, railZ, isOffMap, TRAIN_HALF_WIDTH, FLAT_DECK_Z } from './railway.js';
 import { WATER_Y } from './util.js';
 import { waterPolyAt } from './waterlevels.js';
@@ -706,7 +707,7 @@ function buildTrainView(t) {
   return { group, cars };
 }
 
-function updateTrains(px, py, night) {
+function updateTrains(px, py, night, world, dt) {
   GLASS_MAT.emissiveIntensity = 0.55 * night;
   HEAD_MAT.color.setHex(0xfff6dc).multiplyScalar(1 + 2 * night);
   const all = getTrains();
@@ -741,12 +742,17 @@ function updateTrains(px, py, night) {
       if (lamps[1]) for (const l of lamps[1]) l.material = t.dir > 0 ? HEAD_MAT : TAIL_MAT;
       if (lamps[-1]) for (const l of lamps[-1]) l.material = t.dir < 0 ? HEAD_MAT : TAIL_MAT;
     });
+    // het binnenste van de trein die de speler bestuurt, alleen zolang hij binnen kijkt (treininterieur.js, #442)
+    if (world && (t === world.trainDriving || view.tc)) { syncTreinInterieur(view, t, world, dt); view.tc = true; }
   }
 }
 
 // ---------------------------------------------------------------- hooks
 let crossingsBuilt = false;
 let trackBuilt = false;
+
+// Alleen lezen, voor de spelbot en de tests: de gebouwde treinen.
+export const getTrainViews = () => trainViews;
 
 export function initRailway3D(sceneRef, mapRef) {
   scene = sceneRef;
@@ -775,5 +781,5 @@ export function updateRailway3D(dt, world, focus, viewDist) {
   const night = world.dayNight ? world.dayNight.night || 0 : 0;
   syncChunks(px, py);
   updateCrossings(px, py, night);
-  updateTrains(px, py, night);
+  updateTrains(px, py, night, world, dt);
 }

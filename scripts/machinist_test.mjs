@@ -175,5 +175,27 @@ function ok_pay() {
   if (R.wantedNaDienst(3, 2) !== 3) fail('meer sterren dan de kaping blijven');
   if (R.wantedNaDienst(0, 2) !== 0 || R.wantedNaDienst(2, 0) !== 2) fail('niets te vergeven: niets verandert');
 }
+// de tractiehendel (#444): ctl.power en ctl.brakeF op de echte natuurkunde: halve stand is zachter dan een hele
+{
+  const run = (ctl, from, secs) => {
+    const t = inRoute(route);
+    const first = route.stops.findIndex((s) => !s.offmap);
+    Object.assign(t, { c: route.stops[first].s, state: 'dwell', target: first, v: 0, dir: 1, timer: 5 });
+    RW.hijackTrain(t, 1);
+    t.pv = from; t.v = Math.abs(from);
+    Object.assign(t.ctl, ctl);
+    for (let f = 0; f < secs * 30; f++) { world.time += dt; RW.updateRailway(dt, world); }
+    const v = t.v;
+    RW.parkTrain(t);
+    return v;
+  };
+  const half = run({ power: 0.5 }, 0, 6), full = run({ power: 1 }, 0, 6);
+  if (!(half > 1 && full > half)) fail(`tractiehendel: halve stand ${half}, hele ${full}`);
+  const b1 = run({ power: 0, brakeF: 1 / 3 }, 20, 4), b3 = run({ power: 0, brakeF: 1 }, 20, 4);
+  if (!(b3 < b1 && b1 < 20)) fail(`remhendel: rem 1 ${b1}, rem 3 ${b3}`);
+  const roll = run({ power: 0, brakeF: 0 }, 20, 4);
+  if (!(roll > b1)) fail(`rollen remt niet: ${roll}`);
+  if (run({ power: 0, brakeF: 1 }, 0, 3) !== 0) fail('rem laat de trein achteruit rijden');
+}
 console.log(fails ? `${fails} failure(s)` : 'machinist: ok');
 process.exit(fails ? 1 : 0);
