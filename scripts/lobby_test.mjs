@@ -34,13 +34,13 @@ t('nooit stilzwijgend verbinden: de toestemming komt eerst, met de vaste tekst',
   assert.equal(L.reduce(s, { t: 'code', code: 'x' }).step, 'host-wacht', 'code zonder akkoord komt niet voor in de UI: akkoord vooraf');
   assert.equal(L.reduce(run(APP, { t: 'kies', rol: 'host' }), { t: 'akkoord' }).step, 'methode', 'akkoord werkt alleen op het toestemmingsscherm');
 });
-t('host-pad (kamercode): akkoord, code tonen, gast verbindt, Tessa naast je', () => {
+t('host-pad (kamercode): akkoord, code tonen, gast verbindt, je medespeler naast je', () => {
   let s = run(APP, { t: 'kies', rol: 'host' }, { t: 'route', route: 'kamer' }, { t: 'akkoord' });
   assert.equal(s.step, 'host-maakt-code');
   s = L.reduce(s, { t: 'code', code: 'K3J9D-8F2MN' });
-  const v = L.view(s); assert.equal(v.code, 'K3J9D-8F2MN'); assert.match(v.lines[0], /Tessa naast je/);
+  const v = L.view(s); assert.equal(v.code, 'K3J9D-8F2MN'); assert.match(v.lines[0], /medespeler naast je/);
   s = L.reduce(s, { t: 'status', status: 'ok' });
-  assert.equal(s.step, 'verbonden'); assert.match(L.view(s).lines[0], /Tessa/);
+  assert.equal(s.step, 'verbonden'); assert.match(L.view(s).lines[0], /medespeler/);
   assert.equal(L.view(s).buttons.at(-1).label, 'Iedereen stoppen');
 });
 t('host-pad (IP-adres): zonder UPnP de melding en de lokale code in beeld, niet dubbel', () => {
@@ -176,15 +176,23 @@ t('Spel starten: uit zolang je alleen bent, aan met minstens twee spelers; een g
   const open = L.view(L.reduce(L.reduce(run(GATE, { t: 'kies', rol: 'gast' }, { t: 'status', status: 'ok' }), { t: 'spelers', lijst: lijst(2), max: 8 }), { t: 'gate', aan: false }));
   assert.doesNotMatch(open.lines.join(' '), /Wacht tot/, 'na het starten staat de wachttekst er niet meer');
 });
-t('jouw figuur: plek 1 is Tessa (uitleg als je iets anders koos), plek 2 en hoger krijgt de gewenste figuur', () => {
+t('jouw figuur (#455): geen vaste rol per plek; je leest wat je kreeg als je wens bezet was', () => {
   const lijst = (chars) => chars.map((c, i) => ({ slot: i, char: c, naam: { tammo: 'Tammo', anita: 'Tessa', bram: 'Bram', rik: 'Rik' }[c] }));
   const gast = (wens, chars, slot) => L.view(L.reduce(L.reduce(run(APP, { t: 'kies', rol: 'gast' }, ...(wens ? [{ t: 'wens', char: wens }] : []), { t: 'status', status: 'ok', partner: { slot } }), { t: 'spelers', lijst: lijst(chars), max: 8 }), { t: 'status', status: 'ok', partner: { slot } })).lines.join(' ');
-  assert.match(gast(null, ['tammo', 'anita'], 1), /Jij speelt Tessa\./);
-  const misleid = gast('bram', ['tammo', 'anita'], 1);
-  assert.match(misleid, /Je koos Bram, maar als eerste gast speel je Tessa/); assert.match(misleid, /derde of later/);
-  assert.match(gast('bram', ['tammo', 'anita', 'bram'], 2), /Jij speelt Bram\./); assert.doesNotMatch(gast('bram', ['tammo', 'anita', 'bram'], 2), /Je koos/);
-  assert.match(gast('bram', ['tammo', 'anita', 'bram', 'rik'], 3), /Je koos Bram, maar die was al bezet\. Jij speelt Rik/);
-  assert.match(L.view(run(APP, { t: 'kies', rol: 'gast' })).lines.join(' '), /eerste gast speelt altijd Tessa/);
+  assert.match(gast(null, ['tammo', 'anita'], 1), /Anderen zien je als je figuur/);
+  assert.doesNotMatch(gast(null, ['tammo', 'anita'], 1), /Jij speelt|eerste gast|plek 1/, 'geen vaste rol per plek meer');
+  assert.match(gast('bram', ['tammo', 'anita'], 1), /Je koos Bram, maar die was al bezet: je kreeg Tessa/);
+  assert.doesNotMatch(gast('bram', ['tammo', 'anita', 'bram'], 2), /Je koos/);
+  assert.match(gast('bram', ['tammo', 'anita', 'bram', 'rik'], 3), /Je koos Bram, maar die was al bezet: je kreeg Rik/);
+  const invoer = L.view(run(APP, { t: 'kies', rol: 'gast' })).lines.join(' ');
+  assert.match(invoer, /eigen verhaal/); assert.match(invoer, /de anderen zien je als je online-avatar/);
+});
+t('in een sessie lees je hoe anderen je zien en dat je op passief staat (#455, #447)', () => {
+  const v = L.view(L.reduce(run(APP, { t: 'kies', rol: 'host' }, { t: 'status', status: 'ok' }), { t: 'spelers', lijst: [{ slot: 0, char: 'tammo', naam: 'Tammo' }, { slot: 1, char: 'anita', naam: 'Tessa' }], max: 8 }));
+  const tekst = v.lines.join(' ');
+  assert.match(tekst, /Anderen zien je als je figuur \(Blauw\)/);
+  assert.match(tekst, /standaard op passief/); assert.match(tekst, /pauzemenu/i);
+  assert.ok(v.lines.includes(L.PASSIEF_REGEL));
 });
 t('online-avatar (#455): naam hoogstens 16 tekens door het naamfilter, kleur uit de vaste set, bewaard per apparaat', () => {
   // leeg mag: dan geldt de naam van je figuur; de kleur is altijd een kleur uit de set

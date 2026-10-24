@@ -105,11 +105,11 @@ let timer = null, bevestig = null, profielFout = '';
 function profielHtml(world) {
   const s = getSettings();
   const kleur = profielKleur(s.onlineKleur);
-  return `<div class="cs-profiel"><h4>Je online-avatar</h4><p>${esc(profielTekst({ naam: s.onlineNaam, kleur }))} Zo zien anderen je in Samen spelen.</p>` +
+  return `<div class="cs-profiel"><h4>Je online-avatar</h4><p>${esc(profielTekst({ naam: s.onlineNaam, kleur }))} Je speelt lokaal je eigen verhaal (Tammo of Tessa); zo zien de anderen je, ook in deze lijst.</p>` +
     `<label class="cs-profiel-label">Online naam <input type="text" class="cs-profiel-naam" maxlength="${ONLINE_NAAM_MAX}" spellcheck="false" autocomplete="off" placeholder="Je figuur" value="${esc(s.onlineNaam)}"></label>` +
     `<div class="cs-kleuren" role="group" aria-label="Kleur">${PROFIEL_KLEUREN.map((c) => `<button type="button" data-kleur="${c.hex}" aria-pressed="${c.hex === kleur}"><span style="color:${c.hex}" aria-hidden="true">●</span> ${esc(c.naam)}</button>`).join('')}</div>` +
     (profielFout ? `<p class="cs-profiel-fout" role="alert">${esc(profielFout)}</p>` : '') +
-    `<p class="cs-profiel-hint">${world && world.coopNet ? 'Je nieuwe naam en kleur gelden zodra je opnieuw meedoet.' : 'Het spel bewaart ze op dit apparaat.'}</p></div>`;
+    `<p class="cs-profiel-hint">Je staat standaard op passief: medespelers kunnen je geen schade doen, en alleen als jij en de ander die stand allebei uitzetten, kunnen jullie elkaar raken. ${world && world.coopNet ? 'Je nieuwe naam en kleur gelden zodra je opnieuw meedoet.' : 'Het spel bewaart je naam en kleur op dit apparaat.'}</p></div>`;
 }
 export function renderSpelersPanel(root, world, sluit = () => {}) {
   if (!root) return;
