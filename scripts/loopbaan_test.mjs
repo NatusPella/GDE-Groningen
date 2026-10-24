@@ -329,5 +329,36 @@ t('loopbaanPrijs: vaste reizigers krijgen korting, niveau 1 betaalt het gewone b
   schoon();
 });
 
+t('vaardigheden: een niveau geeft een handeling, niet alleen een titel (#437)', () => {
+  assert.equal(L.vaardigheidVan('trein', 1), null, 'niveau 1 geeft nog niets extra');
+  assert.equal(L.vaardigheidVan('trein', 2).titel, 'Vaste reiziger', 'niveau 2: korting op het kaartje');
+  const knip = L.vaardigheidVan('trein', 3);
+  assert.equal(knip.titel, 'Kaartjesknipper', 'niveau 3: kaartjes knippen');
+  assert.match(knip.wat, /perron/); assert.match(knip.wat, /druk E/);
+  assert.equal(L.vaardigheidVan('trein', 6).titel, 'Kaartjesknipper', 'de hoogste blijft daarna gelden');
+  assert.equal(L.vaardigheidVan('padel', 6), null, 'een vak zonder eigen handeling geeft null');
+  assert.equal(L.vaardigheidVan('onbekend', 3), null, 'een onbekend vak geeft null');
+  for (const [vak, lijst] of Object.entries(L.VAARDIGHEDEN)) {
+    assert.ok(L.vakInfo(vak), `${vak}: bekend vak`);
+    for (const v of lijst) {
+      assert.ok(v.niveau >= 1 && v.niveau <= L.MAX_NIVEAU, `${vak}: niveau binnen de trap`);
+      assert.ok(v.titel && v.wat && v.titel.length <= 26, `${vak}: korte titel en uitleg`);
+      assert.equal(v.titel, L.titelVan(vak, v.niveau), `${vak} ${v.niveau}: de titel van dat niveau`);
+    }
+  }
+});
+
+t('een niveau met een handeling zegt wat je nu kunt (#437)', () => {
+  Live.initLoopbaan({ opslag: nepOpslag() });
+  const w = nepWereld();
+  Live.loopbaanTel(w, 'trein', { xp: L.XP_DREMPELS[2] }); // van niveau 1 naar 3: Kaartjesknipper
+  const kaart = w.msgs.find((m) => m.o && m.o.kind === 'prestatie');
+  const tip = w.msgs.find((m) => m.o && m.o.kind === 'tip');
+  assert.ok(kaart && kaart.text.startsWith('Kaartjesknipper:'), 'het kaartje van het niveau');
+  assert.ok(tip && tip.text.startsWith('Kaartjesknipper: ') && /perron/.test(tip.text), 'de tip noemt het perron');
+  assert.equal(tip.o.key, 'loopbaan-kan-trein');
+  schoon();
+});
+
 console.log(`loopbaan_test: ${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);

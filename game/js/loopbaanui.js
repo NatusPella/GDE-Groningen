@@ -68,6 +68,7 @@ const CSS = `
 .lb-banen li.klaar { opacity: 1; }
 .lb-banen svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; flex: none; }
 .lb-banen li:not(.klaar) svg { visibility: hidden; }
+.lb-kan { padding-left: 10px; box-shadow: inset 3px 0 0 var(--g, #3fc97a); }
 .lb-bz { display: flex; flex-direction: column; min-width: 0; line-height: 1.25; }
 .lb-bz > span:first-child { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .lb-bz .mut { font-size: 14px; }
@@ -150,11 +151,14 @@ function detailHtml(profiel, id) {
   }).join('') + '</ol>';
   const banen = L.banenVan(id);
   const bezigheden = bezighedenHtml(id, v, banen);
+  // wat dit niveau je aan een handeling geeft (#437): niveau 3 bij Spoor is kaartjes knippen op het perron, geen getal
+  const kan = L.vaardigheidVan(id, d.niveau);
+  const vaardigheid = kan ? `<p class="lb-kan"><b>${esc(kan.titel)}:</b> ${esc(kan.wat)}</p>` : '';
   return `<div class="pm-pane-top"><span class="m-eb">${esc(groep)}</span><h2 class="m-h2 td-h2">${loopbaanIcoon(info.icoon, 'pa-ico big')}${esc(info.naam)}</h2></div>` +
     `<div class="lb-kop"><p class="lb-titel"><b>${esc(d.titel)}</b> <span class="mut">· niveau ${d.niveau} van ${L.MAX_NIVEAU}</span></p><p class="mut">${esc(info.wat)}</p></div>` +
     `<div class="lb-blok">${voort}<p class="mut">${doel}</p>` +
     `<p>${v.xp > 0 ? esc(telt.join(' · ')) : L.isGestart(profiel, id) ? 'Begonnen, nog geen klus gedaan.' : 'Nog niet begonnen.'}</p>` +
-    `<p class="${factor > 1 ? 'g' : 'mut'}">${factor > 1 ? `Dit vak betaalt nu ${L.percentage(factor)}% meer. ` : ''}${esc(L.loonTekst(id))}</p></div>` +
+    `<p class="${factor > 1 ? 'g' : 'mut'}">${factor > 1 ? `Dit vak betaalt nu ${L.percentage(factor)}% meer. ` : ''}${esc(L.loonTekst(id))}</p>${vaardigheid}</div>` +
     startHtml(profiel, id) + bezigheden + trap;
 }
 

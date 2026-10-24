@@ -108,6 +108,20 @@ is(stepTab([], 'x', 1), 'alles', 'no tabs'); is(stepTab(tabs, 'weg', 1), 's1', '
 is(keepTab(tabs, 's1'), 's1', 'keep'); is(keepTab(tabs, 's7'), 's0', 'drop: first tab'); is(keepTab(tabs, ''), 's0', 'open on the first section'); is(keepTab([], ''), 'alles', 'no tabs');
 is(flatItems(tabSections(SECS, 'alles')).length, 3, 'flat');
 
+// de wapens vooraan (#437): ook als de afdeling Wapens later in de lijst staat, en na een verhaalafdeling
+const WAP = { title: 'Wapens & munitie', items: [it('pistool')] };
+const KNAP = { title: 'Knallers & spetters', items: [it('carbid')] };
+const VEST = { title: 'Bescherming', items: [it('vest')] };
+const wapenTabs = shopTabs([KNAP, VEST, WAP]);
+is(wapenTabs.map((t) => t.label).join('|'), 'Wapens & munitie|Knallers & spetters|Bescherming|Alles', 'wapens first, Alles last');
+is(tabSections([KNAP, VEST, WAP], wapenTabs[0].id)[0].title, 'Wapens & munitie', 'the first tab is the weapons section');
+is(tabSections([KNAP, VEST, WAP], wapenTabs[1].id)[0].title, 'Knallers & spetters', 'ids follow the new order');
+is(tabSections([KNAP, VEST, WAP], 's2')[0].title, 'Bescherming', 'the last section keeps its own id');
+const verhaal = { title: 'Koop een pistool: nodig voor je missie', story: true, items: [it('pistool', { story: 'ok' })] };
+is(shopTabs([verhaal, VEST, WAP]).map((t) => t.label)[0], verhaal.title, 'a story section stays first');
+is(shopTabs([verhaal, VEST, WAP]).map((t) => t.label)[1], 'Wapens & munitie', 'weapons right after the story');
+is(shopTabs([{ title: 'Wapensmid', items: [it('a')] }, VEST]).map((t) => t.label)[0], 'Wapensmid', 'only a title starting with Wapens moves');
+
 // selection
 const items = [it('a', { disabled: 'Heb je al' }), it('b'), it('c', { story: 'ok' })];
 is(keepItem(items, 'b'), 'b', 'keeps'); is(keepItem(items, 'zz'), 'c', 'story item first'); is(keepItem(items.slice(0, 2), null), 'b', 'first buyable');
