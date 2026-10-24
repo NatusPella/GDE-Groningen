@@ -45,6 +45,54 @@ export const LIJST_TEXT = [
 // Wat "Verbinding testen" doet, vóór de speler het toestaat (het neemt contact op met openbare servers)
 export const DIAG_TEXT = 'De test neemt contact op met dezelfde openbare servers als de kamercode: internet, servers om elkaar te vinden en servers voor de kamercode. In de app test hij ook of je router automatisch een poort opent. Er wordt niets van jou verstuurd.';
 
+// ---------------------------------------------------------------- online-avatar (#455)
+// Zo zien anderen je in Samen spelen: een eigen naam en kleur, los van de verhaalrol
+// (Tammo of Tessa). De naam gaat door dezelfde lijst verboden woorden als een
+// sessienaam (constitutie 10) en is hoogstens 16 tekens; de kleur komt uit deze vaste
+// set, zodat twee spelers nooit toevallig dezelfde kleur krijgen zonder het te weten.
+// Bewaard per apparaat in de gewone instellingen (settings.js: onlineNaam, onlineKleur).
+export const ONLINE_NAAM_MAX = 16;
+export const PROFIEL_KLEUREN = [
+  { hex: '#4fb3ff', naam: 'Blauw' },
+  { hex: '#5bd6a0', naam: 'Groen' },
+  { hex: '#f2b134', naam: 'Geel' },
+  { hex: '#ff9a62', naam: 'Oranje' },
+  { hex: '#ff7ab8', naam: 'Roze' },
+  { hex: '#b78cff', naam: 'Paars' },
+  { hex: '#e86a6a', naam: 'Rood' },
+  { hex: '#6fd3e0', naam: 'Turquoise' },
+];
+export const STANDAARD_KLEUR = PROFIEL_KLEUREN[0].hex;
+const VERHAALNAMEN = ['tammo', 'tessa', 'anita']; // die horen bij het verhaal, niet bij een speler
+
+// Een kleur uit de vaste set; alles anders wordt de standaardkleur.
+export function profielKleur(kleur) {
+  const k = String(kleur || '').toLowerCase();
+  return PROFIEL_KLEUREN.some((c) => c.hex === k) ? k : STANDAARD_KLEUR;
+}
+export const kleurNaam = (kleur) => (PROFIEL_KLEUREN.find((c) => c.hex === profielKleur(kleur)) || PROFIEL_KLEUREN[0]).naam;
+
+// De online naam: leeg mag (dan zie je de naam van je figuur), maar wat je invult
+// moet door het filter. Geeft { ok, naam } of { ok: false, reason }.
+export function profielNaam(tekst) {
+  const naam = String(tekst ?? '').replace(/\s+/g, ' ').trim();
+  if (!naam) return { ok: true, naam: '' };
+  if (naam.length > ONLINE_NAAM_MAX) return { ok: false, reason: `Een online naam heeft hoogstens ${ONLINE_NAAM_MAX} tekens.` };
+  if (VERHAALNAMEN.includes(naam.toLowerCase())) return { ok: false, reason: 'Kies een eigen naam: Tammo en Tessa horen bij het verhaal.' };
+  return schoonNaam(naam);
+}
+
+// Het profiel zoals het naar de anderen gaat: alleen wat veilig door het net kan.
+export function avatarUitProfiel(profiel = {}) {
+  const r = profielNaam(profiel.naam);
+  return { naam: r.ok ? r.naam : '', kleur: profielKleur(profiel.kleur) };
+}
+// Eén regel voor het scherm: "Anderen zien je als Bouwer (Groen)."
+export function profielTekst(profiel = {}) {
+  const av = avatarUitProfiel(profiel);
+  return `Anderen zien je als ${av.naam || 'je figuur'} (${kleurNaam(av.kleur)}).`;
+}
+
 // Stand van de ander bij een versieverschil: duidelijke tekst met de versies
 export function versieTekst(lokaal, ander) {
   const l = lokaal ? ` (jij: ${lokaal})` : '';
@@ -70,6 +118,7 @@ export function createLobby(caps = {}) {
     step: caps.start || (caps.keuze === ROLES.GAST && caps.lijst && caps.rtc !== false ? 'lijst-vraag' : caps.keuze ? (caps.keuze === ROLES.HOST ? 'methode' : 'gast-typt') : 'start'), rol: caps.rol || caps.keuze || null, route: null, invoer: null,
     code: '', lanCode: '', note: '', error: '', reason: null, status: null, partner: null,
     spelers: [], max: DEFAULT_MAX, wens: null, holdSlot: null, holdNaam: caps.holdNaam || '',
+    profiel: { naam: String(caps.onlineNaam || '').slice(0, ONLINE_NAAM_MAX), kleur: profielKleur(caps.onlineKleur) }, profielFout: '',
     caps: { direct: !!caps.direct, rtc: caps.rtc !== false, laatsteCode: caps.laatsteCode || '', startGate: !!caps.startGate, spelNaam: String(caps.spelNaam || ''), lijst: !!caps.lijst, versie: String(caps.versie || ''), opslaan: !!caps.opslaan },
     diag: null, terugNaar: caps.keuze === ROLES.GAST && caps.lijst ? 'gast-typt' : 'start', andereVersie: '',
     openbaar: false, openbaarNaam: '', lijst: [], // openbaar: alleen voor deze sessie (een nieuwe lobby is weer privé)
@@ -136,6 +185,15 @@ export function reduce(s, ev) {
     case 'lijst-terug': if (s.step !== 'lijst' && s.step !== 'lijst-vraag') return s; n.step = s.terugNaar || 'start'; return n;
     case 'wens': // alleen gast: gewenste figuur voor plek 2 en hoger
       n.wens = EXTRA_CHARS.some((c) => c.id === ev.char) ? ev.char : null; return n;
+    case 'profiel': { // de online-avatar invullen (#455); de naam wordt pas bij profiel-klaar gefilterd
+      const naam = typeof ev.naam === 'string' ? ev.naam.slice(0, ONLINE_NAAM_MAX) : s.profiel.naam;
+      return { ...n, profiel: { naam, kleur: ev.kleur ? profielKleur(ev.kleur) : s.profiel.kleur }, profielFout: '' };
+    }
+    case 'profiel-klaar': { // het formulier verlaten: nu pas het filter, met een uitleg als het niet mag
+      const r = profielNaam(s.profiel.naam);
+      if (!r.ok) return { ...n, profielFout: r.reason };
+      return { ...n, profiel: { ...s.profiel, naam: r.naam } };
+    }
     case 'gate': n.caps = { ...s.caps, startGate: !!ev.aan }; return n;
     case 'hold': n.holdSlot = ev.slot ?? null; n.holdNaam = ev.naam || ''; return n;
     case 'spelers': { // de lijst met spelers is veranderd (host: uit de hub; gast: van de host)
@@ -194,11 +252,14 @@ const PARTNER_NAME = { host: 'Tessa', gast: 'Tammo' }; // de ander van deze rol
 export function view(s) {
   // bij een fout in de stappen waar je verbindt: wijs de weg naar de test
   const hulp = s.error && ['gast-typt', 'host-wacht', 'host-maakt-code', 'methode', 'verbinden'].includes(s.step) && !/gekopieerd/.test(s.error);
-  const V = (o) => { const r = { title: 'Samen spelen', lines: [], buttons: [], input: null, code: null, error: s.error, ...o }; if (hulp && r.buttons.some((b) => b.act === 'diag')) r.lines = [...r.lines, 'Lukt het niet? Kies Verbinding testen: daar staat wat er mis is en wat je kunt doen.']; return r; };
+  const V = (o) => { const r = { title: 'Samen spelen', lines: [], buttons: [], input: null, code: null, profiel: null, error: s.error, ...o }; if (hulp && r.buttons.some((b) => b.act === 'diag')) r.lines = [...r.lines, 'Lukt het niet? Kies Verbinding testen: daar staat wat er mis is en wat je kunt doen.']; return r; };
+  // het kleine formulier voor je online-avatar (#455): op de schermen waar je kiest om samen te spelen
+  const profiel = { ...s.profiel, kleuren: PROFIEL_KLEUREN, maxLength: ONLINE_NAAM_MAX, fout: s.profielFout, tekst: profielTekst(s.profiel) };
   switch (s.step) {
     case 'start':
       return V({
-        lines: ['Speel samen met een vriend in de open wereld: opdrachten, minigames en het verhaal. Iedereen houdt zijn eigen voortgang. Wie het spel opent speelt Tammo, wie als eerste meedoet speelt Tessa, wie daarna komt een eigen figuur.'],
+        lines: ['Speel samen met een vriend in de open wereld: opdrachten, minigames en het verhaal. Iedereen houdt zijn eigen voortgang. Wie het spel opent speelt Tammo, wie als eerste meedoet speelt Tessa, wie daarna komt een eigen figuur.', 'Vul hieronder je online naam en kleur in: zo zien de anderen je.'],
+        profiel,
         buttons: [{ act: 'kies-host', label: 'Iemand uitnodigen', primary: true }, { act: 'kies-gast', label: 'Code of adres invoeren' }, ...(s.caps.rtc ? [{ act: 'lijst', label: 'Openbare sessies' }] : []), { act: 'diag', label: 'Verbinding testen' }],
       });
     case 'methode': {
@@ -209,6 +270,7 @@ export function view(s) {
         title: 'Iemand uitnodigen',
         lines: ['Kamercode: werkt overal, ook in de browser, via openbare servers.',
           s.caps.direct ? 'IP-adres: rechtstreeks naar jou, zonder servers van anderen. Je router moet UPnP hebben.' : 'Het IP-adres (direct) kan alleen in de desktop-app.'],
+        profiel,
         buttons,
       });
     }
@@ -231,6 +293,7 @@ export function view(s) {
     case 'gast-typt':
       return V({
         title: 'Aansluiten', lines: ['Voer de kamercode of de koppelcode in die je kreeg. De eerste gast speelt altijd Tessa: zij hoort bij het verhaal, dus daar kies je niets. Kom je als derde of later, dan speel je een eigen figuur: kies er hieronder een (die krijg je als hij vrij is), of laat het kiezen.', GAST_BEWAREN(s.caps.spelNaam)],
+        profiel,
         input: { placeholder: 'Kamercode of GDE2-…', value: s.caps.laatsteCode || '' },
         wensen: EXTRA_CHARS.map((c) => ({ act: 'wens-' + c.id, id: c.id, naam: c.naam, kleur: c.kleur, gekozen: s.wens === c.id })),
         buttons: [{ act: 'koppel', label: 'Verder', primary: true }, ...(s.caps.rtc ? [{ act: 'lijst', label: 'Openbare sessies' }] : []), { act: 'diag', label: 'Verbinding testen' }, { act: 'terug', label: 'Terug' }],

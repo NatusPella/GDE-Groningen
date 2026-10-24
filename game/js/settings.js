@@ -96,6 +96,11 @@ const BASE_DEFAULTS = {
   helpGates: 'normaal',
   helpOffer: true,
   colorBlind: 'uit',
+  // online-avatar voor Samen spelen (#455): de naam en kleur die anderen van
+  // jou zien. Per apparaat bewaard, in de gewone instellingen; leeg = de naam
+  // van je figuur.
+  onlineNaam: '',
+  onlineKleur: '#4fb3ff',
   // unused since the attract intro plays at every launch; kept so old
   // settings files load unchanged
   attractSeen: false,
@@ -144,6 +149,9 @@ function load() {
     if (!PAD_LAYOUT_CHOICES.includes(out.padLayout)) out.padLayout = DEFAULTS.padLayout;
     if (!HINT_SOURCE_CHOICES.includes(out.hintSource)) out.hintSource = DEFAULTS.hintSource;
     if (!TOUCH_CONTROLS_CHOICES.includes(out.touchControls)) out.touchControls = DEFAULTS.touchControls;
+    // de online-avatar (#455): een kleur blijft een kleur, anders de standaard
+    if (!/^#[0-9a-f]{6}$/i.test(out.onlineKleur)) out.onlineKleur = DEFAULTS.onlineKleur;
+    out.onlineNaam = String(out.onlineNaam || '').slice(0, 16);
     if (!(out.padLookSensitivity >= 0.3 && out.padLookSensitivity <= 2.5)) out.padLookSensitivity = DEFAULTS.padLookSensitivity;
     if (stored && mig && mig.from < SETTINGS_VERSION) {
       try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...out, v: SETTINGS_VERSION })); } catch (e) { /* ignore */ }
