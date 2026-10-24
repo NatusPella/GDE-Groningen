@@ -1341,6 +1341,17 @@ export function playEndingShot(world, st, done) {
 
 // --- cleanup ----------------------------------------------------------------------------------
 
+// Samen spelen (#452): wat de gast van de inbraak moet zien (lasers met hun rij en of ze aan staan, zekeringkast, vitrine), voor coopextra.js.
+export const HEIST_LASER_HOGEN = LASER_ROWS.map((r) => r.hs);
+export function heistRekwisieten(t) {
+  if (!H) return [];
+  const uit = [];
+  if (H.lasers && !H.lasers.dying) LASER_ROWS.forEach((row, i) => { const q = H.lasers.rows[i]; if (!q || q.dead) return; const c = at('zaal3', 0, row.c); uit.push({ soort: 'laser', id: i, x: c.x, y: c.y, z: 0, hoek: uAngle('zaal3'), staat: i | (rowActive(q, t) ? 128 : 0) }); });
+  if (H.fuseAt) uit.push({ soort: 'zekering', id: 10, x: H.fuseAt.x, y: H.fuseAt.y });
+  if (H.vitrine) uit.push({ soort: 'kluis', id: 11, x: H.vitrine.x, y: H.vitrine.y, staat: H.caseLid && H.caseLid.position.y > 0.3 ? 1 : 0 });
+  return uit;
+}
+
 export function disposeHeist() {
   if (!H) return;
   const world = H.world;

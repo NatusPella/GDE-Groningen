@@ -352,7 +352,7 @@ t('doelen: rondreis, label bijgesneden, budget en vals bericht', () => {
 t('over het net: gast ziet rekwisieten en doelen; een oudere gast negeert de tags', () => {
   X.wisRegistratie();
   X.registreerRekwisieten('heist', () => [rek(0, { soort: 'laser' }), rek(1, { soort: 'kluis' })]);
-  X.registreerDoelen(() => [{ id: 1, x: 300, y: 300, soort: 'doel', label: 'Kluis' }, { id: 2, x: 110, y: 205, soort: 'controle', label: 'Punt' }]);
+  X.registreerDoelen('opdracht', () => [{ id: 1, x: 300, y: 300, soort: 'doel', label: 'Kluis' }, { id: 2, x: 110, y: 205, soort: 'controle', label: 'Punt' }]);
   const w = wereld(3, 0); const g = X.nieuwGeheugen();
   const u = X.verzamelExtra(w, BIJ, g, DEPS);
   const buf = X.codeerExtra(u, BIJ[0]); assert.ok(buf.length <= X.MAX_LADING);

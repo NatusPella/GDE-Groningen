@@ -211,6 +211,12 @@ function stepItem(world, it, dt) {
   return true;
 }
 
+// Samen spelen (#452): carbidbussen en vuurpijlen onderweg, voor coopextra.js (staat = hoe ver de lont is, 0 tot 255)
+let itemSeq = 0;
+export function throwablesRekwisieten() {
+  return items.map((it) => ({ soort: it.type === 'carbid' ? 'carbid' : 'raket', id: it.cid || (it.cid = ++itemSeq), x: it.x, y: it.y, z: it.z, hoek: Math.atan2(it.vy || 0, it.vx || 0), staat: Math.round(Math.min(1, it.t / (it.fuse || 1)) * 255) }));
+}
+
 export function updateThrowables(dt, world) {
   if (!dt) return;
   for (let i = drops.length - 1; i >= 0; i--) {
