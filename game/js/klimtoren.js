@@ -5,6 +5,8 @@ import { showBanner } from './cinematics.js';
 import { unlockAchievement, recordChallengeResult, getChallengeRecord, recordStat, MEDALS } from './achievements.js';
 import { showCard } from './hudcards.js';
 import { standActivity, recLine } from './standactivity.js';
+import { loopbaanVerdien } from './loopbaanlive.js';
+import { registreerWedstrijd, zetWedGastHaken, wedNodigUit, wedNuStarten, wedHostTijd, wedGastTijd, wedScoreStop, wedGastVerlaat, wedGastReset, wedScoreRijen } from './coopwedstrijd.js';
 import { createBoard, key, bubble, clearBubbles, pick, stopPressed, easeCamera, geo, frame, fmtTime, clamp } from './minigamekit.js';
 import { CLIMB_LINES } from './minigamelines2.js';
 import { WALL, ARMS, createClimb, startClimb, stepClimb, nextHold, makeHolds, climbMedal, MEDAL_AT } from './climbrules.js';
@@ -121,7 +123,8 @@ function updateGame(w, dt) {
   const g = game, s = g.s, input = w.input;
   g.t += dt;
   if (g.flash && (g.flash.t -= dt) <= 0) g.flash = null;
-  if (stopPressed(input)) { end(w, { quit: true }); return; }
+  if (g.online === 'gast' && (!w.coopNet || w.coopRole !== 'client')) { wedGastReset(w); end(w, { quit: true, extern: true }); return; } // the connection is gone
+  if (stopPressed(input)) { end(w, { quit: true, extern: g.online === 'gast' && !!g.gemeld }); return; } // a guest who is done and waits just leaves the screen: his result stays and his prize still comes
   if (g.phase === 'intro') {
     g.phaseT -= dt;
     if (g.phaseT <= 0) { g.phase = 'run'; startClimb(s); }
@@ -133,9 +136,15 @@ function updateGame(w, dt) {
   if (input.wasPressed(' ')) { input.consume(' '); inp.chalk = true; }
   const ev = stepClimb(s, inp, dt);
   for (const e of ev) onEvent(w, e);
-  if (g.phase === 'run' && s.phase === 'top') { g.phase = 'outro'; g.phaseT = 2.2; }
-  if (g.phase === 'run' && s.phase === 'over') { g.phase = 'outro'; g.phaseT = 2.2; }
-  if (g.phase === 'outro') { g.phaseT -= dt; if (g.phaseT <= 0) { end(w); return; } }
+  if (g.phase === 'run' && (s.phase === 'top' || s.phase === 'over')) {
+    g.phase = 'outro'; g.phaseT = 2.2;
+    if (g.online && !g.gemeld) { // online (#443): report the climb; the host keeps the board and ends the contest when everybody is done
+      g.gemeld = true;
+      const res = { tijd: s.time, hoogte: Math.max(0, s.best), boven: s.phase === 'top' };
+      if (g.online === 'host') wedHostTijd(w, res); else wedGastTijd(w, res.tijd, res.hoogte, res.boven);
+    }
+  }
+  if (g.phase === 'outro') { g.phaseT -= dt; if (g.phaseT <= 0) { if (g.online) { g.phase = 'wacht'; g.phaseT = 0; } else { end(w); return; } } }
   if (g.phase === 'run' && s.arms < 0.25 && !s.ground) say(w, 'low');
   place(w);
 }
@@ -150,7 +159,7 @@ function onEvent(w, e) {
   else if (e.type === 'grip' && e.hold.big && s.hands.a.hold && s.hands.d.hold && s.hands.a.hold.big && s.hands.d.hold.big) say(w, 'rest');
 }
 
-function end(w, { quit = false } = {}) {
+function end(w, { quit = false, extern = false, uitslag = null } = {}) {
   const g = game;
   if (!g) return;
   game = null;
@@ -161,6 +170,7 @@ function end(w, { quit = false } = {}) {
   if (board) board.hide();
   clearBubbles(w, 'klimtoren');
   p.x = STAND.x; p.y = STAND.y; p.angle = Math.PI + ROT;
+  if (g.online) { eindeOnline(w, g, quit, extern, uitslag); return; }
   if (quit) { w.addMessage('Klimmen gestopt', 2.5); return; }
   const s = g.s;
   if (s.phase === 'top') {
@@ -182,6 +192,20 @@ function end(w, { quit = false } = {}) {
   }
 }
 
+// Online (#443): whoever stops lets the others climb on; the results and the prize come from whoever opened the game (coopwedstrijd.js).
+function eindeOnline(w, g, quit, extern, res) {
+  if (quit) {
+    if (!extern) { if (g.online === 'host') wedScoreStop(w); else wedGastVerlaat(w); } // the host stops it for everybody, a guest only for himself
+    w.addMessage('Klimmen gestopt', 2.5);
+    return;
+  }
+  if (g.online === 'gast' || !res) return; // a guest: the results card and the prize message come from the host
+  if (g.s.phase === 'top') { recordStat(w, 'klimTops'); unlockAchievement(w, 'klim_klaar'); if (g.s.falls === 0) unlockAchievement(w, 'klim_foutloos'); }
+  const jij = res.jij || { plek: 0, geld: 0, xp: 0 };
+  loopbaanVerdien(w, 'buiten', jij.geld, { xp: jij.xp, n: 1, uniek: 'klimtoren', deel: false }); // the prize is per place; the guests get theirs from the host
+  if (jij.geld > 0) w.addMessage(`Beloning: \u20ac${jij.geld.toLocaleString('nl-NL')}`, 4);
+}
+
 // --- camera and HUD -------------------------------------------------------------------------------------------
 
 function camera(w) {
@@ -200,14 +224,15 @@ function ensureBoard() {
   return board;
 }
 
-function updateHud() {
+function updateHud(w) {
   const g = game;
   if (!g || !board) return;
   const s = g.s;
   const height = s.ground ? 0 : Math.max(0, s.body + 1.15);
-  const row = `<span>Tijd <b>${fmtTime(s.time)}</b></span><span>Hoogte <b>${height.toFixed(1).replace('.', ',')} m</b></span><span>Pogingen <b>${Math.max(0, WALL.tries - s.falls)}</b></span>`;
+  const row = `${stand ? `<span>${stand}</span>` : ''}<span>Tijd <b>${fmtTime(s.time)}</b></span><span>Hoogte <b>${height.toFixed(1).replace('.', ',')} m</b></span><span>Pogingen <b>${Math.max(0, WALL.tries - s.falls)}</b></span>`;
   const meter = { v: s.arms, color: s.arms < 0.25 ? '#ff6f61' : '#f08a30' };
-  const flash = g.flash ? g.flash.text : g.phase === 'intro' ? 'Pak de eerste grepen...' : s.ground && g.phase === 'run' ? 'Houd A of D ingedrukt om te grijpen' : '';
+  const stand = g.online ? wedScoreRijen(w).map((r) => `${r.weg ? '<s>' : ''}${r.naam} ${r.banen === 1 ? fmtTime(r.slagen / 10) : r.banen === 2 ? 'niet boven' : 'bezig'}${r.weg ? '</s>' : ''}`).join(' · ') : '';
+  const flash = g.flash ? g.flash.text : g.phase === 'wacht' ? (s.phase === 'top' ? 'Boven! Wachten op de anderen' : 'Klaar: wachten op de anderen') : g.phase === 'intro' ? 'Pak de eerste grepen...' : s.ground && g.phase === 'run' ? 'Houd A of D ingedrukt om te grijpen' : '';
   const help = `${key('A')} linkerhand · ${key('D')} rechterhand · houd vast, laat één hand los om hem hoger te zetten · ${key('SPATIE')} magnesium · ${key('BACKSPACE')} stoppen`;
   board.set({ row, meter, flash, bad: !!(g.flash && g.flash.bad), help });
 }
@@ -239,7 +264,8 @@ function glyph(ctx) {
 
 // --- start -----------------------------------------------------------------------------------------------
 
-function start(w) {
+// online: 'host' (who opened the game, at the mat) or 'gast' (on his own screen): everybody climbs the same wall at once, the host keeps the board (#443)
+function start(w, { online = null } = {}) {
   if (game) return false;
   if (!built) built = buildTower();
   const p = w.player;
@@ -248,10 +274,11 @@ function start(w) {
   ensureBoard();
   board.show();
   runs++;
-  game = { t: 0, phase: 'intro', phaseT: INTRO_S, s: createClimb(holds), flash: null, cam: null, said: 0 };
+  game = { t: 0, phase: 'intro', phaseT: INTRO_S, s: createClimb(holds), flash: null, cam: null, said: 0, online };
   ensureHolds(game.s.holds);
   const side = FR.toW(7, 3);
   w.companionHold = { x: side.x, y: side.y, face: Math.PI };
+  if (online === 'gast') { place(w); return true; } // a guest reads the keys on the board; the host's invitation said what is played
   showCard(w, { kind: 'tip', kicker: 'Klimtoren', title: 'Twaalf meter', body: 'Houd [A] vast voor je linkerhand en [D] voor je rechter: de hand grijpt na een tel de ring. Laat één hand los om hem hoger te zetten, nooit allebei. Grote grepen zijn rustplekken.', duration: 11, key: 'klimtoren-help', voice: false });
   say(w, 'start', true);
   place(w);
@@ -261,6 +288,33 @@ function start(w) {
 function recText() {
   return recLine(getChallengeRecord('klimtoren'), fmtTime, MEDALS);
 }
+
+// with guests in the session the climb is an invitation to everyone (Meedoen? J/N); pressing E again starts at once (#443)
+function startOfUitnodigen(w) {
+  const uit = wedNodigUit(w, 'klimtoren');
+  if (uit.ok) { if (uit.reden === 'wacht') wedNuStarten(w); return true; }
+  return start(w);
+}
+
+// a guest: the host started the climb and this guest said yes; the climb runs on his own screen
+function gastTik(w, dt) {
+  if (!game || game.online !== 'gast') return false;
+  updateGame(w, dt);
+  if (game) { if ((lodT -= dt) <= 0) { lodT = 0.5; updateLod(w); } if (built && built.coach.visible) animatePersonWalk(built.coach, 0, dt); updateRings(); updateHud(w); }
+  return true;
+}
+registreerWedstrijd('klimtoren', {
+  naam: 'Klimtoren Zernike', soort: 'tijd', vak: 'buiten',
+  start: (w) => start(w, { online: 'host' }),
+  plek: () => ({ ...STAND }),
+  eind: (w, res) => { if (game && game.online === 'host') end(w, res ? { uitslag: res } : { quit: true, extern: true }); },
+  solo: (w) => start(w),
+});
+zetWedGastHaken('klimtoren', {
+  start: (w) => start(w, { online: 'gast' }),
+  eind: (w, uit) => { if (game && game.online === 'gast') end(w, uit.gestopt ? { quit: true, extern: true } : { uitslag: uit }); },
+  tik: gastTik,
+});
 
 export const KLIMTOREN = standActivity({
   id: 'klimtoren',
@@ -278,14 +332,14 @@ export const KLIMTOREN = standActivity({
   recText,
   glyph,
   isActive: () => !!game,
-  start,
+  start: (w) => startOfUitnodigen(w),
   quit: (w) => end(w, { quit: true }),
   update: (dt, w) => updateGame(w, dt),
   tick(dt, w) {
     if ((lodT -= dt) <= 0) { lodT = 0.5; updateLod(w); }
     if (built && built.coach.visible) animatePersonWalk(built.coach, 0, dt);
     updateRings();
-    updateHud();
+    updateHud(w);
   },
   camera,
   debug: (w) => ({
