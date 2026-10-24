@@ -1,6 +1,6 @@
 // Samen spelen (#95): cutscenes samen bekijken (coopcut.js): de scène gaat in stukjes naar de gasten en komt heel aan.
 import assert from 'node:assert/strict';
-import { gastCine, cutPakket, cutStukken, cutEinde, nieuwCutVerzamelaar, leesCutPakket, cutHostStart, cutHostEnd, cutHostId, cutHostTik, cutGastTempo, cutGastTik, leesCutTijd, cutTijd, CUT_CHUNK } from '../game/js/coopcut.js';
+import { gastCine, cutPakket, cutStukken, cutEinde, nieuwCutVerzamelaar, leesCutPakket, cutHostStart, cutHostEnd, cutHostId, cutHostTik, cutGastTempo, cutGastTik, leesCutTijd, cutTijd, cutsceneScène, CUT_CHUNK } from '../game/js/coopcut.js';
 import { openingActs, END_CARD } from '../game/js/cutscenes.js';
 import { encodeJson, decodeJson, T } from '../game/js/net/codec.js';
 import { Reliable } from '../game/js/net/protocol.js';
@@ -101,5 +101,17 @@ for (const [i, act] of acts.entries()) {
   const c = gastCine({ id: 7, cine: { priority: 4, skippable: false, id: 'x' } }, klaar);
   ok(c.skippable === true && c.cutId === 7 && c.onEnd === klaar && c.id === 'x', 'een gast mag zijn eigen filmpje overslaan');
   ok(gastCine({ id: 8, cine: undefined }, klaar).skippable === true, 'ook zonder eigen opties');
+}
+// rollen per speler (#455): elke client speelt de hoofdrol van de scène lokaal zelf
+{
+  const p = cutPakket({ def: { id: 'x' }, lines: [], duration: 3, anchor: null, cine: { id: 'x' }, rol: 'tammo' });
+  ok(p.rol === 'tammo', 'de scène weet welke hoofdrol hij vraagt');
+  const v = nieuwCutVerzamelaar(); let uit = null; for (const s of cutStukken(11, p)) uit = v.voegToe(s) || uit;
+  ok(uit && uit.rol === 'tammo', 'de rol komt mee door de stukjes');
+  ok(cutPakket({ def: {}, lines: [], duration: 3, rol: 'geen-rol' }).rol === undefined, 'alleen een echte verhaalrol');
+  const eigen = cutsceneScène(uit, { character: 'anita' });
+  ok(eigen.hoofdrol === 'tammo' && eigen.eigen === 'anita' && eigen.tijdelijk === true, 'een Tessa-speler speelt lokaal tijdelijk Tammo');
+  ok(eigen.metgezel === 'anita' && eigen.metgezelEenmalig === true && eigen.avatarsZichtbaar === false, 'de metgezel staat er één keer en avatar-figuren niet');
+  ok(cutsceneScène({ rol: 'tammo' }, { character: 'tammo' }).tijdelijk === false, 'eigen rol: geen wissel');
 }
 console.log(`coopcut_test: ${n} ok`);

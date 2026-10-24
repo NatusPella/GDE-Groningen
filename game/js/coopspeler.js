@@ -6,11 +6,49 @@
 // In het snapshot zit dit in bytes die al gereserveerd waren (codec.js): geen nieuwe wireversie.
 import { WEAPON_KEYS } from './weapons.js';
 import { FX_SOORTEN, SWINGS } from './coopextra.js';
+import { EXTRA_CHARS, charInfo } from './coopplayers.js';
+import { schoonNaam } from './net/serverlijst.js';
+import { isVerhaalrol } from './cooproles.js';
 
 export const KNOP_RENNEN = 1, KNOP_HANDREM = 2, KNOP_SPRING = 4, KNOP_BUK = 8, KNOP_AANVAL = 16, KNOP_ZICHT = 32; // aanval: de aanvalsknop van een gast met een wapen (coopwapen.js); zicht: rechtermuisknop vast met een wapen met een kijker (jachtgeweer): richten door de kijker
 export const SPRONG_SNELHEID = 3.45; // m/s omhoog, zoals player.js (JUMP_SPEED): ongeveer 0,6 m hoog
 export const ZWAARTEKRACHT = 9.8;    // zoals player.js (GRAVITY)
 export const BUK_TEMPO = 0.55;       // een gast die bukt loopt zo veel langzamer (player.js CROUCH_SPEED)
+
+// ---------------------------------------------------------------- online-avatar (#455)
+// Iedereen ziet een medespeler als zijn online-avatar: een eigen personage met een
+// zelfgekozen naam, kleur en kleding, los van de verhaalrol (Tammo/Tessa). De avatar
+// wordt nooit als verhaalfiguur getekend; anderen herkennen hem aan het naamlabel.
+const STORY_NAMEN = ['tammo', 'tessa', 'anita'];
+const isVerhaalnaam = (n) => STORY_NAMEN.includes(String(n || '').trim().toLowerCase());
+const hexInt = (k) => parseInt(String(k).replace('#', ''), 16);
+
+// De avatar van een speler, met veilige standaard: een figuur uit de vaste lijst
+// (coopplayers.EXTRA_CHARS) op basis van de gewenste figuur of anders de plek.
+// De naam gaat door hetzelfde filter als een sessienaam (constitutie 10).
+export function avatarVan(speler = {}, slot = 0) {
+  const bron = speler && typeof speler === 'object' ? speler : {};
+  const av = bron.avatar && typeof bron.avatar === 'object' ? bron.avatar : {};
+  const wens = [av.char, typeof bron.avatar === 'string' ? bron.avatar : null, bron.char].find((id) => typeof id === 'string' && !isVerhaalrol(id));
+  const basis = (wens && charInfo(wens)) || EXTRA_CHARS[Math.abs(slot | 0) % EXTRA_CHARS.length];
+  const ruw = [av.naam, bron.onlineNaam, bron.naam].find((n) => typeof n === 'string' && n.trim() && !isVerhaalnaam(n));
+  const schoon = schoonNaam(ruw || basis.naam);
+  return {
+    char: basis.id,
+    naam: schoon.ok && !isVerhaalnaam(schoon.naam) ? schoon.naam : basis.naam,
+    kleur: /^#[0-9a-f]{6}$/i.test(av.kleur || '') ? av.kleur : basis.kleur,
+    kleding: typeof av.kleding === 'string' && av.kleding.trim() ? av.kleding.slice(0, 40) : basis.kleding,
+    huid: basis.huid, seed: basis.seed, variant: basis.variant,
+  };
+}
+
+// Uiterlijk voor models3d_people.buildPersonMesh: altijd een eigen figuur (seed en
+// kleur), nooit het model van een verhaalfiguur.
+export function avatarLook(avatar) {
+  const a = avatar && avatar.seed != null ? avatar : avatarVan(avatar);
+  return { karakter: null, shirt: hexInt(a.kleur), skin: a.huid, opts: { seed: a.seed, variant: a.variant } };
+}
+export const avatarLabel = (avatar) => { const a = avatar && avatar.naam ? avatar : avatarVan(avatar); return { tekst: a.naam, kleur: a.kleur }; };
 
 // Knoppen van de gast: rennen, handrem (met het stuur), springen en bukken (te voet).
 export function knoppen({ rennen = false, handrem = false, springen = false, bukken = false, aanval = false, zicht = false } = {}) {
