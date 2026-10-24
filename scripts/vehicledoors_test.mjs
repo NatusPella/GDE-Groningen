@@ -54,6 +54,43 @@ check('links van de auto is de bestuurderskant', D.instapKant(recht, 0, -2) === 
 const gedraaid = car('sedan', { x: 10, y: 5, angle: Math.PI / 2 }); // neus naar +y: rechts is -x
 check('gedraaid: de kant volgt de neus', D.instapKant(gedraaid, 8, 5) === 1 && D.instapKant(gedraaid, 12, 5) === -1);
 
+// de deur waar de speler staat en de hint per deur (#459)
+const bijDeur = (v, x, y) => D.deurBijSpeler(v, x, y);
+const bestuurder = bijDeur(sedan, 0.645, -1.5), bijrijder = bijDeur(sedan, 0.645, 1.5), achter = bijDeur(sedan, -0.6, 1.5);
+check('bij de bestuurdersdeur: die deur en rol', !!bestuurder && bestuurder.deur.id === 'vl' && bestuurder.rol === 'bestuurder', JSON.stringify(bestuurder));
+check('bij de bijrijdersdeur: die deur en rol', !!bijrijder && bijrijder.deur.id === 'vr' && bijrijder.rol === 'bijrijder', JSON.stringify(bijrijder));
+check('bij de achterdeur: achter', !!achter && achter.rol === 'achter', JSON.stringify(achter));
+check('voor de motorkap is geen deur', bestuurder && D.deurBijSpeler(sedan, 2.2, 0) === null);
+check('achter de kofferbak is geen deur', D.deurBijSpeler(sedan, -2.2, 0) === null);
+check('de hint noemt de deur', D.deurNaam(sedan, bestuurder.deur) === 'bestuurdersdeur'
+  && D.deurNaam(sedan, bijrijder.deur) === 'bijrijdersdeur' && D.deurNaam(sedan, achter.deur) === 'achterdeur');
+check('bus: hint noemt de passagiersdeur', D.deurNaam(car('bus', { isBus: true }), { seat: 'bijrijder' }) === 'passagiersdeur');
+check('bus: instappen bij de deur rechts', (() => {
+  const b = car('bus', { isBus: true, model: { name: 'bus', len: 11.2, wid: 2.55 } });
+  const d = D.deurBijSpeler(b, 4.5, 1.75);
+  return !!d && d.deur.side === 1 && d.rol === 'bijrijder';
+})());
+check('kap en kofferbak zijn geen instapdeur', D.deurBijSpeler(car('hatch'), 0.36 * 3.8, 0) === null);
+check('losse deur: de opening blijft de weg in', (() => {
+  const l = car('sedan'); l.doors = D.makeDoorState(); l.doors.loose.vl = true;
+  const b = D.deurBijSpeler(l, 0.645, -1.5);
+  return !!b && b.deur.id === 'vl';
+})());
+check('fiets: geen poort, overal instappen', D.bijInstapdeur(car('sedan', { isBike: true }), 3.5, 3) === true);
+check('auto: alleen bij een deur instappen', D.bijInstapdeur(sedan, 0.645, -1.5) === true && D.bijInstapdeur(sedan, 2.2, 0) === false);
+check('gedraaide auto: de deur draait mee', (() => {
+  const b = D.deurBijSpeler(gedraaid, 11.3, 5.65);
+  return !!b && b.deur.id === 'vl' && Math.hypot(b.x - 11.32, b.y - 5.645) < 0.01;
+})());
+check('uitstappen aan de kant van je stoel', D.uitstapPunt(sedan).kant === -1 && D.uitstapPunt(sedan, 'bijrijder').kant === 1);
+check('bus en trein: uitstappen rechts', D.uitstapPunt(car('bus', { isBus: true })).kant === 1 && D.uitstapPunt(car('train', { isTrain: true })).kant === 1);
+check('uitstappen bij de deur van je stoel, niet het midden van de flank', (() => {
+  const b = car('bus', { isBus: true, model: { name: 'bus', len: 11.2, wid: 2.55 } });
+  const p = D.uitstapPunt(b);
+  return !!p && p.kant === 1 && Math.abs(p.langs - (0.406 + 0.3 / 11.2) * 11.2) < 1e-9;
+})());
+check('zonder deur: geen uitstappunt', D.uitstapPunt(car('bike', { isBike: true })) === null);
+
 // standen en timing
 const s = D.makeDoorState();
 D.wantDoor(s, 'vl', true);
