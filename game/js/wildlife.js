@@ -1,4 +1,5 @@
 import { aandeel, minAfstand } from './coopfoci.js';
+import { hoofdspeler, naasteSpeler, voorElkeSpeler } from './spelersregister.js';
 import { dist, angleLerp, pointInPolygon, SeededRng, isInWater, WATER_Y } from './util.js';
 import { waterPolyAt, waterNearby, BRIDGE_DRY } from './waterlevels.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
@@ -269,7 +270,7 @@ function releaseAnimal(a) {
 function maintain(world, focus = null, n = 1) {
   const list = world.wildlife;
   const { map } = world;
-  const player = focus || world.player;
+  const player = focus || hoofdspeler(world);
   const lokaal = n > 1, hier = (a) => dist(a.x, a.y, player.x, player.y) <= DESPAWN_DIST;
   for (let i = list.length - 1; i >= 0; i--) {
     const a = list[i];
@@ -390,10 +391,17 @@ function moverOf(pl) {
   return pl.inVehicle ? { x: pl.x, y: pl.y, speed: Math.abs(pl.inVehicle.speed || 0), kind: 'voertuig' } : { x: pl.x, y: pl.y, speed: playerSpeed(pl), kind: 'speler' };
 }
 
+// Wie de dieren om zich heen hebben: de dichtstbijzijnde speler (#446), als lichaam met x, y en inVehicle. Een meespeler
+// komt van het netwerk en heeft geen eigen voertuig hier: die telt als loper op zijn plek.
+function naasteLichaam(world, x, y) {
+  const r = naasteSpeler(world, x, y);
+  return r && r.entiteit ? r.entiteit : r;
+}
+
 // Koe en schaap: stappen weg van een speler of voertuig dat te dichtbij komt, geen paniek.
 export function updateHerd(a, dt, world) {
   if (!(a.fleeT > 0)) {
-    const f = fleeFrom(a.kind === 'cow' ? 'koe' : 'schaap', a.x, a.y, moverOf(world.player));
+    const f = fleeFrom(a.kind === 'cow' ? 'koe' : 'schaap', a.x, a.y, moverOf(naasteLichaam(world, a.x, a.y)));
     if (f) { a.fleeT = 2.5; a.wanderTarget = { x: a.x + f.ux * 12, y: a.y + f.uy * 12 }; a.fleeSpeed = f.speed; }
   }
   if (a.fleeT > 0) {
@@ -408,7 +416,7 @@ export function updateHerd(a, dt, world) {
 // Reiger: staat roerloos aan de waterkant; schrikt hij, dan vliegt hij weg en is hij na een tijd uit beeld.
 function updateReiger(a, dt, world) {
   if (a.state === 'stand') {
-    const f = fleeFrom('reiger', a.x, a.y, moverOf(world.player));
+    const f = fleeFrom('reiger', a.x, a.y, moverOf(naasteLichaam(world, a.x, a.y)));
     if (f) {
       a.state = 'fly'; a.flyT = 0; a.angle = Math.atan2(f.uy, f.ux) + (Math.random() - 0.5) * 0.6; a.speed = f.speed + 1.5;
       return;
@@ -429,7 +437,7 @@ function updateReiger(a, dt, world) {
 // Zeehond: rust in het water; schrikt hij, dan duikt hij weg (een tijd onzichtbaar, daarna weg).
 function updateZeehond(a, dt, world) {
   if (a.state === 'duik') { a.diveT += dt; if (a.diveT > 2.5) a.gone = true; return; }
-  const f = fleeFrom('zeehond', a.x, a.y, moverOf(world.player));
+  const f = fleeFrom('zeehond', a.x, a.y, moverOf(naasteLichaam(world, a.x, a.y)));
   if (f) { a.state = 'duik'; a.diveT = 0; a.speed = 0; return; }
   a.waypointTimer -= dt;
   if (a.waypointTimer <= 0) {
@@ -450,7 +458,7 @@ function updateZeehond(a, dt, world) {
 
 // Vis: zwemt rustig rond onder het oppervlak en schiet weg voor wie te dichtbij komt.
 function updateVis(a, dt, world) {
-  const f = fleeFrom('vis', a.x, a.y, moverOf(world.player));
+  const f = fleeFrom('vis', a.x, a.y, moverOf(naasteLichaam(world, a.x, a.y)));
   if (f) {
     a.wanderTarget = { x: a.x + f.ux * 6, y: a.y + f.uy * 6 };
     a.speed = f.speed;
@@ -474,7 +482,7 @@ function updateVis(a, dt, world) {
 
 // Gans op het land: loopt rustig rond, rent weg (geen vlucht) als de speler of een voertuig te dichtbij komt.
 function updateGans(a, dt, world) {
-  const pl = world.player;
+  const pl = naasteLichaam(world, a.x, a.y);
   if (!(a.fleeT > 0) && dist(a.x, a.y, pl.x, pl.y) < (pl.inVehicle ? 12 : 5) && (pl.inVehicle || playerSpeed(pl) > 1)) scareOff(a, world, pl.x, pl.y);
   if (a.fleeT > 0) {
     a.fleeT -= dt;
@@ -679,7 +687,7 @@ export function ontdekDieren(world, dt, extra = null) {
   ontdekT -= dt;
   if (ontdekT > 0) return;
   ontdekT = 0.5;
-  const p = world.player;
+  const p = hoofdspeler(world);
   for (const list of [world.wildlife, extra]) {
     for (const a of list || []) {
       if (!a || a.dead || typeof a.x !== 'number' || Math.abs(a.x - p.x) > ONTDEK_M || Math.abs(a.y - p.y) > ONTDEK_M) continue;
@@ -753,15 +761,17 @@ function groundContacts(a, world) {
     moved = true;
     if (Math.abs(v.speed) > 1) scareOff(a, world, v.x, v.y);
   }
-  const p = world.player;
-  if (!p.inVehicle && !p.water) {
+  // elke speler duwt een dier opzij, ook een meespeler (#446)
+  voorElkeSpeler(world, (rec) => {
+    const p = rec.entiteit;
+    if (!p || p.inVehicle || p.water) return;
     const dx = a.x - p.x, dy = a.y - p.y, min = r + (p.radius || 0.35), d2 = dx * dx + dy * dy;
     if (d2 < min * min && d2 > 1e-8) {
       const d = Math.sqrt(d2);
       a.x = p.x + dx / d * min; a.y = p.y + dy / d * min;
       moved = true;
     }
-  }
+  });
   if (moved) [a.x, a.y] = resolveWalker(a.x, a.y, r, world.map, 0, 0, NO_KICK);
 }
 const NO_KICK = { kick: false };
