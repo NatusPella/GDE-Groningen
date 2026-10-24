@@ -7,7 +7,7 @@ import { SpatialGrid } from './spatialgrid.js';
 import { deriveBuildings, liftNestedRoofs, isRingRoad } from './derive.js';
 import { deckTerrainAt, isDeckRoad, roadTerrainAt, deckTerrainOnSeg, roadTerrainOnSeg } from './deckterrain.js';
 import { clearTreesFromRoads } from './treeclear.js';
-import { buildElevation, groundHeightAt, surfaceAt, ribbonAt, ribbonZAt, roadZAt, ceilingAt, coveredAt, surfaceHalfWidth, offLevelAt, resolveElevWalls, elevWallContact } from './elevation.js';
+import { buildElevation, addPerrons, groundHeightAt, surfaceAt, ribbonAt, ribbonZAt, roadZAt, ceilingAt, coveredAt, surfaceHalfWidth, offLevelAt, resolveElevWalls, elevWallContact } from './elevation.js';
 
 const CELL = 80; // meters per grid cell
 
@@ -117,6 +117,8 @@ export class GameMap {
     this.levelCrossings = data.levelCrossings || [];
     this.railRoutes = data.railRoutes || [];
     this.railLifts = data.railLifts || [];
+    // de perrons met hun trappen (perrons.js, scripts/world/perrons.mjs)
+    this.perrons = data.perrons || [];
     // mapped street furniture (scripts/world/furniture.mjs; streetfurniture.js)
     this.furniture = data.furniture || [];
     // ways OSM maps through or under a building (passages.js)
@@ -159,7 +161,7 @@ export class GameMap {
     markDryCrossings(this);
     // (?terrain: the terrain goes in before the elevation model, which builds its walls in the frame of the terrain)
     if (data.terrain) { this.terrain = data.terrain; this.terrainOn = !!data.terrainOn; }
-    this.elev = buildElevation(this);
+    this.elev = addPerrons(this, buildElevation(this));
     this.trees = this.trees.filter((t) => !onCarriageway(this, t[0], t[1]) && !this.offStreetLevel(t[0], t[1]));
     // (and one on the kerb or close to the carriageway is set beside the road, or goes: treeclear.js, #324; the same as fromParts does for tiles of an older build)
     this.treeClearStats = { moved: 0, removed: 0 };
@@ -191,6 +193,7 @@ export class GameMap {
     m.levelCrossings = p.levelCrossings || [];
     m.railRoutes = p.railRoutes || [];
     m.railLifts = p.railLifts || [];
+    m.perrons = p.perrons || [];
     m.furniture = p.furniture || [];
     m.passageWays = (p.passageWays || []).map((q) => ({ ...q, bounds: polygonBounds(q.pts) }));
     m.dryCrossings = p.dryCrossings || 0;
@@ -219,7 +222,7 @@ export class GameMap {
     }
     // (?terrain: the elevation model builds its walls in the frame of the terrain, so the terrain is in before it)
     if (p.terrain) { m.terrain = p.terrain; m.terrainOn = !!p.terrainOn; }
-    m.elev = buildElevation(m);
+    m.elev = addPerrons(m, buildElevation(m));
     // (a mapped tree on the kerb or the carriageway is set beside the road, or goes: treeclear.js, #324)
     m.treeClearStats = { moved: 0, removed: 0 };
     m.trees = clearTreesFromRoads(m, m.trees, m.treeClearStats);

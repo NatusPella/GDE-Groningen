@@ -23,6 +23,8 @@ export function vehicleKind(v) {
   if (v.isBoat) return 'boot';
   if (v.isBus) return 'bus';
   if (v.model && v.model.name === 'tractor') return 'trekker';
+  if (v.model && v.model.name === 'quad') return 'quad';
+  if (v.model && v.model.name === 'foodtruck') return 'foodtruck';
   if (v.isScooter) return 'scooter';
   if (v.isBike) return v.model && v.model.fat ? 'fatbike' : 'fiets';
   if (v.model && v.model.motorbike) return 'motor';
@@ -31,17 +33,19 @@ export function vehicleKind(v) {
 }
 
 export const HINTS = [
-  { id: 'v-fiets', kind: 'vehicle', match: 'fiets', title: 'Op de fiets', body: 'Houd {SHIFT} ingedrukt om even flink door te trappen. Met {E} stap je weer af.' },
+  { id: 'v-fiets', kind: 'vehicle', match: 'fiets', title: 'Op de fiets', body: 'Houd {SHIFT} ingedrukt om even flink door te trappen: je ziet de trappers meedraaien en het stuur en voorwiel gaan mee met je bocht. Met {E} stap je weer af.' },
   { id: 'v-fatbike', kind: 'vehicle', match: 'fatbike', title: 'Fatbike', body: 'Dikke banden, hoge snelheid. Houd {SHIFT} ingedrukt om door te trappen; remmen doe je op tijd.' },
-  { id: 'v-scooter', kind: 'vehicle', match: 'scooter', title: 'Op de scooter', body: 'Sturen en gas met {WASD}. Met {E} stap je af.' },
+  { id: 'v-scooter', kind: 'vehicle', match: 'scooter', title: 'Op de scooter', body: 'Sturen en gas met {WASD}: het stuur en het voorwiel draaien mee. Met {E} stap je af.' },
   { id: 'v-motor', kind: 'vehicle', match: 'motor', title: 'Motor', body: 'Met {SHIFT} en gas steigert hij; remmen met {SHIFT} geeft een stoppie. Doe dat liever niet in de stad.' },
-  { id: 'v-boot', kind: 'vehicle', match: 'boot', title: 'Aan het roer', body: 'Gas en sturen met {WASD}. Een boot remt langzaam en glijdt door de bocht, dus begin op tijd. Uitstappen met {E} kan bij de wal.' },
+  { id: 'v-boot', kind: 'vehicle', match: 'boot', title: 'Aan het roer', body: 'Gas en sturen met {WASD}: het roer draait mee en op een rondvaartboot of sloep ook het stuurwiel. Een boot remt langzaam en glijdt door de bocht, dus begin op tijd. Uitstappen met {E} kan bij de wal.' },
   { id: 'v-bus', kind: 'vehicle', match: 'bus', title: 'Een bus', body: 'Lang en zwaar: neem bochten ruim en rem op tijd. Met {H} toeter je.' },
-  { id: 'v-trekker', kind: 'vehicle', match: 'trekker', title: 'Trekker', body: 'Gas en sturen met {WASD}, rem met {SPACE}. Bij werk op het land zakt de machine achter je vanzelf zodra je op de rij rijdt: er is geen knop voor. Rij recht en rustig.' },
+  { id: 'v-trekker', kind: 'vehicle', match: 'trekker', title: 'Trekker', body: 'Gas en sturen met {WASD}, rem met {SPACE}. Eigen werktuig: E koppelt, G aftakas, T hef, X los, R tankt diesel. In de bijbaan werkt de machine vanzelf op de rij.' },
+  { id: 'v-quad', kind: 'vehicle', match: 'quad', title: 'Quad', body: 'Wendbaar en goed in het terrein: gas en sturen met {WASD}, rem met {SPACE}. Neem bulten rustig, je zit er los bovenop.' },
+  { id: 'v-foodtruck', kind: 'vehicle', match: 'foodtruck', title: 'Foodtruck', body: 'Een zware bestelbus: gas en sturen met {WASD}, handrem op {SPACE}. Met {C} kijk je vanuit de cabine mee, met {H} toeter je.' },
   { id: 'v-vracht', kind: 'vehicle', match: 'vracht', title: 'Vrachtwagen', body: 'Lang, zwaar en traag in de bocht. Houd ruim afstand en neem bochten breed.' },
   { id: 'v-heli', kind: 'vehicle', match: 'heli', title: 'Helikopter', body: 'Omhoog met {SPACE}, omlaag met {CTRL}. Landen: laag en langzaam boven een vlak stuk, dan pas uitstappen met {E}.' },
-  { id: 'v-vliegtuig', kind: 'vehicle', match: 'vliegtuig', title: 'Vliegtuig', body: 'Eerst snelheid maken, dan optrekken. Landen doe je laag, langzaam en recht op de baan.' },
-  { id: 'v-auto', kind: 'vehicle', match: 'auto', title: 'Rijden', body: 'Gas, rem en sturen met {WASD}, handrem op {SPACE}, toeteren met {H}. Achterom kijken kan met {Q}.' },
+  { id: 'v-vliegtuig', kind: 'vehicle', match: 'vliegtuig', title: 'Vliegtuig', body: 'Gas met {W}, bij 30 m/s optrekken met {SPACE}. Kleppen (K) helpen bij start en landing. Haal het landingsgestel in met G en zet het uit voor je landt. Landen doe je laag, langzaam en recht op de baan.' },
+  { id: 'v-auto', kind: 'vehicle', match: 'auto', title: 'Rijden', body: 'Gas, rem en sturen met {WASD}, handrem op {SPACE}, toeteren met {H}. Achterom kijken kan met {Q}. Met {C} kijk je vanuit de cabine mee, nog een keer {C} is weer de volgcamera.' },
   // minigames: world.activityGame is the id of the running one (activities.js)
   { id: 'm-discgolf', kind: 'minigame', match: 'discgolf', title: 'Discgolf', body: 'Gooi de schijf in de mand met zo min mogelijk worpen. Je loopt de ronde door het Stadspark; de uitleg staat tijdens het spelen in beeld.' },
   { id: 'm-pitchputt', kind: 'minigame', match: 'pitchputt', title: 'Pitch & putt', body: 'Zes korte banen: eerst pitchen, op de green putten. Zo min mogelijk slagen. De uitleg staat tijdens het spelen in beeld.' },
@@ -49,7 +53,7 @@ export const HINTS = [
   { id: 'm-kartbaan', kind: 'minigame', match: 'kartbaan', title: 'Kartbaan', body: 'Drie ronden tegen drie rijders. Een schone bocht is sneller dan een harde.' },
   { id: 'm-zwembad', kind: 'minigame', match: 'zwembad', title: 'Zwembad', body: 'Baantjes zwemmen in het zwembad. De uitleg staat tijdens het zwemmen in beeld.' },
   { id: 'm-klimtoren', kind: 'minigame', match: 'klimtoren', title: 'Klimtoren', body: 'Twaalf meter klimmen, tegen de klok. Een val kost tijd, dus klim rustig en gelijkmatig.' },
-  { id: 'm-vliegschool', kind: 'minigame', match: 'vliegschool', title: 'Vliegschool', body: 'Dertien korte lessen met het vliegtuig en de helikopter op Eelde, met een medaille per les. Kies een toestel en een les; de uitleg staat in beeld.' },
+  { id: 'm-vliegschool', kind: 'minigame', match: 'vliegschool', title: 'Vliegschool', body: 'Twintig korte lessen, van opstijgen tot noodlanding, met het vliegtuig en de helikopter op Eelde, met een medaille per les. Kies een toestel en een les; de uitleg staat in beeld.' },
   { id: 'm-waterski', kind: 'minigame', match: 'waterski', title: 'Waterskiën', body: 'Achter de boot, over sprongen en langs boeien. De uitleg staat tijdens het skiën in beeld.' },
   { id: 'm-hengelen', kind: 'minigame', match: 'hengelen', title: 'Hengelen', body: 'Bij de steiger in Meerstad heb je negentig seconden: de zwaarste vangst telt. Overal aan het water kun je vrij hengelen met {I}; alles wat je vangt komt in je visboek.' },
   { id: 'm-carbid', kind: 'minigame', match: 'carbid', title: 'Carbid schieten', body: 'Melkbus, deksel en een flinke knal. Blijf zelf op afstand.' },

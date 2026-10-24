@@ -58,6 +58,7 @@ import {
   updateRouting, getActiveRoute, getRouteAhead, getRoutes, dismissCareRoute, setUserWaypoint, clearUserWaypoint, getUserWaypoint, formatDistance, setRoutePrefs, getRoutePrefs,
 } from './routing.js';
 import { KEYS } from './storagekeys.js';
+import { grijsBijPassief } from './cooppvp.js';
 import { warnsOn, riskWhy } from './muggingrules.js';
 
 const PADDING = 0.94;
@@ -1232,7 +1233,7 @@ function drawDynamicMarkers(ctx, world) {
 
   icon(null, 'player', world.player.x, world.player.y, 'Jij', { angle: world.player.angle });
   // medespelers (samen spelen, #95): eigen kleur en vorm, naam en status bij de aanwijzer
-  for (const p of world.coopPartners || []) if (p.zichtbaar) icon(null, 'partner', p.x, p.y, p.naam, { angle: p.heading, kleur: p.kleur, vorm: p.vorm }, p.tekst);
+  for (const p of world.coopPartners || []) if (p.zichtbaar) icon(null, 'partner', p.x, p.y, p.naam, { angle: p.heading, kleur: grijsBijPassief(world.coopPvp, p.slot) ? INK.passiefGrijs : p.kleur, vorm: p.vorm }, p.tekst + (grijsBijPassief(world.coopPvp, p.slot) ? ' · passief' : '')); // passief is grijs zodra er PvP in het spel is (#447)
   for (const m of world.coopPingMarks || []) icon(null, 'partner', m.x, m.y, m.naam ? `${m.naam}: ${m.tekst}` : m.tekst, { angle: 0, kleur: m.kleur, vorm: m.vorm }, 'roep');
   for (const q of placeIcons(queue, iconGapPx(sc))) {
     drawMapIconHalo(ctx, q.kind, q.sx, q.sy, sc);

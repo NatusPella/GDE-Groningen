@@ -46,6 +46,13 @@ spel dat zo ontstaat is een gewone nieuwe save.
 
 De host bewaart zoals altijd in zijn actieve opgeslagen spel; wat hij in het scherm *Opgeslagen spellen* koos is dat spel.
 
+## Checkpoints en beloningen per gebeurtenis (#448)
+
+- Elke speler schrijft zijn **eigen** save weg: elke 60 s en meteen na een gelukte opdracht, ook achter het pauzemenu en ook als gast (`coopcheckpoint.js`, `updateSaveGame` in `savegame.js`; een gast schrijft via `saveGuestEarnings`, de host zoals altijd). Bij het stoppen van een sessie (`stopCoopNet`) volgt nog een laatste checkpoint. Het schrijven blijft `writeSlotRaw` (teruglezen, herstelkopie): een crash midden in het schrijven laat de vorige save heel. Wat na het laatste checkpoint verdiend is (hooguit een minuut) kan bij een crash weg zijn; een beloning van een gelukte opdracht niet.
+- Een beloning hoort bij een gebeurtenis met een id (`gebeurtenisId`, `coopbeloning.js`). `deelMetGasten` zet die id op het bericht `beloning`; een gast telt dezelfde id nooit twee keer (`world.coopBoek`). `pasGebeurtenisToe` zet geld en id in één nieuwe save, zodat ook na een herstart een opnieuw gestuurd bericht niets dubbel geeft.
+- `samenwerkingsBonus` (totaal x 1,5 bij twee of meer deelnemers, begrensd op `BONUS_MAX`) en `verdeelGelijk` zijn aangesloten op `deelMetGasten` (#452): het totaal na de bonus gaat gelijk naar alle meespelers, de gastheer inbegrepen (de gastheer kreeg het hele bedrag al en krijgt het verschil erbij of eraf). Met één speler verandert niets. Wie nee zei, niet antwoordde of wegvalt telt niet mee. Elke uitbetaling heeft een regel "Samenwerkbonus" bij de gast en bij de gastheer.
+- Tests: `scripts/coopbeloning_test.mjs`, `scripts/coop/stoppen_test.mjs` (host en gast stoppen midden in een opdracht).
+
 ## De wachtkamer: het spel begint met minstens twee spelers
 
 Kiest iemand in het hoofdmenu Samen spelen (een nieuw spel of een bestaand opgeslagen spel), dan begint het spel **niet**: de wachtkamer
@@ -56,7 +63,7 @@ maar niemand speelt: het pauzemenu met de wachtkamer blijft staan (sluit je het,
 - Een gast leest "Wacht tot Tammo het spel start." (de host stuurt het bericht `hek`, `coopnet.js`; een gast die later aansluit hoort het bij het aansluiten).
 - Bij het starten (`openHek`) sluit het menu van iedereen tegelijk, het bericht `hek` (uit) gaat naar de gasten en de opening begint bij iedereen samen (zie hieronder).
 - Wie stopt (Stoppen, Iedereen stoppen, Spel verlaten) of terugkeert naar het hoofdmenu, heeft geen wachtkamer meer en speelt weer zijn eigen spel.
-- Valt iemand tijdens het spel weg, dan geldt de bestaande pauzeregel (het wachtscherm, `coophold.js`); wie later aansluit volgt de gewone aansluitregel: hij hoort dat het spel al begonnen is en speelt mee.
+- Valt iemand tijdens het spel weg, dan speelt de rest door; alleen een opdracht die hem echt nodig heeft zet het wachtscherm (`coophold.js`, `holdBeleid`, #452); wie later aansluit volgt de gewone aansluitregel: hij hoort dat het spel al begonnen is en speelt mee.
 
 ## De opening van een nieuw spel samen
 

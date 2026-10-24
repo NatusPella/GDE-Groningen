@@ -514,7 +514,7 @@ t('de safehouses hangen aan het spel: een activiteit, een laag op de kaart, de k
 });
 t('de bronnen zijn alleen de bronnen: gebieden.js en gebiedenlive.js importeren geen DOM of spelmodules', () => {
   const imports = (f) => [...bron(f).matchAll(/^import .* from '(.+?)';/gm)].map((m) => m[1]);
-  assert.deepEqual(imports('gebieden.js'), ['./grenzen.js']);
+  assert.deepEqual(imports('gebieden.js'), ['./grenzen.js', './ankerpunten.js']);
   assert.deepEqual(imports('grenzen.js'), []);
   assert.deepEqual(imports('gebiedenlive.js').sort(), ['./finance.js', './gebieden.js', './storagekeys.js']);
   assert.ok(!/document\.|window\./.test(bron('gebieden.js').replace(/\/\/.*$/gm, '')));

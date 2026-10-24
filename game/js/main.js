@@ -95,6 +95,7 @@ import { updateZeilvaren } from './zeilvaren.js';
 import { updateEvenementen } from './evenementenlive.js';
 import { updateWerf } from './werflive.js';
 import { manageSeaShips } from './zeeschepen.js';
+import { updateGolven } from './golven.js';
 import { Vehicle as WerfVehicle, getVaarNet as werfVaarNet, spawnBoatOnWater as werfSpawnBoat, isShip as werfIsShip } from './vehicle.js';
 import { waterAt as werfWaterAt, waterPolyAt as werfWaterPolyAt } from './waterlevels.js';
 import { buildingAt as werfBuildingAt } from './tileplace.js';
@@ -172,6 +173,7 @@ import { updateIndicators } from './indicators.js';
 import { initAchievementTracker, updateAchievementTracker } from './achievementtracker.js';
 import { initOmverrijden } from './omverrijden.js';
 import { initBoerderij, boerderijTijd, boerderijKlokNul } from './boerderijlive.js';
+import { BOERDERIJ_WERELD_KIND } from './boerderijwereld.js';
 import { probe } from './hitchprobe.js';
 import { initSafety, updateSafety } from './safety.js';
 import { updateCinematics, isCinematicActive, sinceCinematic, setCinematicLinks } from './cinematics.js';
@@ -213,6 +215,7 @@ registerActivityKind({ id: 'activities', init: initActivities, slot: 'act', inte
 registerActivityKind({ id: 'postgame', initPhase: 'late', tickRank: 0, init: initPostgame, slot: 'pre', interact: tryPostgameInteract, tickPhase: 'late', tick: updatePostgame });
 registerActivityKind({ id: 'sidejobs', initPhase: 'late', tickRank: -1, init: initSideJobs, slot: 'job', interact: trySideJobInteract, tickPhase: 'late', tick: updateSideJobs });
 registerActivityKind(planeKind);
+registerActivityKind(BOERDERIJ_WERELD_KIND); // je eigen erf, machines en werktuigen in de wereld (#415)
 registerActivityKind(busBoardKind);
 registerActivityKind(busBestuurKind);
 registerActivityKind(busInterieurKind);
@@ -816,6 +819,7 @@ async function boot() {
     updateEvenementen(dt, world, calendarToday(world));
     updateWerf(dt, world, calendarToday(world), WERF_ENV); // een zeeschip wordt te water gelaten (#398)
     manageSeaShips(world, dt, WERF_ENV);
+    updateGolven(world, dt); // kielzog en zeegang laten kleine vaartuigen wiebelen of omvallen (#417)
     // de routeplanner mijdt dichte afsluitingen van evenementen (#203)
     if (world.eventRouteSig !== routeSigDone) {
       routeSigDone = world.eventRouteSig;

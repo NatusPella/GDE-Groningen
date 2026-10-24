@@ -60,6 +60,7 @@ import { getSettings } from './settings.js';
 const downKey = () => keyWord(getSettings().keyBinds, 'control');
 import { deliverFurniture, furnitureSkip, attachFurniture3D, leaveFurniture, furnitureSolids, furnitureStockSolids, furnitureBedUses, furnitureUses, furnitureFocus, furniturePrompt, useFurniture, updateFurniture, updateFurnitureInside, companionSeat, furnitureSlept, fridgeCooldown, fridgePerk } from './furniture.js';
 import { playerBusy } from './busy.js';
+import { groepAkkoord } from './coopgroep.js';
 
 const NEAR_M = 200;
 const FAR_M = 260;
@@ -979,7 +980,16 @@ function placeCompanion(w) {
 
 // wake: a chosen hour (the Sloapstee's menu) with its message, else morning
 // or the evening when the next mission needs the dark.
+// Met meer spelers verspringt de klok pas na akkoord van alle anderen (#452, coopgroep.js); alleen: meteen.
+let slaapVraag = false;
 function sleep(w, wake = null, wakeMsg = '') {
+  if (busy || slaapVraag) return false;
+  slaapVraag = true;
+  const gestart = groepAkkoord(w, 'slapen', null, () => { slaapVraag = false; sleepNu(w, wake, wakeMsg); }, () => { slaapVraag = false; });
+  if (!gestart) slaapVraag = false;
+  return gestart;
+}
+function sleepNu(w, wake, wakeMsg) {
   return fadeThen(() => {
     if (!inside) return;
     const m = w.mission;

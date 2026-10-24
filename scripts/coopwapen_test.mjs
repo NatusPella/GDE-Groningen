@@ -201,6 +201,47 @@ t('combat: een kogel van de politie raakt een gast (de schade gaat als bericht n
   assert.equal(w.bullets.length, 1);
 });
 
+// het jachtgeweer van een gast (eigenaar-playtest: "ik kon in multiplayer het jachtgeweer niet gebruiken"): kijker met de rechtermuisknop
+t('jachtgeweer (gast): rechtermuisknop vast zet world.scoped en de knop zicht; slot 3 kiest het; zonder knop of in een menu niet', () => {
+  assert.equal(S.KNOP_ZICHT, 32); assert.equal(S.knoppen({ zicht: true }), 32); assert.equal(S.knoppen({ aanval: true, zicht: true, rennen: true }), 49);
+  assert.equal(C.makeClientInput([0, 0], false, 1, false, false, false, true, true).buttons, 48);
+  assert.equal(W.heeftKijker('jachtgeweer'), true); assert.equal(W.heeftKijker('shotgun'), false); assert.equal(W.heeftKijker('knuppel'), false);
+  const inv = (o) => ({ mouse: { down: !!o.muis, rightDown: !!o.rechts, wheel: 0 }, wasPressed: (k) => (o.druk || []).includes(k), isDown: () => false });
+  const w = { input: inv({ druk: ['3'] }), ammo: { shotgun: 4, jachtgeweer: 10 }, weapon: 'fists', player: { x: 5, y: 5, angle: 0 }, camYaw: 0.7 };
+  W.gastWapenTik(w, 0.016, () => {}); assert.equal(w.weapon, 'shotgun', 'eerst het hagelgeweer van slot 3');
+  W.gastWapenTik(w, 0.016, () => {}); assert.equal(w.weapon, 'jachtgeweer', 'nog een keer 3: het jachtgeweer');
+  w.input = inv({ rechts: true }); W.gastWapenTik(w, 0.016, () => {}); assert.equal(w.scoped, true); assert.equal(w.coopZichtKnop, true); assert.equal(w.coopAanvalKnop, false);
+  w.input = inv({ rechts: true, muis: true }); assert.equal(W.gastWapenTik(w, 0.016, () => {}), true); assert.equal(w.coopAanvalKnop, true); assert.equal(w.coopZichtKnop, true); assert.equal(w.ammo.jachtgeweer, 9);
+  w.input = inv({}); W.gastWapenTik(w, 0.016, () => {}); assert.equal(w.scoped, false); assert.equal(w.coopZichtKnop, false);
+  w.input = inv({ rechts: true }); w.paused = true; W.gastWapenTik(w, 0.016, () => {}); assert.equal(w.scoped, false, 'in een menu geen kijker'); w.paused = false;
+  w.coopInVoertuig = true; W.gastWapenTik(w, 0.016, () => {}); assert.equal(w.scoped, false, 'in een voertuig geen kijker'); w.coopInVoertuig = false;
+  w.weapon = 'shotgun'; W.gastWapenTik(w, 0.016, () => {}); assert.equal(w.scoped, false, 'een wapen zonder kijker');
+  w.weapon = 'jachtgeweer'; W.gastWapenTik(w, 0.016, () => {}); W.gastWapenWeg(w); assert.equal(w.scoped, false); assert.equal(w.coopZichtKnop, false);
+});
+t('jachtgeweer (host): knop zicht + aanval geeft een gericht schot met de camerahoek van de gast; zonder zicht geen kijker; schade en misdaad bij de gast', () => {
+  const calls = [];
+  W.zetWapenHaken({ aanval: (w, slot, l, key, hoek, kijker) => { calls.push([slot, key, hoek, kijker]); return { fx: { type: 'muzzle' } }; }, landing: null });
+  const w = hostWereld(); W.zetWapen(w, 2, 'jachtgeweer', 5); const f = w.coopFigures[2];
+  f.input = { mx: 0, my: 0, buttons: 16 | 32, yaw: 2.0 }; assert.equal(W.wapenTick(w, 0.016), 1);
+  assert.deepEqual(calls[0], [2, 'jachtgeweer', 2.0, true]); assert.equal(f.angle, 2.0);
+  w.time += 2; f.input = { mx: 0, my: 0, buttons: 16, yaw: 1.0 }; assert.equal(W.wapenTick(w, 2), 1); assert.equal(calls[1][3], false, 'zonder zicht geen kijker');
+  w.time += 2; f.input = { mx: 0, my: 0, buttons: 32, yaw: 0.3 }; assert.equal(W.wapenTick(w, 2), 0, 'alleen richten schiet niet'); assert.equal(f.angle, 0.3, 'wel kijken waar je richt');
+  W.zetWapenHaken({ aanval: null, landing: null });
+});
+t('jachtgeweer (combat): het kijkerschot van een gast vliegt vanaf zijn oog langs de camerahoek, raakt precies het richtkruis en is van de gast', () => {
+  const misdaad = []; B.zetBestuurHaken({ misdaad: (w, slot, soort) => misdaad.push([slot, soort]) });
+  const w = hostWereld({ map: { buildingsNear: () => [], wallsNear: () => [] }, player: { x: -50, y: -50, radius: 0.4 } });
+  const l = w.coopFigures[2]; w.bullets.length = 0;
+  const a = Math.PI / 2; // naar +y
+  const p = ped({ health: 10, x: 10, y: 40 }); w.pedestrians.push(p);
+  const r = gastAanvalUitvoeren(w, 2, l, 'jachtgeweer', a, true);
+  assert.equal(r.fx.type, 'muzzle'); assert.equal(w.bullets.length, 1, 'één kogel, geen hagel'); assert.equal(w.bullets[0].dader, 2);
+  assert.ok(Math.abs(w.bullets[0].vx) < 1e-6, 'precies langs de hoek zonder spreiding');
+  for (let i = 0; i < 200 && w.bullets.length; i++) updateBullets(0.016, w);
+  assert.equal(p.state, 'dead'); assert.ok(misdaad.some((m) => m[0] === 2), 'de misdaad is van de gast');
+  B.zetBestuurHaken({ misdaad: null });
+});
+
 t('wire: PROTO en CODEC_VERSION blijven 2, het bericht wapen is gewone JSON', () => {
   assert.equal(CODEC_VERSION, 2); assert.equal(PROTO, 2);
   assert.ok(JSON.stringify(W.wapenEvent('uzi', 40)).length < 40);

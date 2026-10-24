@@ -30,6 +30,7 @@ import { DRIFT_ZONE, DRIFT_MEDAL_AT } from './driftzone.js';
 import { getGoal, setGoal, clearGoal } from './goal.js';
 import { drawMapIcon } from './hud_panel.js';
 import { klusloon } from './economy.js';
+import { zachtePauze } from './coopgroep.js';
 
 export const GROUPS = [
   ['missies', 'Missies', 'het verhaal en je klussen'],
@@ -202,7 +203,7 @@ function minigameItems(world) {
   {
     const lessen = LES_IDS.map((id) => getChallengeRecord('vlieg-' + id));
     const gehaald = lessen.filter((r) => r && r.medal > 0).length, goud = lessen.filter((r) => r && r.medal === 3).length;
-    add({ key: 'mg:vliegschool', playId: 'vliegschool', icon: 'act-vliegschool', title: 'Vliegschool De Windwijzer', meta: 'Eelde · dertien lessen · gratis',
+    add({ key: 'mg:vliegschool', playId: 'vliegschool', icon: 'act-vliegschool', title: 'Vliegschool De Windwijzer', meta: 'Eelde · twintig lessen · gratis',
       medal: goud === LES_IDS.length ? 3 : gehaald === LES_IDS.length ? 2 : gehaald > 0 ? 1 : 0, record: gehaald ? `${gehaald} van ${LES_IDS.length} lessen gehaald${goud ? ` · ${goud}× goud` : ''}` : 'Nog niet gevlogen',
       detail: { kicker: 'Minigame · het vliegveld bij Eelde', text: 'Zes lessen met het vliegtuig en zeven met de helikopter: ringen, landen op een markering, laag over water, een slalom langs de molens, een noodlanding, tussen hoge gebouwen door en hoveren. Per les een medaille en een beloning.', rows: [],
         medals: [[1, 'één les gehaald'], [2, 'alle lessen gehaald'], [3, 'overal goud']] } }, acts.filter((a) => a.layer === 'vliegschool'));
@@ -419,6 +420,7 @@ function closeDialog(go) {
   d.el.hidden = true;
   if (d.world) {
     d.world.uiPaused = false;
+    zachtePauze(d.world, 'afspeelvooruit', false);
     if (d.world.input) d.world.input.reset();
   }
   if (d.prevFocus && d.prevFocus.isConnected) d.prevFocus.focus({ preventScroll: true });
@@ -438,6 +440,7 @@ function confirmPlayAhead(world, ahead, onGo) {
   dlg.world = world;
   dlg.prevFocus = document.activeElement;
   world.uiPaused = true;
+  zachtePauze(world, 'afspeelvooruit', true); // met meer spelers loopt de wereld door (#452)
   if (document.pointerLockElement) document.exitPointerLock();
   el.hidden = false;
   el.querySelector('[data-ga="back"]').focus({ preventScroll: true });

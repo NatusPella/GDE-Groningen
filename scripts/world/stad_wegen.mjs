@@ -20,6 +20,7 @@ import { cityRail, cutPathsAtRails } from './stad_spoor.mjs';
 import { dropDuplicateBridges } from './bridgededupe.mjs';
 import * as PR from './profile.mjs';
 import * as RP from './railprofile.mjs';
+import { derivePerrons } from './perrons.mjs';
 import { solveTerrainRoads, ahnTerrain } from './terrain_solve.mjs';
 
 const RING_TYPES = new Set(['motorway', 'motorway_link', 'trunk', 'trunk_link', 'primary', 'primary_link']);
@@ -418,6 +419,10 @@ export async function profileCity(d, wegen, { lagen, extras = {}, inside }) {
     rep.rail1 = solveRails(d, terrain);
     solveAll();
     rep.rail2 = solveRails(d, terrain);
+    // de perrons en hun trappen (#436): op de hoogte van het opgeloste spoor, met wegen en gebouwen als hindernis
+    const pr = derivePerrons(d);
+    d.perrons = pr.rows;
+    rep.perrons = { ...pr.rep, zonderTrap: pr.rep.zonderTrap.length };
   } else if (wantRoads) {
     // de oude sporen blijven: de paden bij het spoor afknippen en de wegen er nog eens tegen oplossen
     Object.assign(d, saved);

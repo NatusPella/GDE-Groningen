@@ -9,17 +9,19 @@ import { showCard } from './hudcards.js';
 import { spawnFxPuff, spawnFxSpark } from './fx3d.js';
 import { ambientOut } from './audio.js';
 import { activityBlock, iconDisc } from './activitykit.js';
-import { createBoard, key, bubble, clearBubbles, pick, stopPressed, easeCamera, geo, frame, fmtTime, angDiff, clamp } from './minigamekit.js';
+import { createBoard, key, bubble, clearBubbles, pick, stopPressed, easeCamera, fmtTime, angDiff, clamp } from './minigamekit.js';
 import { KART_LINES, KART_RIVALS } from './minigamelines.js';
 import {
-  buildTrack, createKart, stepKart, updateProgress, collideKarts, aiInput, rankKarts, positionMedal, bestLap, pointAt, locate, KART, LAPS, RUNOFF,
+  createKart, stepKart, updateProgress, collideKarts, aiInput, rankKarts, positionMedal, bestLap, pointAt, locate, KART, LAPS, RUNOFF,
 } from './kartrace.js';
 import { createRecorder, recordGhost, finishGhost, ghostAt, loadGhost, saveGhost } from './ghostreplay.js';
 import { KEYS } from './storagekeys.js';
 import { addClearZone, corridorPoints } from './clearzone.js';
-import { ULRUM_RING, ringToLocal, startOnLongestStraight } from './kartbaandata.js';
+import { KARTBAAN_ORIGIN, KARTBAAN_ROT, KARTBAAN_FRAME, KARTBAAN_WIDTH, KARTBAAN_TRACK } from './kartbaanspoor.js';
 import { racingLine } from './kartline.js';
 import { loopbaanVerdien } from './loopbaanlive.js';
+import { registreerWedstrijd, zetWedGastHaken, wedNodigUit, wedNuStarten, wedRaceTik, wedHostEind, wedGastVerlaat, wedGastReset, tikSpiegel, eindstand, beloning } from './coopwedstrijd.js';
+import { figuurLook } from './coopplayers.js';
 
 // Karten in Ulrum: the real outdoor kart track of Ulrum (OSM way "Kartbaan
 // Ulrum", kartbaandata.js), laid out exactly as mapped, 330 m with the start
@@ -32,13 +34,11 @@ import { loopbaanVerdien } from './loopbaanlive.js';
 // the best lap. Money-neutral. Rules, the kart and the drivers: kartrace.js.
 // `window.__kartbaan` debug.
 const ACCENT = '#f2b82a';
-const RING0 = ringToLocal(ULRUM_RING);
-const ORIGIN = geo(RING0.lat0, RING0.lon0);
-const ROT = 0;
-const FR = frame(ORIGIN, ROT);
-const WIDTH = 7;
-// the mapped ring in the game's own frame (its y runs south), started mid-straight
-const TRACK = buildTrack(startOnLongestStraight(ULRUM_RING.map(([la, lo]) => { const q = geo(la, lo); return [q.x - ORIGIN.x, q.y - ORIGIN.y]; })), WIDTH);
+const ORIGIN = KARTBAAN_ORIGIN;
+const ROT = KARTBAAN_ROT;
+const FR = KARTBAAN_FRAME;
+const WIDTH = KARTBAAN_WIDTH;
+const TRACK = KARTBAAN_TRACK; // kartbaanspoor.js: the same track an online race simulates on (#443)
 const CENTER = FR.toW(0, 0);
 // nobody walks or drives across the track, and no props stand on it (clearzone.js, issue #176)
 addClearZone('kartbaan', corridorPoints(TRACK, FR.toW), WIDTH / 2 + RUNOFF + 3);
@@ -326,6 +326,9 @@ function interact(w) {
   if (!nearStand(w)) return false;
   const why = activityBlock(w);
   if (why) { w.addMessage(why, 2.5); return true; }
+  // with guests in the session the race is an invitation to everyone (Meedoen? J/N); pressing E again starts at once (#443)
+  const uit = wedNodigUit(w, 'kartbaan');
+  if (uit.ok) { if (uit.reden === 'wacht') wedNuStarten(w); return true; }
   start(w);
   return true;
 }
@@ -365,6 +368,124 @@ function start(w, { force = false } = {}) {
   return true;
 }
 
+// --- racing against other players (#443) -------------------------------------------------------------------------
+// The host runs the whole race (coopwedstrijd.js tikRace on the same TRACK, fed with the guests' sticks) and draws it as the solo race;
+// a guest draws the host's snapshots (maakSpiegel) with his own kart first. `game` is that race object, so syncKarts, camera and the
+// board work unchanged on it. Nothing else of the host's world is touched: the track is a clear zone, the riders are meshes of this module.
+
+function riderLook(k) {
+  if (k.mens && (k.char === 'tammo' || k.char === 'anita')) { const a = k.char === 'anita' ? ANITA_APPEARANCE : TAMMO_APPEARANCE; return [a.shirt, a.skin, a]; }
+  const f = k.mens ? figuurLook(k.char) : null;
+  if (f) return [f.shirt, f.skin, f.opts];
+  const l = { shirt: k.shirt ?? 0x6a5a48, skin: 0xe2b48c, variant: k.variant || 'male', seed: 6500 + String(k.name).length, look: { age: k.age || 'adult', hat: null, bag: null, umbrella: null } };
+  return [l.shirt, l.skin, l];
+}
+
+function seatRiders(g) {
+  g.karts.forEach((k, i) => {
+    const [shirt, skin, opts] = riderLook(k);
+    const bk = built.karts[i];
+    bk.rider = buildPersonMesh(shirt, skin, opts);
+    seatPerson(bk.rider, true);
+    getScene().add(bk.rider);
+    bk.mesh.visible = true;
+  });
+}
+
+function beginOnline(w, g, kind) {
+  Object.assign(g, { online: kind, cam: null, camA: g.karts[0].a, flash: null, said: 0, gapSay: 0, boostFx: 0, ghostRun: null, rec: null, exit: { ...STAND }, finishAt: g.finishAt ?? 0 });
+  seatRiders(g);
+  w.cinematicHidePlayers = true;
+  ensureBoard();
+  board.show();
+  game = g;
+  syncKarts(w, 0);
+  runs++;
+}
+
+// the host: the invitation is answered, the race object is ready (coopwedstrijd.js begin)
+function startOnline(w, race) {
+  if (game || activityBlock(w)) return false;
+  if (!built) built = buildTrackScene();
+  const p = w.player;
+  if (p.inVehicle) p.exitVehicle(w.map, w);
+  race.karts[0].player = true;
+  race.uit = { ...STAND }; // where a guest who stops or finishes is put back
+  beginOnline(w, race, 'host');
+  w.companionHold = { x: STAND.x + 2, y: STAND.y + 1, face: ROT };
+  showCard(w, { kind: 'tip', kicker: 'Karten in Ulrum', title: 'Drie ronden tegen elkaar', body: '[W] gas, [S] rem, [A] [D] sturen. Houd [Spatie] (handrem) in een bocht voor een drift: een lange drift geeft een versnelling. Iedereen rijdt dezelfde kart op dezelfde baan.', duration: 10, key: 'kart-help', v: 1 });
+  return true;
+}
+
+// a guest: the host started the race and this guest said yes
+function gastStart(w, st, spiegel) {
+  if (game) return false;
+  if (!built) built = buildTrackScene();
+  beginOnline(w, spiegel, 'gast');
+  return true;
+}
+
+// the guest's body belongs to the host's world; his race screen runs next to it, fed by the snapshots
+function gastTik(w, dt) {
+  if (!game || game.online !== 'gast') return false;
+  updateOnline(w, dt);
+  if (game) { updateEngine(w); updateHud(); }
+  return true;
+}
+
+function updateOnline(w, dt) {
+  const g = game;
+  const gast = g.online === 'gast';
+  if (g.flash && (g.flash.t -= dt) <= 0) g.flash = null;
+  if (gast && (!w.coopNet || w.coopRole !== 'client')) { wedGastReset(w); end(w, { quit: true }); return; } // the connection is gone
+  if (stopPressed(w.input)) {
+    if (gast) wedGastVerlaat(w); // the kart drives on under the AI; the others race on
+    end(w, { quit: true });
+    return;
+  }
+  if (gast && g.buf.length && g.klok - g.buf[g.buf.length - 1].tl > 1.5) g.flash = { text: 'Even wachten: de verbinding haperde of het spel staat stil', t: 0.5, bad: true }; // no snapshots for a moment
+  const ev = gast ? tikSpiegel(g, dt, () => playerInput(w.input)) : wedRaceTik(w, g, dt, () => playerInput(w.input));
+  let klaar = false;
+  for (const e of ev) {
+    if (e.type === 'lights') { pushAudioEvent(w, { kind: 'bell', x: STAND.x, y: STAND.y }); if (!gast && e.n === 1) say(w, 'lights', true); }
+    else if (e.type === 'go') { pushAudioEvent(w, { kind: 'bell', x: STAND.x, y: STAND.y }); g.flash = { text: 'GO!', t: 1.4 }; if (!gast) say(w, 'go', true); }
+    else if (e.type === 'lap' && e.i === 0) { g.flash = { text: `Ronde ${e.lap}: ${fmtTime(e.time)}`, t: 2.4 }; if (!gast && e.lap === LAPS - 1) say(w, 'last'); }
+    else if (e.type === 'wall' && e.i === 0) pushAudioEvent(w, { kind: 'prop_hit', material: 'wood', strength: clamp(e.speed / 8, 0.2, 1), x: ORIGIN.x, y: ORIGIN.y });
+    else if (e.type === 'boost' && e.i === 0) g.flash = { text: e.lvl === 2 ? 'SUPERBOOST!' : 'BOOST!', t: 1.2 };
+    else if (e.type === 'klaar') klaar = true;
+  }
+  if (klaar && !gast) { end(w); return; }
+  syncKarts(w, dt);
+  if (!gast) {
+    const me = g.karts[0], q = FR.toW(me.u, me.v), p = w.player;
+    p.x = q.x; p.y = q.y; p.angle = ROT + me.a; p.speed = 0; p.moving = false; p.vx = 0; p.vy = 0;
+  }
+}
+
+// the host ends the race: the results go to the guests (and their prizes to their own wallets), the host's own prize is paid here
+function endOnlineHost(w, g, quit) {
+  const res = wedHostEind(w, g, { gestopt: quit });
+  if (quit) { w.addMessage('Karten gestopt', 2.5); return; }
+  const rijen = res ? res.rijen : eindstand(g);
+  const jij = res && res.jij ? res.jij : { plek: 1 + rijen.findIndex((x) => x.slot === 0), ...beloning(rijen.find((x) => x.slot === 0)) };
+  const me = g.karts[0];
+  loopbaanVerdien(w, 'race', jij.geld, { xp: jij.xp, n: 1, uniek: 'kart', deel: false }); // the prize is per place, the guests get theirs from wedHostEind
+  recordStat(w, 'kartRaces');
+  if (me.finished) unlockAchievement(w, 'kart_klaar');
+  if (me.finished && jij.plek === 1) unlockAchievement(w, 'kart_goud');
+  if (jij.geld > 0) w.addMessage(`Beloning: €${jij.geld.toLocaleString('nl-NL')}`, 4);
+  if (!res) w.addMessage(me.finished ? `Je werd ${jij.plek}e op de kartbaan` : 'Je haalde de finish niet', 4); // no session left: no results card
+}
+
+// the guest: the host stopped the race or the results came in
+function gastEind(w, uit) {
+  if (game && game.online === 'gast') end(w, { quit: !!uit.gestopt });
+  if (uit.gestopt && w.addMessage) w.addMessage('De race is gestopt.', 3);
+}
+
+registreerWedstrijd('kartbaan', { naam: 'Karten in Ulrum', start: startOnline, solo: (w) => start(w) });
+zetWedGastHaken('kartbaan', { start: gastStart, eind: gastEind, tik: gastTik });
+
 // --- the race ----------------------------------------------------------------------------------------------------
 
 function playerInput(input) {
@@ -376,6 +497,7 @@ function playerInput(input) {
 
 function updateGame(w, dt) {
   const g = game;
+  if (g.online) { updateOnline(w, dt); return; }
   const input = w.input;
   g.t += dt;
   if (g.flash && (g.flash.t -= dt) <= 0) g.flash = null;
@@ -492,8 +614,10 @@ function end(w, { quit = false } = {}) {
     });
     for (const l of built.lamps) l.material = materials().lampOff;
   }
+  if (g.online === 'gast') return; // a guest's body belongs to the host's world: nothing to put back (#443)
   const p = w.player;
   p.x = g.exit.x; p.y = g.exit.y; p.angle = ROT; p.vx = p.vy = 0;
+  if (g.online) { endOnlineHost(w, g, quit); return; }
   if (quit) { w.addMessage('Karten gestopt', 2.5); return; }
   const rank = g.result || rankKarts(g.karts);
   const me = g.karts[0];
@@ -661,7 +785,8 @@ function updateHud() {
   let flash = g.flash ? g.flash.text : g.phase === 'grid' ? (g.lights ? 'Startlichten...' : 'Rijders, op uw plaatsen') : me.finished ? `Gefinisht als ${ordinal(pos)}` : me.drift ? 'Drift...' : '';
   const meter = me.drift ? { v: me.driftT / KART.charge2, mark: KART.charge1 / KART.charge2, color: me.driftT >= KART.charge2 ? '#ff7a2a' : me.driftT >= KART.charge1 ? '#4aa8ff' : '#f2f0e6' } : null;
   const help = `${key('W')} gas · ${key('S')} rem · ${key('A')}${key('D')} sturen · houd ${key('SPATIE')} (handrem) in een bocht voor een drift · ${key('BACKSPACE')} stoppen`;
-  board.set({ row, meter, flash, bad: !!(g.flash && g.flash.bad), help });
+  const cells = g.online ? rank.map((k, i) => ({ t: `${i + 1}. ${k.name}${k.finished ? ' ✓' : ''}`, cls: k === me ? 'on' : '' })) : null; // the live standings against the others (#443)
+  board.set({ row, meter, flash, bad: !!(g.flash && g.flash.bad), help, ...(cells ? { cells } : null) });
 }
 
 // Read-only race state for the map layer (missionmap.js): the track in world
@@ -709,6 +834,8 @@ export const KARTBAAN = {
       // run the race to its end straight away: everyone finishes (tests)
       finish: () => { if (!game) return false; if (game.phase === 'grid') game.t = GO_AT; for (const k of game.karts) { k.prog = TRACK.length * LAPS + 1; k.lapTimes = [30, 30, 30]; k.finished = true; k.finishT = 95 + k.i; } game.phase = 'finish'; game.finishAt = game.raceT - FINISH_WAIT - 1; return true; },
       quit: () => { if (!game) return false; end(w, { quit: true }); return true; },
+      kart: (i = 0) => (game ? game.karts[i] : null), // the kart objects, for the bots of the tests (#443)
+      online: () => (game ? game.online || null : null),
     };
   },
   spots: () => [{ id: 'kartbaan', name: 'Kartbaan Ulrum', x: STAND.x, y: STAND.y }],

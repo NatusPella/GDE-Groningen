@@ -821,6 +821,27 @@ a fixed point, three passes). Pipeline: `add_railways.py`, `railprofile.mjs
   audit, `railZ` against the profile and the rail lifts walked, driven and
   cycled up (`ringcheck.js probeRailLifts`).
 
+### Perrons en trappen (#436)
+
+Een perron is een vloer, geen vlak: `scripts/world/perrons.mjs` maakt uit de OSM-perrons (`railPlatforms`) per station stroken
+(`map.perrons`: hartlijn om de 4 m met halve breedte en bovenkant z, `game/js/perrons.js`), met de baan van elk spoor erlangs
+(`PLATFORM_EDGE`) eruit gesneden, vlak op de spoorvloer + 1,02 m (`PERRON_TOP`: rail 0,26 + perron 0,76; Groningen Noord op de dijk
+dus op 6,62 m). Elke strook krijgt een trap (bovenkant boven 1,5 m, 1:3,6) of een helling (1:12) naar straatniveau, bij voorkeur op de plek
+waar OSM zelf `highway=steps` tekent, anders een kop of lange zijde waar geen gebouw, water, weg, spoor of ander perron in de weg staat
+(`rep.zonderTrap` meldt de rest). `profileCity` (stad_wegen.mjs) doet dit na het oplossen van het spoor; `pack_tiles.mjs` zet `perrons`
+in de globale META.
+
+- Hoogtemodel (`elevation.js addPerrons`): het loopvlak komt in `groundHeightAt` (het hoogste vlak binnen een stap) en `surfaceAt` (wie
+  op het perron staat blijft erop), de randen als muurstukken (`kind: 'perron'`) in de `wallGrid`: een voetganger blijft eronder bij een
+  rand hoger dan `WALK_STEP` (1,35 m: vanaf het spoor op een dijk stap je er wel op, 1,02 m), een voertuig (ook een fiets) bij `VEH_STEP`
+  (0,3 m). Bij de aanzet van een trap is de rand open; paaltjes aan de voet (`perrons3d.js`, vaste hindernissen, 0,75 m van het midden)
+  laten een fiets door en een auto niet.
+- Beeld: `perrons3d.js` (vloer met gele rand, gemetselde zijkant tot de grond, treden en leuning, bord Naar perron).
+- Trein: `railway.js resolveContacts` laat wie op een perron staat (`onPerron`) met rust; wie op het spoor staat wordt geraakt.
+- Landelijke haltes (buiten de stad, zonder spoorprofiel) houden het eigen perron van `stationtravel.js` (`buildPlatform`, 80 m, vaste hindernis): de OSM-perrons van de provincie krijgen dus geen tweede.
+- Test en audit: `node scripts/perrons_test.mjs`, `node scripts/perron_trein_test.mjs` (de stad, de trein), `node scripts/world/perron_audit.mjs [--strict]` (afstand tot het spoor, vlak op de
+  spoorvloer, een trap per strook die te belopen is, de rand dicht).
+
 ### Water levels, bridges and the one water query
 
 `js/waterlevels.js` (pure) and `scripts/world/water.mjs` (docs/PROVINCIE-PLAN.md
@@ -1708,6 +1729,31 @@ Optie, standaard aan (instelling `liveBussen`, Instellingen, Spel). Constitutie 
 - **Wat het spel eruit leest:** alleen positie, richting en snelheid van voertuigen in het gebied rond Groningen (maximaal 300). De lijnnummers van de feed komen nergens in beeld: een voertuig wordt aan een eigen lijn (`busroutes.js`) gekoppeld op plek (binnen 30 m) en rijrichting; een voertuig dat op geen lijn past (een trein, een lijn die we niet hebben) telt niet. Het bord toont de verzonnen lijn en bestemming van het spel.
 - **Wanneer:** tijdens het spel, niet bij het laden (de offline-controle in `desktop/build.mjs` ziet alleen laad-URL's). In Electron doet het main-proces de opvraag (`desktop/livebussen.cjs`, IPC `gde:live-bussen` zonder argumenten, dus alleen de vaste url; een renderer op `gde://` mag zonder CORS-koppen niet lezen); in de webversie gaat hij direct en valt hij bij een CORS-weigering terug. Niet in `?dev`, `?storytest`, `?autoplay` en de trailer.
 - **Koppeling:** `vehicle.js` zet in `manageBusPopulation` een bus (`liveId`) op de plek van een echte bus binnen de ring [spawnMin, spawnMax] rond de speler (LOD, hooguit 3). De bus rijdt zijn eigen AI over de weg; doel en snelheid (`liveScale`) volgen de gladgestreken echte positie (tussen de laatste twee posities, dus een opvraag achter). Bij een fout, lege of ouder dan 3 minuten feed, een omkerende bus of de instelling uit, vervalt `liveId` en rijdt de bus zijn eigen dienst.
+
+## Multiplayer ("Samen spelen")
+
+In conversation we say multiplayer; players see "Samen spelen". Single player is a session of one: the same code with one player and no network. Every new feature and mission must answer "what happens with more players?" (AGENTS.md, "Multiplayer bij ontwerp").
+
+**Equality.** Every player is equal. The host is only whoever runs the game, and that can change (host handover). The one thing the host may do that others may not is kick players out of the shared game. Time jumps, travel, sleeping, loading and pausing are group decisions, never host privileges.
+
+**Model.** One game is the host and owns the world (time, weather, traffic, police, missions, props); every guest runs a thin client that renders snapshots and sends input. Everything that is personal stays in the player's own save: money, story progress (`coopverhaal.js`, `coopsave.js`), vehicles and properties. The guest writes their own save; the host never writes a guest's progress. Nobody may lose money or progress when a session ends, drops or crashes (#448): checkpoints per player, income granted per event and never at the end.
+
+**Layers.**
+- Transport and session: `net/protocol.js` (`Reliable` over a lossy channel), `net/hub.js`, `net/session.js`, `net/brokers.js` (signalling over public brokers, end-to-end encrypted, room code), `net/memtransport.js` and `net/ipctransport.js` for tests.
+- State: `net/codec.js` (snapshots, `CODEC_VERSION`, `PROTO`), `net/interp.js` (interpolation), `coopstate.js`, `coopextra*.js` (the EXTRA message for everything that is not a core entity), `coopfoci.js` (separate groups of players: the host simulates around every player).
+- Rules: `coopmeedoen.js` (a mission is for those who say yes; no instances, joining late only when it is fair, never halfway a race or a golf round), `coopbestuur.js` (a guest drives a vehicle), `coopgezocht.js` (wanted level per player), `coopwapen.js`, `coopzitten3d.js`.
+- Host handover: `coophostwissel*.js` (the session continues on another player; time, weather, police and traffic stay as they were, #439).
+- Session list: opt-in public list on the same brokers (name, player count, version; no IP address, no password; #438).
+
+**Rewards.** Shared income is split equally, with a cooperation bonus (1 + 1 = 3) so that playing together pays more than playing alone.
+
+**Death and PvP (planned, #447).** Death by the world costs as it does now; death by another player is free. A passive mode (as in GTA Online): no damage to or from players, with a cool-down when switching. The game is 18+.
+
+**The single-player assumption.** About 600 references to `world.player` remain in `game/js` (#446). The target is `world.players` with helpers (nearest player, for each player, main player); `world.player` stays pointing at the main player so nothing breaks while modules are converted, and a test keeps the number of direct references from growing. When in doubt, look at how Watch Dogs 2 handles it.
+
+**Privacy (constitution 4 and 10).** IP addresses are only seen by fellow players and approved services and are never stored or shown; sessions are private by default; the host can kick; no real names in session names and a word filter; chat and voice later and opt-in (#451).
+
+**Tests.** Pure Node tests in `scripts/coop/` and `scripts/net_*_test.mjs`, the Friday scenario `scripts/coop/vrijdag_test.mjs`, `hostwissel_test.mjs`, and the Electron checks `gastkant_428.mjs` and `gastkant_434.mjs`. See `docs/COOP-GAST.md`, `docs/COOP-OPSLAAN.md`, `docs/COOP-OVERDRAGEN.md` and `docs/COOP-TESTBANK.md`.
 
 ## Story
 

@@ -93,12 +93,15 @@ for (const spelers of AANTALLEN) {
   for (const w of gw) w.input.axis = () => [0, 0];
 
   // ---- 4. de opdracht van de gastheer: stap, gelukt, mislukt, gestopt (#390)
+  const wasPressed0 = gw.map((w) => w.input.wasPressed);
+  gw.forEach((w, i) => { let eens = true; const f = wasPressed0[i]; w.input.wasPressed = (k) => { if (k === 'j' && eens) { eens = false; return true; } return f(k); }; }); // zonder antwoord kijk je mee (#452): iedereen zegt J
   s.hw.mission = { phase: 'active', label: 'Het Loket', type: 'stages', index: 3, progressText: 'Stap in de auto', marker: { x: 30, y: 30 } }; s.step(3);
+  gw.forEach((w, i) => { w.input.wasPressed = wasPressed0[i]; });
   for (const w of gw) { match(tekst(w), /Tammo speelt: Het Loket/, `${spelers}: opdracht gemeld`); eq(w.coopHost.doelen.length, 1, `${spelers}: het doel staat op de kaart`); }
   s.hw.mission.progressText = 'Rij naar het loket'; s.step(2);
   ok(gw.every((w) => /volgende stap: Rij naar het loket/.test(tekst(w))), `${spelers}: de volgende stap`);
   s.hw.coopUitslag(true, 'Het Loket', '', 400); s.step(1);
-  ok(gw.every((w) => /Het Loket gelukt! Tammo en jij hebben het samen gedaan\. Jouw deel: €200\./.test(tekst(w))), `${spelers}: gelukt met jouw deel`);
+  ok(gw.every((w) => new RegExp(`Het Loket gelukt! Tammo en jij hebben het samen gedaan\. Jouw deel: €${Math.floor(600 / spelers)}\.`).test(tekst(w))), `${spelers}: gelukt met jouw deel (400 x 1,5 gelijk verdeeld)`);
   s.hw.coopUitslag(false, 'De Kluis', 'te laat', 0); s.step(1);
   ok(gw.every((w) => /De Kluis mislukt: te laat/.test(tekst(w))), `${spelers}: mislukt met reden`);
   s.hw.coopUitslag(false, 'Het Loket', '', 0, true); s.hw.mission = { phase: 'idle' }; s.step(2);
@@ -156,7 +159,7 @@ for (const spelers of AANTALLEN) {
   // ---- 8. beloningen met loopbaan (#381): elke gast zijn eigen deel, het bedrag nooit uit het niets
   const geld0 = gw.map((w) => w.money || 0);
   eq(N.deelMetGasten(s.hw, 1000, { vak: 'bijbaan', basis: 1000, xp: 20 }), gasten, `${spelers}: elke verbonden gast krijgt zijn deel`); s.step(1.5);
-  ok(gw.every((w, i) => (w.money || 0) - geld0[i] >= 500 - 1 && aantal(w, /^Beloning: €/) >= 1), `${spelers}: in zijn eigen portemonnee: ${gw.map((w, i) => (w.money || 0) - geld0[i]).join(',')}`);
+  ok(gw.every((w, i) => (w.money || 0) - geld0[i] >= Math.floor(1500 / spelers) - 1 && aantal(w, /^Beloning: €/) >= 1), `${spelers}: in zijn eigen portemonnee: ${gw.map((w, i) => (w.money || 0) - geld0[i]).join(',')}`);
   eq(s.hw.money, 0, `${spelers}: de gastheer krijgt niets extra uit het delen`);
 
   // ---- 9. roepjes: iedereen tegelijk
@@ -174,8 +177,7 @@ for (const spelers of AANTALLEN) {
   // ---- 11. een speler valt weg: de rest speelt door (Tessa houdt het spel op)
   const laatsteLink = s.gs[s.gs.length - 1].link; laatsteLink.cut(); s.step(8);
   eq(s.hw.coopRoster[s.hw.coopRoster.length - 1].verbinding, 'lost', `${spelers}: de laatste speler is weg`);
-  if (spelers === 2) ok(s.holds.some((h) => h[0] === 'host' && h[1] === 1), '2: Tessa weg, het spel wacht');
-  else ok(!s.holds.some((h) => h[0] === 'host' && h[1] !== 1), `${spelers}: een extra speler weg houdt het spel niet op`);
+  ok(!s.holds.some((h) => h[0] === 'host'), `${spelers}: een speler weg houdt het spel niet op (#452)`);
   eq(N.deelMetGasten(s.hw, 1000), gasten - 1, `${spelers}: wie weg is krijgt geen beloning`);
 
   console.log(`  ${spelers} spelers: ok (${((Date.now() - t0) / 1000).toFixed(1)} s)`);

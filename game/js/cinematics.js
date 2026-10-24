@@ -21,6 +21,8 @@ export function setCinematicLinks(l) { Object.assign(links, l); }
 import { KEYS } from './storagekeys.js';
 import { registerBusyProbe } from './busy.js';
 import { interiorEyePose } from './carinterior.js';
+import { hasCarInterior } from './carinteriorlayout.js';
+import { defaultKey } from './controls.js';
 import { playerBusy } from './busy.js';
 
 // world.cameraOverride poses use map coordinates: x/y on the map, z = height in metres.
@@ -426,6 +428,8 @@ export function updateCinematics(dt, w) {
   } else skipHoldSince = null;
 
   if (started && w.input.wasPressed('v') && !active) cycleCinemaCam(w);
+  // C: tussen de volgcamera en het binnenzicht van de auto (#442); in een browser is C de Ctrl-toets, daar blijft V
+  if (started && !active && w.player.inVehicle && w.input.wasPressed('c') && hasCarInterior(w.player.inVehicle) && defaultKey('control') !== 'c') setCamMode(camMode === 5 ? 0 : 5);
   if (camMode && !w.player.inVehicle) setCamMode(0);
 
   // a scene that films its own cast (hidePlayers): the real players stay hidden for the whole scene, also when another run
