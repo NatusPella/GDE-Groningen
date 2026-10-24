@@ -751,6 +751,9 @@ function updateTrains(px, py, night, world, dt) {
 let crossingsBuilt = false;
 let trackBuilt = false;
 
+// Alleen lezen, voor de spelbot en de tests: de gebouwde treinen.
+export const getTrainViews = () => trainViews;
+
 export function initRailway3D(sceneRef, mapRef) {
   scene = sceneRef;
   map = mapRef;
