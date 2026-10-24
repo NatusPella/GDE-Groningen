@@ -9,15 +9,15 @@ import { showCard } from './hudcards.js';
 import { spawnFxPuff, spawnFxSpark } from './fx3d.js';
 import { ambientOut } from './audio.js';
 import { activityBlock, iconDisc } from './activitykit.js';
-import { createBoard, key, bubble, clearBubbles, pick, stopPressed, easeCamera, geo, frame, fmtTime, angDiff, clamp } from './minigamekit.js';
+import { createBoard, key, bubble, clearBubbles, pick, stopPressed, easeCamera, fmtTime, angDiff, clamp } from './minigamekit.js';
 import { KART_LINES, KART_RIVALS } from './minigamelines.js';
 import {
-  buildTrack, createKart, stepKart, updateProgress, collideKarts, aiInput, rankKarts, positionMedal, bestLap, pointAt, locate, KART, LAPS, RUNOFF,
+  createKart, stepKart, updateProgress, collideKarts, aiInput, rankKarts, positionMedal, bestLap, pointAt, locate, KART, LAPS, RUNOFF,
 } from './kartrace.js';
 import { createRecorder, recordGhost, finishGhost, ghostAt, loadGhost, saveGhost } from './ghostreplay.js';
 import { KEYS } from './storagekeys.js';
 import { addClearZone, corridorPoints } from './clearzone.js';
-import { ULRUM_RING, ringToLocal, startOnLongestStraight } from './kartbaandata.js';
+import { KARTBAAN_ORIGIN, KARTBAAN_ROT, KARTBAAN_FRAME, KARTBAAN_WIDTH, KARTBAAN_TRACK } from './kartbaanspoor.js';
 import { racingLine } from './kartline.js';
 import { loopbaanVerdien } from './loopbaanlive.js';
 
@@ -32,13 +32,11 @@ import { loopbaanVerdien } from './loopbaanlive.js';
 // the best lap. Money-neutral. Rules, the kart and the drivers: kartrace.js.
 // `window.__kartbaan` debug.
 const ACCENT = '#f2b82a';
-const RING0 = ringToLocal(ULRUM_RING);
-const ORIGIN = geo(RING0.lat0, RING0.lon0);
-const ROT = 0;
-const FR = frame(ORIGIN, ROT);
-const WIDTH = 7;
-// the mapped ring in the game's own frame (its y runs south), started mid-straight
-const TRACK = buildTrack(startOnLongestStraight(ULRUM_RING.map(([la, lo]) => { const q = geo(la, lo); return [q.x - ORIGIN.x, q.y - ORIGIN.y]; })), WIDTH);
+const ORIGIN = KARTBAAN_ORIGIN;
+const ROT = KARTBAAN_ROT;
+const FR = KARTBAAN_FRAME;
+const WIDTH = KARTBAAN_WIDTH;
+const TRACK = KARTBAAN_TRACK; // kartbaanspoor.js: the same track an online race simulates on (#443)
 const CENTER = FR.toW(0, 0);
 // nobody walks or drives across the track, and no props stand on it (clearzone.js, issue #176)
 addClearZone('kartbaan', corridorPoints(TRACK, FR.toW), WIDTH / 2 + RUNOFF + 3);
