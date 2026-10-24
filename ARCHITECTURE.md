@@ -1734,6 +1734,8 @@ Optie, standaard aan (instelling `liveBussen`, Instellingen, Spel). Constitutie 
 
 In conversation we say multiplayer; players see "Samen spelen". Single player is a session of one: the same code with one player and no network. Every new feature and mission must answer "what happens with more players?" (AGENTS.md, "Multiplayer bij ontwerp").
 
+**Equality.** Every player is equal. The host is only whoever runs the game, and that can change (host handover). The one thing the host may do that others may not is kick players out of the shared game. Time jumps, travel, sleeping, loading and pausing are group decisions, never host privileges.
+
 **Model.** One game is the host and owns the world (time, weather, traffic, police, missions, props); every guest runs a thin client that renders snapshots and sends input. Everything that is personal stays in the player's own save: money, story progress (`coopverhaal.js`, `coopsave.js`), vehicles and properties. The guest writes their own save; the host never writes a guest's progress. Nobody may lose money or progress when a session ends, drops or crashes (#448): checkpoints per player, income granted per event and never at the end.
 
 **Layers.**
