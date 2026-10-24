@@ -271,19 +271,23 @@ export function leesEntiteiten(entities) {
 // ----------------------------------------------------------- opdracht van de host
 // De host zegt in een bericht welke opdracht hij speelt (alleen als het verandert).
 export function missieBericht(prev, pub) {
-  const nu = pub && pub.phase === 'active' ? { label: String(pub.label || '').slice(0, 80), type: String(pub.type || '').slice(0, 24), index: pub.index | 0, stap: String(pub.progressText || '').slice(0, 90), lateInstap: pub.lateInstap !== false } : null;
-  const was = prev ? `${prev.index}|${prev.label}|${prev.stap}|${prev.lateInstap}` : '';
-  const is = nu ? `${nu.index}|${nu.label}|${nu.stap}|${nu.lateInstap}` : '';
+  const id = pub && pub.phase === 'active' && typeof pub.id === 'string' && pub.id ? pub.id.slice(0, 48) : null; // de groep van deze opdracht (#452)
+  const nu = pub && pub.phase === 'active' ? { label: String(pub.label || '').slice(0, 80), type: String(pub.type || '').slice(0, 24), index: pub.index | 0, stap: String(pub.progressText || '').slice(0, 90), lateInstap: pub.lateInstap !== false, ...(id ? { id } : null) } : null;
+  const was = prev ? `${prev.id || ''}|${prev.index}|${prev.label}|${prev.stap}|${prev.lateInstap}` : '';
+  const is = nu ? `${nu.id || ''}|${nu.index}|${nu.label}|${nu.stap}|${nu.lateInstap}` : '';
   if (was === is) return { event: null, huidig: prev };
   if (prev && nu && was.slice(0, was.lastIndexOf('|')) === is.slice(0, is.lastIndexOf('|'))) return { event: null, huidig: nu }; // alleen de late-instapvlag veranderde: geen nieuw bericht (#452)
-  // de stap van de opdracht ("Stap in de boot", "Rij naar de kerk") gaat mee, zodat een gast het hele verhaal kan volgen
-  return { event: nu ? { k: 'missie', actief: true, label: nu.label, type: nu.type, index: nu.index, stap: nu.stap } : { k: 'missie', actief: false }, huidig: nu };
+  // de stap van de opdracht ("Stap in de boot", "Rij naar de kerk") gaat mee, zodat een gast het hele verhaal kan volgen.
+  // De id gaat mee zodat een gast een opdracht van een andere groep niet voor de zijne aanziet (#452).
+  if (nu) return { event: { k: 'missie', actief: true, label: nu.label, type: nu.type, index: nu.index, stap: nu.stap, ...(nu.id ? { id: nu.id } : null) }, huidig: nu };
+  return { event: { k: 'missie', actief: false, ...(prev && prev.id ? { id: prev.id } : null) }, huidig: null };
 }
 export function leesMissieBericht(b) {
   if (!b || b.k !== 'missie') return null;
-  if (!b.actief) return { actief: false };
+  if (!b.actief) return { actief: false, ...(typeof b.id === 'string' && b.id && b.id.length <= 48 ? { id: b.id } : null) };
   if (typeof b.label !== 'string' || b.label.length > 80) return null;
-  return { actief: true, label: b.label, type: typeof b.type === 'string' ? b.type.slice(0, 24) : '', index: b.index | 0, stap: typeof b.stap === 'string' ? b.stap.slice(0, 90) : '' };
+  const id = typeof b.id === 'string' && b.id && b.id.length <= 48 ? b.id : null;
+  return { actief: true, label: b.label, type: typeof b.type === 'string' ? b.type.slice(0, 24) : '', index: b.index | 0, stap: typeof b.stap === 'string' ? b.stap.slice(0, 90) : '', ...(id ? { id } : null) };
 }
 // Tekst voor de gast: wat de host nu speelt, en of de gast kan meedoen.
 export function missieTekst(m, rol = 'wereld', naam = 'De ander') {
