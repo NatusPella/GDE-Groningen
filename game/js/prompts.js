@@ -33,6 +33,7 @@ import { renderAimReticle } from './aimassist.js';
 import { WEAPONS, isMeleeWeapon, isRangedWeapon } from './combat.js';
 import { gameBusy } from './busy.js';
 import { aaiPrompt } from './aaien.js';
+import { kaartjesPrompt } from './kaartjescontrole.js';
 
 const USES_KEY = KEYS.hintUses;
 const LEARN_USES = 3;
@@ -374,6 +375,8 @@ function findPrimary(world) {
   if (aai) return aai;
   const dorp = ommelandPrompt(world);
   if (dorp) return dorp;
+  const knip = kaartjesPrompt(world);
+  if (knip) return knip;
   const trein = stationPrompt(world);
   if (trein) return trein;
   const food = nearestHorecaSpot(world);
