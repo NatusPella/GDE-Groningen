@@ -39,6 +39,7 @@ import { edgeDistance } from './countryfield.js';
 import { streetAt as roadStreetAt } from './tileplace.js';
 import { ommelandArea } from './ommelandplace.js';
 import { ommelandMapSpots, drawOmmelandMapIcon } from './ommelandmap.js';
+import { perceelMapSpots, drawPerceelMapIcon } from './perceelmap.js';
 import { VILLAGES } from './ommelandlines.js';
 import { getActiveRoute, getRouteAhead, getRoutes, getUserWaypoint, formatDistance } from './routing.js';
 import { getClockText } from './clocktext.js';
@@ -1695,6 +1696,7 @@ export function drawMapIcon(ctx, kind, x, y, s = 1, opts = {}) {
     default:
       if (drawMapGlyph(ctx, kind, s)) break;
       if (drawOmmelandMapIcon(ctx, kind, s)) break;
+      if (drawPerceelMapIcon(ctx, kind, s)) break;
       if (kind.startsWith('shop-')) drawShopMapIcon(ctx, kind.slice(5), s);
       else if (kind === 'pigeon') drawPigeonMapIcon(ctx, s);
       else if (kind === 'heli') drawHeliMapIcon(ctx, s);
@@ -2167,6 +2169,7 @@ function drawMinimapPois(ctx, world, job, placed, inRange, toScreen, t) {
   }
   add('trein', getStationsForRender(), 'station', 1, MM_POI_FAR_M);
   add('ommeland', ommelandMapSpots(), (q) => q.kind, 2, MM_POI_FAR_M);
+  add('percelen', perceelMapSpots(), (q) => q.kind, 3, MM_POI_FAR_M);
   if (inVehicle) add('flitspaal', world.flitspaalen || [], 'flitspaal', 2);
   if (!inVehicle) add('duif', getPigeonSpotsForRender(), 'pigeon', 1);
   add('heli', getHeliSpotsForRender(), 'heli', 1, MM_POI_FAR_M);
