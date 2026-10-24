@@ -81,7 +81,7 @@ for (const x of compiled) {
   ok(seen.size >= (x.def.set === 'keuken' ? 20 : 6), `the camera varies in ${x.def.id}`, String(seen.size));
 }
 
-// the kitchen: Tessa sits, Tammo walks in and sits, both stand up and leave; the cat crosses the table
+// the kitchen: Tessa sits, Tammo walks in and sits, both stand up and leave; the cat hops off the sill to the floor (#434)
 {
   const L = kitchen.lines, sm = (t) => kitchen.scene.sample(t, kAnchor);
   const first = sm(0.5), mid = sm(L[8].at + 1), end = sm(kitchen.duration - 0.3);
@@ -90,7 +90,7 @@ for (const x of compiled) {
   ok(end.actors.tessa.sit === 0 && end.actors.tammo.sit === 0, 'both stand at the end');
   ok(Math.hypot(end.actors.tessa.x - kAnchor.x - 1.3, end.actors.tessa.y - kAnchor.y - 2.3) < 0.3, 'Tessa leaves through the door');
   const cat0 = sm(0.5).props.kat, cat1 = sm(L[8].at).props.kat;
-  ok(cat0.h - 345 > 1 && Math.abs(cat1.h - 345 - 0.775) < 0.02, 'the cat jumps from the sill to the table', `${cat0.h} ${cat1.h}`);
+  ok(cat0.h - 345 > 1 && Math.abs(cat1.h - 345) < 0.05, 'the cat jumps from the sill to the floor', `${cat0.h} ${cat1.h}`);
   ok(sm(L[2].at + 0.8).speakerActor === 'tammo' && sm(L[3].at + 0.8).speakerActor === 'tessa', 'the kitchen speakers are right');
   // every line has its own shot or shares one with a close-up on the speaker
   ok(kitchen.def.shots.length >= 26, 'the kitchen has a shot plan', String(kitchen.def.shots.length));
