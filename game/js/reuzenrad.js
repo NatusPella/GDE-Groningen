@@ -1,5 +1,6 @@
 import { kermisOn, kermisWheel, kermisFrame } from './kermis.js';
 import { activityBlock } from './activitykit.js';
+import { easeStep } from './minigamekit.js';
 import { showCard } from './hudcards.js';
 import { recordStat } from './achievements.js';
 import { getSettings } from './settings.js';
@@ -91,6 +92,7 @@ function update(dt, w) {
   if (w.pendingRespawn || !wheel || !kermisOn(w)) { end(w, { quit: true }); return; }
   const input = w.input;
   g.t += dt;
+  g.dt = dt; // de camera rekent per seconde (#436)
   // vrij rondkijken: muis (als die vast zit) en pijltjes
   const k = LOOK_PER_PX * getSettings().mouseSensitivity;
   const key = (a, b) => (input.isDown(a) ? 1 : 0) - (input.isDown(b) ? 1 : 0);
@@ -113,8 +115,9 @@ function camera(w) {
   const pos = toW(s.u, s.v + W.CAM_OUT);
   const far = toW(s.u + d.u * 12, s.v + W.CAM_OUT + d.v * 12);
   const at = { x: far.x, y: far.y, z: s.h + EYE + d.h * 12 };
-  // het mikpunt loopt rustig achter de muis aan
-  g.aim = g.aim ? { x: g.aim.x + (at.x - g.aim.x) * 0.2, y: g.aim.y + (at.y - g.aim.y) * 0.2, z: g.aim.z + (at.z - g.aim.z) * 0.2 } : at;
+  // het mikpunt loopt rustig achter de muis aan, per seconde (#436)
+  const f = easeStep(0.2, g.dt);
+  g.aim = g.aim ? { x: g.aim.x + (at.x - g.aim.x) * f, y: g.aim.y + (at.y - g.aim.y) * f, z: g.aim.z + (at.z - g.aim.z) * f } : at;
   w.cameraOverride = { position: { x: pos.x, y: pos.y, z: s.h + EYE }, lookAt: { ...g.aim }, fov: 70, cut: true };
 }
 
