@@ -101,6 +101,64 @@ t('landSolid (het platteland) wordt gevraagd en kan een plek weigeren', () => {
   assert.equal(P.bruikbaar(map, q.x, q.y, { ...D, landSolid: () => false }), true);
 });
 
+// --- een safehouse in een bestaand pand (#458) ----------------------------------------------------------------
+const bezet = new Set();
+const panden = new Map();
+for (const g of gebieden) {
+  const q = P.kiesPand({ x0: g.c[0], y0: g.c[1], ang: 0, grens: g }, map, D, bezet, 0.3);
+  panden.set(g.id, q);
+  if (q) bezet.add(q.pand);
+}
+const metPand = gebieden.filter((g) => panden.get(g.id));
+
+t('de meeste gebieden krijgen een bestaand woonpand in plaats van een los huisje', () => {
+  assert.ok(metPand.length >= gebieden.length * 0.8, `${metPand.length} van ${gebieden.length}`);
+});
+t('het gekozen pand is een woonbestemming, geen landmark en niet te groot of te klein', () => {
+  for (const g of metPand) {
+    const q = panden.get(g.id), b = q.pand;
+    assert.ok(P.pandGeschikt(b, D), `${g.naam}: pandGeschikt`);
+    assert.ok(P.WOONTYPES.includes(b.type), `${g.naam}: type ${b.type}`);
+    assert.ok(!b.landmark, `${g.naam}: landmark ${b.landmark}`);
+    const box = P.pandBox(b);
+    assert.ok(box.w >= P.PAND_MIN && box.l >= P.PAND_MIN && box.w <= P.PAND_MAX && box.l <= P.PAND_MAX, `${g.naam}: ${box.w.toFixed(1)}x${box.l.toFixed(1)}`);
+  }
+});
+t('geen gebouw krijgt twee safehouses', () => {
+  const keys = metPand.map((g) => panden.get(g.id).pand.osm || panden.get(g.id).pand);
+  assert.equal(new Set(keys).size, keys.length);
+});
+t('de deur van elk pand is bereikbaar: buiten het pand, niet op de rijweg en je kunt er weg lopen', () => {
+  for (const g of metPand) {
+    const q = panden.get(g.id), d = q.deur;
+    assert.equal(probleem(d.x, d.y), null, `${g.naam} deur (${d.x.toFixed(1)}, ${d.y.toFixed(1)})`);
+    assert.equal(P.opRijweg(map, d.x, d.y), false, `${g.naam}: deur op de rijweg`);
+    assert.equal(pointInPolygon(d.x, d.y, q.pand.pts), false, `${g.naam}: deur in het pand`);
+  }
+});
+t('het pand blijft bij zijn gebied: in het gebied zelf of hooguit 900 m van het binnenpunt', () => {
+  for (const g of metPand) {
+    const q = panden.get(g.id);
+    const d = Math.hypot(q.x - g.c[0], q.y - g.c[1]);
+    assert.ok(d <= 900 || puntInGebied(g, q.x, q.y), `${g.naam}: ${d.toFixed(0)} m`);
+  }
+});
+t('zonder geschikt pand valt de plaatsing terug op het losse huisje', () => {
+  const g = gebieden[0];
+  const h = { x0: g.c[0], y0: g.c[1], ang: 0, grens: g };
+  assert.equal(P.kiesPand(h, map, { ...D, verboden: () => true }), null, 'alles verboden: geen pand');
+  const q = P.plaatsSafehuis(h, map, { ...D, verboden: () => true });
+  assert.ok(q && q.soort === 'huisje' && q.deur, 'de terugval geeft een huisje met een deur');
+});
+t('een kerk, schuur of landmark is nooit een safehouse', () => {
+  const kerk = map.buildings.find((b) => b.type === 'church');
+  const schuur = map.buildings.find((b) => b.type === 'shed');
+  const landmark = map.buildings.find((b) => b.landmark);
+  if (kerk) assert.equal(P.pandGeschikt(kerk, D), false);
+  if (schuur) assert.equal(P.pandGeschikt(schuur, D), false);
+  if (landmark) assert.equal(P.pandGeschikt(landmark, D), false);
+});
+
 if (process.argv.includes('--list')) console.log(gebieden.map((g) => `${g.id} ${g.naam}: ${plekken.get(g.id) ? 'plek' : 'GEEN'}`).join('\n'));
-console.log(`${n - fails}/${n} geslaagd (${gevonden.length} van ${gebieden.length} gebieden kregen een huisje)`);
+console.log(`${n - fails}/${n} geslaagd (${gevonden.length} van ${gebieden.length} gebieden kregen een huisje; ${metPand.length} een bestaand pand)`);
 process.exit(fails ? 1 : 0);
