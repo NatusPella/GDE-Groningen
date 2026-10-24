@@ -84,7 +84,7 @@ const ACT_KEUKEN = {
     tammo: { look: 'tammo', at: [1.3, 2.1], face: -90, anim: 'idle', speaker: 'Tammo', gaze: 'speaker' },
   },
   props: {
-    kat: { kind: 'kat', at: [-2.0, -0.55, 1.05], face: 0 },
+    kat: { kind: 'kat', at: [-2.0, 0.7, 1.05], face: 0 },
   },
   fx: [
     { t: 0, fx: 'pulse', dur: 12 },
@@ -109,8 +109,8 @@ const ACT_KEUKEN = {
     { t: 'L2+0.1', actor: 'tessa', anim: 'idle' },
     { t: 'L3', actor: 'tessa', anim: 'shrug' },
     { t: 'L4', actor: 'tammo', anim: 'shrug' },
-    // the cat walks along the table, away from Tessa, and sits on the bank letter in the middle (neutral framing, #422)
-    { t: 'L5-0.3', prop: 'kat', path: [[-2.0, -0.55, 1.05], [-1.3, -0.7, 0.95], [-0.6, -0.62, 0.77], [0.3, -0.2, 0.775]], speed: 2.4 },
+    // the cat hops off the sill and sits on the floor by the window, well away from Tessa and out of every camera line (neutral framing, #434)
+    { t: 'L5-0.3', prop: 'kat', path: [[-2.0, 0.7, 1.05], [-1.85, 0.9, 0.0], [-1.45, 0.85, 0.0]], speed: 1.8 },
     { t: 'L5', actor: 'tessa', face: 'prop:kat' },
     { t: 'L5', actor: 'tessa', anim: 'shrug' },
     { t: 'L5+2.4', actor: 'tessa', face: 0 },
@@ -155,7 +155,7 @@ const ACT_KEUKEN = {
     // the talk: closer on whoever speaks, the cat on the letter, the drawing
     { t: 'L3', shot: 'cut', at: [0.3, 0.5, 1.4], look: 'tessa@1.15', fov: 28 },
     { t: 'L4', shot: 'cut', at: [-0.35, -0.6, 1.4], look: 'tammo@1.2', fov: 28 },
-    { t: 'L5', shot: 'dolly', from: [-0.9, -1.75, 1.6], to: [-0.6, -1.55, 1.5], look: 'tessa@1.1', fov: 40 },
+    { t: 'L5', shot: 'dolly', from: [0.6, -1.3, 1.5], to: [0.4, -1.1, 1.45], look: 'mid:tessa,kat@0.9', fov: 44 },
     { t: 'L5+2.4', shot: 'cut', at: [0.2, 0.65, 1.4], look: 'tessa@1.2', fov: 34 },
     { t: 'L6', shot: 'dolly', from: [0.3, -0.9, 1.6], to: [0.05, -0.75, 1.5], look: 'tessa@1.2', fov: 36 },
     { t: 'L7', shot: 'cut', at: [-0.4, 0.7, 1.4], look: 'tammo@1.2', fov: 28 },
