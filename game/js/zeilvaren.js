@@ -2,8 +2,11 @@
 // zeilrules.js. De wind komt uit de dag en het uur (geen klok van buiten), Q haalt het zeil aan,
 // Z viert het. De boot laat de gewone vaarlaag het werk doen (v.sailTop is de snelheid die de
 // wind toelaat, zoals bij het skûtsje) en wordt hier alleen vooruit getrokken tot die snelheid.
-// Regels getest in scripts/zeilvaren_test.mjs.
+// Onderaan staat de vaardienst (#444): een rondvaart of veerboot die bij elke halte aanlegt,
+// met een dienstregeling, voortgang en een uitslag met medaille.
+// Regels getest in scripts/zeilvaren_test.mjs en scripts/vaardienst_test.mjs.
 import { windOp, windHoek, polair, trimRendement, BOOT_SOORTEN, WIND, standTekst, roeiSlag } from './zeilrules.js';
+import { maakDienst, stapDienst, dienstVoortgang, dienstUitslag, dienstStand } from './simdienst.js';
 
 export const TRIM_RATE = 0.5;      // per seconde, zoals stepZeil
 export const OMSLAG_S = 3;        // s drijven na het omslaan
@@ -109,3 +112,35 @@ export function updateZeilvaren(dt, world, dag) {
     world.addMessage(`${standTekst({ heading: v.angle, omgeslagen: 0 }, wind)} · wind ${Math.round(wind.speed)} m/s`, 2.5);
   }
 }
+
+// --- vaardienst (#444): de rondvaart of veerboot met aanleggen ---------------------------
+// De regels: vaar de halten in volgorde langs, leg bij elke halte aan (binnen aanlegR, zachter
+// dan aanlegV) en blijf een paar seconden liggen voor de reizigers. Te hard voorbij varen laat de
+// halte liggen; de klok loopt door. Omslaan kost alleen tijd (een nat pak, geen leed).
+export const VAART = {
+  aanlegR: 18,    // m: zo dicht bij de kade
+  aanlegV: 1.2,   // m/s: zachter dan dit om aan te leggen
+  aanlegS: 3,     // s: zo lang blijf je liggen voor de halte telt
+  vmax: 5.5,      // m/s: harder dan dit telt als te hard varen
+};
+
+// halten: [{ x, y, naam? }]; opties: naam van de dienst, maxTijd en een eigen kade.
+export function maakVaardienst({ halten = [], naam = 'Rondvaart', maxTijd = null, aanlegR = VAART.aanlegR, aanlegV = VAART.aanlegV, aanlegS = VAART.aanlegS } = {}) {
+  return maakDienst({
+    vervoer: 'schip', naam, maxTijd,
+    halten: halten.map((h) => ({
+      ...h, stopR: h.stopR != null ? h.stopR : aanlegR, stopV: h.stopV != null ? h.stopV : aanlegV,
+      stopS: h.stopS != null ? h.stopS : aanlegS, wacht: h.wacht != null ? h.wacht : 6,
+    })),
+  });
+}
+
+// Eén beeld: v is de boot van de vaarlaag (x, y, speed). Geeft de gebeurtenissen van de dienst.
+export function vaarStap(d, v, { dt = 0 } = {}) {
+  if (!v) return [];
+  return stapDienst(d, { x: v.x, y: v.y, v: Math.abs(v.speed || 0), dt, stil: true });
+}
+
+export const vaarVoortgang = dienstVoortgang;
+export const vaarStand = dienstStand;
+export function vaarUitslag(d) { return dienstUitslag(d); }
