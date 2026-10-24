@@ -126,7 +126,7 @@ export const carHeading = (car, yaw) => car.angle + yaw;
 // Het zitje van de machinist in de cabinewagen: waar de ogen zitten (wagenframe).
 export function driverEye(cl) {
   const e = cl.cab || 1;
-  return { x: e * (cl.len / 2 - 1.5), y: cl.floorY + 1.28, z: -0.25 };
+  return { x: e * (cl.len / 2 - 2.15), y: cl.floorY + 1.28, z: -0.25 };
 }
 // Waar je in de cabine staat als je opstaat en het deurtje in de wand ziet.
 export function cabDoorSpot(cl) {
