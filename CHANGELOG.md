@@ -14,6 +14,10 @@ nieuwe functies, `y` voor alleen bugfixes.
 - Loopbaan (#438): vanaf Kaartjesknipper (spoor, niveau 3) kun je op het perron kaartjes controleren: loop naar een reiziger, druk E, en na een ronde van vijf reizigers betaalt het loon van het vak en tellen de punten mee. Per station hooguit een ronde per kwartier. In de trein zelf kan het nog niet (nog niet in beeld bekeken).
 
 ### Veranderd
+- Opening: de poes in de keuken loopt nu langs de tafel naar het midden en gaat op de bankbrief zitten, ver van Tessa; de camera blijft bij Tessa en laat het poezengedrag buiten beeld (#434).
+- Verhaalberichten aan het eind van het verhaal wijzen nu naar het menu onder Activiteiten, niet meer naar de telefoon onder Te doen (#273).
+- Delfzijl: kaartlabel, bord en Reis erheen (safehouse) staan nu in het winkelmidden in plaats van 843 m ten westen daarvan; de wereld zelf is niet veranderd (#422).
+- Gedenktekens in de streek houden hun type en plaats maar tonen geen persoonsnaam meer (#419).
 - Winkel (#437): het tabblad Alles staat nu achteraan in plaats van voorop, en een winkel opent bij de eerste afdeling (bij Pang Wapens & munitie).
 - Ommeland (#437): Pootje baden bij Kropswolde is geen dorpsuitje meer, het had geen doel; de strandtent De Natte Voet blijft.
 - Samen spelen: een gast met een wapen. Het wapen en de patronen komen uit zijn eigen spel; hij kiest ze met 1 tot 4 of het muiswiel en slaat of schiet met de muisknop. Wie het spel opende rekent de slag of het schot uit vanuit het lichaam van de gast, met de schade, de kogels en de patronen van dat wapen. Schade en misdaad tellen bij de gast, de anderen zien het wapen in zijn hand en zijn zwaai of schot.
