@@ -71,7 +71,7 @@ if (erfPos) { teleport(erfPos.x + 25, erfPos.y + 35, -2.4); hold = { x: erfPos.x
 const trek = w.vehicles.find((v) => v.farm && v.model.name === 'tractor');
 check('de trekker is een voertuig in de wereld', !!trek, trek ? `${trek.model.len} m` : 'geen');
 hold = null;
-teleport(trek.x + 3.2, trek.y, Math.PI);
+teleport(trek.x + 2.0, trek.y + 0.8, Math.PI);
 await sleep(1200);
 await tap('e', 'KeyE');
 await sleep(1200);
