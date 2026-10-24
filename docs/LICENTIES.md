@@ -46,7 +46,7 @@ geen `node_modules` in git.
 | Referentiefoto's voor Paddepoel (oogtv.nl, Wikimedia Commons, genoemd in `paddepoel3d.js`) | alleen gebruikt als voorbeeld bij het modelleren | foto's zitten niet in het spel | ok |
 | `data/satellite_reference.jpg` (6,4 MB) | **Esri World Imagery**-export (`scripts/extract_palette.py`) | Esri-beelden mogen niet als los bestand herverspreid worden ([Esri-voorwaarden](https://www.esri.com/en-us/legal/terms/full-master-agreement)); alleen de afgeleide kleurwaarden zitten in het spel | uit de repo en de historie (15 okt, in `.gitignore`; zie `docs/PUBLICEREN.md`) |
 | Geluidseffecten (motor, foley, ambience, UI) | gesynthetiseerd in `game/js/sfx/*.js` | eigen werk | ok |
-| Muziek: 20 G-Music-nummers, 2 scenario-loops, titelnummer `miles_past_the_city_square.mp3` | Google Gemini (volgens de eigenaar) | zie §4 | ok, met kanttekeningen |
+| Muziek: 20 G-Music-nummers, 8 scenario-loops, titelnummer `miles_past_the_city_square.mp3` | Google Gemini (volgens de eigenaar) | zie §4 | ok, met kanttekeningen |
 | Stemmen: ~3.100 clips in `game/audio/voicelines` en de vaste mappen (elke clip gelogd in een `tts.json`; telling en controle: `node scripts/audio_herkomst.mjs`, allemaal `google/gemini-3.8-flash-tts`, prebuilt stemmen zoals Orus en Callirrhoe; sinds 5 okt spreken ze Gronings, uit `scripts/gronings_spoken.json`, geschreven met Claude, de Friese personages en toeristen daargelaten) | Gemini TTS via OpenRouter | zie §4 | ok |
 | Vaste clips: `audio/npc`, `audio/police`, `audio/nieuws`, `audio/gmusic/jingles` | Gemini TTS via OpenRouter, `google/gemini-3.8-flash-tts` (`scripts/tts_barks_lines.mjs`, stemmen in `tts_cast.mjs` `CLIP_CAST`) | zie §4 | **opgelost** (3 okt): waren gemaakt met een previewmodel zonder log; nu opnieuw ingesproken en per map gelogd in `tts.json` |
 | App-icoon `desktop/resources/icon.svg/png` | eigen ontwerp (GDE-logo) met ingebedde subset van Big Shoulders Display | OFL staat inbedden toe | ok |
@@ -58,7 +58,7 @@ Er zijn drie soorten geluid in het spel, met elk een eigen herkomst:
 | Soort | Waar | Herkomst | Samples? |
 |---|---|---|---|
 | **Geluidseffecten**: motoren, voetstappen, foley, omgeving, interface, claxon, sirene | `game/js/sfx/*.js`, `game/js/audio.js` | in het spel zelf gesynthetiseerd (Web Audio: oscillatoren, ruis, filters), tijdens het spelen; er staan geen opnamen van effecten in de repo | **nee**, geen externe samples |
-| **Muziek**: 20 G-Music-nummers, 2 scenario-loops, titelnummer | `game/audio/gmusic`, `scenario`, `theme` | gemaakt met Google Gemini (AI), niet door de eigenaar gecomponeerd of gesynthetiseerd; zie §4 | n.v.t. (AI-output) |
+| **Muziek**: 20 G-Music-nummers, 8 scenario-loops, titelnummer | `game/audio/gmusic`, `scenario`, `theme` | gemaakt met Google Gemini (AI), niet door de eigenaar gecomponeerd of gesynthetiseerd; zie §4 | n.v.t. (AI-output) |
 | **Stemmen**: ~3.100 regels plus vaste clips (`npc`, `police`, `nieuws`, jingles) | `game/audio/voicelines` e.a. | Gemini TTS via OpenRouter (`google/gemini-3.8-flash-tts`), per map gelogd in `tts.json` | n.v.t. (AI-output) |
 
 Let op: "alles zelf gesynthetiseerd, geen samples" geldt dus **alleen voor de
