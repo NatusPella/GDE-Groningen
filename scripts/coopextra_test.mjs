@@ -7,6 +7,7 @@ import { createLink, makeRng } from '../game/js/net/memtransport.js';
 import { HostSession, ClientSession, EXTRA_HZ } from '../game/js/net/session.js';
 import { checkHandshake, PROTO } from '../game/js/net/protocol.js';
 import { pedId, kiesVoetgangers } from '../game/js/coopworld.js';
+import { dichtstbijDoel } from '../game/js/hudgps.js';
 
 let n = 0;
 const t = (name, f) => { f(); n++; };
@@ -283,5 +284,105 @@ t('een reuzenvogel bij een gast is uitgesloten (#433)', () => {
   assert.equal(X.veiligeDierSchaal('cow', 0), 1);
   assert.equal(X.veiligeDierSchaal('draak', 1), null, 'een onbekende soort wordt niet getekend');
 });
+
+// ----- #452: tijdelijke rekwisieten en de lijst met doelen
+const rek = (i, extra = {}) => ({ x: 100 + i * 3, y: 200 + (i % 5), z: 1.5, hoek: i * 0.3, staat: i % 4, id: i, soort: X.REKW_SOORTEN[i % X.REKW_SOORTEN.length], ...extra });
+
+t('rekwisieten: rondreis van plek, hoek, staat, klein en kleur', () => {
+  const lijst = X.verzamelRekwisieten(BIJ, () => [rek(0, { klein: true }), rek(1, { kleur: '#3a7fd5' }), rek(2, { z: 12.3 })]);
+  assert.equal(lijst.length, 3);
+  const stukken = X.codeerRekwisieten(lijst); assert.equal(stukken.length, 1); assert.ok(stukken[0].length <= 255);
+  const l = X.leesRekwisieten(stukken[0]); assert.equal(l.length, 3);
+  const a = l.find((r) => r.id === 0), b = l.find((r) => r.id === 1), c = l.find((r) => r.id === 2);
+  assert.equal(a.soort, 'laser'); assert.ok(a.klein); near(a.x, 100, 0.03); near(a.y, 200, 0.03); near(a.z, 1.5, 0.06); near(a.hoek, 0, 0.03);
+  assert.equal(b.soort, 'zekering'); assert.equal(b.kleur, '#3a7fd5'); assert.equal(b.staat, 1); assert.ok(!b.klein);
+  near(c.z, 12.3, 0.06); near(b.hoek, 0.3, 0.03);
+});
+
+t('rekwisieten: budget van 40, de dichtstbijzijnde eerst, ver weg valt af', () => {
+  const veel = Array.from({ length: 90 }, (_, i) => rek(i, { x: 100 + i * 2, y: 200 }));
+  veel.push(rek(95, { x: 9000, y: 9000 }));
+  const lijst = X.verzamelRekwisieten(BIJ, () => veel);
+  assert.equal(lijst.length, X.MAX_REKWISIETEN);
+  assert.ok(lijst.every((r) => Math.hypot(r.x - 100, r.y - 200) <= X.REKW_RADIUS + 25), 'alles binnen bereik van een speler');
+  const nu = lijst.map((r) => Math.min(...BIJ.map((b) => Math.hypot(r.x - b.x, r.y - b.y))));
+  for (let i = 1; i < nu.length; i++) assert.ok(nu[i] >= nu[i - 1] - 1e-9, 'oplopend naar afstand');
+  const wel = X.verzamelRekwisieten(BIJ, () => veel.filter((r) => r.x < 400));
+  const stukken = X.codeerRekwisieten(wel);
+  assert.ok(stukken.length <= 2 && stukken.every((s) => s.length <= 255));
+  const terug = stukken.flatMap((s) => X.leesRekwisieten(s));
+  assert.ok(terug.length >= 30, `bijna alles past in twee stukken (${terug.length})`);
+  const kleurig = X.verzamelRekwisieten(BIJ, () => Array.from({ length: 60 }, (_, i) => rek(i, { kleur: 0xff0000 })));
+  assert.ok(X.codeerRekwisieten(kleurig).every((s) => s.length <= 255), 'ook met kleur nooit meer dan 255 bytes');
+});
+
+t('rekwisieten: register, een falende bron en een bron zonder bekende soort', () => {
+  X.wisRegistratie();
+  X.registreerRekwisieten('wapendrop', () => [{ x: 105, y: 205, id: 7 }]);
+  X.registreerRekwisieten('kapot', () => { throw new Error('stuk'); });
+  X.registreerRekwisieten('onbekend', () => [{ x: 105, y: 205 }]);
+  X.registreerRekwisieten('spijkermat', () => [{ x: 106, y: 205, hoek: 1 }, { x: NaN, y: 1 }]);
+  const lijst = X.verzamelRekwisieten(BIJ);
+  assert.deepEqual(lijst.map((r) => r.soort).sort(), [X.REKW_SOORTEN.indexOf('wapendrop'), X.REKW_SOORTEN.indexOf('spijkermat')].sort());
+  X.registreerRekwisieten('wapendrop', null);
+  assert.equal(X.verzamelRekwisieten(BIJ).length, 1, 'afmelden werkt');
+  X.wisRegistratie();
+  assert.equal(X.verzamelRekwisieten(BIJ).length, 0);
+});
+
+t('doelen: rondreis, label bijgesneden, budget en vals bericht', () => {
+  const doelen = [{ id: 1, x: 500, y: 600, soort: 'doel', label: 'Naar de Grote Markt' }, { id: 2, x: 120, y: 205, soort: 'controle', label: 'Controlepunt é' }, { id: 3, x: 90, y: 190, soort: 'inbraak', label: 'x'.repeat(100) }];
+  const lijst = X.verzamelDoelen(BIJ, () => doelen);
+  assert.deepEqual(lijst.map((d) => d.id), [2, 3, 1], 'dichtstbijzijnde eerst; ook ver weg gaat mee');
+  const b = X.codeerDoelen(lijst); assert.ok(b.length <= 255);
+  const l = X.leesDoelen(b); assert.equal(l.length, 3);
+  assert.equal(l[0].soort, 'controle'); assert.equal(l[0].label, 'Controlepunt é'); assert.equal(l[1].soort, 'inbraak'); assert.equal(l[1].label.length, X.DOEL_LABEL_BYTES);
+  near(l[2].x, 500, 0.001); assert.equal(l[2].label, 'Naar de Grote Markt');
+  const veel = X.verzamelDoelen(BIJ, () => Array.from({ length: 30 }, (_, i) => ({ id: i, x: i * 10, y: 0, label: 'doel ' + i })));
+  assert.equal(veel.length, X.MAX_DOELEN);
+  assert.ok(X.codeerDoelen(veel).length <= 255);
+  assert.equal(X.leesDoelen(Uint8Array.of(0)).length, 0);
+  assert.equal(X.leesDoelen(Uint8Array.of(1, 0, 0, 0, 0, 0)), null, 'te kort: afgewezen');
+  assert.equal(X.leesDoelen(Uint8Array.of(99)), null, 'te veel doelen: afgewezen');
+  let s = 7; const rnd = () => (s = (s * 1103515245 + 12345) >>> 0) / 2 ** 32;
+  for (let i = 0; i < 3000; i++) { const z = b.slice(); for (let j = 0; j < 4; j++) z[Math.floor(rnd() * z.length)] = Math.floor(rnd() * 256); X.leesDoelen(z); X.leesDoelen(z.subarray(0, Math.floor(rnd() * z.length))); }
+  const rk = X.codeerRekwisieten(X.verzamelRekwisieten(BIJ, () => [rek(0), rek(1), rek(2)]))[0];
+  for (let i = 0; i < 3000; i++) { const z = rk.slice(); for (let j = 0; j < 4; j++) z[Math.floor(rnd() * z.length)] = Math.floor(rnd() * 256); X.leesRekwisieten(z); X.leesRekwisieten(z.subarray(0, Math.floor(rnd() * z.length))); }
+});
+
+t('doelen van een opdracht en het dichtstbijzijnde doel voor de minimap', () => {
+  assert.deepEqual(X.doelenVan(null), []); assert.deepEqual(X.doelenVan({ phase: 'idle', marker: { x: 1, y: 2 } }), []);
+  const l = X.doelenVan({ phase: 'active', label: 'Bezorg de taart', marker: { x: 10, y: 20 }, remainingWaypoints: [{ x: 5, y: 5 }, { x: NaN, y: 1 }, { x: 6, y: 7 }] });
+  assert.deepEqual(l.map((d) => d.soort), ['doel', 'controle', 'controle']); assert.equal(l[0].label, 'Bezorg de taart');
+  const d = dichtstbijDoel(l, 6, 6); assert.equal(d.doel, l[2]); near(d.afstand, 1, 1e-9);
+  assert.equal(dichtstbijDoel([], 0, 0), null);
+});
+
+t('over het net: gast ziet rekwisieten en doelen; een oudere gast negeert de tags', () => {
+  X.wisRegistratie();
+  X.registreerRekwisieten('heist', () => [rek(0, { soort: 'laser' }), rek(1, { soort: 'kluis' })]);
+  X.registreerDoelen('opdracht', () => [{ id: 1, x: 300, y: 300, soort: 'doel', label: 'Kluis' }, { id: 2, x: 110, y: 205, soort: 'controle', label: 'Punt' }]);
+  const w = wereld(3, 0); const g = X.nieuwGeheugen();
+  const u = X.verzamelExtra(w, BIJ, g, DEPS);
+  const buf = X.codeerExtra(u, BIJ[0]); assert.ok(buf.length <= X.MAX_LADING);
+  const d = X.leesExtra(buf); const tags = d.misc.map((m) => m.tag);
+  assert.ok(tags.includes(X.MISC_REKWISIETEN) && tags.includes(X.MISC_DOELEN) && !tags.includes(X.MISC_REKWISIETEN2));
+  const st = X.nieuweStand(); X.pasExtraToe(st, d, 10);
+  assert.deepEqual(X.standRekwisieten(st, 10.5).map((r) => r.soort).sort(), ['kluis', 'laser']);
+  assert.deepEqual(X.standDoelen(st, 10.5).map((r) => r.label), ['Punt', 'Kluis']);
+  assert.equal(X.standDoelen(st, 20).length, 0, 'verlopen: weg');
+  assert.deepEqual(X.gastDoelen({ time: 10.5, coopExtra: st }).map((x) => x.label), ['Punt', 'Kluis']);
+  assert.deepEqual(X.gastDoelen({ time: 10, coopExtra: X.nieuweStand(), coopHost: { doelen: [{ x: 5, y: 6 }, { x: 7, y: 8 }] } }), [{ id: 0, soort: 'doel', x: 5, y: 6, label: '' }], 'oudere host: het ene doel uit de snapshot');
+  // een oudere gast: kent de tags niet en leest de rest gewoon (zelfde EXTRA-formaat; PROTO en versie blijven)
+  assert.equal(X.EXTRA_VERSIE, 1); const oudeGast = (x) => x.misc.filter((m) => m.tag <= X.MISC_SPREKERS);
+  assert.ok(oudeGast(d).length < d.misc.length); const st2 = X.nieuweStand(); X.pasExtraToe(st2, { ...d, misc: oudeGast(d) }, 1); assert.equal(st2.voetgangers.size, 3);
+  // alles weg: een leeg bericht ruimt de gast op
+  X.wisRegistratie(); w.time += 2;
+  const u2 = X.verzamelExtra(w, BIJ, g, DEPS);
+  const d2 = X.leesExtra(X.codeerExtra(u2, BIJ[0])); X.pasExtraToe(st, d2, 12);
+  assert.equal(X.standRekwisieten(st, 12).length, 0); assert.equal(X.standDoelen(st, 12).length, 0);
+  X.wisRegistratie();
+});
+
 
 console.log(`coopextra_test: ${n}/${n} ok`);

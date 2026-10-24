@@ -21,6 +21,7 @@ import { syncFigures, hasFigureMeshes } from './coopfigures3d.js';
 import { syncHostEntities, hasHostEntities, clearHostEntities } from './coopentities3d.js';
 import { syncExtra, hasExtra, clearExtra } from './coopextra3d.js';
 import { maakMisc, maakWereldLijst, maakSprekersLijst } from './coopextra.js';
+import { registreerHostBronnen } from './coopbronnen.js';
 import { kermisOn } from './kermis.js';
 import { stuntSnapshot } from './stuntavond.js';
 import { syncPings, hasPingMeshes } from './cooppings3d.js';
@@ -447,6 +448,7 @@ async function boot() {
   parkHeroAtHome(world);
   initTrafficLights(world);
   world.coopExtraDeps = { controllers: getTrafficControllers, gebroken: brokenKeysNear, misc: (bij, g, nu) => maakMisc({ kermis: kermisOn(world), stunt: stuntSnapshot(), punten: world.mission && world.mission.phase === 'active' ? world.mission.remainingWaypoints : null }, g, nu), wereld: (bij) => maakWereldLijst(getMovableBridges(), getSluizen(), bij, garagePoortToestand()), sprekers: (bij, nu) => maakSprekersLijst(world.extraSpeakers, nu, bij) }; // wat de host de gasten vertelt (coopnet.js, coopextra.js)
+  registreerHostBronnen(world); // tijdelijke rekwisieten en doelen voor de gasten (#452)
   initRailway(world);
   setCoopTreinen({ getTrains, getRoutes, routePoint, zetTreinVanHost, zetTreinenVanHost }); // samen spelen: de host stuurt zijn treinen (#428)
   // samen spelen (#434): een gast stapt in en rijdt een vrij voertuig van de host met de besturing van player.js (coopbestuur.js)

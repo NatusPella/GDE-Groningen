@@ -118,6 +118,13 @@ export function hasTowerFlag() {
   return !!flag;
 }
 
+// Samen spelen (#452): de vlag als rekwisiet voor coopextra.js (plek van het midden; staat = breedte in m; z = hoogte van het midden)
+export function vlagRekwisieten() {
+  if (!flag) return [];
+  const f = flagFocus(), p = flag.geos && flag.geos[0] && flag.geos[0].parameters;
+  return f ? [{ soort: 'vlag', id: 0, x: f.x, y: f.y, z: f.z, staat: Math.min(255, Math.round((p && p.width) || 6)), klein: !!(flag.fall >= 0) }] : [];
+}
+
 // Rope k pecked loose: its knot goes and the banner sags a little further.
 export function cutFlagRope(k) {
   if (!flag || !flag.knots[k] || !flag.knots[k].visible) return;
