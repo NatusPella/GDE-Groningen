@@ -185,7 +185,8 @@ import { busBoardKind } from './busboard3d.js';
 import { reklameTaxiKind } from './reklametaxi3d.js';
 import { shopSignKind } from './shopsigns3d.js';
 import { loadBusLines } from './busroutes.js';
-import { setBusLines, attachToNearestRoad } from './vehicle.js';
+import { setBusLines, attachToNearestRoad, getBusLines, setLiveBussen } from './vehicle.js';
+import { maakLiveBussen, brugAlsFetch } from './livebussen.js';
 import { stapSlaOver } from './simlagen.js';
 import { getSimBridge, setSimCarAttach } from './simbridge.js';
 setSimCarAttach(attachToNearestRoad);
@@ -219,6 +220,9 @@ registerActivityKind({ id: 'kaartjes', slot: 'uitje', interact: tryControle, tic
 
 // More life on the water: small paddle and pedal craft make up most of the
 // mix (boattypes.js), cheap meshes; Laag keeps a smaller fleet.
+// live bussen (#395): in Electron loopt de opvraag via het main-proces (CORS); in de webversie direct. Zonder netwerk-opvraag in de testruns.
+const liveBussenToegestaan = !(DEV || FLAGS.trailer);
+const liveBussen = maakLiveBussen({ fetchFn: window.gdeDesktop && window.gdeDesktop.liveBussen ? brugAlsFetch(window.gdeDesktop.liveBussen) : (u, o) => fetch(u, o) });
 const boatTarget = () => scaledTarget(getSettings().quality === 'laag' ? 5 : 7);
 
 // 3D (scene3d.js) is the only game view - see ARCHITECTURE.md. The old 2D
@@ -376,6 +380,7 @@ async function boot() {
   // the real bus lines for the buses' routes, boards and next stop (busroutes.js, #80, #160)
   const busFile = layers.provincie && layers.provincie.global && layers.provincie.global.busFile;
   if (tiles && busFile) loadBusLines('world/', busFile).then(setBusLines);
+  setLiveBussen(liveBussen);
   // the city's train routes on over the layer's track, the countryside's rails, turbines and pylons (corridorrail.js)
   const landData = corLayer && corLayer.global ? loadLandData('world/', corLayer.global.landFile) : null;
   const facilities = loadFacilities('stad.json');
@@ -718,6 +723,8 @@ async function boot() {
       const inCentre = Math.hypot(world.player.x - CITY_CENTRE.x, world.player.y - CITY_CENTRE.y) < CITY_CENTRE.r;
       const rush = bikeBoost(wijkProfileAt(world.map, world.player.x, world.player.y).key, Math.hypot(world.player.x - CITY_CENTRE.x, world.player.y - CITY_CENTRE.y), hourOf(world));
       manageBikePopulation(world, { target: Math.round((scaledTarget(16) + (inCentre ? scaledTarget(8) : 0) + (rush ? scaledTarget(rush) : 0)) * MODS.bikes * fa) });
+      // live bussen (#395): hooguit één opvraag per minuut, alleen met de instelling aan, nooit in de geautomatiseerde runs
+      liveBussen.tick(liveBussenToegestaan && getSettings().liveBussen !== false, getBusLines());
       manageBusPopulation(world);
       manageScooterPopulation(world, { target: Math.round(scaledTarget(10) * MODS.scooters * fa) });
       manageMotorPopulation(world, { target: Math.round(scaledTarget(motorTarget(wijkProfileAt(world.map, world.player.x, world.player.y).key, hourOf(world))) * MODS.motors * fa) });
