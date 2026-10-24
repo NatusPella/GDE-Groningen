@@ -7,6 +7,7 @@ import { createLink, makeRng } from '../game/js/net/memtransport.js';
 import { HostSession, ClientSession, EXTRA_HZ } from '../game/js/net/session.js';
 import { checkHandshake, PROTO } from '../game/js/net/protocol.js';
 import { pedId, kiesVoetgangers } from '../game/js/coopworld.js';
+import { dichtstbijDoel } from '../game/js/hudgps.js';
 
 let n = 0;
 const t = (name, f) => { f(); n++; };
@@ -347,6 +348,14 @@ t('doelen: rondreis, label bijgesneden, budget en vals bericht', () => {
   for (let i = 0; i < 3000; i++) { const z = b.slice(); for (let j = 0; j < 4; j++) z[Math.floor(rnd() * z.length)] = Math.floor(rnd() * 256); X.leesDoelen(z); X.leesDoelen(z.subarray(0, Math.floor(rnd() * z.length))); }
   const rk = X.codeerRekwisieten(X.verzamelRekwisieten(BIJ, () => [rek(0), rek(1), rek(2)]))[0];
   for (let i = 0; i < 3000; i++) { const z = rk.slice(); for (let j = 0; j < 4; j++) z[Math.floor(rnd() * z.length)] = Math.floor(rnd() * 256); X.leesRekwisieten(z); X.leesRekwisieten(z.subarray(0, Math.floor(rnd() * z.length))); }
+});
+
+t('doelen van een opdracht en het dichtstbijzijnde doel voor de minimap', () => {
+  assert.deepEqual(X.doelenVan(null), []); assert.deepEqual(X.doelenVan({ phase: 'idle', marker: { x: 1, y: 2 } }), []);
+  const l = X.doelenVan({ phase: 'active', label: 'Bezorg de taart', marker: { x: 10, y: 20 }, remainingWaypoints: [{ x: 5, y: 5 }, { x: NaN, y: 1 }, { x: 6, y: 7 }] });
+  assert.deepEqual(l.map((d) => d.soort), ['doel', 'controle', 'controle']); assert.equal(l[0].label, 'Bezorg de taart');
+  const d = dichtstbijDoel(l, 6, 6); assert.equal(d.doel, l[2]); near(d.afstand, 1, 1e-9);
+  assert.equal(dichtstbijDoel([], 0, 0), null);
 });
 
 t('over het net: gast ziet rekwisieten en doelen; een oudere gast negeert de tags', () => {
