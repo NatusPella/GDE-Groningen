@@ -9,7 +9,7 @@
 // Geen nieuw netwerkformaat: PROTO en CODEC_VERSION blijven 2 (een oudere host negeert het bericht 'wapen').
 import { WEAPONS, WEAPON_KEYS, SLOTS } from './weapons.js';
 import { lichaamVan, invoerVan } from './coopbestuur.js';
-import { KNOP_AANVAL } from './coopspeler.js';
+import { KNOP_AANVAL, KNOP_ZICHT } from './coopspeler.js';
 
 export const WAPEN_TEKST = {
   alleenEigen: 'Dit wapen werkt alleen in je eigen spel.',
@@ -17,6 +17,8 @@ export const WAPEN_TEKST = {
 };
 export const WAPEN_HERHAAL_S = 5; // s: de gast meldt zijn wapen opnieuw (late host, verloren bericht)
 export const MAX_PATRONEN = 9999;
+// Een wapen met een kijker (jachtgeweer, weapons.js scope): rechtermuisknop vast = door de kijker richten; het schot gaat precies waar het richtkruis is.
+export const heeftKijker = (key) => !!WEAPONS[key] && !!WEAPONS[key].scope && WEAPONS[key].kind === 'gun';
 
 // Wat een gast aan de host kan overlaten: een slag of een schot. Spuiten en gooien (waterpistool, carbidbus, vuurwerk) zetten dingen in de wereld
 // van wie het spel opende en blijven dus bij het eigen spel.
@@ -80,6 +82,10 @@ export function gastWapenTik(world, dt, meld) {
     if (inp.mouse) wiel(world, st, dt, inp);
   }
   const key = world.weapon, kan = gastWapenKan(key);
+  // de kijker: zoals combat.js updateCombat (world.scoped stuurt de camera van scene3d.js en het richtkruis van aimassist.js); het aanvalsrecht blijft aan de host
+  const zicht = vrij && heeftKijker(key) && !!(inp.mouse && inp.mouse.rightDown);
+  world.scoped = zicht;
+  world.coopZichtKnop = zicht;
   const ingedrukt = vrij && !!(inp.mouse && inp.mouse.down);
   if (ingedrukt && !kan) { st.melding -= dt; if (st.melding <= 0) { st.melding = 3; if (world.addMessage) world.addMessage(WAPEN_TEKST.alleenEigen, 2.5); } }
   const aan = ingedrukt && kan;
@@ -99,10 +105,10 @@ export function gastWapenTik(world, dt, meld) {
   }
   return aan;
 }
-export function gastWapenWeg(world) { world.coopAanvalKnop = false; world.coopGastWapen = null; }
+export function gastWapenWeg(world) { world.coopAanvalKnop = false; world.coopZichtKnop = false; if (world.coopGastWapen) world.scoped = false; world.coopGastWapen = null; }
 
 // ---------------------------------------------------------------- de host (de echte aanval)
-// Haken: aanval(world, slot, lichaam, key, hoek) -> { fx, wacht } of null (combat.js gastAanvalUitvoeren); landing(world, slot, lichaam, wacht) (de klap na het uithalen).
+// Haken: aanval(world, slot, lichaam, key, hoek, kijker) -> { fx, wacht } of null (combat.js gastAanvalUitvoeren); landing(world, slot, lichaam, wacht) (de klap na het uithalen).
 const haken = { aanval: null, landing: null };
 export function zetWapenHaken(h) { Object.assign(haken, h || {}); }
 
@@ -145,11 +151,12 @@ export function wapenTick(world, dt) {
     if (st.wacht && nu >= st.wacht.at) { const w = st.wacht; st.wacht = null; if (haken.landing && !zit) haken.landing(world, slot, l, w); }
     const knop = !!(inv && ((inv.buttons | 0) & KNOP_AANVAL)) && !zit && !l.swimming && !l.water && l.state !== 'dead' && !l.coopWacht;
     const hoek = inv && Number.isFinite(inv.yaw) ? inv.yaw : l.angle || 0;
-    if (knop) l.angle = hoek; // zoals de speler: wie de knop vasthoudt kijkt waar de camera heen kijkt
+    const kijker = !!(inv && ((inv.buttons | 0) & KNOP_ZICHT)) && heeftKijker(st.w) && !zit && !l.swimming && !l.water && l.state !== 'dead' && !l.coopWacht;
+    if (knop || kijker) l.angle = hoek; // zoals de speler: wie de knop vasthoudt kijkt waar de camera heen kijkt
     const stap = stapAanvalKlok(st.klok, dt, knop && gastWapenKan(st.w), st.w, st.n);
     if (!stap.schiet) continue;
     st.n = stap.n;
-    const r = haken.aanval ? haken.aanval(world, slot, l, st.w, hoek) : null;
+    const r = haken.aanval ? haken.aanval(world, slot, l, st.w, hoek, kijker) : null;
     st.teller++; n++;
     const w = WEAPONS[st.w];
     st.fx = r && r.fx ? { type: r.fx.type, swing: r.fx.swing, start: nu } : { type: w.kind === 'melee' ? 'melee' : 'muzzle', swing: w.swing, start: nu };
