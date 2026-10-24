@@ -1817,7 +1817,7 @@ function noteStreamJump(px, py) {
 const streamFocus = { x: 0, y: 0 };
 const lastOverrideFocus = { x: 0, y: 0 };
 function updateStreamFocus(world) {
-  const o = world.cameraOverride, p = world.player;
+  const o = world.cameraOverride || (world.trainCam && world.trainCam.eye) || null, p = world.player; // de binnencamera van de trein telt mee (traindrive.js), anders blijft de focus hangen
   const cf = cameraFocus(o);
   if (cf) {
     streamFocus.x = lastOverrideFocus.x = cf.x;

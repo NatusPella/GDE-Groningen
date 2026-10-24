@@ -171,6 +171,8 @@ await sleep(500);
 // het binnenzicht (C) en rondlopen (T) terwijl de trein rijdt
 {
   const TL = await imp('treininterieur');
+  if (world.dayNight) { world.dayNight.hour = 12; world.dayNight.night = 0; } // overdag, zodat het binnenste te zien is
+  world.clock = 12;
   await tap('c');
   await sleep(900);
   B.shot('cab-9-cabinezicht');
@@ -188,6 +190,7 @@ await sleep(500);
     B.down('w'); await sleep(2500); B.up('w');
     await sleep(300);
     B.shot('cab-10-wagen-rijdend');
+    { const y0 = walk.yaw; walk.yaw = y0 + Math.PI / 2; walk.pitch = -0.25; await sleep(500); B.shot('cab-10b-stoelen'); walk.yaw = y0 - Math.PI / 2; await sleep(500); B.shot('cab-10c-stoelen-andere-kant'); walk.yaw = y0; walk.pitch = 0; }
     const car = t.cars[walk.car];
     check('je loopt mee met de rijdende trein', Math.hypot(player.x - car.x, player.y - car.y) < 14 && t.c !== c0, `v=${t.v.toFixed(1)} afstand ${Math.hypot(player.x - car.x, player.y - car.y).toFixed(1)}`);
     check('het binnenste van de wagen is gebouwd', TL.builtCount && true, '');
