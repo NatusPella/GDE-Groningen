@@ -30,7 +30,7 @@ const pads = [];
 Object.defineProperty(globalThis, 'navigator', { configurable: true, value: { getGamepads: () => pads, userAgent: 'node' } });
 
 const { Input } = await import('../game/js/input.js');
-const { initGamepad, padState, activePadIndex } = await import('../game/js/gamepad.js');
+const { initGamepad, padState, activePadIndex, onBenchmarkStop } = await import('../game/js/gamepad.js');
 const { PAD_MAPS, PAD_BUTTONS, GAME_PAD_CTX } = await import('../game/js/controls.js');
 const { setSetting } = await import('../game/js/settings.js');
 
@@ -280,6 +280,27 @@ const index1 = activePadIndex();
 pad3.buttons[0].pressed = true; pad3.buttons[0].value = 1; frame(3);
 ok(activePadIndex() === index1, 'coop: de tweede controller kaapt de eerste niet', [index1, activePadIndex()]);
 world.coop = false;
+
+// benchmark (#379): zolang de benchmark loopt stopt B (of Start) hem, en gaat er geen
+// speltoets meer door; daarna doet het pad weer gewoon mee
+{
+  pads[1] = null; frame(2); // het tweede pad uit de coop-test laat hier los
+  zet('foot'); reset();
+  let gestopt = 0;
+  const uit = onBenchmarkStop(() => { gestopt++; });
+  press('x'); frame(2); press('x', false); frame(2);
+  ok(gestopt === 0 && !seen.some((s) => s[0] === 'down'), 'benchmark: andere knoppen gaan niet naar het spel', seen);
+  reset(); press('b'); frame(2); press('b', false); frame(2);
+  ok(gestopt === 1 && !seen.some((s) => s[0] === 'down'), 'benchmark: B stopt de run zonder speltoets', [gestopt, seen]);
+  reset(); press('x'); frame(2); press('x', false); frame(2);
+  ok(seen.some((s) => s[0] === 'down' && s[1] === 'f'), 'benchmark: na het stoppen doet het pad weer mee', seen);
+  uit();
+  let viaStart = 0; const uit2 = onBenchmarkStop(() => { viaStart++; });
+  reset(); press('start'); frame(2); press('start', false); frame(2);
+  ok(viaStart === 1, 'benchmark: Start stopt ook', viaStart);
+  uit2();
+  reset();
+}
 
 ok(threw === null, 'de hele run zonder uitzondering', threw && String(threw));
 if (fails) { console.log(`${fails} mislukt`); process.exit(1); }

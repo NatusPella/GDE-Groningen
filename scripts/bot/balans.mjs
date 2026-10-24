@@ -1,5 +1,7 @@
 // Balans en tempo per missie uit runs van de Spelbot (#147). Leest alleen events.jsonl (geen Electron):
 //   node scripts/bot/balans.mjs [--cutscenes] [--intro=<tekst.md>] --out=docs/verhaal/BALANS-TEMPO.md kop=<runmap> romp=<runmap> staart=<runmap> zuid=<runmap> ontzet=<runmap>
+//   node scripts/bot/balans.mjs --doorlopend=<runmap> [--out=<bestand>]   één run die niet na één akte stopt (#312, #379), per akte uitgesplitst
+// Een doorlopende run maak je met: node scripts/bot/run.mjs --part=all --seed=1 --max-wall=14400
 // Per stap (uit de 'step'-gebeurtenissen met de meter van bot.page.js): speeltijd, echte tijd, afgelegde meters, tijd in cutscenes,
 // in gesprekken, doelwissels, de langste stilte (geen beweging, scène of nieuw doel), mislukt ('Opnieuw'), vastgezeten en cheats.
 // Daarna per akte de mediaan en het maximum en een lijst afwijkingen. De bot beoordeelt geen plezier: een lange stilte of een cheat
@@ -70,9 +72,8 @@ export async function cutsceneSpreiding() {
   const root = new URL('../../', import.meta.url);
   const script = JSON.parse(fs.readFileSync(new URL('game/storydata/script.json', root), 'utf8'));
   const cat = buildCatalog({ script, npcSource: fs.readFileSync(new URL('game/js/missionstory.js', root), 'utf8') });
-  const akteVan = (id) => { const m = /^M(\d+)/.exec(id); if (!m) return null; const k = +m[1]; return k <= 6 ? 'kop' : k <= 11 ? 'romp' : k <= 16 ? 'staart' : k <= 21 ? 'zuid' : 'ontzet'; };
   const perAkte = {};
-  for (const e of cat) { const a = akteVan(e.id); if (!a || !e.duration) continue; (perAkte[a] = perAkte[a] || []).push({ id: e.id, dur: e.duration }); }
+  for (const e of cat) { const a = akteVanStap(e.id); if (!a || !e.duration) continue; (perAkte[a] = perAkte[a] || []).push({ id: e.id, dur: e.duration }); }
   const lines = ['## Cutscenes per akte (ontwerp)', '', 'Duur van de scènes zoals het spel ze timet zonder opnames (leestijd per regel); met opnames is een scène korter of even lang. Afgeleid uit `cutpreview.js`.', '', '| Akte | Scènes | Mediaan | Langste | Totaal | Scènes boven 90 s |', '|---|---|---|---|---|---|'];
   for (const [a, list] of Object.entries(perAkte)) {
     const longest = list.reduce((b, x) => (!b || x.dur > b.dur ? x : b), null);
@@ -126,26 +127,30 @@ export function afwijkingen(steps, { quiet = 90, ritM = 1800 } = {}) {
   return { med, out };
 }
 
-export function rapport(runList) {
-  const lines = [];
-  const alle = {};
-  for (const [name, dir] of runList) {
-    const steps = stepsOf(readEvents(dir));
-    alle[name] = steps;
-    const res = fs.existsSync(path.join(dir, 'result.json')) ? JSON.parse(fs.readFileSync(path.join(dir, 'result.json'), 'utf8')) : {};
-    const { med, out } = afwijkingen(steps);
-    lines.push(`## ${AKTEN[name] || name}`, '', `Run \`${path.basename(path.dirname(dir))}/${path.basename(dir)}\`: uitkomst ${res.result || 'onbekend'}, speeltijd ${fmt(res.gameSeconds)}, echte tijd ${fmt(res.wallSeconds)}.`, '');
-    lines.push('| Stap | Titel | Speeltijd | waarvan missie | Echt | Aanloop | Route | Reistijd | Afstand bot | Cutscene | Gesprek | Doelwissels | Soorten stap | Langste stilte | Tijdlimiet (gebruikt) | Opnieuw | Vast | Cheats |', '|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|');
-    for (const s of steps) {
-      if (s.speel == null) continue;
-      lines.push(`| ${s.id} | ${(s.title || '').slice(0, 34)} | ${fmt(s.speel)} | ${s.tMissie != null && s.t1 != null ? fmt(s.t1 - s.tMissie) : '-'} | ${fmt(s.wall)} | ${s.aanloop.length ? aanloopMeter(s) + ' m' + (s.tMissie != null && s.t0 != null ? ` (${fmt(s.tMissie - s.t0)})` : '') : '-'} | ${nominaal(s).meter} m | ${fmt(nominaal(s).sec)} | ${s.dist ?? '-'} m | ${fmt(s.cine)} | ${fmt(s.talk)} | ${s.goals} | ${s.stagesKnown ? s.stages.size : '-'} | ${s.maxQuiet != null ? Math.round(s.maxQuiet) + ' s' : '-'} | ${s.limiet > 0 ? `${fmt(s.actief)} van ${fmt(s.limiet)}` : '-'} | ${s.fails} | ${s.stuck} | ${s.cheats.length ? s.cheats.join(', ') : '-'} |`);
-    }
-    lines.push('', `Mediaan speeltijd van de stappen zonder cheat: ${fmt(med)}.`, '');
-    const mis = steps.filter((x) => x.failTekst.length);
-    if (mis.length) { lines.push('Mislukt (de melding van het spel):', '', ...mis.flatMap((x) => x.failTekst.map((t, i) => `- ${x.id}, poging ${i + 1}: ${String(t).slice(0, 140)}`)), ''); }
-    if (out.length) { lines.push('Afwijkingen:', '', ...out.map((o) => `- ${o.tekst}`), ''); } else lines.push('Geen afwijkingen boven de drempels.', '');
+function resultOf(dir) {
+  return fs.existsSync(path.join(dir, 'result.json')) ? JSON.parse(fs.readFileSync(path.join(dir, 'result.json'), 'utf8')) : {};
+}
+
+const runNaam = (dir) => `${path.basename(path.dirname(dir))}/${path.basename(dir)}`;
+
+// Eén akte: de tabel met de stappen, de mediaan, de mislukte pogingen en de afwijkingen.
+// Gedeeld door de losse runs per akte en de doorlopende balansrun.
+function sectie(lines, name, steps, runText) {
+  const { med, out } = afwijkingen(steps);
+  lines.push(`## ${AKTEN[name] || name}`, '', runText, '');
+  lines.push('| Stap | Titel | Speeltijd | waarvan missie | Echt | Aanloop | Route | Reistijd | Afstand bot | Cutscene | Gesprek | Doelwissels | Soorten stap | Langste stilte | Tijdlimiet (gebruikt) | Opnieuw | Vast | Cheats |', '|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|');
+  for (const s of steps) {
+    if (s.speel == null) continue;
+    lines.push(`| ${s.id} | ${(s.title || '').slice(0, 34)} | ${fmt(s.speel)} | ${s.tMissie != null && s.t1 != null ? fmt(s.t1 - s.tMissie) : '-'} | ${fmt(s.wall)} | ${s.aanloop.length ? aanloopMeter(s) + ' m' + (s.tMissie != null && s.t0 != null ? ` (${fmt(s.tMissie - s.t0)})` : '') : '-'} | ${nominaal(s).meter} m | ${fmt(nominaal(s).sec)} | ${s.dist ?? '-'} m | ${fmt(s.cine)} | ${fmt(s.talk)} | ${s.goals} | ${s.stagesKnown ? s.stages.size : '-'} | ${s.maxQuiet != null ? Math.round(s.maxQuiet) + ' s' : '-'} | ${s.limiet > 0 ? `${fmt(s.actief)} van ${fmt(s.limiet)}` : '-'} | ${s.fails} | ${s.stuck} | ${s.cheats.length ? s.cheats.join(', ') : '-'} |`);
   }
-  // akten onderling
+  lines.push('', `Mediaan speeltijd van de stappen zonder cheat: ${fmt(med)}.`, '');
+  const mis = steps.filter((x) => x.failTekst.length);
+  if (mis.length) { lines.push('Mislukt (de melding van het spel):', '', ...mis.flatMap((x) => x.failTekst.map((t, i) => `- ${x.id}, poging ${i + 1}: ${String(t).slice(0, 140)}`)), ''); }
+  if (out.length) { lines.push('Afwijkingen:', '', ...out.map((o) => `- ${o.tekst}`), ''); } else lines.push('Geen afwijkingen boven de drempels.', '');
+}
+
+// De akten naast elkaar, onderaan het rapport.
+function aktenTabel(lines, alle) {
   lines.push('## Akten onderling', '', '| Akte | Stappen | Mediaan speeltijd | Mediaan missietijd | Langste stap | Mediaan route | Mediaan cutscene | Mediaan doelwissels | Opnieuw | Cheats |', '|---|---|---|---|---|---|---|---|---|---|');
   for (const [name, steps] of Object.entries(alle)) {
     const m = steps.filter((s) => /^M\d/.test(s.id) && s.speel != null);
@@ -154,12 +159,65 @@ export function rapport(runList) {
     lines.push(`| ${AKTEN[name] || name} | ${m.length} | ${fmt(median(clean.map((s) => s.speel)))} | ${fmt(median(clean.filter((s) => s.tMissie != null && s.t1 != null).map((s) => s.t1 - s.tMissie)))} | ${longest ? `${longest.id} ${fmt(longest.speel)}` : '-'} | ${median(clean.map((s) => nominaal(s).meter)) ?? '-'} m | ${fmt(median(clean.filter((s) => s.cine != null).map((s) => s.cine)))} | ${median(clean.map((s) => s.goals)) ?? '-'} | ${m.reduce((n, s) => n + s.fails, 0)} | ${m.reduce((n, s) => n + s.cheats.length, 0)} |`);
   }
   lines.push('');
+}
+
+export function rapport(runList) {
+  const lines = [];
+  const alle = {};
+  for (const [name, dir] of runList) {
+    const steps = stepsOf(readEvents(dir));
+    alle[name] = steps;
+    const res = resultOf(dir);
+    sectie(lines, name, steps, `Run \`${runNaam(dir)}\`: uitkomst ${res.result || 'onbekend'}, speeltijd ${fmt(res.gameSeconds)}, echte tijd ${fmt(res.wallSeconds)}.`);
+  }
+  aktenTabel(lines, alle);
   return { text: lines.join('\n'), alle };
 }
 
+// De akte van een missiestap: M01 t/m M06 horen bij akte 1, enz. (dezelfde indeling
+// als cutsceneSpreiding). Een reisstap (T1) heeft geen eigen akte.
+export function akteVanStap(id) {
+  const m = /^M(\d+)/.exec(String(id || ''));
+  if (!m) return null;
+  const k = +m[1];
+  return k <= 6 ? 'kop' : k <= 11 ? 'romp' : k <= 16 ? 'staart' : k <= 21 ? 'zuid' : 'ontzet';
+}
+
+// Een doorlopende run (--part=all, #312) in één events.jsonl: de stappen per akte.
+// Een reisstap tussen twee akten hoort bij de akte die erna komt, zodat de aanloop
+// naar de eerste missie van die akte in zijn eigen tabel staat.
+export function splitAkten(steps) {
+  const out = {};
+  for (let i = 0; i < (steps || []).length; i++) {
+    let a = akteVanStap(steps[i].id);
+    for (let k = i + 1; !a && k < steps.length; k++) a = akteVanStap(steps[k].id);
+    if (a) (out[a] = out[a] || []).push(steps[i]);
+  }
+  return out;
+}
+
+// De doorlopende balansrun (#312, #379): één run die niet na één akte stopt, hier per
+// akte uitgesplitst. De aanloop tussen de missies is dan een echte reis en geen sprong.
+export function rapportDoorlopend(dir) {
+  const steps = stepsOf(readEvents(dir));
+  const per = splitAkten(steps);
+  const alle = {};
+  const lines = [];
+  const res = resultOf(dir);
+  for (const name of Object.keys(AKTEN)) {
+    if (!per[name] || !per[name].length) continue;
+    alle[name] = per[name];
+    sectie(lines, name, per[name], `Doorlopende run \`${runNaam(dir)}\`: uitkomst ${res.result || 'onbekend'}, speeltijd ${fmt(res.gameSeconds)}, echte tijd ${fmt(res.wallSeconds)}, zonder stop tussen de akten.`);
+  }
+  aktenTabel(lines, alle);
+  return { text: lines.join('\n'), alle };
+}
+
+
 if (import.meta.url === `file:///${process.argv[1].replace(/\\/g, '/')}` || process.argv[1].endsWith('balans.mjs')) {
-  if (runs.length) {
-    const { text: t0 } = rapport(runs);
+  const DOORLOPEND = arg('doorlopend');
+  if (runs.length || DOORLOPEND) {
+    const { text: t0 } = DOORLOPEND ? rapportDoorlopend(path.resolve(DOORLOPEND)) : rapport(runs);
     const body = process.argv.includes('--cutscenes') ? `${t0}\n${(await cutsceneSpreiding()).text}` : t0;
     const intro = arg('intro');
     const text = intro && fs.existsSync(intro) ? `${fs.readFileSync(intro, 'utf8').replace(/\s+$/, '')}\n\n${body}` : body;
