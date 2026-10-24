@@ -3,6 +3,7 @@
 // on http://localhost, without a server or an internet connection.
 const { app, BrowserWindow, Menu, protocol, shell, ipcMain, dialog } = require('electron');
 const { createCoopCore } = require('./coopcore.cjs');
+const { haalLiveBussen } = require('./livebussen.cjs');
 const path = require('path');
 const fs = require('fs/promises');
 const fsSync = require('fs');
@@ -199,6 +200,7 @@ if (!app.requestSingleInstanceLock()) {
   ipcMain.handle('gde:coop-diagnose', (e) => coopFor(e.sender).diagnose());
   ipcMain.handle('gde:coop-stop', () => (coop ? coop.stop() : null));
   app.on('before-quit', () => { if (coop) coop.stop(); }); // sluit de poort op de router weer
+  ipcMain.handle('gde:live-bussen', () => haalLiveBussen()); // #395: zonder argumenten: de vaste url, niets van de speler
   ipcMain.handle('gde:save-text', async (e, name, text) => {
     const w = BrowserWindow.fromWebContents(e.sender);
     const res = await dialog.showSaveDialog(w, {

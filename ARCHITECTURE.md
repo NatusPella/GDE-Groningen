@@ -1701,6 +1701,14 @@ grade pass (`postfx.look`), not a CSS filter over the canvas. A shot with
 `fadeOut` ends on black and streams the next location in there, like the
 black cards.
 
+## Live bussen: wat wordt opgehaald (`livebussen.js`, #395)
+Optie, standaard aan (instelling `liveBussen`, Instellingen, Spel). Constitutie 4 (besluit eigenaar 24-10) staat het ophalen van openbare gegevens toe, mits er niets van de speler naartoe gaat.
+- **Bron:** de open GTFS-Realtime-feed van OVapi/openOV, `https://gtfs.ovapi.nl/nl/vehiclePositions.pb` (voertuigposities van het Nederlandse openbaar vervoer; ca. 0,5 MB; zonder account of sleutel; CC0 volgens openOV).
+- **Opvraag:** één `GET` per minuut of minder (bij fouten steeds langer wachten, tot 10 minuten), zonder cookies (`credentials: 'omit'`), zonder referrer, zonder body of querystring, met een neutrale User-Agent, een time-out van 8 s en een maximum van 3 MB. Het IP-adres is voor de aanbieder zichtbaar, zoals bij elke opvraag. Er gaat geen speler-id, naam, opslagsleutel, instelling of positie mee; de test `livebussen_test.mjs` bewaakt dat.
+- **Wat het spel eruit leest:** alleen positie, richting en snelheid van voertuigen in het gebied rond Groningen (maximaal 300). De lijnnummers van de feed komen nergens in beeld: een voertuig wordt aan een eigen lijn (`busroutes.js`) gekoppeld op plek (binnen 30 m) en rijrichting; een voertuig dat op geen lijn past (een trein, een lijn die we niet hebben) telt niet. Het bord toont de verzonnen lijn en bestemming van het spel.
+- **Wanneer:** tijdens het spel, niet bij het laden (de offline-controle in `desktop/build.mjs` ziet alleen laad-URL's). In Electron doet het main-proces de opvraag (`desktop/livebussen.cjs`, IPC `gde:live-bussen` zonder argumenten, dus alleen de vaste url; een renderer op `gde://` mag zonder CORS-koppen niet lezen); in de webversie gaat hij direct en valt hij bij een CORS-weigering terug. Niet in `?dev`, `?storytest`, `?autoplay` en de trailer.
+- **Koppeling:** `vehicle.js` zet in `manageBusPopulation` een bus (`liveId`) op de plek van een echte bus binnen de ring [spawnMin, spawnMax] rond de speler (LOD, hooguit 3). De bus rijdt zijn eigen AI over de weg; doel en snelheid (`liveScale`) volgen de gladgestreken echte positie (tussen de laatste twee posities, dus een opvraag achter). Bij een fout, lege of ouder dan 3 minuten feed, een omkerende bus of de instelling uit, vervalt `liveId` en rijdt de bus zijn eigen dienst.
+
 ## Story
 
 The story "Alles voor één eierbal" (docs/verhaal/D-definitief.md: one

@@ -1,5 +1,5 @@
 import { minAfstand } from './coopfoci.js';
-import { linesNear, project as projectOnLine, makeRunner, stepRunner, startAt, busMagWeg } from './busroutes.js';
+import { linesNear, project as projectOnLine, makeRunner, stepRunner, startAt, busMagWeg, pointAt as linePointAt } from './busroutes.js';
 import { assistDamage } from './assistlive.js';
 import { closestPointOnSegment, normalizeAngle, clamp, lerp, pointInPolygon, inMapWater, WATER_Y, keepBoatOffShore, boatDryPoints } from './util.js';
 import { waterClearance, waterChannelPoints } from './waterindex.js';
@@ -1140,6 +1140,10 @@ let busLines = [];
 // de voorbereide lijnen (busroutes.js prepareLines); leeg = bussen rijden vrij zoals voorheen
 export function setBusLines(lines) { busLines = lines || []; }
 export function getBusLines() { return busLines; }
+// Live bussen (#395, livebussen.js): positie(id) en kandidaten(x, y, min, max); null = alle bussen rijden eigen dienst
+let liveBussen = null;
+export function setLiveBussen(src) { liveBussen = src || null; }
+const LIVE_HOEK_MAX = Math.PI / 2;
 
 // Het dichtstbijzijnde punt op een weg waar de bus van deze lijn mag rijden (#322), of null.
 // nearestRoadPoint pakt de dichtstbijzijnde weg, en dat is naast een lijn vaak een smal parallel straatje.
@@ -1176,6 +1180,20 @@ export function manageBusPopulation(world, { target = 4, spawnMin = 90, spawnMax
   let count = 0;
   for (const v of vehicles) if (v.isBus && !v.wrecked && v.driver !== 'player' && (!line || v.busRun)) count++;
 
+  // live bussen (#395): een echte bus op een eigen lijn, binnen bereik van de speler en nog niet in de wereld, rijdt mee
+  if (line && liveBussen) {
+    for (const lb of liveBussen.kandidaten(player.x, player.y, spawnMin, spawnMax)) {
+      if (count >= target + 2 || vehicles.some((q) => q.liveId === lb.id)) continue;
+      const rp = busSpawnPoint(map, lb.line, lb.x, lb.y);
+      if (!rp) continue;
+      const v = spawnVehicleOnRoad(map, rp.road, false, Math.random, false, true, rp);
+      if (Math.abs(normalizeAngle(v.angle - lb.angle)) > LIVE_HOEK_MAX || !spawnSpotFree(vehicles, v) || spawnWouldPop(world, v)) continue;
+      v.busRun = makeRunner(lb.line, projectOnLine(lb.line, v.x, v.y).s, lb.dir);
+      v.liveId = lb.id;
+      vehicles.push(v);
+      count++;
+    }
+  }
   for (let tries = 0; line && count < target && tries < 4; tries++) {
     const line = near[Math.floor(Math.random() * near.length)];
     const pr = projectOnLine(line, player.x, player.y);
@@ -2328,8 +2346,18 @@ export function updateTrafficAI(v, dt, map, world, rng = Math.random, opts = nul
   if (!opts) opts = v.aiOpts || null;
   if (v.busRun && v.driver !== 'player') {
     const out = stepRunner(v.busRun, v.x, v.y, dt);
-    if (out.atStop) v.waitTimer = Math.max(v.waitTimer || 0, out.hold);
     opts = { goal: out.goal };
+    const lp = v.liveId && liveBussen ? liveBussen.positie(v.liveId) : null;
+    if (lp && lp.line === v.busRun.line && lp.dir === v.busRun.dir) {
+      // #395: de echte bus bepaalt waar en hoe snel: het doel een stuk voor zijn plek op de lijn, de snelheid van de echte bus
+      // met een correctie voor de afstand (voor hem: afremmen, achter hem: bijbenen); de haltetijd is die van de echte bus
+      const gap = (v.busRun.s - lp.s) * lp.dir;
+      const g = linePointAt(lp.line, lp.s + lp.dir * 20);
+      opts = { goal: { x: g.x, y: g.y } };
+      v.liveScale = Math.max(0.04, Math.min(1.6, (lp.speed - gap * 0.25) / Math.max(4, v.road.speed || 8)));
+    } else if (v.liveId) {
+      v.liveId = null; v.liveScale = null;      // de echte bus is weg of keerde om: voortaan de eigen dienst
+    } else if (out.atStop) v.waitTimer = Math.max(v.waitTimer || 0, out.hold);
   }
   const goal = (opts && opts.goal) || null;
   const chase = !!(opts && opts.chase);
@@ -2360,7 +2388,7 @@ export function updateTrafficAI(v, dt, map, world, rng = Math.random, opts = nul
 
   const decel = chase ? m.brake * 0.7 : aiComfortDecel(v);
   const aLat = chase ? lateralGrip(m) * 0.6 : small ? 2.2 : v.isBus ? 1.6 : 3;
-  let cruise = (v.road.speed || (small ? m.maxSpeed : 8)) * (v.cruiseScale || 1);
+  let cruise = (v.road.speed || (small ? m.maxSpeed : 8)) * (v.liveScale != null ? v.liveScale : (v.cruiseScale || 1));
   if (chase) cruise = opts.cruise || Math.max(cruise * 1.5, 16);
   cruise = Math.min(cruise, m.maxSpeed * (small ? 0.9 : 0.95));
 
