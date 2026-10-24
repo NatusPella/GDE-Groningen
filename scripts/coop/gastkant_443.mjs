@@ -101,7 +101,7 @@ check(e1 && e1.gemeten > 1500 && e1.sprong <= 3 && e1.stil <= 3, 'race 1: de wee
 check(e1 && e1.vmax > 15, 'race 1: de gast kwam niet op snelheid (stick): ' + (e1 && e1.vmax));
 check(e1 && e1.fasen.map((f) => f[0]).join().startsWith('grid,race'), 'race 1: fasen ' + (e1 && JSON.stringify(e1.fasen)));
 check(e1 && e1.bord.some((b) => /Ronde/.test(b) && /Plaats/.test(b) && /Tijd/.test(b)), 'race 1: het bord toont ronde, plaats en tijd niet: ' + JSON.stringify(e1 && e1.bord));
-check(ul && /Uitslag/.test(ul.kaart) && /Tammo/.test(ul.kaart) && /Tessa/.test(ul.kaart) && /Jij werd|niet gefinisht/.test(ul.kaart), 'uitslag: ' + (ul && ul.kaart));
+check(ul && /uitslag/i.test(ul.kaart) && /Tammo/.test(ul.kaart) && /Tessa/.test(ul.kaart) && /Jij werd|niet gefinisht/.test(ul.kaart), 'uitslag: ' + (ul && ul.kaart));
 check(ul && ul.geldErbij > 0, 'uitslag: de gast kreeg geen beloning in zijn eigen geld: ' + (ul && ul.geldErbij));
 check(rm && rm.nogmaals === true, 'rematch: de gast kon niet nog een keer vragen: ' + JSON.stringify(rm));
 check(H.rematch && H.rematch.willen.includes(1) && H.rematch.start.ok, 'rematch: de host kreeg het verzoek niet of kon niet starten: ' + JSON.stringify(H.rematch));

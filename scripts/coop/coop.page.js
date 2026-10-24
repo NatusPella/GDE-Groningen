@@ -670,6 +670,56 @@ const PHASES = {
     w.addMessage = am;
     if (sp2) await sleep(10000);
   },
+  // #443: golf tegen elkaar: de gast krijgt Meedoen?, zegt ja (J), speelt zijn zes banen op zijn eigen scherm (de slagen via het debug-handvat van pitchputt.js, op
+  // de kracht die de baan vraagt), kijkt naar de stand en de uitslag; in de tweede ronde stopt hij na `stopBaan` banen (Backspace)
+  async golfgast({ s = 420, stopBaan = 2 }) {
+    const w = W(), B = window.__bot, pp = window.__pitchputt;
+    if (CFG.role === 'host' || !B || !pp) { await sleep(s * 1000); return; }
+    const P = await import('./js/puttinglogic.js');
+    const t0 = performance.now(), sec = () => Math.round((performance.now() - t0) / 100) / 10;
+    const kaart = () => { const e = document.querySelector('.wed-kaart'); return e && !e.hidden ? e.innerText.replace(/\s+/g, ' ') : ''; };
+    const bord = () => { const e = document.querySelector('.mg-board'); return e && !e.hidden ? e.innerText.replace(/\s+/g, ' ').slice(0, 300) : ''; };
+    const msgs = []; const am = w.addMessage; w.addMessage = function (t, ...r) { msgs.push(String(t).slice(0, 90)); return am.call(this, t, ...r); };
+    const geld0 = w.money || 0;
+    const ronde = async (nr, stopNaBaan) => {
+      await until(() => w.coopWedGast && w.coopWedGast.uitn, 150000, 'uitnodiging');
+      log('golf-uitnodiging', { nr, tekst: kaart(), t: sec() }); shot(`golf${nr}-uitnodiging`); await sleep(700);
+      await B.press('j', 150);
+      await until(() => w.coopWedGast.score && pp.state(), 30000, 'start');
+      await sleep(1500);
+      const G = w.coopWedGast;
+      log('golf-start', { nr, holes: pp.holes().length, banen: G.score.banen, venueGast: G.score.v, vlag: !!w.coopWedstrijd, speler: [Math.round(w.player.x), Math.round(w.player.y)], baan1: pp.holes()[0].tee, t: sec() });
+      const m = { slagen: 0, bord: [], kaarten: [], wacht: false }; const gedaan = {}; let hole = 0, stopt = false;
+      const tStart = performance.now();
+      while (G.score && !stopt) {
+        const st = pp.state(); if (!st) break;
+        if (st.hole !== hole) { m.kaarten.push([hole, st.card.strokes]); hole = st.hole; }
+        if (st.phase === 'wacht') { if (!gedaan.w) { gedaan.w = 1; m.wacht = true; m.bord.push(bord()); shot(`golf${nr}-wacht`); } }
+        else if (st.phase === 'aim') {
+          if (!gedaan.a) { gedaan.a = 1; m.bord.push(bord()); shot(`golf${nr}-baan1`); }
+          if (stopNaBaan != null && st.hole >= stopNaBaan) { log('golf-stop', { nr, hole: st.hole, bord: bord() }); await B.press('backspace', 150); await sleep(1500); stopt = true; break; }
+          const h = pp.holes()[st.hole], dist = Math.hypot(h.cup.x - st.lie.x, h.cup.y - st.lie.y);
+          if (pp.shoot(st.mode === 'putt' ? P.straightPower(dist) : P.powerForCarry(dist))) m.slagen++;
+          if (st.hole === 2 && !gedaan.b) { gedaan.b = 1; await sleep(1800); m.bord.push(bord()); shot(`golf${nr}-baan3`); }
+        } else if (st.phase === 'holeDone') pp.skip();
+        await sleep(250);
+        if ((performance.now() - tStart) / 1000 > 300) throw new Error('de ronde duurt te lang');
+      }
+      log('golf-einde', { nr, slagen: m.slagen, banen: m.kaarten.length + (m.wacht ? 1 : 0), wacht: m.wacht, bord: m.bord, kaarten: m.kaarten, stopt, duur: Math.round((performance.now() - tStart) / 1000), t: sec() });
+      return stopt;
+    };
+    const stopte1 = await ronde(1, null);
+    await until(() => w.coopWedGast.uitslag, 400000, 'uitslag');
+    await sleep(1800);
+    log('golf-uitslag', { kaart: kaart(), geldErbij: (w.money || 0) - geld0, msgs: msgs.slice(-4), t: sec() }); shot('golf1-uitslag'); await sleep(500);
+    await B.press('j', 150); await sleep(700);
+    log('golf-rematch-gevraagd', { nogmaals: !!w.coopWedGast.nogmaals });
+    await ronde(2, stopBaan);
+    await sleep(3000);
+    log('golf-gestopt', { vrij: !w.coopWedGast.score, vlag: !!w.coopWedstrijd, camera: !!w.cameraOverride, spel: pp.state(), msgs: msgs.slice(-3), t: sec() }); shot('golf2-gestopt');
+    w.addMessage = am;
+    await sleep(8000);
+  },
   // #443 (suite 'wedstrijd'): de host in Electron rijdt een race tegen twee headless gasten (testbank.mjs wedBot): E bij de kassa, de uitnodiging, de race
   // met een bot op de toetsen, de uitslag en de beloning, een rematch (J) die de host na 18 s stopt (Backspace)
   async wedhost({ s = 230 }) {
@@ -690,7 +740,7 @@ const PHASES = {
     const geld0 = w.money || 0;
     const race = async (nr, stopNa) => {
       for (let i = 0; i < 4 && !(w.coopNet.wed && w.coopNet.wed.u); i++) { await B.press('e', 150); await sleep(900); }
-      await sleep(1200); log('wedhost-uitnodiging', { nr, kaart: kaart(), wed: !!(w.coopNet.wed && w.coopNet.wed.u), t: sec() }); shot(`wedhost${nr}-uitnodiging`);
+      await sleep(1200); log('wedhost-uitnodiging', { nr, kaart: kaart(), wed: !!(w.coopNet.wed && w.coopNet.wed.u), t: sec() }); await sleep(800); shot(`wedhost${nr}-uitnodiging`);
       for (let i = 0; i < 160 && !kb.online(); i++) await sleep(150);
       if (!kb.online()) { log('wedhost-geen-start', { nr, msgs: msgs.slice(-3) }); return null; }
       const tStart = performance.now(), m = { frames: 0, fasen: [], bord: [], gast: [], tot: 0 }; const gedaan = {}; let acc = 0, fase = '';
