@@ -9,6 +9,11 @@
 // De id is dezelfde sleutel als coopmeedoen.js gebruikt: '<index>|<label>'. Twee groepen die precies dezelfde opdracht op hetzelfde
 // moment spelen, komen in deze opzet niet voor: de keten van missions.js loopt één keer. Komt dat later wel, dan krijgt de id een
 // groepsnummer (hier alleen een controle dat een id uniek is).
+//
+// Een gast kan zelf een verhaalopdracht van zijn eigen groep starten (#452). Dat gaat als verzoek aan wie het spel opende: die
+// controleert dezelfde poort (busy.js), begint de opdracht op het startpunt en legt de groep aan met de vrager als deelnemer. Een
+// lopende groep houdt zijn stand: een verzoek voegt alleen een deelnemer toe en overschrijft stap, doelen of keuzes nooit.
+import { playerBusy } from './busy.js';
 export const MAX_GROEPEN = 8;  // meer gelijktijdige opdrachten dan dit kent het spel niet (zoals FOCI_MAX bij de foci)
 const ID_MAX = 48, LABEL_MAX = 80, STAP_MAX = 90, MAX_DOELEN = 12;
 
@@ -122,4 +127,88 @@ export function doelMarker(doel, bijGarage = null, m = GARAGE_MARKER_M) {
   if (!doel || !Number.isFinite(doel.x) || !Number.isFinite(doel.y)) return null;
   const garage = !!(bijGarage && bijGarage(doel.x, doel.y, m));
   return { x: doel.x, y: doel.y, soort: garage ? 'garage' : 'goal' };
+}
+
+// ---- een gast start zelf een verhaalopdracht (#452)
+
+export const GROEP_RADIUS = 40; // zo dicht bij het startpunt moet de vragende gast staan (m)
+
+// Wat de vragende gast en de gastheer te lezen krijgen. Nederlands, kort, zonder merken of namen van echte personen.
+export const MISSIE_TEKST = {
+  bezig: 'Er loopt al een opdracht. Wacht of doe mee.',
+  bijbaan: 'Er loopt al een bijbaan. Wacht of doe mee.',
+  wedstrijd: 'Er loopt al een wedstrijd. Wacht of doe mee.',
+  activiteit: 'Er loopt al een activiteit. Wacht of doe mee.',
+  filmpje: 'Er loopt een filmpje. Probeer het zo nog eens.',
+  politie: 'Er is politie achter jullie aan. Eerst die kwijt.',
+  wacht: 'Het spel is even bezig. Probeer het zo nog eens.',
+  onbekend: 'Deze opdracht kun je niet starten.',
+  alleen: 'Deze opdracht doe je alleen in je eigen spel.',
+  nietJouwBeurt: 'Deze opdracht is nog niet aan de beurt in jouw verhaal.',
+  nietBijStart: 'Ga bij het startpunt staan en druk op E.',
+  vraagt: (label) => `Je vraagt ${label} te starten.`,
+  hostStart: (naam, label) => `${naam} start ${label}. Je loopt mee als je wilt.`,
+  gestart: (label) => `${label} is begonnen.`,
+};
+
+// Draait er al een wedstrijd of een uitnodiging daarvoor? (coopwedstrijd.js bewaart die stand op het net)
+export function wedstrijdLoopt(world) {
+  const W = world && world.coopNet && world.coopNet.wed;
+  return !!(W && (W.r || W.sc || W.lv || W.u));
+}
+
+// Waarom deze wereld nu geen opdracht van een gast kan beginnen, of null. Dezelfde poort als elke andere start (busy.js): een
+// gastheer die zelf in een opdracht, bijbaan, wedstrijd of filmpje zit, houdt de wereld bezet.
+export function verzoekBlok(world) {
+  if (!world) return MISSIE_TEKST.wacht;
+  if (world.wanted > 0) return MISSIE_TEKST.politie;
+  if (wedstrijdLoopt(world)) return MISSIE_TEKST.wedstrijd;
+  if (playerBusy(world, ['cinematic']).busy) return MISSIE_TEKST.filmpje;
+  if (playerBusy(world, ['mission', 'activeRace', 'missionPhase', 'race']).busy) return MISSIE_TEKST.bezig;
+  if (playerBusy(world, ['sideJob']).busy) return MISSIE_TEKST.bijbaan;
+  if (playerBusy(world, ['challenge', 'padel', 'activityGame', 'activity', 'heliRun', 'pigeon', 'train']).busy) return MISSIE_TEKST.activiteit;
+  if (playerBusy(world, ['respawn']).busy) return MISSIE_TEKST.wacht;
+  return null;
+}
+
+// Het verzoek van een gast: { k: 'missiegast', a: 'start', i, label }. Alleen een bestaande opdracht-index telt.
+export const verzoekEvent = (index, label) => ({ k: 'missiegast', a: 'start', i: index | 0, label: tekst(label, LABEL_MAX) });
+export function leesVerzoek(b) {
+  if (!b || b.k !== 'missiegast' || b.a !== 'start') return null;
+  const i = Number(b.i);
+  if (!Number.isInteger(i) || i < 0 || i > 999) return null;
+  if (typeof b.label !== 'string' || !b.label) return null;
+  return { i, label: tekst(b.label, LABEL_MAX) };
+}
+
+// Mag deze gast deze opdracht nu vragen? eigen = de volgende opdracht van de gast zelf ({ index, label }), def = de opdracht in
+// de wereld van de gastheer, lichaam = waar de gast staat. Geeft de Nederlandse reden of null.
+export function startReden({ verzoek, def, eigen = null, lichaam = null, radius = GROEP_RADIUS } = {}) {
+  if (!verzoek) return MISSIE_TEKST.onbekend;
+  if (!def) return MISSIE_TEKST.onbekend;
+  if (def.solo) return MISSIE_TEKST.alleen; // een opdracht die de wereld alleen voor één speler klaarzet
+  if (tekst(def.label, LABEL_MAX) !== verzoek.label) return MISSIE_TEKST.onbekend; // een andere opdracht dan de gast noemde
+  if (eigen && (eigen.index | 0) !== verzoek.i) return MISSIE_TEKST.nietJouwBeurt; // je start je eigen verhaal, niet dat van een ander
+  const s = def.start;
+  if (lichaam && s && Number.isFinite(s.x) && Number.isFinite(s.y) && Number.isFinite(lichaam.x) && Number.isFinite(lichaam.y)) {
+    if (Math.hypot(lichaam.x - s.x, lichaam.y - s.y) > radius) return MISSIE_TEKST.nietBijStart;
+  }
+  return null;
+}
+
+// Een speler erbij in een bestaande groep; de rest van de stand blijft staan.
+export function voegDeelnemer(st, id, slot) {
+  const g = groep(st, id);
+  if (!g || !(slot >= 0)) return g;
+  if (!g.deelnemers.includes(slot)) g.deelnemers = slots([...g.deelnemers, slot]);
+  return g;
+}
+
+// De groep van een opdracht die een gast start: bestaat hij al, dan blijft die stand leidend en komt de vrager er alleen bij;
+// anders begint de groep met de vrager als deelnemer. Geeft het record of null.
+export function beginVerzoek(st, { index = 0, label = '', stap = '', doelen: dl = [], lateInstap = true } = {}, starter = 1, nu = 0) {
+  const id = opdrachtId({ phase: 'active', index, label });
+  if (!st || !id) return null;
+  if (groep(st, id)) return voegDeelnemer(st, id, starter);
+  return begin(st, { id, label, index, stap, doelen: dl, lateInstap, deelnemers: [starter] }, nu);
 }

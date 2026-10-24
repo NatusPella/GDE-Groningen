@@ -630,6 +630,8 @@ export function initMissions(world) {
     pub: { type: null, label: '', phase: 'idle', timeLeft: 0, index: 0, total: defs.length, marker: { x: 0, y: 0 }, distanceToMarker: 0, remainingWaypoints: [] },
   };
   world.mission = chain.pub;
+  // een gast kan zelf een verhaalopdracht starten (#452): coopglue.js vraagt het, deze wereld begint hem op het startpunt
+  world.coopMissieStart = (i) => startMissionVoorGast(world, i);
   // zaal 3's case is empty once H6 has been played
   setMuseumCaseStolen(() => isMissionCompleted(missionIndexById('museumkraak')));
   syncPub(world);
@@ -979,6 +981,22 @@ export function trackMission(world, i) {
   syncPub(world);
   setGoal({ kind: 'mission', id: i, x: d.start.x, y: d.start.y, name: missionCode(i) ? `${missionCode(i)} · ${d.label}` : d.label }, { quiet: true });
   return true;
+}
+
+// Een gast vroeg deze opdracht te starten (#452): de keten begint bij het startpunt van die opdracht, de gastheer wordt niet
+// verplaatst en de intro speelt zoals bij elke opdracht. Alleen de gastheer houdt de wereld bij, dus hij voert het uit; de
+// opdrachtstand per groep (coopmissie.js) en de keuzes van de spelers blijven leidend.
+export function startMissionVoorGast(world, i) {
+  if (!chain || !chain.defs[i] || chain.phase === 'active') return false;
+  const def = chain.defs[i];
+  if (def.solo) return false;
+  chain.index = i;
+  chain.phase = 'idle';
+  chain.armed = true;
+  chain.wpIndex = 0;
+  startMission(world, def);
+  syncPub(world);
+  return chain.phase === 'active';
 }
 
 export function getMissionProgress() {

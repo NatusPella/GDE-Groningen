@@ -18,7 +18,7 @@ import { ververs } from './spelersregister.js';
 import { partnersInfo, createPings, addPing, tickPings, pingEvent } from './partnerhud.js';
 import { holdBeleid, vereistVoor, leesLijstEvent, lijst, zetAvatar } from './coopplayers.js';
 import { cameraRelative, stepSlot2, sharedCamera } from './coop.js';
-import { coopStep } from './coopglue.js';
+import { coopStep, missieGastVerzoek } from './coopglue.js';
 import { gateOn, setGate, hekBericht } from './coopgate.js';
 import { WIEL_TEKST, WIEL_HOST_TEKST, WIEL_VERZOEK_S, kanUitstappen } from './coopgast.js';
 import { nieuwCutVerzamelaar, cutGastSpeel, cutGastStop, leesCutTijd, cutSpoor } from './coopcut.js';
@@ -938,6 +938,7 @@ export function handleEvent(world, body, van = 0) {
     case 'bijbaan': return bijbaanHandleHost(world, body); // een bijbaan van de host: uitnodiging, doel, einde (#452, coopbijbaan.js)
     case 'bijbaangast': return bijbaanHandleGast(world, body, van); // een gast antwoordt, vraagt een bijbaan te starten of helpt (alleen de host luistert)
     case 'wedgast': return wedHandleGast(world, body, van); // het antwoord van een gast op die wedstrijd (alleen de host luistert)
+    case 'missiegast': return missieGastVerzoek(world, body, van); // een gast vraagt zijn eigen verhaalopdracht te starten (#452)
     case 'wapen': return !!n && n.role === 'host' && van >= 1 && wapenVerwerk(world, van, body); // een gast kiest zijn wapen (zijn eigen patronen): de host rekent zijn aanval uit (#434)
     case 'passief': { // een gast wil omschakelen: de host beslist (afkoeling) en geeft de echte stand door aan iedereen (#447)
       const r = leesPassief(body); if (!r || !n || n.role !== 'host' || van < 1 || !world.coopPvp) return false;

@@ -35,6 +35,9 @@ t('de uitnodiging van de gast: gelezen, begrensd en in het Nederlands', () => {
   const u = M.maakUitnodiging({ k: 'meedoen', label: 'Bezorgen', sec: 999 });
   assert.equal(u.rest, 30); assert.match(M.uitnodigingTekst(u, 'Tammo'), /Meedoen met Bezorgen\? J = ja, N = nee/);
   assert.match(M.uitnodigingTekst({ ...u, verplicht: true }, 'Tammo'), /je doet mee/);
+  const s = M.maakUitnodiging({ k: 'meedoen', label: 'Bezorgen', verplicht: true, start: true });
+  assert.equal(s.start, true); assert.equal(u.start, false);
+  assert.equal(M.uitnodigingTekst(s, 'Tammo'), 'Bezorgen is begonnen: je doet mee.');
 });
 
 // ---- over het net
@@ -93,6 +96,38 @@ t('verplichte rol: de gast kan niet weigeren; de host kan het niet beantwoorden 
   assert.equal(N.handleEvent(gw, { k: 'meedoenantwoord', ja: false }, 0), false, 'een gast luistert er niet naar');
   assert.equal(N.handleEvent(hw, { k: 'meedoenantwoord', ja: false }, 0), false, 'de host is geen gast');
   assert.equal(hw.coopVrijLopen, false);
+});
+
+t('een gast begint de opdracht: hij doet zelf mee, de anderen krijgen de vraag, de gastheer ook (#452)', () => {
+  const st = M.maakMeedoen();
+  const uit = M.beginGast(st, '4|Bezorgen', [0, 1, 2], null, null, 2); // gast 2 vroeg het
+  assert.deepEqual(uit.map((u) => [u.slot, u.verplicht]), [[0, false], [1, false]], 'de gastheer en de andere gast');
+  assert.equal(st.keuze[2], 'ja', 'de vrager doet mee en wordt niet gevraagd');
+  assert.deepEqual(M.meespelers(st), [2]);
+  assert.equal(M.krijgtDeel(st, 0), false, 'de gastheer antwoordde nog niet');
+  assert.equal(M.antwoord(st, 0, true), true);
+  assert.equal(M.krijgtDeel(st, 0), true, 'de gastheer die J zei doet mee');
+  assert.equal(M.antwoord(st, 1, false), true);
+  assert.deepEqual(M.meespelers(st), [0, 2]);
+  // zijn eigen verhaal vraagt de gast-hoofdrol: alleen plek 1 kan verplicht zijn, de gastheer nooit
+  const s2 = M.maakMeedoen();
+  const u2 = M.beginGast(s2, '5|Kluisklus', [0, 1], coopRule({ id: 'M06', kind: 'mission' }, 2), null, 2);
+  assert.deepEqual(u2.map((u) => [u.slot, u.verplicht]), [[0, false], [1, true]]);
+  assert.equal(M.antwoord(s2, 0, false), true, 'de gastheer mag altijd N zeggen');
+  assert.equal(M.antwoord(s2, 1, false), false, 'de verplichte rol kan niet weigeren');
+  // een keuze bij een andere groep blijft bewaard
+  const s3 = M.maakMeedoen();
+  M.begin(s3, '3|Het Loket', [1]);
+  M.antwoord(s3, 1, false);
+  M.beginGast(s3, '4|Bezorgen', [1], null, null, 2);
+  assert.deepEqual(M.meespelers(s3, '3|Het Loket'), []);
+  assert.equal(M.krijgtDeel(s3, 1, '3|Het Loket'), false, 'de nee bij Het Loket blijft een nee');
+});
+t('een gast kan geen verzoek doen zonder bestaande keuze: beginGast zonder nummer doet niets', () => {
+  const st = M.maakMeedoen();
+  assert.deepEqual(M.beginGast(st, '4|Bezorgen', [1], null, null, 0), [], 'de gastheer begint zelf geen verzoek');
+  assert.deepEqual(M.beginGast(null, '4|Bezorgen', [1], null, null, 1), []);
+  assert.deepEqual(M.beginGast(st, '', [1], null, null, 1), []);
 });
 
 // ---- late instap (#452)

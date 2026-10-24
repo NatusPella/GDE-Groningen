@@ -15,6 +15,7 @@ import { updateActivitiesGast, tryActivityInteractGast } from './activities.js';
 import { getSettings } from './settings.js';
 import { wedGastTik, wedGastE } from './coopwedstrijd.js';
 import { bijbaanGastE } from './coopbijbaan.js';
+import { missieGastE } from './coopglue.js';
 
 // meld de host (alleen bij een wisseling) dat deze gast een activiteit speelt: hij staat dan stil. Een host zonder dit bericht negeert het.
 function meldBezig(world, id) {
@@ -43,6 +44,7 @@ export function updateGastLokaal(world, dt = 1 / 60) {
   if (tryShopInteract(world) || tryMachineInteract(world) || tryHorecaInteract(world)) return true;
   if (wedGastE(world)) { input.consume('e'); input.consume('f'); return true; } // een wedstrijd starten bij het startpunt: een verzoek aan wie het spel opende (#452)
   if (bijbaanGastE(world)) { input.consume('e'); input.consume('f'); return true; } // een bijbaan samen: een baan starten bij een startpunt of een krant gooien (#452)
+  if (missieGastE(world)) { input.consume('e'); input.consume('f'); return true; } // je eigen verhaalopdracht starten bij zijn startpunt: een verzoek aan wie het spel opende (#452)
   if (tryActivityInteractGast(world)) { input.consume('e'); input.consume('f'); return true; } // een lokale activiteit start; de andere geven een melding
   input.consume('e');
   input.consume('f');
