@@ -14,15 +14,21 @@ ok(PROTO === 2 && CODEC_VERSION === 2, 'PROTO en CODEC_VERSION blijven 2');
 const VER = { game: 'gde', proto: 2, version: '0.45.0', tiles: 't1', story: 's1' };
 const inv = (extra = {}) => ({
   ver: VER, zaad: 12345, tijd: { dag: 3, uur: 14.256, tempo: 1 }, weer: 'zon', wanted: { niveau: 2, hitte: 40.5 },
-  opdracht: { id: 'M12', stap: 3, staat: 'bezig', t: 61.2 },
+  opdracht: { id: 'M12', stap: 3, staat: 'bezig', t: 61.2, deel: 2, tijd: 95 }, // deel: de stage in de keten (#452)
   spelers: [{ slot: 0, naam: 'Tammo', char: 'tammo', geld: 1200, health: 80, x: 10.123, y: -4, z: 0, voertuig: 'v7' }, { slot: 2, naam: 'Noor', char: 'noor', geld: 50, health: 100, x: 12, y: -3, z: 0.5 }],
-  kapot: Array.from({ length: 300 }, (_, i) => 'obj' + i), voertuigen: [{ id: 'v7', soort: 'auto', x: 10, y: -4, z: 0, hoek: 1.5, schade: 0.3 }], ...extra,
+  kapot: Array.from({ length: 300 }, (_, i) => 'obj' + i), voertuigen: [{ id: 'v7', soort: 'hatch', x: 10, y: -4, z: 0, hoek: 1.5, schade: 0.3, uiterlijk: { naam: 'hatch', kleur: '#2f3a52', streep: '', accent: '', kajuit: '' } }], ...extra,
 });
 
 // ---- het formaat
 const m = maakMomentopname(inv());
 ok(m.v === 1 && m.tijd.uur === 14.26 && m.spelers[0].x === 10.12, 'afronden');
 gelijk(leesMomentopname(JSON.stringify(m)), m, 'heen en terug');
+// de opdrachtstand en het uiterlijk van de voertuigen gaan mee (#452)
+ok(m.opdracht.deel === 2 && m.opdracht.tijd === 95, 'de stage en de tijd van de opdracht');
+ok(m.voertuigen[0].uiterlijk.naam === 'hatch' && m.voertuigen[0].uiterlijk.kleur === '#2f3a52', 'het model en de kleur van het voertuig');
+const oud = leesMomentopname(JSON.stringify({ ...m, opdracht: { id: 'M12', stap: 3, staat: 'bezig', t: 61.2 }, voertuigen: [{ id: 'v7', soort: 'auto', x: 1, y: 2 }] }));
+ok(oud && oud.opdracht.deel === 0 && oud.opdracht.tijd === null && oud.voertuigen[0].uiterlijk === null, 'een oudere momentopname zonder de nieuwe velden blijft leesbaar');
+ok(maakMomentopname({ opdracht: { id: 'x', deel: -4, tijd: Infinity } }).opdracht.deel === 0 && maakMomentopname({ opdracht: { id: 'x', tijd: Infinity } }).opdracht.tijd === null, 'de stage en de tijd worden begrensd');
 const pak = codeerMomentopname(m);
 ok(pak.len === pak.json.length && pak.sum === controlegetal(pak.json) && pak.stukken.join('') === pak.json, 'stukken, lengte en controlegetal');
 ok(controlegetal('a') !== controlegetal('b') && controlegetal('') === '811c9dc5', 'controlegetal');

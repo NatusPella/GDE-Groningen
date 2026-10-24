@@ -19,7 +19,7 @@ const tekst = (v, max = 60) => (typeof v === 'string' ? v.slice(0, max) : '');
 const r2 = (v) => Math.round(num(v) * 100) / 100;
 
 // Verkeer, voetgangers en dieren zitten er niet in: die ontstaan opnieuw rond de spelers (met `zaad`). Wel: tijd, weer, gezocht,
-// de lopende opdracht, geld en toestand per speler, kapotte objecten en de voertuigen van spelers.
+// de lopende opdracht (met de stand binnen de opdracht, #452), geld en toestand per speler, kapotte objecten en de voertuigen van spelers.
 export function maakMomentopname(inv = {}) {
   const t = inv.tijd || {}, o = inv.opdracht || null, w = inv.wanted || {};
   return {
@@ -30,13 +30,23 @@ export function maakMomentopname(inv = {}) {
     weer: tekst(inv.weer, 30),
     weerstaat: inv.weerstaat && typeof inv.weerstaat === 'object' && JSON.stringify(inv.weerstaat).length <= 700 ? JSON.parse(JSON.stringify(inv.weerstaat)) : null, // de weermachine (coopweer.js weerEvent zonder k)
     wanted: { niveau: Math.min(5, Math.max(0, Math.floor(num(w.niveau)))), hitte: r2(w.hitte) },
-    opdracht: o ? { id: tekst(o.id), stap: Math.max(0, Math.floor(num(o.stap))), staat: tekst(o.staat, 30), t: r2(o.t) } : null,
+    opdracht: o ? {
+      id: tekst(o.id), stap: Math.max(0, Math.floor(num(o.stap))), staat: tekst(o.staat, 30), t: r2(o.t),
+      deel: Math.max(0, Math.floor(num(o.deel))), // de stage in de keten, of het waypoint van een race (#452)
+      tijd: Number.isFinite(o.tijd) ? r2(o.tijd) : null, // seconden die nog over waren
+    } : null,
     spelers: (inv.spelers || []).slice(0, MAX_SPELERS).map((p) => ({
       slot: Math.max(0, Math.floor(num(p.slot))), naam: tekst(p.naam, 40), char: tekst(p.char, 30), geld: Math.max(0, Math.floor(num(p.geld))),
       health: Math.max(0, Math.round(num(p.health, 100))), x: r2(p.x), y: r2(p.y), z: r2(p.z), voertuig: p.voertuig == null ? null : tekst(String(p.voertuig), 40),
     })),
     kapot: (inv.kapot || []).slice(0, MAX_KAPOT).map((k) => tekst(String(k), 40)),
-    voertuigen: (inv.voertuigen || []).slice(0, MAX_VOERTUIGEN).map((v) => ({ id: tekst(String(v.id), 40), soort: tekst(v.soort, 30), x: r2(v.x), y: r2(v.y), z: r2(v.z), hoek: r2(v.hoek), schade: Math.min(1, Math.max(0, r2(v.schade))) })),
+    voertuigen: (inv.voertuigen || []).slice(0, MAX_VOERTUIGEN).map((v) => ({
+      id: tekst(String(v.id), 40), soort: tekst(v.soort, 30), x: r2(v.x), y: r2(v.y), z: r2(v.z), hoek: r2(v.hoek), schade: Math.min(1, Math.max(0, r2(v.schade))),
+      // hetzelfde model en dezelfde kleur bij de nieuwe host (#452): geen willekeurige auto op de plek van de oude
+      uiterlijk: v.uiterlijk && typeof v.uiterlijk === 'object' ? {
+        naam: tekst(v.uiterlijk.naam, 20), kleur: tekst(v.uiterlijk.kleur, 20), streep: tekst(v.uiterlijk.streep, 20), accent: tekst(v.uiterlijk.accent, 20), kajuit: tekst(v.uiterlijk.kajuit, 20),
+      } : null,
+    })),
   };
 }
 
