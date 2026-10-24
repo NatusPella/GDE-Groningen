@@ -1,0 +1,64 @@
+// Startscript voor de boerderij in de echte wereld (#415 stap 2): één Electron (slot uit gde-locks, wegwerpprofiel, BelowNormal), sluit zelf af.
+//   node scripts/qa/boerderij_wereld.mjs [--out=<map>] [--max=420]
+// Omgeving: GDE_GAME_DIR=<map>\game (met backslashes) voor een gestagede build, ELECTRON_EXE=<pad> als desktop/node_modules ontbreekt.
+// Het page-script is boerderij_wereld.page.js. Uitvoer: <out>/run.log, <out>/result.json (de [perf-script]-regel) en beelden <out>/shots-*.png.
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { spawn } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
+
+const HERE = path.dirname(fileURLToPath(import.meta.url));
+const ROOT = path.resolve(HERE, '..', '..');
+const arg = (k, d) => { const a = process.argv.find((v) => v.startsWith(`--${k}=`)); return a ? a.slice(k.length + 3) : d; };
+const OUT = path.resolve(arg('out', path.join(os.tmpdir(), 'gde-boerderij-wereld')));
+const MAX = Number(arg('max', 420));
+const LOCKS = process.env.GDE_LOCKS || path.join(os.homedir(), 'gde-locks');
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+fs.mkdirSync(OUT, { recursive: true });
+
+let slot = null;
+async function takeSlot() {
+  if (!fs.existsSync(LOCKS) || process.argv.includes('--geen-slot')) return;
+  for (;;) {
+    for (const n of [1, 2, 3]) {
+      try { fs.mkdirSync(path.join(LOCKS, `electron-${n}`)); slot = path.join(LOCKS, `electron-${n}`); console.log(`slot electron-${n} genomen`); return; } catch { /* bezet */ }
+    }
+    await sleep(4000);
+  }
+}
+const release = () => { if (slot) { try { fs.rmdirSync(slot); } catch { /* weg */ } slot = null; } };
+process.on('exit', release);
+process.on('SIGINT', () => { release(); process.exit(130); });
+
+const profile = `gde-test-boerderij-${process.pid}`;
+const script = path.join(OUT, '_page.js');
+fs.writeFileSync(script, fs.readFileSync(path.join(HERE, 'boerderij_wereld.page.js'), 'utf8'));
+const electron = process.env.ELECTRON_EXE || path.join(ROOT, 'desktop', 'node_modules', 'electron', 'dist', process.platform === 'win32' ? 'electron.exe' : 'Electron');
+const env = { ...process.env, GDE_TEST_PROFILE: profile, GDE_MENU_TEST: '1' };
+delete env.ELECTRON_RUN_AS_NODE;
+
+await takeSlot();
+let out = '';
+try {
+  const child = spawn(electron, ['.', '--windowed', '--stil', '--force-device-scale-factor=1', '--window-size=1600x900',
+    `--smoke-test=${path.join(OUT, 'shots.png')}`, `--perf-script=${script}`], { cwd: path.join(ROOT, 'desktop'), env, windowsHide: false });
+  try { os.setPriority(child.pid, os.constants.priority.PRIORITY_BELOW_NORMAL); } catch { /* geen rechten */ }
+  child.stdout.on('data', (d) => { out += d; });
+  child.stderr.on('data', (d) => { out += d; });
+  const limit = setTimeout(() => { try { child.kill('SIGKILL'); } catch { /* weg */ } }, (MAX + 240) * 1000);
+  const code = await new Promise((res) => child.on('close', res));
+  clearTimeout(limit);
+  console.log('electron klaar, exit', code);
+} finally {
+  release();
+  fs.rmSync(path.join(os.tmpdir(), profile), { recursive: true, force: true });
+}
+fs.writeFileSync(path.join(OUT, 'run.log'), out);
+const lines = out.split('\n');
+const res = [...lines].reverse().find((l) => l.startsWith('[perf-script] '));
+if (res) fs.writeFileSync(path.join(OUT, 'result.json'), res.slice(14));
+console.log(res ? res.slice(0, 3000) : 'geen [perf-script]-resultaat');
+console.log('[renderer]-regels:', lines.filter((l) => l.startsWith('[renderer]')).length, 'NaN:', lines.filter((l) => /NaN/.test(l) && !/perf-script/.test(l)).length);
+console.log('uitvoer:', OUT);
+process.exit(res ? 0 : 1);
