@@ -13,6 +13,7 @@ import { gastWapenTik } from './coopwapen.js';
 import { openerNaam } from './coopplayers.js';
 import { updateActivitiesGast, tryActivityInteractGast } from './activities.js';
 import { getSettings } from './settings.js';
+import { wedGastTik } from './coopwedstrijd.js';
 
 // meld de host (alleen bij een wisseling) dat deze gast een activiteit speelt: hij staat dan stil. Een host zonder dit bericht negeert het.
 function meldBezig(world, id) {
@@ -25,6 +26,7 @@ function meldBezig(world, id) {
 
 export function updateGastLokaal(world, dt = 1 / 60) {
   const input = world.input;
+  if (world.coopWedstrijd && wedGastTik(world, dt)) return true; // een race tegen de anderen op zijn eigen scherm (#443): de invoer is van de kart
   if (!input || world.paused || isShopOpen()) { world.coopAanvalKnop = false; return false; } // geen aanval vanuit een menu of winkel
   const n0 = world.coopNet;
   gastWapenTik(world, dt, (ev) => { try { if (n0 && n0.role === 'client' && n0.session && n0.session.sendEvent) n0.session.sendEvent(ev); } catch (e) { /* de verbinding is er even niet */ } }); // je wapen en je aanvalsknop (#434)

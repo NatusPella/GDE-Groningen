@@ -108,6 +108,24 @@ Standaard is een sessie privé: alleen wie de kamercode heeft kan aansluiten. De
 
 **Niet getest:** echte brokers en echte spelers (alleen nepbrokers en nepsockets); of echte trackers een aanbod met een niet-SDP-tekst doorgeven (de WebTorrent-trackers doen dat in de praktijk, maar dat is niet bevestigd); het scherm is niet in beeld bekeken.
 
+## Wedstrijden tegen elkaar (#443)
+
+Alleen races en minigames zijn spelers tegen spelers; verder spelen de spelers samen tegen de wereld. Code: `coopwedstrijd.js` (de pure kern: uitnodiging, de race, de berichten, de weergave bij een gast, de host-kant), `coopwedstrijdscore.js` (golf: score per baan, stand, uitslag), `coopwedstrijd3d.js` (de kaart met Meedoen? en de uitslag), `kartbaanspoor.js` (de baan, gedeeld met `kartbaan.js`). Tests: `coopwedstrijd_test` (alles zonder Electron), `scripts/coop/gastkant_443.mjs` (race, kant van de gast), `scripts/coop/gastkant_443_golf.mjs` (golf, kant van de gast) en de testbank-suite `wedstrijd` (race, kant van wie het spel opende). Het zijn gewone JSON-berichten (`k: 'wed'` van de host, `k: 'wedgast'` van een gast): PROTO en CODEC_VERSION blijven 2.
+
+**De uitnodiging.** Wie het spel opende drukt E bij de kassa van de kartbaan of de eerste tee van pitch & putt. Elke verbonden speler krijgt "Meedoen?" (J of N, 10 seconden). Wie niet antwoordt doet niet mee: een kart blijft niet wachten en een ronde niet stilstaan. Nog eens E start meteen. Is niemand er, dan is het gewoon de solo-versie (de pass-and-play van 1 tot 4 spelers op één scherm blijft zoals hij was).
+
+**De race (kartbaan, Karten in Ulrum), host-autoritair.** Hoogstens vier karts: de mensen die ja zeiden en AI-rijders op de lege plekken. Iedereen rijdt dezelfde kart (`KART` in `kartrace.js`) op dezelfde baan (`kartbaanspoor.js`), met het aftellen 3-2-1 en een gezamenlijke start. De host rekent de hele race uit (`tikRace`, dezelfde regels als de solorace) met de invoer van elke gast: stick en handrem (Spatie), dezelfde bytes als bij het besturen van een voertuig (`coopbestuur.js`). Ongeveer 12 keer per seconde gaat een compacte momentopname (hoogstens 350 tekens) naar de gasten, als betrouwbaar bericht. De gast tekent hem een vijfde seconde in het verleden, vloeiend (de weergavetijd loopt gelijkmatig door, een late momentopname zet de karts niet terug), en laat zijn eigen kart meteen meerijden met zijn eigen toetsen (`stepKart`), die zacht naar de stand van de host schuift (`VOORSPEL_GAIN`): zo voelt het sturen direct. Plaats, ronde en tijd staan live in het bord, met de tussenstand van alle karts. Het lichaam van een gast staat stil bij de host (`coopWedstrijd` op het lichaam) en rijdt mee met zijn kart; de baan is een vrije zone, dus de wereld van wie het spel opende verandert buiten de baan niet.
+
+**Eerlijkheid.** Dezelfde baan, dezelfde kart, dezelfde start (bij een rematch schuift de pole een plek op), een tijdslimiet van de race (260 s) en 20 s voor de rest nadat de eerste mens finisht. Golf: dezelfde baan van wie het spel opende (de gast speelt op zijn eigen scherm op de baan uit het startbericht), dezelfde par, en voor iedereen dezelfde spreiding per slag (een vaste zaadwaarde per baan en slagnummer); een baan telt hooguit par + 4; 240 s voor de rest nadat de eerste de zes banen af heeft en 25 minuten voor de hele ronde; banen die niet af zijn tellen als par + 4.
+
+**Beloning.** Per plek, in ieders eigen geld en loopbaan (de gast krijgt een gewoon `beloning`-bericht met het vak `race` of `golf` en de punten; zijn eigen loonfactor geldt). Race: plek 1 tot 4 geeft €120, €80, €50 en €25 en 14 tot 8 punten; wie niet finisht krijgt 6 punten, wie wegvalt niets. Golf: €100, €60, €40, €20. De AI krijgt niets.
+
+**Wegvallen.** Valt een gast weg (verbinding kwijt) of stopt hij (Backspace), dan rijdt zijn kart door onder de AI (of telt zijn ronde niet meer mee) en loopt de wedstrijd gewoon door voor de anderen; hij krijgt niets. Stopt wie het spel opende, dan stopt de wedstrijd voor iedereen, zonder beloning.
+
+**Rematch.** Op de uitslag zegt een gast J voor "nog een keer" (een bericht aan wie het spel opende, die het ziet in de kaart en in een melding); wie het spel opende drukt J en iedereen krijgt een nieuwe uitnodiging.
+
+**Niet getest:** een echte verbinding van twee computers (alleen 127.0.0.1 met een nep-vertraging in de unit-tests), een rematch met vier mensen, discgolf, padel, skate, darten en hengelen met wedstrijd (alleen de race en golf zijn gedaan), de andere races (ring, bruggenrace, regatta, straatrace). Een gast die nee zegt of niet antwoordt ziet de wedstrijd niet (geen toeschouwersweergave). Golf is op het eigen scherm van de gast niet door een echte speler bekeken.
+
 ## Niet gedaan
 
 Zelf een voertuig kiezen en besturen, gesprekken met voorbijgangers, bijbanen en de minigames die je lichaam of een voertuig verplaatsen, en het stuur met een controller (Y heeft
