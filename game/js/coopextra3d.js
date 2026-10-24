@@ -10,7 +10,7 @@ import { juichHoek } from './vrijgezellen.js';
 import { buildWildlifeMesh3D, animateWildlifeMesh3D } from './wildlife.js';
 import { getTrafficControllers, updateTrafficLights } from './trafficlights.js';
 import { breakPropByKey, restorePropByKey, isPropBroken } from './breakables.js';
-import { V_GROET, V_FEEST, V_WAPEN, V_AANVAL, V_GERAAKT, V_LIGT, lichtVerschil, standVers, MISC_KERMIS, MISC_STUNT, MISC_PUNTEN, MISC_PEDS, MISC_WERELD, MISC_SPREKERS, leesStunt, leesPunten, leesPeds, leesWereld, leesSprekers, WERELD_BRUG, WERELD_SLUIS, WERELD_GARAGE } from './coopextra.js';
+import { DIER_MAX_SCHAAL, veiligeDierSchaal, V_GROET, V_FEEST, V_WAPEN, V_AANVAL, V_GERAAKT, V_LIGT, lichtVerschil, standVers, MISC_KERMIS, MISC_STUNT, MISC_PUNTEN, MISC_PEDS, MISC_WERELD, MISC_SPREKERS, leesStunt, leesPunten, leesPeds, leesWereld, leesSprekers, WERELD_BRUG, WERELD_SLUIS, WERELD_GARAGE } from './coopextra.js';
 import { getMovableBridges, BRIDGE_TIMING } from './movablebridges.js';
 import { getSluizen, signalOf } from './sluizen.js';
 import { LOCK_TIMING } from './locks.js';
@@ -156,8 +156,10 @@ export function syncGastDieren(world, dt) {
     let e = dieren.get(id);
     if (!e || e.a.kind !== d.soort) {
       if (e) verwijder(scene, e.mesh);
+      if (veiligeDierSchaal(d.soort, 1) == null) continue; // onbekende soort: niet tekenen
       const a = dierData(d); let m = null; try { m = buildWildlifeMesh3D(a); } catch (er) { m = null; }
       if (!m) continue;
+      m.userData.dierSchaal = veiligeDierSchaal(d.soort, m.scale.x); m.scale.setScalar(m.userData.dierSchaal);
       m.traverse((o) => { if (o.isMesh) o.castShadow = true; });
       scene.add(m); e = { mesh: m, a, doel: d }; dieren.set(id, e);
     }
@@ -165,6 +167,7 @@ export function syncGastDieren(world, dt) {
     if (Math.hypot(d.x - a.x, d.y - a.y) > 15) { a.x = d.x; a.y = d.y; } else { a.x += (d.x - a.x) * k; a.y += (d.y - a.y) * k; }
     a.angle = hoekLerp(a.angle, d.hoek, k); a.speed = d.speed; a.dead = d.dood; a.stride += d.speed * dt;
     const m = e.mesh;
+    if (m.scale.x !== m.userData.dierSchaal || m.scale.y !== m.userData.dierSchaal || m.scale.z !== m.userData.dierSchaal) m.scale.setScalar(m.userData.dierSchaal); // nooit groter dan de eigen bouw (#433)
     const y = (a.kind === 'seagull' ? 6 + Math.sin(nu * 2 + (a.flapSeed || 0)) * 1.2 : grond(world, a.x, a.y)) + (a.lift || 0);
     m.position.set(a.x, y, a.y); m.rotation.y = -a.angle;
     try { animateWildlifeMesh3D(m, a, nu); } catch (er) { /* zonder animatie */ }
