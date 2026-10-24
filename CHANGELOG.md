@@ -50,6 +50,12 @@ nieuwe functies, `y` voor alleen bugfixes.
 - **Schepen varen een rechte koers.** Het vaarnet geeft een stabiele koers (60% minder roeractiviteit), een schip verschijnt alleen buiten je blikveld en grote schepen varen bij een haperend beeld nog even door.
 - **Benchmark toont het geheugen.** De resultaatkaart noemt de piek van de JS-heap (als je browser dat geeft), de controller kan de run annuleren en er is een doorlopende balansrun.
 
+- **Vlucht en vaart als dienst.** Vliegen heeft een route tussen twee velden, poorten, een checklist, een harde en een zachte landing en een uitslag met medaille; een schip moet per kade aanleggen en verliest punten bij een gemiste halte of te hard varen.
+- **Samen spelen: PvP-arena.** Op het veld in het Stadspark vechten twee teams om drie zones, met een scorebord, respawn en een uitslag; alleen buiten passive mode, en dood kost niets.
+- **Samen spelen: een gastheer zonder speler.** Een sessie kan zonder lokale speler draaien en bij wegvallen neemt de langst verbonden speler over, met de wereld en de opdrachtstand.
+- **Nieuwe zijmissie: Klassiek in de Herenstraat.** Jaag de fatbikes bij de snackbar weg met klassieke muziek, in drie stappen, met een beloning en een hint per stap.
+- **Streamen kijkt vooruit.** Gebouwen, wegen en water worden in de rijrichting voorgeladen en de geometrie-worker werkt de taken af die de speler nodig heeft, in plaats van een golf oude taken.
+
 ## [0.50.0] - 2026-10-24
 
 ### Nieuw
