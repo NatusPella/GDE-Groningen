@@ -10,8 +10,11 @@ import { riderSeatFor } from './models3d_vehicles.js';
 import { figuurLook } from './coopplayers.js';
 import { ruimMeshOp } from './coopruim.js';
 import { busInterieur, coopPlek, VLOER } from './businterieur.js';
+import { heeftAutoPortier } from './sfx/samples.js';
 
 const zitters = new Map(); // plek -> { mesh, char, ouder, rijder }
+const deurGezien = new Map(); // plek -> { voertuig, x, y, auto }: wie we zagen instappen, voor het portiergeluid van een medespeler (#460)
+let deurStart = null;
 
 // De stoel van deze zitter in het voertuig: vehicleSeat voor de bestuurder en de bijrijder, achterin verder naar achteren en om en om links en rechts.
 export function stoelVoor(v, stoel) {
@@ -67,9 +70,35 @@ function haal(e) {
   ruimMeshOp(null, e.mesh);
 }
 
+// Het portiergeluid van een medespeler (#460): bij het instappen en uitstappen komt er een audio-event (audio.js speelt het met
+// afstandsdemping, zoals een NPC). Elke client ziet elke zitter via deze ene functie (gastheer: coopfigures3d, gast: coopentities3d), dus
+// geen dubbele geluiden; de eerste seconde na het starten is stil, zodat wie al zat niet allemaal tegelijk instapt.
+export function deurGeluiden(world, lijst, zoek) {
+  if (!world) return;
+  const nu = world.time || 0;
+  if (deurStart === null || nu < deurStart - 5) deurStart = nu;
+  const stil = nu - deurStart < 1, q = world.audioEvents || (world.audioEvents = []);
+  const nuZit = new Set();
+  for (const z of lijst || []) {
+    const r = zoek(z.voertuig);
+    if (!r || !r.v) continue;
+    nuZit.add(z.slot);
+    const eerder = deurGezien.get(z.slot);
+    const auto = heeftAutoPortier(r.v);
+    if ((!eerder || eerder.voertuig !== z.voertuig) && !stil && auto && q.length < 64) q.push({ kind: 'door_open', x: r.v.x, y: r.v.y, auto: true });
+    deurGezien.set(z.slot, { voertuig: z.voertuig, x: r.v.x, y: r.v.y, auto });
+  }
+  for (const [slot, e] of deurGezien) {
+    if (nuZit.has(slot)) continue;
+    deurGezien.delete(slot);
+    if (!stil && e.auto && q.length < 64) q.push({ kind: 'door_close', x: e.x, y: e.y, auto: true });
+  }
+}
+
 // Elke frame: lijst = [{ slot, char, voertuig, stoel }]; zoek(voertuig) geeft { mesh, v } (het voertuigmodel en zijn gegevens) of null.
-// Geeft het aantal zitters dat nu in een voertuig zit (voor de testbank).
-export function syncZitters(lijst, zoek) {
+// Geeft het aantal zitters dat nu in een voertuig zit (voor de testbank). world (optioneel): voor het portiergeluid van een medespeler.
+export function syncZitters(lijst, zoek, world = null) {
+  deurGeluiden(world, lijst, zoek);
   const gezien = new Set();
   for (const z of lijst || []) {
     const r = zoek(z.voertuig);
@@ -96,4 +125,4 @@ export function syncZitters(lijst, zoek) {
 }
 
 export const aantalZitters = () => zitters.size;
-export function clearZitters() { for (const e of zitters.values()) haal(e); zitters.clear(); }
+export function clearZitters() { for (const e of zitters.values()) haal(e); zitters.clear(); deurGezien.clear(); deurStart = null; }
