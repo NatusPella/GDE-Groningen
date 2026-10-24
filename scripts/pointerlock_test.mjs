@@ -9,7 +9,7 @@ const canvas = { requestPointerLock: () => null };
 globalThis.document = { ...mk('document'), pointerLockElement: null, getElementById: (id) => (id === 'game3d' ? canvas : null) };
 let clock = 1000;
 globalThis.performance = { now: () => clock };
-const { Input } = await import('../game/js/input.js');
+const { Input, lockVerlorenOpentMenu } = await import('../game/js/input.js');
 
 let fails = 0;
 const ok = (c, name, extra = '') => { if (!c) { fails++; console.log('FAIL', name, extra); } else console.log('ok  ', name); };
@@ -93,6 +93,36 @@ const accept = () => { canvas.requestPointerLock = () => { fireLockChange(true);
   clock += 30000;
   inp.tryLock(); clock += 2600; inp.tryLock(); clock += 2600; inp.tryLock();
   ok(inp.lookFallback === true, 'drie synchrone fouten: terugval');
+}
+
+// 7. een menu dat dichtgaat vraagt de muis meteen weer (#435); een weigering telt niet
+{
+  const inp = fresh(); let asked = 0;
+  canvas.requestPointerLock = () => { asked++; return Promise.resolve(); };
+  clock += 40000;
+  inp.menuStand(true); inp.menuStand(true);
+  ok(asked === 0, 'menu open: geen aanvraag');
+  inp.menuStand(false);
+  ok(asked === 1, 'menu dicht: één aanvraag', asked);
+  inp.menuStand(false);
+  ok(asked === 1, 'blijft dicht: geen tweede aanvraag', asked);
+  // dicht met Escape: de browser weigert zonder gebaar; dat zet de terugval nooit aan
+  const inp2 = fresh(); refuse();
+  for (let i = 0; i < 5; i++) { clock += 2600; inp2.menuStand(true); inp2.menuStand(false); await settle(); }
+  ok(!inp2.lookFallback && inp2._lockFails === 0, 'geweigerd na het sluiten telt niet mee', inp2._lockFails);
+  // de aanvraag valt weg als er nog iets open staat (canLock onwaar)
+  const inp3 = fresh(); asked = 0; accept(); inp3.canLock = () => false; clock += 5000;
+  inp3.menuStand(true); inp3.menuStand(false);
+  ok(asked === 0 && !inp3.mouse.locked, 'niet als de winkel of een filmpje nog open is');
+  fireLockChange(false);
+}
+
+// 8. de muis raakt kwijt: alleen dan opent het pauzemenu, niet onder een menu of een vraagscherm dat de muis zelf losliet
+{
+  ok(lockVerlorenOpentMenu({ gestart: true, menuOpen: false, vraagOpen: false }) === true, 'muis kwijt in het spel: pauzemenu');
+  ok(lockVerlorenOpentMenu({ gestart: true, menuOpen: true, vraagOpen: false }) === false, 'menu staat al open: niets');
+  ok(lockVerlorenOpentMenu({ gestart: true, menuOpen: false, vraagOpen: true }) === false, 'afspeelvooruit of hulpaanbod open: geen menu eroverheen');
+  ok(lockVerlorenOpentMenu({ gestart: false, menuOpen: false, vraagOpen: false }) === false, 'voor de start: niets');
 }
 
 console.log(fails ? `${fails} FAILED` : 'all ok');
