@@ -36,14 +36,14 @@ let r = valideer(bc, 2); assert.ok(r.ok && r.resterend === 2);
 valideer(bc, 2); r = valideer(bc, 2); assert.ok(r.ok && r.resterend === 0);
 assert.strictEqual(valideer(bc, 2).reden, 'niemand');
 
-// --- beloning per halte: gelijk verdeeld met samenwerkingsbonus, elke gebeurtenis een eigen id
+// --- beloning per halte: elke deelnemer krijgt het volle bedrag (#452), elke gebeurtenis een eigen id
 assert.strictEqual(haltebedrag({ board: 0, alight: 0 }), 0);
 assert.ok(haltebedrag({ board: 5, alight: 3, sat: 100 }) > haltebedrag({ board: 5, alight: 3, sat: 10 }), 'tevredenheid telt');
 assert.ok(haltebedrag({ board: 5, alight: 3, gevalideerd: 5 }) > haltebedrag({ board: 5, alight: 3, gevalideerd: 0 }), 'valideren levert iets op');
 const g1 = haltebeloning(bc, { board: 5, alight: 3, sat: 80 }), g2 = haltebeloning(bc, { board: 5, alight: 3, sat: 80 });
 assert.notStrictEqual(g1.id, g2.id);
-assert.ok(g1.bonus > 0 && g1.totaal > haltebedrag({ board: 5, alight: 3, sat: 80, gevalideerd: 3 }) - 1, 'met meer spelers een bonus');
-assert.strictEqual(Object.values(g1.bedragen).reduce((a, b) => a + b, 0), g1.totaal, 'de som klopt');
+const vol = haltebedrag({ board: 5, alight: 3, sat: 80, gevalideerd: bc.gevalideerd });
+assert.ok(Object.values(g1.bedragen).every((b) => b === vol), 'elke deelnemer het volle bedrag');
 assert.deepStrictEqual(Object.keys(g1.bedragen).map(Number).sort(), [0, 2, 3], 'alleen de deelnemers');
 assert.strictEqual(haltebeloning(bc, { board: 0, alight: 0 }), null);
 

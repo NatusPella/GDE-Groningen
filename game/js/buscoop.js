@@ -78,7 +78,7 @@ export function valideer(bc, slot) {
   return { ok: true, gevalideerd: bc.gevalideerd, resterend: wachtend(bc) };
 }
 
-// Het bedrag van één halte voor de hele bus (voor de verdeling: coopDeel van coopnet.js, gelijk met samenwerkingsbonus):
+// Het bedrag van één halte voor de hele bus (voor de verdeling: coopDeel van coopnet.js, volle bedrag voor elke meespeler):
 // meer reizigers en meer tevredenheid is meer geld; elke gevalideerde reiziger een kleine bonus. Hele euro's, minimaal 1 bij een uitwisseling.
 export function haltebedrag({ board = 0, alight = 0, sat = 80, gevalideerd = 0 } = {}) {
   const uitw = Math.max(0, board) + Math.max(0, alight);
