@@ -79,16 +79,30 @@ export const GATE = {
 //   opts.approach(x, y) mag er voor de opening gereden en gelopen worden (geen gebouw, geen water; een weg mag): standaard free
 //   roadDir(x, y)     { x, y, dist, angle } het dichtstbijzijnde stuk weg (angle: de richting van de weg) of null
 //   opts: { radius, step, maxRoad, penalty(f, probe) }; penalty telt erbij op (bijvoorbeeld voetpaden onder de poort)
+// Vindt de strikte zoektocht niets, dan zoekt de planner verder zonder de eis van een weg binnen maxRoad (de relaxte
+// ronde onderaan): een garage met een hal houdt zo altijd een poort, ook als de stad rond de hal vol staat (#418).
 // Een generator (elke 60 kandidaten een yield, zodat het spel er een stukje per beeld aan kan werken); planGate loopt hem uit.
 // Geeft { x, y, angle, score } met angle de kant waarop de opening wijst (van het gebouw af), of null.
 export function* planGateSteps(free, roadDir, cx, cy, opts = {}) {
   const radius = opts.radius || 140, step = opts.step || 3, maxRoad = opts.maxRoad || 60;
-  let best = null, count = 0;
+  let best = null, count = 0, sawRoad = false;
   const probe = [], front = [];
   for (let a = GATE.clearA0; a <= GATE.clearA1; a += 2.9) for (let b = -GATE.clearB; b <= GATE.clearB; b += 2.65) probe.push([a, b]);
   for (let a = 2; a <= GATE.frontA1; a += 2) for (let b = -GATE.frontB; b <= GATE.frontB; b += 2) front.push([a, b]);
   const approach = opts.approach || free;
   const diff = (p, q) => Math.abs(Math.atan2(Math.sin(p - q), Math.cos(p - q)));
+  // het vrije blok van de poort plus de strook ervoor, in de stand `f`
+  const fits = (f) => {
+    for (const [a, b] of probe) {
+      const [px, py] = toWorld(f, a, b);
+      if (!free(px, py)) return false;
+    }
+    for (const [a, b] of front) {
+      const [px, py] = toWorld(f, a, b);
+      if (!approach(px, py)) return false;
+    }
+    return true;
+  };
   for (let dx = -radius; dx <= radius; dx += step) {
     for (let dy = -radius; dy <= radius; dy += step) {
       if (++count % 60 === 0) yield;
@@ -97,25 +111,36 @@ export function* planGateSteps(free, roadDir, cx, cy, opts = {}) {
       const x = cx + dx, y = cy + dy;
       if (!free(x, y)) continue;
       const road = roadDir(x, y);
+      if (road) sawRoad = true;
       if (!road || road.dist > maxRoad) continue;
       // uitgelijnd op de weg: de richting haaks op de weg die het dichtst bij de kant van de weg ligt
       const toRoad = Math.atan2(road.y - y, road.x - x);
       const n1 = road.angle + Math.PI / 2, n2 = road.angle - Math.PI / 2;
       const angle = diff(n1, toRoad) < diff(n2, toRoad) ? n1 : n2;
       const f = { x, y, angle };
-      let ok = true;
-      for (const [a, b] of probe) {
-        const [px, py] = toWorld(f, a, b);
-        if (!free(px, py)) { ok = false; break; }
-      }
-      for (const [a, b] of front) {
-        if (!ok) break;
-        const [px, py] = toWorld(f, a, b);
-        if (!approach(px, py)) ok = false;
-      }
-      if (!ok) continue;
+      if (!fits(f)) continue;
       const score = d + road.dist * 0.6 + (opts.penalty ? opts.penalty(f, probe) : 0);
       if (!best || score < best.score) best = { x, y, angle, score };
+    }
+  }
+  if (best || opts.relax === false || !sawRoad) return best;
+  // relaxte ronde: niets binnen de strikte regels (een volgebouwde straat, een plein zonder autoweg binnen maxRoad).
+  // Het dichtstbijzijnde vrije blok bij de hal telt nu, met de opening naar de dichtstbijzijnde weg (elke weg) of,
+  // zonder weg, van de hal af. Beter een poort op het plein dan een garage zonder ingang (#418).
+  for (let dx = -radius; dx <= radius; dx += step) {
+    for (let dy = -radius; dy <= radius; dy += step) {
+      if (++count % 60 === 0) yield;
+      const d = Math.hypot(dx, dy);
+      if (d > radius || (best && d >= best.score)) continue;
+      const x = cx + dx, y = cy + dy;
+      if (!free(x, y)) continue;
+      const road = roadDir(x, y);
+      const toRoad = road ? Math.atan2(road.y - y, road.x - x) : 0;
+      const n1 = road ? road.angle + Math.PI / 2 : 0, n2 = road ? road.angle - Math.PI / 2 : 0;
+      const angle = road ? (diff(n1, toRoad) < diff(n2, toRoad) ? n1 : n2) : Math.atan2(y - cy, x - cx);
+      const f = { x, y, angle };
+      if (!fits(f)) continue;
+      best = { x, y, angle, score: d };
     }
   }
   return best;
