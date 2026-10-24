@@ -36,7 +36,7 @@ export const ABOUT_HTML = `
 <p>Terreinhoogte (dijken, wierden, hellingen): ${AHN_ATTRIBUTION}, CC0. Zie ahn.nl en pdok.nl.</p>
 <p>Grenzen van gemeenten, woonplaatsen, wijken en buurten (gebieden veroveren): ${GRENZEN_ATTRIBUTION}. Gemeenten, wijken en buurten onder CC BY 4.0, woonplaatsen als Public Domain Mark. Zie pdok.nl.</p>
 <h4>Muziek en stemmen</h4>
-<p>De muziek (G-Music, Nachtstreek, het titelnummer) en alle stemmen zijn gemaakt met Google Gemini (muziek en Gemini TTS via OpenRouter). De Martinitoren is gemodelleerd met Claude Design. Geluidseffecten worden in het spel zelf gesynthetiseerd.</p>
+<p>De muziek (G-Music, Nachtstreek, het titelnummer) en alle stemmen zijn gemaakt met Google Gemini (muziek en Gemini TTS via OpenRouter). De Martinitoren is gemodelleerd met Claude Design. Geluidseffecten worden grotendeels in het spel zelf gesynthetiseerd, aangevuld met een paar CC0-opnames van Freesound (autodeuren, bandenslip, handrembocht en een treindeur).</p>
 <h4>Software en lettertypes</h4>
 <ul>
 <li>three.js, © three.js authors, MIT-licentie</li>

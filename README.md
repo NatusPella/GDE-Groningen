@@ -73,8 +73,8 @@ Kort, voor wie net binnenkomt:
   [merkenregister](docs/MERKENREGISTER.md).
 - **Rechten**: code onder GPL-3.0-or-later, eigen inhoud onder CC BY-NC-SA 4.0,
   naam en logo voorbehouden (zie [Licenties](#licenties)). Muziek en stemmen
-  zijn met AI gemaakt; alleen de geluidseffecten worden in het spel zelf
-  gesynthetiseerd.
+  zijn met AI gemaakt; de geluidseffecten worden grotendeels in het spel zelf
+  gesynthetiseerd, aangevuld met een paar CC0-opnames van Freesound.
 
 ## Downloaden en installeren
 

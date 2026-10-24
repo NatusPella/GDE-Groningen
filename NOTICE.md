@@ -108,6 +108,8 @@ meegeleverd.
   gemaakt met Google Gemini.
 - **Stings** (`game/js/stings.js`: afteller, finish, winnaar, verliezer, Meedoen?, speler sluit aan, trein vertrekt, halte)
   zijn procedureel in code gemaakt met WebAudio: geen opnames en geen AI-muziek.
+  Acht korte opnames van effecten in `game/audio/sfx/` (autodeuren, portiergreep, bandenslip, handrembocht, remmen op grind en een
+  treindeur) komen van Freesound onder Creative Commons 0 (publiek domein); de bron per bestand staat in `game/audio/sfx/manifest.json`.
 - **Stemmen**: alle stemmen (`game/audio/voicelines`, `npc`, `police`,
   `nieuws`, G-Music-jingles) zijn gemaakt met Google Gemini TTS
   (`google/gemini-3.8-flash-tts`) via OpenRouter. Per map
