@@ -6,7 +6,10 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+## [0.48.0] - 2026-10-24
+
 ### Nieuw
+- Muis omhoog en omlaag voelt nu hetzelfde als links en rechts: met de kijker van het jachtgeweer ging de hoogte te snel en de camera volgde omhoog en omlaag met vertraging.
 - Samen spelen: het jachtgeweer werkt nu ook als gast: houd de rechtermuisknop vast om door de kijker te richten, het schot gaat precies waar het richtkruis is en iedereen ziet het schot.uw
 - **Samen spelen: passieve stand en spelers tegen elkaar (#447):** onder Pauzemenu, Spelers staat de knop Passieve stand. Iedereen begint op passief: geen schade tussen spelers, zoals het was. Zetten twee spelers de stand bewust uit, dan kunnen ze elkaar slaan en beschieten (geen bloed). Omschakelen kan niet binnen 10 seconden. Neergaan door een medespeler kost niets: je staat meteen weer op en bent 6 seconden beschermd. De lijst toont wie passief is en het kaarticoon van een passieve speler is grijs zodra er iemand actief is. Niet in beeld bekeken.
 - **Samen spelen: gezamenlijke keuzes (#452):** alle spelers zijn gelijkwaardig. Slapen (bed, bank, "slaap tot de avond") en onderduiken vragen de anderen om akkoord: J of N, 10 seconden, geen antwoord is nee; wie alleen speelt beslist zelf. Een snelreis voor jezelf mag zonder akkoord en zet de anderen niet mee neer, maar verzet de klok niet. Een speler die wegvalt houdt de rest niet meer op (alleen een opdracht die hem echt nodig heeft zet het wachtscherm). De afspeel-vooruit-dialoog, snelreis, laadscherm, fotomodus en het hulpaanbod laten de wereld voor de anderen doorlopen. Cheats en het testmenu staan uit zodra er een tweede speler is.
