@@ -56,6 +56,13 @@ nieuwe functies, `y` voor alleen bugfixes.
 - **Nieuwe zijmissie: Klassiek in de Herenstraat.** Jaag de fatbikes bij de snackbar weg met klassieke muziek, in drie stappen, met een beloning en een hint per stap.
 - **Streamen kijkt vooruit.** Gebouwen, wegen en water worden in de rijrichting voorgeladen en de geometrie-worker werkt de taken af die de speler nodig heeft, in plaats van een golf oude taken.
 
+- **Samen spelen: een gast start zelf een opdracht.** Bij het startpunt van je eigen volgende opdracht kun je met E vragen om te beginnen; de rest van de groep krijgt "Meedoen?" en de opdrachtstand van een bestaande groep blijft intact.
+- **Samen spelen: niets kwijt aan het einde.** Bij binnenkomst en bij het einde wordt het spel van host en gast verrekend, met een sessie-id zodat een beloning nooit twee keer betaald wordt.
+- **Safehouse: je eigen kamer.** Achter de deur van je pand in een bestaand gebouw zit nu een kamer met bed, kast en uitgang; slapen, omkleden en naar buiten werken, en een laadbeurt zet je weer netjes bij de deur.
+- **Samen spelen: dezelfde markers.** Een gast ziet het doel en het beginpunt met dezelfde wereldmarker als de gastheer, inclusief het garageteken bij een garage of pomp.
+- **Loopbanen: vaardigheden per niveau.** Het loopbanenscherm noemt wat je op het hoogste niveau kunt (zoals kaartjes knippen bij de trein) en de winkel zet de wapens vooraan.
+- **Kartrace: tussenstand per speler.** Het bord toont per deelnemer de plek, de ronde of de finishtijd, en wie ja zei maar geen gridplek had krijgt een melding.
+
 ## [0.50.0] - 2026-10-24
 
 ### Nieuw
