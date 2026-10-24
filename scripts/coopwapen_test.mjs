@@ -10,6 +10,8 @@ import * as B from '../game/js/coopbestuur.js';
 import * as N from '../game/js/coopnet.js';
 import { WEAPONS } from '../game/js/weapons.js';
 const { gastAanvalUitvoeren, gastSlagLanding, updateBullets } = await import('../game/js/combat.js');
+const { buildPersonMesh, setHeldWeapon } = await import('../game/js/models3d_people.js');
+const { syncSchoten } = await import('../game/js/coopentities3d.js');
 const { CODEC_VERSION } = await import('../game/js/net/codec.js');
 const { PROTO } = await import('../game/js/net/protocol.js');
 
@@ -245,6 +247,54 @@ t('jachtgeweer (combat): het kijkerschot van een gast vliegt vanaf zijn oog lang
 t('wire: PROTO en CODEC_VERSION blijven 2, het bericht wapen is gewone JSON', () => {
   assert.equal(CODEC_VERSION, 2); assert.equal(PROTO, 2);
   assert.ok(JSON.stringify(W.wapenEvent('uzi', 40)).length < 40);
+});
+
+// 0 patronen: het wapen blijft in de hand van de gast en in het snapshot naar de anderen (#434, "wapen verdwijnt bij 0 kogels")
+t('een leeg wapen blijft in de hand: de gast houdt hetzelfde wapen, de host blijft het tonen', () => {
+  const w = { input: invoer({ muis: true }), ammo: { pistol: 1 }, weapon: 'pistol', player: { x: 0, y: 0, angle: 0 }, time: 5 };
+  const meld = [];
+  W.gastWapenTik(w, 0.016, (e) => meld.push(e));
+  assert.equal(w.ammo.pistol, 0); assert.equal(w.weapon, 'pistol', 'het wapen blijft van jou');
+  W.gastWapenTik(w, 1, () => {}); assert.equal(w.weapon, 'pistol', 'ook na een klik met een leeg wapen');
+  assert.ok(meld.some((e) => e.w === 'pistol' && e.n === 0), 'de host hoort dat het op is');
+  const h = hostWereld(); W.zetWapen(h, 2, 'pistol', 0); const f = h.coopFigures[2];
+  f.input = { mx: 0, my: 0, buttons: 16, yaw: 0 }; W.wapenTick(h, 0.016);
+  assert.equal(f.coopWapen, 'pistol', 'ook met 0 patronen in de hand');
+  assert.equal(W.wapenVan(h, 2).w, 'pistol');
+  assert.equal(N.spelerRecord(h, f, 2).weapon, S.wapenCode('pistol'));
+});
+
+t('nieuwSchot: één flits per schot, niet bij een zwaai of hetzelfde schot', () => {
+  assert.equal(W.nieuwSchot(undefined, { type: 'muzzle', start: 1 }), true);
+  assert.equal(W.nieuwSchot(1, { type: 'muzzle', start: 1 }), false);
+  assert.equal(W.nieuwSchot(1, { type: 'muzzle', start: 2 }), true);
+  assert.equal(W.nieuwSchot(undefined, { type: 'melee', start: 1 }), false);
+  assert.equal(W.nieuwSchot(undefined, { type: 'squirt', start: 1 }), false);
+  assert.equal(W.nieuwSchot(undefined, null), false);
+});
+
+t('coopentities: een schot van een medespeler geeft één flits en een kogelstreep, ook bij de gastheer als metgezel', () => {
+  const scene = { add() {}, remove() {} };
+  const w = { coopFigures: { 2: { slot: 2, x: 5, y: 6, angle: 0.5, gz: 0, coopWapen: 'pistol', coopFx: { type: 'muzzle', start: 1 } } } };
+  syncSchoten(w, scene, 10); assert.equal(w.coopSchotDbg, 1);
+  syncSchoten(w, scene, 10.01); assert.equal(w.coopSchotDbg, 1, 'hetzelfde schot flitst maar één keer');
+  w.coopFigures[2].coopFx = { type: 'muzzle', start: 2 }; syncSchoten(w, scene, 10.02); assert.equal(w.coopSchotDbg, 2);
+  w.coopFigures[2].coopWapen = ''; w.coopFigures[2].coopFx = { type: 'muzzle', start: 3 }; syncSchoten(w, scene, 10.03); assert.equal(w.coopSchotDbg, 2, 'zonder wapen geen flits');
+  w.companion = { x: 1, y: 1, angle: 0, gz: 0, coopWapen: 'pistol', coopFx: { type: 'muzzle', start: 4 } }; syncSchoten(w, scene, 10.04); assert.equal(w.coopSchotDbg, 3);
+  w.companion.coopVoertuig = true; w.companion.coopFx = { type: 'muzzle', start: 5 }; syncSchoten(w, scene, 10.05); assert.equal(w.coopSchotDbg, 3, 'in een voertuig geen flits');
+  w.coopFigures = {}; syncSchoten(w, scene, 10.06); assert.equal(w.coopSchotDbg, 3, 'een speler die weg is, flitst niet meer');
+});
+
+t('elk wapen heeft een eigen model in de hand; vuisten verbergen het weer', () => {
+  const m = buildPersonMesh('#b33a3a', '#e8c39e', {});
+  for (const k of Object.keys(WEAPONS)) {
+    setHeldWeapon(m, k);
+    if (k === 'fists') { assert.equal(m.userData.gunKey, null); assert.equal(m.userData.muzzle, null); continue; }
+    assert.equal(m.userData.gunKey, k, k); assert.ok(m.userData.muzzle, k);
+    assert.equal(m.userData.guns[k].visible, true, k);
+  }
+  setHeldWeapon(m, 'pistol'); assert.equal(m.userData.guns.pistol.visible, true);
+  setHeldWeapon(m, null); assert.equal(m.userData.gunKey, null); assert.equal(m.userData.guns.pistol.visible, false);
 });
 
 console.log(`coopwapen_test: ${n}/${n} ok`);
