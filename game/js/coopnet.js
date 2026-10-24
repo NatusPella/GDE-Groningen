@@ -112,7 +112,9 @@ export function spelerRecord(world, b, slot) {
   return r;
 }
 
-// De treinen van de gewone dienstregeling (geen opdrachttreinen), met hun plek op de route, voor de gasten (#428).
+// De treinen voor de gasten (#428): de gewone dienstregeling, maar ook een trein die een speler zelf bestuurt of net
+// neergezet heeft (state 'player'/'parked'), want dat is juist de trein waar iedereen bij is: zonder hem zag een gast de
+// trein niet waar de gastheer in zat (#436). Alleen een opdrachttrein blijft van het verhaal (die tekent de gast zelf).
 // railway.js trekt three.js mee: main.js geeft de spoorwegen door (setCoopTreinen), zodat dit bestand in Node testbaar blijft.
 let rails = null;
 export function setCoopTreinen(r) { rails = r; }
@@ -122,9 +124,9 @@ function hostTreinen() {
   const routes = getRoutes(), uit = [];
   for (const t of getTrains()) {
     const i = routes.indexOf(t.route);
-    if (i < 0 || (t.state !== 'run' && t.state !== 'dwell')) continue;
+    if (i < 0 || t.state === 'mission') continue;
     const p = routePoint(t.route, t.c);
-    uit.push({ id: i, x: p[0], y: p[1], v: t.v * t.dir, halfLen: t.halfLen });
+    uit.push({ id: i, x: p[0], y: p[1], v: t.v * (t.dir || 1), halfLen: t.halfLen });
   }
   return uit;
 }

@@ -8,6 +8,14 @@ export const BOOT_SPRONG_M = 12;   // m: verder weg dan dit is een sprong
 
 const wikkel = (d) => Math.atan2(Math.sin(d), Math.cos(d));
 
+// De boot waar deze gast zelf op zit (coopnet.js zet world.coopBoot uit de snapshot): die tekenen we precies waar de host
+// hem heeft, zonder gladstrijken en zonder deining. De stoel en de camera van de gast komen uit diezelfde snapshot; een
+// boot die een paar tienden achterloopt schuift anders onder de speler weg (#436).
+export function eigenBoot(coopBoot, x, y) {
+  if (!coopBoot || !Number.isFinite(coopBoot.x) || !Number.isFinite(coopBoot.y) || !Number.isFinite(x) || !Number.isFinite(y)) return false;
+  return Math.hypot(x - coopBoot.x, y - coopBoot.y) < 0.5;
+}
+
 // st: het geheugen per boot ({} bij de eerste keer); geeft { x, y, angle }
 export function gladBoot(st, x, y, angle, snelheid, dt) {
   if (!st || !Number.isFinite(x) || !Number.isFinite(y)) return { x, y, angle };
