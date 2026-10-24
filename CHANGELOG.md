@@ -45,6 +45,11 @@ nieuwe functies, `y` voor alleen bugfixes.
 - Delfzijl: de winkelborden staan om het echte winkelmidden in plaats van om het profielhart, honderden meters verderop.
 - Dieren en voetgangers kijken naar de dichtstbijzijnde speler, ook in Samen spelen.
 
+- **Minigames: eigen HUD-thema.** Discgolf, pitch & putt, skatepark, kart en golf hebben een eigen titel, accentkleur en icoon op het bord, en golf een klassenmotief in de scorekaart.
+- **De midibus heeft een interieur.** Stoelen in rijen, haltestangen en reizigers die zitten of staan, zichtbaar door de ramen.
+- **Schepen varen een rechte koers.** Het vaarnet geeft een stabiele koers (60% minder roeractiviteit), een schip verschijnt alleen buiten je blikveld en grote schepen varen bij een haperend beeld nog even door.
+- **Benchmark toont het geheugen.** De resultaatkaart noemt de piek van de JS-heap (als je browser dat geeft), de controller kan de run annuleren en er is een doorlopende balansrun.
+
 ## [0.50.0] - 2026-10-24
 
 ### Nieuw
