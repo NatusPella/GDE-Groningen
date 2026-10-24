@@ -10,6 +10,7 @@
 //   lockPassage(lock)              seconds a boat spends in a lock (gates, level change), from locks.js
 //   createVaarNet(json)            the graph from the file
 //   routeVaar(net, from, to, kind) { nodes, edges, length, wait } the quickest route a boat kind can sail, or null
+//   stableRoute(pts)               a route's points as a helmsman steers them: jitter and jogs out, corners kept (#436)
 //
 // File format (game/vaarnet.json): nodes [x, y, type, name], type one of
 // 'haven', 'kruising', 'sluis', 'brug', 'zee', 'meer'; edges [a, b, length m,
@@ -196,14 +197,47 @@ export function nearestOnNet(net, x, y, maxD = 150, accept = null) {
 }
 
 // The points of a route, in order of sailing: each edge's polyline walked from the node
-// the route entered it at.
+// the route entered it at, steadied for a helmsman (stableRoute): a ship that chases every
+// vertex weaves (#436).
 export function routePoints(net, route) {
   const pts = [];
   route.edges.forEach((e, k) => {
     const from = route.nodes[k], line = e.a === from ? e.pts : e.pts.slice().reverse();
     for (const p of line) pts.push([p[0], p[1]]);
   });
-  return pts;
+  return stableRoute(pts);
+}
+
+// ------------------------------------------------------- a steady course
+
+// The net's polylines carry a vertex every few metres in places (the water rows they come
+// from) and a small jog where two edges meet. A ship steers at the first point that is more
+// than its arrival radius ahead (vehicle.js, followVaarTrip), so a vertex 5 m ahead turns
+// it towards a spot barely past its own bow: a long barge then weaves from bend to bend
+// (#436). stableRoute keeps the line's shape, drops the jogs and the near-duplicate
+// vertices, so the next point is far enough ahead to hold a course; a corner stays a corner.
+// tol: the most the line may move (m); a bigger deviation is a bend, not jitter.
+export const ROUTE_TOL = 3;
+
+export function stableRoute(pts, tol = ROUTE_TOL) {
+  if (!Array.isArray(pts) || pts.length < 3) return Array.isArray(pts) ? pts.slice() : [];
+  const keep = new Uint8Array(pts.length);
+  keep[0] = keep[pts.length - 1] = 1;
+  // Ramer-Douglas-Peucker, with a stack: a route to the Dollard has hundreds of points
+  const stack = [[0, pts.length - 1]];
+  while (stack.length) {
+    const [i0, i1] = stack.pop();
+    const [ax, ay] = pts[i0], [bx, by] = pts[i1];
+    const dx = bx - ax, dy = by - ay, L = Math.hypot(dx, dy) || 1e-9;
+    let maxD = -1, at = -1;
+    for (let i = i0 + 1; i < i1; i++) {
+      const d = Math.abs((pts[i][0] - ax) * dy - (pts[i][1] - ay) * dx) / L;
+      if (d > maxD) { maxD = d; at = i; }
+    }
+    if (maxD > tol && at > i0) { keep[at] = 1; stack.push([i0, at], [at, i1]); }
+  }
+  const out = pts.filter((_, i) => keep[i]);
+  return out.length >= 2 ? out : [pts[0], pts[pts.length - 1]];
 }
 
 // A trip for a boat at (x, y) heading `angle`: it joins the net at the edge end it points to
@@ -226,7 +260,7 @@ export function pickTrip(net, x, y, angle, kind, rng = Math.random, maxD = 150, 
     if (to === startNode) continue;
     const r = routeVaar(net, startNode, to, kind);
     if (!r || r.nodes.length < 2 || r.length > maxLength) continue;
-    return { name, length: r.length, wait: r.wait, pts: rest.concat(routePoints(net, r)) };
+    return { name, length: r.length, wait: r.wait, pts: stableRoute(rest.concat(routePoints(net, r))) };
   }
   return null;
 }
@@ -361,5 +395,5 @@ export function planVaarRoute(net, from, to, kind, { snapMax = 500, speed = 5 } 
   let wait = 0;
   for (const id of ids) { const kindN = net.nodes[id].type; if (kindN === 'sluis') wait += SLUICE_WAIT; else if (kindN === 'brug') wait += 15; }
   const length = Math.round(lenOf(pts, 0, pts.length - 1));
-  return { pts, length, wait, etaS: Math.round(length / speed + wait), nodes: ids };
+  return { pts: stableRoute(pts), length, wait, etaS: Math.round(length / speed + wait), nodes: ids };
 }
