@@ -1,5 +1,5 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-import { getScene, addCamTargetSource } from './scene3d.js';
+import { getScene, streamPending, addCamTargetSource } from './scene3d.js';
 import { facilitiesOf } from './facilities.js';
 import { addStaticCollider, removeProp } from './breakables.js';
 import { Vehicle, MODELS } from './vehicle.js';
@@ -25,6 +25,7 @@ const SITES = [
   { id: 'ossenmarkt', near: [-136, -269], within: 70, label: 'Parkeergarage', seed: 4181 },
 ];
 const PLAN_R = 420;          // vanaf hier wordt de plek van de poort gezocht (een stukje per beeld)
+const RETRY_S = 20;          // geen plek gevonden: na deze tijd opnieuw zoeken (de tegels zijn dan binnen)
 const STREAM_IN = 170;       // de poort wordt gebouwd binnen deze afstand
 const STREAM_OUT = 250;
 const PLAN_BUDGET_MS = 1.5;
@@ -461,6 +462,13 @@ function startPlan(site) {
   site.planGen = P.planGateSteps(gateFree, nearestCarRoad, c[0], c[1], { radius: 140, step: 3, maxRoad: 30, penalty: footPenalty, approach: approachFree });
 }
 
+// De kaart rond de hal is pas klaar als er niets meer te streamen is (scene3d.js): zoeken in een half ingeladen stad
+// vindt geen straat en levert geen poort op. Daarom begint de planner pas als de kaart stil is (#418).
+function mapQuiet() {
+  const sp = streamPending();
+  return sp.buildings + sp.roads === 0;
+}
+
 // de generator van garageplan.js, met de regels van deze kaart: liever niet op een voetpad of fietspad (voetgangers lopen er door)
 function footPenalty(f, probe) {
   let foot = 0;
@@ -472,13 +480,16 @@ function footPenalty(f, probe) {
 }
 
 function planStep(site) {
+  if (!mapQuiet()) return; // de tegels stromen nog in: nu zoeken vindt geen straat (#418)
   const until = performance.now() + PLAN_BUDGET_MS;
   while (performance.now() < until) {
     const r = site.planGen.next();
     if (r.done) {
       site.planGen = null;
-      site.planned = true;
       site.gate = r.value ? { x: r.value.x, y: r.value.y, angle: r.value.angle } : null;
+      // geen plek gevonden: niet voorgoed zonder poort blijven zitten, maar het later opnieuw proberen (#418)
+      site.planned = !!site.gate;
+      if (!site.planned) site.retryAt = (world.time || 0) + RETRY_S;
       if (typeof console !== 'undefined' && window.__garageLog) console.log('[garage] ' + site.id + ' gate ' + JSON.stringify(site.gate));
       return;
     }
@@ -500,7 +511,7 @@ export function initParkeergarages(w) {
     }
     if (!best || bd > s.within) continue;
     const hall = P.hallFrame(best.poly, [best.x, best.y], 0);
-    sites.push({ ...s, fac: best, hall, layout: P.hallLayout(), gate: null, planned: false, planGen: null, gateGroup: null, gateProps: [], hallGroup: null, hallProps: [], cars: [], mood: false });
+    sites.push({ ...s, fac: best, hall, layout: P.hallLayout(), gate: null, planned: false, planGen: null, retryAt: 0, gateGroup: null, gateProps: [], hallGroup: null, hallProps: [], cars: [], mood: false });
   }
   if (!sites.length) return;
   installMapHooks();
@@ -530,7 +541,7 @@ export function initParkeergarages(w) {
       }
       return n;
     },
-    plan: (id) => { const s = sites.find((q) => q.id === id); if (s && !s.planned && !s.planGen) startPlan(s); },
+    plan: (id) => { const s = sites.find((q) => q.id === id); if (s && !s.planned && !s.planGen) { s.retryAt = 0; startPlan(s); } },
     gatePoint: (id) => { const s = sites.find((q) => q.id === id); return s && s.gate ? { x: s.gate.x, y: s.gate.y, angle: s.gate.angle, zone: P.toWorld(s.gate, -2.4, 0), out: P.toWorld(s.gate, P.GATE.out.a, P.GATE.out.b) } : null; },
     hallPoint: (id) => { const s = sites.find((q) => q.id === id); return s ? { arrive: P.toWorld(s.hall, s.layout.arrive.u, s.layout.arrive.v), exit: P.toWorld(s.hall, 1.2, 0), frame: s.hall } : null; },
   };
@@ -574,7 +585,7 @@ export function updateParkeergarages(dt, w) {
   for (const s of sites) {
     const hc = P.toWorld(s.hall, P.HALL_L / 2, 0);
     const dHall = Math.hypot(focus.x - hc[0], focus.y - hc[1]);
-    if (!s.planned && !s.planGen && dHall < PLAN_R) startPlan(s);
+    if (!s.planned && !s.planGen && dHall < PLAN_R && (s.retryAt || 0) <= (w.time || 0)) startPlan(s);
     if (s.planGen) planStep(s);
     if (!s.gate) continue;
     const d = Math.hypot(focus.x - s.gate.x, focus.y - s.gate.y);
