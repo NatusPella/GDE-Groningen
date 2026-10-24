@@ -7,8 +7,8 @@ import { startAt, nearestLine } from './busroutes.js';
 import { spawnJobVehicle, pick } from './sidejobkit.js';
 import { queueHalte } from './haltefiguren.js';
 import { pushAudioEvent } from './pedgeom.js';
-import { makeRide, planRide, startRide, takeOverRide, updateRide, rideStop, stopPos } from './busride.js';
-import { project } from './busroutes.js';
+import { makeRide, planRide, startRide, takeOverService, updateRide, rideStop, stopPos } from './busride.js';
+import { project, makeRunner } from './busroutes.js';
 import { busCoopStart, busCoopTik, busCoopBetaal } from './coopbus.js';
 import { nieuweHalte } from './buscoop.js';
 import { makeBediening, voorligger, kleeft, stoot, waardering, tevredenWoord, ritPunten } from './busbestuur.js';
@@ -53,10 +53,17 @@ export default {
     // de dienst overnemen van de bus waar je al in zit (busboard3d.js, #396): die bus, die lijn, die richting
     const tk = c.takeover;
     if (tk) {
-      const ride = takeOverRide(tk.line, { dir: tk.dir, s: project(tk.line, tk.vehicle.x, tk.vehicle.y).s, max: MAX_STOPS });
-      if (!ride) return 'Geen halte meer vooruit op deze lijn';
+      const s = project(tk.line, tk.vehicle.x, tk.vehicle.y).s;
+      const dienst = takeOverService(tk.line, { dir: tk.dir, s, max: MAX_STOPS });
+      if (!dienst) return 'Deze bus staat bij de eindhalte: hier begint geen dienst meer';
+      if (dienst.keer) {
+        // aan het eind van de lijn: de bus keert om en rijdt de dienst terug (#424, #396). De bus-AI (en dus het bord en
+        // het haltescherm) gaat mee de andere kant op; hij staat stil zolang jij rijdt (vehicle.js).
+        c.data.keer = true;
+        tk.vehicle.busRun = makeRunner(tk.line, s, dienst.dir);
+      }
       c.data.line = tk.line;
-      c.data.pending = ride;
+      c.data.pending = dienst.ride;
       c.vehicle = tk.vehicle;
       return true;
     }
@@ -85,8 +92,9 @@ export default {
       koppelRit(c.vehicle.busBediend, d.ride);
       busCoopStart(c.world, c.vehicle, 0); // samen rijden: wie er aan boord zit doet mee (coopbus.js, #444)
       const nu = rideStop(d.ride), last = d.ride.table[d.ride.table.length - 1];
+      const mee = d.ride.onBoard; // reizigers die al in de bus zaten (#396): ze blijven zitten en tellen niet voor het loon
       c.timeLeft = last.arrive - d.ride.t + 120;
-      c.msg(`Dienst overgenomen: eerst ${nu.name}, dan ${last.name}.`, 3.5);
+      c.msg(`${d.keer ? 'Einde van de lijn: je rijdt de terugweg. ' : ''}Dienst overgenomen${mee ? ` met ${mee} reizigers aan boord` : ''}: eerst ${nu.name}, dan ${last.name}.`, 3.5);
       return;
     }
     const plan = planRide(d.line, c.vehicle.x, c.vehicle.y);
@@ -158,5 +166,11 @@ export default {
     };
   },
 
-  stop() {},
+  stop(c) {
+    // Een overgenomen bus (#396) is en blijft een bus van de wereld: het bord gaat terug naar zijn eigen lijn, de
+    // bus-AI rijdt weer (vehicle.js) en hij komt niet als "leftover" van de bijbaan in de opruimlijst van de volgende
+    // klus (sidejobs.js cleanup). De bus blijft dus staan waar je hem achterlaat.
+    const v = c.vehicle;
+    if (v && c.takeover && c.takeover.vehicle === v) { v.rideLine = null; c.vehicle = null; }
+  },
 };
