@@ -68,6 +68,27 @@ export function routeHitches(shots) {
   return out.sort((a, b) => b.share - a.share || b.slow33 - a.slow33);
 }
 
+// The JS heap in MB (#379), or 0 when the browser does not expose it (Firefox
+// and Safari have no performance.memory; Electron and Chrome do). It is the
+// heap of the whole page, not only the game, and never the GPU memory: the
+// card says so, so nobody reads it as the memory the game needs.
+export function heapMb(perf = typeof performance !== 'undefined' ? performance : null) {
+  const b = perf && perf.memory && perf.memory.usedJSHeapSize;
+  return Number.isFinite(b) && b > 0 ? b / 1048576 : 0;
+}
+
+// The highest of the samples (the start, a sample every second, the end).
+export function heapPeak(samples) {
+  return (samples || []).reduce((m, x) => (Number.isFinite(x) && x > m ? x : m), 0);
+}
+
+// A size for the result card in Dutch: 597 MB, 1,9 GB (one decimal above a GB).
+export function memText(mb) {
+  const m = Number(mb);
+  if (!(m > 0)) return '';
+  return m >= 1024 ? `${(m / 1024).toFixed(1).replace('.', ',')} GB` : `${Math.round(m)} MB`;
+}
+
 // Button-to-frame latency samples in ms (hitchprobe.js): average, 95th percentile and the worst.
 export function latencyStats(samples) {
   const v = (samples || []).filter((x) => Number.isFinite(x) && x >= 0);

@@ -67,5 +67,24 @@ ok(/## Akte 1/.test(text) && /\| M04 \|/.test(text) && /## Akten onderling/.test
 ok(/M04: 2 keer opnieuw/.test(text), 'het rapport noemt de afwijking');
 fs.rmSync(dir, { recursive: true, force: true });
 
+// de doorlopende balansrun (#312, #379): één run zonder stop na één akte, per akte uitgesplitst
+{
+  const { akteVanStap, splitAkten, rapportDoorlopend } = await import('./bot/balans.mjs');
+  ok(akteVanStap('M01') === 'kop' && akteVanStap('M06') === 'kop' && akteVanStap('M07') === 'romp' && akteVanStap('M12') === 'staart' && akteVanStap('M17') === 'zuid' && akteVanStap('M22') === 'ontzet' && akteVanStap('M26') === 'ontzet' && akteVanStap('T1') === null, 'de akte van een missiestap');
+  const door = [];
+  const put = (id, t0, t1) => { door.push({ t: t0, type: 'step', event: 'begin', id, label: 'Titel ' + id }, { t: t1, type: 'step', event: 'end', id, outcome: 'klaar', wall: t1 - t0, dist: 100 }); };
+  put('M01', 0, 100); put('M02', 100, 200); put('T1', 200, 500); put('M07', 500, 700); put('M08', 700, 900);
+  const per = splitAkten(stepsOf(door));
+  ok(Object.keys(per).join() === 'kop,romp' && per.kop.length === 2 && per.romp.length === 3, 'een doorlopende run splitst in akten, de reisstap bij de akte erna', Object.keys(per).map((k) => [k, per[k].map((s) => s.id)]));
+  ok(per.romp[0].id === 'T1', 'de reisstap tussen de akten staat bij akte 2');
+  const ddir = fs.mkdtempSync(path.join(os.tmpdir(), 'balans-door-'));
+  fs.writeFileSync(path.join(ddir, 'events.jsonl'), door.map((e) => JSON.stringify(e)).join('\n'));
+  fs.writeFileSync(path.join(ddir, 'result.json'), JSON.stringify({ result: 'KLAAR', gameSeconds: 900, wallSeconds: 400 }));
+  const dt = rapportDoorlopend(ddir).text;
+  ok(/## Akte 1/.test(dt) && /## Akte 2/.test(dt) && !/## Akte 3/.test(dt), 'het rapport heeft alleen de akten die de run haalde');
+  ok(/\| T1 \|/.test(dt) && /zonder stop tussen de akten/.test(dt) && /## Akten onderling/.test(dt), 'de doorlopende run noemt de reisstap en de aktenvergelijking');
+  fs.rmSync(ddir, { recursive: true, force: true });
+}
+
 console.log(`balans_test: ${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);
