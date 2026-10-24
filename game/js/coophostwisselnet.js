@@ -114,7 +114,7 @@ export function kanOverdragen(world, slot) {
   const sp = n.hub.roster.spelers.find((s) => s.slot === slot);
   if (!Number.isInteger(slot) || slot < 1 || !sp || sp.verbinding !== 'ok') return { ok: false, tekst: 'Die speler is nu niet goed bereikbaar. Jij houdt het spel.' };
   const k = N.canJoin(world); if (!k.ok) return { ok: false, tekst: k.reason }; // je sluit straks zelf als gast aan
-  if (n.sceneNu && !sceneLeeg(n.sceneNu)) return { ok: false, tekst: 'Wacht tot het filmpje voorbij is.' };
+  if (n.sceneNu && !sceneLeeg({ ...n.sceneNu, pauze: false })) return { ok: false, tekst: 'Wacht tot het filmpje voorbij is.' }; // de eigen pauze telt niet: de knop staat in het pauzemenu
   return { ok: true };
 }
 
