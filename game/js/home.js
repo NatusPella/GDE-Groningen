@@ -48,7 +48,7 @@ import { isMissionActive, isNight, getMissionDefs, setHomePlace } from './missio
 import { refreshDayNight } from './daynight.js';
 import { recordStat, unlockAchievement } from './achievements.js';
 import { clearDrunk } from './drunk.js';
-import { buildHomeExterior3D, buildGarageShell, buildHomeDressing, setGarageCutaway, setGarageDoor, disposeHomeExterior, buildLowerTower3D, buildFlat3D, setFlatFacade } from './home3d.js';
+import { buildHomeExterior3D, buildGarageShell, buildHomeDressing, setGarageCutaway, setGarageDoor, disposeHomeExterior, buildLowerTower3D, buildFlat3D, setFlatFacade, buildSafehouseMarker3D } from './home3d.js';
 import { registerHelipad } from './heliflight.js';
 import { isPadelActive } from './padel.js';
 import { isVillageMiniActive } from './dorpsuitjes.js';
@@ -61,6 +61,9 @@ const downKey = () => keyWord(getSettings().keyBinds, 'control');
 import { deliverFurniture, furnitureSkip, attachFurniture3D, leaveFurniture, furnitureSolids, furnitureStockSolids, furnitureBedUses, furnitureUses, furnitureFocus, furniturePrompt, useFurniture, updateFurniture, updateFurnitureInside, companionSeat, furnitureSlept, fridgeCooldown, fridgePerk } from './furniture.js';
 import { playerBusy } from './busy.js';
 import { groepAkkoord } from './coopgroep.js';
+import { zetDeelHaken } from './coopbezit.js';
+import { getIndeling } from './gebiedenlive.js';
+import { puntInGebied } from './grenzen.js';
 
 const NEAR_M = 200;
 const FAR_M = 260;
@@ -491,10 +494,69 @@ function dressingSpots(map) {
   return out;
 }
 
+// --- de panden van gasten (#449) -------------------------------------------------
+//
+// Een gast laat zijn pand (de deur van zijn safehouse, boerderij of huis) in de
+// sessie zetten. De host controleert de plek op zijn eigen kaart: het pand hoort
+// bij het gebied van zijn sleutel ('h:groningen') en de deur staat op droge
+// grond. Daarna zet hij alleen een deur met een markering neer. Er gaat niets van
+// de save van de gast of van de host in: geen interieur, geen inrichting, geen
+// sleutel en geen geld, en de deur gaat weg als de eigenaar weggaat.
+const PAND_GEBIED_M = 900; // het pand blijft bij zijn gebied (net als safehuisplek.js)
+const gastPanden = new Map(); // 'slot|id' -> deur in de wereld van de host
+
+const spelerNaam = (world, slot) => {
+  const r = (world.coopRoster || []).find((x) => x && x.slot === slot);
+  return (r && r.naam) || 'een gast';
+};
+
+// De plek die de host goedkeurt (coopbezit.js bezorgPandHost roept dit aan).
+function pandPlek(world, pand) {
+  const map = world && world.map;
+  if (!map || !Number.isFinite(pand.x) || !Number.isFinite(pand.y) || !Number.isFinite(pand.ang)) return null;
+  const ind = getIndeling();
+  const g = (ind && ind.gebied.get(pand.id.slice(2))) || null;
+  if (!g || !g.grens) return null; // een sleutel die niet bij een gebied van deze wereld hoort
+  if (Math.hypot(pand.x - g.grens.c[0], pand.y - g.grens.c[1]) > PAND_GEBIED_M && !puntInGebied(g.grens, pand.x, pand.y)) return null;
+  if (isInWater(map, pand.x, pand.y)) return null;
+  const gz = map.groundHeightAt ? map.groundHeightAt(pand.x, pand.y, 0) : 0;
+  if (!Number.isFinite(gz)) return null;
+  return { x: pand.x, y: pand.y, ang: pand.ang, gz };
+}
+
+// Alleen de deur en een markering: het bord van de eigenaar laten we weg, want
+// dit is niet het huis van de host.
+function zetGastPand(world, slot, pand) {
+  const scene = getScene && getScene();
+  if (!scene) return null;
+  const key = slot + '|' + pand.id;
+  if (gastPanden.has(key)) return gastPanden.get(key);
+  const g = buildSafehouseMarker3D({ x: pand.x, y: pand.y, ang: pand.ang, eigen: true, kleur: '#2f6f4f', naam: `Huis van ${spelerNaam(world, slot)}` });
+  if (g.userData.sign) g.userData.sign.visible = false;
+  g.position.y = (pand.gz || 0) + 0.02;
+  g.name = 'gastpand';
+  scene.add(g);
+  gastPanden.set(key, g);
+  return g;
+}
+
+// De eigenaar gaat weg (of de sessie stopt): zijn deur gaat mee terug.
+function wegGastPanden(slot = null) {
+  for (const [key, g] of [...gastPanden]) {
+    if (slot !== null && key.slice(0, key.indexOf('|')) !== String(slot)) continue;
+    g.removeFromParent();
+    disposeHomeExterior(g); // deelt textuur en materiaal met de rest van het spel
+    gastPanden.delete(key);
+  }
+}
+
 // --- init ----------------------------------------------------------------------
 
 export function initHome(w) {
   world = w;
+  wegGastPanden();
+  // samen spelen (#449): de host zet de panden van gasten neer, alleen als deur
+  zetDeelHaken({ pand: pandPlek, pandZet: zetGastPand, pandWeg: (ww, slot) => wegGastPanden(slot) });
   if (!home) return;
   // walls: short collider pieces (props are looked up by their centre)
   for (const [x1, y1, x2, y2] of home.garage.walls) {

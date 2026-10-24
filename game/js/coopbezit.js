@@ -1,35 +1,41 @@
-// Samen spelen (#449): je eigen voertuig meenemen naar de wereld van een ander
-// ("bezorgen en delen"). Het voertuig blijft in de eigen save van de eigenaar;
-// de gastheer zet een kopie in zijn wereld met dezelfde kleur, onderdelen en
-// schade, en de snapshot laat hem bij iedereen met het echte model zien (#428).
-// De host bewaart de kopie niet: ze gaat weg als de eigenaar weggaat en staat
-// nooit in zijn collectie of zijn save.
+// Samen spelen (#449): je eigen voertuig of pand meenemen naar de wereld van een
+// ander ("bezorgen en delen"). Het voertuig blijft in de eigen save van de
+// eigenaar; de gastheer zet een kopie in zijn wereld met dezelfde kleur,
+// onderdelen en schade, en de snapshot laat hem bij iedereen met het echte model
+// zien (#428). Van een pand zet de host alleen een deur met een markering neer:
+// geen interieur, geen sleutel en niets in zijn save of die van de gast. Alles
+// gaat weg als de eigenaar weggaat en staat nooit in de collectie van de host.
 //
 // Dit bestand is de regel, puur: geen three.js en geen wereld van de host.
-// main.js zet de wereldhaken met zetDeelHaken; de testbank zet nepversies.
-// De gast vraagt het aan in ownedvehicles.js (deliverOwnedVehicle ->
-// world.coopBezitVraag), de host voert het uit in bezorgHost (coopnet.js,
-// bericht 'bezorg'), en magGebruiken bepaalt wie erin mag (coopbestuur.js).
+// main.js zet de wereldhaken met zetDeelHaken; home.js doet de pandhaken en de
+// testbank zet nepversies. De gast vraagt het aan in ownedvehicles.js
+// (deliverOwnedVehicle -> world.coopBezitVraag) en voor een pand met pandVraag;
+// de host voert het uit in bezorgHost (coopnet.js, bericht 'bezorg'), en
+// magGebruiken bepaalt wie erin mag (coopbestuur.js).
 import { lichaamVan, magGebruiken } from './coopbestuur.js';
 
-// Rechten per voertuig. 'vrienden' komt erbij zodra er een vriendenlijst is (#449);
-// tot die tijd is het een keuze tussen alleen ik en iedereen in de sessie.
+// Rechten per voertuig of pand. 'vrienden' komt erbij zodra er een vriendenlijst
+// is (#449); tot die tijd is het een keuze tussen alleen ik en iedereen in de sessie.
 export const RECHTEN = ['ik', 'iedereen'];
 export const RECHT_TEKST = { ik: 'alleen ik', iedereen: 'iedereen' };
 export const STANDAARD_RECHT = 'iedereen'; // meenemen is delen; alleen ik houdt hem voor jezelf
+export const STANDAARD_PAND_RECHT = 'ik';  // je huis is van jou, tenzij je het deelt
 export const MAX_BEZORG = 2;   // per speler tegelijk in de sessie
+export const MAX_PANDEN = 3;
 export const MAX_UPGRADES = 8;
 export const MAX_DENTS = 12;
 export const SLEUTEL = /^[a-z0-9_]{1,24}$/; // een sleutel uit de garage ('hero' of een winkel)
+export const PAND_SLEUTEL = /^h:(pv|gm|wp|wk|bu):[a-z0-9]{1,24}$/i; // een huis uit je profiel ('h:wp:WP1017')
+export const SOORTEN = ['voertuig', 'pand'];
 const HEX = /^#[0-9a-f]{6}$/i;
 
-// De stand van het delen in deze sessie: de rechten van je eigen voertuigen en,
-// bij de host, wat elke speler al bezorgd heeft.
-export const nieuweDeelStaat = () => ({ rechten: {}, bezorgd: {} });
+// De stand van het delen in deze sessie: de rechten van je eigen voertuigen en
+// panden en, bij de host, wat elke speler al bezorgd heeft.
+export const nieuweDeelStaat = () => ({ rechten: {}, bezorgd: {}, panden: {} });
 
-export function rechtVan(staat, id) {
+export function rechtVan(staat, id, standaard = STANDAARD_RECHT) {
   const r = staat && staat.rechten ? staat.rechten[id] : null;
-  return RECHTEN.includes(r) ? r : STANDAARD_RECHT;
+  return RECHTEN.includes(r) ? r : standaard;
 }
 
 // Geeft het nieuwe recht, of null bij onzin (dan blijft het zoals het was).
@@ -45,15 +51,23 @@ export const wisselRecht = (recht) => (recht === 'ik' ? 'iedereen' : 'ik');
 // Hier alleen doorgeven: andere modules halen hem nog steeds bij dit bestand.
 export { magGebruiken };
 
-// Wat er van een eigen voertuig over de lijn gaat (ownedvehicles.js bezorgGegevens):
-// alleen gegevens, geen objecten en niets uit de save. Wat de host leest wordt hier
-// opnieuw gecontroleerd; een gast die onzin stuurt, verandert niets.
+// Wat er van een eigen voertuig of pand over de lijn gaat: alleen gegevens, geen
+// objecten en niets uit de save. Wat de host leest wordt hier opnieuw
+// gecontroleerd; een gast die onzin stuurt, verandert niets.
 export function leesBezorg(body) {
   if (!body || typeof body !== 'object' || body.k !== 'bezorg') return null;
+  if (body.soort === 'pand') return leesPand(body);
+  // een ouder bericht zonder soort is een voertuig (#449)
+  if (body.soort !== undefined && body.soort !== 'voertuig') return null;
+  return leesVoertuig(body);
+}
+
+function leesVoertuig(body) {
   if (typeof body.id !== 'string' || !SLEUTEL.test(body.id)) return null;
   const ups = Array.isArray(body.upgrades) ? body.upgrades.filter((u) => typeof u === 'string' && SLEUTEL.test(u)).slice(0, MAX_UPGRADES) : [];
   const dents = Array.isArray(body.dents) ? body.dents.filter((d) => Array.isArray(d) && d.length === 3 && d.every(Number.isFinite)).map((d) => d.map((n) => Math.max(-2, Math.min(2, n)))).slice(0, MAX_DENTS) : [];
   return {
+    soort: 'voertuig',
     id: body.id,
     color: typeof body.color === 'string' && HEX.test(body.color) ? body.color : null,
     upgrades: ups,
@@ -64,11 +78,35 @@ export function leesBezorg(body) {
   };
 }
 
-export function bezorgEvent(g, recht) {
+// Een pand gaat alleen op naam en plek over de lijn: geen interieur, geen
+// inrichting, geen sleutel en geen geld. De host controleert de plek op zijn
+// eigen kaart (home.js) en zet er alleen een deur met een bord neer.
+function leesPand(body) {
+  if (typeof body.id !== 'string' || !PAND_SLEUTEL.test(body.id)) return null;
+  const x = Number(body.x), y = Number(body.y), ang = Number(body.ang);
+  if (![x, y, ang].every(Number.isFinite)) return null;
+  if (Math.abs(x) > 100000 || Math.abs(y) > 100000) return null;
   return {
-    k: 'bezorg', id: g.id, color: g.color || null, upgrades: g.upgrades || [],
+    soort: 'pand', id: body.id, x, y, ang: hoek(ang),
+    recht: RECHTEN.includes(body.recht) ? body.recht : STANDAARD_PAND_RECHT,
+  };
+}
+
+const hoek = (a) => (((a % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2));
+
+export function bezorgEvent(g, recht) {
+  if (g && g.soort === 'pand') return pandEvent(g, recht);
+  return {
+    k: 'bezorg', soort: 'voertuig', id: g.id, color: g.color || null, upgrades: g.upgrades || [],
     dents: g.dents || [], health: g.health, flat: !!g.flat,
     recht: RECHTEN.includes(recht) ? recht : STANDAARD_RECHT,
+  };
+}
+
+export function pandEvent(p, recht) {
+  return {
+    k: 'bezorg', soort: 'pand', id: p.id, x: p.x, y: p.y, ang: p.ang,
+    recht: RECHTEN.includes(recht) ? recht : STANDAARD_PAND_RECHT,
   };
 }
 
@@ -85,9 +123,27 @@ export function bezorgVraag(world, g) {
   return { ok: true, tekst: `Wie het spel opende zet je ${naam} bij je neer.` };
 }
 
-// Mag deze speler dit voertuig nog bezorgen? De host houdt de telling bij.
+// De gast: vraag de gastheer om je pand (de deur van je safehouse, boerderij of
+// huis) in de sessie te zetten. Alleen de plek gaat mee; je interieur, je
+// inrichting en je sleutel blijven in je eigen save.
+export function pandVraag(world, p) {
+  const n = world && world.coopNet;
+  if (!n || n.role !== 'client' || !n.session || !n.session.sendEvent) return { ok: false, tekst: 'Je speelt niet in een sessie.' };
+  const pand = leesPand({ k: 'bezorg', soort: 'pand', id: p && p.id, x: p && p.x, y: p && p.y, ang: p && p.ang, recht: p && p.recht });
+  if (!pand) return { ok: false, tekst: 'Dat pand heb je niet.' };
+  if (!n.session.sendEvent(pandEvent(pand, rechtVan(world.coopBezit, pand.id, STANDAARD_PAND_RECHT)))) return { ok: false, tekst: 'Wie het spel opende is even niet bereikbaar.' };
+  return { ok: true, tekst: 'Wie het spel opende zet je pand in de sessie.' };
+}
+
+// Mag deze speler dit voertuig of pand nog bezorgen? De host houdt de telling bij.
 export function bezorgControle(staat, slot, v) {
-  if (!(slot > 0)) return { ok: false, tekst: 'Alleen een gast brengt een eigen voertuig mee.' };
+  if (!(slot > 0)) return { ok: false, tekst: v && v.soort === 'pand' ? 'Alleen een gast brengt een eigen pand mee.' : 'Alleen een gast brengt een eigen voertuig mee.' };
+  if (v && v.soort === 'pand') {
+    const panden = (staat && staat.panden && staat.panden[slot]) || [];
+    if (panden.includes(v.id)) return { ok: false, tekst: 'Dat pand staat al in de sessie.' };
+    if (panden.length >= MAX_PANDEN) return { ok: false, tekst: `Je kunt hooguit ${MAX_PANDEN} eigen panden tegelijk meenemen.` };
+    return { ok: true, tekst: '' };
+  }
   const lijst = (staat && staat.bezorgd && staat.bezorgd[slot]) || [];
   if (lijst.includes(v.id)) return { ok: false, tekst: 'Dat voertuig staat al in de sessie.' };
   if (lijst.length >= MAX_BEZORG) return { ok: false, tekst: `Je kunt hooguit ${MAX_BEZORG} eigen voertuigen tegelijk meenemen.` };
@@ -97,8 +153,10 @@ export function bezorgControle(staat, slot, v) {
 // De wereldhaken: spec(key) -> spec (ownedvehicles.js eigenSpec), plek(world, x, y,
 // model, opts) -> { x, y, angle } (ownedvehicles.js findParkingSpot) en
 // maak(world, gegevens, x, y, angle) -> voertuig (shops.js spawnSharedVehicle).
-// main.js zet ze; de testbank zet nepversies.
-const haken = { spec: null, plek: null, maak: null };
+// Voor een pand: pand(world, p) -> { x, y, gz } | null (de plek op de kaart van de
+// host), pandZet(world, slot, p) -> marker | null en pandWeg(world, slot).
+// main.js zet de voertuighaken, home.js de pandhaken; de testbank zet nepversies.
+const haken = { spec: null, plek: null, maak: null, pand: null, pandZet: null, pandWeg: null };
 export function zetDeelHaken(h) { Object.assign(haken, h || {}); }
 
 const meld = (world, slot, tekst) => { if (world.coopMeld) world.coopMeld(slot, tekst); else if (world.addMessage) world.addMessage(tekst, 4); };
@@ -123,6 +181,7 @@ export function bezorgHost(world, slot, body) {
   if (!n || n.role !== 'host' || !(slot >= 1)) return false;
   const v = leesBezorg(body);
   if (!v) return false;
+  if (v.soort === 'pand') return bezorgPandHost(world, slot, v);
   const staat = world.coopBezit || (world.coopBezit = nieuweDeelStaat());
   const c = bezorgControle(staat, slot, v);
   if (!c.ok) { meld(world, slot, c.tekst); return false; }
@@ -145,10 +204,33 @@ export function bezorgHost(world, slot, body) {
   return true;
 }
 
+// De host zet het pand van een gast in de sessie: alleen de deur met een
+// markering, op de plek die zijn eigen kaart goedkeurt. Er gaat niets van de
+// save van de gast of van de host in: geen interieur, geen inrichting, geen
+// sleutel en geen geld. De deur gaat weg als de eigenaar weggaat.
+export function bezorgPandHost(world, slot, p) {
+  const staat = world.coopBezit || (world.coopBezit = nieuweDeelStaat());
+  const c = bezorgControle(staat, slot, p);
+  if (!c.ok) { meld(world, slot, c.tekst); return false; }
+  if (!lichaamVan(world, slot)) return false;
+  const plek = haken.pand ? haken.pand(world, p) : null;
+  if (!plek) { meld(world, slot, 'Daar kan je pand niet staan.'); return false; }
+  const zet = haken.pandZet;
+  const marker = zet ? zet(world, slot, { ...p, ...plek }) : null;
+  if (!marker) { meld(world, slot, 'De deur past daar niet.'); return false; }
+  (staat.panden[slot] || (staat.panden[slot] = [])).push(p.id);
+  meld(world, slot, `Je pand staat in de sessie.${p.recht === 'ik' ? ' Alleen jij hebt de sleutel.' : ' De anderen mogen er ook in.'}`);
+  meldAnderen(world, slot, `${spelerNaam(world, slot)} heeft een pand in deze sessie.`);
+  return true;
+}
+
 // De eigenaar gaat weg (of de sessie stopt): zijn voertuig gaat mee terug. Wie er
 // op dat moment in rijdt, stapt eerst uit (uitstappen: (slot) => ... van coopnet).
+// Zijn panden gaan ook weg: alleen de deur en de markering van de host.
 export function bezorgWeg(world, slot, uitstappen = null) {
   if (world.coopBezit && world.coopBezit.bezorgd) delete world.coopBezit.bezorgd[slot];
+  if (world.coopBezit && world.coopBezit.panden) delete world.coopBezit.panden[slot];
+  if (haken.pandWeg) haken.pandWeg(world, slot);
   if (!Array.isArray(world.vehicles)) return 0;
   let n = 0;
   for (let i = world.vehicles.length - 1; i >= 0; i--) {
@@ -162,7 +244,11 @@ export function bezorgWeg(world, slot, uitstappen = null) {
 }
 
 export function bezorgAllesWeg(world, uitstappen = null) {
-  const slots = new Set(Object.keys((world.coopBezit && world.coopBezit.bezorgd) || {}).map(Number));
+  const staat = world.coopBezit || {};
+  const slots = new Set([
+    ...Object.keys(staat.bezorgd || {}),
+    ...Object.keys(staat.panden || {}),
+  ].map(Number));
   for (const v of world.vehicles || []) if (v && v.coopBezit) slots.add(v.coopBezit.slot);
   let n = 0;
   for (const s of slots) n += bezorgWeg(world, s, uitstappen);
