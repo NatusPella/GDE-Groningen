@@ -15,7 +15,7 @@
 //     (the host of Samen spelen picks the game to play with); an empty card calls onNew() as usual.
 import * as S from './saveslots.js';
 import { MAX_SLOTS } from './storagekeys.js';
-import { saveGame, loadSlot, readSave, bindSlot, storySummary, onThumbKept } from './savegame.js';
+import { saveGame, loadSlot, readSave, bindSlot, storySummary, onThumbKept, coopSessieLoopt, COOP_LADEN_TEKST, COOP_NIEUW_TEKST, COOP_WISSEN_TEKST } from './savegame.js';
 
 const DESKTOP = typeof window !== 'undefined' && window.gdeDesktop && window.gdeDesktop.isDesktop ? window.gdeDesktop : null;
 
@@ -258,6 +258,7 @@ export function openSaveSlots(opts = {}) {
     if (act === 'close') { close(); return; }
     if (act === 'back') { const m = over && over.n; const nf = over && over.kind === 'newfull'; over = null; render(nf ? { newcard: true } : { more: m }); return; }
     if (act === 'new-ask') { over = { n: 0, kind: 'newfull' }; render(); return; }
+    if ((act === 'newfull-ok' || (act === 'new' && mode === 'start')) && coopSessieLoopt(world)) { say(COOP_NIEUW_TEKST); return; }
     if (act === 'newfull-ok') { close(() => { if (opts.onNew) opts.onNew(); }); return; }
     if (act === 'new') {
       if (mode === 'start') { close(() => { if (opts.onNew) opts.onNew(); }); return; }
@@ -271,6 +272,7 @@ export function openSaveSlots(opts = {}) {
     }
     if (act === 'import') { file.value = ''; file.click(); return; }
     if (act === 'load' && cur) {
+      if (coopSessieLoopt(world)) { say(COOP_LADEN_TEKST); return; }
       sel = cur.n;
       if (opts.pick) {
         if (!readSave(cur.n)) { say('Dit opgeslagen spel kan niet geladen worden.'); return; }
@@ -325,9 +327,11 @@ export function openSaveSlots(opts = {}) {
       render({ more: cur.n });
       return;
     }
-    if (act === 'delete' && cur) { over = { n: cur.n, kind: 'delete' }; render(); return; }
+    if (act === 'delete' && cur) {
+      if (cur.active && coopSessieLoopt(world)) { over = null; message = COOP_WISSEN_TEKST; render({ more: cur.n }); return; } over = { n: cur.n, kind: 'delete' }; render(); return; }
     if (act === 'delete-ok' && cur) {
       over = null;
+      if (cur.active && coopSessieLoopt(world)) { message = COOP_WISSEN_TEKST; render(); return; }
       message = S.deleteSlot(null, cur.n) ? 'Opgeslagen spel verwijderd.' : 'Verwijderen mislukt.';
       render();
     }

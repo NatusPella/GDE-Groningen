@@ -85,16 +85,16 @@ t('de speelklok loopt gelijk met de gastheer voor alle drie de gasten', () => {
   for (const g of s.gs) assert.ok(Math.abs(((g.gw.clock - s.hw.clock + 36) % 24) - 12) < 0.3, 'klok ' + g.gw.clock + ' tegen ' + s.hw.clock);
 });
 
-t('geld en beloningen: missies en bijbanen leveren elke verbonden gast de helft, in zijn eigen portemonnee; wie weg is krijgt niets', () => {
+t('geld en beloningen: missies en bijbanen worden gelijk verdeeld met samenwerkingsbonus (#452), in de eigen portemonnee; wie weg is krijgt niets', () => {
   const s = avond(3, { hostExtra: { money: 500 } }); s.step(3);
   assert.equal(typeof s.hw.coopDeel, 'function', 'de gastheer zet de haak voor missies, bijbanen en prijzen');
-  s.hw.coopDeel(1000); s.step(1);
-  assert.deepEqual(s.gs.map((g) => g.gw.money), [500, 500, 500]);
-  assert.deepEqual(s.gs.map((g) => g.gw.coopVerdiend), [500, 500, 500], 'bijgehouden voor de eigen save van elke gast');
-  assert.equal(s.hw.money, 500, 'de gastheer krijgt zijn geld van de missie zelf');
+  s.hw.money += 1000; s.hw.coopDeel(1000); s.step(1); // de missie gaf de gastheer 1000; x 1,5 over vier spelers is 375 elk
+  assert.deepEqual(s.gs.map((g) => g.gw.money), [375, 375, 375]);
+  assert.deepEqual(s.gs.map((g) => g.gw.coopVerdiend), [375, 375, 375], 'bijgehouden voor de eigen save van elke gast');
+  assert.equal(s.hw.money, 875, 'de gastheer krijgt hetzelfde deel als elke gast (500 + 375)');
   s.gs[2].link.cut(); s.step(8);
-  s.hw.coopDeel(300); s.step(1);
-  assert.deepEqual(s.gs.map((g) => g.gw.money), [650, 650, 500], 'de speler die weg is mist het');
+  s.hw.money += 300; s.hw.coopDeel(300); s.step(1); // drie spelers: 450 gedeeld door drie
+  assert.deepEqual(s.gs.map((g) => g.gw.money), [525, 525, 375], 'de speler die weg is mist het');
   assert.equal(N.deelMetGasten(s.hw, 1), 0, 'een bedrag van 1 geeft geen halve euro');
   assert.equal(N.deelMetGasten(s.gs[0].gw, 100), 0, 'een gast deelt niets uit');
 });

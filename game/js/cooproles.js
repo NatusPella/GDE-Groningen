@@ -63,6 +63,10 @@ export function decider(rule, starter, alive = [true, true]) {
   return alive[pick] ? pick : other(pick);
 }
 
+// Een opdracht faalt voor iedereen pas als alle meespelers uitgeschakeld zijn (#452). alive: per meespeler of hij nog staat
+// (de gastheer als hij net is neergegaan of opgepakt: false). Zonder meespelers is niemand over: dan faalt de opdracht zoals altijd.
+export const teamDown = (alive) => !(Array.isArray(alive) && alive.some(Boolean));
+
 // Missiestatus: de host is leidend; clients krijgen dit object als geheel.
 export function createMission(id, humans = 2) {
   return { id, stage: 0, state: 'run', present: [true, true], humans, kills: [0, 0], score: 0, medal: null };
