@@ -21,6 +21,12 @@
     { "file": "Trots_op_mien_grond.mp3", "stations": ["gmusic"], "time": "day" },
     { "file": "Koplampen_in_de_Mist.mp3", "stations": ["gmusic", "nachtstreek"], "time": "night" },
     { "file": "Fietsend_door_de_Ochtend.mp3", "stations": ["gmusic"], "time": "day", "nieuw": true },
-    { "file": "Zonlicht_in_het_Noorderplantsoen.mp3", "stations": ["gmusic"], "time": "day", "nieuw": true }
+    { "file": "Zonlicht_in_het_Noorderplantsoen.mp3", "stations": ["gmusic"], "time": "day", "nieuw": true },
+    { "file": "Letste_bus_noar_nargens.mp3", "stations": ["gmusic", "nachtstreek"], "time": "night", "nieuw": true },
+    { "file": "Kasseien_bij_Middernacht.mp3", "stations": ["gmusic", "nachtstreek"], "time": "night", "nieuw": true },
+    { "file": "Zilverglans_op_het_Asfalt.mp3", "stations": ["gmusic", "nachtstreek"], "time": "night", "nieuw": true },
+    { "file": "Schaduwen_bij_de_steiger.mp3", "stations": ["gmusic", "nachtstreek"], "time": "night", "nieuw": true },
+    { "file": "De_Zwaan_sluut.mp3", "stations": ["gmusic", "nachtstreek"], "time": "night", "nieuw": true },
+    { "file": "Hooge_Lucht.mp3", "stations": ["gmusic", "nachtstreek"], "time": "night", "nieuw": true }
   ]
 }

@@ -7,6 +7,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 ## [Unreleased]
 
 ### Nieuw
+- Zes nieuwe nummers op de radio, vooral voor de nacht (Nachtstreek): Letste bus noar nargens, Kasseien bij Middernacht, Zilverglans op het Asfalt, Schaduwen bij de steiger, De Zwaan sluut en Hooge Lucht.
 - Samen een bus rijden: medespelers stappen in de lijnbus en zitten op een stoel of staan in het gangpad, voor iedereen te zien, met de reizigers van het spel eromheen. De chauffeur rijdt (het stuur geven kan met Y), een tweede speler is hulpje: die opent en sluit de deuren met O en valideert met E de kaartjes van wie instapt. Elke halte wordt gelijk verdeeld met samenwerkingsbonus; tevredenheid telt voor allen. Wie na het begin van de dienst instapt rijdt mee zonder rol en deel. Valt de chauffeur weg, dan neemt een medespeler het stuur of remt de bus veilig af.
 - Op een controller en met aanraking bedien je in een bus de deuren (LB) en de kneel (RB); de radio staat daar niet.
 - Buslijn rijden met een echte bediening (#444, #396): in de bus van de bijbaan Streekbus bedien je de deuren zelf met O (alleen bij stilstand, open deuren slaan onderweg dicht) en laat je de bus knielen met K voor een lage instap. Reizigers stappen pas in en uit als de deuren open staan, en de bus vertrekt pas met dichte deuren. Wie met dichte deuren de halte voorbijrijdt laat de reizigers staan.
