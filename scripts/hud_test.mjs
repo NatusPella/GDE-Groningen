@@ -7,6 +7,7 @@ import * as U from '../game/js/uiscale.js';
 import { readFileSync, readdirSync } from 'node:fs';
 import * as L from '../game/js/hudlook.js';
 import { PALETTES } from '../game/js/a11y.js';
+import { mgThema, MG_THEMA } from '../game/js/minigamekit.js';
 
 let fails = 0, n = 0;
 const ok = (c, name) => { n++; if (!c) { fails++; console.log('FAIL', name); } };
@@ -156,6 +157,16 @@ ok(A.planModeFor('ov', 'lopen') === 'ov' && A.planModeFor('boot', 'auto') === 'b
 {
   const src = readFileSync(new URL('../game/js/mapview.js', import.meta.url), 'utf8');
   ok(!/mapview-modes|data-act="mode"/.test(src), 'the map has no mode switches any more');
+}
+
+// #453: elk minigame-thema leesbaar op de HUD-kaart, met een eigen titel en kleur uit één tabel
+{
+  ok(Object.keys(MG_THEMA).length >= 3, 'minstens drie minigames met een eigen HUD-thema');
+  for (const [id, t] of Object.entries(MG_THEMA)) {
+    ok(L.contrast(t.accent, L.HUD_CARD_BG) >= L.GRAPHIC_CONTRAST, `thema ${id}: accent ${t.accent} leesbaar op de kaart (${L.contrast(t.accent, L.HUD_CARD_BG).toFixed(2)})`);
+    ok(t.titel.length > 3 && t.titel.trim() === t.titel && t.icoon, `thema ${id}: een titel en een icoon`);
+  }
+  ok(mgThema('discgolf') === MG_THEMA.discgolf && mgThema('bestaatniet') === null, 'thema per spel uit één tabel');
 }
 
 // #168: 'x prestaties wachten' is not in the HUD any more; the count is a quiet dot in the pause menu

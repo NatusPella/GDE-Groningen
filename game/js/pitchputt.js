@@ -6,7 +6,7 @@ import { unlockAchievement, recordChallengeResult, getChallengeRecord, recordSta
 import { showCard } from './hudcards.js';
 import { activityBlock, iconDisc } from './activitykit.js';
 import { loopbaanVerdien } from './loopbaanlive.js';
-import { createBoard, key, bubble, clearBubbles, pick, stopPressed, easeCamera, clamp, makeRng } from './minigamekit.js';
+import { createBoard, mgThema, key, bubble, clearBubbles, pick, stopPressed, easeCamera, clamp, makeRng } from './minigamekit.js';
 import { PUTT_LINES } from './minigamelines.js';
 import { WOLFIE, SIR, newEtiquette, beginHole as etqBegin, step as etqStep, holeDone as etqHoleDone, misser as etqMisser, einde as etqEinde, hallo as etqHallo, plan as etqPlan, aanDeBeurt as etqBeurt } from './golfetiquette.js';
 import { loadEchtePlekken, golfVenues, nearestOf } from './echteplekken.js';
@@ -30,7 +30,7 @@ import {
 // pitch. A hole ends in the cup or after par + 4 strokes. Medals from the
 // total against par, record in strokes against par (lower is better).
 // Money-neutral. `window.__pitchputt` debug.
-const ACCENT = '#46b36a';
+const ACCENT = mgThema('pitchputt').accent; // één bron voor het HUD-thema: minigamekit.js (#453)
 const USE_RADIUS = 2.8;
 const DETAIL_M = 520;
 // The course in use: the Concours oval (the fallback) until game/echteplekken.json has real
@@ -723,7 +723,7 @@ function camera(w) {
 
 function ensureBoard() {
   ensureGolfCss();
-  if (!board) board = createBoard('PITCH & PUTT', ACCENT);
+  if (!board) board = createBoard('pitchputt');
   return board;
 }
 
@@ -768,7 +768,7 @@ function updateHud(w) {
     : `Totaal ${relText(t.rel)} · ${key('BACKSPACE')} stoppen`;
   // de krachtbalk: de kleur zegt hoe dicht je bij het streepje zit (groen ver, geel dichtbij, oranje te hard), de tekst het getal
   const v = g.charge, nabij = Math.abs(v - mark);
-  const kleur = v > mark + 0.12 ? '#ff9a3c' : nabij < 0.04 ? '#ffd23f' : '#46b36a';
+  const kleur = v > mark + 0.12 ? '#ff9a3c' : nabij < 0.04 ? '#ffd23f' : ACCENT;
   board.set({ row, cells: multi ? null : cells, extra, meter: g.phase === 'aim' ? { v, mark: clamp(mark, 0, 1), color: kleur, text: krachtTekst(v) } : null, flash, bad: !!(g.flash && g.flash.bad), help });
 }
 

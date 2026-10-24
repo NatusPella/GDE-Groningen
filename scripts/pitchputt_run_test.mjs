@@ -76,6 +76,8 @@ const schiet = (frames) => { keys.add(' '); frame(1 / 60, frames); keys.delete('
   frame(1 / 60, 3);
   let b = bordTekst();
   ok(b && /Baan <b>1<\/b>\/6/.test(b.row) && /gf-ic/.test(b.row) && /Wedge/.test(b.row), 'het bord toont baan, iconen en stok: ' + (b && b.row));
+  const bordRoot = boards.find((x) => x._q['.mg-row']);
+  ok(bordRoot && /mg-ic/.test(bordRoot.innerHTML) && /PITCH &amp; PUTT|PITCH & PUTT/.test(bordRoot.innerHTML) && bordRoot.dataset.mg === 'pitchputt', 'het bord draagt het thema van pitch & putt (#453)');
   ok(/mg-cells|<i/.test(b.cells) || b.cells !== '', 'één speler: de cellen van de scorekaart');
   ok(b.extra === '', 'één speler: geen scorebord per speler');
   ok(dbg.state().phase === 'aim' && dbg.state().mode === 'pitch', 'richten, met de wedge');
