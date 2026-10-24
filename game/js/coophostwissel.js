@@ -221,8 +221,9 @@ export function leesVerbind(b, van, verwachtId = 0) {
 // ---- variant 2: overname bij wegvallen -------------------------------------------------------------------------------------------
 // Wie het spel opende stuurt elke paar seconden een compacte herstelmomentopname naar de gasten (dezelfde momentopname als bij het overdragen,
 // plus de rangorde van opvolgers en per opvolger een kamercode die alleen de groep kent). Valt hij weg (12 s niets gehoord, geen BYE), dan kiest
-// iedere gast met die lijst dezelfde opvolger: de beste verbinding (laagste ping, bij gelijk de laagste plek). Die opent de kamer en de rest sluit
-// daar aan; lukt dat niet binnen een beurt, dan is de volgende aan de beurt.
+// iedere gast met die lijst dezelfde opvolger: de langst verbonden speler (#450), bij gelijk de beste verbinding (laagste ping) en dan de
+// laagste plek. Die opent de kamer en de rest sluit daar aan; lukt dat niet binnen een beurt, dan is de volgende aan de beurt. Zo draait de
+// wereld door zonder dat iemand opnieuw begint; ook een gastheer zonder lokale speler (een dedicated server) laat zo een gast achter.
 export const HERSTEL_S = 10;        // s tussen twee herstelmomentopnames (bij meer dan 3 gasten langer: het bandbreedtebudget)
 export const STILTE_S = 12;         // s zonder enig bericht van wie het spel opende voor de groep het wegvallen aanneemt
 export const BEURT_S = 30;          // s per opvolger om de kamer te openen en de anderen binnen te krijgen
@@ -238,13 +239,18 @@ export function beurtOp(lijst, sinds) {
   return lijst.length;
 }
 const bak = (ping) => (Number.isFinite(ping) && ping > 0 ? Math.round(ping / PING_BAK) : 9999); // een onbekende ping is de slechtste
+const OUD_BAK = 30;                 // s: leeftijdsbakken, zodat een meting van een paar seconden de keuze niet laat wippen
+const bakOud = (sinds) => (Number.isFinite(sinds) && sinds > 0 ? Math.floor(sinds / OUD_BAK) : 0);
 
-// Kandidaten [{ slot, ping (ms), kamer }] op volgorde: laagste ping, bij gelijk de laagste plek. `vorige` (de vorige lijst) houdt de lijst rustig:
-// de vorige nummer één blijft eerste zolang hij hooguit één bak slechter is. Zo verschillen de lijsten van twee gasten niet door één meting.
+// Kandidaten [{ slot, ping (ms), kamer, sinds (s verbonden) }] op volgorde: de langst verbonden speler eerst (#450), daarna
+// de laagste ping en bij gelijk de laagste plek. `vorige` (de vorige lijst) houdt de lijst rustig: de vorige nummer één
+// blijft eerste zolang hij even lang verbonden is en hooguit één bak slechter. Zo verschillen de lijsten van twee gasten
+// niet door één meting. Zonder `sinds` (een oudere aanroep) beslist alleen de ping, zoals voorheen.
 export function rangschik(kandidaten, vorige = []) {
-  const lijst = (kandidaten || []).filter((k) => k && Number.isInteger(k.slot) && k.slot >= 1).slice().sort((a, b) => bak(a.ping) - bak(b.ping) || a.slot - b.slot);
+  const lijst = (kandidaten || []).filter((k) => k && Number.isInteger(k.slot) && k.slot >= 1).slice()
+    .sort((a, b) => bakOud(b.sinds) - bakOud(a.sinds) || bak(a.ping) - bak(b.ping) || a.slot - b.slot);
   const was = vorige && vorige[0] ? lijst.findIndex((k) => k.slot === vorige[0].slot) : -1;
-  if (was > 0 && bak(lijst[was].ping) - bak(lijst[0].ping) <= 1) lijst.unshift(lijst.splice(was, 1)[0]);
+  if (was > 0 && bakOud(lijst[was].sinds) === bakOud(lijst[0].sinds) && bak(lijst[was].ping) - bak(lijst[0].ping) <= 1) lijst.unshift(lijst.splice(was, 1)[0]);
   return lijst.slice(0, MAX_RANG);
 }
 
