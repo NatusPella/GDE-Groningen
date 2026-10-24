@@ -13,6 +13,8 @@ const DISTRICT_REACH = 900;
 // the open Ommeland (issue #162).
 const DISTRICT_REACHES = { suburb: 2000, quarter: 1500, neighbourhood: DISTRICT_REACH };
 
+import { ankerVan } from './ankerpunten.js';
+
 const PLACES = { list: [], seats: [], districts: [], signs: [], towns: [], names: new Set() };
 
 // what a motorway gantry can sign to: cities and towns (streetfurniture.js
@@ -37,7 +39,8 @@ export function inBebouwdeKom(x, y) {
 }
 
 export function setWorldPlaces(list) {
-  PLACES.list = Array.isArray(list) ? list : [];
+  // een plaats met een ankerpunt (ankerpunten.js, #422) staat met label en bord op het winkelmidden; wijken blijven staan
+  PLACES.list = Array.isArray(list) ? list.map((p) => { const k = p && !p.of ? ankerVan(p.name) : null; return k ? { ...p, x: k[0], y: k[1] } : p; }) : [];
   PLACES.names = new Set(PLACES.list.map((p) => p.name));
   PLACES.seats = PLACES.list.filter((p) => REACH[p.kind] !== undefined);
   PLACES.signs = PLACES.seats.filter((p) => SIGN_KINDS[p.kind] !== undefined && p.name)

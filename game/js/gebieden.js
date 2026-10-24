@@ -13,6 +13,7 @@
 // telt alles wat erin ligt; wijk en woonplaats overlappen dus, en een gemeente telt wat in haar woonplaatsen en wijken ligt.
 
 import { grensVan } from './grenzen.js';
+import { ankerVan } from './ankerpunten.js';
 
 export const SLEUTEL_VERSIE = 2;     // 2: de indeling is de echte (v1 was wijkpunten, plaatsen en streken): oude beloningen en huizen vervallen
 export const MIN_TAKEN = 2;          // een gebied met minder dan twee dingen te doen is niet te veroveren
@@ -104,7 +105,9 @@ export function bouwIndeling(invoer) {
   const { grenzen = null, taken = [] } = invoer || {};
   const ind = { grenzen, gebieden: [], gebied: new Map(), taak: new Map(), perTaak: new Map(), perSleutel: new Map() };
   const maak = (niveau, grens, naam, ouder) => {
-    const g = { id: gebiedId(niveau, grens.id), niveau: niveau.id, naam, x: grens.c[0], y: grens.c[1], ouder, taken: [], veroverbaar: false, grens };
+    // een woonplaats met een ankerpunt (ankerpunten.js, #422) heeft haar midden (kaartlabel, safehouse, Reis erheen) in het winkelmidden
+    const ank = niveau.id === 'woonplaats' ? ankerVan(naam) : null;
+    const g = { id: gebiedId(niveau, grens.id), niveau: niveau.id, naam, x: ank ? ank[0] : grens.c[0], y: ank ? ank[1] : grens.c[1], ouder, taken: [], veroverbaar: false, grens };
     if (ind.gebied.has(g.id)) return;
     ind.gebieden.push(g);
     ind.gebied.set(g.id, g);
