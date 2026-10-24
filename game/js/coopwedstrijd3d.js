@@ -49,7 +49,7 @@ export function wedKaartTik(world, dt) {
       if (toets('j')) wedGastStuur(world, 'nogmaals');
       else if (toets('n') || toets('enter')) G.uitslag = null;
     }
-  } else if (n && n.role === 'host' && n.wed && n.wed.uitslag && !n.wed.u && !n.wed.r) {
+  } else if (n && n.role === 'host' && n.wed && n.wed.uitslag && !n.wed.u && !n.wed.r && !n.wed.lv) {
     if (toets('j')) wedOpnieuw(world);
     else if (toets('n') || toets('enter')) n.wed.uitslag = null;
   }
