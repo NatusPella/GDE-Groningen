@@ -24,7 +24,7 @@ export const HELP_TOPICS = [
     'Een winkel staat op de kaart: loop naar binnen en druk {E}.',
   ] },
   { id: 'telefoon', title: 'Telefoon', lines: [
-    'Berichten komen als kaartje binnen. Teruglezen, bellen en contacten vind je onder {ESC} › Telefoon.',
+    'Berichten komen als kaartje binnen. Teruglezen, bellen en contacten vind je onder {ESC} › Verhaal › Personages.',
   ] },
   { id: 'opslaan', title: 'Opslaan', lines: [
     'Het spel slaat zelf op na een missie en als je naar bed gaat. Je hoeft er niets voor te doen.',
@@ -44,7 +44,8 @@ export const HELP_TOPICS = [
     'Valt iemands verbinding weg, dan pauzeert het spel en komt het vanzelf terug zodra die weer verbonden is.',
   ] },
   { id: 'toetsen', title: 'Toetsen en controller', lines: [
-    'Alle toetsen en knoppen staan onder Instellingen, bij Besturing. Je kunt ze zelf anders zetten, voor toetsenbord en controller.',
+    'Alles staat bij elkaar onder Instellingen › Besturing: muis en toetsenbord, controller en aanraken. Het Toetsenoverzicht zet de besturing per situatie bij elkaar: te voet, vervoer, vechten, duif, samen spelen en het menu.',
+    'Toetsen en knoppen kun je zelf anders zetten, voor toetsenbord en controller.',
     'Zet de uitleg uit onder Instellingen › Interface › Meer opties.',
   ] },
 ];

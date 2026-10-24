@@ -53,35 +53,38 @@ import { renderFotoPanel, fotoClick, isPhotoMode } from './fotomodusui.js';
 // Running inside the desktop app (desktop/preload.js): window mode + quit.
 const DESKTOP = typeof window !== 'undefined' && window.gdeDesktop && window.gdeDesktop.isDesktop ? window.gdeDesktop : null;
 
-// Besturing: [alternatives, description]; an alternative is one token or a
-// combo joined with '+' (tokens as glyphHtml in prompts.js takes them).
+// Besturing: per situatie bij elkaar (#430), zodat je niet hoeft te zoeken en geen regel twee keer leest.
+// [alternatives, description]; an alternative is one token or a combo joined with '+' (tokens as glyphHtml in prompts.js takes them).
 const CONTROL_GROUPS = [
-  ['lopen', 'Lopen', [
+  ['voet', 'Te voet', [
     [['WASD'], 'Lopen en draaien'],
     [['MOUSE'], 'Camera draaien; laag houden om omhoog te kijken'],
     [['SHIFT'], 'Rennen (vasthouden)'],
-    [['SPACE'], 'Springen, over hekjes en auto\'s'],
+    [['SPACE'], 'Springen, over hekjes en auto\'s, uit het water klimmen'],
     [['CTRL'], 'Bukken'],
     [['E', 'F'], 'Instappen, winkel in, praten, bijbaantje beginnen'],
     [['E'], 'Bij een duivenbord: word een duif'],
     [['K'], 'Kusje geven aan Tammo of Tessa'],
     [['I'], 'Hengelen, aan elk water (ook vanuit een boot die stilligt)'],
   ]],
-  ['rijden', 'Rijden', [
-    [['WASD'], 'Gas, remmen en achteruit, sturen'],
-    [['SPACE'], 'Handrem'],
+  ['vervoer', 'Vervoer', [
+    [['WASD'], 'Gas, remmen en sturen; heli en vliegtuig: vooruit, achteruit, draaien of rollen; boot en trein: varen en rijden'],
+    [['SPACE'], 'Handrem; heli: omhoog; vliegtuig: neus omhoog; trein: noodrem'],
+    [['SHIFT'], 'Op de fiets: even flink doortrappen; op een motor: wheelie met gas, stoppie met remmen; heli: sneller; vliegtuig: remmen'],
+    [['CTRL'], 'Op de fiets: wheelie (vasthouden en trappen), stoppie (vasthouden en remmen), een sprongetje (vasthouden en de rem kort aantikken) of zonder handen rijden (vasthouden en snel doortrappen); heli: omlaag; vliegtuig: neus omlaag'],
     [['.', ','], 'Handmatig schakelen: hoger, lager (Instellingen › Schakelen)'],
     [['J'], 'Handmatig met koppeling: koppeling indrukken bij het schakelen'],
-    [['SHIFT'], 'Op de fiets: even flink doortrappen; op een motor: wheelie met gas, stoppie met remmen'],
-    [['CTRL'], 'Op de fiets: wheelie (vasthouden en trappen), stoppie (vasthouden en remmen) een sprongetje (vasthouden en de rem kort aantikken) of zonder handen rijden (vasthouden en snel doortrappen)'],
     [['E', 'F'], 'Uitstappen'],
     [['Q', 'WHEEL'], 'Achterom kijken (vasthouden; middelste muisknop)'],
     [['H'], 'Toeteren'],
     [['L'], 'Zwaailicht en sirene (politieauto, ambulance)'],
     [['[', ']'], 'Richtingaanwijzer links en rechts (nog eens: uit; na de bocht gaat hij vanzelf uit)'],
     [['P'], 'Alarmlichten'],
+    [['C'], 'Binnen- of buitenzicht'],
     [['V'], 'Filmcamera'],
     [['R'], 'Nieuwe lak bij Spuit & Klaar, garagemenu in een garage'],
+    [['Z'], 'Skûtsje: zeil vieren; trekker: ploeg aankoppelen, omhoog of omlaag'],
+    [['X'], 'Trekker: aftakas aan of uit'],
   ]],
   ['vechten', 'Vechten', [
     [['LMB'], 'Aanvallen, schieten, gooien'],
@@ -94,15 +97,6 @@ const CONTROL_GROUPS = [
     [['CTRL+LMB'], 'Carbidbus neerzetten'],
     [['WHEEL'], 'Volgend of vorig wapen (scrollen)'],
   ]],
-  ['heli', 'Helikopter', [
-    [['W', 'S'], 'Vooruit en achteruit; S remt eerst af tot je stil in de lucht hangt'],
-    [['A', 'D'], 'Draaien (de muis draait ook)'],
-    [['SHIFT'], 'Sneller: vol gas vooruit'],
-    [['SPACE'], 'Omhoog, opstijgen'],
-    [['CTRL'], 'Omlaag; landen: laag en langzaam boven een vlak stuk'],
-    [['ARROWS'], 'Ook vliegen: pijltjes links en rechts gaan opzij'],
-    [['E'], 'Uitstappen (alleen geland); op je helidek: parkeren en naar binnen'],
-  ]],
   ['duif', 'Duif', [
     [['WASD'], 'Lopen, in de lucht: sturen'],
     [['SPACE'], 'Opstijgen, klapwieken'],
@@ -113,28 +107,36 @@ const CONTROL_GROUPS = [
     [['Q'], 'Zwerm roepen of wegsturen'],
     [['X'], 'Weer mens worden'],
   ]],
-  ['menu', 'Telefoon & menu', [
+  ['samen', 'Samen spelen', [
+    [['Y'], 'Het stuur aan je bijrijder geven of terugnemen; als bijrijder erom vragen of het teruggeven'],
+    [['7'], 'Roepen: Kom hier (een baken voor iedereen)'],
+    [['8'], 'Roepen: Help!'],
+    [['9'], 'Roepen: Kijk daar (een stuk voor je uit)'],
+  ]],
+  ['menu', 'Menu en radio', [
     [['ESC'], 'Pauzemenu openen; in het menu: terug'],
     [['M'], 'Kaart'],
     [['ARROWS'], 'In het menu: kiezen, Enter: ok'],
     [['Q', 'E'], 'In het menu: vorige of volgende sectie'],
     [['[', ']'], 'In het menu: vorig of volgend tabblad'],
+    [['N'], 'Radio aan of uit'],
     [['U'], 'Geluid uit of weer aan; staat het uit, dan zie je linksboven een luidspreker met streep en "U"'],
     [['O'], 'Verhaalstap overslaan (als dat in beeld staat)'],
+    [['BACKSPACE'], 'Minigame of dienst stoppen'],
     ...(DESKTOP ? [[['F11'], 'Volledig scherm (ook Alt+Enter)']] : []),
   ]],
 ];
 
 const GROUP_ICONS = {
-  lopen: '<circle cx="13" cy="4.5" r="2"/><path d="M11 21l2-6-3-3 1-5 4 3 3 1M10 12l-3 2M13 15l3 6"/>',
-  rijden: '<path d="M4 16l1.5-5A2 2 0 0 1 7.4 9.6h9.2a2 2 0 0 1 1.9 1.4L20 16v3h-3M7 19H4v-3h16"/><circle cx="7.5" cy="17.5" r="1.8"/><circle cx="16.5" cy="17.5" r="1.8"/>',
+  voet: '<circle cx="13" cy="4.5" r="2"/><path d="M11 21l2-6-3-3 1-5 4 3 3 1M10 12l-3 2M13 15l3 6"/>',
+  vervoer: '<path d="M4 16l1.5-5A2 2 0 0 1 7.4 9.6h9.2a2 2 0 0 1 1.9 1.4L20 16v3h-3M7 19H4v-3h16"/><circle cx="7.5" cy="17.5" r="1.8"/><circle cx="16.5" cy="17.5" r="1.8"/>',
   vechten: '<circle cx="12" cy="12" r="7"/><path d="M12 2v5M12 17v5M2 12h5M17 12h5"/>',
-  heli: '<path d="M3 5h16M11 5v3"/><path d="M5 13a5 4 0 0 1 10 0v2H5zM15 12h6M20 9v5M6 20h9M8 17v3M13 17v3"/>',
   duif: '<path d="M3 13c3 0 5-2 7-5 1 3 3 4 6 4l5-3-2 5c-2 4-6 6-10 5l-4 2 1-4c-2-1-3-2-3-4z"/><circle cx="16.5" cy="10.5" r="0.4"/>',
+  samen: '<circle cx="9" cy="8.5" r="3"/><circle cx="17" cy="9.5" r="2.4"/><path d="M3 20c0-3.6 2.6-5.8 6-5.8s6 2.2 6 5.8M16 14.5c2.6.1 5 1.7 5 5"/>',
   menu: '<rect x="7" y="2.5" width="10" height="19" rx="2"/><path d="M10.5 18.5h3"/>',
 };
 // the controller table (controls.js PAD_MAPS) each group shows when a pad is in use
-const GROUP_CTX = { lopen: 'foot', rijden: 'vehicle', vechten: 'foot', heli: 'heli', duif: 'pigeon', menu: 'menu' };
+const GROUP_CTX = { voet: 'foot', vervoer: 'vehicle', vechten: 'foot', duif: 'pigeon', samen: 'foot', menu: 'menu' };
 const MOUSE_WORDS = { LMB: 'linkermuisknop klik', RMB: 'rechtermuisknop', MOUSE: 'muis', WHEEL: 'scrollwiel middelste muisknop', SPACE: 'spatie', CTRL: 'ctrl control', SHIFT: 'shift', ESC: 'esc escape', WASD: 'w a s d wasd', ARROWS: 'pijltjes pijltjestoetsen' };
 
 function controlsHtml() {
