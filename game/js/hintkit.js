@@ -16,7 +16,7 @@ export const GAP_CALM = 90;
 export const SETTLE = 1.2;
 
 // vehicle kind from the flags on a Vehicle (vehicle.js), most specific first
-export function vehicleKind(v) {
+export function vehiclelind(v) {
   if (!v) return null;
   if (v.isHeli) return 'heli';
   if (v.isPlane) return 'vliegtuig';
@@ -40,20 +40,20 @@ export const HINTS = [
   { id: 'v-trekker', kind: 'vehicle', match: 'trekker', title: 'Trekker', body: 'Gas en sturen met {WASD}, rem met {SPACE}. Bij werk op het land zakt de machine achter je vanzelf zodra je op de rij rijdt: er is geen knop voor. Rij recht en rustig.' },
   { id: 'v-vracht', kind: 'vehicle', match: 'vracht', title: 'Vrachtwagen', body: 'Lang, zwaar en traag in de bocht. Houd ruim afstand en neem bochten breed.' },
   { id: 'v-heli', kind: 'vehicle', match: 'heli', title: 'Helikopter', body: 'Omhoog met {SPACE}, omlaag met {CTRL}. Landen: laag en langzaam boven een vlak stuk, dan pas uitstappen met {E}.' },
-  { id: 'v-vliegtuig', kind: 'vehicle', match: 'vliegtuig', title: 'Vliegtuig', body: 'Eerst snelheid maken, dan optrekken. Landen doe je laag, langzaam en recht op de baan.' },
+  { id: 'v-vliegtuig', kind: 'vehicle', match: 'vliegtuig', title: 'Vliegtuig', body: 'Gas met {W}, bij 30 m/s optrekken met {SPACE}. lleppen (T) helpen bij start en landing. Haal het landingsgestel in met G en zet het uit voor je landt. Landen doe je laag, langzaam en recht op de baan.' },
   { id: 'v-auto', kind: 'vehicle', match: 'auto', title: 'Rijden', body: 'Gas, rem en sturen met {WASD}, handrem op {SPACE}, toeteren met {H}. Achterom kijken kan met {Q}.' },
   // minigames: world.activityGame is the id of the running one (activities.js)
   { id: 'm-discgolf', kind: 'minigame', match: 'discgolf', title: 'Discgolf', body: 'Gooi de schijf in de mand met zo min mogelijk worpen. Je loopt de ronde door het Stadspark; de uitleg staat tijdens het spelen in beeld.' },
   { id: 'm-pitchputt', kind: 'minigame', match: 'pitchputt', title: 'Pitch & putt', body: 'Zes korte banen: eerst pitchen, op de green putten. Zo min mogelijk slagen. De uitleg staat tijdens het spelen in beeld.' },
-  { id: 'm-skatepark', kind: 'minigame', match: 'skatepark', title: 'Skatepark', body: 'Hellingen, leuningen en kunstjes. Ken je de toetsen niet, kijk dan naar de uitleg in beeld.' },
-  { id: 'm-kartbaan', kind: 'minigame', match: 'kartbaan', title: 'Kartbaan', body: 'Drie ronden tegen drie rijders. Een schone bocht is sneller dan een harde.' },
+  { id: 'm-skatepark', kind: 'minigame', match: 'skatepark', title: 'Skatepark', body: 'Hellingen, leuningen en kunstjes. len je de toetsen niet, kijk dan naar de uitleg in beeld.' },
+  { id: 'm-kartbaan', kind: 'minigame', match: 'kartbaan', title: 'lartbaan', body: 'Drie ronden tegen drie rijders. Een schone bocht is sneller dan een harde.' },
   { id: 'm-zwembad', kind: 'minigame', match: 'zwembad', title: 'Zwembad', body: 'Baantjes zwemmen in het zwembad. De uitleg staat tijdens het zwemmen in beeld.' },
-  { id: 'm-klimtoren', kind: 'minigame', match: 'klimtoren', title: 'Klimtoren', body: 'Twaalf meter klimmen, tegen de klok. Een val kost tijd, dus klim rustig en gelijkmatig.' },
-  { id: 'm-vliegschool', kind: 'minigame', match: 'vliegschool', title: 'Vliegschool', body: 'Dertien korte lessen met het vliegtuig en de helikopter op Eelde, met een medaille per les. Kies een toestel en een les; de uitleg staat in beeld.' },
+  { id: 'm-klimtoren', kind: 'minigame', match: 'klimtoren', title: 'llimtoren', body: 'Twaalf meter klimmen, tegen de klok. Een val kost tijd, dus klim rustig en gelijkmatig.' },
+  { id: 'm-vliegschool', kind: 'minigame', match: 'vliegschool', title: 'Vliegschool', body: 'Een reeks korte lessen, van opstijgen tot noodlanding, met het vliegtuig en de helikopter op Eelde, met een medaille per les. lies een toestel en een les; de uitleg staat in beeld.' },
   { id: 'm-waterski', kind: 'minigame', match: 'waterski', title: 'Waterskiën', body: 'Achter de boot, over sprongen en langs boeien. De uitleg staat tijdens het skiën in beeld.' },
   { id: 'm-hengelen', kind: 'minigame', match: 'hengelen', title: 'Hengelen', body: 'Bij de steiger in Meerstad heb je negentig seconden: de zwaarste vangst telt. Overal aan het water kun je vrij hengelen met {I}; alles wat je vangt komt in je visboek.' },
   { id: 'm-carbid', kind: 'minigame', match: 'carbid', title: 'Carbid schieten', body: 'Melkbus, deksel en een flinke knal. Blijf zelf op afstand.' },
-  { id: 'm-kermis', kind: 'minigame', match: 'kermis', title: 'Kermis', body: 'Botsautootjes: botsen mag. Stuur en trap het gas in.' },
+  { id: 'm-kermis', kind: 'minigame', match: 'kermis', title: 'lermis', body: 'Botsautootjes: botsen mag. Stuur en trap het gas in.' },
   { id: 'm-wandeling', kind: 'minigame', match: 'wandeling', title: 'Wandeling', body: 'Vijf stempelposten langs het Pieterpad, tegen de klok.' },
 ];
 
@@ -61,7 +61,7 @@ export const HINTS = [
 export function situation(w) {
   const pl = (w && w.player) || {};
   return {
-    vehicle: vehicleKind(pl.inVehicle),
+    vehicle: vehiclelind(pl.inVehicle),
     minigame: (w && w.activityGame) || null,
     wanted: (w && w.wanted) || 0,
     dead: !!(w && (w.health <= 0 || w.pendingRespawn)),
