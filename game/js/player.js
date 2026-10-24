@@ -33,6 +33,7 @@ import { wielInvoer } from './coopgast.js';
 import { buildingAt } from './tileplace.js';
 import { isMissieVoertuig } from './missievoertuig.js';
 import { bedienTrekker } from './voertuigbediening.js';
+import { seatedOf } from './occupants.js';
 export { resolveBuildingCollisions };
 
 const BIKE_SPRINT_S = 2.5;
@@ -794,9 +795,12 @@ export class Player {
   enterVehicle(v, world) {
     if (!v || v.driver || v.wrecked || v.sinking) return;
     const driven = !!v.road || !!v.countryDrive; // an AI driver: city traffic or an Ommeland road user
+    // iemand achter het stuur (occupants.js): ook een wachtende in een geparkeerde auto
+    // wordt er bij een autokraak uitgetrokken (#459), met de reacties van pedestrians.js
+    const bezet = !v.isBike && !v.isScooter && !v.isBoat && !!(seatedOf(v).driver);
     const own = v.isHeroCar || v.playerOwned || v.missionCar || isMissieVoertuig(world, v, driven);
     const stolen = !own && (driven || v.parked || (v.isPolice && !v.hijacked));
-    v.carjacked = !own && driven; // its AI driver gets pulled out (pedestrians.js)
+    v.carjacked = !own && (driven || bezet); // its AI driver gets pulled out (pedestrians.js)
     v.driver = 'player';
     v.road = null; // player takes manual control
     v.parked = false;

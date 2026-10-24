@@ -242,9 +242,10 @@ export function syncVehicleDoors(mesh, v, dt, vraag = null) {
   }
 }
 
-// Voor scene3d: een lopende animatie omzetten in een deurvraag.
+// Voor scene3d: een lopende animatie omzetten in een deurvraag. De rol volgt de deur
+// waar iemand instapt (links de bestuurder, rechts de bijrijder, #459).
 export function vraagVoorAnim(a, rol) {
-  return a ? { v: a.v, rol, open: deurDoelVoorAnim(a) === 1 } : null;
+  return a ? { v: a.v, rol: (a.instap && a.instap.rol) || rol, open: deurDoelVoorAnim(a) === 1 } : null;
 }
 
 // Eén keer per frame: alle voertuigen in de buurt (open/dichte deuren, schade, bussen bij de halte).
