@@ -89,7 +89,7 @@ t('wegvallen en terugkomen: pauze voor Tessa, hervatten met hetzelfde token op d
   tessa.link.cut();
   s.step(7);
   assert.equal(s.hw.coopRoster.find((r) => r.slot === 1).verbinding, 'lost');
-  assert.deepEqual(s.holds.filter((h) => h[0] === 'host').map((h) => h[1]), [1], 'de host krijgt de pauze voor Tessa');
+  assert.deepEqual(s.holds.filter((h) => h[0] === 'host').map((h) => h[1]), [], 'de host krijgt geen pauze: de rest speelt door (#452)');
   assert.ok(s.holds.some((h) => h[0] === 'client0'), 'Tessa ziet dat de verbinding weg is');
   assert.equal(s.hw.coop.remote, false, 'tijdens het wegvallen speelt de volg-AI Tessa');
   tessa.link.restore();
