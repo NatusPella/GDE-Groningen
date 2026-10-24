@@ -254,21 +254,27 @@ t('meerijden met vier: ook de 3e en 4e speler stappen mee in het voertuig van de
   assert.match(bram.messages.join(' '), /Loop naar het voertuig/);
 });
 
-t('de gastheer rijdt weg: een speler te voet die achterblijft wordt naast de gastheer gezet (niet vanzelf in het voertuig, geen eindeloos terugzetten) en stapt zelf in met E; zonder plek blijft hij bij de groep', () => {
+t('de gastheer rijdt snel weg: een speler te voet die achterblijft wordt niet door zijn snelheid teruggezet (de host is ook maar een speler); met B komt hij naast de gastheer (niet vanzelf in het voertuig) en stapt zelf in met E', () => {
   const s = avond(3); s.step(3);
   const bram = s.gs[1].gw, lotte = s.gs[2].gw, fb = s.hw.coopFigures[2], fl = s.hw.coopFigures[3];
   const auto = { id: 7, x: 0, y: 0, angle: 0, speed: 20, halfWid: 1, model: { len: 4 } }; s.hw.vehicles = [auto]; s.hw.player.inVehicle = auto;
   fb.x = 5; fb.y = 3; fl.x = 6; fl.y = -3;
   s.step(8, () => { auto.x += 20 / 60; s.hw.player.x = auto.x; s.hw.player.y = 0; });
   assert.ok(!fb.inVeh, 'Bram wordt niet vanzelf in het voertuig gezet'); assert.ok(!fl.inVeh, 'Lotte ook niet');
-  assert.match(bram.messages.join(' '), /Je staat weer bij de groep/, 'naast de gastheer gezet');
+  assert.doesNotMatch(bram.messages.join(' '), /Je staat weer bij de groep/, 'de snelheid van de gastheer zet niemand terug');
+  assert.ok(Math.hypot(fb.x - auto.x, fb.y) > 110, 'Bram loopt los: hij staat nog waar hij stond');
+  bram.coopNet.session.sendEvent({ k: 'bijgroep' }); s.step(1.5);
+  assert.match(bram.messages.join(' '), /Je staat weer bij de groep/, 'met B naast de gastheer gezet'); assert.ok(Math.hypot(fb.x - auto.x, fb.y) < 15, 'naast de gastheer');
   auto.speed = 0; s.step(6);
   fb.x = auto.x + 4; fb.y = 2; s.step(0.5); // Bram loopt naar het voertuig
   bram.coopNet.session.sendEvent({ k: 'gebruik' }); s.step(1.5);
   assert.equal(fb.inVeh, auto, 'met E stapt Bram in'); assert.equal(bram.coopInVoertuig, true);
   const fiets = { id: 8, x: auto.x, y: 0, angle: 0, speed: 20, isBike: true }; s.hw.player.inVehicle = fiets; fb.inVeh = null; fb.coopVoertuig = false; fb.x = auto.x - 60; fb.y = 0; fb.verTijd = 0;
+  const n0 = bram.messages.length, x0 = fb.x;
   s.step(6, () => { fiets.x += 20 / 60; s.hw.player.x = fiets.x; });
-  assert.ok(!fb.inVeh, 'op een fiets is geen plek'); assert.match(bram.messages.join(' '), /Je staat weer bij de groep/, 'wel bij de groep gezet');
+  assert.ok(!fb.inVeh, 'op een fiets is geen plek'); assert.ok(!bram.messages.slice(n0).some((m) => /Je staat weer bij de groep/.test(m)), 'ook een snelle fiets zet niemand terug'); assert.ok(Math.abs(fb.x - x0) < 5, 'Bram staat nog waar hij stond');
+  bram.coopNet.session.sendEvent({ k: 'bijgroep' }); s.step(1.5);
+  assert.ok(Math.hypot(fb.x - fiets.x, fb.y) < 15, 'met B bij de groep');
 });
 
 t('Tessa valt weg: het spel pauzeert voor de gastheer; een extra speler niet; geen dubbele of verdwenen figuren', () => {
