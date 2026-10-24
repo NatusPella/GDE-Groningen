@@ -10,6 +10,7 @@ import { registreerWedstrijd, zetWedGastHaken, wedNodigUit, wedNuStarten, wedHos
 import { createBoard, key, bubble, clearBubbles, pick, stopPressed, easeCamera, geo, frame, fmtTime, clamp } from './minigamekit.js';
 import { CLIMB_LINES } from './minigamelines2.js';
 import { WALL, ARMS, createClimb, startClimb, stepClimb, nextHold, makeHolds, climbMedal, MEDAL_AT } from './climbrules.js';
+import { climbFx, pushFoley } from './sfx/minigamefoley.js';
 
 // Klimtoren Zernike: a 12 m climbing tower on open ground at the Zernike
 // campus. Hold A (left hand) and D (right hand) to reach and grip the next
@@ -151,6 +152,8 @@ function updateGame(w, dt) {
 
 function onEvent(w, e) {
   const g = game, s = g.s;
+  // #460: de hand op de greep, magnesium, de mat
+  pushFoley(w, climbFx(e));
   if (e.type === 'fall') {
     g.flash = { text: `Gevallen! +${WALL.penalty} s (${s.falls}/${WALL.tries})`, t: 2, bad: true };
     say(w, 'fall', true);
