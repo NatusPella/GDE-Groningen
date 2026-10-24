@@ -94,7 +94,7 @@ export function openShopMenu(w, s) {
   storyDone = false;
   sel = null;
   armed = null;
-  tab = 'alles';
+  tab = '';
   if (document.pointerLockElement) document.exitPointerLock();
   if (world.input) world.input.reset();
   const panel = root.querySelector('.sm-panel');
