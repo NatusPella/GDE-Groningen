@@ -54,6 +54,8 @@ import { enterChoice, updateChoice, closeChoice } from './stagechoice.js';
 import { enterRit, updateRit } from './stagerit.js';
 import { enterTiming, updateTiming, closeTiming, timingTag } from './stagetiming.js';
 import { withValidity } from './validity.js';
+import { afstandMeespeler, meespelerInVoertuig } from './spelersregister.js';
+import { teamActor, doelStand, groepKlaar, WACHT_OP_ANDEREN } from './stagegroep.js';
 // a radio fragment of a stage that never got played within ten minutes is moot (refs #171; not tied to the mission: the clue in it must not be lost)
 const MISSION_RADIO_VALID = { ttl: 600 };
 import { registerBusyProbe } from './busy.js';
@@ -1083,7 +1085,7 @@ function vehicleToBoard(world, def) {
   const p = world.player;
   if (!v || v.wrecked || v.disabled) return null;
   // the rondvaart is in the tour boat (the tourists are aboard), not your own
-  if (p.inVehicle === v) return null;
+  if (p.inVehicle === v || meespelerInVoertuig(world, v)) return null;
   return v;
 }
 
@@ -1113,7 +1115,7 @@ function syncPub(world) {
     pub.marker.y = target.y;
     pub.marker.z = Number.isFinite(target.z) && def.type === 'stages' && st.phase === 'active' ? target.z : null;
   }
-  pub.distanceToMarker = dist(world.player.x, world.player.y, pub.marker.x, pub.marker.y);
+  pub.distanceToMarker = afstandMeespeler(world, pub.marker.x, pub.marker.y);
   pub.armed = !!st.armed;
   pub.triggerRadius = def.triggerRadius || TRIGGER_RADIUS;
   pub.stunt = (def.type === 'stunt' || chain.stuntPhase) && st.phase === 'active' ? stuntStatus() : null;
@@ -2070,7 +2072,7 @@ function hint(world, text, say = undefined) {
 // Returns a failure reason when the mission car/boat is gone or left behind.
 function vehicleProblem(world, def) {
   const v = chain.vehicle;
-  const p = world.player;
+  const p = v ? teamActor(world, v, (a) => a.inVehicle === v) : world.player; // samen spelen (#452): de meespeler in het voertuig, anders de dichtstbijzijnde
   const vf = def.vehicleFail || {};
   if (!v || !world.vehicles.includes(v)) return vf.gone || (def.type === 'boat' ? 'de boot is foetsie' : 'de auto is foetsie');
   if (v.wrecked || v.disabled) return vf.wrecked || (def.type === 'boat' ? 'de boot ligt nu tussen de fietsen op de bodem' : 'de auto is afgeschreven, Kiekdoar heeft al foto\'s');
@@ -2687,7 +2689,7 @@ function chaseReachedTrain(world, def, st, S, t, dt) {
 function stageNeedsVehicle(world, def) {
   const st = def.stages && def.stages[chain.stageIndex];
   const v = chain.vehicle;
-  if (!st || !v || v.wrecked || v.disabled || world.player.inVehicle === v) return false;
+  if (!st || !v || v.wrecked || v.disabled || world.player.inVehicle === v || meespelerInVoertuig(world, v)) return false;
   return st.kind === 'board' || st.kind === 'garage' || (st.kind === 'goto' && st.mode === 'vehicle');
 }
 
@@ -2740,16 +2742,16 @@ function stageProgressBase(world, def) {
   if (st.kind === 'convoy' && chain.convoy) { const sc = convoyStatus(world, chain.convoy); return `${st.label} · ${sc.near}/${sc.total} bij elkaar`; }
   if (st.kind === 'airgates' && planeStageProgress(st, S)) return planeStageProgress(st, S);
   if (st.kind === 'escape') {
-    if (S.target && !world.wanted) return `${st.label} · ${Math.round(dist(world.player.x, world.player.y, S.target.x, S.target.y))} m`;
+    if (S.target && !world.wanted) return `${st.label} · ${Math.round(afstandMeespeler(world, S.target.x, S.target.y))} m`;
     return `${S.target ? 'Schud de politie af' : st.label} · ${'★'.repeat(world.wanted)}`;
   }
-  if (st.kind === 'chase' && st.race && S.finish) return `${st.label} · nog ${Math.round(dist(world.player.x, world.player.y, S.finish.x, S.finish.y))} m`;
-  if (st.kind === 'chase' && S.target && S.target.parkedRoad) return `${st.parkedLabel || st.label} · ${Math.round(dist(world.player.x, world.player.y, S.target.x, S.target.y))} m`;
+  if (st.kind === 'chase' && st.race && S.finish) return `${st.label} · nog ${Math.round(afstandMeespeler(world, S.finish.x, S.finish.y))} m`;
+  if (st.kind === 'chase' && S.target && S.target.parkedRoad) return `${st.parkedLabel || st.label} · ${Math.round(afstandMeespeler(world, S.target.x, S.target.y))} m`;
   if (st.kind === 'chase' && S.target) {
     const left = `${st.meter || 'banden'} ${Math.max(0, Math.round(100 - (S.hp0 - S.target.health) / st.hits * 100))}%`;
     return `${st.label} · ${left}${st.clock ? ` · ${st.clock} ${fmtTime((st.time || 180) - S.t)}` : ''}`;
   }
-  if (st.kind === 'boatchase' && S.boat) return S.hold > 0 ? `${st.label} · aan boord ${Math.min(100, Math.round(S.hold / (st.boardTime || 2.5) * 100))}%` : `${st.label} · ${Math.round(dist(world.player.x, world.player.y, S.boat.v.x, S.boat.v.y))} m`;
+  if (st.kind === 'boatchase' && S.boat) return S.hold > 0 ? `${st.label} · aan boord ${Math.min(100, Math.round(S.hold / (st.boardTime || 2.5) * 100))}%` : `${st.label} · ${Math.round(afstandMeespeler(world, S.boat.v.x, S.boat.v.y))} m`;
   if (st.light && chain.light) return `${st.label} · gezien ${Math.round(chain.light.exposure * 100)}%${Number.isFinite(chain.timeLeft) ? ` · het water komt over ${fmtTime(chain.timeLeft)}` : ''}`;
   if (st.kind === 'goto' && st.limit) return `${st.label} · ${fmtTime(st.limit - S.t)}`;
   if (st.kind === 'train' && fjordTrainState()) {
@@ -3192,6 +3194,8 @@ const MODE_HINT = {
   boat: 'Dit gaat over het water. Pak een boot.',
 };
 
+const GROEPSTAPPEN = new Set(['goto', 'hold', 'board', 'escape', 'chase']); // stappen die de vlag iedereen zelf lezen (of die er niet voor gelden)
+
 function modeOk(p, mode) {
   if (mode === 'foot') return !p.inVehicle;
   if (mode === 'boat') return !!(p.inVehicle && p.inVehicle.isBoat);
@@ -3369,18 +3373,23 @@ function updateStages(dt, world, def) {
   if (st.light && updateLightStage(dt, world, def, st, S)) return;
   const v = chain.vehicle;
   const inCar = !!v && p.inVehicle === v;
+  // samen spelen (#452): een stap met de vlag iedereen wacht op elke meespeler bij het doel (goto, hold en escape lezen de vlag zelf)
+  if (st.iedereen && !GROEPSTAPPEN.has(st.kind) && !groepKlaar(world, st, S.target)) { hint(world, WACHT_OP_ANDEREN); return; }
   switch (st.kind) {
     case 'board':
-      if (inCar || (def.snapStart && !chain.vehicle)) nextStage(world, def);
+      if (inCar || meespelerInVoertuig(world, v) || (def.snapStart && !chain.vehicle)) nextStage(world, def);
       break;
     case 'goto': {
       if (!S.target) { nextStage(world, def); break; }
       if (st.pursuer && updatePursuer(dt, world, def, st, S)) break;
       if (st.limit && S.t > st.limit) { fail(world, def, st.late || 'te laat'); break; }
-      if (st.mud && dist(p.x, p.y, S.target.x, S.target.y) < (st.radius || STAGE_RADIUS) * 2) sinkInMud(world, dt, 1.2);
-      if (dist(p.x, p.y, S.target.x, S.target.y) >= (st.radius || STAGE_RADIUS)) { S.hold = 0; break; }
-      if (!modeOk(p, st.mode)) { hint(world, MODE_HINT[st.mode] || ''); break; }
-      if (st.stop && p.inVehicle && Math.abs(p.inVehicle.speed) > 2) { S.hold = 0; hint(world, 'Even stilstaan.'); break; }
+      const gr = st.radius || STAGE_RADIUS;
+      const g = doelStand(world, S.target, gr, st.mode, modeOk, st.iedereen), q = g.actor; // een meespeler in het doel is genoeg (met st.iedereen: allemaal)
+      if (st.mud && dist(q.x, q.y, S.target.x, S.target.y) < gr * 2) sinkInMud(world, dt, 1.2);
+      if (g.status === 'buiten') { S.hold = 0; break; }
+      if (g.status === 'modus') { hint(world, MODE_HINT[st.mode] || ''); break; }
+      if (g.status === 'wacht') { S.hold = 0; hint(world, WACHT_OP_ANDEREN); break; }
+      if (st.stop && q.inVehicle && Math.abs(q.inVehicle.speed) > 2) { S.hold = 0; hint(world, 'Even stilstaan.'); break; }
       if ((S.hold += dt) >= (st.stop || 0)) nextStage(world, def);
       break;
     }
@@ -3389,9 +3398,10 @@ function updateStages(dt, world, def) {
       if (st.fireworks) updateFireworks(dt, world, def, st, S);
       if (chain.phase !== 'active') break;
       if (st.mud) sinkInMud(world, dt, 4);
-      const near = dist(p.x, p.y, S.target.x, S.target.y) < (st.radius || HOLD_RADIUS);
-      if (near && !modeOk(p, st.mode)) { hint(world, MODE_HINT[st.mode] || ''); break; }
-      if (!near) { S.hold = Math.max(0, S.hold - dt * 0.5); break; }
+      const g = doelStand(world, S.target, st.radius || HOLD_RADIUS, st.mode, modeOk, st.iedereen); // een meespeler bij het doel houdt de klok gaande (met st.iedereen: allemaal)
+      if (g.status === 'modus') { hint(world, MODE_HINT[st.mode] || ''); break; }
+      if (g.status === 'wacht') hint(world, WACHT_OP_ANDEREN);
+      if (g.status !== 'binnen') { S.hold = Math.max(0, S.hold - dt * 0.5); break; }
       S.hold += dt;
       const third = Math.floor(S.hold / st.time * 3);
       if (third > S.said && third < 3) { S.said = third; world.addMessage(st.ticks ? st.ticks[third - 1] : `Klik. Camera ${third} van 3 gaat op zwart.`, 2.4); }
@@ -3455,8 +3465,10 @@ function updateStages(dt, world, def) {
     case 'escape': {
       if (!S.target) { if (world.wanted === 0 && S.t > 1) nextStage(world, def); break; }
       // H6: lose the police, then moor at the quay (target, within `dock` m, still in the boat)
-      const boat = p.inVehicle && p.inVehicle.isBoat ? p.inVehicle : null;
-      const docked = !!boat && dist(p.x, p.y, S.target.x, S.target.y) < (st.dock || STAGE_RADIUS);
+      const dk = st.dock || STAGE_RADIUS;
+      const q = teamActor(world, S.target, (a, d) => d < dk && !!a.inVehicle && !!a.inVehicle.isBoat); // de boot van een meespeler legt aan
+      const boat = q.inVehicle && q.inVehicle.isBoat ? q.inVehicle : null;
+      const docked = !!boat && dist(q.x, q.y, S.target.x, S.target.y) < dk;
       if (!docked) break;
       if (world.wanted > 0) { hint(world, 'Nog pliesie achter ons. Eerst afschudden, dan pas aanleggen.'); break; }
       boat.speed *= 0.5;
@@ -3470,7 +3482,7 @@ function updateStages(dt, world, def) {
       if (!t || !world.vehicles.includes(t)) { fail(world, def, st.gone || 'de tankwagen is foetsie'); break; }
       if (t.wrecked || t.disabled) { fail(world, def, st.burned || 'de tankwagen staat in de fik. Zonde van al dat vet'); break; }
       if (st.hijack && p.inVehicle === t) { hijackChase(world, def, st, t); break; }
-      const d = dist(p.x, p.y, t.x, t.y);
+      const d = afstandMeespeler(world, t.x, t.y); // de dichtstbijzijnde meespeler (#452)
       if (t.parkedRoad) {
         // it does not wait for you for ever: after CHASE_WAIT_MAX s it flees on its own (a chase never waits for the player),
         // plus the time the drive to it takes (M07: the groothandel is 750 m from the start; 6 s was unwinnable)
