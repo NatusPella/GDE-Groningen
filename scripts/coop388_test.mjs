@@ -116,10 +116,14 @@ t('de gastheer stapt in: Tessa gaat niet vanzelf mee, leest wat ze moet doen en 
   s.step(2); assert.equal(aantal(g, /zit in een voertuig/), 1, 'niet steeds opnieuw');
   s.hw.player.inVehicle = null; s.step(0.5); s.hw.player.inVehicle = auto; s.step(0.5);
   assert.equal(aantal(g, /zit in een voertuig/), 2, 'wel bij een volgende keer instappen');
-  // de gastheer rijdt snel weg en Tessa blijft te voet achter: ze wordt bij hem gezet, maar niet vanzelf in het voertuig (instappen doet ze zelf met E)
+  // de host rijdt snel, maar de snelheid van de host zet niemand terug (alle spelers zijn gelijkwaardig): Tessa blijft staan waar ze staat zolang ze binnen de band is
   auto.speed = 20; c.x = -60; c.y = 0;
   s.step(6, () => { auto.x += 20 / 60; s.hw.player.x = auto.x; });
-  assert.ok(!c.inVehicle, 'niet vanzelf in het voertuig'); assert.notEqual(auto.passenger, 'companion'); assert.ok(Math.hypot(c.x - auto.x, c.y) < 130, 'wel weer bij de gastheer in de buurt'); assert.match(g.messages.join(' '), /Je staat weer bij de groep/);
+  assert.ok(!c.inVehicle, 'niet vanzelf in het voertuig'); assert.notEqual(auto.passenger, 'companion'); assert.ok(Math.abs(c.x + 60) < 5, 'Tessa wordt niet teruggezet door de snelheid van de host: ' + c.x.toFixed(1)); assert.doesNotMatch(g.messages.join(' '), /Je staat weer bij de groep/);
+  // ook als de host ver wegrijdt loopt ze los met een eigen focus (#429); B brengt haar bij de host, niets zet haar terug door zijn snelheid
+  auto.x = 300; s.hw.player.x = 300; s.step(6, () => { auto.x += 20 / 60; s.hw.player.x = auto.x; });
+  assert.ok(!c.inVehicle, 'niet vanzelf in het voertuig'); assert.ok(Math.abs(c.x + 60) < 5, 'Tessa blijft los staan: ' + c.x.toFixed(1)); assert.doesNotMatch(g.messages.join(' '), /Je staat weer bij de groep/);
+  c.x = 300; c.y = 0; auto.x = 500; s.hw.player.x = 500; auto.speed = 0;
   // niet geschikt: ze wordt bij de groep gezet
   const heli = { id: 8, x: 500, y: 0, angle: 0, speed: 0, isHeli: true }; c.inVehicle = null; auto.passenger = null; s.hw.player.inVehicle = heli; s.hw.player.x = 500; c.x = 300; c.y = 0;
   s.step(4.5); assert.equal(c.inVehicle, null, 'niet in een helikopter'); assert.ok(Math.hypot(c.x - 500, c.y) > 100, 'ze loopt los (eigen focus, #429); B brengt haar bij de gastheer');

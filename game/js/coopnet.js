@@ -455,7 +455,6 @@ export const WACHT_TEKST = 'De wereld hier wordt nog geladen. Even wachten.';
 export function losVoor(world, slot, x, y) {
   const p = world.player, info = world.coopFociInfo, n = world.coopNet;
   if (!info || !p || (n && n.sprong > 0)) return { ok: false, wacht: false }; // een sprong van de gastheer (snelreizen, herstel) haalt iedereen bij, zoals altijd
-  if (p.inVehicle && Math.abs(p.inVehicle.speed || 0) > 6 && Math.hypot(x - p.x, y - p.y) < 400) return { ok: false, wacht: false }; // rijdt de gastheer snel weg, dan raakt wie dichtbij is het eerst achter: bij hem gezet, zoals altijd
   const r = losBesluit({ aan: true, slot, bediend: info.bediend, dHost: Math.hypot(x - p.x, y - p.y), maxAfstand: MAX_AFSTAND, geladen: tegelGeladen(world, x, y) });
   return { ok: r.ok, wacht: r.wacht };
 }
@@ -516,10 +515,10 @@ const BOOT_MELD = 'Je zit weer in de boot.';
 // geldt dat alleen voor wie geen eigen focus heeft (te veel groepen voor het budget).
 export function bandFiguren(world, dt) {
   const p = world.player; if (!p || !Number.isFinite(p.x)) return;
-  const v = p.inVehicle, snel = !!v && Math.abs(v.speed || 0) > 6; // rijdt de gastheer weg, dan raakt een speler te voet het eerst achter
+  const v = p.inVehicle; // alleen voor de uitgeschakelde meerij-tak hieronder; de snelheid van de host telt niet mee: een gast wordt er nooit door teruggezet
   for (const fig of Object.values(figures(world))) {
     if (fig.inVeh) { fig.wacht = false; continue; }
-    const d = Math.hypot(fig.x - p.x, fig.y - p.y), los = losVoor(world, fig.slot, fig.x, fig.y), band = snel ? 35 : FIGUUR_BAND;
+    const d = Math.hypot(fig.x - p.x, fig.y - p.y), los = losVoor(world, fig.slot, fig.x, fig.y), band = FIGUUR_BAND;
     const plek = false; // niemand wordt vanzelf in een voertuig gezet: te ver weg betekent naast de gastheer, instappen doet de speler zelf met E
     if (los.ok) { // los van de groep, maar de wereld is voor hem geladen: niet terugzetten, wel een keer zeggen hoe hij terugkomt
       if (d > LOS_MELD_M && !fig.losGemeld) { fig.losGemeld = true; if (world.coopMeld) world.coopMeld(fig.slot, LOS_TEKST); }
@@ -531,7 +530,7 @@ export function bandFiguren(world, dt) {
       fig.verTijd = los.wacht && fig.ongeladen >= ONGELADEN_S ? FIGUUR_TERUG_S : 0;
     } else {
       fig.wacht = false; fig.ongeladen = 0; fig.losGemeld = false;
-      if (d > FIGUUR_WAARSCHUWING && !fig.gewaarschuwd && !snel) { fig.gewaarschuwd = true; if (world.coopMeld) world.coopMeld(fig.slot, buitenBudget(world, fig.slot) ? BUDGET_TEKST : 'Blijf bij de groep: te ver weg wordt je teruggezet.'); }
+      if (d > FIGUUR_WAARSCHUWING && !fig.gewaarschuwd) { fig.gewaarschuwd = true; if (world.coopMeld) world.coopMeld(fig.slot, buitenBudget(world, fig.slot) ? BUDGET_TEKST : 'Blijf bij de groep: te ver weg wordt je teruggezet.'); }
       if (d <= FIGUUR_WAARSCHUWING) fig.gewaarschuwd = false;
       fig.verTijd = d > band ? (fig.verTijd || 0) + dt : 0;
     }
@@ -552,8 +551,8 @@ export function bandFiguren(world, dt) {
 export function bandMetgezel(world, dt) {
   const c = world.companion, p = world.player;
   if (!c || !p || !world.coop || !world.coop.remote || c.inVehicle || c.state === 'dead' || !Number.isFinite(p.x) || !Number.isFinite(c.x)) { if (c) c.coopWacht = false; return false; }
-  const v = p.inVehicle, snel = !!v && Math.abs(v.speed || 0) > 6;
-  const d = Math.hypot(c.x - p.x, c.y - p.y), los = losVoor(world, 1, c.x, c.y), band = snel ? 35 : FIGUUR_BAND;
+  const v = p.inVehicle;
+  const d = Math.hypot(c.x - p.x, c.y - p.y), los = losVoor(world, 1, c.x, c.y), band = FIGUUR_BAND;
   if (los.ok) {
     if (d > LOS_MELD_M && !c.losGemeld) { c.losGemeld = true; if (world.coopMeld) world.coopMeld(1, LOS_TEKST); }
     if (d <= LOS_MELD_M) c.losGemeld = false;
@@ -564,7 +563,7 @@ export function bandMetgezel(world, dt) {
     c.verTijd = los.wacht && c.ongeladen >= ONGELADEN_S ? FIGUUR_TERUG_S : 0;
   } else {
     c.coopWacht = false; c.ongeladen = 0; c.losGemeld = false;
-    if (d > FIGUUR_WAARSCHUWING && !c.gewaarschuwd && !snel) { c.gewaarschuwd = true; if (world.coopMeld) world.coopMeld(1, buitenBudget(world, 1) ? BUDGET_TEKST : 'Blijf bij de groep: te ver weg wordt je teruggezet.'); }
+    if (d > FIGUUR_WAARSCHUWING && !c.gewaarschuwd) { c.gewaarschuwd = true; if (world.coopMeld) world.coopMeld(1, buitenBudget(world, 1) ? BUDGET_TEKST : 'Blijf bij de groep: te ver weg wordt je teruggezet.'); }
     if (d <= FIGUUR_WAARSCHUWING) c.gewaarschuwd = false;
     c.verTijd = d > band ? (c.verTijd || 0) + dt : 0;
   }
