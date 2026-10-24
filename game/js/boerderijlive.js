@@ -99,6 +99,16 @@ export function zetPerceel(perceel) {
   return true;
 }
 
+// De rijen van een ander perceel dan de Zonnehoek liggen vast zodra ze gevonden zijn (boerderijwereld.js zoekt open land bij het perceel).
+export function zetVeldPositie(id, q) {
+  const b = getBoerderij();
+  if (id === PC.START_PERCEEL) return zetPerceel(q);
+  if (!PC.perceelDef(id) || !q || !Number.isFinite(q.x) || !Number.isFinite(q.y)) return false;
+  b.posities[id] = { x: q.x, y: q.y, a: Number.isFinite(q.a) ? q.a : 0 };
+  markeer();
+  return true;
+}
+
 export function kiesGewas(gewas) {
   const ok = B.kiesGewas(getBoerderij(), gewas);
   if (ok) markeer();

@@ -172,6 +172,7 @@ import { updateIndicators } from './indicators.js';
 import { initAchievementTracker, updateAchievementTracker } from './achievementtracker.js';
 import { initOmverrijden } from './omverrijden.js';
 import { initBoerderij, boerderijTijd, boerderijKlokNul } from './boerderijlive.js';
+import { BOERDERIJ_WERELD_KIND } from './boerderijwereld.js';
 import { probe } from './hitchprobe.js';
 import { initSafety, updateSafety } from './safety.js';
 import { updateCinematics, isCinematicActive, sinceCinematic, setCinematicLinks } from './cinematics.js';
@@ -211,6 +212,7 @@ registerActivityKind({ id: 'activities', init: initActivities, slot: 'act', inte
 registerActivityKind({ id: 'postgame', initPhase: 'late', tickRank: 0, init: initPostgame, slot: 'pre', interact: tryPostgameInteract, tickPhase: 'late', tick: updatePostgame });
 registerActivityKind({ id: 'sidejobs', initPhase: 'late', tickRank: -1, init: initSideJobs, slot: 'job', interact: trySideJobInteract, tickPhase: 'late', tick: updateSideJobs });
 registerActivityKind(planeKind);
+registerActivityKind(BOERDERIJ_WERELD_KIND); // je eigen erf, machines en werktuigen in de wereld (#415)
 registerActivityKind(busBoardKind);
 registerActivityKind(reklameTaxiKind);
 registerActivityKind(shopSignKind);

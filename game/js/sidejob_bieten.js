@@ -28,9 +28,9 @@ function vrij(map, x, y, h0) {
 
 // Een akker bij de fabriek: een rechthoek van de vier rijen met wat marge, op open, vlak land. Dichtstbij eerst, met een willekeurige
 // start in de hoek zodat een volgende ronde een andere akker kan krijgen.
-export function vindAkker(map, bij) {
+export function vindAkker(map, bij, stralen = AKKER_STRALEN) {
   const breedte = (RIJEN - 1) * RIJ_AFSTAND + 10, lengte = RIJ_LEN + 12;
-  for (const r of AKKER_STRALEN) {
+  for (const r of stralen) {
     const start = Math.random() * Math.PI * 2;
     for (let k = 0; k < 18; k++) {
       const a = start + (k / 18) * Math.PI * 2;

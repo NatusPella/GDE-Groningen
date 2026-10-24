@@ -32,7 +32,7 @@ t('kopen: prijs, een plek op het erf, een halve tank; te weinig geld, geen plek,
   const r = M.koopUitCatalogus(bd, 'trekker-klein', PC.START_ERF, 9000);
   assert.ok(r.ok && r.prijs === 9000);
   const m = M.vind(bd, r.uid);
-  assert.equal(m.bezit, 'gekocht'); assert.equal(m.brandstof, 45); assert.equal(m.slijtage, 0);
+  assert.equal(m.bezit, 'gekocht'); assert.equal(m.brandstof, 90); assert.equal(m.slijtage, 0);
   assert.equal(M.koopUitCatalogus(bd, 'bestaatniet', PC.START_ERF, 1e9).ok, false);
   assert.equal(M.koopUitCatalogus(bd, 'ploeg-3', 'wierdehoeve', 1e9).ok, false, 'dat erf is niet van jou');
   while (PC.vrijePlekken(bd, PC.START_ERF) > 0) assert.ok(M.koopUitCatalogus(bd, 'ploeg-3', PC.START_ERF, 1e9).ok);

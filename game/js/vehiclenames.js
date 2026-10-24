@@ -82,6 +82,8 @@ export function vehicleDisplayName(v) {
   if (name === 'trekkerlimo') return { make: 'Terpstra', model: 'Trekker-limo' };
   if (name === 'tractor') return { make: 'Ommelander', model: 'Trekker' };
   if (name === 'quad') return { make: 'Wierde', model: 'Quad' };
+  if (name === 'maaidorser') return { make: 'Korenwolf', model: 'M3 maaidorser' };
+  if (name === 'laadmachine') return { make: 'Laadkabouter', model: 'L45' };
   if (name === 'truck' && v.model.tank) return { make: 'Us Mem Vet', model: 'Tankwagen' };
   if (name === 'bike' && v.model.cargo) return { make: 'Bakfiets', model: 'Kroost-Karretje' };
   if (name === 'bike' && v.model.old) return { make: 'Fiets', model: v.model.student && v.model.student.blauw ? 'Blauwbandige leenfiets' : 'Studentenbarrel' };

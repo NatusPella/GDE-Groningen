@@ -52,9 +52,9 @@ export function draai(m, uren, belasting = 1) {
   const b = clamp(Math.round(belasting), 0, 2);
   const lit = s.verbruik[b] * verbruikFactor(m) * uren;
   const voor = m.brandstof;
-  m.brandstof = Math.max(0, Math.round((m.brandstof - lit) * 10) / 10);
-  m.slijtage = Math.min(SLIJTAGE_KAPOT, Math.round((m.slijtage + s.slijt[b] * uren) * 100) / 100);
-  m.uren = Math.round((m.uren + (b > 0 ? uren : 0)) * 100) / 100;
+  m.brandstof = Math.max(0, m.brandstof - lit);               // niet afronden: kleine stappen per beeld mogen niet wegvallen (opslag rondt af)
+  m.slijtage = Math.min(SLIJTAGE_KAPOT, m.slijtage + s.slijt[b] * uren);
+  m.uren += b > 0 ? uren : 0;
   return { leeg: voor > 0 && m.brandstof <= 0, kapot: m.slijtage >= SLIJTAGE_KAPOT, liter: voor - m.brandstof };
 }
 
@@ -92,7 +92,7 @@ export function onderhoud(m, geld) {
 // --- kopen en huren ------------------------------------------------------------------
 
 // Uit de catalogus kopen of huren, op een erf van jou met een vrije plek. Een gehuurde machine betaal je per speldag vooruit (de eerste meteen).
-// Een nieuwe machine is gespoeld, afgesteld en half vol (een gehuurde vol).
+// Een nieuwe machine komt gespoeld, afgesteld en met een volle tank van de dealer.
 function neem(bd, type, erfId, geld, huur, nu) {
   const c = MACHINE_CATALOGUS[type];
   if (!c) return { ok: false, reden: 'Dat staat niet in de catalogus.' };
@@ -103,7 +103,7 @@ function neem(bd, type, erfId, geld, huur, nu) {
   if (!r.ok) return r;
   const m = vind(bd, r.uid);
   if (huur) { m.bezit = 'gehuurd'; m.sinds = nu; m.volgende = nu + DAG_UREN; m.achterstand = 0; }
-  if (c.soort === 'machine') m.brandstof = huur ? tankInhoud(m) : Math.round(tankInhoud(m) / 2);
+  if (c.soort === 'machine') m.brandstof = tankInhoud(m);
   return { ok: true, uid: r.uid, prijs, naam: c.naam };
 }
 export const koopUitCatalogus = (bd, type, erfId, geld) => { const r = neem(bd, type, erfId, geld, false, 0); if (r.ok) bd.totaal.gekocht += r.prijs; return r; };
