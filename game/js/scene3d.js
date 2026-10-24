@@ -3793,7 +3793,8 @@ function guardCinematicCamera(dt, world) {
 }
 
 function applyCameraOverride(dt, world, lx, ly, lz) {
-  const o = world.cameraOverride;
+  // binnen in de trein (traindrive.js, #442): de ogen van de machinist of van wie rondloopt, een harde cut
+  const o = world.cameraOverride || (world.trainCam && world.trainCam.eye) || null;
   const valid = !!(o && o.position && o.lookAt);
   _camLook.set(lx, ly, lz);
   if (valid) {
