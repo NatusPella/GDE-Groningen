@@ -197,7 +197,7 @@ function percelen(b, geld) {
     return `<div class="bd-rij bd-pc"><span class="bd-naam"><b>${esc(d.naam)}</b><span class="mut"> · ${d.soort === 'akker' ? 'akker' : 'weiland'} · ${String(d.ha).replace('.', ',')} ha · bodem ${PC.bodemNaam(d.bodem)} · ${esc(d.plaats)} · ${esc(wat)}</span></span><span class="bd-acties">${acties(s, 'perceel', d.id, geld)}</span></div>`;
   }).join('');
   return `<div class="pm-pane-top"><span class="m-eb">Boerderij De Zonnehoek</span><h2 class="m-h2 td-h2">${icoon('percelen', 'pa-ico big')}Percelen</h2></div>` + bedrijfRegel(bd) +
-    `<p class="mut">Koop of huur akkers en weilanden bij Hoogkerk, Zuidhorn en Winsum. Betaal je de huur te laat (twee periodes mis), dan gaat het perceel terug naar de verhuurder. Goede bodem geeft meer oogst. De bijbaan werkt op het perceel waar je Werk hier koos; de bietenoogst en andere bijbanen blijven loonwerk voor anderen.</p>${rijen}<p class="bd-melding" aria-live="polite">${esc(melding)}</p>`;
+    `<p class="mut">Koop of huur akkers en weilanden bij Hoogkerk, Zuidhorn en Winsum. Betaal je de huur te laat (twee periodes mis), dan gaat het perceel terug naar de verhuurder. Goede bodem geeft meer oogst. De bijbaan werkt op het perceel waar je Werk hier koos. Bieten rooien hoort bij je eigen boerderij: zodra je akker vastligt, valt het losse loonwerk (bietenoogst) weg en oogst je je bieten hier.</p>${rijen}<p class="bd-melding" aria-live="polite">${esc(melding)}</p>`;
 }
 
 function erf(b, geld) {
