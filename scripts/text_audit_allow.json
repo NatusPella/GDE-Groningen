@@ -441,6 +441,12 @@
       "file": "characters.js",
       "ctx": "Kroegbaas",
       "why": "de zijn is de kroegbaas, een vaste man in het verhaal; geen onbekende persoon"
+    },
+    {
+      "rule": "url",
+      "term": "http://www.w3.org/2000/svg",
+      "file": "touch.js",
+      "why": "de vaste SVG-naamruimte van een inline icoon; geen externe verbinding, geen echte site"
     }
   ]
 }

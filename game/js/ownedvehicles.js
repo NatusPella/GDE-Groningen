@@ -652,7 +652,7 @@ function bezorgInSessie(world, e) {
   if (world.money < e.fee) return { ok: false, text: `Te weinig geld: afleveren kost ${e.feeLabel}` };
   const g = bezorgGegevens(world, e.id);
   if (!g) return { ok: false, text: `Je ${short} staat niet in je garage` };
-  const res = world.coopBezitVraag(g) || { ok: false, tekst: 'De gastheer is even niet bereikbaar.' };
+  const res = world.coopBezitVraag(g) || { ok: false, tekst: 'Wie het spel opende is even niet bereikbaar.' };
   if (!res.ok) return { ok: false, text: res.tekst || 'Dat lukt nu niet' };
   if (e.fee) world.money -= e.fee;
   lastDeliveryAt = world.time;

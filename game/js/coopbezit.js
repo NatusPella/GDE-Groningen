@@ -10,7 +10,7 @@
 // De gast vraagt het aan in ownedvehicles.js (deliverOwnedVehicle ->
 // world.coopBezitVraag), de host voert het uit in bezorgHost (coopnet.js,
 // bericht 'bezorg'), en magGebruiken bepaalt wie erin mag (coopbestuur.js).
-import { lichaamVan } from './coopbestuur.js';
+import { lichaamVan, magGebruiken } from './coopbestuur.js';
 
 // Rechten per voertuig. 'vrienden' komt erbij zodra er een vriendenlijst is (#449);
 // tot die tijd is het een keuze tussen alleen ik en iedereen in de sessie.
@@ -41,13 +41,9 @@ export function zetDeelRecht(staat, id, recht) {
 
 export const wisselRecht = (recht) => (recht === 'ik' ? 'iedereen' : 'ik');
 
-// Mag deze speler in het voertuig van iemand anders? De eigenaar altijd; een ander
-// alleen als de eigenaar hem deelt. De host (plek 0) stapt in zijn eigen wereld in
-// wat hij wil: daar gaat deze regel niet over.
-export function magGebruiken(recht, slot, eigenaar) {
-  if (slot === eigenaar) return true;
-  return (recht || STANDAARD_RECHT) !== 'ik';
-}
+// De rechten op een eigen voertuig van een medespeler staan in coopbestuur.js (#449), zodat er geen importkring is.
+// Hier alleen doorgeven: andere modules halen hem nog steeds bij dit bestand.
+export { magGebruiken };
 
 // Wat er van een eigen voertuig over de lijn gaat (ownedvehicles.js bezorgGegevens):
 // alleen gegevens, geen objecten en niets uit de save. Wat de host leest wordt hier
@@ -84,9 +80,9 @@ export function bezorgVraag(world, g) {
   if (!g || typeof g.id !== 'string' || !SLEUTEL.test(g.id)) return { ok: false, tekst: 'Dat voertuig heb je niet.' };
   if (g.kind === 'boat' || g.kind === 'heli') return { ok: false, tekst: 'Boten en de helikopter kun je nog niet meenemen.' };
   if (world.player && world.player.inVehicle) return { ok: false, tekst: 'Stap eerst uit je voertuig.' };
-  if (!n.session.sendEvent(bezorgEvent(g, rechtVan(world.coopBezit, g.id)))) return { ok: false, tekst: 'De gastheer is even niet bereikbaar.' };
+  if (!n.session.sendEvent(bezorgEvent(g, rechtVan(world.coopBezit, g.id)))) return { ok: false, tekst: 'Wie het spel opende is even niet bereikbaar.' };
   const naam = g.label || g.model || 'voertuig';
-  return { ok: true, tekst: `De gastheer zet je ${naam} bij je neer.` };
+  return { ok: true, tekst: `Wie het spel opende zet je ${naam} bij je neer.` };
 }
 
 // Mag deze speler dit voertuig nog bezorgen? De host houdt de telling bij.

@@ -4,7 +4,35 @@ Alle noemenswaardige wijzigingen in GDE Groningen, per versie. Nieuwste bovenaan
 Versies volgen SemVer: `0.x.y` tot de echte release (1.0.0); `x` voor
 nieuwe functies, `y` voor alleen bugfixes.
 
-## [Unreleased]
+## [0.51.0] - 2026-10-25
+
+### Nieuw
+- **Samen spelen: elke groep zijn eigen opdracht.** Twee groepen kunnen tegelijk verschillende opdrachten doen; stappen, doelen en beloningen blijven bij de eigen groep. Meedoen met een opdracht (J/N) geldt per opdracht, niet meer voor de hele sessie.
+- **Samen spelen: de host kan overdragen.** Valt wie het spel opende weg, dan neemt een ander het over met de wereld, de voertuigen en de opdrachtstand; niemand wordt teruggezet naar de plek waar hij binnenkwam.
+- **Samen spelen: je eigen rol.** Je speelt lokaal Tammo of Tessa en anderen zien je als je eigen figuur met je eigen naam; in een scène speelt iedereen de eigen rol en staat de metgezel er één keer.
+- **Samen spelen: eigen voortgang en beloningen.** Een gast betaalt nooit dubbel na een herstart en een meegespeelde opdracht telt mee in zijn eigen prestaties.
+- **Samen spelen: je eigen voertuig bezorgen.** Je kunt je eigen auto in de sessie van een ander laten bezorgen en delen; hij staat niet in de save van de ander.
+- **Samen spelen: trein en boot kloppen.** Een gast ziet de trein, de trein duwt hem niet meer door zich heen en het treinpaneel hangt op deurhoogte; een gast op een boot blijft op zijn plek.
+- **Samen spelen: wedstrijd met scorebord.** Skatepark en hengelen hebben een puntenwedstrijd met beurten, een live stand en een uitslag per speler.
+- **Samen spelen: melding bij een aanval.** Wie een passieve speler raakt, ziet dat het niet telt; de passieve speler krijgt één melding per paar seconden.
+- **Voertuigen: instappen aan de kant van de deur.** Je komt binnen via de deur waar je staat (links de bestuurder, rechts de bijrijder) en een wagen met iemand achter het stuur levert die bestuurder eruit, met de bestaande reacties.
+- **Loopbanen: zelf beginnen.** Elk vak toont de eerste klus en waar die is, met een knop om te starten; in het verhaal telt een begonnen loopbaan als gedaan.
+- **Loopbanen: één overzicht.** Het pauzemenu toont per vak de bezigheden (vissen, boeren, taxi, bus, krant, vracht) met hun stand, zonder dubbele regels; de besturing staat per situatie bij elkaar.
+- **Vliegschool op een controller.** Het lesmenu en de lessen zijn met een pad te bedienen, ook het toestel kiezen.
+- **Bus: de dienst overnemen.** Stap in een gekaapte bus en rijd de lijn, keer aan de eindhalte en rijd terug; de reizigers die al binnen zitten blijven zitten.
+- **Safehouses in bestaande panden.** Een safehouse staat waar het kan in een bestaand woonpand, met de deur en het bord op de gevel; alleen als er niets past komt het losse huisje terug.
+- **Touch-knoppen met iconen.** De knoppen op een telefoon of tablet hebben een icoon in de HUD-stijl, met het Nederlandse label erbij.
+- **Parkeergarages: de poort komt er.** De planner wacht tot de kaart klaar is met streamen en probeert het opnieuw in plaats van voorgoed zonder poort te blijven.
+- **Kerken zien eruit als kerken.** Kerk-, kapel- en kathedraalgebouwen krijgen een schip met zadeldak, een koor en een toren in plaats van een doos met een lange toren.
+- **Water: kielzog en deining.** Een hard varende boot tilt het water op met een kielzog en laat boten en suppers in de buurt deinen, met een vaste bovengrens.
+- **Geluid: je volume geldt meteen.** Een opgeslagen volumeniveau (ook als tekst bewaard) geldt vanaf de eerste klank, op het startscherm en in een nieuw spel, en een te hoge waarde wordt netjes afgekapt.
+- **Kaart: duidelijker wat een klik doet.** Een klik geeft de keuze Zet waypoint, Reis erheen (met kosten en duur) of Info; hoveren op jezelf zegt waar je staat en een gast ziet wat hij wel en niet kan.
+
+### Opgelost
+- De bietenoogst-bijbaan bij Hoogkerk valt onder de eigen boerderij zodra je akker vastligt, in plaats van ernaast te staan.
+- De ploeg-uitleg komt wanneer je echt in rij 1 rijdt, met de juiste toets en een duidelijke stopknop; de rijen tellen niet meer één opgeschoven.
+- Het pauzemenu bewaart geen scène meer over je laatste savegame als je vanaf het hoofdscherm afsluit, en de nieuw-bolletjes bij Verhaal en Prestaties zijn weer zichtbaar.
+- De verhaaltest wacht niet meer blind op een app-tekst: hij zet de wereld eerst in rust en zegt in de foutmelding welke poort de kaart tegenhield.
 
 ## [0.50.0] - 2026-10-24
 

@@ -6,7 +6,12 @@
 // Schade, politie en diefstalgevolgen horen bij de gast: voertuig.coopBestuurder is zijn plek (coopgezocht.js).
 import { figures } from './coopclient.js';
 import { kanUitstappen, wielInvoer } from './coopgast.js';
-import { magGebruiken } from './coopbezit.js'; // de rechten op een eigen voertuig van een medespeler (#449); dit bestand en coopbezit.js wijzen naar elkaar, net als coopnet.js en coophostwisselnet.js
+// De rechten op een eigen voertuig van een medespeler (#449) staan hier: coopbezit.js wijst naar dit bestand, niet
+// andersom, zodat er geen importkring ontstaat.
+export function magGebruiken(recht, slot, eigenaar) {
+  if (slot === eigenaar) return true;
+  return (recht || 'iedereen') !== 'ik';
+}
 
 export const BESTUUR_TEKST = {
   in: 'Je rijdt. Met E stap je uit als het voertuig bijna stilstaat.',
