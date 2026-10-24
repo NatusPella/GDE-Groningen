@@ -89,7 +89,7 @@ export function cabView(cab, v, bv, vmaxV) {
     out.faults = bv.faults || 0;
     out.next = {
       name: bv.name, toStop: bv.toStop, dueIn: bv.dueIn, depIn: bv.depIn, delay: bv.delay, tooFast: bv.tooFast,
-      brakeFrac: bv.brakeFrac, index: bv.stopIndex + 1, count: bv.stopCount,
+      brakeFrac: bv.brakeFrac, index: bv.stopIndex + 1, count: bv.stopCount, late: bv.delayS,
     };
   }
   return out;
@@ -100,8 +100,8 @@ export const distText = (m) => (m < 0 ? 'voorbij' : m >= 1000 ? `${(m / 1000).to
 // --- het bord (DOM) ------------------------------------------------------------------------------------
 const CSS = `
 #hud .tc-cab[hidden], #hud .tc-result[hidden] { display: none; }
-#hud .tc-cab { position: absolute; bottom: var(--hud-bottom, 22px); left: 50%; transform: translateX(-50%); display: grid; grid-template-columns: auto auto auto minmax(190px, 1fr); gap: 4px 18px; align-items: center; width: min(760px, calc(100vw - 32px)); padding: 10px 18px 8px 14px; color: #f0ede4; text-shadow: var(--hud-shadow); pointer-events: none; z-index: 4;
-  background: linear-gradient(0deg, rgba(10,16,24,0.92), rgba(18,28,40,0.74)); border-bottom: 3px solid #3a7bd5; }
+#hud .tc-cab { position: absolute; bottom: var(--hud-bottom, 22px); left: max(300px, calc(50% - 350px)); display: grid; grid-template-columns: auto auto auto minmax(190px, 1fr); gap: 4px 18px; align-items: center; width: min(700px, calc(100vw - 316px)); padding: 10px 18px 8px 14px; color: #f0ede4; text-shadow: var(--hud-shadow); pointer-events: none; z-index: 4;
+  background: linear-gradient(0deg, rgba(10,16,24,0.96), rgba(18,28,40,0.9)); border-bottom: 3px solid #3a7bd5; }
 #hud .tc-cab .tc-sign { width: 58px; height: 58px; border-radius: 50%; background: #f4f1e8; border: 6px solid #d94a3a; color: #15181c; font: bold 22px Arial, sans-serif; display: flex; align-items: center; justify-content: center; text-shadow: none; }
 #hud .tc-cab .tc-sign.none { background: rgba(240,237,228,0.12); border-color: rgba(240,237,228,0.3); color: rgba(240,237,228,0.5); font-size: 14px; }
 #hud .tc-cab .tc-speed { text-align: center; line-height: 1; }
@@ -141,7 +141,8 @@ const CSS = `
 #hud .tc-result .tc-score b.mid { color: #ffd23f; }
 #hud .tc-result .tc-score b.low { color: #ff9a3c; }
 #hud .tc-result p { margin: 8px 0 0; font-size: 15px; color: rgba(240,237,228,0.82); }
-body.tc-on #hud .hud-speedo, body.tc-on #hud .hud-route { display: none !important; }
+body.tc-on #hud .hud-speedo, body.tc-on #hud .hud-route, body.tc-on #hud .hud-place { display: none !important; }
+@media (max-width: 760px) { #hud .tc-cab { left: 8px; width: calc(100vw - 16px); } }
 @media (max-width: 560px) { #hud .tc-cab { grid-template-columns: auto auto 1fr; } #hud .tc-cab .tc-next { grid-column: 1 / -1; } }
 `;
 
@@ -181,7 +182,7 @@ export function createCabHud() {
       const lever = notches.map((n) => `<i class="${n > 0 ? 'pw' : n < 0 ? 'br' : 'zero'}${n === v.lever ? ' on' : ''}">${leverLabel(n)}</i>`).join('');
       const nx = v.next;
       const nextHtml = nx
-        ? `<small>VOLGEND STATION ${nx.index}/${nx.count}</small><b>${nx.name}</b><span><em>${distText(nx.toStop)}</em> &middot; ${nx.depIn != null ? `vertrek over ${mmss(nx.depIn)}` : `aankomst ${nx.dueIn >= 0 ? `over ${mmss(nx.dueIn)}` : `${mmss(-nx.dueIn)} te laat`}`}</span><span class="${nx.tooFast ? 'bad' : ''}">${nx.delay}${nx.tooFast ? ' &middot; te hard' : ''}</span>`
+        ? `<small>VOLGEND STATION ${nx.index}/${nx.count}</small><b>${nx.name}</b><span><em>${distText(nx.toStop)}</em> &middot; ${nx.depIn != null ? `vertrek over ${mmss(nx.depIn)}` : `aankomst ${nx.dueIn >= 0 ? `over ${mmss(nx.dueIn)}` : `${mmss(-nx.dueIn)} te laat`}`}</span><span class="${nx.tooFast || nx.late > 10 ? 'bad' : ''}">${nx.late > 10 ? `${mmss(nx.late)} te laat` : nx.late < -10 ? `${mmss(nx.late)} voor op schema` : 'op tijd'}${nx.tooFast ? ' &middot; te hard' : ''}</span>`
         : `<small>GEEN DIENST</small><b>Vrij rijden</b><span>${key('G')} dienst rijden vanaf de halte</span>`;
       root.innerHTML = `<div class="tc-sign${v.limitKmh == null ? ' none' : ''}" title="snelheidsbord">${v.limitKmh == null ? 'vrij' : v.limitKmh}</div>`
         + `<div class="tc-speed"><b class="${over ? 'over' : ''}">${v.kmh}</b><small>KM/U${v.maxKmh ? ` (MAX ${v.maxKmh})` : ''}</small></div>`

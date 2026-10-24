@@ -20,7 +20,8 @@ let mats = null;
 function materials() {
   if (mats) return mats;
   mats = [
-    markShared(new THREE.MeshLambertMaterial({ vertexColors: true, emissive: 0x2c2c30 })),
+    // binnen brandt het licht van de trein: ongeschaduwd, ook 's nachts leesbaar
+    markShared(new THREE.MeshBasicMaterial({ vertexColors: true, color: 0xd2d2d2 })),
     markShared(new THREE.MeshBasicMaterial({ vertexColors: true })),
     markShared(new THREE.MeshBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.16, side: THREE.DoubleSide, depthWrite: false })),
   ];
@@ -155,7 +156,7 @@ function buildInterior(group, cfg, seg, cl, seed) {
   const doors = [];
   if (cl.kind === 'car') {
     const leaf = doorLeafGeometry(cfg, cl);
-    const dm = markShared(new THREE.MeshLambertMaterial({ vertexColors: true, emissive: 0x181818 }));
+    const dm = materials()[0];
     for (const dx of cl.doors) for (const s of [-1, 1]) for (const half of [-1, 1]) {
       const mesh = new THREE.Mesh(leaf, dm);
       mesh.position.set(dx + half * DOOR_W / 4, cl.floorY, s * (WALL_Z + 0.02));
