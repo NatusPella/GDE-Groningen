@@ -49,8 +49,16 @@ treinreis, niet bij een sprong terug (een lading). De boerderij heeft dus een ei
   (docs/COOP-GAST.md): zijn gewassen groeien dus niet terwijl hij in andermans wereld meespeelt, ze wachten op hem. Wat wie het spel opende met een
   verkoop verdient deelt hij zoals alle verdiensten met de gasten.
 
+## Percelen en erven (stap 1 van #415)
+
+- `percelen.js` (pure regels, `scripts/percelen_test.mjs`) heeft de vaste lijst percelen (`PERCELEN`: akker of weiland, ha, bodem 0..1, ligging in graden, koop, huur per dag, verzonnen verhuurder, aanbod koop/huur/beide), de erven (`ERVEN`: huis, schuur, silo, opslag in kg, machineplekken) en de catalogus voor stap 2 (`MACHINE_CATALOGUS`, verzonnen namen). Landgebruiksgegevens van de wereld worden nog niet gebruikt.
+- Het bedrijf zit als `bedrijf` in de boerderij (`gde-boerderij-v1`, versie blijft 1): oude opslag zonder `bedrijf` krijgt De Zonnehoek als eerste perceel en erf. Het machinepark (`machines`, `werktuigen`) is leeg tot stap 2.
+- Huren: de eerste periode (dag of week, week 15% korting) betaal je meteen; daarna per verlopen periode uit de speluren (`boerderijTijd` > `huurTik`). Lukt het niet, dan staat het open als achterstand; bij `MAX_ACHTERSTAND` (2) gaat het terug en verhuist de erf-opslag naar De Zonnehoek. Gekocht verkoop je voor 75%.
+- Bodem: `bodemFactor` (0,6 tot 1,2, De Zonnehoek 1,0) vermenigvuldigt de oogst van het perceel waar je Werk hier koos. De bijbaan zelf werkt nog altijd op het gevonden perceel bij Hoogkerk; de bietenoogst en andere bijbanen blijven loonwerk.
+- Kaartlaag `percelen` (`perceelmap.js`): geel te koop, blauw te huur, groen van jou, met een doel naar elk perceel.
+
 ## Niet gedaan (de uitbreiding)
 
-Eggen als aparte stap, graan, uien, koolzaad en gras, meer percelen, een kleine veestapel of weide (koeien, schapen en paarden bestaan als
+Eggen als aparte stap, graan, uien, koolzaad en gras, het werk op een gekozen ander perceel (de bijbaan ligt nog vast bij Hoogkerk), kopen en huren van machines uit de catalogus (stap 2), samen spelen (stap 3), een kleine veestapel of weide (koeien, schapen en paarden bestaan als
 wereldleven), machines kiezen uit meerdere typen en koppelen met een eigen keuzescherm, en het werk met andere voertuigen dan de trekker. De
 tabellen in `boerderij.js` (`GEWASSEN`, `MACHINES`, `TAKEN`) en `BAND` zijn de plekken waar je ze toevoegt.
