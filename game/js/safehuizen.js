@@ -15,6 +15,7 @@ import { refreshDayNight } from './daynight.js';
 import { clearDrunk } from './drunk.js';
 import { recordStat } from './achievements.js';
 import { saveGame } from './savehook.js';
+import { groepAkkoord } from './coopgroep.js';
 import { getScene } from './scene3d.js';
 import { addStaticCollider, removeProp } from './breakables.js';
 import { iconDisc } from './activitykit.js';
@@ -151,10 +152,16 @@ function laatBrengen(w, h) {
   }));
 }
 
+// Slapen en onderduiken verzetten de klok voor iedereen: met meer spelers pas na akkoord van alle anderen (#452, coopgroep.js). Alleen: meteen.
 function slaap(w, h, uur, bericht) {
   if (bezig) return false;
   bezig = true;
   closeShopMenu();
+  const gestart = groepAkkoord(w, 'slapen', null, () => slaapNu(w, h, uur, bericht), () => { bezig = false; });
+  if (!gestart) bezig = false;
+  return gestart;
+}
+function slaapNu(w, h, uur, bericht) {
   respawnFade(1, 320);
   setTimeout(() => {
     try {
@@ -175,6 +182,11 @@ function duikOnder(w, h, uren) {
   if (bezig) return false;
   bezig = true;
   closeShopMenu();
+  const gestart = groepAkkoord(w, 'onderduiken', null, () => duikOnderNu(w, h, uren), () => { bezig = false; });
+  if (!gestart) bezig = false;
+  return gestart;
+}
+function duikOnderNu(w, h, uren) {
   respawnFade(1, 320);
   setTimeout(() => {
     try {
@@ -333,7 +345,7 @@ export function reisNaarHuis(huisIdent) {
   const h = huizen.find((q) => q.id === huisIdent);
   if (!h || h.onbruikbaar || !wereld || !heeftHuisLive(huisIdent)) return false;
   const d = deur(h);
-  return !!(wereld.cheatActions && wereld.cheatActions.teleport(d.x, d.y, h.naam));
+  return !!(wereld.cheatActions && wereld.cheatActions.teleport(d.x, d.y, h.naam, { reis: true })); // een snelreis voor jezelf, geen cheat: ook met meer spelers (#452)
 }
 
 // Voor spotcheck.js (de verhaaltest): elk huisje met de tegels eromheen plaatsen en de plek bij de deur geven. Een onbruikbaar huisje (geen droge, vrije plek in zijn
