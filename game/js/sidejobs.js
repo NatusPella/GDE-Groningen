@@ -180,7 +180,13 @@ export function initSideJobs(w) {
   }
   if (scene) buildBeacon(scene);
   w.sideJob = pub;
-  w.sideJobActions = { active: () => !!ctx, stop: () => quitSideJob(), name: () => (ctx ? ctx.job.name : ''), vehicle: () => (ctx ? ctx.vehicle : null) };
+  w.sideJobActions = {
+    active: () => !!ctx, stop: () => quitSideJob(), name: () => (ctx ? ctx.job.name : ''), vehicle: () => (ctx ? ctx.vehicle : null),
+    // samen spelen (#452, coopbijbaan.js): een gast vraagt een baan te starten, helpt in de baan, en ziet bij welk startpunt hij staat
+    startVoor: (id, slot) => startOpVerzoek(id, slot),
+    helperActie: (slot, x, y) => helperActie(slot, x, y),
+    spotBij: (x, y) => spotBij(x, y),
+  };
   w.onRespawn.push((ww, { busted }) => {
     if (ctx) endShift('dead', busted ? 'Opgepakt: de dienst zit erop' : 'Je bent neergegaan: de dienst zit erop');
   });
@@ -235,6 +241,35 @@ function makeCtx(job, spot) {
   return c;
 }
 
+// Samen spelen (#452): een gast die bij een startpunt E drukt vraagt de host de baan te starten. Zelfde regels als bij de host zelf;
+// de baan draait op de wereld van de host, de gast doet mee via coopbijbaan.js (Meedoen? J of N, volledige beloning per ronde).
+let verzoekVan = null;
+function startOpVerzoek(id, slot) {
+  const job = BY_ID.get(id);
+  if (!job || !world) return { ok: false, reden: 'Die bijbaan kennen we niet.' };
+  const why = blockReason(world);
+  if (why) return { ok: false, reden: why };
+  verzoekVan = slot;
+  let ok = false;
+  try { ok = startJob(job); } finally { verzoekVan = null; }
+  return { ok, reden: ok ? '' : `${job.name} kan nu niet beginnen` };
+}
+// Een hulpactie van een gast in de lopende baan (een krant gooien vanaf zijn plek); de baan beslist of dat kan.
+function helperActie(slot, x, y) {
+  const c = ctx;
+  if (!c || c.ended || !c.job.helperActie) return false;
+  try { return !!c.job.helperActie(c, { slot, x, y }); } catch (e) { crash(e); return false; }
+}
+// Het startpunt waar iemand staat (voor een gast die E drukt), of null.
+function spotBij(x, y) {
+  let best = null, bd = USE_RADIUS;
+  for (const s of spots) {
+    const d = dist(s.x, s.y, x, y);
+    if (d < bd) { bd = d; best = s; }
+  }
+  return best ? { id: best.job.id, name: best.job.name } : null;
+}
+
 function startJob(job, takeover = null) {
   if (!job || ctx) return false;
   const spot = spots.find((s) => s.job === job) || { job, x: world.player.x, y: world.player.y };
@@ -250,10 +285,12 @@ function startJob(job, takeover = null) {
     return false;
   }
   ctx = c;
+  c.opVerzoek = verzoekVan != null; // een gast vroeg erom: de host staat misschien ver weg, dus geen afbreken om de afstand voor iemand in het voertuig zit (#452)
   rec(job.id).shifts++;
+  if (world.coopBijbaanStart) { try { world.coopBijbaanStart(job.id, job.name, verzoekVan); } catch (e) { console.error(e); } } // uitnodiging voor de andere spelers (#452)
   const lvl = c.level;
   const kicker = `Bijbaantje · niveau ${lvl}: ${levelTitle(lvl)}`;
-  const intro = !takeover && !job.noIntro && !seen.has(job.id) && playMissionIntro(world, { kicker, title: job.name, objective: c.vehicle || null, ...introLines(job) });
+  const intro = !takeover && verzoekVan == null && !job.noIntro && !seen.has(job.id) && playMissionIntro(world, { kicker, title: job.name, objective: c.vehicle || null, ...introLines(job) });
   if (intro) seen.add(job.id);
   else {
     world.addMessage(`${job.name}: ${job.tagline || job.blurb}`, 3.5);
@@ -300,7 +337,10 @@ function completeRound(c, res = {}) {
   const xp = 8 + (res.flawless === false ? 0 : 2);
   noteMoney('Bijbaantjes');
   world.money += total;
-  if (world.coopDeel) world.coopDeel(total, loopbaanDeel(vak, basisFor(c, base) + tip, xp)); // samen spelen (#365): de gast verdient volgens zijn eigen niveau (#381)
+  // samen spelen: een baan met samen-regels (coopbijbaan.js) betaalt elke meespeler het volle bedrag (#452); een andere baan deelt zoals eerst (#365).
+  // De gast verdient volgens zijn eigen niveau (#381): hij krijgt de basis en past zijn eigen loonfactor toe.
+  const gedeeld = world.coopBijbaanBeloning ? world.coopBijbaanBeloning(c.job.id, basisFor(c, base) + tip, vak, xp, c.round) : false;
+  if (!gedeeld && world.coopDeel) world.coopDeel(total, loopbaanDeel(vak, basisFor(c, base) + tip, xp));
   loopbaanTel(world, vak, { n: 1, xp, uniek: c.job.id });
   c.earned += total;
   c.streak++;
@@ -363,6 +403,7 @@ function endShift(kind, reason = '') {
   lastEnd = { kind, reason, job: c.job.id, streak: c.streak, earned: c.earned };
   c.ended = true;
   ctx = null;
+  if (world.coopBijbaanEind) { try { world.coopBijbaanEind(kind); } catch (e) { console.error(e); } } // de anderen horen dat de baan voorbij is (#452)
   const job = c.job;
   const r = rec(job.id);
   const best = r.bestStreak;
@@ -474,6 +515,7 @@ function checkVehicle(dt, c) {
   if (!world.vehicles.includes(v) || v.sunk) { endShift('fail', `${c.vehicleWord} is foetsie`); return false; }
   if (v.wrecked || v.disabled) { endShift('fail', `${c.vehicleWord} is afgeschreven`); return false; }
   if (p.inVehicle === v) { c.awayFor = 0; c.boarded = true; return true; }
+  if (c.opVerzoek && !c.boarded) return true; // een gast startte de baan: de host loopt eerst naar het voertuig (#452)
   if (c.boarded) c.awayFor += dt;
   const d = dist(p.x, p.y, v.x, v.y);
   if (d > ABANDON_DIST || c.awayFor > ABANDON_TIME) {
