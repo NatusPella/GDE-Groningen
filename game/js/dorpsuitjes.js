@@ -124,7 +124,6 @@ function spotFor(map, st, kind) {
   switch (kind) {
     case 'tennis': return face(around(45, 260, 5, ao - 0.5, 1.6, (x, y, a) => [[11, 6], [-11, 6], [11, -6], [-11, -6], [0, 7]].every(([u, v]) => openGround(map, x + u * cosA(a) - v * sinA(a), y + u * sinA(a) + v * cosA(a), { r: 1 }))));
     case 'boot': return shoreSpot(map, st, ...SHORE.boot, true);
-    case 'strand': return shoreSpot(map, st, ...SHORE.strand);
     case 'molen': return facing(around(60, 280, 6.5, ao - 0.4));
     case 'toren': return face(around(45, 260, 5, ao - 0.4, 1.6, (x, y, a) => openGround(map, x + cosA(a) * 12, y + sinA(a) * 12, { r: 1.5 }) && openGround(map, x + cosA(a) * 22, y + sinA(a) * 22, { r: 1 })));
     case 'wierde': return facing(around(50, 260, 3.5, ao - 0.4));
@@ -160,14 +159,14 @@ function makeAct(v, role, def, spot) {
 }
 
 // Where the water and beach uitjes look for their shore: [depth, how far from the station]
-const SHORE = { boot: [18, 1600], strand: [28, 2600] };
+const SHORE = { boot: [18, 1600] };
 // the tiles a village is placed on: round its station and, for a water uitje, the
 // whole disc its shore is searched in (rings of points a window apart)
 const PLACE_WINDOW = 460;
 function placePoints(map, v) {
   const pts = [[v.st.x, v.st.y]];
   for (const def of [v.V.special, v.V.amenity]) {
-    const q = SHORE[def.kind];
+    const q = def && SHORE[def.kind];
     if (!q) continue;
     for (let r = 800; r < q[1] + 700; r += 800) {
       const n = Math.round((r / 800) * 6);
@@ -193,6 +192,7 @@ function placeVillage(map, v) {
   const st = v.st, V = v.V;
   v.placed = true;
   for (const [role, def] of [['special', V.special], ['amenity', V.amenity]]) {
+    if (!def) continue;
     const q = spotFor(map, st, def.kind);
     if (q) v.acts.push(makeAct(v, role, def, q));
     else console.warn('[dorpsuitjes] geen plek voor', st.name, def.kind);
@@ -624,26 +624,6 @@ function ringBell(w, a) {
   doneSpecial(w, a);
 }
 
-function beach(w, a) {
-  const [px, py] = toWorld(a, 5, 0);
-  stand(w, px, py, a.a);
-  scene(w, a, {
-    id: 'dorp-strand', title: a.def.name, duration: 9,
-    lines: a.def.lines.map((t) => [DUO, t]),
-    shot(u) {
-      if (u > 0.2 && u < 0.25) (w.audioEvents || (w.audioEvents = [])).push({ kind: 'splash', x: px, y: py });
-      const h = a.a + Math.PI + 0.5 - u * 0.4;
-      return { position: W3(px - cosA(h) * -8 + cosA(a.a) * 2, py - sinA(h) * -8 + sinA(a.a) * 2, 1.4), lookAt: W3(px, py, 1.0), fov: 50 };
-    },
-    onEnd() {
-      heal(w, 30);
-      w.padelFitUntil = w.time + FIT_S;
-      w.addMessage('Pootje gebaad: +30 gezondheid en een poosje fit', 3.5);
-      doneSpecial(w, a);
-    },
-  });
-}
-
 function useAct(w, a) {
   switch (a.kind) {
     case 'winkel': shopMenu(w, a, FARM_STOCK, { type: 'super', color: '#3a7a3a', tagline: 'Vers van t erf. Eerlijk betalen.' }); break;
@@ -657,7 +637,6 @@ function useAct(w, a) {
     case 'toren': towerPhoto(w, a); break;
     case 'wierde': wierdeView(w, a); break;
     case 'klok': ringBell(w, a); break;
-    case 'strand': beach(w, a); break;
     default: break;
   }
 }
