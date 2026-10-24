@@ -82,5 +82,20 @@ const ok = (c, m) => { n++; if (!c) { fails++; console.log('FAIL ' + m); } };
   ok(T.roleOf(back, 4) === 'machinist' && T.roleOf(back, 1) === 'conducteur' && T.roleOf(back, 0) === 'passagier', 'ook na een host-wissel weten we wie wat is');
 }
 
+// een trein is solide, ook bij een gast (#436): de wagen duwt een lichaam de kortste kant op
+{
+  const wagen = { x: 0, y: 0, angle: 0, len: 17 };
+  const d = T.duwVanWagen(wagen, 0.2, 0.1, 0.35);
+  ok(d && d.depth > 0 && Math.abs(d.ny) === 1, 'naast de hartlijn: de duw gaat opzij');
+  ok(T.duwVanWagen(wagen, 0, 0, 0.35).nx !== 0 || T.duwVanWagen(wagen, 0, 0, 0.35).ny !== 0, 'in het midden: er is altijd een duw');
+  ok(T.duwVanWagen(wagen, 8.4, 0, 0.35).depth > 0 && Math.abs(T.duwVanWagen(wagen, 8.4, 0, 0.35).nx) === 1, 'bij de kop: langs de wagen naar buiten');
+  ok(T.duwVanWagen(wagen, 12, 0, 0.35) === null, 'naast de wagen: geen duw');
+  ok(T.duwVanWagen(wagen, 0, 4, 0.35) === null, 'naast de wagen (dwars): geen duw');
+  // een wagen die schuin staat duwt ook schuin
+  const schuin = T.duwVanWagen({ x: 0, y: 0, angle: Math.PI / 4, len: 17 }, 0, 0.5, 0.35);
+  ok(schuin && Math.abs(Math.hypot(schuin.nx, schuin.ny) - 1) < 1e-9, 'de duw is een eenheidsvector');
+  ok(T.duwVanWagen({}, 0, 0) === null && T.duwVanWagen(wagen, NaN, 0) === null, 'zonder gegevens: geen duw');
+}
+
 console.log(`${n - fails}/${n} treincoop ok`);
 process.exit(fails ? 1 : 0);
