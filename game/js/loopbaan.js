@@ -104,7 +104,7 @@ const BAAN_VAK = {
   boa: 'handhaving', rechtbank: 'handhaving', fietsdepot: 'handhaving', berging: 'handhaving', brugdienst: 'handhaving', herstelploeg: 'handhaving',
   loket: 'kantoor', studiestaat: 'kantoor', wolkenhal: 'kantoor', vandermeden: 'kantoor',
   cabaret: 'podium', promotie: 'podium', oogtv: 'podium', telefoonrave: 'podium', schouwburg: 'podium',
-  vigilantia: 'horeca', niemeyer: 'horeca',
+  vigilantia: 'horeca', niemeyer: 'horeca', snackoverlast: 'horeca',
   kermisdraai: 'kermis',
   kamerkoning: 'klus', helix: 'klus', energielabel: 'klus', tjalke: 'klus',
 };
