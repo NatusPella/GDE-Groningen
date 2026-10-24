@@ -26,6 +26,9 @@
 //     Boats go home to "Jouw steiger" behind the tower, the helicopter to the helidek on its roof (home.js).
 //     In een sessie van een ander zet de gastheer een kopie bij je neer; je eigen
 //     save en de zijne blijven zoals ze zijn (#449, coopbezit.js bezorgHost).
+//     Een eigen pand (safehouse, boerderij, huis) gaat met hetzelfde bericht
+//     'bezorg' met soort 'pand' (coopbezit.js pandVraag); daar zet de host alleen
+//     een deur neer en geen voertuig.
 //   locateOwnedVehicle(world, id) -> { ok, text, x, y }
 //     "Waar staat hij?": where it is; a route only via an explicit "Zet route".
 //   getOwnedVehiclesForMap(world) -> [{ x, y, angle, kind, label, hero, color }]
