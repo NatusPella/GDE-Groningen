@@ -552,6 +552,8 @@ function buildCarMesh(v) {
   if (v.model.name === 'trekkerlimo') return buildTrekkerLimoMesh(v);
   if (v.model.name === 'tractor') return buildTractorMesh(v);
   if (v.model.name === 'quad') return buildQuadMesh(v);
+  if (v.model.name === 'maaidorser') return buildMaaidorserMesh(v);
+  if (v.model.name === 'laadmachine') return buildLaadmachineMesh(v);
   if (v.model.name === 'foodtruck') return buildFoodtruckMesh(v);
   // a stolen police car that went through the spray shop wears its new paint
   const police = !!v.isPolice && !v._commandeered && !v.model.resprayed;
@@ -834,6 +836,91 @@ function buildQuadMesh(v) {
   }
   group.userData.wheels = wheels;
   group.userData.wheelRadius = 0.3;
+  return group;
+}
+
+// De Korenwolf M3 (verzonnen maaidorser, #415): brede maaitafel voorop, de cabine hoog erboven, graantank en lospijp achterop, grote voorwielen.
+// Gebouwd voor MAAIDORSER_MODEL (vehicle.js): 7,4 x 3,3 m. Aparte functie: de boerderij hangt hier niets anders aan.
+function buildMaaidorserMesh(v) {
+  const L = v.model.len, W = v.model.wid, hl = L / 2, hw = W / 2;
+  const paint = v.wrecked ? WRECKED_COLOR : toHex(v.model.color, 0xc43d2b);
+  const geo = cached(`maaidorser|${L}|${W}|${paint}`, () => {
+    const B = new GeoBuilder(3);
+    const rond = shadeHex(paint, 0.82);
+    // maaitafel voorop met haspel en messenbalk, dorskast, graantank, lospijp, cabine
+    B.box(hl - 0.5, 0.62, 0, 1.0, 0.5, W, 0xd9b84a);
+    B.box(hl - 0.15, 0.4, 0, 0.18, 0.14, W, 0x6b6b6b);
+    B.box(hl - 0.45, 1.05, 0, 0.5, 0.5, W * 0.96, shadeHex(0xd9b84a, 0.8));
+    B.box(hl - 1.45, 1.5, 0, 1.6, 1.0, W * 0.62, rond);
+    B.box(-0.55, 1.55, 0, hl * 1.2, 1.1, W * 0.78, paint);
+    B.box(-1.2, 2.55, 0, 3.2, 1.0, W * 0.74, paint);
+    B.box(-1.2, 3.14, 0, 3.3, 0.14, W * 0.78, rond);
+    B.box(-0.2, 3.5, hw * 0.55, 3.4, 0.14, 0.16, 0x6b6b6b);
+    B.box(hl - 2.4, 2.65, 0, 1.5, 1.3, W * 0.7, paint);
+    B.box(hl - 2.4, 3.36, 0, 1.6, 0.14, W * 0.76, rond);
+    B.box(hl - 1.64, 2.7, 0, 0.03, 1.0, W * 0.64, GLASS, G_GLASS);
+    B.box(hl - 3.16, 2.7, 0, 0.03, 1.0, W * 0.64, GLASS, G_GLASS);
+    for (const s of [1, -1]) {
+      B.box(hl - 2.4, 2.7, s * W * 0.35, 1.5, 1.0, 0.03, GLASS, G_GLASS);
+      B.box(hl - 0.04, 0.62, s * (hw - 0.3), 0.02, 0.14, 0.24, HEADLAMP, G_LAMP);
+      B.box(-hl + 0.03, 1.5, s * (hw * 0.5), 0.02, 0.14, 0.2, TAIL, G_LAMP);
+    }
+    return B.build();
+  });
+  const mats = vehicleMaterials(v.wrecked);
+  const group = new THREE.Group();
+  const body = new THREE.Mesh(geo, mats);
+  group.add(body);
+  group.userData.body = body;
+  const wheels = [];
+  const big = carWheelGeometry(0.95, 0.7), small = carWheelGeometry(0.62, 0.5);
+  for (const s of [1, -1]) {
+    addWheel(group, big, mats[0], hl - 2.7, 0.95, s * (hw - 0.45), wheels);
+    addWheel(group, small, mats[0], -hl + 1.0, 0.62, s * (hw - 0.55), wheels);
+  }
+  group.userData.wheels = wheels;
+  group.userData.wheelRadius = 0.95;
+  return group;
+}
+
+// De Laadkabouter L45 (verzonnen kleine laadmachine, #415): compacte knikmachine met een laadarm en bak voorop. 3,4 x 1,8 m.
+function buildLaadmachineMesh(v) {
+  const L = v.model.len, W = v.model.wid, hl = L / 2, hw = W / 2;
+  const paint = v.wrecked ? WRECKED_COLOR : toHex(v.model.color, 0xe0a92b);
+  const geo = cached(`laadmachine|${L}|${W}|${paint}`, () => {
+    const B = new GeoBuilder(3);
+    const rond = shadeHex(paint, 0.8);
+    B.box(-hl + 0.7, 0.85, 0, 1.4, 0.7, W * 0.8, paint);
+    B.box(-hl + 0.45, 1.3, 0, 0.9, 0.3, W * 0.72, rond);
+    B.box(0.15, 0.62, 0, 1.6, 0.4, W * 0.62, 0x2a2a2a);
+    // cabine met kooi, de laadarm langs beide kanten en de bak
+    B.box(-0.1, 1.45, 0, 1.1, 0.12, W * 0.78, rond);
+    B.box(-0.1, 2.0, 0, 1.1, 0.08, W * 0.86, rond);
+    for (const s of [1, -1]) {
+      for (const px of [-0.6, 0.38]) B.box(px, 1.75, s * (hw * 0.78), 0.06, 0.66, 0.06, rond);
+      B.box(0.55, 1.2, s * (hw * 0.92), 1.7, 0.1, 0.1, 0x5a5a5a);
+      B.box(0.38, 1.76, s * (hw * 0.78), 0.02, 0.56, 0.02, GLASS, G_GLASS);
+      B.box(hl - 0.03, 0.9, s * (W * 0.3), 0.02, 0.12, 0.2, HEADLAMP, G_LAMP);
+      B.box(-hl + 0.02, 1.05, s * (W * 0.3), 0.02, 0.1, 0.18, TAIL, G_LAMP);
+    }
+    B.box(hl + 0.1, 0.45, 0, 0.8, 0.5, W * 1.02, 0x5a5a5a);
+    B.box(hl + 0.45, 0.72, 0, 0.1, 0.45, W * 1.02, 0x5a5a5a);
+    B.box(-0.1, 1.75, 0, 0.02, 0.56, W * 0.76, GLASS, G_GLASS);
+    return B.build();
+  });
+  const mats = vehicleMaterials(v.wrecked);
+  const group = new THREE.Group();
+  const body = new THREE.Mesh(geo, mats);
+  group.add(body);
+  group.userData.body = body;
+  const wheels = [];
+  const wheel = carWheelGeometry(0.46, 0.5);
+  for (const s of [1, -1]) {
+    addWheel(group, wheel, mats[0], hl - 0.85, 0.46, s * (hw - 0.25), wheels);
+    addWheel(group, wheel, mats[0], -hl + 0.7, 0.46, s * (hw - 0.25), wheels);
+  }
+  group.userData.wheels = wheels;
+  group.userData.wheelRadius = 0.46;
   return group;
 }
 

@@ -39,7 +39,7 @@ export const HINTS = [
   { id: 'v-motor', kind: 'vehicle', match: 'motor', title: 'Motor', body: 'Met {SHIFT} en gas steigert hij; remmen met {SHIFT} geeft een stoppie. Doe dat liever niet in de stad.' },
   { id: 'v-boot', kind: 'vehicle', match: 'boot', title: 'Aan het roer', body: 'Gas en sturen met {WASD}: het roer draait mee en op een rondvaartboot of sloep ook het stuurwiel. Een boot remt langzaam en glijdt door de bocht, dus begin op tijd. Uitstappen met {E} kan bij de wal.' },
   { id: 'v-bus', kind: 'vehicle', match: 'bus', title: 'Een bus', body: 'Lang en zwaar: neem bochten ruim en rem op tijd. Met {H} toeter je.' },
-  { id: 'v-trekker', kind: 'vehicle', match: 'trekker', title: 'Trekker', body: 'Gas en sturen met {WASD}, rem met {SPACE}. Met {Z} koppel je een ploeg aan en zet je hem omlaag of omhoog, met {X} zet je de aftakas aan of uit. Bij een klus op het land zakt de machine vanzelf.' },
+  { id: 'v-trekker', kind: 'vehicle', match: 'trekker', title: 'Trekker', body: 'Gas en sturen met {WASD}, rem met {SPACE}. Eigen werktuig: E koppelt, G aftakas, T hef, X los, R tankt diesel. In de bijbaan werkt de machine vanzelf op de rij.' },
   { id: 'v-quad', kind: 'vehicle', match: 'quad', title: 'Quad', body: 'Wendbaar en goed in het terrein: gas en sturen met {WASD}, rem met {SPACE}. Neem bulten rustig, je zit er los bovenop.' },
   { id: 'v-foodtruck', kind: 'vehicle', match: 'foodtruck', title: 'Foodtruck', body: 'Een zware bestelbus: gas en sturen met {WASD}, handrem op {SPACE}. Met {C} kijk je vanuit de cabine mee, met {H} toeter je.' },
   { id: 'v-vracht', kind: 'vehicle', match: 'vracht', title: 'Vrachtwagen', body: 'Lang, zwaar en traag in de bocht. Houd ruim afstand en neem bochten breed.' },
