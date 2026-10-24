@@ -103,7 +103,9 @@ const m0 = M.vind(Live.getBedrijf(), trek.farm);
 const b0 = m0.brandstof;
 const p0 = { x: trek.x, y: trek.y };
 key('keydown', 'w', 'KeyW');
-await sleep(3500);
+const diag = [];
+for (let i = 0; i < 7; i++) { await sleep(500); diag.push({ sp: +trek.speed.toFixed(2), down: D.input.isDown('w'), axis: D.input.axis ? D.input.axis() : null, drv: trek.driver, pause: !!(w.paused || w.uiPaused), top: trek.model.maxSpeed, dis: !!trek.disabled, wr: !!trek.wrecked, x: Math.round(trek.x), cap: w.coopHold || null }); }
+uit.diag = diag;
 const snel = Math.abs(trek.speed);
 key('keyup', 'w', 'KeyW');
 await sleep(2500);
@@ -122,7 +124,8 @@ if (pos) {
   const rijen = akkerRijen({ x: pos.x, y: pos.y }, pos.a);
   // de trekker naar het veld, de hef omlaag; dan kinematisch de rijen rijden (zoals de speelbot: stuurgevoel is niet gemeten)
   const v = trek;
-  if (!p.inVehicle) { teleport(v.x + 3.2, v.y, 0); await tap('e', 'KeyE'); await sleep(800); }
+  if (!p.inVehicle) { teleport(v.x + 2.0, v.y + 0.8, 0); await sleep(800); await tap('e', 'KeyE'); await sleep(800); }
+  check('in de trekker voor het veldwerk', p.inVehicle === v, '');
   await tap('t', 'KeyT'); await sleep(300);
   const imp = WW._staat().werktuigen.get(ploegRec.uid);
   const d = WT.WERKTUIG.ploeg;
@@ -141,23 +144,33 @@ if (pos) {
   check('ploegen is klaar', B.fase(b) === 'geploegd', B.fase(b));
   check('ploegen met je eigen ploeg kost niets (alleen diesel)', w.money === geld0, `${geld0} -> ${w.money}`);
   check('melding Geploegd', uit.meldingen.some((m) => /Geploegd/.test(m)), JSON.stringify(laatsteMeldingen()));
-  await shot('veld-geploegd', 800);
-  // naar de volgende fasen: de wereld toont het (kleur, gewas en groei)
+  // de volgende fasen bekijk je te voet vanaf een standpunt schuin voor het veld (kleur, strepen, gewas en groei)
+  const vantage = async (naam, wacht = 3000) => {
+    const ux = Math.cos(pos.a), uy = Math.sin(pos.a), nx = -uy, ny = ux;
+    const px = pos.x - ux * 55 + nx * 42, py = pos.y - uy * 55 + ny * 42;
+    const hoek = Math.atan2(pos.y - py, pos.x - px);
+    teleport(px, py, hoek);
+    hold = { x: px, y: py, a: hoek };
+    await sleep(wacht); await shot(naam, 300);
+    hold = null;
+  };
+  uit.velden = WW.boerderijWereldStand().velden;
+  await vantage('veld-geploegd', 4000);
   Live.rondAf(w, 'cultiveren', 0.9, { vrij: true });
-  await sleep(1500); await shot('veld-gecultiveerd', 500);
+  await vantage('veld-gecultiveerd');
   Live.rondAf(w, 'zaaien', 0.9, { vrij: true });
-  await sleep(1500); await shot('veld-gezaaid', 500);
+  await vantage('veld-gezaaid');
   Live.rondAf(w, 'bemesten', 0.9, { vrij: true });
   B.tikUren(b, 18);
-  await sleep(1500); await shot('veld-groeit', 500);
+  await vantage('veld-groeit');
   B.tikUren(b, 40);
-  await sleep(1500); await shot('veld-rijp', 500);
+  await vantage('veld-rijp');
   // de maaidorser oogst
   teleport(v.x + 5, v.y, 0);
   const dorser = w.vehicles.find((x) => x.farm && x.model.name === 'maaidorser');
   check('de maaidorser staat in de wereld', !!dorser && dorser.model.len > 7, dorser ? String(dorser.model.len) : 'geen');
   if (dorser) {
-    teleport(dorser.x + 4.5, dorser.y, 0); await sleep(1000);
+    teleport(dorser.x + 2.6, dorser.y, 0); await sleep(1000);
     await tap('e', 'KeyE'); await sleep(1000);
     check('E zet je in de maaidorser', p.inVehicle === dorser, '');
     await tap('t', 'KeyT'); await tap('g', 'KeyG'); await sleep(400);

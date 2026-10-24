@@ -9,6 +9,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { Vehicle, MACHINE_MODELLEN } from './vehicle.js';
 import { getScene } from './scene3d.js';
+import { wisGrasCellen } from './grass.js';
 import { nearestFacility } from './facilities.js';
 import { wgsToWorld } from './rdnew.js';
 import { akkerRijen, rijPositie, RIJ_AFSTAND } from './bietenrules.js';
@@ -379,7 +380,6 @@ function afnemerPlek(w, gewas) {
 
 // --- velden --------------------------------------------------------------------------------------------
 
-const hash = (s) => { let h = 7; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) % 9973; return h; };
 
 async function zoekVeld(w, id) {
   if (S.zoek.has(id)) return;
@@ -393,6 +393,34 @@ async function zoekVeld(w, id) {
     else S.meld['geenveld' + id] = S.t;
   } catch (e) { /* de wereld hier is nog niet geladen: later opnieuw */ }
   S.zoek.delete(id);
+}
+
+// Het gras blijft van je akkers af: map.reservedAt (zoals bij het padel- en kermisterrein) houdt gras en rekwisieten weg van de rijen van je percelen, en de al
+// gemaakte gras-cellen eronder worden eenmalig weggegooid zodra het veld voor het eerst in beeld komt.
+function opEenVeld(x, y) {
+  const b = getBoerderij();
+  for (const id of Object.keys(b.bedrijf.percelen)) {
+    const pos = B.veldPositie(b, id);
+    if (!pos) continue;
+    const dx = x - pos.x, dy = y - pos.y;
+    if (dx * dx + dy * dy > 90 * 90) continue;
+    const ux = Math.cos(pos.a), uy = Math.sin(pos.a);
+    if (Math.abs(dx * ux + dy * uy) <= RIJ_LEN / 2 + 4 && Math.abs(-dx * uy + dy * ux) <= (RIJEN * RIJ_AFSTAND) / 2 + 4) return true;
+  }
+  return false;
+}
+function installeerVeldGat(map) {
+  if (!map || map._boerderijGat) return;
+  map._boerderijGat = true;
+  const prev = map.reservedAt;
+  map.reservedAt = (x, y) => (prev ? prev(x, y) : false) || opEenVeld(x, y);
+}
+const grasGewist = new Set();
+function wisGrasBijVeld(id, pos) {
+  if (grasGewist.has(id + ':' + Math.round(pos.x) + ',' + Math.round(pos.y))) return;
+  grasGewist.add(id + ':' + Math.round(pos.x) + ',' + Math.round(pos.y));
+  const r = Math.hypot(RIJ_LEN / 2 + 4, (RIJEN * RIJ_AFSTAND) / 2 + 4) + 2;
+  try { wisGrasCellen(pos.x - r, pos.y - r, pos.x + r, pos.y + r); } catch (e) { /* het gras is er nog niet */ }
 }
 
 const tmpKleur = new THREE.Color();
@@ -418,6 +446,7 @@ function streepTextuur() {
 const sleutelVan = (b, id) => { const v = B.veldStand(b, id); return [v.fase, v.gewas, Math.round(Math.min(1, v.gezaaidOp == null ? 0 : (b.uren - v.gezaaidOp) / (B.GEWASSEN[v.gewas] ? B.GEWASSEN[v.gewas].groeiUren : 1)) * 10), v.cult > 0 ? 1 : 0, v.spuit > 0 ? 1 : 0, v.mest > 0 ? 1 : 0].join('|'); };
 
 function bouwVeldMesh(w, id, pos, b) {
+  wisGrasBijVeld(id, pos);
   const rijen = akkerRijen({ x: pos.x, y: pos.y }, pos.a);
   const stand = B.veldStand(b, id);
   const group = new THREE.Group();
@@ -484,6 +513,7 @@ const NUL = new THREE.Matrix4().makeScale(0, 0, 0);
 
 function syncVelden(w) {
   const b = getBoerderij(), bd = b.bedrijf, p = w.player;
+  installeerVeldGat(w.map);
   for (const id of Object.keys(bd.percelen)) {
     const pos = B.veldPositie(b, id);
     if (!pos) {

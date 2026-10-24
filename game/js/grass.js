@@ -1052,6 +1052,17 @@ export function updateGrass(dt, world, cam, drawDist) {
   for (const m of GRASS_MATS) m.envMapIntensity = env;
 }
 
+// Een stuk grond waar geen gras meer hoort (een akker van de boerderij, #415: map.reservedAt houdt het gras er voortaan weg): de al gemaakte
+// gras-cellen eronder worden weggegooid en komen zonder gras terug.
+export function wisGrasCellen(x0, y0, x1, y1) {
+  for (const k of [...cells.keys()]) {
+    const [i, j] = k.split(',').map(Number);
+    if ((i + 1) * CELL > x0 && i * CELL < x1 && (j + 1) * CELL > y0 && j * CELL < y1) cells.delete(k);
+  }
+  dirty = true;
+  lastCellKey = '';
+}
+
 // Far-LOD tint: the kind's base colour nudged towards the shader's average.
 export function grassFarColor(g) {
   const K = kindOf(g);
