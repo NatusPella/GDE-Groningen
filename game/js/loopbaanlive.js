@@ -118,11 +118,30 @@ function meldOmhoog(w, o) {
 export function loopbaanTel(w, vak, opties = {}) {
   if (geblokkeerd()) return { xp: 0, omhoog: null };
   const r = L.tel(getProfiel(), vak, opties);
-  if (r.xp > 0 || (opties.n || 0) > 0) markeer();
+  // de eerste punten in een vak beginnen die loopbaan (#431): de verhaalstap die erbij hoort telt daarna als gedaan
+  const begonnen = r.xp > 0 || (opties.n || 0) > 0 ? L.startVak(getProfiel(), vak).nieuw : false;
+  if (r.xp > 0 || (opties.n || 0) > 0 || begonnen) markeer();
   if (r.omhoog) meldOmhoog(w, r.omhoog);
   if (typeof opties.uniek === 'string' && opties.uniek) gebiedenOpUniek(w, opties.uniek); // gebieden veroveren (#414)
   return r;
 }
+
+// Een loopbaan zelf beginnen (#431), vanuit het Loopbaan-scherm: hij telt daarna als gedaan voor de verhaalstap
+// die erbij hoort, ook als je die stap nog niet hebt gehaald. Geeft de eerste klus terug.
+export function startLoopbaan(w, vak) {
+  const info = L.vakInfo(vak);
+  if (!info) return { gestart: false, nieuw: false, start: null };
+  const r = L.startVak(getProfiel(), vak);
+  if (!r.nieuw) return r;
+  markeer();
+  if (w && w.addMessage) {
+    w.addMessage(`Loopbaan begonnen: ${info.naam}. Eerste klus: ${r.start.klus}`, 4.5, { kind: 'prestatie', kicker: 'Loopbaan', key: 'loopbaan-start-' + vak });
+  }
+  return r;
+}
+
+// Is deze loopbaan al begonnen (voor het scherm en de verhaalstap)?
+export const isLoopbaanGestart = (vak) => L.isGestart(getProfiel(), vak);
 
 // Wat de gastheer zijn gasten meestuurt bij een gedeelde beloning.
 export function loopbaanDeel(vak, basis, xp = 0) {
