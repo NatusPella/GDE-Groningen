@@ -56,6 +56,19 @@ export function naasteSpeler(world, x, y) { return dichtstbijzijndeSpeler(world,
 
 export function hoofdspeler(world) { return world.player; }
 export function spelers(world) { return register(world); }
+// Het record van één speler op zijn vaste plek (0 = wie het spel opende, 1 en verder = de meespelers); null als die plek niet meedoet.
+export function speler(world, slot) {
+  const reg = register(world);
+  for (let i = 0; i < reg.length; i++) if (reg[i].slot === slot) return reg[i];
+  return null;
+}
+// Is dit de speler van dit apparaat? p mag het record of het lichaam zijn. Alle andere spelers komen van het netwerk en
+// houden hun eigen stand bij; alleen wat de wereld deelt (politie, verkeer, dieren) kijkt naar iedereen.
+export function isLokaal(world, p) {
+  if (!p) return false;
+  const lokaal = register(world)[0];
+  return p === lokaal || p === lokaal.entiteit;
+}
 // Spelen er twee of meer mensen in deze sessie? Eenspeler en een sessie van één: nee (de waarschuwingen van coopstatus.js zwijgen dan).
 export function meerdereSpelers(world) { return !!world && register(world).length >= 2; }
 export function voorElkeSpeler(world, fn) { const reg = register(world); for (let i = 0; i < reg.length; i++) fn(reg[i], i); }
@@ -81,7 +94,7 @@ export function spelerVan(world, entiteit) {
     const e = r.entiteit;
     if (e === entiteit || (e && e.inVehicle === entiteit)) return r;
   }
-  if (Number.isInteger(entiteit.slot)) for (const r of reg) if (r.slot === entiteit.slot) return r;
+  if (Number.isInteger(entiteit.slot)) return speler(world, entiteit.slot);
   return null;
 }
 
@@ -112,7 +125,7 @@ export function opdrachtSpelers(world, id = null) {
 // Het voertuig waarin deze speler zit (of null). Een gast kent alleen "in een voertuig": het dichtstbijzijnde voertuig binnen GAST_VOERTUIG_M.
 export function inVoertuig(world, r) {
   if (!r) return null;
-  if (r.lokaal) { const e = r.entiteit; return e ? e.inVehicle || null : null; }
+  if (isLokaal(world, r)) { const e = r.entiteit; return e ? e.inVehicle || null : null; }
   const st = r.partner && r.partner.status;
   if (st !== 'voertuig' && st !== 'rijdt') return null;
   let best = null, bd = GAST_VOERTUIG_M;
