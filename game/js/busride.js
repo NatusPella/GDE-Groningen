@@ -5,6 +5,7 @@
 
 import { STOP_RADIUS, DWELL } from './busroutes.js';
 import { buildTimetable, punctuality, holdSeconds, stopExchange, tripScore, CAPACITY, CRUISE } from './busservice.js';
+import { makeTevredenheid, stepTevredenheid, stoot, deurenOpen, deurenDicht } from './busbestuur.js';
 
 const STOP_SPEED = 1.5;     // m/s: zo langzaam moet de bus staan om te halteren
 const BOARD_TIME = 3;       // s minimaal halteren
@@ -36,6 +37,8 @@ export function makeRide(line, { dir = 1, rng = Math.random, demand = 1, first =
     next: 1,              // index in table van de volgende halte
     t: 0, phase: 'drive', dwellLeft: 0, onBoard: 0, passengers: 0,
     deltas: [], hardBrakes: 0, prevSpeed: 0, earlyFlag: false, done: false, failed: null,
+    tevreden: makeTevredenheid(), nextEx: null, request: false, requestT: 0, // de volgende halte vooraf geworpen en de halteknop (#444)
+    doorsOpened: false, pendingEx: null, boardLeft: 0, final: false, skipped: 0,
   };
 }
 
@@ -74,31 +77,60 @@ export function startRide(ride) {
   ride.passengers += ex.board;
   ride.phase = 'dwell';
   ride.dwellLeft = BOARD_TIME;
+  ride.doorsOpened = true; // bij de start stappen de reizigers vanzelf in; daarna sluit de bestuurder de deuren
+  ride.boardLeft = 0;
   return [{ type: 'board', stop: ride.table[0], board: ex.board, alight: 0 }];
 }
 
-// Eén beeld. bus = { x, y, speed }. Geeft een lijst gebeurtenissen.
+// Wat er bij de volgende halte gebeurt wordt vooraf geworpen: wie wil uitstappen drukt onderweg op de halteknop.
+function planNext(ride) {
+  ride.nextEx = stopExchange(ride.rng, { index: ride.next, count: ride.table.length, onBoard: ride.onBoard, demand: ride.demand });
+  ride.request = false;
+  ride.requestT = ride.t + 2 + 6 * ride.rng();
+}
+
+// Eén beeld. bus = { x, y, speed, doors?, tailgate? }. Met doors (de bediening van busbestuur.js) bedient de speler de
+// deuren zelf: in- en uitstappen gebeurt pas als ze open staan en de bus vertrekt pas als ze dicht zijn (#444).
+// Zonder doors (de oude, automatische deuren) blijft alles zoals het was. Geeft een lijst gebeurtenissen.
 export function updateRide(ride, bus, dt) {
   const ev = [];
   if (ride.done || ride.failed) return ev;
+  const manual = !!bus.doors;
   ride.t += dt;
   const sp = Math.abs(bus.speed);
   if (ride.prevSpeed - sp > HARD_BRAKE && ride.prevSpeed > 6) { ride.hardBrakes++; ev.push({ type: 'hardbrake' }); }
   ride.prevSpeed = sp;
+  for (const e of stepTevredenheid(ride.tevreden, { speed: bus.speed, dt, tailgate: !!bus.tailgate, onBoard: ride.onBoard })) ev.push(e);
   const row = ride.phase === 'dwell' ? ride.table[ride.next - 1] : rideStop(ride);
   if (ride.phase === 'drive') {
+    if (!ride.nextEx) planNext(ride);
+    if (!ride.request && ride.nextEx.alight > 0 && ride.t >= ride.requestT) { ride.request = true; ev.push({ type: 'request', stop: row }); }
     const p = stopPos(ride, row);
     if (Math.hypot(p.x - bus.x, p.y - bus.y) < STOP_RADIUS && sp < STOP_SPEED) {
       const delta = ride.t - row.arrive;
       ride.deltas.push(delta);
       const last = ride.next === ride.table.length - 1;
-      const ex = stopExchange(ride.rng, { index: ride.next, count: ride.table.length, onBoard: ride.onBoard, demand: ride.demand });
+      const ex = ride.nextEx;
+      ride.nextEx = null;
+      ride.request = false;
+      const pun = punctuality(delta);
+      ev.push({ type: 'arrive', stop: row, delta, state: pun.state, board: ex.board, alight: ex.alight, last, manual });
+      if (delta > LATE_FAIL) { ride.failed = 'laat'; ev.push({ type: 'fail', why: 'te laat' }); return ev; }
+      if (manual) {
+        // eerst de deuren open: dan pas stapt iemand in of uit
+        ride.pendingEx = ex;
+        ride.doorsOpened = false;
+        ride.final = last;
+        ride.boardLeft = 0;
+        ride.phase = 'dwell';
+        ride.next++;
+        ride.dwellLeft = last ? 0 : Math.max(BOARD_TIME, holdSeconds(row, ride.t));
+        ride.earlyFlag = false;
+        return ev;
+      }
       ride.onBoard += ex.board - ex.alight;
       ride.passengers += ex.board;
-      const pun = punctuality(delta);
-      ev.push({ type: 'arrive', stop: row, delta, state: pun.state, board: ex.board, alight: ex.alight, last });
-      if (delta > LATE_FAIL) { ride.failed = 'laat'; ev.push({ type: 'fail', why: 'te laat' }); return ev; }
-      if (last) { ride.done = true; ride.score = tripScore({ passengers: ride.passengers, deltas: ride.deltas, hardBrakes: ride.hardBrakes }); ev.push({ type: 'done', score: ride.score }); return ev; }
+      if (last) { ride.done = true; ride.score = tripScore({ passengers: ride.passengers, deltas: ride.deltas, hardBrakes: ride.hardBrakes, satisfaction: ride.tevreden.sat }); ev.push({ type: 'done', score: ride.score }); return ev; }
       ride.phase = 'dwell';
       ride.next++;
       ride.dwellLeft = Math.max(BOARD_TIME, holdSeconds(row, ride.t));
@@ -108,6 +140,51 @@ export function updateRide(ride, bus, dt) {
   }
   // halteren: wachten tot de bus mag vertrekken
   ride.dwellLeft = Math.max(0, ride.dwellLeft - dt);
+  if (manual) {
+    if (!ride.doorsOpened) {
+      if (deurenOpen(bus.doors)) {
+        const ex = ride.pendingEx || { board: 0, alight: 0 };
+        ride.pendingEx = null;
+        ride.doorsOpened = true;
+        ride.onBoard += ex.board - ex.alight;
+        ride.passengers += ex.board;
+        const kneel = !!(bus.doors.kneelWant || bus.doors.kneelAmt > 0.5) && ex.board + ex.alight > 0;
+        ride.boardLeft = ex.board + ex.alight > 0 ? BOARD_TIME * (kneel ? 0.7 : 1) : 1;
+        if (kneel) stoot(ride.tevreden, 3); // een lage instap is prettig
+        ev.push({ type: 'doorsopen', stop: row, board: ex.board, alight: ex.alight, last: ride.final, kneel });
+        if (ride.final) {
+          ride.done = true;
+          ride.score = tripScore({ passengers: ride.passengers, deltas: ride.deltas, hardBrakes: ride.hardBrakes, satisfaction: ride.tevreden.sat });
+          ev.push({ type: 'done', score: ride.score });
+        }
+      } else if (sp > 3) {
+        // weggereden zonder de deuren te openen: de reizigers blijven staan
+        ride.pendingEx = null;
+        ride.doorsOpened = true;
+        ride.skipped++;
+        stoot(ride.tevreden, -15);
+        ev.push({ type: 'skipped', stop: row });
+        if (ride.final) {
+          // de eindhalte voorbij zonder uitstappers: de rit telt als gereden, de reizigers zitten er nog in
+          ride.done = true;
+          ride.score = tripScore({ passengers: ride.passengers, deltas: ride.deltas, hardBrakes: ride.hardBrakes, satisfaction: ride.tevreden.sat });
+          ev.push({ type: 'done', score: ride.score });
+          return ev;
+        }
+        ride.phase = 'drive';
+      }
+      return ev;
+    }
+    ride.boardLeft = Math.max(0, ride.boardLeft - dt);
+    if (sp > 3 && ride.dwellLeft > 0 && !ride.earlyFlag) {
+      ride.earlyFlag = true;
+      ride.deltas.push(-60);
+      ev.push({ type: 'early', stop: row });
+    }
+    if (sp > 3 || (ride.dwellLeft <= 0 && ride.boardLeft <= 0 && deurenDicht(bus.doors))) ride.phase = 'drive';
+    if (ride.phase === 'drive' && !ride.earlyFlag) ev.push({ type: 'depart', stop: row, next: rideStop(ride) });
+    return ev;
+  }
   if (sp > 3 && ride.dwellLeft > 0 && !ride.earlyFlag) {
     // weggereden voor de tijd: telt als te vroeg
     ride.earlyFlag = true;
