@@ -61,12 +61,15 @@ export function stopExchange(rng, { index, count, onBoard, capacity = CAPACITY, 
 
 // Score van een rit: starttarief per passagier, minus straf voor te laat of te
 // vroeg, plus een bonus voor een zachte rit (aantal harde remmingen).
-export function tripScore({ passengers, deltas, hardBrakes = 0, farePer = 1.4 }) {
+// satisfaction (0..100, busbestuur.js, optioneel): de tevredenheid van de reizigers telt mee in het loon en voor "perfect".
+export function tripScore({ passengers, deltas, hardBrakes = 0, farePer = 1.4, satisfaction = null }) {
   let punctual = 0;
   for (const d of deltas) if (punctuality(d).state === 'op tijd') punctual++;
   const share = deltas.length ? punctual / deltas.length : 1;
   const fare = passengers * farePer;
   const smooth = Math.max(0, 1 - hardBrakes * 0.12);
-  const pay = fare * (0.4 + 0.6 * share) * (0.7 + 0.3 * smooth);
-  return { pay: Math.round(pay * 100) / 100, share, smooth, perfect: share === 1 && hardBrakes === 0 };
+  const hasSat = satisfaction != null;
+  const satMul = hasSat ? 0.8 + 0.4 * Math.min(100, Math.max(0, satisfaction)) / 100 : 1;
+  const pay = fare * (0.4 + 0.6 * share) * (0.7 + 0.3 * smooth) * satMul;
+  return { pay: Math.round(pay * 100) / 100, share, smooth, satisfaction: hasSat ? Math.round(satisfaction) : null, perfect: share === 1 && hardBrakes === 0 && (!hasSat || satisfaction >= 85) };
 }

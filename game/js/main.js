@@ -182,6 +182,7 @@ import { updateDrunk } from './drunk.js';
 import { updateHelis } from './heliflight.js';
 import { planeKind } from './planeflight.js';
 import { busBoardKind } from './busboard3d.js';
+import { busBestuurKind } from './busbestuurhud.js';
 import { reklameTaxiKind } from './reklametaxi3d.js';
 import { shopSignKind } from './shopsigns3d.js';
 import { loadBusLines } from './busroutes.js';
@@ -212,6 +213,7 @@ registerActivityKind({ id: 'postgame', initPhase: 'late', tickRank: 0, init: ini
 registerActivityKind({ id: 'sidejobs', initPhase: 'late', tickRank: -1, init: initSideJobs, slot: 'job', interact: trySideJobInteract, tickPhase: 'late', tick: updateSideJobs });
 registerActivityKind(planeKind);
 registerActivityKind(busBoardKind);
+registerActivityKind(busBestuurKind);
 registerActivityKind(reklameTaxiKind);
 registerActivityKind(shopSignKind);
 registerActivityKind({ id: 'ommeland', initPhase: 'early', init: initOmmelandFun, slot: 'uitje', interact: tryOmmelandInteract, tickPhase: 'late', tick: updateOmmelandFun });

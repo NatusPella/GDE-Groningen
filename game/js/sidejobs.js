@@ -296,7 +296,7 @@ function completeRound(c, res = {}) {
   const tip = Math.max(0, Math.round(res.tip || 0));
   const total = pay + tip;
   const vak = vakVanBaan(c.job.id);
-  const xp = 8 + (res.flawless === false ? 0 : 2);
+  const xp = 8 + (res.flawless === false ? 0 : 2) + Math.max(0, Math.round(res.xp || 0)); // res.xp: extra loopbaanpunten (bus, #444)
   noteMoney('Bijbaantjes');
   world.money += total;
   if (world.coopDeel) world.coopDeel(total, loopbaanDeel(vak, basisFor(c, base) + tip, xp)); // samen spelen (#365): de gast verdient volgens zijn eigen niveau (#381)
