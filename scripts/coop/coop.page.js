@@ -1231,6 +1231,9 @@ const PHASES = {
   },
 };
 
+// extra fasen van de playtest-simulatie (scripts/coop/playtest.phases.js, alleen als de coördinator die voor dit bestand zet)
+if (window.__coopPhases) Object.assign(PHASES, window.__coopPhases({ CFG, sleep, log, W, key, until, act, shot, esc, openSamen, closeMenu, imp, net, PHASES, panel, title, buttons }));
+
 // ---------------------------------------------------------------- hoofdprogramma
 try {
   startSampler();
