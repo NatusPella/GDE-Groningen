@@ -273,4 +273,15 @@ t('garagepoort van de host, en een stukje dat deze versie niet kent', () => {
   assert.equal(X.leesPeds(Uint8Array.of(1, 0, 5, 200, 1, 2)), null, 'een wapennaam die langer is dan het stukje: afgewezen');
 });
 
+t('een reuzenvogel bij een gast is uitgesloten (#433)', () => {
+  for (const k of X.DIER_SOORTEN) { const max = X.DIER_MAX_SCHAAL[k]; assert.ok(max > 0 && max <= 3.5, `${k} heeft een grens`); }
+  assert.equal(X.veiligeDierSchaal('pigeon', 6), 1, 'een duif wordt bij een gast nooit 6 maal');
+  assert.equal(X.veiligeDierSchaal('seagull', 1), 1);
+  assert.equal(X.veiligeDierSchaal('duck', 3.1), 3.1, 'de zwaan houdt zijn eigen bouw');
+  assert.equal(X.veiligeDierSchaal('duck', 12), 3.1);
+  assert.equal(X.veiligeDierSchaal('cow', NaN), 1, 'een ongeldige schaal valt terug op de eigen bouw');
+  assert.equal(X.veiligeDierSchaal('cow', 0), 1);
+  assert.equal(X.veiligeDierSchaal('draak', 1), null, 'een onbekende soort wordt niet getekend');
+});
+
 console.log(`coopextra_test: ${n}/${n} ok`);
