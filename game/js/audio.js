@@ -53,6 +53,7 @@ const SCENARIO_TRACKS = {
   klimtoren: './audio/scenario/klimtoren_loop.mp3',
   trein: './audio/scenario/trein_loop.mp3',
   bus: './audio/scenario/bus_loop.mp3',
+  boerderij: './audio/scenario/boerderij_loop.mp3',
 };
 const SCENARIO_VOLUME = 0.8;
 const SCENARIO_FADE_IN = 1.5; // s
