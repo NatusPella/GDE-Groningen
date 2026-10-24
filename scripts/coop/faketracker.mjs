@@ -53,7 +53,7 @@ export async function startFakeTracker() {
         sock.write(frame(JSON.stringify({ action: 'announce', info_hash: m.info_hash, interval: 120, complete: 0, incomplete: 1 })));
         if (m.answer) { const to = peers.get(m.to_peer_id); trace.push(`${ts()} antwoord voor ${String(m.to_peer_id).slice(0, 4)}: ontvanger ${to ? `s${to.__id} ${to.destroyed ? 'dicht' : 'open'}` : 'onbekend'}, peers ${[...peers.entries()].map(([k, v]) => k.slice(0, 4) + '=s' + v.__id).join(',')}`); if (to) to.write(frame(JSON.stringify({ action: 'announce', info_hash: m.info_hash, peer_id: m.peer_id, offer_id: m.offer_id, answer: m.answer }))); }
         else if (m.offers && m.offers.length) offers.set(m.info_hash, { peer_id: m.peer_id, o: m.offers[0] });
-        else if (offers.has(m.info_hash)) { const o = offers.get(m.info_hash); sock.write(frame(JSON.stringify({ action: 'announce', info_hash: m.info_hash, peer_id: o.peer_id, offer_id: o.o.offer_id, offer: o.o.offer }))); }
+        else if (offers.has(m.info_hash)) { const o = offers.get(m.info_hash); offers.delete(m.info_hash); /* een echte tracker geeft een aanbod aan één speler: twee die tegelijk aansluiten (overdragen) krijgen elk een eigen aanbod */ sock.write(frame(JSON.stringify({ action: 'announce', info_hash: m.info_hash, peer_id: o.peer_id, offer_id: o.o.offer_id, offer: o.o.offer }))); }
       }
     });
   });
