@@ -49,6 +49,9 @@ ok(M.minigames === 2 && M.minigamesStarted === 1, 'minigamecijfers');
   ok(FT.length === 1 && FT[0].kind === 'timeout' && FT[0].severity === 'bug' && /M04/.test(FT[0].title) && /60 s/.test(FT[0].detail) && /\(-110, 1060\)/.test(FT[0].detail), 'time-out is een bevinding met duur en plek');
   const MT = A.metrics(tl, { result: 'TIMEOUT' });
   ok(MT.timeouts === 1 && MT.lastStep === 'M04', 'time-out en laatste stap in de cijfers');
+  // #312: een gevlogen heli en een gevaren boot zijn apart te tellen (en een time-out blijft een bevinding)
+  const NV = A.metrics([...tl, { t: 20, type: 'heli', agl: 40 }, { t: 30, type: 'vaart', soort: 'zeil', v: 4 }], { result: 'TIMEOUT' });
+  ok(NV.helis === 1 && NV.vaart === 1 && NV.timeouts === 1, 'cijfers voor heli en zeilboot');
   const T = A.nlSummary({ title: 'x', metrics: MT, cmp: A.compareRuns(null, { metrics: MT, findings: FT }), findings: FT });
   ok(/Time-outs: 1/.test(T) && /stopte in stap M04/.test(T), 'samenvatting noemt de time-out en waar de run stopte');
   ok(A.compareRuns({ metrics: { ...MT, timeouts: 0 }, findings: [] }, { metrics: MT, findings: [] }).regressies.some((r) => r.metric === 'timeouts'), 'meer time-outs is een regressie');
