@@ -60,6 +60,9 @@ class Base {
   }
   _quiet() { return this.now - this.lastRecv; }
   stilte() { return this._quiet(); } // s zonder enig bericht van de ander (de overname bij wegvallen, coophostwisselnet.js)
+  // s dat deze gast verbonden is (#450): de langst verbonden speler neemt over als de gastheer wegvalt. Een gast die
+  // hervat (weggevallen en met zijn token terug) houdt zijn eerste moment: hij zat er al.
+  verbondenSinds() { return this.guest ? Math.max(0, this.now - (Number.isFinite(this.guest.joinedAt) ? this.guest.joinedAt : this.now)) : 0; }
 }
 
 // ---------------------------------------------------------------- host
@@ -114,7 +117,7 @@ export class HostSession extends Base {
       if (!a) { this.rejected.push('vol'); return reply({ ok: false, reason: 'vol' }); }
       this.slot = a.slot; this.extra = a.extra || {};
     }
-    this.guest = { token: makeToken(this.rand), lastInputSeq: null, input: neutral(), lastInputAt: this.now };
+    this.guest = { token: makeToken(this.rand), lastInputSeq: null, input: neutral(), lastInputAt: this.now, joinedAt: this.now };
     this.lastRecv = this.now; this.lostAt = null; this.rel.reset(); this._setStatus('ok');
     this.caps = negotiate(this.cfg.caps, m.body.caps);
     reply({ ok: true, slot: this.slot, token: this.guest.token, seed: this.cfg.seed, resumed: false, caps: this.caps, ...this.extra });

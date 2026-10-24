@@ -17,6 +17,7 @@ import { weerEvent, leesWeerEvent, pasWeerToe } from './coopweer.js';
 import { figures } from './coopclient.js';
 import { sceneLeeg } from './coopworld.js';
 import { charInfo } from './coopplayers.js';
+import { lichaamVan } from './net/koploos.js'; // een gastheer zonder lokale speler heeft op plek 0 geen lichaam (#450)
 
 export const PAUZE_MAX = 80;      // s: de pauze voor een overdracht gaat hoe dan ook weer weg
 export const VERBIND_POGINGEN = 12;
@@ -43,11 +44,14 @@ const wacht = (d, ms) => (d.wacht ? d.wacht(ms) : new Promise((r) => setTimeout(
 // ---- de momentopname uit de wereld van de oude host -----------------------------------------------------------------------
 export function verzamelMomentopname(world, d = {}) {
   const n = world.coopNet, hub = n.hub, p = world.player, c = world.companion;
-  const lichaam = (slot) => (slot === 0 ? p : slot === 1 ? c : figures(world)[slot]) || null;
+  const lichaam = (slot) => lichaamVan(world, slot) || null;
+  // Een plek zonder lichaam doet niet mee: een gastheer zonder lokale speler (#450) heeft er geen op plek 0, en wie net
+  // weg is hoeft niet als spook in de momentopname te staan.
   const spelers = hub.roster.spelers.map((r) => {
-    const b = lichaam(r.slot), q = posOf(b) || {}, ci = charInfo(r.char) || {};
+    const b = lichaam(r.slot); if (!b) return null;
+    const q = posOf(b) || {}, ci = charInfo(r.char) || {};
     return { slot: r.slot, naam: ci.naam || '', char: r.char, geld: r.slot === 0 ? world.money : (d.gastGeld ? d.gastGeld(r.slot) : 0), health: b && Number.isFinite(b.health) ? b.health : 100, x: q.x, y: q.y, z: (b && b.z) || 0, voertuig: b && (b.inVehicle || b.inVeh) ? String((b.inVehicle || b.inVeh).id ?? 'v') : null };
-  });
+  }).filter(Boolean);
   const m = world.mission, o = d.leesOpdracht ? d.leesOpdracht(world) : (m && m.phase === 'active' ? { id: m.label || m.type || 'opdracht', stap: m.index, deel: m.wpIndex | 0, tijd: Number.isFinite(m.timeLeft) ? m.timeLeft : null, staat: m.phase, t: m.t } : null);
   let voertuigen;
   if (d.leesVoertuigen) voertuigen = d.leesVoertuigen(world);
@@ -254,7 +258,10 @@ function herstelTik(world, dt) {
   const doel = (aanBeurt ? gasten : nieuw).filter((s) => n.hub.sessions.get(s.slot).rel.pending.length <= HERSTEL_PENDING);
   if (!doel.length) return;
   if (aanBeurt) hh.t = 0;
-  const kand = gasten.map((s) => ({ slot: s.slot, ping: Math.round((n.hub.sessions.get(s.slot).rtt || 0) * 1000), kamer: hh.kamers[s.slot] || (hh.kamers[s.slot] = d.maakKamer()) }));
+  const kand = gasten.map((s) => {
+    const hs = n.hub.sessions.get(s.slot); // de sessie van deze gast: hoe lang hij er al is bepaalt de volgorde (#450)
+    return { slot: s.slot, ping: Math.round((hs.rtt || 0) * 1000), sinds: hs.verbondenSinds ? hs.verbondenSinds() : 0, kamer: hh.kamers[s.slot] || (hh.kamers[s.slot] = d.maakKamer()) };
+  });
   const rang = hh.vorige = rangschik(kand, hh.vorige);
   hh.id = (hh.id % 0xfffff) + 1;
   const pak = maakHerstel(hh.id, verzamelMomentopname(world, d), rang);

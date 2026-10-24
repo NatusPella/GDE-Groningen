@@ -5,6 +5,7 @@
 // Pure logica zonder three.js: de dingen van player.js en vehicle.js komen binnen als haken (zetBestuurHaken), zodat dit in Node te testen is.
 // Schade, politie en diefstalgevolgen horen bij de gast: voertuig.coopBestuurder is zijn plek (coopgezocht.js).
 import { figures } from './coopclient.js';
+import { isKoploos } from './net/koploos.js'; // een gastheer zonder lokale speler (#450)
 import { kanUitstappen, wielInvoer } from './coopgast.js';
 // De rechten op een eigen voertuig van een medespeler (#449) staan hier: coopbezit.js wijst naar dit bestand, niet
 // andersom, zodat er geen importkring ontstaat.
@@ -36,14 +37,16 @@ export function zetBestuurHaken(h) { Object.assign(haken, h || {}); }
 
 export const rijders = (world) => world.coopRijders || (world.coopRijders = {});
 
-// Het lichaam van een gast bij de host: plek 1 is de metgezel, plek 2 en hoger een figuur.
+// Het lichaam van een gast bij de host: plek 1 is de metgezel, plek 2 en hoger een figuur. Een gastheer zonder lokale
+// speler (#450) heeft geen metgezel: dan is elke gast (plek 1 en hoger) een figuur.
 export function lichaamVan(world, slot) {
+  if (isKoploos(world && world.coopNet)) return slot >= 1 ? figures(world)[slot] || null : null;
   if (slot === 1) return world.companion && world.coop && world.coop.remote ? world.companion : null;
   return slot >= 2 ? figures(world)[slot] || null : null;
 }
 // De invoer van een gast (net/session.js): plek 1 in world.coop.remoteInput, de rest op de figuur.
 export function invoerVan(world, slot) {
-  if (slot === 1) return world.coop ? world.coop.remoteInput : null;
+  if (slot === 1 && !isKoploos(world && world.coopNet)) return world.coop ? world.coop.remoteInput : null;
   const f = figures(world)[slot]; return f ? f.input : null;
 }
 // Een gast met een wapen slaat of schiet een voetganger of agent in de wereld van wie het spel opende: dat is een misdaad van de gast
