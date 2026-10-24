@@ -4,6 +4,7 @@ import { boatSeats, boatCrewCount, boatKind } from './boattypes.js';
 import { WATER_Y } from './util.js';
 import { tractorCab } from './models3d_vehicles.js';
 import { hash2 as hash } from './rng.js';
+import { deurVoorStoel, instapKant, doorsFor } from './vehicledoors.js';
 
 // Where people sit in and on vehicles, and the short enter/exit animations
 // (walk to the door, sit down; swing a leg over a bike; a carjack yank),
@@ -96,8 +97,28 @@ export function vehicleSeat(v, driver) {
     }
     seat = { x, z, y, face: 0, pose: driver ? { ...spec.pose, arms: 'wheel' } : spec.pose };
   }
+  // de rol van de stoel: de deur die erbij hoort (vehicledoors.js deurVoorStoel, #459)
+  if (!seat.role) seat.role = driver ? 'bestuurder' : 'bijrijder';
   c[slot] = seat;
   return seat;
+}
+
+// De stoel die bij de deur hoort waar de instapper staat: links voor de bestuurder,
+// rechts voor de bijrijder (#459). Alleen bij een voertuig met een echte bijrijdersdeur
+// (en als die plek vrij is); een fiets, step, boot, quad of paard heeft één zitplaats,
+// en een piloot zit rechts maar stapt niet via een portier in.
+export function instapStoel(v, kant) {
+  const twee = !v.isBike && !v.isScooter && !v.isBoat && !v.isHeli && !v.isPlane && v._mount !== 'horse' && !v.passenger;
+  if (kant > 0 && twee && doorsFor(v).some((d) => d.seat === 'bijrijder')) return vehicleSeat(v, false);
+  return vehicleSeat(v, true);
+}
+
+// Alles wat de instapanimatie van deze plek af nodig heeft: aan welke kant de speler
+// staat, welke stoel daarbij hoort en de deur van die stoel (null zonder logische deur).
+export function instapVoor(v, x, y) {
+  const kant = instapKant(v, x, y);
+  const stoel = instapStoel(v, kant);
+  return { kant, rol: stoel.role, stoel, deur: deurVoorStoel(v, stoel) };
 }
 
 // Astride a (police) horse: the saddle top of models3d_vehicles' horse,
@@ -165,6 +186,10 @@ export function makeSeatTracker() {
 const MAX_WALK = 6;
 
 function doorLocal(v, seat) {
+  // de deur die bij deze stoel hoort (vehicledoors.js): links voor de bestuurder,
+  // rechts voor de bijrijder, de voordeur voor een buspassagier (#459)
+  const deur = deurVoorStoel(v, seat);
+  if (deur) return deur;
   const hw = v.model.wid / 2;
   if (v._mount === 'horse') return { x: -0.1, z: -(hw + 0.55) };
   if (v.isBike || v.isScooter) return { x: -0.15, z: -(hw + 0.35) };
@@ -181,7 +206,13 @@ export function trackSeat(tr, actor, dt, isPlayer) {
     const prev = tr.v;
     tr.anim = null;
     if (v && !prev && tr.foot && !actor.ragdoll) {
-      tr.anim = { kind: 'enter', v, t: 0, from: tr.foot, jack: isPlayer && !!v.carjacked && !v.isBike && !v.isScooter && !v.isBoat, walkT: 0, sitT: 0, init: false };
+      // instappen gebeurt bij de deur waar de speler staat: links de bestuurdersstoel,
+      // rechts de bijrijdersstoel (#459). Wie zelf rijdt schuift daarna achter het stuur.
+      const doel = vehicleSeat(v, isPlayer);
+      const instap = isPlayer ? instapVoor(v, tr.foot.x, tr.foot.y) : { kant: doel.z < 0 ? -1 : 1, rol: doel.role, stoel: doel, deur: deurVoorStoel(v, doel) };
+      // een korte slide als de stoel van de deur niet de stoel is waar de speler eindigt
+      const slideT = instap.stoel !== doel && instap.deur ? 0.18 : 0;
+      tr.anim = { kind: 'enter', v, t: 0, from: tr.foot, instap, slideT, jack: isPlayer && !!v.carjacked && !v.isBike && !v.isScooter && !v.isBoat, walkT: 0, sitT: 0, init: false };
     } else if (!v && prev && !prev.sinking && !actor.water && !actor.ragdoll) {
       tr.anim = { kind: 'exit', v: prev, t: 0, walkT: 0.2, sitT: prev.isBike || prev.isScooter ? 0.3 : 0.36, init: false };
     }
@@ -190,7 +221,7 @@ export function trackSeat(tr, actor, dt, isPlayer) {
   const a = tr.anim;
   if (a) {
     a.t += dt;
-    const done = a.init && a.t >= a.walkT + (a.jack ? 0.25 : 0) + a.sitT;
+    const done = a.init && a.t >= a.walkT + (a.jack ? 0.25 : 0) + a.sitT + (a.slideT || 0);
     const skip = a.kind === 'enter'
       ? Math.abs(a.v.speed) > 0.8 || a.v.wrecked || actor.inVehicle !== a.v
       : Math.hypot(actor.vx || 0, actor.vy || 0) > 0.3 || !!actor.water || !!actor.ragdoll || !!actor.inVehicle;
@@ -210,6 +241,7 @@ function smooth(u) {
 
 const _door = new THREE.Vector3();
 const _seat = new THREE.Vector3();
+const _seat2 = new THREE.Vector3();
 const _qs = new THREE.Quaternion();
 
 // Draws `mesh` for a running transition. seat: the vehicle seat (for a bike
@@ -217,11 +249,14 @@ const _qs = new THREE.Quaternion();
 export function drawTransition(a, mesh, vehMesh, actor, seat, dt, time) {
   const v = a.v;
   const sy = mesh.scale.y || 1;
-  const dl = doorLocal(v, seat);
+  // instappen aan de kant waar de speler stond: die stoel en die deur horen bij elkaar
+  // (#459); de animatie eindigt altijd op `seat` (de bestuurder als hij zelf rijdt)
+  const inStoel = a.kind === 'enter' && a.instap ? a.instap.stoel : seat;
+  const dl = a.kind === 'enter' && a.instap && a.instap.deur ? a.instap.deur : doorLocal(v, inStoel);
   const ground = a.kind === 'enter' ? a.from.z : (actor.gz || 0);
   localToWorld(vehMesh, v, dl.x, 0, dl.z, _door);
   _door.y = v.isBoat ? ground : baseY(v);
-  localToWorld(vehMesh, v, seat.x, seat.stand ? seat.y : seat.y - SEAT_CONTACT * sy, seat.z, _seat);
+  localToWorld(vehMesh, v, inStoel.x, inStoel.stand ? inStoel.y : inStoel.y - SEAT_CONTACT * sy, inStoel.z, _seat);
   vehicleQuat(vehMesh, v, _qs);
   if (seat.face) _qs.multiply(_qy.setFromAxisAngle(_up, seat.face));
   const hop = v.isBoat || v.isBike || v.isScooter;
@@ -231,8 +266,9 @@ export function drawTransition(a, mesh, vehMesh, actor, seat, dt, time) {
       const d = Math.hypot(_door.x - a.from.x, _door.z - a.from.y);
       a.walkT = hop && v.isBoat ? 0 : d > MAX_WALK ? 0 : Math.min(0.4, Math.max(0.1, d / 4.5));
       a.sitT = v.isBoat ? 0.5 : v.isBike || v.isScooter ? 0.34 : 0.42;
-      if (d > 12) { a.walkT = 0; a.sitT = 0.01; a.jack = false; }
+      if (d > 12) { a.walkT = 0; a.sitT = 0.01; a.jack = false; a.slideT = 0; }
       if (v.isBoat || a.walkT === 0) { _door.set(a.from.x, a.from.z, a.from.y); a.doorFixed = { x: a.from.x, y: a.from.z, z: a.from.y }; }
+      if (inStoel === seat) a.slideT = 0;
     }
   }
   if (a.doorFixed) _door.set(a.doorFixed.x, a.doorFixed.y, a.doorFixed.z);
@@ -254,13 +290,24 @@ export function drawTransition(a, mesh, vehMesh, actor, seat, dt, time) {
       // carjack: grab through the door and yank
       const k = (a.t - a.walkT) / yank;
       mesh.position.copy(_door);
-      mesh.quaternion.copy(_qs).multiply(_qa.setFromAxisAngle(_up, seat.z < 0 ? -Math.PI / 2 : Math.PI / 2));
+      mesh.quaternion.copy(_qs).multiply(_qa.setFromAxisAngle(_up, inStoel.z < 0 ? -Math.PI / 2 : Math.PI / 2));
       animatePersonWalk(mesh, 0, dt);
       carryOverlay(mesh);
       mesh.userData.chest.rotation.z += 0.35 * Math.sin(k * Math.PI);
       return true;
     }
     u = smooth((a.t - a.walkT - yank) / a.sitT);
+    if (a.slideT && a.t >= a.walkT + yank + a.sitT) {
+      // aan de bijrijderskant ingestapt: één been over en achter het stuur schuiven,
+      // want de speler rijdt altijd zelf (#459)
+      const k = smooth((a.t - a.walkT - yank - a.sitT) / a.slideT);
+      localToWorld(vehMesh, v, seat.x, seat.stand ? seat.y : seat.y - SEAT_CONTACT * sy, seat.z, _seat2);
+      mesh.position.lerpVectors(_seat, _seat2, k);
+      mesh.quaternion.copy(_qs);
+      animatePersonWalk(mesh, 0, dt);
+      blendSeatPose(mesh, seat.pose, k, time);
+      return true;
+    }
   } else {
     u = 1 - smooth(a.t / a.sitT);
     if (a.t >= a.sitT) {
@@ -277,8 +324,8 @@ export function drawTransition(a, mesh, vehMesh, actor, seat, dt, time) {
   const startQ = _qa.setFromAxisAngle(_up, a.kind === 'enter' ? -Math.atan2(_seat.z - _door.z, _seat.x - _door.x) : -actor.angle);
   mesh.quaternion.slerpQuaternions(startQ, _qs, a.kind === 'enter' ? Math.min(1, u * 1.6) : u);
   animatePersonWalk(mesh, 0, dt);
-  if (seat.stand) {
-    if (seat.rider || v.isBike) {
+  if (inStoel.stand) {
+    if (inStoel.rider || v.isBike) {
       // leg swing over the saddle: the bike-side leg lifts out and over
       const s = Math.sin(u * Math.PI);
       const ud = mesh.userData;
@@ -286,7 +333,7 @@ export function drawTransition(a, mesh, vehMesh, actor, seat, dt, time) {
       ud.legL.rotation.z = 0.5 * s;
       ud.kneeL.rotation.z = -0.9 * s;
     }
-  } else blendSeatPose(mesh, seat.pose, u, time);
+  } else blendSeatPose(mesh, inStoel.pose, u, time);
   return true;
 }
 

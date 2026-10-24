@@ -36,6 +36,24 @@ check('geen deuren geeft null', D.deurVoorRol([], 'bestuurder') === null);
 const bus = D.doorsFor(car('bus', { isBus: true }));
 check('buspassagier krijgt busdeur', D.deurVoorRol(bus, 'bijrijder').soort === 'schuif');
 
+// deur bij de stoel en de kant waar de instapper staat (#459)
+const sedan = car('sedan');
+const stoelL = { z: -0.3, role: 'bestuurder' }, stoelR = { z: 0.3, role: 'bijrijder' };
+const dL = D.deurVoorStoel(sedan, stoelL), dR = D.deurVoorStoel(sedan, stoelR);
+check('instap links: de bestuurdersdeur', !!dL && dL.id === 'vl' && dL.z < 0, JSON.stringify(dL));
+check('instap rechts: de bijrijdersdeur', !!dR && dR.id === 'vr' && dR.z > 0, JSON.stringify(dR));
+check('instappunt staat naast de carrosserie', !!dL && Math.abs(Math.abs(dL.z) - (0.9 + D.DEUR_STAP)) < 1e-9, dL && dL.z);
+check('instappunt langs de deur', !!dL && Math.abs(dL.x - 0.15 * 4.3) < 1e-9, dL && dL.x);
+const busStoel = D.deurVoorStoel(car('bus', { isBus: true }), stoelL);
+check('bus: instappen via de voordeur rechts', !!busStoel && busStoel.z > 0 && busStoel.x > 0, JSON.stringify(busStoel));
+check('fiets heeft geen instapdeur', D.deurVoorStoel(car('sedan', { isBike: true }), stoelL) === null);
+check('zonder stoel geen deur', D.deurVoorStoel(sedan, null) === null);
+const recht = car('sedan', { x: 0, y: 0, angle: 0 });
+check('rechts van de auto is de bijrijderskant', D.instapKant(recht, 0, 2) === 1);
+check('links van de auto is de bestuurderskant', D.instapKant(recht, 0, -2) === -1);
+const gedraaid = car('sedan', { x: 10, y: 5, angle: Math.PI / 2 }); // neus naar +y: rechts is -x
+check('gedraaid: de kant volgt de neus', D.instapKant(gedraaid, 8, 5) === 1 && D.instapKant(gedraaid, 12, 5) === -1);
+
 // standen en timing
 const s = D.makeDoorState();
 D.wantDoor(s, 'vl', true);
