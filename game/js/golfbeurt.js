@@ -2,6 +2,12 @@
 // Regel van het golf: wie het verst van het hol ligt slaat; op de tee begint wie de vorige baan het beste speelde (de eer).
 // Met één speler is de beurt altijd van hem, zoals nu. De netwerklaag (wie welke speler is) hangt zich later aan `spelerId`.
 
+// Pass-and-play: 1 tot 4 spelers op één scherm om de beurt (#437).
+export const MAX_SPELERS = 4;
+export const spelerAantal = (n) => Math.max(1, Math.min(MAX_SPELERS, Math.round(Number(n)) || 1));
+export const spelerIds = (n) => Array.from({ length: spelerAantal(n) }, (_, i) => 's' + (i + 1));
+export const spelerNaam = (i) => 'Speler ' + (i + 1);
+
 export function nieuweBeurt(ids) {
   const spelers = ids.map((id) => ({ id, lie: null, slagen: 0, klaar: false, kaart: [] }));
   return { spelers, baan: 0, aanDeBeurt: spelers.length ? spelers[0].id : null };
@@ -41,4 +47,19 @@ export function volgendeBaan(b) { b.baan++; return b.baan; }
 export function stand(b) {
   return b.spelers.map((s) => ({ id: s.id, totaal: s.kaart.reduce((a, v) => a + (v || 0), 0), banen: s.kaart.filter((v) => v != null).length }))
     .sort((a, c) => a.totaal - c.totaal);
+}
+
+// De stand van één speler (voor het wisselen van beurt): waar de bal ligt en hoeveel slagen al.
+export function spelerStand(b, id) {
+  const s = b.spelers.find((x) => x.id === id);
+  return s ? { lie: s.lie ? { ...s.lie } : null, slagen: s.slagen, klaar: s.klaar } : null;
+}
+
+// De uitslag aan het eind: de rijen laagste eerst, de winnaar(s) (bij gelijk meerdere) en of het gelijkspel is.
+export function uitslag(b) {
+  const rijen = stand(b);
+  if (!rijen.length) return { rijen, winnaars: [], gelijk: false };
+  const beste = rijen[0].totaal;
+  const winnaars = rijen.filter((r) => r.totaal === beste).map((r) => r.id);
+  return { rijen, winnaars, gelijk: winnaars.length > 1 };
 }

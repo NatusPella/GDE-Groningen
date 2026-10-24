@@ -230,9 +230,11 @@ function spawnCat(map, px, py, rng) {
     const x = mx + nx * 0.35, y = my + ny * 0.35;
     const d = dist(x, y, px, py);
     if (d < 12 || d > 55 || !openGround(map, x, y)) continue;
+    const bobSeed = rng() * Math.PI * 2;
     return [{
       kind: 'cat', variant: Math.floor(rng() * 4), x, y, angle: Math.atan2(ny, nx), speed: 0,
-      wanderTarget: { x, y }, state: 'sit', stateTimer: 6 + rng() * 14, bobSeed: rng() * Math.PI * 2,
+      wanderTarget: { x, y }, state: 'sit', stateTimer: 6 + rng() * 14, bobSeed,
+      tam: Math.floor(bobSeed * 100) % 10 < 6,   // #437: een tamme kat blijft zitten als je rustig komt, je kunt hem aaien
     }];
   }
   return [];
@@ -601,11 +603,20 @@ function updateCat(a, dt, world) {
   const { player, map } = world;
   a.stateTimer -= dt;
   const pd = dist(a.x, a.y, player.x, player.y);
-  if (a.state !== 'flee' && (pd < 2 || (pd < 6 && playerSpeed(player) > 4))) {
+  const tamRust = (a.tam && playerSpeed(player) < 2.5 && pd >= 0.4) || a.aaiT > 0;   // #437: rustig dichtbij komen mag bij een tamme kat
+  if (a.state !== 'flee' && !tamRust && (pd < 2 || (pd < 6 && playerSpeed(player) > 4))) {
     a.state = 'flee';
     a.stateTimer = 2.5;
     const away = Math.atan2(a.y - player.y, a.x - player.x);
     a.wanderTarget = { x: a.x + Math.cos(away) * 12, y: a.y + Math.sin(away) * 12 };
+  }
+  if (a.aaiT > 0) {   // wordt geaaid (aaien.js): blijft zitten en kijkt naar de speler
+    a.aaiT -= dt;
+    a.state = 'sit';
+    a.speed = 0;
+    a.stateTimer = Math.max(a.stateTimer, 1.5);
+    a.angle = angleLerp(a.angle, Math.atan2(player.y - a.y, player.x - a.x), Math.min(1, dt * 4));
+    return;
   }
   if (a.state === 'sit' || a.state === 'groom') {
     a.speed = 0;
@@ -650,7 +661,8 @@ function updateDog(a, dt, world) {
   const d = dist(a.x, a.y, tx, ty);
   a.sniff = (a.sniff || 0) - dt;
   if (a.sniff <= 0 && Math.random() < dt * 0.08) a.sniff = 1.5 + Math.random() * 2;
-  const want = a.sniff > 0 && d < 1.6 ? 0 : Math.min(4.5, (o.speed || 0) + Math.max(0, d - 0.2) * 1.5);
+  if (a.aaiT > 0) { a.aaiT -= dt; a.sniff = 0; }   // wordt geaaid (aaien.js): staat even stil
+  const want = a.aaiT > 0 || (a.sniff > 0 && d < 1.6) ? 0 : Math.min(4.5, (o.speed || 0) + Math.max(0, d - 0.2) * 1.5);
   a.speed += (want - a.speed) * Math.min(1, dt * 5);
   if (d > 0.15 && a.speed > 0.05) steer(a, tx, ty, 6, dt);
   const ld = dist(a.x, a.y, o.x, o.y);
@@ -1673,6 +1685,11 @@ function animateQuad(mesh, a, time) {
       b.head.rotation.set(0.3, 0.4, -0.6 + Math.sin(time * 6) * 0.15);
       ud.legs[0].rotation.z = 0.9 + Math.sin(time * 6) * 0.25;
     } else b.head.rotation.set(0, Math.sin(time * 0.4 + seed) * 0.7, -0.4 + Math.sin(time * 0.3) * 0.08);
+    if (a.aaiT > 0) {   // wordt geaaid: kopje tegen de hand, ogen dicht, staart omhoog en zacht heen en weer
+      b.head.rotation.set(0, 0.25 + Math.sin(time * 2.2) * 0.12, -0.1 + Math.sin(time * 2.2) * 0.12);
+      b.tail.rotation.set(Math.sin(time * 2.4 + seed) * 0.6, 0, -0.8);
+      return;
+    }
     b.tail.rotation.set(Math.sin(time * 1.5 + seed) * 0.5, 0, -1.2);
     return;
   }
@@ -1683,7 +1700,8 @@ function animateQuad(mesh, a, time) {
   }
   const sniff = a.kind === 'dog' && a.sniff > 0 && !moving;
   b.head.rotation.set(0, moving ? 0 : Math.sin(time * 0.5 + seed) * 0.5, sniff ? -0.7 + Math.sin(time * 9) * 0.05 : moving ? Math.sin(phase * 2) * 0.05 : 0);
-  const wag = a.kind === 'dog' ? Math.sin(time * (moving ? 12 : 16) + seed) * 0.6 : Math.sin(time * 1.2 + seed) * 0.3;
+  if (a.aaiT > 0 && a.kind === 'dog') b.head.rotation.set(0, 0, -0.35 + Math.sin(time * 3) * 0.08);   // kop schuin in de hand
+  const wag = a.kind === 'dog' ? Math.sin(time * (a.aaiT > 0 ? 22 : moving ? 12 : 16) + seed) * (a.aaiT > 0 ? 0.9 : 0.6) : Math.sin(time * 1.2 + seed) * 0.3;
   b.tail.rotation.set(wag, 0, a.kind === 'cat' && a.state === 'flee' ? -0.5 : 0);
 }
 

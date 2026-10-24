@@ -342,7 +342,7 @@ export function collect() {
   for (const e of [...WORLD_ENDS, WORLD_END_FINAL]) add('Ommeland (wereldeinden)', 'lines', omWho(e.who), e.text, e.tag ? { tag: e.tag } : {});
   for (const V of Object.values(VILLAGES)) {
     for (const part of [V.special, V.amenity]) {
-      if (!part.who || !part.lines) continue;
+      if (!part || !part.who || !part.lines) continue;
       for (const t of Array.isArray(part.lines) ? part.lines : Object.values(part.lines)) add('Ommeland (dorpen)', 'lines', omWho(part.who), t, part.tag ? { tag: part.tag } : {});
     }
   }

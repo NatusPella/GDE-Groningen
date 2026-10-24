@@ -9,6 +9,7 @@ import { createBoard, key, bubble, clearBubbles, pick, stopPressed, easeCamera, 
 import { PUTT_LINES } from './minigamelines.js';
 import { WOLFIE, SIR, newEtiquette, beginHole as etqBegin, step as etqStep, holeDone as etqHoleDone, misser as etqMisser, einde as etqEinde, hallo as etqHallo, plan as etqPlan, aanDeBeurt as etqBeurt } from './golfetiquette.js';
 import { loadEchtePlekken, golfVenues, nearestOf } from './echteplekken.js';
+import { nieuweBeurt, beginBaan, slaan, volgendeBaan, spelerStand, spelerIds, spelerNaam, spelerAantal, uitslag, MAX_SPELERS } from './golfbeurt.js';
 import {
   ppHoles, holesFromWorld, venueLayout, slopeAt, onGreen, inBunker, pitch, putt, straightPower, powerForCarry, finishHole, newCard, cardTotals, courseMedal, holeName, relText,
   GREEN_R, CUP_R, MAX_OVER_PAR, PITCH_MAX,
@@ -245,13 +246,35 @@ function start(w, { force = false } = {}) {
   ensureBoard();
   board.show();
   runs++;
-  game = { t: 0, hole: 0, strokes: 0, phase: 'aim', phaseT: 0, card: newCard(HOLES), lie: null, yaw: 0, charge: 0, charging: false, anim: null, flash: null, cam: null, said: 0, bunker: false, rng: Math.random, etq: newEtiquette(), misserT: -99 };
+  game = { t: 0, hole: 0, strokes: 0, phase: 'aim', phaseT: 0, card: newCard(HOLES), players: null, b: null, pi: 0, volgende: null, lie: null, yaw: 0, charge: 0, charging: false, anim: null, flash: null, cam: null, said: 0, bunker: false, rng: Math.random, etq: newEtiquette(), misserT: -99 };
   etqQ = [];
   etqNext = { sir: 0, wolfie: 0 };
+  zetSpelers(game, 1);
   beginHole(w);
-  showCard(w, { kind: 'tip', kicker: 'Pitch & putt', title: 'Zes korte banen', body: '[A] [D] richten (Shift: fijn), houd [Spatie] en laat los. Het witte streepje op de meter is de kracht voor een rechte slag naar de vlag. Lees de pijltjes op de green.', duration: 10, key: 'pitchputt-help', voice: false });
+  showCard(w, { kind: 'tip', kicker: 'Pitch & putt', title: 'Zes korte banen', body: '[A] [D] richten (Shift: fijn), houd [Spatie] en laat los. Het witte streepje op de meter is de kracht voor een rechte slag naar de vlag. Lees de pijltjes op de green. Met [2], [3] of [4] spelen meer mensen om de beurt op dit scherm.', duration: 10, key: 'pitchputt-help', voice: false });
   say(w, 'start', true);
   return true;
+}
+
+// Pass-and-play (#437): 1 tot 4 spelers, golfbeurt.js houdt de beurt bij (de verste bal slaat, op de tee de eer).
+// g.lie, g.strokes en g.card zijn altijd die van wie aan de beurt is.
+function zetSpelers(g, n) {
+  const ids = spelerIds(n);
+  g.players = ids.map((id, i) => ({ id, naam: spelerNaam(i), card: newCard(HOLES) }));
+  g.b = nieuweBeurt(ids);
+  g.pi = 0;
+  g.card = g.players[0].card;
+  g.volgende = null;
+}
+const meerdere = (g) => !!g.players && g.players.length > 1;
+function naarSpeler(g, id) {
+  const i = g.players.findIndex((s) => s.id === id);
+  if (i < 0) return;
+  const s = spelerStand(g.b, id);
+  g.pi = i;
+  g.card = g.players[i].card;
+  g.lie = { ...s.lie };
+  g.strokes = s.slagen;
 }
 
 function beginHole(w) {
@@ -259,6 +282,12 @@ function beginHole(w) {
   const h = HOLES[g.hole];
   g.strokes = 0;
   g.lie = { x: h.tee.x, y: h.tee.y };
+  g.volgende = null;
+  if (g.b) {
+    const eer = beginBaan(g.b, h.tee);
+    naarSpeler(g, eer);
+    if (meerdere(g)) g.flash = { text: `${g.players[g.pi].naam} heeft de eer`, t: 2.4 };
+  }
   g.bunker = false;
   g.phase = 'aim';
   g.phaseT = 0;
@@ -297,6 +326,15 @@ function setLie(w) {
     built.holes.forEach((hh, i) => { hh.arrows.visible = i === g.hole; });
   }
   aimLine = null;
+}
+
+// Voor de eerste slag van de eerste baan: [1] tot [4] kiest het aantal spelers.
+function kiesSpelers(w, n) {
+  const g = game;
+  zetSpelers(g, n);
+  beginHole(w);
+  setLie(w);
+  g.flash = { text: meerdere(g) ? `${g.players.length} spelers: om de beurt, de verste bal slaat` : 'Je speelt alleen', t: 3 };
 }
 
 // --- shots ----------------------------------------------------------------------------------------------------
@@ -339,6 +377,7 @@ function ballDone(w) {
   const h = HOLES[g.hole];
   const res = g.anim.res;
   g.anim = null;
+  if (g.b) g.volgende = slaan(g.b, g.players[g.pi].id, res.holed ? h.cup : res.end, h.cup, { inHol: res.holed, opgepakt: !res.holed && g.strokes >= h.par + MAX_OVER_PAR });
   if (res.holed) { holeDone(w, g.strokes, 'cup'); return; }
   g.lie = { x: res.end.x, y: res.end.y };
   const left = Math.hypot(h.cup.x - g.lie.x, h.cup.y - g.lie.y);
@@ -355,18 +394,20 @@ function holeDone(w, strokes, why) {
   const h = HOLES[g.hole];
   finishHole(g.card, g.hole, strokes);
   const name = why === 'opgepakt' ? 'Opgepakt' : holeName(strokes, h.par);
-  g.flash = { text: `${name}: ${strokes} slag${strokes === 1 ? '' : 'en'} (par ${h.par})`, t: 3, bad: strokes > h.par };
+  const wie = meerdere(g) ? `${g.players[g.pi].naam}: ` : '';
+  g.flash = { text: `${wie}${name}: ${strokes} slag${strokes === 1 ? '' : 'en'} (par ${h.par})`, t: 3, bad: strokes > h.par };
   const d = strokes - h.par;
   say(w, strokes === 1 && why !== 'opgepakt' ? 'hole1' : d < 0 ? 'birdie' : d === 0 ? 'par' : 'bogey', true);
   etqSay(w, etqHoleDone(g.etq, h.par, strokes, why === 'opgepakt' ? 'opgepakt' : 'cup'));
-  g.phase = 'holeDone';
-  g.phaseT = 0;
+  // met meer spelers: de baan is pas klaar als iedereen klaar is; tot dan wisselt de beurt (zie 'landed')
+  if (g.volgende) { g.phase = 'landed'; g.phaseT = -1; } else { g.phase = 'holeDone'; g.phaseT = 0; }
   if (built) built.ball.position.set(h.cup.x, 0.02, h.cup.y);
 }
 
 function nextHole(w) {
   const g = game;
   g.hole++;
+  if (g.b) volgendeBaan(g.b);
   if (g.hole >= HOLES.length) { end(w); return; }
   beginHole(w);
 }
@@ -408,6 +449,9 @@ function updateGame(w, dt) {
     const ax = (input.isDown('d') || input.isDown('arrowright') ? 1 : 0) - (input.isDown('a') || input.isDown('arrowleft') ? 1 : 0);
     g.yaw += ax * dt * (putting ? 0.32 : 0.5) * slow;
     p.angle = g.yaw;
+    if (g.hole === 0 && !g.charging && g.b.spelers.every((s) => s.slagen === 0)) {
+      for (let k = 1; k <= MAX_SPELERS; k++) if (input.wasPressed(String(k)) && spelerAantal(k) !== g.players.length) { kiesSpelers(w, k); break; }
+    }
     if (input.isDown(' ')) {
       g.charging = true;
       g.charge = Math.min(1, g.charge + dt / ((putting ? CHARGE_PUTT : CHARGE_PITCH) * (input.isDown('shift') ? 1.8 : 1)));
@@ -420,7 +464,13 @@ function updateGame(w, dt) {
   } else if (g.phase === 'ball') {
     stepBall(w, dt);
   } else if (g.phase === 'landed') {
-    if (g.phaseT > 1.4) { setLie(w); g.phase = 'aim'; g.phaseT = 0; g.cam = null; }
+    if (g.phaseT > 1.4) {
+      if (g.b && g.volgende && g.volgende !== g.players[g.pi].id) {
+        naarSpeler(g, g.volgende);
+        g.flash = { text: `${g.players[g.pi].naam} is aan de beurt`, t: 2.4 };
+      }
+      setLie(w); g.phase = 'aim'; g.phaseT = 0; g.cam = null;
+    }
   } else if (g.phase === 'holeDone') {
     if (g.phaseT > 3) nextHole(w);
   }
@@ -439,6 +489,7 @@ function end(w, { quit = false } = {}) {
   etqNext = { sir: 0, wolfie: 0 };
   if (built) { built.line.visible = false; built.ring.visible = false; built.ball.visible = false; built.keeper.visible = !quit; built.sir.visible = !quit; built.wolfie.visible = !quit; built.keeperUntil = w.time + 14; built.holes.forEach((hh) => { hh.arrows.visible = false; }); }
   if (quit) { w.addMessage('Pitch & putt gestopt', 2.5); return; }
+  if (meerdere(g)) { eindeMeerdere(w, g); return; }
   const t = cardTotals(g.card);
   const medal = courseMedal(t.rel);
   const rec = recordChallengeResult(w, 'pitchputt', { value: t.rel, medal, lower: true });
@@ -454,10 +505,26 @@ function end(w, { quit = false } = {}) {
   etqSay(w, etqEinde(g.etq, medal >= 2));
 }
 
+// Pass-and-play klaar: geen persoonlijk record of medaille (die horen bij één speler), wel de uitslag.
+function eindeMeerdere(w, g) {
+  recordStat(w, 'pitchputtRounds');
+  unlockAchievement(w, 'putt_klaar');
+  const u = uitslag(g.b);
+  const speler = (id) => g.players.find((s) => s.id === id);
+  const stats = u.rijen.map((r) => [speler(r.id).naam, `${relText(cardTotals(speler(r.id).card).rel)} (${r.totaal} slagen)`]);
+  showBanner({
+    kind: 'pass',
+    title: u.gelijk ? 'GELIJKSPEL OP DE GREEN' : `${speler(u.winnaars[0]).naam.toUpperCase()} WINT`,
+    reason: u.gelijk ? `${u.winnaars.map((id) => speler(id).naam).join(' en ')} eindigen samen bovenaan` : `${speler(u.winnaars[0]).naam} wint de ronde over zes banen`,
+    reward: 0, stats,
+  });
+}
+
 // What Sir Cedric and Wolfie say (golfetiquette.js): text bubbles one after the other per speaker, never a recorded voice (#394).
 let etqQ = [];
 let etqNext = { sir: 0, wolfie: 0 };
 function etqSay(w, events) {
+  if (game && meerdere(game)) return;   // Sir Cedric en Wolfie praten alleen met één speler
   ({ rij: etqQ, volgende: etqNext } = etqPlan(etqQ, etqNext, events, w.time));
 }
 function etqFlush(w) {
@@ -597,12 +664,14 @@ function updateHud() {
   const dist = Math.hypot(h.cup.x - g.lie.x, h.cup.y - g.lie.y);
   const putting = mode(g) === 'putt';
   const t = cardTotals(g.card);
-  const row = `<span>Baan <b>${h.n}</b>/${HOLES.length}</span><span>Par <b>${h.par}</b></span><span>Slag <b>${g.phase === 'aim' ? g.strokes + 1 : g.strokes}</b></span><span>Vlag <b>${dist < 10 ? dist.toFixed(1).replace('.', ',') : Math.round(dist)} m</b></span><span>${putting ? 'Putter' : g.bunker ? 'Wedge (zand)' : 'Wedge'}</span>`;
+  const wie = meerdere(g) ? `<span>Aan de beurt <b>${g.players[g.pi].naam}</b></span>` : '';
+  const stand = meerdere(g) ? `<span>${g.players.map((s, i) => `${i === g.pi ? '<b>' : ''}${s.naam.replace('Speler ', 'S')} ${relText(cardTotals(s.card).rel)}${i === g.pi ? '</b>' : ''}`).join(' · ')}</span>` : '';
+  const row = `${wie}<span>Baan <b>${h.n}</b>/${HOLES.length}</span><span>Par <b>${h.par}</b></span><span>Slag <b>${g.phase === 'aim' ? g.strokes + 1 : g.strokes}</b></span><span>Vlag <b>${dist < 10 ? dist.toFixed(1).replace('.', ',') : Math.round(dist)} m</b></span><span>${putting ? 'Putter' : g.bunker ? 'Wedge (zand)' : 'Wedge'}</span>${stand}`;
   const cells = g.card.holes.map((c, i) => ({ t: c.done ? String(c.strokes) : i === g.hole ? `${g.strokes || '·'}` : String(c.n), cls: `${i === g.hole ? 'on' : ''} ${c.done ? (c.strokes <= c.par ? 'good' : 'bad') : ''}` }));
   const mark = putting ? straightPower(dist) : powerForCarry(dist);
   const flash = g.flash ? g.flash.text : g.phase === 'aim' ? (putting ? slopeText(g) : g.bunker ? 'Uit het zand: meer spreiding' : 'Mik op de vlag') : '';
   const help = g.phase === 'aim'
-    ? `${key('A')}${key('D')} richten (${key('SHIFT')} fijn) · houd ${key('SPATIE')} en laat los bij het streepje · ${key('BACKSPACE')} stoppen · totaal ${relText(t.rel)}`
+    ? `${key('A')}${key('D')} richten (${key('SHIFT')} fijn) · houd ${key('SPATIE')} en laat los bij het streepje · ${key('BACKSPACE')} stoppen · totaal ${relText(t.rel)}${g.hole === 0 && g.b.spelers.every((s) => s.slagen === 0) ? ` · ${key('2')}-${key('4')} meer spelers` : ''}`
     : `Totaal ${relText(t.rel)} · ${key('BACKSPACE')} stoppen`;
   board.set({ row, cells, meter: g.phase === 'aim' ? { v: g.charge, mark: clamp(mark, 0, 1), color: '#46b36a' } : null, flash, bad: !!(g.flash && g.flash.bad), help });
 }

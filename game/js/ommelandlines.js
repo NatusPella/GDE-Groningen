@@ -84,9 +84,7 @@ export const VILLAGES = {
       lines: ['Moi! Wat mag t wezen? Wie hebben kovvie, bier en proatjes.', 'Kom der mor weer ais. Loppersum lopt nait weg.'] },
   },
   Kropswolde: {
-    teaser: 'Pootje baden in het Zuidlaardermeer en een ijsje bij de strandtent',
-    special: { kind: 'strand', name: 'Strand aan het Zuidlaardermeer', label: 'Pootje baden', sub: 'Water tot de enkels: +30 gezondheid en een poosje fit', who: DUO, tag: 'uitgelaten, rillend van de kou',
-      lines: ['Water tot aan de enkels. Dit is de Groningse Rivièra.', 'Koud! Koud, koud, koud. Heerlijk.'] },
+    teaser: 'Een ijsje bij de strandtent aan het Zuidlaardermeer',
     amenity: { kind: 'strandtent', name: 'Strandtent De Natte Voet', who: 'Strandtent Tineke', tag: 'zonnig, gezellig',
       lines: ['Moi! IJsje, patatje of allebei? Hier op t strand telt t nait.', 'Nait te lang in de zun, hè. Ook nait in Grunn.'] },
   },
