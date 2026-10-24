@@ -474,7 +474,7 @@ function tekenMenu() {
     board.set({
       row: `<span>${R.INSTRUCTEUR}: moi, welkom! Kies een toestel</span><span>Lessen gehaald <b>${s.gehaald}/${s.totaal}</b></span>`,
       cells: [{ t: '1 Vliegtuig', key: '1', cls: 'on' }, { t: '2 Helikopter', key: '2', cls: 'on' }],
-      flash: '', help: `${key('1')} ${key('2')} kiezen · ${key('BACKSPACE')} sluiten`,
+      flash: '', help: `${key('1')} ${key('2')} of ${key('A')} ${key('D')} kiezen · ${key('BACKSPACE')} sluiten`,
     });
     return;
   }
@@ -498,7 +498,9 @@ function updateMenu(w, dt) {
   if (stopPressed(input)) { if (menu.kist) { menu.kist = null; menu.cursor = 0; } else sluitAlles(w); return; }
   const pressed = (k) => { if (input.wasPressed(k)) { input.consume(k); return true; } return false; };
   if (!menu.kist) {
-    if (pressed('1')) { menu.kist = 'vliegtuig'; menu.cursor = 0; } else if (pressed('2')) { menu.kist = 'heli'; menu.cursor = 0; }
+    // met een controller zijn er geen cijfers: links is het vliegtuig, rechts de helikopter
+    if (pressed('1') || pressed('a') || pressed('arrowleft')) { menu.kist = 'vliegtuig'; menu.cursor = 0; }
+    else if (pressed('2') || pressed('d') || pressed('arrowright')) { menu.kist = 'heli'; menu.cursor = 0; }
     return;
   }
   const lessen = R.lessenVan(menu.kist);

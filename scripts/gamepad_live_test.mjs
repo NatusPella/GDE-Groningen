@@ -76,6 +76,7 @@ const situaties = {
   foodtruck: () => { world.challenge = { id: 'fjord' }; },
   klokken: () => { world.activityGame = 'carillon'; },
   pannenkoek: () => { world.activityGame = 'pannenkoek'; },
+  vliegschool: () => { world.activityGame = 'vliegschool'; },
 };
 function zet(naam) {
   hooks.open = false; hooks.phone = false; hooks.pause = false; hooks.map = false;
@@ -144,6 +145,22 @@ for (const naam of Object.keys(situaties)) {
 zet('foot');
 world.activityGame = 'carillon'; frame(2);
 ok(document.documentElement.dataset.padCtx === 'klokken', 'het klokkenspel kiest de klokkenindeling');
+zet('foot');
+
+// de vliegschool (#397): het lesmenu met de pijlen, en in het lesvliegtuig de gewone vliegindeling (geen minigame,
+// want anders stopte B de les en kon je met de D-pad niet rollen)
+world.activityGame = 'vliegschool'; frame(2);
+ok(document.documentElement.dataset.padCtx === 'vliegschool', 'de vliegschool kiest de lesmenu-indeling', document.documentElement.dataset.padCtx);
+reset(); press('a'); frame(2);
+ok(seen.some((s) => s[0] === 'down' && s[1] === 'Enter'), 'lesmenu: A kiest', seen);
+reset(); press('right'); frame(2);
+ok(seen.some((s) => s[0] === 'down' && s[1] === 'ArrowRight'), 'lesmenu: de D-pad bladert', seen);
+world.player.inVehicle = { speed: 0, isPlane: true }; frame(2);
+ok(document.documentElement.dataset.padCtx === 'plane', 'in het lesvliegtuig kiest de vliegschool de vliegindeling', document.documentElement.dataset.padCtx);
+reset(); press('b'); frame(2);
+ok(seen.some((s) => s[0] === 'down' && s[1] === 'Control') && !seen.some((s) => s[0] === 'down' && s[1] === 'Backspace'), 'in de les is B neus omlaag, geen stop', seen);
+world.player.inVehicle = { speed: 0, isHeli: true }; frame(2);
+ok(document.documentElement.dataset.padCtx === 'heli', 'in de lesheli kiest de vliegschool de heli-indeling', document.documentElement.dataset.padCtx);
 zet('foot');
 
 // menu: B in de telefoon gaat een niveau terug, A is spatie op de titel, de triggers zoomen de kaart

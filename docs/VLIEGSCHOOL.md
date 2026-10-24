@@ -36,6 +36,10 @@ het toestel is van de school en de les is dan voorbij. De hulpopties (ruimere po
   vliegtuig wordt direct teruggedraaid (`wrecked` uit) en eindigt de les; de heli krijgt een ruime gezondheid. Voor het noodlanden
   en landen krijgt `world.planeStrip` tijdelijk de baan of het veld van de les (anders is elke aanraking van de grond een crash).
 - Het is een activiteit (`activities.js`, `standActivity`): `window.__vliegschool` (debug) heeft `start(id)`, `state()`, `finish()`, `quit()`.
+- Met een controller heeft het lesmenu een eigen indeling (`PAD_MAPS.vliegschool`, controls.js): A kiest, B gaat een niveau terug,
+  de D-pad en de stick bladeren, en links of rechts kiest bij de balie het vliegtuig of de helikopter. Zodra je in het lesvliegtuig
+  zit, kiest `gamepad.js` de gewone vliegindeling (`plane` of `heli`); zonder die uitzondering bleef de les een activiteit en kreeg
+  de pad de minigame-indeling, zodat B de les stopte en rollen niet kon.
 
 ## De gemeten plekken (`game/vliegplekken.json`)
 
