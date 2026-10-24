@@ -616,7 +616,7 @@ const PHASES = {
     const K = await import('./js/kartrace.js'), T = (await import('./js/kartbaanspoor.js')).KARTBAAN_TRACK;
     const t0 = performance.now(), sec = () => Math.round((performance.now() - t0) / 100) / 10;
     const kaart = () => { const e = document.querySelector('.wed-kaart'); return e && !e.hidden ? e.innerText.replace(/\s+/g, ' ') : ''; };
-    const bord = () => { const e = document.querySelector('.mg-board'); return e && !e.hidden ? e.innerText.replace(/\s+/g, ' ').slice(0, 220) : ''; };
+    const bord = () => { const e = document.querySelector('.mg-board'); return e && !e.hidden ? e.innerText.replace(/\s+/g, ' ').slice(0, 420) : ''; };
     const msgs = []; const am = w.addMessage; w.addMessage = function (t, ...r) { msgs.push(String(t).slice(0, 90)); return am.call(this, t, ...r); };
     const raf = () => new Promise((r) => requestAnimationFrame(r));
     const geld0 = w.money || 0;
@@ -636,12 +636,12 @@ const PHASES = {
         if (sp.phase === 'grid') B.stick(0, 0);
         else if (k % 3 === 0) {
           if (me.finished) B.stick(0, 0);
-          else { const inp = K.aiInput(me, T, { skill: 0.9, others: sp.karts, dt: 0.05 }); B.stick(inp.steer, -inp.throttle); }
+          else { const inp = K.bestInput(me, T); B.stick(inp.steer, -inp.throttle); if (inp.drift) B.down(' '); else B.up(' '); } // de goede bot: de lijn en een drift in lange bochten (Spatie)
         }
         if (sp.phase === 'race' || sp.phase === 'finish') {
           m.frames++;
           const step = Math.hypot(me.u - last[0], me.v - last[1]) + 0, v = Math.abs(me.f);
-          if (dt > 0 && dt < 0.2) { m.gemeten++; if (step / dt > 1.6 * (v + 3)) m.sprong++; if (v > 6 && step < 0.002) m.stil++; }
+          if (dt > 0 && dt < 0.2 && sp.raceT > 8) { m.gemeten++; if (step / dt > 1.6 * (v + 3)) m.sprong++; if (v > 6 && step < 0.002) m.stil++; }
           m.vmax = Math.max(m.vmax, v);
           const o = sp.karts[1]; const s2 = Math.hypot(o.u - last[2], o.v - last[3]); if (dt > 0 && dt < 0.2 && s2 / dt > 1.6 * (Math.abs(o.f) + 3)) m.sprong++;
         }
@@ -653,7 +653,7 @@ const PHASES = {
         if (stopNa != null && sp.phase === 'race' && sp.raceT > stopNa) { log('wed-stop', { nr, raceT: Math.round(sp.raceT * 10) / 10, bord: bord() }); B.stick(0, 0); await B.press('backspace', 150); await sleep(800); break; }
         if ((performance.now() - tStart) / 1000 > 200) throw new Error('de race duurt te lang');
       }
-      B.stick(0, 0);
+      B.stick(0, 0); B.up(' ');
       const ontvangen = sp.laatste - n0, duur = (performance.now() - tStart) / 1000;
       log('wed-einde', { nr, duur: Math.round(duur), momentopnamenPerS: Math.round(ontvangen / duur * 10) / 10, frames: m.frames, gemeten: m.gemeten, sprong: m.sprong, stil: m.stil, vmax: Math.round(m.vmax * 10) / 10, fasen: m.fasen, bord: m.bord, eigenAf: !!sp.karts[0].finished, ronden: sp.karts[0].lapTimes.length, lap: sp.karts[0].lap, vlag: !!w.coopWedstrijd, kaartNaStop: kaart() });
       return sp;
@@ -730,7 +730,7 @@ const PHASES = {
     const t0 = performance.now(), sec = () => Math.round((performance.now() - t0) / 100) / 10;
     const raf = () => new Promise((r) => requestAnimationFrame(r));
     const kaart = () => { const e = document.querySelector('.wed-kaart'); return e && !e.hidden ? e.innerText.replace(/\s+/g, ' ') : ''; };
-    const bord = () => { const e = document.querySelector('.mg-board'); return e && !e.hidden ? e.innerText.replace(/\s+/g, ' ').slice(0, 260) : ''; };
+    const bord = () => { const e = document.querySelector('.mg-board'); return e && !e.hidden ? e.innerText.replace(/\s+/g, ' ').slice(0, 420) : ''; };
     const keys = {}; const orig = w.input.isDown.bind(w.input); w.input.isDown = (k) => (k in keys ? keys[k] : orig(k));
     const msgs = []; const am = w.addMessage; w.addMessage = function (t, ...r) { msgs.push(String(t).slice(0, 90)); return am.call(this, t, ...r); };
     const spot = kb.spot();

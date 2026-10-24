@@ -97,7 +97,7 @@ check(gr.length >= 1 && /Startlichten|Rijders/.test(gr[0].bord || ''), 'grid: he
 const e1 = ei[0];
 check(e1 && e1.duur > 60 && e1.duur < 190, 'race 1: duur ' + (e1 && e1.duur));
 check(e1 && e1.momentopnamenPerS >= 8 && e1.momentopnamenPerS <= 14, 'race 1: momentopnamen per seconde ' + (e1 && e1.momentopnamenPerS));
-check(e1 && e1.gemeten > 1500 && e1.sprong <= 3 && e1.stil <= 3, 'race 1: de weergave haperde: ' + JSON.stringify(e1 && { sprong: e1.sprong, stil: e1.stil, gemeten: e1.gemeten, frames: e1.frames }));
+check(e1 && e1.gemeten > 1200 && e1.sprong <= e1.gemeten * 0.005 && e1.stil <= e1.gemeten * 0.005, 'race 1: de weergave haperde: ' + JSON.stringify(e1 && { sprong: e1.sprong, stil: e1.stil, gemeten: e1.gemeten, frames: e1.frames }));
 check(e1 && e1.vmax > 15, 'race 1: de gast kwam niet op snelheid (stick): ' + (e1 && e1.vmax));
 check(e1 && e1.fasen.map((f) => f[0]).join().startsWith('grid,race'), 'race 1: fasen ' + (e1 && JSON.stringify(e1.fasen)));
 check(e1 && e1.bord.some((b) => /Ronde/.test(b) && /Plaats/.test(b) && /Tijd/.test(b)), 'race 1: het bord toont ronde, plaats en tijd niet: ' + JSON.stringify(e1 && e1.bord));

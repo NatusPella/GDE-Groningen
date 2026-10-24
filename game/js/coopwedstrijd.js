@@ -267,7 +267,8 @@ export function tikSpiegel(r, dt, invoerEigen = null) {
     if (!r.sim) { r.sim = createKart(r.track, 0, { name: me.name }); for (const p of KOPIE) r.sim[p] = me[p]; } // de eerste keer: begin bij wat de host laat zien
     const sim = r.sim;
     for (const e of stepKart(sim, invoerEigen() || NEUTRAAL, dt, r.track)) if (e.type === 'wall' || e.type === 'boost') ev.push({ ...e, i: 0 });
-    const lead = r.klok - last.tl + VOORSPEL_LEAD, ca = Math.cos(A[2]), sa = Math.sin(A[2]);
+    const lead = Math.min(0.5, r.klok - last.tl + VOORSPEL_LEAD), // hooguit een halve seconde vooruit: staat de host stil (pauze), dan rijdt de eigen kart niet weg
+       ca = Math.cos(A[2]), sa = Math.sin(A[2]);
     const doelU = A[0] + (ca * A[3] - sa * A[4]) * lead, doelV = A[1] + (sa * A[3] + ca * A[4]) * lead;
     if (Math.hypot(doelU - sim.u, doelV - sim.v) > VOORSPEL_SNAP) { sim.u = doelU; sim.v = doelV; sim.a = A[2] + A[5] * lead; sim.f = A[3]; sim.l = A[4]; sim.yaw = A[5]; }
     else {

@@ -443,6 +443,7 @@ function updateOnline(w, dt) {
     end(w, { quit: true });
     return;
   }
+  if (gast && g.buf.length && g.klok - g.buf[g.buf.length - 1].tl > 1.5) g.flash = { text: 'Even wachten: de verbinding haperde of het spel staat stil', t: 0.5, bad: true }; // no snapshots for a moment
   const ev = gast ? tikSpiegel(g, dt, () => playerInput(w.input)) : wedRaceTik(w, g, dt, () => playerInput(w.input));
   let klaar = false;
   for (const e of ev) {
