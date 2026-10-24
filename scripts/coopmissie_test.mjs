@@ -10,6 +10,8 @@ import * as M from '../game/js/coopmeedoen.js';
 import { missieBericht, leesMissieBericht } from '../game/js/coopworld.js';
 import { ververs, opdrachtSpelers, inVoertuig, dichtstbijzijndeMeespeler, afstandMeespeler, meespelerInVoertuig, iedereenBinnen } from '../game/js/spelersregister.js';
 import { teamActor, doelStand, groepKlaar } from '../game/js/stagegroep.js';
+import { registerMissionQueries } from '../game/js/missionquery.js';
+import { missieGastE } from '../game/js/coopglue.js';
 
 let n = 0;
 const t = (name, f) => { f(); n++; };
@@ -288,6 +290,70 @@ t('een gast stapt over naar een nieuwe groep: de stap die al binnenkwam, komt bi
   assert.equal(gw.coopMissie.stap, 'Kluis open', 'de stap van de nieuwe groep is niet verloren');
   assert.equal(gw.coopMissieAnder[KLUIS.id], undefined);
   step(1);
+});
+
+t('een gast die zelf een opdracht start: het verzoek is begrensd en alleen zijn eigen opdracht bij het startpunt telt', () => {
+  const v = G.leesVerzoek({ k: 'missiegast', a: 'start', i: 4, label: 'Bezorgen' });
+  assert.deepEqual(v, { i: 4, label: 'Bezorgen' });
+  assert.equal(G.leesVerzoek({ k: 'missiegast', a: 'start', i: 4 }), null, 'zonder label');
+  assert.equal(G.leesVerzoek({ k: 'missiegast', a: 'start', i: -1, label: 'x' }), null, 'geen geldige index');
+  assert.equal(G.leesVerzoek({ k: 'wedgast', a: 'start', i: 4, label: 'x' }), null, 'een ander bericht');
+  assert.deepEqual(G.verzoekEvent(4, 'Bezorgen'), { k: 'missiegast', a: 'start', i: 4, label: 'Bezorgen' });
+  const DEF = { label: 'Bezorgen', type: 'stages', start: { x: 100, y: 0 } };
+  assert.equal(G.startReden({ verzoek: v, def: DEF, eigen: { index: 4 }, lichaam: { x: 95, y: 0 } }), null, 'bij het startpunt en zijn eigen opdracht');
+  assert.equal(G.startReden({ verzoek: v, def: DEF, lichaam: { x: 300, y: 0 } }), G.MISSIE_TEKST.nietBijStart);
+  assert.equal(G.startReden({ verzoek: v, def: { ...DEF, solo: true }, lichaam: { x: 100, y: 0 } }), G.MISSIE_TEKST.alleen);
+  assert.equal(G.startReden({ verzoek: v, def: DEF, eigen: { index: 3 }, lichaam: { x: 100, y: 0 } }), G.MISSIE_TEKST.nietJouwBeurt);
+  assert.equal(G.startReden({ verzoek: { ...v, label: 'Kluisklus' }, def: DEF }), G.MISSIE_TEKST.onbekend, 'een andere opdracht dan hij noemde');
+  assert.equal(G.startReden({ verzoek: v, def: null }), G.MISSIE_TEKST.onbekend);
+});
+t('de poort voor een verzoek is dezelfde playerBusy als elke start (#452)', () => {
+  assert.equal(G.verzoekBlok({}), null, 'niets aan de hand');
+  assert.equal(G.verzoekBlok({ mission: { phase: 'active' } }), G.MISSIE_TEKST.bezig, 'de gastheer speelt zelf een opdracht');
+  assert.equal(G.verzoekBlok({ sideJob: { active: true } }), G.MISSIE_TEKST.bijbaan);
+  assert.equal(G.verzoekBlok({ padelGame: {} }), G.MISSIE_TEKST.activiteit);
+  assert.equal(G.verzoekBlok({ wanted: 2 }), G.MISSIE_TEKST.politie);
+  assert.equal(G.verzoekBlok({ pendingRespawn: {} }), G.MISSIE_TEKST.wacht);
+  assert.equal(G.verzoekBlok({ coopNet: { wed: { r: {} } } }), G.MISSIE_TEKST.wedstrijd, 'er loopt een wedstrijd');
+  assert.equal(G.verzoekBlok(null), G.MISSIE_TEKST.wacht);
+});
+t('de groep van een gast die start: de lopende stand blijft leidend, de vrager komt erbij, een andere groep blijft staan', () => {
+  const st = G.maakGroepen();
+  G.begin(st, LOKET, 1);
+  G.zetStand(st, LOKET.id, { stap: 'Rij naar de kerk' }, 4);
+  const g = G.beginVerzoek(st, { index: 3, label: 'Het Loket', stap: '', doelen: [] }, 2, 5);
+  assert.equal(g.id, LOKET.id);
+  assert.equal(g.stap, 'Rij naar de kerk', 'een verzoek overschrijft de lopende stap niet');
+  assert.deepEqual(g.doelen.map((d) => d.label), ['Het Loket'], 'de doelen blijven');
+  assert.deepEqual(g.deelnemers, [0, 1, 2], 'de vrager hoort erbij');
+  const k = G.beginVerzoek(st, { index: 4, label: 'Kluisklus', stap: 'Kluis open', doelen: [{ x: 1, y: 2, label: 'Kluis' }] }, 3, 6);
+  assert.deepEqual(k.deelnemers, [3], 'een nieuwe groep begint met de vrager');
+  assert.equal(k.stap, 'Kluis open');
+  assert.deepEqual(G.groep(st, LOKET.id).deelnemers, [0, 1, 2], 'de andere groep houdt zijn deelnemers');
+  assert.equal(G.beginVerzoek(null, { index: 4, label: 'Kluisklus' }, 1), null, 'zonder register geen groep');
+});
+
+t('sessie: een gast start zijn eigen verhaalopdracht; de andere gast krijgt Meedoen? en de vrager zit in de groep', () => {
+  const { hw, gs, step } = sessie(2);
+  registerMissionQueries({
+    getMissionDefs: () => [{ label: 'Bezorgen', type: 'stages', start: { x: 10, y: 0 } }],
+    getMissionList: () => [{ index: 0, label: 'Bezorgen', status: 'volgende', start: { x: 10, y: 0 } }],
+  });
+  hw.coopMissieStart = (i) => { hw.mission = { phase: 'active', label: 'Bezorgen', type: 'stages', index: i, id: `${i}|Bezorgen`, progressText: 'Naar de kerk', lateInstap: true }; return true; };
+  for (const g of gs) { g.gw.player.x = 10; g.gw.player.y = 0; }
+  hw.companion.x = 10; hw.companion.y = 0;
+  assert.equal(missieGastE(gs[0].gw), true, 'E bij het startpunt van zijn eigen opdracht');
+  assert.equal(missieGastE(gs[0].gw), true, 'een tweede E binnen twee seconden doet niets');
+  step(1);
+  assert.ok(hw.messages.some((m) => /start Bezorgen/.test(m)), 'de gastheer hoort wie de opdracht begon');
+  assert.equal(hw.coopNet.meedoen.keuze[1], 'ja', 'de vrager doet mee');
+  assert.equal(hw.coopNet.meedoen.keuze[2], 'wacht', 'de andere gast wordt gevraagd');
+  assert.ok(gs[1].gw.messages.some((m) => /Meedoen met Bezorgen\? J = ja, N = nee/.test(m)));
+  const gr = hw.coopGroepen.groepen['0|Bezorgen'];
+  assert.ok(gr, 'de opdracht heeft een groep');
+  assert.equal(gr.deelnemers.includes(1), true, 'de vrager hoort bij de groep');
+  assert.equal(gs[0].gw.coopGroep && gs[0].gw.coopGroep.deelnemer, true, 'de vrager weet dat hij meedoet');
+  assert.ok(gs[0].gw.messages.some((m) => /Bezorgen is begonnen: je doet mee/.test(m)));
 });
 
 t('de respawn-haak vraagt de sessie voor neer en voor opgepakt, en de stappen lopen via stagegroep.js', () => {
