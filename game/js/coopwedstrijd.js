@@ -17,6 +17,7 @@ import { KARTBAAN_TRACK, KARTBAAN_FRAME } from './kartbaanspoor.js';
 import { invoerVan, lichaamVan } from './coopbestuur.js';
 import { charInfo } from './coopplayers.js';
 import { maakScore, meldBaan, verlaatScore, tikScore, uitslagScore, beloningScore, standScore, standEvent, leesStand, winnaars } from './coopwedstrijdscore.js';
+import { maakTijd, meldTijd, verlaatTijd, tikTijd, uitslagTijd, beloningTijd, standTijd, standEventTijd, volgordeTijd } from './coopwedstrijdtijd.js';
 
 export const MAX_RIJDERS = 4;       // karts op de grid: mensen en AI samen
 export const UITNODIGING_S = 10;    // seconden om J of N te zeggen
@@ -28,6 +29,10 @@ export const STAND_HZ = 12;         // momentopnamen per seconde naar elke gast
 export const VERTRAGING = 0.2;      // s: de gast tekent een beetje in het verleden, dan loopt het vloeiend
 export const PRIJZEN = [0, 120, 80, 50, 25]; // geld per plek (index = plek), in de eigen portemonnee van wie finisht
 export const WEG_SKILL = 0.9;       // een kart zonder speler rijdt als een AI-rijder
+// Een score-wedstrijd is een golfronde (slagen per baan, coopwedstrijdscore.js) of een poging op tijd (klimtoren, coopwedstrijdtijd.js): zelfde berichten, andere regels.
+const SCORE = { verlaat: verlaatScore, tik: tikScore, event: standEvent, uitslag: uitslagScore, beloning: beloningScore, rijen: standScore };
+const TIJD = { verlaat: verlaatTijd, tik: tikTijd, event: standEventTijd, uitslag: uitslagTijd, beloning: beloningTijd, rijen: standTijd };
+const soortVan = (sc) => (sc.tijd ? TIJD : SCORE);
 const NEUTRAAL = Object.freeze({ throttle: 0, steer: 0, drift: false });
 const q = (x, d = 2) => { const m = 10 ** d; return Math.round((Number(x) || 0) * m) / m; };
 const fin = (x) => Number.isFinite(x);
@@ -158,7 +163,7 @@ export function leesWed(b) {
     const deeln = b.deeln.map((d) => (Array.isArray(d) && Number.isInteger(d[0]) && d[0] >= 0 ? { slot: d[0], naam: tekst(d[1], 24) || 'Speler', char: tekst(d[2], 12) || null } : null));
     if (deeln.some((d) => !d) || new Set(deeln.map((d) => d.slot)).size !== deeln.length) return null;
     const banen = Array.isArray(b.banen) && b.banen.length >= 1 && b.banen.length <= 18 && b.banen.every((p) => Number.isInteger(p) && p >= 2 && p <= 6) ? b.banen.slice() : null;
-    return { f: 'start', id: tekst(b.id, 20), draai: Number.isInteger(b.draai) ? ((b.draai % MAX_RIJDERS) + MAX_RIJDERS) % MAX_RIJDERS : 0, deeln, ...(banen ? { banen, v: tekst(b.v, 40) || null } : b.live === 1 || b.live === true ? { live: true, v: tekst(b.v, 40) || null } : null) };
+    return { f: 'start', id: tekst(b.id, 20), draai: Number.isInteger(b.draai) ? ((b.draai % MAX_RIJDERS) + MAX_RIJDERS) % MAX_RIJDERS : 0, deeln, ...(banen ? { banen, v: tekst(b.v, 40) || null } : b.live === 1 || b.live === true ? { live: true, v: tekst(b.v, 40) || null } : b.tijd === 1 || b.tijd === true ? { tijd: true, v: tekst(b.v, 40) || null } : null) };
   }
   if (b.f === 'st') {
     if (!Number.isInteger(b.n) || !Array.isArray(b.s) || b.s.length < 1 || b.s.length > MAX_RIJDERS || !fin(b.t) || !fin(b.rt)) return null;
@@ -179,7 +184,8 @@ export function leesWed(b) {
 }
 // Wat de host van een gast leest.
 export function leesGast(b) {
-  if (!b || b.k !== 'wedgast' || !['ja', 'nee', 'weg', 'nogmaals', 'score'].includes(b.a)) return null;
+  if (!b || b.k !== 'wedgast' || !['ja', 'nee', 'weg', 'nogmaals', 'score', 'tijd'].includes(b.a)) return null;
+  if (b.a === 'tijd') return fin(b.t) && b.t >= 0 && b.t < 3600 && fin(b.h) && b.h >= 0 && b.h < 100 ? { a: 'tijd', tijd: b.t, hoogte: b.h, boven: !!b.o } : null;
   if (b.a === 'score') return Number.isInteger(b.b) && b.b >= 0 && b.b < 18 && Number.isInteger(b.s) && b.s >= 1 && b.s <= 12 ? { a: 'score', baan: b.b, slagen: b.s } : null;
   return { a: b.a };
 }
@@ -293,6 +299,8 @@ export function zetWedHaken(h) { Object.assign(haken, h || {}); }
 //  Een race (de standaard): { naam, start(world, race) -> bool, solo(world) }; de host rekent hem uit en tekent hem voor de gasten.
 //  Een score-wedstrijd (soort 'score', golf): { naam, soort: 'score', banen(world) -> [{ par }], start(world, score) -> bool, plek(world) -> { x, y },
 //  extra(world) -> { v }, eind(world, uitslag | null), solo(world) }; iedereen speelt zijn eigen ronde op zijn eigen scherm en meldt zijn slagen.
+//  Een poging op tijd (soort 'tijd', klimtoren): { naam, soort: 'tijd', vak, opties(world) -> { naEerste, cap }, start(world, score) -> bool, plek(world), extra(world), eind(world, uitslag | null), solo(world) };
+//  iedereen doet zijn eigen poging op zijn eigen scherm en meldt tijd, hoogte en of hij boven kwam.
 //  Een live wedstrijd (soort 'live', padel): { naam, soort: 'live', live: { tik, snap, verlaat, meedoen, uitslag, beloning, vak }, maak(deeln) -> sim,
 //  start(world, sim) -> bool, plek(world), extra(world) -> { v }, eind(world, uitslag | null), solo(world) }; de host rekent alles uit met de invoer van
 //  elke speler (wedLiveTik) en stuurt momentopnamen (k 'wed', f 'lv'); een gast tekent een spiegel (haak spiegel en voerIn) en stuurt alleen zijn invoer.
@@ -334,15 +342,16 @@ function begin(world, n, W) {
   const af = () => { for (const g of gasten) n.hub.announce({ k: 'wed', f: 'af' }, g); return false; };
   if (deeln.length < 2) { meld(world, 0, 'Niemand doet mee: je speelt alleen.'); return regel && regel.solo ? regel.solo(world) : false; }
   W.deeln = deeln; W.id = u.id;
-  if (regel && regel.soort === 'score') {
-    const banen = regel.banen ? regel.banen(world) : [];
-    const sc = banen.length ? maakScore(u.id, deeln, banen) : null;
+  if (regel && (regel.soort === 'score' || regel.soort === 'tijd')) {
+    const tijd = regel.soort === 'tijd';
+    const banen = tijd ? [{ par: 2 }] : regel.banen ? regel.banen(world) : [];
+    const sc = banen.length ? (tijd ? maakTijd(u.id, deeln, regel.opties ? regel.opties(world) : {}) : maakScore(u.id, deeln, banen)) : null;
     if (!sc || !regel.start(world, sc)) return af();
     sc.uit = regel.plek ? regel.plek(world) : null;
     W.sc = sc; W.nSt = -1; W.tSt = 0;
     const extra = regel.extra ? regel.extra(world) : null;
     for (const g of gasten) {
-      n.hub.announce(startEvent(u.id, deeln, 0, { banen: banen.map((b) => b.par), ...(extra || null) }), g);
+      n.hub.announce(startEvent(u.id, deeln, 0, { ...(tijd ? { tijd: 1 } : { banen: banen.map((b) => b.par) }), ...(extra || null) }), g);
       const l = lichaamVan(world, g); if (l) { l.coopWedstrijd = true; zetBijUitgang(l, sc, g); } // zijn lichaam staat stil bij de eerste tee: hij speelt op zijn eigen scherm
     }
     return true;
@@ -433,29 +442,30 @@ export function wedHostEind(world, r, { gestopt = false } = {}) {
 
 // ---- een score-wedstrijd (golf): de host controleert de slagen, houdt de stand bij en betaalt per plek
 function scoreTik(world, n, W, dt) {
-  const sc = W.sc;
+  const sc = W.sc, K = soortVan(sc);
   const verbonden = new Set(verbondenGasten(world).map((s) => s.slot));
-  for (const d of sc.deeln) if (d.slot > 0 && !sc.weg[d.slot] && !verbonden.has(d.slot)) { verlaatScore(sc, d.slot); const l = lichaamVan(world, d.slot); if (l) { l.coopWedstrijd = false; zetBijUitgang(l, sc, d.slot); } }
-  const ev = tikScore(sc, dt);
+  for (const d of sc.deeln) if (d.slot > 0 && !sc.weg[d.slot] && !verbonden.has(d.slot)) { K.verlaat(sc, d.slot); const l = lichaamVan(world, d.slot); if (l) { l.coopWedstrijd = false; zetBijUitgang(l, sc, d.slot); } }
+  const ev = K.tik(sc, dt);
   W.tSt += dt;
-  if (W.tSt >= 0.5 && W.nSt !== sc.n) { W.tSt = 0; W.nSt = sc.n; const m = standEvent(sc); for (const d of sc.deeln) if (d.slot > 0 && !sc.weg[d.slot]) n.hub.announce(m, d.slot); } // de stand voor wie nog meedoet
+  if (W.tSt >= 0.5 && W.nSt !== sc.n) { W.tSt = 0; W.nSt = sc.n; const m = K.event(sc); for (const d of sc.deeln) if (d.slot > 0 && !sc.weg[d.slot]) n.hub.announce(m, d.slot); } // de stand voor wie nog meedoet
   if (ev.some((e) => e.type === 'klaar')) scoreEind(world, n, W, false);
 }
 function scoreEind(world, n, W, gestopt) {
   const sc = W.sc; W.sc = null;
+  const K = soortVan(sc);
   const regel = WEDSTRIJDEN.get(sc.id);
   for (const d of sc.deeln) if (d.slot > 0) { const l = lichaamVan(world, d.slot); if (l) { l.coopWedstrijd = false; zetBijUitgang(l, sc, d.slot); } }
   if (gestopt) { for (const d of sc.deeln) if (d.slot > 0 && !sc.weg[d.slot]) n.hub.announce(eindEvent([], null, true), d.slot); if (regel && regel.eind) regel.eind(world, null); return null; }
-  const rijen = uitslagScore(sc).map((r) => ({ ...r, tijd: null, beste: null }));
+  const rijen = K.uitslag(sc).map((r) => ({ tijd: null, beste: null, ...r }));
   W.laatste = { id: sc.id, slots: sc.deeln.map((d) => d.slot) };
   W.opnieuw = {};
   let jij = null;
   for (const rij of rijen) {
-    const b = beloningScore(rij), mijn = { plek: rij.plek, geld: b.geld, xp: b.xp, fin: rij.fin ? 1 : 0, weg: rij.weg ? 1 : 0 };
+    const b = K.beloning(rij), mijn = { plek: rij.plek, geld: b.geld, xp: b.xp, fin: rij.fin ? 1 : 0, weg: rij.weg ? 1 : 0 };
     if (rij.slot === 0) { jij = mijn; continue; }
     if (rij.weg) continue;
     n.hub.announce(eindEvent(rijen, mijn), rij.slot);
-    if ((b.geld > 0 || b.xp > 0) && haken.betaalGast) haken.betaalGast(world, rij.slot, b.geld, { vak: 'golf', xp: b.xp });
+    if ((b.geld > 0 || b.xp > 0) && haken.betaalGast) haken.betaalGast(world, rij.slot, b.geld, { vak: (regel && regel.vak) || 'golf', xp: b.xp });
   }
   W.uitslag = { rijen, jij };
   const res = { rijen, jij, winnaars: winnaars(rijen) };
@@ -503,17 +513,19 @@ export function wedHostLiveEind(world, sim, { gestopt = false } = {}) {
 
 // De host zelf meldt de slagen van zijn volgende baan.
 export function wedHostScore(world, baan, slagen) { const n = world.coopNet, W = n && n.wed; return !!W && !!W.sc && meldBaan(W.sc, 0, baan, slagen); }
+// De host zelf meldt zijn poging op tijd (klimtoren): { tijd, hoogte, boven }.
+export function wedHostTijd(world, res) { const n = world.coopNet, W = n && n.wed; return !!W && !!W.sc && !!W.sc.tijd && meldTijd(W.sc, 0, res); }
 // De host stopt de ronde (Backspace): iedereen hoort dat en niemand krijgt een beloning.
 export function wedScoreStop(world) { const n = world.coopNet, W = n && n.wed; if (!n || !W || !W.sc) return false; scoreEind(world, n, W, true); return true; }
 // De stand voor het bord, voor wie de ronde speelt: [{ slot, naam, banen, slagen, rel, weg }] van de beste naar de slechtste.
 export function wedScoreRijen(world) {
   const n = world.coopNet;
-  if (n && n.role === 'host' && n.wed && n.wed.sc) return standScore(n.wed.sc).map((r) => ({ slot: r.slot, naam: r.naam, banen: r.banen, slagen: r.slagen, rel: r.rel, weg: r.weg }));
+  if (n && n.role === 'host' && n.wed && n.wed.sc) return soortVan(n.wed.sc).rijen(n.wed.sc).map((r) => ({ slot: r.slot, naam: r.naam, banen: r.banen, slagen: r.slagen, rel: r.rel, weg: r.weg }));
   const G = world.coopWedGast, sc = G && G.score;
   if (!sc) return [];
   const naam = (slot) => (sc.deeln.find((d) => d.slot === slot) || {}).naam || 'Speler';
   const rijen = sc.deeln.map((d) => { const s = sc.stand.find((x) => x.slot === d.slot); return { slot: d.slot, naam: d.naam, banen: s ? s.banen : 0, slagen: s ? s.slagen : 0, rel: s ? s.rel : 0, weg: s ? s.weg : false }; });
-  return rijen.sort((a, b) => (a.weg - b.weg) || (a.rel - b.rel) || (b.banen - a.banen)).map((r) => ({ ...r, naam: naam(r.slot) }));
+  return rijen.sort(sc.tijd ? volgordeTijd : (a, b) => (a.weg - b.weg) || (a.rel - b.rel) || (b.banen - a.banen)).map((r) => ({ ...r, naam: naam(r.slot) }));
 }
 
 // Een bericht van een gast bij de host.
@@ -522,9 +534,10 @@ export function wedHandleGast(world, body, van) {
   if (!n || n.role !== 'host' || !b || !(van >= 1)) return false;
   const W = wedStaat(n);
   if (b.a === 'ja' || b.a === 'nee') return !!W.u && antwoord(W.u, van, b.a === 'ja');
-  if (b.a === 'score') return !!W.sc && meldBaan(W.sc, van, b.baan, b.slagen);
+  if (b.a === 'score') return !!W.sc && !W.sc.tijd && meldBaan(W.sc, van, b.baan, b.slagen);
+  if (b.a === 'tijd') return !!W.sc && !!W.sc.tijd && meldTijd(W.sc, van, b);
   if (b.a === 'weg') {
-    const regelLv = W.lv && WEDSTRIJDEN.get(W.id), ok = W.r ? verlaat(W.r, van) : W.sc ? verlaatScore(W.sc, van) : regelLv && regelLv.live ? regelLv.live.verlaat(W.lv, van) : false;
+    const regelLv = W.lv && WEDSTRIJDEN.get(W.id), ok = W.r ? verlaat(W.r, van) : W.sc ? soortVan(W.sc).verlaat(W.sc, van) : regelLv && regelLv.live ? regelLv.live.verlaat(W.lv, van) : false;
     if (!ok) return false;
     const l = lichaamVan(world, van); if (l) { l.coopWedstrijd = false; zetBijUitgang(l, W.r || W.sc || W.lv, van); }
     meld(world, 0, `${naamVan(world, van)} speelt niet meer mee.`);
@@ -574,8 +587,8 @@ export function wedHandleHost(world, body) {
       G.spiegel = sp; G.id = b.id; world.coopWedstrijd = true;
       return true;
     }
-    if (b.banen) { // een score-wedstrijd: iedereen speelt op zijn eigen scherm, de stand komt van de host
-      G.score = { id: b.id, deeln: b.deeln, banen: b.banen, stand: [], v: b.v || null }; G.id = b.id;
+    if (b.banen || b.tijd) { // een score-wedstrijd: iedereen speelt op zijn eigen scherm, de stand komt van de host
+      G.score = { id: b.id, deeln: b.deeln, banen: b.banen || [], tijd: !!b.tijd, stand: [], v: b.v || null }; G.id = b.id;
       if (!haak.start(world, b, null)) { G.score = null; return false; }
       world.coopWedstrijd = true;
       return true;
@@ -612,6 +625,12 @@ export function wedGastScore(world, baan, slagen) {
   return n.session.sendEvent({ k: 'wedgast', a: 'score', b: baan | 0, s: slagen | 0 });
 }
 // De gast stopt zelf met de wedstrijd (Backspace): de host laat zijn kart onder de AI doorrijden (of telt zijn ronde niet meer mee), zijn lichaam beweegt weer.
+// De gast meldt zijn poging op tijd (klimtoren): de tijd in seconden, de hoogste greep in meters en of hij boven kwam.
+export function wedGastTijd(world, tijd, hoogte, boven) {
+  const n = world.coopNet, G = world.coopWedGast;
+  if (!n || n.role !== 'client' || !n.session || !G || !G.score || !G.score.tijd) return false;
+  return n.session.sendEvent({ k: 'wedgast', a: 'tijd', t: Math.round(tijd * 100) / 100, h: Math.round(hoogte * 10) / 10, o: boven ? 1 : 0 });
+}
 export function wedGastVerlaat(world) {
   const G = world.coopWedGast;
   if (!G || !(G.spiegel || G.score)) return false;
