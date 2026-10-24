@@ -669,7 +669,7 @@ function ensureBoard() {
   return board;
 }
 
-function updateHud() {
+function updateHud(w) {
   const g = game;
   if (!g || !board) return;
   if (g.phase === 'mode') {
@@ -708,7 +708,7 @@ function updateHud() {
 function gastTik(w, dt) {
   if (!game || game.online !== 'gast') return false;
   updateGame(w, dt);
-  if (game) { if ((lodT -= dt) <= 0) { lodT = 0.5; updateLod(w); } sync3D(w, dt); updateHud(); }
+  if (game) { if ((lodT -= dt) <= 0) { lodT = 0.5; updateLod(w); } sync3D(w, dt); updateHud(w); }
   return true;
 }
 registreerWedstrijd('discgolf', {
@@ -758,7 +758,7 @@ export const DISCGOLF = {
   tick(dt, w) {
     if ((lodT -= dt) <= 0) { lodT = 0.5; updateLod(w); }
     sync3D(w, dt);
-    updateHud();
+    updateHud(w);
   },
   camera,
   icon: drawIcon,

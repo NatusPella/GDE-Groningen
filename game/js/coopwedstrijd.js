@@ -570,7 +570,7 @@ export function wedHandleHost(world, body) {
     if (!b.deeln.some((d) => d.slot === mijn) || !haak.start) return false;
     if (b.live) { // een live wedstrijd: de host rekent, deze gast tekent een spiegel van de momentopnamen en stuurt zijn invoer
       const sp = haak.spiegel ? haak.spiegel(b, mijn) : null;
-      if (!sp || !haak.start(world, b, sp)) return false;
+      if (!sp || !haak.start(world, b, sp)) { wedGastStuur(world, 'weg'); return false; } // hij kan niet meespelen (de baan is hier niet geladen): de AI neemt zijn stoel
       G.spiegel = sp; G.id = b.id; world.coopWedstrijd = true;
       return true;
     }
