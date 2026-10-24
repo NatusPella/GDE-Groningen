@@ -228,6 +228,59 @@ export function setGarageCutaway(root, k) {
   walls.scale.y = s;
 }
 
+// --- a safehouse in an existing building (#458) ---------------------------------
+
+// The sign above the door: "TE KOOP" or "JOUW HUIS" with a key in the level's
+// colour. One texture per house, cached while the game runs.
+const SAFEHUIS_BORD = new Map();
+function safehuisBord(naam, kleur, eigen) {
+  const key = `${eigen}|${kleur}|${naam}`;
+  let tex = SAFEHUIS_BORD.get(key);
+  if (tex) return tex;
+  tex = canvasTex(512, 160, (g) => {
+    g.fillStyle = '#1b1c1f';
+    g.fillRect(0, 0, 512, 160);
+    g.fillStyle = kleur; // de kleur van de laag (de vlag van de speler die het huis heeft)
+    g.fillRect(0, 148, 512, 12);
+    g.strokeStyle = kleur;
+    g.lineWidth = 10;
+    g.beginPath(); g.arc(72, 66, 24, 0, Math.PI * 2); g.stroke();
+    g.beginPath(); g.moveTo(96, 66); g.lineTo(160, 66); g.lineTo(160, 88); g.moveTo(136, 66); g.lineTo(136, 84); g.stroke();
+    g.fillStyle = '#f4f2ec';
+    g.textAlign = 'left';
+    g.textBaseline = 'middle';
+    g.font = 'bold 46px sans-serif';
+    g.fillText(eigen ? 'JOUW HUIS' : 'TE KOOP', 188, 60);
+    g.font = '24px sans-serif';
+    g.fillStyle = 'rgba(244,242,236,0.72)';
+    g.fillText(naam, 188, 104);
+  });
+  SAFEHUIS_BORD.set(key, tex);
+  return tex;
+}
+
+// The marker of a safehouse in an existing OSM building: a door in the facade
+// and a sign above it, in the level's colour once it is yours. No new volume:
+// the building itself stays as the world built it. Placed at the facade point
+// (x, y) of the door, ang the outward normal; the caller sets the ground height.
+export function buildSafehouseMarker3D({ x, y, ang, eigen = false, kleur = '#8a3b2e', naam = 'Safehouse' }) {
+  const g = new THREE.Group();
+  g.position.set(x, 0, y);
+  g.rotation.y = Math.PI / 2 - ang;
+  const frame = new THREE.MeshLambertMaterial({ color: 0x2b2d30 });
+  const deurMat = new THREE.MeshLambertMaterial({ color: eigen ? kleur : 0x8a3b2e });
+  box(g, frame, 0, 1.12, 0.05, 1.36, 2.24, 0.1);
+  box(g, deurMat, 0, 1.05, 0.11, 1.1, 2.1, 0.08);
+  box(g, M.steel, 0.4, 1.02, 0.17, 0.1, 0.1, 0.06);
+  const mat = new THREE.MeshBasicMaterial({ map: safehuisBord(naam, kleur, eigen) });
+  mat.userData.shared = true;
+  const bord = new THREE.Mesh(new THREE.PlaneGeometry(1.55, 0.49), mat);
+  bord.position.set(0, 2.56, 0.1);
+  g.add(bord);
+  g.userData.sign = bord;
+  return g;
+}
+
 export function setGarageDoor(root, open, H) {
   const door = root.userData.door;
   door.scale.y = Math.max(0.04, (H - 0.1) * (1 - open));
