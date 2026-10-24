@@ -13,7 +13,7 @@ const { wgsToWorld } = await import('../game/js/rdnew.js');
 const { akkerRijen } = await import('../game/js/bietenrules.js');
 
 let n = 0, fails = 0;
-const t = (name, fn) => { n++; try { fn(); } catch (e) { fails++; console.log('FAIL', name, '\n  ', String(e.stack || e.message).split('\n').slice(0, 4).join('\n  ')); } };
+const t = async (name, fn) => { n++; try { await fn(); } catch (e) { fails++; console.log('FAIL', name, '\n  ', String(e.stack || e.message).split('\n').slice(0, 4).join('\n  ')); } };
 const nepOpslag = () => { const m = new Map(); return { getItem: (k) => (m.has(k) ? m.get(k) : null), setItem: (k, v) => m.set(k, String(v)), removeItem: (k) => m.delete(k) }; };
 
 const [ex, ey] = wgsToWorld(PC.erfDef(PC.START_ERF).lat, PC.erfDef(PC.START_ERF).lon);
@@ -31,7 +31,7 @@ WW.resetBoerderijWereld();
 const bd = () => Live.getBedrijf();
 const koopCat = (type) => { const r = Live.koopMachineCat(w, type, PC.START_ERF); assert.ok(r.ok, r.reden); return r.uid; };
 
-t('bij het erf verschijnen het erf, de machines en de werktuigen; ver weg niet', () => {
+await t('bij het erf verschijnen het erf, de machines en de werktuigen; ver weg niet', () => {
   const trek = koopCat('trekker-klein'), ploeg = koopCat('ploeg-3'), kar = koopCat('aanhanger'), zaai = koopCat('zaaimachine');
   w.player.x = ex + 2000; w.player.y = ey;
   tik(1);
@@ -58,7 +58,7 @@ const stapIn = (v) => { w.player.inVehicle = v; v.driver = 'player'; w.player.x 
 const stapUit = (v) => { w.player.inVehicle = null; v.driver = null; };
 const impPos = (uid) => { const i = WW._staat().werktuigen.get(uid); return i; };
 
-t('koppelen met E in de trekker bij het werktuig; niet te ver; niet twee; X koppelt los; te voet kan ook', () => {
+await t('koppelen met E in de trekker bij het werktuig; niet te ver; niet twee; X koppelt los; te voet kan ook', () => {
   const v = stap();
   const werk = bd().machinepark.werktuigen;
   const ploeg = werk.find((x) => x.type === 'ploeg-3').uid;
@@ -119,7 +119,7 @@ function rijRijen(v, rig, { speed = 4, hoogte = 'omlaag', pto = null } = {}) {
   }
 }
 
-t('veldwerk: ploegen met trekker en ploeg verandert het veld; zonder hef omlaag gebeurt er niets; materiaal en diesel kosten geld', () => {
+await t('veldwerk: ploegen met trekker en ploeg verandert het veld; zonder hef omlaag gebeurt er niets; materiaal en diesel kosten geld', () => {
   const b = Live.getBoerderij(), v = stap(), rig = WW._staat().rigs.get(v.farm);
   const ploeg = bd().machinepark.werktuigen.find((x) => x.type === 'ploeg-3').uid;
   Live.zetVeldPositie(PC.START_PERCEEL, { x: ex + 150, y: ey, a: 0.3 });
@@ -146,7 +146,7 @@ t('veldwerk: ploegen met trekker en ploeg verandert het veld; zonder hef omlaag 
   assert.ok(m.uren > 0);
 });
 
-t('cultiveren, zaaien (aftakas nodig), bemesten en spuiten met de juiste werktuigen; verkeerd werktuig voor het gewas kan niet', () => {
+await t('cultiveren, zaaien (aftakas nodig), bemesten en spuiten met de juiste werktuigen; verkeerd werktuig voor het gewas kan niet', () => {
   const b = Live.getBoerderij(), v = stap(), rig = WW._staat().rigs.get(v.farm);
   const park = () => bd().machinepark.werktuigen;
   const wissel = (type) => {
@@ -194,7 +194,7 @@ t('cultiveren, zaaien (aftakas nodig), bemesten en spuiten met de juiste werktui
   druk('t'); druk('g');
 });
 
-t('oogsten met de maaidorser, laden bij je erf, leveren met de aanhanger bij de afnemer', () => {
+await t('oogsten met de maaidorser, laden bij je erf, leveren met de aanhanger bij de afnemer', () => {
   const b = Live.getBoerderij();
   const trekker = stap();
   stapUit(trekker);
@@ -243,7 +243,7 @@ t('oogsten met de maaidorser, laden bij je erf, leveren met de aanhanger bij de 
   assert.ok(b.boek.velden[PC.START_PERCEEL].omzet > 0, 'de omzet staat bij het veld');
 });
 
-t('diesel: een lege tank maakt de machine traag, R tankt bij het dieselvat (goedkoop) en bij een pomp niet als die er niet is', () => {
+await t('diesel: een lege tank maakt de machine traag, R tankt bij het dieselvat (goedkoop) en bij een pomp niet als die er niet is', () => {
   const v = stap();
   stapIn(v);
   const m = M.vind(bd(), v.farm);
@@ -268,7 +268,47 @@ t('diesel: een lege tank maakt de machine traag, R tankt bij het dieselvat (goed
   stapUit(v);
 });
 
-t('een gast bestuurt en ziet de boerderij van de gastheer niet; een verkochte of teruggebrachte machine verdwijnt uit de wereld', () => {
+await t('samen spelen: een gast bestuurt de tweede trekker op jouw akker; koppelen, hef en aftakas gaan vanzelf; zijn werk levert hem een deel op', async () => {
+  const CB = await import('../game/js/coopbestuur.js');
+  Live.verkoopMachineCat(w, bd().machinepark.machines.find((x) => x.type === 'laadmachine').uid);   // een plek vrij
+  const uid2 = koopCat('trekker-groot');
+  const deel = [], meld = [];
+  w.coopDeel = (bedrag, info) => deel.push({ bedrag, info }); w.coopMeld = (slot, tekst) => meld.push({ slot, tekst });
+  w.player.inVehicle = null; w.player.x = ex + 150; w.player.y = ey + 30;
+  tik(1);
+  const g = w.vehicles.find((x) => x.farm === uid2);
+  assert.ok(g, 'de tweede trekker staat in de wereld');
+  assert.equal(CB.weigerReden(g), null, 'een gast mag een machine van de boerderij besturen (geen diefstal)');
+  assert.equal(CB.weigerReden({ playerOwned: true }), 'niet', 'andere eigen voertuigen van de host blijven dicht');
+  const b = Live.getBoerderij();
+  assert.equal(B.fase(b), 'braak');
+  const ploeg = bd().machinepark.werktuigen.find((x) => x.type === 'ploeg-3').uid;
+  const imp = impPos(ploeg);
+  let k = 1; for (const o of WW._staat().werktuigen.values()) if (o.uid !== ploeg && !WW._staat().rigs.get('x')) { o.x += 30 * k; o.y += 30; k++; }   // de andere werktuigen staan elders: alleen de ploeg is dichtbij
+  g.driver = 'player'; g.coopBestuurder = 2; g.angle = Math.PI; g.x = imp.x - 3.75 - 0.6; g.y = imp.y; g.speed = 0;
+  const hostMsgs = msgs.length;
+  tik(1);
+  const rig = WW._staat().rigs.get(uid2);
+  assert.equal(rig.werktuig, ploeg, 'het werktuig vlak achter zijn trekker is vanzelf gekoppeld');
+  assert.ok(meld.some((m) => m.slot === 2 && /gekoppeld/.test(m.tekst)), 'de melding gaat naar de gast');
+  assert.equal(msgs.length, hostMsgs, 'de host krijgt zijn melding niet');
+  M.vind(bd(), uid2).brandstof = 100;
+  rijRijen(g, rig);
+  assert.equal(B.fase(b), 'geploegd', 'de gast ploegde zonder toetsen: ' + JSON.stringify(meld.slice(-3)));
+  assert.equal(rig.hef, 'omlaag', 'op het veld staat de hef vanzelf omlaag');
+  assert.ok(deel.length === 1 && deel[0].bedrag > 0 && deel[0].info.vak === 'landbouw', JSON.stringify(deel));
+  g.x = ex + 400; g.y = ey + 400; g.speed = 3; tik(0.6);
+  assert.equal(rig.hef, 'omhoog', 'van het veld af gaat de hef omhoog');
+  g.driver = null; g.coopBestuurder = 0; g.speed = 0;
+  // de host tankt de machine van de gast te voet bij het dieselvat
+  const vat = WW.dieselvatPlek(WW._staat().erven.get(PC.START_ERF));
+  g.x = vat.x + 3; g.y = vat.y; w.player.x = vat.x + 2; w.player.y = vat.y + 1; M.vind(bd(), uid2).brandstof = 10; tik(0.6);
+  druk('r');
+  assert.ok(M.vind(bd(), uid2).brandstof > 100, 'R te voet tankt de machine naast je: ' + M.vind(bd(), uid2).brandstof);
+  w.coopDeel = null; w.coopMeld = null;
+});
+
+await t('een gast bestuurt en ziet de boerderij van de gastheer niet; een verkochte of teruggebrachte machine verdwijnt uit de wereld', () => {
   const gast = { ...w, coopRole: 'client' };
   const voor = JSON.stringify(WW.boerderijWereldStand());
   WW.updateBoerderijWereld(0.5, gast);

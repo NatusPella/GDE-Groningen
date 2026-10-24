@@ -21,6 +21,7 @@ import * as M from './machines.js';
 import * as WT from './werktuigen.js';
 import * as W3 from './werktuigen3d.js';
 import { getBoerderij, getBedrijf, neemTaak, rondAf, draaiMachine, tankMachine, zetVeldPositie, zetActief, leverLading } from './boerderijlive.js';
+import { loopbaanDeel } from './loopbaanlive.js';
 
 export const SPAWN_R = 230;            // zo dichtbij worden erf, machines en velden gebouwd
 export const DESPAWN_R = 330;          // zo ver weg gaan ze weer weg
@@ -36,7 +37,7 @@ const AFNEMER_PLEK = { aardappelen: [53.2388, 6.5106], bieten: [53.2301, 6.4923]
 
 const nieuweStaat = () => ({
   erven: new Map(), erfMeshes: new Map(), voertuigen: new Map(), werktuigen: new Map(), rigs: new Map(), pose: new Map(), velden: new Map(),
-  werk: null, t: 0, sync: -9, zoek: new Set(), meld: {}, prompt: null, afnemers: new Map(), draaiT: 0, last: 0,
+  werk: null, huidig: null, t: 0, sync: -9, zoek: new Set(), meld: {}, prompt: null, afnemers: new Map(), draaiT: 0, last: 0,
 });
 let S = nieuweStaat();
 
@@ -56,11 +57,18 @@ function ruimGroep(g) {
 const dist = (ax, ay, bx, by) => Math.hypot(ax - bx, ay - by);
 const grond = (w, x, y) => (w.map && w.map.groundHeightAt ? w.map.groundHeightAt(x, y, 0) || 0 : 0);
 const hoekVerschil = (a, b) => Math.atan2(Math.sin(a - b), Math.cos(a - b));
-// zeg iets hooguit eens per `s` seconden (per sleutel)
-function zeg(w, sleutel, tekst, s = 6, dur = 4) {
-  if (S.meld[sleutel] && S.t - S.meld[sleutel] < s) return;
-  S.meld[sleutel] = S.t;
+// Een melding: aan wie in de machine zit die nu aan de beurt is. Een gast (samen spelen) krijgt hem via zijn eigen melding, anders de speler.
+function bericht(w, tekst, dur = 4) {
+  const v = S.huidig;
+  if (v && v.coopBestuurder > 0 && w.coopMeld) { w.coopMeld(v.coopBestuurder, tekst); return; }
   if (w && w.addMessage) w.addMessage(tekst, dur);
+}
+// zeg iets hooguit eens per `s` seconden (per sleutel, per machine)
+function zeg(w, sleutel, tekst, s = 6, dur = 4) {
+  const k = S.huidig ? sleutel + S.huidig.id : sleutel;
+  if (S.meld[k] && S.t - S.meld[k] < s) return;
+  S.meld[k] = S.t;
+  bericht(w, tekst, dur);
 }
 
 // --- het erf ---------------------------------------------------------------------------------
@@ -264,19 +272,27 @@ const recFrom = (bd, uid) => M.vind(bd, uid);
 
 // Wat kan er nu gekoppeld worden: { trekker (voertuig), imp, rig } of null. In een trekker: het werktuig dichtbij het koppelpunt. Te voet: het werktuig
 // vlakbij jou, aan de trekker die er het dichtst bij staat (en vrij is).
+// De trekker (voertuig) die nu een werktuig kan koppelen: het werktuig het dichtst bij zijn koppelpunt, of null.
+export function koppelKandidaatVoor(w, v) {
+  const bd = getBedrijf();
+  const m = recFrom(bd, v.farm), rig = S.rigs.get(v.farm);
+  if (!rig || rig.werktuig || !m || PC.MACHINE_CATALOGUS[m.type].type !== 'trekker') return null;
+  const k = koppelPunt(v);
+  let best = null, bd2 = KOPPEL_R;
+  for (const i of S.werktuigen.values()) {
+    if (rigVan(i.uid) || !WT.werktuigDef(recFrom(bd, i.uid))) continue;
+    const d = dist(i.x, i.y, k.x, k.y);
+    if (d < bd2) { bd2 = d; best = i; }
+  }
+  return best ? { trekker: v, imp: best, rig } : null;
+}
+
 export function koppelKandidaat(w) {
   const p = w.player, bd = getBedrijf();
   const vrijeImp = [...S.werktuigen.values()].filter((i) => !rigVan(i.uid) && WT.werktuigDef(recFrom(bd, i.uid)));
   const inV = p.inVehicle && p.inVehicle.farm ? p.inVehicle : null;
   const vrijeRig = (v) => { const r = S.rigs.get(v.farm); const m = recFrom(bd, v.farm); return r && !r.werktuig && m && PC.MACHINE_CATALOGUS[m.type].type === 'trekker' ? r : null; };
-  if (inV) {
-    const rig = vrijeRig(inV);
-    if (!rig) return null;
-    const k = koppelPunt(inV);
-    let best = null, bd2 = KOPPEL_R;
-    for (const i of vrijeImp) { const d = dist(i.x, i.y, k.x, k.y); if (d < bd2) { bd2 = d; best = i; } }
-    return best ? { trekker: inV, imp: best, rig } : null;
-  }
+  if (inV) return koppelKandidaatVoor(w, inV);
   if (p.inVehicle) return null;
   let best = null, bdist = KOPPEL_VOET_R;
   for (const i of vrijeImp) { const d = dist(i.x, i.y, p.x, p.y); if (d < bdist) { bdist = d; best = i; } }
@@ -309,7 +325,7 @@ function doeKoppel(w, c) {
   if (!r.ok) { zeg(w, 'koppel', r.reden, 2, 3.5); return false; }
   const d = WT.WERKTUIG[c.imp.type];
   const hint = d.vervoer ? 'Laad de oogst bij je erf met E.' : [d.hef ? `${TOETS.hef} = hef` : null, d.pto ? `${TOETS.pto} = aftakas` : null].filter(Boolean).join(', ');
-  w.addMessage(`${r.naam} gekoppeld.${hint ? ' ' + hint + '.' : ''}`, 5);
+  bericht(w, `${r.naam} gekoppeld.${hint ? ' ' + hint + '.' : ''}`, 5);
   return true;
 }
 
@@ -321,7 +337,7 @@ function doeLos(w, rig, tractorUid) {
   const imp = S.werktuigen.get(werkUid);
   if (imp) { zetWerktuigPose(w, imp, true); S.pose.set(werkUid, { x: imp.x, y: imp.y, angle: imp.hoek }); }
   const m = recFrom(bd, werkUid);
-  w.addMessage(`${WT.naamVan(m)} losgekoppeld.`, 3.5);
+  bericht(w, `${WT.naamVan(m)} losgekoppeld.`, 3.5);
   return true;
 }
 
@@ -522,7 +538,7 @@ function veldBij(w, punt) {
   return best;
 }
 
-function werkStapWereld(dt, w, v, rig, m, imp) {
+function werkStapWereld(dt, w, v, rig, m, imp, gast = false) {
   const b = getBoerderij();
   const impRec = imp ? recFrom(getBedrijf(), imp.uid) : null;
   const set = WT.werkSet(rig, m, impRec);
@@ -543,7 +559,7 @@ function werkStapWereld(dt, w, v, rig, m, imp) {
   if (id !== getBedrijf().actief) {
     if (!werkt || speed < 1) return;
     S.werk = null;
-    if (zetActief(id)) w.addMessage(`De boerderij werkt nu op ${PC.perceelDef(id).naam}.`, 4);
+    if (zetActief(id)) bericht(w, `De boerderij werkt nu op ${PC.perceelDef(id).naam}.`, 4);
     return;
   }
   const taak = set.taak;
@@ -557,7 +573,7 @@ function werkStapWereld(dt, w, v, rig, m, imp) {
     if (!nm.ok) { zeg(w, 'neem', nm.reden, 6); return; }
     S.werk = { taak, id, werk: WT.nieuwWerk(taak, { eigen: true }) };
     const k = nm.kosten;
-    w.addMessage(`${cap(NAAM[taak])} begonnen${k.materiaal ? ` (${taak === 'zaaien' ? 'zaaigoed' : taak === 'spuiten' ? 'spuitmiddel' : 'mest'} €${k.materiaal})` : ''}. Rij de rijen netjes recht, niet te hard.`, 5);
+    bericht(w, `${cap(NAAM[taak])} begonnen${k.materiaal ? ` (${taak === 'zaaien' ? 'zaaigoed' : taak === 'spuiten' ? 'spuitmiddel' : 'mest'} €${k.materiaal})` : ''}. Rij de rijen netjes recht, niet te hard.`, 5);
     const veld = S.velden.get(id);
     if (veld) veld.sleutel = null;            // bouwt opnieuw, met het werk erbij
     return;
@@ -572,8 +588,10 @@ function werkStapWereld(dt, w, v, rig, m, imp) {
     else if (e.type === 'klaar') {
       const f = WT.fractieWerk(werkS);
       const uit = rondAf(w, taak, f, { vrij: true });
+      // een gast die meewerkt krijgt zijn deel: wat de loonwerker voor deze klus zou vragen, volgens het deel dat gasten van een verdienste krijgen (samen spelen)
+      if (gast && w.coopDeel) w.coopDeel(M.loonwerkKosten(taak, PC.perceelDef(id).ha), loopbaanDeel('landbouw', M.loonwerkKosten(taak, PC.perceelDef(id).ha), 8));
       S.werk = null;
-      w.addMessage((WERK_TEKST[taak] || (() => 'Klaar.'))(f, uit), 6);
+      bericht(w, (WERK_TEKST[taak] || (() => 'Klaar.'))(f, uit), 6);
       if (veld) veld.sleutel = null;
       return;
     }
@@ -601,17 +619,41 @@ export function updateBoerderijWereld(dt, w) {
   // de staat van het bedrijf kan veranderen (kopen, huren, terug naar de verhuurder): synchroniseren
   if (S.t - S.sync > 0.5) { S.sync = S.t; syncWereld(w); }
   volgWerktuigen(w, dt);
-  const v = w.player.inVehicle && w.player.inVehicle.farm ? w.player.inVehicle : null;
-  if (v) {
+  // elke machine met een bestuurder: de speler zelf, of (samen spelen) een gast die zijn eigen trekker op jouw akker bestuurt
+  for (const v of S.voertuigen.values()) {
+    if (v.driver !== 'player') continue;
     const rig = S.rigs.get(v.farm), m = recFrom(b.bedrijf, v.farm);
-    if (rig && m) {
-      const imp = rig.werktuig ? S.werktuigen.get(rig.werktuig) : null;
-      rijdt(dt, w, v, m, rig, imp);
-      werkStapWereld(dt, w, v, rig, m, imp);
-      lading(dt, w, v, rig, m);
-    }
+    if (!rig || !m) continue;
+    S.huidig = v;
+    const imp = rig.werktuig ? S.werktuigen.get(rig.werktuig) : null;
+    const gast = v.coopBestuurder > 0;
+    if (gast) autoBediening(w, v, rig, m, imp);
+    rijdt(dt, w, v, m, rig, imp);
+    werkStapWereld(dt, w, v, rig, m, imp, gast);
+    lading(dt, w, v, rig, m);
+    S.huidig = null;
   }
   S.prompt = bepaalPrompt(w);
+}
+
+// Een gast kan alleen sturen en remmen (zijn toetsen gaan niet naar jouw wereld): koppelen, de hef en de aftakas gaan voor hem vanzelf. Een werktuig dat
+// vlak achter zijn trekker staat koppelt hij zodra hij stilstaat; op het veld gaat de hef omlaag en de aftakas aan als het werk dat vraagt, ernaast weer uit.
+function autoBediening(w, v, rig, m, imp) {
+  const bd = getBedrijf();
+  if (!rig.werktuig) {
+    if (Math.abs(v.speed) < 0.6) {
+      const k = koppelKandidaatVoor(w, v);
+      if (k && dist(k.imp.x, k.imp.y, koppelPunt(v).x, koppelPunt(v).y) < 3.2) doeKoppel(w, k);
+    }
+    return;
+  }
+  const impRec = imp ? recFrom(bd, imp.uid) : null;
+  const set = WT.werkSet(rig, m, impRec);
+  if (!set) return;
+  const punt = werkPunt(v, set, imp);
+  const opVeld = !!punt && !!veldBij(w, punt);
+  rig.hef = opVeld && set.hef ? 'omlaag' : 'omhoog';
+  rig.pto = opVeld && set.pto && M.kanStarten(m).ok;
 }
 
 // Diesel, slijtage en de topsnelheid van de machine waar je in zit.
@@ -682,19 +724,34 @@ export function interactBoerderijWereld(w) {
             eat();
             const vracht = WT.ledig(rig);
             const r = leverLading(w, vracht, 1);
-            w.addMessage(`${B.GEWASSEN[r.gewas] ? B.GEWASSEN[r.gewas].afnemer : 'De afnemer'}: ${r.kg} kg afgeleverd, +€${r.betaald}.`, 6);
+            bericht(w, `${B.GEWASSEN[r.gewas] ? B.GEWASSEN[r.gewas].afnemer : 'De afnemer'}: ${r.kg} kg afgeleverd, +€${r.betaald}.`, 6);
             return true;
           }
         } else if (b.schuur.kg > 0 && loadPlek(w, v)) {
           eat();
           const r = WT.laad(rig, b.schuur);
           if (r.ok) {
-            w.addMessage(`${r.kg} kg geladen. Rij naar ${B.GEWASSEN[rig.lading.gewas].afnemer}: ik zet hem op je kaart.`, 6);
+            bericht(w, `${r.kg} kg geladen. Rij naar ${B.GEWASSEN[rig.lading.gewas].afnemer}: ik zet hem op je kaart.`, 6);
             zetWaypoint(w, rig.lading.gewas);
           } else zeg(w, 'laad', r.reden, 2, 3);
           return true;
         }
       }
+    }
+  }
+  // te voet: R tankt de machine naast je bij het dieselvat of een pomp (ook die van een gast, die zelf geen toets heeft)
+  if (!p.inVehicle && input.wasPressed('r')) {
+    let best = null, bdist = 6;
+    for (const vv of S.voertuigen.values()) {
+      const mm = recFrom(bd, vv.farm);
+      const d = dist(vv.x, vv.y, p.x, p.y) + (mm && M.brandstofPct(mm) < 0.98 ? 0 : 3);       // een machine die diesel nodig heeft gaat voor
+      if (d < bdist && tankPlekBij(w, vv)) { bdist = d; best = vv; }
+    }
+    if (best) {
+      input.consume('r');
+      const r = tankMachine(w, best.farm, tankPlekBij(w, best).plek);
+      if (r.ok) bericht(w, `${Math.round(r.liter)} liter diesel getankt: €${r.kosten}.`, 4); else zeg(w, 'tank', r.reden, 2, 3.5);
+      return true;
     }
   }
   if (v) {
@@ -706,15 +763,15 @@ export function interactBoerderijWereld(w) {
       input.consume('g');
       const r = WT.wisselPto(rig, m, impRec);
       if (!r.ok) zeg(w, 'pto', r.reden, 2, 3);
-      else if (r.aan && !M.kanStarten(m).ok) { rig.pto = false; w.addMessage(M.kanStarten(m).reden, 4); }
-      else w.addMessage(r.aan ? 'Aftakas aan.' : 'Aftakas uit.', 2);
+      else if (r.aan && !M.kanStarten(m).ok) { rig.pto = false; bericht(w, M.kanStarten(m).reden, 4); }
+      else bericht(w, r.aan ? 'Aftakas aan.' : 'Aftakas uit.', 2);
       return true;
     }
     if (input.wasPressed('t')) {
       input.consume('t');
       const r = WT.wisselHef(rig, m, impRec);
       if (!r.ok) zeg(w, 'hef', r.reden, 2, 3);
-      else { w.addMessage(r.omlaag ? 'Hef omlaag.' : 'Hef omhoog.', 2); if (imp) { zetWerktuigPose(w, imp, r.omlaag); } }
+      else { bericht(w, r.omlaag ? 'Hef omlaag.' : 'Hef omhoog.', 2); if (imp) { zetWerktuigPose(w, imp, r.omlaag); } }
       return true;
     }
     if (input.wasPressed('x')) {
@@ -730,7 +787,7 @@ export function interactBoerderijWereld(w) {
       if (Math.abs(v.speed) > 1) { zeg(w, 'tank', 'Sta stil om te tanken.', 3, 2.5); input.consume('r'); return true; }
       input.consume('r');
       const r = tankMachine(w, v.farm, plek.plek);
-      if (r.ok) w.addMessage(`${Math.round(r.liter)} liter diesel getankt${plek.plek === 'pomp' ? ' bij de pomp' : ' uit je dieselvat'}: €${r.kosten}.`, 4);
+      if (r.ok) bericht(w, `${Math.round(r.liter)} liter diesel getankt${plek.plek === 'pomp' ? ' bij de pomp' : ' uit je dieselvat'}: €${r.kosten}.`, 4);
       else zeg(w, 'tank', r.reden, 2, 3.5);
       return true;
     }
