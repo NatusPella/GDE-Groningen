@@ -1,8 +1,9 @@
 // Paginascript (#415 stap 2): de eigen boerderij in de echte wereld. Koop een trekker, werktuigen en een maaidorser, bekijk het erf, stap in, koppel met E, hef en aftakas,
 // rij de rijen van het perceel (ploegen: de rijen veranderen), zet het gewas in de groei en bekijk het veld en de maaidorser. Beelden: shots-*.png ('[capture] <naam>').
 // Elke synthetische keydown krijgt een keyup. Het wegwerpprofiel van de run is het enige dat beschreven wordt; de boerderij leeft in de opslag van dat profiel.
-const D = window.__debug; const w = D.world; const p = w.player; const map = w.map;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+for (let i = 0; i < 240 && !(window.__debug && window.__debug.world && window.__debug.world.player && window.__debug.world.map); i++) await sleep(500);
+const D = window.__debug; const w = D.world; const p = w.player; const map = w.map;
 const imp = (f) => import('/js/' + f + '.js');
 const uit = { controles: [], meldingen: [], fouten: [] };
 const check = (naam, ok, info = '') => { uit.controles.push({ naam, ok: !!ok, info: String(info).slice(0, 200) }); };
@@ -10,7 +11,7 @@ const origErr = console.error.bind(console);
 console.error = (...a) => { uit.fouten.push(a.map(String).join(' ').slice(0, 200)); origErr(...a); };
 window.addEventListener('error', (e) => uit.fouten.push('error: ' + e.message));
 
-for (let i = 0; i < 240 && !(w && w.map && p); i++) await sleep(500);
+
 const cine = await imp('cinematics');
 const PM = await imp('pausemenu');
 const DN = await imp('daynight');
