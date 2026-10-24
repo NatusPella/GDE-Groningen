@@ -3,6 +3,7 @@
 // je Tab ingedrukt houdt en in het onderdeel Spelers van het pauzemenu (coopspelersui.js); er staat niets permanent in beeld.
 
 import { charInfo } from './coopplayers.js';
+import { pvpInSpel, isPassief } from './cooppvp.js';
 
 export const VORM_TEKEN = { driehoek: '▲', ruit: '◆', vierkant: '■', cirkel: '●', vijfhoek: '⬟', ster: '★', plus: '✚', kruis: '✖', maan: '☾', hart: '♥', bliksem: 'ϟ', druppel: '◖', blok: '▮', golf: '≈', schild: '⬢', bloem: '✿' };
 export const VERBINDING_TEKST = { ok: 'goed', lag: 'haperd', lost: 'weg' };
@@ -13,7 +14,7 @@ export function afstandTekst(d) {
 }
 
 // opts: { mijnSlot, roster (world.coopRoster), partners (world.coopPartners), mijn: { x, y, inVoertuig, rijdt }, rtt: (slot) => ms | null, opdracht: label | null }
-export function spelersRijen({ mijnSlot = 0, roster = [], partners = [], mijn = null, rtt = () => null, opdracht = null } = {}) {
+export function spelersRijen({ mijnSlot = 0, roster = [], partners = [], mijn = null, rtt = () => null, opdracht = null, pvp = null } = {}) {
   const rijen = [];
   for (const r of roster || []) {
     if (!r || !Number.isInteger(r.slot)) continue;
@@ -31,6 +32,7 @@ export function spelersRijen({ mijnSlot = 0, roster = [], partners = [], mijn = 
     rijen.push({
       slot: r.slot, naam: r.naam || c.naam || '?', kleur: r.kleur || c.kleur || '#cccccc', vorm: r.vorm || c.vorm || 'cirkel', jij,
       verbinding: r.verbinding || 'ok', verbindingTekst: VERBINDING_TEKST[r.verbinding || 'ok'] || 'goed', ms: Number.isFinite(ms) ? Math.round(ms) : null,
+      passief: isPassief(pvp, r.slot), pvpInSpel: pvpInSpel(pvp), // #447: wie passief is; de stand telt als zichtbaar zodra iemand bewust op actief staat
       doet, afstand, afstandTekst: afstandTekst(afstand), x: p && p.zichtbaar ? p.x : null, y: p && p.zichtbaar ? p.y : null,
     });
   }
@@ -41,7 +43,7 @@ export function spelersRijen({ mijnSlot = 0, roster = [], partners = [], mijn = 
 // Een regel in de lijst als platte tekst (tests, schermlezers): "Tessa · te voet · goed 34 ms · 40 m"
 export function rijTekst(r) {
   const naam = r.jij ? `${r.naam} (jij)` : r.naam;
-  return [naam, r.doet, r.verbindingTekst + (r.ms != null ? ` ${r.ms} ms` : ''), r.afstandTekst].filter(Boolean).join(' · ');
+  return [naam, r.doet, r.verbindingTekst + (r.ms != null ? ` ${r.ms} ms` : ''), r.afstandTekst, r.pvpInSpel ? (r.passief ? 'passief' : 'actief') : ''].filter(Boolean).join(' · ');
 }
 
 // Eruit zetten (#434): alleen wie het spel opende, en nooit zichzelf of plek 0. Tessa (plek 1) wordt daarna weer een AI-metgezel.
