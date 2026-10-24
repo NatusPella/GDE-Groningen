@@ -416,6 +416,109 @@ results.routes.reislek = await safe('reislek', async () => {
   for (const key of Object.keys(drift)) summary[key] = drift[key].map(last);
   return { ...o, tourSamples: samples, drift, driftLastVsFirst: summary, places: ['Groningen', 'Winschoten', 'Eemshaven', 'Delfzijl', 'Warffum'], dwell: DWELL, laps: LAPS };
 });
+// leak soak (only with PERF_ONLY=soak; scripts/perf/leak_soak.mjs runs it and judges it): PERF_SOAK_MIN minutes (default 12) of scripted use in cycles of
+// 60 s: on foot, by car, by helicopter (stand-in for the train and the plane), the pause menu 5 times open and shut, the map 5 times, a mission started
+// and stopped, a co-op session with a mock guest joined and left. At the end of every cycle (after a forced GC when the page has one: --js-flags=--expose-gc):
+// JS heap, geometries, textures, programs, DOM nodes, live event listeners and live timers (counted by wrappers that this route installs, so only what is
+// made while it runs: the trend is what counts, not the level) and the scene's nodes and materials. The result has `trend` per metric.
+results.routes.soak = await safe('soak', async () => {
+  if (!ONLY.includes('soak')) return null;
+  const MS = await imp('missions'), CN = await imp('coopnet'), MT = await imp('net/memtransport'), MV = await imp('mapview');
+  const MINUTES = window.__perfSoakMin || 12;
+  // --- counters
+  const live = { listeners: 0, timers: 0 }, lis = new WeakMap(), byType = new Map(), timers = new Map();
+  const ET = EventTarget.prototype, oAdd = ET.addEventListener, oRem = ET.removeEventListener;
+  ET.addEventListener = function (type, fn, opts) {
+    if (fn && !(opts && typeof opts === 'object' && (opts.once || opts.signal))) {
+      let m = lis.get(this); if (!m) lis.set(this, m = new Map());
+      const cap = typeof opts === 'boolean' ? opts : !!(opts && opts.capture), k = type + (cap ? '|c' : '');
+      let s = m.get(k); if (!s) m.set(k, s = new Set());
+      if (!s.has(fn)) { s.add(fn); live.listeners++; byType.set(type, (byType.get(type) || 0) + 1); }
+    }
+    return oAdd.call(this, type, fn, opts);
+  };
+  ET.removeEventListener = function (type, fn, opts) {
+    const m = lis.get(this);
+    if (m && fn) { const cap = typeof opts === 'boolean' ? opts : !!(opts && opts.capture), s = m.get(type + (cap ? '|c' : '')); if (s && s.delete(fn)) { live.listeners--; byType.set(type, (byType.get(type) || 0) - 1); } }
+    return oRem.call(this, type, fn, opts);
+  };
+  const oSI = window.setInterval, oCI = window.clearInterval, oST = window.setTimeout, oCT = window.clearTimeout;
+  const stack = () => (new Error().stack || '').split('\n').slice(3, 6).map((l) => l.trim().replace(/^at /, '').replace(/app:\/\/game\/js\//, '')).join(' < ');
+  window.setInterval = function (fn, ms, ...a) { const id = oSI.call(window, fn, ms, ...a); timers.set(id, { kind: 'i', ms, at: stack() }); live.timers++; return id; };
+  window.clearInterval = function (id) { if (timers.delete(id)) live.timers--; return oCI.call(window, id); };
+  window.setTimeout = function (fn, ms, ...a) {
+    const id = oST.call(window, typeof fn === 'function' ? function (...b) { if (timers.delete(id)) live.timers--; return fn.apply(this, b); } : fn, ms, ...a);
+    if (ms == null || ms > 250) { timers.set(id, { kind: 't', ms, at: stack() }); live.timers++; } // short timeouts end by themselves before a sample
+    return id;
+  };
+  window.clearTimeout = function (id) { if (timers.delete(id)) live.timers--; return oCT.call(window, id); };
+  const samples = [], counts = { pause: 0, map: 0, mission: 0, missionFail: 0, coop: 0, coopFail: 0 };
+  const take = (cycle) => {
+    if (window.gc) { window.gc(); window.gc(); }
+    const mats = new Set(); let nodes = 0;
+    sc.scene.traverse((o) => { nodes++; if (o.material) for (const m of Array.isArray(o.material) ? o.material : [o.material]) mats.add(m); });
+    const st = map.store;
+    samples.push({ cycle, tSec: Math.round(performance.now() / 1000), heapMB: performance.memory ? +(performance.memory.usedJSHeapSize / 1e6).toFixed(1) : null, gc: !!window.gc, geometries: r.info.memory.geometries, textures: r.info.memory.textures,
+      programs: r.info.programs.length, domNodes: document.getElementsByTagName('*').length, listeners: live.listeners, timers: live.timers, sceneNodes: nodes, materials: mats.size,
+      tiles: st ? st.residentKeys.length : null, vehicles: w.vehicles.length, peds: w.pedestrians.length });
+  };
+  const HELIR = PL([[2494, 3130], [3700, 3150], [4892, 3155]]);
+  const ctx = { mode: 'stil', v: null };
+  const enter = (v) => { v.road = null; v.speed = 0; v.perfTemp = true; w.vehicles.push(v); p.enterVehicle(v, w); ctx.v = v; };
+  const leaveV = () => { const v = ctx.v; ctx.v = null; ctx.mode = 'stil'; if (!v) return; if (p.inVehicle) p.exitVehicle(map, w); const i = w.vehicles.indexOf(v); if (i >= 0) w.vehicles.splice(i, 1); };
+  const phase = async (mode, secs) => { ctx.mode = mode; ctx.t0 = performance.now(); await sleep(secs * 1000); };
+  const TABS = ['spel', 'todo', 'verhaal', 'telefoon', 'streken'];
+  const coopRound = async () => {
+    const INFO = CN.handshakeInfo({ tiles: 'soak', story: 'soak' });
+    const gw = { player: { x: 0, y: 0, angle: 0, character: 'tammo', vx: 0, vy: 0 }, companion: { x: 1, y: 1, angle: 0, character: 'anita', vx: 0, vy: 0, radius: 0.4 }, coop: { local: true }, money: 0, wanted: 0, camYaw: 0, time: 0, clock: 12, messages: [], addMessage(m) { this.messages.push(m); }, input: { axis: () => [0, 0], isDown: () => false, mouse: { x: 0, y: 0 } } };
+    CN.startHost(w, INFO, { seed: 5 });
+    const link = MT.createLink({ latency: 0.03, jitter: 0.01, seed: 2 });
+    CN.addGuest(w, link.a); CN.startClient(gw, link.b, INFO, {});
+    for (let k = 0; k < 90; k++) { CN.tickCoopNet(gw, 1 / 60); link.advance(1 / 60); gw.time += 1 / 60; await sleep(16); }
+    CN.stopCoopNet(gw); CN.stopCoopNet(w);
+    for (let k = 0; k < 20; k++) { link.advance(1 / 60); await sleep(16); }
+  };
+  const driver = async () => {
+    for (let cycle = 1; cycle <= MINUTES; cycle++) {
+      const c0 = performance.now();
+      await phase('voet', 10);
+      ctx.mode = 'stil';
+      const pt = map.nearestRoadPoint(RING[0][0], RING[0][1], 60, true, true); teleport(RING[0][0], RING[0][1]);
+      enter(VEH.spawnVehicleOnRoad(map, pt.road, false, Math.random, false, false, pt)); await phase('auto', 10); leaveV();
+      teleport(HELIR[0][0], HELIR[0][1]); enter(HF.makeHeli(p.x, p.y, map.groundHeightAt(p.x, p.y, 0) || 0, 0)); await phase('heli', 10); if (ctx.v) { ctx.v.z = ctx.v.groundZ || 0; ctx.v.vx = ctx.v.vy = 0; ctx.v.onGround = true; ctx.v.airborne = false; } await sleep(300); leaveV();
+      teleport(FOOT[0][0], FOOT[0][1]);
+      wantMenu = true;
+      for (let k = 0; k < 5; k++) { PM.openPauseMenu(TABS[(cycle + k) % TABS.length]); await sleep(300); PM.closePauseMenu(); await sleep(150); counts.pause++; }
+      wantMenu = false;
+      for (let k = 0; k < 5; k++) { MV.setMapActive(w, true); await sleep(400); MV.setMapActive(w, false); await sleep(150); counts.map++; }
+      try { if (MS.missionDebug.start(w, 0)) { await sleep(2000); MS.cancelActiveMission(w); counts.mission++; await sleep(500); } else counts.missionFail++; } catch (e) { counts.missionFail++; console.log('[soak] mission', String(e && e.message)); }
+      try { await coopRound(); counts.coop++; } catch (e) { counts.coopFail++; console.log('[soak] coop', String((e && e.stack) || e)); try { CN.stopCoopNet(w); } catch (e2) { /* weg */ } }
+      const left = 60000 - (performance.now() - c0); if (left > 0) await sleep(left);
+      take(cycle);
+    }
+  };
+  let drv = null;
+  const o = await run('soak', async () => { teleport(FOOT[0][0], FOOT[0][1]); drv = driver(); return ctx; }, (c, t) => {
+    const q = Math.max(0, (performance.now() - (c.t0 || performance.now())) / 1000);
+    if (c.mode === 'voet') { const a = at(FOOT, q * 6); p.x = a.x; p.y = a.y; p.angle = a.ang; w.camYaw = a.ang; }
+    else if (c.mode === 'auto' && c.v) { const a = at(RING, (q * 22) % RING_LEN), v = c.v; v.x = a.x; v.y = a.y; v.angle = a.ang; v.speed = 22; v.vx = Math.cos(a.ang) * 22; v.vy = Math.sin(a.ang) * 22; w.camYaw = a.ang; }
+    else if (c.mode === 'heli' && c.v) { const a = at(HELIR, q * 40), v = c.v; v.x = a.x; v.y = a.y; v.z = 60; v.angle = a.ang; v.onGround = false; v.airborne = true; v.rotor = 1; v.vx = Math.cos(a.ang) * 40; v.vy = Math.sin(a.ang) * 40; v.vz = 0; v.speed = 40; w.camYaw = a.ang; }
+  }, null, { dur: MINUTES * 60000 + 8000 });
+  await drv;
+  const WARM = Math.min(2, Math.max(0, samples.length - 3));
+  const trend = {};
+  for (const k of ['heapMB', 'geometries', 'textures', 'programs', 'domNodes', 'listeners', 'timers', 'sceneNodes', 'materials', 'tiles']) {
+    const xs = samples.slice(WARM).map((s) => [s.cycle, s[k]]).filter((q) => q[1] != null);
+    if (xs.length < 3) { trend[k] = null; continue; }
+    const n = xs.length, mx = xs.reduce((a, q) => a + q[0], 0) / n, my = xs.reduce((a, q) => a + q[1], 0) / n;
+    const slope = xs.reduce((a, q) => a + (q[0] - mx) * (q[1] - my), 0) / (xs.reduce((a, q) => a + (q[0] - mx) ** 2, 0) || 1);
+    trend[k] = { first: xs[0][1], last: xs[n - 1][1], slopePerMin: +slope.toFixed(3), pctPer10Min: xs[0][1] ? +(100 * slope * 10 / xs[0][1]).toFixed(2) : null };
+  }
+  const intervals = new Map(); for (const t of timers.values()) intervals.set(t.kind + ' ' + t.ms + ' ' + t.at, (intervals.get(t.kind + ' ' + t.ms + ' ' + t.at) || 0) + 1);
+  const out = { ...o, soakMin: MINUTES, counts, samples, trend, warm: WARM, liveTimersBy: [...intervals.entries()].sort((a, b) => b[1] - a[1]).slice(0, 15), listenersByType: [...byType.entries()].filter((q) => q[1] > 0).sort((a, b) => b[1] - a[1]).slice(0, 20) };
+  ET.addEventListener = oAdd; ET.removeEventListener = oRem; window.setInterval = oSI; window.clearInterval = oCI; window.setTimeout = oST; window.clearTimeout = oCT;
+  return out;
+});
 // input to image: a synthetic W keydown to the first frame whose state moved (a software estimate: add one frame of display, no photodiode)
 results.routes.latentie = await safe('latentie', async () => {
   if (ONLY.length && !ONLY.includes('latentie')) return null;
