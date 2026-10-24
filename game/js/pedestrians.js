@@ -4,6 +4,7 @@ import { DEAD_DURATION } from './pedconst.js';
 export { DEAD_DURATION };
 import { scaledTarget, farAIDist, skipFar, takeDt } from './simload.js';
 import { aandeel, nietBijFoci } from './coopfoci.js';
+import { naasteSpeler } from './spelersregister.js';
 import { inClearZone } from './clearzone.js';
 import { openDriverDoor } from './vehicledoors.js';
 import { profileOf } from './signalement.js';
@@ -665,7 +666,8 @@ function throwRider(world, b, u, vx, vy, closing, push) {
 function reactToEvent(ped, ev, world, d) {
   if (ped === ev.victim) {
     say(ped, world, pick(HURT_LINES));
-    startFlee(ped, world, world.player.x, world.player.y, true);
+    const q = naasteSpeler(world, ped.x, ped.y);
+    startFlee(ped, world, q.x, q.y, true);
     return;
   }
   if (ped.state === 'call' || ped.state === 'film') return;
@@ -746,7 +748,8 @@ function updateWitnessCall(world) {
   world.wantedProfile = profileOf(world);
   noteWantedWhy(world, activeCall.kind === 'theft' ? 'getuigeDiefstal' : 'getuige');
   say(ped, world, 'Ze komen der aan!', 2.2, null);
-  startFlee(ped, world, world.player.x, world.player.y, true);
+  const q = naasteSpeler(world, ped.x, ped.y);
+  startFlee(ped, world, q.x, q.y, true);
   activeCall = null;
 }
 
@@ -766,7 +769,8 @@ function copInSight(world, ped) {
 // (de auto verdwijnt uit de wereld), dichtbij blijft de auto gewoon staan en loopt hij weer rond.
 function reclaimCar(world, ped, car) {
   if (!car || car.playerOwned || car.isHeroCar || car.missionCar) return;
-  const far = dist(car.x, car.y, world.player.x, world.player.y) > 40;
+  const naast = naasteSpeler(world, car.x, car.y);
+  const far = dist(car.x, car.y, naast.x, naast.y) > 40;
   if (far) {
     const i = world.vehicles.indexOf(car);
     if (i >= 0) world.vehicles.splice(i, 1);
