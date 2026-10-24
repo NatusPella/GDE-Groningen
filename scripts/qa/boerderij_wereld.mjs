@@ -35,7 +35,7 @@ const profile = `gde-test-boerderij-${process.pid}`;
 const script = path.join(OUT, '_page.js');
 fs.writeFileSync(script, fs.readFileSync(path.join(HERE, 'boerderij_wereld.page.js'), 'utf8'));
 const electron = process.env.ELECTRON_EXE || path.join(ROOT, 'desktop', 'node_modules', 'electron', 'dist', process.platform === 'win32' ? 'electron.exe' : 'Electron');
-const env = { ...process.env, GDE_TEST_PROFILE: profile, GDE_MENU_TEST: '1' };
+const env = { ...process.env, GDE_TEST_PROFILE: profile };
 delete env.ELECTRON_RUN_AS_NODE;
 
 await takeSlot();
