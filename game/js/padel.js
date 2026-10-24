@@ -20,6 +20,9 @@ import { SET_GAMES, scorePoint, pointCall, judgeServeHit, serveInBox, serveFault
 import { loadEchtePlekken, padelDefs } from './echteplekken.js';
 import { tilesIn, withTiles } from './tileplace.js';
 import { loopbaanVerdien } from './loopbaanlive.js';
+import { figuurLook } from './coopplayers.js';
+import { maakPadel, maakPadelSpiegel, voerInPadel, tikPadelSpiegel, livePadel } from './padelmatch.js';
+import { registreerWedstrijd, zetWedGastHaken, wedNodigUit, wedNuStarten, wedLiveTik, wedHostLiveEind, wedGastVerlaat, wedGastReset } from './coopwedstrijd.js';
 
 // Padel courts where OSM has them (game/mapextras.json "padel", built by
 // scripts/add_map_extras.py): a glass cage with blue turf, a net and lights
@@ -500,6 +503,10 @@ export function tryPadelInteract(w) {
   input.consume('f');
   const why = blockReason(w, s);
   if (why) { w.addMessage(why, 2.5); return true; }
+  // with guests in the session the match is an invitation to everyone (Meedoen? J/N); pressing E again starts at once (#443)
+  uitnodigSite = s;
+  const uit = wedNodigUit(w, 'padel');
+  if (uit.ok) { if (uit.reden === 'wacht') wedNuStarten(w); return true; }
   startMatch(w, s);
   return true;
 }
@@ -978,6 +985,7 @@ function placeActors(w, dt) {
 export function padelCamera(w) {
   const g = game;
   if (!g) return;
+  if (g.online) { onlineCamera(w); return; }
   const f = g.f;
   const cu = g.me.u * 0.6, cam = toMap(f, cu, -L2 - 5.2), at = toMap(f, g.me.u * 0.15, 2);
   w.cameraOverride = { position: { x: cam.x, y: cam.y, z: 5.3 }, lookAt: { x: at.x, y: at.y, z: 0.7 }, fov: 55, cut: true };
@@ -1062,6 +1070,7 @@ function endMatch(w, { quit = false } = {}) {
 
 export function updatePadel(dt, w) {
   if (!game) return;
+  if (game.online) { if (w.pendingRespawn) endOnline(w, { quit: true, extern: game.online === 'gast' }); else if (game.online === 'host') updateOnlineHost(w, dt); return; }
   if (w.pendingRespawn) { endMatch(w, { quit: true }); return; }
   updateMatch(w, dt);
 }
@@ -1079,8 +1088,194 @@ export function isPadelActive() {
 
 // A loaded save ends a running match (savegame.js).
 export function quitPadel(w) {
-  if (game) endMatch(w, { quit: true });
+  if (!game) return;
+  if (game.online) endOnline(w, { quit: true, extern: game.online === 'gast' });
+  else endMatch(w, { quit: true });
 }
+
+// --- playing against others (#443) ---------------------------------------------------------------------------------------
+// Two against two on this court: everybody who said yes plays a seat (padelmatch.js), a seat without a player is played by the AI. The host
+// (who opened the game) computes the ball and every seat from the keys of all players; a guest sends only his keys (stick and Space, as for
+// a vehicle) and draws the mirror of the host's snapshots (coopwedstrijd.js, wedLiveTik). Same actors, ball and court as the solo match.
+
+let uitnodigSite = null; // the court where the host pressed E: the invitation answers with it
+
+const siteVan = (v) => {
+  const m = /^(-?\d+),(-?\d+)$/.exec(String(v || ''));
+  return m ? sites.find((s) => Math.hypot(s.x - +m[1], s.y - +m[2]) < 15) || null : null;
+};
+
+function lookVoor(s) {
+  if (s.slot === null) return PAIR_LOOKS[s.naam] || PAIR_LOOKS.Hinderk;
+  if (s.char === 'anita') return ANITA_APPEARANCE;
+  if (s.char === 'tammo' || !s.char) return TAMMO_APPEARANCE;
+  const fl = figuurLook(s.char);
+  return fl ? { shirt: fl.shirt, skin: fl.skin, ...fl.opts } : TAMMO_APPEARANCE;
+}
+
+function startOnline(w, sim, site, online) {
+  if (game || !site) return false;
+  const p = w.player;
+  if (p.inVehicle && p.exitVehicle) p.exitVehicle(w.map, w);
+  const f = site.court.f;
+  const actors = sim.stoelen.map((s) => ({ mesh: look(lookVoor(s)), team: s.team }));
+  game = { online, sim, site, f, actors, t: 0, phase: 'online', flash: null, exitX: site.x, exitY: site.y };
+  game.ballMesh = new THREE.Mesh(new THREE.SphereGeometry(0.1, 12, 8), materials().ball);
+  game.shadow = new THREE.Mesh(new THREE.CircleGeometry(0.12, 14).rotateX(-Math.PI / 2), materials().shadow);
+  game.ring = new THREE.Mesh(new THREE.RingGeometry(REACH - 0.12, REACH, 36).rotateX(-Math.PI / 2), materials().ring);
+  game.land = new THREE.Mesh(new THREE.RingGeometry(0.2, 0.32, 20).rotateX(-Math.PI / 2), materials().land);
+  for (const m of [game.ballMesh, game.shadow, game.ring, game.land]) { m.visible = false; getScene().add(m); }
+  w.padelGame = game;
+  if (site.court.mesh) site.court.mesh.near.visible = false;
+  w.cinematicHidePlayers = true;
+  document.body.classList.add('padel-on');
+  ensureHud();
+  hud.root.hidden = false;
+  matches++;
+  placeOnline(w, 0);
+  if (online === 'host') showCard(w, { kind: 'tip', kicker: 'Padel', title: 'Padel tegen elkaar', body: '[A] [D] [W] [S] lopen, [Spatie] slaan als de ring groen is, [Spatie] ook voor de serve. Een stoel zonder speler speelt de computer. [Backspace] stopt voor iedereen.', duration: 7, key: 'padel-help', voice: false });
+  return true;
+}
+
+// the keys of the host himself, in the same form as a guest sends them (stick: my < 0 is forward; bit 1 is Space)
+function hostInvoer(input) {
+  const l = input.isDown('a') || input.isDown('arrowleft'), r = input.isDown('d') || input.isDown('arrowright');
+  const u = input.isDown('w') || input.isDown('arrowup'), d = input.isDown('s') || input.isDown('arrowdown');
+  return { mx: (r ? 1 : 0) - (l ? 1 : 0), my: (d ? 1 : 0) - (u ? 1 : 0), buttons: input.isDown(' ') ? 2 : 0 };
+}
+
+function updateOnlineHost(w, dt) {
+  const g = game, sim = g.sim, n = w.coopNet;
+  w.minigameUntil = w.time + 0.25; // Space and the movement keys belong to the match (player.js: no jump meanwhile)
+  g.t += dt;
+  if (!n || !n.wed || n.wed.lv !== sim) { endOnline(w, { quit: true, extern: true }); return; } // the session is gone
+  if (w.input.wasPressed('backspace')) { w.input.consume('backspace'); endOnline(w, { quit: true }); return; }
+  const ev = wedLiveTik(w, sim, dt, () => hostInvoer(w.input));
+  let klaar = false;
+  for (const e of ev) {
+    if (e.type === 'pala') pushAudioEvent(w, { kind: 'pala', strength: 0.35 + e.q * 0.4 });
+    else if (e.type === 'plop' || e.type === 'glas' || e.type === 'gaas') { const q = toMap(g.f, e.u, e.v); pushAudioEvent(w, { kind: e.type === 'plop' ? 'plop' : e.type === 'glas' ? 'padelglas' : 'padelgaas', x: q.x, y: q.y, strength: e.type === 'plop' ? 0.25 : 0.6 }); }
+    else if (e.type === 'klaar') klaar = true;
+  }
+  if (klaar) { endOnline(w); return; }
+  placeOnline(w, dt);
+  updateHudOnline(w);
+}
+
+// a guest: the host started the match and this guest said yes; the screen runs next to his body, fed by the snapshots
+function gastTik(w, dt) {
+  if (!game || game.online !== 'gast') return false;
+  w.minigameUntil = w.time + 0.25;
+  if (!w.coopNet || w.coopRole !== 'client') { wedGastReset(w); endOnline(w, { quit: true, extern: true }); return true; } // the connection is gone
+  if (w.input.wasPressed('backspace')) { w.input.consume('backspace'); wedGastVerlaat(w); endOnline(w, { quit: true, extern: true }); return true; } // the AI takes his seat, the others play on
+  game.t += dt;
+  tikPadelSpiegel(game.sim, dt);
+  placeOnline(w, dt);
+  updateHudOnline(w);
+  return true;
+}
+
+const eigenStoel = (g) => (g.online === 'gast' ? g.sim.stoelen[g.sim.mijnStoel] : g.sim.stoelen.find((s) => s.slot === 0)) || g.sim.stoelen[0];
+
+function placeOnline(w, dt) {
+  const g = game, sim = g.sim, f = g.f, b = sim.ball;
+  sim.stoelen.forEach((s, i) => {
+    const a = g.actors[i], p = toMap(f, s.u, s.v);
+    a.mesh.position.set(p.x, FLOOR_Y, p.y);
+    a.mesh.rotation.y = -(s.team === 0 ? f.rot : f.rot + Math.PI);
+    animatePersonWalk(a.mesh, s.speed || 0, dt);
+    const ud = a.mesh.userData;
+    if (ud.armR) {
+      const k = s.swing > 0 ? 1 - s.swing / SWING_T : -1;
+      if (k >= 0) ud.armR.rotation.set(0, 0, -1.2 + 2.6 * Math.sin(k * Math.PI * 0.5));
+      else ud.armR.rotation.set(0, 0, -0.5);
+      if (ud.elbowR) ud.elbowR.rotation.z = 0.3;
+    }
+  });
+  const me = eigenStoel(g), mp = toMap(f, me.u, me.v);
+  if (g.online === 'host') { const pl = w.player; pl.x = mp.x; pl.y = mp.y; pl.angle = f.rot; }
+  if (b) {
+    const q = toMap(f, b.u, b.v);
+    g.ballMesh.visible = true; g.ballMesh.position.set(q.x, FLOOR_Y + b.z + 0.05, q.y);
+    g.shadow.visible = true; g.shadow.position.set(q.x, FLOOR_Y + 0.015, q.y); g.shadow.scale.setScalar(clamp(1 - b.z / 6, 0.4, 1));
+  } else { g.ballMesh.visible = false; g.shadow.visible = false; }
+  const hot = !!b && b.hitter !== me.team && Math.hypot(b.u - me.u, b.v - me.v) < REACH && b.z < REACH_Z && b.z > 0.08;
+  g.ring.visible = sim.phase === 'rally' || sim.phase === 'serve';
+  g.ring.position.set(mp.x, FLOOR_Y + 0.02, mp.y);
+  materials().ring.color.set(hot ? 0x5dff7a : 0xffffff);
+  materials().ring.opacity = hot ? 0.85 : 0.35;
+  onlineCamera(w);
+}
+
+// the camera stands behind the own baseline, on the own side of the net
+function onlineCamera(w) {
+  const g = game, f = g.f, me = eigenStoel(g), k = me.team === 0 ? -1 : 1;
+  const cam = toMap(f, me.u * 0.6, k * (L2 + 5.2)), at = toMap(f, me.u * 0.15, -k * 2);
+  w.cameraOverride = { position: { x: cam.x, y: cam.y, z: 5.3 }, lookAt: { x: at.x, y: at.y, z: 0.7 }, fov: 55, cut: true };
+}
+
+function updateHudOnline(w) {
+  const g = game;
+  if (!g || !hud) return;
+  const sim = g.sim, me = eigenStoel(g), mine = me.team, other = 1 - mine;
+  const naam = (t) => sim.namen[t] || 'het AI-team';
+  const serve = (t) => (sim.serveTeam === t && sim.phase !== 'intro' ? ' •' : '');
+  const flash = g.online === 'gast' ? sim.flashText : sim.flash ? `${sim.flash.text}${sim.flash.why ? ` (${sim.flash.why})` : ''}` : '';
+  const k = (t) => `<span class="hud-key">${t}</span>`;
+  const help = `${k('A')}${k('D')}${k('W')}${k('S')} lopen · ${k('SPATIE')} slaan · ${k('BACKSPACE')} ${g.online === 'host' ? 'stoppen voor iedereen' : 'opgeven'}`;
+  const key = [naam(mine), naam(other), sim.games, sim.points, sim.serveTeam, sim.phase === 'intro', flash, help, sim.capped].join('|');
+  if (key === hud.key) return;
+  hud.key = key;
+  hud.teams.innerHTML = `<span>${naam(mine)}${serve(mine)}</span><b>${sim.games[mine]}</b><i>${pointCall(sim.points, mine)}</i><span>${naam(other)}${serve(other)}</span><b>${sim.games[other]}</b><i>${pointCall(sim.points, other)}</i>`;
+  hud.flash.textContent = sim.capped && !flash ? 'Laatste punt' : flash;
+  hud.flash.classList.toggle('them', !!flash && /voor/.test(flash) && !flash.includes(naam(mine)));
+  hud.help.innerHTML = help;
+}
+
+// The match is over or stopped. quit: stopped (by the host for everybody, or by a guest for himself); extern: the other side already knows
+// (the connection is gone, or the host's stop message came in). On a normal end the host gets the results from wedHostLiveEind and is paid here.
+function endOnline(w, { quit = false, extern = false } = {}) {
+  const g = game;
+  if (!g) return;
+  game = null;
+  w.padelGame = null;
+  let res = null;
+  if (g.online === 'host' && !extern) res = wedHostLiveEind(w, g.sim, { gestopt: quit });
+  if (g.site.court.mesh) g.site.court.mesh.near.visible = true;
+  w.cinematicHidePlayers = false;
+  w.cameraOverride = null;
+  document.body.classList.remove('padel-on');
+  for (const a of g.actors) getScene().remove(a.mesh);
+  for (const m of [g.ballMesh, g.shadow, g.ring, g.land]) { getScene().remove(m); m.geometry.dispose(); }
+  if (hud) hud.root.hidden = true;
+  const p = w.player;
+  p.x = g.exitX; p.y = g.exitY; p.angle = g.f.rot + Math.PI;
+  if (quit) { w.addMessage('Padel gestopt', 2.5); return; }
+  if (g.online === 'gast' || !res) return; // a guest: the results card and the prize message come from the host
+  recordStat(w, 'padelMatches');
+  unlockAchievement(w, 'padel_klaar');
+  const jij = res.jij || { plek: 0, geld: 0, xp: 0 };
+  if (jij.plek === 1) unlockAchievement(w, 'padel_winst');
+  loopbaanVerdien(w, 'padel', jij.geld, { xp: jij.xp, n: 1, uniek: 'padel-samen', deel: false }); // the prize is per place; the guests get theirs from the host
+  if (jij.geld > 0) w.addMessage(`Beloning: €${jij.geld.toLocaleString('nl-NL')}`, 4);
+}
+
+registreerWedstrijd('padel', {
+  naam: 'Padel', soort: 'live', live: livePadel,
+  maak: (deeln) => maakPadel(deeln),
+  start: (w, sim) => startOnline(w, sim, uitnodigSite || nearestAny(w), 'host'),
+  plek: () => (uitnodigSite ? { x: uitnodigSite.x, y: uitnodigSite.y } : null),
+  extra: () => { const s = uitnodigSite; return s ? { v: `${Math.round(s.x)},${Math.round(s.y)}` } : null; },
+  eind: () => {},
+  solo: (w) => (uitnodigSite ? startMatch(w, uitnodigSite) : false),
+});
+zetWedGastHaken('padel', {
+  spiegel: (st, mijn) => maakPadelSpiegel(st, mijn),
+  voerIn: voerInPadel,
+  start: (w, st, sp) => startOnline(w, sp, siteVan(st.v), 'gast'),
+  eind: (w, uit) => { if (game && game.online === 'gast') endOnline(w, { quit: !!uit.gestopt, extern: true }); if (uit.gestopt && w.addMessage) w.addMessage('De wedstrijd is gestopt.', 3); },
+  tik: (w, dt) => gastTik(w, dt),
+});
 
 // --- HUD: the scoreboard (the HUD card look) -------------------------------------
 
