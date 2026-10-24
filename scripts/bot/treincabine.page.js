@@ -36,7 +36,9 @@ const laadscherm = async () => { await sleep(1500); for (let i = 0; i < 120 && d
 // een stilstaande trein vinden (eerst naar zijn station, dan een die daar nu staat)
 let kand = null;
 for (let p = 0; p < 80 && !kand; p++) {
-  kand = RW.getTrains().find((t) => (t.state === 'dwell' || t.state === 'parked') && !(t.route.stops[t.target] || {}).offmap) || null;
+  const ok = RW.getTrains().filter((t) => (t.state === 'dwell' || t.state === 'parked') && !(t.route.stops[t.target] || {}).offmap);
+  const voor = (t) => Math.max(...[1, -1].map((d) => t.route.stops.filter((q) => !q.offmap && (q.s - t.c) * d > 5).length));
+  kand = ok.sort((x, y) => voor(y) - voor(x))[0] || null;
   if (!kand) await sleep(1000);
 }
 check('een stilstaande trein gevonden', !!kand);
@@ -70,7 +72,9 @@ for (const end of [-1, 1]) {
   check('het cabinebord staat in beeld', /KM\/U/.test(hudText('.tc-cab')), hudText('.tc-cab').slice(0, 120));
   await B.press('g');
   await sleep(1200);
-  if (MC.getService() && !MC.getService().finished) { dienst = true; break; }
+    const sv = MC.getService();
+    if (sv && !sv.finished && (sv.plan.length >= 3 || end === 1)) { dienst = true; break; }
+    if (sv && !sv.finished) { MC.endService && 0; await B.press('backspace'); await sleep(300); await B.press('backspace'); await sleep(300); }
 }
 check('de dienst start', dienst);
 if (!dienst) return JSON.stringify({ result: 'KLAAR', reason: 'geen dienst', checks });
@@ -154,6 +158,16 @@ while (Date.now() - t0 < 420000) {
 }
 check('twee halten gedaan', stopsDone >= 2, `${stopsDone} halten, ${Math.round((Date.now() - t0) / 1000)} s`);
 if (!shots.storing) check('een storing kwam langs (sein of overweg)', false, 'geen storing gezien op de eerste halten');
+// de eindstand: stoppen met Backspace laat de kaart zien
+await sleep(600);
+if (MC.getService() && !MC.getService().finished) await B.press('backspace');
+await sleep(900);
+B.shot('cab-8-eindstand');
+const res = hudText('.tc-result');
+check('de eindstand toont punctualiteit, comfort en veiligheid', /Punctualiteit/.test(res) && /Comfort/.test(res) && /Veiligheid/.test(res), res.slice(0, 160));
+t.v = 0; t.pv = 0;
+await B.press('backspace');
+await sleep(500);
 // het binnenzicht (C) en rondlopen (T) terwijl de trein rijdt
 {
   const TL = await imp('treininterieur');
@@ -189,16 +203,7 @@ if (!shots.storing) check('een storing kwam langs (sein of overweg)', false, 'ge
     check('T brengt je terug in de cabine', !world.trainWalk, '');
   }
 }
-// de eindstand: stoppen met Backspace laat de kaart zien
-await sleep(600);
-await B.press('backspace');
-await sleep(900);
-B.shot('cab-8-eindstand');
-const res = hudText('.tc-result');
-check('de eindstand toont punctualiteit, comfort en veiligheid', /Punctualiteit/.test(res) && /Comfort/.test(res) && /Veiligheid/.test(res), res.slice(0, 160));
 t.v = 0; t.pv = 0;
-await B.press('backspace');
-await sleep(500);
 await B.press('e');
 await sleep(800);
 check('uitstappen met E', !world.trainDriving);
