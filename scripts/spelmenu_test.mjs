@@ -180,5 +180,14 @@ const mvs = read('game/js/mapview.js');
 ok(mvs.includes("from './kaartactie.js'") && mvs.includes('actiesHtml(model, stap)'), 'Kaart: een klik toont de actiebalk Zet waypoint, Reis erheen en Info (kaartactie.js)');
 ok(mvs.includes('initKaartUitleg(overlay)') && mvs.includes('uitleg-sluit') && mvs.includes('UITLEG_ID'), 'Kaart: de eerste keer een uitleg, te sluiten, onthouden onder gde-hud-gezien');
 ok(read('game/js/helpoverview.js').includes("id: 'kaart'"), 'Besturing, Hulp: de uitleg over de kaart is terug te vinden');
+
+// #435: veilig afsluiten vanuit het hoofdmenu en de nieuw-bolletjes op de rail
+const exitBranch = pm.slice(pm.indexOf("a === 'menu' || a === 'exit'"), pm.indexOf("a === 'pigeon-stop'"));
+ok(/started\(\) && !prestart && world\) saveGame\(world\)/.test(exitBranch), 'Afsluiten bewaart alleen een lopend spel, niet de menuscene boven het hoofdmenu (#435)');
+ok(!/if \(world\) saveGame\(world\)/.test(exitBranch), 'geen onvoorwaardelijke save meer bij Naar het hoofdmenu of Afsluiten');
+const pcss = read('game/js/pausemenu.css');
+ok(pcss.includes('.ra[data-new] .ra-t::after'), 'de nieuw-bolletjes op de rail (Verhaal, Prestaties) hebben een eigen stijl (#435)');
+ok(pcss.includes('.ra.pm-exit::after'), 'Afsluiten staat met een scheidingslijn onder de andere secties');
+ok(pm.includes("setN('todo', '');") && !pm.includes("setN('todo', fresh"), "'nieuw' van een verhaal-aanwijzing staat niet meer op Activiteiten (#435)");
 console.log(`${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);

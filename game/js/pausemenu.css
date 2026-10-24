@@ -33,7 +33,11 @@ body:has(#pause-menu.prestart.visible) #start-screen .ss-foot { visibility: hidd
 #pause-menu .ra .n { margin-left: auto; font-family: 'Arial Narrow', Arial, sans-serif; font-size: 18px; letter-spacing: 0; color: var(--g); }
 #pause-menu .ra .n:empty { display: none; }
 #pause-menu .ra .n .n-ic { width: 16px; height: 16px; margin: 0 4px -2px 0; stroke: currentColor; fill: none; stroke-width: 1.8; vertical-align: baseline; }
+/* een nieuw bolletje op de rail zelf (Verhaal, Prestaties): de subtabbladen hadden er al een (#435) */
+#pause-menu .ra[data-new] .ra-t::after { content: ''; display: inline-block; width: 8px; height: 8px; margin-left: 8px; border-radius: 50%; background: var(--g); vertical-align: 6px; }
 #pause-menu .ra:focus-visible { outline: 2px solid var(--ink); outline-offset: -2px; border-radius: 8px; }
+#pause-menu .ra.pm-exit { margin-top: 10px; }
+#pause-menu .ra.pm-exit::after { content: ''; position: absolute; left: 24px; right: 16px; top: -5px; height: 1px; background: var(--line2); }
 #pause-menu .pm-rail-sp { height: 24px; }
 #pause-menu .pm-rail-gap { flex: 1; min-height: 12px; }
 #pause-menu .pm-back { display: none; }
