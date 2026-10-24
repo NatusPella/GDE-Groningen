@@ -1,17 +1,17 @@
 // Samen spelen (#448): beloningen per gebeurtenis. Pure logica (geen DOM, geen opslag, geen netwerk).
 //  - Een gebeurtenis (een opdracht, een bijbaan, een prijs) heeft een vaste id; wat erbij hoort wordt hooguit één keer toegekend.
-//  - Het bedrag gaat gelijk naar de deelnemers, in hele euro's; de rest gaat naar de eerste deelnemers, dus de som klopt altijd.
-//  - Met twee of meer deelnemers komt er een samenwerkingsbonus bovenop (totaal x 1,5, begrensd).
-// De bonus telt mee in de controle op dubbel toekennen: dezelfde id geeft nooit twee keer geld, ook niet de bonus.
+//  - Elke meespelende speler krijgt de volledige beloning van een opdracht (besluit eigenaar, #452): niets wordt verdeeld.
+//  - Een samenwerkingsbonus is er niet meer (BONUS_FACTOR 1). verdeelGelijk blijft staan voor beloningen die wel over plekken gaan (races, golf, #443).
+// Dezelfde id geeft nooit twee keer geld.
 
-export const BONUS_FACTOR = 1.5;
+export const BONUS_FACTOR = 1; // geen samenwerkingsbonus meer: iedereen krijgt het volle bedrag (#452)
 export const BONUS_MAX = 100000; // hoogste bonus (het deel erbovenop) per gebeurtenis
 export const MIN_DEELNEMERS = 2;
 export const ID_MAX = 200; // zoveel gebeurtenis-ids onthoudt een boekhouding (en een save)
 
 const geheel = (x) => { const n = Math.floor(Number(x)); return Number.isFinite(n) && n > 0 ? n : 0; };
 
-// Totaal na de samenwerkingsbonus: { totaal, bonus }. Eén deelnemer (of geen) krijgt geen bonus.
+// Totaal na de samenwerkingsbonus: { totaal, bonus }. Met BONUS_FACTOR 1 is de bonus altijd 0.
 export function samenwerkingsBonus(totaal, deelnemers) {
   const basis = geheel(totaal);
   if (!(basis > 0) || !(deelnemers >= MIN_DEELNEMERS)) return { totaal: basis, bonus: 0 };
@@ -30,13 +30,14 @@ export function verdeelGelijk(bedrag, slots) {
   return uit;
 }
 
-// Eén gebeurtenis: { id, totaal, bonus, bedragen: { slot: euro } }. Zonder id of zonder deelnemers is er niets toe te kennen.
+// Eén gebeurtenis: { id, totaal, bonus, bedragen: { slot: euro } }; elke deelnemer krijgt het volle bedrag. Zonder id of zonder deelnemers is er niets toe te kennen.
 export function beloningVoorGebeurtenis({ id, totaal, deelnemers }) {
   if (typeof id !== 'string' || !id) return null;
   const slots = [...new Set((Array.isArray(deelnemers) ? deelnemers : []).filter((s) => Number.isInteger(s)))];
   if (!slots.length) return null;
   const b = samenwerkingsBonus(totaal, slots.length);
-  return { id, totaal: b.totaal, bonus: b.bonus, bedragen: verdeelGelijk(b.totaal, slots) };
+  const bedragen = {}; for (const s of slots) bedragen[s] = b.totaal;
+  return { id, totaal: b.totaal, bonus: b.bonus, bedragen };
 }
 
 // Gebeurtenis-id van een opdracht: sessie, soort en volgnummer van de gebeurtenis.
