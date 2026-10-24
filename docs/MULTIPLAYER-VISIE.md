@@ -15,7 +15,7 @@ De visie van de eigenaar (besluiten van 23-10 en 24-10), op één plek. In gespr
 9. **Privacy en veiligheid.** IP-adressen alleen voor medespelers en goedgekeurde diensten, sessies standaard privé, de host kan kicken, geen echte persoonsnamen in sessienamen en een lijst verboden woorden. Chat en voice komen later en opt-in (#451). Dedicated servers later (#450).
 10. **Multiplayer bij ontwerp.** Elke nieuwe missie, bijbaan, minigame of functie krijgt een regel over Samen spelen voordat hij af is (zie AGENTS.md). Nieuwe code voegt geen enkelspeler-aanname toe: gebruik `world.players` en de helpers in `spelersregister.js` (#446).
 
-11. **Figuren en rollen.** Lokaal ben je Tammo of Tessa, wat je eigen verhaal vraagt. Anderen zien je altijd als je online-avatar (eigen personage met naam, kleur en kleding), naar Watch Dogs 2. Bij een missie waar Tammo en Tessa nodig zijn speelt wie startte zijn verhaalrol en de eerste die J zegt de andere; extra spelers zijn helpers die niet in de verhaalscènes staan. De rol hoort bij de speler, niet bij plek 0 of 1 (#455).
+11. **Figuren en rollen.** Iedereen is lokaal de hoofdpersoon van zijn eigen verhaal (Tammo of Tessa, wat dat verhaal vraagt; je wisselt lokaal mee) en ziet de anderen als hun online-avatar (eigen personage met naam, kleur en kleding), naar Watch Dogs 2. Het aantal spelers maakt niets uit: er zijn geen helpers of bijrollen en geen rolverdeling tussen spelers. Verhaalscènes worden per speler lokaal getoond; de tweede verhaalrol (metgezel) is een computerfiguur in het eigen beeld. De rol hoort bij de speler, niet bij plek 0 of 1 (#455).
 
 ## Waar het nu staat
 
