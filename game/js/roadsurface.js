@@ -1595,7 +1595,7 @@ export function workerMapReady() {
 export const ROAD_GEO_OPEN = 8;
 let roadGeoOpen = 0;
 export const roadGeoRoom = () => roadGeoOpen < ROAD_GEO_OPEN;
-export function roadGeometryReady(r) {
+export function roadGeometryReady(r, near = 0) {
   if (r._geoRoad && r._geoMarkQ === qualityVersion) return true;
   if (r._geoMain || !roadWorkerReady()) return true;
   if (r._geoPending === qualityVersion) return false;
@@ -1603,6 +1603,8 @@ export function roadGeometryReady(r) {
   const q = r._geoPending = qualityVersion;
   roadGeoOpen++;
   const struct = (r.z ? r._geoStruct : r._geoOverDeck) === undefined;
+  // near (0..1): a road at the player's feet and in the heading goes out before
+  // one at the edge of the view (geojobs.js queue, #247)
   runGeo('roadGeo', { key: roadKey(r), detail, struct }, (res) => {
     roadGeoOpen--;
     if (r._geoPending === q) r._geoPending = null;
@@ -1623,7 +1625,7 @@ export function roadGeometryReady(r) {
     if (r._geoMark) r._geoMark.dispose();
     r._geoMark = mark;
     r._geoMarkQ = q;
-  });
+  }, near);
   return false;
 }
 
