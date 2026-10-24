@@ -451,16 +451,18 @@ export function buildProvince({ root = ROOT, src = SRC_DIR, extra = bufferDirs(s
   const cityWater = new Map();
   if (profile) {
     const cityPacks = [...byPack.keys()].filter((pk) => byPack.get(pk).some((k) => profile.has(k))).sort((a, b) => packKey(a) - packKey(b));
-    const rowsOf = new Map(), lockOf = new Map(), all = [];
+    const rowsOf = new Map(), lockOf = new Map(), all = [], roadRows = [];
     for (const pk of cityPacks) {
       const els = [];
       for (const d of dirs) { const f = path.join(d, `c${pk}.json.gz`); if (fs.existsSync(f)) for (const el of gunzipJson(f).elements) els.push(el); }
       for (const k of locksOf(els)) lockOf.set(k.id, k);
       const rows = features(els.filter((el) => el.type === 'relation' || (el.tags && (el.tags.natural === 'water' || el.tags.waterway))), ctx).filter((f) => f.kind === 'water').map((f) => f.row);
       rowsOf.set(pk, rows);
+      // the roads of the city (a small pond beside a road or under a bridge keeps the canal's level, #327)
+      for (const f of features(els.filter((el) => el.type === 'way' && el.tags && el.tags.highway), ctx)) if (f.kind === 'roads') roadRows.push(f.row);
       all.push(...rows);
     }
-    const wr = annotateCityWater(all, { base: waterBodies, village: ctx.village, locks: [...lockOf.values()], focus: (x, y) => profile.has(G.tileKey(...G.tileIndexOf(x, y))) });
+    const wr = annotateCityWater(all, { base: waterBodies, village: ctx.village, locks: [...lockOf.values()], focus: (x, y) => profile.has(G.tileKey(...G.tileIndexOf(x, y))), roads: roadRows });
     waterBodies += wr.bodies;
     for (const [pk, rows] of rowsOf) cityWater.set(pk, rows.map((r) => { const o = { body: r.body, kind: r.kind, lv: r.lv, dp: r.dp, nav: r.nav, bank: r.bank }; if (r.lock) o.lock = true; return o; }));
   }

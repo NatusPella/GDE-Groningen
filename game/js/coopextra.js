@@ -43,6 +43,15 @@ export const D_DOOD = 1;
 
 export const DIER_SOORTEN = ['cow', 'sheep', 'seagull', 'duck', 'gans', 'reiger', 'zeehond', 'vis', 'pigeon', 'cat', 'dog'];
 const EEND_VARIANTEN = ['drake', 'hen', 'swan', 'goose'];
+// De grootste schaal die een dier bij een gast mag hebben: de schaal van zijn eigen bouw (wildlife.js; de zwaan en de
+// reiger zijn de grootste). Een ongeldige of te grote schaal gaf een reuzenvogel (#433); alleen de Reuzenduif-cheat
+// van de speler zelf maakt een duif groter, en dat doet de gast niet bij andermans dieren.
+export const DIER_MAX_SCHAAL = { cow: 1, sheep: 1, seagull: 1, duck: 3.1, gans: 1.7, reiger: 3.4, zeehond: 1, vis: 1.8, pigeon: 1, cat: 1, dog: 1 };
+export const veiligeDierSchaal = (soort, schaal) => {
+  const max = DIER_MAX_SCHAAL[soort];
+  if (!(max > 0)) return null; // onbekende soort: niet tekenen (geen koe als terugval)
+  return Number.isFinite(schaal) && schaal > 0 ? Math.min(schaal, max) : max;
+};
 export const KAPOT_SOORTEN = ['bench', 'bin', 'chair', 'table', 'parasol', 'bike', 'rail', 'stall', 'lamp', 'trafficlight', 'flitspaal', 'tree', 'vangrail', 'hek'];
 
 // tags voor misc
