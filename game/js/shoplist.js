@@ -105,13 +105,13 @@ export function buyLabel(it, shopType, armed = false) {
   return it.verb || 'Kiezen';
 }
 
-// Tabs of a shop: one per section, plus "Alles" in front when there are two or more.
+// Tabs of a shop: one per section, plus "Alles" at the end when there are two or more.
 // Sections without items have no tab. [{ id, label, count, owned }]
 export function shopTabs(sections) {
   const real = sections.filter((s) => s.items && s.items.length);
   if (real.length < 2) return [];
   const tabs = real.map((s, i) => ({ id: 's' + i, label: s.title, count: s.items.length, owned: s.items.filter((it) => itemStatus(it, 0).id === 'heb').length }));
-  return [{ id: 'alles', label: 'Alles', count: tabs.reduce((n, t) => n + t.count, 0), owned: tabs.reduce((n, t) => n + t.owned, 0) }, ...tabs];
+  return [...tabs, { id: 'alles', label: 'Alles', count: tabs.reduce((n, t) => n + t.count, 0), owned: tabs.reduce((n, t) => n + t.owned, 0) }];
 }
 
 // The sections a tab shows (the tab id as shopTabs made it).
@@ -122,7 +122,7 @@ export function tabSections(sections, tab) {
   return real[i] ? [real[i]] : real;
 }
 
-// Next tab, wrapping around; a tab that vanished (stock changed) falls back to "Alles".
+// Next tab, wrapping around; a tab that vanished (stock changed) falls back to the first one.
 export function stepTab(tabs, cur, dir) {
   if (!tabs.length) return 'alles';
   let i = tabs.findIndex((t) => t.id === cur);
@@ -130,7 +130,7 @@ export function stepTab(tabs, cur, dir) {
   return tabs[(i + dir + tabs.length) % tabs.length].id;
 }
 export function keepTab(tabs, cur) {
-  return tabs.some((t) => t.id === cur) ? cur : 'alles';
+  return tabs.some((t) => t.id === cur) ? cur : tabs.length ? tabs[0].id : 'alles';
 }
 
 // Items in the shown sections, flat, in screen order.

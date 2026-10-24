@@ -97,15 +97,15 @@ is(buyLabel({ price: 5, disabled: 'Heb je al' }, 'x'), 'Heb je al', 'disabled la
 const it = (id, extra = {}) => ({ id, label: id, price: 5, ...extra });
 const SECS = [{ title: 'Wapens', items: [it('a'), it('b', { disabled: 'Heb je al' })] }, { title: 'Leeg', items: [] }, { title: 'Vesten', items: [it('c')] }];
 const tabs = shopTabs(SECS);
-is(tabs.map((t) => t.id).join(), 'alles,s0,s1', 'tab ids skip empty sections');
-is(tabs[0].count, 3, 'alles counts'); is(tabs[0].owned, 1, 'alles owned'); is(tabs[1].label, 'Wapens', 'tab label');
+is(tabs.map((t) => t.id).join(), 's0,s1,alles', 'tab ids skip empty sections, Alles last');
+is(tabs[2].count, 3, 'alles counts'); is(tabs[2].owned, 1, 'alles owned'); is(tabs[0].label, 'Wapens', 'tab label');
 is(shopTabs([SECS[0]]).length, 0, 'one section: no tabs');
 is(shopTabs([]).length, 0, 'none: no tabs');
 is(tabSections(SECS, 'alles').length, 2, 'alles shows non-empty'); is(tabSections(SECS, 's1')[0].title, 'Vesten', 'tab shows its section');
 is(tabSections(SECS, 's9').length, 2, 'bad tab falls back'); is(tabSections(SECS, undefined).length, 2, 'no tab');
-is(stepTab(tabs, 'alles', 1), 's0', 'next'); is(stepTab(tabs, 's1', 1), 'alles', 'wraps forward'); is(stepTab(tabs, 'alles', -1), 's1', 'wraps back');
-is(stepTab([], 'x', 1), 'alles', 'no tabs'); is(stepTab(tabs, 'weg', 1), 's0', 'vanished tab');
-is(keepTab(tabs, 's1'), 's1', 'keep'); is(keepTab(tabs, 's7'), 'alles', 'drop');
+is(stepTab(tabs, 's0', 1), 's1', 'next'); is(stepTab(tabs, 'alles', 1), 's0', 'wraps forward'); is(stepTab(tabs, 's0', -1), 'alles', 'wraps back');
+is(stepTab([], 'x', 1), 'alles', 'no tabs'); is(stepTab(tabs, 'weg', 1), 's1', 'vanished tab');
+is(keepTab(tabs, 's1'), 's1', 'keep'); is(keepTab(tabs, 's7'), 's0', 'drop: first tab'); is(keepTab(tabs, ''), 's0', 'open on the first section'); is(keepTab([], ''), 'alles', 'no tabs');
 is(flatItems(tabSections(SECS, 'alles')).length, 3, 'flat');
 
 // selection
