@@ -7,6 +7,8 @@ import { showCard } from './hudcards.js';
 import { activityBlock, iconDisc } from './activitykit.js';
 import { createBoard, key, bubble, clearBubbles, pick, stopPressed, easeCamera, geo, frame, clamp } from './minigamekit.js';
 import { SKATE_LINES } from './minigamelines.js';
+import { loopbaanVerdien } from './loopbaanlive.js';
+import { registreerWedstrijd, zetWedGastHaken, wedNodigUit, wedNuStarten, wedHostPunt, wedGastPunt, wedScoreStop, wedGastVerlaat, wedGastReset, wedScoreRijen } from './coopwedstrijd.js';
 import {
   FEATURES, PARK, RUN_S, MEDAL_AT, SKATE, createBoard as createBoardState, createCombo, stepBoard, scoreEvents, tickCombo, bankCombo, skateMedal, TRICK_NAMES,
 } from './skatetricks.js';
@@ -229,13 +231,20 @@ function interact(w) {
   if (!nearStand(w)) return false;
   const why = activityBlock(w);
   if (why) { w.addMessage(why, 2.5); return true; }
-  start(w);
+  startOfUitnodigen(w);
   return true;
 }
 
-function start(w, { force = false } = {}) {
+// Met gasten in de sessie is het skatepark een uitnodiging aan iedereen (Meedoen? J/N); nog eens E start meteen (#443).
+function startOfUitnodigen(w) {
+  const uit = wedNodigUit(w, 'skatepark');
+  if (uit.ok) { if (uit.reden === 'wacht') wedNuStarten(w); return true; }
+  return start(w);
+}
+
+function start(w, { force = false, online = null } = {}) {
   if (game) return false;
-  if (!force && activityBlock(w)) return false;
+  if (!force && !online && activityBlock(w)) return false;
   if (!built) built = buildPark();
   const p = w.player;
   if (p.inVehicle) p.exitVehicle(w.map, w);
@@ -246,11 +255,11 @@ function start(w, { force = false } = {}) {
   built.bd.visible = true;
   built.skater.visible = true;
   runs++;
-  game = { t: 0, phase: 'intro', phaseT: INTRO_S, left: RUN_S, b, combo: createCombo(), flash: null, cam: null, said: 0, lastNames: '', bigAir: false, prevCine: w.cinematicHidePlayers };
+  game = { t: 0, phase: 'intro', phaseT: INTRO_S, left: RUN_S, b, combo: createCombo(), flash: null, cam: null, said: 0, lastNames: '', bigAir: false, prevCine: w.cinematicHidePlayers, online };
   place(w, 0);
   const side = FR.toW(-PARK.hu - 2, PARK.hv + 1);
   w.companionHold = { x: side.x, y: side.y, face: ROT };
-  showCard(w, { kind: 'tip', kicker: 'Skatepark', title: 'Negentig seconden', body: '[W] duwen, [A] [D] sturen en draaien, [Spatie] ollie, [E] kickflip, [F] heelflip, [S] in de lucht een grab. Op een leuning: houd je balans met [A] [D].', duration: 10, key: 'skatepark-help', voice: false });
+  if (online !== 'gast') showCard(w, { kind: 'tip', kicker: 'Skatepark', title: 'Negentig seconden', body: '[W] duwen, [A] [D] sturen en draaien, [Spatie] ollie, [E] kickflip, [F] heelflip, [S] in de lucht een grab. Op een leuning: houd je balans met [A] [D].', duration: 10, key: 'skatepark-help', voice: false });
   say(w, 'start', true);
   return true;
 }
@@ -294,6 +303,7 @@ function updateGame(w, dt) {
   const g = game;
   const input = w.input;
   g.t += dt;
+  if (g.online === 'gast' && (!w.coopNet || w.coopRole !== 'client')) { wedGastReset(w); end(w, { quit: true, extern: true }); return; } // de verbinding is weg
   if (g.flash && (g.flash.t -= dt) <= 0) g.flash = null;
   if (stopPressed(input)) { end(w, { quit: true }); return; }
   const live = g.phase === 'run';
@@ -353,7 +363,7 @@ function onEvent(w, e) {
   if (e.type === 'grind') say(w, 'grind');
 }
 
-function end(w, { quit = false } = {}) {
+function end(w, { quit = false, extern = false, uitslag = null } = {}) {
   const g = game;
   if (!g) return;
   game = null;
@@ -365,10 +375,12 @@ function end(w, { quit = false } = {}) {
   clearBubbles(w, 'skatepark');
   if (built) { built.bd.visible = false; }
   p.x = STAND.x; p.y = STAND.y; p.angle = ROT;
-  if (quit) { w.addMessage('Skatepark gestopt', 2.5); return; }
   const c = g.combo;
   if (c.chain) bankCombo(c);
   const score = c.total;
+  if (g.online && !quit) { if (g.online === 'host') wedHostPunt(w, 0, Math.round(score)); else wedGastPunt(w, 0, Math.round(score)); } // zijn beurt gaat naar wie het spel opende
+  if (g.online) { eindeOnline(w, g, quit, extern, uitslag); return; }
+  if (quit) { w.addMessage('Skatepark gestopt', 2.5); return; }
   const medal = skateMedal(score);
   const rec = recordChallengeResult(w, 'skatepark', { value: score, medal });
   recordStat(w, 'skateRuns');
@@ -383,6 +395,23 @@ function end(w, { quit = false } = {}) {
   const bench = built && built.skater;
   if (built) built.skater.visible = true;
   say(w, medal >= 2 ? 'endGood' : 'endPoor', true, true);
+}
+
+// Online (#443): wie stopt laat de anderen doorskaten; de uitslag en de beloning komen van wie het spel opende (coopwedstrijd.js).
+function eindeOnline(w, g, quit, extern, res) {
+  if (quit) {
+    if (!extern) { if (g.online === 'host') wedScoreStop(w); else wedGastVerlaat(w); } // de host stopt het voor iedereen, een gast alleen voor zichzelf
+    w.addMessage('Skatepark gestopt', 2.5);
+    return;
+  }
+  if (g.online === 'gast' || !res) return; // een gast: de uitslagkaart en het geld komen van de host
+  beloonOnline(w, res);
+}
+// De beloning van een plek in het eigen geld en de eigen loopbaan (de gasten krijgen de hunne van de host).
+function beloonOnline(w, res) {
+  const jij = res.jij || { plek: 0, geld: 0, xp: 0 };
+  loopbaanVerdien(w, 'buiten', jij.geld, { xp: jij.xp, n: 1, uniek: 'skatepark', deel: false });
+  if (jij.geld > 0) w.addMessage(`Beloning: \u20ac${jij.geld.toLocaleString('nl-NL')}`, 4);
 }
 
 // --- camera and HUD -------------------------------------------------------------------------------------------
@@ -404,13 +433,15 @@ function ensureBoard() {
   return board;
 }
 
-function updateHud() {
+function updateHud(w) {
   const g = game;
   if (!g || !board) return;
   const c = g.combo;
   const left = g.phase === 'run' ? Math.ceil(g.left) : g.phase === 'intro' ? RUN_S : 0;
   const cur = Math.round(c.cur);
-  const row = `<span>Tijd <b>${Math.floor(left / 60)}:${String(left % 60).padStart(2, '0')}</b></span><span>Score <b>${c.total.toLocaleString('nl-NL')}</b></span><span>Keten <b>${cur.toLocaleString('nl-NL')}</b> x${c.chain ? c.mult : 1}</span><span>Beste <b>${c.best.toLocaleString('nl-NL')}</b></span>`;
+  const online = g.online ? wedScoreRijen(w) : [];
+  const stand = online.length ? `<span>${online.map((r) => `${r.weg ? '<s>' : ''}${r.naam} ${(r.slagen || 0).toLocaleString('nl-NL')}${r.weg ? '</s>' : ''}`).join(' · ')}</span>` : '';
+  const row = `${stand}<span>Tijd <b>${Math.floor(left / 60)}:${String(left % 60).padStart(2, '0')}</b></span><span>Score <b>${c.total.toLocaleString('nl-NL')}</b></span><span>Keten <b>${cur.toLocaleString('nl-NL')}</b> x${c.chain ? c.mult : 1}</span><span>Beste <b>${c.best.toLocaleString('nl-NL')}</b></span>`;
   let meter = null, flash = g.flash ? g.flash.text : g.phase === 'intro' ? 'Daar gaan we...' : g.phase === 'outro' ? 'Tijd!' : '';
   if (g.b.grind) {
     meter = { v: 0.5 + g.b.grind.bal / 2.4, mark: 0.5, color: Math.abs(g.b.grind.bal) > 0.65 ? '#ff6f61' : '#46b36a' };
@@ -421,6 +452,33 @@ function updateHud() {
 }
 
 // --- the activity ---------------------------------------------------------------------------------------------
+
+// --- de wedstrijd tegen elkaar (#443): iedereen skatet zijn eigen ronde, wie het spel opende houdt het scorebord ------------------------------
+
+function gastTik(w, dt) {
+  if (!game || game.online !== 'gast') return false;
+  updateGame(w, dt);
+  if (game) { if ((lodT -= dt) <= 0) { lodT = 0.5; updateLod(w); } if (built && built.skater.visible) animatePersonWalk(built.skater, 0, dt); updateHud(w); }
+  return true;
+}
+registreerWedstrijd('skatepark', {
+  naam: 'Skatepark Stadspark', soort: 'punt', vak: 'buiten',
+  opties: () => ({ beurten: 1, format: (p) => `${Math.round(p).toLocaleString('nl-NL')} punten` }),
+  start: (w) => start(w, { online: 'host', force: true }),
+  plek: () => ({ ...STAND }),
+  gastPlek: (w, x, y) => !game && !w.player.inVehicle && Math.hypot(x - STAND.x, y - STAND.y) < 4.5, // een gast vraagt het bij de ingang (#452)
+  eind: (w, res) => {
+    if (game && game.online === 'host') end(w, res ? { uitslag: res } : { quit: true, extern: true });
+    else if (res) beloonOnline(w, res); // de host was al klaar: alleen zijn beloning miste nog
+  },
+  solo: (w) => start(w),
+});
+zetWedGastHaken('skatepark', {
+  dichtbij: (w) => !game && !w.player.inVehicle && Math.hypot(w.player.x - STAND.x, w.player.y - STAND.y) < 3,
+  start: (w) => start(w, { online: 'gast', force: true }),
+  eind: (w, uit) => { if (game && game.online === 'gast') end(w, uit.gestopt ? { quit: true, extern: true } : { uitslag: uit }); },
+  tik: gastTik,
+});
 
 export const SKATEPARK = {
   id: 'skatepark',
@@ -452,7 +510,7 @@ export const SKATEPARK = {
   tick(dt, w) {
     if ((lodT -= dt) <= 0) { lodT = 0.5; updateLod(w); }
     if (built && built.skater.visible) animatePersonWalk(built.skater, 0, dt);
-    updateHud();
+    updateHud(w);
   },
   camera,
   icon: drawIcon,
