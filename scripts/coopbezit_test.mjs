@@ -4,8 +4,9 @@
 //   node scripts/coopbezit_test.mjs
 import assert from 'node:assert/strict';
 import {
-  RECHTEN, STANDAARD_RECHT, MAX_BEZORG, nieuweDeelStaat, rechtVan, zetDeelRecht, wisselRecht,
-  magGebruiken, leesBezorg, bezorgEvent, bezorgVraag, bezorgControle, bezorgHost, bezorgWeg,
+  RECHTEN, STANDAARD_RECHT, STANDAARD_PAND_RECHT, MAX_BEZORG, MAX_PANDEN, SOORTEN, PAND_SLEUTEL,
+  nieuweDeelStaat, rechtVan, zetDeelRecht, wisselRecht, magGebruiken, leesBezorg, bezorgEvent,
+  pandEvent, bezorgVraag, pandVraag, bezorgControle, bezorgHost, bezorgPandHost, bezorgWeg,
   bezorgAllesWeg, zetDeelHaken,
 } from '../game/js/coopbezit.js';
 
@@ -17,7 +18,8 @@ const SPEC = {
   mug: { label: 'Hunze Mug', kind: 'car', color: '#2e6b9e', model: { name: 'hatch', len: 3.8, wid: 1.7, maxSpeed: 42 } },
   sloep: { label: 'Sloep Nait Soezen', kind: 'boat', color: '#e8e6e0', model: { name: 'boat', len: 5, wid: 1.9, maxSpeed: 7 } },
 };
-// De nepwereldhaken: dezelfde vorm die main.js zet, zonder de echte wereld.
+// De nepwereldhaken: dezelfde vorm die main.js en home.js zetten, zonder de echte wereld.
+const deuren = [];
 zetDeelHaken({
   spec: (key) => SPEC[key] || null,
   plek: () => ({ x: 20, y: 30, angle: 0.5 }),
@@ -26,6 +28,9 @@ zetDeelHaken({
     world.vehicles.push(v);
     return v;
   },
+  pand: (world, p) => (PAND_SLEUTEL.test(p.id) ? { x: p.x, y: p.y, ang: p.ang, gz: 0 } : null),
+  pandZet: (world, slot, p) => { const m = { slot, id: p.id, x: p.x, y: p.y, ang: p.ang }; deuren.push(m); return m; },
+  pandWeg: (world, slot) => { for (let i = deuren.length - 1; i >= 0; i--) if (deuren[i].slot === slot) deuren.splice(i, 1); },
 });
 
 function mkWorld() {
@@ -41,6 +46,7 @@ function mkWorld() {
   return w;
 }
 const vraag = (extra = {}) => ({ k: 'bezorg', id: 'hero', color: '#a11f1f', upgrades: ['tyres1'], dents: [], health: 100, recht: 'iedereen', ...extra });
+const pandBody = (extra = {}) => ({ k: 'bezorg', soort: 'pand', id: 'h:wp:WP1017', x: 120, y: 80, ang: 0.5, recht: 'iedereen', ...extra });
 
 t('rechten: standaard deelt iedereen, alleen ik houdt hem voor jezelf, onzin verandert niets', () => {
   const s = nieuweDeelStaat();
@@ -76,6 +82,8 @@ t('leesBezorg: alleen gegevens, en wat de host leest is gecontroleerd (een gast 
   assert.equal(v.health, 100, 'de gezondheid blijft tussen 5 en 100');
   assert.equal(v.recht, STANDAARD_RECHT, 'een onbekend recht valt terug op de standaard');
   assert.equal(leesBezorg(vraag({ health: -20 })).health, 5);
+  assert.equal(leesBezorg(vraag()).soort, 'voertuig', 'een bericht zonder soort is een voertuig');
+  assert.equal(SOORTEN.includes('pand'), true);
 });
 
 t('een gast stuurt alleen een vraag: niets van zijn wereld of save gaat mee en er verschijnt niets bij hem', () => {
@@ -92,7 +100,7 @@ t('een gast stuurt alleen een vraag: niets van zijn wereld of save gaat mee en e
   assert.equal(bezorgVraag(w, { ...g, kind: 'boat' }).ok, false, 'een boot gaat nog niet mee');
   w.player.inVehicle = {};
   assert.equal(bezorgVraag(w, g).ok, false, 'stap eerst uit');
-  assert.deepEqual(bezorgEvent(g, 'iedereen'), { k: 'bezorg', id: 'hero', color: '#a11f1f', upgrades: ['tyres1'], dents: [], health: 88, flat: false, recht: 'iedereen' });
+  assert.deepEqual(bezorgEvent(g, 'iedereen'), { k: 'bezorg', soort: 'voertuig', id: 'hero', color: '#a11f1f', upgrades: ['tyres1'], dents: [], health: 88, flat: false, recht: 'iedereen' });
 });
 
 t('de host zet de kopie bij de gast neer, met kleur en schade, en vertelt het de anderen', () => {
@@ -154,11 +162,87 @@ t('geen plek of een boot: de host zegt het en zet niets neer', () => {
   assert.equal(w.vehicles.length, 1);
 });
 
+t('een pand gaat als soort pand over de lijn: alleen de deur, geen interieur of sleutel', () => {
+  assert.equal(leesBezorg({ k: 'bezorg', soort: 'boot', id: 'hero' }), null, 'een onbekend soort bestaat niet');
+  assert.equal(leesBezorg({ k: 'bezorg', soort: 'pand', id: 'hero' }), null, 'een pand heeft een h:-sleutel');
+  assert.equal(leesBezorg({ k: 'bezorg', soort: 'pand', id: 'h:wp:WP1017', x: 'veel', y: 0, ang: 0 }), null);
+  assert.equal(leesBezorg({ k: 'bezorg', soort: 'pand', id: 'h:wp:WP1017', x: 1e6, y: 0, ang: 0 }), null, 'ver buiten de kaart');
+  const p = leesBezorg({ k: 'bezorg', soort: 'pand', id: 'h:wp:WP1017', x: 12.5, y: -3, ang: 7.5, recht: 'vrienden', interieur: 'marmer' });
+  assert.equal(p.soort, 'pand');
+  assert.equal(p.id, 'h:wp:WP1017');
+  assert.equal(p.recht, STANDAARD_PAND_RECHT, 'een onbekend recht valt terug op alleen ik');
+  assert.equal(p.interieur, undefined, 'niets anders dan de deur gaat mee');
+  assert.ok(p.ang >= 0 && p.ang < Math.PI * 2, 'de hoek is genormaliseerd');
+  assert.deepEqual(pandEvent({ id: 'h:wp:WP1017', x: 1, y: 2, ang: 0.5 }, 'iedereen'),
+    { k: 'bezorg', soort: 'pand', id: 'h:wp:WP1017', x: 1, y: 2, ang: 0.5, recht: 'iedereen' });
+});
+
+t('de gast stuurt de plek van zijn pand en zet zelf niets in zijn eigen wereld', () => {
+  const w = { player: { inVehicle: null }, vehicles: [], coopBezit: nieuweDeelStaat(), verstuurd: [] };
+  w.coopNet = { role: 'client', session: { slot: 1, sendEvent(b) { w.verstuurd.push(b); return true; } } };
+  const r = pandVraag(w, { id: 'h:wp:WP1017', x: 100, y: 200, ang: 0.5 });
+  assert.equal(r.ok, true);
+  assert.equal(w.verstuurd.length, 1);
+  assert.equal(w.verstuurd[0].soort, 'pand');
+  assert.equal(w.verstuurd[0].recht, STANDAARD_PAND_RECHT, 'je huis deel je niet zomaar');
+  assert.equal(w.vehicles.length, 0, 'de gast zet niets in zijn eigen wereld');
+  assert.equal(pandVraag(w, { id: 'hero', x: 1, y: 2, ang: 0 }).ok, false, 'geen pandsleutel');
+  assert.equal(pandVraag({}, { id: 'h:wp:WP1017', x: 1, y: 2, ang: 0 }).ok, false, 'zonder sessie geen pand');
+});
+
+t('de host controleert de plek en zet alleen een deur neer, zonder een save aan te raken', () => {
+  const w = mkWorld();
+  w.saveTekst = 'onveranderd';
+  deuren.length = 0;
+  assert.equal(bezorgHost(w, 1, pandBody()), true);
+  assert.equal(deuren.length, 1, 'de host zet een deur neer');
+  assert.deepEqual(w.coopBezit.panden[1], ['h:wp:WP1017']);
+  assert.equal(w.saveTekst, 'onveranderd', 'de save van de host blijft zoals hij was');
+  assert.equal(w.vehicles.length, 0, 'een pand is geen voertuig');
+  assert.match(w.meldingen[w.meldingen.length - 1][1], /pand staat in de sessie/);
+  assert.equal(w.aan.length, 1, 'de andere gasten horen het');
+  assert.match(w.aan[0][0].tekst, /Tessa/);
+  assert.equal(bezorgPandHost(w, 1, pandBody()), false, 'niet twee keer dezelfde deur');
+  assert.equal(bezorgHost(w, 0, pandBody({ id: 'h:wp:WP1018' })), false, 'de host brengt geen eigen pand mee');
+  assert.equal(bezorgHost(w, 1, { k: 'bezorg', soort: 'pand', id: 'geen-pand', x: 1, y: 2, ang: 0 }), false, 'een onbekende sleutel');
+});
+
+t('grenzen: hooguit drie panden per speler en alleen op een plek die de host goedkeurt', () => {
+  const w = mkWorld();
+  deuren.length = 0;
+  for (const id of ['h:wp:WP1017', 'h:wp:WP1018', 'h:wk:WK001400']) assert.equal(bezorgPandHost(w, 2, pandBody({ id })), true);
+  assert.equal(bezorgPandHost(w, 2, pandBody({ id: 'h:wp:WP1019' })), false, 'boven het maximum');
+  assert.match(w.meldingen[w.meldingen.length - 1][1], new RegExp(String(MAX_PANDEN)));
+  assert.equal(bezorgPandHost(w, 2, pandBody({ id: 'h:wk:WK001400' })), false, 'hetzelfde pand staat er al');
+  zetDeelHaken({ pand: () => null });
+  assert.equal(bezorgPandHost(w, 1, pandBody()), false, 'de host keurt de plek af');
+  assert.equal(deuren.length, 3, 'er komt geen deur bij');
+  zetDeelHaken({ pand: (ww, p) => ({ x: p.x, y: p.y, ang: p.ang, gz: 0 }) });
+});
+
+t('weggaan: de panden van die gast gaan mee terug, de rest blijft', () => {
+  const w = mkWorld();
+  w.saveTekst = 'x';
+  deuren.length = 0;
+  bezorgPandHost(w, 1, pandBody()); bezorgPandHost(w, 2, pandBody({ id: 'h:wp:WP1018' }));
+  assert.equal(bezorgWeg(w, 1), 0, 'geen voertuig om weg te halen');
+  assert.equal(deuren.length, 1, 'zijn deur gaat weg');
+  assert.deepEqual(Object.keys(w.coopBezit.panden), ['2'], 'de deur van de ander blijft');
+  assert.equal(w.saveTekst, 'x');
+  assert.equal(bezorgControle(w.coopBezit, 1, { soort: 'pand', id: 'h:wp:WP1017' }).ok, true, 'opnieuw bezorgen kan weer');
+  bezorgAllesWeg(w);
+  assert.deepEqual(w.coopBezit.panden, {});
+  assert.equal(deuren.length, 0);
+});
+
 t('geen staat of geen gastheer: niets breekt', () => {
   assert.equal(bezorgWeg({}, 1), 0);
   assert.equal(bezorgAllesWeg({}), 0);
   assert.equal(bezorgControle(null, 1, { id: 'hero' }).ok, true);
+  assert.equal(bezorgControle(null, 1, { soort: 'pand', id: 'h:wp:WP1017' }).ok, true);
   assert.equal(bezorgVraag({}, { id: 'hero', kind: 'car' }).ok, false, 'zonder sessie geen bezorging');
+  assert.equal(pandVraag({}, { id: 'h:wp:WP1017', x: 1, y: 2, ang: 0 }).ok, false, 'zonder sessie geen pand');
+  assert.equal(bezorgHost({ coopNet: { role: 'client' } }, 1, pandBody()), false, 'een gast is geen host');
 });
 
-console.log(`coopbezit_test: ${n}/9 ok`);
+console.log(`coopbezit_test: ${n}/${n} ok`);
