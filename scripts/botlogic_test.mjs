@@ -7,6 +7,9 @@ import { readFileSync } from 'node:fs';
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const L = await import(pathToFileURL(path.join(root, 'game', 'js', 'botlogic.js')).href);
+// #312: de heli- en zeilbesturing van de bot (scripts/bot/nav.mjs) en de regels waar ze op lijken
+const N = await import(pathToFileURL(path.join(root, 'scripts', 'bot', 'nav.mjs')).href);
+const Z = await import(pathToFileURL(path.join(root, 'game', 'js', 'zeilrules.js')).href);
 let fails = 0, n = 0;
 const ok = (c, name) => { n++; if (!c) { fails++; console.log('FAIL', name); } };
 const near = (a, b, e = 1e-6) => Math.abs(a - b) < e;
@@ -439,6 +442,64 @@ ok(L.decide({ ...b(), mission: { active: true, stage: 'hold' }, target: { x: 8, 
   const bad = L.buildReport([{ ...good, vraagZichtbaar: false, na: { ...good.na, actief: true, fails: 1 }, ok: false }], {});
   ok(bad.includes('vraag **nee**') && bad.includes('**nog actief**') && bad.includes('**klopt niet**'), 'annuleer: wat niet klopt valt op');
   ok(!L.buildReport([], {}).includes('#390'), 'annuleer: zonder stop geen sectie');
+}
+
+// --- heli (#312): toetsen voor opstijgen, vliegen en landen -------------------------
+{
+  const heli = (p = {}) => ({ x: 0, y: 0, z: 40, angle: 0, speed: 10, vz: 0, onGround: false, rotor: 1, groundZ: 0, ...p });
+  const goal = { x: 500, y: 0 };
+  // op de grond: de rotor moet eerst op toeren, dan Spatie
+  ok(!N.heliKeys(heli({ onGround: true, z: 0, rotor: 0.4 }), { goal, agl: 0 }).has(' '), 'heli: wacht met opstijgen tot de rotor draait');
+  ok(N.heliKeys(heli({ onGround: true, z: 0 }), { goal, agl: 0 }).has(' '), 'heli: op de grond en de rotor draait: Spatie');
+  // in de lucht: neus naar het doel en vooruit
+  ok(N.heliKeys(heli({ angle: 0 }), { goal, agl: 40 }).has('w'), 'heli: recht op het doel af: W');
+  ok(N.heliKeys(heli({ angle: 0, y: 100 }), { goal, agl: 40 }).has('a'), 'heli: doel links: A');
+  ok(N.heliKeys(heli({ angle: 0, y: -100 }), { goal, agl: 40 }).has('d'), 'heli: doel rechts: D');
+  ok(!N.heliKeys(heli({ angle: Math.PI / 2 }), { goal, agl: 40 }).has('w'), 'heli: eerst gieren als het doel achter ons ligt');
+  // hoogte houden en het luchtruim
+  ok(N.heliKeys(heli({ z: 5 }), { goal, agl: 5 }).has(' '), 'heli: te laag: stijgen');
+  ok(N.heliKeys(heli({ z: 70 }), { goal, agl: 70 }).has('control'), 'heli: te hoog: dalen');
+  const hoog = N.heliKeys(heli({ z: 120 }), { goal, agl: 120 });
+  ok(hoog.has('control') && !hoog.has(' '), 'heli: boven het luchtruim: alleen dalen');
+  // landen: boven de plek niet meer stijgen, maar zakken
+  const land = N.heliKeys(heli({ x: 496, speed: 0 }), { goal, mode: 'land', agl: 5 });
+  ok(land.has('control') && !land.has(' ') && !land.has('w'), 'heli: boven de landingsplek: dalen en niet meer vooruit', [...land].join(''));
+  ok(!N.heliKeys(heli({ x: 496, speed: 0 }), { goal, mode: 'land', agl: 0.5 }).has(' '), 'heli: vlak boven de grond: niet opspringen');
+}
+
+// --- zeilen (#312): dood hoek, kruisen en trim ---------------------------------------
+{
+  const b = (v = {}) => ({ x: 0, y: 0, angle: 0, speed: 3, sailTop: 3, zeilTrim: 0.6, omgeslagen: 0, helling: 0, ...v });
+  const wind = { dir: 0, speed: 6 };
+  // pal tegen de wind in: hij kruist in plaats van stil te vallen
+  const up = N.sailControls(b(), { goal: { x: 400, y: 0 }, wind, dt: 0.1 });
+  ok(up.tacking && up.throttle > 0, 'zeilen: pal tegen de wind in: kruisen met gas erop');
+  ok(Math.abs(up.steer) > 0.2, 'zeilen: kruisen stuurt naar de boeg');
+  // voor de wind: zeil vieren (Z), geen kruisen
+  const down = N.sailControls(b({ angle: Math.PI }), { goal: { x: -400, y: 0 }, wind, dt: 0.1 });
+  ok(!down.tacking && down.trim < 0, 'zeilen: voor de wind: zeil vieren', JSON.stringify(down));
+  // halve wind: zeil aanhalen
+  const half = N.sailControls(b({ angle: Math.PI / 2, zeilTrim: 0.3 }), { goal: { x: 0, y: 400 }, wind, dt: 0.1 });
+  ok(!half.tacking && half.trim > 0, 'zeilen: halve wind: zeil aanhalen', JSON.stringify(half));
+  // na 12 s van boeg wisselen als de andere boeg dichter bij het doel ligt
+  const slag = b();
+  N.sailControls(slag, { goal: { x: 400, y: 0 }, wind, dt: 12.1 });
+  ok(slag.slagT != null && slag.slag != null, 'zeilen: de slag houdt zijn eigen tijd bij');
+  // omgeslagen: geen gas, geen trim
+  const nat = N.sailControls(b({ omgeslagen: 2 }), { goal: { x: 400, y: 0 }, wind, dt: 0.1 });
+  ok(nat.throttle === 0 && nat.trim === 0 && !nat.tacking, 'zeilen: omgeslagen: even niets doen');
+  // dezelfde windregels als het spel (zeilrules.js)
+  for (const hoek of [-3, -2, -1.2, -0.6, 0, 0.6, 1.2, 2, 3]) {
+    ok(near(N.polair(hoek), Z.polair(hoek)), `zeilen: polair gelijk aan het spel (${hoek})`);
+    ok(near(N.besteTrim(hoek), Z.besteTrim(hoek)), `zeilen: beste trim gelijk aan het spel (${hoek})`);
+  }
+}
+
+// --- roeien (#312): een tik per slag, niet hameren -----------------------------------
+{
+  ok(N.rowDue(1.3, 0), 'roeien: na 1,3 s mag de volgende slag');
+  ok(!N.rowDue(0.4, 0), 'roeien: na 0,4 s niet');
+  ok(N.rowDue(8, undefined), 'roeien: de eerste slag mag meteen');
 }
 
 console.log(`${n - fails}/${n} ok`);

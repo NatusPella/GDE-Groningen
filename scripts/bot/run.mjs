@@ -87,6 +87,12 @@ const profile = `gde-test-spelbot-${process.pid}`;
 const script = path.join(OUT, '_page.js');
 const cfg = { part: arg('part', 'kop'), maxGameS: Number(arg('max-game', 3600)), maxWallS: Number(arg('max-wall', 1800)), stuckS: Number(arg('stuck', 30)), only: arg('only', ''), from: arg('from', ''), skipFrom: flag('skip-from'), playS: Number(arg('play', 40)), perS: Number(arg('per', 60)), mode: arg('mode', 'story'), sweep: arg('mode') === 'missions' ? arg('only', '').split(',').filter(Boolean) : [], perStepS: Number(arg('per-step', 600)), watch: Number(arg('watch', 0)) || 0, annuleer: Number(arg('annuleer', 0)) || 0, zonderWater: flag('zonder-water'), zonderStartplek: flag('zonder-startplek'), skipStages: /:/.test(arg('skip-stages', '')) ? Object.fromEntries(arg('skip-stages', '').split(',').map((q) => q.split(':')).map(([k, v]) => [k, Number(v) || 0])) : Number(arg('skip-stages', 0)) || 0, shots: Number(arg('shots', 80)), speed: Number(arg('speed', 1)) || 1, waitS: Number(arg('wait', 45)) || 45, until: arg('until', ''), invulnerable: flag('invuln') };
 let pre = `window.__botCfg = ${JSON.stringify(cfg)};\n`;
+// #312: de pure heli- en zeilbesturing staat in scripts/bot/nav.mjs (buiten game/js) en gaat
+// als window.__botNav mee de pagina in; bot.page.js gebruikt hem voor de toetsen en de timing.
+{
+  const nav = fs.readFileSync(path.join(HERE, 'nav.mjs'), 'utf8').replace(/^export (const|function|class) /gm, '$1 ');
+  pre += `window.__botNav = (() => {\n${nav}\nreturn { heliKeys, sailControls, rowDue, wrap, polair, besteTrim, windHoek, zeilRendement, bearing };\n})();\n`;
+}
 if (replayFile) {
   const rl = L.RunLog.parse(fs.readFileSync(path.resolve(replayFile), 'utf8'));
   pre += `window.__botReplay = ${JSON.stringify(rl.inputs())};\n`;
