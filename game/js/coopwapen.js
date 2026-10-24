@@ -134,6 +134,12 @@ export function wapenVan(world, slot) {
   return st ? { w: st.w, fx: st.fx, teller: st.teller } : null;
 }
 
+// Een nieuwe flits van een medespeler (#434): de aanval uit het snapshot is een schot en nog niet eerder getekend.
+// De gast tekent de flits en een korte kogelstreep bij de loop; de kogel zelf rekent de host uit.
+export function nieuwSchot(vorigeStart, fx) {
+  return !!fx && fx.type === 'muzzle' && fx.start !== undefined && fx.start !== vorigeStart;
+}
+
 // Elke frame bij de host: de aanval van elke gast met een wapen. Pauzeert de wereld voor iedereen, dan gebeurt er niets.
 export function wapenTick(world, dt) {
   const lijst = world.coopWapens; if (!lijst) return 0;
@@ -144,7 +150,8 @@ export function wapenTick(world, dt) {
     const slot = +s, st = lijst[s], l = lichaamVan(world, slot);
     if (!l) continue;
     const zit = !!(l.inVehicle || l.inVeh || l.coopBestuurt), inv = invoerVan(world, slot);
-    // wat de anderen zien: het wapen in zijn hand (niet in een voertuig of in het water), en de zwaai of het schot gedurende een korte tijd
+    // wat de anderen zien: het wapen in zijn hand (niet in een voertuig of in het water), en de zwaai of het schot gedurende een korte tijd.
+    // Het wapen verdwijnt niet als de patronen op zijn (#434): st.w verandert alleen als de gast zelf een ander wapen kiest.
     l.coopWapen = !zit && !l.swimming && !l.water ? st.w : '';
     if (st.fx && nu - st.fx.start > 1.2) st.fx = null;
     l.coopFx = st.fx && !zit ? { type: st.fx.type, swing: st.fx.swing, start: st.fx.start } : null;
