@@ -35,6 +35,7 @@ import { EVENEMENTEN } from './evenementenact.js';
 import { REGATTA_GAME } from './regatta.js';
 import { VLIEGSCHOOL } from './vliegschool.js';
 import { SAFEHUIS } from './safehuizen.js';
+import { PVP_ARENA_ACT } from './cooppvpwereld.js'; // de PvP-minigame in Samen spelen (#454)
 import { isShopOpen } from './shopui.js';
 import { GAST_ACTIVITEITEN, MELDING_ALLEEN_OPENER } from './coopgast.js';
 import { waarschuwVoorStart, samenWaarschuwing } from './coopstatus.js';
@@ -47,7 +48,7 @@ export { activityBlock, iconDisc } from './activitykit.js';
 
 Object.assign(gameUi, { getScene, showBanner, showCard });
 
-const LIST = [CARBID, KERMIS, HOOGVLIEGER, GEHEIMEN, DRIFT_ZONE, DISCGOLF, PITCHPUTT, SKATEPARK, KARTBAAN, ZWEMBAD, KLIMTOREN, WATERSKI, CARILLON_GAME, PANNENKOEK, HENGELEN, WANDELING, SNACKKETEN, EVENEMENTEN, REGATTA_GAME, VLIEGSCHOOL, SAFEHUIS];
+const LIST = [CARBID, KERMIS, HOOGVLIEGER, GEHEIMEN, DRIFT_ZONE, DISCGOLF, PITCHPUTT, SKATEPARK, KARTBAAN, ZWEMBAD, KLIMTOREN, WATERSKI, CARILLON_GAME, PANNENKOEK, HENGELEN, WANDELING, SNACKKETEN, EVENEMENTEN, REGATTA_GAME, VLIEGSCHOOL, SAFEHUIS, PVP_ARENA_ACT];
 
 export function initActivities(w) {
   for (const a of LIST) {
