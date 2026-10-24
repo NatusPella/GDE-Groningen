@@ -64,8 +64,12 @@ function zetVenue(item) {
     built = null;
   }
 }
+// a guest asked for a round at this venue (#452): it holds while that round is set up (extra() below clears it), at most a minute
+let gastVenue = null;
 function focus(w) {
   if (game) return;
+  if (gastVenue && Date.now() - gastVenue.t < 60000) { zetVenue(gastVenue.item); return; }
+  gastVenue = null;
   const n = nearestOf(venues, w.player.x, w.player.y);
   if (n) zetVenue(n.item);
 }
@@ -782,11 +786,22 @@ registreerWedstrijd('pitchputt', {
   banen: (w) => { focus(w); return HOLES.map((h) => ({ par: h.par })); },
   start: (w) => start(w, { online: 'host' }),
   plek: () => ({ ...STAND }),
-  extra: () => ({ v: venue.id }),
+  extra: () => { gastVenue = null; return { v: venue.id }; },
+  gastPlek: (w, x, y) => { // a guest asks at a stand (#452): the course is the one he stands at, not the one near the host
+    if (game) return false;
+    const n = nearestOf(venues, x, y);
+    if (!n) return false;
+    gastVenue = { item: n.item, t: Date.now() };
+    zetVenue(n.item);
+    const ok = Math.hypot(x - STAND.x, y - STAND.y) < USE_RADIUS + 1.5;
+    if (!ok) gastVenue = null;
+    return ok;
+  },
   eind: (w, res) => { if (game && game.online === 'host') end(w, res ? { uitslag: res } : { quit: true, extern: true }); },
   solo: (w) => start(w),
 });
 zetWedGastHaken('pitchputt', {
+  dichtbij: (w) => nearStand(w),
   start: (w, st) => start(w, { online: 'gast', venueId: st.v, force: true }),
   eind: (w, uit) => { if (game && game.online === 'gast') end(w, uit.gestopt ? { quit: true, extern: true } : { uitslag: uit }); },
   tik: gastTik,

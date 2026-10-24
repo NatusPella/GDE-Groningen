@@ -483,8 +483,9 @@ function gastEind(w, uit) {
   if (uit.gestopt && w.addMessage) w.addMessage('De race is gestopt.', 3);
 }
 
-registreerWedstrijd('kartbaan', { naam: 'Karten in Ulrum', start: startOnline, solo: (w) => start(w) });
-zetWedGastHaken('kartbaan', { start: gastStart, eind: gastEind, tik: gastTik });
+// plek: where a guest is put back; gastPlek: does the host accept a guest's request at this spot (#452, a guest presses E at the stand)
+registreerWedstrijd('kartbaan', { naam: 'Karten in Ulrum', start: startOnline, solo: (w) => start(w), plek: () => ({ ...STAND }), gastPlek: (w, x, y) => !game && Math.hypot(x - STAND.x, y - STAND.y) < USE_RADIUS + 1.5 });
+zetWedGastHaken('kartbaan', { start: gastStart, eind: gastEind, tik: gastTik, dichtbij: (w) => nearStand(w) });
 
 // --- the race ----------------------------------------------------------------------------------------------------
 

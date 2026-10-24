@@ -716,10 +716,12 @@ registreerWedstrijd('discgolf', {
   banen: () => BASE.map((h) => ({ par: h.par })),
   start: (w) => start(w, { online: 'host' }),
   plek: () => ({ ...STAND }),
+  gastPlek: (w, x, y) => !game && Math.hypot(x - STAND.x, y - STAND.y) < USE_RADIUS + 1.5, // a guest asks at the stand (#452)
   eind: (w, res) => { if (game && game.online === 'host') end(w, res ? { uitslag: res } : { quit: true, extern: true }); },
   solo: (w) => start(w),
 });
 zetWedGastHaken('discgolf', {
+  dichtbij: (w) => nearStand(w),
   start: (w) => start(w, { online: 'gast', force: true }),
   eind: (w, uit) => { if (game && game.online === 'gast') end(w, uit.gestopt ? { quit: true, extern: true } : { uitslag: uit }); },
   tik: gastTik,
