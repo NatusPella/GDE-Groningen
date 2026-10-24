@@ -1157,6 +1157,18 @@ function playWhinny(x, y) {
   playNoiseBurst({ duration: 0.25, freq: 500, freqEnd: 180, q: 0.7, gain: 0.18, type: 'lowpass', delay: 1.0, out });
 }
 
+// Aaien (#437): een kat spint (laag, snel pulserend ruisje), een hond piept blij. Alleen bestaande bouwstenen (toon en ruis), geen opname.
+function playAaiGeluid(kind, x, y) {
+  const out = spatialOut(x, y, { ref: 3, rolloff: 1, range: 25 });
+  if (!out) return;
+  if (kind === 'purr') {
+    for (let j = 0; j < 22; j++) playNoiseBurst({ duration: 0.05, freq: 140 + (j % 2) * 30, q: 2, gain: 0.05, type: 'lowpass', delay: j * 0.055, out });
+  } else {
+    playTone({ freq: 700, freqEnd: 1050, type: 'sine', duration: 0.09, gain: 0.07, out });
+    playTone({ freq: 760, freqEnd: 1150, type: 'sine', duration: 0.09, gain: 0.07, delay: 0.14, out });
+  }
+}
+
 function playSplash(x, y) {
   const out = spatialOut(x, y, { ref: 6, rolloff: 1, range: 80 });
   if (!out) return;
@@ -2815,6 +2827,7 @@ function playAudioEvents(world) {
       case 'bullet_hit': playBulletHit(x, y, e.material, clamp(e.strength ?? 0.5, 0, 1)); break;
       case 'coo': case 'flap': case 'bonk': case 'poop': case 'splat': case 'plop': case 'pala': case 'padelglas': case 'padelgaas': playCritterEvent(e.kind, x, y, clamp(e.strength ?? 0.5, 0, 1)); break;
       case 'splash': playSplash(x, y); break;
+      case 'purr': case 'yip': playAaiGeluid(e.kind, x, y); break;   // aaien.js (#437)
       case 'fx': playFx(e.name, x, y, e); break;
       // one carillon-game bell (carillon.js): the tower's bell sample at the right pitch, no gap limit
       case 'bell_note': {

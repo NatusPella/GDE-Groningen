@@ -111,6 +111,16 @@ export function sprongStand(p, o = newStand()) {
   return fill(o, 0.4 + up * 1.3, 0.3, 0.4 + up * 1.3, 0.3, 0.2 + up * 1.5, up * 1.6, 0.1 + up * 1.1, up * 1.2, up * 0.25);
 }
 
+// Aaien: door de knieën, rechterhand strijkt heen en weer, linkerhand steunt. u loopt van 0 tot 1; in- en uitzakken zacht.
+export function aaienStand(u, o = newStand()) {
+  const q = clamp01(Number.isFinite(u) ? u : 0);
+  const env = clamp01(Math.min(q / 0.18, (1 - q) / 0.15));
+  const streel = sin(q * Math.PI * 9) * 0.18 * env;
+  fill(o, 0.9 * env, 0.4 * env, (1.35 + streel) * env, (0.35 + Math.abs(streel)) * env, 0.65 * env, -1.25 * env, 0.65 * env, -1.25 * env, 0.4 * env);
+  o.pelvisDrop = 0.3 * env;
+  return o;
+}
+
 // De houding van de fietser bij een truc, uit de staat van stepWheelie. `armBase` is de armhoek aan het stuur.
 // Geeft in `o` terug: lean (erbij op de romphoek, positief = achterover), armZ (armen naar voren/omhoog)
 // en armX (armen opzij, alleen links negatief en rechts positief toepassen).
