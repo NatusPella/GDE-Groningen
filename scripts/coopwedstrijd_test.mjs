@@ -434,5 +434,25 @@ const BANEN = [{ par: 2 }, { par: 3 }, { par: 2 }, { par: 3 }, { par: 2 }, { par
   check('een start zonder geldige banen is een race-start: de baan van golf ontbreekt dan', !W.leesWed({ k: 'wed', f: 'start', id: 'pitchputt', deeln: [[0, 'a', '']], banen: [1, 9] }).banen);
 }
 
+// ---- discgolf tegen elkaar: dezelfde banen, dezelfde wind en spreiding, zelfde kader als golf
+{
+  const { courseHoles, simulateFlight } = await import('../game/js/discgolfrules.js');
+  const { makeRng } = await import('../game/js/minigamekit.js');
+  const holes = courseHoles();
+  const banen = holes.map((h) => ({ par: h.par }));
+  check('de negen discgolfbanen passen in het kader (par 2 tot 6)', banen.length === 9 && banen.every((b) => b.par >= 2 && b.par <= 6));
+  const st = W.leesWed(W.startEvent('discgolf', MENSEN, 0, { banen: banen.map((b) => b.par) }));
+  check('de start van discgolf wordt gelezen als score-wedstrijd', st && st.banen.length === 9);
+  // dezelfde zaadjes geven bij elke speler dezelfde worp, dus dezelfde uitkomst
+  const worp = (hole) => simulateFlight({ x: holes[hole].tee.x, y: holes[hole].tee.y, yaw: holes[hole].heading, power: 0.8, loft: 0.15, release: 0, disc: 'driver' }, { wind: { speed: 3, dir: 1 }, trees: [], basket: holes[hole].basket, water: () => false, rng: makeRng(443 + hole * 101 + 7919) });
+  const a = worp(2), b = worp(2);
+  check('dezelfde worp met hetzelfde zaadje valt bij iedereen op dezelfde plek', Number.isFinite(a.end.x) && a.end.x === b.end.x && a.end.y === b.end.y && a.path.length === b.path.length);
+  const sc = S.maakScore('discgolf', MENSEN, banen);
+  for (let i = 0; i < 9; i++) { S.meldBaan(sc, 0, i, banen[i].par); S.meldBaan(sc, 1, i, banen[i].par + 1); }
+  S.tikScore(sc, 1);
+  const rijen = S.uitslagScore(sc);
+  check('de uitslag van discgolf: wie minder worpen had wint', sc.fase === 'klaar' && rijen[0].slot === 0 && rijen[0].plek === 1 && rijen[1].plek === 2 && S.beloningScore(rijen[1]).geld === S.PRIJZEN_SCORE[2]);
+}
+
 console.log(bad ? `${bad} van ${n} controles mislukt` : `ok: ${n} controles`);
 process.exit(bad ? 1 : 0);
