@@ -946,6 +946,30 @@
       "steamApiNaam": ""
     },
     {
+      "id": "aaien_5",
+      "titel": "Zachte hand",
+      "omschrijving": "Aai 5 keer een kat of een hond",
+      "verborgen": false,
+      "voorstelApiNaam": "ACH_AAIEN_5",
+      "steamApiNaam": ""
+    },
+    {
+      "id": "aaien_25",
+      "titel": "Poezenpraatje",
+      "omschrijving": "Aai 25 keer een kat of een hond",
+      "verborgen": false,
+      "voorstelApiNaam": "ACH_AAIEN_25",
+      "steamApiNaam": ""
+    },
+    {
+      "id": "aaien_100",
+      "titel": "Knuffelkampioen",
+      "omschrijving": "Aai 100 keer een kat of een hond",
+      "verborgen": false,
+      "voorstelApiNaam": "ACH_AAIEN_100",
+      "steamApiNaam": ""
+    },
+    {
       "id": "streek_geheimen",
       "titel": "Kenner van de streek",
       "omschrijving": "Vind het geheim van elke streek in de provincie",
