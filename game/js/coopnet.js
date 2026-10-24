@@ -30,7 +30,9 @@ import { KLOK_EVERY, klokEvent, leesKlokEvent, KlokVolger } from './net/speelklo
 import { HASH_EVERY, viewOf, hashEvent, leesHashEvent, DesyncMonitor } from './net/desync.js';
 import { PING_TOETSEN, PING_TEKST, pingPlek, pingMarkers, pingRegel } from './coopping.js';
 import { spelersRijen, wegMelding } from './coopspelers.js';
-import { maakMeedoen, opdrachtSleutel, begin as meedoenBegin, einde as meedoenEinde, antwoord as meedoenAntwoord, tik as meedoenTik, loopVrij, krijgtDeel, maakUitnodiging, uitnodigingTekst, laat as meedoenLaat } from './coopmeedoen.js';
+import { maakMeedoen, opdrachtSleutel, begin as meedoenBegin, einde as meedoenEinde, antwoord as meedoenAntwoord, tik as meedoenTik, loopVrij, krijgtDeel, maakUitnodiging, uitnodigingTekst, laat as meedoenLaat, bevestig as meedoenBevestig, meespelers } from './coopmeedoen.js';
+import { stapVanMissie, geldigeStap, uitslagTekst } from './coopverhaal.js';
+import { gastVerhaalStatus, gastVerhaalSchrijf, gastVerhaalHerlaad } from './savehook.js';
 import { zetBezig, bezigVanEvent, leesBezigVan, bezigId } from './coopbezig.js';
 import { WEER_EVERY, weerEvent, leesWeerEvent, pasWeerToe } from './coopweer.js';
 import { loopbaanGast, GAST_XP_DEEL } from './loopbaanlive.js';
@@ -167,7 +169,7 @@ function endCoop(world) {
   if (world.coop) { delete world.coop.leash; }
   if (world.coop) { world.coop.remote = false; world.coop.remoteInput = null; world.coop.fixedChars = false; if (world.coop.prevLocal !== undefined) { world.coop.local = world.coop.prevLocal; world.coop.prevLocal = undefined; } }
   world.coopPartner = null; world.coopPartners = []; world.coopRoster = null; world.coopFigures = {}; world.coopHost = null; world.coopExtra = null; world.coopHostMissie = null; world.coopCam = null; world.coopScene = null;
-  world.coopVrijLopen = false; world.coopUitnodiging = null; world.coopMeedoenNee = false; // (#429)
+  world.coopVrijLopen = false; world.coopUitnodiging = null; world.coopMeedoenNee = false; world.coopMeedoenJa = null; // (#429)
   world.coopFoci = null; world.coopFociInfo = null; // spelers uit elkaar (#429)
   world.coopBezigVan = {}; world.coopHudWanted = 0; // wie bezig is en de sterren in het scherm van de host (#429, #434)
   world.coopWanted = null; world.coopHeat = null; world.coopDoelwit = 0; world.coopWantedMeld = null; world.coopGepakt = null; world.coopStil = false; // (#434)
@@ -548,7 +550,10 @@ export function bijGroepHost(world, slot) {
 // De opdracht van de gastheer is gelukt of mislukt: elke gast leest het (en bij gelukt wat zijn deel was), zodat niemand raadt (#371)
 export function uitslagMelden(world, ok, label, reden = '', loon = 0, gestopt = false) {
   const n = world.coopNet; if (!n || n.role !== 'host') return false;
-  return n.hub.announce({ k: 'uitslag', ok: !!ok, ...(gestopt ? { gestopt: true } : null), label: String(label || '').slice(0, 60), reden: String(reden || '').slice(0, 60), deel: ok ? Math.floor(Math.max(0, Number(loon) || 0) * GAST_DEEL) : 0 });
+  const r = n.hub.announce({ k: 'uitslag', ok: !!ok, ...(gestopt ? { gestopt: true } : null), label: String(label || '').slice(0, 60), reden: String(reden || '').slice(0, 60), deel: ok ? Math.floor(Math.max(0, Number(loon) || 0) * GAST_DEEL) : 0 });
+  // een gelukte verhaalopdracht telt ook in het eigen verhaal van wie hem meespeelde (#429): alleen wie ja zei, niet wie nee zei of niet werd gevraagd
+  if (ok && !gestopt && n.meedoen && n.meedoen.stap) for (const slot of meespelers(n.meedoen)) if (slot >= 1) n.hub.announce({ k: 'verhaalstap', stap: n.meedoen.stap, label: String(label || '').slice(0, 60) }, slot);
+  return r;
 }
 
 // Een nieuwe opdracht van de gastheer: elke gast krijgt "Meedoen?" (#429). Verplicht waar de stap de gast-hoofdrol nodig heeft
@@ -559,13 +564,14 @@ function nodigUit(world, n, huidig) {
   if (!sl) { meedoenEinde(n.meedoen); return; }
   const regel = world.coopStapRegel ? world.coopStapRegel() : null;
   const slots = n.hub.roster.spelers.filter((s) => s.slot !== 0 && s.verbinding !== 'lost').map((s) => s.slot);
-  for (const u of meedoenBegin(n.meedoen, sl, slots, regel)) n.hub.announce({ k: 'meedoen', label: String(huidig.label || '').slice(0, 80), verplicht: u.verplicht, sec: u.sec }, u.slot);
+  const stap = stapVanMissie(huidig.index); // een verhaalopdracht: de gast ziet of hij hem al deed of dat zijn verhaal meespringt (#429)
+  for (const u of meedoenBegin(n.meedoen, sl, slots, regel, stap)) n.hub.announce({ k: 'meedoen', label: String(huidig.label || '').slice(0, 80), verplicht: u.verplicht, sec: u.sec, ...(stap ? { stap } : null) }, u.slot);
 }
 // Een gast die laat aansluit terwijl een opdracht loopt krijgt dezelfde uitnodiging als wie erbij was, na de melding wat er speelt (#429).
 function nodigLaatUit(world, slot) {
   const n = world.coopNet, m = n && n.missie; if (!m || !n.meedoen || !n.meedoen.opdracht) return false;
   const u = meedoenLaat(n.meedoen, slot, world.coopStapRegel ? world.coopStapRegel() : null); if (!u) return false;
-  return n.hub.announce({ k: 'meedoen', label: String(m.label || '').slice(0, 80), verplicht: u.verplicht, sec: u.sec }, slot);
+  return n.hub.announce({ k: 'meedoen', label: String(m.label || '').slice(0, 80), verplicht: u.verplicht, sec: u.sec, ...(n.meedoen.stap ? { stap: n.meedoen.stap } : null) }, slot);
 }
 // Wie hengelt, pannenkoeken bakt of de beiaard speelt: bewaar het per plek en geef het door aan de andere gasten (#429).
 function bezigMelden(world, n, slot, a) {
@@ -579,7 +585,7 @@ function bezigWeg(world, slot) { const n = world.coopNet; if (n && n.role === 'h
 // De gast antwoordt op de uitnodiging (J of N): een bericht naar de gastheer.
 export function gastMeedoen(world, ja) {
   const n = world.coopNet, u = world.coopUitnodiging; if (!n || n.role !== 'client' || !n.joined || !u || u.verplicht) return false;
-  world.coopUitnodiging = null; world.coopMeedoenNee = !ja;
+  world.coopUitnodiging = null; world.coopMeedoenNee = !ja; world.coopMeedoenJa = ja && u.stap ? u.stap : null;
   if (world.addMessage) world.addMessage(ja ? 'Je doet mee.' : 'Je doet niet mee: je loopt vrij rond. Beloning en voortgang van deze opdracht zijn niet voor jou.', 4);
   return n.session.sendEvent({ k: 'meedoenantwoord', ja: !!ja });
 }
@@ -626,7 +632,7 @@ export function tickCoopNet(world, dt) {
     s.tick(dt);
     n.lokaal += dt;
     const uit = world.coopUitnodiging; // Meedoen met deze opdracht? J of N; zonder antwoord doet de gast mee (#429)
-    if (uit) { uit.rest -= dt; if (uit.rest <= 0) world.coopUitnodiging = null; else if (world.coopWisselUi && world.coopWisselUi.vraag) world.coopUitnodiging = null; /* een vraag om het spel over te nemen gaat voor: J en N zijn van die vraag (je doet dan mee) */ else if (inp && inp.wasPressed) { if (inp.wasPressed('j')) gastMeedoen(world, true); else if (inp.wasPressed('n')) gastMeedoen(world, false); } }
+    if (uit) { uit.rest -= dt; if (uit.rest <= 0) { if (uit.status === 'vooruit') gastMeedoen(world, false); else world.coopUitnodiging = null; /* een spoilerwaarschuwing zonder antwoord is nee */ } else if (world.coopWisselUi && world.coopWisselUi.vraag) world.coopUitnodiging = null; /* een vraag om het spel over te nemen gaat voor: J en N zijn van die vraag (je doet dan mee) */ else if (inp && inp.wasPressed) { if (inp.wasPressed('j')) gastMeedoen(world, true); else if (inp.wasPressed('n')) gastMeedoen(world, false); } }
     // de gedeelde speelklok: de tijd van de dag volgt de host (net/speelklok.js)
     if (n.klok.last && Number.isFinite(world.clock)) world.clock = n.klok.step(world.clock, dt, n.lokaal);
     if (s.joined && !n.fixed) { // eerst weten we welke plek en figuur we hebben
@@ -720,10 +726,27 @@ export function handleEvent(world, body, van = 0) {
     }
     case 'meedoen': { // de gastheer begint een opdracht: wil je meedoen? (#429)
       if (!n || n.role !== 'client') return false;
-      const u = maakUitnodiging(body); if (!u) return false;
-      world.coopUitnodiging = u.verplicht ? null : u; world.coopMeedoenNee = false;
-      if (world.addMessage) world.addMessage(uitnodigingTekst(u, openerNaam(world.coopRoster, true)), u.verplicht ? 5 : Math.min(10, u.rest));
+      const u = maakUitnodiging(body, geldigeStap(body.stap) ? gastVerhaalStatus(world, body.stap) : null); if (!u) return false;
+      world.coopUitnodiging = u.verplicht ? null : u; world.coopMeedoenNee = false; world.coopMeedoenJa = null;
+      if (world.addMessage) world.addMessage(uitnodigingTekst(u, openerNaam(world.coopRoster, true)), u.verplicht ? 5 : Math.min(u.status === 'vooruit' ? 30 : 10, u.rest));
+      if (u.status === 'vooruit' && !u.verplicht && n.session) n.session.sendEvent({ k: 'meedoenwacht' }); // geen standaard-ja bij een spoilerwaarschuwing
       return true;
+    }
+    case 'meedoenwacht': { // de gast moet een spoilerwaarschuwing bevestigen (alleen de host luistert)
+      if (!n || n.role !== 'host' || van < 1) return false;
+      return meedoenBevestig(n.meedoen, van);
+    }
+    case 'verhaalstap': { // de opdracht is gelukt en jij speelde mee: de verhaalstap komt in je eigen opgeslagen spel (#429)
+      if (!n || n.role !== 'client' || world.coopMeedoenNee) return false;
+      const stap = geldigeStap(body.stap); if (!stap) return false;
+      const was = gastVerhaalStatus(world, stap);
+      if (was === 'vooruit' && world.coopMeedoenJa !== stap) return false; // zonder je J springt je verhaal niet mee
+      const r = was === 'gedaan' ? null : gastVerhaalSchrijf(world, stap);
+      const label = typeof body.label === 'string' ? body.label.slice(0, 60) : stap;
+      const tekst = r ? uitslagTekst(r.status, label, r.overgeslagen, r.bonus) : was === 'gedaan' ? uitslagTekst('gedaan', label) : '';
+      if (tekst && world.addMessage) world.addMessage(tekst.slice(0, 200), 6);
+      world.coopMeedoenJa = null;
+      return !!r;
     }
     case 'meedoenantwoord': { // de gast kiest (alleen de host luistert)
       if (!n || n.role !== 'host' || van < 1) return false;
@@ -945,6 +968,7 @@ export function stopCoopNet(world) {
   if (world.coopCutBezig != null) cutGastStop(world, null, true); // een scène van de gastheer stopt met het samen spelen
   if (n.role === 'host') { try { n.hub.announce({ k: 'weg', reden: 'spel gestopt' }); n.hub.closeAll(); } catch (e) { /* al weg */ } } else { try { if (n.session.status !== 'geweigerd' && n.session.status !== 'verbroken') n.session.leave(); } catch (e) { /* al weg */ } }
   world.coopNet = null;
+  if (n.role === 'client') gastVerhaalHerlaad(world); // een meegesprongen verhaal staat ook in het lopende spel, anders overschrijft de volgende save het (#429)
   if (n.role === 'client' && n.stash) {
     const s = n.stash, p = world.player;
     p.x = s.x; p.y = s.y; p.angle = s.angle; if (p.vx !== undefined) { p.vx = 0; p.vy = 0; }
