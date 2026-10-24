@@ -12,7 +12,7 @@ import { syncVehicleDoors } from './vehicledoors3d.js';
 import { standVers, MISC_DEUREN, leesDeuren } from './coopextra.js';
 import { WATER_Y } from './util.js';
 import { surfaceLiftAt } from './waterlevels.js';
-import { gladBoot, eigenBoot } from './coopboot.js';
+import { gladBoot, kiesEigenBoot, deiningBoot, bootBlijft } from './coopboot.js';
 import { ruimMeshOp } from './coopruim.js';
 import { syncZitters, clearZitters } from './coopzitten3d.js';
 
@@ -123,12 +123,10 @@ function animeerVoertuig(m, spec, v, klok, dt, deuren, vast = false) {
       ud.busAchter = (ud.busAchter ?? v.angle) + d * k;
       setBusRearAngle(m, v.angle, ud.busAchter);
     }
-    if (spec.isBoat && !vast) { // een boot ligt niet stil op het water: een rustige deining, in de maat van de host (niet op de boot waar de gast zelf op zit, #436)
+    if (spec.isBoat && !vast) { // een boot ligt niet stil op het water; een lange romp deint nauwelijks (coopboot.js). Niet op de boot waar de gast zelf op zit (#436)
       m.rotation.order = 'YXZ';
-      const t = klok * 1.3 + spec.id * 1.7;
-      m.rotation.z = Math.sin(t) * 0.012 * Math.min(1, 3.2 / spec.model.len + 0.2);
-      m.rotation.x = Math.sin(t * 0.8 + 1) * 0.01;
-      m.position.y += Math.sin(t * 0.9) * 0.025;
+      const d = deiningBoot(spec.model.len, klok, spec.id);
+      m.rotation.z = d.roll; m.rotation.x = d.pitch; m.position.y += d.heave;
     }
   } catch (e) { /* een onderdeel dat niet past, laat de rest gewoon staan */ }
 }
@@ -158,6 +156,7 @@ export function syncHostEntities(world, dt = 1 / 60) {
   const stand = world.coopExtra, md = stand && standVers(stand, world.time) ? stand.misc.get(MISC_DEUREN) : null;
   const deuren = md ? (md.kaart || (md.kaart = leesDeuren(md.data) || new Map())) : null;
   const sirenes = [];
+  const eigenId = kiesEigenBoot(world.coopBoot, host.voertuigen, world.player); // de boot waar deze gast zelf op zit
   deurenOpen = 0;
   for (const v of host.voertuigen) {
     seen.add(v.id);
@@ -172,7 +171,7 @@ export function syncHostEntities(world, dt = 1 / 60) {
       const spec = v.look ? uiterlijkSpec(v.look) : null;
       if (!spec) { // het uiterlijk is nog onderweg (hoogstens een paar snapshots): even wachten, daarna een gok op het id
         const sinds = wacht.get(v.id) ?? (wacht.set(v.id, klok), klok);
-        if (klok - sinds < 1.2) continue;
+        if (klok - sinds < (v.soort === 'boot' ? 0.5 : 1.2)) continue; // een boot valt eerder op: die wacht korter (#434)
       }
       m = spec ? echtMeshVanLook(spec) : null;
       if (m) { const u = m.userData; u.lookSleutel = sleutel; u.dentSleutel = dentSleutel(v.look); u.dentLijst = v.look.dents.map((d) => d.slice()); u.spec = spec; u.gok = false; }
@@ -183,15 +182,18 @@ export function syncHostEntities(world, dt = 1 / 60) {
     let y = v.hoogteZ || gz;
     const spec = m.userData.spec;
     let px = v.x, py = v.y, hoek = v.angle;
-    const vast = !!(spec && spec.isBoat && eigenBoot(world.coopBoot, v.x, v.y)); // de boot waar deze gast zelf op zit
+    const vast = !!(spec && spec.isBoat && eigenId != null && v.id === eigenId); // de boot waar deze gast zelf op zit
     if (spec && spec.isBoat) { // een boot beweegt glad (coopboot.js): geen sprongen en geen slingerende koers (#434)
-      if (vast) gladStand.delete(v.id); // precies waar de host hem heeft: de camera van de gast staat op de stoel uit dezelfde snapshot
-      else {
+      if (vast) { // precies waar de host hem heeft: de camera van de gast staat op de stoel uit dezelfde snapshot
+        gladStand.delete(v.id);
+        m.rotation.x = 0; m.rotation.z = 0; // geen deining die de pose van de host overschrijft (#436)
+      } else {
         const st = gladStand.get(v.id) || (gladStand.set(v.id, {}), gladStand.get(v.id)); // per id, niet per model: een nieuwe mesh (het uiterlijk komt binnen) mag niet springen
-        const g = gladBoot(st, v.x, v.y, v.angle, v.snelheid, dt);
+        const g = gladBoot(st, v.x, v.y, v.angle, v.snelheid, dt, spec.model.len);
         px = g.x; py = g.y; hoek = g.angle;
       }
       let lift = 0; try { lift = world.map ? surfaceLiftAt(world.map, px, py) : 0; } catch (e) { lift = 0; } y = WATER_Y + (Number.isFinite(lift) ? lift : 0);
+      m.userData.bootStaat = { x: px, y: py, hoek, snelheid: Number(v.snelheid) || 0, gezien: klok }; // voor een schip dat de snapshot verlaat
     }
     m.position.set(px, y, py); m.rotation.y = -hoek;
     if (!m.userData.blok) animeerVoertuig(m, spec, v, klok, dt, deuren, vast);
@@ -216,8 +218,23 @@ export function syncHostEntities(world, dt = 1 / 60) {
     for (const [id, m] of voertuigen) if (m.userData.spec && m.userData.spec.isBoat) pos[id] = [+m.position.x.toFixed(1), +m.position.y.toFixed(2), +m.position.z.toFixed(1), +m.rotation.y.toFixed(2), +m.rotation.x.toFixed(3)];
     world.coopHostPos = pos;
   }
-  for (const [id, m] of voertuigen) if (!seen.has(id)) { ruimVoertuig(scene, m); voertuigen.delete(id); }
-  for (const id of gladStand.keys()) if (!seen.has(id)) gladStand.delete(id);
+  for (const [id, m] of voertuigen) {
+    if (seen.has(id)) continue;
+    const spec = m.userData.spec, s = m.userData.bootStaat;
+    // een groot schip vaart buiten de snapshot nog even op zijn laatste koers door: het is van verre te zien en zou anders
+    // met een harde sprong uit beeld verdwijnen (LOD, #434). Een kleine boot gaat meteen weg.
+    if (spec && spec.isBoat && s && bootBlijft(spec.model.len, klok - s.gezien, s.snelheid)) {
+      if (Math.abs(s.snelheid) > 1e-3) {
+        s.x += Math.cos(s.hoek) * s.snelheid * dt; s.y += Math.sin(s.hoek) * s.snelheid * dt;
+        const st = gladStand.get(id); if (st) { st.x = s.x; st.y = s.y; st.a = s.hoek; } // weer in beeld: hier loopt hij verder
+      }
+      let lift = 0; try { lift = world.map ? surfaceLiftAt(world.map, s.x, s.y) : 0; } catch (e) { lift = 0; }
+      m.position.set(s.x, WATER_Y + (Number.isFinite(lift) ? lift : 0), s.y); m.rotation.y = -s.hoek;
+      continue;
+    }
+    ruimVoertuig(scene, m); voertuigen.delete(id);
+  }
+  for (const id of gladStand.keys()) if (!voertuigen.has(id)) gladStand.delete(id);
   for (const id of wacht.keys()) if (!seen.has(id)) wacht.delete(id);
   // de voetgangers (uiterlijk, lopen, praten) tekent coopextra3d.js (#428), samen met dieren, verkeerslichten en kapotte objecten
   let echt = 0; for (const m of voertuigen.values()) if (!m.userData.blok) echt++;
