@@ -107,8 +107,22 @@ export function buyLabel(it, shopType, armed = false) {
 
 // Tabs of a shop: one per section, plus "Alles" at the end when there are two or more.
 // Sections without items have no tab. [{ id, label, count, owned }]
-export function shopTabs(sections) {
+// De afdeling met de wapens staat vooraan (#437): de eigenaar zocht het tabblad Wapens achteraan de lijst. Een
+// verhaalafdeling (storyshop.js) blijft eerste, want die zegt wat je voor je missie nodig hebt. Beide functies gebruiken
+// dezelfde volgorde, zodat de tab-id's bij de juiste afdeling blijven horen.
+const WAPENS = /^wapens\b/i;
+function echteSecties(sections) {
   const real = sections.filter((s) => s.items && s.items.length);
+  const i = real.findIndex((s) => !s.story && WAPENS.test(String(s.title || '').trim()));
+  if (i < 1) return real;
+  const uit = real.slice();
+  const [wapens] = uit.splice(i, 1);
+  const kop = uit.findIndex((s) => !s.story); // de eerste eigen afdeling, na een verhaalafdeling
+  uit.splice(Math.max(0, kop), 0, wapens);
+  return uit;
+}
+export function shopTabs(sections) {
+  const real = echteSecties(sections);
   if (real.length < 2) return [];
   const tabs = real.map((s, i) => ({ id: 's' + i, label: s.title, count: s.items.length, owned: s.items.filter((it) => itemStatus(it, 0).id === 'heb').length }));
   return [...tabs, { id: 'alles', label: 'Alles', count: tabs.reduce((n, t) => n + t.count, 0), owned: tabs.reduce((n, t) => n + t.owned, 0) }];
@@ -116,7 +130,7 @@ export function shopTabs(sections) {
 
 // The sections a tab shows (the tab id as shopTabs made it).
 export function tabSections(sections, tab) {
-  const real = sections.filter((s) => s.items && s.items.length);
+  const real = echteSecties(sections);
   if (!tab || tab === 'alles') return real;
   const i = Number(String(tab).slice(1));
   return real[i] ? [real[i]] : real;

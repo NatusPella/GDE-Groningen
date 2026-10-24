@@ -153,6 +153,23 @@ export function startVak(profiel, vak) {
 // Zijn alle loopbanen van een verhaalstap al begonnen? Dan telt die stap zijn loopbanen als gedaan (#431).
 export const loopbanenGestart = (profiel, lijst) => (Array.isArray(lijst) ? lijst : []).every((v) => isGestart(profiel, v));
 
+// Wat een niveau in een vak aan een nieuwe handeling geeft (#437): een niveau omhoog is niet alleen een titel en wat meer
+// loon, er komt iets te doen bij. Het Loopbanen-scherm laat de hoogste vaardigheid zien, zodat een kaartje niet het enige
+// is wat je van een niveau merkt; de handeling zelf zit in het spel (kaartjescontrole.js bij Spoor). Een vaardigheid geldt
+// vanaf zijn niveau en blijft daarna.
+export const VAARDIGHEDEN = {
+  trein: [
+    { niveau: 2, titel: 'Vaste reiziger', wat: 'Korting op je treinkaartje: hoe hoger je niveau in het spoor, hoe goedkoper je reist.' },
+    { niveau: 3, titel: 'Kaartjesknipper', wat: 'Op het perron van elk station: loop naar een reiziger en druk E. Een paar reizigers achter elkaar is een ronde die uitbetaalt en punten geeft; per station hooguit één ronde per kwartier.' },
+  ],
+};
+// De hoogste vaardigheid die dit niveau al gaf, of null als er bij dit vak niets bij komt.
+export function vaardigheidVan(vak, niveau) {
+  let uit = null;
+  for (const v of VAARDIGHEDEN[vak] || []) if (v.niveau <= niveau) uit = v;
+  return uit;
+}
+
 // Welke uitdaging van de nagame (postgame.js) bij welk vak hoort.
 const UITDAGING_VAK = { bruggen: 'race', skutsje: 'water', fierljep: 'buiten', koe: 'buiten', fjord: 'horeca' };
 export const vakVanUitdaging = (id) => UITDAGING_VAK[id] || 'buiten';
