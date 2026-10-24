@@ -23,6 +23,9 @@ nieuwe functies, `y` voor alleen bugfixes.
 - Samen spelen: een gast die in een stilliggende boot zit (als bestuurder of bijrijder) kan vanaf het water hengelen, net als wie het spel opende.
 - Samen spelen: het geluid bij een gast klinkt zoals bij wie het spel opende. In een dichte auto of bus dempt de cabine het gemurmel van de menigte, de wind en het verkeer ook bij de gast, en de menigte bij de gast is die van wie het spel opende.
 - Samen spelen: alleen wie het spel opende bepaalt of een filmpje of verhaalstap voor iedereen wordt overgeslagen. Een gast kan zijn eigen weergave van een filmpje wel overslaan (Spatie vasthouden), de scène loopt bij de ander door. O doet bij een gast niets en geeft een melding.
+### Opgelost
+- Grote Markt (#327): het vijvertje op het plein ligt weer op straatniveau in plaats van als put op het niveau van de gracht, zodat er geen gat of water meer is waar een auto in verdwijnt. Een kleine vijver naast een weg of onder een brug blijft zoals hij was.
+- Samen spelen (#433): een dier dat een gast ziet, wordt nooit groter dan zijn eigen bouw, en een dier van een onbekende soort wordt niet getekend.
 
 ## [0.47.0] - 2026-10-24
 

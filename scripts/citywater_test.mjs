@@ -54,5 +54,29 @@ const ditch = () => poly(rect(80, 300, 600, 306), 'Eerste sloot');
   ok(rows[0].lv === BOEZEM_Y, 'the boezem keeps its level', rows[0].lv);
   ok(rows[2].lv === BOEZEM_Y, 'a larger pond keeps the canal level', `${rows[2].kind} ${rows[2].lv}`);
 }
+{
+  // een poel bij een weg of onder een brug (#327): de weg en het brugdek rekenen op het peil van de gracht, dus de poel
+  // blijft daar zoals hij was; een poel ver van elke weg komt op straatniveau; een voetpad telt alleen als brug
+  const mk = (x0) => poly(rect(x0, 1000, x0 + 12, 1010));
+  const road = (pts, o = {}) => ({ pts, cat: 'normal', bridge: false, ...o });
+  const roads = [
+    road([[1000, 995], [1050, 995]]),                         // 5 m langs de poel
+    road([[2000, 900], [2000, 1100]], { cat: 'foot', bridge: true }), // een voetbrug over de poel
+    road([[3000, 900], [3000, 1100]], { cat: 'foot' }),       // een voetpad: geen reden
+    road([[4022, 900], [4022, 1100]]),                        // 10 m naast de poel
+    road([[5100, 900], [5100, 1100]]),                        // 90 m ver
+  ];
+  const rows = [basin(), mk(1000), mk(2000), mk(3000), mk(4000), mk(5000)];
+  annotateCityWater(rows, { roads });
+  const lv = (i) => rows[i].lv;
+  ok(lv(1) === BOEZEM_Y, 'a pond beside a road keeps the canal level', lv(1));
+  ok(lv(2) === BOEZEM_Y, 'a pond under a foot bridge keeps the canal level', lv(2));
+  ok(lv(3) > -1, 'a pond with only a foot path beside it lies at street level', lv(3));
+  ok(lv(4) === BOEZEM_Y, 'a pond 10 m from a road keeps the canal level', lv(4));
+  ok(lv(5) > -1, 'a pond far from every road lies at street level', lv(5));
+  const rows2 = [basin(), mk(1000)];
+  annotateCityWater(rows2);
+  ok(rows2[1].lv > -1, 'without road data the pond lies at street level as before', rows2[1].lv);
+}
 console.log(`citywater_test: ${n} checks, ${fails} failed`);
 process.exit(fails ? 1 : 0);
