@@ -1,7 +1,7 @@
 import { clamp } from './util.js';
 import { FLAGS } from './devflags.js';
 import { getSettings, onSettingsChange } from './settings.js';
-import { isThemeActive } from './theme.js';
+import { isThemeActive, refreshThemeVolume } from './theme.js';
 import { vehicleContacts } from './vehicle.js';
 import { gearboxReadout } from './gearbox.js';
 import { createBank, buildImpulse, variantsOf, bufferNames } from './sfx/dsp.js';
@@ -23,6 +23,7 @@ import { rammelInterval } from './studentenfiets.js';
 import { KEYS } from './storagekeys.js';
 import { noteSound } from './soundcaptions.js';
 import { stingNoten, stingDuur, createStingGate } from './stings.js';
+import { GMUSIC_VOLUME, masterGain, musicVolume, musicBusGain, volumeValue } from './sfx/volume.js';
 
 // the camera comes from main.js (setAudioCamera): audio.js does not import scene3d.js (#108)
 let getCamera = () => null;
@@ -30,7 +31,6 @@ export function setAudioCamera(fn) { getCamera = fn; }
 
 if (typeof window !== 'undefined') window.__speech = speech;
 
-const MASTER_VOLUME = 0.55;
 const MAX_DISTANCE = 120;
 const SOURCE_HEIGHT = 1;
 const SPEED_OF_SOUND = 343;
@@ -40,7 +40,6 @@ const SIREN_VOICES = 3;
 const SPEECH_RANGE = 45;
 const HRTF_NEAR = 14;
 const GMUSIC_MANIFEST_URL = './audio/gmusic/manifest.json';
-const GMUSIC_VOLUME = 0.85;
 const GMUSIC_DUCK_VOLUME = 0.5;
 // Instrumental loops that replace G-Music while something big happens
 // (scenariomusic.js decides which); not part of the radio rotation.
@@ -236,14 +235,15 @@ function nowSec() {
   return performance.now() / 1000;
 }
 
+// The whole output, from the saved master volume (sfx/volume.js). Mute is
+// applied by the callers, so the watchdog can tell "quiet" from "muted".
 function masterLevel() {
-  return MASTER_VOLUME * getSettings().masterVolume * (menuAudio ? MENU_LEVEL : 1);
+  return masterGain(getSettings(), { menu: menuAudio });
 }
 
 // Title screen: the city itself at a lower level and no music; the theme song
 // waits for Doorgaan / Nieuw spel (theme.js). Leaving re-primes the change
 // detectors so loading a save doesn't chime its money and armour.
-const MENU_LEVEL = 0.55;
 let menuAudio = false;
 export function setMenuAudio(on) {
   if (menuAudio === !!on) return;
@@ -254,10 +254,14 @@ export function setMenuAudio(on) {
 
 onSettingsChange((st) => {
   if (!ctx) return;
-  if (master && !muted) master.gain.setTargetAtTime(masterLevel(), ctx.currentTime, 0.05);
-  if (musicOut && !muted) musicOut.gain.setTargetAtTime(masterLevel(), ctx.currentTime, 0.05);
-  if (worldBus) worldBus.gain.setTargetAtTime(st.sfxVolume, ctx.currentTime, 0.05);
-  if (voiceBus) voiceBus.gain.setTargetAtTime(st.voiceVolume, ctx.currentTime, 0.05);
+  const t = ctx.currentTime;
+  if (master && !muted) master.gain.setTargetAtTime(masterLevel(), t, 0.05);
+  if (musicOut && !muted) musicOut.gain.setTargetAtTime(masterLevel(), t, 0.05);
+  if (worldBus) worldBus.gain.setTargetAtTime(volumeValue(st.sfxVolume, 0.75), t, 0.05);
+  if (voiceBus) voiceBus.gain.setTargetAtTime(volumeValue(st.voiceVolume), t, 0.05);
+  // the music slider lands at once, also while no game runs (title screen) or
+  // the theme song owns the music and updateGMusic does not touch the bus
+  if (musicBus) musicBus.gain.setTargetAtTime(musicBusGain(st, musicState.gain) * stingDuckMul(0), t, 0.05);
 });
 
 export function isMuted() {
@@ -1686,7 +1690,7 @@ let stingNode = null;
 const stingDuck = { until: 0, level: 0 };
 function playSting(name, world) {
   if (!ctx || muted || !stingBus || storyScene || menuAudio || (world && (world.paused || world.menuMuffle))) return;
-  const sfx = getSettings().sfxVolume;
+  const sfx = volumeValue(getSettings().sfxVolume, 0.75);
   if (Number.isFinite(sfx) && sfx < 0.01) return;
   const t = ctx.currentTime;
   const r = stingGate.request(name, t);
@@ -2117,7 +2121,7 @@ function buildGraph() {
   clip.connect(meter);
 
   worldBus = ctx.createGain();
-  worldBus.gain.value = getSettings().sfxVolume;
+  worldBus.gain.value = volumeValue(getSettings().sfxVolume, 0.75);
   worldBus.connect(master);
   // the city behind the unfolded phone (pause menu) sounds muffled; the menu's own clicks do not
   worldIn = ctx.createBiquadFilter();
@@ -2128,7 +2132,7 @@ function buildGraph() {
 
   // spoken lines skip the effects slider but share the master soft-clip
   voiceBus = ctx.createGain();
-  voiceBus.gain.value = getSettings().voiceVolume;
+  voiceBus.gain.value = volumeValue(getSettings().voiceVolume);
   voiceBus.connect(master);
 
   sfxBus = ctx.createGain();
@@ -2151,7 +2155,9 @@ function buildGraph() {
   musicLp.frequency.value = 20000;
   musicOut.connect(musicLp).connect(output());
   musicBus = ctx.createGain();
-  musicBus.gain.value = GMUSIC_VOLUME;
+  // from the saved music slider, not just the bare base level: the very first
+  // record already plays at the volume the player chose (#461)
+  musicBus.gain.value = musicBusGain(getSettings(), musicState.gain);
   musicBus.connect(musicOut);
 
   trafficBus = ctx.createGain();
@@ -3243,9 +3249,9 @@ function stopBikeSpeaker(voice) {
 
 function updateBikeSpeakers(dt, world) {
   const B = bikeSpeakers;
-  const mv = getSettings().musicVolume;
+  const mv = musicVolume(getSettings());
   // aan als er muziek te horen is: niet in een menu, de telefoon of een filmpje (muziekbus op 0), niet gedempt, volume niet op nul
-  const on = !menuAudio && !muted && !world.paused && gmusicTracks.length > 0 && musicState.gain > 0.05 && !(Number.isFinite(mv) && mv < 0.01);
+  const on = !menuAudio && !muted && !world.paused && gmusicTracks.length > 0 && musicState.gain > 0.05 && mv >= 0.01;
   B.t -= dt;
   if (B.t <= 0) {
     B.t = 0.25;
@@ -3423,8 +3429,7 @@ function updateGMusic(dt, world) {
   const lerpRate = scene ? dt * 1.8 : gmusicFadingIn || gmusicHeld ? dt * 0.8 : dt * (ducked ? 1.5 : 0.8);
   musicState.gain += (targetGain - musicState.gain) * Math.min(1, lerpRate);
   if (!Number.isFinite(musicState.gain)) musicState.gain = targetGain;
-  const mv = getSettings().musicVolume;
-  musicBus.gain.value = musicState.gain * (Number.isFinite(mv) ? mv : 1) * stingDuckMul(dt);
+  musicBus.gain.value = musicBusGain(getSettings(), musicState.gain) * stingDuckMul(dt);
   if (gmusicFadingIn && Math.abs(targetGain - musicState.gain) < 0.02) gmusicFadingIn = false;
   if (scene && !gmusicHeld && musicState.gain < 0.02) {
     gmusicHeld = true;
@@ -3506,7 +3511,7 @@ function updateScenarioMusic(dt, world) {
     else if (scenarioBuffers[want].buf) { stopScenarioTrack(); startScenarioTrack(want); }
     else if (scenarioBuffers[want].failed) want = null;
   }
-  if (scenarioVol) scenarioVol.gain.value = SCENARIO_VOLUME * getSettings().musicVolume * (1 - 0.45 * stingDuck.level);
+  if (scenarioVol) scenarioVol.gain.value = SCENARIO_VOLUME * musicVolume(getSettings()) * (1 - 0.45 * stingDuck.level);
   return want && scenarioBuffers[want] && !scenarioBuffers[want].failed ? want : null;
 }
 
@@ -3529,6 +3534,7 @@ export function updateAudio(dt, world) {
     muted = !muted;
     saveMuted();
     applyOutputGains(0.05);
+    refreshThemeVolume(); // the theme song is its own media element: mute it now, not 250 ms later
     world.addMessage(muted ? 'Geluid uit. Druk op U voor geluid.' : 'Geluid aan', 2.5, { key: 'mute' });
   }
 

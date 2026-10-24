@@ -1,6 +1,7 @@
 import { getSettings, onSettingsChange } from './settings.js';
 import { KEYS } from './storagekeys.js';
 import { FLAGS } from './devflags.js';
+import { themeGain } from './sfx/volume.js';
 
 // The GDE theme song: silent on the title screen (that one sounds like the
 // city, audio.js setMenuAudio), starts with Doorgaan / Nieuw spel, plays once
@@ -9,7 +10,6 @@ import { FLAGS } from './devflags.js';
 // for the real start (stopTheme).
 
 const SRC = './audio/theme/miles_past_the_city_square.mp3';
-const BASE_VOLUME = 0.55 * 0.85; // same level as G-Music: master 0.55 x music 0.85
 const MUTE_STORAGE_KEY = KEYS.muted;
 const SILENT_MODE = FLAGS.stil;
 
@@ -28,9 +28,16 @@ export function setThemeDuck(on) {
   if (el && state === 'playing') el.volume = targetVolume();
 }
 
+// The element's volume comes from the same place as the mix (sfx/volume.js):
+// master 0.55 x music 0.85, then the saved sliders (#461).
 function targetVolume() {
-  const st = getSettings();
-  return mutedNow() ? 0 : Math.min(1, BASE_VOLUME * st.masterVolume * st.musicVolume * (ducked ? 0.4 : 1));
+  return themeGain(getSettings(), { muted: mutedNow(), ducked });
+}
+
+// Mute (U) lives in audio.js and the persisted flag is polled below; this lets
+// audio.js apply it the moment the key is pressed.
+export function refreshThemeVolume() {
+  if (el) el.volume = targetVolume();
 }
 
 function finish() {
