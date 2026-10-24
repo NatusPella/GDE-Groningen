@@ -120,13 +120,13 @@ for (const spelers of AANTALLEN) {
   ok(gw.slice(0, -1).every((w) => w.coopNet.session.pendingInput.my !== 0) || spelers === 2, `${spelers}: en de rest loopt door`);
   laatste.paused = false; s.hw.paused = false; for (const w of gw) w.input.axis = () => [0, 0]; s.step(1);
 
-  // ---- 6. een kaartdoel ver weg en een teleport van de gastheer: wie meeloopt wordt bij de groep gezet, niemand blijft vastzitten
+  // ---- 6. een kaartdoel ver weg en een teleport van de gastheer: niemand wordt meegehaald, iedereen speelt vrij door
   s.hw.player.x = 5000; s.hw.player.y = 100; s.step(1.5);
-  ok([s.hw.companion, ...figs()].every((f) => Math.hypot(f.x - 5000, f.y - 100) < 6), `${spelers}: na een teleport staat iedereen bij de gastheer`);
+  ok([s.hw.companion, ...figs()].every((f) => Math.hypot(f.x - 5000, f.y - 100) > 4000), `${spelers}: na een teleport van de gastheer blijft iedereen waar hij is`);
   tessa.input.axis = () => [0, -1]; tessa.input.isDown = (k) => k === 'shift';
   const c = s.hw.companion; let ver = 0; s.step(24, () => { ver = Math.max(ver, Math.hypot(c.x - s.hw.player.x, c.y - s.hw.player.y)); });
   ok(ver > 76, `${spelers}: Tessa kan ver voorbij de oude lijn van 38 m: ${ver.toFixed(0)}`);
-  match(tekst(tessa), /Blijf bij de groep/, `${spelers}: met een waarschuwing`);
+  match(tekst(tessa), /Je loopt los van de groep|Blijf bij de groep/, `${spelers}: met een uitleg hoe je bij de groep komt`);
   tessa.input.axis = () => [0, 0]; tessa.input.isDown = () => false; s.step(1); N.bijGroepGebaar(tessa); s.step(2);
   ok(Math.hypot(c.x - s.hw.player.x, c.y - s.hw.player.y) < 6, `${spelers}: en daarna weer bij de groep`);
 

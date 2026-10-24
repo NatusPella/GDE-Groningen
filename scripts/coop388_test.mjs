@@ -82,9 +82,9 @@ t('Tessa kan verder dan 38 m: geen harde lijn meer; los van de groep (eigen focu
   assert.equal(N.bijGroepGebaar(g), true); s.step(1);
   assert.ok(Math.hypot(c.x - s.hw.player.x, c.y - s.hw.player.y) < 5, 'B: weer bij de groep: ' + c.x);
   assert.equal(aantal(g, /Je staat weer bij de groep/), 1);
-  // een sprong van de gastheer (snelreizen, teleport): meteen mee
+  // een sprong van de gastheer (snelreizen, teleport): niemand wordt meegehaald, iedereen speelt vrij door
   s.hw.player.x = 5000; s.hw.player.y = 0; s.step(1.2);
-  assert.ok(Math.hypot(c.x - 5000, c.y) < 5, 'Tessa is meegesprongen: ' + c.x);
+  assert.ok(Math.hypot(c.x - 5000, c.y) > 4000, 'Tessa blijft waar ze is, niet meegehaald: ' + c.x);
   // lokaal (twee spelers op één scherm) houdt de oude lijn
   const lokaal = mkWorld({ coop: { local: true } }); lokaal.player.x = 0; lokaal.companion.x = 100; lokaal.companion.y = 0; lokaal.coop.remote = true; lokaal.coop.remoteInput = { mx: 0, my: 0, buttons: 0, yaw: 0 };
   coopStep(lokaal.companion, 1 / 60, lokaal, () => {}); assert.ok(lokaal.companion.x <= LEASH_DIST + 0.01, 'zonder sessie: de oude lijn');
