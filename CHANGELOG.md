@@ -7,6 +7,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 ## [Unreleased]
 
 ### Nieuw
+- Eigen muziek bij het boerenwerk: zolang je in een trekker, maaidorser of laadmachine zit, vervangt een vrolijke loop de radio.
 - Eigen muziek voor de PvP-arena staat klaar (wordt gekoppeld zodra de PvP-minigame er is, #454).
 - Zes nieuwe nummers op de radio voor overdag, in andere stijlen dan de rest (Proat in de ochtend, De hits en Avondproat).
 
