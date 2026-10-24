@@ -488,6 +488,12 @@ const PHASES = {
     }
     const cs = T.getTrafficControllers();
     const e = w.coopExtra;
+    { // wat de gast zelf aan voertuigen heeft (niet van de gastheer): soort, afstand, snelheid en of er een beeld voor is (#428: lokaal verzonnen?)
+      const S3 = await import('./js/scene3d.js'), p = w.player, soort = {}; let nabij = 0, stilNabij = 0, metBeeld = 0;
+      for (const v of w.vehicles || []) { const k = v.isBoat ? 'boot' : v.isBike ? 'fiets' : v.isScooter ? 'scooter' : v.isBus ? 'bus' : v.isCop ? 'politie' : v.parked ? 'geparkeerd' : v.ai || v.driver ? 'verkeer' : 'auto'; const d = Math.hypot(v.x - p.x, v.y - p.y); if (d < 150) { nabij++; soort[k] = (soort[k] || 0) + 1; if (Math.abs(v.speed || 0) < 0.1) stilNabij++; if (S3.getVehicleMesh && S3.getVehicleMesh(v.id)) metBeeld++; } }
+      const pos = () => (w.vehicles || []).filter((v) => Math.hypot(v.x - p.x, v.y - p.y) < 150).map((v) => [v.id, v.x, v.y]); const p0 = pos(); await sleep(3000); const p1 = new Map(pos().map((r) => [r[0], r])); let bewogen = 0; for (const r of p0) { const q = p1.get(r[0]); if (q && Math.hypot(q[1] - r[1], q[2] - r[2]) > 0.5) bewogen++; }
+      log('w428-lokaalvoertuigen', { bewogen, van: p0.length, totaal: (w.vehicles || []).length, nabij, stilNabij, metBeeld, soort, hostVoertuigen: w.coopHostMeshes ? w.coopHostMeshes[0] : null });
+    }
     log('w428', {
       meshes: w.coopExtraMeshes || null, hostMesh: w.coopHostMeshes || null, bytes: w.coopExtraBytes || 0, dbg: w.coopExtraDbg || null,
       stand: e ? [e.voetgangers.size, e.uiterlijk.size, e.dieren.size, e.lichten.size, e.kapot.length, e.spraak.size] : null,
