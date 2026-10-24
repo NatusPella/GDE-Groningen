@@ -2,7 +2,7 @@
 // placing, pure; plus that every prop kind of a profile has a builder that builds.
 //   node scripts/stadsplan_test.mjs
 import { PROP_BUILD, planTown, roadside, resolveItem, placeAll, tallyPlan, countFor, mulberry, SPACING, SHOP_SPACING, CAP, VEE_RING } from '../game/js/stadsplan.js';
-import { TOWN_PROFILES, townCentre } from '../game/js/stadsprofielen.js';
+import { TOWN_PROFILES, townCentre, winkelhart } from '../game/js/stadsprofielen.js';
 
 let n = 0, bad = 0;
 const ok = (c, name) => { n++; if (!c) { bad++; console.log('FAIL', name); } };
@@ -23,12 +23,27 @@ for (const t of TOWN_PROFILES) {
   const c = townCentre(t);
   ok(a.items.every((i) => i.tries.every(([x, y]) => Math.hypot(x - c.x, y - c.y) <= t.reach + 1)), `${t.id}: all spots within reach`);
   const shops = a.items.filter((i) => i.shop);
-  ok(shops.length === t.shops.length && shops.every((s) => s.build === 'stad_bord' && s.tries.every(([x, y]) => Math.hypot(x - c.x, y - c.y) <= t.reach * 0.36)), `${t.id}: every shop has a board near the centre`);
+  const h = winkelhart(t);
+  ok(shops.length === t.shops.length && shops.every((s) => s.build === 'stad_bord' && s.tries.every(([x, y]) => Math.hypot(x - h.x, y - h.y) <= t.reach * 0.36)), `${t.id}: every shop has a board near the shop centre`);
   ok(a.items.length >= 6, `${t.id}: a town gets props (${a.items.length})`);
   ok(new Set(a.items.map((i) => i.id)).size === a.items.length, `${t.id}: ids are unique`);
 }
 ok(planTown(TOWN_PROFILES.find((t) => t.id === 'appingedam')).skipped.includes('brug'), 'bridges are tile work, reported as skipped');
 ok(planTown(TOWN_PROFILES.find((t) => t.id === 'delfzijl')).items.filter((i) => i.water).length > 0, 'harbour props want water');
+// #422: in Delfzijl staan de winkelborden in het winkelmidden (het ankerpunt); de havenprops
+// blijven om het profielhart, want de haven ligt niet bij de winkels
+{
+  const t = TOWN_PROFILES.find((x) => x.id === 'delfzijl');
+  const c = townCentre(t), h = winkelhart(t);
+  ok(Math.hypot(h.x - c.x, h.y - c.y) > 400, 'delfzijl: winkelmidden en profielhart liggen niet op dezelfde plek');
+  const plan = planTown(t);
+  const shopTries = plan.items.filter((i) => i.shop).flatMap((i) => i.tries);
+  ok(shopTries.every(([x, y]) => Math.hypot(x - h.x, y - h.y) <= t.reach * 0.11), 'delfzijl: de winkelborden staan in de winkelstraten om het ankerpunt');
+  const nearer = shopTries.filter(([x, y]) => Math.hypot(x - h.x, y - h.y) < Math.hypot(x - c.x, y - c.y)).length;
+  ok(nearer > shopTries.length * 0.9, 'delfzijl: de winkelborden staan om het winkelmidden, niet om het oude profielhart');
+  const water = plan.items.filter((i) => i.water).flatMap((i) => i.tries);
+  ok(water.length > 0 && water.every(([x, y]) => Math.hypot(x - c.x, y - c.y) <= t.reach + 1), 'delfzijl: de havenprops blijven om het profielhart');
+}
 // #330: schapen staan aan de rand van het dorp (weide, dijk), niet in de kom
 {
   let vee = 0;

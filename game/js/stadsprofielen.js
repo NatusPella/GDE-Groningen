@@ -6,6 +6,7 @@
 // and company is made up. Pure and Node-safe: the tile layer draws the
 // roads, this names and dresses them (docs/PROVINCIE-PLAN.md).
 import { wgsToWorld } from './rdnew.js';
+import { ankerVan } from './ankerpunten.js';
 
 // Prop kinds are keys for the prop builders; per: how many per square km of the
 // built-up area, a hint for the placer, not a promise of what is on screen.
@@ -218,6 +219,17 @@ export const DAYPARTS = ['ochtend', 'middag', 'avond'];
 
 // world position of a profile's centre
 export function townCentre(t) { const [x, y] = wgsToWorld(t.at[0], t.at[1]); return { x, y }; }
+
+// Het hart waar de winkels en winkelborden van een profielstad staan (#422): het
+// ankerpunt als het profielhart niet in het winkelmidden ligt (Delfzijl, zie
+// ankerpunten.js), anders het gewone profielhart. Zo blijft er één bron voor de
+// plaats (ankerpunten.js) en geen tweede handmatige plek hier. De props, de haven
+// en de sfeerlijnen houden townCentre: die horen bij het profiel, niet bij de winkels.
+export function winkelhart(t) {
+  const a = ankerVan(t.name);
+  if (a && Number.isFinite(a[0]) && Number.isFinite(a[1])) return { x: a[0], y: a[1] };
+  return townCentre(t);
+}
 
 // the profile for a place name from the tiles ("Delfzijl", "Hoogezand", "Sappemeer"), or null
 export function townProfile(name) {
