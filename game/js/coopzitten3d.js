@@ -29,33 +29,47 @@ export function stoelVoor(v, stoel) {
 }
 
 // Een bestuurder op een fiets, scooter of motor: zoals scene3d.js syncPlayerRider (de bouten en armen vast, de benen volgen de trappers).
+// Geeft de hoek van de dij waar de trappers op draaien (de fietsen; null bij een scooter of motor, die trapt niet).
 function fietsHouding(p, v) {
   const ud = p.userData, seat = v.isScooter ? riderSeatFor(v.model) : null;
   if (seat) {
     p.position.set(seat.x, seat.y - 0.93 * p.scale.y, 0); p.rotation.set(0, 0, seat.lean);
     ud.armL.rotation.set(0, 0, seat.arm); ud.armR.rotation.set(0, 0, seat.arm);
     ud.legL.rotation.set(0, 0, seat.leg); ud.legR.rotation.set(0, 0, seat.leg);
-  } else if (v.isScooter) {
+    return null;
+  }
+  if (v.isScooter) {
     p.position.set(-0.08, 0.155, 0); p.rotation.set(0, 0, -0.03);
     ud.armL.rotation.set(0, 0, 0.66); ud.armR.rotation.set(0, 0, 0.66);
     ud.legL.rotation.set(0, 0, 0.12); ud.legR.rotation.set(0, 0, -0.1);
-  } else {
-    const fat = !!(v.model && v.model.fat);
-    p.position.set(fat ? -0.26 : -0.3, (fat ? 0.93 : 1.02) - 0.93 * p.scale.y, 0); p.rotation.set(0, 0, -0.08);
-    const arm = fat ? 0.95 : 0.85;
-    ud.armL.rotation.set(0, 0, arm); ud.armR.rotation.set(0, 0, arm);
-    ud.legL.rotation.z = fat ? 0.55 : 0.33; ud.legR.rotation.z = fat ? 0.55 : 0.33; // de benen aanraken: de trapper-IK van het model zet de voeten op de trappers
+    return null;
   }
+  const fat = !!(v.model && v.model.fat);
+  p.position.set(fat ? -0.26 : -0.3, (fat ? 0.93 : 1.02) - 0.93 * p.scale.y, 0); p.rotation.set(0, 0, -0.08);
+  const arm = fat ? 0.95 : 0.85;
+  ud.armL.rotation.set(0, 0, arm); ud.armR.rotation.set(0, 0, arm);
+  ud.legL.rotation.z = fat ? 0.55 : 0.33; ud.legR.rotation.z = fat ? 0.55 : 0.33; // de benen aanraken: de trapper-IK van het model zet de voeten op de trappers
+  return fat ? 0.55 : 0.33;
+}
+
+// De kruk draait (models3d_vehicles.js updateVehicleWheelSpin zet de krukstand en de zwaai van dit beeld: pedalSwing) en deze
+// bestuurder trapt mee. De fietser van het model zelf staat verborgen (syncZitters), dus de trapbeweging moet op deze benen lopen;
+// het aanraken van de dij laat de trapper-IK van het model de voeten op de trappers zetten (#434).
+function trapMee(p, mesh, base) {
+  const sw = mesh.userData.pedalSwing || 0, ud = p.userData;
+  ud.legL.rotation.z = base + sw;
+  ud.legR.rotation.z = base - sw;
 }
 
 function plaats(p, v, stoel) {
   const fiets = v.isBike || v.isScooter;
-  if (fiets && stoel === 0 && v._mount !== 'horse') { fietsHouding(p, v); return; }
+  if (fiets && stoel === 0 && v._mount !== 'horse') return fietsHouding(p, v);
   const s = stoelVoor(v, stoel);
   p.rotation.set(0, s.face || 0, 0);
-  if (s.stand && !(s.pose && s.pose.arms === 'sup')) { standBehindPose(p); p.position.set(s.x, s.y, s.z); return; }
+  if (s.stand && !(s.pose && s.pose.arms === 'sup')) { standBehindPose(p); p.position.set(s.x, s.y, s.z); return null; }
   seatPose(p, s.pose);
   p.position.set(s.x, seatedY(p, s.y), s.z);
+  return null;
 }
 
 function bouwFiguur(char) {
@@ -112,8 +126,9 @@ export function syncZitters(lijst, zoek, world = null) {
       ouder.add(e.mesh); zitters.set(z.slot, e);
     }
     const sleutel = z.stoel + '|' + (r.v.model && r.v.model.name);
-    if (e.sleutel !== sleutel) { e.sleutel = sleutel; try { plaats(e.mesh, r.v, z.stoel); } catch (er) { /* een stoel die niet past: de zitter staat in het midden */ } }
+    if (e.sleutel !== sleutel) { e.sleutel = sleutel; try { e.trap = plaats(e.mesh, r.v, z.stoel); } catch (er) { e.trap = null; /* een stoel die niet past: de zitter staat in het midden */ } }
     e.mesh.visible = true;
+    if (e.trap != null) trapMee(e.mesh, r.mesh, e.trap); // de bestuurder van een fiets trapt mee met de kruk (#434)
     // de ingebouwde bestuurder van een fiets (een voorbijganger) maakt plaats voor de speler
     if ((r.v.isBike || r.v.isScooter) && z.stoel === 0) {
       const ud = r.mesh.userData, fig = ud.riderFig || r.mesh.children.find((c) => c !== e.mesh && c.userData && c.userData.legL);
