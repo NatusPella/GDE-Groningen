@@ -52,6 +52,7 @@ import { wedKaartTik } from './coopwedstrijd3d.js';
 import { bijbaanStart, bijbaanBeloning, bijbaanEind, bijbaanHelpers, bijbaanHostTik, bijbaanGastTik, bijbaanGastReset, bijbaanHandleGast, bijbaanHandleHost, bijbaanVoorNieuwe, bijbaanWeg, zetBijbaanHaken } from './coopbijbaan.js';
 import { maakPvp, wisselPassief, zetPassiefStand, verwijderSpeler, passiefEvent, passiefVanEvent, leesPassief, leesPassiefVan, pvpSchadeEvent, isPassief, PVP_TEKST } from './cooppvp.js'; // passieve stand en spelers tegen elkaar (#447)
 import { pvpGastRaak, pvpDoodVerwerk } from './cooppvpwereld.js';
+import { busCoopActie, busCoopValideerE } from './coopbus.js';
 import { zetBestuurHaken, bestuurGebruik, bestuurTick, bestuurLos, bestuurAllesLos, bestuurt } from './coopbestuur.js';
 
 export const CAPS = ['scene', 'spelers', 'snaptijd', 'pvp']; // wat dit spel kent; uitbreidbaar (net/session.js negotiate). snaptijd: de tijd van een snapshot (ms van de klok van de host) staat in de kop, #434
@@ -714,9 +715,10 @@ export function deelMetGasten(world, bedrag, info = null) {
   if (!(basis >= 1)) return 0;
   const geld = Math.min(basis, MAX_REWARD);
   const extra = info && typeof info.vak === 'string' && info.vak ? { vak: info.vak.slice(0, 20), xp: Math.max(0, Math.round(Number(info.xp) || 0)) } : null;
+  const slots = deelSlots(n).filter((s) => !(info && Array.isArray(info.slots)) || info.slots.includes(s)); if (!slots.length) return 0; // info.slots: alleen wie aan de dienst meedoet (bus, #444)
   let k = 0;
   const id = gebeurtenisId(n.sessieId || (n.sessieId = Math.random().toString(36).slice(2, 8)), 'b', n.beloningTeller = (n.beloningTeller || 0) + 1); // één id per gebeurtenis, voor alle gasten (#448)
-  for (const slot of deelSlots(n)) if (payGuest(world, geld, slot, extra, id)) k++;
+  for (const slot of slots) if (payGuest(world, geld, slot, extra, id)) k++;
   return k;
 }
 
@@ -964,11 +966,13 @@ export function handleEvent(world, body, van = 0) {
     }
     case 'gebruik': { // de gast drukte op E bij de host: als bijrijder in- of uitstappen (alleen plek 1, de metgezel)
       if (!n || n.role !== 'host' || van < 1) return false;
+      if (busCoopValideerE(world, van)) return true; // het hulpje in de bus valideert een kaartje (#444)
       if (bestuurGebruik(world, van).gedaan) return true; // een vrij voertuig bij de gast: hij stapt in als bestuurder, of uit (#434)
       if (van >= 2) return figGebruik(world, van); // de 3e en 4e speler stappen zelf in of uit (#372)
       world.coopGebruik = true;
       return true;
     }
+    case 'bus': return !!n && n.role === 'host' && van >= 1 && (body.a === 'deur' || body.a === 'valideer') && busCoopActie(world, van, body.a); // O en E van een medespeler in de bus (#444)
     case 'bijgroep': return bijGroepHost(world, van); // een gast die los loopt wil terug bij de groep (#429)
     case 'wielvraag': { // de gast vraagt om het stuur; de bestuurder geeft het met Y
       if (!n || n.role !== 'host' || van !== 1) return false;
@@ -1077,6 +1081,11 @@ const gastNaam = (world, slot) => { const p = (world.coopRoster || []).find((x) 
 export function gastGebruik(world) {
   const n = world.coopNet; if (!n || n.role !== 'client' || !n.joined) return false;
   return n.session.sendEvent({ k: 'gebruik' });
+}
+// O van de gast in een bus van de host: de deuren (als hulpje of chauffeur), #444
+export function gastBus(world, a = 'deur') {
+  const n = world.coopNet; if (!n || n.role !== 'client' || !n.joined) return false;
+  return n.session.sendEvent({ k: 'bus', a });
 }
 // Y: de host geeft het stuur aan zijn bijrijder (of neemt het terug), de gast vraagt erom
 export function wielGebaar(world) {

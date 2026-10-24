@@ -334,13 +334,13 @@ function completeRound(c, res = {}) {
   const tip = Math.max(0, Math.round(res.tip || 0));
   const total = pay + tip;
   const vak = vakVanBaan(c.job.id);
-  const xp = 8 + (res.flawless === false ? 0 : 2);
+  const xp = 8 + (res.flawless === false ? 0 : 2) + Math.max(0, Math.round(res.xp || 0)); // res.xp: extra loopbaanpunten (bus, #444)
   noteMoney('Bijbaantjes');
   world.money += total;
   // samen spelen: een baan met samen-regels (coopbijbaan.js) betaalt elke meespeler het volle bedrag (#452); een andere baan deelt zoals eerst (#365).
   // De gast verdient volgens zijn eigen niveau (#381): hij krijgt de basis en past zijn eigen loonfactor toe.
   const gedeeld = world.coopBijbaanBeloning ? world.coopBijbaanBeloning(c.job.id, basisFor(c, base) + tip, vak, xp, c.round) : false;
-  if (!gedeeld && world.coopDeel) world.coopDeel(total, loopbaanDeel(vak, basisFor(c, base) + tip, xp));
+  if (!gedeeld && world.coopDeel) world.coopDeel(total, Array.isArray(res.coopSlots) ? { ...loopbaanDeel(vak, basisFor(c, base) + tip, xp), slots: res.coopSlots } : loopbaanDeel(vak, basisFor(c, base) + tip, xp));
   loopbaanTel(world, vak, { n: 1, xp, uniek: c.job.id });
   c.earned += total;
   c.streak++;

@@ -274,7 +274,8 @@ export function reconcileDoors(v, defs, wereld = { n: 0 }) {
 }
 
 // Een bus (of tram) staat bij een halte met deuren open als hij stilstaat.
-export const stilstandDeurOpen = (v) => !!v && (v.isBus || v.isTram || v.isTrain) && Math.abs(v.speed || 0) < 0.3 && !v.wrecked;
+// Bedient de bestuurder de deuren zelf (v.busBediend, busbestuur.js, #444), dan gaan ze niet vanzelf open.
+export const stilstandDeurOpen = (v) => !!v && (v.isBus || v.isTram || v.isTrain) && Math.abs(v.speed || 0) < 0.3 && !v.wrecked && !v.busBediend;
 
 // De bestuurdersdeur zwaait open als de bestuurder uit zijn auto stapt of wordt getrokken
 // (#49, pedestrians.js ejectDriver). Geeft de deur-id, of null zonder logische deur.

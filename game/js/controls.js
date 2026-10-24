@@ -204,6 +204,8 @@ export const GAME_PAD_CTX = { carillon: 'klokken', pannenkoek: 'pannenkoek' };
 export const PAD_MAPS = {
   foot: FOOT,
   vehicle: { a: ' ', b: 'l', x: 'h', y: 'e', lb: 'n', rb: '@fire', lt: '@brake', rt: '@gas', ls: 'shift', rs: 'q', up: 'p', down: 'v', left: '[', right: ']', view: 'm', start: 'escape', stick: 'steer' },
+  // de bus (#444): LB de deuren (O), RB de kneel (K); de radio en het schieten staan daar niet (de D-pad omhoog blijft het stuur geven, zie PAD_COOP)
+  bus: { a: ' ', b: 'l', x: 'h', y: 'e', lb: 'o', rb: 'k', lt: '@brake', rt: '@gas', ls: 'shift', rs: 'q', up: 'p', down: 'v', left: '[', right: ']', view: 'm', start: 'escape', stick: 'steer' },
   // manual shifting (setting shiftMode): the bumpers shift, L3 is the clutch, the radio moves to the D-pad
   vehicleManual: { a: ' ', b: 'l', x: 'h', y: 'e', lb: ',', rb: '.', lt: '@brake', rt: '@gas', ls: 'j', rs: 'q', up: 'n', down: 'v', left: '[', right: ']', view: 'm', start: 'escape', stick: 'steer' },
   skutsje: { a: ' ', b: 'l', x: 'h', y: 'e', lb: 'z', rb: 'q', lt: '@brake', rt: '@gas', ls: 'shift', rs: null, up: null, down: 'v', left: 'o', right: 'r', view: 'm', start: 'escape', stick: 'steer' },
@@ -227,7 +229,7 @@ export const PAD_MAPS = {
 // Samen spelen: in een voertuig is D-pad omhoog het stuur geven, terugnemen of erom vragen (Y op het toetsenbord, #291);
 // de alarmlichten (en bij handmatig schakelen de radio) zijn dan niet op het pad te bereiken zolang er een sessie loopt.
 // Te voet: D-pad links, omlaag en rechts zijn de roepjes Kom hier (7), Help! (8) en Kijk daar (9, #367); het kusje, het overslaan van een verhaalstap en het lakmenu staan dan alleen op het toetsenbord.
-export const PAD_COOP = { vehicle: { up: 'y' }, vehicleManual: { up: 'y' }, skutsje: { up: 'y' }, foot: { left: '7', down: '8', right: '9' } };
+export const PAD_COOP = { vehicle: { up: 'y' }, bus: { up: 'y' }, vehicleManual: { up: 'y' }, skutsje: { up: 'y' }, foot: { left: '7', down: '8', right: '9' } };
 
 // The button for a canonical key or a mouse token in a situation, as a slot
 // name ('a', 'rt', ...) or 'lstick'/'rstick'; null when the pad has none.

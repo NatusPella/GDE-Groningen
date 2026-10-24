@@ -6,7 +6,7 @@
 import { tryShopInteract } from './shops.js';
 import { tryMachineInteract } from './snackautomaat.js';
 import { tryHorecaInteract } from './horeca.js';
-import { gastGebruik } from './coopnet.js';
+import { gastGebruik, gastBus } from './coopnet.js';
 import { isShopOpen } from './shopui.js';
 import { gastKijkHoek, bezigEvent } from './coopgast.js';
 import { gastWapenTik } from './coopwapen.js';
@@ -34,6 +34,7 @@ export function updateGastLokaal(world, dt = 1 / 60) {
   // de muis draait de camera (player.js doet dat niet voor een gast, #388); niet tijdens een filmpje met een eigen camera
   if (input.lookActive && input.lookActive() && !world.cameraOverride && input.mouse) world.camYaw = gastKijkHoek(world.camYaw ?? (world.player && world.player.angle), input.mouse.dx, getSettings().mouseSensitivity * (world.scoped ? 0.3 : 1));
   if (input.wasPressed('o') && world.coopHostMissie && world.coopHostMissie.actief) world.addMessage(`${openerNaam(world.coopRoster, true)} bepaalt of de verhaalstap wordt overgeslagen.`, 3); // een verhaalstap overslaan kan alleen wie het spel opende (#434)
+  if (input.wasPressed('o') && world.coopInVoertuig && !(world.coopHostMissie && world.coopHostMissie.actief)) { input.consume('o'); gastBus(world, 'deur'); } // de deuren van de bus: alleen het hulpje of de chauffeur (coopbus.js, #444)
   const bezig = updateActivitiesGast(dt, world); // hengelen, pannenkoeken bakken, de beiaard: op je eigen scherm (#429)
   meldBezig(world, bezig);
   if (bezig) return true;

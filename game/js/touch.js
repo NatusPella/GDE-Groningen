@@ -220,7 +220,7 @@ export function initTouch(input, world, hooks = {}) {
     const o = knobOffset(stick.origin, pt(e), STICK_RADIUS);
     knob.style.transform = `translate(${o.x}px, ${o.y}px)`;
     // steering keeps only the sideways part; gas and brake are buttons
-    const steer = ctx === 'vehicle' || ctx === 'vehicleManual' || ctx === 'skutsje';
+    const steer = ctx === 'vehicle' || ctx === 'vehicleManual' || ctx === 'bus' || ctx === 'skutsje';
     input.padAxis = steer ? [v[0], 0] : v;
     const next = stickless(ctx) ? new Set() : stickKeys(steer ? [v[0], 0] : v, held);
     for (const k of held) if (!next.has(k)) hold(k, false);

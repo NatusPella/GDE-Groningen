@@ -2512,7 +2512,7 @@ export function update3D(dt, world) {
         if (body) {
           body.rotation.z = v.susPitch || 0;
           body.rotation.x = v.susRoll || 0;
-          body.position.y = v.susHeave || 0;
+          body.position.y = (v.susHeave || 0) - (v.busBediend ? v.busBediend.kneelAmt * 0.1 : 0); // een knielende bus zakt (busbestuur.js)
         }
       }
       // cutscenes, the trailer and the intro move cars by position while the
