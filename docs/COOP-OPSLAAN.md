@@ -63,7 +63,7 @@ maar niemand speelt: het pauzemenu met de wachtkamer blijft staan (sluit je het,
 - Een gast leest "Wacht tot Tammo het spel start." (de host stuurt het bericht `hek`, `coopnet.js`; een gast die later aansluit hoort het bij het aansluiten).
 - Bij het starten (`openHek`) sluit het menu van iedereen tegelijk, het bericht `hek` (uit) gaat naar de gasten en de opening begint bij iedereen samen (zie hieronder).
 - Wie stopt (Stoppen, Iedereen stoppen, Spel verlaten) of terugkeert naar het hoofdmenu, heeft geen wachtkamer meer en speelt weer zijn eigen spel.
-- Valt iemand tijdens het spel weg, dan geldt de bestaande pauzeregel (het wachtscherm, `coophold.js`); wie later aansluit volgt de gewone aansluitregel: hij hoort dat het spel al begonnen is en speelt mee.
+- Valt iemand tijdens het spel weg, dan speelt de rest door; alleen een opdracht die hem echt nodig heeft zet het wachtscherm (`coophold.js`, `holdBeleid`, #452); wie later aansluit volgt de gewone aansluitregel: hij hoort dat het spel al begonnen is en speelt mee.
 
 ## De opening van een nieuw spel samen
 
