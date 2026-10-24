@@ -50,8 +50,14 @@ t('hoofdrol alleen voor Tammo en Tessa; extra spelers lopen in de open wereld', 
   const r = P.createRoster(4); P.wijsPlekToe(r); P.wijsPlekToe(r);
   assert.deepEqual(P.lijst(r).map((x) => x.hoofdrol), [true, true, false]);
 });
-t('pauze per speler: Tessa houdt het spel op, een extra speler niet tenzij de opdracht hem nodig heeft', () => {
-  assert.equal(P.holdBeleid(1).pauze, true);
+t('pauze per speler (#452): niemand houdt de rest op, tenzij de opdracht hem nodig heeft', () => {
+  assert.equal(P.holdBeleid(1).pauze, false); assert.match(P.holdBeleid(1).reden, /gaat door/);
+  assert.equal(P.holdBeleid(1, { vereist: [1] }).pauze, true);
+  assert.equal(P.holdBeleid(0).pauze, false);
+  assert.deepEqual(P.vereistVoor(false, { presence: 'beide' }), [], 'zonder lopende opdracht is niemand nodig');
+  assert.deepEqual(P.vereistVoor(true, { presence: 'beide' }), [1]);
+  assert.deepEqual(P.vereistVoor(true, { needsTwo: true }, [3]).sort(), [1, 3]);
+  assert.deepEqual(P.vereistVoor(true, { presence: 'host' }), []);
   assert.equal(P.holdBeleid(2).pauze, false); assert.match(P.holdBeleid(2).reden, /gaat door/);
   assert.equal(P.holdBeleid(3, { vereist: [3] }).pauze, true);
   assert.equal(P.holdBeleid(3, { vereist: [2] }).pauze, false);

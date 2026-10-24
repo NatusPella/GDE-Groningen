@@ -278,7 +278,7 @@ t('Tessa valt weg: het spel pauzeert voor de gastheer; een extra speler niet; ge
   assert.equal(s.hw.coopRoster.find((r) => r.slot === 2).verbinding, 'lost');
   for (const g of [s.gs[0], s.gs[2]]) assert.equal(g.gw.coopPartners.find((p) => p.naam === 'Bram').status, 'weg', 'de anderen zien dat Bram weg is');
   s.gs[0].link.cut(); s.step(8);
-  assert.deepEqual(s.holds.filter((h) => h[0] === 'host').map((h) => h[1]), [1], 'Tessa weg: wachtscherm voor de gastheer');
+  assert.deepEqual(s.holds.filter((h) => h[0] === 'host'), [], 'Tessa weg: de rest speelt door, ze kan terugkomen (#452)');
   assert.equal(Object.keys(s.hw.coopFigures).length, 2, 'geen extra figuren of verdwenen figuren');
 });
 

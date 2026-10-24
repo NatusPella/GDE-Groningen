@@ -174,8 +174,7 @@ for (const spelers of AANTALLEN) {
   // ---- 11. een speler valt weg: de rest speelt door (Tessa houdt het spel op)
   const laatsteLink = s.gs[s.gs.length - 1].link; laatsteLink.cut(); s.step(8);
   eq(s.hw.coopRoster[s.hw.coopRoster.length - 1].verbinding, 'lost', `${spelers}: de laatste speler is weg`);
-  if (spelers === 2) ok(s.holds.some((h) => h[0] === 'host' && h[1] === 1), '2: Tessa weg, het spel wacht');
-  else ok(!s.holds.some((h) => h[0] === 'host' && h[1] !== 1), `${spelers}: een extra speler weg houdt het spel niet op`);
+  ok(!s.holds.some((h) => h[0] === 'host'), `${spelers}: een speler weg houdt het spel niet op (#452)`);
   eq(N.deelMetGasten(s.hw, 1000), gasten - 1, `${spelers}: wie weg is krijgt geen beloning`);
 
   console.log(`  ${spelers} spelers: ok (${((Date.now() - t0) / 1000).toFixed(1)} s)`);
