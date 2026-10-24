@@ -7,6 +7,7 @@ import { RAGE_CHOICES } from './roadragerules.js';
 import { SUBTITLE_CONTRASTS, TEXT_SIZES } from './a11ylogic.js';
 import { cleanHelpSetting } from './assist.js';
 import { deckDefaults, isSteamDeck } from './deck.js';
+import { VOLUME_KEYS, normalizeVolumes, volumeValue } from './sfx/volume.js';
 
 // Player settings, persisted per browser. Modules read getSettings() and
 // subscribe with onSettingsChange() to apply changes live.
@@ -122,6 +123,9 @@ function load() {
     for (const k of Object.keys(DEFAULTS)) {
       if (typeof raw[k] === typeof DEFAULTS[k]) out[k] = raw[k];
     }
+    // the four volumes always land in 0..1, a numeric string counts as its
+    // number (#461: a saved 10% must not fall back to 100% or play above it)
+    Object.assign(out, normalizeVolumes(raw, DEFAULTS));
     if (!QUALITY_PRESETS[out.quality]) out.quality = DEFAULTS.quality;
     if (!(out.drawDistance in VIEW_DISTANCES)) out.drawDistance = DEFAULTS.drawDistance;
     if (!(out.resolution >= 0.5 && out.resolution <= 1)) out.resolution = DEFAULTS.resolution;
@@ -173,6 +177,8 @@ export function getSettings() {
 
 export function setSetting(key, value) {
   if (typeof DEFAULTS[key] === 'number' && typeof value === 'string') value = Number(value);
+  // a volume always stays in 0..1, whatever a caller or a keyboard shortcut sends
+  if (VOLUME_KEYS.includes(key)) value = volumeValue(value, DEFAULTS[key]);
   if (!(key in DEFAULTS) || settings[key] === value) return;
   settings[key] = value;
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...settings, v: SETTINGS_VERSION })); } catch (e) { /* ignore */ }
