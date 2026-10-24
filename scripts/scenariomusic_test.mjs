@@ -78,6 +78,11 @@ assert.equal(activityMusicKey({ activityGame: 'pitchputt' }), 'golf');
 assert.equal(activityMusicKey({ activityGame: 'klimtoren' }), 'klimtoren');
 assert.equal(activityMusicKey({ player: { inVehicle: { model: { name: 'tractor' } } } }), 'boerderij');
 assert.equal(activityMusicKey({ player: { inVehicle: { model: { name: 'sedan' } } } }), null);
+assert.equal(activityMusicKey({ player: { inVehicle: { isHeli: true } } }), 'vlucht');
+assert.equal(activityMusicKey({ player: { inVehicle: { model: { name: 'plane' } } } }), 'vlucht');
+assert.equal(activityMusicKey({ mission: { phase: 'active' }, player: {} }), 'missie');
+assert.equal(activityMusicKey({ mission: { phase: 'active' }, player: { inVehicle: { model: { name: 'tractor' } } } }), 'boerderij');
+assert.equal(activityMusicKey({ player: { inVehicle: { isBike: true } } }), 'fiets');
 assert.equal(activityMusicKey({ activityGame: 'zwembad' }), null);
 assert.equal(activityMusicKey({ activityGame: null }), null);
 // Samen spelen: a guest who said yes hears his own match, one who said no keeps the radio
@@ -122,7 +127,7 @@ assert.equal(activityMusicKey({ coopWedGast: { id: 'discgolf', spiegel: null, sc
 
 // the four loops exist, are mp3s and are wired in audio.js
 const dir = new URL('../game/audio/scenario/', import.meta.url);
-for (const f of ['kart_loop.mp3', 'padel_loop.mp3', 'golf_loop.mp3', 'klimtoren_loop.mp3', 'trein_loop.mp3', 'bus_loop.mp3', 'boerderij_loop.mp3', 'pvp_arena_loop.mp3']) {
+for (const f of ['kart_loop.mp3', 'padel_loop.mp3', 'golf_loop.mp3', 'klimtoren_loop.mp3', 'trein_loop.mp3', 'bus_loop.mp3', 'boerderij_loop.mp3', 'pvp_arena_loop.mp3', 'vlucht_loop.mp3', 'missie_spanning_loop.mp3', 'fiets_loop.mp3']) {
   const u = new URL(f, dir);
   assert.ok(existsSync(u), f + ' ontbreekt');
   const b = readFileSync(u);
