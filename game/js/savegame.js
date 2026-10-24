@@ -25,10 +25,11 @@ import { quitTrainDrive } from './traindrive.js';
 import { statsFromSave } from './world.js';
 import { getRadioSave, applyRadioSave } from './radio.js';
 import { KEYS, slotKey } from './storagekeys.js';
-import { applyGuestChanges } from './coopsave.js';
+import { applyGuestChanges, applyGuestStory } from './coopsave.js';
+import { verhaalStatus } from './coopverhaal.js';
 import { getRenderer, afterNextFrame } from './scene3d.js';
 import { readSlot, writeSlotRaw, writeThumb, activeSlot, setActive, createSlot, deleteSlot, nameOf, pickActive } from './saveslots.js';
-import { registerSaveGame, registerSaveTimers } from './savehook.js';
+import { registerSaveGame, registerSaveTimers, registerGastVerhaal } from './savehook.js';
 import { STEPS, PARTS, stepDone, stepAvailable, nextStoryStep, ARC_ID } from './storyarc.js';
 
 // Several saves (saveslots.js): slot 1 is the old single save under its old key, the version inside
@@ -295,6 +296,37 @@ function saveGuestEarnings(w) {
     return true;
   } catch (e) { return false; }
 }
+
+// Samen spelen (#429): het verhaal van een gast in zijn eigen opgeslagen spel. Het schrijven is één writeSlotRaw (met teruglezen ter controle
+// en herstelkopie) en gebeurt pas bij de uitslag van de gastheer; een crash ervoor laat de oude save heel. Het geld van de overgeslagen
+// missies gaat in dezelfde schrijfbeurt mee en daarna pas in het geld van het lopende spel. Het geheugen (verhaal, missies) volgt
+// pas bij het terugkeren naar het eigen spel (herlaad), zodat een gewone save daarna de sprong niet overschrijft.
+const gastData = () => { const r = readSlot(null, saveTarget()); return r.state === 'ok' || r.state === 'hersteld' ? r.data : null; };
+registerGastVerhaal({
+  status: (w, stap) => verhaalStatus(gastData(), stap),
+  schrijf(w, stap) {
+    try {
+      const r = applyGuestStory(gastData(), stap);
+      if (!r) return null;
+      const mine = { ...serialize(w), money: Math.max(0, Math.floor(num(w.money, 0))) + r.bonus };
+      const next = applyGuestChanges(r.save, mine, 0) || r.save;
+      if (!writeSlotRaw(null, saveTarget(), JSON.stringify(next))) return null;
+      w.money = num(w.money, 0) + r.bonus;
+      if (Number.isFinite(w._goodMoney)) w._goodMoney += r.bonus;
+      w.coopVerhaalNieuw = true;
+      return { status: r.status, overgeslagen: r.overgeslagen.length, bonus: r.bonus };
+    } catch (e) { return null; }
+  },
+  herlaad(w) {
+    if (!w.coopVerhaalNieuw) return false;
+    w.coopVerhaalNieuw = false;
+    const d = gastData();
+    if (!d) return false;
+    setMissionProgress(w, d.missions);
+    applyStorySave(d.story);
+    return true;
+  },
+});
 
 export function markDirty() {
   dirtyIn = SAVE_DEBOUNCE;

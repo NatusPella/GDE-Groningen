@@ -9,3 +9,10 @@ let dirtyImpl = null, soonImpl = null;
 export function registerSaveTimers(markDirtyFn, saveSoonFn) { dirtyImpl = markDirtyFn; soonImpl = saveSoonFn; }
 export function markDirty(...args) { return dirtyImpl ? dirtyImpl(...args) : undefined; }
 export function saveSoon(...args) { return soonImpl ? soonImpl(...args) : undefined; }
+// Samen spelen (#429): het verhaal van een gast in zijn eigen opgeslagen spel. savegame.js registreert { status(w, stap), schrijf(w, stap), herlaad(w) };
+// coopnet.js gaat via deze haak, zodat het netwerk de opslag niet hoeft te kennen.
+let gastImpl = null;
+export function registerGastVerhaal(impl) { gastImpl = impl; }
+export const gastVerhaalStatus = (w, stap) => (gastImpl ? gastImpl.status(w, stap) : null);
+export const gastVerhaalSchrijf = (w, stap) => (gastImpl ? gastImpl.schrijf(w, stap) : null);
+export const gastVerhaalHerlaad = (w) => (gastImpl ? gastImpl.herlaad(w) : false);
