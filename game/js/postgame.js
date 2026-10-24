@@ -29,6 +29,7 @@ import { getOwnedEntries, spawnOwnedEntry } from './shops.js';
 import { findParkingSpot } from './ownedvehicles.js';
 import { Vehicle } from './vehicle.js';
 import { playerBusy } from './busy.js';
+import { waarschuwVoorStart } from './coopstatus.js';
 import { loopbaanVerdien } from './loopbaanlive.js';
 import { vakVanUitdaging } from './loopbaan.js';
 
@@ -261,6 +262,7 @@ export function tryPostgameInteract(w) {
   input.consume('f');
   const why = blockReason(w) || vehicleProblem(w, s);
   if (why) { w.addMessage(why, 2.5); return true; }
+  waarschuwVoorStart(w, 'minigame', 'pg_' + s.def.id); // samen spelen: een melding als dit nog niet samen werkt; de start gaat door
   startChallenge(s);
   return true;
 }

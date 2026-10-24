@@ -37,6 +37,7 @@ import { VLIEGSCHOOL } from './vliegschool.js';
 import { SAFEHUIS } from './safehuizen.js';
 import { isShopOpen } from './shopui.js';
 import { GAST_ACTIVITEITEN, MELDING_ALLEEN_OPENER } from './coopgast.js';
+import { waarschuwVoorStart, samenWaarschuwing } from './coopstatus.js';
 import { isCinematicActive, showBanner } from './cinematics.js';
 import { getScene } from './scene3d.js';
 import { showCard } from './hudcards.js';
@@ -114,7 +115,7 @@ export function tryActivityInteractGast(w) {
     if (GAST_ACTIVITEITEN.has(a.id)) { if (a.interact(w)) return true; continue; }
     let dichtbij = false;
     try { dichtbij = !!(a.prompt && a.prompt(w)); } catch (e) { dichtbij = false; }
-    if (dichtbij) { w.addMessage(MELDING_ALLEEN_OPENER, 3); return true; }
+    if (dichtbij) { const sw = samenWaarschuwing(w, 'activiteit', a.id); w.addMessage(sw ? sw.tekst : MELDING_ALLEEN_OPENER, 3); return true; } // een gast hoort ook dat dit nog niet samen werkt
   }
   return false;
 }
@@ -153,6 +154,7 @@ export function tryActivityInteract(w) {
   if (!(input.wasPressed('e') || input.wasPressed('f'))) return false;
   for (const a of LIST) {
     if (a.interact && a.interact(w)) {
+      waarschuwVoorStart(w, 'activiteit', a.id); // samen spelen: een melding als dit nog niet (helemaal) samen werkt; de start gaat door
       input.consume('e');
       input.consume('f');
       return true;
@@ -170,7 +172,7 @@ export function activityMapIcons(w) {
   const out = [];
   for (const a of LIST) {
     if (!a.legend) continue;
-    for (const s of a.spots()) out.push({ layer: a.layer, kind: a.legend.kind, x: s.x, y: s.y, name: s.name, sub: a.mapSub ? a.mapSub(s, w) : a.legend.note });
+    for (const s of a.spots()) out.push({ id: a.id, layer: a.layer, kind: a.legend.kind, x: s.x, y: s.y, name: s.name, sub: a.mapSub ? a.mapSub(s, w) : a.legend.note });
   }
   return out;
 }

@@ -60,6 +60,7 @@ import {
 import { KEYS } from './storagekeys.js';
 import { grijsBijPassief } from './cooppvp.js';
 import { gastDoelen } from './coopextra.js';
+import { samenWaarschuwing } from './coopstatus.js';
 import { warnsOn, riskWhy } from './muggingrules.js';
 
 const PADDING = 0.94;
@@ -1072,6 +1073,26 @@ function compose() {
 
 // --- dynamic layer ----------------------------------------------------------
 
+// Samen spelen: een onderdeel dat nog niet samen werkt is uitgegrijsd (zelfde grijs als de passieve spelers: INK.passiefGrijs).
+function drawGrijs(ctx, teken) {
+  ctx.save();
+  try { ctx.filter = 'grayscale(1)'; } catch (e) { /* zonder filter blijft de lagere dekking over */ }
+  teken();
+  ctx.restore();
+}
+// Een onderdeel dat deels samen werkt: een klein rond bolletje, half gevuld (niet alleen kleur), rechtsboven op het pictogram.
+function drawDeelsMarkering(ctx, x, y, sc) {
+  const r = Math.max(4, 4.4 * sc);
+  ctx.save();
+  ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2);
+  ctx.fillStyle = INK.cream; ctx.fill();
+  ctx.beginPath(); ctx.arc(x, y, r - 1, Math.PI / 2, Math.PI * 1.5);
+  ctx.closePath(); ctx.fillStyle = INK.amber; ctx.fill();
+  ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2);
+  ctx.lineWidth = 1.2; ctx.strokeStyle = inkA('dark', 0.9); ctx.stroke();
+  ctx.restore();
+}
+
 function drawDynamicMarkers(ctx, world) {
   const t = performance.now() / 1000;
   const hover = [];
@@ -1080,12 +1101,15 @@ function drawDynamicMarkers(ctx, world) {
   // the icons are queued, then thinned by priority and drawn (mapicons.js)
   const queue = [];
   const sc = mapIconScale(z);
-  const icon = (layer, kind, x, y, name, opts, sub, pick) => {
+  // samen spelen: met twee of meer spelers is een onderdeel dat nog niet samen werkt grijs ('nee') of heeft een markering ('deels'), met de melding bij hover en klik
+  const samenVan = (soort, id, status) => samenWaarschuwing(world, soort, id, status);
+  const icon = (layer, kind, x, y, name, opts, sub, pick, samen = null) => {
     if (layer && !layerOn(layer)) return;
     if (!mapKindVisible(kind, z)) return;
     const [sx, sy] = toScreen(x, y);
     if (sx < -20 || sy < -20 || sx > state.cw + 20 || sy > state.ch + 20) return;
-    queue.push({ kind, sx, sy, opts, name, sub, x, y, pick });
+    if (samen) pick = { ...pick, samen };
+    queue.push({ kind, sx, sy, opts, name, sub, x, y, pick, samen });
   };
 
   for (const r of getRoutes()) drawFullRoute(ctx, world, t, r);
@@ -1111,7 +1135,7 @@ function drawDynamicMarkers(ctx, world) {
   if (layerOn('klussen') && !job) {
     for (const k of getMissionList()) {
       if (!k.done || (showMission && k.index === m.index) || k.status === 'actief') continue;
-      icon(null, missionMapKind(k.index, false), k.start.x, k.start.y, k.code ? `${k.code} · ${k.label}` : k.label, { alpha: 0.5 }, `Klus · opnieuw spelen: €${k.klusloon}`, { todo: 'm:' + k.index });
+      icon(null, missionMapKind(k.index, false), k.start.x, k.start.y, k.code ? `${k.code} · ${k.label}` : k.label, { alpha: 0.5 }, `Klus · opnieuw spelen: €${k.klusloon}`, { todo: 'm:' + k.index }, samenVan('missie', k.index, k.samen));
     }
   }
   if (showMission) {
@@ -1121,7 +1145,7 @@ function drawDynamicMarkers(ctx, world) {
       for (const w of wps) icon(null, 'waypoint', w.x, w.y, 'Controlepunt');
     }
     icon(null, missionMapKind(m.index, m.phase === 'active'), m.marker.x, m.marker.y,
-      m.label || 'Missie', {}, m.phase === 'active' ? 'Missiedoel' : 'Missie starten', m.phase === 'active' ? null : { todo: 'm:' + m.index });
+      m.label || 'Missie', {}, m.phase === 'active' ? 'Missiedoel' : 'Missie starten', m.phase === 'active' ? null : { todo: 'm:' + m.index }, samenVan('missie', m.index, (getMissionList().find((q) => q.index === m.index) || {}).samen));
   }
   // samen spelen: het doel van de opdracht van de gastheer staat ook op de kaart van een gast (#368)
   const gastDoelLijst = world.coopRole === 'client' && !showMission ? gastDoelen(world) : []; // alle doelen van de host, niet alleen het eerste (#452)
@@ -1148,9 +1172,9 @@ function drawDynamicMarkers(ctx, world) {
     drawStoryShopRing(ctx, sx, sy, 13, t);
     icon(null, 'shop-' + storyShop.type, storyShop.x, storyShop.y, storyShop.name, {}, 'Voor het verhaal: ' + world.storyGuide.name.replace(/^Eerst: /, ''));
   }
-  for (const ps of getPigeonSpotsForRender()) icon('duif', 'pigeon', ps.x, ps.y, ps.name, {}, 'Word een duif', { goal: { kind: 'play', id: 'duif', name: 'Duivenmodus', sub: ps.name, x: ps.x, y: ps.y }, todo: 'mg:duif' });
+  for (const ps of getPigeonSpotsForRender()) icon('duif', 'pigeon', ps.x, ps.y, ps.name, {}, 'Word een duif', { goal: { kind: 'play', id: 'duif', name: 'Duivenmodus', sub: ps.name, x: ps.x, y: ps.y }, todo: 'mg:duif' }, samenVan('minigame', 'duif'));
   const play = (id, name, sub, x, y, todo) => ({ goal: { kind: 'play', id, name, sub, x, y }, todo });
-  for (const hs of getHeliSpotsForRender()) icon('heli', 'heli', hs.x, hs.y, hs.name, {}, 'Ballonjacht met de heli', play('heli', 'Ballonjacht', hs.name, hs.x, hs.y, 'mg:heli'));
+  for (const hs of getHeliSpotsForRender()) icon('heli', 'heli', hs.x, hs.y, hs.name, {}, 'Ballonjacht met de heli', play('heli', 'Ballonjacht', hs.name, hs.x, hs.y, 'mg:heli'), samenVan('minigame', 'heli'));
   // a heli run: its rings where they hang, the H to land on and the balloon
   const hm = getHeliRunMarks();
   if (hm) {
@@ -1177,19 +1201,19 @@ function drawDynamicMarkers(ctx, world) {
     }
     ctx.restore();
   }
-  for (const ps of getPadelSpotsForRender()) icon('padel', 'padel', ps.x, ps.y, ps.name, {}, world.time < ps.nextAt ? 'Baan even bezet' : 'Potje padel: volle gezondheid', play('padel', 'Padel', ps.name, ps.x, ps.y, 'mg:padel'));
+  for (const ps of getPadelSpotsForRender()) icon('padel', 'padel', ps.x, ps.y, ps.name, {}, world.time < ps.nextAt ? 'Baan even bezet' : 'Potje padel: volle gezondheid', play('padel', 'Padel', ps.name, ps.x, ps.y, 'mg:padel'), samenVan('minigame', 'padel'));
   const ACT_PLAY = { carbid: ['carbid', 'Carbid schieten', 'mg:carbid'], kermis: ['kermis', "Botsauto's", 'mg:botsauto'], drift: ['drift', 'Driftzone', 'mg:drift'], discgolf: ['discgolf', 'Discgolf', 'mg:discgolf'], pitchputt: ['pitchputt', 'Pitch & putt', 'mg:pitchputt'], skatepark: ['skatepark', 'Skatepark', 'mg:skatepark'], kartbaan: ['kartbaan', 'Karten bij Kardinge', 'mg:kartbaan'], zwembad: ['zwembad', 'Zwembad', 'mg:zwembad'], klimtoren: ['klimtoren', 'Klimtoren Zernike', 'mg:klimtoren'], waterski: ['waterski', 'Waterskiën', 'mg:waterski'], vliegschool: ['vliegschool', 'Vliegschool', 'mg:vliegschool'] };
   for (const a of activityMapIcons(world)) {
     const ap = ACT_PLAY[a.layer];
-    icon(a.layer, a.kind, a.x, a.y, a.name, {}, a.sub, ap ? play(ap[0], ap[1], a.name, a.x, a.y, ap[2]) : null);
+    icon(a.layer, a.kind, a.x, a.y, a.name, {}, a.sub, ap ? play(ap[0], ap[1], a.name, a.x, a.y, ap[2]) : null, samenVan('activiteit', a.id));
   }
-  for (const q of getPostgameSpotsForRender()) icon('postgame', 'pg-' + q.kind, q.x, q.y, q.name, {}, q.busy ? `Nu: ${q.busy.label}` : q.sub, q.id ? { goal: { kind: 'challenge', id: q.id, name: q.name, x: q.x, y: q.y }, todo: 'pg:' + q.id } : null);
+  for (const q of getPostgameSpotsForRender()) icon('postgame', 'pg-' + q.kind, q.x, q.y, q.name, {}, q.busy ? `Nu: ${q.busy.label}` : q.sub, q.id ? { goal: { kind: 'challenge', id: q.id, name: q.name, x: q.x, y: q.y }, todo: 'pg:' + q.id } : null, samenVan('minigame', 'pg_' + q.id));
   const ct = !job && world.challengeTarget;
   if (ct) {
     if (ct.path.length) drawRoute(ctx, [...ct.path, ct].map((w) => toScreen(w.x, w.y)), ICON);
     icon(null, 'sj-target', ct.x, ct.y, 'Controlepunt', {}, 'Uitdaging');
   }
-  for (const sj of getSideJobSpotsForRender()) icon(sj.job.layer || 'bijbaan', 'sj-' + sj.job.id, sj.x, sj.y, sj.job.name, {}, `${sj.job.kicker || 'Bijbaantje'}: ${sj.job.blurb.toLowerCase()}`, { goal: { kind: 'job', id: sj.job.id, name: sj.job.name, sub: 'Bijbaantje', x: sj.x, y: sj.y }, todo: 'job:' + sj.job.id });
+  for (const sj of getSideJobSpotsForRender()) icon(sj.job.layer || 'bijbaan', 'sj-' + sj.job.id, sj.x, sj.y, sj.job.name, {}, `${sj.job.kicker || 'Bijbaantje'}: ${sj.job.blurb.toLowerCase()}`, { goal: { kind: 'job', id: sj.job.id, name: sj.job.name, sub: 'Bijbaantje', x: sj.x, y: sj.y }, todo: 'job:' + sj.job.id }, samenVan('bijbaan', sj.job.id));
   for (const st of getStationsForRender()) icon('trein', 'station', st.x, st.y, st.name, {}, VILLAGES[st.name] ? `Reizen met de trein · ${VILLAGES[st.name].teaser}. Machinist: pak een stilstaande trein (E), dan G` : 'Reizen met de trein. Machinist: pak een stilstaande trein (E), dan G');
   for (const q of ommelandMapSpots()) icon('ommeland', q.kind, q.x, q.y, q.name, {}, q.sub);
   for (const q of perceelMapSpots()) icon('percelen', q.kind, q.x, q.y, q.name, {}, q.sub, { goal: q.goal });
@@ -1239,8 +1263,10 @@ function drawDynamicMarkers(ctx, world) {
   for (const m of world.coopPingMarks || []) icon(null, 'partner', m.x, m.y, m.naam ? `${m.naam}: ${m.tekst}` : m.tekst, { angle: 0, kleur: m.kleur, vorm: m.vorm }, 'roep');
   for (const q of placeIcons(queue, iconGapPx(sc))) {
     drawMapIconHalo(ctx, q.kind, q.sx, q.sy, sc);
-    drawMapIcon(ctx, q.kind, q.sx, q.sy, sc, { t, alpha: mapIconAlpha(q.kind, z), ...q.opts });
-    if (q.name) hover.push({ sx: q.sx, sy: q.sy, name: q.name, sub: q.sub, x: q.x, y: q.y, kind: q.kind, ...q.pick });
+    if (q.samen && q.samen.grijs) drawGrijs(ctx, () => drawMapIcon(ctx, q.kind, q.sx, q.sy, sc, { t, ...q.opts, alpha: ((q.opts && q.opts.alpha) ?? mapIconAlpha(q.kind, z)) * 0.6 })); // samen spelen: dit werkt nog niet samen (uitgegrijsd)
+    else drawMapIcon(ctx, q.kind, q.sx, q.sy, sc, { t, alpha: mapIconAlpha(q.kind, z), ...q.opts });
+    if (q.samen && q.samen.deels) drawDeelsMarkering(ctx, q.sx + 7 * sc, q.sy - 7 * sc, sc);
+    if (q.name) hover.push({ sx: q.sx, sy: q.sy, name: q.name, sub: q.sub, tipSub: q.samen ? q.samen.tekst + (q.sub ? ' · ' + q.sub : '') : undefined, x: q.x, y: q.y, kind: q.kind, ...q.pick });
   }
   // het bijschrift van de laag (bv. Treinrit: afstand en richting) boven alle pictogrammen, op een donkere band: de pictogrammen worden hierboven in een rij getekend en lagen er eerst overheen
   if (layerCap) {
@@ -1513,7 +1539,7 @@ function updateTooltip(sx, sy) {
   let main = '', sub = '';
   if (h) {
     main = h.name;
-    sub = h.sub || '';
+    sub = h.tipSub || h.sub || '';
   } else {
     const [wx, wy] = toWorld(sx, sy);
     const [minx, miny, maxx, maxy] = state.real;
@@ -1624,7 +1650,7 @@ function showCard(world, h, sx, sy) {
   } else if (keep && keep.melding) stapHtml = `<p class="mv-note">${escHtml(keep.melding)}</p>`;
   const el = state.cardEl;
   el.innerHTML = `<span class="mv-ico">${h.kind ? `<img src="${mapIconUrl(h.kind)}" alt="">` : ''}</span><div><b>${escHtml(it ? (it.code ? it.code + ' · ' : '') + it.title : h.name || 'Plek op de kaart')}</b>` +
-    `<small>${meta}</small>${pips || (it && it.record) ? `<span class="mv-rec">${pips}${escHtml(it ? it.record : '')}</span>` : ''}${actiesHtml(model, stap)}${stapHtml}` +
+    `<small>${meta}</small>${pips || (it && it.record) ? `<span class="mv-rec">${pips}${escHtml(it ? it.record : '')}</span>` : ''}${h.samen ? `<p class="mv-note" data-samen="${escHtml(h.samen.status)}">${escHtml(h.samen.tekst)}</p>` : ''}${actiesHtml(model, stap)}${stapHtml}` +
     '<div class="mv-btns"><button type="button" class="mapview-btn ghost" data-card="close">Sluiten</button></div></div>';
   el.hidden = false;
   state.card = { h, it, gekozen, stap, model };
@@ -1723,7 +1749,9 @@ function cardAction(world, act) {
 
 // Zet waypoint: een missie of klus wordt jouw doel, een plek wordt het ene waypoint.
 function zetWaypoint(world, c, h) {
-  if (c.it && c.it.goal && (c.it.goal === 'story' || c.it.goal.kind === 'mission')) chooseTodo(world, c.it);
+  const missie = c.it && c.it.goal && (c.it.goal === 'story' || c.it.goal.kind === 'mission');
+  if (h.samen && !missie && world.addMessage) world.addMessage(h.samen.tekst, 3); // samen spelen: dit onderdeel werkt nog niet (helemaal) samen; het waypoint wordt wel gezet (bij een missie meldt playMission het)
+  if (missie) chooseTodo(world, c.it);
   else if (h.goal) setGoal(h.goal);
   else if (h.spot) setUserWaypoint(h.x, h.y, h.name || '');
   else setGoal({ kind: 'place', name: h.name, sub: h.sub, x: h.x, y: h.y });

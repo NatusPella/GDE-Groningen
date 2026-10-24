@@ -68,6 +68,7 @@ import { respawnFade } from './respawn.js';
 import { playerBusy } from './busy.js';
 import { noteMoney } from './finance.js';
 import { lateInstapVoor } from './coopmeedoen.js';
+import { missieStatus, waarschuwVoorStart } from './coopstatus.js';
 
 // radio fragments a stage puts on Nachtstreek (storycontact.js, loaded lazily: it imports the UI)
 let contactMod = null;
@@ -695,7 +696,7 @@ export function getMissionList() {
   const w = worldRef;
   return chain.defs.map((d, i) => ({
     index: i, id: d.id, code: missionCode(i), order: storyOrder(i), label: d.label, type: d.type, reward: d.reward, status: statusOf(i), skipped: !!hooks.skipped(i), start: { x: d.start.x, y: d.start.y },
-    needs: w ? requirementText(w, d) : null, done: chain.completed.has(i), klusloon: klusloon(d.reward), medalPaid: chain.medalPaid[i] || 0,
+    samen: missieStatus(d), needs: w ? requirementText(w, d) : null, done: chain.completed.has(i), klusloon: klusloon(d.reward), medalPaid: chain.medalPaid[i] || 0,
     pay: chain.completed.has(i) ? klusloon(d.reward) : d.reward,
   })).filter((m) => ARC_BUILT.has(m.index));
 }
@@ -1094,6 +1095,7 @@ function syncPub(world) {
   const def = st.defs[st.index];
   const pub = st.pub;
   pub.type = def.type;
+  pub.samen = missieStatus(def); // werkt de opdracht al samen? (coopstatus.js)
   pub.label = def.label;
   pub.phase = st.phase;
   pub.timeLeft = st.phase === 'active' && Number.isFinite(st.timeLeft) ? st.timeLeft : null;
@@ -1925,6 +1927,7 @@ function startMission(world, def) {
       return;
     }
   }
+  waarschuwVoorStart(world, 'missie', def.id, missieStatus(def)); // samen spelen: een melding als dit nog niet (helemaal) samen werkt; de start gaat door
   chain.afoot = false;
   chain.phase = 'active';
   chain.timeLeft = assistTime(def.timeLimit) ?? Infinity;

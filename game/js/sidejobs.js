@@ -49,6 +49,7 @@ import boerderij from './sidejob_boerderij.js';
 import snackoverlast from './sidejob_snackbar.js';
 import { SIDEJOB_PAY_MULT, SIDEJOB_LEVEL_BONUS, SIDEJOB_ACCIDENT_FINE } from './economy.js';
 import { playerBusy } from './busy.js';
+import { waarschuwVoorStart } from './coopstatus.js';
 import { jobBonusHook } from './latehooks.js';
 import { noteMoney } from './finance.js';
 import { loopbaanLoon, loopbaanTel, loopbaanDeel } from './loopbaanlive.js';
@@ -287,6 +288,7 @@ function startJob(job, takeover = null) {
   ctx = c;
   c.opVerzoek = verzoekVan != null; // een gast vroeg erom: de host staat misschien ver weg, dus geen afbreken om de afstand voor iemand in het voertuig zit (#452)
   rec(job.id).shifts++;
+  waarschuwVoorStart(world, 'bijbaan', job.id); // samen spelen: een melding als deze bijbaan nog niet samen werkt; de start gaat door
   if (world.coopBijbaanStart) { try { world.coopBijbaanStart(job.id, job.name, verzoekVan); } catch (e) { console.error(e); } } // uitnodiging voor de andere spelers (#452)
   const lvl = c.level;
   const kicker = `Bijbaantje · niveau ${lvl}: ${levelTitle(lvl)}`;
