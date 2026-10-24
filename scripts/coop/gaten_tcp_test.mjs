@@ -49,7 +49,7 @@ try {
     const van = guests.map(evenAantal);
     assert.equal(N.deelMetGasten(world, 1000), 3);
     await until(() => guests.every((g, i) => gebeurt(g, 'beloning', van[i]).length === 1), 4000, 'beloning aangekomen');
-    for (const [i, g] of guests.entries()) assert.equal(gebeurt(g, 'beloning', van[i])[0].geld, 500);
+    for (const [i, g] of guests.entries()) assert.equal(gebeurt(g, 'beloning', van[i])[0].geld, 1000);
   });
 
   await t('#371 uitslag: gelukt met het deel, mislukt met reden', async () => {
@@ -58,7 +58,7 @@ try {
     await until(() => guests.every((g, i) => gebeurt(g, 'uitslag', van[i]).length === 2), 4000, 'uitslagen aangekomen');
     for (const [i, g] of guests.entries()) {
       const [ok, mis] = gebeurt(g, 'uitslag', van[i]);
-      assert.deepEqual([ok.ok, ok.label, ok.deel], [true, 'Het Loket', 500]);
+      assert.deepEqual([ok.ok, ok.label, ok.deel], [true, 'Het Loket', 1000]);
       assert.deepEqual([mis.ok, mis.label, mis.reden, mis.deel], [false, 'De Kluis', 'opgepakt door de politie', 0]);
     }
   });
