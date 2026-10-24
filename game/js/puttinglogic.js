@@ -8,6 +8,7 @@
 // bowl), so the arrows on the green tell you where to aim. Every hole is
 // par 2 or 3; a hole ends in the cup or after par + 4 strokes.
 import { geo, medalFrom } from './minigamekit.js';
+import { simulate, lanceer, SURFACE, G, CUP_SPEED } from './golfphysics.js';
 
 // tee and green (the cup) as WGS84; slope: where the green falls to (rad on
 // the map) and by how much (m per m); bunkers: [along, across, radius] from
@@ -16,23 +17,22 @@ export const PP_HOLES = [
   { tee: { lat: 53.202608, lon: 6.550551 }, green: { lat: 53.203227, lon: 6.550300 }, slope: [2.2, 0.026], bunkers: [[-7, 5, 2.8]] },
   { tee: { lat: 53.203331, lon: 6.549950 }, green: { lat: 53.202819, lon: 6.549104 }, slope: [-0.6, 0.032], bunkers: [] },
   { tee: { lat: 53.202605, lon: 6.548339 }, green: { lat: 53.202197, lon: 6.548294 }, slope: [0.4, 0.022], bunkers: [[6, -4, 2.4]] },
-  { tee: { lat: 53.201788, lon: 6.548401 }, green: { lat: 53.202179, lon: 6.547448 }, slope: [1.5, 0.034], bunkers: [] },
+  { tee: { lat: 53.201788, lon: 6.548401 }, green: { lat: 53.202179, lon: 6.547448 }, slope: [1.5, 0.034], bunkers: [], water: [[-11, 6.5, 3.2]] },
   { tee: { lat: 53.201976, lon: 6.547133 }, green: { lat: 53.202026, lon: 6.545940 }, slope: [-2.4, 0.028], bunkers: [[-8, -4.5, 3]] },
   { tee: { lat: 53.202308, lon: 6.546775 }, green: { lat: 53.202607, lon: 6.547898 }, slope: [3.0, 0.03], bunkers: [] },
 ];
 
-export const G = 9.81;
+export { G };
 export const GREEN_R = 9;
 export const CUP_R = 0.11;
-export const CUP_SPEED = 1.7;
-export const MU_GREEN = 0.13;
-export const MU_ROUGH = 0.42;
+export { CUP_SPEED };
+export const MU_GREEN = SURFACE.green.mu;
+export const MU_ROUGH = SURFACE.gras.mu;
 export const PITCH_MAX = 62;
 export const PUTT_VMAX = 7.2;
 export const MAX_OVER_PAR = 4;
 export const MEDAL_REL = [7, 3, 0];
 const BOWL = 0.0011;
-const DT = 0.01;
 
 export const parFor = (len) => (len < 60 ? 2 : 3);
 
@@ -48,6 +48,7 @@ export function holesFromWorld(raw) {
       n: i + 1, tee, cup, len, heading, par: parFor(len),
       slope: { dir: h.slope[0], mag: h.slope[1] },
       bunkers: (h.bunkers || []).map(([a, b, r]) => ({ x: cup.x + c * a - s * b, y: cup.y + s * a + c * b, r })),
+      water: (h.water || []).map(([a, b, r]) => ({ x: cup.x + c * a - s * b, y: cup.y + s * a + c * b, r })),
     };
   });
 }
@@ -62,7 +63,7 @@ export function venueLayout(holes) {
 }
 
 export function ppHoles() {
-  return holesFromWorld(PP_HOLES.map((h) => ({ tee: geo(h.tee.lat, h.tee.lon), cup: geo(h.green.lat, h.green.lon), slope: h.slope, bunkers: h.bunkers })));
+  return holesFromWorld(PP_HOLES.map((h) => ({ tee: geo(h.tee.lat, h.tee.lon), cup: geo(h.green.lat, h.green.lon), slope: h.slope, bunkers: h.bunkers, water: h.water })));
 }
 
 // The way the green falls at a point, as an acceleration direction (m per m).
@@ -73,51 +74,44 @@ export function slopeAt(h, x, y) {
 
 export const onGreen = (h, x, y) => Math.hypot(x - h.cup.x, y - h.cup.y) <= GREEN_R;
 export const inBunker = (h, x, y) => h.bunkers.some((b) => Math.hypot(x - b.x, y - b.y) <= b.r);
+export const inWater = (h, x, y) => !!h.water && h.water.some((b) => Math.hypot(x - b.x, y - b.y) <= b.r);
 
-// Rolls a ball from (x, y) with velocity (vx, vy) on this hole's green until
-// it stops or drops. Returns { end, holed, path, t, passed }.
+// Het terrein voor de motor (golfphysics.js): wat voor grond waar ligt en waar de green naartoe valt. groundAt(x, y) is de echte hoogte
+// van de wereld (map.surfaceAt): de helling daarvan komt erbij, begrensd, zodat een oprit of een talud de bal ook raakt.
+export function holeTerrain(h, groundAt = null) {
+  const GROUND_STEP = 3, GROUND_MAX = 0.02;
+  return {
+    cup: h.cup,
+    cupR: CUP_R,
+    surface: (x, y) => (inWater(h, x, y) ? 'water' : inBunker(h, x, y) ? 'zand' : onGreen(h, x, y) ? 'green' : 'gras'),
+    slope: (x, y) => {
+      const s = onGreen(h, x, y) ? slopeAt(h, x, y) : { x: 0, y: 0 };
+      if (!groundAt) return s;
+      const gx = (groundAt(x - GROUND_STEP, y) - groundAt(x + GROUND_STEP, y)) / (2 * GROUND_STEP);
+      const gy = (groundAt(x, y - GROUND_STEP) - groundAt(x, y + GROUND_STEP)) / (2 * GROUND_STEP);
+      const m = Math.hypot(gx, gy), k = m > GROUND_MAX ? GROUND_MAX / m : 1;
+      return { x: s.x + gx * k, y: s.y + gy * k };
+    },
+  };
+}
+
+// Rolls a ball from (x, y) with velocity (vx, vy) on this hole's ground until it stops, drops in the cup or splashes (the motor of
+// golfphysics.js, fixed time step). Returns { end, holed, path, t, passed, water, trace, events }.
 export function rollBall(h, x, y, vx, vy, opts = {}) {
-  const path = [[x, y]];
-  let t = 0, holed = false, passed = 0;
-  const maxT = opts.maxT || 14;
-  while (t < maxT) {
-    const sp = Math.hypot(vx, vy);
-    const grn = onGreen(h, x, y);
-    const mu = grn ? MU_GREEN : MU_ROUGH;
-    if (sp < 0.03) {
-      const sl = grn ? slopeAt(h, x, y) : { x: 0, y: 0 };
-      if (Math.hypot(sl.x, sl.y) * G < mu * G * 0.9) break;
-    }
-    const sl = grn ? slopeAt(h, x, y) : { x: 0, y: 0 };
-    const fx = sp > 1e-4 ? -(vx / sp) * mu * G : 0, fy = sp > 1e-4 ? -(vy / sp) * mu * G : 0;
-    let ax = fx + sl.x * G, ay = fy + sl.y * G;
-    const nvx = vx + ax * DT, nvy = vy + ay * DT;
-    // friction cannot reverse the ball
-    if (sp > 1e-4 && (nvx * vx + nvy * vy) < 0 && Math.hypot(sl.x, sl.y) * G < mu * G) { vx = 0; vy = 0; }
-    else { vx = nvx; vy = nvy; }
-    x += vx * DT; y += vy * DT;
-    t += DT;
-    const d = Math.hypot(x - h.cup.x, y - h.cup.y);
-    if (d < CUP_R) {
-      const speed = Math.hypot(vx, vy);
-      if (speed < CUP_SPEED * (1.15 - 0.6 * (d / CUP_R))) { holed = true; x = h.cup.x; y = h.cup.y; path.push([x, y]); break; }
-      passed++;
-    }
-    if (Math.round(t / DT) % 4 === 0) path.push([x, y]);
-  }
-  return { end: { x, y }, holed, path, t, passed };
+  const r = simulate(holeTerrain(h, opts.groundAt), { x, y, vx, vy }, { maxT: opts.maxT || 14, sterkte: opts.sterkte });
+  return { end: r.end, holed: r.holed, path: r.trace.map((p) => [p[0], p[1]]), t: r.t, passed: r.passed, water: r.water, trace: r.trace, events: r.events };
 }
 
 // A putt: power 0..1 along a heading.
-export function putt(h, from, yaw, power) {
-  const v = PUTT_VMAX * Math.max(0.02, Math.min(1, power));
-  return rollBall(h, from.x, from.y, Math.cos(yaw) * v, Math.sin(yaw) * v);
+export function putt(h, from, yaw, power, opts = {}) {
+  const p = Math.max(0.02, Math.min(1, power));
+  const v = PUTT_VMAX * p;
+  return rollBall(h, from.x, from.y, Math.cos(yaw) * v, Math.sin(yaw) * v, { ...opts, sterkte: p });
 }
 
-// A pitch: the carry in metres is power times PITCH_MAX; the ball lands with
-// a little scatter and rolls out 12 percent of the carry (on the green with
-// the slope). From a bunker the scatter doubles.
-export function pitch(h, from, yaw, power, rng = Math.random, bunker = false) {
+// A pitch: the carry in metres is power times PITCH_MAX; the ball flies on a parabola, bounces (the grass takes the speed out, the
+// green with backspin) and rolls out with the slope. A little scatter on the carry and the heading; from a bunker it doubles.
+export function pitch(h, from, yaw, power, rng = Math.random, bunker = false, opts = {}) {
   const p = Math.max(0.05, Math.min(1, power));
   const carry = PITCH_MAX * p;
   const k = bunker ? 2 : 1;
@@ -125,18 +119,12 @@ export function pitch(h, from, yaw, power, rng = Math.random, bunker = false) {
   const dist = Math.max(1, carry * (1 + gauss() * 0.025 * k));
   const dyaw = gauss() * 0.012 * k;
   const a = yaw + dyaw;
-  const lx = from.x + Math.cos(a) * dist, ly = from.y + Math.sin(a) * dist;
-  const grn = onGreen(h, lx, ly);
-  const water = null;
-  if (!grn) {
-    // off the green: the ball plugs into the rough and rolls a metre
-    const e = { x: lx + Math.cos(a) * dist * 0.04, y: ly + Math.sin(a) * dist * 0.04 };
-    return { landing: { x: lx, y: ly }, end: e, holed: false, path: [[from.x, from.y], [lx, ly], [e.x, e.y]], carry: dist, onGreen: false, water };
-  }
-  const roll = dist * 0.12;
-  const v = Math.sqrt(2 * MU_GREEN * G * roll);
-  const r = rollBall(h, lx, ly, Math.cos(a) * v, Math.sin(a) * v);
-  return { landing: { x: lx, y: ly }, end: r.end, holed: r.holed, path: [[from.x, from.y], [lx, ly], ...r.path.slice(1)], carry: dist, onGreen: true, water };
+  const r = simulate(holeTerrain(h, opts.groundAt), { x: from.x, y: from.y, ...lanceer(a, dist) }, { sterkte: p });
+  const landing = r.landing || { x: r.end.x, y: r.end.y };
+  return {
+    landing, end: r.end, holed: r.holed, carry: dist, onGreen: onGreen(h, landing.x, landing.y), water: r.water,
+    path: [[from.x, from.y], ...r.trace.map((q) => [q[0], q[1]])], trace: r.trace, events: r.events, t: r.t,
+  };
 }
 
 // The power that carries a pitch a given distance.

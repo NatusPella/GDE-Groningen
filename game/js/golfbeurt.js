@@ -28,10 +28,11 @@ export function beginBaan(b, tee) {
 const afstand = (s, cup) => Math.hypot(s.lie.x - cup.x, s.lie.y - cup.y);
 
 // Na een slag: leg de bal neer, tel de slag, en geef terug wie nu aan de beurt is (null als de baan klaar is).
-export function slaan(b, id, nieuweLie, cup, { inHol = false, opgepakt = false } = {}) {
+// strafslag: extra slagen (1 bij water: de bal gaat terug naar waar je sloeg, nieuweLie is dan die plek)
+export function slaan(b, id, nieuweLie, cup, { inHol = false, opgepakt = false, strafslag = 0 } = {}) {
   const s = b.spelers.find((x) => x.id === id);
   if (!s || s.klaar) return b.aanDeBeurt;
-  s.slagen++;
+  s.slagen += 1 + Math.max(0, strafslag | 0);
   s.lie = { x: nieuweLie.x, y: nieuweLie.y };
   if (inHol || opgepakt) { s.klaar = true; s.kaart[b.baan] = s.slagen; }
   const open = b.spelers.filter((x) => !x.klaar);

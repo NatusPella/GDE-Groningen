@@ -11,6 +11,9 @@ import { PUTT_LINES } from './minigamelines.js';
 import { WOLFIE, SIR, newEtiquette, beginHole as etqBegin, step as etqStep, holeDone as etqHoleDone, misser as etqMisser, einde as etqEinde, hallo as etqHallo, plan as etqPlan, aanDeBeurt as etqBeurt } from './golfetiquette.js';
 import { loadEchtePlekken, golfVenues, nearestOf } from './echteplekken.js';
 import { registreerWedstrijd, zetWedGastHaken, wedNodigUit, wedNuStarten, wedHostScore, wedGastScore, wedScoreStop, wedGastVerlaat, wedGastReset, wedScoreRijen } from './coopwedstrijd.js';
+import { pushAudioEvent } from './pedgeom.js';
+import { SAMPLE } from './golfphysics.js';
+import { golfRij, krachtTekst, scoreTabel, scoreCel, ensureGolfCss } from './golfhud.js';
 import { nieuweBeurt, beginBaan, slaan, volgendeBaan, spelerStand, spelerIds, spelerNaam, spelerAantal, uitslag, MAX_SPELERS } from './golfbeurt.js';
 import {
   ppHoles, holesFromWorld, venueLayout, slopeAt, onGreen, inBunker, pitch, putt, straightPower, powerForCarry, finishHole, newCard, cardTotals, courseMedal, holeName, relText,
@@ -69,6 +72,7 @@ function focus(w) {
 // de bal is een derde van de put (CUP_R * 1,4 = 15 cm straal): groter dan een echte bal voor het oog, maar hij past duidelijk in het hol (#436)
 const BALL_R = 0.05;
 const CHARGE_PITCH = 1.5, CHARGE_PUTT = 1.7;
+const PREVIEW_PTS = 96;
 
 let game = null;
 let built = null;
@@ -98,6 +102,7 @@ function materials() {
     green: new THREE.MeshStandardMaterial({ map: tex, roughness: 0.95 }), sand: std(0xe0cc92), cup: new THREE.MeshBasicMaterial({ color: 0x0a0a0a }),
     pole: std(0xe8e4d8, { metalness: 0.2 }), flag: new THREE.MeshBasicMaterial({ color: 0xe0452e, side: THREE.DoubleSide }), mat: std(0x2a6a3a),
     ball: std(0xffffff, { roughness: 0.3 }), arrow: new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.7, depthWrite: false, side: THREE.DoubleSide }),
+    water: new THREE.MeshStandardMaterial({ color: 0x2f7f86, roughness: 0.25, metalness: 0.1, transparent: true, opacity: 0.92 }),
     line: new THREE.LineBasicMaterial({ color: 0xffd23f, transparent: true, opacity: 0.9 }),
     ring: new THREE.MeshBasicMaterial({ color: 0xffd23f, transparent: true, opacity: 0.85, depthWrite: false }),
   };
@@ -130,6 +135,7 @@ function buildCourse(w) {
     const green = mesh(new THREE.CylinderGeometry(GREEN_R, GREEN_R, 0.06, 28), M.green, h.cup.x, 0.03, h.cup.y, g);
     green.castShadow = false;
     for (const b of h.bunkers) { const sb = mesh(new THREE.CylinderGeometry(b.r, b.r, 0.07, 18), M.sand, b.x, 0.035, b.y, g); sb.castShadow = false; }
+    for (const b of h.water || []) { const wm = mesh(new THREE.CylinderGeometry(b.r, b.r, 0.07, 22), M.water, b.x, 0.036, b.y, g); wm.castShadow = false; }
     const cup = new THREE.Mesh(new THREE.CircleGeometry(CUP_R * 1.4, 12).rotateX(-Math.PI / 2), M.cup);
     cup.position.set(h.cup.x, 0.075, h.cup.y);
     g.add(cup);
@@ -167,7 +173,9 @@ function buildCourse(w) {
   const ball = new THREE.Mesh(new THREE.SphereGeometry(BALL_R, 10, 8), M.ball);
   ball.castShadow = true;
   ball.visible = false;
-  const lineGeo = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3()]);
+  const lineGeo = new THREE.BufferGeometry();
+  lineGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(PREVIEW_PTS * 3), 3));
+  lineGeo.setDrawRange(0, 2);
   const line = new THREE.Line(lineGeo, M.line);
   line.frustumCulled = false;
   line.visible = false;
@@ -306,7 +314,18 @@ function beginHole(w) {
   etqSay(w, etqBegin(g.etq, h.par));
 }
 
-const mode = (g) => (onGreen(HOLES[g.hole], g.lie.x, g.lie.y) ? 'putt' : 'pitch');
+const mode = (g) => (onGreen(HOLES[g.hole], g.lie.x, g.lie.y) && !inBunker(HOLES[g.hole], g.lie.x, g.lie.y) ? 'putt' : 'pitch');
+
+// De echte hoogte van de wereld onder de baan (map.surfaceAt): de helling ervan telt mee voor de rollende bal (golfphysics.js, holeTerrain).
+// Tegen elkaar (g.online) rekent iedereen op de vaste hellingen van de baan, niet op de gestreamde wereldhoogte: zo geeft dezelfde slag
+// op elk scherm dezelfde uitkomst, ook als de tegels bij de een nog niet geladen zijn (#443, #453).
+function groundAtFor(w) {
+  const m = w && w.map;
+  if (game && game.online) return null;
+  if (!m || typeof m.surfaceAt !== 'function') return null;
+  const st = { z: 0, ribbon: null };
+  return (x, y) => { st.z = 0; st.ribbon = null; const r = m.surfaceAt(x, y, st); return r && Number.isFinite(r.z) ? r.z : 0; };
+}
 
 function setLie(w) {
   const g = game;
@@ -355,24 +374,11 @@ function shoot(w, power, over = {}) {
   const yaw = over.yaw ?? g.yaw;
   const kind = over.mode || mode(g);
   const from = { ...g.lie };
+  const opts = { groundAt: groundAtFor(w) };
   let res;
-  if (kind === 'putt') {
-    res = putt(h, from, yaw, power);
-    g.anim = { kind: 'putt', path: res.path.map((p) => [p[0], p[1], 0]), step: 0.04, t: 0, res };
-  } else {
-    res = pitch(h, from, yaw, power, g.online ? makeRng(443 + g.hole * 101 + g.strokes * 7919) : g.rng, g.bunker);
-    const carry = res.carry;
-    const fly = 0.6 + carry / 45;
-    const arc = [];
-    const n = Math.max(8, Math.round(fly / 0.04));
-    const peak = 3 + carry * 0.16;
-    for (let i = 0; i <= n; i++) {
-      const k = i / n;
-      arc.push([from.x + (res.landing.x - from.x) * k, from.y + (res.landing.y - from.y) * k, 4 * peak * k * (1 - k)]);
-    }
-    const roll = res.path.slice(2).map((p) => [p[0], p[1], 0]);
-    g.anim = { kind: 'pitch', path: [...arc, ...roll], step: 0.04, t: 0, res };
-  }
+  if (kind === 'putt') res = putt(h, from, yaw, power, opts);
+  else res = pitch(h, from, yaw, power, g.online ? makeRng(443 + g.hole * 101 + g.strokes * 7919) : g.rng, g.bunker, opts);
+  g.anim = { kind, trace: res.trace, events: res.events, ei: 0, t: 0, rollT: 0, res, from };
   g.strokes++;
   g.phase = 'ball';
   g.phaseT = 0;
@@ -386,9 +392,22 @@ function ballDone(w) {
   const g = game;
   const h = HOLES[g.hole];
   const res = g.anim.res;
+  const a0 = g.anim;
   g.anim = null;
-  if (g.b) g.volgende = slaan(g.b, g.players[g.pi].id, res.holed ? h.cup : res.end, h.cup, { inHol: res.holed, opgepakt: !res.holed && g.strokes >= h.par + MAX_OVER_PAR });
+  // in het water: een strafslag en de bal gaat terug naar waar je sloeg
+  const plons = !res.holed && !!res.water;
+  const van = plons ? a0.from : res.end;
+  if (plons) g.strokes++;
+  if (g.b) g.volgende = slaan(g.b, g.players[g.pi].id, res.holed ? h.cup : van, h.cup, { inHol: res.holed, opgepakt: !res.holed && g.strokes >= h.par + MAX_OVER_PAR, strafslag: plons ? 1 : 0 });
   if (res.holed) { holeDone(w, g.strokes, 'cup'); return; }
+  if (plons) {
+    g.lie = { x: van.x, y: van.y };
+    g.flash = { text: 'Plons! Strafslag: terug naar waar je sloeg', t: 3, bad: true };
+    if (g.strokes >= h.par + MAX_OVER_PAR) { holeDone(w, g.strokes, 'opgepakt'); return; }
+    g.phase = 'landed';
+    g.phaseT = 0;
+    return;
+  }
   g.lie = { x: res.end.x, y: res.end.y };
   const left = Math.hypot(h.cup.x - g.lie.x, h.cup.y - g.lie.y);
   if (inBunker(h, g.lie.x, g.lie.y)) { g.flash = { text: 'In het zand', t: 2.4, bad: true }; say(w, 'bunker'); pendule(w); }
@@ -426,19 +445,35 @@ function nextHole(w) {
   beginHole(w);
 }
 
+// De baan van de bal afspelen (golfphysics.js trace, een punt per SAMPLE s) met de geluiden van de events; de baan is al uitgerekend.
+const GOLF_SUB = { slag: 'slag', stuiter: 'stuiter', zand: 'zand', plons: 'plons', rand: 'rand', hole: 'hole' };
 function stepBall(w, dt) {
   const g = game;
   const a = g.anim;
-  a.t += dt;
-  const idx = a.t / a.step;
-  const last = a.path.length - 1;
+  const tr = a.trace;
+  const last = tr.length - 1;
+  // een bal die bijna stil rolt gaat sneller: geen seconden wachten op de laatste centimeters
+  const slow = a.cur && a.cur[2] < 0.03 && a.cur[3] < 0.4 && !a.res.holed ? 2.5 : 1;
+  a.t += dt * slow;
+  const idx = a.t / SAMPLE;
   const i = Math.min(last, Math.floor(idx)), j = Math.min(last, i + 1);
   const k = Math.min(1, idx - i);
-  const p = a.path[i], q = a.path[j];
-  const x = p[0] + (q[0] - p[0]) * k, y = p[1] + (q[1] - p[1]) * k, z = p[2] + (q[2] - p[2]) * k;
-  a.pos = { x, y, z };
+  const p = tr[i], q = tr[j];
+  const x = p[0] + (q[0] - p[0]) * k, y = p[1] + (q[1] - p[1]) * k, z = p[2] + (q[2] - p[2]) * k, sp = p[3] + (q[3] - p[3]) * k;
+  a.cur = [x, y, z, sp];
+  a.pos = { x, y, z: Math.max(0, z) };
   if (built) built.ball.position.set(x, BALL_R + z, y);
-  if (idx >= last + 6) ballDone(w);
+  while (a.ei < a.events.length && a.events[a.ei].t <= a.t) {
+    const e = a.events[a.ei++];
+    const sub = GOLF_SUB[e.kind];
+    if (sub) pushAudioEvent(w, { kind: 'golf', sub: e.kind === 'slag' && a.kind === 'putt' ? 'putt' : sub, strength: e.k, x: e.x, y: e.y });
+  }
+  // het zachte rollen: een tikje geluid per paar tienden zolang de bal over de grond gaat
+  if (z < 0.03 && sp > 0.25 && !a.res.holed && (a.rollT -= dt) <= 0) {
+    a.rollT = 0.2;
+    pushAudioEvent(w, { kind: 'golf', sub: 'rol', strength: Math.min(1, sp / 6), x, y });
+  }
+  if (a.t >= Math.max(a.res.t, last * SAMPLE) + 0.5) ballDone(w);
 }
 
 // --- the loop --------------------------------------------------------------------------------------------------------
@@ -589,29 +624,41 @@ function say(w, kind, force = false, after = false) {
 
 // --- 3D, camera and HUD per frame ------------------------------------------------------------------------------------
 
-function previewLine() {
+// De richtlijn met baan-preview: de bal zoals hij gaat rollen met de kracht van dit moment (de lading, of anders het streepje), zonder
+// spreiding: een putt laat zijn breuk zien, een pitch zijn boog, de plek waar hij landt (de ring) en waar hij blijft liggen (het streepje).
+// Gerekend met dezelfde motor als de slag zelf (golfphysics.js), alleen als richting of kracht verandert.
+function previewLine(w) {
   const g = game;
   if (!built) return;
   if (g.phase !== 'aim') { built.line.visible = false; built.ring.visible = false; return; }
   const h = HOLES[g.hole];
   const putting = mode(g) === 'putt';
   const dist = Math.hypot(h.cup.x - g.lie.x, h.cup.y - g.lie.y);
-  const reach = putting ? Math.min(dist * 1.25 + 2, 22) : Math.max(8, g.charging ? PITCH_MAX * Math.max(0.05, g.charge) : dist);
-  const sig = [g.yaw.toFixed(3), reach.toFixed(1), g.lie.x, g.lie.y].join('|');
+  const power = g.charging ? Math.max(0.04, g.charge) : putting ? straightPower(dist) : powerForCarry(dist);
+  const sig = [g.yaw.toFixed(3), power.toFixed(2), g.lie.x.toFixed(2), g.lie.y.toFixed(2), putting ? 1 : 0].join('|');
   if (aimLine === sig) return;
   aimLine = sig;
+  const opts = { groundAt: groundAtFor(w) };
+  const res = putting ? putt(h, g.lie, g.yaw, power, opts) : pitch(h, g.lie, g.yaw, power, () => 0.5, g.bunker, opts);
+  const tr = res.trace;
   const pos = built.line.geometry.attributes.position;
-  pos.setXYZ(0, g.lie.x, 0.12, g.lie.y);
-  pos.setXYZ(1, g.lie.x + Math.cos(g.yaw) * reach, 0.12, g.lie.y + Math.sin(g.yaw) * reach);
+  const n = Math.min(PREVIEW_PTS, tr.length);
+  for (let i = 0; i < n; i++) {
+    const q = tr[n === tr.length ? i : Math.round((i / (n - 1)) * (tr.length - 1))];
+    pos.setXYZ(i, q[0], BALL_R + 0.04 + Math.max(0, q[2]), q[1]);
+  }
+  built.line.geometry.setDrawRange(0, n);
   pos.needsUpdate = true;
   built.line.visible = true;
-  built.ring.visible = !putting;
-  if (!putting) built.ring.position.set(g.lie.x + Math.cos(g.yaw) * reach, 0.1, g.lie.y + Math.sin(g.yaw) * reach);
+  const mark = putting ? res.end : res.landing;
+  built.ring.visible = true;
+  built.ring.scale.setScalar(putting ? 0.35 : 1);
+  built.ring.position.set(mark.x, 0.1, mark.y);
 }
 
 function sync3D(w, dt) {
   if (!built) return;
-  if (game) previewLine();
+  if (game) previewLine(w);
   if (built.keeper.visible) {
     animatePersonWalk(built.keeper, 0, dt);
     if (!game && built.keeperUntil && w.time > built.keeperUntil) { built.keeper.visible = false; built.sir.visible = false; built.wolfie.visible = false; built.keeperUntil = 0; clearBubbles(w, 'pitchputt'); }
@@ -671,6 +718,7 @@ function camera(w) {
 }
 
 function ensureBoard() {
+  ensureGolfCss();
   if (!board) board = createBoard('PITCH & PUTT', ACCENT);
   return board;
 }
@@ -695,18 +743,29 @@ function updateHud(w) {
   const dist = Math.hypot(h.cup.x - g.lie.x, h.cup.y - g.lie.y);
   const putting = mode(g) === 'putt';
   const t = cardTotals(g.card);
-  const wie = meerdere(g) ? `<span>Aan de beurt <b>${g.players[g.pi].naam}</b></span>` : '';
-  const stand = meerdere(g) ? `<span>${g.players.map((s, i) => `${i === g.pi ? '<b>' : ''}${s.naam.replace('Speler ', 'S')} ${relText(cardTotals(s.card).rel)}${i === g.pi ? '</b>' : ''}`).join(' · ')}</span>` : '';
+  const multi = meerdere(g);
+  const wie = multi ? g.players[g.pi].naam : '';
   const online = g.online ? wedScoreRijen(w) : [];
   const stand2 = online.length ? `<span>${online.map((r) => `${r.weg ? '<s>' : ''}${r.naam} ${relText(r.rel)} (${r.banen}/${HOLES.length})${r.weg ? '</s>' : ''}`).join(' · ')}</span>` : '';
-  const row = `${stand2}${wie}<span>Baan <b>${h.n}</b>/${HOLES.length}</span><span>Par <b>${h.par}</b></span><span>Slag <b>${g.phase === 'aim' ? g.strokes + 1 : g.strokes}</b></span><span>Vlag <b>${dist < 10 ? dist.toFixed(1).replace('.', ',') : Math.round(dist)} m</b></span><span>${putting ? 'Putter' : g.bunker ? 'Wedge (zand)' : 'Wedge'}</span>${stand}`;
+  const row = stand2 + golfRij({ wie, baan: h.n, banen: HOLES.length, par: h.par, slag: g.phase === 'aim' ? g.strokes + 1 : g.strokes, vlag: dist, club: putting ? 'putter' : 'wedge', ondergrond: g.bunker ? 'zand' : 'gras' });
   const cells = g.card.holes.map((c, i) => ({ t: c.done ? String(c.strokes) : i === g.hole ? `${g.strokes || '·'}` : String(c.n), cls: `${i === g.hole ? 'on' : ''} ${c.done ? (c.strokes <= c.par ? 'good' : 'bad') : ''}` }));
+  const extra = multi ? scoreTabel({
+    nummers: HOLES.map((hh) => hh.n),
+    huidigeBaan: g.hole,
+    spelers: g.players.map((s, i) => {
+      const st = spelerStand(g.b, s.id);
+      return { id: s.id, naam: s.naam, aanDeBeurt: i === g.pi, klaar: !!(st && st.klaar), totaal: relText(cardTotals(s.card).rel), cellen: s.card.holes.map((c, k) => scoreCel(c, k, g.hole, st ? st.slagen : 0)) };
+    }),
+  }) : '';
   const mark = putting ? straightPower(dist) : powerForCarry(dist);
   const flash = g.flash ? g.flash.text : g.phase === 'wacht' ? 'Alle banen af: wachten op de anderen' : g.phase === 'aim' ? (putting ? slopeText(g) : g.bunker ? 'Uit het zand: meer spreiding' : 'Mik op de vlag') : '';
   const help = g.phase === 'aim'
     ? `${key('A')}${key('D')} richten (${key('SHIFT')} fijn) · houd ${key('SPATIE')} en laat los bij het streepje · ${key('BACKSPACE')} stoppen · totaal ${relText(t.rel)}${g.hole === 0 && g.b.spelers.every((s) => s.slagen === 0) ? ` · ${key('2')}-${key('4')} meer spelers` : ''}`
     : `Totaal ${relText(t.rel)} · ${key('BACKSPACE')} stoppen`;
-  board.set({ row, cells, meter: g.phase === 'aim' ? { v: g.charge, mark: clamp(mark, 0, 1), color: '#46b36a' } : null, flash, bad: !!(g.flash && g.flash.bad), help });
+  // de krachtbalk: de kleur zegt hoe dicht je bij het streepje zit (groen ver, geel dichtbij, oranje te hard), de tekst het getal
+  const v = g.charge, nabij = Math.abs(v - mark);
+  const kleur = v > mark + 0.12 ? '#ff9a3c' : nabij < 0.04 ? '#ffd23f' : '#46b36a';
+  board.set({ row, cells: multi ? null : cells, extra, meter: g.phase === 'aim' ? { v, mark: clamp(mark, 0, 1), color: kleur, text: krachtTekst(v) } : null, flash, bad: !!(g.flash && g.flash.bad), help });
 }
 
 // --- playing against others (#443) --------------------------------------------------------------------------------------
@@ -745,7 +804,10 @@ export const PITCHPUTT = {
     window.__pitchputt = {
       venues: () => venues.map((v) => ({ id: v.id, name: v.name, x: Math.round(v.x), y: Math.round(v.y), holes: v.holes.length })),
       spot: () => ({ ...STAND }),
-      holes: () => HOLES.map((h) => ({ n: h.n, par: h.par, len: Math.round(h.len), tee: { ...h.tee }, cup: { ...h.cup } })),
+      holes: () => HOLES.map((h) => ({ n: h.n, par: h.par, len: Math.round(h.len), tee: { ...h.tee }, cup: { ...h.cup }, water: (h.water || []).map((b) => ({ ...b })), bunkers: h.bunkers.map((b) => ({ ...b })) })),
+      // tests: naar een andere baan, en de bal op een andere plek leggen (de beurt en de score blijven zoals ze zijn)
+      goto: (i) => { if (!game || !(i >= 0 && i < HOLES.length)) return false; game.hole = i; if (game.b) game.b.baan = i; beginHole(w); return true; },
+      zet: (x, y) => { if (!game || game.phase !== 'aim') return false; game.lie = { x, y }; setLie(w); return true; },
       start: (force = true) => start(w, { force }),
       state: () => (game ? { phase: game.phase, hole: game.hole, strokes: game.strokes, lie: { ...game.lie }, mode: mode(game), card: cardTotals(game.card) } : null),
       shoot: (power = 0.8, over = {}) => (game && game.phase === 'aim' ? (shoot(w, power, over), true) : false),
