@@ -62,6 +62,17 @@ export function takeOverRide(line, { dir = 1, s = 0, rng = Math.random, demand =
   return ride;
 }
 
+// De dienst van een bus overnemen (#396): in de rijrichting van de bus, en aan het eind van de lijn keer je om en rijd
+// je de dienst terug, net als de machinist bij de trein (#424). Geeft { ride, dir, keer } of null als er niets te rijden
+// is. Pure variant van wat sidejob_lijn.js bij het overnemen doet; tests: scripts/busride_test.mjs.
+export function takeOverService(line, opts = {}) {
+  const { dir = 1, s = 0, rng, demand, max } = opts;
+  const ride = takeOverRide(line, { dir, s, rng, demand, max });
+  if (ride) return { ride, dir, keer: false };
+  const terug = takeOverRide(line, { dir: -dir, s, rng, demand, max });
+  return terug ? { ride: terug, dir: -dir, keer: true } : null;
+}
+
 export function rideStop(ride) { return ride.table[ride.next] || null; }
 
 export function stopPos(ride, row) {
