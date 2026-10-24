@@ -4,7 +4,7 @@ De visie van de eigenaar (besluiten van 23-10 en 24-10), op één plek. In gespr
 
 ## Principes
 
-1. **Alle spelers zijn gelijkwaardig.** De host is alleen wie de game host en dat kan wisselen (host-overdracht). Het enige wat de host meer mag is spelers uit de gezamenlijke game verwijderen (kicken). Tijd verspringen, slapen, reizen, laden, cheats en pauzeren zijn geen hostrechten maar gezamenlijke keuzes. Iedereen kan een opdracht, bijbaan of wedstrijd starten.
+1. **Alle spelers zijn gelijkwaardig, ook de host.** De host is gewoon een speler van het spel: hij kan meedoen aan een opdracht of niet (J/N) en hoeft nergens bij te zijn. Verschillende groepen spelers kunnen tegelijk verschillende opdrachten en wedstrijden spelen. De host is alleen wie de game host en dat kan wisselen (host-overdracht). Het enige wat de host meer mag is spelers uit de gezamenlijke game verwijderen (kicken). Tijd verspringen, slapen, reizen, laden, cheats en pauzeren zijn geen hostrechten maar gezamenlijke keuzes. Iedereen kan een opdracht, bijbaan of wedstrijd starten.
 2. **Eenspeler is een sessie van één.** Dezelfde code met één speler en geen netwerk. Het menu pauzeert alleen als je alleen bent. Samen spelen aanzetten kan zonder opnieuw te beginnen.
 3. **Alles persoonlijks is eigen.** Geld, verhaalvoortgang, voertuigen en panden blijven in de eigen save van elke speler. Eigen voertuigen en panden komen mee in de wereld van een ander (bezorgen en delen, #449).
 4. **Niemand verliest iets.** Bij het einde van een sessie, wegvallen of een crash verliest niemand geld of voortgang: checkpoints per speler, beloning per gebeurtenis, nooit pas aan het einde (#448). Dezelfde beloning telt nooit dubbel.
