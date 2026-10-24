@@ -28,6 +28,7 @@ import { coveredByTiles } from './provinceworld.js';
 import { provinceLandAt } from './regions.js';
 import { puntInGebied } from './grenzen.js';
 import { HX, HZ, deurVan, droogeKandidaten, zoekPlek } from './safehuisplek.js';
+import { registerMusicProbe } from './scenariomusic.js';
 
 const GEBRUIK_R = 2.2;
 const STREAM_IN = 200;
@@ -201,6 +202,9 @@ function duikOnderNu(w, h, uren) {
   return true;
 }
 
+// de eigen muziek van je huis (thuis_loop) klinkt zolang het menu van je safehouse openstaat: slapen, opslaan, kledingkast
+let huisMenuOpen = false;
+registerMusicProbe('thuis', () => { if (huisMenuOpen && !isShopOpen()) huisMenuOpen = false; return huisMenuOpen; });
 function menu(w, h) {
   const ind = getIndeling();
   const p = getProfiel();
@@ -299,6 +303,7 @@ export const SAFEHUIS = {
     if (!h) return false;
     if (k) { w.addMessage(k, 3); return true; }
     if (policeWatching(w)) { w.addMessage('Deur op slot: eerst de politie kwijt', 3); return true; }
+    huisMenuOpen = true;
     openShopMenu(w, menu(w, h));
     return true;
   },

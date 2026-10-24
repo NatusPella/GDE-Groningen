@@ -14,7 +14,7 @@ const CHASE_STOP_S = 6;
 const ACT_START_S = 0.4;
 const ACT_STOP_S = 1.5;
 
-export const ACTIVITY_KEYS = ['kart', 'padel', 'golf', 'klimtoren', 'trein', 'bus', 'boerderij', 'vlucht', 'missie', 'fiets'];
+export const ACTIVITY_KEYS = ['kart', 'padel', 'golf', 'klimtoren', 'trein', 'bus', 'boerderij', 'vlucht', 'thuis', 'missie', 'fiets'];
 const BOERDERIJ_MODELLEN = ['tractor', 'maaidorser', 'laadmachine']; // de machines van het boerenwerk (boerderijwereld.js, #415)
 
 // Modules that own private state (the machinist service) register a probe
@@ -46,6 +46,8 @@ export function activityMusicKey(world) {
   if (pv && (pv.isHeli || (pv.model && pv.model.name === 'plane'))) return 'vlucht';
   // a guest of Samen spelen riding in the host's train or bus
   if (world.coopRole === 'client' && (world.coopZit === 'trein' || world.coopZit === 'bus')) return world.coopZit;
+  // your safehouse menu or the photo mode: the calm home loop (it wins over a running mission and the bike)
+  if (probed('thuis', world) || probed('foto', world)) return 'thuis';
   // a running story mission (tension loop), then the bike (a relaxed loop); the specific activities above win, a chase wins over all
   if (world.mission && world.mission.phase === 'active') return 'missie';
   if (pv && (pv.isBike || pv.isScooter)) return 'fiets';
