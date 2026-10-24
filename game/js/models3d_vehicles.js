@@ -3,6 +3,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { HABBO_PALETTE, habboMaterial, GeoBuilder, vcMaterial, markShared, composeMatrix, tubeGeometry } from './pixelart3d.js';
 import { buildPersonMesh, PERSON_RIG, holdPhoneRiding } from './models3d_people.js';
 import { boatKind, boatHasCabin } from './boattypes.js';
+import { midibusDeurXs } from './businterieur.js';
 import { ZEESCHIP_SHAPE, SLEPER_SHAPE, zeeschipFit, sleperFit } from './zeeschip3d.js';
 import { buildHeliMesh } from './heli3d.js';
 import { buildPlaneMesh } from './plane3d.js';
@@ -2629,14 +2630,16 @@ export function applyFlatTire(mesh, v) {
 
 // --- dispatch -------------------------------------------------------------------
 
-// Midi bus: one short rigid section, same livery as the big ones.
+// Midi bus: one short rigid section, same livery as the big ones. The passenger room
+// (seats, poles, travellers) is businterieur3d.js' job; both use midibusDeurXs() so the
+// benches stay out of the two doorways this body draws.
 function buildMidiBusMesh(v) {
   const group = new THREE.Group();
   const len = v.model.len, wid = v.model.wid, hl = len / 2;
   const fwX = hl - 1.9, rwX = -hl + 2.0;
   const geo = cached(`midibus|${len}|${wid}|${!!v.wrecked}`, () => {
     const B = new GeoBuilder(3);
-    busSection(B, -hl, hl, wid, { front: true, rear: true, wheelXs: [fwX, rwX], doorXs: [hl - 1.05, 0.2] });
+    busSection(B, -hl, hl, wid, { front: true, rear: true, wheelXs: [fwX, rwX], doorXs: midibusDeurXs(len) });
     return B.build();
   });
   const mats = vehicleMaterials();
