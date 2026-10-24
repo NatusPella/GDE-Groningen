@@ -6,6 +6,8 @@ import * as M from '../game/js/coopmeedoen.js';
 import * as G from '../game/js/coopgezocht.js';
 import * as B from '../game/js/coopbestuur.js';
 import * as N from '../game/js/coopnet.js';
+import * as AR from '../game/js/pvparena.js';
+import * as PW from '../game/js/cooppvpwereld.js';
 import { createLink } from '../game/js/net/memtransport.js';
 
 let n = 0;
@@ -127,6 +129,22 @@ t('canJoin: een filmpje van jezelf is te herkennen (overslaan), herstel niet', (
   assert.equal(N.canJoin({ player: { x: 0, y: 0 }, cameraOverride: {}, pendingRespawn: true }).filmpje, false);
   assert.equal(N.canJoin({ player: { x: 0, y: 0, ragdoll: true } }).filmpje, false);
   assert.equal(N.canJoin({ player: { x: 0, y: 0 } }).ok, true);
+});
+
+// ---- de PvP-arena (#454) laat de bezigheden met rust
+t('de PvP-arena raakt de bezigheden van een gast niet: de hengel blijft staan als de arena tikt', () => {
+  const w = { time: 10, player: { x: 0, y: 0 }, coopBezigVan: {} };
+  Z.zetBezig(w, 2, 'hengelen');
+  const ar = AR.maakArena({ x: 0, y: 0 });
+  AR.arenaMeld(ar, 0, 'Tammo', false); AR.arenaMeld(ar, 1, 'Tessa', false); AR.arenaStart(ar, 0);
+  w.pvpArena = ar;
+  PW.pvpArenaTik(w, 0.5);
+  assert.equal(w.coopBezigVan[2].a, 'hengelen', 'de hengel blijft');
+  assert.equal(w.coopBezigVan[2].t, 0, 'de arena laat de klok van de hengel met rust');
+  AR.arenaStop(ar, w.time);
+  PW.pvpArenaTik(w, 0.5);
+  assert.equal(w.coopBezigVan[2].a, 'hengelen', 'ook bij de uitslag');
+  assert.equal(w.pvpArenaUitslag.winnaar, null, 'de stand is 0-0');
 });
 
 console.log(`coopbezig_test: ${n}/${n} ok`);
