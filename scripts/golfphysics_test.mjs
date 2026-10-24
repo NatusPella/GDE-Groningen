@@ -162,4 +162,21 @@ const dist = (a, b = { x: 0, y: 0 }) => Math.hypot(a.x - b.x, a.y - b.y);
   ok(BALL_R < CUP_R && CUP_SPEED > 1, 'de bal past in de hole');
 }
 
+// --- tegen elkaar (#443, #453): dezelfde slag geeft op elk scherm dezelfde uitkomst ---------------------------------
+{
+  const holes = PP.ppHoles ? PP.ppHoles() : null;
+  const h = holes[0];
+  const yaw = Math.atan2(h.cup.y - h.tee.y, h.cup.x - h.tee.x);
+  for (const power of [0.3, 0.7, 1]) {
+    // zelfde zaad per slag (pitchputt.js: 443 + baan * 101 + slag * 7919), zonder gestreamde wereldhoogte (groundAt null)
+    const een = PP.pitch(h, h.tee, yaw, power, makeRng(443 + 0 * 101 + 0 * 7919), false, { groundAt: null });
+    const twee = PP.pitch(h, h.tee, yaw, power, makeRng(443 + 0 * 101 + 0 * 7919), false, { groundAt: null });
+    assert.deepEqual(een, twee); n++;
+    const ander = PP.pitch(h, h.tee, yaw, power, makeRng(443 + 0 * 101 + 1 * 7919), false, { groundAt: null });
+    ok(ander.landing.x !== een.landing.x || ander.landing.y !== een.landing.y, 'een andere slag heeft een andere spreiding');
+  }
+  const p1 = PP.putt(h, h.tee, yaw, 0.4, { groundAt: null }), p2 = PP.putt(h, h.tee, yaw, 0.4, { groundAt: null });
+  assert.deepEqual(p1, p2); n++;
+}
+
 console.log(`golfphysics_test ok (${n} controles)`);

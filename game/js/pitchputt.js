@@ -317,8 +317,11 @@ function beginHole(w) {
 const mode = (g) => (onGreen(HOLES[g.hole], g.lie.x, g.lie.y) && !inBunker(HOLES[g.hole], g.lie.x, g.lie.y) ? 'putt' : 'pitch');
 
 // De echte hoogte van de wereld onder de baan (map.surfaceAt): de helling ervan telt mee voor de rollende bal (golfphysics.js, holeTerrain).
+// Tegen elkaar (g.online) rekent iedereen op de vaste hellingen van de baan, niet op de gestreamde wereldhoogte: zo geeft dezelfde slag
+// op elk scherm dezelfde uitkomst, ook als de tegels bij de een nog niet geladen zijn (#443, #453).
 function groundAtFor(w) {
   const m = w && w.map;
+  if (game && game.online) return null;
   if (!m || typeof m.surfaceAt !== 'function') return null;
   const st = { z: 0, ribbon: null };
   return (x, y) => { st.z = 0; st.ribbon = null; const r = m.surfaceAt(x, y, st); return r && Number.isFinite(r.z) ? r.z : 0; };
@@ -801,7 +804,10 @@ export const PITCHPUTT = {
     window.__pitchputt = {
       venues: () => venues.map((v) => ({ id: v.id, name: v.name, x: Math.round(v.x), y: Math.round(v.y), holes: v.holes.length })),
       spot: () => ({ ...STAND }),
-      holes: () => HOLES.map((h) => ({ n: h.n, par: h.par, len: Math.round(h.len), tee: { ...h.tee }, cup: { ...h.cup } })),
+      holes: () => HOLES.map((h) => ({ n: h.n, par: h.par, len: Math.round(h.len), tee: { ...h.tee }, cup: { ...h.cup }, water: (h.water || []).map((b) => ({ ...b })), bunkers: h.bunkers.map((b) => ({ ...b })) })),
+      // tests: naar een andere baan, en de bal op een andere plek leggen (de beurt en de score blijven zoals ze zijn)
+      goto: (i) => { if (!game || !(i >= 0 && i < HOLES.length)) return false; game.hole = i; if (game.b) game.b.baan = i; beginHole(w); return true; },
+      zet: (x, y) => { if (!game || game.phase !== 'aim') return false; game.lie = { x, y }; setLie(w); return true; },
       start: (force = true) => start(w, { force }),
       state: () => (game ? { phase: game.phase, hole: game.hole, strokes: game.strokes, lie: { ...game.lie }, mode: mode(game), card: cardTotals(game.card) } : null),
       shoot: (power = 0.8, over = {}) => (game && game.phase === 'aim' ? (shoot(w, power, over), true) : false),
