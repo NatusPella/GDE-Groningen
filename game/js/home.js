@@ -1444,6 +1444,12 @@ function homeCamera(x, y, z, ex, ey, ez) {
     return [nx, Math.max(ey + (y - ey) * t, FLOOR_TOP + CAM_ABOVE_FLOOR + close * 0.6), nz];
   }
   camLocal = null;
+  // binnen in de kamer van een safehouse (#458, safehuizen.js): boven de
+  // cutaway-muren, net als op het flat
+  if (world && world.kamerCamera) {
+    const r = world.kamerCamera(x, y, z, ex, ey, ez);
+    if (r) return r;
+  }
   if (!exterior || cutaway > 0.5 || y > GARAGE_H + 0.6) return null;
   if (Math.abs(x - home.center.x) > 40 || Math.abs(z - home.center.y) > 40) return null;
   if (!pointInPolygon(x, z, PLINTH) || pointInPolygon(ex, ez, PLINTH)) return null;
