@@ -27,7 +27,7 @@ import { updateCarInterior } from './carinterior.js';
 import { updateSwimmers3D } from './swimmers3d.js';
 import { neutralPose, applyPose } from './actoranim.js';
 import { waggel, juichSterkte, juichHoek } from './vrijgezellen.js';
-import { sprongStand, zwemStand, klimStand, fietsHouding } from './bewegingrules.js';
+import { sprongStand, zwemStand, klimStand, aaienStand, fietsHouding } from './bewegingrules.js';
 import { driveRagdoll, syncBikeRider } from './ragdoll.js';
 import { applyWeatherToScene3D } from './weather.js';
 import { quakeJitter } from './eventrules.js';
@@ -2835,6 +2835,11 @@ export function update3D(dt, world) {
         if (player.water === 'climb' && player.climb) klimStand(player.climb.t * 3.5, bewegPose);
         else zwemStand(world.time * (Math.hypot(player.vx, player.vy) > 0.3 ? 1 : 0.4), bewegPose);
         applyPose(playerMesh.userData, bewegPose);
+      }
+      if (player.aaien) {
+        aaienStand(player.aaien.u, bewegPose);
+        applyPose(playerMesh.userData, bewegPose);
+        bewegPose.pelvisDrop = 0;
       }
       if (player.sofaSeat != null) { seatPose(playerMesh); playerMesh.position.y = seatedY(playerMesh, (player.gz || 0) + player.sofaSeat); }
       if (player.carrying) carryOverlay(playerMesh);

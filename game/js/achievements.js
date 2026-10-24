@@ -164,6 +164,9 @@ export const ACHIEVEMENTS = [
   { id: 'geheimen_alle', cat: 'verkennen', title: 'Stadjer met geheimen', desc: 'Vind alle 8 geheimpjes van Grunn in één spel', save: 'geheimen', goal: 8, hidden: true },
   { id: 'streek_verzameld', cat: 'verzamelen', title: 'Streekverzamelaar', desc: 'Vind alle vierentwintig streekvondsten van de provincie', set: 'streekverzamel', goal: 24 },
   { id: 'dierenboek', cat: 'verzamelen', title: 'Dierenvriend', desc: 'Zie alle dertien dieren van de provincie en schrijf ze op in je dierenboek', set: 'dierenboek', goal: 13 },
+  { id: 'aaien_5', cat: 'verzamelen', title: 'Zachte hand', desc: 'Aai 5 keer een kat of een hond', stat: 'aaien', goal: 5 },
+  { id: 'aaien_25', cat: 'verzamelen', title: 'Poezenpraatje', desc: 'Aai 25 keer een kat of een hond', stat: 'aaien', goal: 25 },
+  { id: 'aaien_100', cat: 'verzamelen', title: 'Knuffelkampioen', desc: 'Aai 100 keer een kat of een hond', stat: 'aaien', goal: 100 },
   { id: 'streek_geheimen', cat: 'verkennen', title: 'Kenner van de streek', desc: 'Vind het geheim van elke streek in de provincie', set: 'streekgeheimen', goal: 8, hidden: true },
   { id: 'zonsopgang', cat: 'verkennen', title: 'Vroege vogel', desc: 'Zie de zon opkomen boven Grunn' },
   // the Ommeland extras (worldends.js, dorpsuitjes.js): progress only, never where
