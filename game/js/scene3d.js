@@ -42,6 +42,7 @@ import { scopeEye } from './scopeaim.js';
 import { alignPlayerFlash } from './gunfx3d.js';
 import { sharedWaterMaterial, updateWaterMaterial, buildWaterGeometry, waterSwellAt, waterSwellAmp, auditWaterMeshes } from './water3d.js';
 import { syncBoatWakes3D } from './boatwake3d.js';
+import { seaExtra, golfWip } from './golven.js';
 import { sleepingParkedCars } from './parkedcars.js';
 import { syncParkedLayer } from './parked3d.js';
 import { requestShore, updateShore } from './quaywalls.js';
@@ -2434,7 +2435,7 @@ export function update3D(dt, world) {
   probe.mark('3d:grass');
   syncWater(world.map.waterNear(focus.x, focus.y, Math.max(DRAW_DIST, viewDist)), waterMeshes, WATER_Y, world.map, focus.x, focus.y);
   const waterNight = world.dayNight ? world.dayNight.night : 0;
-  updateWaterMaterial(waterMaterial, world.time, world.weather ? world.weather.intensity : 0, waterNight);
+  updateWaterMaterial(waterMaterial, world.time, world.weather ? world.weather.intensity : 0, waterNight, seaExtra(world));
   updateShore(waterNight, cam);
   if (!NO_BATCH) shoreBatcher.update({ scene, meshes: shoreItems, hidden: null, px: focus.x, py: focus.y, detailR: Math.max(DRAW_DIST, viewDist), drawDist: Math.max(DRAW_DIST, viewDist), withDetail: true, compile: batchCompile, ready: batchReady, budgetMs: 2 });
   probe.mark('3d:water');
@@ -4011,8 +4012,9 @@ function animateBoat(mesh, v, world, dt) {
   const trim = (BOAT_TRIM[kind] ?? 0.03) * speedT * (v.speed >= 0 ? 1 : -0.5) - Math.max(-0.03, Math.min(0.03, st.acc * -0.012 * (v.speed > 0 ? 1 : 0)));
   const planing = kind === 'rubberboot' ? 1 : -1;
   const heel = Math.max(-0.08, Math.min(0.08, st.yaw * Math.abs(v.speed) * 0.025 * planing * resp));
-  const pitchT = Math.atan2(hB - hS, 2 * xb) * resp + trim + Math.sin(time * 1.1 + seed) * 0.006;
-  const rollT = Math.atan2(hP - hR, W) * Math.min(1, resp * 1.4) * 0.8 + heel + Math.sin(time * 1.4 + seed * 0.7) * 0.008;
+  const wip = golfWip(v, time);
+  const pitchT = Math.atan2(hB - hS, 2 * xb) * resp + trim + Math.sin(time * 1.1 + seed) * 0.006 + wip.pitch;
+  const rollT = Math.atan2(hP - hR, W) * Math.min(1, resp * 1.4) * 0.8 + heel + Math.sin(time * 1.4 + seed * 0.7) * 0.008 + wip.roll;
   const heaveT = (hB + hS + hP + hR + h0 * 2) / 6 * (0.6 + 0.4 * resp) + (BOAT_LIFT[kind] || 0);
   st.pitch += (pitchT - st.pitch) * k;
   st.roll += (rollT - st.roll) * k;

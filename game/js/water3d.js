@@ -26,6 +26,7 @@ attribute vec2 aFlow;
 attribute float aFacade;
 uniform float uTime;
 uniform float uWave;
+uniform float uSea;
 
 varying vec3 vWorldPos;
 varying float vEdge;
@@ -44,7 +45,7 @@ void main() {
   vec3 pos = position;
   vec4 wp0 = modelMatrix * vec4(pos, 1.0);
 #if WATER_Q > 0
-  float amp = smoothstep(0.15, 5.0, aEdge) * uWave;
+  float amp = smoothstep(0.15, 5.0, aEdge) * uWave * (1.0 + uSea * smoothstep(12.0, 24.0, aEdge));
   pos.y += waveH(wp0.xz + aFlow * uTime * 0.25, uTime) * amp;
 #endif
   vec4 worldPosition = modelMatrix * vec4(pos, 1.0);
@@ -193,6 +194,7 @@ export function createWaterMaterial(sky = null) {
     uniforms: {
       uTime: { value: 0 },
       uWave: { value: TONES.wave },
+      uSea: { value: 0 },
       uDeepColor: { value: new THREE.Color(TONES.deep) },
       uShallowColor: { value: new THREE.Color(TONES.shallow) },
       uFoamColor: { value: new THREE.Color(TONES.foam) },
@@ -246,13 +248,16 @@ export function sharedWaterMaterial(sky = null) {
 }
 
 let swellAmp = TONES.wave;
-export function updateWaterMaterial(material, time, rain = 0, night = 0) {
+let seaExtra = 0;
+// sea = extra swell on open water (golven.js seaExtra): from 12 m to 24 m off the shore the swell grows by this factor (#417)
+export function updateWaterMaterial(material, time, rain = 0, night = 0, sea = 0) {
   const u = material.uniforms;
   u.uTime.value = time;
   u.uRain.value = rain;
   u.uNight.value = night;
   u.uLight.value = (0.14 + 0.86 * (1 - night)) * (1 - 0.3 * Math.min(1, rain));
   u.uWave.value = swellAmp = TONES.wave + TONES.waveRain * Math.min(1, rain);
+  u.uSea.value = seaExtra = sea;
 }
 
 // The vertex shader's swell at world (x, z) on the CPU, for floating things
@@ -266,7 +271,8 @@ export function waterSwellAt(x, z, time, edge, tx, ty) {
     + Math.sin(-px * 0.27 + pz * 0.58 - time * 0.9) * 0.35
     + Math.sin(px * 0.83 - pz * 0.66 + time * 1.7) * 0.15;
   const k = Math.min(1, Math.max(0, (edge - 0.15) / 4.85));
-  return h * k * k * (3 - 2 * k) * swellAmp;
+  const o = Math.min(1, Math.max(0, (edge - 12) / 12));
+  return h * k * k * (3 - 2 * k) * swellAmp * (1 + seaExtra * o * o * (3 - 2 * o));
 }
 
 export function waterSwellAmp() {
