@@ -103,7 +103,7 @@ meegeleverd.
 
 ## Gegenereerde inhoud
 
-- **Muziek**: G-Music, de scenario-loops en het titelnummer
+- **Muziek**: G-Music, de scenario-loops (ook de eigen loops voor kart, padel, golf, klimtoren, trein en bus) en het titelnummer
   (`game/audio/gmusic`, `game/audio/scenario`, `game/audio/theme`) zijn
   gemaakt met Google Gemini.
 - **Stemmen**: alle stemmen (`game/audio/voicelines`, `npc`, `police`,

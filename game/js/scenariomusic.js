@@ -1,24 +1,74 @@
 // Which scenario track should play instead of G-Music: 'race' during a car
-// race, 'chase' during a police chase, null otherwise. A race wins over a
-// chase. The chase is debounced so short sightings and brief escapes don't
-// flap the music: it starts after CHASE_START_S of continuous pursuit and
-// stops CHASE_STOP_S after the police lost you.
+// race, 'chase' during a police chase, 'kart' / 'padel' / 'golf' / 'klimtoren'
+// while THIS player takes part in that activity, null otherwise. Priority: the
+// car race, then the kart race (also a race), then the police chase (it beats
+// padel, golf and the climbing tower), then the other activities. The chase
+// and the activities are debounced so short sightings, brief escapes and the
+// gap between two rounds don't flap the music: a chase starts after
+// CHASE_START_S of continuous pursuit and stops CHASE_STOP_S after the police
+// lost you; an activity starts after ACT_START_S and stops ACT_STOP_S after
+// it ended (switching straight to another activity is immediate).
 
 const CHASE_START_S = 2;
 const CHASE_STOP_S = 6;
+const ACT_START_S = 0.4;
+const ACT_STOP_S = 1.5;
+
+export const ACTIVITY_KEYS = ['kart', 'padel', 'golf', 'klimtoren', 'trein', 'bus'];
+
+// Modules that own private state (the machinist service) register a probe
+// here instead of being imported by the audio code.
+const probes = new Map();
+export function registerMusicProbe(key, fn) { probes.set(key, fn); }
+const probed = (key, world) => { const f = probes.get(key); try { return !!f && !!f(world); } catch (e) { return false; } };
+
+// Activity music for this player from the world state, or null. A host (or
+// solo player) plays the activity itself: world.padelGame, world.activityGame
+// (the id of the running minigame). A guest of Samen spelen who said yes plays
+// on his own screen (world.coopWedGast: spiegel or score, id of the match);
+// a guest who said no has neither and keeps the radio.
+const ACTIVITY_BY_ID = { kartbaan: 'kart', padel: 'padel', discgolf: 'golf', pitchputt: 'golf', klimtoren: 'klimtoren' };
+export function activityMusicKey(world) {
+  if (!world) return null;
+  if (world.padelGame) return 'padel';
+  const G = world.coopWedGast;
+  if (G && (G.spiegel || G.score) && ACTIVITY_BY_ID[G.id]) return ACTIVITY_BY_ID[G.id];
+  if (ACTIVITY_BY_ID[world.activityGame]) return ACTIVITY_BY_ID[world.activityGame];
+  // train: the machinist service, or a passenger ride between stations (stationtravel.js: trainCam without trainDriving)
+  if (probed('trein', world) || (world.trainCam && !world.trainDriving)) return 'trein';
+  // bus: driving a bus job or a taken-over line service (the helper and the passengers ride along in it)
+  const pv = world.player && world.player.inVehicle;
+  if (pv && pv.isBus && (pv.sideJob || pv.rideLine || (pv.busBediend && pv.busBediend.coop))) return 'bus';
+  // a guest of Samen spelen riding in the host's train or bus
+  if (world.coopRole === 'client' && (world.coopZit === 'trein' || world.coopZit === 'bus')) return world.coopZit;
+  return null;
+}
 
 export function createScenarioDirector() {
   let chaseOn = false;
   let chasingFor = 0;
   let calmFor = 0;
+  let act = null; // the activity whose music is on
+  let actWant = null;
+  let actFor = 0; // seconds the wish has differed from act
   return {
-    update(dt, { race = false, chasing = false } = {}) {
+    update(dt, { race = false, chasing = false, activity = null } = {}) {
       if (chasing) { chasingFor += dt; calmFor = 0; } else { calmFor += dt; chasingFor = 0; }
       if (!chaseOn && chasingFor >= CHASE_START_S) chaseOn = true;
       else if (chaseOn && calmFor >= CHASE_STOP_S) chaseOn = false;
-      return race ? 'race' : chaseOn ? 'chase' : null;
+      const want = ACTIVITY_KEYS.includes(activity) ? activity : null;
+      if (want === act) { actFor = 0; actWant = want; }
+      else {
+        if (want !== actWant) { actWant = want; actFor = 0; }
+        actFor += dt;
+        if (want ? (act ? true : actFor >= ACT_START_S) : actFor >= ACT_STOP_S) { act = want; actFor = 0; }
+      }
+      if (race) return 'race';
+      if (act === 'kart') return 'kart';
+      if (chaseOn) return 'chase';
+      return act;
     },
-    reset() { chaseOn = false; chasingFor = 0; calmFor = 0; },
+    reset() { chaseOn = false; chasingFor = 0; calmFor = 0; act = null; actWant = null; actFor = 0; },
   };
 }
 
