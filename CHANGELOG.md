@@ -34,6 +34,17 @@ nieuwe functies, `y` voor alleen bugfixes.
 - Het pauzemenu bewaart geen scène meer over je laatste savegame als je vanaf het hoofdscherm afsluit, en de nieuw-bolletjes bij Verhaal en Prestaties zijn weer zichtbaar.
 - De verhaaltest wacht niet meer blind op een app-tekst: hij zet de wereld eerst in rust en zegt in de foutmelding welke poort de kaart tegenhield.
 
+- **Samen spelen: wapen en schotbeeld van een medespeler.** Je ziet welk wapen iemand vasthoudt en waar hij schiet; een leeg wapen blijft in de hand.
+- **Samen spelen: dempen is terug te draaien.** Een knop met de toets erbij zet het geluid weer aan, ook bij een gast; pratende mensen staan zachter dan de effecten.
+- **Samen spelen: je eigen naam en kleur.** In de lobby vul je een online naam (max. 16 tekens) en een kleur; anderen zien die bij je figuur en in de spelerslijst.
+- **Samen spelen: je eigen pand.** Je kunt je safehouse-deur in de sessie van een ander laten zetten, zonder dat er iets in iemands save verandert.
+- **Vissen: hengelhouding en vanuit een boot.** Uitwerpen, een ruk bij beet en binnenhalen zijn te zien, en je kunt ook vissen als je op een boot staat.
+- **Voertuigen: de deur waar je staat.** De hint noemt de bestuurders-, bijrijders- of achterdeur, je stapt alleen bij een deur in en je stapt uit aan de kant van je stoel.
+- **Live bussen.** De busdienst kan de echte posities van de bussen volgen via een openbare bron, met een uitzetter in Instellingen en de eigen dienst als terugval.
+- **Geluid: foley voor de sportminigames.** Discgolf, skatepark en klimtoren hebben nu eigen effecten, met een audit van wat er nog ontbreekt in docs/GELUID-AUDIT.md.
+- Delfzijl: de winkelborden staan om het echte winkelmidden in plaats van om het profielhart, honderden meters verderop.
+- Dieren en voetgangers kijken naar de dichtstbijzijnde speler, ook in Samen spelen.
+
 ## [0.50.0] - 2026-10-24
 
 ### Nieuw
