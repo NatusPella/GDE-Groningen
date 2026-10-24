@@ -236,21 +236,24 @@ export function repairPath(pts, free, { horizon = 160, ...opts } = {}) {
 }
 
 // --- stuck detection ------------------------------------------------------------
-// Progress = the distance to the goal got `minGain` metres smaller than the best so far
-// (or, without a goal distance, the position moved `minMove` metres from where it
-// was). No progress for `windowS` seconds is "stuck". hold(t) pauses the clock for
-// cutscenes, talks and menus; a changed `key` (another mission step) starts over.
+// Progress = the distance to the goal got `minGain` metres smaller than the best so far,
+// the score of a stunt climbed `minScore` points (M01: the square is reached long before
+// the fifteen hundred points are, so the score is the progress there), or, without a goal
+// distance, the position moved `minMove` metres from where it was. No progress for
+// `windowS` seconds is "stuck". hold(t) pauses the clock for cutscenes, talks and menus;
+// a changed `key` (another mission step) starts over.
 export class StuckDetector {
   // windowS: no progress for this long is stuck. Progress is a goal distance that got minGain smaller than the best so far, or (with a
   // goal) a move of roamM metres away from where the last progress was seen: a detour round a block gets longer before it gets shorter.
-  // hardS caps the roaming: this long without a better goal distance is stuck whatever the bot moves.
-  constructor({ windowS = 30, minGain = 3, minMove = 4, roamM = 25, hardS = 150 } = {}) {
-    Object.assign(this, { windowS, minGain, minMove, roamM, hardS });
+  // hardS caps the roaming: this long without a better goal distance (or a higher score) is stuck whatever the bot moves.
+  constructor({ windowS = 30, minGain = 3, minMove = 4, roamM = 25, hardS = 150, minScore = 10 } = {}) {
+    Object.assign(this, { windowS, minGain, minMove, roamM, hardS, minScore });
     this.reset(0);
   }
   reset(t = 0, key = null) {
     this.key = key;
     this.best = Infinity;
+    this.bestScore = -Infinity;
     this.tBest = t;
     this.tHard = t;
     this.anchor = null;
@@ -259,8 +262,10 @@ export class StuckDetector {
   hold(t) { this.tBest = Math.max(this.tBest, t); this.tHard = Math.max(this.tHard, t); }
   // acknowledge: after a rescue, wait another window before the next one
   acknowledge(t) { this.tBest = t; this.tHard = t; this.best = Infinity; this.anchor = null; this.stuckCount++; }
-  update(t, { x, y, goalDist = null, key = null }) {
+  update(t, { x, y, goalDist = null, key = null, score = null }) {
     if (key !== this.key) this.reset(t, key);
+    // a stunt scores points without coming any closer to the square (M01): a higher score is progress too, or the bot is lifted out mid-stunt
+    if (Number.isFinite(score) && score > this.bestScore + this.minScore) { this.bestScore = score; this.tBest = t; this.tHard = t; }
     if (Number.isFinite(goalDist)) {
       if (goalDist < this.best - this.minGain) { this.best = goalDist; this.tBest = t; this.tHard = t; this.anchor = { x, y }; }
       else if (!this.anchor) this.anchor = { x, y };
@@ -270,6 +275,20 @@ export class StuckDetector {
     }
     const idleFor = Math.max(t - this.tBest, this.hardS && t - this.tHard >= this.hardS ? t - this.tHard : 0);
     return { stuck: idleFor >= this.windowS, idleFor };
+  }
+}
+
+// A branch that keeps the clock itself (a pigeon flight, a plane, a heist panel, a timing meter) never reaches the loop's wait budget: it
+// calls hold() on the stuck detector and the wait clock never starts. Each of those gets a budget of its own (#387: the pigeon flew M04
+// without an end and the run hung for twenty minutes without a line in the report). update(kind, key, t) starts over when the branch (kind)
+// or its goal (key: another step, another photo target) changes; from `budget` seconds it is time up, with the seconds for the report.
+export class TaskWatch {
+  constructor({ budget = 300 } = {}) { this.budget = budget; this.kind = null; this.key = null; this.t0 = 0; }
+  reset() { this.kind = null; this.key = null; this.t0 = 0; }
+  update(kind, key, t) {
+    if (kind !== this.kind || key !== this.key) { this.kind = kind; this.key = key; this.t0 = t; }
+    const forS = Math.max(0, t - this.t0);
+    return { tooLong: forS >= this.budget, forS, budget: this.budget };
   }
 }
 
@@ -555,6 +574,7 @@ export function summarise(events) {
   return {
     missions, consoleErrors, nan, warnings: warnings.length,
     stuck: events.filter((e) => e.type === 'stuck'),
+    timeouts: events.filter((e) => e.type === 'timeout'),
     cheats: events.filter((e) => e.type === 'cheat'),
     annuleer: events.filter((e) => e.type === 'annuleer'),
     minigames: events.filter((e) => e.type === 'minigame'),
@@ -573,6 +593,23 @@ export function buildReport(events, meta = {}) {
   if (meta.result) out.push(`- Uitkomst: **${meta.result}**`);
   if (meta.gameSeconds != null) out.push(`- Speltijd: ${fmtS(meta.gameSeconds)}`);
   if (meta.wallSeconds != null) out.push(`- Echte tijd: ${fmtS(meta.wallSeconds)}`);
+  // a run that did not finish says where it hung before anything else: the last step, where the bot stood, and how long the log had been
+  // silent (a branch that keeps the clock itself used to eat twenty minutes without a single line, #387)
+  if (meta.result && !/^(KLAAR|REPLAY)/.test(String(meta.result))) {
+    const end = [...events].reverse().find((e) => e.type === 'einde');
+    const pos = end && Number.isFinite(end.x) ? end : [...events].reverse().find((e) => Number.isFinite(e.x) && Number.isFinite(e.y));
+    const timed = events.filter((e) => Number.isFinite(e.t));
+    const last = timed[timed.length - 1] || {};
+    const step = (end && end.step) || (pos && pos.step) || (S.missions.length && S.missions[S.missions.length - 1].id) || '?';
+    const label = (S.missions.find((m) => m.id === String(step).split(':')[0]) || {}).label || (end && end.label) || '';
+    out.push('', '## Waar de run stopte', '');
+    out.push(`- Stap: ${step}${label ? ` (${label})` : ''}`);
+    if (pos) out.push(`- Plek: (${Math.round(pos.x)}, ${Math.round(pos.y)})${Number.isFinite(pos.goalDist) ? `, ${Math.round(pos.goalDist)} m van het doel` : Number.isFinite(pos.dist) ? `, ${Math.round(pos.dist)} m van het doel` : ''}`);
+    if (end && Number.isFinite(end.inStepS)) out.push(`- In deze stap: ${fmtS(end.inStepS)}`);
+    const silentS = Math.round((meta.gameSeconds ?? last.t ?? 0) - (last.t ?? 0));
+    if (silentS > 5) out.push(`- Stilte: ${fmtS(silentS)} zonder één gebeurtenis voor het eind (laatste was ${last.type || '?'} op ${fmtS(last.t || 0)})`);
+    if (end && end.reason) out.push(`- Reden: ${end.reason}`);
+  }
   out.push('', '## Tijd per missie', '', '| Stap | Titel | Tijd | Uitkomst | Mislukt | Vast | Cheats |', '|---|---|---|---|---|---|---|');
   for (const m of S.missions) {
     const dur = m.end != null ? fmtS(m.end - m.start) : 'niet af';
@@ -582,6 +619,9 @@ export function buildReport(events, meta = {}) {
   out.push('', '## Vastzitten', '');
   if (!S.stuck.length) out.push('Niet vastgezeten.');
   for (const e of S.stuck) out.push(`- ${fmtS(e.t)} bij ${e.step || '?'} op (${Math.round(e.x)}, ${Math.round(e.y)}), ${Math.round(e.idleFor || 0)} s zonder voortgang, afstand tot doel ${e.goalDist != null ? Math.round(e.goalDist) + ' m' : 'onbekend'}`);
+  out.push('', '## Time-outs', '');
+  if (!S.timeouts.length) out.push('Geen.');
+  for (const e of S.timeouts) out.push(`- ${fmtS(e.t)} bij ${e.step || '?'}: ${e.what || 'duurde te lang'} na ${Math.round(e.forS || 0)} s${e.doel && Number.isFinite(e.doel.x) ? ` bij doel (${Math.round(e.doel.x)}, ${Math.round(e.doel.y)})` : ''}`);
   out.push('', '## Had een cheat nodig', '');
   const real = S.cheats.filter((c) => isCheat(c.rung));
   if (!real.length) out.push('Geen cheats nodig.');

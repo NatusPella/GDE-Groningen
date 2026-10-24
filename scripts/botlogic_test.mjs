@@ -124,6 +124,36 @@ const near = (a, b, e = 1e-6) => Math.abs(a - b) < e;
   }
   ok(L.rescueFor(0) === 'nudge' && L.rescueFor(1) === 'teleport' && L.rescueFor(2) === 'objective' && L.rescueFor(3) === 'win' && L.rescueFor(4) === 'skip' && L.rescueFor(9) === 'skip', 'redding loopt op, laatste sport is skip');
   ok(!L.isCheat('nudge') && L.isCheat('teleport'), 'een duwtje is geen cheat');
+  {
+    // M01: op het plein komt de auto niet dichter bij het doel, maar de score van de stunt klimt; dat is de voortgang (#387)
+    const rondje = (t, score) => ({ x: 170 + Math.cos(t / 8) * 26, y: 70 + Math.sin(t / 8) * 26, goalDist: 3, key: 'M01:stunt', score });
+    const metScore = new L.StuckDetector({ windowS: 30 });
+    let vals = null;
+    for (let t = 0; t <= 260; t++) { const r = metScore.update(t, rondje(t, Math.min(1500, t * 12))); if (r.stuck && vals == null) vals = t; }
+    ok(vals === null, 'een stunt die punten scoort is geen vastzitten (M01)');
+    const zonder = new L.StuckDetector({ windowS: 30 });
+    let echt = null;
+    for (let t = 0; t <= 260; t++) { const r = zonder.update(t, { ...rondje(t, null), score: null }); if (r.stuck && echt == null) echt = t; }
+    ok(echt === 150, 'zonder score is hetzelfde rondje op het plein na hardS wel vast');
+    const stil = new L.StuckDetector({ windowS: 30 });
+    let stilVast = null;
+    for (let t = 0; t <= 260; t++) { const r = stil.update(t, rondje(t, Math.min(600, t * 12))); if (r.stuck && stilVast == null) stilVast = t; }
+    ok(stilVast != null && stilVast >= 195, 'een score die blijft hangen is na hardS toch vast');
+  }
+  {
+    // een tak die zijn eigen klok bijhoudt (duif, vliegtuig) krijgt een eigen budget (#387)
+    const w = new L.TaskWatch({ budget: 60 });
+    const a = w.update('duif', 'ziel1', 10);
+    ok(!a.tooLong && a.forS === 0, 'nieuwe taak: de klok begint');
+    const b = w.update('duif', 'ziel1', 69);
+    ok(!b.tooLong && Math.round(b.forS) === 59, 'nog binnen het budget');
+    const c = w.update('duif', 'ziel1', 70);
+    ok(c.tooLong && Math.round(c.forS) === 60 && c.budget === 60, 'budget op: tijd op');
+    ok(!w.update('duif', 'ziel2', 200).tooLong, 'ander doel: de klok begint opnieuw');
+    ok(!w.update('vliegtuig', 'x', 300).tooLong, 'andere tak: de klok begint opnieuw');
+    w.reset();
+    ok(!w.update('duif', 'ziel1', 999).tooLong, 'reset: de klok begint opnieuw');
+  }
 }
 
 // --- beslissen ----------------------------------------------------------------------------
@@ -265,6 +295,21 @@ ok(L.decide({ ...b(), mission: { active: true, stage: 'hold' }, target: { x: 8, 
   const md = L.buildReport(ev, { title: 'test', seed: 1, result: 'KLAAR' });
   for (const part of ['# Spelbot-rapport: test', '## Tijd per missie', '| M01 | Eerste klus | 1:50 | klaar | 1 | 1 | teleport |', '## Vastzitten', '## Had een cheat nodig', '- 1:41 bij M01: teleport', '## Consolefouten', 'boem', '**1** (computeBoundingSphere)', '**Toetsen zonder keyup:** e', 'shots-M01-vast.png', 'Niet beoordeeld door de bot']) ok(md.includes(part), `rapport bevat: ${part}`);
   ok(L.buildReport([], {}).includes('Geen cheats nodig.'), 'leeg rapport werkt');
+  {
+    // een run die niet afkwam zegt bovenaan waar hij hing, ook als de laatste twintig minuten niets meer logden (#387)
+    const stop = [
+      { t: 0, type: 'step', event: 'begin', id: 'M01', label: 'Nul krassen' },
+      { t: 200, type: 'step', event: 'end', id: 'M01' },
+      { t: 200, type: 'step', event: 'begin', id: 'M04', label: 'Kieken van boven' },
+      { t: 260, type: 'timeout', step: 'M04:duif', what: 'duif: hetzelfde fotodoel niet gehaald', forS: 60, x: -110, y: 1060, goalDist: 205, doel: { x: -47, y: 865 } },
+      { t: 300, type: 'einde', result: 'TIMEOUT', reason: 'speltijd of echte tijd op', step: 'M04:duif', label: 'Kieken van boven', x: -110, y: 1060, goalDist: 205, inStepS: 100 },
+    ];
+    const md = L.buildReport(stop, { result: 'TIMEOUT (speltijd of echte tijd op)', gameSeconds: 1761 });
+    for (const part of ['## Waar de run stopte', '- Stap: M04:duif (Kieken van boven)', '- Plek: (-110, 1060), 205 m van het doel', '- In deze stap: 1:40', '- Stilte: 24:21 zonder één gebeurtenis', '- Reden: speltijd of echte tijd op', '## Time-outs', 'duif: hetzelfde fotodoel niet gehaald na 60 s bij doel (-47, 865)']) ok(md.includes(part), `rapport na een time-out bevat: ${part}`);
+    ok(!L.buildReport(stop, { result: 'KLAAR' }).includes('Waar de run stopte'), 'een afgelopen run heeft geen stopregel');
+    ok(L.buildReport([{ t: 5, type: 'status', x: 3, y: 4, step: 'M05', dist: 12 }], { result: 'ONDERBROKEN', gameSeconds: 60 }).includes('- Plek: (3, 4), 12 m van het doel'), 'zonder eindregel: de laatste status zegt waar');
+    ok(L.buildReport([{ t: 0, type: 'step', event: 'begin', id: 'M01' }], { result: 'KLAAR' }).includes('## Time-outs\n\nGeen.'), 'geen time-outs: de sectie zegt het');
+  }
 }
 
 // --- duif-autopilot ---------------------------------------------------------------------------
