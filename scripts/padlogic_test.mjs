@@ -53,9 +53,9 @@ ok(C.PAD_LAYOUTS.switch.a === 'B' && C.PAD_LAYOUTS.switch.b === 'A', 'Switch: th
 const ov = C.inputOverview();
 ok(Object.keys(ov).length === Object.keys(C.PAD_MAPS).length, 'overview covers every situation');
 ok(ov.foot.rows.some((r) => r.slot === 'a' && r.action === ' '), 'foot: A jumps');
-// duplicates are allowed only where meant (heli: up on A and RT, down on B and LT, faster on RB and L3; foot/vehicle: none)
+// duplicates are allowed only where meant (heli and plane, the same flying layout as the heli with flaps on LB and gear on X (#444): up on A and RT, down on B and LT, faster on RB and L3; foot/vehicle: none)
 ok(C.PAD_MAPS.foot.up === 'n', 'on foot the D-pad up is the radio');
-const allowedDup = { heli: [' ', 'control', 'shift'], pigeon: ['shift'], foodtruck: ['backspace'], menu: ['escape'] };
+const allowedDup = { heli: [' ', 'control', 'shift'], plane: [' ', 'control', 'shift'], pigeon: ['shift'], foodtruck: ['backspace'], menu: ['escape'] };
 for (const [ctx, o] of Object.entries(ov)) for (const d of o.duplicates) ok((allowedDup[ctx] || []).includes(d.action), `${ctx}: ${d.action} on ${d.slots.join('+')} is not meant`, d);
 // every button action must be something the game can read: a key, a mouse stand-in or null
 for (const [ctx, map] of Object.entries(C.PAD_MAPS)) for (const s of C.PAD_BUTTONS) {
