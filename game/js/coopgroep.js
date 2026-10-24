@@ -99,6 +99,12 @@ export function leesStemAntwoord(b) { return b && b.k === 'stemantwoord' && Numb
 export const stemUitslagEvent = (id, ok, reden = '') => ({ k: 'stemuitslag', id, ok: !!ok, reden: reden === 'geen antwoord' ? 'geen antwoord' : '' });
 export function leesStemUitslag(b) { return b && b.k === 'stemuitslag' && Number.isInteger(b.id) ? { id: b.id, ok: !!b.ok, reden: b.reden === 'geen antwoord' ? 'geen antwoord' : '' } : null; }
 
+// De naam van wie het vraagt: de speler op plek 0 in de lijst (coopplayers.js lijst), anders 'Een speler'.
+export function eigenNaam(world) {
+  const p = ((world && world.coopRoster) || []).find((x) => x && x.slot === 0);
+  return (p && typeof p.naam === 'string' && p.naam) || 'Een speler';
+}
+
 // ---- de spelmodules vragen akkoord: groepAkkoord(world, 'slapen', 'Tammo', naAkkoord)
 // Alleen (of geen sessie): naAkkoord meteen, true. Host met anderen: stemming, naAkkoord alleen bij ja; true = de vraag loopt.
 // Gast: kan de tijd niet verzetten (de wereld loopt bij een ander): een melding, false.
@@ -108,7 +114,7 @@ export function groepAkkoord(world, soort, naam, naAkkoord, naNee = null) {
     if (world.addMessage) world.addMessage(STEM_HOST.gast, 5);
     return false;
   }
-  const tekst = (STEM_TEKST[soort] || STEM_TEKST.slapen)(naam || 'De ander');
+  const tekst = (STEM_TEKST[soort] || STEM_TEKST.slapen)(naam || eigenNaam(world));
   return world.coopVraag(soort, tekst, naAkkoord, naNee);
 }
 
