@@ -3692,7 +3692,7 @@ function updatePigeonStage(dt, world, def, st, S) {
 
 export const missionDebug = {
   state: () => (chain ? {
-    index: chain.index, phase: chain.phase, stage: chain.stageIndex, completed: [...chain.completed],
+    index: chain.index, phase: chain.phase, stage: chain.stageIndex, wp: chain.wpIndex, completed: [...chain.completed],
     stageInfo: chain.stage ? { t: Math.round(chain.stage.t * 10) / 10, flying: chain.stage.flying, target: chain.stage.target && { x: Math.round(chain.stage.target.x), y: Math.round(chain.stage.target.y) } } : null,
     player: worldRef && { x: Math.round(worldRef.player.x), y: Math.round(worldRef.player.y), inVehicle: !!worldRef.player.inVehicle },
   } : null),
@@ -3814,6 +3814,31 @@ export const missionDebug = {
     p.x = m.x; p.y = m.y;
     world.teleported = world.time;
     return true;
+  },
+  // Samen spelen (#452): the mission carries on at the same place in the chain when the game changes hands. Starts mission i
+  // and enters stage `deel` (a waypoint for a checkpoint run) with the time that was left; `plek: false` leaves the player
+  // where he stands, so a guest who becomes host does not jump back to the start of the mission.
+  // Best effort by design: the state a stage builds for itself (a scene, the vault, the heist doors) starts fresh.
+  hervat(world, i, deel = 0, tijd = null, { plek = false } = {}) {
+    if (!chain || !chain.defs[i] || chain.phase === 'active') return false;
+    const p = world.player, was = p && Number.isFinite(p.x) ? { x: p.x, y: p.y } : null;
+    const terug = () => { if (!plek && was && p && !p.inVehicle) { p.x = was.x; p.y = was.y; } };
+    if (!this.start(world, i)) { terug(); return false; }
+    terug();
+    const def = chain.defs[chain.index];
+    let k = Math.max(0, Math.floor(Number(deel) || 0));
+    // a plan screen or a menu stage builds its own state and cannot be entered cold: resume at the stage before it
+    while (k > 0 && def.stages && def.stages[k] && (def.stages[k].kind === 'plan' || def.stages[k].kind === 'choice')) k--;
+    if (def.type === 'stages' && k > 0 && def.stages && def.stages[k]) {
+      chain.stagePending = false;
+      if (def.heist || def.fjordTrain) enterStage(world, def, 0); // what those stages build for themselves stands from stage 0
+      if (chain.phase === 'active') enterStage(world, def, k);
+    } else if ((def.type === 'checkpoint' || def.type === 'boat') && k > 0 && def.waypoints && k < def.waypoints.length) {
+      chain.wpIndex = k;
+    }
+    if (chain.phase === 'active' && Number.isFinite(tijd) && tijd > 0 && Number.isFinite(chain.timeLeft)) chain.timeLeft = Math.max(tijd, 15);
+    syncPub(world);
+    return chain.phase === 'active';
   },
 };
 

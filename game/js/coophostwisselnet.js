@@ -27,6 +27,11 @@ const st = (world) => world.coopWissel || (world.coopWissel = { nu: 0, deps: nul
 const ui = (world) => world.coopWisselUi || (world.coopWisselUi = { vraag: null, pauze: null, einde: null });
 const meld = (world, tekst, sec = 5) => { if (world.addMessage) world.addMessage(tekst, sec); };
 const posOf = (b) => (b && b.inVehicle && Number.isFinite(b.inVehicle.x) && Number.isFinite(b.inVehicle.y) ? b.inVehicle : b);
+// De eigen plek vóór het wisselen van rol. stopCoopNet zet een gast terug op de plek waar hij de sessie binnenkwam; na een
+// overdracht of overname is dat een sprong van tientallen meters terug (#452). Wie host wordt of bij de nieuwe host aansluit
+// hoort te blijven waar hij staat (een gast die later aansluit volgt daarna de nieuwe host via de band).
+const bewaarPlek = (world) => (world.player && Number.isFinite(world.player.x) && Number.isFinite(world.player.y) ? { x: world.player.x, y: world.player.y, z: world.player.z || 0 } : null);
+const zetPlekTerug = (world, p) => { const w = world.player; if (!w || !p) return; w.x = p.x; w.y = p.y; if (Number.isFinite(p.z)) w.z = p.z; };
 
 // De route en de wereldhaken. Verplicht: info(), verbind(kamer) -> Promise<transport>, opKamer({ aanvaard(transport) }) -> Promise<{ kamer, stop() }>.
 // Optioneel: hostOpts(), clientOpts(wens), bereikbaar() -> Promise<bool>, wacht(ms), rand(), gastGeld(slot), leesOpdracht(world), zetOpdracht(world, o),
@@ -43,12 +48,12 @@ export function verzamelMomentopname(world, d = {}) {
     const b = lichaam(r.slot), q = posOf(b) || {}, ci = charInfo(r.char) || {};
     return { slot: r.slot, naam: ci.naam || '', char: r.char, geld: r.slot === 0 ? world.money : (d.gastGeld ? d.gastGeld(r.slot) : 0), health: b && Number.isFinite(b.health) ? b.health : 100, x: q.x, y: q.y, z: (b && b.z) || 0, voertuig: b && (b.inVehicle || b.inVeh) ? String((b.inVehicle || b.inVeh).id ?? 'v') : null };
   });
-  const m = world.mission, o = d.leesOpdracht ? d.leesOpdracht(world) : (m && m.phase === 'active' ? { id: m.label || m.type || 'opdracht', stap: m.index, staat: m.phase, t: m.t } : null);
+  const m = world.mission, o = d.leesOpdracht ? d.leesOpdracht(world) : (m && m.phase === 'active' ? { id: m.label || m.type || 'opdracht', stap: m.index, deel: m.wpIndex | 0, tijd: Number.isFinite(m.timeLeft) ? m.timeLeft : null, staat: m.phase, t: m.t } : null);
   let voertuigen;
   if (d.leesVoertuigen) voertuigen = d.leesVoertuigen(world);
   else { // de voertuigen waar spelers in zitten
     const vs = new Set(); for (const b of [p, c, ...Object.values(figures(world))]) { const v = b && (b.inVehicle || b.inVeh); if (v && typeof v === 'object') vs.add(v); }
-    voertuigen = [...vs].map((v) => ({ id: String(v.id ?? 'v'), soort: (v.model && v.model.name) || (v.isBike ? 'fiets' : 'auto'), x: v.x, y: v.y, z: v.z || 0, hoek: v.angle || 0, schade: v.damage || 0 }));
+    voertuigen = [...vs].map((v) => ({ id: String(v.id ?? 'v'), soort: (v.model && v.model.name) || (v.isBike ? 'fiets' : 'auto'), x: v.x, y: v.y, z: v.z || 0, hoek: v.angle || 0, schade: v.damage || 0, uiterlijk: v.model ? { naam: v.model.name, kleur: v.model.color, streep: v.model.stripe, accent: v.model.accent, kajuit: v.model.cabin } : null }));
   }
   return maakMomentopname({
     ver: n.info, zaad: hub.cfg.seed,
@@ -72,10 +77,16 @@ export function pasMomentopnameToe(world, m, d = {}, opt = {}) {
   if (world.police && m.wanted.hitte) world.police.heat = m.wanted.hitte;
   const erf = world.coopOverdracht = { opdracht: m.opdracht, kapot: m.kapot, voertuigen: m.voertuigen, spelers: m.spelers, zaad: m.zaad };
   // de plek waar het spel stond: de nieuwe host komt daar (bij een overname op zijn eigen plek in de lijst), de anderen volgen via de band.
-  // Een lopende opdracht zet hem zelf bij haar start (zetOpdracht), dus dan geen tweede verplaatsing.
+  // Een lopende opdracht zet hem zelf bij haar start (zetOpdracht), dus dan geen tweede verplaatsing. Wordt een gast host, dan blijft hij
+  // staan (opt.eigenPlek): zijn eigen plek is de zijne en een sprong terug naar een momentopname van 10 s oud is geen overname maar een hik (#452).
   const eerste = (opt.slot > 0 && m.spelers.find((s) => s.slot === opt.slot && Number.isFinite(s.x))) || m.spelers.find((s) => s.slot === 0);
   const opdrachtZetPlek = !!(m.opdracht && d.zetOpdracht);
-  if (eerste && !opdrachtZetPlek && Number.isFinite(eerste.x) && Number.isFinite(eerste.y) && world.player) { if (d.zetPlek) d.zetPlek(world, eerste.x, eerste.y, eerste.z); else { world.player.x = eerste.x; world.player.y = eerste.y; } }
+  const hier = world.player && Number.isFinite(world.player.x) && Number.isFinite(world.player.y) ? Math.hypot(world.player.x - (eerste ? eerste.x : 0), world.player.y - (eerste ? eerste.y : 0)) : Infinity;
+  uit.plek = 'geen';
+  if (eerste && !opdrachtZetPlek && !opt.eigenPlek && Number.isFinite(eerste.x) && Number.isFinite(eerste.y) && world.player) {
+    if (hier > 2) { if (d.zetPlek) d.zetPlek(world, eerste.x, eerste.y, eerste.z); else { world.player.x = eerste.x; world.player.y = eerste.y; } uit.plek = 'bron'; }
+    else uit.plek = 'eigen';
+  }
   if (m.opdracht) {
     if (d.zetOpdracht) { d.zetOpdracht(world, m.opdracht); uit.opdracht = true; }
     else meld(world, `De opdracht ${m.opdracht.id} liep nog bij de vorige speler. Start hem zelf opnieuw als je hem wilt doen.`, 6);
@@ -189,9 +200,12 @@ function schakelNaarHost(world) {
   const w = st(world), n = world.coopNet, d = w.deps, o = w.overname, m = w.nieuw.momentopname;
   const info = n.info, max = (n.session.welcome && n.session.welcome.max) || undefined;
   o.fase = 'host'; const wens = n.wens !== undefined ? n.wens : null, terug = w.nieuw.terug;
+  const eigenSlot = Number.isInteger(n.session.slot) ? n.session.slot : 0; // zijn eigen plek in de wereld van de oude host: daar blijft hij staan
+  const plek = bewaarPlek(world);
   N.stopCoopNet(world);
   const hub = N.startHost(world, info, { ...(d.hostOpts ? d.hostOpts() : {}), seed: m.zaad, max });
-  pasMomentopnameToe(world, m, d);
+  zetPlekTerug(world, plek);
+  pasMomentopnameToe(world, m, d, { slot: eigenSlot, eigenPlek: true }); // geen sprong: de nieuwe host ziet zijn eigen plek, niet die van de oude
   o.hub = hub; for (const tr of o.wachtrij.splice(0)) N.addGuest(world, tr);
   w.nieuwEinde = w.nieuw.id; w.rol = 'host'; w.overname = null; w.rm = o.rm;
   w.aansluit = { id: w.nieuw.id, tot: w.nu + AANSLUIT_S + 3, terug, wens, aangesloten: false, fase: 'wacht', t: 0 }; // wie het spel opende moet nu aansluiten (hw-aangesloten), anders terugval
@@ -272,9 +286,10 @@ function controleerWeg(world) {
 // echte klok). Gebruikt door de overname bij wegvallen en door het aansluiten bij een nieuwe host met zijn terugval.
 function startZoek(world, o) {
   const w = st(world);
-  const v = w.val = { t0: w.nu, lijst: o.lijst, ik: o.ik, info: o.info, max: o.max, zaad: o.zaad, wens: o.wens === undefined ? null : o.wens, m: o.m || null, namen: o.namen || (() => 'De ander'), tekst: o.tekst, meldAan: o.meldAan || 0, beurt: -1, volgende: 0, probe: null, eigenBezig: false, eigenGedaan: false, klaar: false };
+  const v = w.val = { t0: w.nu, lijst: o.lijst, ik: o.ik, info: o.info, max: o.max, zaad: o.zaad, wens: o.wens === undefined ? null : o.wens, m: o.m || null, namen: o.namen || (() => 'De ander'), tekst: o.tekst, meldAan: o.meldAan || 0, beurt: -1, volgende: 0, probe: null, eigenBezig: false, eigenGedaan: false, klaar: false, plek: bewaarPlek(world) };
   w.verbindt = !!o.verbind;
   if (world.coopNet) N.stopCoopNet(world); // de eigen plek in de oude sessie loslaten: het eigen spel en personage komen terug
+  zetPlekTerug(world, v.plek); // ... maar niet op de plek waar hij ooit binnenkwam: hij blijft staan (#452)
   const duur = o.lijst.reduce((a, r) => a + (r.duur || BEURT_S), 0);
   zetPauze(world, o.pauze, 0, w.nu + duur + 20); ui(world).einde = null;
   return v;
@@ -324,7 +339,8 @@ async function startEigen(world, v, kand) {
     rm = await d.opKamer({ kamer: kand.kamer, aanvaard: (tr) => { if (hub) N.addGuest(world, tr); else wachtrij.push(tr); } });
     if (w.val !== v || v.klaar || world.coopNet) { faal(); return; } // intussen afgebroken, of de speler zit al in een sessie
     hub = N.startHost(world, v.info, { ...(d.hostOpts ? d.hostOpts() : {}), seed: v.m ? v.m.zaad : v.zaad, max: v.max });
-    if (v.m) pasMomentopnameToe(world, v.m, d, { slot: v.ik, eigenKlokWeer: true }); // zonder momentopname (de terugval van wie het spel opende) is de eigen wereld al goed
+    zetPlekTerug(world, v.plek); // de gast blijft staan waar hij stond (geen sprong van de eigenlijke plek naar de oude)
+    if (v.m) pasMomentopnameToe(world, v.m, d, { slot: v.ik, eigenKlokWeer: true, eigenPlek: true }); // zonder momentopname (de terugval van wie het spel opende) is de eigen wereld al goed
     for (const tr of wachtrij.splice(0)) N.addGuest(world, tr);
     v.klaar = true; w.rol = 'host'; w.rm = rm; w.overgenomen = (w.overgenomen || 0) + 1;
     valKlaar(world, v.tekst.host);

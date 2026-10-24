@@ -19,7 +19,7 @@ const tekstIn = (w, re) => w.messages.some((m) => re.test(m));
 function avond({ gasten = 3, weigerKamer = [], snel = null, zelfde = false, geenKamerBereik = [] } = {}) {
   const links = [], kamers = new Map(); let teller = 0, opv = 0;
   const weer = createWeatherState(7); for (let i = 0; i < 40; i++) stepWeather(weer, 5);
-  const hw = mkWorld({ money: 1234, clock: 17.5, wanted: 2, calendar: { day: 12 }, weatherState: weer, mission: { phase: 'active', label: 'Het Loket', index: 3, t: 41 }, kapot: ['kliko@3', 'bord@9', 'stoel@14'] });
+  const hw = mkWorld({ money: 1234, clock: 17.5, wanted: 2, calendar: { day: 12 }, weatherState: weer, mission: { phase: 'active', label: 'Het Loket', index: 3, t: 41, deel: 2, timeLeft: 95 }, kapot: ['kliko@3', 'bord@9', 'stoel@14'] });
   N.startHost(hw, INFO, { seed: 5, max: 6 });
   const werelden = [hw], deps = [];
   const mkDeps = (w, i) => ({
@@ -28,7 +28,9 @@ function avond({ gasten = 3, weigerKamer = [], snel = null, zelfde = false, geen
     maakKamer: () => 'OPVOLGER' + (++opv), // de kamercodes van de opvolgers (overname bij wegvallen)
     opKamer: async ({ aanvaard, kamer: gewenst }) => { if (weigerKamer.includes(i)) throw new Error('niet bereikbaar'); const kamer = gewenst || 'KAMER' + (++teller); kamers.set(kamer, { aanvaard, door: i }); return { kamer, stop() { kamers.delete(kamer); } }; },
     wacht: () => Promise.resolve(), pogingen: 4, rand: () => 0.31,
-    zetOpdracht: (wd, o) => { wd.mission = { phase: o.staat, label: o.id, index: o.stap, t: o.t }; },
+    // de opdrachtstand (#452): de stage en de tijd gaan mee, net als de wereldhaken dat in het spel doen
+    leesOpdracht: (wd) => (wd.mission && wd.mission.phase === 'active' ? { id: wd.mission.label, stap: wd.mission.index, deel: wd.mission.deel || 0, tijd: wd.mission.timeLeft, staat: wd.mission.phase, t: wd.mission.t } : null),
+    zetOpdracht: (wd, o) => { wd.mission = { phase: o.staat, label: o.id, index: o.stap, t: o.t, deel: o.deel, timeLeft: o.tijd }; },
     leesKapot: (wd) => wd.kapot || [], zetKapot: (wd, ids) => { wd.kapot = ids.slice(); },
   });
   const maakGast = (i, wens) => {
@@ -58,6 +60,7 @@ await t('overdracht aan gast 2: de nieuwe host draait de wereld, de anderen verb
   assert.equal(s.hw.coopRoster.length, 4, 'vier spelers');
   const weerVoor = JSON.stringify(weerEvent(s.hw.weatherState)), klokVoor = s.hw.clock;
   const geld = s.werelden.map((w) => w.money);
+  const plekVoor = { x: g2.player.x, y: g2.player.y };
   const r = W.biedOver(s.hw, 2); assert.ok(r.ok, 'bieden lukt: ' + JSON.stringify(r));
   assert.ok(s.hw.coopHold, 'wie het spel opende staat stil tot het antwoord er is');
   await s.step(1.5, () => g2.coopWisselUi && g2.coopWisselUi.vraag);
@@ -79,7 +82,8 @@ await t('overdracht aan gast 2: de nieuwe host draait de wereld, de anderen verb
   assert.equal(g2.wanted, 2, 'gezocht blijft 2'); assert.ok(g2.coopOverdracht.klaar);
   assert.equal(g2.calendar.day, 12, 'dezelfde dag');
   assert.ok(Math.abs(g2.clock - klokVoor) < 1.5, `dezelfde tijd van de dag (${g2.clock} tegen ${klokVoor})`);
-  assert.deepEqual(g2.mission, { phase: 'active', label: 'Het Loket', index: 3, t: 41 }, 'de lopende opdracht');
+  assert.ok(Math.hypot(g2.player.x - plekVoor.x, g2.player.y - plekVoor.y) < 5, `de nieuwe host blijft staan, geen sprong (${g2.player.x},${g2.player.y} tegen ${plekVoor.x},${plekVoor.y})`);
+  assert.deepEqual(g2.mission, { phase: 'active', label: 'Het Loket', index: 3, t: 41, deel: 2, timeLeft: 95 }, 'de lopende opdracht, op dezelfde stage en met de tijd die nog over was');
   assert.deepEqual(g2.kapot, ['kliko@3', 'bord@9', 'stoel@14'], 'kapotte objecten');
   const wv = weerEvent(g2.weatherState); assert.equal(JSON.stringify(wv), weerVoor, 'hetzelfde weer');
   // de anderen zien de wereld van de nieuwe host: gezocht en klok volgen hem
@@ -187,7 +191,7 @@ await t('de host valt weg met 3 gasten: de gast met de beste verbinding neemt he
   // de wereld van wie het spel opende staat bij de nieuwe host
   assert.equal(g3.calendar.day, 12, 'dezelfde dag'); assert.equal(g3.wanted, 2, 'dezelfde sterren');
   assert.ok(Math.abs(g3.clock - klokVoor) < 25, 'de klok loopt door vanaf de laatste stand (' + g3.clock + ' tegen ' + klokVoor + ')');
-  assert.deepEqual(g3.mission, { phase: 'active', label: 'Het Loket', index: 3, t: 41 }, 'de lopende opdracht is hervat'); assert.deepEqual(g3.kapot, ['kliko@3', 'bord@9', 'stoel@14'], 'kapotte objecten');
+  assert.deepEqual(g3.mission, { phase: 'active', label: 'Het Loket', index: 3, t: 41, deel: 2, timeLeft: 95 }, 'de lopende opdracht is hervat, op dezelfde stage'); assert.deepEqual(g3.kapot, ['kliko@3', 'bord@9', 'stoel@14'], 'kapotte objecten');
   assert.equal(g3.coopOverdracht.spelers.length, 4, 'de spelerslijst van de momentopname'); assert.ok(g3.coopOverdracht.klaar);
   assert.equal(g1.money, 100, 'ieders eigen geld blijft'); assert.equal(g3.money, 120);
   // het spel loopt echt: snapshots van de nieuwe host, en hij zorgt zelf weer voor een herstelmomentopname
@@ -276,5 +280,21 @@ await t('als wie het spel opende wel aansluit, blijft de nieuwe host host en is 
   await s.step(60); assert.equal(rol(g1), 'host'); assert.equal(g1.coopNet.hub.sessions.size, 2); assert.ok(!g1.coopWissel.aansluit, 'de wachttijd is voorbij'); assert.ok(geen(...s.werelden), JSON.stringify(s.werelden.map((w) => [w.coopHold, !!w.coopWissel.pauze, !!w.coopWissel.val, w.coopWissel.hold])));
 });
 
-console.log(`hostwissel_test: ${n}/17 ok`);
+await t('een gast die host wordt blijft op zijn eigen plek staan (de momentopname is niet zijn plek)', async () => {
+  const { pasMomentopnameToe } = W;
+  const { maakMomentopname } = await import('../../game/js/coophostwissel.js');
+  const mom = maakMomentopname({ tijd: { dag: 12, uur: 17.5 }, spelers: [{ slot: 0, x: 0, y: 0 }, { slot: 2, x: 52, y: 60 }] });
+  const plekken = []; const d = { zetPlek: (_w, x, y) => plekken.push([x, y]) };
+  const a = mkWorld({ player: { x: 52, y: 60, angle: 0 }, calendar: { day: 1 }, police: {} });
+  const ua = pasMomentopnameToe(a, mom, d, { slot: 2, eigenPlek: true, eigenKlokWeer: true });
+  assert.equal(a.player.x, 52); assert.equal(a.player.y, 60); assert.equal(ua.plek, 'geen'); assert.equal(plekken.length, 0, 'eigen plek: niet verplaatst');
+  const b = mkWorld({ player: { x: 0, y: 0, angle: 0 }, calendar: { day: 1 }, police: {} });
+  const ub = pasMomentopnameToe(b, mom, d, { slot: 2, eigenKlokWeer: true });
+  assert.deepEqual(plekken, [[52, 60]], 'zonder eigen plek komt hij op zijn plek uit de momentopname'); assert.equal(ub.plek, 'bron');
+  const c = mkWorld({ player: { x: 52.5, y: 60.4, angle: 0 }, calendar: { day: 1 }, police: {} });
+  const uc = pasMomentopnameToe(c, mom, d, { slot: 2, eigenKlokWeer: true });
+  assert.equal(uc.plek, 'eigen'); assert.equal(plekken.length, 1, 'binnen 2 m: geen laadsprong');
+});
+
+console.log(`hostwissel_test: ${n}/18 ok`);
 process.exit(0);
