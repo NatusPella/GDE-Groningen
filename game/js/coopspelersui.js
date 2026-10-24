@@ -2,7 +2,8 @@
 // Tab ingedrukt houdt, en het onderdeel Spelers in het pauzemenu (alleen in een sessie) met dezelfde gegevens en de roepjes.
 // De gegevens komen uit world.coopSpelers (coopnet.js, gebouwd met coopspelers.js, getest); dit bestand is alleen DOM.
 // Niet door een mens in beeld bekeken.
-import { pingGebaar } from './coopnet.js';
+import { pingGebaar, zetPassiefGebaar, kanPassiefKiezen, passiefStandVan } from './coopnet.js';
+import { PVP_TEKST } from './cooppvp.js';
 import { PING_TOETSEN } from './coopping.js';
 import { VORM_TEKEN, kanEruitZetten, kanOverdragen, overdragenKnopTekst, eruitKnopTekst, eruitGezetTekst } from './coopspelers.js';
 import { removeGuest } from './coopnet.js';
@@ -20,7 +21,13 @@ function rijHtml(r, acties, rol = null, bevestig = null) {
     `<span class="cs-naam">${esc(r.naam)}${r.jij ? ' <small>(jij)</small>' : ''}</span><span class="cs-doet">${esc(r.doet)}${r.afstandTekst ? ' · ' + esc(r.afstandTekst) : ''}</span>` +
     `<span class="cs-net" title="Verbinding"><i style="background:${STIP[r.verbinding] || STIP.ok}" aria-hidden="true"></i>${esc(r.verbindingTekst)}${r.ms != null ? ` <small>${r.ms} ms</small>` : ''}</span>${naar}${geef}${eruit}</li>`;
 }
-const roepHint = () => PING_TOETSEN.map((k) => `<b>${k.toets}</b> ${esc(k.tekst)}`).join(' · ');
+// De passieve stand (#447): een knop met uitleg, alleen als de host het kent
+function pvpHtml(world) {
+  if (!kanPassiefKiezen(world)) return '';
+  const passief = passiefStandVan(world);
+  return `<div class="cs-pvp"><button type="button" data-passief="${passief ? '0' : '1'}" aria-pressed="${passief ? 'true' : 'false'}">${passief ? PVP_TEKST.knopAan : PVP_TEKST.knopUit}</button><p>${esc(PVP_TEKST.uitleg)}</p></div>`;
+}
+const roepHint =() => PING_TOETSEN.map((k) => `<b>${k.toets}</b> ${esc(k.tekst)}`).join(' · ');
 
 const CSS = `
 .cs-lijst { font: 16px "Arial Narrow", Arial, sans-serif; color: #f0ede4; list-style: none; margin: 0; padding: 0; }
@@ -39,6 +46,10 @@ const CSS = `
 .pm-spelers { display: flex; flex-direction: column; gap: 14px; max-width: 952px; padding: 32px 64px 40px; overflow-y: auto; scrollbar-width: none; font-family: "Arial Narrow", Arial, sans-serif; color: #f0ede4; }
 .pm-spelers .cs-lijst { font-size: 22px; } .pm-spelers .cs-rij { padding: 8px 0; grid-template-columns: 30px minmax(110px, auto) 1fr auto; } .pm-spelers .cs-vorm { font-size: 24px; }
 .pm-spelers p { margin: 0; max-width: 640px; font-size: 20px; line-height: 1.35; opacity: 0.85; }
+.pm-spelers .cs-pvp { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
+.pm-spelers .cs-pvp button { padding: 10px 18px; border: 0; border-radius: 8px; background: rgba(240,237,228,0.18); color: #f0ede4; font: bold 20px "Arial Narrow", Arial, sans-serif; cursor: pointer; }
+.pm-spelers .cs-pvp button[aria-pressed="false"] { background: #d9822b; color: #0c140e; }
+.pm-spelers .cs-pvp button:focus-visible { outline: 2px solid #f0ede4; outline-offset: 2px; }
 .pm-spelers .cs-roep { display: flex; flex-wrap: wrap; gap: 10px; }
 .pm-spelers .cs-roep button { padding: 10px 18px; border: 0; border-radius: 8px; background: #3fc97a; color: #0c140e; font: bold 20px "Arial Narrow", Arial, sans-serif; cursor: pointer; }
 .pm-spelers .cs-roep button:focus-visible { outline: 2px solid #f0ede4; outline-offset: 2px; }
@@ -84,12 +95,13 @@ export function renderSpelersPanel(root, world, sluit = () => {}) {
     if (!rijen.length) { root.innerHTML = '<p>Je speelt niet samen. Open Spel › Samen spelen om iemand uit te nodigen of aan te sluiten.</p>'; return; }
     const zittend = root.contains(document.activeElement) && document.activeElement.matches('button');
     const rol = world.coopNet && world.coopNet.role;
-    const key = JSON.stringify([bevestig, ...rijen.map((r) => [r.slot, r.doet, r.verbinding, r.ms, r.afstandTekst])]);
+    const key = JSON.stringify([bevestig, kanPassiefKiezen(world), passiefStandVan(world), ...rijen.map((r) => [r.slot, r.doet, r.verbinding, r.ms, r.afstandTekst, r.passief, r.pvpInSpel])]);
     if (root.dataset.key === key && root.dataset.klaar) return;
     if (zittend && root.dataset.klaar) return; // de focus op een knop blijft staan
     root.dataset.key = key; root.dataset.klaar = '1';
     root.innerHTML = `<ul class="cs-lijst">${rijen.map((r) => rijHtml(r, true, rol, bevestig)).join('')}</ul>` +
       `<p>Roepen kan ook in het spel: ${roepHint()}. Iemand uitnodigen: kies Samen spelen onder Spel.</p>` +
+      pvpHtml(world) +
       `<div class="cs-roep">${PING_TOETSEN.map((k) => `<button type="button" data-ping="${k.soort}">${esc(k.tekst)} <small>(${k.toets})</small></button>`).join('')}</div>`;
   };
   if (!root.dataset.gebonden) {
@@ -97,6 +109,8 @@ export function renderSpelersPanel(root, world, sluit = () => {}) {
     root.addEventListener('click', (e) => {
       const p = e.target.closest('[data-ping]');
       if (p && world.player) { if (pingGebaar(world, p.getAttribute('data-ping'))) sluit(); return; }
+      const ps = e.target.closest('[data-passief]');
+      if (ps) { zetPassiefGebaar(world, ps.getAttribute('data-passief') === '1'); root.dataset.klaar = ''; teken(); return; } // omschakelen met afkoeling; de gast ziet de stand zodra de host antwoordt (#447)
       const k = e.target.closest('[data-eruit]');
       if (k) { // twee keer klikken: eerst vragen, dan eruit zetten (#434)
         const slot = +k.getAttribute('data-eruit'), r = (world.coopSpelers || []).find((x) => x.slot === slot);
