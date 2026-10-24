@@ -2827,6 +2827,7 @@ function playAudioEvents(world) {
       case 'bullet_hit': playBulletHit(x, y, e.material, clamp(e.strength ?? 0.5, 0, 1)); break;
       case 'coo': case 'flap': case 'bonk': case 'poop': case 'splat': case 'plop': case 'pala': case 'padelglas': case 'padelgaas': playCritterEvent(e.kind, x, y, clamp(e.strength ?? 0.5, 0, 1)); break;
       case 'splash': playSplash(x, y); break;
+      case 'golf': playGolfEvent(e.sub, x, y, clamp(e.strength ?? 0.5, 0, 1)); break;   // golfphysics.js events (#453)
       case 'purr': case 'yip': playAaiGeluid(e.kind, x, y); break;   // aaien.js (#437)
       case 'fx': playFx(e.name, x, y, e); break;
       // one carillon-game bell (carillon.js): the tower's bell sample at the right pitch, no gap limit
@@ -2916,6 +2917,37 @@ function playGoreEvent(kind, x, y, k) {
   else {
     playBuf('poof', { out, gain: 0.22 + k * 0.1, rate: r });
     playBuf('flutter', { out, gain: 0.16, rate: r * 1.2 });
+  }
+}
+
+// Golf (#453): de geluiden van golfphysics.js, procedureel met dezelfde bouwstenen als de rest (geen opname, geen stem):
+// slag (wedge of putter), stuiter, rol, zand, plons, tik op de rand en de hole zelf.
+function playGolfEvent(sub, x, y, k) {
+  const out = spatialOut(x, y, { ref: 4, rolloff: 1.2, range: 70, model: 'equalpower', h: 0.3 });
+  if (!out) return;
+  const r = 0.95 + Math.random() * 0.1;
+  if (sub === 'slag') {
+    playTone({ freq: 2100 * r, freqEnd: 1000, type: 'triangle', duration: 0.05, gain: 0.05 + k * 0.07, out });
+    playTone({ freq: 150, freqEnd: 70, type: 'sine', duration: 0.09, gain: 0.07 + k * 0.1, out });
+    playNoiseBurst({ duration: 0.05, freq: 3200, freqEnd: 1800, q: 1.4, gain: 0.04 + k * 0.06, type: 'bandpass', out });
+  } else if (sub === 'putt') {
+    playTone({ freq: 1000 * r, freqEnd: 620, type: 'triangle', duration: 0.035, gain: 0.04 + k * 0.05, out });
+    playNoiseBurst({ duration: 0.025, freq: 2400, q: 2, gain: 0.025 + k * 0.03, type: 'bandpass', out });
+  } else if (sub === 'stuiter') {
+    playTone({ freq: 240 * r, freqEnd: 110, type: 'sine', duration: 0.07, gain: 0.04 + k * 0.1, out });
+    playNoiseBurst({ duration: 0.05, freq: 700, freqEnd: 300, q: 0.9, gain: 0.03 + k * 0.07, type: 'lowpass', out });
+  } else if (sub === 'rol') {
+    playNoiseBurst({ duration: 0.22, freq: 380 + k * 500, q: 0.7, gain: 0.012 + k * 0.03, type: 'bandpass', out });
+  } else if (sub === 'zand') {
+    playNoiseBurst({ duration: 0.2, freq: 1300, freqEnd: 600, q: 0.6, gain: 0.06 + k * 0.06, type: 'bandpass', out });
+  } else if (sub === 'plons') playSplash(x, y);
+  else if (sub === 'rand') {
+    playTone({ freq: 1500 * r, freqEnd: 1100, type: 'triangle', duration: 0.05, gain: 0.05, out });
+    playTone({ freq: 1900 * r, freqEnd: 1300, type: 'triangle', duration: 0.04, gain: 0.04, out, delay: 0.06 });
+  } else if (sub === 'hole') {
+    playTone({ freq: 430, freqEnd: 170, type: 'sine', duration: 0.1, gain: 0.1, out });
+    playTone({ freq: 1250 * r, freqEnd: 900, type: 'triangle', duration: 0.07, gain: 0.05, out, delay: 0.05 });
+    playTone({ freq: 1550 * r, freqEnd: 1000, type: 'triangle', duration: 0.06, gain: 0.035, out, delay: 0.11 });
   }
 }
 

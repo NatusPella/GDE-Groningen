@@ -78,10 +78,13 @@ html.touch-play #hud .mg-board .mg-cells i[data-k] { pointer-events: auto; touch
 /* good and bad also differ by shape, not by colour alone */
 #hud .mg-board .mg-cells i.good::before { content: '\\2713\\a0'; }
 #hud .mg-board .mg-cells i.bad::before, #hud .mg-board .mg-flash.bad::before { content: '\\2715\\a0'; }
-#hud .mg-board .mg-meter { position: relative; height: 9px; margin: 6px 0 4px; background: rgba(240,237,228,0.16); border-radius: 2px; overflow: hidden; }
+#hud .mg-board .mg-meter { display: flex; align-items: center; gap: 10px; margin: 6px 0 4px; }
 #hud .mg-board .mg-meter[hidden] { display: none; }
+#hud .mg-board .mg-meter .mg-bar { position: relative; flex: 1; height: 11px; background: rgba(240,237,228,0.16); border-radius: 2px; overflow: hidden; box-shadow: inset 0 0 0 1px rgba(240,237,228,0.18); }
 #hud .mg-board .mg-meter i { position: absolute; left: 0; top: 0; bottom: 0; background: var(--mg-acc, #6cc070); }
-#hud .mg-board .mg-meter em { position: absolute; top: -2px; bottom: -2px; width: 2px; background: #f0ede4; }
+#hud .mg-board .mg-meter em { position: absolute; top: 0; bottom: 0; width: 3px; margin-left: -1px; background: #f0ede4; box-shadow: 0 0 0 1px rgba(12,20,14,0.7); }
+#hud .mg-board .mg-meter-t { min-width: 3.2em; text-align: right; font-size: 14px; letter-spacing: 0.5px; color: #f0ede4; }
+#hud .mg-board .mg-extra[hidden] { display: none; }
 #hud .mg-board .mg-help { display: flex; flex-wrap: wrap; align-items: center; gap: 3px; font: 14px 'Arial Narrow', Arial, sans-serif; color: rgba(240,237,228,0.78); }
 #hud .mg-board .hud-key { margin: 0 2px; vertical-align: middle; }
 #hud .mg-board .mg-flash { font-size: 22px; letter-spacing: 1.5px; color: #5dff7a; min-height: 1em; }
@@ -110,10 +113,10 @@ export function createBoard(title, accent) {
   root.className = 'mg-board';
   root.style.setProperty('--mg-acc', accent);
   root.hidden = true;
-  root.innerHTML = `<small>${title}</small><div class="mg-row"></div><div class="mg-cells" hidden></div><div class="mg-meter" hidden><i></i><em></em></div><div class="mg-flash"></div><div class="mg-help"></div>`;
+  root.innerHTML = `<small>${title}</small><div class="mg-row"></div><div class="mg-cells" hidden></div><div class="mg-extra" hidden></div><div class="mg-meter" hidden><span class="mg-bar"><i></i><em></em></span><span class="mg-meter-t"></span></div><div class="mg-flash"></div><div class="mg-help"></div>`;
   (document.getElementById('hud') || document.body).appendChild(root);
   const q = (s) => root.querySelector(s);
-  const el = { row: q('.mg-row'), cells: q('.mg-cells'), meter: q('.mg-meter'), bar: q('.mg-meter i'), mark: q('.mg-meter em'), flash: q('.mg-flash'), help: q('.mg-help') };
+  const el = { row: q('.mg-row'), cells: q('.mg-cells'), extra: q('.mg-extra'), meter: q('.mg-meter'), bar: q('.mg-meter i'), mark: q('.mg-meter em'), meterT: q('.mg-meter-t'), flash: q('.mg-flash'), help: q('.mg-help') };
   let last = '';
   // a cell with `key` sends that key while touched
   const tapFor = (e, type) => {
@@ -131,9 +134,9 @@ export function createBoard(title, accent) {
     root,
     show() { root.hidden = false; document.body.classList.add('mg-on', 'mg-board'); last = ''; },
     hide() { root.hidden = true; document.body.classList.remove('mg-on', 'mg-board'); cancelStopAsk(); },
-    // { row: html, cells: [{ t, cls }], meter: { v, mark, color }, flash, bad, help: html }
+    // { row: html, cells: [{ t, cls }], extra: html (een blok onder de cellen, bv. een scorebord), meter: { v, mark, color, text }, flash, bad, help: html }
     set(s) {
-      const sig = JSON.stringify([s.row, s.cells, s.meter && [Math.round(s.meter.v * 100), s.meter.mark != null ? Math.round(s.meter.mark * 100) : -1, s.meter.color], s.flash, !!s.bad, s.help]);
+      const sig = JSON.stringify([s.row, s.cells, s.extra, s.meter && [Math.round(s.meter.v * 100), s.meter.mark != null ? Math.round(s.meter.mark * 100) : -1, s.meter.color, s.meter.text], s.flash, !!s.bad, s.help]);
       if (sig === last) return;
       last = sig;
       el.row.innerHTML = s.row || '';
@@ -141,8 +144,11 @@ export function createBoard(title, accent) {
         el.cells.hidden = false;
         el.cells.innerHTML = s.cells.map((c) => `<i class="${c.cls || ''}"${c.key ? ` data-k="${c.key}"` : ''}>${c.t}</i>`).join('');
       } else { el.cells.hidden = true; el.cells.innerHTML = ''; } // .mg-cells heeft display:flex: hidden alleen verbergt niets, dus ook leegmaken
+      if (s.extra) { el.extra.hidden = false; el.extra.innerHTML = s.extra; } else { el.extra.hidden = true; el.extra.innerHTML = ''; }
       if (s.meter) {
         el.meter.hidden = false;
+        el.meterT.textContent = s.meter.text || '';
+        el.meterT.style.display = s.meter.text ? '' : 'none';
         el.bar.style.width = `${Math.round(clamp(s.meter.v, 0, 1) * 100)}%`;
         el.bar.style.background = s.meter.color || '';
         el.mark.style.display = s.meter.mark == null ? 'none' : '';
