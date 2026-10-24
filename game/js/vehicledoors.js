@@ -118,6 +118,28 @@ export function deurVoorRol(defs, rol, state = null, voorkeurSide = 0) {
   return pick(kandidaten.length ? kandidaten : defs);
 }
 
+// Waar een instapper staat die bij deze stoel hoort (#459): de deur van de rol van de
+// stoel (bestuurder links voor, bijrijder rechts voor; een bus via de voordeur rechts)
+// als punt net buiten de carrosserie. stoel: { z, role } uit seating3d.js vehicleSeat.
+// Geeft { id, rol, x, z, soort } in voertuig-lokale meters, of null zonder logische deur.
+export const DEUR_STAP = 0.42; // m naast de deur waar de instapper staat
+export function deurVoorStoel(v, stoel) {
+  const defs = doorsFor(v);
+  if (!defs.length || !stoel) return null;
+  const rol = stoel.role || (stoel.z < 0 ? 'bestuurder' : 'bijrijder');
+  const d = deurVoorRol(defs, rol, v.doors || null, stoel.z < 0 ? -1 : 1);
+  if (!d || !d.side) return null;
+  return { id: d.id, rol, x: d.x * v.model.len, z: d.side * (v.model.wid / 2 + DEUR_STAP), soort: d.soort };
+}
+
+// Aan welke kant van het voertuig iemand staat die hier instapt: -1 links (de
+// bestuurderskant), +1 rechts (de bijrijderskant). Zo hoort de stoel bij de deur waar
+// je staat, in plaats van altijd de bestuurdersstoel (#459).
+export function instapKant(v, x, y) {
+  const dx = x - v.x, dy = y - v.y;
+  return -Math.sin(v.angle) * dx + Math.cos(v.angle) * dy >= 0 ? 1 : -1;
+}
+
 export function makeDoorState() {
   return { open: {}, want: {}, loose: {}, hold: {}, dmg: {} };
 }
