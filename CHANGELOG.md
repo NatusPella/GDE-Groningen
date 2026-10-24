@@ -7,7 +7,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 ## [Unreleased]
 
 ### Nieuw
-- Eigen muziek bij het boerenwerk (trekker, maaidorser, laadmachine), het vliegen (vliegtuig en helikopter), een lopende verhaalmissie het fietsen, je safehouse (het menu van je huis), de fotomodus en het pauzemenu (ook de lobby van Samen spelen): zolang je het doet, vervangt een eigen loop de radio. Een achtervolging gaat voor.
+- Eigen muziek bij het boerenwerk (trekker, maaidorser, laadmachine), het vliegen (vliegtuig en helikopter), een lopende verhaalmissie het fietsen, je safehouse (het menu van je huis), de fotomodus en het pauzemenu: zolang je het doet, vervangt een eigen loop de radio. Een achtervolging gaat voor.
 - Eigen muziek voor de PvP-arena staat klaar (wordt gekoppeld zodra de PvP-minigame er is, #454).
 - Zes nieuwe nummers op de radio voor overdag, in andere stijlen dan de rest (Proat in de ochtend, De hits en Avondproat).
 
