@@ -36,7 +36,7 @@ import { loadFacilities, initFacilities, loadShopPlaces, initShopPlaces, setExtr
 import { setShopSpots, spotsFrom } from './shopspots.js';
 import { ensureCountryEdge } from './countryplan.js';
 import { warmCountryMaps } from './countrymap.js';
-import { Input } from './input.js';
+import { Input, lockVerlorenOpentMenu } from './input.js';
 import { initGamepad } from './gamepad.js';
 import { initPadKeyboard } from './padkeyboard.js';
 import { initTextFields } from './textfield.js';
@@ -515,7 +515,7 @@ async function boot() {
   initGamepad(input, world, { menuOpen: () => menuOpen() || isPlayAheadOpen() || isHelpOfferOpen(), phoneOpen: isPhoneOpen, pauseOpen: isPauseMenuOpen, mapOpen: () => isMapOpen() });
   initTouch(input, world, { menuOpen: () => menuOpen() || isPlayAheadOpen() || isHelpOfferOpen() });
   document.addEventListener('pointerlockchange', () => {
-    if (!document.pointerLockElement && document.body.classList.contains('game-started') && !menuOpen()) openPauseMenu();
+    if (!document.pointerLockElement && lockVerlorenOpentMenu({ gestart: document.body.classList.contains('game-started'), menuOpen: menuOpen(), vraagOpen: isPlayAheadOpen() || isHelpOfferOpen() })) openPauseMenu();
   });
   initDayNight(world);
   initCalendar(world);
@@ -620,6 +620,7 @@ async function boot() {
     updateMapView(dt, world);
     world.paused = isMapOpen() || isPauseMenuOpen() || isShopOpen() || !!world.uiPaused || !!world.coopHold; // coopHold: wachtscherm bij een weggevallen speler (coophold.js)
     if (document.pointerLockElement && (isMapOpen() || isPauseMenuOpen() || isPhoneOpen())) document.exitPointerLock();
+    input.menuStand(menuOpen()); // een gesloten menu vraagt de muis meteen weer (#435)
     // world.timeScale: slow-motion for cinematic moments (1 = normal)
     // hit-stop (#216): 60-90 ms dip bij een zware klap of een melee-raak
     const nowS = performance.now() / 1000;
