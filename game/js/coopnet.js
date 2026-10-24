@@ -42,6 +42,8 @@ import { tileIndexOf, tileKey } from './gdt.js';
 import { wisselEvent, wisselTik, zetCoopNet } from './coophostwisselnet.js'; // het spel overdragen (#439); die module importeert dit bestand terug, maar gebruikt het pas bij een aanroep
 import { zichtbaarWanted, GEZOCHT_TEKST, hudWanted } from './coopgezocht.js';
 import { bustFineIn } from './economy.js';
+import { wedHostTik, wedHandleGast, wedHandleHost, wedGastReset, zetWedHaken } from './coopwedstrijd.js';
+import { wedKaartTik } from './coopwedstrijd3d.js';
 import { zetBestuurHaken, bestuurGebruik, bestuurTick, bestuurLos, bestuurAllesLos, bestuurt } from './coopbestuur.js';
 
 export const CAPS = ['scene', 'spelers', 'snaptijd']; // wat dit spel kent; uitbreidbaar (net/session.js negotiate). snaptijd: de tijd van een snapshot (ms van de klok van de host) staat in de kop, #434
@@ -303,6 +305,7 @@ function stepFigures(world, dt) {
       if (world.player.inVehicle !== v || v.wrecked || v.sinking) figUit(world, fig);
       else { fig.x = v.x; fig.y = v.y; fig.angle = v.angle || 0; fig.vx = 0; fig.vy = 0; continue; }
     }
+    if (fig.coopWedstrijd) { fig.vx = 0; fig.vy = 0; continue; } // hij rijdt een race tegen de anderen: zijn lichaam staat stil bij zijn kart (coopwedstrijd.js, #443)
     if (fig.wacht) { fig.vx = 0; fig.vy = 0; continue; } // de wereld rond hem wordt nog geladen (bandFiguren, #429)
     if (!fig.input) { fig.vx *= Math.max(0, 1 - 10 * dt); fig.vy *= Math.max(0, 1 - 10 * dt); continue; }
     const m = fig.input;
@@ -619,6 +622,8 @@ export function tickCoopNet(world, dt) {
   }
   n.tSpelers += dt;
   if (n.tSpelers >= 0.25) { n.tSpelers = 0; bouwSpelers(world, n); }
+  if (n.role === 'host') wedHostTik(world, dt); // een uitnodiging voor een race of minigame loopt af (#443)
+  wedKaartTik(world, dt); // Meedoen? J of N en de uitslag met een rematch
   if (n.role === 'client') {
     const s = n.session;
     // afgewezen (sessie vol, andere versie) of de gastheer stopte (BYE): de gast speelt weer in zijn eigen spel. Zonder dit bleef hij 'gast' (zijn spel werd niet meer bewaard)
@@ -629,7 +634,7 @@ export function tickCoopNet(world, dt) {
       stopCoopNet(world); return;
     }
     const inp = world.input;
-    const m = makeClientInput(inp && inp.axis ? inp.axis() : [0, 0], !!(inp && inp.isDown && inp.isDown('shift')), world.camYaw, !!((world.coopWiel || world.coopBestuurder) && inp && inp.isDown && inp.isDown(' ')), !world.coopInVoertuig && springKnop(n, inp, dt), !world.coopInVoertuig && !!(inp && inp.isDown && inp.isDown('control')), !world.coopInVoertuig && !!world.coopAanvalKnop); // springen en bukken te voet, de aanvalsknop met een wapen (#434)
+    const m = makeClientInput(inp && inp.axis ? inp.axis() : [0, 0], !!(inp && inp.isDown && inp.isDown('shift')), world.camYaw, !!((world.coopWiel || world.coopBestuurder || world.coopWedstrijd) && inp && inp.isDown && inp.isDown(' ')), !world.coopInVoertuig && springKnop(n, inp, dt), !world.coopInVoertuig && !!(inp && inp.isDown && inp.isDown('control')), !world.coopInVoertuig && !!world.coopAanvalKnop); // springen en bukken te voet, de aanvalsknop met een wapen (#434)
     if (inp && inp.wasPressed && inp.wasPressed('y')) wielGebaar(world); // Y: om het stuur vragen (#291)
     if (inp && inp.wasPressed && inp.wasPressed('b') && !world.paused) bijGroepGebaar(world); // B: bij de groep komen (#429)
     if ((world.coopScene && world.coopScene.filmpje) || world.paused) s.setInput(0, 0, 0, m.yaw); // de gastheer kijkt een filmpje, of de gast zit zelf in een menu, de kaart of een winkel: zijn figuur staat stil (#373)
@@ -708,6 +713,8 @@ export function handleEvent(world, body, van = 0) {
   if (!body || typeof body !== 'object') return false;
   const n = world.coopNet;
   switch (body.k) {
+    case 'wed': return wedHandleHost(world, body); // een wedstrijd tegen elkaar van de host: uitnodiging, start, stand, uitslag (#443, coopwedstrijd.js)
+    case 'wedgast': return wedHandleGast(world, body, van); // het antwoord van een gast op die wedstrijd (alleen de host luistert)
     case 'wapen': return !!n && n.role === 'host' && van >= 1 && wapenVerwerk(world, van, body); // een gast kiest zijn wapen (zijn eigen patronen): de host rekent zijn aanval uit (#434)
     case 'schade': { // een kogel van de politie raakte jou in het spel van de host: de schade is van jou, je valt hierdoor niet om (#434)
       if (!n || n.role !== 'client' || !Number.isFinite(body.n)) return false;
@@ -949,6 +956,7 @@ export function payGuest(world, geld, slot = null, extra = null) {
   }
   return ok;
 }
+zetWedHaken({ betaalGast: (world, slot, geld, extra) => payGuest(world, geld, slot, extra) }); // een race tegen elkaar betaalt per plek in de eigen portemonnee en loopbaan van elke gast (#443)
 // Host: een speler verwijderen (eerst een bericht, dan verbreken).
 export function removeGuest(world, slot = 1) {
   const n = world.coopNet; if (!n || n.role !== 'host') return false;
@@ -985,6 +993,7 @@ export function stopCoopNet(world) {
   if (world.coopCutBezig != null) cutGastStop(world, null, true); // een scène van de gastheer stopt met het samen spelen
   if (n.role === 'host') { try { n.hub.announce({ k: 'weg', reden: 'spel gestopt' }); n.hub.closeAll(); } catch (e) { /* al weg */ } } else { try { if (n.session.status !== 'geweigerd' && n.session.status !== 'verbroken') n.session.leave(); } catch (e) { /* al weg */ } }
   world.coopNet = null;
+  if (n.role === 'client') wedGastReset(world); // een race tegen elkaar op zijn scherm houdt op (#443)
   if (n.role === 'client') gastVerhaalHerlaad(world); // een meegesprongen verhaal staat ook in het lopende spel, anders overschrijft de volgende save het (#429)
   if (n.role === 'client' && n.stash) {
     const s = n.stash, p = world.player;

@@ -383,9 +383,16 @@ export const willenOpnieuw = (world) => { const n = world.coopNet; return n && n
 // ---------------------------------------------------------------- de gast: berichten van de host
 
 export const gastStaat = (world) => world.coopWedGast || (world.coopWedGast = { uitn: null, spiegel: null, uitslag: null, nogmaals: false });
-// Haken van het scherm van de gast (kartbaan.js): gastStart(world, start, spiegel) -> bool, gastEind(world, uitslag), gastTik
-const gastHaken = { start: null, eind: null };
+// Haken van het scherm van de gast (kartbaan.js): start(world, start, spiegel) -> bool, eind(world, uitslag, spiegel), tik(world, dt, spiegel) -> true zolang het scherm van de race is, gastTik
+const gastHaken = { start: null, eind: null, tik: null };
 export function zetWedGastHaken(h) { Object.assign(gastHaken, h || {}); }
+
+// Elke frame bij een gast (coopgastlokaal.js): rijdt hij mee, dan draait het racescherm; geeft true zolang de invoer van de race is.
+export function wedGastTik(world, dt) {
+  const G = world.coopWedGast;
+  if (!G || !G.spiegel) return false;
+  return gastHaken.tik ? !!gastHaken.tik(world, dt, G.spiegel) : false;
+}
 
 export function wedHandleHost(world, body) {
   const n = world.coopNet, b = leesWed(body);
