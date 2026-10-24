@@ -54,6 +54,20 @@ t('omschakelen heeft een afkoelperiode en dubbel vragen kost niets', () => {
   P.verwijderSpeler(st, 1); assert.equal(P.isPassief(st, 1), true); assert.equal(P.afkoelRest(st, 1, 0), 0);
 });
 
+t('een passieve speler hoort één keer per paar seconden dat iemand hem wilde raken', () => {
+  const st = P.maakPvp();
+  assert.equal(P.pogingMelden(st, 0, 1, 10), true);
+  assert.equal(P.pogingMelden(st, 0, 1, 10 + P.PVP.POGING_S - 1), false, 'een salvo is één melding');
+  assert.equal(P.pogingMelden(st, 0, 1, 10 + P.PVP.POGING_S), true, 'na de wachttijd weer');
+  assert.equal(P.pogingMelden(st, 1, 0, 12), true, 'de andere kant op telt apart');
+  assert.equal(P.pogingMelden(st, 1, 1, 12), false, 'jezelf');
+  assert.equal(P.pogingMelden(st, 1, 40, 12), false, 'onbekende plek');
+  assert.equal(P.pogingMelden(st, 1, 2, NaN), false);
+  assert.equal(P.pogingMelden(null, 1, 2, 12), false);
+  P.verwijderSpeler(st, 1);
+  assert.equal(P.pogingMelden(st, 0, 1, 100), true, 'na weggaan begint het schoon');
+});
+
 t('berichten: klein, gecontroleerd, en geen nieuw formaat (PROTO en CODEC_VERSION blijven 2)', () => {
   assert.deepEqual(P.leesPassief(P.passiefEvent(false)), { passief: false });
   assert.equal(P.leesPassief({ k: 'passief', a: 'ja' }), null); assert.equal(P.leesPassief({ k: 'x', a: true }), null); assert.equal(P.leesPassief(null), null);
@@ -91,9 +105,26 @@ t('een kogel van een gast gaat dwars door een passieve host; als beiden actief z
   schiet(w, 2); assert.equal(w.health, 100); assert.equal(w.bullets.length, 1, 'de kogel vliegt door');
   P.zetPassiefStand(w.coopPvp, 2, false);
   schiet(w, 2); assert.equal(w.health, 100, 'de host staat nog op passief');
+  assert.equal(w.messages.length, 1); assert.ok(w.messages[0].includes('Roos') && w.messages[0].includes('passief'), 'de host hoort dat iemand het probeerde (#447)');
+  w.messages.length = 0;
   P.zetPassiefStand(w.coopPvp, 0, false);
   schiet(w, 2); assert.equal(w.health, 85); assert.deepEqual(w.messages, [], 'geen melding bij een gewone treffer');
   w.armor = 10; schiet(w, 2); assert.equal(w.armor, 0); assert.equal(w.health, 80, 'het pantser vangt het eerst op');
+});
+
+t('de melding bij een aanval: één keer, alleen bij een passief doel, en naar de gast die het doel is', () => {
+  const w = hostWereld();
+  P.zetPassiefStand(w.coopPvp, 2, false); // Roos actief, Tammo passief
+  schiet(w, 2); assert.equal(w.messages.length, 1); assert.ok(w.messages[0].startsWith('Roos'));
+  schiet(w, 2); assert.equal(w.messages.length, 1, 'niet bij elke kogel');
+  w.time += P.PVP.POGING_S + 1; schiet(w, 2); assert.equal(w.messages.length, 2, 'na de wachttijd weer');
+  w.messages.length = 0; P.zetPassiefStand(w.coopPvp, 0, false); schiet(w, 2); assert.equal(w.messages.length, 0, 'een actieve speler hoort niets');
+  // een gast als doel krijgt de melding van de host
+  const h = hostWereld(); h.coopMeld = (slot, tekst) => h.melds.push([tekst, slot]);
+  P.zetPassiefStand(h.coopPvp, 0, false); h.player.x = 8;
+  schiet(h, 0, 8.4); assert.equal(h.melds.length, 1); assert.deepEqual(h.melds[0][1], 2); assert.ok(h.melds[0][0].includes('Tammo') && h.melds[0][0].includes('passief'));
+  // twee passieve spelers proberen niets
+  const p = hostWereld(); p.player.x = 8; schiet(p, 0, 8.4); assert.deepEqual(p.messages, []);
 });
 
 t('een kogel van de host raakt een actieve gast (het bericht gaat naar die gast), een passieve niet, en nooit de schutter zelf', () => {
