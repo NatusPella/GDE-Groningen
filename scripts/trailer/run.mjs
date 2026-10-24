@@ -1,7 +1,7 @@
 // Draait een clipscript (scripts/trailer/shots/<naam>.page.js) in het echte spel met een vaste tijdstap en
 // schrijft de opgenomen clips als <out>/<clip>.mp4 (desktop/clipvideo.js). Er wordt niets geüpload.
 //
-//   node scripts/trailer/run.mjs --shots=gameplay-a --out=C:/Users/abuis/gde-trailer-work/clips
+//   node scripts/trailer/run.mjs --shots=gameplay-a --out=<home>/gde-trailer-work/clips
 //        [--game-dir=<gestagede game>] [--electron=<electron.exe>] [--no-slot] [--seed=7]
 //        [--preset=quality:hoog,...] [--size=1920x1080] [--only=<clip,clip>] [--repl]
 //
@@ -48,7 +48,7 @@ const argv = ['.', `--smoke-test=${path.join(out, '_smoke.png')}`, `--perf-scrip
 const env = { ...process.env, GDE_GAME_DIR: gameDir, GDE_TEST_PROFILE: profile, GDE_MENU_TEST: '' };
 delete env.GDE_MENU_TEST;
 if (!process.env.GDE_FFMPEG) {
-  const w = process.platform === 'win32' ? 'C:\\Users\\abuis\\AppData\\Local\\Microsoft\\WinGet\\Links\\ffmpeg.exe' : '';
+  const w = process.platform === 'win32' ? `${process.env.LOCALAPPDATA || ''}\\Microsoft\\WinGet\\Links\\ffmpeg.exe` : '';
   if (w && fs.existsSync(w)) env.GDE_FFMPEG = w;
 }
 

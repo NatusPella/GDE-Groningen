@@ -82,7 +82,7 @@ De stad is gebouwd uit OpenStreetMap: de echte straten, grachten, bruggen en geb
 [h2]Gratis, offline, zonder gedoe[/h2]
 [list]
 [*]Helemaal gratis. Geen aankopen in de game, geen lootboxes, geen advertenties.
-[*]Singleplayer en offline te spelen. Geen account, geen tracking. Samen spelen met een kamercode kan ook (internet nodig; het spel vraagt eerst toestemming; geen tekstchat).
+[*]Singleplayer en offline te spelen. Geen account, geen tracking. Samen spelen met een kamercode kan ook, of via de lijst met openbare sessies (internet nodig; het spel vraagt eerst toestemming; geen tekstchat).
 [*]Toetsenbord en muis of controller, ook op de Steam Deck; alles opnieuw in te delen.
 [*]Ondertitels in vier maten, kleurenblinde paletten, en een benchmark die zegt welke instelling bij je pc past.
 [/list]
@@ -124,7 +124,7 @@ The city is built from OpenStreetMap: the real streets, canals, bridges and buil
 [h2]Free, offline, no fuss[/h2]
 [list]
 [*]Completely free. No in-game purchases, no loot boxes, no ads.
-[*]Playable single-player and offline. No account, no tracking. Playing together with a room code is optional (needs internet; the game asks permission first; no text chat).
+[*]Playable single-player and offline. No account, no tracking. Playing together with a room code, or through the list of public sessions, is optional (needs internet; the game asks permission first; no text chat).
 [*]Keyboard and mouse or controller, also on the Steam Deck; fully rebindable.
 [*]Four subtitle sizes, colour-blind palettes, and a benchmark that suggests the right settings for your PC.
 [/list]
@@ -149,7 +149,7 @@ The city is built from OpenStreetMap: the real streets, canals, bridges and buil
 | Controller, Steam Deck, vrij in te delen toetsen | Controller and Steam Deck support, rebindable controls |
 | Gratis, offline, geen aankopen, geen data | Free, offline, no purchases, no data collected |
 
-(De 190 prestaties zitten in de game; Steam-achievements zijn er nog niet:
+(De 217 prestaties (22 verborgen) zitten in de game; Steam-achievements zijn er nog niet:
 de tabel staat klaar in `steam/achievements.json`, maar het spel heeft geen
 Steam-koppeling. Noem "Steam Achievements" pas als die er zijn.)
 
