@@ -203,9 +203,14 @@ function startVrij(w, plek) {
 }
 
 // Waar je nu kunt hengelen (of null): een boot die bijna stilligt of iemand op de kant, niet in een auto, niet zwemmend.
+// Samen spelen (#434): een gast heeft geen voertuig in zijn eigen spel; zit hij bij de host in een boot (als bestuurder of bijrijder), dan is
+// w.coopBoot de plek en de snelheid van die boot (coopnet.js, uit het snapshot): ligt hij stil, dan hengelt de gast vanaf het water, op zijn eigen scherm.
+const gastBoot = (w) => (w.coopRole === 'client' && w.coopBoot ? w.coopBoot : null);
 function zoekPlek(w) {
   const p = w.player;
   if (!w.map || w.pigeonMode || w.heliRun || p.swimming) return null;
+  const gb = gastBoot(w);
+  if (gb) return Math.abs(gb.speed || 0) > BOOT_SNELHEID ? null : vindHengelplek(w.map, gb.x, gb.y, { opWater: true });
   const v = p.inVehicle;
   if (v) {
     if (!v.isBoat || Math.abs(v.speed || 0) > BOOT_SNELHEID) return null;
@@ -217,7 +222,7 @@ function zoekPlek(w) {
 // prompts.js: het hengelprompt voor het water waar je nu bij staat (alleen als er niets anders te doen is).
 export function hengelVrijPrompt(w, alleenBoot = false) {
   if (game || !plekNu) return null;
-  const boot = !!w.player.inVehicle;
+  const boot = !!w.player.inVehicle || !!gastBoot(w);
   if (alleenBoot !== boot) return null;
   const why = activityBlock(w);
   const t = watertype(plekNu.type);
