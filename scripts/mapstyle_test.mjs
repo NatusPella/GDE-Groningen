@@ -57,7 +57,7 @@ const INK_WAS = {
   seaLabel: 'rgb(190,225,245)', flavour: 'rgb(245,226,170)', amber: '#ffbe46', amberInk: '#1c1408',
   panelTop: '#17301f', panelCard: '#10261a', panelDeep: 'rgb(10,19,13)', selected: 'rgb(95,180,217)',
   medalBronze: '#c8834a', medalSilver: '#cfd6dc',
-  homeBlue: '#2f6fb0', eierbal: '#b06a28', locked: '#8d9489',
+  homeBlue: '#2f6fb0', eierbal: '#b06a28', locked: '#8d9489', passiefGrijs: '#9a9a9a',
   ringNext: '#ffc21a', ringLater: 'rgb(255,233,160)', heliDone: '#5dff7a', heliMiss: '#ff5a3c', balloon: '#ff7ab6',
   routeUser: '#c068ff', routeJob: '#ff9a3c', routeCare: '#ff5fb4',
   tintMini: 'rgb(6,12,9)', tintMap: 'rgb(4,8,12)',
