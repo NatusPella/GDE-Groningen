@@ -281,6 +281,74 @@ export function buildSafehouseMarker3D({ x, y, ang, eigen = false, kleur = '#8a3
   return g;
 }
 
+// --- the room of a safehouse in an existing building (#458) ---------------------
+
+// One room behind the front door of a safehouse in an existing pand: the same
+// cutaway style as the flat (walls up to hip height, the camera above them),
+// with a bed, a wardrobe, a kitchen block, a table and the lift to the street
+// next to the front door. kamer is the layout from safehuizen.js: the floor sits
+// at kamer.floorY, x runs along the facade and z into the building.
+export function buildSafehuisKamer3D(kamer) {
+  const g = new THREE.Group();
+  const g2 = new THREE.Group(); // de kamer zelf, in het frame van de gevel
+  const W = kamer.w, D = kamer.d, low = CUT_H, s = kamer.spots;
+  // de verdiepingsvloer van het pand en de laminaatvloer van de kamer
+  box(g2, M.concrete, W / 2, -0.09, D / 2, W + 0.3, 0.16, D + 0.3);
+  box(g2, M.laminate, W / 2, 0.01, D / 2, W, 0.02, D);
+  // muren tot heuphoogte (de cutaway), met een plint langs de vloer
+  for (const [x1, z1, x2, z2] of [[0, 0, 0, D], [W, 0, W, D], [0, D, W, D], [0, 0, W, 0]]) {
+    const len = Math.hypot(x2 - x1, z2 - z1);
+    box(g2, M.innerWall, (x1 + x2) / 2, low / 2, (z1 + z2) / 2, len, low, 0.14, -Math.atan2(z2 - z1, x2 - x1));
+  }
+  // de voordeur in de voorgevel, met een mat; de lift ernaast naar de straat
+  const dx = kamer.deurX;
+  box(g2, M.frame, dx, low / 2 + 0.02, 0.08, 1.14, low, 0.12);
+  box(g2, M.wood, dx, low / 2, 0.13, 1.0, low - 0.02, 0.08);
+  box(g2, M.steel, dx + 0.36, low * 0.5, 0.18, 0.06, 0.06, 0.05);
+  box(g2, M.rug, dx, 0.03, 0.62, 1.0, 0.02, 0.6);
+  const lx = kamer.liftX;
+  box(g2, M.frame, lx, low / 2 + 0.02, 0.08, 0.98, low, 0.12);
+  box(g2, M.steel, lx, low / 2, 0.13, 0.9, low - 0.02, 0.08);
+  box(g2, M.screen, lx, low * 0.72, 0.18, 0.1, 0.06, 0.02);
+  const lift = new THREE.Mesh(new THREE.PlaneGeometry(0.56, 0.14), new THREE.MeshBasicMaterial({ map: signTexture('LIFT', 'naar de straat') }));
+  lift.position.set(lx, low - 0.14, 0.19);
+  g2.add(lift);
+  // het bed tegen de achterwand, met een dekbed en een kussen
+  const b = s.bed;
+  box(g2, M.wood, b.x, 0.15, b.z, 1.9, 0.3, 0.9);
+  box(g2, M.bed, b.x, 0.37, b.z, 1.84, 0.16, 0.86);
+  box(g2, M.duvet, b.x, 0.46, b.z - 0.16, 1.8, 0.05, 0.54);
+  box(g2, M.white, b.x - 0.6, 0.5, b.z + 0.28, 0.5, 0.12, 0.32);
+  // de kast aan de linkermuur
+  const k = s.kast;
+  box(g2, M.wood, k.x, 1.0, k.z, 0.56, 2.0, 1.3);
+  box(g2, M.frame, k.x + 0.29, 1.0, k.z, 0.01, 1.8, 1.2);
+  box(g2, M.steel, k.x + 0.31, 1.05, k.z + 0.2, 0.03, 0.2, 0.03);
+  // het keukenblok aan de rechterwand: blad, spoelbak, twee kookplaten, koelkast eronder
+  const kk = s.keuken;
+  box(g2, M.white, kk.x, 0.45, kk.z, 0.56, 0.9, 1.4);
+  box(g2, M.black, kk.x, 0.92, kk.z, 0.58, 0.04, 1.42);
+  box(g2, M.steel, kk.x - 0.06, 0.945, kk.z + 0.32, 0.36, 0.03, 0.32);
+  box(g2, M.black, kk.x - 0.04, 0.945, kk.z - 0.32, 0.34, 0.02, 0.3);
+  box(g2, M.fridge, kk.x + 0.02, 0.4, kk.z - 0.02, 0.5, 0.74, 1.2);
+  // een tafel met een stoel, een kleed en een plant
+  const t = s.tafel;
+  box(g2, M.wood, t.x, 0.72, t.z, 0.7, 0.05, 0.5);
+  for (const [ex, ez] of [[-0.3, -0.2], [0.3, -0.2], [-0.3, 0.2], [0.3, 0.2]]) box(g2, M.wood, t.x + ex, 0.36, t.z + ez, 0.05, 0.72, 0.05);
+  box(g2, M.wood, t.x, 0.42, t.z + 0.52, 0.44, 0.05, 0.44);
+  box(g2, M.wood, t.x, 0.68, t.z + 0.72, 0.44, 0.5, 0.05);
+  box(g2, M.rug, t.x, 0.02, t.z - 0.05, 1.7, 0.01, 1.2);
+  box(g2, M.wood, W - 0.4, 0.15, 0.45, 0.34, 0.3, 0.34);
+  box(g2, M.plant, W - 0.4, 0.65, 0.45, 0.5, 0.7, 0.5);
+  // een lamp, zodat de kamer ook 's nachts leesbaar is
+  box(g2, M.lamp, W / 2, 2.4, D / 2, 0.5, 0.04, 0.5);
+  g2.position.set(kamer.ox, kamer.floorY, kamer.oy);
+  g2.rotation.y = -kamer.angle;
+  g.name = 'safehuisKamer';
+  g.add(g2);
+  return g;
+}
+
 export function setGarageDoor(root, open, H) {
   const door = root.userData.door;
   door.scale.y = Math.max(0.04, (H - 0.1) * (1 - open));
