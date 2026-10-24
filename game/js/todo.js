@@ -30,6 +30,7 @@ import { DRIFT_ZONE, DRIFT_MEDAL_AT } from './driftzone.js';
 import { getGoal, setGoal, clearGoal } from './goal.js';
 import { drawMapIcon } from './hud_panel.js';
 import { klusloon } from './economy.js';
+import { zachtePauze } from './coopgroep.js';
 
 export const GROUPS = [
   ['missies', 'Missies', 'het verhaal en je klussen'],
@@ -419,6 +420,7 @@ function closeDialog(go) {
   d.el.hidden = true;
   if (d.world) {
     d.world.uiPaused = false;
+    zachtePauze(d.world, 'afspeelvooruit', false);
     if (d.world.input) d.world.input.reset();
   }
   if (d.prevFocus && d.prevFocus.isConnected) d.prevFocus.focus({ preventScroll: true });
@@ -438,6 +440,7 @@ function confirmPlayAhead(world, ahead, onGo) {
   dlg.world = world;
   dlg.prevFocus = document.activeElement;
   world.uiPaused = true;
+  zachtePauze(world, 'afspeelvooruit', true); // met meer spelers loopt de wereld door (#452)
   if (document.pointerLockElement) document.exitPointerLock();
   el.hidden = false;
   el.querySelector('[data-ga="back"]').focus({ preventScroll: true });

@@ -12,6 +12,7 @@ import { getNextMission } from './missions.js';
 import { getMissionList } from './missionquery.js';
 import { playMission, isPlayAheadOpen } from './todo.js';
 import { isHelpOfferOpen } from './assistlive.js';
+import { zachtePauze } from './coopgroep.js';
 import { checkPhoneWhileMoving } from './trafficlaw.js';
 import { isPauseMenuOpen, isPhoneOpen, openPauseMenu, closePauseMenu } from './pausestate.js';
 export { isPhoneOpen };
@@ -393,7 +394,13 @@ export function initPhone(w) {
 }
 
 function refreshPause() {
-  if (world) world.uiPaused = cinematicPausesGameplay() || isPlayAheadOpen() || isHelpOfferOpen();
+  if (!world) return;
+  // een filmpje dat iedereen ziet pauzeert voor iedereen (uiHard); de dialogen en andere schermen alleen voor jou (#452, coopgroep.js)
+  const hard = cinematicPausesGameplay();
+  world.uiHard = hard;
+  zachtePauze(world, 'afspeelvooruit', isPlayAheadOpen());
+  zachtePauze(world, 'hulpaanbod', isHelpOfferOpen());
+  world.uiPaused = hard || isPlayAheadOpen() || isHelpOfferOpen();
 }
 
 let phoneWasOpen = false;

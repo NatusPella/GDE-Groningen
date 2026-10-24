@@ -14,6 +14,7 @@ import { addStaticCollider } from './breakables.js';
 import { VILLAGES } from './ommelandlines.js';
 import { setStoryOutfit, storyOutfit } from './shops.js';
 import { playerBusy } from './busy.js';
+import { klokSprongMag, meerSpelers } from './coopgroep.js';
 import { noteMoney } from './finance.js';
 import { loopbaanTel, loopbaanPrijs } from './loopbaanlive.js';
 import { kmPunten } from './loopbaan.js';
@@ -804,7 +805,7 @@ function arrive(w) {
   p.vx = 0; p.vy = 0; p.z = 0; p.vz = 0; p.gz = 0;
   p.inVehicle = null; p.water = null; p.swimming = false; p.climb = null;
   const c = w.companion;
-  if (c && c.state !== 'dead') {
+  if (c && c.state !== 'dead' && !meerSpelers(w)) { // met meer spelers reist alleen jezelf; de anderen blijven (#452)
     if (c.inVehicle) { c.inVehicle.passenger = null; c.inVehicle = null; }
     let spot = null;
     for (const side of [1, -1, 2]) {
@@ -822,7 +823,7 @@ function arrive(w) {
   w.quietUntil = Math.max(w.quietUntil || 0, w.time + 60);
   // a ride ran on the game clock; a skipped one adds what was left
   const clockMin = rode ? info.clockMinutes || 0 : info.minutes;
-  if (typeof w.clock === 'number') w.clock = (w.clock + clockMin / 60) % 24;
+  if (typeof w.clock === 'number' && klokSprongMag(w)) w.clock = (w.clock + clockMin / 60) % 24; // met meer spelers springt de klok niet (#452)
   if (w.input) w.input.reset();
 
   try {

@@ -10,6 +10,7 @@ import { getRenderer } from './scene3d.js';
 import { storyDate } from './calendarday.js';
 import { wijkProfileAt } from './trafficfleet.js';
 import { inProvinceData } from './provinceworld.js';
+import { zachtePauze, meerSpelers } from './coopgroep.js';
 
 let photo = null;
 let saved = null;
@@ -39,10 +40,11 @@ function onKey(e) {
   if (e.type === 'keyup') { keysDown.delete(k); return; }
   keysDown.add(k);
   if (k === 'escape' || k === 'f8') { stopPhotoMode(photo.world); e.stopImmediatePropagation(); e.preventDefault(); return; }
-  if (e.repeat) { if (',.[]cvzx'.includes(k) && k.length === 1) stepSetting(k); return; }
+  if (e.repeat) { if (',.[]cvzx'.includes(k) && k.length === 1 && !(photo.sessie && (k === ',' || k === '.'))) stepSetting(k); return; }
   if (k === 'enter') shoot = true;
   else if (k === 'f') { F.cycleFilter(photo.p, e.shiftKey ? -1 : 1); say(F.FILTERS.find((x) => x.id === photo.p.filter).naam); }
   else if (k === 'g') photo.p.grid = !photo.p.grid;
+  else if ((k === 't' || k === ',' || k === '.') && photo.sessie) say('Tijd en weer staan vast in Samen spelen');
   else if (k === 't') { F.cycleWeather(photo.p, 1); applyWeather(); say(`Weer: ${F.weatherLabel(photo.p)}`); }
   else stepSetting(k);
   if (['m', 'tab', 'p', 'v', 'c', 'e', 'q', 'r', 'o', 'n', 'u'].includes(k) || k === 'f' || k === 'g' || k === 't') e.stopImmediatePropagation();
@@ -78,9 +80,10 @@ function startPhotoMode(world) {
   p.cam.z = Math.max((pl.z || 0) + 3, 2);
   p.cam.z = Math.min(p.cam.z, F.LIMITS.height[1]);
   F.clampPhoto(p);
-  photo = { p, world };
+  photo = { p, world, sessie: meerSpelers(world) }; // met meer spelers loopt de wereld door: tijd en weer zijn van iedereen en blijven staan (#452)
   saved = { clock: world.clock, weather: world.weather ? { ...world.weather } : null, uiPaused: !!world.uiPaused };
   world.uiPaused = true;
+  zachtePauze(world, 'fotomodus', true);
   document.body.classList.add('cine-hide-hud', 'foto-actief');
   buildOverlay();
   for (const t of ['keydown', 'keyup']) window.addEventListener(t, onKey, true);
@@ -94,8 +97,9 @@ function stopPhotoMode(world) {
   for (const t of ['keydown', 'keyup']) window.removeEventListener(t, onKey, true);
   w.cameraOverride = null;
   w.uiPaused = saved.uiPaused;
-  if (typeof saved.clock === 'number') w.clock = saved.clock;
-  if (w.weather && saved.weather) Object.assign(w.weather, saved.weather);
+  zachtePauze(w, 'fotomodus', false);
+  if (!photo.sessie && typeof saved.clock === 'number') w.clock = saved.clock;
+  if (!photo.sessie && w.weather && saved.weather) Object.assign(w.weather, saved.weather);
   document.body.classList.remove('cine-hide-hud', 'foto-actief');
   const r = getRenderer();
   if (r) { r.domElement.style.filter = ''; r.domElement.style.transform = ''; }

@@ -9,6 +9,7 @@ import {
   spawnChoices, spawnVehicleHere,
 } from './cheats.js';
 import { isFolded } from './todoui.js';
+import { cheatsUit, CHEATS_UIT_TEKST } from './coopgroep.js';
 import { impact, summaryLine, pressToggle, onSelect } from './cheatsuilogic.js';
 
 const KIND = { car: 'Auto', bike: 'Fiets', scooter: 'E-step', boat: 'Boot', heli: 'Heli' };
@@ -66,7 +67,7 @@ function paneHtml(w) {
   const c = CHEATS.find((x) => x.id === sel);
   const blocked = achievementsBlocked();
   const busy = cheatsBusy(w);
-  const intro = blocked
+  const intro = cheatsUit(w) ? CHEATS_UIT_TEKST : blocked
     ? 'Prestaties staan uit zolang er een cheat aan staat (de uiterlijk-cheats en teleporteren tellen niet mee).'
     : 'Teleporteren, Voertuig hier en de uiterlijk-cheats laten je prestaties aan. Zet je een andere cheat aan, dan staan prestaties uit tot je hem weer uitzet.';
   if (!c) return `<div class="pm-pane-top"><span class="m-eb">Cheats</span><h2 class="m-h2 td-h2">Een beetje vals spelen</h2></div><p>${intro}</p>`;
@@ -125,8 +126,8 @@ export function cheatsClick(e, w, api) {
     const c = CHEATS.find((x) => x.id === tg.dataset.cheatToggle);
     const r = pressToggle(st, c, isCheatOn(c.id));
     st = { pending: r.pending };
-    if (r.do === 'apply') setCheat(c.id, r.value);
-    msg = '';
+    const geweigerd = r.do === 'apply' && !setCheat(c.id, r.value) && r.value && cheatsUit(w);
+    msg = geweigerd ? CHEATS_UIT_TEKST : ''; // met meer spelers geen cheats (#452)
     api.rerender(`[data-cheat-toggle="${c.id}"]`);
     return true;
   }

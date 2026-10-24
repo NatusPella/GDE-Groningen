@@ -10,6 +10,7 @@ import { REISBEATS, beatFor } from './reisbeats.js';
 import { needsBeat } from './reistijd.js';
 import { arrival, travelOptions, RIDES } from './reiskeuze.js';
 import { reisPlace } from './storyreis.js';
+import { klokSprongMag, meerSpelers } from './coopgroep.js';
 
 // where the trip ends: the travel step's own place; the guide can point somewhere else for a moment ("first to your garage", #311)
 export const destOf = (step, g) => (step && step.goal && step.goal.type === 'reis' && step.goal.at ? reisPlace(step) : g);
@@ -29,7 +30,7 @@ export function applyTravel(w, beat, choice, dest) {
   const a = arrival(beat, choice);
   if (!a) return null;
   // driving yourself runs on the game clock; the others add the real time
-  if (choice !== 'zelf' && typeof w.clock === 'number') w.clock = (w.clock + a.clockMinutes / 60) % 24;
+  if (choice !== 'zelf' && typeof w.clock === 'number' && klokSprongMag(w)) w.clock = (w.clock + a.clockMinutes / 60) % 24; // met meer spelers springt de klok niet (#452)
   if (choice !== 'zelf' && dest) placeParty(w, dest);
   return a;
 }
@@ -41,7 +42,7 @@ export function placeParty(w, dest) {
   // the vehicle comes along (#97): it stands at the goal with you
   if (p.inVehicle) { p.inVehicle.x = dest.x; p.inVehicle.y = dest.y; p.inVehicle.speed = 0; }
   const c = w.companion;
-  if (c && c.state !== 'dead') { c.x = dest.x + 1.5; c.y = dest.y; c.vx = 0; c.vy = 0; }
+  if (c && c.state !== 'dead' && !meerSpelers(w)) { c.x = dest.x + 1.5; c.y = dest.y; c.vx = 0; c.vy = 0; }
 }
 
 // reward for driving yourself is paid on arrival (within `AT_M` of the start)

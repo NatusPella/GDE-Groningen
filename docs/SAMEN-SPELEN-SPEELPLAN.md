@@ -68,8 +68,8 @@ bij de duif vliegt de gastheer alleen, bij het museum sluipt de gastheer en de r
 - **De gastheer wordt neergeslagen of door de politie gepakt:** iedereen leest het; het label toont "neergeslagen". De anderen wachten tot hij weer opstaat.
 - **Tessa wordt geraakt:** zij leest "Je bent geraakt. Je staat zo weer op." en loopt weer mee.
 - **Het gezochtniveau is voor iedereen hetzelfde.** De politie zoekt de gastheer; de anderen lopen mee en worden niet apart gezocht.
-- **Iemand valt weg (netwerk):** Tessa weg → het spel wacht (wachtscherm bij de gastheer, de anderen zien het ook); speler 3 of 4 weg → het spel
-  gaat door en hij kan terugkomen met dezelfde plek. De gastheer kan kiezen niet te wachten.
+- **Iemand valt weg (netwerk):** het spel gaat door en de speler kan terugkomen met dezelfde plek (#452). Alleen als de lopende stap hem echt nodig heeft
+  (Tessa bij een stap voor beide spelers) komt het wachtscherm bij de gastheer; die kan kiezen niet te wachten.
 - **Te ver van de groep (meer dan 110 m):** na een paar seconden en een melding zet het spel je weer bij de groep. Na een sprong (snelreizen, herstel) meteen.
 
 ## Opslaan en stoppen
@@ -155,7 +155,8 @@ Wie het spel opent: de computer met de beste verbinding. Poort 9000 en de geïns
 - [ ] Wie het spel opent laat zich neerslaan of arresteren: de anderen lezen het en zien "neergeslagen" in het label.
 
 **Wegvallen en stoppen (5 minuten)**
-- [ ] Een speler haalt het netwerk uit en weer in (of sluit het spel en komt terug met dezelfde code): hij komt op dezelfde plek terug. Valt Tessa weg, dan wacht het spel (wachtscherm).
+- [ ] Een speler haalt het netwerk uit en weer in (of sluit het spel en komt terug met dezelfde code): hij komt op dezelfde plek terug. Valt Tessa weg, dan speelt de rest door (alleen een stap die haar echt nodig heeft zet het wachtscherm, #452).
+- [ ] Gezamenlijke keuzes (#452): slapen of onderduiken met een gast erbij: de gast krijgt een vraag (J of N); pas als iedereen J zegt springt de klok. Bij N of zonder antwoord (10 s) blijft de tijd staan. Een snelreis verzet de klok niet en laat de ander staan. Cheats (Pauzemenu) en het testmenu doen niets zolang er een tweede speler is. Nog niet in beeld gezien.
 - [ ] Wie het spel opent slaat op en kiest Iedereen stoppen: de anderen lezen dat het spel gestopt is en spelen weer in hun eigen spel.
 
 **Wat je meestuurt als iets misging:** tijdstip, wie wat deed, een schermafbeelding, het foutrapport van beide kanten (Instellingen › Foutrapport › Kopieer naar klembord), en de versie.
