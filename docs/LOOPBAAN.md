@@ -64,7 +64,7 @@ tijden per gebeurtenis die in de test staan (geschat uit de speeltesten); een ni
   terugdraaien (`voegSamen` neemt per vak het grootste). Een leeg, oud of kapot profiel geeft een geldig leeg profiel (`normaliseer`);
   een volle of geblokkeerde opslag laat het spel gewoon doorlopen.
 - **Samen spelen:** wie het spel opende verdient volgens zijn eigen niveau. Elke gast ook, op zijn eigen apparaat. De bestaande
-  `beloning` van de gastheer (zijn gelijke deel na de samenwerkingsbonus, `deelMetGasten`) krijgt er twee velden bij: `vak` en `xp` (de punten volgen het deel van het geld).
+  `beloning` van de gastheer (het volle bedrag, `deelMetGasten`, #452) krijgt er twee velden bij: `vak` en `xp` (de volle punten van de gastheer).
   De gast rekent daar zijn eigen loonfactor over (`loopbaanGast`, `coopnet.js`) en telt de punten bij zijn eigen profiel. De gastheer deelt het bedrag
   vóór zijn eigen factor, zodat een hoog niveau van de een niet de ander beloont of benadeelt (`loopbaanDeel`: `{ vak, basis, xp }`).
   Er is geen nieuw bericht en geen extra netwerkverkeer: de punten van een gast lopen alleen mee met geld dat de gastheer toch al deelt.

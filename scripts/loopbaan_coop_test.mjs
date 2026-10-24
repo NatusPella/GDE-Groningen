@@ -7,7 +7,6 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { createLink } from '../game/js/net/memtransport.js';
 import * as N from '../game/js/coopnet.js';
-import { samenwerkingsBonus, verdeelGelijk } from '../game/js/coopbeloning.js';
 import * as L from '../game/js/loopbaan.js';
 import * as Live from '../game/js/loopbaanlive.js';
 
@@ -49,17 +48,15 @@ t('3 gasten met verschillende niveaus: elk verdient volgens zijn eigen niveau, d
   const betaald = s.host.profiel && s.alsSpeler(s.host, () => Live.loopbaanVerdien(s.host.w, 'bus', 100, { xp: 10, n: 1, uniek: 'lijn' }));
   assert.equal(betaald, 105, 'niveau 2 betaalt 5% meer');
   s.step(2);
-  // 100 basis, met vier spelers x 1,5 = 150, gelijk verdeeld: 38, 38, 37, 37 (de rest naar de eerste); de gastheer 105 -> 157 -> 40 (#452)
-  const deel = [38, 37, 37];
-  const verwacht = [Math.round(deel[0] * 1.1), Math.round(deel[1] * 1.3), deel[2]];
-  assert.deepEqual(s.gs.map((g) => g.w.money), verwacht, 'gelijk verdeeld met bonus, en elk zijn eigen factor: 10%, 30%, 0%');
+  // 100 basis: elke meespeler krijgt het volle bedrag (#452), elk met zijn eigen factor: 10%, 30%, 0%
+  const verwacht = [110, 130, 100];
+  assert.deepEqual(s.gs.map((g) => g.w.money), verwacht, 'het volle bedrag, en elk zijn eigen factor');
   assert.deepEqual(s.gs.map((g) => g.w.coopVerdiend), verwacht, 'het geld gaat in de eigen save van elke gast');
-  assert.equal(s.host.w.money, 40, 'de gastheer heeft ook een gelijk deel, geen 100% meer');
-  assert.ok(s.host.w.messages.some((m) => /Samenwerkbonus: €/.test(m)), 'een regel Samenwerkbonus in de uitbetaling');
-  for (const g of s.gs) assert.match(g.w.messages.join(' '), /Samenwerkbonus: €\d+/);
+  assert.equal(s.host.w.money, 105, 'de gastheer krijgt zoals altijd zijn volle bedrag');
+  for (const g of s.gs) assert.doesNotMatch(g.w.messages.join(' '), /Samenwerkbonus/);
   for (const g of s.gs) assert.match(g.w.messages.join(' '), /Beloning: €\d+/);
-  // punten: volgen het deel van het geld (10 x 38/100 en 10 x 37/100, afgerond), elk in zijn eigen profiel
-  assert.deepEqual(s.gs.map((g) => g.profiel.vakken.bus.xp), [L.XP_DREMPELS[2] + 4, L.XP_DREMPELS[5] + 4, 4]);
+  // punten: de volle punten van de gastheer, elk in zijn eigen profiel
+  assert.deepEqual(s.gs.map((g) => g.profiel.vakken.bus.xp), [L.XP_DREMPELS[2] + 10, L.XP_DREMPELS[5] + 10, 10]);
   assert.equal(s.host.profiel.vakken.bus.xp, L.XP_DREMPELS[1] + 10 + L.UNIEK_XP, 'de gastheer kreeg zijn eigen punten en de nieuwe lijn');
   assert.equal(s.gs[2].profiel.vakken.bus.n, 0, 'de teller van een gast loopt niet mee met die van de gastheer (hij reed niet zelf)');
 });
@@ -91,18 +88,18 @@ t('een ander vak, een ander niveau: padel van de gast telt niet voor een bijbaan
   s.step(3);
   s.alsSpeler(s.host, () => Live.loopbaanVerdien(s.host.w, 'bus', 100, { xp: 10 }));
   s.step(2);
-  assert.equal(s.gs[0].w.money, 75, 'het hoge padelniveau van de gast maakt zijn buswerk niet beter betaald');
+  assert.equal(s.gs[0].w.money, 100, 'het hoge padelniveau van de gast maakt zijn buswerk niet beter betaald');
   s.alsSpeler(s.host, () => Live.loopbaanVerdien(s.host.w, 'padel', 100, { xp: 10 }));
   s.step(2);
-  assert.equal(s.gs[0].w.money, 75 + Math.round(75 * 1.3));
+  assert.equal(s.gs[0].w.money, 100 + 130);
 });
 
-t('een beloning zonder vak (een missie) wordt gelijk verdeeld met bonus: 400 x 1,5 over drie spelers', () => {
+t('een beloning zonder vak (een missie) is voor elke meespeler het volle bedrag', () => {
   const s = avond([{ bus: 6 }, {}]);
   s.step(3);
   s.host.w.coopDeel(400);
   s.step(2);
-  assert.deepEqual(s.gs.map((g) => g.w.money), [200, 200]);
+  assert.deepEqual(s.gs.map((g) => g.w.money), [400, 400]);
   assert.deepEqual(s.gs.map((g) => g.profiel.vakken.bus.xp), [L.XP_DREMPELS[5], 0]);
 });
 
@@ -130,11 +127,10 @@ for (const spelers of [8, 16]) {
     s.alsSpeler(s.host, () => Live.loopbaanVerdien(s.host.w, 'trein', 200, { xp: 20 }));
     s.step(3);
     s.gs.forEach((g, i) => {
-      const dl = verdeelGelijk(samenwerkingsBonus(200, spelers).totaal, [0, ...niveaus.map((_, k) => k + 1)])[i + 1]; // gelijk deel na de bonus
-      assert.equal(g.w.money, L.loon(metXp(niveaus[i]), 'trein', dl), `speler ${i + 1}: niveau ${(i % 6) + 1}`);
-      assert.equal(g.profiel.vakken.trein.xp, L.XP_DREMPELS[i % 6] + Math.round(20 * dl / 200));
+      assert.equal(g.w.money, L.loon(metXp(niveaus[i]), 'trein', 200), `speler ${i + 1}: niveau ${(i % 6) + 1}`);
+      assert.equal(g.profiel.vakken.trein.xp, L.XP_DREMPELS[i % 6] + 20);
     });
-    assert.ok(new Set(s.gs.map((g) => g.w.money)).size >= 6, 'zes verschillende bedragen voor zes niveaus');
+    assert.equal(new Set(s.gs.map((g) => g.w.money)).size, 6, 'zes verschillende bedragen voor zes niveaus');
   });
 }
 

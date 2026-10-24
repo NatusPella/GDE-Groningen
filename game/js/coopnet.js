@@ -44,7 +44,7 @@ import { wisselEvent, wisselTik, zetCoopNet } from './coophostwisselnet.js'; // 
 import { zachtAlleen, stemBegin, stemAntwoord, stemVerval, stemTik, stemEvent, stemUitslagEvent, stemAntwoordEvent, leesStemEvent, leesStemAntwoord, leesStemUitslag, stemVraagTekst, stemUitslagTekst, STEM_HOST } from './coopgroep.js';
 import { zichtbaarWanted, GEZOCHT_TEKST, hudWanted } from './coopgezocht.js';
 import { bustFineIn } from './economy.js';
-import { gebeurtenisId, maakBoekhouding, samenwerkingsBonus, verdeelGelijk } from './coopbeloning.js'; // beloningen per gebeurtenis, één keer toegekend (#448)
+import { gebeurtenisId, maakBoekhouding } from './coopbeloning.js'; // beloningen per gebeurtenis, één keer toegekend (#448)
 import { teamDown } from './cooproles.js'; // een opdracht faalt pas als alle meespelers neer zijn (#452)
 import { saveGame as bewaarNu } from './savehook.js';
 import { wedHostTik, wedHandleGast, wedHandleHost, wedGastReset, zetWedHaken } from './coopwedstrijd.js';
@@ -256,7 +256,7 @@ export function startHost(world, info, opts = {}) {
   world.coopRole = 'host';
   world.coopRoster = lijst(hub.roster);
   world.coopUitslag = (ok, label, reden, loon, gestopt) => uitslagMelden(world, ok, label, reden, loon, gestopt); // gelukt, mislukt of gestopt (#371, #390)
-  world.coopDeel = (bedrag, info) => deelMetGasten(world, bedrag, info); // missies, bijbanen en prijzen delen met de gasten (#365)
+  world.coopDeel = (bedrag, info) => deelMetGasten(world, bedrag, info); // missies, bijbanen en prijzen: elke meespelende gast krijgt het volle bedrag (#365, #452)
   world.coopVraag = (soort, tekst, naAkkoord, naNee) => stemStart(world, soort, tekst, naAkkoord, naNee); // een tijdsprong vraagt akkoord van alle anderen (#452)
   world.coopSchade = (slot, schade) => hub.announce({ k: 'schade', n: Math.round(Number(schade) || 0) }, slot); // een kogel van de politie raakt een gast (#434)
   // De gastheer gaat neer of wordt opgepakt: loopt de opdracht dan door? Ja zolang een meespeler (die ja zei, verbonden en niet neer) nog staat (#452).
@@ -682,35 +682,24 @@ export function gastMeedoen(world, ja) {
   return n.session.sendEvent({ k: 'meedoenantwoord', ja: !!ja });
 }
 
-// Wie deelt in de beloning van deze opdracht: alle verbonden gasten die meedoen (wie nee zei, niet antwoordde of wegviel niet).
+// Wie krijgt de beloning van deze opdracht: alle verbonden gasten die meespelen (wie nee zei, niet antwoordde of wegviel niet).
 const deelSlots = (n) => n.hub.roster.spelers.filter((s) => s.slot !== 0 && s.verbinding !== 'lost' && krijgtDeel(n.meedoen, s.slot)).map((s) => s.slot);
-// Het deel van één gast bij dit bedrag (laagste deel; de rest gaat naar de eerste deelnemers): gelijk verdeeld over host en meespelers, na de bonus.
-const deelBedrag = (n, bedrag) => { const sl = deelSlots(n); if (!sl.length) return 0; const alle = [0, ...sl], v = verdeelGelijk(samenwerkingsBonus(bedrag, alle.length).totaal, alle); return Math.min(...sl.map((x) => v[x] || 0)); };
+// Wat elke meespeler krijgt: het volle bedrag, zonder verdeling of bonus (#452). Met niemand die meespeelt: 0.
+const deelBedrag = (n, bedrag) => (deelSlots(n).length ? Math.max(0, Math.floor(Number(bedrag) || 0)) : 0);
 
-// Missies, bijbanen en prijzen van de gastheer: het totaal (met samenwerkingsbonus bij twee of meer spelers) wordt gelijk verdeeld over
-// alle meespelers, de gastheer inbegrepen (#452). Elke gast krijgt zijn deel in zijn eigen portemonnee (#365); de gastheer kreeg het hele
-// bedrag al en krijgt hier het verschil met zijn deel erbij of eraf. Met één speler verandert er niets.
+// Missies, bijbanen en prijzen van de gastheer: elke meespelende gast krijgt het VOLLE bedrag in zijn eigen portemonnee (#452, #365);
+// de gastheer kreeg het al. Geen verdeling en geen samenwerkingsbonus. Het geld komt met een gebeurtenis-id, dus één keer (#448).
 // info (loopbaan, #381): { vak, basis, xp }. basis is het bedrag voor de loonfactor van de gastheer; de gast verdient daar op zijn eigen
-// apparaat zijn eigen factor over; zijn loopbaanpunten volgen dezelfde verhouding.
+// apparaat zijn eigen factor over en krijgt de volle loopbaanpunten.
 export function deelMetGasten(world, bedrag, info = null) {
   const n = world.coopNet; if (!n || n.role !== 'host') return 0;
   const basis = Math.floor(info && Number(info.basis) > 0 ? Number(info.basis) : Number(bedrag));
   if (!(basis >= 1)) return 0;
-  const slots = deelSlots(n); if (!slots.length) return 0;
-  const alle = [0, ...slots];
-  const totaal = samenwerkingsBonus(basis, alle.length), deel = verdeelGelijk(totaal.totaal, alle), zonder = verdeelGelijk(basis, alle);
-  // de gastheer: zijn echte verdienste (na zijn loonfactor) krijgt dezelfde verdeling
-  const echt = Math.max(0, Math.floor(Number(bedrag) || 0)), hostDeel = verdeelGelijk(samenwerkingsBonus(echt, alle.length).totaal, alle)[0] || 0, hostZonder = verdeelGelijk(echt, alle)[0] || 0;
-  const verschil = hostDeel - echt;
-  if (verschil && Number.isFinite(world.money)) world.money = Math.max(0, world.money + verschil);
-  if (hostDeel > hostZonder && world.addMessage) world.addMessage(`Samenwerkbonus: €${(hostDeel - hostZonder).toLocaleString('nl-NL')}`, 4);
+  const geld = Math.min(basis, MAX_REWARD);
+  const extra = info && typeof info.vak === 'string' && info.vak ? { vak: info.vak.slice(0, 20), xp: Math.max(0, Math.round(Number(info.xp) || 0)) } : null;
   let k = 0;
   const id = gebeurtenisId(n.sessieId || (n.sessieId = Math.random().toString(36).slice(2, 8)), 'b', n.beloningTeller = (n.beloningTeller || 0) + 1); // één id per gebeurtenis, voor alle gasten (#448)
-  for (const slot of slots) {
-    const geld = Math.min(deel[slot] || 0, MAX_REWARD); if (!(geld >= 1)) continue;
-    const extra = info && typeof info.vak === 'string' && info.vak ? { vak: info.vak.slice(0, 20), xp: Math.max(0, Math.round((Number(info.xp) || 0) * (deel[slot] || 0) / basis)) } : null;
-    if (payGuest(world, geld, slot, extra, id, Math.max(0, (deel[slot] || 0) - (zonder[slot] || 0)))) k++;
-  }
+  for (const slot of deelSlots(n)) if (payGuest(world, geld, slot, extra, id)) k++;
   return k;
 }
 
@@ -1019,8 +1008,6 @@ export function handleEvent(world, body, van = 0) {
       world.money = (world.money || 0) + betaald;
       world.coopVerdiend = (world.coopVerdiend || 0) + betaald; // savegame.js zet dit in de eigen save van de gast
       if (world.addMessage) world.addMessage(`Beloning: €${betaald.toLocaleString('nl-NL')}`, 4);
-      const bonus = Math.min(MAX_REWARD, Math.floor(Number(body.bonus)) || 0);
-      if (bonus >= 1 && world.addMessage) world.addMessage(`Samenwerkbonus: €${bonus.toLocaleString('nl-NL')}`, 4); // een regel in de uitbetaling (#452)
       return true;
     }
     case 'weer': { // het weer van de host (coopweer.js): een gast stapt zijn eigen weermachine niet
@@ -1099,9 +1086,9 @@ export function wielLos(world) {
 }
 
 // Host: beloning voor één gast (slot) of voor alle gasten; elk bewaart hem in zijn eigen save.
-export function payGuest(world, geld, slot = null, extra = null, id = null, bonus = 0) {
+export function payGuest(world, geld, slot = null, extra = null, id = null) {
   const n = world.coopNet; if (!n || n.role !== 'host') return false;
-  const ok = n.hub.announce({ k: 'beloning', geld: Math.max(0, Math.floor(geld)), ...(extra ? { vak: extra.vak, xp: extra.xp } : {}), ...(typeof id === 'string' && id ? { id: id.slice(0, 48) } : {}), ...(bonus >= 1 ? { bonus: Math.floor(bonus) } : {}) }, slot);
+  const ok = n.hub.announce({ k: 'beloning', geld: Math.max(0, Math.floor(geld)), ...(extra ? { vak: extra.vak, xp: extra.xp } : {}), ...(typeof id === 'string' && id ? { id: id.slice(0, 48) } : {}) }, slot);
   if (ok) { // wat elke gast in deze sessie verdiende: het gaat mee in de momentopname van het overdragen (#439, gastGeld); het geld zelf staat in de save van de gast
     const b = n.betaald || (n.betaald = {}), g = Math.max(0, Math.floor(geld));
     for (const s of slot != null ? [slot] : n.hub.roster.spelers.filter((x) => x.slot !== 0).map((x) => x.slot)) b[s] = (b[s] || 0) + g;
