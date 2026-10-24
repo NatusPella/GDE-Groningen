@@ -1,0 +1,126 @@
+{
+  "licentie": "Creative Commons 0 (CC0 1.0)",
+  "bron": "https://freesound.org",
+  "geluiden": {
+    "auto_deur_dicht_1": {
+      "bestand": "auto_deur_dicht_1.ogg",
+      "gebruik": "autodeur dicht",
+      "loop": false,
+      "duur_s": 0.42,
+      "grootte_kb": 6.5,
+      "herkomst": {
+        "titel": "Car_Door_Close_01.wav",
+        "auteur": "BenDrain",
+        "freesound_id": 488053,
+        "url": "https://freesound.org/people/BenDrain/sounds/488053/",
+        "licentie": "Creative Commons 0 (CC0 1.0)"
+      },
+      "bewerking": "ffmpeg: knippen, stilte weg, hoogdoorlaat 40 Hz, laagdoorlaat 14 kHz, loudnorm -18 LUFS, fades, mono 44,1 kHz, ogg (Vorbis q4)"
+    },
+    "auto_deur_dicht_2": {
+      "bestand": "auto_deur_dicht_2.ogg",
+      "gebruik": "autodeur dicht (dof)",
+      "loop": false,
+      "duur_s": 0.37,
+      "grootte_kb": 6.8,
+      "herkomst": {
+        "titel": "Car_Door_Closing_Dull_04",
+        "auteur": "BlondPanda",
+        "freesound_id": 778421,
+        "url": "https://freesound.org/people/BlondPanda/sounds/778421/",
+        "licentie": "Creative Commons 0 (CC0 1.0)"
+      },
+      "bewerking": "ffmpeg: knippen, stilte weg, hoogdoorlaat 40 Hz, laagdoorlaat 14 kHz, loudnorm -18 LUFS, fades, mono 44,1 kHz, ogg (Vorbis q4)"
+    },
+    "auto_deur_open": {
+      "bestand": "auto_deur_open.ogg",
+      "gebruik": "autodeur open",
+      "loop": false,
+      "duur_s": 0.71,
+      "grootte_kb": 9.6,
+      "herkomst": {
+        "titel": "Car_Door_Open_02.wav",
+        "auteur": "BenDrain",
+        "freesound_id": 488056,
+        "url": "https://freesound.org/people/BenDrain/sounds/488056/",
+        "licentie": "Creative Commons 0 (CC0 1.0)"
+      },
+      "bewerking": "ffmpeg: knippen, stilte weg, hoogdoorlaat 40 Hz, laagdoorlaat 14 kHz, loudnorm -18 LUFS, fades, mono 44,1 kHz, ogg (Vorbis q4)"
+    },
+    "auto_portiergreep": {
+      "bestand": "auto_portiergreep.ogg",
+      "gebruik": "portiergreep",
+      "loop": false,
+      "duur_s": 0.72,
+      "grootte_kb": 10.1,
+      "herkomst": {
+        "titel": "Car Door Handle.wav",
+        "auteur": "RutgerMuller",
+        "freesound_id": 50697,
+        "url": "https://freesound.org/people/RutgerMuller/sounds/50697/",
+        "licentie": "Creative Commons 0 (CC0 1.0)"
+      },
+      "bewerking": "ffmpeg: knippen, stilte weg, hoogdoorlaat 40 Hz, laagdoorlaat 14 kHz, loudnorm -18 LUFS, fades, mono 44,1 kHz, ogg (Vorbis q4)"
+    },
+    "band_piep_bocht": {
+      "bestand": "band_piep_bocht.ogg",
+      "gebruik": "banden piepen in een bocht (loop)",
+      "loop": true,
+      "duur_s": 8,
+      "grootte_kb": 70.3,
+      "herkomst": {
+        "titel": "Chrysler LHS tire squeal 03 (04-25-2009).wav",
+        "auteur": "audible-edge",
+        "freesound_id": 71738,
+        "url": "https://freesound.org/people/audible-edge/sounds/71738/",
+        "licentie": "Creative Commons 0 (CC0 1.0)"
+      },
+      "bewerking": "ffmpeg: knippen, stilte weg, hoogdoorlaat 40 Hz, laagdoorlaat 14 kHz, loudnorm -18 LUFS, fades, mono 44,1 kHz, ogg (Vorbis q4)"
+    },
+    "handrem_bocht": {
+      "bestand": "handrem_bocht.ogg",
+      "gebruik": "handrembocht of driften",
+      "loop": false,
+      "duur_s": 6.5,
+      "grootte_kb": 57,
+      "herkomst": {
+        "titel": "AE0090 Volvo 740 GLE handbrake turn 01.flac",
+        "auteur": "audible-edge",
+        "freesound_id": 76804,
+        "url": "https://freesound.org/people/audible-edge/sounds/76804/",
+        "licentie": "Creative Commons 0 (CC0 1.0)"
+      },
+      "bewerking": "ffmpeg: knippen, stilte weg, hoogdoorlaat 40 Hz, laagdoorlaat 14 kHz, loudnorm -18 LUFS, fades, mono 44,1 kHz, ogg (Vorbis q4)"
+    },
+    "remmen_grind": {
+      "bestand": "remmen_grind.ogg",
+      "gebruik": "remmen op grind",
+      "loop": false,
+      "duur_s": 1.09,
+      "grootte_kb": 13,
+      "herkomst": {
+        "titel": "auto car or van stop brake skid gravel short.flac",
+        "auteur": "kyles",
+        "freesound_id": 637161,
+        "url": "https://freesound.org/people/kyles/sounds/637161/",
+        "licentie": "Creative Commons 0 (CC0 1.0)"
+      },
+      "bewerking": "ffmpeg: knippen, stilte weg, hoogdoorlaat 40 Hz, laagdoorlaat 14 kHz, loudnorm -18 LUFS, fades, mono 44,1 kHz, ogg (Vorbis q4)"
+    },
+    "trein_deur": {
+      "bestand": "trein_deur.ogg",
+      "gebruik": "treindeur open en dicht",
+      "loop": false,
+      "duur_s": 15.94,
+      "grootte_kb": 134.6,
+      "herkomst": {
+        "titel": "Opening and closing the train door.flac",
+        "auteur": "jrosin",
+        "freesound_id": 209969,
+        "url": "https://freesound.org/people/jrosin/sounds/209969/",
+        "licentie": "Creative Commons 0 (CC0 1.0)"
+      },
+      "bewerking": "ffmpeg: knippen, stilte weg, hoogdoorlaat 40 Hz, laagdoorlaat 14 kHz, loudnorm -18 LUFS, fades, mono 44,1 kHz, ogg (Vorbis q4)"
+    }
+  }
+}

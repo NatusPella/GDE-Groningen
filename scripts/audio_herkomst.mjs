@@ -31,12 +31,14 @@ export function herkomst(audioDir = AUDIO) {
   }
   const audio = all.filter((f) => AUDIO_EXT.test(f));
   const music = audio.filter((f) => /\/(gmusic|scenario|theme)\//.test(f) && !/\/jingles\//.test(f));
-  const voice = audio.filter((f) => !music.includes(f));
+  const sfx = audio.filter((f) => //audio/sfx//.test(f)); // opnames van effecten (CC0, bron in sfx/manifest.json)
+  const voice = audio.filter((f) => !music.includes(f) && !sfx.includes(f));
   const zonderLog = voice.filter((f) => !logged.has(f)).map(rel);
   const modellen = {};
   for (const f of voice) if (logged.has(f)) modellen[logged.get(f)] = (modellen[logged.get(f)] || 0) + 1;
   const geenGemini = voice.filter((f) => logged.has(f) && !/gemini/i.test(logged.get(f))).map(rel);
   return {
+    sfx: sfx.length,
     muziek: { gmusic: music.filter((f) => /\/gmusic\//.test(f)).length, scenario: music.filter((f) => /\/scenario\//.test(f)).length, titel: music.filter((f) => /\/theme\//.test(f)).length },
     stemmen: { clips: voice.length, gelogd: voice.length - zonderLog.length, modellen },
     zonderLog, geenGemini,
@@ -47,6 +49,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   const r = herkomst();
   if (process.argv.includes('--json')) console.log(JSON.stringify(r, null, 2));
   else {
+    console.log(`Effecten-opnames (CC0, game/audio/sfx): ${r.sfx}`);
     console.log(`Muziek: ${r.muziek.gmusic} G-Music-nummers, ${r.muziek.scenario} scenario-loops, ${r.muziek.titel} titelnummer`);
     console.log(`Stemmen en vaste clips: ${r.stemmen.clips}, waarvan ${r.stemmen.gelogd} in een tts.json; modellen: ${JSON.stringify(r.stemmen.modellen)}`);
     for (const f of r.zonderLog.slice(0, 20)) console.log('ZONDER LOG', f);
