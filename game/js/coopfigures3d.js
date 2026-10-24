@@ -72,7 +72,7 @@ export function syncFigures(world, dt) {
   // bij de gastheer: de extra spelers in zijn voertuig zitten op hun stoel in zijn model (bij een gast doet coopentities3d.js dit voor iedereen, #434)
   if (world.coopRole !== 'client') {
     const lijst = Object.values(world.coopFigures || {}).filter((f) => f && f.inVeh && f.stoel != null && f.char && !f.coopBestuurt).map((f) => ({ slot: f.slot, char: f.char, voertuig: f.inVeh, stoel: f.stoel })).concat(bestuurdersLijst(world)); // plus de gasten die zelf een voertuig besturen (#434)
-    if (lijst.length || hasZitters()) syncZitters(filmpje ? [] : lijst, (v) => { const mesh = getVehicleMesh(v.id); return mesh ? { mesh, v } : null; });
+    if (lijst.length || hasZitters()) syncZitters(filmpje ? [] : lijst, (v) => { const mesh = getVehicleMesh(v.id); return mesh ? { mesh, v } : null; }, filmpje ? null : world);
   }
 }
 

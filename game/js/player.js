@@ -1,4 +1,5 @@
 import { closestPointOnSegment, normalizeAngle, pointInPolygon, isInWater, inMapWater, WATER_Y, clamp } from './util.js';
+import { heeftAutoPortier } from './sfx/samples.js';
 import { wallAhead } from './countrywalls.js';
 import { waterClearance, pushOutOfWaterObstacles, insideWaterObstacle, swimmerCanLeave } from './waterindex.js';
 import { findEnterableVehicle, distToVehicleBody, resolveBoomCollisions, resolveVehicleBuildingCollision, drivePlayerBoat, pushCircleOutOfVehicle, reportImpact, tickSinkingVehicles, speedCap } from './vehicle.js';
@@ -962,8 +963,9 @@ function pushVehicleAudio(world, v, first, second) {
   const door = !v.isBoat;
   // a sailing boat has no engine to start
   if (v.isBoat && v.model && v.model.sail) { first = first && first.startsWith('engine') ? null : first; second = second && second.startsWith('engine') ? null : second; }
-  if (first && (door || !first.startsWith('door'))) q.push({ kind: first, x: v.x, y: v.y });
-  if (second && (door || !second.startsWith('door'))) q.push({ kind: second, x: v.x, y: v.y });
+  const auto = heeftAutoPortier(v); // de opname van het portier (sfx/samples.js, #460): auto, bestelwagen, taxi
+  if (first && (door || !first.startsWith('door'))) q.push({ kind: first, x: v.x, y: v.y, auto });
+  if (second && (door || !second.startsWith('door'))) q.push({ kind: second, x: v.x, y: v.y, auto });
 }
 
 export function stopVehicle(v) {

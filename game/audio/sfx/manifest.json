@@ -15,6 +15,7 @@
         "url": "https://freesound.org/people/BenDrain/sounds/488053/",
         "licentie": "Creative Commons 0 (CC0 1.0)"
       },
+      "knip_s": null,
       "bewerking": "ffmpeg: knippen, stilte weg, hoogdoorlaat 40 Hz, laagdoorlaat 14 kHz, loudnorm -18 LUFS, fades, mono 44,1 kHz, ogg (Vorbis q4)"
     },
     "auto_deur_dicht_2": {
@@ -30,6 +31,7 @@
         "url": "https://freesound.org/people/BlondPanda/sounds/778421/",
         "licentie": "Creative Commons 0 (CC0 1.0)"
       },
+      "knip_s": null,
       "bewerking": "ffmpeg: knippen, stilte weg, hoogdoorlaat 40 Hz, laagdoorlaat 14 kHz, loudnorm -18 LUFS, fades, mono 44,1 kHz, ogg (Vorbis q4)"
     },
     "auto_deur_open": {
@@ -45,6 +47,7 @@
         "url": "https://freesound.org/people/BenDrain/sounds/488056/",
         "licentie": "Creative Commons 0 (CC0 1.0)"
       },
+      "knip_s": null,
       "bewerking": "ffmpeg: knippen, stilte weg, hoogdoorlaat 40 Hz, laagdoorlaat 14 kHz, loudnorm -18 LUFS, fades, mono 44,1 kHz, ogg (Vorbis q4)"
     },
     "auto_portiergreep": {
@@ -60,14 +63,15 @@
         "url": "https://freesound.org/people/RutgerMuller/sounds/50697/",
         "licentie": "Creative Commons 0 (CC0 1.0)"
       },
+      "knip_s": null,
       "bewerking": "ffmpeg: knippen, stilte weg, hoogdoorlaat 40 Hz, laagdoorlaat 14 kHz, loudnorm -18 LUFS, fades, mono 44,1 kHz, ogg (Vorbis q4)"
     },
     "band_piep_bocht": {
       "bestand": "band_piep_bocht.ogg",
-      "gebruik": "banden piepen in een bocht (loop)",
+      "gebruik": "één piep van banden in een bocht (loop, volume en toonhoogte naar slip)",
       "loop": true,
-      "duur_s": 8,
-      "grootte_kb": 70.3,
+      "duur_s": 1.2,
+      "grootte_kb": 13.9,
       "herkomst": {
         "titel": "Chrysler LHS tire squeal 03 (04-25-2009).wav",
         "auteur": "audible-edge",
@@ -75,14 +79,19 @@
         "url": "https://freesound.org/people/audible-edge/sounds/71738/",
         "licentie": "Creative Commons 0 (CC0 1.0)"
       },
-      "bewerking": "ffmpeg: knippen, stilte weg, hoogdoorlaat 40 Hz, laagdoorlaat 14 kHz, loudnorm -18 LUFS, fades, mono 44,1 kHz, ogg (Vorbis q4)"
+      "knip_s": {
+        "start": 5.97,
+        "duur": 1.2
+      },
+      "meting": "bron 13,8 s, losse piep 6,0 tot 7,15 s (98% van de energie tussen 300 Hz en 3 kHz, onder 300 Hz 2 tot 10%, piek rond 1 kHz)",
+      "bewerking": "ffmpeg: knippen, stilte weg, hoogdoorlaat 250 Hz, laagdoorlaat 14 kHz, loudnorm -18 LUFS, fades, mono 44,1 kHz, ogg (Vorbis q4)"
     },
     "handrem_bocht": {
       "bestand": "handrem_bocht.ogg",
-      "gebruik": "handrembocht of driften",
+      "gebruik": "handrembocht of driften (alleen de bandenslip)",
       "loop": false,
-      "duur_s": 6.5,
-      "grootte_kb": 57,
+      "duur_s": 2,
+      "grootte_kb": 19.5,
       "herkomst": {
         "titel": "AE0090 Volvo 740 GLE handbrake turn 01.flac",
         "auteur": "audible-edge",
@@ -90,7 +99,12 @@
         "url": "https://freesound.org/people/audible-edge/sounds/76804/",
         "licentie": "Creative Commons 0 (CC0 1.0)"
       },
-      "bewerking": "ffmpeg: knippen, stilte weg, hoogdoorlaat 40 Hz, laagdoorlaat 14 kHz, loudnorm -18 LUFS, fades, mono 44,1 kHz, ogg (Vorbis q4)"
+      "knip_s": {
+        "start": 7.45,
+        "duur": 2
+      },
+      "meting": "bron 10,4 s, aanloop (auto, motor) 0 tot 7,4 s met 30 tot 75% onder 300 Hz weggeknipt, slip 7,5 tot 9,5 s (92 tot 100% tussen 300 Hz en 3 kHz, 0 tot 3% onder 300 Hz, piek rond 1 kHz), staart na 9,5 s weg",
+      "bewerking": "ffmpeg: knippen, stilte weg, hoogdoorlaat 400 Hz, laagdoorlaat 14 kHz, loudnorm -18 LUFS, fades, mono 44,1 kHz, ogg (Vorbis q4)"
     },
     "remmen_grind": {
       "bestand": "remmen_grind.ogg",
@@ -105,14 +119,15 @@
         "url": "https://freesound.org/people/kyles/sounds/637161/",
         "licentie": "Creative Commons 0 (CC0 1.0)"
       },
+      "knip_s": null,
       "bewerking": "ffmpeg: knippen, stilte weg, hoogdoorlaat 40 Hz, laagdoorlaat 14 kHz, loudnorm -18 LUFS, fades, mono 44,1 kHz, ogg (Vorbis q4)"
     },
-    "trein_deur": {
-      "bestand": "trein_deur.ogg",
-      "gebruik": "treindeur open en dicht",
+    "trein_deur_open": {
+      "bestand": "trein_deur_open.ogg",
+      "gebruik": "treindeuren gaan open",
       "loop": false,
-      "duur_s": 15.94,
-      "grootte_kb": 134.6,
+      "duur_s": 2.95,
+      "grootte_kb": 30.3,
       "herkomst": {
         "titel": "Opening and closing the train door.flac",
         "auteur": "jrosin",
@@ -120,7 +135,52 @@
         "url": "https://freesound.org/people/jrosin/sounds/209969/",
         "licentie": "Creative Commons 0 (CC0 1.0)"
       },
-      "bewerking": "ffmpeg: knippen, stilte weg, hoogdoorlaat 40 Hz, laagdoorlaat 14 kHz, loudnorm -18 LUFS, fades, mono 44,1 kHz, ogg (Vorbis q4)"
+      "knip_s": {
+        "start": 0.45,
+        "duur": 2.95
+      },
+      "meting": "bron 16,3 s: deur open 0,5 tot 3,7 s (silencedetect -40 dB boven 1,2 kHz: stilte tot 0,59 s en vanaf 3,75 s), daarna alleen achtergrondbrom (98% onder 300 Hz) tot 9 s; hier 0,45 tot 3,4 s",
+      "bewerking": "ffmpeg: knippen, stilte weg, hoogdoorlaat 60 Hz, laagdoorlaat 14 kHz, loudnorm -18 LUFS, fades, mono 44,1 kHz, ogg (Vorbis q4)"
+    },
+    "trein_deur_piep": {
+      "bestand": "trein_deur_piep.ogg",
+      "gebruik": "waarschuwingssignaal voor het sluiten van de treindeuren",
+      "loop": false,
+      "duur_s": 2.4,
+      "grootte_kb": 22.1,
+      "herkomst": {
+        "titel": "Opening and closing the train door.flac",
+        "auteur": "jrosin",
+        "freesound_id": 209969,
+        "url": "https://freesound.org/people/jrosin/sounds/209969/",
+        "licentie": "Creative Commons 0 (CC0 1.0)"
+      },
+      "knip_s": {
+        "start": 9,
+        "duur": 2.4
+      },
+      "meting": "bron: piepsignaal 1,9 kHz van 9,0 tot 13,8 s (silencedetect boven 1,2 kHz: stilte tot 8,997 s), met de brom eronder weggefilterd (hoogdoorlaat 1,2 kHz); hier 9,0 tot 11,4 s",
+      "bewerking": "ffmpeg: knippen, stilte weg, hoogdoorlaat 1200 Hz, laagdoorlaat 8 kHz, loudnorm -18 LUFS, fades, mono 44,1 kHz, ogg (Vorbis q4)"
+    },
+    "trein_deur_dicht": {
+      "bestand": "trein_deur_dicht.ogg",
+      "gebruik": "treindeuren gaan dicht",
+      "loop": false,
+      "duur_s": 0.7,
+      "grootte_kb": 9.7,
+      "herkomst": {
+        "titel": "Opening and closing the train door.flac",
+        "auteur": "jrosin",
+        "freesound_id": 209969,
+        "url": "https://freesound.org/people/jrosin/sounds/209969/",
+        "licentie": "Creative Commons 0 (CC0 1.0)"
+      },
+      "knip_s": {
+        "start": 13.85,
+        "duur": 0.7
+      },
+      "meting": "bron: deur dicht 13,85 tot 14,55 s (piek -12 dB rond 14,25 s, silencedetect: stilte vanaf 14,51 s); brom eronder weggefilterd (hoogdoorlaat 200 Hz) en het doorlopende piepsignaal weggefilterd (kerffilters op 1,9 en 3,8 kHz)",
+      "bewerking": "ffmpeg: knippen, stilte weg, hoogdoorlaat 200 Hz, laagdoorlaat 14 kHz, loudnorm -18 LUFS, fades, mono 44,1 kHz, ogg (Vorbis q4)"
     }
   }
 }
