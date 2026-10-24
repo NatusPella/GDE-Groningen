@@ -300,7 +300,7 @@ function completeRound(c, res = {}) {
   const xp = 8 + (res.flawless === false ? 0 : 2) + Math.max(0, Math.round(res.xp || 0)); // res.xp: extra loopbaanpunten (bus, #444)
   noteMoney('Bijbaantjes');
   world.money += total;
-  if (world.coopDeel) world.coopDeel(total, loopbaanDeel(vak, basisFor(c, base) + tip, xp)); // samen spelen (#365): de gast verdient volgens zijn eigen niveau (#381)
+  if (world.coopDeel) world.coopDeel(total, Array.isArray(res.coopSlots) ? { ...loopbaanDeel(vak, basisFor(c, base) + tip, xp), slots: res.coopSlots } : loopbaanDeel(vak, basisFor(c, base) + tip, xp)); // samen spelen (#365): de gast verdient volgens zijn eigen niveau (#381)
   loopbaanTel(world, vak, { n: 1, xp, uniek: c.job.id });
   c.earned += total;
   c.streak++;

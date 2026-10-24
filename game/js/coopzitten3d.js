@@ -9,12 +9,17 @@ import { vehicleSeat } from './seating3d.js';
 import { riderSeatFor } from './models3d_vehicles.js';
 import { figuurLook } from './coopplayers.js';
 import { ruimMeshOp } from './coopruim.js';
+import { busInterieur, coopPlek, VLOER } from './businterieur.js';
 
 const zitters = new Map(); // plek -> { mesh, char, ouder, rijder }
 
 // De stoel van deze zitter in het voertuig: vehicleSeat voor de bestuurder en de bijrijder, achterin verder naar achteren en om en om links en rechts.
 export function stoelVoor(v, stoel) {
   if (stoel <= 1) return vehicleSeat(v, stoel === 0);
+  if (v.isBus && v.model && v.model.name === 'bus') { // in de stadsbus op een stoel of staanplek van de passagiersruimte (businterieur.js, #444)
+    const p = coopPlek(busInterieur(v.model.len, v.model.wid, { trailer: v.model.trailer || 0 }), stoel), s = vehicleSeat(v, false);
+    if (p) return p.soort === 'zit' ? { ...s, x: p.x, y: VLOER + 0.31, z: p.z, stand: false } : { ...s, x: p.x, y: VLOER, z: p.z, stand: true, pose: undefined };
+  }
   const s = vehicleSeat(v, false), rij = Math.floor((stoel - 2) / 2) + 1;
   const stap = v.isBus ? 1.25 : v.isBoat ? 0.8 : 0.85;
   return { ...s, x: s.x - stap * rij, z: (stoel % 2 === 0 ? -1 : 1) * Math.max(0.25, Math.abs(s.z)) };

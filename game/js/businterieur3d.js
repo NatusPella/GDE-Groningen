@@ -5,7 +5,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { GeoBuilder, markShared } from './pixelart3d.js';
 import { getVehicleMesh } from './models3d_vehicles.js';
-import { busInterieur, bezetting, ruimteReizigers, GANG } from './businterieur.js';
+import { busInterieur, bezetting, ruimteReizigers, coopBezet, GANG } from './businterieur.js';
 
 export const INT_R = 18;          // m: verder weg is de binnenruimte niet te zien
 const STOEL = 0x2e5d8a, STOEL_RUG = 0x264d73, STANG = 0xd9b026, DONKER = 0x23262b;
@@ -41,10 +41,10 @@ export function buildInrichting(L) {
 }
 
 // De reizigers: een romp en een hoofd, zittend of staand; kleuren per plek vast.
-export function buildReizigers(L, n) {
+export function buildReizigers(L, n, bezet = []) {
   const B = new GeoBuilder(1);
   const f = L.floor;
-  const { zit, sta } = bezetting(L, n);
+  const { zit, sta } = bezetting(L, n, bezet);
   const kleur = (i) => JASSEN[(i * 5 + 3) % JASSEN.length];
   const huid = (i) => HUIDEN[(i * 3 + 1) % HUIDEN.length];
   zit.forEach((idx, i) => {
@@ -69,10 +69,10 @@ function inrichtingGeo(v) {
   return g;
 }
 
-function reizigersGeo(v, n) {
-  const k = `r|${key(v)}|${n}`;
+function reizigersGeo(v, n, bezet = []) {
+  const k = `r|${key(v)}|${n}|${bezet.join(',')}`;
   let g = geoCache.get(k);
-  if (!g) { g = markShared(buildReizigers(layoutOf(v), n)); geoCache.set(k, g); }
+  if (!g) { g = markShared(buildReizigers(layoutOf(v), n, bezet)); geoCache.set(k, g); }
   return g;
 }
 
@@ -82,6 +82,15 @@ const bucket = (n) => Math.min(48, Math.ceil(n / 4) * 4);
 export function reizigersAanBoord(v) {
   const r = v.busBediend && v.busBediend.ride;
   return r && !r.done && !r.failed ? r.onBoard : ruimteReizigers(v.id);
+}
+
+// Stoelen waar een medespeler zit in deze bus (coöp, #444): de extra spelers bij de gastheer (world.coopFigures), Tessa
+// (world.companion) en bij een gast de lijst uit het snapshot (world.coopZitters). Geeft stoelnummers.
+export function coopStoelenIn(w, v) {
+  const uit = [];
+  for (const f of Object.values(w.coopFigures || {})) if (f && f.inVeh === v && f.stoel != null && !f.coopBestuurt) uit.push(f.stoel);
+  for (const z of w.coopZitters || []) if (z && z.voertuig === v.id && !z.bestuurder) uit.push(z.stoel);
+  return uit;
 }
 
 function updateInterieur(dt, w) {
@@ -101,12 +110,13 @@ function updateInterieur(dt, w) {
       body.add(ud.busInt);
     }
     ud.busInt.visible = true;
-    const n = bucket(reizigersAanBoord(v));
-    if (ud.busPasN !== n) {
+    const bezet = coopBezet(layoutOf(v), coopStoelenIn(w, v)).sort((a, b) => a - b);
+    const n = bucket(reizigersAanBoord(v)), sleutel = n + '|' + bezet.join(',');
+    if (ud.busPasN !== sleutel) {
       if (ud.busPas) body.remove(ud.busPas);
-      ud.busPas = n > 0 ? new THREE.Mesh(reizigersGeo(v, n), mat()) : null;
+      ud.busPas = n > 0 ? new THREE.Mesh(reizigersGeo(v, n, bezet), mat()) : null;
       if (ud.busPas) { ud.busPas.name = 'busreizigers'; ud.busPas.userData.noBatch = true; body.add(ud.busPas); }
-      ud.busPasN = n;
+      ud.busPasN = sleutel;
     }
     if (ud.busPas) ud.busPas.visible = true;
   }
