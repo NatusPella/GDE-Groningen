@@ -579,6 +579,7 @@ const PHASES = {
     B.down(' '); await sleep(120); B.up(' ');
     while (performance.now() < t1) { const z = w.player.z || 0; zmax = Math.max(zmax, z); if (z > 0.05) hoog++; await sleep(16); }
     B.down('control'); await sleep(900); const buk = !!w.player.crouching; const bukCompanion = !!(w.companion && w.companion.crouching); B.up('control'); await sleep(600);
+    for (let i = 0; i < 30 && w.player.crouching; i++) await sleep(100); // de bukvlag komt via de gastheer terug: onder belasting (veel headless spelers) duurt dat langer dan 600 ms
     log('gastspring', { zmax: Math.round(zmax * 100) / 100, hoog, buk, na: !!w.player.crouching, zNa: w.player.z || 0, bukCompanion });
   },
   // #434: de gast stapt zelf in een vrij voertuig van de gastheer (E), rijdt (stick), remt (Spatie) en stapt uit (E); wat hij en de host ervan zien
