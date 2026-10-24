@@ -101,7 +101,7 @@ for (const spelers of AANTALLEN) {
   s.hw.mission.progressText = 'Rij naar het loket'; s.step(2);
   ok(gw.every((w) => /volgende stap: Rij naar het loket/.test(tekst(w))), `${spelers}: de volgende stap`);
   s.hw.coopUitslag(true, 'Het Loket', '', 400); s.step(1);
-  ok(gw.every((w) => /Het Loket gelukt! Tammo en jij hebben het samen gedaan\. Jouw deel: €200\./.test(tekst(w))), `${spelers}: gelukt met jouw deel`);
+  ok(gw.every((w) => new RegExp(`Het Loket gelukt! Tammo en jij hebben het samen gedaan\. Jouw deel: €${Math.floor(600 / spelers)}\.`).test(tekst(w))), `${spelers}: gelukt met jouw deel (400 x 1,5 gelijk verdeeld)`);
   s.hw.coopUitslag(false, 'De Kluis', 'te laat', 0); s.step(1);
   ok(gw.every((w) => /De Kluis mislukt: te laat/.test(tekst(w))), `${spelers}: mislukt met reden`);
   s.hw.coopUitslag(false, 'Het Loket', '', 0, true); s.hw.mission = { phase: 'idle' }; s.step(2);
@@ -159,7 +159,7 @@ for (const spelers of AANTALLEN) {
   // ---- 8. beloningen met loopbaan (#381): elke gast zijn eigen deel, het bedrag nooit uit het niets
   const geld0 = gw.map((w) => w.money || 0);
   eq(N.deelMetGasten(s.hw, 1000, { vak: 'bijbaan', basis: 1000, xp: 20 }), gasten, `${spelers}: elke verbonden gast krijgt zijn deel`); s.step(1.5);
-  ok(gw.every((w, i) => (w.money || 0) - geld0[i] >= 500 - 1 && aantal(w, /^Beloning: €/) >= 1), `${spelers}: in zijn eigen portemonnee: ${gw.map((w, i) => (w.money || 0) - geld0[i]).join(',')}`);
+  ok(gw.every((w, i) => (w.money || 0) - geld0[i] >= Math.floor(1500 / spelers) - 1 && aantal(w, /^Beloning: €/) >= 1), `${spelers}: in zijn eigen portemonnee: ${gw.map((w, i) => (w.money || 0) - geld0[i]).join(',')}`);
   eq(s.hw.money, 0, `${spelers}: de gastheer krijgt niets extra uit het delen`);
 
   // ---- 9. roepjes: iedereen tegelijk

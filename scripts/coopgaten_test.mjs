@@ -8,6 +8,7 @@
 //   afkoeltijd per afzender, het maximum, en de tekenaars (wereld, minimap, kaart) lezen dezelfde markeringen
 // - elke eis ook met 8 en 16 spelers (MAX_PLAYERS in net/codec.js), en een 17e speler wordt netjes geweigerd
 // De meerspelertest met echte TCP-verbindingen staat in scripts/coop/gaten_tcp_test.mjs.
+import { samenwerkingsBonus, verdeelGelijk } from '../game/js/coopbeloning.js';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { createLink } from '../game/js/net/memtransport.js';
@@ -47,15 +48,15 @@ t('#365: elke plek waar de gastheer geld verdient deelt het met de gasten (haken
   assert.match(bron('coopnet.js'), /world\.coopDeel = null/, 'en haalt hem weg bij het stoppen');
 });
 
-t('#365: de helft per gast, naar beneden afgerond; een bedrag van 1 geeft niets; het maximum geldt per uitbetaling', () => {
+t('#365, #452: gelijk deel per speler na de bonus, naar beneden afgerond; een bedrag van 1 geeft niets; het maximum geldt per uitbetaling', () => {
   const s = avond(3); s.step(3);
-  assert.equal(N.deelMetGasten(s.hw, 5), 3, 'drie gasten betaald'); s.step(1);
-  assert.deepEqual(s.gs.map((g) => g.gw.money), [2, 2, 2], '5 gedeeld door 2 is 2');
+  assert.equal(N.deelMetGasten(s.hw, 8), 3, 'drie gasten betaald'); s.step(1);
+  assert.deepEqual(s.gs.map((g) => g.gw.money), [3, 3, 3], '8 x 1,5 = 12 gedeeld door vier spelers is 3');
   assert.equal(N.deelMetGasten(s.hw, 1), 0); assert.equal(N.deelMetGasten(s.hw, 0), 0); assert.equal(N.deelMetGasten(s.hw, -50), 0); assert.equal(N.deelMetGasten(s.hw, NaN), 0);
   N.deelMetGasten(s.hw, 5e6); s.step(1);
-  assert.deepEqual(s.gs.map((g) => g.gw.money), [2 + N.MAX_REWARD, 2 + N.MAX_REWARD, 2 + N.MAX_REWARD], 'niet meer dan het maximum per keer');
-  assert.deepEqual(s.gs.map((g) => g.gw.coopVerdiend), [2 + N.MAX_REWARD, 2 + N.MAX_REWARD, 2 + N.MAX_REWARD], 'bijgehouden voor de eigen save');
-  assert.equal(aantal(s.gs[0].gw, /^Beloning: €2$/), 1, 'de gast leest wat hij kreeg');
+  assert.deepEqual(s.gs.map((g) => g.gw.money), [3 + N.MAX_REWARD, 3 + N.MAX_REWARD, 3 + N.MAX_REWARD], 'niet meer dan het maximum per keer');
+  assert.deepEqual(s.gs.map((g) => g.gw.coopVerdiend), [3 + N.MAX_REWARD, 3 + N.MAX_REWARD, 3 + N.MAX_REWARD], 'bijgehouden voor de eigen save');
+  assert.equal(aantal(s.gs[0].gw, /^Beloning: €3$/), 1, 'de gast leest wat hij kreeg');
 });
 
 t('#365: wie later aansluit krijgt het eerdere geld niet; wie vertrekt krijgt niets meer; zonder sessie is er geen haak', () => {
@@ -64,11 +65,11 @@ t('#365: wie later aansluit krijgt het eerdere geld niet; wie vertrekt krijgt ni
   const laat = s.sluit(2, 'lotte'); s.step(3);
   assert.equal(laat.gw.money, 0, 'de late speler begint met zijn eigen geld');
   s.hw.coopDeel(400); s.step(1);
-  assert.deepEqual([...s.gs.map((g) => g.gw.money)], [400, 400, 200]);
+  assert.deepEqual([...s.gs.map((g) => g.gw.money)], [350, 350, 150], 'eerst drie spelers (200 elk), daarna vier (150 elk)');
   N.stopCoopNet(s.gs[1].gw); s.step(3);
   s.hw.coopDeel(400); s.step(1);
-  assert.equal(s.gs[1].gw.money, 400, 'wie vertrokken is houdt wat hij had');
-  assert.equal(s.gs[0].gw.money, 600);
+  assert.equal(s.gs[1].gw.money, 350, 'wie vertrokken is houdt wat hij had');
+  assert.equal(s.gs[0].gw.money, 550);
   N.stopCoopNet(s.hw);
   assert.equal(s.hw.coopDeel, null, 'na het stoppen deelt de gastheer niets meer uit (solo spelen blijft gewoon)');
   assert.equal(N.deelMetGasten(s.hw, 100), 0);
@@ -118,7 +119,7 @@ t('#369: één melding per overgang, voor iedereen; Tessa hoort alleen haar eige
 t('#371: gelukt met het deel van de gast; zonder loon geen deel in de tekst; mislukt met reden; lange teksten worden afgekapt', () => {
   const s = avond(3); s.step(2);
   s.hw.coopUitslag(true, 'Het Loket', '', 401); s.step(1);
-  for (const g of s.gs) assert.match(g.gw.messages.join(' '), /Het Loket gelukt! Tammo en jij hebben het samen gedaan\. Jouw deel: €200\./);
+  for (const g of s.gs) assert.match(g.gw.messages.join(' '), /Het Loket gelukt! Tammo en jij hebben het samen gedaan\. Jouw deel: €150\./); // 401 x 1,5 over vier spelers (#452)
   s.hw.coopUitslag(true, 'De Proef', '', 0); s.step(1);
   assert.match(s.gs[0].gw.messages.join(' '), /De Proef gelukt! Tammo en jij hebben het samen gedaan\.$/m, 'zonder loon geen deel');
   s.hw.coopUitslag(false, 'De Kluis', 'Te laat', 900); s.step(1);
@@ -240,10 +241,11 @@ for (const spelers of [8, 16]) {
     assert.equal(new Set(s.hw.coopRoster.map((r) => r.kleur)).size, spelers, 'en een eigen kleur');
     // #365
     assert.equal(N.deelMetGasten(s.hw, 1001), spelers - 1); s.step(1.5);
-    assert.ok(gw.every((w) => w.money === 500 && w.coopVerdiend === 500), 'elke gast de helft');
+    const dl = verdeelGelijk(samenwerkingsBonus(1001, spelers).totaal, Array.from({ length: spelers }, (_, k) => k)); // gelijk verdeeld met bonus (#452)
+    assert.ok(gw.every((w, i) => w.money === dl[i + 1] && w.coopVerdiend === dl[i + 1]), 'elke gast een gelijk deel');
     // #371
     s.hw.coopUitslag(true, 'Het Loket', '', 1000); s.hw.coopUitslag(false, 'De Kluis', 'neergeslagen', 0); s.step(1.5);
-    for (const w of gw) { assert.match(w.messages.join(' '), /Het Loket gelukt! Tammo en jij hebben het samen gedaan. Jouw deel: €500./); assert.match(w.messages.join(' '), /De Kluis mislukt: neergeslagen/); }
+    for (const w of gw) { assert.match(w.messages.join(' '), new RegExp(`Het Loket gelukt! Tammo en jij hebben het samen gedaan. Jouw deel: €${Math.floor(1500 / spelers)}.`)); assert.match(w.messages.join(' '), /De Kluis mislukt: neergeslagen/); }
     // #369
     s.hw.pendingRespawn = { busted: true }; s.step(1.5);
     for (const w of gw) { assert.equal(aantal(w, /Tammo is door de politie gepakt/), 1); assert.equal(w.coopPartners.find((p) => p.naam === 'Tammo').status, 'neer'); }
@@ -272,7 +274,7 @@ t('een 17e speler wordt netjes geweigerd en de rest merkt niets', () => {
   assert.equal(extra.gw.coopNet, null, 'de 17e speelt weer in zijn eigen spel'); assert.ok(extra.gw.coopWeigering, 'met een reden: ' + extra.gw.coopWeigering);
   assert.ok(s.gs.slice(0, 15).every((g) => g.gw.coopNet && g.gw.coopNet.session.status === 'ok'));
   s.hw.coopDeel(100); s.step(1);
-  assert.ok(s.gs.slice(0, 15).every((g) => g.gw.money === 50) && extra.gw.money === 0, 'wie geweigerd is krijgt niets');
+  assert.equal(s.gs.slice(0, 15).reduce((x, g) => x + g.gw.money, 0), 140, '100 x 1,5 = 150 gedeeld door 16: 10 voor de eerste vijf plekken en de gastheer, 9 voor de rest (#452)'); assert.ok(s.gs.slice(0, 15).every((g) => g.gw.money === 9 || g.gw.money === 10) && extra.gw.money === 0, 'wie geweigerd is krijgt niets');
   assert.equal(N.setMaxPlayers(s.hw, 99), 16, 'het maximum is 16');
 });
 
