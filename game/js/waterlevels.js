@@ -19,7 +19,7 @@ import { pointInPolygon as inPolygon } from './polygon.js';
 // keep their own peil; until the renderer draws per body (F2) they are drawn
 // at the same height.
 export const BOEZEM_Y = -2.3;
-export const SMALL_POND_AREA = 0, // uit (0.42.0): met 400 faalde de verhaaltest op een wegoversteek bij de Europaweg (1030, 265), oorzaak niet bevestigd (#327)
+export const SMALL_POND_AREA = 400, // alleen een vijver zonder weg of brug binnen POND_ROAD_CLEAR (#327)
    SMALL_POND_LEVEL = -0.35, SMALL_POND_DEPTH = 0.5;
 export const BOEZEM_NAP = -0.93;
 
@@ -338,7 +338,38 @@ export function classifyWater(poly, onBoezem, w = null) {
 // [{ id, polys, kind, level, nap, area, nav }]. The largest body is the
 // boezem; every other keeps its own peil (drawn at the boezem height for now).
 // focus(x, y): the boezem is the body with most water where focus holds (the city's tiles), not the largest of all
-export function annotateWater(water, cell = 2.5, apart = null, focus = null) {
+// A small pond is only laid at street level where no road crosses it or runs beside it, and no bridge spans it
+// (POND_ROAD_CLEAR): at street level under a bridge or over a crossing the road's water check and the deck break
+// (the story test's water crossings, #327). Roads: the rows with pts, cat and bridge; foot paths count only as a bridge.
+export const POND_ROAD_CLEAR = 15;
+export function pondAwayFromRoads(roads) {
+  const cell = 64, grid = new Map();
+  const add = (k, r) => { const l = grid.get(k); if (l) l.push(r); else grid.set(k, [r]); };
+  for (const r of roads) {
+    if (r.cat === 'foot' && !r.bridge) continue;
+    const b = boundsOf(r.pts);
+    for (let x = Math.floor((b[0] - POND_ROAD_CLEAR) / cell); x <= Math.floor((b[2] + POND_ROAD_CLEAR) / cell); x++) for (let y = Math.floor((b[1] - POND_ROAD_CLEAR) / cell); y <= Math.floor((b[3] + POND_ROAD_CLEAR) / cell); y++) add(`${x},${y}`, r);
+  }
+  return (w) => {
+    const b = boundsOf(w.pts), seen = new Set();
+    for (let x = Math.floor((b[0] - POND_ROAD_CLEAR) / cell); x <= Math.floor((b[2] + POND_ROAD_CLEAR) / cell); x++) for (let y = Math.floor((b[1] - POND_ROAD_CLEAR) / cell); y <= Math.floor((b[3] + POND_ROAD_CLEAR) / cell); y++) {
+      for (const r of grid.get(`${x},${y}`) || []) {
+        if (seen.has(r)) continue;
+        seen.add(r);
+        for (let i = 0; i < r.pts.length - 1; i++) {
+          const a = r.pts[i], c = r.pts[i + 1];
+          if (Math.max(a[0], c[0]) < b[0] - POND_ROAD_CLEAR || Math.min(a[0], c[0]) > b[2] + POND_ROAD_CLEAR || Math.max(a[1], c[1]) < b[1] - POND_ROAD_CLEAR || Math.min(a[1], c[1]) > b[3] + POND_ROAD_CLEAR) continue;
+          if (inPolygon(a[0], a[1], w.pts) || distToOutline(w.pts, a[0], a[1]) < POND_ROAD_CLEAR || distToOutline(w.pts, c[0], c[1]) < POND_ROAD_CLEAR) return false;
+          // a long segment that passes beside the pond: sample along it
+          const L = Math.hypot(c[0] - a[0], c[1] - a[1]);
+          for (let t = 4; t < L; t += 4) { const x0 = a[0] + (c[0] - a[0]) * t / L, y0 = a[1] + (c[1] - a[1]) * t / L; if (inPolygon(x0, y0, w.pts) || distToOutline(w.pts, x0, y0) < POND_ROAD_CLEAR) return false; }
+        }
+      }
+    }
+    return true;
+  };
+}
+export function annotateWater(water, cell = 2.5, apart = null, focus = null, pondOk = null) {
   const { body, count } = waterBodies(water, 1.0, apart);
   // channel width per polygon from each body's distance field
   const width = new Float64Array(water.length);
@@ -392,7 +423,7 @@ export function annotateWater(water, cell = 2.5, apart = null, focus = null) {
     w.nav = K.nav;
     // a small pond that hangs on no canal (a basin on a square, a pool in a garden) is not the boezem: at the canal's
     // level (2.3 m under the street) it was a pit the size of a house on the Grote Markt (#327), so it lies at street level
-    if (kind === 'vijver' && !b.boezem && b.area < SMALL_POND_AREA) { w.lv = SMALL_POND_LEVEL; w.dp = SMALL_POND_DEPTH; }
+    if (kind === 'vijver' && !b.boezem && b.area < SMALL_POND_AREA && (!pondOk || pondOk(w))) { w.lv = SMALL_POND_LEVEL; w.dp = SMALL_POND_DEPTH; }
     b.polys.push(i);
     if (rank[kind] > rank[b.kind]) b.kind = kind;
     b.nav = Math.max(b.nav, K.nav);
@@ -454,7 +485,7 @@ function laidOverCanal(water) {
   return n;
 }
 const polySig = (w) => { const P = w.pts, m = P[P.length >> 1], l = P[P.length - 1]; return `${P.length}|${P[0]}|${m}|${l}|${w.name || ''}`; };
-export function annotateCityWater(rows, { base = 0, village = null, locks = [], focus = null } = {}) {
+export function annotateCityWater(rows, { base = 0, village = null, locks = [], focus = null, roads = null } = {}) {
   const chambers = lockChambers(rows, locks);
   rows.forEach((w, i) => { if (chambers.has(i)) w.lock = true; });
   // The same polygon comes from every pack that holds it (a canal over a pack's edge): classified once, as the
@@ -465,7 +496,7 @@ export function annotateCityWater(rows, { base = 0, village = null, locks = [], 
     if (u === undefined) { u = uniq.length; seen.set(k, u); uniq.push(w); }
     return u;
   });
-  const bodies = annotateWater(uniq, 2.5, null, focus);
+  const bodies = annotateWater(uniq, 2.5, null, focus, roads ? pondAwayFromRoads(roads) : null);
   laidOverCanal(uniq);
   rows.forEach((w, i) => {
     const u = uniq[of[i]];
