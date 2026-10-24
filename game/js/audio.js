@@ -2712,17 +2712,27 @@ function buildHornVoice() {
   return { a, b, bGain, gain, on: false };
 }
 
-// The recorded tyre squeal (sfx/samples.js, #460) loops on the same panner as the synth voice, which stays underneath:
-// level and pitch follow the slip. Built the first time the recording is there.
-function buildSquealLoop(voice, buffer) {
+// The recorded tyre squeal (sfx/samples.js, #460): one chirp per slide, not an endless loop. It starts from the beginning of the
+// recording once the slide has lasted SQUEAL_MIN_S (a one-frame twitch makes no sound), loops the steady middle while the slide
+// lasts (level and pitch follow the slip) and fades out when the grip is back for SQUEAL_HOLD_S. The synth voice stays underneath.
+const SQUEAL_MIN_S = 0.08, SQUEAL_HOLD_S = 0.12;
+function startSquealSample(voice, buffer) {
   const src = ctx.createBufferSource();
   src.buffer = buffer;
   src.loop = true;
+  const d = buffer.duration;
+  src.loopStart = Math.min(0.25, d * 0.2);
+  src.loopEnd = Math.max(src.loopStart + 0.3, d - 0.2);
   const gain = ctx.createGain();
   gain.gain.value = 0;
   src.connect(gain).connect(voice.panner);
   src.start();
   return { src, gain };
+}
+function stopSquealSample(l, t) {
+  l.gain.gain.cancelScheduledValues(t);
+  l.gain.gain.setTargetAtTime(0, t, 0.05);
+  try { l.src.stop(t + 0.35); } catch (e) { /* already stopped */ }
 }
 
 function updateSqueal(dt, world) {
@@ -2755,13 +2765,20 @@ function updateSqueal(dt, world) {
   if (voice.level < 0.002 && target === 0) voice.level = 0;
   voice.gain.gain.setTargetAtTime(voice.level, t, 0.03);
   const buf = samples && samples.buffer('band_piep_bocht');
-  if (buf && !voice.loop) voice.loop = buildSquealLoop(voice, buf);
-  if (voice.loop) {
-    const on = best && !(best.isBike || best.isScooter);
-    const lvl = on ? slipLoopNiveau(best.slip) * SAMPLE_INFO.band_piep_bocht.gain * categoryLevel('voertuig') : 0;
-    voice.loop.gain.gain.setTargetAtTime(lvl, t, 0.06);
-    if (on) voice.loop.src.playbackRate.setTargetAtTime(slipLoopRate(best.slip), t, 0.08);
-  }
+  voice.loop = !!buf; // the synth stays softer underneath once the recording is there
+  if (buf) {
+    const sl = voice.slide || (voice.slide = { run: 0, rest: 0, cur: null });
+    const on = !!best && !(best.isBike || best.isScooter);
+    if (on) { sl.run += dt; sl.rest = 0; } else { sl.rest += dt; if (sl.rest > SQUEAL_HOLD_S) sl.run = 0; }
+    if (!sl.cur && on && sl.run >= SQUEAL_MIN_S) sl.cur = startSquealSample(voice, buf);
+    if (sl.cur) {
+      if (on) {
+        const lvl = slipLoopNiveau(best.slip) * SAMPLE_INFO.band_piep_bocht.gain * categoryLevel('voertuig');
+        sl.cur.gain.gain.setTargetAtTime(lvl, t, 0.04);
+        sl.cur.src.playbackRate.setTargetAtTime(slipLoopRate(best.slip), t, 0.08);
+      } else if (sl.rest > SQUEAL_HOLD_S) { stopSquealSample(sl.cur, t); sl.cur = null; }
+    }
+  } else if (voice.slide && voice.slide.cur) { stopSquealSample(voice.slide.cur, t); voice.slide.cur = null; }
 }
 
 // One-shots of the recordings that follow what a car does (#460): the handbrake pulled above ~25 km/h or a sudden slide
