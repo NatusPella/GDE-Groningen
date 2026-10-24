@@ -6,6 +6,9 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Gerepareerd
+- Samen spelen (#439): Spel overdragen werkte niet vanuit het pauzemenu: wie het spel opende kreeg 'Wacht tot het filmpje voorbij is.', omdat de eigen pauze als filmpje telde. Nu telt alleen een echt filmpje, regel of keuze.
+
 ## [0.47.0] - 2026-10-24
 
 ### Nieuw

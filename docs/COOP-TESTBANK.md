@@ -50,6 +50,21 @@ Een worktree heeft geen `node_modules`: wijs `ELECTRON_EXE` naar de Electron van
 | `basis` met veel gasten (`--gasten=0 --mock=7` of `--mock=15`) | de gastheer in Electron met 7 of 15 headless gasten: het testbankprogramma klikt eerst "Tot 16 spelers" en laat dan pas de gasten komen; controleert dat iedereen iedereen ziet, de klok en geen desync | 1 |
 | `touch` | de gast met `--url-flags=touch=1`: de aanraakstick stuurt Tessa (half, vol, los) | 2 |
 
+## Playtest-simulatie: `scripts/coop/playtest_sim.mjs`
+
+Het scenario van de playtest van 23-10 met een host en twee gasten in echte Electron-instanties (drie tegelijk, wegwerpprofielen, de kamercode-route over de lokale nep-tracker op de loopback; geen internet). Herhaalbaar:
+
+```
+node scripts/coop/restage.mjs --base=<desktop/build/game> --out=<map>
+ELECTRON_EXE=<electron.exe> node scripts/coop/playtest_sim.mjs --stage=<map> [--out=<map>] [--roam-s=600] [--stappen=opening,lopen,...] [--max-min=60]
+```
+
+De coördinator wacht op een vrij slot (drie sloten) en op het slot `stage` (een provinciebouw bevriest Electron tientallen seconden en laat de koppeling wegvallen). De instanties lopen gelijk via een sluis (HTTP op 127.0.0.1, willekeurige poort, alleen deze machine); de fasen staan in `playtest.phases.js` en worden vóór `coop.page.js` gezet (die roept `window.__coopPhases` aan). Stappen: `opening` (samen het openingsfilmpje, de host slaat over), `lopen`, `gastrijdt` (gast 1 neemt een vrije auto en rijdt met E en de stick), `passagier` (de host rijdt, beide gasten rijden mee en stappen uit), `missie` (Meedoen? gast 1 J, gast 2 N), `hengelen` (gast 2 aan het water, I), `winkel` (gast 1 koopt iets), `pauze` (de host opent pauzemenu en kaart terwijl de gasten doorlopen), `overdragen` (Spel overdragen aan gast 1 via Spel > Spelers), `kick` (de nieuwe host zet gast 2 eruit; die sluit met de nieuwe code weer aan), `uitval` (een gast valt 9 s weg), `vrij` (standaard 10 minuten lopen met de gasten op 500 m of meer).
+
+Per instantie komt om de 5 s een `meting` (JS-heap, na gc elke 30 s; beeldsnelheid mediaan en p5; meshes, geometrieën, texturen en programma's; kB/s van en naar de koppeling; voertuigen, voetgangers, figuren). Het rapport (`rapport.md` en `rapport.json`) telt consolefouten, NaN-waarschuwingen, desync en `jserror`, geeft de uitkomst per stap per instantie en de scene aan het begin en eind, en oordeelt op heapgroei (> 6 MB/min in de tweede helft) en groei van meshes (geometrieën alleen als notitie: ze groeien mee met de tegels van een nieuwe plek). Schermafbeeldingen staan per instantie in de uitvoermap (`shots-*.png`).
+
+Niet te testen zonder echte mensen en internet: de bereikbaarheidsmeting van het overdragen (echte STUN-servers en brokers: de simulatie vervangt alleen die meting door `waar`, de kamer loopt echt via de nep-tracker), NAT en UPnP, echte vertraging en verlies over internet, drie computers met verschillende prestaties (hier delen de drie instanties één machine en één GPU), de aanraakbediening van een echte telefoon, geluid (alleen de uitvoer wordt niet beluisterd), en of iets er goed uitziet: de schermafbeeldingen zijn een steekproef.
+
 Wat elke run beoordeelt (de `PROBLEMEN`-lijst van de testbank): alle instanties `KLAAR`; vóór "Akkoord" en tijdens het wachten geen enkele `WebSocket`, `RTCPeerConnection` of `fetch` naar buiten (de pagina telt ze zelf); op de IP-route daarna ook niet (het verkeer loopt via TCP in het main-proces); op de kamercode-route alleen `ws://127.0.0.1`; iedereen ziet alle medespelers; speelklok binnen 0,3 uur; geen desync buiten de ingebrachte; geen `jserror` of consolefout.
 
 Het testprotocol van de pagina met het hoofdproces (desktop/devtools.js, console-regels): `[capture] naam` (schermafbeelding), `[sendinput] {json}` (een echte toets- of muisgebeurtenis: `webContents.sendInputEvent`) en `[clipboard-set] tekst` (het klembord van het hoofdproces vullen), alleen met `--perf-script`.

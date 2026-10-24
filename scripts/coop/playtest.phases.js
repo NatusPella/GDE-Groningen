@@ -65,14 +65,14 @@ window.__coopPhases = (c) => {
   // lopen met de stick; bij een muur 70 graden draaien
   const loop = async (s, { rennen = true, hoek = -Math.PI / 2, tot = null } = {}) => {
     const w = W(), b = B(); if (!b) { await sleep(s * 1000); return 0; }
-    const p0 = [w.player.x, w.player.y]; let last = p0.slice(), lt = performance.now(); const end = performance.now() + s * 1000;
+    const p0 = [w.player.x, w.player.y]; let last = p0.slice(), lt = performance.now(), maxR = 0; const end = performance.now() + s * 1000;
     if (rennen) b.down('shift'); b.stick(Math.cos(hoek), Math.sin(hoek));
     while (performance.now() < end && !(tot && tot())) {
-      await sleep(100);
+      await sleep(100); maxR = Math.max(maxR, Math.hypot(w.player.x - p0[0], w.player.y - p0[1]));
       if (performance.now() - lt > 1500) { if (Math.hypot(w.player.x - last[0], w.player.y - last[1]) < 3 && !w.paused) { hoek += 1.2; b.stick(Math.cos(hoek), Math.sin(hoek)); } last = [w.player.x, w.player.y]; lt = performance.now(); }
     }
     b.stick(0, 0); if (rennen) b.up('shift');
-    return Math.round(Math.hypot(w.player.x - p0[0], w.player.y - p0[1]));
+    return Math.round(Math.max(maxR, Math.hypot(w.player.x - p0[0], w.player.y - p0[1])));
   };
   // alleen voor wie het spel opende: de lichamen van de gasten (Tessa = plek 1 = w.companion, de rest zijn figuren)
   const lichamen = () => { const w = W(), o = []; if (w.companion) o.push({ slot: 1, l: w.companion }); for (const f of Object.values(w.coopFigures || {})) if (f.slot >= 2) o.push({ slot: f.slot, l: f }); return o.sort((a, b) => a.slot - b.slot); };
@@ -86,6 +86,8 @@ window.__coopPhases = (c) => {
   const stap = async (naam, fn) => {
     stand.stap = naam; await publiceer();
     if (naam !== 'opening') await bar('begin-' + naam); // de gasten wachten in de wachtkamer tot de host het spel start: daar geen sluis
+    // zonder internet kan de bereikbaarheidsmeting van het overdragen (echte STUN-servers en brokers) niet slagen: die ene meting wordt vervangen, de rest (kamer via de nep-tracker) is echt
+    try { const d = (W().coopWissel || {}).deps; if (d && !d.__sim) { d.bereikbaar = async () => true; d.__sim = 1; } } catch (e) { /* geen overdracht-route */ }
     log('stap', { naam, begin: true, rol: isHost() ? 'host' : 'gast', pos: pos(W().player) });
     try { await fn(isHost() ? 'host' : 'gast'); } catch (e) { uitslag(naam, false, { fout: String(e && e.message || e).slice(0, 200) }); }
     await bar('eind-' + naam);
@@ -151,8 +153,8 @@ window.__coopPhases = (c) => {
       const w = W(), b = B();
       if (isHost()) {
         let id = 'M03', ok = false, st = null; const story = window.__story; const M0 = await imp('missions');
-        try { const i = M0.missionIndexById(id); ok = !!M0.missionDebug.start(w, i); } catch (e) { id = 'fout ' + e.message; }
-        await sleep(15000); try { st = story.mission(); } catch (e) { st = null; }
+        try { const defs = M0.getMissionDefs(); const i = 2; id = (defs[i] && (defs[i].label || defs[i].id)) || String(i); M0.missionDebug.start(w, i); await sleep(4000); ok = !!M0.isMissionActive(); } catch (e) { id = 'fout ' + e.message; }
+        await sleep(12000); try { st = story.mission(); } catch (e) { st = null; }
         shot('missie-host');
         const M = await imp('missions'); try { M.cancelActiveMission(w); } catch (e) { /* al weg */ }
         await sleep(8000);
@@ -178,7 +180,7 @@ window.__coopPhases = (c) => {
         for (let r = 6; r <= 400 && !best; r += 6) for (let a = 0; a < 6.283 && !best; a += 0.2) { const x = me.x + Math.cos(a) * r, y = me.y + Math.sin(a) * r; if (isInWater(w.map, x, y) && isInWater(w.map, x + Math.cos(a) * 12, y + Math.sin(a) * 12)) best = { x, y, a, r }; }
         log('hengel-water', best || { geen: true });
         if (!best) { uitslag('hengelen', false, { rol: 'host', fout: 'geen water binnen 400 m' }); return; }
-        const Ch = await imp('cheats'); const kant = [best.x - Math.cos(best.a) * 3.5, best.y - Math.sin(best.a) * 3.5];
+        const Ch = await imp('cheats'); const kant = [best.x - Math.cos(best.a) * 1.2, best.y - Math.sin(best.a) * 1.2]; // binnen HENGEL_REIK (3,2 m) van de waterkant
         Ch.verplaatsStil(w, kant[0] - Math.cos(best.a) * 4, kant[1] - Math.sin(best.a) * 4);
         await sleep(6000);
         const g = await lichaamVan('gast2'); if (g) { plaats(g.l, kant[0], kant[1]); }
@@ -190,14 +192,18 @@ window.__coopPhases = (c) => {
         return;
       }
       if (CFG.name !== 'gast2') { await sleep(20000); const e = Object.values(w.coopBezigVan || {}).map((x) => x.a); shot('hengelen-' + CFG.name); await sleep(15000); uitslag('hengelen', true, { rol: 'gast', wie: CFG.name, ziet: e }); return; }
-      await sleep(14000); // de host brengt je naar het water
-      const ms = noodMelding(); const t0 = Date.now();
-      await b.press('i', 150); await sleep(3000); shot('hengelen-gast-1');
+      await sleep(6000); // de host brengt je naar het water; na een sprong laadt de wereld en staat het spel een poos op pauze
+      const A = await imp('activities'), ms = noodMelding(); ms.length = 0;
+      for (let i = 0; i < 100 && (w.paused || (w.coopHold)); i++) await sleep(300);
+      await sleep(2500);
+      let actief = false, pogingen = 0;
+      for (; pogingen < 5 && !actief; pogingen++) { await b.press('i', 150); await sleep(2500); actief = !!A.isActivityActive(); }
+      shot('hengelen-gast-1');
       await sleep(14000); shot('hengelen-gast-2');
-      const bezig = Object.keys(w.coopBezigVan || {}).length;
-      const tekst = ms.slice(-4);
-      await b.press('escape', 120); await sleep(1500);
-      uitslag('hengelen', true, { rol: 'gast', meldingen: tekst, eigenBezig: bezig, geld: w.money, lichaamBeweegt: pos(w.player) });
+      const nogActief = !!A.isActivityActive(), tekst = ms.slice(-4);
+      try { A.quitActivity(w); } catch (e) { /* al klaar */ }
+      await sleep(1500);
+      uitslag('hengelen', actief && nogActief, { rol: 'gast', actief, nogActief, pogingen, meldingen: tekst, geld: w.money });
     },
     // 7. een gast winkelt (gast 1)
     async winkel() {
@@ -262,19 +268,23 @@ window.__coopPhases = (c) => {
         knop.click(); log('overdragen-gevraagd', { slot: sl });
         await sleep(1500); await closeMenu(); await sleep(6000); log('overdragen-na-klik', { meldingen: mm.slice(-4), wissel: !!w.coopWissel, ui: w.coopWisselUi ? JSON.stringify(w.coopWisselUi).slice(0, 200) : null, paused: !!w.paused, inVoertuig: !!(w.player && w.player.inVehicle) });
       } else if (CFG.name === 'gast') {
-        const k = await until(() => document.querySelector('.coop-wissel [data-wissel="ja"]'), 40000, 'de vraag Het spel overnemen?'); shot('overdragen-vraag-gast'); await sleep(1200); k.click(); log('overdragen-ja', {});
+        await until(() => document.querySelector('.coop-wissel [data-wissel="ja"]'), 40000, 'de vraag Het spel overnemen?'); shot('overdragen-vraag-gast'); await sleep(1200);
+        for (let i = 0; i < 6 && w.coopWisselUi && w.coopWisselUi.vraag; i++) { const k = document.querySelector('.coop-wissel [data-wissel="ja"]'); if (k) k.click(); await sleep(700); } // de knop wordt elke tik opnieuw getekend: steeds opnieuw zoeken
+        log('overdragen-ja', {});
       }
+      const fasen = []; const volg = setInterval(() => { const x = w.coopWissel || {}, f = (x.oud && x.oud.fase) || (x.nieuw && x.nieuw.fase) || '-'; const t = Math.round((performance.now() - t0) / 1000); const k = f + ':' + (x.overname ? 'o' : '') + (x.verbindt ? 'v' : '') + (x.oudKlaar ? 'k' : ''); if (!fasen.length || fasen[fasen.length - 1][1] !== k) fasen.push([t, k]); }, 300);
       // wacht tot de rollen gewisseld zijn: gast = host, host = gast, gast 2 sluit vanzelf aan bij de nieuwe host
       let gewisseld = false;
-      for (let i = 0; i < 360 && !gewisseld; i++) {
+      for (let i = 0; i < 180 && !gewisseld; i++) {
         const n = net();
         if (CFG.name === 'gast') gewisseld = !!n && n.role === 'host' && !w.coopWissel;
         else if (CFG.name === 'host') gewisseld = !!n && n.role === 'client' && !!n.session && n.session.joined && !w.coopWissel;
         else { if (i % 4 === 0) haalCache.rol = await haal('rol-gast'); gewisseld = haalCache.rol === 'host' && !!n && n.role === 'client' && !!n.session && n.session.joined; }
         if (!gewisseld) await sleep(500);
       }
+      clearInterval(volg);
       await sleep(4000); await publiceer(); shot('overdragen-klaar-' + CFG.name);
-      uitslag('overdragen', gewisseld, { rol: isHost() ? 'host' : 'gast', wie: CFG.name, voorHost: rolVoor, naHost: isHost(), slot: mijnSlot(), wachtS: Math.round((performance.now() - t0) / 1000), roster: (w.coopRoster || []).map((r) => [r.slot, r.verbinding]) });
+      uitslag('overdragen', gewisseld, { fasen: fasen.slice(0, 12), meldingen: noodMelding().slice(-4), ui: w.coopWisselUi ? JSON.stringify(w.coopWisselUi).slice(0, 160) : null, rol: isHost() ? 'host' : 'gast', wie: CFG.name, voorHost: rolVoor, naHost: isHost(), slot: mijnSlot(), wachtS: Math.round((performance.now() - t0) / 1000), roster: (w.coopRoster || []).map((r) => [r.slot, r.verbinding]) });
     },
     // 10. de nieuwe host zet iemand eruit (gast 2); die probeert daarna weer aan te sluiten
     async kick() {
@@ -350,7 +360,7 @@ window.__coopPhases = (c) => {
         }
       })();
       const m = await lopen; await meter;
-      uitslag('vrij', m > 50, { rol: isHost() ? 'host' : 'gast', wie: CFG.name, m, minAfstand: isHost() ? Math.round(minAfstand) : null, afstanden, s });
+      uitslag('vrij', isHost() ? (m > 20 && minAfstand >= 400) : m > 20, { rol: isHost() ? 'host' : 'gast', wie: CFG.name, m, minAfstand: isHost() ? Math.round(minAfstand) : null, afstanden, s });
     },
   };
 

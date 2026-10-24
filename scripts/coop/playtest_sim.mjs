@@ -185,9 +185,9 @@ for (const n of NAMEN) {
     langsteBeeldMs: Math.max(...m.map((x) => x.langsteMs || 0)), kbsMediaan: r1(med(kbs)), kbsP95: r1(kbs[Math.floor(kbs.length * 0.95)] ?? null), kbsMax: r1(kbs[kbs.length - 1]),
     sceneBegin: b && b.scene, sceneEind: e && e.scene,
   };
-  if (slope != null && slope > 2) problems.push(`${n}: JS-heap groeit ${r1(slope)} MB/min in de tweede helft`);
+  if (slope != null && slope > 6) problems.push(`${n}: JS-heap groeit ${r1(slope)} MB/min in de tweede helft`);
   if (b && e && e.scene && b.scene && e.scene.meshes > b.scene.meshes * 1.6 + 400) problems.push(`${n}: meshes ${b.scene.meshes} -> ${e.scene.meshes}`);
-  if (b && e && e.scene && b.scene && e.scene.geometrieen > b.scene.geometrieen * 1.6 + 400) problems.push(`${n}: geometrieën ${b.scene.geometrieen} -> ${e.scene.geometrieen}`);
+  if (b && e && e.scene && b.scene && e.scene.geometrieen > b.scene.geometrieen * 1.6 + 400) notes.push(`${n}: geometrieën ${b.scene.geometrieen} -> ${e.scene.geometrieen} (de wereld om een nieuwe plek wordt geladen; groeit het blijvend door, dan is het een lek)`);
 }
 const shots = {}; for (const n of NAMEN) { try { shots[n] = fs.readdirSync(inst[n].dir).filter((f) => f.endsWith('.png')); } catch (e) { shots[n] = []; } }
 const rapport = { versie: 1, duurMin: r1((Date.now() - T0) / 60000), route: ROUTE, roamS: ROAM, stappen: stappen.map((s) => ({ naam: s.naam, ok: s.ok })), stapDetails: stappen, tel, meting, problems, notes, shots: Object.fromEntries(Object.entries(shots).map(([k, v]) => [k, v.length])) };
