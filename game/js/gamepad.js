@@ -139,6 +139,14 @@ function context() {
   if (w.pigeonMode) return 'pigeon';
   if (w.trainDriving) return 'train';
   if (w.challenge && w.challenge.id === 'fjord') return 'foodtruck';
+  // de vliegschool (#397) blijft de hele les een activiteit, ook als je in het lesvliegtuig zit: in de lucht
+  // de gewone vliegindeling, in het lesmenu de pijlen met A en B (anders stopte B de les en kon je niet bladeren)
+  if (w.activityGame === 'vliegschool') {
+    const sv = w.player && w.player.inVehicle;
+    if (sv && sv.isPlane) return 'plane';
+    if (sv && sv.isHeli) return 'heli';
+    return 'vliegschool';
+  }
   if (GAME_PAD_CTX[w.activityGame]) return GAME_PAD_CTX[w.activityGame];
   if (playerBusy(w, ['padel', 'activityGame']).busy) return 'minigame';
   const v = w.player && w.player.inVehicle;

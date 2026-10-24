@@ -223,6 +223,9 @@ export const PAD_MAPS = {
   pannenkoek: { a: 'q', b: 'w', x: 'e', y: 'r', lb: '1', rb: '2', lt: '3', rt: 'backspace', ls: null, rs: null, up: null, down: null, left: null, right: null, view: 'm', start: 'escape', stick: 'none' },
   // the Fjord Frituur: the D-pad and the bumpers pick from the menu
   foodtruck: { a: ' ', b: 'backspace', x: 'backspace', y: 'e', up: '1', right: '2', down: '3', left: '4', lb: '5', rb: '6', lt: null, rt: '@gas', ls: null, rs: null, view: 'm', start: 'escape', stick: 'move' },
+  // de vliegschool (#397): het lesmenu bij de balie; A kiest, B gaat terug, de pijlen (en de stick) bladeren. In de lucht
+  // kiest gamepad.js de gewone vliegindeling zodra je in het lesvliegtuig zit.
+  vliegschool: { a: 'enter', b: 'backspace', x: null, y: null, lb: null, rb: null, lt: null, rt: null, ls: null, rs: null, up: 'arrowup', down: 'arrowdown', left: 'arrowleft', right: 'arrowright', view: 'm', start: 'escape', stick: 'arrows' },
   menu: { a: 'enter', b: 'escape', x: 'delete', y: ' ', lb: 'q', rb: 'e', lt: '[', rt: ']', ls: null, rs: null, up: 'arrowup', down: 'arrowdown', left: 'arrowleft', right: 'arrowright', view: 'm', start: 'escape', stick: 'nav' },
 };
 
