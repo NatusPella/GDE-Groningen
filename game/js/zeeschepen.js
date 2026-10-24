@@ -4,6 +4,7 @@
 // het schip (pickZeeschip, zeeModel); het beheer (manageSeaShips) gebruikt de spawner en de vlag van vehicle.js via `env`.
 // Tests: scripts/zeeschepen_test.mjs.
 import { BOAT_KINDS } from './boattypes.js';
+import { speler } from './spelersregister.js';
 
 export const ZEE_MAX = 3;
 // m rond de speler: eerst dichtbij proberen (van de kust is de zee vaak een kilometer weg), dan verder
@@ -64,7 +65,7 @@ export function waterPast(model, poly) {
 // pas op als het ver weg én uit het zicht is. De kegel voor de boot volgt die van vehicle.js
 // (spawnWouldPop): wat recht voor je vaart zie je aankomen.
 export function inZicht(world, x, y) {
-  const p = world && world.player;
+  const p = world && speler(world);
   if (!p) return false;
   const pv = p.inVehicle;
   if (pv) {
@@ -79,7 +80,7 @@ export function inZicht(world, x, y) {
 let timer = 0;
 // env: { spawnBoatOnWater, isShip } uit vehicle.js (main.js geeft ze mee)
 export function manageSeaShips(world, dt, env, rng = Math.random) {
-  if (!world || !world.player || !world.map || !env || world.paused) return;
+  if (!world || !speler(world) || !world.map || !env || world.paused) return;
   timer -= dt;
   if (timer > 0) return;
   timer = ZEE_TIK_S;
