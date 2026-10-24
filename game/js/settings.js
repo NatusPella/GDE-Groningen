@@ -35,7 +35,9 @@ const BASE_DEFAULTS = {
   // shift+klik op de kaart verplaatst je naar die plek (kaartteleport.js)
   mapShiftTeleport: true,
   showHints: true,
-  // live bussen (livebussen.js, #395): alleen publieke buslocaties ophalen, niets van de speler versturen
+  // live bussen (livebussen.js + buslive.js, #395): standaard aan, zoals de andere opties; de speler
+  // zet het uit onder Instellingen, Spel. Alleen publieke buslocaties ophalen, niets van de speler
+  // versturen; zonder bron of met de optie uit rijden de bussen hun eigen dienst.
   liveBussen: true,
   // which glyphs every hint shows: 'auto' (what you used last), 'keys' or 'pad'
   hintSource: 'auto',

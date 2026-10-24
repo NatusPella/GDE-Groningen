@@ -1722,8 +1722,8 @@ grade pass (`postfx.look`), not a CSS filter over the canvas. A shot with
 `fadeOut` ends on black and streams the next location in there, like the
 black cards.
 
-## Live bussen: wat wordt opgehaald (`livebussen.js`, #395)
-Optie, standaard aan (instelling `liveBussen`, Instellingen, Spel). Constitutie 4 (besluit eigenaar 24-10) staat het ophalen van openbare gegevens toe, mits er niets van de speler naartoe gaat.
+## Live bussen: wat wordt opgehaald (`livebussen.js` + `buslive.js`, #395)
+Optie, standaard aan (instelling `liveBussen`, Instellingen, Spel). Constitutie 4 (besluit eigenaar 24-10) staat het ophalen van openbare gegevens toe, mits er niets van de speler naartoe gaat. `livebussen.js` bevat de regels en de opvraag (protobuf lezen, koppelen aan een lijn, `haalLiveBussen`); `buslive.js` het ritme, de stand, de keuze van de opvraag (Electron-brug of direct) en de uitzetter uit Instellingen.
 - **Bron:** de open GTFS-Realtime-feed van OVapi/openOV, `https://gtfs.ovapi.nl/nl/vehiclePositions.pb` (voertuigposities van het Nederlandse openbaar vervoer; ca. 0,5 MB; zonder account of sleutel; CC0 volgens openOV).
 - **Opvraag:** één `GET` per minuut of minder (bij fouten steeds langer wachten, tot 10 minuten), zonder cookies (`credentials: 'omit'`), zonder referrer, zonder body of querystring, met een neutrale User-Agent, een time-out van 8 s en een maximum van 3 MB. Het IP-adres is voor de aanbieder zichtbaar, zoals bij elke opvraag. Er gaat geen speler-id, naam, opslagsleutel, instelling of positie mee; de test `livebussen_test.mjs` bewaakt dat.
 - **Wat het spel eruit leest:** alleen positie, richting en snelheid van voertuigen in het gebied rond Groningen (maximaal 300). De lijnnummers van de feed komen nergens in beeld: een voertuig wordt aan een eigen lijn (`busroutes.js`) gekoppeld op plek (binnen 30 m) en rijrichting; een voertuig dat op geen lijn past (een trein, een lijn die we niet hebben) telt niet. Het bord toont de verzonnen lijn en bestemming van het spel.
