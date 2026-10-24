@@ -17,6 +17,22 @@ De wereld, het verhaal, de missies en de voertuigen zijn van wie het spel opende
 Alles wat de wereld van de host buiten zijn lichaam zou veranderen kan niet: een voertuig kopen, praten met een voorbijganger, een minigame
 starten (een bijbaan uit de tabel van `coopbijbaan.js` vraagt de gast aan de host, #452). De gast krijgt dan een korte melding ("Dat kan alleen in je eigen spel").
 
+## Wie je bent en hoe anderen je zien (#455)
+
+De rol hoort bij de speler, niet bij de plek: iedereen speelt lokaal de hoofdpersoon van zijn eigen verhaal (Tammo of
+Tessa, wat jouw opdracht vraagt) en wisselt daar lokaal in mee. Plek 0 en 1 hebben geen eigen rol meer. De wereld is van
+wie het spel opende, maar het verhaal en de voortgang zijn per speler.
+
+Anderen zien je als je **online-avatar**: de naam en kleur die je zelf invult bij Samen spelen en in Pauzemenu › Spelers.
+De naam is hoogstens 16 tekens en gaat door dezelfde lijst verboden woorden als een sessienaam, zonder echte
+persoonsnamen (constitutie 10); de kleur komt uit een vaste set (`PROFIEL_KLEUREN` in `lobby.js`). Je ziet ze terug bij je
+figuur in de spelerslijst (Tab) en in het spelersoverzicht; de andere verhaalrol (Tessa als jij Tammo bent, of andersom)
+is in jouw beeld een computerfiguur die één keer in de wereld staat.
+
+Iedereen begint op **passief**: medespelers doen je geen schade en jij doet hun niets, tot jullie allebei de passieve
+stand uitzetten (zie "Passieve stand en spelers tegen elkaar", #447). Wie meedoet krijgt de stap in zijn eigen verhaal en
+de volledige beloning (#429).
+
 ## De regels per actie
 
 | Actie | Mag een gast | De regel |
