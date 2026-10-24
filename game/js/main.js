@@ -11,6 +11,7 @@ import { DEV, STORY_TEST, FLAGS } from './devflags.js';
 import { bindCoop } from './coopglue.js';
 import { tickCoopNet, setCoopTreinen, coopWereldDoorloop } from './coopnet.js';
 import { zetBestuurHaken } from './coopbestuur.js';
+import { zetDeelHaken } from './coopbezit.js';
 import { politieMetDoelwit } from './coopgezocht.js';
 import { reportCrime } from './crime.js';
 import { findEnterableVehicle } from './vehicle.js';
@@ -34,6 +35,7 @@ import { setRegionData } from './regions.js';
 import { tileIndexOf, tileKey, tileOrigin } from './gdt.js';
 import { loadFacilities, initFacilities, loadShopPlaces, initShopPlaces, setExtraBuiltWorld, placeWithTiles, FAC } from './facilities.js';
 import { setShopSpots, spotsFrom } from './shopspots.js';
+import { eigenSpec, findParkingSpot } from './ownedvehicles.js';
 import { ensureCountryEdge } from './countryplan.js';
 import { warmCountryMaps } from './countrymap.js';
 import { Input, lockVerlorenOpentMenu } from './input.js';
@@ -72,7 +74,7 @@ import { initHud, updateHud } from './hud_panel.js';
 import { initGarages, initCountryGarages, updateGarages, tryGarageInteract } from './garages.js';
 import { initParkeergarages, updateParkeergarages } from './parkeergarage.js';
 import { initHoreca, initCountryHoreca, updateHoreca, tryHorecaInteract } from './horeca.js';
-import { initShops, initCountryShops, updateShops, tryShopInteract, COUNTRY_SHOP_KINDS, getShopsForRender } from './shops.js';
+import { initShops, initCountryShops, updateShops, tryShopInteract, COUNTRY_SHOP_KINDS, getShopsForRender, spawnSharedVehicle } from './shops.js';
 import { initSnackMachines, updateSnackMachines, tryMachineInteract } from './snackautomaat.js';
 import { updateStreetLife, tryStreetLifeInteract } from './streetlife.js';
 import { bikeBoost, hourOf } from './streetlifedata.js';
@@ -459,6 +461,8 @@ async function boot() {
   zetWapenHaken({ aanval: gastAanvalUitvoeren, landing: gastSlagLanding }); // een gast met een wapen: de host rekent zijn aanval uit (#434)
   zetGastWapenHaken({ effect: (w, key, p) => { const wp = WEAPONS[key]; if (!wp) return; setCombatEffect({ type: wp.kind === 'melee' ? 'melee' : 'muzzle', angle: p.angle, until: w.time + (wp.kind === 'melee' ? 0.15 : 0.06), start: w.time, side: 1, weapon: key, swing: wp.swing }); (w.audioEvents || (w.audioEvents = [])).length < 64 && w.audioEvents.push({ kind: 'weapon', sub: wp.kind === 'melee' ? 'swing' : 'shot', weapon: key, x: p.x, y: p.y }); }, geluid: (w, ev) => { (w.audioEvents || (w.audioEvents = [])).length < 64 && w.audioEvents.push(ev); } }); // het eigen beeld en geluid van de gast
   zetBestuurHaken({ misdaad: (w, slot, kind) => reportCrime(w, kind, { dader: slot }), vind: findEnterableVehicle, vindProp: findRideableProp, rijProp: rideProp, enter: (l, v, w) => Player.prototype.enterVehicle.call(l, v, w), exit: (l, map, w, th) => Player.prototype.exitVehicle.call(l, map, w, th), drive: (l, dt, inv, map, w) => Player.prototype.driveVehicle.call(l, dt, inv, map, w) });
+  // samen spelen (#449): de gastheer zet het eigen voertuig van een gast neer (coopbezit.js)
+  zetDeelHaken({ spec: eigenSpec, plek: (w, x, y, model, opts) => findParkingSpot(w, x, y, model, opts), maak: spawnSharedVehicle });
   buildMovableBridges(world.map);
   // the province's movable bridges come with the streamed tiles, not with map.roads (#235)
   if (world.map.onTiles) {
