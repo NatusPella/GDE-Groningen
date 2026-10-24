@@ -380,6 +380,42 @@ results.routes.lek = await safe('lek', async () => {
   for (const t of alive) { const im = t.image || {}; const k = ((t.image && t.image.__stk) || '') + ' | ' + (t.name || '') + ' ' + (im.width || (t.source && t.source.data && t.source.data.width) || '?') + 'x' + (im.height || '?') + ' f' + t.format + ' t' + t.type + (t.isCanvasTexture ? ' canvas' : '') + (t.isDataTexture ? ' data' : '') + (t.isCompressedTexture ? ' compressed' : '') + (t.generateMipmaps ? ' mips' : ''); groups.set(k, (groups.get(k) || 0) + 1); }
   return { ...o, samples, aliveTextures: alive.size, aliveGroups: [...groups.entries()].sort((a, b) => b[1] - a[1]).slice(0, 25) };
 });
+// travel without leaks (only with PERF_ONLY=reislek, #379 #247): the player jumps through five far places, a dwell at each (PERF_DWELL s, default 12),
+// for PERF_LAPS laps (default 3). At the end of every dwell the numbers that must stay flat from lap to lap are taken: JS heap (after a forced
+// GC when the page has one: start with --js-flags=--expose-gc), geometries and textures on the GPU, linked programs, scene nodes, distinct
+// materials, resident tiles. `drift` holds the change of lap N against lap 1 per place; a leak shows as a climb that does not level off.
+// The frame times of the whole run (p99, max, over 50 and 100 ms) are the hitches that tile streaming and building give after a jump.
+results.routes.reislek = await safe('reislek', async () => {
+  if (!ONLY.includes('reislek')) return null;
+  const TOUR = ['Groningen', 'Winschoten', 'Eemshaven', 'Delfzijl', 'Warffum'].map(placeAt);
+  const DWELL = (window.__perfDwell || 12), LAPS = (window.__perfLaps || 3);
+  const samples = [];
+  const take = (lap, place) => {
+    if (window.gc) window.gc();
+    const mats = new Set(); let nodes = 0;
+    sc.scene.traverse((o) => { nodes++; if (o.material) for (const m of Array.isArray(o.material) ? o.material : [o.material]) mats.add(m); });
+    const st = map.store;
+    samples.push({ lap, place, heapMB: performance.memory ? Math.round(performance.memory.usedJSHeapSize / 1e6) : null, geometries: r.info.memory.geometries, textures: r.info.memory.textures,
+      programs: r.info.programs.length, nodes, materials: mats.size, tiles: st ? st.residentKeys.length : null, tileMB: st ? +(st.residentBytes / 1e6).toFixed(1) : null,
+      tileQueue: map.tileQueue ? map.tileQueue.size : null, vehicles: w.vehicles.length, peds: w.pedestrians.length });
+  };
+  const o = await run('reislek', async () => { teleport(TOUR[0][0], TOUR[0][1]); return { i: 0 }; }, (c, t) => {
+    const i = Math.floor(Math.max(0, t) / DWELL);
+    if (i === c.i) return;
+    take(Math.floor((i - 1) / TOUR.length) + 1, (i - 1) % TOUR.length);
+    c.i = i;
+    const q = TOUR[i % TOUR.length];
+    teleport(q[0], q[1]);
+  }, null, { dur: DWELL * TOUR.length * LAPS * 1000 });
+  const drift = {};
+  for (const key of ['heapMB', 'geometries', 'textures', 'programs', 'nodes', 'materials', 'tiles']) {
+    drift[key] = TOUR.map((_, pl) => samples.filter((s) => s.place === pl).map((s) => s[key]));
+  }
+  const last = (a) => a[a.length - 1] - a[0];
+  const summary = {};
+  for (const key of Object.keys(drift)) summary[key] = drift[key].map(last);
+  return { ...o, tourSamples: samples, drift, driftLastVsFirst: summary, places: ['Groningen', 'Winschoten', 'Eemshaven', 'Delfzijl', 'Warffum'], dwell: DWELL, laps: LAPS };
+});
 // input to image: a synthetic W keydown to the first frame whose state moved (a software estimate: add one frame of display, no photodiode)
 results.routes.latentie = await safe('latentie', async () => {
   if (ONLY.length && !ONLY.includes('latentie')) return null;
