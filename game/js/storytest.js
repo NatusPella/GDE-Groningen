@@ -451,11 +451,16 @@ async function newArcRuntimeChecks(world, check, capture) {
   const pf = window.__phonefeed;
   if (pf) {
     await quietDown(world);
+    // #425: an app text (not a story text) waits while the HUD is busy (wanted, a fight in the last 5 s, a race), so the
+    // harness first leaves that moment: the missions it skipped can leave a wanted level or a fresh fight behind.
+    world.wanted = 0;
+    await waitFor(() => !(window.__narrative && window.__narrative.state().active.length) && !document.querySelector('.pf-card'), 20000, 200);
+    await sleep(5200);
     const before = pf.state().cards;
     world.phoneNotifications.push({ from: 'Tessa', text: 'Ik ben bij het Loket. Kom niet. Je brengt ze in de war.', duration: 5, silent: true });
     // (not `story`: a story text waits for its pending radio contact (narrative.js), which the harness never plays)
-    const card = await waitFor(() => pf.state().cards > before || document.querySelector('.pf-card'), 15000, 200);
-    check('new arc: a silent app text shows as a phone card', card, JSON.stringify(pf.state()));
+    const card = await waitFor(() => pf.state().cards > before || document.querySelector('.pf-card'), 40000, 200);
+    check('new arc: a silent app text shows as a phone card', card, JSON.stringify({ pf: pf.state(), narrative: window.__narrative && window.__narrative.state(), wanted: world.wanted, paused: !!world.paused, held: !!(document.querySelector('.pf-held')), pending: world.phoneNotifications.length }));
     check('new arc: the silent app text is not read aloud', window.__phonefeed.voicing ? !window.__phonefeed.voicing() : true);
   }
   // the radio keeps to the world: ducked while a mission runs
