@@ -92,7 +92,8 @@ const lp = of('gastloop')[0];
 check(lp && lp.max > 70, 'lijn: de gast komt niet verder dan 38 m van de gastheer: ' + JSON.stringify(lp));
 const afst = S.filter((s) => s.me && s.companion && s.t >= (lp ? lp.t - 31 : 0) && s.t <= (lp ? lp.t : 0)).map((s) => Math.hypot(s.me.x - s.companion.x, s.me.y - s.companion.y));
 const terug = afst.some((d, i) => i && afst[i - 1] - d > 60); // de gast rent door: na 110 m en 4 s zet het spel hem bij de groep (een val van meer dan 60 m tussen twee samples)
-check(terug, 'band: de gast wordt niet bij de groep gezet: ' + afst.map((d) => Math.round(d)).join(' '));
+// sinds de losse groepen (#429) is een gast die ver weg loopt vrij (eigen focus, geen vaste band): dan mag hij ook niet teruggezet worden
+check(terug || (lp && lp.max > 150), 'band: de gast wordt niet bij de groep gezet en loopt ook niet vrij: ' + afst.map((d) => Math.round(d)).join(' '));
 notes.push('afstand tot de gastheer: ' + afst.map((d) => Math.round(d)).join(' '));
 // voertuigen van de gastheer als echte modellen (geen blokken), de gast zit nooit vanzelf in een voertuig, geen NaN
 const hm = S.filter((s) => s.hostMesh && s.hostEnt && s.hostEnt[0] > 0).slice(-1)[0];

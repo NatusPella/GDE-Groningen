@@ -37,6 +37,10 @@ const LOCK_FAILS = 3;
 const LOCK_PENDING_MS = 1500;
 const LOCK_FAIL_GAP_MS = 2000;
 
+// De muis raakt kwijt (pointerlockchange): alleen dan opent het pauzemenu zelf, niet als er al een menu of een vraagscherm
+// open staat dat de muis zelf losliet (afspeelvooruit, hulpaanbod): anders lag het menu er nog over (#435: Escape meerdere keren).
+export function lockVerlorenOpentMenu({ gestart, menuOpen, vraagOpen }) { return !!gestart && !menuOpen && !vraagOpen; }
+
 export class Input {
   constructor(target = window) {
     this.keys = new Set();
@@ -223,6 +227,15 @@ export class Input {
       failed();
     }
     return true;
+  }
+
+  // Het menu, de kaart of de winkel gaat dicht (main.js geeft elk beeld de stand door): meteen de muis weer vragen (#435).
+  // Sluit je met een klik of een toets (niet Escape, die telt voor de browser niet als gebaar), dan lukt dat zonder dat je
+  // eerst nog eens in het spel moet klikken; een weigering telt niet mee (gesture=false).
+  menuStand(open) {
+    const was = this._menuOpen;
+    this._menuOpen = !!open;
+    return !!was && !open && this.tryLock(false);
   }
 
   // true while mouse motion should steer the camera: pointer captured, or the
