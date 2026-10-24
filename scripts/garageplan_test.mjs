@@ -96,6 +96,27 @@ const near = G.planGate(free, roadDir, 20, 45, { radius: 60, step: 3 });
 const far = G.planGate(free, roadDir, 20, 15, { radius: 60, step: 3 });
 ok(near && far && near.score <= far.score + 1e-9, 'a spot nearer to the hall and the road scores better');
 
+// a garage with a hall always gets a gate (#418): when the strict rules leave no spot (here: a free square whose
+// nearest car road is farther than maxRoad), the planner takes the nearest free block instead, the opening towards
+// the road. Without that relaxed round the garage would stay without an entrance.
+const square = (x, y) => x > 25 && x < 47 && y > -12 && y < 12;
+const farRoad = (x, y) => ({ x, y: 60, dist: Math.abs(y - 60), angle: 0 });
+const tight = G.planGate(square, farRoad, 10, 0, { radius: 60, step: 3, maxRoad: 30 });
+ok(tight !== null, 'a full street still gives a gate');
+ok(G.planGate(square, farRoad, 10, 0, { radius: 60, step: 3, maxRoad: 30, relax: false }) === null, 'the strict rules alone would leave it without one');
+if (tight) {
+  let block = true;
+  for (let a = G.GATE.clearA0; a <= G.GATE.clearA1; a += 2.9) for (let b = -G.GATE.clearB; b <= G.GATE.clearB; b += 2.65) {
+    const [x, y] = G.toWorld(tight, a, b);
+    if (!square(x, y)) block = false;
+  }
+  ok(block, 'the gate stands on the free square', tight);
+  ok(Math.sin(tight.angle) > 0.9, 'the opening faces the road that is there', tight);
+}
+// a map that is not loaded yet (no roads at all, everything free) still gives null: the caller waits for the tiles
+// and asks again (parkeergarage.js), instead of putting a gate in a building that is not in yet
+ok(G.planGate(() => true, () => null, 0, 0, { radius: 40, step: 4 }) === null, 'an empty map is no place for a gate');
+
 // the cars: a share of the bays, models that fit, the same every time for a seed
 const MODELS = [{ len: 3.8, wid: 1.7 }, { len: 4.5, wid: 1.8 }, { len: 5.0, wid: 2.0 }, { len: 11, wid: 2.5 }];
 seed = 9; const s1 = G.carSlots(L, MODELS, rng, 0.55);
