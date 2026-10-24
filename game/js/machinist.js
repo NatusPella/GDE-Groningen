@@ -20,8 +20,8 @@ let board = null;
 let hud = null;
 
 const HELP_METER = 'Balk: remweg tegenover de afstand tot de halte (rood: nu remmen)';
-const HELP_CAB = `${key('W')}${key('S')} hendel &middot; ${key('K')} waak &middot; ${key('O')} deuren &middot; ${key('Spatie')} noodrem &middot; ${key('H')} toeter &middot; ${key('C')} binnen &middot; ${key('G')} dienst &middot; ${key('Backspace')} stoppen`;
-const INTRO = `<b>TREIN BESTUREN</b>${key('W')} trekt de hendel omhoog: tractie. ${key('S')} zet hem terug en dan op Rem 1 tot 3. ${key('Spatie')} is de noodrem.<br>${key('K')} is de waakzaamheidsknop: druk hem als de trein erom vraagt. ${key('O')} doet de deuren op een halte. ${key('G')} start de dienst.`;
+const HELP_CAB = `${key('W')}${key('S')} hendel &middot; ${key('K')} waak &middot; ${key('O')} deuren &middot; ${key('Spatie')} noodrem &middot; ${key('H')} toeter &middot; ${key('C')} binnenzicht &middot; ${key('T')} rondlopen &middot; ${key('G')} dienst &middot; ${key('Backspace')} stoppen`;
+const INTRO = `<b>TREIN BESTUREN</b>${key('W')} trekt de hendel omhoog: tractie. ${key('S')} zet hem terug en dan op Rem 1 tot 3. ${key('Spatie')} is de noodrem.<br>${key('K')} is de waakzaamheidsknop: druk hem als de trein erom vraagt. ${key('O')} doet de deuren op een halte. ${key('G')} start de dienst. ${key('C')} kijkt binnen, ${key('T')} laat je rondlopen.`;
 
 // The service as the map layer reads it (missionmaplive.js, #180): the halten
 // of the timetable with the next one marked, and the track ahead of the train.
@@ -42,6 +42,10 @@ export function getServiceMapState(world) {
   }
   return { stops, route };
 }
+
+// Alleen lezen, voor de spelbot en de tests.
+export const getService = () => svc;
+export const serviceRunning = () => !!svc && !svc.finished;
 
 export function endService(world) {
   svc = null;
@@ -119,6 +123,7 @@ export function updateMachinist(dt, world, t, cab) {
       world.addMessage(r.msg, 2);
     }
   }
+  t.doorsOpen = !!svc && !svc.finished && doorsOpen(svc, world.time); // de deuren in het binnenste (treininterieur.js)
   if (hud) hud.show();
   if (hud) hud.intro(cab && cab.introUntil > world.time && !cab.since ? INTRO : '');
   if (!svc) {

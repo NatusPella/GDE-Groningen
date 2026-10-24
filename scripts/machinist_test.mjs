@@ -190,11 +190,12 @@ function ok_pay() {
     return v;
   };
   const half = run({ power: 0.5 }, 0, 6), full = run({ power: 1 }, 0, 6);
-  if (!(half > 1 && full > half)) fail(	ractiehendel: halve stand , hele );
+  if (!(half > 1 && full > half)) fail(`tractiehendel: halve stand ${half}, hele ${full}`);
   const b1 = run({ power: 0, brakeF: 1 / 3 }, 20, 4), b3 = run({ power: 0, brakeF: 1 }, 20, 4);
-  if (!(b3 < b1 && b1 < 20)) fail(emhendel: rem 1 , rem 3 );
+  if (!(b3 < b1 && b1 < 20)) fail(`remhendel: rem 1 ${b1}, rem 3 ${b3}`);
   const roll = run({ power: 0, brakeF: 0 }, 20, 4);
-  if (!(roll > b1)) fail(ollen remt niet: );
+  if (!(roll > b1)) fail(`rollen remt niet: ${roll}`);
   if (run({ power: 0, brakeF: 1 }, 0, 3) !== 0) fail('rem laat de trein achteruit rijden');
-}console.log(fails ? `${fails} failure(s)` : 'machinist: ok');
+}
+console.log(fails ? `${fails} failure(s)` : 'machinist: ok');
 process.exit(fails ? 1 : 0);

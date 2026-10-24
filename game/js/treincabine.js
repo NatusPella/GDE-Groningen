@@ -108,8 +108,8 @@ const CSS = `
 #hud .tc-cab .tc-speed b { display: block; font-weight: normal; font-size: 46px; letter-spacing: 1px; color: #ffd23f; }
 #hud .tc-cab .tc-speed b.over { color: #ff9a3c; }
 #hud .tc-cab .tc-speed small { font-size: 13px; letter-spacing: 2px; color: rgba(240,237,228,0.75); }
-#hud .tc-cab .tc-lever { display: flex; flex-direction: column; gap: 2px; width: 118px; }
-#hud .tc-cab .tc-lever i { display: block; height: 11px; font-style: normal; font-size: 11px; line-height: 11px; padding-left: 5px; background: rgba(240,237,228,0.1); color: rgba(240,237,228,0.55); }
+#hud .tc-cab .tc-lever { display: flex; flex-direction: column; gap: 1px; width: 122px; }
+#hud .tc-cab .tc-lever i { display: block; height: 14px; font-style: normal; font-size: 12px; line-height: 14px; padding-left: 5px; background: rgba(240,237,228,0.1); color: rgba(240,237,228,0.55); }
 #hud .tc-cab .tc-lever i.pw { border-left: 4px solid #46a35e; }
 #hud .tc-cab .tc-lever i.br { border-left: 4px solid #d94a3a; }
 #hud .tc-cab .tc-lever i.zero { border-left: 4px solid #c8c3b4; }
