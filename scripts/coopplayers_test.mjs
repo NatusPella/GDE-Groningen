@@ -45,10 +45,19 @@ t('het maximum kan omhoog en niet onder het aantal aanwezigen', () => {
   assert.equal(P.zetMax(r, 8), 8); assert.equal(P.wijsPlekToe(r) !== null, true);
   assert.equal(P.zetMax(r, 4), 5, 'er zijn er al 5');
 });
-t('hoofdrol alleen voor Tammo en Tessa; extra spelers lopen in de open wereld', () => {
-  assert.deepEqual([0, 1, 2, 5].map(P.verhaalRol), ['host-hoofdrol', 'gast-hoofdrol', 'wereld', 'wereld']);
+t('rollen horen bij de speler, niet bij de plek: geen vaste hoofdrol voor plek 0 of 1', () => {
+  assert.deepEqual([0, 1, 2, 5].map(P.verhaalRol), ['hoofdrol', 'hoofdrol', 'hoofdrol', 'hoofdrol']);
   const r = P.createRoster(4); P.wijsPlekToe(r); P.wijsPlekToe(r);
-  assert.deepEqual(P.lijst(r).map((x) => x.hoofdrol), [true, true, false]);
+  assert.deepEqual(P.lijst(r).map((x) => x.hoofdrol), [false, false, false]);
+});
+t('online-avatar per speler: eigen figuur, naam en kleur; het netfilter laat ze heel door', () => {
+  const r = P.createRoster(4); P.wijsPlekToe(r); P.wijsPlekToe(r);
+  assert.deepEqual(P.zetAvatar(r, 0, { char: 'bram', naam: 'Bouwer', kleur: '#123456' }), { char: 'bram', naam: 'Bouwer', kleur: '#123456' });
+  assert.equal(P.lijst(r)[0].naam, 'Bouwer'); assert.equal(P.lijst(r)[0].char, 'bram'); assert.equal(P.lijst(r)[0].kleur, '#123456');
+  assert.equal(P.zetAvatar(r, 2, { char: 'tammo' }).char, undefined, 'de avatar is nooit een verhaalrol');
+  const back = P.leesLijstEvent(JSON.parse(JSON.stringify(P.lijstEvent(r))));
+  assert.equal(back.spelers[0].avatar.naam, 'Bouwer'); assert.equal(back.spelers[0].avatar.kleur, '#123456');
+  assert.equal(P.leesLijstEvent({ k: 'spelers', lijst: [{ slot: 0, char: 'rik', avatar: 'fout' }] }), null);
 });
 t('pauze per speler (#452): niemand houdt de rest op, tenzij de opdracht hem nodig heeft', () => {
   assert.equal(P.holdBeleid(1).pauze, false); assert.match(P.holdBeleid(1).reden, /gaat door/);

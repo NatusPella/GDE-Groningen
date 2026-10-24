@@ -33,5 +33,12 @@ t('label: naam en kleur van de speler', () => {
   const w = {}; const f = ensureFigure(w, 2, 'sanne');
   assert.deepEqual(F.labelSpec(f), { tekst: 'Sanne', kleur: '#5bd6a0' });
   assert.deepEqual(F.labelSpec({}), { tekst: '?', kleur: '#ffffff' });
+  assert.deepEqual(F.labelSpec({ avatar: { naam: 'Bouwer', kleur: '#123456' } }), { tekst: 'Bouwer', kleur: '#123456' });
+});
+t('anderen worden als online-avatar gepland, nooit als Tammo of Tessa (#455)', () => {
+  const w = {}; const f = ensureFigure(w, 0);
+  assert.equal(f.char, f.avatar.char); assert.notEqual(f.char, 'tammo'); assert.notEqual(f.char, 'anita');
+  assert.equal(F.figuurChar(f), f.avatar.char);
+  assert.equal(F.needsRebuild(f.char, { avatar: { char: f.char } }), false);
 });
 console.log(`coopfigures_test: ${n}/${n} ok`);
