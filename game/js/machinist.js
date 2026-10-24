@@ -14,6 +14,7 @@ import {
 } from './machinistrules.js';
 import { createCabHud, cabView } from './treincabine.js';
 
+const PIEP_S = 2.4; // zo lang is het waarschuwingssignaal van de deuren (trein_deur_piep)
 const ACCENT = '#3a7bd5';
 const LINE_SPEED_K = 1.45; // railway.js DRIVE_VMAX_K
 
@@ -146,6 +147,12 @@ export function updateMachinist(dt, world, t, cab) {
     if (events.some((e) => e.kind === 'stopped')) pushAudioEvent(world, { kind: 'sting', name: 'halte' });
     const deurenOpen = doorsOpen(svc, world.time);
     if (svc.deurenWasOpen && !deurenOpen && !svc.finished) pushAudioEvent(world, { kind: 'sting', name: 'trein_vertrek' });
+    // de opnames van de treindeuren (sfx/samples.js, #460) volgen de deurstatus (doorsOpen): open bij het openen, het
+    // waarschuwingssignaal in de laatste PIEP_S s voor het automatisch sluiten, dicht bij het dichtgaan (de schuifdeur
+    // in treininterieur.js volgt dezelfde status, met een zachte beweging van een kleine seconde)
+    if (!svc.deurenWasOpen && deurenOpen) { svc.deurPiep = false; pushAudioEvent(world, { kind: 'sample', key: 'trein_deur_open' }); }
+    else if (deurenOpen && !svc.deurPiep && svc.doorsUntil - world.time <= PIEP_S) { svc.deurPiep = true; pushAudioEvent(world, { kind: 'sample', key: 'trein_deur_piep' }); }
+    if (svc.deurenWasOpen && !deurenOpen && !svc.finished) pushAudioEvent(world, { kind: 'sample', key: 'trein_deur_dicht', delay: 0.15 });
     svc.deurenWasOpen = deurenOpen;
   }
   const v = boardView(svc, { v: t.v, time: world.time });
