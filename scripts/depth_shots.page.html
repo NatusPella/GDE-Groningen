@@ -178,6 +178,54 @@ try {
     scene.remove(row);
     scene.add(mesh);
   }
+  // het stuur en de bediening (#442): stuur gedraaid, ploeg omlaag en omhoog, roer en stuurwiel van boten
+  if (wanted('bediening')) {
+    scene.remove(mesh);
+    useRT = true;
+    const { BOAT_KINDS } = await import('/game/js/boattypes.js');
+    const { TRACTOR_MODEL, QUAD_MODEL, MOPED_MODEL } = await import('/game/js/vehicle.js');
+    const MV = await import('/game/js/models3d_vehicles.js');
+    const AI = await import('/game/js/autointerieur.js');
+    const VB = await import('/game/js/voertuigbediening.js');
+    const CAB = await import('/game/js/cabin3d.js');
+    const specs = TRAFFIC_MODELS();
+    const list = [
+      ['auto', specs.find((s) => s.name === 'hatch'), {}, 0.9, [-0.8, 2.6, 2.2], [0.2, 1.1, 0], 3.2],
+      ['fiets', specs.find((s) => s.name === 'bike' && !s.cargo && !s.fat), { isBike: true }, 1, [1.4, 1.5, 1.7], [0.2, 0.8, 0], 2.2],
+      ['step', specs.find((s) => s.name === 'scooter' && !s.moped && !s.motorbike && !s.geared), { isScooter: true }, 1, [1.4, 1.5, 1.7], [0.2, 0.8, 0], 2.2],
+      ['brommer', MOPED_MODEL, { isScooter: true }, 1, [1.6, 1.5, 1.9], [0.2, 0.8, 0], 2.4],
+      ['trekker', TRACTOR_MODEL, {}, 1, [-3.2, 3.4, 4.4], [-0.4, 1.4, 0], 5.2],
+      ['trekker-ploeg-omhoog', TRACTOR_MODEL, { omhoog: true }, 1, [-4.6, 3.0, 4.2], [-1, 1.0, 0], 5.6],
+      ['rondvaart', BOAT_KINDS.rondvaart, { isBoat: true }, 0.8, [-4.5, 3.2, 3.6], [-3, 0.8, 0], 4.5],
+      ['sloep', { ...BOAT_KINDS.sloep, cabin: false }, { isBoat: true }, 0.8, [-3.2, 2.4, 3.0], [-0.5, 0.5, 0], 3.2],
+      ['binnenvaart', BOAT_KINDS.spits, { isBoat: true }, 0.8, [-10, 7, 11], [-8, 1.5, 0], 12],
+    ];
+    const row = new THREE.Group(); scene.add(row);
+    for (const [name, m, fl, steer, from, at, w] of list) {
+      if (!m) continue;
+      const v = new Vehicle(0, 0, 0, { ...m });
+      const omhoog = fl.omhoog; delete fl.omhoog;
+      Object.assign(v, fl);
+      v.steer = steer; v.x = 0; v.y = 0;
+      const g = buildVehicleMesh(v);
+      row.add(g);
+      const meshes = new Map([[v.id, g]]);
+      const world = { vehicles: [v] };
+      if (name === 'trekker' || omhoog) { v.werktuig = VB.nieuwWerktuig(); VB.werktuigKnop(v.werktuig, 'ploeg'); VB.werktuigKnop(v.werktuig, 'aftakas'); if (omhoog) VB.werktuigKnop(v.werktuig, 'ploeg'); }
+      for (let i = 0; i < 90; i++) {
+        MV.updateVehicleWheelSpin(g, 0, 1 / 30, v.steer);
+        CAB.syncCabins(world, meshes, 0, 0);
+        AI.syncAutoStuur(world, meshes, 0, 0, 1 / 30);
+        VB.syncVoertuigBediening(world, meshes, 0, 0, 1 / 30);
+      }
+      g.updateMatrixWorld(true);
+      shoot('bediening-' + name, from, at, w);
+      row.remove(g);
+    }
+    scene.remove(row);
+    scene.add(mesh);
+    useRT = false;
+  }
   // de botsauto's van de kermis (#389)
   if (wanted('botsauto')) {
     scene.remove(mesh);

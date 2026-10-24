@@ -927,8 +927,8 @@ function poseRider(rider, legBase, armAngle, lean) {
 }
 
 // st: de studentenstaat als sleutel (staatSleutel: S scheef voorspatbord, L geen voorlicht)
-function buildBikeGeometry(color, fat, stepThrough, st = '') {
-  return cached(`bike|${color}|${fat}|${stepThrough}|${st}`, () => {
+function buildBikeGeometry(color, fat, stepThrough, st = '', zonderStuur = false) {
+  return cached(`bike|${color}|${fat}|${stepThrough}|${st}|${zonderStuur}`, () => {
     const B = new GeoBuilder(3);
     const r = fat ? 0.3 : 0.34;
     const wb = fat ? 0.52 : 0.56;
@@ -957,14 +957,9 @@ function buildBikeGeometry(color, fat, stepThrough, st = '') {
     const saddle = [S[0] - 0.03, S[1] + (fat ? 0.2 : 0.14), 0];
     tube(S, saddle, 0.013, 0x8a8e92);
     B.box(saddle[0] - 0.02, saddle[1] + 0.03, 0, 0.27, 0.06, 0.16, 0x2a1d14);
+    // stem and bars: drawn on their own when the bike is near (stuurOverlay), so they turn with the steering (#442)
     const stemTop = [H1[0] - 0.02, H1[1] + 0.14, 0];
-    tube(H1, stemTop, 0.014, 0x8a8e92);
-    for (const s of [1, -1]) {
-      const grip = [stemTop[0] - 0.2, stemTop[1] - 0.02, s * 0.28];
-      tube(stemTop, [stemTop[0] - 0.02, stemTop[1], s * 0.12], 0.012, 0x8a8e92);
-      tube([stemTop[0] - 0.02, stemTop[1], s * 0.12], grip, 0.012, 0x8a8e92);
-      tube(grip, [grip[0] - 0.1, grip[1] - 0.01, grip[2]], 0.018, 0x1b1b1c);
-    }
+    if (!zonderStuur) bikeStuurOnderdelen(B, fat, 0);
     for (const [x] of [F, R]) {
       const guard = new THREE.TorusGeometry(r + 0.03, fat ? 0.05 : 0.028, 3, 9, Math.PI * 0.85);
       guard.scale(1, 1, fat ? 1.2 : 1);
@@ -1125,8 +1120,10 @@ function buildBikeMesh(v) {
   // de studentenstaat (#402): scheef spatbord, geen voorlicht, blauwe banden (en een klap voorop maakt het spatbord ook scheef)
   const staat = !fat && v.isBike ? fietsStaat(v) : null;
   const sleutel = staat ? staatSleutel(staat) : '';
-  group.add(new THREE.Mesh(buildBikeGeometry(color, fat, stepThrough, sleutel), mats));
+  const bikeBody = new THREE.Mesh(buildBikeGeometry(color, fat, stepThrough, sleutel), mats);
+  group.add(bikeBody);
   group.userData.staatSleutel = sleutel;
+  group.userData.stuurSpec = { soort: 'fiets', color, fat, stepThrough, sleutel, body: bikeBody };
   const r = fat ? 0.3 : 0.34;
   const wb = fat ? 0.52 : 0.56;
   const wgeo = bikeWheelGeometry(r, fat ? 0.07 : 0.022, true, staat && staat.blauw ? BLUE_TIRE : TIRE);
@@ -1154,8 +1151,8 @@ function buildBikeMesh(v) {
   return group;
 }
 
-function buildScooterGeometry(color) {
-  return cached(`step|${color}`, () => {
+function buildScooterGeometry(color, zonderStuur = false) {
+  return cached(`step|${color}|${zonderStuur}`, () => {
     const B = new GeoBuilder(3);
     // deck with the battery pack slung underneath and grip tape on top
     B.box(-0.04, 0.13, 0, 0.78, 0.05, 0.19, color);
@@ -1163,16 +1160,12 @@ function buildScooterGeometry(color) {
     B.box(-0.06, 0.158, 0, 0.64, 0.008, 0.155, 0x1d1d1e);
     // steering neck and a thick stem
     B.geo(tubeGeometry([0.3, 0.14, 0], [0.43, 0.12, 0], 0.028, 0.026, 6), null, color);
-    B.geo(tubeGeometry([0.43, 0.1, 0], [0.37, 1.02, 0], 0.034, 0.028, 8), null, color);
+    if (!zonderStuur) B.geo(tubeGeometry([0.43, 0.1, 0], [0.37, 1.02, 0], 0.034, 0.028, 8), null, color);
     B.box(0.43, 0.2, 0, 0.06, 0.12, 0.05, 0x2a2a2b);
     B.geo(tubeGeometry([0.43, 0.2, 0.03], [0.42, 0.11, 0.035], 0.012, 0.012, 4), null, 0x8a8e92);
     B.geo(tubeGeometry([0.43, 0.2, -0.03], [0.42, 0.11, -0.035], 0.012, 0.012, 4), null, 0x8a8e92);
     // bars, grips, the little display and a bell
-    B.geo(tubeGeometry([0.37, 1.03, -0.25], [0.37, 1.03, 0.25], 0.016, 0.016, 6), null, 0x2a2a2b);
-    for (const s of [1, -1]) B.geo(tubeGeometry([0.37, 1.03, s * 0.17], [0.37, 1.03, s * 0.26], 0.022, 0.022, 6), null, 0x1b1b1c);
-    B.box(0.37, 1.055, 0, 0.07, 0.025, 0.1, 0x1b1b1c);
-    B.box(0.35, 1.07, 0, 0.012, 0.018, 0.07, 0x5fd0e0, G_LAMP);
-    B.geo(new THREE.CylinderGeometry(0.018, 0.022, 0.02, 8), composeMatrix(0.37, 1.05, -0.13), 0xc8cbcf);
+    if (!zonderStuur) scooterStuurOnderdelen(B, 0);
     B.box(0.405, 0.42, 0, 0.035, 0.05, 0.07, HEADLAMP, G_LAMP);
     // fenders over both wheels, tail light on the rear one, kickstand
     const fender = new THREE.TorusGeometry(0.13, 0.024, 3, 8, Math.PI * 0.6);
@@ -1185,8 +1178,8 @@ function buildScooterGeometry(color) {
 }
 
 // Snorscooter: step-through body with a front shield, a long seat and small wheels.
-function buildMopedGeometry(color) {
-  return cached(`moped|${color}`, () => {
+function buildMopedGeometry(color, zonderStuur = false) {
+  return cached(`moped|${color}|${zonderStuur}`, () => {
     const B = new GeoBuilder(3);
     const dark = 0x2a2b2e;
     B.box(-0.38, 0.5, 0, 0.72, 0.36, 0.44, color);
@@ -1194,12 +1187,7 @@ function buildMopedGeometry(color) {
     B.box(0.08, 0.3, 0, 0.62, 0.07, 0.36, dark);
     B.box(0.42, 0.62, 0, 0.12, 0.62, 0.44, color);
     B.box(0.48, 0.34, 0, 0.3, 0.1, 0.2, color);
-    B.geo(tubeGeometry([0.46, 0.7, 0], [0.42, 1.04, 0], 0.032, 0.03, 6), null, dark);
-    B.geo(tubeGeometry([0.42, 1.04, -0.32], [0.42, 1.04, 0.32], 0.018, 0.018, 6), null, CHROME);
-    for (const s of [1, -1]) B.geo(tubeGeometry([0.42, 1.04, s * 0.22], [0.42, 1.04, s * 0.33], 0.024, 0.024, 6), null, 0x1b1b1c);
-    B.box(0.49, 1.0, 0, 0.1, 0.12, 0.16, color);
-    B.box(0.545, 1.0, 0, 0.02, 0.08, 0.1, HEADLAMP, G_LAMP);
-    for (const s of [1, -1]) B.box(0.43, 1.12, s * 0.2, 0.02, 0.07, 0.05, CHROME);
+    if (!zonderStuur) mopedStuurOnderdelen(B, color, 0);
     B.box(-0.76, 0.56, 0, 0.04, 0.08, 0.18, TAIL, G_LAMP);
     B.box(-0.62, 0.8, 0, 0.26, 0.05, 0.3, dark);
     B.geo(tubeGeometry([-0.3, 0.28, 0.16], [-0.72, 0.36, 0.2], 0.035, 0.03, 6), null, CHROME);
@@ -1217,6 +1205,7 @@ function buildMopedMesh(v) {
   const body = new THREE.Mesh(buildMopedGeometry(color), mats);
   body.scale.x = sx;
   group.add(body);
+  group.userData.stuurSpec = { soort: 'brommer', color, body, sx };
   const r = 0.23;
   const wgeo = bikeWheelGeometry(r, 0.09, false);
   const wheels = [];
@@ -1426,7 +1415,9 @@ function buildScooterMesh(v) {
   const group = new THREE.Group();
   const color = v.wrecked ? WRECKED_COLOR : toHex(v.model.color, HABBO_PALETTE.black);
   const mats = vehicleMaterials();
-  group.add(new THREE.Mesh(buildScooterGeometry(color), mats));
+  const stepBody = new THREE.Mesh(buildScooterGeometry(color), mats);
+  group.add(stepBody);
+  group.userData.stuurSpec = { soort: 'step', color, body: stepBody };
   const r = 0.11;
   const wgeo = bikeWheelGeometry(r, 0.035, false);
   const wheels = [];
@@ -2426,6 +2417,72 @@ function buildBoatMesh(v) {
 
 // A boat hull mesh outside the vehicle registry (the ship on the slipway of werf3d.js, #398).
 export const buildShipMesh = (v) => buildBoatMesh(v);
+
+// --- stuur dat meedraait (#442) ---------------------------------------------------
+// Stuurstang, stuurpen en handvatten van een fiets, step en brommer als eigen onderdeel: dichtbij vervangt
+// voertuigbediening.js de carrosseriegeometrie door de variant zonder stuur en tekent dit onderdeel draaiend
+// om de stuurpen. Geometrie wordt gedeeld (cached); px = de x van de stuurpen (het draaipunt).
+function bikeStuurOnderdelen(B, fat, px) {
+  const H1 = [0.4, fat ? 0.82 : 0.93, 0];
+  const stemTop = [H1[0] - 0.02, H1[1] + 0.14, 0];
+  const tube = (a, b, rr, c) => B.geo(tubeGeometry([a[0] - px, a[1], a[2]], [b[0] - px, b[1], b[2]], rr, rr, 5), null, c);
+  tube(H1, stemTop, 0.014, 0x8a8e92);
+  for (const s of [1, -1]) {
+    const grip = [stemTop[0] - 0.2, stemTop[1] - 0.02, s * 0.28];
+    tube(stemTop, [stemTop[0] - 0.02, stemTop[1], s * 0.12], 0.012, 0x8a8e92);
+    tube([stemTop[0] - 0.02, stemTop[1], s * 0.12], grip, 0.012, 0x8a8e92);
+    tube(grip, [grip[0] - 0.1, grip[1] - 0.01, grip[2]], 0.018, 0x1b1b1c);
+  }
+}
+function scooterStuurOnderdelen(B, px, color = null) {
+  const tube = (a, b, r1, r2, sides, c) => B.geo(tubeGeometry([a[0] - px, a[1], a[2]], [b[0] - px, b[1], b[2]], r1, r2, sides), null, c);
+  if (color !== null) tube([0.43, 0.1, 0], [0.37, 1.02, 0], 0.034, 0.028, 8, color);
+  tube([0.37, 1.03, -0.25], [0.37, 1.03, 0.25], 0.016, 0.016, 6, 0x2a2a2b);
+  for (const s of [1, -1]) tube([0.37, 1.03, s * 0.17], [0.37, 1.03, s * 0.26], 0.022, 0.022, 6, 0x1b1b1c);
+  B.box(0.37 - px, 1.055, 0, 0.07, 0.025, 0.1, 0x1b1b1c);
+  B.box(0.35 - px, 1.07, 0, 0.012, 0.018, 0.07, 0x5fd0e0, G_LAMP);
+  B.geo(new THREE.CylinderGeometry(0.018, 0.022, 0.02, 8), composeMatrix(0.37 - px, 1.05, -0.13), 0xc8cbcf);
+}
+function mopedStuurOnderdelen(B, color, px) {
+  const dark = 0x2a2b2e;
+  const tube = (a, b, r1, r2, sides, c) => B.geo(tubeGeometry([a[0] - px, a[1], a[2]], [b[0] - px, b[1], b[2]], r1, r2, sides), null, c);
+  tube([0.46, 0.7, 0], [0.42, 1.04, 0], 0.032, 0.03, 6, dark);
+  tube([0.42, 1.04, -0.32], [0.42, 1.04, 0.32], 0.018, 0.018, 6, CHROME);
+  for (const s of [1, -1]) tube([0.42, 1.04, s * 0.22], [0.42, 1.04, s * 0.33], 0.024, 0.024, 6, 0x1b1b1c);
+  B.box(0.49 - px, 1.0, 0, 0.1, 0.12, 0.16, color);
+  B.box(0.545 - px, 1.0, 0, 0.02, 0.08, 0.1, HEADLAMP, G_LAMP);
+  for (const s of [1, -1]) B.box(0.43 - px, 1.12, s * 0.2, 0.02, 0.07, 0.05, CHROME);
+}
+// De bouwstenen voor het meedraaiende stuur van een fiets, step of brommer: { zonder: carrosserie zonder stuur,
+// stuur: het stuur om de stuurpen, px: x van de stuurpen, sx: schaal van de carrosserie } of null.
+export function stuurOverlay(spec) {
+  if (!spec) return null;
+  if (spec.soort === 'fiets') {
+    const px = 0.38;
+    return {
+      px, sx: 1,
+      zonder: buildBikeGeometry(spec.color, spec.fat, spec.stepThrough, spec.sleutel, true),
+      stuur: cached(`stuur|fiets|${spec.fat}`, () => { const B = new GeoBuilder(3); bikeStuurOnderdelen(B, spec.fat, px); return B.build(); }),
+    };
+  }
+  if (spec.soort === 'step') {
+    const px = 0.4;
+    return {
+      px, sx: 1,
+      zonder: buildScooterGeometry(spec.color, true),
+      stuur: cached(`stuur|step|${spec.color}`, () => { const B = new GeoBuilder(3); scooterStuurOnderdelen(B, px, spec.color); return B.build(); }),
+    };
+  }
+  if (spec.soort === 'brommer') {
+    const px = 0.44;
+    return {
+      px, sx: spec.sx || 1,
+      zonder: buildMopedGeometry(spec.color, true),
+      stuur: cached(`stuur|brommer|${spec.color}`, () => { const B = new GeoBuilder(3); mopedStuurOnderdelen(B, spec.color, px); return B.build(); }),
+    };
+  }
+  return null;
+}
 
 // --- wheel spin ---------------------------------------------------------------
 
