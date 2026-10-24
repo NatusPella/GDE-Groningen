@@ -10,6 +10,7 @@ import { flagRows, withFlag, clearedSearch, shortcutGroups, SHORTCUTS, findWater
 import { isInWater } from './util.js';
 import { Vehicle } from './vehicle.js';
 import { BOAT_KINDS } from './boattypes.js';
+import { cheatsUit, CHEATS_UIT_TEKST } from './coopgroep.js';
 
 let world = null;
 let root = null;
@@ -89,6 +90,7 @@ function teleport(x, y, name) {
 function runShortcut(id) {
   const s = SHORTCUTS.find((c) => c.id === id);
   if (!s || !world) return;
+  if (cheatsUit(world)) return say(CHEATS_UIT_TEKST); // het menu stond al open toen iemand aansloot (#452)
   const a = s.act, map = world.map;
   if (a.kind === 'landmark') {
     const l = ((map && map.meta && map.meta.landmarks) || []).find((m) => m.name === a.name);
@@ -137,6 +139,7 @@ function runShortcut(id) {
 }
 
 function setOpen(v) {
+  if (v && cheatsUit(world)) { if (world.addMessage) world.addMessage(CHEATS_UIT_TEKST, 4); v = false; } // met meer spelers geen testmenu (#452)
   open = v;
   world.devPanelOpen = open;
   if (open) render();
