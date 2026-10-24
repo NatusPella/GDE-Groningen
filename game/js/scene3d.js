@@ -54,7 +54,8 @@ import { propsNearInto } from './breakables.js';
 import { buildTerrainMesh3D, terrainArrays, terrainGroup, createTerrainMaterial, applyWetGround, WET_UNIFORMS } from './terrain3d.js';
 import { ReliefPatches } from './terrainrelief3d.js';
 import { liftRoadGroup, buildingLift } from './terrainlift.js';
-import { runGeo, geoWorkerActive } from './geojobs.js';
+import { runGeo, geoWorkerActive, geoFrame } from './geojobs.js';
+import { noteStreamFocus, streamAheadHere, streamRank, streamNear } from './streambudget.js';
 import { applyCutMask, initCutMask, setCutMaskCenter } from './cutmask3d.js';
 import { updatePortals } from './portalcut3d.js';
 import { inPassage } from './passages.js';
@@ -1064,7 +1065,7 @@ export function init3D(map) {
   onSettingsChange(applyViewSettings);
   resize3D();
   window.addEventListener('resize', resize3D);
-  window.__scene3d = { THREE, scene, cam, renderer, postfx, farLod, actors: () => ({ vehicles: vehicleMeshes, peds: pedMeshes, wildlife: wildlifeMeshes, culled: culledActors }), setBlobPool: (on) => { blobPoolOn = !!on; }, cullPass: () => { cullOffscreenActors(); skipHiddenMatrixWalk(); }, restorePass: restoreCulledActors, dists: () => ({ DRAW_DIST, buildingDetailR, facadeDetailDist, roadDetailR, viewDist }), batches: () => ({ buildings: buildingBatcher.info(), facades: facadeBatcher.info(), roads: roadBatcher.info(), shores: shoreBatcher.info(), pool: drawHub.stats() }) };
+  window.__scene3d = { THREE, scene, cam, renderer, postfx, farLod, actors: () => ({ vehicles: vehicleMeshes, peds: pedMeshes, wildlife: wildlifeMeshes, culled: culledActors }), setBlobPool: (on) => { blobPoolOn = !!on; }, cullPass: () => { cullOffscreenActors(); skipHiddenMatrixWalk(); }, restorePass: restoreCulledActors, dists: () => ({ DRAW_DIST, buildingDetailR, facadeDetailDist, roadDetailR, viewDist, speed: focusSpeed, lead: streamAhead.lead }), batches: () => ({ buildings: buildingBatcher.info(), facades: facadeBatcher.info(), roads: roadBatcher.info(), shores: shoreBatcher.info(), pool: drawHub.stats() }) };
 }
 
 // increments each time the scene is drawn to the canvas (blackframe.js)
@@ -1674,13 +1675,16 @@ function syncBuildingsPass(world, px, py) {
   // building still missing and the far LOD covers everything past it.
   const view = world.map.buildingsNear(px, py, DRAW_DIST);
   const seen = new Set();
-  const centreDist = (b) => Math.hypot((b.bounds[0] + b.bounds[2]) / 2 - px, (b.bounds[1] + b.bounds[3]) / 2 - py);
+  const centreX = (b) => (b.bounds[0] + b.bounds[2]) / 2;
+  const centreY = (b) => (b.bounds[1] + b.bounds[3]) / 2;
+  const centreDist = (b) => Math.hypot(centreX(b) - px, centreY(b) - py);
   const missing = [];
   const want = (b, r, lod) => {
     const d = centreDist(b);
     if (d > r) return;
     seen.add(b);
-    if (!buildingMeshes.has(b)) missing.push([d, b, lod]);
+    // [afstand voor de detailring, gebouw, detail?, rang in de rijrichting]
+    if (!buildingMeshes.has(b)) missing.push([d, b, lod, streamRank(streamAhead, centreX(b), centreY(b))]);
   };
   for (const b of view) if (!b.landmark) want(b, DRAW_DIST, true);
   for (const b of landmarkBuildings) want(b, isSkyline(b) ? landmarkDist() : Math.max(DRAW_DIST, viewDist), false);
@@ -1690,17 +1694,14 @@ function syncBuildingsPass(world, px, py) {
     scene.remove(mesh);
     buildingMeshes.delete(b);
   }
-  missing.sort((a, b) => a[0] - b[0]);
+  // wat de speler tegemoet rijdt eerst (#247); bij stilstand is de rang de afstand
+  missing.sort((a, b) => a[3] - b[3]);
   const deadline = performance.now() + (performance.now() < streamBoostUntil ? BUILDING_BUILD_BOOST_MS : BUILDING_BUILD_MS);
   let built = 0;
-  buildingDetailR = DRAW_DIST;
-  for (const [d, b, lod] of missing) {
+  for (const [, b] of missing) {
     let mesh = prefetchedBuildings.get(b);
     if (!mesh) {
-      if (built > 0 && performance.now() > deadline) {
-        if (lod) buildingDetailR = Math.min(buildingDetailR, d - 0.01);
-        continue;
-      }
+      if (built > 0 && performance.now() > deadline) continue;
       mesh = makeBuildingMesh(b);
       built++;
       precompile(mesh);
@@ -1713,7 +1714,6 @@ function syncBuildingsPass(world, px, py) {
         const t = mesh.userData.heldAt || (mesh.userData.heldAt = performance.now());
         if (performance.now() - t < BUILDING_LINK_WAIT_MS) {
           prefetchedBuildings.set(b, mesh);
-          if (lod) buildingDetailR = Math.min(buildingDetailR, d - 0.01);
           continue;
         }
       }
@@ -1724,8 +1724,17 @@ function syncBuildingsPass(world, px, py) {
     buildingMeshes.set(b, mesh);
     scene.add(mesh);
   }
-  streamStat.b = 0;
-  for (const m of missing) if (!buildingMeshes.has(m[1])) streamStat.b++;
+  // De detailring is een cirkel (farlod.js toetst met dezelfde afstand) en
+  // reikt tot het dichtstbijzijnde gebouw dat nog mist, ook als de
+  // vooruit-volgorde een verderop gelegen gebouw eerder bouwde (#247).
+  buildingDetailR = DRAW_DIST;
+  let missingCount = 0;
+  for (const m of missing) {
+    if (buildingMeshes.has(m[1])) continue;
+    missingCount++;
+    if (m[2]) buildingDetailR = Math.min(buildingDetailR, m[0] - 0.01);
+  }
+  streamStat.b = missingCount;
   // shown only once the far LOD stops drawing them
   if (buildingDetailR < DRAW_DIST) {
     for (const [b, mesh] of buildingMeshes) {
@@ -1805,7 +1814,7 @@ function shadowAreaCalm(world, fx, fy) {
   for (const v of world.vehicles) if (Math.abs(v.speed) > 4 && Math.abs(v.x - fx) < reach && Math.abs(v.y - fy) < reach) return false;
   return true;
 }
-let focusSpeed = 0, focusPrevX = null, focusPrevY = 0, focusDirX = 1, focusDirY = 0;
+let focusSpeed = 0;
 let roadDetailR = DRAW_DIST;
 let buildingsStaged = false;
 function noteStreamJump(px, py) {
@@ -1813,6 +1822,12 @@ function noteStreamJump(px, py) {
   streamLastX = px;
   streamLastY = py;
 }
+
+// Waar het streamen op rijdt: de focus met zijn snelheid en richting
+// (streambudget.js), zodat gebouwen, wegen en water in de rijrichting
+// voorgaan en de worker de taken krijgt die de speler nu ziet (#247).
+// focusSpeed blijft voor de schaduwpas en het personenbereik.
+const streamAhead = streamAheadHere();
 
 // Where the world streams in and keeps its detail (buildings, roads, water,
 // trees, the far LOD, shadows): the player, or while a camera override is up
@@ -1962,21 +1977,28 @@ function freeWaterGeometry(poly) {
 
 function syncWater(items, cache, y, map, px, py) {
   const seen = new Set();
+  for (const poly of items) seen.add(poly);
+  // Nieuw water in de rijrichting eerst (#247): bij 30 m/s komt de oever anders
+  // achter de speler aan. Binnen het budget van dit frame, zoals voorheen.
+  const todo = [];
+  for (const poly of items) if (!cache.has(poly)) todo.push(poly);
+  if (todo.length > 1) {
+    const rank = new Map();
+    for (const poly of todo) rank.set(poly, streamRank(streamAhead, (poly.bounds[0] + poly.bounds[2]) / 2, (poly.bounds[1] + poly.bounds[3]) / 2));
+    todo.sort((a, b) => rank.get(a) - rank.get(b));
+  }
   const deadline = performance.now() + WATER_BUILD_BUDGET_MS;
-  for (const poly of items) {
-    if (!cache.has(poly) && performance.now() > deadline) {
+  for (const poly of todo) {
+    if (performance.now() > deadline) {
       const [minx, miny, maxx, maxy] = poly.bounds;
       if (Math.hypot(Math.max(minx - px, 0, px - maxx), Math.max(miny - py, 0, py - maxy)) > WATER_NEAR) continue;
     }
-    seen.add(poly);
-    if (!cache.has(poly)) {
-      coldWater.delete(poly);
-      const mesh = freezeStatic(buildWaterMesh(poly, y, map));
-      if (!mesh.name) mesh.name = 'water';
-      scene.add(mesh);
-      cache.set(poly, mesh);
-      if (cache === waterMeshes && mesh.userData.shore) registerShoreItems(poly, mesh.userData.shore);
-    }
+    coldWater.delete(poly);
+    const mesh = freezeStatic(buildWaterMesh(poly, y, map));
+    if (!mesh.name) mesh.name = 'water';
+    scene.add(mesh);
+    cache.set(poly, mesh);
+    if (cache === waterMeshes && mesh.userData.shore) registerShoreItems(poly, mesh.userData.shore);
   }
   for (const [poly, mesh] of cache) {
     if (seen.has(poly)) continue;
@@ -2000,31 +2022,33 @@ function syncRoads(world, px, py) {
   const view = world.map.roadsNear(px, py, DRAW_DIST);
   const seen = new Set();
   for (const r of view) seen.add(r);
-  // nearest first within a budget; the far LOD's roads cover the rest
+  // nearest first within a budget; the far LOD's roads cover the rest. At speed
+  // what lies ahead goes first (#247): the same lead streambudget.js gives the
+  // buildings, so a road 100 m ahead beats one 20 m behind.
   const missing = [];
   for (const r of view) {
     if (roadMeshes.has(r)) continue;
     const [x0, y0, x1, y1] = r.bounds || [px, py, px, py];
     const d = Math.hypot(Math.max(x0 - px, 0, px - x1), Math.max(y0 - py, 0, py - y1));
-    // at speed what lies ahead goes first (#247): up to 8 s of travel off the distance of a road in the heading
-    let key = d;
-    if (focusSpeed > 4 && d > 1) key -= Math.min(focusSpeed * 8, 400) * Math.max(0, ((x0 + x1) / 2 - px) * focusDirX + ((y0 + y1) / 2 - py) * focusDirY) / Math.hypot((x0 + x1) / 2 - px, (y0 + y1) / 2 - py || 1);
-    missing.push([key, r, d]);
+    const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
+    missing.push([streamRank(streamAhead, cx, cy), r, d, streamNear(streamAhead, cx, cy, DRAW_DIST)]);
   }
-  roadDetailR = DRAW_DIST;
   if (missing.length) {
     missing.sort((a, b) => a[0] - b[0]);
     const deadline = performance.now() + (performance.now() < streamBoostUntil ? ROAD_BUILD_MS * 2 : ROAD_BUILD_MS);
     let built = 0, waiting = false;
-    for (const [, r, d] of missing) {
+    for (const [, r, , near] of missing) {
       // surfaces still coming from the geometry worker: the far LOD covers
-      // from the nearest of them on (requested now, nearest first)
-      if (!roadGeometryReady(r)) { if (!waiting) roadDetailR = Math.max(24, d); waiting = true; continue; }
+      // from the nearest of them on. The request goes out here (best first),
+      // also for the roads past the first one still waiting, so the worker
+      // already has the next ones when the near ones come back (#247).
+      const ready = roadGeometryReady(r, near);
       if (waiting) continue;
+      if (!ready) { waiting = true; continue; }
       // a road whose surfaces are ready is cheap, unless its civil works
       // are still built here (after a jump the ring's viaducts came in all
       // at once)
-      if (built > 0 && (!r._geoRoad || (r.z && r._geoStruct === undefined)) && performance.now() > deadline) { roadDetailR = Math.max(24, d); break; }
+      if (built > 0 && (!r._geoRoad || (r.z && r._geoStruct === undefined)) && performance.now() > deadline) break;
       coldRoads.delete(r);
       const group = buildRoadGroup(r);
       const mesh = freezeStatic(world.map.terrainOn ? liftRoadGroup(group, world.map, r) : group);
@@ -2033,9 +2057,21 @@ function syncRoads(world, px, py) {
       roadMeshes.set(r, mesh);
       built++;
     }
+    // De detailring is een cirkel (de verre LOD tekent vanaf roadDetailR), dus
+    // hij reikt tot de dichtstbijzijnde weg die nog mist; met de
+    // vooruit-volgorde is dat niet per se de weg waar de lus stopte (#247).
+    roadDetailR = DRAW_DIST;
+    streamStat.r = 0;
+    for (const m of missing) {
+      if (roadMeshes.has(m[1])) continue;
+      streamStat.r++;
+      roadDetailR = Math.min(roadDetailR, m[2]);
+    }
+    roadDetailR = Math.max(24, roadDetailR);
+  } else {
+    streamStat.r = 0;
+    roadDetailR = DRAW_DIST;
   }
-  streamStat.r = 0;
-  for (const m of missing) if (!roadMeshes.has(m[1])) streamStat.r++;
   for (const [r, mesh] of roadMeshes) {
     if (seen.has(r)) continue;
     scene.remove(mesh); // geometry is cached on the road, materials are shared per layer
@@ -2421,6 +2457,11 @@ export function update3D(dt, world) {
   const focus = updateStreamFocus(world);
 
   noteStreamJump(focus.x, focus.y);
+  // de focus, zijn snelheid en zijn richting (#247): alles hieronder bouwt en
+  // vraagt in die volgorde; de worker krijgt per frame een nieuwe beurt
+  noteStreamFocus(focus.x, focus.y, dt);
+  focusSpeed = streamAhead.speed;
+  geoFrame();
   if (!blobPool) initBlobPool();
   stepPrewarm(world);
   syncBuildings(world, focus.x, focus.y);
@@ -3951,11 +3992,7 @@ function updateEnvironment(dt) {
 // shadow-map texels in light space so edges don't crawl as the player moves.
 function updateSunAndSky(player, dt, world) {
   // how fast the focus moves: a fast one must not skip shadow passes
-  if (focusPrevX !== null && dt > 0) {
-    focusSpeed = Math.hypot(player.x - focusPrevX, player.y - focusPrevY) / dt;
-    if (focusSpeed > 4) { focusDirX = (player.x - focusPrevX) / (focusSpeed * dt); focusDirY = (player.y - focusPrevY) / (focusSpeed * dt); }
-  }
-  focusPrevX = player.x; focusPrevY = player.y;
+  // (focusSpeed comes from streambudget.js at the top of update3D, #247)
   _lightRight.crossVectors(_yAxis, sunDir);
   if (_lightRight.lengthSq() < 1e-8) _lightRight.set(1, 0, 0);
   _lightRight.normalize();

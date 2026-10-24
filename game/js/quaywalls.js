@@ -1,6 +1,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { rectOutside, countryBounds } from './countryfield.js';
 import { runGeo } from './geojobs.js';
+import { streamNearHere } from './streambudget.js';
 import { geometryFromPlain } from './geoplain.js';
 import { workerMapReady } from './roadsurface.js';
 import { createBrickDetailTexture } from './pixelart3d.js';
@@ -861,6 +862,7 @@ export function requestShore(poly, map, opts, done) {
   const wi = map.water.indexOf(poly);
   if (wi < 0 || !shoreWorker()) { done(buildShore(poly, map, opts)); return; }
   const wait = poly._shoreWait = [done];
+  const near = streamNearHere((poly.bounds[0] + poly.bounds[2]) / 2, (poly.bounds[1] + poly.bounds[3]) / 2);
   runGeo('shore', { wi, n: poly.pts.length, x: poly.pts[0][0], y: poly.pts[0][1], waterY: opts.waterY, withApron: !!opts.apronMaterial }, (res) => {
     poly._shoreWait = null;
     if (poly._shore === undefined) {
@@ -868,5 +870,5 @@ export function requestShore(poly, map, opts, done) {
       else poly._shore = shoreGroup(map, { parts: res.parts.map((q) => ({ kind: q.kind, geo: geometryFromPlain(q.geo) })), seats: res.seats, hulls: res.hulls }, opts.apronMaterial);
     }
     for (const f of wait) f(poly._shore);
-  });
+  }, near);
 }
