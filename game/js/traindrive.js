@@ -8,7 +8,8 @@ import { isCinematicActive } from './cinematics.js';
 import { isShopOpen } from './shopui.js';
 import { isInWater } from './util.js';
 import { stationPrompt } from './stationtravel.js';
-import { updateMachinist, endService } from './machinist.js';
+import { updateMachinist, endService, doorsAreOpen, deadmanHit } from './machinist.js';
+import { newCab, stepCab, cabCtl } from './treincabine.js';
 
 const BOARD_RANGE = 6.5;
 const EXIT_MAX_SPEED = 2;
@@ -17,6 +18,8 @@ const STEAL_STARS = 2;
 
 let hookedWorld = null;
 let hornAt = -Infinity;
+let cab = newCab(); // de tractiehendel en de waakzaamheid (treincabine.js)
+const INTRO_S = 16;
 
 function hook(world) {
   if (hookedWorld === world) return;
@@ -61,7 +64,7 @@ export function trainPrompt(world) {
     const slow = t.v < EXIT_MAX_SPEED;
     return {
       id: 'trein-rijden', x: car.x, y: car.y, h: t.cfg.height + 0.8, key: 'E', label: 'Uitstappen',
-      sub: slow ? 'W gas, S remmen, H toeter, G dienst rijden' : 'Eerst stoppen: S remmen, Spatie noodrem', ring: true, dim: !slow,
+      sub: slow ? 'W/S hendel, O deuren, G dienst rijden' : 'Eerst stoppen: S remt, Spatie is de noodrem', ring: true, dim: !slow,
     };
   }
   const b = boardable(world);
@@ -94,10 +97,12 @@ export function tryTrainInteract(world) {
   return true;
 }
 
-function board(world, { t, cab }) {
+function board(world, { t, cab: cab_ }) {
   const fresh = t.state !== 'parked';
-  hijackTrain(t, cab);
+  hijackTrain(t, cab_);
   world.trainDriving = t;
+  cab = newCab();
+  cab.introUntil = world.time + INTRO_S;
   const p = world.player;
   p.vx = 0; p.vy = 0; p.moving = false; p.crouching = false; p.vault = null;
   syncRider(world);
@@ -189,16 +194,28 @@ export function updateTrainDriving(dt, world) {
     return false;
   }
   const input = world.input;
-  t.ctl.throttle = input.isDown('w') || input.isDown('arrowup');
-  t.ctl.brake = input.isDown('s') || input.isDown('arrowdown');
-  t.ctl.emergency = input.isDown(' ');
+  // tractiehendel: W en S (pijlen, trekker en rem van het pad) schuiven hem een stand; K is de waakzaamheidsknop
+  const evs = stepCab(cab, dt, {
+    up: input.isDown('w') || input.isDown('arrowup'), down: input.isDown('s') || input.isDown('arrowdown'),
+    upP: input.wasPressed('w') || input.wasPressed('arrowup'), downP: input.wasPressed('s') || input.wasPressed('arrowdown'),
+    ack: input.wasPressed('k'), doorsOpen: doorsAreOpen(world),
+  }, t.v);
+  if (input.wasPressed('k')) input.consume('k');
+  for (const e of evs) {
+    if (e.kind === 'hendel') cab.since = 1;
+    else if (e.kind === 'waak-vraag') world.addMessage('Waakzaamheid: druk K', 3);
+    else if (e.kind === 'waak-rem') { world.addMessage('Waakzaamheidsrem: de trein remt vanzelf', 3.5); deadmanHit(world); }
+  }
+  Object.assign(t.ctl, cabCtl(cab, input.isDown(' ')));
+  t.ctl.throttle = t.ctl.power > 0;
+  t.ctl.brake = t.ctl.brakeF > 0;
   if (input.wasPressed('h') && world.time - hornAt > HORN_COOLDOWN) {
     hornAt = world.time;
     const car = cabCar(t);
     const q = world.audioEvents || (world.audioEvents = []);
     q.push({ kind: 'train_horn', x: car.x, y: car.y });
   }
-  updateMachinist(dt, world, t);
+  updateMachinist(dt, world, t, cab);
   syncRider(world);
   return true;
 }

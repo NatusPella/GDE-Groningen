@@ -256,6 +256,8 @@ function trackUsage(dt, world) {
   if (world.trainDriving) {
     if (pressed('w') || pressed('s') || pressed('arrowup') || pressed('arrowdown')) used('drive');
     if (pressed(' ')) used('handbrake');
+    if (pressed('k')) used('waak');
+    if (pressed('o')) used('deuren');
     if (pressed('h')) used('horn');
   }
 }
@@ -648,7 +650,9 @@ function contextRows(world, primary) {
   const rows = [];
   const armed = isRangedWeapon(world.weapon);
   if (world.trainDriving) {
-    rows.push(tut('drive', ['W', 'S'], 'Gas & remmen', 'W optrekken, S remmen en stilstaand achteruit'));
+    rows.push(tut('drive', ['W', 'S'], 'Tractiehendel', 'W trekt de hendel omhoog (tractie), S zet hem terug en dan op Rem 1 tot 3'));
+    rows.push(tut('waak', ['K'], 'Waakzaamheid', 'Druk K als de trein erom vraagt, anders remt hij vanzelf'));
+    rows.push(tut('deuren', ['O'], 'Deuren', 'Open of dicht op een halte tijdens de dienst'));
     rows.push(tut('handbrake', [' '], 'Noodrem', 'Stopt sneller, maar niet meteen', true));
     rows.push(tut('horn', ['H'], 'Toeter', 'Van het spoor af!'));
     rows.push(tut('dienst', ['G'], 'Dienst rijden', 'Halte voor halte, op tijd en op de streep: Backspace stopt'));
