@@ -2,8 +2,8 @@
 // A thin light column of fixed height, a ring on the ground and, floating
 // above it, one icon whose SHAPE says what it is (the colour says it too, but
 // never alone): start = diamond, goal = arrow down, optional = cube, door or
-// shop = hexagon, vehicle = pyramid, checkpoint = upright ring. Icon and
-// distance label grow with the distance (capped), so far away it stays
+// shop = hexagon, garage = roller door, vehicle = pyramid, checkpoint = upright
+// ring. Icon and distance label grow with the distance (capped), so far away it stays
 // readable and close up it never fills the screen. Depth-tested, so walls
 // hide it. Colours follow the map and minimap icons (a11y.js markerColors:
 // yellow start, light blue objective, orange job, purple own goal).
@@ -19,6 +19,7 @@ const MARKER_KINDS = {
   goal: { color: 'missionActive' },
   optional: { color: 'care' },
   door: { color: 'ok' },
+  garage: { color: 'job' }, // de spuitdienst van een opdracht (#434): hetzelfde oranje als de garage op de kaart
   vehicle: { color: 'job' },
   checkpoint: { color: 'missionActive' },
   user: { color: 'user' },
@@ -54,6 +55,7 @@ const iconGeo = {
   goal: () => new THREE.ConeGeometry(0.85, 1.7, 4).rotateX(Math.PI),
   optional: () => new THREE.BoxGeometry(1.1, 1.1, 1.1),
   door: () => new THREE.CylinderGeometry(0.95, 0.95, 0.5, 6).rotateX(Math.PI / 2),
+  garage: () => new THREE.BoxGeometry(1.7, 1.2, 0.42), // een roldeur: breed en plat (#434)
   vehicle: () => new THREE.ConeGeometry(0.95, 1.6, 3),
   checkpoint: () => new THREE.TorusGeometry(1, 0.2, 8, 24),
   user: () => new THREE.SphereGeometry(0.7, 12, 10),
@@ -79,6 +81,10 @@ function glyphTexture(kind) {
     else if (kind === 'goal' || kind === 'job') { g.moveTo(34, 30); g.lineTo(94, 30); g.lineTo(64, 100); g.closePath(); }
     else if (kind === 'optional') g.roundRect(36, 36, 56, 56, 12);
     else if (kind === 'door') { for (let i = 0; i < 6; i++) { const a = Math.PI / 3 * i; g[i ? 'lineTo' : 'moveTo'](64 + Math.cos(a) * 34, 64 + Math.sin(a) * 34); } g.closePath(); }
+    else if (kind === 'garage') { // een roldeur met lamellen: de gaten vult evenodd donker (#434)
+      g.roundRect(36, 32, 56, 64, 8);
+      for (let i = 0; i < 3; i++) g.roundRect(43, 44 + i * 16, 42, 6, 3);
+    }
     else if (kind === 'vehicle') { g.moveTo(64, 24); g.lineTo(96, 92); g.lineTo(32, 92); g.closePath(); }
     else if (kind === 'checkpoint') { g.arc(64, 64, 34, 0, Math.PI * 2); g.moveTo(94, 64); g.arc(64, 64, 20, 0, Math.PI * 2, true); }
     else g.arc(64, 64, 26, 0, Math.PI * 2);

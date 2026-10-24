@@ -111,3 +111,15 @@ export function ruimOp(st, verbonden) {
   }
   return weg;
 }
+
+// De wereldmarker bij een gast (#434): het doel van de opdracht van zijn groep. Staat dat doel bij een garage of pomp (de
+// spuitdienst van een opdracht: "Rij een garage in"), dan krijgt het het garageteken; anders het gewone doelteken. Puur:
+// bijGarage is een vraagfunctie (x, y, m -> ja/nee), zodat de gast zijn eigen kaart gebruikt en een test een nepwereld.
+// Het doel gaat voor het beginpunt van de volgende opdracht: die twee staan nooit samen (coopentities3d.js, net als de
+// kaart en de minimap, hud_panel.js `gastStart`).
+export const GARAGE_MARKER_M = 20;
+export function doelMarker(doel, bijGarage = null, m = GARAGE_MARKER_M) {
+  if (!doel || !Number.isFinite(doel.x) || !Number.isFinite(doel.y)) return null;
+  const garage = !!(bijGarage && bijGarage(doel.x, doel.y, m));
+  return { x: doel.x, y: doel.y, soort: garage ? 'garage' : 'goal' };
+}
