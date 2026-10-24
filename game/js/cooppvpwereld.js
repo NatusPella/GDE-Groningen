@@ -1,9 +1,10 @@
 // Samen spelen (#447): spelers tegen elkaar in de wereld van wie het spel opende. De pure regels staan in cooppvp.js; hier zitten de
 // lichamen, de treffers (slag en kogel uit combat.js) en wat er gebeurt als iemand neergaat. Geen bloed: een treffer is alleen het geluid
-// en de schade. Wie door een medespeler neergaat staat zonder kosten weer op (geen respawn-reis, geen mislukte opdracht, geen prestatie
+// en de schade. Een passieve speler hoort één keer dat een actieve speler hem wilde raken (pogingMelden). Wie door een medespeler
+// neergaat staat zonder kosten weer op (geen respawn-reis, geen mislukte opdracht, geen prestatie
 // "wasted", geen boete) en is zes seconden beschermd. Dood door de wereld loopt nog via requestRespawn en blijft zoals het was.
 // Getest in scripts/cooppvp_test.mjs.
-import { PVP_TEKST, pvpMag, pvpSchade, geefBescherming, beschermd, isPassief, leesPvpSchade, leesPvpDood, pvpDoodEvent } from './cooppvp.js';
+import { PVP_TEKST, pvpMag, pvpSchade, geefBescherming, beschermd, isPassief, pogingMelden, leesPvpSchade, leesPvpDood, pvpDoodEvent } from './cooppvp.js';
 import { gastLichamen } from './coopbestuur.js';
 import { charInfo } from './coopplayers.js';
 
@@ -28,10 +29,19 @@ const levend = (world, slot, l) => !!l && !l.inVehicle && !l.inVeh && l.state !=
 export function pvpTreffer(world, dader, doel, bedrag) {
   if (!isHost(world)) return false;
   const r = pvpSchade(world.coopPvp, dader, doel, bedrag, nuVan(world));
-  if (!r.ok) return false;
+  if (!r.ok) { if (r.reden === 'doel-passief') poging(world, dader, doel); return false; }
   if (doel === 0) hostRaak(world, r.bedrag, dader);
   else if (world.coopPvpSchade) world.coopPvpSchade(doel, r.bedrag, dader);
   return true;
+}
+
+// De passieve speler hoort één keer (per paar seconden) dat een actieve speler hem wilde raken; bij de host in beeld,
+// bij een gast als gewone melding van de host. Zo weet je dat je passief staat in plaats van dat er "niets" gebeurt.
+function poging(world, dader, doel) {
+  if (!pogingMelden(world.coopPvp, dader, doel, nuVan(world))) return;
+  const tekst = PVP_TEKST.poging(naamVanSlot(world, dader));
+  if (doel === 0) { if (world.addMessage) world.addMessage(tekst, 4); }
+  else if (world.coopMeld) world.coopMeld(doel, tekst);
 }
 
 // Een slag: alle andere spelers binnen bereik (inReach is die van combat.js meleeHit). Geeft true als er iemand geraakt is.
@@ -52,7 +62,8 @@ export function pvpKogel(world, b) {
   for (const [slot, l] of pvpLichamen(world)) {
     if (slot === dader || !levend(world, slot, l)) continue;
     if (Math.hypot(l.x - b.x, l.y - b.y) > (l.radius || 0.4) + 0.12 || Math.abs((l.gz || 0) - (b.gz || 0)) > 3) continue;
-    if (!pvpMag(world.coopPvp, dader, slot, nu).ok) continue; // een kogel gaat dwars door een passieve speler
+    const m = pvpMag(world.coopPvp, dader, slot, nu);
+    if (!m.ok) { if (m.reden === 'doel-passief') poging(world, dader, slot); continue; } // een kogel gaat dwars door een passieve speler
     return pvpTreffer(world, dader, slot, b.damage);
   }
   return false;

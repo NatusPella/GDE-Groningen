@@ -3,6 +3,7 @@
 // De regels: schade tussen spelers is er alleen als BEIDE spelers bewust niet op passief staan. Iedereen begint op passief, dus zoals
 // het was: geen schade tussen spelers. Omschakelen heeft een afkoelperiode (geen heen en weer wisselen midden in een gevecht). Wie door een
 // medespeler neergaat staat zonder kosten weer op en is even beschermd (tegen spawnkillen); dood door de wereld blijft zoals het was.
+// Wie passief is en door een actieve speler wordt aangevallen, hoort dat één keer per paar seconden (pogingMelden).
 // Het gaat over gewone JSON-berichten (geen nieuw formaat, PROTO en CODEC_VERSION blijven 2): de gast vraagt { k: 'passief', a },
 // wie het spel opende bewaart het per plek en geeft het aan iedereen door als { k: 'passiefvan', slot, a }. De host beslist.
 // Een oudere host of gast negeert die berichten; omdat iedereen op passief begint raakt een oudere speler dus nooit door PvP.
@@ -11,6 +12,7 @@ export const PVP = Object.freeze({
   AFKOEL_S: 10,    // s: tussen twee keer omschakelen
   BESCHERM_S: 6,   // s: bescherming na het opstaan (en tot de beschermde zelf iemand aanvalt)
   MAX_SCHADE: 60,  // een treffer van een speler telt nooit meer dan dit
+  POGING_S: 5,     // s: tussen twee meldingen "hij wilde je aanvallen" (een salvo kogels is één poging)
 });
 export const MIN_PVP_SLOT = 0, MAX_PVP_SLOT = 15;
 
@@ -19,6 +21,7 @@ export const PVP_TEKST = {
   passiefUit: 'Passieve stand uit: spelers die ook niet op passief staan kunnen je raken.',
   wacht: (s) => `Even wachten: over ${Math.max(1, Math.ceil(s))} s kun je weer wisselen.`,
   neergeslagen: (naam) => `${naam} heeft je neergeslagen. Je staat zonder kosten weer op en bent even beschermd.`,
+  poging: (naam) => `${naam} wilde je aanvallen, maar je staat op passief. Er is niets gebeurd.`,
   neergeslagenAnderen: (dader, doel) => `${dader} heeft ${doel} neergeslagen.`,
   knopAan: 'Passieve stand: aan',
   knopUit: 'Passieve stand: uit',
@@ -28,8 +31,8 @@ export const PVP_TEKST = {
 
 const slotOk = (s) => Number.isInteger(s) && s >= MIN_PVP_SLOT && s <= MAX_PVP_SLOT;
 
-// st: { actief: { slot: true }, vrij: { slot: tijd }, tot: { slot: tijd } } (alleen wie bewust op actief staat staat in `actief`)
-export const maakPvp = () => ({ actief: {}, vrij: {}, tot: {} });
+// st: { actief: { slot: true }, vrij: { slot: tijd }, tot: { slot: tijd }, poging: { 'dader>doel': tijd } } (alleen wie bewust op actief staat staat in `actief`)
+export const maakPvp = () => ({ actief: {}, vrij: {}, tot: {}, poging: {} });
 export const isPassief = (st, slot) => !(st && st.actief && st.actief[slot]);
 // Staat er iemand bewust op actief? Dan is "passief" iets dat de anderen zien (kaarticoon grijs); anders is iedereen gewoon passief.
 export const pvpInSpel = (st) => !!st && Object.keys(st.actief || {}).length > 0;
@@ -41,7 +44,11 @@ export function zetPassiefStand(st, slot, passief) {
   if (passief) delete st.actief[slot]; else st.actief[slot] = true;
   return true;
 }
-export const verwijderSpeler = (st, slot) => { if (!st) return; delete st.actief[slot]; delete st.vrij[slot]; delete st.tot[slot]; };
+export const verwijderSpeler = (st, slot) => {
+  if (!st) return;
+  delete st.actief[slot]; delete st.vrij[slot]; delete st.tot[slot];
+  for (const k of Object.keys(st.poging || {})) { const [d, t] = k.split('>').map(Number); if (d === slot || t === slot) delete st.poging[k]; }
+};
 
 // Omschakelen met afkoeling. Geeft { ok, passief, rest }: rest is de wachttijd in s als het nog niet mag.
 export function wisselPassief(st, slot, passief, nu) {
@@ -77,6 +84,17 @@ export function pvpSchade(st, dader, doel, bedrag, nu) {
   if (!(b > 0)) return { ok: false, reden: 'geen', bedrag: 0 };
   if (st.tot) delete st.tot[dader]; // wie beschermd is en zelf aanvalt, is het niet meer
   return { ok: true, reden: '', bedrag: b };
+}
+
+// Een passieve speler hoort dat iemand hem wilde raken (één keer per paar seconden: een salvo kogels is één poging).
+// Alleen als de dader bewust actief is; twee passieve spelers "proberen" niets. Geeft true als de melding mag.
+export function pogingMelden(st, dader, doel, nu) {
+  if (!st || !slotOk(dader) || !slotOk(doel) || dader === doel || !Number.isFinite(nu)) return false;
+  const pogingen = st.poging || (st.poging = {});
+  const sleutel = `${dader}>${doel}`;
+  if ((pogingen[sleutel] || 0) > nu) return false;
+  pogingen[sleutel] = nu + PVP.POGING_S;
+  return true;
 }
 
 // ---------------------------------------------------------------- berichten
