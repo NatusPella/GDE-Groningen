@@ -9,6 +9,8 @@
 //   --watch=<s>   kijkt elke cutscene (hooguit s seconden) in plaats van hem over te slaan, met een beeld om de 2,5 s (shots-<stap>-szene<n>-<k>.png)
 //   --page=<bestand>   een eigen paginascript in plaats van bot.page.js (een meting in het echte spel, bv. waar water ligt); het krijgt window.__botCfg en window.__bot
 //   --zonder-water   schakelt waterAhead (water voor de auto als hindernis) uit, om het rijgedrag met en zonder te vergelijken
+//   --zonder-startplek   laat de bot zelf naar de start van M01 reizen (standaard zet hij zich er in één keer heen: de nieuwe-spelplek is
+//                        willekeurig en die rit van 2 tot 15 minuten zegt niets over akte 1, #387)
 //   --reizen zet de reisbeats aan (standaard uit in de bot; de bot kiest dan de eerste optie, Meerijden)
 //   --from=T1 springt eerst naar die stap en speelt dan door (de sprong van een sweep slaat reisstappen over, dit niet)
 //   --skip-from slaat die stap na de sprong over (cheat): de volgende stap, bv. een reisstap, begint dan bij jouw plek
@@ -83,7 +85,7 @@ const seed = Number(arg('seed', 1)) || 1;
 const replayFile = arg('replay');
 const profile = `gde-test-spelbot-${process.pid}`;
 const script = path.join(OUT, '_page.js');
-const cfg = { part: arg('part', 'kop'), maxGameS: Number(arg('max-game', 3600)), maxWallS: Number(arg('max-wall', 1800)), stuckS: Number(arg('stuck', 30)), only: arg('only', ''), from: arg('from', ''), skipFrom: flag('skip-from'), playS: Number(arg('play', 40)), perS: Number(arg('per', 60)), mode: arg('mode', 'story'), sweep: arg('mode') === 'missions' ? arg('only', '').split(',').filter(Boolean) : [], perStepS: Number(arg('per-step', 600)), watch: Number(arg('watch', 0)) || 0, annuleer: Number(arg('annuleer', 0)) || 0, zonderWater: flag('zonder-water'), skipStages: /:/.test(arg('skip-stages', '')) ? Object.fromEntries(arg('skip-stages', '').split(',').map((q) => q.split(':')).map(([k, v]) => [k, Number(v) || 0])) : Number(arg('skip-stages', 0)) || 0, shots: Number(arg('shots', 80)), speed: Number(arg('speed', 1)) || 1, waitS: Number(arg('wait', 45)) || 45, until: arg('until', ''), invulnerable: flag('invuln') };
+const cfg = { part: arg('part', 'kop'), maxGameS: Number(arg('max-game', 3600)), maxWallS: Number(arg('max-wall', 1800)), stuckS: Number(arg('stuck', 30)), only: arg('only', ''), from: arg('from', ''), skipFrom: flag('skip-from'), playS: Number(arg('play', 40)), perS: Number(arg('per', 60)), mode: arg('mode', 'story'), sweep: arg('mode') === 'missions' ? arg('only', '').split(',').filter(Boolean) : [], perStepS: Number(arg('per-step', 600)), watch: Number(arg('watch', 0)) || 0, annuleer: Number(arg('annuleer', 0)) || 0, zonderWater: flag('zonder-water'), zonderStartplek: flag('zonder-startplek'), skipStages: /:/.test(arg('skip-stages', '')) ? Object.fromEntries(arg('skip-stages', '').split(',').map((q) => q.split(':')).map(([k, v]) => [k, Number(v) || 0])) : Number(arg('skip-stages', 0)) || 0, shots: Number(arg('shots', 80)), speed: Number(arg('speed', 1)) || 1, waitS: Number(arg('wait', 45)) || 45, until: arg('until', ''), invulnerable: flag('invuln') };
 let pre = `window.__botCfg = ${JSON.stringify(cfg)};\n`;
 if (replayFile) {
   const rl = L.RunLog.parse(fs.readFileSync(path.resolve(replayFile), 'utf8'));
@@ -142,6 +144,15 @@ console.log(`${res.result}: ${res.reason || ''}`);
   }
   const last = evs.filter((e) => e.type !== 'console').slice(-1)[0];
   if (res.result !== 'KLAAR' && res.result !== 'REPLAY' && last) console.log(`laatste gebeurtenis: ${JSON.stringify(last).slice(0, 300)}`);
+  // waar de run stopte, ook als de tijd op was: de stap en de plek uit de laatste regel van het paginascript (#387)
+  const einde = evs.filter((e) => e.type === 'einde').slice(-1)[0];
+  const begins = evs.filter((e) => e.type === 'step' && e.event === 'begin');
+  res.lastStep = (einde && einde.step) || (begins[begins.length - 1] || {}).id || '';
+  if (res.result !== 'KLAAR' && res.result !== 'REPLAY') {
+    const waar = einde && Number.isFinite(einde.x) ? ` op (${Math.round(einde.x)}, ${Math.round(einde.y)})${einde.goalDist != null ? `, ${Math.round(einde.goalDist)} m van doel` : ''}` : '';
+    const stil = einde && Number.isFinite(einde.inStepS) ? `, ${Math.round(einde.inStepS)} s in deze stap` : '';
+    console.log(`stopte bij stap ${res.lastStep || '?'}${waar}${stil}${einde && einde.reason ? `: ${einde.reason}` : ''}`);
+  }
   fs.writeFileSync(path.join(OUT, 'result.json'), JSON.stringify({ ...res, minigames: mgs.map((m) => [m.id, m.started, m.stuck, m.how, m.reden || '']) }, null, 1));
 }
 console.log(`uitvoer: ${OUT}`);
