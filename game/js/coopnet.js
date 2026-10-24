@@ -187,15 +187,25 @@ function endCoop(world) {
   world.coopBezigVan = {}; world.coopHudWanted = 0; // wie bezig is en de sterren in het scherm van de host (#429, #434)
   world.coopWanted = null; world.coopHeat = null; world.coopDoelwit = 0; world.coopWantedMeld = null; world.coopGepakt = null; world.coopStil = false; // (#434)
   if (world.companion) world.companion.coopWacht = false;
-  world.coopOpdrachtDoor = null; // (#452)
+  world.coopOpdrachtDoor = null; world.coopMeespelers = null; // (#452)
   world.coopMeld = null; world.coopDeel = null; world.coopUitslag = null; world.coopPingMarks = []; world.coopSpelers = []; world.coopGebruik = false; world.coopWielSlot = null; world.coopWielVraag = null; world.coopWiel = false; world.coopInVoertuig = false; world.coopBestuurder = false; // (#291, #434)
   world.coopVraag = null; world.coopStem = null; world.coopStemBeantwoord = null; // gezamenlijke keuzes (#452)
   if (world.companion) { world.companion.coopUit = false; world.companion.coopBestuurt = false; }
 }
-// Per meespeler (wie ja zei of verplicht meedoet, en verbonden is): staat hij nog? Tessa (plek 1) is neer als ze dood is; een extra speler gaat niet neer.
+// Per meespeler (wie ja zei of verplicht meedoet, en verbonden is): staat hij nog? (slotNeer)
 function meedoendeStatus(world, n) {
   const verbonden = new Set(n.hub.roster.spelers.filter((s) => s.slot !== 0 && s.verbinding !== 'lost').map((s) => s.slot));
-  return meespelers(n.meedoen).filter((s) => verbonden.has(s)).map((s) => (s === 1 ? !(world.companion && world.companion.state === 'dead') : true));
+  return meespelers(n.meedoen).filter((s) => verbonden.has(s)).map((s) => !slotNeer(world, s));
+}
+// Is deze speler neergeslagen? Tessa (plek 1) als ze dood is; een andere gast als zijn snapshot dat zegt (partner.status).
+function slotNeer(world, s) {
+  if (s === 1 && world.companion && world.companion.state === 'dead') return true;
+  return (world.coopPartners || []).some((p) => p && p.slot === s && p.status === 'neer');
+}
+// De plekken van de meespelers die nog staan (de gastheer niet meegeteld): de verhaalstappen kijken naar hen (spelersregister.js opdrachtSpelers, #452).
+function meedoendeStaan(world, n) {
+  const verbonden = new Set(n.hub.roster.spelers.filter((s) => s.slot !== 0 && s.verbinding !== 'lost').map((s) => s.slot));
+  return meespelers(n.meedoen).filter((s) => verbonden.has(s) && !slotNeer(world, s));
 }
 const now = (world) => (Number.isFinite(world.time) ? world.time : Date.now() / 1000);
 
@@ -261,6 +271,7 @@ export function startHost(world, info, opts = {}) {
   world.coopSchade = (slot, schade) => hub.announce({ k: 'schade', n: Math.round(Number(schade) || 0) }, slot); // een kogel van de politie raakt een gast (#434)
   // De gastheer gaat neer of wordt opgepakt: loopt de opdracht dan door? Ja zolang een meespeler (die ja zei, verbonden en niet neer) nog staat (#452).
   world.coopOpdrachtDoor = () => { const n = world.coopNet; if (!n || n.role !== 'host') return false; return !teamDown(meedoendeStatus(world, n)); };
+  world.coopMeespelers = () => { const n = world.coopNet; return n && n.role === 'host' && n.meedoen ? meedoendeStaan(world, n) : null; }; // wie de verhaalstappen meetellen (#452)
   world.coopMeld = (slot, tekst) => hub.announce({ k: 'melding', tekst: String(tekst).slice(0, 90) }, slot); // een korte melding voor een gast (#291)
   world.coopPvp = maakPvp(); // iedereen begint op passief (#447)
   world.coopPvpSchade = (slot, schade, door) => hub.announce(pvpSchadeEvent(schade, door), slot); // schade van een medespeler aan een gast (#447)
