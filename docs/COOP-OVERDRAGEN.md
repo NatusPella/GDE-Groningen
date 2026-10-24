@@ -25,17 +25,17 @@ Het ontwerp staat als comment op issue #439; dit is wat er nu is en wat er nog m
 
 ## Wat meegaat en wat niet
 
-Mee: tijd van de dag en dag van de kalender, de weermachine, gezocht niveau, de lopende opdracht, kapotte objecten, voertuigen waar spelers in zaten, het zaad en de plek waar het spel stond (de nieuwe host komt daar).
+Mee: tijd van de dag en dag van de kalender, de weermachine, gezocht niveau, de lopende opdracht met de stage of het waypoint en de resterende tijd (#452), kapotte objecten, voertuigen waar spelers in zaten (model, kleur en schade), het zaad en de plek waar het spel stond (de nieuwe host komt daar).
 Niet mee: verkeer, voetgangers en dieren (ontstaan opnieuw), ieders geld en voortgang (blijven op het eigen apparaat en in de eigen save), het verhaal van de nieuwe host zelf.
-Na de overdracht kunnen plekken en figuren anders zijn: de nieuwe host is plek 0 en wie het spel opende sluit als eerste gast aan (plek 1, Tessa).
+Na de overdracht kunnen plekken en figuren anders zijn: de nieuwe host is plek 0 en wie het spel opende sluit als eerste gast aan (plek 1, Tessa). Wie host wordt blijft wel op zijn eigen plek staan (geen sprong) en houdt de opdrachtstand: de opdracht loopt door op de stage waar zij was.
 
 ## Haken in de wereld (`deps`)
 
 `pasMomentopnameToe` zet zelf: klok, kalenderdag, weer, gezocht. De haken met de wereld staan in `game/js/coophostwisselwereld.js` (`wisselWereldHaken`, toegevoegd door `wisselRoute`); zonder haak komt er een melding of blijft het gegeven in `world.coopOverdracht`:
-- `leesOpdracht`/`zetOpdracht`: de lopende opdracht (plek in de keten uit `world.mission.index`) opnieuw starten via `missionDebug.start`. De opdracht begint dus weer bij haar start (de tussenstand gaat niet mee) en de nieuwe host staat dan daar; een aparte verplaatsing is dan niet nodig.
+- `leesOpdracht`/`zetOpdracht`: de lopende opdracht met de stand erin (#452): `missionDebug.state()` levert de stage in de keten (of het waypoint van een race) en de tijd die nog over was, en `missionDebug.hervat` in `missions.js` start dezelfde opdracht op die stage. De speler blijft staan: een gast die host wordt ziet geen sprong naar de start van de opdracht of naar de plek van de vorige host. Wat een stage zelf opbouwt (een scène, de kluis, de deuren van de kraak) begint wel opnieuw; de tussenstand van losse voorwerpen binnen een stage gaat niet mee.
 - `leesKapot`/`zetKapot`: `brokenKeysAll` (breakables.js) en `breakPropByKey`; een prop die nog niet is ingeladen wordt elke 3 s opnieuw geprobeerd (hoogstens 12 keer).
-- `zetVoertuigen`: een voertuig van een speler wordt (als er geen is binnen 3 m) als gewoon voertuig op de plek gezet; het model, de schade en wie erin zat gaan niet mee.
-- `zetPlek`: `verplaatsStil` (cheats.js): met de tegels laden en zonder streken-melding.
+- `leesVoertuigen`/`zetVoertuigen`: de voertuigen waar spelers in zaten, met hun model, kleur, hoogte en schade (#452). De nieuwe host zet hetzelfde model neer (via `TRAFFIC_MODELS` en de bekende missie-, politie- en landbouwmodellen); een onbekend model wordt een gewoon verkeersvoertuig. Wie erin zat stapt niet mee over: het voertuig staat er, leeg.
+- `zetPlek`: `verplaatsStil` (cheats.js): met de tegels laden en zonder streken-melding. Wordt alleen gebruikt als de nieuwe host meer dan 2 m van zijn eigen plek in de momentopname staat en `eigenPlek` niet is gezet; bij een overdracht of overname staat `eigenPlek` aan en blijft hij staan.
 - `gastGeld`: wat de gast in deze sessie verdiende (`payGuest` houdt `world.coopNet.betaald` bij). Het echte geld staat in de save van de gast en gaat nooit mee.
 `main.js` roept `tickCoopNet` nu ook aan als `world.coopWissel` bestaat, zodat de zoektocht naar een host doorloopt als de eigen sessie weg is.
 
@@ -59,4 +59,4 @@ Het bod draagt een terugvalkamer (`terug`, een kamercode die `maakKamer` maakt) 
 - Alleen de kamercode-route. Met een IP-adres (TCP, `route: 'direct'`) is overdragen uit (`kanOverdragen`): de nieuwe host zou zijn eigen poort moeten openen (UPnP) en een koppelcode doorgeven.
 - Lukt het aansluiten bij de nieuwe host niet na `hw-draait`, dan is er de terugval (zie boven); alleen in de test met een geheugentransport geprobeerd. In `wisselRoute` krijgt `verbind` nu een eigen time-out (`joinRoom` beslist nooit als het misgaat).
 - Het scherm (`teken` in `coophostwisselui.js`) en de knop zijn niet in beeld bekeken.
-- Opdrachten en filmpjes: de overdracht begint niet tijdens een filmpje; de opdracht zelf begint bij de nieuwe host weer bij haar start. De haken met de wereld (`coophostwisselwereld.js`) zijn niet in het spel zelf gezien: alleen losse functies zijn getest (`scripts/coophostwisselwereld_test.mjs`).
+- Opdrachten en filmpjes: de overdracht begint niet tijdens een filmpje; de opdracht loopt na de overdracht door op de stage waar zij was (`missionDebug.hervat`, #452), maar wat een stage zelf opbouwde (een scène, de kluis, de deuren van de kraak) begint opnieuw. De haken met de wereld (`coophostwisselwereld.js`) zijn niet in het spel zelf gezien: alleen losse functies zijn getest (`scripts/coophostwisselwereld_test.mjs`) en de momentopname in `scripts/coop/hostwissel_test.mjs`.
