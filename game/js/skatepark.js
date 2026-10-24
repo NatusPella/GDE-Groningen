@@ -5,7 +5,7 @@ import { showBanner } from './cinematics.js';
 import { unlockAchievement, recordChallengeResult, getChallengeRecord, recordStat, setStatMax, MEDALS } from './achievements.js';
 import { showCard } from './hudcards.js';
 import { activityBlock, iconDisc } from './activitykit.js';
-import { createBoard, key, bubble, clearBubbles, pick, stopPressed, easeCamera, geo, frame, clamp } from './minigamekit.js';
+import { createBoard, mgThema, key, bubble, clearBubbles, pick, stopPressed, easeCamera, geo, frame, clamp } from './minigamekit.js';
 import { SKATE_LINES } from './minigamelines.js';
 import { loopbaanVerdien } from './loopbaanlive.js';
 import { registreerWedstrijd, zetWedGastHaken, wedNodigUit, wedNuStarten, wedHostPunt, wedGastPunt, wedScoreStop, wedGastVerlaat, wedGastReset, wedScoreRijen } from './coopwedstrijd.js';
@@ -23,7 +23,7 @@ import {
 // keeps it, a bail loses it; the chain is banked after a pause on the ground.
 // Medals from the score, record in points. Money-neutral.
 // Rules and scoring: skatetricks.js. `window.__skatepark` debug.
-const ACCENT = '#e8523a';
+const ACCENT = mgThema('skatepark').accent; // één bron voor het HUD-thema: minigamekit.js (#453)
 const ORIGIN = geo(53.204169, 6.547889);
 const ROT = -0.448;
 const FR = frame(ORIGIN, ROT);
@@ -429,7 +429,7 @@ function camera(w) {
 }
 
 function ensureBoard() {
-  if (!board) board = createBoard('SKATEPARK STADSPARK', ACCENT);
+  if (!board) board = createBoard('skatepark');
   return board;
 }
 
@@ -444,7 +444,7 @@ function updateHud(w) {
   const row = `${stand}<span>Tijd <b>${Math.floor(left / 60)}:${String(left % 60).padStart(2, '0')}</b></span><span>Score <b>${c.total.toLocaleString('nl-NL')}</b></span><span>Keten <b>${cur.toLocaleString('nl-NL')}</b> x${c.chain ? c.mult : 1}</span><span>Beste <b>${c.best.toLocaleString('nl-NL')}</b></span>`;
   let meter = null, flash = g.flash ? g.flash.text : g.phase === 'intro' ? 'Daar gaan we...' : g.phase === 'outro' ? 'Tijd!' : '';
   if (g.b.grind) {
-    meter = { v: 0.5 + g.b.grind.bal / 2.4, mark: 0.5, color: Math.abs(g.b.grind.bal) > 0.65 ? '#ff6f61' : '#46b36a' };
+    meter = { v: 0.5 + g.b.grind.bal / 2.4, mark: 0.5, color: Math.abs(g.b.grind.bal) > 0.65 ? '#d93f3f' : ACCENT };
     flash = g.b.grind.bal > 0.1 ? 'Balans: je leunt rechts, stuur links' : g.b.grind.bal < -0.1 ? 'Balans: je leunt links, stuur rechts' : 'Grind!';
   }
   const help = `${key('W')} duwen · ${key('A')}${key('D')} sturen/draaien · ${key('SPATIE')} ollie · ${key('E')} kickflip · ${key('F')} heelflip · ${key('S')} grab · ${key('BACKSPACE')} stoppen`;

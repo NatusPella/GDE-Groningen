@@ -41,7 +41,7 @@ import { waarschuwVoorStart, samenWaarschuwing } from './coopstatus.js';
 import { isCinematicActive, showBanner } from './cinematics.js';
 import { getScene } from './scene3d.js';
 import { showCard } from './hudcards.js';
-import { gameUi } from './minigamekit.js';
+import { gameUi, mgThema } from './minigamekit.js';
 import { registerBusyProbe, registerQuitHook } from './busy.js';
 export { activityBlock, iconDisc } from './activitykit.js';
 
@@ -54,9 +54,15 @@ export function initActivities(w) {
     try { a.init(w); } catch (e) { console.error('activity', a.id, e); }
   }
   window.__activities = {
-    list: () => LIST.map((a) => ({ id: a.id, spots: a.spots().length, active: a.active() })),
+    list: () => LIST.map((a) => ({ id: a.id, spots: a.spots().length, active: a.active(), thema: activityThema(a.id) })),
     get: (id) => LIST.find((a) => a.id === id) || null,
   };
+}
+
+// Het HUD-thema van een activiteit (#453): één tabel in minigamekit.js (titel, kleur, icoon). null als de activiteit
+// geen eigen thema heeft of niet in de lijst staat.
+export function activityThema(id) {
+  return LIST.some((a) => a.id === id) ? mgThema(id) : null;
 }
 
 function current() {
