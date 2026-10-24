@@ -6,6 +6,15 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Nieuw
+- Dieren (#437): katten en honden aaien. Sta je te voet binnen 2 meter van een tamme kat of een hond aan de lijn, dan staat er een tip (E, Aaien). Je zakt door de knieën en strijkt over de vacht, de kat gaat zitten en spint, de hond kwispelt en piept blij; je krijgt +5 gezondheid en een punt voor de nieuwe prestaties Zachte hand, Poezenpraatje en Knuffelkampioen (5, 25 en 100 keer). Een schuwe kat loopt nog gewoon weg. Het spinnen en piepen zijn zelf gemaakt van de bestaande toon- en ruisbouwstenen, geen nieuwe opname (nog niet in beeld bekeken).
+- Pitch & putt (#438): met 1 tot 4 spelers op één scherm, om de beurt. Druk voor de eerste slag op 2, 3 of 4. De verste bal slaat, op de tee heeft de eer wie de vorige baan het beste speelde, het scorebord en wie er aan de beurt is staan in de balk, de camera volgt wie slaat, en na zes banen komt een uitslag (met gelijkspel). Een persoonlijk record en medaille zijn er alleen als je alleen speelt (nog niet in beeld bekeken).
+- Loopbaan (#438): vanaf Kaartjesknipper (spoor, niveau 3) kun je op het perron kaartjes controleren: loop naar een reiziger, druk E, en na een ronde van vijf reizigers betaalt het loon van het vak en tellen de punten mee. Per station hooguit een ronde per kwartier. In de trein zelf kan het nog niet (nog niet in beeld bekeken).
+
+### Veranderd
+- Winkel (#437): het tabblad Alles staat nu achteraan in plaats van voorop, en een winkel opent bij de eerste afdeling (bij Pang Wapens & munitie).
+- Ommeland (#437): Pootje baden bij Kropswolde is geen dorpsuitje meer, het had geen doel; de strandtent De Natte Voet blijft.
+
 ## [0.47.0] - 2026-10-24
 
 ### Nieuw
