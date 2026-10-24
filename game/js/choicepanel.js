@@ -13,6 +13,9 @@ const CSS = `
 #hud .cw-panel .cw-rule { font-size: 15px; color: rgba(240,237,228,0.78); font-style: italic; margin: 0 0 6px; }
 #hud .cw-panel .cw-opts { display: flex; flex-direction: column; gap: 3px; margin-top: 4px; }
 #hud .cw-panel .cw-opt { display: flex; align-items: center; gap: 10px; font-size: 18px; padding: 3px 8px; background: rgba(240,237,228,0.08); }
+#hud .cw-panel .cw-opt .cw-body { display: flex; flex-direction: column; min-width: 0; }
+#hud .cw-panel .cw-opt .cw-note { font-size: 13px; color: rgba(240,237,228,0.72); }
+#hud .cw-panel .cw-opt .cw-badge { margin-left: auto; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: #12200f; background: #5dff7a; padding: 1px 7px; border-radius: 2px; }
 #hud .cw-panel .cw-opt.pick { background: rgba(255,210,63,0.3); }
 #hud .cw-panel .cw-opt.good { background: rgba(93,255,122,0.22); }
 #hud .cw-panel .cw-opt.bad { background: rgba(255,154,60,0.22); }
@@ -62,7 +65,7 @@ export function createChoicePanel(accent = '#d9a441') {
       el.text.textContent = s.text || '';
       el.rule.hidden = !s.rule;
       el.rule.textContent = s.rule || '';
-      el.opts.innerHTML = (s.options || []).map((o) => `<div class="cw-opt ${o.cls || ''}" data-key="${esc(o.key)}">${keycap(o.key)}<span>${esc(o.label)}</span></div>`).join('');
+      el.opts.innerHTML = (s.options || []).map((o) => `<div class="cw-opt ${o.cls || ''}" data-key="${esc(o.key)}">${keycap(o.key)}${o.note ? `<span class="cw-body"><span>${esc(o.label)}</span><span class="cw-note">${esc(o.note)}</span></span>` : `<span>${esc(o.label)}</span>`}${o.badge ? `<span class="cw-badge">${esc(o.badge)}</span>` : ''}</div>`).join('');
       if (s.meter) {
         el.meter.hidden = false;
         el.mark.style.left = `${Math.round(Math.max(0, Math.min(1, s.meter.v)) * 100)}%`;

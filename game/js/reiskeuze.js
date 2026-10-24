@@ -18,6 +18,13 @@ export const RIDES = {
 const mins = (s) => Math.max(1, Math.round(s / 60));
 const label = (s) => `± ${mins(s)} min`;
 
+// De keuze in gewone woorden (#445): een korte zin per keuze, voor het keuzevenster en de kaart.
+export const UITLEG = {
+  meerijden: 'Je zit er zo: een korte rit, de tijd loopt gewoon door.',
+  zelf: 'Je rijdt of loopt zelf en verdient er wat bij.',
+  overslaan: 'Direct aankomen; wat onderweg gezegd wordt, lees je als ondertitel.',
+};
+
 // Options for a beat. beat: { length (m), ride?: key of RIDES, selfMode?: 'auto'|'trekker'|..,
 // lines?: string[] }. Skipping needs `lines` (the core of the trip talk) so that
 // no story point is lost; without them the option is left out.
@@ -31,16 +38,16 @@ export function travelOptions(beat) {
   const opts = [];
   // played time is cut to the ceiling; the clock still runs for the real time
   opts.push({
-    id: 'meerijden', label: ride.label, etaS: realRide, playS: Math.min(realRide, CAP.meerijden), clockS: realRide,
+    id: 'meerijden', label: `Snel reizen · ${ride.label.toLowerCase()}`, ride: ride.label, uitleg: UITLEG.meerijden, kosten: 'gratis', etaS: realRide, playS: Math.min(realRide, CAP.meerijden), clockS: realRide,
     eta: label(realRide), reward: false,
   });
   // driving yourself longer than the ceiling is split by cuts into pieces
   opts.push({
-    id: 'zelf', label: 'Zelf rijden', etaS: realSelf, playS: realSelf, clockS: realSelf, eta: label(realSelf),
+    id: 'zelf', label: 'Zelf gaan', uitleg: UITLEG.zelf, kosten: `gratis, je verdient € ${selfReward(length)}`, etaS: realSelf, playS: realSelf, clockS: realSelf, eta: label(realSelf),
     pieces: piecesFor(realSelf), reward: true,
   });
   if (beat.lines && beat.lines.length) {
-    opts.push({ id: 'overslaan', label: 'Overslaan', etaS: 0, playS: CAP.overslaan, clockS: realRide, eta: 'direct', reward: false, lines: beat.lines.slice(0, 4) });
+    opts.push({ id: 'overslaan', label: 'Overslaan', uitleg: UITLEG.overslaan, kosten: 'gratis', etaS: 0, playS: CAP.overslaan, clockS: realRide, eta: 'direct', reward: false, lines: beat.lines.slice(0, 4) });
   }
   return { klasse: klasse.id, required: klasse.beat, options: opts, def: defaultChoice(length, opts) };
 }
