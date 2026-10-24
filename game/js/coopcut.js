@@ -1,7 +1,8 @@
 // Samen spelen (#95): cutscenes samen bekijken, ook de openingsscène van een nieuw spel. De gastheer speelt een
 // scène (playScript in cutscenehost.js) en stuurt de scène zelf mee als data (de beschrijving, de regels, het anker en
-// de titelkaart); de gast speelt precies dezelfde scène op zijn eigen scherm, in zijn eigen wereld. Overslaan kan alleen
-// de gastheer: zijn "einde" laat het filmpje bij de gasten ook stoppen. Een betrouwbaar bericht is klein (net/codec.js
+// de titelkaart); de gast speelt precies dezelfde scène op zijn eigen scherm, in zijn eigen wereld. Of de scène voor iedereen
+// wordt overgeslagen bepaalt alleen de gastheer: zijn "einde" laat het filmpje bij de gasten ook stoppen. Een gast kan wel zijn eigen weergave overslaan
+// (Spatie vasthouden, zoals altijd): zijn filmpje stopt, de scène van de gastheer loopt door (#434). Een betrouwbaar bericht is klein (net/codec.js
 // MAX_JSON), daarom gaat de scène in stukjes. Filmpjes zonder scènebeschrijving (playCinematic met een eigen
 // camerabaan) blijven de laag "De gastheer kijkt een filmpje" (coopscene.js). Puur: alleen data en een lui geladen speler.
 export const CUT_CHUNK = 800;      // tekens per stukje (met aanhalingstekens erbij ruim onder MAX_JSON)
@@ -120,6 +121,9 @@ export function cutGastTik(w, id, t, stel, nu = Date.now()) {
   return r;
 }
 
+// De cinematic-opties van een gast: hij kan zijn eigen weergave overslaan (de scène van de gastheer loopt door); klaar() zet coopCutBezig weer vrij.
+export const gastCine = (p, klaar) => ({ ...p.cine, cutId: p.id, skippable: true, onEnd: klaar });
+
 // ---- de gast: de scène spelen (lui geladen: three.js en de cutscene-spelers horen niet bij het net)
 export async function cutGastSpeel(w, p) {
   let m; try { m = await import('./cutscenehost.js'); } catch (e) { cutSpoor(w, 'gast-geen-speler', p.id, String(e && e.message)); return false; }
@@ -130,7 +134,7 @@ export async function cutGastSpeel(w, p) {
   const klaar = () => { cutSpoor(w, 'gast-klaar', p.id); if (w.coopCutBezig === p.id) w.coopCutBezig = null; };
   const ok = m.playScript(w, p.def, {
     lines: p.lines, duration: p.duration, anchor: p.anchor || undefined, replay: true,
-    cine: { ...p.cine, cutId: p.id, skippable: false, onEnd: klaar },
+    cine: gastCine(p, klaar),
   });
   cutSpoor(w, 'gast-start', p.id, !!ok);
   if (!ok) klaar();

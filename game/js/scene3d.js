@@ -2887,7 +2887,7 @@ export function update3D(dt, world) {
         animatePersonWalk(companionMesh, Math.hypot(comp.vx, comp.vy), animDt);
         if (comp.sofaSeat != null) { seatPose(companionMesh); companionMesh.position.y = seatedY(companionMesh, (comp.gz || 0) + comp.sofaSeat); }
         if (comp.carrying) carryOverlay(companionMesh);
-        if (world.coopRole === 'client') { // het wapen en de aanval van de gastheer, zoals een voetganger ze heeft (#434)
+        if (world.coopRole === 'client' || comp.coopWapen !== undefined || comp.coopFx) { // het wapen en de aanval van de gastheer (bij een gast) of van de gast die Tessa bestuurt (bij de host), zoals een voetganger ze heeft (#434)
           setHeldWeapon(companionMesh, comp.coopWapen || null);
           if (comp.coopWapen || comp.coopFx) applyAttackPose(companionMesh, comp.coopFx, world.time, null);
         }

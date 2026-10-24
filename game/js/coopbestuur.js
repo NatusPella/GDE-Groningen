@@ -46,6 +46,13 @@ export function gastAanval(world, slot, slachtoffer, { gedood = false } = {}) {
   haken.misdaad(world, slot, slachtoffer.isCop ? 'copHit' : gedood ? 'pedKill' : 'pedHit');
   return true;
 }
+// Alle lichamen van gasten bij de host: [[plek, lichaam]] (plek 1 de metgezel als hij door een gast wordt bestuurd, plek 2 en hoger figuren).
+export function gastLichamen(world) {
+  const uit = [], c = lichaamVan(world, 1);
+  if (c) uit.push([1, c]);
+  for (const f of Object.values(figures(world))) if (f && f.slot >= 2) uit.push([f.slot, f]);
+  return uit;
+}
 export const bestuurt = (lichaam) => !!(lichaam && lichaam.coopBestuurt);
 export const bestuurderVan = (world, slot) => (rijders(world)[slot] || null);
 

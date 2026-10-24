@@ -52,7 +52,10 @@ import { initCompanion, updateCompanion } from './companion.js';
 import { tickRowingCoaches } from './roeicoach.js';
 import { updateTrafficAI, resolveVehicleBuildingCollision, resolveVehicleVehicleCollisions, manageTrafficPopulation, manageBikePopulation, manageBusPopulation, manageScooterPopulation, manageMotorPopulation, manageBoatPopulation, updateBoatAI, recordContact, checkVehicleWater, spawnHeroCarNear, tickBurningVehicles, setGroundMap } from './vehicle.js';
 import { spawnPedestriansNear, updatePedestrians, CITY_CENTRE } from './pedestrians.js';
-import { updateCombat, updateBullets } from './combat.js';
+import { updateCombat, updateBullets, gastAanvalUitvoeren, gastSlagLanding } from './combat.js';
+import { setCombatEffect } from './combateffect.js';
+import { zetWapenHaken, zetGastWapenHaken } from './coopwapen.js';
+import { WEAPONS } from './weapons.js';
 import { updatePolice } from './police.js';
 import { updateTrafficLaw } from './trafficlaw.js';
 import { updateOffences } from './offences.js';
@@ -435,6 +438,8 @@ async function boot() {
   initRailway(world);
   setCoopTreinen({ getTrains, getRoutes, routePoint, zetTreinVanHost, zetTreinenVanHost }); // samen spelen: de host stuurt zijn treinen (#428)
   // samen spelen (#434): een gast stapt in en rijdt een vrij voertuig van de host met de besturing van player.js (coopbestuur.js)
+  zetWapenHaken({ aanval: gastAanvalUitvoeren, landing: gastSlagLanding }); // een gast met een wapen: de host rekent zijn aanval uit (#434)
+  zetGastWapenHaken({ effect: (w, key, p) => { const wp = WEAPONS[key]; if (!wp) return; setCombatEffect({ type: wp.kind === 'melee' ? 'melee' : 'muzzle', angle: p.angle, until: w.time + (wp.kind === 'melee' ? 0.15 : 0.06), start: w.time, side: 1, weapon: key, swing: wp.swing }); (w.audioEvents || (w.audioEvents = [])).length < 64 && w.audioEvents.push({ kind: 'weapon', sub: wp.kind === 'melee' ? 'swing' : 'shot', weapon: key, x: p.x, y: p.y }); }, geluid: (w, ev) => { (w.audioEvents || (w.audioEvents = [])).length < 64 && w.audioEvents.push(ev); } }); // het eigen beeld en geluid van de gast
   zetBestuurHaken({ misdaad: (w, slot, kind) => reportCrime(w, kind, { dader: slot }), vind: findEnterableVehicle, vindProp: findRideableProp, rijProp: rideProp, enter: (l, v, w) => Player.prototype.enterVehicle.call(l, v, w), exit: (l, map, w, th) => Player.prototype.exitVehicle.call(l, map, w, th), drive: (l, dt, inv, map, w) => Player.prototype.driveVehicle.call(l, dt, inv, map, w) });
   buildMovableBridges(world.map);
   // the province's movable bridges come with the streamed tiles, not with map.roads (#235)

@@ -88,7 +88,7 @@ export function updateActivityGame(dt, w) {
 // Samen spelen (#434): een gast draait de wereld niet, maar bouwt wel wat de host ook bouwt en waar zijn lichaam tegenaan botst (een safehouse: gastTick)
 export function tickActivitiesGast(dt, w) {
   for (const a of LIST) {
-    if (!a.gastTick && !(GAST_ACTIVITEITEN.has(a.id) && (a.active() || !w.coopInVoertuig))) continue; // hengelen, pannenkoek, beiaard: ook bij een gast (#429)
+    if (!a.gastTick && !(GAST_ACTIVITEITEN.has(a.id) && (a.active() || !w.coopInVoertuig || (a.id === 'hengelen' && w.coopBoot)))) continue; // hengelen, pannenkoek, beiaard: ook bij een gast (#429)
     try { a.tick(dt, w); } catch (e) { console.error('activity', a.id, e); }
   }
 }
