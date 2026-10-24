@@ -73,6 +73,29 @@ function rijRace(r, { stil = [], weg = {}, maxS = 400, onTik = null } = {}) {
   check('de loopbaanpunten dalen met de plek', W.beloning({ plek: 1, fin: true }).xp > W.beloning({ plek: 4, fin: true }).xp);
 }
 
+// ---- de tussenstand op het bord: plek, ronde en tijd van iedereen, live (#443)
+{
+  const r = W.maakRace(MENSEN);
+  const leeg = W.raceStand(r);
+  check('de tussenstand heeft een regel per kart, de plekken 1 tot 4', leeg.length === W.MAX_RIJDERS && leeg.map((x) => x.plek).join() === '1,2,3,4');
+  check('op de grid staat iedereen op ronde 1 zonder finishtijd', leeg.every((x) => x.ronde === 1 && x.tijd === null && !x.klaar && Number.isFinite(x.ronde)));
+  check('de tussenstand staat in dezelfde volgorde als de uitslag', leeg.map((x) => x.naam).join() === W.eindstand(r).map((x) => x.naam).join());
+  const gast = W.maakSpiegel(W.leesWed(W.startEvent('kartbaan', MENSEN, 0)), 1);
+  check('bij een gast is de eigen kart in de tussenstand herkenbaar', W.raceStand(gast).filter((x) => x.eigen).length === 1 && W.raceStand(gast).find((x) => x.eigen).naam === 'Tessa');
+  const r2 = W.maakRace(MENSEN);
+  for (let i = 0; i < 60 * 40; i++) W.tikRace(r2, DT, null);
+  const half = W.raceStand(r2);
+  check('tijdens de race loopt de ronde mee en is er nog geen finishtijd', half.every((x) => x.tijd === null && x.ronde >= 1 && x.ronde <= LAPS), JSON.stringify(half.map((x) => [x.naam, x.ronde])));
+  check('de tussenstand blijft de volgorde van de uitslag volgen', half.map((x) => x.naam).join() === W.eindstand(r2).map((x) => x.naam).join());
+  for (const k of r2.karts) { k.prog = T.length * LAPS + 1; k.finished = true; k.finishT = 90 + k.bron * 2; k.lapTimes = [30.5]; }
+  r2.result = null;
+  const klaar = W.raceStand(r2);
+  check('wie finisht heeft zijn tijd en zijn beste ronde', klaar.every((x) => x.klaar && x.tijd != null && x.beste != null && x.ronde === LAPS));
+  check('de tussenstand zet de snelste eerst', klaar[0].tijd < klaar[3].tijd && klaar.every((x, i) => x.plek === i + 1));
+  W.verlaat(r2, 1);
+  check('wie wegviel staat er als weg bij, zonder tijd te verzinnen', W.raceStand(r2).find((x) => x.naam === 'Tessa').weg === true);
+}
+
 // ---- iemand die stilstaat houdt de race niet op, en krijgt geen geld
 {
   const r = W.maakRace(MENSEN);
@@ -290,6 +313,21 @@ const ROSTER = () => [{ slot: 0, char: 'tammo', verbinding: 'ok' }, { slot: 1, c
   const lg = log.length;
   W.wedHostEind(world, gestart, { gestopt: true });
   check('stopt de host dan krijgt iedereen een stopbericht en niemand een beloning', log.slice(lg).filter(([, b]) => b.f === 'eind' && b.gestopt).length === 3 && betaald.length === 1);
+}
+
+// ---- een volle grid: vier karts, wie geen plek heeft hoort waarom (#443)
+{
+  let gestart = null;
+  W.registreerWedstrijd('kartbaan', { naam: 'Karten in Ulrum', start: (w, r) => { gestart = r; return true; }, solo: () => 'solo' });
+  const spelers = [{ slot: 0, char: 'tammo', verbinding: 'ok' }, ...[1, 2, 3, 4, 5].map((slot) => ({ slot, char: 'rik', verbinding: 'ok' }))];
+  const { world, log } = nepWereld(spelers);
+  W.wedNodigUit(world, 'kartbaan');
+  for (const s of [1, 2, 3, 4, 5]) W.wedHandleGast(world, { k: 'wedgast', a: 'ja' }, s);
+  W.wedHostTik(world, 0.1);
+  check('zes spelers, vier karts: de rest valt af', gestart && gestart.karts.filter((k) => k.mens).length === 4, gestart && gestart.karts.map((k) => k.slot).join());
+  check('wie ja zei maar geen plek had hoort dat de wedstrijd vol zit', world.messages.filter((m) => Array.isArray(m) && m[1] === W.WED_TEKST.vol).length === 2, JSON.stringify(world.messages));
+  check('alleen de gasten die meedoen krijgen een startbericht', log.filter(([, b]) => b.f === 'start').map(([s]) => s).join() === '1,2,3' && log.filter(([, b]) => b.f === 'start').length === 3);
+  check('en iedereen die afvalt krijgt een afbericht', log.filter(([, b]) => b.f === 'af').length === 2);
 }
 
 // ---- de gast-kant: berichten van de host
