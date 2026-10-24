@@ -31,6 +31,7 @@ import { edgeDistance } from './countryfield.js';
 import { roadNear, tilesIn, withTiles } from './tileplace.js';
 import { getGarageCatalog, deliverOwnedVehicle } from './ownedvehicles.js';
 import { playerBusy } from './busy.js';
+import { meerSpelers, cheatsUit, CHEATS_UIT_TEKST } from './coopgroep.js';
 
 const CLOCK = { zomeravond: 20.5, nachtstad: 0.5 };
 const FAST_CLOCK = 4; // extra days per day: five times as fast in all
@@ -49,7 +50,7 @@ let stormForced = false;
 export function initCheats(w) {
   world = w;
   resetState(null);
-  w.cheatActions = { teleport: (x, y, name) => teleport(w, x, y, name) };
+  w.cheatActions = { teleport: (x, y, name, opts) => teleport(w, x, y, name, opts) };
   setAchievementGate(() => achievementsBlocked());
 }
 
@@ -81,6 +82,7 @@ export function cheatsBusy(w = world) {
 export function setCheat(id, value) {
   const c = CHEAT_BY_ID.get(id);
   if (!c || (c.kind && c.kind !== 'toggle') || !isAvailable(id)) return false;
+  if (value && cheatsUit(world)) { if (world.addMessage) world.addMessage(CHEATS_UIT_TEKST, 4); return false; } // met meer spelers geen cheats (#452)
   if (value) {
     if (c.group) for (const o of CHEATS) if (o.group === c.group) on.delete(o.id);
     on.add(id);
@@ -114,7 +116,8 @@ export function updateCheats(dt, w) {
   pollT -= dt;
   if (pollT <= 0) { pollT = 1; pollUnlocks(w); }
   const busy = cheatsBusy(w);
-  const live = (id) => on.has(id) && (CHEAT_BY_ID.get(id).safe || !busy);
+  const uit = cheatsUit(w); // een sessie met meer spelers: alle cheats staan uit, ook de uiterlijk-cheats (#452)
+  const live = (id) => !uit && on.has(id) && (CHEAT_BY_ID.get(id).safe || !busy);
 
   MODS.grav = live('zwaartekracht') ? 0.35 : 1;
   MODS.grip = live('frituurvet') ? 0.3 : 1;
@@ -196,9 +199,10 @@ export function applyCheatSave(d, save) {
 
 // --- teleport --------------------------------------------------------------------
 
-// Why a jump or a delivery can't happen now, or ''.
-export function blockedReason(w = world, { vehicleOk = true } = {}) {
+// Why a jump or a delivery can't happen now, or ''. reis: een snelreis voor jezelf (safehouse-anker), geen cheat: de anderen blijven waar ze zijn (#452).
+export function blockedReason(w = world, { vehicleOk = true, reis = false } = {}) {
   const p = w.player;
+  if (!reis && cheatsUit(w)) return CHEATS_UIT_TEKST;
   if (cheatsBusy(w)) return w.pigeonMode ? 'Eerst weer mens worden' : 'Niet tijdens een missie of filmpje';
   if (w.wanted > 0) return 'Met de politie op je hielen kan dat niet. Eerst ze kwijt!';
   if (inHomeFlat()) return 'Eerst de flat uit';
@@ -243,8 +247,8 @@ export function teleportSpot(map, x, y, car) {
   return null;
 }
 
-function teleport(w, x, y, name) {
-  const why = blockedReason(w);
+function teleport(w, x, y, name, opts = null) {
+  const why = blockedReason(w, { reis: !!(opts && opts.reis) });
   if (why) { w.addMessage(why, 3); return false; }
   // far from here the tiles round the target are not in yet: they come first,
   // then the same jump (the road and the open spot are picked from them)
@@ -271,7 +275,7 @@ function teleportNow(w, x, y, name, stil = false) {
     p.angle = angle;
   }
   w.camYaw = p.angle;
-  placeCompanion(w, p.x, p.y, p.angle);
+  if (!meerSpelers(w)) placeCompanion(w, p.x, p.y, p.angle); // met meer spelers reis je alleen zelf; de anderen blijven (#452)
   lastSpeed = 0;
   if (!stil) w.addMessage(`Je staat nu ${name ? 'bij ' + name : 'ergens anders'}`, 3, { kind: 'tip' });
   return true;

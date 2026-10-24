@@ -5,6 +5,7 @@
 // previews the special-gameplay modules (helirun.js, fierljep.js).
 
 import { STEPS, stepAvailable } from './storyarc.js';
+import { cheatsUit, CHEATS_UIT_TEKST } from './coopgroep.js';
 
 let world = null;
 let root = null;
@@ -54,6 +55,7 @@ function build() {
 }
 
 function act(a) {
+  if (cheatsUit(world)) { if (world.addMessage) world.addMessage(CHEATS_UIT_TEKST, 4); setOpen(false); return; } // het paneel stond al open toen iemand aansloot (#452)
   const S = window.__story;
   const pre = root.querySelector('pre');
   if (a === 'jump') S.jump(root.querySelector('[data-jump-sel]').value);
@@ -89,6 +91,7 @@ function refresh() {
 }
 
 function setOpen(v) {
+  if (v && cheatsUit(world)) { if (world.addMessage) world.addMessage(CHEATS_UIT_TEKST, 4); v = false; } // met meer spelers geen dev-paneel (#452)
   open = v;
   world.devPanelOpen = open;
   root.classList.toggle('open', open);
