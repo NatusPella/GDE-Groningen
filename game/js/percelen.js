@@ -46,10 +46,10 @@ export const perceelDef = (id) => PERCELEN.find((p) => p.id === id) || null;
 const E = (id, naam, plaats, lat, lon, opslagKg, machinePlekken, prijs, eigenaar, aanbod = 'beide') => ({ id, naam, plaats, lat, lon, huis: true, schuur: true, silo: opslagKg >= 6000, opslagKg, machinePlekken, koop: prijs, huurDag: rond5(prijs * 0.0045), eigenaar, aanbod });
 export const START_ERF = 'zonnehoek';
 export const ERVEN = [
-  { id: START_ERF, naam: 'Boerderij De Zonnehoek', plaats: 'Hoogkerk', lat: 53.2336, lon: 6.4977, huis: true, schuur: true, silo: false, opslagKg: 4000, machinePlekken: 6, koop: 0, huurDag: 0, eigenaar: 'Jijzelf', aanbod: 'eigen' },
-  E('wierdehoeve', 'Wierdehoeve', 'Winsum', 53.3278, 6.5144, 9000, 9, 15000, 'Maatschap Hogeland'),
-  E('kleiplaats', 'Kleiplaats', 'Zuidhorn', 53.2436, 6.4102, 6000, 6, 11000, 'Maatschap De Kleihoek'),
-  E('weidehof', 'Weidehof', 'Sauwerd', 53.2898, 6.5589, 2500, 3, 5500, 'Schapenhouderij De Hoek', 'huur'),
+  { id: START_ERF, naam: 'Boerderij De Zonnehoek', plaats: 'Hoogkerk', lat: 53.2336, lon: 6.4977, huis: true, schuur: true, silo: false, opslagKg: 4000, machinePlekken: 10, koop: 0, huurDag: 0, eigenaar: 'Jijzelf', aanbod: 'eigen' },
+  E('wierdehoeve', 'Wierdehoeve', 'Winsum', 53.3278, 6.5144, 9000, 12, 15000, 'Maatschap Hogeland'),
+  E('kleiplaats', 'Kleiplaats', 'Zuidhorn', 53.2436, 6.4102, 6000, 8, 11000, 'Maatschap De Kleihoek'),
+  E('weidehof', 'Weidehof', 'Sauwerd', 53.2898, 6.5589, 2500, 4, 5500, 'Schapenhouderij De Hoek', 'huur'),
 ];
 export const ERF_IDS = ERVEN.map((e) => e.id);
 export const erfDef = (id) => ERVEN.find((e) => e.id === id) || null;

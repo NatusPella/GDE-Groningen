@@ -20,6 +20,7 @@ import { pigeonSpotPrompt, pigeonSpotSecondary } from './pigeonspots.js';
 import { sideJobPrompt, sideJobSecondary } from './sidejobs.js';
 import { stationPrompt, stationSecondary } from './stationtravel.js';
 import { machinePrompt } from './snackautomaat.js';
+import { boerderijPrompt } from './boerderijwereld.js';
 import { streetLifePrompt } from './streetlife.js';
 import { weaponDropPrompt } from './weapondrops.js';
 import { trainPrompt } from './traindrive.js';
@@ -341,6 +342,8 @@ function findPrimary(world) {
   if (gar) return gar;
   const pg = postgamePrompt(world);
   if (pg) return pg;
+  const boer = boerderijPrompt(world);
+  if (boer) return boer;
   const muur = machinePrompt(world);
   if (muur) return muur;
   const drop = weaponDropPrompt(world);

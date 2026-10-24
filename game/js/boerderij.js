@@ -73,6 +73,7 @@ export function nieuweBoerderij() {
     machines: Object.fromEntries(MACHINE_IDS.map((m) => [m, 'huur'])),
     totaal: { oogsten: 0, leveringen: 0, omzet: 0, uitgaven: 0 },
     bodemlog: {},                                                  // per perceel: { u: uitputting 0..0,3, g: laatste gewas }
+    posities: {},                                                  // waar de rijen van een ander perceel dan de Zonnehoek liggen: { x, y, a } (eenmaal gevonden)
     boek: nieuwBoek(),                                             // kosten en opbrengsten per veld en per boekjaar, en de lening
     bedrijf: nieuwBedrijf(),                 // percelen, erven, opslag en machinepark (percelen.js, #415 stap 1): oude opslag mist dit en krijgt het leeg
   };
@@ -106,6 +107,7 @@ export function normaliseer(raw) {
   if (d.machines && typeof d.machines === 'object') for (const m of MACHINE_IDS) if (d.machines[m] === 'eigen') b.machines[m] = 'eigen';
   if (d.totaal && typeof d.totaal === 'object') for (const k of Object.keys(b.totaal)) b.totaal[k] = Math.round(getal(d.totaal[k], 0, 1e9));
   if (d.bodemlog && typeof d.bodemlog === 'object') for (const id of PERCEEL_IDS) { const l = d.bodemlog[id]; if (l && typeof l === 'object') b.bodemlog[id] = { u: Math.round(getal(l.u, 0, UITPUTTING_MAX) * 1000) / 1000, g: GEWASSEN[l.g] ? l.g : null }; }
+  if (d.posities && typeof d.posities === 'object') for (const id of PERCEEL_IDS) { const q = d.posities[id]; if (id !== START_PERCEEL && q && Number.isFinite(q.x) && Number.isFinite(q.y)) b.posities[id] = { x: q.x, y: q.y, a: Number.isFinite(q.a) ? q.a : 0 }; }
   leesBoek(b, d.boek);
   b.bedrijf = normaliseerBedrijf(d.bedrijf);
   syncVeld(b);
@@ -152,6 +154,12 @@ export function veldenOverzicht(b) {
   }
   return uit;
 }
+
+// De plek van de rijen van een perceel: de Zonnehoek heeft b.perceel (de bijbaan vindt hem), de andere percelen b.posities; null als nog niet gevonden.
+export const veldPositie = (b, id) => (id === START_PERCEEL ? b.perceel : b.posities[id] || null);
+
+// De stand van een perceel van jou, ook als het niet het actieve is.
+export const veldStand = (b, id) => (id === b.veldVan ? b.veld : b.velden[id] || nieuwVeld());
 
 export const actiefGewas = (b) => gewasVoor(b.keuze, actiefPerceel(b.bedrijf).soort);
 
