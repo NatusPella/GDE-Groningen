@@ -588,7 +588,7 @@ function tekenVlucht(w, dt) {
     rij.push(`<span>${d.label} <b>${dist} m · ${kant}</b></span>`);
   }
   const hulp = les.kist === 'vliegtuig'
-    ? `${key('W')}${key('S')} gas · ${key('A')}${key('D')} rollen · ${key('SPATIE')} neus omhoog · ${key('CTRL')} neus omlaag · ${key('SHIFT')} remmen · ${key('BACKSPACE')} stoppen`
+    ? `${key('W')}${key('S')} gas · ${key('A')}${key('D')} rollen · ${key('SPATIE')} neus omhoog · ${key('CTRL')} neus omlaag · ${key('SHIFT')} remmen · ${key('K')} kleppen · ${key('G')} gestel · ${key('BACKSPACE')} stoppen`
     : `${key('W')}${key('S')} vooruit en remmen · ${key('A')}${key('D')} draaien · ${key('SPATIE')} omhoog · ${key('CTRL')} omlaag · ${key('SHIFT')} sneller · ${key('BACKSPACE')} stoppen`;
   board.set({ row: rij.join(''), flash: g.flash ? g.flash.text : '', bad: !!(g.flash && g.flash.bad), help: hulp });
 }

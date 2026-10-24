@@ -56,13 +56,13 @@ export const BEDIENING_PAD = 'Linkerstick rollen en gas · A of RT omhoog · B o
 export const UITLEG_INSTAPPEN = 'Gas met W, bij 30 m/s optrekken met Spatie. Kleppen (K) helpen bij start en landing. Haal het landingsgestel in met G en zet het weer uit voor je landt. Op de baan, met de wielen uit, landen is zacht; hard of te snel telt niet.';
 
 // --- het paneel ------------------------------------------------------------------------------------------------------------
-const CSS = `#hud .hud-instr{position:absolute;right:var(--hud-edge,46px);bottom:var(--hud-edge,46px);display:none;width:300px;padding:8px 12px 8px 12px;color:#f0ede4;text-shadow:var(--hud-shadow);background:linear-gradient(90deg,rgba(12,20,14,.88),rgba(23,48,31,.62) 85%,rgba(23,48,31,.15));border-left:3px solid #3fc97a}
+const CSS = `#hud .hud-instr{position:absolute;right:var(--hud-edge,46px);bottom:var(--hud-edge,46px);display:none;width:372px;padding:8px 12px 8px 12px;color:#f0ede4;text-shadow:var(--hud-shadow);background:linear-gradient(90deg,rgba(12,20,14,.88),rgba(23,48,31,.62) 85%,rgba(23,48,31,.15));border-left:3px solid #3fc97a}
 body.plane-flying #hud .hud-instr{display:block}
 body.plane-flying #hud .hud-speedo{display:none}
 #hud .hud-instr small{display:block;font-size:12px;letter-spacing:2px;text-transform:uppercase;color:#3fc97a}
 #hud .hud-instr .hi-top{display:flex;gap:10px;align-items:center;margin-top:4px}
 #hud .hud-instr canvas{width:96px;height:96px;flex:none}
-#hud .hud-instr .hi-num{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:2px 10px}
+#hud .hud-instr .hi-num{flex:1;display:grid;grid-template-columns:auto auto;gap:2px 14px}
 #hud .hud-instr .hi-num b{display:block;font-weight:normal;font-size:24px;line-height:26px;letter-spacing:1px}
 #hud .hud-instr .hi-num span{display:block;font-size:12px;letter-spacing:1px;color:rgba(240,237,228,.7)}
 #hud .hud-instr .hi-row{display:flex;gap:12px;align-items:center;margin-top:6px;font-size:13px}
