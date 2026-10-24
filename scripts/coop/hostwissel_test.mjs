@@ -155,7 +155,8 @@ await t('een speler in een voertuig of een filmpje: de overdracht wordt niet ges
   s.hw.player.inVehicle = { x: 0, y: 0 };
   assert.equal(W.biedOver(s.hw, 1).ok, false); assert.ok(tekstIn(s.hw, /Stap eerst uit/)); s.hw.player.inVehicle = null;
   s.hw.coopNet.sceneNu = { filmpje: true };
-  assert.equal(W.biedOver(s.hw, 1).ok, false); assert.ok(tekstIn(s.hw, /filmpje/)); s.hw.coopNet.sceneNu = null;
+  assert.equal(W.biedOver(s.hw, 1).ok, false); assert.ok(tekstIn(s.hw, /filmpje/)); s.hw.coopNet.sceneNu = { filmpje: false, pauze: true, regel: null, keuze: null };
+  assert.equal(W.kanOverdragen(s.hw, 1).ok, true, 'de eigen pauze (de knop staat in het pauzemenu) houdt het overdragen niet tegen'); s.hw.coopNet.sceneNu = null;
   assert.equal(W.biedOver(s.hw, 0).ok, false, 'niet aan jezelf'); assert.equal(W.biedOver(s.hw, 9).ok, false, 'niet aan een onbekende plek');
   assert.equal(W.biedOver(s.gs[0], 0).ok, false, 'alleen wie het spel opende');
   assert.ok(!s.hw.coopHold && !s.hw.coopWissel.oud);
