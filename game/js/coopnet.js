@@ -24,6 +24,7 @@ import { nieuwCutVerzamelaar, cutGastSpeel, cutGastStop, leesCutTijd, cutSpoor }
 import { verzamelExtra, codeerExtra, leesExtra, nieuwGeheugen, nieuweStand, pasExtraToe } from './coopextra.js';
 import { wapenCode, aanvalCode, volgendeStoel, stapSprong, BUK_TEMPO } from './coopspeler.js';
 import { getCombatEffect } from './combateffect.js';
+import { wapenVan, wapenVerwerk, wapenWeg, wapenAllesWeg, wapenTick, gastWapenWeg } from './coopwapen.js';
 import { voertuigId, verzamelEntiteiten, leesEntiteiten, missieBericht, leesMissieBericht, missieTekst, sceneBericht, leesSceneBericht, sceneLeeg, filmpjeTekst } from './coopworld.js';
 import { verhaalRol, openerNaam, charInfo } from './coopplayers.js';
 import { KLOK_EVERY, klokEvent, leesKlokEvent, KlokVolger } from './net/speelklok.js';
@@ -91,6 +92,9 @@ export function spelerRecord(world, b, slot) {
     const fx = getCombatEffect(), a = world.coopAanval || (world.coopAanval = { start: null, teller: 0 });
     if (fx && fx.start !== undefined && fx.start !== a.start) { a.start = fx.start; a.teller++; }
     r.attack = aanvalCode(fx, world.time || 0, a.teller);
+  } else if (slot >= 1 && !inV) { // een gast met een wapen: wat hij in de hand heeft en zijn laatste aanval (coopwapen.js, #434)
+    const wv = wapenVan(world, slot);
+    if (wv) { r.weapon = wapenCode(wv.w); r.attack = aanvalCode(wv.fx, world.time || 0, wv.teller); }
   }
   return r;
 }
@@ -163,7 +167,7 @@ function prepareCoop(world) {
   world.coopPings = world.coopPings || createPings();
 }
 function endCoop(world) {
-  bestuurAllesLos(world); // een gast die stuurde laat het voertuig stil achter (#434)
+  bestuurAllesLos(world); wapenAllesWeg(world); gastWapenWeg(world); world.coopWapens = null; world.coopSchade = null; world.coopBoot = null; world.coopZit = null; // (#434) // een gast die stuurde laat het voertuig stil achter (#434)
   if (world.coop) { delete world.coop.leash; }
   if (world.coop) { world.coop.remote = false; world.coop.remoteInput = null; world.coop.fixedChars = false; if (world.coop.prevLocal !== undefined) { world.coop.local = world.coop.prevLocal; world.coop.prevLocal = undefined; } }
   world.coopPartner = null; world.coopPartners = []; world.coopRoster = null; world.coopFigures = {}; world.coopHost = null; world.coopExtra = null; world.coopHostMissie = null; world.coopCam = null; world.coopScene = null;
@@ -208,7 +212,7 @@ export function startHost(world, info, opts = {}) {
       if (fade) fade('in'); // de gast komt met een korte fade naast je staan
     },
     onLeave: (slot) => {
-      bestuurLos(world, slot); bezigWeg(world, slot);
+      bestuurLos(world, slot); bezigWeg(world, slot); wapenWeg(world, slot);
       if (world.coopWanted) delete world.coopWanted[slot]; // een gast die weggaat neemt zijn sterren mee (#434) // het voertuig van een gast die weggaat staat stil en de stoel is vrij (#434)
       if (slot === 1 && world.coop) { world.coop.remote = false; world.coop.remoteInput = null; }
       if (slot >= 2) removeFigure(world, slot);
@@ -233,6 +237,7 @@ export function startHost(world, info, opts = {}) {
   world.coopRoster = lijst(hub.roster);
   world.coopUitslag = (ok, label, reden, loon, gestopt) => uitslagMelden(world, ok, label, reden, loon, gestopt); // gelukt, mislukt of gestopt (#371, #390)
   world.coopDeel = (bedrag, info) => deelMetGasten(world, bedrag, info); // missies, bijbanen en prijzen delen met de gasten (#365)
+  world.coopSchade = (slot, schade) => hub.announce({ k: 'schade', n: Math.round(Number(schade) || 0) }, slot); // een kogel van de politie raakt een gast (#434)
   world.coopMeld = (slot, tekst) => hub.announce({ k: 'melding', tekst: String(tekst).slice(0, 90) }, slot); // een korte melding voor een gast (#291)
   world.coopWanted = {}; world.coopHeat = {}; world.coopDoelwit = 0; // een gezocht-niveau per gast (#434, coopgezocht.js)
   world.coopWantedMeld = (slot, na, voor) => gezochtMelden(world, slot, na, voor);
@@ -618,7 +623,7 @@ export function tickCoopNet(world, dt) {
       stopCoopNet(world); return;
     }
     const inp = world.input;
-    const m = makeClientInput(inp && inp.axis ? inp.axis() : [0, 0], !!(inp && inp.isDown && inp.isDown('shift')), world.camYaw, !!((world.coopWiel || world.coopBestuurder) && inp && inp.isDown && inp.isDown(' ')), !world.coopInVoertuig && springKnop(n, inp, dt), !world.coopInVoertuig && !!(inp && inp.isDown && inp.isDown('control'))); // springen en bukken te voet (#434)
+    const m = makeClientInput(inp && inp.axis ? inp.axis() : [0, 0], !!(inp && inp.isDown && inp.isDown('shift')), world.camYaw, !!((world.coopWiel || world.coopBestuurder) && inp && inp.isDown && inp.isDown(' ')), !world.coopInVoertuig && springKnop(n, inp, dt), !world.coopInVoertuig && !!(inp && inp.isDown && inp.isDown('control')), !world.coopInVoertuig && !!world.coopAanvalKnop); // springen en bukken te voet, de aanvalsknop met een wapen (#434)
     if (inp && inp.wasPressed && inp.wasPressed('y')) wielGebaar(world); // Y: om het stuur vragen (#291)
     if (inp && inp.wasPressed && inp.wasPressed('b') && !world.paused) bijGroepGebaar(world); // B: bij de groep komen (#429)
     if ((world.coopScene && world.coopScene.filmpje) || world.paused) s.setInput(0, 0, 0, m.yaw); // de gastheer kijkt een filmpje, of de gast zit zelf in een menu, de kaart of een winkel: zijn figuur staat stil (#373)
@@ -642,6 +647,9 @@ export function tickCoopNet(world, dt) {
       world.coopBestuurder = !!(ik && ik.inVeh && ik.driver); // je zit zelf achter het stuur van een voertuig bij de host (#434): Spatie is de handrem
       if (!world.coopInVoertuig) world.coopWiel = false;
       world.coopHost = sample ? leesEntiteiten(sample.entities) : { voertuigen: [], doelen: [], voetgangers: [], treinen: [] };
+      const mijnVoertuig = ik && ik.inVeh && ik.vehicle != null ? world.coopHost.voertuigen.find((q) => q.id === ik.vehicle) : null; // het voertuig van de host waar de gast in zit
+      world.coopZit = mijnVoertuig ? mijnVoertuig.soort : null; // de soort, voor het geluid in de cabine (sfx/ambience.js, #434)
+      world.coopBoot = mijnVoertuig && mijnVoertuig.soort === 'boot' ? { x: mijnVoertuig.x, y: mijnVoertuig.y, speed: Math.abs(mijnVoertuig.snelheid || 0) } : null; // zit hij in een boot, dan kan hij vanaf het water hengelen (hengelen.js, #434)
       if (sample && rails) { if (rails.zetTreinenVanHost) rails.zetTreinenVanHost(world.coopHost.treinen); else for (const t of world.coopHost.treinen) rails.zetTreinVanHost(t.route, t.x, t.y, t.v); } // de gast speelt geen eigen dienstregeling: de treinen staan waar de host ze heeft
       world.coopPartners = partnersInfo(s.slot, sample ? sample.players : [], world.coopRoster || []);
       world.coopPartner = world.coopPartners[0] || null;
@@ -656,6 +664,7 @@ export function tickCoopNet(world, dt) {
   werkFoci(world, dt); // spelers uit elkaar: de foci van dit moment, voor de band, de tegels en de bevolking (#429)
   stepFigures(world, dt);
   bestuurTick(world, dt); // gasten die een voertuig besturen (#434)
+  wapenTick(world, dt); // gasten met een wapen slaan en schieten (#434)
   stapMetgezelInPauze(world, dt);
   n.tKlok += dt; n.tHash += dt; n.tWeer += dt;
   if (n.tKlok >= KLOK_EVERY) { n.tKlok = 0; n.hub.announce(klokEvent(world)); }
@@ -693,6 +702,14 @@ export function handleEvent(world, body, van = 0) {
   if (!body || typeof body !== 'object') return false;
   const n = world.coopNet;
   switch (body.k) {
+    case 'wapen': return !!n && n.role === 'host' && van >= 1 && wapenVerwerk(world, van, body); // een gast kiest zijn wapen (zijn eigen patronen): de host rekent zijn aanval uit (#434)
+    case 'schade': { // een kogel van de politie raakte jou in het spel van de host: de schade is van jou, je valt hierdoor niet om (#434)
+      if (!n || n.role !== 'client' || !Number.isFinite(body.n)) return false;
+      let d = Math.max(0, Math.min(30, body.n));
+      if ((world.armor || 0) > 0) { const a = Math.min(world.armor, d); world.armor -= a; d -= a; }
+      world.health = Math.max(1, (world.health === undefined ? 100 : world.health) - d);
+      return true;
+    }
     case 'bezig': return !!n && n.role === 'host' && van >= 1 && bezigMelden(world, n, van, body.a); // een gast hengelt, bakt of speelt de beiaard: de anderen zien het (#429)
     case 'bezigvan': { // van de host: een andere gast is bezig (of niet meer)
       const b = leesBezigVan(body); if (!n || n.role !== 'client' || !b) return false;
