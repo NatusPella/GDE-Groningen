@@ -426,20 +426,31 @@ results.routes.soak = await safe('soak', async () => {
   const MS = await imp('missions'), CN = await imp('coopnet'), MT = await imp('net/memtransport');
   const MINUTES = window.__perfSoakMin || 12;
   // --- counters
-  const live = { listeners: 0, timers: 0 }, lis = new WeakMap(), byType = new Map(), timers = new Map();
+  // listeners are counted per target: a canvas or panel that is dropped takes its listeners with it, so only those on window, document and nodes still
+  // in the page count (an entry whose target the GC has taken is skipped)
+  const live = { listeners: 0, timers: 0 }, lis = new WeakMap(), ents = [], byType = new Map(), timers = new Map();
+  const countListeners = () => {
+    let n = 0;
+    for (let i = ents.length - 1; i >= 0; i--) {
+      const t = ents[i].ref.deref();
+      if (!t) { ents.splice(i, 1); continue; }
+      if (t === window || t === document || !(t instanceof Node) || t.isConnected) n += ents[i].n;
+    }
+    return n;
+  };
   const ET = EventTarget.prototype, oAdd = ET.addEventListener, oRem = ET.removeEventListener;
   ET.addEventListener = function (type, fn, opts) {
     if (fn && !(opts && typeof opts === 'object' && (opts.once || opts.signal))) {
-      let m = lis.get(this); if (!m) lis.set(this, m = new Map());
+      let m = lis.get(this); if (!m) { lis.set(this, m = { keys: new Map(), ent: { ref: new WeakRef(this), n: 0 } }); ents.push(m.ent); }
       const cap = typeof opts === 'boolean' ? opts : !!(opts && opts.capture), k = type + (cap ? '|c' : '');
-      let s = m.get(k); if (!s) m.set(k, s = new Set());
-      if (!s.has(fn)) { s.add(fn); live.listeners++; byType.set(type, (byType.get(type) || 0) + 1); }
+      let s = m.keys.get(k); if (!s) m.keys.set(k, s = new Set());
+      if (!s.has(fn)) { s.add(fn); m.ent.n++; byType.set(type, (byType.get(type) || 0) + 1); }
     }
     return oAdd.call(this, type, fn, opts);
   };
   ET.removeEventListener = function (type, fn, opts) {
     const m = lis.get(this);
-    if (m && fn) { const cap = typeof opts === 'boolean' ? opts : !!(opts && opts.capture), s = m.get(type + (cap ? '|c' : '')); if (s && s.delete(fn)) { live.listeners--; byType.set(type, (byType.get(type) || 0) - 1); } }
+    if (m && fn) { const cap = typeof opts === 'boolean' ? opts : !!(opts && opts.capture), s = m.keys.get(type + (cap ? '|c' : '')); if (s && s.delete(fn)) { m.ent.n--; byType.set(type, (byType.get(type) || 0) - 1); } }
     return oRem.call(this, type, fn, opts);
   };
   const oSI = window.setInterval, oCI = window.clearInterval, oST = window.setTimeout, oCT = window.clearTimeout;
@@ -459,7 +470,7 @@ results.routes.soak = await safe('soak', async () => {
     sc.scene.traverse((o) => { nodes++; if (o.material) for (const m of Array.isArray(o.material) ? o.material : [o.material]) mats.add(m); });
     const st = map.store;
     samples.push({ cycle, tSec: Math.round(performance.now() / 1000), heapMB: performance.memory ? +(performance.memory.usedJSHeapSize / 1e6).toFixed(1) : null, gc: !!window.gc, geometries: r.info.memory.geometries, textures: r.info.memory.textures,
-      programs: r.info.programs.length, domNodes: document.getElementsByTagName('*').length, listeners: live.listeners, timers: live.timers, sceneNodes: nodes, materials: mats.size,
+      programs: r.info.programs.length, domNodes: document.getElementsByTagName('*').length, listeners: countListeners(), timers: live.timers, sceneNodes: nodes, materials: mats.size,
       tiles: st ? st.residentKeys.length : null, vehicles: w.vehicles.length, peds: w.pedestrians.length });
   };
   const HELIR = PL([[2494, 3130], [3700, 3150], [4892, 3155]]);
