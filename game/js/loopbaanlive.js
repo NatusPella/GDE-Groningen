@@ -112,6 +112,9 @@ function meldOmhoog(w, o) {
   const info = L.vakInfo(o.vak);
   const plus = L.percentage(L.factorVoorNiveau(o.naar));
   w.addMessage(`${o.titel}: ${info.naam} niveau ${o.naar}, ${plus}% meer loon`, 5, { kind: 'prestatie', kicker: 'Loopbaan', key: 'loopbaan-' + o.vak });
+  // een niveau dat een handeling geeft, zegt erbij wat je nu kunt (#437): niveau 3 bij Spoor is kaartjes knippen, geen getal
+  const kan = L.vaardigheidVan(o.vak, o.naar);
+  if (kan) w.addMessage(`${kan.titel}: ${kan.wat}`, 6.5, { kind: 'tip', kicker: 'Loopbaan', key: 'loopbaan-kan-' + o.vak });
 }
 
 // Tel een gebeurtenis in een vak: teller (n), punten en een nieuwe plek. Geeft de punten terug (voor de gasten).
