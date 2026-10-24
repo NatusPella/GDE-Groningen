@@ -54,8 +54,16 @@ MISSION_ICONS.eieren = MISSION_ICONS.bod;
 MISSION_ICONS.wierde = MISSION_ICONS.berend;
 
 // Icon spec for a mission index (missions.js), or null.
+// Zijmissies buiten het verhaal (#400) staan achter de laatste MISSION_IDS-plek; missionicons kent ze aan hun
+// eigen id, in dezelfde volgorde als missionsdata_zij.js ze aan buildDefs toevoegt.
+const ZIJ_ICONS = {
+  // Klassiek in de Herenstraat: een speaker die een wals laat horen
+  snackbaroverlast: { fill: 'M3 9h4l5-4v14l-5-4H3z', stroke: 'M16 8.5a4.5 4.5 0 0 1 0 7M18.8 6a8 8 0 0 1 0 12' },
+};
+const ZIJ_IDS = Object.keys(ZIJ_ICONS);
 function missionIcon(i) {
-  return MISSION_ICONS[MISSION_IDS[i]] || null;
+  const id = i < MISSION_IDS.length ? MISSION_IDS[i] : ZIJ_IDS[i - MISSION_IDS.length];
+  return MISSION_ICONS[id] || ZIJ_ICONS[id] || null;
 }
 
 // Inline <svg> for the DOM (Te doen, phone, HUD card); '' for an unknown mission.
