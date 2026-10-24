@@ -95,4 +95,49 @@ t('verplichte rol: de gast kan niet weigeren; de host kan het niet beantwoorden 
   assert.equal(hw.coopVrijLopen, false);
 });
 
+// ---- late instap (#452)
+t('lateInstapVoor: nee voor races, kluis, klokken en wedstrijden, ja voor open stukken', () => {
+  assert.equal(M.lateInstapVoor({ type: 'checkpoint' }), false, 'ringrace en bruggenrace');
+  assert.equal(M.lateInstapVoor({ type: 'stages', race: true }), false, 'Jelle-race');
+  assert.equal(M.lateInstapVoor({ type: 'stages', stageKind: 'vault' }), false, 'kluis');
+  assert.equal(M.lateInstapVoor({ type: 'stages', stageKind: 'crack' }), false);
+  assert.equal(M.lateInstapVoor({ type: 'stages', stageKind: 'goto', timer: true }), false, 'een klok');
+  assert.equal(M.lateInstapVoor({ type: 'stages', stageKind: 'goto' }), true, 'een open stuk');
+  assert.equal(M.lateInstapVoor({ type: 'stages', stageKind: 'scene' }), true);
+  assert.equal(M.lateInstapVoor(), true);
+  const st = M.maakMeedoen(); M.begin(st, 'a', [1], null);
+  assert.deepEqual(M.laat(st, 2, null, false), { slot: 2, toeschouwer: true }); assert.equal(st.keuze[2], 'nee');
+  assert.equal(M.krijgtDeel(st, 2), false); assert.deepEqual(M.meespelers(st), []); assert.equal(M.laat(st, 2, null, false), null, 'één keer');
+  assert.match(M.toeschouwerTekst('Het Loket'), /loopt al, de volgende doe je mee/);
+});
+t('een laatkomer bij een race wordt toeschouwer ("loopt al, de volgende doe je mee"); bij een open stuk krijgt hij de gewone uitnodiging', () => {
+  const { hw, gw, step } = sessie();
+  hw.mission = { phase: 'active', label: 'Ringrace', type: 'checkpoint', index: 2, progressText: 'Eerste punt', lateInstap: false }; step(1);
+  // een tweede gast sluit aan terwijl de race loopt
+  const link = createLink({ latency: 0.02, seed: 9 }); N.addGuest(hw, link.a);
+  const laat = mkWorld(); N.startClient(laat, link.b, INFO, {});
+  const stap = (s) => { for (let k = 0; k < 60 * s; k++) { N.tickCoopNet(hw, 1 / 60); N.tickCoopNet(gw, 1 / 60); N.tickCoopNet(laat, 1 / 60); link.advance(1 / 60); hw.time += 1 / 60; gw.time += 1 / 60; laat.time += 1 / 60; } };
+  stap(2);
+  assert.ok(laat.messages.some((m) => /Ringrace loopt al, de volgende doe je mee/.test(m)), 'melding voor de laatkomer');
+  assert.equal(laat.coopUitnodiging, null, 'geen uitnodiging');
+  assert.equal(hw.coopNet.meedoen.keuze[2], 'nee'); assert.equal(hw.coopDeel(100) >= 0, true);
+  assert.equal(laat.money, 0, 'geen deel van de beloning');
+  assert.equal(hw.coopVrijLopen, true);
+  // een J na het begin van de race is te laat; een J vlak na het begin telt
+  const { hw: h2, gw: g2, step: s2 } = sessie();
+  h2.mission = { phase: 'active', label: 'Ringrace', type: 'checkpoint', index: 2, progressText: 'Start', lateInstap: false }; s2(1);
+  druk(g2, 'j'); s2(1);
+  assert.equal(h2.coopNet.meedoen.keuze[1], 'ja', 'binnen de grens telt de J');
+  const { hw: h3, gw: g3, step: s3 } = sessie();
+  h3.mission = { phase: 'active', label: 'Ringrace', type: 'checkpoint', index: 2, progressText: 'Start', lateInstap: false }; s3(1 + M.LATE_GRENS);
+  druk(g3, 'j'); s3(1);
+  assert.equal(h3.coopNet.meedoen.keuze[1], 'nee', 'een J halverwege de race is te laat'); assert.ok(g3.messages.some((m) => /loopt al, de volgende doe je mee/.test(m)));
+  assert.equal(g3.coopUitnodiging, null);
+  // een open stuk: de gewone uitnodiging
+  const o = sessie(); o.hw.mission = { phase: 'active', label: 'Bezorgen', type: 'stages', index: 3, progressText: 'Naar de kerk' }; o.step(1);
+  const link2 = createLink({ latency: 0.02, seed: 11 }); N.addGuest(o.hw, link2.a); const l2 = mkWorld(); N.startClient(l2, link2.b, INFO, {});
+  for (let k = 0; k < 120; k++) { N.tickCoopNet(o.hw, 1 / 60); N.tickCoopNet(o.gw, 1 / 60); N.tickCoopNet(l2, 1 / 60); link2.advance(1 / 60); o.hw.time += 1 / 60; o.gw.time += 1 / 60; l2.time += 1 / 60; }
+  assert.ok(l2.messages.some((m) => /Meedoen met Bezorgen\? J = ja, N = nee/.test(m)), 'open stuk: gewone uitnodiging'); assert.ok(l2.coopUitnodiging);
+});
+
 console.log(`coopmeedoen_test: ${n}/${n} ok`);

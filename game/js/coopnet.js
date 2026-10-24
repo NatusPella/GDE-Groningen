@@ -32,7 +32,7 @@ import { KLOK_EVERY, klokEvent, leesKlokEvent, KlokVolger } from './net/speelklo
 import { HASH_EVERY, viewOf, hashEvent, leesHashEvent, DesyncMonitor } from './net/desync.js';
 import { PING_TOETSEN, PING_TEKST, pingPlek, pingMarkers, pingRegel } from './coopping.js';
 import { spelersRijen, wegMelding } from './coopspelers.js';
-import { maakMeedoen, opdrachtSleutel, begin as meedoenBegin, einde as meedoenEinde, antwoord as meedoenAntwoord, tik as meedoenTik, loopVrij, krijgtDeel, maakUitnodiging, uitnodigingTekst, laat as meedoenLaat, bevestig as meedoenBevestig, meespelers } from './coopmeedoen.js';
+import { maakMeedoen, opdrachtSleutel, begin as meedoenBegin, einde as meedoenEinde, antwoord as meedoenAntwoord, tik as meedoenTik, loopVrij, krijgtDeel, maakUitnodiging, uitnodigingTekst, toeschouwerTekst, LATE_GRENS, laat as meedoenLaat, bevestig as meedoenBevestig, meespelers } from './coopmeedoen.js';
 import { stapVanMissie, geldigeStap, uitslagTekst } from './coopverhaal.js';
 import { gastVerhaalStatus, gastVerhaalSchrijf, gastVerhaalHerlaad } from './savehook.js';
 import { zetBezig, bezigVanEvent, leesBezigVan, bezigId } from './coopbezig.js';
@@ -577,7 +577,8 @@ function nodigUit(world, n, huidig) {
 // Een gast die laat aansluit terwijl een opdracht loopt krijgt dezelfde uitnodiging als wie erbij was, na de melding wat er speelt (#429).
 function nodigLaatUit(world, slot) {
   const n = world.coopNet, m = n && n.missie; if (!m || !n.meedoen || !n.meedoen.opdracht) return false;
-  const u = meedoenLaat(n.meedoen, slot, world.coopStapRegel ? world.coopStapRegel() : null); if (!u) return false;
+  const u = meedoenLaat(n.meedoen, slot, world.coopStapRegel ? world.coopStapRegel() : null, m.lateInstap !== false); if (!u) return false;
+  if (u.toeschouwer) return n.hub.announce({ k: 'toeschouwer', label: String(m.label || '').slice(0, 80) }, slot); // een race, kluis of klok: je kijkt mee tot de volgende (#452)
   return n.hub.announce({ k: 'meedoen', label: String(m.label || '').slice(0, 80), verplicht: u.verplicht, sec: u.sec, ...(n.meedoen.stap ? { stap: n.meedoen.stap } : null) }, slot);
 }
 // Wie hengelt, pannenkoeken bakt of de beiaard speelt: bewaar het per plek en geef het door aan de andere gasten (#429).
@@ -787,7 +788,18 @@ export function handleEvent(world, body, van = 0) {
     }
     case 'meedoenantwoord': { // de gast kiest (alleen de host luistert)
       if (!n || n.role !== 'host' || van < 1) return false;
+      // een J op een opdracht zonder late instap, na het begin, is te laat: toeschouwer tot de volgende (#452)
+      if (body.ja && n.missie && n.missie.lateInstap === false && (n.meedoen.sinds || 0) > LATE_GRENS && n.meedoen.keuze[van] === 'wacht') {
+        meedoenAntwoord(n.meedoen, van, false);
+        return n.hub.announce({ k: 'toeschouwer', label: String(n.missie.label || '').slice(0, 80) }, van);
+      }
       return meedoenAntwoord(n.meedoen, van, !!body.ja);
+    }
+    case 'toeschouwer': { // de host laat je niet meer instappen: je kijkt mee en krijgt geen deel (#452)
+      if (!n || n.role !== 'client' || typeof body.label !== 'string') return false;
+      world.coopUitnodiging = null; world.coopMeedoenNee = true; world.coopMeedoenJa = null;
+      if (world.addMessage) world.addMessage(toeschouwerTekst(body.label), 6);
+      return true;
     }
     case 'uitslag': { // gelukt, mislukt of gestopt, van de gastheer (#371, #390)
       if (!n || n.role !== 'client' || typeof body.label !== 'string') return false;

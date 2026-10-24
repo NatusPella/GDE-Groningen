@@ -10,7 +10,19 @@ export const MEEDOEN_WACHT = 10; // zo lang staat de melding "Meedoen?" in beeld
 
 // keuze per slot: 'wacht' (uitgenodigd), 'ja', 'nee' of 'verplicht'
 // stap = de verhaalstap van de opdracht (coopverhaal.js), spoiler = wie een spoilerwaarschuwing te bevestigen heeft (geen standaard-ja)
-export function maakMeedoen() { return { opdracht: null, keuze: {}, rest: {}, stap: null, spoiler: {} }; }
+export function maakMeedoen() { return { opdracht: null, keuze: {}, rest: {}, stap: null, spoiler: {}, sinds: 0 }; }
+
+// Late instap (#452): mag een gast die later komt (of na het begin J zegt) nog meedoen? Nee bij een race of wedstrijd, een kluisklus
+// en alles met een klok; ja bij open stukken (lopen, praten, instappen, een scène). De vlag hoort bij de opdracht en bij de stap.
+export const LATE_GRENS = 15; // zoveel seconden na het begin van de opdracht telt een J als late instap
+const GEEN_LATE_TYPE = ['checkpoint', 'boat', 'fatbike', 'stunt']; // ringrace, bruggenrace, Jelle-race, rondjes en stunts
+const GEEN_LATE_STAGE = ['laser', 'crack', 'vault', 'lock', 'fuse', 'blast', 'plan', 'chase', 'boatchase', 'getaway', 'escape', 'hold']; // de kluis en wat tegen de klok gaat
+export function lateInstapVoor({ type = '', stageKind = null, timer = false, race = false } = {}) {
+  if (timer || race) return false;
+  if (GEEN_LATE_TYPE.includes(type)) return false;
+  if (stageKind && GEEN_LATE_STAGE.includes(stageKind)) return false;
+  return true;
+}
 
 // Zelfde opdracht als daarnet? (alleen de stap verandert dan)
 export const opdrachtSleutel = (m) => (m && m.actief ? `${m.index | 0}|${m.label || ''}` : null);
@@ -22,7 +34,7 @@ export function verplichtVoor(slot, regel) {
 
 // Een nieuwe opdracht begint: nodig de gasten uit. Geeft de uitnodigingen [{ slot, verplicht, sec }] terug.
 export function begin(st, sleutel, slots, regel = null, stap = null) {
-  st.opdracht = sleutel; st.keuze = {}; st.rest = {}; st.spoiler = {}; st.stap = stap;
+  st.opdracht = sleutel; st.keuze = {}; st.rest = {}; st.spoiler = {}; st.stap = stap; st.sinds = 0;
   const uit = [];
   for (const slot of slots) {
     if (!(slot >= 1)) continue;
@@ -33,16 +45,18 @@ export function begin(st, sleutel, slots, regel = null, stap = null) {
   return uit;
 }
 // Een gast sluit aan terwijl de opdracht al loopt: dezelfde uitnodiging als wie erbij was. Wie al gekozen heeft (opnieuw aangesloten) wordt niet nogmaals gevraagd.
-export function laat(st, slot, regel = null) {
+// mag = false (de opdracht kent geen late instap): de gast wordt toeschouwer en krijgt geen uitnodiging.
+export function laat(st, slot, regel = null, mag = true) {
   if (!st.opdracht || !(slot >= 1)) return null;
   const k = st.keuze[slot];
   if (k === 'ja' || k === 'nee' || k === 'verplicht') return null;
+  if (!mag) { st.keuze[slot] = 'nee'; delete st.rest[slot]; delete st.spoiler[slot]; return { slot, toeschouwer: true }; }
   const verplicht = verplichtVoor(slot, regel);
   st.keuze[slot] = verplicht ? 'verplicht' : 'wacht';
   delete st.rest[slot];
   return { slot, verplicht, sec: MEEDOEN_WACHT };
 }
-export function einde(st) { st.opdracht = null; st.keuze = {}; st.rest = {}; st.stap = null; st.spoiler = {}; }
+export function einde(st) { st.sinds = 0; st.opdracht = null; st.keuze = {}; st.rest = {}; st.stap = null; st.spoiler = {}; }
 
 // Het antwoord van een gast; een verplichte rol of een late of onbekende speler verandert niets.
 export function antwoord(st, slot, ja) {
@@ -60,6 +74,7 @@ export function bevestig(st, slot) {
 // Time-out: alleen een spoilerwaarschuwing zonder bevestiging loopt af (nee). Wie gewoon niet antwoordt is toeschouwer en doet nooit vanzelf mee (#452).
 export function tik(st, dt) {
   const klaar = [];
+  if (st.opdracht) st.sinds = (st.sinds || 0) + dt;
   for (const k of Object.keys(st.rest)) {
     st.rest[k] -= dt;
     if (st.rest[k] <= 0) {
@@ -89,6 +104,8 @@ export function maakUitnodiging(b, status = null) {
   const sec = st === 'vooruit' ? BEVESTIG_GAST : Number.isFinite(b.sec) ? Math.min(30, Math.max(1, b.sec)) : MEEDOEN_WACHT;
   return { label: b.label.slice(0, 80), verplicht: !!b.verplicht, rest: sec, stap, status: st };
 }
+// De melding voor een laatkomer bij een opdracht zonder late instap.
+export const toeschouwerTekst = (label) => `${String(label || 'De opdracht').slice(0, 60)} loopt al, de volgende doe je mee.`;
 export function uitnodigingTekst(u, naam = 'De ander') {
   if (!u) return '';
   if (u.status && !u.verplicht) return statusTekst(u.status, u.label, u.rest);
