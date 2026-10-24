@@ -256,10 +256,10 @@ export function syncGastStunt(world) {
   const scene = getScene(); if (!scene) return 0;
   const stand = world.coopExtra, m = stand && standVers(stand, world.time) ? stand.misc.get(MISC_STUNT) : null;
   const s = m ? leesStunt(m.data) : null;
-  if (!s) { if (stunt.groep) { scene.remove(stunt.groep); stunt.groep = null; stunt.meshes = []; stunt.sig = ''; } return 0; }
+  if (!s) { if (stunt.groep) { verwijder(scene, stunt.groep); stunt.groep = null; stunt.meshes = []; stunt.sig = ''; } return 0; }
   const sig = s.x + ',' + s.y + ',' + s.props.length;
   if (sig !== stunt.sig) { // een nieuwe avond: opnieuw opbouwen
-    if (stunt.groep) scene.remove(stunt.groep);
+    if (stunt.groep) verwijder(scene, stunt.groep); // de oude avond: ook zijn geometrie en materialen vrijgeven
     stunt.groep = new THREE.Group(); stunt.groep.name = 'stuntavond-gast'; stunt.meshes = []; stunt.sig = sig;
     s.props.forEach((p, i) => { const mesh = stuntPropMesh(p.kind, i); mesh.position.set(p.x, grond(world, p.x, p.y), p.y); stunt.groep.add(mesh); stunt.meshes.push(mesh); });
     scene.add(stunt.groep);
@@ -370,7 +370,7 @@ export function clearExtra() {
   pop.clear(); wacht.clear(); dieren.clear(); sprekers.clear(); losSprekers.clear();
   for (const b of gedreven) { b.state = 'closed'; b.open = 0; b.boom = 0; b.warn = false; if (b.r) b.r._open = false; }
   gedreven.clear(); zetGaragePoortVanHost(null);
-  if (scene) { if (stunt.groep) scene.remove(stunt.groep); for (const m of punten.meshes) scene.remove(m); }
+  if (scene) { if (stunt.groep) verwijder(scene, stunt.groep); for (const m of punten.meshes) scene.remove(m); }
   stunt.groep = null; stunt.meshes = []; stunt.sig = ''; punten.meshes = []; punten.sig = '';
   if (kermisAan) { kermisAan = false; setKermisOverride(null); }
   ruimRekwisieten();
