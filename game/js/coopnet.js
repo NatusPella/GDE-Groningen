@@ -319,7 +319,7 @@ export function addGuest(world, transport) {
 export function startClient(world, transport, info, opts = {}) {
   const ok = canJoin(world);
   if (!ok.ok) throw new Error(ok.reason);
-  const { onHold = null, fade = null, route = null, wens = null } = opts;
+  const { onHold = null, fade = null, route = null, wens = null, code = '' } = opts;
   const session = new ClientSession(transport, { info: { ...info, char: wens || undefined }, caps: CAPS });
   prepareCoop(world);
   const p = world.player;
@@ -333,8 +333,25 @@ export function startClient(world, transport, info, opts = {}) {
   // de host is de baas: bij een desync (net/desync.js) zet de gast zijn wanted weer gelijk aan dat van de host
   session.onresync = (st) => { if (st && Number.isFinite(st.wanted)) world.wanted = st.wanted | 0; };
   world.coopRole = 'client';
-  world.coopNet = { role: 'client', wens, session, stash, fade, joined: false, fixed: false, route, info, klok: new KlokVolger(), desync: new DesyncMonitor(), lokaal: 0, tSpelers: 1 };
+  world.coopNet = { role: 'client', wens, code, session, stash, fade, joined: false, fixed: false, route, info, klok: new KlokVolger(), desync: new DesyncMonitor(), lokaal: 0, tSpelers: 1 };
   return session;
+}
+
+// De eigen voertuigen van een gast (zijn auto, boten, geparkeerd verkeer van zijn eigen wereld) gaan bij het aansluiten opzij: hij speelt in de wereld van de host, waar
+// het verkeer van de host de lijst vult, en zijn eigen voertuigen zouden daar bevroren (en dubbel) staan, in beeld, in het geluid en in de camera. Bij het verlaten van de sessie
+// (stopCoopNet, ook bij een host-overdracht) komt precies dezelfde lijst terug: niemand raakt een eigen voertuig kwijt. Zelfde array, want andere modules houden hem vast.
+export function zetEigenVoertuigenOpzij(world, n = world.coopNet) {
+  if (!n || n.eigenVoertuigen || !Array.isArray(world.vehicles)) return 0;
+  n.eigenVoertuigen = world.vehicles.splice(0);
+  return n.eigenVoertuigen.length;
+}
+export function zetEigenVoertuigenTerug(world, n) {
+  if (!n || !n.eigenVoertuigen) return 0;
+  const eigen = n.eigenVoertuigen; n.eigenVoertuigen = null;
+  if (!Array.isArray(world.vehicles)) world.vehicles = [];
+  world.vehicles.length = 0; // wat er in de sessie bij kwam (verkeer van de host) hoort niet bij het eigen spel
+  for (const v of eigen) world.vehicles.push(v);
+  return eigen.length;
 }
 
 // ---------------------------------------------------------------- elke frame
@@ -455,7 +472,6 @@ export const WACHT_TEKST = 'De wereld hier wordt nog geladen. Even wachten.';
 export function losVoor(world, slot, x, y) {
   const p = world.player, info = world.coopFociInfo, n = world.coopNet;
   if (!info || !p || (n && n.sprong > 0)) return { ok: false, wacht: false }; // een sprong van de gastheer (snelreizen, herstel) haalt iedereen bij, zoals altijd
-  if (p.inVehicle && Math.abs(p.inVehicle.speed || 0) > 6 && Math.hypot(x - p.x, y - p.y) < 400) return { ok: false, wacht: false }; // rijdt de gastheer snel weg, dan raakt wie dichtbij is het eerst achter: bij hem gezet, zoals altijd
   const r = losBesluit({ aan: true, slot, bediend: info.bediend, dHost: Math.hypot(x - p.x, y - p.y), maxAfstand: MAX_AFSTAND, geladen: tegelGeladen(world, x, y) });
   return { ok: r.ok, wacht: r.wacht };
 }
@@ -516,10 +532,10 @@ const BOOT_MELD = 'Je zit weer in de boot.';
 // geldt dat alleen voor wie geen eigen focus heeft (te veel groepen voor het budget).
 export function bandFiguren(world, dt) {
   const p = world.player; if (!p || !Number.isFinite(p.x)) return;
-  const v = p.inVehicle, snel = !!v && Math.abs(v.speed || 0) > 6; // rijdt de gastheer weg, dan raakt een speler te voet het eerst achter
+  const v = p.inVehicle; // alleen voor de uitgeschakelde meerij-tak hieronder; de snelheid van de host telt niet mee: een gast wordt er nooit door teruggezet
   for (const fig of Object.values(figures(world))) {
     if (fig.inVeh) { fig.wacht = false; continue; }
-    const d = Math.hypot(fig.x - p.x, fig.y - p.y), los = losVoor(world, fig.slot, fig.x, fig.y), band = snel ? 35 : FIGUUR_BAND;
+    const d = Math.hypot(fig.x - p.x, fig.y - p.y), los = losVoor(world, fig.slot, fig.x, fig.y), band = FIGUUR_BAND;
     const plek = false; // niemand wordt vanzelf in een voertuig gezet: te ver weg betekent naast de gastheer, instappen doet de speler zelf met E
     if (los.ok) { // los van de groep, maar de wereld is voor hem geladen: niet terugzetten, wel een keer zeggen hoe hij terugkomt
       if (d > LOS_MELD_M && !fig.losGemeld) { fig.losGemeld = true; if (world.coopMeld) world.coopMeld(fig.slot, LOS_TEKST); }
@@ -531,7 +547,7 @@ export function bandFiguren(world, dt) {
       fig.verTijd = los.wacht && fig.ongeladen >= ONGELADEN_S ? FIGUUR_TERUG_S : 0;
     } else {
       fig.wacht = false; fig.ongeladen = 0; fig.losGemeld = false;
-      if (d > FIGUUR_WAARSCHUWING && !fig.gewaarschuwd && !snel) { fig.gewaarschuwd = true; if (world.coopMeld) world.coopMeld(fig.slot, buitenBudget(world, fig.slot) ? BUDGET_TEKST : 'Blijf bij de groep: te ver weg wordt je teruggezet.'); }
+      if (d > FIGUUR_WAARSCHUWING && !fig.gewaarschuwd) { fig.gewaarschuwd = true; if (world.coopMeld) world.coopMeld(fig.slot, buitenBudget(world, fig.slot) ? BUDGET_TEKST : 'Blijf bij de groep: te ver weg wordt je teruggezet.'); }
       if (d <= FIGUUR_WAARSCHUWING) fig.gewaarschuwd = false;
       fig.verTijd = d > band ? (fig.verTijd || 0) + dt : 0;
     }
@@ -552,8 +568,8 @@ export function bandFiguren(world, dt) {
 export function bandMetgezel(world, dt) {
   const c = world.companion, p = world.player;
   if (!c || !p || !world.coop || !world.coop.remote || c.inVehicle || c.state === 'dead' || !Number.isFinite(p.x) || !Number.isFinite(c.x)) { if (c) c.coopWacht = false; return false; }
-  const v = p.inVehicle, snel = !!v && Math.abs(v.speed || 0) > 6;
-  const d = Math.hypot(c.x - p.x, c.y - p.y), los = losVoor(world, 1, c.x, c.y), band = snel ? 35 : FIGUUR_BAND;
+  const v = p.inVehicle;
+  const d = Math.hypot(c.x - p.x, c.y - p.y), los = losVoor(world, 1, c.x, c.y), band = FIGUUR_BAND;
   if (los.ok) {
     if (d > LOS_MELD_M && !c.losGemeld) { c.losGemeld = true; if (world.coopMeld) world.coopMeld(1, LOS_TEKST); }
     if (d <= LOS_MELD_M) c.losGemeld = false;
@@ -564,7 +580,7 @@ export function bandMetgezel(world, dt) {
     c.verTijd = los.wacht && c.ongeladen >= ONGELADEN_S ? FIGUUR_TERUG_S : 0;
   } else {
     c.coopWacht = false; c.ongeladen = 0; c.losGemeld = false;
-    if (d > FIGUUR_WAARSCHUWING && !c.gewaarschuwd && !snel) { c.gewaarschuwd = true; if (world.coopMeld) world.coopMeld(1, buitenBudget(world, 1) ? BUDGET_TEKST : 'Blijf bij de groep: te ver weg wordt je teruggezet.'); }
+    if (d > FIGUUR_WAARSCHUWING && !c.gewaarschuwd) { c.gewaarschuwd = true; if (world.coopMeld) world.coopMeld(1, buitenBudget(world, 1) ? BUDGET_TEKST : 'Blijf bij de groep: te ver weg wordt je teruggezet.'); }
     if (d <= FIGUUR_WAARSCHUWING) c.gewaarschuwd = false;
     c.verTijd = d > band ? (c.verTijd || 0) + dt : 0;
   }
@@ -770,7 +786,7 @@ export function tickCoopNet(world, dt) {
     }
     if (n.fixed && (s.status === 'ok' || s.status === 'lag')) {
       const sample = s.world();
-      if (sample && !n.joined) { n.joined = true; if (n.fade) n.fade('in'); }
+      if (sample && !n.joined) { n.joined = true; zetEigenVoertuigenOpzij(world, n); if (n.fade) n.fade('in'); }
       applyHostState(world, s.slot, sample, world.coopRoster, dt);
       const ik = sample && sample.players.find((q) => q.slot === s.slot);
       world.coopInVoertuig = !!(ik && ik.inVeh);
@@ -1063,7 +1079,7 @@ export function handleEvent(world, body, van = 0) {
     }
     case 'weg': // de host heeft deze speler verwijderd
       if (!n || n.role !== 'client') return false;
-      if (world.addMessage) world.addMessage(wegMelding(body.reden, openerNaam(world.coopRoster, body.reden === 'spel gestopt')), 6);
+      if (world.addMessage) world.addMessage(wegMelding(body.reden, openerNaam(world.coopRoster, body.reden === 'spel gestopt'), n.code), 6);
       stopCoopNet(world);
       return true;
     default: return typeof body.k === 'string' && body.k.startsWith('hw-') ? wisselEvent(world, body, van) : false; // het spel overdragen (#439)
@@ -1173,6 +1189,7 @@ export function stopCoopNet(world) {
   if (world.coopCutBezig != null) cutGastStop(world, null, true); // een scène van de gastheer stopt met het samen spelen
   if (n.role === 'host') { try { n.hub.announce({ k: 'weg', reden: 'spel gestopt' }); n.hub.closeAll(); } catch (e) { /* al weg */ } } else { try { if (n.session.status !== 'geweigerd' && n.session.status !== 'verbroken') n.session.leave(); } catch (e) { /* al weg */ } }
   world.coopNet = null;
+  zetEigenVoertuigenTerug(world, n); // de eigen voertuigen van de gast komen terug (ook na een overdracht: de volgende startHost of startClient ziet de eigen lijst)
   if (n.role === 'client') { wedGastReset(world); bijbaanGastReset(world); } // een race tegen elkaar op zijn scherm houdt op (#443)
   if (n.role === 'client') gastVerhaalHerlaad(world); // een meegesprongen verhaal staat ook in het lopende spel, anders overschrijft de volgende save het (#429)
   if (n.role === 'client' && n.stash) {
