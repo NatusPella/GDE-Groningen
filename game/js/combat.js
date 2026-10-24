@@ -21,6 +21,7 @@ import { assistDamage } from './assistlive.js';
 import { squirtWater, throwExplosive, updateThrowables } from './throwables.js';
 import { noteWantedWhy } from './wantedwhy.js';
 import { gastAanval, gastLichamen } from './coopbestuur.js';
+import { pvpSlag, pvpKogel } from './cooppvpwereld.js'; // spelers tegen elkaar, alleen als beiden niet op passief staan (#447)
 import { wantedVan, zetWantedVan } from './coopgezocht.js';
 
 export { WEAPONS, WEAPON_KEYS, isMeleeWeapon, isRangedWeapon, isGunWeapon };
@@ -217,6 +218,7 @@ function meleeHit(world, angle, weapon, key, ctx = null) {
     damagePed(world, t, weapon.damage, true, ca, sa, true, weapon, ctx ? ctx.dader : 0);
     landed = landed || 'flesh';
   }
+  if (world.coopPvp && pvpSlag(world, ctx ? ctx.dader : 0, inReach, weapon.damage)) landed = landed || 'flesh'; // een andere speler (#447)
   for (const v of world.vehicles) {
     if (v.wrecked || v.sinking || v.isBoat || !inReach(v.x, v.y, v.halfLen * 0.7)) continue;
     if (weapon.damage >= 20 || key === 'fists') {
@@ -313,6 +315,7 @@ export function updateBullets(dt, world) {
     if (first === 'car') { vehicleImpact(world, b, car); continue; }
     if (hitPedestrians(world, b, x0, y0)) continue;
     if (b.owner !== 'player' && (hitPlayer(world, b) || hitGast(world, b))) continue;
+    if (b.owner === 'player' && world.coopPvp && pvpKogel(world, b)) { sound(world, b.x, b.y, 'flesh', 0.6); continue; } // geen bloed, alleen het geluid (#447)
     if (b.traveled > b.range) { groundImpact(world, b); continue; }
 
     remaining.push(b);
