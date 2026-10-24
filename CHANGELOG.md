@@ -6,6 +6,9 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Nieuw
+- **Samen spelen: discgolf en padel tegen elkaar (#443):** wie het spel opende drukt E bij de eerste tee van het Stadspark of bij de deur van een padelbaan; iedereen krijgt "Meedoen?" (J of N, geen antwoord is nee). Discgolf: iedereen speelt dezelfde negen banen tegelijk op het eigen scherm, met dezelfde wind en dezelfde spreiding; het scorebord toont de stand en de beloning per plek gaat naar ieders eigen geld. Padel: twee tegen twee (met twee of drie spelers vult de computer de lege stoel als maatje) op één baan; de host rekent de bal, de gasten sturen alleen hun toetsen, teams en stand staan in het bord. Wie wegvalt of stopt wordt vervangen door de computer en krijgt niets; valt een hele ploeg weg, dan wint de andere ploeg.
+
 ## [0.48.0] - 2026-10-24
 
 ### Nieuw
