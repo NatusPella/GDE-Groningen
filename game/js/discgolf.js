@@ -7,7 +7,7 @@ import { unlockAchievement, recordChallengeResult, getChallengeRecord, recordSta
 import { showCard } from './hudcards.js';
 import { isInWater, pointInPolygon } from './util.js';
 import { activityBlock, iconDisc } from './activitykit.js';
-import { createBoard, key, bubble, clearBubbles, pick, stopPressed, easeCamera, windText, clamp, makeRng } from './minigamekit.js';
+import { createBoard, mgThema, key, bubble, clearBubbles, pick, stopPressed, easeCamera, windText, clamp, makeRng } from './minigamekit.js';
 import { DISC_LINES } from './minigamelines.js';
 import { DISCEXT_LINES } from './minigamelines3.js';
 import { fullRound, roundMedal, ctpPoints, ctpRound, CTP } from './discgolfext.js';
@@ -28,7 +28,7 @@ import {
 // scorecard keeps strokes against par; medals from the total, a record in
 // strokes against par (lower is better). Money-neutral: no fee, no prize.
 // `window.__discgolf` debug.
-const ACCENT = '#f08a2e';
+const ACCENT = mgThema('discgolf').accent; // één bron voor het HUD-thema: minigamekit.js (#453)
 const USE_RADIUS = 2.8;
 const DETAIL_M = 520;
 // The nine holes of the park, the back nine (the same baskets the other way round,
@@ -670,7 +670,7 @@ function camera(w) {
 }
 
 function ensureBoard() {
-  if (!board) board = createBoard('DISCGOLF STADSPARK', ACCENT);
+  if (!board) board = createBoard('discgolf');
   return board;
 }
 
@@ -688,7 +688,7 @@ function updateHud(w) {
   if (g.ctp) {
     const ds = g.ctp.dists.map((d) => (d == null ? 'plons' : `${d.toFixed(1).replace('.', ',')} m`)).join(' · ') || 'nog niets';
     const info = g.phase === 'aim' ? `${DISCS[g.disc].name} · ${RELEASES.find((r) => r.id === g.release).name} · hoek ${Math.round(g.loft * 57.3)}°` : '';
-    board.set({ row: `<span>Worp <b>${Math.min(CTP.throws, g.ctp.dists.length + 1)}/${CTP.throws}</b></span><span>Mand <b>${Math.round(dist)} m</b></span><span>${windText(g.wind)} ${windArrow(g)}</span><span>${ds}</span>`, meter: g.phase === 'aim' ? { v: g.charge, color: '#f08a2e' } : null, flash: g.flash ? g.flash.text : info, bad: !!(g.flash && g.flash.bad), help: g.phase === 'aim' ? `${key('A')}${key('D')} richten · ${key('W')}${key('S')} hoek · ${key('E')} release · ${key('F')} disc · houd ${key('SPATIE')} en laat los · ${key('BACKSPACE')} stoppen` : key('BACKSPACE') + ' stoppen' });
+    board.set({ row: `<span>Worp <b>${Math.min(CTP.throws, g.ctp.dists.length + 1)}/${CTP.throws}</b></span><span>Mand <b>${Math.round(dist)} m</b></span><span>${windText(g.wind)} ${windArrow(g)}</span><span>${ds}</span>`, meter: g.phase === 'aim' ? { v: g.charge, color: ACCENT } : null, flash: g.flash ? g.flash.text : info, bad: !!(g.flash && g.flash.bad), help: g.phase === 'aim' ? `${key('A')}${key('D')} richten · ${key('W')}${key('S')} hoek · ${key('E')} release · ${key('F')} disc · houd ${key('SPATIE')} en laat los · ${key('BACKSPACE')} stoppen` : key('BACKSPACE') + ' stoppen' });
     return;
   }
   const online = g.online ? wedScoreRijen(w) : [];
@@ -702,7 +702,7 @@ function updateHud(w) {
   const help = g.phase === 'aim'
     ? `${key('A')}${key('D')} richten · ${key('W')}${key('S')} hoek · ${key('E')} release · ${key('F')} disc · houd ${key('SPATIE')} en laat los · ${key('BACKSPACE')} stoppen · totaal ${relText(t.rel)}`
     : `Totaal ${relText(t.rel)} · ${key('BACKSPACE')} stoppen`;
-  board.set({ row, cells, meter: g.phase === 'aim' ? { v: g.charge, color: '#f08a2e' } : null, flash, bad: !!(g.flash && g.flash.bad), help });
+  board.set({ row, cells, meter: g.phase === 'aim' ? { v: g.charge, color: ACCENT } : null, flash, bad: !!(g.flash && g.flash.bad), help });
 }
 
 // --- the activity ------------------------------------------------------------------------------------------------
