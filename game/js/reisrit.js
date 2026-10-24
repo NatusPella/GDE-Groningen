@@ -2,6 +2,7 @@
 // leeg wachtscherm. Dunne DOM-laag; de opbouw, de tijd en het skippen met spatie
 // zitten in meerijden.js. Na de scène staat de speler op de bestemming (de interne
 // verplaatsing, zoals een respawn) en toont main.js het laadscherm voor de sprong.
+import { zachtePauze, klokSprongMag, meerSpelers } from './coopgroep.js';
 import { ritPlan, startRit, stepRit, aankomst, skipHint, ondertitel, voortgang, shotAt, SKIP_KEY } from './meerijden.js';
 
 let active = null;
@@ -33,6 +34,7 @@ export function startMeerijden(world, optie, dest) {
   // zoals het laadscherm: de wereld staat stil tijdens de scène
   const wasPaused = !!world.uiPaused;
   world.uiPaused = true;
+  zachtePauze(world, 'reisrit', true); // met meer spelers loopt de wereld door; jij reist alleen zelf (#452)
   let skipKey = false;
   const down = (e) => { if (e.key === SKIP_KEY) { skipKey = true; e.preventDefault(); e.stopPropagation(); } };
   const up = (e) => { if (e.key === SKIP_KEY) { skipKey = false; e.preventDefault(); e.stopPropagation(); } };
@@ -50,17 +52,18 @@ export function startMeerijden(world, optie, dest) {
       document.removeEventListener('keyup', up, true);
       active = null;
       world.uiPaused = wasPaused;
+      zachtePauze(world, 'reisrit', false);
       const a = aankomst(rit, dest, world.money);
       el.remove();
       if (!a) return resolve({ aangekomen: false });
       world.money -= a.prijs;
-      if (typeof world.clock === 'number') world.clock = (world.clock + a.klokMinuten / 60) % 24;
+      if (typeof world.clock === 'number' && klokSprongMag(world)) world.clock = (world.clock + a.klokMinuten / 60) % 24; // met meer spelers springt de klok niet: de tijd is van iedereen (#452)
       const spot = (world.map.findOpenSpawn && world.map.findOpenSpawn(a.x, a.y, 400)) || { x: a.x, y: a.y };
       const p = world.player;
       if (p.inVehicle) { p.inVehicle.speed = 0; p.inVehicle.x = spot.x; p.inVehicle.y = spot.y; }
       p.x = spot.x; p.y = spot.y;
       const c = world.companion;
-      if (c && c.state !== 'dead') { c.x = spot.x + 1.5; c.y = spot.y; c.vx = 0; c.vy = 0; }
+      if (c && c.state !== 'dead' && !meerSpelers(world)) { c.x = spot.x + 1.5; c.y = spot.y; c.vx = 0; c.vy = 0; }
       world.addMessage(a.bericht, 4, { kind: 'reis' });
       resolve({ aangekomen: true, skipped: rit.skipped });
     };

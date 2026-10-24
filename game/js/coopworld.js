@@ -271,10 +271,11 @@ export function leesEntiteiten(entities) {
 // ----------------------------------------------------------- opdracht van de host
 // De host zegt in een bericht welke opdracht hij speelt (alleen als het verandert).
 export function missieBericht(prev, pub) {
-  const nu = pub && pub.phase === 'active' ? { label: String(pub.label || '').slice(0, 80), type: String(pub.type || '').slice(0, 24), index: pub.index | 0, stap: String(pub.progressText || '').slice(0, 90) } : null;
-  const was = prev ? `${prev.index}|${prev.label}|${prev.stap}` : '';
-  const is = nu ? `${nu.index}|${nu.label}|${nu.stap}` : '';
+  const nu = pub && pub.phase === 'active' ? { label: String(pub.label || '').slice(0, 80), type: String(pub.type || '').slice(0, 24), index: pub.index | 0, stap: String(pub.progressText || '').slice(0, 90), lateInstap: pub.lateInstap !== false } : null;
+  const was = prev ? `${prev.index}|${prev.label}|${prev.stap}|${prev.lateInstap}` : '';
+  const is = nu ? `${nu.index}|${nu.label}|${nu.stap}|${nu.lateInstap}` : '';
   if (was === is) return { event: null, huidig: prev };
+  if (prev && nu && was.slice(0, was.lastIndexOf('|')) === is.slice(0, is.lastIndexOf('|'))) return { event: null, huidig: nu }; // alleen de late-instapvlag veranderde: geen nieuw bericht (#452)
   // de stap van de opdracht ("Stap in de boot", "Rij naar de kerk") gaat mee, zodat een gast het hele verhaal kan volgen
   return { event: nu ? { k: 'missie', actief: true, label: nu.label, type: nu.type, index: nu.index, stap: nu.stap } : { k: 'missie', actief: false }, huidig: nu };
 }

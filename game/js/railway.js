@@ -9,6 +9,7 @@ import { disableVehicle } from './vehiclewreck.js';
 import { vehicleHooks } from './vehiclehooks.js';
 import { splatterPed, bleedPed, GIB_SPEED } from './gore3d.js';
 import { railHeightFn } from './railprofile.js';
+import { onPerron } from './perrons.js';
 import { MAP_PALETTE, INK } from './mapstyle.js';
 
 const HALF_WIDTH = 1.45;
@@ -733,6 +734,9 @@ function hitPedestrian(ped, t, car, push, world) {
   bleedPed(ped, world);
 }
 
+// Wie op een perron staat (de vloer van perrons.js) wordt niet geraakt: het perron is naast het spoor, ook als de rand van de wagen de rand van het perron raakt (#436)
+const opPerron = (world, x, y, z) => { const P = world.map && world.map.elev && world.map.elev.perrons; return !!P && onPerron(P, x, y, z); };
+
 function resolveContacts(world) {
   const p = world.player;
   for (const t of trains) {
@@ -753,22 +757,22 @@ function resolveContacts(world) {
           if (push) { hitVehicle(v, t, car, push, world); break; }
         }
       }
-      if (!p.inVehicle && !world.trainDriving && Math.abs((p.gz || 0) + (p.z || 0) - (car.z || 0)) < 3.5 && Math.abs(p.x - car.x) < reach && Math.abs(p.y - car.y) < reach) {
+      if (!p.inVehicle && !world.trainDriving && Math.abs((p.gz || 0) + (p.z || 0) - (car.z || 0)) < 3.5 && Math.abs(p.x - car.x) < reach && Math.abs(p.y - car.y) < reach && !opPerron(world, p.x, p.y, (p.gz || 0) + (p.z || 0))) {
         const push = pushOut(car, hl, p.x, p.y, p.radius || 0.35);
         if (push) hitPlayer(t, car, push, world);
       }
       const c = world.companion;
-      if (c && !c.inVehicle && !world.trainDriving && !c.water && c.state !== 'dead' && Math.abs((c.gz || 0) + (c.z || 0) - (car.z || 0)) < 3.5 && Math.abs(c.x - car.x) < reach && Math.abs(c.y - car.y) < reach) {
+      if (c && !c.inVehicle && !world.trainDriving && !c.water && c.state !== 'dead' && Math.abs((c.gz || 0) + (c.z || 0) - (car.z || 0)) < 3.5 && Math.abs(c.x - car.x) < reach && Math.abs(c.y - car.y) < reach && !opPerron(world, c.x, c.y, (c.gz || 0) + (c.z || 0))) {
         const push = pushOut(car, hl, c.x, c.y, c.radius || 0.35);
         if (push) hitCompanion(c, t, car, push, world);
       }
       if (world.coopFigures) for (const f of Object.values(world.coopFigures)) { // de derde en vierde speler (#434): een trein rijdt niet door ze heen, ze worden opzij gezet
-        if (!f || f.inVeh || !Number.isFinite(f.x) || Math.abs(f.x - car.x) > reach || Math.abs(f.y - car.y) > reach || inRailBridgeZone(f.x, f.y)) continue;
+        if (!f || f.inVeh || !Number.isFinite(f.x) || Math.abs(f.x - car.x) > reach || Math.abs(f.y - car.y) > reach || inRailBridgeZone(f.x, f.y) || opPerron(world, f.x, f.y, f.gz || 0)) continue;
         const push = pushOut(car, hl, f.x, f.y, 0.35);
         if (push) { f.x += push.nx * push.depth; f.y += push.ny * push.depth; }
       }
       for (const ped of high ? [] : world.pedestrians) {
-        if (Math.abs(ped.x - car.x) > reach || Math.abs(ped.y - car.y) > reach) continue;
+        if (Math.abs(ped.x - car.x) > reach || Math.abs(ped.y - car.y) > reach || opPerron(world, ped.x, ped.y, ped.gz || 0)) continue;
         const push = pushOut(car, hl, ped.x, ped.y, ped.radius || 0.35);
         if (push && !inRailBridgeZone(ped.x, ped.y)) hitPedestrian(ped, t, car, push, world);
       }

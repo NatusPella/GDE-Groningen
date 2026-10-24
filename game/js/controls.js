@@ -26,7 +26,7 @@ export const KEY_ACTIONS = [
   ['8', 'Samen spelen: roepen "Help!"', 'actie'],
   ['9', 'Samen spelen: wijzen "Kijk daar" (een stuk voor je uit)', 'actie'],
   ['q', 'Achterom kijken; skûtsje: zeil aanhalen', 'actie'],
-  ['z', 'Skûtsje: zeil vieren', 'actie'],
+  ['z', 'Skûtsje: zeil vieren; trekker: ploeg aankoppelen, omhoog of omlaag', 'actie'],
   ['h', 'Toeteren', 'actie'],
   ['l', 'Zwaailicht en sirene', 'actie'],
   ['[', 'Richtingaanwijzer links (nog eens: uit)', 'actie'],
@@ -34,8 +34,8 @@ export const KEY_ACTIONS = [
   ['p', 'Alarmlichten aan of uit', 'actie'],
   ['v', 'Filmcamera', 'actie'],
   ['r', 'Lak of garagemenu', 'actie'],
-  ['c', 'Duif: koeren', 'actie'],
-  ['x', 'Duif: weer mens worden', 'actie'],
+  ['c', 'Auto: binnenzicht aan of uit (in de app); duif: koeren', 'actie'],
+  ['x', 'Duif: weer mens worden; trekker: aftakas aan of uit', 'actie'],
   ['tab', 'Volgend doelwit tijdens het richten', 'wapens'],
   ['1', 'Slaan', 'wapens'],
   ['2', 'Pistool', 'wapens'],
@@ -209,6 +209,8 @@ export const PAD_MAPS = {
   skutsje: { a: ' ', b: 'l', x: 'h', y: 'e', lb: 'z', rb: 'q', lt: '@brake', rt: '@gas', ls: 'shift', rs: null, up: null, down: 'v', left: 'o', right: 'r', view: 'm', start: 'escape', stick: 'steer' },
   // the helicopter: left stick flies (forward/back, turn), A or RT up, B or LT down, RB or L3 faster
   heli: { a: ' ', b: 'control', x: null, y: 'e', lb: null, rb: 'shift', lt: 'control', rt: ' ', ls: 'shift', rs: null, up: null, down: 'v', left: 'o', right: 'backspace', view: 'm', start: 'escape', stick: 'move' },
+  // the plane: like the helicopter, with the flaps on LB and the landing gear on X
+  plane: { a: ' ', b: 'control', x: 'g', y: 'e', lb: 'k', rb: 'shift', lt: 'control', rt: ' ', ls: 'shift', rs: null, up: null, down: 'v', left: 'o', right: 'backspace', view: 'm', start: 'escape', stick: 'move' },
   pigeon: { a: ' ', b: 'control', x: 'f', y: 'e', lb: 'c', rb: 'q', lt: 'shift', rt: '@fire', ls: 'shift', rs: null, up: null, down: 'x', left: 'o', right: null, view: 'm', start: 'escape', stick: 'move' },
   train: { a: ' ', b: 'backspace', x: 'h', y: 'e', lb: null, rb: 'g', lt: 's', rt: 'w', ls: null, rs: null, up: null, down: null, left: 'o', right: null, view: 'm', start: 'escape', stick: 'move' },
   // carbid, botsauto's, padel and the other games on foot: B stops the game

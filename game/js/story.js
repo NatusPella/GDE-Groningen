@@ -646,8 +646,8 @@ function playFinale(part) {
   state.cards.add(part);
   const left = endingLeftText(getEnding());
   phone(SERIES, left
-    ? `Het verhaal is uit, Grunn nog niet. Nog ${left} te gaan, dan pas mag de aftiteling. Alles staat in je telefoon, onder Te doen.`
-    : 'Het verhaal is uit. Grunn blijft van jou: alle missies staan in je telefoon, onder Te doen.', 9);
+    ? `Het verhaal is uit, Grunn nog niet. Nog ${left} te gaan, dan pas mag de aftiteling. Alles staat in het menu onder Activiteiten.`
+    : 'Het verhaal is uit. Grunn blijft van jou: alle missies staan in het menu onder Activiteiten.', 9);
   return true;
 }
 
@@ -718,7 +718,7 @@ function playEndCard(part) {
   }) || playCinematic({ id: 'story-card', priority: 2, duration: 6.5, pause: true, letterbox: true, skippable: true, hideHud: true, ...card });
   if (!ok) return false;
   state.cards.add(part);
-  phone(SERIES, PARTS[part].after ? `${PARTS[part].end}. Grunn blijft van jou: alle missies staan in je telefoon, onder Te doen.` : `${PARTS[part].end}. Dit stuk van het nieuwe verhaal is nog niet gebouwd. Tot die tijd is Grunn van jou: alle missies staan in je telefoon, onder Te doen.`, 8, undefined, true);
+  phone(SERIES, PARTS[part].after ? `${PARTS[part].end}. Grunn blijft van jou: alle missies staan in het menu onder Activiteiten.` : `${PARTS[part].end}. Dit stuk van het nieuwe verhaal is nog niet gebouwd. Tot die tijd is Grunn van jou: alle missies staan in het menu onder Activiteiten.`, 8, undefined, true);
   return true;
 }
 

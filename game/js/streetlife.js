@@ -7,6 +7,7 @@
 // magnet); this module dresses them, gives them lines and the E prompt.
 // Text only: no recordings, no voice. All names are invented.
 import { dist, isInWater } from './util.js';
+import { naasteSpeler } from './spelersregister.js';
 import { spawnPedestriansNear, Pedestrian } from './pedestrians.js';
 import { isInsideBuilding } from './pedgeom.js';
 import { makeCompanion } from './pedroutes.js';
@@ -345,11 +346,12 @@ function updateVrijgezellen(world, p) {
 // per call). Scene people, officers, companions and our own groups keep their look.
 const DRESS_PER_CALL = 4;
 export function dressWalkers(world, rng = Math.random) {
-  const p = world.player;
   let n = 0;
   for (const ped of world.pedestrians || []) {
     if (ped._wijkDressed || ped.scene || ped.isCop || ped.leader || ped.ontgroening || ped.party || ped.carry || ped.look) { ped._wijkDressed = true; continue; }
-    if (!finite(ped.x, ped.y) || dist(p.x, p.y, ped.x, ped.y) > 90) continue;
+    if (!finite(ped.x, ped.y)) continue;
+    const q = naasteSpeler(world, ped.x, ped.y);
+    if (dist(q.x, q.y, ped.x, ped.y) > 90) continue;
     ped._wijkDressed = true;
     const key = wijkProfileAt(world.map, ped.x, ped.y).key;
     const c = wijkClothing(key, rng);

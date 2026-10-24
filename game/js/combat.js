@@ -21,6 +21,7 @@ import { assistDamage } from './assistlive.js';
 import { squirtWater, throwExplosive, updateThrowables } from './throwables.js';
 import { noteWantedWhy } from './wantedwhy.js';
 import { gastAanval, gastLichamen } from './coopbestuur.js';
+import { pvpSlag, pvpKogel } from './cooppvpwereld.js'; // spelers tegen elkaar, alleen als beiden niet op passief staan (#447)
 import { wantedVan, zetWantedVan } from './coopgezocht.js';
 
 export { WEAPONS, WEAPON_KEYS, isMeleeWeapon, isRangedWeapon, isGunWeapon };
@@ -172,11 +173,11 @@ function meleeAttack(world, angle, weapon) {
 
 // Samen spelen (#434): de slag of het schot van een gast met een wapen, vanuit zijn lichaam bij wie het spel opende (coopwapen.js wapenTick).
 // Geeft { fx, wacht } (het effect voor de aanvalshouding; wacht: een slag die pas na het uithalen landt) of null als het wapen niet kan.
-export function gastAanvalUitvoeren(world, slot, l, key, angle) {
+export function gastAanvalUitvoeren(world, slot, l, key, angle, kijker = false) {
   const weapon = WEAPONS[key];
   if (!weapon || !l || !(weapon.kind === 'melee' || weapon.kind === 'gun')) return null;
   const ctx = { dader: slot, p: { x: l.x, y: l.y, gz: l.gz || 0, z: l.z || 0, crouching: !!l.crouching, inVehicle: null } };
-  if (weapon.kind === 'gun') { fireGun(world, angle, weapon, false, ctx, key); return { fx: { type: 'muzzle', swing: undefined } }; }
+  if (weapon.kind === 'gun') { fireGun(world, angle, weapon, !!kijker && !!weapon.scope, ctx, key); return { fx: { type: 'muzzle', swing: undefined } }; }
   weaponSound(world, { sub: 'swing', weapon: key, x: l.x, y: l.y });
   const fx = { type: 'melee', swing: weapon.swing };
   if (weapon.windup) return { fx, wacht: { at: (world.time || 0) + weapon.windup, angle, key } };
@@ -217,6 +218,7 @@ function meleeHit(world, angle, weapon, key, ctx = null) {
     damagePed(world, t, weapon.damage, true, ca, sa, true, weapon, ctx ? ctx.dader : 0);
     landed = landed || 'flesh';
   }
+  if (world.coopPvp && pvpSlag(world, ctx ? ctx.dader : 0, inReach, weapon.damage)) landed = landed || 'flesh'; // een andere speler (#447)
   for (const v of world.vehicles) {
     if (v.wrecked || v.sinking || v.isBoat || !inReach(v.x, v.y, v.halfLen * 0.7)) continue;
     if (weapon.damage >= 20 || key === 'fists') {
@@ -257,7 +259,7 @@ function fireGun(world, angle, weapon, scoped = false, ctx = null, key = world.w
   const rx = -Math.sin(angle) * 0.2, ry = Math.cos(angle) * 0.2;
   if (scoped && shots === 1) {
     const s = scopeShot(p, angle, base, weapon.speed);
-    world.bullets.push({ ...s, damage: weapon.damage, owner: 'player', range: weapon.range, traveled: 0, pellet: false, _shotFx: true });
+    world.bullets.push({ ...s, damage: weapon.damage, owner: 'player', range: weapon.range, traveled: 0, pellet: false, _shotFx: true, ...(ctx ? { dader: ctx.dader } : {}) });
   }
   for (let i = scoped && shots === 1 ? shots : 0; i < shots; i++) {
     const a = angle + (weapon.spread ? (Math.random() - 0.5) * weapon.spread : 0) + (Math.random() - 0.5) * 0.02;
@@ -313,6 +315,7 @@ export function updateBullets(dt, world) {
     if (first === 'car') { vehicleImpact(world, b, car); continue; }
     if (hitPedestrians(world, b, x0, y0)) continue;
     if (b.owner !== 'player' && (hitPlayer(world, b) || hitGast(world, b))) continue;
+    if (b.owner === 'player' && world.coopPvp && pvpKogel(world, b)) { sound(world, b.x, b.y, 'flesh', 0.6); continue; } // geen bloed, alleen het geluid (#447)
     if (b.traveled > b.range) { groundImpact(world, b); continue; }
 
     remaining.push(b);

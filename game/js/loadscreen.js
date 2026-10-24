@@ -6,6 +6,7 @@
 // (scene3d.js streamPending). The picture is one of the game's own renders
 // (img/laad/), chosen by where you are going.
 import { getStoryView } from './storyquery.js';
+import { zachtePauze } from './coopgroep.js';
 import { PARTS } from './storyarc.js';
 import { hudDate } from './hudcalendar.js';
 import { streamPending } from './scene3d.js';
@@ -108,6 +109,7 @@ export function startLoadScreen(world, opts = {}) {
 
   const wasPaused = !!world.uiPaused;
   world.uiPaused = true;
+  zachtePauze(world, 'laden', true); // met meer spelers loopt de wereld door (#452)
   const fill = el.querySelector('.ls-bar i');
   const lineKick = el.querySelector('.ls-tip div span');
   const lineText = el.querySelector('.ls-tip p');
@@ -130,6 +132,7 @@ export function startLoadScreen(world, opts = {}) {
   const done = new Promise((r) => { res = r; });
   const finish = () => {
     world.uiPaused = wasPaused;
+    zachtePauze(world, 'laden', false);
     el.classList.remove('on');
     el.classList.add('out');
     setTimeout(() => { el.remove(); }, kind === 'snel' ? 450 : 700);

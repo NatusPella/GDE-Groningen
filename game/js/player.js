@@ -31,6 +31,7 @@ import { shift as shiftGear } from './gearbox.js';
 import { wielInvoer } from './coopgast.js';
 import { buildingAt } from './tileplace.js';
 import { isMissieVoertuig } from './missievoertuig.js';
+import { bedienTrekker } from './voertuigbediening.js';
 export { resolveBuildingCollisions };
 
 const BIKE_SPRINT_S = 2.5;
@@ -862,6 +863,7 @@ export class Player {
     v.handbrake = brake;
     v.throttle = throttle;
     v.horn = input.isDown('h') && !v.disabled;
+    bedienTrekker(v, input, world);
     // a tuned-up moped over the legal 45 km/h: heat from the police, once in a while
     if (world && v.isScooter && v.model.moped && Math.abs(v.speed) > MOPED_LEGAL_SPEED * 1.04) {
       v._copHeatT = (v._copHeatT ?? 4) - dt;

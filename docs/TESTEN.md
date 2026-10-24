@@ -202,3 +202,10 @@ Aandachtspunten:
 - De Electron-fase is niet op deze machine uitgeprobeerd tijdens het schrijven (de eigenaar speelde, en de worktree had geen `desktop/node_modules` of `game/world`). De stappen zijn gebouwd op de bestaande scripts en de pure delen (rapportage, diff, logscans, PNG-checks) hebben tests in `scripts/test_all_test.mjs`. Eerste echte run: kijk of de vlaggen voor `--perf-test` (frametijd) en de uitvoermappen kloppen.
 - De frametijd is alleen te lezen als de run een `[perf]`-regel met `fps` schrijft; anders staat het item als niet gedraaid.
 - Een fingerprint van een fout is de itemnaam plus de eerste foutregel zonder getallen en paden. Wisselt een test zijn foutmelding, dan telt dat als een nieuwe fout.
+
+## Perrons en trappen (#436)
+
+- `node scripts/perrons_test.mjs`: de bouw op nepstations (laag en hoog, spoor vrij, helling 1:12, trap 1:3,6, niets in de weg), het hoogtemodel (loopvlak, trap te belopen, rand dicht voor voetganger en auto) en wie op het perron staat.
+- `node scripts/perron_trein_test.mjs`: de echte stad (stadsbouw, ruim twee minuten): een trein raakt niemand op het perron van Europapark en Noord, wel wie op het spoor staat.
+- `node scripts/world/perron_audit.mjs [--strict]`: elk station een perron, vlak op de spoorvloer + 1,02 m, buiten de baan van de trein, een belopen trap of helling per strook.
+- `node scripts/qa/perron_shots.mjs --game=<gestagede game-map> [--slot] [--only=noord,europapark]`: in Electron de trap op lopen met W (hoogte gemeten), een trein langs het perron en langs de rand, op het spoor, met screenshots.

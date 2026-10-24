@@ -2,7 +2,7 @@
 // (die al als toetsen binnenkomen, zelfde set als de heli) worden stuurinvoer
 // voor arcadeplane.js, en de uitkomst gaat terug op het voertuig. Zonder THREE.
 // Besturing: W/S gas op/af (het gas blijft staan), A/D rollen, Spatie neus
-// omhoog, Ctrl neus omlaag, Shift remmen op de baan. Tests: scripts/planecontrol_test.mjs.
+// omhoog, Ctrl neus omlaag, Shift remmen op de baan, K kleppen (0 tot 3, daarna weer 0), G landingsgestel in of uit. Tests: scripts/planecontrol_test.mjs.
 
 import { makePlane, stepPlane, PLANE } from './arcadeplane.js';
 
@@ -12,7 +12,16 @@ const THROTTLE_RATE = 0.45;   // gas per seconde dat je W of S ingedrukt houdt
 export function planeInput(isDown, st, dt) {
   const k = (key) => (isDown(key) ? 1 : 0);
   st.thr = Math.max(0, Math.min(1, (st.thr || 0) + (k('w') - k('s')) * THROTTLE_RATE * dt));
+  // K en G werken op de toetsdruk (een keer per druk); de standen blijven in st staan
+  const t = k('k'), g = k('g');
+  if (st.flaps === undefined) st.flaps = 0;
+  if (st.gear === undefined) st.gear = true;
+  if (t && !st.kHeld) st.flaps = (st.flaps + 1) % 4;
+  if (g && !st.gHeld) st.gear = !st.gear;
+  st.kHeld = !!t; st.gHeld = !!g;
   return {
+    flaps: st.flaps,
+    gear: st.gear,
     throttle: st.thr,
     roll: k('d') - k('a'),
     yaw: k('d') - k('a'),
@@ -24,7 +33,7 @@ export function planeInput(isDown, st, dt) {
 // Een vliegtuig-staat op een voertuig zetten (en omgekeerd bij de start).
 export function attachPlane(v, x, y, z, heading) {
   v.plane = makePlane(x, y, z, heading);
-  v.planeCtl = { thr: 0 };
+  v.planeCtl = { thr: 0, flaps: 0, gear: true };
   syncToVehicle(v);
   return v;
 }
@@ -37,14 +46,19 @@ function syncToVehicle(v) {
   v.onGround = p.onGround; v.airborne = !p.onGround;
   v.groundZ = p.onGround ? p.z : v.groundZ;
   v.throttle = p.throttle;
+  v.flaps = p.flaps || 0; v.gear = p.gear !== false;
 }
 
 // groundAt(x, y) en onRunway(x, y) komen van de wereld. Geeft de staat terug.
-export function flyPlaneVehicle(v, dt, isDown, groundAt, onRunway) {
+// wind = { x, y } (m/s, waarheen hij waait) of weglaten.
+export function flyPlaneVehicle(v, dt, isDown, groundAt, onRunway, wind = null) {
   const p = v.plane;
   if (!p || v.wrecked) return p;
   const inp = v.disabled ? { throttle: 0 } : planeInput(isDown, v.planeCtl, dt);
+  if (wind) inp.wind = wind;
   p.landing = null;
+  // de standen van de kleppen en het gestel volgen wat het model ervan maakt (kleppen klappen boven hoge snelheid in, het gestel gaat uit bij de grond)
+  if (v.planeCtl) { v.planeCtl.flaps = p.speed > PLANE.flapMax ? 0 : v.planeCtl.flaps; if (p.onGround) v.planeCtl.gear = true; }
   stepPlane(p, inp, dt, groundAt, onRunway, PLANE);
   if (p.crashed) { v.health = 0; v.wrecked = true; }
   syncToVehicle(v);
@@ -92,5 +106,7 @@ export function planeStatus(v) {
   else if (p.onGround && p.speed < 1) state = 'Gas met W, trek bij 30 m/s op met Spatie';
   else if (p.onGround) state = `Rotatie vanaf ${PLANE.liftoff} m/s`;
   else if (p.z - (v.groundZ ?? 0) < 40 && p.vz < -PLANE.landVz) state = 'Te snel zakken!';
-  return { speed: Math.round(p.speed * 3.6), alt, throttle: Math.round(p.throttle * 100), state };
+  const laag = p.z - (v.groundZ ?? 0) < 60;
+  if (!state && !p.onGround && p.gear === false && laag && p.speed < PLANE.stall * 1.8) state = 'Landingsgestel uit met G!';
+  return { speed: Math.round(p.speed * 3.6), alt, throttle: Math.round(p.throttle * 100), state, flaps: p.flaps || 0, gear: p.gear !== false };
 }

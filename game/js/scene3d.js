@@ -20,6 +20,8 @@ import { attachCarry, carryPose } from './streetlife3d.js';
 import { buildPersonMesh, animatePersonWalk, applyAttackPose, applyHitReaction, setHeldWeapon, seatPose, seatedY, waveOverlay, juichOverlay, carryOverlay, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
 import { syncDoorsNear, vraagVoorAnim } from './vehicledoors3d.js';
 import { syncCabins } from './cabin3d.js';
+import { syncAutoStuur } from './autointerieur.js';
+import { syncVoertuigBediening } from './voertuigbediening.js';
 import { syncHaltefiguren } from './haltefiguren3d.js';
 import { seatedOf } from './occupants.js';
 import { vehicleSeat, placeSeated, makeSeatTracker, trackSeat, drawTransition, syncBoatCrew } from './seating3d.js';
@@ -42,6 +44,7 @@ import { scopeEye } from './scopeaim.js';
 import { alignPlayerFlash } from './gunfx3d.js';
 import { sharedWaterMaterial, updateWaterMaterial, buildWaterGeometry, waterSwellAt, waterSwellAmp, auditWaterMeshes } from './water3d.js';
 import { syncBoatWakes3D } from './boatwake3d.js';
+import { seaExtra, golfWip } from './golven.js';
 import { sleepingParkedCars } from './parkedcars.js';
 import { syncParkedLayer } from './parked3d.js';
 import { requestShore, updateShore } from './quaywalls.js';
@@ -107,6 +110,7 @@ import { updateSluizen3D } from './sluizen3d.js';
 import { initStreetFurniture3D, updateStreetFurniture3D } from './streetfurniture3d.js';
 import { treeDims, treeColor, SPECIES, TREE_FLAG } from './greenery.js';
 import { buildCanopies, streamCanopies } from './canopies3d.js';
+import { buildPerrons3D } from './perrons3d.js';
 import { initGrass, updateGrass, grassFarColor, grassFarRank } from './grass.js';
 import { updateCountryside, setCountryPropLevel } from './countryside.js';
 import { updateOmmelandLandmarks } from './ommelandlandmarks.js';
@@ -1054,6 +1058,8 @@ export function init3D(map) {
   if (railDecks) scene.add(railDecks);
   scene.add(buildCanopies(map));
   streamCanopies(scene, map);
+  const perrons = buildPerrons3D(map);
+  if (perrons) scene.add(perrons);
   initGrass(scene, map, { polyGeometry: (poly) => poly._geoFlat || (poly._geoFlat = buildPolyGeometry(poly.pts)) });
   onSettingsChange(applyViewSettings);
   resize3D();
@@ -2434,7 +2440,7 @@ export function update3D(dt, world) {
   probe.mark('3d:grass');
   syncWater(world.map.waterNear(focus.x, focus.y, Math.max(DRAW_DIST, viewDist)), waterMeshes, WATER_Y, world.map, focus.x, focus.y);
   const waterNight = world.dayNight ? world.dayNight.night : 0;
-  updateWaterMaterial(waterMaterial, world.time, world.weather ? world.weather.intensity : 0, waterNight);
+  updateWaterMaterial(waterMaterial, world.time, world.weather ? world.weather.intensity : 0, waterNight, seaExtra(world));
   updateShore(waterNight, cam);
   if (!NO_BATCH) shoreBatcher.update({ scene, meshes: shoreItems, hidden: null, px: focus.x, py: focus.y, detailR: Math.max(DRAW_DIST, viewDist), drawDist: Math.max(DRAW_DIST, viewDist), withDetail: true, compile: batchCompile, ready: batchReady, budgetMs: 2 });
   probe.mark('3d:water');
@@ -2906,6 +2912,8 @@ export function update3D(dt, world) {
   // that would otherwise glide the camera straight through geometry
   syncDoorsNear(world, vehicleMeshes, player.x, player.y, animDt, doorAsk);
   syncCabins(world, vehicleMeshes, player.x, player.y);
+  syncAutoStuur(world, vehicleMeshes, player.x, player.y, animDt);
+  syncVoertuigBediening(world, vehicleMeshes, player.x, player.y, animDt);
   syncHaltefiguren(world, scene, (shirt, skin) => enableShadows(buildPersonActor(shirt, skin, {}), false), animDt);
   probe.mark('3d:players');
   // a stolen train (traindrive.js) is followed like a very long vehicle
@@ -2923,13 +2931,14 @@ export function update3D(dt, world) {
   const looking = world.input.lookActive ? world.input.lookActive() : mouse.locked;
   const lookK = MOUSE_LOOK_PER_PX * getSettings().mouseSensitivity;
   if (looking) {
-    lookPitchTarget += mouse.dy * lookK * (getSettings().invertY ? -1 : 1);
+    // zelfde gevoeligheid als links/rechts, ook door de scope (player.js: x 0.3)
+    lookPitchTarget += mouse.dy * lookK * (world.scoped ? 0.3 : 1) * (getSettings().invertY ? -1 : 1);
     lookPitchTarget = Math.min(PITCH_LOOK_MAX_DEG, Math.max(PITCH_LOOK_MIN_DEG, lookPitchTarget * 180 / Math.PI)) * Math.PI / 180;
   } else {
     const pitchT = Math.min(1, Math.max(0, (mouse.y || 0) / (innerHeight || 1)));
     lookPitchTarget = (PITCH_MIN_DEG + (PITCH_MAX_DEG - PITCH_MIN_DEG) * pitchT) * Math.PI / 180;
   }
-  followPitch += (lookPitchTarget - followPitch) * Math.min(1, dt * (looking ? 14 : 6));
+  followPitch += (lookPitchTarget - followPitch) * Math.min(1, dt * (looking ? 30 : 6));
   // on foot the camera yaw is world.camYaw (orbited by the mouse in
   // player.js, independent of the facing); in a vehicle the mouse orbits
   // around the car and the camera eases back behind it after a moment idle
@@ -4011,8 +4020,9 @@ function animateBoat(mesh, v, world, dt) {
   const trim = (BOAT_TRIM[kind] ?? 0.03) * speedT * (v.speed >= 0 ? 1 : -0.5) - Math.max(-0.03, Math.min(0.03, st.acc * -0.012 * (v.speed > 0 ? 1 : 0)));
   const planing = kind === 'rubberboot' ? 1 : -1;
   const heel = Math.max(-0.08, Math.min(0.08, st.yaw * Math.abs(v.speed) * 0.025 * planing * resp));
-  const pitchT = Math.atan2(hB - hS, 2 * xb) * resp + trim + Math.sin(time * 1.1 + seed) * 0.006;
-  const rollT = Math.atan2(hP - hR, W) * Math.min(1, resp * 1.4) * 0.8 + heel + Math.sin(time * 1.4 + seed * 0.7) * 0.008;
+  const wip = golfWip(v, time);
+  const pitchT = Math.atan2(hB - hS, 2 * xb) * resp + trim + Math.sin(time * 1.1 + seed) * 0.006 + wip.pitch;
+  const rollT = Math.atan2(hP - hR, W) * Math.min(1, resp * 1.4) * 0.8 + heel + Math.sin(time * 1.4 + seed * 0.7) * 0.008 + wip.roll;
   const heaveT = (hB + hS + hP + hR + h0 * 2) / 6 * (0.6 + 0.4 * resp) + (BOAT_LIFT[kind] || 0);
   st.pitch += (pitchT - st.pitch) * k;
   st.roll += (rollT - st.roll) * k;

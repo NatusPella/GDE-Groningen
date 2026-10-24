@@ -49,6 +49,8 @@ export const VOERTUIGEN = {
   heli: { klasse: 'lucht', spawn: [beheer('police.js', 'policeHeli')], winkel: ['wiekenwubbo'], tuning: 'lucht', cutscene: true },
   // --- uitzonderingen: niet te koop of te verzamelen, met reden ---
   plane: { klasse: 'attractie', spawn: [beheer('planeflight.js', 'PLANE_MODEL')], winkel: [], tuning: null, cutscene: false, uitzondering: 'Het vliegtuig is een rondvlucht-attractie (planeflight.js), geen bezit' },
+  maaidorser: { klasse: 'attractie', spawn: [beheer('boerderijwereld.js', 'MACHINE_MODELLEN')], winkel: [], tuning: null, cutscene: false, uitzondering: 'De Korenwolf maaidorser koop of huur je bij de boerderij (machines.js, Boerderij > Machines), niet in de voertuigwinkel; hij heeft geen tuning' },
+  laadmachine: { klasse: 'attractie', spawn: [beheer('boerderijwereld.js', 'MACHINE_MODELLEN')], winkel: [], tuning: null, cutscene: false, uitzondering: 'De Laadkabouter koop of huur je bij de boerderij (machines.js, Boerderij > Machines), niet in de voertuigwinkel; hij heeft geen tuning' },
   horse: { klasse: 'dier', spawn: [beheer('policemounts.js', 'HORSE_MODEL')], winkel: [], tuning: null, cutscene: false, uitzondering: 'Een politiepaard is een dier, geen voertuig om te kopen of te tunen' },
   kart: { klasse: 'attractie', spawn: [beheer('kartbaan.js', 'createKart')], winkel: [], tuning: null, cutscene: false, uitzondering: 'Karts worden op de kartbaan gehuurd (kartbaan.js)' },
   train: { klasse: 'ov', spawn: [beheer('railway.js', 'train')], winkel: [], tuning: null, cutscene: true, uitzondering: 'Openbaar vervoer op het spoor: niet te bezitten of te tunen' },

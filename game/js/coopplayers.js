@@ -112,13 +112,19 @@ export function leesLijstEvent(b) {
   return { max: clampMax(b.max), spelers: out };
 }
 
-// Pauze bij wegvallen, per speler. Tessa (de eerste gast) is een hoofdpersoon: het spel wacht op haar.
-// Een extra speler houdt de rest niet op, tenzij de missie of activiteit hem nodig heeft.
+// Pauze bij wegvallen, per speler (#452): alle spelers zijn gelijkwaardig, dus een weggevallen speler houdt de rest niet op.
+// De rest speelt door en de speler kan terugkomen. Alleen als de lopende opdracht of activiteit hem echt nodig heeft pauzeert het spel.
 // ctx: { vereist: [slots die de huidige missie of activiteit nodig heeft] }
 export function holdBeleid(slot, ctx = {}) {
-  if (slot === 1) return { pauze: true, reden: 'Tessa is weg; het spel wacht op haar.' };
-  if (slot >= 2 && (ctx.vereist || []).includes(slot)) return { pauze: true, reden: 'De opdracht kan niet zonder deze speler.' };
-  return { pauze: false, reden: slot >= 2 ? 'Het spel gaat door; de speler kan terugkomen.' : '' };
+  if (slot >= 1 && (ctx.vereist || []).includes(slot)) return { pauze: true, reden: 'De opdracht kan niet zonder deze speler.' };
+  return { pauze: false, reden: slot >= 1 ? 'Het spel gaat door; de speler kan terugkomen.' : '' };
+}
+// Wie heeft de lopende opdracht echt nodig? De gast-hoofdrol (plek 1) als de stap beide spelers vraagt (coopRule presence 'beide' of needsTwo),
+// plus wat de opdracht zelf meegeeft (world.coopVereist). Zonder lopende opdracht is niemand nodig.
+export function vereistVoor(opdrachtActief, regel, extra = []) {
+  const v = new Set((extra || []).filter((s) => Number.isInteger(s) && s >= 1));
+  if (opdrachtActief && regel && (regel.presence === 'beide' || regel.needsTwo)) v.add(1);
+  return [...v];
 }
 
 // Rol van een slot in het hoofdverhaal: hoofdpersonen spelen mee, extra spelers lopen in de open wereld.
