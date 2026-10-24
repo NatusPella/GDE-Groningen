@@ -1,7 +1,7 @@
 // De opmaak van de actiebalk, de reiskeuze en de uitleg op de kaart (#445). Alleen
 // tekenreeksen en stijl; mapview.js zet ze in de kaartkaart en regelt de kliks.
 // De tekst en de regels zitten in kaartactie.js.
-import { KAART_UITLEG } from './kaartactie.js';
+import { KAART_UITLEG, GAST_UITLEG, HIER_TITEL, HIER_HINT } from './kaartactie.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const svg = (d) => `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${d}"/></svg>`;
@@ -29,10 +29,17 @@ export function infoHtml(regels) {
   return `<div class="mv-infostap">${regels.map((r) => `<p>${esc(r)}</p>`).join('')}</div>`;
 }
 
-// de eerste keer: korte uitleg, te sluiten (data-act="uitleg-sluit")
-export function uitlegHtml() {
-  return '<div class="mv-uitleg" role="note"><b>Zo werkt de kaart</b><ul>' + KAART_UITLEG.map((l) => `<li>${esc(l)}</li>`).join('') +
+// de eerste keer: korte uitleg, te sluiten (data-act="uitleg-sluit"); een gast
+// leest er ook bij wat wel en niet kan in Samen spelen
+export function uitlegHtml({ gast = false } = {}) {
+  const regels = gast ? [...KAART_UITLEG, GAST_UITLEG] : KAART_UITLEG;
+  return `<div class="mv-uitleg" role="note" data-gast="${gast ? 1 : 0}"><b>Zo werkt de kaart</b><ul>` + regels.map((l) => `<li>${esc(l)}</li>`).join('') +
     '</ul><button type="button" class="mapview-btn" data-act="uitleg-sluit">Begrepen</button><small>Terug te vinden onder Besturing › Hulp.</small></div>';
+}
+
+// de kaart als je op jezelf klikt: geen waypoint naar je eigen plek, wel waar je staat
+export function hierHtml(plek = '') {
+  return `<div class="mv-hier"><b>${esc(HIER_TITEL)}</b>${plek ? `<p class="mv-hier-plek">${esc(plek)}</p>` : ''}<p class="mv-note">${esc(HIER_HINT)}</p></div>`;
 }
 
 export const KAART_ACTIE_CSS = `
@@ -57,6 +64,8 @@ export const KAART_ACTIE_CSS = `
 .mapview-card .mv-ku { font-size: 12px; color: rgba(240,237,228,0.78); }
 .mapview-card .mv-kd { font-size: 12px; color: #e8c93a; }
 .mapview-card .mv-infostap p { margin: 2px 0; font: 13px Arial, sans-serif; color: rgba(240,237,228,0.9); }
+.mapview-card .mv-hier b { display: block; font: 17px 'Bebas Neue', Arial, sans-serif; letter-spacing: 0.6px; font-weight: normal; }
+.mapview-card .mv-hier .mv-hier-plek { margin: 1px 0 3px; font: 13px Arial, sans-serif; color: rgba(240,237,228,0.9); }
 .mapview-overlay .mv-uitleg { position: absolute; left: 12px; top: 12px; z-index: 3; width: 330px; max-width: calc(100% - 24px); box-sizing: border-box; padding: 10px 12px; border-radius: 10px; background: rgba(10,19,13,0.95); border: 1px solid rgba(63,201,122,0.6); color: #f0ede4; font: 13px Arial, sans-serif; }
 .mapview-overlay .mv-uitleg b { display: block; font: 17px 'Bebas Neue', Arial, sans-serif; letter-spacing: 1px; font-weight: normal; }
 .mapview-overlay .mv-uitleg ul { margin: 4px 0 8px 16px; padding: 0; }
