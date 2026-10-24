@@ -65,7 +65,7 @@ export function waterPast(model, poly) {
 // pas op als het ver weg én uit het zicht is. De kegel voor de boot volgt die van vehicle.js
 // (spawnWouldPop): wat recht voor je vaart zie je aankomen.
 export function inZicht(world, x, y) {
-  const p = world && speler(world);
+  const p = world && world.player;
   if (!p) return false;
   const pv = p.inVehicle;
   if (pv) {
@@ -80,11 +80,11 @@ export function inZicht(world, x, y) {
 let timer = 0;
 // env: { spawnBoatOnWater, isShip } uit vehicle.js (main.js geeft ze mee)
 export function manageSeaShips(world, dt, env, rng = Math.random) {
-  if (!world || !speler(world) || !world.map || !env || world.paused) return;
+  const { map, player, vehicles } = world || {};
+  if (!world || !player || !map || !env || world.paused) return;
   timer -= dt;
   if (timer > 0) return;
   timer = ZEE_TIK_S;
-  const { map, player, vehicles } = world;
   let n = 0;
   for (let i = vehicles.length - 1; i >= 0; i--) {
     const v = vehicles[i];
