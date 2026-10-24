@@ -84,7 +84,7 @@ ok(at && at.edge.id === 0 && at.d < 40, 'a boat is found on the net');
 ok(V.nearestOnNet(mini, 0, 5000, 100) === null, 'and not far from it');
 ok(V.pickTrip(mini, 100, 4, 0, 'binnenvaart', () => 0.5) === null, 'a barge on an edge under a low bridge gets no trip');
 const trip2 = V.pickTrip(mini, 100, 4, 0, 'rondvaart', () => 0.9);
-ok(trip2 && trip2.pts.length > 2 && trip2.pts[0][0] >= 100 - 1, 'a trip starts ahead of the boat', trip2 && JSON.stringify(trip2.pts[0]));
+ok(trip2 && trip2.pts.length >= 2 && trip2.pts[0][0] >= 100 - 1, 'a trip starts ahead of the boat', trip2 && JSON.stringify(trip2.pts[0]));
 const ahead = V.routeAhead(mini, 100, 4, 5, 0, 1800);
 ok(ahead.length > 3 && ahead[ahead.length - 1][0] > 1400, 'the route ahead runs on over the nodes', JSON.stringify(ahead.slice(-1)));
 ok(V.routeAhead(mini, 100, 4, -5, 0, 800).every((p) => p[0] <= 100 + 1), 'and the other way when the boat sails back');
@@ -204,6 +204,70 @@ function canal(len, wid) {
   ok(maxX > 1400, 'the barge sailed along the net to the far node', `x ${Math.round(maxX)}`);
   ok(Math.abs(v.y) < 25, 'and stayed in the canal');
   VH.setVaarNet(null);
+}
+
+// ---------------------------------------------------------------- a steady course along the net (#436)
+
+// The net's polylines carry a vertex every few metres in places, with a small jog. A ship steers
+// at the first point past its arrival radius (vehicle.js), so a vertex 5 m ahead turns it towards
+// a spot barely past its own bow and the hull weaves from bend to bend. stableRoute takes those
+// jogs out: a straight line stays a line, a corner stays a corner, and the line may move no
+// more than ROUTE_TOL.
+{
+  const lijn = (x0, x1, stap = 7) => {
+    const p = [];
+    for (let x = x0; x <= x1; x += stap) p.push([x, Math.sin(x / 90) * 0.9 + ((x / 7) % 2 ? 0.7 : -0.7)]);
+    return p;
+  };
+  const ruw = lijn(0, 1540);
+  const recht = V.stableRoute(ruw);
+  ok(recht.length <= 4, 'a straight canal with a vertex every 7 m becomes one course', `${recht.length} points of ${ruw.length}`);
+  ok(recht[0][0] === ruw[0][0] && recht[0][1] === ruw[0][1] && recht[recht.length - 1][0] === ruw[ruw.length - 1][0], 'the start and the end of the line stay where they are');
+  const afwijk = (pts, lijnPts) => {
+    let m = 0;
+    for (const [x, y] of pts) {
+      let b = Infinity;
+      for (let i = 0; i + 1 < lijnPts.length; i++) {
+        const [ax, ay] = lijnPts[i], [bx, by] = lijnPts[i + 1], dx = bx - ax, dy = by - ay, L2 = dx * dx + dy * dy || 1e-9;
+        const t = Math.max(0, Math.min(1, ((x - ax) * dx + (y - ay) * dy) / L2));
+        b = Math.min(b, Math.hypot(ax + dx * t - x, ay + dy * t - y));
+      }
+      m = Math.max(m, b);
+    }
+    return m;
+  };
+  ok(afwijk(recht, ruw) <= V.ROUTE_TOL + 0.01, 'and the course stays within the tolerance of the line', afwijk(recht, ruw).toFixed(2));
+  ok(V.stableRoute([[0, 0], [100, 0], [100, 100]]).length === 3, 'a corner of 90 degrees stays a corner');
+  ok(V.stableRoute([]).length === 0 && V.stableRoute([[0, 0]]).length === 1 && V.stableRoute([[0, 0], [5, 0]]).length === 2, 'a route too short to straighten is returned as it is');
+  ok(V.stableRoute([[0, 0], [0, 0], [0, 0]]).every((p) => p.every(Number.isFinite)), 'no NaN on a line without length');
+
+  // a kempenaar of 50 m on that canal: with the raw points it swings the full width (measured:
+  // 14 m off the middle on average, 809 m in 400 s); on the steady course it holds the middle
+  {
+    const m = canal(1600, 50);
+    const enc = (x0, x1) => { const e = []; let lx = x0, ly = 0; for (const [x, y] of lijn(x0, x1)) { e.push(Math.round((x - lx) * 10), Math.round((y - ly) * 10)); lx = x; ly = y; } return e; };
+    VH.setVaarNet(V.createVaarNet({
+      nodes: [[0, 0, 'haven', 'West'], [760, 0, 'kruising', 'Midden'], [1540, 0, 'haven', 'Oost']],
+      edges: [[0, 1, 760, 4, -1, enc(0, 760)], [1, 2, 780, 4, -1, enc(760, 1540)]],
+      hubs: { Oost: 2 },
+    }));
+    const v = new VH.Vehicle(80, 0, 0, B.BOAT_KINDS.kempenaar);
+    v.isBoat = true; v.waterPoly = m.poly;
+    const world = { player: { x: 1e6, y: 1e6 }, wanted: 0, vehicles: [v], time: 0, particles: [] };
+    const rng = seeded(3);
+    let opRoute = 0, somY = 0, gevaren = 0;
+    for (let i = 0; i < 4000; i++) {
+      const px = v.x, py = v.y;
+      VH.updateBoatAI(v, 0.1, m, world, rng);
+      if (v._vaar) { opRoute++; somY += Math.abs(v.y); }
+      gevaren += Math.hypot(v.x - px, v.y - py);
+    }
+    const gem = somY / Math.max(1, opRoute);
+    ok(opRoute > 300 && v.x > 1200, 'the kempenaar follows the trip down the canal', `${opRoute} steps, x ${Math.round(v.x)}`);
+    ok(gem < 2.5, 'and holds a steady course instead of weaving (was 14 m off the middle)', `${gem.toFixed(2)} m off the middle, ${Math.round(gevaren)} m sailed`);
+    ok(Math.abs(v.y) < 25 && Number.isFinite(v.angle), 'the hull stays in the water', `y ${v.y.toFixed(1)}`);
+    VH.setVaarNet(null);
+  }
 }
 
 // ---------------------------------------------------------------- a tour boat follows the net too (#296)

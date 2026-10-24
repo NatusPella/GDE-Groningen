@@ -1,8 +1,8 @@
-// Zeeschepen (#398): de modellen (zeeschip3d.js) zijn eindig en blijven klein in driehoeken, ze delen hun geometrie, en het beheer
+﻿// Zeeschepen (#398): de modellen (zeeschip3d.js) zijn eindig en blijven klein in driehoeken, ze delen hun geometrie, en het beheer
 // (zeeschepen.js) houdt er hooguit ZEE_MAX rond de speler, alleen op zee, met variatie in soort en kleur, en ruimt ze op.
 //   node scripts/zeeschepen_test.mjs
 import './node3d.mjs';
-import { pickZeeschip, zeeModel, manageSeaShips, resetZeeschepen, isZee, ruimteVoor, ZEE_MAX, ZEE_WEG, ZEE_TIK_S } from '../game/js/zeeschepen.js';
+import { pickZeeschip, zeeModel, manageSeaShips, resetZeeschepen, isZee, ruimteVoor, waterPast, inZicht, ZEE_MAX, ZEE_WEG, ZEE_TIK_S, ZEE_RAND } from '../game/js/zeeschepen.js';
 import { BOAT_KINDS, boatSeats, boatCrewCount } from '../game/js/boattypes.js';
 import { BOAT_CLASS, AIR_DRAFT, DRAFT } from '../game/js/waterlevels.js';
 
@@ -41,9 +41,9 @@ for (const k of ['zeeVracht', 'zeeContainer', 'zeeTanker', 'zeeSleper', 'zeeNieu
   check(`${k}: de kiel ligt onder de waterlijn en de opbouw erboven`, box.min.y < -1.5 && box.max.y > 3, `${box.min.y.toFixed(1)} .. ${box.max.y.toFixed(1)}`);
   const seats = boatSeats(v);
   check(`${k}: de schipper heeft een plek binnen het schip`, seats.length === 1 && Math.abs(seats[0].x) < model.len / 2 && seats[0].y > 2, JSON.stringify(seats[0]));
-  check(`${k}: één bemanningslid`, boatCrewCount(v) === 1);
+  check(`${k}: Ã©Ã©n bemanningslid`, boatCrewCount(v) === 1);
 }
-// dezelfde maat en kleur delen één geometrie
+// dezelfde maat en kleur delen Ã©Ã©n geometrie
 {
   const a = BOAT_KINDS.zeeVracht;
   const g1 = M.buildVehicleMesh({ id: 401, model: a, isBoat: true }), g2 = M.buildVehicleMesh({ id: 402, model: a, isBoat: true });
@@ -54,7 +54,9 @@ for (const k of ['zeeVracht', 'zeeContainer', 'zeeTanker', 'zeeSleper', 'zeeNieu
 // ---- het beheer
 class V { constructor(x, y, model) { this.x = x; this.y = y; this.model = model; this.isBoat = true; this.angle = 0; } }
 const wereld = (polys, px = 0, py = 0) => ({ player: { x: px, y: py }, paused: false, vehicles: [], map: { waterNear: () => polys } });
-const zee = { kind: 'zee', nav: 4 }, meer = { kind: 'meer', nav: 4 };
+const zee = { kind: 'zee', nav: 4, bounds: [-4000, -4000, 4000, 4000] }, meer = { kind: 'meer', nav: 4, bounds: [-4000, -4000, 4000, 4000] };
+// een plas die zich 'zee' noemt maar waar een containerschip niet in past (#436)
+const plas = { kind: 'zee', nav: 4, bounds: [-90, -60, 90, 60] };
 const env = {
   spawnBoatOnWater: (map, poly, rng2, o) => {
     const a = rng2() * Math.PI * 2, d = o.min + rng2() * (o.max - o.min);
@@ -62,7 +64,7 @@ const env = {
   },
   isShip: (v) => v.model.kind === 'zeeschip' || v.model.kind === 'sleper',
 };
-const tik = (w, sec, r = seeded(5)) => { for (let t = 0; t < sec; t += ZEE_TIK_S) { manageSeaShips(w, ZEE_TIK_S + 0.01, env, r); } };
+const tik = (w, sec, r = seeded(5), e = env) => { for (let t = 0; t < sec; t += ZEE_TIK_S) { manageSeaShips(w, ZEE_TIK_S + 0.01, e, r); } };
 {
   resetZeeschepen();
   const w = wereld([zee, meer]);
@@ -83,6 +85,61 @@ const tik = (w, sec, r = seeded(5)) => { for (let t = 0; t < sec; t += ZEE_TIK_S
   tik(w, 300, () => 0.1);
   check('op een meer komen geen zeeschepen', w.vehicles.length === 0);
   check('isZee: alleen de zee', isZee(zee) && !isZee(meer) && !isZee(null));
+}
+
+// ---- water waar het schip past (#436): een containerschip van 200 m hoort niet in een plas,
+// en het schip houdt het model waarmee het gekozen is
+{
+  check('een containerschip past op open zee', waterPast(BOAT_KINDS.zeeContainer, zee));
+  check('maar niet in een plas van 180 bij 120 m', !waterPast(BOAT_KINDS.zeeContainer, plas));
+  check('een plas die zich zee noemt telt niet mee', !waterPast(BOAT_KINDS.zeeContainer, { ...plas, kind: 'meer' }));
+  check('zonder grenzen past er niets', !waterPast(BOAT_KINDS.zeeVracht, { kind: 'zee' }));
+  check('de grenzen komen uit de punten als ze ontbreken', waterPast(BOAT_KINDS.zeeVracht, { kind: 'zee', pts: [[-800, -800], [800, -800], [800, 800], [-800, 800]] }));
+  check('de marge rond de romp is ZEE_RAND', waterPast(BOAT_KINDS.zeeVracht, { kind: 'zee', bounds: [0, 0, BOAT_KINDS.zeeVracht.len + 2 * ZEE_RAND, BOAT_KINDS.zeeVracht.wid + 2 * ZEE_RAND] }) && !waterPast(BOAT_KINDS.zeeVracht, { kind: 'zee', bounds: [0, 0, BOAT_KINDS.zeeVracht.len + ZEE_RAND, BOAT_KINDS.zeeVracht.wid + 2 * ZEE_RAND] }));
+
+  // met een plas en de zee in de buurt komt het schip alleen op de zee
+  resetZeeschepen();
+  let kreeg = null;
+  const env2 = { ...env, spawnBoatOnWater: (map, poly, rng2, o) => { kreeg = poly; return new V(800, 0, o.model); } };
+  const w = wereld([plas, zee]);
+  tik(w, 120, () => 0.1, env2);
+  check('het schip kiest de zee, niet de plas', kreeg === zee && w.vehicles.length === 1);
+
+  // een spawner die een ander model teruggeeft levert geen schip op
+  resetZeeschepen();
+  const env3 = { ...env, spawnBoatOnWater: () => new V(800, 0, BOAT_KINDS.zeeTanker) };
+  const w3 = wereld([zee]);
+  tik(w3, 300, () => 0.1, env3);
+  check('het model blijft het model dat gekozen is', w3.vehicles.length === 0);
+}
+
+// ---- niet in beeld verschijnen of verdwijnen (#436)
+{
+  const schip = (d) => Object.assign(new V(d, 0, BOAT_KINDS.zeeContainer), { zeeSchip: true });
+  resetZeeschepen();
+  const w = wereld([zee]);
+  w.pedView = { inView: () => true };
+  tik(w, 300, () => 0.1);
+  check('een schip komt er niet bij in je blikveld', w.vehicles.length === 0);
+  check('inZicht ziet de kijkhoek van de speler', inZicht(w, 500, 0) === true && inZicht({ player: { x: 0, y: 0 } }, 500, 0) === false);
+
+  // ver weg maar in beeld: blijven staan; heel ver weg: opruimen
+  resetZeeschepen();
+  const w2 = wereld([zee]);
+  w2.pedView = { inView: () => true };
+  w2.vehicles.push(schip(ZEE_WEG + 200));
+  manageSeaShips(w2, ZEE_TIK_S + 0.1, env, () => 0.99);
+  check('een schip achter de horizon maar in beeld blijft staan', w2.vehicles.length === 1);
+  w2.vehicles[0].x = ZEE_WEG * 1.5 + 50;
+  manageSeaShips(w2, ZEE_TIK_S + 0.1, env, () => 0.99);
+  check('heel ver weg wordt het opgeruimd', w2.vehicles.length === 0);
+
+  // buiten beeld ruimt het al bij ZEE_WEG op
+  resetZeeschepen();
+  const w3 = wereld([zee]);
+  w3.vehicles.push(schip(ZEE_WEG + 200));
+  manageSeaShips(w3, ZEE_TIK_S + 0.1, env, () => 0.99);
+  check('buiten beeld ruimt een schip bij ZEE_WEG op', w3.vehicles.length === 0);
 }
 {
   resetZeeschepen();

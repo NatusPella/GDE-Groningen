@@ -43,6 +43,39 @@ export function ruimteVoor(model, x, y, schepen, extra = 60) {
   return true;
 }
 
+// Een containerschip van 200 m past niet in een plas of een smalle geul (#436): alleen water dat in
+// beide richtingen ruim groter is dan het schip zelf, met de kantlijn mee.
+export const ZEE_RAND = 60; // m vrije ruimte aan elke kant
+export function waterPast(model, poly) {
+  if (!isZee(poly) || !(model && model.len > 0)) return false;
+  let b = poly.bounds;
+  // een waterpolygoon zonder grenzen (een patch): ze zelf uit de punten halen
+  if (!b && Array.isArray(poly.pts) && poly.pts.length) {
+    b = [Infinity, Infinity, -Infinity, -Infinity];
+    for (const [x, y] of poly.pts) { if (x < b[0]) b[0] = x; if (y < b[1]) b[1] = y; if (x > b[2]) b[2] = x; if (y > b[3]) b[3] = y; }
+  }
+  if (!b || !b.every(Number.isFinite)) return false;
+  const w = b[2] - b[0], h = b[3] - b[1];
+  return Math.max(w, h) >= model.len + 2 * ZEE_RAND && Math.min(w, h) >= model.wid + 2 * ZEE_RAND;
+}
+
+// Ligt (x, y) in wat de speler ziet? Een schip dat binnen je blikveld uit het niets opduikt of
+// verdwijnt valt op (#436); daarom komt er alleen een schip buiten beeld bij en ruimt een schip
+// pas op als het ver weg én uit het zicht is. De kegel voor de boot volgt die van vehicle.js
+// (spawnWouldPop): wat recht voor je vaart zie je aankomen.
+export function inZicht(world, x, y) {
+  const p = world && world.player;
+  if (!p) return false;
+  const pv = p.inVehicle;
+  if (pv) {
+    const ca = Math.cos(pv.angle), sa = Math.sin(pv.angle), dx = x - p.x, dy = y - p.y;
+    const fwd = dx * ca + dy * sa, lat = Math.abs(dy * ca - dx * sa);
+    if (fwd > -80 && fwd < 500 + Math.abs(pv.speed) * 12 && lat < 160 + Math.max(0, fwd) * 0.4) return true;
+  }
+  const view = world.pedView;
+  return !!(view && typeof view.inView === 'function' && view.inView(x, y));
+}
+
 let timer = 0;
 // env: { spawnBoatOnWater, isShip } uit vehicle.js (main.js geeft ze mee)
 export function manageSeaShips(world, dt, env, rng = Math.random) {
@@ -55,17 +88,21 @@ export function manageSeaShips(world, dt, env, rng = Math.random) {
   for (let i = vehicles.length - 1; i >= 0; i--) {
     const v = vehicles[i];
     if (!v.zeeSchip) continue;
-    if (Math.hypot(v.x - player.x, v.y - player.y) > ZEE_WEG || v.wrecked) vehicles.splice(i, 1);
+    const weg = Math.hypot(v.x - player.x, v.y - player.y);
+    // ver weg én uit het zicht: dan valt het opruimen niet op; heel ver weg gaat altijd (ZEE_WEG * 1,5)
+    if (v.wrecked || weg > ZEE_WEG * 1.5 || (weg > ZEE_WEG && !inZicht(world, v.x, v.y))) vehicles.splice(i, 1);
     else n++;
   }
   if (n >= ZEE_MAX || rng() > ZEE_KANS || !map.waterNear) return;
   const model = zeeModel(rng);
   for (const max of ZEE_SPAWN.stappen) {
-    const kandidaten = map.waterNear(player.x, player.y, max).filter(isZee);
+    const kandidaten = map.waterNear(player.x, player.y, max).filter((poly) => waterPast(model, poly));
     if (!kandidaten.length) continue;
     const poly = kandidaten[Math.floor(rng() * kandidaten.length)];
     const v = env.spawnBoatOnWater(map, poly, rng, { model, near: [player.x, player.y], min: ZEE_SPAWN.min, max, budget: 4 });
-    if (!v || !ruimteVoor(model, v.x, v.y, vehicles.filter((o) => o.isBoat && env.isShip(o)))) continue;
+    // hetzelfde schip van begin tot eind: een spawner die een ander model teruggeeft levert geen schip op (#436)
+    if (!v || v.model !== model && (v.model.key !== model.key || v.model.len !== model.len || v.model.wid !== model.wid || v.model.color !== model.color)) continue;
+    if (inZicht(world, v.x, v.y) || !ruimteVoor(model, v.x, v.y, vehicles.filter((o) => o.isBoat && env.isShip(o)))) continue;
     v.zeeSchip = true;
     vehicles.push(v);
     return;
