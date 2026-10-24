@@ -291,6 +291,8 @@ export function prepareHomeMap(map) {
     t._ring = null;
     regrid(map.buildingGrid, t, t.bounds);
     home.towerBuilding = t;
+    // geen safehouse in het huis van Tammo en Tessa (#458)
+    t.safehuisVerboden = true;
     tagPleiadenlaan(map, { tower: t, frame: [TOWER[0], TOWER[2], TOWER[3], TOWER[4]], plinth: PLINTH, lobby: [home.lobby.x, home.lobby.y] });
     // the helidek in the middle of the roof, along the long side
     const top = Math.max(2.4, (t.h || 3) * LEVEL_HEIGHT) + (t.lift || 0);

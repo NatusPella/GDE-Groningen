@@ -11,11 +11,20 @@ export const SNAP_R = 60;
 export const STAND_REACH = 45;     // m waarover je vanaf de plek weg moet kunnen lopen (spotcheck WALK_REACH)
 export const ZOEK_RINGEN = [0, 40, 80, 140, 220, 320, 450, 650, 900];
 
+// Safehouse in een bestaand pand (#458): liever een woonhuis of woonflat uit de gebouwenlaag dan een los huisje. Alleen echt woongenbruik
+// (geen schuur, kerk, winkel of kantoor), niet te klein of te groot, geen beschermd pand en niet het huis van een missie (d.verboden).
+export const WOONTYPES = ['house', 'apartments', 'residential', 'dormitory', 'bungalow'];
+export const PAND_MIN = 4.5;   // m: de kortste zijde van de footprint
+export const PAND_MAX = 34;    // m: de langste zijde (een flatgebouw mag, een hal niet)
+export const PAND_RINGEN = [45, 90, 150, 220, 320, 450, 650, 900];
+export const DEUR_MARGE = 0.8; // m van de gevel tot de plek bij de deur
+
 // Droog land: binnen het land van de provincie (niet de Eems of de Waddenzee), niet in het water en ook geen water vlak ernaast (de kade).
 export const droog = (map, x, y, d) => d.provinceLandAt(x, y) && !d.isInWater(map, x, y) && ![[6, 0], [-6, 0], [0, 6], [0, -6]].some(([dx, dy]) => d.isInWater(map, x + dx, y + dy));
 
-// Wat de spotcheck voor een looppunt eist (zonder de rijweg: een huisje is een looppunt).
-export function bruikbaar(map, x, y, d) {
+// Wat de spotcheck voor een looppunt eist, zonder het weglopen: een punt buiten de gebouwen (een doorgang mag), niet in het water en geen
+// erf op het platteland. De dure floodfill van canWalkOut komt pas als een punt dit haalt.
+export function vrijPunt(map, x, y, d) {
   if (!Number.isFinite(x) || !Number.isFinite(y) || d.isInWater(map, x, y)) return false;
   for (const b of map.buildingsNear(x, y, 1)) {
     const [minx, miny, maxx, maxy] = b.bounds;
@@ -24,7 +33,12 @@ export function bruikbaar(map, x, y, d) {
     return false;
   }
   if (d.landSolid && d.landSolid(x, y)) return false;
-  return !!map.canWalkOut(x, y, STAND_REACH);
+  return true;
+}
+
+// Een looppunt als in de spotcheck: vrij en je kunt er weg lopen.
+export function bruikbaar(map, x, y, d) {
+  return vrijPunt(map, x, y, d) && !!map.canWalkOut(x, y, STAND_REACH);
 }
 
 // Ligt een punt op een rijweg (een weg die geen voetpad of fietspad is)? Een huisje op de rijbaan sluit de weg af (#436: Hoogkerk).
@@ -93,4 +107,106 @@ export function zoekPlek(h, map, d, draai = 0) {
   }
   for (const [cx, cy] of droogeKandidaten(h, d).slice(0, 400)) { const q = probeer(cx, cy); if (q) return q; }
   return null;
+}
+
+// --- een bestaand pand (#458) ---------------------------------------------------------------------------------------
+
+// De georiënteerde doos van een footprint, net als tileplace.js boxOf (dat bestand laadt het spel, dit moet puur blijven voor de test).
+export function pandBox(b) {
+  const P = b.pts;
+  let best = 0, a = 0;
+  for (let i = 0; i < P.length - 1; i++) {
+    const L = Math.hypot(P[i + 1][0] - P[i][0], P[i + 1][1] - P[i][1]);
+    if (L > best) { best = L; a = Math.atan2(P[i + 1][1] - P[i][1], P[i + 1][0] - P[i][0]); }
+  }
+  const c = Math.cos(a), s = Math.sin(a);
+  let u0 = Infinity, u1 = -Infinity, v0 = Infinity, v1 = -Infinity;
+  for (const [x, y] of P) {
+    const u = x * c + y * s, v = -x * s + y * c;
+    if (u < u0) u0 = u; if (u > u1) u1 = u; if (v < v0) v0 = v; if (v > v1) v1 = v;
+  }
+  const cu = (u0 + u1) / 2, cv = (v0 + v1) / 2;
+  return { x: cu * c - cv * s, y: cu * s + cv * c, w: u1 - u0, l: v1 - v0, a };
+}
+
+// Mag dit pand een safehouse zijn? Een woonbestemming, niet te klein of te groot, geen landmark en niets wat de wereld al gebruikt
+// (d.verboden: het huis van Tammo, een interieur, een missiehuis).
+export function pandGeschikt(b, d = {}) {
+  if (!b || !b.pts || b.pts.length < 3 || !b.bounds) return false;
+  if (b.landmark || (d.verboden && d.verboden(b))) return false;
+  if (!WOONTYPES.includes(b.type)) return false;
+  const q = pandBox(b);
+  if (!(q.w >= PAND_MIN && q.l >= PAND_MIN && q.w <= PAND_MAX && q.l <= PAND_MAX)) return false;
+  return b.h >= 1;
+}
+
+// De deur van een bestaand pand, aan de kant van de weg: een punt op de gevel dat het dichtst bij (tx, ty) ligt, met de naar buiten
+// wijzende normaal. We lopen de gevel in stapjes van een meter af, want een deur op een hoek of achter een boom is onbereikbaar.
+// Geeft { x, y, ang } (de plek bij de deur) of null.
+export function pandDeur(b, tx, ty, map, d) {
+  const P = b.pts;
+  const kandidaten = [];
+  for (let i = 0; i < P.length; i++) {
+    const [ax, ay] = P[i], [bx, by] = P[(i + 1) % P.length];
+    const dx = bx - ax, dy = by - ay, L = Math.hypot(dx, dy);
+    if (L < 1) continue;
+    // de normaal die van het pand af wijst
+    let nx = dy / L, ny = -dx / L;
+    const mx = (ax + bx) / 2, my = (ay + by) / 2;
+    if (d.pointInPolygon(mx + nx * 0.05, my + ny * 0.05, P)) { nx = -nx; ny = -ny; }
+    const n = Math.max(1, Math.round(L));
+    for (let k = 0; k <= n; k++) {
+      const x = ax + (dx * k) / n, y = ay + (dy * k) / n;
+      kandidaten.push({ x: x + nx * DEUR_MARGE, y: y + ny * DEUR_MARGE, nx, ny, d2: (x - tx) ** 2 + (y - ty) ** 2 });
+    }
+  }
+  kandidaten.sort((p, q) => p.d2 - q.d2);
+  let vrij = 0;
+  for (const c of kandidaten) {
+    if (!droog(map, c.x, c.y, d) || opRijweg(map, c.x, c.y) || !vrijPunt(map, c.x, c.y, d)) continue;
+    if (++vrij > 8) break;
+    if (!map.canWalkOut(c.x, c.y, STAND_REACH)) continue;
+    return { x: c.x, y: c.y, ang: Math.atan2(c.ny, c.nx) };
+  }
+  return null;
+}
+
+// Kies een bestaand pand voor een gebied: in ringen om het binnenpunt het dichtstbijzijnde woonpand waar een deur aan de straatkant
+// bereikbaar is. `bezet` houdt bij welke panden al een safehouse hebben, zodat twee gebieden nooit hetzelfde pand krijgen. Geeft
+// { x, y, ang, deur, pand } of null (dan volgt het losse huisje van zoekPlek).
+export function kiesPand(h, map, d, bezet = null) {
+  if (!map.buildingsNear || !h.grens) return null;
+  const gezien = new Set();
+  for (const r of PAND_RINGEN) {
+    const kandidaten = [];
+    for (const b of map.buildingsNear(h.x0, h.y0, r + 60)) {
+      if (gezien.has(b)) continue;
+      gezien.add(b);
+      if (!pandGeschikt(b, d) || (bezet && bezet.has(b))) continue;
+      const q = pandBox(b);
+      const dist = Math.hypot(q.x - h.x0, q.y - h.y0);
+      if (dist > r) continue;
+      if (!d.puntInGebied(h.grens, q.x, q.y) && dist > 120) continue;
+      kandidaten.push({ b, q, dist });
+    }
+    kandidaten.sort((p, q) => p.dist - q.dist || String(p.b.osm).localeCompare(String(q.b.osm)));
+    for (const k of kandidaten.slice(0, 40)) {
+      const rd = map.nearestRoadPoint ? map.nearestRoadPoint(k.q.x, k.q.y, 90, false, true) : null;
+      if (!rd) continue;
+      const deur = pandDeur(k.b, rd.x, rd.y, map, d);
+      if (!deur) continue;
+      return { x: k.q.x, y: k.q.y, ang: deur.ang, deur: { x: deur.x, y: deur.y }, pand: k.b, verdiepingen: Math.max(1, Math.round(k.b.h || 1)), lift: false, soort: 'pand' };
+    }
+  }
+  return null;
+}
+
+// Waar het safehouse komt: eerst een bestaand pand (#458), anders het losse huisje van zoekPlek (#414). Beide geven { x, y, ang, deur }
+// en soort; het pand zelf zit er alleen bij als het een bestaand pand is.
+export function plaatsSafehuis(h, map, d, bezet = null, draai = 0) {
+  const pand = kiesPand(h, map, d, bezet);
+  if (pand) return pand;
+  if (!map.findOpenSpawn) return null;
+  const q = zoekPlek(h, map, d, draai);
+  return q ? { ...q, deur: deurVan(q.x, q.y, q.ang), soort: 'huisje' } : null;
 }

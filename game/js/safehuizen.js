@@ -1,9 +1,11 @@
 // Safehouses (#414, fase 2): in elke veroverbare wijk en plaats staat een verzonnen woning (adres en makelaar in gebieden.js).
 // Je koopt hem, goedkoper naarmate je meer in dat gebied deed, of krijgt hem als het gebied helemaal gedaan is. Bij de deur (E):
 // slapen en opslaan, de kledingkast van het spel, je voertuigen laten brengen, onderduiken (de politie zoekt je hier niet) en de
-// inrichting die meegroeit met je voortgang. Een snelreisanker is de knop "Reis erheen" in Loopbaan › Veroverd. Binnen kom je niet:
-// het is een huisje met een deur, geen eigen verdieping. Het is een activiteit van activities.js (prompt, E, kaart en minimap).
-// Per speler: wat je bezit staat in je eigen profiel (gebiedenlive.js); in Samen spelen ziet iedereen dezelfde huisjes op dezelfde
+// inrichting die meegroeit met je voortgang. Een snelreisanker is de knop "Reis erheen" in Loopbaan › Veroverd. Sinds #458 staat
+// het huis in een bestaand woonpand uit de gebouwenlaag: alleen de deur en het bord op de gevel, geen nieuw bouwvolume. Lukt dat
+// niet (een industriewijk zonder woonhuizen), dan valt het terug op het losse huisje van #414. Binnen kom je nog niet: de
+// interieurs van #442 zijn er nog niet. Het is een activiteit van activities.js (prompt, E, kaart en minimap).
+// Per speler: wat je bezit staat in je eigen profiel (gebiedenlive.js); in Samen spelen ziet iedereen dezelfde huizen op dezelfde
 // plek en heeft zijn eigen sleutel. Niet door een mens in beeld bekeken.
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import * as G from './gebieden.js';
@@ -27,7 +29,8 @@ import { countryWeight } from './countryfield.js';
 import { coveredByTiles } from './provinceworld.js';
 import { provinceLandAt } from './regions.js';
 import { puntInGebied } from './grenzen.js';
-import { HX, HZ, deurVan, droogeKandidaten, zoekPlek } from './safehuisplek.js';
+import { HX, HZ, DEUR_MARGE, deurVan, droogeKandidaten, plaatsSafehuis } from './safehuisplek.js';
+import { buildSafehouseMarker3D } from './home3d.js';
 import { registerMusicProbe } from './scenariomusic.js';
 
 const GEBRUIK_R = 2.2;
@@ -46,6 +49,7 @@ let huizen = [];        // [{ ...huis uit gebieden.js, x, y, ang, geplaatst, mes
 let sig = '';
 let bezig = false;      // een fade loopt
 let groep = null;
+let gebruiktePanden = new Set(); // elk bestaand pand krijgt hooguit één safehouse (#458)
 
 const hashHoek = (id) => { let h = 2166136261; for (const c of id) h = Math.imul(h ^ c.charCodeAt(0), 16777619) >>> 0; return (h % 3600) / 3600 * Math.PI * 2; };
 const policeWatching = (w) => w.wanted > 0 && !!(w.police && w.police.seenRecently);
@@ -59,6 +63,7 @@ function ververs(w) {
   if (s === sig) return;
   sig = s;
   for (const h of huizen) opruimen(h);
+  gebruiktePanden = new Set();
   huizen = lijst.map((h) => {
     const ang = hashHoek(h.id);
     const o = { ...h, ang, grens: ind.gebied.get(h.gebied).grens, x0: h.x, y0: h.y };
@@ -68,23 +73,30 @@ function ververs(w) {
   });
 }
 // Waar een huisje mag staan (safehuisplek.js, dezelfde eisen als de spotcheck): hier komen de echte functies van het spel binnen.
-const DEPS = { isInWater, pointInPolygon, inPassage, provinceLandAt, puntInGebied, landSolid: (x, y) => countryWeight(x, y) > 0.5 && !coveredByTiles(x, y) && !!pushOutOfPlan({ x, y }, 0.35) };
+const DEPS = { isInWater, pointInPolygon, inPassage, provinceLandAt, puntInGebied, landSolid: (x, y) => countryWeight(x, y) > 0.5 && !coveredByTiles(x, y) && !!pushOutOfPlan({ x, y }, 0.35),
+  // geen beschermd pand, geen eigen interieur en niet het huis van Tammo en Tessa (#458)
+  verboden: (b) => !!b.landmark || !!b.noPassages || !!b.rooms || !!b.safehuisVerboden };
 // Het binnenpunt van een woonplaats of wijk kan in het water vallen: Delfzijl en Termunten liggen als gebied deels in de Eems en de Dollard, en het binnenpunt van zo'n
 // gebied ligt dan ver op zee. Bij het indelen nemen we daarom alvast het dichtstbijzijnde land van het gebied (het landraster van de provincie, dat geen tegels
 // nodig heeft). Komt de speler binnen 200 m, dan zoeken we met de tegels erbij de plek (zoekPlek); vindt dat niets, dan is het huisje onbruikbaar: geen huisje,
 // geen deur en geen icoon.
 function plaats(h, w) {
-  if (h.geplaatst || !w.map || !w.map.findOpenSpawn) return;
+  if (h.geplaatst || !w.map) return;
   h.geplaatst = true;
-  const q = zoekPlek(h, w.map, DEPS, hashHoek(h.id));
+  const q = plaatsSafehuis(h, w.map, DEPS, gebruiktePanden, hashHoek(h.id));
   if (!q) { h.onbruikbaar = true; return; }
   h.x = q.x; h.y = q.y; h.ang = q.ang;
+  h.deur = q.deur;
+  h.pand = q.pand || null;
+  h.soort = q.soort;
+  if (q.pand) gebruiktePanden.add(q.pand);
 }
-const deur = (h) => deurVan(h.x, h.y, h.ang);
+const deur = (h) => h.deur || deurVan(h.x, h.y, h.ang);
 
 // --- het huisje in 3D ------------------------------------------------------------------------------------------------
 
 function bouw(h, w) {
+  if (h.pand) { bouwPand(h, w); return; }
   const scene = getScene && getScene();
   if (!scene || h.mesh) return;
   if (!groep) { groep = new THREE.Group(); groep.name = 'safehuizen'; scene.add(groep); }
@@ -127,10 +139,43 @@ function bouw(h, w) {
   ];
   h.gebouwdMet = `${inr.niveau}|${eigen}`;
 }
+
+// Een safehouse in een bestaand pand (#458): alleen de deur en het bord op de
+// gevel, geen nieuw bouwvolume en geen eigen muren (het pand is al solide).
+// Samen spelen (#429): het pand is werelddata en staat voor iedereen op dezelfde
+// plek; de markering volgt je eigen profiel (heeftHuisLive). Een gast ziet dus
+// zijn eigen sleutel, nog niet die van een ander: dat vraagt een EXTRA-bericht
+// en hoort bij #449/#458.
+function bouwPand(h, w) {
+  const scene = getScene && getScene();
+  if (!scene || h.mesh) return;
+  if (!groep) { groep = new THREE.Group(); groep.name = 'safehuizen'; scene.add(groep); }
+  const eigen = heeftHuisLive(h.id);
+  const d = deur(h);
+  const gz = w.map.groundHeightAt ? w.map.groundHeightAt(d.x, d.y, 0) || 0 : 0;
+  // het deurpunt ligt DEUR_MARGE van de gevel: het bord hoort op de gevel zelf
+  const fx = d.x - Math.cos(h.ang) * DEUR_MARGE, fy = d.y - Math.sin(h.ang) * DEUR_MARGE;
+  const g = buildSafehouseMarker3D({
+    x: fx, y: fy, ang: h.ang, eigen,
+    kleur: eigen ? G.niveauInfo(h.niveau).vlag : '#8a3b2e',
+    naam: h.naam,
+  });
+  g.position.y = gz + 0.02;
+  groep.add(g);
+  h.mesh = g;
+  h.props = null;
+  h.gebouwdMet = `pand|${eigen}`;
+}
+
 function opruimen(h) {
   if (h.mesh) {
     h.mesh.removeFromParent();
-    h.mesh.traverse((o) => { if (o.geometry) o.geometry.dispose(); if (o.material) o.material.dispose(); });
+    h.mesh.traverse((o) => {
+      if (!o.isMesh) return;
+      if (o.geometry && !o.geometry.userData.shared) o.geometry.dispose();
+      const mats = Array.isArray(o.material) ? o.material : [o.material];
+      for (const m of mats) if (m && !m.userData.shared) { if (m.map) m.map.dispose(); m.dispose(); }
+    });
     h.mesh = null;
   }
   if (h.props) { for (const p of h.props) { try { removeProp(p); } catch (e) { /* al weg */ } } h.props = null; }
@@ -224,7 +269,7 @@ function menu(w, h) {
           id: 'koop', label: `Koop ${h.naam}`, desc: `${tag}. Slapen en opslaan, garage, kledingkast en onderduiken`, verb: 'Kopen', price: prijs, preview: { kind: 'product', product: 'huisje' },
           buy() {
             const r = koopHuisLive(w, h.id);
-            if (!r.ok) return r.reden === 'geld' ? null : 'Dit huisje is al van jou';
+            if (!r.ok) return r.reden === 'geld' ? null : 'Dit huis is al van jou';
             closeShopMenu({ save: true });
             w.addMessage(`Gefeliciteerd met ${h.naam}! De sleutel ligt op de mat`, 5, { kind: 'tip' });
             return 'Sleutel in de hand';
@@ -245,8 +290,8 @@ function menu(w, h) {
       { title: 'Kledingkast', note: 'Alles wat je ooit kocht, in de kast bij de deur', items: [{
         id: 'kast', label: 'Kleren aantrekken', desc: 'Zelfde kast als thuis', verb: 'Openen', price: 0, plain: true, preview: { kind: 'product', product: 'bed' },
         buy() { setTimeout(() => openShopMenu(w, wardrobeMenu(w)), 0); return 'Kast open'; } }] },
-      { title: 'Garage', note: 'Je voertuigen komen hier voor de deur te staan', items: laatBrengen(w, h) },
-      { title: 'Snelreisanker', note: 'Vanuit Loopbaan › Veroverd kom je hier meteen terecht', items: [{ id: 'anker', label: 'Snelreisanker', desc: 'Pauzemenu › Loopbaan › Veroverd › Reis erheen', verb: 'Bekijken', price: 0, disabled: 'Via Loopbaan', preview: { kind: 'product', product: 'bed' }, buy: () => 'Jouw huisje staat op de kaart' }] },
+      { title: 'Garage', note: h.pand ? 'Geen eigen garage in dit pand: je voertuigen komen voor de deur te staan' : 'Je voertuigen komen hier voor de deur te staan', items: laatBrengen(w, h) },
+      { title: 'Snelreisanker', note: 'Vanuit Loopbaan › Veroverd kom je hier meteen terecht', items: [{ id: 'anker', label: 'Snelreisanker', desc: 'Pauzemenu › Loopbaan › Veroverd › Reis erheen', verb: 'Bekijken', price: 0, disabled: 'Via Loopbaan', preview: { kind: 'product', product: 'bed' }, buy: () => 'Jouw huis staat op de kaart' }] },
       stappen,
     ].filter((s) => s.items.length),
   };
@@ -274,9 +319,9 @@ const kanNiet = (w) => {
 export const SAFEHUIS = {
   id: 'safehuis',
   layer: 'safehuis',
-  gastTick: true, // ook bij een gast bouwen: het huisje heeft muren die zijn lichaam tegenhouden (#434)
-  legend: { kind: 'act-safehuis', label: 'Safehouse', note: 'een huisje om te kopen of te krijgen in elk gebied dat je kunt veroveren' },
-  init(w) { wereld = w; window.__safehuis = { lijst: () => huizen.map((h) => ({ id: h.id, naam: h.naam, adres: h.adres, x: h.x, y: h.y, ang: h.ang, deur: deur(h), gebied: h.gebied, geplaatst: h.geplaatst, onbruikbaar: !!h.onbruikbaar, mesh: !!h.mesh, eigen: heeftHuisLive(h.id) })), menu: (id) => { const h = huizen.find((q) => q.id === id); return h ? openShopMenu(w, menu(w, h)) : null; }, }; },
+  gastTick: true, // ook bij een gast bouwen: het losse huisje heeft muren die zijn lichaam tegenhouden (#434), een bestaand pand is al solide
+  legend: { kind: 'act-safehuis', label: 'Safehouse', note: 'een woning om te kopen of te krijgen in elk gebied dat je kunt veroveren' },
+  init(w) { wereld = w; window.__safehuis = { lijst: () => huizen.map((h) => ({ id: h.id, naam: h.naam, adres: h.adres, x: h.x, y: h.y, ang: h.ang, deur: deur(h), gebied: h.gebied, soort: h.soort || 'huisje', pand: h.pand ? (h.pand.osm || null) : null, geplaatst: h.geplaatst, onbruikbaar: !!h.onbruikbaar, mesh: !!h.mesh, eigen: heeftHuisLive(h.id) })), menu: (id) => { const h = huizen.find((q) => q.id === id); return h ? openShopMenu(w, menu(w, h)) : null; }, }; },
   spots: (voorCheck) => (voorCheck ? [] : huizen.filter((h) => !h.onbruikbaar)).map((h) => ({ id: h.id, name: h.naam, ...deur(h), mode: 'walk' })),
   prompt(w) {
     const h = kanNiet(w) === 'x' ? null : dichtbij(w);
