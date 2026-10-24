@@ -16,7 +16,7 @@ import { setFixedCharacters, applyHostState, makeClientInput, ensureFigure, remo
 import { bindCoop } from './coopglue.js';
 import { ververs } from './spelersregister.js';
 import { partnersInfo, createPings, addPing, tickPings, pingEvent } from './partnerhud.js';
-import { holdBeleid, leesLijstEvent, lijst } from './coopplayers.js';
+import { holdBeleid, vereistVoor, leesLijstEvent, lijst } from './coopplayers.js';
 import { cameraRelative, stepSlot2, sharedCamera } from './coop.js';
 import { coopStep } from './coopglue.js';
 import { gateOn, setGate, hekBericht } from './coopgate.js';
@@ -228,9 +228,11 @@ export function startHost(world, info, opts = {}) {
       bestuurLos(world, slot); bezigWeg(world, slot);
       if (slot === 1 && world.coop) { world.coop.remote = false; world.coop.remoteInput = null; }
       const f = slot >= 2 ? figures(world)[slot] : null; if (f) f.input = null;
-      // pauze per speler: Tessa houdt het spel op, een extra speler pas als de opdracht hem nodig heeft
-      const beleid = holdBeleid(slot, { vereist: world.coopVereist || [] });
+      // pauze per speler (#452): de rest speelt door; alleen als de lopende opdracht deze speler echt nodig heeft pauzeert het spel
+      const nn = world.coopNet, regel = world.coopStapRegel ? world.coopStapRegel() : null;
+      const beleid = holdBeleid(slot, { vereist: vereistVoor(!!(nn && nn.meedoen && nn.meedoen.opdracht), regel, world.coopVereist || []) });
       if (beleid.pauze && onHold) onHold('host', slot, beleid.reden);
+      else if (world.addMessage) world.addMessage(`${gastNaam(world, slot)} is weggevallen. ${beleid.reden}`, 5);
     },
     onEvent: (slot, body) => {
       handleEvent(world, body, slot);

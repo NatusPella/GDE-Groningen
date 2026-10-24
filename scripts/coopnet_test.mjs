@@ -180,7 +180,7 @@ t('pings: komen bij iedereen aan met de afzender; cooldown; ongeldige of onbeken
   N.sendPing(s.hw, 5, 6); s.step(1);
   assert.ok(a.coopPings.lijst.some((p) => p.van === '0'));
 });
-t('pauze per speler: Tessa houdt het spel op; een extra speler niet, tenzij de opdracht hem nodig heeft', () => {
+t('pauze per speler (#452): de rest speelt door als iemand wegvalt, tenzij de opdracht hem nodig heeft', () => {
   const s = sessie(3); s.step(2);
   s.gs[2].link.cut(); s.step(7);
   assert.deepEqual(s.holds.filter((h) => h[0] === 'host'), [], 'een extra speler valt weg: geen pauze voor de rest');
@@ -189,8 +189,15 @@ t('pauze per speler: Tessa houdt het spel op; een extra speler niet, tenzij de o
   s.hw.coopVereist = [2]; s.gs[1].link.cut(); s.step(7);
   assert.deepEqual(s.holds.filter((h) => h[0] === 'host').map((h) => h[1]), [2], 'de opdracht had plek 2 nodig');
   s.gs[0].link.cut(); s.step(7);
-  assert.deepEqual(s.holds.filter((h) => h[0] === 'host').map((h) => h[1]), [2, 1], 'Tessa houdt het spel altijd op');
+  assert.deepEqual(s.holds.filter((h) => h[0] === 'host').map((h) => h[1]), [2], 'Tessa valt weg: de rest speelt door, ze kan terugkomen');
+  assert.ok(s.hw.messages.some((m) => /Tessa is weggevallen.*gaat door/.test(m)), 'de host leest dat het spel doorgaat');
   assert.equal(s.hw.coop.remote, false, 'Tessa valt terug op de volg-AI');
+});
+t('pauze: Tessa houdt het spel op als de opdracht haar nodig heeft (#452)', () => {
+  const s = sessie(1); s.step(2);
+  s.hw.coopVereist = [1];
+  s.gs[0].link.cut(); s.step(7);
+  assert.deepEqual(s.holds.filter((h) => h[0] === 'host').map((h) => h[1]), [1], 'de stap had Tessa nodig');
 });
 t('maximum: instelbaar (hier 4); de vijfde moet wachten tot het maximum omhoog gaat', () => {
   const s = sessie(4, { opts: { max: 4 } }); s.step(3);
