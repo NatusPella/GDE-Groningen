@@ -1734,6 +1734,8 @@ Optie, standaard aan (instelling `liveBussen`, Instellingen, Spel). Constitutie 
 
 In conversation we say multiplayer; players see "Samen spelen". Single player is a session of one: the same code with one player and no network. Every new feature and mission must answer "what happens with more players?" (AGENTS.md, "Multiplayer bij ontwerp").
 
+The vision in one place: `docs/MULTIPLAYER-VISIE.md`.
+
 **Equality.** Every player is equal. The host is only whoever runs the game, and that can change (host handover). The one thing the host may do that others may not is kick players out of the shared game. Time jumps, travel, sleeping, loading and pausing are group decisions, never host privileges.
 
 **Model.** One game is the host and owns the world (time, weather, traffic, police, missions, props); every guest runs a thin client that renders snapshots and sends input. Everything that is personal stays in the player's own save: money, story progress (`coopverhaal.js`, `coopsave.js`), vehicles and properties. The guest writes their own save; the host never writes a guest's progress. Nobody may lose money or progress when a session ends, drops or crashes (#448): checkpoints per player, income granted per event and never at the end.
@@ -1745,9 +1747,9 @@ In conversation we say multiplayer; players see "Samen spelen". Single player is
 - Host handover: `coophostwissel*.js` (the session continues on another player; time, weather, police and traffic stay as they were, #439).
 - Session list: opt-in public list on the same brokers (name, player count, version; no IP address, no password; #438).
 
-**Rewards.** Shared income is split equally, with a cooperation bonus (1 + 1 = 3) so that playing together pays more than playing alone.
+**Rewards.** Everyone who takes part gets the full reward (money and career points) and their own story step; those who said no get nothing. Contests (race, golf) pay by place.
 
-**Death and PvP (planned, #447).** Death by the world costs as it does now; death by another player is free. A passive mode (as in GTA Online): no damage to or from players, with a cool-down when switching. The game is 18+.
+**Death and PvP (#447, #454).** Death by the world costs as it does now; death by another player is free. A passive mode (as in GTA Online): no damage to or from players, with a cool-down when switching; PvP only outside passive mode, with the real weapons, and blood and gore may be shown in PvP (constitution 6). The game is 18+.
 
 **The single-player assumption.** About 600 references to `world.player` remain in `game/js` (#446). The target is `world.players` with helpers (nearest player, for each player, main player); `world.player` stays pointing at the main player so nothing breaks while modules are converted, and a test keeps the number of direct references from growing. When in doubt, look at how Watch Dogs 2 handles it.
 
