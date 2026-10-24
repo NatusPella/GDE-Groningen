@@ -3,12 +3,14 @@
 // De race zelf (karts, camera, tussenstand) tekent kartbaan.js met hetzelfde bord als bij de solorace.
 import { fmtTime } from './minigamekit.js';
 import { openerNaam } from './coopplayers.js';
+import { bijbaanKaartModel } from './coopbijbaan.js';
 import { spelerNaam, verbondenGasten, gastStaat, wedGastStuur, wedOpnieuw, willenOpnieuw, uitnodigingTekst } from './coopwedstrijd.js';
 
 const ORDINAAL = ['', '1e', '2e', '3e', '4e'];
 
 // Wat er nu op het scherm moet: { titel, regels: [tekst], voet } of null. rol: 'host' of 'gast'.
-export function kaartModel(world) {
+export function kaartModel(world) { return wedKaart(world) || bijbaanKaartModel(world); } // een bijbaan samen heeft dezelfde uitnodiging (#452)
+function wedKaart(world) {
   const n = world.coopNet; if (!n) return null;
   if (n.role === 'host') {
     const W = n.wed; if (!W) return null;

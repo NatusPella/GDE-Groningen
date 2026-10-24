@@ -15,6 +15,7 @@ import { rand } from './rng.js';
 export const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
 export { rand } from './rng.js';
 export const euro = (n) => '€' + Math.round(n).toLocaleString('nl-NL');
+export { afstandNaast } from './coopbijbaan.js'; // de afstand tot de host of een meespelende gast (samen spelen, #452)
 
 export function fmtClock(s) {
   const t = Math.max(0, Math.round(s));

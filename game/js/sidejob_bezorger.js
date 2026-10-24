@@ -4,7 +4,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import {
   pick, rand, nearestOnStreet, doorSpot, randomStreetPoint, spawnJobVehicle, pointAlongRoad, decorateVehicle,
-  spawnPed, pedAlive, holdPed, freePed, say, streetNameAt,
+  spawnPed, pedAlive, holdPed, freePed, say, streetNameAt, afstandNaast,
 } from './sidejobkit.js';
 
 const FATBIKE = { name: 'bike', fat: true, len: 1.95, wid: 0.62, maxSpeed: 7.8, accel: 4.2, brake: 6, turnRate: 3.8, color: '#e4572e' };
@@ -172,7 +172,7 @@ export default {
 
     if (d.phase === 'pickup') {
       const door = o.zaak.door;
-      const dd = Math.hypot(door.x - p.x, door.y - p.y);
+      const dd = afstandNaast(world, door.x, door.y); // ook een meespelende gast kan ophalen (samen spelen, #452)
       if (!d.cook && dd < CUSTOMER_SHOW_R) {
         d.cook = c.track(spawnPed(world, door.x, door.y, door.face, { shirt: '#f2ede0', bag: false }));
       }
@@ -200,14 +200,14 @@ export default {
     c.timeLeft = d.warmth / rate;
 
     const door = o.door;
-    const dd = Math.hypot(door.x - p.x, door.y - p.y);
+    const dd = afstandNaast(world, door.x, door.y);
     if (!d.customer && dd < CUSTOMER_SHOW_R) {
       d.customer = c.track(spawnPed(world, door.x, door.y, door.face));
     }
     const cu = d.customer && pedAlive(world, d.customer) ? d.customer : null;
     if (cu) holdPed(cu, p.x, p.y);
     const target = cu || door;
-    if (Math.hypot(target.x - p.x, target.y - p.y) < HANDOVER_R) {
+    if (afstandNaast(world, target.x, target.y) < HANDOVER_R) { // de host of een meespelende gast staat bij de deur (#452)
       const warm = d.warmth;
       const tip = warm > 70 ? rand(6, 12) * (1 + c.streak * 0.1) : warm > 40 ? rand(2, 5) : 0;
       if (cu) { say(world, cu, pick(warm > 55 ? WARM_LINES : LUKE_LINES), 3.2); freePed(cu); }
