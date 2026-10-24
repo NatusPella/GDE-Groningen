@@ -330,6 +330,15 @@ landmark-rijen `objects` met de osm-/BAG-id als sleutel; tot dan is de naam de s
 Stappen B6 (poi) en B8 (namen) halen deze lijsten uit `meta` en zetten ze als rijen op de tegel van hun punt (`placeIndex`);
 tot dan is `stad.json` hun enige bron, en verandert een naam of POI daar (een rij per regel).
 
+**POI-lagen in de tegelindex (25 oktober 2026, B6 voorbereid).** `pack_tiles.build` legt naast de rijen ook vast welke tegels
+een lijst dragen: `index.pois.layers` heeft per lijst uit `meta.poiLists` (`shops`, `horeca`, `pois.health`, ...) het aantal
+rijen in de tegels (`n`) en de gesorteerde tegelssleutels (`tiles`); `rest` telt de plaatsen die buiten de stadstegels vallen
+en in de globale laag blijven (`poiRest`). Een lege lijst staat er ook in, zodat een lezer weet dat de soort bestaat.
+`scripts/world/poilagen.mjs` maakt het blok (`poiLayers`, `poiLayerTiles`) uit de uitkomst van `splitMeta`; de rijen blijven
+de bron en `joinMeta` geeft uit de tegels van de lagen dezelfde `meta` terug. Een lezer kan daarmee alleen de tegels van zijn
+laag vragen (`shops.js`, `horeca.js`, ...) in plaats van de hele set; die omzetting is B6/C1 zelf. `index.pois` is een
+toevoeging: een wereld of lezer zonder het blok werkt zoals voorheen.
+
 **Bouwen en testen.** `loadSourcesLaag()` (pack_tiles.mjs) leest `stad.json`, haalt de lagen van `fromOsm` uit de OSM-bouw
 (`stad_cache.mjs` bewaart het resultaat in de tijdelijke map, met een sleutel uit de invoer en de bouwcode), legt `mapextras.json` erover
 en geeft de `GameMap`. `scripts/lib/loadworld.mjs` is de ene laadhulp voor tests: `loadStadData()` (alleen de handlaag, snel),
@@ -659,3 +668,21 @@ Laadtijd van `loadTileWorld` in Node, zonder workers, gepaard in 8 rondes tegen 
 *Bewijs.* `scripts/world/overlay_parity.mjs` laadt dezelfde wereld met de oude manier (loader van vóór deze wijziging, overlays als eigen tegels) en met de nieuwe (samengevoegd): de hele arrays (gebouwen, wegen, water, groen, bomen, rails, luifels, doorgangen: per object een hash), het register van elke soort (79.321 gebouwen, 18.454 wegen, 40.841 bomen, ...), de resident tegels (100), `meta`, en 40.000 vaste kaartvragen (`buildingsNear`, `roadsNear`, `waterNear`, `railNear`, `hedgeNear`, `landUseAt`, `groundHeightAt`, `nearestRoadPoint`) zijn gelijk. Het enige verschil is het aantal muren van het hoogtemodel (`elev.walls` 23.002 tegen 23.005 en 23.009): `extendElevation` bouwt een viaduct over wat er op dat moment ligt, dus de volgorde waarin de overlaytegels binnenkwamen telt, en die was met de store niet vast (drie runs van de oude loader: 23.005, 23.009, 23.009); de nieuwe volgorde ligt vast. `scripts/overlaymerge_test.mjs` (14 checks) dekt de samenvoeging, de scheiding en een wereld van voor de samenvoeging; `vaarnet_data.mjs` leest de overlayrijen uit de stadstegel. Winst: geen in geheugen of laadtijd (dezelfde gegevens, heap 230 MB, laadtijd binnen de ruis); het is een vorm-opruiming: 42 tegels minder in de index van de store, geen `o`-pin meer, de overlay is een rijklasse (gid vanaf 20.000.000) in plaats van een bestandssoort.
 
 **C1 (ontpinnen) blijft liggen.** Er is geen deelstap die de pariteit houdt: de 37 modules die hele arrays langslopen bouwen bij het opstarten uit de stadsrijen en hun buren af wat de speler ziet (wegvlakken: 415 randwegen anders zonder de overlays, zie hierboven), dus elk deel dat uit de arrays gaat vraagt een eigen module-omzetting met eigen bewijs. Wat nu wel klaarstaat is de rijklasse: rijen met een gid vanaf 20.000.000 horen niet in de hele arrays maar in de rasters, voor stad en overlay op dezelfde manier. Een module die per tegel gaat vragen kan dat dus stap voor stap doen zonder dat de rest verandert.
+
+## Vervolg op #314 (25 oktober 2026): de POI-lagen staan in de tegelindex
+
+De `POIS`-sectie bestond al (B6-B8 als data, 21 oktober); wat ontbrak was de vraagbaan: welke tegel hoort bij welke lijst.
+`scripts/world/poilagen.mjs` legt dat vast in `index.pois.layers` (per lijst `n` en de gesorteerde `tiles`, plus `rest` voor
+de plaatsen buiten de stadstegels) en `pack_tiles.build`/`writeWorld` schrijven het mee. De laag van een lijst is de
+verzameling tegels waar `splitMeta` een rij van die lijst neerzet; de index is dus afgeleid van dezelfde splitsing als de
+secties, geen tweede bron. `poiLayerTiles(index, naam)` geeft de tegels van een laag terug (leeg als de wereld het blok niet
+heeft, zodat een oude wereld blijft werken).
+
+*Bewijs.* `scripts/poisections_test.mjs` (23 checks) controleert op gemaakte lijsten en op de echte `meta` van
+`game/stad.json` (14 lagen, 2.274 plaatsen in 40 tegels, 7 in `poiRest`) dat `n` en `tiles` precies de rijen van de lijst
+volgen, dat de som plus `rest` alle plaatsen telt, en dat `joinMeta` uit alleen de tegels die de index noemt dezelfde `meta`
+teruggeeft; ook dat `writeWorld` het blok in `index.json` zet.
+
+*Wat open blijft.* De lezers zelf: `shops.js`, `horeca.js`, `garages.js`, `facilities.js` en de andere gebruikers van de
+hele lijsten vragen nog steeds de samengevoegde `map.meta` (C1/B6). Het blok maakt die omzetting mogelijk zonder de
+tegelindeling opnieuw te hoeven afleiden.

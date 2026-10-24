@@ -9,6 +9,8 @@
 // one global blob. Each object keeps its place in the GameMap's arrays as
 // `gid`, and is written into every tile its bounds touch, so a tile answers
 // every query inside it on its own; the game keeps one copy per gid.
+// The index also names, per POI layer, the tiles that carry it (poilagen.mjs),
+// so a reader asks those tiles instead of the whole set.
 // Same input, same bytes (tested by scripts/world_tiles_test.mjs).
 import '../node3d.mjs';
 import fs from 'node:fs';
@@ -17,6 +19,7 @@ import zlib from 'node:zlib';
 import { fileURLToPath } from 'node:url';
 import { LAGEN_WEGEN } from './stad_laag.mjs';
 import { loadReliefRasters } from './terrain.mjs';
+import { poiLayers } from './poilagen.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const { GameMap, applyMapExtras } = await import('../../game/js/mapdata.js');
@@ -282,12 +285,12 @@ export function build({ map }, attrs = loadAttrs(), terrain = loadTerrainRasters
       ...['stations', 'levelCrossings', 'railRoutes', 'railLifts', 'perrons'].map((k) => ({ type: G.SECTION.META, json: { [k]: map[k] } })),
     ],
   });
-  return { blobs, global, counts, attrStats: joined.stats };
+  return { blobs, global, counts, attrStats: joined.stats, pois: poiLayers(split) };
 }
 
 const deflate = (b) => new Uint8Array(zlib.deflateRawSync(b, { level: 9 }));
 
-export function writeWorld(out, { blobs, global, counts }, citySet = null) {
+export function writeWorld(out, { blobs, global, counts, pois }, citySet = null) {
   fs.mkdirSync(out, { recursive: true });
   for (const f of fs.readdirSync(out)) if (f.endsWith('.gdp') || f === 'index.json') fs.rmSync(path.join(out, f));
   const packs = new Map();
@@ -295,7 +298,7 @@ export function writeWorld(out, { blobs, global, counts }, citySet = null) {
     const pk = `p${Math.floor(b.i / PACK_TILES)}_${Math.floor(b.j / PACK_TILES)}`;
     (packs.get(pk) || packs.set(pk, []).get(pk)).push([key, b]);
   }
-  const index = { format: G.GDT_FORMAT, builder: BUILDER, frame: 'rd-new', tileM: G.TILE_M, grid: [G.GRID_X0, G.GRID_Y0], rdTile0: [G.RD_TILE_X0, G.RD_TILE_Y0], counts, packs: {}, tiles: {}, global: null, pins: {} };
+  const index = { format: G.GDT_FORMAT, builder: BUILDER, frame: 'rd-new', tileM: G.TILE_M, grid: [G.GRID_X0, G.GRID_Y0], rdTile0: [G.RD_TILE_X0, G.RD_TILE_Y0], counts, pois, packs: {}, tiles: {}, global: null, pins: {} };
   const writePack = (name, entries) => {
     const parts = [];
     let off = 0;

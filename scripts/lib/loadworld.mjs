@@ -1,6 +1,7 @@
 // De stadskaart voor tests en audits op één plek (#90; de stad komt uit stad.json en de OSM-tegelbouw, citymap.json bestaat niet meer):
 //   loadStadData()    de stadsdata zoals de bouw ze maakt (zelfde als loadCityData)
-//   loadCityWorld()   dezelfde stad als GameMap, of (WORLD_SRC=tiles) als tegels (pack_tiles, in het geheugen) via loadTileWorld
+//   loadCityWorld()   dezelfde stad als GameMap, of (WORLD_SRC=tiles) als tegels (pack_tiles, in het geheugen) via loadTileWorld;
+//                     bij tegels komt ook de index mee (index.pois: de POI-lagen per tegel, scripts/world/poilagen.mjs)
 // De OSM-lagen komen uit de cache van de stadsbouw (scripts/world/stad_cache.mjs) en vragen data/cache/province (of GDE_PROVINCE_SRC):
 // ontbreekt die, dan eindigt de test met SKIP (zoals stadlaag_*_test).
 import fs from 'node:fs';
@@ -44,7 +45,7 @@ export async function loadCityWorld({ src = worldSrc() } = {}) {
       const files = {};
       for (const f of fs.readdirSync(dir)) files[f] = new Uint8Array(fs.readFileSync(path.join(dir, f)));
       const tw = await loadTileWorld('world/', { source: new S.MemorySource(files), pool: false });
-      return { map: tw.world, src };
+      return { map: tw.world, src, index: tw.index };
     } finally { fs.rmSync(dir, { recursive: true, force: true }); }
   }
   return { map: (await P.loadSourcesLaag()).map, src };
