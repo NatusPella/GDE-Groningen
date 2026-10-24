@@ -6,6 +6,7 @@ import { assistFactors, helpActive, scaleTime, scaleDamage, widenGate, shouldOff
 import { getSettings, setSetting } from './settings.js';
 import { KEYS } from './storagekeys.js';
 import { AUTOPLAY, STORY_TEST } from './devflags.js';
+import { zachtePauze } from './coopgroep.js';
 
 let data = null;
 function load() {
@@ -79,6 +80,7 @@ function closeOffer(choice) {
   d.el.hidden = true;
   if (d.world) {
     d.world.uiPaused = false;
+    zachtePauze(d.world, 'hulpaanbod', false);
     if (d.world.input) d.world.input.reset();
   }
   if (d.prevFocus && d.prevFocus.isConnected) d.prevFocus.focus({ preventScroll: true });
@@ -97,6 +99,7 @@ export function maybeOfferHelp(world, stepId, fails) {
   dlg.world = world;
   dlg.prevFocus = document.activeElement;
   world.uiPaused = true;
+  zachtePauze(world, 'hulpaanbod', true); // met meer spelers loopt de wereld door (#452)
   if (document.pointerLockElement) document.exitPointerLock();
   dlg.el.hidden = false;
   dlg.el.querySelector('[data-gh="licht"]').focus({ preventScroll: true });

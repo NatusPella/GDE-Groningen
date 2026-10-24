@@ -2,6 +2,7 @@
 // leeg wachtscherm. Dunne DOM-laag; de opbouw, de tijd en het skippen met spatie
 // zitten in meerijden.js. Na de scène staat de speler op de bestemming (de interne
 // verplaatsing, zoals een respawn) en toont main.js het laadscherm voor de sprong.
+import { zachtePauze } from './coopgroep.js';
 import { ritPlan, startRit, stepRit, aankomst, skipHint, ondertitel, voortgang, shotAt, SKIP_KEY } from './meerijden.js';
 
 let active = null;
@@ -33,6 +34,7 @@ export function startMeerijden(world, optie, dest) {
   // zoals het laadscherm: de wereld staat stil tijdens de scène
   const wasPaused = !!world.uiPaused;
   world.uiPaused = true;
+  zachtePauze(world, 'reisrit', true); // met meer spelers loopt de wereld door; jij reist alleen zelf (#452)
   let skipKey = false;
   const down = (e) => { if (e.key === SKIP_KEY) { skipKey = true; e.preventDefault(); e.stopPropagation(); } };
   const up = (e) => { if (e.key === SKIP_KEY) { skipKey = false; e.preventDefault(); e.stopPropagation(); } };
@@ -50,6 +52,7 @@ export function startMeerijden(world, optie, dest) {
       document.removeEventListener('keyup', up, true);
       active = null;
       world.uiPaused = wasPaused;
+      zachtePauze(world, 'reisrit', false);
       const a = aankomst(rit, dest, world.money);
       el.remove();
       if (!a) return resolve({ aangekomen: false });

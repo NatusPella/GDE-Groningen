@@ -41,6 +41,7 @@ import { loopbaanGast, GAST_XP_DEEL } from './loopbaanlive.js';
 import { maakRegister, zetPlek, leegRegister, bouwFoci, losBesluit, FOCI_MAX, MAX_AFSTAND, ONGELADEN_S } from './coopfoci.js';
 import { tileIndexOf, tileKey } from './gdt.js';
 import { wisselEvent, wisselTik, zetCoopNet } from './coophostwisselnet.js'; // het spel overdragen (#439); die module importeert dit bestand terug, maar gebruikt het pas bij een aanroep
+import { zachtAlleen } from './coopgroep.js';
 import { zichtbaarWanted, GEZOCHT_TEKST, hudWanted } from './coopgezocht.js';
 import { bustFineIn } from './economy.js';
 import { gebeurtenisId, maakBoekhouding } from './coopbeloning.js'; // beloningen per gebeurtenis, één keer toegekend (#448)
@@ -993,8 +994,11 @@ export function genoegSpelers(world, min = 2) {
 
 // Samen spelen: staat er minstens één gast in de sessie, dan loopt de wereld van wie het spel opende door achter het pauzemenu, de kaart en de winkel.
 // Alleen de lokale invoer staat dan stil (main.js zet input.blocked); alleen de pauze door een menu telt, geen filmpje, wachtscherm of minigame-scherm (#434).
+// Ook de schermen die de wereld alleen voor jou stilzetten lopen door (#452): de afspeel-vooruit-dialoog, een snelreis, het laadscherm, de fotomodus en
+// het hulpaanbod (coopgroep.js zachtePauze). Een filmpje dat iedereen ziet (world.uiHard) en het wachtscherm pauzeren wel voor iedereen.
 export function coopWereldDoorloop(world, menuOpen = true) {
-  return !!(menuOpen && world && world.paused && !world.coopHold && !world.uiPaused && world.coopRole === 'host' && genoegSpelers(world, 2));
+  if (!world || !world.paused || world.coopHold || world.coopRole !== 'host' || !genoegSpelers(world, 2)) return false;
+  return !!((menuOpen && !world.uiPaused) || zachtAlleen(world));
 }
 
 export function stopCoopNet(world) {
