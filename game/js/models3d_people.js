@@ -1570,8 +1570,55 @@ export function applyHitReaction(mesh, react, now, angle) {
 
 const POSE_DROP = { crouch: 0.42, sit: 0.46, fish: 0.5 };
 
+// De hengelhouding van de speler (#437): alleen het lichaam, de hengel zelf tekent hengelanim.js. Per fase een korte
+// beweging: uitwerpen (eerst naar achteren, dan de zwiep naar voren), de ruk aan de hengel bij een beet en het
+// binnenhalen. Pure getallen (geen THREE), zodat scripts/hengelhouding_test.mjs ze kan natrekken. `t` is in seconden
+// sinds de fase begon; de hoeken zijn als bij de andere houdingen (arm.rotation.z > 0 is naar voren, 2,75 = boven het
+// hoofd). De fases kiest hengelen.js (HENGEL_POSE), de posehook zet ze op de botten van de speler.
+export function hengelHouding(pose, t = 0) {
+  const o = { armL: 0.9, elbowL: 0.85, armLx: 0, armR: 1.15, elbowR: 0.55, armRx: 0, chest: -0.06, head: 0.08, legL: 0.06, legR: -0.04 };
+  const tot = (d) => Math.max(0, Math.min(1, t / d));
+  if (pose === 'hengel-uit') {
+    // eerst naar achteren (inhalen), dan de zwiep naar voren, daarna komt de arm tot rust
+    const k = tot(0.8);
+    if (k < 0.35) {
+      const a = k / 0.35;
+      o.armR = 1.15 - 1.0 * a; o.elbowR = 0.55 + 0.6 * a; o.chest = -0.06 + 0.1 * a;
+    } else {
+      const a = (k - 0.35) / 0.65;
+      const zweep = Math.min(1, a / 0.4), terug = Math.max(0, (a - 0.4) / 0.6); // de zwiep is snel, daarna zakt hij terug
+      o.armR = 0.15 + 1.6 * zweep * (1 - 0.45 * terug);
+      o.elbowR = 1.15 - 0.7 * zweep + 0.1 * terug;
+      o.chest = 0.04 - 0.1 * zweep + 0.06 * terug;
+    }
+    const zwaai = Math.sin(k * Math.PI);
+    o.armL = 0.75 + 0.15 * zwaai; o.elbowL = 0.7 + 0.3 * zwaai;
+    o.legL = 0.12 * zwaai; o.legR = -0.1 * zwaai;
+  } else if (pose === 'hengel-ruk') {
+    // meteen een korte ruk omhoog (de vis haakt), daarna terug naar klaar
+    const jerk = Math.sin(Math.min(1, tot(0.45) * 2.5) * Math.PI);
+    o.armR = 1.15 + 0.55 * jerk; o.elbowR = 0.55 + 0.35 * jerk;
+    o.chest = -0.06 - 0.16 * jerk; o.head = 0.08 - 0.12 * jerk;
+    o.armL = 0.9 + 0.25 * jerk; o.elbowL = 0.85 - 0.25 * jerk;
+  } else if (pose === 'hengel-haal') {
+    // binnenhalen: de slinger van de molen draait, de hengel licht op en neer
+    const slag = Math.sin(t * 9);
+    o.armR = 1.25 - 0.1 * tot(0.9); o.elbowR = 0.7 + 0.35 * slag;
+    o.armL = 0.95; o.elbowL = 0.85 + 0.3 * Math.sin(t * 9 + Math.PI);
+    o.chest = -0.12 + 0.05 * slag;
+  } else {
+    // klaar: rustig ademen met de hengel voor je uit
+    const bob = Math.sin(t * 1.4) * 0.03;
+    o.armR = 1.15 + bob; o.elbowR = 0.55 + bob; o.armL = 0.9 + bob * 0.6; o.elbowL = 0.85 + bob;
+  }
+  return o;
+}
+
 function applyPose(mesh, pose, t) {
   const ud = mesh.userData;
+  // een nieuwe houding begint zijn eigen beweging (uitwerpen, de ruk, binnenhalen)
+  if (pose !== ud.poseName) { ud.poseName = pose; ud.poseStart = t; }
+  const poseT = Math.max(0, t - (ud.poseStart ?? t));
   const drop = POSE_DROP[pose] || 0;
   mesh.position.y -= drop;
   if (ud.shadow) {
@@ -1584,7 +1631,7 @@ function applyPose(mesh, pose, t) {
   setPropVisible(ud, 'phoneProp', pose === 'phone' || pose === 'call');
   setPropVisible(ud, 'rodProp', pose === 'fish');
   if (ud.umbrella) ud.umbrella.visible = !pose;
-  if (pose === 'crouch' || pose === 'sit' || pose === 'fish' || pose === 'haul') {
+  if (pose === 'crouch' || pose === 'sit' || pose === 'fish' || pose === 'haul' || /^hengel/.test(pose || '')) {
     ud.pelvis.position.set(0, HIP_Y, 0);
     ud.pelvis.rotation.set(0, 0, 0);
   }
@@ -1637,6 +1684,19 @@ function applyPose(mesh, pose, t) {
       setArm(ud.armR, ud.elbowR, 1.1 + pull * 0.5, 0.3 + (1 - pull) * 0.4);
       ud.legL.rotation.set(0, 0, 0.35);
       ud.legR.rotation.set(0, 0, -0.25);
+      break;
+    }
+    case 'hengel':
+    case 'hengel-uit':
+    case 'hengel-ruk':
+    case 'hengel-haal': {
+      const h = hengelHouding(pose, poseT);
+      ud.chest.rotation.set(0, 0, h.chest);
+      ud.head.rotation.set(0, 0, h.head);
+      setArm(ud.armL, ud.elbowL, h.armL, h.elbowL, h.armLx);
+      setArm(ud.armR, ud.elbowR, h.armR, h.elbowR, h.armRx);
+      ud.legL.rotation.set(0, 0, h.legL);
+      ud.legR.rotation.set(0, 0, h.legR);
       break;
     }
     case 'angry':
