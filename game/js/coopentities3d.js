@@ -258,7 +258,8 @@ export function syncHostEntities(world, dt = 1 / 60) {
     if (!m.userData.blok) animeerVoertuig(m, spec, v, klok, dt, deuren, vast);
     // geluid: de toeter bij het aangaan van de vlag (met de toonhoogte van dit voertuig) en de sirene zolang hij aan staat, met de bestaande geluiden (audio.js)
     const toet = !!v.toeter;
-    if (toet && !hornWas.get(v.id) && world.player && Math.hypot(v.x - world.player.x, v.y - world.player.y) < 130) {
+    const hp = world.player;
+    if (toet && !hornWas.get(v.id) && hp && Math.hypot(v.x - hp.x, v.y - hp.y) < 130) {
       world.coopHoornDbg = (world.coopHoornDbg || 0) + 1; // voor de testbank
       (world.audioEvents || (world.audioEvents = [])).push(spec && (spec.isBike) ? { kind: 'bell', x: v.x, y: v.y } : { kind: 'horn', x: v.x, y: v.y, low: spec ? (spec.isBoat ? 0.45 : spec.isBus ? 0.7 : spec.model && spec.model.name === 'van' ? 0.85 : spec.isHeroCar ? 0.96 : 1) : 1 });
     }
