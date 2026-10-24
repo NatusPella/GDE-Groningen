@@ -73,6 +73,26 @@ export function begin(st, sleutel, slots, regel = null, stap = null) {
   }
   return uit;
 }
+// Een gast begint de opdracht (#452): hij vraagt hem zelf aan, dus hij doet mee en krijgt geen vraag. Alle andere spelers in
+// slots krijgen de gewone uitnodiging; de gastheer hoort bij hen (slot 0) als hij in de lijst staat. De keuze en de stand horen
+// bij deze id: een andere groep die nog loopt, houdt de zijne (bewaar/laad).
+export function beginGast(st, sleutel, slots, regel = null, stap = null, starter = 1) {
+  if (!st || !sleutel || !(starter >= 1)) return [];
+  if (sleutel === st.opdracht) { if (stap !== undefined && stap !== null) st.stap = stap; return []; }
+  bewaar(st);
+  laad(st, sleutel, stap);
+  st.keuze[starter] = 'ja'; // wie erom vroeg doet mee
+  const uit = [];
+  for (const slot of slots) {
+    if (slot === starter) continue;
+    const k = st.keuze[slot];
+    if (k === 'ja' || k === 'nee' || k === 'verplicht') continue; // al geantwoord bij deze opdracht: niet opnieuw vragen
+    const verplicht = verplichtVoor(slot, regel); // alleen de gast-hoofdrol kan verplicht zijn; de gastheer kiest altijd zelf
+    st.keuze[slot] = verplicht ? 'verplicht' : 'wacht';
+    uit.push({ slot, verplicht, sec: MEEDOEN_WACHT, starter });
+  }
+  return uit;
+}
 // Een gast sluit aan terwijl de opdracht al loopt: dezelfde uitnodiging als wie erbij was. Wie al gekozen heeft (opnieuw aangesloten) wordt niet nogmaals gevraagd.
 // mag = false (de opdracht kent geen late instap): de gast wordt toeschouwer en krijgt geen uitnodiging.
 export function laat(st, slot, regel = null, mag = true, id = st.opdracht) {
@@ -145,12 +165,13 @@ export function maakUitnodiging(b, status = null) {
   const stap = geldigeStap(b.stap);
   const st = stap && (status === 'gedaan' || status === 'vooruit') ? status : null;
   const sec = st === 'vooruit' ? BEVESTIG_GAST : Number.isFinite(b.sec) ? Math.min(30, Math.max(1, b.sec)) : MEEDOEN_WACHT;
-  return { label: b.label.slice(0, 80), verplicht: !!b.verplicht, rest: sec, stap, status: st };
+  return { label: b.label.slice(0, 80), verplicht: !!b.verplicht, start: !!b.start, rest: sec, stap, status: st };
 }
 // De melding voor een laatkomer bij een opdracht zonder late instap.
 export const toeschouwerTekst = (label) => `${String(label || 'De opdracht').slice(0, 60)} loopt al, de volgende doe je mee.`;
 export function uitnodigingTekst(u, naam = 'De ander') {
   if (!u) return '';
+  if (u.start) return `${u.label} is begonnen: je doet mee.`;
   if (u.status && !u.verplicht) return statusTekst(u.status, u.label, u.rest);
   return u.verplicht ? `${naam} speelt ${u.label}. Het verhaal heeft jou nodig: je doet mee.` : `Meedoen met ${u.label}? J = ja, N = nee (zonder antwoord kijk je mee).`;
 }
