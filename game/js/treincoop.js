@@ -5,10 +5,9 @@
 //  - conducteur: de deuren (O) en de waakzaamheidsknop (K), en sluit de deuren voor het vertrek;
 //  - passagier: loopt rond en zit in de wagen.
 // Valt de machinist weg, dan neemt de conducteur het over, anders de eerste passagier, anders remt de trein veilig af.
-// De beloning van een halte gaat gelijk naar iedereen aan boord, met een bonus voor samenwerken.
+// De beloning van een halte: iedereen aan boord krijgt het volle bedrag (visie van de eigenaar, #452).
 
 export const ROLES = ['machinist', 'conducteur', 'passagier'];
-export const COOP_BONUS = 0.15;       // extra over de beloning zodra er twee of meer spelers werken (machinist plus conducteur)
 
 export const newCrew = () => ({ machinist: null, conducteur: null, passagiers: [], service: false });
 
@@ -63,17 +62,12 @@ export function may(c, slot, action) {
 // De waakzaamheid: telt een teken van de machinist of de conducteur; de rem grijpt in als niemand reageert (treincabine.js).
 export const ackFrom = (c, slot) => may(c, slot, 'waak');
 
-// De beloning van één gebeurtenis (een halte) over iedereen aan boord: gelijke delen, een bonus als er twee of meer
-// werkende spelers zijn (machinist en conducteur). De rest van de deling gaat naar de machinist. Geeft { slot: euro }.
+// De beloning van één gebeurtenis (een halte): iedereen aan boord krijgt het volle bedrag, zonder verdeling of bonus. Geeft { slot: euro }.
 export function splitReward(c, total) {
   const all = members(c);
   if (!all.length || total <= 0) return {};
-  const crew = (c.machinist !== null ? 1 : 0) + (c.conducteur !== null ? 1 : 0);
-  const sum = Math.round(total * (crew >= 2 ? 1 + COOP_BONUS : 1));
-  const each = Math.floor(sum / all.length);
   const out = {};
-  for (const s of all) out[s] = each;
-  out[c.machinist !== null ? c.machinist : all[0]] += sum - each * all.length;
+  for (const s of all) out[s] = Math.round(total);
   return out;
 }
 
