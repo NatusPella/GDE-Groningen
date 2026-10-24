@@ -58,6 +58,7 @@ const SCENARIO_TRACKS = {
   missie: './audio/scenario/missie_spanning_loop.mp3',
   fiets: './audio/scenario/fiets_loop.mp3',
   thuis: './audio/scenario/thuis_loop.mp3',
+  menu: './audio/scenario/menu_loop.mp3',
 };
 const SCENARIO_VOLUME = 0.8;
 const SCENARIO_FADE_IN = 1.5; // s
@@ -3484,7 +3485,7 @@ function startScenarioTrack(key) {
   const fade = ctx.createGain();
   const t = ctx.currentTime;
   fade.gain.setValueAtTime(0, t);
-  fade.gain.linearRampToValueAtTime(1, t + SCENARIO_FADE_IN);
+  fade.gain.linearRampToValueAtTime(key === 'menu' ? 0.7 : 1, t + SCENARIO_FADE_IN); // the menu loop sits a bit lower
   src.connect(fade).connect(scenarioVol);
   src.start(t, entry.loop.start);
   scenarioNow = { key, src, fade };
