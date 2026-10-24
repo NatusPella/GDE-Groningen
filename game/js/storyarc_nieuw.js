@@ -51,6 +51,10 @@
 //            the flat (story.js updateHomeWait); clock: the hour it plays at; lines [who, text, { tag }]
 //   meet     the same, played once when the player reaches the step's starting spot
 //            (Rotor Roelf by his demo heli for a flight goal; Durk & Douwe at the court for padel)
+//   loopbanen ['bus', 'hengelen']: the loopbanen (loopbaan.js VAKKEN) the story points at here (#431). This is
+//            the moment a vak turns up in the story, not a lock: the player may start it earlier on their own
+//            (from its own startplek or the Loopbaan menu), and the step then counts that loopbaan as done.
+//            Never reorders the steps; scripts/loopbaanstart_test.mjs checks that every vak is named once.
 //
 // GOAL TYPES (story.js GOALS)
 //   { type: 'shop', shop }            enter a shop of that type (shops.js SHOP_TYPES key)
@@ -219,44 +223,44 @@ export const STEPS = [
     story: { intro: ['M01.1', 'M01.2'], outro: ['M01.6'], replay: ['M01.7'] },
     scenes: ['M01.1', 'M01.2', 'M01.3', 'M01.4', 'M01.5', 'M01.6', 'M01.7'],
     lead: ['A', 'Honderdvijftig euro verdienen: Berend wacht bij het Martinikerkhof met zijn bakkie. Nul krassen, hè.'] }),
-  M('M02', 'kop', 'Even pinnen', 'pinautomaat', { built: true, reward: 400,
+  M('M02', 'kop', 'Even pinnen', 'pinautomaat', { built: true, reward: 400, loopbanen: ['klus'],
     story: { intro: ['M02.1'], outro: ['M02.3', 'M02.5'], replay: ['M02.4'] }, scenes: ['M02.1', 'M02.2', 'M02.3', 'M02.4', 'M02.5'],
     lead: ['A', 'De Herestraat, half acht. Mijn pas zit in een automaat.'] }),
-  M('M03', 'kop', 'Het Loket', 'loket', { built: true, reward: 0, cost: 150,
+  M('M03', 'kop', 'Het Loket', 'loket', { built: true, reward: 0, cost: 150, loopbanen: ['kantoor'],
     story: { intro: ['M03.1'], outro: ['M03.4'], replay: ['M03.5'] }, scenes: ['M03.1', 'M03.2', 'M03.3', 'M03.4', 'M03.5'],
     lead: ['A', 'Het Loket bij de Grote Markt. Open tot twaalf uur, contant.'] }),
   M('M04', 'kop', 'Kieken van boven', 'duifverkenning', { built: true, reward: 350,
     story: { intro: ['M04.1'], outro: ['M04.3'], replay: ['M04.4'] }, scenes: ['M04.1', 'M04.2', 'M04.3', 'M04.4', 'M04.5'],
     lead: ['T', 'Naar Bert op het Stationsplein: een duif fotografeert het museum.'] }),
-  M('M05', 'kop', 'Wind tegen, beide kanten op', 'kei', { built: true, reward: 550,
+  M('M05', 'kop', 'Wind tegen, beide kanten op', 'kei', { built: true, reward: 550, loopbanen: ['padel'],
     story: { intro: ['M05.1'], outro: ['M05.3'], replay: ['M05.4'] }, scenes: ['M05.1', 'M05.2', 'M05.3', 'M05.4'],
     lead: ['A', 'Sjoerd wacht bij het Academiegebouw. Haal het podium, dan praat hij.'] }),
-  M('M06', 'kop', 'Het museum stond er al zo', 'museumkraak', { built: true, reward: 400,
+  M('M06', 'kop', 'Het museum stond er al zo', 'museumkraak', { built: true, reward: 400, loopbanen: ['taxi'],
     // Henk's call while they wait (M06.0) plays at home; the escape and the radio are stage scenes of the mission (missions.js)
     homeScene: { id: 'M06.0', big: 'Wachten tot middernacht…' },
     story: { intro: ['M06.1'], outro: null, replay: ['M06.4'] }, scenes: ['M06.0', 'M06.1', 'M06.2', 'M06.3', 'M06.4'],
     lead: ['A', 'Vannacht om twaalf uur: de bal pakken. Tot die tijd wachten we thuis.'] }),
 
   // --- Akte 2: Het Noorden is groot (Stad, Hogeland, Waddenzee, di 18 - do 20 augustus) -----
-  M('M07', 'romp', 'Al het vet van Grunn', 'vetgekaapt', { built: true, reward: 950,
+  M('M07', 'romp', 'Al het vet van Grunn', 'vetgekaapt', { built: true, reward: 950, loopbanen: ['vracht'],
     story: { intro: ['M07.1'], outro: ['M07.3'], replay: ['M07.5'] }, scenes: ['M07.1', 'M07.2', 'M07.3', 'M07.4', 'M07.5'],
     lead: ['T', 'De tankwagen van Us Mem Vet rijdt over de Europaweg. Banden stuk, tankwagen pakken, naar de Oosterpoort.'] }),
-  M('M08', 'romp', 'Fatbikes tellen niet als fiets', 'fatbike', { built: true, reward: 500, unlocks: 'zitmoi',
+  M('M08', 'romp', 'Fatbikes tellen niet als fiets', 'fatbike', { built: true, reward: 500, unlocks: 'zitmoi', loopbanen: ['bezorg', 'buiten'],
     story: { intro: ['M08.1'], outro: ['M08.3'], replay: ['M08.5'] }, scenes: ['M08.1', 'M08.2', 'M08.3', 'M08.4', 'M08.5'],
     lead: ['T', 'Oma Trijntje belde: kom naar de Noorderhaven. Loop te voet heelhuids door de fatbikes in de Oude Ebbingestraat, dan vertelt ze wat ze over die bal weet.'] }),
   // travel steps: the goal is the place (storyreis.js); the lines of the trip itself are the travel beat's (reisbeats.js)
-  A('T1', 'romp', 'De trein naar Warffum', { type: 'reis', to: 'Warffum', at: [53.3903, 6.5667], r: 400, scene: 'T1', from: 4 }, { built: true, scenes: ['T1'],
+  A('T1', 'romp', 'De trein naar Warffum', { type: 'reis', to: 'Warffum', at: [53.3903, 6.5667], r: 400, scene: 'T1', from: 4 }, { built: true, loopbanen: ['trein'], scenes: ['T1'],
     lead: ['A', 'Met de trein naar Warffum. Daar begint het Hogeland, en Geesje woont in de pastorie.'] }),
-  M('M09', 'romp', 'Heel aankomen is ook een kunst', 'eieren', { built: true, reward: 700,
+  M('M09', 'romp', 'Heel aankomen is ook een kunst', 'eieren', { built: true, reward: 700, loopbanen: ['horeca'],
     story: { intro: ['M09.1'], outro: ['M09.4'], replay: ['M09.5'] }, scenes: ['M09.1', 'M09.2', 'M09.3', 'M09.4', 'M09.5'],
     lead: ['A', 'Geesje woont in de pastorie in Warffum. Zij heeft de laatste eieren van het Hogeland.'] }),
-  M('M10', 'romp', 'Een trekker-limo op de wierde', 'wierde', { built: true, reward: 900, unlocks: 'jelle',
+  M('M10', 'romp', 'Een trekker-limo op de wierde', 'wierde', { built: true, reward: 900, unlocks: 'jelle', loopbanen: ['landbouw'],
     // the sloot scene (M10.3) is a stage of the mission itself; the talk in the car after it (M10.4) is a banter exchange
     story: { intro: ['M10.1'], outro: null }, scenes: ['M10.1', 'M10.2', 'M10.3', 'M10.4'],
     lead: ['T', 'Een zwarte trekker met vlaggetjes rijdt het erf van de kerk op. Dat is Jelle.'] }),
-  A('T2', 'romp', 'De streekbus naar Zoutkamp', { type: 'reis', to: 'Zoutkamp', at: [53.3377, 6.2986], r: 400 }, { built: true, scenes: ['T2'],
+  A('T2', 'romp', 'De streekbus naar Zoutkamp', { type: 'reis', to: 'Zoutkamp', at: [53.3377, 6.2986], r: 400 }, { built: true, loopbanen: ['bus', 'hengelen'], scenes: ['T2'],
     lead: ['A', 'Oma stuurt ons naar Kapitein Klaas in Zoutkamp: met de streekbus, overstappen in Winsum. Daarna is er alleen nog water.'] }),
-  M('M11', 'romp', 'Geleend van de Friezen', 'skutsje', { built: true, reward: 1300,
+  M('M11', 'romp', 'Geleend van de Friezen', 'skutsje', { built: true, reward: 1300, loopbanen: ['water'],
     // the def of the old arc is replaced by the coast mission (missions_nieuw.js kustDef); the scenes M11.2-M11.7 are stages of it
     story: {
       npc: 'klaas', outroNpc: 'klaas', intro: ['M11.1'], outro: ['M11.8'],
@@ -267,10 +271,10 @@ export const STEPS = [
     lead: ['A', 'Jelles skûtsje vaart naar Lauwersoog, met een gouden bal in de kist. Klaas leent je een snelle boot, tot de sluizen.'] }),
 
   // --- Akte 3: Aan de Eems (Eemsdelta en Oldambt, vr 21 - zo 23 augustus) ----------------
-  M('M12', 'staart', 'Het staat niet in het rooster', 'traumaduif', { built: true, reward: 1500,
+  M('M12', 'staart', 'Het staat niet in het rooster', 'traumaduif', { built: true, reward: 1500, loopbanen: ['lucht'],
     story: { intro: ['M12.1'], outro: ['M12.4'], replay: ['M12.5'] }, scenes: ['M12.1', 'M12.2', 'M12.3', 'M12.4', 'M12.5'],
     lead: ['A', 'Dokter Dijkstra wacht in Lauwersoog met een heli. Eerst eten voor de nachtdienst, dan naar Jelles ballon boven de Dollard, voor het koopboek.'] }),
-  M('M13', 'staart', 'Het containerlabyrint', 'containers', { built: true, reward: 900,
+  M('M13', 'staart', 'Het containerlabyrint', 'containers', { built: true, reward: 900, loopbanen: ['handhaving'],
     story: { intro: ['M13.1'], outro: ['M13.3'], replay: ['M13.4'] }, scenes: ['M13.1', 'M13.2', 'M13.3', 'M13.4'],
     lead: ['A', 'De Eemshaven, vannacht. Lammert wacht aan de kade: container 4471 moet leeg uitvaren.'] }),
   M('M14', 'staart', 'De dijk', 'dijk', { built: true, reward: 1000,
@@ -281,7 +285,7 @@ export const STEPS = [
   M('M15', 'staart', 'Laag over het graan', 'graan', { built: true, reward: 900,
     story: { intro: ['M15.1'], outro: ['M15.3'], replay: ['M15.4'] }, scenes: ['M15.1', 'M15.2', 'M15.3', 'M15.4'],
     lead: ['A', 'Roelfien wacht bij haar graanveld bij Midwolda. Haar vliegtuig sleept al twintig jaar een spandoek voor de kermis.'] }),
-  M('M16', 'staart', 'Nog eentje dan', 'kroegentocht', { built: true, reward: 600,
+  M('M16', 'staart', 'Nog eentje dan', 'kroegentocht', { built: true, reward: 600, loopbanen: ['kermis'],
     story: { intro: ['M16.1'], outro: ['M16.3', 'M16.4', 'M16.5', 'M16.6'], replay: ['M16.7'] }, scenes: ['M16.1', 'M16.2', 'M16.3', 'M16.4', 'M16.5', 'M16.6', 'M16.7'],
     lead: ['T', 'Durk en Douwe weten waar Jelle heen gaat. Volg ze langs Geerts drie tenten op de kermis in Winschoten, tot ze moe zijn.'] }),
 
@@ -306,7 +310,7 @@ export const STEPS = [
     lead: ['A', 'De Escapade staat op een goederentrein richting Ljouwert. Ik haal hem terug. Alleen.'] }),
 
   // --- Akte 5: Ontzet (Westerkwartier en Stad, wo 26 - vr 28 augustus, epiloog 11 september) --
-  M('M22', 'ontzet', 'Een luik erin', 'luik', { built: true, reward: 300,
+  M('M22', 'ontzet', 'Een luik erin', 'luik', { built: true, reward: 300, loopbanen: ['race'],
     story: { intro: ['M22.1'], outro: null, replay: ['M22.5'] }, scenes: ['M22.1', 'M22.2', 'M22.3', 'M22.4', 'M22.5'],
     lead: ['T', "Tinus' schuur bij Zuidhorn. Henk bouwt een luik in de Escapade: dan is het de Fjord Frituur. Eerst de modder in, om de as te testen."] }),
   M('M23', 'ontzet', 'De colonne', 'colonne', { built: true, reward: 500,
@@ -330,13 +334,13 @@ export const STEPS = [
   M('M28', 'nazomer', 'De wisselwoning', 'wisselwoning', { built: true, reward: 400,
     story: { intro: ['M28.1'], outro: ['M28.3'], replay: ['M28.4'] }, scenes: ['M28.1', 'M28.2', 'M28.3', 'M28.4'],
     lead: ['T', 'De dozen staan in de verhuisbus. Willemien zit voorin met de kat. Rustig rijden, naar de wisselwoning aan de rand van het dorp.'] }),
-  M('M29', 'nazomer', 'Terug', 'terug', { built: true, reward: 500,
+  M('M29', 'nazomer', 'Terug', 'terug', { built: true, reward: 500, loopbanen: ['podium'],
     story: { intro: ['M29.1'], outro: ['M29.3'], replay: ['M29.4'] }, scenes: ['M29.1', 'M29.2', 'M29.3', 'M29.4'],
     lead: ['A', 'Willemien appte: het huis is klaar. Of we haar terugbrengen. Er is een buurtfeest op het erf.'] }),
   // the road to Bourtange: the goal is the place (storyreis.js); the trip talk is the beat's (reisbeats.js)
   A('T5', 'nazomer', 'De weg naar Bourtange', { type: 'reis', to: 'Vesting Bourtange', at: [53.0069, 7.1914], r: 350, scene: 'T5.2', from: 0 }, { built: true, scenes: ['T5.1', 'T5.2', 'T5.3'],
     lead: ['T', "Berend belde: één proefbeleg in Bourtange, zaterdag, met iedereen van Oma's lijstje. Hij wacht bij een hooiberg op de heide."] }),
-  M('M30', 'nazomer', 'Het proefbeleg', 'proefbeleg', { built: true, reward: 1500,
+  M('M30', 'nazomer', 'Het proefbeleg', 'proefbeleg', { built: true, reward: 1500, loopbanen: ['golf'],
     story: { intro: ['M30.1'], outro: ['M30.6'], replay: ['M30.7'] }, scenes: ['M30.1', 'M30.2', 'M30.3', 'M30.4', 'M30.5', 'M30.6', 'M30.7'],
     lead: ['A', 'Het proefbeleg van Bourtange. Zeven vrienden, vier fronten en één bisschop die niet graag wint.'] }),
 ];

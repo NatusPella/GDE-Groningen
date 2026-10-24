@@ -1,6 +1,7 @@
 // Loopbaan (#381): per vak (trein, bus, padel, een bijbaan, een racegame, ...) een teller, niveaus met
 // ervaringspunten, een verzonnen functietitel per niveau en een loonfactor per niveau. Hoe meer je een
-// vak doet, hoe hoger je niveau en hoe meer je er verdient.
+// vak doet, hoe hoger je niveau en hoe meer je er verdient. Elk vak heeft een eerste klus en een eigen
+// startplek (#431): je begint een loopbaan zelf, en de eerste punten beginnen hem ook.
 //
 // Pure regels, geen DOM, geen THREE, geen opslag en geen klok: loopbaanlive.js hangt de haken van het spel
 // eraan, loopbaanui.js tekent het Loopbaan-scherm (scripts/loopbaan_test.mjs, scripts/loopbaan_balans_test.mjs).
@@ -113,6 +114,45 @@ export const vakVanBaan = (id) => BAAN_VAK[id] || 'klus';
 // De banen van een vak, voor het scherm: zo laten we alle soorten werk zien.
 export const banenVan = (vak) => BAAN_IDS.filter((b) => BAAN_VAK[b] === vak);
 
+// De eerste klus van een vak (#431): de baan waarmee je begint (`baan`, een id uit sidejobs.js) of, voor de
+// vakken zonder bijbaan, de activiteit die de teller op gang brengt; `plek` zegt waar je moet staan. Zo is elke
+// loopbaan vanaf zijn eigen startplek (de baan staat daar) of vanuit het Loopbaan-scherm te beginnen, en is de
+// eerste klus nooit "zoek het zelf maar uit". De eerste klus van een baan is altijd een baan van datzelfde vak.
+export const START = {
+  trein: { baan: null, plek: 'Station Groningen', klus: 'Reis één keer met de trein; vanaf niveau 3 controleer je kaartjes op het perron.' },
+  bus: { baan: 'lijn', plek: 'Bij de streekbus', klus: 'Eén dienst op de lijn: instappen en de route rijden.' },
+  taxi: { baan: 'taxi', plek: 'Bij de taxistandplaats', klus: 'Eén rit met een klant van A naar B.' },
+  bezorg: { baan: 'bezorger', plek: 'Bij de bezorgbus', klus: 'Eén ronde pakjes rondbrengen.' },
+  vracht: { baan: 'vracht', plek: 'Bij de vrachtwagen', klus: 'Eén vrachtrit over de weg.' },
+  water: { baan: 'rondvaart', plek: 'Bij de rondvaartboot', klus: 'Eén rondvaart met gasten aan boord.' },
+  lucht: { baan: null, plek: 'Vliegschool De Windwijzer op Eelde', klus: 'Volg je eerste vliegles, met het vliegtuig of de helikopter.' },
+  handhaving: { baan: 'fietsdepot', plek: 'Bij het fietsdepot', klus: 'Eén dienst in het fietsdepot.' },
+  kantoor: { baan: 'loket', plek: 'Bij het loket', klus: 'Eén dienst achter de balie.' },
+  podium: { baan: 'promotie', plek: 'Bij het promotieteam', klus: 'Eén promotiedienst of optreden.' },
+  horeca: { baan: 'vigilantia', plek: 'Bij het café', klus: 'Eén dienst in de horeca.' },
+  kermis: { baan: 'kermisdraai', plek: 'Bij de kermisattractie', klus: 'Eén attractie draaiende houden.' },
+  landbouw: { baan: 'bietenoogst', plek: 'Bij de akker', klus: 'Eén oogst: vier rijen bieten rooien en naar de fabriek brengen.' },
+  klus: { baan: 'helix', plek: 'Bij de klus', klus: 'Eén klus voor een van de bedrijven in de stad.' },
+  padel: { baan: null, plek: 'Op de dichtstbijzijnde padelbaan', klus: 'Eén potje padel, gewonnen of verloren.' },
+  golf: { baan: null, plek: 'Het Stadspark of een golfbaan', klus: 'Eén ronde discgolf of pitch and putt.' },
+  hengelen: { baan: null, plek: 'Aan de kant van elk water', klus: 'Hengel één vis aan de kant (I).' },
+  race: { baan: null, plek: 'Kardinge of een driftzone', klus: 'Eén kartrace of driftronde.' },
+  buiten: { baan: null, plek: 'Het Stadspark of het Grunopark', klus: 'Eén activiteit buiten: skaten, skiën, klimmen, zwemmen of wandelen.' },
+};
+export const startVan = (vak) => START[vak] || null;
+// De eerste klus is begonnen: een vak met voortgang telt als gestart, ook als het profiel van voor #431 is.
+export const isGestart = (profiel, vak) => !!(profiel && Array.isArray(profiel.gestart) && profiel.gestart.includes(vak));
+// Een loopbaan beginnen (vanuit het Loopbaan-scherm of de eerste punten van een vak): eenmalig, geeft de eerste klus terug.
+export function startVak(profiel, vak) {
+  if (!BY_ID.has(vak) || !profiel) return { gestart: false, nieuw: false, start: null };
+  if (!Array.isArray(profiel.gestart)) profiel.gestart = [];
+  const nieuw = !profiel.gestart.includes(vak);
+  if (nieuw) profiel.gestart.push(vak);
+  return { gestart: true, nieuw, start: startVan(vak) };
+}
+// Zijn alle loopbanen van een verhaalstap al begonnen? Dan telt die stap zijn loopbanen als gedaan (#431).
+export const loopbanenGestart = (profiel, lijst) => (Array.isArray(lijst) ? lijst : []).every((v) => isGestart(profiel, v));
+
 // Welke uitdaging van de nagame (postgame.js) bij welk vak hoort.
 const UITDAGING_VAK = { bruggen: 'race', skutsje: 'water', fierljep: 'buiten', koe: 'buiten', fjord: 'horeca' };
 export const vakVanUitdaging = (id) => UITDAGING_VAK[id] || 'buiten';
@@ -140,13 +180,13 @@ export const nieuwVak = () => ({ xp: 0, n: 0, uniek: [] });
 export function nieuwProfiel() {
   const vakken = {};
   for (const id of VAK_IDS) vakken[id] = nieuwVak();
-  return { v: SLEUTEL_VERSIE, vakken };
+  return { v: SLEUTEL_VERSIE, vakken, gestart: [] };
 }
 
 const geheel = (x, max) => (Number.isFinite(x) ? Math.max(0, Math.min(max, Math.floor(x))) : 0);
 
 // Een profiel uit opslag (of iets anders): leeg, oud of kapot geeft een geldig profiel; onbekende vakken gaan weg,
-// getallen worden begrensd.
+// getallen worden begrensd. Een vak met voortgang geldt als begonnen, ook als het profiel van voor #431 is.
 export function normaliseer(raw) {
   const p = nieuwProfiel();
   let d = raw;
@@ -160,7 +200,18 @@ export function normaliseer(raw) {
     v.n = geheel(s.n, MAX_N);
     if (Array.isArray(s.uniek)) v.uniek = [...new Set(s.uniek.filter((x) => typeof x === 'string' && x && x.length <= 60))].slice(0, MAX_UNIEK);
   }
+  if (Array.isArray(d.gestart)) p.gestart = [...new Set(d.gestart.filter((x) => BY_ID.has(x)))];
+  markeerGestart(p);
   if (d.zaad === true) p.zaad = true;
+  return p;
+}
+
+// Wie al iets in een vak deed, is er ooit aan begonnen: de verhaalstap die bij dat vak hoort telt dan als gedaan.
+function markeerGestart(p) {
+  for (const id of VAK_IDS) {
+    const v = p.vakken[id];
+    if ((v.xp > 0 || v.n > 0 || v.uniek.length) && !p.gestart.includes(id)) p.gestart.push(id);
+  }
   return p;
 }
 
@@ -185,7 +236,7 @@ export function zaaiUitPrestaties(stats, sets) {
   const st = sets && Array.isArray(sets.trainStations) ? sets.trainStations.filter((x) => typeof x === 'string' && x && x.length <= 60).slice(0, MAX_UNIEK) : [];
   if (st.length) { p.vakken.trein.uniek = st; p.vakken.trein.xp = Math.min(ZAAD_MAX_XP, p.vakken.trein.xp + st.length * UNIEK_XP); }
   p.zaad = true;
-  return p;
+  return markeerGestart(p);
 }
 
 // --- niveaus ---------------------------------------------------------------
@@ -280,9 +331,10 @@ export function voegSamen(a, b) {
     x.xp = Math.max(x.xp, y.xp);
     x.n = Math.max(x.n, y.n);
     for (const u of y.uniek) if (!x.uniek.includes(u) && x.uniek.length < MAX_UNIEK) x.uniek.push(u);
+    if (o.gestart.includes(id) && !p.gestart.includes(id)) p.gestart.push(id);
   }
   if (o.zaad) p.zaad = true;
-  return p;
+  return markeerGestart(p);
 }
 
 // Wat een gast op het eigen apparaat krijgt bij een beloning van de gastheer (docs/LOOPBAAN.md): de gastheer stuurt

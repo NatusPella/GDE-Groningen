@@ -82,6 +82,31 @@ export function missionCode(i) {
   return s ? s.id : null;
 }
 
+// Loopbanen (#431): the story step where each loopbaan (loopbaan.js VAKKEN) turns up, in story order.
+// This is a pointer, not a lock: the player may start a loopbaan earlier on their own, from its own startplek
+// or the Loopbaan menu, and then the step counts that loopbaan as done (loopbaan.js loopbanenGestart).
+// A vak can be named at more than one step; loopbaanStap gives the first, loopbanenTot everything up to a step.
+export const LOOPBAAN_STAPPEN = STEPS
+  .filter((s) => Array.isArray(s.loopbanen) && s.loopbanen.length)
+  .map((s) => ({ stap: s.id, deel: s.part, titel: s.title, loopbanen: [...s.loopbanen] }));
+export function loopbanenBijStap(stapId) {
+  const r = LOOPBAAN_STAPPEN.find((q) => q.stap === stapId);
+  return r ? [...r.loopbanen] : [];
+}
+export function loopbaanStap(vak) {
+  const r = LOOPBAAN_STAPPEN.find((q) => q.loopbanen.includes(vak));
+  return r ? r.stap : null;
+}
+// Everything released up to and including this step (an unknown step: everything).
+export function loopbanenTot(stapId) {
+  const out = [];
+  for (const r of LOOPBAAN_STAPPEN) {
+    out.push(...r.loopbanen);
+    if (r.stap === stapId) break;
+  }
+  return [...new Set(out)];
+}
+
 // Worst case money over the whole arc (planned steps included): start money,
 // every requirement bought at its price, every mission at its minimum
 // payout, side jobs counted as zero. `low` is the lowest balance right
