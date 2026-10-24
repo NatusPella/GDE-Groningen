@@ -12,7 +12,7 @@ import { initAmbience, updateAmbience, ambienceStats, getPlace } from './sfx/amb
 import { initFoley, updateFoley, propHit, foleyStats } from './sfx/foley.js';
 import { initUiSfx, uiWorldInit, updateUiSfx, uiDomEvent, isUiGestureTarget } from './sfx/ui.js';
 import { updateSkySfx } from './sfx/sky.js';
-import { createScenarioDirector, loopPoints } from './scenariomusic.js';
+import { createScenarioDirector, activityMusicKey, loopPoints } from './scenariomusic.js';
 import { MIN_TRACK_S, normalizeTrack, pickTrack, pushHistory, pickJingle, STATION_NAME } from './musicpick.js';
 import { createMusicWatch } from './musicwatch.js';
 import * as speech from './speech.js';
@@ -45,6 +45,12 @@ const GMUSIC_DUCK_VOLUME = 0.5;
 const SCENARIO_TRACKS = {
   race: './audio/scenario/Burnout_Threshold.mp3',
   chase: './audio/scenario/Redline_Ascent.mp3',
+  kart: './audio/scenario/kart_loop.mp3',
+  padel: './audio/scenario/padel_loop.mp3',
+  golf: './audio/scenario/golf_loop.mp3',
+  klimtoren: './audio/scenario/klimtoren_loop.mp3',
+  trein: './audio/scenario/trein_loop.mp3',
+  bus: './audio/scenario/bus_loop.mp3',
 };
 const SCENARIO_VOLUME = 0.8;
 const SCENARIO_FADE_IN = 1.5; // s
@@ -3364,7 +3370,7 @@ function updateScenarioMusic(dt, world) {
   const m = world.mission;
   const race = !!(m && m.phase === 'active' && m.raceMusic);
   const chasing = world.wanted > 0 && !(world.police && world.police.searching) && !world.pendingRespawn;
-  let want = scenarioDirector.update(dt, { race, chasing });
+  let want = scenarioDirector.update(dt, { race, chasing, activity: activityMusicKey(world) });
   if (want) loadScenarioBuffer(want);
   const cur = scenarioNow ? scenarioNow.key : null;
   if (want !== cur) {
