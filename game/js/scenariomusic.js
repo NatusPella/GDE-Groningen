@@ -14,7 +14,9 @@ const CHASE_STOP_S = 6;
 const ACT_START_S = 0.4;
 const ACT_STOP_S = 1.5;
 
-export const ACTIVITY_KEYS = ['kart', 'padel', 'golf', 'klimtoren', 'trein', 'bus', 'boerderij', 'vlucht', 'thuis', 'missie', 'fiets'];
+import { isPauseMenuOpen } from './pausestate.js';
+
+export const ACTIVITY_KEYS = ['kart', 'padel', 'golf', 'klimtoren', 'trein', 'bus', 'boerderij', 'vlucht', 'thuis', 'missie', 'fiets', 'menu'];
 const BOERDERIJ_MODELLEN = ['tractor', 'maaidorser', 'laadmachine']; // de machines van het boerenwerk (boerderijwereld.js, #415)
 
 // Modules that own private state (the machinist service) register a probe
@@ -31,6 +33,8 @@ const probed = (key, world) => { const f = probes.get(key); try { return !!f && 
 const ACTIVITY_BY_ID = { kartbaan: 'kart', padel: 'padel', discgolf: 'golf', pitchputt: 'golf', klimtoren: 'klimtoren' };
 export function activityMusicKey(world) {
   if (!world) return null;
+  // the pause menu (also the Samen spelen lobby and the other tabs): the menu loop wins over everything for this player
+  if (isPauseMenuOpen()) return 'menu';
   if (world.padelGame) return 'padel';
   const G = world.coopWedGast;
   if (G && (G.spiegel || G.score) && ACTIVITY_BY_ID[G.id]) return ACTIVITY_BY_ID[G.id];
@@ -73,6 +77,7 @@ export function createScenarioDirector() {
         actFor += dt;
         if (want ? (act ? true : actFor >= ACT_START_S) : actFor >= ACT_STOP_S) { act = want; actFor = 0; }
       }
+      if (act === 'menu') return 'menu'; // the pause menu: this player's own music, over a race or a chase
       if (race) return 'race';
       if (act === 'kart') return 'kart';
       if (chaseOn) return 'chase';

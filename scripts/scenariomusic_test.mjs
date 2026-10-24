@@ -127,7 +127,7 @@ assert.equal(activityMusicKey({ coopWedGast: { id: 'discgolf', spiegel: null, sc
 
 // the four loops exist, are mp3s and are wired in audio.js
 const dir = new URL('../game/audio/scenario/', import.meta.url);
-for (const f of ['kart_loop.mp3', 'padel_loop.mp3', 'golf_loop.mp3', 'klimtoren_loop.mp3', 'trein_loop.mp3', 'bus_loop.mp3', 'boerderij_loop.mp3', 'pvp_arena_loop.mp3', 'vlucht_loop.mp3', 'missie_spanning_loop.mp3', 'fiets_loop.mp3', 'thuis_loop.mp3']) {
+for (const f of ['kart_loop.mp3', 'padel_loop.mp3', 'golf_loop.mp3', 'klimtoren_loop.mp3', 'trein_loop.mp3', 'bus_loop.mp3', 'boerderij_loop.mp3', 'pvp_arena_loop.mp3', 'vlucht_loop.mp3', 'missie_spanning_loop.mp3', 'fiets_loop.mp3', 'thuis_loop.mp3', 'menu_loop.mp3']) {
   const u = new URL(f, dir);
   assert.ok(existsSync(u), f + ' ontbreekt');
   const b = readFileSync(u);
@@ -152,4 +152,13 @@ console.log('scenariomusic_test: ok');
   huis = false;
   assert.equal(activityMusicKey({ player: {} }), null);
   console.log('scenariomusic_test: thuis ok');
+}
+
+// het pauzemenu wint van alles (ook van een race of een achtervolging), voor deze speler
+{
+  const d = createScenarioDirector();
+  run(d, 1, { activity: 'menu', chasing: true });
+  assert.equal(run(d, 1, { activity: 'menu', chasing: true }), 'menu');
+  assert.equal(run(d, 1, { activity: 'menu', race: true }), 'menu');
+  console.log('scenariomusic_test: menu ok');
 }
