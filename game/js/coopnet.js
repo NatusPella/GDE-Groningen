@@ -48,6 +48,7 @@ import { bustFineIn } from './economy.js';
 import { gebeurtenisId, maakBoekhouding } from './coopbeloning.js'; // beloningen per gebeurtenis, één keer toegekend (#448)
 import { samenWaarschuwing } from './coopstatus.js'; // wat nog niet samen werkt: een melding voor de gast
 import { teamDown } from './cooproles.js'; // een opdracht faalt pas als alle meespelers neer zijn (#452)
+import { verrekenBeloning, verrekenEinde } from './coopdeel.js'; // verrekening per gebeurtenis en bij het einde (#448)
 import { saveGame as bewaarNu } from './savehook.js';
 import { getSettings } from './settings.js';
 import { profielNaam, profielKleur } from './lobby.js';
@@ -236,6 +237,9 @@ function meedoendeStaan(world, n, id = null) {
   return meespelers(n.meedoen, id || undefined).filter((s) => verbonden.has(s) && !slotNeer(world, s));
 }
 const now = (world) => (Number.isFinite(world.time) ? world.time : Date.now() / 1000);
+// Een eigen id voor deze sessie, vanaf de start (#448): elk uitbetaald bedrag krijgt een id met deze sessie erin, zodat
+// een id uit een eerdere sessie nooit dezelfde is (een gast die hem al kreeg zou anders stil niets krijgen).
+const maakSessieId = () => Math.random().toString(36).slice(2, 8);
 
 // De gedeelde toestand zoals de host hem ziet en zoals een gast hem uit de snapshots opbouwt (net/desync.js)
 export function hostView(world, info, roster) {
@@ -318,7 +322,7 @@ export function startHost(world, info, opts = {}) {
   world.coopWanted = {}; world.coopHeat = {}; world.coopDoelwit = 0; // een gezocht-niveau per gast (#434, coopgezocht.js)
   world.coopWantedMeld = (slot, na, voor) => gezochtMelden(world, slot, na, voor);
   world.coopGepakt = (slot, level) => gastGepakt(world, slot, level);
-  world.coopNet = { role: 'host', hub, fade, route, removing: {}, info, tKlok: 0, tHash: 0, tWeer: 0, tSpelers: 1, hashN: 0, scene, tScene: 0, filmpjeT: 0, sceneNu: null, meedoen: maakMeedoen(), foci: maakRegister(), groepen: maakGroepen(), groepId: null };
+  world.coopNet = { role: 'host', hub, fade, route, removing: {}, info, sessieId: maakSessieId(), tKlok: 0, tHash: 0, tWeer: 0, tSpelers: 1, hashN: 0, scene, tScene: 0, filmpjeT: 0, sceneNu: null, meedoen: maakMeedoen(), foci: maakRegister(), groepen: maakGroepen(), groepId: null };
   world.coopGroepen = world.coopNet.groepen; // de opdrachtstand per groep (#452), ook voor de tests en de kaart
   return hub;
 }
@@ -350,6 +354,10 @@ export function addGuest(world, transport) {
 export function startClient(world, transport, info, opts = {}) {
   const ok = canJoin(world);
   if (!ok.ok) throw new Error(ok.reason);
+  // Checkpoint bij binnenkomst (#448): eerst het eigen spel van deze speler veiligstellen, dan pas meespelen. Wat hij
+  // hierna in de wereld van de ander doet, kan zijn eigen save niet meer raken; valt de sessie weg, dan staat zijn
+  // eigen stand er in ieder geval. (Heeft hij nog geen save, dan maakt samenpanel.js er eerst een.)
+  try { bewaarNu(world, { toast: false }); } catch (e) { /* geen save is beter dan niet meespelen */ }
   const { onHold = null, fade = null, route = null, wens = null, code = '' } = opts;
   const session = new ClientSession(transport, { info: { ...info, char: wens || undefined }, caps: CAPS });
   prepareCoop(world);
@@ -798,11 +806,12 @@ export function deelMetGasten(world, bedrag, info = null) {
   const basis = Math.floor(info && Number(info.basis) > 0 ? Number(info.basis) : Number(bedrag));
   if (!(basis >= 1)) return 0;
   const geld = Math.min(basis, MAX_REWARD);
+  verrekenBeloning(world, geld); // de gastheer zet zijn eigen save meteen klaar: een crash kost hem zijn beloning niet (#448)
   const extra = info && typeof info.vak === 'string' && info.vak ? { vak: info.vak.slice(0, 20), xp: Math.max(0, Math.round(Number(info.xp) || 0)) } : null;
   const gid = info && typeof info.opdracht === 'string' && info.opdracht ? info.opdracht : null; // de groep die dit uitbetaalt (#452)
   const slots = deelSlots(n, gid).filter((s) => !(info && Array.isArray(info.slots)) || info.slots.includes(s)); if (!slots.length) return 0; // info.slots: alleen wie aan de dienst meedoet (bus, #444)
   let k = 0;
-  const id = gebeurtenisId(n.sessieId || (n.sessieId = Math.random().toString(36).slice(2, 8)), 'b', n.beloningTeller = (n.beloningTeller || 0) + 1); // één id per gebeurtenis, voor alle gasten (#448)
+  const id = gebeurtenisId(n.sessieId || (n.sessieId = maakSessieId()), 'b', n.beloningTeller = (n.beloningTeller || 0) + 1); // één id per gebeurtenis, voor alle gasten (#448)
   for (const slot of slots) if (payGuest(world, geld, slot, extra, id)) k++;
   return k;
 }
@@ -1230,6 +1239,7 @@ export function payGuest(world, geld, slot = null, extra = null, id = null) {
   if (ok) { // wat elke gast in deze sessie verdiende: het gaat mee in de momentopname van het overdragen (#439, gastGeld); het geld zelf staat in de save van de gast
     const b = n.betaald || (n.betaald = {}), g = Math.max(0, Math.floor(geld));
     for (const s of slot != null ? [slot] : n.hub.roster.spelers.filter((x) => x.slot !== 0).map((x) => x.slot)) b[s] = (b[s] || 0) + g;
+    verrekenBeloning(world, g); // en de gastheer zet zijn eigen save meteen klaar (#448)
   }
   return ok;
 }
@@ -1272,7 +1282,7 @@ export function stopCoopNet(world) {
   const n = world.coopNet; if (!n) return;
   if (n.stem) { const f = n.stem.nee; n.stem = null; if (f) { try { f(); } catch (e) { /* de vraag vervalt met de sessie */ } } } // een lopende stemming over een tijdsprong vervalt (#452)
   setGate(false); // zonder samen spelen is er geen wachtkamer meer
-  try { if (world.coopRole) bewaarNu(world, { toast: false }); } catch (e) { /* een laatste checkpoint: mislukt het, dan staat de vorige er nog (#448) */ }
+  verrekenEinde(world); // de laatste verrekening: de eigen save van host en gast, met de beloningen en hun ids (#448)
   if (world.coopCutBezig != null) cutGastStop(world, null, true); // een scène van de gastheer stopt met het samen spelen
   if (n.role === 'host') bezorgAllesWeg(world, (s) => bestuurLos(world, s)); // de eigen voertuigen van de gasten gaan mee terug (#449)
   if (n.role === 'host') { try { n.hub.announce({ k: 'weg', reden: 'spel gestopt' }); n.hub.closeAll(); } catch (e) { /* al weg */ } } else { try { if (n.session.status !== 'geweigerd' && n.session.status !== 'verbroken') n.session.leave(); } catch (e) { /* al weg */ } }
