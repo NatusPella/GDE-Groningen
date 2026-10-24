@@ -116,8 +116,8 @@ function bouwErf(w, erfId, pos) {
   const d = PC.erfDef(erfId);
   const g = new THREE.Group();
   g.name = 'boerderij-erf-' + erfId;
-  const vloer = new THREE.Mesh(new THREE.PlaneGeometry(46, 40), new THREE.MeshLambertMaterial({ color: 0x9b9486 }));
-  vloer.rotation.x = -Math.PI / 2; vloer.position.set(0, 0.05, 6);
+  const vloer = new THREE.Mesh(new THREE.PlaneGeometry(56, 62), new THREE.MeshLambertMaterial({ color: 0x9b9486 }));
+  vloer.rotation.x = -Math.PI / 2; vloer.position.set(0, 0.05, 17);
   g.add(vloer);
   doos(g, -11, 2, -9, 9, 4, 7, 0xd2bfa0); dak(g, -11, 5.1, -9, 9, 7, 0x8a3b2e);
   doos(g, 8, 3, -10, 14, 6, 9, 0xa3452f); dak(g, 8, 7.1, -10, 14, 9, 0x4a4540);
@@ -131,8 +131,10 @@ function bouwErf(w, erfId, pos) {
 }
 
 // Waar de machines en werktuigen van een erf staan: rijen zuidelijk van de gebouwen.
-function slotPlek(pos, i) {
-  return { x: pos.x - 15 + (i % 5) * 7.5, y: pos.y + 14 + Math.floor(i / 5) * 9, angle: Math.PI / 2 };
+function slotPlek(pos, i, machine) {
+  // de machines in een eigen, ruime rij (ze moeten er zonder botsen uit kunnen), de werktuigen een stuk daarachter zodat je er met de trekker heen kunt rijden
+  if (machine) return { x: pos.x - 18 + (i % 5) * 9, y: pos.y + 14 + Math.floor(i / 5) * 11, angle: Math.PI / 2 };
+  return { x: pos.x - 20 + (i % 6) * 7, y: pos.y + 32 + Math.floor(i / 6) * 8, angle: Math.PI / 2 };
 }
 export const dieselvatPlek = (pos) => ({ x: pos.x, y: pos.y + 3 });
 
@@ -142,7 +144,11 @@ function itemsVan(bd) {
   const uit = [];
   for (const erfId of Object.keys(bd.erven)) {
     const op = PC.machinesOp(bd, erfId).slice().sort((a, b) => (a.uid < b.uid ? -1 : 1));
-    op.forEach((m, i) => uit.push({ m, erfId, slot: i, machine: PC.MACHINE_CATALOGUS[m.type].soort === 'machine' }));
+    const teller = { machine: 0, werktuig: 0 };
+    for (const m of op) {
+      const machine = PC.MACHINE_CATALOGUS[m.type].soort === 'machine';
+      uit.push({ m, erfId, slot: teller[machine ? 'machine' : 'werktuig']++, machine });
+    }
   }
   return uit;
 }
@@ -220,7 +226,7 @@ function syncWereld(w) {
     const uid = it.m.uid;
     const pose = S.pose.get(uid);
     let pos = pose;
-    if (!pos) { const erf = S.erven.get(it.erfId); if (erf) pos = slotPlek(erf, it.slot); }
+    if (!pos) { const erf = S.erven.get(it.erfId); if (erf) pos = slotPlek(erf, it.slot, it.machine); }
     if (it.machine) {
       const v = S.voertuigen.get(uid);
       if (v) {

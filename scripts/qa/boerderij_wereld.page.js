@@ -90,6 +90,16 @@ await sleep(900);
 const rig = WW._staat().rigs.get(trek.farm);
 check('E koppelt de ploeg', rig && rig.werktuig === ploegRec.uid, JSON.stringify(rig));
 await shot('ploeg-gekoppeld', 800);
+{
+  // het gekoppelde werktuig van opzij: te voet naast de trekker, daarna weer erin
+  const zx = -Math.sin(trek.angle), zy = Math.cos(trek.angle);
+  const px = trek.x + zx * 9, py = trek.y + zy * 9, hoek = Math.atan2(trek.y - py, trek.x - px);
+  teleport(px, py, hoek); hold = { x: px, y: py, a: hoek };
+  await sleep(1800); await shot('ploeg-zijkant', 300);
+  hold = null;
+  teleport(trek.x + 2.0, trek.y + 0.8, 0); await sleep(800); await tap('e', 'KeyE'); await sleep(900);
+  check('weer in de trekker na de zijkant', p.inVehicle === trek, '');
+}
 await tap('t', 'KeyT'); await sleep(500);
 check('T zet de hef omlaag', rig.hef === 'omlaag', rig.hef);
 await tap('g', 'KeyG'); await sleep(400);
@@ -106,6 +116,8 @@ key('keydown', 'w', 'KeyW');
 const diag = [];
 for (let i = 0; i < 7; i++) { await sleep(500); diag.push({ sp: +trek.speed.toFixed(2), down: D.input.isDown('w'), axis: D.input.axis ? D.input.axis() : null, drv: trek.driver, pause: !!(w.paused || w.uiPaused), top: trek.model.maxSpeed, dis: !!trek.disabled, wr: !!trek.wrecked, x: Math.round(trek.x), cap: w.coopHold || null }); }
 uit.diag = diag;
+uit.dichtbij = w.vehicles.filter((o) => o !== trek && Math.hypot(o.x - trek.x, o.y - trek.y) < 12).map((o) => ({ farm: o.farm || o.model.name, d: +Math.hypot(o.x - trek.x, o.y - trek.y).toFixed(1), speed: o.speed }));
+uit.poseTrek = { x: Math.round(trek.x), y: Math.round(trek.y), a: +trek.angle.toFixed(2), z: trek.z, road: !!trek.road, countryDrive: !!trek.countryDrive, sinking: !!trek.sinking, health: trek.health };
 const snel = Math.abs(trek.speed);
 key('keyup', 'w', 'KeyW');
 await sleep(2500);
@@ -147,7 +159,7 @@ if (pos) {
   // de volgende fasen bekijk je te voet vanaf een standpunt schuin voor het veld (kleur, strepen, gewas en groei)
   const vantage = async (naam, wacht = 3000) => {
     const ux = Math.cos(pos.a), uy = Math.sin(pos.a), nx = -uy, ny = ux;
-    const px = pos.x - ux * 55 + nx * 42, py = pos.y - uy * 55 + ny * 42;
+    const px = pos.x - ux * 38 + nx * 26, py = pos.y - uy * 38 + ny * 26;
     const hoek = Math.atan2(pos.y - py, pos.x - px);
     teleport(px, py, hoek);
     hold = { x: px, y: py, a: hoek };
