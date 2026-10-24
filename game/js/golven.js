@@ -2,9 +2,12 @@
 // oever toe uitdooft; hier komt erbij: (1) op open water, 12 tot 24 m van de kust, wordt de deining hoger met de windsterkte
 // (seaExtra, de shader en de CPU-hoogtevraag waterSwellAt delen die factor), en (2) een snelle boot trekt een V-vormig kielzog
 // (kielzogHoogte) dat een supper, kano of kajak in de buurt laat wiebelen, wegduwt of, bij de speler, laat omvallen: je valt nat
-// in het water, zonder leed, en klimt met E terug op de plank (player.js swimInteract). Alles blijft lokaal (geen gast-sync;
-// de bootpositie zelf blijft synchroon) en per frame beperkt tot boten binnen GOLF_REIKWIJDTE van de speler.
+// in het water, zonder leed, en klimt met E terug op de plank (player.js swimInteract). Het kielzog tilt ook het water zelf op
+// (kielzogveld.js): de brede golf die je ziet, laat lege boten deinen en wiebelt de supper die erin vaart. Alles blijft lokaal
+// (geen gast-sync; de bootpositie zelf blijft synchroon) en per frame beperkt tot boten binnen GOLF_REIKWIJDTE van de speler.
 // Puur op de wereld: geen THREE, geen DOM. Tests: scripts/golven_test.mjs.
+
+import { bouwKielzogVeld, setKielzogVeld } from './kielzogveld.js';
 
 export const GOLF_REIKWIJDTE = 90;      // m rond de speler: verder wordt er niets berekend
 export const KIELZOG_MIN_SNELHEID = 5;  // m/s: eerder maakt een boot geen merkbaar kielzog
@@ -109,9 +112,12 @@ export function valInHetWater(world, v) {
 // laat de speler omvallen als de golf te hoog blijft. Alleen binnen de reikwijdte, met een vaste bovengrens aan doelen.
 export function updateGolven(world, dt) {
   const speler = world.player;
-  if (!speler || !world.vehicles || !(dt > 0)) return;
+  if (!speler || !world.vehicles) { setKielzogVeld(null); return; }
+  if (!(dt > 0)) return;
   const tijd = world.time || 0;
   const { snel, klein } = boten(world, speler);
+  // hetzelfde kielzog tilt het water op dat de supper laat wiebelen (kielzogveld.js, water3d.js)
+  setKielzogVeld(bouwKielzogVeld(snel, speler.x, speler.y));
   if (!klein.length) return;
   const wind = windSterkte(world.weather, tijd);
   const regen = world.weather && world.weather.intensity ? world.weather.intensity : 0;

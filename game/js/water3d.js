@@ -2,13 +2,15 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { polygonBounds } from './util.js';
 import { onSettingsChange } from './settings.js';
 import { WATER_TONES as TONES, WATER_SHARED_GLSL } from './watertones.js';
+import { KIELZOG_GLSL, kielzogVeld, veldHoogte } from './kielzogveld.js';
 
 // Stylised canal water: a grid-filled surface clipped exactly to each water
 // polygon, low-poly faceted swell (derivative normals), a per-vertex
 // distance-to-shore attribute that drives the depth gradient, foam line,
 // duckweed and a flow direction along the canal. Reflections are faked:
 // sky gradient, a stepped skyline band of quay houses and, at night, warm
-// window/lamp streaks.
+// window/lamp streaks. Behind a fast boat the surface itself lifts into the
+// wake's V (kielzogveld.js, #417): four wakes at most, as uniforms.
 
 const QUALITY = { laag: 0, middel: 1, hoog: 2 };
 let quality = 2;
@@ -27,6 +29,8 @@ attribute float aFacade;
 uniform float uTime;
 uniform float uWave;
 uniform float uSea;
+
+${KIELZOG_GLSL}
 
 varying vec3 vWorldPos;
 varying float vEdge;
@@ -47,6 +51,7 @@ void main() {
 #if WATER_Q > 0
   float amp = smoothstep(0.15, 5.0, aEdge) * uWave * (1.0 + uSea * smoothstep(12.0, 24.0, aEdge));
   pos.y += waveH(wp0.xz + aFlow * uTime * 0.25, uTime) * amp;
+  pos.y += kielzogVeld(wp0.xz); // het kielzog tilt het water zelf op (#417)
 #endif
   vec4 worldPosition = modelMatrix * vec4(pos, 1.0);
   vWorldPos = worldPosition.xyz;
@@ -195,6 +200,11 @@ export function createWaterMaterial(sky = null) {
       uTime: { value: 0 },
       uWave: { value: TONES.wave },
       uSea: { value: 0 },
+      uWakeA: { value: new THREE.Vector4() },
+      uWakeB: { value: new THREE.Vector4() },
+      uWakeC: { value: new THREE.Vector4() },
+      uWakeD: { value: new THREE.Vector4() },
+      uWakeK: { value: new THREE.Vector4() },
       uDeepColor: { value: new THREE.Color(TONES.deep) },
       uShallowColor: { value: new THREE.Color(TONES.shallow) },
       uFoamColor: { value: new THREE.Color(TONES.foam) },
@@ -249,6 +259,7 @@ export function sharedWaterMaterial(sky = null) {
 
 let swellAmp = TONES.wave;
 let seaExtra = 0;
+const WAKE_SLOTS = ['uWakeA', 'uWakeB', 'uWakeC', 'uWakeD'];
 // sea = extra swell on open water (golven.js seaExtra): from 12 m to 24 m off the shore the swell grows by this factor (#417)
 export function updateWaterMaterial(material, time, rain = 0, night = 0, sea = 0) {
   const u = material.uniforms;
@@ -258,11 +269,19 @@ export function updateWaterMaterial(material, time, rain = 0, night = 0, sea = 0
   u.uLight.value = (0.14 + 0.86 * (1 - night)) * (1 - 0.3 * Math.min(1, rain));
   u.uWave.value = swellAmp = TONES.wave + TONES.waveRain * Math.min(1, rain);
   u.uSea.value = seaExtra = sea;
+  // the wakes of this frame (kielzogveld.js): four slots, the rest flat
+  const veld = kielzogVeld(), k = u.uWakeK.value;
+  for (let i = 0; i < WAKE_SLOTS.length; i++) {
+    const slot = u[WAKE_SLOTS[i]].value, w = veld[i];
+    if (w && w.sterkte > 0 && Number.isFinite(w.sterkte)) { slot.set(w.x, w.y, w.cx, w.cy); k.setComponent(i, w.sterkte); }
+    else { slot.set(0, 0, 1, 0); k.setComponent(i, 0); }
+  }
 }
 
 // The vertex shader's swell at world (x, z) on the CPU, for floating things
 // (scene3d.js boat buoyancy): edge = distance to the nearest shore, (tx, ty)
-// that shore's direction (the aFlow attribute, buildWaterGeometry).
+// that shore's direction (the aFlow attribute, buildWaterGeometry). The wake
+// field of this frame lifts the hull just like it lifts the mesh (#417).
 export function waterSwellAt(x, z, time, edge, tx, ty) {
   if (!quality) return 0;
   if (tx * 0.8 + ty * 0.6 < 0) { tx = -tx; ty = -ty; }
@@ -272,7 +291,7 @@ export function waterSwellAt(x, z, time, edge, tx, ty) {
     + Math.sin(px * 0.83 - pz * 0.66 + time * 1.7) * 0.15;
   const k = Math.min(1, Math.max(0, (edge - 0.15) / 4.85));
   const o = Math.min(1, Math.max(0, (edge - 12) / 12));
-  return h * k * k * (3 - 2 * k) * swellAmp * (1 + seaExtra * o * o * (3 - 2 * o));
+  return h * k * k * (3 - 2 * k) * swellAmp * (1 + seaExtra * o * o * (3 - 2 * o)) + veldHoogte(x, z);
 }
 
 export function waterSwellAmp() {
