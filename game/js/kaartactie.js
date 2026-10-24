@@ -98,4 +98,10 @@ export const KAART_UITLEG = [
   'Er is één waypoint tegelijk. Klik er nog eens op, of kies Haal weg, om hem te wissen.',
   'Reis erheen is snel reizen: dat kost tijd en geld. Zelf gaan zet een waypoint en je rijdt of loopt zelf.',
 ];
+// Alleen voor een gast in Samen spelen: waypoint kan, snel reizen niet.
+export const GAST_UITLEG = 'In Samen spelen kun je wel een waypoint zetten, maar niet snel reizen: dat kan alleen in je eigen spel.';
+
+// De hint bij je eigen plek op de kaart (#445), en de kaart als je op jezelf klikt.
+export const HIER_TITEL = 'Je staat hier';
+export const HIER_HINT = 'Kies een andere plek of een icoon om een waypoint te zetten of te reizen.';
 

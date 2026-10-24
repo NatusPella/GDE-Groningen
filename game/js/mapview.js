@@ -24,7 +24,7 @@ import { getStationsForRender } from './stationtravel.js';
 import { reisOptiesVoor, tekenLijnen, lijnLagen } from './reiskaart.js';
 import { kaartRijen } from './ovkaart.js';
 import { actieModel, reisKeuzes, infoRegels, GAST_REIS_MELDING, UITLEG_ID } from './kaartactie.js';
-import { actiesHtml, reisHtml, infoHtml, uitlegHtml, KAART_ACTIE_CSS } from './kaartactieui.js';
+import { actiesHtml, reisHtml, infoHtml, uitlegHtml, hierHtml, KAART_ACTIE_CSS } from './kaartactieui.js';
 import { markSeen, parseSeen } from './hudtext.js';
 import { optieRegel } from './ovopties.js';
 import { startMeerijden } from './reisrit.js';
@@ -1257,7 +1257,9 @@ function drawDynamicMarkers(ctx, world) {
     icon(null, 'userWaypoint', wp.x, wp.y, `Waypoint: ${wp.name}`, {}, 'klik voor Haal weg · rechtsklik of Del om te wissen', { isGoal: true });
   }
 
-  icon(null, 'player', world.player.x, world.player.y, 'Jij', { angle: world.player.angle });
+  // de hint bij je eigen plek (#445): waar je staat, ook als je even niet weet waar je bent
+  const hier = plekHier(world.player);
+  icon(null, 'player', world.player.x, world.player.y, 'Jij', { angle: world.player.angle }, hier ? `Je staat hier · ${hier}` : 'Je staat hier', { self: true, hier });
   // medespelers (samen spelen, #95): eigen kleur en vorm, naam en status bij de aanwijzer
   for (const p of world.coopPartners || []) if (p.zichtbaar) icon(null, 'partner', p.x, p.y, p.naam, { angle: p.heading, kleur: grijsBijPassief(world.coopPvp, p.slot) ? INK.passiefGrijs : p.kleur, vorm: p.vorm }, p.tekst + (grijsBijPassief(world.coopPvp, p.slot) ? ' · passief' : '')); // passief is grijs zodra er PvP in het spel is (#447)
   for (const m of world.coopPingMarks || []) icon(null, 'partner', m.x, m.y, m.naam ? `${m.naam}: ${m.tekst}` : m.tekst, { angle: 0, kleur: m.kleur, vorm: m.vorm }, 'roep');
@@ -1532,6 +1534,15 @@ function wijkAt(wx, wy) {
   return best;
 }
 
+// Waar je staat (#445): de straat, anders de wijk. De kaart staat stil, dus één
+// opzoeking per plek volstaat; niet elke beeldtijd opnieuw.
+let hierAt = { x: NaN, y: NaN, naam: '' };
+function plekHier(p) {
+  if (hierAt.x === p.x && hierAt.y === p.y) return hierAt.naam;
+  hierAt = { x: p.x, y: p.y, naam: streetAt(p.x, p.y, 40) || wijkAt(p.x, p.y) || '' };
+  return hierAt.naam;
+}
+
 function updateTooltip(sx, sy) {
   const tip = state.tooltip;
   const h = nearestHover(sx, sy);
@@ -1594,9 +1605,13 @@ function handleClick(world, sx, sy, shift = false) {
     else teleportTo(world, { x: wx, y: wy, name: plekNaam(streetAt(wx, wy, 60), wijkAt(wx, wy)) });
     return;
   }
+  // een klik op het waypoint zelf haalt het weg (#445): de tweede klik wist hem
+  if (h && h.isGoal) { hideCard(); clearUserWaypoint(); return; }
   if (state.card) { hideCard(); if (!h) return; }
+  // je eigen plek: een hint waar je staat, geen waypoint naar jezelf
+  if (h && h.self) { showCard(world, h, sx, sy); return; }
   // a marker: a small card with what it is and "Zet als doel"
-  if (h && h.name !== 'Jij') { showCard(world, h, sx, sy); return; }
+  if (h) { showCard(world, h, sx, sy); return; }
   const spot = state.map.nearestRoadPoint(wx, wy, 60);
   const x = spot && Math.hypot(spot.x - wx, spot.y - wy) < 30 ? spot.x : wx;
   const y = spot && Math.hypot(spot.x - wx, spot.y - wy) < 30 ? spot.y : wy;
@@ -1621,6 +1636,14 @@ function showCard(world, h, sx, sy) {
     h = { ...h, x: wx, y: wy };
   }
   const it = cardTodo(world, h.todo);
+  // op jezelf klikken: een hint bij je eigen plek, geen acties naar jezelf (#445)
+  if (h.self) {
+    const el = state.cardEl;
+    el.innerHTML = `<span class="mv-ico"><img src="${mapIconUrl('player')}" alt=""></span><div>${hierHtml(h.hier || '')}<div class="mv-btns"><button type="button" class="mapview-btn ghost" data-card="close">Sluiten</button></div></div>`;
+    el.hidden = false;
+    state.card = { h, self: true };
+    return;
+  }
   const goal = getGoal();
   const d = Math.hypot(h.x - world.player.x, h.y - world.player.y);
   const pips = it && it.medal != null ? `<span class="mv-pips">${[1, 2, 3].map((m) => `<span class="mv-pip" data-m="${m}"${it.medal >= m ? ' data-on' : ''} title="${MEDALS[m]}">${'BZG'[m - 1]}</span>`).join('')}</span>` : '';
@@ -1664,8 +1687,19 @@ function initKaartUitleg(overlay) {
   const st = document.createElement('style');
   st.textContent = KAART_ACTIE_CSS;
   document.head.appendChild(st);
-  const body = overlay.querySelector('.mapview-body');
-  if (!kaartGezien()) body.insertAdjacentHTML('beforeend', uitlegHtml());
+}
+// De uitleg past bij je rol (#445): een gast leest er de Samen spelen-regel bij.
+// Bij het openen, want of je gast bent kan na het starten veranderen.
+function syncKaartUitleg(world) {
+  const body = state.overlay.querySelector('.mapview-body');
+  if (!body) return;
+  const gast = !!world && world.coopRole === 'client' && !!world.coopNet;
+  const box = body.querySelector('.mv-uitleg');
+  if (box) {
+    if ((box.dataset.gast === '1') !== gast) box.outerHTML = uitlegHtml({ gast });
+    return;
+  }
+  if (!kaartGezien()) body.insertAdjacentHTML('beforeend', uitlegHtml({ gast }));
 }
 function sluitKaartUitleg(btn) {
   const box = btn.closest('.mv-uitleg');
@@ -1788,7 +1822,7 @@ const LEGEND = [
   { group: 'Altijd', rows: [
     { kind: 'player', label: 'Jij', note: 'en wie er met je meerijdt' },
     { kind: 'missionIdle', label: 'Verhaal', dyn: 'story' },
-    { kind: 'userWaypoint', label: 'Jouw waypoint', dyn: 'goal' },
+    { kind: 'userWaypoint', label: 'Jouw waypoint', dyn: 'goal', note: 'een klik erop of Haal weg haalt hem weg' },
     { kind: 'route', label: 'Route', note: 'doorgetrokken: verhaal of missie, streepjes: jouw doel, puntjes: klus, streep-punt: opknappen of repareren' },
   ] },
   { group: 'Te doen', rows: [
@@ -1961,6 +1995,7 @@ function openMap(world) {
   sizeCanvas();
   ensureLevel0();
   state.dirty = true;
+  syncKaartUitleg(world);
   const c = world.companion;
   if (state.legendMaat) state.legendMaat.textContent = c ? `Maat (${c.character === 'tammo' ? 'Tammo' : 'Tessa'})` : 'Maat';
   refreshLegend(world);

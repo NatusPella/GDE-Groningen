@@ -50,6 +50,8 @@ const html = UI.actiesHtml(m, null) + UI.reisHtml(keuzes, 'trein') + UI.infoHtml
 for (const id of ['waypoint', 'reis', 'info']) ok(html.includes(`data-card="${id}"`), `knop data-card=${id}`);
 ok(html.includes('aanbevolen') && html.includes('data-card="zelf"') && html.includes('data-card="kies:trein"'), 'de reiskeuze: aanbevolen, Zelf gaan en Snel reizen klikbaar');
 ok(html.includes('data-act="uitleg-sluit"') && html.includes('Besturing'), 'de uitleg is te sluiten en zegt waar je hem terugvindt');
+ok(UI.uitlegHtml({ gast: true }).includes('Samen spelen') && !UI.uitlegHtml().includes('Samen spelen'), 'een gast leest de Samen spelen-regel bij de uitleg');
+ok(/Je staat hier/.test(UI.hierHtml('Vismarkt')) && UI.hierHtml('Vismarkt').includes('Vismarkt'), 'hint bij je eigen plek op de kaart');
 
 // 5. het keuzevenster bij een verhaalrit: Snel reizen, Zelf gaan, Overslaan, uitgelegd en met aanbevolen
 const beat = { to: 'Zoutkamp', length: 9000, ride: 'bus', lines: ['Het ritje.'] };
@@ -71,6 +73,8 @@ ok(st.includes("'Als passagier meegaan'") && st.includes("'Zelf de trein besture
 const mv = read('game/js/mapview.js');
 ok(mv.includes("act === 'reis' || act === 'info'") && mv.includes("act === 'haalweg'") && mv.includes("name: name || 'Plek op de kaart'"), 'kaart: een klik op een plek opent de actiebalk (geen direct waypoint)');
 ok(mv.includes('GAST_REIS_MELDING') && mv.includes('ALLEEN_EIGEN_SPEL'), 'kaart: een gast krijgt een melding bij reizen');
+ok(mv.includes("h && h.isGoal") && mv.includes("if (h && h.isGoal) { hideCard(); clearUserWaypoint(); return; }"), 'kaart: een klik op het waypoint zelf haalt hem weg (tweede klik)');
+ok(mv.includes('{ self: true, hier }') && mv.includes('syncKaartUitleg(world)'), 'kaart: een hint bij je eigen plek en de uitleg volgt je rol');
 ok(mv.includes('data-card="close"') && mv.includes("act === 'goal'") && mv.includes("act === 'clear'"), 'kaart: de data-card-namen blijven');
 ok(read('game/js/storagekeys.js').includes("hudSeen: 'gde-hud-gezien'"), 'opslagsleutel gde-hud-gezien blijft (de uitleg onthoudt zijn eerste keer daar)');
 
