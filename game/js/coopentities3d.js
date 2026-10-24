@@ -187,7 +187,7 @@ export function syncHostEntities(world, dt = 1 / 60) {
   }
   for (const id of hornWas.keys()) if (!seen.has(id)) hornWas.delete(id);
   world.coopSirenUnits = sirenes; world.coopDeurenDbg = deurenOpen; world.coopSirenDbg = sirenes.length;
-  world.coopZittersDbg = syncZitters(world.coopZitters, zoekGastVoertuig); // wie meerijdt, op zijn stoel (#434)
+  world.coopZittersDbg = syncZitters(world.coopZitters, zoekGastVoertuig, world); // wie meerijdt, op zijn stoel (#434)
   if (klok - dbgT > 1) { // voor de testbank (eenmaal per seconde): wat de gast per voertuig laat zien
     dbgT = klok;
     const o = {};

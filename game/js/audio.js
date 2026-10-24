@@ -6,8 +6,9 @@ import { vehicleContacts } from './vehicle.js';
 import { gearboxReadout } from './gearbox.js';
 import { createBank, buildImpulse, variantsOf, bufferNames } from './sfx/dsp.js';
 import { FX_INFO } from './sfx/fxbank.js';
-import { plan as mixPlan, speechDuckFactor } from './sfx/mixplan.js';
+import { plan as mixPlan, speechDuckFactor, categoryLevel } from './sfx/mixplan.js';
 import { createLinkups } from './sfx/linkups.js';
+import { createSamples, SAMPLE_INFO, variatie, autoDeurPlan, slipLoopNiveau, slipLoopRate, grindNodig, HANDREM_MIN_V, SLIPSTOOT_SLIP } from './sfx/samples.js';
 import { initAmbience, updateAmbience, ambienceStats, getPlace } from './sfx/ambience.js';
 import { initFoley, updateFoley, propHit, foleyStats } from './sfx/foley.js';
 import { initUiSfx, uiWorldInit, updateUiSfx, uiDomEvent, isUiGestureTarget } from './sfx/ui.js';
@@ -131,6 +132,7 @@ let uiBus = null;
 let stingBus = null;
 let reverb = null;
 let bank = null;
+let samples = null;   // de CC0-opnames van game/audio/sfx (sfx/samples.js, #460)
 let kit = null;
 let noiseBuffer = null;
 let worldReady = false;
@@ -649,9 +651,9 @@ function playNoiseBurst({ duration = 0.12, freq = 1200, freqEnd, q = 1, gain = 0
 
 // One-shot from the procedural sample bank (sfx/dsp.js); silently skipped
 // while the buffer is still being rendered or the voice budget is spent.
-function playBuf(name, { out = null, bus = null, gain = 0.5, rate = 1, delay = 0, prio = 1, lp = 0 } = {}) {
-  if (!ctx || !bank || !voiceOk(prio)) return null;
-  const buffer = bank.get(name);
+function playBuf(name, { out = null, bus = null, gain = 0.5, rate = 1, delay = 0, prio = 1, lp = 0, buffer: own = null } = {}) {
+  if (!ctx || (!bank && !own) || !voiceOk(prio)) return null;
+  const buffer = own || bank.get(name);
   if (!buffer) return null;
   activeVoices++;
   const src = ctx.createBufferSource();
@@ -773,6 +775,34 @@ function playFx(name, x, y, opts = {}) {
   const src = playBuf(buf, { out, gain: info.gain * p.gain * (opts.gain ?? 1) * speaking, rate: p.rate * (opts.rate ?? 1), delay: p.delay, lp: p.lp, prio: 2 });
   if (src) fxStats.played++; else fxStats.notReady++;
   return !!src;
+}
+
+// One recording of sfx/samples.js at a place (#460): the same bus, panner, distance cut-off, air low pass and
+// speech ducking as playFx, a little random pitch (+-4%) and level (+-1.5 dB), a cool-down against repeats.
+// false = no recording loaded: the caller plays its synth. true = handled (also when too far or just played).
+export function sampleStats() { return samples ? { ...samples.stats } : null; }
+function playSample(key, x, y, opts = {}) {
+  const info = SAMPLE_INFO[key];
+  if (!ctx || !samples || !info) return false;
+  const buffer = samples.buffer(key);
+  if (!buffer) return false;
+  if (!samples.cool(key, ctx.currentTime)) return true;
+  const d = distToListener(x, y);
+  if (d > info.range) return true;
+  const out = spatialOut(x, y, { ref: info.ref, rolloff: 0.6, range: info.range, prio: 2 });
+  if (!out) return true;
+  const p = mixPlan(info, d, 0);   // vertraging en luchtfilter; niveau en variatie hieronder
+  const v = variatie();
+  const speaking = voiceBusy() ? speechDuckFactor(info.cat, 1) : 1;
+  playBuf(null, { buffer, out, gain: info.gain * categoryLevel(info.cat) * v.gain * (opts.gain ?? 1) * speaking, rate: v.rate * (opts.rate ?? 1), delay: p.delay + (opts.delay ?? 0), lp: p.lp, prio: 2 });
+  return true;
+}
+
+// In- en uitstappen bij een auto, bestelwagen of taxi: de greep, de deur open en daarna dicht (#460). false = de synth.
+function playAutoDeur(x, y) {
+  if (!samples || !samples.has('auto_deur_open')) return false;
+  for (const s of autoDeurPlan()) playSample(s.key, x, y, { delay: s.delay });
+  return true;
 }
 
 // The odd weapons (combat.js / throwables.js): swings, what they hit, the
@@ -2145,6 +2175,7 @@ function buildGraph() {
 
   noiseBuffer = buildNoiseBuffer(2);
   bank = createBank(ctx);
+  samples = createSamples(ctx);
   engine = buildEngine();
   sirenVoices = Array.from({ length: SIREN_VOICES }, buildSirenVoice);
   engineVoices = Array.from({ length: ENGINE_VOICES }, buildEngineVoice);
@@ -2197,6 +2228,7 @@ export function initAudio(world) {
   worldReady = true;
   contactCursor = vehicleContacts.head;
   loadGMusicManifest();
+  if (samples) samples.start();   // de opnames op de achtergrond: tot ze er zijn klinkt de synth
   primeWorld(world);
 }
 
@@ -2608,7 +2640,7 @@ function buildSquealVoice() {
   gain.connect(panner).connect(sfxBus);
   src.start();
   osc.start();
-  return { band, osc, gain, panner, level: 0, target: null, fresh: true };
+  return { band, osc, gain, panner, level: 0, target: null, fresh: true, loop: null };
 }
 
 function buildRumbleVoice() {
@@ -2680,6 +2712,19 @@ function buildHornVoice() {
   return { a, b, bGain, gain, on: false };
 }
 
+// The recorded tyre squeal (sfx/samples.js, #460) loops on the same panner as the synth voice, which stays underneath:
+// level and pitch follow the slip. Built the first time the recording is there.
+function buildSquealLoop(voice, buffer) {
+  const src = ctx.createBufferSource();
+  src.buffer = buffer;
+  src.loop = true;
+  const gain = ctx.createGain();
+  gain.gain.value = 0;
+  src.connect(gain).connect(voice.panner);
+  src.start();
+  return { src, gain };
+}
+
 function updateSqueal(dt, world) {
   let best = null, bestScore = 0;
   for (const v of world.paused ? NO_VEHICLES : world.vehicles) {
@@ -2698,7 +2743,7 @@ function updateSqueal(dt, world) {
   if (best) {
     const slip = best.slip;
     const small = best.isBike || best.isScooter;
-    target = clamp((slip - 0.3) / 0.6, 0, 1) * (small ? 0.12 : 0.34);
+    target = clamp((slip - 0.3) / 0.6, 0, 1) * (small ? 0.12 : 0.34) * (voice.loop ? 0.6 : 1);
     const wob = Math.sin(t * 23) * 60 + Math.sin(t * 7.3) * 90;
     const f = (small ? 2200 : 950) + slip * 700 + wob;
     voice.band.frequency.setTargetAtTime(f, t, 0.05);
@@ -2709,6 +2754,34 @@ function updateSqueal(dt, world) {
   voice.level += (target - voice.level) * Math.min(1, dt * (target > voice.level ? 12 : 5));
   if (voice.level < 0.002 && target === 0) voice.level = 0;
   voice.gain.gain.setTargetAtTime(voice.level, t, 0.03);
+  const buf = samples && samples.buffer('band_piep_bocht');
+  if (buf && !voice.loop) voice.loop = buildSquealLoop(voice, buf);
+  if (voice.loop) {
+    const on = best && !(best.isBike || best.isScooter);
+    const lvl = on ? slipLoopNiveau(best.slip) * SAMPLE_INFO.band_piep_bocht.gain * categoryLevel('voertuig') : 0;
+    voice.loop.gain.gain.setTargetAtTime(lvl, t, 0.06);
+    if (on) voice.loop.src.playbackRate.setTargetAtTime(slipLoopRate(best.slip), t, 0.08);
+  }
+}
+
+// One-shots of the recordings that follow what a car does (#460): the handbrake pulled above ~25 km/h or a sudden slide
+// (handrem_bocht), hard braking on grass (remmen_grind). Only vehicles in earshot; the cool-downs live in samples.js.
+function updateSampleTriggers(world) {
+  if (!samples || world.paused) return;
+  for (const v of world.vehicles) {
+    if (v.wrecked || v.isBoat || v.isHeli || v.isBike || v.isScooter) { v._hbWas = false; continue; }
+    const hb = !!v.handbrake, slip = v.slip || 0;
+    const burst = slip >= SLIPSTOOT_SLIP;
+    const edge = (hb && !v._hbWas) || (burst && !v._slipHi);
+    v._hbWas = hb;
+    if (slip < 0.4) v._slipHi = false; else if (burst) v._slipHi = true;
+    const fast = Math.abs(v.speed) > HANDREM_MIN_V;
+    if (edge && fast && distToListener(v.x, v.y, 0.4) < SQUEAL_RANGE) playSample('handrem_bocht', v.x, v.y);
+    if (grindNodig(v) && (v._grindAt === undefined || world.time - v._grindAt > 2) && distToListener(v.x, v.y, 0.4) < SQUEAL_RANGE) {
+      v._grindAt = world.time;
+      playSample('remmen_grind', v.x, v.y);
+    }
+  }
 }
 
 const RUMBLE = {
@@ -2839,8 +2912,9 @@ function playAudioEvents(world) {
       case 'hiccup': playHiccup(x, y, !!e.female); break;
       case 'weapon': playWeaponSfx(e, x, y); break;
       case 'giggle': playGiggle(x, y, !!e.female); break;
-      case 'door_open': if (!(e.wood && playFx('door_wood_open', x, y))) playDoor(x, y, true); doorDelay = 0.3; break;
-      case 'door_close': if (!(e.wood && playFx('door_wood_close', x, y))) playDoor(x, y, false); break;
+      case 'door_open': if (!(e.auto && playAutoDeur(x, y)) && !(e.wood && playFx('door_wood_open', x, y))) playDoor(x, y, true); doorDelay = 0.3; break;
+      case 'door_close': if (!(e.auto && playAutoDeur(x, y)) && !(e.wood && playFx('door_wood_close', x, y))) playDoor(x, y, false); break;
+      case 'sample': playSample(e.key, x, y, e); break;   // een opname van sfx/samples.js (treindeuren)
       // a minigame foot on the run-up (pg_fierljep.js) and a boat hitting a bridge (rondvaartchase.js)
       case 'step': playBuf('prop_wood', { out: spatialOut(x, y, { ref: 4, range: 50 }) || undefined, gain: 0.12 + clamp(e.strength ?? 0.5, 0, 1) * 0.2, rate: 0.9 + Math.random() * 0.2 }); break;
       case 'impact': propHit({ strength: e.strength ?? 0.7, material: e.material || 'wood' }, x, y); playFx('splash_big', x, y); break;
@@ -3516,6 +3590,7 @@ function updateWorldAudio(dt, world) {
   updatePaddling(dt, world);
   updateSailing(dt, world);
   updateSqueal(dt, world);
+  updateSampleTriggers(world);
   updateRumble(dt, world);
   updateScrape(dt, world);
   updatePlayerHorn(world);
