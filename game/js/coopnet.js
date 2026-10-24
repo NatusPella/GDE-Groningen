@@ -471,7 +471,7 @@ export const WACHT_TEKST = 'De wereld hier wordt nog geladen. Even wachten.';
 // Is deze speler los van de gastheer toegestaan? { ok, wacht }; zie coopfoci.js losBesluit
 export function losVoor(world, slot, x, y) {
   const p = world.player, info = world.coopFociInfo, n = world.coopNet;
-  if (!info || !p || (n && n.sprong > 0)) return { ok: false, wacht: false }; // een sprong van de gastheer (snelreizen, herstel) haalt iedereen bij, zoals altijd
+  if (!info || !p) return { ok: false, wacht: false }; // een sprong van de gastheer (snelreizen, herstel) haalt niemand meer bij: iedereen speelt vrij door de wereld
   const r = losBesluit({ aan: true, slot, bediend: info.bediend, dHost: Math.hypot(x - p.x, y - p.y), maxAfstand: MAX_AFSTAND, geladen: tegelGeladen(world, x, y) });
   return { ok: r.ok, wacht: r.wacht };
 }
@@ -485,7 +485,6 @@ export const SPRONG_M = 300, SPRONG_S = 0.8;
 export function werkFoci(world, dt = 0) {
   const n = world.coopNet; if (!n || n.role !== 'host' || !n.foci) return null;
   const p = world.player;
-  if (p && Number.isFinite(p.x) && n.hostLast && Math.hypot(p.x - n.hostLast.x, p.y - n.hostLast.y) > SPRONG_M) n.sprong = SPRONG_S; else if (n.sprong > 0) n.sprong -= dt;
   if (p && Number.isFinite(p.x)) n.hostLast = { x: p.x, y: p.y };
   if (!p || !Number.isFinite(p.x) || !Number.isFinite(p.y)) { world.coopFoci = null; world.coopFociInfo = null; return null; }
   leegRegister(n.foci);
@@ -553,7 +552,7 @@ export function bandFiguren(world, dt) {
     }
     fig.vastMeet = (fig.vastMeet || 0) + dt; // vast in water of een muur (bijvoorbeeld na een sprong van de gastheer): vier keer per seconde meten, want er kunnen tot 16 spelers zijn
     if (fig.vastMeet >= 0.25) { fig.vastTijd = world.coopVrij && !world.coopVrij(fig.x, fig.y, world) ? (fig.vastTijd || 0) + fig.vastMeet : 0; fig.vastMeet = 0; }
-    if (fig.verTijd >= (d > 300 && !los.ok ? 0.5 : FIGUUR_TERUG_S) || fig.vastTijd >= FIGUUR_TERUG_S) { // een sprong van de gastheer (snelreizen, herstel) haalt de figuur meteen bij
+    if (fig.verTijd >= (d > 300 && !los.ok ? 0.5 : FIGUUR_TERUG_S) || fig.vastTijd >= FIGUUR_TERUG_S) { // te lang buiten de groep zonder eigen interessegebied (meer dan acht groepen), of vast: terug bij de groep
       fig.verTijd = 0; fig.vastTijd = 0; fig.gewaarschuwd = false; fig.losGemeld = false; fig.wacht = false; fig.ongeladen = 0; fig.vx = 0; fig.vy = 0;
       if (plek) { fig.inVeh = v; fig.coopVoertuig = true; fig.stoel = vrijeStoel(world, fig, v); fig.x = v.x; fig.y = v.y; if (world.coopMeld) world.coopMeld(fig.slot, 'Je rijdt mee. Met E stap je uit als het voertuig stilstaat.'); continue; } // is er plek, dan zit hij weer in het voertuig (geen eindeloos terugzetten)
       if (!zetBijGroep(world, fig, (fig.slot * 1.7) % (Math.PI * 2)) && zetInBoot(world, fig)) { if (world.coopMeld) world.coopMeld(fig.slot, BOOT_MELD); continue; }

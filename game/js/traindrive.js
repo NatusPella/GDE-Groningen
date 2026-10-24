@@ -77,7 +77,7 @@ export function trainPrompt(world) {
       const ok = t.v < DOOR_STAND_V && t.doorsOpen;
       return { id: 'trein-rijden', x: car.x, y: car.y, h: t.cfg.height + 0.8, key: 'E', label: 'Uitstappen', sub: ok ? 'De deuren staan open' : t.v >= DOOR_STAND_V ? 'Wacht tot de trein stilstaat' : 'De deuren zijn dicht: druk O', ring: true, dim: !ok };
     }
-    if (walk.car === cabIndex(t) && Math.abs(walk.lx - cl.bulkhead) < 1.6) return { id: 'trein-cabine', x: car.x, y: car.y, h: t.cfg.height + 0.8, key: 'T', label: 'Terug naar de cabine', sub: 'Aan de knoppen', ring: true };
+    if (walk.car === cabIndex(t) && Math.abs(walk.lx - cl.bulkhead) < 1.6) return { id: 'trein-cabine', x: car.x, y: car.y, h: t.cfg.height + 0.8, key: 'T', label: 'Naar de cabine', sub: 'Aan de knoppen', ring: true };
     return null;
   }
   if (t) {
@@ -260,7 +260,7 @@ function startWalk(world, t) {
   const i = cabIndex(t), cl = trainLayout(t.cfg)[i], spot = cabDoorSpot(cl);
   world.trainWalk = { car: i, lx: spot.x, lz: spot.z, yaw: t.cab > 0 ? Math.PI : 0, pitch: 0 };
   cab.dm = 0; cab.warn = false;
-  world.addMessage('Je staat op: lopen met WASD, T terug naar de cabine, E bij een open deur', 3.5);
+  world.addMessage('Je staat op: lopen met WASD, T naar de cabine, E bij open deur', 3.5);
 }
 
 function stopWalk(world) {
