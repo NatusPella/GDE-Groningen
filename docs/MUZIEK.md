@@ -15,9 +15,9 @@ nachtpool (`"nachtstreek"`) voor Nachtstreek.
 
 | Programmablok | Tijd | Pool | Nummers nu | Praatje na | Jingles |
 |---|---|---|---|---|---|
-| Proat in de ochtend | 06:00-10:00 | dag | 14 (2 met `"day"`) | elke 2 nummers: Geesje, nieuws, verkeer, weer, reclame, de koeien | ja |
-| De hits | 10:00-18:00 | dag | 14 | elke 3 nummers: vooral Kiekdoar-nieuws, soms Geesje | ja |
-| Avondproat | 18:00-22:00 | dag | 14 | elke 3 nummers: Geesje, de koeien, Rikus, nieuws | ja |
+| Proat in de ochtend | 06:00-10:00 | dag | 20 (8 met `"day"`) | elke 2 nummers: Geesje, nieuws, verkeer, weer, reclame, de koeien | ja |
+| De hits | 10:00-18:00 | dag | 20 | elke 3 nummers: vooral Kiekdoar-nieuws, soms Geesje | ja |
+| Avondproat | 18:00-22:00 | dag | 20 | elke 3 nummers: Geesje, de koeien, Rikus, nieuws | ja |
 | Nachtstreek | 22:00-06:00 | nacht | 12 (6 ook in de dagpool) | elke 2 nummers: Rikus, soms nieuws | nee, wel een oude-radiofilter |
 
 De dagpool duurt ongeveer 37 minuten, de nachtpool ongeveer 16 minuten

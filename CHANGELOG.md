@@ -6,7 +6,11 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Nieuw
+- Zes nieuwe nummers op de radio voor overdag, in andere stijlen dan de rest (Proat in de ochtend, De hits en Avondproat).
+
 ## [0.49.0] - 2026-10-24
+
 ### Nieuw
 - Samen spelen: een sprong van wie het spel opende (snelreizen of herstel) haalt niemand meer bij; iedereen speelt vrij door de wereld. Alleen als er meer dan acht groepen uit elkaar zijn (geheugen) of iemand vastzit, wordt hij nog bij de groep gezet.
 - De acht Freesound-geluiden zitten nu in het spel: autodeuren, bandenslip, handrem, remmen op grind en treindeuren. Bij het in- en uitstappen van auto's, bestelwagens en taxi's hoor je de portiergreep, de deur open en de deur dicht (ook bij andere spelers in Samen spelen, zachter op afstand); bandenslip in bochten en bij driften piept mee met de synth, de handrem klinkt bij het pakken boven ongeveer 25 km/u en remmen op gras knarst. De treindeuren in de machinistdienst hebben een eigen open-, piep- en dichtgeluid dat de deurstatus volgt. Valt een opname weg, dan klinkt het oude synthgeluid (#460).
