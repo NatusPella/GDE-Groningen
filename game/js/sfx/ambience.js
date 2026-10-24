@@ -157,6 +157,16 @@ function nearestWater(map, x, y) {
   return { d: best, x: bx, y: by };
 }
 
+// Samen spelen (#434): een gast heeft in zijn eigen spel geen voertuig, ook niet als hij bij de host in een auto of boot zit. world.coopZit (coopnet.js)
+// is de soort van dat voertuig: dan klinkt de wereld zoals bij de host (dichte cabine dempt het gemurmel van de menigte, de wind en het verkeer).
+const GAST_VOERTUIG = { fiets: { isBike: true }, scooter: { isScooter: true }, motor: { isScooter: true }, boot: { isBoat: true } };
+export function rijdtIn(world) {
+  const v = world.player.inVehicle;
+  if (v) return v;
+  const z = world.coopRole === 'client' ? world.coopZit : null;
+  return z ? (GAST_VOERTUIG[z] || {}) : null;
+}
+
 function scan(world) {
   const map = world.map;
   const p = world.player;
@@ -227,11 +237,12 @@ function scan(world) {
 
   let peds = 0;
   for (const ped of world.pedestrians) if (ped.state !== 'dead' && Math.abs(ped.x - x) < 30 && Math.abs(ped.y - y) < 30) peds++;
+  if (world.coopRole === 'client' && world.coopHost) for (const q of world.coopHost.voetgangers || []) if (Math.abs(q.x - x) < 30 && Math.abs(q.y - y) < 30) peds++; // de voetgangers van de host: de menigte is dezelfde als bij hem (#434)
   place.peds = clamp(peds / 14, 0, 1);
 
   countryPlace(x, y);
 
-  const v = p.inVehicle;
+  const v = rijdtIn(world);
   const closed = !!v && !v.isBike && !v.isScooter && !v.isBoat;
   K.setReverb(place.density, place.open, closed);
 }
@@ -270,7 +281,7 @@ function setTargets(world) {
   const dn = world.dayNight || { hour: 12, night: 0 };
   const night = dn.night || 0, day = 1 - night, hour = dn.hour;
   const rain = clamp(world.weather ? world.weather.intensity : 0, 0, 1);
-  const v = world.player.inVehicle;
+  const v = rijdtIn(world);
   const closed = !!v && !v.isBike && !v.isScooter && !v.isBoat;
   const evening = smooth01(16, 19, hour) * (1 - smooth01(23.5, 24, hour)) + (hour < 2 ? 0.6 : 0);
   const paused = K.muted() ? 0 : world.paused ? 0.45 : 1;
@@ -280,7 +291,7 @@ function setTargets(world) {
   beds.wind.target = (0.03 + place.open * 0.04 + place.green * 0.015 + rain * 0.26) * (closed ? 0.35 : 1) * paused;
   beds.rain.target = rain * (closed ? 0.1 : 0.28) * paused;
   beds.roof.target = closed ? rain * 0.32 * paused : 0;
-  beds.crowd.target = Math.max(place.square * (0.2 * day + 0.08 * night), place.peds * 0.08, world.eventSound ? world.eventSound.gain * 0.22 : 0) * (1 - rain * 0.7) * cabin * paused;
+  beds.crowd.target = Math.max(place.square * (0.2 * day + 0.08 * night), place.peds * 0.08, (world.coopRole !== 'client' && world.eventSound ? world.eventSound.gain * 0.22 : 0)) * (1 - rain * 0.7) * cabin * paused;
   beds.terrace.target = place.horeca * (0.05 * day + evening * 0.16) * (1 - rain * 0.85) * cabin * paused;
   beds.crickets.target = night * Math.max(place.green, place.trees * 0.7) * 0.13 * (1 - rain) * cabin * paused;
   beds.lap.target = clamp(1 - place.waterD / 28, 0, 1) * (v && v.isBoat ? 0.32 : 0.2) * paused;

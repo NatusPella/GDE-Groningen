@@ -20,6 +20,8 @@ import { getSettings } from './settings.js';
 import { assistDamage } from './assistlive.js';
 import { squirtWater, throwExplosive, updateThrowables } from './throwables.js';
 import { noteWantedWhy } from './wantedwhy.js';
+import { gastAanval, gastLichamen } from './coopbestuur.js';
+import { wantedVan, zetWantedVan } from './coopgezocht.js';
 
 export { WEAPONS, WEAPON_KEYS, isMeleeWeapon, isRangedWeapon, isGunWeapon };
 
@@ -168,6 +170,26 @@ function meleeAttack(world, angle, weapon) {
   else meleeHit(world, angle, weapon, world.weapon);
 }
 
+// Samen spelen (#434): de slag of het schot van een gast met een wapen, vanuit zijn lichaam bij wie het spel opende (coopwapen.js wapenTick).
+// Geeft { fx, wacht } (het effect voor de aanvalshouding; wacht: een slag die pas na het uithalen landt) of null als het wapen niet kan.
+export function gastAanvalUitvoeren(world, slot, l, key, angle) {
+  const weapon = WEAPONS[key];
+  if (!weapon || !l || !(weapon.kind === 'melee' || weapon.kind === 'gun')) return null;
+  const ctx = { dader: slot, p: { x: l.x, y: l.y, gz: l.gz || 0, z: l.z || 0, crouching: !!l.crouching, inVehicle: null } };
+  if (weapon.kind === 'gun') { fireGun(world, angle, weapon, false, ctx, key); return { fx: { type: 'muzzle', swing: undefined } }; }
+  weaponSound(world, { sub: 'swing', weapon: key, x: l.x, y: l.y });
+  const fx = { type: 'melee', swing: weapon.swing };
+  if (weapon.windup) return { fx, wacht: { at: (world.time || 0) + weapon.windup, angle, key } };
+  meleeHit(world, angle, weapon, key, ctx);
+  return { fx };
+}
+export function gastSlagLanding(world, slot, l, wacht) {
+  const weapon = WEAPONS[wacht.key];
+  if (!weapon || !l) return false;
+  meleeHit(world, wacht.angle, weapon, wacht.key, { dader: slot, p: { x: l.x, y: l.y, gz: l.gz || 0, z: l.z || 0, crouching: !!l.crouching, inVehicle: null } });
+  return true;
+}
+
 function weaponSound(world, ev) {
   const q = world.audioEvents || (world.audioEvents = []);
   if (q.length < 64) q.push({ kind: 'weapon', ...ev });
@@ -175,9 +197,11 @@ function weaponSound(world, ev) {
 
 // What a swing connects with: people (knocked over by weapon.knock), cars
 // (fists and heavy swings only) and street props (toppled or broken).
-function meleeHit(world, angle, weapon, key) {
-  const p = world.player;
+// ctx: een gast met een wapen (samen spelen, #434): { p: zijn lichaam, dader: zijn plek }; schade en misdaad tellen bij hem, geen camera-effecten.
+function meleeHit(world, angle, weapon, key, ctx = null) {
+  const p = ctx ? ctx.p : world.player;
   if (p.inVehicle) return;
+  const gelockt = ctx ? null : lockedPed;
   const cone = weapon.cone || Math.PI / 3;
   const ca = Math.cos(angle), sa = Math.sin(angle);
   const inReach = (x, y, extra) => {
@@ -189,15 +213,15 @@ function meleeHit(world, angle, weapon, key) {
   };
   let landed = null;
   for (const t of world.pedestrians) {
-    if (t.state === 'dead' || t.scripted || !inReach(t.x, t.y, t === lockedPed ? 0.8 : 0)) continue;
-    damagePed(world, t, weapon.damage, true, ca, sa, true, weapon);
+    if (t.state === 'dead' || t.scripted || !inReach(t.x, t.y, t === gelockt ? 0.8 : 0)) continue;
+    damagePed(world, t, weapon.damage, true, ca, sa, true, weapon, ctx ? ctx.dader : 0);
     landed = landed || 'flesh';
   }
   for (const v of world.vehicles) {
     if (v.wrecked || v.sinking || v.isBoat || !inReach(v.x, v.y, v.halfLen * 0.7)) continue;
     if (weapon.damage >= 20 || key === 'fists') {
       v.health -= weapon.damage * 0.4;
-      if (v.health <= 0) wreckVehicle(world, v, true);
+      if (v.health <= 0) wreckVehicle(world, v, !ctx);
     }
     landed = landed || 'car';
   }
@@ -205,12 +229,12 @@ function meleeHit(world, angle, weapon, key) {
     const hx = p.x + ca * weapon.range * 0.6, hy = p.y + sa * weapon.range * 0.6;
     for (const pr of propsInRadius(hx, hy, weapon.range * 0.6 + 0.5)) {
       if (!inReach(pr.x, pr.y, 0.5)) continue;
-      shootProp(pr, ca, sa, true, weapon.prop || 1);
+      shootProp(pr, ca, sa, !ctx, weapon.prop || 1);
       landed = landed || 'prop';
     }
   }
   if (landed) weaponSound(world, { sub: 'hit', weapon: key, material: weapon.sound, on: landed, x: p.x + ca * weapon.range, y: p.y + sa * weapon.range });
-  if (landed === 'flesh' || landed === 'car') {
+  if (!ctx && (landed === 'flesh' || landed === 'car')) {
     world.lastMeleeHit = { time: world.time };   // main.js: korte timescale-dip (#216)
     const kick = world.camKick || (world.camKick = { pitch: 0, yaw: 0, fov: 0 });
     kick.yaw += (Math.random() - 0.5) * 0.02 * weapon.knock;
@@ -221,9 +245,9 @@ function meleeHit(world, angle, weapon, key) {
 // Camera recoil per shot: pitch up (rad), sideways jitter, FOV punch (deg).
 const KICK = { pistol: [0.022, 0.008, 1.6], uzi: [0.009, 0.006, 0.6], shotgun: [0.05, 0.014, 3.5], jachtgeweer: [0.075, 0.01, 2.2] };
 
-function fireGun(world, angle, weapon, scoped = false) {
-  setCombatEffect({ type: 'muzzle', angle, until: world.time + 0.06, start: world.time, weapon: world.weapon });
-  const p = world.player;
+function fireGun(world, angle, weapon, scoped = false, ctx = null, key = world.weapon) {
+  if (!ctx) setCombatEffect({ type: 'muzzle', angle, until: world.time + 0.06, start: world.time, weapon: world.weapon });
+  const p = ctx ? ctx.p : world.player;
   const v = p.inVehicle;
   const shots = weapon.pellets || 1;
   const base = v ? v.z || 0 : (p.gz || 0) + (p.z || 0);
@@ -249,12 +273,14 @@ function fireGun(world, angle, weapon, scoped = false) {
       traveled: 0,
       pellet: shots > 1,
       _shotFx: true,
+      ...(ctx ? { dader: ctx.dader } : {}),
     });
   }
   // the shot is its own audio event: a bullet that hits on its first step
   // (a wall in front, a near target) is gone before audio.js sees it
-  weaponSound(world, { sub: 'shot', weapon: world.weapon, x: p.x, y: p.y });
-  gunShotFx({ x: p.x + Math.cos(angle) * 0.7 + rx, y: p.y + Math.sin(angle) * 0.7 + ry, z: muzzleZ, angle, weapon: world.weapon, owner: 'player', casing: !v });
+  weaponSound(world, { sub: 'shot', weapon: key, x: p.x, y: p.y });
+  gunShotFx({ x: p.x + Math.cos(angle) * 0.7 + rx, y: p.y + Math.sin(angle) * 0.7 + ry, z: muzzleZ, angle, weapon: key, owner: 'player', casing: !v });
+  if (ctx) return; // een gast: de camera van wie het spel opende schudt niet
   const [kp, ky, kf] = KICK[world.weapon] || KICK.pistol;
   const kick = world.camKick || (world.camKick = { pitch: 0, yaw: 0, fov: 0 });
   kick.pitch = Math.min(0.12, kick.pitch + kp * (0.85 + Math.random() * 0.3));
@@ -286,7 +312,7 @@ export function updateBullets(dt, world) {
     if (first === 'prop') { propImpact(world, b, prop); continue; }
     if (first === 'car') { vehicleImpact(world, b, car); continue; }
     if (hitPedestrians(world, b, x0, y0)) continue;
-    if (b.owner !== 'player' && hitPlayer(world, b)) continue;
+    if (b.owner !== 'player' && (hitPlayer(world, b) || hitGast(world, b))) continue;
     if (b.traveled > b.range) { groundImpact(world, b); continue; }
 
     remaining.push(b);
@@ -315,7 +341,7 @@ const PROP_SURFACE = { metal: 'metal', wood: 'wood', foliage: 'wood', plastic: '
 function propImpact(world, b, h) {
   const sp = Math.hypot(b.vx, b.vy) || 1;
   const p = h.prop;
-  const broke = shootProp(p, b.vx / sp, b.vy / sp, b.owner === 'player', b.pellet ? 0.3 : 1);
+  const broke = shootProp(p, b.vx / sp, b.vy / sp, b.owner === 'player' && !b.dader, b.pellet ? 0.3 : 1);
   const surface = p.burst === 'glass' && broke ? 'glass' : PROP_SURFACE[p.material] || 'metal';
   gunImpactFx({ surface, x: h.x, y: h.y, z: b.z, nx: h.nx, ny: h.ny, pellet: b.pellet });
   sound(world, h.x, h.y, surface === 'glass' ? 'glass' : surface === 'metal' ? 'metal' : 'wood', b.pellet ? 0.3 : 0.6);
@@ -386,7 +412,7 @@ function vehicleOnPath(world, b, x0, y0) {
 function vehicleImpact(world, b, h) {
   const v = h.v;
   v.health -= b.damage * BULLET_VEHICLE_SCALE;
-  if (v.health <= 0) wreckVehicle(world, v, b.owner === 'player');
+  if (v.health <= 0) wreckVehicle(world, v, b.owner === 'player' && !b.dader);
   gunImpactFx({ surface: h.glass ? 'carglass' : 'metal', x: h.x, y: h.y, z: b.z, nx: h.nx, ny: h.ny, vehicle: v.wrecked ? null : v, pellet: b.pellet });
   sound(world, h.x, h.y, h.glass ? 'glass' : 'metal', b.pellet ? 0.3 : 0.6);
 }
@@ -406,14 +432,15 @@ function hitPedestrians(world, b, x0, y0) {
   }
   if (ped) {
     const bl = Math.hypot(b.vx, b.vy) || 1;
-    damagePed(world, ped, b.damage, b.owner === 'player', b.vx / bl, b.vy / bl, false);
+    damagePed(world, ped, b.damage, b.owner === 'player', b.vx / bl, b.vy / bl, false, WEAPONS.fists, b.dader || 0);
     sound(world, ped.x, ped.y, 'flesh', b.pellet ? 0.4 : 0.7);
     return true;
   }
   return false;
 }
 
-function damagePed(world, ped, damage, byPlayer, dx, dy, melee, weapon = WEAPONS.fists) {
+// dader: de plek van een gast die slaat of schiet (samen spelen, #434); 0 is de speler zelf
+function damagePed(world, ped, damage, byPlayer, dx, dy, melee, weapon = WEAPONS.fists, dader = 0) {
   ped.health -= damage;
   if (!melee) bloodSpray(world, ped.x, ped.y, dx, dy, ped.state === 'dead' ? 0.25 : 0.45);
   if (ped.state === 'dead') return;
@@ -428,6 +455,7 @@ function damagePed(world, ped, damage, byPlayer, dx, dy, melee, weapon = WEAPONS
       if (!ped.ragdoll) { ped.x += dx * 0.18; ped.y += dy * 0.18; }
       if (!ped.ragdoll && damage >= 14 && Math.random() < 0.25) knockDown(ped, world, { kind: 'shot', vx: dx * 2, vy: dy * 2, lieFor: 1 + Math.random() });
     }
+    if (dader > 0 && ped.isCop) gastAanval(world, dader, ped); // een agent geraakt: de politie komt, voor deze gast
     return;
   }
   ped.state = 'dead';
@@ -436,6 +464,11 @@ function damagePed(world, ped, damage, byPlayer, dx, dy, melee, weapon = WEAPONS
   knockDown(ped, world, { kind: melee ? 'punch' : 'shot', dead: true, vx: dx * fling, vy: dy * fling });
   bleedPed(ped, world, { size: melee ? 0.7 : 1 });
   if (!byPlayer) return;
+  if (dader > 0) { // een gast: zijn eigen gezocht-niveau, zijn misdaad (de teller van de speler blijft zoals hij was)
+    if (ped.isCop) zetWantedVan(world, dader, wantedVan(world, dader) + 2);
+    else gastAanval(world, dader, ped, { gedood: true });
+    return;
+  }
   world.stats.kills++;
   if (ped.isCop) {
     world.stats.copKills++;
@@ -445,6 +478,21 @@ function damagePed(world, ped, damage, byPlayer, dx, dy, melee, weapon = WEAPONS
     world.stats.pedKills++;
     reportCrime(world, 'pedKill');
   }
+}
+
+// Samen spelen (#434): een kogel van de politie raakt ook een gast (de politie jaagt op hem, coopgezocht.js); de schade gaat als bericht naar de gast zelf.
+function hitGast(world, b) {
+  if (b.owner !== 'police' || !world.coopSchade) return false;
+  for (const [slot, l] of gastLichamen(world)) {
+    if (l.inVehicle || l.inVeh || l.state === 'dead' || !Number.isFinite(l.x)) continue;
+    if (Math.hypot(l.x - b.x, l.y - b.y) > (l.radius || 0.4) + 0.12 || Math.abs((l.gz || 0) - (b.gz || 0)) > 3) continue;
+    world.coopSchade(slot, b.damage);
+    const bl = Math.hypot(b.vx, b.vy) || 1;
+    bloodSpray(world, l.x, l.y, b.vx / bl, b.vy / bl, 0.3);
+    sound(world, l.x, l.y, 'flesh', 0.6);
+    return true;
+  }
+  return false;
 }
 
 function hitPlayer(world, b) {

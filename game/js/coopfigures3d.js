@@ -8,7 +8,7 @@ import { getScene, getVehicleMesh } from './scene3d.js';
 import { syncZitters, aantalZitters } from './coopzitten3d.js';
 import { bestuurdersLijst } from './coopbestuur.js';
 import { isCinematicActive } from './cinematics.js';
-import { buildPersonMesh, animatePersonWalk } from './models3d_people.js';
+import { buildPersonMesh, animatePersonWalk, setHeldWeapon, applyAttackPose } from './models3d_people.js';
 import { figuurLook } from './coopplayers.js';
 import { ruimMeshOp } from './coopruim.js';
 import { syncBezig, hasBezigMeshes } from './coopbezig3d.js';
@@ -64,6 +64,9 @@ export function syncFigures(world, dt) {
     e.mesh.rotation.y = -(f.angle || 0);
     e.mesh.userData.crouch = !!f.crouching; // bukken (#434)
     animatePersonWalk(e.mesh, walkSpeed(e.prev, f, dt), dt);
+    if (f.coopWapen !== undefined || f.coopFx) { // het wapen in zijn hand en zijn slag of schot (een gast met een wapen, coopwapen.js, #434)
+      try { setHeldWeapon(e.mesh, f.coopWapen || null); if (f.coopWapen || f.coopFx) applyAttackPose(e.mesh, f.coopFx, world.time, null); } catch (er) { /* zonder wapen */ }
+    }
     e.prev = { x: f.x, y: f.y };
   }
   // bij de gastheer: de extra spelers in zijn voertuig zitten op hun stoel in zijn model (bij een gast doet coopentities3d.js dit voor iedereen, #434)

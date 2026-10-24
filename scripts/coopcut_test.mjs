@@ -1,6 +1,6 @@
 // Samen spelen (#95): cutscenes samen bekijken (coopcut.js): de scène gaat in stukjes naar de gasten en komt heel aan.
 import assert from 'node:assert/strict';
-import { cutPakket, cutStukken, cutEinde, nieuwCutVerzamelaar, leesCutPakket, cutHostStart, cutHostEnd, cutHostId, cutHostTik, cutGastTempo, cutGastTik, leesCutTijd, cutTijd, CUT_CHUNK } from '../game/js/coopcut.js';
+import { gastCine, cutPakket, cutStukken, cutEinde, nieuwCutVerzamelaar, leesCutPakket, cutHostStart, cutHostEnd, cutHostId, cutHostTik, cutGastTempo, cutGastTik, leesCutTijd, cutTijd, CUT_CHUNK } from '../game/js/coopcut.js';
 import { openingActs, END_CARD } from '../game/js/cutscenes.js';
 import { encodeJson, decodeJson, T } from '../game/js/net/codec.js';
 import { Reliable } from '../game/js/net/protocol.js';
@@ -95,5 +95,11 @@ for (const [i, act] of acts.entries()) {
   const g = { coopNet: { session: { rtt: 0.04 } }, coopCutHost: { id: 3, t: 5, stil: false, at: 0 } }; const zet = [];
   ok(cutGastTik(g, 3, 4, { tempo: (r) => zet.push(['rate', r]), tijd: (t) => zet.push(['tijd', t]) }, 0) && zet[0][0] === 'rate' && zet[0][1] > 1, 'gast past zijn tempo aan');
   ok(cutGastTik(g, 4, 4, { tempo: () => {}, tijd: () => {} }, 0) === null, 'een ander nummer: niets');
+}
+{ // een gast kan zijn eigen weergave overslaan; wat de gastheer overslaat stopt het bij iedereen (#434)
+  const klaar = () => {};
+  const c = gastCine({ id: 7, cine: { priority: 4, skippable: false, id: 'x' } }, klaar);
+  ok(c.skippable === true && c.cutId === 7 && c.onEnd === klaar && c.id === 'x', 'een gast mag zijn eigen filmpje overslaan');
+  ok(gastCine({ id: 8, cine: undefined }, klaar).skippable === true, 'ook zonder eigen opties');
 }
 console.log(`coopcut_test: ${n} ok`);

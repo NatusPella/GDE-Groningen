@@ -7,14 +7,14 @@
 import { WEAPON_KEYS } from './weapons.js';
 import { FX_SOORTEN, SWINGS } from './coopextra.js';
 
-export const KNOP_RENNEN = 1, KNOP_HANDREM = 2, KNOP_SPRING = 4, KNOP_BUK = 8;
+export const KNOP_RENNEN = 1, KNOP_HANDREM = 2, KNOP_SPRING = 4, KNOP_BUK = 8, KNOP_AANVAL = 16; // aanval: de aanvalsknop van een gast met een wapen (coopwapen.js)
 export const SPRONG_SNELHEID = 3.45; // m/s omhoog, zoals player.js (JUMP_SPEED): ongeveer 0,6 m hoog
 export const ZWAARTEKRACHT = 9.8;    // zoals player.js (GRAVITY)
 export const BUK_TEMPO = 0.55;       // een gast die bukt loopt zo veel langzamer (player.js CROUCH_SPEED)
 
 // Knoppen van de gast: rennen, handrem (met het stuur), springen en bukken (te voet).
-export function knoppen({ rennen = false, handrem = false, springen = false, bukken = false } = {}) {
-  return (rennen ? KNOP_RENNEN : 0) | (handrem ? KNOP_HANDREM : 0) | (springen ? KNOP_SPRING : 0) | (bukken ? KNOP_BUK : 0);
+export function knoppen({ rennen = false, handrem = false, springen = false, bukken = false, aanval = false } = {}) {
+  return (rennen ? KNOP_RENNEN : 0) | (handrem ? KNOP_HANDREM : 0) | (springen ? KNOP_SPRING : 0) | (bukken ? KNOP_BUK : 0) | (aanval ? KNOP_AANVAL : 0);
 }
 
 // Eén stap van de verticale beweging van het lichaam van een gast bij de host. s: { z, vz, springWas } (wordt bijgehouden);

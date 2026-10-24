@@ -14,6 +14,11 @@ nieuwe functies, `y` voor alleen bugfixes.
 ### Veranderd
 - Winkel (#437): het tabblad Alles staat nu achteraan in plaats van voorop, en een winkel opent bij de eerste afdeling (bij Pang Wapens & munitie).
 - Ommeland (#437): Pootje baden bij Kropswolde is geen dorpsuitje meer, het had geen doel; de strandtent De Natte Voet blijft.
+- Samen spelen: een gast met een wapen. Het wapen en de patronen komen uit zijn eigen spel; hij kiest ze met 1 tot 4 of het muiswiel en slaat of schiet met de muisknop. Wie het spel opende rekent de slag of het schot uit vanuit het lichaam van de gast, met de schade, de kogels en de patronen van dat wapen. Schade en misdaad tellen bij de gast, de anderen zien het wapen in zijn hand en zijn zwaai of schot.
+- Samen spelen: de politie schiet ook op een gezochte gast. Een kogel raakt hem, de schade komt van zijn eigen gezondheid en hij valt er niet door om.
+- Samen spelen: een gast die in een stilliggende boot zit (als bestuurder of bijrijder) kan vanaf het water hengelen, net als wie het spel opende.
+- Samen spelen: het geluid bij een gast klinkt zoals bij wie het spel opende. In een dichte auto of bus dempt de cabine het gemurmel van de menigte, de wind en het verkeer ook bij de gast, en de menigte bij de gast is die van wie het spel opende.
+- Samen spelen: alleen wie het spel opende bepaalt of een filmpje of verhaalstap voor iedereen wordt overgeslagen. Een gast kan zijn eigen weergave van een filmpje wel overslaan (Spatie vasthouden), de scène loopt bij de ander door. O doet bij een gast niets en geeft een melding.
 
 ## [0.47.0] - 2026-10-24
 

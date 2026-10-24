@@ -9,6 +9,8 @@ import { tryHorecaInteract } from './horeca.js';
 import { gastGebruik } from './coopnet.js';
 import { isShopOpen } from './shopui.js';
 import { gastKijkHoek, bezigEvent } from './coopgast.js';
+import { gastWapenTik } from './coopwapen.js';
+import { openerNaam } from './coopplayers.js';
 import { updateActivitiesGast, tryActivityInteractGast } from './activities.js';
 import { getSettings } from './settings.js';
 
@@ -23,9 +25,12 @@ function meldBezig(world, id) {
 
 export function updateGastLokaal(world, dt = 1 / 60) {
   const input = world.input;
-  if (!input || world.paused || isShopOpen()) return false;
+  if (!input || world.paused || isShopOpen()) { world.coopAanvalKnop = false; return false; } // geen aanval vanuit een menu of winkel
+  const n0 = world.coopNet;
+  gastWapenTik(world, dt, (ev) => { try { if (n0 && n0.role === 'client' && n0.session && n0.session.sendEvent) n0.session.sendEvent(ev); } catch (e) { /* de verbinding is er even niet */ } }); // je wapen en je aanvalsknop (#434)
   // de muis draait de camera (player.js doet dat niet voor een gast, #388); niet tijdens een filmpje met een eigen camera
   if (input.lookActive && input.lookActive() && !world.cameraOverride && input.mouse) world.camYaw = gastKijkHoek(world.camYaw ?? (world.player && world.player.angle), input.mouse.dx, getSettings().mouseSensitivity * (world.scoped ? 0.3 : 1));
+  if (input.wasPressed('o') && world.coopHostMissie && world.coopHostMissie.actief) world.addMessage(`${openerNaam(world.coopRoster, true)} bepaalt of de verhaalstap wordt overgeslagen.`, 3); // een verhaalstap overslaan kan alleen wie het spel opende (#434)
   const bezig = updateActivitiesGast(dt, world); // hengelen, pannenkoeken bakken, de beiaard: op je eigen scherm (#429)
   meldBezig(world, bezig);
   if (bezig) return true;
