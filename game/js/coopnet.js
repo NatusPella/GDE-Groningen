@@ -337,6 +337,23 @@ export function startClient(world, transport, info, opts = {}) {
   return session;
 }
 
+// De eigen voertuigen van een gast (zijn auto, boten, geparkeerd verkeer van zijn eigen wereld) gaan bij het aansluiten opzij: hij speelt in de wereld van de host, waar
+// het verkeer van de host de lijst vult, en zijn eigen voertuigen zouden daar bevroren (en dubbel) staan, in beeld, in het geluid en in de camera. Bij het verlaten van de sessie
+// (stopCoopNet, ook bij een host-overdracht) komt precies dezelfde lijst terug: niemand raakt een eigen voertuig kwijt. Zelfde array, want andere modules houden hem vast.
+export function zetEigenVoertuigenOpzij(world, n = world.coopNet) {
+  if (!n || n.eigenVoertuigen || !Array.isArray(world.vehicles)) return 0;
+  n.eigenVoertuigen = world.vehicles.splice(0);
+  return n.eigenVoertuigen.length;
+}
+export function zetEigenVoertuigenTerug(world, n) {
+  if (!n || !n.eigenVoertuigen) return 0;
+  const eigen = n.eigenVoertuigen; n.eigenVoertuigen = null;
+  if (!Array.isArray(world.vehicles)) world.vehicles = [];
+  world.vehicles.length = 0; // wat er in de sessie bij kwam (verkeer van de host) hoort niet bij het eigen spel
+  for (const v of eigen) world.vehicles.push(v);
+  return eigen.length;
+}
+
 // ---------------------------------------------------------------- elke frame
 function stepFigures(world, dt) {
   const f = figures(world);
@@ -769,7 +786,7 @@ export function tickCoopNet(world, dt) {
     }
     if (n.fixed && (s.status === 'ok' || s.status === 'lag')) {
       const sample = s.world();
-      if (sample && !n.joined) { n.joined = true; if (n.fade) n.fade('in'); }
+      if (sample && !n.joined) { n.joined = true; zetEigenVoertuigenOpzij(world, n); if (n.fade) n.fade('in'); }
       applyHostState(world, s.slot, sample, world.coopRoster, dt);
       const ik = sample && sample.players.find((q) => q.slot === s.slot);
       world.coopInVoertuig = !!(ik && ik.inVeh);
@@ -1172,6 +1189,7 @@ export function stopCoopNet(world) {
   if (world.coopCutBezig != null) cutGastStop(world, null, true); // een scène van de gastheer stopt met het samen spelen
   if (n.role === 'host') { try { n.hub.announce({ k: 'weg', reden: 'spel gestopt' }); n.hub.closeAll(); } catch (e) { /* al weg */ } } else { try { if (n.session.status !== 'geweigerd' && n.session.status !== 'verbroken') n.session.leave(); } catch (e) { /* al weg */ } }
   world.coopNet = null;
+  zetEigenVoertuigenTerug(world, n); // de eigen voertuigen van de gast komen terug (ook na een overdracht: de volgende startHost of startClient ziet de eigen lijst)
   if (n.role === 'client') { wedGastReset(world); bijbaanGastReset(world); } // een race tegen elkaar op zijn scherm houdt op (#443)
   if (n.role === 'client') gastVerhaalHerlaad(world); // een meegesprongen verhaal staat ook in het lopende spel, anders overschrijft de volgende save het (#429)
   if (n.role === 'client' && n.stash) {
