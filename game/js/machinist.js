@@ -7,6 +7,7 @@ import { createBoard, key } from './minigamekit.js';
 import { driveRange, routePoint, hijackTrain } from './railway.js';
 import { loopbaanVerdien } from './loopbaanlive.js';
 import { registerMusicProbe } from './scenariomusic.js';
+import { pushAudioEvent } from './pedgeom.js';
 import {
   startService, stepService, abandonService, boardView, doorsOpen, MEDAL_NAMES, STOPPED_V, payFor, wantedNaDienst,
 } from './machinistrules.js';
@@ -100,6 +101,11 @@ export function updateMachinist(dt, world, t) {
     if (doorsOpen(svc, world.time)) t.ctl.throttle = false;
     const events = stepService(svc, dt, { c: t.c, v: t.v, time: world.time, emergency: t.ctl.emergency });
     for (const e of events) if (e.kind === 'stopped' || e.kind === 'missed') world.addMessage(svc.flash, 3);
+    // korte geluidjes (stings.js): aankomst op een halte, en de deuren sluiten en de trein vertrekt
+    if (events.some((e) => e.kind === 'stopped')) pushAudioEvent(world, { kind: 'sting', name: 'halte' });
+    const deurenOpen = doorsOpen(svc, world.time);
+    if (svc.deurenWasOpen && !deurenOpen && !svc.finished) pushAudioEvent(world, { kind: 'sting', name: 'trein_vertrek' });
+    svc.deurenWasOpen = deurenOpen;
   }
   const v = boardView(svc, { v: t.v, time: world.time });
   if (v.done) {
