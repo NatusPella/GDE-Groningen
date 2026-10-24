@@ -279,7 +279,7 @@ export function build({ map }, attrs = loadAttrs(), terrain = loadTerrainRasters
       { type: G.SECTION.META, json: { nav: globalChains(map.roads) } },
       { type: G.SECTION.META, json: { meta: split.meta, counts, dryCrossings: map.dryCrossings || 0, clippedWays: clipped } },
       { type: G.SECTION.ROADS, version: 1, rows: [] },
-      ...['stations', 'levelCrossings', 'railRoutes', 'railLifts'].map((k) => ({ type: G.SECTION.META, json: { [k]: map[k] } })),
+      ...['stations', 'levelCrossings', 'railRoutes', 'railLifts', 'perrons'].map((k) => ({ type: G.SECTION.META, json: { [k]: map[k] } })),
     ],
   });
   return { blobs, global, counts, attrStats: joined.stats };
