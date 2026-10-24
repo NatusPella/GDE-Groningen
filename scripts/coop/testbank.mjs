@@ -27,8 +27,8 @@ if (!STAGE || !fs.existsSync(path.join(STAGE, 'index.html'))) { console.error('-
 const SUITE = arg('suite', 'basis');
 const DURATION = Number(arg('duration', 20));
 const MENU = flag('menu') || SUITE !== 'basis';
-const GASTEN = Math.max(0, Math.min(2, Number(arg('gasten', SUITE === 'verhaal' ? 2 : SUITE === 'figuren' || SUITE === 'uitelkaar' || SUITE === 'bestuur' ? 0 : 1))));  // 0: alleen de host in Electron en headless gasten (mock) erbij
-const MOCK = Math.max(0, Number(arg('mock', SUITE === 'figuren' || SUITE === 'uitelkaar' ? 3 : SUITE === 'bestuur' ? 2 : SUITE === 'net' ? (GASTEN > 1 ? 1 : GASTEN === 1 ? 2 : 3) : GASTEN === 0 ? 1 : 0)) || 0); // vier spelers: host + Electron-gasten + headless gasten
+const GASTEN = Math.max(0, Math.min(2, Number(arg('gasten', SUITE === 'verhaal' ? 2 : SUITE === 'figuren' || SUITE === 'uitelkaar' || SUITE === 'bestuur' || SUITE === 'wedstrijd' ? 0 : 1))));  // 0: alleen de host in Electron en headless gasten (mock) erbij
+const MOCK = Math.max(0, Number(arg('mock', SUITE === 'figuren' || SUITE === 'uitelkaar' ? 3 : SUITE === 'bestuur' || SUITE === 'wedstrijd' ? 2 : SUITE === 'net' ? (GASTEN > 1 ? 1 : GASTEN === 1 ? 2 : 3) : GASTEN === 0 ? 1 : 0)) || 0); // vier spelers: host + Electron-gasten + headless gasten
 const SECOND = GASTEN > 1 ? 'gast2' : 'gast'; // wie in de suite 'net' een slecht netwerk krijgt en later vertrekt
 const PUBLIEK = flag('publiek'); // de kamercode-route over de echte openbare brokers en STUN-servers (alleen internet nodig, geen nep-tracker)
 const ROUTE = arg('route', SUITE === 'kamer' ? 'kamer' : 'direct');
@@ -55,6 +55,7 @@ const P = {
   gastacties: Object.fromEntries(['host', 'gast', 'gast2'].map((me) => [me, [[14, 'gastwinkel', { s: 50 }], [66, 'gastrit', { s: 90 }], ...(me === 'host' ? [[160, 'stopHost', {}]] : [])]])), // #291: winkelen en een rit met het stuur
   uitelkaar: { host: [[0, 'wacht', { s: 6 }], [8, 'uitelkaar', { s: 20 }], [150, 'stopHost', {}]] }, // #429: twee figuren los van de gastheer (500 m en Delfzijl) in dezelfde sessie
   bestuur: { host: [[0, 'wacht', { s: 6 }], [8, 'bestuur', { s: Number(arg('bestuur-s', 150)) }], [8 + Number(arg('bestuur-s', 150)) + 6, 'stopHost', {}]] }, // #434: twee headless gasten bestuurden een auto, misdaad en politie
+  wedstrijd: { host: [[0, 'wacht', { s: 6 }], [8, 'wedhost', { s: 260 }], [280, 'stopHost', {}]] }, // #443: de host rijdt een race tegen twee headless gasten (de een stopt halverwege), uitslag, beloning en rematch
   figuren: { host: [[0, 'wacht', { s: 6 }], [8, 'figuren', { s: 8 }], [70, 'stopHost', {}]] }, // #366: de host met drie headless gasten (vier spelers); de figuren van plek 2 en 3 lopen op de echte wereld
   touch: { host: [[0, 'kijk', { s: 16 }]], gast: [[0, 'touch', { s: 12 }]], gast2: [[0, 'wacht', { s: 16 }]] },
 }[SUITE];
@@ -182,6 +183,31 @@ if (code && MOCK && ROUTE === 'direct') {
       E(); return { mx: 0, my: 0, buttons: 2, yaw: 0 };
     };
   };
+  // #443 (suite 'wedstrijd'): een headless gast die meedoet aan de race van de host: J op de uitnodiging, rijdt met de stick, stopt (gast B in de eerste race), vraagt een rematch
+  const WD = await import(new URL('../../game/js/coopwedstrijd.js', import.meta.url).href), KR = await import(new URL('../../game/js/kartrace.js', import.meta.url).href);
+  const wedBot = (m, i) => {
+    const st = { idx: 0, uit: 0, start: [], eind: [], beloning: [], st: 0, nogmaals: false, weg: false, spiegel: null, last: Date.now() / 1000, fasen: [] }; m.bot = st;
+    const rust = { mx: 0, my: 0, buttons: 0, yaw: 0 };
+    return () => {
+      const nu = Date.now() / 1000, dt = Math.min(0.1, nu - st.last); st.last = nu;
+      for (; st.idx < m.log.events.length; st.idx++) {
+        const b = m.log.events[st.idx][1];
+        if (b && b.k === 'beloning') st.beloning.push({ geld: b.geld, vak: b.vak, xp: b.xp });
+        const l = b && b.k === 'wed' ? WD.leesWed(b) : null; if (!l) continue;
+        if (l.f === 'uit') { st.uit++; m.session.sendEvent({ k: 'wedgast', a: 'ja' }); }
+        else if (l.f === 'start') { st.start.push(l.deeln.map((d) => d.naam)); st.spiegel = WD.maakSpiegel(l, m.session.slot); st.weg = false; }
+        else if (l.f === 'st' && st.spiegel) { st.st++; WD.voerIn(st.spiegel, l); }
+        else if (l.f === 'eind') { st.eind.push({ gestopt: !!l.gestopt, jij: l.jij, rijen: l.rijen.length }); st.spiegel = null; if (!l.gestopt && i === 0 && !st.nogmaals) { st.nogmaals = true; m.session.sendEvent({ k: 'wedgast', a: 'nogmaals' }); } }
+      }
+      const sp = st.spiegel; if (!sp) return rust;
+      let inv = { throttle: 0, steer: 0, drift: false };
+      if (sp.phase === 'race' && !sp.karts[0].finished) inv = KR.aiInput(sp.karts[0], sp.track, { skill: 0.9, others: sp.karts, dt: 0.05 });
+      if (i === 1 && !st.eind.length && !st.weg && sp.phase === 'race' && sp.raceT > 30) { st.weg = true; st.spiegel = null; m.session.sendEvent({ k: 'wedgast', a: 'weg' }); return rust; } // gast B stopt halverwege de eerste race
+      if (!st.fasen.length || st.fasen[st.fasen.length - 1] !== sp.phase) st.fasen.push(sp.phase);
+      WD.tikSpiegel(sp, dt, () => inv);
+      return { mx: inv.steer, my: -inv.throttle, buttons: inv.drift ? 2 : 0, yaw: 0 };
+    };
+  };
   const spin = (i) => (t) => ({ mx: Math.cos(t / 3 + i), my: Math.sin(t / 3 + i), run: false, yaw: 0 });
   // een headless gast die achter Tammo aanloopt (camerahoek 0: wereld-x = -my, wereld-y = mx), zoals een speler die meespeelt
   const volg = (m) => () => {
@@ -196,7 +222,7 @@ if (code && MOCK && ROUTE === 'direct') {
     if (i === 1 && EXPECT > 8) await waitFor(host.events, 'max-knop', 90000); // de gastheer kiest "Tot 16 spelers" zodra de eerste gast er is; de rest komt pas daarna (anders is de TCP-kant vol bij 8)
     try {
       const m = await startMockGuest({ stage: STAGE, code: guestCode, wens: undefined, net: SUITE === 'net' && (GASTEN > 0 || i === MOCK - 1) ? { latency: 0.08, jitter: 0.03, loss: 0.05 } : {}, seed: 7 + i });
-      m.input = SUITE === 'verhaal' ? volg(m) : SUITE === 'bestuur' ? bestuurBot(m, i) : spin(i); mocks.push(m); console.log('mockgast', i + 1, 'verbonden');
+      m.input = SUITE === 'verhaal' ? volg(m) : SUITE === 'bestuur' ? bestuurBot(m, i) : SUITE === 'wedstrijd' ? wedBot(m, i) : spin(i); mocks.push(m); console.log('mockgast', i + 1, 'verbonden');
       setTimeout(() => console.log('mockgast', i + 1, 'plek', m.session.slot, 'status', m.session.status), 8000);
     } catch (e) { problems.push('mockgast: ' + e.message); }
   }
@@ -318,6 +344,32 @@ if (GASTEN === 0) { // alleen de host in Electron: wat de headless gasten en de 
     check(wg && wg.terugNa != null, 'figuren: wegdwalen: de figuur werd niet bij de groep gezet: ' + JSON.stringify(wg));
     const g2 = st && mocks.find((m) => m.session.slot === st.slots[0]), meld = g2 ? g2.log.events.map(([, b]) => b).filter((b) => b.k === 'melding').map((b) => b.tekst).join(' | ') : '';
     check(/Blijf bij de groep/.test(meld) && /weer bij de groep/.test(meld), 'figuren: de gast kreeg de meldingen niet: ' + meld);
+  }
+  if (SUITE === 'wedstrijd') { // #443: een race tegen elkaar, gezien vanaf de host (Electron) met twee headless gasten
+    const e1 = (n) => of(H, n)[0], ka = e1('wedhost-kassa'), ui = of(H, 'wedhost-uitnodiging'), stt = of(H, 'wedhost-start'), ein = of(H, 'wedhost-einde'), ul = e1('wedhost-uitslag'), rv = e1('wedhost-rematch-verzoek'), stp = e1('wedhost-stop'), gs = e1('wedhost-gestopt');
+    const [A, B] = mocks, a = A && A.bot, b = B && B.bot;
+    for (const [n, x] of [['kassa', ka], ['uitnodigingen', ui.map((u) => u.kaart)], ['start', stt], ['einde', ein], ['uitslag', ul], ['rematch', rv], ['stop', stp], ['gestopt', gs]]) note('wedhost-' + n + ': ' + JSON.stringify(x));
+    note('gast A: ' + JSON.stringify(a && { uit: a.uit, start: a.start, eind: a.eind, beloning: a.beloning, snapshots: a.st, fasen: a.fasen }));
+    note('gast B: ' + JSON.stringify(b && { uit: b.uit, start: b.start, eind: b.eind, beloning: b.beloning, snapshots: b.st, weg: b.weg }));
+    check(ka && ka.gasten === 2 && ka.afstand < 60, 'wedstrijd: de gasten stonden niet bij de kassa: ' + JSON.stringify(ka));
+    check(ui.length === 2 && ui[0].wed && /Uitnodiging|Meedoen|Karten/i.test(ui[0].kaart + ' x'), 'wedstrijd: de host zag de uitnodiging niet: ' + JSON.stringify(ui[0]));
+    check(a && b && a.uit === 2 && b.uit === 2, 'wedstrijd: elke gast hoort twee keer Meedoen? te krijgen: ' + JSON.stringify([a && a.uit, b && b.uit]));
+    check(stt.length === 2 && stt[0].karts.length === 4 && stt[0].karts[0] === 'Tammo' && stt[0].karts.includes('Tessa') && stt[0].companionVast, 'wedstrijd: de race begon niet met host en gasten: ' + JSON.stringify(stt[0]));
+    check(a && a.start[0] && a.start[0].length === 3 && b && b.start[0] && b.start[0].length === 3, 'wedstrijd: de start bij de gasten klopt niet (drie mensen): ' + JSON.stringify([a && a.start, b && b.start]));
+    const e1h = ein[0];
+    check(e1h && e1h.duur > 60 && e1h.duur < 200 && e1h.fasen.map((f) => f[0]).join().startsWith('grid,race') && !e1h.online && !e1h.camera, 'wedstrijd: race 1 liep niet goed: ' + JSON.stringify(e1h));
+    check(e1h && e1h.bord.some((x) => /Ronde/.test(x) && /Plaats/.test(x) && /Tijd/.test(x)) && e1h.gast.length === 4, 'wedstrijd: het bord of de stand van de karts ontbreekt: ' + JSON.stringify(e1h && { bord: e1h.bord, gast: e1h.gast }));
+    check(e1h && e1h.gast.filter((k) => k[1] > 100).length >= 3, 'wedstrijd: na 45 s waren de gasten niet verder gekomen: ' + JSON.stringify(e1h && e1h.gast));
+    check(ul && /Uitslag/.test(ul.kaart) && /Tammo/.test(ul.kaart) && ul.rijen && ul.rijen.length === 4 && ul.lichamenVrij, 'wedstrijd: de uitslag klopt niet: ' + JSON.stringify(ul));
+    check(ul && ul.jij && ul.jij.fin && ul.geldErbij > 0, 'wedstrijd: wie het spel opende kreeg geen beloning voor zijn plek: ' + JSON.stringify(ul && { jij: ul.jij, geld: ul.geldErbij }));
+    check(a && a.eind.length >= 1 && a.eind[0].jij && a.eind[0].rijen === 4 && a.beloning.length >= 1 && a.beloning[0].vak === 'race', 'wedstrijd: gast A kreeg geen uitslag of beloning: ' + JSON.stringify(a && { eind: a.eind, beloning: a.beloning }));
+    check(a && a.eind[0] && a.eind[0].jij && a.beloning[0] && (a.eind[0].jij.fin ? a.beloning[0].geld === a.eind[0].jij.geld : true), 'wedstrijd: de beloning van gast A is niet het bedrag van zijn plek: ' + JSON.stringify(a && [a.eind[0], a.beloning[0]]));
+    check(b && b.weg && !b.eind.some((x) => !x.gestopt) && b.beloning.length === 0, 'wedstrijd: gast B (gestopt halverwege) kreeg een uitslag of beloning, of stopte niet: ' + JSON.stringify(b && { weg: b.weg, eind: b.eind, beloning: b.beloning }));
+    check(ul && ul.rijen && ul.rijen.some((x) => x.weg), 'wedstrijd: de uitslag toont de speler die wegviel niet als weggevallen: ' + JSON.stringify(ul && ul.rijen));
+    check(a && a.st > 700, 'wedstrijd: gast A kreeg te weinig momentopnamen: ' + (a && a.st));
+    check(rv && rv.willen.includes('1'), 'wedstrijd: het verzoek om een rematch kwam niet bij de host aan: ' + JSON.stringify(rv));
+    check(stp && gs && !gs.online && gs.vrij && !gs.camera, 'wedstrijd: stoppen in de rematch liet de host niet vrij: ' + JSON.stringify([stp, gs]));
+    check(a && a.eind.length >= 2 && a.eind[1].gestopt && a.beloning.length === 1, 'wedstrijd: stopt de host dan krijgt niemand een beloning, gast A hoort dat: ' + JSON.stringify(a && { eind: a.eind, beloning: a.beloning }));
   }
   if (SUITE === 'bestuur') { // #434: een gast bestuurt een voertuig van de host; politie en gezocht-niveau per speler
     const e1 = (n) => of(H, n)[0], st = e1('bestuur-start'), sam = of(H, 'bestuur-sample'), eind = e1('bestuur-eind');

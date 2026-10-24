@@ -5,10 +5,12 @@ import { showBanner } from './cinematics.js';
 import { unlockAchievement, recordChallengeResult, getChallengeRecord, recordStat, MEDALS } from './achievements.js';
 import { showCard } from './hudcards.js';
 import { activityBlock, iconDisc } from './activitykit.js';
-import { createBoard, key, bubble, clearBubbles, pick, stopPressed, easeCamera, clamp } from './minigamekit.js';
+import { loopbaanVerdien } from './loopbaanlive.js';
+import { createBoard, key, bubble, clearBubbles, pick, stopPressed, easeCamera, clamp, makeRng } from './minigamekit.js';
 import { PUTT_LINES } from './minigamelines.js';
 import { WOLFIE, SIR, newEtiquette, beginHole as etqBegin, step as etqStep, holeDone as etqHoleDone, misser as etqMisser, einde as etqEinde, hallo as etqHallo, plan as etqPlan, aanDeBeurt as etqBeurt } from './golfetiquette.js';
 import { loadEchtePlekken, golfVenues, nearestOf } from './echteplekken.js';
+import { registreerWedstrijd, zetWedGastHaken, wedNodigUit, wedNuStarten, wedHostScore, wedGastScore, wedScoreStop, wedGastVerlaat, wedGastReset, wedScoreRijen } from './coopwedstrijd.js';
 import { nieuweBeurt, beginBaan, slaan, volgendeBaan, spelerStand, spelerIds, spelerNaam, spelerAantal, uitslag, MAX_SPELERS } from './golfbeurt.js';
 import {
   ppHoles, holesFromWorld, venueLayout, slopeAt, onGreen, inBunker, pitch, putt, straightPower, powerForCarry, finishHole, newCard, cardTotals, courseMedal, holeName, relText,
@@ -50,16 +52,19 @@ function setVenues(list) {
 }
 
 // The venue the player is at (the nearest); a new one drops the old course meshes.
-function focus(w) {
-  if (game) return;
-  const n = nearestOf(venues, w.player.x, w.player.y);
-  if (!n || n.item === venue) return;
-  venue = n.item;
+function zetVenue(item) {
+  if (!item || item === venue) return;
+  venue = item;
   layout(venue.holes);
   if (built) {
     getScene().remove(built.root, built.ball, built.line, built.ring, built.keeper, built.sir, built.wolfie);
     built = null;
   }
+}
+function focus(w) {
+  if (game) return;
+  const n = nearestOf(venues, w.player.x, w.player.y);
+  if (n) zetVenue(n.item);
 }
 // de bal is een derde van de put (CUP_R * 1,4 = 15 cm straal): groter dan een echte bal voor het oog, maar hij past duidelijk in het hol (#436)
 const BALL_R = 0.05;
@@ -232,25 +237,30 @@ function interact(w) {
   if (!nearStand(w)) return false;
   const why = activityBlock(w);
   if (why) { w.addMessage(why, 2.5); return true; }
+  // with guests in the session the round is an invitation to everyone (Meedoen? J/N); pressing E again starts at once (#443)
+  const uit = wedNodigUit(w, 'pitchputt');
+  if (uit.ok) { if (uit.reden === 'wacht') wedNuStarten(w); return true; }
   start(w);
   return true;
 }
 
-function start(w, { force = false } = {}) {
+// online: 'host' (who opened the game, at the stand) or 'gast' (on his own screen, on the venue of the host, venueId): everybody plays his own six holes at once (#443)
+function start(w, { force = false, online = null, venueId = null } = {}) {
   if (game) return false;
-  if (!force && activityBlock(w)) return false;
-  focus(w);
+  if (!force && !online && activityBlock(w)) return false;
+  if (venueId) zetVenue(venues.find((v) => v.id === venueId)); else focus(w);
   if (!built) built = buildCourse(w);
   const p = w.player;
-  if (p.inVehicle) p.exitVehicle(w.map, w);
+  if (p.inVehicle && p.exitVehicle) p.exitVehicle(w.map, w);
   ensureBoard();
   board.show();
   runs++;
-  game = { t: 0, hole: 0, strokes: 0, phase: 'aim', phaseT: 0, card: newCard(HOLES), players: null, b: null, pi: 0, volgende: null, lie: null, yaw: 0, charge: 0, charging: false, anim: null, flash: null, cam: null, said: 0, bunker: false, rng: Math.random, etq: newEtiquette(), misserT: -99 };
+  game = { t: 0, hole: 0, strokes: 0, phase: 'aim', phaseT: 0, card: newCard(HOLES), players: null, b: null, pi: 0, volgende: null, lie: null, yaw: 0, charge: 0, charging: false, anim: null, flash: null, cam: null, said: 0, bunker: false, rng: Math.random, etq: newEtiquette(), misserT: -99, online };
   etqQ = [];
   etqNext = { sir: 0, wolfie: 0 };
   zetSpelers(game, 1);
   beginHole(w);
+  if (online === 'gast') return true; // a guest reads the keys on the board; the host's invitation said what is played
   showCard(w, { kind: 'tip', kicker: 'Pitch & putt', title: 'Zes korte banen', body: '[A] [D] richten (Shift: fijn), houd [Spatie] en laat los. Het witte streepje op de meter is de kracht voor een rechte slag naar de vlag. Lees de pijltjes op de green. Met [2], [3] of [4] spelen meer mensen om de beurt op dit scherm.', duration: 10, key: 'pitchputt-help', voice: false });
   say(w, 'start', true);
   return true;
@@ -350,7 +360,7 @@ function shoot(w, power, over = {}) {
     res = putt(h, from, yaw, power);
     g.anim = { kind: 'putt', path: res.path.map((p) => [p[0], p[1], 0]), step: 0.04, t: 0, res };
   } else {
-    res = pitch(h, from, yaw, power, g.rng, g.bunker);
+    res = pitch(h, from, yaw, power, g.online ? makeRng(443 + g.hole * 101 + g.strokes * 7919) : g.rng, g.bunker);
     const carry = res.carry;
     const fly = 0.6 + carry / 45;
     const arc = [];
@@ -393,6 +403,7 @@ function holeDone(w, strokes, why) {
   const g = game;
   const h = HOLES[g.hole];
   finishHole(g.card, g.hole, strokes);
+  if (g.online) { const sl = Math.min(strokes, h.par + MAX_OVER_PAR); if (g.online === 'host') wedHostScore(w, g.hole, sl); else wedGastScore(w, g.hole, sl); }
   const name = why === 'opgepakt' ? 'Opgepakt' : holeName(strokes, h.par);
   const wie = meerdere(g) ? `${g.players[g.pi].naam}: ` : '';
   g.flash = { text: `${wie}${name}: ${strokes} slag${strokes === 1 ? '' : 'en'} (par ${h.par})`, t: 3, bad: strokes > h.par };
@@ -408,7 +419,10 @@ function nextHole(w) {
   const g = game;
   g.hole++;
   if (g.b) volgendeBaan(g.b);
-  if (g.hole >= HOLES.length) { end(w); return; }
+  if (g.hole >= HOLES.length) {
+    if (g.online) { g.hole = HOLES.length - 1; g.phase = 'wacht'; g.phaseT = 0; g.flash = null; return; } // all holes done: wait for the others (the host ends the round)
+    end(w); return;
+  }
   beginHole(w);
 }
 
@@ -435,6 +449,7 @@ function updateGame(w, dt) {
   g.t += dt;
   g.phaseT += dt;
   if (g.flash && (g.flash.t -= dt) <= 0) g.flash = null;
+  if (g.online === 'gast' && (!w.coopNet || w.coopRole !== 'client')) { wedGastReset(w); end(w, { quit: true, extern: true }); return; } // the connection is gone
   if (stopPressed(input)) { end(w, { quit: true }); return; }
   const p = w.player;
   p.speed = 0; p.moving = false; p.vx = 0; p.vy = 0; p.z = 0;
@@ -449,7 +464,7 @@ function updateGame(w, dt) {
     const ax = (input.isDown('d') || input.isDown('arrowright') ? 1 : 0) - (input.isDown('a') || input.isDown('arrowleft') ? 1 : 0);
     g.yaw += ax * dt * (putting ? 0.32 : 0.5) * slow;
     p.angle = g.yaw;
-    if (g.hole === 0 && !g.charging && g.b.spelers.every((s) => s.slagen === 0)) {
+    if (g.hole === 0 && !g.online && !g.charging && g.b.spelers.every((s) => s.slagen === 0)) {
       for (let k = 1; k <= MAX_SPELERS; k++) if (input.wasPressed(String(k)) && spelerAantal(k) !== g.players.length) { kiesSpelers(w, k); break; }
     }
     if (input.isDown(' ')) {
@@ -477,7 +492,7 @@ function updateGame(w, dt) {
   if (game === g) etqSay(w, etqStep(g.etq, dt, { laadt: charging, draait: turning, schiet: g.strokes > shotsBefore }));
 }
 
-function end(w, { quit = false } = {}) {
+function end(w, { quit = false, extern = false, uitslag = null } = {}) {
   const g = game;
   if (!g) return;
   game = null;
@@ -488,6 +503,7 @@ function end(w, { quit = false } = {}) {
   etqQ = [];
   etqNext = { sir: 0, wolfie: 0 };
   if (built) { built.line.visible = false; built.ring.visible = false; built.ball.visible = false; built.keeper.visible = !quit; built.sir.visible = !quit; built.wolfie.visible = !quit; built.keeperUntil = w.time + 14; built.holes.forEach((hh) => { hh.arrows.visible = false; }); }
+  if (g.online) { eindeOnline(w, g, quit, extern, uitslag); return; }
   if (quit) { w.addMessage('Pitch & putt gestopt', 2.5); return; }
   if (meerdere(g)) { eindeMeerdere(w, g); return; }
   const t = cardTotals(g.card);
@@ -503,6 +519,21 @@ function end(w, { quit = false } = {}) {
   showBanner({ kind: medal ? 'pass' : 'fail', title: medal >= 3 ? 'ONDER PAR OP DE CONCOURSLAAN' : medal ? 'NETTE RONDE' : 'DE GREEN WON', reason: medal ? `${relText(t.rel)} t.o.v. par over zes banen` : 'Probeer het nog eens: lees de pijltjes op de green', reward: 0, stats });
   say(w, medal >= 2 ? 'endGood' : 'endPoor', true, true);
   etqSay(w, etqEinde(g.etq, medal >= 2));
+}
+
+// Online (#443): wie stopt laat de anderen doorspelen; de uitslag en de beloning komen van wie het spel opende (coopwedstrijd.js).
+function eindeOnline(w, g, quit, extern, res) {
+  if (quit) {
+    if (!extern) { if (g.online === 'host') wedScoreStop(w); else wedGastVerlaat(w); } // the host stops it for everybody, a guest only for himself
+    w.addMessage('Pitch & putt gestopt', 2.5);
+    return;
+  }
+  if (g.online === 'gast' || !res) return; // a guest: the results card and the prize message come from the host
+  recordStat(w, 'pitchputtRounds');
+  unlockAchievement(w, 'putt_klaar');
+  const jij = res.jij || { plek: 0, geld: 0, xp: 0 };
+  loopbaanVerdien(w, 'golf', jij.geld, { xp: jij.xp, n: 1, uniek: 'pitchputt', deel: false }); // the prize is per place; the guests get theirs from the host
+  if (jij.geld > 0) w.addMessage(`Beloning: \u20ac${jij.geld.toLocaleString('nl-NL')}`, 4);
 }
 
 // Pass-and-play klaar: geen persoonlijk record of medaille (die horen bij één speler), wel de uitslag.
@@ -657,7 +688,7 @@ function slopeText(g) {
   return `Green valt ${side}${up}`;
 }
 
-function updateHud() {
+function updateHud(w) {
   const g = game;
   if (!g || !board) return;
   const h = HOLES[g.hole];
@@ -666,15 +697,41 @@ function updateHud() {
   const t = cardTotals(g.card);
   const wie = meerdere(g) ? `<span>Aan de beurt <b>${g.players[g.pi].naam}</b></span>` : '';
   const stand = meerdere(g) ? `<span>${g.players.map((s, i) => `${i === g.pi ? '<b>' : ''}${s.naam.replace('Speler ', 'S')} ${relText(cardTotals(s.card).rel)}${i === g.pi ? '</b>' : ''}`).join(' · ')}</span>` : '';
-  const row = `${wie}<span>Baan <b>${h.n}</b>/${HOLES.length}</span><span>Par <b>${h.par}</b></span><span>Slag <b>${g.phase === 'aim' ? g.strokes + 1 : g.strokes}</b></span><span>Vlag <b>${dist < 10 ? dist.toFixed(1).replace('.', ',') : Math.round(dist)} m</b></span><span>${putting ? 'Putter' : g.bunker ? 'Wedge (zand)' : 'Wedge'}</span>${stand}`;
+  const online = g.online ? wedScoreRijen(w) : [];
+  const stand2 = online.length ? `<span>${online.map((r) => `${r.weg ? '<s>' : ''}${r.naam} ${relText(r.rel)} (${r.banen}/${HOLES.length})${r.weg ? '</s>' : ''}`).join(' · ')}</span>` : '';
+  const row = `${stand2}${wie}<span>Baan <b>${h.n}</b>/${HOLES.length}</span><span>Par <b>${h.par}</b></span><span>Slag <b>${g.phase === 'aim' ? g.strokes + 1 : g.strokes}</b></span><span>Vlag <b>${dist < 10 ? dist.toFixed(1).replace('.', ',') : Math.round(dist)} m</b></span><span>${putting ? 'Putter' : g.bunker ? 'Wedge (zand)' : 'Wedge'}</span>${stand}`;
   const cells = g.card.holes.map((c, i) => ({ t: c.done ? String(c.strokes) : i === g.hole ? `${g.strokes || '·'}` : String(c.n), cls: `${i === g.hole ? 'on' : ''} ${c.done ? (c.strokes <= c.par ? 'good' : 'bad') : ''}` }));
   const mark = putting ? straightPower(dist) : powerForCarry(dist);
-  const flash = g.flash ? g.flash.text : g.phase === 'aim' ? (putting ? slopeText(g) : g.bunker ? 'Uit het zand: meer spreiding' : 'Mik op de vlag') : '';
+  const flash = g.flash ? g.flash.text : g.phase === 'wacht' ? 'Alle banen af: wachten op de anderen' : g.phase === 'aim' ? (putting ? slopeText(g) : g.bunker ? 'Uit het zand: meer spreiding' : 'Mik op de vlag') : '';
   const help = g.phase === 'aim'
     ? `${key('A')}${key('D')} richten (${key('SHIFT')} fijn) · houd ${key('SPATIE')} en laat los bij het streepje · ${key('BACKSPACE')} stoppen · totaal ${relText(t.rel)}${g.hole === 0 && g.b.spelers.every((s) => s.slagen === 0) ? ` · ${key('2')}-${key('4')} meer spelers` : ''}`
     : `Totaal ${relText(t.rel)} · ${key('BACKSPACE')} stoppen`;
   board.set({ row, cells, meter: g.phase === 'aim' ? { v: g.charge, mark: clamp(mark, 0, 1), color: '#46b36a' } : null, flash, bad: !!(g.flash && g.flash.bad), help });
 }
+
+// --- playing against others (#443) --------------------------------------------------------------------------------------
+
+// a guest: the host started the round and this guest said yes; the round runs on his own screen
+function gastTik(w, dt) {
+  if (!game || game.online !== 'gast') return false;
+  updateGame(w, dt);
+  if (game) { if ((lodT -= dt) <= 0) { lodT = 0.5; updateLod(w); } sync3D(w, dt); updateHud(w); }
+  return true;
+}
+registreerWedstrijd('pitchputt', {
+  naam: 'Pitch & putt', soort: 'score',
+  banen: (w) => { focus(w); return HOLES.map((h) => ({ par: h.par })); },
+  start: (w) => start(w, { online: 'host' }),
+  plek: () => ({ ...STAND }),
+  extra: () => ({ v: venue.id }),
+  eind: (w, res) => { if (game && game.online === 'host') end(w, res ? { uitslag: res } : { quit: true, extern: true }); },
+  solo: (w) => start(w),
+});
+zetWedGastHaken('pitchputt', {
+  start: (w, st) => start(w, { online: 'gast', venueId: st.v, force: true }),
+  eind: (w, uit) => { if (game && game.online === 'gast') end(w, uit.gestopt ? { quit: true, extern: true } : { uitslag: uit }); },
+  tik: gastTik,
+});
 
 // --- the activity -------------------------------------------------------------------------------------------------------
 
@@ -714,7 +771,7 @@ export const PITCHPUTT = {
   tick(dt, w) {
     if ((lodT -= dt) <= 0) { lodT = 0.5; updateLod(w); }
     sync3D(w, dt);
-    updateHud();
+    updateHud(w);
   },
   camera,
   icon: drawIcon,
