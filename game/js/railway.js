@@ -10,6 +10,7 @@ import { vehicleHooks } from './vehiclehooks.js';
 import { splatterPed, bleedPed, GIB_SPEED } from './gore3d.js';
 import { railHeightFn } from './railprofile.js';
 import { onPerron } from './perrons.js';
+import { duwVanWagen } from './treincoop.js';
 import { MAP_PALETTE, INK } from './mapstyle.js';
 
 const HALF_WIDTH = 1.45;
@@ -157,7 +158,8 @@ export function zetTreinenVanHost(lijst) {
   for (const h of lijst || []) { const t = zetTreinVanHost(h.route, h.x, h.y, h.v); if (t) gekozen.add(t); }
   for (const t of trains) if (t.state !== 'mission' && t.state !== 'player') t.gastWeg = !gekozen.has(t);
 }
-// De overwegen van een gast: de slagbomen, het knipperlicht en de bel volgen de treinen die de host stuurt (elke frame; updateRailway draait niet bij een gast)
+// De overwegen van een gast: de slagbomen, het knipperlicht en de bel volgen de treinen die de host stuurt (elke frame; updateRailway draait niet bij een gast).
+// Daarna de trein zelf: die is ook solide (gastTreinContact).
 export function gastOverwegen(dt, world) {
   for (const c of crossings) c.threat = false;
   for (const t of trains) {
@@ -168,6 +170,29 @@ export function gastOverwegen(dt, world) {
     }
   }
   stapOverwegen(dt, world);
+  gastTreinContact(world);
+}
+
+// Een trein rijdt niet door een gast heen (#436): de gast speelt de dienstregeling niet, maar de wagens staan op de plek uit
+// de snapshot (zetTreinenVanHost). Zijn eigen lichaam wordt er elke frame uit geduwd, net als de host dat met zijn spelers doet;
+// geen schade, want het lichaam van de gast is van de host (die de klap in resolveContacts al afhandelt).
+export function gastTreinContact(world) {
+  const p = world && world.player;
+  if (!p || p.inVehicle || world.trainDriving || !Number.isFinite(p.x) || !Number.isFinite(p.y)) return 0;
+  const z = (p.gz || 0) + (p.z || 0);
+  let n = 0;
+  for (const t of trains) {
+    if (t.gastWeg !== false) continue; // nog geen snapshot gehad, of de host noemt deze trein niet (#428)
+    for (const car of t.cars) {
+      if (Math.abs(car.x - p.x) > car.len / 2 + 3 || Math.abs(car.y - p.y) > car.len / 2 + 3) continue;
+      if (Math.abs((car.z || 0) - z) > 2.5) continue; // wie op een viaduct of een hoog perron staat, staat niet op het spoor (#436)
+      if (opPerron(world, p.x, p.y, z)) continue; // het perron ligt naast het spoor
+      const push = duwVanWagen(car, p.x, p.y, p.radius || 0.35);
+      if (push) { p.x += push.nx * push.depth; p.y += push.ny * push.depth; n++; }
+    }
+  }
+  if (world) world.coopTreinDuw = n; // voor de testbank
+  return n;
 }
 
 function nearLevelCrossing(x, y) {

@@ -71,6 +71,23 @@ export function splitReward(c, total) {
   return out;
 }
 
+// Een trein rijdt niet door een gast heen (#436). Een gast speelt de dienstregeling niet: hij zet de wagens waar de host ze
+// heeft (railway.js zetTreinenVanHost). Deze regel duwt een lichaam (de eigen speler) uit zo'n wagen, zoals de host dat met
+// zijn eigen spelers doet. wagen: { x, y, angle, len }; geeft { nx, ny, depth } (de duw, in meters) of null.
+export const TREIN_HALF_WID = 1.45;
+export function duwVanWagen(wagen, x, y, r = 0.35) {
+  if (!wagen || !Number.isFinite(wagen.x) || !Number.isFinite(wagen.y) || !Number.isFinite(x) || !Number.isFinite(y)) return null;
+  const a = Number.isFinite(wagen.angle) ? wagen.angle : 0, ca = Math.cos(a), sa = Math.sin(a);
+  const dx = x - wagen.x, dy = y - wagen.y;
+  const lx = dx * ca + dy * sa, ly = -dx * sa + dy * ca; // langs en dwars op de wagen
+  const hl = (Number.isFinite(wagen.len) && wagen.len > 0 ? wagen.len : 17) / 2;
+  const px = hl + r - Math.abs(lx), py = TREIN_HALF_WID + r - Math.abs(ly);
+  if (px <= 0 || py <= 0) return null; // naast de wagen
+  if (py < px) { const s = ly >= 0 ? 1 : -1; return { nx: -sa * s, ny: ca * s, depth: py }; } // opzij, de kortste kant
+  const s = lx >= 0 ? 1 : -1;
+  return { nx: ca * s, ny: sa * s, depth: px };
+}
+
 // De stand die een checkpoint na elke halte bewaart (voor een gast die tussendoor wegvalt of een host die wisselt).
 export const snapshot = (c) => JSON.stringify({ m: c.machinist, c: c.conducteur, p: c.passagiers, s: c.service });
 export function restore(json) {

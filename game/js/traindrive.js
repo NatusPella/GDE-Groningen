@@ -20,6 +20,10 @@ const BOARD_RANGE = 6.5;
 const EXIT_MAX_SPEED = 2;
 const HORN_COOLDOWN = 1.2;
 const STEAL_STARS = 2;
+// Het paneel van de trein (het kaartje met E) hoort bij de deur, niet hoog boven het dak: prompts.js zet het op
+// (x, h, y) in de wereld, dus op deurhoogte boven het spoor, zoals bij een auto (1,2 tot 1,7 m). Stond het op
+// cfg.height + 0,6, dan hing het midden op het perron in de lucht (#436).
+const PANEEL_H = 1.7;
 
 let hookedWorld = null;
 let hornAt = -Infinity;
@@ -75,16 +79,16 @@ export function trainPrompt(world) {
     const door = doorNear(cl, walk.lx, walk.lz);
     if (door) {
       const ok = t.v < DOOR_STAND_V && t.doorsOpen;
-      return { id: 'trein-rijden', x: car.x, y: car.y, h: t.cfg.height + 0.8, key: 'E', label: 'Uitstappen', sub: ok ? 'De deuren staan open' : t.v >= DOOR_STAND_V ? 'Wacht tot de trein stilstaat' : 'De deuren zijn dicht: druk O', ring: true, dim: !ok };
+      return { id: 'trein-rijden', x: car.x, y: car.y, h: (car.z || 0) + PANEEL_H, key: 'E', label: 'Uitstappen', sub: ok ? 'De deuren staan open' : t.v >= DOOR_STAND_V ? 'Wacht tot de trein stilstaat' : 'De deuren zijn dicht: druk O', ring: true, dim: !ok };
     }
-    if (walk.car === cabIndex(t) && Math.abs(walk.lx - cl.bulkhead) < 1.6) return { id: 'trein-cabine', x: car.x, y: car.y, h: t.cfg.height + 0.8, key: 'T', label: 'Naar de cabine', sub: 'Aan de knoppen', ring: true };
+    if (walk.car === cabIndex(t) && Math.abs(walk.lx - cl.bulkhead) < 1.6) return { id: 'trein-cabine', x: car.x, y: car.y, h: (car.z || 0) + PANEEL_H, key: 'T', label: 'Naar de cabine', sub: 'Aan de knoppen', ring: true };
     return null;
   }
   if (t) {
     const car = cabCar(t);
     const slow = t.v < EXIT_MAX_SPEED;
     return {
-      id: 'trein-rijden', x: car.x, y: car.y, h: t.cfg.height + 0.8, key: 'E', label: 'Uitstappen',
+      id: 'trein-rijden', x: car.x, y: car.y, h: (car.z || 0) + PANEEL_H, key: 'E', label: 'Uitstappen',
       sub: slow ? 'W/S hendel, O deuren, G dienst rijden' : 'Eerst stoppen: S remt, Spatie is de noodrem', ring: true, dim: !slow,
     };
   }
@@ -92,7 +96,7 @@ export function trainPrompt(world) {
   if (!b) return null;
   const parked = b.t.state === 'parked';
   return {
-    id: 'trein-kapen', x: b.x, y: b.y, h: b.t.cfg.height + 0.6, key: 'E', label: parked ? 'Instappen' : 'Trein kapen',
+    id: 'trein-kapen', x: b.x, y: b.y, h: railZ(b.x, b.y) + PANEEL_H, key: 'E', label: parked ? 'Instappen' : 'Trein kapen',
     sub: parked ? 'Daarna G: de dienst rijden, of rij zelf verder' : `${b.t.cfg.label} stelen (twee sterren). Daarna G: de dienst rijden`, ring: true,
   };
 }
