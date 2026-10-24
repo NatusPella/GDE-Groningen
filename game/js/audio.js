@@ -21,6 +21,7 @@ import { SPEAKER_MAX, SPEAKER_STOP, SPEAKER_LEVEL, SPEAKER_REF, SPEAKER_ROLLOFF,
 import { rammelInterval } from './studentenfiets.js';
 import { KEYS } from './storagekeys.js';
 import { noteSound } from './soundcaptions.js';
+import { stingNoten, stingDuur, createStingGate } from './stings.js';
 
 // the camera comes from main.js (setAudioCamera): audio.js does not import scene3d.js (#108)
 let getCamera = () => null;
@@ -1641,6 +1642,34 @@ export function playRadioJingle(kind = 'start') {
   }
 }
 
+// Korte stings (stings.js, procedureel, geen opname): een eigen gainknoop per sting, zodat een sting met hogere prioriteit
+// de lopende kan afbreken. Alleen voor jezelf, op de stingbus (dus onder het effectenvolume), niet bij pauze, menu of filmpje,
+// nooit twee tegelijk en met een korte afkoeling. De radio en de scenarioloop gaan er even zachter van (stingDuck).
+const stingGate = createStingGate();
+let stingNode = null;
+const stingDuck = { until: 0, level: 0 };
+function playSting(name, world) {
+  if (!ctx || muted || !stingBus || storyScene || menuAudio || (world && (world.paused || world.menuMuffle))) return;
+  const sfx = getSettings().sfxVolume;
+  if (Number.isFinite(sfx) && sfx < 0.01) return;
+  const t = ctx.currentTime;
+  const r = stingGate.request(name, t);
+  if (!r.ok) return;
+  if (r.afbreken && stingNode) { try { stingNode.gain.cancelScheduledValues(t); stingNode.gain.setTargetAtTime(0, t, 0.03); } catch (e) { /* al weg */ } }
+  const node = ctx.createGain();
+  node.connect(stingBus);
+  stingNode = node;
+  for (const nt of stingNoten(name)) playTone({ ...nt, bus: node, prio: 2 });
+  stingDuck.until = Math.max(stingDuck.until, t + stingDuur(name));
+  setTimeout(() => { try { node.disconnect(); } catch (e) { /* al weg */ } if (stingNode === node) stingNode = null; }, (stingDuur(name) + 0.5) * 1000);
+}
+// 1 = de radio op zijn zachtst door een sting, 0 = niets; zacht in en uit
+function stingDuckMul(dt) {
+  const target = ctx && ctx.currentTime < stingDuck.until ? 1 : 0;
+  stingDuck.level += (target - stingDuck.level) * Math.min(1, dt * (target > stingDuck.level ? 10 : 2.5));
+  return 1 - 0.45 * stingDuck.level;
+}
+
 // One heartbeat when badly hurt (lowhealth.js): a low "lub-dub", louder the closer to death.
 export function playHeartbeat(strength = 0.5) {
   if (!ctx || muted || !uiBus) return;
@@ -2843,6 +2872,7 @@ function playAudioEvents(world) {
         break;
       }
       case 'whistle': playWhistle(); break;
+      case 'sting': playSting(e.name, world); break;   // stings.js: afteller, finish, uitslag, Meedoen?, trein, halte
       case 'gore': case 'gore_splat': case 'ko': case 'poof': playGoreEvent(e.kind, x, y, clamp(e.strength ?? 0.5, 0, 1)); break;
       case 'animal_hit': {
         const out = spatialOut(x, y, { ref: 6, rolloff: 1, range: 70 });
@@ -3297,7 +3327,7 @@ function updateGMusic(dt, world) {
   musicState.gain += (targetGain - musicState.gain) * Math.min(1, lerpRate);
   if (!Number.isFinite(musicState.gain)) musicState.gain = targetGain;
   const mv = getSettings().musicVolume;
-  musicBus.gain.value = musicState.gain * (Number.isFinite(mv) ? mv : 1);
+  musicBus.gain.value = musicState.gain * (Number.isFinite(mv) ? mv : 1) * stingDuckMul(dt);
   if (gmusicFadingIn && Math.abs(targetGain - musicState.gain) < 0.02) gmusicFadingIn = false;
   if (scene && !gmusicHeld && musicState.gain < 0.02) {
     gmusicHeld = true;
@@ -3379,7 +3409,7 @@ function updateScenarioMusic(dt, world) {
     else if (scenarioBuffers[want].buf) { stopScenarioTrack(); startScenarioTrack(want); }
     else if (scenarioBuffers[want].failed) want = null;
   }
-  if (scenarioVol) scenarioVol.gain.value = SCENARIO_VOLUME * getSettings().musicVolume;
+  if (scenarioVol) scenarioVol.gain.value = SCENARIO_VOLUME * getSettings().musicVolume * (1 - 0.45 * stingDuck.level);
   return want && scenarioBuffers[want] && !scenarioBuffers[want].failed ? want : null;
 }
 
