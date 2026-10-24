@@ -65,6 +65,7 @@ import { placeParty } from './storytravel.js';
 import { respawnFade } from './respawn.js';
 import { playerBusy } from './busy.js';
 import { noteMoney } from './finance.js';
+import { lateInstapVoor } from './coopmeedoen.js';
 
 // radio fragments a stage puts on Nachtstreek (storycontact.js, loaded lazily: it imports the UI)
 let contactMod = null;
@@ -626,6 +627,8 @@ export function initMissions(world) {
   setMuseumCaseStolen(() => isMissionCompleted(missionIndexById('museumkraak')));
   syncPub(world);
   world.onRespawn.push((w, { busted }) => {
+    // samen spelen (#452): gaat alleen de gastheer neer en staat een meespeler nog, dan loopt de opdracht door; zonder meespelers (of alleen) faalt hij als altijd
+    if (w.coopOpdrachtDoor && w.coopOpdrachtDoor()) return;
     failActiveMission(w, busted ? 'Missie mislukt: opgepakt' : 'Missie mislukt: knock-out', busted ? 'Opgepakt door de politie' : 'Je bent knock-out', busted ? 'opgepakt door de politie' : 'neergeslagen');
   });
 }
@@ -1092,6 +1095,7 @@ function syncPub(world) {
   pub.label = def.label;
   pub.phase = st.phase;
   pub.timeLeft = st.phase === 'active' && Number.isFinite(st.timeLeft) ? st.timeLeft : null;
+  { const sg = st.phase === 'active' && def.stages ? def.stages[st.stageIndex] : null; pub.lateInstap = lateInstapVoor({ type: def.type, stageKind: sg && sg.kind, timer: pub.timeLeft != null, race: !!st.race }); } // mag een laatkomer nog meedoen? (samen spelen, #452)
   pub.code = missionCode(st.index);
   pub.index = st.index;
   pub.total = st.defs.length;

@@ -13,8 +13,7 @@ import * as L from './loopbaan.js';
 import { gebiedenOpUniek, gebiedenOpStat } from './gebiedenlive.js';
 
 const SCHRIJF_VERTRAGING_MS = 1500;
-// Een gast krijgt de helft van de punten van de gastheer bij een gedeelde beloning (net als het geld, coopnet.js GAST_DEEL).
-export const GAST_XP_DEEL = 0.5;
+// De punten van een gast volgen zijn deel van de beloning (coopnet.js deelMetGasten, #452).
 
 let profiel = null;
 let opslagOverride = null;
