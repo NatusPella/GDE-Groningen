@@ -319,7 +319,7 @@ export function addGuest(world, transport) {
 export function startClient(world, transport, info, opts = {}) {
   const ok = canJoin(world);
   if (!ok.ok) throw new Error(ok.reason);
-  const { onHold = null, fade = null, route = null, wens = null } = opts;
+  const { onHold = null, fade = null, route = null, wens = null, code = '' } = opts;
   const session = new ClientSession(transport, { info: { ...info, char: wens || undefined }, caps: CAPS });
   prepareCoop(world);
   const p = world.player;
@@ -333,7 +333,7 @@ export function startClient(world, transport, info, opts = {}) {
   // de host is de baas: bij een desync (net/desync.js) zet de gast zijn wanted weer gelijk aan dat van de host
   session.onresync = (st) => { if (st && Number.isFinite(st.wanted)) world.wanted = st.wanted | 0; };
   world.coopRole = 'client';
-  world.coopNet = { role: 'client', wens, session, stash, fade, joined: false, fixed: false, route, info, klok: new KlokVolger(), desync: new DesyncMonitor(), lokaal: 0, tSpelers: 1 };
+  world.coopNet = { role: 'client', wens, code, session, stash, fade, joined: false, fixed: false, route, info, klok: new KlokVolger(), desync: new DesyncMonitor(), lokaal: 0, tSpelers: 1 };
   return session;
 }
 
@@ -1079,7 +1079,7 @@ export function handleEvent(world, body, van = 0) {
     }
     case 'weg': // de host heeft deze speler verwijderd
       if (!n || n.role !== 'client') return false;
-      if (world.addMessage) world.addMessage(wegMelding(body.reden, openerNaam(world.coopRoster, body.reden === 'spel gestopt')), 6);
+      if (world.addMessage) world.addMessage(wegMelding(body.reden, openerNaam(world.coopRoster, body.reden === 'spel gestopt'), n.code), 6);
       stopCoopNet(world);
       return true;
     default: return typeof body.k === 'string' && body.k.startsWith('hw-') ? wisselEvent(world, body, van) : false; // het spel overdragen (#439)
