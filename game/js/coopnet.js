@@ -49,6 +49,7 @@ import { teamDown } from './cooproles.js'; // een opdracht faalt pas als alle me
 import { saveGame as bewaarNu } from './savehook.js';
 import { wedHostTik, wedHandleGast, wedHandleHost, wedGastReset, zetWedHaken } from './coopwedstrijd.js';
 import { wedKaartTik } from './coopwedstrijd3d.js';
+import { bijbaanStart, bijbaanBeloning, bijbaanEind, bijbaanHelpers, bijbaanHostTik, bijbaanGastTik, bijbaanGastReset, bijbaanHandleGast, bijbaanHandleHost, bijbaanVoorNieuwe, bijbaanWeg, zetBijbaanHaken } from './coopbijbaan.js';
 import { maakPvp, wisselPassief, zetPassiefStand, verwijderSpeler, passiefEvent, passiefVanEvent, leesPassief, leesPassiefVan, pvpSchadeEvent, isPassief, PVP_TEKST } from './cooppvp.js'; // passieve stand en spelers tegen elkaar (#447)
 import { pvpGastRaak, pvpDoodVerwerk } from './cooppvpwereld.js';
 import { zetBestuurHaken, bestuurGebruik, bestuurTick, bestuurLos, bestuurAllesLos, bestuurt } from './coopbestuur.js';
@@ -188,7 +189,7 @@ function endCoop(world) {
   world.coopWanted = null; world.coopHeat = null; world.coopDoelwit = 0; world.coopWantedMeld = null; world.coopGepakt = null; world.coopStil = false; // (#434)
   if (world.companion) world.companion.coopWacht = false;
   world.coopOpdrachtDoor = null; // (#452)
-  world.coopMeld = null; world.coopDeel = null; world.coopUitslag = null; world.coopPingMarks = []; world.coopSpelers = []; world.coopGebruik = false; world.coopWielSlot = null; world.coopWielVraag = null; world.coopWiel = false; world.coopInVoertuig = false; world.coopBestuurder = false; // (#291, #434)
+  world.coopMeld = null; world.coopDeel = null; world.coopBijbaanStart = null; world.coopBijbaanBeloning = null; world.coopBijbaanEind = null; world.coopHelpers = null; world.coopUitslag = null; world.coopPingMarks = []; world.coopSpelers = []; world.coopGebruik = false; world.coopWielSlot = null; world.coopWielVraag = null; world.coopWiel = false; world.coopInVoertuig = false; world.coopBestuurder = false; // (#291, #434)
   world.coopVraag = null; world.coopStem = null; world.coopStemBeantwoord = null; // gezamenlijke keuzes (#452)
   if (world.companion) { world.companion.coopUit = false; world.companion.coopBestuurt = false; }
 }
@@ -222,6 +223,7 @@ export function startHost(world, info, opts = {}) {
     onJoin: (slot, char) => {
       if (world.coopNet && world.coopNet.missie) hub.announce(missieBericht(null, world.mission).event || { k: 'missie', actief: false }, slot);
       nodigLaatUit(world, slot); // een opdracht loopt al: ook jij mag kiezen (#429)
+      bijbaanVoorNieuwe(world, slot); // een bijbaan loopt al: geen late instap, je kijkt mee (#452)
       if (world.coopNet) { bezigVoorNieuwe(world, world.coopNet, slot); passiefVoorNieuwe(world, world.coopNet, slot); }
       const we = weerEvent(world.weatherState); if (we) hub.announce(we, slot); // het weer van de gastheer (#364)
       hub.announce({ k: 'hek', aan: gateOn() }, slot); // is het spel nog niet begonnen? dan wacht de nieuwe speler in de wachtkamer
@@ -230,13 +232,13 @@ export function startHost(world, info, opts = {}) {
       if (fade) fade('in'); // de gast komt met een korte fade naast je staan
     },
     onLeave: (slot) => {
-      bestuurLos(world, slot); bezigWeg(world, slot); wapenWeg(world, slot); passiefWeg(world, slot);
+      bestuurLos(world, slot); bezigWeg(world, slot); wapenWeg(world, slot); passiefWeg(world, slot); bijbaanWeg(world, slot);
       if (world.coopWanted) delete world.coopWanted[slot]; // een gast die weggaat neemt zijn sterren mee (#434) // het voertuig van een gast die weggaat staat stil en de stoel is vrij (#434)
       if (slot === 1 && world.coop) { world.coop.remote = false; world.coop.remoteInput = null; }
       if (slot >= 2) removeFigure(world, slot);
     },
     onLost: (slot) => {
-      bestuurLos(world, slot); bezigWeg(world, slot);
+      bestuurLos(world, slot); bezigWeg(world, slot); bijbaanWeg(world, slot);
       if (slot === 1 && world.coop) { world.coop.remote = false; world.coop.remoteInput = null; }
       const f = slot >= 2 ? figures(world)[slot] : null; if (f) f.input = null;
       // pauze per speler (#452): de rest speelt door; alleen als de lopende opdracht deze speler echt nodig heeft pauzeert het spel
@@ -257,6 +259,10 @@ export function startHost(world, info, opts = {}) {
   world.coopRoster = lijst(hub.roster);
   world.coopUitslag = (ok, label, reden, loon, gestopt) => uitslagMelden(world, ok, label, reden, loon, gestopt); // gelukt, mislukt of gestopt (#371, #390)
   world.coopDeel = (bedrag, info) => deelMetGasten(world, bedrag, info); // missies, bijbanen en prijzen delen met de gasten (#365)
+  world.coopBijbaanStart = (id, label, starter) => bijbaanStart(world, id, label, starter); // een bijbaan met samen-regels: uitnodiging, doel en volledige beloning voor elke meespeler (#452, coopbijbaan.js)
+  world.coopBijbaanBeloning = (id, basis, vak, xp, ronde) => bijbaanBeloning(world, id, basis, vak, xp, ronde);
+  world.coopBijbaanEind = (kind) => bijbaanEind(world, kind);
+  world.coopHelpers = () => bijbaanHelpers(world); // waar de meespelers staan, voor ophalen en afgeven te voet
   world.coopVraag = (soort, tekst, naAkkoord, naNee) => stemStart(world, soort, tekst, naAkkoord, naNee); // een tijdsprong vraagt akkoord van alle anderen (#452)
   world.coopSchade = (slot, schade) => hub.announce({ k: 'schade', n: Math.round(Number(schade) || 0) }, slot); // een kogel van de politie raakt een gast (#434)
   // De gastheer gaat neer of wordt opgepakt: loopt de opdracht dan door? Ja zolang een meespeler (die ja zei, verbonden en niet neer) nog staat (#452).
@@ -724,7 +730,8 @@ export function tickCoopNet(world, dt) {
   }
   n.tSpelers += dt;
   if (n.tSpelers >= 0.25) { n.tSpelers = 0; bouwSpelers(world, n); }
-  if (n.role === 'host') wedHostTik(world, dt); // een uitnodiging voor een race of minigame loopt af (#443)
+  if (n.role === 'host') { wedHostTik(world, dt); bijbaanHostTik(world, dt); } // een uitnodiging voor een race, minigame of bijbaan loopt af (#443, #452)
+  else bijbaanGastTik(world, dt);
   wedKaartTik(world, dt); // Meedoen? J of N en de uitslag met een rematch
   if (n.role === 'client') {
     const s = n.session;
@@ -819,6 +826,8 @@ export function handleEvent(world, body, van = 0) {
   const n = world.coopNet;
   switch (body.k) {
     case 'wed': return wedHandleHost(world, body); // een wedstrijd tegen elkaar van de host: uitnodiging, start, stand, uitslag (#443, coopwedstrijd.js)
+    case 'bijbaan': return bijbaanHandleHost(world, body); // een bijbaan van de host: uitnodiging, doel, einde (#452, coopbijbaan.js)
+    case 'bijbaangast': return bijbaanHandleGast(world, body, van); // een gast antwoordt, vraagt een bijbaan te starten of helpt (alleen de host luistert)
     case 'wedgast': return wedHandleGast(world, body, van); // het antwoord van een gast op die wedstrijd (alleen de host luistert)
     case 'wapen': return !!n && n.role === 'host' && van >= 1 && wapenVerwerk(world, van, body); // een gast kiest zijn wapen (zijn eigen patronen): de host rekent zijn aanval uit (#434)
     case 'passief': { // een gast wil omschakelen: de host beslist (afkoeling) en geeft de echte stand door aan iedereen (#447)
@@ -1108,6 +1117,7 @@ export function payGuest(world, geld, slot = null, extra = null, id = null, bonu
   }
   return ok;
 }
+zetBijbaanHaken({ betaalGast: (world, slot, geld, extra, id) => payGuest(world, geld, slot, extra, id) }); // de volledige beloning van een bijbaan, per ronde met een vaste id (#452)
 zetWedHaken({ betaalGast: (world, slot, geld, extra) => payGuest(world, geld, slot, extra) }); // een race tegen elkaar betaalt per plek in de eigen portemonnee en loopbaan van elke gast (#443)
 // Host: een speler verwijderen (eerst een bericht, dan verbreken).
 export function removeGuest(world, slot = 1) {
@@ -1150,7 +1160,7 @@ export function stopCoopNet(world) {
   if (world.coopCutBezig != null) cutGastStop(world, null, true); // een scène van de gastheer stopt met het samen spelen
   if (n.role === 'host') { try { n.hub.announce({ k: 'weg', reden: 'spel gestopt' }); n.hub.closeAll(); } catch (e) { /* al weg */ } } else { try { if (n.session.status !== 'geweigerd' && n.session.status !== 'verbroken') n.session.leave(); } catch (e) { /* al weg */ } }
   world.coopNet = null;
-  if (n.role === 'client') wedGastReset(world); // een race tegen elkaar op zijn scherm houdt op (#443)
+  if (n.role === 'client') { wedGastReset(world); bijbaanGastReset(world); } // een race tegen elkaar op zijn scherm houdt op (#443)
   if (n.role === 'client') gastVerhaalHerlaad(world); // een meegesprongen verhaal staat ook in het lopende spel, anders overschrijft de volgende save het (#429)
   if (n.role === 'client' && n.stash) {
     const s = n.stash, p = world.player;

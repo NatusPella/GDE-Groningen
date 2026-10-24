@@ -8,10 +8,11 @@
 
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import {
-  pick, nearestOnStreet, doorSpot, randomStreetPoint, spawnJobVehicle, pointAlongRoad, decorateVehicle, streetNameAt,
+  pick, nearestOnStreet, doorSpot, randomStreetPoint, spawnJobVehicle, pointAlongRoad, decorateVehicle, streetNameAt, afstandNaast,
 } from './sidejobkit.js';
 import { isInWater } from './util.js';
 import * as R from './krantenrules.js';
+import { hoofdspeler } from './spelersregister.js';
 
 const BIKE = { name: 'bike', fat: true, len: 1.95, wid: 0.62, maxSpeed: 7.4, accel: 4.2, brake: 6, turnRate: 3.8, color: '#2e6f9e' };
 const OVERNAME_R = 45;       // m van het eerste huis: vanaf hier telt de ronde als begonnen
@@ -20,8 +21,7 @@ const HUIS_AFSTAND = 12;     // m tussen twee brievenbussen langs de straat (min
 
 const rnd = () => Math.random();
 
-function windSnelheid(world) {
-  const p = world.player;
+function windSnelheid(world, p = hoofdspeler(world)) {
   return p.inVehicle ? Math.abs(p.inVehicle.speed || 0) : Math.hypot(p.vx || 0, p.vy || 0);
 }
 
@@ -260,15 +260,27 @@ export default {
     return { id: 'krant-gooi', x: p.x, y: p.y, h: 2.2, key: 'E', label: 'Gooi de krant', sub: `brievenbus op ${Math.round(doel.d)} m` };
   },
 
+  // Samen spelen (#452): een meespelende gast gooit een krant vanaf zijn eigen plek; de stapel en de brievenbussen zijn gedeeld.
+  helperActie(c, h) {
+    const d = c.data;
+    if (!d.huizen || !d.huizen.length || d.phase !== 'bezorgen') return false;
+    const p = { x: h.x, y: h.y, vx: 0, vy: 0 };
+    const doel = nieuwsteDoel(c, p);
+    if (!doel) return false;
+    if (doel.soort === 'container') gooiStapel(c, p);
+    else gooiKrant(c, doel.huis, doel.d, p);
+    return true;
+  },
+
   update(dt, c) {
     const { world } = c;
-    const d = c.data, p = world.player;
+    const d = c.data;
     if (c.vehicle) decorateVehicle(c.vehicle, 'krant', krantTas);
     stapelBeelden(c, dt);
     if (!d.huizen || !d.huizen.length) return;
     if (d.phase === 'naarwijk') {
       const eerste = d.huizen[0];
-      if (Math.hypot(eerste.x - p.x, eerste.y - p.y) < OVERNAME_R) {
+      if (afstandNaast(world, eerste.x, eerste.y) < OVERNAME_R) { // de host of een meespelende gast
         d.phase = 'bezorgen';
         if (d.vijver) c.msg(pick(R.VIJVER_VOORAF), 6);
         else c.msg(`${d.krant} en een folder: ${d.folder}.`, 4.5);
@@ -332,8 +344,8 @@ function wis(c) {
 }
 
 // Het dichtstbijzijnde doel binnen bereik: een brievenbus zonder krant, of de container als je er vlakbij staat.
-function nieuwsteDoel(c) {
-  const d = c.data, p = c.world.player;
+function nieuwsteDoel(c, p = hoofdspeler(c.world)) {
+  const d = c.data;
   if (d.phase !== 'bezorgen' || d.stapel <= 0) return null;
   if (d.container && !d.lui && Math.hypot(d.container.x - p.x, d.container.y - p.y) <= R.CONTAINER_R) return { soort: 'container', d: Math.hypot(d.container.x - p.x, d.container.y - p.y) };
   let best = null, bd = R.WORP_BEREIK;
@@ -345,9 +357,9 @@ function nieuwsteDoel(c) {
   return best ? { soort: 'huis', huis: best, d: bd } : null;
 }
 
-function gooiKrant(c, huis, afstand) {
-  const d = c.data, w = c.world, p = w.player;
-  const sp = windSnelheid(w);
+function gooiKrant(c, huis, afstand, p = hoofdspeler(c.world)) {
+  const d = c.data, w = c.world;
+  const sp = windSnelheid(w, p);
   const fout = R.worpFout(afstand, sp, R.ruisUit(rnd));
   const uitkomst = R.worpUitkomst(fout);
   // waar hij landt: bij de brievenbus als hij raak is, anders `fout` m ernaast, in een willekeurige richting
@@ -361,8 +373,8 @@ function gooiKrant(c, huis, afstand) {
   d.flying.push({ mesh, van: { x: p.x, y: p.y, z: hoog }, naar: land, t: 0, dur: 0.3 + 0.035 * afstand, huis, uitkomst, fout });
 }
 
-function gooiStapel(c) {
-  const d = c.data, w = c.world, p = w.player;
+function gooiStapel(c, p = hoofdspeler(c.world)) {
+  const d = c.data, w = c.world;
   d.lui = true;
   const mesh = krantMesh();
   mesh.scale.set(2.4, 2.4, 2.4);
