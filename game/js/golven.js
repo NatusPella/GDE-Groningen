@@ -101,7 +101,7 @@ export function valInHetWater(world, v) {
   v._golf.risico = 0; v._golf.genade = (world.time || 0) + GENADE_S;
   if (typeof p.ejectIntoWater === 'function') p.ejectIntoWater(v, world);
   if (world.particles) world.particles.push({ kind: 'splash', x: p.x, y: p.y, until: (world.time || 0) + 0.8 });
-  world.addMessage('Een golf slaat je van de plank. Je bent nat, verder niets. Druk op E om weer op te klimmen.', 5, { kind: 'tip', key: 'golf-omval' });
+  world.addMessage('Een golf slaat je eraf. Druk op E om weer op te klimmen.', 5, { kind: 'tip', key: 'golf-omval' });
   return true;
 }
 
