@@ -363,5 +363,29 @@ function KISTMARGE() { return R.KIST.vliegtuig.halveSpan; }
   }
 }
 
+// --- met een controller (#397): het lesmenu en de lucht ---------------------------------------------------------
+{
+  const { PAD_MAPS } = await import('../game/js/controls.js');
+  const m = PAD_MAPS.vliegschool;
+  check('vliegschool: een eigen padindeling voor het lesmenu', !!m);
+  check('vliegschool: A kiest, B gaat terug, de pijlen bladeren', m.a === 'enter' && m.b === 'backspace' && m.up === 'arrowup' && m.down === 'arrowdown' && m.left === 'arrowleft' && m.right === 'arrowright');
+  check('vliegschool: de stick werkt als de pijlen en er is een uitweg', m.stick === 'arrows' && m.start === 'escape');
+  check('vliegschool: geen dubbele knoppen', new Set(Object.entries(m).filter(([s, v]) => s !== 'stick' && v).map(([, v]) => v)).size === Object.entries(m).filter(([s, v]) => s !== 'stick' && v).length);
+  // Het menu leest deze toetsen (vliegschool.js, updateMenu): cijfers, a/d, de pijlen, Enter, spatie en E.
+  // Alles wat een speler zonder toetsenbord nodig heeft, moet het pad kunnen maken.
+  const src = fs.readFileSync(path.join(ROOT, 'game/js/vliegschool.js'), 'utf8');
+  const menuKeys = new Set([...src.matchAll(/pressed\('([^']+)'\)/g)].map((x) => x[1]));
+  const bereikbaar = new Set(Object.values(m).filter((v) => typeof v === 'string' && !v.startsWith('@')));
+  for (const k of ['enter', 'arrowleft', 'arrowright']) check(`vliegschool: het menu leest ${k} en het pad maakt hem`, menuKeys.has(k) && bereikbaar.has(k));
+  check('vliegschool: B gaat terug via stopPressed en het pad maakt backspace', /stopPressed\(input\)/.test(src) && bereikbaar.has('backspace'));
+  check('vliegschool: het toestel kiezen kan ook met het pad (links of rechts)', menuKeys.has('arrowleft') && menuKeys.has('arrowright'));
+  // De vliegschool blijft tijdens de les een activiteit; gamepad.js moet daarom zelf het lesvliegtuig herkennen,
+  // anders kiest de pad de minigame-indeling (B stopte dan de les en rollen kon niet).
+  const gp = fs.readFileSync(path.join(ROOT, 'game/js/gamepad.js'), 'utf8');
+  const tak = gp.indexOf("w.activityGame === 'vliegschool'");
+  check('vliegschool: gamepad.js herkent de les', tak > 0);
+  check('vliegschool: die tak staat voor de minigame-keuze en kiest het vliegtuig of de heli', tak > 0 && tak < gp.indexOf("playerBusy(w, ['padel', 'activityGame'])") && /sv\.isPlane.*'plane'/s.test(gp) && /sv\.isHeli.*'heli'/s.test(gp));
+}
+
 console.log(bad ? `${bad} van ${n} mislukt` : `vliegschool_test: alles goed (${n} controles)`);
 process.exit(bad ? 1 : 0);
