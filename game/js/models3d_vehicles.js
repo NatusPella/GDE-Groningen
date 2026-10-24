@@ -2604,6 +2604,8 @@ export function updateVehicleWheelSpin(mesh, speed, dt, steer = 0) {
     const sw = Math.sin(ud.pedalPhase) * rl.amp * moving;
     rl.legs[0].rotation.z = rl.base + sw;
     rl.legs[1].rotation.z = rl.base - sw;
+    // de zwaai van dit beeld, voor een zitter van buiten dit model (coopzitten3d.js): zijn benen trappen mee (#434)
+    ud.pedalSwing = sw;
   }
 }
 
