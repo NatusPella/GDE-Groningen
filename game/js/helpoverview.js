@@ -48,6 +48,11 @@ export const HELP_TOPICS = [
     'Toetsen en knoppen kun je zelf anders zetten, voor toetsenbord en controller.',
     'Zet de uitleg uit onder Instellingen › Interface › Meer opties.',
   ] },
+  { id: 'geluid', title: 'Geluid uit of weer aan', lines: [
+    'Staat het geluid uit, dan staat linksboven in beeld een luidspreker met een streep erdoor, met de toets erbij. Druk op {U} om het weer aan te zetten.',
+    'Zie je dat teken en hoor je niets, dan is er niets kapot: het geluid staat gewoon uit. Onder {ESC} › Spel › Overzicht staat het ook bij de volumeschuiven.',
+    'De radio gaat apart aan en uit met {N}. Het volume van muziek, effecten en stemmen stel je in onder {ESC} › Instellingen › Geluid & ondertitels.',
+  ] },
 ];
 
 const KEY_TOKEN = /\{(\w+)\}/g;

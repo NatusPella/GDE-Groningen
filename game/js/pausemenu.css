@@ -33,6 +33,8 @@ body:has(#pause-menu.prestart.visible) #start-screen .ss-foot { visibility: hidd
 #pause-menu .ra .n { margin-left: auto; font-family: 'Arial Narrow', Arial, sans-serif; font-size: 18px; letter-spacing: 0; color: var(--g); }
 #pause-menu .ra .n:empty { display: none; }
 #pause-menu .ra .n .n-ic { width: 16px; height: 16px; margin: 0 4px -2px 0; stroke: currentColor; fill: none; stroke-width: 1.8; vertical-align: baseline; }
+/* het tabblad Spelers in Spel telt mee met een poppetje, net als de teller bij Spel (#435) */
+#pause-menu .m-tab small .n-ic { width: 15px; height: 15px; margin: 0 4px -2px 0; stroke: currentColor; fill: none; stroke-width: 1.8; vertical-align: baseline; }
 /* een nieuw bolletje op de rail zelf (Verhaal, Prestaties): de subtabbladen hadden er al een (#435) */
 #pause-menu .ra[data-new] .ra-t::after { content: ''; display: inline-block; width: 8px; height: 8px; margin-left: 8px; border-radius: 50%; background: var(--g); vertical-align: 6px; }
 #pause-menu .ra:focus-visible { outline: 2px solid var(--ink); outline-offset: -2px; border-radius: 8px; }
@@ -178,6 +180,9 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
 #pause-menu .ov-tl { font-size: 17px; }
 #pause-menu .ov-tile .m-bar { margin-top: 6px; }
 #pause-menu .ov-quick { display: grid; grid-template-columns: 1fr 1fr; gap: 0 32px; padding: 0 24px 8px; }
+/* de dempknop (U): een luidspreker met streep en de toets erbij (#435) */
+#pause-menu .pm-mutehint { display: inline-flex; align-items: center; gap: 8px; font-size: 18px; color: var(--g); white-space: nowrap; }
+#pause-menu .pm-mutehint .pm-ic { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 #pause-menu .ov-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; margin-top: 48px; flex: none; }
 #pause-menu .ov-col { display: flex; flex-direction: column; margin-left: -24px; min-width: 0; }
 #pause-menu .ov-col .m-gh { padding-top: 0; }

@@ -120,7 +120,7 @@ const CONTROL_GROUPS = [
     [['Q', 'E'], 'In het menu: vorige of volgende sectie'],
     [['[', ']'], 'In het menu: vorig of volgend tabblad'],
     [['N'], 'Radio aan of uit'],
-    [['U'], 'Geluid uit of weer aan; staat het uit, dan zie je linksboven een luidspreker met streep en "U"'],
+    [['U'], 'Geluid uit of weer aan; staat het uit, dan staat linksboven een luidspreker met een streep en de toets U erbij'],
     [['O'], 'Verhaalstap overslaan (als dat in beeld staat)'],
     [['BACKSPACE'], 'Minigame of dienst stoppen'],
     ...(DESKTOP ? [[['F11'], 'Volledig scherm (ook Alt+Enter)']] : []),
@@ -213,6 +213,7 @@ const ICONS = {
   spel: '<rect x="3" y="7.5" width="18" height="10" rx="5"/><path d="M8 10.5v4M6 12.5h4"/><circle cx="15" cy="11.5" r="0.9"/><circle cx="17.5" cy="13.5" r="0.9"/>',
   settings: '<path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/>',
   controls: '<rect x="2.5" y="6" width="19" height="12" rx="2"/><path d="M6 10h1M9.5 10h1M13 10h1M16.5 10h1M7 14h10"/>',
+  mute: '<path d="M4 9.5h3.2L11.5 6v12L7.2 14.5H4z"/><path d="M15 9.5l5 5M20 9.5l-5 5"/>',
   spullen: '<path d="M7 8V6a5 5 0 0 1 10 0v2"/><rect x="4" y="8" width="16" height="13" rx="3"/><path d="M4 13h16M10 13v2h4v-2"/>',
   telefoon: '<rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18.5h2"/>',
   // the main menu's items (startscreen.js), in the same line style
@@ -1408,7 +1409,9 @@ function stopInfo() {
 
 function renderOverviewPanel() {
   const el = root.querySelector(OV_SUB);
-  const quick = `<div class="ov-quick">${slider('masterVolume', 'Hoofdvolume')}${slider('musicVolume', 'Muziek')}${slider('sfxVolume', 'Effecten')}${toggle('reduceMotion', 'Beweging beperken', 'Minder bewegende beelden en schermschudden')}</div>`;
+  // de luidspreker met streep uit de HUD, met de toets erbij: wat dat teken betekent en hoe je het weer aanzet (#435)
+  const stil = `<div class="m-li pm-row pm-mute">${rowName('Geluid', 'Staat het uit, dan staat dit teken linksboven')}<span class="pm-mutehint">${icon('mute')}<span class="m-kc">U</span></span></div>`;
+  const quick = `<div class="ov-quick">${slider('masterVolume', 'Hoofdvolume')}${slider('musicVolume', 'Muziek')}${slider('sfxVolume', 'Effecten')}${toggle('reduceMotion', 'Beweging beperken', 'Minder bewegende beelden en schermschudden')}${stil}</div>`;
   try { renderOverview(el, world, helpButtons(), { play: getPlaySeconds(), quick, stop: stopInfo() }); syncControls(); } catch (err) { console.error('overzicht', err); }
   const r = getDiscoveredRatio();
   const s = getSaveSummary();
@@ -1464,6 +1467,9 @@ function syncNavBadges() {
   // samen spelen is geen rijknop meer: de rail toont bij Spel hoeveel spelers er zijn
   const coopN = world && world.coopNet && world.coopSpelers ? world.coopSpelers.length : 0;
   setN('spel', coopN ? String(coopN) : '', coopN ? `${coopN} spelers` : '');
+  // het tabblad Spelers in Spel zegt hetzelfde als de rail: een poppetje en het aantal spelers (#435)
+  const tabN = root.querySelector('[data-panel="spel"] [data-count="spelers"]');
+  if (tabN) tabN.innerHTML = coopN ? `${icon('spelers', 'pm-ic n-ic')}${coopN}` : '';
   // geen badge op Activiteiten: 'nieuw' hoort bij Verhaal (aanwijzingen en personages), niet bij de activiteiten (#435)
   setN('todo', '');
   setN('verhaal', unread ? String(unreadN) : fresh || met ? 'nieuw' : '', unread ? `${unreadN} ongelezen` : '');
