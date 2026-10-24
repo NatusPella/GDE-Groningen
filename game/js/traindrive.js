@@ -8,9 +8,10 @@ import { isCinematicActive } from './cinematics.js';
 import { isShopOpen } from './shopui.js';
 import { isInWater } from './util.js';
 import { stationPrompt } from './stationtravel.js';
-import { updateMachinist, endService, doorsAreOpen, deadmanHit, serviceRunning } from './machinist.js';
+import { updateMachinist, endService, doorsAreOpen, deadmanHit, serviceRunning, getService } from './machinist.js';
 import { newCab, stepCab, cabCtl } from './treincabine.js';
 import { trainLayout, hasInterior, carPoint, walkMove, driverEye, cabDoorSpot, inCabZone, doorNear, WALK_SPEED } from './treinlayout.js';
+import { uitslagUitPunten } from './simdienst.js';
 
 const WALK_YAW_RATE = 1.8;   // rad/s met de pijltjes links en rechts
 const MOUSE_YAW = 0.0025;    // rad per pixel, zoals de volgcamera
@@ -354,4 +355,39 @@ export function updateTrainDriving(dt, world) {
   updateMachinist(dt, world, t, cab);
   syncRider(world);
   return true;
+}
+
+// --- de trein in de gedeelde dienstvorm (#444) -------------------------------------------
+// De regels (dienstregeling, snelheidsborden, seinen, overwegen, de veiligheid) staan in
+// machinistrules.js; dit is dezelfde vorm als bij bus, vliegtuig en schip (simdienst.js), zodat
+// de HUD en het loopbaanscherm elke sim gelijk lezen. Alleen lezen, geen nieuw gedrag.
+export function treinVoortgang(svc) {
+  if (!svc || !svc.plan.length) return svc && svc.finished ? 1 : 0;
+  return svc.finished ? 1 : Math.max(0, Math.min(1, svc.i / svc.plan.length));
+}
+
+// De uitslag van een dienst (machinistrules.js result) in de gedeelde vorm. De punten zijn de
+// score van de dienst; de cijfers voor punctualiteit, comfort en veiligheid gaan mee.
+export function treinUitslag(r, abandoned = false) {
+  if (!r) return null;
+  return uitslagUitPunten('trein', r.score, {
+    naam: 'Machinist', gehaald: r.made, totaal: r.stops, punctueel: r.punct, veilig: r.veilig,
+    comfort: r.comfort, fouten: r.faults, zonderFouten: !!r.faultless,
+    medaille: r.medal, // de medaille van machinistrules.js (eigen drempels) blijft de echte
+    klaar: !abandoned, afgebroken: !!abandoned, mislukt: null,
+  });
+}
+
+// De stand van de dienst van deze trein: null als er geen dienst loopt of net klaar is.
+export function treinDienst(world) {
+  const svc = getService();
+  if (!svc) return null;
+  const st = svc.finished ? null : svc.plan[svc.i];
+  return {
+    vervoer: 'trein', naam: 'Machinist', voortgang: treinVoortgang(svc),
+    volgende: st ? st.name : null, gehaald: svc.i, totaal: svc.plan.length,
+    vertraging: st && world && Number.isFinite(world.time) ? Math.round(world.time - st.due) : null,
+    klaar: !!svc.finished, afgebroken: !!svc.abandoned,
+    uitslag: svc.result ? treinUitslag(svc.result, svc.abandoned) : null,
+  };
 }
