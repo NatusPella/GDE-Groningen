@@ -53,7 +53,7 @@ export const KAART_ACTIE_CSS = `
 .mapview-card .mv-keuze[aria-disabled] { opacity: 0.55; }
 .mapview-card .mv-kk { display: flex; align-items: center; gap: 8px; }
 .mapview-card .mv-kk .mv-kl { font: bold 14px Arial, sans-serif; letter-spacing: 0; }
-.mapview-card .mv-aanb { font-style: normal; font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: #0c140e; background: #5dff7a; border-radius: 2px; padding: 0 6px; }
+.mapview-card .mv-aanb { font-style: normal; font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase; color: #0c140e; background: #5dff7a; border-radius: 2px; padding: 0 6px; }
 .mapview-card .mv-ku { font-size: 12px; color: rgba(240,237,228,0.78); }
 .mapview-card .mv-kd { font-size: 12px; color: #e8c93a; }
 .mapview-card .mv-infostap p { margin: 2px 0; font: 13px Arial, sans-serif; color: rgba(240,237,228,0.9); }

@@ -15,7 +15,7 @@ const CSS = `
 #hud .cw-panel .cw-opt { display: flex; align-items: center; gap: 10px; font-size: 18px; padding: 3px 8px; background: rgba(240,237,228,0.08); }
 #hud .cw-panel .cw-opt .cw-body { display: flex; flex-direction: column; min-width: 0; }
 #hud .cw-panel .cw-opt .cw-note { font-size: 13px; color: rgba(240,237,228,0.72); }
-#hud .cw-panel .cw-opt .cw-badge { margin-left: auto; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: #12200f; background: #5dff7a; padding: 1px 7px; border-radius: 2px; }
+#hud .cw-panel .cw-opt .cw-badge { margin-left: auto; font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: #12200f; background: #5dff7a; padding: 1px 7px; border-radius: 2px; }
 #hud .cw-panel .cw-opt.pick { background: rgba(255,210,63,0.3); }
 #hud .cw-panel .cw-opt.good { background: rgba(93,255,122,0.22); }
 #hud .cw-panel .cw-opt.bad { background: rgba(255,154,60,0.22); }
