@@ -140,6 +140,65 @@ export function instapKant(v, x, y) {
   return -Math.sin(v.angle) * dx + Math.cos(v.angle) * dy >= 0 ? 1 : -1;
 }
 
+// Hoe dichtbij je bij een deur moet staan om er met E in te stappen (#459): het
+// instappunt ligt DEUR_STAP naast de carrosserie. Verder weg is geen deur: dan loop je
+// eerst naar de deur waar je wilt instappen.
+export const DEUR_BEREIK = 1.4;
+export function deurBijSpeler(v, x, y, bereik = DEUR_BEREIK) {
+  const defs = doorsFor(v);
+  if (!defs.length || !v.model) return null;
+  const vx = v.x || 0, vy = v.y || 0;
+  const c = Math.cos(v.angle || 0), s = Math.sin(v.angle || 0);
+  const dx = x - vx, dy = y - vy;
+  const lx = dx * c + dy * s; // langs de neus
+  const lz = dy * c - dx * s; // naar rechts
+  let best = null;
+  for (const d of defs) {
+    if (!d.seat || !d.side) continue; // kap en kofferbak zijn geen instapdeur
+    const px = d.x * v.model.len, pz = d.side * (v.model.wid / 2 + DEUR_STAP);
+    const afstand = Math.hypot(lx - px, lz - pz);
+    if (afstand > bereik) continue;
+    if (!best || afstand < best.afstand) {
+      best = { deur: d, rol: d.seat, x: vx + c * px - s * pz, y: vy + s * px + c * pz, afstand };
+    }
+  }
+  return best;
+}
+
+// Heeft dit voertuig een deur waar iemand door naar binnen kan (#459)? Kap, kofferbak
+// en laadklep tellen niet mee; een fiets, step, boot of quad heeft er geen.
+export function heeftInstapdeur(v) {
+  return doorsFor(v).some((d) => d.seat && d.side);
+}
+
+// Mag je hier instappen? Een voertuig met logische deuren alleen bij een deur (#459);
+// een fiets, step, boot, quad of paard heeft geen deur en heeft die poort niet nodig.
+export function bijInstapdeur(v, x, y, bereik = DEUR_BEREIK) {
+  if (!heeftInstapdeur(v)) return true;
+  return !!deurBijSpeler(v, x, y, bereik);
+}
+
+// De deur in spelerstaal voor de hint bij de deur (bestuurdersdeur, bijrijdersdeur,
+// achterdeur; een bus of trein heeft passagiersdeuren).
+export function deurNaam(v, d) {
+  if (!d || !d.seat) return '';
+  if (v && (v.isBus || v.isTram || v.isTrain)) return d.seat === 'bestuurder' ? 'bestuurdersdeur' : 'passagiersdeur';
+  if (d.seat === 'bestuurder') return 'bestuurdersdeur';
+  if (d.seat === 'achter') return 'achterdeur';
+  return 'bijrijdersdeur';
+}
+
+// Het uitstappunt van je stoel (#459): de kant van de deur bij die stoel en hoe ver die
+// langs de flank ligt (voertuig-lokale meters, positief naar de neus). Een auto links,
+// een bus en trein rechts; null zonder logische deur (fiets, step, boot, quad).
+export function uitstapPunt(v, rol = 'bestuurder') {
+  const defs = doorsFor(v);
+  if (!defs.length || !v.model) return null;
+  const d = deurVoorRol(defs, rol, v.doors || null, rol === 'bijrijder' ? 1 : -1);
+  if (!d || !d.side) return null;
+  return { kant: d.side, langs: d.x * v.model.len, deur: d };
+}
+
 export function makeDoorState() {
   return { open: {}, want: {}, loose: {}, hold: {}, dmg: {} };
 }
