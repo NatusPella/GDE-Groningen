@@ -9,6 +9,7 @@ import { loadCijfers } from './cijfers.mjs';
 
 const args = process.argv.slice(2);
 const list = JSON.parse(fs.readFileSync(args.find((a) => !a.startsWith('--')), 'utf8'));
+for (const k of ['clipsDir', 'captionsDir']) if (typeof list[k] === 'string') list[k] = list[k].replace(/^~(?=[\\/])/, process.env.USERPROFILE || process.env.HOME || '~'); // ~ = thuismap
 const cijf = loadCijfers((args.find((a) => a.startsWith('--cijfers=')) || '').slice(10) || list.cijfers);
 const out = (args.find((a) => a.startsWith('--out=')) || '--out=plan.json').slice(6);
 const clips = [], caps = [], voices = [], sfx = [...(list.sfx || []).map(([kind, at, gain]) => ({ kind, at, gain }))];

@@ -1,7 +1,7 @@
 {
  "name": "GDE-Groningen-gameplaytrailer-1080p60",
- "clipsDir": "C:/Users/abuis/gde-trailer-work/r2",
- "captionsDir": "C:/Users/abuis/gde-trailer-work/cap-gp",
+ "clipsDir": "~/gde-trailer-work/r2",
+ "captionsDir": "~/gde-trailer-work/cap-gp",
  "bpm": 135.469,
  "hook": 3.5433,
  "fadeIn": 0.35,

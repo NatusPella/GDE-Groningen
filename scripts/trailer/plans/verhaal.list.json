@@ -1,7 +1,7 @@
 {
  "name": "GDE-Groningen-verhaaltrailer-1080p60",
- "clipsDir": "C:/Users/abuis/gde-trailer-work/r2",
- "captionsDir": "C:/Users/abuis/gde-trailer-work/cap-vh",
+ "clipsDir": "~/gde-trailer-work/r2",
+ "captionsDir": "~/gde-trailer-work/cap-vh",
  "bpm": 119.474,
  "hook": 0,
  "fadeIn": 0.3,

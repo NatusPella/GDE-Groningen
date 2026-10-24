@@ -4,9 +4,9 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-const PAKKET = 'C:/Users/abuis/GIT/GDE-uploadpakket2';
-const inPakket = () => (fs.existsSync(PAKKET) ? fs.readdirSync(PAKKET).map((d) => path.join(PAKKET, d, 'cijfers.json')) : []);
-const FALLBACKS = [process.env.GDE_CIJFERS, ...inPakket(), 'C:/Users/abuis/GIT/GDE-Groningen/.claude/worktrees/r49-schaal/docs/showcase/schaal-cijfers.json'];
+const PAKKET = process.env.GDE_UPLOADPAKKET || '';
+const inPakket = () => (PAKKET && fs.existsSync(PAKKET) ? fs.readdirSync(PAKKET).map((d) => path.join(PAKKET, d, 'cijfers.json')) : []);
+const FALLBACKS = [process.env.GDE_CIJFERS, ...inPakket()];
 export function loadCijfers(explicit) {
   const file = [explicit, ...FALLBACKS].filter(Boolean).find((f) => fs.existsSync(f));
   if (!file) throw new Error('geen cijferblad gevonden');
