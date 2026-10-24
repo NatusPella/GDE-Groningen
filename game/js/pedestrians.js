@@ -4,7 +4,7 @@ import { DEAD_DURATION } from './pedconst.js';
 export { DEAD_DURATION };
 import { scaledTarget, farAIDist, skipFar, takeDt } from './simload.js';
 import { aandeel, nietBijFoci } from './coopfoci.js';
-import { naasteSpeler } from './spelersregister.js';
+import { hoofdspeler, naasteSpeler } from './spelersregister.js';
 import { inClearZone } from './clearzone.js';
 import { openDriverDoor } from './vehicledoors.js';
 import { profileOf } from './signalement.js';
@@ -177,7 +177,7 @@ function crowdedAt(x, y, fresh) {
 function spawnPedsRaw(map, x, y, count, rng, minDist = 0, hidden = true) {
   const peds = [];
   const view = hidden && spawnWorld && spawnWorld.pedView && spawnWorld.time >= (spawnWorld.pedFreeSpawnUntil || 0);
-  const pv = spawnWorld && spawnWorld.player && spawnWorld.player.inVehicle;
+  const pv = spawnWorld ? hoofdspeler(spawnWorld)?.inVehicle : null;
   const maxDist = !view ? 60 : pv && Math.abs(pv.speed) > 8 ? HIDDEN_FAR_MAX_DIST : HIDDEN_MAX_DIST;
   if (view) minDist = Math.max(minDist, HIDDEN_MIN_DIST);
   const roads = map.roadsNear(x, y, maxDist).filter((r) => r.pts.length >= 2);
@@ -537,7 +537,7 @@ function blastAt(world, v, scale = 1) {
       }
     }
   }
-  const p = world.player;
+  const p = hoofdspeler(world);
   const bp = !p.inVehicle && v.driver !== 'player' && push(p.x, p.y, PLAYER_BLAST_RADIUS);
   if (bp) {
     let dmg = Math.round(30 * bp.k);
@@ -625,7 +625,7 @@ function throwRider(world, b, u, vx, vy, closing, push) {
   b.throttle = 0;
   const bx = b.x, by = b.y;
   if (b.driver === 'player') {
-    const p = world.player;
+    const p = hoofdspeler(world);
     if (p.inVehicle !== b) return;
     p.exitVehicle(world.map, world, true);
     p.x = bx; p.y = by;
@@ -738,7 +738,7 @@ function rijdtDienst(world, car) {
 function updateWitnessCall(world) {
   if (!activeCall) return;
   const { ped } = activeCall;
-  if (activeCall.kind === 'theft' && rijdtDienst(world, world.player.inVehicle)) { activeCall = null; return; }
+  if (activeCall.kind === 'theft' && rijdtDienst(world, hoofdspeler(world).inVehicle)) { activeCall = null; return; }
   if (ped.state === 'dead' || !world.pedestrians.includes(ped) || world.wanted > 0) { activeCall = null; return; }
   if (ped.state !== 'call') { activeCall = null; return; }
   if (world.time < ped.stateUntil) return;
@@ -781,7 +781,7 @@ function reclaimCar(world, ped, car) {
 }
 
 function reportCarTheft(world, ped, car) {
-  if (world.wanted > 0 || world.player.inVehicle !== car) return;
+  if (world.wanted > 0 || hoofdspeler(world).inVehicle !== car) return;
   if (rijdtDienst(world, car)) return; // geen aangifte van wie de dienst van deze bus overnam
   world.wanted = 1;
   world.policeTip = { x: ped.x, y: ped.y, time: world.time };
@@ -832,7 +832,7 @@ const GREET_LINES = ['Moi!', 'Ahoi!', 'Mooi bootje!', 'Goeie vaart!', 'Moi, schi
 let greetScanAt = 0;
 
 function greetPassingBoat(world) {
-  const pv = world.player.inVehicle;
+  const pv = hoofdspeler(world).inVehicle;
   if (!pv || !pv.isBoat || Math.abs(pv.speed) < 0.8 || world.time < greetScanAt) return;
   greetScanAt = world.time + 0.4;
   let shouted = false;
@@ -854,7 +854,7 @@ function greetPassingBoat(world) {
 // --- cyclists' bells ----------------------------------------------------
 
 function updateBikeBells(world) {
-  const p = world.player;
+  const p = hoofdspeler(world);
   const pv = p.inVehicle;
   if (pv && Math.abs(pv.speed) > 3) return;
   for (const v of world.vehicles) {
@@ -941,7 +941,7 @@ function spawnEventGroup(world, inEvent) {
 export const verlatenPool = new AbstractPool(100);
 // focus: een losse groep spelers (samen spelen, spelers uit elkaar, #429, coopfoci.js); n = het aantal foci, die delen het totaalbudget
 function managePopulation(world, focus = null, n = 1) {
-  const player = focus || world.player;
+  const player = focus || hoofdspeler(world);
   const lokaal = n > 1;
   if (!focus) for (let i = world.pedestrians.length - 1; i >= 0; i--) if (world.pedestrians[i]._vanish) world.pedestrians.splice(i, 1);
   const night = dayState(world).isNight;
@@ -1065,7 +1065,7 @@ function checkVehicleImpact(ped, world) {
 const pendingEvents = [];
 
 function checkBump(ped, world) {
-  const p = world.player;
+  const p = hoofdspeler(world);
   if (p.inVehicle || ped.isCop) return;
   const min = ped.radius + (p.radius || 0.35) + 0.15;
   if (Math.abs(ped.x - p.x) > min || Math.abs(ped.y - p.y) > min) return;
@@ -1104,9 +1104,9 @@ function faceToward(ped, x, y) {
 }
 
 // doel: wie de agent op de korrel heeft: de speler, of met een gast als doelwit van de politie (coopgezocht.js) zijn lichaam of voertuig, met zijn niveau
-function updateCop(ped, world, dPlayer, dt, doel = world.player) {
+function updateCop(ped, world, dPlayer, dt, doel = hoofdspeler(world)) {
   const player = doel;
-  const wanted = doel === world.player ? world.wanted : doel.level | 0;
+  const wanted = doel === hoofdspeler(world) ? world.wanted : doel.level | 0;
   ped._losT = (ped._losT || 0) - dt;
   if (ped._losT <= 0) {
     ped._losT = 0.3;
@@ -1283,7 +1283,7 @@ export function updatePedestrians(dt, world) {
         const o = stepVictim(ped._vic, dt, {
           dCar: car ? dist(ped.x, ped.y, car.x, car.y) : 99, carSpeed: car ? car.speed : 0,
           copNear: copInSight(world, ped),
-          carFree: !!car && !car.wrecked && !car.sinking && car.driver == null && world.player.inVehicle !== car && Math.abs(car.speed) < 0.5,
+          carFree: !!car && !car.wrecked && !car.sinking && car.driver == null && hoofdspeler(world).inVehicle !== car && Math.abs(car.speed) < 0.5,
         });
         setPedPose(ped, o.pose);
         if (o.say) say(ped, world, o.say, 2.6, null);

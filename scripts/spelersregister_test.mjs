@@ -1,6 +1,6 @@
 // Test van het register world.players (#446): eenspeler is een register van één, samen spelen voegt records toe.
 import assert from 'node:assert/strict';
-import { ververs, spelers, voorElkeSpeler, dichtstbijzijndeSpeler, naasteSpeler, spelerVan, hoofdspeler } from '../game/js/spelersregister.js';
+import { ververs, spelers, speler, isLokaal, voorElkeSpeler, dichtstbijzijndeSpeler, naasteSpeler, spelerVan, hoofdspeler } from '../game/js/spelersregister.js';
 
 // eenspeler: geen partners
 const auto = { id: 'auto' };
@@ -31,6 +31,16 @@ ververs(world, 0);
 assert.equal(world.players[1], rec1, 'stabiele plek per speler');
 assert.equal(rec1.x, 50);
 assert.equal(spelerVan(world, { slot: 2 }).slot, 2);
+assert.equal(speler(world, 2).x, 300, 'speler() geeft het record op zijn vaste plek');
+assert.equal(speler(world, 1), rec1);
+assert.equal(speler(world, 9), null, 'een plek die niet meedoet heeft geen record');
+
+// isLokaal(): het record en het lichaam van deze speler, niet dat van een meespeler
+assert.equal(isLokaal(world, world.players[0]), true, 'het eigen record');
+assert.equal(isLokaal(world, world.player), true, 'het eigen lichaam');
+assert.equal(isLokaal(world, rec1), false, 'een meespeler is niet lokaal');
+assert.equal(isLokaal(world, rec1.entiteit), false, 'het lichaam van een meespeler is niet lokaal');
+assert.equal(isLokaal(world, null), false);
 
 // een partner zonder plek doet niet mee aan "dichtstbij"
 world.coopPartners = [{ slot: 1, x: null, y: null, zichtbaar: false }];

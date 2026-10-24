@@ -60,5 +60,13 @@ for (const kind of ['reiger', 'zeehond', 'vis']) {
   W.updateHerd(koe2, 0.1, w2);
   check('koe ver weg blijft kalm', !(koe2.fleeT > 0));
 }
+// samen spelen (#446): een meespeler telt ook, ook als de hoofdspeler ver weg staat
+{
+  const w = world(80, 0);
+  w.coopPartners = [{ slot: 1, x: 8, y: 1, zichtbaar: true }];
+  const koe = { kind: 'cow', x: 8, y: 0, angle: 0, speed: 0, wanderTarget: { x: 8, y: 0 }, homeX: 8, homeY: 0, homeRadius: 5, waypointTimer: 5, bobSeed: 0 };
+  W.updateHerd(koe, 0.1, w);
+  check('koe stapt weg voor een meespeler', koe.fleeT > 0);
+}
 console.log(`dieren_water_test: ${n - bad}/${n} ok`);
 process.exit(bad ? 1 : 0);
