@@ -27,6 +27,12 @@
     { "file": "Zilverglans_op_het_Asfalt.mp3", "stations": ["gmusic", "nachtstreek"], "time": "night", "nieuw": true },
     { "file": "Schaduwen_bij_de_steiger.mp3", "stations": ["gmusic", "nachtstreek"], "time": "night", "nieuw": true },
     { "file": "De_Zwaan_sluut.mp3", "stations": ["gmusic", "nachtstreek"], "time": "night", "nieuw": true },
-    { "file": "Hooge_Lucht.mp3", "stations": ["gmusic", "nachtstreek"], "time": "night", "nieuw": true }
+    { "file": "Hooge_Lucht.mp3", "stations": ["gmusic", "nachtstreek"], "time": "night", "nieuw": true },
+    { "file": "Zunneschien_op_t_wad.mp3", "stations": ["gmusic"], "time": "day", "nieuw": true },
+    { "file": "Zilverweide_Groen.mp3", "stations": ["gmusic"], "time": "day", "nieuw": true },
+    { "file": "Zomeravond_in_Dalsum.mp3", "stations": ["gmusic"], "time": "day", "nieuw": true },
+    { "file": "Op_de_Fietse_noar_Klompenoord.mp3", "stations": ["gmusic"], "time": "day", "nieuw": true },
+    { "file": "Zon_en_tractor_goud.mp3", "stations": ["gmusic"], "time": "day", "nieuw": true },
+    { "file": "Langs_het_Grunneger_Land.mp3", "stations": ["gmusic"], "time": "day", "nieuw": true }
   ]
 }
