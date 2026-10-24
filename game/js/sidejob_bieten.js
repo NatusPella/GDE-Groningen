@@ -2,6 +2,8 @@
 // trekker (recht door de rij, in een vaste snelheidsband), daarna de oogst naar de bietenhoop van Suikerhal Hoogkerk brengen.
 // De regels staan in bietenrules.js (puur, getest); dit is de adapter: hij zoekt een vrije akker, zet de rijen met bieten neer,
 // voedt de regels met de plek langs de rij, en laat de bieten verdwijnen zodra je ze rooit. Altijd een zonnige dag.
+// Bieten rooien hoort bij het boerderijsysteem (#437): dit loonwerk voor de buurman is er alleen zolang je zelf nog geen eigen
+// akker hebt. Ligt die akker er eenmaal, dan oogst je bieten op Eigen boerderij en valt dit startpunt weg.
 
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import {
@@ -11,6 +13,7 @@ import { wgsToWorld } from './rdnew.js';
 import { spawnJobVehicle, vehicleSpeed } from './sidejobkit.js';
 import { TRACTOR_MODEL } from './vehicle.js';
 import { ankerMetWeg } from './bijbaananker.js';
+import { heeftEigenAkker } from './boerderijlive.js';
 import { isInWater, pointInPolygon } from './util.js';
 
 // Suikerhal Hoogkerk: de bietenhoop. Pas bij gebruik berekend: wgsToWorld kent zijn kader pas als de wereld er is.
@@ -116,19 +119,23 @@ export default {
   glyph: 'suikerbieten',
   boss: 'Boer Zonnehoek',
   vehicleWord: 'de trekker',
-  blurb: 'Loonwerk voor de boer: bieten rooien en naar de hoop brengen (je eigen akker is Eigen boerderij)',
+  blurb: 'Loonwerk voor de boer: bieten rooien en naar de hoop brengen (zolang je zelf nog geen akker hebt; daarna oogst je bieten op Eigen boerderij)',
   tagline: 'Akkerbouw Zonnehoek: vier rijen, één trekker en een zonnige dag',
   intro: [
     'Akkerbouw Zonnehoek: het is bietentijd en de zon schijnt. Vier rijen op het land, één trekker met een rooier.',
     'Rij elke rij recht door, tussen twee en zes meter per seconde. Daarna de bieten rustig naar de hoop bij Suikerhal Hoogkerk.',
+    'Dit is loonwerk voor de buurman. Zodra je eigen akker bij de Zonnehoek vastligt, oogst je bieten op Eigen boerderij en is dit startpunt weg.',
   ],
   sikkom: (c) => `Bietenoogst (Akkerbouw Zonnehoek): ${c.streak} oogsten zonder gemors`,
 
+  // Alleen zolang de speler zelf nog geen akker heeft: daarna hoort de bietenoogst bij de eigen boerderij (#437).
   anchor(map) {
+    if (heeftEigenAkker()) return null;
     return ankerMetWeg(map, fabriek(), true, [250, 400]);
   },
 
   start(c) {
+    if (heeftEigenAkker()) return 'Je eigen akker ligt vast: oogst je bieten daar (Eigen boerderij).';
     const v = spawnJobVehicle(c.world, c.spot.x, c.spot.y, { kind: 'car', model: { ...TRACTOR_MODEL, color: '#3f7d3a' } });
     if (!v) return 'Geen trekker beschikbaar';
     c.vehicle = v;

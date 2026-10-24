@@ -90,6 +90,10 @@ export function boerderijTijd(w, nu = w && w.time) {
 // Een gast die net aansluit krijgt de klok van de gastheer: dat sprongetje telt niet als groeitijd (main.js, #429).
 export function boerderijKlokNul() { vorigeKlok = null; }
 
+// Ligt de eigen akker van de Zonnehoek al vast (dan boert de speler zelf)? De bietenoogst-bijbaan hangt hieraan (#437): bieten
+// rooien hoort vanaf dat moment bij de eigen boerderij en niet meer als los loonwerk ernaast.
+export const heeftEigenAkker = () => !!getBoerderij().perceel;
+
 // Het perceel van de speler staat vast zodra het gevonden is: bewaar het, zodat het er de volgende keer nog ligt.
 export function zetPerceel(perceel) {
   const b = getBoerderij();
