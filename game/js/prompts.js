@@ -7,6 +7,7 @@ import { homePrompt, homeSecondary, isInsideHome } from './home.js';
 import { vehicleDisplayLabel } from './vehiclenames.js';
 import { findEnterableVehicle, distToVehicleBody } from './vehicle.js';
 import { findRideableProp } from './rideprops.js';
+import { deurBijSpeler, deurNaam, heeftInstapdeur } from './vehicledoors.js';
 import { getSettings } from './settings.js';
 import { physicalKey, tokenKey, keyName, keyWord, PAD_LAYOUTS } from './controls.js';
 import { KEYS } from './storagekeys.js';
@@ -286,7 +287,8 @@ function vehicleName(v) {
   return vehicleDisplayLabel(v);
 }
 
-function doorAnchor(v, p) {
+function doorAnchor(v, p, deur = null) {
+  if (deur) return { x: deur.x, y: deur.y, h: v.isBus || v.isTram || v.isTrain ? 1.7 : 1.2 };
   if (v.isBike || v.isScooter) return { x: v.x, y: v.y, h: 1.25 };
   const nx = -Math.sin(v.angle), ny = Math.cos(v.angle);
   const side = (p.x - v.x) * nx + (p.y - v.y) * ny >= 0 ? 1 : -1;
@@ -409,11 +411,16 @@ function findPrimary(world) {
   }
   if (v) {
     const verb = vehicleVerb(v);
-    const a = doorAnchor(v, p);
+    // bij een auto, bus of trein verschijnt de hint bij de deur waar je staat en kun je
+    // alleen daar instappen (#459); een fiets, step, boot of quad heeft geen deur
+    const deur = deurBijSpeler(v, p.x, p.y);
+    if (!deur && heeftInstapdeur(v)) return null;
+    const deurTxt = deur ? deurNaam(v, deur.deur) : '';
+    const a = doorAnchor(v, p, deur);
     const learn = learning('enter');
-    let sub = vehicleName(v);
+    let sub = deurTxt ? `Bij de ${deurTxt}` : vehicleName(v);
     if (learn) sub = verb.steal ? 'Sleur de bestuurder eruit en rij weg' : 'Stap in en rij weg, niemand die het ziet';
-    return { id: 'veh-' + v.id + verb.label, ...a, key: 'E', label: verb.label, sub, learn, ring: true, steal: !!verb.steal };
+    return { id: 'veh-' + v.id + verb.label + deurTxt, ...a, key: 'E', label: verb.label, sub, deur: deurTxt, learn, ring: true, steal: !!verb.steal };
   }
   if (facingC && kissReady) {
     const name = c.character === 'tammo' ? 'Tammo' : 'Tessa';
