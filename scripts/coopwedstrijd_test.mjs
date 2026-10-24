@@ -454,5 +454,84 @@ const BANEN = [{ par: 2 }, { par: 3 }, { par: 2 }, { par: 3 }, { par: 2 }, { par
   check('de uitslag van discgolf: wie minder worpen had wint', sc.fase === 'klaar' && rijen[0].slot === 0 && rijen[0].plek === 1 && rijen[1].plek === 2 && S.beloningScore(rijen[1]).geld === S.PRIJZEN_SCORE[2]);
 }
 
+// ---- een poging op tijd (klimtoren): pure regels
+{
+  const TI = await import('../game/js/coopwedstrijdtijd.js');
+  const sc = TI.maakTijd('klimtoren', [...MENSEN, { slot: 2, naam: 'Rik', char: 'rik' }]);
+  check('een nieuwe tijdwedstrijd is bezig en niemand heeft iets gemeld', sc.fase === 'bezig' && sc.tijd === true && Object.keys(sc.res).length === 0);
+  check('een onzinnige melding telt niet', !TI.meldTijd(sc, 0, { tijd: NaN }) && !TI.meldTijd(sc, 0, { tijd: 0.1 }) && !TI.meldTijd(sc, 0, { tijd: 99999 }) && !TI.meldTijd(sc, 9, { tijd: 40 }) && !TI.meldTijd(sc, 0, undefined));
+  check('de host meldt zijn tijd boven', TI.meldTijd(sc, 0, { tijd: 52.4, hoogte: 12, boven: true }));
+  check('een tweede melding van dezelfde speler telt niet', !TI.meldTijd(sc, 0, { tijd: 30, hoogte: 12, boven: true }));
+  check('een gast die niet boven kwam meldt zijn hoogte', TI.meldTijd(sc, 1, { tijd: 80, hoogte: 7.3, boven: false }));
+  const st = TI.standTijd(sc);
+  check('de live stand: boven eerst, dan wie niet boven kwam, dan wie nog bezig is', st.map((r) => r.slot).join() === '0,1,2' && st[0].banen === 1 && st[0].slagen === 524 && st[1].banen === 2 && st[1].rel === 73 && st[2].banen === 0, JSON.stringify(st));
+  const ev = TI.standEventTijd(sc);
+  const ls = W.leesWed(JSON.parse(JSON.stringify(ev)));
+  check('de stand gaat als gewoon stand-bericht en wordt gelezen', ls && ls.f === 'sc' && ls.rijen.length === 3 && ls.rijen[0].slot === 0 && ls.rijen[0].banen === 1 && ls.rijen[0].slagen === 524, JSON.stringify(ls));
+  check('de volgorde van het bord geeft hetzelfde als de stand van de host', ls.rijen.slice().reverse().sort(TI.volgordeTijd).map((r) => r.slot).join() === '0,1,2');
+  check('zolang iemand nog bezig is loopt de klok door; na de eerste boven is er een limiet', TI.tikTijd(sc, 10).length === 0 && sc.fase === 'bezig');
+  sc.t = sc.eersteKlaar + TI.NA_EERSTE_TIJD_S + 1;
+  check('na de limiet voor de anderen eindigt de wedstrijd', TI.tikTijd(sc, 0.1).some((e) => e.type === 'klaar') && sc.fase === 'klaar');
+  const uit = TI.uitslagTijd(sc);
+  check('de uitslag: boven op tijd, dan hoogte, dan wie niets meldde', uit.map((r) => r.slot).join() === '0,1,2' && uit.map((r) => r.plek).join() === '1,2,3' && /^0:52\.40$/.test(uit[0].tekst) && /niet boven: hoogste greep 7,3 m/.test(uit[1].tekst) && uit[2].tekst === 'niet af', JSON.stringify(uit.map((r) => r.tekst)));
+  check('de beloning: plek 1 het meeste, niet boven alleen punten, niet af alleen punten', TI.beloningTijd(uit[0]).geld === TI.PRIJZEN_TIJD[1] && TI.beloningTijd(uit[1]).geld === 0 && TI.beloningTijd(uit[1]).xp === 6 && TI.beloningTijd(uit[2]).geld === 0);
+  const s2 = TI.maakTijd('klimtoren', MENSEN);
+  TI.meldTijd(s2, 0, { tijd: 50, hoogte: 12, boven: true }); TI.meldTijd(s2, 1, { tijd: 50, hoogte: 12, boven: true });
+  const u2 = TI.uitslagTijd(s2);
+  check('gelijke tijden delen een plek', u2[0].plek === 1 && u2[1].plek === 1);
+  const s3 = TI.maakTijd('klimtoren', MENSEN);
+  TI.verlaatTijd(s3, 1); TI.meldTijd(s3, 0, { tijd: 60, hoogte: 12, boven: true });
+  check('wie wegviel telt niet mee en de rest is klaar', TI.tikTijd(s3, 0.1).some((e) => e.type === 'klaar') && TI.uitslagTijd(s3).at(-1).weg && TI.beloningTijd(TI.uitslagTijd(s3).at(-1)).geld === 0 && !TI.meldTijd(s3, 1, { tijd: 50, boven: true }));
+  const s4 = TI.maakTijd('klimtoren', MENSEN, { cap: 100 });
+  TI.tikTijd(s4, 101);
+  check('de tijdslimiet beëindigt de wedstrijd', s4.fase === 'klaar');
+  check('een gast stuurt zijn melding in het goede formaat', W.leesGast({ k: 'wedgast', a: 'tijd', t: 61.2, h: 12, o: 1 }).boven === true && W.leesGast({ k: 'wedgast', a: 'tijd', t: -1, h: 3, o: 0 }) === null && W.leesGast({ k: 'wedgast', a: 'tijd', t: 'x', h: 3 }) === null);
+}
+
+// ---- de host en de gast met een nephub: klimtoren op tijd
+{
+  const betaald = [];
+  W.zetWedHaken({ betaalGast: (w, slot, geld, extra) => { betaald.push([slot, geld, extra]); return true; } });
+  let gestart = null, eind = null;
+  W.registreerWedstrijd('klimtoren', { naam: 'Klimtoren Zernike', soort: 'tijd', vak: 'buiten', start: (w, sc) => { gestart = sc; return true; }, plek: () => ({ x: 100, y: 200 }), eind: (w, res) => { eind = res || 'gestopt'; }, solo: () => 'solo' });
+  const { world, log, hub } = nepWereld(ROSTER());
+  check('de uitnodiging voor de klimtoren gaat naar elke gast', W.wedNodigUit(world, 'klimtoren').ok && log.filter(([, b]) => b.f === 'uit' && b.label === 'Klimtoren Zernike').length === 3);
+  W.wedHandleGast(world, { k: 'wedgast', a: 'ja' }, 1); W.wedHandleGast(world, { k: 'wedgast', a: 'ja' }, 2); W.wedHandleGast(world, { k: 'wedgast', a: 'nee' }, 3);
+  W.wedHostTik(world, 0.1);
+  check('de wedstrijd begint met wie ja zei', gestart && gestart.tijd === true && gestart.deeln.map((d) => d.slot).join() === '0,1,2');
+  const st = log.find(([s, b]) => s === 1 && b.f === 'start');
+  const lees = W.leesWed(st[1]);
+  check('de start vertelt dat het een poging op tijd is, zonder banen', lees && lees.tijd === true && !lees.banen && lees.deeln.length === 3, JSON.stringify(lees));
+  check('de lichamen van de gasten staan stil bij de mat', world.companion.coopWedstrijd === true && world.coopFigures[2].coopWedstrijd === true);
+  check('een gast meldt zijn tijd, een golfmelding telt hier niet', W.wedHandleGast(world, { k: 'wedgast', a: 'tijd', t: 70, h: 12, o: 1 }, 1) && !W.wedHandleGast(world, { k: 'wedgast', a: 'score', b: 0, s: 3 }, 2));
+  check('de host meldt zijn eigen tijd', W.wedHostTijd(world, { tijd: 55, hoogte: 12, boven: true }) && !W.wedHostTijd(world, { tijd: 55, hoogte: 12, boven: true }));
+  const n0 = log.length; W.wedHostTik(world, 0.6);
+  const sc1 = log.slice(n0).filter(([, b]) => b.f === 'sc');
+  check('de stand gaat naar wie meedoet', sc1.length === 2 && sc1.every(([s]) => s === 1 || s === 2));
+  const rijen = W.wedScoreRijen(world);
+  check('de host ziet de live stand voor het bord, de snelste eerst', rijen.length === 3 && rijen[0].slot === 0 && rijen[0].banen === 1 && rijen[0].slagen === 550 && rijen[1].slot === 1 && rijen[2].banen === 0, JSON.stringify(rijen));
+  hub.roster.spelers.find((s) => s.slot === 2).verbinding = 'lost';
+  W.wedHostTik(world, 0.1);
+  check('als wie bezig is wegvalt, eindigt de wedstrijd met de uitslag voor de host', eind && eind !== 'gestopt' && eind.jij.plek === 1 && eind.rijen.length === 3 && eind.rijen.at(-1).weg, JSON.stringify(eind && eind.jij));
+  const ge = log.filter(([s, b]) => s === 1 && b.f === 'eind').pop();
+  const gl = W.leesWed(ge[1]);
+  check('de gast krijgt zijn uitslag met tijden en zijn plek', gl && gl.rijen.length === 3 && /^1:10\.00$/.test(gl.rijen[1].tekst) && gl.jij.plek === 2 && gl.jij.geld === 50, JSON.stringify(gl && gl.jij));
+  check('de beloning per plek gaat naar de eigen portemonnee met het vak buiten', betaald.length === 1 && betaald[0][0] === 1 && betaald[0][1] === 50 && betaald[0][2].vak === 'buiten', JSON.stringify(betaald));
+  check('lichamen vrij en een rematch kan', world.companion.coopWedstrijd === false && W.wedHandleGast(world, { k: 'wedgast', a: 'nogmaals' }, 1) && W.wedOpnieuw(world).ok);
+}
+{ // het scherm van de gast bij de klimtoren
+  const ev = []; const verzonden = [];
+  W.zetWedGastHaken('klimtoren', { start: (w, st) => { ev.push(['start', !!st.tijd]); return true; }, eind: (w, uit) => { ev.push(['eind', !!uit.gestopt]); }, tik: () => true });
+  const world = { coopNet: { role: 'client', session: { slot: 1, sendEvent: (b) => { verzonden.push(b); return true; } } }, messages: [], addMessage(t) { this.messages.push(t); } };
+  W.wedHandleHost(world, W.startEvent('klimtoren', MENSEN, 0, { tijd: 1 }));
+  const G = world.coopWedGast;
+  check('de start zet de gast op zijn eigen scherm met een tijdwedstrijd', ev[0] && ev[0][1] === true && G.score && G.score.tijd === true && G.score.banen.length === 0 && world.coopWedstrijd === true);
+  check('de gast meldt zijn tijd', W.wedGastTijd(world, 61.234, 12.04, true) && verzonden.at(-1).a === 'tijd' && verzonden.at(-1).t === 61.23 && verzonden.at(-1).h === 12 && verzonden.at(-1).o === 1);
+  W.wedHandleHost(world, { k: 'wed', f: 'sc', n: 3, r: [[0, 1, 550, 120, 0], [1, 0, 0, 0, 0]], t: 40 });
+  const rijen = W.wedScoreRijen(world);
+  check('de stand van de host staat op volgorde: boven eerst', rijen.length === 2 && rijen[0].slot === 0 && rijen[0].banen === 1 && rijen[1].banen === 0 && rijen[0].naam === 'Tammo', JSON.stringify(rijen));
+  check('stoppen: de host hoort het en het scherm is vrij', W.wedGastVerlaat(world) && verzonden.at(-1).a === 'weg' && !G.score && world.coopWedstrijd === false);
+}
+
 console.log(bad ? `${bad} van ${n} controles mislukt` : `ok: ${n} controles`);
 process.exit(bad ? 1 : 0);
