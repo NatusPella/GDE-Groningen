@@ -31,7 +31,7 @@ export function herkomst(audioDir = AUDIO) {
   }
   const audio = all.filter((f) => AUDIO_EXT.test(f));
   const music = audio.filter((f) => /\/(gmusic|scenario|theme)\//.test(f) && !/\/jingles\//.test(f));
-  const sfx = audio.filter((f) => //audio/sfx//.test(f)); // opnames van effecten (CC0, bron in sfx/manifest.json)
+  const sfx = audio.filter((f) => /[/]audio[/]sfx[/]/.test(f)); // opnames van effecten (CC0, bron in sfx/manifest.json)
   const voice = audio.filter((f) => !music.includes(f) && !sfx.includes(f));
   const zonderLog = voice.filter((f) => !logged.has(f)).map(rel);
   const modellen = {};
