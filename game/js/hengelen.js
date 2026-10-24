@@ -13,6 +13,7 @@ import { vindHengelplek, plekNaam, plekSleutel } from './hengelplek.js';
 import { boekVangst, boekVoortgang } from './visboeklive.js';
 import { loopbaanTel, loopbaanVerdien } from './loopbaanlive.js';
 import { maakHengelAnim } from './hengelanim.js';
+import { registreerWedstrijd, zetWedGastHaken, wedNodigUit, wedNuStarten, wedHostPunt, wedGastPunt, wedScoreStop, wedGastVerlaat, wedGastReset, wedScoreRijen } from './coopwedstrijd.js';
 
 // Hengelen overal in de provincie (#412), met het wedstrijdje aan het Meerstad-meer als begin. [Spatie] gooit uit; als het
 // dobbertje zakt ("Beet!") druk je meteen weer [Spatie]; te vroeg trekken schrikt de vis af. Twee manieren:
@@ -80,9 +81,15 @@ function verwerkVangst(w, g, e) {
   return r;
 }
 
-function einde(w, { quit = false } = {}) {
+function einde(w, { quit = false, extern = false, uitslag = null } = {}) {
   const g = game;
   if (!g) return;
+  const online = !!g.online;
+  if (online && g.mode === 'wedstrijd' && !quit && !g.gemeld) { // zijn vangst gaat naar wie het spel opende; die houdt het scorebord
+    g.gemeld = true;
+    const gram = Math.round(Math.max(0, g.s.kg) * 1000);
+    if (g.online === 'host') wedHostPunt(w, 0, gram); else wedGastPunt(w, 0, gram);
+  }
   game = null;
   w.cameraOverride = null;
   if (g.anim) { g.anim.dispose(); g.anim = null; }
@@ -93,6 +100,7 @@ function einde(w, { quit = false } = {}) {
   // de kas die nog niet vol was wordt afgerond: wat je ving is wat het opbrengt
   if (g.kas >= 0.5) g.betaald += loopbaanVerdien(w, 'hengelen', Math.max(1, Math.round(g.kas)), { rubriek: 'Overig inkomsten', deel: false });
   g.kas = 0;
+  if (online) { eindeOnline(w, g, quit, extern, uitslag); return; }
   if (g.mode === 'vrij') {
     const waar = plekNaam(g.plek.type, g.plek.naam);
     if (g.vangsten > 0) {
@@ -117,8 +125,26 @@ function einde(w, { quit = false } = {}) {
   say(w, medal >= 2 ? 'endGood' : 'endPoor', 4.5);
 }
 
+// Online (#443): wie stopt laat de anderen doorhengelen; de uitslag en de beloning komen van wie het spel opende (coopwedstrijd.js).
+function eindeOnline(w, g, quit, extern, res) {
+  if (quit) {
+    if (!extern) { if (g.online === 'host') wedScoreStop(w); else wedGastVerlaat(w); } // de host stopt het voor iedereen, een gast alleen voor zichzelf
+    w.addMessage('Hengelen gestopt', 2.5);
+    return;
+  }
+  if (g.online === 'gast' || !res) return; // een gast: de uitslagkaart en het geld komen van de host
+  beloonOnline(w, res);
+}
+// De beloning van een plek in het eigen geld en de eigen loopbaan (de gasten krijgen de hunne van de host).
+function beloonOnline(w, res) {
+  const jij = res.jij || { plek: 0, geld: 0, xp: 0 };
+  loopbaanVerdien(w, 'hengelen', jij.geld, { xp: jij.xp, n: 1, uniek: 'meerstad', deel: false });
+  if (jij.geld > 0) w.addMessage(`Beloning: \u20ac${jij.geld.toLocaleString('nl-NL')}`, 4);
+}
+
 function updateGame(w, dt) {
   const g = game, input = w.input, p = w.player;
+  if (g.online === 'gast' && (!w.coopNet || w.coopRole !== 'client')) { wedGastReset(w); einde(w, { quit: true, extern: true }); return; } // de verbinding is weg
   if (p.inVehicle) { p.inVehicle.speed = 0; if (p.inVehicle.vx !== undefined) { p.inVehicle.vx = 0; p.inVehicle.vy = 0; } }
   else { p.vx = p.vy = 0; p.speed = 0; p.moving = false; }
   if (stopPressed(input)) { einde(w, { quit: true }); return; }
@@ -146,7 +172,7 @@ function updateGame(w, dt) {
 
 const PHASE_TEXT = { idle: 'Gooi uit met Spatie', cast: 'De lijn zoeft uit...', wait: 'Wacht op het dobbertje...', bite: 'BEET!', scare: 'De vissen zijn gevlucht...' };
 
-function updateHud() {
+function updateHud(w) {
   const g = game;
   if (!g) return;
   const s = g.s;
@@ -160,7 +186,9 @@ function updateHud() {
     return;
   }
   if (!board) return;
-  const row = `<span>Gewicht <b>${kgTekst(s.kg)}</b></span><span>Tijd <b>${Math.max(0, Math.ceil(s.left))}</b></span><span>Gevangen <b>${s.catches.length}</b></span><span>Ontsnapt <b>${s.lost}</b></span>`;
+  const online = g.online ? wedScoreRijen(w) : [];
+  const stand = online.length ? `<span>${online.map((r) => `${r.weg ? '<s>' : ''}${r.naam} ${kgTekst((r.slagen || 0) / 1000)}${r.weg ? '</s>' : ''}`).join(' · ')}</span>` : '';
+  const row = `${stand}<span>Gewicht <b>${kgTekst(s.kg)}</b></span><span>Tijd <b>${Math.max(0, Math.ceil(s.left))}</b></span><span>Gevangen <b>${s.catches.length}</b></span><span>Ontsnapt <b>${s.lost}</b></span>`;
   board.set({ row, cells, flash, bad: !!(g.flash && g.flash.bad), help: `${key('SPATIE')} uitgooien en binnenhalen · ${key('BACKSPACE')} stoppen` });
 }
 
@@ -172,16 +200,23 @@ function glyph(ctx) {
 }
 
 // De Meerstad-wedstrijd: negentig seconden, de vaste vissen van het meer.
-function start(w) {
+function start(w, { online = null } = {}) {
   if (game) return false;
   const p = w.player;
   if (p.inVehicle) p.exitVehicle(w.map, w);
   if (!board) board = createBoard('HENGELEN MEERSTAD', ACCENT);
   board.show();
-  game = { mode: 'wedstrijd', s: createHengel(Math.random), flash: null, plek: MEERSTAD, kas: 0, betaald: 0, vangsten: 0, soorten: new Map(), nieuw: [] };
-  showCard(w, { kind: 'tip', kicker: 'Hengelen', title: 'Geduld aan het meer', body: '[Spatie] gooit uit. Zakt het dobbertje (Beet!), druk dan meteen weer [Spatie]. Te vroeg trekken schrikt de vis af; grote vissen zijn minder lang onder.', key: 'hengel-help', voice: false, duration: 7 });
+  game = { mode: 'wedstrijd', s: createHengel(Math.random), flash: null, plek: MEERSTAD, kas: 0, betaald: 0, vangsten: 0, soorten: new Map(), nieuw: [], online };
+  if (online !== 'gast') showCard(w, { kind: 'tip', kicker: 'Hengelen', title: 'Geduld aan het meer', body: '[Spatie] gooit uit. Zakt het dobbertje (Beet!), druk dan meteen weer [Spatie]. Te vroeg trekken schrikt de vis af; grote vissen zijn minder lang onder.', key: 'hengel-help', voice: false, duration: 7 });
   say(w, 'start');
   return true;
+}
+
+// Met gasten in de sessie is de Meerstad-wedstrijd een wedstrijd tegen elkaar (Meedoen? J/N); nog eens E start meteen (#443).
+function startOfUitnodigen(w) {
+  const uit = wedNodigUit(w, 'hengelen');
+  if (uit.ok) { if (uit.reden === 'wacht') wedNuStarten(w); return true; }
+  return start(w);
 }
 
 // Vrij hengelen op het water bij de speler: de vis van dit watertype, op dit uur en bij dit weer, zonder klok.
@@ -231,7 +266,7 @@ export function hengelVrijPrompt(w, alleenBoot = false) {
 }
 
 function tick(dt, w) {
-  if (game) { updateHud(); return; }
+  if (game) { updateHud(w); return; }
   zoekT -= dt;
   if (zoekT <= 0) { zoekT = ZOEK_TUSSENTIJD; plekNu = zoekPlek(w); }
   if (!plekNu || !w.input || w.paused || isCinematicActive()) return;
@@ -248,6 +283,33 @@ function tick(dt, w) {
 function recText() {
   return recLine(getChallengeRecord('hengelen'), (v) => `${v.toFixed(1).replace('.', ',')} kg`, MEDALS);
 }
+
+// --- de wedstrijd tegen elkaar (#443): iedereen vist negentig seconden op zijn eigen scherm, de zwaarste vangst wint -------------------------
+
+function gastTik(w, dt) {
+  if (!game || game.online !== 'gast') return false;
+  updateGame(w, dt);
+  if (game) updateHud(w);
+  return true;
+}
+registreerWedstrijd('hengelen', {
+  naam: 'Hengelen Meerstad', soort: 'punt', vak: 'hengelen',
+  opties: () => ({ beurten: 1, format: (g) => kgTekst(g / 1000) }),
+  start: (w) => start(w, { online: 'host' }),
+  plek: () => ({ ...STAND }),
+  gastPlek: (w, x, y) => !game && Math.hypot(x - STAND.x, y - STAND.y) < 4.5, // een gast vraagt het bij de steiger (#452)
+  eind: (w, res) => {
+    if (game && game.online === 'host') einde(w, res ? { uitslag: res } : { quit: true, extern: true });
+    else if (res) beloonOnline(w, res); // de host was al klaar: alleen zijn beloning miste nog
+  },
+  solo: (w) => start(w),
+});
+zetWedGastHaken('hengelen', {
+  dichtbij: (w) => !game && !w.player.inVehicle && !w.player.swimming && Math.hypot(w.player.x - STAND.x, w.player.y - STAND.y) < 3,
+  start: (w) => start(w, { online: 'gast' }),
+  eind: (w, uit) => { if (game && game.online === 'gast') einde(w, uit.gestopt ? { quit: true, extern: true } : { uitslag: uit }); },
+  tik: gastTik,
+});
 
 const basis = standActivity({
   id: 'hengelen',
@@ -266,7 +328,7 @@ const basis = standActivity({
   recText,
   glyph,
   isActive: () => !!game,
-  start,
+  start: (w) => startOfUitnodigen(w),
   quit: (w) => einde(w, { quit: true }),
   update: (dt, w) => updateGame(w, dt),
   tick,
