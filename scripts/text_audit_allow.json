@@ -431,12 +431,6 @@
     },
     {
       "rule": "inclusief",
-      "term": "Iedereen houdt zijn",
-      "file": "lobby.js",
-      "why": "regel van het Samen spelen-scherm; sessie r27-samenspelen herschrijft die tekst, daarna vervalt deze regel"
-    },
-    {
-      "rule": "inclusief",
       "term": "iedereen, en van twee zingende Friese reuzen aan zijn",
       "file": "characters.js",
       "ctx": "Kroegbaas",

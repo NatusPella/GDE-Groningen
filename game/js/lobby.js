@@ -1,7 +1,8 @@
 // Samen spelen (#95): het uitnodigscherm als toestandsmachine, in de stijl van
-// Watch Dogs 2: je kunt op elk moment iemand uitnodigen (host) of aansluiten met
-// een code (gast), vanuit het pauzemenu. Er is geen keuze per save of bij het
-// starten; iedereen houdt zijn eigen voortgang. De gastheer speelt Tammo, de gast Tessa.
+// Watch Dogs 2: je kunt op elk moment iemand uitnodigen (intern de host) of aansluiten
+// met een code, vanuit het pauzemenu. Er is geen keuze per save of bij het starten;
+// iedereen houdt zijn eigen voortgang en speelt lokaal de hoofdpersoon van zijn eigen
+// verhaal (Tammo of Tessa); de anderen zien je als je online-avatar (#455).
 // Pure logica (geen DOM): toestand en Nederlandse teksten; lobbyui.js tekent.
 //
 // Twee routes, naast elkaar:
@@ -93,6 +94,10 @@ export function profielTekst(profiel = {}) {
   return `Anderen zien je als ${av.naam || 'je figuur'} (${kleurNaam(av.kleur)}).`;
 }
 
+// In een sessie geldt voor iedereen hetzelfde (#447, #455): je begint op passief en je
+// avatar (naam en kleur) is wat de anderen van je zien. Kort, want het staat bij de spelers.
+export const PASSIEF_REGEL = 'Je staat standaard op passief: medespelers kunnen je geen schade doen. Je naam, kleur en die stand pas je aan bij Spelers in het pauzemenu.';
+
 // Stand van de ander bij een versieverschil: duidelijke tekst met de versies
 export function versieTekst(lokaal, ander) {
   const l = lokaal ? ` (jij: ${lokaal})` : '';
@@ -111,7 +116,7 @@ export function classifyInput(text) {
   return r.ok ? { ok: true, route: ROUTES.KAMER, room: r.room } : { ok: false, reason: 'Dit is geen kamercode en geen koppelcode van dit spel.' };
 }
 
-// caps: { direct (desktop-app), rtc (WebRTC beschikbaar), laatsteCode, start?: 'verbroken', rol?, startGate (de wachtkamer van een nieuw of geladen spel: het spel begint pas als de gastheer start), spelNaam (het opgeslagen spel van deze speler) }
+// caps: { direct (desktop-app), rtc (WebRTC beschikbaar), laatsteCode, start?: 'verbroken', rol?, startGate (de wachtkamer van een nieuw of geladen spel: het spel begint pas als wie het spel opende start), spelNaam (het opgeslagen spel van deze speler) }
 export function createLobby(caps = {}) {
   return {
     // keuze: de rol die al in het hoofdmenu is gekozen (Gastheer worden / Meedoen): dan slaat de lobby de rolkeuze over
@@ -183,7 +188,7 @@ export function reduce(s, ev) {
       n.rol = ROLES.GAST; n.route = ROUTES.KAMER; n.invoer = { ok: true, route: ROUTES.KAMER, room: e.room }; n.step = 'toestemming'; return n;
     }
     case 'lijst-terug': if (s.step !== 'lijst' && s.step !== 'lijst-vraag') return s; n.step = s.terugNaar || 'start'; return n;
-    case 'wens': // alleen gast: gewenste figuur voor plek 2 en hoger
+    case 'wens': // alleen gast: de figuur die hij het liefst heeft (die van zijn online-avatar)
       n.wens = EXTRA_CHARS.some((c) => c.id === ev.char) ? ev.char : null; return n;
     case 'profiel': { // de online-avatar invullen (#455); de naam wordt pas bij profiel-klaar gefilterd
       const naam = typeof ev.naam === 'string' ? ev.naam.slice(0, ONLINE_NAAM_MAX) : s.profiel.naam;
@@ -230,23 +235,21 @@ export function reduce(s, ev) {
   }
 }
 
-// Het spel begint pas met minstens twee spelers in de wachtkamer (de eigenaar, 20-10): de gastheer plus een gast
+// Het spel begint pas met minstens twee spelers in de wachtkamer (de eigenaar, 20-10): wie het spel opende plus een gast
 export const MIN_SPELERS = 2;
 
 // De regel voor de gast: wat er van zijn voortgang wordt bewaard (docs/COOP-OPSLAAN.md)
 export const GAST_BEWAREN = (naam, opener = 'de ander') => `Je speelt mee in het spel van ${opener}. Wat je verdient bewaren we in je eigen spel${naam ? ` (${naam})` : ''}; het verhaal en de wereld zijn van ${opener}.`;
 
-// Wie jij bent in dit spel, en als je een figuur wenste maar kreeg wat de plek bepaalt: eerlijk zeggen waarom (plek 1 is Tessa, een verhaalrol).
+// Wat de gast leest over de figuur die hij koos (#455): de rol hoort bij de speler, niet
+// bij de plek, dus we leggen alleen uit wat hij kreeg als zijn wens al bezet was.
 export function jijRegel(s, lijst, ik) {
   const p = (lijst || []).find((x) => x && x.slot === ik);
   if (!p || !p.naam) return '';
   const wens = s.wens && EXTRA_CHARS.find((c) => c.id === s.wens);
-  if (!wens || wens.id === p.char) return `Jij speelt ${p.naam}.`;
-  if (ik === 1) return `Je koos ${wens.naam}, maar als eerste gast speel je Tessa: zij hoort bij het verhaal. Een eigen figuur kan als je als derde of later meedoet. Jij speelt Tessa.`;
-  return `Je koos ${wens.naam}, maar die was al bezet. Jij speelt ${p.naam}.`;
+  if (!wens || wens.id === p.char) return '';
+  return `Je koos ${wens.naam}, maar die was al bezet: je kreeg ${p.naam}.`;
 }
-
-const PARTNER_NAME = { host: 'Tessa', gast: 'Tammo' }; // de ander van deze rol
 
 // Wat de UI toont. buttons: [{ act, label, primary? }]; input: een tekstvak; code: de code met kopieerknop.
 export function view(s) {
@@ -258,7 +261,7 @@ export function view(s) {
   switch (s.step) {
     case 'start':
       return V({
-        lines: ['Speel samen met een vriend in de open wereld: opdrachten, minigames en het verhaal. Iedereen houdt zijn eigen voortgang. Wie het spel opent speelt Tammo, wie als eerste meedoet speelt Tessa, wie daarna komt een eigen figuur.', 'Vul hieronder je online naam en kleur in: zo zien de anderen je.'],
+        lines: ['Speel samen met een vriend in de open wereld: opdrachten, minigames en het verhaal. Je houdt je eigen voortgang en speelt lokaal je eigen verhaal: Tammo of Tessa, net wat jouw verhaal vraagt. De wereld is van wie het spel opent.', 'Vul hieronder je online naam en kleur in: zo zien de anderen je, ook als jij lokaal Tammo of Tessa bent.'],
         profiel,
         buttons: [{ act: 'kies-host', label: 'Iemand uitnodigen', primary: true }, { act: 'kies-gast', label: 'Code of adres invoeren' }, ...(s.caps.rtc ? [{ act: 'lijst', label: 'Openbare sessies' }] : []), { act: 'diag', label: 'Verbinding testen' }],
       });
@@ -283,7 +286,7 @@ export function view(s) {
     case 'host-maakt-code':
       return V({ title: 'Iemand uitnodigen', lines: [s.route === ROUTES.DIRECT ? 'Je router wordt gevraagd een poort te openen…' : 'Je kamercode wordt gemaakt…'], buttons: [{ act: 'terug', label: 'Annuleren' }] });
     case 'host-wacht': {
-      const lines = [s.route === ROUTES.DIRECT ? 'Geef dit adres of deze code aan je medespeler. Zodra die verbindt, komt Tessa naast je staan.' : 'Geef deze kamercode aan je medespeler. Zodra die hem invoert, komt Tessa naast je staan.'];
+      const lines = [s.route === ROUTES.DIRECT ? 'Geef dit adres of deze code aan je medespeler. Zodra die verbindt, komt je medespeler naast je staan.' : 'Geef deze kamercode aan je medespeler. Zodra die hem invoert, komt je medespeler naast je staan.'];
       if (s.note) lines.push(s.note);
       if (s.lanCode && s.lanCode !== s.code) lines.push('Op hetzelfde netwerk werkt ook de lokale code: ' + s.lanCode);
       if (s.caps.startGate) lines.push('Wacht op een medespeler: je kunt het spel starten zodra er minstens twee spelers zijn.');
@@ -292,7 +295,7 @@ export function view(s) {
     }
     case 'gast-typt':
       return V({
-        title: 'Aansluiten', lines: ['Voer de kamercode of de koppelcode in die je kreeg. De eerste gast speelt altijd Tessa: zij hoort bij het verhaal, dus daar kies je niets. Kom je als derde of later, dan speel je een eigen figuur: kies er hieronder een (die krijg je als hij vrij is), of laat het kiezen.', GAST_BEWAREN(s.caps.spelNaam)],
+        title: 'Aansluiten', lines: ['Voer de kamercode of de koppelcode in die je kreeg. Je speelt lokaal je eigen verhaal (Tammo of Tessa, wat jouw opdracht vraagt) en de anderen zien je als je online-avatar. Kies hieronder je naam, kleur en figuur: je naam en kleur zijn wat de anderen bij je figuur zien.', GAST_BEWAREN(s.caps.spelNaam)],
         profiel,
         input: { placeholder: 'Kamercode of GDE2-…', value: s.caps.laatsteCode || '' },
         wensen: EXTRA_CHARS.map((c) => ({ act: 'wens-' + c.id, id: c.id, naam: c.naam, kleur: c.kleur, gekozen: s.wens === c.id })),
@@ -307,9 +310,10 @@ export function view(s) {
       const ik = host ? 0 : s.partner && s.partner.slot;
       const namen = lijst.map((p) => p.naam + (p.verbinding === 'lost' ? ' · verbinding weg' : p.verbinding === 'lag' ? ' · haperend' : ''));
       const opener = openerNaam(lijst);
-      const lines = [lijst.length ? `Spelers (${lijst.length} van ${s.max}): ${namen.join(', ')}.` : `Je speelt met ${PARTNER_NAME[s.rol] || 'je medespeler'}.`];
+      const lines = [lijst.length ? `Spelers (${lijst.length} van ${s.max}): ${namen.join(', ')}.` : 'Je speelt met je medespeler.'];
       if (lag) lines.push('De verbinding haperde even; we wachten op de ander.');
       const tip = advies(lijst.length, host ? 'host' : 'gast'); if (tip) lines.push(tip);
+      lines.push(profielTekst(s.profil), PASSIEF_REGEL);
       const buttons = [];
       if (host && s.caps.startGate) { // het spel begint pas met minstens twee spelers en een druk op Spel starten
         const genoeg = lijst.filter((p) => p.verbinding !== 'lost').length >= MIN_SPELERS;
