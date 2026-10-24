@@ -16,7 +16,7 @@ import { setFixedCharacters, applyHostState, makeClientInput, ensureFigure, remo
 import { bindCoop } from './coopglue.js';
 import { ververs } from './spelersregister.js';
 import { partnersInfo, createPings, addPing, tickPings, pingEvent } from './partnerhud.js';
-import { holdBeleid, vereistVoor, leesLijstEvent, lijst } from './coopplayers.js';
+import { holdBeleid, vereistVoor, leesLijstEvent, lijst, zetAvatar } from './coopplayers.js';
 import { cameraRelative, stepSlot2, sharedCamera } from './coop.js';
 import { coopStep } from './coopglue.js';
 import { gateOn, setGate, hekBericht } from './coopgate.js';
@@ -49,6 +49,8 @@ import { gebeurtenisId, maakBoekhouding } from './coopbeloning.js'; // beloninge
 import { samenWaarschuwing } from './coopstatus.js'; // wat nog niet samen werkt: een melding voor de gast
 import { teamDown } from './cooproles.js'; // een opdracht faalt pas als alle meespelers neer zijn (#452)
 import { saveGame as bewaarNu } from './savehook.js';
+import { getSettings } from './settings.js';
+import { profielNaam, profielKleur } from './lobby.js';
 import { wedHostTik, wedHandleGast, wedHandleHost, wedGastReset, zetWedHaken } from './coopwedstrijd.js';
 import { wedKaartTik } from './coopwedstrijd3d.js';
 import { bijbaanStart, bijbaanBeloning, bijbaanEind, bijbaanHelpers, bijbaanHostTik, bijbaanGastTik, bijbaanGastReset, bijbaanHandleGast, bijbaanHandleHost, bijbaanVoorNieuwe, bijbaanWeg, bijbaanHostMee, zetBijbaanHaken } from './coopbijbaan.js';
@@ -68,8 +70,21 @@ export const CAMERA_DELEN = false; // Tammo en Tessa delen geen camera meer: elk
 export const FIGUUR_TERUG_S = 4;  // s te ver weg voor de gastheer de figuur bij de groep zet
 
 // De tegelhash komt van de aanroeper (manifest van de wereld); story = verhaalboog.
+// De online-avatar (#455) reist mee: de naam en kleur uit de instellingen van dit
+// apparaat, zodat de host ze in de spelerslijst kan zetten en de anderen ze zien.
+// Zonder naam gaat er niets mee (dan geldt de naam van de figuur).
 export function handshakeInfo({ tiles, story }) {
-  return { game: 'gde', proto: PROTO, version: String(VERSION), tiles: String(tiles), story: String(story) };
+  const info = { game: 'gde', proto: PROTO, version: String(VERSION), tiles: String(tiles), story: String(story) };
+  const p = onlineProfiel();
+  if (p.naam) info.avatar = { naam: p.naam, kleur: p.kleur };
+  return info;
+}
+function onlineProfiel() {
+  try {
+    const s = getSettings();
+    const r = profielNaam(s.onlineNaam);
+    return { naam: r.ok ? r.naam : '', kleur: profielKleur(s.onlineKleur) };
+  } catch (e) { return { naam: '', kleur: profielKleur('') }; }
 }
 
 // Kan deze speler nu aansluiten? De gast verlaat zijn wereld, dus niet midden in iets.
@@ -242,7 +257,7 @@ export function startHost(world, info, opts = {}) {
   hub = new HostHub({
     info, seed: opts.seed ?? 1, max: opts.max, caps: CAPS, rand: opts.rand,
     sim: hostSim(world, () => hub.roster),
-    onJoin: (slot, char) => {
+    onJoin: (slot, char, avatar = null) => {
       if (world.coopNet && world.coopNet.missie) hub.announce(missieBericht(null, world.mission).event || { k: 'missie', actief: false }, slot);
       nodigLaatUit(world, slot); // een opdracht loopt al: ook jij mag kiezen (#429)
       bijbaanVoorNieuwe(world, slot); // een bijbaan loopt al: geen late instap, je kijkt mee (#452)
@@ -250,7 +265,7 @@ export function startHost(world, info, opts = {}) {
       const we = weerEvent(world.weatherState); if (we) hub.announce(we, slot); // het weer van de gastheer (#364)
       hub.announce({ k: 'hek', aan: gateOn() }, slot); // is het spel nog niet begonnen? dan wacht de nieuwe speler in de wachtkamer
       if (world.coopNet && world.coopNet.sceneNu && !sceneLeeg(world.coopNet.sceneNu)) hub.announce({ k: 'scene', ...world.coopNet.sceneNu }, slot); // wie midden in een filmpje aansluit, hoort het meteen
-      if (slot >= 2) { const f = ensureFigure(world, slot, char); f.x = world.player.x + 1.5 * (slot - 1); f.y = world.player.y + 1.5; }
+      if (slot >= 2) { const f = ensureFigure(world, slot, char, avatar); f.x = world.player.x + 1.5 * (slot - 1); f.y = world.player.y + 1.5; }
       if (fade) fade('in'); // de gast komt met een korte fade naast je staan
     },
     onLeave: (slot) => {
@@ -276,6 +291,7 @@ export function startHost(world, info, opts = {}) {
     },
   });
   hub.onchange = (roster) => { world.coopRoster = lijst(roster); if (onChange) onChange(roster); };
+  if (info && info.avatar) zetAvatar(hub.roster, 0, info.avatar); // je eigen online-avatar in de lijst voor de anderen (#455)
   setFixedCharacters(world, 0);
   if (world.coop) world.coop.leash = Infinity; // geen harde lijn van 38 m om Tessa: ze kon niet verder dan dat van de gastheer, en hij kon niet weten waarom (#388); bandMetgezel doet het werk
   world.coopRole = 'host';
@@ -1169,7 +1185,7 @@ export function sendPing(world, x, y, soort = 'hier') {
   return n.role === 'host' ? n.hub.announce({ ...pingEvent(x, y, soort), van: 0 }) : n.session.sendEvent(pingEvent(x, y, soort));
 }
 // ---- de gast doet iets bij de host (#291, docs/COOP-GAST.md)
-const gastNaam = (world, slot) => { const p = (world.coopRoster || []).find((x) => x && x.slot === slot); return (p && (p.naam || (charInfo(p.char) || {}).naam)) || 'De ander'; };
+const gastNaam = (world, slot) => { const p = (world.coopRoster || []).find((x) => x && x.slot === slot); return (p && ((p.avatar && p.avatar.naam) || p.naam || (charInfo(p.char) || {}).naam)) || 'De ander'; };
 // E van de gast die niet bij een winkel of automaat was: de host laat zijn lichaam in- of uitstappen
 export function gastGebruik(world) {
   const n = world.coopNet; if (!n || n.role !== 'client' || !n.joined) return false;

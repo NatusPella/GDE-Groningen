@@ -1,5 +1,6 @@
 // Samen spelen (#95, #377): de spelerslijst in beeld. Twee plekken, nooit permanent: een compacte lijst links in het scherm zolang je
 // Tab ingedrukt houdt, en het onderdeel Spelers in het pauzemenu (alleen in een sessie) met dezelfde gegevens en de roepjes.
+// In het pauzemenu stel je ook je online-avatar in (#455): de naam en kleur die anderen van je zien.
 // De gegevens komen uit world.coopSpelers (coopnet.js, gebouwd met coopspelers.js, getest); dit bestand is alleen DOM.
 // Niet door een mens in beeld bekeken.
 import { pingGebaar, zetPassiefGebaar, kanPassiefKiezen, passiefStandVan } from './coopnet.js';
@@ -9,6 +10,8 @@ import { VORM_TEKEN, kanEruitZetten, kanOverdragen, overdragenKnopTekst, eruitKn
 import { removeGuest } from './coopnet.js';
 import { biedOver } from './coophostwisselnet.js';
 import { setUserWaypoint } from './routing.js';
+import { getSettings, setSetting } from './settings.js';
+import { PROFIEL_KLEUREN, ONLINE_NAAM_MAX, profielNaam, profielKleur, profielTekst } from './lobby.js';
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const STIP = { ok: '#3fc97a', lag: '#f2c94c', lost: '#ff5a4f' };
@@ -53,6 +56,17 @@ const CSS = `
 .pm-spelers .cs-roep { display: flex; flex-wrap: wrap; gap: 10px; }
 .pm-spelers .cs-roep button { padding: 10px 18px; border: 0; border-radius: 8px; background: #3fc97a; color: #0c140e; font: bold 20px "Arial Narrow", Arial, sans-serif; cursor: pointer; }
 .pm-spelers .cs-roep button:focus-visible { outline: 2px solid #f0ede4; outline-offset: 2px; }
+.cs-profiel { display: flex; flex-direction: column; gap: 8px; padding-top: 10px; border-top: 1px solid rgba(240,237,228,0.16); }
+.cs-profiel h4 { margin: 0; font: normal 20px "Bebas Neue", "Arial Narrow", Arial, sans-serif; letter-spacing: 0.06em; }
+.cs-profiel p { max-width: 640px; }
+.cs-profiel-label { display: flex; gap: 10px; align-items: center; font-size: 20px; }
+.cs-profiel-naam { min-width: 0; max-width: 260px; padding: 4px 8px; border: 0; border-radius: 4px; background: rgba(240,237,228,0.14); color: #f0ede4; font: inherit; }
+.cs-kleuren { display: flex; flex-wrap: wrap; gap: 6px; }
+.cs-kleuren button { padding: 4px 10px; border: 0; border-radius: 4px; background: rgba(240,237,228,0.14); color: #f0ede4; font: inherit; cursor: pointer; }
+.cs-kleuren button[aria-pressed="true"] { background: rgba(63,201,122,0.4); }
+.cs-kleuren button:focus-visible, .cs-profiel-naam:focus-visible { outline: 2px solid #f0ede4; outline-offset: 2px; }
+.cs-profiel-fout { color: #ff8f86; }
+.cs-profiel-hint { font-size: 16px; opacity: 0.75; }
 `;
 let stijl = false;
 function zorgVoorStijl() {
@@ -84,7 +98,19 @@ export function updateSpelersOverlay(world) {
 export const spelersOverlayZichtbaar = () => !!overlay && overlay.style.display !== 'none';
 
 // ---- het onderdeel Spelers in het pauzemenu
-let timer = null, bevestig = null;
+let timer = null, bevestig = null, profielFout = '';
+// Je online-avatar (#455): de naam en kleur die anderen van je zien. Bewaard in de
+// gewone instellingen (settings.js), dus per apparaat; de volgende keer dat je
+// meedoet gaan ze mee in de kennismaking en ziet iedereen ze bij je figuur.
+function profielHtml(world) {
+  const s = getSettings();
+  const kleur = profielKleur(s.onlineKleur);
+  return `<div class="cs-profiel"><h4>Je online-avatar</h4><p>${esc(profielTekst({ naam: s.onlineNaam, kleur }))} Zo zien anderen je in Samen spelen.</p>` +
+    `<label class="cs-profiel-label">Online naam <input type="text" class="cs-profiel-naam" maxlength="${ONLINE_NAAM_MAX}" spellcheck="false" autocomplete="off" placeholder="Je figuur" value="${esc(s.onlineNaam)}"></label>` +
+    `<div class="cs-kleuren" role="group" aria-label="Kleur">${PROFIEL_KLEUREN.map((c) => `<button type="button" data-kleur="${c.hex}" aria-pressed="${c.hex === kleur}"><span style="color:${c.hex}" aria-hidden="true">●</span> ${esc(c.naam)}</button>`).join('')}</div>` +
+    (profielFout ? `<p class="cs-profiel-fout" role="alert">${esc(profielFout)}</p>` : '') +
+    `<p class="cs-profiel-hint">${world && world.coopNet ? 'Je nieuwe naam en kleur gelden zodra je opnieuw meedoet.' : 'Het spel bewaart ze op dit apparaat.'}</p></div>`;
+}
 export function renderSpelersPanel(root, world, sluit = () => {}) {
   if (!root) return;
   zorgVoorStijl();
@@ -92,21 +118,37 @@ export function renderSpelersPanel(root, world, sluit = () => {}) {
   const teken = () => {
     if (!root.isConnected || root.closest('[hidden]')) { if (timer) { clearInterval(timer); timer = null; } return; }
     const rijen = (world.coopNet && world.coopSpelers) || [];
-    if (!rijen.length) { root.innerHTML = '<p>Je speelt niet samen. Open Spel › Samen spelen om iemand uit te nodigen of aan te sluiten.</p>'; return; }
-    const zittend = root.contains(document.activeElement) && document.activeElement.matches('button');
+    const schermNaam = root.querySelector('.cs-profiel-naam');
+    const zittend = root.contains(document.activeElement) && document.activeElement.matches('button, input');
     const rol = world.coopNet && world.coopNet.role;
-    const key = JSON.stringify([bevestig, kanPassiefKiezen(world), passiefStandVan(world), ...rijen.map((r) => [r.slot, r.doet, r.verbinding, r.ms, r.afstandTekst, r.passief, r.pvpInSpel])]);
+    const prof = getSettings();
+    const key = JSON.stringify([bevestig, kanPassiefKiezen(world), passiefStandVan(world), prof.onlineNaam, prof.onlineKleur, profielFout, ...rijen.map((r) => [r.slot, r.doet, r.verbinding, r.ms, r.afstandTekst, r.passief, r.pvpInSpel])]);
     if (root.dataset.key === key && root.dataset.klaar) return;
-    if (zittend && root.dataset.klaar) return; // de focus op een knop blijft staan
+    if (zittend && root.dataset.klaar) return; // de focus op een knop of in het naamveld blijft staan
+    const naamInvoer = schermNaam && document.activeElement === schermNaam ? schermNaam.value : prof.onlineNaam;
     root.dataset.key = key; root.dataset.klaar = '1';
-    root.innerHTML = `<ul class="cs-lijst">${rijen.map((r) => rijHtml(r, true, rol, bevestig)).join('')}</ul>` +
-      `<p>Roepen kan ook in het spel: ${roepHint()}. Iemand uitnodigen: kies Samen spelen onder Spel.</p>` +
-      pvpHtml(world) +
-      `<div class="cs-roep">${PING_TOETSEN.map((k) => `<button type="button" data-ping="${k.soort}">${esc(k.tekst)} <small>(${k.toets})</small></button>`).join('')}</div>`;
+    root.innerHTML = (rijen.length
+      ? `<ul class="cs-lijst">${rijen.map((r) => rijHtml(r, true, rol, bevestig)).join('')}</ul>` +
+        `<p>Roepen kan ook in het spel: ${roepHint()}. Iemand uitnodigen: kies Samen spelen onder Spel.</p>` +
+        pvpHtml(world) +
+        `<div class="cs-roep">${PING_TOETSEN.map((k) => `<button type="button" data-ping="${k.soort}">${esc(k.tekst)} <small>(${k.toets})</small></button>`).join('')}</div>`
+      : `<p>Je speelt niet samen. Open Spel › Samen spelen om iemand uit te nodigen of aan te sluiten.</p>`) +
+      profielHtml(world);
+    const veld = root.querySelector('.cs-profiel-naam'); if (veld && veld.value !== naamInvoer) veld.value = naamInvoer;
   };
   if (!root.dataset.gebonden) {
     root.dataset.gebonden = '1';
+    root.addEventListener('change', (e) => { // het naamveld: pas bij verlaten filteren en bewaren
+      if (e.target && e.target.matches && e.target.matches('.cs-profiel-naam')) {
+        const r = profielNaam(e.target.value);
+        profielFout = r.ok ? '' : r.reason;
+        if (r.ok) setSetting('onlineNaam', r.naam);
+        root.dataset.klaar = ''; teken();
+      }
+    });
     root.addEventListener('click', (e) => {
+      const kk = e.target.closest('[data-kleur]');
+      if (kk) { profielFout = ''; setSetting('onlineKleur', profielKleur(kk.getAttribute('data-kleur'))); root.dataset.klaar = ''; teken(); return; }
       const p = e.target.closest('[data-ping]');
       if (p && world.player) { if (pingGebaar(world, p.getAttribute('data-ping'))) sluit(); return; }
       const ps = e.target.closest('[data-passief]');

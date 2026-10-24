@@ -46,7 +46,8 @@ export const charInfo = (id) => ALL.find((c) => c.id === id) || null;
 // Wie het spel opende (plek 0), met zijn naam: de teksten gebruiken geen rolnaam (docs/WOORDENLIJST.md). begin: aan het begin van een zin ("De ander").
 export function openerNaam(lijst, begin = false) {
   const p = (lijst || []).find((x) => x && x.slot === 0);
-  const naam = p && (p.naam || (charInfo(p.char) || {}).naam);
+  const av = p && p.avatar && typeof p.avatar === 'object' ? p.avatar : null; // (#455) de online-avatar gaat voor de naam van de figuur
+  const naam = p && ((av && av.naam) || p.naam || (charInfo(p.char) || {}).naam);
   return naam || (begin ? 'De ander' : 'de ander');
 }
 export const slotChar = (slot) => (slot < MAIN_CHARS.length ? MAIN_CHARS[slot].id : null);

@@ -29,8 +29,9 @@ export function spelersRijen({ mijnSlot = 0, roster = [], partners = [], mijn = 
     if (!jij && p && p.zichtbaar && mijn && Number.isFinite(mijn.x) && Number.isFinite(p.x)) afstand = Math.hypot(p.x - mijn.x, p.y - mijn.y);
     const ms = rtt(r.slot);
     const c = charInfo(r.char) || {}; // een gast krijgt van de gastheer alleen plek en personage; naam, kleur en vorm horen bij dat personage
+    const av = r.avatar && typeof r.avatar === 'object' ? r.avatar : {}; // (#455) de eigen online-avatar gaat voor de naam en kleur van het personage
     rijen.push({
-      slot: r.slot, naam: r.naam || c.naam || '?', kleur: r.kleur || c.kleur || '#cccccc', vorm: r.vorm || c.vorm || 'cirkel', jij,
+      slot: r.slot, naam: av.naam || r.naam || c.naam || '?', kleur: av.kleur || r.kleur || c.kleur || '#cccccc', vorm: r.vorm || c.vorm || 'cirkel', jij,
       verbinding: r.verbinding || 'ok', verbindingTekst: VERBINDING_TEKST[r.verbinding || 'ok'] || 'goed', ms: Number.isFinite(ms) ? Math.round(ms) : null,
       passief: isPassief(pvp, r.slot), pvpInSpel: pvpInSpel(pvp), // #447: wie passief is; de stand telt als zichtbaar zodra iemand bewust op actief staat
       doet, afstand, afstandTekst: afstandTekst(afstand), x: p && p.zichtbaar ? p.x : null, y: p && p.zichtbaar ? p.y : null,

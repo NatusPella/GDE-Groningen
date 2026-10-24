@@ -186,6 +186,34 @@ t('jouw figuur: plek 1 is Tessa (uitleg als je iets anders koos), plek 2 en hoge
   assert.match(gast('bram', ['tammo', 'anita', 'bram', 'rik'], 3), /Je koos Bram, maar die was al bezet\. Jij speelt Rik/);
   assert.match(L.view(run(APP, { t: 'kies', rol: 'gast' })).lines.join(' '), /eerste gast speelt altijd Tessa/);
 });
+t('online-avatar (#455): naam hoogstens 16 tekens door het naamfilter, kleur uit de vaste set, bewaard per apparaat', () => {
+  // leeg mag: dan geldt de naam van je figuur; de kleur is altijd een kleur uit de set
+  assert.deepEqual(L.profielNaam(''), { ok: true, naam: '' });
+  assert.equal(L.profielKleur('#5BD6A0'), '#5bd6a0');
+  assert.equal(L.profielKleur('rood'), L.STANDAARD_KLEUR, 'alleen kleuren uit de vaste set');
+  assert.equal(L.PROFIEL_KLEUREN.length, 8);
+  // hetzelfde filter als een sessienaam (constitution 10) en geen verhaalnaam
+  assert.equal(L.profielNaam('Bouwer').naam, 'Bouwer');
+  assert.equal(L.profielNaam('kanker').ok, false);
+  assert.equal(L.profielNaam('Tessa').ok, false);
+  assert.match(L.profielNaam('x'.repeat(17)).reason, /16 tekens/);
+  assert.equal(L.profielNaam('  een   naam  ').naam, 'een naam');
+  // het formulier: beginwaarde uit de instellingen, en de view toont het op de schermen waar je samen gaat spelen
+  const s = L.createLobby({ ...APP, onlineNaam: 'Bouwer', onlineKleur: '#e86a6a' });
+  assert.deepEqual(s.profiel, { naam: 'Bouwer', kleur: '#e86a6a' });
+  const v = L.view(s);
+  assert.equal(v.profiel.naam, 'Bouwer'); assert.equal(v.profiel.kleur, '#e86a6a'); assert.equal(v.profiel.maxLength, 16);
+  assert.match(v.profiel.tekst, /Anderen zien je als Bouwer \(Rood\)/);
+  const kleur = L.reduce(s, { t: 'profiel', kleur: '#123456' });
+  assert.equal(kleur.profiel.kleur, L.STANDAARD_KLEUR, 'een kleur buiten de set valt terug');
+  const lang = L.reduce(s, { t: 'profiel', naam: 'x'.repeat(40) });
+  assert.equal(lang.profiel.naam.length, 16, 'het veld kapt af op 16');
+  const fout = L.reduce(L.reduce(s, { t: 'profiel', naam: 'kanker' }), { t: 'profiel-klaar' });
+  assert.match(fout.profielFout, /kies een andere/); assert.equal(fout.profiel.naam, 'kanker', 'de invoer blijft staan; de UI bewaart hem niet');
+  const goed = L.reduce(L.reduce(s, { t: 'profiel', naam: '  Sanne  ' }), { t: 'profiel-klaar' });
+  assert.equal(goed.profiel.naam, 'Sanne'); assert.equal(goed.profielFout, '');
+  assert.deepEqual(L.avatarUitProfiel({ naam: 'Tessa', kleur: '#5bd6a0' }), { naam: '', kleur: '#5bd6a0' });
+});
 t('hekBericht: een gast die midden in een spel aansluit bij een gastheer in de wachtkamer wacht ook (en gaat mee open)', () => {
   const w = {};
   G.setGate(false);
