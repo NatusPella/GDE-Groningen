@@ -145,7 +145,7 @@ export const ACHIEVEMENTS = [
   { id: 'ski_goud', cat: 'verkennen', title: 'Koning van het meer', desc: 'Haal goud bij het waterskiën', medal: true },
   { id: 'vlieg_geslaagd', cat: 'verkennen', title: 'Eerste vlieglesje', desc: 'Haal een les bij Vliegschool De Windwijzer op Eelde' },
   { id: 'vlieg_goud', cat: 'verkennen', title: 'Goud in de lucht', desc: 'Haal goud bij een vliegles', medal: true },
-  { id: 'vlieg_brevet', cat: 'verkennen', title: 'Vliegbrevet', desc: 'Haal alle dertien lessen van de vliegschool, met vliegtuig en helikopter' },
+  { id: 'vlieg_brevet', cat: 'verkennen', title: 'Vliegbrevet', desc: 'Haal alle lessen van de vliegschool, met vliegtuig en helikopter' },
   { id: 'carillon_klaar', cat: 'verkennen', title: 'Klokkenspeler', desc: 'Speel een deuntje op de klokken van de Martinitoren' },
   { id: 'carillon_goud', cat: 'verkennen', title: 'Stadsbeiaardier', desc: 'Haal goud op het klokkenspel', medal: true },
   { id: 'snackketen_eerste', cat: 'verkennen', title: 'Eigen snackbar', desc: 'Koop je eerste Kroketkoning-snackbar' },

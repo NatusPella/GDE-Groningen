@@ -21,7 +21,7 @@ de stand, het volgende doel met afstand en richting, en de toetsen. Backspace st
 
 Per les een medaille (brons, zilver, goud) en een beloning: 25, 40 en 60 euro, **alleen de eerste keer dat je die medaille haalt**,
 plus punten in het vak Lucht van de Loopbaan (docs/LOOPBAAN.md). Opnieuw doen geeft 6 punten. Records staan onder `vlieg-<les>`
-(`recordChallengeResult`), prestaties `vlieg_geslaagd`, `vlieg_goud` en `vlieg_brevet` (alle dertien gehaald). Een crash kost niets:
+(`recordChallengeResult`), prestaties `vlieg_geslaagd`, `vlieg_goud` en `vlieg_brevet` (alle lessen gehaald). Een crash kost niets:
 het toestel is van de school en de les is dan voorbij. De hulpopties (ruimere poorten en ringen, meer tijd) werken mee.
 
 ## Hoe het werkt

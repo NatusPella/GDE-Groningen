@@ -15,7 +15,7 @@ import { waterAt } from './waterlevels.js';
 import { canvasTex } from './canvastex.js';
 import * as R from './vliegschoolrules.js';
 
-// Vliegschool De Windwijzer bij Groningen Airport Eelde (#397), naast Rotor Roelf: dertien korte lessen met het
+// Vliegschool De Windwijzer bij Groningen Airport Eelde (#397), naast Rotor Roelf: twintig korte lessen met het
 // vliegtuig (Kist Kees) en de helikopter (de Wieken Wubbo), met een medaille en een beloning per les, en punten in het
 // vak Lucht van de Loopbaan. De regels, banen en het oordeel staan in vliegschoolrules.js (getest, met het arcade-
 // vliegtuig door elke les); de gemeten plekken (water, velden, molens, openingen tussen hoge gebouwen) in
@@ -261,6 +261,28 @@ function bouwMarkeringen(w, baan) {
         lijst.palen.push(kolom(g.x, g.y, g.hi + 120, 2.5, KLEUR.volgende, 0.22));
       });
       break;
+    case 'opstijgen': {
+      const sb = baan.baan, mid = sb.point(sb.length / 2, 0);
+      vlak(mid.x, mid.y, 1.6, sb.length, -sb.heading, 0xffd23f, gh(mid.x, mid.y) + 0.25, 0.8);
+      const eind = sb.point(sb.length + 260, 0);
+      grp.add(ringMesh({ x: eind.x, y: eind.y, z: gh(eind.x, eind.y) + baan.hoogte, nx: Math.cos(sb.heading), ny: Math.sin(sb.heading) }, 30, KLEUR.volgende));
+      kolom(eind.x, eind.y, baan.hoogte, 2, KLEUR.volgende, 0.25);
+      break;
+    }
+    case 'koers': {
+      const c = baan.corridor, ux = Math.cos(c.hoek), uy = Math.sin(c.hoek);
+      const stapP = baan.kist === 'vliegtuig' ? 150 : 75, hoogteP = baan.kist === 'vliegtuig' ? 130 : 50;
+      for (let m = 0; m <= c.lengte + 1; m += stapP) for (const zij of [-1, 1]) {
+        kolom(c.a.x + ux * m - uy * c.breed * zij, c.a.y + uy * m + ux * c.breed * zij, hoogteP, 0.9, zij < 0 ? KLEUR.goed : KLEUR.rand, 0.5);
+      }
+      const mx = c.a.x + ux * c.lengte / 2, my = c.a.y + uy * c.lengte / 2;
+      if (baan.band) {
+        vlak(mx, my, c.breed * 2, c.lengte, -c.hoek, KLEUR.goed, gh(mx, my) + baan.band.lo, 0.2);
+        vlak(mx, my, c.breed * 2, c.lengte, -c.hoek, KLEUR.volgende, gh(mx, my) + baan.band.hi, 0.2);
+      }
+      kolom(c.a.x + ux * c.lengte, c.a.y + uy * c.lengte, hoogteP * 2, 3, KLEUR.volgende, 0.3);
+      break;
+    }
     case 'hoveren': {
       const k = baan.cirkel;
       const schijf = new THREE.Mesh(new THREE.CircleGeometry(k.r, 40), mat(0xffd23f, 0.45));
@@ -308,9 +330,9 @@ function maakKist(w, les, baan) {
     v.name = 'Schoolkist';
     attachPlane(v, s.x, s.y, s.z, s.heading);
     const p = v.plane;
-    p.onGround = false; p.speed = s.speed; p.throttle = baan.gas || 0.6;
-    v.planeCtl.thr = baan.gas || 0.6;
-    v.speed = s.speed; v.onGround = false; v.airborne = true;
+    p.onGround = !!s.grond; p.speed = s.speed; p.throttle = s.grond ? 0 : baan.gas || 0.6;
+    v.planeCtl.thr = s.grond ? 0 : baan.gas || 0.6;
+    v.speed = s.speed; v.onGround = !!s.grond; v.airborne = !s.grond;
     v.groundZ = groundAt(w.map)(s.x, s.y);
   } else {
     v = makeHeli(s.x, s.y, s.z, s.heading, { ...HELI_MODEL, color: '#e8e6e0' });
@@ -349,7 +371,7 @@ function startLes(w, id) {
   g.v = v; g.fase = 'intro'; g.t = 0; g.hint = ''; g.flash = null; g.gehad = []; g.vorigOnGround = false;
   g.vorigeStrip = w.planeStrip || null;
   if (les.kist === 'vliegtuig') {
-    if (baan.soort === 'landen') w.planeStrip = baan.baan;
+    if (baan.soort === 'landen' || baan.soort === 'opstijgen') w.planeStrip = baan.baan;
     else if (baan.soort === 'nood') w.planeStrip = makeStrip({ x: baan.veld.x - Math.cos(baan.veld.heading) * baan.veld.lengte / 2, y: baan.veld.y - Math.sin(baan.veld.heading) * baan.veld.lengte / 2, heading: baan.veld.heading, length: baan.veld.lengte, width: baan.veld.breed });
     else w.planeStrip = null;
   }
@@ -465,10 +487,10 @@ function tekenMenu() {
     cells: lessen.map((l, i) => ({ t: `${i + 1} ${korteNaam(l)} ${medaljeTekst(besteMedaille(l.id))}`.trim(), key: String(i + 1), cls: i === menu.cursor ? 'on' : besteMedaille(l.id) ? 'good' : '' })),
     flash: game.melding || '',
     bad: !!game.melding,
-    help: `${key('1')}-${key(String(lessen.length))} of ${key('A')}${key('D')} en ${key('ENTER')} kiezen · ${key('BACKSPACE')} terug`,
+    help: `${key('1')}-${key(String(Math.min(9, lessen.length)))} of ${key('A')}${key('D')} en ${key('ENTER')} kiezen · ${key('BACKSPACE')} terug`,
   });
 }
-const korteNaam = (l) => ({ ringen: 'Ringen', landen: 'Landen', water: 'Water', slalom: 'Slalom', nood: 'Nood', opening: 'Opening', hoveren: 'Hoveren' }[l.soort] || l.titel);
+const korteNaam = (l) => ({ ringen: 'Ringen', landen: 'Landen', water: 'Water', slalom: 'Slalom', nood: 'Nood', opening: 'Opening', hoveren: 'Hoveren', opstijgen: 'Opstijgen', peiling: 'Bochten', rondje: 'Rondje', plek: 'Plek' }[l.soort] || ({ 'vt-recht': 'Recht', 'vt-hoogte': 'Hoogte', 'hk-vooruit': 'Voren' }[l.id]) || l.titel);
 
 function updateMenu(w, dt) {
   const g = game, input = w.input;
@@ -543,11 +565,12 @@ function updateVlucht(w, dt) {
 
 function meld(w, g, e) {
   const lijnen = R.LIJNEN[g.les.id] || {};
-  if (e.k === 'goed') { g.flash = { t: 2.2, text: e.tekst }; if (e.i !== undefined && e.i >= 0) g.gehad[e.i] = 'goed'; }
-  else if (e.k === 'fout') { g.flash = { t: 2.4, text: e.tekst, bad: true }; if (e.i !== undefined && e.i >= 0) g.gehad[e.i] = 'fout'; }
+  const echt = e.i !== undefined && e.i >= 0;
+  const zeg = (arr) => { g.nLijn = (g.nLijn || 0) + 1; const l = arr && arr.length ? arr[g.nLijn % arr.length] : ''; return l ? `${e.tekst} · ${R.INSTRUCTEUR_KORT}: ${l}` : e.tekst; };
+  if (e.k === 'goed') { g.flash = { t: 2.6, text: echt ? zeg(lijnen.goed) : e.tekst }; if (echt) g.gehad[e.i] = 'goed'; }
+  else if (e.k === 'fout') { g.flash = { t: 2.8, text: echt ? zeg(lijnen.fout) : e.tekst, bad: true }; if (echt) g.gehad[e.i] = 'fout'; }
   else if (e.k === 'info') g.flash = { t: 2.5, text: e.tekst };
   else if (e.k === 'mislukt') g.flash = { t: 3, text: e.tekst, bad: true };
-  void lijnen;
 }
 
 // --- het bord tijdens het vliegen ----------------------------------------------------------------------------------------------
@@ -603,7 +626,7 @@ export const VLIEGSCHOOL = standActivity({
   origin: () => stand(),
   useRadius: 3.4,
   labelRadius: 220,
-  sub: 'Dertien lessen met vliegtuig en helikopter · gratis',
+  sub: 'Twintig lessen met vliegtuig en helikopter · gratis',
   hint: 'Loop naar de balie bij de baan en druk E',
   ubboSub: 'vlieglessen met het vliegtuig en de helikopter, gratis',
   where: 'de vliegschool bij Rotor Roelf op Eelde',

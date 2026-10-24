@@ -20,8 +20,8 @@ const pad = { x: 1774.8, y: 9945.8, r: 6, z: 0 };
 const env = { plekken, eelde: plekken.eelde, strip, pad, ground: () => 0 };
 
 // --- de lessen ---------------------------------------------------------------------------------------------
-check('13 lessen, unieke id\'s', R.LESSEN.length === 13 && new Set(R.LES_IDS).size === 13);
-check('zes soorten voor het vliegtuig, zeven voor de helikopter', R.lessenVan('vliegtuig').length === 6 && R.lessenVan('heli').length === 7);
+check('20 lessen, unieke id\'s', R.LESSEN.length === 20 && new Set(R.LES_IDS).size === 20);
+check('elf lessen voor het vliegtuig, negen voor de helikopter', R.lessenVan('vliegtuig').length === 11 && R.lessenVan('heli').length === 9);
 check('elke les heeft een titel, regel en drie grenzen', R.LESSEN.every((l) => l.titel && l.kort && l.grenzen.length === 3 && l.tijd > 0));
 check('elke les heeft tekst van de instructeur', R.LESSEN.every((l) => R.LIJNEN[l.id] && R.LIJNEN[l.id].uitleg));
 check('alleen Nederlands: geen Engelse stopwoorden in de teksten', !/\b(the|and|you|your|please|click)\b/i.test(JSON.stringify(R.LIJNEN)));
@@ -59,10 +59,10 @@ function vlieg(les, { maxS = 330, dt = 1 / 30, opts = {} } = {}) {
   const st = R.nieuweStaat(les, baan);
   const s = baan.start;
   const p = makePlane(s.x, s.y, s.z, s.heading);
-  p.onGround = false; p.speed = s.speed; p.throttle = 0.6;
-  const ctl = { thr: 0.6 };
+  p.onGround = !!s.grond; p.speed = s.speed; p.throttle = s.grond ? 0 : 0.6;
+  const ctl = { thr: s.grond ? 0 : 0.6 };
   const gas = baan.gas || 1;
-  const baanVoor = baan.soort === 'landen' ? baan.baan : baan.soort === 'nood' ? makeStrip({ x: baan.veld.x - Math.cos(baan.veld.heading) * baan.veld.lengte / 2, y: baan.veld.y - Math.sin(baan.veld.heading) * baan.veld.lengte / 2, heading: baan.veld.heading, length: baan.veld.lengte, width: baan.veld.breed }) : null;
+  const baanVoor = baan.soort === 'landen' || baan.soort === 'opstijgen' ? baan.baan : baan.soort === 'nood' ? makeStrip({ x: baan.veld.x - Math.cos(baan.veld.heading) * baan.veld.lengte / 2, y: baan.veld.y - Math.sin(baan.veld.heading) * baan.veld.lengte / 2, heading: baan.veld.heading, length: baan.veld.lengte, width: baan.veld.breed }) : null;
   const onRunway = baanVoor ? (x, y) => baanVoor.contains(x, y) : () => false;
   const events = [];
   let td = null;
@@ -311,6 +311,57 @@ for (const les of R.lessenVan('heli')) {
   check('plekken: ook de krapste opening laat een vliegtuig met vleugels erdoor', ruimVoorVleugels.every((r) => r > 6), ruimVoorVleugels.join());
 }
 function KISTMARGE() { return R.KIST.vliegtuig.halveSpan; }
+
+// --- de eerste lessen: opstijgen, rechtdoor, hoogte houden, bochten, rondje, naar voren, landen op een plek ----------
+{
+  for (const id of ['vt-opstijgen', 'vt-recht', 'vt-hoogte', 'vt-bocht', 'vt-rondje']) check(id + ': zonder baan niet beschikbaar', R.beschikbaar(R.lesVan(id), { ...env, strip: null }) !== '' && R.bouwBaan(R.lesVan(id), { ...env, strip: null }) === null);
+  check('hk-plek: zonder velden niet beschikbaar', R.beschikbaar(R.lesVan('hk-plek'), { ...env, plekken: { velden: [] } }) !== '');
+  // opstijgen: nooit loskomen is geen medaille, een zeer scheve start mislukt, rustig is goud
+  const op = R.lesVan('vt-opstijgen'), ob = R.bouwBaan(op, env);
+  check('opstijgen: start op de grond, stilstaand, op de baan', ob.start.grond === true && ob.start.speed === 0 && ob.baan.contains(ob.start.x, ob.start.y));
+  const st1 = R.nieuweStaat(op, ob);
+  for (let t = 0; t < 100 && st1.fase === 'vlieg'; t += 0.5) R.stap(op, ob, st1, { x: ob.start.x, y: ob.start.y, z: 0, agl: 0, speed: 0, vz: 0, heading: ob.start.heading, onGround: true }, 0.5);
+  check('opstijgen: nooit loskomen is geen medaille', st1.fase === 'mislukt' && R.beoordeel(op, ob, st1).medaille === 0);
+  const st2 = R.nieuweStaat(op, ob);
+  R.stap(op, ob, st2, { x: ob.start.x - Math.sin(ob.start.heading) * 40, y: ob.start.y + Math.cos(ob.start.heading) * 40, z: 0, agl: 0, speed: 10, vz: 0, heading: ob.start.heading, onGround: true }, 0.1);
+  check('opstijgen: van de baan af mislukt', st2.fase === 'mislukt' && /baan/.test(st2.reden));
+  // koers: een stuk buiten de lijnen telt niet mee
+  const ko = R.lesVan('vt-recht'), kb = R.bouwBaan(ko, env), a = kb.corridor, ux = Math.cos(a.hoek), uy = Math.sin(a.hoek);
+  const vlieg3 = (zijwaarts, vanaf, tot) => {
+    const st = R.nieuweStaat(ko, kb);
+    for (let m = 0; m <= a.lengte + 20 && st.fase === 'vlieg'; m += 10) {
+      const z = m >= vanaf && m < tot ? zijwaarts : 0;
+      R.stap(ko, kb, st, { x: a.a.x + ux * m - uy * z, y: a.a.y + uy * m + ux * z, z: 100, agl: 100, speed: 45, vz: 0, heading: a.hoek, onGround: false }, 0.2);
+    }
+    return R.beoordeel(ko, kb, st);
+  };
+  check('rechtdoor: recht is goud, een derde ernaast is minder, de hele strook ernaast niets', vlieg3(0, 0, 0).medaille === 3 && vlieg3(60, 500, 1000).medaille < 3 && vlieg3(60, 0, 1e9).medaille === 0);
+  check('rechtdoor: de hulp (bredere strook) telt mee', (() => { const st = R.nieuweStaat(ko, kb); for (let m = 0; m <= a.lengte + 20 && st.fase === 'vlieg'; m += 10) R.stap(ko, kb, st, { x: a.a.x + ux * m - uy * 30, y: a.a.y + uy * m + ux * 30, z: 100, agl: 100, speed: 45, vz: 0, heading: a.hoek }, 0.2, { widen: 1.6 }); return R.beoordeel(ko, kb, st).medaille === 3; })());
+  const ho = R.lesVan('vt-hoogte'), hb2 = R.bouwBaan(ho, env), b2 = hb2.corridor;
+  const hoog = (agl) => { const st = R.nieuweStaat(ho, hb2); for (let m = 0; m <= b2.lengte + 20 && st.fase === 'vlieg'; m += 10) R.stap(ho, hb2, st, { x: b2.a.x + Math.cos(b2.hoek) * m, y: b2.a.y + Math.sin(b2.hoek) * m, z: agl, agl, speed: 45, vz: 0, heading: b2.hoek }, 0.2); return R.beoordeel(ho, hb2, st).medaille; };
+  check('hoogte houden: in de laag is goud, te hoog of te laag niets', hoog(100) === 3 && hoog(150) === 0 && hoog(30) === 0);
+  // bochten: een koers vasthouden telt, voorbij vliegen niet
+  const bo = R.lesVan('vt-bocht'), bb = R.bouwBaan(bo, env);
+  check('bochten: vier koersen, de eerste is links', bb.koersen.length === 4 && bb.koersen[0].graden === -90);
+  const stb = R.nieuweStaat(bo, bb);
+  for (let t = 0; t < 400 && stb.fase === 'vlieg'; t += 0.5) R.stap(bo, bb, stb, { x: 0, y: 0, z: 100, agl: 100, speed: 45, vz: 0, heading: bb.start.heading + 1, roll: 0 }, 0.5);
+  check('bochten: nooit de goede koers is geen medaille', R.beoordeel(bo, bb, stb).medaille === 0 && stb.fout >= 1);
+  const stc = R.nieuweStaat(bo, bb);
+  for (let t = 0; t < 200 && stc.i < 1; t += 0.25) R.stap(bo, bb, stc, { x: 0, y: 0, z: 100, agl: 100, speed: 45, vz: 0, heading: bb.koersen[0].hoek + 0.05, roll: 0 }, 0.25);
+  check('bochten: de koers vasthouden telt als goed', stc.goed === 1);
+  const stk = R.nieuweStaat(bo, bb);
+  for (let t = 0; t < 40 && stk.i < 1; t += 0.25) R.stap(bo, bb, stk, { x: 0, y: 0, z: 100, agl: 100, speed: 45, vz: 0, heading: bb.koersen[0].hoek, roll: 0.6 }, 0.25);
+  check('bochten: met de vleugels scheef telt niet als vastgehouden', stk.goed === 0);
+  // rondje: twaalf ringen die samen een cirkel om de baan vormen
+  const rb = R.bouwBaan(R.lesVan('vt-rondje'), env);
+  const e0 = rb.ringen[0], eL = rb.ringen[11];
+  check('rondje: twaalf ringen die weer bij de start uitkomen', rb.ringen.length === 12 && Math.hypot(eL.x - rb.start.x, eL.y - rb.start.y) < 120 && Math.hypot(e0.x - rb.start.x, e0.y - rb.start.y) > 200, JSON.stringify([eL, rb.start]));
+  // alle teksten en doelen
+  for (const id of ['vt-opstijgen', 'vt-recht', 'vt-hoogte', 'vt-bocht', 'vt-rondje', 'hk-vooruit', 'hk-plek']) {
+    const les = R.lesVan(id), bn = R.bouwBaan(les, env), rij = R.bordRij(les, bn, R.nieuweStaat(les, bn));
+    check(id + ': een bord met regels en een doel', rij.length >= 1 && rij.every((r) => r.length === 2 && String(r[1]).length) && !!R.doel(les, bn, R.nieuweStaat(les, bn), env));
+  }
+}
 
 console.log(bad ? `${bad} van ${n} mislukt` : `vliegschool_test: alles goed (${n} controles)`);
 process.exit(bad ? 1 : 0);
