@@ -821,6 +821,27 @@ a fixed point, three passes). Pipeline: `add_railways.py`, `railprofile.mjs
   audit, `railZ` against the profile and the rail lifts walked, driven and
   cycled up (`ringcheck.js probeRailLifts`).
 
+### Perrons en trappen (#436)
+
+Een perron is een vloer, geen vlak: `scripts/world/perrons.mjs` maakt uit de OSM-perrons (`railPlatforms`) per station stroken
+(`map.perrons`: hartlijn om de 4 m met halve breedte en bovenkant z, `game/js/perrons.js`), met de baan van elk spoor erlangs
+(`PLATFORM_EDGE`) eruit gesneden, vlak op de spoorvloer + 1,02 m (`PERRON_TOP`: rail 0,26 + perron 0,76; Groningen Noord op de dijk
+dus op 6,62 m). Elke strook krijgt een trap (bovenkant boven 1,5 m, 1:3,6) of een helling (1:12) naar straatniveau, bij voorkeur op de plek
+waar OSM zelf `highway=steps` tekent, anders een kop of lange zijde waar geen gebouw, water, weg, spoor of ander perron in de weg staat
+(`rep.zonderTrap` meldt de rest). `profileCity` (stad_wegen.mjs) doet dit na het oplossen van het spoor; `pack_tiles.mjs` zet `perrons`
+in de globale META.
+
+- Hoogtemodel (`elevation.js addPerrons`): het loopvlak komt in `groundHeightAt` (het hoogste vlak binnen een stap) en `surfaceAt` (wie
+  op het perron staat blijft erop), de randen als muurstukken (`kind: 'perron'`) in de `wallGrid`: een voetganger blijft eronder bij een
+  rand hoger dan `WALK_STEP` (1,35 m: vanaf het spoor op een dijk stap je er wel op, 1,02 m), een voertuig (ook een fiets) bij `VEH_STEP`
+  (0,3 m). Bij de aanzet van een trap is de rand open; paaltjes aan de voet (`perrons3d.js`, vaste hindernissen, 0,75 m van het midden)
+  laten een fiets door en een auto niet.
+- Beeld: `perrons3d.js` (vloer met gele rand, gemetselde zijkant tot de grond, treden en leuning, bord Naar perron).
+- Trein: `railway.js resolveContacts` laat wie op een perron staat (`onPerron`) met rust; wie op het spoor staat wordt geraakt.
+- Landelijke haltes (buiten de stad, zonder spoorprofiel) houden het eigen perron van `stationtravel.js` (`buildPlatform`, 80 m, vaste hindernis): de OSM-perrons van de provincie krijgen dus geen tweede.
+- Test en audit: `node scripts/perrons_test.mjs`, `node scripts/perron_trein_test.mjs` (de stad, de trein), `node scripts/world/perron_audit.mjs [--strict]` (afstand tot het spoor, vlak op de
+  spoorvloer, een trap per strook die te belopen is, de rand dicht).
+
 ### Water levels, bridges and the one water query
 
 `js/waterlevels.js` (pure) and `scripts/world/water.mjs` (docs/PROVINCIE-PLAN.md
