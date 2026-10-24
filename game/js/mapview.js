@@ -23,6 +23,9 @@ import { getPostgameSpotsForRender } from './postgame.js';
 import { getStationsForRender } from './stationtravel.js';
 import { reisOptiesVoor, tekenLijnen, lijnLagen } from './reiskaart.js';
 import { kaartRijen } from './ovkaart.js';
+import { actieModel, reisKeuzes, infoRegels, GAST_REIS_MELDING, UITLEG_ID } from './kaartactie.js';
+import { actiesHtml, reisHtml, infoHtml, uitlegHtml, KAART_ACTIE_CSS } from './kaartactieui.js';
+import { markSeen, parseSeen } from './hudtext.js';
 import { optieRegel } from './ovopties.js';
 import { startMeerijden } from './reisrit.js';
 import { VILLAGES } from './ommelandlines.js';
@@ -1224,7 +1227,7 @@ function drawDynamicMarkers(ctx, world) {
       ctx.lineWidth = 2.5;
       ctx.stroke();
     }
-    icon(null, 'userWaypoint', wp.x, wp.y, `Doel: ${wp.name}`, {}, 'klik voor details · rechtsklik of Del om te wissen', { isGoal: true });
+    icon(null, 'userWaypoint', wp.x, wp.y, `Waypoint: ${wp.name}`, {}, 'klik voor Haal weg · rechtsklik of Del om te wissen', { isGoal: true });
   }
 
   icon(null, 'player', world.player.x, world.player.y, 'Jij', { angle: world.player.angle });
@@ -1569,7 +1572,8 @@ function handleClick(world, sx, sy, shift = false) {
   const x = spot && Math.hypot(spot.x - wx, spot.y - wy) < 30 ? spot.x : wx;
   const y = spot && Math.hypot(spot.x - wx, spot.y - wy) < 30 ? spot.y : wy;
   const name = streetAt(x, y, 40) || wijkAt(x, y) || '';
-  setUserWaypoint(x, y, name);
+  // een klik op een plek: eerst kiezen wat je wilt (#445), niet meteen een waypoint
+  showCard(world, { name: name || 'Plek op de kaart', sub: wijkAt(x, y) && name !== wijkAt(x, y) ? wijkAt(x, y) : '', x, y, spot: true }, sx, sy);
 }
 
 // --- marker card ---------------------------------------------------------------
@@ -1591,32 +1595,53 @@ function showCard(world, h, sx, sy) {
   const goal = getGoal();
   const d = Math.hypot(h.x - world.player.x, h.y - world.player.y);
   const pips = it && it.medal != null ? `<span class="mv-pips">${[1, 2, 3].map((m) => `<span class="mv-pip" data-m="${m}"${it.medal >= m ? ' data-on' : ''} title="${MEDALS[m]}">${'BZG'[m - 1]}</span>`).join('')}</span>` : '';
-  const meta = [it ? it.meta : h.sub, formatDistance(d), h.isGoal ? 'jouw doel' : ''].filter(Boolean).map(escHtml).join(' · ');
-  let btn;
-  if (h.isGoal) btn = '<button type="button" class="mapview-btn ghost" data-card="clear">Doel wissen</button>';
-  else if (h.story) btn = goal ? '<button type="button" class="mapview-btn" data-card="story">Terug naar het verhaal</button>' : '';
-  else btn = '<button type="button" class="mapview-btn" data-card="goal">Zet als doel</button>';
-  // reisopties: meerijden of zelf rijden, met de lijnen op de kaart (#97)
-  let reisHtml = '';
+  const meta = [it ? it.meta : h.sub, formatDistance(d), h.isGoal ? 'jouw waypoint' : ''].filter(Boolean).map(escHtml).join(' · ');
+  // de actiebalk (#445): Zet waypoint / Reis erheen / Info, met reizen als eigen uitgelegde stap
+  const keep = state.card && state.card.h === h ? state.card : null;
+  const stap = keep ? keep.stap || null : null;
+  const gast = world.coopRole === 'client' && !!world.coopNet;
+  const opts = reisOptiesVoor(world, { x: h.x, y: h.y });
+  const verhaal = !!(h.story && goal);
+  const model = actieModel({ spot: { x: h.x, y: h.y, name: h.name }, speler: world.player, waypoint: h.isGoal ? { x: h.x, y: h.y } : getUserWaypoint(), opts, fmt: formatDistance, gast, verhaal });
+  let stapHtml = '';
   state.reis = null;
-  if (!h.isGoal && !h.story) {
-    const opts = reisOptiesVoor(world, { x: h.x, y: h.y });
-    if (opts.some((o) => o.ride)) {
-      const keep = state.card && state.card.h === h ? state.card.gekozen : null;
-      const gekozen = (opts.find((o) => o.id === keep) || opts.find((o) => o.aanbevolen) || opts.find((o) => o.ride)).id;
-      const rows = kaartRijen(opts, optieRegel, gekozen);
-      state.reis = { opts, gekozen, lagen: lijnLagen(opts, gekozen), dest: { x: h.x, y: h.y, name: h.name } };
-      reisHtml = '<div class="mv-reis">' + rows.map((r) => `<button type="button" class="mv-reisrij${r.selected ? ' sel' : ''}" data-card="kies:${r.id}"${r.disabled ? ' aria-disabled="true"' : ''} style="border-left:6px solid ${r.color}">${escHtml(r.tekst)}${r.aanbevolen ? ' · aanbevolen' : ''}${r.disabled ? ` · ${escHtml(r.disabled)}` : ''}</button>`).join('') + '</div>';
-      const sel = opts.find((o) => o.id === gekozen);
-      btn = (sel.ride ? `<button type="button" class="mapview-btn" data-card="rij"${sel.afford ? '' : ' disabled'}>Meerijden</button>` : '') + btn.replace('Zet als doel', sel.ride ? 'Zelf rijden' : 'Zet als doel');
-    }
-  }
+  let gekozen = null;
+  if (stap === 'reis') {
+    const rijen = reisKeuzes(opts, d, { gast });
+    const keep0 = keep ? keep.gekozen : null;
+    gekozen = (rijen.find((r) => r.id === keep0 && r.soort === 'snel') || rijen.find((r) => r.aanbevolen && r.soort === 'snel') || rijen.find((r) => r.soort === 'snel') || {}).id || null;
+    const kleur = Object.fromEntries(kaartRijen(opts, optieRegel, gekozen).map((r) => [r.id, r.color]));
+    stapHtml = reisHtml(rijen, gekozen, kleur);
+    if (gast) stapHtml += `<p class="mv-note">${escHtml(GAST_REIS_MELDING)}</p>`;
+    const sel = opts.find((o) => o.id === gekozen);
+    if (gekozen && sel && !gast) stapHtml += `<button type="button" class="mapview-btn" data-card="rij"${sel.afford ? '' : ' disabled'}>Reis nu · ${sel.price > 0 ? `€ ${sel.price}` : 'gratis'} · ${escHtml(sel.eta || '')}</button>`;
+    state.reis = { opts, gekozen, lagen: lijnLagen(opts, gekozen), dest: { x: h.x, y: h.y, name: h.name } };
+  } else if (stap === 'info') {
+    stapHtml = infoHtml(infoRegels({ spot: { x: h.x, y: h.y, name: it ? it.title : h.name }, sub: it ? it.meta : h.sub, afstand: d, fmt: formatDistance }));
+  } else if (keep && keep.melding) stapHtml = `<p class="mv-note">${escHtml(keep.melding)}</p>`;
   const el = state.cardEl;
-  el.innerHTML = `<span class="mv-ico">${h.kind ? `<img src="${mapIconUrl(h.kind)}" alt="">` : ''}</span><div><b>${escHtml(it ? (it.code ? it.code + ' · ' : '') + it.title : h.name)}</b>` +
-    `<small>${meta}</small>${pips || (it && it.record) ? `<span class="mv-rec">${pips}${escHtml(it ? it.record : '')}</span>` : ''}${reisHtml}` +
-    `<div class="mv-btns">${btn}<button type="button" class="mapview-btn ghost" data-card="close">Sluiten</button></div></div>`;
+  el.innerHTML = `<span class="mv-ico">${h.kind ? `<img src="${mapIconUrl(h.kind)}" alt="">` : ''}</span><div><b>${escHtml(it ? (it.code ? it.code + ' · ' : '') + it.title : h.name || 'Plek op de kaart')}</b>` +
+    `<small>${meta}</small>${pips || (it && it.record) ? `<span class="mv-rec">${pips}${escHtml(it ? it.record : '')}</span>` : ''}${actiesHtml(model, stap)}${stapHtml}` +
+    '<div class="mv-btns"><button type="button" class="mapview-btn ghost" data-card="close">Sluiten</button></div></div>';
   el.hidden = false;
-  state.card = { h, it, gekozen: state.reis ? state.reis.gekozen : null };
+  state.card = { h, it, gekozen, stap, model };
+}
+
+// De uitleg bij de kaart (#445; de toetsen en knoppen staan in de voetregel van het pauzemenu): de eerste keer open, te sluiten, terug te vinden bij Besturing, Hulp.
+function kaartGezien() {
+  try { return !!parseSeen(localStorage.getItem(KEYS.hudSeen))[UITLEG_ID]; } catch (e) { return false; }
+}
+function initKaartUitleg(overlay) {
+  const st = document.createElement('style');
+  st.textContent = KAART_ACTIE_CSS;
+  document.head.appendChild(st);
+  const body = overlay.querySelector('.mapview-body');
+  if (!kaartGezien()) body.insertAdjacentHTML('beforeend', uitlegHtml());
+}
+function sluitKaartUitleg(btn) {
+  const box = btn.closest('.mv-uitleg');
+  if (box) box.remove();
+  try { localStorage.setItem(KEYS.hudSeen, JSON.stringify(markSeen(parseSeen(localStorage.getItem(KEYS.hudSeen)), UITLEG_ID))); } catch (e) { /* ignore */ }
 }
 
 // The menu is zoomed with the interface (menu.css): CSS px of the overlay are
@@ -1660,6 +1685,22 @@ function cardAction(world, act) {
     showCard(world, c.h);
     return;
   }
+  if (act === 'reis' || act === 'info') {
+    // uitklappen of weer inklappen; een gast leest waarom reizen hier niet kan
+    c.stap = c.stap === act ? null : act;
+    c.melding = act === 'reis' && c.model && c.model.acties.some((a) => a.id === 'reis' && a.disabled) ? GAST_REIS_MELDING : null;
+    showCard(world, c.h);
+    return;
+  }
+  if (act === 'zelf') {
+    // Zelf gaan: een waypoint, en de kaart gaat dicht zodat je zelf kunt gaan
+    const h = c.h;
+    hideCard();
+    zetWaypoint(world, c, h);
+    if (closeHandler) closeHandler();
+    else closeMap();
+    return;
+  }
   if (act === 'rij' && state.reis) {
     const { opts, gekozen, dest } = state.reis;
     const o = opts.find((x) => x.id === gekozen);
@@ -1671,15 +1712,18 @@ function cardAction(world, act) {
     startMeerijden(world, o, dest);
     return;
   }
+  const h = c.h;
   hideCard();
-  if (act === 'clear') clearGoal();
-  else if (act === 'story') clearGoal();
-  else if (act === 'goal') {
-    const h = c.h;
-    if (c.it && c.it.goal && (c.it.goal === 'story' || c.it.goal.kind === 'mission')) chooseTodo(world, c.it);
-    else if (h.goal) setGoal(h.goal);
-    else setGoal({ kind: 'place', name: h.name, sub: h.sub, x: h.x, y: h.y });
-  }
+  if (act === 'clear' || act === 'haalweg' || act === 'story') clearGoal();
+  else if (act === 'goal' || act === 'waypoint') zetWaypoint(world, c, h);
+}
+
+// Zet waypoint: een missie of klus wordt jouw doel, een plek wordt het ene waypoint.
+function zetWaypoint(world, c, h) {
+  if (c.it && c.it.goal && (c.it.goal === 'story' || c.it.goal.kind === 'mission')) chooseTodo(world, c.it);
+  else if (h.goal) setGoal(h.goal);
+  else if (h.spot) setUserWaypoint(h.x, h.y, h.name || '');
+  else setGoal({ kind: 'place', name: h.name, sub: h.sub, x: h.x, y: h.y });
 }
 
 function canvasPos(e) {
@@ -1713,7 +1757,7 @@ const LEGEND = [
   { group: 'Altijd', rows: [
     { kind: 'player', label: 'Jij', note: 'en wie er met je meerijdt' },
     { kind: 'missionIdle', label: 'Verhaal', dyn: 'story' },
-    { kind: 'userWaypoint', label: 'Jouw doel', dyn: 'goal' },
+    { kind: 'userWaypoint', label: 'Jouw waypoint', dyn: 'goal' },
     { kind: 'route', label: 'Route', note: 'doorgetrokken: verhaal of missie, streepjes: jouw doel, puntjes: klus, streep-punt: opknappen of repareren' },
   ] },
   { group: 'Te doen', rows: [
@@ -2005,10 +2049,11 @@ export function initMapView(world) {
     '<button type="button" class="m-bg mv-close" data-act="close" style="display:none">Sluiten</button></div></div>' +
     '<div class="mapview-body"><canvas class="mapview-canvas"></canvas>' +
     '<div class="mapview-zoom"><button type="button" class="m-bg" data-act="in" aria-label="Inzoomen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button><button type="button" class="m-bg" data-act="out" aria-label="Uitzoomen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/></svg></button><button type="button" class="m-bg" data-act="centre" aria-label="Naar jezelf"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 3v4M12 17v4M3 12h4M17 12h4"/></svg></button></div>' +
-    '<div class="mv-goal"><span class="m-eb">Je route</span><span class="mapview-route"></span><button type="button" class="m-bt" data-act="clear" hidden>Doel wissen</button><button type="button" class="m-bt" data-act="avoid" aria-pressed="false" hidden>Snelwegen vermijden</button></div>' +
+    '<div class="mv-goal"><span class="m-eb">Je route</span><span class="mapview-route"></span><button type="button" class="m-bt" data-act="clear" hidden>Haal waypoint weg</button><button type="button" class="m-bt" data-act="avoid" aria-pressed="false" hidden>Snelwegen vermijden</button></div>' +
     '<div class="mapview-osm">© OpenStreetMap-bijdragers</div>' +
     '<div class="mapview-tp" hidden>Kies een plek: daar sta je meteen · <b>Esc</b> stopt</div><div class="mapview-tooltip"></div><div class="mapview-card" hidden></div><aside class="mapview-legend" id="mv-legend" hidden></aside></div>';
   document.body.appendChild(overlay);
+  initKaartUitleg(overlay);
 
   const compose = document.createElement('canvas');
   state = {
@@ -2097,6 +2142,7 @@ export function initMapView(world) {
     else if (act === 'layers') toggleLegend();
     else if (act === 'close') { if (closeHandler) closeHandler(); else closeMap(); } // no Esc on a touchscreen
     else if (act === 'clear') clearUserWaypoint();
+    else if (act === 'uitleg-sluit') sluitKaartUitleg(btn);
     else if (act === 'care-off') dismissCareRoute();
     else if ((act === 'pg-next' || act === 'pg-off' || act === 'pg-on') && world.postgameActions) {
       const g = world.postgameActions.guide;

@@ -200,7 +200,7 @@ ok(A.planModeFor('ov', 'lopen') === 'ov' && A.planModeFor('boot', 'auto') === 'b
   // the one place that stays long on purpose: the first-time travel help is shown, then gone
   const RV = await import('../game/js/reisview.js');
   const beat = { to: 'Winsum', length: 9000, ride: 'bus', lines: ['a'] };
-  ok(RV.panelState(beat, null, {}).help === 'Kies hoe je gaat' && RV.panelState(beat, null, { [RV.TRAVEL_HELP_ID]: 2 }).help === '', 'travel help only the first times');
+  ok(RV.panelState(beat, null, {}).help === 'Snel reizen kost tijd, zelf gaan niet' && RV.panelState(beat, null, { [RV.TRAVEL_HELP_ID]: 2 }).help === '', 'travel help only the first times');
   ok(RV.panelState(beat).rule === '9,0 km', 'travel rule is the distance');
 }
 
