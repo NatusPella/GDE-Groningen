@@ -1102,6 +1102,8 @@ function syncPub(world) {
   { const sg = st.phase === 'active' && def.stages ? def.stages[st.stageIndex] : null; pub.lateInstap = lateInstapVoor({ type: def.type, stageKind: sg && sg.kind, timer: pub.timeLeft != null, race: !!st.race }); } // mag een laatkomer nog meedoen? (samen spelen, #452)
   pub.code = missionCode(st.index);
   pub.index = st.index;
+  // de id van deze opdracht als groep (samen spelen, #452): dezelfde sleutel als coopmeedoen.js, zodat elke groep zijn eigen stand houdt
+  pub.id = `${st.index}|${def.label || ''}`.slice(0, 48);
   pub.total = st.defs.length;
   const board = st.phase === 'active' ? vehicleToBoard(world, def) : null;
   let target;
