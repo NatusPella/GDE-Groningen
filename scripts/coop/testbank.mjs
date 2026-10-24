@@ -186,7 +186,7 @@ if (code && MOCK && ROUTE === 'direct') {
   // #443 (suite 'wedstrijd'): een headless gast die meedoet aan de race van de host: J op de uitnodiging, rijdt met de stick, stopt (gast B in de eerste race), vraagt een rematch
   const WD = await import(new URL('../../game/js/coopwedstrijd.js', import.meta.url).href), KR = await import(new URL('../../game/js/kartrace.js', import.meta.url).href);
   const wedBot = (m, i) => {
-    const st = { idx: 0, uit: 0, start: [], eind: [], beloning: [], st: 0, nogmaals: false, weg: false, spiegel: null, last: Date.now() / 1000, fasen: [] }; m.bot = st;
+    const st = { idx: 0, uit: 0, start: [], eind: [], beloning: [], st: 0, nogmaals: false, weg: false, spiegel: null, last: Date.now() / 1000, fasen: [], wegN: 0 }; m.bot = st;
     const rust = { mx: 0, my: 0, buttons: 0, yaw: 0 };
     return () => {
       const nu = Date.now() / 1000, dt = Math.min(0.1, nu - st.last); st.last = nu;
@@ -194,15 +194,15 @@ if (code && MOCK && ROUTE === 'direct') {
         const b = m.log.events[st.idx][1];
         if (b && b.k === 'beloning') st.beloning.push({ geld: b.geld, vak: b.vak, xp: b.xp });
         const l = b && b.k === 'wed' ? WD.leesWed(b) : null; if (!l) continue;
-        if (l.f === 'uit') { st.uit++; m.session.sendEvent({ k: 'wedgast', a: 'ja' }); }
-        else if (l.f === 'start') { st.start.push(l.deeln.map((d) => d.naam)); st.spiegel = WD.maakSpiegel(l, m.session.slot); st.weg = false; }
+        if (l.f === 'uit') { st.uit++; setTimeout(() => { try { m.session.sendEvent({ k: 'wedgast', a: 'ja' }); } catch (e) { /* weg */ } }, 2500 + i * 1500); } // een speler denkt even na: de host ziet de uitnodiging staan
+        else if (l.f === 'start') { st.start.push(l.deeln.map((d) => d.naam)); st.spiegel = WD.maakSpiegel(l, m.session.slot); st.weg = false; st.nieuw = true; }
         else if (l.f === 'st' && st.spiegel) { st.st++; WD.voerIn(st.spiegel, l); }
         else if (l.f === 'eind') { st.eind.push({ gestopt: !!l.gestopt, jij: l.jij, rijen: l.rijen.length }); st.spiegel = null; if (!l.gestopt && i === 0 && !st.nogmaals) { st.nogmaals = true; m.session.sendEvent({ k: 'wedgast', a: 'nogmaals' }); } }
       }
       const sp = st.spiegel; if (!sp) return rust;
       let inv = { throttle: 0, steer: 0, drift: false };
       if (sp.phase === 'race' && !sp.karts[0].finished) inv = KR.aiInput(sp.karts[0], sp.track, { skill: 0.9, others: sp.karts, dt: 0.05 });
-      if (i === 1 && !st.eind.length && !st.weg && sp.phase === 'race' && sp.raceT > 30) { st.weg = true; st.spiegel = null; m.session.sendEvent({ k: 'wedgast', a: 'weg' }); return rust; } // gast B stopt halverwege de eerste race
+      if (i === 1 && !st.eind.length && !st.weg && sp.phase === 'race' && sp.raceT > 30) { st.weg = true; st.wegN++; st.spiegel = null; m.session.sendEvent({ k: 'wedgast', a: 'weg' }); return rust; } // gast B stopt halverwege de eerste race
       if (!st.fasen.length || st.fasen[st.fasen.length - 1] !== sp.phase) st.fasen.push(sp.phase);
       WD.tikSpiegel(sp, dt, () => inv);
       return { mx: inv.steer, my: -inv.throttle, buttons: inv.drift ? 2 : 0, yaw: 0 };
@@ -352,7 +352,7 @@ if (GASTEN === 0) { // alleen de host in Electron: wat de headless gasten en de 
     note('gast A: ' + JSON.stringify(a && { uit: a.uit, start: a.start, eind: a.eind, beloning: a.beloning, snapshots: a.st, fasen: a.fasen }));
     note('gast B: ' + JSON.stringify(b && { uit: b.uit, start: b.start, eind: b.eind, beloning: b.beloning, snapshots: b.st, weg: b.weg }));
     check(ka && ka.gasten === 2 && ka.afstand < 60, 'wedstrijd: de gasten stonden niet bij de kassa: ' + JSON.stringify(ka));
-    check(ui.length === 2 && ui[0].wed && /Uitnodiging|Meedoen|Karten/i.test(ui[0].kaart + ' x'), 'wedstrijd: de host zag de uitnodiging niet: ' + JSON.stringify(ui[0]));
+    check(ui.length === 2 && ui[0].wed && /uitnodiging/i.test(ui[0].kaart), 'wedstrijd: de host zag de uitnodiging niet: ' + JSON.stringify(ui[0]));
     check(a && b && a.uit === 2 && b.uit === 2, 'wedstrijd: elke gast hoort twee keer Meedoen? te krijgen: ' + JSON.stringify([a && a.uit, b && b.uit]));
     check(stt.length === 2 && stt[0].karts.length === 4 && stt[0].karts[0] === 'Tammo' && stt[0].karts.includes('Tessa') && stt[0].companionVast, 'wedstrijd: de race begon niet met host en gasten: ' + JSON.stringify(stt[0]));
     check(a && a.start[0] && a.start[0].length === 3 && b && b.start[0] && b.start[0].length === 3, 'wedstrijd: de start bij de gasten klopt niet (drie mensen): ' + JSON.stringify([a && a.start, b && b.start]));
@@ -360,11 +360,11 @@ if (GASTEN === 0) { // alleen de host in Electron: wat de headless gasten en de 
     check(e1h && e1h.duur > 60 && e1h.duur < 200 && e1h.fasen.map((f) => f[0]).join().startsWith('grid,race') && !e1h.online && !e1h.camera, 'wedstrijd: race 1 liep niet goed: ' + JSON.stringify(e1h));
     check(e1h && e1h.bord.some((x) => /Ronde/.test(x) && /Plaats/.test(x) && /Tijd/.test(x)) && e1h.gast.length === 4, 'wedstrijd: het bord of de stand van de karts ontbreekt: ' + JSON.stringify(e1h && { bord: e1h.bord, gast: e1h.gast }));
     check(e1h && e1h.gast.filter((k) => k[1] > 100).length >= 3, 'wedstrijd: na 45 s waren de gasten niet verder gekomen: ' + JSON.stringify(e1h && e1h.gast));
-    check(ul && /Uitslag/.test(ul.kaart) && /Tammo/.test(ul.kaart) && ul.rijen && ul.rijen.length === 4 && ul.lichamenVrij, 'wedstrijd: de uitslag klopt niet: ' + JSON.stringify(ul));
+    check(ul && /uitslag/i.test(ul.kaart) && /Tammo/.test(ul.kaart) && ul.rijen && ul.rijen.length === 4 && ul.lichamenVrij, 'wedstrijd: de uitslag klopt niet: ' + JSON.stringify(ul));
     check(ul && ul.jij && ul.jij.fin && ul.geldErbij > 0, 'wedstrijd: wie het spel opende kreeg geen beloning voor zijn plek: ' + JSON.stringify(ul && { jij: ul.jij, geld: ul.geldErbij }));
     check(a && a.eind.length >= 1 && a.eind[0].jij && a.eind[0].rijen === 4 && a.beloning.length >= 1 && a.beloning[0].vak === 'race', 'wedstrijd: gast A kreeg geen uitslag of beloning: ' + JSON.stringify(a && { eind: a.eind, beloning: a.beloning }));
     check(a && a.eind[0] && a.eind[0].jij && a.beloning[0] && (a.eind[0].jij.fin ? a.beloning[0].geld === a.eind[0].jij.geld : true), 'wedstrijd: de beloning van gast A is niet het bedrag van zijn plek: ' + JSON.stringify(a && [a.eind[0], a.beloning[0]]));
-    check(b && b.weg && !b.eind.some((x) => !x.gestopt) && b.beloning.length === 0, 'wedstrijd: gast B (gestopt halverwege) kreeg een uitslag of beloning, of stopte niet: ' + JSON.stringify(b && { weg: b.weg, eind: b.eind, beloning: b.beloning }));
+    check(b && b.wegN >= 1 && !b.eind.some((x) => !x.gestopt) && b.beloning.length === 0, 'wedstrijd: gast B (gestopt halverwege) kreeg een uitslag of beloning, of stopte niet: ' + JSON.stringify(b && { wegN: b.wegN, eind: b.eind, beloning: b.beloning }));
     check(ul && ul.rijen && ul.rijen.some((x) => x.weg), 'wedstrijd: de uitslag toont de speler die wegviel niet als weggevallen: ' + JSON.stringify(ul && ul.rijen));
     check(a && a.st > 700, 'wedstrijd: gast A kreeg te weinig momentopnamen: ' + (a && a.st));
     check(rv && rv.willen.includes('1'), 'wedstrijd: het verzoek om een rematch kwam niet bij de host aan: ' + JSON.stringify(rv));

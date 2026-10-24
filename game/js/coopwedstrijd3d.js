@@ -20,7 +20,7 @@ export function kaartModel(world) {
     return null;
   }
   const G = world.coopWedGast; if (!G) return null;
-  if (G.uitn) return { soort: 'uitnodiging', titel: 'Meedoen?', regels: [uitnodigingTekst(G.uitn, openerNaam(world.coopRoster, true))], voet: 'Wie finisht krijgt een beloning in zijn eigen geld.' };
+  if (G.uitn) return { soort: 'uitnodiging', titel: 'Meedoen?', regels: [uitnodigingTekst(G.uitn, openerNaam(world.coopRoster, true))], voet: 'Wie finisht krijgt een beloning in het eigen geld.' };
   if (G.uitslag && !G.uitslag.gestopt) return uitslagModel(G.uitslag.rijen, G.uitslag.jij, 'gast', [], true, G.nogmaals);
   return null;
 }
