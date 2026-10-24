@@ -14,7 +14,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 - Loopbaan (#438): vanaf Kaartjesknipper (spoor, niveau 3) kun je op het perron kaartjes controleren: loop naar een reiziger, druk E, en na een ronde van vijf reizigers betaalt het loon van het vak en tellen de punten mee. Per station hooguit een ronde per kwartier. In de trein zelf kan het nog niet (nog niet in beeld bekeken).
 
 ### Veranderd
-- Opening: de poes in de keuken loopt nu langs de tafel naar het midden en gaat op de bankbrief zitten, ver van Tessa; de camera blijft bij Tessa en laat het poezengedrag buiten beeld (#434).
+- Opening: de poes in de keuken springt nu van de vensterbank op de vloer en blijft ver van Tessa; de camera blijft bij Tessa en houdt de poes uit beeld bij haar (#434).
 - Verhaalberichten aan het eind van het verhaal wijzen nu naar het menu onder Activiteiten, niet meer naar de telefoon onder Te doen (#273).
 - Delfzijl: kaartlabel, bord en Reis erheen (safehouse) staan nu in het winkelmidden in plaats van 843 m ten westen daarvan; de wereld zelf is niet veranderd (#422).
 - Gedenktekens in de streek houden hun type en plaats maar tonen geen persoonsnaam meer (#419).
