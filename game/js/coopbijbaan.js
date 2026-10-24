@@ -39,7 +39,9 @@ export const BIJBAAN_TEKST = {
   gevraagd: (label) => `Je vraagt ${label} te starten.`,
   bezig: 'Er loopt al een bijbaan.',
   nietGedeeld: 'Deze bijbaan doe je alleen in je eigen spel.',
-  hostStart: (naam, label) => `${naam} begon ${label}.`,
+  hostStart: (naam, label) => `${naam} begon ${label}. Doe je mee? J = ja, N = nee.`,
+  hostNee: 'Je doet niet mee: je krijgt geen loon voor deze baan.',
+  wedstrijd: 'Er loopt al een wedstrijd. Wacht of doe mee.',
   nee: 'Je doet niet mee: je kijkt mee tot de volgende baan.',
   ja: (label, hulp) => `Je doet mee met ${label}. ${hulp}`,
   laat: (label) => `${label} loopt al, de volgende doe je mee.`,
@@ -65,9 +67,13 @@ export function beginBijbaan(st, id, label, gasten, starter = null, wie = '') {
     if (s === starter) { st.keuze[s] = 'ja'; continue; }
     st.keuze[s] = 'wacht'; uit.push({ slot: s });
   }
-  if (!uit.length) st.gesloten = true;
+  if (starter != null) st.keuze[0] = 'wacht'; // een gast startte de baan: ook de host kiest of hij meedoet (J of N; geen antwoord is nee)
+  if (!Object.values(st.keuze).includes('wacht')) st.gesloten = true;
   return uit;
 }
+// Doet de host mee? Bij een baan die hij zelf startte altijd; bij het verzoek van een gast alleen als hij J zei. Wie niet meedoet krijgt
+// geen loon en geen loopbaanpunten; de baan draait wel op zijn wereld (bestuurder van de taxi, het spoor van de bezorger: dat blijft zijn lichaam).
+export const hostMeeBijbaan = (st) => !actief(st) || st.keuze[0] === undefined || st.keuze[0] === 'ja';
 export function eindeBijbaan(st) { st.id = null; st.label = ''; st.keuze = {}; st.weg = {}; st.gesloten = true; st.rest = 0; st.wie = ''; st.laatsteDoel = ''; }
 
 // Het antwoord van een gast. Alleen wie nog moet antwoorden en binnen de tijd; daarna (geen late instap) verandert er niets.
@@ -82,14 +88,14 @@ export function tikBijbaan(st, dt, verbonden) {
   const af = [];
   if (!actief(st)) return af;
   for (const s of Object.keys(st.keuze).map(Number)) {
-    if (!verbonden.has(s)) { verlaatBijbaan(st, s); if (st.keuze[s] === 'wacht') { st.keuze[s] = 'nee'; af.push(s); } }
+    if (s > 0 && !verbonden.has(s)) { verlaatBijbaan(st, s); if (st.keuze[s] === 'wacht') { st.keuze[s] = 'nee'; af.push(s); } }
   }
   if (!st.gesloten) {
     st.rest -= dt;
     if (st.rest <= 0) { st.rest = 0; st.gesloten = true; }
     if (!Object.values(st.keuze).includes('wacht')) st.gesloten = true;
   }
-  if (st.gesloten) for (const s of Object.keys(st.keuze).map(Number)) if (st.keuze[s] === 'wacht') { st.keuze[s] = 'nee'; af.push(s); } // geen antwoord is nee
+  if (st.gesloten) for (const s of Object.keys(st.keuze).map(Number)) if (st.keuze[s] === 'wacht') { st.keuze[s] = 'nee'; if (s > 0) af.push(s); } // geen antwoord is nee (de host hoort het niet via het net)
   return af;
 }
 // Een speler valt weg (verbinding kwijt of weg): hij doet voor de rest van deze baan niet meer mee en houdt wat hij al kreeg.
@@ -231,10 +237,25 @@ export function bijbaanHelpers(world) {
   return uit;
 }
 
+// De host antwoordt op Meedoen? bij een baan die een gast startte (J of N). Geeft true als het antwoord telde.
+export function bijbaanHostAntwoord(world, ja) {
+  const n = world.coopNet, st = n && n.role === 'host' && n.bijbaan;
+  if (!st || !antwoordBijbaan(st, 0, ja)) return false;
+  if (!ja) meldHost(world, BIJBAAN_TEKST.hostNee);
+  return true;
+}
+// Doet de host mee met de lopende baan? (sidejobs.js: zonder dit krijgt hij geen loon)
+export function bijbaanHostMee(world) { const n = world.coopNet; return !n || n.role !== 'host' || !n.bijbaan || hostMeeBijbaan(n.bijbaan); }
+
 // Elke frame bij de host (coopnet.js tickCoopNet): de uitnodiging telt af, wie niet antwoordt kijkt mee, het doel gaat naar de anderen.
 export function bijbaanHostTik(world, dt) {
   const n = world.coopNet; if (!n || n.role !== 'host' || !n.bijbaan) return false;
   const st = n.bijbaan; if (!actief(st)) return false;
+  if (st.keuze[0] === 'wacht') { // de host zelf: J of N
+    const inp = world.input;
+    const toets = (k) => !!(inp && inp.wasPressed && !world.paused && !world.uiPaused && inp.wasPressed(k));
+    if (toets('j')) bijbaanHostAntwoord(world, true); else if (toets('n')) bijbaanHostAntwoord(world, false);
+  }
   for (const s of tikBijbaan(st, dt, verbondenSet(world))) n.hub.announce(afEvent(), s); // geen antwoord is nee
   st.tDoel += dt;
   if (st.tDoel >= DOEL_S) {
@@ -269,6 +290,7 @@ export function bijbaanHandleGast(world, body, van) {
   if (b.a === 'start') { // een gast vraagt de baan te starten
     if (!acties || !acties.startVoor) return false;
     if (actief(st)) { meldGast(world, van, BIJBAAN_TEKST.bezig); return false; }
+    const W = n.wed; if (W && (W.r || W.sc || W.lv || W.u)) { meldGast(world, van, BIJBAAN_TEKST.wedstrijd); return false; } // een wedstrijd loopt (of wordt gevraagd)
     const r = acties.startVoor(b.id, van);
     if (!r || !r.ok) { meldGast(world, van, (r && r.reden) || BIJBAAN_TEKST.nietGedeeld); return false; }
     return true;
@@ -362,6 +384,7 @@ export function bijbaanKaartModel(world) {
   const n = world.coopNet; if (!n) return null;
   if (n.role === 'host') {
     const st = n.bijbaan; if (!actief(st) || st.gesloten || !Object.values(st.keuze).includes('wacht')) return null;
+    if (st.keuze[0] === 'wacht') return { soort: 'uitnodiging', titel: 'Meedoen?', regels: [`${st.wie || 'Een speler'} begon ${st.label}.`], voet: `J = ja, N = nee (zonder antwoord doe je niet mee en krijg je geen loon). Nog ${Math.ceil(st.rest)} seconden.` };
     const regels = Object.keys(st.keuze).map(Number).map((s) => `${naamVan(world, s)}: ${st.keuze[s] === 'ja' ? 'doet mee' : st.keuze[s] === 'nee' ? 'doet niet mee' : 'kiest nog'}`);
     return { soort: 'uitnodiging', titel: `${st.label}: uitnodiging verstuurd`, regels, voet: `Nog ${Math.ceil(st.rest)} seconden.` };
   }

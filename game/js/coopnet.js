@@ -50,7 +50,7 @@ import { teamDown } from './cooproles.js'; // een opdracht faalt pas als alle me
 import { saveGame as bewaarNu } from './savehook.js';
 import { wedHostTik, wedHandleGast, wedHandleHost, wedGastReset, zetWedHaken } from './coopwedstrijd.js';
 import { wedKaartTik } from './coopwedstrijd3d.js';
-import { bijbaanStart, bijbaanBeloning, bijbaanEind, bijbaanHelpers, bijbaanHostTik, bijbaanGastTik, bijbaanGastReset, bijbaanHandleGast, bijbaanHandleHost, bijbaanVoorNieuwe, bijbaanWeg, zetBijbaanHaken } from './coopbijbaan.js';
+import { bijbaanStart, bijbaanBeloning, bijbaanEind, bijbaanHelpers, bijbaanHostTik, bijbaanGastTik, bijbaanGastReset, bijbaanHandleGast, bijbaanHandleHost, bijbaanVoorNieuwe, bijbaanWeg, bijbaanHostMee, zetBijbaanHaken } from './coopbijbaan.js';
 import { maakPvp, wisselPassief, zetPassiefStand, verwijderSpeler, passiefEvent, passiefVanEvent, leesPassief, leesPassiefVan, pvpSchadeEvent, isPassief, PVP_TEKST } from './cooppvp.js'; // passieve stand en spelers tegen elkaar (#447)
 import { pvpGastRaak, pvpDoodVerwerk } from './cooppvpwereld.js';
 import { busCoopActie, busCoopValideerE } from './coopbus.js';
@@ -191,7 +191,7 @@ function endCoop(world) {
   world.coopWanted = null; world.coopHeat = null; world.coopDoelwit = 0; world.coopWantedMeld = null; world.coopGepakt = null; world.coopStil = false; // (#434)
   if (world.companion) world.companion.coopWacht = false;
   world.coopOpdrachtDoor = null; world.coopMeespelers = null; // (#452)
-  world.coopMeld = null; world.coopDeel = null; world.coopBijbaanStart = null; world.coopBijbaanBeloning = null; world.coopBijbaanEind = null; world.coopHelpers = null; world.coopUitslag = null; world.coopPingMarks = []; world.coopSpelers = []; world.coopGebruik = false; world.coopWielSlot = null; world.coopWielVraag = null; world.coopWiel = false; world.coopInVoertuig = false; world.coopBestuurder = false; // (#291, #434)
+  world.coopMeld = null; world.coopDeel = null; world.coopBijbaanStart = null; world.coopBijbaanBeloning = null; world.coopBijbaanEind = null; world.coopBijbaanHostMee = null; world.coopHelpers = null; world.coopUitslag = null; world.coopPingMarks = []; world.coopSpelers = []; world.coopGebruik = false; world.coopWielSlot = null; world.coopWielVraag = null; world.coopWiel = false; world.coopInVoertuig = false; world.coopBestuurder = false; // (#291, #434)
   world.coopVraag = null; world.coopStem = null; world.coopStemBeantwoord = null; // gezamenlijke keuzes (#452)
   if (world.companion) { world.companion.coopUit = false; world.companion.coopBestuurt = false; }
 }
@@ -274,6 +274,7 @@ export function startHost(world, info, opts = {}) {
   world.coopBijbaanStart = (id, label, starter) => bijbaanStart(world, id, label, starter); // een bijbaan met samen-regels: uitnodiging, doel en volledige beloning voor elke meespeler (#452, coopbijbaan.js)
   world.coopBijbaanBeloning = (id, basis, vak, xp, ronde) => bijbaanBeloning(world, id, basis, vak, xp, ronde);
   world.coopBijbaanEind = (kind) => bijbaanEind(world, kind);
+  world.coopBijbaanHostMee = () => bijbaanHostMee(world); // doet de host mee met deze baan? Zo niet, geen loon voor hem (#452)
   world.coopHelpers = () => bijbaanHelpers(world); // waar de meespelers staan, voor ophalen en afgeven te voet
   world.coopVraag = (soort, tekst, naAkkoord, naNee) => stemStart(world, soort, tekst, naAkkoord, naNee); // een tijdsprong vraagt akkoord van alle anderen (#452)
   world.coopSchade = (slot, schade) => hub.announce({ k: 'schade', n: Math.round(Number(schade) || 0) }, slot); // een kogel van de politie raakt een gast (#434)

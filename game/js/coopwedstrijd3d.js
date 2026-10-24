@@ -4,7 +4,7 @@
 import { fmtTime } from './minigamekit.js';
 import { openerNaam } from './coopplayers.js';
 import { bijbaanKaartModel } from './coopbijbaan.js';
-import { spelerNaam, verbondenGasten, gastStaat, wedGastStuur, wedOpnieuw, willenOpnieuw, uitnodigingTekst } from './coopwedstrijd.js';
+import { spelerNaam, verbondenGasten, gastStaat, wedGastStuur, wedOpnieuw, wedHostAntwoord, willenOpnieuw, uitnodigingTekst } from './coopwedstrijd.js';
 
 const ORDINAAL = ['', '1e', '2e', '3e', '4e'];
 
@@ -14,11 +14,15 @@ function wedKaart(world) {
   const n = world.coopNet; if (!n) return null;
   if (n.role === 'host') {
     const W = n.wed; if (!W) return null;
+    if (W.u && W.u.keuze[0] === 'wacht') { // een gast startte dit: ook de host kiest of hij meedoet (#452)
+      const regels = Object.keys(W.u.keuze).filter((s) => +s > 0).map((s) => `${spelerNaam((n.hub.roster.spelers || []).find((p) => p.slot === +s))}: ${W.u.keuze[s] === 'ja' ? 'doet mee' : W.u.keuze[s] === 'nee' ? 'doet niet mee' : 'kiest nog'}`);
+      return { soort: 'uitnodiging', titel: 'Meedoen?', regels: [`${W.u.wie || 'Een speler'} wil ${W.u.label} starten.`, ...regels], voet: `J = ja, N = nee (zonder antwoord loopt het zonder jou door). Nog ${Math.ceil(W.u.rest)} seconden.` };
+    }
     if (W.u) {
       const regels = Object.keys(W.u.keuze).map((s) => `${spelerNaam((n.hub.roster.spelers || []).find((p) => p.slot === +s))}: ${W.u.keuze[s] === 'ja' ? 'doet mee' : W.u.keuze[s] === 'nee' ? 'doet niet mee' : 'kiest nog'}`);
       return { soort: 'uitnodiging', titel: `${W.u.label}: uitnodiging verstuurd`, regels, voet: `Nog ${Math.ceil(W.u.rest)} seconden. Druk op E bij de kassa om nu te starten.` };
     }
-    if (W.uitslag) return uitslagModel(W.uitslag.rijen, W.uitslag.jij, 'host', willenOpnieuw(world).map((s) => spelerNaam((n.hub.roster.spelers || []).find((p) => p.slot === s))), verbondenGasten(world).length > 0);
+    if (W.uitslag && !W.hostloos) return uitslagModel(W.uitslag.rijen, W.uitslag.jij, 'host', willenOpnieuw(world).map((s) => spelerNaam((n.hub.roster.spelers || []).find((p) => p.slot === s))), verbondenGasten(world).length > 0);
     return null;
   }
   const G = world.coopWedGast; if (!G) return null;
@@ -51,7 +55,10 @@ export function wedKaartTik(world, dt) {
       if (toets('j')) wedGastStuur(world, 'nogmaals');
       else if (toets('n') || toets('enter')) G.uitslag = null;
     }
-  } else if (n && n.role === 'host' && n.wed && n.wed.uitslag && !n.wed.u && !n.wed.r && !n.wed.lv) {
+  } else if (n && n.role === 'host' && n.wed && n.wed.u && n.wed.u.keuze[0] === 'wacht') {
+    if (toets('j')) wedHostAntwoord(world, true);
+    else if (toets('n')) wedHostAntwoord(world, false);
+  } else if (n && n.role === 'host' && n.wed && n.wed.uitslag && !n.wed.hostloos && !n.wed.u && !n.wed.r && !n.wed.lv) {
     if (toets('j')) wedOpnieuw(world);
     else if (toets('n') || toets('enter')) n.wed.uitslag = null;
   }

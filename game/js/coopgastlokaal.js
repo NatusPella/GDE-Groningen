@@ -13,7 +13,7 @@ import { gastWapenTik } from './coopwapen.js';
 import { openerNaam } from './coopplayers.js';
 import { updateActivitiesGast, tryActivityInteractGast } from './activities.js';
 import { getSettings } from './settings.js';
-import { wedGastTik } from './coopwedstrijd.js';
+import { wedGastTik, wedGastE } from './coopwedstrijd.js';
 import { bijbaanGastE } from './coopbijbaan.js';
 
 // meld de host (alleen bij een wisseling) dat deze gast een activiteit speelt: hij staat dan stil. Een host zonder dit bericht negeert het.
@@ -41,6 +41,7 @@ export function updateGastLokaal(world, dt = 1 / 60) {
   const e = input.wasPressed('e') || input.wasPressed('f');
   if (!e) { tryShopInteract(world); return false; } // R: lak en tuning (een melding)
   if (tryShopInteract(world) || tryMachineInteract(world) || tryHorecaInteract(world)) return true;
+  if (wedGastE(world)) { input.consume('e'); input.consume('f'); return true; } // een wedstrijd starten bij het startpunt: een verzoek aan wie het spel opende (#452)
   if (bijbaanGastE(world)) { input.consume('e'); input.consume('f'); return true; } // een bijbaan samen: een baan starten bij een startpunt of een krant gooien (#452)
   if (tryActivityInteractGast(world)) { input.consume('e'); input.consume('f'); return true; } // een lokale activiteit start; de andere geven een melding
   input.consume('e');
