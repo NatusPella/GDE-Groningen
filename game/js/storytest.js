@@ -35,6 +35,7 @@ import { requestRespawn } from './world.js';
 import { nearestFacility } from './facilities.js';
 import { roadNear, withTiles } from './tileplace.js';
 import { refreshDayNight } from './daynight.js';
+import { hudNow, zones } from './hudrules.js';
 
 // the story (storyarc_nieuw.js); the old arc is gone (#187), so the checks of the old arc below never run
 const NEW = true;
@@ -431,6 +432,45 @@ async function quietDown(world, ms = 1500) {
   return false;
 }
 
+// #425: what an app text on the phone waits for (phonefeed.js updatePhoneFeed): the HUD must not be busy
+// (a wanted level, a fight in the last 5 s, a race: hud_panel.js), nothing may hold the cards back (a cutscene, a
+// story contact, a subtitle: narrative.js heldBack), zone A must be free and a toast may start (narrative.js
+// mayStart('phone')). The missions this harness skips can leave such a moment behind, and a contact or cutscene
+// that starts while it waits keeps the card away. Returns the state and whether it is quiet enough.
+function phoneReady(world) {
+  const zone = zones.occupant('A');
+  const mayStart = window.__narrative ? window.__narrative.mayStart('phone') : true;
+  const state = {
+    busy: !!hudNow.busy, wanted: world.wanted | 0, paused: !!world.paused,
+    raceHud: !!(world.mission && world.mission.phase === 'active' && world.mission.raceHud),
+    challengeHud: !!world.challengeHud, race: !!world.race,
+    card: !!document.querySelector('.pf-card'), held: !!document.querySelector('.pf-held'),
+    zone: zone ? zone.owner : 'vrij', zoneFree: zones.free('A', 'phone'), mayStart,
+    visible: document.body.classList.contains('game-started') && !document.body.classList.contains('cine-hide-hud'),
+  };
+  state.ready = !state.busy && !state.wanted && !state.paused && !state.card && !state.held && state.visible && state.mayStart && state.zoneFree;
+  return state;
+}
+
+// Skips what would hold the card back and clears a wanted level a skipped mission left behind, so the
+// next frame can show the app text; the loop gives the game the frames to do it.
+function keepQuiet(world) {
+  if (isCinematicActive()) skipCinematic();
+  else if (world.storyContact || (window.__storyContact && window.__storyContact.pending())) skipStoryContact();
+  if (world.wanted) world.wanted = 0;
+}
+
+async function phoneQuiet(world, ms = 30000) {
+  const t0 = performance.now();
+  while (performance.now() - t0 < ms) {
+    keepQuiet(world);
+    const s = phoneReady(world);
+    if (s.ready) return s;
+    await sleep(150);
+  }
+  return null;
+}
+
 async function newArcRuntimeChecks(world, check, capture) {
   await quietDown(world);
   const T = window.__storytalk;
@@ -451,16 +491,21 @@ async function newArcRuntimeChecks(world, check, capture) {
   const pf = window.__phonefeed;
   if (pf) {
     await quietDown(world);
-    // #425: an app text (not a story text) waits while the HUD is busy (wanted, a fight in the last 5 s, a race), so the
-    // harness first leaves that moment: the missions it skipped can leave a wanted level or a fresh fight behind.
-    world.wanted = 0;
-    await waitFor(() => !(window.__narrative && window.__narrative.state().active.length) && !document.querySelector('.pf-card'), 20000, 200);
-    await sleep(5200);
+    // #425: the world first goes to a quiet moment (no chase, no race, no fight in the last 5 s, no skipped
+    // mission's left-over wanted level, nothing holding the cards back); the check below says so when it cannot.
+    const quiet = await phoneQuiet(world);
+    check('new arc: the HUD is quiet before the app text (no chase, race or skipped mission keeps it busy)', !!quiet, JSON.stringify(quiet || phoneReady(world)));
     const before = pf.state().cards;
     world.phoneNotifications.push({ from: 'Tessa', text: 'Ik ben bij het Loket. Kom niet. Je brengt ze in de war.', duration: 5, silent: true });
     // (not `story`: a story text waits for its pending radio contact (narrative.js), which the harness never plays)
-    const card = await waitFor(() => pf.state().cards > before || document.querySelector('.pf-card'), 40000, 200);
-    check('new arc: a silent app text shows as a phone card', card, JSON.stringify({ pf: pf.state(), narrative: window.__narrative && window.__narrative.state(), wanted: world.wanted, paused: !!world.paused, held: !!(document.querySelector('.pf-held')), pending: world.phoneNotifications.length }));
+    // The wait keeps skipping what would hold the card back: a contact or cutscene that starts meanwhile.
+    let card = false;
+    const tCard = performance.now();
+    while (!card && performance.now() - tCard < 40000) {
+      card = pf.state().cards > before || !!document.querySelector('.pf-card');
+      if (!card) { keepQuiet(world); await sleep(200); }
+    }
+    check('new arc: a silent app text shows as a phone card', card, JSON.stringify({ ...phoneReady(world), pf: pf.state(), narrative: window.__narrative && window.__narrative.state(), pending: world.phoneNotifications.length }));
     check('new arc: the silent app text is not read aloud', window.__phonefeed.voicing ? !window.__phonefeed.voicing() : true);
   }
   // the radio keeps to the world: ducked while a mission runs
