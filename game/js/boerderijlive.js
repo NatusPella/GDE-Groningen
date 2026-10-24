@@ -11,6 +11,7 @@ import { KEYS } from './storagekeys.js';
 import { noteMoney } from './finance.js';
 import { loopbaanVerdien, loopbaanTel } from './loopbaanlive.js';
 import * as B from './boerderij.js';
+import * as PC from './percelen.js';
 
 const SCHRIJF_VERTRAGING_MS = 2000;
 export const VAK = 'landbouw';
@@ -78,6 +79,7 @@ export function boerderijTijd(w, nu = w && w.time) {
   vorigeKlok = klok;
   if (uren > 0) {
     B.tikUren(getBoerderij(), uren);
+    huurTik(w);
     vuil = true;
     if (Number.isFinite(nu) && nu - laatsteSchrijf > 60) { laatsteSchrijf = nu; markeer(); }
   }
@@ -145,4 +147,83 @@ export function zetBoerderijVoorTest(raw, st) {
   vorigeKlok = null;
   laatsteSchrijf = -Infinity;
   if (timer) { clearTimeout(timer); timer = 0; }
+}
+
+// --- percelen en erven (percelen.js, #415 stap 1) -----------------------------------------------------------------------------------
+
+export const getBedrijf = () => getBoerderij().bedrijf;
+
+const HUUR_TEKST = {
+  betaald: (e) => `Huur betaald: €${e.bedrag}.`,
+  achterstand: (e) => `Je loopt achter met de huur van ${PC.perceelOfErf(e.soort, e.id).naam} (€${e.schuld} open). Betaal snel, anders gaat hij terug naar de verhuurder.`,
+  terug: (e) => `${PC.perceelOfErf(e.soort, e.id).naam} is terug naar de verhuurder: te laat betaald.`,
+};
+
+// De huur loopt mee met de speluren; wat niet kan staat als achterstand open. Elke betaling komt in het kasboek, een melding alleen bij problemen.
+export function huurTik(w) {
+  const b = getBoerderij();
+  const r = PC.verwerkHuur(b.bedrijf, b.uren, w && Number.isFinite(w.money) ? w.money : 0);
+  if (r.uitgave > 0) { noteMoney('Overige uitgaven'); w.money -= r.uitgave; }
+  if (r.events.length) vuil = true;
+  if (w && typeof w.addMessage === 'function') for (const e of r.events) if (e.type !== 'betaald') w.addMessage(HUUR_TEKST[e.type](e), 5);
+  return r;
+}
+
+function bedrijfActie(r) {
+  if (r.ok) markeer();
+  return r;
+}
+
+export function koopPerceel(w, soort, id) {
+  const r = PC.koop(getBedrijf(), soort, id, w.money || 0);
+  if (r.ok) { noteMoney('Winkels'); w.money -= r.prijs; }
+  return bedrijfActie(r);
+}
+
+export function huurPerceel(w, soort, id, betaling) {
+  const r = PC.huur(getBedrijf(), soort, id, betaling, getBoerderij().uren, w.money || 0);
+  if (r.ok) { noteMoney('Overige uitgaven'); w.money -= r.bedrag; }
+  return bedrijfActie(r);
+}
+
+export function zegOpPerceel(soort, id) { return bedrijfActie(PC.zegOp(getBedrijf(), soort, id)); }
+
+export function verkoopPerceel(w, soort, id) {
+  const r = PC.verkoop(getBedrijf(), soort, id);
+  if (r.ok) { noteMoney('Verkoop'); w.money += r.opbrengst; }
+  return bedrijfActie(r);
+}
+
+export function betaalSchuldPerceel(w, soort, id) {
+  const r = PC.betaalSchuld(getBedrijf(), soort, id, w.money || 0);
+  if (r.ok) { noteMoney('Overige uitgaven'); w.money -= r.bedrag; }
+  return bedrijfActie(r);
+}
+
+export const zetThuis = (erfId) => bedrijfActie({ ok: PC.zetThuis(getBedrijf(), erfId) }).ok;
+export const zetActief = (id) => bedrijfActie({ ok: PC.zetActief(getBedrijf(), id) }).ok;
+
+// De oogst uit de werkschuur (waar het afleveren hem ophaalt) naar de opslag van je thuis, en terug.
+export function schuurNaarErf() {
+  const b = getBoerderij();
+  const s = b.schuur;
+  if (!(s.kg > 0)) return { ok: false, kg: 0, reden: 'De schuur is leeg.' };
+  const r = PC.bergOp(b.bedrijf, b.bedrijf.thuis, s.gewas, s.kg);
+  if (!r.ok) return r;
+  s.kg -= r.kg;
+  if (s.kg <= 0) b.schuur = { gewas: null, kg: 0, kwaliteit: 1 };
+  markeer();
+  return r;
+}
+
+export function erfNaarSchuur(erfId, gewas) {
+  const b = getBoerderij();
+  if (b.schuur.kg > 0) return { ok: false, kg: 0, reden: 'Lever eerst af wat in de schuur ligt.' };
+  const ligt = (b.bedrijf.opslag[erfId] || {})[gewas] || 0;
+  const r = PC.haalUit(b.bedrijf, erfId, gewas, ligt);
+  if (!r.ok) return r;
+  if (!B.GEWASSEN[gewas]) { PC.bergOp(b.bedrijf, erfId, gewas, r.kg); return { ok: false, kg: 0, reden: 'Dat gewas kun je niet afleveren.' }; }
+  b.schuur = { gewas, kg: r.kg, kwaliteit: 1 };
+  markeer();
+  return r;
 }
