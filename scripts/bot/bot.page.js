@@ -31,6 +31,11 @@ const MAX_GAME = CFG.maxGameS || 3600;
 const MAX_WALL = (CFG.maxWallS || 1800) * 1000;
 const wall0 = performance.now();
 const detector = new L.StuckDetector({ windowS: CFG.stuckS || 30 });
+// a branch that keeps the clock itself gets a budget of its own (#387: the pigeon of M04 flew on until the run's end without a line in the
+// report): the pigeon stage as a whole, and one photo target of it (90 s: the museum is a kilometre from the Stationsplein, 24 m/s and a
+// turning circle; a bird that takes longer than that is not going to make it)
+const pigeonWatch = new L.TaskWatch({ budget: 300 });
+const pigeonTargetWatch = new L.TaskWatch({ budget: 90 });
 const wedge = new L.WedgeDetector();
 const mem = { boardTries: 0, pressTries: 0 };
 const detours = {};   // per stage: the sidesteps tried on foot before a cheat
@@ -230,7 +235,13 @@ async function flyStep(s) {
   // a flight that takes too long (a gate it cannot make) is a finding: the ladder takes over
   const fkey = (kind || '') + (s.story.id || '');
   if (mem.flyKey !== fkey) { mem.flyKey = fkey; mem.flyT = s.t; }
-  if (s.t - mem.flyT > 420) { mem.flyT = s.t; releaseFly(); await rescue(s, fkey, { idleFor: 420 }); return; }
+  if (s.t - mem.flyT > 420) {
+    mem.flyT = s.t;
+    B.log('timeout', { step: (s.story.id || '?') + (s.mission.active ? ':' + (s.mission.stage || 'm') : ''), what: 'vliegtuig: het doel niet gehaald', forS: 420, x: s.player.x, y: s.player.y, goalDist: s.target ? s.target.distance : null, doel: s.target && { x: s.target.x, y: s.target.y }, vliegtuig: { x: Math.round(pl.x), y: Math.round(pl.y), z: Math.round(pl.z), agl: Math.round(pl.z - gh(pl.x, pl.y)), v: Math.round(pl.speed) } });
+    releaseFly();
+    await rescue(s, fkey, { idleFor: 420, quiet: true });
+    return;
+  }
   const stripSpec = def && def.stages && (def.stages.find((q) => q.kind === 'plane') || {}).strip;
   let o = null;
   if (kind === 'airgates' && s.target) {
@@ -343,8 +354,11 @@ async function rescue(s, stepKey, info) {
   // the ladder counts per story step (a failed mission restarts the detector, not the ladder); every fail is a rung higher
   const sid = s.story.id || '?';
   const rung = L.rescueFor((ladder[sid] = (ladder[sid] || 0) + 1) - 1 + (fails[sid] || 0));
-  B.log('stuck', { step: stepKey, x: s.player.x, y: s.player.y, idleFor: info.idleFor, goalDist: s.target ? s.target.distance : null, rung, doel: s.target && { x: s.target.x, y: s.target.y, vehicle: !!s.target.vehicle, source: s.target.source }, prompt: s.hud.prompt || undefined, dichtbij: (s.nearby.vehicles || []).slice(0, 3).map((c) => [c.kind, c.distance, c.free]) });
-  shot(`${stepKey}-vast`);
+  // quiet: the branch already logged a 'timeout' with the same spot (a pigeon, a plane): no second line for the same moment
+  if (!info.quiet) {
+    B.log('stuck', { step: stepKey, x: s.player.x, y: s.player.y, idleFor: info.idleFor, goalDist: s.target ? s.target.distance : null, rung, doel: s.target && { x: s.target.x, y: s.target.y, vehicle: !!s.target.vehicle, source: s.target.source }, prompt: s.hud.prompt || undefined, dichtbij: (s.nearby.vehicles || []).slice(0, 3).map((c) => [c.kind, c.distance, c.free]) });
+    shot(`${stepKey}-vast`);
+  }
   if (rung === 'nudge') { await nudge(s); detector.acknowledge(s.t); return; }
   if (s.player.vehicle && !s.player.vehicle.plane && !s.player.vehicle.heli && !s.blocking.cinematic && (vdetours[stepKey] = (vdetours[stepKey] || 0) + 1) <= 4) { await vdetour(s, vdetours[stepKey]); detector.acknowledge(s.t); ladder[sid]--; return; }
   if (!s.player.vehicle && !s.blocking.cinematic && !s.blocking.talk && (detours[stepKey] = (detours[stepKey] || 0) + 1) <= 4) { await detour(s, detours[stepKey]); detector.acknowledge(s.t); ladder[sid]--; return; }
@@ -404,6 +418,7 @@ function track(s) {
     B.log('step', { event: 'begin', id, label: s.story.title || '', part: s.story.part });
     meterTick(s);
     lastStep = id; lastPhase = '';
+    mem.stepSince = s.t;
     mem.boardTries = 0; mem.pressTries = 0; mem.planTries = 0;
     shot(`${id}-begin`);
   }
@@ -493,19 +508,27 @@ while (true) {
   }
   if (s.t - (mem.trailT ?? -9) >= 1.5) { mem.trailT = s.t; (mem.trail = mem.trail || []).push([Math.round(s.t), Math.round(s.player.x), Math.round(s.player.y), s.player.vehicle ? Math.round(s.player.vehicle.speed * 10) / 10 : 0, s.player.vehicle ? s.player.vehicle.angle : null, s.player.vehicle ? s.player.vehicle.kind : 'voet', s.player.vehicle ? s.player.vehicle.health : null]); if (mem.trail.length > 24) mem.trail.shift(); }
   // a new game starts on a random landmark (the menu spot: seeded, but every run draws another), 0.5 to 2.5 km from the start of M01: a commute of 2 to 15
-  // minutes that says nothing about act 1 and decided whether the 30 minutes of the test run were enough. Once, at the start, the bot is taken to the goal (logged as setup)
-  if (!mem.startTp && s.story.id === 'M01' && !s.mission.active && s.t < 60 && s.target && s.target.distance > 600 && !CFG.zonderStartplek) {
+  // minutes that says nothing about act 1 and decided whether the 30 minutes of the test run were enough. Once, at the start of M01 and before the mission
+  // runs, the bot is taken to the goal (logged as setup); the goal is where M01 starts, whatever the start spot was. The condition is no longer the
+  // distance alone nor a game-time window: a slow opening (M00) used to push the step past it, and then the commute was played after all (#387).
+  if (!mem.startTp && s.story.id === 'M01' && !s.mission.active && s.target && !CFG.zonderStartplek && !s.blocking.cinematic && !s.blocking.banner && !s.blocking.talk) {
+    const van = [Math.round(s.player.x), Math.round(s.player.y)], afstand = Math.round(s.target.distance);
+    if (afstand > 60) {
+      mem.startTries = (mem.startTries || 0) + 1;
+      const okTp = mem.startTries <= 3 && B.cheat.teleport();
+      B.log('setup', { what: 'startplek', van, afstand, doel: { x: Math.round(s.target.x), y: Math.round(s.target.y) }, poging: mem.startTries, ok: !!okTp });
+      if (okTp || mem.startTries > 3) mem.startTp = true;
+      follower = null;
+      await sleep(1500);
+      continue;
+    }
     mem.startTp = true;
-    const okTp = B.cheat.teleport();
-    B.log('setup', { what: 'startplek', van: [Math.round(s.player.x), Math.round(s.player.y)], afstand: Math.round(s.target.distance), ok: !!okTp });
-    follower = null;
-    await sleep(1500);
-    continue;
+    B.log('setup', { what: 'startplek', van, afstand, dichtbij: true });
   }
   track(s);
   const stepKey = (s.story.id || '?') + (s.mission.active ? ':' + (s.mission.stage || 'm') : '');
   // each stage of a mission gets its own few tries at boarding and at a prompt
-  if (stepKey !== mem.stageKey) { mem.stageKey = stepKey; mem.pressTries = 0; mem.boardTries = 0; mem.planTries = 0; mem.vehTries = 0; mem.nearMiss = 0; }
+  if (stepKey !== mem.stageKey) { mem.stageKey = stepKey; mem.pressTries = 0; mem.boardTries = 0; mem.planTries = 0; mem.vehTries = 0; mem.nearMiss = 0; pigeonWatch.reset(); pigeonTargetWatch.reset(); }
   if (ticks++ % 100 === 0) B.log('status', { x: s.player.x, y: s.player.y, step: stepKey, dist: s.target ? s.target.distance : null, veh: s.player.vehicle ? s.player.vehicle.kind : 'te voet', wanted: s.wanted, money: s.player.money, msgs: s.hud.messages.slice(0, 2), sub: s.hud.subtitle && s.hud.subtitle.text, stunt: s.mission.stunt || undefined });
   // a mission that asks for it ('Uitstappen, jong. Fatbikes ontwijk je te voet.'): out of the vehicle
   if (s.hud.messages.some((m) => /uitstappen|te voet/i.test(m))) mem.onFootUntil = s.t + 60;
@@ -616,6 +639,21 @@ while (true) {
     // a pigeon: fly to the next target of the stage; releaseFly is shared (A, D, Space, Shift)
     detector.hold(s.t);
     const f = Pg.getPigeonFlight();
+    // the pigeon holds the clock (detector.hold), so the wait budget never runs: a bird that cannot reach a photo target used to fly on until
+    // the run's end without a word in the report (#387, M04). The stage and each target get a budget; a target that changes (another photo)
+    // starts over. What it did is logged as a 'timeout' with the spot, then the usual rescue ladder takes over.
+    const tk = s.target ? Math.round(s.target.x / 8) + ',' + Math.round(s.target.y / 8) : '-';
+    const wStage = pigeonWatch.update(s.story.id || '?', s.mission.stage || 'duif', s.t);
+    const wTgt = pigeonTargetWatch.update(s.story.id || '?', tk, s.t);
+    if (wStage.tooLong || wTgt.tooLong) {
+      const what = wStage.tooLong ? `duif: ${s.mission.label || 'het doel'} niet gehaald` : 'duif: hetzelfde fotodoel niet gehaald';
+      const forS = Math.round(wStage.tooLong ? wStage.forS : wTgt.forS);
+      B.log('timeout', { step: stepKey, what, forS, x: s.player.x, y: s.player.y, goalDist: s.target ? s.target.distance : null, doel: s.target && { x: s.target.x, y: s.target.y }, duif: f ? { x: Math.round(f.x), y: Math.round(f.y), z: Math.round(f.z), mode: f.mode, intro: !!f.intro } : null, foto: s.hud.messages.filter((m) => /op de foto/i.test(m)).slice(-1)[0] || null });
+      pigeonWatch.reset(); pigeonTargetWatch.reset();
+      releaseFly();
+      await rescue(s, stepKey, { idleFor: forS, quiet: true });
+      continue;
+    }
     if (!f || f.intro) { releaseFly(); await sleep(200); continue; }
     if (f.mode !== 'fly') { releaseFly(); await B.press(' ', 120); await sleep(500); continue; }   // on the ground: take off
     const want = L.pigeonKeys(f, s.target);
@@ -653,7 +691,8 @@ while (true) {
   }
   if (act.type === 'wait') { B.stick(0, 0); continue; }
   const gd = s.target ? s.target.distance : null;
-  const st = detector.update(s.t, { x: s.player.x, y: s.player.y, goalDist: gd, key: stepKey });
+  // a stunt (M01) comes no closer to the square while it scores: the score counts as progress, or the ladder lifts the bot out mid-stunt
+  const st = detector.update(s.t, { x: s.player.x, y: s.player.y, goalDist: gd, key: stepKey, score: s.mission.stunt ? s.mission.stunt.score : null });
   if (st.stuck) { await rescue(s, stepKey, st); continue; }
   if (act.type === 'press') { B.stick(0, 0); if (act.interact) { mem.pressTries++; B.log('handeling', { key: act.key, prompt: s.hud.prompt }); } await keyTap(act.key); await sleep(act.interact ? 900 : 0); continue; }
   if (act.type === 'enter') {
@@ -814,7 +853,9 @@ if (CFG.sweep && CFG.sweep.length) {
     await sleep(1500);
     mem.skipLeft = typeof CFG.skipStages === 'object' ? CFG.skipStages[id] || 0 : CFG.skipStages || 0;   // see loop1
     await loop((s) => s.story.id !== id || B.time() - t0 > (CFG.perStepS || 600));
-    meterEnd(B.status(), id, B.status().story.id === id ? 'tijd op' : 'klaar');
+    const se2 = B.status();
+    if (se2.story.id === id) B.log('timeout', { step: id, what: `stap ${id} niet uitgespeeld binnen ${CFG.perStepS || 600} s`, forS: Math.round(B.time() - t0), x: se2.player.x, y: se2.player.y, goalDist: se2.target ? se2.target.distance : null });
+    meterEnd(se2, id, se2.story.id === id ? 'tijd op' : 'klaar');
     result = 'TIMEOUT';
   }
   result = 'KLAAR'; reason = CFG.sweep.length + ' stappen';
@@ -823,5 +864,13 @@ if (CFG.sweep && CFG.sweep.length) {
 B.releaseAll();
 if (meter && lastStep) meterEnd(B.status(), lastStep, 'laatste');   // the step the run ends in (the part is over, or time ran out)
 shot(`einde-${result.toLowerCase()}`);
-B.log('einde', { result, reason, step: lastStep });
+// where the run stopped, in the last line of the log: the report says it at the top of a run that did not finish (#387)
+let at = null;
+try { at = B.status(); } catch (e) { /* wereld al weg */ }
+B.log('einde', {
+  result, reason, step: lastStep,
+  x: at ? at.player.x : null, y: at ? at.player.y : null, goalDist: at && at.target ? at.target.distance : null,
+  label: at && at.story ? at.story.title || '' : '', gameS: at ? at.t : B.time(),
+  inStepS: at && mem.stepSince != null ? Math.round((at.t - mem.stepSince) * 10) / 10 : null,
+});
 return JSON.stringify({ result, reason, step: lastStep, gameSeconds: B.time(), wallSeconds: Math.round((performance.now() - wall0) / 1000) });
