@@ -640,8 +640,8 @@ export function tickCoopNet(world, dt) {
     else s.setInput(m.mx, m.my, m.buttons, m.yaw);
     s.tick(dt);
     n.lokaal += dt;
-    const uit = world.coopUitnodiging; // Meedoen met deze opdracht? J of N; zonder antwoord doet de gast mee (#429)
-    if (uit) { uit.rest -= dt; if (uit.rest <= 0) { if (uit.status === 'vooruit') gastMeedoen(world, false); else world.coopUitnodiging = null; /* een spoilerwaarschuwing zonder antwoord is nee */ } else if (world.coopWisselUi && world.coopWisselUi.vraag) world.coopUitnodiging = null; /* een vraag om het spel over te nemen gaat voor: J en N zijn van die vraag (je doet dan mee) */ else if (inp && inp.wasPressed) { if (inp.wasPressed('j')) gastMeedoen(world, true); else if (inp.wasPressed('n')) gastMeedoen(world, false); } }
+    const uit = world.coopUitnodiging; // Meedoen met deze opdracht? J of N; zonder antwoord kijkt de gast mee (#429, #452)
+    if (uit) { if (uit.status === 'vooruit') uit.rest -= dt; if (uit.status === 'vooruit' && uit.rest <= 0) gastMeedoen(world, false); /* een spoilerwaarschuwing zonder antwoord is nee; een gewone uitnodiging blijft staan: geen antwoord is nee (#452) */ else if (world.coopWisselUi && world.coopWisselUi.vraag) world.coopUitnodiging = null; /* een vraag om het spel over te nemen gaat voor: J en N zijn van die vraag (je doet dan mee) */ else if (inp && inp.wasPressed) { if (inp.wasPressed('j')) gastMeedoen(world, true); else if (inp.wasPressed('n')) gastMeedoen(world, false); } }
     // de gedeelde speelklok: de tijd van de dag volgt de host (net/speelklok.js)
     if (n.klok.last && Number.isFinite(world.clock)) world.clock = n.klok.step(world.clock, dt, n.lokaal);
     if (s.joined && !n.fixed) { // eerst weten we welke plek en figuur we hebben
@@ -748,7 +748,7 @@ export function handleEvent(world, body, van = 0) {
     case 'meedoen': { // de gastheer begint een opdracht: wil je meedoen? (#429)
       if (!n || n.role !== 'client') return false;
       const u = maakUitnodiging(body, geldigeStap(body.stap) ? gastVerhaalStatus(world, body.stap) : null); if (!u) return false;
-      world.coopUitnodiging = u.verplicht ? null : u; world.coopMeedoenNee = false; world.coopMeedoenJa = null;
+      world.coopUitnodiging = u.verplicht ? null : u; world.coopMeedoenNee = !u.verplicht; world.coopMeedoenJa = null; // geen antwoord is nee (#452)
       if (world.addMessage) world.addMessage(uitnodigingTekst(u, openerNaam(world.coopRoster, true)), u.verplicht ? 5 : Math.min(u.status === 'vooruit' ? 30 : 10, u.rest));
       if (u.status === 'vooruit' && !u.verplicht && n.session) n.session.sendEvent({ k: 'meedoenwacht' }); // geen standaard-ja bij een spoilerwaarschuwing
       return true;

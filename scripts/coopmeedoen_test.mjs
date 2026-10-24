@@ -17,8 +17,9 @@ t('pure: uitnodigen, antwoorden, time-out en wie vrij loopt', () => {
   assert.equal(M.loopVrij(st, 1), true, 'tijdens het vragen niet vastzetten');
   assert.equal(M.antwoord(st, 1, false), true); assert.equal(M.antwoord(st, 1, true), false, 'een keuze is definitief');
   assert.equal(M.loopVrij(st, 1), true); assert.equal(M.krijgtDeel(st, 1), false, 'nee: geen deel');
-  assert.deepEqual(M.tik(st, 9), []); assert.deepEqual(M.tik(st, 1.5), [2], 'slot 2 antwoordde niet: doet na 10 s mee');
-  assert.equal(st.keuze[2], 'ja'); assert.equal(M.loopVrij(st, 2), false, 'wie meedoet houdt het bestaande gedrag'); assert.equal(M.krijgtDeel(st, 2), true);
+  assert.deepEqual(M.tik(st, 9), []); assert.deepEqual(M.tik(st, 30), [], 'slot 2 antwoordde niet: doet nooit vanzelf mee (#452)');
+  assert.equal(st.keuze[2], 'wacht'); assert.equal(M.loopVrij(st, 2), true, 'toeschouwer: vrij'); assert.equal(M.krijgtDeel(st, 2), false); assert.deepEqual(M.meespelers(st), []);
+  assert.equal(M.antwoord(st, 2, true), true, 'een late J telt zolang de uitnodiging staat'); assert.deepEqual(M.meespelers(st), [2]); assert.equal(M.krijgtDeel(st, 2), true);
   M.einde(st); assert.equal(M.loopVrij(st, 1), false); assert.equal(M.krijgtDeel(st, 1), true);
 });
 t('verplicht waar het verhaal de gast-hoofdrol eist (beide spelers of needsTwo), niet voor extra spelers', () => {
@@ -27,7 +28,7 @@ t('verplicht waar het verhaal de gast-hoofdrol eist (beide spelers of needsTwo),
   assert.equal(M.verplichtVoor(2, beide), false, 'extra spelers doen in het hoofdverhaal niet mee');
   const st = M.maakMeedoen(); const uit = M.begin(st, 'a', [1, 2], beide);
   assert.equal(uit[0].verplicht, true); assert.equal(M.antwoord(st, 1, false), false, 'verplicht: nee werkt niet');
-  assert.equal(M.loopVrij(st, 1), false); assert.deepEqual(M.tik(st, 20), [2]);
+  assert.equal(M.loopVrij(st, 1), false); assert.deepEqual(M.tik(st, 20), []); assert.deepEqual(M.meespelers(st), [1], 'verplicht blijft meedoen, de rest is toeschouwer');
 });
 t('de uitnodiging van de gast: gelezen, begrensd en in het Nederlands', () => {
   assert.equal(M.maakUitnodiging({ k: 'x' }), null); assert.equal(M.maakUitnodiging({ k: 'meedoen', label: 5 }), null);
@@ -67,7 +68,7 @@ t('een gast die N drukt wordt niet vastgezet, geen "je kijkt even mee" en geen d
   hw.mission = null; step(1);
   assert.equal(hw.coopNet.meedoen.opdracht, null); assert.equal(hw.coopVrijLopen, false, 'volgende opdracht: opnieuw kiezen');
 });
-t('J of geen antwoord (10 s): het bestaande gedrag, vastgezet en met deel', () => {
+t('J: vastgezet en met deel; geen antwoord: toeschouwer, de uitnodiging blijft in beeld (#452)', () => {
   const { hw, gw, step } = sessie();
   hw.companionHold = { x: 5, y: 5, face: 0 }; opdracht(hw);
   druk(gw, 'j'); step(1);
@@ -75,9 +76,14 @@ t('J of geen antwoord (10 s): het bestaande gedrag, vastgezet en met deel', () =
   assert.equal(hw.coopDeel(100), 1); step(1); assert.ok(gw.money > 0, 'deel in de eigen portemonnee');
   assert.ok(gw.messages.some((m) => /Je kijkt even mee/.test(m)), 'wie meedoet blijft vastgezet');
   const b = sessie(); b.hw.companionHold = { x: 5, y: 5, face: 0 }; opdracht(b.hw); b.step(1);
-  assert.equal(b.hw.coopVrijLopen, true); b.step(10);
-  assert.equal(b.hw.coopNet.meedoen.keuze[1], 'ja', 'na 10 s doet hij mee'); assert.equal(b.hw.coopVrijLopen, false);
-  assert.equal(b.gw.coopUitnodiging, null);
+  assert.equal(b.hw.coopVrijLopen, true); b.step(30);
+  assert.equal(b.hw.coopNet.meedoen.keuze[1], 'wacht', 'na 30 s nog geen antwoord: toeschouwer'); assert.equal(b.hw.coopVrijLopen, true);
+  assert.ok(b.gw.coopUitnodiging, 'de uitnodiging blijft in beeld');
+  assert.equal(b.hw.coopDeel(100), 0, 'zonder antwoord geen deel');
+  druk(b.gw, 'j'); b.step(1);
+  assert.equal(b.hw.coopNet.meedoen.keuze[1], 'ja', 'een late J telt'); assert.equal(b.gw.coopUitnodiging, null);
+  const c = sessie(); c.hw.companionHold = { x: 5, y: 5, face: 0 }; opdracht(c.hw); c.step(15); c.hw.mission = null; c.step(1);
+  assert.equal(c.gw.coopUitnodiging, null, 'de opdracht is voorbij: de uitnodiging weg');
 });
 t('verplichte rol: de gast kan niet weigeren; de host kan het niet beantwoorden en een gast kan niet voor een ander kiezen', () => {
   const { hw, gw, step } = sessie({ coopStapRegel: () => coopRule({ id: 'M06', kind: 'mission' }, 2) });
