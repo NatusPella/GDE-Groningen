@@ -2,7 +2,7 @@
 // boven het gangpad en plekken waar reizigers zitten of staan. De bestuurdersplek (stuur, dashboard) staat in
 // carinterior.js; dit is wat daarachter komt. Puur: alleen maten, geen THREE (businterieur3d.js bouwt de meshes).
 // Voertuigcoördinaten: x vooruit, z rechts (de stoepkant met de deuren), y omhoog. De ruimte beslaat de voorste
-// eenheid (bij een gelede bus tot het draaipunt). Tests: scripts/businterieur_test.mjs.
+// eenheid (bij een gelede bus tot het draaipunt; een midibus tot de achterwand, #442). Tests: scripts/businterieur_test.mjs.
 
 export const VLOER = 0.46;        // m: bovenkant van de vloer
 export const GANG = 0.5;          // m: halve breedte van het gangpad
@@ -14,18 +14,27 @@ const JOINT_FRAC = 0.6;           // zoals BUS_JOINT_FRAC in models3d_vehicles.j
 // Deurplekken (x) van de bus: dezelfde als de schuifdeuren in vehicledoors.js (bus: 0,406 en -0,04 van de lengte).
 export function deurXs(len) { return [0.406 * len, -0.04 * len]; }
 
+// Deurplekken van de midibus: de voordeur rechts (0,375 van de lengte, DEUR_DEFS.midibus) en de tweede
+// deuropening midden in de wagen die busSection in models3d_vehicles.js al tekent.
+export const MIDIBUS_DEUR = 0.375;
+export function midibusDeurXs(len) { return [MIDIBUS_DEUR * len, 0.2]; }
+
 // Het draaipunt van de bus: bij een gelede bus aan het eind van de voorste eenheid.
 export function jointXVan(len, trailer = 0) { return trailer ? -len / 2 : len / 2 - len * JOINT_FRAC; }
 
 const ggd = (a, b) => (b ? ggd(b, a % b) : a);
 
-// Alle plekken van de binnenruimte.
-export function busInterieur(len, wid, { trailer = 0 } = {}) {
-  const hl = len / 2, hw = wid / 2 - 0.08;
-  const doors = deurXs(len);
+// Alle plekken van de binnenruimte. doors: x van de deuren aan de stoepkant (standaard die van de
+// gelede bus); xFront/xRear: waar de stoelrijen beginnen en eindigen (standaard achter de bestuurder
+// tot het draaipunt; een midibus heeft de hele wagen tot zijn beschikking).
+export function busInterieur(len, wid, {
+  trailer = 0,
+  doors = deurXs(len),
+  xFront = len / 2 - 2.6,
+  xRear = jointXVan(len, trailer) + 0.9,
+} = {}) {
+  const hw = wid / 2 - 0.08;
   const jointX = jointXVan(len, trailer);
-  const xFront = hl - 2.6;                                // achter de bestuurder en de voordeur
-  const xRear = jointX + 0.9;
   const seats = [], poles = [], stand = [];
   const celZ = [GANG + 0.24, GANG + 0.7]; // twee stoelen per kant
   for (let x = xFront; x >= xRear; x -= RIJ) {
@@ -45,6 +54,17 @@ export function busInterieur(len, wid, { trailer = 0 } = {}) {
   for (const d of doors) stand.push({ x: d, z: GANG + 0.5 });
   const rail = { x0: xFront + 0.4, x1: xRear - 0.2, y: 2.35, z: [-GANG, GANG] };
   return { len, wid, floor: VLOER, seats, poles, stand, rail, doors, jointX };
+}
+
+// De midibus (buurtbus, #442): één ruimte van de voordeur tot de achterwand, met de twee
+// deuropeningen die het model al heeft (midibusDeurXs). Korter dan de gelede bus, dus minder
+// rijen en een kleiner loopvlak; de maten (vloer, gangpad, stahoogte) blijven gelijk.
+export function midibusInterieur(len, wid) {
+  return busInterieur(len, wid, {
+    doors: midibusDeurXs(len),
+    xFront: len / 2 - 2.1, // achter de bestuurder (seating3d.js zet die op hl - 1,0)
+    xRear: -len / 2 + 0.9, // tot de achterwand
+  });
 }
 
 // Wie zit en wie staat bij n reizigers: eerst zitplaatsen (verspreid over de bus), daarna de staanplaatsen.

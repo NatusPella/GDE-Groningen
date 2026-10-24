@@ -2,10 +2,11 @@
 // door de ramen en de open deuren te zien en bij de binnenin-camera (V). De maten komen uit businterieur.js (met
 // tests). Alleen voor bussen dichtbij gebouwd (LOD, INT_R) en de geometrie is gedeeld: één mesh per busmaat voor de
 // inrichting, en per maat en aantal reizigers één voor de mensen (blokken van 4). Meldt zich in main.js als kind.
+// De gelede stadsbus en de midibus (#442, de buurtbus uit de winkel) hebben elk hun eigen indeling.
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { GeoBuilder, markShared } from './pixelart3d.js';
 import { getVehicleMesh } from './models3d_vehicles.js';
-import { busInterieur, bezetting, ruimteReizigers, coopBezet, GANG } from './businterieur.js';
+import { busInterieur, midibusInterieur, bezetting, ruimteReizigers, coopBezet, GANG } from './businterieur.js';
 
 export const INT_R = 18;          // m: verder weg is de binnenruimte niet te zien
 const STOEL = 0x2e5d8a, STOEL_RUG = 0x264d73, STANG = 0xd9b026, DONKER = 0x23262b;
@@ -22,8 +23,10 @@ function mat() {
   return material;
 }
 
-const key = (v) => `${v.model.len}|${v.model.wid}|${v.model.trailer || 0}`;
-const layoutOf = (v) => busInterieur(v.model.len, v.model.wid, { trailer: v.model.trailer || 0 });
+const key = (v) => `${v.model.name}|${v.model.len}|${v.model.wid}|${v.model.trailer || 0}`;
+const layoutOf = (v) => (v.model.name === 'midibus'
+  ? midibusInterieur(v.model.len, v.model.wid)
+  : busInterieur(v.model.len, v.model.wid, { trailer: v.model.trailer || 0 }));
 
 // De inrichting: stoelen, stangen en een handrail. Gedeeld per maat.
 export function buildInrichting(L) {
@@ -79,9 +82,11 @@ function reizigersGeo(v, n, bezet = []) {
 const bucket = (n) => Math.min(48, Math.ceil(n / 4) * 4);
 
 // Aantal reizigers aan boord voor het beeld: de lopende rit, anders een vast getal per bus.
+// Een midibus is een stuk kleiner dan de gelede bus: daar passen zonder rit maar een paar mensen in.
+const leegAanBoord = (v) => (v.model && v.model.name === 'midibus' ? 2 + (ruimteReizigers(v.id) % 8) : ruimteReizigers(v.id));
 export function reizigersAanBoord(v) {
   const r = v.busBediend && v.busBediend.ride;
-  return r && !r.done && !r.failed ? r.onBoard : ruimteReizigers(v.id);
+  return r && !r.done && !r.failed ? r.onBoard : leegAanBoord(v);
 }
 
 // Stoelen waar een medespeler zit in deze bus (coöp, #444): de extra spelers bij de gastheer (world.coopFigures), Tessa
@@ -96,7 +101,8 @@ export function coopStoelenIn(w, v) {
 function updateInterieur(dt, w) {
   const p = w.player;
   for (const v of w.vehicles) {
-    if (!v.isBus || v.wrecked || !v.model || v.model.name !== 'bus') continue; // de midibus heeft andere deuren en blijft leeg
+    // de gelede stadsbus en de midibus (buurtbus); een tram heeft zijn eigen wagenindeling
+    if (!v.isBus || v.wrecked || !v.model || (v.model.name !== 'bus' && v.model.name !== 'midibus')) continue;
     const mesh = getVehicleMesh(v.id);
     if (!mesh) continue;
     const ud = mesh.userData;
