@@ -3,8 +3,10 @@
 // of koopt, en wat de boerderij tot nu toe opbracht. De gegevens komen uit boerderijlive.js (en boerderij.js); dit bestand is alleen DOM.
 // Het werk zelf doe je op het land: de bijbaan "Eigen boerderij" bij Hoogkerk. Niet door een mens in beeld bekeken.
 import * as B from './boerderij.js';
-import { getBoerderij, kiesGewas, koopMachine, getBedrijf, koopPerceel, huurPerceel, zegOpPerceel, verkoopPerceel, betaalSchuldPerceel, zetThuis, zetActief, schuurNaarErf, erfNaarSchuur } from './boerderijlive.js';
+import { getBoerderij, kiesGewas, koopMachine, getBedrijf, koopPerceel, huurPerceel, zegOpPerceel, verkoopPerceel, betaalSchuldPerceel, zetThuis, zetActief, schuurNaarErf, erfNaarSchuur, koopMachineCat, huurMachineCat, verkoopMachineCat, onderhoudMachine, loonwerk, loonwerkAfleveren, leenGeld, losAf } from './boerderijlive.js';
 import * as PC from './percelen.js';
+import * as M from './machines.js';
+import * as WT from './werktuigen.js';
 import { fillBars } from './motion.js';
 import { setUserWaypoint } from './routing.js';
 import { wgsToWorld } from './rdnew.js';
@@ -20,8 +22,9 @@ const ICOON = {
   percelen: '<path d="M3 6h8v6H3zM13 6h8v6h-8zM3 14h8v5H3zM13 14h8v5h-8z"/>',
   erf: '<path d="M4 20v-9l8-6 8 6v9zM9 20v-6h6v6"/>',
   kas: '<rect x="3" y="7" width="18" height="12" rx="2"/><path d="M3 11h18M16 15h2"/>',
+  bank: '<path d="M3 10l9-6 9 6zM5 10v8M9.5 10v8M14.5 10v8M19 10v8M3 20h18"/>',
 };
-const ONDERDELEN = [['perceel', 'Perceel'], ['percelen', 'Percelen'], ['erf', 'Erf'], ['gewas', 'Gewas'], ['machines', 'Machines'], ['kas', 'Kasboek']];
+const ONDERDELEN = [['perceel', 'Perceel'], ['percelen', 'Percelen'], ['erf', 'Erf'], ['gewas', 'Gewas'], ['machines', 'Machines'], ['kas', 'Kasboek'], ['bank', 'Bank']];
 const icoon = (n, cls = 'pa-ico') => `<span class="${cls}"><svg viewBox="0 0 24 24" aria-hidden="true">${ICOON[n]}</svg></span>`;
 
 const CSS = `
@@ -58,7 +61,7 @@ const FASE_TEKST = {
   braak: 'Braak land: tijd om te ploegen.', geploegd: 'Geploegd: tijd om te zaaien.', groeit: 'Het gewas groeit.', rijp: 'Rijp: tijd om te oogsten.',
 };
 
-function perceel(b) {
+function perceel(b, geld) {
   const f = B.fase(b), s = B.samenvatting(b);
   const g = B.GEWASSEN[b.veld.gewas];
   const volgende = s.volgende ? B.TAKEN[s.volgende].naam : null;
@@ -73,30 +76,90 @@ function perceel(b) {
     (s.schuurKg ? `<p>In de schuur: ${nl(s.schuurKg)} kg ${esc(B.GEWASSEN[s.schuurGewas].naam.toLowerCase())}, klaar om af te leveren.</p>` : '') +
     `<p class="mut">${waar}</p></div>` +
     (gast ? `<p class="mut">Je speelt mee in het spel van een ander. De klussen op het land (de trekker) doe je in je eigen spel; je gewas groeit ondertussen gewoon door, en je kunt gewassen kiezen en machines kopen.</p><p><button type="button" class="m-bt" data-bd-weg="1">Zet de akker op je kaart</button></p>`
-      : `<p class="mut">Werk doe je op het land: start de bijbaan Eigen boerderij bij Hoogkerk (zie de kaart). Het gewas groeit in speltijd, ook als je iets anders doet.</p>`);
+      : `<p class="mut">Werk zelf op het land met je eigen trekker en werktuigen (koop of huur ze onder Machines), of start de bijbaan Eigen boerderij bij Hoogkerk (zie de kaart) voor loonwerk met een gehuurde machine. Het gewas groeit in speltijd, ook als je iets anders doet.</p>`) +
+    veldenBlok(b) + loonwerkBlok(b, geld);
+}
+
+// Alle percelen van jou met hun stand, en wat de loonwerker nu voor je kan doen op het actieve perceel (tegen betaling, met jouw materiaal).
+const FASE_KORT = { braak: 'braak', geploegd: 'geploegd', groeit: 'groeit', rijp: 'rijp' };
+function veldenBlok(b) {
+  const rijen = B.veldenOverzicht(b).map((v) => {
+    const d = PC.perceelDef(v.id), actief = v.id === b.bedrijf.actief;
+    const g = B.GEWASSEN[v.gewas];
+    const bk = b.boek.velden[v.id];
+    return `<div class="bd-rij"><span class="bd-naam"><b>${esc(d.naam)}</b>${actief ? ' · werkt hier' : ''}<span class="mut"> · ${esc(FASE_KORT[v.fase] || v.fase)}${g ? ` · ${esc(g.naam.toLowerCase())}${v.fase === 'groeit' ? ` ${Math.round(v.groei * 100)}%` : ''}` : ''}${B.uitputting(b, v.id) > 0.01 ? ` · grond ${Math.round((1 - B.uitputting(b, v.id)) * 100)}%` : ''}${bk ? ` · ${nl(bk.kg)} kg geoogst` : ''}</span></span></div>`;
+  }).join('');
+  return `<div><p class="lb-titel"><b>Je percelen</b></p>${rijen}</div>`;
+}
+
+function loonwerkBlok(b, geld) {
+  const ha = PC.actiefPerceel(b.bedrijf).ha;
+  const taken = B.opties(b, { vrij: true }).filter((o) => M.loonwerkBestaat(o.taak));
+  const knoppen = taken.map((o) => {
+    const k = B.kosten(b, o.taak, B.actiefGewas(b), { vrij: true });
+    const loon = M.loonwerkKosten(o.taak, ha);
+    return `<button type="button" class="m-bt" data-mc="loon" data-taak="${o.taak}"${geld >= loon + k.totaal ? '' : ' disabled'}>${esc(B.TAKEN[o.taak].naam)} ${euro(loon + k.totaal)}</button>`;
+  });
+  if (b.schuur.kg > 0) knoppen.push(`<button type="button" class="m-bt" data-mc="loon-lever">Oogst laten afleveren (${Math.round(M.LOONWERK_AFLEVEREN * 100)}% voor de loonwerker)</button>`);
+  return `<div><p class="lb-titel"><b>Loonwerker</b></p><p class="mut">${esc(M.LOONWERKER.naam)} doet een klus op ${esc(PC.actiefPerceel(b.bedrijf).naam)} voor je, met zijn eigen trekker. Hij werkt netjes (${Math.round(M.LOONWERKER.kwaliteit * 100)}%); het zaaigoed en de mest betaal jij.</p>` +
+    (knoppen.length ? `<div class="bd-acties">${knoppen.join(' ')}</div>` : '<p class="mut">Nu valt er niets uit te besteden.</p>') + `<p class="bd-melding" aria-live="polite">${esc(melding)}</p></div>`;
 }
 
 function gewas(b) {
   const rijen = B.GEWAS_IDS.map((id) => {
     const g = B.GEWASSEN[id];
-    return `<div class="bd-rij"><span class="bd-naam"><b>${esc(g.naam)}</b><span class="mut"> · zaaigoed ${euro(g.zaaigoed)} · rijp na ${g.groeiUren} speluren · ${nl(g.kgBasis)} kg per perceel · ${esc(g.afnemer)}</span></span>` +
+    return `<div class="bd-rij"><span class="bd-naam"><b>${esc(g.naam)}</b><span class="mut"> · zaaigoed ${euro(g.zaaigoed)} · rijp na ${g.groeiUren} speluren · ${nl(g.kgBasis)} kg per perceel · ${esc(g.afnemer)} · ${g.soort === 'weiland' ? 'alleen op weiland' : 'op akkers'}</span></span>` +
       `<button type="button" class="m-bt bd-keus${b.keuze === id ? ' aan' : ''}" data-bd-gewas="${id}" aria-pressed="${b.keuze === id}">${b.keuze === id ? 'Gekozen' : 'Kies'}</button></div>`;
   }).join('');
   return `<div class="pm-pane-top"><span class="m-eb">Boerderij De Zonnehoek</span><h2 class="m-h2 td-h2">${icoon('gewas', 'pa-ico big')}Gewas</h2></div>` +
-    `<p class="mut">Het gewas dat je bij het volgende zaaien in de grond doet. Wat er al groeit blijft zoals het is.</p>${rijen}`;
+    `<p class="mut">Het gewas dat je bij het volgende zaaien in de grond doet. Wat er al groeit blijft zoals het is. Op een weiland teel je gras, op een akker de akkerbouwgewassen.</p>${rijen}`;
 }
 
-function machines(b, geld) {
-  const rijen = B.MACHINE_IDS.map((id) => {
+
+// Machines (machines.js, werktuigen.js): je machinepark op je thuis, de catalogus om te kopen of per dag te huren, en de machines voor het loonwerk van de bijbaan.
+const pct = (x) => `${Math.round(x * 100)}%`;
+const knop = (act, tekst, data = {}, uit = false) => `<button type="button" class="m-bt" data-mc="${act}"${Object.entries(data).map(([k, v]) => ` data-${k}="${esc(v)}"`).join('')}${uit ? ' disabled' : ''}>${tekst}</button>`;
+
+function machinepark(b, geld) {
+  const bd = b.bedrijf, thuis = PC.erfDef(bd.thuis);
+  const eigen = [...bd.machinepark.machines, ...bd.machinepark.werktuigen];
+  const rijen = eigen.map((m) => {
+    const c = PC.MACHINE_CATALOGUS[m.type], isM = c.soort === 'machine';
+    const staat = `${M.staat(m)} (slijtage ${Math.round(m.slijtage)}%)`;
+    const wat = isM ? `diesel ${pct(M.brandstofPct(m))} · ${staat}` : staat;
+    const erfNaam = PC.erfDef(m.erf).naam;
+    const bezit = m.bezit === 'gehuurd' ? `gehuurd, ${euro(c.huurDag)} per dag${m.achterstand ? ' · <b>achterstand</b>' : ''}` : 'van jou';
+    const ob = M.onderhoudKosten(m);
+    const knoppen = [
+      ob > 0 ? knop('onderhoud', `Onderhoudsbeurt ${euro(ob)}`, { uid: m.uid }, geld < ob) : '',
+      m.bezit === 'gehuurd' ? knop('terug', 'Breng terug', { uid: m.uid }) : knop('verkoop', `Verkoop ${euro(M.verkoopWaarde(m))}`, { uid: m.uid }),
+    ].filter(Boolean).join(' ');
+    return `<div class="bd-rij bd-pc"><span class="bd-naam"><b>${esc(c.naam)}</b><span class="mut"> · ${esc(wat)} · ${bezit} · op ${esc(erfNaam)}</span></span><span class="bd-acties">${knoppen}</span></div>`;
+  }).join('') || '<p class="mut">Je hebt nog geen machines of werktuigen. Koop of huur ze hieronder: ze staan op je thuis.</p>';
+  const vrij = PC.vrijePlekken(bd, bd.thuis);
+  const cat = (ids) => ids.map((id) => {
+    const c = PC.MACHINE_CATALOGUS[id];
+    const extra = c.soort === 'machine' ? `${c.pk} pk · tank ${M.SPEC[id].tank} liter` : (WT.WERKTUIG[c.type].taak ? `voor ${B.TAKEN[WT.WERKTUIG[c.type].taak].naam.toLowerCase()}` : 'vervoert de oogst');
+    const k = knop('koop-cat', `Koop ${euro(c.koop)}`, { type: id }, geld < c.koop || vrij <= 0), h = knop('huur-cat', `Huur ${euro(c.huurDag)} per dag`, { type: id }, geld < c.huurDag || vrij <= 0);
+    return `<div class="bd-rij bd-pc"><span class="bd-naam"><b>${esc(c.naam)}</b><span class="mut"> · ${esc(extra)}</span></span><span class="bd-acties">${k} ${h}</span></div>`;
+  }).join('');
+  const ploegen = B.MACHINE_IDS.map((id) => {
     const m = B.MACHINES[id];
-    const eigen = b.machines[id] === 'eigen';
+    const e = b.machines[id] === 'eigen';
     const taken = m.taken.map((t) => B.TAKEN[t].naam.toLowerCase()).join(' en ');
-    return `<div class="bd-rij"><span class="bd-naam"><b>${esc(m.naam)}</b><span class="mut"> · ${esc(taken)} · ${eigen ? 'van jou: geen huur en een ruimere rij' : `gehuurd, ${euro(m.huur)} per keer`}</span></span>` +
-      (eigen ? '<span class="g">Van jou</span>' : `<button type="button" class="m-bt" data-bd-koop="${id}"${geld >= m.koop ? '' : ' disabled'}>Koop ${euro(m.koop)}</button>`) + '</div>';
+    return `<div class="bd-rij"><span class="bd-naam"><b>${esc(m.naam)}</b><span class="mut"> · ${esc(taken)} · ${e ? 'van jou: geen huur en een ruimere rij' : `gehuurd, ${euro(m.huur)} per keer`}</span></span>` +
+      (e ? '<span class="g">Van jou</span>' : `<button type="button" class="m-bt" data-bd-koop="${id}"${geld >= m.koop ? '' : ' disabled'}>Koop ${euro(m.koop)}</button>`) + '</div>';
   }).join('');
   return `<div class="pm-pane-top"><span class="m-eb">Boerderij De Zonnehoek</span><h2 class="m-h2 td-h2">${icoon('machines', 'pa-ico big')}Machines</h2></div>` +
-    `<p class="mut">De trekker is van de boerderij. Een machine huur je automatisch per klus; koop je hem, dan werk je zonder huur en met meer ruimte in de rij.</p>${rijen}<p class="bd-melding" aria-live="polite">${esc(melding)}</p>`;
+    `<p class="mut">Je machines en werktuigen staan op je thuis, ${esc(thuis.naam)} (nog ${vrij} plekken vrij). In de wereld stap je in een trekker met E; E koppelt een werktuig dat vlakbij staat, G zet de aftakas aan of uit, T hef omhoog of omlaag, X koppelt los en R tankt diesel bij het dieselvat van je erf of een pomp. Slijt een machine, dan rijdt hij trager en gebruikt hij meer diesel: een onderhoudsbeurt helpt.</p>` +
+    `<p class="lb-titel"><b>Je machinepark</b></p>${rijen}` +
+    `<p class="lb-titel"><b>Machines</b></p>${cat(PC_MACHINES())}<p class="lb-titel"><b>Werktuigen</b></p>${cat(PC_WERKTUIGEN())}` +
+    `<p class="lb-titel"><b>Voor het loonwerk van de bijbaan</b></p><p class="mut">De bijbaan Eigen boerderij huurt een machine per klus; koop je hem, dan werk je zonder huur en met meer ruimte in de rij.</p>${ploegen}` +
+    `<p class="bd-melding" aria-live="polite">${esc(melding)}</p>`;
 }
+const PC_MACHINES = () => Object.keys(PC.MACHINE_CATALOGUS).filter((id) => PC.MACHINE_CATALOGUS[id].soort === 'machine' && M.SPEC[id]);
+const PC_WERKTUIGEN = () => WT.WERKTUIG_TYPES;
+const machines = machinepark;
 
 // Percelen en erven (percelen.js): aanbod, kopen, leasen, opzeggen. Eén rij per perceel of erf met de knoppen die nu kunnen.
 const wereldPos = (d, b) => (d.id === PC.START_PERCEEL && b.perceel ? [b.perceel.x, b.perceel.y] : wgsToWorld(d.lat, d.lon));
@@ -154,16 +217,42 @@ function erf(b, geld) {
     `<p class="mut">Een erf heeft een huis, een schuur, soms silo's en plekken voor machines. Je thuis is ${esc(PC.erfDef(bd.thuis).naam)}. De Zonnehoek blijft altijd van jou; de oogst uit de werkschuur kun je op je thuis bewaren.</p>${rijen}<p class="bd-melding" aria-live="polite">${esc(melding)}</p>`;
 }
 
+
+const POST_NAAM = { zaaigoed: 'Zaaigoed', mest: 'Mest en spuitmiddel', machines: 'Machines en machinehuur', brandstof: 'Diesel', onderhoud: 'Onderhoud', huur: 'Huur van land en erf', loonwerk: 'Loonwerker', rente: 'Rente', aankoop: 'Aankopen' };
+
+// Het kasboek: het resultaat sinds het begin, per veld, en per boekjaar (honderd speldagen) met de posten.
 function kas(b) {
   const s = B.samenvatting(b);
+  const velden = Object.entries(b.boek.velden).map(([id, v]) => `<span>${esc(PC.perceelDef(id).naam)}</span><span>${euro(v.omzet)} · ${euro(v.kosten)} · <b class="${v.omzet - v.kosten >= 0 ? 'g' : ''}">${euro(v.omzet - v.kosten)}</b> · ${nl(v.kg)} kg</span>`).join('');
+  const jaren = Object.keys(b.boek.jaren).map(Number).sort((x, y) => y - x).slice(0, 4).map((j) => {
+    const r = b.boek.jaren[j];
+    const posten = Object.entries(r.posten).sort((x, y) => y[1] - x[1]).map(([k, v]) => `${esc(POST_NAAM[k] || k)} ${euro(v)}`).join(' · ');
+    return `<p><b>Boekjaar ${j}${j === B.boekjaar(b) ? ' (loopt)' : ''}</b>: omzet ${euro(r.omzet)}, kosten ${euro(r.kosten)}, resultaat <b class="${r.omzet - r.kosten >= 0 ? 'g' : ''}">${euro(r.omzet - r.kosten)}</b><br><span class="mut">${posten || 'Nog geen kosten.'}</span></p>`;
+  }).join('');
+  const sb = b.boek.lening.schuld;
   return `<div class="pm-pane-top"><span class="m-eb">Boerderij De Zonnehoek</span><h2 class="m-h2 td-h2">${icoon('kas', 'pa-ico big')}Kasboek</h2></div>` +
     `<div class="bd-kas"><span>Omzet</span><span>${euro(s.omzet)}</span><span>Uitgaven</span><span>${euro(s.uitgaven)}</span><span>Winst</span><span class="${s.winst >= 0 ? 'g' : ''}">${euro(s.winst)}</span>` +
-    `<span>Oogsten</span><span>${nl(s.oogsten)}</span><span>Leveringen</span><span>${nl(s.leveringen)}</span></div>` +
-    '<p class="mut">Uitgaven zijn huur, zaaigoed, mest en machines. De opbrengst komt als je de oogst aflevert, met de loonfactor van je loopbaan in Landbouw.</p>';
+    `<span>Oogsten</span><span>${nl(s.oogsten)}</span><span>Leveringen</span><span>${nl(s.leveringen)}</span>${sb > 0 ? `<span>Schuld bij de bank</span><span>${euro(sb)}</span>` : ''}</div>` +
+    '<p class="mut">Uitgaven zijn huur, zaaigoed, mest, machines, diesel en onderhoud. De opbrengst komt als je de oogst aflevert, met de loonfactor van je loopbaan in Landbouw.</p>' +
+    `<p class="lb-titel"><b>Per veld</b> <span class="mut">omzet · kosten · resultaat · geoogst</span></p>${velden ? `<div class="bd-kas">${velden}</div>` : '<p class="mut">Nog geen oogst of kosten per veld.</p>'}` +
+    `<p class="lb-titel"><b>Per boekjaar</b> <span class="mut">een boekjaar is honderd speldagen; aankopen staan erbij als kasstroom</span></p>${jaren || '<p class="mut">Nog niets geboekt.</p>'}`;
+}
+
+// De bank (verzonnen): een kleine lening met een lage rente per speldag.
+function bank(b, geld) {
+  const l = b.boek.lening;
+  const ruimte = B.leenRuimte(b);
+  const stap = [1000, 5000, 10000];
+  return `<div class="pm-pane-top"><span class="m-eb">Boerderij De Zonnehoek</span><h2 class="m-h2 td-h2">${icoon('bank', 'pa-ico big')}Bank</h2></div>` +
+    `<p class="mut">${esc(B.LENING.bank)} leent je tot ${euro(B.LENING.max)}. De rente is ${(B.LENING.renteDag * 100).toFixed(2).replace('.', ',')}% per speldag en komt bij je schuld: je betaalt niets uit je zak tot je aflost, en niemand neemt iets af. Een lening is een keuze, geen noodzaak.</p>` +
+    `<div class="bd-kas"><span>Schuld</span><span>${euro(l.schuld)}</span><span>Nog te lenen</span><span>${euro(ruimte)}</span><span>Opgenomen tot nu toe</span><span>${euro(l.opgenomen)}</span><span>Afgelost</span><span>${euro(l.afgelost)}</span><span>Rente betaald</span><span>${euro(l.rente)}</span></div>` +
+    `<p class="lb-titel"><b>Lenen</b></p><div class="bd-acties">${stap.map((x) => knop('leen', `Leen ${euro(x)}`, { bedrag: x }, x > ruimte)).join(' ')}</div>` +
+    `<p class="lb-titel"><b>Aflossen</b></p><div class="bd-acties">${stap.map((x) => knop('los', `Los ${euro(x)} af`, { bedrag: x }, l.schuld <= 0 || geld < Math.min(x, l.schuld))).join(' ')}${l.schuld > 0 ? knop('los', `Los alles af (${euro(l.schuld)})`, { bedrag: l.schuld }, geld < l.schuld) : ''}</div>` +
+    `<p class="bd-melding" aria-live="polite">${esc(melding)}</p>`;
 }
 
 function detail(b, geld) {
-  return gekozen === 'percelen' ? percelen(b, geld) : gekozen === 'erf' ? erf(b, geld) : gekozen === 'gewas' ? gewas(b) : gekozen === 'machines' ? machines(b, geld) : gekozen === 'kas' ? kas(b) : perceel(b);
+  return gekozen === 'percelen' ? percelen(b, geld) : gekozen === 'erf' ? erf(b, geld) : gekozen === 'gewas' ? gewas(b) : gekozen === 'machines' ? machines(b, geld) : gekozen === 'kas' ? kas(b) : gekozen === 'bank' ? bank(b, geld) : perceel(b, geld);
 }
 
 // Een knop in Percelen of Erf: doe het en geef de melding terug. Alles gaat via boerderijlive.js (geld en opslag).
@@ -191,6 +280,28 @@ function percelenActie(d, world) {
   }
 }
 
+// Een knop bij Machines, het loonwerk of de Bank: doe het en geef de melding terug (alles via boerderijlive.js: geld en opslag).
+function machineActie(d, world) {
+  const naam = (type) => (PC.MACHINE_CATALOGUS[type] || { naam: 'Machine' }).naam;
+  const bd = getBedrijf();
+  const m = d.uid ? M.vind(bd, d.uid) : null;
+  switch (d.mc) {
+    case 'koop-cat': { const r = koopMachineCat(world, d.type, bd.thuis); return r.ok ? `${naam(d.type)} gekocht voor ${euro(r.prijs)}. Hij staat op je erf met een volle tank.` : r.reden; }
+    case 'huur-cat': { const r = huurMachineCat(world, d.type, bd.thuis); return r.ok ? `${naam(d.type)} gehuurd: ${euro(r.prijs)} voor de eerste dag. Daarna elke speldag; te laat betalen en hij gaat terug.` : r.reden; }
+    case 'verkoop': { const nm = m ? naam(m.type) : ''; const r = verkoopMachineCat(world, d.uid); return r.ok ? `${nm} verkocht voor ${euro(r.bedrag)}.` : r.reden; }
+    case 'terug': { const nm = m ? naam(m.type) : ''; const r = verkoopMachineCat(world, d.uid); return r.ok ? `${nm} is teruggebracht.` : r.reden; }
+    case 'onderhoud': { const r = onderhoudMachine(world, d.uid); return r.ok ? `Onderhoudsbeurt klaar voor ${euro(r.kosten)}: de slijtage is weg.` : r.reden; }
+    case 'loon': {
+      const r = loonwerk(world, d.taak);
+      return r.ok ? `${M.LOONWERKER.naam}: ${B.TAKEN[d.taak].naam.toLowerCase()} gedaan (${Math.round(M.LOONWERKER.kwaliteit * 100)}%) voor ${euro(r.kosten)}.` : r.reden;
+    }
+    case 'loon-lever': { const r = loonwerkAfleveren(world); return r.ok ? `${nl(r.kg)} kg afgeleverd: +${euro(r.betaald)} (de loonwerker kreeg ${euro(r.fee)}).` : r.reden; }
+    case 'leen': { const r = leenGeld(world, Number(d.bedrag)); return r.ok ? `Je leende ${euro(r.bedrag)} bij ${B.LENING.bank}.` : r.reden; }
+    case 'los': { const r = losAf(world, Number(d.bedrag)); return r.ok ? `Je loste ${euro(r.bedrag)} af.` : r.reden; }
+    default: return '';
+  }
+}
+
 export function renderBoerderijPanel(el, world) {
   if (!el) return;
   zetCss();
@@ -199,7 +310,7 @@ export function renderBoerderijPanel(el, world) {
   const geld = (world && world.money) || 0;
   const s = B.samenvatting(b);
   const rijen = ONDERDELEN.map(([id, naam]) => {
-    const sub = id === 'perceel' ? (s.volgende ? B.TAKEN[s.volgende].naam : B.fase(b) === 'groeit' ? 'Groeit' : '-') : id === 'percelen' ? `${Object.keys(b.bedrijf.percelen).length} van jou` : id === 'erf' ? PC.erfDef(b.bedrijf.thuis).naam : id === 'gewas' ? B.GEWASSEN[b.keuze].naam : id === 'machines' ? `${s.eigen.length} van ${B.MACHINE_IDS.length} van jou` : euro(s.winst);
+    const sub = id === 'perceel' ? (s.volgende ? B.TAKEN[s.volgende].naam : B.fase(b) === 'groeit' ? 'Groeit' : '-') : id === 'percelen' ? `${Object.keys(b.bedrijf.percelen).length} van jou` : id === 'erf' ? PC.erfDef(b.bedrijf.thuis).naam : id === 'gewas' ? B.GEWASSEN[b.keuze].naam : id === 'machines' ? `${b.bedrijf.machinepark.machines.length} machines, ${b.bedrijf.machinepark.werktuigen.length} werktuigen` : id === 'bank' ? (b.boek.lening.schuld > 0 ? `schuld ${euro(b.boek.lening.schuld)}` : 'geen schuld') : euro(s.winst);
     return `<button type="button" class="m-li lb-li${gekozen === id ? ' sel' : ''}" data-bd="${id}"${gekozen === id ? ' aria-current="true"' : ''}>${icoon(id)}<span class="nm"><span class="one">${esc(naam)}</span><span class="mut one">${esc(sub)}</span></span></button>`;
   }).join('');
   el.innerHTML = `<div class="m-tabs"><span class="m-grow"></span><span class="pa-total"><span class="mut">Je geld</span><span class="m-num">${euro(geld)}</span></span></div>` +
@@ -214,7 +325,9 @@ export function renderBoerderijPanel(el, world) {
       const k = e.target.closest('[data-bd-koop]');
       const w = e.target.closest('[data-bd-weg]');
       const pc = e.target.closest('[data-pc]');
-      if (pc) { melding = percelenActie(pc.dataset, world); opnieuw(); const nu = el.querySelector(`[data-pc="${pc.dataset.pc}"][data-id="${pc.dataset.id}"]:not([disabled])`) || el.querySelector(`[data-pc][data-id="${pc.dataset.id}"]:not([disabled])`) || el.querySelector(`[data-bd="${gekozen}"]`); if (nu) nu.focus({ preventScroll: true }); }
+      const mc = e.target.closest('[data-mc]');
+      if (mc) { melding = machineActie(mc.dataset, world); opnieuw(); const nu = el.querySelector(`[data-mc="${mc.dataset.mc}"]:not([disabled])`) || el.querySelector(`[data-bd="${gekozen}"]`); if (nu) nu.focus({ preventScroll: true }); }
+      else if (pc) { melding = percelenActie(pc.dataset, world); opnieuw(); const nu = el.querySelector(`[data-pc="${pc.dataset.pc}"][data-id="${pc.dataset.id}"]:not([disabled])`) || el.querySelector(`[data-pc][data-id="${pc.dataset.id}"]:not([disabled])`) || el.querySelector(`[data-bd="${gekozen}"]`); if (nu) nu.focus({ preventScroll: true }); }
       else if (w) { const q = getBoerderij().perceel || (([x, y]) => ({ x, y }))(wgsToWorld(53.2336, 6.4977)); setUserWaypoint(q.x, q.y, 'Eigen akker'); if (world && world.addMessage) world.addMessage('De akker staat op je kaart.', 3); }
       else if (o) { gekozen = o.dataset.bd; melding = ''; opnieuw(); const nu = el.querySelector(`[data-bd="${gekozen}"]`); if (nu) nu.focus({ preventScroll: true }); }
       else if (g) { kiesGewas(g.dataset.bdGewas); opnieuw(); const nu = el.querySelector(`[data-bd-gewas="${g.dataset.bdGewas}"]`); if (nu) nu.focus({ preventScroll: true }); }

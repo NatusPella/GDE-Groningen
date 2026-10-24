@@ -33,7 +33,7 @@ const doe = (b, taak, { speed = 4.5 } = {}) => {
 
 // ------------------------------------------------------------------ model
 t('de tabellen: gewassen, machines en taken horen bij elkaar', () => {
-  assert.deepEqual(B.GEWAS_IDS, ['aardappelen', 'bieten']);
+  assert.deepEqual(B.GEWAS_IDS, ['aardappelen', 'bieten', 'graan', 'gras']);
   assert.equal(B.MACHINE_IDS.length, 3);
   for (const g of Object.values(B.GEWASSEN)) assert.ok(g.zaaigoed > 0 && g.groeiUren > 0 && g.kgBasis > 0 && g.prijsKg > 0 && g.afnemer && g.naam);
   for (const taak of ['ploegen', 'zaaien', 'bemesten', 'oogsten']) { assert.ok(B.machineVoor(taak), taak); assert.ok(W.BAND[taak], taak); assert.ok(B.TAKEN[taak].rijen); }
@@ -137,7 +137,7 @@ t('lever: de kwaliteit van de rit telt, een lege schuur levert niets, het bedrag
 });
 
 t('de economie: een volle ronde van een perceel levert meer op dan ze kost, en de winst blijft in de buurt van een bijbaan', () => {
-  for (const gewas of B.GEWAS_IDS) {
+  for (const gewas of B.GEWAS_IDS.filter((g) => B.GEWASSEN[g].soort === 'akker')) {
     const b = B.nieuweBoerderij();
     B.kiesGewas(b, gewas);
     let kosten = 0;

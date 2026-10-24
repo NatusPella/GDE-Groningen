@@ -67,7 +67,14 @@ const MODELS = [
 // a tractor (slow, pulls hard off the line) and a quad (nimble off-road)
 export const TRACTOR_MODEL = { name: 'tractor', len: 4.3, wid: 2.3, maxSpeed: 11, accel: 6.5, brake: 11, turnRate: 1.9, color: '#3f7d3a', offroad: 0.9 };
 export const QUAD_MODEL = { name: 'quad', len: 2.1, wid: 1.2, maxSpeed: 17, accel: 9, brake: 14, turnRate: 3.2, color: '#b8322a', offroad: 1 };
-export const POLICE_MODEL = { name: 'police', len: 4.3, wid: 1.8, maxSpeed: 55, accel: 11, brake: 20, turnRate: 2.8, color: '#1c1c1c' };
+// De machines van de eigen boerderij (#415, machines.js): twee trekkers (zelfde bouw als de bijbaantrekker), de Korenwolf maaidorser en de Laadkabouter.
+export const MACHINE_MODELLEN = {
+  'trekker-klein': { ...TRACTOR_MODEL, len: 3.9, wid: 2.1, maxSpeed: 9, color: '#c8782a' },
+  'trekker-groot': { ...TRACTOR_MODEL, maxSpeed: 11, color: '#2f6fa8' },
+  maaidorser: { name: 'maaidorser', len: 7.4, wid: 3.3, maxSpeed: 7, accel: 3.2, brake: 7, turnRate: 1.0, color: '#c43d2b', offroad: 0.9 },
+  laadmachine: { name: 'laadmachine', len: 3.4, wid: 1.8, maxSpeed: 7.5, accel: 5, brake: 9, turnRate: 2.2, color: '#e0a92b', offroad: 0.95 },
+};
+export const POLICE_MODEL ={ name: 'police', len: 4.3, wid: 1.8, maxSpeed: 55, accel: 11, brake: 20, turnRate: 2.8, color: '#1c1c1c' };
 export const HERO_CAR_MODEL = { name: 'escort', len: 4.0, wid: 1.65, maxSpeed: 50, accel: 8, brake: 25, turnRate: 3.4, color: '#a11f1f' };
 
 const BIKE_MODELS = [

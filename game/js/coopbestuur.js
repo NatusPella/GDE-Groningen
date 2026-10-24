@@ -56,14 +56,14 @@ export function gastLichamen(world) {
 export const bestuurt = (lichaam) => !!(lichaam && lichaam.coopBestuurt);
 export const bestuurderVan = (world, slot) => (rijders(world)[slot] || null);
 
-// Mag een gast dit voertuig besturen? Geparkeerde auto, fiets, scooter en boot die vrij zijn (niemand erin, geen verkeer, geen opdrachtauto of eigen auto van de host);
+// Mag een gast dit voertuig besturen? Geparkeerde auto, fiets, scooter en boot die vrij zijn (niemand erin, geen verkeer, geen opdrachtauto of eigen auto van de host, behalve een machine van de boerderij van de host: #415);
 // een helikopter of vliegtuig niet. Geeft null als het mag, anders de reden.
 export function weigerReden(v) {
   if (!v) return 'geen';
   if (v.isHeli || v.isPlane) return 'vlieg';
   if (v.driver || v.passenger || v.wrecked || v.sinking || v.disabled) return 'bezet';
   if (v.road || v.countryDrive) return 'verkeer';
-  if (v.isPolice || v.isBus || v.isHeroCar || v.playerOwned || v.missionCar || v.storyCar || v.scripted || v.racer || v.cineTemp || v.homeStored || v._mount || v.isAmbulance) return 'niet';
+  if (v.isPolice || v.isBus || v.isHeroCar || (v.playerOwned && !v.farm) || v.missionCar || v.storyCar || v.scripted || v.racer || v.cineTemp || v.homeStored || v._mount || v.isAmbulance) return 'niet';
   return null;
 }
 export const magBesturen = (v) => weigerReden(v) === null;
@@ -107,7 +107,7 @@ export function bestuurInstappen(world, slot) {
     return { gedaan: false };
   }
   const proxy = maakProxy(world, slot, l, v);
-  const auto = !v.isBike && !v.isScooter && !v.isBoat; // een fiets of boot meenemen is geen misdaad, een auto van een ander wel
+  const auto = !v.isBike && !v.isScooter && !v.isBoat && !v.farm; // een fiets of boot meenemen is geen misdaad, een auto van een ander wel; de machines van de boerderij van de host zijn voor iedereen (#415)
   haken.enter(proxy, v, world);
   if (proxy.inVehicle !== v) return { gedaan: true }; // enterVehicle weigerde (er zat al iemand in)
   v.coopBestuurder = slot; v.wreckedByGast = null;

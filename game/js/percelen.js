@@ -46,10 +46,10 @@ export const perceelDef = (id) => PERCELEN.find((p) => p.id === id) || null;
 const E = (id, naam, plaats, lat, lon, opslagKg, machinePlekken, prijs, eigenaar, aanbod = 'beide') => ({ id, naam, plaats, lat, lon, huis: true, schuur: true, silo: opslagKg >= 6000, opslagKg, machinePlekken, koop: prijs, huurDag: rond5(prijs * 0.0045), eigenaar, aanbod });
 export const START_ERF = 'zonnehoek';
 export const ERVEN = [
-  { id: START_ERF, naam: 'Boerderij De Zonnehoek', plaats: 'Hoogkerk', lat: 53.2336, lon: 6.4977, huis: true, schuur: true, silo: false, opslagKg: 4000, machinePlekken: 3, koop: 0, huurDag: 0, eigenaar: 'Jijzelf', aanbod: 'eigen' },
-  E('wierdehoeve', 'Wierdehoeve', 'Winsum', 53.3278, 6.5144, 9000, 5, 15000, 'Maatschap Hogeland'),
-  E('kleiplaats', 'Kleiplaats', 'Zuidhorn', 53.2436, 6.4102, 6000, 4, 11000, 'Maatschap De Kleihoek'),
-  E('weidehof', 'Weidehof', 'Sauwerd', 53.2898, 6.5589, 2500, 2, 5500, 'Schapenhouderij De Hoek', 'huur'),
+  { id: START_ERF, naam: 'Boerderij De Zonnehoek', plaats: 'Hoogkerk', lat: 53.2336, lon: 6.4977, huis: true, schuur: true, silo: false, opslagKg: 4000, machinePlekken: 10, koop: 0, huurDag: 0, eigenaar: 'Jijzelf', aanbod: 'eigen' },
+  E('wierdehoeve', 'Wierdehoeve', 'Winsum', 53.3278, 6.5144, 9000, 12, 15000, 'Maatschap Hogeland'),
+  E('kleiplaats', 'Kleiplaats', 'Zuidhorn', 53.2436, 6.4102, 6000, 8, 11000, 'Maatschap De Kleihoek'),
+  E('weidehof', 'Weidehof', 'Sauwerd', 53.2898, 6.5589, 2500, 4, 5500, 'Schapenhouderij De Hoek', 'huur'),
 ];
 export const ERF_IDS = ERVEN.map((e) => e.id);
 export const erfDef = (id) => ERVEN.find((e) => e.id === id) || null;
@@ -59,6 +59,7 @@ export const MACHINE_CATALOGUS = {
   'trekker-klein': { naam: 'Wierdetrekker W60', soort: 'machine', type: 'trekker', pk: 60, koop: 9000, huurDag: 60 },
   'trekker-groot': { naam: 'Kleibijter K140', soort: 'machine', type: 'trekker', pk: 140, koop: 22000, huurDag: 130 },
   maaidorser: { naam: 'Korenwolf M3', soort: 'machine', type: 'maaidorser', pk: 220, koop: 38000, huurDag: 220 },
+  laadmachine: { naam: 'Laadkabouter L45', soort: 'machine', type: 'laadmachine', pk: 45, koop: 14000, huurDag: 90 },
   'ploeg-3': { naam: 'Ploegbaas 3-schaar', soort: 'werktuig', type: 'ploeg', koop: 1800, huurDag: 20 },
   cultivator: { naam: 'Egaliseur 3m', soort: 'werktuig', type: 'cultivator', koop: 1500, huurDag: 15 },
   zaaimachine: { naam: 'Zaaiwagen Zaadhoek', soort: 'werktuig', type: 'zaaimachine', koop: 2200, huurDag: 20 },
@@ -82,6 +83,17 @@ export const bodemNaam = (q) => (q < 0.45 ? 'zwak' : q < 0.65 ? 'matig' : q < 0.
 // --- het bedrijf ---------------------------------------------------------------
 
 const leeg = () => ({ status: 'gekocht', sinds: 0 });
+
+// Een machine of werktuig op een erf (machines.js zet de rest): uid, type, erf en de staat: bezit (gekocht of gehuurd per dag), brandstof (liter),
+// slijtage 0..100 en gedraaide uren. Onbekende velden gaan weg, getallen worden begrensd.
+function normaliseerMachine(m, def) {
+  const r = { uid: m.uid.slice(0, 40), type: m.type, erf: m.erf, bezit: m.bezit === 'gehuurd' ? 'gehuurd' : 'gekocht', sinds: getal(m.sinds, 0, 1e7) };
+  if (r.bezit === 'gehuurd') { r.volgende = getal(m.volgende, 0, 1e7, r.sinds + DAG_UREN); r.achterstand = Math.round(getal(m.achterstand, 0, MAX_ACHTERSTAND)); }
+  if (def.soort === 'machine') r.brandstof = Math.round(getal(m.brandstof, 0, 600, 40) * 10) / 10;
+  r.slijtage = Math.round(getal(m.slijtage, 0, 100) * 10) / 10;
+  r.uren = Math.round(getal(m.uren, 0, 1e6) * 10) / 10;
+  return r;
+}
 export function nieuwBedrijf() {
   return {
     v: VERSIE,
@@ -115,7 +127,7 @@ export function normaliseerBedrijf(raw) {
   if (raw.percelen && typeof raw.percelen === 'object') for (const id of PERCEEL_IDS) { if (id === START_PERCEEL) continue; const r = normaliseerBezit(raw.percelen[id]); if (r) b.percelen[id] = r; }
   if (raw.erven && typeof raw.erven === 'object') for (const id of ERF_IDS) { if (id === START_ERF) continue; const r = normaliseerBezit(raw.erven[id]); if (r) b.erven[id] = r; }
   if (b.erven[raw.thuis]) b.thuis = raw.thuis;
-  if (b.percelen[raw.actief] && perceelDef(raw.actief).soort === 'akker') b.actief = raw.actief;
+  if (b.percelen[raw.actief]) b.actief = raw.actief;
   for (const id of Object.keys(b.erven)) b.opslag[id] = {};
   if (raw.opslag && typeof raw.opslag === 'object') {
     for (const id of Object.keys(b.erven)) {
@@ -136,7 +148,7 @@ export function normaliseerBedrijf(raw) {
       for (const m of mp[soort].slice(0, 50)) {
         const def = m && MACHINE_CATALOGUS[m.type];
         if (!def || def.soort !== (soort === 'machines' ? 'machine' : 'werktuig') || typeof m.uid !== 'string' || !b.erven[m.erf]) continue;
-        b.machinepark[soort].push({ uid: m.uid.slice(0, 40), type: m.type, erf: m.erf });
+        b.machinepark[soort].push(normaliseerMachine(m, def));
       }
     }
   }
@@ -298,10 +310,10 @@ export function zetThuis(bd, erfId) {
   return true;
 }
 
-// Het akker waarop de boerderij werkt (de opbrengst hangt aan zijn bodem). Alleen een akker die van jou (of gehuurd) is.
+// Het perceel waarop de boerderij werkt (de opbrengst hangt aan zijn bodem en grootte; op een weiland teel je gras). Alleen een perceel dat van jou (of gehuurd) is.
 export function zetActief(bd, id) {
   const d = perceelDef(id);
-  if (!d || d.soort !== 'akker' || !bd.percelen[id]) return false;
+  if (!d || !bd.percelen[id]) return false;
   bd.actief = id;
   return true;
 }
@@ -360,7 +372,7 @@ export function stal(bd, type, erfId, uid) {
   if (!bd.erven[erfId]) return { ok: false, reden: 'Dat erf is niet van jou.' };
   if (vrijePlekken(bd, erfId) <= 0) return { ok: false, reden: 'Er is geen plek meer op het erf.' };
   const id = uid || `${type}-${bd.machinepark.machines.length + bd.machinepark.werktuigen.length + 1}`;
-  bd.machinepark[c.soort === 'machine' ? 'machines' : 'werktuigen'].push({ uid: id, type, erf: erfId });
+  bd.machinepark[c.soort === 'machine' ? 'machines' : 'werktuigen'].push(normaliseerMachine({ uid: id, type, erf: erfId, bezit: 'gekocht', sinds: 0 }, c));
   return { ok: true, uid: id };
 }
 
