@@ -7,7 +7,7 @@
 // Tammo and Tessa trade places at its start, behind a short fade. After the
 // built story the last step's character stays.
 
-import { STEPS, STEP_BY_ID, PARTS, CLUES, WHY, CHARACTERS, SPEAKERS, stepAvailable, missionIndexOf, computeMoneyTimeline, partNumber, stepDone, nextStoryStep, FINALE_PART } from './storyarc.js';
+import { STEPS, STEP_BY_ID, PARTS, CLUES, WHY, CHARACTERS, SPEAKERS, stepAvailable, missionIndexOf, computeMoneyTimeline, partNumber, stepDone, stepLoopbanenGedaan, nextStoryStep, FINALE_PART } from './storyarc.js';
 import { tickStoryTravel, rideWith } from './storytravel.js';
 import { askTravel, travelPromptOpen } from './reispanel.js';
 import { gateOn } from './coopgate.js';
@@ -30,6 +30,7 @@ import { getShopVisits, getShopsForRender, grantStoryItem } from './shops.js';
 import { getPigeonFlight, stopPigeonMode } from './pigeonmode.js';
 import { isHeliRunActive, abortHeliRun } from './helirun.js';
 import { jumpPrep, jumpSpot, openRond } from './storyjump.js';
+import { isLoopbaanGestart } from './loopbaanlive.js';
 import { JUMP_M } from './loadlogic.js';
 import { buildingAt, withTiles } from './tileplace.js';
 import { waterAt } from './waterlevels.js';
@@ -143,7 +144,24 @@ function missionIdx(step) {
 
 // --- which step is next ----------------------------------------------------------
 
-const doneId = (id) => state.done.has(id);
+// A step that names a loopbaan (#431) counts as done once every loopbaan it names has begun: the player may start
+// one earlier on their own (its own startplek or the Loopbaan menu) and the story then passes that step. It is derived
+// from the loopbaan (storyarc.js stepLoopbanenGedaan; the next save records it) and the order of the steps is
+// untouched. Without an entered step (a save loaded mid-mission) the running mission keeps its step open.
+function activeMissionStep() {
+  if (!isMissionActive()) return null;
+  const i = activeMissionIndex();
+  return STEPS.find((s) => s.kind === 'mission' && missionIdx(s) === i) || null;
+}
+// The step the player is on, if any: that one is never made done by a loopbaan begun while they are on it.
+function onStepId() {
+  const on = rt.cur && !rt.cur.end ? rt.cur : activeMissionStep();
+  return on ? on.id : null;
+}
+const doneId = (id) => {
+  if (state.done.has(id)) return true;
+  return stepLoopbanenGedaan(STEP_BY_ID.get(id), isLoopbaanGestart, onStepId());
+};
 
 function isDone(step, k) {
   return stepDone(k, doneId, isMissionCompleted);
@@ -1014,9 +1032,10 @@ function kissUnlockedNow() {
   const step = STEP_BY_ID.get(KISS_STEP);
   if (!step) return false;
   const i = missionIdx(step);
-  const passed = state.done.has(KISS_STEP) || state.skipped.has(KISS_STEP) || (i >= 0 && isMissionCompleted(i));
-  if (!passed) return false;
   const k = STEPS.indexOf(step);
+  // isDone, not state.done: a loopbaan already begun also passes M16 (#431)
+  const passed = isDone(step, k) || state.skipped.has(KISS_STEP) || (i >= 0 && isMissionCompleted(i));
+  if (!passed) return false;
   return STEPS.slice(0, k).every((s, j) => s.kind !== 'mission' || !stepAvailable(s) || isDone(s, j));
 }
 
@@ -1107,8 +1126,12 @@ export function updateStory(dt, w) {
 // --- save -----------------------------------------------------------------------------------
 
 export function getStorySave() {
+  // A step whose loopbanen all began is done in this save as well (#431): the same save loads at the same place, and
+  // the load card shows it. That is one-way (a loopbaan never ends), and the step the player is on stays open.
+  const loopbaan = STEPS.filter((s) => stepLoopbanenGedaan(s, isLoopbaanGestart, onStepId())).map((s) => s.id);
+  const done = new Set([...state.done, ...loopbaan]);
   return {
-    v: 1, done: [...state.done], skipped: [...state.skipped], fails: { ...state.fails },
+    v: 1, done: [...done], skipped: [...state.skipped], fails: { ...state.fails },
     waived: [...state.waived], voorschot: [...state.voorschot], cards: [...state.cards], flags: [...state.flags],
   };
 }
