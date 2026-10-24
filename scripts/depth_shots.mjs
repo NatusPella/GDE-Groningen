@@ -17,7 +17,7 @@ const arg = (k, d = null) => { const a = process.argv.find((x) => x.startsWith(`
 const OUT = path.resolve(arg('out', path.join(ROOT, 'depth-shots')));
 const VOOR = arg('voor');
 const ONLY = arg('only', '');
-const LOCKS = process.env.GDE_LOCKS || 'C:/Users/abuis/gde-locks';
+const LOCKS = process.env.GDE_LOCKS || `${process.env.USERPROFILE || process.env.HOME || '.'}/gde-locks`;
 const electron = process.env.ELECTRON_EXE || path.join(ROOT, 'desktop', 'node_modules', 'electron', 'dist', process.platform === 'win32' ? 'electron.exe' : 'electron');
 const vendor = process.env.GDE_VENDOR_DIR || path.join(ROOT, 'desktop', 'vendor-cache');
 if (!fs.existsSync(electron)) { console.error(`geen Electron op ${electron} (ELECTRON_EXE)`); process.exit(2); }

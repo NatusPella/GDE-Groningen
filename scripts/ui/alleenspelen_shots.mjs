@@ -2,7 +2,7 @@
 //   node scripts/ui/alleenspelen_shots.mjs --out=<map> [--sizes=1280x720,1920x1080] [--counts=0,1,8] [--play] [--slot [--wacht=<minuten>]]
 // Per grootte en aantal opgeslagen spellen: een Electron-run die het wegwerpprofiel vult, en een run die de beelden maakt
 // (scripts/ui/alleenspelen_scenes.js, GDE_MENU_TEST=1). Nooit echte opslag: elk profiel is een eigen map in de temp-map.
-// Er mag maar één Electron tegelijk van deze run draaien; met --slot neemt het script zelf een slot (C:/Users/abuis/gde-locks/electron-N).
+// Er mag maar één Electron tegelijk van deze run draaien; met --slot neemt het script zelf een slot (<home>/gde-locks/electron-N).
 // GDE_ELECTRON=<pad naar electron.exe>, GDE_GAME_DIR=<gestagede game-map> zoals bij de andere beeldscripts.
 import { spawn, spawnSync } from 'node:child_process';
 import fs from 'node:fs';
@@ -17,7 +17,7 @@ const sizes = arg('sizes', '1280x720,1920x1080').split(',');
 const counts = arg('counts', '0,1,8').split(',').map(Number);
 const bin = process.env.GDE_ELECTRON || path.join(root, 'desktop', 'node_modules', '.bin', process.platform === 'win32' ? 'electron.cmd' : 'electron');
 const waitMin = Number(arg('wacht', 8)) || 8;
-const LOCKS = process.env.GDE_LOCKS || 'C:/Users/abuis/gde-locks';
+const LOCKS = process.env.GDE_LOCKS || `${process.env.USERPROFILE || process.env.HOME || '.'}/gde-locks`;
 fs.mkdirSync(out, { recursive: true });
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 

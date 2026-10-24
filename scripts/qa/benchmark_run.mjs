@@ -21,7 +21,7 @@ const arg = (k, d) => { const a = process.argv.find((v) => v.startsWith(`--${k}=
 const MODUS = arg('modus', 'kaart');
 const OUT = path.resolve(arg('out', path.join(os.tmpdir(), `gde-benchmark-${MODUS}`)));
 const MAX = Number(arg('max', 900));
-const LOCKS = process.env.GDE_LOCKS || 'C:/Users/abuis/gde-locks';
+const LOCKS = process.env.GDE_LOCKS || `${process.env.USERPROFILE || process.env.HOME || '.'}/gde-locks`;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 fs.mkdirSync(OUT, { recursive: true });
 
