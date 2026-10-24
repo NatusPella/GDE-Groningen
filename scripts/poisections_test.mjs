@@ -2,8 +2,11 @@
 // on made-up lists and on the real meta of game/stad.json.
 //   node scripts/poisections_test.mjs
 import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 import assert from 'node:assert';
 import { splitMeta, joinMeta } from '../game/js/poisections.js';
+import { poiLayers, poiLayerTiles } from './world/poilagen.mjs';
 import * as G from '../game/js/gdt.js';
 
 let n = 0, fails = 0;
@@ -45,6 +48,38 @@ const meta = {
   ok(joinMeta({ bounds: [1] }, []).bounds[0] === 1 && joinMeta(undefined, []) === undefined, 'a meta without places passes through');
 }
 
+// de POI-lagen in de tegelindex (#314, B6): per lijst de tegels die hem dragen, zodat een lezer
+// alleen die tegels vraagt; uit die tegels komt dezelfde meta terug (met poiRest uit de globale laag)
+{
+  const s = splitMeta(meta, tileKeyOf);
+  const layers = poiLayers(s);
+  const rowsOf = (name) => [...s.rows.entries()].filter(([, rows]) => rows.some((r) => r._l === name)).map(([k, rows]) => [k, rows.filter((r) => r._l === name)]);
+  const all = Object.keys(layers.layers);
+  ok(all.length === Object.keys(s.meta.poiLists || {}).length && all.includes('shops') && all.includes('pois.money') && all.includes('hospital'), 'every list of the meta has a layer, an empty kind too');
+  let countsOk = 0;
+  for (const name of all) {
+    const rows = rowsOf(name);
+    const l = layers.layers[name];
+    if (l.n === rows.reduce((a, [, r]) => a + r.length, 0) && l.tiles.join() === rows.map(([k]) => k).sort().join()) countsOk++;
+  }
+  ok(countsOk === all.length, 'per layer: the count and the sorted tiles of its rows', `${countsOk}/${all.length}`);
+  const moved = Object.values(layers.layers).reduce((a, l) => a + l.n, 0);
+  const every = Object.values(s.meta.poiLists).reduce((a, c) => a + (c < 0 ? 1 : c), 0); // (-1 is a single place)
+  ok(moved + layers.rest === every, 'the rows in the tiles plus the rest are every place');
+  const fetched = new Map();
+  for (const l of Object.values(layers.layers)) for (const k of l.tiles) fetched.set(k, s.rows.get(k));
+  same(joinMeta(s.meta, fetched.values()), meta, 'a reader that asks only the tiles of the layers gets the meta back');
+  // what the packer writes: build() carries the layers, writeWorld puts them in index.json
+  const { writeWorld } = await import('./world/pack_tiles.mjs');
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'gde-poi-index-'));
+  try {
+    writeWorld(dir, { blobs: new Map(), global: G.encodeBlob({ sections: [{ type: G.SECTION.META, json: { meta: s.meta } }] }), counts: {}, pois: layers });
+    const index = JSON.parse(fs.readFileSync(path.join(dir, 'index.json'), 'utf8'));
+    same(index.pois, layers, 'index.json carries the POI layers');
+    ok(poiLayerTiles(index, 'shops').join() === layers.layers.shops.tiles.join() && poiLayerTiles(index, 'bestaat.niet').length === 0, 'the tiles of a layer come from the index');
+  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+}
+
 // the real meta of the city
 {
   const stad = JSON.parse(fs.readFileSync(new URL('../game/stad.json', import.meta.url), 'utf8'));
@@ -55,7 +90,13 @@ const meta = {
   ok(moved > 500, 'the real city has its places in tile rows', `${moved} places in ${s.rows.size} tiles, ${(s.meta.poiRest || []).length} in the rest`);
   const through = [...s.rows.entries()].map(([k, rows]) => { const [i, j] = G.tileFromKey(k); return G.decodeBlob(G.encodeBlob({ i, j, sections: [{ type: G.SECTION.POIS, rows }] })).sections.find((q) => q.type === G.SECTION.POIS).rows; });
   same(joinMeta(s.meta, through), stad.meta, 'game/stad.json meta: tiles in, tiles out, the same');
-  console.log(`     ${moved} places in ${s.rows.size} tiles (${lists.map(([k, c]) => k + ' ' + c).join(', ')}), ${(s.meta.poiRest || []).length} stay in the global meta`);
+  const layers = poiLayers(s);
+  ok(Object.values(layers.layers).reduce((a, l) => a + l.n, 0) === moved && layers.rest === (s.meta.poiRest || []).length, 'the real city: every place counted per layer, the rest apart');
+  ok(Object.values(layers.layers).every((l) => l.tiles.every((k) => cityTiles.has(k))), 'the real city: a layer only names city tiles');
+  const fetched = new Map();
+  for (const l of Object.values(layers.layers)) for (const k of l.tiles) fetched.set(k, s.rows.get(k));
+  same(joinMeta(s.meta, fetched.values()), stad.meta, 'the real meta comes back from the tiles the index names');
+  console.log(`     ${moved} places in ${s.rows.size} tiles (${lists.map(([k, c]) => k + ' ' + c).join(', ')}), ${(s.meta.poiRest || []).length} stay in the global meta; ${Object.keys(layers.layers).length} POI-layers in the index`);
 }
 
 console.log(`${n - fails}/${n} ok`);
