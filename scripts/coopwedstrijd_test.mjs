@@ -195,6 +195,11 @@ function rijRace(r, { stil = [], weg = {}, maxS = 400, onTik = null } = {}) {
   check('de eigen kart draait meteen mee met het sturen (binnen 0,1 s, voor de host het weet)', Math.abs(met.aNa - zonder.aNa) > 0.04, (met.aNa - zonder.aNa).toFixed(3));
   check('de eigen kart blijft gemiddeld binnen 6 m van wat de host rekent', zonder.tot > 100 && zonder.som < 6, zonder.som.toFixed(2));
   check('en nooit ver weg (geen sprongen van meer dan 20 m)', zonder.maxFout < 20, zonder.maxFout.toFixed(1));
+  { // de host staat 10 s stil (pauze) terwijl de gast de stick vooruit houdt: de eigen kart rijdt niet weg
+    const g2 = zonder.g, m = g2.karts[0], u0 = m.u, v0 = m.v;
+    for (let i = 0; i < 60 * 10; i++) W.tikSpiegel(g2, DT, () => ({ throttle: 1, steer: 0, drift: false }));
+    check('zonder momentopnamen rijdt de eigen kart hooguit een paar meter door', Math.hypot(m.u - u0, m.v - v0) < 30, Math.hypot(m.u - u0, m.v - v0).toFixed(1));
+  }
   const g = zonder.g;
   check('de voorspelling is er alleen met invoer: zonder invoer toont de gast wat de host rekent', g.sim && (W.tikSpiegel(g, DT, null), g.sim === null));
 }
