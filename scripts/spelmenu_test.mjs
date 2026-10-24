@@ -175,5 +175,10 @@ ok(read('game/js/player.js').includes('Even uitpuffen'), 'Shift zonder sprint ze
 ok(vu.includes('vh-gk') && vu.includes('function partOrder('), 'Aanwijzingen: per opdracht gegroepeerd, nieuwste bovenaan');
 ok(pm.includes("setN('spel', coopN ? String(coopN) : ''") && read('game/js/coopspelers.js').includes('rijen.sort((a, b) => (a.jij'), 'de Spel-teller telt jezelf mee (de lijst begint met jou)');
 
+// #445: de kaart, waypoints en reizen
+const mvs = read('game/js/mapview.js');
+ok(mvs.includes("from './kaartactie.js'") && mvs.includes('actiesHtml(model, stap)'), 'Kaart: een klik toont de actiebalk Zet waypoint, Reis erheen en Info (kaartactie.js)');
+ok(mvs.includes('initKaartUitleg(overlay)') && mvs.includes('uitleg-sluit') && mvs.includes('UITLEG_ID'), 'Kaart: de eerste keer een uitleg, te sluiten, onthouden onder gde-hud-gezien');
+ok(read('game/js/helpoverview.js').includes("id: 'kaart'"), 'Besturing, Hulp: de uitleg over de kaart is terug te vinden');
 console.log(`${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);
