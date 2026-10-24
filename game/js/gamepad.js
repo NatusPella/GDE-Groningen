@@ -344,6 +344,17 @@ function watchFeel() {
   lastSpeed = sp;
 }
 
+// B (1) or Start (9) on any connected pad: the controller's way to stop the
+// benchmark (#159, #379). trailer.js turns this branch on during a benchmark;
+// the buttons go nowhere else, so the menu behind the overlay stays still.
+// Returns a function that turns the branch off again.
+let benchStop = null;
+export function onBenchmarkStop(cb) {
+  benchStop = cb;
+  releaseAll();
+  return () => { if (benchStop === cb) benchStop = null; };
+}
+
 function poll(now) {
   requestAnimationFrame(poll);
   const dt = Math.min(0.05, Math.max(0, (now - (lastT || now)) / 1000));
@@ -385,6 +396,13 @@ function poll(now) {
     for (const i of [...captureBlock]) if (!(pad.buttons[i] && (pad.buttons[i].pressed || pad.buttons[i].value > TRIGGER_OFF))) captureBlock.delete(i);
     for (const s of Object.keys(slots)) prevSlots[s] = slots[s];
     if (captureBlock.size) return;
+  }
+  // benchmark (#379): B or Start stops the run; no other input reaches the game
+  if (benchStop) {
+    const stop = (slots.b && !prevSlots.b) || (slots.start && !prevSlots.start);
+    for (const s of Object.keys(slots)) prevSlots[s] = slots[s];
+    if (stop) { const cb = benchStop; benchStop = null; cb(); }
+    return;
   }
   for (const s of PAD_BUTTONS) {
     const on = !!slots[s];

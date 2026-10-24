@@ -1,6 +1,6 @@
 // node scripts/benchstats_test.mjs: frame statistics, the profile advice, the
 // run comparison, the route and its storage (game/js/benchstats.js).
-import { frameStats, categoryStats, weakestCategory, recommendProfile, compareRuns, compareText, packRun, readLastRun, writeLastRun, BENCH_ROUTE, benchRouteSeconds, benchCategoryOf } from '../game/js/benchstats.js';
+import { frameStats, categoryStats, weakestCategory, recommendProfile, compareRuns, compareText, packRun, readLastRun, writeLastRun, BENCH_ROUTE, benchRouteSeconds, benchCategoryOf, heapMb, heapPeak, memText } from '../game/js/benchstats.js';
 import { BASE_KEYS } from '../game/js/storagekeys.js';
 
 let fail = 0;
@@ -74,6 +74,16 @@ ok('no storage is fine', readLastRun({ getItem() { throw new Error('x'); } }) ==
   ok('latencyStats', l.n === 4 && l.max === 80 && l.p95 === 80 && Math.abs(l.avg - 29) < 1e-9, JSON.stringify(l));
   ok('latencyStats leeg', latencyStats([]) === null && latencyStats(null) === null);
   ok('packRun bewaart het hapering-aandeel', packRun({ stats: { ...fs, avg: 60, p95: 20, low1: 30 }, cats: {} }).slow33 === 10);
+}
+
+// #379: de JS-heap van de benchmark (alleen als de browser performance.memory geeft)
+{
+  ok('heapMb rekent MB', heapMb({ memory: { usedJSHeapSize: 1494 * 1048576 } }) === 1494);
+  ok('heapMb zonder performance.memory is 0', heapMb({}) === 0 && heapMb(null) === 0 && heapMb({ memory: { usedJSHeapSize: NaN } }) === 0);
+  ok('heapPeak pakt de hoogste stand', heapPeak([597, 1398, 1445, 0, NaN]) === 1445 && heapPeak([]) === 0 && heapPeak(null) === 0);
+  ok('memText: MB onder een GB, GB erboven met een komma', memText(597) === '597 MB' && memText(1494) === '1,5 GB' && memText(2428) === '2,4 GB', [memText(597), memText(1494)]);
+  ok('memText zonder heap is leeg', memText(0) === '' && memText(-1) === '' && memText(null) === '');
+  ok('packRun bewaart de piek van de heap', packRun({ stats: { ...s, avg: 60, p95: 20, low1: 30 }, cats: {}, memory: 1494.4 }).memory === 1494);
 }
 
 console.log(fail ? `${fail} FAILED` : 'all ok');
