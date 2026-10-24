@@ -1,9 +1,13 @@
-// Samen spelen (#452 punt 3): verhaalstappen kijken naar alle meespelers, niet alleen naar de gastheer.
+// Samen spelen (#452 punten 3 en 20): verhaalstappen kijken naar alle meespelers, niet alleen naar de gastheer; de opdrachtstand is
+// per groep, zodat twee opdrachten die tegelijk lopen elkaars stap, doelen en keuzes niet overschrijven.
 //   node scripts/coopmissie_test.mjs
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { createLink } from '../game/js/net/memtransport.js';
 import * as N from '../game/js/coopnet.js';
+import * as G from '../game/js/coopmissie.js';
+import * as M from '../game/js/coopmeedoen.js';
+import { missieBericht, leesMissieBericht } from '../game/js/coopworld.js';
 import { ververs, opdrachtSpelers, inVoertuig, dichtstbijzijndeMeespeler, afstandMeespeler, meespelerInVoertuig, iedereenBinnen } from '../game/js/spelersregister.js';
 import { teamActor, doelStand, groepKlaar } from '../game/js/stagegroep.js';
 
@@ -156,6 +160,134 @@ t('sessie: coopMeespelers geeft wie J zei, verbonden is en staat; de stap volgt 
   assert.equal(hw.coopOpdrachtDoor(), true);
   N.stopCoopNet(hw);
   assert.equal(hw.coopMeespelers, null, 'na het stoppen weg');
+});
+
+// ---- de opdrachtstand per groep (#452): twee opdrachten naast elkaar
+const LOKET = { id: '3|Het Loket', label: 'Het Loket', index: 3, stap: 'Stap in de auto', deelnemers: [0, 1], doelen: [{ id: 0, soort: 'doel', x: 5, y: 5, label: 'Het Loket' }] };
+const KLUIS = { id: '4|Kluisklus', label: 'Kluisklus', index: 4, stap: 'Kluis open', deelnemers: [2, 3], doelen: [{ id: 0, soort: 'inbraak', x: 90, y: 20, label: 'De kluis' }] };
+
+t('twee groepen: elke speler ziet zijn eigen opdracht, stap en doelen; de een verandert de ander niet', () => {
+  const st = G.maakGroepen();
+  assert.equal(G.opdrachtId({ phase: 'active', index: 3, label: 'Het Loket' }), '3|Het Loket');
+  assert.equal(G.opdrachtId({ phase: 'idle', index: 3, label: 'Het Loket' }), null, 'zonder lopende opdracht geen groep');
+  G.begin(st, LOKET, 1); G.begin(st, KLUIS, 2);
+  assert.equal(G.groepVan(st, 0).id, LOKET.id); assert.equal(G.groepVan(st, 1).id, LOKET.id);
+  assert.equal(G.groepVan(st, 2).id, KLUIS.id);
+  assert.equal(G.zichtbaar(st, 1).stap, 'Stap in de auto');
+  assert.equal(G.zichtbaar(st, 2).label, 'Kluisklus');
+  assert.deepEqual(G.doelenVoor(st, 1).map((d) => d.label), ['Het Loket']);
+  assert.deepEqual(G.doelenVoor(st, 2).map((d) => d.label), ['De kluis']);
+  // de volgende stap van de kluis raakt Het Loket niet
+  G.zetStand(st, KLUIS.id, { stap: 'Rij naar de haven' }, 4);
+  assert.equal(G.groep(st, LOKET.id).stap, 'Stap in de auto');
+  assert.equal(G.zichtbaar(st, 2).stap, 'Rij naar de haven');
+  assert.equal(G.groepVan(st, 9), null, 'wie niet meespeelt hoort bij geen groep');
+  assert.equal(G.zichtbaar(st, 9), null, 'met twee groepen ziet een toeschouwer geen willekeurige opdracht');
+});
+
+t('een groep eindigen laat de andere staan; de deelnemerslijst bepaalt wie de stap telt', () => {
+  const st = G.maakGroepen();
+  G.begin(st, LOKET, 1); G.begin(st, KLUIS, 2);
+  G.zetDeelnemers(st, LOKET.id, [0, 1, 2]); // een laatkomer doet mee met Het Loket
+  assert.equal(G.deelnemer(st, LOKET.id, 2), true);
+  assert.equal(G.beeindig(st, KLUIS.id), true);
+  assert.equal(G.groep(st, KLUIS.id), null); assert.equal(G.groep(st, LOKET.id).stap, 'Stap in de auto');
+  assert.deepEqual(G.groepen(st).map((g) => g.id), [LOKET.id]);
+  assert.equal(G.ruimOp(st, [0, 1, 2]), 0, 'de gastheer en twee gasten zitten er nog');
+  assert.equal(G.ruimOp(st, [7, 8]), 1, 'niemand van de groep is nog verbonden: de groep gaat weg');
+  assert.equal(G.groepen(st).length, 0);
+});
+
+t('meedoen per opdracht-id: een nee bij de kluis geldt niet voor Het Loket', () => {
+  const st = M.maakMeedoen();
+  M.begin(st, LOKET.id, [1, 2]); // Het Loket: iedereen krijgt de vraag
+  assert.deepEqual(M.meespelers(st), []);
+  assert.equal(M.antwoord(st, 1, true), true); // gast 1 doet mee
+  assert.equal(M.antwoord(st, 2, false), true); // gast 2 zegt nee
+  assert.deepEqual(M.meespelers(st, LOKET.id), [1]);
+  // een tweede groep begint: de keuzes van Het Loket blijven bewaard
+  M.begin(st, KLUIS.id, [1, 2]);
+  assert.deepEqual(M.meespelers(st), [], 'de kluis begint met een schone lei');
+  assert.equal(M.antwoord(st, 2, true), true);
+  assert.deepEqual(M.meespelers(st, KLUIS.id), [2]);
+  assert.deepEqual(M.meespelers(st, LOKET.id), [1], 'Het Loket houdt zijn eigen keuze');
+  assert.equal(M.krijgtDeel(st, 2, KLUIS.id), true);
+  assert.equal(M.krijgtDeel(st, 2, LOKET.id), false, 'de nee bij Het Loket blijft een nee');
+  assert.equal(M.loopVrij(st, 2, LOKET.id), true);
+  // terug naar Het Loket: geen nieuwe vraag voor wie al antwoordde
+  const u = M.begin(st, LOKET.id, [1, 2]);
+  assert.deepEqual(u, [], 'wie al gekozen heeft, wordt niet opnieuw gevraagd');
+  assert.deepEqual(M.meespelers(st), [1]);
+  M.einde(st, LOKET.id);
+  assert.equal(M.standVan(st, LOKET.id), null);
+  assert.deepEqual(M.meespelers(st, KLUIS.id), [2], 'de kluis loopt door');
+});
+
+t('het missiebericht draagt de groep-id mee, ook bij het einde', () => {
+  const pub = { phase: 'active', label: 'Het Loket', type: 'stages', index: 3, progressText: 'Stap in de auto', lateInstap: true, id: LOKET.id };
+  let r = missieBericht(null, pub);
+  assert.equal(r.event.id, LOKET.id); assert.equal(r.event.stap, 'Stap in de auto');
+  assert.equal(r.huidig.id, LOKET.id);
+  r = missieBericht(r.huidig, { ...pub, phase: 'idle' });
+  assert.deepEqual(r.event, { k: 'missie', actief: false, id: LOKET.id });
+  assert.deepEqual(leesMissieBericht({ k: 'missie', actief: true, label: 'Het Loket', id: LOKET.id }).id, LOKET.id);
+  assert.equal(leesMissieBericht({ k: 'missie', actief: true, label: 'Het Loket', id: 'x'.repeat(60) }).id, undefined, 'een veel te lange id telt niet');
+});
+
+t('sessie: de gastheer houdt per opdracht een groep bij met stap en deelnemers', () => {
+  const { hw, gs, step } = sessie(1);
+  hw.mission = { phase: 'active', label: 'Het Loket', type: 'stages', index: 3, progressText: 'Stap in de auto', lateInstap: true, id: LOKET.id };
+  step(1);
+  let g = hw.coopGroepen && hw.coopGroepen.groepen[LOKET.id];
+  assert.ok(g, 'de lopende opdracht heeft een groep');
+  assert.deepEqual(g.deelnemers, [0], 'nog niemand zei ja');
+  assert.equal(g.stap, 'Stap in de auto');
+  druk(gs[0].gw, 'j'); step(1);
+  g = hw.coopGroepen.groepen[LOKET.id];
+  assert.deepEqual(g.deelnemers, [0, 1], 'de gast die ja zei hoort erbij');
+  hw.mission.progressText = 'Rij naar het loket'; step(1);
+  assert.equal(hw.coopGroepen.groepen[LOKET.id].stap, 'Rij naar het loket');
+  // een andere opdracht: de oude groep gaat weg, de nieuwe komt met zijn eigen stap
+  hw.mission = { phase: 'active', label: 'Kluisklus', type: 'stages', index: 4, progressText: 'Kluis open', lateInstap: false, id: KLUIS.id };
+  step(1);
+  assert.equal(hw.coopGroepen.groepen[LOKET.id], undefined);
+  assert.equal(hw.coopGroepen.groepen[KLUIS.id].stap, 'Kluis open');
+  hw.mission = { phase: 'idle', label: 'Kluisklus', index: 4 }; step(1);
+  assert.deepEqual(Object.keys(hw.coopGroepen.groepen), [], 'zonder opdracht geen groep');
+});
+
+t('een gast die bij een andere groep hoort, ziet de stappen van deze opdracht niet', () => {
+  const { hw, gs, step } = sessie(1);
+  const gw = gs[0].gw;
+  hw.mission = { phase: 'active', label: 'Het Loket', type: 'stages', index: 3, progressText: 'Stap in de auto', lateInstap: true, id: LOKET.id };
+  step(1);
+  assert.equal(gw.coopMissie.id, LOKET.id);
+  // de gast hoort inmiddels bij de kluis (een andere groep) en heeft die stap al
+  gw.coopGroep = { id: KLUIS.id, label: 'Kluisklus', deelnemer: true };
+  gw.coopHostMissie = { actief: true, id: KLUIS.id, label: 'Kluisklus', index: 4, stap: 'Kluis open', lateInstap: true };
+  gw.coopMissie = { ...gw.coopHostMissie };
+  hw.mission.progressText = 'Rij naar de kerk'; step(1);
+  assert.equal(gw.coopMissie.stap, 'Kluis open', 'zijn eigen stap blijft staan');
+  assert.equal(gw.coopHostMissie.id, KLUIS.id, 'de opdracht van de andere groep wordt geen eigen opdracht');
+  assert.equal(gw.coopMissieAnder[LOKET.id].stap, 'Rij naar de kerk', 'de andere groep wordt apart onthouden');
+  assert.equal(gw.messages.filter((m) => /Rij naar de kerk/.test(m)).length, 0, 'en levert geen melding op');
+});
+
+t('een gast stapt over naar een nieuwe groep: de stap die al binnenkwam, komt bij de uitnodiging mee', () => {
+  const { gs, step } = sessie(1);
+  const gw = gs[0].gw;
+  gw.coopGroep = { id: LOKET.id, label: 'Het Loket', deelnemer: true };
+  gw.coopMissie = gw.coopHostMissie = { actief: true, id: LOKET.id, label: 'Het Loket', index: 3, stap: 'Stap in de auto', lateInstap: true };
+  // de gastheer begint meteen een andere opdracht: die stap komt binnen vóór de uitnodiging
+  assert.equal(N.handleEvent(gw, { k: 'missie', actief: true, label: 'Kluisklus', index: 4, stap: 'Kluis open', id: KLUIS.id }, 0), true);
+  assert.equal(gw.coopMissie.id, LOKET.id, 'zijn eigen opdracht blijft staan');
+  assert.equal(gw.coopMissieAnder[KLUIS.id].stap, 'Kluis open');
+  assert.equal(N.handleEvent(gw, { k: 'meedoen', label: 'Kluisklus', id: KLUIS.id }, 0), true);
+  assert.equal(gw.coopGroep.id, KLUIS.id, 'de uitnodiging maakt de kluis zijn groep');
+  assert.equal(gw.coopMissie.id, KLUIS.id);
+  assert.equal(gw.coopMissie.stap, 'Kluis open', 'de stap van de nieuwe groep is niet verloren');
+  assert.equal(gw.coopMissieAnder[KLUIS.id], undefined);
+  step(1);
 });
 
 t('de respawn-haak vraagt de sessie voor neer en voor opgepakt, en de stappen lopen via stagegroep.js', () => {

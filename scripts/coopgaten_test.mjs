@@ -182,7 +182,7 @@ t('#390: Missie stoppen (missions.js, safety.js, pausemenu.js, todoui.js): eerst
   assert.match(td, /data-stop-confirm hidden/, 'de vraag staat dicht tot je op de knop drukt');
   assert.match(bron('helpoverview.js'), /Missie stoppen/, 'de uitleg noemt de nieuwe knop');
   const cn = bron('coopnet.js');
-  assert.match(cn, /world\.coopUitslag = \(ok, label, reden, loon, gestopt\) => uitslagMelden\(world, ok, label, reden, loon, gestopt\)/, 'de haak geeft gestopt door');
+  assert.match(cn, /world\.coopUitslag = \(ok, label, reden, loon, gestopt, id\) => uitslagMelden\(world, ok, label, reden, loon, gestopt, /, 'de haak geeft gestopt en de groep door');
 });
 
 // ------------------------------------------------------------------ #367

@@ -91,17 +91,21 @@ export function spelerVan(world, entiteit) {
 // zodat een eenspelerspel exact doet wat het deed. De gastheer die net is neergegaan of opgepakt (world.pendingRespawn) telt niet mee zolang een ander staat.
 const GAST_VOERTUIG_M = 8; // m: een gast in een voertuig hoort bij het voertuig dat zo dichtbij staat
 
-export function opdrachtSpelers(world) {
+// id = de groep waar de stap bij hoort (coopmissie.js). Zonder id: de opdracht van deze wereld (world.mission.id). Een stap van
+// een andere groep telt alleen de deelnemers van die groep, nooit de gastheer die er niet bij hoort (#452).
+export function opdrachtSpelers(world, id = null) {
   const reg = register(world);
   const f = world.coopMeespelers;
-  const slots = reg.length > 1 && typeof f === 'function' ? f() : null;
-  if (!Array.isArray(slots) || !slots.length) return [reg[0]];
+  const slots = reg.length > 1 && typeof f === 'function' ? f(id || undefined) : null;
+  if (!Array.isArray(slots)) return [reg[0]];
   const uit = [];
   for (let i = 1; i < reg.length; i++) {
     const r = reg[i];
     if (slots.includes(r.slot) && bruikbaar(r) && !(r.partner && (r.partner.status === 'neer' || r.partner.status === 'weg'))) uit.push(r);
   }
-  if (!uit.length || !world.pendingRespawn) uit.unshift(reg[0]);
+  const eigen = !id || !world.mission || world.mission.id === id; // hoort deze groep bij de opdracht van deze wereld?
+  if (!uit.length && !eigen) return [];
+  if (eigen && (!uit.length || !world.pendingRespawn)) uit.unshift(reg[0]);
   return uit;
 }
 
