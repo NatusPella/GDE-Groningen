@@ -80,6 +80,8 @@ export function attachBusBoards(mesh, model, tex) {
 
 let card = null;
 let last = { idx: -1, near: false, line: null };
+// de volgende halte voor de bediening van busbestuurhud.js (#444): { info, line, dir }, info null buiten een bus op een lijn
+export const busCardState = { info: null, line: null, dir: 0 };
 
 function getCard() {
   if (card || typeof document === 'undefined') return card;
@@ -108,15 +110,16 @@ function driverCard(w, pv) {
   const lines = getBusLines();
   const on = !!(pv && pv.isBus && lines.length);
   if (typeof document !== 'undefined') document.body.classList.toggle('bus-driving', on);
-  if (!on) { last = { idx: -1, near: false, line: null }; return null; }
+  if (!on) { last = { idx: -1, near: false, line: null }; busCardState.info = null; return null; }
   const own = pv.boardLine && !pv.busRun && !pv.rideLine ? null : busLineOf(pv); // een bord-lijn van losse bus is geen dienst om over te nemen
   const line = own ? own.line : nearestLine(lines, pv.x, pv.y, 40);
   const dir = line ? (own ? own.dir : lineDirection(line, pv.x, pv.y, pv.angle)) : 0;
   const c = getCard();
-  if (!line || !dir) { if (typeof document !== 'undefined') document.body.classList.remove('bus-driving'); return null; }
+  if (!line || !dir) { busCardState.info = null; if (typeof document !== 'undefined') document.body.classList.remove('bus-driving'); return null; }
   const offer = takeOverOffer({ isBus: true, jobVehicle: !!pv.sideJob, shiftActive: !!(w.sideJob && w.sideJob.active), line, dir });
   const info = nextStopInfo(line, dir, project(line, pv.x, pv.y).s);
   const b = boardText(line, dir);
+  busCardState.info = info; busCardState.line = line; busCardState.dir = dir;
   if (c) {
     c.small.textContent = `${OPERATOR} · lijn ${b.ref} naar ${b.dest}`;
     c.small.style.color = b.color;
