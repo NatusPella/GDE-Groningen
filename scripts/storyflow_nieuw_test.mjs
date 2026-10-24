@@ -116,10 +116,11 @@ for (const st of missionSteps) {
   ok(!!defs[i], `${st.id}: the def exists`);
 }
 for (const id of NEW_MISSION_IDS) ok(used.has(id), `${id}: a story step plays it (no unreachable mission)`);
-// the missions the list shows are exactly the ones of the story
+// the missions the list shows are exactly the ones of the story, plus the loose side missions (#400) after them
 const listed = new Set(M.getMissionList().map((m) => m.code));
 for (const st of missionSteps) ok(listed.has(st.id), `${st.id}: shown in the mission list`);
-ok(M.getMissionList().length === missionSteps.length, 'the mission list shows only story missions', `${M.getMissionList().length}/${missionSteps.length}`);
+const side = M.getMissionList().filter((m) => !m.code);
+ok(M.getMissionList().filter((m) => m.code).length === missionSteps.length && side.every((m) => m.index >= MISSION_IDS.length) && new Set(M.getMissionList().map((m) => m.index)).size === M.getMissionList().length, 'the mission list shows the story missions once, plus the loose side missions', `${M.getMissionList().length}/${missionSteps.length}`);
 
 const KINDS = new Set([...src.matchAll(/case '([a-z]+)':/g)].map((m) => m[1]));
 const REQS = new Set([...src.slice(src.indexOf('const REQUIREMENTS = {')).matchAll(/^  ([a-z]+): \{$/gm)].map((m) => m[1]));

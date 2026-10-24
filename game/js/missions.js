@@ -47,6 +47,7 @@ import { startStunt, updateStunt, stopStunt, stuntStatus } from './stuntavond.js
 import { storyLines, talkLines, storyDataReady, readingTime } from './storytext.js';
 import { playTalk, stopTalk } from './storytalk.js';
 import { buildNieuwDefs, applyNieuw } from './missions_nieuw.js';
+import { buildZijDefs } from './missionsdata_zij.js';
 import { createBake, updateBake, showBake, hideBake, bakeProgress, RECIPE_PRACTICE, RECIPE_CONTEST } from './bakeround.js';
 import { startConvoy, spawnLimo, updateConvoy, convoyStatus, disposeConvoy } from './convoy.js';
 import { wgsToWorld } from './rdnew.js';
@@ -586,6 +587,8 @@ function buildDefs(world) {
   ];
   list.push(...buildNieuwDefs({ map, walk, drive, models: { tractor: TRACTOR_MODEL, quad: QUAD_MODEL } }));
   applyNieuw(list);
+  // losse zijmissies (#400): achter de verhaaldefs, zodat de indices van het verhaal niet schuiven
+  list.push(...buildZijDefs({ map, walk }));
   return list;
 }
 
@@ -594,9 +597,10 @@ let chain = null;
 export function initMissions(world) {
   worldRef = world;
   const defs = buildDefs(world);
-  defs.forEach((d, i) => { d.id = MISSION_IDS[i]; });
-  // a def that names its id (act 5) must sit at that id's index: the defs and NEW_MISSION_IDS are appended in the same order
-  defs.forEach((d, i) => { if (d.mid && d.mid !== MISSION_IDS[i]) console.warn(`missions: def '${d.mid}' staat op plek ${i} maar MISSION_IDS heeft '${MISSION_IDS[i]}'`); });
+  // een def met een eigen `mid` (de zijmissies, #400) houdt die id; de verhaaldefs krijgen hun id uit MISSION_IDS
+  defs.forEach((d, i) => { d.id = d.mid || MISSION_IDS[i]; });
+  // a def that names its id (act 5) must sit at that id's index (the defs and NEW_MISSION_IDS are appended in the same order)
+  defs.forEach((d, i) => { if (d.mid && MISSION_IDS[i] && d.mid !== MISSION_IDS[i]) console.warn(`missions: def '${d.mid}' staat op plek ${i} maar MISSION_IDS heeft '${MISSION_IDS[i]}'`); });
   chain = {
     defs,
     index: 0,
@@ -698,7 +702,7 @@ export function getMissionList() {
     index: i, id: d.id, code: missionCode(i), order: storyOrder(i), label: d.label, type: d.type, reward: d.reward, status: statusOf(i), skipped: !!hooks.skipped(i), start: { x: d.start.x, y: d.start.y },
     samen: missieStatus(d), needs: w ? requirementText(w, d) : null, done: chain.completed.has(i), klusloon: klusloon(d.reward), medalPaid: chain.medalPaid[i] || 0,
     pay: chain.completed.has(i) ? klusloon(d.reward) : d.reward,
-  })).filter((m) => ARC_BUILT.has(m.index));
+  })).filter((m) => ARC_BUILT.has(m.index) || !!chain.defs[m.index].side);
 }
 
 // --- requirements ------------------------------------------------------------
@@ -2007,7 +2011,7 @@ function startMission(world, def) {
   if (def.crowds) spawnCrowds(world, def);
   const i = chain.index;
   const code = missionCode(i);
-  const kicker = code ? `Missie ${code}` : `Missie ${i + 1}/${chain.defs.length}`;
+  const kicker = code ? `Missie ${code}` : def.side ? 'Zijmissie' : `Missie ${i + 1}/${chain.defs.length}`;
   const title = def.label;
   const objective = chain.vehicle || def.dest || (def.waypoints && def.waypoints[0]) || def.start;
   const shown = playStoryIntro(world, i, { stage: storyStage(i), short: chain.seen.has(i), kicker, title, target: objective });
