@@ -52,6 +52,15 @@ De test (`vliegschool_test.mjs`) loopt het bestand na (afmetingen, echte molens,
 het echte arcade-vliegtuig met de piloot elke vliegtuigles halen (goud). De helikopterlessen krijgen een gesimuleerd toestel zonder
 natuurkunde; de echte vlucht staat in de beeldscene `scripts/ui/shots_scenes_s6.js --only=vliegschool` (echte toetsen, de piloot).
 
+## De eerste lessen en de instrumenten (#397, #444)
+
+- `vliegbasis.js` (puur) heeft de soorten `opstijgen`, `koers` (rechtdoor, hoogte houden, naar voren), `peiling` (bochten), `rondje` (een baan van soort `ringen`)
+  en `plek` (een baan van soort `landen`). `vliegschoolrules.js` roept het aan voor wat het zelf niet kent. Twintig lessen: elf vliegtuig, negen heli.
+- `instrumenten.js`: het paneel (horizon, kompas, hoogte, snelheid, gas, kleppen, gestel, wind), de zomerwind (`zomerWind`) en de uitleg bij het instappen.
+  Kleppen (K, controller LB) en landingsgestel (G, controller X) staan in `planecontrol.js`; het model (`arcadeplane.js`) kent kleppen, gestel en wind en
+  oordeelt een landing zacht of hard op zinksnelheid, snelheid en neushoek. Test: `scripts/instrumenten_test.mjs`.
+- Nog niet gedaan: routes tussen vliegvelden met bestemming en beloning, en een tweede speler als copiloot of passagier (coopzitten3d.js).
+
 ## Een les toevoegen
 
 1. Een regel in `LESSEN` (id, toestel, soort, titel, grenzen, tijd) en tekst in `LIJNEN`.
