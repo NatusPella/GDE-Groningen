@@ -6,6 +6,7 @@
 
 import { runMigrations } from './savemigrate.js';
 import { KEYS } from './storagekeys.js';
+import { pasVerhaalToe } from './coopverhaal.js';
 
 export const SESSION_VERSION = 1;
 export const SESSION_MIGRATIONS = {}; // stap n -> n + 1
@@ -63,3 +64,8 @@ export function applyGuestEarnings(data, earned) {
   const base = Number.isFinite(data.money) && data.money >= 0 ? Math.floor(data.money) : 0;
   return { ...data, money: base + e, moneyBackup: base + e };
 }
+
+// De verhaalstap van een opdracht die de gast meespeelde en die lukte, in zijn eigen opgeslagen spel (#429): de stap als gedaan, de
+// stappen ervoor als overgeslagen, de missies als doorlopen. Pure functie: { save, status, overgeslagen, bonus } of null als er niets te schrijven is.
+// Het geld van de overgeslagen missies (bonus) telt de aanroeper bij zijn geld op; dit schrijft alleen het verhaal en de missies.
+export const applyGuestStory = pasVerhaalToe;
