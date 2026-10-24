@@ -24,6 +24,8 @@
 //     opts.here (the Streken cheat): any catalog vehicle, free and at once, right beside you.
 //     "Laten afleveren": fee, cooldown, out-of-view placement, message (no route: the car shows on the map).
 //     Boats go home to "Jouw steiger" behind the tower, the helicopter to the helidek on its roof (home.js).
+//     In een sessie van een ander zet de gastheer een kopie bij je neer; je eigen
+//     save en de zijne blijven zoals ze zijn (#449, coopbezit.js bezorgHost).
 //   locateOwnedVehicle(world, id) -> { ok, text, x, y }
 //     "Waar staat hij?": where it is; a route only via an explicit "Zet route".
 //   getOwnedVehiclesForMap(world) -> [{ x, y, angle, kind, label, hero, color }]
@@ -334,6 +336,10 @@ function heroCar(world) {
   return world.vehicles.find((v) => v.isHeroCar && !v.wrecked) || null;
 }
 
+// Samen spelen: je eigen voertuigen en je Escapade staan opzij in de wereld van
+// een ander (#428), maar ze zijn niet weg: de garage noemt ze niet afgeschreven (#449).
+const eigenOpzij = (world) => !!(world && world.coopNet && world.coopNet.eigenVoertuigen);
+
 function wijkAt(map, x, y) {
   let best = '', bd = Infinity;
   for (const h of map.meta.neighbourhoodPoints || []) {
@@ -424,7 +430,7 @@ export function getGarageList(world) {
   const look = getHeroLook();
   out.push(view(world, {
     id: 'hero', key: 'hero', hero: true, spec: HERO_SPEC, color: look.color || HERO_SPEC.color,
-    upgrades: look.upgrades, v: hero, lost: !hero,
+    upgrades: look.upgrades, v: hero, lost: !hero && !eigenOpzij(world),
   }));
   for (const o of getOwnedEntries()) {
     out.push(view(world, {
@@ -433,6 +439,32 @@ export function getGarageList(world) {
     }));
   }
   return out;
+}
+
+// Samen spelen (#449): de spec van een eigen voertuig bij zijn sleutel uit de
+// garage ('hero' of een winkel), zodat de gastheer dezelfde auto neerzet.
+export function eigenSpec(key) {
+  return key === 'hero' ? HERO_SPEC : VEHICLE_STOCK[key] || null;
+}
+
+// Wat er van een eigen voertuig naar de sessie van een ander gaat: alleen
+// gegevens (kleur, onderdelen, schade), geen objecten en niets uit de save.
+// De host maakt er zijn eigen kopie van (coopbezit.js bezorgHost).
+export function bezorgGegevens(world, id) {
+  const e = getGarageList(world).find((x) => x.id === id);
+  if (!e) return null;
+  const o = id === 'hero' ? null : getOwnedEntries().find((x) => x.key === id);
+  // je Escapade staat in een sessie opzij (#428): zijn schade zit dan niet in world.vehicles
+  const v = e.v || (id === 'hero' ? (((world.coopNet && world.coopNet.eigenVoertuigen) || []).find((x) => x.isHeroCar) || null) : null);
+  const ups = id === 'hero' ? getHeroLook().upgrades : (v ? v.upgrades || [] : o && o.upgrades) || [];
+  const dmg = v ? { health: v.health, dents: v.dentLog, flat: v.flat } : { health: o && o.health, dents: o && o.dents, flat: o && o.flat };
+  return {
+    id, kind: e.spec.kind, label: e.spec.label, model: e.model,
+    color: e.color, upgrades: [...ups],
+    health: Number.isFinite(dmg.health) ? dmg.health : 100,
+    dents: Array.isArray(dmg.dents) ? dmg.dents.slice(-12).map((d) => d.slice(0, 3)) : [],
+    flat: dmg.flat === true,
+  };
 }
 
 // Garage glyph: bus/truck/boat get their own silhouette.
@@ -607,10 +639,35 @@ function deliverHere(world, id) {
 }
 
 
+// Samen spelen (#449): bezorgen in de wereld van de gastheer. De eigen auto
+// blijft thuis (in je eigen save); de host zet zijn eigen kopie bij je neer en
+// de anderen zien hem met het echte model, de kleur en de deuken (#428).
+function bezorgInSessie(world, e) {
+  const short = e.hero ? 'Escapade' : e.model;
+  if (world.pigeonMode) return { ok: false, text: 'Duiven krijgen geen auto bezorgd' };
+  if (world.player.inVehicle) return { ok: false, text: 'Stap eerst uit je voertuig' };
+  if (e.spec.kind === 'boat' || e.spec.kind === 'heli') return { ok: false, text: 'Je boot en de helikopter kun je nog niet meenemen naar een ander' };
+  const wait = Math.ceil(lastDeliveryAt + DELIVERY_COOLDOWN - world.time);
+  if (wait > 0) return { ok: false, text: `De bezorger is nog onderweg met de vorige. Probeer het over ${wait} s` };
+  if (world.money < e.fee) return { ok: false, text: `Te weinig geld: afleveren kost ${e.feeLabel}` };
+  const g = bezorgGegevens(world, e.id);
+  if (!g) return { ok: false, text: `Je ${short} staat niet in je garage` };
+  const res = world.coopBezitVraag(g) || { ok: false, tekst: 'De gastheer is even niet bereikbaar.' };
+  if (!res.ok) return { ok: false, text: res.tekst || 'Dat lukt nu niet' };
+  if (e.fee) world.money -= e.fee;
+  lastDeliveryAt = world.time;
+  world.addMessage(res.tekst, 5);
+  return { ok: true, text: res.tekst };
+}
+
 export function deliverOwnedVehicle(world, id, opts = {}) {
   if (opts.here) return deliverHere(world, id);
   const e = getGarageList(world).find((x) => x.id === id);
   if (!e) return { ok: false, text: 'Dat voertuig heb je niet' };
+  // Samen spelen (#449): in de wereld van een ander zet de gastheer je eigen
+  // voertuig neer. Je eigen save blijft zoals hij was, en de zijne ook: de kopie
+  // hoort niet bij zijn collectie en gaat weg als je weggaat (coopbezit.js).
+  if (world.coopRole === 'client' && world.coopBezitVraag) return bezorgInSessie(world, e);
   const short = e.hero ? 'Escapade' : e.model;
   if (e.status === 'driving') return { ok: false, text: `Je zit al in je ${short}` };
   if (world.pigeonMode) return { ok: false, text: 'Duiven krijgen geen auto bezorgd' };

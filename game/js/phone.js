@@ -20,6 +20,7 @@ import { setUserWaypoint } from './routing.js';
 import { storyFlag } from './storyquery.js';
 import { getHeroCar } from './hud_panel.js';
 import { getGarageList, deliverOwnedVehicle } from './ownedvehicles.js';
+import { nieuweDeelStaat, rechtVan, zetDeelRecht, wisselRecht, RECHT_TEKST } from './coopbezit.js';
 import { initGarageStyles } from './garageui.js';
 import { lineVoiceFor } from './linevoice.js';
 // phone talk is a call on the speech.js channel
@@ -90,9 +91,25 @@ function berendTalk(w, c) {
   };
 }
 
+// Samen spelen (#449): deel je dit voertuig met de groep waarin je speelt?
+// De bezorging zelf gaat via "Breng de ..." en de gastheer zet de kopie neer.
+function deelActie(w, id, naam) {
+  const staat = w.coopBezit || (w.coopBezit = nieuweDeelStaat());
+  const recht = rechtVan(staat, id);
+  return {
+    label: `Delen: ${RECHT_TEKST[recht] || RECHT_TEKST.iedereen}`,
+    run: () => {
+      const na = zetDeelRecht(staat, id, wisselRecht(recht));
+      flashAndClose(na === 'ik' ? `Je ${naam} is weer alleen van jou` : `Je ${naam} deel je met de groep`);
+    },
+  };
+}
+
 // Henk: the hero car on the map or a new one, and any owned vehicle brought round.
 function garageTalk(w) {
+  const lijst = getGarageList(w);
   const hero = getHeroCar(w);
+  const escapade = lijst.find((x) => x.hero);
   const actions = [];
   let line;
   if (hero && w.player.inVehicle === hero) line = 'Je zit er nu in, slimmerik. Hoor ik ’m nou rammelen?';
@@ -111,14 +128,16 @@ function garageTalk(w) {
       },
     });
   }
+  if (w.coopRole === 'client' && escapade && !escapade.lost) actions.push(deelActie(w, 'hero', 'Escapade'));
   let n = 0;
-  for (const e of getGarageList(w)) {
+  for (const e of lijst) {
     if (e.hero || n >= MAX_DELIVER || ['driving', 'locked', 'forsale'].includes(e.status)) continue;
     n++;
     actions.push({
       label: `Breng de ${e.model || e.label} (${e.feeLabel})`,
       run: () => { const res = deliverOwnedVehicle(w, e.id); if (res.ok) closePauseMenu(); else say(res.text); },
     });
+    if (w.coopRole === 'client') actions.push(deelActie(w, e.id, e.model || e.label));
   }
   return { line, actions };
 }

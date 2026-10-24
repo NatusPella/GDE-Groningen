@@ -533,6 +533,15 @@ export function spawnStockVehicle(world, key, x, y, angle) {
   return v;
 }
 
+// Samen spelen (#449): een eigen voertuig van een gast in de wereld van de host.
+// Een kopie met dezelfde kleur, onderdelen en schade. Hij staat niet in de
+// collectie van de host en komt dus niet in zijn save; de host ruimt hem op als de
+// gast weggaat (coopbezit.js).
+export function spawnSharedVehicle(world, { spec, color, upgrades, health, dents, flat }, x, y, angle) {
+  if (!spec) return null;
+  return spawnOwned(world, { key: null, spec, color: color || spec.color, upgrades: upgrades || [], health, dents, flat }, x, y, angle ?? 0);
+}
+
 export function replacementFee(o) {
   return Math.max(40, Math.round(o.spec.price * 0.15 / 5) * 5);
 }
