@@ -70,6 +70,71 @@ export function labelFor(ctx, action) {
   return l || (/^[0-9]$/.test(action) ? action : '');
 }
 
+// The face of a touch button (#427): line icons in the HUD's own style (24x24,
+// currentColor stroke, round caps), keyed by the Dutch label the button shows.
+// The label stays on the button as text and as aria-label; only the numbers of
+// the pancake pans have no icon, because the number is the clearest sign there.
+const ICONS = {
+  Spring: '<path d="M4 19c2.5-1 4-6.5 8-6.5s5.5 5.5 8 6.5"/><path d="M12 9V3"/><path d="M9 6l3-3 3 3"/>',
+  Omhoog: '<path d="M12 20V4"/><path d="M6.5 9.5L12 4l5.5 5.5"/>',
+  Omlaag: '<path d="M12 4v16"/><path d="M6.5 14.5L12 20l5.5-5.5"/>',
+  Vlieg: '<path d="M12 21V8"/><path d="M8 12l4-4 4 4"/><path d="M4 18l4-2M20 18l-4-2"/>',
+  Handrem: '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.2"/><path d="M12 4v3M12 17v3"/>',
+  Rem: '<circle cx="10" cy="12" r="6"/><path d="M16 5v14"/><path d="M16 8h4M16 16h4"/>',
+  Noodrem: '<path d="M8.5 3.5h7l5 5v7l-5 5h-7l-5-5v-7z"/><path d="M12 7.5v5.5M12 16.5v.5"/>',
+  Stop: '<rect x="5" y="5" width="14" height="14" rx="3"/>',
+  Start: '<path d="M8 4.5l11 7.5-11 7.5z"/>',
+  Overslaan: '<path d="M5 5l9 7-9 7z"/><path d="M19 5v14"/>',
+  Volgend: '<path d="M5 5l9 7-9 7z"/><path d="M19 5v14"/>',
+  Vorig: '<path d="M19 5l-9 7 9 7z"/><path d="M5 5v14"/>',
+  Vuur: '<circle cx="12" cy="12" r="7"/><path d="M12 2.5v4M12 17.5v4M2.5 12h4M17.5 12h4"/><circle cx="12" cy="12" r="1.2"/>',
+  Richt: '<path d="M2.5 12S6 6 12 6s9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6z"/><circle cx="12" cy="12" r="2.8"/>',
+  Wapen: '<path d="M3.5 8.5h14.5V12h-4.5l-2 5h-3.5l1.5-5H3.5z"/><path d="M18 9h2.5v2.5H18"/>',
+  Bukken: '<path d="M4 5.5h16"/><path d="M12 9v7"/><path d="M8 12.5l4 4 4-4"/>',
+  Gebruik: '<path d="M9 12V6a1.5 1.5 0 0 1 3 0v5"/><path d="M12 11V5a1.5 1.5 0 0 1 3 0v6"/><path d="M15 11V7a1.5 1.5 0 0 1 3 0v6c0 4-2.5 7-6 7h-1c-2 0-3.3-1-4.2-2.8L5 12.6a1.6 1.6 0 0 1 2.9-1.3L9 14"/>',
+  Instappen: '<path d="M14 4h5v16h-5"/><path d="M4 12h9"/><path d="M9.5 8l4 4-4 4"/>',
+  Rennen: '<circle cx="15" cy="4.5" r="2"/><path d="M13.5 7.5 10 12l3 4-2 5"/><path d="M10 12l4 3 2 5"/><path d="M13 8.5l-4 1-2 3"/><path d="M12.5 9l4 1 3-2.5"/>',
+  Kusje: '<path d="M12 20s-7-4.5-7-9a3.5 3.5 0 0 1 7-1 3.5 3.5 0 0 1 7 1c0 4.5-7 9-7 9z"/>',
+  Kaart: '<path d="M3 6.5l6-2 6 2 6-2v13l-6 2-6-2-6 2z"/><path d="M9 4.5v13M15 6.5v13"/>',
+  Radio: '<circle cx="12" cy="12" r="2.5"/><path d="M7.5 7.5a6.5 6.5 0 0 0 0 9M16.5 7.5a6.5 6.5 0 0 1 0 9"/><path d="M4.5 4.5a10.5 10.5 0 0 0 0 15M19.5 4.5a10.5 10.5 0 0 1 0 15"/>',
+  Lak: '<path d="M12 3.5c3.5 4.2 6 7.5 6 10.5a6 6 0 0 1-12 0c0-3 2.5-6.3 6-10.5z"/><path d="M9.5 14.5a2.5 2.5 0 0 0 2.5 2.5"/>',
+  Appel: '<path d="M12 7.5c-1.2-1.8-3.2-2.2-4.3-1.2-2.2 2-1.2 6.8 1 9.9 1 1.4 2 2 3.3 2s2.3-.6 3.3-2c2.2-3.1 3.2-7.9 1-9.9-1.1-1-3.1-.6-4.3 1.2z"/><path d="M12 7.5V4"/><path d="M12 4c1-1.4 2.4-1.8 3.4-1.4"/>',
+  Stroop: '<path d="M9.5 3h5v3l2 3.5V19a2 2 0 0 1-2 2h-5a2 2 0 0 1-2-2V9.5L9.5 6z"/><path d="M8.5 13.5h7"/>',
+  Kaas: '<path d="M3 16.5l9-8.5h9v8.5z"/><circle cx="15" cy="12.5" r="1"/><circle cx="18.5" cy="14.5" r=".9"/>',
+  Spek: '<path d="M3 9c3.5-3 6.5 3 10 0s4.5-3 8 0"/><path d="M3 15c3.5-3 6.5 3 10 0s4.5-3 8 0"/>',
+  Koer: '<rect x="3" y="6" width="18" height="12" rx="2"/><path d="M3 8l9 6 9-6"/>',
+  Pikken: '<path d="M8 4h8l-4 8z"/><path d="M12 12v4"/><path d="M4 20h16"/>',
+  Achterom: '<path d="M8 20V10a4 4 0 0 1 8 0v3"/><path d="M12.5 13.5L16 17l3.5-3.5"/>',
+  Mens: '<circle cx="12" cy="5" r="2.5"/><path d="M12 8v7M12 15l-3 6M12 15l3 6M7 10l5-1 5 1"/>',
+  Dienst: '<path d="M12 3l7 3v6c0 4-3 7-7 9-4-2-7-5-7-9V6z"/><path d="M9 12l2 2 4-4"/>',
+  'Zeil vieren': '<path d="M4 17h16l-2 4H6z"/><path d="M12 3v14"/><path d="M12 4l6 10h-6z"/>',
+  Waak: '<path d="M13 8h7l-2 4h-5z"/><circle cx="8" cy="12" r="5"/><path d="M8 7V5"/>',
+  Deuren: '<rect x="5.5" y="3" width="13" height="18" rx="1"/><path d="M12 3v18"/><path d="M15 12v.5M9 12v.5"/>',
+  Trek: '<path d="M5 20h14"/><path d="M8 20l7-13"/><circle cx="16" cy="5.5" r="2"/>',
+  Toeter: '<path d="M4 10v4h3.5L12 18V6L7.5 10z"/><path d="M15.5 9.5a4 4 0 0 1 0 5M18.5 6.5a8 8 0 0 1 0 11"/>',
+  Gas: '<path d="M3.5 17a8.5 8.5 0 0 1 17 0"/><path d="M12 17l4.5-6"/><circle cx="12" cy="17" r="1.4"/>',
+  Hoger: '<path d="M6 13.5l6-6 6 6"/><path d="M6 19l6-6 6 6"/>',
+  Lager: '<path d="M6 5l6 6 6-6"/><path d="M6 10.5l6 6 6-6"/>',
+  Alarm: '<path d="M12 4l9 16H3z"/><path d="M12 10v4M12 17v.5"/>',
+  Film: '<rect x="3" y="6" width="12" height="12" rx="2"/><path d="M15 10l6-3v10l-6-3z"/>',
+  Links: '<path d="M20 12H4"/><path d="M9 7l-5 5 5 5"/>',
+  Rechts: '<path d="M4 12h16"/><path d="M15 7l5 5-5 5"/>',
+  Kneel: '<path d="M12 3.5v8"/><path d="M8.5 8L12 11.5 15.5 8"/><path d="M3 17.5h18"/><path d="M6 20.5h12"/>',
+  OK: '<path d="M4.5 12.5l5 5L19.5 6.5"/>',
+  Koppeling: '<path d="M9.5 14.5l5-5"/><path d="M7 12l-1.5 1.5a3.5 3.5 0 0 0 5 5L12 17"/><path d="M17 12l1.5-1.5a3.5 3.5 0 0 0-5-5L12 7"/>',
+  Sirene: '<rect x="4" y="12" width="16" height="5" rx="2"/><path d="M7 12c0-3 1-5 5-5s5 2 5 5"/><path d="M2 15l2-3M22 15l-2-3"/>',
+  Doel: '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="1"/>',
+  Pauze: '<path d="M9 5v14M15 5v14"/>',
+  Meer: '<path d="M6 6h.01M12 6h.01M18 6h.01M6 12h.01M12 12h.01M18 12h.01M6 18h.01M12 18h.01M18 18h.01"/>',
+};
+
+// The inner SVG of the icon for a button label ('' when the button keeps text).
+export function iconFor(label) {
+  return ICONS[label] || '';
+}
+
+export const TOUCH_ICONS = ICONS;
+
 // The right thumb gets the actions, the left thumb (next to the stick) the
 // sprint and brake extras.
 const RIGHT = ['a', 'b', 'x', 'y', 'rt'];

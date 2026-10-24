@@ -3,7 +3,7 @@
 // input.js the way gamepad.js does (padAxis, padHold, mouse), so every
 // action works unchanged. Does nothing on a desktop; ?touch=1 forces it on
 // and ?touch=0 off. Menus and the phone stay plain taps.
-import { detectTouch, touchMode, touchLayout, touchMore, stickVector, knobOffset, lookDelta, stickKeys, touchPlacement, leftOffset, touchContext, stickless, touchUiActive, STICK_RADIUS } from './touchlogic.js';
+import { detectTouch, touchMode, touchLayout, touchMore, stickVector, knobOffset, lookDelta, stickKeys, touchPlacement, leftOffset, touchContext, stickless, touchUiActive, iconFor, STICK_RADIUS } from './touchlogic.js';
 import { refreshGlyphs } from './glyphs.js';
 import { getSettings } from './settings.js';
 import { FLAGS } from './devflags.js';
@@ -29,6 +29,17 @@ html.touch-play #touch-ui { display: block; }
 #touch-ui .t-turn { position: absolute; left: 50%; top: 12px; transform: translateX(-50%); padding: 8px 14px; border-radius: 18px; background: rgba(10, 19, 13, 0.8); color: #f0ede4; font: 15px Arial, sans-serif; display: none; pointer-events: none; text-align: center; max-width: 90%; }
 html.touch-portrait #touch-ui .t-turn { display: block; }
 #touch-ui .t-pause { top: max(10px, env(safe-area-inset-top)); right: max(10px, env(safe-area-inset-right)); min-width: 48px; height: 48px; border-radius: 24px; font-size: 20px; }
+/* every action button shows a HUD-style line icon above its Dutch label (#427) */
+#touch-ui .t-btn:not(.t-num) { flex-direction: column; gap: 1px; }
+#touch-ui .t-btn .t-ic { flex: none; width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+#touch-ui .t-btn .t-lb { line-height: 1; white-space: nowrap; }
+#touch-ui .t-btn.t-num { font-size: 24px; }
+/* a narrow phone gets smaller icons and a smaller caption, so the labels stay on one line */
+@media (max-width: 700px) {
+  #touch-ui .t-btn { font-size: 15px; }
+  #touch-ui .t-btn .t-ic { width: 18px; height: 18px; }
+  #touch-ui .t-btn.t-num { font-size: 21px; }
+}
 
 html.touch-device, html.touch-device body { overscroll-behavior: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
 html.touch-device body { touch-action: manipulation; }
@@ -138,10 +149,32 @@ export function initTouch(input, world, hooks = {}) {
     ring.style.display = 'none';
   }
 
+  // the face of a button (#427): its icon above the Dutch label, both from the
+  // same line-art as the HUD symbols. Without an icon (the pan numbers) the
+  // label stands alone. The label is always the aria-label; text stays visible
+  // unless the button is one of the small top-row squares.
+  function face(el, label, { text = true } = {}) {
+    el.setAttribute('aria-label', label);
+    el.setAttribute('role', 'button');
+    const icon = iconFor(label);
+    if (!icon) {
+      el.classList.add('t-num');
+      if (text) { const s = document.createElement('span'); s.className = 't-lb'; s.textContent = label; el.appendChild(s); }
+      return;
+    }
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('class', 't-ic');
+    svg.setAttribute('viewBox', '0 0 24 24');
+    svg.setAttribute('aria-hidden', 'true');
+    svg.innerHTML = icon;
+    el.appendChild(svg);
+    if (text) { const s = document.createElement('span'); s.className = 't-lb'; s.textContent = label; el.appendChild(s); }
+  }
+
   function addButton(b, spot, side) {
     const el = document.createElement('div');
     el.className = 't-btn';
-    el.textContent = b.label;
+    face(el, b.label);
     el.style[side] = spot[0] + 'px';
     el.style.bottom = spot[1] + 'px';
     el.addEventListener('pointerdown', (e) => {
@@ -172,12 +205,12 @@ export function initTouch(input, world, hooks = {}) {
       panel.className = 't-panel';
       const toggle = document.createElement('div');
       toggle.className = 't-btn t-more';
-      toggle.textContent = 'Meer';
+      face(toggle, 'Meer', { text: false });
       toggle.addEventListener('pointerdown', (e) => { e.preventDefault(); panel.classList.toggle('open'); });
       for (const m of more) {
         const el = document.createElement('div');
         el.className = 't-btn';
-        el.textContent = m.label;
+        face(el, m.label);
         // a tap is a short press; the panel closes after it
         el.addEventListener('pointerdown', (e) => {
           e.preventDefault();
@@ -192,8 +225,7 @@ export function initTouch(input, world, hooks = {}) {
     }
     const pause = document.createElement('div');
     pause.className = 't-btn t-pause';
-    pause.textContent = 'II';
-    pause.setAttribute('aria-label', 'Pauze');
+    face(pause, 'Pauze', { text: false });
     pause.addEventListener('pointerdown', (e) => {
       e.preventDefault();
       sendKey('keydown', 'escape', 'pad');
