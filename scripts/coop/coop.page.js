@@ -608,6 +608,121 @@ const PHASES = {
     log('gastbestuur-uit', { bestuurder: !!w.coopBestuurder, inVoertuig: !!w.coopInVoertuig, meldingen: msgs.slice(-3), t: sec() });
     w.addMessage = am;
   },
+  // #443: een race tegen elkaar (kartbaan, Karten in Ulrum): de gast krijgt Meedoen?, zegt ja (J), rijdt mee met de stick (een eenvoudige bot met de
+  // vertraagde positie van zijn eigen kart), kijkt naar de uitslag en vraagt een rematch; in die tweede race stopt hij na `stop` seconden (Backspace)
+  async wedstrijd({ s = 300, stop = 20 }) {
+    const w = W(), B = window.__bot;
+    if (CFG.role === 'host' || !B) { await sleep(s * 1000); return; }
+    const K = await import('./js/kartrace.js'), T = (await import('./js/kartbaanspoor.js')).KARTBAAN_TRACK;
+    const t0 = performance.now(), sec = () => Math.round((performance.now() - t0) / 100) / 10;
+    const kaart = () => { const e = document.querySelector('.wed-kaart'); return e && !e.hidden ? e.innerText.replace(/\s+/g, ' ') : ''; };
+    const bord = () => { const e = document.querySelector('.mg-board'); return e && !e.hidden ? e.innerText.replace(/\s+/g, ' ').slice(0, 220) : ''; };
+    const msgs = []; const am = w.addMessage; w.addMessage = function (t, ...r) { msgs.push(String(t).slice(0, 90)); return am.call(this, t, ...r); };
+    const raf = () => new Promise((r) => requestAnimationFrame(r));
+    const geld0 = w.money || 0;
+    const race = async (nr, stopNa) => {
+      await until(() => w.coopWedGast && w.coopWedGast.uitn, 90000, 'uitnodiging');
+      log('wed-uitnodiging', { nr, tekst: kaart(), msgs: msgs.slice(-2), t: sec() }); shot(`wed${nr}-uitnodiging`); await sleep(700);
+      await B.press('j', 150);
+      await until(() => w.coopWedGast.spiegel, 25000, 'start');
+      const sp = w.coopWedGast.spiegel, n0 = sp.laatste, tStart = performance.now();
+      log('wed-start', { nr, karts: sp.karts.map((k) => k.name), eigen: sp.karts[0].name, t: sec(), wedstrijdVlag: !!w.coopWedstrijd });
+      const m = { frames: 0, gemeten: 0, sprong: 0, stil: 0, vmax: 0, bord: [], fasen: [], plaats: [], stap: [] }; const gedaan = {};
+      let last = [sp.karts[0].u, sp.karts[0].v, sp.karts[1].u, sp.karts[1].v], lt = sp.klok, fase = '', k = 0;
+      while (w.coopWedGast.spiegel === sp) {
+        await raf(); k++;
+        const me = sp.karts[0], nu = sp.klok, dt = nu - lt; lt = nu; // de speltijd van het scherm, niet die van de browser: alleen beelden waarin het spel liep
+        if (sp.phase !== fase) { fase = sp.phase; m.fasen.push([fase, Math.round(sp.raceT * 10) / 10, sec()]); }
+        if (sp.phase === 'grid') B.stick(0, 0);
+        else if (k % 3 === 0) {
+          if (me.finished) B.stick(0, 0);
+          else { const inp = K.aiInput(me, T, { skill: 0.9, others: sp.karts, dt: 0.05 }); B.stick(inp.steer, -inp.throttle); }
+        }
+        if (sp.phase === 'race' || sp.phase === 'finish') {
+          m.frames++;
+          const step = Math.hypot(me.u - last[0], me.v - last[1]) + 0, v = Math.abs(me.f);
+          if (dt > 0 && dt < 0.2) { m.gemeten++; if (step / dt > 1.6 * (v + 3)) m.sprong++; if (v > 6 && step < 0.002) m.stil++; }
+          m.vmax = Math.max(m.vmax, v);
+          const o = sp.karts[1]; const s2 = Math.hypot(o.u - last[2], o.v - last[3]); if (dt > 0 && dt < 0.2 && s2 / dt > 1.6 * (Math.abs(o.f) + 3)) m.sprong++;
+        }
+        last = [me.u, me.v, sp.karts[1].u, sp.karts[1].v];
+        if (sp.phase === 'grid' && sp.lights >= 2 && !gedaan.grid) { gedaan.grid = 1; log('wed-grid', { nr, lights: sp.lights, bord: bord() }); shot(`wed${nr}-grid`); }
+        if (sp.phase === 'race' && sp.raceT > 14 && !gedaan.a) { gedaan.a = 1; m.bord.push(bord()); shot(`wed${nr}-race-a`); }
+        if (sp.phase === 'race' && sp.raceT > 40 && !gedaan.b && nr === 1) { gedaan.b = 1; m.bord.push(bord()); shot(`wed${nr}-race-b`); }
+        if (me.finished && !gedaan.fin) { gedaan.fin = 1; m.bord.push(bord()); shot(`wed${nr}-finish`); }
+        if (stopNa != null && sp.phase === 'race' && sp.raceT > stopNa) { log('wed-stop', { nr, raceT: Math.round(sp.raceT * 10) / 10, bord: bord() }); B.stick(0, 0); await B.press('backspace', 150); await sleep(800); break; }
+        if ((performance.now() - tStart) / 1000 > 200) throw new Error('de race duurt te lang');
+      }
+      B.stick(0, 0);
+      const ontvangen = sp.laatste - n0, duur = (performance.now() - tStart) / 1000;
+      log('wed-einde', { nr, duur: Math.round(duur), momentopnamenPerS: Math.round(ontvangen / duur * 10) / 10, frames: m.frames, gemeten: m.gemeten, sprong: m.sprong, stil: m.stil, vmax: Math.round(m.vmax * 10) / 10, fasen: m.fasen, bord: m.bord, eigenAf: !!sp.karts[0].finished, ronden: sp.karts[0].lapTimes.length, lap: sp.karts[0].lap, vlag: !!w.coopWedstrijd, kaartNaStop: kaart() });
+      return sp;
+    };
+    const sp1 = await race(1, null);
+    await until(() => w.coopWedGast.uitslag, 15000, 'uitslag');
+    await sleep(1800);
+    log('wed-uitslag', { kaart: kaart(), geldErbij: (w.money || 0) - geld0, msgs: msgs.slice(-4), t: sec() }); shot('wed1-uitslag'); await sleep(500);
+    await B.press('j', 150); await sleep(700);
+    log('wed-rematch-gevraagd', { nogmaals: !!w.coopWedGast.nogmaals, kaart: kaart() });
+    const sp2 = await race(2, stop);
+    await sleep(2500);
+    log('wed-gestopt', { vrij: !w.coopWedGast.spiegel, vlag: !!w.coopWedstrijd, camera: !!w.cameraOverride, msgs: msgs.slice(-3), t: sec() }); shot('wed2-gestopt');
+    w.addMessage = am;
+    if (sp2) await sleep(10000);
+  },
+  // #443 (suite 'wedstrijd'): de host in Electron rijdt een race tegen twee headless gasten (testbank.mjs wedBot): E bij de kassa, de uitnodiging, de race
+  // met een bot op de toetsen, de uitslag en de beloning, een rematch (J) die de host na 18 s stopt (Backspace)
+  async wedhost({ s = 230 }) {
+    if (CFG.role !== 'host') { await sleep(s * 1000); return; }
+    const w = W(), B = window.__bot, kb = window.__kartbaan, p = w.player;
+    const K = await import('./js/kartrace.js'), T = (await import('./js/kartbaanspoor.js')).KARTBAAN_TRACK;
+    if (!kb) { log('wedhost-geen-kartbaan'); await sleep(s * 1000); return; }
+    const t0 = performance.now(), sec = () => Math.round((performance.now() - t0) / 100) / 10;
+    const raf = () => new Promise((r) => requestAnimationFrame(r));
+    const kaart = () => { const e = document.querySelector('.wed-kaart'); return e && !e.hidden ? e.innerText.replace(/\s+/g, ' ') : ''; };
+    const bord = () => { const e = document.querySelector('.mg-board'); return e && !e.hidden ? e.innerText.replace(/\s+/g, ' ').slice(0, 260) : ''; };
+    const keys = {}; const orig = w.input.isDown.bind(w.input); w.input.isDown = (k) => (k in keys ? keys[k] : orig(k));
+    const msgs = []; const am = w.addMessage; w.addMessage = function (t, ...r) { msgs.push(String(t).slice(0, 90)); return am.call(this, t, ...r); };
+    const spot = kb.spot();
+    p.x = spot.x; p.y = spot.y; p.vx = 0; p.vy = 0;
+    await sleep(9000); // de gasten komen mee (de band), de tegels laden
+    log('wedhost-kassa', { gasten: (w.coopRoster || []).filter((x) => x.slot > 0).length, afstand: Math.round(Math.hypot(w.companion.x - p.x, w.companion.y - p.y)), t: sec() }); shot('wedhost-kassa');
+    const geld0 = w.money || 0;
+    const race = async (nr, stopNa) => {
+      for (let i = 0; i < 4 && !(w.coopNet.wed && w.coopNet.wed.u); i++) { await B.press('e', 150); await sleep(900); }
+      await sleep(1200); log('wedhost-uitnodiging', { nr, kaart: kaart(), wed: !!(w.coopNet.wed && w.coopNet.wed.u), t: sec() }); shot(`wedhost${nr}-uitnodiging`);
+      for (let i = 0; i < 160 && !kb.online(); i++) await sleep(150);
+      if (!kb.online()) { log('wedhost-geen-start', { nr, msgs: msgs.slice(-3) }); return null; }
+      const tStart = performance.now(), m = { frames: 0, fasen: [], bord: [], gast: [], tot: 0 }; const gedaan = {}; let acc = 0, fase = '';
+      log('wedhost-start', { nr, online: kb.online(), karts: [0, 1, 2, 3].map((i) => kb.kart(i).name), companionVast: !!w.companion.coopWedstrijd, t: sec() });
+      while (kb.online()) {
+        await raf(); m.frames++;
+        const me = kb.kart(0), st = kb.state(); if (!st) break;
+        if (st.phase !== fase) { fase = st.phase; m.fasen.push([fase, Math.round(st.raceT * 10) / 10, sec()]); }
+        const inp = st.phase === 'race' && !me.finished ? K.aiInput(me, T, { skill: 0.9, others: [0, 1, 2, 3].map((i) => kb.kart(i)), dt: 0.05 }) : { throttle: 0, steer: 0, drift: false };
+        acc += Math.abs(inp.steer); const druk = acc >= 1; if (druk) acc -= 1; // stuurt met de toetsen: A of D in een deel van de beelden
+        keys.w = inp.throttle > 0.15; keys.s = inp.throttle < -0.15; keys.d = druk && inp.steer > 0; keys.a = druk && inp.steer < 0; keys.arrowup = false; keys.arrowdown = false; keys.arrowleft = false; keys.arrowright = false; keys[' '] = false;
+        if (st.phase === 'grid' && st.lights >= 2 && !gedaan.g) { gedaan.g = 1; m.bord.push(bord()); shot(`wedhost${nr}-grid`); }
+        if (st.phase === 'race' && st.raceT > 14 && !gedaan.a) { gedaan.a = 1; m.bord.push(bord()); shot(`wedhost${nr}-race-a`); }
+        if (st.phase === 'race' && st.raceT > 45 && !gedaan.b && nr === 1) { gedaan.b = 1; m.bord.push(bord()); m.gast = st.karts.map((k) => [k.name, Math.round(k.prog), !!k.finished, Math.round(k.f)]); shot(`wedhost${nr}-race-b`); }
+        if (me.finished && !gedaan.f) { gedaan.f = 1; m.bord.push(bord()); shot(`wedhost${nr}-finish`); }
+        if (stopNa != null && st.phase === 'race' && st.raceT > stopNa) { for (const k of Object.keys(keys)) keys[k] = false; log('wedhost-stop', { nr, raceT: Math.round(st.raceT * 10) / 10, bord: bord() }); await B.press('backspace', 150); await sleep(1500); break; }
+        if ((performance.now() - tStart) / 1000 > 230) throw new Error('de race duurt te lang');
+      }
+      for (const k of Object.keys(keys)) delete keys[k];
+      log('wedhost-einde', { nr, duur: Math.round((performance.now() - tStart) / 1000), frames: m.frames, fasen: m.fasen, bord: m.bord, gast: m.gast, online: kb.online(), camera: !!w.cameraOverride, t: sec() });
+    };
+    await race(1, null);
+    await sleep(2500);
+    const wed = w.coopNet.wed; log('wedhost-uitslag', { kaart: kaart(), geldErbij: (w.money || 0) - geld0, msgs: msgs.slice(-4), rijen: wed && wed.uitslag ? wed.uitslag.rijen : null, jij: wed && wed.uitslag ? wed.uitslag.jij : null, lichamenVrij: !w.companion.coopWedstrijd && !Object.values(w.coopFigures || {}).some((f) => f.coopWedstrijd), t: sec() }); shot('wedhost1-uitslag');
+    for (let i = 0; i < 40 && !Object.keys(wed.opnieuw || {}).length; i++) await sleep(250);
+    log('wedhost-rematch-verzoek', { willen: Object.keys(wed.opnieuw || {}), kaart: kaart(), msgs: msgs.slice(-3) });
+    await B.press('j', 150); await sleep(600);
+    await race(2, 18);
+    await sleep(3000);
+    log('wedhost-gestopt', { online: kb.online(), vrij: !w.companion.coopWedstrijd, camera: !!w.cameraOverride, msgs: msgs.slice(-3), geldTotaal: (w.money || 0) - geld0, t: sec() }); shot('wedhost2-gestopt');
+    w.addMessage = am; w.input.isDown = orig;
+  },
   // #434: wat de gast ziet van wie er meerijdt, en het wapen en de aanval van de gastheer; camera naar het voertuig of de gastheer
   async zit({ s = 8, naam = 'zit', kijk = 'zelf', pitch = null }) {
     const w = W();

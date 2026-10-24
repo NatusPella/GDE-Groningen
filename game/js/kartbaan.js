@@ -20,7 +20,7 @@ import { addClearZone, corridorPoints } from './clearzone.js';
 import { KARTBAAN_ORIGIN, KARTBAAN_ROT, KARTBAAN_FRAME, KARTBAAN_WIDTH, KARTBAAN_TRACK } from './kartbaanspoor.js';
 import { racingLine } from './kartline.js';
 import { loopbaanVerdien } from './loopbaanlive.js';
-import { registreerWedstrijd, zetWedGastHaken, wedNodigUit, wedNuStarten, wedRaceTik, wedHostEind, wedGastStuur, tikSpiegel, eindstand, beloning } from './coopwedstrijd.js';
+import { registreerWedstrijd, zetWedGastHaken, wedNodigUit, wedNuStarten, wedRaceTik, wedHostEind, wedGastVerlaat, wedGastReset, tikSpiegel, eindstand, beloning } from './coopwedstrijd.js';
 import { figuurLook } from './coopplayers.js';
 
 // Karten in Ulrum: the real outdoor kart track of Ulrum (OSM way "Kartbaan
@@ -410,6 +410,7 @@ function startOnline(w, race) {
   const p = w.player;
   if (p.inVehicle) p.exitVehicle(w.map, w);
   race.karts[0].player = true;
+  race.uit = { ...STAND }; // where a guest who stops or finishes is put back
   beginOnline(w, race, 'host');
   w.companionHold = { x: STAND.x + 2, y: STAND.y + 1, face: ROT };
   showCard(w, { kind: 'tip', kicker: 'Karten in Ulrum', title: 'Drie ronden tegen elkaar', body: '[W] gas, [S] rem, [A] [D] sturen. Houd [Spatie] (handrem) in een bocht voor een drift: een lange drift geeft een versnelling. Iedereen rijdt dezelfde kart op dezelfde baan.', duration: 10, key: 'kart-help', v: 1 });
@@ -436,13 +437,13 @@ function updateOnline(w, dt) {
   const g = game;
   const gast = g.online === 'gast';
   if (g.flash && (g.flash.t -= dt) <= 0) g.flash = null;
-  if (gast && (!w.coopNet || w.coopRole !== 'client')) { end(w, { quit: true }); return; } // the connection is gone
+  if (gast && (!w.coopNet || w.coopRole !== 'client')) { wedGastReset(w); end(w, { quit: true }); return; } // the connection is gone
   if (stopPressed(w.input)) {
-    if (gast) wedGastStuur(w, 'weg'); // the kart drives on under the AI; the others race on
+    if (gast) wedGastVerlaat(w); // the kart drives on under the AI; the others race on
     end(w, { quit: true });
     return;
   }
-  const ev = gast ? tikSpiegel(g, dt) : wedRaceTik(w, g, dt);
+  const ev = gast ? tikSpiegel(g, dt, () => playerInput(w.input)) : wedRaceTik(w, g, dt, () => playerInput(w.input));
   let klaar = false;
   for (const e of ev) {
     if (e.type === 'lights') { pushAudioEvent(w, { kind: 'bell', x: STAND.x, y: STAND.y }); if (!gast && e.n === 1) say(w, 'lights', true); }
@@ -482,7 +483,7 @@ function gastEind(w, uit) {
 }
 
 registreerWedstrijd('kartbaan', { naam: 'Karten in Ulrum', start: startOnline, solo: (w) => start(w) });
-zetWedGastHaken({ start: gastStart, eind: gastEind, tik: gastTik });
+zetWedGastHaken('kartbaan', { start: gastStart, eind: gastEind, tik: gastTik });
 
 // --- the race ----------------------------------------------------------------------------------------------------
 
@@ -832,6 +833,8 @@ export const KARTBAAN = {
       // run the race to its end straight away: everyone finishes (tests)
       finish: () => { if (!game) return false; if (game.phase === 'grid') game.t = GO_AT; for (const k of game.karts) { k.prog = TRACK.length * LAPS + 1; k.lapTimes = [30, 30, 30]; k.finished = true; k.finishT = 95 + k.i; } game.phase = 'finish'; game.finishAt = game.raceT - FINISH_WAIT - 1; return true; },
       quit: () => { if (!game) return false; end(w, { quit: true }); return true; },
+      kart: (i = 0) => (game ? game.karts[i] : null), // the kart objects, for the bots of the tests (#443)
+      online: () => (game ? game.online || null : null),
     };
   },
   spots: () => [{ id: 'kartbaan', name: 'Kartbaan Ulrum', x: STAND.x, y: STAND.y }],

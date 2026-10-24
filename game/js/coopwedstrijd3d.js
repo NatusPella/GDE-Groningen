@@ -20,14 +20,14 @@ export function kaartModel(world) {
     return null;
   }
   const G = world.coopWedGast; if (!G) return null;
-  if (G.uitn) return { soort: 'uitnodiging', titel: 'Meedoen?', regels: [uitnodigingTekst(G.uitn, openerNaam(world.coopRoster, true))], voet: 'J = ja, N = nee' };
+  if (G.uitn) return { soort: 'uitnodiging', titel: 'Meedoen?', regels: [uitnodigingTekst(G.uitn, openerNaam(world.coopRoster, true))], voet: 'Wie finisht krijgt een beloning in zijn eigen geld.' };
   if (G.uitslag && !G.uitslag.gestopt) return uitslagModel(G.uitslag.rijen, G.uitslag.jij, 'gast', [], true, G.nogmaals);
   return null;
 }
 function uitslagModel(rijen, jij, rol, wie, kanOpnieuw, gevraagd = false) {
-  const regels = rijen.map((x) => `${ORDINAAL[x.plek] || x.plek + 'e'}  ${x.naam}${x.ai ? ' (AI)' : ''}  ${x.fin ? fmtTime(x.tijd) : x.weg ? 'niet meer erbij' : 'niet gefinisht'}${x.beste != null ? `  beste ronde ${fmtTime(x.beste)}` : ''}`);
+  const regels = rijen.map((x) => `${ORDINAAL[x.plek] || x.plek + 'e'}  ${x.naam}${x.ai ? ' (AI)' : ''}  ${x.tekst ? x.tekst : x.fin ? fmtTime(x.tijd) : x.weg ? 'niet meer erbij' : 'niet gefinisht'}${x.beste != null ? `  beste ronde ${fmtTime(x.beste)}` : ''}`); // x.tekst: de score van een golfronde
   let eigen = '';
-  if (jij) eigen = jij.weg ? 'Je reed niet uit.' : jij.fin ? `Jij werd ${ORDINAAL[jij.plek] || jij.plek + 'e'}${jij.geld > 0 ? `: beloning €${jij.geld.toLocaleString('nl-NL')}` : ''}.` : 'Je haalde de finish niet.';
+  if (jij) eigen = jij.weg ? 'Je reed niet uit.' : jij.fin ? `Jij werd ${ORDINAAL[jij.plek] || jij.plek + 'e'}${jij.geld > 0 ? `: beloning €${jij.geld.toLocaleString('nl-NL')}` : ''}.` : rijen.some((x) => x.tekst) ? 'Je had niet alle banen af.' : 'Je haalde de finish niet.';
   const opnieuw = rol === 'host'
     ? (kanOpnieuw ? `J = nog een keer${wie.length ? ` (${wie.join(', ')} wil${wie.length > 1 ? 'len' : ''} ook)` : ''}, N = sluiten` : 'N = sluiten')
     : (gevraagd ? 'Je wilt nog een keer: wacht tot de race opnieuw begint. N = sluiten' : 'J = ik wil nog een keer, N = sluiten');
