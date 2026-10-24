@@ -2351,7 +2351,9 @@ export function updateTrafficAI(v, dt, map, world, rng = Math.random, opts = nul
   }
   if (!v.plan) v.plan = [];
   if (!opts) opts = v.aiOpts || null;
-  if (v.busRun && v.driver !== 'player') {
+  // Een lijnbus die de speler als dienst rijdt (#396) blijft staan zodra hij uitstapt: de bus-AI neemt de dienst
+  // niet over. Na de dienst valt rideLine weg (sidejob_lijn.js stop) en rijdt de bus weer zijn eigen lijn.
+  if (v.busRun && v.driver !== 'player' && !v.rideLine) {
     const out = stepRunner(v.busRun, v.x, v.y, dt);
     opts = { goal: out.goal };
     const lp = v.liveId && liveBussen ? liveBussen.positie(v.liveId) : null;
