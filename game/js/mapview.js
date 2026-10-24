@@ -59,6 +59,7 @@ import {
 } from './routing.js';
 import { KEYS } from './storagekeys.js';
 import { grijsBijPassief } from './cooppvp.js';
+import { gastDoelen } from './coopextra.js';
 import { warnsOn, riskWhy } from './muggingrules.js';
 
 const PADDING = 0.94;
@@ -1123,8 +1124,9 @@ function drawDynamicMarkers(ctx, world) {
       m.label || 'Missie', {}, m.phase === 'active' ? 'Missiedoel' : 'Missie starten', m.phase === 'active' ? null : { todo: 'm:' + m.index });
   }
   // samen spelen: het doel van de opdracht van de gastheer staat ook op de kaart van een gast (#368)
-  const gastDoel = world.coopRole === 'client' && !showMission && world.coopHost && world.coopHost.doelen && world.coopHost.doelen[0];
-  if (gastDoel) icon(null, missionMapKind(-1, true), gastDoel.x, gastDoel.y, (world.coopHostMissie && world.coopHostMissie.label) || 'Opdracht', {}, 'Missiedoel van ' + (((world.coopRoster || []).find((r) => r.slot === 0) || {}).naam || 'de ander'));
+  const gastDoelLijst = world.coopRole === 'client' && !showMission ? gastDoelen(world) : []; // alle doelen van de host, niet alleen het eerste (#452)
+  const gastDoel = gastDoelLijst[0];
+  for (const gd of gastDoelLijst) icon(null, gd.soort === 'controle' ? 'waypoint' : missionMapKind(-1, true), gd.x, gd.y, gd.soort === 'controle' ? 'Controlepunt' : gd.label || (world.coopHostMissie && world.coopHostMissie.label) || 'Opdracht', {}, 'Missiedoel van ' + (((world.coopRoster || []).find((r) => r.slot === 0) || {}).naam || 'de ander'));
   const gastStart = world.coopRole === 'client' && !showMission && !gastDoel && world.coopHost && world.coopHost.starts && world.coopHost.starts[0]; // (#434)
   if (gastStart) icon(null, missionMapKind(gastStart.index, false), gastStart.x, gastStart.y, 'Opdracht', {}, 'Begint zodra ' + (((world.coopRoster || []).find((r) => r.slot === 0) || {}).naam || 'de ander') + ' bij de marker staat');
   // the story's step stays on the map while a goal of your own waits it out

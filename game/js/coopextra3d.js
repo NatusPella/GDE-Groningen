@@ -10,7 +10,8 @@ import { juichHoek } from './vrijgezellen.js';
 import { buildWildlifeMesh3D, animateWildlifeMesh3D } from './wildlife.js';
 import { getTrafficControllers, updateTrafficLights } from './trafficlights.js';
 import { breakPropByKey, restorePropByKey, isPropBroken } from './breakables.js';
-import { DIER_MAX_SCHAAL, veiligeDierSchaal, V_GROET, V_FEEST, V_WAPEN, V_AANVAL, V_GERAAKT, V_LIGT, lichtVerschil, standVers, MISC_KERMIS, MISC_STUNT, MISC_PUNTEN, MISC_PEDS, MISC_WERELD, MISC_SPREKERS, leesStunt, leesPunten, leesPeds, leesWereld, leesSprekers, WERELD_BRUG, WERELD_SLUIS, WERELD_GARAGE } from './coopextra.js';
+import { DIER_MAX_SCHAAL, veiligeDierSchaal, V_GROET, V_FEEST, V_WAPEN, V_AANVAL, V_GERAAKT, V_LIGT, lichtVerschil, standVers, MISC_KERMIS, MISC_STUNT, MISC_PUNTEN, MISC_PEDS, MISC_WERELD, MISC_SPREKERS, leesStunt, leesPunten, leesPeds, leesWereld, leesSprekers, WERELD_BRUG, WERELD_SLUIS, WERELD_GARAGE, standRekwisieten } from './coopextra.js';
+import { SPIKE_SPAN, SPIKE_DEPTH } from './roadshards.js';
 import { getMovableBridges, BRIDGE_TIMING } from './movablebridges.js';
 import { getSluizen, signalOf } from './sluizen.js';
 import { LOCK_TIMING } from './locks.js';
@@ -279,6 +280,90 @@ export function syncGastPunten(world) {
   return punten.meshes.length;
 }
 
+// ----------------------------------------------------------- tijdelijke rekwisieten van de host (#452, MISC_REKWISIETEN)
+// Eenvoudige low-poly vormen per soort, gebouwd uit gedeelde geometrieën en materialen (hier gecachet en bij clearExtra vrijgegeven; de
+// groepjes zelf bezitten niets, dus opruimen is scene.remove). De gast tekent alleen wat de host meldt; de host blijft leidend.
+const HEIST_HOGEN = [[0.35, 0.8, 1.25, 1.7], [1.12, 1.55], [0.35, 0.8, 1.25, 1.7], [0.28]]; // gelijk aan HEIST_LASER_HOGEN (heist.js), zonder heist.js in te laden
+const LASER_LENGTE = 10.4;
+let rGeo = null; const rMat = new Map();
+const rekwGeo = () => rGeo || (rGeo = {
+  doos: new THREE.BoxGeometry(1, 1, 1), laser: new THREE.BoxGeometry(LASER_LENGTE, 0.035, 0.035), plank: new THREE.PlaneGeometry(1, 1),
+  bus: new THREE.CylinderGeometry(0.1, 0.1, 0.32, 6), pijl: new THREE.ConeGeometry(0.06, 0.55, 5), ring: new THREE.TorusGeometry(0.45, 0.04, 4, 10).rotateX(Math.PI / 2),
+  tand: new THREE.ConeGeometry(0.05, 0.16, 4), mat: new THREE.BoxGeometry(SPIKE_SPAN, 0.04, SPIKE_DEPTH * 1.6),
+});
+const rekwMat = (kleur, basis = false, opts = {}) => {
+  const sleutel = (basis ? 'b' : 'l') + kleur + (opts.transparent ? 't' : '') + (opts.side ? 's' : '');
+  let m = rMat.get(sleutel);
+  if (!m) { m = basis ? new THREE.MeshBasicMaterial({ color: kleur, ...opts }) : new THREE.MeshLambertMaterial({ color: kleur, ...opts }); rMat.set(sleutel, m); }
+  return m;
+};
+const rDoos = (g, w, h, d, kleur, x, y, z, basis = false, opts = {}) => { const m = new THREE.Mesh(rekwGeo().doos, rekwMat(kleur, basis, opts)); m.scale.set(w, h, d); m.position.set(x, y, z); g.add(m); return m; };
+
+// Elke bouwer geeft een groep terug; werk(g, r, nu) zet de toestand (aan, uit, open, lont)
+const REKW_BOUW = {
+  laser(r) {
+    const g = new THREE.Group(); g.userData.balken = [];
+    const hs = HEIST_HOGEN[r.staat & 3] || HEIST_HOGEN[0];
+    for (const h of hs) { const m = new THREE.Mesh(rekwGeo().laser, rekwMat(0xff3a2a, true)); m.position.y = h; g.add(m); g.userData.balken.push(m); }
+    for (const kant of [-1, 1]) rDoos(g, 0.08, hs[hs.length - 1] + 0.3, 0.12, 0x1c1f22, kant * (LASER_LENGTE / 2 + 0.02), (hs[hs.length - 1] + 0.3) / 2, 0);
+    return g;
+  },
+  zekering() { const g = new THREE.Group(); rDoos(g, 0.12, 1.2, 0.12, 0x3a3d42, 0, 0.6, 0); rDoos(g, 0.7, 0.95, 0.3, 0x7d8388, 0, 1.45, 0); rDoos(g, 0.08, 0.08, 0.04, 0x33ff66, 0.22, 1.8, 0.16, true); return g; },
+  kluis() {
+    const g = new THREE.Group(); rDoos(g, 1, 1, 1, 0xd9d4c7, 0, 0.5, 0); rDoos(g, 0.46, 0.08, 0.46, 0x9c1628, 0, 1.04, 0);
+    g.userData.glas = rDoos(g, 0.9, 0.75, 0.9, 0xf3e6c4, 0, 1.4, 0, true, { transparent: true, opacity: 0.6 }); return g;
+  },
+  vlag(r) {
+    const g = new THREE.Group(); const b = Math.max(2, r.staat);
+    const doek = new THREE.Mesh(rekwGeo().plank, rekwMat(0xf4f2ea, true, { side: THREE.DoubleSide })); doek.scale.set(b, b * 1.5, 1); g.add(doek);
+    const streep = new THREE.Mesh(rekwGeo().plank, rekwMat(0x2553a6, true, { side: THREE.DoubleSide })); streep.scale.set(b, b * 0.3, 1); streep.position.z = 0.02; g.add(streep);
+    return g;
+  },
+  carbid() { const g = new THREE.Group(); const m = new THREE.Mesh(rekwGeo().bus, rekwMat(0xd9a31a)); m.rotation.z = Math.PI / 2; g.add(m); return g; },
+  raket() { const g = new THREE.Group(); const m = new THREE.Mesh(rekwGeo().pijl, rekwMat(0xd23a2a)); m.rotation.z = -Math.PI / 2; g.add(m); return g; },
+  wapendrop() { const g = new THREE.Group(); g.add(new THREE.Mesh(rekwGeo().ring, rekwMat(0xffd23f, true))); rDoos(g, 0.5, 0.08, 0.1, 0x6b4a2a, 0, 0.1, 0); return g; },
+  spijkermat() {
+    const g = new THREE.Group(); g.add(new THREE.Mesh(rekwGeo().mat, rekwMat(0x24262a)));
+    for (let i = 0; i < 12; i++) for (const rij of [-0.2, 0.2]) { const t = new THREE.Mesh(rekwGeo().tand, rekwMat(0xc9ced4)); t.position.set(-SPIKE_SPAN / 2 + 0.3 + (i / 11) * (SPIKE_SPAN - 0.6), 0.1, rij); g.add(t); }
+    return g;
+  },
+};
+const REKW_OP_GROND = new Set(['wapendrop', 'spijkermat']); // de rest meldt zijn eigen hoogte (binnen, in de lucht)
+const rekw = new Map(); // soort|id -> { groep, soort }
+export function syncGastRekwisieten(world) {
+  const scene = getScene(); if (!scene) return 0;
+  const stand = world.coopExtra, nu = world.time || 0;
+  const lijst = stand && standVers(stand, nu) ? standRekwisieten(stand, nu) : [];
+  const gezien = new Set();
+  for (const r of lijst) {
+    const sleutel = r.soort + '|' + r.id; gezien.add(sleutel);
+    let e = rekw.get(sleutel);
+    if (!e) {
+      let g = null; try { g = REKW_BOUW[r.soort](r); } catch (er) { g = null; }
+      if (!g) continue;
+      scene.add(g); e = { groep: g, soort: r.soort, laser: r.soort === 'laser' ? r.staat & 3 : 0 }; rekw.set(sleutel, e);
+    } else if (r.soort === 'laser' && e.laser !== (r.staat & 3)) { scene.remove(e.groep); rekw.delete(sleutel); continue; }
+    const g = e.groep;
+    g.position.set(r.x, (REKW_OP_GROND.has(r.soort) ? grond(world, r.x, r.y) + (r.soort === 'wapendrop' ? 0.5 : 0.03) : 0) + r.z, r.y);
+    g.rotation.y = -r.hoek;
+    if (r.soort === 'laser') for (const m of g.userData.balken) m.visible = !!(r.staat & 128);
+    else if (r.soort === 'kluis') g.userData.glas.visible = r.staat !== 1;
+    else if (r.soort === 'carbid') g.rotation.x = r.staat * 0.2;
+    else if (r.soort === 'wapendrop') g.rotation.y = nu * 1.5;
+    else if (r.soort === 'spijkermat') g.rotation.y = -(r.hoek + Math.PI / 2);
+  }
+  for (const [sleutel, e] of rekw) if (!gezien.has(sleutel)) { scene.remove(e.groep); rekw.delete(sleutel); }
+  return rekw.size;
+}
+function ruimRekwisieten() {
+  const scene = getScene();
+  if (scene) for (const e of rekw.values()) scene.remove(e.groep);
+  rekw.clear();
+  if (rGeo) { for (const g of Object.values(rGeo)) g.dispose(); rGeo = null; }
+  for (const m of rMat.values()) m.dispose();
+  rMat.clear();
+}
+
 export function clearExtra() {
   const scene = getScene();
   if (scene) { for (const e of pop.values()) verwijder(scene, e.mesh); for (const e of dieren.values()) verwijder(scene, e.mesh); }
@@ -288,10 +373,11 @@ export function clearExtra() {
   if (scene) { if (stunt.groep) scene.remove(stunt.groep); for (const m of punten.meshes) scene.remove(m); }
   stunt.groep = null; stunt.meshes = []; stunt.sig = ''; punten.meshes = []; punten.sig = '';
   if (kermisAan) { kermisAan = false; setKermisOverride(null); }
+  ruimRekwisieten();
   for (const key of mijnKapot) restorePropByKey(key);
   mijnKapot.clear();
 }
-export const hasExtra = () => pop.size > 0 || dieren.size > 0 || mijnKapot.size > 0 || !!stunt.groep || punten.meshes.length > 0 || kermisAan;
+export const hasExtra = () => pop.size > 0 || dieren.size > 0 || mijnKapot.size > 0 || !!stunt.groep || punten.meshes.length > 0 || rekw.size > 0 || kermisAan;
 
 // Elke frame (main.js), alleen op een gast
 export function syncExtra(world, dt) {
@@ -307,10 +393,10 @@ export function syncExtra(world, dt) {
   syncGastKapot(world, dt);
   const nw = syncGastWereld(world, dt);
   syncGastKermis(world, dt);
-  const ns = syncGastStunt(world), np = syncGastPunten(world);
+  const ns = syncGastStunt(world), np = syncGastPunten(world), nr = syncGastRekwisieten(world);
   let doodDier = 0; for (const e of dieren.values()) if (e.a.dead) doodDier++;
   world.coopExtraDbg = { ligt: r.ligt, wapen: r.wapen, vecht: r.vecht, wereld: nw, sprekers: losSprekers.size, doodDier }; // voor de testbank
-  world.coopExtraMeshes = [r.echt, nd, stand0(world), ns, np, kermisAan ? 1 : 0]; // voor de testbank: [voetgangers met hun echte uiterlijk, dieren, kapotte objecten, stuntdingen, punten, kermis]
+  world.coopExtraMeshes = [r.echt, nd, stand0(world), ns, np, kermisAan ? 1 : 0, nr]; // voor de testbank: [voetgangers met hun echte uiterlijk, dieren, kapotte objecten, stuntdingen, punten, kermis, tijdelijke rekwisieten]
   if (Array.isArray(world.coopHostMeshes)) { world.coopHostMeshes[2] = r.echt; world.coopHostMeshes[3] = r.rest; } // zelfde plekken als vroeger: [voertuigen echt, blokken, voetgangers echt, eenvoudig]
 }
 const stand0 = (world) => mijnKapot.size;

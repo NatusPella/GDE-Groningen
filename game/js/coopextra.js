@@ -640,6 +640,15 @@ export function leesDoelen(b) {
   return o === b.length ? uit : null;
 }
 
+// De doelen van de lopende opdracht (world.mission): het doel zelf en de controlepunten die nog te gaan zijn
+export function doelenVan(m) {
+  if (!m || m.phase !== 'active' || !m.marker) return [];
+  const uit = [];
+  if (Number.isFinite(m.marker.x) && Number.isFinite(m.marker.y)) uit.push({ id: 0, soort: m.type === 'heist' ? 'inbraak' : 'doel', x: m.marker.x, y: m.marker.y, label: m.label || 'Opdracht' });
+  (m.remainingWaypoints || []).slice(0, 10).forEach((w, i) => { if (w && Number.isFinite(w.x) && Number.isFinite(w.y)) uit.push({ id: i + 1, soort: 'controle', x: w.x, y: w.y, label: 'Controlepunt' }); });
+  return uit;
+}
+
 // De gast: wat de stand nu zegt (vers; het gelezen resultaat wordt bij het stukje zelf bewaard)
 const versStuk = (stand, tag, nu) => { const m = stand && stand.misc && stand.misc.get(tag); return m && nu - m.at < MISC_TTL ? m : null; };
 export function standRekwisieten(stand, nu) {
