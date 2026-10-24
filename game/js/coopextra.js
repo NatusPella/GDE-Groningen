@@ -539,9 +539,9 @@ export const REKW_SOORTEN = ['laser', 'zekering', 'kluis', 'vlag', 'carbid', 'ra
 export const MAX_REKWISIETEN = 40;
 export const REKW_RADIUS = 200;
 const REKW_KOP = 9, REKW_ITEM = 11, REKW_MAX_BYTES = 255;
-const rekwBronnen = new Map(), doelBronnen = new Set();
+const rekwBronnen = new Map(), doelBronnen = new Map();
 export function registreerRekwisieten(naam, fn) { if (typeof fn === 'function') rekwBronnen.set(naam, fn); else rekwBronnen.delete(naam); }
-export function registreerDoelen(fn) { if (typeof fn === 'function') doelBronnen.add(fn); }
+export function registreerDoelen(naam, fn) { if (typeof fn === 'function') doelBronnen.set(naam, fn); else doelBronnen.delete(naam); }
 export const wisRegistratie = () => { rekwBronnen.clear(); doelBronnen.clear(); };
 
 // bronnen: functie, Map of object naam -> fn (standaard het register); een bron die faalt, telt niet mee
@@ -603,7 +603,7 @@ export const DOEL_SOORTEN = ['doel', 'controle', 'start', 'klus', 'inbraak'];
 export const MAX_DOELEN = 12, DOEL_LABEL_BYTES = 40;
 export function verzamelDoelen(bij, bronnen = null) {
   const lijst = [];
-  const fns = typeof bronnen === 'function' ? [bronnen] : bronnen ? [...bronnen] : [...doelBronnen];
+  const fns = typeof bronnen === 'function' ? [bronnen] : bronnen ? [...bronnen] : [...doelBronnen.values()];
   for (const fn of fns) {
     let uit = null; try { uit = fn(bij); } catch (e) { uit = null; }
     (Array.isArray(uit) ? uit : []).forEach((d) => {
