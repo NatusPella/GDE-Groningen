@@ -11,6 +11,8 @@ import { createBoard, key, bubble, clearBubbles, pick, stopPressed, easeCamera, 
 import { DISC_LINES } from './minigamelines.js';
 import { DISCEXT_LINES } from './minigamelines3.js';
 import { fullRound, roundMedal, ctpPoints, ctpRound, CTP } from './discgolfext.js';
+import { loopbaanVerdien } from './loopbaanlive.js';
+import { registreerWedstrijd, zetWedGastHaken, wedNodigUit, wedNuStarten, wedHostScore, wedGastScore, wedScoreStop, wedGastVerlaat, wedGastReset, wedScoreRijen } from './coopwedstrijd.js';
 import {
   courseHoles, simulateFlight, DISCS, DISC_ORDER, RELEASES, suggestDisc, newCard, finishHole, cardTotals, courseMedal, holeName, relText,
   MAX_OVER_PAR, CIRCLE_M,
@@ -274,6 +276,9 @@ function interact(w) {
   if (!nearStand(w)) return false;
   const why = activityBlock(w);
   if (why) { w.addMessage(why, 2.5); return true; }
+  // with guests in the session the round is an invitation to everyone (Meedoen? J/N); pressing E again starts at once (#443)
+  const uit = wedNodigUit(w, 'discgolf');
+  if (uit.ok) { if (uit.reden === 'wacht') wedNuStarten(w); return true; }
   start(w);
   return true;
 }
@@ -282,12 +287,13 @@ function newHoleWind(rng = Math.random) {
   return { speed: rng() * 4.6, dir: rng() * Math.PI * 2 };
 }
 
-function start(w, { force = false } = {}) {
+// online: 'host' (who opened the game, at the stand) or 'gast' (on his own screen): everybody plays the same nine holes at once, with the same wind and the same scatter (#443)
+function start(w, { force = false, online = null } = {}) {
   if (game) return false;
-  if (!force && activityBlock(w)) return false;
+  if (!force && !online && activityBlock(w)) return false;
   if (!built) built = buildCourse(w);
   const p = w.player;
-  if (p.inVehicle) p.exitVehicle(w.map, w);
+  if (p.inVehicle && p.exitVehicle) p.exitVehicle(w.map, w);
   document.body.classList.add('discgolf-on');
   ensureBoard();
   board.show();
@@ -296,9 +302,13 @@ function start(w, { force = false } = {}) {
   game = {
     mode: 'negen', pickMode: 0, ctp: null,
     t: 0, hole: 0, strokes: 0, phase: 'aim', phaseT: 0, card: newCard(COURSE), lie: null, lastLie: null, yaw: 0, loft: 0.15, release: 0, disc: 'driver',
-    charge: 0, charging: false, wind: newHoleWind(), flight: null, flash: null, cam: null, said: 0, trees: built.trees, rng: Math.random,
+    charge: 0, charging: false, wind: newHoleWind(), flight: null, flash: null, cam: null, said: 0, trees: built.trees, rng: Math.random, online,
   };
   beginHole(w);
+  if (online) { // the host's invitation said what is played: nine holes, no choice of round
+    if (online === 'host') showCard(w, { kind: 'tip', kicker: 'Discgolf', title: 'Negen banen tegen elkaar', body: 'Iedereen speelt dezelfde baan tegelijk op het eigen scherm, met dezelfde wind. Het scorebord toont de stand. [Backspace] stopt.' });
+    return true;
+  }
   game.phase = 'mode';
   showCard(w, { kind: 'tip', kicker: 'Discgolf', title: 'Het Stadspark, kies je ronde', body: 'Kies eerst een ronde met [A] [D] en [Spatie]: negen banen, de achterkant, achttien banen of drie worpen op één mand. Daarna: [A] [D] richten, [W] [S] hoek, [E] release, [F] disc, houd [Spatie] om te laden en laat los om te gooien.', duration: 9, key: 'discgolf-help', voice: false });
   say(w, 'start', true);
@@ -323,7 +333,7 @@ function beginHole(w) {
   g.strokes = 0;
   g.lie = { x: h.tee.x, y: h.tee.y };
   g.lastLie = { ...g.lie };
-  g.wind = newHoleWind();
+  g.wind = newHoleWind(g.online ? makeRng(443 + g.hole * 97 + 5) : Math.random);
   g.phase = 'aim';
   g.phaseT = 0;
   g.cam = null;
@@ -363,7 +373,7 @@ function setLie(w, fresh = false) {
 function envFor(w) {
   const g = game;
   const h = COURSE[g.hole];
-  return { wind: g.wind, trees: g.trees, basket: h.basket, water: (x, y) => !lieOk(w.map, x, y), rng: g.rng };
+  return { wind: g.wind, trees: g.trees, basket: h.basket, water: (x, y) => !lieOk(w.map, x, y), rng: g.online ? makeRng(443 + g.hole * 101 + g.strokes * 7919) : g.rng };
 }
 
 function throwDisc(w, power, over = {}) {
@@ -424,6 +434,7 @@ function holeDone(w, strokes, why) {
   const g = game;
   const h = COURSE[g.hole];
   const entry = finishHole(g.card, g.hole, strokes);
+  if (g.online) { const sl = Math.min(strokes, h.par + MAX_OVER_PAR); if (g.online === 'host') wedHostScore(w, g.hole, sl); else wedGastScore(w, g.hole, sl); }
   const name = why === 'opgepakt' ? 'Opgepakt' : holeName(strokes, h.par);
   g.flash = { text: `${name}: ${strokes} worp${strokes === 1 ? '' : 'en'} (par ${h.par})`, t: 3, bad: strokes > h.par };
   const d = strokes - h.par;
@@ -437,7 +448,10 @@ function holeDone(w, strokes, why) {
 function nextHole(w) {
   const g = game;
   g.hole++;
-  if (g.hole >= COURSE.length) { end(w); return; }
+  if (g.hole >= COURSE.length) {
+    if (g.online) { g.hole = COURSE.length - 1; g.phase = 'wacht'; g.phaseT = 0; g.flash = null; return; } // all holes done: wait for the others (the host ends the round)
+    end(w); return;
+  }
   beginHole(w);
 }
 
@@ -471,6 +485,7 @@ function updateGame(w, dt) {
   g.t += dt;
   g.phaseT += dt;
   if (g.flash && (g.flash.t -= dt) <= 0) g.flash = null;
+  if (g.online === 'gast' && (!w.coopNet || w.coopRole !== 'client')) { wedGastReset(w); end(w, { quit: true, extern: true }); return; } // the connection is gone
   if (stopPressed(input)) { end(w, { quit: true }); return; }
   const p = w.player;
   p.speed = 0; p.moving = false; p.vx = 0; p.vy = 0; p.z = 0;
@@ -508,7 +523,7 @@ function updateGame(w, dt) {
   }
 }
 
-function end(w, { quit = false } = {}) {
+function end(w, { quit = false, extern = false, uitslag = null } = {}) {
   const g = game;
   if (!g) return;
   game = null;
@@ -520,6 +535,7 @@ function end(w, { quit = false } = {}) {
   if (built) { built.line.visible = false; built.marker.visible = false; built.disc.visible = false; built.lie.visible = false; built.caddie.visible = !quit; built.caddieUntil = w.time + 14; }
   const p = w.player;
   if (!lieOk(w.map, p.x, p.y)) { p.x = STAND.x; p.y = STAND.y; }
+  if (g.online) { setCourse(BASE); eindeOnline(w, g, quit, extern, uitslag); return; }
   if (quit) { setCourse(BASE); w.addMessage('Discgolf gestopt', 2.5); return; }
   if (g.ctp) { endCtp(w, g); setCourse(BASE); return; }
   const t = cardTotals(g.card);
@@ -538,6 +554,21 @@ function end(w, { quit = false } = {}) {
   showBanner({ kind: medal ? 'pass' : 'fail', title: medal >= 3 ? 'ONDER PAR IN HET STADSPARK' : medal ? 'NETTE RONDE' : 'DE EENDEN HEBBEN GEWONNEN', reason: medal ? `${relText(t.rel)} t.o.v. par over ${COURSE.length === 9 ? 'negen' : COURSE.length} banen` : 'Probeer het nog eens: kijk naar de wind en de vlag', reward: 0, stats });
   say(w, medal >= 2 ? 'endGood' : 'endPoor', true, true);
   setCourse(BASE);
+}
+
+// Online (#443): wie stopt laat de anderen doorspelen; de uitslag en de beloning komen van wie het spel opende (coopwedstrijd.js).
+function eindeOnline(w, g, quit, extern, res) {
+  if (quit) {
+    if (!extern) { if (g.online === 'host') wedScoreStop(w); else wedGastVerlaat(w); } // the host stops it for everybody, a guest only for himself
+    w.addMessage('Discgolf gestopt', 2.5);
+    return;
+  }
+  if (g.online === 'gast' || !res) return; // a guest: the results card and the prize message come from the host
+  recordStat(w, 'discgolfRounds');
+  unlockAchievement(w, 'discgolf_klaar');
+  const jij = res.jij || { plek: 0, geld: 0, xp: 0 };
+  loopbaanVerdien(w, 'golf', jij.geld, { xp: jij.xp, n: 1, uniek: 'discgolf', deel: false }); // the prize is per place; the guests get theirs from the host
+  if (jij.geld > 0) w.addMessage(`Beloning: €${jij.geld.toLocaleString('nl-NL')}`, 4);
 }
 
 function endCtp(w, g) {
@@ -655,12 +686,14 @@ function updateHud() {
     board.set({ row: `<span>Worp <b>${Math.min(CTP.throws, g.ctp.dists.length + 1)}/${CTP.throws}</b></span><span>Mand <b>${Math.round(dist)} m</b></span><span>${windText(g.wind)} ${windArrow(g)}</span><span>${ds}</span>`, meter: g.phase === 'aim' ? { v: g.charge, color: '#f08a2e' } : null, flash: g.flash ? g.flash.text : info, bad: !!(g.flash && g.flash.bad), help: g.phase === 'aim' ? `${key('A')}${key('D')} richten · ${key('W')}${key('S')} hoek · ${key('E')} release · ${key('F')} disc · houd ${key('SPATIE')} en laat los · ${key('BACKSPACE')} stoppen` : key('BACKSPACE') + ' stoppen' });
     return;
   }
-  const row = `<span>Baan <b>${h.n}</b>/${COURSE.length}</span><span>Par <b>${h.par}</b></span><span>Worp <b>${g.phase === 'aim' ? g.strokes + 1 : g.strokes}</b></span><span>Mand <b>${Math.round(dist)} m</b></span><span>${windText(g.wind)} ${windArrow(g)}</span>`;
+  const online = g.online ? wedScoreRijen(w) : [];
+  const stand2 = online.length ? `<span>${online.map((r) => `${r.weg ? '<s>' : ''}${r.naam} ${relText(r.rel)} (${r.banen}/${COURSE.length})${r.weg ? '</s>' : ''}`).join(' · ')}</span>` : '';
+  const row = `${stand2}<span>Baan <b>${h.n}</b>/${COURSE.length}</span><span>Par <b>${h.par}</b></span><span>Worp <b>${g.phase === 'aim' ? g.strokes + 1 : g.strokes}</b></span><span>Mand <b>${Math.round(dist)} m</b></span><span>${windText(g.wind)} ${windArrow(g)}</span>`;
   const cells = g.card.holes.map((c, i) => ({ t: c.done ? String(c.strokes) : i === g.hole ? `${g.strokes || '·'}` : String(c.n), cls: `${i === g.hole ? 'on' : ''} ${c.done ? (c.strokes <= c.par ? 'good' : 'bad') : ''}` }));
   const disc = DISCS[g.disc];
   const rel = RELEASES.find((r) => r.id === g.release);
   const info = g.phase === 'aim' ? `${disc.name} · ${rel.name} · hoek ${Math.round(g.loft * 57.3)}°${dist <= CIRCLE_M ? ' · in de cirkel' : ''}` : '';
-  const flash = g.flash ? g.flash.text : info;
+  const flash = g.flash ? g.flash.text : g.phase === 'wacht' ? 'Alle banen af: wachten op de anderen' : info;
   const help = g.phase === 'aim'
     ? `${key('A')}${key('D')} richten · ${key('W')}${key('S')} hoek · ${key('E')} release · ${key('F')} disc · houd ${key('SPATIE')} en laat los · ${key('BACKSPACE')} stoppen · totaal ${relText(t.rel)}`
     : `Totaal ${relText(t.rel)} · ${key('BACKSPACE')} stoppen`;
@@ -668,6 +701,29 @@ function updateHud() {
 }
 
 // --- the activity ------------------------------------------------------------------------------------------------
+
+// --- playing against others (#443) --------------------------------------------------------------------------------------
+
+// a guest: the host started the round and this guest said yes; the round runs on his own screen
+function gastTik(w, dt) {
+  if (!game || game.online !== 'gast') return false;
+  updateGame(w, dt);
+  if (game) { if ((lodT -= dt) <= 0) { lodT = 0.5; updateLod(w); } sync3D(w, dt); updateHud(); }
+  return true;
+}
+registreerWedstrijd('discgolf', {
+  naam: 'Discgolf', soort: 'score',
+  banen: () => BASE.map((h) => ({ par: h.par })),
+  start: (w) => start(w, { online: 'host' }),
+  plek: () => ({ ...STAND }),
+  eind: (w, res) => { if (game && game.online === 'host') end(w, res ? { uitslag: res } : { quit: true, extern: true }); },
+  solo: (w) => start(w),
+});
+zetWedGastHaken('discgolf', {
+  start: (w) => start(w, { online: 'gast', force: true }),
+  eind: (w, uit) => { if (game && game.online === 'gast') end(w, uit.gestopt ? { quit: true, extern: true } : { uitslag: uit }); },
+  tik: gastTik,
+});
 
 export const DISCGOLF = {
   id: 'discgolf',
