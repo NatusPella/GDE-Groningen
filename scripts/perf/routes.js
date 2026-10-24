@@ -423,7 +423,7 @@ results.routes.reislek = await safe('reislek', async () => {
 // made while it runs: the trend is what counts, not the level) and the scene's nodes and materials. The result has `trend` per metric.
 results.routes.soak = await safe('soak', async () => {
   if (!ONLY.includes('soak')) return null;
-  const MS = await imp('missions'), CN = await imp('coopnet'), MT = await imp('net/memtransport'), MV = await imp('mapview');
+  const MS = await imp('missions'), CN = await imp('coopnet'), MT = await imp('net/memtransport');
   const MINUTES = window.__perfSoakMin || 12;
   // --- counters
   const live = { listeners: 0, timers: 0 }, lis = new WeakMap(), byType = new Map(), timers = new Map();
@@ -466,7 +466,8 @@ results.routes.soak = await safe('soak', async () => {
   const ctx = { mode: 'stil', v: null };
   const enter = (v) => { v.road = null; v.speed = 0; v.perfTemp = true; w.vehicles.push(v); p.enterVehicle(v, w); ctx.v = v; };
   const leaveV = () => { const v = ctx.v; ctx.v = null; ctx.mode = 'stil'; if (!v) return; if (p.inVehicle) p.exitVehicle(map, w); const i = w.vehicles.indexOf(v); if (i >= 0) w.vehicles.splice(i, 1); };
-  const phase = async (mode, secs) => { ctx.mode = mode; ctx.t0 = performance.now(); await sleep(secs * 1000); };
+  const step = (msg) => console.error('[soak-step] ' + Math.round(performance.now() / 1000) + ' ' + msg);
+  const phase = async (mode, secs) => { step(mode); ctx.mode = mode; ctx.t0 = performance.now(); await sleep(secs * 1000); };
   const TABS = ['spel', 'todo', 'verhaal', 'telefoon', 'streken'];
   const coopRound = async () => {
     const INFO = CN.handshakeInfo({ tiles: 'soak', story: 'soak' });
@@ -481,20 +482,24 @@ results.routes.soak = await safe('soak', async () => {
   const driver = async () => {
     for (let cycle = 1; cycle <= MINUTES; cycle++) {
       const c0 = performance.now();
+      step('cycle ' + cycle);
       await phase('voet', 10);
       ctx.mode = 'stil';
       const pt = map.nearestRoadPoint(RING[0][0], RING[0][1], 60, true, true); teleport(RING[0][0], RING[0][1]);
       enter(VEH.spawnVehicleOnRoad(map, pt.road, false, Math.random, false, false, pt)); await phase('auto', 10); leaveV();
       teleport(HELIR[0][0], HELIR[0][1]); enter(HF.makeHeli(p.x, p.y, map.groundHeightAt(p.x, p.y, 0) || 0, 0)); await phase('heli', 10); if (ctx.v) { ctx.v.z = ctx.v.groundZ || 0; ctx.v.vx = ctx.v.vy = 0; ctx.v.onGround = true; ctx.v.airborne = false; } await sleep(300); leaveV();
       teleport(FOOT[0][0], FOOT[0][1]);
-      wantMenu = true;
+      step('pauze'); wantMenu = true;
       for (let k = 0; k < 5; k++) { PM.openPauseMenu(TABS[(cycle + k) % TABS.length]); await sleep(300); PM.closePauseMenu(); await sleep(150); counts.pause++; }
+      step('kaart'); wantMenu = true;
+      for (let k = 0; k < 5; k++) { const t1 = performance.now(); PM.openPauseMenu('map'); await sleep(500); const ms = Math.round(performance.now() - t1); PM.closePauseMenu(); await sleep(150); counts.map++; if (k === 0) step('kaart geopend in ' + ms + ' ms'); }
       wantMenu = false;
-      for (let k = 0; k < 5; k++) { MV.setMapActive(w, true); await sleep(400); MV.setMapActive(w, false); await sleep(150); counts.map++; }
+      step('missie');
       try { if (MS.missionDebug.start(w, 0)) { await sleep(2000); MS.cancelActiveMission(w); counts.mission++; await sleep(500); } else counts.missionFail++; } catch (e) { counts.missionFail++; console.log('[soak] mission', String(e && e.message)); }
+      step('coop');
       try { await coopRound(); counts.coop++; } catch (e) { counts.coopFail++; console.log('[soak] coop', String((e && e.stack) || e)); try { CN.stopCoopNet(w); } catch (e2) { /* weg */ } }
       const left = 60000 - (performance.now() - c0); if (left > 0) await sleep(left);
-      take(cycle);
+      take(cycle); step('klaar ' + cycle);
     }
   };
   let drv = null;
