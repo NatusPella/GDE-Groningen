@@ -272,13 +272,13 @@ window.__coopPhases = (c) => {
         for (let i = 0; i < 6 && w.coopWisselUi && w.coopWisselUi.vraag; i++) { const k = document.querySelector('.coop-wissel [data-wissel="ja"]'); if (k) k.click(); await sleep(700); } // de knop wordt elke tik opnieuw getekend: steeds opnieuw zoeken
         log('overdragen-ja', {});
       }
-      const fasen = []; const volg = setInterval(() => { const x = w.coopWissel || {}, f = (x.oud && x.oud.fase) || (x.nieuw && x.nieuw.fase) || '-'; const t = Math.round((performance.now() - t0) / 1000); const k = f + ':' + (x.overname ? 'o' : '') + (x.verbindt ? 'v' : '') + (x.oudKlaar ? 'k' : ''); if (!fasen.length || fasen[fasen.length - 1][1] !== k) fasen.push([t, k]); }, 300);
+      const fasen = []; const volg = setInterval(() => { const x = w.coopWissel || {}, f = (x.oud && x.oud.fase) || (x.nieuw && x.nieuw.fase) || '-'; const t = Math.round((performance.now() - t0) / 1000); const k = f + ':' + (x.overname ? 'o' : '') + (x.verbindt ? 'v' : '') + (x.oudKlaar ? 'k' : ''); if (!fasen.length || fasen[fasen.length - 1][1] !== k) fasen.push([t, k]); const km = x.overname && x.overname.rm && x.overname.rm.kamer; if (km && !haalCache.kamer) { haalCache.kamer = km; zet('code', km); } }, 300); // de kamer van de nieuwe host: daar sluit een gekickte speler later weer bij aan
       // wacht tot de rollen gewisseld zijn: gast = host, host = gast, gast 2 sluit vanzelf aan bij de nieuwe host
       let gewisseld = false;
       for (let i = 0; i < 180 && !gewisseld; i++) {
         const n = net();
-        if (CFG.name === 'gast') gewisseld = !!n && n.role === 'host' && !w.coopWissel;
-        else if (CFG.name === 'host') gewisseld = !!n && n.role === 'client' && !!n.session && n.session.joined && !w.coopWissel;
+        if (CFG.name === 'gast') gewisseld = !!n && n.role === 'host' && !(w.coopWissel && w.coopWissel.overname);
+        else if (CFG.name === 'host') gewisseld = !!n && n.role === 'client' && !!n.session && n.session.joined;
         else { if (i % 4 === 0) haalCache.rol = await haal('rol-gast'); gewisseld = haalCache.rol === 'host' && !!n && n.role === 'client' && !!n.session && n.session.joined; }
         if (!gewisseld) await sleep(500);
       }
@@ -297,7 +297,7 @@ window.__coopPhases = (c) => {
         k.click(); await sleep(600); const k2 = await until(() => document.querySelector(`#pause-menu [data-eruit="${sl}"]`), 4000, 'bevestigen'); k2.click(); await sleep(2500);
         await closeMenu(); await sleep(3000);
         // de code voor het terugkomen: het paneel Samen spelen
-        await openSamen(); const code = (panel() && panel().querySelector('.coop-code') || {}).textContent; log('kick-code', { code: !!code, titel: title() }); if (code) await zet('code', code.trim()); shot('kick-samen'); await closeMenu();
+        let code = await haal('code'); if (!code) { await openSamen(); code = (panel() && panel().querySelector('.coop-code') || {}).textContent; log('kick-code', { paneel: !!code, titel: title(), tekst: panel() ? panel().innerText.slice(0, 200) : '' }); if (code) await zet('code', code.trim()); shot('kick-samen'); await closeMenu(); }
         uitslag('kick', (w.coopRoster || []).length < voor, { rol: 'host', voor, na: (w.coopRoster || []).length, code: !!code });
         return;
       }
