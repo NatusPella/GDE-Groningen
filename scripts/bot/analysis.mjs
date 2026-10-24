@@ -27,6 +27,8 @@ export function findings(events) {
     else add('vast', 'bug', sid, `Bot zit vast bij ${sid}`, `Op (${Math.round(e.x)}, ${Math.round(e.y)}), ${Math.round(e.idleFor || 0)} s zonder voortgang, afstand tot doel ${e.goalDist != null ? Math.round(e.goalDist) + ' m' : 'onbekend'}`, shotFor(name));
   }
   for (const e of events.filter((x) => x.type === 'wacht-te-lang')) add('wacht', 'bug', String(e.step || '').split(':')[0], `Bot wacht te lang bij ${String(e.step || '').split(':')[0]}: ${(e.blocking || []).join(', ') || e.act}`, `Het spel laat niet los (${e.act}${e.why ? ', ' + e.why : ''}); vlaggen: ${(e.blocking || []).join(', ') || 'geen'}`);
+  // een tak die zijn eigen klok bijhoudt (duif, vliegtuig, paneel) liep zonder time-out door tot het eind van de run (#387)
+  for (const e of events.filter((x) => x.type === 'timeout')) add('timeout', 'bug', String(e.step || '').split(':')[0], `Bot hing bij ${String(e.step || '').split(':')[0]}: ${e.what || 'duurde te lang'}`, `Na ${Math.round(e.forS || 0)} s op (${Math.round(e.x)}, ${Math.round(e.y)})${e.goalDist != null ? `, ${Math.round(e.goalDist)} m van doel` : ''}${e.doel && Number.isFinite(e.doel.x) ? `, doel (${Math.round(e.doel.x)}, ${Math.round(e.doel.y)})` : ''}`);
   const cheatSteps = new Map();
   for (const c of S.cheats.filter((x) => x.rung !== 'nudge')) cheatSteps.set(String(c.step).split(':')[0], (cheatSteps.get(String(c.step).split(':')[0]) || []).concat(c.rung));
   for (const [step, rungs] of cheatSteps) add('cheat', 'bug', step, `${step} had een cheat nodig om door te gaan`, `Rungs: ${rungs.join(', ')}`);
@@ -44,10 +46,13 @@ export function metrics(events, result = {}) {
   const S = summarise(events);
   const done = S.missions.filter((m) => m.end != null);
   const perMission = Object.fromEntries(S.missions.map((m) => [m.id, m.end != null ? Math.round(m.end - m.start) : null]));
+  // waar de run stopte: de laatste stap die begon (het rapport zegt het bovenaan, #387)
+  const begins = events.filter((e) => e.type === 'step' && e.event === 'begin');
+  const lastStep = (begins[begins.length - 1] || {}).id || (S.missions.length ? S.missions[S.missions.length - 1].id : '');
   return {
-    result: result.result || '', gameSeconds: Math.round(result.gameSeconds || 0),
+    result: result.result || '', gameSeconds: Math.round(result.gameSeconds || 0), lastStep,
     stepsDone: done.length, stepsStarted: S.missions.length,
-    stuck: S.stuck.length, cheats: S.cheats.filter((c) => c.rung !== 'nudge').length, fails: S.missions.reduce((n, m) => n + m.fails, 0),
+    stuck: S.stuck.length, timeouts: S.timeouts.length, cheats: S.cheats.filter((c) => c.rung !== 'nudge').length, fails: S.missions.reduce((n, m) => n + m.fails, 0),
     consoleErrors: S.consoleErrors.length, nan: S.nan, warnings: S.warnings,
     minigamesStarted: S.minigames.filter((m) => m.started).length, minigames: S.minigames.length,
     perMission,
@@ -55,7 +60,7 @@ export function metrics(events, result = {}) {
 }
 
 // nieuw (bevindingen die er eerder niet waren), opgelost (er eerder wel, nu niet), regressies (cijfers die slechter werden)
-const WORSE_IF_HIGHER = ['stuck', 'cheats', 'fails', 'consoleErrors', 'nan'];
+const WORSE_IF_HIGHER = ['stuck', 'timeouts', 'cheats', 'fails', 'consoleErrors', 'nan'];
 export function compareRuns(prev, cur) {
   if (!prev) return { first: true, nieuw: cur.findings || [], opgelost: [], regressies: [] };
   const had = new Set((prev.findings || []).map((f) => f.fp)), has = new Set((cur.findings || []).map((f) => f.fp));
@@ -71,8 +76,8 @@ export function compareRuns(prev, cur) {
 
 // --- issues zonder dubbelen -----------------------------------------------------------------
 export const FP_MARK = (fp) => `spelbot:${fp}`;
-const IMPACT = { wacht: 'impact-hoog', console: 'impact-hoog', nan: 'impact-hoog', vast: 'impact-hoog', 'minigame-vast': 'impact-midden', 'minigame-start': 'impact-midden', cheat: 'impact-hoog', mislukt: 'impact-laag', schema: 'impact-laag', invoer: 'impact-midden' };
-const COST = { wacht: 'kosten-M', console: 'kosten-S', nan: 'kosten-M', vast: 'kosten-M', 'minigame-vast': 'kosten-M', 'minigame-start': 'kosten-S', cheat: 'kosten-M', mislukt: 'kosten-S', schema: 'kosten-S', invoer: 'kosten-S' };
+const IMPACT = { wacht: 'impact-hoog', console: 'impact-hoog', nan: 'impact-hoog', vast: 'impact-hoog', timeout: 'impact-hoog', 'minigame-vast': 'impact-midden', 'minigame-start': 'impact-midden', cheat: 'impact-hoog', mislukt: 'impact-laag', schema: 'impact-laag', invoer: 'impact-midden' };
+const COST = { wacht: 'kosten-M', console: 'kosten-S', nan: 'kosten-M', vast: 'kosten-M', timeout: 'kosten-M', 'minigame-vast': 'kosten-M', 'minigame-start': 'kosten-S', cheat: 'kosten-M', mislukt: 'kosten-S', schema: 'kosten-S', invoer: 'kosten-S' };
 
 // existing: [{ number, title, body, state }] van gh; geeft per bevinding 'nieuw' of 'bestaat' (met nummer)
 export function planIssues(list, existing) {
@@ -182,7 +187,8 @@ const fmtS = (s) => `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart
 export function nlSummary({ title, date, metrics: m, cmp, findings: fs, issues = [], audio = null }) {
   const out = [`# Spelbot, ${title || 'run'}${date ? ` (${date})` : ''}`, ''];
   out.push(`De bot speelde ${fmtS(m.gameSeconds)} speltijd en kwam klaar met ${m.stepsDone} van ${m.stepsStarted} gestarte stappen. Uitkomst: **${m.result || 'onbekend'}**.`);
-  out.push(`Vastgezeten: ${m.stuck} keer. Cheat nodig: ${m.cheats} keer. Missies mislukt: ${m.fails}. Consolefouten: ${m.consoleErrors}. NaN-waarschuwingen: ${m.nan}.`);
+  out.push(`Vastgezeten: ${m.stuck} keer. Time-outs: ${m.timeouts || 0}. Cheat nodig: ${m.cheats} keer. Missies mislukt: ${m.fails}. Consolefouten: ${m.consoleErrors}. NaN-waarschuwingen: ${m.nan}.`);
+  if (m.result && !/^(KLAAR|REPLAY)/.test(String(m.result)) && m.lastStep) out.push(`De run stopte in stap ${m.lastStep}; zie "Waar de run stopte" in report.md.`);
   if (m.minigames) out.push(`Minigames: ${m.minigamesStarted} van ${m.minigames} gestart.`);
   if (cmp && !cmp.first) {
     out.push('', '## Ten opzichte van de vorige run', '', `- Nieuw: ${cmp.nieuw.length}${cmp.nieuw.length ? ' (' + cmp.nieuw.map((f) => f.title).slice(0, 5).join('; ') + ')' : ''}`, `- Opgelost: ${cmp.opgelost.length}${cmp.opgelost.length ? ' (' + cmp.opgelost.map((f) => f.title).slice(0, 5).join('; ') + ')' : ''}`);

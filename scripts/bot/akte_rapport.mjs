@@ -15,14 +15,14 @@ for (const [name, dir] of runs) {
   if (!fs.existsSync(aFile)) { out.push(`## ${name}`, '', `Geen analysis.json in ${dir}.`, ''); continue; }
   const a = JSON.parse(fs.readFileSync(aFile, 'utf8'));
   const reportMd = fs.existsSync(path.join(dir, 'report.md')) ? fs.readFileSync(path.join(dir, 'report.md'), 'utf8') : '';
-  out.push(`## ${name}`, '', `Run ${a.run} (${a.date || 'datum onbekend'}), uitkomst ${a.metrics.result || 'onbekend'}, speltijd ${fmt(a.metrics.gameSeconds)}.`, '');
+  out.push(`## ${name}`, '', `Run ${a.run} (${a.date || 'datum onbekend'}), uitkomst ${a.metrics.result || 'onbekend'}, speltijd ${fmt(a.metrics.gameSeconds)}${!/^(KLAAR|REPLAY)/.test(String(a.metrics.result || '')) && a.metrics.lastStep ? `, stopte in stap ${a.metrics.lastStep}` : ''}.`, '');
   const table = reportMd.split(/\r?\n/);
   const i = table.findIndex((l) => l.startsWith('| Stap |')), j = table.findIndex((l, k) => k > i && !l.startsWith('|'));
   // rijen van een sprong die niet doorging (geen titel, 0:00, tijd op) horen niet in het rapport
   if (i >= 0) out.push(...table.slice(i, j < 0 ? undefined : j).filter((l) => !/^\| \S+ \|\s*\| 0:00 \| tijd op \|/.test(l)), '');
   const m = table.findIndex((l) => l.startsWith('| Minigame |'));
   if (m >= 0) { const e = table.findIndex((l, k) => k > m && !l.startsWith('|')); out.push(...table.slice(m, e < 0 ? undefined : e), ''); }
-  out.push(`Vastgezeten ${a.metrics.stuck}, cheat nodig ${a.metrics.cheats}, mislukt ${a.metrics.fails}, consolefouten ${a.metrics.consoleErrors}, NaN-waarschuwingen ${a.metrics.nan}.`, '');
+  out.push(`Vastgezeten ${a.metrics.stuck}, time-outs ${a.metrics.timeouts || 0}, cheat nodig ${a.metrics.cheats}, mislukt ${a.metrics.fails}, consolefouten ${a.metrics.consoleErrors}, NaN-waarschuwingen ${a.metrics.nan}.`, '');
   if (a.findings.length) { out.push('Bevindingen:', ''); for (const f of a.findings) out.push(`- [${f.severity}] ${f.title}${f.detail ? ` (${String(f.detail).slice(0, 140)})` : ''}`); out.push(''); }
 }
 const notes = arg('notes');

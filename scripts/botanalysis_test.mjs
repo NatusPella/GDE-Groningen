@@ -39,6 +39,21 @@ const M = A.metrics(run(), { result: 'TIMEOUT', gameSeconds: 120 });
 ok(M.stuck === 1 && M.cheats === 2 && M.consoleErrors === 2 && M.stepsDone === 1 && M.stepsStarted === 2 && M.perMission.M01 === 60 && M.perMission.M02 === null, 'cijfers');
 ok(M.minigames === 2 && M.minigamesStarted === 1, 'minigamecijfers');
 
+// --- time-outs in een tak met een eigen klok (duif M04, #387) ---------------------------------------------
+{
+  const tl = [
+    { t: 0, type: 'step', event: 'begin', id: 'M04', label: 'Kieken van boven' },
+    { t: 60, type: 'timeout', step: 'M04:duif', what: 'duif: hetzelfde fotodoel niet gehaald', forS: 60, x: -110, y: 1060, goalDist: 205, doel: { x: -47, y: 865 } },
+  ];
+  const FT = A.findings(tl);
+  ok(FT.length === 1 && FT[0].kind === 'timeout' && FT[0].severity === 'bug' && /M04/.test(FT[0].title) && /60 s/.test(FT[0].detail) && /\(-110, 1060\)/.test(FT[0].detail), 'time-out is een bevinding met duur en plek');
+  const MT = A.metrics(tl, { result: 'TIMEOUT' });
+  ok(MT.timeouts === 1 && MT.lastStep === 'M04', 'time-out en laatste stap in de cijfers');
+  const T = A.nlSummary({ title: 'x', metrics: MT, cmp: A.compareRuns(null, { metrics: MT, findings: FT }), findings: FT });
+  ok(/Time-outs: 1/.test(T) && /stopte in stap M04/.test(T), 'samenvatting noemt de time-out en waar de run stopte');
+  ok(A.compareRuns({ metrics: { ...MT, timeouts: 0 }, findings: [] }, { metrics: MT, findings: [] }).regressies.some((r) => r.metric === 'timeouts'), 'meer time-outs is een regressie');
+}
+
 // --- vergelijken ------------------------------------------------------------------------------------
 {
   const prev = { metrics: M, findings: F };
