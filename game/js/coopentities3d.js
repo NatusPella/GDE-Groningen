@@ -15,6 +15,8 @@ import { surfaceLiftAt } from './waterlevels.js';
 import { gladBoot, eigenBoot } from './coopboot.js';
 import { ruimMeshOp } from './coopruim.js';
 import { syncZitters, clearZitters } from './coopzitten3d.js';
+import { gunShotFx } from './gunfx3d.js';
+import { nieuwSchot } from './coopwapen.js';
 
 const voertuigen = new Map(); // id -> mesh
 const gladStand = new Map(); // id -> het geheugen van een boot die glad beweegt (coopboot.js); blijft staan als het model opnieuw gebouwd wordt (#436)
@@ -24,6 +26,63 @@ const ruimVoertuig = (scene, m) => ruimMeshOp(scene, m, { geometrie: !m.userData
 let beacon = null, startBaken = null, startHint = -1e9;
 const MATS = {};
 const mat = (c) => (MATS[c] ||= new THREE.MeshStandardMaterial({ color: c, roughness: 0.7 }));
+
+// Het schot van een andere speler (#434): de gast ziet de flits bij de loop en een korte kogelstreep. De kogel zelf
+// rekent de host uit; hier alleen het beeld. Per speler onthouden we de laatste aanval, zodat één schot één flits geeft.
+const schotGezien = new Map(); // slot -> fx.start van de laatste flits
+const schoten = []; // { x, y, z, angle, tot } van de strepen die nog lopen
+const SCHOT_MAX = 16, SCHOT_S = 0.12, SCHOT_LEN = 2.6;
+let schotLijn = null, schotPos = null;
+function zorgSchotLijn(scene) {
+  if (schotLijn) return schotLijn;
+  const geo = new THREE.BufferGeometry();
+  schotPos = new Float32Array(SCHOT_MAX * 6);
+  const col = new Float32Array(SCHOT_MAX * 6);
+  for (let i = 0; i < SCHOT_MAX; i++) { col[i * 6] = 1.8; col[i * 6 + 1] = 1.4; col[i * 6 + 2] = 0.75; } // kop warm, staart zwart (additief)
+  geo.setAttribute('position', new THREE.BufferAttribute(schotPos, 3).setUsage(THREE.DynamicDrawUsage));
+  geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+  const m = new THREE.LineSegments(geo, new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }));
+  m.frustumCulled = false; m.name = 'fx-coop-tracers';
+  scene.add(m); schotLijn = m;
+  return m;
+}
+// (ook los te testen: de gast hoeft hiervoor geen echte scene te hebben)
+export function syncSchoten(world, scene, nu) {
+  const kandidaten = [];
+  if (world.companion) kandidaten.push([0, world.companion]);
+  for (const f of Object.values(world.coopFigures || {})) if (f && Number.isInteger(f.slot)) kandidaten.push([f.slot, f]);
+  const gezien = new Set();
+  for (const [slot, b] of kandidaten) {
+    gezien.add(slot);
+    const fx = b.coopFx;
+    if (!nieuwSchot(schotGezien.get(slot), fx)) continue;
+    schotGezien.set(slot, fx.start);
+    if (!b.coopWapen || b.coopVoertuig || b.inVehicle) continue; // geen wapen in de hand of hij zit: geen flits
+    const hoogte = (b.gz || 0) + (b.z || 0) + (b.crouching ? 0.95 : 1.38);
+    const a = Number.isFinite(b.angle) ? b.angle : 0;
+    const x = b.x + Math.cos(a) * 0.7, y = b.y + Math.sin(a) * 0.7;
+    try { gunShotFx({ x, y, z: hoogte, angle: a, weapon: b.coopWapen, owner: 'medespeler', casing: false }); } catch (e) { /* zonder flits */ }
+    schoten.push({ x, y, z: hoogte - 0.13, angle: a, tot: nu + SCHOT_S });
+    if (schoten.length > SCHOT_MAX) schoten.shift();
+    world.coopSchotDbg = (world.coopSchotDbg || 0) + 1;
+  }
+  for (const s of [...schotGezien.keys()]) if (!gezien.has(s)) schotGezien.delete(s);
+  for (let i = schoten.length - 1; i >= 0; i--) if (schoten[i].tot <= nu) schoten.splice(i, 1);
+  if (!schoten.length && !schotLijn) return;
+  const lijn = zorgSchotLijn(scene), P = schotPos;
+  let n = 0;
+  for (const s of schoten) {
+    if (n >= SCHOT_MAX) break;
+    const o = n * 6, ux = Math.cos(s.angle), uy = Math.sin(s.angle);
+    const len = SCHOT_LEN * Math.max(0, (s.tot - nu) / SCHOT_S); // de streep trekt zich terug
+    P[o] = s.x; P[o + 1] = s.z; P[o + 2] = s.y;
+    P[o + 3] = s.x - ux * len; P[o + 4] = s.z; P[o + 5] = s.y - uy * len;
+    n++;
+  }
+  lijn.geometry.attributes.position.needsUpdate = true;
+  lijn.geometry.setDrawRange(0, n * 2);
+  lijn.visible = n > 0;
+}
 
 // De snapshot kent alleen de soort, niet het model of de kleur: een gast tekent het echte model van
 // die soort (zelfde bouwer als de host), met een stabiele variatie op het id. Lukt dat niet, dan het blok.
@@ -147,7 +206,7 @@ function bouw(v) {
 }
 
 export const startHintTekst = () => 'Hier begint een opdracht. Hij start zodra wie het spel opende bij de marker staat: dan kun je meedoen.';
-export const hasHostEntities = () => voertuigen.size > 0 || !!beacon || !!startBaken;
+export const hasHostEntities = () => voertuigen.size > 0 || !!beacon || !!startBaken || !!schotLijn;
 
 // Elke frame (main.js), alleen op een gast.
 export function syncHostEntities(world, dt = 1 / 60) {
@@ -206,6 +265,7 @@ export function syncHostEntities(world, dt = 1 / 60) {
   }
   for (const id of hornWas.keys()) if (!seen.has(id)) hornWas.delete(id);
   world.coopSirenUnits = sirenes; world.coopDeurenDbg = deurenOpen; world.coopSirenDbg = sirenes.length;
+  syncSchoten(world, scene, klok); // de flits en kogelstreep van een schot van een andere speler (#434)
   world.coopZittersDbg = syncZitters(world.coopZitters, zoekGastVoertuig, world); // wie meerijdt, op zijn stoel (#434)
   if (klok - dbgT > 1) { // voor de testbank (eenmaal per seconde): wat de gast per voertuig laat zien
     dbgT = klok;
@@ -249,6 +309,9 @@ export function clearHostEntities() {
   const scene = getScene();
   if (scene) for (const m of voertuigen.values()) ruimVoertuig(scene, m);
   voertuigen.clear(); wacht.clear(); gladStand.clear();
+  schoten.length = 0; schotGezien.clear();
+  if (schotLijn && scene) ruimMeshOp(scene, schotLijn, { materiaal: true });
+  schotLijn = null; schotPos = null;
   if (beacon && scene) ruimMeshOp(scene, beacon, { materiaal: true });
   beacon = null;
   if (startBaken && scene) ruimMeshOp(scene, startBaken, { materiaal: true });
