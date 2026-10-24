@@ -521,6 +521,11 @@ export function getMissionRecord(i) {
   return life.missions[i] || null;
 }
 
+// De prestatie van een opdracht die je meespeelde in de wereld van iemand anders (#429): alleen "klaar", zonder tijd,
+// medaille of record — die zijn van de wereld waar de opdracht liep. savegame.js zet hem in de save van de gast;
+// bij het terugkeren naar zijn eigen spel leest applyAchievementSaveData hem weer in.
+export const missieKlaarId = (i) => (MISSION_GOALS[i] ? `m${i + 1}_klaar` : null);
+
 // result: { time, medal, extra } - returns what changed for the HUD message.
 export function recordMissionResult(w, i, result) {
   if (!MISSION_GOALS[i]) return null;
