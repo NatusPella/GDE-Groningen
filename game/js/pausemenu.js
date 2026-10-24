@@ -1168,9 +1168,11 @@ function runAction(a) {
     root.querySelector('[data-action="restart"]').focus();
   } else if (a === 'menu' || a === 'exit') {
     // save, then back to the main menu (Alleen spelen) or close the app; a
-    // pigeon first turns back into Tammo/Tessa so the save has a street spot
-    if (world && world.pigeonMode && world.pigeonActions) world.pigeonActions.stop();
-    if (world) saveGame(world);
+    // pigeon first turns back into Tammo/Tessa so the save has a street spot.
+    // Alleen een lopend spel bewaart: het menu boven het hoofdscherm (prestart)
+    // draait in de menuscène en mag de laatste savegame niet overschrijven (#435).
+    if (started() && !prestart && world && world.pigeonMode && world.pigeonActions) world.pigeonActions.stop();
+    if (started() && !prestart && world) saveGame(world);
     if (a === 'exit' && DESKTOP) DESKTOP.quit();
     else location.reload();
   } else if (a === 'pigeon-stop') {
@@ -1460,7 +1462,8 @@ function syncNavBadges() {
   // samen spelen is geen rijknop meer: de rail toont bij Spel hoeveel spelers er zijn
   const coopN = world && world.coopNet && world.coopSpelers ? world.coopSpelers.length : 0;
   setN('spel', coopN ? String(coopN) : '', coopN ? `${coopN} spelers` : '');
-  setN('todo', fresh ? 'nieuw' : '');
+  // geen badge op Activiteiten: 'nieuw' hoort bij Verhaal (aanwijzingen en personages), niet bij de activiteiten (#435)
+  setN('todo', '');
   setN('verhaal', unread ? String(unreadN) : fresh || met ? 'nieuw' : '', unread ? `${unreadN} ongelezen` : '');
   if (vNav && unread) vNav.toggleAttribute('data-new', true);
 }
