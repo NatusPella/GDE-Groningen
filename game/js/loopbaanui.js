@@ -2,13 +2,15 @@
 // sport en spel), elk met een icoon, het niveau, de functietitel en een voortgangsbalk; rechts wat je in het gekozen vak bereikt
 // hebt, het volgende doel, wat het vak betaalt en de bezigheden die erbij horen (vissen, boeren, taxi, bus, krant, vracht, ...),
 // elk met hun eigen stand. Elke bezigheid staat er één keer: de volgende klus is een label in de lijst, geen tweede knop (#430).
-// De gegevens komen uit loopbaanlive.js (en loopbaan.js); dit bestand is alleen DOM. Niet door een mens in beeld bekeken.
+// Een vak dat nog niet begonnen is, toont waar en met welke eerste klus je het begint (#431): vanaf de eigen startplek of met
+// de knop hier. De gegevens komen uit loopbaanlive.js (en loopbaan.js); dit bestand is alleen DOM. Niet in beeld bekeken.
 import * as L from './loopbaan.js';
-import { getProfiel } from './loopbaanlive.js';
+import { getProfiel, startLoopbaan } from './loopbaanlive.js';
 import { SIDE_JOBS } from './sidejobs.js';
 import { fillBars } from './motion.js';
 import { boekVoortgang } from './visboeklive.js';
 import { baanDoelen } from './todoui.js';
+import { loopbaanStap, STEP_BY_ID } from './storyarc.js';
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const nl = (n) => Math.round(n).toLocaleString('nl-NL');
@@ -72,6 +74,10 @@ const CSS = `
 .lb-volg { flex: none; padding: 1px 8px; border-radius: 999px; font: 12px "Arial Narrow", Arial, sans-serif; letter-spacing: 0.08em; text-transform: uppercase; background: rgba(63, 201, 122, 0.18); color: var(--g, #3fc97a); }
 .lb-bz-link { border-top: 1px solid rgba(255, 255, 255, 0.09); padding-top: 4px; margin-top: 2px; }
 .lb-leeg { margin: 4px 0 0; }
+.lb-start { padding: 10px 14px; border-radius: 10px; background: rgba(63, 201, 122, 0.1); box-shadow: inset 0 0 0 1.5px rgba(63, 201, 122, 0.4); }
+.lb-start p { margin: 4px 0; }
+.lb-start .lb-link { display: flex; align-items: center; gap: 10px; margin-top: 8px; }
+.lb-start.klaar { background: none; box-shadow: none; padding: 0; }
 `;
 let cssAan = false;
 function zetCss() {
@@ -87,7 +93,7 @@ const bars = new Map();
 
 function rij(profiel, info) {
   const d = L.volgendDoel(profiel, info.id);
-  const nul = profiel.vakken[info.id].xp <= 0;
+  const nul = !L.isGestart(profiel, info.id);
   const aantal = bezighedenAantal(info.id);
   const namen = bezighedenNamen(info.id);
   const onder = `${nul ? 'Nog niet begonnen' : d.titel}${aantal ? ` · ${aantal} ${aantal === 1 ? 'bezigheid' : 'bezigheden'}` : ''}`;
@@ -105,6 +111,23 @@ const VAK_LINK = {
 const NAMEN = new Map(SIDE_JOBS.map((j) => [j.id, j.name]));
 const bezighedenAantal = (id) => L.banenVan(id).length + (VAK_LINK[id] ? 1 : 0);
 const bezighedenNamen = (id) => [...L.banenVan(id).map((b) => NAMEN.get(b) || b), ...(VAK_LINK[id] ? [VAK_LINK[id].naam] : [])];
+
+// De eerste klus en waar die staat (#431): elke loopbaan is vanaf zijn eigen startplek of hier te beginnen.
+// Een vak dat al begonnen is (ook via de eerste punten) telt voor de verhaalstap die erbij hoort als gedaan.
+function startHtml(profiel, id) {
+  const s = L.startVan(id);
+  if (!s) return '';
+  const gestart = L.isGestart(profiel, id);
+  const stap = loopbaanStap(id);
+  const step = stap && STEP_BY_ID.get(stap);
+  const verhaal = step ? `<p class="mut">In het verhaal: ${esc(stap)} · ${esc(step.title)}${gestart ? ' · telt als gedaan' : ''}</p>` : '';
+  if (gestart) return `<div class="lb-start klaar"><p class="m-eb">Begonnen</p>${verhaal}</div>`;
+  const baan = s.baan && doelen.has(s.baan)
+    ? `<button type="button" class="m-bt" data-todo-goal="job:${esc(s.baan)}">Eerste klus als doel</button>` : '';
+  return `<div class="lb-start"><p class="m-eb">Begin met deze loopbaan</p>` +
+    `<p><b>Eerste klus:</b> ${esc(s.klus)}</p><p class="mut">${esc(s.plek)}${s.baan ? ' · loop erheen en druk E, of start hier' : ''}</p>${verhaal}` +
+    `<p class="lb-link"><button type="button" class="m-bp" data-vak-start="${esc(id)}">Loopbaan starten</button>${baan}</p></div>`;
+}
 
 function detailHtml(profiel, id) {
   const info = L.vakInfo(id);
@@ -130,9 +153,9 @@ function detailHtml(profiel, id) {
   return `<div class="pm-pane-top"><span class="m-eb">${esc(groep)}</span><h2 class="m-h2 td-h2">${loopbaanIcoon(info.icoon, 'pa-ico big')}${esc(info.naam)}</h2></div>` +
     `<div class="lb-kop"><p class="lb-titel"><b>${esc(d.titel)}</b> <span class="mut">· niveau ${d.niveau} van ${L.MAX_NIVEAU}</span></p><p class="mut">${esc(info.wat)}</p></div>` +
     `<div class="lb-blok">${voort}<p class="mut">${doel}</p>` +
-    `<p>${v.xp > 0 ? esc(telt.join(' · ')) : 'Nog niet begonnen.'}</p>` +
+    `<p>${v.xp > 0 ? esc(telt.join(' · ')) : L.isGestart(profiel, id) ? 'Begonnen, nog geen klus gedaan.' : 'Nog niet begonnen.'}</p>` +
     `<p class="${factor > 1 ? 'g' : 'mut'}">${factor > 1 ? `Dit vak betaalt nu ${L.percentage(factor)}% meer. ` : ''}${esc(L.loonTekst(id))}</p></div>` +
-    bezigheden + trap;
+    startHtml(profiel, id) + bezigheden + trap;
 }
 
 // De bezigheden van dit vak, elk met hun eigen stand en één actie. De eerste klus die je nog niet deed en die nu te kiezen is,
@@ -177,6 +200,8 @@ export function renderLoopbaanPanel(el, sluit = null, w = null) {
       queueMicrotask(() => fillBars(el, bars));
     };
     el.addEventListener('click', (e) => {
+      const start = e.target.closest('[data-vak-start]');
+      if (start) { startLoopbaan(wereld, start.dataset.vakStart); renderLoopbaanPanel(el, sluit, wereld); return; }
       const b = e.target.closest('[data-vak]');
       if (b) kies(b.dataset.vak);
     });
