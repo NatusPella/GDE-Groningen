@@ -59,6 +59,7 @@ const SCENARIO_TRACKS = {
   fiets: './audio/scenario/fiets_loop.mp3',
   thuis: './audio/scenario/thuis_loop.mp3',
   menu: './audio/scenario/menu_loop.mp3',
+  pvp: './audio/scenario/pvp_arena_loop.mp3',
 };
 const SCENARIO_VOLUME = 0.8;
 const SCENARIO_FADE_IN = 1.5; // s

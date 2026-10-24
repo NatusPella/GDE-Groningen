@@ -67,6 +67,10 @@ export const afkoelRest = (st, slot, nu) => Math.max(0, ((st && st.vrij && st.vr
 export const geefBescherming = (st, slot, nu, s = PVP.BESCHERM_S) => { if (st && slotOk(slot)) st.tot[slot] = nu + s; };
 export const beschermd = (st, slot, nu) => !!st && ((st.tot || {})[slot] || 0) > nu;
 
+// De PvP-minigame (#454): alleen een speler buiten de passieve stand doet mee. De arena zelf staat in pvparena.js; dit is de
+// enige plek waar de passieve stand en de arena elkaar raken, zodat de regel bij de PvP-laag blijft.
+export const arenaToegestaan = (st, slot) => !!st && slotOk(slot) && !isPassief(st, slot);
+
 // Mag `dader` `doel` raken? { ok, reden }. Een beschermde die zelf aanvalt verliest zijn bescherming (dat gebeurt in pvpSchade).
 export function pvpMag(st, dader, doel, nu) {
   if (!st || !slotOk(dader) || !slotOk(doel)) return { ok: false, reden: 'onbekend' };

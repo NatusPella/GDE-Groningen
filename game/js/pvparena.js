@@ -1,0 +1,237 @@
+// Samen spelen (#454): de PvP-minigame, een turf shooter. Twee teams veroveren drie zones op een veld in het Stadspark; de
+// zones beslissen de wedstrijd, treffers en uitschakelingen tellen voor je eigen score. Echte wapens van het spel, geen verfmodus
+// (besluit van de eigenaar, 24-10). Alleen spelers buiten de passieve stand doen mee (#447); dood door een medespeler kost niets.
+// Bloed en gore mogen hier (constitutie 6): dit bestand tekent niets, het houdt alleen de stand bij.
+// Pure regels, zonder three.js, netwerk en DOM; getest in scripts/pvparena_test.mjs. De wereldhaak staat in cooppvpwereld.js.
+//
+// Een ronde: 2 tot 8 spelers, twee teams, 2,5 minuut. Wie in het veld staat en niet passief is, doet mee (geen late instap: de
+// deelnemers liggen vast bij de start). Een zone is van het team met de meeste levende spelers erin (bij een gelijke stand
+// verandert er niets); elk heel tijdvak van zoneS seconden levert een punt op. Wie neergaat staat na respawnS seconden weer op bij
+// zijn eigen team, met beschermingstijd (die tijd bewaakt de PvP-laag, cooppvp.js). De host rekent; elke plek heeft een eigen
+// score en er gaat nooit geld of voortgang af.
+
+export const ARENA = Object.freeze({
+  id: 'pvparena',
+  maxSpelers: 8,
+  rondeS: 150,          // 2,5 minuut
+  straal: 34,           // m: het speelveld rond de startplek
+  zoneS: 2,             // s: zoveel seconden een zone in bezit is één punt
+  zonePunt: 1,
+  puntenTreffer: 1,     // per geraakte medespeler
+  puntenNeer: 5,        // per uitgeschakelde medespeler
+  respawnS: 3,          // s voor je weer opstaat
+  beschermS: 3,         // s bescherming na het opstaan (cooppvp.js PVP.BESCHERM_S is langer; hier telt de korte variant)
+  klaarS: 8,            // s: zolang blijft de uitslag staan
+});
+
+export const ARENA_TEAMS = Object.freeze([
+  { id: 'noord', naam: 'Noord', kleur: '#4aa3ff' },
+  { id: 'zuid', naam: 'Zuid', kleur: '#ff9a3c' },
+]);
+
+// De zones en de opstelplaatsen in meters rond het midden (u langs de as, v dwars erop). Drie zones: het midden en twee
+// vleugels, zodat je moet kiezen tussen vasthouden en omsingelen.
+const ZONES = Object.freeze([
+  { id: 'midden', u: 0, v: 0, r: 7 },
+  { id: 'west', u: -20, v: 0, r: 6 },
+  { id: 'oost', u: 20, v: 0, r: 6 },
+]);
+const SPAWNS = Object.freeze([
+  [{ u: -5, v: -26 }, { u: 5, v: -26 }, { u: -12, v: -23 }, { u: 12, v: -23 }],
+  [{ u: -5, v: 26 }, { u: 5, v: 26 }, { u: -12, v: 23 }, { u: 12, v: 23 }],
+]);
+
+export const ARENA_TEKST = {
+  naam: 'PvP-arena: het veld in het Stadspark',
+  titel: 'PVP-ARENA',
+  prompt: 'PvP-arena',
+  promptSub: 'Twee teams, drie zones: druk op E om te beginnen',
+  promptSolo: 'Alleen met Samen spelen en minstens twee spelers buiten de passieve stand',
+  start: 'De PvP-arena begint: twee teams, drie zones, 2,5 minuut. De zones beslissen de wedstrijd.',
+  alleenHost: 'De PvP-arena rekent op het spel van wie hem opende. Vraag daar om een ronde.',
+  alBezig: 'Er loopt al een ronde in de PvP-arena.',
+  min: 'De PvP-arena heeft minstens twee spelers buiten de passieve stand nodig, allebei in het veld.',
+  passief: 'De PvP-arena is alleen voor spelers buiten de passieve stand. Zet de passieve stand eerst uit.',
+  voertuig: 'Stap eerst uit: de PvP-arena begint te voet.',
+  neer: (dader, doel) => `${dader} schakelde ${doel} uit in de arena.`,
+  uitslag: (noord, zuid) => `Arena afgelopen: Noord ${noord}, Zuid ${zuid}.`,
+  gelijk: (noord, zuid) => `Arena afgelopen: gelijk, ${noord} tegen ${zuid}.`,
+  rematch: 'Druk op E bij het veld voor een nieuwe ronde.',
+};
+
+const fin = (n) => Number.isFinite(n);
+const deelnemer = (ar, slot) => (ar && ar.deeln ? ar.deeln.find((d) => d.slot === slot) || null : null);
+
+// Een plek in het veld, gedraaid om het midden.
+function plek(ar, u, v) {
+  const c = Math.cos(ar.rot), s = Math.sin(ar.rot);
+  return { x: ar.x + c * u - s * v, y: ar.y + s * u + c * v };
+}
+
+// x, y: het midden van het veld in wereldmeters; rot: de as van het veld (radialen).
+export function maakArena({ x = 0, y = 0, rot = 0 } = {}) {
+  const ar = {
+    id: ARENA.id, x: fin(x) ? x : 0, y: fin(y) ? y : 0, rot: fin(rot) ? rot : 0, r: ARENA.straal,
+    zones: [], spawns: [[], []], deeln: [], score: [0, 0], zoneS: [0, 0],
+    fase: 'wacht', t: 0, klaarTot: 0, n: 0, reden: null,
+  };
+  for (const z of ZONES) { const p = plek(ar, z.u, z.v); ar.zones.push({ id: z.id, x: p.x, y: p.y, r: z.r, eigenaar: null }); }
+  for (let t = 0; t < 2; t++) for (const s of SPAWNS[t]) ar.spawns[t].push(plek(ar, s.u, s.v));
+  return ar;
+}
+
+// ---------------------------------------------------------------- deelnemers
+// Wie mag meedoen: niet passief, nog niet in de lijst, een ronde die nog niet loopt, en er is plek. `passief` komt van
+// cooppvp.isPassief (de PvP-laag beslist; dit bestand kent geen netwerk).
+export function arenaMeld(ar, slot, naam, passief) {
+  if (!ar || ar.fase !== 'wacht') return { ok: false, reden: 'bezig' };
+  if (!Number.isInteger(slot) || slot < 0 || slot > 15) return { ok: false, reden: 'onbekend' };
+  if (passief) return { ok: false, reden: 'passief' };
+  if (deelnemer(ar, slot)) return { ok: false, reden: 'al' };
+  if (ar.deeln.length >= ARENA.maxSpelers) return { ok: false, reden: 'vol' };
+  ar.deeln.push({ slot, naam: String(naam || 'Speler').slice(0, 24), team: 0, punten: 0, treffers: 0, uitschakelingen: 0, neer: 0, doodTot: 0 });
+  return { ok: true, reden: '' };
+}
+// De teams eerlijk verdelen: op plek gesorteerd om en om. Alleen bij de start, dus niemand wisselt halverwege.
+function verdeel(ar) {
+  ar.deeln.sort((a, b) => a.slot - b.slot);
+  ar.deeln.forEach((d, i) => { d.team = i % 2; });
+}
+// Begint de ronde? Minstens twee spelers, verdeeld over twee teams. Geeft { ok, reden }.
+export function arenaStart(ar, nu = 0) {
+  if (!ar || ar.fase !== 'wacht') return { ok: false, reden: 'bezig' };
+  if (ar.deeln.length < 2) return { ok: false, reden: 'min' };
+  verdeel(ar);
+  ar.fase = 'bezig'; ar.t = 0; ar.score = [0, 0]; ar.zoneS = [0, 0]; ar.reden = null; ar.n++; ar.klaarTot = 0;
+  for (const d of ar.deeln) { d.punten = 0; d.treffers = 0; d.uitschakelingen = 0; d.neer = 0; d.doodTot = 0; }
+  for (const z of ar.zones) z.eigenaar = null;
+  return { ok: true, reden: '' };
+}
+// Iemand valt weg (of stopt). Halverwege de ronde telt hij niet meer mee; blijven er minder dan twee over, dan stopt de ronde.
+export function arenaVerlaat(ar, slot, nu = 0) {
+  if (!ar || !Number.isInteger(slot)) return false;
+  const i = ar.deeln.findIndex((d) => d.slot === slot);
+  if (i < 0) return false;
+  ar.deeln.splice(i, 1);
+  if (ar.fase === 'bezig') {
+    ar.n++;
+    for (const z of ar.zones) if (z.eigenaar != null && !ar.deeln.some((d) => d.team === z.eigenaar)) z.eigenaar = null;
+    if (ar.deeln.length < 2) eindig(ar, 'te weinig spelers', nu);
+  }
+  return true;
+}
+// Stoppen (ook door de wereld: geen scherm meer, sessie weg).
+export function arenaStop(ar, nu = 0) {
+  if (!ar || ar.fase !== 'bezig') return false;
+  eindig(ar, 'gestopt', nu);
+  return true;
+}
+function eindig(ar, reden, nu) {
+  ar.fase = 'klaar'; ar.reden = reden; ar.n++;
+  ar.klaarTot = (fin(nu) ? nu : ar.t) + ARENA.klaarS;
+}
+
+export const arenaDeelnemer = deelnemer;
+export const levend = (ar, slot, nu) => { const d = deelnemer(ar, slot); return !!d && !(d.doodTot > nu); };
+export const arenaInVeld = (ar, x, y, marge = 0) => !!ar && fin(x) && fin(y) && Math.hypot(x - ar.x, y - ar.y) <= ar.r + marge;
+
+// ---------------------------------------------------------------- punten en neergaan
+// Een treffer van `dader` op `doel` in de arena. Alleen tussen twee deelnemers van verschillende teams, en alleen als de
+// wedstrijd loopt; de schade zelf is al door de PvP-laag goedgekeurd (beide spelers buiten de passieve stand).
+export function arenaTreffer(ar, dader, doel, bedrag = 0, nu = 0) {
+  if (!ar || ar.fase !== 'bezig') return { ok: false, reden: 'fase' };
+  if (!Number.isFinite(bedrag) || bedrag <= 0) return { ok: false, reden: 'geen' };
+  const d = deelnemer(ar, dader), t = deelnemer(ar, doel);
+  if (!d || !t || dader === doel) return { ok: false, reden: 'onbekend' };
+  if (!levend(ar, dader, nu) || !levend(ar, doel, nu)) return { ok: false, reden: 'neer' };
+  if (d.team === t.team) return { ok: false, reden: 'eigen team' }; // vrienden raken telt niet
+  d.treffers++; d.punten += ARENA.puntenTreffer;
+  return { ok: true, reden: '', punten: ARENA.puntenTreffer };
+}
+// `doel` gaat neer door `dader` (of door de wereld: dader null). Geeft het respawnpunt en de tijd dat hij weg blijft.
+export function arenaNeer(ar, dader, doel, nu = 0) {
+  if (!ar || ar.fase !== 'bezig') return { ok: false, reden: 'fase' };
+  const t = deelnemer(ar, doel);
+  if (!t) return { ok: false, reden: 'onbekend' };
+  if (!fin(nu)) return { ok: false, reden: 'tijd' };
+  t.neer++; t.doodTot = nu + ARENA.respawnS;
+  const d = Number.isInteger(dader) && dader !== doel ? deelnemer(ar, dader) : null;
+  if (d && d.team !== t.team) { d.uitschakelingen++; d.punten += ARENA.puntenNeer; }
+  return { ok: true, reden: '', spawn: arenaSpawn(ar, doel), tot: t.doodTot, team: t.team };
+}
+// Waar iemand van zijn team weer opstaat (per plek een eigen hoekje, zodat twee spelers niet op dezelfde plek staan).
+export function arenaSpawn(ar, slot) {
+  const d = deelnemer(ar, slot);
+  if (!d) return null;
+  const lijst = ar.spawns[d.team] || [];
+  if (!lijst.length) return { x: ar.x, y: ar.y };
+  return { ...lijst[Math.abs(Math.floor(slot)) % lijst.length] };
+}
+
+// ---------------------------------------------------------------- de klok
+// Elke stap: de tijd loopt, de zones wisselen van eigenaar en de punten erbij. `lichamen` is [{ slot, x, y }]: de levende
+// deelnemers met hun plek. Geeft de gebeurtenissen van deze stap ({ type: 'eind', reden } of { type: 'zone', zone, team }).
+export function arenaTik(ar, dt, lichamen = [], nu = 0) {
+  if (!ar || ar.fase !== 'bezig') return [];
+  const stap = Number.isFinite(dt) && dt > 0 ? Math.min(dt, 1) : 0; // een hapering telt niet als verloren tijd
+  ar.t += stap;
+  const uit = [];
+  const pos = new Map();
+  for (const l of lichamen || []) if (l && Number.isInteger(l.slot) && fin(l.x) && fin(l.y)) pos.set(l.slot, l);
+  for (const z of ar.zones) {
+    let noord = 0, zuid = 0;
+    for (const d of ar.deeln) {
+      if (!levend(ar, d.slot, nu)) continue;
+      const l = pos.get(d.slot); if (!l) continue;
+      if (Math.hypot(l.x - z.x, l.y - z.y) > z.r) continue;
+      if (d.team === 0) noord++; else zuid++;
+    }
+    const eigen = noord > zuid ? 0 : zuid > noord ? 1 : null;
+    if (eigen !== null && eigen !== z.eigenaar) { z.eigenaar = eigen; uit.push({ type: 'zone', zone: z.id, team: eigen }); }
+    if (z.eigenaar === null) continue;
+    const was = ar.zoneS[z.eigenaar];
+    ar.zoneS[z.eigenaar] += stap;
+    while (ar.zoneS[z.eigenaar] >= ARENA.zoneS) { ar.zoneS[z.eigenaar] -= ARENA.zoneS; ar.score[z.eigenaar] += ARENA.zonePunt; }
+    if (ar.zoneS[z.eigenaar] < was) uit.push({ type: 'punt', team: z.eigenaar });
+  }
+  if (ar.t >= ARENA.rondeS) eindig(ar, 'tijd', nu);
+  if (ar.fase === 'klaar') uit.push({ type: 'eind', reden: ar.reden });
+  return uit;
+}
+
+// ---------------------------------------------------------------- de stand en de uitslag
+export function arenaStand(ar) {
+  const rijen = (ar ? ar.deeln : []).map((d) => ({
+    slot: d.slot, naam: d.naam, team: d.team, punten: d.punten, treffers: d.treffers,
+    uitschakelingen: d.uitschakelingen, neer: d.neer,
+  })).sort((a, b) => (a.team - b.team) || (b.punten - a.punten) || (a.slot - b.slot));
+  return {
+    fase: ar ? ar.fase : 'wacht', t: ar ? ar.t : 0, rest: ar ? Math.max(0, ARENA.rondeS - ar.t) : ARENA.rondeS,
+    score: ar ? [...ar.score] : [0, 0], zones: ar ? ar.zones.map((z) => ({ id: z.id, eigenaar: z.eigenaar })) : [], rijen,
+  };
+}
+// De winnaar: het team met de meeste zonepunten; bij een gelijke stand beslist het aantal uitschakelingen, daarna is het gelijk.
+export function arenaWinnaar(ar) {
+  if (!ar) return null;
+  const [a, b] = ar.score;
+  if (a !== b) return a > b ? 0 : 1;
+  const kills = [0, 0];
+  for (const d of ar.deeln) kills[d.team] += d.uitschakelingen;
+  if (kills[0] !== kills[1]) return kills[0] > kills[1] ? 0 : 1;
+  return null;
+}
+export function arenaUitslag(ar) {
+  const stand = arenaStand(ar);
+  const winnaar = arenaWinnaar(ar);
+  return {
+    ...stand,
+    winnaar,
+    tekst: winnaar == null ? ARENA_TEKST.gelijk(stand.score[0], stand.score[1]) : ARENA_TEKST.uitslag(stand.score[0], stand.score[1]),
+  };
+}
+// Eén korte regel voor de bestaande meldingen (coopnet.js: 'melding', hoogstens 90 tekens), zonder nieuw netwerkformaat.
+export function arenaRegel(ar) {
+  const s = arenaStand(ar);
+  const m = Math.floor(s.rest / 60), r = Math.floor(s.rest % 60);
+  return `${ARENA_TEAMS[0].naam} ${s.score[0]} - ${s.score[1]} ${ARENA_TEAMS[1].naam} · ${m}:${r < 10 ? '0' : ''}${r}`.slice(0, 90);
+}
