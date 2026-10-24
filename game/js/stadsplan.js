@@ -1,12 +1,12 @@
 // stadsplan.js (#67): where the props and shops of a town profile (stadsprofielen.js)
 // go. Pure and deterministic: planTown() draws raw candidate spots round the town's
-// centre (the same every run), roadside() snaps one to the kerb of the nearest road on
-// free ground. The game resolves a candidate when the player comes near it, with
+// centre (the same every run; the shop boards round the shop heart, winkelhart), roadside()
+// snaps one to the kerb of the nearest road on free ground. The game resolves a candidate when the player comes near it, with
 // the tiles in (stadsleven.js, ommelandplace.js openGround as `isFree`); the audit
 // resolves them all against the OSM packs (scripts/world/streekaudit.mjs) and counts
 // what a town actually gets. Kinds that are tile work (bridges, canals, boats) are
 // not placed here.
-import { townCentre } from './stadsprofielen.js';
+import { townCentre, winkelhart } from './stadsprofielen.js';
 
 // profile prop kind -> prop builder of ommelandprops3d.js (null: not a street prop)
 export const PROP_BUILD = {
@@ -27,6 +27,7 @@ export const CAP = 14; // most of one kind per town
 export const SPACING = 10; // m between two props
 export const SHOP_SPACING = 25;
 const SHOP_R = 0.35; // shops stand in the inner third of the reach
+const ANKER_SHOP_R = 0.1; // met een ankerpunt (gemeten winkelmidden) staan de borden dichter bij de winkels
 
 function hash(str) { let h = 2166136261; for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
 export function mulberry(seed) {
@@ -46,7 +47,10 @@ export const countFor = (per, reach, scale = SCALE, cap = CAP) => {
 export function planTown(t, { seed = 1, tries = 8 } = {}) {
   const rng = mulberry(hash(t.id) ^ seed);
   const c = townCentre(t);
-  const at = (rMax, bias) => { const r = rMax * Math.pow(rng(), bias), a = rng() * Math.PI * 2; return [c.x + Math.cos(a) * r, c.y + Math.sin(a) * r]; };
+  // de winkelborden staan in het winkelmidden (#422): bij Delfzijl is dat het ankerpunt,
+  // want het profielhart ligt daar 500 m westelijk van de winkels en de winkelgevels
+  const w = winkelhart(t);
+  const at = (rMax, bias, m = c) => { const r = rMax * Math.pow(rng(), bias), a = rng() * Math.PI * 2; return [m.x + Math.cos(a) * r, m.y + Math.sin(a) * r]; };
   const ring = () => { const r = t.reach * (VEE_RING[0] + rng() * (VEE_RING[1] - VEE_RING[0])), a = rng() * Math.PI * 2; return [c.x + Math.cos(a) * r, c.y + Math.sin(a) * r]; };
   const out = [], skipped = [];
   let n = 0;
@@ -62,9 +66,12 @@ export function planTown(t, { seed = 1, tries = 8 } = {}) {
     }
   }
   let m = 0;
+  // een ankerpunt betekent een gemeten winkelmidden (#422): de borden staan dan in de
+  // winkelstraten zelf, niet op de halve kilometer daarbuiten
+  const shopR = t.reach * (w.x !== c.x || w.y !== c.y ? ANKER_SHOP_R : SHOP_R);
   for (const s of t.shops || []) {
     const list = [];
-    for (let k = 0; k < tries * 2; k++) list.push(at(t.reach * SHOP_R, 1));
+    for (let k = 0; k < tries * 2; k++) list.push(at(shopR, 1, w));
     out.push({ id: `${t.id}-winkel-${m++}`, kind: 'winkel', build: 'stad_bord', shop: s, x: list[0][0], y: list[0][1], tries: list });
   }
   return { town: t.id, items: out, skipped };
