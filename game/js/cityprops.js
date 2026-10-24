@@ -9,6 +9,7 @@ import { makeProp, addProp, removeProp, isPropBroken, propKey, updateBreakables 
 import { initClutter, generateClutter, whiteUV } from './streetclutter.js';
 import { breakableWallsIn } from './elevation.js';
 import { runGeo } from './geojobs.js';
+import { streamRankHere, streamNearHere } from './streambudget.js';
 import { wijkProfileAt } from './trafficfleet.js';
 import { slotChance } from './streetlifedata.js';
 import { crateGeometry, cartGeometry } from './streetlife3d.js';
@@ -738,6 +739,9 @@ function buildCellMeshes(cell) {
   cell.props = [];
   cell.active = true;
   const token = cell.buildToken = (cell.buildToken || 0) + 1;
+  // near: the merge of the cell at the player's feet goes before one far behind
+  // (geojobs.js queue), and at speed the cells ahead come first (#247)
+  const near = streamNearHere((cell.cx + 0.5) * CELL, (cell.cy + 0.5) * CELL);
   runGeo('cityMerge', mergeJob([cell.items, cell.market]), ([r, mr]) => {
     if (cell.buildToken !== token || !cell.active) return;
     const g = mergedGeometry(r);
@@ -757,7 +761,7 @@ function buildCellMeshes(cell) {
       registerItems(cell, cell.market, cell.marketMesh);
     }
     registerWalls(cell);
-  });
+  }, near);
 }
 
 function dropCell(cell) {
@@ -932,8 +936,9 @@ export function updateCityProps(dt, w, scene) {
     return Math.hypot(p.x - (gx + 0.5) * CELL, p.y - (gy + 0.5) * CELL) < BUILD_RADIUS + CELL;
   });
   genQueue.sort((a, b) => {
+    // in de rijrichting eerst (#247): hetzelfde vooruitkijken als de gebouwen
     const [ax, ay] = a.split(',').map(Number), [bx, by] = b.split(',').map(Number);
-    return Math.hypot(ax - pcx, ay - pcy) - Math.hypot(bx - pcx, by - pcy);
+    return streamRankHere((ax + 0.5) * CELL, (ay + 0.5) * CELL) - streamRankHere((bx + 0.5) * CELL, (by + 0.5) * CELL);
   });
   for (let i = 0; i < GEN_PER_FRAME && genQueue.length; i++) {
     if (busy && genQueue[0] !== pcx + ',' + pcy) break;
