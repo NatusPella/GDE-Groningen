@@ -307,10 +307,12 @@ registreerWedstrijd('klimtoren', {
   naam: 'Klimtoren Zernike', soort: 'tijd', vak: 'buiten',
   start: (w) => start(w, { online: 'host' }),
   plek: () => ({ ...STAND }),
+  gastPlek: (w, x, y) => !game && Math.hypot(x - STAND.x, y - STAND.y) < 4.5, // a guest asks at the stand (#452)
   eind: (w, res) => { if (game && game.online === 'host') end(w, res ? { uitslag: res } : { quit: true, extern: true }); },
   solo: (w) => start(w),
 });
 zetWedGastHaken('klimtoren', {
+  dichtbij: (w) => !game && !w.player.inVehicle && Math.hypot(w.player.x - STAND.x, w.player.y - STAND.y) < 3,
   start: (w) => start(w, { online: 'gast' }),
   eind: (w, uit) => { if (game && game.online === 'gast') end(w, uit.gestopt ? { quit: true, extern: true } : { uitslag: uit }); },
   tik: gastTik,
