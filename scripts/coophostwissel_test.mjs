@@ -236,6 +236,13 @@ gelijk(rangschik([k(2, 10), k(3, 62)], [k(3, 70)]).map((x) => x.slot), [2, 3], '
 gelijk(rangschik([k(2, 10)], [k(3, 70)]).map((x) => x.slot), [2], 'de vorige nummer één is weg: hij verdwijnt uit de lijst');
 ok(rangschik([k(0, 1), k(-1, 2), null, { slot: 'x' }, k(4, 5)]).length === 1, 'plek 0 (wie het spel opende) en rommel zijn nooit opvolger');
 ok(rangschik(Array.from({ length: 20 }, (_, i) => k(i + 1, 10 + i))).length === MAX_RANG, 'hoogstens MAX_RANG opvolgers');
+// #450: de langst verbonden speler neemt over; pas bij een gelijke leeftijd beslist de verbinding en dan de plek
+const kt = (slot, ping, sinds) => ({ slot, ping, sinds, kamer: 'K' + slot });
+gelijk(rangschik([kt(2, 12, 20), kt(3, 80, 300), kt(1, 30, 90)]).map((x) => x.slot), [3, 1, 2], 'de langst verbonden speler eerst');
+gelijk(rangschik([kt(1, 40, 100), kt(2, 40, 100)]).map((x) => x.slot), [1, 2], 'even lang verbonden: de ping en dan de plek');
+gelijk(rangschik([kt(2, 5, 300), kt(1, 90, 100)], [kt(1, 20, 190)]).map((x) => x.slot), [2, 1], 'een oudere verbinding wint van de vorige nummer één');
+gelijk(rangschik([kt(1, 40, 100)], [kt(2, 10, 400)]).map((x) => x.slot), [1], 'de vorige nummer één is weg: hij verdwijnt uit de lijst');
+gelijk(rangschik([kt(2, 95, 100), kt(1, 100, 90)]).map((x) => x.slot), [1, 2], 'even oud en dezelfde pingbak: de plek beslist');
 ok(herstelInterval(0) === HERSTEL_S && herstelInterval(3) === HERSTEL_S && herstelInterval(7) === HERSTEL_S + 10, 'meer gasten: minder vaak (het bandbreedtebudget)');
 ok(beurtIndex(0) === 0 && beurtIndex(BEURT_S - 0.1) === 0 && beurtIndex(BEURT_S) === 1 && beurtIndex(-5) === 0 && STILTE_S === 12, 'beurten van 30 s, stilte van 12 s');
 

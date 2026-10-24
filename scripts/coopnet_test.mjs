@@ -5,6 +5,8 @@
 import assert from 'node:assert/strict';
 import { createLink } from '../game/js/net/memtransport.js';
 import * as N from '../game/js/coopnet.js';
+import * as W from '../game/js/coophostwisselnet.js'; // de momentopname van een gastheer zonder speler (#450)
+import { koplozeWereld } from '../game/js/net/koploos.js';
 import * as C from '../game/js/coopclient.js';
 import { remoteP2, cameraRelative } from '../game/js/coop.js';
 import { coopStep } from '../game/js/coopglue.js';
@@ -334,5 +336,46 @@ t('de wachtkamer: het spel begint pas met minstens twee spelers; een gast hoort 
   assert.equal(gateOn(), false); assert.equal(gw.coopHek, false, 'de gast hoort dat het spel begint');
   assert.equal(N.handleEvent(hw, { k: 'hek', aan: true }), false, 'een gastheer luistert niet naar dit bericht');
   setGate(true); N.stopCoopNet(hw); assert.equal(gateOn(), false, 'zonder samen spelen is er geen wachtkamer');
+});
+t('een wereld zonder speler (#450): de gastheer draait koploos, de gasten spelen met dezelfde berichten', () => {
+  // de wereld van een server: geen speler en geen metgezel, wel een startplek, klok en opdrachtstand
+  const hw = koplozeWereld({ start: { x: 100, y: 200 }, clock: 12 });
+  assert.equal(hw.player, null); assert.equal(hw.companion, null);
+  N.startHost(hw, INFO, { seed: 5, koploos: true });
+  assert.equal(N.isKoploosHost(hw), true, 'de sessie weet dat er geen lokale speler is');
+  const gs = [];
+  for (let i = 0; i < 2; i++) {
+    const link = createLink({ latency: 0.03, seed: 7 + i }); N.addGuest(hw, link.a);
+    const gw = mkWorld({ input: { axis: () => [0, 0], isDown: () => false } }); N.startClient(gw, link.b, INFO); gs.push({ gw, link });
+  }
+  const step = (secs, f) => { for (let k = 0; k < 60 * secs; k++) { if (f) f(k); N.tickCoopNet(hw, 1 / 60); for (const g of gs) { N.tickCoopNet(g.gw, 1 / 60); g.link.advance(1 / 60); g.gw.time += 1 / 60; } hw.time += 1 / 60; } };
+  step(2);
+  const [g1, g2] = gs.map((x) => x.gw);
+  assert.equal(g1.coopNet.session.slot, 1); assert.equal(g2.coopNet.session.slot, 2);
+  assert.equal(hw.player, null, 'de server krijgt geen speler');
+  assert.deepEqual(hw.coopRoster.map((r) => r.slot), [0, 1, 2], 'plek 0 blijft de gastheer in de lijst: het protocol verandert niet');
+  assert.ok(hw.coopFigures[1] && hw.coopFigures[2], 'elke gast is een figuur in de wereld van de server');
+  assert.ok(Math.hypot(g1.player.x - 100, g1.player.y - 201.5) < 3, 'de gast komt op de startplek van de server: ' + g1.player.x + ',' + g1.player.y);
+  // de gast bestuurt zijn eigen figuur; de hub simuleert hem en de snapshot komt terug (dezelfde berichten als altijd)
+  g1.input = { axis: () => [1, 0], isDown: () => false }; g1.camYaw = 0;
+  const f1 = hw.coopFigures[1], x0 = f1.x, y0 = f1.y; step(2);
+  assert.ok(Math.hypot(f1.x - x0, f1.y - y0) > 2, 'de figuur van de gast loopt door zijn invoer');
+  assert.ok(Math.hypot(g1.player.x - x0, g1.player.y - y0) > 2, 'en de gast ziet zichzelf lopen, uit de snapshot van de server');
+  assert.equal(hw.coop.remote, undefined, 'de server heeft geen metgezel die door plek 1 bestuurd wordt');
+  // de momentopname voor een overname (#439) bevat geen spook op plek 0: er is geen speler
+  const mom = W.verzamelMomentopname(hw);
+  assert.deepEqual(mom.spelers.map((s) => s.slot), [1, 2], 'de momentopname van een koploze gastheer');
+  assert.ok(mom.spelers.every((s) => Number.isFinite(s.x) && Number.isFinite(s.y)), 'met de plekken van de gasten');
+  // valt de koploze gastheer weg, dan neemt een gast over en gaat de wereld door op deze momentopname: geen nieuwe wereld,
+  // geen sprong naar een plek 0 die niet bestaat (#450)
+  const overnemer = mkWorld({ clock: 3, wanted: 0, player: { x: 500, y: 500, angle: 0, character: 'anita', vx: 0, vy: 0 } });
+  const toe = W.pasMomentopnameToe(overnemer, mom, {}, { slot: 2, eigenPlek: true, eigenKlokWeer: false });
+  assert.equal(overnemer.clock, hw.clock, 'de klok van de wereld loopt door');
+  assert.equal(overnemer.wanted, mom.wanted.niveau);
+  assert.deepEqual([overnemer.player.x, overnemer.player.y], [500, 500], 'de nieuwe gastheer blijft staan waar hij stond');
+  assert.equal(toe.klok, true, 'de klok komt uit de momentopname');
+  // de gastheer stopt: de gasten spelen weer in hun eigen spel
+  N.stopCoopNet(hw); step(2);
+  for (const g of gs) assert.equal(g.gw.coopNet, null);
 });
 console.log(`coopnet_test: ${n}/${n} ok`);
