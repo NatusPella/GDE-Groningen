@@ -11,6 +11,7 @@ import { storyDate } from './calendarday.js';
 import { wijkProfileAt } from './trafficfleet.js';
 import { inProvinceData } from './provinceworld.js';
 import { zachtePauze, meerSpelers } from './coopgroep.js';
+import { registerMusicProbe } from './scenariomusic.js';
 
 let photo = null;
 let saved = null;
@@ -27,6 +28,7 @@ const keysDown = new Set();
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const store = () => { try { return window.localStorage; } catch (e) { return null; } };
 export const isPhotoMode = () => !!photo;
+registerMusicProbe('foto', () => !!photo); // de eigen muziek van de fotomodus (thuis_loop)
 
 function placeName(world) {
   try { return wijkProfileAt(world.map, world.player.x, world.player.y).wijk || 'Groningen'; } catch (e) { return 'Groningen'; }

@@ -57,6 +57,7 @@ const SCENARIO_TRACKS = {
   vlucht: './audio/scenario/vlucht_loop.mp3',
   missie: './audio/scenario/missie_spanning_loop.mp3',
   fiets: './audio/scenario/fiets_loop.mp3',
+  thuis: './audio/scenario/thuis_loop.mp3',
 };
 const SCENARIO_VOLUME = 0.8;
 const SCENARIO_FADE_IN = 1.5; // s
