@@ -55,6 +55,14 @@ When the opener starts a mission, side job or prize, every guest gets a card in 
 - Races and rounds: a "Meedoen?" card on the board with the line "Wie finisht krijgt een beloning in het eigen geld." Nobody joins halfway a race or a golf round.
 - Use the same two keys everywhere (J and N), shown as caps, and the same wording of the default.
 
+## What does not work together yet
+
+With two or more players, anything that does not fully work in Samen spelen says so (`coopstatus.js`, status `werkt` | `deels` | `nee`; with one player nothing changes, not even on a session of one).
+
+- Map: a `nee` icon is greyed out (grayscale plus lower opacity, same grey as the passive players), a `deels` icon gets a small half-filled dot at the top right (shape, not only colour). Hover and click show **"Dit werkt nog niet samen."** or **"Dit werkt nog maar deels samen."** as a line of text (12 px or more, 14 words at most). A waypoint to such a goal shows the same line.
+- Starting: one toast before the start, **"Dit werkt nog niet samen. Je kunt het toch proberen."** The player is never blocked; the guest and the opener both read it.
+- A new thing that works together is set to `werkt` in the register, in the same change; `scripts/coopstatus_test.mjs` fails when a known activity, side job or minigame has no status.
+
 ## Host handover
 
 Any player may be asked to take over the game (`coophostwissel*.js`, `coophostwisselui.js`).

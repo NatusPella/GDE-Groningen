@@ -59,6 +59,17 @@ Een gast kiest per opdracht of hij meedoet (J of N). Wie niet meedoet is vrij en
 - De gast meldt een wisseling als `{ k: 'bezig', a: 'hengelen' | null }`, een gewoon JSON-bericht (geen nieuw formaat; PROTO en CODEC_VERSION blijven 2). Een host die het nog niet kent, slaat het over. Wie het spel opende bewaart het per plek (`world.coopBezigVan`) en geeft het als `{ k: 'bezigvan', slot, a }` door aan de andere gasten (ook aan een gast die later aansluit; een gast die weggaat is niet meer bezig). `coopbezig3d.js` tekent er de hengel (dezelfde `maakHengelAnim` als je eigen hengel, eerst een worp en dan wachten), een pan of twee klepels bij, in wereldruimte bij het lichaam; de armen van het model staan niet in een eigen houding (nog niet in beeld bekeken).
 - De boerderij groeit bij een gast in `updateGameplay` (`boerderijTijd`); het sprongetje naar de klok van de host telt niet mee (`boerderijKlokNul`).
 
+## Wat werkt al samen (coopstatus.js)
+
+Eén register, `samenStatus(soort, id)` in `game/js/coopstatus.js`, geeft per onderdeel `werkt`, `deels` of `nee` (soorten: `stap` en `missie` voor het verhaal, `bijbaan`, `activiteit`, `minigame`, `voertuig`). `scripts/coopstatus_test.mjs` leest de code erbij: elke bijbaan, activiteit, minigame, voertuig en verhaalstap die het spel kent heeft een status, en `werkt` klopt met `GAST_ACTIVITEITEN`, `BIJBAAN_REGELS` en elke `registreerWedstrijd`. Een nieuw onderdeel dat samen werkt zet je dus op `werkt` in dat register, anders blijft hij grijs.
+
+- **werkt:** kartrace, pitch en put, discgolf, padel, klimtoren, taxi, bezorgen, krantenwijk, bus, hengelen, pannenkoeken, beiaard en de verhaalstappen goto, hold, board, escape, chase en scene.
+- **deels:** een missie met een andere stap (heist en stappen met rekwisieten die alleen bij wie het spel opende staan), en o.a. het safehuis en de wandeling.
+- **nee:** o.a. skatepark, botsauto's, waterskiën, trekker (boerderijklus), rondvaart, de trein en elke bijbaan die niet in `BIJBAAN_REGELS` staat.
+- Een missie krijgt de slechtste status van zijn stappen (`missieStatus`).
+- **Alleen met twee of meer spelers** (`meerdereSpelers` in `spelersregister.js`; eenspeler en een sessie van één zien niets): op de kaart is een `nee`-onderdeel uitgegrijsd en een `deels`-onderdeel heeft een klein half gevuld bolletje; bij aanwijzen en klikken staat er "Dit werkt nog niet samen." of "Dit werkt nog maar deels samen." Een waypoint naar zo'n onderdeel meldt dat ook.
+- **Vóór de start** (`waarschuwVoorStart`: missie, bijbaan, activiteit, heli, duif en uitdagingen) komt dezelfde melding met "Je kunt het toch proberen." Niets wordt geblokkeerd. De gast hoort het bij de uitnodiging voor een opdracht (`nodigUit` in `coopnet.js`) en bij E bij een activiteit die hij niet zelf kan starten; wie het spel opende bij het starten.
+
 ## Hoe het werkt
 
 **Winkelen.** In `updateGameplay` (main.js) draait voor een gast alleen `updateGastLokaal`: eerst `tryShopInteract`, `tryMachineInteract`
