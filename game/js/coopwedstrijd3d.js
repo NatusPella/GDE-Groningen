@@ -4,6 +4,7 @@
 import { fmtTime } from './minigamekit.js';
 import { openerNaam } from './coopplayers.js';
 import { bijbaanKaartModel } from './coopbijbaan.js';
+import { kaartSting, spelersVerbonden } from './stings.js';
 import { spelerNaam, verbondenGasten, gastStaat, wedGastStuur, wedOpnieuw, wedHostAntwoord, willenOpnieuw, uitnodigingTekst } from './coopwedstrijd.js';
 
 const ORDINAAL = ['', '1e', '2e', '3e', '4e'];
@@ -62,7 +63,25 @@ export function wedKaartTik(world, dt) {
     if (toets('j')) wedOpnieuw(world);
     else if (toets('n') || toets('enter')) n.wed.uitslag = null;
   }
-  tekenKaart(kaartModel(world));
+  const kaart = kaartModel(world);
+  tekenKaart(kaart);
+  stingTik(world, kaart);
+}
+
+// Korte geluidjes (stings.js) voor jezelf: een nieuwe uitnodiging Meedoen?, de uitslag (winnaar of verliezer, bij een teamuitslag
+// het eigen team) en een speler die verbindt. De volgorde, prioriteit en afkoeling regelt audio.js; hier alleen het moment.
+let vorigKaart = null, vorigeSlots = null;
+const pushAudioEvent = (world, ev) => { const q = world.audioEvents || (world.audioEvents = []); if (q.length < 64) q.push(ev); };
+function stingTik(world, kaart) {
+  const n = world.coopNet;
+  if (!n) { vorigKaart = null; vorigeSlots = null; return; }
+  const uitslag = n.role === 'host' ? (n.wed && n.wed.uitslag) : (world.coopWedGast && world.coopWedGast.uitslag);
+  const naam = kaartSting(vorigKaart, kaart, uitslag);
+  vorigKaart = kaart;
+  if (naam) pushAudioEvent(world, { kind: 'sting', name: naam });
+  const sv = spelersVerbonden(vorigeSlots, world.coopRoster);
+  vorigeSlots = sv.slots;
+  if (sv.nieuw) pushAudioEvent(world, { kind: 'sting', name: 'speler_sluit_aan' });
 }
 
 let el = null, laatste = '';

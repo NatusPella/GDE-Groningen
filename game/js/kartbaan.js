@@ -447,9 +447,9 @@ function updateOnline(w, dt) {
   const ev = gast ? tikSpiegel(g, dt, () => playerInput(w.input)) : wedRaceTik(w, g, dt, () => playerInput(w.input));
   let klaar = false;
   for (const e of ev) {
-    if (e.type === 'lights') { pushAudioEvent(w, { kind: 'bell', x: STAND.x, y: STAND.y }); if (!gast && e.n === 1) say(w, 'lights', true); }
+    if (e.type === 'lights') { pushAudioEvent(w, { kind: 'bell', x: STAND.x, y: STAND.y }); if (e.n === 1) pushAudioEvent(w, { kind: 'sting', name: 'kart_countdown' }); if (!gast && e.n === 1) say(w, 'lights', true); }
     else if (e.type === 'go') { pushAudioEvent(w, { kind: 'bell', x: STAND.x, y: STAND.y }); g.flash = { text: 'GO!', t: 1.4 }; if (!gast) say(w, 'go', true); }
-    else if (e.type === 'lap' && e.i === 0) { g.flash = { text: `Ronde ${e.lap}: ${fmtTime(e.time)}`, t: 2.4 }; if (!gast && e.lap === LAPS - 1) say(w, 'last'); }
+    else if (e.type === 'lap' && e.i === 0) { if (e.lap >= LAPS) pushAudioEvent(w, { kind: 'sting', name: 'kart_finish' }); /* je eigen finish: een korte fanfare */ g.flash = { text: `Ronde ${e.lap}: ${fmtTime(e.time)}`, t: 2.4 }; if (!gast && e.lap === LAPS - 1) say(w, 'last'); }
     else if (e.type === 'wall' && e.i === 0) pushAudioEvent(w, { kind: 'prop_hit', material: 'wood', strength: clamp(e.speed / 8, 0.2, 1), x: ORIGIN.x, y: ORIGIN.y });
     else if (e.type === 'boost' && e.i === 0) g.flash = { text: e.lvl === 2 ? 'SUPERBOOST!' : 'BOOST!', t: 1.2 };
     else if (e.type === 'klaar') klaar = true;
@@ -512,7 +512,7 @@ function updateGame(w, dt) {
     if (n !== g.lights) {
       g.lights = n;
       pushAudioEvent(w, { kind: 'bell', x: STAND.x, y: STAND.y });
-      if (n === 1) say(w, 'lights', true);
+      if (n === 1) { pushAudioEvent(w, { kind: 'sting', name: 'kart_countdown' }); say(w, 'lights', true); }
     }
     if (g.t >= GO_AT) {
       g.phase = 'race';
@@ -552,7 +552,7 @@ function updateGame(w, dt) {
           g.flash = { text: `Ronde ${lap.lap}: ${fmtTime(lap.time)}`, t: 2.4 };
           if (lap.lap === LAPS - 1) say(w, 'last');
         }
-        if (lap && k.finished && k.player && g.phase === 'race') { g.phase = 'finish'; g.finishAt = g.raceT; }
+        if (lap && k.finished && k.player && g.phase === 'race') { g.phase = 'finish'; g.finishAt = g.raceT; pushAudioEvent(w, { kind: 'sting', name: 'kart_finish' }); }
       }
     }
     if (g.phase === 'race' && !me.finished) recordGhost(g.rec, g.raceT, me.u, me.v, me.a);

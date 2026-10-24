@@ -106,6 +106,8 @@ meegeleverd.
 - **Muziek**: G-Music, de scenario-loops (ook de eigen loops voor kart, padel, golf, klimtoren, trein en bus) en het titelnummer
   (`game/audio/gmusic`, `game/audio/scenario`, `game/audio/theme`) zijn
   gemaakt met Google Gemini.
+- **Stings** (`game/js/stings.js`: afteller, finish, winnaar, verliezer, Meedoen?, speler sluit aan, trein vertrekt, halte)
+  zijn procedureel in code gemaakt met WebAudio: geen opnames en geen AI-muziek.
 - **Stemmen**: alle stemmen (`game/audio/voicelines`, `npc`, `police`,
   `nieuws`, G-Music-jingles) zijn gemaakt met Google Gemini TTS
   (`google/gemini-3.8-flash-tts`) via OpenRouter. Per map

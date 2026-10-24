@@ -6,6 +6,7 @@ import { getBusLines } from './vehicle.js';
 import { startAt, nearestLine } from './busroutes.js';
 import { spawnJobVehicle, pick } from './sidejobkit.js';
 import { queueHalte } from './haltefiguren.js';
+import { pushAudioEvent } from './pedgeom.js';
 import { makeRide, planRide, startRide, takeOverRide, updateRide, rideStop, stopPos } from './busride.js';
 import { project } from './busroutes.js';
 import { busCoopStart, busCoopTik, busCoopBetaal } from './coopbus.js';
@@ -117,6 +118,7 @@ export default {
     if (bc) busCoopTik(c.world, v, dt);
     for (const e of updateRide(d.ride, bus, dt)) {
       if (e.type === 'arrive') {
+        pushAudioEvent(c.world, { kind: 'sting', name: 'halte' }); // aankomst op een halte (stings.js)
         const txt = e.state === 'op tijd' ? 'op tijd' : e.state === 'vroeg' ? 'te vroeg' : 'te laat';
         if (e.manual) c.msg(`${e.stop.name}: ${txt}. Open de deuren met O.`, 3);
         else {

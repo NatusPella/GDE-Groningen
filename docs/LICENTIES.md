@@ -61,6 +61,9 @@ Er zijn drie soorten geluid in het spel, met elk een eigen herkomst:
 | **Muziek**: 28 G-Music-nummers, 8 scenario-loops, titelnummer | `game/audio/gmusic`, `scenario`, `theme` | gemaakt met Google Gemini (AI), niet door de eigenaar gecomponeerd of gesynthetiseerd; zie §4 | n.v.t. (AI-output) |
 | **Stemmen**: ~3.100 regels plus vaste clips (`npc`, `police`, `nieuws`, jingles) | `game/audio/voicelines` e.a. | Gemini TTS via OpenRouter (`google/gemini-3.8-flash-tts`), per map gelogd in `tts.json` | n.v.t. (AI-output) |
 
+Sinds 24 okt 2026 horen ook de korte stings (afteller, finish, winnaar, verliezer, Meedoen?, speler sluit aan, trein vertrekt,
+halte; `game/js/stings.js`) bij de geluidseffecten: procedureel in code gemaakt, geen opnames en geen AI-muziek.
+
 Let op: "alles zelf gesynthetiseerd, geen samples" geldt dus **alleen voor de
 geluidseffecten**, niet voor muziek en stemmen. README, NOTICE en de
 aftiteling zeggen dat ook zo. **Nog open voor de eigenaar:** welk muziekproduct
