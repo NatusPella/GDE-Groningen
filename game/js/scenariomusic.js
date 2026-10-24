@@ -16,7 +16,7 @@ const ACT_STOP_S = 1.5;
 
 import { isPauseMenuOpen } from './pausestate.js';
 
-export const ACTIVITY_KEYS = ['kart', 'padel', 'golf', 'klimtoren', 'trein', 'bus', 'boerderij', 'vlucht', 'thuis', 'missie', 'fiets', 'menu'];
+export const ACTIVITY_KEYS = ['kart', 'padel', 'golf', 'klimtoren', 'trein', 'bus', 'boerderij', 'vlucht', 'thuis', 'missie', 'fiets', 'menu', 'pvp'];
 const BOERDERIJ_MODELLEN = ['tractor', 'maaidorser', 'laadmachine']; // de machines van het boerenwerk (boerderijwereld.js, #415)
 
 // Modules that own private state (the machinist service) register a probe
@@ -36,6 +36,7 @@ export function activityMusicKey(world) {
   // the pause menu (also the Samen spelen lobby and the other tabs): the menu loop wins over everything for this player
   if (isPauseMenuOpen()) return 'menu';
   if (world.padelGame) return 'padel';
+  if (probed('pvp', world)) return 'pvp'; // de PvP-arena van Samen spelen (#454)
   const G = world.coopWedGast;
   if (G && (G.spiegel || G.score) && ACTIVITY_BY_ID[G.id]) return ACTIVITY_BY_ID[G.id];
   if (ACTIVITY_BY_ID[world.activityGame]) return ACTIVITY_BY_ID[world.activityGame];

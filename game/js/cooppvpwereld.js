@@ -4,9 +4,13 @@
 // neergaat staat zonder kosten weer op (geen respawn-reis, geen mislukte opdracht, geen prestatie
 // "wasted", geen boete) en is zes seconden beschermd. Dood door de wereld loopt nog via requestRespawn en blijft zoals het was.
 // Getest in scripts/cooppvp_test.mjs.
-import { PVP_TEKST, pvpMag, pvpSchade, geefBescherming, beschermd, isPassief, pogingMelden, leesPvpSchade, leesPvpDood, pvpDoodEvent } from './cooppvp.js';
+import { PVP_TEKST, pvpMag, pvpSchade, geefBescherming, beschermd, isPassief, arenaToegestaan, pogingMelden, leesPvpSchade, leesPvpDood, pvpDoodEvent } from './cooppvp.js';
+import { maakArena, arenaMeld, arenaStart, arenaStop, arenaTik, arenaTreffer, arenaNeer, arenaStand, arenaUitslag, arenaRegel, ARENA, ARENA_TEAMS, ARENA_TEKST } from './pvparena.js'; // de PvP-minigame (#454)
 import { gastLichamen } from './coopbestuur.js';
 import { charInfo } from './coopplayers.js';
+import { geo, createBoard } from './minigamekit.js';
+import { registerMusicProbe } from './scenariomusic.js';
+import { hoofdspeler } from './spelersregister.js';
 
 const nuVan = (w) => (Number.isFinite(w.time) ? w.time : 0);
 const isHost = (w) => w.coopRole === 'host' && !!w.coopPvp;
@@ -32,6 +36,7 @@ export function pvpTreffer(world, dader, doel, bedrag) {
   if (!r.ok) { if (r.reden === 'doel-passief') poging(world, dader, doel); return false; }
   if (doel === 0) hostRaak(world, r.bedrag, dader);
   else if (world.coopPvpSchade) world.coopPvpSchade(doel, r.bedrag, dader);
+  arenaTrefferHook(world, dader, doel, r.bedrag); // de PvP-minigame telt treffers tussen deelnemers (#454)
   return true;
 }
 
@@ -80,6 +85,7 @@ function hostOpstaan(world, dader) {
   world.health = 100; world.armor = 0;
   geefBescherming(world.coopPvp, 0, nuVan(world));
   const p = world.player; if (p) { p.vx = 0; p.vy = 0; }
+  arenaNeerHook(world, dader, 0); // de PvP-minigame: punten, respawn bij het eigen team (#454)
   if (world.addMessage) world.addMessage(PVP_TEKST.neergeslagen(naamVanSlot(world, dader)), 5);
   if (world.coopPvpMeld) world.coopPvpMeld(PVP_TEKST.neergeslagenAnderen(naamVanSlot(world, dader), naamVanSlot(world, 0)), 0);
 }
@@ -97,6 +103,7 @@ export function pvpGastRaak(world, body, ik) {
   world.health = 100; world.armor = 0; // zonder kosten weer op
   geefBescherming(st, ik, nu);
   if (world.addMessage) world.addMessage(PVP_TEKST.neergeslagen(naamVanSlot(world, pv.door)), 5);
+  arenaNeerHook(world, pv.door, ik); // de PvP-minigame op het scherm van de gast (#454)
   const n = world.coopNet;
   try { if (n && n.session && n.session.sendEvent) n.session.sendEvent(pvpDoodEvent(pv.door)); } catch (e) { /* de verbinding is er even niet */ }
   return true;
@@ -106,8 +113,155 @@ export function pvpGastRaak(world, body, ik) {
 export function pvpDoodVerwerk(world, body, slot) {
   const d = leesPvpDood(body); if (!d || !isHost(world) || !(slot >= 1) || isPassief(world.coopPvp, slot)) return false;
   geefBescherming(world.coopPvp, slot, nuVan(world));
+  arenaNeerHook(world, d.door, slot); // de PvP-minigame: de host hoort dat een gast neerging (#454)
   const tekst = PVP_TEKST.neergeslagenAnderen(naamVanSlot(world, d.door), naamVanSlot(world, slot));
   if (world.addMessage) world.addMessage(tekst, 4);
   if (world.coopPvpMeld) world.coopPvpMeld(tekst, slot);
   return true;
 }
+
+// ---------------------------------------------------------------- de PvP-minigame (#454)
+// De regels staan in pvparena.js; hier hangt de arena aan de PvP-laag hierboven (dezelfde treffers, hetzelfde neergaan) en aan
+// een plek in de wereld. Wie het spel opende rekent de ronde uit; de gasten horen de stand via de gewone meldingen
+// (coopnet.js 'melding'), dus geen nieuw netwerkformaat (PROTO en CODEC_VERSION blijven 2). Alleen spelers buiten de passieve
+// stand doen mee en alleen wie bij de start in het veld staat (geen late instap). Dood kost hier niets: geen geld, geen
+// voortgang; bloed en gore mogen in deze PvP (constitutie 6), al tekent dit bestand niets.
+const ARENA_PLEK = geo(53.2062, 6.5468); // het open veld in het noorden van het Stadspark (echte plek, verzonnen arena)
+export const PVP_ARENA_PLEK = { x: ARENA_PLEK.x, y: ARENA_PLEK.y }; // voor de tests en de kaart
+const ARENA_NABIJ = 14;                   // m: vanaf hier verschijnt de prompt bij het veld
+const ARENA_ZONE = { midden: 'Midden', west: 'West', oost: 'Oost' };
+let arenaBord = null;                     // het HUD-bord van deze pagina (minigamekit createBoard)
+let arenaBordAan = false;                 // staat het bord in beeld?
+
+const naamOfIemand = (world, slot) => (Number.isInteger(slot) ? naamVanSlot(world, slot) : 'Iemand');
+function zetOpPlek(l, p) { l.x = p.x; l.y = p.y; l.vx = 0; l.vy = 0; l.z = 0; l.vz = 0; }
+
+// Wie doen er mee: in het veld, niet passief, niet in een voertuig, niet al neer. De host bepaalt de lijst bij de start.
+function arenaKandidaten(world) {
+  const uit = [];
+  for (const [slot, l] of pvpLichamen(world)) {
+    if (!Number.isInteger(slot) || slot < 0 || !arenaToegestaan(world.coopPvp, slot) || !levend(world, slot, l)) continue;
+    if (Math.hypot(l.x - ARENA_PLEK.x, l.y - ARENA_PLEK.y) > ARENA.straal + 4) continue;
+    uit.push({ slot, naam: naamVanSlot(world, slot) });
+  }
+  return uit.sort((a, b) => a.slot - b.slot).slice(0, ARENA.maxSpelers);
+}
+
+// De start: een nieuwe ronde voor iedereen die erbij staat. Alleen de host (of de enige speler) rekent.
+export function pvpArenaStart(world) {
+  const meld = (t) => { if (world.addMessage) world.addMessage(t, 5); };
+  if (!world.coopPvp || !world.coopNet) { meld(ARENA_TEKST.promptSolo); return false; }
+  if (world.coopRole === 'client') { meld(ARENA_TEKST.alleenHost); return false; }
+  if (world.pvpArena && world.pvpArena.fase === 'bezig') { meld(ARENA_TEKST.alBezig); return false; }
+  if (isPassief(world.coopPvp, 0)) { meld(ARENA_TEKST.passief); return false; }
+  const ik = hoofdspeler(world);
+  if (ik && ik.inVehicle) { meld(ARENA_TEKST.voertuig); return false; }
+  const kandidaten = arenaKandidaten(world);
+  if (kandidaten.length < 2) { meld(ARENA_TEKST.min); return false; }
+  const ar = maakArena({ x: ARENA_PLEK.x, y: ARENA_PLEK.y });
+  for (const k of kandidaten) arenaMeld(ar, k.slot, k.naam, false);
+  if (!arenaStart(ar, nuVan(world)).ok) { meld(ARENA_TEKST.min); return false; }
+  world.pvpArena = ar; world.pvpArenaFlash = null; world.pvpArenaUitslag = null; world.pvpArenaStandT = nuVan(world);
+  meld(ARENA_TEKST.start);
+  if (world.coopPvpMeld) world.coopPvpMeld(ARENA_TEKST.start, 0);
+  return true;
+}
+
+// Een treffer tussen twee deelnemers (de schade is al door pvpSchade goedgekeurd).
+function arenaTrefferHook(world, dader, doel, bedrag) {
+  const ar = world.pvpArena;
+  if (!ar || ar.fase !== 'bezig') return;
+  arenaTreffer(ar, dader, doel, bedrag, nuVan(world));
+}
+// Iemand gaat neer: punten voor de dader, respawn bij het eigen team en bescherming (nooit korter dan wat de PvP-laag al gaf).
+function arenaNeerHook(world, dader, doel) {
+  const ar = world.pvpArena;
+  if (!ar || ar.fase !== 'bezig' || !world.coopPvp) return;
+  const r = arenaNeer(ar, dader, doel, nuVan(world));
+  if (!r.ok) return;
+  const nu = nuVan(world), tot = ((world.coopPvp.tot || {})[doel] || 0);
+  if (tot < nu + ARENA.beschermS) geefBescherming(world.coopPvp, doel, nu, ARENA.beschermS);
+  const ik = hoofdspeler(world);
+  if (doel === 0 && r.spawn && ik) zetOpPlek(ik, r.spawn); // de host staat weer bij zijn team
+  const tekst = ARENA_TEKST.neer(naamOfIemand(world, dader), naamOfIemand(world, doel));
+  if (world.addMessage) world.addMessage(tekst, 3);
+  if (world.coopPvpMeld) world.coopPvpMeld(tekst, 0);
+}
+function arenaKlaar(world, ar) {
+  if (world.pvpArenaUitslag != null) return;
+  const u = arenaUitslag(ar);
+  world.pvpArenaUitslag = u;
+  if (world.addMessage) world.addMessage(`${u.tekst} ${ARENA_TEKST.rematch}`, 6);
+  if (world.coopPvpMeld) world.coopPvpMeld(u.tekst, 0); // de gasten horen de uitslag
+}
+
+// Elke frame bij de host (activities.js): de klok, de zones, de stand en het bord.
+export function pvpArenaTik(world, dt) {
+  const ar = world.pvpArena;
+  if (!ar) { verbergBord(); return; }
+  const nu = nuVan(world);
+  if (ar.fase === 'bezig') {
+    const lichamen = [];
+    for (const [slot, l] of pvpLichamen(world)) if (Number.isInteger(slot) && levend(world, slot, l)) lichamen.push({ slot, x: l.x, y: l.y });
+    for (const e of arenaTik(ar, dt, lichamen, nu)) {
+      if (e.type === 'zone') world.pvpArenaFlash = `${ARENA_ZONE[e.zone] || e.zone} is van ${ARENA_TEAMS[e.team].naam}`;
+      else if (e.type === 'eind') arenaKlaar(world, ar);
+    }
+    if (ar.fase === 'bezig' && nu - (world.pvpArenaStandT || 0) > 30) { world.pvpArenaStandT = nu; if (world.coopPvpMeld) world.coopPvpMeld(arenaRegel(ar), 0); } // elke halve minuut de stand
+  }
+  if (ar.fase === 'klaar') {
+    arenaKlaar(world, ar);
+    if (nu >= ar.klaarTot) { world.pvpArena = null; world.pvpArenaUitslag = null; verbergBord(); return; }
+  }
+  toonBord(world, ar);
+}
+
+function verbergBord() { if (arenaBord && arenaBordAan) { arenaBord.hide(); arenaBordAan = false; } }
+
+// Het HUD-bord (minigamekit createBoard): de stand van beide teams, de zones, de tijd en je eigen punten.
+function toonBord(world, ar) {
+  if (typeof document === 'undefined' || !document.body) return; // de pure tests hebben geen DOM (scripts/node3d.mjs)
+  if (!arenaBord) arenaBord = createBoard(ARENA_TEKST.titel, ARENA_TEAMS[0].kleur);
+  const s = arenaStand(ar), m = Math.floor(s.rest / 60), r = Math.floor(s.rest % 60);
+  const zones = s.zones.map((z) => `${ARENA_ZONE[z.id] || z.id}: ${z.eigenaar == null ? 'vrij' : ARENA_TEAMS[z.eigenaar].naam}`).join(' · ');
+  const eigen = s.rijen.map((d) => `${d.naam} ${d.punten}`).join(' · ');
+  if (!arenaBordAan) { arenaBord.show(); arenaBordAan = true; }
+  arenaBord.set({
+    row: `${ARENA_TEAMS[0].naam} <b>${s.score[0]}</b> · ${m}:${r < 10 ? '0' : ''}${r} · ${ARENA_TEAMS[1].naam} <b>${s.score[1]}</b>`,
+    extra: `${zones}<br>${eigen}`,
+    flash: ar.fase === 'klaar' && world.pvpArenaUitslag ? world.pvpArenaUitslag.tekst : (world.pvpArenaFlash || ''),
+    help: ar.fase === 'klaar' ? ARENA_TEKST.rematch : `Verover de zones met je team · treffer ${ARENA.puntenTreffer} punt, uitschakeling ${ARENA.puntenNeer}`,
+  });
+}
+
+// De prompt bij het veld (activities.js) en de E-toets.
+export const pvpArenaDichtbij = (world) => {
+  const p = hoofdspeler(world);
+  return !!p && Number.isFinite(p.x) && Number.isFinite(p.y) && Math.hypot(p.x - ARENA_PLEK.x, p.y - ARENA_PLEK.y) <= ARENA_NABIJ;
+};
+export function pvpArenaPrompt(world) {
+  if (!pvpArenaDichtbij(world)) return null;
+  const ar = world.pvpArena;
+  if (ar && ar.fase === 'bezig') return { id: 'pvparena', x: ARENA_PLEK.x, y: ARENA_PLEK.y, h: 2.2, key: 'E', label: ARENA_TEKST.prompt, sub: arenaRegel(ar), ring: true, dim: true };
+  const host = world.coopRole !== 'client';
+  const samen = host && !!world.coopPvp && !!world.coopNet;
+  return { id: 'pvparena', x: ARENA_PLEK.x, y: ARENA_PLEK.y, h: 2.2, key: 'E', label: ARENA_TEKST.prompt, sub: !host ? ARENA_TEKST.alleenHost : samen ? ARENA_TEKST.promptSub : ARENA_TEKST.promptSolo, ring: true, dim: !samen };
+}
+
+// De activiteit in de lijst van activities.js: één plek op de kaart, een prompt, de E-toets en de klok. Geen eigen scherm
+// (active() blijft false): de wereld blijft spelen, alleen het bord staat erbij. Een gast krijgt de gewone melding dat dit bij
+// wie het spel opende gebeurt; de gastenkant van het bord is nog open (zie #454).
+export const PVP_ARENA_ACT = {
+  id: 'pvparena',
+  init() {},
+  spots: () => [{ id: 'pvparena', name: ARENA_TEKST.naam, x: ARENA_PLEK.x, y: ARENA_PLEK.y }],
+  prompt: (world) => pvpArenaPrompt(world),
+  interact: (world) => { if (!pvpArenaDichtbij(world)) return false; pvpArenaStart(world); return true; },
+  active: () => false,
+  tick: (dt, world) => pvpArenaTik(world, dt),
+  quit: (world) => { if (world.pvpArena) { arenaStop(world.pvpArena, nuVan(world)); world.pvpArena = null; } verbergBord(); },
+};
+
+// De eigen muziek van de arena (audio.js pvp_arena_loop) zolang deze speler een ronde speelt.
+registerMusicProbe('pvp', (world) => !!(world && world.pvpArena && world.pvpArena.fase === 'bezig'));
+
