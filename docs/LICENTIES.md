@@ -58,7 +58,7 @@ Er zijn drie soorten geluid in het spel, met elk een eigen herkomst:
 | Soort | Waar | Herkomst | Samples? |
 |---|---|---|---|
 | **Geluidseffecten**: motoren, voetstappen, foley, omgeving, interface, claxon, sirene | `game/js/sfx/*.js`, `game/js/audio.js` | in het spel zelf gesynthetiseerd (Web Audio: oscillatoren, ruis, filters), tijdens het spelen; er staan geen opnamen van effecten in de repo | **nee**, geen externe samples |
-| **Muziek**: 20 G-Music-nummers, 8 scenario-loops, titelnummer | `game/audio/gmusic`, `scenario`, `theme` | gemaakt met Google Gemini (AI), niet door de eigenaar gecomponeerd of gesynthetiseerd; zie §4 | n.v.t. (AI-output) |
+| **Muziek**: 28 G-Music-nummers, 8 scenario-loops, titelnummer | `game/audio/gmusic`, `scenario`, `theme` | gemaakt met Google Gemini (AI), niet door de eigenaar gecomponeerd of gesynthetiseerd; zie §4 | n.v.t. (AI-output) |
 | **Stemmen**: ~3.100 regels plus vaste clips (`npc`, `police`, `nieuws`, jingles) | `game/audio/voicelines` e.a. | Gemini TTS via OpenRouter (`google/gemini-3.8-flash-tts`), per map gelogd in `tts.json` | n.v.t. (AI-output) |
 
 Let op: "alles zelf gesynthetiseerd, geen samples" geldt dus **alleen voor de
