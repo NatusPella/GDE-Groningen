@@ -54,6 +54,8 @@ export function metrics(events, result = {}) {
     stepsDone: done.length, stepsStarted: S.missions.length,
     stuck: S.stuck.length, timeouts: S.timeouts.length, cheats: S.cheats.filter((c) => c.rung !== 'nudge').length, fails: S.missions.reduce((n, m) => n + m.fails, 0),
     consoleErrors: S.consoleErrors.length, nan: S.nan, warnings: S.warnings,
+    // #312: de nieuwe vaardigheden in de cijfers: hoeveel tikken de heli en de boot kregen
+    helis: events.filter((e) => e.type === 'heli').length, vaart: events.filter((e) => e.type === 'vaart').length,
     minigamesStarted: S.minigames.filter((m) => m.started).length, minigames: S.minigames.length,
     perMission,
   };

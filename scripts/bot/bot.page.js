@@ -6,6 +6,8 @@
 // nudges, and after that uses the cheats of the story dev API, which is logged as a
 // 'cheat' event ("had een cheat nodig"). Everything it does goes through window.__bot
 // (playerapi.js), whose [bot-log] lines the desktop app writes to the events file.
+// #312: the helicopter and the sailing/rowing boat get their own keys and timing from
+// scripts/bot/nav.mjs (a pure module that run.mjs passes in as window.__botNav).
 const CFG = window.__botCfg || {};
 const sleep = (ms) => new Promise((res) => setTimeout(res, ms));
 const imp = (f) => import('/js/' + f + '.js');
@@ -25,6 +27,9 @@ const BAKE_KEYS = { ei: '1', zout: '2', meel: '3', vet: '4', mosterd: '5' };
 for (let i = 0; i < 600 && !window.__bot; i++) await sleep(100);
 const B = window.__bot;
 if (!B) return JSON.stringify({ result: 'FOUT', reason: 'window.__bot ontbreekt (?autoplay niet aan?)' });
+// #312: de pure heli- en zeilbesturing (scripts/bot/nav.mjs, door run.mjs meegegeven)
+const Nav = window.__botNav || null;
+if (!Nav) B.log('nav', { what: 'window.__botNav ontbreekt: start via scripts/bot/run.mjs' });
 const world = B.world, player = B.player;
 const PART = CFG.sweep && CFG.sweep.length ? 'all' : CFG.part || 'kop';
 const MAX_GAME = CFG.maxGameS || 3600;
@@ -36,6 +41,10 @@ const detector = new L.StuckDetector({ windowS: CFG.stuckS || 30 });
 // turning circle; a bird that takes longer than that is not going to make it)
 const pigeonWatch = new L.TaskWatch({ budget: 300 });
 const pigeonTargetWatch = new L.TaskWatch({ budget: 90 });
+// #312: a clock of its own per attempt for the heli and the sailing boat: a trip that does not
+// arrive in time is a finding ('timeout'), not a reason to fly or tack for ever
+const heliWatch = new L.TaskWatch({ budget: 240 });
+const sailWatch = new L.TaskWatch({ budget: 300 });
 const wedge = new L.WedgeDetector();
 const mem = { boardTries: 0, pressTries: 0 };
 const detours = {};   // per stage: the sidesteps tried on foot before a cheat
@@ -142,6 +151,8 @@ function trafficAhead(me, tgt) {
 // aim for the target over the planned route; returns the distance left
 // stopR: how close on foot (default 0.6 of the marker radius; a vehicle to board needs the bot right next to it, not 5 m away)
 function steerTowards(s, mode, tgt, stopAt, top = 24, stopR = null, direct0 = false) {
+  // Q/Z is the sail trim of a sailing boat only: let it go outside the boat
+  if (mode !== 'boat') { if (B.input.isDown('q')) B.up('q'); if (B.input.isDown('z')) B.up('z'); }
   // a goal on the water that is walked to (the rented boat of M11 lies off a quay): the berth on the shore beside it, not the boat's own spot,
   // or the walk ends in the water (the bot swam and drowned, #312)
   if (mode === 'walk' && !s.player.vehicle) {
@@ -177,6 +188,42 @@ function steerTowards(s, mode, tgt, stopAt, top = 24, stopR = null, direct0 = fa
     }
   }   // on foot the planned route goes round poles and walls almost to the end
   if ((mode === 'drive' || mode === 'boat') && s.player.vehicle) {
+    // #312: a sailing boat runs on wind and trim, a rowing boat on rhythm; the normal throttle/steer layer
+    // (carControls) knows neither. The pure rules are in scripts/bot/nav.mjs.
+    const boot = mode === 'boat' ? player.inVehicle : null;
+    if (boot && boot.model && Nav) {
+      const vk = (s.story.id || '?') + ':' + (s.mission.stage || '-');
+      const w = sailWatch.update('vaar', vk, s.t);
+      if (w.tooLong) {
+        sailWatch.reset();
+        B.log('timeout', { step: vk, what: 'varen: het doel niet gehaald', forS: Math.round(w.forS), x: s.player.x, y: s.player.y, goalDist: s.target ? s.target.distance : null, boot: { soort: boot.model.soort || boot.kind, x: Math.round(boot.x), y: Math.round(boot.y), v: Math.round((boot.speed || 0) * 10) / 10, trim: boot.zeilTrim, wind: world.wind && Math.round(world.wind.speed || 0) } });
+        if (B.input.isDown('q')) B.up('q');
+        if (B.input.isDown('z')) B.up('z');
+        B.stick(0, 0);
+        return direct;
+      }
+      if (boot.model.zeil) {
+        const b = mem.zeil || (mem.zeil = {});
+        Object.assign(b, { x: me.x, y: me.y, angle: boot.angle, speed: boot.speed, zeilTrim: boot.zeilTrim, omgeslagen: boot.omgeslagen, helling: boot.helling, sailTop: boot.sailTop });
+        const c = Nav.sailControls(b, { goal: aim, wind: world.wind, dt: 0.1 });
+        B.stick(c.steer, -c.throttle);
+        if (c.trim > 0) { if (B.input.isDown('z')) B.up('z'); B.down('q'); }
+        else if (c.trim < 0) { if (B.input.isDown('q')) B.up('q'); B.down('z'); }
+        else { if (B.input.isDown('q')) B.up('q'); if (B.input.isDown('z')) B.up('z'); }
+        if (ticks % 30 === 0) B.log('vaart', { soort: 'zeil', x: Math.round(me.x), y: Math.round(me.y), v: Math.round((boot.speed || 0) * 10) / 10, top: Math.round((boot.sailTop || 0) * 10) / 10, trim: Math.round((boot.zeilTrim ?? 0.6) * 100), wind: world.wind ? { dir: Math.round(world.wind.dir * 100) / 100, mps: Math.round(world.wind.speed * 10) / 10 } : null, koers: b.angle, kruisen: !!c.tacking, doel: [Math.round(aim.x), Math.round(aim.y)], afstand: Math.round(direct) });
+        return direct;
+      }
+      if (boot.model.soort === 'roeiboot') {
+        if (B.input.isDown('q')) B.up('q');
+        if (B.input.isDown('z')) B.up('z');
+        const c = L.carControls({ x: me.x, y: me.y, angle: boot.angle, speed: boot.speed }, aim, { stopAt: direct < 25, rest: 3, top: 4, curveCap: null });
+        B.stick(c.steer, 0);
+        // every stroke is a tap on W, 1.25 s after the last (zeilvaren.js roeiStap): not held down
+        if (direct > 8 && Nav.rowDue(s.t, mem.rowT)) { mem.rowT = s.t; B.press('w', 140); }
+        if (ticks % 30 === 0) B.log('vaart', { soort: 'roei', x: Math.round(me.x), y: Math.round(me.y), v: Math.round((boot.speed || 0) * 10) / 10, slag: mem.rowT, doel: [Math.round(aim.x), Math.round(aim.y)], afstand: Math.round(direct) });
+        return direct;
+      }
+    }
     // a garage (M02: drive in and stand still 1.2 s) or a stage with `stop`: come to rest right there
     const stg = M.activeStage();
     const rest = stg && (stg.kind === 'garage' ? 3.5 : stg.stop ? Math.max(3, stg.stop + 2) : 0);
@@ -270,6 +317,45 @@ async function flyStep(s) {
     const rel = o.strip ? (() => { const c = Math.cos(o.strip.heading), sn = Math.sin(o.strip.heading), dx = pl.x - o.strip.x, dy = pl.y - o.strip.y; return { along: Math.round(dx * c + dy * sn), across: Math.round(-dx * sn + dy * c), hdg: Math.round(L.normAngle(pl.heading - o.strip.heading) * 100) / 100 }; })() : null;
     B.log('vlucht', { mode: o.mode, agl: Math.round(o.agl), v: Math.round(pl.speed), vz: Math.round(pl.vz * 10) / 10, gate: o.goal && [Math.round(o.goal.x), Math.round(o.goal.y)], rel, keys: [...want].join('') });
   }
+}
+
+// the helicopter (the own heli, heliflight.js): W/S forward and brake, A/D yaw, Space/Ctrl up and down, Shift boost. The pure keys
+// and the approach/landing come from botlogic' neighbour scripts/bot/nav.mjs; this half only reads the heli and presses.
+const HELI_KEYS = ['w', 's', 'a', 'd', ' ', 'control', 'shift'];
+function applyHeliKeys(want) {
+  B.stick(0, 0);
+  for (const k of HELI_KEYS) {
+    if (want.has(k)) { if (!B.input.isDown(k)) { B.up(k); B.down(k); } } else if (B.input.isDown(k)) B.up(k);
+  }
+}
+function releaseHeli() { for (const k of HELI_KEYS) if (B.input.isDown(k)) B.up(k); }
+async function heliStep(s, goal) {
+  const v = player.inVehicle;
+  if (!v || !v.heli) { releaseHeli(); return; }
+  const gh = (x, y) => (world.map.groundHeightAt ? world.map.groundHeightAt(x, y, 0) || 0 : 0);
+  const agl = v.z - (Number.isFinite(v.groundZ) ? v.groundZ : gh(v.x, v.y));
+  const st = M.activeStage();
+  // a stage that is itself a heli run ends on the pad: there he has to land, elsewhere he only has to arrive
+  const land = !!(st && /^(heli|landheli)$/.test(String(st.kind || '')));
+  const key = (s.story.id || '?') + ':' + (s.mission.stage || '-');
+  const w = heliWatch.update('heli', key, s.t);
+  if (w.tooLong) {
+    heliWatch.reset();
+    B.log('timeout', { step: key, what: 'heli: het doel niet gehaald', forS: Math.round(w.forS), x: s.player.x, y: s.player.y, goalDist: s.target ? s.target.distance : null, doel: { x: Math.round(goal.x), y: Math.round(goal.y) }, heli: { x: Math.round(v.x), y: Math.round(v.y), z: Math.round(v.z), agl: Math.round(agl), v: Math.round(v.speed || 0) } });
+    releaseHeli();
+    await rescue(s, key, { idleFor: w.forS, quiet: true });
+    return;
+  }
+  const want = Nav.heliKeys({ x: v.x, y: v.y, z: v.z, angle: v.angle, speed: v.speed, vz: v.vz, onGround: !!v.onGround, rotor: v.rotor, groundZ: v.groundZ }, { goal, mode: land ? 'land' : 'fly', agl });
+  applyHeliKeys(want);
+  // on the pad, at a standstill: out, like a player who has finished the flight
+  const d = Math.hypot(goal.x - v.x, goal.y - v.y);
+  if (v.onGround && d < 12 && Math.abs(v.speed || 0) < 1.5) {
+    releaseHeli();
+    await keyTap('e'); await sleep(900);
+    return;
+  }
+  if (ticks % 20 === 0) B.log('heli', { x: Math.round(v.x), y: Math.round(v.y), z: Math.round(v.z), agl: Math.round(agl), v: Math.round(v.speed || 0), vz: Math.round((v.vz || 0) * 10) / 10, rotor: Math.round((v.rotor || 0) * 100) / 100, doel: [Math.round(goal.x), Math.round(goal.y)], afstand: Math.round(d), land, keys: [...want].join('') });
 }
 
 // E (and F) is read once per frame, but at --speed=N a frame runs N gameplay steps: the first step boards, the second sees the same press
@@ -528,7 +614,7 @@ while (true) {
   track(s);
   const stepKey = (s.story.id || '?') + (s.mission.active ? ':' + (s.mission.stage || 'm') : '');
   // each stage of a mission gets its own few tries at boarding and at a prompt
-  if (stepKey !== mem.stageKey) { mem.stageKey = stepKey; mem.pressTries = 0; mem.boardTries = 0; mem.planTries = 0; mem.vehTries = 0; mem.nearMiss = 0; pigeonWatch.reset(); pigeonTargetWatch.reset(); }
+  if (stepKey !== mem.stageKey) { mem.stageKey = stepKey; mem.pressTries = 0; mem.boardTries = 0; mem.planTries = 0; mem.vehTries = 0; mem.nearMiss = 0; pigeonWatch.reset(); pigeonTargetWatch.reset(); heliWatch.reset(); sailWatch.reset(); mem.zeil = null; mem.rowT = null; }
   if (ticks++ % 100 === 0) B.log('status', { x: s.player.x, y: s.player.y, step: stepKey, dist: s.target ? s.target.distance : null, veh: s.player.vehicle ? s.player.vehicle.kind : 'te voet', wanted: s.wanted, money: s.player.money, msgs: s.hud.messages.slice(0, 2), sub: s.hud.subtitle && s.hud.subtitle.text, stunt: s.mission.stunt || undefined });
   // a mission that asks for it ('Uitstappen, jong. Fatbikes ontwijk je te voet.'): out of the vehicle
   if (s.hud.messages.some((m) => /uitstappen|te voet/i.test(m))) mem.onFootUntil = s.t + 60;
@@ -822,6 +908,10 @@ while (true) {
       continue;
     }
     mem.stuntBlockedFor = null;
+    // #312: the heli flies on its own keys (W/S, A/D, Space/Ctrl), not on the car layer; the keys of
+    // the previous branch are released as soon as it no longer flies
+    if (act.mode === 'fly' && s.player.vehicle && s.player.vehicle.heli && Nav) { mem.wasHeli = true; await heliStep(s, aim); continue; }
+    if (mem.wasHeli) { mem.wasHeli = false; releaseHeli(); }
     steerTowards(s, act.mode, aim, !act.stunt && s.mission.phase !== 'active' && (s.target.source === 'missiestart' || s.target.source === 'winkel'), top, s.mission.stage === 'lock' || s.mission.stage === 'crack' ? 1 : null, !!(act.stunt && s.player.vehicle && (arena || s.target.distance < 250) && L.segmentFree({ x: s.player.x, y: s.player.y }, aim, carFree, 1.5)));
     if (wedgeOut) {
       wedgeOut = false;
