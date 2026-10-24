@@ -57,7 +57,8 @@ import { drawMapGlyph } from './mapglyphs.js';
 import { miniWind, windSterkte, windPijlHoek, windTekst } from './windmini.js';
 import { decideHud, zones, hudNow, P3, PLACE_SHOW, E_SHOW, DEFER_MAX, GPS_NEAR } from './hudrules.js';
 import { vehicleKind, speedoLook, meterLevel, hudEdge, distanceOwner, vehicleLabelOwner } from './hudlook.js';
-import { nextTurn, turnText, etaText } from './hudgps.js';
+import { nextTurn, turnText, etaText, dichtstbijDoel } from './hudgps.js';
+import { gastDoelen } from './coopextra.js';
 import { travelModeOf, roadAllowed, minimapScale, northUp, MINIMAP_MODE } from './roadaccess.js';
 import { hudDate } from './hudcalendar.js';
 import { LANDMARK_LINES } from './placelines.js';
@@ -2462,8 +2463,9 @@ function drawMinimap(dt, world) {
     if (!icon(kind, m.marker.x, m.marker.y)) missionEdge = edgeAngle(m.marker.x, m.marker.y);
   }
   // samen spelen: het doel van de opdracht van de gastheer staat ook op de minimap van een gast (#368)
-  const gastDoel = world.coopRole === 'client' && !showMission && !job && world.coopHost && world.coopHost.doelen && world.coopHost.doelen[0];
-  if (gastDoel && !icon(missionMapKind(-1, true), gastDoel.x, gastDoel.y)) missionEdge = edgeAngle(gastDoel.x, gastDoel.y);
+  const gastDoelLijst = world.coopRole === 'client' && !showMission && !job ? gastDoelen(world) : []; // alle doelen van de host (#452); de pijl wijst naar het dichtstbijzijnde
+  const gastDoel = gastDoelLijst[0], naast = dichtstbijDoel(gastDoelLijst, player.x, player.y);
+  for (const gd of gastDoelLijst) if (!icon(gd.soort === 'controle' ? 'waypoint' : missionMapKind(-1, true), gd.x, gd.y) && naast && naast.doel === gd) missionEdge = edgeAngle(gd.x, gd.y);
   const gastStart = world.coopRole === 'client' && !showMission && !job && !gastDoel && world.coopHost && world.coopHost.starts && world.coopHost.starts[0]; // het beginpunt van de volgende opdracht van de gastheer (#434)
   if (gastStart && !icon(missionMapKind(gastStart.index, false), gastStart.x, gastStart.y)) missionEdge = edgeAngle(gastStart.x, gastStart.y);
 

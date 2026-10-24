@@ -57,6 +57,13 @@ export function turnText(t) {
 // else a typical speed for the way you travel (mode: walk, bike, drive, boat,
 // ov, fly). A train trip counts its own plan: the route's ETA over what is left.
 const TYPICAL = { walk: 1.6, bike: 5, drive: 11, boat: 6, ov: 22, fly: 30 };
+// Samen spelen (#452): het dichtstbijzijnde doel uit de lijst van de host (coopextra.js gastDoelen), voor de pijl aan de rand van de minimap
+export function dichtstbijDoel(doelen, x, y) {
+  let best = null, bd = Infinity;
+  for (const d of doelen || []) { const a = Math.hypot(d.x - x, d.y - y); if (a < bd) { bd = a; best = d; } }
+  return best ? { doel: best, afstand: bd } : null;
+}
+
 export function etaText(remaining, speed, mode = 'drive', route = null) {
   if (route && route.etaS && route.length && mode === 'ov') {
     const min = Math.max(1, Math.round(route.etaS * Math.min(1, remaining / route.length) / 60));
