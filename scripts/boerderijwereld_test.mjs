@@ -98,6 +98,9 @@ await t('koppelen met E in de trekker bij het werktuig; niet te ver; niet twee; 
   assert.ok(WW.koppelKandidaat(w), 'te voet koppelen kan'); druk('e');
   assert.equal(WW.boerderijWereldStand().rigs[v.farm].werktuig, ploeg);
   druk('e'); assert.equal(WW.boerderijWereldStand().rigs[v.farm].werktuig, null, 'tweede E te voet maakt los');
+  // staat de speler bij de trekker en is het werktuig verder weg, dan is er niets te koppelen: E stapt dan in de trekker
+  const o = impPos(ploeg); o.x = v.x + 6; o.y = v.y; w.player.x = v.x + 2.6; w.player.y = v.y; tik(0.6);
+  assert.equal(WW.koppelKandidaat(w), null, 'bij de trekker stapt E in');
 });
 
 // een trekker die de rijen van het veld rijdt met het werktuig achter zich

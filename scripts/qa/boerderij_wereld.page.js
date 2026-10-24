@@ -56,6 +56,7 @@ w.money = 500000;
 const kopen = ['trekker-klein', 'ploeg-3', 'zaaimachine', 'aanhanger', 'cultivator', 'maaidorser'].map((t) => Live.koopMachineCat(w, t, PC.START_ERF));
 check('alles gekocht', kopen.every((r) => r.ok), JSON.stringify(kopen.map((r) => r.ok || r.reden)));
 
+try {
 // --- het erf --------------------------------------------------------------------------
 teleport(ex, ey + 45, -Math.PI / 2);
 hold = { x: ex, y: ey + 45, a: -Math.PI / 2 };
@@ -74,7 +75,8 @@ teleport(trek.x + 3.2, trek.y, Math.PI);
 await sleep(1200);
 await tap('e', 'KeyE');
 await sleep(1200);
-check('E zet je in de trekker', p.inVehicle === trek, String(!!p.inVehicle));
+check('E zet je in de trekker', p.inVehicle === trek, String(!!p.inVehicle) + ' ' + JSON.stringify(WW.boerderijPrompt(w)));
+if (p.inVehicle !== trek) { teleport(trek.x + 2.4, trek.y + 1.4, Math.PI); await sleep(1000); await tap('e', 'KeyE'); await sleep(1200); check('tweede poging E in de trekker', p.inVehicle === trek, String(!!p.inVehicle)); }
 check('prompt in de trekker', true, JSON.stringify(WW.boerderijPrompt(w)));
 
 // --- koppelen met E -----------------------------------------------------------------------
@@ -172,12 +174,13 @@ if (pos) {
     const geld1 = w.money;
     uit.kgGeoogst = b.schuur.kg;
     // laden en afleveren
-    p.exitVehicle(map, w); await sleep(300);
+    if (p.inVehicle) p.exitVehicle(map, w); await sleep(300);
     check('uitgestapt', !p.inVehicle, '');
     void geld1;
   }
 }
 
+} catch (e) { uit.fouten.push("script: " + String(e && e.stack || e).slice(0, 400)); }
 clearInterval(skipper);
 hold = null;
 const slecht = uit.controles.filter((c) => !c.ok);

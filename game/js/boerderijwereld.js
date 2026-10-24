@@ -296,7 +296,7 @@ export function koppelKandidaat(w) {
   if (p.inVehicle) return null;
   let best = null, bdist = KOPPEL_VOET_R;
   for (const i of vrijeImp) { const d = dist(i.x, i.y, p.x, p.y); if (d < bdist) { bdist = d; best = i; } }
-  if (!best) return null;
+  if (!best || bdist >= machineAfstand(p)) return null;     // staat er een machine dichterbij dan het werktuig, dan stapt E in die machine
   let tr = null, td = 9;
   for (const v of S.voertuigen.values()) {
     if (v.driver) continue;
@@ -307,6 +307,13 @@ export function koppelKandidaat(w) {
   return tr ? { trekker: tr, imp: best, rig: S.rigs.get(tr.farm) } : null;
 }
 
+// Te voet gaat E naar wat het dichtst bij is: de afstand tot de dichtstbijzijnde machine zonder bestuurder (tot zijn romp).
+function machineAfstand(p) {
+  let d = Infinity;
+  for (const v of S.voertuigen.values()) if (!v.driver) d = Math.min(d, Math.max(0, dist(v.x, v.y, p.x, p.y) - v.model.len / 2 - v.model.wid / 4));
+  return d;
+}
+
 // Te voet kan een gekoppeld werktuig ook los: de trekker staat stil en jij staat bij het werktuig.
 function losKandidaat(w) {
   const p = w.player;
@@ -314,7 +321,7 @@ function losKandidaat(w) {
   for (const [muid, rig] of S.rigs) {
     if (!rig.werktuig) continue;
     const imp = S.werktuigen.get(rig.werktuig), v = S.voertuigen.get(muid);
-    if (imp && v && !v.driver && dist(imp.x, imp.y, p.x, p.y) < KOPPEL_VOET_R && Math.abs(v.speed) < 0.3) return { rig, imp, v };
+    if (imp && v && !v.driver && dist(imp.x, imp.y, p.x, p.y) - 1 < Math.min(KOPPEL_VOET_R, machineAfstand(p)) && Math.abs(v.speed) < 0.3) return { rig, imp, v };
   }
   return null;
 }
