@@ -23,12 +23,12 @@ import { isNightAtHour } from './sunrules.js';
 //   new records is taken first. After that it mixes in like any other.
 
 // The one place to tune how hard new records are pushed (#238).
-export const NIEUW = { plays: 3, boost: 4, firstOnFreshStart: true };
+export const NIEUW = { plays: 3, boost: 8, firstOnFreshStart: true };
 export const MUSIC_STATIONS = ['gmusic', 'nachtstreek'];
 // below this many own records a pool borrows the rest, at a lower weight
 export const MIN_POOL = 6;
 const BORROWED = 0.35;
-const HISTORY_MAX = 60;
+const HISTORY_MAX = 400; // long enough that a new record can reach NIEUW.plays plays in the window: with 60 and 34 records (1,8 plays each on average) the boost never ended
 
 // a record that is no music: a silence / empty placeholder never reaches the pool
 export const NOT_MUSIC = /(^|[^a-z])(stilte|silence|silent|leeg|empty|blank|placeholder)([^a-z]|$)/i;
