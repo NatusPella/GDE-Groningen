@@ -1,6 +1,7 @@
 // stadsprofielen.js (#67): the seven towns of the province as data. Pure.
 //   node scripts/stadsprofielen_test.mjs
-import { TOWN_PROFILES, townProfile, townAt, townCentre, sfeerLine, daypart, DAYPARTS } from '../game/js/stadsprofielen.js';
+import { TOWN_PROFILES, townProfile, townAt, townCentre, winkelhart, sfeerLine, daypart, DAYPARTS } from '../game/js/stadsprofielen.js';
+import { ankerVan, ANKERPUNTEN } from '../game/js/ankerpunten.js';
 import { wgsToWorld } from '../game/js/rdnew.js';
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -29,6 +30,19 @@ for (const t of TOWN_PROFILES) {
   ok(townAt(c.x, c.y) === t, `${t.id}: its centre is in it`);
 }
 ok(townProfile('Delfzijl').id === 'delfzijl' && townProfile('Sappemeer').id === 'hoogezand' && townProfile('Hoogezand').id === 'hoogezand', 'place names resolve');
+// #422: de winkelborden staan in het winkelmidden; Delfzijl wijst daarvoor naar het ankerpunt
+{
+  const d = townProfile('Delfzijl');
+  const h = winkelhart(d), c = townCentre(d);
+  ok(h.x === 23852 && h.y === -13004, 'Delfzijl: winkelmidden is het ankerpunt');
+  ok(h.x !== c.x && Math.hypot(h.x - c.x, h.y - c.y) > 400, 'Delfzijl: het profielhart blijft de oude plek');
+  for (const t of TOWN_PROFILES) {
+    if (ankerVan(t.name)) continue;
+    const w = winkelhart(t), q = townCentre(t);
+    ok(w.x === q.x && w.y === q.y, `${t.id}: zonder ankerpunt is het winkelmidden het profielhart`);
+  }
+  ok(TOWN_PROFILES.filter((t) => ankerVan(t.name)).length === Object.keys(ANKERPUNTEN).length, 'elk ankerpunt hoort bij een profielstad');
+}
 ok(townProfile('Nergensdam') === null && townProfile('') === null && townProfile(null) === null, 'unknown names give null');
 { const [x, y] = wgsToWorld(52.6, 6.2); ok(townAt(x, y) === null, 'far away is no town'); }
 ok(daypart(7) === 'ochtend' && daypart(13) === 'middag' && daypart(21) === 'avond' && daypart(-1) === 'avond' && daypart(25) === 'ochtend', 'dayparts');
