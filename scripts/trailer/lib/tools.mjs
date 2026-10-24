@@ -7,7 +7,7 @@ function find(name, envVar) {
   const r = spawnSync(process.platform === 'win32' ? 'where' : 'which', [name], { encoding: 'utf8' });
   const hit = r.status === 0 && r.stdout.split(/\r?\n/).find(Boolean);
   if (hit) return hit;
-  const w = `C:\\Users\\abuis\\AppData\\Local\\Microsoft\\WinGet\\Links\\${name}.exe`;
+  const w = `${process.env.LOCALAPPDATA || ''}\\Microsoft\\WinGet\\Links\\${name}.exe`;
   if (process.platform === 'win32' && fs.existsSync(w)) return w;
   throw new Error(`${name} niet gevonden (PATH of ${envVar})`);
 }

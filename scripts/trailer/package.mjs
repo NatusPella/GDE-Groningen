@@ -1,6 +1,6 @@
 // Zet het uploadpakket (buiten git) in elkaar: video's, miniaturen, teksten met hoofdstukken uit het gemonteerde plan, controleverslagen en
 // LEES-MIJ-EERST.md. Uploadt niets; alles is bedoeld om als Privé te worden geüpload (constitution 8).
-//   node scripts/trailer/package.mjs --out=C:/Users/abuis/GIT/GDE-uploadpakket2 --work=C:/Users/abuis/gde-trailer-work/pakket
+//   node scripts/trailer/package.mjs --out=<home>/GIT/GDE-uploadpakket2 --work=<home>/gde-trailer-work/pakket
 // Verwacht in --work: per trailer <naam>.mp4, <naam>.plan.resolved.json, thumbs/*.jpg, controle/*; teksten komen uit plans/*.texts.json.
 import fs from 'node:fs';
 import path from 'node:path';

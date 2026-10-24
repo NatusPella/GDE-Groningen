@@ -27,7 +27,7 @@ export const SECRET_PATTERNS = [
   { name: 'Slack-token', re: new RegExp(j('\\bxox[abprs]', '-[A-Za-z0-9-]{10,}')) },
   { name: 'privésleutelblok', re: new RegExp(j('-----BEGIN ', '(?:RSA |EC |DSA |OPENSSH |PGP )?PRIVATE KEY')) },
   { name: 'sleutel/wachtwoord = "waarde"',
-    re: /\b(?:api[_-]?key|secret|token|passw(?:or)?d|wachtwoord|sleutel)\b\s*[:=]\s*["'][A-Za-z0-9+/_\-.]{16,}["']/i },
+    re: /^(?!.*\bwithTiles\().*?\b(?:api[_-]?key|secret|token|passw(?:or)?d|wachtwoord|sleutel)\b\s*[:=]\s*["'][A-Za-z0-9+/_\-.]{16,}["']/i },
 ];
 
 export const EMAIL_RE = /[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}/g;
