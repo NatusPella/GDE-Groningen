@@ -2,7 +2,8 @@
 // lijm met het spel (het vliegtuig en de helikopter, de ringen, het bord); scripts/vliegschool_test.mjs vliegt het
 // echte arcade-vliegtuig (arcadeplane.js) door elke les met de piloot onderaan dit bestand.
 //
-// Zes soorten oefeningen, voor allebei de toestellen, plus hoveren voor de helikopter (13 lessen):
+// De eerste lessen (opstijgen, rechtdoor, hoogte houden, bochten, rondje, naar voren, landen op een plek) staan in vliegbasis.js.
+// Zes soorten oefeningen, voor allebei de toestellen, plus hoveren voor de helikopter (20 lessen):
 //   ringen    vlieg door ringen langs een bocht
 //   landen    zet het toestel op een markering (de baan van Eelde, het helidek)
 //   water     laag over open water, tussen een onder- en bovengrens boven het water
@@ -14,6 +15,8 @@
 // toestel doet komt binnen als `c`: { x, y, z, agl, speed, vz, heading, onGround, touchdown: null|'zacht'|'hard',
 // crashed, opBaan }. agl is de hoogte boven de grond, of boven het water als het toestel daarboven vliegt.
 // Alle teksten en namen zijn verzonnen (constitution 2); molens en plaatsen zijn echt.
+
+import * as B from './vliegbasis.js';
 
 export const MEDAL_NAMEN = ['', 'Brons', 'Zilver', 'Goud'];
 
@@ -29,6 +32,11 @@ export const OEFEN_XP = 6; // wie een les opnieuw doet krijgt alleen een paar pu
 export const MEDAILLE_XP = [0, 14, 20, 28];
 
 export const LESSEN = [
+  { id: 'vt-opstijgen', kist: 'vliegtuig', soort: 'opstijgen', titel: 'Opstijgen', kort: 'Gas, optrekken en klimmen naar 60 meter', grenzen: [1, 2, 3], tijd: 90 },
+  { id: 'vt-recht', kist: 'vliegtuig', soort: 'koers', titel: 'Rechtdoor', kort: 'Vijftienhonderd meter recht tussen de lijnen', grenzen: [0.55, 0.75, 0.92], tijd: 140, lengte: 1500, breed: 22 },
+  { id: 'vt-hoogte', kist: 'vliegtuig', soort: 'koers', titel: 'Hoogte houden', kort: 'Twee kilometer tussen 85 en 115 meter', grenzen: [0.55, 0.75, 0.92], tijd: 160, lengte: 2000, breed: 160, band: [85, 115] },
+  { id: 'vt-bocht', kist: 'vliegtuig', soort: 'peiling', titel: 'Bochten', kort: 'Vlieg vier koersen aan en houd ze vast', grenzen: [2, 3, 4], tijd: 220 },
+  { id: 'vt-rondje', kist: 'vliegtuig', soort: 'rondje', titel: 'Rondje om de vliegplek', kort: 'Twaalf ringen in een cirkel om de baan', grenzen: [8, 10, 12], tijd: 240 },
   { id: 'vt-ringen', kist: 'vliegtuig', soort: 'ringen', titel: 'Door de ringen', kort: 'Acht ringen langs een bocht', grenzen: [4, 6, 8], tijd: 240 },
   { id: 'vt-landen', kist: 'vliegtuig', soort: 'landen', titel: 'Landen op de markering', kort: 'Zet hem op de gele streep', grenzen: [1, 2, 3], tijd: 150 },
   { id: 'vt-water', kist: 'vliegtuig', soort: 'water', titel: 'Laag over het water', kort: 'Twaalfhonderd meter boven het meer', grenzen: [0.55, 0.75, 0.92], tijd: 150, band: [4, 22], breed: 70, veilig: 2 },
@@ -36,6 +44,8 @@ export const LESSEN = [
   { id: 'vt-nood', kist: 'vliegtuig', soort: 'nood', titel: 'Noodlanding', kort: 'De motor haperst: dat weiland in', grenzen: [1, 2, 3], tijd: 200, gas: 0.3, veld: 0 },
   { id: 'vt-opening', kist: 'vliegtuig', soort: 'opening', titel: 'Door de opening', kort: 'Tussen hoge gebouwen door, steeds krapper', grenzen: [1, 2, 3], tijd: 240, lo: 2.5 },
 
+  { id: 'hk-vooruit', kist: 'heli', soort: 'koers', titel: 'Naar voren', kort: 'Vierhonderdvijftig meter recht vooruit, laag en rustig', grenzen: [0.55, 0.75, 0.92], tijd: 150, lengte: 450, breed: 9, band: [8, 40] },
+  { id: 'hk-plek', kist: 'heli', soort: 'plek', titel: 'Landen op een plek', kort: 'Zet hem neer op de gele cirkel in het veld', grenzen: [1, 2, 3], tijd: 150 },
   { id: 'hk-ringen', kist: 'heli', soort: 'ringen', titel: 'Door de ringen', kort: 'Zeven ringen laag langs een bocht', grenzen: [4, 5, 7], tijd: 240 },
   { id: 'hk-landen', kist: 'heli', soort: 'landen', titel: 'Landen op het helidek', kort: 'Op het midden van de H', grenzen: [1, 2, 3], tijd: 150 },
   { id: 'hk-water', kist: 'heli', soort: 'water', titel: 'Laag over het water', kort: 'Twaalfhonderd meter vlak boven het meer', grenzen: [0.55, 0.75, 0.92], tijd: 200, band: [2, 10], breed: 50, veilig: 1 },
@@ -51,9 +61,17 @@ export const lessenVan = (kist) => LESSEN.filter((l) => l.kist === kist);
 // --- wat er gezegd wordt --------------------------------------------------------------------------------------
 // De instructeur: één stem in tekst, geen opgenomen stem.
 export const INSTRUCTEUR = 'Instructeur Wolkje';
+export const INSTRUCTEUR_KORT = 'Wolkje';
 export const SCHOOL = 'Vliegschool De Windwijzer';
 export const LIJNEN = {
   welkom: ['Moi! Welkom bij De Windwijzer. Kies een les: eerst het vliegtuig of de helikopter?'],
+  'vt-opstijgen': { uitleg: 'Gas erbij met W. Bij dertig meter per seconde trek je op met Spatie. Blijf op de middenlijn en klim naar zestig meter.', goed: ['Los en recht. Mooi opgestegen.'], fout: ['Van de lijn af. Rustig bijsturen met A en D.'] },
+  'vt-recht': { uitleg: 'Vlieg recht tussen de twee gele lijnen. Kleine stuurbewegingen: A en D, daarna weer vlak.', goed: [], fout: ['Naar links sturen.', 'Naar rechts sturen.'] },
+  'vt-hoogte': { uitleg: 'Houd hem tussen de gele en de groene laag. Spatie en Ctrl zijn kleine tikjes, geen trekken.', goed: [], fout: ['Een stukje zakken.', 'Een stukje omhoog.'] },
+  'vt-bocht': { uitleg: 'Draai naar de koers op het bord en houd hem vast. Kompas, kunstmatige horizon en de pijl helpen mee.', goed: ['Koers vast. Netjes.'], fout: ['Niet vastgehouden. Volgende koers.'] },
+  'vt-rondje': { uitleg: 'Vlieg een rondje om de vliegplek door de ringen. Bocht aanhouden met A, rustig en gelijkmatig.', goed: ['Mooi door de ring.'], fout: ['Naast de ring. Bocht ruimer of krapper.'] },
+  'hk-vooruit': { uitleg: 'Laag en rustig naar voren, tussen de lijnen en onder de bovenste laag. W vooruit, A en D draaien.', goed: [], fout: ['Te hoog: zakken.', 'Te laag: omhoog.'] },
+  'hk-plek': { uitleg: 'Hang boven de gele cirkel in het veld en zak dan rustig met Ctrl. Het midden telt.', goed: ['Zachtjes op de plek.'], fout: ['Naast de cirkel. Nog eens.'] },
   'vt-ringen': { uitleg: 'Door de gele ringen, om en om. Gas met W en S, rollen met A en D, neus met Spatie en Ctrl.', goed: ['Mooi door de ring.', 'Netjes. De volgende!'], fout: ['Naast de ring. Rustig bijsturen.', 'Gemist. Zakken of stijgen kan ook.'] },
   'vt-landen': { uitleg: 'Zet hem neer op de gele streep van de baan. Gas terug, neus iets omhoog vlak voor de grond.', goed: ['Zacht en op de streep. Mooi.'], fout: ['Daar had de streep gelegen. Volgende keer.'] },
   'vt-water': { uitleg: 'Vlieg laag over het water, tussen de twee lijnen. Niet te hoog en niet nat worden.', goed: [], fout: ['Te hoog. Zakken.', 'Te laag! Een stukje omhoog.'] },
@@ -92,6 +110,7 @@ export function kruising(p, c, g) {
 // De baan van een les, uit de omgeving: env = { plekken, eelde, strip, pad, ground(x, y), roofAt?(x, y) }.
 // Geeft null als de les hier niet kan (met `reden` in beschikbaar()).
 export function beschikbaar(les, env) {
+  if (B.isBasis(les.soort)) return B.beschikbaar(les, env);
   const P = (env && env.plekken) || {};
   switch (les.soort) {
     case 'landen': return les.kist === 'vliegtuig' ? (env && env.strip ? '' : 'Er is geen baan bij Eelde') : (env && env.pad ? '' : 'Er is geen helidek bij Eelde');
@@ -118,6 +137,7 @@ export function bouwBaan(les, env) {
   const grond = env.ground || (() => 0);
   const dak = env.roofAt || (() => 0);
   const b = { les: les.id, soort: les.soort, kist: les.kist, tijd: les.tijd };
+  if (B.isBasis(les.soort)) return B.bouw(les, env, K, b, startOp);
   switch (les.soort) {
     case 'ringen': {
       const plane = les.kist === 'vliegtuig';
@@ -365,10 +385,10 @@ export function stap(les, baan, st, c, dt, o = {}) {
       if (st.in >= baan.nodig) klaar(st, ev, 'Lang genoeg stil');
       break;
     }
-    default: break;
+    default: B.stap(baan, st, c, dt, ev, { klaar, mislukt, goed, fout, info }, o); break;
   }
   if (st.fase === 'vlieg' && st.t >= limiet) {
-    if (baan.soort === 'ringen' || baan.soort === 'water' || baan.soort === 'slalom' || baan.soort === 'opening') klaar(st, ev, 'De tijd is om');
+    if (baan.soort === 'ringen' || baan.soort === 'water' || baan.soort === 'slalom' || baan.soort === 'opening' || B.tijdKlaar(baan.soort)) klaar(st, ev, 'De tijd is om');
     else mislukt(st, ev, 'De tijd is om');
   }
   st.p = { x: c.x, y: c.y, z: c.z, agl: c.agl };
@@ -437,7 +457,10 @@ export function beoordeel(les, baan, st) {
       punten = st.fase === 'klaar' ? Math.max(0, Math.round(1000 - st.t * 8)) : 0;
       regels.push(['Tijd', Math.round(st.t) + ' s']);
       break;
-    default: break;
+    default: {
+      const x = B.beoordeel(les, baan, st);
+      if (x) { medaille = x.medaille; punten = x.punten; regels.push(...x.regels); }
+    }
   }
   if (st.fase === 'mislukt') medaille = 0;
   return { geslaagd: medaille > 0, medaille, punten, regels, naam: MEDAL_NAMEN[medaille], reden: st.reden };
@@ -454,7 +477,7 @@ export function bordRij(les, baan, st) {
     case 'nood': return [['Tijd', over + ' s'], ['Weiland', baan.veld.naam || 'in beeld']];
     case 'opening': return [['Openingen', `${st.goed}/${baan.poorten.length}`], ['Breedte', baan.poorten[st.i] ? Math.round(baan.poorten[st.i].breedte) + ' m' : '-']];
     case 'hoveren': return [['Stil', `${Math.floor(st.in)}/${baan.nodig} s`], ['Tijd', over + ' s']];
-    default: return [];
+    default: return B.bordRij(baan, st) || [];
   }
 }
 
@@ -469,7 +492,7 @@ export function doel(les, baan, st, env = {}) {
     case 'nood': return { x: baan.veld.x, y: baan.veld.y, z: grond(baan.veld.x, baan.veld.y), label: 'Weiland' };
     case 'opening': { const g = baan.poorten[st.i]; return g ? { x: g.x, y: g.y, z: grond(g.x, g.y) + (g.lo + g.hi) / 2, label: 'Opening ' + (st.i + 1) } : null; }
     case 'hoveren': return { x: baan.cirkel.x, y: baan.cirkel.y, z: grond(baan.cirkel.x, baan.cirkel.y) + 12, label: 'Cirkel' };
-    default: return null;
+    default: return B.doel(baan, st, grond);
   }
 }
 
@@ -606,13 +629,19 @@ export function richt(les, baan, st, c, env = {}) {
       const d = Math.hypot(k.x - c.x, k.y - c.y);
       return { x: k.x, y: k.y, dz: 14 - c.agl, vaart: d < 30 ? Math.min(8, d * 0.2) : undefined, stil: 1.5 };
     }
-    default: return { x: c.x, y: c.y, dz: 0 };
+    default: return B.richt(baan, st, c) || { x: c.x, y: c.y, dz: 0 };
   }
 }
 
 export function piloot(les, baan, st, c, env = {}) {
   const t = richt(les, baan, st, c, env);
   const k = baan.kist === 'vliegtuig' ? vliegtuigToetsen(c, t) : heliToetsen(c, t);
+  // de start: gas, op de middenlijn blijven en bij de rotatiesnelheid optrekken
+  if (t.grondStart && c.onGround) {
+    const f = hoekVerschil(Math.atan2(t.y - c.y, t.x - c.x), c.heading);
+    k.w = true; k.s = false; k.shift = false; k.a = false; k.d = false; k.spatie = c.speed >= 31;
+    if (f > 0.02) k.d = true; else if (f < -0.02) k.a = true;
+  }
   if (t.uitrol) { k.w = false; k.s = true; k.spatie = false; k.shift = true; k.a = false; k.d = false; }
   return k;
 }
