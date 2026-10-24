@@ -16,7 +16,7 @@
 //     Valt de starter weg, dan loopt de wedstrijd door voor de anderen; een verzoek dat niet kan krijgt een duidelijke melding bij de gast.
 // De berichten zijn gewone JSON-gebeurtenissen (k 'wed' van de host, k 'wedgast' van een gast): PROTO en CODEC_VERSION blijven 2.
 import { playerBusy } from './busy.js';
-import { createKart, stepKart, updateProgress, collideKarts, aiInput, rankKarts, bestLap } from './kartrace.js';
+import { createKart, stepKart, updateProgress, collideKarts, aiInput, rankKarts, bestLap, LAPS } from './kartrace.js';
 import { KART_RIVALS } from './minigamelines.js';
 import { angDiff, clamp } from './minigamekit.js';
 import { KARTBAAN_TRACK, KARTBAAN_FRAME } from './kartbaanspoor.js';
@@ -63,6 +63,7 @@ export const WED_TEKST = {
   hostMee: (naam, label) => `${naam} start ${label}. Doe je mee? J = ja, N = nee.`,
   hostNee: 'Je doet niet mee: de wedstrijd loopt zonder jou door.',
   weg: (naam) => `${naam} is weg: de wedstrijd gaat niet door.`,
+  vol: 'De wedstrijd zit vol. Je doet de volgende keer mee.',
   tekort: (label, min) => `${label} heeft minstens ${min} spelers nodig: de wedstrijd gaat niet door.`,
 };
 // Waarom de host een verzoek van een gast nu niet kan uitvoeren, of null. Puur: alleen wat de wereld van de host weet (busy.js).
@@ -163,6 +164,17 @@ export function tikRace(r, dt, invoer) {
 }
 
 // ---------------------------------------------------------------- eindstand en beloning
+
+// De tussenstand voor het bord, de beste eerst: één regel per kart, met zijn ronde en (als hij klaar is) zijn finishtijd.
+// Dezelfde volgorde als de uitslag (rankKarts), zodat het bord tijdens de race en de eindstand hetzelfde lezen. Puur (kartbaan.js, #443).
+export function raceStand(r) {
+  return rankKarts(r.karts).map((k, i) => ({
+    plek: i + 1, naam: k.name, ai: !k.mens, eigen: !!k.player, weg: !!k.weg, klaar: !!k.finished,
+    ronde: k.finished ? LAPS : clamp(Math.floor((k.prog || 0) / r.track.length) + 1, 1, LAPS),
+    tijd: k.finished && fin(k.finishT) ? q(k.finishT) : null,
+    beste: bestLap(k) != null ? q(bestLap(k)) : null,
+  }));
+}
 
 // De stand aan het eind, de beste eerst: één regel per kart.
 export function eindstand(r) {
@@ -425,8 +437,9 @@ function begin(world, n, W) {
   const hostloos = !hostMee;
   const gasten = jaSlots(u).filter((s) => s > 0 && verbondenGasten(world).some((g) => g.slot === s)).slice(0, hostMee ? MAX_RIJDERS - 1 : MAX_RIJDERS);
   const deeln = [...(hostMee ? [{ slot: 0, naam: spelerNaam(hostRij) || 'Speler', char: (hostRij && hostRij.char) || 'tammo' }] : []), ...gasten.map((s) => ({ slot: s, naam: naamVan(world, s), char: (rosterVan(world).find((x) => x.slot === s) || {}).char || null }))];
-  for (const s of Object.keys(u.keuze)) if (+s > 0 && !gasten.includes(+s)) n.hub.announce({ k: 'wed', f: 'af' }, +s); // wie nee zei, niet antwoordde of geen plek had
   const af = () => { for (const g of gasten) n.hub.announce({ k: 'wed', f: 'af' }, g); return false; };
+  // wie ja zei maar geen plek had (de grid is vol): hij hoort waarom hij niet meedoet (#443)
+  for (const s of Object.keys(u.keuze)) if (+s > 0 && !gasten.includes(+s)) { n.hub.announce({ k: 'wed', f: 'af' }, +s); if (u.keuze[s] === 'ja') meld(world, +s, WED_TEKST.vol); } // wie nee zei, niet antwoordde of geen plek had
   if (u.starter != null && deeln.length < (hostMee ? 2 : 1)) { af(); meld(world, 0, WED_TEKST.weg(u.wie || 'De starter')); return false; } // de starter viel weg voor het begin
   if (u.starter != null && regel && deeln.length < (regel.minSpelers || 1)) { af(); meld(world, u.starter, WED_TEKST.tekort(u.label, regel.minSpelers)); meld(world, 0, WED_TEKST.tekort(u.label, regel.minSpelers)); return false; } // padel met één speler is geen wedstrijd
   if (deeln.length < 2 && hostMee) { meld(world, 0, 'Niemand doet mee: je speelt alleen.'); return regel && regel.solo ? regel.solo(world) : false; }

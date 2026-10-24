@@ -20,7 +20,7 @@ import { addClearZone, corridorPoints } from './clearzone.js';
 import { KARTBAAN_ORIGIN, KARTBAAN_ROT, KARTBAAN_FRAME, KARTBAAN_WIDTH, KARTBAAN_TRACK } from './kartbaanspoor.js';
 import { racingLine } from './kartline.js';
 import { loopbaanVerdien } from './loopbaanlive.js';
-import { registreerWedstrijd, zetWedGastHaken, wedNodigUit, wedNuStarten, wedRaceTik, wedHostEind, wedGastVerlaat, wedGastReset, tikSpiegel, eindstand, beloning } from './coopwedstrijd.js';
+import { registreerWedstrijd, zetWedGastHaken, wedNodigUit, wedNuStarten, wedRaceTik, wedHostEind, wedGastVerlaat, wedGastReset, tikSpiegel, eindstand, beloning, raceStand } from './coopwedstrijd.js';
 import { figuurLook } from './coopplayers.js';
 
 // Karten in Ulrum: the real outdoor kart track of Ulrum (OSM way "Kartbaan
@@ -786,7 +786,7 @@ function updateHud() {
   let flash = g.flash ? g.flash.text : g.phase === 'grid' ? (g.lights ? 'Startlichten...' : 'Rijders, op uw plaatsen') : me.finished ? `Gefinisht als ${ordinal(pos)}` : me.drift ? 'Drift...' : '';
   const meter = me.drift ? { v: me.driftT / KART.charge2, mark: KART.charge1 / KART.charge2, color: me.driftT >= KART.charge2 ? '#ff9a3c' : me.driftT >= KART.charge1 ? ACCENT : '#f2f0e6' } : null;
   const help = `${key('W')} gas · ${key('S')} rem · ${key('A')}${key('D')} sturen · houd ${key('SPATIE')} (handrem) in een bocht voor een drift · ${key('BACKSPACE')} stoppen`;
-  const cells = g.online ? rank.map((k, i) => ({ t: `${i + 1}. ${k.name}${k.finished ? ' ✓' : ''}`, cls: k === me ? 'on' : '' })) : null; // the live standings against the others (#443)
+  const cells = g.online ? raceStand(g).map((s) => ({ t: `${s.plek}. ${String(s.naam).slice(0, 12)} ${s.klaar && s.tijd != null ? fmtTime(s.tijd) : `r${s.ronde}`}`, cls: s.eigen ? 'on' : s.weg ? 'bad' : '' })) : null; // de tussenstand van iedereen, met tijd of ronde (#443)
   board.set({ row, meter, flash, bad: !!(g.flash && g.flash.bad), help, ...(cells ? { cells } : null) });
 }
 
