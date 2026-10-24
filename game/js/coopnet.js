@@ -47,9 +47,11 @@ import { gebeurtenisId, maakBoekhouding } from './coopbeloning.js'; // beloninge
 import { saveGame as bewaarNu } from './savehook.js';
 import { wedHostTik, wedHandleGast, wedHandleHost, wedGastReset, zetWedHaken } from './coopwedstrijd.js';
 import { wedKaartTik } from './coopwedstrijd3d.js';
+import { maakPvp, wisselPassief, zetPassiefStand, verwijderSpeler, passiefEvent, passiefVanEvent, leesPassief, leesPassiefVan, pvpSchadeEvent, isPassief, PVP_TEKST } from './cooppvp.js'; // passieve stand en spelers tegen elkaar (#447)
+import { pvpGastRaak, pvpDoodVerwerk } from './cooppvpwereld.js';
 import { zetBestuurHaken, bestuurGebruik, bestuurTick, bestuurLos, bestuurAllesLos, bestuurt } from './coopbestuur.js';
 
-export const CAPS = ['scene', 'spelers', 'snaptijd']; // wat dit spel kent; uitbreidbaar (net/session.js negotiate). snaptijd: de tijd van een snapshot (ms van de klok van de host) staat in de kop, #434
+export const CAPS = ['scene', 'spelers', 'snaptijd', 'pvp']; // wat dit spel kent; uitbreidbaar (net/session.js negotiate). snaptijd: de tijd van een snapshot (ms van de klok van de host) staat in de kop, #434
 export const REMOVE_DELAY = 0.5; // s tussen "je bent verwijderd" en het verbreken
 export const MAX_REWARD = 1000000;
 export const GAST_DEEL = 0.5; // een gast krijgt de helft van wat de gastheer verdient met een missie, bijbaan of prijs (#365)
@@ -180,6 +182,7 @@ function endCoop(world) {
   world.players = null; world.coopPartner = null; world.coopPartners = []; world.coopRoster = null; world.coopFigures = {}; world.coopHost = null; world.coopExtra = null; world.coopHostMissie = null; world.coopCam = null; world.coopScene = null;
   world.coopVrijLopen = false; world.coopUitnodiging = null; world.coopMeedoenNee = false; world.coopMeedoenJa = null; // (#429)
   world.coopFoci = null; world.coopFociInfo = null; // spelers uit elkaar (#429)
+  world.coopPvp = null; world.coopPvpSchade = null; world.coopPvpMeld = null; // (#447)
   world.coopBezigVan = {}; world.coopHudWanted = 0; // wie bezig is en de sterren in het scherm van de host (#429, #434)
   world.coopWanted = null; world.coopHeat = null; world.coopDoelwit = 0; world.coopWantedMeld = null; world.coopGepakt = null; world.coopStil = false; // (#434)
   if (world.companion) world.companion.coopWacht = false;
@@ -211,7 +214,7 @@ export function startHost(world, info, opts = {}) {
     onJoin: (slot, char) => {
       if (world.coopNet && world.coopNet.missie) hub.announce(missieBericht(null, world.mission).event || { k: 'missie', actief: false }, slot);
       nodigLaatUit(world, slot); // een opdracht loopt al: ook jij mag kiezen (#429)
-      if (world.coopNet) bezigVoorNieuwe(world, world.coopNet, slot);
+      if (world.coopNet) { bezigVoorNieuwe(world, world.coopNet, slot); passiefVoorNieuwe(world, world.coopNet, slot); }
       const we = weerEvent(world.weatherState); if (we) hub.announce(we, slot); // het weer van de gastheer (#364)
       hub.announce({ k: 'hek', aan: gateOn() }, slot); // is het spel nog niet begonnen? dan wacht de nieuwe speler in de wachtkamer
       if (world.coopNet && world.coopNet.sceneNu && !sceneLeeg(world.coopNet.sceneNu)) hub.announce({ k: 'scene', ...world.coopNet.sceneNu }, slot); // wie midden in een filmpje aansluit, hoort het meteen
@@ -219,7 +222,7 @@ export function startHost(world, info, opts = {}) {
       if (fade) fade('in'); // de gast komt met een korte fade naast je staan
     },
     onLeave: (slot) => {
-      bestuurLos(world, slot); bezigWeg(world, slot); wapenWeg(world, slot);
+      bestuurLos(world, slot); bezigWeg(world, slot); wapenWeg(world, slot); passiefWeg(world, slot);
       if (world.coopWanted) delete world.coopWanted[slot]; // een gast die weggaat neemt zijn sterren mee (#434) // het voertuig van een gast die weggaat staat stil en de stoel is vrij (#434)
       if (slot === 1 && world.coop) { world.coop.remote = false; world.coop.remoteInput = null; }
       if (slot >= 2) removeFigure(world, slot);
@@ -246,6 +249,9 @@ export function startHost(world, info, opts = {}) {
   world.coopDeel = (bedrag, info) => deelMetGasten(world, bedrag, info); // missies, bijbanen en prijzen delen met de gasten (#365)
   world.coopSchade = (slot, schade) => hub.announce({ k: 'schade', n: Math.round(Number(schade) || 0) }, slot); // een kogel van de politie raakt een gast (#434)
   world.coopMeld = (slot, tekst) => hub.announce({ k: 'melding', tekst: String(tekst).slice(0, 90) }, slot); // een korte melding voor een gast (#291)
+  world.coopPvp = maakPvp(); // iedereen begint op passief (#447)
+  world.coopPvpSchade = (slot, schade, door) => hub.announce(pvpSchadeEvent(schade, door), slot); // schade van een medespeler aan een gast (#447)
+  world.coopPvpMeld = (tekst, behalve) => { for (const s of hub.roster.spelers) if (s.slot !== 0 && s.slot !== behalve && s.verbinding !== 'lost') hub.announce({ k: 'melding', tekst: String(tekst).slice(0, 90) }, s.slot); };
   world.coopWanted = {}; world.coopHeat = {}; world.coopDoelwit = 0; // een gezocht-niveau per gast (#434, coopgezocht.js)
   world.coopWantedMeld = (slot, na, voor) => gezochtMelden(world, slot, na, voor);
   world.coopGepakt = (slot, level) => gastGepakt(world, slot, level);
@@ -288,6 +294,7 @@ export function startClient(world, transport, info, opts = {}) {
   const stash = { x: p.x, y: p.y, angle: p.angle, wanted: world.wanted | 0, character: p.character, coopChar: p.coopChar, companion: world.companion ? { x: world.companion.x, y: world.companion.y, character: world.companion.character } : null, prevLocal: world.coop.local !== false };
   world.coop.local = false;
   session.onlost = () => { if (onHold) onHold('client', session.slot, `Verbinding met ${openerNaam(world.coopRoster)} is weg.`); };
+  world.coopPvp = maakPvp(); // (#447)
   session.onevent = (b) => handleEvent(world, b, 0);
   session.onextra = (lading) => { const m = leesExtra(lading); if (m) { world.coopExtra = pasExtraToe(world.coopExtra || nieuweStand(), m, now(world)); world.coopExtraBytes = (world.coopExtraBytes || 0) + lading.length; } }; // de rest van de wereld van de host (#428, coopextra3d.js)
   // de host is de baas: bij een desync (net/desync.js) zet de gast zijn wanted weer gelijk aan dat van de host
@@ -369,7 +376,7 @@ function bouwSpelers(world, n) {
   const mijnSlot = host ? 0 : (n.session && n.session.slot) || 0;
   const rtt = (slot) => { if (host) { const s = n.hub.sessions.get(slot); return s && Number.isFinite(s.rtt) ? s.rtt * 1000 : null; } return slot === mijnSlot && n.session && Number.isFinite(n.session.rtt) ? n.session.rtt * 1000 : null; };
   const opdracht = host ? (world.mission && world.mission.phase === 'active' ? world.mission.label || 'opdracht' : null) : (world.coopHostMissie && world.coopHostMissie.actief ? world.coopHostMissie.label : null);
-  world.coopSpelers = spelersRijen({ mijnSlot, roster: world.coopRoster || [], partners: world.coopPartners || [], mijn: p ? { x: p.x, y: p.y, inVoertuig: host ? !!p.inVehicle : !!world.coopInVoertuig, rijdt: host ? !!p.inVehicle && world.coopWielSlot == null : !!world.coopWiel } : null, rtt, opdracht });
+  world.coopSpelers = spelersRijen({ mijnSlot, roster: world.coopRoster || [], partners: world.coopPartners || [], mijn: p ? { x: p.x, y: p.y, inVoertuig: host ? !!p.inVehicle : !!world.coopInVoertuig, rijdt: host ? !!p.inVehicle && world.coopWielSlot == null : !!world.coopWiel } : null, rtt, opdracht, pvp: world.coopPvp });
 }
 
 // Tessa gaat niet meer vanzelf mee als de gastheer instapt (een echte speler beslist zelf): ze leest wat ze moet doen (#388)
@@ -592,6 +599,34 @@ function bezigMelden(world, n, slot, a) {
 }
 // Een gast die aansluit hoort wie er al bezig is; een gast die weggaat is niet meer bezig.
 function bezigVoorNieuwe(world, n, slot) { for (const [s, e] of Object.entries(world.coopBezigVan || {})) if (+s !== slot) n.hub.announce(bezigVanEvent(+s, e.a), slot); }
+// De passieve stand (#447): de gast vraagt, de host bewaart en geeft door; een gast die aansluit hoort de standen, een gast die weggaat is weer passief.
+function passiefDoorgeven(world, n, slot) {
+  const a = isPassief(world.coopPvp, slot);
+  for (const s of n.hub.roster.spelers) if (s.slot !== 0 && s.verbinding !== 'lost') n.hub.announce(passiefVanEvent(slot, a), s.slot);
+}
+function passiefVoorNieuwe(world, n, slot) { for (const s of Object.keys((world.coopPvp || {}).actief || {})) if (+s !== slot) n.hub.announce(passiefVanEvent(+s, false), slot); }
+function passiefWeg(world, slot) {
+  const n = world.coopNet; if (!world.coopPvp) return;
+  const was = !isPassief(world.coopPvp, slot); verwijderSpeler(world.coopPvp, slot);
+  if (was && n && n.role === 'host') passiefDoorgeven(world, n, slot);
+}
+// De knop in het spelersoverzicht, voor host en gast. Geeft { ok, passief, rest }; bij een gast komt de echte stand terug als antwoord van de host (passiefvan).
+export function zetPassiefGebaar(world, passief) {
+  const n = world.coopNet, st = world.coopPvp; if (!n || !st) return { ok: false, passief: true, rest: 0 };
+  if (n.role === 'host') {
+    const r = wisselPassief(st, 0, passief, now(world));
+    if (r.ok && !r.zelfde) { passiefDoorgeven(world, n, 0); if (world.addMessage) world.addMessage(r.passief ? PVP_TEKST.passiefAan : PVP_TEKST.passiefUit, 4); }
+    else if (!r.ok && world.addMessage) world.addMessage(PVP_TEKST.wacht(r.rest), 3);
+    return r;
+  }
+  const slot = (n.session && n.session.slot) || 1, ik = isPassief(st, slot);
+  if (!n.session || !(n.session.caps || []).includes('pvp')) { if (world.addMessage) world.addMessage(PVP_TEKST.nietBeschikbaar, 3); return { ok: false, passief: ik, rest: 0 }; }
+  if (ik === !!passief) return { ok: true, passief: ik, rest: 0, zelfde: true };
+  try { n.session.sendEvent(passiefEvent(passief)); } catch (e) { return { ok: false, passief: ik, rest: 0 }; }
+  return { ok: true, passief: ik, rest: 0, gevraagd: true };
+}
+export const kanPassiefKiezen = (world) => { const n = world.coopNet; return !!n && !!world.coopPvp && (n.role === 'host' || !!(n.session && (n.session.caps || []).includes('pvp'))); };
+export const passiefStandVan = (world) => { const n = world.coopNet; return n && world.coopPvp ? isPassief(world.coopPvp, n.role === 'host' ? 0 : (n.session && n.session.slot) || 1) : true; };
 function bezigWeg(world, slot) { const n = world.coopNet; if (n && n.role === 'host') bezigMelden(world, n, slot, null); }
 // De gast antwoordt op de uitnodiging (J of N): een bericht naar de gastheer.
 export function gastMeedoen(world, ja) {
@@ -720,8 +755,21 @@ export function handleEvent(world, body, van = 0) {
     case 'wed': return wedHandleHost(world, body); // een wedstrijd tegen elkaar van de host: uitnodiging, start, stand, uitslag (#443, coopwedstrijd.js)
     case 'wedgast': return wedHandleGast(world, body, van); // het antwoord van een gast op die wedstrijd (alleen de host luistert)
     case 'wapen': return !!n && n.role === 'host' && van >= 1 && wapenVerwerk(world, van, body); // een gast kiest zijn wapen (zijn eigen patronen): de host rekent zijn aanval uit (#434)
+    case 'passief': { // een gast wil omschakelen: de host beslist (afkoeling) en geeft de echte stand door aan iedereen (#447)
+      const r = leesPassief(body); if (!r || !n || n.role !== 'host' || van < 1 || !world.coopPvp) return false;
+      const w = wisselPassief(world.coopPvp, van, r.passief, now(world));
+      if (world.coopMeld) { if (!w.ok) world.coopMeld(van, PVP_TEKST.wacht(w.rest)); else if (!w.zelfde) world.coopMeld(van, w.passief ? PVP_TEKST.passiefAan : PVP_TEKST.passiefUit); }
+      passiefDoorgeven(world, n, van);
+      return w.ok;
+    }
+    case 'passiefvan': { // van de host: de stand van een speler
+      const r = leesPassiefVan(body); if (!r || !n || n.role !== 'client' || !world.coopPvp) return false;
+      return zetPassiefStand(world.coopPvp, r.slot, r.passief);
+    }
+    case 'pvpdood': return pvpDoodVerwerk(world, body, van); // een gast is door een medespeler neergegaan en staat weer op (#447)
     case 'schade': { // een kogel van de politie raakte jou in het spel van de host: de schade is van jou, je valt hierdoor niet om (#434)
       if (!n || n.role !== 'client' || !Number.isFinite(body.n)) return false;
+      if (body.door !== undefined) return pvpGastRaak(world, body, (n.session && n.session.slot) || 1); // een medespeler raakte jou: wel neergaan, zonder kosten (#447)
       let d = Math.max(0, Math.min(30, body.n));
       if ((world.armor || 0) > 0) { const a = Math.min(world.armor, d); world.armor -= a; d -= a; }
       world.health = Math.max(1, (world.health === undefined ? 100 : world.health) - d);
