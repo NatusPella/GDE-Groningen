@@ -7,7 +7,7 @@
 import { HostSession } from './session.js';
 import { T, encodeJson, readHeader, decodeJson } from './codec.js';
 import { checkHandshake } from './protocol.js';
-import { createRoster, wijsPlekToe, verwijder, zetMax, zetVerbinding, lijst, lijstEvent, charInfo, heeftPlek } from '../coopplayers.js';
+import { createRoster, wijsPlekToe, verwijder, zetMax, zetVerbinding, zetAvatar, lijst, lijstEvent, charInfo, heeftPlek } from '../coopplayers.js';
 
 export const PENDING_MAX = 20; // s: een verbinding die in zo lang geen geldige hello stuurde (of geweigerd is), wordt gesloten en vergeten
 
@@ -46,6 +46,7 @@ export class HostHub {
         const p = wijsPlekToe(hub.roster, hello && hello.char);
         if (!p) return null;
         hub.pending.delete(ses); hub.sessions.set(p.slot, ses);
+        if (hello && hello.avatar) zetAvatar(hub.roster, p.slot, hello.avatar); // de online-avatar van de gast (#455)
         const c = charInfo(p.char);
         return { slot: p.slot, extra: { char: p.char, naam: c.naam, kleur: c.kleur, max: hub.roster.max, lijst: lijstEvent(hub.roster).lijst } }; // de korte lijst (zonder naam en kleur): met 16 spelers past de volle lijst niet in een welkomstbericht (MAX_JSON)
       },
@@ -59,7 +60,7 @@ export class HostHub {
     };
     ses = new HostSession(link, cfg, this.cfg.rand);
     this.pending.add(ses); ses.pendingSinds = 0;
-    ses.onjoin = (slot) => { if (this.cfg.onJoin) this.cfg.onJoin(slot, this.roster.spelers.find((s) => s.slot === slot).char); this._announceList(); };
+    ses.onjoin = (slot) => { if (this.cfg.onJoin) this.cfg.onJoin(slot, this.roster.spelers.find((s) => s.slot === slot).char, this.roster.spelers.find((s) => s.slot === slot).avatar || null); this._announceList(); };
     ses.onlost = (slot) => { zetVerbinding(this.roster, slot, 'lost'); if (this.cfg.onLost) this.cfg.onLost(slot); this._announceList(); };
     ses.onstatus = (st) => {
       const slot = ses.slot;

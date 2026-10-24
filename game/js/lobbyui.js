@@ -11,7 +11,8 @@
 //          setMax(n), kick(slot), joined(rol), disconnect(act, rol, slot), onCode(code), canJoin() -> {ok, reason}, laatsteCode, resumed() }
 // opts:  { start: 'verbroken', rol, route, session (gast), hub (host), holdSlot, holdNaam }  (hervatten in het spel)
 //        { adopt: { code, route }, rol, session | hub }  (de sessie loopt al: na het overdragen van het spel kent het paneel rol, kamercode en spelers)
-import { createLobby, reduce, view, ROLES, ROUTES } from './lobby.js';
+import { createLobby, reduce, view, profielNaam, ROLES, ROUTES } from './lobby.js';
+import { getSettings, setSetting } from './settings.js';
 import { ipcTransport, listenForGuests, onlineSupported } from './net/ipctransport.js';
 import { hostRoom, joinRoom, rtcSupported } from './net/rtcroom.js';
 import { MultiSignaler, LijstSignaler } from './net/brokers.js';
@@ -39,7 +40,8 @@ const newSignaler = () => new MultiSignaler(CONFIG, { socket: (url) => { const w
 export function mountLobby(root, hooks, opts = {}) {
   const direct = onlineSupported();
   const api = direct ? window.gdeDesktop.coop : null;
-  let state = createLobby({ direct, rtc: rtcSupported(), laatsteCode: hooks.laatsteCode, versie: VERSION, lijst: !!opts.lijst, opslaan: !!(typeof window !== 'undefined' && window.gdeDesktop && window.gdeDesktop.saveTextFile), start: opts.start, rol: opts.rol, keuze: opts.keuze, holdNaam: opts.holdNaam, startGate: opts.startGate, spelNaam: opts.spelNaam });
+  const prof = getSettings(); // online-avatar (#455): per apparaat bewaard
+  let state = createLobby({ direct, rtc: rtcSupported(), laatsteCode: hooks.laatsteCode, versie: VERSION, lijst: !!opts.lijst, opslaan: !!(typeof window !== 'undefined' && window.gdeDesktop && window.gdeDesktop.saveTextFile), start: opts.start, rol: opts.rol, keuze: opts.keuze, holdNaam: opts.holdNaam, startGate: opts.startGate, spelNaam: opts.spelNaam, onlineNaam: prof.onlineNaam, onlineKleur: prof.onlineKleur });
   state.route = opts.route || null;
   if (opts.holdSlot != null) state = reduce(state, { t: 'hold', slot: opts.holdSlot, naam: opts.holdNaam });
   if (opts.adopt) { // de sessie loopt al (coophostwisselnet.js wisselde hem om): geen beginscherm, wel de kamercode, de spelers en Iedereen stoppen of Spel verlaten
@@ -103,15 +105,28 @@ export function mountLobby(root, hooks, opts = {}) {
     const v = view(state);
     const wensen = v.wensen ? `<div class="coop-wensen" role="group" aria-label="Kies een figuur">${v.wensen.map((w) => `<button type="button" class="m-bg coop-wens" data-act="${w.act}" aria-pressed="${w.gekozen}"><span class="ss-label"><span style="color:${w.kleur}" aria-hidden="true">●</span> ${esc(w.naam)}${w.gekozen ? ' ✓' : ''}</span></button>`).join('')}</div>` : '';
     const sessies = v.sessies ? `<div class="coop-sessies" role="list">${v.sessies.map((x) => `<div class="coop-sessie" role="listitem" style="display:flex;gap:8px;align-items:stretch;margin:6px 0"><button type="button" class="${x.kan ? 'm-bp' : 'm-bg'} coop-btn" data-act="${x.act}" style="flex:1;text-align:left"${x.kan ? '' : ' aria-disabled="true"'}><span class="ss-label">${esc(x.tekst)}</span></button><button type="button" class="m-bt coop-btn" data-act="${x.meld}" aria-label="Melden: ${esc(x.naam)}"><span class="ss-label">Melden</span></button></div>`).join('')}</div>` : '';
+    // het kleine formulier voor je online-avatar (#455): naam (hoogstens 16 tekens) en een kleur uit de vaste set
+    const prof = v.profiel ? `<div class="coop-profiel" style="display:flex;flex-direction:column;gap:8px;margin:10px 0"><label class="coop-profiel-label" style="display:flex;gap:8px;align-items:center"><span>Online naam</span><input class="coop-profiel-naam" type="text" spellcheck="false" autocomplete="off" maxlength="${v.profiel.maxLength}" placeholder="Je figuur" value="${esc(v.profiel.naam)}" style="min-width:0;flex:1;max-width:260px"></label><div class="coop-kleuren" role="group" aria-label="Kleur" style="display:flex;flex-wrap:wrap;gap:6px">${v.profiel.kleuren.map((c) => `<button type="button" class="m-bg coop-kleur" data-kleur="${c.hex}" aria-pressed="${c.hex === v.profiel.kleur}" title="${esc(c.naam)}"><span class="ss-label"><span style="color:${c.hex}" aria-hidden="true">●</span> ${esc(c.naam)}</span></button>`).join('')}</div><p class="coop-profiel-hint" style="margin:0">${esc(v.profiel.tekst)} Laat je de naam leeg, dan zie je de naam van je figuur.</p>${v.profiel.fout ? `<p class="coop-error" role="alert">${esc(v.profiel.fout)}</p>` : ''}</div>` : '';
     root.innerHTML =
       `<h3 class="coop-title">${esc(v.title)}</h3>` +
       v.lines.map((l) => `<p>${esc(l)}</p>`).join('') +
+      prof +
       sessies +
       (v.code ? `<pre class="coop-code" tabindex="0" aria-label="Jouw code">${esc(v.code)}</pre>` : '') +
       (v.input ? `<input class="coop-input" type="text" spellcheck="false" autocomplete="off" placeholder="${esc(v.input.placeholder)}"${v.input.maxLength ? ` maxlength="${v.input.maxLength}"` : ''} value="${esc(v.input.value || '')}">` : '') +
       wensen +
       (v.error ? `<p class="coop-error" role="alert">${esc(v.error)}</p>` : '') +
       `<div class="coop-btns">${v.buttons.map((b) => `<button type="button" class="${b.primary ? 'm-bp' : 'm-bg'} coop-btn" data-act="${b.act}"${b.disabled ? ' disabled aria-disabled="true"' : ''}><span class="ss-label">${esc(b.label)}</span></button>`).join('')}</div>`;
+  }
+
+  // ----- online-avatar (#455): het formulier bewaren in de gewone instellingen
+  function bewaarProfiel() {
+    const invoer = root.querySelector('.coop-profiel-naam');
+    state = reduce(state, { t: 'profiel', naam: invoer ? invoer.value : state.profiel.naam });
+    state = reduce(state, { t: 'profiel-klaar' });
+    if (!state.profielFout) { setSetting('onlineNaam', state.profiel.naam); setSetting('onlineKleur', state.profiel.kleur); }
+    draw();
+    return !state.profielFout;
   }
 
   // ----- host
@@ -198,12 +213,13 @@ export function mountLobby(root, hooks, opts = {}) {
 
   // ----- gast
   const nameOf = (char) => (charInfo(char) || {}).naam || '?';
+  const naamVan = (p) => (p && p.avatar && p.avatar.naam) || nameOf(p && p.char); // (#455) de online-avatar gaat voor de figuur
   function watch(sess) {
     session = sess;
     sess.onstatus = (st) => {
       set({ t: 'status', status: st, reason: sess.rejected, ander: sess.remoteVersion, partner: { slot: sess.slot } });
       if (st === 'ok') {
-        if (!sess.lijstGezien && sess.welcome && Array.isArray(sess.welcome.lijst)) set({ t: 'spelers', lijst: sess.welcome.lijst, max: sess.welcome.max });
+        if (!sess.lijstGezien && sess.welcome && Array.isArray(sess.welcome.lijst)) set({ t: 'spelers', lijst: sess.welcome.lijst.map((x) => ({ ...x, naam: naamVan(x) })), max: sess.welcome.max });
         if (!joinedOnce) { joinedOnce = true; if (hooks.joined) hooks.joined(ROLES.GAST); }
         if (opts.start && hooks.resumed) hooks.resumed();
       }
@@ -214,7 +230,7 @@ export function mountLobby(root, hooks, opts = {}) {
         const was = state.caps.startGate; set({ t: 'gate', aan: !!b.aan });
         if (was && !b.aan && hooks.startSpel) hooks.startSpel();
       }
-      if (b && b.k === 'spelers' && Array.isArray(b.lijst)) sess.lijstGezien = true; if (b && b.k === 'spelers' && Array.isArray(b.lijst)) set({ t: 'spelers', lijst: b.lijst.map((x) => ({ ...x, naam: nameOf(x.char) })), max: b.max }); if (prev) prev(b); };
+      if (b && b.k === 'spelers' && Array.isArray(b.lijst)) sess.lijstGezien = true; if (b && b.k === 'spelers' && Array.isArray(b.lijst)) set({ t: 'spelers', lijst: b.lijst.map((x) => ({ ...x, naam: naamVan(x) })), max: b.max }); if (prev) prev(b); };
   }
 
   async function guestStart() {
@@ -275,8 +291,9 @@ export function mountLobby(root, hooks, opts = {}) {
       else if (a === 'route-kamer') set({ t: 'route', route: ROUTES.KAMER });
       else if (a === 'route-direct') set({ t: 'route', route: ROUTES.DIRECT });
       else if (a.startsWith('wens-')) set({ t: 'wens', char: a.slice(5) });
-      else if (a === 'koppel') set({ t: 'invoer', text: input ? input.value : '' });
+      else if (a === 'koppel') { bewaarProfiel(); set({ t: 'invoer', text: input ? input.value : '' }); }
       else if (a === 'akkoord') {
+        bewaarProfiel(); // de avatar die anderen straks zien (#455), vóór de verbinding
         set({ t: 'akkoord' });
         if (state.step === 'host-maakt-code') await hostStart();
         else if (state.step === 'verbinden') await guestStart();
@@ -307,7 +324,13 @@ export function mountLobby(root, hooks, opts = {}) {
   root.addEventListener('click', (e) => {
     const b = e.target.closest && e.target.closest('[data-act]');
     if (b && root.contains(b)) act(b.dataset.act);
+    const k = e.target.closest && e.target.closest('[data-kleur]');
+    if (k && k.dataset && k.dataset.kleur && root.contains(k)) { set({ t: 'profiel', kleur: k.dataset.kleur }); bewaarProfiel(); } // een kleur meteen bewaren
   });
+  root.addEventListener('input', (e) => { // tijdens het typen geen nieuwe tekening: anders raakt het veld zijn focus kwijt
+    if (e.target && e.target.classList && e.target.classList.contains('coop-profiel-naam')) state = reduce(state, { t: 'profiel', naam: e.target.value });
+  });
+  root.addEventListener('change', (e) => { if (e.target && e.target.classList && e.target.classList.contains('coop-profiel-naam')) bewaarProfiel(); });
   draw();
   if (state.step === 'verbroken') planAuto(AUTO_EERSTE);
   return { event: set, state: () => state, close() { cleanup(); root.innerHTML = ''; } };

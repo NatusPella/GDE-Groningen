@@ -91,6 +91,29 @@ t('vier spelers: iedereen krijgt zijn eigen figuur, ziet de anderen met naam en 
   assert.ok(Math.abs(g3.coopFigures[2].x - f0.x) < 2, 'de figuur van Bram staat op de client waar hij op de host staat');
   assert.deepEqual(new Set(s.hw.coopPartners.map((p) => p.kleur)).size, 3);
 });
+t('online-avatar (#455): de naam en kleur uit de kennismaking staan bij de speler en de anderen zien ze bij de figuur', () => {
+  const hw = mkWorld();
+  N.startHost(hw, { ...INFO, avatar: { naam: 'Bouwer', kleur: '#e86a6a' } }, { seed: 5, max: 4 });
+  const gs = [];
+  [{ naam: 'Sanne', kleur: '#5bd6a0' }, { naam: 'Werkman', kleur: '#f2b134' }].forEach((avatar, i) => {
+    const link = createLink({ latency: 0.03, jitter: 0.01, seed: 11 + i });
+    N.addGuest(hw, link.a);
+    const gw = mkWorld();
+    N.startClient(gw, link.b, { ...INFO, avatar }, {});
+    gs.push({ gw, link });
+  });
+  const step = (secs) => { for (let k = 0; k < 60 * secs; k++) { N.tickCoopNet(hw, 1 / 60); for (const g of gs) { if (g.gw.coopNet) N.tickCoopNet(g.gw, 1 / 60); g.link.advance(1 / 60); g.gw.time += 1 / 60; } hw.time += 1 / 60; } };
+  step(2);
+  const rij = (lijst, slot) => lijst.find((r) => r.slot === slot);
+  assert.equal(rij(hw.coopRoster, 0).naam, 'Bouwer'); assert.equal(rij(hw.coopRoster, 0).kleur, '#e86a6a', 'de host heeft zijn eigen avatar');
+  assert.equal(rij(hw.coopRoster, 1).naam, 'Sanne'); assert.equal(rij(hw.coopRoster, 1).kleur, '#5bd6a0', 'en die van de eerste gast');
+  assert.equal(rij(hw.coopRoster, 2).naam, 'Werkman', 'en die van de tweede');
+  assert.equal(rij(gs[0].gw.coopRoster, 0).avatar.naam, 'Bouwer', 'de gast ziet de avatar van de host in de spelerslijst');
+  assert.equal(rij(gs[0].gw.coopSpelers, 0).naam, 'Bouwer', 'en in het spelersoverzicht');
+  assert.equal(rij(gs[0].gw.coopSpelers, 0).kleur, '#e86a6a');
+  assert.equal(gs[0].gw.coopFigures[2].naam, 'Werkman', 'de figuur van de ander draagt zijn avatar-naam');
+  assert.equal(gs[0].gw.coopFigures[2].kleur, '#f2b134');
+});
 t('eigen voortgang voor ieder: het geld van elke gast blijft van hem; beloningen per speler', () => {
   const s = sessie(2, { hostExtra: { money: 250 }, gastExtra: [{ money: 40 }, { money: 7 }] });
   s.step(2);
