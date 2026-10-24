@@ -210,3 +210,38 @@ export function plaatsSafehuis(h, map, d, bezet = null, draai = 0) {
   const q = zoekPlek(h, map, d, draai);
   return q ? { ...q, deur: deurVan(q.x, q.y, q.ang), soort: 'huisje' } : null;
 }
+
+// --- de kamer van een pand (#458) -------------------------------------------------------------------------------------
+//
+// Een eigen safehouse in een bestaand pand heeft één kamer achter de voordeur, op de eerste verdieping (boven de
+// gebouwenbotsing van de straat, die alles boven 4 m laat gaan). Deze getallen zijn puur, zodat safehuisplek_test ze op de
+// echte stadspanden kan controleren: de kamer past binnen het pand en de meubels staan de deur niet in de weg.
+export const KAMER_MIN = 3.0, KAMER_MAX = 4.4, KAMER_RAND = 1.2, KAMER_FLOOR = 4.2;
+
+// De maat van de kamer: het kleinste vak van het pand min een rand, met een onder- en bovengrens.
+export function kamerMaat(box) {
+  const maat = box ? Math.min(box.w, box.l) - KAMER_RAND : KAMER_MAX;
+  return Math.round(Math.max(KAMER_MIN, Math.min(KAMER_MAX, maat)) * 10) / 10;
+}
+
+// De indeling in het frame van de kamer (x langs de gevel, z naar binnen, de oorsprong op de gevel bij de deur): het bed
+// tegen de achterwand, de kast links, het keukenblok rechts, een tafel bij de deur.
+export function kamerSpots(s) {
+  return {
+    binnen: { x: 1.7, z: 0.9 }, deur: { x: 1.7, z: 0.7 },
+    bed: { x: s / 2 + 0.15, z: s - 0.55 },
+    kast: { x: 0.33, z: s - 1.75 },
+    keuken: { x: s - 0.33, z: s - 1.75 },
+    tafel: { x: s / 2, z: 1.35 },
+  };
+}
+
+// De meubels als vaste blokken [x0, z0, x1, z1], net als flat.solids van home.js.
+export function kamerSolids(sp) {
+  return [
+    [sp.bed.x - 0.95, sp.bed.z - 0.45, sp.bed.x + 0.95, sp.bed.z + 0.45],
+    [sp.kast.x - 0.28, sp.kast.z - 0.65, sp.kast.x + 0.28, sp.kast.z + 0.65],
+    [sp.keuken.x - 0.28, sp.keuken.z - 0.7, sp.keuken.x + 0.28, sp.keuken.z + 0.7],
+    [sp.tafel.x - 0.35, sp.tafel.z - 0.25, sp.tafel.x + 0.35, sp.tafel.z + 0.25],
+  ];
+}

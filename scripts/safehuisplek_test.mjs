@@ -159,6 +159,30 @@ t('een kerk, schuur of landmark is nooit een safehouse', () => {
   if (landmark) assert.equal(P.pandGeschikt(landmark, D), false);
 });
 
+// --- de kamer in een pand (#458) -----------------------------------------------------------------------------
+t('de kamer past in elk gekozen pand en de spullen staan de deur en elkaar niet in de weg', () => {
+  for (const g of metPand) {
+    const q = panden.get(g.id), box = P.pandBox(q.pand), s = P.kamerMaat(box);
+    assert.ok(s >= P.KAMER_MIN && s <= P.KAMER_MAX, `${g.naam}: kamer ${s} m`);
+    assert.ok(s <= Math.min(box.w, box.l), `${g.naam}: kamer ${s} m groter dan het pand (${box.w.toFixed(1)}x${box.l.toFixed(1)})`);
+    const sp = P.kamerSpots(s), meubels = P.kamerSolids(sp);
+    for (const [naam, p] of Object.entries(sp)) {
+      assert.ok(p.x > 0.3 && p.x < s - 0.3 && p.z > 0.3 && p.z < s - 0.3, `${g.naam}: ${naam} staat buiten de kamer (${p.x}, ${p.z})`);
+    }
+    for (const naam of ['deur', 'binnen']) {
+      const p = sp[naam];
+      for (const [x0, z0, x1, z1] of meubels) assert.ok(p.x < x0 || p.x > x1 || p.z < z0 || p.z > z1, `${g.naam}: ${naam} staat in de meubels`);
+    }
+    for (let i = 0; i < meubels.length; i++) for (let j = i + 1; j < meubels.length; j++) {
+      const a = meubels[i], b2 = meubels[j];
+      assert.ok(a[2] <= b2[0] || b2[2] <= a[0] || a[3] <= b2[1] || b2[3] <= a[1], `${g.naam}: meubels ${i} en ${j} overlappen`);
+    }
+  }
+});
+t('de kamer ligt op de eerste verdieping: boven de gebouwenbotsing van de straat', () => {
+  assert.ok(P.KAMER_FLOOR > 4, `KAMER_FLOOR ${P.KAMER_FLOOR} m (resolveWalker laat alles boven 4 m gaan)`);
+});
+
 if (process.argv.includes('--list')) console.log(gebieden.map((g) => `${g.id} ${g.naam}: ${plekken.get(g.id) ? 'plek' : 'GEEN'}`).join('\n'));
 console.log(`${n - fails}/${n} geslaagd (${gevonden.length} van ${gebieden.length} gebieden kregen een huisje; ${metPand.length} een bestaand pand)`);
 process.exit(fails ? 1 : 0);
