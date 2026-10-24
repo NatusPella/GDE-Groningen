@@ -56,6 +56,9 @@ export const KAPOT_SOORTEN = ['bench', 'bin', 'chair', 'table', 'parasol', 'bike
 
 // tags voor misc
 export const MISC_KERMIS = 1, MISC_STUNT = 2, MISC_PUNTEN = 3, MISC_PEDS = 4, MISC_DEUREN = 5, MISC_WERELD = 6, MISC_SPREKERS = 7;
+// #452: tijdelijke rekwisieten van de host (twee stukken van hoogstens 255 bytes: tag 8 en 9) en de lijst met doelen van de opdracht (tag 10).
+// Een oudere gast kent deze tags niet en slaat ze over (zelfde formaat, geen nieuwe versie).
+export const MISC_REKWISIETEN = 8, MISC_REKWISIETEN2 = 9, MISC_DOELEN = 10;
 
 const u8 = (v, lo = 0, hi = 255) => Math.min(hi, Math.max(lo, Math.round(v) | 0));
 const hexNaarRgb = (h, d) => {
@@ -148,6 +151,8 @@ export function verzamelExtra(world, bij, geheugen, deps = {}) {
   const dl = deurMasker(world, bij); st(MISC_DEUREN, codeerDeuren(dl), !dl.length);
   if (deps.wereld) { const wl = deps.wereld(bij) || []; st(MISC_WERELD, codeerWereld(wl), !wl.length); }
   if (deps.sprekers) { const sl = deps.sprekers(bij, now) || []; st(MISC_SPREKERS, codeerSprekers(sl), !sl.length); }
+  const rk = codeerRekwisieten(verzamelRekwisieten(bij, deps.rekwisieten)); st(MISC_REKWISIETEN, rk[0] || [], !rk[0]); st(MISC_REKWISIETEN2, rk[1] || [], !rk[1]);
+  const dd = verzamelDoelen(bij, deps.doelen); st(MISC_DOELEN, codeerDoelen(dd), !dd.length);
   geheugen.n++;
   return uit;
 }
@@ -524,4 +529,128 @@ export function maakMisc(bronnen, geheugen, now) {
   const sb = codeerStunt(bronnen.stunt); if (sb) { const s = stuk(geheugen, MISC_STUNT, now, sb); if (s) uit.push(s); }
   if (bronnen.punten && bronnen.punten.length) { const p = stuk(geheugen, MISC_PUNTEN, now, codeerPunten(bronnen.punten)); if (p) uit.push(p); }
   return uit;
+}
+
+// ----------------------------------------------------------- tijdelijke rekwisieten en de lijst met doelen (#452)
+// Modules melden wat ze tijdelijk in de wereld zetten met registreerRekwisieten(naam, (bij) => [{ x, y, z, hoek, staat, klein, kleur, id, soort }]);
+// die modules zelf blijven zoals ze zijn. De host kiest per gast de MAX_REKWISIETEN dichtstbijzijnde binnen REKW_RADIUS van wie dan ook (de
+// foci van coopfoci.js zitten al in bij: de lichamen van alle spelers) en pakt ze in twee stukken van hoogstens 255 bytes.
+export const REKW_SOORTEN = ['laser', 'zekering', 'kluis', 'vlag', 'carbid', 'raket', 'wapendrop', 'spijkermat'];
+export const MAX_REKWISIETEN = 40;
+export const REKW_RADIUS = 200;
+const REKW_KOP = 9, REKW_ITEM = 11, REKW_MAX_BYTES = 255;
+const rekwBronnen = new Map(), doelBronnen = new Set();
+export function registreerRekwisieten(naam, fn) { if (typeof fn === 'function') rekwBronnen.set(naam, fn); else rekwBronnen.delete(naam); }
+export function registreerDoelen(fn) { if (typeof fn === 'function') doelBronnen.add(fn); }
+export const wisRegistratie = () => { rekwBronnen.clear(); doelBronnen.clear(); };
+
+// bronnen: functie, Map of object naam -> fn (standaard het register); een bron die faalt, telt niet mee
+export function verzamelRekwisieten(bij, bronnen = null) {
+  const lijst = [];
+  const fns = typeof bronnen === 'function' ? [['', bronnen]] : bronnen ? (bronnen instanceof Map ? [...bronnen] : Object.entries(bronnen)) : [...rekwBronnen];
+  for (const [naam, fn] of fns) {
+    let uit = null; try { uit = fn(bij); } catch (e) { uit = null; }
+    (Array.isArray(uit) ? uit : []).forEach((r, i) => {
+      if (!r || !Number.isFinite(r.x) || !Number.isFinite(r.y)) return;
+      const soort = REKW_SOORTEN.indexOf(r.soort || naam); if (soort < 0) return;
+      const d = dichtbij(bij, r.x, r.y); if (!(d <= REKW_RADIUS)) return;
+      lijst.push({ d, soort, id: (Number.isFinite(r.id) ? r.id : i) & 0xffff, x: r.x, y: r.y, z: Number.isFinite(r.z) ? r.z : 0, hoek: Number.isFinite(r.hoek) ? r.hoek : 0, staat: u8(r.staat || 0), klein: !!r.klein, kleur: r.kleur == null ? null : r.kleur });
+    });
+  }
+  lijst.sort((a, b) => a.d - b.d || a.soort - b.soort || a.id - b.id);
+  return lijst.slice(0, MAX_REKWISIETEN);
+}
+// -> [stuk0, stuk1?]: elk stuk: f32 x, f32 y (ijkpunt), u8 n, dan per rekwisiet u16 id, u8 soort|klein 32|kleur 64, u8 staat, i16 dx, i16 dy (0,05 m), i16 z (0,1 m), u8 hoek, [rgb]
+export function codeerRekwisieten(lijst) {
+  const stukken = []; let cur = null;
+  const open = (r) => { cur = { rx: Math.fround(r.x), ry: Math.fround(r.y), items: [], bytes: REKW_KOP }; stukken.push(cur); };
+  for (const r of lijst || []) {
+    if (!cur) open(r);
+    const kleur = r.kleur == null ? null : hexNaarRgb(r.kleur, 0xffffff), n = REKW_ITEM + (kleur ? 3 : 0);
+    if (cur.bytes + n > REKW_MAX_BYTES) { if (stukken.length >= 2) break; open(r); }
+    if (Math.abs(r.x - cur.rx) * 20 > 32000 || Math.abs(r.y - cur.ry) * 20 > 32000) continue;
+    cur.items.push({ r, kleur }); cur.bytes += n;
+  }
+  return stukken.map((c) => {
+    const b = new Uint8Array(c.bytes); const v = new DataView(b.buffer); let o = 0;
+    v.setFloat32(0, c.rx); v.setFloat32(4, c.ry); v.setUint8(8, c.items.length); o = REKW_KOP;
+    for (const { r, kleur } of c.items) {
+      v.setUint16(o, r.id); v.setUint8(o + 2, r.soort | (r.klein ? 32 : 0) | (kleur ? 64 : 0)); v.setUint8(o + 3, r.staat);
+      v.setInt16(o + 4, kwant(r.x, c.rx)); v.setInt16(o + 6, kwant(r.y, c.ry)); v.setInt16(o + 8, Math.max(-32768, Math.min(32767, Math.round(r.z * 10)))); v.setUint8(o + 10, hoekByte(r.hoek)); o += REKW_ITEM;
+      if (kleur) { b[o++] = kleur[0]; b[o++] = kleur[1]; b[o++] = kleur[2]; }
+    }
+    return b;
+  });
+}
+export function leesRekwisieten(b) {
+  if (!(b instanceof Uint8Array) || b.length < REKW_KOP) return null;
+  const v = new DataView(b.buffer, b.byteOffset, b.byteLength); const rx = v.getFloat32(0), ry = v.getFloat32(4), n = v.getUint8(8);
+  if (!Number.isFinite(rx) || !Number.isFinite(ry) || n > MAX_REKWISIETEN) return null;
+  const uit = []; let o = REKW_KOP;
+  for (let i = 0; i < n; i++) {
+    if (o + REKW_ITEM > b.length) return null;
+    const f = v.getUint8(o + 2), soort = REKW_SOORTEN[f & 31];
+    const r = { id: v.getUint16(o), soort, klein: !!(f & 32), staat: v.getUint8(o + 3), x: rx + v.getInt16(o + 4) * POS_EENHEID, y: ry + v.getInt16(o + 6) * POS_EENHEID, z: v.getInt16(o + 8) / 10, hoek: byteHoek(v.getUint8(o + 10)), kleur: null };
+    o += REKW_ITEM;
+    if (f & 64) { if (o + 3 > b.length) return null; r.kleur = rgbNaarHex(b[o], b[o + 1], b[o + 2]); o += 3; }
+    if (soort) uit.push(r);
+  }
+  return o === b.length ? uit : null;
+}
+
+// Doelen van de opdracht: [{ id, x, y, soort, label }], de dichtstbijzijnde eerst; geen straal (de kaart wil ze allemaal), wel een budget
+export const DOEL_SOORTEN = ['doel', 'controle', 'start', 'klus', 'inbraak'];
+export const MAX_DOELEN = 12, DOEL_LABEL_BYTES = 40;
+export function verzamelDoelen(bij, bronnen = null) {
+  const lijst = [];
+  const fns = typeof bronnen === 'function' ? [bronnen] : bronnen ? [...bronnen] : [...doelBronnen];
+  for (const fn of fns) {
+    let uit = null; try { uit = fn(bij); } catch (e) { uit = null; }
+    (Array.isArray(uit) ? uit : []).forEach((d) => {
+      if (!d || !Number.isFinite(d.x) || !Number.isFinite(d.y)) return;
+      const soort = Math.max(0, DOEL_SOORTEN.indexOf(d.soort));
+      lijst.push({ dist: dichtbij(bij, d.x, d.y), id: (Number.isFinite(d.id) ? d.id : lijst.length) & 255, x: d.x, y: d.y, soort, label: String(d.label || '') });
+    });
+  }
+  lijst.sort((a, b) => a.dist - b.dist || a.id - b.id);
+  return lijst.slice(0, MAX_DOELEN);
+}
+const knipUtf8 = (bytes, max) => { let n = Math.min(bytes.length, max); while (n > 0 && n < bytes.length && (bytes[n] & 0xc0) === 0x80) n--; return bytes.subarray(0, n); };
+export function codeerDoelen(lijst) {
+  const delen = []; let n = 1;
+  for (const d of (lijst || []).slice(0, MAX_DOELEN)) {
+    const lb = knipUtf8(enc.encode(String(d.label || '')), DOEL_LABEL_BYTES);
+    const len = 11 + lb.length; if (n + len > REKW_MAX_BYTES) break;
+    delen.push({ d, lb }); n += len;
+  }
+  const b = new Uint8Array(n); const v = new DataView(b.buffer); v.setUint8(0, delen.length); let o = 1;
+  for (const { d, lb } of delen) { v.setUint8(o, d.id & 255); v.setUint8(o + 1, Math.max(0, d.soort | 0)); v.setFloat32(o + 2, d.x); v.setFloat32(o + 6, d.y); v.setUint8(o + 10, lb.length); b.set(lb, o + 11); o += 11 + lb.length; }
+  return b;
+}
+export function leesDoelen(b) {
+  if (!(b instanceof Uint8Array) || b.length < 1) return null;
+  const v = new DataView(b.buffer, b.byteOffset, b.byteLength); const n = v.getUint8(0); let o = 1; const uit = [];
+  if (n > MAX_DOELEN) return null;
+  for (let i = 0; i < n; i++) {
+    if (o + 11 > b.length) return null;
+    const x = v.getFloat32(o + 2), y = v.getFloat32(o + 6), l = v.getUint8(o + 10);
+    if (l > DOEL_LABEL_BYTES || o + 11 + l > b.length || !Number.isFinite(x) || !Number.isFinite(y)) return null;
+    uit.push({ id: v.getUint8(o), soort: DOEL_SOORTEN[v.getUint8(o + 1)] || 'doel', x, y, label: dec.decode(b.subarray(o + 11, o + 11 + l)) }); o += 11 + l;
+  }
+  return o === b.length ? uit : null;
+}
+
+// De gast: wat de stand nu zegt (vers; het gelezen resultaat wordt bij het stukje zelf bewaard)
+const versStuk = (stand, tag, nu) => { const m = stand && stand.misc && stand.misc.get(tag); return m && nu - m.at < MISC_TTL ? m : null; };
+export function standRekwisieten(stand, nu) {
+  const uit = [];
+  for (const tag of [MISC_REKWISIETEN, MISC_REKWISIETEN2]) { const m = versStuk(stand, tag, nu); if (m) uit.push(...(m.lijst || (m.lijst = leesRekwisieten(m.data) || []))); }
+  return uit;
+}
+export function standDoelen(stand, nu) { const m = versStuk(stand, MISC_DOELEN, nu); return m ? (m.lijst || (m.lijst = leesDoelen(m.data) || [])) : []; }
+// Alle doelen voor kaart en minimap van een gast; zonder doelenbericht (oudere host) het ene doel uit de snapshot
+export function gastDoelen(world) {
+  const nu = world.time || 0, l = standDoelen(world.coopExtra, nu);
+  if (l.length) return l;
+  return ((world.coopHost && world.coopHost.doelen) || []).slice(0, 1).map((d, i) => ({ id: i, soort: 'doel', x: d.x, y: d.y, label: '' }));
 }
