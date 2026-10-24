@@ -107,6 +107,7 @@ import { updateSluizen3D } from './sluizen3d.js';
 import { initStreetFurniture3D, updateStreetFurniture3D } from './streetfurniture3d.js';
 import { treeDims, treeColor, SPECIES, TREE_FLAG } from './greenery.js';
 import { buildCanopies, streamCanopies } from './canopies3d.js';
+import { buildPerrons3D } from './perrons3d.js';
 import { initGrass, updateGrass, grassFarColor, grassFarRank } from './grass.js';
 import { updateCountryside, setCountryPropLevel } from './countryside.js';
 import { updateOmmelandLandmarks } from './ommelandlandmarks.js';
@@ -1054,6 +1055,8 @@ export function init3D(map) {
   if (railDecks) scene.add(railDecks);
   scene.add(buildCanopies(map));
   streamCanopies(scene, map);
+  const perrons = buildPerrons3D(map);
+  if (perrons) scene.add(perrons);
   initGrass(scene, map, { polyGeometry: (poly) => poly._geoFlat || (poly._geoFlat = buildPolyGeometry(poly.pts)) });
   onSettingsChange(applyViewSettings);
   resize3D();
