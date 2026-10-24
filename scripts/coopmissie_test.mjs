@@ -296,4 +296,20 @@ t('de respawn-haak vraagt de sessie voor neer en voor opgepakt, en de stappen lo
   for (const naam of ['doelStand(', 'teamActor(', 'groepKlaar(', 'meespelerInVoertuig(', 'afstandMeespeler(']) assert.ok(src.includes(naam), `missions.js gebruikt ${naam}`);
 });
 
+t('de marker bij een gast (#434): het doel gaat voor, een doel bij een garage krijgt het garageteken', () => {
+  const st = G.maakGroepen();
+  G.begin(st, LOKET, 1);
+  assert.deepEqual(G.doelMarker(G.doelenVoor(st, 1)[0]), { x: 5, y: 5, soort: 'goal' });
+  // een doel bij een garage of pomp (de spuitdienst): het garageteken, met dezelfde plek
+  const bijGarage = (x, y, m) => Math.hypot(x - 30, y - 30) <= m;
+  assert.deepEqual(G.doelMarker({ x: 30, y: 30 }, bijGarage), { x: 30, y: 30, soort: 'garage' });
+  assert.equal(G.doelMarker({ x: 30, y: 90 }, bijGarage).soort, 'goal', 'verderop is het een gewoon doel');
+  assert.equal(G.doelMarker({ x: 30, y: 90 }, bijGarage, 100).soort, 'garage', 'de afstand is instelbaar');
+  // zonder doel (of met een half doel) geen marker: dan komt het beginpunt van de volgende opdracht
+  assert.equal(G.doelMarker(null), null);
+  assert.equal(G.doelMarker({ x: NaN, y: 5 }), null);
+  assert.equal(G.doelMarker({ x: 5, y: Infinity }), null);
+  assert.equal(G.GARAGE_MARKER_M > 0, true);
+});
+
 console.log(`coopmissie_test: ${n}/${n} ok`);

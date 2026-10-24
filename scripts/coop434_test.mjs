@@ -1,5 +1,6 @@
 // Samen spelen (#434): de wereld loopt door achter het menu, boten, treinen en onzichtbare objecten bij de gast.
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
 import { createLink } from '../game/js/net/memtransport.js';
 import * as N from '../game/js/coopnet.js';
 import { verzamelEntiteiten, leesEntiteiten, ID_TREIN0, SOORT_START, SOORT_DOEL } from '../game/js/coopworld.js';
@@ -125,6 +126,15 @@ t('boten: de boot waar de gast zelf op zit tekent hij precies, een andere boot g
   assert.equal(eigenBoot(eigen, 103, 50), false, 'een andere boot, 3 m verderop');
   assert.equal(eigenBoot(null, 0, 0), false, 'niet in een boot: geen eigen boot');
   assert.equal(eigenBoot({ x: NaN, y: 0 }, 0, 0), false, 'zonder plek: geen eigen boot');
+});
+
+t('de gast tekent de missiemarker in de stijl van de gastheer: het doel gaat voor het beginpunt (#434)', () => {
+  const src = fs.readFileSync(new URL('../game/js/coopentities3d.js', import.meta.url), 'utf8');
+  assert.match(src, /buildWorldMarker3D\('goal'\)/, 'het doel als wereldmarker');
+  assert.match(src, /buildWorldMarker3D\('start'\)/, 'het beginpunt als wereldmarker');
+  assert.match(src, /setWorldMarkerKind\(doelBaken, dm\.soort\)/, 'de soort uit doelMarker (garage of doel)');
+  assert.match(src, /const start = !dm && host\.starts/, 'het beginpunt pas als er geen doel is');
+  assert.match(src, /gastDoelen\(world\)\[0\]/, 'de doelen van de groep van deze gast, met de snapshot als terugval');
 });
 
 console.log(`coop434_test: ${n} tests ok`);

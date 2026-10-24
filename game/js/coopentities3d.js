@@ -1,7 +1,8 @@
 // Samen spelen (#95): de wereld van de host bij een gast, getekend. Voertuigen dicht bij
 // de spelers als vereenvoudigde blokken in de maat en kleur van het voertuig (coopworld.js
-// VOERTUIG_MATEN), en het doel van de opdracht als een lichtzuil. Alleen three.js; de
-// gegevens komen uit world.coopHost (coopnet.js). Niet in beeld bekeken.
+// VOERTUIG_MATEN), en het doel van de opdracht en het beginpunt van de volgende als
+// wereldmarkers in de stijl van de gastheer (worldmarker3d.js, #434). Alleen three.js; de
+// gegevens komen uit world.coopHost (coopnet.js) en world.coopExtra (coopextra.js). Niet in beeld bekeken.
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getScene } from './scene3d.js';
 import { buildVehicleMesh, updateVehicleWheelSpin, applyFlatTire, updateIndicatorLamps, updatePoliceLamps, applyVehicleDamage, setBusRearAngle, updateBikeStaat } from './models3d_vehicles.js';
@@ -9,7 +10,9 @@ import { poseHeliRotors } from './heli3d.js';
 import { uiterlijkSpec } from './coopworld.js';
 import { doorsFor, ensureDoors, wantDoor } from './vehicledoors.js';
 import { syncVehicleDoors } from './vehicledoors3d.js';
-import { standVers, MISC_DEUREN, leesDeuren } from './coopextra.js';
+import { standVers, MISC_DEUREN, leesDeuren, gastDoelen } from './coopextra.js';
+import { doelMarker } from './coopmissie.js';
+import { buildWorldMarker3D, setWorldMarkerKind, updateWorldMarker3D } from './worldmarker3d.js';
 import { WATER_Y } from './util.js';
 import { surfaceLiftAt } from './waterlevels.js';
 import { gladBoot, kiesEigenBoot, deiningBoot, bootBlijft } from './coopboot.js';
@@ -23,9 +26,24 @@ const gladStand = new Map(); // id -> het geheugen van een boot die glad beweegt
 const hornWas = new Map(); // id -> de toeter stond aan (de vorige keer)
 // een voertuig weg uit de scene: een blok heeft eigen geometrie (de materialen zijn gedeeld), echte modellen delen hun geometrie
 const ruimVoertuig = (scene, m) => ruimMeshOp(scene, m, { geometrie: !m.userData.vehicleId });
-let beacon = null, startBaken = null, startHint = -1e9;
+// De opdracht van de host (#434): het doel en het beginpunt van de volgende opdracht als wereldmarkers, in dezelfde stijl
+// als de gastheer ze ziet (worldmarker3d.js). Ze gaan nooit samen: het doel gaat voor (zie `doelMarker` in coopmissie.js).
+let doelBaken = null, startBaken = null, startHint = -1e9;
 const MATS = {};
 const mat = (c) => (MATS[c] ||= new THREE.MeshStandardMaterial({ color: c, roughness: 0.7 }));
+
+// De hoogte van de grond op (x, y); zonder kaart of tegel 0, net als de voertuigen hieronder.
+const grondY = (world, x, y) => {
+  try { return world.map && world.map.groundHeightAt && world.map.elev && world.map.elev.has ? world.map.groundHeightAt(x, y) : 0; } catch (e) { return 0; }
+};
+// Staat dit doel bij een garage of pomp? Een gast heeft dezelfde kaart als de host, dus de garages van de kaart
+// (meta.garages en meta.fuel) staan ook bij hem; zo krijgt de spuitdienst van een opdracht het garageteken.
+function bijGarage(world, x, y, m) {
+  const meta = world.map && world.map.meta;
+  if (!meta) return false;
+  for (const lijst of [meta.garages, meta.fuel]) for (const g of lijst || []) if (g && Number.isFinite(g.x) && Number.isFinite(g.y) && Math.hypot(g.x - x, g.y - y) <= m) return true;
+  return false;
+}
 
 // Het schot van een andere speler (#434): de gast ziet de flits bij de loop en een korte kogelstreep. De kogel zelf
 // rekent de host uit; hier alleen het beeld. Per speler onthouden we de laatste aanval, zodat één schot één flits geeft.
@@ -204,7 +222,7 @@ function bouw(v) {
 }
 
 export const startHintTekst = () => 'Hier begint een opdracht. Hij start zodra wie het spel opende bij de marker staat: dan kun je meedoen.';
-export const hasHostEntities = () => voertuigen.size > 0 || !!beacon || !!startBaken || !!schotLijn;
+export const hasHostEntities = () => voertuigen.size > 0 || !!doelBaken || !!startBaken || !!schotLijn;
 
 // Elke frame (main.js), alleen op een gast.
 export function syncHostEntities(world, dt = 1 / 60) {
@@ -237,7 +255,7 @@ export function syncHostEntities(world, dt = 1 / 60) {
       else { m = bouw(v); m.userData.gok = true; }
       scene.add(m); voertuigen.set(v.id, m); wacht.delete(v.id);
     }
-    const gz = world.map && world.map.groundHeightAt && world.map.elev && world.map.elev.has ? (() => { try { return world.map.groundHeightAt(v.x, v.y); } catch (e) { return 0; } })() : 0;
+    const gz = grondY(world, v.x, v.y);
     let y = v.hoogteZ || gz;
     const spec = m.userData.spec;
     let px = v.x, py = v.y, hoek = v.angle;
@@ -300,22 +318,27 @@ export function syncHostEntities(world, dt = 1 / 60) {
   // de voetgangers (uiterlijk, lopen, praten) tekent coopextra3d.js (#428), samen met dieren, verkeerslichten en kapotte objecten
   let echt = 0; for (const m of voertuigen.values()) if (!m.userData.blok) echt++;
   world.coopHostMeshes = [echt, voertuigen.size - echt, 0, 0]; // [echte modellen, blokken], voor de testbank
-  const doel = host.doelen[0];
-  if (doel && !beacon) {
-    beacon = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.2, 60, 16, 1, true), new THREE.MeshBasicMaterial({ color: 0x3fc97a, transparent: true, opacity: 0.35, depthWrite: false, side: THREE.DoubleSide }));
-    scene.add(beacon);
-  }
-  if (beacon) { beacon.visible = !!doel; if (doel) beacon.position.set(doel.x, 30, doel.y); }
-  // het beginpunt van de volgende opdracht van wie het spel opende: een gele zuil, zoals de gast ook zijn eigen opdrachten ziet (#434)
-  const start = !doel && host.starts && host.starts[0];
+  const doel = gastDoelen(world)[0]; // de doelen van de groep van deze gast (EXTRA), met de snapshot als terugval (#434)
+  const dm = doelMarker(doel, (x, y, m) => bijGarage(world, x, y, m));
+  if (dm) {
+    if (!doelBaken) { doelBaken = buildWorldMarker3D('goal'); scene.add(doelBaken); }
+    doelBaken.visible = true;
+    setWorldMarkerKind(doelBaken, dm.soort); // 'goal', of 'garage' bij de spuitdienst
+    doelBaken.position.set(dm.x, grondY(world, dm.x, dm.y), dm.y);
+    updateWorldMarker3D(doelBaken, klok);
+  } else if (doelBaken) doelBaken.visible = false;
+  // het beginpunt van de volgende opdracht van wie het spel opende: dezelfde gele marker die de gastheer ziet, en pas
+  // als er geen doel is (dezelfde voorrang als op de kaart en de minimap, hud_panel.js `gastStart`, #434)
+  const start = !dm && host.starts && host.starts[0];
   if (start && !startBaken) {
-    startBaken = new THREE.Mesh(new THREE.CylinderGeometry(1.4, 1.4, 40, 16, 1, true), new THREE.MeshBasicMaterial({ color: 0xffd23f, transparent: true, opacity: 0.35, depthWrite: false, side: THREE.DoubleSide }));
+    startBaken = buildWorldMarker3D('start');
     scene.add(startBaken);
   }
   if (startBaken) {
     startBaken.visible = !!start;
     if (start) {
-      startBaken.position.set(start.x, 20, start.y);
+      startBaken.position.set(start.x, grondY(world, start.x, start.y), start.y);
+      updateWorldMarker3D(startBaken, klok);
       const p = world.player;
       if (p && Math.hypot(start.x - p.x, start.y - p.y) < 25 && world.time - startHint > 40 && world.addMessage) { startHint = world.time; world.addMessage(startHintTekst(), 5); }
     }
@@ -330,8 +353,9 @@ export function clearHostEntities() {
   schoten.length = 0; schotGezien.clear();
   if (schotLijn && scene) ruimMeshOp(scene, schotLijn, { materiaal: true });
   schotLijn = null; schotPos = null;
-  if (beacon && scene) ruimMeshOp(scene, beacon, { materiaal: true });
-  beacon = null;
-  if (startBaken && scene) ruimMeshOp(scene, startBaken, { materiaal: true });
+  // de wereldmarkers delen hun glyph- en kolomtextuur met de andere markers (worldmarker3d.js): alleen uit de scene halen
+  if (doelBaken && scene) scene.remove(doelBaken);
+  doelBaken = null;
+  if (startBaken && scene) scene.remove(startBaken);
   startBaken = null;
 }
